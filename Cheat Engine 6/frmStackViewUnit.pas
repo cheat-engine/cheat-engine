@@ -22,6 +22,9 @@ type
     miAddESP: TMenuItem;
     miAddEBP: TMenuItem;
     PopupMenu1: TPopupMenu;
+    procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure lvStackDblClick(Sender: TObject);
     procedure miAddESPClick(Sender: TObject);
     procedure miCopyAddressClick(Sender: TObject);
@@ -73,9 +76,51 @@ begin
 end;
 
 procedure TfrmStackView.lvStackDblClick(Sender: TObject);
+var p: tpoint;
+    a: ptruint;
 begin
   if lvstack.Selected<>nil then
-    MemoryBrowser.hexview.address:=ptruint(lvstack.selected.data);
+  begin
+    //get tht column that is clicked
+    p:=lvStack.ScreenToClient(mouse.CursorPos);
+
+    a:=ptruint(lvstack.selected.data);
+
+    if p.x>lvStack.Column[0].Width then
+      a:=StrToQWord('$'+lvstack.Selected.SubItems[0]);
+
+    if not MemoryBrowser.visible then
+      MemoryBrowser.visible:=true;
+
+    MemoryBrowser.hexview.address:=a;
+  end;
+end;
+
+procedure TfrmStackView.FormDestroy(Sender: TObject);
+begin
+
+end;
+
+procedure TfrmStackView.FormCreate(Sender: TObject);
+var x: array of integer;
+begin
+  setlength(x,0);
+  if LoadFormPosition(self, x) then
+  begin
+    if length(x)>=3 then
+    begin
+      lvstack.Column[0].width:=x[0];
+      lvstack.Column[1].width:=x[1];
+      lvstack.Column[2].width:=x[2];
+    end;
+  end;
+
+end;
+
+procedure TfrmStackView.FormClose(Sender: TObject; var CloseAction: TCloseAction
+  );
+begin
+  SaveFormPosition(self, [lvstack.Column[0].Width, lvstack.Column[1].Width, lvstack.Column[2].Width ]);
 end;
 
 procedure TfrmStackView.SetContextPointer(c: PContext; stack: pbyte; size: integer);

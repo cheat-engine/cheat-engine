@@ -1453,7 +1453,7 @@ begin
 end;
 
 procedure TMemoryBrowser.miReplacewithnopsClick(Sender: TObject);
-var codelength: integer;
+var codelength: dword;
     written: dword;
     bla:string;
     i,j: integer;
@@ -1869,6 +1869,7 @@ var assemblercode,desc: string;
     canceled: boolean;
 
     localdisassembler: TDisassembler;
+    bytelength: dword;
 begin
 
   //make sure it doesnt have a breakpoint
@@ -1949,7 +1950,8 @@ begin
         // get old security and set new security   (not needed in win9x but nt doesnt even allow writeprocessmemory to do this
         original:=0;
 
-        RewriteCode(processhandle,disassemblerview.SelectedAddress,@bytes[0],length(bytes));
+        bytelength:=length(bytes);
+        RewriteCode(processhandle,disassemblerview.SelectedAddress,@bytes[0],bytelength);
         hexview.update;
         disassemblerview.Update;
       end else raise exception.create(Format(rsIDonTUnderstandWhatYouMeanWith, [assemblercode]));

@@ -695,6 +695,7 @@ var memfile: TFilestream;
     check: pchar;
     mem: pointer;
     temp:dword;
+    size: dword;
 begin
   check:=nil;
   try
@@ -709,11 +710,12 @@ begin
       memfile.ReadBuffer(temp,4);
       //temp=startaddress
 
-      getmem(mem,memfile.Size-memfile.Position);
-      memfile.ReadBuffer(mem^,memfile.Size-memfile.Position);
+      size:=memfile.Size-memfile.Position;
+      getmem(mem,size);
+      memfile.ReadBuffer(mem^,size);
 
 
-      RewriteCode(processhandle,temp,mem,memfile.Size-memfile.Position);
+      RewriteCode(processhandle,temp,mem,size);
     end else raise exception.Create(Format(rsDoesnTContainNeededInformationWhereToPlaceTheMemor, [filename]));
   finally
     freemem(check);
@@ -865,6 +867,8 @@ begin
     mainform.Commentbutton.font.style:=mainform.Commentbutton.font.style-[fsBold];
 
   mainform.autoattachcheck; //check if it added an auto attach check and see if it's currently running
+
+  mainform.addresslist.needsToReinterpret:=true;
 end;
 
 

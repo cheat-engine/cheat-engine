@@ -128,6 +128,7 @@ procedure TfrmLuaEngine.MenuItem2Click(Sender: TObject);
 begin
   if OpenDialog1.Execute then
     mscript.Lines.LoadFromFile(opendialog1.filename);
+
 end;
 
 procedure TfrmLuaEngine.MenuItem3Click(Sender: TObject);

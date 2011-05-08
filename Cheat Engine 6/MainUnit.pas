@@ -6120,6 +6120,7 @@ procedure TMainForm.Forcerechecksymbols1Click(Sender: TObject);
 begin
   symhandler.reinitialize;
   symhandler.waitforsymbolsloaded;
+  addresslist.needsToReinterpret:=true;
   addresslist.reinterpretAddresses;
 end;
 

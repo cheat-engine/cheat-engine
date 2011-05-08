@@ -1801,6 +1801,48 @@ begin
   lua_pop(L, parameters);
 end;
 
+function memoryrecord_onDestroy(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  memoryrecord: Tmemoryrecord;
+  f: integer;
+  routine: string;
+
+  lc: TLuaCaller;
+
+//  clickroutine: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    memoryrecord:=lua_touserdata(L,-2);
+
+    CleanupLuaCall(tmethod(memoryrecord.onDestroy));
+    memoryrecord.onDestroy:=nil;
+
+    if lua_isfunction(L,-1) then
+    begin
+      routine:=Lua_ToString(L,-1);
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+      memoryrecord.onDestroy:=lc.NotifyEvent;
+    end
+    else
+    if lua_isstring(L,-1) then
+    begin
+      routine:=lua_tostring(L,-1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+      memoryrecord.onDestroy:=lc.NotifyEvent;
+    end;
+  end;
+
+  lua_pop(L, parameters);
+end;
+
 function isKeyPressed(L: PLua_State): integer; cdecl;
 var parameters: integer;
   keyinput: pchar;
@@ -7640,6 +7682,30 @@ begin
   result:=1;
 end;
 
+function getInstructionSize(L: PLua_State): integer; cdecl;
+var parameters: integer;
+  address, address2: ptruint;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    if lua_isstring(L, -parameters) then
+      address:=symhandler.getAddressFromName(lua_tostring(L,-parameters))
+    else
+      address:=lua_tointeger(L,-parameters);
+
+    lua_pop(L, parameters);
+
+    address2:=address;
+    disassemble(address);
+    lua_pushinteger(L, address-address2);
+    result:=1;
+  end
+  else
+    lua_pop(L, parameters);
+end;
+
 function disassemble_lua(L: PLua_State): integer; cdecl;
 var parameters: integer;
   address: ptruint;
@@ -7662,11 +7728,12 @@ begin
     try
       d.showmodules:=false;
       d.showsymbols:=false;
+      s:=d.disassemble(address, x);
     finally
       d.free;
     end;
 
-    s:=d.disassemble(address, x);
+
     result:=1;
     lua_pushstring(L, s);
   end else lua_pop(L, parameters);
@@ -8326,6 +8393,8 @@ begin
 
     lua_register(LuaVM, 'disassemble', disassemble_lua);
     lua_register(LuaVM, 'splitDisassembledString', splitDisassembledString);
+    lua_register(LuaVM, 'getInstructionSize', getInstructionSize);
+
 
     lua_register(LuaVM, 'customControl_getCanvas', customControl_getCanvas);
     lua_register(LuaVM, 'graphicControl_getCanvas', graphicControl_getCanvas);

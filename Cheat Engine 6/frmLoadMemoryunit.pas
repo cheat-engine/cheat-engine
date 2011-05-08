@@ -175,12 +175,22 @@ end;
 procedure TfrmLoadMemory.Button1Click(Sender: TObject);
 var address,check: dword;
     i: integer;
+    s: dword;
     x: tbarray;
 begin
   for i:=0 to length(buf)-1 do
   begin
     x:=buf[i];
-    RewriteCode(processhandle,tregion(listbox1.items.objects[i]).fromaddress,@x[0],length(buf[i]));
+    s:=length(buf[i]);
+    if not RewriteCode(processhandle,tregion(listbox1.items.objects[i]).fromaddress,@x[0],s) then
+    begin
+      if MessageDlg('Not all the memory can be written in the current memory region. Do you want to force as much as possible into the given region and just discard what can not be written? (Really bad idea)', mtConfirmation, [mbno, mbyes], 0)=mryes then
+      begin
+        s:=length(buf[i]);
+        RewriteCode(processhandle,tregion(listbox1.items.objects[i]).fromaddress,@x[0],s, true);
+        showmessage('Wrote '+inttostr(s)+' bytes out of '+inttostr(length(buf[i])));
+      end;
+    end;
   end;
 
 

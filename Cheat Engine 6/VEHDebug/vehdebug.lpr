@@ -8,6 +8,7 @@ uses
 
 exports ConfigName;
 exports InitializeVEH;
+exports UnloadVEH;
 
 
 begin

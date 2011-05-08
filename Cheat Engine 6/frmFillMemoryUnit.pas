@@ -40,6 +40,7 @@ resourcestring
 procedure TfrmFillMemory.Button1Click(Sender: TObject);
 var start,stop: ptrUint;
     count: qword;
+    count2: dword;
     temp:dword;
     fillvalue:byte;
     buf: array of byte;
@@ -77,8 +78,10 @@ begin
   setlength(buf,count);
   fillmemory(@buf[0],count,fillvalue);
 
+  count2:=count;
+  if count<>count2 then raise exception.create('Region too large');
 
-  RewriteCode(processhandle,start,@buf[0],count);
+  RewriteCode(processhandle,start,@buf[0],count2);
 
   modalresult:=mrok;
 end;

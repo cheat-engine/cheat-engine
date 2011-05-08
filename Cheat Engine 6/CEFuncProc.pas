@@ -83,8 +83,8 @@ function isjumporcall(address: ptrUint; var addresstojumpto: ptrUint): boolean;
 procedure quicksortmemoryregions(lo,hi: integer);     //obsolete
 }
 
-procedure rewritecode(processhandle: thandle; address:ptrUint; buffer: pointer; size:dword);
-procedure rewritedata(processhandle: thandle; address:ptrUint; buffer: pointer; size:dword);
+function rewritecode(processhandle: thandle; address:ptrUint; buffer: pointer; var size:dword; force: boolean=false): boolean;
+function rewritedata(processhandle: thandle; address:ptrUint; buffer: pointer; var size:dword): boolean;
 
 procedure GetProcessList(ProcessList: TListBox; NoPID: boolean=false); overload;
 procedure GetProcessList(ProcessList: TStrings; NoPID: boolean=false); overload;
@@ -2529,20 +2529,79 @@ end;
 
 
 
-procedure rewritedata(processhandle: thandle; address:ptrUint; buffer: pointer; size:dword);
-var written: dword;
-    original,a: dword;
+function rewritedata(processhandle: thandle; address:ptrUint; buffer: pointer; var size:dword): boolean;
+var original,a: dword;
 begin
-//make writable, write, restore, flush
+  //make writable, write, restore, flush
   VirtualProtectEx(processhandle,  pointer(address),size,PAGE_EXECUTE_READWRITE,original);
-  writeprocessmemory(processhandle,pointer(address),buffer,size,written);
+  result:=writeprocessmemory(processhandle,pointer(address),buffer,size,size);
   VirtualProtectEx(processhandle,pointer(address),size,original,a);
 end;
 
-procedure rewritecode(processhandle: thandle; address:ptrUint; buffer: pointer; size:dword);
+function rewritecode(processhandle: thandle; address:ptrUint; buffer: pointer; var size:dword; force: boolean=false): boolean;
+var
+  init: dword;
+  bytesleft: dword;
+  chunk: dword;
 begin
-  rewritedata(processhandle,address,buffer,size);
+  if force then
+  begin
+    result:=true;
+
+    bytesleft:=size;
+    size:=0;
+    init:=4096-(address and $fff); //init now contains the number of bytes needed to write to get to the first boundary
+    init:=min(init, bytesleft);
+    chunk:=init;
+    if rewritedata(processhandle, address, buffer, init)=false then
+      result:=false;
+
+    size:=size+init;
+
+    address:=address+chunk;
+    ptruint(buffer):=ptruint(buffer)+chunk;
+
+    dec(bytesleft, chunk);
+    //address now contains the base address of a page so go from here
+    while (bytesleft>0) do
+    begin
+      chunk:=4096;
+      if rewritedata(processhandle, address, buffer, chunk)=false then
+        result:=false;
+
+      size:=size+chunk;
+      address:=address+4096;
+      ptruint(buffer):=ptruint(buffer)+4096;
+    end;
+
+
+
+  end
+  else
+  begin
+    result:=rewritedata(processhandle,address,buffer,size);
+
   FlushInstructionCache(processhandle,pointer(address),size);
+
+  {
+  else
+  begin
+    //go through a loop of single pages and write as much as possible
+    bytesleft:=size;
+    size:=0;
+
+    //do the first part
+
+    init:=min(size, bytesleft);
+    writeprocessmemory(
+
+
+
+
+  end;
+  }
+end;
+
 end;
 
 function HasHyperthreading: boolean;
@@ -2709,53 +2768,56 @@ var reg: tregistry;
     i: integer;
     s: string;
 begin
-  //save window pos
+  //save window pos (only when it's in a normal state)
+  if form.WindowState=wsNormal then
+  begin
+    reg:=tregistry.create;
+    try
+      Reg.RootKey := HKEY_CURRENT_USER;
 
-  reg:=tregistry.create;
-  try
-    Reg.RootKey := HKEY_CURRENT_USER;
-
-    //make sure the option to save is enabled
-    if Reg.OpenKey('\Software\Cheat Engine',false) then
-    begin
-      if reg.valueexists('Save window positions') then
-        if reg.readbool('Save window positions') = false then exit;
-    end;
-
-    
-    if Reg.OpenKey('\Software\Cheat Engine\Window Positions',true) then
-    begin
-      //registry is open, gather data
-      buf:=tmemorystream.Create;
-      try
-        temp:=form.top;
-        buf.Write(temp,sizeof(temp));
-
-        temp:=form.left;
-        buf.Write(temp,sizeof(temp));
-
-        temp:=form.width;
-        buf.Write(temp,sizeof(temp));
-
-        temp:=form.height;
-        buf.Write(temp,sizeof(temp));
-
-
-        //save extra data
-        for i:=0 to length(extra)-1 do
-          buf.Write(extra[i],sizeof(extra[i]));
-
-        //and now save buf to the registry
-        s:=form.Name;
-        s:=s+' Position';
-
-        reg.WriteBinaryData(s,buf.Memory^,buf.Size);
-      finally
-        buf.free;
+      //make sure the option to save is enabled
+      if Reg.OpenKey('\Software\Cheat Engine',false) then
+      begin
+        if reg.valueexists('Save window positions') then
+          if reg.readbool('Save window positions') = false then exit;
       end;
+
+
+      if Reg.OpenKey('\Software\Cheat Engine\Window Positions',true) then
+      begin
+        //registry is open, gather data
+        buf:=tmemorystream.Create;
+        try
+          temp:=form.top;
+          buf.Write(temp,sizeof(temp));
+
+          temp:=form.left;
+          buf.Write(temp,sizeof(temp));
+
+          temp:=form.width;
+          buf.Write(temp,sizeof(temp));
+
+          temp:=form.height;
+          buf.Write(temp,sizeof(temp));
+
+
+          //save extra data
+          for i:=0 to length(extra)-1 do
+            buf.Write(extra[i],sizeof(extra[i]));
+
+          //and now save buf to the registry
+          s:=form.Name;
+          s:=s+' Position';
+
+          reg.WriteBinaryData(s,buf.Memory^,buf.Size);
+        finally
+          buf.free;
+        end;
+      end;
+    finally
+      reg.free;
     end;
-  finally
-    reg.free;
+
   end;
 end;
 

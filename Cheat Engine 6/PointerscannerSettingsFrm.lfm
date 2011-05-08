@@ -7,7 +7,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   Caption = 'Pointerscanner scanoptions'
   ClientHeight = 431
   ClientWidth = 408
-  Font.Height = -14
+  Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
   OnShow = FormShow

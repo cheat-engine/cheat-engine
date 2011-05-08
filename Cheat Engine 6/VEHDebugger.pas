@@ -30,6 +30,7 @@ type
     function GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false):  BOOL; override;
 
     function DebugActiveProcess(dwProcessId: DWORD): WINBOOL; override;
+    function DebugActiveProcessStop(dwProcessID: DWORD): WINBOOL; override;
     destructor destroy; override;
     constructor create;
   end;
@@ -409,6 +410,32 @@ begin
     begin
       messagebox(0, pchar(e.message), pchar(rsVEHDebugError), MB_OK or MB_ICONERROR);
       result:=false;
+    end;
+  end;
+end;
+
+function TVEHDebugInterface.DebugActiveProcessStop(dwProcessID: DWORD): WINBOOL;
+var prefix: string;
+s: Tstringlist;
+begin
+  if active and (processhandler.processid=processhandler.processid) then
+  begin
+    try
+      if is64Bit then
+        prefix:='-x86_64'
+      else
+        prefix:='-i386';
+
+      s:=tstringlist.Create;
+      try
+        s.Add('CreateThread("vehdebug'+prefix+'.UnloadVEH")');
+        if autoassemble(s,false) then
+          active:=false;
+
+      finally
+        s.free;
+      end;
+    except
     end;
   end;
 end;

@@ -1,7 +1,7 @@
 object frmLuaEngine: TfrmLuaEngine
   Left = 534
   Height = 287
-  Top = 199
+  Top = 200
   Width = 596
   HelpContext = 19
   Caption = 'Lua Engine'

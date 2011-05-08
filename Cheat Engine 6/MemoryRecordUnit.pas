@@ -88,7 +88,7 @@ type
     Hotkeylist: tlist;
 
     fonactivate, fondeactivate: TActivateEvent;
-
+    fOnDestroy: TNotifyEvent;
     function getByteSize: integer;
     function BinaryToString(b: pbytearray; bufsize: integer): string;
     function getAddressString: string;
@@ -190,6 +190,7 @@ type
 
     property onActivate: TActivateEvent read fOnActivate write fOnActivate;
     property onDeactivate: TActivateEvent read fOnDeActivate write fOndeactivate;
+    property onDestroy: TNotifyEvent read fOnDestroy write fOnDestroy;
   end;
 
   TMemoryRecordHotkey=class
@@ -282,6 +283,9 @@ end;
 destructor TMemoryRecord.destroy;
 var i: integer;
 begin
+  if assigned(fOnDestroy) then
+    fOnDestroy(self);
+
   //unregister hotkeys
   if hotkeylist<>nil then
   begin
@@ -1421,6 +1425,7 @@ var
 
   unparsedvalue: string;
   check: boolean;
+  fs: TFormatSettings;
 begin
   //check if it is a '(description)' notation
   unparsedvalue:=v;
@@ -1501,8 +1506,35 @@ begin
       vtWord: pw^:=strtoint(currentValue);
       vtDword: pdw^:=strtoint(currentValue);
       vtQword: pqw^:=StrToQWordEx(currentValue);
-      vtSingle: if (not fShowAsHex) or (not TryStrToInt('$'+currentvalue, li^)) then ps^:=StrToFloat(currentValue);
-      vtDouble: if (not fShowAsHex) or (not TryStrToQWord('$'+currentvalue, li64^)) then pd^:=StrToFloat(currentValue);
+      vtSingle: if (not fShowAsHex) or (not TryStrToInt('$'+currentvalue, li^)) then
+      begin
+        try
+          fs:=DefaultFormatSettings;
+          ps^:=StrToFloat(currentValue, fs);
+        except
+          if fs.DecimalSeparator='.' then
+            fs.DecimalSeparator:=','
+          else
+          fs.DecimalSeparator:='.';
+
+          ps^:=StrToFloat(currentValue, fs);
+        end;
+      end;
+
+      vtDouble: if (not fShowAsHex) or (not TryStrToQWord('$'+currentvalue, li64^)) then
+      begin
+        try
+          fs:=DefaultFormatSettings;
+          pd^:=StrToFloat(currentValue, fs);
+        except
+          if fs.DecimalSeparator='.' then
+            fs.DecimalSeparator:=','
+          else
+          fs.DecimalSeparator:='.';
+
+          pd^:=StrToFloat(currentValue, fs);
+        end;
+      end;
 
       vtBinary:
       begin

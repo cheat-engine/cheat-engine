@@ -15,10 +15,13 @@ function ContinueDebugEvent(dwProcessId: DWORD; dwThreadId: DWORD; dwContinueSta
 function SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL;
 function GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false): BOOL;
 function DebugActiveProcess(dwProcessId: DWORD): WINBOOL;
+function DebugActiveProcessStop(dwProcessID: DWORD): WINBOOL;
 
 var CurrentDebuggerInterface: TDebuggerInterface;
 
 implementation
+
+uses CEDebugger;
 
 function WaitForDebugEvent(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL;
 begin
@@ -60,7 +63,14 @@ begin
     result:=false;
 end;
 
+function DebugActiveProcessStop(dwProcessID: DWORD): WINBOOL;
+begin
+  if CurrentDebuggerInterface<>nil then
+    result:=CurrentDebuggerInterface.DebugActiveProcessStop(dwProcessID)
+  else
+    result:=cedebugger.DebugActiveProcessStop(dwProcessID);
+end;
 
 
 end.
-
+

@@ -90,7 +90,7 @@ var x: ptrUint;
 begin
   x:=startaddress;
   maxaddress:=startaddress;
-  while not terminated and (maxaddress>=startaddress) do
+  while not terminated and (maxaddress<=startaddress) do
   begin
     maxaddress:=startaddress;
 

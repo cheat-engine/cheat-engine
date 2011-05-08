@@ -696,11 +696,11 @@ begin
       ValueFinder.valuescandoublemax:=valuescandoublemax;
 
       currentaddress:=ptrUint(ValueFinder.FindValue(startaddress));
-      while currentaddress>0 do
+      while (not terminated) and (currentaddress>0) do
       begin
         //if found, find a idle thread and tell it to look for this address starting from level 0 (like normal)
         createdWorker:=false;
-        while not createdworker do
+        while (not terminated) and (not createdworker) do
         begin
           reversescancs.Enter;
           for i:=0 to length(reversescanners)-1 do

@@ -176,114 +176,119 @@ var buf: PByteArray;
   str: string;
   index, len: integer;
 begin
-  //get memory regions
-  buf:=nil;
   try
-    total:=getallmemoryregions(mr);
-    if total>0 then
-    begin
-      maxbuf:=0; //find the max size
-      for i:=0 to length(mr)-1 do
-        maxbuf:=max(mr[i].MemorySize, maxbuf);
-
-      maxbuf:=min(maxbuf, 512*1024);
-
-      getmem(buf, maxbuf);
-
-    end;
-
-    //cleanup
-    for i:=0 to length(mr)-1 do
-    begin
-      if terminated then break;
-
-      currentpos:=0;
-      while (not terminated) and (currentpos<mr[i].MemorySize) do
+    //get memory regions
+    buf:=nil;
+    try
+      total:=getallmemoryregions(mr);
+      if total>0 then
       begin
-        if mr[i].BaseAddress=$283b000 then
-        begin
-          asm
-          nop
-          nop
-          nop
-          end
-        end;
+        maxbuf:=0; //find the max size
+        for i:=0 to length(mr)-1 do
+          maxbuf:=max(mr[i].MemorySize, maxbuf);
 
-        unicode:=false;
-        s:=mr[i].MemorySize;
-        currentbufsize:=4096; //min(s-currentpos, maxbuf);
-        if ReadProcessMemory(processhandle, pointer(mr[i].BaseAddress+currentpos) , buf, currentbufsize,x) then
-        begin
-          //find and add the strings
-          currentbufsize:=x;
+        maxbuf:=min(maxbuf, 512*1024);
 
-          start:=-1;
-          for j:=0 to currentbufsize-2 do
+        getmem(buf, maxbuf);
+
+      end;
+
+      //cleanup
+      for i:=0 to length(mr)-1 do
+      begin
+        if terminated then break;
+
+        currentpos:=0;
+        while (not terminated) and (currentpos<mr[i].MemorySize) do
+        begin
+          if mr[i].BaseAddress=$283b000 then
           begin
-
-
-                                          // \/ unicode is only true when it already has a char, so -1 is valid
-            if (buf[j] in [$20..$7f]) or (unicode and (buf[j]=0) and (buf[j-1]<>0)) then
-            begin
-              if start=-1 then
-              begin
-                start:=j;
-                if buf[j+1]=0 then
-                  unicode:=true;
-              end;
+            asm
+            nop
+            nop
+            nop
             end
-            else
-            begin
-              if start<>-1 then
-              begin
-                //still here, so the previous character was 0 or the current char is invalid
-                if ((not unicode) and (j-start>4)) or (unicode and (j-start>9)) then
-                begin
-                  //found something that resembles a string
-
-                  if regex<>nil then
-                  begin
-                    buf[j]:=0;
-
-                    if unicode then
-                      str:=PWideChar(@buf[start])
-                    else
-                      str:=PChar(@buf[start]);
-
-                    index:=0;
-                    len:=0;
-                    if RegExprPos(regex, pchar(str) , index,len) then
-                    begin
-                      if (not muststartwithregex) or (muststartwithregex and (index=0)) then
-                        AddString(mr[i].BaseAddress+currentpos+start,j-start, unicode);
-                    end
-                  end
-                  else
-                    AddString(mr[i].BaseAddress+currentpos+start,j-start, unicode);
-                end;
-              end;
-
-              start:=-1;
-              unicode:=false;
-            end;
           end;
 
-        end
-        else
-        begin
-          currentbufsize:=4096;
+          unicode:=false;
+          s:=mr[i].MemorySize;
+          currentbufsize:=4096; //min(s-currentpos, maxbuf);
+          if ReadProcessMemory(processhandle, pointer(mr[i].BaseAddress+currentpos) , buf, currentbufsize,x) then
+          begin
+            //find and add the strings
+            currentbufsize:=x;
+
+            start:=-1;
+            for j:=0 to currentbufsize-2 do
+            begin
+
+
+                                            // \/ unicode is only true when it already has a char, so -1 is valid
+              if (buf[j] in [$20..$7f]) or (unicode and (buf[j]=0) and (buf[j-1]<>0)) then
+              begin
+                if start=-1 then
+                begin
+                  start:=j;
+                  if buf[j+1]=0 then
+                    unicode:=true;
+                end;
+              end
+              else
+              begin
+                if start<>-1 then
+                begin
+                  //still here, so the previous character was 0 or the current char is invalid
+                  if ((not unicode) and (j-start>4)) or (unicode and (j-start>9)) then
+                  begin
+                    //found something that resembles a string
+
+                    if regex<>nil then
+                    begin
+                      buf[j]:=0;
+
+                      if unicode then
+                        str:=PWideChar(@buf[start])
+                      else
+                        str:=PChar(@buf[start]);
+
+                      index:=0;
+                      len:=0;
+                      if RegExprPos(regex, pchar(str) , index,len) then
+                      begin
+                        if (not muststartwithregex) or (muststartwithregex and (index=0)) then
+                          AddString(mr[i].BaseAddress+currentpos+start,j-start, unicode);
+                      end
+                    end
+                    else
+                      AddString(mr[i].BaseAddress+currentpos+start,j-start, unicode);
+                  end;
+                end;
+
+                start:=-1;
+                unicode:=false;
+              end;
+            end;
+
+          end
+          else
+          begin
+            currentbufsize:=4096;
+          end;
+
+          inc(currentpos, currentbufsize);
+          inc(totalhandled, currentbufsize);
+          progressbar.Position:=trunc((totalhandled / total) * 100);
         end;
-
-        inc(currentpos, currentbufsize);
-        inc(totalhandled, currentbufsize);
-        progressbar.Position:=trunc((totalhandled / total) * 100);
       end;
-    end;
-  finally
-    if buf<>nil then
-      freemem(buf);
+    finally
+      if buf<>nil then
+        freemem(buf);
 
-    synchronize(docleanup);
+      synchronize(docleanup);
+    end;
+  except
+    on e: exception do
+      MessageBox(0, pchar(e.message),'Unhandled TStringScan crash', MB_OK or MB_ICONERROR);
   end;
 end;
 
@@ -397,6 +402,9 @@ begin
         regflags:=[ref_caseinsensitive];
 
       regex:=GenerateRegExprEngine(pchar(edtRegExp.Text), regflags);
+
+      if regex=nil then
+        raise exception.create('GenerateRegExprEngine failed');
     end
     else
       regex:=nil;

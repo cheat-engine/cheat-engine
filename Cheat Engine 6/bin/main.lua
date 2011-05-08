@@ -141,6 +141,7 @@ getCheatEngineDir(): Returns the folder Cheat Engine is located at
 disassemble(address): Disassembles the given address and returns a string in the format of "address - bytes - opcode : extra"
 splitDisassembledString(disassembledstring): Returns 4 strings. The address, bytes, opcode and extra field
 
+getInstructionSize(address): Returns the size of an instruction (basically it disassembles the instruction and returns the number of bytes for you)
 
 
 
@@ -492,7 +493,7 @@ Timer Class : (Inheritance: Component->object)
 createTimer(owner, enabled OPT): 
   Creates a timer object. If enabled is not given it will be enabled by default (will start as soon as an onTimer event has been assigned)
   Owner may be nil, but you will be responsible for destroying it
-timer_setInterval(timer, interval)
+timer_setInterval(timer, interval) : Sets the speed on how often the timer should trigger. In milliseconds (1000=1 second)
 timer_onTimer(timer, function)
 timer_getEnabled(timer)
 timer_setEnabled(timer, boolean)
@@ -621,6 +622,7 @@ memoryrecord_getHotkey(memoryrecord, index): Returns a memoryrecordhotkey class
 memoryrecord_getHotkeyByID(memoryrecord, ID): Every hotkey in a memoryrecord gets an unique ID. This way you can always find the hotkey even if the order of hotkeys has changed (or deleted)
 memoryrecord_onActivate(memoryrecord, function): function (memoryrecord, before, currentstate): boolean; If before is true returning false will cause the activation to stop
 memoryrecord_onDeactivate(memoryrecord, function): function (memoryrecord, before, currentstate): boolean; If before is true returning false will cause the deactivation to stop
+memoryrecord_onDestroy(memoryrecord, function): function (memoryrecord) : Called when a memory record is destroyed
 memoryrecord_setDescription(te, description): sets the specified description for this entry
 memoryrecord_getDescription(te): gets the current description of this entry
 memoryrecord_getAddress(te): returns the address and optional offsets for a pointer (note that in 64-bit kernelmode addresses will be rounded down...)

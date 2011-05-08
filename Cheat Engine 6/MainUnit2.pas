@@ -266,6 +266,8 @@ begin
           if reg.ValueExists('Saved Stacksize') then
             savedStackSize:=reg.ReadInteger('Saved Stacksize');
 
+          edtStacksize.text:=inttostr(savedStackSize);
+
           if reg.valueexists('Show processlist in mainmenu') then
             cbShowProcesslist.checked:=reg.readbool('Show processlist in mainmenu');
 

@@ -25,6 +25,7 @@ type
     function SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL; virtual; abstract;
     function GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false): BOOL; virtual; abstract;
     function DebugActiveProcess(dwProcessId: DWORD): BOOL; virtual; abstract;
+    function DebugActiveProcessStop(dwProcessID: DWORD): BOOL; virtual;
 
     property DebuggerCapabilities: TDebuggerCapabilitiesSet read fDebuggerCapabilities;
     property errorstring: string read ferrorstring;
@@ -33,5 +34,11 @@ end;
 
 implementation
 
+function TDebuggerInterface.DebugActiveProcessStop(dwProcessID: DWORD): BOOL;
+begin
+  //don't complain if not implemented
+  result:=true;
+end;
+
 end.
-
+

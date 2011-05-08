@@ -7,6 +7,9 @@ object frmStackView: TfrmStackView
   Caption = 'Stack View'
   ClientHeight = 240
   ClientWidth = 320
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
   LCLVersion = '0.9.31'
   object lvStack: TListView
     Left = 0
@@ -32,6 +35,7 @@ object frmStackView: TfrmStackView
       end>
     HideSelection = False
     MultiSelect = True
+    PopupMenu = PopupMenu1
     ReadOnly = True
     RowSelect = True
     TabOrder = 0

@@ -30,7 +30,7 @@ end;
 
 implementation
 
-uses LuaHandler;
+uses LuaHandler, mainunit;
 
 procedure TProcessHandler.setIs64bit(state: boolean);
 begin
@@ -52,6 +52,9 @@ begin
 
   if processhandle<>0 then
     LUA_functioncall('onOpenProcess', [ptruint(processid)]);
+
+  if (mainform<>nil) and (mainform.addresslist<>nil) then
+    mainform.addresslist.needsToReinterpret:=true;
 end;
 
 procedure TProcessHandler.Open;

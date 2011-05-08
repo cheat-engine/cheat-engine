@@ -38,6 +38,8 @@ type
     valuetypesortdirection: boolean;
     valuesortdirection: boolean;
 
+
+
     function getTreeNodes: TTreenodes;
     procedure setTreeNodes(t: TTreenodes);
     procedure AdvancedCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode; State: TCustomDrawState; Stage: TCustomDrawStage; var PaintImages, DefaultDraw: Boolean);
@@ -75,6 +77,8 @@ type
     function valuecompare(a: tmemoryrecord; b: tmemoryrecord): integer;
     procedure sort(firstnode: ttreenode; compareRoutine: TCompareRoutine; direction: boolean);
   public
+    needsToReinterpret: boolean;
+
     procedure sortByActive;
     procedure sortByDescription;
     procedure sortByAddress;
@@ -171,9 +175,17 @@ end;
 procedure TAddresslist.ReinterpretAddresses;
 var i: integer;
 begin
-  RefreshCustomTypes;
-  for i:=0 to count-1 do
-    MemRecItems[i].ReinterpretAddress;
+  if symhandler.isloaded and (needsToReinterpret) then
+  begin
+    RefreshCustomTypes;
+    for i:=0 to count-1 do
+      MemRecItems[i].ReinterpretAddress;
+
+    needsToReinterpret:=false;
+  end;
+
+  if symhandler.isloaded=false then
+    needsToReinterpret:=true;
 end;
 
 procedure TAddresslist.setPopupMenu(menu: TPopupMenu);

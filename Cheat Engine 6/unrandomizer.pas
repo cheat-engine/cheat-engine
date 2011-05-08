@@ -1,5 +1,7 @@
 unit unrandomizer;
 
+//Todo, update with new tech
+
 {$MODE Delphi}
 
 interface
@@ -72,6 +74,7 @@ end;
 
 procedure TUnrandomize.restore;
 var i: integer;
+    l: dword;
 begin
   if (processhandle<>cefuncproc.ProcessHandle) and (processid=cefuncproc.ProcessID) then
     processhandle:=cefuncproc.ProcessHandle; //e.g debugger
@@ -79,7 +82,8 @@ begin
   //restore the replaced code with the original
   for i:=0 to length(originalcode)-1 do
   begin
-    rewritecode(processhandle,originalcode[i].address,originalcode[i].code,length(originalcode[i].code));
+    l:=length(originalcode[i].code);
+    rewritecode(processhandle,originalcode[i].address,originalcode[i].code,l);
     setlength(originalcode[i].code,0);
   end;
 
@@ -116,6 +120,8 @@ var memoryregion: tmemoryregions;
     defaultreturn: integer;
     incremental: boolean;
     counter: pointer;
+
+    l: dword;
 begin
   if processhandler.is64bit then raise exception.create(rsTheUnrandomizerWillCurrentlyNotWorkOn64BitApplicat);
 
@@ -406,7 +412,8 @@ begin
         begin
           //save this code and replace
           save(memoryregion[i].BaseAddress+j,@buffer[j],22);
-          rewritecode(processhandle,memoryregion[i].BaseAddress+j,@delphireplace[0],length(delphireplace));
+          l:=length(delphireplace);
+          rewritecode(processhandle,memoryregion[i].BaseAddress+j,@delphireplace[0],l);
         end;
 
         {
@@ -445,7 +452,8 @@ begin
         begin
           //save this code and replace
           save(memoryregion[i].BaseAddress+j,@buffer[j],26);
-          rewritecode(processhandle,memoryregion[i].BaseAddress+j,@vcreplace[0],length(vcreplace)); //size is always 12
+          l:=length(vcreplace);
+          rewritecode(processhandle,memoryregion[i].BaseAddress+j,@vcreplace[0],l); //size is always 12
         end;
 
         {
@@ -484,8 +492,9 @@ begin
            (buffer[j+33]=$c3) then
         begin
           //save this code and replace
+          l:=length(msvcrtreplace);
           save(memoryregion[i].BaseAddress+j,@buffer[j],length(msvcrtreplace));
-          rewritecode(processhandle,memoryregion[i].BaseAddress+j,@msvcrtreplace[0],length(msvcrtreplace)); //size is always 12
+          rewritecode(processhandle,memoryregion[i].BaseAddress+j,@msvcrtreplace[0],l); //size is always 12
         end;
 
 
@@ -535,8 +544,9 @@ begin
            (buffer[j+117]=$b9) then
         begin
           //save this code and replace
+          l:=length(ibasicreplace);
           save(memoryregion[i].BaseAddress+j,@buffer[j],length(ibasicreplace));
-          rewritecode(processhandle,memoryregion[i].BaseAddress+j,@ibasicreplace[0],length(ibasicreplace));
+          rewritecode(processhandle,memoryregion[i].BaseAddress+j,@ibasicreplace[0],l);
         end;
 
 

@@ -570,7 +570,7 @@ begin
 end;
 
 procedure TFoundCodeDialog.btnReplacewithnopsClick(Sender: TObject);
-var codelength: integer;
+var codelength: dword;
     written: dword;
     i,j: integer;
     nops: array of byte;

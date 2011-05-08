@@ -15,6 +15,7 @@ var
 
 
 procedure InitializeVEH;
+procedure UnloadVEH;
 
 var AddVectoredExceptionHandler: function (FirstHandler: Cardinal; VectoredHandler: PVECTORED_EXCEPTION_HANDLER): pointer; stdcall;
     RemoveVectoredExceptionHandler: function(VectoredHandlerHandle: PVOID): ULONG; stdcall;
@@ -95,15 +96,9 @@ begin
   Thread32Next:=GetProcAddress(k,'Thread32Next');
 
 
+  UnloadVEH;
 
-  if assigned(RemoveVectoredExceptionHandler) then
-  begin
-    if oldExceptionHandler<>nil then //this is a re-initialization, first disable the old one
-    begin
-      RemoveVectoredExceptionHandler(oldExceptionHandler);
-      oldExceptionHandler:=nil;
-    end;
-  end;
+
 
   testandfixcs_start;
 
@@ -181,9 +176,18 @@ begin
 
 
   end;
+end;
 
-
-
+procedure UnloadVEH;
+begin
+  if assigned(RemoveVectoredExceptionHandler) then
+  begin
+    if oldExceptionHandler<>nil then
+    begin
+      RemoveVectoredExceptionHandler(oldExceptionHandler);
+      oldExceptionHandler:=nil;
+    end;
+  end;
 end;
 
 end.
