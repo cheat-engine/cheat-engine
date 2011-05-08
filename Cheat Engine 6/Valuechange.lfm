@@ -2,13 +2,13 @@ object ValueChangeForm: TValueChangeForm
   Left = 1245
   Height = 106
   Top = 568
-  Width = 273
+  Width = 240
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Change Offset: ########'
   ClientHeight = 106
-  ClientWidth = 273
-  Font.Height = -14
+  ClientWidth = 240
+  Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   OnCreate = FormCreate
@@ -16,11 +16,11 @@ object ValueChangeForm: TValueChangeForm
   Position = poScreenCenter
   LCLVersion = '0.9.31'
   object VarType: TComboBox
-    Left = 20
-    Height = 24
-    Top = 31
+    Left = 16
+    Height = 21
+    Top = 32
     Width = 149
-    ItemHeight = 16
+    ItemHeight = 13
     ItemIndex = 0
     Items.Strings = (
       '1 Byte'
@@ -39,37 +39,37 @@ object ValueChangeForm: TValueChangeForm
   end
   object Button1: TButton
     Left = 42
-    Height = 31
+    Height = 27
     Top = 69
-    Width = 92
+    Width = 70
     Caption = 'OK'
     Default = True
     OnClick = Button1Click
     TabOrder = 1
   end
   object Button2: TButton
-    Left = 144
-    Height = 31
+    Left = 128
+    Height = 27
     Top = 69
-    Width = 92
+    Width = 70
     Cancel = True
     Caption = 'Cancel'
     OnClick = Button2Click
     TabOrder = 2
   end
   object ValueText: TEdit
-    Left = 21
-    Height = 24
-    Top = 1
-    Width = 236
+    Left = 16
+    Height = 21
+    Top = 8
+    Width = 212
     TabOrder = 3
     Text = 'ValueText'
   end
   object cbunicode: TCheckBox
     Left = 177
-    Height = 20
+    Height = 19
     Top = 33
-    Width = 71
+    Width = 60
     Caption = 'Unicode'
     TabOrder = 4
     Visible = False

@@ -252,6 +252,7 @@ var write: dword;
     i: Integer;
 
     newvaluest:string;
+    fs: TFormatSettings;
 begin
   val(valuetext.text,newvalue1,i);
   val(valuetext.text,newvalue2,i);
@@ -264,67 +265,61 @@ begin
 
   newvaluest:=valuetext.text;
 
+  fs:=DefaultFormatSettings;
 
   case vartype.itemindex of
-  {$ifdef net}
-{byte}  0       : writeprocessmemorynet(0,pointer(address),addr(newvalue1),1,write);
-{word}  1       : writeprocessmemorynet(0,pointer(address),addr(newvalue2),2,write);
-{dword} 2       : writeprocessmemorynet(0,pointer(address),addr(newvalue3),4,write);
-{int64} 3       : writeprocessmemorynet(0,pointer(address),addr(newvalue6),8,write);
-{float} 4       : writeprocessmemorynet(0,pointer(address),addr(newvalue4),4,write);
-{double}5       : writeprocessmemorynet(0,pointer(address),addr(newvalue5),8,write);
-  {$else}
 {byte}  0       : writeprocessmemory(processhandle,pointer(address),addr(newvalue1),1,write);
 {word}  1       : writeprocessmemory(processhandle,pointer(address),addr(newvalue2),2,write);
 {dword} 2       : writeprocessmemory(processhandle,pointer(address),addr(newvalue3),4,write);
 {int64} 3       : writeprocessmemory(processhandle,pointer(address),addr(newvalue6),8,write);
 {float} 4       : begin
-
-                    if write<>0 then
-                    begin
-
-                      if newvaluest[write]=',' then newvaluest[write]:='.'
+                    try
+                      newvalue4:=StrToFloat(valuetext.text, fs);
+                    except
+                      if fs.DecimalSeparator='.' then
+                        fs.DecimalSeparator:=','
                       else
-                      if newvaluest[write]='.' then newvaluest[write]:=',';
+                        fs.DecimalSeparator:='.';
 
-                      i:=0;
-                      val(newvaluest,newvalue4,i);
-                      write:=i;
+                      try
+                        newvalue4:=StrToFloat(valuetext.text, fs);
 
+                      except
+                        exit; //quit
+                      end;
                     end;
 
                     writeprocessmemory(processhandle,pointer(address),addr(newvalue4),4,write);
                   end;
 
 {double}5       : begin
-                    if write<>0 then
-                    begin
-                      if newvaluest[write]=',' then newvaluest[write]:='.'
+                    try
+                      newvalue5:=StrToFloat(valuetext.text, fs);
+                    except
+                      if fs.DecimalSeparator='.' then
+                        fs.DecimalSeparator:=','
                       else
-                      if newvaluest[write]='.' then newvaluest[write]:=',';
+                        fs.DecimalSeparator:='.';
 
-                      i:=0;
-                      val(newvaluest,newvalue5,i);
-                      write:=i;
+                      try
+                        newvalue5:=StrToFloat(valuetext.text, fs);
+
+                      except
+                        exit; //quit
+                      end;
                     end;
 
                     writeprocessmemory(processhandle,pointer(address),addr(newvalue5),8,write);
                   end;
-  {$endif}
+
 {byte}  6       : begin
                     setlength(newstring,length(ValueText.text));
                     for i:=1 to length(ValueText.text) do
                       newstring[i-1]:=ord(ValueText.text[i]);
 
-                    {$ifdef net}
-                    writeprocessmemorynet(0,pointer(address),newstring,length(ValueText.text),write);
-                    {$else}
                     writeprocessmemory(processhandle,pointer(address),newstring,length(ValueText.text),write);
-                    {$endif}
 
                   end;
-
-{$ifndef net}
 
 {bytes} 7       : begin
 //convert the string to bytes
@@ -348,7 +343,6 @@ begin
                     end;
                     writeprocessmemory(processhandle,pointer(address),newstring,length(newstring),write);
                   end;
-{$endif}
   end;
 
   modalresult:=mrok;
