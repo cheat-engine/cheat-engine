@@ -62,7 +62,7 @@ injectDll(filename): Injects a dll, and returns true on success
 
 Cheat table functions:
 
-Table related routines:
+Table related routines: (deprecated, It's recommended to use the memoryrecord class event registration instead)
 If a cheat entry is about to get enabled or disabled it will check if a lua function named "_memrec_description_activating" or "_memrec_description_deactivating" is available, and if so call it.
 If a cheat entry is enabled or disabled it will check if a lua function named "_memrec_description_activated" or "_memrec_description_deactivated" is available, and if so call it.
 It passes the tableEntry pointer as parameter
@@ -279,6 +279,8 @@ stringlist_setCaseSensitive(list, boolean): Sets the case sensitive property
 
 Form Class: (Inheritance: ScrollingWinControl->CustomControl->WinControl->Control->Component->Object)
 createForm(visible OPT): creates a Form class object(window) and returns the pointer for it. Visible is default true but can be changed
+createFormFromFile(filename): Returns the generated form
+form_saveToFile(form, filename): Saves a userdefined form. (DOES NOT WORK ON NORMAL FORMS LIKE MAINFORM)
 form_centerScreen(form); : Places the form at the center of the screen
 form_hide(form) : Hide the form
 form_show(form) : show the form
@@ -287,6 +289,7 @@ form_isForegroundWindow(form): returns true if the specified form has focus
 form_onClose(form, function)  : function (sender) : Return a CloseAction to determine how to close the window
 form_getMenu(form) : Returns the mainmenu object of this form
 form_setMenu(form, mainmenu)
+
 
 GraphicControl Class: (Inheritance: Control->Component->Object)
 graphicControl_getCanvas(graphiccontrol) : Returns the Canvas object for the given object that has inherited from customControl
@@ -840,6 +843,7 @@ hexadecimalview_onAddressChange(hexadecimalview, function): function(hexadecimal
 hexadecimalview_onByteSelect(hexadecimalview, function): function(hexadecimalview, address, address2)
 
 --]]
+
 
 
 

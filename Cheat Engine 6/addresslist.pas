@@ -175,7 +175,7 @@ end;
 procedure TAddresslist.ReinterpretAddresses;
 var i: integer;
 begin
-  if symhandler.isloaded and (needsToReinterpret) then
+ // if symhandler.isloaded and (needsToReinterpret) then
   begin
     RefreshCustomTypes;
     for i:=0 to count-1 do

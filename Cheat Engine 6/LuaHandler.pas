@@ -10,7 +10,7 @@ uses
   windows, Classes, dialogs, SysUtils, lua, lualib, lauxlib, syncobjs, cefuncproc,
   newkernelhandler, autoassembler, Graphics, controls, LuaCaller, forms, ExtCtrls,
   StdCtrls, comctrls, ceguicomponents, generichotkey, luafile, xmplayer_server,
-  ExtraTrainerComponents, customtimer, menus;
+  ExtraTrainerComponents, customtimer, menus, XMLRead, XMLWrite, DOM;
 
 var
   LuaVM: Plua_State;
@@ -168,12 +168,15 @@ begin
 end;
 
 procedure Lua_RegisterObject(name: string; o: TObject);
+var s: integer;
 begin
   LuaCS.enter;
   try
-    lua_pop(LuaVM, lua_gettop(luavm));
+    s:=lua_gettop(L);
     lua_pushlightuserdata(LuaVM, o);
     lua_setglobal(LuaVM, pchar(name));
+
+    lua_settop(L, s);
   finally
     LuaCS.Leave;
   end;
@@ -2368,6 +2371,84 @@ begin
     ce_form_show(f);
   end;
   lua_pop(L, lua_gettop(L));
+end;
+
+function createFormFromFile(L: Plua_State): integer; cdecl;
+var filename: string;
+  f: TCEForm;
+  formnode: TDOMNode;
+  xmldoc: TXMLDocument;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    filename:=Lua_ToString(L, -1);
+    lua_pop(L, lua_gettop(L));
+
+    try
+      xmldoc:=nil;
+      ReadXMLFile(xmldoc, filename);
+
+      if xmldoc<>nil then
+      begin
+        formnode:=xmldoc.FindNode('FormData');
+        f:=TCEForm.Create(application);
+        f.LoadFromXML(formnode);
+
+        lua_pushlightuserdata(L, f);
+        f.ResyncWithLua;
+
+      end;
+    except
+      on e: exception do
+      begin
+        lua_pushstring(L, e.Message);
+        lua_error(L);
+      end;
+    end;
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
+
+function form_saveToFile(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  f: TCEForm;
+  filename: string;
+
+  xmldoc: TXMLDocument;
+  formnode: TDOMNode;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    f:=lua_touserdata(L, -2);
+    filename:=Lua_ToString(L, -1);
+    lua_pop(L, lua_gettop(L));
+
+    try
+      xmldoc:=TXMLDocument.Create;
+
+      formnode:=xmldoc.appendchild(xmldoc.createElement('FormData'));
+
+
+      f.SaveCurrentStateasDesign;
+      f.SaveToXML(formnode);
+
+      WriteXML(xmldoc, filename);
+
+      result:=1;
+      lua_pushboolean(L, true);
+    except
+      result:=1;
+      lua_pushboolean(L, false);
+    end;
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+
 end;
 
 function listView_getCanvas(L: PLua_State): integer; cdecl;
@@ -8028,6 +8109,7 @@ begin
     lua_register(LuaVM, 'memoryrecord_getHotkeyByID', memoryrecord_getHotkeyByID);
     lua_register(LuaVM, 'memoryrecord_onActivate', memoryrecord_onActivate);
     lua_register(LuaVM, 'memoryrecord_onDeactivate', memoryrecord_onDeactivate);
+    lua_register(LuaVM, 'memoryrecord_onDestroy', memoryrecord_onDestroy);
 
 
 
@@ -8150,6 +8232,8 @@ begin
     lua_register(LuaVM, 'stringlist_setCaseSensitive', stringlist_setCaseSensitive);
 
     lua_register(LuaVM, 'createForm', createForm);
+    lua_register(LuaVM, 'createFormFromFile', createFormFromFile);
+
     lua_register(LuaVM, 'form_centerScreen', form_centerScreen);
     lua_register(LuaVM, 'form_onClose', form_onClose);
     lua_register(LuaVM, 'form_show', form_show);
@@ -8158,6 +8242,8 @@ begin
     lua_register(LuaVM, 'form_isForegroundWindow', form_isForegroundWindow);
     lua_register(LuaVM, 'form_getMenu', form_getMenu);
     lua_register(LuaVM, 'form_setMenu', form_setMenu);
+    lua_register(LuaVM, 'form_saveToFile', form_saveToFile);
+
 
     lua_register(LuaVM, 'createPanel', createPanel);
     lua_register(LuaVM, 'panel_getAlignment', panel_getAlignment);
