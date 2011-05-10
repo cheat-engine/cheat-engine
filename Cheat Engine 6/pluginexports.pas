@@ -1567,12 +1567,12 @@ begin
 end;
 
 function ce_createForm2(params: pointer):pointer;
-var f: Tcustomform;
+var f: TCEForm;
   visible: ^boolean;
 begin
   visible:=params;
 
-  f:=Tcustomform.CreateNew(application);
+  f:=TCEForm.CreateNew(application);
   f.borderstyle:=bsSingle;
 
   if visible^ then f.show;

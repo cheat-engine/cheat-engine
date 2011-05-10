@@ -172,11 +172,11 @@ var s: integer;
 begin
   LuaCS.enter;
   try
-    s:=lua_gettop(L);
+    s:=lua_gettop(LuaVM);
     lua_pushlightuserdata(LuaVM, o);
     lua_setglobal(LuaVM, pchar(name));
 
-    lua_settop(L, s);
+    lua_settop(LuaVM, s);
   finally
     LuaCS.Leave;
   end;
@@ -2378,6 +2378,7 @@ var filename: string;
   f: TCEForm;
   formnode: TDOMNode;
   xmldoc: TXMLDocument;
+  parameters: integer;
 begin
   result:=0;
   parameters:=lua_gettop(L);
@@ -2395,10 +2396,10 @@ begin
         formnode:=xmldoc.FindNode('FormData');
         f:=TCEForm.Create(application);
         f.LoadFromXML(formnode);
-
-        lua_pushlightuserdata(L, f);
         f.ResyncWithLua;
 
+        lua_pushlightuserdata(L, f);
+        result:=1;
       end;
     except
       on e: exception do
@@ -2424,26 +2425,35 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    f:=lua_touserdata(L, -2);
-    filename:=Lua_ToString(L, -1);
+    f:=lua_touserdata(L, -parameters);
+    filename:=Lua_ToString(L, -parameters+1);
     lua_pop(L, lua_gettop(L));
 
-    try
-      xmldoc:=TXMLDocument.Create;
-
-      formnode:=xmldoc.appendchild(xmldoc.createElement('FormData'));
+    if (f is TCEForm) then
+    begin
 
 
-      f.SaveCurrentStateasDesign;
-      f.SaveToXML(formnode);
+      try
+        xmldoc:=TXMLDocument.Create;
 
-      WriteXML(xmldoc, filename);
+        formnode:=xmldoc.appendchild(xmldoc.createElement('FormData'));
 
-      result:=1;
-      lua_pushboolean(L, true);
-    except
-      result:=1;
-      lua_pushboolean(L, false);
+        f.SaveCurrentStateasDesign;
+        f.SaveToXML(formnode);
+
+        WriteXML(xmldoc, filename);
+
+        result:=1;
+        lua_pushboolean(L, true);
+      except
+        result:=1;
+        lua_pushboolean(L, false);
+      end;
+    end
+    else
+    begin
+      lua_pushstring(L, 'The given form is not compatible. Formclass='+f.ClassName);
+      lua_error(L);
     end;
   end
   else
