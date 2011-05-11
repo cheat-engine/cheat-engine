@@ -266,7 +266,7 @@ begin
   finally
     outputdebugstring('End of debugger');
     if currentprocesid <> 0 then
-      DebugActiveProcessStop(currentprocesid);
+      debuggerinterfaceAPIWrapper.DebugActiveProcessStop(currentprocesid);
 
     terminate;
     OnAttachEvent.SetEvent;

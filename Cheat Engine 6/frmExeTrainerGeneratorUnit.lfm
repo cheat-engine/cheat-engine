@@ -2,10 +2,10 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
   Left = 492
   Height = 266
   Top = 319
-  Width = 574
+  Width = 576
   Caption = 'Exe Trainer Generator'
   ClientHeight = 266
-  ClientWidth = 574
+  ClientWidth = 576
   Constraints.MinHeight = 234
   Constraints.MinWidth = 490
   OnActivate = FormActivate
@@ -36,9 +36,9 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
       TabOrder = 0
       object rb32: TRadioButton
         Left = 10
-        Height = 19
+        Height = 17
         Top = -4
-        Width = 142
+        Width = 131
         Caption = 'Target process is 32-bit'
         Checked = True
         TabOrder = 0
@@ -46,9 +46,9 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
       end
       object rb64: TRadioButton
         Left = 10
-        Height = 19
+        Height = 17
         Top = 16
-        Width = 142
+        Width = 131
         Caption = 'Target process is 64-bit'
         TabOrder = 1
       end
@@ -65,33 +65,33 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
       TabOrder = 1
       object cbVEHDebug: TCheckBox
         Left = 10
-        Height = 19
+        Height = 17
         Top = 26
-        Width = 97
+        Width = 87
         Caption = 'VEH Debugger'
         TabOrder = 0
       end
       object cbKernelDebug: TCheckBox
         Left = 150
-        Height = 19
+        Height = 17
         Top = 26
-        Width = 85
+        Width = 76
         Caption = 'Kernel Tools'
         TabOrder = 1
       end
       object cbXMPlayer: TCheckBox
         Left = 150
-        Height = 19
+        Height = 17
         Top = 2
-        Width = 70
+        Width = 62
         Caption = 'XMPlayer'
         TabOrder = 2
       end
       object cbSpeedhack: TCheckBox
         Left = 10
-        Height = 19
+        Height = 17
         Top = 2
-        Width = 77
+        Width = 70
         Caption = 'Speedhack'
         TabOrder = 3
       end
@@ -107,10 +107,10 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
     end
     object comboCompression: TComboBox
       Left = 240
-      Height = 23
+      Height = 21
       Top = 146
       Width = 80
-      ItemHeight = 15
+      ItemHeight = 13
       ItemIndex = 3
       Items.Strings = (
         'None'
@@ -124,9 +124,9 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
     end
     object Label1: TLabel
       Left = 168
-      Height = 16
+      Height = 14
       Top = 149
-      Width = 71
+      Width = 62
       Caption = 'Compression'
       ParentColor = False
     end
@@ -154,14 +154,14 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
     Left = 0
     Height = 50
     Top = 216
-    Width = 574
+    Width = 576
     Align = alBottom
     BevelOuter = bvNone
     ClientHeight = 50
-    ClientWidth = 574
+    ClientWidth = 576
     TabOrder = 1
     object Button2: TButton
-      Left = 250
+      Left = 251
       Height = 25
       Top = 16
       Width = 75
@@ -175,17 +175,17 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
     Left = 328
     Height = 216
     Top = 0
-    Width = 246
+    Width = 248
     Align = alClient
     Caption = 'Extra files'
     ClientHeight = 198
-    ClientWidth = 242
+    ClientWidth = 244
     TabOrder = 2
     object ListView1: TListView
       Left = 0
       Height = 163
       Top = 0
-      Width = 242
+      Width = 244
       Align = alClient
       Columns = <      
         item
@@ -209,14 +209,14 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
       Left = 0
       Height = 35
       Top = 163
-      Width = 242
+      Width = 244
       Align = alBottom
       BevelOuter = bvNone
       ClientHeight = 35
-      ClientWidth = 242
+      ClientWidth = 244
       TabOrder = 1
       object btnRemoveFile: TButton
-        Left = 168
+        Left = 170
         Height = 25
         Top = 8
         Width = 75
@@ -227,7 +227,7 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
         TabOrder = 0
       end
       object btnAddFile: TButton
-        Left = 88
+        Left = 90
         Height = 25
         Top = 8
         Width = 75
@@ -237,7 +237,7 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
         TabOrder = 1
       end
       object Button3: TButton
-        Left = 7
+        Left = 9
         Height = 25
         Top = 8
         Width = 75

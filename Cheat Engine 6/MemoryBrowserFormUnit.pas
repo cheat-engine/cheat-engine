@@ -588,6 +588,9 @@ resourcestring
   rsMemoryViewerCurrentlyDebuggingThread = 'Memory Viewer - Currently debugging thread %s';
   rsRestoreWithOrginalCode = 'Restore with orginal code';
   rsReplaceWithCodeThatDoesNothing = 'Replace with code that does nothing';
+  rsComment = 'Comment';
+  rsCommentFor = 'Comment for %s';
+  rsSShowsTheAutoguessValue = '(%s shows the autoguess value)';
 
 
 //property functions:
@@ -762,7 +765,7 @@ procedure TMemoryBrowser.miUserdefinedCommentClick(Sender: TObject);
 var comment: string;
 begin
   comment:=dassemblercomments.comments[disassemblerview.SelectedAddress];
-  if InputQuery('Comment','Comment for '+inttohex(disassemblerview.SelectedAddress,8)+' (%s shows the autoguess value)', comment) then
+  if InputQuery(rsComment, Format(rsCommentFor, [inttohex(disassemblerview.SelectedAddress, 8)])+' '+rsSShowsTheAutoguessValue, comment) then
     dassemblercomments.comments[disassemblerview.SelectedAddress]:=comment;
 
   disassemblerview.Refresh;

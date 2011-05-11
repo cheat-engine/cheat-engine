@@ -48,9 +48,9 @@ object frmStringMap: TfrmStringMap
     end
     object lblStringCount: TLabel
       Left = 9
-      Height = 16
+      Height = 14
       Top = 112
-      Width = 75
+      Width = 69
       Caption = 'Stringcount: 0'
       ParentColor = False
     end
@@ -65,7 +65,7 @@ object frmStringMap: TfrmStringMap
     end
     object edtRegExp: TEdit
       Left = 9
-      Height = 23
+      Height = 21
       Top = 192
       Width = 155
       Enabled = False
@@ -73,27 +73,27 @@ object frmStringMap: TfrmStringMap
     end
     object cbRegExp: TCheckBox
       Left = 9
-      Height = 19
+      Height = 17
       Top = 136
-      Width = 164
+      Width = 149
       Caption = 'Strings must match reg exp'
       OnChange = cbRegExpChange
       TabOrder = 5
     end
     object cbCaseSensitive: TCheckBox
       Left = 9
-      Height = 19
+      Height = 17
       Top = 153
-      Width = 93
+      Width = 87
       Caption = 'Case sensitive'
       Enabled = False
       TabOrder = 6
     end
     object cbMustBeStart: TCheckBox
       Left = 9
-      Height = 19
+      Height = 17
       Top = 170
-      Width = 89
+      Width = 82
       Caption = 'Must be start'
       Enabled = False
       TabOrder = 7

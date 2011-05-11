@@ -181,7 +181,6 @@ end;
 
 procedure TfrmAutoInject.setluamode(state: boolean);
 begin
-{$ifndef standalonetrainerwithassembler}
   fluamode:=state;
   if state then
   begin
@@ -216,7 +215,6 @@ begin
     inject1.Visible:=false;
     helpcontext:=18; //auto asm help
   end;
-{$endif}
 end;
 
 

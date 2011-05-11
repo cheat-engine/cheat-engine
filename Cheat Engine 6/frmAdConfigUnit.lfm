@@ -2,29 +2,29 @@ object frmAdConfig: TfrmAdConfig
   Left = 710
   Height = 266
   Top = 474
-  Width = 350
+  Width = 351
   Caption = 'Support Cheat Engine'
   ClientHeight = 266
-  ClientWidth = 350
+  ClientWidth = 351
   OnCreate = FormCreate
   LCLVersion = '0.9.31'
   object Label1: TLabel
     Left = 0
-    Height = 31
+    Height = 27
     Top = 0
-    Width = 350
+    Width = 351
     Align = alTop
     Caption = 'Thank you for supporting Cheat Engine'#13#10'And to thank you for that I''ll let you share in the generated traffic '
     ParentColor = False
   end
   object GroupBox1: TGroupBox
     Left = 0
-    Height = 235
-    Top = 31
+    Height = 239
+    Top = 27
     Width = 120
     Align = alLeft
     Caption = 'Position'
-    ClientHeight = 217
+    ClientHeight = 221
     ClientWidth = 116
     TabOrder = 0
     object Shape1: TShape
@@ -35,25 +35,25 @@ object frmAdConfig: TfrmAdConfig
     end
     object rbTop: TRadioButton
       Left = 47
-      Height = 19
+      Height = 17
       Top = 0
-      Width = 20
+      Width = 18
       OnChange = PosChange
       TabOrder = 0
     end
     object rbRight: TRadioButton
       Left = 94
-      Height = 19
+      Height = 17
       Top = 50
-      Width = 20
+      Width = 18
       OnChange = PosChange
       TabOrder = 3
     end
     object rbBottom: TRadioButton
       Left = 47
-      Height = 19
+      Height = 17
       Top = 98
-      Width = 20
+      Width = 18
       Checked = True
       OnChange = PosChange
       TabOrder = 1
@@ -61,18 +61,18 @@ object frmAdConfig: TfrmAdConfig
     end
     object rbLeft: TRadioButton
       Left = 6
-      Height = 19
+      Height = 17
       Top = 50
-      Width = 20
+      Width = 18
       OnChange = PosChange
       TabOrder = 2
     end
     object ComboBox1: TComboBox
       Left = 6
-      Height = 23
+      Height = 21
       Top = 137
       Width = 100
-      ItemHeight = 15
+      ItemHeight = 13
       ItemIndex = 2
       Items.Strings = (
         '120x600160x600'
@@ -87,15 +87,15 @@ object frmAdConfig: TfrmAdConfig
     end
     object Label2: TLabel
       Left = 6
-      Height = 16
+      Height = 14
       Top = 121
-      Width = 39
+      Width = 35
       Caption = 'Format'
       ParentColor = False
     end
     object edtwidth: TEdit
       Left = 5
-      Height = 23
+      Height = 21
       Top = 167
       Width = 40
       OnChange = edtwidthChange
@@ -105,7 +105,7 @@ object frmAdConfig: TfrmAdConfig
     end
     object edtHeight: TEdit
       Left = 62
-      Height = 23
+      Height = 21
       Top = 167
       Width = 40
       OnChange = edtHeightChange
@@ -115,17 +115,17 @@ object frmAdConfig: TfrmAdConfig
     end
     object Label3: TLabel
       Left = 50
-      Height = 16
+      Height = 14
       Top = 170
-      Width = 6
+      Width = 7
       Caption = 'x'
       ParentColor = False
     end
     object cbCanClose: TCheckBox
       Left = 5
-      Height = 19
+      Height = 17
       Top = 193
-      Width = 79
+      Width = 73
       Caption = 'Has header'
       Checked = True
       OnChange = cbCanCloseChange
@@ -135,28 +135,28 @@ object frmAdConfig: TfrmAdConfig
   end
   object GroupBox2: TGroupBox
     Left = 120
-    Height = 235
-    Top = 31
-    Width = 230
+    Height = 239
+    Top = 27
+    Width = 231
     Align = alClient
     Caption = 'Extra url'
-    ClientHeight = 217
-    ClientWidth = 226
+    ClientHeight = 221
+    ClientWidth = 227
     TabOrder = 1
     object edtUrl: TEdit
       Left = 6
-      Height = 23
+      Height = 21
       Top = 33
-      Width = 220
+      Width = 221
       Anchors = [akTop, akLeft, akRight]
       Enabled = False
       TabOrder = 0
     end
     object lblPercentage: TLabel
       Left = 6
-      Height = 16
+      Height = 14
       Top = 105
-      Width = 126
+      Width = 120
       Caption = 'Percentage shown: 75%'
       Enabled = False
       ParentColor = False
@@ -175,35 +175,35 @@ object frmAdConfig: TfrmAdConfig
     end
     object cbOwnUrl: TCheckBox
       Left = 6
-      Height = 19
+      Height = 17
       Top = 0
-      Width = 124
+      Width = 111
       Caption = 'Show my own page'
       OnChange = cbOwnUrlChange
       TabOrder = 2
     end
     object lblUrl: TLabel
       Left = 6
-      Height = 16
+      Height = 14
       Top = 18
-      Width = 16
+      Width = 14
       Caption = 'Url'
       Enabled = False
       ParentColor = False
     end
     object edtExtra: TEdit
       Left = 6
-      Height = 23
+      Height = 21
       Top = 73
-      Width = 220
+      Width = 221
       Anchors = [akTop, akLeft, akRight]
       TabOrder = 3
     end
     object lblExtra: TLabel
       Left = 6
-      Height = 16
+      Height = 14
       Top = 57
-      Width = 88
+      Width = 85
       Caption = 'Extra parameters'
       Enabled = False
       ParentColor = False

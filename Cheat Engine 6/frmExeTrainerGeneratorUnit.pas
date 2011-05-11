@@ -92,6 +92,12 @@ resourcestring
     +'for resource updates';
   rsTheTrainerHasBeenSuccessfullyGenerated = 'The trainer has been '
     +'successfully generated';
+  rsNone = 'None';
+  rsFastest = 'Fastest';
+  rsDefault = 'Default';
+  rsMax = 'Max';
+  rsNewFoldername = 'New foldername';
+  rsCETrainerMaker = 'CE trainer maker';
 
 procedure TfrmExeTrainerGenerator.FormActivate(Sender: TObject);
 begin
@@ -421,6 +427,17 @@ procedure TfrmExeTrainerGenerator.FormCreate(Sender: TObject);
 var s: string;
   i: integer;
 begin
+  comboCompression.Items.Clear;
+  with comboCompression.Items do
+  begin
+    add(rsNone);
+    add(rsFastest);
+    add(rsDefault);
+    add(rsMax);
+  end;
+  comboCompression.itemindex:=3;
+
+
   OpenDialog1.InitialDir:=CheatEngineDir;
   SelectDirectoryDialog1.InitialDir:=CheatEngineDir;
 
@@ -461,7 +478,7 @@ begin
   if listview1.Selected<>nil then
   begin
     z:=TFiledata(listview1.Selected.data);
-    InputQuery('New foldername', 'CE trainer maker', z.folder);
+    InputQuery(rsNewFoldername, rsCETrainerMaker, z.folder);
     listview1.Selected.SubItems[0]:=z.folder;
   end;
 end;

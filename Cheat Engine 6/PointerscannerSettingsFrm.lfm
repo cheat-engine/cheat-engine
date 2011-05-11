@@ -79,9 +79,9 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       end
       object CbAlligned: TCheckBox
         Left = 0
-        Height = 19
+        Height = 17
         Top = 0
-        Width = 177
+        Width = 175
         Caption = 'Addresses must be 32-bit alligned'
         Checked = True
         State = cbChecked
@@ -109,9 +109,9 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       end
       object cbStaticOnly: TCheckBox
         Left = 0
-        Height = 19
+        Height = 17
         Top = 20
-        Width = 189
+        Width = 187
         Caption = 'Only find paths with a static address'
         Checked = True
         State = cbChecked
@@ -119,9 +119,9 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       end
       object cbStackAsBase: TCheckBox
         Left = 0
-        Height = 19
+        Height = 17
         Top = 194
-        Width = 332
+        Width = 330
         Caption = 'Accept stack addresses of the main thread as base pointer as well'
         TabOrder = 4
         Visible = False
@@ -138,28 +138,28 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       end
       object cbOnlyStackAsBase: TCheckBox
         Left = 162
-        Height = 19
+        Height = 17
         Top = 236
-        Width = 206
+        Width = 204
         Caption = 'Only use the maintread stack as a base'
         TabOrder = 6
         Visible = False
       end
       object cbUseHeapData: TCheckBox
         Left = 0
-        Height = 19
+        Height = 17
         Top = 148
-        Width = 234
+        Width = 232
         Caption = 'Improve pointerscan with gathered heap data'
         OnClick = cbUseHeapDataClick
         TabOrder = 7
       end
       object cbHeapOnly: TCheckBox
         Left = 16
-        Height = 19
+        Height = 17
         Hint = 'If the address you search for isn''t a heap address, the scan will return 0 results'
         Top = 165
-        Width = 248
+        Width = 246
         Caption = 'Only allow static and heap addresses in the path'
         Enabled = False
         OnClick = cbHeapOnlyClick
@@ -169,17 +169,17 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       end
       object cbOnlyOneStatic: TCheckBox
         Left = 0
-        Height = 19
+        Height = 17
         Top = 60
-        Width = 267
+        Width = 265
         Caption = 'Stop traversing a path when a static has been found'
         TabOrder = 9
       end
       object cbNoReadOnly: TCheckBox
         Left = 0
-        Height = 19
+        Height = 17
         Top = 40
-        Width = 222
+        Width = 220
         Caption = 'Don''t include pointers with read-only nodes'
         Checked = True
         State = cbChecked
@@ -189,9 +189,9 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   end
   object cbMustEndWithSpecificOffset: TCheckBox
     Left = 10
-    Height = 19
+    Height = 17
     Top = 300
-    Width = 199
+    Width = 197
     Caption = 'Pointers must end with specific offsets'
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
@@ -333,9 +333,9 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     TabOrder = 5
     object rbFindAddress: TRadioButton
       Left = 0
-      Height = 19
+      Height = 17
       Top = 4
-      Width = 93
+      Width = 91
       Caption = 'Address to find:'
       Checked = True
       OnChange = rbFindValueClick
@@ -344,9 +344,9 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     end
     object rbFindValue: TRadioButton
       Left = 96
-      Height = 19
+      Height = 17
       Top = 4
-      Width = 82
+      Width = 80
       Caption = 'Value to find:'
       OnChange = rbFindValueClick
       TabOrder = 1
@@ -354,9 +354,9 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   end
   object CheckBox1: TCheckBox
     Left = 10
-    Height = 19
+    Height = 17
     Top = 280
-    Width = 218
+    Width = 216
     Caption = 'Use pointermap from previous pointerscan'
     Checked = True
     Enabled = False

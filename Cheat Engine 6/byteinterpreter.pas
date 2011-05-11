@@ -140,7 +140,7 @@ begin
       else
         a:=ptruint(pdword(buf)^);
 
-      result:='(pointer)'+symhandler.getNameFromAddress(a);
+      result:='(pointer)'+symhandler.getNameFromAddress(a,true,true);
 
 
 //      result:='(pointer)'+inttohex(pqword(buf)^,16) else result:='(pointer)'+inttohex(pdword(buf)^,8);

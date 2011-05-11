@@ -63,11 +63,11 @@ object HotKeyForm: THotKeyForm
       Height = 166
       Top = 1
       Width = 476
-      ActivePage = TabSheet1
+      ActivePage = TabSheet2
       Align = alClient
       Anchors = [akTop, akLeft, akRight]
       ShowTabs = False
-      TabIndex = 0
+      TabIndex = 1
       TabOrder = 0
       object TabSheet1: TTabSheet
         Caption = 'TabSheet1'

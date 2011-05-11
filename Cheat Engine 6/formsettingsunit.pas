@@ -283,6 +283,21 @@ resourcestring
   rsPleaseBootWithUnsignedDriversAllowedF8DuringBootOr = 'Please boot with unsigned drivers allowed(F8 during boot), or sign the driver yourself';
   rsRequiresDBVM = '(Requires DBVM)';
   rsThisPluginIsAlreadyLoaded = 'This plugin is already loaded';
+  rsIdle = 'Idle';
+  rsLowest = 'Lowest';
+  rsLower = 'Lower';
+  rsNormal = 'Normal';
+  rsHigher = 'Higher';
+  rsHighest = 'Highest';
+  rsTimeCritical = 'TimeCritical';
+  rsGeneralSettings = 'General Settings';
+  rsTools = 'Tools';
+  rsHotkeys = 'Hotkeys';
+  rsUnrandomizer = 'Unrandomizer';
+  rsScanSettings = 'Scan Settings';
+  rsPlugins = 'Plugins';
+  rsDebuggerOptions = 'Debugger Options';
+  rsExtra = 'Extra';
 procedure TformSettings.Button1Click(Sender: TObject);
 var processhandle2: Thandle;
     reg: TRegistry;
@@ -904,8 +919,31 @@ end;
 
 procedure TformSettings.FormCreate(Sender: TObject);
 var i: integer;
-
 begin
+  combothreadpriority.Items.Clear;
+  with combothreadpriority.items do
+  begin
+    add(rsIdle);
+    add(rsLowest);
+    add(rsLower);
+    add(rsNormal);
+    add(rsHigher);
+    add(rsHighest);
+    add(rsTimeCritical);
+  end;
+
+  combothreadpriority.ItemIndex:=4;
+
+  tvMenuSelection.Items[0].Text:=rsGeneralSettings;
+  tvMenuSelection.Items[1].Text:=rsTools;
+  tvMenuSelection.Items[2].Text:=rsHotkeys;
+  tvMenuSelection.Items[3].Text:=rsUnrandomizer;
+  tvMenuSelection.Items[4].Text:=rsScanSettings;
+  tvMenuSelection.Items[5].Text:=rsPlugins;
+  tvMenuSelection.Items[6].Text:=rsDebuggerOptions;
+  tvMenuSelection.Items[7].Text:=rsExtra;
+
+
 
   aboutlabel.left:=aboutlabel.parent.ClientWidth-aboutlabel.width;
   aboutlabel.top:=aboutlabel.parent.clientheight-aboutlabel.height;

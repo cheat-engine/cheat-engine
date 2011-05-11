@@ -2037,12 +2037,6 @@ begin
     freeandnil(flashprocessbutton);
   end;
 
-  if (debuggerthread<>nil) then
-  begin
-    debuggerthread.Terminate;
-    debuggerthread.WaitFor;
-    freeandnil(debuggerthread);
-  end;
 
   canceled := False;
   Result := True;

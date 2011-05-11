@@ -25,6 +25,7 @@ type
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure lvStackDblClick(Sender: TObject);
     procedure miAddESPClick(Sender: TObject);
     procedure miCopyAddressClick(Sender: TObject);
@@ -92,7 +93,10 @@ begin
     if not MemoryBrowser.visible then
       MemoryBrowser.visible:=true;
 
-    MemoryBrowser.hexview.address:=a;
+    if p.x>lvStack.column[1].width then
+      MemoryBrowser.disassemblerview.SelectedAddress:=a
+    else
+      MemoryBrowser.hexview.address:=a;
   end;
 end;
 
@@ -101,10 +105,10 @@ begin
 
 end;
 
-procedure TfrmStackView.FormCreate(Sender: TObject);
+procedure TfrmStackView.FormShow(Sender: TObject);
 var x: array of integer;
 begin
-  setlength(x,0);
+  setlength(x,3);
   if LoadFormPosition(self, x) then
   begin
     if length(x)>=3 then
@@ -114,11 +118,14 @@ begin
       lvstack.Column[2].width:=x[2];
     end;
   end;
+end;
+
+procedure TfrmStackView.FormCreate(Sender: TObject);
+begin
 
 end;
 
-procedure TfrmStackView.FormClose(Sender: TObject; var CloseAction: TCloseAction
-  );
+procedure TfrmStackView.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
   SaveFormPosition(self, [lvstack.Column[0].Width, lvstack.Column[1].Width, lvstack.Column[2].Width ]);
 end;
@@ -154,7 +161,7 @@ begin
       p2:=posex(' - ',s,p1+1);
 
       address:=copy(s, 1, p1);
-      value:=copy(s, p1+3, p2-3);
+      value:=copy(s, p1+3, p2-p1-3);
       secondary:=copy(s, p2+3, length(s));
 
       li:=lvStack.Items.Add;

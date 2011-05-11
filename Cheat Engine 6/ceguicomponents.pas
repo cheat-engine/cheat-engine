@@ -693,7 +693,7 @@ type TCEForm=class(TCustomForm)
 //    property OnMouseWheel;
 //    property OnMouseWheelDown;
   //  property OnMouseWheelUp;
- //   property OnPaint;
+    property OnPaint;
    // property OnResize;
    // property OnShortCut;
     property OnShow;

@@ -146,6 +146,7 @@ resourcestring
   rsAddress = 'Address';
   rsType = 'Type';
   rsValue = 'Value';
+  rsScript = '<script>';
 
 procedure TAddresslist.refresh;
 begin
@@ -1469,7 +1470,7 @@ begin
       sender.Canvas.TextOut(descriptionstart, textrect.Top, memrec.description); //no limit on how far
 
       if (memrec.VarType=vtAutoAssembler) then //give it the <script> text for value
-        sender.Canvas.TextRect(rect(header.Sections[4].left, textrect.Top, header.Sections[4].right, textrect.bottom),header.sections[4].left, textrect.top, '<script>');
+        sender.Canvas.TextRect(rect(header.Sections[4].left, textrect.Top, header.Sections[4].right, textrect.bottom), header.sections[4].left, textrect.top, rsScript);
 
     end;
 

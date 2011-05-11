@@ -1378,6 +1378,8 @@ begin
   try
     if not mainform.openprocessPrologue then exit;
 
+    DetachIfPossible;
+
     oldprocessname := copy(mainform.ProcessLabel.Caption, pos('-', mainform.ProcessLabel.Caption) + 1, length(mainform.ProcessLabel.Caption));
     oldprocess := processID;
     oldprocesshandle := processhandle;

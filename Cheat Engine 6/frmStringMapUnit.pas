@@ -37,7 +37,6 @@ type
 
     procedure docleanup;
   public
-
     procedure execute; override;
     constructor create(suspended: boolean; progressbar: TProgressbar; stringtree: TAvgLvlTree; bma: TBigMemoryAllocHandler; regex: TREGExprEngine; muststartwithregex: boolean);
   end;
@@ -357,6 +356,8 @@ begin
     regex.free;
     regex:=nil;
   end;
+
+  lblStringCount.caption:=Format(rsStringcount, ['0']);
 end;
 
 
@@ -365,6 +366,7 @@ procedure TfrmStringMap.btnScanClick(Sender: TObject);
 var mapIdType: TMapIdType;
     regflags: tregexprflags;
 begin
+
   isfillinglist:=false;
 
   if btnScan.caption=rsStop then

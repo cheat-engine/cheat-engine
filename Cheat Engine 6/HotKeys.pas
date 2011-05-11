@@ -74,6 +74,12 @@ uses MainUnit;
 resourcestring
   rsHotkeyID = 'Hotkey ID=%s';
   rsToggleScript = 'Toggle script';
+  rsToggleFreeze = 'Toggle freeze';
+  rsToggleFreezeAndAllowIncrease = 'Toggle freeze and allow increase';
+  rsToggleFreezeAndAllowDecrease = 'Toggle freeze and allow decrease';
+  rsSetValueTo = 'Set value to:';
+  rsDecreaseValueWith = 'Decrease value with:';
+  rsIncreaseValueWith = 'Increase value with:';
 
 
 
@@ -297,6 +303,22 @@ end;
 procedure THotKeyForm.FormCreate(Sender: TObject);
 begin
   pagecontrol1.ActivePage:=tabsheet1;
+
+
+  with cbFreezedirection.Items do
+  begin
+    clear;
+    add(rsToggleFreeze);
+    add(rsToggleFreezeAndAllowIncrease);
+    add(rsToggleFreezeAndAllowDecrease);
+    add(rsSetValueTo);
+    add(rsDecreaseValueWith);
+    add(rsIncreaseValueWith);
+  end;
+
+  cbFreezedirection.itemindex:=0;
+
+
 end;
 
 procedure THotKeyForm.FormShow(Sender: TObject);

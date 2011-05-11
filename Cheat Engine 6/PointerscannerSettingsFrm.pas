@@ -111,9 +111,18 @@ implementation
 uses frmMemoryAllocHandlerUnit, MemoryBrowserFormUnit;
 {$endif}
 
+
+
 resourcestring
   rsAdd = 'Add';
   rsRemove = 'Remove';
+  rsIdle = 'Idle';
+  rsLowest = 'Lowest';
+  rsLower = 'Lower';
+  rsNormal = 'Normal';
+  rsHigher = 'Higher';
+  rsHighest = 'Highest';
+  rsTimeCritical = 'TimeCritical';
 
 constructor TOffsetEntry.create(AOwner: TComponent);
 begin
@@ -240,6 +249,21 @@ end;
 
 procedure TfrmPointerScannerSettings.FormCreate(Sender: TObject);
 begin
+  ComboBox1.Items.Clear;
+  with ComboBox1.items do
+  begin
+    add(rsIdle);
+    add(rsLowest);
+    add(rsLower);
+    add(rsNormal);
+    add(rsHigher);
+    add(rsHighest);
+    add(rsTimeCritical);
+  end;
+
+  ComboBox1.itemindex:=3;
+
+
   pssettings.ActivePage:=PSReverse;
   clientheight:=cbMustEndWithSpecificOffset.top+cbMustEndWithSpecificOffset.Height+2+panel1.height;
 end;

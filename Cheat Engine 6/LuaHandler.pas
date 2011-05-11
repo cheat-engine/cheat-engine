@@ -1628,7 +1628,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    memrec:=lua_touserdata(L,-2);
+    memrec:=lua_touserdata(L,-1);
     ce_memrec_delete(memrec);
   end;
 
@@ -2640,6 +2640,7 @@ begin
     filename:=lua.lua_tostring(L, -1);
     ce_image_loadImageFromFile(i,filename);
   end;
+
 
   lua_pop(L, lua_gettop(L));
 end;
@@ -6353,8 +6354,11 @@ begin
 
 
   ListView:=TCEListView.Create(owner);
+  ListView.ViewStyle:=vsReport;
   if owner<>nil then
     ListView.Parent:=owner;
+
+
 
   lua_pushlightuserdata(L, ListView);
   result:=1;
