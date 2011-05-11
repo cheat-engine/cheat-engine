@@ -2353,16 +2353,21 @@ begin
       dllList:=tstringlist.Create;
 
       try
-        peinfo_getExportList(opendlldialog.filename, dllList);
-        with TfrmSelectionList.create(self,dllList) do
-        begin
-          caption:=rsInjectDll;
-          label1.caption:=rsSelectTheFunctionYouWantToExecute;
-          if showmodal=mrok then
-            if itemindex<>-1 then
-              functionname:=selected;
+        try
+          peinfo_getExportList(opendlldialog.filename, dllList);
 
-          free;
+          with TfrmSelectionList.create(self,dllList) do
+          begin
+            caption:=rsInjectDll;
+            label1.caption:=rsSelectTheFunctionYouWantToExecute;
+            if showmodal=mrok then
+              if itemindex<>-1 then
+                functionname:=selected;
+
+            free;
+          end;
+        except
+
         end;
       finally
         dllList.free;

@@ -338,43 +338,50 @@ begin
   //parse the header
   //get rva 0
   //write rva0 to list
+  result:=false;
+
   fmap:=TFileMapping.create(filename);
-  try
-    header:=fmap.fileContent;
+  if fmap<>nil then
+  begin
+    try
+      header:=fmap.fileContent;
 
-    ImageNtHeader:=peinfo_getImageNtHeaders(header,fmap.filesize);
-    if ImageNTHeader=nil then raise exception.Create(strInvalidFile);
-    if ImageNTHeader^.FileHeader.Machine=$8664 then
-      is64bit:=true
-    else
-      is64bit:=false;
+      ImageNtHeader:=peinfo_getImageNtHeaders(header,fmap.filesize);
+      if ImageNTHeader=nil then raise exception.Create(strInvalidFile);
+      if ImageNTHeader^.FileHeader.Machine=$8664 then
+        is64bit:=true
+      else
+        is64bit:=false;
 
-    OptionalHeader:=peinfo_getOptionalHeaders(header,fmap.filesize);
-    if OptionalHeader=nil then raise exception.Create(strInvalidFile);
+      OptionalHeader:=peinfo_getOptionalHeaders(header,fmap.filesize);
+      if OptionalHeader=nil then raise exception.Create(strInvalidFile);
 
-    if is64bit then
-      ImageExportDirectory:=peinfo_VirtualAddressToFileAddress(header, fmap.filesize, OptionalHeader64^.DataDirectory[0].VirtualAddress)
-    else
-      ImageExportDirectory:=peinfo_VirtualAddressToFileAddress(header, fmap.filesize, OptionalHeader^.DataDirectory[0].VirtualAddress);
+      if is64bit then
+        ImageExportDirectory:=peinfo_VirtualAddressToFileAddress(header, fmap.filesize, OptionalHeader64^.DataDirectory[0].VirtualAddress)
+      else
+        ImageExportDirectory:=peinfo_VirtualAddressToFileAddress(header, fmap.filesize, OptionalHeader^.DataDirectory[0].VirtualAddress);
 
-    if ImageExportDirectory=nil then raise exception.Create(strInvalidFile);
+      if ImageExportDirectory=nil then raise exception.Create(strInvalidFile);
 
-    exportlist:=peinfo_VirtualAddressToFileAddress(header,fmap.filesize, dword(ImageExportDirectory.AddressOfNames));
-    if exportlist=nil then raise exception.Create('No exports');
+      exportlist:=peinfo_VirtualAddressToFileAddress(header,fmap.filesize, dword(ImageExportDirectory.AddressOfNames));
+      if exportlist=nil then raise exception.Create('No exports');
 
-    for i:=0 to ImageExportDirectory.NumberOfNames-1 do
-    begin
-      functionname:=peinfo_VirtualAddressToFileAddress(header,fmap.filesize, exportlist[i]);
+      for i:=0 to ImageExportDirectory.NumberOfNames-1 do
+      begin
+        functionname:=peinfo_VirtualAddressToFileAddress(header,fmap.filesize, exportlist[i]);
 
-      if functionname<>nil then
-        dllList.add(functionname);
+        if functionname<>nil then
+          dllList.add(functionname);
+      end;
+      result:=true;
+    finally
+      fmap.free;
     end;
 
-  finally
-    fmap.free;
   end;
-  
-  result:=true;
+
+
+
 end;
 
 end.

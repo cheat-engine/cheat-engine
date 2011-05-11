@@ -7,7 +7,7 @@ interface
 uses
   windows, LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls,CEFuncProc, ExtCtrls, ComCtrls, Menus, NewKernelHandler, LResources,
-  disassembler, symbolhandler, byteinterpreter, CustomTypeHandler;
+  disassembler, symbolhandler, byteinterpreter, CustomTypeHandler, maps, math;
 
 type
   TAddressEntry=class
@@ -38,6 +38,9 @@ type
     PopupMenu1: TPopupMenu;
     Showregisterstates1: TMenuItem;
     Browsethismemoryregion1: TMenuItem;
+    procedure ChangedlistColumnClick(Sender: TObject; Column: TListColumn);
+    procedure ChangedlistCompare(Sender: TObject; Item1, Item2: TListItem;
+      Data: Integer; var Compare: Integer);
     procedure micbShowAsHexadecimalClick(Sender: TObject);
     procedure OKButtonClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -51,6 +54,7 @@ type
     procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
+    addresslist: TMap;
     procedure refetchValues;
   public
     { Public declarations }
@@ -108,19 +112,17 @@ begin
     if not hasError then
     begin
       //check if this address is already in the list
+      if addresslist.GetData(address, x) then
+      begin
+        inc(x.count);
+        exit;
+      end;
+
       s:=inttohex(address,8);
-      for i:=0 to changedlist.Items.Count-1 do
-        if changedlist.items[i].caption=s then
-        begin
-          //it's in the list
-          //update the count
-          x:=TAddressEntry(changedlist.items[i].data);
-          inc(x.count);
-          changedlist.items[i].SubItems[1]:=inttostr(x.count);
-          exit;
-        end;
 
       //and if not, add it
+
+
       li:=changedlist.Items.add;
       li.caption:=s;
       li.SubItems.Add('');
@@ -136,6 +138,8 @@ begin
 
       li.Data:=x;
 
+      addresslist.Add(address, x);
+
     end;
   end;
 end;
@@ -143,6 +147,7 @@ end;
 procedure TfrmChangedAddresses.OKButtonClick(Sender: TObject);
 var temp: dword;
     i: integer;
+
 begin
 
   if OKButton.caption=rsStop then
@@ -158,6 +163,98 @@ end;
 procedure TfrmChangedAddresses.micbShowAsHexadecimalClick(Sender: TObject);
 begin
   refetchvalues;
+end;
+
+procedure TfrmChangedAddresses.ChangedlistColumnClick(Sender: TObject;
+  Column: TListColumn);
+begin
+  changedlist.SortColumn:=Column.Index;
+  changedlist.SortType:=stData;
+end;
+
+procedure TfrmChangedAddresses.ChangedlistCompare(Sender: TObject; Item1,
+  Item2: TListItem; Data: Integer; var Compare: Integer);
+var i1, i2: TAddressEntry;
+    hex, hex2: qword;
+    x: dword;
+    varsize: integer;
+begin
+  compare:=0;
+  i1:=item1.data;
+  i2:=item2.data;
+
+  if (i1=nil) or (i2=nil) then exit;
+
+  case changedlist.SortColumn of
+    0: //sort by address
+    begin
+      compare:=CompareValue(i1.address, i2.address);
+    end;
+
+
+    1: //sort by value
+    begin
+      hex:=0;
+      hex2:=0;
+      case cbDisplayType.itemindex of
+        0: varsize:=1;
+        1: varsize:=2;
+        2: varsize:=4;
+        3: varsize:=4;
+        4: varsize:=8;
+        else
+        begin
+          Compare:=0;
+          exit;
+        end;
+      end;
+
+      if not ReadProcessMemory(processhandle, pointer(i1.address), @hex, VarSize, x) then
+      begin
+        compare:=-1;//1<2
+        exit;
+      end;
+
+      if not ReadProcessMemory(processhandle, pointer(i2.address), @hex2, VarSize, x) then
+      begin
+        compare:=1;//1>2
+        exit;
+      end;
+
+      if micbShowAsHexadecimal.checked then
+      begin
+        compare:=hex-hex2;
+      end
+      else
+      begin
+        case cbDisplayType.itemindex of
+          0: compare:=byte(hex)-byte(hex2);
+          1: compare:=word(hex)-word(hex2);
+          2: compare:=dword(hex)-dword(hex2);
+          3: if psingle(@hex)^>psingle(@hex2)^ then
+               compare:=1
+             else
+             if psingle(@hex)^=psingle(@hex2)^ then
+               compare:=0
+             else
+               compare:=-1;
+
+          4: if pdouble(@hex)^>pdouble(@hex2)^ then
+               compare:=1
+             else
+             if pdouble(@hex)^=pdouble(@hex2)^ then
+               compare:=0
+             else
+               compare:=-1;
+        end;
+      end;
+    end;
+
+    2: //sort by count
+    begin
+      compare:=CompareValue(i1.count, i2.count);
+    end;
+  end;
 end;
 
 procedure TfrmChangedAddresses.FormClose(Sender: TObject;
@@ -204,28 +301,41 @@ procedure TfrmChangedAddresses.refetchValues;
 var i: integer;
     s: string;
     handled: boolean;
+    startindex: integer;
+    stopindex: integer;
 begin
   if changedlist.Items.Count>0 then
   begin
-    for i:=0 to changedlist.Items.Count-1 do
+    if Changedlist.TopItem=nil then exit;
+
+    startindex:=Changedlist.TopItem.Index;
+    stopindex:=min(Changedlist.TopItem.Index+changedlist.VisibleRowCount, Changedlist.Items.Count-1);
+
+    for i:=startindex to stopindex do
     begin
+
       case cbDisplayType.ItemIndex of
-        0: s:=ReadAndParseAddress(StrToQWordEx('$'+changedlist.items[i].caption), vtByte,  nil, micbShowAsHexadecimal.checked);
-        1: s:=ReadAndParseAddress(StrToQWordEx('$'+changedlist.items[i].caption), vtWord,  nil, micbShowAsHexadecimal.checked);
-        2: s:=ReadAndParseAddress(StrToQWordEx('$'+changedlist.items[i].caption), vtDWord, nil, micbShowAsHexadecimal.checked);
-        3: s:=ReadAndParseAddress(StrToQWordEx('$'+changedlist.items[i].caption), vtSingle,nil, micbShowAsHexadecimal.checked);
-        4: s:=ReadAndParseAddress(StrToQWordEx('$'+changedlist.items[i].caption), vtDouble,nil, micbShowAsHexadecimal.checked);
+        0: s:=ReadAndParseAddress(TAddressEntry(changedlist.items[i].Data).address, vtByte,  nil, micbShowAsHexadecimal.checked);
+        1: s:=ReadAndParseAddress(TAddressEntry(changedlist.items[i].Data).address, vtWord,  nil, micbShowAsHexadecimal.checked);
+        2: s:=ReadAndParseAddress(TAddressEntry(changedlist.items[i].Data).address, vtDWord, nil, micbShowAsHexadecimal.checked);
+        3: s:=ReadAndParseAddress(TAddressEntry(changedlist.items[i].Data).address, vtSingle,nil, micbShowAsHexadecimal.checked);
+        4: s:=ReadAndParseAddress(TAddressEntry(changedlist.items[i].Data).address, vtDouble,nil, micbShowAsHexadecimal.checked);
         else
         begin
           //custom type
-          s:=ReadAndParseAddress(StrToQWordEx('$'+changedlist.items[i].caption), vtCustom, TCustomType(cbDisplayType.Items.Objects[cbDisplayType.ItemIndex]), micbShowAsHexadecimal.checked);
+          s:=ReadAndParseAddress(TAddressEntry(changedlist.items[i].Data).address, vtCustom, TCustomType(cbDisplayType.Items.Objects[cbDisplayType.ItemIndex]), micbShowAsHexadecimal.checked);
         end;
       end;
 
 
 
-      if Changedlist.Items[i].SubItems.Count=0 then
+      while Changedlist.Items[i].SubItems.Count<2 do
         Changedlist.Items[i].SubItems.Add('');
+
+
+      changedlist.items[i].SubItems[1]:=inttostr(TAddressEntry(changedlist.items[i].Data).count);
+
+
 
       Changedlist.Items[i].SubItems[0]:=s;
     end;
@@ -269,6 +379,8 @@ end;
 procedure TfrmChangedAddresses.FormDestroy(Sender: TObject);
 begin
   saveformposition(self,[]);
+  if addresslist<>nil then
+    addresslist.Free;
 end;
 
 procedure TfrmChangedAddresses.FormCreate(Sender: TObject);
@@ -283,6 +395,8 @@ begin
   //fill in the custom types
   for i:=0 to customTypes.count-1 do
     cbDisplayType.Items.AddObject(TCustomType(customTypes[i]).name, customTypes[i]);
+
+  addresslist:=TMap.Create(ituPtrSize,sizeof(pointer));
 end;
 
 initialization

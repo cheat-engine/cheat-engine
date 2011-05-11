@@ -1,11 +1,11 @@
 object frmChangedAddresses: TfrmChangedAddresses
-  Left = 714
+  Left = 607
   Height = 289
-  Top = 211
-  Width = 378
+  Top = 128
+  Width = 381
   Caption = 'Changed Addresses'
   ClientHeight = 289
-  ClientWidth = 378
+  ClientWidth = 381
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
@@ -18,7 +18,7 @@ object frmChangedAddresses: TfrmChangedAddresses
     Left = 0
     Height = 33
     Top = 0
-    Width = 378
+    Width = 381
     Align = alTop
     Caption = 'The following addresses have been changed by the code you selected'
     ParentColor = False
@@ -28,11 +28,11 @@ object frmChangedAddresses: TfrmChangedAddresses
     Left = 0
     Height = 42
     Top = 247
-    Width = 378
+    Width = 381
     Align = alBottom
     Anchors = [akRight, akBottom]
     ClientHeight = 42
-    ClientWidth = 378
+    ClientWidth = 381
     TabOrder = 0
     object OKButton: TButton
       Left = 10
@@ -45,7 +45,7 @@ object frmChangedAddresses: TfrmChangedAddresses
       TabOrder = 0
     end
     object cbDisplayType: TComboBox
-      Left = 191
+      Left = 194
       Height = 24
       Top = 8
       Width = 179
@@ -68,7 +68,7 @@ object frmChangedAddresses: TfrmChangedAddresses
     Left = 0
     Height = 214
     Top = 33
-    Width = 378
+    Width = 381
     Align = alClient
     Columns = <    
       item
@@ -87,6 +87,8 @@ object frmChangedAddresses: TfrmChangedAddresses
     RowSelect = True
     TabOrder = 1
     ViewStyle = vsReport
+    OnColumnClick = ChangedlistColumnClick
+    OnCompare = ChangedlistCompare
     OnDblClick = ChangedlistDblClick
   end
   object Timer1: TTimer
