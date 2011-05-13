@@ -6,7 +6,7 @@ interface
 
 uses dialogs,LCLIntf,sysutils,imagehlp;
 
-const opcodecount=1077; //I wish there was a easier way than to handcount
+const opcodecount=1078; //I wish there was a easier way than to handcount
 
 
 type TTokenType=(
@@ -167,6 +167,7 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'BSR';opcode1:eo_reg;paramtype1:par_r16;paramtype2:par_rm16;bytes:3;bt1:$66;bt2:$0f;bt3:$bd),
   (mnemonic:'BSR';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_rm32;bytes:2;bt1:$0f;bt2:$bd),
   (mnemonic:'BSWAP';opcode1:eo_prd;paramtype1:par_r32;bytes:2;bt1:$0f;bt2:$c8), //eo_prd
+  (mnemonic:'BSWAP';opcode1:eo_prw;paramtype1:par_r16;bytes:3;bt1:$66;bt2:$0f;bt3:$c8), //eo_prw
 
   (mnemonic:'BT';opcode1:eo_reg;paramtype1:par_rm16;paramtype2:par_r16;bytes:3;bt1:$66;bt2:$0f;bt3:$a3),
   (mnemonic:'BT';opcode1:eo_reg;paramtype1:par_rm32;paramtype2:par_r32;bytes:2;bt1:$0f;bt2:$a3),
@@ -4698,6 +4699,15 @@ begin
           exit;
         end;
       end;
+
+      if (opcodes[j].paramtype2=par_cl) and (parameter2='CL') then
+      begin
+        //rm16,cl
+        addopcode(bytes,j);
+        result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
+        exit;
+      end;
+
     end;
 
     if (opcodes[j].paramtype1=par_rm32) and (isrm32(paramtype1)) then
@@ -4788,6 +4798,7 @@ begin
 
       if (opcodes[j].paramtype2=par_cl) and (parameter2='CL') then
       begin
+        //rm32,cl
         addopcode(bytes,j);
         result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
         exit;

@@ -4517,7 +4517,10 @@ begin
                         //bswap
                         description:='byte swap';
                         lastdisassembledata.opcode:='bswap';
-                        lastdisassembledata.parameters:=rd(memory[1]-$c8);
+                        if $66 in prefix2 then
+                          lastdisassembledata.parameters:=rd16(memory[1]-$c8)
+                        else
+                          lastdisassembledata.parameters:=rd(memory[1]-$c8);
 
                         inc(offset);
                       end;
