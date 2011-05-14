@@ -782,7 +782,7 @@ begin
               //constantly enabled
               fname:='onPostHotkey'+inttostr(currentcheat.cheatnr);
               l.Add('function '+fname+'(Hotkey)');
-              l.add('--executed after the "toggle*" cheat got executed so');
+              l.add('  --Executed after the "toggle*" cheat got executed');
               l.add('  local memrec=memoryrecordhotkey_getOwner(Hotkey)');
               l.add('  local isActive=memoryrecord_isActive(memrec) --get the state after the hotkey got triggered');
               l.add('  cheatcomponent_setActive('+trainerform.name+'_'+currentcheat.name+', isActive)');
@@ -794,6 +794,7 @@ begin
 
 
               l.add('memoryrecordhotkey_onPostHotkey('+hotkeyname+','+fname+')');
+              l.add('');
             end;
 
             else
@@ -802,20 +803,20 @@ begin
               fname:='onHotkey'+inttostr(currentcheat.cheatnr);
 
               l.Add('function '+fname+'(Hotkey)');
-              l.add('  --Called before the hotkey is handled');
+              l.add('  --Executed before the hotkey is handled');
               if currentcheat.HasEditBox then
               begin
                 l.add('  local memrec=memoryrecordhotkey_getOwner(Hotkey)');
                 l.add('  memoryrecord_setValue(memrec, cheatcomponent_getEditValue('+trainerform.name+'_'+currentcheat.name+')) --this will also update the ''frozen'' value');
               end;
-              l.add('  cheatcomponent_setActive('+trainerform.name+'_'+currentcheat.name+', isActive, 1500)');
+              l.add('  cheatcomponent_setActive('+trainerform.name+'_'+currentcheat.name+', true, 1500)');
               l.add('  if gBeepOnAction then');
               l.add('    beep()');
               l.add('  end');
               l.add('end');
               l.add('');
 
-              l.add('memoryrecordhotkey_afterHotkey('+hotkeyname+','+fname+')');
+              l.add('memoryrecordhotkey_onHotkey('+hotkeyname+','+fname+')');
             end;
 
 
