@@ -298,6 +298,32 @@ resourcestring
   rsPlugins = 'Plugins';
   rsDebuggerOptions = 'Debugger Options';
   rsExtra = 'Extra';
+  rsNoName = 'No Name';
+  rsPopupHideCheatEngine = 'Popup/Hide cheat engine';
+  rsPauseTheSelectedProcess = 'Pause the selected process';
+  rsToggleTheSpeedhack = 'Toggle the speedhack';
+  rsSpeedhackSpeed = 'Speedhack speed';
+  rsChangeTypeTo = 'Change type to';
+  rsBinary = 'Binary';
+  rsByte = 'Byte';
+  rs2Bytes = '2 Bytes';
+  rs4Bytes = '4 Bytes';
+  rs8Bytes = '8 Bytes';
+  rsFloat = 'Float';
+  rsDouble = 'Double';
+  rsText = 'Text';
+  rsArrayOfByte = 'Array of byte';
+  rsNextScan = 'Next Scan';
+  rsToggleBetweenFirstLastScanCompare =
+    'Toggle between first/last scan compare';
+  rsUndoLastScan = 'Undo last scan';
+  rsCancelTheCurrentScan = 'Cancel the current scan';
+  rsDebugRun = 'Debug->Run';
+  rsUnknownInitialValue = 'Unknown Initial Value';
+  rsIncreasedValue = 'Increased Value';
+  rsDecreasedValue = 'Decreased Value';
+  rsChangedValue = 'Changed Value';
+  rsUnchangedValue = 'Unchanged Value';
 procedure TformSettings.Button1Click(Sender: TObject);
 var processhandle2: Thandle;
     reg: TRegistry;
@@ -934,6 +960,43 @@ begin
 
   combothreadpriority.ItemIndex:=4;
 
+
+  with frameHotkeyConfig.ListBox1.items do
+  begin
+    clear;
+    add(rsPopupHideCheatEngine);
+    add(rsPauseTheSelectedProcess);
+    add(rsToggleTheSpeedhack);
+    add(rsSpeedhackSpeed+' 1');
+    add(rsSpeedhackSpeed+' 2');
+    add(rsSpeedhackSpeed+' 3');
+    add(rsSpeedhackSpeed+' 4');
+    add(rsSpeedhackSpeed+' 5');
+    add(rsSpeedhackSpeed+' +');
+    add(rsSpeedhackSpeed+' -');
+    add(rsChangeTypeTo+' '+rsBinary);
+    add(rsChangeTypeTo+' '+rsByte);
+    add(rsChangeTypeTo+' '+rs2Bytes);
+    add(rsChangeTypeTo+' '+rs4Bytes);
+    add(rsChangeTypeTo+' '+rs8Bytes);
+    add(rsChangeTypeTo+' '+rsFloat);
+    add(rsChangeTypeTo+' '+rsDouble);
+    add(rsChangeTypeTo+' '+rsText);
+    add(rsChangeTypeTo+' '+rsArrayOfByte);
+    add(strNewScan);
+    add(strNewScan+'-'+strexactvalue);
+    add(strNewScan+'-'+rsUnknownInitialValue);
+    add(rsNextScan+'-'+strexactvalue);
+    add(rsNextScan+'-'+rsIncreasedValue);
+    add(rsNextScan+'-'+rsDecreasedValue);
+    add(rsNextScan+'-'+rsChangedValue);
+    add(rsNextScan+'-'+rsUnchangedValue);
+    add(rsToggleBetweenFirstLastScanCompare);
+    add(rsUndoLastScan);
+    add(rsCancelTheCurrentScan);
+    add(rsDebugRun);
+  end;
+
   tvMenuSelection.Items[0].Text:=rsGeneralSettings;
   tvMenuSelection.Items[1].Text:=rsTools;
   tvMenuSelection.Items[2].Text:=rsHotkeys;
@@ -1150,7 +1213,7 @@ var li:tlistitem;
 begin
   li:=lvTools.Items.Add;
   li.Data:=nil;
-  li.Caption:='No Name';
+  li.Caption:=rsNoName;
   li.SubItems.Add('');
   li.SubItems.Add('');
   li.Selected:=true;

@@ -59,6 +59,18 @@ implementation
 
 uses MemoryBrowserFormUnit;
 
+resourcestring
+  rsServiceDescriptorTable = 'Service Descriptor Table';
+  rsServiceDescriptorTableShadow = 'Service Descriptor Table Shadow';
+  rsParameter = 'parameter';
+  rsParameters = 'parameters';
+  rsUnknownname = 'unknownname';
+  rsIncompatibleSDT = 'Incompatible Service Descriptor Table. This table '
+    +'contains more or less than in the file';
+  rsIncompatibleSSDT = 'Incompatible Service Descriptor Table Shadow. This '
+    +'table contains more or less than in the file';
+  rsNothingFound = 'Nothing found';
+
 var symbolname: string;
     canceled: boolean;
 
@@ -99,12 +111,12 @@ begin
     if not second then
     begin
       sdt:=newkernelhandler.GetSDT;
-      x:=treeview1.Items.Add(nil,'Service Descriptor Table');
+      x:=treeview1.Items.Add(nil, rsServiceDescriptorTable);
     end
     else
     begin
       sdt:=newkernelhandler.GetSDTShadow;
-      x:=treeview1.Items.Add(nil,'Service Descriptor Table Shadow');
+      x:=treeview1.Items.Add(nil, rsServiceDescriptorTableShadow);
     end;
 
     if KernelReadProcessMemory(p,pointer(sdt),@sdtstruct,sizeof(sdtstruct),nrofbytes) then
@@ -119,11 +131,11 @@ begin
             begin
               s:=inttohex(functionpointers[i],8)+' ('+inttostr(parametercounts[i] div 4);
               if parametercounts[i]=4 then
-                s:=s+' parameter)'
+                s:=s+' '+rsParameter+')'
               else
-                s:=s+' parameters)';
+                s:=s+' '+rsParameters+')';
 
-                s:=s+' - unknownname';
+                s:=s+' - '+rsUnknownname;
 
               treeview1.Items.AddChild(x,s);
             end;
@@ -292,7 +304,7 @@ begin
       readln(f,x);
       t:=treeview1.Items.GetFirstNode;
       if x<>t.Count then
-        raise exception.Create('Incompatible Service Descriptor Table. This table contains more or less than in the file');
+        raise exception.Create(rsIncompatibleSDT);
 
       for i:=0 to x-1 do
       begin
@@ -307,7 +319,7 @@ begin
       readln(f,x);
       t:=t.getNextSibling;
       if x<>t.Count then
-        raise exception.Create('Incompatible Service Descriptor Table Shadow. This table contains more or less than in the file');
+        raise exception.Create(rsIncompatibleSSDT);
 
       for i:=0 to x-1 do
       begin
@@ -346,7 +358,7 @@ begin
     t:=t.GetNext;
   end;
 
-  showmessage('Nothing found');
+  showmessage(rsNothingFound);
 
 
   //finddialog1.FindText

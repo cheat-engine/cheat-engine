@@ -38,7 +38,7 @@ implementation
 uses mainunit, frmluaengineunit, pluginexports, MemoryRecordUnit, debuggertypedefinitions,
   symbolhandler, frmautoinjectunit, simpleaobscanner, addresslist, memscan, foundlisthelper,
   cesupport, DBK32functions, sharedMemory, disassembler, LuaCanvas, LuaPen, LuaFont, LuaBrush,
-  LuaPicture, LuaMenu, MemoryBrowserFormUnit, disassemblerviewunit, hexviewunit;
+  LuaPicture, LuaMenu, MemoryBrowserFormUnit, disassemblerviewunit, hexviewunit, CustomTypeHandler;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -8067,6 +8067,21 @@ begin
   lua_pop(L, parameters);
 end;
 
+{
+registerCustomTypeLua(typename, bytecount, bytestovaluefunction, valuetobytesfunction)
+  Registers a Custom type based on lua functions
+  The bytes to value function should be defined as "function bytestovalue (b1,b2,b3,b4)" and return an integer as result
+  The value to bytes function should be defined as "function valuetobytes (integer)" and return the bytes it should write
+
+
+registerCustomTypeAutoAssembler(typename, bytecount, script)
+  Registers a custom type based on an auto assembler script. The script must allocate an "ConvertRoutine" and "ConvertBackRoutine"
+
+
+}
+
+
+
 procedure InitializeLua;
 var s: tstringlist;
 begin
@@ -8508,6 +8523,9 @@ begin
     lua_register(LuaVM, 'hexadecimalview_setTopAddress', hexadecimalview_setTopAddress);
     lua_register(LuaVM, 'hexadecimalview_onAddressChange', hexadecimalview_onAddressChange);
     lua_register(LuaVM, 'hexadecimalview_onByteSelect', hexadecimalview_onByteSelect);
+
+    lua_register(LuaVM, 'registerCustomTypeLua', registerCustomTypeLua);
+    lua_register(LuaVM, 'registerCustomTypeAutoAssembler', registerCustomTypeAutoAssembler);
 
 
     initializeLuaPicture;

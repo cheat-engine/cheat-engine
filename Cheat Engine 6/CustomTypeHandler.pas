@@ -22,6 +22,7 @@ type
     ffunctiontypename: string; //lua
 
     lua_bytestovaluefunctionid: integer;
+    lua_valuetobytesfunctionid: integer;
     lua_bytestovalue: string; //help string that contains the functionname so it doesn't have to build up this string at runtime
     lua_valuetobytes: string;
 
@@ -62,9 +63,14 @@ end;
 
 function GetCustomTypeFromName(name:string):TCustomType; //global function to retrieve a custom type
 
+function registerCustomTypeLua(L: PLua_State): integer; cdecl;
+function registerCustomTypeAutoAssembler(L: PLua_State): integer; cdecl;
+
 var customTypes: TList; //list holding all the custom types
 
 implementation
+
+uses mainunit;
 
 resourcestring
   rsACustomTypeWithNameAlreadyExists = 'A custom type with name %s already '
@@ -144,7 +150,13 @@ begin
 
   LuaCS.Enter;
   try
-    lua_getfield(L, LUA_GLOBALSINDEX, pchar(lua_valuetobytes));
+    if lua_valuetobytesfunctionid=-1 then
+    begin
+      lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(lua_valuetobytes));
+      lua_valuetobytesfunctionid:=luaL_ref(LuaVM,LUA_REGISTRYINDEX);
+    end;
+    lua_rawgeti(Luavm, LUA_REGISTRYINDEX, lua_valuetobytesfunctionid);
+
     lua_pushinteger(L, i);
     if lua_pcall(l,1,bytesize,0)=0 then
     begin
@@ -189,8 +201,15 @@ begin
 
   LuaCS.Enter;
   try
-    //lua_getfield(L, LUA_GLOBALSINDEX, pchar(lua_bytestovalue));
+    if lua_bytestovaluefunctionid=-1 then
+    begin
+      lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(lua_bytestovalue));
+      lua_bytestovaluefunctionid:=luaL_ref(LuaVM,LUA_REGISTRYINDEX);
+    end;
+
+
     lua_rawgeti(Luavm, LUA_REGISTRYINDEX, lua_bytestovaluefunctionid);
+
 
 
     for i:=0 to bytesize-1 do
@@ -383,6 +402,9 @@ begin
       lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(lua_bytestovalue));
       lua_bytestovaluefunctionid:=luaL_ref(LuaVM,LUA_REGISTRYINDEX);
 
+      lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(lua_valuetobytes));
+      lua_valuetobytesfunctionid:=luaL_ref(LuaVM,LUA_REGISTRYINDEX);
+
       lua_pop(LuaVM,lua_getTop(luavm));
 
     end;
@@ -406,9 +428,12 @@ begin
   end;
 end;
 
+
 constructor TCustomType.CreateTypeFromLuaScript(script: string);
 begin
   inherited create;
+  lua_bytestovaluefunctionid:=-1;
+  lua_valuetobytesfunctionid:=-1;
 
   setScript(script,true);
 
@@ -420,6 +445,8 @@ end;
 constructor TCustomType.CreateTypeFromAutoAssemblerScript(script: string);
 begin
   inherited create;
+  lua_bytestovaluefunctionid:=-1;
+  lua_valuetobytesfunctionid:=-1;
 
   setScript(script);
 
@@ -443,6 +470,150 @@ destructor TCustomType.destroy;
 begin
   remove;
 end;
+
+//lua
+function registerCustomTypeLua(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  typename: string;
+  bytecount: integer;
+  f_bytestovalue: integer;
+  bytestovalue: string;
+  f_valuetobytes: integer;
+  valuetobytes: string;
+
+  ct: TCustomType;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=4 then
+  begin
+    typename:=Lua_ToString(L, -4);
+    bytecount:=lua_tointeger(L, -3);
+
+    if lua_isfunction(L, -2) then
+    begin
+      lua_pushvalue(L, -2);
+      f_bytestovalue:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      //f_bytestovalue:=luaL_ref(L,LUA_REGISTRYINDEX);
+    end
+    else
+    if lua_isstring(L,-2) then
+    begin
+      bytestovalue:=Lua_ToString(L, -2);
+      lua_getfield(L, LUA_GLOBALSINDEX, pchar(bytestovalue));
+      f_valuetobytes:=luaL_ref(L,LUA_REGISTRYINDEX);
+    end
+    else
+    begin
+      lua_pop(L, lua_gettop(L));
+      lua_pushstring(L,'Parameter 3 is not a valid function');
+      lua_error(L);
+      exit;
+    end;
+
+    if lua_isfunction(L, -1) then
+    begin
+      lua_pushvalue(L, -1);
+      f_valuetobytes:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      //f_bytestovalue:=luaL_ref(L,LUA_REGISTRYINDEX);
+    end
+    else
+    if lua_isstring(L,-1) then
+    begin
+      valuetobytes:=Lua_ToString(L, -1);
+      lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(valuetobytes));
+      f_valuetobytes:=luaL_ref(L,LUA_REGISTRYINDEX);
+    end
+    else
+    begin
+      lua_pop(L, parameters);
+      lua_pushstring(L,'Parameter 4 is not a valid function');
+      lua_error(L);
+      exit;
+    end;
+
+    lua_pop(L, parameters);
+
+    ct:=GetCustomTypeFromName(typename); //see if one with this name altready exists.
+    if ct=nil then //if not, create it
+      ct:=TCustomType.Create;
+
+    ct.fCustomTypeType:=cttLuaScript;
+    ct.lua_bytestovaluefunctionid:=f_bytestovalue;
+    ct.lua_valuetobytesfunctionid:=f_valuetobytes;
+    ct.name:=typename;
+    ct.bytesize:=bytecount;
+
+    customtypes.Add(ct);
+    mainform.RefreshCustomTypes;
+  end
+  else lua_pop(L, parameters);
+end;
+
+function registerCustomTypeAutoAssembler(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  typename: string;
+  bytecount: integer;
+  script: string;
+  ct: TCustomType;
+
+  s: TStringList;
+  i: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=3 then
+  begin
+    typename:=Lua_ToString(L, -3);
+    bytecount:=lua_tointeger(L, -2);
+    script:=Lua_ToString(L, -1);
+    lua_pop(L, parameters);
+
+    ct:=GetCustomTypeFromName(typename); //see if one with this name altready exists.
+    if ct=nil then //if not, create it
+      ct:=TCustomType.Create;
+
+    ct.fCustomTypeType:=cttAutoAssembler;
+    ct.name:=typename;
+    ct.bytesize:=bytecount;
+
+
+
+
+    s:=tstringlist.create;
+    try
+      with ct do
+      begin
+        setlength(c,0);
+        if autoassemble(s,false, true, false, true, c) then
+        begin
+          for i:=0 to length(c)-1 do
+          begin
+            if uppercase(c[i].varname)='CONVERTROUTINE' then
+              routine:=pointer(c[i].address);
+
+            if uppercase(c[i].varname)='CONVERTBACKROUTINE' then
+              reverseroutine:=pointer(c[i].address);
+          end;
+
+
+        end;
+      end;
+    finally
+      s.free;
+    end;
+
+
+    customtypes.Add(ct);
+    mainform.RefreshCustomTypes;
+  end
+  else lua_pop(L, parameters);
+end;
+
 
 initialization
   customTypes:=Tlist.create;

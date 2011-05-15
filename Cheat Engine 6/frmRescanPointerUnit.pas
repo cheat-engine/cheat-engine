@@ -66,6 +66,14 @@ type
 
 implementation
 
+resourcestring
+  rsNotAllTheStartOffsetsHaveBeenFilledIn = 'Not all the start offsets have '
+    +'been filled in';
+  rsNotAllTheEndOffsetsHaveBeenFilledIn = 'Not all the end offsets have been '
+    +'filled in';
+  rsAdd = 'Add';
+  rsRemove = 'Remove';
+
 
 procedure TfrmRescanPointer.rbFindAddressClick(Sender: TObject);
 begin
@@ -107,7 +115,7 @@ begin
     begin
       s:=tedit(startoffsets[i]).text;
       if length(s)=0 then
-        raise exception.create('Not all the start offsets have been filled in');
+        raise exception.create(rsNotAllTheStartOffsetsHaveBeenFilledIn);
 
       if s[1]='-' then
         startoffsetvalues[i]:=StrToInt('-$'+copy(s,2,length(s)))
@@ -127,7 +135,7 @@ begin
     begin
       s:=tedit(Endoffsets[i]).text;
       if length(s)=0 then
-        raise exception.create('Not all the end offsets have been filled in');
+        raise exception.create(rsNotAllTheEndOffsetsHaveBeenFilledIn);
 
       if s[1]='-' then
         Endoffsetvalues[i]:=StrToInt('-$'+copy(s,2,length(s)))
@@ -159,7 +167,7 @@ begin
     if btnAddendOffset=nil then
     begin
       btnAddendOffset:=TButton.create(self);
-      btnAddendOffset.caption:='Add';
+      btnAddendOffset.caption:=rsAdd;
       btnAddendOffset.Top:=e.top;
       btnAddendOffset.left:=e.Left+e.Width+3;
       btnAddendOffset.width:=60;
@@ -172,7 +180,7 @@ begin
     if btnRemoveendOffset=nil then
     begin
       btnRemoveendOffset:=TButton.create(self);
-      btnRemoveendOffset.caption:='Remove';
+      btnRemoveendOffset.caption:=rsRemove;
       btnRemoveendOffset.Top:=btnAddendOffset.top;
       btnRemoveendOffset.left:=btnAddendOffset.Left+btnAddendOffset.Width+3;
       btnRemoveendOffset.width:=btnAddendOffset.width;
@@ -217,7 +225,7 @@ begin
     if btnAddStartOffset=nil then
     begin
       btnAddStartOffset:=TButton.create(self);
-      btnAddStartOffset.caption:='Add';
+      btnAddStartOffset.caption:=rsAdd;
       btnAddStartOffset.left:=e.Left+e.Width+3;
       btnAddStartOffset.width:=60;
       btnAddStartOffset.height:=e.Height;
@@ -228,7 +236,7 @@ begin
     if btnRemoveStartOffset=nil then
     begin
       btnRemoveStartOffset:=TButton.create(self);
-      btnRemoveStartOffset.caption:='Remove';
+      btnRemoveStartOffset.caption:=rsRemove;
       btnRemoveStartOffset.left:=btnAddStartOffset.Left+btnAddStartOffset.Width+3;
       btnRemoveStartOffset.width:=btnAddStartOffset.width;
       btnRemoveStartOffset.height:=btnAddStartOffset.height;

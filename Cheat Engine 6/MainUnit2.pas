@@ -71,6 +71,8 @@ resourcestring
   rsUseTheGameApplicationForAWhile = 'Use the game/application for a while and make the address you''re watching change. The list will be filled with addresses that contain code '
     +'that change the watched address.';
   rsSelectAnItemFromTheListForASmallDescription = 'Select an item from the list for a small description';
+  rsNoHotkey = 'No hotkey';
+  rsEnableDisableSpeedhack = 'Enable/Disable speedhack.';
 
 
 
@@ -505,14 +507,15 @@ begin
           if temphotkeylist[1][0]<>0 then
             advancedoptions.pausehotkeystring:='('+ConvertKeyComboToString(temphotkeylist[1])+')'
           else
-            advancedoptions.pausehotkeystring:=' (No hotkey)';
+            advancedoptions.pausehotkeystring:=' ('+rsNoHotkey+')';
 
 
 
           if temphotkeylist[2][0]<>0 then
-            mainform.cbSpeedhack.Hint:='Enable/Disable speedhack. ('+ConvertKeyComboToString(temphotkeylist[2])+')'
+            mainform.cbSpeedhack.Hint:=rsEnableDisableSpeedhack+' ('+
+              ConvertKeyComboToString(temphotkeylist[2])+')'
           else
-            mainform.cbSpeedhack.Hint:='Enable/Disable speedhack. (No hotkey)';
+            mainform.cbSpeedhack.Hint:=rsEnableDisableSpeedhack+' (No hotkey)';
 
 
           ResumeHotkeyHandler;

@@ -623,7 +623,7 @@ type
     //custom type:
     procedure CreateCustomType(customtype: TCustomtype; script:string; changed: boolean; lua: boolean=false);
 
-    procedure RefreshCustomTypes;
+
     procedure LoadCustomTypesFromRegistry;
 
     procedure setGbScanOptionsEnabled(state: boolean);
@@ -680,6 +680,8 @@ type
     frmLuaTableScript: Tfrmautoinject;
 
     mustClose: boolean;
+
+    procedure RefreshCustomTypes;
 
     procedure autoattachcheck;
     function openprocessPrologue: boolean;

@@ -727,7 +727,9 @@ begin
   l.add('--TRAINERGENERATORSTART--');
   l.add('--'+rsAutogenwarningPart1);
   l.add('--'+rsAutoGenWarningPart2);
-  l.adD('');
+  l.add('');
+  l.add('--Uncomment the following line if this is a Cheat Table format trainer and you don''t want CE to show (Tip, save as .CETRAINER alternatively)');
+  l.add('--hideAllCEWindows()');
 
   try
 
@@ -825,7 +827,7 @@ begin
         end;
       end;
     end
-    else
+    else //the user deleted the cheat panel
       showmessage(rsTipYouDontHaveToUseTheTrainerGeneratorIfYouDontWantTo);
 
     seperator:=TCESplitter(trainerform.FindComponent('SEPERATOR'));
@@ -948,6 +950,7 @@ begin
         l.add('timer_onTimer(focuscheck)');
         l.add('timer_setInterval(focustimer, 250)');
         l.add('control_setEnabled(focustimer, true)');
+        l.add('');
       end;
 
 

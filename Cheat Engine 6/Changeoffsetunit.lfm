@@ -1,7 +1,7 @@
 object ChangeOffset: TChangeOffset
-  Left = 940
+  Left = 958
   Height = 113
-  Top = 421
+  Top = 378
   Width = 200
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle

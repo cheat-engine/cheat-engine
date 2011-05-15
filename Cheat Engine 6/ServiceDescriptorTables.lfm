@@ -1,7 +1,7 @@
 object frmServiceDescriptorTables: TfrmServiceDescriptorTables
-  Left = 593
+  Left = 627
   Height = 343
-  Top = 292
+  Top = 290
   Width = 469
   Caption = 'Service Descriptor Table'
   ClientHeight = 323
@@ -12,7 +12,7 @@ object frmServiceDescriptorTables: TfrmServiceDescriptorTables
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object TreeView1: TTreeView
     Left = 0
     Height = 323

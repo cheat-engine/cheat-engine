@@ -59,6 +59,18 @@ speedhack_setSpeed(speed)
 injectDll(filename): Injects a dll, and returns true on success
 
 
+registerCustomTypeLua(typename, bytecount, bytestovaluefunction, valuetobytesfunction)
+  Registers a Custom type based on lua functions
+  The bytes to value function should be defined as "function bytestovalue (b1,b2,b3,b4)" and return an integer as result
+  The value to bytes function should be defined as "function valuetobytes (integer)" and return the bytes it should write
+
+
+registerCustomTypeAutoAssembler(typename, bytecount, script)
+  Registers a custom type based on an auto assembler script. The script must allocate an "ConvertRoutine" and "ConvertBackRoutine"
+
+
+
+
 
 Cheat table functions:
 
@@ -667,7 +679,7 @@ getCommonModuleList: Returns the commonModuleList stringlist. (Do not free this 
 
 
 
-aobScan("aobstring", protectionflags OPTIONAL, alignmenttype OPTIONAL, alignmentparam HALFOPTIONAL):
+AOBScan("aobstring", protectionflags OPTIONAL, alignmenttype OPTIONAL, alignmentparam HALFOPTIONAL):
 protectionflags is a string. 
   X=Executable W=Writable memory C=Copy On Write. Add a + to indicate that flag MUST be set and a - to indicate that that flag MUST NOT be set. (* sets it to don't care)
   Examples: 
@@ -843,7 +855,5 @@ hexadecimalview_onAddressChange(hexadecimalview, function): function(hexadecimal
 hexadecimalview_onByteSelect(hexadecimalview, function): function(hexadecimalview, address, address2)
 
 --]]
-
-
 
 
