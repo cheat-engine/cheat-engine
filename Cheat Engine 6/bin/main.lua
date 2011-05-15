@@ -147,7 +147,8 @@ allocateSharedMemory(name, size):
   It then maps this shared memory block into the currently targeted process. It returns the address of mapped region in the target process
 
 
-  
+getForegroundProcess() : Returns the processID of the process that is currently on top 
+ 
 getCheatEngineDir(): Returns the folder Cheat Engine is located at
 
 disassemble(address): Disassembles the given address and returns a string in the format of "address - bytes - opcode : extra"
@@ -855,5 +856,6 @@ hexadecimalview_onAddressChange(hexadecimalview, function): function(hexadecimal
 hexadecimalview_onByteSelect(hexadecimalview, function): function(hexadecimalview, address, address2)
 
 --]]
+
 
 

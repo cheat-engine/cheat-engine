@@ -8061,25 +8061,24 @@ begin
       lc.luaroutine:=routine;
       disassemblerview.onselectionchange:=lc.DisassemblerSelectionChangeEvent;
     end;
-
+    lua_pop(L, lua_gettop(L));
   end;
 
   lua_pop(L, parameters);
 end;
 
-{
-registerCustomTypeLua(typename, bytecount, bytestovaluefunction, valuetobytesfunction)
-  Registers a Custom type based on lua functions
-  The bytes to value function should be defined as "function bytestovalue (b1,b2,b3,b4)" and return an integer as result
-  The value to bytes function should be defined as "function valuetobytes (integer)" and return the bytes it should write
+function getForegroundProcess(L: PLua_State): integer; cdecl;
+var h: thandle;
+  pid: dword;
+begin
+  lua_pop(L, lua_gettop(L));
 
+  h:=GetForegroundWindow;
 
-registerCustomTypeAutoAssembler(typename, bytecount, script)
-  Registers a custom type based on an auto assembler script. The script must allocate an "ConvertRoutine" and "ConvertBackRoutine"
-
-
-}
-
+  GetWindowThreadProcessId(h, pid);
+  lua_pushinteger(L, pid);
+  result:=1;
+end;
 
 
 procedure InitializeLua;
@@ -8526,6 +8525,9 @@ begin
 
     lua_register(LuaVM, 'registerCustomTypeLua', registerCustomTypeLua);
     lua_register(LuaVM, 'registerCustomTypeAutoAssembler', registerCustomTypeAutoAssembler);
+
+    lua_register(LuaVM, 'getForegroundProcess', getForegroundProcess);
+
 
 
     initializeLuaPicture;
