@@ -6038,7 +6038,7 @@ begin
 
   if Savedialog1.Execute then
   begin
-    if ExtractFileExt(savedialog1.FileName)='.CETRAINER' then
+    if uppercase(ExtractFileExt(savedialog1.FileName))='.CETRAINER' then
       protect:=MessageDlg(rsDoYouWantToProtectThisTrainerFileFromEditing, mtConfirmation, [mbyes, mbno], 0)=mryes;
 
     savetable(savedialog1.FileName, protect);

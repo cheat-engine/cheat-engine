@@ -136,7 +136,7 @@ begin
     begin
       datafile.Position:=0; //NO HEADER, this is a professional user, or someone who doesn't know what he's doing
       size:=datafile.size;
-      listbox1.items.addobject('00000000-'+inttohex(size,8),tregion.create(0,size));
+      listbox1.items.addobject('00000000-'+inttohex(size-1,8),tregion.create(0,size));
 
       setlength(buf,1);
       setlength(buf[0],size);

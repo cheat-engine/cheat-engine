@@ -89,10 +89,12 @@ var x: ptrUint;
 
 begin
   x:=startaddress;
-  maxaddress:=startaddress;
-  while not terminated and (maxaddress<=startaddress) do
+  currentaddress:=x;
+  maxaddress:=currentaddress;
+
+  while not terminated and (maxaddress<=x) do
   begin
-    maxaddress:=startaddress;
+    maxaddress:=currentaddress;
 
     currentaddress:=x;
     if (x mod 4096) = 0 then

@@ -86,9 +86,11 @@ vtQword=3
 vtSingle=4
 vtDouble=5
 vtString=6
+vtUnicodeString=7 --Only used by autoguess
 vtByteArray=8
 vtBinary=9
 vtAutoAssembler=11
+vtPointer=12 --Only used by autoguess
 vtCustom=13
 
 --Key codes

@@ -68,6 +68,10 @@ registerCustomTypeLua(typename, bytecount, bytestovaluefunction, valuetobytesfun
 registerCustomTypeAutoAssembler(typename, bytecount, script)
   Registers a custom type based on an auto assembler script. The script must allocate an "ConvertRoutine" and "ConvertBackRoutine"
 
+onAutoGuess(function) : 
+  Registers an function to be called whenever autoguess is used to predict a variable type
+  function override (address, ceguess): Return the variable type you want it to be. If no change, just return ceguess
+
 
 
 
@@ -149,6 +153,10 @@ allocateSharedMemory(name, size):
 
 getForegroundProcess() : Returns the processID of the process that is currently on top 
  
+cheatEngineIs64Bit(): Returns true if CE is 64-bit, false if 32-bit
+targetIs64Bit(): Returns true if the target process is 64-bit, false if 32-bit
+
+
 getCheatEngineDir(): Returns the folder Cheat Engine is located at
 
 disassemble(address): Disassembles the given address and returns a string in the format of "address - bytes - opcode : extra"
@@ -162,6 +170,9 @@ undefined property functions. Not all properties of all classes have been explic
 getPropertyList(class) : Returns a stringlist object containing all the published properties of the specified class (free the list when done) (Note, not all classed with properties have 'published' properties. E.g: stringlist)
 setProperty(class, propertyname, propertyvalue) : Sets the value of a published property of a class (Won't work for method properties)
 getProperty(class, propertyname) : Gets the value of a published property of a class (Won't work for method properties)
+
+getFormCount() : Returns the total number of forms assigned to the main CE application
+getForm(index): Returns the form at the specific index
 
 getMemoryViewForm() : Returns the main memoryview form class object which can be accessed using the Form_ class methods and the methods of the classes it inherits from. There can be multiple memory views, but this will only find the original/base
 getMainForm() : Returns the main form class object which can be accessed using the Form_ class methods and the methods of the classes it inherits from
@@ -856,6 +867,5 @@ hexadecimalview_onAddressChange(hexadecimalview, function): function(hexadecimal
 hexadecimalview_onByteSelect(hexadecimalview, function): function(hexadecimalview, address, address2)
 
 --]]
-
 
 

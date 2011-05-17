@@ -55,7 +55,7 @@ type
   private
     { Private declarations }
     addresslist: TMap;
-    procedure refetchValues;
+    procedure refetchValues(specificaddress: ptruint=0);
   public
     { Public declarations }
     procedure AddRecord;
@@ -115,6 +115,7 @@ begin
       if addresslist.GetData(address, x) then
       begin
         inc(x.count);
+        refetchValues(x.address);
         exit;
       end;
 
@@ -139,7 +140,7 @@ begin
       li.Data:=x;
 
       addresslist.Add(address, x);
-
+      refetchValues(x.address);
     end;
   end;
 end;
@@ -297,7 +298,7 @@ begin
   Browsethismemoryregion1.enabled:=changedlist.selected<>nil;
 end;
 
-procedure TfrmChangedAddresses.refetchValues;
+procedure TfrmChangedAddresses.refetchValues(specificaddress: ptruint=0);
 var i: integer;
     s: string;
     handled: boolean;
@@ -313,6 +314,10 @@ begin
 
     for i:=startindex to stopindex do
     begin
+
+      if (specificaddress<>0) and (TAddressEntry(changedlist.items[i].Data).address <> specificaddress) then //check if this is the line to update, if not, don't read and parse
+        continue;
+
 
       case cbDisplayType.ItemIndex of
         0: s:=ReadAndParseAddress(TAddressEntry(changedlist.items[i].Data).address, vtByte,  nil, micbShowAsHexadecimal.checked);

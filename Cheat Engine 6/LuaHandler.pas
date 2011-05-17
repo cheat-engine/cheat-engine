@@ -38,7 +38,8 @@ implementation
 uses mainunit, frmluaengineunit, pluginexports, MemoryRecordUnit, debuggertypedefinitions,
   symbolhandler, frmautoinjectunit, simpleaobscanner, addresslist, memscan, foundlisthelper,
   cesupport, DBK32functions, sharedMemory, disassembler, LuaCanvas, LuaPen, LuaFont, LuaBrush,
-  LuaPicture, LuaMenu, MemoryBrowserFormUnit, disassemblerviewunit, hexviewunit, CustomTypeHandler;
+  LuaPicture, LuaMenu, MemoryBrowserFormUnit, disassemblerviewunit, hexviewunit,
+  CustomTypeHandler, byteinterpreter;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -188,6 +189,8 @@ begin
   result:=false;
   LuaCS.enter;
   try
+    LUA_SetCurrentContextState(context);
+
     lua_pop(LuaVM, lua_gettop(luavm)); //clear it just to be sure
 
     lua_getfield(luavm, LUA_GLOBALSINDEX, pchar('debugger_onBreakpoint'));
@@ -197,7 +200,7 @@ begin
     begin
       if lua_isfunction(luavm, -1) then //it's a function, yeeeeeeeeh
       begin
-        LUA_SetCurrentContextState(context);
+
 
 
        // lua_pop(LuaVM, lua_gettop(luavm));
@@ -8080,6 +8083,83 @@ begin
   result:=1;
 end;
 
+function cheatEngineIs64Bit(L: PLua_State): integer; cdecl;
+begin
+  lua_pop(L, lua_gettop(L));
+  lua_pushboolean(L, {$ifdef cpu64}true{$else}false{$endif});
+  result:=1;
+end;
+
+function targetIs64Bit(L: PLua_State): integer; cdecl;
+begin
+  lua_pop(L, lua_gettop(L));
+  lua_pushboolean(L, processhandler.is64Bit);
+  result:=1;
+end;
+
+function getFormCount(L: PLua_State): integer; cdecl;
+begin
+  lua_pop(L, lua_gettop(L));
+  lua_pushinteger(L, screen.FormCount);
+  result:=1;
+end;
+
+function getForm(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  f: TCustomForm;
+  index: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    index:=lua_tointeger(L, -1);
+
+    if index<screen.formcount then
+      lua_pushlightuserdata(L, screen.Forms[index]);
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
+
+function onAutoGuess(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  lc: TLuaCaller;
+  routine: string;
+  f: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    CleanupLuaCall(tmethod(onAutoGuessRoutine));
+    onAutoGuessRoutine:=nil;
+
+    if lua_isfunction(L,-1) then
+    begin
+      f:=luaL_ref(L,LUA_REGISTRYINDEX); //pop the last item of the stack, which is what I need
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+      onAutoGuessRoutine:=lc.AutoGuessEvent;
+    end
+    else
+    if lua_isstring(L,-1) then
+    begin
+      routine:=Lua_ToString(L, -1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+      onAutoGuessRoutine:=lc.AutoGuessEvent;
+    end;
+
+
+  end;
+
+  lua_pop(L, lua_gettop(L));
+end;
+
 
 procedure InitializeLua;
 var s: tstringlist;
@@ -8527,6 +8607,14 @@ begin
     lua_register(LuaVM, 'registerCustomTypeAutoAssembler', registerCustomTypeAutoAssembler);
 
     lua_register(LuaVM, 'getForegroundProcess', getForegroundProcess);
+
+    lua_register(LuaVM, 'cheatEngineIs64Bit', cheatEngineIs64Bit);
+    lua_register(LuaVM, 'targetIs64Bit', targetIs64Bit);
+
+    lua_register(LuaVM, 'getFormCount', getFormCount);
+    lua_register(LuaVM, 'getForm', getForm);
+
+    lua_register(LuaVM, 'onAutoGuess', onAutoGuess);
 
 
 

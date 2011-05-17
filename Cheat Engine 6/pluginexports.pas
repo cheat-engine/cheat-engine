@@ -1541,7 +1541,7 @@ var i: integer;
 begin
   for i:=0 to screen.FormCount-1 do
   begin
-    if copy(screen.CustomForms[i].name,1, 4)<>'UDF_' then //if not a userdefined form
+    if copy(screen.forms[i].name,1, 4)<>'UDF_' then //if not a userdefined form
       screen.Forms[i].Visible:=false;
   end;
 

@@ -93,6 +93,7 @@ resourcestring
   rsGenerateStringMap = 'Generate string map';
   rsStringcount = 'Stringcount: %s';
   rsBtnShowList = '<<Show list';
+  rsNoReadableMemoryFound = 'No readable memory found';
 
 procedure TStringscan.docleanup;
 begin
@@ -179,6 +180,7 @@ begin
     //get memory regions
     buf:=nil;
     try
+      setlength(mr,0);
       total:=getallmemoryregions(mr);
       if total>0 then
       begin
@@ -186,13 +188,18 @@ begin
         for i:=0 to length(mr)-1 do
           maxbuf:=max(mr[i].MemorySize, maxbuf);
 
+        if maxbuf=0 then
+          raise exception.create(rsNoReadableMemoryFound);
+
         maxbuf:=min(maxbuf, 512*1024);
 
         getmem(buf, maxbuf);
 
-      end;
+      end
+      else
+        raise exception.create(rsNoReadableMemoryFound);
 
-      //cleanup
+
       for i:=0 to length(mr)-1 do
       begin
         if terminated then break;
@@ -200,15 +207,6 @@ begin
         currentpos:=0;
         while (not terminated) and (currentpos<mr[i].MemorySize) do
         begin
-          if mr[i].BaseAddress=$283b000 then
-          begin
-            asm
-            nop
-            nop
-            nop
-            end
-          end;
-
           unicode:=false;
           s:=mr[i].MemorySize;
           currentbufsize:=4096; //min(s-currentpos, maxbuf);
@@ -222,9 +220,10 @@ begin
             begin
 
 
-                                            // \/ unicode is only true when it already has a char, so -1 is valid
-              if (buf[j] in [$20..$7f]) or (unicode and (buf[j]=0) and (buf[j-1]<>0)) then
+
+              if (buf[j] in [$20..$7f]) or (unicode and (buf[j]=0) and ((j<>0) and (buf[j-1]<>0))) then
               begin
+
                 if start=-1 then
                 begin
                   start:=j;
@@ -287,7 +286,7 @@ begin
     end;
   except
     on e: exception do
-      MessageBox(0, pchar(e.message),'Unhandled TStringScan crash', MB_OK or MB_ICONERROR);
+      MessageBox(0, pchar('Error='+e.message),'Unhandled TStringScan crash', MB_OK or MB_ICONERROR);
   end;
 end;
 

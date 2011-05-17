@@ -10,7 +10,7 @@ and results
 interface
 
 uses
-  Classes, SysUtils, ceguicomponents, forms, lua, lualib, lauxlib;
+  Classes, SysUtils, ceguicomponents, forms, lua, lualib, lauxlib, CEFuncProc;
 
 type
   TLuaCaller=class
@@ -27,6 +27,7 @@ type
       procedure DisassemblerSelectionChangeEvent(sender: TObject; address, address2: ptruint);
       procedure ByteSelectEvent(sender: TObject; address: ptruint; address2: ptruint);
       procedure AddressChangeEvent(sender: TObject; address: ptruint);
+      function AutoGuessEvent(address: ptruint; originalVariableType: TVariableType): TVariableType;
 
       constructor create;
       destructor destroy; override;
@@ -78,9 +79,11 @@ begin
 end;
 
 procedure TLuaCaller.NotifyEvent(sender: TObject);
+var oldstack: integer;
 begin
   Luacs.Enter;
   try
+    oldstack:=lua_gettop(Luavm);
 
     if canRun then
     begin
@@ -88,17 +91,19 @@ begin
       lua_pushlightuserdata(Luavm, sender);
 
       lua_pcall(Luavm, 1,0,0); //procedure(sender)
-      lua_pop(Luavm, lua_gettop(Luavm));
     end;
   finally
+    lua_settop(Luavm, oldstack);
     luacs.leave;
   end;
 end;
 
 procedure TLuaCaller.CloseEvent(Sender: TObject; var CloseAction: TCloseAction);
+var oldstack: integer;
 begin
   Luacs.Enter;
   try
+    oldstack:=lua_gettop(Luavm);
 
     if canRun then
     begin
@@ -117,19 +122,21 @@ begin
       if mainform.mustclose then
         closeaction:=cahide;
 
-      lua_pop(Luavm, lua_gettop(Luavm));
     end
     else closeaction:=caHide;
   finally
+    lua_settop(Luavm, oldstack);
     luacs.leave;
   end;
 end;
 
 function TLuaCaller.ActivateEvent(sender: tobject; before, currentstate: boolean): boolean;
+var oldstack: integer;
 begin
   result:=true;
   Luacs.Enter;
   try
+    oldstack:=lua_gettop(Luavm);
 
     if canRun then
     begin
@@ -144,17 +151,20 @@ begin
       if lua_gettop(Luavm)>0 then
         result:=lua_toboolean(LuaVM,-1);
 
-      lua_pop(Luavm, lua_gettop(Luavm));
     end;
   finally
+    lua_settop(Luavm, oldstack);
     luacs.leave;
   end;
 end;
 
 procedure TLuaCaller.DisassemblerSelectionChangeEvent(sender: tobject; address, address2: ptruint);
+var oldstack: integer;
 begin
   Luacs.Enter;
   try
+    oldstack:=lua_gettop(Luavm);
+
     if canRun then
     begin
       PushFunction;
@@ -164,17 +174,20 @@ begin
 
 
       lua_pcall(Luavm, 3,0,0); //procedure(sender, address, address2)
-      lua_pop(Luavm, lua_gettop(Luavm));
     end;
   finally
+    lua_settop(Luavm, oldstack);
     luacs.leave;
   end;
 end;
 
 procedure TLuaCaller.ByteSelectEvent(sender: TObject; address: ptruint; address2: ptruint);
+var oldstack: integer;
 begin
   Luacs.Enter;
   try
+    oldstack:=lua_gettop(Luavm);
+
     if canRun then
     begin
       PushFunction;
@@ -183,17 +196,20 @@ begin
       lua_pushinteger(luavm, address2);
 
       lua_pcall(Luavm, 3,0,0); //procedure(sender, address, address2)
-      lua_pop(Luavm, lua_gettop(Luavm));
     end;
   finally
+    lua_settop(Luavm, oldstack);
     luacs.leave;
   end;
 end;
 
 procedure TLuaCaller.AddressChangeEvent(sender: TObject; address: ptruint);
+var oldstack: integer;
 begin
   Luacs.Enter;
   try
+    oldstack:=lua_gettop(Luavm);
+
     if canRun then
     begin
       PushFunction;
@@ -201,13 +217,33 @@ begin
       lua_pushinteger(luavm, address);
 
       lua_pcall(Luavm, 2,0,0); //procedure(sender, address)
-      lua_pop(Luavm, lua_gettop(Luavm));
     end;
   finally
+    lua_settop(Luavm, oldstack);
     luacs.leave;
   end;
 end;
 
+function TLuaCaller.AutoGuessEvent(address: ptruint; originalVariableType: TVariableType): TVariableType;
+var oldstack: integer;
+begin
+  Luacs.enter;
+  try
+    oldstack:=lua_gettop(Luavm);
+
+    PushFunction;
+    lua_pushinteger(luavm, address);
+    lua_pushinteger(luavm, integer(originalVariableType));
+    if lua_pcall(LuaVM, 2, 1, 0)>0 then
+      result:=TVariableType(lua_tointeger(LuaVM,-1))
+    else
+      result:=originalVariableType;
+
+  finally
+    lua_settop(Luavm, oldstack);
+    luacs.leave;
+  end;
+end;
 
 end.
 

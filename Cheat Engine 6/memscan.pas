@@ -454,7 +454,7 @@ type
     arrayLength:   integer;
 
     FLastScanType: TScanType;
-    fscanresultfolder: widestring; //the location where all the scanfiles will be stored
+    fscanresultfolder: string; //the location where all the scanfiles will be stored
 
     fnextscanCount: integer;
 
@@ -498,7 +498,7 @@ type
     function getsavedresults(r: tstrings): integer;
 
     property LastScanType: TScanType read FLastScanType;
-    property ScanresultFolder: widestring read fScanResultFolder; //read only, it's configured during creation
+    property ScanresultFolder: string read fScanResultFolder; //read only, it's configured during creation
     property VarType: TVariableType read currentVariableType;
     property CustomType: TCustomType read currentCustomType;
     property nextscanCount: integer read fnextscanCount;
@@ -4813,6 +4813,7 @@ begin
 
   //everything looks ok
   waittilldone;
+
 
   //copy the current scanresults to memory.savedscan and addresses.savedscan
   CopyFile(pchar(fScanResultFolder+'Memory.tmp'), pchar(fScanResultFolder+'Memory.'+resultname), false);
