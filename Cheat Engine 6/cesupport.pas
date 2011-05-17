@@ -76,25 +76,25 @@ begin
     akBottom:
     begin
       top:=wr.Bottom+2;
-      left:=attachedform.left+(attachedform.width div 2) - (width div 2);
+      left:=wr.left+((wr.right-wr.left) div 2) - ((ar.right-ar.left) div 2);
     end;
 
     akTop:
     begin
       top:=wr.top-(ar.bottom-ar.Top)-2;
-      left:=attachedform.left+(attachedform.width div 2) - (width div 2);
+      left:=wr.left+((wr.right-wr.left) div 2) - ((ar.right-ar.left) div 2);
     end;
 
     akLeft:
     begin
       left:=attachedform.left-(ar.Right-ar.left)-2;
-      top:=attachedform.top+(attachedform.height div 2) - (height div 2);
+      top:=wr.Top+((wr.Bottom-wr.top) div 2) - ((ar.bottom-ar.top) div 2);
     end;
 
     akRight:
     begin
       left:=wr.right+2;
-      top:=attachedform.top+(attachedform.height div 2) - (height div 2);
+      top:=wr.Top+((wr.Bottom-wr.top) div 2) - ((ar.bottom-ar.top) div 2);
     end;
 
   end;
