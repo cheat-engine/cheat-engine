@@ -74,9 +74,10 @@ object frmAdConfig: TfrmAdConfig
       Top = 137
       Width = 100
       ItemHeight = 15
-      ItemIndex = 2
+      ItemIndex = 3
       Items.Strings = (
-        '120x600160x600'
+        '120x600'
+        '160x600'
         '300x250'
         '468x60'
         '728x90'

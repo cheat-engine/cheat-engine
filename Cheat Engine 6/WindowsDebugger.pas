@@ -20,13 +20,14 @@ type TWindowsDebuggerInterface=class(TDebuggerInterface)
     function SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL; override;
     function GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false): BOOL; override;
     function DebugActiveProcess(dwProcessId: DWORD): WINBOOL; override;
+    function DebugActiveProcessStop(dwProcessID: DWORD): BOOL; override;
     constructor create;
 end;
 
 
 implementation
 
-uses autoassembler, pluginexports;
+uses autoassembler, pluginexports, CEDebugger;
 
 constructor TWindowsDebuggerInterface.create;
 begin
@@ -53,6 +54,12 @@ end;
 function TWindowsDebuggerInterface.GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false):BOOL;
 begin
   result:=newkernelhandler.GetThreadContext(hThread, lpContext);
+end;
+
+function TWindowsDebuggerInterface.DebugActiveProcessStop(dwProcessID: DWORD): BOOL;
+begin
+  if assigned(CEDebugger.DebugActiveProcessStop) then
+    CEDebugger.DebugActiveProcessStop(dwProcessID);
 end;
 
 function TWindowsDebuggerInterface.DebugActiveProcess(dwProcessId: DWORD): WINBOOL;
