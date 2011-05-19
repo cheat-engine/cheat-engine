@@ -10,7 +10,7 @@ and results
 interface
 
 uses
-  Classes, SysUtils, ceguicomponents, forms, lua, lualib, lauxlib, CEFuncProc;
+  Classes, Controls, SysUtils, ceguicomponents, forms, lua, lualib, lauxlib, CEFuncProc;
 
 type
   TLuaCaller=class
@@ -22,6 +22,8 @@ type
       luaroutineindex: integer;
       owner: TPersistent;
       procedure NotifyEvent(sender: TObject);
+      procedure MouseEvent(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+      procedure KeyPressEvent(Sender: TObject; var Key: char);
       procedure CloseEvent(Sender: TObject; var CloseAction: TCloseAction);
       function ActivateEvent(sender: TObject; before, currentstate: boolean): boolean;
       procedure DisassemblerSelectionChangeEvent(sender: TObject; address, address2: ptruint);
@@ -239,6 +241,47 @@ begin
     else
       result:=originalVariableType;
 
+  finally
+    lua_settop(Luavm, oldstack);
+    luacs.leave;
+  end;
+end;
+
+procedure TLuaCaller.MouseEvent(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var oldstack: integer;
+begin
+  Luacs.enter;
+  try
+    oldstack:=lua_gettop(Luavm);
+    pushFunction;
+    lua_pushlightuserdata(luavm, sender);
+    lua_pushinteger(luavm, integer(Button));
+    lua_pushinteger(luavm, x);
+    lua_pushinteger(luavm, y);
+
+    lua_pcall(LuaVM, 4, 0, 0);
+  finally
+    lua_settop(Luavm, oldstack);
+    luacs.leave;
+  end;
+end;
+
+procedure TLuaCaller.KeyPressEvent(Sender: TObject; var Key: char);
+var oldstack: integer;
+  s: string;
+begin
+  Luacs.enter;
+  try
+    oldstack:=lua_gettop(Luavm);
+    pushFunction;
+    lua_pushlightuserdata(luavm, sender);
+    lua_pushstring(luavm, key);
+    if lua_pcall(LuaVM, 2, 1, 0)>0 then
+    begin
+      s:=lua_tostring(LuaVM,-1);
+      if length(s)>0 then
+        key:=s[1];
+    end;
   finally
     lua_settop(Luavm, oldstack);
     luacs.leave;

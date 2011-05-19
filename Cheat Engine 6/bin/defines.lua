@@ -1,5 +1,12 @@
 --Defines:
 
+--onMouseEvent button defines:
+mbLeft=0
+mbRight=1
+mbMiddle=2
+mbExtra1=3
+mbExtra2=4
+
 
 --memo scrollbar defines
 ssNone=0

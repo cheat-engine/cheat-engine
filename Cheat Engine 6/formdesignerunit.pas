@@ -500,11 +500,45 @@ begin
       begin
         Add('function '+name+'(sender)');
         Add('');
-        Add('  return caHide');
+        Add('  return caHide --hide, not destroy');
         Add('end');
         Add('');
       end;
     end;
+  end
+  else
+  if ATypeInfo.Name ='TMouseEvent' then
+  begin
+    result:=TMethod(TMouseEvent(f.MouseEvent));
+
+    if NeedsToBeCreated then
+    begin
+      with mainform.frmLuaTableScript.assemblescreen.Lines do
+      begin
+        Add('function '+name+'(sender, button, x, y)');
+        Add('');
+        Add('end');
+        Add('');
+      end;
+    end;
+  end
+  else
+  if ATypeInfo.Name ='TKeyPressEvent' then
+  begin
+    result:=TMethod(TKeyPressEvent(f.KeyPressEvent));
+
+    if NeedsToBeCreated then
+    begin
+      with mainform.frmLuaTableScript.assemblescreen.Lines do
+      begin
+        Add('function '+name+'(sender, key)');
+        Add('');
+        Add('  return key');
+        Add('end');
+        Add('');
+      end;
+    end;
+
   end;
 
 

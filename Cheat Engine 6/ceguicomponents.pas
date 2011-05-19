@@ -106,9 +106,9 @@ published
   property OnExit;
  // property OnItemChecked;
 //  property OnKeyDown;
-//  property OnKeyPress;
+  property OnKeyPress;
 //  property OnKeyUp;
-//  property OnMouseDown;
+  property OnMouseDown;
   property OnMouseEnter;
   property OnMouseLeave;
 //  property OnMouseMove;
@@ -141,7 +141,7 @@ published
 //  property OnEndDrag;
   property OnEnter;
   property OnExit;
-//  property OnMouseDown;
+  property OnMouseDown;
   property OnMouseEnter;
   property OnMouseLeave;
 //  property OnMouseMove;
@@ -185,7 +185,7 @@ type TCETrackBar=class(TCustomTrackBar)
 //    property OnEndDrag;
     property OnEnter;
     property OnExit;
-//    property OnMouseDown;
+    property OnMouseDown;
     property OnMouseEnter;
     property OnMouseLeave;
  //   property OnMouseMove;
@@ -194,7 +194,7 @@ type TCETrackBar=class(TCustomTrackBar)
  //   property OnMouseWheelDown;
  //   property OnMouseWheelUp;
  //   property OnKeyDown;
- //   property OnKeyPress;
+    property OnKeyPress;
  //   property OnKeyUp;
     property OnResize;
  //   property OnStartDrag;
@@ -248,12 +248,12 @@ type TCEListBox=class(TCustomListBox)
     property OnEnter;
   //  property OnEndDrag;
     property OnExit;
- //   property OnKeyPress;
+    property OnKeyPress;
  //   property OnKeyDown;
  //   property OnKeyUp;
  //   property OnMeasureItem;
  //   property OnMouseMove;
-//    property OnMouseDown;
+    property OnMouseDown;
 //    property OnMouseUp;
     property OnMouseEnter;
     property OnMouseLeave;
@@ -321,10 +321,10 @@ published
   property OnExit;
   property OnGetItems;
  // property OnKeyDown;
-//  property OnKeyPress;
+  property OnKeyPress;
 //  property OnKeyUp;
  // property OnMeasureItem;
- // property OnMouseDown;
+  property OnMouseDown;
   property OnMouseEnter;
   property OnMouseLeave;
 //  property OnMouseMove;
@@ -390,9 +390,9 @@ published
   property OnExit;
  // property OnGetSiteInfo;
  // property OnKeyDown;
- // property OnKeyPress;
+  property OnKeyPress;
  // property OnKeyUp;
- // property OnMouseDown;
+  property OnMouseDown;
   property OnMouseEnter;
   property OnMouseLeave;
 //  property OnMouseMove;
@@ -438,9 +438,9 @@ published
     property OnEnter;
     property OnExit;
   //  property OnKeyDown;
-  //  property OnKeyPress;
+    property OnKeyPress;
   //  property OnKeyUp;
- //   property OnMouseDown;
+    property OnMouseDown;
     property OnMouseEnter;
     property OnMouseLeave;
  //   property OnMouseMove;
@@ -490,10 +490,10 @@ type TCECheckBox=class(TCustomCheckBox)
    // property OnEndDrag;
     property OnEnter;
     property OnExit;
-  //  property OnKeyPress;
+    property OnKeyPress;
   //  property OnKeyDown;
   //  property OnKeyUp;
- //   property OnMouseDown;
+    property OnMouseDown;
     property OnMouseEnter;
     property OnMouseLeave;
   //  property OnMouseMove;
@@ -537,7 +537,7 @@ type TCEToggleBox=class(TCustomCheckbox)
 //    property OnEndDrag;
     property OnEnter;
     property OnExit;
-//    property OnMouseDown;
+    property OnMouseDown;
     property OnMouseEnter;
     property OnMouseLeave;
  //   property OnMouseMove;
@@ -589,9 +589,9 @@ type TCEEdit=class(TCustomEdit)
     property OnEnter;
     property OnExit;
  //   property OnKeyDown;
- //   property OnKeyPress;
+    property OnKeyPress;
  //   property OnKeyUp;
- //   property OnMouseDown;
+    property OnMouseDown;
     property OnMouseEnter;
     property OnMouseLeave;
    // property OnMouseMove;
@@ -683,9 +683,9 @@ type TCEForm=class(TCustomForm)
  //   property OnHelp;
     property OnHide;
    // property OnKeyDown;
-  //  property OnKeyPress;
+    property OnKeyPress;
   //  property OnKeyUp;
-  //  property OnMouseDown;
+    property OnMouseDown;
     property OnMouseEnter;
     property OnMouseLeave;
   //  property OnMouseMove;
@@ -705,7 +705,7 @@ type TCEForm=class(TCustomForm)
     property ParentBiDiMode;
     property ParentFont;
     property PixelsPerInch;
-  //  property PopupMenu;
+//    property PopupMenu;
  //   property PopupMode;
   //  property PopupParent;
     property Position;
@@ -749,9 +749,9 @@ type TCEMemo=class(TCustomMemo)
     property OnEnter;
     property OnExit;
   //  property OnKeyDown;
-  //  property OnKeyPress;
+    property OnKeyPress;
  //   property OnKeyUp;
-//    property OnMouseDown;
+    property OnMouseDown;
     property OnMouseEnter;
     property OnMouseLeave;
  //   property OnMouseMove;
@@ -795,7 +795,7 @@ type TCEImage=class(TCustomImage)
    // property OnDragDrop;
    // property OnDragOver;
   //  property OnEndDrag;
-  //  property OnMouseDown;
+    property OnMouseDown;
     property OnMouseEnter;
     property OnMouseLeave;
    // property OnMouseMove;
@@ -866,7 +866,7 @@ published
     property OnExit;
   //  property OnGetSiteInfo;
   //  property OnGetDockCaption;
-   // property OnMouseDown;
+    property OnMouseDown;
     property OnMouseEnter;
     property OnMouseLeave;
   //  property OnMouseMove;
@@ -910,7 +910,7 @@ published
   //property OnDragDrop;
   //property OnDragOver;
   //property OnEndDrag;
- // property OnMouseDown;
+  property OnMouseDown;
  // property OnMouseMove;
 //  property OnMouseUp;
   property OnMouseEnter;
@@ -952,9 +952,9 @@ type TCEButton=class(TCustomButton)
     property OnEnter;
     property OnExit;
     //
-    //property OnKeyPress;
+    property OnKeyPress;
     //property OnKeyUp;
-    //property OnMouseDown;
+    property OnMouseDown;
     property OnMouseEnter;
     property OnMouseLeave;
     //property OnMouseMove;
