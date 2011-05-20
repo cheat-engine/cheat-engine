@@ -116,6 +116,9 @@ type
 
     vartype: TVariableType;
     lastwrite: dword;
+
+    ownerFrmStringPointerScan: TCustomForm;
+
     procedure addPointer(p: PPointerRecord);
     procedure flushresults;
 
@@ -129,7 +132,7 @@ type
 
   public
     procedure execute; override;
-    constructor create(suspended: boolean; address, address2: ptruint; mustbeinregion: boolean; pointerstart, pointerend: ptruint; isstringscan, caseSensitive, mustbestart: boolean; regExstr: string; diffkind: TDiffkind; vartype: TVariableType; oldpointerfilename: string; outputfilename: string );
+    constructor create(suspended: boolean; address, address2: ptruint; mustbeinregion: boolean; pointerstart, pointerend: ptruint; isstringscan, caseSensitive, mustbestart: boolean; regExstr: string; diffkind: TDiffkind; vartype: TVariableType; oldpointerfilename: string; outputfilename: string; ownerFrmStringPointerScan: TCustomForm );
     destructor destroy; override;
     property count: qword read fcount;
     property currentPosition: qword read fCurrentPosition;
@@ -156,7 +159,7 @@ type
     count: integer;
 
     levelblock: array of pdwordarray;
-    fillpointerblock: pdwordarray;
+    fillpointerblock: pdwordarray; //memory block allocated for the fuillpointers function
    // block64: array of Pint64Array;
 
     results: TMemorystream;
@@ -170,7 +173,7 @@ type
     mustbeinregion: boolean;
     pointerstart: ptruint;
     pointerstop: ptruint;
-
+    ownerFrmStringPointerScan: TCustomForm;
 
 
 
@@ -193,7 +196,7 @@ type
     progress: TPointerpath;
 
     procedure execute; override;
-    constructor create(isDataScan, mustbeinregion: boolean; alignment: integer; pointerstart, pointerstop: ptruint; baseaddress, baseaddress2: ptruint; diffkind: TDiffkind; vartype: TVariableType; mapvalues: boolean; structsize: integer; maxlevel: integer; mappedregions,pointerlist: TAvgLvlTree; bma: TBigMemoryAllocHandler; filename: string);
+    constructor create(isDataScan, mustbeinregion: boolean; alignment: integer; pointerstart, pointerstop: ptruint; baseaddress, baseaddress2: ptruint; diffkind: TDiffkind; vartype: TVariableType; mapvalues: boolean; structsize: integer; maxlevel: integer; mappedregions,pointerlist: TAvgLvlTree; bma: TBigMemoryAllocHandler; filename: string; ownerFrmStringPointerScan: TCustomForm);
     destructor destroy; override;
   end;
 
@@ -922,13 +925,13 @@ begin
     deletefile(outputfilename);
     RenameFileUTF8(outputfilename+'.temp', outputfilename);
 
-    PostMessage(frmStringPointerScan.Handle, wm_sps_done, 0,0);
+    PostMessage(ownerFrmStringPointerScan.Handle, wm_sps_done, 0,0);
   end;
 
 
 end;
 
-constructor TRescan.create(suspended: boolean; address, address2: ptruint; mustbeinregion: boolean; pointerstart, pointerend: ptruint; isstringscan, caseSensitive, mustbestart: boolean; regExstr: string; diffkind: TDiffkind; vartype: TVariableType; oldpointerfilename: string; outputfilename: string );
+constructor TRescan.create(suspended: boolean; address, address2: ptruint; mustbeinregion: boolean; pointerstart, pointerend: ptruint; isstringscan, caseSensitive, mustbestart: boolean; regExstr: string; diffkind: TDiffkind; vartype: TVariableType; oldpointerfilename: string; outputfilename: string ; ownerFrmStringPointerScan: TCustomForm);
 var regflags: tregexprflags;
   lw: integer;
 begin
@@ -950,6 +953,8 @@ begin
   self.pointerstart:=pointerstart;
   self.pointerend:=pointerend;
   self.outputfilename:=outputfilename;
+
+  self.ownerFrmStringPointerScan:=ownerFrmStringPointerScan;
 
 
   pointerfilereader.clearPointercache;
@@ -1010,7 +1015,7 @@ var
   r: PPointerListEntry;
 begin
   result:=0;
-  mapRegionIfNeeded(address,4096);
+  mapRegionIfNeeded(address,4096);    //block of 4KB (not structsize)
   search.address:=address;
   pe:=pointerlist.Find(@search);
   if pe<>nil then
@@ -1050,6 +1055,7 @@ var x: dword;
 begin
   if readprocessmemory(processhandle, pointer(base), fillpointerblock, size, x) then
   begin
+    //walk through the array of dwords
     for i:=0 to (x div 4)-1 do
     begin
       if (fillpointerblock[i]>$10000) and ((fillpointerblock[i] mod 4)=0) and (isreadable(fillpointerblock[i])) then
@@ -1059,12 +1065,13 @@ begin
         p.address:=base+(i*4);
         p.pointsto:=fillpointerblock[i];
 
-    {     //   debug code
-        if pointerlist.Find(p)<>nil then
+         //   debug code
+       { if pointerlist.Find(p)<>nil then
         begin
        //   freemem(p);
+          messagebox(0,'FUUUU','FUUUUU',0);
           continue;
-        end;  }
+        end;   }
 
         pe:=pointerlist.Add(p);
         prev:=pointerlist.FindPrecessor(pe);
@@ -1416,6 +1423,7 @@ begin
 
   if level>=maxlevel then exit; //max level reached, no need to scan for pointers in this block
 
+
   //still here, so go through this block looking for pointers
 
   //see if this block already has it's pointers mapped, if not, map them
@@ -1435,13 +1443,17 @@ var pointerpath: TPointerpath;
   i: integer;
 begin
   try
+
+
     try
+
+
       setlength(pointerpath, maxlevel+1); //maxlevel=0 means 1 offset
       setlength(levelblock, maxlevel+1);
       for i:=0 to length(levelblock)-1 do
         getmem(levelblock[i], structsize); //one time alloc for each level so it can be reused without having to reallocate each recursion
 
-      getmem(fillpointerblock, structsize);
+      getmem(fillpointerblock, 4096); //filling goes in chunks of 4096 bytes
 
       results:=TMemoryStream.Create;
       results.Size:=16*1024*1024;
@@ -1451,20 +1463,20 @@ begin
       handleBlock(baseaddress, 0, pointerpath);
       flushResults;
 
-      //messagebox(0,pchar(inttostr(count)),'ps',0);
 
     except
       on e: exception do
         messagebox(0,pchar('Exception:'+e.Message),'ps',0);
     end;
 
-  finally
-    PostMessage(frmStringPointerScan.Handle, wm_sps_done, 0,0);
 
+  finally
+    //reached the end, tell the main thread that the scan is done
+    PostMessage(OwnerFrmStringPointerScan.Handle, wm_sps_done, 0,0);
   end;
 end;
 
-constructor TScanner.create(isDataScan, mustbeinregion: boolean; alignment: integer; pointerstart, pointerstop: ptruint; baseaddress, baseaddress2: ptruint; diffkind: TDiffkind; vartype: TVariableType; mapvalues: boolean; structsize: integer; maxlevel: integer; mappedregions,pointerlist: TAvgLvlTree; bma: TBigMemoryAllocHandler; filename: string);
+constructor TScanner.create(isDataScan, mustbeinregion: boolean; alignment: integer; pointerstart, pointerstop: ptruint; baseaddress, baseaddress2: ptruint; diffkind: TDiffkind; vartype: TVariableType; mapvalues: boolean; structsize: integer; maxlevel: integer; mappedregions,pointerlist: TAvgLvlTree; bma: TBigMemoryAllocHandler; filename: string; ownerFrmStringPointerScan: TCustomForm);
 begin
   self.baseaddress:=baseaddress;
   self.baseaddress2:=baseaddress2;
@@ -1481,6 +1493,8 @@ begin
   self.pointerstart:=pointerstart;
   self.pointerstop:=pointerstop;
   self.mustbeinregion:=mustbeinregion;
+
+  self.ownerFrmStringPointerScan:=ownerFrmStringPointerScan;
 
   if diffkind<>dkDontCare then
   begin
@@ -1647,6 +1661,7 @@ var lc: TListColumn;
 begin
   cleanup;
 
+
   pointerfilereader:=TPointerfileReader.Create(filename);
   comboType.OnChange(comboType);
 
@@ -1694,7 +1709,8 @@ begin
 
 
   cleanup;
-  OpenPointerfile(frmStringPointerScan.SaveDialog1.FileName);
+
+  OpenPointerfile(SaveDialog1.FileName);
 
   btnScan.caption:='Rescan';
   btnScan.tag:=0;
@@ -1880,7 +1896,10 @@ begin
         lblInfo.caption:=rsGeneratedScanning;
 
         //everything has been configured
-        scanner:=Tscanner.create(rbDatascan.checked, cbPointerInRange.checked, alignsize, pointerstart, pointerstop, baseAddress, baseaddress2, diffkind, vartype, cbMapPointerValues.checked, structsize, maxlevel, mappedRegions, pointerlist, bma, savedialog1.filename);
+
+
+
+        scanner:=Tscanner.create(rbDatascan.checked, cbPointerInRange.checked, alignsize, pointerstart, pointerstop, baseAddress, baseaddress2, diffkind, vartype, cbMapPointerValues.checked, structsize, maxlevel, mappedRegions, pointerlist, bma, savedialog1.filename, self);
 
       end
       else
@@ -1892,7 +1911,7 @@ begin
         freeandnil(pointerfilereader); //free it so it can be overwritten when needed
 
 
-        rescanner:=trescan.create(false, address, address2, cbpointerinrange.checked, pointerstart, pointerstop, combotype.itemindex=0, cbCaseSensitive.checked, cbMustBeStart.checked, edtRegExp.text, diffkind, vartype, pointerfilereader.filename, savedialog1.filename );
+        rescanner:=trescan.create(false, address, address2, cbpointerinrange.checked, pointerstart, pointerstop, combotype.itemindex=0, cbCaseSensitive.checked, cbMustBeStart.checked, edtRegExp.text, diffkind, vartype, pointerfilereader.filename, savedialog1.filename , self);
 
       end;
       btnScan.caption:='Stop';
