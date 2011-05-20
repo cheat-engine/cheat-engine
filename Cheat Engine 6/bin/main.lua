@@ -2,7 +2,6 @@
 --You can use this to define some often used functions and libraries you'd like to use
 
 require("defines")
-require("class");
 
 --[[
 

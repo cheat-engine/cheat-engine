@@ -82,6 +82,7 @@ begin
 
     while z.read(size, sizeof(size))>0 do //still has a file
     begin
+      //get the filename
       getmem(temp, size+1);
       z.read(temp^, size);
       temp[size]:=#0;
@@ -89,6 +90,7 @@ begin
       filename:=temp;
       freemem(temp);
 
+      //get the folder
       z.read(size, sizeof(size));
       getmem(temp, size+1);
       z.read(temp^, size);
@@ -142,18 +144,12 @@ begin
         WaitForSingleObject(ProcessInformation.hProcess, INFINITE);
         sleep(2000);
       end;
-
-    end;
-
+    end; //else file does not exist
 
   end;
 
-  if not deleteFolder(launchdir) then
-  begin
-    //deletion failed, try one more time in 5 seconds else give up
-    sleep(5000);
-    deleteFolder(launchdir);
-  end;
+  while not deleteFolder(launchdir) do //deletion failed, try again in 10 seconds
+    sleep(10000);
 end;
 
 

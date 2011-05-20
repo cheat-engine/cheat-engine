@@ -1173,6 +1173,8 @@ var doc: TXMLDocument;
 
   m: TMemorystream;
   c: Tcompressionstream;
+
+  size: dword;
 begin
   wasactive:=active;
   if active then active:=false;
@@ -1189,7 +1191,9 @@ begin
     //compress the design
     m:=tmemorystream.create;
     c:=Tcompressionstream.create(clmax, m, true);
-    c.write(saveddesign.Memory^, saveddesign.size);
+    size:=saveddesign.size;
+    c.write(size, sizeof(size));
+    c.write(saveddesign.Memory^, size);
     c.free;
 
     //and now save the stream as text to the xml file
@@ -1219,9 +1223,10 @@ var s: string;
   b: pchar;
   m: TMemorystream;
   dc: Tdecompressionstream;
-  maxsize, size: integer;
+  size: integer;
   read: integer;
 
+  realsize: dword;
 begin
   if saveddesign=nil then
     saveddesign:=TMemorystream.create;
@@ -1231,8 +1236,7 @@ begin
   s:=node.TextContent;
 
   size:=length(s) div 2;
-  maxsize:=max(65536,size); //64KB or the required size if that's bigger
-  getmem(b, maxsize);
+  getmem(b, size);
   try
     HexToBin(pchar(s), b, size);
 
@@ -1241,12 +1245,13 @@ begin
     m.position:=0;
     dc:=Tdecompressionstream.create(m, true);
 
-    //reuse the b buffer
-    repeat
-      read:=dc.read(b^, maxsize);
-      saveddesign.WriteBuffer(b^, read);
-    until read=0;
+    dc.read(realsize,sizeof(realsize));
 
+    freemem(b);
+    getmem(b, realsize);
+
+    read:=dc.read(b^, realsize);
+    saveddesign.WriteBuffer(b^, read);
   finally
     freemem(b);
   end;
