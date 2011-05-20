@@ -118,7 +118,7 @@ begin
 end;
 
 
-function enumfunc(hModule:HANDLE; lpszType:pchar; lpszName:pchar; lParam:ULONG_PTR):WINBOOL;stdcall;
+function enumfunc(hModule:HANDLE; lpszType:pchar; lpszName:pchar; lParam: LONG_PTR):WINBOOL;stdcall;
 var
   allicons: tmemorystream;
   icon: TIcon;
@@ -142,9 +142,9 @@ begin
   result:=true;
 end;
 
-type
-  ENUMRESNAMEPROC2 = function (_para1:HANDLE; _para2:LPCTSTR; _para3:LPTSTR; _para4:ULONG_PTR):WINBOOL;stdcall;
-function EnumResourceNames(hModule:HINST; lpType:LPCSTR; lpEnumFunc:ENUMRESNAMEPROC2; lParam:LONG):WINBOOL; external 'kernel32' name 'EnumResourceNamesA';
+//type
+//  ENUMRESNAMEPROC2 = function (_para1:HANDLE; _para2:LPCTSTR; _para3:LPTSTR; _para4:LONG_PTR):WINBOOL; stdcall;
+//function EnumResourceNames(hModule:HINST; lpType:LPCSTR; lpEnumFunc:ENUMRESNAMEPROC2; lParam:LONG_PTR):WINBOOL; external 'kernel32' name 'EnumResourceNamesA';
 
 function pickIcon: TIcon;
 var opendialog: Topendialog;
