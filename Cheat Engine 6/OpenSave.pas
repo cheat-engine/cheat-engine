@@ -198,6 +198,9 @@ resourcestring
   rsUnknownExtention = 'Unknown extention';
   rsYouCanOnlyProtectAFileIfItHasAnCETRAINERExtension = 'You can only protect a file if it has an .CETRAINER extension';
   rsErrorSaving = 'Error saving...';
+  rsAskIfStupid = 'Generating a trainer with the current state of the cheat '
+    +'table will likely result in a completly useless trainer that does '
+    +'nothing. Are you sure?';
 
 procedure LoadStructFromXMLNode(var struct: TbaseStructure; Structure: TDOMNode);
 var tempnode: TDOMNode;
@@ -1060,8 +1063,13 @@ begin
     begin
       //trainer maker
       //show the trainer exegenerator form
+
+      if (MainForm.LuaForms.Count=0) and (mainform.frmLuaTableScript.assemblescreen.Text='') then
+        if MessageDlg(rsAskIfStupid, mtWarning, [mbyes, mbno], 0)<>mryes
+          then exit;
+
       if frmExeTrainerGenerator=nil then
-        frmExeTrainerGenerator:=TfrmExeTrainerGenerator.create(nil);
+        frmExeTrainerGenerator:=TfrmExeTrainerGenerator.create(application);
 
       frmExeTrainerGenerator.filename:=filename;
       frmExeTrainerGenerator.showmodal;
