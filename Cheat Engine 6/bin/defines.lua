@@ -84,6 +84,11 @@ mrNoToAll = mrNone + 9
 mrYesToAll = mrNone + 10
 mrLast = mrYesToAll
 
+--duplicate enum
+dupIgnore = 0
+dupAccept = 1
+dupError = 2
+
 
 --Variable types
 vtByte=0

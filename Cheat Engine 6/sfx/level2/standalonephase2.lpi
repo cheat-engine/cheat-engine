@@ -81,8 +81,8 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="13"/>
-        <CursorPos X="59" Y="31"/>
+        <TopLine Value="79"/>
+        <CursorPos X="44" Y="137"/>
         <UsageCount Value="34"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -95,7 +95,6 @@
         <CursorPos X="12" Y="286"/>
         <UsageCount Value="17"/>
         <Loaded Value="True"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit2>
       <Unit3>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\objpas\sysutils\sysutils.inc"/>
@@ -105,7 +104,6 @@
         <CursorPos X="26" Y="556"/>
         <UsageCount Value="17"/>
         <Loaded Value="True"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit3>
       <Unit4>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\objpas\sysutils\filutilh.inc"/>
@@ -115,7 +113,6 @@
         <CursorPos X="16" Y="86"/>
         <UsageCount Value="17"/>
         <Loaded Value="True"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit4>
       <Unit5>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\objpas\sysutils\diskh.inc"/>
@@ -125,7 +122,6 @@
         <CursorPos X="10" Y="21"/>
         <UsageCount Value="17"/>
         <Loaded Value="True"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit5>
       <Unit6>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\win\sysutils.pp"/>
@@ -136,7 +132,6 @@
         <CursorPos X="3" Y="572"/>
         <UsageCount Value="17"/>
         <Loaded Value="True"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit6>
       <Unit7>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\packages\fcl-base\src\win\fileinfo.pp"/>
@@ -154,7 +149,6 @@
         <CursorPos X="11" Y="95"/>
         <UsageCount Value="17"/>
         <Loaded Value="True"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit8>
       <Unit9>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\win\crt.pp"/>
@@ -330,7 +324,7 @@
     <BreakPoints Count="1">
       <Item1>
         <Source Value="main.pas"/>
-        <Line Value="166"/>
+        <Line Value="162"/>
       </Item1>
     </BreakPoints>
     <Exceptions Count="3">

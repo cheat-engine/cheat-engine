@@ -35,7 +35,7 @@ Added the ability to use lua variables inside auto assembler ( $luavariable )
 Added syntax highlighting to lua
 The lua script has been moved from the comments window to it's own menu on top
 In the hexadecimal view when selecting 4 bytes and then pressing space will make you go there. Backspace returns
-
+Added the .cetrainer file extension so you can download very small files and have great trainers
 
 
 How to use:

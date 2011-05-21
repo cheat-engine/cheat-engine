@@ -9,6 +9,7 @@ object frmLuaEngine: TfrmLuaEngine
   ClientWidth = 596
   Menu = MainMenu1
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   Position = poScreenCenter
   LCLVersion = '0.9.31'
   object GroupBox1: TGroupBox

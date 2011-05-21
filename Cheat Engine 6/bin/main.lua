@@ -291,7 +291,7 @@ strings_setString(list, index, string) : Replaces the string at the given index
 Stringlist Class: (Inheritance : Strings->Object)
 createStringlist() : Creates a stringlist class object (for whatever reason, lua strings are probably easier to use)
 stringlist_getDuplicates(list) : returns the duplicates property
-stringlist_setDuplicates(list, Duplicates) : Sets the duplicates property
+stringlist_setDuplicates(list, Duplicates) : Sets the duplicates property (dupIgnore, dupAccept, dupError)
 stringlist_getSorted(list) : returns true if the list has the sorted property
 stringlist_setSorted(list, boolean) : Sets the sorted property
 stringlist_getCaseSensitive(list) : Returns true if the case sensitive property is set

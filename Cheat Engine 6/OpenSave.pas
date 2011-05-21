@@ -513,6 +513,8 @@ begin
       end;
     end;
 
+
+
     if symbols<>nil then
     begin
       for i:=0 to symbols.ChildNodes.Count-1 do
@@ -594,8 +596,10 @@ begin
     begin
       if not isTrainer then
       begin
+
         if formSettings.cbAskIfTableHasLuascript.checked then
         begin
+
           r:=MessageDlg(rsThisTableContainsALuaScriptDoYouWantToRunIt, mtConfirmation, [mbyes, mbno, mbyestoall, mbNoToAll], 0);
 
           if r in [mrYesToAll, mrNoToAll] then
@@ -631,7 +635,6 @@ begin
           end;
 
 
-
         end
         else
         begin
@@ -656,6 +659,8 @@ begin
           end;
         end;
       end;
+
+
     end;
 
   finally
@@ -733,7 +738,7 @@ var ctfile: TFilestream;
 
     isProtected: boolean;
 begin
-
+  x:=nil;
   isProtected:=false;
   unprotectedstream:=nil;
   ctfile:=nil;
@@ -742,7 +747,7 @@ begin
 
   mainform.addresslist.Items.BeginUpdate;
   try
-    x:=nil;
+
     getmem(x,12);
     ctfile.ReadBuffer(x^,11);
     x[11]:=#0;  //write a 0 terminator
@@ -789,16 +794,19 @@ begin
 
   finally
     if x<>nil then
+    begin
       freemem(x);
+      x:=nil;
+    end;
 
     if ctfile<>nil then
-      ctfile.free;
+      freeandnil(ctfile);
 
     if doc<>nil then
-      doc.free;
+      freeandnil(doc);
 
     if unprotectedstream<>nil then
-      unprotectedstream.free;
+      freeandnil(unprotectedstream);
 
     mainform.addresslist.Items.EndUpdate;
   end;

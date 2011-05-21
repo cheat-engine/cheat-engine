@@ -218,11 +218,16 @@ var i: integer;
   e: boolean;
 begin
   clear;
+
+
+
   for i:=0 to node.ChildNodes.Count-1 do
   begin
     n:=node.ChildNodes[i];
+
     if n.NodeName='DisassemblerComment' then
     begin
+
       n2:=n.FindNode('Address');
       if n2<>nil then
       begin
@@ -290,7 +295,16 @@ begin
       while c<>nil do
       begin
         if c.comment<>nil then
+        begin
           StrDispose(c.comment);
+          c.comment:=nil;
+        end;
+
+        if c.interpretableAddress<>nil then
+        begin
+          strdispose(c.interpretableAddress);
+          c.interpretableAddress:=nil;
+        end;
 
         prev:=c;
         c:=c.next;
@@ -299,7 +313,7 @@ begin
       end;
     end;
 
-
+    commentstree.Clear;
   end;
 end;
 

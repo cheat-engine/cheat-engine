@@ -1336,6 +1336,8 @@ var
   descriptionstart: integer;
 begin
   //multiselect implementation
+
+
   DefaultDraw:=true;
   PaintImages:=true;
 
