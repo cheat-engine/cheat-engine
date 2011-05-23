@@ -93,7 +93,10 @@ const IOCTL_CE_LAUNCHDBVM           	= (IOCTL_UNKNOWN_BASE shl 16) or ($083a shl
 const IOCTL_CE_UNHOOKALLINTERRUPTS    = (IOCTL_UNKNOWN_BASE shl 16) or ($083b shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_EXECUTE_CODE           = (IOCTL_UNKNOWN_BASE shl 16) or ($083c shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_GETPROCESSNAMEADDRESS  = (IOCTL_UNKNOWN_BASE shl 16) or ($083d shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
-const IOCTL_CE_SETKERNELSTEPABILITY  = (IOCTL_UNKNOWN_BASE shl 16) or ($083e shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_SETKERNELSTEPABILITY   = (IOCTL_UNKNOWN_BASE shl 16) or ($083e shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+
+const IOCTL_CE_READMSR                = (IOCTL_UNKNOWN_BASE shl 16) or ($083f shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_WRITEMSR               = (IOCTL_UNKNOWN_BASE shl 16) or ($0840 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
 
 
@@ -205,6 +208,10 @@ function GetGDT(limit: pword):dword; stdcall;
 function isDriverLoaded(SigningIsTheCause: PBOOL): BOOL; stdcall;
 
 procedure DBK32Initialize;
+
+
+function readMSR(msr: dword): QWORD;
+procedure writeMSR(msr: dword; value: qword);
 
 
 
@@ -1348,6 +1355,41 @@ begin
     result:=deviceiocontrol(hdevice,cc,@input,sizeof(input),nil,0,cc,nil);
   end;
 end;
+
+function readMSR(msr: dword): QWORD;
+var
+  cc: dword;
+  msrvalue: qword;
+begin
+  if (hdevice<>INVALID_HANDLE_VALUE) then
+  begin
+    cc:=IOCTL_CE_READMSR;
+    if deviceiocontrol(hdevice,cc,@msr,sizeof(msr),@msrvalue,sizeof(msrvalue),cc,nil) then
+      result:=msrvalue
+    else
+      result:=-1;
+  end;
+end;
+
+procedure writeMSR(msr: dword; value: qword);
+var
+  cc: dword;
+  input: record
+    msr: uint64;
+    msrvalue: uint64;
+  end;
+begin
+  if (hdevice<>INVALID_HANDLE_VALUE) then
+  begin
+    input.msr:=msr;
+    input.msrvalue:=value;
+
+    cc:=IOCTL_CE_WRITEMSR;
+    deviceiocontrol(hdevice,cc,@input,sizeof(input),nil,0,cc,nil);
+  end;
+
+end;
+
 
 function internal_LaunchDBVM(parameters: pointer): BOOL; stdcall;
 var cc: dword;

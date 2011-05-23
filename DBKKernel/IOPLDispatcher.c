@@ -1252,7 +1252,43 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				ntStatus=STATUS_SUCCESS;
 				break;
 			}
-			
+
+		case IOCTL_CE_READMSR:
+			{
+				DWORD msr=*(PDWORD)Irp->AssociatedIrp.SystemBuffer;
+
+				__try
+				{
+					*(PUINT64)Irp->AssociatedIrp.SystemBuffer=__readmsr(msr);
+					ntStatus=STATUS_SUCCESS;
+				}
+				__except(1)
+				{
+					ntStatus=STATUS_UNSUCCESSFUL;
+				}
+
+				break;
+			}	
+
+		case IOCTL_CE_WRITEMSR:
+			{
+				struct input
+				{
+					UINT64 msr;			
+					UINT64 value;
+				} *inp=Irp->AssociatedIrp.SystemBuffer;
+
+				__try
+				{
+					__writemsr(inp->msr, inp->value );
+					ntStatus=STATUS_SUCCESS;
+				}
+				__except(1)
+				{
+					ntStatus=STATUS_UNSUCCESSFUL;
+				}
+				break;
+			}	
 
 		case IOCTL_CE_INITIALIZE:
 			{

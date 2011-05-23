@@ -7706,6 +7706,39 @@ begin
   end else lua_pop(L, parameters);
 end;
 
+function dbk_readMSR(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  msr: dword;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    msr:=lua_tointeger(L,-1);
+    lua_pushinteger(L, readMSR(msr));
+    result:=1;
+  end else lua_pop(L, parameters);
+end;
+
+function dbk_writeMSR(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  msr: dword;
+  msrvalue: qword;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    msr:=lua_tointeger(L,-2);
+    msrvalue:=lua_tointeger(L,-1);
+    writemsr(msr, msrvalue);
+  end;
+
+  lua_pop(L, parameters);
+end;
+
 function createSplitter(L: Plua_State): integer; cdecl;
 var
   Splitter: TCESplitter;

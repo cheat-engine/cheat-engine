@@ -840,6 +840,8 @@ dbk_useKernelmodeProcessMemoryAccess() : Switches the internal pointer to the Re
 dbk_useKernelmodeQueryMemoryRegions() : Switches the internal pointer to the QueryVirtualMemory api to dbk_QueryVirtualMemory
 dbk_getPEProcess(processid) : Returns the pointer of the EProcess structure of the selected processid
 dbk_getPEThread(threadid) : Gets the pointer to the EThread  structure
+dbk_readMSR(msr): Reads the msr
+dbk_writeMSR(msr, msrvalue): Writes the msr
 dbk_executeKernelMemory(address, parameter) : 
   Executes a routine from kernelmode (e.g a routine written there with auto assembler)
   parameter can be a value or an address. It's up to your code how it's handled

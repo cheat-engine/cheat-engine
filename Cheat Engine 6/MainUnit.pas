@@ -6425,9 +6425,17 @@ var _us: string;
 var advapi: thandle;
     tu: unicodestring;
 procedure TMainForm.Label59Click(Sender: TObject);
+var x: qword;
 begin
 
-  showmessage(inttostr(lua_StrToInt(scanvalue.text)));
+  //showmessage(inttostr(lua_StrToInt(scanvalue.text)));
+  asm
+    mov rcx,$1d9
+    rdmsr
+    mov x,rax
+  end;
+
+showmessage(inttohex(x,8));
 
 end;
 
