@@ -38,6 +38,9 @@ typedef struct {
 	UINT64 dr6;
 	UINT64 dr7;//
 	BYTE fxstate[512];
+
+	UINT64 LBR_Count;
+	UINT64 LBR[16];
 } DebugStackState, *PDebugStackState;
 #pragma pack()
 

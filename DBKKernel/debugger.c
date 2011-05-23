@@ -39,7 +39,10 @@ volatile struct
 	UINT_PTR *LastRealDebugRegisters;
 	HANDLE LastThreadID;
 	BOOL handledlastevent;
+	
 	BOOL storeLBR;
+	int storeLBR_max;
+	UINT_PTR *LastLBRStack;
 
 	volatile struct {		
 		UINT_PTR DR0;
@@ -236,7 +239,34 @@ void debugger_setStoreLBR(BOOL state)
 	else
 		DbgPrint("Setting storeLBR to false\n");
 
-	DebuggerState.storeLBR=state; //it's not THAT crucial to disable it
+	DebuggerState.storeLBR=state; //it's not THAT crucial to disable/enable it
+
+	DebuggerState.storeLBR_max=0;
+
+	switch (cpu_model)
+    {
+        case 0x2a:
+        case 0x1a:
+        case 0x1e:
+        case 0x1f:
+        case 0x2e:
+        case 0x25:
+        case 0x2c:
+          DebuggerState.storeLBR_max=16;
+          break;
+
+        case 0x17:
+        case 0x1d:
+        case 0x0f:
+          DebuggerState.storeLBR_max=4;
+          break;
+
+        case 0x1c:
+          DebuggerState.storeLBR_max=8;
+          break;
+    }
+
+	
 }
 
 
@@ -530,7 +560,7 @@ NTSTATUS debugger_setDebuggerState(PDebugStackState state)
 	return STATUS_SUCCESS;
 }
 
-int breakpointHandler_kernel(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
+int breakpointHandler_kernel(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs, UINT_PTR *LBR_Stack)
 //Notice: This routine is called when interrupts are enabled and the GD bit has been set if globaL DEBUGGING HAS BEEN USED
 //Interrupts are enabled and should be at passive level, so taskswitching is possible
 {
@@ -582,7 +612,9 @@ int breakpointHandler_kernel(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 		//first store the stackpointer so it can be manipulated externally
 		DebuggerState.LastStackPointer=stackpointer;
 		DebuggerState.LastRealDebugRegisters=currentdebugregs;		
+		DebuggerState.LastLBRStack=LBR_Stack;
 		DebuggerState.LastThreadID=PsGetCurrentThreadId();
+		
 
 #ifdef AMD64
 		_fxsave(DebuggerState.fxstate);
@@ -668,9 +700,38 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 	HANDLE CurrentProcessID=PsGetCurrentProcessId();	
 	UINT_PTR originaldr6=currentdebugregs[4];
 	DebugReg6 _dr6=*(DebugReg6 *)&currentdebugregs[4];
+
+	UINT_PTR LBR_Stack[16]; //max 16
 //	DebugReg7 _dr7=*(DebugReg7 *)&currentdebugregs[5];
 
 
+	if (cpu_model==0x6)
+	{
+		if (DebuggerState.storeLBR)
+		{
+			//fetch the lbr stack
+			int MSR_LASTBRANCH_TOS=0x1c9;
+			int MSR_LASTBRANCH_0=0x40;
+
+			int i;
+			int count;
+
+			i=(int)__readmsr(MSR_LASTBRANCH_TOS);
+			count=0;
+			while (count<DebuggerState.storeLBR_max)
+			{
+				UINT64 x;
+				x=__readmsr(MSR_LASTBRANCH_0+i);
+				LBR_Stack[count]=x;
+				__writemsr(MSR_LASTBRANCH_0+i,0); //it has been read out, so can be erased now
+
+				count++;
+				i++;
+				i=i % DebuggerState.storeLBR_max;				
+			}
+		}
+	}
+	
 
 	//DbgPrint("interrupt1_handler\n");
 	
@@ -999,7 +1060,7 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 				int rs=1;
 				DbgPrint("calling breakpointHandler_kernel\n");
 				
-				rs=breakpointHandler_kernel(stackpointer, currentdebugregs);	
+				rs=breakpointHandler_kernel(stackpointer, currentdebugregs, LBR_Stack);	
 				DbgPrint("After handler\n");
 
 				//DbgPrint("rs=%d\n",rs);
@@ -1341,8 +1402,7 @@ int interrupt1_centry(UINT_PTR *stackpointer) //code segment 8 has a 32-bit stac
 
 	//DbgPrint("end of interrupt1_centry. eflags=%x", stackpointer[si_eflags]);
 
-	//if branch tracing set lbr back on
-	
+	//if branch tracing set lbr back on (get's disabled on debug interrupts)	
 	if (DebuggerState.storeLBR)
 		__writemsr(0x1d9, __readmsr(0x1d9) | 1);
 		

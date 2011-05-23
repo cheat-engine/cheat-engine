@@ -1267,9 +1267,13 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 			{
 				DWORD msr=*(PDWORD)Irp->AssociatedIrp.SystemBuffer;
 
+				DbgPrint("IOCTL_CE_READMSR: msr=%x\n", msr);
+
 				__try
 				{
 					*(PUINT64)Irp->AssociatedIrp.SystemBuffer=__readmsr(msr);
+					DbgPrint("Output: %llx\n",*(PUINT64)Irp->AssociatedIrp.SystemBuffer); 
+
 					ntStatus=STATUS_SUCCESS;
 				}
 				__except(1)
@@ -1288,9 +1292,13 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 					UINT64 value;
 				} *inp=Irp->AssociatedIrp.SystemBuffer;
 
+				DbgPrint("IOCTL_CE_WRITEMSR:\n");
+				DbgPrint("msr=%x\n", inp->msr);
+				DbgPrint("value=%x\n", inp->value);
+
 				__try
 				{
-					__writemsr(inp->msr, inp->value );
+					__writemsr(inp->msr, inp->value );							
 					ntStatus=STATUS_SUCCESS;
 				}
 				__except(1)

@@ -407,6 +407,30 @@ Return Value:
 		
 	ZwClose(reg); 
 
+
+	//fetch cpu info
+	{
+		DWORD r[4];
+		DWORD a;
+		__cpuid(r,1);
+
+		a=r[0];
+		
+		cpu_stepping=a & 0xf;
+		cpu_model=(a >> 4) & 0xf;
+		cpu_familyID=(a >> 8) & 0xf;
+		cpu_type=(a >> 12) & 0x3;
+		cpu_ext_modelID=(a >> 16) & 0xf;
+		cpu_ext_familyID=(a >> 20) & 0xff;
+
+		cpu_model=cpu_model + (cpu_ext_modelID << 4);
+		cpu_familyID=cpu_familyID + (cpu_ext_familyID << 4);
+
+
+
+	}
+
+
 	
     return STATUS_SUCCESS;
 }

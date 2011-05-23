@@ -220,6 +220,13 @@ UINT_PTR PAGE_SIZE_LARGE;
 UINT_PTR MAX_PDE_POS;
 UINT_PTR MAX_PTE_POS;
 
+int cpu_stepping;
+int cpu_model;
+int cpu_familyID;
+int cpu_type;
+int cpu_ext_modelID;
+int cpu_ext_familyID;
+
 int KernelCodeStepping;
 
 int isPrefix(unsigned char b);
