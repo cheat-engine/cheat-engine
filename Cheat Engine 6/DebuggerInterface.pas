@@ -26,6 +26,7 @@ type
     function GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false): BOOL; virtual; abstract;
     function DebugActiveProcess(dwProcessId: DWORD): BOOL; virtual; abstract;
     function DebugActiveProcessStop(dwProcessID: DWORD): BOOL; virtual;
+    function GetLastBranchRecords(lbr: pointer): integer; virtual;
 
     property DebuggerCapabilities: TDebuggerCapabilitiesSet read fDebuggerCapabilities;
     property errorstring: string read ferrorstring;
@@ -38,6 +39,12 @@ function TDebuggerInterface.DebugActiveProcessStop(dwProcessID: DWORD): BOOL;
 begin
   //don't complain if not implemented
   result:=true;
+end;
+
+function TDebuggerInterface.GetLastBranchRecords(lbr: pointer): integer;
+begin
+  //if implemented fill in the lbr pointer with the lbr records (array of qwords) and return the count (max 16)
+  result:=0; //result=0
 end;
 
 end.

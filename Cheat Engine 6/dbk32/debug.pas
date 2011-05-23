@@ -39,6 +39,9 @@ type TDebuggerstate=packed record
   dr6 : uint64;
   dr7 : uint64;
   fxstate: array[0..511] of byte;
+  LBR_Count: uint64;
+  LBR: array [0..15] of UINT64;
+
 end;
 type PDebuggerstate=^TDebuggerstate;
 

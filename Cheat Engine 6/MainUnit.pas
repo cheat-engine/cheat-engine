@@ -739,7 +739,7 @@ uses mainunit2, AddAddress, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup
   CommentsUnit, formsettingsunit, formAddressChangeUnit, Changeoffsetunit, FoundCodeUnit, advancedoptionsunit,
   frmProcessWatcherUnit,formPointerOrPointeeUnit,OpenSave, formmemoryregionsunit, formProcessInfo
   , PasteTableentryFRM,pointerscannerfrm,PointerscannerSettingsFrm,frmFloatingPointPanelUnit,
-  pluginexports;
+  pluginexports, DBK32functions;
 
 resourcestring
   rsInvalidStartAddress = 'Invalid start address: %s';
@@ -6428,15 +6428,11 @@ procedure TMainForm.Label59Click(Sender: TObject);
 var x: qword;
 begin
 
-  //showmessage(inttostr(lua_StrToInt(scanvalue.text)));
-  asm
-    mov rcx,$1d9
-    rdmsr
-    mov x,rax
-  end;
 
-showmessage(inttohex(x,8));
+showmessage(inttohex(readMSR($1d9),8));
 
+writeMSR($1d9, 3);
+showmessage(inttohex(readMSR($1d9),8));
 end;
 
 procedure ChangeIcon(hModule: HModule; restype: PChar; resname: PChar;
