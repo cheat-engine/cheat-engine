@@ -1214,8 +1214,17 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				debugger_touchDebugRegister();
 				ntStatus=STATUS_SUCCESS;
 				break;
-
 			}
+
+		case IOCTL_CE_SETSTORELBR:
+			{
+				BOOL newstate=*(PBOOL)Irp->AssociatedIrp.SystemBuffer;
+
+				debugger_setStoreLBR(newstate);
+				ntStatus=STATUS_SUCCESS;
+				break;
+			}	
+
 
 		case IOCTL_CE_EXECUTE_CODE:
 			{
@@ -1235,6 +1244,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				{
 					ntStatus=functiontocall(inp->parameters);
 					DbgPrint("Still alive\n");
+					ntStatus=STATUS_SUCCESS;
 				}
 				__except(1)
 				{
@@ -1289,6 +1299,8 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				}
 				break;
 			}	
+
+
 
 		case IOCTL_CE_INITIALIZE:
 			{

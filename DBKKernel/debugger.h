@@ -49,6 +49,7 @@ typedef enum {bl_1byte=0, bl_2byte=1, bl_8byte=2/*Only when in 64-bit*/, bl_4byt
 void debugger_initialize(void);
 int debugger_initHookForCurrentCPU(void);
 int debugger_setGlobalDebugState(BOOL state);
+void debugger_setStoreLBR(BOOL state);
 
 int debugger_startDebugging(DWORD debuggedProcessID);
 int debugger_setGDBreakpoint(int breakpointnr, ULONG_PTR Address, BreakType bt, BreakLength bl);

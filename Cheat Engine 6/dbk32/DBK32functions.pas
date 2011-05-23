@@ -98,6 +98,7 @@ const IOCTL_CE_SETKERNELSTEPABILITY   = (IOCTL_UNKNOWN_BASE shl 16) or ($083e sh
 const IOCTL_CE_READMSR                = (IOCTL_UNKNOWN_BASE shl 16) or ($083f shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_WRITEMSR               = (IOCTL_UNKNOWN_BASE shl 16) or ($0840 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
+const IOCTL_CE_SETSTORELBR            = (IOCTL_UNKNOWN_BASE shl 16) or ($0841 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
 
 type TDeviceIoControl=function(hDevice: THandle; dwIoControlCode: DWORD; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesReturned: DWORD; lpOverlapped: POverlapped): BOOL; stdcall;

@@ -286,9 +286,18 @@ begin
 
 
     cc:=IOCTL_CE_SETKERNELSTEPABILITY;
-    result:=deviceiocontrol(hdevice,cc,@input,sizeof(input),@input,0,br,nil);
+    result:=deviceiocontrol(hdevice,cc,@input,sizeof(input),nil,0,br,nil);
   end else result:=false;
 end;
 
+procedure DBKDebug_SetStoreLBR(state: BOOL);
+var br,cc: dword;
+begin
+  if hdevice<>INVALID_HANDLE_VALUE then
+  begin
+    cc:=IOCTL_CE_SETSTORELBR;
+    deviceiocontrol(hdevice,cc,@state,sizeof(state),nil,0,br,nil);
+  end;
+end;
 
 end.

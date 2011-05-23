@@ -39,6 +39,7 @@ volatile struct
 	UINT_PTR *LastRealDebugRegisters;
 	HANDLE LastThreadID;
 	BOOL handledlastevent;
+	BOOL storeLBR;
 
 	volatile struct {		
 		UINT_PTR DR0;
@@ -217,9 +218,27 @@ Must be called for each cpu
 
 		debugger_dr7_setGD(1); //enable the GD flag		
 	}
+
+	if (DebuggerState.storeLBR)
+	{		
+		DbgPrint("Enabling LBR logging. IA32_DEBUGCTL was %x\n", __readmsr(0x1d9));
+		__writemsr(0x1d9, __readmsr(0x1d9) | 1);
+		DbgPrint("Enabling LBR logging. IA32_DEBUGCTL is  %x\n", __readmsr(0x1d9));
+	}
 		
 	return result;
 }
+
+void debugger_setStoreLBR(BOOL state)
+{
+	if (state)
+		DbgPrint("Setting storeLBR to true\n");
+	else
+		DbgPrint("Setting storeLBR to false\n");
+
+	DebuggerState.storeLBR=state; //it's not THAT crucial to disable it
+}
+
 
 int debugger_setGlobalDebugState(BOOL state)
 //call this BEFORE debugging, if already debugging, the user must call this for each cpu
@@ -1321,6 +1340,14 @@ int interrupt1_centry(UINT_PTR *stackpointer) //code segment 8 has a 32-bit stac
 	//DbgPrint("before=%llx after=%llx\n",before,after);
 
 	//DbgPrint("end of interrupt1_centry. eflags=%x", stackpointer[si_eflags]);
+
+	//if branch tracing set lbr back on
+	
+	if (DebuggerState.storeLBR)
+		__writemsr(0x1d9, __readmsr(0x1d9) | 1);
+		
+
+
 
 	return handled;
 }
