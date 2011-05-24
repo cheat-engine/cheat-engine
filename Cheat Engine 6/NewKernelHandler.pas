@@ -226,6 +226,8 @@ type TDebuggerstate=record
   dr6 : uint64;
   dr7 : uint64;
   fxstate: TextendedRegisters;
+  LBR_Count: uint64;
+  LBR: array [0..15] of UINT64;
 end;
 type PDebuggerstate=^TDebuggerstate;
 

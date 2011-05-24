@@ -49,6 +49,8 @@ type
     function SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL; override;
     function GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false):  BOOL; override;
 
+    function GetLastBranchRecords(lbr: pointer): integer; override;
+
     procedure injectEvent(e: pointer);
     function DebugActiveProcess(dwProcessId: DWORD): WINBOOL; override;
 
@@ -334,7 +336,25 @@ begin
     outputdebugstring('Use the default method');
     result:=newkernelhandler.GetThreadContext(hthread, lpContext);
   end;
+end;
 
+function TKernelDebugInterface.GetLastBranchRecords(lbr: pointer): integer;
+type
+  TQwordArray=array[0..0] of QWORD;
+  PQwordArray=^TQWORDArray;
+var l: PQWordarray;
+    i: integer;
+begin
+  l:=PQWordarray(lbr);
+  if NeedsToContinue then
+  begin
+    for i:=0 to currentdebuggerstate.LBR_Count-1 do
+      l[i]:=currentdebuggerstate.LBR[i];
+
+    result:=currentdebuggerstate.LBR_Count;
+  end
+  else
+    result:=0;
 end;
 
 function TKernelDebugInterface.ContinueDebugEvent(dwProcessId: DWORD; dwThreadId: DWORD; dwContinueStatus: DWORD): BOOL;
