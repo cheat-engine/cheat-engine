@@ -44,7 +44,7 @@ end;
 function TDebuggerInterface.GetLastBranchRecords(lbr: pointer): integer;
 begin
   //if implemented fill in the lbr pointer with the lbr records (array of qwords) and return the count (max 16)
-  result:=0; //result=0
+  result:=-1;
 end;
 
 end.

@@ -126,8 +126,8 @@ begin
   mscript.Highlighter:=synhighlighter;
 
   setlength(x,1);
-  LoadFormPosition(self, x);
-  panel1.height:=x[0];
+  if LoadFormPosition(self, x) then
+    panel1.height:=x[0];
 end;
 
 procedure TfrmLuaEngine.FormDestroy(Sender: TObject);

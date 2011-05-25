@@ -51,7 +51,8 @@ uses
   xmplayer_server, xmplayer_defines, ExtraTrainerComponents, frmAdConfigUnit,
   IconStuff, cetranslator, frmStringMapUnit, MemFuncs, frmStringPointerScanUnit,
   frmStructPointerRescanUnit, sharedMemory, disassemblerComments,
-  frmFilePatcherUnit, LuaCanvas, LuaPen, LuaFont, LuaBrush, LuaPicture, LuaMenu;
+  frmFilePatcherUnit, LuaCanvas, LuaPen, LuaFont, LuaBrush, LuaPicture, LuaMenu,
+  LuaDebug;
 
 {$R cheatengine.res}
 {$R manifest.res}

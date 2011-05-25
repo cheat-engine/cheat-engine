@@ -348,13 +348,16 @@ begin
   l:=PQWordarray(lbr);
   if NeedsToContinue then
   begin
-    for i:=0 to currentdebuggerstate.LBR_Count-1 do
-      l[i]:=currentdebuggerstate.LBR[i];
+    if lbr<>nil then //if nil then it's only a query of how many items there are
+    begin
+      for i:=0 to currentdebuggerstate.LBR_Count-1 do
+        l[i]:=currentdebuggerstate.LBR[i];
+    end;
 
     result:=currentdebuggerstate.LBR_Count;
   end
   else
-    result:=0;
+    result:=-1;
 end;
 
 function TKernelDebugInterface.ContinueDebugEvent(dwProcessId: DWORD; dwThreadId: DWORD; dwContinueStatus: DWORD): BOOL;

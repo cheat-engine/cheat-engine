@@ -58,6 +58,7 @@ function DBKDebug_StartDebugging(processid:dword):BOOL; stdcall;
 function DBKDebug_StopDebugging:BOOL; stdcall;
 function DBKDebug_GD_SetBreakpoint(active: BOOL; debugregspot: integer; Address: ptruint; breakType: TBreakType; breakLength: TBreakLength): BOOL; stdcall;
 function DBKDebug_SetAbilityToStepKernelCode(state: boolean):BOOL; stdcall;
+procedure DBKDebug_SetStoreLBR(state: BOOL);
 
 implementation
 

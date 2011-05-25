@@ -107,6 +107,11 @@ debug_removeBreakpoint(address) : if the given address is a part of a breakpoint
 debug_continueFromBreakpoint(continueMethod) : if the debugger is currently waiting to continue you can continue with this. Valid parameters are :co_run (just continue), co_stepinto(when on top of a call, follow it), co_stepover (when on top of a call run till after the call)
 
 
+The following routines describe last branch recording. These functions only work when kernelmode debugging is used:
+debug_setLastBranchRecording(boolean): When set the Kernel debugger will try to record the last branch(es) taken before a breakpoint happens
+debug_getMaxLastBranchRecord() : Returns the maximum branch record your cpu can store (-1 if none)
+debug_getLastBranchRecord(index): Returns the value of the Last Branch Record at the given index (when handling a breakpoint)
+
 
 
 Changing registers:
@@ -871,7 +876,4 @@ hexadecimalview_onByteSelect(hexadecimalview, function): function(hexadecimalvie
 
 --]]
 
-The following routines describe last branch recording. These functions only work when kernelmode debugging is used
-debug_setLastBranchRecording(boolean): When set the Kernel debugger will try to record the last branch(es) taken before a breakpoint happens
-debug_getMaxLastBranchRecord() : Returns the maximum branch record your cpu can store
-debug_getLastBranchRecord(index): Returns the value of the Last Branch Record at the given index (when handling a breakpoint)
+

@@ -38,7 +38,7 @@ implementation
 uses mainunit, frmluaengineunit, pluginexports, MemoryRecordUnit, debuggertypedefinitions,
   symbolhandler, frmautoinjectunit, simpleaobscanner, addresslist, memscan, foundlisthelper,
   cesupport, DBK32functions, sharedMemory, disassembler, LuaCanvas, LuaPen, LuaFont, LuaBrush,
-  LuaPicture, LuaMenu, MemoryBrowserFormUnit, disassemblerviewunit, hexviewunit,
+  LuaPicture, LuaMenu, LuaDebug, MemoryBrowserFormUnit, disassemblerviewunit, hexviewunit,
   CustomTypeHandler, byteinterpreter;
 
 resourcestring
@@ -8680,6 +8680,8 @@ begin
     initializeLuaFont;
     initializeLuaCanvas;
     initializeLuaMenu;
+
+    initializeLuaDebug;
 
 
     s:=tstringlist.create;
