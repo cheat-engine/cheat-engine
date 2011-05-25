@@ -162,6 +162,7 @@ disassemble(address): Disassembles the given address and returns a string in the
 splitDisassembledString(disassembledstring): Returns 4 strings. The address, bytes, opcode and extra field
 
 getInstructionSize(address): Returns the size of an instruction (basically it disassembles the instruction and returns the number of bytes for you)
+getPreviousOpcode(address): Returns the address of the previous opcode (this is just an estimated guess)
 
 
 

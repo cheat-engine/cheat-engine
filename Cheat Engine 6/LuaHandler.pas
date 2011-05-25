@@ -7837,6 +7837,28 @@ begin
     lua_pop(L, parameters);
 end;
 
+function getPreviousOpcode(L: PLua_State): integer; cdecl;
+var parameters: integer;
+  address, address2: ptruint;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    if lua_isstring(L, -parameters) then
+      address:=symhandler.getAddressFromName(lua_tostring(L,-parameters))
+    else
+      address:=lua_tointeger(L,-parameters);
+
+    lua_pop(L, parameters);
+
+    lua_pushinteger(L, previousopcode(address));
+    result:=1;
+  end
+  else
+    lua_pop(L, parameters);
+end;
+
 function disassemble_lua(L: PLua_State): integer; cdecl;
 var parameters: integer;
   address: ptruint;
@@ -8621,6 +8643,7 @@ begin
     lua_register(LuaVM, 'disassemble', disassemble_lua);
     lua_register(LuaVM, 'splitDisassembledString', splitDisassembledString);
     lua_register(LuaVM, 'getInstructionSize', getInstructionSize);
+    lua_Register(LuaVM, 'getPreviousOpcode', getPreviousOpcode);
 
 
     lua_register(LuaVM, 'customControl_getCanvas', customControl_getCanvas);
