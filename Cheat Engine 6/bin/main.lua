@@ -108,6 +108,7 @@ debug_continueFromBreakpoint(continueMethod) : if the debugger is currently wait
 
 
 
+
 Changing registers:
 Different from ce 6.0
 When the debugger is waiting to continue you can change the register variables. When you continue those register values will be set in the thread's context
@@ -870,4 +871,7 @@ hexadecimalview_onByteSelect(hexadecimalview, function): function(hexadecimalvie
 
 --]]
 
-
+The following routines describe last branch recording. These functions only work when kernelmode debugging is used
+debug_setLastBranchRecording(boolean): When set the Kernel debugger will try to record the last branch(es) taken before a breakpoint happens
+debug_getMaxLastBranchRecord() : Returns the maximum branch record your cpu can store
+debug_getLastBranchRecord(index): Returns the value of the Last Branch Record at the given index (when handling a breakpoint)
