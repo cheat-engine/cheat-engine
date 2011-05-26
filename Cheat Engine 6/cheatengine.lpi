@@ -18,12 +18,13 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
-      <BuildNr Value="1389"/>
+      <MinorVersionNr Value="1"/>
+      <BuildNr Value="1393"/>
       <Language Value=""/>
       <CharSet Value=""/>
-      <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="6.0"/>
+      <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="6.1"/>
     </VersionInfo>
-    <BuildModes Count="3" Active="debug">
+    <BuildModes Count="3" Active="release">
       <Item1 Name="release" Default="True"/>
       <Item2 Name="debug">
         <CompilerOptions>
@@ -2351,7 +2352,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="57"/>
         <CursorPos X="27" Y="75"/>
-        <UsageCount Value="71"/>
+        <UsageCount Value="72"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit197>
@@ -2542,37 +2543,30 @@
   <Debugging>
     <BreakPoints Count="7">
       <Item1>
-        <Kind Value="bpkSource"/>
         <Source Value="formdesignerunit.pas"/>
         <Line Value="576"/>
       </Item1>
       <Item2>
-        <Kind Value="bpkSource"/>
         <Source Value="C:\lazarus\ideintf\propedits.pp"/>
         <Line Value="5371"/>
       </Item2>
       <Item3>
-        <Kind Value="bpkSource"/>
         <Source Value="frmStackViewUnit.pas"/>
         <Line Value="130"/>
       </Item3>
       <Item4>
-        <Kind Value="bpkSource"/>
         <Source Value="CustomTypeHandler.pas"/>
         <Line Value="567"/>
       </Item4>
       <Item5>
-        <Kind Value="bpkSource"/>
         <Source Value="CustomTypeHandler.pas"/>
         <Line Value="488"/>
       </Item5>
       <Item6>
-        <Kind Value="bpkSource"/>
         <Source Value="frmLoadMemoryunit.pas"/>
         <Line Value="66"/>
       </Item6>
       <Item7>
-        <Kind Value="bpkSource"/>
         <Source Value="ceguicomponents.pas"/>
         <Line Value="1194"/>
       </Item7>
