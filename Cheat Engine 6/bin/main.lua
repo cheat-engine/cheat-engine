@@ -107,7 +107,7 @@ debug_removeBreakpoint(address) : if the given address is a part of a breakpoint
 debug_continueFromBreakpoint(continueMethod) : if the debugger is currently waiting to continue you can continue with this. Valid parameters are :co_run (just continue), co_stepinto(when on top of a call, follow it), co_stepover (when on top of a call run till after the call)
 
 
-The following routines describe last branch recording. These functions only work when kernelmode debugging is used:
+The following routines describe last branch recording. These functions only work when kernelmode debugging is used and using windows XP (vista and later work less effective or not at all because the operating system interferes.  Might also be intel specific. A dbvm upgrade in the future might make this work for windows vista and later)
 debug_setLastBranchRecording(boolean): When set the Kernel debugger will try to record the last branch(es) taken before a breakpoint happens
 debug_getMaxLastBranchRecord() : Returns the maximum branch record your cpu can store (-1 if none)
 debug_getLastBranchRecord(index): Returns the value of the Last Branch Record at the given index (when handling a breakpoint)
@@ -814,6 +814,25 @@ foundlist_getAddress(foundlist, index) : Returns the address as a string
 foundlist_getValue(foundlist, index)
 
 
+Memoryview class: (Inheritance: Form->ScrollingWinControl->CustomControl->WinControl->Control->Component->Object)
+memoryview_getDisassemblerView(memoryView): Returns the visual disassembler object on the memoryview window
+memoryview_getHexadecimalView(memoryView): Returns the visual hexadecimal object on the memoryview window
+
+Disassemblerview class: (Inheritance: Panel->CustomControl->WinControl->Control->Component->Object) 
+  The visual disassembler used on the memory view window
+
+disassemblerview_getSelectedAddress(disassemblerview)
+disassemblerview_setSelectedAddress(disassemblerview, address)
+disassemblerview_onSelectionChange(disassemblerview, function): function(disassemblerview, address, address2)
+
+Hexadecimal class: (Inheritance: Panel->CustomControl->WinControl->Control->Component->Object) 
+  The visual hexadecimal object used on the memory view window
+
+hexadecimalview_getTopAddress(hexadecimalview)
+hexadecimalview_setTopAddress(hexadecimalview, address)
+hexadecimalview_onAddressChange(hexadecimalview, function): function(hexadecimalview, address)
+hexadecimalview_onByteSelect(hexadecimalview, function): function(hexadecimalview, address, address2)
+
 
 supportCheatEngine(attachwindow, hasclosebutton, width, height, position ,yoururl OPTIONAL, extraparameters OPTIONAL, percentageshown OPTIONAL): 
   Will show an advertising window which will help keep the development of Cheat Engine going.
@@ -839,7 +858,7 @@ supportCheatEngine(attachwindow, hasclosebutton, width, height, position ,yourur
 fuckCheatEngine() : Removes the ad window if it was showing
 
 
-
+Following are some more internal functions for Cheat Engine
 
 dbk_initialize() : Returns true if the dbk driver is loaded in memory. False if it failed for whatever reason (e.g 64-bit and not booted with unsigned driver support)
 dbk_useKernelmodeOpenProcess() : Switches the internal pointer of the OpenProcess api to dbk_OpenProcess
@@ -854,26 +873,44 @@ dbk_executeKernelMemory(address, parameter) :
   parameter can be a value or an address. It's up to your code how it's handled
 
 
+dbvm_initialize(offloados OPTIONAL) : Initializes the dbvm functions (dbk_initialize also calls this) offloados is a boolean that when set will offload the system onto dbvm if it's not yet running (and only IF the dbk driver is loaded)
+dbvm_readMSR(msr): See dbk_readMSR
+dbvm_writeMSR(msr, value): See dbk_writeMSR
 
-Memoryview class: (Inheritance: Form->ScrollingWinControl->CustomControl->WinControl->Control->Component->Object)
-memoryview_getDisassemblerView(memoryView): Returns the visual disassembler object on the memoryview window
-memoryview_getHexadecimalView(memoryView): Returns the visual hexadecimal object on the memoryview window
 
-Disassemblerview class: (Inheritance: Panel->CustomControl->WinControl->Control->Component->Object) 
-  The visual disassembler used on the memory view window
 
-disassemblerview_getSelectedAddress(disassemblerview)
-disassemblerview_setSelectedAddress(disassemblerview, address)
-disassemblerview_onSelectionChange(disassemblerview, function): function(disassemblerview, address, address2)
+onAPIPointerChange(function): Registers a callback when an api pointer is changed (can happen when the user clicks ok in settings, or when dbk_use*** is used. Does NOT happen when setAPIPointer is called)
 
-Hexadecimal class: (Inheritance: Panel->CustomControl->WinControl->Control->Component->Object) 
-  The visual hexadecimal object used on the memory view window
 
-hexadecimalview_getTopAddress(hexadecimalview)
-hexadecimalview_setTopAddress(hexadecimalview, address)
-hexadecimalview_onAddressChange(hexadecimalview, function): function(hexadecimalview, address)
-hexadecimalview_onByteSelect(hexadecimalview, function): function(hexadecimalview, address, address2)
+setAPIPointer(functionid, address): Sets the pointer of the given api to the given address. The address can be a predefined address set at initialization by Cheat Engine, or an address you got from an autoassembler script or injected dll (When Cheat Engine itself was targeted)
+
+functionid:
+  0: OpenProcess
+    Known compatible address defines:
+      windows_OpenProcess
+      dbk_OpenProcess
+      
+  1: ReadProcessMemory
+    Known compatible address defines:
+      windows_ReadProcessMemory
+      dbk_ReadProcessMemory
+      dbk_ReadPhysicalMemory
+      dbvm_ReadPhysicalMemory
+
+  2: WriteProcessMemory
+    Known compatible address defines:
+      windows_WriteProcessMemory
+      dbk_WriteProcessMemory
+      dbk_WritePhysicalMemory
+      dbvm_WritePhysicalMemory
+
+
+  3: VirtualQueryEx
+    Known compatible address defines:
+      windows_VirtualQueryEx
+      dbk_VirtualQueryEx
+      VirtualQueryExPhysical
+
+Extra: The function dbk_NtOpenProcess is also defined which points to a stub function that calls dbk_OpenProcess.  You can use that in an auto assembler script and override the NtOpenProcess function if you wish.
 
 --]]
-
-

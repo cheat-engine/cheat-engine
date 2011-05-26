@@ -7,7 +7,7 @@ unit LuaHandler;
 interface
 
 uses
-  windows, Classes, dialogs, SysUtils, lua, lualib, lauxlib, syncobjs, cefuncproc,
+  windows, vmxfunctions, Classes, dialogs, SysUtils, lua, lualib, lauxlib, syncobjs, cefuncproc,
   newkernelhandler, autoassembler, Graphics, controls, LuaCaller, forms, ExtCtrls,
   StdCtrls, comctrls, ceguicomponents, generichotkey, luafile, xmplayer_server,
   ExtraTrainerComponents, customtimer, menus, XMLRead, XMLWrite, DOM;
@@ -35,7 +35,7 @@ procedure InitializeLua;
 
 implementation
 
-uses mainunit, frmluaengineunit, pluginexports, MemoryRecordUnit, debuggertypedefinitions,
+uses mainunit, frmluaengineunit, plugin, pluginexports, MemoryRecordUnit, debuggertypedefinitions,
   symbolhandler, frmautoinjectunit, simpleaobscanner, addresslist, memscan, foundlisthelper,
   cesupport, DBK32functions, sharedMemory, disassembler, LuaCanvas, LuaPen, LuaFont, LuaBrush,
   LuaPicture, LuaMenu, LuaDebug, MemoryBrowserFormUnit, disassemblerviewunit, hexviewunit,
@@ -8170,6 +8170,7 @@ begin
   if parameters=1 then
   begin
     index:=lua_tointeger(L, -1);
+    lua_pop(L, lua_gettop(L));
 
     if index<screen.formcount then
       lua_pushlightuserdata(L, screen.Forms[index]);
@@ -8215,10 +8216,128 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
+function onAPIPointerChange(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  lc: TLuaCaller;
+  routine: string;
+  f: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    CleanupLuaCall(tmethod(plugin.onAPIPointerChange));
+    plugin.onAPIPointerChange:=nil;
+
+    if lua_isfunction(L,-1) then
+    begin
+      f:=luaL_ref(L,LUA_REGISTRYINDEX); //pop the last item of the stack, which is what I need
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+      plugin.onAPIPointerChange:=lc.NotifyEvent;
+    end
+    else
+    if lua_isstring(L,-1) then
+    begin
+      routine:=Lua_ToString(L, -1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+      plugin.onAPIPointerChange:=lc.NotifyEvent;
+    end;
+
+
+  end;
+
+  lua_pop(L, lua_gettop(L));
+end;
+
+function setAPIPointer(L: PLua_State): integer; cdecl;
+var parameters: integer;
+  apiID: integer;
+  address: ptruint;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    apiID:=lua_tointeger(L, -2);
+    if lua_isstring(L, -1) then
+      address:=symhandler.getAddressFromName(Lua_ToString(L, -1))
+    else
+      address:=lua_tointeger(L, -1);
+
+
+    lua_pop(L, parameters);
+
+    case apiid of
+      0: newkernelhandler.OpenProcess:=pointer(address);
+      1: newkernelhandler.ReadProcessMemory:=pointer(address);
+      2: newkernelhandler.WriteProcessMemory:=pointer(address);
+      3: newkernelhandler.VirtualQueryEx:=pointer(address);
+    end;
+
+  end
+  else
+    lua_pop(L, parameters);
+end;
+
+
+function dbvm_initialize(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  offload: boolean;
+begin
+  //for now use the default
+  if assigned(dbvm_version) and (dbvm_version>0) then
+  begin
+    //already loaded and initialized
+    lua_pop(L, lua_gettop(L));
+    lua_pushboolean(L, true);
+    result:=1;
+    exit;
+  end;
+
+  //not yet loaded/initialized
+  vmx_password1:=$76543210;
+  vmx_password2:=$fedcba98;
+
+  InitializeDBVM;
+
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    offload:=lua_toboolean(L, -1);
+    lua_pop(L, lua_gettop(L));
+
+    if offload then
+    begin
+      if assigned(dbvm_version) and (dbvm_version=0) then
+      begin
+        //not yet loaded.
+        if isDBVMCapable then
+        begin
+          LoadDBK32;
+          launchdbvm;
+        end;
+      end;
+    end;
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+
+  result:=1;
+  lua_pushboolean(L, dbvm_version>0);
+end;
+
 
 procedure InitializeLua;
 var s: tstringlist;
+  k32: THandle;
 begin
+
   LuaVM:=lua_open();
   if LuaVM<>nil then
   begin
@@ -8635,6 +8754,8 @@ begin
     lua_register(LuaVM, 'dbk_getPEProcess', dbk_getPEProcess);
     lua_register(LuaVM, 'dbk_getPEThread', dbk_getPEThread);
     lua_register(LuaVM, 'dbk_executeKernelMemory', dbk_executeKernelMemory);
+    lua_register(LuaVM, 'dbk_readMSR', dbk_readMSR);
+    lua_register(LuaVM, 'dbk_writeMSR', dbk_writeMSR);
 
     lua_register(LuaVM, 'allocateSharedMemory', allocateSharedMemory);
     lua_register(LuaVM, 'deallocateSharedMemory', deallocateSharedMemory);
@@ -8671,7 +8792,11 @@ begin
     lua_register(LuaVM, 'getForm', getForm);
 
     lua_register(LuaVM, 'onAutoGuess', onAutoGuess);
+    lua_register(LuaVM, 'onAPIPointerChange', onAPIPointerChange);
 
+    lua_register(LuaVM, 'setAPIPointer', setAPIPointer);
+
+    lua_register(LuaVM, 'dbvm_initialize', dbvm_initialize);
 
 
     initializeLuaPicture;
@@ -8682,7 +8807,6 @@ begin
     initializeLuaMenu;
 
     initializeLuaDebug;
-
 
     s:=tstringlist.create;
     try
@@ -8713,6 +8837,30 @@ begin
 
       //timer onInterval has been renamed to timer onTimer
       s.add('timer_onInterval = timer_onTimer');
+
+      //dbvm, most dbvm functions are just dbk functions that fallback to dbvm on failure
+      s.add('dbvm_readMSR = dbk_readMSR');
+      s.add('dbvm_writeMSR = dbk_writeMSR');
+
+      k32:=loadlibrary('kernel32.dll');
+      s.add('windows_OpenProcess=0x'+inttohex(ptruint(getProcAddress(k32, 'OpenProcess')),8));
+      s.add('windows_ReadProcessMemory=0x'+inttohex(ptruint(getProcAddress(k32, 'ReadProcessMemory')),8));
+      s.add('windows_WriteProcessMemory=0x'+inttohex(ptruint(getProcAddress(k32, 'WriteProcessMemory')),8));
+      s.add('windows_VirtualQueryEx=0x'+inttohex(ptruint(getProcAddress(k32, 'VirtualQueryEx')),8));
+
+      s.add('dbk_OpenProcess=0x'+inttohex(ptruint(@DBK32functions.OP),8));
+      s.add('dbk_NtOpenProcess=0x'+inttohex(ptruint(@DBK32functions.NOP),8));
+      s.add('dbk_ReadProcessMemory=0x'+inttohex(ptruint(@DBK32functions.RPM),8));
+      s.add('dbk_WriteProcessMemory=0x'+inttohex(ptruint(@DBK32functions.WPM),8));
+      s.add('dbk_VirtualQueryEx=0x'+inttohex(ptruint(@DBK32functions.VQE),8));
+      s.add('dbk_ReadPhysicalMemory=0x'+inttohex(ptruint(@DBK32functions.ReadPhysicalMemory),8));
+      s.add('dbk_WritePhysicalMemory=0x'+inttohex(ptruint(@DBK32functions.WritePhysicalMemory),8));
+      s.add('VirtualQueryExPhysical=0x'+inttohex(ptruint(@VirtualQueryExPhysical),8));
+
+      s.add('dbvm_ReadPhysicalMemory=0x'+inttohex(ptruint(@vmxfunctions.dbvm_read_physical_memory),8));
+      s.add('dbvm_WritePhysicalMemory=0x'+inttohex(ptruint(@vmxfunctions.dbvm_write_physical_memory),8));
+
+
 
       lua_doscript(s.text);
 

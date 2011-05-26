@@ -4,7 +4,7 @@ unit plugin;
 
 interface
 
-uses lclproc, windows, sysutils,LCLIntf,checklst,menus,dialogs,CEFuncProc,NewKernelHandler, graphics;
+uses lclproc, windows, classes, sysutils,LCLIntf,checklst,menus,dialogs,CEFuncProc,NewKernelHandler, graphics;
 
 const CurrentPluginVersion=4;
 
@@ -625,8 +625,6 @@ type TPluginfunctionType8=class
 end;
 
 
-
-
 type TPlugin = record
   dllname: string;
   filepath: string;
@@ -676,6 +674,8 @@ end;
 
 var pluginhandler: TPluginhandler;
     exportedfunctions: TExportedFunctions4;
+
+    onAPIPointerChange: TNotifyEvent;
 
 implementation
 
@@ -1427,6 +1427,10 @@ end;
 function TPluginHandler.handlechangedpointers(section: integer):boolean;
 var i,j: integer;
 begin
+  if assigned(onAPIPointerChange) then
+    onAPIPointerChange(nil);
+
+
   result:=true;
   pluginMREW.BeginRead;
   try

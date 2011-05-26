@@ -522,9 +522,11 @@ procedure UseDBKOpenProcess;
 
 procedure DBKFileAsMemory(filename:string); overload;
 procedure DBKFileAsMemory; overload;
+function VirtualQueryExPhysical(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; stdcall;
 procedure DBKPhysicalMemory;
 procedure DBKPhysicalMemoryDBVM;
 procedure DBKProcessMemory;
+procedure InitializeDBVM;
 procedure LoadDBK32; stdcall;
 
 procedure OutputDebugString(msg: string);
@@ -680,6 +682,7 @@ var WindowsKernel: Thandle;
     DenyListGlobal: boolean;
     ModuleListSize: integer;
     ModuleList: pointer;
+
 
 
 implementation
@@ -839,6 +842,19 @@ begin
 
 end;
 
+procedure InitializeDBVM;
+begin
+  dbvm_version:=@vmxfunctions.dbvm_version;
+  dbvm_changeselectors:=@vmxfunctions.dbvm_changeselectors;
+  dbvm_block_interrupts:=@vmxfunctions.dbvm_block_interrupts;
+  dbvm_restore_interrupts:=@vmxfunctions.dbvm_restore_interrupts;
+
+  dbvm_read_physical_memory:=@vmxfunctions.dbvm_read_physical_memory;
+  dbvm_write_physical_memory:=@vmxfunctions.dbvm_write_physical_memory;
+
+  dbvm_raise_privilege:=@vmxfunctions.dbvm_raise_privilege;
+end;
+
 procedure LoadDBK32; stdcall;
 begin
   if not DBKLoaded then
@@ -931,15 +947,8 @@ begin
     DBKDebug_StopDebugging:=@debug.DBKDebug_StopDebugging;
     DBKDebug_GD_SetBreakpoint:=@debug.DBKDebug_GD_SetBreakpoint;
 
-    dbvm_version:=@vmxfunctions.dbvm_version;
-    dbvm_changeselectors:=@vmxfunctions.dbvm_changeselectors;
-    dbvm_block_interrupts:=@vmxfunctions.dbvm_block_interrupts;
-    dbvm_restore_interrupts:=@vmxfunctions.dbvm_restore_interrupts;
 
-    dbvm_read_physical_memory:=@vmxfunctions.dbvm_read_physical_memory;
-    dbvm_write_physical_memory:=@vmxfunctions.dbvm_write_physical_memory;
-
-    dbvm_raise_privilege:=@vmxfunctions.dbvm_raise_privilege;
+    initializeDBVM;
 
     {$ifdef cemain}
     if pluginhandler<>nil then

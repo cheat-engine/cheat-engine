@@ -20,6 +20,10 @@ const
   VMCALL_RAISEPRIVILEGE=21;
   VMCALL_REDIRECTINT14=22;
   VMCALL_INT14REDIRECTED=23;
+  VMCALL_REDIRECTINT3=24;
+  VMCALL_INT3REDIRECTED=25;
+  VMCALL_READMSR=26;
+  VMCALL_WRITEMSR=27;
 
 
 function dbvm_version: dword; stdcall;
@@ -32,6 +36,9 @@ function dbvm_read_physical_memory(PhysicalAddress: UINT64; destination: pointer
 function dbvm_write_physical_memory(PhysicalAddress: UINT64; source: pointer; size: integer): dword; stdcall;
 function dbvm_raise_privilege: DWORD; stdcall;
 
+function dbvm_readMSR(msr: dword): QWORD;
+procedure dbvm_writeMSR(msr: dword; value: qword);
+
 procedure configure_vmx(userpassword1,userpassword2: dword);
 procedure configure_vmx_kernel;
 
@@ -41,6 +48,8 @@ var
   vmx_password2: dword;
 
   vmx_enabled: boolean;
+
+  dbvmversion: integer=0;
 
 implementation
 
@@ -81,6 +90,8 @@ begin
   vmcallinfo.command:=VMCALL_GETVERSION;
   try
     result:=vmcall(@vmcallinfo,vmx_password1);
+
+    dbvmversion:=result and $00ffffff;
   except
     result:=0;
   end;
@@ -270,6 +281,46 @@ begin
   end;
 end;
 
+function dbvm_readMSR(msr: dword): QWORD;
+var vmcallinfo: packed record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+  msr: dword;
+  msrreturn: qword;
+end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_READMSR;
+  vmcallinfo.msr:=msr;
+  try
+    result:=vmcall(@vmcallinfo,vmx_password1);
+  except
+    result:=$ffffffff;
+  end;
+
+end;
+
+procedure dbvm_writeMSR(msr: dword; value: qword);
+var vmcallinfo: packed record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+  msr: dword;
+  msrvalue: qword;
+end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_READMSR;
+  vmcallinfo.msr:=msr;
+  vmcallinfo.msrvalue:=value;
+  try
+    vmcall(@vmcallinfo,vmx_password1);
+  except
+  end;
+end;
 
 
 procedure configure_vmx(userpassword1,userpassword2: dword); //warning: not multithreaded, take care to only run at init!

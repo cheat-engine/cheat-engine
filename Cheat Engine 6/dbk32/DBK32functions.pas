@@ -1362,15 +1362,18 @@ var
   cc: dword;
   msrvalue: qword;
 begin
+  result:=-1;
+
   if (hdevice<>INVALID_HANDLE_VALUE) then
   begin
     cc:=IOCTL_CE_READMSR;
     OutputDebugString(pchar('dbk32functions.pas: Reading from msr '+inttohex(msr,1)));
     if deviceiocontrol(hdevice,cc,@msr,sizeof(msr),@msrvalue,sizeof(msrvalue),cc,nil) then
-      result:=msrvalue
-    else
-      result:=-1;
-  end;
+      result:=msrvalue;
+  end
+  else
+  if dbvmversion>=6 then
+    result:=dbvm_readMSR(msr);
 end;
 
 procedure writeMSR(msr: dword; value: qword);
@@ -1388,7 +1391,10 @@ begin
 
     cc:=IOCTL_CE_WRITEMSR;
     deviceiocontrol(hdevice,cc,@input,sizeof(input),nil,0,cc,nil);
-  end;
+  end
+  else
+  if dbvmversion>=6 then
+    dbvm_writeMSR(msr, value);
 
 end;
 
