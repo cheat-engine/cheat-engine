@@ -411,7 +411,7 @@ begin
       resultsfile.free;
       resultsfile:= tfilestream.Create(filename,fmOpenWrite or fmShareDenyNone);
 
-      while not terminated do
+      while (not terminated) and (not self.staticscanner.Terminated) do
       begin
         wr:=startworking.WaitFor(infinite);
         if stop then exit;
@@ -429,6 +429,7 @@ begin
     except
       on e: exception do
       begin
+        OutputDebugString('ScanWorker has error');
         haserror:=true;
         errorstring:='ReverseScanWorker:'+e.message;
 
@@ -443,6 +444,7 @@ begin
     end;
   finally
     isdone:=true;
+    OutputDebugString('Scanworker is done');
   end;
 
 end;
@@ -569,22 +571,26 @@ begin
 
               staticscanner.reverseScanCS.Enter;
 
-              //scan the worker thread array for a idle one, if found use it
-              for i:=0 to length(staticscanner.reversescanners)-1 do
+              //obtained the lock, check if the terminate command has been issued
+              if (not Terminated) and (not self.staticscanner.Terminated) then
               begin
-                if staticscanner.reversescanners[i].isdone then
+                //Not terminated, so launch a new thread
+                for i:=0 to length(staticscanner.reversescanners)-1 do
                 begin
-                  staticscanner.reversescanners[i].isdone:=false;
-                  staticscanner.reversescanners[i].maxlevel:=maxlevel;
-                  staticscanner.reversescanners[i].valuetofind:=plist.list[j].address;
+                  if (staticscanner.reversescanners[i].isdone) and (not staticscanner.reversescanners[i].terminated) then
+                  begin
+                    staticscanner.reversescanners[i].isdone:=false;
+                    staticscanner.reversescanners[i].maxlevel:=maxlevel;
+                    staticscanner.reversescanners[i].valuetofind:=plist.list[j].address;
 
-                  CopyMemory(@staticscanner.reversescanners[i].tempresults[0], @tempresults[0], maxlevel*sizeof(dword));
+                    CopyMemory(@staticscanner.reversescanners[i].tempresults[0], @tempresults[0], maxlevel*sizeof(dword));
 
-                  staticscanner.reversescanners[i].startlevel:=level+1;
-                  staticscanner.reversescanners[i].structsize:=structsize;
-                  staticscanner.reversescanners[i].startworking.SetEvent; //tell the thread there's new data waiting
-                  createdworker:=true;
-                  break;
+                    staticscanner.reversescanners[i].startlevel:=level+1;
+                    staticscanner.reversescanners[i].structsize:=structsize;
+                    staticscanner.reversescanners[i].startworking.SetEvent; //tell the thread there's new data waiting
+                    createdworker:=true;
+                    break;
+                  end;
                 end;
               end;
 
@@ -677,126 +683,159 @@ begin
   scount:=0;
   alldone:=false;
 
-  if maxlevel>0 then
-  begin
+  try
 
-    //initialize the first reverse scan worker
-    //that one will spawn of all his other siblings if needed
-
-    if Self.findValueInsteadOfAddress then
+    if maxlevel>0 then
     begin
-      //scan the memory for the value
-      ValueFinder:=TValueFinder.create(startaddress,stopaddress);
-      ValueFinder.alligned:=not unalligned;
-      ValueFinder.valuetype:=valuetype;
-      ValueFinder.valuescandword:=valuescandword;
-      ValueFinder.valuescansingle:=valuescansingle;
-      ValueFinder.valuescandouble:=valuescandouble;
-      ValueFinder.valuescansinglemax:=valuescansinglemax;
-      ValueFinder.valuescandoublemax:=valuescandoublemax;
 
-      currentaddress:=ptrUint(ValueFinder.FindValue(startaddress));
-      while (not terminated) and (currentaddress>0) do
+      //initialize the first reverse scan worker
+      //that one will spawn of all his other siblings if needed
+
+      if Self.findValueInsteadOfAddress then
       begin
-        //if found, find a idle thread and tell it to look for this address starting from level 0 (like normal)
-        createdWorker:=false;
-        while (not terminated) and (not createdworker) do
-        begin
-          reversescancs.Enter;
-          for i:=0 to length(reversescanners)-1 do
-            if reversescanners[i].isdone then
-            begin
-              reversescanners[i].isdone:=false;
-              reversescanners[i].maxlevel:=maxlevel;
+        //scan the memory for the value
+        ValueFinder:=TValueFinder.create(startaddress,stopaddress);
+        ValueFinder.alligned:=not unalligned;
+        ValueFinder.valuetype:=valuetype;
+        ValueFinder.valuescandword:=valuescandword;
+        ValueFinder.valuescansingle:=valuescansingle;
+        ValueFinder.valuescandouble:=valuescandouble;
+        ValueFinder.valuescansinglemax:=valuescansinglemax;
+        ValueFinder.valuescandoublemax:=valuescandoublemax;
 
-              reversescanners[i].valuetofind:=currentaddress;
-              reversescanners[i].structsize:=sz;
-              reversescanners[i].startlevel:=0;
-              reversescanners[i].startworking.SetEvent;
-              reversescancs.Leave;
-              createdworker:=true;
-              break;
+        currentaddress:=ptrUint(ValueFinder.FindValue(startaddress));
+        while (not terminated) and (currentaddress>0) do
+        begin
+          //if found, find a idle thread and tell it to look for this address starting from level 0 (like normal)
+          createdWorker:=false;
+          while (not terminated) and (not createdworker) do
+          begin
+            reversescancs.Enter;
+
+            //finally obtained the lock, first check if it's still needed
+            if not terminated then
+            begin
+              for i:=0 to length(reversescanners)-1 do
+                if reversescanners[i].isdone then
+                begin
+                  reversescanners[i].isdone:=false;
+                  reversescanners[i].maxlevel:=maxlevel;
+
+                  reversescanners[i].valuetofind:=currentaddress;
+                  reversescanners[i].structsize:=sz;
+                  reversescanners[i].startlevel:=0;
+                  reversescanners[i].startworking.SetEvent;
+                  reversescancs.Leave;
+                  createdworker:=true;
+                  break;
+                end;
             end;
-          reversescancs.Leave;
-          
-          if not createdworker then
-            sleep(500) //note: change this to an event based wait
-          else
-          begin //next
-            if unalligned then
-              currentaddress:=ValueFinder.FindValue(currentaddress+1)
+            reversescancs.Leave;
+
+            if not createdworker then
+              sleep(500) //note: change this to an event based wait
             else
-              currentaddress:=ValueFinder.FindValue(currentaddress+pointersize);
+            begin //next
+              if unalligned then
+                currentaddress:=ValueFinder.FindValue(currentaddress+1)
+              else
+                currentaddress:=ValueFinder.FindValue(currentaddress+pointersize);
+            end;
+          end;
+
+        end;
+
+        //done with the value finder, wait till all threads are done
+        valuefinder.free;
+      end
+      else
+      begin
+        //initialize the first thread (it'll spawn all other threads)
+        reversescanners[0].isdone:=false;
+        reversescanners[0].maxlevel:=maxlevel;
+
+        reversescanners[0].valuetofind:=self.automaticaddress;
+        reversescanners[0].structsize:=sz;
+        reversescanners[0].startlevel:=0;
+        reversescanners[0].startworking.SetEvent;
+      end;
+
+      //wait till all threads are in isdone state
+
+      while (not alldone) do
+      begin
+        if Terminated then
+        begin
+          OutputDebugString('Forced terminate. Telling the scanworkers to die as well');
+          //force the workers to die if they are sleeping
+          for i:=0 to length(reversescanners)-1 do
+          begin
+            reversescanners[i].stop:=true;
+            reversescanners[i].startworking.setEvent;
+            reversescanners[i].Terminate;
+          end;
+
+        end;
+
+        sleep(500);
+        alldone:=true;
+
+
+
+        //no need for a CS here since it's only a read, and even when a new thread is being made, the creator also has the isdone boolean to false
+        for i:=0 to length(reversescanners)-1 do
+        begin
+          if reversescanners[i].haserror then
+          begin
+
+            OutputDebugString('A worker had an error: '+reversescanners[i].errorstring);
+
+            haserror:=true;
+            errorstring:=reversescanners[i].errorstring;
+
+            for j:=0 to length(reversescanners)-1 do reversescanners[j].terminate; //even though the reversescanner already should have done this, let's do it myself as well
+
+            alldone:=true;
+            break;
+          end;
+
+          if not reversescanners[i].isdone then
+          begin
+            if terminated then
+              OutputDebugString('Worker '+inttostr(i)+' is still active');
+
+            alldone:=false;
+            break;
           end;
         end;
-
       end;
+    end;
 
-      //done with the value finder, wait till all threads are done
-      valuefinder.free;
-    end
+    isdone:=true;
+
+
+    //all threads are done
+    for i:=0 to length(reversescanners)-1 do
+    begin
+      reversescanners[i].stop:=true;
+      reversescanners[i].startworking.SetEvent;  //run it in case it was waiting
+      reversescanners[i].WaitFor; //wait till this thread has terminated because the main thread has terminated
+      if not haserror then
+        reversescanners[i].flushresults;  //write unsaved results to disk
+      reversescanners[i].Free;
+      reversescanners[i]:=nil;
+    end;
+
+    setlength(reversescanners,0);
+
+
+  finally
+    if haserror then
+      postmessage(ownerform.Handle,staticscanner_done,1,ptrUint(pchar(errorstring)))
     else
-    begin
-      //initialize the first thread (it'll spawn all other threads)
-      reversescanners[0].isdone:=false;
-      reversescanners[0].maxlevel:=maxlevel;
-
-      reversescanners[0].valuetofind:=self.automaticaddress;
-      reversescanners[0].structsize:=sz;
-      reversescanners[0].startlevel:=0;
-      reversescanners[0].startworking.SetEvent;
-    end;
-
-    //wait till all threads are in isdone state
-    while (not alldone) do
-    begin
-      sleep(500);
-      alldone:=true;
-
-      //no need for a CS here since it's only a read, and even when a new thread is being made, the creator also has the isdone boolean to false
-      for i:=0 to length(reversescanners)-1 do
-      begin
-        if reversescanners[i].haserror then
-        begin
-          haserror:=true;
-          errorstring:=reversescanners[i].errorstring;
-
-          for j:=0 to length(reversescanners)-1 do reversescanners[j].terminate; //even though the reversescanner already should have done this, let's do it myself as well
-
-          alldone:=true; 
-          break;
-        end;
-
-        if not reversescanners[i].isdone then
-        begin
-          alldone:=false;
-          break;
-        end;
-      end;
-    end;
+      postmessage(ownerform.Handle,staticscanner_done,0,maxlevel);
   end;
 
-  isdone:=true;
-
-
-  //all threads are done
-  for i:=0 to length(reversescanners)-1 do
-  begin
-    reversescanners[i].stop:=true;
-    reversescanners[i].startworking.SetEvent;  //run it in case it was waiting
-    reversescanners[i].WaitFor; //wait till this thread has terminated because the main thread has terminated
-    if not haserror then
-      reversescanners[i].flushresults;  //write unsaved results to disk
-    reversescanners[i].Free;
-    reversescanners[i]:=nil;
-  end;
-
-  setlength(reversescanners,0);
-
-  if haserror then
-    postmessage(ownerform.Handle,staticscanner_done,1,ptrUint(pchar(errorstring)))
-  else
-    postmessage(ownerform.Handle,staticscanner_done,0,maxlevel);
   terminate;
 end;
 
@@ -950,6 +989,7 @@ begin
 
     if not savedialog1.Execute then exit;
         
+    btnStopScan.enabled:=true;
 
     pgcPScandata.Visible:=false;
     open1.Enabled:=false;
@@ -1787,8 +1827,8 @@ procedure Tfrmpointerscanner.btnStopScanClick(Sender: TObject);
 begin
   if staticscanner<>nil then
   begin
+    btnStopScan.enabled:=false;
     staticscanner.Terminate;
-    staticscanner.WaitFor;
   end;
 end;
 
