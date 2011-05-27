@@ -1220,6 +1220,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 			{
 				BOOL newstate=*(PBOOL)Irp->AssociatedIrp.SystemBuffer;
 
+				DbgPrint("Calling debugger_setStoreLBR(%d)\n", newstate);
 				debugger_setStoreLBR(newstate);
 				ntStatus=STATUS_SUCCESS;
 				break;

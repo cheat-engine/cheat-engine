@@ -266,6 +266,8 @@ void debugger_setStoreLBR(BOOL state)
           break;
     }
 
+	DbgPrint("Because your cpu_model=%d I think that your storeLBR_max=%d\n", cpu_model, DebuggerState.storeLBR_max);
+
 	
 }
 
@@ -474,6 +476,23 @@ NTSTATUS debugger_getDebuggerState(PDebugStackState state)
 		state->dr3=DebuggerState.LastRealDebugRegisters[3];
 		state->dr6=DebuggerState.LastRealDebugRegisters[4];
 		state->dr7=DebuggerState.LastRealDebugRegisters[5];
+
+		if (DebuggerState.storeLBR)
+		{
+			DbgPrint("Copying the LBR stack to usermode\n");
+			DbgPrint("storeLBR_max=%d\n", DebuggerState.storeLBR_max);
+
+		
+			for (state->LBR_Count=0; state->LBR_Count<DebuggerState.storeLBR_max; state->LBR_Count++ )
+			{
+				DbgPrint("DebuggerState.LastLBRStack[%d]=%x\n", state->LBR_Count, DebuggerState.LastLBRStack[state->LBR_Count]);
+				state->LBR[state->LBR_Count]=DebuggerState.LastLBRStack[state->LBR_Count];
+				if (state->LBR[state->LBR_Count]==0) //no need to copy once a 0 has been reached
+					break;				
+			}
+		}
+		else
+			state->LBR_Count=0;
 
 
 		return STATUS_SUCCESS;
@@ -705,7 +724,7 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 //	DebugReg7 _dr7=*(DebugReg7 *)&currentdebugregs[5];
 
 
-	if (cpu_model==0x6)
+	if (cpu_familyID==0x6)
 	{
 		if (DebuggerState.storeLBR)
 		{
@@ -715,6 +734,8 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 
 			int i;
 			int count;
+
+			
 
 			i=(int)__readmsr(MSR_LASTBRANCH_TOS);
 			count=0;
@@ -1058,10 +1079,10 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 			enableInterrupts();
 			{
 				int rs=1;
-				DbgPrint("calling breakpointHandler_kernel\n");
+				//DbgPrint("calling breakpointHandler_kernel\n");
 				
 				rs=breakpointHandler_kernel(stackpointer, currentdebugregs, LBR_Stack);	
-				DbgPrint("After handler\n");
+				//DbgPrint("After handler\n");
 
 				//DbgPrint("rs=%d\n",rs);
 

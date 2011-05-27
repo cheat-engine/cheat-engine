@@ -65,4 +65,6 @@ UINT_PTR *debugger_getLastStackPointer(void);
 NTSTATUS debugger_getDebuggerState(PDebugStackState state);
 NTSTATUS debugger_setDebuggerState(PDebugStackState state);
 
+void GetDebuggerInfo(void);
+
 #endif

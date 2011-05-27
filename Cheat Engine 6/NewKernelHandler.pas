@@ -1184,6 +1184,13 @@ begin
 //{$endif}
 end;
 
+procedure getLBROffset;
+var x: TDebuggerState;
+begin
+  OutputDebugString('Offset of LBR_Count='+inttostr(ptruint(@x.LBR_Count)-ptruint(@x)));
+end;
+
+
 var x: string;
   psa: thandle;
 
@@ -1256,7 +1263,7 @@ initialization
   EnumDeviceDrivers:=GetProcAddress(psa,'EnumDeviceDrivers');
   GetDevicedriverBaseNameA:=GetProcAddress(psa,'GetDeviceDriverBaseNameA');
 
-
+  getLBROffset;
 
 
 finalization

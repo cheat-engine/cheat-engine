@@ -430,6 +430,13 @@ Return Value:
 
 	}
 
+	{
+		DebugStackState x;
+		DbgPrint("offset of LBR_Count=%d\n", (UINT_PTR)&x.LBR_Count-(UINT_PTR)&x);
+
+	
+	}
+
 
 	
     return STATUS_SUCCESS;
