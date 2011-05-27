@@ -348,7 +348,7 @@ type
   PContext = ^TContext;
   {$endif}
 
-type TDebuggerstate=record
+type TDebuggerstate=packed record
   threadid: uint64;
 	eflags : uint64;
 	eax : uint64;
@@ -1188,6 +1188,7 @@ procedure getLBROffset;
 var x: TDebuggerState;
 begin
   OutputDebugString('Offset of LBR_Count='+inttostr(ptruint(@x.LBR_Count)-ptruint(@x)));
+  OutputDebugString('sizeof fxstate = '+inttostr(sizeof(x.fxstate)));
 end;
 
 
