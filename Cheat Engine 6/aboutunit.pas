@@ -6,7 +6,7 @@ interface
 
 uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, LResources,shellapi, NewKernelHandler;
+  Dialogs, StdCtrls, ExtCtrls, LResources,shellapi, vmxfunctions, NewKernelHandler;
 
 type
 
@@ -98,6 +98,22 @@ begin
     groupbox1.Caption:=mainunit2.CEnorm;
   {$endif}
 
+  InitializeDBVM;
+
+  if (vmx_password1=0) and (vmx_password2=0) then
+  begin
+    vmx_password1:=$76543210;
+    vmx_password2:=$fedcba98;
+  end;
+
+  if not isDBVMCapable then
+  begin
+    //force the default password
+
+
+    vmx_password1:=$76543210;
+    vmx_password2:=$fedcba98;
+  end;
 
 
   if not isDBVMCapable then
@@ -109,9 +125,10 @@ begin
   end
   else
   begin
-{$ifdef cpu32}
-    Loaddbk32;
-{$endif}
+
+//{$ifdef cpu32}
+//    Loaddbk32;
+//{$endif}
     if (assigned(dbvm_version)) and (dbvm_version>0) then
     begin
       lblDBVM.Font.Color:=clLime;
