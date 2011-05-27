@@ -297,6 +297,7 @@ end;
 procedure DBKDebug_SetStoreLBR(state: BOOL);
 var br,cc: dword;
 begin
+  outputdebugstring(pchar('DBKDebug_SetStoreLBR('+BoolToStr(state,'true','false')+')'));
   if hdevice<>INVALID_HANDLE_VALUE then
   begin
     cc:=IOCTL_CE_SETSTORELBR;

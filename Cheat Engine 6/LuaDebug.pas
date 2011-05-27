@@ -7,7 +7,7 @@ unit LuaDebug;
 interface
 
 uses
-  Classes, SysUtils, debug, DebugHelper, DebuggerInterfaceAPIWrapper, lua, lualib, lauxlib, LuaHandler;
+  Classes, SysUtils, newkernelhandler, debug, DebugHelper, DebuggerInterfaceAPIWrapper, lua, lualib, lauxlib, LuaHandler;
 
 procedure initializeLuaDebug;
 
@@ -18,6 +18,7 @@ var
   parameters: integer;
   newstate: boolean;
 begin
+  OutputDebugString('debug_setLastBranchRecording');
   result:=0;
   parameters:=lua_gettop(L);
   if parameters=1 then
