@@ -1146,16 +1146,22 @@ var
   parameters: integer;
   code: TStringlist;
   r: boolean;
+  targetself: boolean;
+  CEAllocArray: TCEAllocArray;
 begin
   parameters:=lua_gettop(L);
   if parameters=0 then exit;
 
   code:=tstringlist.create;
   try
-    code.text:=lua_tostring(L, -1);
+    code.text:=lua_tostring(L, -parameters);
+    if parameters>1 then
+      targetself:=lua_toboolean(L, -parameters+1)
+    else
+      targetself:=false;
 
     try
-      r:=autoassemble(code, false);
+      r:=autoassemble(code, false, true, false, targetself, CEAllocArray);
     except
       r:=false;
     end;
@@ -8859,6 +8865,12 @@ begin
 
       s.add('dbvm_ReadPhysicalMemory=0x'+inttohex(ptruint(@vmxfunctions.dbvm_read_physical_memory),8));
       s.add('dbvm_WritePhysicalMemory=0x'+inttohex(ptruint(@vmxfunctions.dbvm_write_physical_memory),8));
+
+
+      s.add('dbvm_block_interrupts=0x'+inttohex(ptruint(@vmxfunctions.dbvm_block_interrupts),8));
+      s.add('dbvm_raise_privilege=0x'+inttohex(ptruint(@vmxfunctions.dbvm_raise_privilege),8));
+      s.add('dbvm_restore_interrupts=0x'+inttohex(ptruint(@vmxfunctions.dbvm_restore_interrupts),8));
+      s.add('dbvm_changeselectors=0x'+inttohex(ptruint(@vmxfunctions.dbvm_changeselectors),8));
 
 
 

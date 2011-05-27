@@ -274,11 +274,7 @@ begin
   vmcallinfo.structsize:=sizeof(vmcallinfo);
   vmcallinfo.level2pass:=vmx_password2;
   vmcallinfo.command:=VMCALL_RAISEPRIVILEGE;
-  try
-    result:=vmcall(@vmcallinfo,vmx_password1);
-  except
-    result:=$ffffffff;
-  end;
+  result:=vmcall(@vmcallinfo,vmx_password1);
 end;
 
 function dbvm_readMSR(msr: dword): QWORD;
