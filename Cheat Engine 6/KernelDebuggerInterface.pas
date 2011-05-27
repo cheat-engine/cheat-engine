@@ -354,7 +354,7 @@ begin
         l[i]:=currentdebuggerstate.LBR[i];
     end;
 
-    result:=currentdebuggerstate.LBR_Count;
+    result:=currentdebuggerstate.LBR_Count-1;
   end
   else
     result:=-1;

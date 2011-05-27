@@ -189,11 +189,10 @@
         <ComponentName Value="MainForm"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="MainUnit"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
         <TopLine Value="5916"/>
-        <CursorPos X="48" Y="5930"/>
+        <CursorPos X="23" Y="5925"/>
         <UsageCount Value="211"/>
         <Bookmarks Count="1">
           <Item0 X="1" Y="1853" ID="2"/>
@@ -1722,8 +1721,8 @@
         <UnitName Value="debug"/>
         <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="42"/>
-        <CursorPos X="47" Y="61"/>
+        <TopLine Value="274"/>
+        <CursorPos X="31" Y="297"/>
         <UsageCount Value="204"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -1800,8 +1799,8 @@
         <UnitName Value="LuaHandler"/>
         <EditorIndex Value="13"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="8828"/>
-        <CursorPos X="95" Y="8849"/>
+        <TopLine Value="1"/>
+        <CursorPos X="57" Y="7"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
           <WindowIndex Value="0"/>
@@ -2348,10 +2347,11 @@
         <Filename Value="LuaDebug.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaDebug"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="57"/>
-        <CursorPos X="27" Y="75"/>
+        <TopLine Value="49"/>
+        <CursorPos X="9" Y="74"/>
         <UsageCount Value="72"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -2369,123 +2369,123 @@
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="8214" Column="51" TopLine="8202"/>
+        <Caret Line="8276" Column="3" TopLine="8246"/>
       </Position1>
       <Position2>
-        <Filename Value="NewKernelHandler.pas"/>
-        <Caret Line="953" Column="30" TopLine="924"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position2>
       <Position3>
-        <Filename Value="NewKernelHandler.pas"/>
-        <Caret Line="684" Column="1" TopLine="669"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="118" Column="26" TopLine="97"/>
       </Position3>
       <Position4>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="8752" Column="19" TopLine="8739"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="132" Column="37" TopLine="114"/>
       </Position4>
       <Position5>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="8763" Column="56" TopLine="8739"/>
+        <Caret Line="8278" Column="41" TopLine="8255"/>
       </Position5>
       <Position6>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="8276" Column="3" TopLine="8246"/>
+        <Caret Line="11" Column="21" TopLine="1"/>
       </Position6>
       <Position7>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Caret Line="8265" Column="25" TopLine="8247"/>
       </Position7>
       <Position8>
-        <Filename Value="debugeventhandler.pas"/>
-        <Caret Line="118" Column="26" TopLine="97"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="8809" Column="67" TopLine="8791"/>
       </Position8>
       <Position9>
-        <Filename Value="debugeventhandler.pas"/>
-        <Caret Line="132" Column="37" TopLine="114"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="8817" Column="70" TopLine="8797"/>
       </Position9>
       <Position10>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="8278" Column="41" TopLine="8255"/>
+        <Filename Value="NewKernelHandler.pas"/>
+        <Caret Line="1040" Column="30" TopLine="1016"/>
       </Position10>
       <Position11>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="11" Column="21" TopLine="1"/>
+        <Caret Line="8823" Column="63" TopLine="8797"/>
       </Position11>
       <Position12>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="8265" Column="25" TopLine="8247"/>
+        <Caret Line="8815" Column="29" TopLine="8797"/>
       </Position12>
       <Position13>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="8809" Column="67" TopLine="8791"/>
+        <Filename Value="windows7taskbar.pas"/>
+        <Caret Line="99" Column="1" TopLine="81"/>
       </Position13>
       <Position14>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="8817" Column="70" TopLine="8797"/>
+        <Caret Line="8807" Column="1" TopLine="8797"/>
       </Position14>
       <Position15>
-        <Filename Value="NewKernelHandler.pas"/>
-        <Caret Line="1040" Column="30" TopLine="1016"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="8809" Column="53" TopLine="8797"/>
       </Position15>
       <Position16>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="8823" Column="63" TopLine="8797"/>
+        <Filename Value="windows7taskbar.pas"/>
+        <Caret Line="99" Column="1" TopLine="81"/>
       </Position16>
       <Position17>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="8815" Column="29" TopLine="8797"/>
+        <Caret Line="8807" Column="1" TopLine="8797"/>
       </Position17>
       <Position18>
-        <Filename Value="windows7taskbar.pas"/>
-        <Caret Line="99" Column="1" TopLine="81"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="8809" Column="66" TopLine="8797"/>
       </Position18>
       <Position19>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="8807" Column="1" TopLine="8797"/>
+        <Caret Line="8812" Column="46" TopLine="8782"/>
       </Position19>
       <Position20>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="8809" Column="53" TopLine="8797"/>
-      </Position20>
-      <Position21>
         <Filename Value="windows7taskbar.pas"/>
         <Caret Line="99" Column="1" TopLine="81"/>
+      </Position20>
+      <Position21>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="8808" Column="1" TopLine="8782"/>
       </Position21>
       <Position22>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="8807" Column="1" TopLine="8797"/>
+        <Caret Line="8810" Column="1" TopLine="8782"/>
       </Position22>
       <Position23>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="8809" Column="66" TopLine="8797"/>
+        <Caret Line="8860" Column="18" TopLine="8831"/>
       </Position23>
       <Position24>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="8812" Column="46" TopLine="8782"/>
+        <Caret Line="8845" Column="48" TopLine="8834"/>
       </Position24>
       <Position25>
-        <Filename Value="windows7taskbar.pas"/>
-        <Caret Line="99" Column="1" TopLine="81"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="8849" Column="95" TopLine="8828"/>
       </Position25>
       <Position26>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="8808" Column="1" TopLine="8782"/>
+        <Caret Line="8837" Column="78" TopLine="8828"/>
       </Position26>
       <Position27>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="8810" Column="1" TopLine="8782"/>
+        <Filename Value="LuaDebug.pas"/>
+        <Caret Line="87" Column="63" TopLine="57"/>
       </Position27>
       <Position28>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="8860" Column="18" TopLine="8831"/>
+        <Filename Value="LuaDebug.pas"/>
+        <Caret Line="26" Column="15" TopLine="1"/>
       </Position28>
       <Position29>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="8845" Column="48" TopLine="8834"/>
+        <Filename Value="LuaDebug.pas"/>
+        <Caret Line="38" Column="24" TopLine="19"/>
       </Position29>
       <Position30>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="8849" Column="95" TopLine="8828"/>
+        <Filename Value="LuaDebug.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>

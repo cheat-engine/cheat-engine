@@ -1,6 +1,7 @@
 Cheat Engine 6.1
 
 Fixes:
+Fixed DBVM from not working
 Several disassembler fixes
 Scanning errors now show the error
 Fixed a few 16-bit assembler instructions

@@ -69,7 +69,9 @@ begin
       getmem(lbrbuf, max*sizeof(qword));
       try
         max:=CurrentDebuggerInterface.GetLastBranchRecords(lbrbuf);
-        lua_pushinteger(L, lbrbuf[index]);
+        if index<=max then
+          lua_pushinteger(L, lbrbuf[index]);
+
         result:=1;
       finally
         freemem(lbrbuf);
