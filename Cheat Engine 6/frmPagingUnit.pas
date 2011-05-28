@@ -117,7 +117,8 @@ begin
 end;
 
 procedure TfrmPaging.FormCreate(Sender: TObject);
-var cr3,cr4: ptrUint;
+var cr3: QWORD;
+  cr4: DWORD;
 begin
   if getcr3(processhandle, cr3) then
     edtcr3.text:=inttohex(cr3,8);

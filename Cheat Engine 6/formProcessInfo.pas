@@ -51,7 +51,7 @@ implementation
 uses threadlistexfrm;
 
 procedure TfrmProcessInfo.FormCreate(Sender: TObject);
-var cr3: ptrUint;
+var cr3: QWORD;
     idt: array [0..31] of qword;
     i,j: integer;
     limit: word;
