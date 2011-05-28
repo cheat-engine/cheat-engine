@@ -100,6 +100,11 @@ const IOCTL_CE_WRITEMSR               = (IOCTL_UNKNOWN_BASE shl 16) or ($0840 sh
 
 const IOCTL_CE_SETSTORELBR            = (IOCTL_UNKNOWN_BASE shl 16) or ($0841 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
+const IOCTL_CE_ULTIMAP                = (IOCTL_UNKNOWN_BASE shl 16) or ($0842 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_ULTIMAP_DISABLE        = (IOCTL_UNKNOWN_BASE shl 16) or ($0843 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+
+
+
 
 type TDeviceIoControl=function(hDevice: THandle; dwIoControlCode: DWORD; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesReturned: DWORD; lpOverlapped: POverlapped): BOOL; stdcall;
 
@@ -163,7 +168,7 @@ function WritePhysicalMemory(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:poi
 function GetPhysicalAddress(hProcess:THandle;lpBaseAddress:pointer;var Address:int64): BOOL; stdcall;
 
 function GetCR4:DWORD; stdcall;
-function GetCR3(hProcess:THANDLE;var CR3:ptrUint):BOOL; stdcall;
+function GetCR3(hProcess:THANDLE;var CR3:QWORD):BOOL; stdcall;
 //function SetCR3(hProcess:THANDLE;CR3: DWORD):BOOL; stdcall;
 function GetCR0:DWORD; stdcall;
 function GetSDT:DWORD; stdcall;
@@ -181,7 +186,7 @@ function InitializeDriver(Address: ptrUint; size:dword):BOOL; stdcall;
 function GetWin32KAddress(var address:ptrUint;var size:dworD):boolean;
 function GetDriverVersion: dword;
 
-function GetIDTCurrentThread:ptrUint; stdcall;
+function GetIDTCurrentThread:QWORD; stdcall;
 function GetIDTs(idtstore: pointer; maxidts: integer):integer; stdcall;
 
 function GetLoadedState: BOOLEAN; stdcall;
@@ -201,6 +206,8 @@ function GetSSDTEntry(nr: integer; address: PDWORD; paramcount: PBYTE):boolean; 
 
 function UserdefinedInterruptHook(interruptnr: integer; newCS: word; newEIP: uint64; addressofjumpback: uint64):boolean; stdcall;
 function executeKernelCode(address: uint64; parameters: uint64): BOOL; stdcall;
+function ultimap(cr3: QWORD; debugctl_value: QWORD; DS_AREA_SIZE: integer): QWORD; stdcall;
+function ultimap_disable: BOOLEAN; stdcall;
 
 procedure LaunchDBVM; stdcall;
 
@@ -283,7 +290,7 @@ begin
   end else result:=0;
 end;
 
-function GetIDTCurrentThread:ptrUint;
+function GetIDTCurrentThread:QWORD;
 var cc,br: dword;
     idtdescriptor: packed record
                      wLimit: word;
@@ -294,7 +301,12 @@ begin
   begin
     cc:=IOCTL_CE_GETIDT;
     deviceiocontrol(hdevice,cc,nil,0,@idtdescriptor,10,br,nil);
+
     result:=idtdescriptor.vector;
+    {$ifdef cpu32}
+    if not iswow64 then
+      result:=result and $ffffffff;
+    {$endif}
   end else result:=0;
 end;
 
@@ -304,8 +316,10 @@ type
   PptrUintArray=^TptrUintArray;
   TDwordArray=array[0..9999] of Dword;
   PDwordArray=^TDwordArray;
+  TQwordArray=array[0..9999] of QWORD;
+  PQwordArray=^TQwordArray;
   TGetIDTParams=record
-    idtstore: PptrUintArray;
+    idtstore: PQwordArray;
     maxidts: integer;
     currentindex: integer;
   end;
@@ -329,7 +343,7 @@ var
   p: TGetIDTParams;
 begin
   OutputDebugString('GetIDTs');
-  ZeroMemory(idtstore, 4*maxidts);
+  ZeroMemory(idtstore, 8*maxidts);
   p.idtstore:=idtstore;
   p.maxidts:=maxidts;
   p.currentindex:=0;
@@ -449,7 +463,7 @@ begin
   end;
 end;
 
-function GetCR3(hProcess:THANDLE;var CR3:ptrUint):BOOL; stdcall;
+function GetCR3(hProcess:THANDLE;var CR3:QWORD):BOOL; stdcall;
 var cc:dword;
     x,y:dword;
     i: integer;
@@ -1354,6 +1368,40 @@ begin
     input.parameters:=parameters;
     cc:=IOCTL_CE_EXECUTE_CODE;
     result:=deviceiocontrol(hdevice,cc,@input,sizeof(input),nil,0,cc,nil);
+  end;
+end;
+
+function ultimap(cr3: QWORD; debugctl_value: QWORD; DS_AREA_SIZE: integer): QWORD; stdcall;
+var
+  cc: dword;
+  input: record
+    CR3: uint64;
+    DEBUGCTL: uint64;
+    DS_AREA_SIZE: uint64;
+  end;
+
+  DS_AREA: QWORD;
+begin
+  if (hdevice<>INVALID_HANDLE_VALUE) then
+  begin
+    input.cr3:=cr3;
+    input.DEBUGCTL:=debugctl_value;
+    input.DS_AREA_SIZE:=DS_AREA_SIZE;
+    cc:=IOCTL_CE_ULTIMAP;
+    if deviceiocontrol(hdevice,cc,@input,sizeof(input),@DS_AREA,sizeof(DS_AREA),cc,nil) then
+      result:=DS_AREA
+    else
+      result:=0;
+  end;
+end;
+
+function ultimap_disable: BOOLEAN; stdcall;
+var cc: dword;
+begin
+  if (hdevice<>INVALID_HANDLE_VALUE) then
+  begin
+    cc:=IOCTL_CE_ULTIMAP_DISABLE;
+    result:=deviceiocontrol(hdevice,cc,nil,0,nil,0,cc,nil);
   end;
 end;
 

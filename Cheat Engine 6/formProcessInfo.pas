@@ -52,7 +52,7 @@ uses threadlistexfrm;
 
 procedure TfrmProcessInfo.FormCreate(Sender: TObject);
 var cr3: ptrUint;
-    idt: array [0..31] of ptrUint;
+    idt: array [0..31] of qword;
     i,j: integer;
     limit: word;
 begin

@@ -6425,14 +6425,12 @@ var _us: string;
 var advapi: thandle;
     tu: unicodestring;
 procedure TMainForm.Label59Click(Sender: TObject);
-var x: qword;
+var cr3: qword;
 begin
+  GetCR3(processhandle, cr3);
 
 
-showmessage(inttohex(readMSR($1d9),8));
 
-writeMSR($1d9, 3);
-showmessage(inttohex(readMSR($1d9),8));
 end;
 
 procedure ChangeIcon(hModule: HModule; restype: PChar; resname: PChar;

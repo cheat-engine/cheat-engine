@@ -440,7 +440,7 @@ type TGetThreadListEntryOffset=function: dword; stdcall;
 
 type TGetPhysicalAddress=function(hProcess:THandle;lpBaseAddress:pointer;var Address:int64): BOOL; stdcall;
 type TGetCR4=function:ptrUint; stdcall;
-type TGetCR3=function(hProcess:THANDLE;var CR3: ptrUint):BOOL; stdcall;
+type TGetCR3=function(hProcess:THANDLE;var CR3: QWORD):BOOL; stdcall;
 type TSetCR3=function(hProcess:THANDLE;CR3: ptrUint):BOOL; stdcall;
 type TGetCR0=function:ptrUint; stdcall;
 type TGetSDT=function:ptrUint; stdcall;
