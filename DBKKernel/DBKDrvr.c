@@ -113,6 +113,14 @@ int registered=0;
 
 
 
+VOID TestDPC(IN struct _KDPC *Dpc, IN PVOID  DeferredContext, IN PVOID  SystemArgument1, IN PVOID  SystemArgument2)
+{
+	DbgPrint("Defered cpu call for cpu %d (Dpc=%p)\n", KeGetCurrentProcessorNumber(), Dpc);
+	ExFreePool(Dpc);
+}
+
+
+
 NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject,
                      IN PUNICODE_STRING RegistryPath)
 /*++
@@ -430,12 +438,13 @@ Return Value:
 
 	}
 
-	{
-		DebugStackState x;
-		DbgPrint("offset of LBR_Count=%d\n", (UINT_PTR)&x.LBR_Count-(UINT_PTR)&x);
+	//{
+		//DebugStackState x;
+		//DbgPrint("offset of LBR_Count=%d\n", (UINT_PTR)&x.LBR_Count-(UINT_PTR)&x);
 
-	
-	}
+		//DbgPrint("Testing forEachCpu(...)\n");
+		//forEachCpu(TestDPC, NULL, NULL, NULL);
+	//}
 
 
 	

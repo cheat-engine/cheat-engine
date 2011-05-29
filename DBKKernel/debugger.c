@@ -196,13 +196,22 @@ void debugger_setInitialFakeState(void)
 	DebuggerState.FakedDebugRegisterState[cpunr()].DR7=debugger_dr7_getValueDword();
 }
 
+VOID debugger_initHookForCurrentCPU_DPC(IN struct _KDPC *Dpc, IN PVOID  DeferredContext, IN PVOID  SystemArgument1, IN PVOID  SystemArgument2)
+{
+	debugger_initHookForCurrentCPU();
+	
+	ExFreePool(Dpc);
+}
+
+
+
 int debugger_initHookForCurrentCPU(void)
 /*
 Must be called for each cpu
 */
 {
 	int result=TRUE;
-	DbgPrint("Hooking int1 for this cpu\n");
+	DbgPrint("Hooking int1 for cpu %d\n", cpunr());
 	
 	result=inthook_HookInterrupt(1,getCS() & 0xfff8, (ULONG_PTR)interrupt1_asmentry, &Int1JumpBackLocation);	
 

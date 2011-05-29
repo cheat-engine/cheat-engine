@@ -17,6 +17,7 @@
 
 #include "vmxhelper.h"
 #include "vmxoffload.h"
+#include "ultimap.h"
 
 
 
@@ -442,7 +443,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 					//hey look, it didn't kill it
 					struct input
 					{
-						char *startaddress;
+						UINT64 startaddress;
 						UINT64 bytestoread;
 					} *pinp;
 
@@ -716,11 +717,16 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 
 		case IOCTL_CE_HOOKINTS: //hooks the DEBUG interrupts
 			{
+				DbgPrint("IOCTL_CE_HOOKINTS\n");
+				forEachCpu(debugger_initHookForCurrentCPU_DPC, NULL, NULL, NULL);
+				ntStatus=STATUS_SUCCESS;
+
+				/*
 				DbgPrint("IOCTL_CE_HOOKINTS for cpu %d\n", cpunr());
 				if (debugger_initHookForCurrentCPU())
 					ntStatus=STATUS_SUCCESS;
 				else
-				    ntStatus=STATUS_UNSUCCESSFUL;
+				    ntStatus=STATUS_UNSUCCESSFUL;*/
 
 				break;
 			}
@@ -1307,9 +1313,37 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 					ntStatus=STATUS_UNSUCCESSFUL;
 				}
 				break;
-			}	
+			}
 
+		case IOCTL_CE_ULTIMAP:
+			{
+				struct input
+				{
+					UINT64 targetCR3;
+					UINT64 dbgctl;			
+					UINT64 dsareasize;
+				} *inp=Irp->AssociatedIrp.SystemBuffer;
 
+				PUINT64 outp=Irp->AssociatedIrp.SystemBuffer;
+
+				DbgPrint("IOCTL_CE_ULTIMAP:\n");
+				DbgPrint("ultimap(%llx, %llx, %d):\n", inp->targetCR3, inp->dbgctl, inp->dsareasize);
+
+				*outp=(UINT64)ultimap(inp->targetCR3, inp->dbgctl, (int)inp->dsareasize);
+
+				DbgPrint("ultimap returned: %p", *outp); 
+
+				ntStatus=STATUS_SUCCESS;
+
+				break;
+			}
+
+		case IOCTL_CE_ULTIMAP_DISABLE:
+			{
+				ultimap_disable();
+				ntStatus=STATUS_SUCCESS;
+				break;
+			}
 
 		case IOCTL_CE_INITIALIZE:
 			{

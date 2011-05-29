@@ -8,6 +8,48 @@
 */
 
 
+void forEachCpu(PKDEFERRED_ROUTINE dpcfunction,  PVOID DeferredContext, PVOID  SystemArgument1, PVOID  SystemArgument2)
+/*
+calls a specified dpcfunction for each cpu on the system
+*/
+{
+	CCHAR cpunr;
+	KAFFINITY cpus;
+
+	cpus=KeQueryActiveProcessors();
+	DbgPrint("cpus=%x\n", cpus);
+
+
+
+	cpunr=0;
+	while (cpus)
+	{
+		if (cpus % 2)
+		{
+			//bit is set
+			PKDPC dpc=ExAllocatePool(NonPagedPool, sizeof(KDPC));
+
+
+			DbgPrint("Calling dpc routine for cpunr %d  (dpc=%p)\n", cpunr, dpc);
+
+			KeInitializeDpc(dpc, dpcfunction, DeferredContext);
+			KeSetTargetProcessorDpc (dpc, cpunr);
+			KeInsertQueueDpc(dpc, SystemArgument1, SystemArgument2);
+
+		}
+
+		cpus=cpus / 2;
+		cpunr++;
+	}
+
+	//wait till all the DPC's have been handled
+	DbgPrint("Flushing DPC's\n");
+	KeFlushQueuedDpcs();
+	DbgPrint("Flushed DPC's\n");
+}
+
+
+
 //own critical section implementation for use when the os is pretty much useless (dbvm tech)
 void spinlock(volatile int *lockvar)
 {

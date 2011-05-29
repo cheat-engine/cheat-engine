@@ -66,5 +66,6 @@ NTSTATUS debugger_getDebuggerState(PDebugStackState state);
 NTSTATUS debugger_setDebuggerState(PDebugStackState state);
 
 void GetDebuggerInfo(void);
+VOID debugger_initHookForCurrentCPU_DPC(IN struct _KDPC *Dpc, IN PVOID  DeferredContext, IN PVOID  SystemArgument1, IN PVOID  SystemArgument2);
 
 #endif

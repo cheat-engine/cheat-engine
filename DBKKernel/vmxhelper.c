@@ -237,3 +237,47 @@ unsigned int vmx_exit_cr3_callback(unsigned int newcr3)
 
 	return dovmcall(&vmcallinfo, vmx_password1);
 }
+
+unsigned int vmx_ultimap(UINT_PTR cr3towatch, UINT64 debugctl_value, void *storeaddress)
+{
+	#pragma pack(1)
+	struct
+	{
+		unsigned int structsize;
+		unsigned int level2pass;
+		unsigned int command;
+		UINT64 cr3;
+		UINT64 debugctl;
+		UINT64 storeaddress;		
+	} vmcallinfo;
+	#pragma pack()
+
+	vmcallinfo.structsize=sizeof(vmcallinfo);
+	vmcallinfo.level2pass=vmx_password2;
+	vmcallinfo.command=VMCALL_ULTIMAP;
+	vmcallinfo.cr3=(UINT64)cr3towatch;
+	vmcallinfo.debugctl=(UINT64)debugctl_value;
+	vmcallinfo.storeaddress=(UINT64)storeaddress;
+
+	return dovmcall(&vmcallinfo, vmx_password1);
+}
+
+unsigned int vmx_ultimap_disable()
+{
+	#pragma pack(1)
+	struct
+	{
+		unsigned int structsize;
+		unsigned int level2pass;
+		unsigned int command;
+	} vmcallinfo;
+	#pragma pack()
+
+	vmcallinfo.structsize=sizeof(vmcallinfo);
+	vmcallinfo.level2pass=vmx_password2;
+	vmcallinfo.command=VMCALL_ULTIMAP_DISABLE;
+
+	return dovmcall(&vmcallinfo, vmx_password1);
+}
+
+

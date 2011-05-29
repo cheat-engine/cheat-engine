@@ -430,6 +430,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ultimap.c"
+				>
+			</File>
+			<File
 				RelativePath=".\vmx.c"
 				>
 			</File>
@@ -517,6 +521,10 @@
 			</File>
 			<File
 				RelativePath=".\tdiwrapper.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ultimap.h"
 				>
 			</File>
 			<File
