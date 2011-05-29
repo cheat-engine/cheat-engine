@@ -36,6 +36,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
+    procedure tvPageDblClick(Sender: TObject);
     procedure tvPageExpanding(Sender: TObject; Node: TTreeNode;
       var AllowExpansion: Boolean);
   private
@@ -55,6 +56,8 @@ var
 implementation
 
 { TfrmPaging }
+
+uses MemoryBrowserFormUnit;
 
 resourcestring
   rsNotFound = 'Not found';
@@ -156,6 +159,16 @@ end;
 procedure TfrmPaging.MenuItem1Click(Sender: TObject);
 begin
   finddialog1.Execute;
+end;
+
+procedure TfrmPaging.tvPageDblClick(Sender: TObject);
+var pd: PPageData;
+begin
+  if (tvpage.Selected<>nil) and (tvpage.Selected.HasChildren=false) then
+  begin
+    pd:=tvpage.Selected.data;
+    MemoryBrowser.hexview.address:=pd.va;
+  end;
 end;
 
 procedure TfrmPaging.FillNodeLevel1(node: TTreenode);

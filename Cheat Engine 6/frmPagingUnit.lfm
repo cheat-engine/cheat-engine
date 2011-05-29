@@ -19,6 +19,7 @@ object frmPaging: TfrmPaging
     PopupMenu = PopupMenu1
     ReadOnly = True
     TabOrder = 0
+    OnDblClick = tvPageDblClick
     OnExpanding = tvPageExpanding
     Options = [tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
   end
