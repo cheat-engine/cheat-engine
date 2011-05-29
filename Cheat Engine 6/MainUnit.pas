@@ -18,7 +18,7 @@ uses
   customtypehandler, lua,luahandler, lauxlib, lualib, frmSelectionlistunit,
   htmlhelp, win32int, {defaulttranslator,} fileaccess, formdesignerunit,
   ceguicomponents, frmautoinjectunit, cesupport, trainergenerator, genericHotkey,
-  luafile, xmplayer_server, sharedMemory;
+  luafile, xmplayer_server, sharedMemory{$ifdef windows},win32proc{$endif};
 
 //the following are just for compatibility
 
@@ -2346,7 +2346,7 @@ end;
 
 procedure TMainForm.Label3Click(Sender: TObject);
 begin
-
+  ultimap_disable;
 end;
 
 
@@ -3704,6 +3704,14 @@ var
 
   PODirectory, Lang, FallbackLang: String;
 begin
+  {$ifdef windows}
+  {$ifdef cpu64}
+    //lazarus bug bypass
+    if WindowsVersion=wvVista then
+      foundlist3.OnCustomDrawItem:=nil;
+  {$endif}
+  {$endif}
+
   Set8087CW($133f);
   SetSSECSR($1f80);
 
@@ -6426,9 +6434,12 @@ var advapi: thandle;
     tu: unicodestring;
 procedure TMainForm.Label59Click(Sender: TObject);
 var cr3: qword;
+    x: qword;
 begin
   GetCR3(processhandle, cr3);
-
+  x:=ultimap(cr3, (1 shl 6) or (1 shl 7) or (1 shl 9), 1000*4096);
+  memorybrowser.Show;
+  memorybrowser.hexview.address:=x;
 
 
 end;

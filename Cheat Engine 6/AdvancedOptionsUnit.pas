@@ -10,7 +10,7 @@ interface
 uses
   jwawindows, windows, symbolhandler,{tlhelp32,}LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Buttons,CEDebugger, Menus,CEFuncProc, ExtCtrls,disassembler,
-  SyncObjs,registry, ComCtrls, LResources,NewKernelHandler;
+  SyncObjs,registry, ComCtrls, LResources,NewKernelHandler{$ifdef windows},win32proc{$endif};
 
 
 
@@ -813,6 +813,15 @@ end;
 procedure TAdvancedOptions.FormCreate(Sender: TObject);
 var x: array of integer;
 begin
+  {$ifdef windows}
+  {$ifdef cpu64}
+    //lazarus bug bypass
+    if WindowsVersion=wvVista then
+      codelist2.OnCustomDrawItem:=nil;
+  {$endif}
+  {$endif}
+
+
   button4.Visible:=false;
   savebutton.Visible:=false;
  // pausebutton.Left:=savebutton.Left;

@@ -64,7 +64,7 @@ implementation
 
 
 
-function internal_hookints(parameters: pointer): BOOL; stdcall;
+function hookints: BOOL; stdcall;
 var cc,br: dword;
 begin
   if hdevice<>INVALID_HANDLE_VALUE then
@@ -80,7 +80,7 @@ function StartCEKernelDebug:BOOL; stdcall;
 begin
   outputdebugstring('StartCEKernelDebug');
   if not KernelDebugStarted then
-    KernelDebugStarted:=foreachcpu(internal_hookints, nil);
+    KernelDebugStarted:=hookints;
 
   result:=KernelDebugStarted;
 end;
