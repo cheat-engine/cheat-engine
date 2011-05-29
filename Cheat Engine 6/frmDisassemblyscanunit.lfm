@@ -31,6 +31,8 @@ object frmDisassemblyscan: TfrmDisassemblyscan
     Align = alClient
     ItemHeight = 0
     OnDblClick = ListBox1DblClick
+    OnKeyDown = ListBox1KeyDown
+    PopupMenu = PopupMenu1
     TabOrder = 0
   end
   object Panel1: TPanel
@@ -58,5 +60,15 @@ object frmDisassemblyscan: TfrmDisassemblyscan
     OnTimer = Timer1Timer
     left = 312
     top = 24
+  end
+  object PopupMenu1: TPopupMenu
+    left = 66
+    top = 19
+    object MenuItem1: TMenuItem
+      Caption = 'Go to this address'
+      Default = True
+      ShortCut = 32
+      OnClick = MenuItem1Click
+    end
   end
 end

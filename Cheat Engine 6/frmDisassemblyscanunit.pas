@@ -7,7 +7,7 @@ interface
 uses
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs,disassembler,{$ifndef net}NewKernelHandler,{$endif}CEFuncProc, ExtCtrls, StdCtrls,
-  ComCtrls, LResources;
+  ComCtrls, LResources, LCLProc, Menus;
 
 type
   TfrmDisassemblyscan = class;
@@ -33,8 +33,14 @@ type
     btnCancel: TButton;
     ListBox1: TListBox;
     Label1: TLabel;
+    MenuItem1: TMenuItem;
     Panel1: TPanel;
+    PopupMenu1: TPopupMenu;
     Timer1: TTimer;
+    procedure ListBox1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState
+      );
+    procedure ListBox1KeyPress(Sender: TObject; var Key: char);
+    procedure MenuItem1Click(Sender: TObject);
     procedure Panel1Click(Sender: TObject);
     procedure Panel1Resize(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
@@ -141,6 +147,23 @@ end;
 
 procedure TfrmDisassemblyscan.Panel1Click(Sender: TObject);
 begin
+
+end;
+
+procedure TfrmDisassemblyscan.ListBox1KeyPress(Sender: TObject; var Key: char);
+begin
+
+end;
+
+procedure TfrmDisassemblyscan.MenuItem1Click(Sender: TObject);
+begin
+  listbox1.OnDblClick(listbox1);
+end;
+
+procedure TfrmDisassemblyscan.ListBox1KeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+
 
 end;
 
