@@ -360,6 +360,10 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\cetc.c"
+				>
+			</File>
+			<File
 				RelativePath=".\DBKDrvr.c"
 				>
 				<FileConfiguration
@@ -431,6 +435,10 @@
 			</File>
 			<File
 				RelativePath=".\ultimap.c"
+				>
+			</File>
+			<File
+				RelativePath=".\amd64\ultimapa.asm"
 				>
 			</File>
 			<File

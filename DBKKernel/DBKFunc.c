@@ -15,37 +15,50 @@ calls a specified dpcfunction for each cpu on the system
 {
 	CCHAR cpunr;
 	KAFFINITY cpus;
+	ULONG cpucount;
+	PKDPC dpc;
+	int dpcnr;
+
+	
+	//KeIpiGenericCall is not present in xp
+	
+	//count cpus first KeQueryActiveProcessorCount is not present in xp)
+	cpucount=0;
+	cpus=KeQueryActiveProcessors();
+	while (cpus)
+	{
+		if (cpus % 2)
+			cpucount++;
+
+		cpus=cpus / 2;		
+	}
+
+	dpc=ExAllocatePool(NonPagedPool, sizeof(KDPC)*cpucount);
 
 	cpus=KeQueryActiveProcessors();
-	DbgPrint("cpus=%x\n", cpus);
-
-
-
 	cpunr=0;
+	dpcnr=0;
 	while (cpus)
 	{
 		if (cpus % 2)
 		{
 			//bit is set
-			PKDPC dpc=ExAllocatePool(NonPagedPool, sizeof(KDPC));
+			
+			DbgPrint("Calling dpc routine for cpunr %d\n", cpunr);
 
-
-			DbgPrint("Calling dpc routine for cpunr %d  (dpc=%p)\n", cpunr, dpc);
-
-			KeInitializeDpc(dpc, dpcfunction, DeferredContext);
-			KeSetTargetProcessorDpc (dpc, cpunr);
-			KeInsertQueueDpc(dpc, SystemArgument1, SystemArgument2);
-
+			KeInitializeDpc(&dpc[dpcnr], dpcfunction, DeferredContext);
+			KeSetTargetProcessorDpc (&dpc[dpcnr], cpunr);
+			KeInsertQueueDpc(&dpc[dpcnr], SystemArgument1, SystemArgument2);
+			KeFlushQueuedDpcs();
+			dpcnr++;
 		}
 
 		cpus=cpus / 2;
 		cpunr++;
 	}
 
-	//wait till all the DPC's have been handled
-	DbgPrint("Flushing DPC's\n");
-	KeFlushQueuedDpcs();
-	DbgPrint("Flushed DPC's\n");
+
+	ExFreePool(dpc);
 }
 
 

@@ -14,3 +14,4 @@ UINT_PTR	ActiveLinkOffset;
 UINT_PTR	ProcessNameOffset;
 UINT_PTR	DebugportOffset;
 UINT_PTR	PIDOffset;
+

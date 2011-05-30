@@ -9,9 +9,11 @@ S				qword ?
 CALLBACK        ends
 
 
-ASMENTRY_STACK	struct ;keep this aligned
+ASMENTRY_STACK	struct ;keep this 16 byte aligned
 	Scratchspace	qword ?
 	Scratchspace2	qword ? 
+	Scratchspace3	qword ?
+	Scratchspace4	qword ? 	
 	Originalmxcsr	qword ?	
 	OriginalRAX		qword ?
 	OriginalRBX		qword ?
@@ -44,7 +46,7 @@ EXTERN Int1JumpBackLocation : CALLBACK
 PUBLIC interrupt1_asmentry
 interrupt1_asmentry:
 		;save stack position
-		sub esp,4096
+		sub rsp,4096
 
 		cld			
 		push 0 ;push an errorcode on the stack so the stackindex enum type can stay the same relative to interrupts that do have an errorcode (int 14)
@@ -96,7 +98,7 @@ interrupt1_asmentry:
 		mov ss,ax
 		
 		
-		cmp qword ptr [rbp+8*21],010h ;check if origin is in kernelmode
+		cmp qword ptr [rbp+8*21],010h ;check if origin is in kernelmode (check ss)
 		je skipswap1 ;if so, skip the swapgs
 		
 		swapgs ;swap gs with the kernel version (not to self fix when called from inside kernel)
@@ -116,7 +118,7 @@ skipswap1:
 		
 		ldmxcsr dword ptr (ASMENTRY_STACK PTR [rsp]).Originalmxcsr
 		
-		cmp qword ptr [rbp+8*21],10h ;was is a kernelmode interrupt ?
+		cmp qword ptr [rbp+8*21],10h ;was it a kernelmode interrupt ?
 		je skipswap2 ;if so, skip the swapgs part
 				
 		swapgs ;swap back
@@ -156,14 +158,20 @@ skipswap2:
 		
 		;stack unwind
 		mov rbp,(ASMENTRY_STACK PTR [rsp]).OriginalRBP
-		add rsp,SIZEOF ASMENTRY_STACK+8  ;+8 for the push 0
+		add rsp,SIZEOF ASMENTRY_STACK  ;+8 for the push 0
+		add rsp,4096
+		add rsp,8
+		
 		jmp [Int1JumpBackLocation.A] ;<-works fine	
 
 
 skip_original_int1:
 		;stack unwind
 		mov rbp,(ASMENTRY_STACK PTR [rsp]).OriginalRBP
-		add rsp,SIZEOF ASMENTRY_STACK+8  ;+8 for the push 0		
+		add rsp,SIZEOF ASMENTRY_STACK  ;+8 for the push 0		
+		add rsp,4096
+		add rsp,8
+		
 		iretq
 
 	

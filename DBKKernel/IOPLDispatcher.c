@@ -1317,22 +1317,26 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 
 		case IOCTL_CE_ULTIMAP:
 			{
+				#pragma pack(1)
 				struct input
 				{
 					UINT64 targetCR3;
 					UINT64 dbgctl;			
 					UINT64 dsareasize;
+					BOOL savetofile;
+					WCHAR filename[200];				
 				} *inp=Irp->AssociatedIrp.SystemBuffer;
+				#pragma pack()
 
 				PUINT64 outp=Irp->AssociatedIrp.SystemBuffer;
 
 				DbgPrint("IOCTL_CE_ULTIMAP:\n");
 				DbgPrint("ultimap(%llx, %llx, %d):\n", inp->targetCR3, inp->dbgctl, inp->dsareasize);
 
-				*outp=(UINT64)ultimap(inp->targetCR3, inp->dbgctl, (int)inp->dsareasize);
+				DbgPrint("filename=%S\n", inp->filename);
 
-				DbgPrint("ultimap returned: %p", *outp); 
-
+				ultimap(inp->targetCR3, inp->dbgctl, (int)inp->dsareasize, inp->savetofile, &inp->filename[0]);
+				
 				ntStatus=STATUS_SUCCESS;
 
 				break;

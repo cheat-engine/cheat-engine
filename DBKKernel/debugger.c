@@ -200,7 +200,7 @@ VOID debugger_initHookForCurrentCPU_DPC(IN struct _KDPC *Dpc, IN PVOID  Deferred
 {
 	debugger_initHookForCurrentCPU();
 	
-	ExFreePool(Dpc);
+
 }
 
 
@@ -1456,6 +1456,8 @@ _declspec( naked ) void interrupt1_asmentry( void )
 		//push [esp+4096+8+8] //eflags
 		//push [esp+4096+12+4] //cs
 		//push [esp+4096+16+0] //eip
+
+		cld //reset the direction flag
 		
 		
 		

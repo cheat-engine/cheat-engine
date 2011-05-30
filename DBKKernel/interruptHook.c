@@ -60,7 +60,6 @@ int inthook_UnhookInterrupt(unsigned char intnr)
 			return TRUE; //that's all we need
 		}
 
-#ifndef AMD64
 		//still here so not a dbvm hook, unhook the old way and hope nothing has interfered
 
 		{
@@ -79,6 +78,11 @@ int inthook_UnhookInterrupt(unsigned char intnr)
 			newVector.wLowOffset=(WORD)InterruptHook[intnr].originalEIP;
 			newVector.wSelector=(WORD)InterruptHook[intnr].originalCS;
 
+#ifdef AMD64
+			newVector.TopOffset=(InterruptHook[intnr].originalEIP >> 32);
+			newVector.Reserved=0;
+#endif
+
 			{
 				IDT idt;	
 				GetIDT(&idt);
@@ -93,7 +97,6 @@ int inthook_UnhookInterrupt(unsigned char intnr)
 
 			DbgPrint("Restored\n");
 		}
-#endif
 	}
 
 	return TRUE;
@@ -110,16 +113,16 @@ int inthook_HookInterrupt(unsigned char intnr, int newCS, ULONG_PTR newEIP, PJUM
 	DbgPrint("interrupt %d newCS=%x newEIP=%x jumpbacklocation=%p\n",intnr, newCS, newEIP, jumpback);
 #endif
 
+	DbgPrint("InterruptHook[%d].hooked=%d\n", intnr, InterruptHook[intnr].hooked);
+
 	if (!InterruptHook[intnr].hooked)
 	{
 		//new hook, so save the originals
 		InterruptHook[intnr].originalCS=idt.vector[intnr].wSelector;
 		InterruptHook[intnr].originalEIP=idt.vector[intnr].wLowOffset+(idt.vector[intnr].wHighOffset << 16);
 #ifdef AMD64
-		InterruptHook[intnr].originalEIP+=(UINT64)((UINT64)idt.vector[intnr].TopOffset << 32);
+		InterruptHook[intnr].originalEIP|=(UINT64)((UINT64)idt.vector[intnr].TopOffset << 32);
 #endif
-
-
 	}
 
 	if (jumpback)
@@ -128,8 +131,11 @@ int inthook_HookInterrupt(unsigned char intnr, int newCS, ULONG_PTR newEIP, PJUM
 		jumpback->eip=InterruptHook[intnr].originalEIP;
 	}
 
+	DbgPrint("vmxusable=%d\n", vmxusable);
+
 	if (vmxusable && ((intnr==1) || (intnr==3) || (intnr==14)) )
 	{	
+		DbgPrint("VMX Hook path\n");
 		
 		switch (intnr)
 		{
@@ -152,12 +158,17 @@ int inthook_HookInterrupt(unsigned char intnr, int newCS, ULONG_PTR newEIP, PJUM
 	{
 		
 
-#ifdef AMD64
-		DbgPrint("64-bit: DBVM is not loaded or a non dbvm hookable interrupt is being hooked\n");
-		return FALSE;
-#else
 		//old fashioned hook
 		INT_VECTOR newVector;
+#ifdef AMD64
+		if (intnr<32)
+		{
+			DbgPrint("64-bit: DBVM is not loaded and a non dbvm hookable interrupt is being hooked that falls below 32\n");
+			return FALSE;
+		}
+#endif
+
+
 		DbgPrint("sizeof newVector=%d\n",sizeof(INT_VECTOR));
 		
 		
@@ -167,6 +178,11 @@ int inthook_HookInterrupt(unsigned char intnr, int newCS, ULONG_PTR newEIP, PJUM
 		newVector.bUnused=0;
 		newVector.bAccessFlags=idt.vector[intnr].bAccessFlags; //don't touch accessflag, the default settings are good (e.g: int3,4 and 8 have dpl=3)
 
+#ifdef AMD64
+		newVector.TopOffset=(newEIP >> 32);
+		newVector.Reserved=0;
+#endif
+
 		disableInterrupts(); //no kernelmode taskswitches please
 		idt.vector[intnr]=newVector;
 		enableInterrupts();	
@@ -174,8 +190,9 @@ int inthook_HookInterrupt(unsigned char intnr, int newCS, ULONG_PTR newEIP, PJUM
 		InterruptHook[intnr].dbvmInterruptEmulation=0;
 
 		DbgPrint("int %d will now go to %x:%x\n",intnr, newCS, newEIP);
-#endif
+
 	}
+
 
 	InterruptHook[intnr].hooked=1;
 	return TRUE;

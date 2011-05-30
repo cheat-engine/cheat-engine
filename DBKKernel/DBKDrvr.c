@@ -15,6 +15,7 @@
 
 #include "IOPLDispatcher.h"
 #include "interruptHook.h"
+#include "ultimap.h"
 
 
 
@@ -103,6 +104,7 @@ void hideme(PDRIVER_OBJECT DriverObject)
 int testfunction(int p1,int p2)
 {
 	DbgPrint("Hello\nParam1=%d\nParam2=%d\n",p1,p2);
+	
 	return 0x666;
 }
 
@@ -115,8 +117,9 @@ int registered=0;
 
 VOID TestDPC(IN struct _KDPC *Dpc, IN PVOID  DeferredContext, IN PVOID  SystemArgument1, IN PVOID  SystemArgument2)
 {
-	DbgPrint("Defered cpu call for cpu %d (Dpc=%p)\n", KeGetCurrentProcessorNumber(), Dpc);
-	ExFreePool(Dpc);
+	EFLAGS e=getEflags();
+	
+    DbgPrint("Defered cpu call for cpu %d (Dpc=%p  IF=%d IRQL=%d)\n", KeGetCurrentProcessorNumber(), Dpc, e.IF, KeGetCurrentIrql());
 }
 
 
@@ -438,13 +441,17 @@ Return Value:
 
 	}
 
-	//{
-		//DebugStackState x;
-		//DbgPrint("offset of LBR_Count=%d\n", (UINT_PTR)&x.LBR_Count-(UINT_PTR)&x);
+	{
+		APIC y;
+		
+		DebugStackState x;
+		DbgPrint("offset of LBR_Count=%d\n", (UINT_PTR)&x.LBR_Count-(UINT_PTR)&x);
 
-		//DbgPrint("Testing forEachCpu(...)\n");
-		//forEachCpu(TestDPC, NULL, NULL, NULL);
-	//}
+		DbgPrint("Testing forEachCpu(...)\n");
+		forEachCpu(TestDPC, NULL, NULL, NULL);
+
+		DbgPrint("LVT_Performance_Monitor=%x\n", (UINT_PTR)&y.LVT_Performance_Monitor-(UINT_PTR)&y);
+	}
 
 
 	
