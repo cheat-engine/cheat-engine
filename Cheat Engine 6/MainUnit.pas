@@ -6435,11 +6435,19 @@ var advapi: thandle;
 procedure TMainForm.Label59Click(Sender: TObject);
 var cr3: qword;
     x: qword;
+    filename: WideString;
 begin
   GetCR3(processhandle, cr3);
-  x:=ultimap(cr3, (1 shl 6) or (1 shl 7) or (1 shl 9), 1000*4096);
-  memorybrowser.Show;
-  memorybrowser.hexview.address:=x;
+
+  filename:='c:\bla.log';
+
+ // showmessage(inttostr(length(filename)));
+
+
+  ultimap(cr3, (1 shl 6) or (1 shl 7) or (1 shl 9) or (1 shl 8), 1024*4096, true, pwidechar(filename));
+
+ // memorybrowser.Show;
+ // memorybrowser.hexview.address:=x;
 
 
 end;

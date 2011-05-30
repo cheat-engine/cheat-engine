@@ -167,7 +167,12 @@ begin
   if (tvpage.Selected<>nil) and (tvpage.Selected.HasChildren=false) then
   begin
     pd:=tvpage.Selected.data;
-    MemoryBrowser.hexview.address:=pd.va;
+    if pd<>nil then
+    begin
+      MemoryBrowser.hexview.address:=pd.va;
+      if MemoryBrowser.visible=false then
+        MemoryBrowser.show;
+    end;
   end;
 end;
 
@@ -224,6 +229,7 @@ begin
             else
               tn:=tvpage.Items.AddChild(node,inttostr(i)+':'+inttohex(a,16)+'-'+inttohex(b,16)+'('+inttohex(pd^.pa,16)+')');
 
+            tn.Data:=pd;
             tn.HasChildren:=false;
           end;
         end;
@@ -250,6 +256,7 @@ begin
               tn:=tvpage.Items.AddChild(node,inttostr(i)+':'+inttohex(a,8)+'-'+inttohex(b,8)+'('+inttohex(pd^.pa,8)+')');
 
             tn.HasChildren:=false;
+            tn.data:=pd;
           end;
         end;
       end;

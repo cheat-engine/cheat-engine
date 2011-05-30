@@ -591,7 +591,8 @@ begin
         Commentsunit.Comments.Memo1.Lines.add(s);
     end;
 
-    mainform.frmLuaTableScript.assemblescreen.ClearAll;
+    mainform.frmLuaTableScript.assemblescreen.Text:='';
+
     if luaScript<>nil then
       mainform.frmLuaTableScript.assemblescreen.Text:=luascript.TextContent;
 

@@ -206,7 +206,7 @@ function GetSSDTEntry(nr: integer; address: PDWORD; paramcount: PBYTE):boolean; 
 
 function UserdefinedInterruptHook(interruptnr: integer; newCS: word; newEIP: uint64; addressofjumpback: uint64):boolean; stdcall;
 function executeKernelCode(address: uint64; parameters: uint64): BOOL; stdcall;
-function ultimap(cr3: QWORD; debugctl_value: QWORD; DS_AREA_SIZE: integer): QWORD; stdcall;
+function ultimap(cr3: QWORD; debugctl_value: QWORD; DS_AREA_SIZE: integer; savetofile: boolean; filename: PWideChar): QWORD; stdcall;
 function ultimap_disable: BOOLEAN; stdcall;
 
 procedure LaunchDBVM; stdcall;
@@ -1371,23 +1371,36 @@ begin
   end;
 end;
 
-function ultimap(cr3: QWORD; debugctl_value: QWORD; DS_AREA_SIZE: integer): QWORD; stdcall;
+function ultimap(cr3: QWORD; debugctl_value: QWORD; DS_AREA_SIZE: integer; savetofile: boolean; filename: PWideChar): QWORD; stdcall;
 var
   cc: dword;
-  input: record
+  input: packed record
     CR3: uint64;
     DEBUGCTL: uint64;
     DS_AREA_SIZE: uint64;
+    SaveToFile:BOOL;
+    filename: array [0..200] of WideChar;
   end;
+  i: integer;
 
   DS_AREA: QWORD;
 begin
+
+
   if (hdevice<>INVALID_HANDLE_VALUE) then
   begin
     input.cr3:=cr3;
     input.DEBUGCTL:=debugctl_value;
     input.DS_AREA_SIZE:=DS_AREA_SIZE;
-    cc:=IOCTL_CE_ULTIMAP;
+    input.SaveToFile:=SaveToFile;
+
+    if savetofile then
+    begin
+      for i:=1 to length(filename) do //include last byte as well (0 term)
+        input.filename[i-1]:=filename[i-1];
+    end;
+
+
     if deviceiocontrol(hdevice,cc,@input,sizeof(input),@DS_AREA,sizeof(DS_AREA),cc,nil) then
       result:=DS_AREA
     else
