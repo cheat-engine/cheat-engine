@@ -6436,6 +6436,9 @@ procedure TMainForm.Label59Click(Sender: TObject);
 var cr3: qword;
     x: qword;
     filename: WideString;
+
+    EventStore: PUltimapEventArray;
+    HandlerCount: integer;
 begin
   GetCR3(processhandle, cr3);
 
@@ -6443,8 +6446,13 @@ begin
 
  // showmessage(inttostr(length(filename)));
 
+  HandlerCount:=1;
+  GetMem(EventStore, HandlerCount*sizeof(TUltimapEventArray));
+  EventStore[0].DataReadyEvent:=0;
+  EventStore[0].DataHandledEvent:=0;
 
-  ultimap(cr3, (1 shl 6) or (1 shl 7) or (1 shl 9) or (1 shl 8), 1024*4096, true, pwidechar(filename));
+
+  ultimap(cr3, (1 shl 6) or (1 shl 7) or (1 shl 9) or (1 shl 8), 1024*4096, false, pwidechar(filename), HandlerCount, EventStore);
 
  // memorybrowser.Show;
  // memorybrowser.hexview.address:=x;

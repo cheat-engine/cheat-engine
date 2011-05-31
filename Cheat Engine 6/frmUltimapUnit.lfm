@@ -1,0 +1,8 @@
+object frmUltimap: TfrmUltimap
+  Left = 566
+  Height = 240
+  Top = 220
+  Width = 320
+  Caption = 'frmUltimap'
+  LCLVersion = '0.9.31'
+end

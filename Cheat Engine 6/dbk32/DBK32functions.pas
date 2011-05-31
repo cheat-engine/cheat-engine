@@ -123,6 +123,19 @@ type TClient_ID=record
 end;
 type PClient_ID=^TClient_ID;
 
+type
+  TQwordArray=array[0..9999] of QWORD;
+  PQwordArray=^TQwordArray;
+
+type
+  TUltimapEvent=packed record
+    DataReadyEvent: QWORD;
+    DataHandledEvent: QWORD;
+  end;
+  TUltimapEventArray=array [0..0] of TUltimapEvent;
+  PUltimapEventArray=^TUltimapEventArray;
+
+
 var hdevice: thandle=INVALID_HANDLE_VALUE; //handle to my the device driver
     handlelist: array of thandlelist;
     driverloc: string;
@@ -206,7 +219,7 @@ function GetSSDTEntry(nr: integer; address: PDWORD; paramcount: PBYTE):boolean; 
 
 function UserdefinedInterruptHook(interruptnr: integer; newCS: word; newEIP: uint64; addressofjumpback: uint64):boolean; stdcall;
 function executeKernelCode(address: uint64; parameters: uint64): BOOL; stdcall;
-function ultimap(cr3: QWORD; debugctl_value: QWORD; DS_AREA_SIZE: integer; savetofile: boolean; filename: PWideChar): QWORD; stdcall;
+function ultimap(cr3: QWORD; debugctl_value: QWORD; DS_AREA_SIZE: integer; savetofile: boolean; filename: widestring; handlercount: integer; EventStore: PUltimapEventArray): QWORD; stdcall;
 function ultimap_disable: BOOLEAN; stdcall;
 
 procedure LaunchDBVM; stdcall;
@@ -316,8 +329,7 @@ type
   PptrUintArray=^TptrUintArray;
   TDwordArray=array[0..9999] of Dword;
   PDwordArray=^TDwordArray;
-  TQwordArray=array[0..9999] of QWORD;
-  PQwordArray=^TQwordArray;
+
   TGetIDTParams=record
     idtstore: PQwordArray;
     maxidts: integer;
@@ -1371,7 +1383,7 @@ begin
   end;
 end;
 
-function ultimap(cr3: QWORD; debugctl_value: QWORD; DS_AREA_SIZE: integer; savetofile: boolean; filename: PWideChar): QWORD; stdcall;
+function ultimap(cr3: QWORD; debugctl_value: QWORD; DS_AREA_SIZE: integer; savetofile: boolean; filename: widestring; handlercount: integer; eventstore: PUltimapEventArray): QWORD; stdcall;
 var
   cc: dword;
   input: packed record
@@ -1379,7 +1391,8 @@ var
     DEBUGCTL: uint64;
     DS_AREA_SIZE: uint64;
     SaveToFile:BOOL;
-    filename: array [0..200] of WideChar;
+    HandlerCount: integer;
+    filename: array [0..199] of WideChar;
   end;
   i: integer;
 
@@ -1393,15 +1406,18 @@ begin
     input.DEBUGCTL:=debugctl_value;
     input.DS_AREA_SIZE:=DS_AREA_SIZE;
     input.SaveToFile:=SaveToFile;
+    input.HandlerCount:=handlercount;
 
     if savetofile then
     begin
-      for i:=1 to length(filename) do //include last byte as well (0 term)
-        input.filename[i-1]:=filename[i-1];
+      filename:='\DosDevices\'+filename;
+      for i:=1 to length(filename)+1 do //include last byte as well (0 term)
+        input.filename[i-1]:=filename[i];
     end;
 
+    cc:=IOCTL_CE_ULTIMAP;
 
-    if deviceiocontrol(hdevice,cc,@input,sizeof(input),@DS_AREA,sizeof(DS_AREA),cc,nil) then
+    if deviceiocontrol(hdevice,cc,@input,sizeof(input),eventstore,handlercount*sizeof(TUltimapEvent),cc,nil) then
       result:=DS_AREA
     else
       result:=0;

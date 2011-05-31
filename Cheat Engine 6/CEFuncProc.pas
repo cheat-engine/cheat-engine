@@ -265,6 +265,7 @@ type
 type TPtrUintArray=array[0..100] of ptruint;
 type PPtrUintArray=^TPtrUintArray;
 
+
 type TDwordArray=array[0..100] of dword;
 type PDwordArray=^TDwordArray;
 
@@ -279,6 +280,8 @@ type Pint64Array=^Tint64Array;
 
 type Tuint64Array=array[0..100] of uint64;
 type Puint64Array=^Tuint64Array;
+
+type PQWordArray=Puint64Array;
 
 type TExtendedArray=array[0..100] of extended;
 type PExtendedArray=^TExtendedArray;
