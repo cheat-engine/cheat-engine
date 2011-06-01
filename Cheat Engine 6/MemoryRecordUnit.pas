@@ -289,8 +289,8 @@ begin
   //unregister hotkeys
   if hotkeylist<>nil then
   begin
-    for i:=0 to hotkeylist.count-1 do
-      TMemoryRecordHotkey(hotkeylist[i]).free;
+    while hotkeylist.count>0 do
+      TMemoryRecordHotkey(hotkeylist[0]).free;
 
     hotkeylist.free;
   end;
