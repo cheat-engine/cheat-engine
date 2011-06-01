@@ -141,6 +141,8 @@ type       //The DataEvent structure contains the address and blockid. Use this 
     Address: Qword;
     Size: Qword;
     BlockID: Qword;
+    KernelAddress: QWORD;
+    Mdl: QWORD;
   end;
   PUltimapDataEvent= ^TUltimapDataEvent;
 

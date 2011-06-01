@@ -25,7 +25,7 @@ function getVarType2: TVariableType;
 
 
 
-const beta=' RC'; //empty this for a release
+const beta=''; //empty this for a release
 
 var
   CEnorm:string;

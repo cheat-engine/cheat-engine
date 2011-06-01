@@ -36,7 +36,6 @@ typedef struct
 	int DataSize;
 	KEVENT DataReady;
 	KEVENT DataProcessed;
-	PMDLX Mdl;
     
 } _DataBlock;
 
@@ -48,22 +47,30 @@ PVOID *DataReadyPointerList;
 
 
 NTSTATUS ultimap_continue(PULTIMAPDATAEVENT data)
+/*
+Called from usermode to signal that the data has been handled
+*/
 {
 	DbgPrint("ultimap_continue\n");
-	if (DataBlock)
-	{
-		MmUnmapLockedPages((PVOID)data->Address, DataBlock[data->Block].Mdl);
-		IoFreeMdl(DataBlock[data->Block].Mdl);
-		DataBlock[data->Block].Mdl=NULL;
+	MmUnmapLockedPages((PVOID)data->Address, (PMDL)data->Mdl);
+	IoFreeMdl((PMDL)data->Mdl);
 
-		KeSetEvent(&DataBlock[data->Block].DataProcessed, 0, FALSE); //tell the thread that generated this data to continue (will free the memory that was mapped, so could not be released any sooner)
-		return STATUS_SUCCESS;	
-	}
-	else
-		return STATUS_UNSUCCESSFUL;
+	ExFreePool((PVOID)data->KernelAddress); //this memory is not needed anymore
+
+
+	if (DataBlock)
+		DataBlock[data->Block].Available=TRUE;
+
+
+	KeReleaseSemaphore(&DataBlockSemaphore, 1, 1, FALSE); //Let the next block go through
+	DbgPrint("Released semaphore\n");
+	return STATUS_SUCCESS;	
 }
 
 NTSTATUS ultimap_waitForData(ULONG timeout, PULTIMAPDATAEVENT data)
+/*
+Called from usermode to wait for data
+*/
 {
 	NTSTATUS r;
 	LARGE_INTEGER wait;
@@ -93,12 +100,12 @@ NTSTATUS ultimap_waitForData(ULONG timeout, PULTIMAPDATAEVENT data)
 		if ((data->Block <= 63) && (DataBlock))
 		{
 			//Map this block to usermode
-			
-			DataBlock[data->Block].Mdl=IoAllocateMdl(DataBlock[data->Block].Data, DataBlock[data->Block].DataSize, FALSE, FALSE, NULL);
+			data->KernelAddress=(UINT64)DataBlock[data->Block].Data;
+			(PMDL)data->Mdl=IoAllocateMdl(DataBlock[data->Block].Data, DataBlock[data->Block].DataSize, FALSE, FALSE, NULL);
 
-			MmBuildMdlForNonPagedPool(DataBlock[data->Block].Mdl);
+			MmBuildMdlForNonPagedPool((PMDL)data->Mdl);
 
-			data->Address=(UINT_PTR)MmMapLockedPagesSpecifyCache(DataBlock[data->Block].Mdl, UserMode, MmCached, NULL, FALSE, NormalPagePriority);
+			data->Address=(UINT_PTR)MmMapLockedPagesSpecifyCache((PMDL)data->Mdl, UserMode, MmCached, NULL, FALSE, NormalPagePriority);
 			data->Size=DataBlock[data->Block].DataSize;
 
 			return STATUS_SUCCESS;	
@@ -165,7 +172,8 @@ int perfmon_interrupt_centry(void)
 		}
 		else
 		{
-			DbgPrint("Waiting till there is a block free\n");			
+			DbgPrint("Waiting till there is a block free\n");
+			//When all workers are busy do not continue
 			if ((DataBlock) && (KeWaitForSingleObject(&DataBlockSemaphore, Executive, KernelMode, FALSE, NULL) == STATUS_SUCCESS))
 			{
 				int currentblock;
@@ -206,24 +214,21 @@ int perfmon_interrupt_centry(void)
 					DataBlock[currentblock].DataSize=(int)blocksize;
 					
 					DbgPrint("Calling KeSetEvent/KeWaitForSingleObject\n");
-					KeSetEvent(&DataBlock[currentblock].DataReady, 1, TRUE);
-					KeWaitForSingleObject(&DataBlock[currentblock].DataProcessed, Executive, KernelMode, FALSE, NULL); //Wait till the handler has dealt with the buffer (This way the maximum allocated memory is only affected by the number of threads)						
+					KeSetEvent(&DataBlock[currentblock].DataReady, 1, FALSE); //Trigger a worker thread to start working
 
-					DbgPrint("After KeWaitForSingleObject\n");
 
-					if (DataBlock) //could be it got freed
-						DataBlock[currentblock].Available=TRUE; //make it available again
+//					KeWaitForSingleObject(&DataBlock[currentblock].DataProcessed, Executive, KernelMode, FALSE, NULL); //Wait till the handler has dealt with the buffer (This way the maximum allocated memory is only affected by the number of threads)						
+
 					
 				}				
 
-				KeReleaseSemaphore(&DataBlockSemaphore, 1, 1, FALSE);
-				DbgPrint("Released semaphore\n");
+
 			}
 			
 		}
 
 
-		ExFreePool(temp);  edit this. Free in the Continue 
+		
 
 
 		//and return to the caller process

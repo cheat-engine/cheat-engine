@@ -30,7 +30,7 @@ reinitializeSymbolhandler(): reinitializes the symbolhandler. E.g when new modul
 
 
 generateAPIHookScript(address, addresstojumpto, addresstogetnewcalladdress OPT) : Generates an auto assembler script which will hook the given address when executed
-autoAssemble(text) : runs the auto assembler with the given text. Returns true on success
+autoAssemble(text, targetself OPTIONAL) : runs the auto assembler with the given text. Returns true on success (if targetself is set it will assemble into Cheat Engine itself)
 showMessage(text) : shows a messagebox with the given text
 messageDialog(text, type, buttons...) : pops up a messagebox with a specific icon/sound with the specified buttons (mbok, mbyes, ....)
 sleep(milliseconds): pauses for the number of specified milliseconds (1000= 1 sec...)
@@ -911,6 +911,13 @@ functionid:
       dbk_VirtualQueryEx
       VirtualQueryExPhysical
 
-Extra: The function dbk_NtOpenProcess is also defined which points to a stub function that calls dbk_OpenProcess.  You can use that in an auto assembler script and override the NtOpenProcess function if you wish.
+Extra variables defined:
+dbk_NtOpenProcess : Address of the NtOpenProcess implementation in DBK32
 
+
+The dbvm_ addresses should only be used with auto assembler scripts injected into Cheat Engine
+dbvm_block_interrupts  : Address of function dbvm_block_interrupts : DWORD; stdcall;  
+dbvm_raise_privilege   : Address of function dbvm_raise_privilege : DWORD; stdcall;  
+dbvm_restore_interrupts: Address of function dbvm_restore_interrupts : DWORD; stdcall;
+dbvm_changeselectors   : Address of function dbvm_changeselectors(cs,ss,ds,es,fs,gs: dword): DWORD; stdcall; 
 --]]

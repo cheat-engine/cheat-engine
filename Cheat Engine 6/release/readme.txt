@@ -21,7 +21,7 @@ Changes:
 Added a structure spider which may help in finding ways to distinguish between two objects
 Value scanning can now take formulas
 Added a form designer to create lua extensions
-Added an automated trainer generator
+Added an automated trainer generator that will generate a trainer script for you
 Added lots and lots of new functions to the lua engine. Check the helpfile or main.lua
 Added the ability to save binary files into a cheat table
 Added an xm-player
@@ -34,6 +34,8 @@ Added extra option to the pointer rescan so you can filter out paths more specif
 Added custom comments to the assembler window
 Added the ability to use lua variables inside auto assembler ( $luavariable )
 Added syntax highlighting to lua
+Changed the lua dlls with versions that don't need the C++ runtime installed
+Changed the lua library to support 64-bit dll's
 The lua script has been moved from the comments window to it's own menu on top
 In the hexadecimal view when selecting 4 bytes and then pressing space will make you go there. Backspace returns
 Added the .cetrainer file extension so you can download very small files and have great trainers

@@ -608,293 +608,293 @@ var bytepointer: PByte;
 begin
   OutputDebugString('TReversePointerListHandler.create');
   try
-  bigalloc:=TBigMemoryAllocHandler.create;
+    bigalloc:=TBigMemoryAllocHandler.create;
 
 
-  modulelist:=tstringlist.create;
-  symhandler.getModuleList(modulelist);
+    modulelist:=tstringlist.create;
+    symhandler.getModuleList(modulelist);
 
-  if processhandler.is64Bit then
-  begin
-    maxlevel:=15;
-   // pointermask:=7; //AND the value/address with this value. If the result=0 it's aligned
-  end
-  else
-  begin
-    maxlevel:=7;
-   // pointermask:=3;
-  end;
-
-  count:=0;
-
-  address:=start;
-
-  size:=sizeof(TReversePointerListArray);
-
-  level0list:=bigalloc.alloc(size);
-  ZeroMemory(level0list, size);
-
-  OutputDebugString('Querying memoryregions');
-
-  while (Virtualqueryex(processhandle,pointer(address),mbi,sizeof(mbi))<>0) and (address<stop) and ((address+mbi.RegionSize)>address) do
-  begin
-    if (not symhandler.inSystemModule(ptrUint(mbi.baseAddress))) and (not (not scan_mem_private and (mbi._type=mem_private))) and (not (not scan_mem_image and (mbi._type=mem_image))) and (not (not scan_mem_mapped and ((mbi._type and mem_mapped)>0))) and (mbi.State=mem_commit) and ((mbi.Protect and page_guard)=0) and ((mbi.protect and page_noaccess)=0) then  //look if it is commited
+    if processhandler.is64Bit then
     begin
-      if Skip_PAGE_NOCACHE then
-        if (mbi.AllocationProtect and PAGE_NOCACHE)=PAGE_NOCACHE then
-        begin
-          address:=ptrUint(mbi.BaseAddress)+mbi.RegionSize;
-          continue;
-        end;
-
-      if noreadonly then
-      begin
-        //check if it's read only
-        if mbi.protect in [PAGE_READONLY, PAGE_EXECUTE, PAGE_EXECUTE_READ] then
-        begin
-          address:=ptrUint(mbi.BaseAddress)+mbi.RegionSize;
-          continue;
-        end;
-      end;
-
-      setlength(memoryregion,length(memoryregion)+1);
-
-      memoryregion[length(memoryregion)-1].BaseAddress:=ptrUint(mbi.baseaddress);  //just remember this location
-      memoryregion[length(memoryregion)-1].MemorySize:=mbi.RegionSize;
-     // outputdebugstring(inttohex(ptrUint(mbi.baseaddress),8));
-    end;
-
-
-    address:=ptrUint(mbi.baseaddress)+mbi.RegionSize;
-  end;
-
-  setlength(memoryregion2,length(memoryregion));
-  for i:=0 to length(memoryregion2)-1 do
-  begin
-    memoryregion2[i].Address:=memoryregion[i].BaseAddress;
-    memoryregion2[i].Size:=memoryregion[i].MemorySize;
-
-
-    if Virtualqueryex(processhandle,pointer(memoryregion2[i].Address),mbi,sizeof(mbi))<>0 then
-      memoryregion2[i].Protect:=mbi.Protect
-    else
-      memoryregion2[i].Protect:=page_readonly;
-  end;
-
-
-  if length(memoryregion)=0 then
-  begin
-    OutputDebugString('No memory found in the specified region');
-    raise exception.create(rsNoMemoryFoundInTheSpecifiedRegion);
-  end;
-
-  //lets search really at the start of the location the user specified
-  if (memoryregion[0].BaseAddress<start) and (memoryregion[0].MemorySize-(start-memoryregion[0].BaseAddress)>0) then
-  begin
-    memoryregion[0].MemorySize:=memoryregion[0].MemorySize-(start-memoryregion[0].BaseAddress);
-    memoryregion[0].BaseAddress:=start;
-  end;
-
-  //also the right end
-  if (memoryregion[length(memoryregion)-1].BaseAddress+memoryregion[length(memoryregion)-1].MemorySize)>stop then
-    dec(memoryregion[length(memoryregion)-1].MemorySize,(memoryregion[length(memoryregion)-1].BaseAddress+memoryregion[length(memoryregion)-1].MemorySize)-stop-1);
-
-  //if anything went ok memoryregions should now contain all the addresses and sizes
-  //to speed it up combine the regions that are attached to eachother.
-
-  j:=0;
-  address:=memoryregion[0].BaseAddress;
-  size:=memoryregion[0].MemorySize;
-
-  for i:=1 to length(memoryregion)-1 do
-  begin
-    if memoryregion[i].BaseAddress=address+size then
-      inc(size,memoryregion[i].MemorySize)
+      maxlevel:=15;
+     // pointermask:=7; //AND the value/address with this value. If the result=0 it's aligned
+    end
     else
     begin
-      memoryregion[j].BaseAddress:=address;
-      memoryregion[j].MemorySize:=size;
-
-      address:=memoryregion[i].BaseAddress;
-      size:=memoryregion[i].MemorySize;
-      inc(j);
+      maxlevel:=7;
+     // pointermask:=3;
     end;
-  end;
 
-  memoryregion[j].BaseAddress:=address;
-  memoryregion[j].MemorySize:=size;
-  setlength(memoryregion,j+1);
+    count:=0;
 
-  //split up the memory regions into small chunks of max 512KB (so don't allocate a fucking 1GB region)
-  i:=0;
-  while i<length(memoryregion) do
-  begin
-    if memoryregion[i].MemorySize>512*1024 then
+    address:=start;
+
+    size:=sizeof(TReversePointerListArray);
+
+    level0list:=bigalloc.alloc(size);
+    ZeroMemory(level0list, size);
+
+    OutputDebugString('Querying memoryregions');
+
+    while (Virtualqueryex(processhandle,pointer(address),mbi,sizeof(mbi))<>0) and (address<stop) and ((address+mbi.RegionSize)>address) do
     begin
-      //too big, so cut into pieces
-      //create new entry with 512KB less
-      setlength(memoryregion,length(memoryregion)+1);
-      memoryregion[length(memoryregion)-1].BaseAddress:=memoryregion[i].BaseAddress+512*1024;
-      memoryregion[length(memoryregion)-1].MemorySize:=memoryregion[i].MemorySize-512*1024;
-      memoryregion[i].MemorySize:=512*1024; //set the current region to be 512KB
-
-    end;
-    inc(i); //next item. Eventually the new items will be handled, and they will also be split untill the list is finally cut into small enough chunks    
-  end;
-
-  //sort memoryregions from small to high
-  quicksortmemoryregions(0,length(memoryregion)-1);
-
-  TotalToRead:=0;
-  For i:=0 to length(memoryregion)-1 do
-    inc(TotalToRead,Memoryregion[i].MemorySize);
-
-  progressbar.Min:=0;
-  progressbar.Step:=1;
-  progressbar.Position:=0;
-  progressbar.max:=length(memoryregion)*2+1;
-
-
-  maxsize:=0;
-  for i:=0 to length(memoryregion)-1 do
-    maxsize:=max(maxsize, memoryregion[i].MemorySize);
-
-  outputdebugstring(Format(rsAllocatingBytesToBuffer, [inttostr(maxsize)]));
-
-  buffer:=nil;
-  try
-    getmem(buffer,maxsize);
-  except
-    outputdebugstring('Not enough memory free to scan');
-    raise exception.Create(rsNotEnoughMemoryFreeToScan);
-  end;
-
-  try
-
-    //initial scan to fetch the counts of memory
-
-    outputdebugstring('Initial scan to determine the memory needed');
-
-    for i:=0 to length(memoryregion)-1 do
-    begin
-      actualread:=0;
-      if readprocessmemory(processhandle,pointer(Memoryregion[i].BaseAddress),buffer,Memoryregion[i].MemorySize,actualread) then
+      if (not symhandler.inSystemModule(ptrUint(mbi.baseAddress))) and (not (not scan_mem_private and (mbi._type=mem_private))) and (not (not scan_mem_image and (mbi._type=mem_image))) and (not (not scan_mem_mapped and ((mbi._type and mem_mapped)>0))) and (mbi.State=mem_commit) and ((mbi.Protect and page_guard)=0) and ((mbi.protect and page_noaccess)=0) then  //look if it is commited
       begin
-        bytepointer:=buffer;
-
-
-
-        lastaddress:=ptrUint(buffer)+Memoryregion[i].MemorySize-processhandler.pointersize;
-
-        if processhandler.is64Bit then
-        begin
-          while ptrUint(bytepointer)<=lastaddress do
+        if Skip_PAGE_NOCACHE then
+          if (mbi.AllocationProtect and PAGE_NOCACHE)=PAGE_NOCACHE then
           begin
-
-            if (alligned and ((qwordpointer^ mod 8)=0) and ispointer(qwordpointer^)) or
-               ((not alligned) and ispointer(qwordpointer^) ) then
-            begin
-              //initial add
-              addpointer(qwordpointer^, Memoryregion[i].BaseAddress+(ptrUint(qwordpointer)-ptrUint(buffer)),false);
-            end;
-
-            if alligned then
-              inc(qwordpointer)
-            else
-              inc(bytepointer);
+            address:=ptrUint(mbi.BaseAddress)+mbi.RegionSize;
+            continue;
           end;
-        end
-        else
+
+        if noreadonly then
         begin
-          while ptrUint(bytepointer)<=lastaddress do
+          //check if it's read only
+          if mbi.protect in [PAGE_READONLY, PAGE_EXECUTE, PAGE_EXECUTE_READ] then
           begin
-
-            if (alligned and ((dwordpointer^ mod 4)=0) and ispointer(dwordpointer^)) or
-               ((not alligned) and ispointer(dwordpointer^) ) then
-            begin
-              //initial add
-              addpointer(dwordpointer^, Memoryregion[i].BaseAddress+(ptrUint(dwordpointer)-ptrUint(buffer)),false);
-            end;
-
-            if alligned then
-              inc(dwordpointer)
-            else
-              inc(bytepointer);
+            address:=ptrUint(mbi.BaseAddress)+mbi.RegionSize;
+            continue;
           end;
         end;
 
+        setlength(memoryregion,length(memoryregion)+1);
 
+        memoryregion[length(memoryregion)-1].BaseAddress:=ptrUint(mbi.baseaddress);  //just remember this location
+        memoryregion[length(memoryregion)-1].MemorySize:=mbi.RegionSize;
+       // outputdebugstring(inttohex(ptrUint(mbi.baseaddress),8));
       end;
 
-      progressbar.StepIt;
+
+      address:=ptrUint(mbi.baseaddress)+mbi.RegionSize;
     end;
 
-    //actual add
-    OutputDebugString('Secondary scan actually allocating the memory and filling in the data');
-
-    for i:=0 to length(memoryregion)-1 do
+    setlength(memoryregion2,length(memoryregion));
+    for i:=0 to length(memoryregion2)-1 do
     begin
-      actualread:=0;
-      if readprocessmemory(processhandle,pointer(Memoryregion[i].BaseAddress),buffer,Memoryregion[i].MemorySize,actualread) then
-      begin
-        bytepointer:=buffer;
-        lastaddress:=ptrUint(buffer)+Memoryregion[i].MemorySize;
+      memoryregion2[i].Address:=memoryregion[i].BaseAddress;
+      memoryregion2[i].Size:=memoryregion[i].MemorySize;
 
-        if processhandler.is64Bit then
-        begin
-          while ptrUint(bytepointer)<lastaddress do
-          begin
-            if (alligned and ((qwordpointer^ mod 8)=0) and ispointer(qwordpointer^)) or
-               ((not alligned) and ispointer(qwordpointer^) ) then
-            begin
-              //initial add
-              addpointer(qwordpointer^, Memoryregion[i].BaseAddress+(ptrUint(qwordpointer)-ptrUint(buffer)),true);
-              inc(count);
-            end;
 
-            if alligned then
-              inc(qwordpointer) //increase with 8
-            else
-              inc(bytepointer);
-          end;
-        end
-        else
-        begin
-          while ptrUint(bytepointer)<lastaddress do
-          begin
-            if (alligned and ((dwordpointer^ mod 4)=0) and ispointer(dwordpointer^)) or
-               ((not alligned) and ispointer(dwordpointer^) ) then
-            begin
-              //initial add
-              addpointer(dwordpointer^, Memoryregion[i].BaseAddress+(ptrUint(dwordpointer)-ptrUint(buffer)),true);
-              inc(count);
-            end;
-
-            if alligned then
-              inc(dwordpointer) //increase with 4
-            else
-              inc(bytepointer);
-          end;
-
-        end;
-      end;
-
-      progressbar.StepIt;
+      if Virtualqueryex(processhandle,pointer(memoryregion2[i].Address),mbi,sizeof(mbi))<>0 then
+        memoryregion2[i].Protect:=mbi.Protect
+      else
+        memoryregion2[i].Protect:=page_readonly;
     end;
 
-    //and fill in the linked list
-    OutputDebugString('filling linked list');
-    fillLinkedList;
 
+    if length(memoryregion)=0 then
+    begin
+      OutputDebugString('No memory found in the specified region');
+      raise exception.create(rsNoMemoryFoundInTheSpecifiedRegion);
+    end;
+
+    //lets search really at the start of the location the user specified
+    if (memoryregion[0].BaseAddress<start) and (memoryregion[0].MemorySize-(start-memoryregion[0].BaseAddress)>0) then
+    begin
+      memoryregion[0].MemorySize:=memoryregion[0].MemorySize-(start-memoryregion[0].BaseAddress);
+      memoryregion[0].BaseAddress:=start;
+    end;
+
+    //also the right end
+    if (memoryregion[length(memoryregion)-1].BaseAddress+memoryregion[length(memoryregion)-1].MemorySize)>stop then
+      dec(memoryregion[length(memoryregion)-1].MemorySize,(memoryregion[length(memoryregion)-1].BaseAddress+memoryregion[length(memoryregion)-1].MemorySize)-stop-1);
+
+    //if anything went ok memoryregions should now contain all the addresses and sizes
+    //to speed it up combine the regions that are attached to eachother.
+
+    j:=0;
+    address:=memoryregion[0].BaseAddress;
+    size:=memoryregion[0].MemorySize;
+
+    for i:=1 to length(memoryregion)-1 do
+    begin
+      if memoryregion[i].BaseAddress=address+size then
+        inc(size,memoryregion[i].MemorySize)
+      else
+      begin
+        memoryregion[j].BaseAddress:=address;
+        memoryregion[j].MemorySize:=size;
+
+        address:=memoryregion[i].BaseAddress;
+        size:=memoryregion[i].MemorySize;
+        inc(j);
+      end;
+    end;
+
+    memoryregion[j].BaseAddress:=address;
+    memoryregion[j].MemorySize:=size;
+    setlength(memoryregion,j+1);
+
+    //split up the memory regions into small chunks of max 512KB (so don't allocate a fucking 1GB region)
+    i:=0;
+    while i<length(memoryregion) do
+    begin
+      if memoryregion[i].MemorySize>512*1024 then
+      begin
+        //too big, so cut into pieces
+        //create new entry with 512KB less
+        setlength(memoryregion,length(memoryregion)+1);
+        memoryregion[length(memoryregion)-1].BaseAddress:=memoryregion[i].BaseAddress+512*1024;
+        memoryregion[length(memoryregion)-1].MemorySize:=memoryregion[i].MemorySize-512*1024;
+        memoryregion[i].MemorySize:=512*1024; //set the current region to be 512KB
+
+      end;
+      inc(i); //next item. Eventually the new items will be handled, and they will also be split untill the list is finally cut into small enough chunks
+    end;
+
+    //sort memoryregions from small to high
+    quicksortmemoryregions(0,length(memoryregion)-1);
+
+    TotalToRead:=0;
+    For i:=0 to length(memoryregion)-1 do
+      inc(TotalToRead,Memoryregion[i].MemorySize);
+
+    progressbar.Min:=0;
+    progressbar.Step:=1;
     progressbar.Position:=0;
+    progressbar.max:=length(memoryregion)*2+1;
 
-  finally
-    OutputDebugString('Freeing the buffer');
-    if buffer<>nil then
-      freemem(buffer);
-  end;
 
-  OutputDebugString('TReversePointerListHandler.create: Finished without an exception');
+    maxsize:=0;
+    for i:=0 to length(memoryregion)-1 do
+      maxsize:=max(maxsize, memoryregion[i].MemorySize);
+
+    outputdebugstring(Format(rsAllocatingBytesToBuffer, [inttostr(maxsize)]));
+
+    buffer:=nil;
+    try
+      getmem(buffer,maxsize);
+    except
+      outputdebugstring('Not enough memory free to scan');
+      raise exception.Create(rsNotEnoughMemoryFreeToScan);
+    end;
+
+    try
+
+      //initial scan to fetch the counts of memory
+
+      outputdebugstring('Initial scan to determine the memory needed');
+
+      for i:=0 to length(memoryregion)-1 do
+      begin
+        actualread:=0;
+        if readprocessmemory(processhandle,pointer(Memoryregion[i].BaseAddress),buffer,Memoryregion[i].MemorySize,actualread) then
+        begin
+          bytepointer:=buffer;
+
+
+
+          lastaddress:=ptrUint(buffer)+Memoryregion[i].MemorySize-processhandler.pointersize;
+
+          if processhandler.is64Bit then
+          begin
+            while ptrUint(bytepointer)<=lastaddress do
+            begin
+
+              if (alligned and ((qwordpointer^ mod 8)=0) and ispointer(qwordpointer^)) or
+                 ((not alligned) and ispointer(qwordpointer^) ) then
+              begin
+                //initial add
+                addpointer(qwordpointer^, Memoryregion[i].BaseAddress+(ptrUint(qwordpointer)-ptrUint(buffer)),false);
+              end;
+
+              if alligned then
+                inc(qwordpointer)
+              else
+                inc(bytepointer);
+            end;
+          end
+          else
+          begin
+            while ptrUint(bytepointer)<=lastaddress do
+            begin
+
+              if (alligned and ((dwordpointer^ mod 4)=0) and ispointer(dwordpointer^)) or
+                 ((not alligned) and ispointer(dwordpointer^) ) then
+              begin
+                //initial add
+                addpointer(dwordpointer^, Memoryregion[i].BaseAddress+(ptrUint(dwordpointer)-ptrUint(buffer)),false);
+              end;
+
+              if alligned then
+                inc(dwordpointer)
+              else
+                inc(bytepointer);
+            end;
+          end;
+
+
+        end;
+
+        progressbar.StepIt;
+      end;
+
+      //actual add
+      OutputDebugString('Secondary scan actually allocating the memory and filling in the data');
+
+      for i:=0 to length(memoryregion)-1 do
+      begin
+        actualread:=0;
+        if readprocessmemory(processhandle,pointer(Memoryregion[i].BaseAddress),buffer,Memoryregion[i].MemorySize,actualread) then
+        begin
+          bytepointer:=buffer;
+          lastaddress:=ptrUint(buffer)+Memoryregion[i].MemorySize;
+
+          if processhandler.is64Bit then
+          begin
+            while ptrUint(bytepointer)<lastaddress do
+            begin
+              if (alligned and ((qwordpointer^ mod 8)=0) and ispointer(qwordpointer^)) or
+                 ((not alligned) and ispointer(qwordpointer^) ) then
+              begin
+                //initial add
+                addpointer(qwordpointer^, Memoryregion[i].BaseAddress+(ptrUint(qwordpointer)-ptrUint(buffer)),true);
+                inc(count);
+              end;
+
+              if alligned then
+                inc(qwordpointer) //increase with 8
+              else
+                inc(bytepointer);
+            end;
+          end
+          else
+          begin
+            while ptrUint(bytepointer)<lastaddress do
+            begin
+              if (alligned and ((dwordpointer^ mod 4)=0) and ispointer(dwordpointer^)) or
+                 ((not alligned) and ispointer(dwordpointer^) ) then
+              begin
+                //initial add
+                addpointer(dwordpointer^, Memoryregion[i].BaseAddress+(ptrUint(dwordpointer)-ptrUint(buffer)),true);
+                inc(count);
+              end;
+
+              if alligned then
+                inc(dwordpointer) //increase with 4
+              else
+                inc(bytepointer);
+            end;
+
+          end;
+        end;
+
+        progressbar.StepIt;
+      end;
+
+      //and fill in the linked list
+      OutputDebugString('filling linked list');
+      fillLinkedList;
+
+      progressbar.Position:=0;
+
+    finally
+      OutputDebugString('Freeing the buffer');
+      if buffer<>nil then
+        freemem(buffer);
+    end;
+
+    OutputDebugString('TReversePointerListHandler.create: Finished without an exception');
 
   except
     on e: exception do

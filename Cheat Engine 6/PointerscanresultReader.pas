@@ -174,7 +174,7 @@ begin
   if result.modulenr=-1 then
     address:=result.moduleoffset
   else
-    address:=dword(modulelist.objects[result.modulenr])+result.moduleoffset;
+    address:=ptruint(modulelist.objects[result.modulenr])+result.moduleoffset;
     
   for j:=result.offsetcount-1 downto 0 do
   begin

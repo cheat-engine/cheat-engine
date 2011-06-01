@@ -987,6 +987,8 @@ begin
   begin
     new1.click;
 
+    starttime:=0;
+
     if not savedialog1.Execute then exit;
         
     btnStopScan.enabled:=true;
