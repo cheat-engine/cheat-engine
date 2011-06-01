@@ -1,6 +1,7 @@
 #ifndef ULTIMAP_H
 #define ULTIMAP_H
 
+#include <ntifs.h>
 #include <windef.h>
 
 typedef UINT64 QWORD;
@@ -54,7 +55,23 @@ typedef DS_AREA_MANAGEMENT32 DS_AREA_MANAGEMENT;
 typedef PDS_AREA_MANAGEMENT32 PDS_AREA_MANAGEMENT;	
 #endif
 
-void ultimap(UINT64 cr3, UINT64 dbgctl_msr, int DS_AREA_SIZE, BOOL savetofile, WCHAR *filename);
+typedef struct
+{
+	UINT64 DataReadyEvent;
+	UINT64 DataHandledEvent;
+} ULTIMAPEVENT, *PULTIMAPEVENT;
+
+typedef struct
+{
+	UINT64 Address;
+	UINT64 Size;
+	UINT64 Block;
+} ULTIMAPDATAEVENT, *PULTIMAPDATAEVENT;
+
+
+NTSTATUS ultimap_continue(PULTIMAPDATAEVENT data);
+NTSTATUS ultimap_waitForData(ULONG timeout, PULTIMAPDATAEVENT data);
+NTSTATUS ultimap(UINT64 cr3, UINT64 dbgctl_msr, int DS_AREA_SIZE, BOOL savetofile, WCHAR *filename, int handlerCount);
 void ultimap_disable(void);
 
 PDS_AREA_MANAGEMENT DS_AREA[256]; //used to store the addresses. (reading the msr that holds the DS_AREA is impossible with dbvm active)
@@ -102,5 +119,7 @@ typedef struct {
 	UINT128 Divide_Configuration;
 	UINT128 Reserved10;
 } APIC, *PAPIC;
+
+
 
 #endif

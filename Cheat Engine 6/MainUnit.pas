@@ -739,7 +739,7 @@ uses mainunit2, AddAddress, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup
   CommentsUnit, formsettingsunit, formAddressChangeUnit, Changeoffsetunit, FoundCodeUnit, advancedoptionsunit,
   frmProcessWatcherUnit,formPointerOrPointeeUnit,OpenSave, formmemoryregionsunit, formProcessInfo
   , PasteTableentryFRM,pointerscannerfrm,PointerscannerSettingsFrm,frmFloatingPointPanelUnit,
-  pluginexports, DBK32functions;
+  pluginexports, DBK32functions, frmUltimapUnit;
 
 resourcestring
   rsInvalidStartAddress = 'Invalid start address: %s';
@@ -6437,9 +6437,13 @@ var cr3: qword;
     x: qword;
     filename: WideString;
 
-    EventStore: PUltimapEventArray;
     HandlerCount: integer;
 begin
+
+  frmUltimap:=TfrmUltimap.create(application);
+  frmUltimap.show;
+
+  {
   GetCR3(processhandle, cr3);
 
   filename:='c:\bla.log';
@@ -6447,15 +6451,11 @@ begin
  // showmessage(inttostr(length(filename)));
 
   HandlerCount:=1;
-  GetMem(EventStore, HandlerCount*sizeof(TUltimapEventArray));
-  EventStore[0].DataReadyEvent:=0;
-  EventStore[0].DataHandledEvent:=0;
 
-
-  ultimap(cr3, (1 shl 6) or (1 shl 7) or (1 shl 9) or (1 shl 8), 1024*4096, false, pwidechar(filename), HandlerCount, EventStore);
+  ultimap(cr3, (1 shl 6) or (1 shl 7) or (1 shl 9) or (1 shl 8), 1024*4096, false, pwidechar(filename), HandlerCount);
 
  // memorybrowser.Show;
- // memorybrowser.hexview.address:=x;
+ // memorybrowser.hexview.address:=x;    }
 
 
 end;

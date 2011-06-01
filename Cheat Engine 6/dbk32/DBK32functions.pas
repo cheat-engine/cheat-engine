@@ -102,7 +102,8 @@ const IOCTL_CE_SETSTORELBR            = (IOCTL_UNKNOWN_BASE shl 16) or ($0841 sh
 
 const IOCTL_CE_ULTIMAP                = (IOCTL_UNKNOWN_BASE shl 16) or ($0842 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_ULTIMAP_DISABLE        = (IOCTL_UNKNOWN_BASE shl 16) or ($0843 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
-
+const IOCTL_CE_ULTIMAP_WAITFORDATA    = (IOCTL_UNKNOWN_BASE shl 16) or ($0844 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_ULTIMAP_CONTINUE       = (IOCTL_UNKNOWN_BASE shl 16) or ($0845 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
 
 
@@ -134,6 +135,14 @@ type
   end;
   TUltimapEventArray=array [0..0] of TUltimapEvent;
   PUltimapEventArray=^TUltimapEventArray;
+
+type       //The DataEvent structure contains the address and blockid. Use this when done handling the event
+  TUltimapDataEvent=packed record
+    Address: Qword;
+    Size: Qword;
+    BlockID: Qword;
+  end;
+  PUltimapDataEvent= ^TUltimapDataEvent;
 
 
 var hdevice: thandle=INVALID_HANDLE_VALUE; //handle to my the device driver
@@ -219,8 +228,11 @@ function GetSSDTEntry(nr: integer; address: PDWORD; paramcount: PBYTE):boolean; 
 
 function UserdefinedInterruptHook(interruptnr: integer; newCS: word; newEIP: uint64; addressofjumpback: uint64):boolean; stdcall;
 function executeKernelCode(address: uint64; parameters: uint64): BOOL; stdcall;
-function ultimap(cr3: QWORD; debugctl_value: QWORD; DS_AREA_SIZE: integer; savetofile: boolean; filename: widestring; handlercount: integer; EventStore: PUltimapEventArray): QWORD; stdcall;
+function ultimap(cr3: QWORD; debugctl_value: QWORD; DS_AREA_SIZE: integer; savetofile: boolean; filename: widestring; handlercount: integer): Boolean; stdcall;
 function ultimap_disable: BOOLEAN; stdcall;
+function ultimap_waitForData(timeout: dword; output: PUltimapDataEvent): boolean;
+function ultimap_continue(previousdataresult: PUltimapDataEvent): boolean;
+
 
 procedure LaunchDBVM; stdcall;
 
@@ -1380,10 +1392,30 @@ begin
     input.parameters:=parameters;
     cc:=IOCTL_CE_EXECUTE_CODE;
     result:=deviceiocontrol(hdevice,cc,@input,sizeof(input),nil,0,cc,nil);
-  end;
+  end
+  else
+    result:=false;
 end;
 
-function ultimap(cr3: QWORD; debugctl_value: QWORD; DS_AREA_SIZE: integer; savetofile: boolean; filename: widestring; handlercount: integer; eventstore: PUltimapEventArray): QWORD; stdcall;
+function ultimap_continue(previousdataresult: PUltimapDataEvent): boolean;
+var cc: dword;
+begin
+  if (hdevice<>INVALID_HANDLE_VALUE) then
+    result:=deviceiocontrol(hdevice,IOCTL_CE_ULTIMAP_CONTINUE,previousdataresult,sizeof(TUltimapDataEvent),nil,0,cc,nil)
+  else
+    result:=false;
+end;
+
+function ultimap_waitForData(timeout: dword; output: PUltimapDataEvent): boolean;
+var cc: dword;
+begin
+  if (hdevice<>INVALID_HANDLE_VALUE) then
+    result:=deviceiocontrol(hdevice,IOCTL_CE_ULTIMAP_WAITFORDATA,@timeout,sizeof(timeout),output,sizeof(TUltimapDataEvent),cc,nil)
+  else
+    result:=false;
+end;
+
+function ultimap(cr3: QWORD; debugctl_value: QWORD; DS_AREA_SIZE: integer; savetofile: boolean; filename: widestring; handlercount: integer): Boolean; stdcall;
 var
   cc: dword;
   input: packed record
@@ -1406,7 +1438,7 @@ begin
     input.DEBUGCTL:=debugctl_value;
     input.DS_AREA_SIZE:=DS_AREA_SIZE;
     input.SaveToFile:=SaveToFile;
-    input.HandlerCount:=handlercount;
+    input.HandlerCount:=HandlerCount;
 
     if savetofile then
     begin
@@ -1417,11 +1449,10 @@ begin
 
     cc:=IOCTL_CE_ULTIMAP;
 
-    if deviceiocontrol(hdevice,cc,@input,sizeof(input),eventstore,handlercount*sizeof(TUltimapEvent),cc,nil) then
-      result:=DS_AREA
-    else
-      result:=0;
-  end;
+    result:=deviceiocontrol(hdevice,cc,@input,sizeof(input),nil,0,cc,nil);
+  end
+  else
+    result:=false;
 end;
 
 function ultimap_disable: BOOLEAN; stdcall;

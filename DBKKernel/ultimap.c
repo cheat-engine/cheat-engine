@@ -23,6 +23,97 @@ PAPIC APIC_BASE=(PAPIC)0xfffe0000;
 BOOL SaveToFile; //If set it will save the results to a file instead of sending a message to the usermode app that is watching the data
 HANDLE FileHandle;
 
+int MaxDataBlocks=1;
+
+KSEMAPHORE DataBlockSemaphore; //governs how many events can be active at a time
+FAST_MUTEX DataBlockMutex; //when a thread passes the semaphore this is used to pick a DataBlock
+
+
+typedef struct
+{
+	BOOL Available;
+	PBTS Data;
+	int DataSize;
+	KEVENT DataReady;
+	KEVENT DataProcessed;
+	PMDLX Mdl;
+    
+} _DataBlock;
+
+_DataBlock *DataBlock;
+PVOID *DataReadyPointerList;
+
+
+ //array containing pointers to the DataReady events
+
+
+NTSTATUS ultimap_continue(PULTIMAPDATAEVENT data)
+{
+	DbgPrint("ultimap_continue\n");
+	if (DataBlock)
+	{
+		MmUnmapLockedPages((PVOID)data->Address, DataBlock[data->Block].Mdl);
+		IoFreeMdl(DataBlock[data->Block].Mdl);
+		DataBlock[data->Block].Mdl=NULL;
+
+		KeSetEvent(&DataBlock[data->Block].DataProcessed, 0, FALSE); //tell the thread that generated this data to continue (will free the memory that was mapped, so could not be released any sooner)
+		return STATUS_SUCCESS;	
+	}
+	else
+		return STATUS_UNSUCCESSFUL;
+}
+
+NTSTATUS ultimap_waitForData(ULONG timeout, PULTIMAPDATAEVENT data)
+{
+	NTSTATUS r;
+	LARGE_INTEGER wait;
+
+	PKWAIT_BLOCK waitblock;
+
+	if (DataBlock)
+	{		
+		waitblock=ExAllocatePool(NonPagedPool, MaxDataBlocks*sizeof(KWAIT_BLOCK));
+
+
+		wait.QuadPart=-10000LL * timeout;
+
+		//Wait for the events in the list
+		//If an event is triggered find out which one is triggered, then map that block into the usermode space and return the address and block
+		//That block will be needed to continue
+
+		if (timeout==0xffffffff) //infinite wait
+			r=KeWaitForMultipleObjects(MaxDataBlocks, DataReadyPointerList, WaitAny, UserRequest, UserMode, TRUE, NULL, waitblock);
+		else
+			r=KeWaitForMultipleObjects(MaxDataBlocks, DataReadyPointerList, WaitAny, UserRequest, UserMode, TRUE, &wait, waitblock);
+
+		ExFreePool(waitblock);
+
+		data->Block=r-STATUS_WAIT_0;
+
+		if ((data->Block <= 63) && (DataBlock))
+		{
+			//Map this block to usermode
+			
+			DataBlock[data->Block].Mdl=IoAllocateMdl(DataBlock[data->Block].Data, DataBlock[data->Block].DataSize, FALSE, FALSE, NULL);
+
+			MmBuildMdlForNonPagedPool(DataBlock[data->Block].Mdl);
+
+			data->Address=(UINT_PTR)MmMapLockedPagesSpecifyCache(DataBlock[data->Block].Mdl, UserMode, MmCached, NULL, FALSE, NormalPagePriority);
+			data->Size=DataBlock[data->Block].DataSize;
+
+			return STATUS_SUCCESS;	
+		}
+		else
+			return STATUS_UNSUCCESSFUL;
+		
+	}
+	else
+		return STATUS_UNSUCCESSFUL;
+
+
+	
+}
+
 int perfmon_interrupt_centry(void)
 {
 	KIRQL old;
@@ -31,6 +122,8 @@ int perfmon_interrupt_centry(void)
 
 	if (DS_AREA[cpunr()]->BTS_IndexBaseAddress>=DS_AREA[cpunr()]->BTS_InterruptThresholdAddress)
 	{
+		UINT_PTR blocksize;
+
 		//undo the system flags that got set by this interrupt
 		APIC_BASE->LVT_Performance_Monitor.a=APIC_BASE->LVT_Performance_Monitor.a & 0xff;
 		APIC_BASE->EOI.a=0;
@@ -42,8 +135,10 @@ int perfmon_interrupt_centry(void)
 		DbgPrint("Entry threadid=%d\n", PsGetCurrentThreadId());
 		
 		
-		temp=ExAllocatePool(NonPagedPool, DS_AREA_SIZE);
-		RtlCopyMemory(temp, DS_AREA[cpunr()], DS_AREA_SIZE);
+		
+		blocksize=DS_AREA[cpunr()]->BTS_IndexBaseAddress-DS_AREA[cpunr()]->BTS_BufferBaseAddress;
+		temp=ExAllocatePool(NonPagedPool, blocksize);
+		RtlCopyMemory(temp, (PVOID *)DS_AREA[cpunr()]->BTS_BufferBaseAddress, blocksize);
 
 		DbgPrint("temp=%p\n", temp);
 
@@ -65,18 +160,71 @@ int perfmon_interrupt_centry(void)
 
 			//Instead of sending the data to a usermode app it was chosen to store the data to a file for later usage
 			DbgPrint("Writing buffer to disk\n");			
-			r=ZwWriteFile(FileHandle, NULL, NULL, NULL, &iosb,  temp, DS_AREA_SIZE, NULL, NULL); 
-			DbgPrint("Done Writing. Result=%x\n", r);
-
-			
+			r=ZwWriteFile(FileHandle, NULL, NULL, NULL, &iosb,  temp, (ULONG)blocksize, NULL, NULL); 
+			DbgPrint("Done Writing. Result=%x\n", r);			
 		}
 		else
 		{
-			//Wait till the handler has dealt with the buffer (This way the maximum allocated memory is only affected by the number of threads)
+			DbgPrint("Waiting till there is a block free\n");			
+			if ((DataBlock) && (KeWaitForSingleObject(&DataBlockSemaphore, Executive, KernelMode, FALSE, NULL) == STATUS_SUCCESS))
+			{
+				int currentblock;
+				int i;
+
+				//Enter a critical section and choose a block
+				DbgPrint("Acquired semaphore. Now picking a usable datablock\n");
+
+				
+				ExAcquireFastMutex(&DataBlockMutex);
+				DbgPrint("Acquired mutex. Looking for a Datablock that can be used\n");
+
+				if (DataBlock)
+				{
+					currentblock=-1;
+					for (i=0; i< MaxDataBlocks; i++)
+					{
+						if (DataBlock[i].Available) //look for a block that is set as available
+						{
+							currentblock=i;
+							DataBlock[currentblock].Available=FALSE; //not available anymore
+							break;
+						}
+					}
+				}
+				else currentblock=-1;
+
+				ExReleaseFastMutex(&DataBlockMutex);
+				DbgPrint("Released mutex\n");
+
+				if (currentblock>=0) 
+				{				
+					
+						
+
+					DbgPrint("Using datablock %d\n", currentblock);
+					DataBlock[currentblock].Data=temp;
+					DataBlock[currentblock].DataSize=(int)blocksize;
+					
+					DbgPrint("Calling KeSetEvent/KeWaitForSingleObject\n");
+					KeSetEvent(&DataBlock[currentblock].DataReady, 1, TRUE);
+					KeWaitForSingleObject(&DataBlock[currentblock].DataProcessed, Executive, KernelMode, FALSE, NULL); //Wait till the handler has dealt with the buffer (This way the maximum allocated memory is only affected by the number of threads)						
+
+					DbgPrint("After KeWaitForSingleObject\n");
+
+					if (DataBlock) //could be it got freed
+						DataBlock[currentblock].Available=TRUE; //make it available again
+					
+				}				
+
+				KeReleaseSemaphore(&DataBlockSemaphore, 1, 1, FALSE);
+				DbgPrint("Released semaphore\n");
+			}
+			
 		}
 
 
-		ExFreePool(temp);
+		ExFreePool(temp);  edit this. Free in the Continue 
+
 
 		//and return to the caller process
 		disableInterrupts();
@@ -159,23 +307,43 @@ VOID ultimap_disable_dpc(IN struct _KDPC *Dpc, IN PVOID DeferredContext, IN PVOI
 
 void ultimap_disable(void)
 {
-	forEachCpu(ultimap_disable_dpc, NULL, NULL, NULL);
+	if (DataBlock)
+	{
+		int i;
+		_DataBlock *tempDataBlock=DataBlock;
 
-	if (SaveToFile)
-	  ZwClose(FileHandle);
+		forEachCpu(ultimap_disable_dpc, NULL, NULL, NULL);
+
+		if (SaveToFile && FileHandle) 
+		{		
+			ZwClose(FileHandle);
+			FileHandle=NULL;
+		}
+
+		//all logging should have stopped now
+		DataBlock=NULL;
+
+		
+		//Trigger all events waking up each thread that was waiting for the events
+		for (i=0; i<MaxDataBlocks; i++)
+		{			
+			KeSetEvent(&tempDataBlock[i].DataProcessed,0, FALSE);
+			KeSetEvent(&tempDataBlock[i].DataReady,0, FALSE);
+		}
+
+		ExFreePool(tempDataBlock);
+	
+		if (DataReadyPointerList)
+		{
+			ExFreePool(DataReadyPointerList);
+			DataReadyPointerList=NULL;		
+		}
+
+		
+
+	}
 }
 
-#ifdef GOATSEISFUN
-BOOLEAN
- ultimap_Service(
-	PKINTERRUPT InterruptObject,
-	PVOID Context
-	)
-{
-	DbgPrint("Perfmon int\n");
-	return FALSE;
-}
-#endif
 
 VOID ultimap_setup_dpc(IN struct _KDPC *Dpc, IN PVOID  DeferredContext, IN PVOID  SystemArgument1, IN PVOID  SystemArgument2)
 /*
@@ -228,27 +396,7 @@ Call this for each processor
 
 		APIC_BASE->LVT_Performance_Monitor.a=perfmonIVT; //clear mask flag if it was set
 
-		//now the option to hook the interrupt the 'normal' way or the official way 
-		
-		#ifdef GOATSEISFUN
-		//Let's give the official way a try	
-		int vector;
-		NTSTATUS r;
-		
-		vector=HalGetInterruptVector (Internal, 0, 0, perfmonIVT, &Irql, &Affinity);
-		DbgPrint("perfmonIVT=%d\n", perfmonIVT);
-		
-		DbgPrint("vector=%d\n", vector);
-		DbgPrint("Irql=%d\n", Irql);
-		DbgPrint("Affinity=%d\n", Affinity);
-
-		
-		r=IoConnectInterrupt(&ultimapint, ultimap_Service, NULL, NULL, vector, Irql, Irql, Latched, TRUE, Affinity, FALSE); 
-		DbgPrint("IoConnectInterrupt returned %x\n", r);
-
-		//aaand fuck it. 
-		#endif
-		
+	
 
 		if (inthook_HookInterrupt((unsigned char)perfmonIVT, getCS(), (ULONG_PTR)perfmon_interrupt, &perfmonJumpBackLocation))
 			DbgPrint("Interrupt hooked\n");
@@ -261,7 +409,8 @@ Call this for each processor
 	vmx_ultimap((UINT_PTR)params->cr3, params->dbgctl_msr, DS_AREA[cpunr()]);
 }
 
-void ultimap(UINT64 cr3, UINT64 dbgctl_msr, int DS_AREA_SIZE, BOOL savetofile, WCHAR *filename)
+
+NTSTATUS ultimap(UINT64 cr3, UINT64 dbgctl_msr, int DS_AREA_SIZE, BOOL savetofile, WCHAR *filename, int handlerCount)
 {
 	struct
 	{
@@ -269,6 +418,10 @@ void ultimap(UINT64 cr3, UINT64 dbgctl_msr, int DS_AREA_SIZE, BOOL savetofile, W
 		UINT64 dbgctl_msr;
 		int DS_AREA_SIZE;
 	} params;
+	int i;
+
+	if (handlerCount>64)
+		return STATUS_UNSUCCESSFUL;
 
 
 
@@ -294,11 +447,45 @@ void ultimap(UINT64 cr3, UINT64 dbgctl_msr, int DS_AREA_SIZE, BOOL savetofile, W
 
 	}
 
+	MaxDataBlocks=handlerCount;
+	KeInitializeSemaphore(&DataBlockSemaphore, MaxDataBlocks, MaxDataBlocks);
+	ExInitializeFastMutex(&DataBlockMutex);
+
+	//Datablock inits
+
+	DataBlock=ExAllocatePool(NonPagedPool, sizeof(_DataBlock) * MaxDataBlocks);
+	DataReadyPointerList=ExAllocatePool(NonPagedPool, sizeof(PVOID) * MaxDataBlocks);
+
+	if ((DataBlock) && (DataReadyPointerList))
+	{
+
+
+		for (i=0; i< MaxDataBlocks; i++)
+		{
+			//DataBlock[i]->
+			DataBlock[i].Data=NULL;
+
+			KeInitializeEvent(&DataBlock[i].DataReady, SynchronizationEvent , FALSE);
+			KeInitializeEvent(&DataBlock[i].DataProcessed, SynchronizationEvent , FALSE);
+
+			DataBlock[i].Available=TRUE;
+
+			DataReadyPointerList[i]=&DataBlock[i].DataReady;
+		}
+
+
+		params.cr3=cr3;
+		params.dbgctl_msr=dbgctl_msr;
+		params.DS_AREA_SIZE=DS_AREA_SIZE;
+
+		forEachCpu(ultimap_setup_dpc, &params, NULL, NULL);
+		return STATUS_SUCCESS;
+	}
+	else
+	{
+		DbgPrint("Failure allocating DataBlock and DataReadyPointerList\n");
+		return STATUS_MEMORY_NOT_ALLOCATED;
+	}
+
 	
-	params.cr3=cr3;
-	params.dbgctl_msr=dbgctl_msr;
-	params.DS_AREA_SIZE=DS_AREA_SIZE;
-
-	//forEachCpu(ultimap_setup_dpc, &params, NULL, NULL);
-
 }

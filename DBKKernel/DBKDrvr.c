@@ -496,6 +496,8 @@ void UnloadDriver(PDRIVER_OBJECT DriverObject)
 		DbgPrint("Can not unload the driver because of debugger\n");
 		return; //
 	}
+
+	ultimap_disable();
 	
 
 	if (KeServiceDescriptorTableShadow && registered) //I can't unload without a shadotw table (system service registered)

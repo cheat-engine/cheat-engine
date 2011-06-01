@@ -1324,20 +1324,21 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 					UINT64 dbgctl;			
 					UINT64 dsareasize;
 					BOOL savetofile;
+					int HandlerCount;
 					WCHAR filename[200];				
 				} *inp=Irp->AssociatedIrp.SystemBuffer;
 				#pragma pack()
 
-				PUINT64 outp=Irp->AssociatedIrp.SystemBuffer;
-
+				
 				DbgPrint("IOCTL_CE_ULTIMAP:\n");
 				DbgPrint("ultimap(%llx, %llx, %d):\n", inp->targetCR3, inp->dbgctl, inp->dsareasize);
 
-				DbgPrint("filename=%S\n", inp->filename);
+				if (inp->savetofile)
+					DbgPrint("filename=%S\n", &inp->filename[0]);
 
-				ultimap(inp->targetCR3, inp->dbgctl, (int)inp->dsareasize, inp->savetofile, &inp->filename[0]);
+				ntStatus=ultimap(inp->targetCR3, inp->dbgctl, (int)inp->dsareasize, inp->savetofile, &inp->filename[0], inp->HandlerCount);
 				
-				ntStatus=STATUS_SUCCESS;
+			
 
 				break;
 			}
@@ -1348,6 +1349,26 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				ntStatus=STATUS_SUCCESS;
 				break;
 			}
+
+		case IOCTL_CE_ULTIMAP_WAITFORDATA:
+			{
+				
+				ULONG timeout=*(ULONG *)Irp->AssociatedIrp.SystemBuffer;				
+				PULTIMAPDATAEVENT output=Irp->AssociatedIrp.SystemBuffer;
+				ntStatus=ultimap_waitForData(timeout, output);
+
+				break;
+			}
+
+		case IOCTL_CE_ULTIMAP_CONTINUE:
+			{
+				PULTIMAPDATAEVENT input=Irp->AssociatedIrp.SystemBuffer;				
+				ntStatus=ultimap_continue(input);
+
+				break;
+			}
+
+
 
 		case IOCTL_CE_INITIALIZE:
 			{
