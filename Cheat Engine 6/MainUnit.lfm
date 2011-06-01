@@ -433,6 +433,8 @@ object MainForm: TMainForm
         Font.Name = 'MS Sans Serif'
         OnChange = cbFastScanChange
         ParentFont = False
+        ParentShowHint = False
+        ShowHint = True
         State = cbChecked
         TabOrder = 0
       end
@@ -549,7 +551,9 @@ object MainForm: TMainForm
         AllowGrayed = True
         Caption = 'Writable'
         Checked = True
+        ParentShowHint = False
         PopupMenu = pmScanRegion
+        ShowHint = True
         State = cbChecked
         TabOrder = 7
       end
@@ -561,7 +565,9 @@ object MainForm: TMainForm
         Width = 73
         AllowGrayed = True
         Caption = 'Executable'
+        ParentShowHint = False
         PopupMenu = pmScanRegion
+        ShowHint = True
         State = cbGrayed
         TabOrder = 8
       end
@@ -573,7 +579,9 @@ object MainForm: TMainForm
         Width = 83
         AllowGrayed = True
         Caption = 'CopyOnWrite'
+        ParentShowHint = False
         PopupMenu = pmScanRegion
+        ShowHint = True
         TabOrder = 9
       end
     end
