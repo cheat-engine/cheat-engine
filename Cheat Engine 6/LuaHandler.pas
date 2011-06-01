@@ -8296,7 +8296,7 @@ var
   offload: boolean;
 begin
   //for now use the default
-  if assigned(dbvm_version) and (dbvm_version>0) then
+  if (dbvm_version>0) then
   begin
     //already loaded and initialized
     lua_pop(L, lua_gettop(L));
@@ -8306,10 +8306,13 @@ begin
   end;
 
   //not yet loaded/initialized
-  vmx_password1:=$76543210;
-  vmx_password2:=$fedcba98;
+  if (vmx_password1=0) and (vmx_password2=0) then
+  begin
+    vmx_password1:=$76543210;
+    vmx_password2:=$fedcba98;
+  end;
 
-  InitializeDBVM;
+
 
   result:=0;
   parameters:=lua_gettop(L);
@@ -8320,7 +8323,7 @@ begin
 
     if offload then
     begin
-      if assigned(dbvm_version) and (dbvm_version=0) then
+      if (dbvm_version=0) then
       begin
         //not yet loaded.
         if isDBVMCapable then

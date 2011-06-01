@@ -9,7 +9,7 @@ reads/writes to the physical memory instead
 
 interface
 
-uses windows, LCLIntf;
+uses windows, LCLIntf, vmxfunctions;
 
 function ReadProcessMemoryPhys(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer;  nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL; stdcall;
 function WriteProcessMemoryPhys(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: DWORD): BOOL; stdcall;

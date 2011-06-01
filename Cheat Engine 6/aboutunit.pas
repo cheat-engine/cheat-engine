@@ -98,7 +98,6 @@ begin
     groupbox1.Caption:=mainunit2.CEnorm;
   {$endif}
 
-  InitializeDBVM;
 
   if (vmx_password1=0) and (vmx_password2=0) then
   begin
@@ -129,7 +128,7 @@ begin
 //{$ifdef cpu32}
 //    Loaddbk32;
 //{$endif}
-    if (assigned(dbvm_version)) and (dbvm_version>0) then
+    if (dbvm_version>0) then
     begin
       lblDBVM.Font.Color:=clLime;
       lbldbvm.caption:=Format(rsYourSystemIsRunningDBVMVersion, [inttostr(dbvm_version and $00ffffff)]);
@@ -146,7 +145,7 @@ begin
   end;
 
 
-  if (not assigned(dbvm_version)) or (dbvm_version=0) then
+  if (dbvm_version=0) then
   begin
     supportsdbvm:=false;
 

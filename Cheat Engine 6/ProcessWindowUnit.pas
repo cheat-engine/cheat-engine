@@ -7,7 +7,7 @@ interface
 uses
   jwawindows, windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ExtCtrls, CEFuncProc,CEDebugger, ComCtrls, ImgList,
-  filehandler, Menus, LResources,{tlhelp32,}NewKernelHandler, debugHelper{, KIcon};
+  filehandler, Menus, LResources,{tlhelp32,}vmxfunctions, NewKernelHandler, debugHelper{, KIcon};
 
 type tprocesslistlong = class(tthread)
 private
@@ -228,7 +228,7 @@ begin
   ProcessSelected:=true;
 
 
-  if (processid=0) and ((formsettings.cbKernelReadWriteProcessMemory.checked) or (assigned(dbvm_version) and (dbvm_version>=$ce000004))) then
+  if (processid=0) and ((formsettings.cbKernelReadWriteProcessMemory.checked) or (dbvm_version>=$ce000004)) then
   begin
     ProcessHandler.processid:=$FFFFFFFF;
 
@@ -285,7 +285,7 @@ begin
   getprocesslist(processlist);
 
 
-  if formsettings.cbKernelReadWriteProcessMemory.checked or (assigned(dbvm_version) and (dbvm_version>=$ce000004)) then //driver is active
+  if formsettings.cbKernelReadWriteProcessMemory.checked or (dbvm_version>=$ce000004) then //driver is active
     processlist.Items.Insert(0, '00000000-['+rsPhysicalMemory+']');
 
   Filterlist;

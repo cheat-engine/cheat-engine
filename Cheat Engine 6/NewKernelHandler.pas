@@ -526,7 +526,6 @@ function VirtualQueryExPhysical(hProcess: THandle; lpAddress: Pointer; var lpBuf
 procedure DBKPhysicalMemory;
 procedure DBKPhysicalMemoryDBVM;
 procedure DBKProcessMemory;
-procedure InitializeDBVM;
 procedure LoadDBK32; stdcall;
 
 procedure OutputDebugString(msg: string);
@@ -658,15 +657,15 @@ var
   DBKDebug_GD_SetBreakpoint   : TDBKDebug_GD_SetBreakpoint;
 
 
+ {    just include vmxfunctions
   //dbvm ce000000+
-  dbvm_version            :Tdbvm_version;
   dbvm_changeselectors    :Tdbvm_changeselectors;
   dbvm_block_interrupts   :Tdbvm_block_interrupts;
   dbvm_restore_interrupts :Tdbvm_restore_interrupts;
   dbvm_raise_privilege    :Tdbvm_raise_privilege;
   //dbvm ce000004+
   dbvm_read_physical_memory: Tdbvm_read_physical_memory;
-  dbvm_write_physical_memory: Tdbvm_write_physical_memory;
+  dbvm_write_physical_memory: Tdbvm_write_physical_memory; }
 
 var WindowsKernel: Thandle;
     //DarkByteKernel: Thandle;
@@ -785,7 +784,7 @@ end;
 
 function isRunningDBVM: boolean;
 begin
-  result:=assigned(dbvm_version) and (dbvm_version>0);
+  result:=dbvm_version>0;
 end;
 
 function isDBVMCapable: boolean;
@@ -840,19 +839,6 @@ begin
   end
   else result:=true; //dbvm might tell the system it's not vm-x capable, getting the dbvm version will show you if that's fake or not
 
-end;
-
-procedure InitializeDBVM;
-begin
-  dbvm_version:=@vmxfunctions.dbvm_version;
-  dbvm_changeselectors:=@vmxfunctions.dbvm_changeselectors;
-  dbvm_block_interrupts:=@vmxfunctions.dbvm_block_interrupts;
-  dbvm_restore_interrupts:=@vmxfunctions.dbvm_restore_interrupts;
-
-  dbvm_read_physical_memory:=@vmxfunctions.dbvm_read_physical_memory;
-  dbvm_write_physical_memory:=@vmxfunctions.dbvm_write_physical_memory;
-
-  dbvm_raise_privilege:=@vmxfunctions.dbvm_raise_privilege;
 end;
 
 procedure LoadDBK32; stdcall;
@@ -948,7 +934,7 @@ begin
     DBKDebug_GD_SetBreakpoint:=@debug.DBKDebug_GD_SetBreakpoint;
 
 
-    initializeDBVM;
+
 
     {$ifdef cemain}
     if pluginhandler<>nil then

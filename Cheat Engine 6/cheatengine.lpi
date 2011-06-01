@@ -19,7 +19,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
       <MinorVersionNr Value="1"/>
-      <BuildNr Value="1469"/>
+      <BuildNr Value="1472"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="6.1"/>
@@ -201,10 +201,10 @@
         <Filename Value="NewKernelHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="NewKernelHandler"/>
-        <EditorIndex Value="10"/>
+        <EditorIndex Value="15"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="394"/>
-        <CursorPos X="19" Y="423"/>
+        <TopLine Value="517"/>
+        <CursorPos X="10" Y="535"/>
         <UsageCount Value="211"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -213,7 +213,6 @@
         <Filename Value="CEFuncProc.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="CEFuncProc"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
         <TopLine Value="256"/>
@@ -330,10 +329,12 @@
         <ComponentName Value="ProcessWindow"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="ProcessWindowUnit"/>
+        <EditorIndex Value="16"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="363"/>
-        <CursorPos X="23" Y="370"/>
+        <TopLine Value="270"/>
+        <CursorPos X="86" Y="288"/>
         <UsageCount Value="203"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit15>
       <Unit16>
@@ -362,10 +363,12 @@
         <Filename Value="dbvmPhysicalMemoryHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="dbvmPhysicalMemoryHandler"/>
+        <EditorIndex Value="14"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="19"/>
-        <CursorPos X="18" Y="21"/>
+        <TopLine Value="1"/>
+        <CursorPos X="36" Y="12"/>
         <UsageCount Value="203"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit18>
       <Unit19>
@@ -374,10 +377,13 @@
         <ComponentName Value="formSettings"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="formsettingsunit"/>
+        <EditorIndex Value="9"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="950"/>
-        <CursorPos X="40" Y="964"/>
+        <TopLine Value="1023"/>
+        <CursorPos X="11" Y="1037"/>
         <UsageCount Value="203"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit19>
       <Unit20>
@@ -466,10 +472,13 @@
         <ComponentName Value="About"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="aboutunit"/>
+        <EditorIndex Value="12"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="254"/>
-        <CursorPos X="19" Y="272"/>
+        <TopLine Value="86"/>
+        <CursorPos X="14" Y="108"/>
         <UsageCount Value="201"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit27>
       <Unit28>
@@ -1366,8 +1375,8 @@
         <UnitName Value="pointerscannerfrm"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="2005"/>
-        <CursorPos X="59" Y="2030"/>
+        <TopLine Value="1"/>
+        <CursorPos X="1" Y="1"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
           <WindowIndex Value="1"/>
@@ -1711,10 +1720,10 @@
         <Filename Value="dbk32\DBK32functions.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DBK32functions"/>
-        <EditorIndex Value="9"/>
+        <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="127"/>
-        <CursorPos X="95" Y="156"/>
+        <TopLine Value="1456"/>
+        <CursorPos X="12" Y="1485"/>
         <UsageCount Value="204"/>
         <Bookmarks Count="1">
           <Item0 X="65" Y="1454" ID="8"/>
@@ -1746,10 +1755,12 @@
         <Filename Value="dbk32\vmxfunctions.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="vmxfunctions"/>
+        <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="14"/>
-        <CursorPos X="1" Y="31"/>
+        <TopLine Value="78"/>
+        <CursorPos X="41" Y="90"/>
         <UsageCount Value="204"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit138>
       <Unit139>
@@ -1801,9 +1812,11 @@
         <Filename Value="LuaHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaHandler"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="13"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="7710"/>
-        <CursorPos X="29" Y="7736"/>
+        <TopLine Value="8306"/>
+        <CursorPos X="30" Y="8312"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
           <WindowIndex Value="0"/>
@@ -1811,9 +1824,7 @@
           <CursorPos X="58" Y="1161"/>
         </ExtraEditor1>
         <UsageCount Value="200"/>
-        <Bookmarks Count="1">
-          <Item0 X="1" Y="8285" ID="8"/>
-        </Bookmarks>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit143>
       <Unit144>
@@ -2100,7 +2111,7 @@
         <ComponentName Value="frmStringMap"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmStringMapUnit"/>
-        <EditorIndex Value="13"/>
+        <EditorIndex Value="19"/>
         <WindowIndex Value="0"/>
         <TopLine Value="333"/>
         <CursorPos X="77" Y="374"/>
@@ -2329,7 +2340,7 @@
         <ComponentName Value="frmUltimap"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmUltimapUnit"/>
-        <EditorIndex Value="12"/>
+        <EditorIndex Value="18"/>
         <WindowIndex Value="0"/>
         <TopLine Value="112"/>
         <CursorPos X="36" Y="141"/>
@@ -2341,7 +2352,7 @@
       <Unit197>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\packages\winunits-jedi\src\jwawingdi.pas"/>
         <UnitName Value="jwawingdi"/>
-        <EditorIndex Value="11"/>
+        <EditorIndex Value="17"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1340"/>
         <CursorPos X="3" Y="1358"/>
@@ -2357,119 +2368,127 @@
         <UsageCount Value="10"/>
       </Unit198>
     </Units>
-    <JumpHistory Count="28" HistoryIndex="27">
+    <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="pointerscannerfrm.pas"/>
-        <Caret Line="45" Column="36" TopLine="16"/>
+        <Filename Value="formsettingsunit.pas"/>
+        <Caret Line="1034" Column="32" TopLine="1019"/>
       </Position1>
       <Position2>
-        <Filename Value="pointerscannerfrm.pas"/>
-        <Caret Line="74" Column="26" TopLine="51"/>
+        <Filename Value="formsettingsunit.pas"/>
+        <Caret Line="1031" Column="15" TopLine="1023"/>
       </Position2>
       <Position3>
-        <Filename Value="pointerscannerfrm.pas"/>
-        <Caret Line="84" Column="38" TopLine="55"/>
+        <Filename Value="formsettingsunit.pas"/>
+        <Caret Line="1037" Column="11" TopLine="1023"/>
       </Position3>
       <Position4>
-        <Filename Value="pointerscannerfrm.pas"/>
-        <Caret Line="85" Column="36" TopLine="56"/>
+        <Filename Value="NewKernelHandler.pas"/>
+        <Caret Line="788" Column="14" TopLine="780"/>
       </Position4>
       <Position5>
-        <Filename Value="pointerscannerfrm.pas"/>
-        <Caret Line="92" Column="31" TopLine="63"/>
+        <Filename Value="NewKernelHandler.pas"/>
+        <Caret Line="662" Column="1" TopLine="644"/>
       </Position5>
       <Position6>
-        <Filename Value="pointerscannerfrm.pas"/>
-        <Caret Line="98" Column="31" TopLine="69"/>
+        <Filename Value="NewKernelHandler.pas"/>
+        <Caret Line="787" Column="25" TopLine="761"/>
       </Position6>
       <Position7>
-        <Filename Value="pointerscannerfrm.pas"/>
-        <Caret Line="112" Column="26" TopLine="83"/>
+        <Filename Value="NewKernelHandler.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position7>
       <Position8>
-        <Filename Value="pointerscannerfrm.pas"/>
-        <Caret Line="122" Column="32" TopLine="93"/>
+        <Filename Value="ProcessWindowUnit.pas"/>
+        <Caret Line="370" Column="23" TopLine="363"/>
       </Position8>
       <Position9>
-        <Filename Value="pointerscannerfrm.pas"/>
-        <Caret Line="189" Column="26" TopLine="160"/>
+        <Filename Value="ProcessWindowUnit.pas"/>
+        <Caret Line="231" Column="108" TopLine="213"/>
       </Position9>
       <Position10>
-        <Filename Value="pointerscannerfrm.pas"/>
-        <Caret Line="197" Column="42" TopLine="168"/>
+        <Filename Value="ProcessWindowUnit.pas"/>
+        <Caret Line="10" Column="59" TopLine="1"/>
       </Position10>
       <Position11>
-        <Filename Value="pointerscannerfrm.pas"/>
-        <Caret Line="208" Column="21" TopLine="179"/>
+        <Filename Value="aboutunit.pas"/>
+        <Caret Line="114" Column="1" TopLine="97"/>
       </Position11>
       <Position12>
-        <Filename Value="pointerscannerfrm.pas"/>
-        <Caret Line="333" Column="19" TopLine="304"/>
+        <Filename Value="aboutunit.pas"/>
+        <Caret Line="132" Column="8" TopLine="114"/>
       </Position12>
       <Position13>
-        <Filename Value="pointerscannerfrm.pas"/>
-        <Caret Line="484" Column="15" TopLine="455"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="7736" Column="29" TopLine="7710"/>
       </Position13>
       <Position14>
-        <Filename Value="pointerscannerfrm.pas"/>
-        <Caret Line="586" Column="120" TopLine="557"/>
+        <Filename Value="NewKernelHandler.pas"/>
+        <Caret Line="46" Column="112" TopLine="34"/>
       </Position14>
       <Position15>
-        <Filename Value="pointerscannerfrm.pas"/>
-        <Caret Line="662" Column="47" TopLine="633"/>
+        <Filename Value="NewKernelHandler.pas"/>
+        <Caret Line="505" Column="12" TopLine="485"/>
       </Position15>
       <Position16>
-        <Filename Value="pointerscannerfrm.pas"/>
-        <Caret Line="700" Column="51" TopLine="671"/>
+        <Filename Value="NewKernelHandler.pas"/>
+        <Caret Line="506" Column="12" TopLine="485"/>
       </Position16>
       <Position17>
-        <Filename Value="pointerscannerfrm.pas"/>
-        <Caret Line="847" Column="16" TopLine="818"/>
+        <Filename Value="NewKernelHandler.pas"/>
+        <Caret Line="507" Column="12" TopLine="485"/>
       </Position17>
       <Position18>
-        <Filename Value="pointerscannerfrm.pas"/>
-        <Caret Line="1078" Column="45" TopLine="1049"/>
+        <Filename Value="NewKernelHandler.pas"/>
+        <Caret Line="508" Column="12" TopLine="485"/>
       </Position18>
       <Position19>
-        <Filename Value="pointerscannerfrm.pas"/>
-        <Caret Line="1079" Column="88" TopLine="1050"/>
+        <Filename Value="NewKernelHandler.pas"/>
+        <Caret Line="509" Column="12" TopLine="485"/>
       </Position19>
       <Position20>
-        <Filename Value="pointerscannerfrm.pas"/>
-        <Caret Line="1320" Column="47" TopLine="1291"/>
+        <Filename Value="NewKernelHandler.pas"/>
+        <Caret Line="512" Column="12" TopLine="485"/>
       </Position20>
       <Position21>
-        <Filename Value="pointerscannerfrm.pas"/>
-        <Caret Line="1345" Column="13" TopLine="1316"/>
+        <Filename Value="NewKernelHandler.pas"/>
+        <Caret Line="513" Column="12" TopLine="485"/>
       </Position21>
       <Position22>
-        <Filename Value="pointerscannerfrm.pas"/>
-        <Caret Line="1518" Column="14" TopLine="1489"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="8300" Column="35" TopLine="8281"/>
       </Position22>
       <Position23>
-        <Filename Value="pointerscannerfrm.pas"/>
-        <Caret Line="1565" Column="54" TopLine="1536"/>
+        <Filename Value="dbvmPhysicalMemoryHandler.pas"/>
+        <Caret Line="21" Column="18" TopLine="19"/>
       </Position23>
       <Position24>
-        <Filename Value="pointerscannerfrm.pas"/>
-        <Caret Line="1613" Column="72" TopLine="1584"/>
+        <Filename Value="NewKernelHandler.pas"/>
+        <Caret Line="661" Column="32" TopLine="642"/>
       </Position24>
       <Position25>
-        <Filename Value="pointerscannerfrm.pas"/>
-        <Caret Line="1756" Column="44" TopLine="1727"/>
+        <Filename Value="NewKernelHandler.pas"/>
+        <Caret Line="938" Column="1" TopLine="925"/>
       </Position25>
       <Position26>
-        <Filename Value="pointerscannerfrm.pas"/>
-        <Caret Line="1757" Column="61" TopLine="1728"/>
+        <Filename Value="aboutunit.pas"/>
+        <Caret Line="149" Column="6" TopLine="131"/>
       </Position26>
       <Position27>
-        <Filename Value="pointerscannerfrm.pas"/>
-        <Caret Line="1928" Column="20" TopLine="1899"/>
+        <Filename Value="aboutunit.pas"/>
+        <Caret Line="103" Column="33" TopLine="83"/>
       </Position27>
       <Position28>
-        <Filename Value="pointerscannerfrm.pas"/>
-        <Caret Line="1965" Column="37" TopLine="1952"/>
+        <Filename Value="aboutunit.pas"/>
+        <Caret Line="108" Column="14" TopLine="86"/>
       </Position28>
+      <Position29>
+        <Filename Value="NewKernelHandler.pas"/>
+        <Caret Line="794" Column="15" TopLine="790"/>
+      </Position29>
+      <Position30>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="8323" Column="10" TopLine="8305"/>
+      </Position30>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

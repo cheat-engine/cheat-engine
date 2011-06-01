@@ -85,6 +85,14 @@ var vmcallinfo: record
   command: dword;
 end;
 begin
+  if (vmx_password1=0) and (vmx_password2=0) then
+  begin
+    //set the password if it was not set
+    vmx_password1:=$76543210;
+    vmx_password2:=$fedcba98;
+  end;
+
+
   vmcallinfo.structsize:=sizeof(vmcallinfo);
   vmcallinfo.level2pass:=vmx_password2;
   vmcallinfo.command:=VMCALL_GETVERSION;

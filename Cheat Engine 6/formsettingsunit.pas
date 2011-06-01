@@ -1030,7 +1030,15 @@ begin
     TauntOldOsUser.Visible:=true;
     TauntOldOsUser.Caption:=rsPleaseBootWithUnsignedDriversAllowedF8DuringBootOr;
 
-    cbKdebug.Enabled:=isDBVMCapable;
+
+
+    cbKdebug.Enabled:=isRunningDBVM or isDBVMCapable;
+
+    if isRunningDBVM or isDBVMCapable then
+      showmessage('cbKdebug should be enabled')
+    else
+      showmessage('cbKdebug should be disabled');
+
     cbKdebug.Caption:=cbKdebug.Caption+' '+rsRequiresDBVM;
     if not cbKdebug.Enabled then
       cbKdebug.checked:=false;
