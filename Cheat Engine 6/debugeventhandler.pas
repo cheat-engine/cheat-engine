@@ -165,7 +165,7 @@ begin
     context:=self.context;
     context.ContextFlags := CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS;
 
-    context.dr7:=context.dr7 or $300;
+    //context.dr7:=context.dr7 or $300;
 
     if not setthreadcontext(self.handle, context^, isHandled) then
     begin
