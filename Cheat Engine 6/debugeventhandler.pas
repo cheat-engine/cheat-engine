@@ -164,6 +164,9 @@ begin
   begin
     context:=self.context;
     context.ContextFlags := CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS;
+
+    context.dr7:=context.dr7 or $300;
+
     if not setthreadcontext(self.handle, context^, isHandled) then
     begin
       i := getlasterror;
@@ -645,7 +648,12 @@ begin
       begin
         dwContinueStatus:=DBG_CONTINUE;
         TDebuggerthread(debuggerthread).InitialBreakpointTriggered:=true;
+
+        result:=false;
+        exit;
       end;
+
+
     end
     else dwContinueStatus:=DBG_EXCEPTION_NOT_HANDLED; //not an expected breakpoint
   end;
@@ -687,19 +695,31 @@ begin
 
       if dwContinueStatus=DBG_CONTINUE then
       begin
+        if result=false then
+        begin
+          //initial breakpoint
+          inc(context.{$ifdef cpu64}rip{$else}eip{$endif});
+          result:=true;
+        end;
         context.dr6:=0; //handled
         setContext;
+
+
+
       end
       else
       begin
-        {todo: On int3 and windows debugger emulate the exception
-
-        if CurrentDebuggerInterface.name='Windows Debugger' then
+        {if CurrentDebuggerInterface.name='Windows Debugger' then
         begin
           //emulate a call to the unhandled exception handler
 
-        end;
-        }
+
+        end;  }
+
+
+       // context.dr6:=0; //unhandled
+        inc(context.{$ifdef cpu64}rip{$else}eip{$endif}); //undo the -1
+        setContext;
       end;
     end;
 
