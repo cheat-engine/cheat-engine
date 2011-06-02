@@ -1,57 +1,58 @@
 object frmUltimap: TfrmUltimap
   Left = 651
-  Height = 240
+  Height = 402
   Top = 218
-  Width = 320
+  Width = 637
   Caption = 'frmUltimap'
-  ClientHeight = 240
-  ClientWidth = 320
+  ClientHeight = 402
+  ClientWidth = 637
+  OnCreate = FormCreate
   LCLVersion = '0.9.31'
   object Button1: TButton
-    Left = 72
+    Left = 104
     Height = 25
-    Top = 200
+    Top = 344
     Width = 75
     Caption = 'Start'
     OnClick = Button1Click
     TabOrder = 0
   end
   object edtWorkerCount: TEdit
-    Left = 112
+    Left = 90
     Height = 23
-    Top = 112
+    Top = 69
     Width = 80
     TabOrder = 1
     Text = '1'
   end
   object cbLogToFile: TRadioButton
-    Left = 6
+    Left = 8
     Height = 19
-    Top = 64
+    Top = 24
     Width = 115
     Caption = 'Log directly to file'
     TabOrder = 2
   end
   object edtFilename: TEdit
-    Left = 128
+    Left = 130
     Height = 23
-    Top = 64
+    Top = 24
     Width = 80
     TabOrder = 3
     Text = 'c:\log.dat'
   end
   object Label1: TLabel
-    Left = 16
+    Left = 8
     Height = 16
-    Top = 112
+    Top = 72
     Width = 81
     Caption = 'Worker threads'
     ParentColor = False
   end
   object cbParseData: TRadioButton
-    Left = 6
+    Left = 8
     Height = 19
-    Top = 88
+    Top = 48
     Width = 74
     Caption = 'Parse data'
     Checked = True
@@ -59,28 +60,239 @@ object frmUltimap: TfrmUltimap
     TabStop = True
   end
   object edtBufSize: TEdit
-    Left = 104
+    Left = 98
     Height = 23
-    Top = 5
+    Top = 0
     Width = 80
     TabOrder = 5
     Text = '4194304'
   end
   object Label2: TLabel
-    Left = 6
+    Left = 8
     Height = 16
-    Top = 5
+    Top = 4
     Width = 87
     Caption = 'Event buffer size'
     ParentColor = False
   end
   object Button2: TButton
-    Left = 156
+    Left = 188
     Height = 25
-    Top = 200
+    Top = 344
     Width = 75
     Caption = 'Stop'
     OnClick = Button2Click
     TabOrder = 6
+  end
+  object Button3: TButton
+    Left = 288
+    Height = 25
+    Top = 40
+    Width = 264
+    Caption = 'Target routine was called'
+    OnClick = FilterClick
+    TabOrder = 7
+  end
+  object Button4: TButton
+    Tag = 1
+    Left = 288
+    Height = 25
+    Top = 8
+    Width = 264
+    Caption = 'Target routine was not called'
+    OnClick = FilterClick
+    TabOrder = 8
+  end
+  object Button5: TButton
+    Left = 384
+    Height = 25
+    Top = 304
+    Width = 155
+    Caption = 'Show matching routines'
+    OnClick = Button5Click
+    TabOrder = 9
+  end
+  object ListView1: TListView
+    Left = 288
+    Height = 150
+    Top = 144
+    Width = 344
+    Columns = <    
+      item
+        Caption = 'Address To'
+        Width = 140
+      end    
+      item
+        Caption = 'Last origin'
+        Width = 140
+      end    
+      item
+        Caption = 'Count'
+      end>
+    HideSelection = False
+    OwnerData = True
+    ReadOnly = True
+    RowSelect = True
+    TabOrder = 10
+    ViewStyle = vsReport
+    OnData = ListView1Data
+  end
+  object Button6: TButton
+    Left = 558
+    Height = 25
+    Top = 56
+    Width = 74
+    Caption = 'Reset'
+    OnClick = Button6Click
+    TabOrder = 11
+  end
+  object GroupBox1: TGroupBox
+    Left = 8
+    Height = 232
+    Top = 104
+    Width = 264
+    Caption = 'Selective (Nehalem/Westmere/Sandy Bridge)'
+    ClientHeight = 214
+    ClientWidth = 260
+    Enabled = False
+    TabOrder = 12
+    object CheckBox1: TCheckBox
+      Left = 6
+      Height = 19
+      Top = 0
+      Width = 95
+      Caption = 'Capture ring 0'
+      TabOrder = 0
+    end
+    object CheckBox2: TCheckBox
+      Left = 6
+      Height = 19
+      Top = 24
+      Width = 95
+      Caption = 'Capture ring 3'
+      Checked = True
+      State = cbChecked
+      TabOrder = 1
+    end
+    object CheckBox3: TCheckBox
+      Left = 6
+      Height = 19
+      Top = 48
+      Width = 161
+      Caption = 'Capture conditional jumps'
+      Checked = True
+      State = cbChecked
+      TabOrder = 2
+    end
+    object CheckBox4: TCheckBox
+      Left = 6
+      Height = 19
+      Top = 72
+      Width = 155
+      Caption = 'Capture near relative calls'
+      Checked = True
+      State = cbChecked
+      TabOrder = 3
+    end
+    object CheckBox5: TCheckBox
+      Left = 6
+      Height = 19
+      Top = 96
+      Width = 157
+      Caption = 'Capture near indirect calls'
+      Checked = True
+      State = cbChecked
+      TabOrder = 4
+    end
+    object CheckBox6: TCheckBox
+      Left = 6
+      Height = 19
+      Top = 120
+      Width = 119
+      Caption = 'Capture near RET''s'
+      Checked = True
+      State = cbChecked
+      TabOrder = 5
+    end
+    object CheckBox7: TCheckBox
+      Left = 6
+      Height = 19
+      Top = 144
+      Width = 167
+      Caption = 'Capture near indirect jumps'
+      Checked = True
+      State = cbChecked
+      TabOrder = 6
+    end
+    object CheckBox8: TCheckBox
+      Left = 6
+      Height = 19
+      Top = 166
+      Width = 165
+      Caption = 'Capture near relative jumps'
+      Checked = True
+      State = cbChecked
+      TabOrder = 7
+    end
+    object CheckBox9: TCheckBox
+      Left = 6
+      Height = 19
+      Top = 190
+      Width = 130
+      Caption = 'Capture far branches'
+      Checked = True
+      State = cbChecked
+      TabOrder = 8
+    end
+  end
+  object Label3: TLabel
+    Left = 120
+    Height = 16
+    Top = 376
+    Width = 35
+    Caption = 'Label3'
+    ParentColor = False
+  end
+  object Button7: TButton
+    Tag = 2
+    Left = 288
+    Height = 25
+    Top = 72
+    Width = 264
+    Caption = 'Filter out routine(s) that where not CALL''ed'
+    OnClick = FilterClick
+    TabOrder = 13
+  end
+  object Button8: TButton
+    Tag = 3
+    Left = 288
+    Height = 25
+    Top = 104
+    Width = 264
+    Caption = 'Filter out routine(s) where callcount is NOT'
+    OnClick = FilterClick
+    TabOrder = 14
+  end
+  object Edit1: TEdit
+    Left = 561
+    Height = 23
+    Top = 104
+    Width = 71
+    TabOrder = 15
+    Text = '1'
+  end
+  object Label4: TLabel
+    Left = 448
+    Height = 16
+    Top = 344
+    Width = 35
+    Caption = 'Label4'
+    ParentColor = False
+  end
+  object Timer1: TTimer
+    Interval = 250
+    OnTimer = Timer1Timer
+    left = 392
+    top = 360
   end
 end

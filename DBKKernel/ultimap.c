@@ -97,7 +97,7 @@ Called from usermode to wait for data
 
 		data->Block=r-STATUS_WAIT_0;
 
-		if ((data->Block <= 63) && (DataBlock))
+		if ((data->Block <= MaxDataBlocks) && (DataBlock))
 		{
 			//Map this block to usermode
 			data->KernelAddress=(UINT64)DataBlock[data->Block].Data;
@@ -145,12 +145,22 @@ int perfmon_interrupt_centry(void)
 		
 		blocksize=DS_AREA[cpunr()]->BTS_IndexBaseAddress-DS_AREA[cpunr()]->BTS_BufferBaseAddress;
 		temp=ExAllocatePool(NonPagedPool, blocksize);
-		RtlCopyMemory(temp, (PVOID *)DS_AREA[cpunr()]->BTS_BufferBaseAddress, blocksize);
+		if (temp)
+		{
+			RtlCopyMemory(temp, (PVOID *)DS_AREA[cpunr()]->BTS_BufferBaseAddress, blocksize);
 
-		DbgPrint("temp=%p\n", temp);
+			DbgPrint("temp=%p\n", temp);
 
 
-		DS_AREA[cpunr()]->BTS_IndexBaseAddress=DS_AREA[cpunr()]->BTS_BufferBaseAddress;	
+			DS_AREA[cpunr()]->BTS_IndexBaseAddress=DS_AREA[cpunr()]->BTS_BufferBaseAddress; //don't reset on alloc error	
+		}
+		else
+		{
+			DbgPrint("ExAllocatePool has failed\n");
+			KeLowerIrql(old);
+			disableInterrupts();
+			return 1;
+		}
 
 		
 
