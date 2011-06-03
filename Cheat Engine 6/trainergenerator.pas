@@ -50,6 +50,7 @@ type
     lvCheats: TListView;
     mAbout: TMemo;
     MenuItem1: TMenuItem;
+    MenuItem2: TMenuItem;
     miEditHotkey: TMenuItem;
     OpenDialog1: TOpenDialog;
     OpenDialog2: TOpenDialog;
@@ -59,6 +60,7 @@ type
     Panel3: TPanel;
     Panel4: TPanel;
     PopupMenu1: TPopupMenu;
+    PopupMenu2: TPopupMenu;
     rbStopWhenAttached: TRadioButton;
     rbStopWhenFocusLost: TRadioButton;
     CETRAINERSaveDialog: TSaveDialog;
@@ -91,6 +93,7 @@ type
     procedure lvCheatsSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
     procedure MenuItem1Click(Sender: TObject);
+    procedure MenuItem2Click(Sender: TObject);
     procedure miEditHotkeyClick(Sender: TObject);
     procedure Panel2Resize(Sender: TObject);
     procedure RadioButton2Change(Sender: TObject);
@@ -505,6 +508,11 @@ begin
   buildcheatlist;
 end;
 
+procedure TfrmTrainerGenerator.MenuItem2Click(Sender: TObject);
+begin
+  generateScript
+end;
+
 procedure TfrmTrainerGenerator.miEditHotkeyClick(Sender: TObject);
 var mh: TMemoryrecordhotkey;
   mr: TMemoryrecord;
@@ -701,6 +709,8 @@ var generated: tstringlist;
 
   memrecname,hotkeyname: string;
 begin
+
+
   trainerform.active:=false;
   trainerform.SaveCurrentStateasDesign;
 
@@ -732,10 +742,12 @@ begin
   l.add('--hideAllCEWindows()');
 
   try
-
     cheatpanel:=TCEPanel(trainerform.FindComponent('CHEATPANEL'));
     if cheatpanel<>nil then
     begin
+
+
+
       //create the routines for these cheats
       l.add('addresslist=getAddressList()');
 
@@ -765,6 +777,7 @@ begin
         if cheatpanel.Controls[i] is TCheat then
         begin
           currentcheat:=TCheat(cheatpanel.Controls[i]);
+
           currenthk:=TMemoryRecordHotkey(lvcheats.Items[currentcheat.cheatnr].Data);
           currentmr:=currenthk.owner;
 
@@ -1007,12 +1020,17 @@ begin
 end;
 
 procedure TfrmTrainerGenerator.btnDesignFormClick(Sender: TObject);
+var i: integer;
+    currentcheat: TCheat;
 begin
+
+
   if btnDesignForm.tag=0 then
   begin
     mainform.createFormdesigner;
 
     formdesigner.designForm(trainerform);
+
     formdesigner.show;
 
     trainerform.show;
@@ -1025,6 +1043,9 @@ begin
   begin
     btnDesignForm.tag:=0;
   end;
+
+
+
 
 end;
 

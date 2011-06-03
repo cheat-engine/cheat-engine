@@ -99,6 +99,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
       Default = True
       OnClick = Button5Click
       ParentShowHint = False
+      PopupMenu = PopupMenu2
       ShowHint = True
       TabOrder = 6
     end
@@ -466,6 +467,14 @@ object frmTrainerGenerator: TfrmTrainerGenerator
     object MenuItem1: TMenuItem
       Caption = 'Rebuild Trainer Cheatlist'
       OnClick = MenuItem1Click
+    end
+  end
+  object PopupMenu2: TPopupMenu
+    left = 400
+    top = 248
+    object MenuItem2: TMenuItem
+      Caption = 'Only generate the script'
+      OnClick = MenuItem2Click
     end
   end
 end

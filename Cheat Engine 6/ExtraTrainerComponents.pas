@@ -42,6 +42,7 @@ type tcheat = class (twincontrol)
 
 
     deactivatetimer: TTimer;
+    fCheatNr: integer;
     procedure resetwidth;
     procedure setactivated(x:boolean);
     procedure SetHotkey(newhotkey:string);
@@ -68,7 +69,7 @@ type tcheat = class (twincontrol)
   public
 
 
-    cheatnr: integer;
+
 
     beeponactivate: boolean;
 
@@ -82,7 +83,7 @@ type tcheat = class (twincontrol)
     property OnMouseMove;
     property OnMouseUp;
   published
-
+    property CheatNr: integer read fCheatNr write fCheatNr;
     property Color;
     property Textcolor:tcolor read ftextcolor write SetTextcolor;
     property Editleft:integer read feditleft write seteditleft default 200;
