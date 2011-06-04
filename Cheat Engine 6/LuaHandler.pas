@@ -10,7 +10,7 @@ uses
   windows, vmxfunctions, Classes, dialogs, SysUtils, lua, lualib, lauxlib, syncobjs, cefuncproc,
   newkernelhandler, autoassembler, Graphics, controls, LuaCaller, forms, ExtCtrls,
   StdCtrls, comctrls, ceguicomponents, generichotkey, luafile, xmplayer_server,
-  ExtraTrainerComponents, customtimer, menus, XMLRead, XMLWrite, DOM;
+  ExtraTrainerComponents, customtimer, menus, XMLRead, XMLWrite, DOM,ShellApi;
 
 var
   LuaVM: Plua_State;
@@ -718,7 +718,9 @@ begin
   else
     s:=lua_tostring(L, -1);
 
-  ce_showmessage(pchar(s));
+  ShowMessage(s);
+
+//  ce_showmessage(pchar(s));
 
   lua_pop(L, parameters);
   result:=0;
@@ -8341,6 +8343,44 @@ begin
   lua_pushboolean(L, dbvm_version>0);
 end;
 
+function shellExecute(L: PLua_State): integer; cdecl;
+var
+  pcount: integer;
+  command: pchar;
+  parameters: pchar;
+  folder: pchar;
+  showcommand: integer;
+begin
+  pcount:=lua_gettop(L);
+  if pcount>=1 then
+  begin
+    command:=lua.lua_tostring(L, -pcount);
+    folder:=nil;
+
+    if pcount>=2 then
+      parameters:=lua.lua_tostring(L, -pcount+1)
+    else
+      parameters:=nil;
+
+
+    if pcount>=3 then
+      folder:=lua.lua_tostring(L, -pcount+2)
+    else
+      folder:=nil;
+
+    if pcount>=4 then
+      showcommand:=lua_tointeger(L, -pcount+3)
+    else
+      showcommand:=SW_NORMAL;
+
+    shellapi.shellexecute(0,'open',command,parameters,folder,showcommand);
+  end;
+
+  lua_pop(L, lua_gettop(L));
+
+  result:=0;
+
+end;
 
 procedure InitializeLua;
 var s: tstringlist;
@@ -8806,6 +8846,8 @@ begin
     lua_register(LuaVM, 'setAPIPointer', setAPIPointer);
 
     lua_register(LuaVM, 'dbvm_initialize', dbvm_initialize);
+
+    lua_register(LuaVM, 'shellExecute', shellExecute);
 
 
     initializeLuaPicture;

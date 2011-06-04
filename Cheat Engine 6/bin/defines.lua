@@ -1,5 +1,6 @@
 --Defines:
 
+
 --onMouseEvent button defines:
 mbLeft=0
 mbRight=1
@@ -223,3 +224,19 @@ VK_LMENU = 164
 VK_RSHIFT = 161
 VK_RCONTROL = 163
 VK_RMENU = 165    
+
+
+--shellExecute show defines:
+SW_HIDE = 0;
+SW_MAXIMIZE = 3;
+SW_MINIMIZE = 6;
+SW_NORMAL = 1;
+SW_RESTORE = 9;
+SW_SHOW = 5;
+SW_SHOWDEFAULT = 10;
+SW_SHOWMAXIMIZED = 3;
+SW_SHOWMINIMIZED = 2;
+SW_SHOWMINNOACTIVE = 7;
+SW_SHOWNA = 8;
+SW_SHOWNOACTIVATE = 4;
+SW_SHOWNORMAL = 1;

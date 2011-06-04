@@ -19,7 +19,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
       <MinorVersionNr Value="1"/>
-      <BuildNr Value="1510"/>
+      <BuildNr Value="1516"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="6.1"/>
@@ -185,8 +185,8 @@
         <UnitName Value="MainUnit"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="2394"/>
-        <CursorPos X="17" Y="2402"/>
+        <TopLine Value="1"/>
+        <CursorPos X="40" Y="6"/>
         <UsageCount Value="211"/>
         <Bookmarks Count="1">
           <Item0 X="1" Y="1853" ID="2"/>
@@ -199,7 +199,7 @@
         <Filename Value="NewKernelHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="NewKernelHandler"/>
-        <EditorIndex Value="10"/>
+        <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
         <TopLine Value="517"/>
         <CursorPos X="10" Y="535"/>
@@ -211,7 +211,7 @@
         <Filename Value="CEFuncProc.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="CEFuncProc"/>
-        <EditorIndex Value="15"/>
+        <EditorIndex Value="16"/>
         <WindowIndex Value="0"/>
         <TopLine Value="2684"/>
         <CursorPos X="112" Y="2696"/>
@@ -327,7 +327,7 @@
         <ComponentName Value="ProcessWindow"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="ProcessWindowUnit"/>
-        <EditorIndex Value="11"/>
+        <EditorIndex Value="12"/>
         <WindowIndex Value="0"/>
         <TopLine Value="270"/>
         <CursorPos X="86" Y="288"/>
@@ -359,7 +359,7 @@
         <Filename Value="dbvmPhysicalMemoryHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="dbvmPhysicalMemoryHandler"/>
-        <EditorIndex Value="9"/>
+        <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="36" Y="12"/>
@@ -470,8 +470,8 @@
         <UnitName Value="aboutunit"/>
         <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="86"/>
-        <CursorPos X="14" Y="108"/>
+        <TopLine Value="74"/>
+        <CursorPos X="3" Y="88"/>
         <UsageCount Value="201"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -752,7 +752,7 @@
         <Filename Value="OpenSave.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="OpenSave"/>
-        <EditorIndex Value="8"/>
+        <EditorIndex Value="9"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1141"/>
         <CursorPos X="24" Y="1153"/>
@@ -1488,7 +1488,7 @@
         <Filename Value="debugeventhandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="debugeventhandler"/>
-        <EditorIndex Value="14"/>
+        <EditorIndex Value="15"/>
         <WindowIndex Value="0"/>
         <TopLine Value="181"/>
         <CursorPos X="53" Y="203"/>
@@ -1796,10 +1796,11 @@
         <Filename Value="LuaHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaHandler"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="8306"/>
-        <CursorPos X="30" Y="8312"/>
+        <TopLine Value="8348"/>
+        <CursorPos X="1" Y="8375"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
           <WindowIndex Value="0"/>
@@ -1807,6 +1808,9 @@
           <CursorPos X="58" Y="1161"/>
         </ExtraEditor1>
         <UsageCount Value="200"/>
+        <Bookmarks Count="1">
+          <Item0 X="1" Y="8377" ID="8"/>
+        </Bookmarks>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit143>
@@ -1895,7 +1899,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="135"/>
         <CursorPos X="3" Y="120"/>
-        <UsageCount Value="70"/>
+        <UsageCount Value="68"/>
       </Unit151>
       <Unit152>
         <Filename Value="fileaccess.pas"/>
@@ -1912,7 +1916,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="1" Y="1"/>
-        <UsageCount Value="66"/>
+        <UsageCount Value="64"/>
       </Unit153>
       <Unit154>
         <Filename Value="formdesignerunit.pas"/>
@@ -1963,7 +1967,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="343"/>
         <CursorPos X="3" Y="363"/>
-        <UsageCount Value="86"/>
+        <UsageCount Value="84"/>
       </Unit158>
       <Unit159>
         <Filename Value="cesupport.pas"/>
@@ -1981,11 +1985,10 @@
         <ComponentName Value="frmTrainerGenerator"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="trainergenerator"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="766"/>
-        <CursorPos X="1" Y="780"/>
+        <TopLine Value="716"/>
+        <CursorPos X="49" Y="732"/>
         <UsageCount Value="209"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -2093,7 +2096,7 @@
         <ComponentName Value="frmStringMap"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmStringMapUnit"/>
-        <EditorIndex Value="16"/>
+        <EditorIndex Value="17"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="3" Y="19"/>
@@ -2221,14 +2224,14 @@
         <WindowIndex Value="0"/>
         <TopLine Value="2268"/>
         <CursorPos X="15" Y="2285"/>
-        <UsageCount Value="87"/>
+        <UsageCount Value="85"/>
       </Unit182>
       <Unit183>
         <Filename Value="C:\lazarus\lcl\include\treeview.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="2268"/>
         <CursorPos X="3" Y="2270"/>
-        <UsageCount Value="46"/>
+        <UsageCount Value="44"/>
       </Unit183>
       <Unit184>
         <Filename Value="C:\lazarus\lcl\controls.pp"/>
@@ -2236,21 +2239,21 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1312"/>
         <CursorPos X="15" Y="1329"/>
-        <UsageCount Value="54"/>
+        <UsageCount Value="52"/>
       </Unit184>
       <Unit185>
         <Filename Value="C:\lazarus\lcl\include\customlistview.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="752"/>
         <CursorPos X="1" Y="770"/>
-        <UsageCount Value="38"/>
+        <UsageCount Value="36"/>
       </Unit185>
       <Unit186>
         <Filename Value="C:\lazarus\lcl\include\fileutil.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="23"/>
         <CursorPos X="1" Y="45"/>
-        <UsageCount Value="64"/>
+        <UsageCount Value="62"/>
       </Unit186>
       <Unit187>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\objpas\types.pp"/>
@@ -2258,7 +2261,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="39"/>
         <CursorPos X="17" Y="56"/>
-        <UsageCount Value="86"/>
+        <UsageCount Value="84"/>
       </Unit187>
       <Unit188>
         <Filename Value="LuaDebug.pas"/>
@@ -2275,7 +2278,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="188"/>
         <CursorPos X="67" Y="215"/>
-        <UsageCount Value="62"/>
+        <UsageCount Value="60"/>
       </Unit189>
       <Unit190>
         <Filename Value="C:\lazarus\lcl\interfaces\win32\win32proc.pp"/>
@@ -2283,14 +2286,14 @@
         <WindowIndex Value="0"/>
         <TopLine Value="142"/>
         <CursorPos X="3" Y="160"/>
-        <UsageCount Value="62"/>
+        <UsageCount Value="60"/>
       </Unit190>
       <Unit191>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\win\wininc\defines.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="5487"/>
         <CursorPos X="29" Y="5502"/>
-        <UsageCount Value="58"/>
+        <UsageCount Value="56"/>
       </Unit191>
       <Unit192>
         <Filename Value="frmUltimapUnit.pas"/>
@@ -2298,14 +2301,11 @@
         <ComponentName Value="frmUltimap"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmUltimapUnit"/>
-        <EditorIndex Value="13"/>
+        <EditorIndex Value="14"/>
         <WindowIndex Value="0"/>
         <TopLine Value="385"/>
         <CursorPos X="5" Y="415"/>
         <UsageCount Value="201"/>
-        <Bookmarks Count="1">
-          <Item0 X="17" Y="439" ID="8"/>
-        </Bookmarks>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -2313,152 +2313,154 @@
       <Unit193>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\packages\winunits-jedi\src\jwawingdi.pas"/>
         <UnitName Value="jwawingdi"/>
-        <EditorIndex Value="12"/>
+        <EditorIndex Value="13"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1340"/>
         <CursorPos X="3" Y="1358"/>
-        <UsageCount Value="85"/>
+        <UsageCount Value="92"/>
         <Loaded Value="True"/>
       </Unit193>
       <Unit194>
-        <Filename Value="C:\lazarus\ide\lazarus.pp"/>
-        <UnitName Value="Lazarus"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="101"/>
-        <CursorPos X="1" Y="135"/>
-        <UsageCount Value="1"/>
-      </Unit194>
-      <Unit195>
         <Filename Value="C:\lazarus\lcl\avglvltree.pas"/>
         <UnitName Value="AvgLvlTree"/>
-        <EditorIndex Value="17"/>
+        <EditorIndex Value="18"/>
         <WindowIndex Value="0"/>
         <TopLine Value="274"/>
         <CursorPos X="3" Y="270"/>
-        <UsageCount Value="55"/>
+        <UsageCount Value="62"/>
+        <Loaded Value="True"/>
+      </Unit194>
+      <Unit195>
+        <Filename Value="C:\lazarus\fpc\2.4.3\source\packages\winunits-base\src\shellapi.pp"/>
+        <UnitName Value="ShellApi"/>
+        <EditorIndex Value="8"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1057"/>
+        <CursorPos X="10" Y="1075"/>
+        <UsageCount Value="17"/>
         <Loaded Value="True"/>
       </Unit195>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="trainergenerator.pas"/>
-        <Caret Line="789" Column="55" TopLine="773"/>
+        <Caret Line="305" Column="10" TopLine="303"/>
       </Position1>
       <Position2>
         <Filename Value="trainergenerator.pas"/>
-        <Caret Line="793" Column="20" TopLine="773"/>
+        <Caret Line="777" Column="52" TopLine="748"/>
       </Position2>
       <Position3>
         <Filename Value="trainergenerator.pas"/>
-        <Caret Line="794" Column="38" TopLine="773"/>
+        <Caret Line="779" Column="77" TopLine="750"/>
       </Position3>
       <Position4>
         <Filename Value="trainergenerator.pas"/>
-        <Caret Line="806" Column="76" TopLine="789"/>
+        <Caret Line="796" Column="78" TopLine="767"/>
       </Position4>
       <Position5>
         <Filename Value="trainergenerator.pas"/>
-        <Caret Line="777" Column="47" TopLine="759"/>
+        <Caret Line="767" Column="49" TopLine="757"/>
       </Position5>
       <Position6>
         <Filename Value="trainergenerator.pas"/>
-        <Caret Line="775" Column="43" TopLine="759"/>
+        <Caret Line="1023" Column="18" TopLine="1015"/>
       </Position6>
       <Position7>
         <Filename Value="trainergenerator.pas"/>
-        <Caret Line="777" Column="35" TopLine="759"/>
+        <Caret Line="1022" Column="16" TopLine="1005"/>
       </Position7>
       <Position8>
         <Filename Value="trainergenerator.pas"/>
-        <Caret Line="705" Column="20" TopLine="687"/>
+        <Caret Line="1046" Column="1" TopLine="1023"/>
       </Position8>
       <Position9>
-        <Filename Value="ExtraTrainerComponents.pas"/>
-        <Caret Line="86" Column="20" TopLine="73"/>
+        <Filename Value="trainergenerator.pas"/>
+        <Caret Line="990" Column="11" TopLine="986"/>
       </Position9>
       <Position10>
         <Filename Value="ExtraTrainerComponents.pas"/>
-        <Caret Line="529" Column="12" TopLine="500"/>
+        <Caret Line="78" Column="38" TopLine="71"/>
       </Position10>
       <Position11>
         <Filename Value="ExtraTrainerComponents.pas"/>
-        <Caret Line="517" Column="35" TopLine="502"/>
+        <Caret Line="86" Column="31" TopLine="68"/>
       </Position11>
       <Position12>
-        <Filename Value="ExtraTrainerComponents.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="trainergenerator.pas"/>
+        <Caret Line="756" Column="28" TopLine="748"/>
       </Position12>
       <Position13>
-        <Filename Value="ExtraTrainerComponents.pas"/>
-        <Caret Line="71" Column="12" TopLine="42"/>
+        <Filename Value="trainergenerator.pas"/>
+        <Caret Line="774" Column="22" TopLine="757"/>
       </Position13>
       <Position14>
-        <Filename Value="ExtraTrainerComponents.pas"/>
-        <Caret Line="529" Column="12" TopLine="500"/>
+        <Filename Value="trainergenerator.pas"/>
+        <Caret Line="119" Column="5" TopLine="101"/>
       </Position14>
       <Position15>
         <Filename Value="trainergenerator.pas"/>
-        <Caret Line="696" Column="33" TopLine="687"/>
+        <Caret Line="991" Column="8" TopLine="990"/>
       </Position15>
       <Position16>
         <Filename Value="trainergenerator.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Caret Line="712" Column="3" TopLine="694"/>
       </Position16>
       <Position17>
-        <Filename Value="trainergenerator.pas"/>
-        <Caret Line="244" Column="39" TopLine="217"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="2411" Column="32" TopLine="2394"/>
       </Position17>
       <Position18>
-        <Filename Value="trainergenerator.pas"/>
-        <Caret Line="246" Column="27" TopLine="217"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="8313" Column="23" TopLine="8306"/>
       </Position18>
       <Position19>
-        <Filename Value="trainergenerator.pas"/>
-        <Caret Line="305" Column="10" TopLine="303"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="4811" Column="14" TopLine="4782"/>
       </Position19>
       <Position20>
-        <Filename Value="trainergenerator.pas"/>
-        <Caret Line="777" Column="52" TopLine="748"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="8348" Column="17" TopLine="8330"/>
       </Position20>
       <Position21>
-        <Filename Value="trainergenerator.pas"/>
-        <Caret Line="779" Column="77" TopLine="750"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="8368" Column="71" TopLine="8339"/>
       </Position21>
       <Position22>
-        <Filename Value="trainergenerator.pas"/>
-        <Caret Line="796" Column="78" TopLine="767"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="8363" Column="20" TopLine="8336"/>
       </Position22>
       <Position23>
-        <Filename Value="trainergenerator.pas"/>
-        <Caret Line="767" Column="49" TopLine="757"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="8344" Column="22" TopLine="8333"/>
       </Position23>
       <Position24>
-        <Filename Value="trainergenerator.pas"/>
-        <Caret Line="1023" Column="18" TopLine="1015"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="8381" Column="55" TopLine="8355"/>
       </Position24>
       <Position25>
-        <Filename Value="trainergenerator.pas"/>
-        <Caret Line="1022" Column="16" TopLine="1005"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position25>
       <Position26>
-        <Filename Value="trainergenerator.pas"/>
-        <Caret Line="1046" Column="1" TopLine="1023"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="102" Column="22" TopLine="84"/>
       </Position26>
       <Position27>
-        <Filename Value="trainergenerator.pas"/>
-        <Caret Line="990" Column="11" TopLine="986"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="107" Column="19" TopLine="84"/>
       </Position27>
       <Position28>
-        <Filename Value="ExtraTrainerComponents.pas"/>
-        <Caret Line="78" Column="38" TopLine="71"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="109" Column="19" TopLine="84"/>
       </Position28>
       <Position29>
-        <Filename Value="ExtraTrainerComponents.pas"/>
-        <Caret Line="86" Column="31" TopLine="68"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="111" Column="20" TopLine="84"/>
       </Position29>
       <Position30>
-        <Filename Value="trainergenerator.pas"/>
-        <Caret Line="756" Column="28" TopLine="748"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="708" Column="18" TopLine="679"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>

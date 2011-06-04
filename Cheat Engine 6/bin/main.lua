@@ -53,6 +53,8 @@ keyDown(key) : causes the key to go into down state
 keyUp(key) :causes the key to go up
 doKeyPress(key) : simmulates a key press
 
+shellExecute(command, parameters OPTIONAL, folder OPTIONAL, showcommand OPTIONAL): Executes a given command
+
 
 speedhack_setSpeed(speed)
 injectDll(filename): Injects a dll, and returns true on success
