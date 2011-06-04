@@ -1431,6 +1431,7 @@ begin
   cancelbutton := TButton.Create(self);
   with cancelbutton do
   begin
+    Anchors:=newscan.Anchors;
     top := newscan.top;
     left := newscan.left;
     Width := (nextscanbutton.left + nextscanbutton.Width) - left;
