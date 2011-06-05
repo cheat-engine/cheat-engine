@@ -822,7 +822,7 @@ const opcodes: array [1..opcodecount] of topcode =(
 
 
   (mnemonic:'MOVQ';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_rm32;bytes:2;bt1:$0f;bt2:$6e),
-  (mnemonic:'MOVQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_rm32;bytes:3;bt1:$66;bt2:$0f;bt3:$6e),
+  (mnemonic:'MOVQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_rm32;bytes:3;bt1:$f3;bt2:$0f;bt3:$7e),
 
 
   (mnemonic:'MOVQ';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$6f),
@@ -4861,6 +4861,19 @@ begin
           exit;
         end;
       end;
+
+      if (opcodes[j].paramtype2=par_rm32) and (isrm32(paramtype2)) then
+      begin
+        //mm,rm32
+        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+        begin
+          //xmm,rm32
+          addopcode(bytes,j);
+          result:=createmodrm(bytes,getreg(parameter1),parameter2);
+          exit;
+        end;
+      end;
+
 
 
 
