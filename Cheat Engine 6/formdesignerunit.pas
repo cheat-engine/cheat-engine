@@ -36,8 +36,8 @@ type
     CECheckbox: TToolButton;
     CEGroupBox: TToolButton;
     CERadioGroup: TToolButton;
-    CEListbox: TToolButton;
-    CECombobox: TToolButton;
+    CEListBox: TToolButton;
+    CEComboBox: TToolButton;
     ToolButton1: TToolButton;
     CETimer: TToolButton;
     CEOpenDialog: TToolButton;

@@ -1311,6 +1311,9 @@ initialization
   RegisterClass(TCEEdit);
   RegisterClass(TCEToggleBox);
 
+  RegisterClass(TCEComboBox);
+  RegisterClass(TCEListBox);
+
   RegisterClass(TCECheckBox);
   RegisterClass(TCEGroupBox);
   RegisterClass(TCERadioGroup);

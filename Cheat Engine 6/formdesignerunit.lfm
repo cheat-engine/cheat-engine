@@ -143,20 +143,20 @@ object FormDesigner: TFormDesigner
       OnClick = TBClick
       Style = tbsCheck
     end
-    object CEListbox: TToolButton
+    object CEListBox: TToolButton
       Left = 335
       Hint = 'Listbox'
       Top = 2
-      Caption = 'CEListbox'
+      Caption = 'CEListBox'
       Grouped = True
       ImageIndex = 11
       OnClick = TBClick
       Style = tbsCheck
     end
-    object CECombobox: TToolButton
+    object CEComboBox: TToolButton
       Left = 365
       Top = 2
-      Caption = 'CECombobox'
+      Caption = 'CEComboBox'
       Grouped = True
       ImageIndex = 12
       OnClick = TBClick
