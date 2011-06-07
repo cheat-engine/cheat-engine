@@ -341,6 +341,7 @@ type
     memoryFile: TFileStream;
     savescannerresults: boolean; //tells the epilogue to save the results to addressfile and memoryfile
     isdoneEvent: TEvent; //gets set when the scan has finished
+    isReallyDoneEvent: TEvent; //gets set when the results have been completly written
 
     procedure updategui;
     procedure errorpopup;
@@ -485,6 +486,7 @@ type
     procedure firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; hexadecimal,binaryStringAsDecimal,unicode,casesensitive: boolean; fastscanmethod: TFastScanMethod=fsmNotAligned; fastscanparameter: string=''; customtype: TCustomType=nil);
     procedure NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; hexadecimal,binaryStringAsDecimal, unicode, casesensitive,percentage,compareToSavedScan: boolean; savedscanname: string); //next scan, determine what kind of scan and give to firstnextscan/nextnextscan
     procedure waittilldone;
+    procedure waittillreallydone;
 
     procedure setScanDoneCallback(notifywindow: thandle; notifymessage: integer);
 
@@ -4607,6 +4609,8 @@ begin
       end;
     end;
 
+    isreallydoneevent.setEvent;
+
 
 
 
@@ -4635,6 +4639,8 @@ begin
     if MemoryFile<>nil then Memoryfile.Free;
 
     outputdebugstring('bla2');
+
+
 
 
     //save the first scan results if needed
@@ -4672,6 +4678,7 @@ begin
   SetProgressstate(tbpsNormal);
 
   isdoneevent:=TEvent.create(nil,true,false,'');
+  isreallydoneevent:=TEvent.create(nil,true,false,'');
   scannersCS:=TCriticalSection.Create;
   resultsaveCS:=TCriticalsection.create;
   
@@ -4843,6 +4850,12 @@ procedure TMemscan.waittilldone;
 begin
   if scancontroller<>nil then
     scancontroller.isdoneEvent.WaitFor(INFINITE);
+end;
+
+procedure TMemscan.waittillreallydone;
+begin
+  if scancontroller<>nil then
+    scancontroller.isreallydoneEvent.WaitFor(INFINITE);
 end;
 
 function TMemscan.GetOnlyOneResult(var address: ptruint):boolean;

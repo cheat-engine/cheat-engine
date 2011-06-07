@@ -2457,8 +2457,11 @@ begin
         result:=1;
         lua_pushboolean(L, true);
       except
-        result:=1;
-        lua_pushboolean(L, false);
+        on e: exception do
+        begin
+          lua_pushstring(L, e.Message);
+          lua_error(L);
+        end;
       end;
     end
     else
@@ -4207,7 +4210,9 @@ begin
     lua_pushlightuserdata(L, list);
   end
   else
+  begin
     list.free;
+  end;
 
 end;
 
@@ -7433,7 +7438,7 @@ begin
     memscan:=lua_touserdata(L, -parameters);
     lua_pop(L, lua_gettop(L));
 
-    memscan.waittilldone;
+    memscan.waittillreallydone;
   end else lua_pop(L, lua_gettop(L));
 end;
 
@@ -8750,7 +8755,7 @@ begin
 
     lua_register(LuaVM, 'openDialog_execute', openDialog_execute);
 
-    Lua_register(LuaVM, 'getMemoryViewForm', getMainForm);
+    Lua_register(LuaVM, 'getMemoryViewForm', getMemoryViewForm);
     lua_register(LuaVM, 'memoryview_getDisassemblerView', memoryview_getDisassemblerView);
     lua_register(LuaVM, 'memoryview_getHexadecimalView', memoryview_getHexadecimalView);
 

@@ -56,7 +56,7 @@ begin
 
   ms.firstscan(soExactValue, vtByteArray, rtRounded, aobstring, '', 0, max, true,  false, false, false, alignmenttype, alignmentparam);
 
-  ms.waittilldone; //wait till it's finished scanning
+  ms.waittillreallydone; //wait till it's finished scanning AND saving
 
 
   count:=foundlist.Initialize(8,nil);
