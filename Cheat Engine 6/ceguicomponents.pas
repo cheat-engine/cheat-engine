@@ -615,6 +615,7 @@ type TCEEdit=class(TCustomEdit)
 type TCEForm=class(TCustomForm)
   private
     saveddesign: TMemorystream;
+    fDoNotSaveInTable: boolean;
     procedure paint; override;
     procedure OnWriteMethod(Writer: TWriter; Instance: TPersistent; PropInfo: PPropInfo; const MethodValue, DefMethodValue: TMethod; var Handled: boolean);
     procedure WriteComponentAsBinaryToStreamWithMethods(Astream: TStream);
@@ -634,6 +635,7 @@ type TCEForm=class(TCustomForm)
     destructor destroy; override;
 
     property  active: boolean read getActive write setActive;
+
   published
     property Align;
    // property AllowDropFiles;
@@ -716,6 +718,8 @@ type TCEForm=class(TCustomForm)
  //   property LCLVersion: string read FLCLVersion write FLCLVersion stored LCLVersionIsStored;
     //property Visible;
     property WindowState;
+
+    property DoNotSaveInTable: boolean read fDoNotSaveInTable write fDoNotSaveInTable default False;
 end;
 
 type TCEMemo=class(TCustomMemo)

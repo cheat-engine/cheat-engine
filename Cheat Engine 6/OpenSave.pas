@@ -14,7 +14,7 @@ uses windows, forms, LCLIntf,registry, SysUtils,AdvancedOptionsUnit,CommentsUnit
      comctrls,dom, xmlread,xmlwrite, FileUtil, ceguicomponents, zstream, luafile, disassemblerComments;
 
 
-var CurrentTableVersion: dword=11;
+var CurrentTableVersion: dword=12;
 procedure protecttrainer(filename: string);
 procedure unprotecttrainer(filename: string; stream: TStream);
 procedure SaveTable(Filename: string; protect: boolean=false);
@@ -313,20 +313,24 @@ begin
 
     if not merge then
     begin
-      for i:=0 to mainform.LuaForms.count-1 do
-        TCEForm(mainform.Luaforms[i]).free;
+      i:=0;
+      while i<mainform.LuaForms.count do
+      begin
+        //only delete if it's a table form
+        if TCEForm(mainform.Luaforms[i]).DoNotSaveInTable=false then
+        begin
+          TCEForm(mainform.Luaforms[i]).free;
+          mainform.Luaforms.Delete(i);
+        end
+        else
+          inc(i);
+      end;
 
-      mainform.LuaForms.clear;
-
-      for i:=0 to mainform.LuaForms.count-1 do
+      for i:=0 to mainform.LuaFiles.count-1 do
         TLUAFile(mainform.Luaforms[i]).free;
 
       mainform.LuaFiles.clear;
-
-
     end;
-
-
 
 
     //first load the form. If the lua functions are not loaded it's no biggy, the events just don't do anything then
@@ -950,7 +954,8 @@ begin
   begin
     Forms:=CheatTable.AppendChild(doc.CreateElement('Forms'));
     for i:=0 to mainform.LuaForms.count-1 do
-      TCEForm(mainform.LuaForms[i]).savetoxml(forms);
+      if TCEForm(mainform.LuaForms[i]).DoNotSaveInTable=false then //only save forms that belong to the table
+        TCEForm(mainform.LuaForms[i]).savetoxml(forms);
   end;
 
   if mainform.LuaFiles.count>0 then

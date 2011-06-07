@@ -2472,6 +2472,42 @@ begin
 
 end;
 
+function form_getDoNotSaveInTable(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  form: Tceform;
+  align: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    form:=lua_touserdata(L,-1);
+    lua_pop(L, parameters);
+
+    lua_pushboolean(L, form.DoNotSaveInTable);
+    result:=1;
+
+  end else lua_pop(L, parameters);
+end;
+
+function form_setDoNotSaveInTable(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  form: Tceform;
+  a: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    form:=lua_touserdata(L,-2);
+    form.DoNotSaveInTable:=lua_toboolean(L,-1);
+  end;
+
+  lua_pop(L, parameters);
+end;
+
 function listView_getCanvas(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
@@ -8574,6 +8610,9 @@ begin
     lua_register(LuaVM, 'form_getMenu', form_getMenu);
     lua_register(LuaVM, 'form_setMenu', form_setMenu);
     lua_register(LuaVM, 'form_saveToFile', form_saveToFile);
+    lua_register(LuaVM, 'form_setDoNotSaveInTable', form_setDoNotSaveInTable);
+    lua_register(LuaVM, 'form_getDoNotSaveInTable', form_getDoNotSaveInTable);
+
 
 
     lua_register(LuaVM, 'createPanel', createPanel);

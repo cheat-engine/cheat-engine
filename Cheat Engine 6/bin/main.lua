@@ -321,6 +321,8 @@ form_isForegroundWindow(form): returns true if the specified form has focus
 form_onClose(form, function)  : function (sender) : Return a CloseAction to determine how to close the window
 form_getMenu(form) : Returns the mainmenu object of this form
 form_setMenu(form, mainmenu)
+form_getDoNotSaveInTable(form): Returns the DoNotSaveInTable property
+form_setDoNotSaveInTable(form, boolean): Sets the DoNotSaveInTable property
 
 
 GraphicControl Class: (Inheritance: Control->Component->Object)
