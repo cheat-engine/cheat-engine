@@ -98,10 +98,10 @@ interrupt1_asmentry:
 		mov ss,ax
 		
 		
-		cmp qword ptr [rbp+8*21],010h ;check if origin is in kernelmode (check ss)
+		cmp qword ptr [rbp+8*21+4096],010h ;check if origin is in kernelmode (check ss)
 		je skipswap1 ;if so, skip the swapgs
 		
-		swapgs ;swap gs with the kernel version (not to self fix when called from inside kernel)
+		swapgs ;swap gs with the kernel version (note to self fix when called from inside kernel)
 		
 skipswap1:
 		
@@ -118,7 +118,7 @@ skipswap1:
 		
 		ldmxcsr dword ptr (ASMENTRY_STACK PTR [rsp]).Originalmxcsr
 		
-		cmp qword ptr [rbp+8*21],10h ;was it a kernelmode interrupt ?
+		cmp qword ptr [rbp+8*21+4096],10h ;was it a kernelmode interrupt ?
 		je skipswap2 ;if so, skip the swapgs part
 				
 		swapgs ;swap back
@@ -144,8 +144,8 @@ skipswap2:
 		mov rdx,(ASMENTRY_STACK PTR [rsp]).OriginalRDX
 		mov rsi,(ASMENTRY_STACK PTR [rsp]).OriginalRSI
 		mov rdi,(ASMENTRY_STACK PTR [rsp]).OriginalRDI
-		mov r8,(ASMENTRY_STACK PTR [rsp]).OriginalR8
-		mov r9,(ASMENTRY_STACK PTR [rsp]).OriginalR9
+		mov r8, (ASMENTRY_STACK PTR [rsp]).OriginalR8
+		mov r9, (ASMENTRY_STACK PTR [rsp]).OriginalR9
 		mov r10,(ASMENTRY_STACK PTR [rsp]).OriginalR10
 		mov r11,(ASMENTRY_STACK PTR [rsp]).OriginalR11
 		mov r12,(ASMENTRY_STACK PTR [rsp]).OriginalR12

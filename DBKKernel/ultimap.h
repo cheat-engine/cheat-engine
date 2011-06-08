@@ -81,8 +81,10 @@ int DS_AREA_SIZE;
 
 //Not sure if it's already defined somewhere in a header, but I need this
 typedef struct {
-  UINT64 a;
-  UINT64 b;
+  DWORD a;
+  DWORD b;
+  DWORD c;
+  DWORD d;
 } UINT128;
 
 typedef struct {

@@ -43,7 +43,10 @@ _DataBlock *DataBlock;
 PVOID *DataReadyPointerList;
 
 
- //array containing pointers to the DataReady events
+void ultimap_flushBuffers(void)
+{
+	//call this when the buffer of the current cpu needs to be flushed and handled
+}
 
 
 NTSTATUS ultimap_continue(PULTIMAPDATAEVENT data)
