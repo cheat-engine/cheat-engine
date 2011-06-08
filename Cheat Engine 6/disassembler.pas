@@ -614,13 +614,15 @@ begin
 
               4:
               begin
-                result:=getsegmentoverride(prefix)+'['+sib(memory,modrmbyte+1,last);
+                result:=getsegmentoverride(prefix)+'['+sib(memory,modrmbyte+1,last)+'],';
+                dec(last);
 
+                {
                 if shortint(memory[last])>=0 then
                   result:=result+'+'+inttohexs(memory[last],2)+'],'
                 else
                   result:=result+'-'+inttohexs(-shortint(memory[last]),2)+'],';
-
+                                               }
 
               end;
 
@@ -713,6 +715,13 @@ begin
                 result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bx'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+'],';
 
 
+              4:
+              begin
+                result:=getsegmentoverride(prefix)+'['+sib(memory,modrmbyte+1,last)+'],';
+                dec(last,4);
+              end;
+
+             {
               4:  begin
                     result:=getsegmentoverride(prefix)+'['+sib(memory,modrmbyte+1,last);
 
@@ -743,6 +752,7 @@ begin
                     //result:=getsegmentoverride(prefix)+'['+result+'],';
 
                   end;
+                  }
               5:
               if integer(dwordptr^)>=0 then
                 result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bp'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
@@ -1098,7 +1108,7 @@ begin
   end;
 
 
-  if base=5 then
+ //
   begin
     //mod 0 : [scaled index]+disp32
     //mod 1 : [scaled index]+disp8+ebp
@@ -1109,14 +1119,18 @@ begin
       0: //sib with a mod of 0. scaled index + disp32
       begin
         //
-        if pinteger(dwordptr)^<0 then
-          displacementstring:='-'+inttohexs(-pinteger(dwordptr)^,8)
-        else
-          displacementstring:=inttohexs(pinteger(dwordptr)^,8);
+        if base=5 then
+        begin
+          if pinteger(dwordptr)^<0 then
+            displacementstring:='-'+inttohexs(-pinteger(dwordptr)^,8)
+          else
+            displacementstring:=inttohexs(pinteger(dwordptr)^,8);
 
-        last:=last+4;
+          last:=last+4;
+        end;
       end;
-     1: //scaled index + ebp+ disp 8
+
+      1: //scaled index + ebp+ disp 8
       begin
         //displacementstring:=colorreg+'EBP'+endcolor;
         if pshortint(dwordptr)^<0 then
@@ -1127,16 +1141,16 @@ begin
         last:=last+1;
       end;
 
-     2: //scaned index + ebp+disp 32
-     begin
-       //displacementstring:=colorreg+'EBP'+endcolor;
-       if pinteger(dwordptr)^<0 then
-         displacementstring:=displacementstring+'-'+inttohexs(-pinteger(dwordptr)^,8)
-       else
-         displacementstring:=displacementstring+'+'+inttohexs(pinteger(dwordptr)^,8);
+      2: //scaled index + ebp+disp 32
+      begin
+        //displacementstring:=colorreg+'EBP'+endcolor;
+        if pinteger(dwordptr)^<0 then
+          displacementstring:=displacementstring+'-'+inttohexs(-pinteger(dwordptr)^,8)
+        else
+          displacementstring:=displacementstring+'+'+inttohexs(pinteger(dwordptr)^,8);
 
-       last:=last+4;
-     end;
+        last:=last+4;
+      end;
 
     end;
 
@@ -1157,6 +1171,7 @@ begin
   end;
 
 {$ifdef disassemblerdebug}
+            end;
   result:=result+' ss='+inttostr(ss)+' index='+inttostr(index)+' base='+inttostr(base);
 {$endif}
 
