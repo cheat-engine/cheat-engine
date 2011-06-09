@@ -3644,7 +3644,6 @@ begin
 
 
   VartypeChange(vartype);
-  foundlist.deleteresults;
 
   if scanvalue.Visible and scanvalue.Enabled then
   begin

@@ -19,7 +19,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
       <MinorVersionNr Value="1"/>
-      <BuildNr Value="1531"/>
+      <BuildNr Value="1536"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="6.1"/>
@@ -117,7 +117,7 @@
             <CompilerMessages>
               <UseMsgFile Value="True"/>
             </CompilerMessages>
-            <CustomOptions Value="-dNOTMULTITHREADED -dbenchmarkps -dcemain -WB00400000 -dNDEBUG -dUNICODE"/>
+            <CustomOptions Value="-dNOTMULTITHREADED -dbenchmarkps -dcemain -WB00400000 -dNDEBUG -dUNICODE -dNOVMX"/>
             <CompilerPath Value="$(CompPath)"/>
           </Other>
         </CompilerOptions>
@@ -159,10 +159,12 @@
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="cheatengine"/>
+        <EditorIndex Value="12"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="91"/>
-        <CursorPos X="20" Y="126"/>
+        <TopLine Value="94"/>
+        <CursorPos X="39" Y="120"/>
         <UsageCount Value="211"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit0>
       <Unit1>
@@ -185,8 +187,8 @@
         <UnitName Value="MainUnit"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="6436"/>
-        <CursorPos X="42" Y="6447"/>
+        <TopLine Value="3623"/>
+        <CursorPos X="32" Y="3630"/>
         <UsageCount Value="211"/>
         <Bookmarks Count="1">
           <Item0 X="1" Y="1854" ID="2"/>
@@ -199,7 +201,7 @@
         <Filename Value="NewKernelHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="NewKernelHandler"/>
-        <EditorIndex Value="15"/>
+        <EditorIndex Value="19"/>
         <WindowIndex Value="0"/>
         <TopLine Value="517"/>
         <CursorPos X="10" Y="535"/>
@@ -211,7 +213,7 @@
         <Filename Value="CEFuncProc.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="CEFuncProc"/>
-        <EditorIndex Value="20"/>
+        <EditorIndex Value="24"/>
         <WindowIndex Value="0"/>
         <TopLine Value="2684"/>
         <CursorPos X="112" Y="2696"/>
@@ -329,7 +331,7 @@
         <ComponentName Value="ProcessWindow"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="ProcessWindowUnit"/>
-        <EditorIndex Value="16"/>
+        <EditorIndex Value="20"/>
         <WindowIndex Value="0"/>
         <TopLine Value="270"/>
         <CursorPos X="86" Y="288"/>
@@ -361,7 +363,7 @@
         <Filename Value="dbvmPhysicalMemoryHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="dbvmPhysicalMemoryHandler"/>
-        <EditorIndex Value="14"/>
+        <EditorIndex Value="18"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="36" Y="12"/>
@@ -603,10 +605,12 @@
         <Filename Value="foundlisthelper.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="foundlisthelper"/>
+        <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="56"/>
-        <CursorPos X="70" Y="70"/>
+        <TopLine Value="634"/>
+        <CursorPos X="3" Y="738"/>
         <UsageCount Value="210"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit38>
       <Unit39>
@@ -633,9 +637,13 @@
         <Filename Value="memscan.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="memscan"/>
-        <TopLine Value="4626"/>
-        <CursorPos X="69" Y="4645"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="14"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="4985"/>
+        <CursorPos X="56" Y="5009"/>
         <UsageCount Value="209"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit41>
       <Unit42>
@@ -754,8 +762,7 @@
         <Filename Value="OpenSave.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="OpenSave"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="13"/>
+        <EditorIndex Value="17"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="34" Y="17"/>
@@ -1491,7 +1498,7 @@
         <Filename Value="debugeventhandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="debugeventhandler"/>
-        <EditorIndex Value="19"/>
+        <EditorIndex Value="23"/>
         <WindowIndex Value="0"/>
         <TopLine Value="181"/>
         <CursorPos X="53" Y="203"/>
@@ -1596,10 +1603,12 @@
         <Filename Value="windows7taskbar.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="windows7taskbar"/>
+        <EditorIndex Value="13"/>
         <WindowIndex Value="0"/>
         <TopLine Value="81"/>
-        <CursorPos X="38" Y="94"/>
+        <CursorPos X="1" Y="99"/>
         <UsageCount Value="204"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit124>
       <Unit125>
@@ -1801,8 +1810,8 @@
         <UnitName Value="LuaHandler"/>
         <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="8590"/>
-        <CursorPos X="30" Y="8606"/>
+        <TopLine Value="7484"/>
+        <CursorPos X="56" Y="7506"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
           <WindowIndex Value="0"/>
@@ -1811,7 +1820,7 @@
         </ExtraEditor1>
         <UsageCount Value="200"/>
         <Bookmarks Count="1">
-          <Item0 X="1" Y="8413" ID="8"/>
+          <Item0 X="1" Y="8417" ID="8"/>
         </Bookmarks>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -2103,7 +2112,7 @@
         <ComponentName Value="frmStringMap"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmStringMapUnit"/>
-        <EditorIndex Value="21"/>
+        <EditorIndex Value="25"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="3" Y="19"/>
@@ -2297,11 +2306,11 @@
       </Unit190>
       <Unit191>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\win\wininc\defines.inc"/>
-        <EditorIndex Value="11"/>
+        <EditorIndex Value="15"/>
         <WindowIndex Value="0"/>
         <TopLine Value="2647"/>
         <CursorPos X="75" Y="2670"/>
-        <UsageCount Value="79"/>
+        <UsageCount Value="80"/>
         <Loaded Value="True"/>
       </Unit191>
       <Unit192>
@@ -2310,7 +2319,7 @@
         <ComponentName Value="frmUltimap"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmUltimapUnit"/>
-        <EditorIndex Value="18"/>
+        <EditorIndex Value="22"/>
         <WindowIndex Value="0"/>
         <TopLine Value="385"/>
         <CursorPos X="5" Y="415"/>
@@ -2322,7 +2331,7 @@
       <Unit193>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\packages\winunits-jedi\src\jwawingdi.pas"/>
         <UnitName Value="jwawingdi"/>
-        <EditorIndex Value="17"/>
+        <EditorIndex Value="21"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1340"/>
         <CursorPos X="3" Y="1358"/>
@@ -2332,145 +2341,141 @@
       <Unit194>
         <Filename Value="C:\lazarus\lcl\avglvltree.pas"/>
         <UnitName Value="AvgLvlTree"/>
-        <EditorIndex Value="22"/>
+        <EditorIndex Value="26"/>
         <WindowIndex Value="0"/>
         <TopLine Value="274"/>
         <CursorPos X="3" Y="270"/>
-        <UsageCount Value="84"/>
+        <UsageCount Value="85"/>
         <Loaded Value="True"/>
       </Unit194>
       <Unit195>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\packages\winunits-base\src\shellapi.pp"/>
         <UnitName Value="ShellApi"/>
-        <EditorIndex Value="12"/>
+        <EditorIndex Value="16"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1057"/>
         <CursorPos X="10" Y="1075"/>
-        <UsageCount Value="39"/>
+        <UsageCount Value="40"/>
         <Loaded Value="True"/>
       </Unit195>
     </Units>
-    <JumpHistory Count="30" HistoryIndex="29">
+    <JumpHistory Count="29" HistoryIndex="28">
       <Position1>
-        <Filename Value="formdesignerunit.pas"/>
-        <Caret Line="12" Column="51" TopLine="1"/>
+        <Filename Value="foundlisthelper.pas"/>
+        <Caret Line="783" Column="1" TopLine="765"/>
       </Position1>
       <Position2>
-        <Filename Value="ceguicomponents.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="foundlisthelper.pas"/>
+        <Caret Line="784" Column="1" TopLine="765"/>
       </Position2>
       <Position3>
-        <Filename Value="ceguicomponents.pas"/>
-        <Caret Line="209" Column="37" TopLine="203"/>
+        <Filename Value="foundlisthelper.pas"/>
+        <Caret Line="786" Column="1" TopLine="765"/>
       </Position3>
       <Position4>
-        <Filename Value="ceguicomponents.pas"/>
-        <Caret Line="62" Column="29" TopLine="55"/>
+        <Filename Value="foundlisthelper.pas"/>
+        <Caret Line="787" Column="1" TopLine="765"/>
       </Position4>
       <Position5>
-        <Filename Value="ceguicomponents.pas"/>
-        <Caret Line="1328" Column="19" TopLine="1294"/>
+        <Filename Value="foundlisthelper.pas"/>
+        <Caret Line="788" Column="1" TopLine="765"/>
       </Position5>
       <Position6>
-        <Filename Value="ceguicomponents.pas"/>
-        <Caret Line="722" Column="31" TopLine="696"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="7498" Column="1" TopLine="7469"/>
       </Position6>
       <Position7>
-        <Filename Value="OpenSave.pas"/>
-        <Caret Line="1125" Column="56" TopLine="1111"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="7492" Column="35" TopLine="7475"/>
       </Position7>
       <Position8>
-        <Filename Value="OpenSave.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="windows7taskbar.pas"/>
+        <Caret Line="99" Column="1" TopLine="81"/>
       </Position8>
       <Position9>
-        <Filename Value="OpenSave.pas"/>
-        <Caret Line="324" Column="37" TopLine="299"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="7506" Column="56" TopLine="7475"/>
       </Position9>
       <Position10>
-        <Filename Value="OpenSave.pas"/>
-        <Caret Line="333" Column="42" TopLine="312"/>
+        <Filename Value="foundlisthelper.pas"/>
+        <Caret Line="783" Column="1" TopLine="765"/>
       </Position10>
       <Position11>
-        <Filename Value="OpenSave.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="foundlisthelper.pas"/>
+        <Caret Line="784" Column="1" TopLine="765"/>
       </Position11>
       <Position12>
-        <Filename Value="OpenSave.pas"/>
-        <Caret Line="303" Column="15" TopLine="290"/>
+        <Filename Value="foundlisthelper.pas"/>
+        <Caret Line="786" Column="1" TopLine="765"/>
       </Position12>
       <Position13>
-        <Filename Value="OpenSave.pas"/>
-        <Caret Line="312" Column="56" TopLine="306"/>
+        <Filename Value="foundlisthelper.pas"/>
+        <Caret Line="787" Column="1" TopLine="765"/>
       </Position13>
       <Position14>
-        <Filename Value="OpenSave.pas"/>
-        <Caret Line="317" Column="32" TopLine="306"/>
+        <Filename Value="foundlisthelper.pas"/>
+        <Caret Line="788" Column="1" TopLine="765"/>
       </Position14>
       <Position15>
-        <Filename Value="OpenSave.pas"/>
-        <Caret Line="320" Column="37" TopLine="306"/>
+        <Filename Value="foundlisthelper.pas"/>
+        <Caret Line="794" Column="1" TopLine="765"/>
       </Position15>
       <Position16>
-        <Filename Value="OpenSave.pas"/>
-        <Caret Line="322" Column="36" TopLine="306"/>
+        <Filename Value="foundlisthelper.pas"/>
+        <Caret Line="795" Column="1" TopLine="765"/>
       </Position16>
       <Position17>
-        <Filename Value="OpenSave.pas"/>
-        <Caret Line="323" Column="28" TopLine="306"/>
+        <Filename Value="foundlisthelper.pas"/>
+        <Caret Line="797" Column="3" TopLine="765"/>
       </Position17>
       <Position18>
-        <Filename Value="OpenSave.pas"/>
-        <Caret Line="330" Column="35" TopLine="306"/>
+        <Filename Value="foundlisthelper.pas"/>
+        <Caret Line="766" Column="1" TopLine="759"/>
       </Position18>
       <Position19>
-        <Filename Value="OpenSave.pas"/>
-        <Caret Line="399" Column="55" TopLine="373"/>
+        <Filename Value="foundlisthelper.pas"/>
+        <Caret Line="767" Column="1" TopLine="759"/>
       </Position19>
       <Position20>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="8360" Column="36" TopLine="8348"/>
+        <Filename Value="foundlisthelper.pas"/>
+        <Caret Line="768" Column="1" TopLine="759"/>
       </Position20>
       <Position21>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="15" Column="44" TopLine="1"/>
+        <Filename Value="foundlisthelper.pas"/>
+        <Caret Line="37" Column="35" TopLine="23"/>
       </Position21>
       <Position22>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="2201" Column="41" TopLine="2182"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="6447" Column="42" TopLine="6436"/>
       </Position22>
       <Position23>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="2426" Column="1" TopLine="2413"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="3630" Column="32" TopLine="3623"/>
       </Position23>
       <Position24>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="478" Column="119" TopLine="471"/>
       </Position24>
       <Position25>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="3838" Column="41" TopLine="3820"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position25>
       <Position26>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="4834" Column="46" TopLine="4807"/>
       </Position26>
       <Position27>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="2475" Column="1" TopLine="2465"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="4836" Column="41" TopLine="4807"/>
       </Position27>
       <Position28>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="2494" Column="1" TopLine="2485"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="4925" Column="41" TopLine="4896"/>
       </Position28>
       <Position29>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="8419" Column="60" TopLine="8401"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="4953" Column="41" TopLine="4924"/>
       </Position29>
-      <Position30>
-        <Filename Value="OpenSave.pas"/>
-        <Caret Line="947" Column="92" TopLine="933"/>
-      </Position30>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

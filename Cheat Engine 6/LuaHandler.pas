@@ -7310,7 +7310,9 @@ begin
   result:=0;
   parameters:=lua_gettop(L);
   if parameters=1 then
-    progressbar:=lua_touserdata(L, -1);
+    progressbar:=lua_touserdata(L, -1)
+  else
+    progressbar:=nil;
 
   lua_pop(L, lua_gettop(L));
 
@@ -7487,7 +7489,9 @@ begin
   result:=0;
   parameters:=lua_gettop(L);
   if parameters=1 then
-    memscan:=lua_touserdata(L, -1);
+    memscan:=lua_touserdata(L, -1)
+  else
+    raise exception.create('createfoundlist(nil)');
 
   lua_pop(L, lua_gettop(L));
 

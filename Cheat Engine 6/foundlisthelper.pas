@@ -50,7 +50,6 @@ type
     fCount: UInt64;
   public
     function GetVarLength: integer;
-    procedure DeleteResults;
     procedure deleteaddress(i:integer);
     procedure clear;
     procedure RefetchValueList;
@@ -761,19 +760,11 @@ begin
     freeandnil(addressfile);
 end;
 
-procedure TFoundlist.deleteresults;
-begin
-  Deinitialize;
-  deletefile(pchar(memscan.ScanresultFolder+'Addresses.TMP'));
-  deletefile(pchar(memscan.ScanresultFolder+'Memory.TMP'));
-end;
 
 destructor TFoundlist.destroy;
 begin
   if RebaseAgainThread<>nil then
     RebaseAgainThread.WaitFor;
-
-  deleteresults;
 
   if createdfoundlist then
     foundlist.free;
@@ -793,8 +784,6 @@ begin
   //self.foundcountlabel:=foundcountlabel;
   self.memscan:=memscan;
   memscan.attachedFoundlist:=self;
-
-  deleteresults; //cleanup just to be sure
 end;
 
 end.
