@@ -1056,7 +1056,7 @@ begin
     1: indexstring:='ecx';
     2: indexstring:='edx';
     3: indexstring:='ebx';
-    4: indexstring:='';
+    4: if _mod = 0 then indexstring:='esp';
     5: indexstring:='ebp';
     6: indexstring:='esi';
     7: indexstring:='edi';
@@ -1078,7 +1078,18 @@ begin
   if indexstring<>'' then
     indexstring:=colorreg+indexstring+endcolor;
 
-  if index<>4 then
+  if (is64bit) and (base=5) and (index=4) and (_mod=0) then //disp32
+  begin
+    //special case for 64-bit
+    //sib has a 32-bit displacement value (starting at 0000000000000000)
+    LastDisassembleData.modrmValueType:=dvtAddress;
+    LastDisassembleData.modrmValue:=dwordptr^;
+
+    result:=inttohexs(dwordptr^,8);
+    last:=last+4;
+    exit;
+  end
+  else
   begin
     case ss of
       1: indexstring:=indexstring+'*'+colorhex+'2'+endcolor;
@@ -1089,24 +1100,7 @@ begin
       result:=indexstring
     else
       result:=result+'+'+indexstring;
-  end else
-  begin
-    if is64bit then
-    begin
-      if (base=5) and (index=4) and (_mod=0) then //disp32
-      begin
-        //sib has a 32-bit displacement value (starting at 0000000000000000)
-        LastDisassembleData.modrmValueType:=dvtAddress;
-        LastDisassembleData.modrmValue:=dwordptr^;
-
-        result:=inttohexs(dwordptr^,8);
-        last:=last+4;
-        exit;
-      end;
-
-    end;
   end;
-
 
  //
   begin
@@ -1122,9 +1116,9 @@ begin
         if base=5 then
         begin
           if pinteger(dwordptr)^<0 then
-            displacementstring:='-'+inttohexs(-pinteger(dwordptr)^,8)
+            displacementstring:='-'+inttohex{s}(-pinteger(dwordptr)^,8)
           else
-            displacementstring:=inttohexs(pinteger(dwordptr)^,8);
+            displacementstring:=inttohex{s}(pinteger(dwordptr)^,8);
 
           last:=last+4;
         end;
@@ -1134,9 +1128,9 @@ begin
       begin
         //displacementstring:=colorreg+'EBP'+endcolor;
         if pshortint(dwordptr)^<0 then
-          displacementstring:=displacementstring+'-'+inttohexs(-pshortint(dwordptr)^,2)
+          displacementstring:='-'+inttohex{s}(-pshortint(dwordptr)^,2)
         else
-          displacementstring:=displacementstring+'+'+inttohexs(pshortint(dwordptr)^,2);
+          displacementstring:=inttohex{s}(pshortint(dwordptr)^,2);
 
         last:=last+1;
       end;
@@ -1145,9 +1139,9 @@ begin
       begin
         //displacementstring:=colorreg+'EBP'+endcolor;
         if pinteger(dwordptr)^<0 then
-          displacementstring:=displacementstring+'-'+inttohexs(-pinteger(dwordptr)^,8)
+          displacementstring:='-'+inttohex{s}(-pinteger(dwordptr)^,8)
         else
-          displacementstring:=displacementstring+'+'+inttohexs(pinteger(dwordptr)^,8);
+          displacementstring:=inttohex{s}(pinteger(dwordptr)^,8);
 
         last:=last+4;
       end;
@@ -1160,8 +1154,8 @@ begin
     begin
       if (displacementstring<>'') then
       begin
-        if (displacementstring[1] in ['+','-']) then
-          result:=result+displacementstring //already starts with a + or -
+        if (displacementstring[1] = '-') then
+          result:=result+displacementstring //already starts with a sign
         else
           result:=result+'+'+displacementstring;
       end;
@@ -1171,7 +1165,6 @@ begin
   end;
 
 {$ifdef disassemblerdebug}
-            end;
   result:=result+' ss='+inttostr(ss)+' index='+inttostr(index)+' base='+inttostr(base);
 {$endif}
 
@@ -6757,7 +6750,7 @@ begin
                         lastdisassembledata.parametervalue:=wordptr^;
 
                         lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(wordptr^,4);
-                        inc(offset,last-1);
+                        inc(offset,last-1+2);
                       end else
                       begin
                         lastdisassembledata.opcode:='xor';
@@ -6770,7 +6763,7 @@ begin
                         lastdisassembledata.parametervalue:=dwordptr^;
 
                         lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(dwordptr^,8);
-                        inc(offset,last-1+2);
+                        inc(offset,last-1+4);
                       end;
 
                       offset:=offset+last;
