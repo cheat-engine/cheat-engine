@@ -19,7 +19,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
       <MinorVersionNr Value="1"/>
-      <BuildNr Value="1537"/>
+      <BuildNr Value="1538"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="6.1"/>
@@ -607,8 +607,8 @@
         <UnitName Value="foundlisthelper"/>
         <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="634"/>
-        <CursorPos X="3" Y="738"/>
+        <TopLine Value="718"/>
+        <CursorPos X="49" Y="739"/>
         <UsageCount Value="210"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -639,8 +639,8 @@
         <UnitName Value="memscan"/>
         <EditorIndex Value="14"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="4985"/>
-        <CursorPos X="56" Y="5009"/>
+        <TopLine Value="4904"/>
+        <CursorPos X="3" Y="4906"/>
         <UsageCount Value="209"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -1810,8 +1810,8 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="7556"/>
-        <CursorPos X="12" Y="7565"/>
+        <TopLine Value="7571"/>
+        <CursorPos X="1" Y="7589"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
           <WindowIndex Value="0"/>
@@ -2310,7 +2310,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="2647"/>
         <CursorPos X="75" Y="2670"/>
-        <UsageCount Value="82"/>
+        <UsageCount Value="80"/>
         <Loaded Value="True"/>
       </Unit191>
       <Unit192>
@@ -2345,7 +2345,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="274"/>
         <CursorPos X="3" Y="270"/>
-        <UsageCount Value="87"/>
+        <UsageCount Value="85"/>
         <Loaded Value="True"/>
       </Unit194>
       <Unit195>
@@ -2355,126 +2355,126 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1057"/>
         <CursorPos X="10" Y="1075"/>
-        <UsageCount Value="42"/>
+        <UsageCount Value="40"/>
         <Loaded Value="True"/>
       </Unit195>
     </Units>
-    <JumpHistory Count="29" HistoryIndex="28">
+    <JumpHistory Count="29" HistoryIndex="27">
       <Position1>
         <Filename Value="foundlisthelper.pas"/>
-        <Caret Line="783" Column="1" TopLine="765"/>
+        <Caret Line="415" Column="1" TopLine="397"/>
       </Position1>
       <Position2>
         <Filename Value="foundlisthelper.pas"/>
-        <Caret Line="784" Column="1" TopLine="765"/>
+        <Caret Line="416" Column="1" TopLine="397"/>
       </Position2>
       <Position3>
         <Filename Value="foundlisthelper.pas"/>
-        <Caret Line="786" Column="1" TopLine="765"/>
+        <Caret Line="420" Column="1" TopLine="397"/>
       </Position3>
       <Position4>
         <Filename Value="foundlisthelper.pas"/>
-        <Caret Line="787" Column="1" TopLine="765"/>
+        <Caret Line="421" Column="1" TopLine="397"/>
       </Position4>
       <Position5>
         <Filename Value="foundlisthelper.pas"/>
-        <Caret Line="788" Column="1" TopLine="765"/>
+        <Caret Line="422" Column="1" TopLine="397"/>
       </Position5>
       <Position6>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="7498" Column="1" TopLine="7469"/>
+        <Filename Value="foundlisthelper.pas"/>
+        <Caret Line="424" Column="1" TopLine="397"/>
       </Position6>
       <Position7>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="7492" Column="35" TopLine="7475"/>
+        <Filename Value="foundlisthelper.pas"/>
+        <Caret Line="426" Column="1" TopLine="403"/>
       </Position7>
       <Position8>
-        <Filename Value="windows7taskbar.pas"/>
-        <Caret Line="99" Column="1" TopLine="81"/>
+        <Filename Value="foundlisthelper.pas"/>
+        <Caret Line="427" Column="1" TopLine="403"/>
       </Position8>
       <Position9>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="7506" Column="56" TopLine="7475"/>
+        <Filename Value="foundlisthelper.pas"/>
+        <Caret Line="429" Column="1" TopLine="412"/>
       </Position9>
       <Position10>
         <Filename Value="foundlisthelper.pas"/>
-        <Caret Line="783" Column="1" TopLine="765"/>
+        <Caret Line="431" Column="1" TopLine="412"/>
       </Position10>
       <Position11>
         <Filename Value="foundlisthelper.pas"/>
-        <Caret Line="784" Column="1" TopLine="765"/>
+        <Caret Line="450" Column="1" TopLine="432"/>
       </Position11>
       <Position12>
         <Filename Value="foundlisthelper.pas"/>
-        <Caret Line="786" Column="1" TopLine="765"/>
+        <Caret Line="453" Column="1" TopLine="432"/>
       </Position12>
       <Position13>
         <Filename Value="foundlisthelper.pas"/>
-        <Caret Line="787" Column="1" TopLine="765"/>
+        <Caret Line="597" Column="1" TopLine="579"/>
       </Position13>
       <Position14>
         <Filename Value="foundlisthelper.pas"/>
-        <Caret Line="788" Column="1" TopLine="765"/>
+        <Caret Line="599" Column="1" TopLine="579"/>
       </Position14>
       <Position15>
         <Filename Value="foundlisthelper.pas"/>
-        <Caret Line="794" Column="1" TopLine="765"/>
+        <Caret Line="601" Column="1" TopLine="579"/>
       </Position15>
       <Position16>
         <Filename Value="foundlisthelper.pas"/>
-        <Caret Line="795" Column="1" TopLine="765"/>
+        <Caret Line="602" Column="1" TopLine="579"/>
       </Position16>
       <Position17>
         <Filename Value="foundlisthelper.pas"/>
-        <Caret Line="797" Column="3" TopLine="765"/>
+        <Caret Line="419" Column="29" TopLine="405"/>
       </Position17>
       <Position18>
         <Filename Value="foundlisthelper.pas"/>
-        <Caret Line="766" Column="1" TopLine="759"/>
+        <Caret Line="518" Column="53" TopLine="495"/>
       </Position18>
       <Position19>
         <Filename Value="foundlisthelper.pas"/>
-        <Caret Line="767" Column="1" TopLine="759"/>
+        <Caret Line="527" Column="32" TopLine="498"/>
       </Position19>
       <Position20>
         <Filename Value="foundlisthelper.pas"/>
-        <Caret Line="768" Column="1" TopLine="759"/>
+        <Caret Line="573" Column="29" TopLine="544"/>
       </Position20>
       <Position21>
         <Filename Value="foundlisthelper.pas"/>
-        <Caret Line="37" Column="35" TopLine="23"/>
+        <Caret Line="28" Column="58" TopLine="16"/>
       </Position21>
       <Position22>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="6447" Column="42" TopLine="6436"/>
+        <Filename Value="foundlisthelper.pas"/>
+        <Caret Line="745" Column="35" TopLine="722"/>
       </Position22>
       <Position23>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="3630" Column="32" TopLine="3623"/>
+        <Filename Value="foundlisthelper.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position23>
       <Position24>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="478" Column="119" TopLine="471"/>
+        <Filename Value="foundlisthelper.pas"/>
+        <Caret Line="749" Column="16" TopLine="721"/>
       </Position24>
       <Position25>
         <Filename Value="memscan.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Caret Line="4916" Column="31" TopLine="4904"/>
       </Position25>
       <Position26>
         <Filename Value="memscan.pas"/>
-        <Caret Line="4834" Column="46" TopLine="4807"/>
+        <Caret Line="451" Column="46" TopLine="434"/>
       </Position26>
       <Position27>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="4836" Column="41" TopLine="4807"/>
+        <Filename Value="foundlisthelper.pas"/>
+        <Caret Line="740" Column="11" TopLine="721"/>
       </Position27>
       <Position28>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="4925" Column="41" TopLine="4896"/>
+        <Filename Value="foundlisthelper.pas"/>
+        <Caret Line="753" Column="18" TopLine="718"/>
       </Position28>
       <Position29>
         <Filename Value="memscan.pas"/>
-        <Caret Line="4953" Column="41" TopLine="4924"/>
+        <Caret Line="4906" Column="3" TopLine="4904"/>
       </Position29>
     </JumpHistory>
   </ProjectOptions>

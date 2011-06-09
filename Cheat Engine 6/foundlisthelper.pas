@@ -730,6 +730,14 @@ begin
 
 
   fCount:=result;
+
+  if memscan<>nil then
+  begin
+    //guess the default display types
+    //can later be overriden
+    self.hexadecimal:=memscan.VarType=vtByteArray;
+    self.varlength:=memscan.Getbinarysize div 8;
+  end;
 end;
 
 
