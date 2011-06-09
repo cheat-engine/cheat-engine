@@ -4498,7 +4498,7 @@ begin
     except
       on e: exception do
       begin
-        OutputDebugString(pchar('controller exception happened:'+e.message));
+        OutputDebugString(pchar('controller exception happened during the scan:'+e.message));
         haserror:=true;
         errorstring:='controller:'+e.message;
       end;
@@ -4671,6 +4671,7 @@ begin
     MessageBox(0, pchar(errorstring),'Scancontroller cleanup error',  MB_ICONERROR or mb_ok);
 
   outputdebugstring('end of scancontroller reached');
+  isreallydoneevent.setEvent;   //just set it again if it wasn't set
 end;
 
 constructor TScanController.create(suspended: boolean);

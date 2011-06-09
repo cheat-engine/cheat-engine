@@ -19,7 +19,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
       <MinorVersionNr Value="1"/>
-      <BuildNr Value="1536"/>
+      <BuildNr Value="1537"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="6.1"/>
@@ -637,7 +637,6 @@
         <Filename Value="memscan.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="memscan"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="14"/>
         <WindowIndex Value="0"/>
         <TopLine Value="4985"/>
@@ -1808,10 +1807,11 @@
         <Filename Value="LuaHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaHandler"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="7484"/>
-        <CursorPos X="56" Y="7506"/>
+        <TopLine Value="7556"/>
+        <CursorPos X="12" Y="7565"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
           <WindowIndex Value="0"/>
@@ -2310,7 +2310,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="2647"/>
         <CursorPos X="75" Y="2670"/>
-        <UsageCount Value="80"/>
+        <UsageCount Value="82"/>
         <Loaded Value="True"/>
       </Unit191>
       <Unit192>
@@ -2345,7 +2345,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="274"/>
         <CursorPos X="3" Y="270"/>
-        <UsageCount Value="85"/>
+        <UsageCount Value="87"/>
         <Loaded Value="True"/>
       </Unit194>
       <Unit195>
@@ -2355,7 +2355,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1057"/>
         <CursorPos X="10" Y="1075"/>
-        <UsageCount Value="40"/>
+        <UsageCount Value="42"/>
         <Loaded Value="True"/>
       </Unit195>
     </Units>

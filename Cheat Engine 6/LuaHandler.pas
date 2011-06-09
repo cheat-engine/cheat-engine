@@ -7558,7 +7558,7 @@ var
 begin
   result:=0;
   parameters:=lua_gettop(L);
-  if parameters=1 then
+  if parameters=2 then
   begin
     foundlist:=lua_touserdata(L,-2);
     index:=lua_tointeger(L,-1);
