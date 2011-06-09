@@ -1096,10 +1096,13 @@ begin
       2: indexstring:=indexstring+'*'+colorhex+'4'+endcolor;
       3: indexstring:=indexstring+'*'+colorhex+'8'+endcolor;
     end;
-    if result='' then
-      result:=indexstring
-    else
-      result:=result+'+'+indexstring;
+    if indexstring<>'' then
+    begin
+      if result='' then
+        result:=indexstring
+      else
+        result:=result+'+'+indexstring;
+    end;
   end;
 
  //

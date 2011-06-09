@@ -6,7 +6,7 @@ interface
 
 //credits to http://alex.ciobanu.org/?p=215
 
-uses Forms,win32int;
+uses Forms,win32int, win32proc;
 
 type
   TTaskBarProgressState = (tbpsNone, tbpsIndeterminate, tbpsNormal, tbpsError, tbpsPaused);
@@ -83,7 +83,7 @@ var
   Unk: IInterface;
 
 begin
-  if GetSystemType<7 then exit;
+  if WindowsVersion<wv7 then exit;
 
   { Make sure that COM is initialized }
   CoInitializeEx(nil, 0);
