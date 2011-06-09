@@ -24,6 +24,24 @@ fsmNotAligned=0
 fsmAligned=1
 fsmLastDigits=2
 
+--rounding types
+rtRounded=0
+rtExtremerounded=1
+rtTruncated=2
+
+--scan options
+soUnknownValue=0
+soExactValue=1
+soValueBetween=2
+soBiggerThan=3
+soSmallerThan=4
+soIncreasedValue=5
+soIncreasedValueBy=6
+soDecreasedValue=7
+soDecreasedValueBy=8
+soChanged=9
+soUnchanged=10
+
 
 --debug variables
 --Breakpoint triggers:
