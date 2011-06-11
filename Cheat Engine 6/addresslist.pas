@@ -824,6 +824,7 @@ begin
   else }
     //multiple selections, use an input box for this
 
+    value:=AnsiToUtf8(value);
     if InputQuery(rsChangeValue, rsWhatValueToChangeThisTo, value) then
     begin
       value:=Utf8ToAnsi(value);
