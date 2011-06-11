@@ -61,6 +61,7 @@ type
     Button6: TButton;
     Button7: TButton;
     Button8: TButton;
+    Button9: TButton;
     CheckBox1: TCheckBox;
     CheckBox2: TCheckBox;
     CheckBox3: TCheckBox;
@@ -87,6 +88,7 @@ type
     procedure Button2Click(Sender: TObject);
     procedure Button5Click(Sender: TObject);
     procedure Button6Click(Sender: TObject);
+    procedure Button9Click(Sender: TObject);
     procedure FilterClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure ListView1Data(Sender: TObject; Item: TListItem);
@@ -373,6 +375,11 @@ begin
     d:=d.Next;
   end;
 
+end;
+
+procedure TfrmUltimap.Button9Click(Sender: TObject);
+begin
+  ultimap_flush;
 end;
 
 function TfrmUltimap.iscall(address: ptruint): boolean;

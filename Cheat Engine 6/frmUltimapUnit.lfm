@@ -289,6 +289,15 @@ object frmUltimap: TfrmUltimap
     Caption = 'Label4'
     ParentColor = False
   end
+  object Button9: TButton
+    Left = 504
+    Height = 25
+    Top = 352
+    Width = 75
+    Caption = 'flush'
+    OnClick = Button9Click
+    TabOrder = 16
+  end
   object Timer1: TTimer
     Interval = 250
     OnTimer = Timer1Timer

@@ -2347,9 +2347,7 @@ end;
 
 procedure TMainForm.Label3Click(Sender: TObject);
 begin
-  asm
-    cmp [esp+eax],$0082a7d5
-  end;
+
 end;
 
 

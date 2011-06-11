@@ -104,6 +104,7 @@ const IOCTL_CE_ULTIMAP                = (IOCTL_UNKNOWN_BASE shl 16) or ($0842 sh
 const IOCTL_CE_ULTIMAP_DISABLE        = (IOCTL_UNKNOWN_BASE shl 16) or ($0843 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_ULTIMAP_WAITFORDATA    = (IOCTL_UNKNOWN_BASE shl 16) or ($0844 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_ULTIMAP_CONTINUE       = (IOCTL_UNKNOWN_BASE shl 16) or ($0845 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_ULTIMAP_FLUSH          = (IOCTL_UNKNOWN_BASE shl 16) or ($0846 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
 
 
@@ -234,6 +235,7 @@ function ultimap(cr3: QWORD; debugctl_value: QWORD; DS_AREA_SIZE: integer; savet
 function ultimap_disable: BOOLEAN; stdcall;
 function ultimap_waitForData(timeout: dword; output: PUltimapDataEvent): boolean;
 function ultimap_continue(previousdataresult: PUltimapDataEvent): boolean;
+procedure ultimap_flush;
 
 
 procedure LaunchDBVM; stdcall;
@@ -1397,6 +1399,13 @@ begin
   end
   else
     result:=false;
+end;
+
+procedure ultimap_flush;   //call this only when the workers are ACTIVE
+var cc: dword;
+begin
+  if (hdevice<>INVALID_HANDLE_VALUE) then
+    deviceiocontrol(hdevice,IOCTL_CE_ULTIMAP_FLUSH,nil,0,nil,0,cc,nil);
 end;
 
 function ultimap_continue(previousdataresult: PUltimapDataEvent): boolean;
