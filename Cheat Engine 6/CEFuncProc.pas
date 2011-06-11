@@ -2319,7 +2319,7 @@ begin
             s:=IntTohex(processentry.th32ProcessID,8)+'-';
           s:=s+ExtractFilename(processentry.szExeFile);
 
-          ProcessList.AddObject(s, TObject(ProcessListInfo));
+          ProcessList.AddObject(AnsiToUtf8(s), TObject(ProcessListInfo));
         end;
       end;
 
@@ -2400,7 +2400,7 @@ begin
           end;
   {$endif}
 
-          x.AddObject(IntTohex(winprocess,8)+'-'+wintitle,TObject(ProcessListInfo));
+          x.AddObject(IntTohex(winprocess,8)+'-'+AnsiToUtf8(wintitle),TObject(ProcessListInfo));
         end;
       end;
 
