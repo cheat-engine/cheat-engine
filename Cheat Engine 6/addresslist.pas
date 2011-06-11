@@ -826,6 +826,8 @@ begin
 
     if InputQuery(rsChangeValue, rsWhatValueToChangeThisTo, value) then
     begin
+      value:=Utf8ToAnsi(value);
+
       allError:=true;
       someError:=false;
       for i:=0 to count-1 do

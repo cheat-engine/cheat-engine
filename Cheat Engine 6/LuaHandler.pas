@@ -69,6 +69,8 @@ begin
     else
       result:='';
   end;
+
+//unclear should there be a result:=Utf8ToAnsi(s); ?
 end;
 
 procedure InitializeLuaScripts;

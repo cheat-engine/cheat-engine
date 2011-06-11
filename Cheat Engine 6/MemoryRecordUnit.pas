@@ -1428,6 +1428,7 @@ var
   fs: TFormatSettings;
 begin
   //check if it is a '(description)' notation
+
   unparsedvalue:=v;
 
   if vartype<>vtString then

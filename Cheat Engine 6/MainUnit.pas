@@ -6647,7 +6647,7 @@ begin
     else
       fastscanmethod:=fsmNotAligned;
 
-    memscan.firstscan(GetScanType2, getVarType2, roundingtype, scanvalue.text, svalue2, scanStart, scanStop, cbHexadecimal.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, fastscanmethod, edtAlignment.text, TCustomType(vartype.items.objects[vartype.itemindex]));
+    memscan.firstscan(GetScanType2, getVarType2, roundingtype, utf8toansi(scanvalue.text), utf8toansi(svalue2), scanStart, scanStop, cbHexadecimal.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, fastscanmethod, edtAlignment.text, TCustomType(vartype.items.objects[vartype.itemindex]));
 
     DisableGui;
 
@@ -6823,7 +6823,7 @@ begin
 
   lastscantype:=scantype.ItemIndex;
 
-  memscan.nextscan(GetScanType2, roundingtype, scanvalue.text, svalue2,  cbHexadecimal.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, percentage, compareToSavedScan, currentlySelectedSavedResultname);
+  memscan.nextscan(GetScanType2, roundingtype, utf8toansi(scanvalue.text), utf8toansi(svalue2),  cbHexadecimal.checked, rbdec.checked, cbunicode.checked, cbCaseSensitive.checked, percentage, compareToSavedScan, currentlySelectedSavedResultname);
   DisableGui;
   SpawnCancelButton;
 end;

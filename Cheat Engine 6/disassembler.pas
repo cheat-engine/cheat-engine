@@ -1119,9 +1119,9 @@ begin
         if base=5 then
         begin
           if pinteger(dwordptr)^<0 then
-            displacementstring:='-'+inttohex{s}(-pinteger(dwordptr)^,8)
+            displacementstring:='-'+inttohexs(-pinteger(dwordptr)^,8)
           else
-            displacementstring:=inttohex{s}(pinteger(dwordptr)^,8);
+            displacementstring:=inttohexs(pinteger(dwordptr)^,8);
 
           last:=last+4;
         end;
@@ -1131,9 +1131,9 @@ begin
       begin
         //displacementstring:=colorreg+'EBP'+endcolor;
         if pshortint(dwordptr)^<0 then
-          displacementstring:='-'+inttohex{s}(-pshortint(dwordptr)^,2)
+          displacementstring:='-'+inttohexs(-pshortint(dwordptr)^,2)
         else
-          displacementstring:=inttohex{s}(pshortint(dwordptr)^,2);
+          displacementstring:=inttohexs(pshortint(dwordptr)^,2);
 
         last:=last+1;
       end;
@@ -1142,9 +1142,9 @@ begin
       begin
         //displacementstring:=colorreg+'EBP'+endcolor;
         if pinteger(dwordptr)^<0 then
-          displacementstring:='-'+inttohex{s}(-pinteger(dwordptr)^,8)
+          displacementstring:='-'+inttohexs(-pinteger(dwordptr)^,8)
         else
-          displacementstring:=inttohex{s}(pinteger(dwordptr)^,8);
+          displacementstring:=inttohexs(pinteger(dwordptr)^,8);
 
         last:=last+4;
       end;
