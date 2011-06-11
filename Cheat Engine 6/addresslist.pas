@@ -1466,7 +1466,7 @@ begin
 
 
         //value
-        sender.Canvas.TextRect(rect(header.Sections[4].left, textrect.Top, header.Sections[4].right, textrect.bottom),header.sections[4].left, textrect.top, memrec.GetValue);
+        sender.Canvas.TextRect(rect(header.Sections[4].left, textrect.Top, header.Sections[4].right, textrect.bottom),header.sections[4].left, textrect.top, AnsiToUtf8(memrec.GetValue));
       end;
     end
     else

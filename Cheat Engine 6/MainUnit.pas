@@ -2347,7 +2347,9 @@ end;
 
 procedure TMainForm.Label3Click(Sender: TObject);
 begin
-  ultimap_disable;
+  asm
+    cmp [esp+eax],$0082a7d5
+  end;
 end;
 
 
@@ -6357,6 +6359,8 @@ begin
 
   try
     address:=inttohex(foundlist.GetAddress(item.Index,extra,value),8);
+
+    value:=AnsiToUtf8(value);
 
     if foundlist.vartype = 5 then //binary
     begin
