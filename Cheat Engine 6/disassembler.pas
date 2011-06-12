@@ -1677,10 +1677,20 @@ begin
                               end;
 
                           7:  begin
-                                description:='invalidate tlb entry';
-                                lastdisassembledata.opcode:='invplg';
-                                lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last);
+                                if (getmod(memory[2])=3) and (getrm(memory[2])=0) then //swapgs
+                                begin
+                                  description:='swap GS';
+                                  lastdisassembledata.opcode:='swapgs';
+                                  modrm(memory,prefix2,2,0,last);
+                                end
+                                else
+                                begin
+                                  description:='invalidate tlb entry';
+                                  lastdisassembledata.opcode:='invplg';
+                                  lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last);
+                                end;
                                 inc(offset,last-1);
+
                               end;
                         end;
                       end;
