@@ -5,9 +5,9 @@ unit frmUltimapUnit;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
+  windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   DBK32functions, NewKernelHandler, cefuncproc, AvgLvlTree, ExtCtrls, ComCtrls,
-  math, syncobjs, symbolhandler;
+  math,  symbolhandler, maps, disassembler, multicpuexecution, syncobjs;
 
 
 
@@ -61,28 +61,32 @@ type
     Button6: TButton;
     Button7: TButton;
     Button8: TButton;
-    Button9: TButton;
-    CheckBox1: TCheckBox;
-    CheckBox2: TCheckBox;
-    CheckBox3: TCheckBox;
-    CheckBox4: TCheckBox;
-    CheckBox5: TCheckBox;
-    CheckBox6: TCheckBox;
-    CheckBox7: TCheckBox;
-    CheckBox8: TCheckBox;
-    CheckBox9: TCheckBox;
-    Edit1: TEdit;
-    edtWorkerCount: TEdit;
-    edtFilename: TEdit;
-    edtBufSize: TEdit;
-    GroupBox1: TGroupBox;
-    Label1: TLabel;
-    Label2: TLabel;
     cbLogToFile: TRadioButton;
     cbParseData: TRadioButton;
+    cbRing0: TCheckBox;
+    cbRing1Plus: TCheckBox;
+    cbConditional: TCheckBox;
+    cbNearRelCall: TCheckBox;
+    cbNearIndCall: TCheckBox;
+    cbNearRets: TCheckBox;
+    cbNearIndirectJump: TCheckBox;
+    cbNearRelativeJumps: TCheckBox;
+    cbFarBranches: TCheckBox;
+    Edit1: TEdit;
+    edtBufSize: TEdit;
+    edtFilename: TEdit;
+    edtWorkerCount: TEdit;
+    gbSelective: TGroupBox;
+    Label1: TLabel;
+    Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
     ListView1: TListView;
+    Panel1: TPanel;
+    Panel2: TPanel;
+    Panel3: TPanel;
+    Panel4: TPanel;
+    Panel5: TPanel;
     Timer1: TTimer;
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
@@ -92,19 +96,23 @@ type
     procedure FilterClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure ListView1Data(Sender: TObject; Item: TListItem);
+    procedure ListView1DblClick(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
   private
     { private declarations }
     branchtree: TAvgLvlTree;
-    branchtreeCS: TCriticalSection;
+    branchtreeCS: syncobjs.TCriticalSection;
     workers: Array of TUltimap_DataHandlerThread;
 
     validlist: array of PBranchdata;
 
+    callTable: TMap;
+    iscalldisassembler: TDisassembler;
 
     function branchcompare(Tree: TAvgLvlTree; Data1, Data2: Pointer): integer;
     procedure ApplyFilter(f: integer);
     function iscall(address: ptruint): boolean;
+    procedure setSelectiveMsr;
   public
     { public declarations }
   end; 
@@ -112,14 +120,15 @@ type
 var
   frmUltimap: TfrmUltimap;
 
-  TotalBranches: dword;
+  TotalBranches: system.dword;
 
 implementation
 
 {$R *.lfm}
 
-{TUltimap_DataHandlerThread}
+uses MemoryBrowserFormUnit;
 
+{TUltimap_DataHandlerThread}
 procedure TUltimap_DataHandlerThread.UpdateBranchData(branchdata: PBranchData; BTS: PBTS);
 begin
   InterLockedIncrement(branchdata.count);
@@ -208,7 +217,7 @@ begin
         end;
 
 
-        InterLockedIncrement(TotalBranches);
+        system.InterLockedIncrement(TotalBranches);
       end;
 
     end;
@@ -264,6 +273,34 @@ begin
   result:=CompareValue(pbranchdata(Data1).toAddress, pbranchdata(Data2).toAddress);
 end;
 
+function setSelectiveMsrForEachCpu(value: pointer): BOOL; stdcall;
+begin
+  writemsr($1c8, dword(value));
+  result:=true;
+end;
+
+procedure TfrmUltimap.setSelectiveMsr;
+var value: dword;
+begin
+
+  if gbSelective.Enabled then
+  begin
+    value:=0;
+    if not cbRing0.checked then value:=value or (1 shl 0);
+    if not cbRing1Plus.checked then value:=value or (1 shl 1);
+    if not cbConditional.checked then value:=value or (1 shl 2);
+    if not cbNearRelCall.checked then value:=value or (1 shl 3);
+    if not cbNearIndCall.checked then value:=value or (1 shl 4);
+    if not cbNearRets.checked then value:=value or (1 shl 5);
+    if not cbNearIndirectJump.checked then value:=value or (1 shl 6);
+    if not cbNearRelativeJumps.checked then value:=value or (1 shl 7);
+    if not cbFarBranches.checked then value:=value or (1 shl 8);
+
+    foreachcpu(setSelectiveMsrForEachCpu,pointer(value));
+
+  end;
+end;
+
 procedure TfrmUltimap.Button1Click(Sender: TObject);
 var
   cr3: qword;
@@ -275,6 +312,9 @@ begin
   {$ifdef cpu32}
   if Is64bitOS then raise exception.create('Please run the 64-bit version of Cheat Engine to make use of this feature');
   {$endif}
+
+
+  LoadDBK32;
 
 
 
@@ -295,6 +335,7 @@ begin
   branchtree:=TAvgLvlTree.CreateObjectCompare(branchcompare);
   branchtreeCS:=TCriticalSection.Create;
 
+  setSelectiveMSR;
 
   if ultimap(cr3, (1 shl 6) or (1 shl 7) or (1 shl 9) or (1 shl 8), bufsize, false, pwidechar(filename), workercount) then
   begin
@@ -379,14 +420,31 @@ end;
 
 procedure TfrmUltimap.Button9Click(Sender: TObject);
 begin
-  ultimap_flush;
+
 end;
 
 function TfrmUltimap.iscall(address: ptruint): boolean;
+var iscall: boolean;
+  x: string;
 begin
   //check if it's a call
-  //implement this
-  result:=true;
+  if callTable=nil then //create the calltable first
+  begin
+    callTable:=TMap.Create(ituPtrSize,sizeof(boolean));
+    iscalldisassembler:=Tdisassembler.create;
+  end;
+
+  if not calltable.GetData(address, iscall) then
+  begin
+    //not yet in the list
+    //add if it's a call or not
+    iscalldisassembler.disassemble(address, x);
+    iscall:=iscalldisassembler.LastDisassembleData.iscall;
+
+    callTable.Add(address, iscall);
+  end;
+
+  result:=iscall;
 end;
 
 procedure TfrmUltimap.ApplyFilter(f: integer);
@@ -397,6 +455,8 @@ var n: TAvgLvlTreeNode;
 
   countvalue: integer;
 begin
+  ultimap_flush;
+
   if f=3 then
     countvalue:=strtoint(edit1.text);
 
@@ -439,6 +499,18 @@ procedure TfrmUltimap.FormCreate(Sender: TObject);
 begin
   edtWorkerCount.Text:=inttostr(GetCPUCount);
   label4.Caption:=inttostr(sizeof(TBTS));
+
+  try
+    readMSR($1c8);
+    gbSelective.enabled:=true;
+    cbConditional.checked:=false;
+    cbNearRelCall.checked:=false;
+    cbNearIndCall.checked:=false;
+    cbNearRets.checked:=false;
+    cbNearIndirectJump.checked:=false;
+    cbNearRelativeJumps.checked:=false;
+  except
+  end;
 end;
 
 procedure TfrmUltimap.ListView1Data(Sender: TObject; Item: TListItem);
@@ -447,6 +519,17 @@ begin
   item.SubItems.Add(symhandler.getNameFromAddress(validlist[item.Index].lastFromAddress, true, true));
   item.SubItems.Add(IntToStr(validlist[item.Index].count));
 
+end;
+
+procedure TfrmUltimap.ListView1DblClick(Sender: TObject);
+begin
+
+  if listview1.selected<>nil then
+  begin
+    memorybrowser.disassemblerview.SelectedAddress:=validlist[listview1.selected.Index].toAddress;
+    if memorybrowser.visible=false then
+      memorybrowser.show;
+  end;
 end;
 
 procedure TfrmUltimap.Timer1Timer(Sender: TObject);

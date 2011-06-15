@@ -595,7 +595,7 @@ picture_getGraphic(picture) : Gets the Graphic object of this picture
 
 
 OpenDialog Class: (Inheritance: FileDialog->CommonDialog->Component->Object)
-opendialog_execute(openDialog): Shows the dialog and returns the string to the selected file
+openDialog_execute(openDialog): Shows the dialog and returns the string to the selected file
 
 SaveDialog Class: (Inheritance: OpenDialog->FileDialog->CommonDialog->Component->Object)
 

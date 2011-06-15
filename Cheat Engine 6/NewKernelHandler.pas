@@ -549,7 +549,7 @@ var
   ReadProcessMemory     :TReadProcessMemory;
   ReadProcessMemory64   :TReadProcessMemory64;  
   WriteProcessMemory    :TWriteProcessMemory;
-  WriteProcessMemory64  :TWriteProcessMemory64;
+  //WriteProcessMemory64  :TWriteProcessMemory64;
   GetThreadContext      :TGetThreadContext;
   SetThreadContext      :TSetThreadContext;
   SuspendThread         :TSuspendThread;
@@ -581,8 +581,8 @@ var
   VirtualFreeEx         :TVirtualFreeEx;
   CreateRemoteThread    :TCreateRemoteThread;
   OpenThread            :TOpenThread;
-  GetPEProcess          :TGetPEProcess;
-  GetPEThread           :TGetPEThread;
+//  GetPEProcess          :TGetPEProcess;
+//  GetPEThread           :TGetPEThread;
   GetThreadsProcessOffset:TGetThreadsProcessOffset;
   GetThreadListEntryOffset:TGetThreadListEntryOffset;
 
@@ -610,11 +610,11 @@ var
   GetProcessNameFromPEProcess:TGetProcessNameFromPEProcess;
 
 
-  KernelOpenProcess       :TOpenProcess;
-  KernelReadProcessMemory :TReadProcessMemory;
-  KernelReadProcessMemory64 :TReadProcessMemory64;  
-  KernelWriteProcessMemory:TWriteProcessMemory;
-  KernelVirtualAllocEx    :TVirtualAllocEx;
+  //KernelOpenProcess       :TOpenProcess;
+//  KernelReadProcessMemory :TReadProcessMemory;
+//  KernelReadProcessMemory64 :TReadProcessMemory64;
+//  KernelWriteProcessMemory:TWriteProcessMemory;
+//  KernelVirtualAllocEx    :TVirtualAllocEx;
 
   IsValidHandle           :TIsValidHandle;
   GetIDTCurrentThread     :TGetIDTCurrentThread;
@@ -856,16 +856,16 @@ begin
 
     //the driver is loaded (I hope)
 
-    KernelVirtualAllocEx:=@dbk32functions.VAE; //GetProcAddress(darkbytekernel,'VAE');
-    KernelOpenProcess:=@dbk32functions.OP; //GetProcAddress(darkbytekernel,'OP');
-    KernelReadProcessMemory:=@dbk32functions.RPM; //GetProcAddresS(darkbytekernel,'RPM');
-    KernelReadProcessMemory64:=@dbk32functions.RPM64; //GetProcAddresS(darkbytekernel,'RPM64');
-    KernelWriteProcessMemory:=@dbk32functions.WPM; //GetProcAddress(darkbytekernel,'WPM');
-    ReadProcessMemory64:=@dbk32functions.RPM64; //GetProcAddress(DarkByteKernel,'RPM64');
-    WriteProcessMemory64:=@dbk32functions.WPM64; //GetProcAddress(DarkByteKernel,'WPM64');
+    //KernelVirtualAllocEx:=@dbk32functions.VAE; //GetProcAddress(darkbytekernel,'VAE');
+   // KernelOpenProcess:=@dbk32functions.OP; //GetProcAddress(darkbytekernel,'OP');
+   // KernelReadProcessMemory:=@dbk32functions.RPM; //GetProcAddresS(darkbytekernel,'RPM');
+  //  KernelReadProcessMemory64:=@dbk32functions.RPM64; //GetProcAddresS(darkbytekernel,'RPM64');
+  //  KernelWriteProcessMemory:=@dbk32functions.WPM; //GetProcAddress(darkbytekernel,'WPM');
+  //  ReadProcessMemory64:=@dbk32functions.RPM64; //GetProcAddress(DarkByteKernel,'RPM64');
+//    WriteProcessMemory64:=@dbk32functions.WPM64; //GetProcAddress(DarkByteKernel,'WPM64');
 
-    GetPEProcess:=@dbk32functions.GetPEProcess; //GetProcAddress(DarkByteKernel,'GetPEProcess');
-    GetPEThread:=@dbk32functions.GetPEThread; //GetProcAddress(DarkByteKernel,'GetPEThread');
+//    GetPEProcess:=@dbk32functions.GetPEProcess; //GetProcAddress(DarkByteKernel,'GetPEProcess');
+//    GetPEThread:=@dbk32functions.GetPEThread; //GetProcAddress(DarkByteKernel,'GetPEThread');
     GetThreadsProcessOffset:=@dbk32functions.GetThreadsProcessOffset; //GetProcAddress(DarkByteKernel,'GetThreadsProcessOffset');
     GetThreadListEntryOffset:=@dbk32functions.GetThreadListEntryOffset; //GetProcAddress(DarkByteKernel,'GetThreadListEntryOffset');
     GetDebugportOffset:=@dbk32functions.GetDebugportOffset; //GetProcAddresS(DarkByteKernel,'GetDebugportOffset');

@@ -40,36 +40,11 @@ begin
   action:=cafree;
 end;
 
+
+
 procedure TfrmDriverlist.FormCreate(Sender: TObject);
-var need:dword;
-    x: PPointerArray;
-    i: integer;
-    count: integer;
-    drivername: pchar;
 begin
-  EnumDevicedrivers(nil,0,need);
-  getmem(x,need);
-  try
-    if enumDevicedrivers(@x[0],need,need) then
-    begin
-      count:=need div sizeof(pointer);
-      getmem(drivername,200);
-      try
-        for i:=0 to count-1 do
-        begin
-          GetDevicedriverBaseNameA(x[i],drivername,200);
-          listbox1.items.add(inttohex(ptrUint(x[i]),8)+' - '+drivername);
-        end;
-
-
-      finally
-        freemem(drivername);
-      end;
-    end;
-  finally
-    freemem(x);
-  end;
-
+  getDriverList(listbox1.items);
   listbox1.Sorted:=true;
 end;
 

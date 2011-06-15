@@ -114,14 +114,56 @@ void CreateRemoteAPC(ULONG threadid,PVOID addresstoexecute)
 	
 }
 
+BOOL DispatchIoctlDBVM(IN PDEVICE_OBJECT DeviceObject, ULONG IoControlCode, PVOID lpInBuffer, DWORD nInBufferSize, PVOID lpOutBuffer, DWORD nOutBufferSize, PDWORD lpBytesReturned)
+/*
+Called if dbvm has loaded the driver. Use this to setup a fake irp
+*/
+{
+	//allocate a in and out buffer
+	//setup a fake IRP
+	IRP FakeIRP;
+	BOOL r;
+	PVOID buffer;
+	buffer=ExAllocatePool(PagedPool, max(nInBufferSize, nOutBufferSize));
+	RtlCopyMemory(buffer, lpInBuffer, nInBufferSize);	
+
+
+	DbgPrint("DispatchIoctlDBVM\n");
+
+	FakeIRP.AssociatedIrp.SystemBuffer=buffer;
+	FakeIRP.Flags=IoControlCode; //(ab)using an unused element
+
+	r=DispatchIoctl(DeviceObject, &FakeIRP)==STATUS_SUCCESS;
+
+
+	RtlCopyMemory(lpOutBuffer, buffer, nOutBufferSize);
+
+	ExFreePool(buffer);
+
+	return r;
+}
+
 NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
 	NTSTATUS ntStatus=STATUS_UNSUCCESSFUL;
-    PIO_STACK_LOCATION     irpStack = IoGetCurrentIrpStackLocation(Irp);
+
+    PIO_STACK_LOCATION     irpStack=NULL;
+
+	ULONG IoControlCode;
+	
+	if (!loadedbydbvm)
+	{
+		irpStack=IoGetCurrentIrpStackLocation(Irp);
+		IoControlCode=irpStack->Parameters.DeviceIoControl.IoControlCode;
+	}
+	else
+		IoControlCode=Irp->Flags;
+		
+	DbgPrint("DispatchIoctl. IoControlCode=%x\n", IoControlCode);
 
 	
 	
-    switch(irpStack->Parameters.DeviceIoControl.IoControlCode)
+    switch(IoControlCode)
     {
 		
         case IOCTL_CE_READMEMORY:			
@@ -1368,6 +1410,13 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				break;
 			}
 
+		case IOCTL_CE_ULTIMAP_FLUSH:
+			{
+				ultimap_flushBuffers();
+				ntStatus=STATUS_SUCCESS;
+				break;
+			}
+
 
 
 		case IOCTL_CE_INITIALIZE:
@@ -1514,7 +1563,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 			}
 
         default:
-			//DbgPrint("Unhandled IO request: %x\n", irpStack->Parameters.DeviceIoControl.IoControlCode);			
+			DbgPrint("Unhandled IO request: %x\n", IoControlCode);			
             break;
     }
 
@@ -1522,11 +1571,16 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
     Irp->IoStatus.Status = ntStatus;
     
     // Set # of bytes to copy back to user-mode...
-    if(ntStatus == STATUS_SUCCESS)
-        Irp->IoStatus.Information = irpStack->Parameters.DeviceIoControl.OutputBufferLength;
-    else
-        Irp->IoStatus.Information = 0;
+	if (irpStack) //only NULL when loaded by dbvm
+	{
+		if (ntStatus == STATUS_SUCCESS)
+			Irp->IoStatus.Information = irpStack->Parameters.DeviceIoControl.OutputBufferLength;
+		else
+			Irp->IoStatus.Information = 0;
 
-    IoCompleteRequest(Irp, IO_NO_INCREMENT);
+		IoCompleteRequest(Irp, IO_NO_INCREMENT);
+	}
+
+    
     return ntStatus;
 }

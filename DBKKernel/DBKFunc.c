@@ -8,6 +8,82 @@
 */
 
 
+void forEachCpuPassive(PF f, UINT_PTR param)
+/*
+calls a sepcific function for each cpu that runs in passive mode
+*/
+{
+	CCHAR cpunr;
+	KAFFINITY cpus, original;
+	ULONG cpucount;
+
+	
+	//KeIpiGenericCall is not present in xp
+	
+	//count cpus first KeQueryActiveProcessorCount is not present in xp)
+	cpucount=0;
+	cpus=KeQueryActiveProcessors();
+	original=cpus;
+	while (cpus)
+	{
+		if (cpus % 2)
+			cpucount++;
+
+		cpus=cpus / 2;		
+	}
+
+	cpus=KeQueryActiveProcessors();
+	cpunr=0;
+	while (cpus)
+	{
+		if (cpus % 2)
+		{
+			//bit is set
+#if (NTDDI_VERSION >= NTDDI_VISTA)
+			KAFFINITY oldaffinity;
+#endif
+			KAFFINITY newaffinity;
+
+
+			
+			DbgPrint("Calling passive function for cpunr %d\n", cpunr);
+			//set affinity
+
+			newaffinity=(KAFFINITY)(1 << cpunr);
+
+#if (NTDDI_VERSION >= NTDDI_VISTA)
+			oldaffinity=KeSetSystemAffinityThreadEx(newaffinity);
+#else
+			//XP and earlier (this routine is not called often, only when the user asks explicitly
+			{
+				LARGE_INTEGER delay;
+				delay.QuadPart=-50; //short wait just to be sure... (the docs do not say that a switch happens imeadiatly for the no Ex version)
+				
+				KeSetSystemAffinityThread(newaffinity);
+				KeDelayExecutionThread(UserMode, FALSE, &delay);
+			}
+#endif
+
+
+
+			//call function
+			f(param);
+
+#if (NTDDI_VERSION >= NTDDI_VISTA)
+			KeRevertToUserAffinityThreadEx(oldaffinity);
+#endif
+
+		}
+
+		cpus=cpus / 2;
+		cpunr++;
+	}
+
+#if (NTDDI_VERSION < NTDDI_VISTA)
+	KeSetSystemAffinityThread(original);
+#endif
+}
+
 void forEachCpu(PKDEFERRED_ROUTINE dpcfunction,  PVOID DeferredContext, PVOID  SystemArgument1, PVOID  SystemArgument2)
 /*
 calls a specified dpcfunction for each cpu on the system

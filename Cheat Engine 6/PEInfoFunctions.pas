@@ -330,9 +330,12 @@ var fmap: TFileMapping;
     ImageExportDirectory: PImageExportDirectory;
     is64bit: boolean;
 
+    addresslist: PDwordArray;
     exportlist: PDwordArray;
     functionname: pchar;
     i: integer;
+
+   // a: dword;
 begin
   //open the file
   //parse the header
@@ -347,6 +350,8 @@ begin
       header:=fmap.fileContent;
 
       ImageNtHeader:=peinfo_getImageNtHeaders(header,fmap.filesize);
+
+
       if ImageNTHeader=nil then raise exception.Create(strInvalidFile);
       if ImageNTHeader^.FileHeader.Machine=$8664 then
         is64bit:=true
@@ -364,16 +369,20 @@ begin
       if ImageExportDirectory=nil then raise exception.Create(strInvalidFile);
 
       exportlist:=peinfo_VirtualAddressToFileAddress(header,fmap.filesize, dword(ImageExportDirectory.AddressOfNames));
+      addresslist:=peinfo_VirtualAddressToFileAddress(header,fmap.filesize, dword(ImageExportDirectory.AddressOfFunctions));
+
       if exportlist=nil then raise exception.Create('No exports');
 
       for i:=0 to ImageExportDirectory.NumberOfNames-1 do
       begin
         functionname:=peinfo_VirtualAddressToFileAddress(header,fmap.filesize, exportlist[i]);
 
+
         if functionname<>nil then
-          dllList.add(functionname);
+          dllList.AddObject(functionname, pointer(addresslist[i]));
       end;
       result:=true;
+
     finally
       fmap.free;
     end;

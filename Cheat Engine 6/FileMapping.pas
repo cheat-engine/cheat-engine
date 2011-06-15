@@ -55,7 +55,11 @@ begin
   try
     //open file
     FileHandle := CreateFile(PChar(filename), GENERIC_READ or GENERIC_WRITE, FILE_SHARE_READ, nil, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
-    if FileHandle = INVALID_HANDLE_VALUE then raise exception.create(Format(rsDoesNotExist, [filename]));
+    if FileHandle = INVALID_HANDLE_VALUE then
+      FileHandle := CreateFile(PChar(filename), GENERIC_READ, FILE_SHARE_READ, nil, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+
+    if FileHandle = INVALID_HANDLE_VALUE then
+      raise exception.create(Format(rsDoesNotExist, [filename]));
 
     FFileSize:=GetFileSize(FileHandle,nil);
 
@@ -76,7 +80,7 @@ begin
       if (FileHandle<>0) and (FileHandle<>INVALID_HANDLE_VALUE) then
         CloseHandle(FileHandle);
 
-      raise e;
+      raise exception.create(e.message);
     end;
   end;
 

@@ -53,4 +53,3 @@ PKEVENT ThreadEvent;
 //HANDLE  ThreadEventHandle;
 
 BOOLEAN CreateThreadNotifyRoutineEnabled;
-PIO_WORKITEM newthreaddatafiller;

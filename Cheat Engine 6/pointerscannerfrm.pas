@@ -1115,7 +1115,7 @@ begin
       begin
         staticscanner.Free;
         staticscanner:=nil;
-        raise e;
+        raise exception.create(e.message);
       end;
     end;
 
@@ -1802,7 +1802,7 @@ begin
 
 
       freeandnil(rescan);
-      raise e;
+      raise exception.create(e.message);
     end;
 
   end;

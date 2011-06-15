@@ -442,10 +442,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\vmx.c"
-				>
-			</File>
-			<File
 				RelativePath=".\vmxhelper.c"
 				>
 			</File>

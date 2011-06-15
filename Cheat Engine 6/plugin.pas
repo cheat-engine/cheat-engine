@@ -679,7 +679,7 @@ var pluginhandler: TPluginhandler;
 
 implementation
 
-uses MainUnit,memorybrowserformunit,formsettingsunit, pluginexports, SynHighlighterAA;
+uses MainUnit,memorybrowserformunit,formsettingsunit, pluginexports, SynHighlighterAA, DBK32functions;
 
 resourcestring
   rsErrorEnabling = 'Error enabling %s';
@@ -1315,7 +1315,7 @@ begin
         on e: exception do
         begin
           setlength(plugins,length(plugins)-1);
-          raise e;
+          raise exception.create(e.message);
         end;
       end;
     finally
@@ -1488,43 +1488,43 @@ begin
   exportedfunctions.VirtualAllocEx:=@@VirtualAllocEx;
   exportedfunctions.CreateRemoteThread:=@@CreateRemoteThread;
   exportedfunctions.OpenThread:=@@OpenThread;
-  exportedfunctions.GetPEProcess:=@@GetPEProcess;
-  exportedfunctions.GetPEThread:=@@GetPEThread;
-  exportedfunctions.GetThreadsProcessOffset:=@@GetThreadsProcessOffset;
-  exportedfunctions.GetThreadListEntryOffset:=@@GetThreadListEntryOffset;
+  exportedfunctions.GetPEProcess:=@GetPEProcess;
+  exportedfunctions.GetPEThread:=@GetPEThread;
+  exportedfunctions.GetThreadsProcessOffset:=@GetThreadsProcessOffset;
+  exportedfunctions.GetThreadListEntryOffset:=@GetThreadListEntryOffset;
   exportedfunctions.GetProcessnameOffset:=nil; //obsolete
-  exportedfunctions.GetDebugportOffset:=@@GetDebugportOffset;
-  exportedfunctions.GetPhysicalAddress:=@@GetPhysicalAddress;
+  exportedfunctions.GetDebugportOffset:=@GetDebugportOffset;
+  exportedfunctions.GetPhysicalAddress:=@GetPhysicalAddress;
   exportedfunctions.ProtectMe:=nil;
-  exportedfunctions.GetCR4:=@@GetCR4;
-  exportedfunctions.GetCR3:=@@GetCR3;
+  exportedfunctions.GetCR4:=@GetCR4;
+  exportedfunctions.GetCR3:=@GetCR3;
   exportedfunctions.SetCR3:=nil; //@@SetCR3;
-  exportedfunctions.GetSDT:=@@GetSDT;
-  exportedfunctions.GetSDTShadow:=@@GetSDTShadow;
+  exportedfunctions.GetSDT:=@GetSDT;
+  exportedfunctions.GetSDTShadow:=@GetSDTShadow;
   exportedfunctions.setAlternateDebugMethod:=nil; //@@setAlternateDebugMethod;
   exportedfunctions.getAlternateDebugMethod:=nil; //@@getAlternateDebugMethod;
   exportedfunctions.DebugProcess:=nil; //@@DebugProcess;
   exportedfunctions.ChangeRegOnBP:=nil; //@@ChangeRegOnBP;
   exportedfunctions.RetrieveDebugData:=nil; //@@RetrieveDebugData;
-  exportedfunctions.StartProcessWatch:=@@StartProcessWatch;
-  exportedfunctions.WaitForProcessListData:=@@WaitForProcessListData;
-  exportedfunctions.GetProcessNameFromID:=@@GetProcessNameFromID;
-  exportedfunctions.GetProcessNameFromPEProcess:=@@GetProcessNameFromPEProcess;
-  exportedfunctions.KernelOpenProcess:=@@KernelOpenProcess;
-  exportedfunctions.KernelReadProcessMemory:=@@KernelReadProcessMemory;
-  exportedfunctions.KernelWriteProcessMemory:=@@KernelWriteProcessMemory;
-  exportedfunctions.KernelVirtualAllocEx:=@@KernelVirtualAllocEx;
-  exportedfunctions.IsValidHandle:=@@IsValidHandle;
-  exportedfunctions.GetIDTCurrentThread:=@@GetIDTCurrentThread;
-  exportedfunctions.GetIDTs:=@@GetIDTs;
-  exportedfunctions.MakeWritable:=@@MakeWritable;
-  exportedfunctions.GetLoadedState:=@@GetLoadedState;
-  exportedfunctions.DBKSuspendThread:=@@DBKSuspendThread;
-  exportedfunctions.DBKResumeThread:=@@DBKResumeThread;
-  exportedfunctions.DBKSuspendProcess:=@@DBKSuspendProcess;
-  exportedfunctions.DBKResumeProcess:=@@DBKResumeProcess;
-  exportedfunctions.KernelAlloc:=@@KernelAlloc;
-  exportedfunctions.GetKProcAddress:=@@GetKProcAddress;
+  exportedfunctions.StartProcessWatch:=@StartProcessWatch;
+  exportedfunctions.WaitForProcessListData:=@WaitForProcessListData;
+  exportedfunctions.GetProcessNameFromID:=@GetProcessNameFromID;
+  exportedfunctions.GetProcessNameFromPEProcess:=@GetProcessNameFromPEProcess;
+  exportedfunctions.KernelOpenProcess:=@dbk32functions.OP;
+  exportedfunctions.KernelReadProcessMemory:=@dbk32functions.RPM;
+  exportedfunctions.KernelWriteProcessMemory:=@dbk32functions.WPM;
+  exportedfunctions.KernelVirtualAllocEx:=@VQE;
+  exportedfunctions.IsValidHandle:=@IsValidHandle;
+  exportedfunctions.GetIDTCurrentThread:=@GetIDTCurrentThread;
+  exportedfunctions.GetIDTs:=@GetIDTs;
+  exportedfunctions.MakeWritable:=@MakeWritable;
+  exportedfunctions.GetLoadedState:=@GetLoadedState;
+  exportedfunctions.DBKSuspendThread:=@DBKSuspendThread;
+  exportedfunctions.DBKResumeThread:=@DBKResumeThread;
+  exportedfunctions.DBKSuspendProcess:=@DBKSuspendProcess;
+  exportedfunctions.DBKResumeProcess:=@DBKResumeProcess;
+  exportedfunctions.KernelAlloc:=@KernelAlloc;
+  exportedfunctions.GetKProcAddress:=@GetKProcAddress;
 
   exportedfunctions.CreateToolhelp32Snapshot:=@@CreateToolhelp32Snapshot;
   exportedfunctions.Process32First:=@@Process32First;

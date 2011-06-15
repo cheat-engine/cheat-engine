@@ -113,6 +113,10 @@ void* functionlist[1];
 char  paramsizes[1];
 int registered=0;
 
+VOID TestPassive(UINT_PTR param)
+{
+	DbgPrint("passive cpu call for cpu %d\n", KeGetCurrentProcessorNumber());
+}
 
 
 VOID TestDPC(IN struct _KDPC *Dpc, IN PVOID  DeferredContext, IN PVOID  SystemArgument1, IN PVOID  SystemArgument2)
@@ -121,7 +125,6 @@ VOID TestDPC(IN struct _KDPC *Dpc, IN PVOID  DeferredContext, IN PVOID  SystemAr
 	
     DbgPrint("Defered cpu call for cpu %d (Dpc=%p  IF=%d IRQL=%d)\n", KeGetCurrentProcessorNumber(), Dpc, e.IF, KeGetCurrentIrql());
 }
-
 
 
 NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject,
@@ -143,7 +146,8 @@ Return Value:
 
 --*/
 {
-	ULONG			cr4reg;
+	
+	
     NTSTATUS        ntStatus;
     PVOID           BufDriverString=NULL,BufProcessEventString=NULL,BufThreadEventString=NULL;
     UNICODE_STRING  uszDriverString;
@@ -151,17 +155,19 @@ Return Value:
     UNICODE_STRING  uszProcessEventString;
 	UNICODE_STRING	uszThreadEventString;
     PDEVICE_OBJECT  pDeviceObject;
-	HANDLE reg;
+	HANDLE reg=0;
 	OBJECT_ATTRIBUTES oa;
 
 	UNICODE_STRING temp; 
 	char wbuf[100]; 
 	WORD this_cs, this_ss, this_ds, this_es, this_fs, this_gs;
+	ULONG cr4reg;
 
+	
 	
 	criticalSection csTest;
 	
-	
+	DbgPrint("I'm alive!\n");
 
 	//DbgPrint("%S",oa.ObjectName.Buffer); 
 	
@@ -218,143 +224,159 @@ Return Value:
 	
 	KeServiceDescriptorTable=MmGetSystemRoutineAddress(&temp);         
 
-
-
-	
-	
-
-
-
 	DbgPrint("Loading driver\n");
-	DbgPrint("Registry path = %S\n", RegistryPath->Buffer);
+	if (RegistryPath)
+	{	
+		DbgPrint("Registry path = %S\n", RegistryPath->Buffer);
 
-	InitializeObjectAttributes(&oa,RegistryPath,OBJ_KERNEL_HANDLE ,NULL,NULL);
-	ntStatus=ZwOpenKey(&reg,KEY_QUERY_VALUE,&oa);
-	if (ntStatus == STATUS_SUCCESS)
-	{
-		UNICODE_STRING A,B,C,D;
-		PKEY_VALUE_PARTIAL_INFORMATION bufA,bufB,bufC,bufD;
-		ULONG ActualSize;
-
-		DbgPrint("Opened the key\n");
-
-		BufDriverString=ExAllocatePool(PagedPool,sizeof(KEY_VALUE_PARTIAL_INFORMATION)+100);
-		BufDeviceString=ExAllocatePool(PagedPool,sizeof(KEY_VALUE_PARTIAL_INFORMATION)+100);
-		BufProcessEventString=ExAllocatePool(PagedPool,sizeof(KEY_VALUE_PARTIAL_INFORMATION)+100);
-		BufThreadEventString=ExAllocatePool(PagedPool,sizeof(KEY_VALUE_PARTIAL_INFORMATION)+100);
-
-		bufA=BufDriverString;
-		bufB=BufDeviceString;
-		bufC=BufProcessEventString;
-		bufD=BufThreadEventString;
-
-		RtlInitUnicodeString(&A, L"A");
-		RtlInitUnicodeString(&B, L"B");
-		RtlInitUnicodeString(&C, L"C");
-		RtlInitUnicodeString(&D, L"D");
-
-		if (ntStatus == STATUS_SUCCESS)
-			ntStatus=ZwQueryValueKey(reg,&A,KeyValuePartialInformation ,bufA,sizeof(KEY_VALUE_PARTIAL_INFORMATION)+100,&ActualSize);
-		if (ntStatus == STATUS_SUCCESS)
-			ntStatus=ZwQueryValueKey(reg,&B,KeyValuePartialInformation ,bufB,sizeof(KEY_VALUE_PARTIAL_INFORMATION)+100,&ActualSize);
-		if (ntStatus == STATUS_SUCCESS)
-			ntStatus=ZwQueryValueKey(reg,&C,KeyValuePartialInformation ,bufC,sizeof(KEY_VALUE_PARTIAL_INFORMATION)+100,&ActualSize);
-		if (ntStatus == STATUS_SUCCESS)
-			ntStatus=ZwQueryValueKey(reg,&D,KeyValuePartialInformation ,bufD,sizeof(KEY_VALUE_PARTIAL_INFORMATION)+100,&ActualSize);
-
+		InitializeObjectAttributes(&oa,RegistryPath,OBJ_KERNEL_HANDLE ,NULL,NULL);
+		ntStatus=ZwOpenKey(&reg,KEY_QUERY_VALUE,&oa);
 		if (ntStatus == STATUS_SUCCESS)
 		{
-			DbgPrint("Read ok\n");
-			RtlInitUnicodeString(&uszDriverString,(PCWSTR) bufA->Data);
-			RtlInitUnicodeString(&uszDeviceString,(PCWSTR) bufB->Data);
-			RtlInitUnicodeString(&uszProcessEventString,(PCWSTR) bufC->Data);
-			RtlInitUnicodeString(&uszThreadEventString,(PCWSTR) bufD->Data);
+			UNICODE_STRING A,B,C,D;
+			PKEY_VALUE_PARTIAL_INFORMATION bufA,bufB,bufC,bufD;
+			ULONG ActualSize;
 
-			DbgPrint("DriverString=%S\n",uszDriverString.Buffer);
-			DbgPrint("DeviceString=%S\n",uszDeviceString.Buffer);
-			DbgPrint("ProcessEventString=%S\n",uszProcessEventString.Buffer);
-			DbgPrint("ThreadEventString=%S\n",uszThreadEventString.Buffer);
+			DbgPrint("Opened the key\n");
+
+			BufDriverString=ExAllocatePool(PagedPool,sizeof(KEY_VALUE_PARTIAL_INFORMATION)+100);
+			BufDeviceString=ExAllocatePool(PagedPool,sizeof(KEY_VALUE_PARTIAL_INFORMATION)+100);
+			BufProcessEventString=ExAllocatePool(PagedPool,sizeof(KEY_VALUE_PARTIAL_INFORMATION)+100);
+			BufThreadEventString=ExAllocatePool(PagedPool,sizeof(KEY_VALUE_PARTIAL_INFORMATION)+100);
+
+			bufA=BufDriverString;
+			bufB=BufDeviceString;
+			bufC=BufProcessEventString;
+			bufD=BufThreadEventString;
+
+			RtlInitUnicodeString(&A, L"A");
+			RtlInitUnicodeString(&B, L"B");
+			RtlInitUnicodeString(&C, L"C");
+			RtlInitUnicodeString(&D, L"D");
+
+			if (ntStatus == STATUS_SUCCESS)
+				ntStatus=ZwQueryValueKey(reg,&A,KeyValuePartialInformation ,bufA,sizeof(KEY_VALUE_PARTIAL_INFORMATION)+100,&ActualSize);
+			if (ntStatus == STATUS_SUCCESS)
+				ntStatus=ZwQueryValueKey(reg,&B,KeyValuePartialInformation ,bufB,sizeof(KEY_VALUE_PARTIAL_INFORMATION)+100,&ActualSize);
+			if (ntStatus == STATUS_SUCCESS)
+				ntStatus=ZwQueryValueKey(reg,&C,KeyValuePartialInformation ,bufC,sizeof(KEY_VALUE_PARTIAL_INFORMATION)+100,&ActualSize);
+			if (ntStatus == STATUS_SUCCESS)
+				ntStatus=ZwQueryValueKey(reg,&D,KeyValuePartialInformation ,bufD,sizeof(KEY_VALUE_PARTIAL_INFORMATION)+100,&ActualSize);
+
+			if (ntStatus == STATUS_SUCCESS)
+			{
+				DbgPrint("Read ok\n");
+				RtlInitUnicodeString(&uszDriverString,(PCWSTR) bufA->Data);
+				RtlInitUnicodeString(&uszDeviceString,(PCWSTR) bufB->Data);
+				RtlInitUnicodeString(&uszProcessEventString,(PCWSTR) bufC->Data);
+				RtlInitUnicodeString(&uszThreadEventString,(PCWSTR) bufD->Data);
+
+				DbgPrint("DriverString=%S\n",uszDriverString.Buffer);
+				DbgPrint("DeviceString=%S\n",uszDeviceString.Buffer);
+				DbgPrint("ProcessEventString=%S\n",uszProcessEventString.Buffer);
+				DbgPrint("ThreadEventString=%S\n",uszThreadEventString.Buffer);
+			}
+			else
+			{
+				ExFreePool(bufA);
+				ExFreePool(bufB);
+				ExFreePool(bufC);
+				ExFreePool(bufD);
+
+				DbgPrint("Failed reading the value\n");
+				ZwClose(reg);
+				return STATUS_UNSUCCESSFUL;;
+			}
+
 		}
 		else
 		{
-			ExFreePool(bufA);
-			ExFreePool(bufB);
-			ExFreePool(bufC);
-			ExFreePool(bufD);
-
-			DbgPrint("Failed reading the value\n");
-			ZwClose(reg);
+			DbgPrint("Failed opening the key\n");
 			return STATUS_UNSUCCESSFUL;;
 		}
-
 	}
 	else
-	{
-		DbgPrint("Failed opening the key\n");
-		return STATUS_UNSUCCESSFUL;;
-	}
+	  loadedbydbvm=TRUE;
 
 	ntStatus = STATUS_SUCCESS;
 
+
 	
 
-    // Point uszDriverString at the driver name
-#ifndef CETC
-	
-	
-	// Create and initialize device object
-    ntStatus = IoCreateDevice(DriverObject,
-                              0,
-                              &uszDriverString,
-                              FILE_DEVICE_UNKNOWN,
-                              0,
-                              FALSE,
-                              &pDeviceObject);
 
-    if(ntStatus != STATUS_SUCCESS)
+	if (!loadedbydbvm)
 	{
-		DbgPrint("IoCreateDevice failed\n");
-		ExFreePool(BufDriverString);
-		ExFreePool(BufDeviceString);
-		ExFreePool(BufProcessEventString);
-		ExFreePool(BufThreadEventString);
+
+		// Point uszDriverString at the driver name
+#ifndef CETC
 		
-		ZwClose(reg);
-        return ntStatus;
-	}
-
-    // Point uszDeviceString at the device name
-	
-    // Create symbolic link to the user-visible name
-    ntStatus = IoCreateSymbolicLink(&uszDeviceString, &uszDriverString);
-
-    if(ntStatus != STATUS_SUCCESS)
-    {
-		DbgPrint("IoCreateSymbolicLink failed: %x\n",ntStatus);
-        // Delete device object if not successful
-        IoDeleteDevice(pDeviceObject);
-
-		ExFreePool(BufDriverString);
-		ExFreePool(BufDeviceString);
-		ExFreePool(BufProcessEventString);
-		ExFreePool(BufThreadEventString);
 		
+		// Create and initialize device object
+		ntStatus = IoCreateDevice(DriverObject,
+								  0,
+								  &uszDriverString,
+								  FILE_DEVICE_UNKNOWN,
+								  0,
+								  FALSE,
+								  &pDeviceObject);
 
-		ZwClose(reg);
-        return ntStatus;
-    }
+		if(ntStatus != STATUS_SUCCESS)
+		{
+			DbgPrint("IoCreateDevice failed\n");
+			ExFreePool(BufDriverString);
+			ExFreePool(BufDeviceString);
+			ExFreePool(BufProcessEventString);
+			ExFreePool(BufThreadEventString);
+
+			
+			if (reg)
+			  ZwClose(reg);
+
+			return ntStatus;
+		}
+
+		// Point uszDeviceString at the device name
+		
+		// Create symbolic link to the user-visible name
+		ntStatus = IoCreateSymbolicLink(&uszDeviceString, &uszDriverString);
+
+		if(ntStatus != STATUS_SUCCESS)
+		{
+			DbgPrint("IoCreateSymbolicLink failed: %x\n",ntStatus);
+			// Delete device object if not successful
+			IoDeleteDevice(pDeviceObject);
+
+			ExFreePool(BufDriverString);
+			ExFreePool(BufDeviceString);
+			ExFreePool(BufProcessEventString);
+			ExFreePool(BufThreadEventString);
+			
+
+			if (reg)
+			  ZwClose(reg);
+
+			return ntStatus;
+		}
 
 #endif
+	}
 
+	//when loaded by dbvm driver object is 'valid' so store the function addresses
+
+
+	DbgPrint("DriverObject=%p\n", DriverObject);
 
     // Load structure to point to IRP handlers...
     DriverObject->DriverUnload                         = UnloadDriver;
     DriverObject->MajorFunction[IRP_MJ_CREATE]         = DispatchCreate;
     DriverObject->MajorFunction[IRP_MJ_CLOSE]          = DispatchClose;	
-    DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = DispatchIoctl;
+
+	if (loadedbydbvm)
+		DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = (PDRIVER_DISPATCH)DispatchIoctlDBVM;		
+	else
+		DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = DispatchIoctl;
 
 
-	newthreaddatafiller=IoAllocateWorkItem(pDeviceObject);
 
 	//Processlist init
 #ifndef CETC
@@ -412,11 +434,29 @@ Return Value:
 
 	// Return success (don't do the devicestring, I need it for unload)
 	DbgPrint("Cleaning up initialization buffers\n");
-	ExFreePool(BufDriverString);
-	ExFreePool(BufProcessEventString);
-	ExFreePool(BufThreadEventString);
-		
-	ZwClose(reg); 
+	if (BufDriverString)
+	{
+		ExFreePool(BufDriverString);
+		BufDriverString=NULL;
+	}
+
+	if (BufProcessEventString)
+	{
+		ExFreePool(BufProcessEventString);
+		BufProcessEventString=NULL;
+	}
+
+	if (BufThreadEventString)
+	{
+		ExFreePool(BufThreadEventString);
+		BufThreadEventString=NULL;
+	}
+
+	if (reg)
+	{
+		ZwClose(reg); 
+		reg=0;
+	}
 
 
 	//fetch cpu info
@@ -450,10 +490,10 @@ Return Value:
 		DbgPrint("Testing forEachCpu(...)\n");
 		forEachCpu(TestDPC, NULL, NULL, NULL);
 
+		forEachCpuPassive(TestPassive, 0);
+
 		DbgPrint("LVT_Performance_Monitor=%x\n", (UINT_PTR)&y.LVT_Performance_Monitor-(UINT_PTR)&y);
 	}
-
-
 	
     return STATUS_SUCCESS;
 }

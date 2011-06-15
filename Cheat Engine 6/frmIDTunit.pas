@@ -23,6 +23,7 @@ type
 
 implementation
 
+uses DBK32functions;
 
 procedure TfrmIDT.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
@@ -60,7 +61,7 @@ begin
 
   getmem(x,8*limit);
   try
-    newkernelhandler.kernelreadprocessmemory(processhandle,pointer(address),@x[0],limit*8,br);
+    dbk32functions.rpm(processhandle,pointer(address),@x[0],limit*8,br);
 
     i:=0;
     for i:=0 to 255 do

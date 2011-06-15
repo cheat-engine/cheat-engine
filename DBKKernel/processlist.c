@@ -45,7 +45,6 @@ VOID GetThreadData(IN PDEVICE_OBJECT  DeviceObject, IN PVOID  Context)
 	else 
 	{
 		DbgPrint("Failed getting the pethread.\n");
-		//IoQueueWorkItem(newthreaddatafiller,GetThreadData,DelayedWorkQueue,Context);
 	}
 
 	KeReleaseSpinLock(&ProcesslistSL,OldIrql);
@@ -80,99 +79,6 @@ VOID CreateThreadNotifyRoutine(IN HANDLE  ProcessId,IN HANDLE  ThreadId,IN BOOLE
 
 			ThreadEventCount++;
 		}
-
-
-		//----------------------------threadlist2------------------------:
-
-		//if (!HiddenDriver)	
-		if (FALSE) //moved till next version
-		{
-			struct ProcessData *tempProcessEntry;
-			struct ThreadData *tempThreadEntry;
-			//find the process in the list
-
-			tempProcessEntry=processlist;
-			while (tempProcessEntry)
-			{
-				if (tempProcessEntry->ProcessID==ProcessId)
-				{
-					//it's from a thread in my list
-					if (Create)
-					{					
-						
-						//add thread to list
-						tempThreadEntry=ExAllocatePoolWithTag(NonPagedPool,sizeof(struct ThreadData),0);
-
-						tempThreadEntry->ThreadID=ThreadId;	
-						tempThreadEntry->PEThread=NULL; //stupid PEThread isn't known here yet 
-						tempThreadEntry->suspendcount=0;
-						tempThreadEntry->next=NULL;
-						tempThreadEntry->previous=NULL;
-
-						IoQueueWorkItem(newthreaddatafiller,GetThreadData,DelayedWorkQueue,tempThreadEntry);
-
-						KeInitializeSemaphore(&tempThreadEntry->SuspendSemaphore, 0, 1);
-
-
-
-
-						if (!tempProcessEntry->Threads)
-						{
-							DbgPrint("First thread\n");
-							tempProcessEntry->Threads=tempThreadEntry;
-							tempProcessEntry->Threads->next=NULL;
-							tempProcessEntry->Threads->previous=NULL;
-						}
-						else
-						{
-							DbgPrint("Adding to list\n");
-							tempThreadEntry->next=tempProcessEntry->Threads;
-							tempThreadEntry->previous=NULL;
-							tempThreadEntry->next->previous=tempThreadEntry;
-							tempProcessEntry->Threads=tempThreadEntry;
-						}
-
-					}
-					else
-					{
-						
-						//remove thread from list
-						tempThreadEntry=tempProcessEntry->Threads;
-						while (tempThreadEntry)
-						{
-							
-							if (tempThreadEntry->ThreadID==ThreadId)
-							{								
-								//the entry after this gets it's previous field set to the one before this one
-								if (tempThreadEntry->next)
-									tempThreadEntry->next->previous=tempThreadEntry->previous;
-
-								if (tempThreadEntry->previous)
-									tempThreadEntry->previous->next=tempThreadEntry->next;
-								else
-									tempProcessEntry->Threads=tempThreadEntry->next;
-							
-
-								DbgPrint("Deallocating a thread at :%p\n",tempThreadEntry);
-								//ExFreePool(tempThreadEntry);
-								
-                                break; //found it so exit
-							}
-
-							tempThreadEntry=tempThreadEntry->next;
-						}
-
-					
-
-
-					}
-					break;
-				}
-				tempProcessEntry=tempProcessEntry->next;
-			}
-
-		}
-
 
 
 		KeReleaseSpinLock(&ProcesslistSL,OldIrql);

@@ -343,13 +343,13 @@ object MainForm: TMainForm
       Visible = False
     end
     object Label57: TLabel
-      Left = 423
+      Left = 433
       Height = 14
-      Top = 304
+      Top = 306
       Width = 82
       Caption = 'get dbvm version'
       ParentColor = False
-      Visible = False
+      OnClick = Label57Click
     end
     object Label59: TLabel
       Left = 376
@@ -358,7 +358,6 @@ object MainForm: TMainForm
       Width = 43
       Caption = 'Test cap'
       ParentColor = False
-      Visible = False
       OnClick = Label59Click
     end
     object Label61: TLabel

@@ -48,7 +48,7 @@ var
 implementation
 
 
-uses threadlistexfrm;
+uses threadlistexfrm,dbk32functions;
 
 procedure TfrmProcessInfo.FormCreate(Sender: TObject);
 var cr3: QWORD;
@@ -74,7 +74,7 @@ begin
   lblsdt.caption:=inttohex(getsdt(),8);
   lblssdt.caption:=inttohex(GetSDTShadow(),8);
 
-  lblgdt.Caption:=inttohex(GetGDT(limit),8);
+  lblgdt.Caption:=inttohex(GetGDT(@limit),8);
 
 end;
 

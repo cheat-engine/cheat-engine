@@ -34,18 +34,42 @@ typedef struct
 	BOOL Available;
 	PBTS Data;
 	int DataSize;
-	KEVENT DataReady;
-	KEVENT DataProcessed;
-    
+	KEVENT DataReady;    
 } _DataBlock;
 
 _DataBlock *DataBlock;
 PVOID *DataReadyPointerList;
 
+int perfmon_interrupt_centry(void);
+
+void ultimap_flushBuffers_all(UINT_PTR param)
+{
+	DbgPrint("Calling perfmon_interrupt_centry() manually\n");
+	perfmon_interrupt_centry();
+	enableInterrupts(); //the handler disables it on exit so re-enable it
+}
 
 void ultimap_flushBuffers(void)
 {
 	//call this when the buffer of the current cpu needs to be flushed and handled
+	int i;
+	int count;
+
+	DbgPrint("ultimap_flushBuffers\n");
+
+	//what it does:
+	//for each cpu emulate a "buffer filled" event.
+	//the handler then copies all the current data to a temporary buffer and signals the worker thread to deal with it. If there is no available worker thread it waits
+	forEachCpuPassive(ultimap_flushBuffers_all,0);
+
+	DbgPrint("ultimap_flushBuffers_all has returned\n");
+	//it returned and all worker thread are currently working on this data (it only returns when it has send a worker to work)
+
+	//now wait for all workers to finish
+	//do this by aquiring all semaphore slots and waiting for them to return again
+	forEachCpuPassive(ultimap_flushBuffers_all,0);
+	DbgPrint("ultimap_flushBuffers_all has returned a second time\n"); //this means that the previous blocks have been dealt with
+
 }
 
 
@@ -129,24 +153,26 @@ int perfmon_interrupt_centry(void)
 	KIRQL old;
 	
 	void *temp;
+	int causedbyme=(DS_AREA[cpunr()]->BTS_IndexBaseAddress>=DS_AREA[cpunr()]->BTS_InterruptThresholdAddress);
+	UINT_PTR blocksize;
 
-	if (DS_AREA[cpunr()]->BTS_IndexBaseAddress>=DS_AREA[cpunr()]->BTS_InterruptThresholdAddress)
+	if (causedbyme)
 	{
-		UINT_PTR blocksize;
-
 		//undo the system flags that got set by this interrupt
 		APIC_BASE->LVT_Performance_Monitor.a=APIC_BASE->LVT_Performance_Monitor.a & 0xff;
 		APIC_BASE->EOI.a=0;
+	}
+
+	blocksize=DS_AREA[cpunr()]->BTS_IndexBaseAddress-DS_AREA[cpunr()]->BTS_BufferBaseAddress;
 	
+	{	
 		old=KeRaiseIrqlToDpcLevel();
 		enableInterrupts();
 
 		DbgPrint("Entry cpunr=%d\n", cpunr());
 		DbgPrint("Entry threadid=%d\n", PsGetCurrentThreadId());
 		
-		
-		
-		blocksize=DS_AREA[cpunr()]->BTS_IndexBaseAddress-DS_AREA[cpunr()]->BTS_BufferBaseAddress;
+
 		temp=ExAllocatePool(NonPagedPool, blocksize);
 		if (temp)
 		{
@@ -162,7 +188,7 @@ int perfmon_interrupt_centry(void)
 			DbgPrint("ExAllocatePool has failed\n");
 			KeLowerIrql(old);
 			disableInterrupts();
-			return 1;
+			return causedbyme;
 		}
 
 		
@@ -170,7 +196,7 @@ int perfmon_interrupt_centry(void)
 
 		
 		KeLowerIrql(old);
-		//passive mode, taskswitches and cpu switches will happen now (When this returns, I may not be on the same interrupt as I was when I started)
+		//should be passive mode, taskswitches and cpu switches will happen now (When this returns, I may not be on the same interrupt as I was when I started)
 
 
 		if (SaveToFile)
@@ -229,9 +255,6 @@ int perfmon_interrupt_centry(void)
 					DbgPrint("Calling KeSetEvent/KeWaitForSingleObject\n");
 					KeSetEvent(&DataBlock[currentblock].DataReady, 1, FALSE); //Trigger a worker thread to start working
 
-
-//					KeWaitForSingleObject(&DataBlock[currentblock].DataProcessed, Executive, KernelMode, FALSE, NULL); //Wait till the handler has dealt with the buffer (This way the maximum allocated memory is only affected by the number of threads)						
-
 					
 				}				
 
@@ -246,11 +269,11 @@ int perfmon_interrupt_centry(void)
 
 		//and return to the caller process
 		disableInterrupts();
-		return 1;
+		return causedbyme;
 
 	}
-	else
-		return 0; //not caused by my interrupt
+
+	return causedbyme;
 }
 
 
@@ -344,11 +367,8 @@ void ultimap_disable(void)
 		
 		//Trigger all events waking up each thread that was waiting for the events
 		for (i=0; i<MaxDataBlocks; i++)
-		{			
-			KeSetEvent(&tempDataBlock[i].DataProcessed,0, FALSE);
 			KeSetEvent(&tempDataBlock[i].DataReady,0, FALSE);
-		}
-
+		
 		ExFreePool(tempDataBlock);
 	
 		if (DataReadyPointerList)
@@ -484,7 +504,6 @@ NTSTATUS ultimap(UINT64 cr3, UINT64 dbgctl_msr, int DS_AREA_SIZE, BOOL savetofil
 			DataBlock[i].Data=NULL;
 
 			KeInitializeEvent(&DataBlock[i].DataReady, SynchronizationEvent , FALSE);
-			KeInitializeEvent(&DataBlock[i].DataProcessed, SynchronizationEvent , FALSE);
 
 			DataBlock[i].Available=TRUE;
 

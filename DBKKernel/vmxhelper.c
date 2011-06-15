@@ -3,10 +3,10 @@
 #include "vmxhelper.h"
 
 #ifdef AMD64
-extern unsigned int dovmcall(void *vmcallinfo, unsigned int level1pass);
+extern UINT_PTR dovmcall(void *vmcallinfo, unsigned int level1pass);
 //dovmcall is defined in vmxhelpera.asm
 #else
-_declspec( naked ) unsigned int dovmcall(void *vmcallinfo, unsigned int level1pass)
+_declspec( naked ) UINT_PTR dovmcall(void *vmcallinfo, unsigned int level1pass)
 {
 	__asm
 	{
@@ -34,7 +34,7 @@ int vmx_hasredirectedint1()
 	vmcallinfo.structsize=sizeof(vmcallinfo);
 	vmcallinfo.level2pass=vmx_password2;
 	vmcallinfo.command=VMCALL_INT1REDIRECTED;
-	return dovmcall(&vmcallinfo, vmx_password1);
+	return (int)dovmcall(&vmcallinfo, vmx_password1);
 }
 
 unsigned int vmx_getversion()
@@ -55,7 +55,7 @@ This will either raise a unhandled opcode exception, or return the used dbvm ver
 	vmcallinfo.level2pass=vmx_password2;
 	vmcallinfo.command=VMCALL_GETVERSION;
 
-	return dovmcall(&vmcallinfo, vmx_password1);
+	return (unsigned int)dovmcall(&vmcallinfo, vmx_password1);
 }
 
 unsigned int vmx_getRealCR0()
@@ -71,10 +71,10 @@ unsigned int vmx_getRealCR0()
 	vmcallinfo.level2pass=vmx_password2;
 	vmcallinfo.command=VMCALL_GETCR0;
 
-	return dovmcall(&vmcallinfo, vmx_password1);
+	return (unsigned int)dovmcall(&vmcallinfo, vmx_password1);
 }
 
-unsigned int vmx_getRealCR3()
+UINT_PTR vmx_getRealCR3()
 {
 	struct
 	{
@@ -103,7 +103,7 @@ unsigned int vmx_getRealCR4()
 	vmcallinfo.level2pass=vmx_password2;
 	vmcallinfo.command=VMCALL_GETCR4;
 
-	return dovmcall(&vmcallinfo, vmx_password1);
+	return (unsigned int)dovmcall(&vmcallinfo, vmx_password1);
 }
 
 unsigned int vmx_redirect_interrupt1(VMXInterruptRedirectType redirecttype, unsigned int newintvector, unsigned int int1cs, UINT_PTR int1eip)
@@ -130,7 +130,7 @@ unsigned int vmx_redirect_interrupt1(VMXInterruptRedirectType redirecttype, unsi
 	vmcallinfo.int1eip=int1eip;
 	vmcallinfo.int1cs=int1cs;
 
-	return dovmcall(&vmcallinfo, vmx_password1);
+	return (unsigned int)dovmcall(&vmcallinfo, vmx_password1);
 }
 
 unsigned int vmx_redirect_interrupt3(VMXInterruptRedirectType redirecttype, unsigned int newintvector, unsigned int int3cs, UINT_PTR int3eip)
@@ -157,7 +157,7 @@ unsigned int vmx_redirect_interrupt3(VMXInterruptRedirectType redirecttype, unsi
 	vmcallinfo.int3eip=int3eip;
 	vmcallinfo.int3cs=int3cs;
 
-	return dovmcall(&vmcallinfo, vmx_password1);
+	return (unsigned int)dovmcall(&vmcallinfo, vmx_password1);
 }
 
 
@@ -185,7 +185,7 @@ unsigned int vmx_redirect_interrupt14(VMXInterruptRedirectType redirecttype, uns
 	vmcallinfo.int14eip=int14eip;
 	vmcallinfo.int14cs=int14cs;
 
-	return dovmcall(&vmcallinfo, vmx_password1);
+	return (unsigned int)dovmcall(&vmcallinfo, vmx_password1);
 }
 
 unsigned int vmx_register_cr3_callback(unsigned int cs, unsigned int eip, unsigned int ss, unsigned int esp)
@@ -213,7 +213,7 @@ unsigned int vmx_register_cr3_callback(unsigned int cs, unsigned int eip, unsign
 	vmcallinfo.callback_esp=esp;
 	vmcallinfo.callback_ss=ss;
 
-	return dovmcall(&vmcallinfo, vmx_password1);
+	return (unsigned int)dovmcall(&vmcallinfo, vmx_password1);
 }
 
 unsigned int vmx_exit_cr3_callback(unsigned int newcr3)
@@ -235,7 +235,7 @@ unsigned int vmx_exit_cr3_callback(unsigned int newcr3)
 	vmcallinfo.command=VMCALL_RETURN_FROM_CR3_EDIT_CALLBACK;
 	vmcallinfo.newcr3=newcr3;
 
-	return dovmcall(&vmcallinfo, vmx_password1);
+	return (unsigned int)dovmcall(&vmcallinfo, vmx_password1);
 }
 
 unsigned int vmx_ultimap(UINT_PTR cr3towatch, UINT64 debugctl_value, void *storeaddress)
@@ -259,7 +259,7 @@ unsigned int vmx_ultimap(UINT_PTR cr3towatch, UINT64 debugctl_value, void *store
 	vmcallinfo.debugctl=(UINT64)debugctl_value;
 	vmcallinfo.storeaddress=(UINT64)storeaddress;
 
-	return dovmcall(&vmcallinfo, vmx_password1);
+	return (unsigned int)dovmcall(&vmcallinfo, vmx_password1);
 }
 
 unsigned int vmx_ultimap_disable()
@@ -277,7 +277,59 @@ unsigned int vmx_ultimap_disable()
 	vmcallinfo.level2pass=vmx_password2;
 	vmcallinfo.command=VMCALL_ULTIMAP_DISABLE;
 
-	return dovmcall(&vmcallinfo, vmx_password1);
+	return (unsigned int)dovmcall(&vmcallinfo, vmx_password1);
 }
 
+unsigned int vmx_disable_dataPageFaults()
+{
+	#pragma pack(1)
+	struct
+	{
+		unsigned int structsize;
+		unsigned int level2pass;
+		unsigned int command;
+	} vmcallinfo;
+	#pragma pack()
 
+	vmcallinfo.structsize=sizeof(vmcallinfo);
+	vmcallinfo.level2pass=vmx_password2;
+	vmcallinfo.command=VMCALL_DISABLE_DATAPAGEFAULTS;
+
+	return (unsigned int)dovmcall(&vmcallinfo, vmx_password1);
+}
+
+unsigned int vmx_enable_dataPageFaults()
+{
+	#pragma pack(1)
+	struct
+	{
+		unsigned int structsize;
+		unsigned int level2pass;
+		unsigned int command;
+	} vmcallinfo;
+	#pragma pack()
+
+	vmcallinfo.structsize=sizeof(vmcallinfo);
+	vmcallinfo.level2pass=vmx_password2;
+	vmcallinfo.command=VMCALL_ENABLE_DATAPAGEFAULTS;
+
+	return (unsigned int)dovmcall(&vmcallinfo, vmx_password1);
+}
+
+UINT_PTR vmx_getLastSkippedPageFault()
+{
+	#pragma pack(1)
+	struct
+	{
+		unsigned int structsize;
+		unsigned int level2pass;
+		unsigned int command;
+	} vmcallinfo;
+	#pragma pack()
+
+	vmcallinfo.structsize=sizeof(vmcallinfo);
+	vmcallinfo.level2pass=vmx_password2;
+	vmcallinfo.command=VMCALL_GETLASTSKIPPEDPAGEFAULT;
+
+	return (UINT_PTR)dovmcall(&vmcallinfo, vmx_password1);
+}

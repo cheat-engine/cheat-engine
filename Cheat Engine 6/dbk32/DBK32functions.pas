@@ -4,7 +4,8 @@ unit DBK32functions;
 
 interface
 
-uses jwawindows, windows, sysutils, classes, types, registry, multicpuexecution;
+uses jwawindows, windows, sysutils, classes, types, registry, multicpuexecution,
+  forms,dialogs, controls;
 
 //xp sp2
 //ThreadsProcess=220
@@ -79,17 +80,17 @@ const IOCTL_CE_VMXCONFIG				  	  = (IOCTL_UNKNOWN_BASE shl 16) or ($082d shl 2) 
 const IOCTL_CE_GETCR0 					  	  = (IOCTL_UNKNOWN_BASE shl 16) or ($082e shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_USERDEFINEDINTERRUPTHOOK = (IOCTL_UNKNOWN_BASE shl 16) or ($082f shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 //const IOCTL_CE_MAKEKERNELCOPY		  	  = (IOCTL_UNKNOWN_BASE shl 16) or ($082f shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
-const IOCTL_CE_SETGLOBALDEBUGSTATE 	  = (IOCTL_UNKNOWN_BASE shl 16) or ($0830 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_SETGLOBALDEBUGSTATE    = (IOCTL_UNKNOWN_BASE shl 16) or ($0830 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
-const IOCTL_CE_CONTINUEDEBUGEVENT 	  = (IOCTL_UNKNOWN_BASE shl 16) or ($0831 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
-const IOCTL_CE_WAITFORDEBUGEVENT  	  = (IOCTL_UNKNOWN_BASE shl 16) or ($0832 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_CONTINUEDEBUGEVENT     = (IOCTL_UNKNOWN_BASE shl 16) or ($0831 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_WAITFORDEBUGEVENT      = (IOCTL_UNKNOWN_BASE shl 16) or ($0832 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
-const IOCTL_CE_GETDEBUGGERSTATE 	    = (IOCTL_UNKNOWN_BASE shl 16) or ($0833 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
-const IOCTL_CE_SETDEBUGGERSTATE  	    = (IOCTL_UNKNOWN_BASE shl 16) or ($0834 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
-const IOCTL_CE_GD_SETBREAKPOINT     	= (IOCTL_UNKNOWN_BASE shl 16) or ($0835 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
-const IOCTL_CE_TOUCHDEBUGREGISTER    	= (IOCTL_UNKNOWN_BASE shl 16) or ($0836 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_GETDEBUGGERSTATE       = (IOCTL_UNKNOWN_BASE shl 16) or ($0833 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_SETDEBUGGERSTATE       = (IOCTL_UNKNOWN_BASE shl 16) or ($0834 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_GD_SETBREAKPOINT       = (IOCTL_UNKNOWN_BASE shl 16) or ($0835 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_TOUCHDEBUGREGISTER     = (IOCTL_UNKNOWN_BASE shl 16) or ($0836 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
-const IOCTL_CE_LAUNCHDBVM           	= (IOCTL_UNKNOWN_BASE shl 16) or ($083a shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
+const IOCTL_CE_LAUNCHDBVM             = (IOCTL_UNKNOWN_BASE shl 16) or ($083a shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_UNHOOKALLINTERRUPTS    = (IOCTL_UNKNOWN_BASE shl 16) or ($083b shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_EXECUTE_CODE           = (IOCTL_UNKNOWN_BASE shl 16) or ($083c shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_GETPROCESSNAMEADDRESS  = (IOCTL_UNKNOWN_BASE shl 16) or ($083d shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
@@ -172,9 +173,9 @@ function IsValidHandle(hProcess:THandle):BOOL; stdcall;
 Function {OpenProcess}OP(dwDesiredAccess:DWORD;bInheritHandle:BOOL;dwProcessId:DWORD):THANDLE; stdcall;
 Function {OpenThread}OT(dwDesiredAccess:DWORD;bInheritHandle:BOOL;dwThreadId:DWORD):THANDLE; stdcall;
 function {ReadProcessMemory}RPM(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:DWORD):BOOL; stdcall;
-function {ReadProcessMemory64}RPM64(hProcess:THANDLE;lpBaseAddress:UINT64;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:DWORD):BOOL; stdcall;
+function {ReadProcessMemory64}ReadProcessMemory64(hProcess:THANDLE;lpBaseAddress:UINT64;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:DWORD):BOOL; stdcall;
 function {WriteProcessMemory}WPM(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:DWORD):BOOL; stdcall;
-function {WriteProcessMemory}WPM64(hProcess:THANDLE;BaseAddress:uint64;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:DWORD):BOOL; stdcall;
+function {WriteProcessMemory}WriteProcessMemory64(hProcess:THANDLE;BaseAddress:uint64;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:DWORD):BOOL; stdcall;
 function {VirtualQueryEx}VQE(hProcess: THandle; address: pointer; var mbi: _MEMORY_BASIC_INFORMATION; bufsize: DWORD):dword; stdcall;
 Function {NtOpenProcess}NOP(var Handle: THandle; AccessMask: dword; objectattributes: pointer; clientid: PClient_ID):DWORD; stdcall;
 Function {NtOpenThread}NtOT(var Handle: THandle; AccessMask: dword; objectattributes: pointer; clientid: PClient_ID):DWORD; stdcall;
@@ -193,7 +194,7 @@ function WritePhysicalMemory(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:poi
 function GetPhysicalAddress(hProcess:THandle;lpBaseAddress:pointer;var Address:int64): BOOL; stdcall;
 
 function GetCR4:DWORD; stdcall;
-function GetCR3(hProcess:THANDLE;var CR3:QWORD):BOOL; stdcall;
+function GetCR3(hProcess:THANDLE;var CR3:system.QWORD):BOOL; stdcall;
 //function SetCR3(hProcess:THANDLE;CR3: DWORD):BOOL; stdcall;
 function GetCR0:DWORD; stdcall;
 function GetSDT:DWORD; stdcall;
@@ -252,7 +253,11 @@ procedure writeMSR(msr: dword; value: qword);
 
 
 
+
+
 type TIsWow64Process=function (processhandle: THandle; var isWow: BOOL): BOOL; stdcall;
+
+function DeviceIoControl(hDevice: THandle; dwIoControlCode: DWORD; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesReturned: DWORD; lpOverlapped: POverlapped): BOOL; stdcall;
 
 
 var kernel32dll: thandle;
@@ -261,13 +266,25 @@ var kernel32dll: thandle;
 
 implementation
 
-uses vmxfunctions;
+uses vmxfunctions, DBK64SecondaryLoader;
 
 var dataloc: string;
     applicationPath: string;
 
 type TVirtualAllocEx=function(hProcess: THandle; lpAddress: Pointer; dwSize, flAllocationType: DWORD; flProtect: DWORD): Pointer; stdcall;
 var VirtualAllocEx: TVirtualAllocEx;
+
+function DeviceIoControl(hDevice: THandle; dwIoControlCode: DWORD; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesReturned: DWORD; lpOverlapped: POverlapped): BOOL; stdcall;
+begin
+  if hdevice=$fff00fff then
+  begin
+    //dbvm handle
+    result:=SecondaryDeviceIoControl(dwIoControlCode, lpInBuffer, nInBufferSize, lpOutBuffer, nOutBufferSize, lpBytesReturned, lpOverlapped);
+  end
+  else
+    result:=windows.DeviceIoControl(hDevice, dwIoControlCode, lpInBuffer,nInBufferSize, lpOutBuffer, nOutBufferSize, lpBytesReturned, lpOverlapped );
+
+end;
 
 function isDriverLoaded(SigningIsTheCause: PBOOL): BOOL; stdcall;
 begin
@@ -394,7 +411,7 @@ begin
     cc:=IOCTL_CE_GETPROCESSNAMEADDRESS;
     if deviceiocontrol(hdevice,cc,@peprocess,8,@address,8,x,nil) then
     begin
-      if rpm64(ownprocess,address,buffer,buffersize,ar) then
+      if ReadProcessMemory64(ownprocess,address,buffer,buffersize,ar) then
       begin
         for i:=0 to buffersize-1 do
           if buffer[i]=#0 then
@@ -491,7 +508,7 @@ begin
   end;
 end;
 
-function GetCR3(hProcess:THANDLE;var CR3:QWORD):BOOL; stdcall;
+function GetCR3(hProcess:THANDLE;var CR3:system.QWORD):BOOL; stdcall;
 var cc:dword;
     x,y:dword;
     i: integer;
@@ -825,12 +842,12 @@ begin
     end;
 end;
 
-function {ReadProcessMemory64}RPM(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:DWORD):BOOL; stdcall;
+function RPM(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:DWORD):BOOL; stdcall;
 begin
-  result:=rpm64(hProcess, uint64(ptrUint(lpBaseAddress)), lpBuffer, nSize, NumberOfBytesRead);
+  result:=ReadProcessMemory64(hProcess, uint64(ptrUint(lpBaseAddress)), lpBuffer, nSize, NumberOfBytesRead);
 end;
 
-function {ReadProcessMemory}RPM64(hProcess:THANDLE;lpBaseAddress:UINT64;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:DWORD):BOOL; stdcall;
+function ReadProcessMemory64(hProcess:THANDLE;lpBaseAddress:UINT64;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:DWORD):BOOL; stdcall;
 type TInputstruct=packed record
   processid: uint64;
   startaddress: uint64;
@@ -903,12 +920,12 @@ begin
   result:=windows.ReadProcessMemory(hProcess,pointer(ptrUint(lpBaseAddress)),lpBuffer,nSize,NumberOfBytesRead);
 end;
 
-function {WriteProcessMemory}WPM(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:DWORD):BOOL; stdcall;
+function WPM(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:DWORD):BOOL; stdcall;
 begin
-  result:=wpm64(hprocess, uint64(ptrUint(lpBaseAddress)), lpbuffer, nsize, NumberofbytesWritten);
+  result:=WriteProcessMemory64(hprocess, uint64(ptrUint(lpBaseAddress)), lpbuffer, nsize, NumberofbytesWritten);
 end;
 
-function {WriteProcessMemory}WPM64(hProcess:THANDLE;BaseAddress:qword;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:DWORD):BOOL; stdcall;
+function WriteProcessMemory64(hProcess:THANDLE;BaseAddress:qword;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:DWORD):BOOL; stdcall;
 type TInputstruct=packed record
   processid: uint64;
   startaddress: uint64;
@@ -976,7 +993,11 @@ begin
     end;
 
   //not found so ....
-  result:=windows.writeProcessMemory(hProcess,pointer(ptrUint(BaseAddress)),lpBuffer,nSize,NumberOfByteswritten);
+
+  if (BaseAddress>=qword($8000000000000000)) and (dbvmversion>=5) then //if dbvm is running and it's a kernel accesses use dbvm
+    result:=dbvm_copyMemory(pointer(BaseAddress), lpBuffer, nSize)
+  else
+    result:=windows.writeProcessMemory(hProcess,pointer(ptrUint(BaseAddress)),lpBuffer,nSize,NumberOfByteswritten);
 end;
 
 function {OpenThread}OT(dwDesiredAccess:DWORD;bInheritHandle:BOOL;dwThreadId:DWORD):THANDLE; stdcall;
@@ -1288,6 +1309,12 @@ begin
     cc:=IOCTL_CE_ALLOCATEMEM_NONPAGED;
     if deviceiocontrol(hdevice,cc,@x,sizeof(x),@output,sizeof(output),cc,nil) then
       result:=output;
+  end
+  else
+  if dbvmversion>=5 then
+  begin
+    //try allocating using dbvm
+    result:=uint64(dbvm_kernelalloc(size));
   end;
 end;
 
@@ -1318,6 +1345,11 @@ begin
     sp:=ptrUint(s);
     if deviceiocontrol(hdevice,cc,@sp,sizeof(sp),@output,sizeof(output),cc,nil) then
       result:=output;
+  end
+  else
+  begin
+    if dbvmversion>=5 then
+      result:=uint64(dbvm_getProcAddress(st));
   end;
 
 end;
@@ -1476,23 +1508,27 @@ begin
   end;
 end;
 
-function readMSR(msr: dword): QWORD;
+function readMSR(msr: dword): QWORD; //raises an exception if the msr is invalid
 var
   cc: dword;
   msrvalue: qword;
 begin
   result:=-1;
 
+  if dbvmversion>=6 then
+    result:=dbvm_readMSR(msr) //will raise a GPF if it doesn't exist
+  else
   if (hdevice<>INVALID_HANDLE_VALUE) then
   begin
     cc:=IOCTL_CE_READMSR;
     OutputDebugString(pchar('dbk32functions.pas: Reading from msr '+inttohex(msr,1)));
     if deviceiocontrol(hdevice,cc,@msr,sizeof(msr),@msrvalue,sizeof(msrvalue),cc,nil) then
-      result:=msrvalue;
+      result:=msrvalue
+    else
+      raise exception.create('Invalid MSR address:'+inttohex(msr,1));
   end
   else
-  if dbvmversion>=6 then
-    result:=dbvm_readMSR(msr);
+    raise exception.create('msrs are unavailable');
 end;
 
 procedure writeMSR(msr: dword; value: qword);
@@ -1503,6 +1539,9 @@ var
     msrvalue: uint64;
   end;
 begin
+  if dbvmversion>=6 then
+    dbvm_writeMSR(msr, value)
+  else
   if (hdevice<>INVALID_HANDLE_VALUE) then
   begin
     input.msr:=msr;
@@ -1512,9 +1551,7 @@ begin
     deviceiocontrol(hdevice,cc,@input,sizeof(input),nil,0,cc,nil);
   end
   else
-  if dbvmversion>=6 then
-    dbvm_writeMSR(msr, value);
-
+  raise exception.create('msrs are unavailable');
 end;
 
 
@@ -1760,6 +1797,8 @@ begin
 }
 end;
 
+
+
 var hscManager: thandle;
     hservicE: thandle;
 
@@ -1959,7 +1998,20 @@ begin
         begin
           if dbvm_version>$ce000000 then
           begin
-            messagebox(0,'The driver couldn''t be opened! It''s not loaded or not responding. Luckely you are running dbvm so it''s not a total waste','DBK32.DLL Error',MB_ICONERROR or MB_OK)
+            if MessageDlg('The driver couldn''t be opened! It''s not loaded or not responding. Luckely you are running dbvm so it''s not a total waste. Do you wish to force load the driver?', mtconfirmation, [mbyes, mbno],0)=mryes then
+            begin
+              OutputDebugString('Calling SecondaryDriverLoad');
+              {$ifdef cpu32}
+              if iswow64 then
+              begin
+                ShowMessage('Please run the 64-bit version of Cheat Engine');
+                exit;
+              end;
+              {$endif}
+              hdevice:=SecondaryDriverLoad;
+              OutputDebugString(pchar('SecondaryDriverLoad returned '+inttohex(hDevice,1)));
+            end;
+
           end
           else
           begin
@@ -2009,6 +2061,8 @@ begin
 
 
 end;
+
+
 
 var w: thandle;
 

@@ -30,13 +30,21 @@
 #define VMCALL_ULTIMAP_DISABLE 29
 
 
+//dbvm v7+
+#define VMCALL_SWITCH_TO_KERNELMODE 30
+
+#define VMCALL_DISABLE_DATAPAGEFAULTS 31
+#define VMCALL_ENABLE_DATAPAGEFAULTS 32
+#define VMCALL_GETLASTSKIPPEDPAGEFAULT 33
+
+
 typedef enum {virt_differentInterrupt=0, virt_emulateInterrupt=1} VMXInterruptRedirectType;
 
 unsigned int vmcall(void *vmcallinfo, unsigned int level1pass);
 
 unsigned int vmx_getversion();
 unsigned int vmx_getRealCR0();
-unsigned int vmx_getRealCR3();
+UINT_PTR vmx_getRealCR3();
 unsigned int vmx_getRealCR4();
 
 unsigned int vmx_redirect_interrupt1(VMXInterruptRedirectType redirecttype, unsigned int newintvector, unsigned int int1cs, UINT_PTR int1eip);
@@ -53,5 +61,10 @@ unsigned int vmxusable;
 unsigned int vmx_password1;
 unsigned int vmx_password2;
 unsigned int vmx_version;
+
+UINT_PTR vmx_getLastSkippedPageFault();
+unsigned int vmx_enable_dataPageFaults();
+unsigned int vmx_disable_dataPageFaults();
+
 
 #endif

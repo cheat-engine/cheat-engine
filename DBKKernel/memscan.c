@@ -8,87 +8,106 @@
 #endif
 #include "memscan.h"
 #include "DBKFunc.h"
-/*
+
 #include "vmxhelper.h"
-#include "deepkernel.h"
+/*#include "deepkernel.h"
 */
 
 
 BOOLEAN IsAddressSafe(UINT_PTR StartAddress)
 {
-
 	//return TRUE;
-#ifdef AMD64
-	UINT_PTR kernelbase=0x7fffffffffffffffULL;
-
-	if (StartAddress<kernelbase)
-		return TRUE;
-	else
+	if (loadedbydbvm)
 	{
-		PHYSICAL_ADDRESS physical;
-		physical.QuadPart=0;
-		physical=MmGetPhysicalAddress((PVOID)StartAddress);
-		return (physical.QuadPart!=0);
+		BYTE x=0;
+		UINT_PTR lasterror;
+		disableInterrupts();
+		vmx_disable_dataPageFaults();
+
+		x=*(volatile BYTE *)StartAddress;
+
+		vmx_enable_dataPageFaults();
+		lasterror=vmx_getLastSkippedPageFault();
+		enableInterrupts();
+		
+		return (lasterror==0); //unless address 0 is read of course...
 	}
 
-    
 
-	return TRUE; //for now untill I ave figure out the win 4 paging scheme
-#else
-/*	MDL x;
+	{
+#ifdef AMD64
+		UINT_PTR kernelbase=0x7fffffffffffffffULL;
 
-	
-	MmProbeAndLockPages(&x,KernelMode,IoModifyAccess);
-
-
-	MmUnlockPages(&x);
-	*/
-	ULONG kernelbase=0x7ffe0000;
-
-	if ((!HiddenDriver) && (StartAddress<kernelbase))
-		return TRUE;
-
-    {
-		UINT_PTR PTE,PDE;
-		struct PTEStruct *x;
 		
-		/*
-		PHYSICAL_ADDRESS physical;
-		physical=MmGetPhysicalAddress((PVOID)StartAddress);
-		return (physical.QuadPart!=0);*/
-
-
-		PTE=(UINT_PTR)StartAddress;
-		PTE=PTE/0x1000*PTESize+0xc0000000;
-
-    	//now check if the address in PTE is valid by checking the page table directory at 0xc0300000 (same location as CR3 btw)
-	    PDE=PTE/0x1000*PTESize+0xc0000000; //same formula
-
-		x=(PVOID)PDE;
-		if ((x->P==0) && (x->A2==0))
+		if (StartAddress<kernelbase)
+			return TRUE;
+		else
 		{
-			//Not present or paged, and since paging in this area isn't such a smart thing to do just skip it
-			//perhaps this is only for the 4 mb pages, but those should never be paged out, so it should be 1
-			//bah, I've got no idea what this is used for
-			return FALSE;
+			PHYSICAL_ADDRESS physical;
+			physical.QuadPart=0;
+			physical=MmGetPhysicalAddress((PVOID)StartAddress);
+			return (physical.QuadPart!=0);
 		}
 
-		if (x->PS==1)
+	    
+
+		return TRUE; //for now untill I ave figure out the win 4 paging scheme
+#else
+	/*	MDL x;
+
+		
+		MmProbeAndLockPages(&x,KernelMode,IoModifyAccess);
+
+
+		MmUnlockPages(&x);
+		*/
+		ULONG kernelbase=0x7ffe0000;
+
+		if ((!HiddenDriver) && (StartAddress<kernelbase))
+			return TRUE;
+
 		{
-			//This is a 4 MB page (no pte list)
-			//so, (startaddress/0x400000*0x400000) till ((startaddress/0x400000*0x400000)+(0x400000-1) ) ) is specified by this page
-		}
-		else //if it's not a 4 MB page then check the PTE
-		{
-			//still here so the page table directory agreed that it is a usable page table entry
-			x=(PVOID)PTE;
+			UINT_PTR PTE,PDE;
+			struct PTEStruct *x;
+			
+			/*
+			PHYSICAL_ADDRESS physical;
+			physical=MmGetPhysicalAddress((PVOID)StartAddress);
+			return (physical.QuadPart!=0);*/
+
+
+			PTE=(UINT_PTR)StartAddress;
+			PTE=PTE/0x1000*PTESize+0xc0000000;
+
+    		//now check if the address in PTE is valid by checking the page table directory at 0xc0300000 (same location as CR3 btw)
+			PDE=PTE/0x1000*PTESize+0xc0000000; //same formula
+
+			x=(PVOID)PDE;
 			if ((x->P==0) && (x->A2==0))
-				return FALSE; //see for explenation the part of the PDE
-		}
+			{
+				//Not present or paged, and since paging in this area isn't such a smart thing to do just skip it
+				//perhaps this is only for the 4 mb pages, but those should never be paged out, so it should be 1
+				//bah, I've got no idea what this is used for
+				return FALSE;
+			}
 
-		return TRUE;
-	} 
+			if (x->PS==1)
+			{
+				//This is a 4 MB page (no pte list)
+				//so, (startaddress/0x400000*0x400000) till ((startaddress/0x400000*0x400000)+(0x400000-1) ) ) is specified by this page
+			}
+			else //if it's not a 4 MB page then check the PTE
+			{
+				//still here so the page table directory agreed that it is a usable page table entry
+				x=(PVOID)PTE;
+				if ((x->P==0) && (x->A2==0))
+					return FALSE; //see for explenation the part of the PDE
+			}
+
+			return TRUE;
+		} 
 #endif
+	}
 
 }
 
@@ -113,8 +132,8 @@ BOOLEAN WriteProcessMemory(DWORD PID,PEPROCESS PEProcess,PVOID Address,DWORD Siz
 {
 	PEPROCESS selectedprocess=PEProcess;
 	KAPC_STATE apc_state;
-	NTSTATUS ntStatus=STATUS_SUCCESS;
-
+	NTSTATUS ntStatus=STATUS_UNSUCCESSFUL;
+		
 	if (selectedprocess==NULL)
 	{
 		//DbgPrint("WriteProcessMemory:Getting PEPROCESS\n");
@@ -141,20 +160,43 @@ BOOLEAN WriteProcessMemory(DWORD PID,PEPROCESS PEProcess,PVOID Address,DWORD Siz
 
 			//DbgPrint("Checking safety of memory\n");
 
-			if ((!IsAddressSafe((UINT_PTR)Address)) || (!IsAddressSafe((UINT_PTR)Address+Size-1)))
-				return FALSE; //if the first or last byte of this region is not safe then exit; //I know I should also check the regions inbetween, but since my own dll doesn't request more than 512 bytes it wont overlap
+			if ((IsAddressSafe((UINT_PTR)Address)) && (IsAddressSafe((UINT_PTR)Address+Size-1)))
+			{			
 
-    		//still here, then I gues it's safe to read. (But I can't be 100% sure though, it's still the users problem if he accesses memory that doesn't exist)
+	    		//still here, then I gues it's safe to read. (But I can't be 100% sure though, it's still the users problem if he accesses memory that doesn't exist)
 
-			//DbgPrint("Copying memory to target\n");
-			target=Address;
-			source=Buffer;
-			for (i=0; i<Size; i++)
-			{
-               target[i]=source[i];
+				target=Address;
+				source=Buffer;
+
+				if (loadedbydbvm) //add a extra security around it as the PF will not be handled
+				{
+					disableInterrupts();
+					vmx_disable_dataPageFaults();
+				}
+
+
+				for (i=0; i<Size; i++)
+				{
+				   target[i]=source[i];
+				}
+				ntStatus = STATUS_SUCCESS;	
+
+				if (loadedbydbvm)
+				{
+					UINT_PTR lastError;
+					lastError=vmx_getLastSkippedPageFault();
+					vmx_enable_dataPageFaults();
+
+					enableInterrupts();
+
+					DbgPrint("lastError=%p\n", lastError);
+					if (lastError)
+						ntStatus=STATUS_UNSUCCESSFUL;
+				}
+
 			}
 
-			ntStatus = STATUS_SUCCESS;							
+			
 		}
 		__finally
 		{
@@ -178,95 +220,68 @@ BOOLEAN ReadProcessMemory(DWORD PID,PEPROCESS PEProcess,PVOID Address,DWORD Size
 {
 	PEPROCESS selectedprocess=PEProcess;
 	//KAPC_STATE apc_state;
-	NTSTATUS ntStatus=STATUS_SUCCESS;
+	NTSTATUS ntStatus=STATUS_UNSUCCESSFUL;
 
 	if (PEProcess==NULL)
 	{
-		//DbgPrint("ReadProcessMemory:Getting PEPROCESS\n");
-        if (!NT_SUCCESS(PsLookupProcessByProcessId((PVOID)(UINT_PTR)PID,&selectedprocess)))
+		if (!NT_SUCCESS(PsLookupProcessByProcessId((PVOID)(UINT_PTR)PID,&selectedprocess)))
 		   return FALSE; //couldn't get the PID
-
-		//DbgPrint("Retrieved peprocess");  
+ 
 	}
-
-	//DbgPrint("a");
 
 	//selectedprocess now holds a valid peprocess value
 	__try
 	{
 		UINT_PTR temp=(UINT_PTR)Address;
-		//UINT_PTR currentcr3;
-		//DbgPrint("b");
-		
-		/*				
-		RtlZeroMemory(&apc_state,sizeof(apc_state));					
 
-		RtlZeroMemory(Buffer,Size);*/
-
-		//DbgPrint("c");
-		/*
-		__asm
-		{
-			mov eax,cr3
-			mov currentcr3,eax
-		}*/
-		//DbgPrint("d");
-		//DbgPrint("%d: Before: PEProcess=%x ProcessID=%x CR3=%x (real=%x)\n",cpunr(), (ULONG)PsGetCurrentProcess(), PsGetCurrentProcessId(), currentcr3, vmx_getRealCR3());
     	KeAttachProcess((PEPROCESS)selectedprocess);
 
-		/*
-		//DbgPrint("e");
-		__asm
-		{
-			mov eax,cr3
-			mov currentcr3,eax
-		}
-		//DbgPrint("%d: After: PEProcess=%x ProcessID=%x CR3=%x (real=%x)\n",cpunr(), (ULONG)PsGetCurrentProcess(), PsGetCurrentProcessId(), currentcr3, vmx_getRealCR3());
-*/
+
 
         __try
         {
 			char* target;
 			char* source;
-			//unsigned int i;	
+			int i;
 
-			//DbgPrint("Checking safety of memory\n");
+		
+			if ((IsAddressSafe((UINT_PTR)Address)) && (IsAddressSafe((UINT_PTR)Address+Size-1)))
+			{
+				
 
-			if ((!IsAddressSafe((UINT_PTR)Address)) || (!IsAddressSafe((UINT_PTR)Address+Size-1)))
-				return FALSE; //if the first or last byte of this region is not safe then exit;
 
-    		//still here, then I gues it's safe to read. (But I can't be 100% sure though, it's still the users problem if he accesses memory that doesn't exist)
+				target=Buffer;
+				source=Address;
 
-			//DbgPrint("Copying memory to target\n");
-			target=Buffer;
-			source=Address;
-			RtlCopyMemory(target,source,Size);
-			ntStatus = STATUS_SUCCESS;	
+				if (loadedbydbvm) //add a extra security around it
+				{
+					disableInterrupts();
+					vmx_disable_dataPageFaults();
+				}
+
+				RtlCopyMemory(target,source,Size);
+
+				ntStatus = STATUS_SUCCESS;	
+
+				if (loadedbydbvm)
+				{
+					UINT_PTR lastError;
+					lastError=vmx_getLastSkippedPageFault();
+					vmx_enable_dataPageFaults();
+
+					enableInterrupts();
+
+					DbgPrint("lastError=%p\n", lastError);
+					if (lastError)
+						ntStatus=STATUS_UNSUCCESSFUL;
+				}
+
+				
+			}
+				
 		}
 		__finally
 		{
-		/*	unsigned long long a;
-			a=getTSC()+1000000000;
-			//DbgPrint("a=%d getTSC()=%d",a,getTSC());
-			while (getTSC() < a)
-			{
-				__asm
-				{
-					pushad
-					pause
-					cpuid					
-					popad
-				}
-
-			}
-
-			
-			__asm
-			{
-				mov eax,cr3
-				mov currentcr3,eax
-			}*/
-			//DbgPrint("%d: Before going back: PEProcess=%x ProcessID=%x CR3=%x (real=%x)\n",cpunr(), (ULONG)PsGetCurrentProcess(), PsGetCurrentProcessId(), currentcr3, vmx_getRealCR3());
 
 			KeDetachProcess();
 		}

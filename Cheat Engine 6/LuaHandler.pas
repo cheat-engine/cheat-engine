@@ -8228,7 +8228,10 @@ begin
     lua_pop(L, lua_gettop(L));
 
     if index<screen.formcount then
+    begin
       lua_pushlightuserdata(L, screen.Forms[index]);
+      result:=1;
+    end;
   end
   else
     lua_pop(L, lua_gettop(L));

@@ -170,6 +170,7 @@ function InRangeQ(const AValue, AMin, AMax: qword): Boolean;inline;
 function FindFreeBlockForRegion(base: ptrUint; size: dword): pointer;
 
 function getProcessnameFromProcessID(pid: dword): string;
+procedure getDriverList(list: tstrings);
 
 
 procedure errorbeep;
@@ -3325,6 +3326,38 @@ begin
       result:=me32.szModule;
 
     closehandle(ths);
+  end;
+end;
+
+procedure getDriverList(list: tstrings);
+var need:dword;
+    x: PPointerArray;
+    i: integer;
+    count: integer;
+    drivername: pchar;
+begin
+  list.clear;
+  EnumDevicedrivers(nil,0,need);
+  getmem(x,need);
+  try
+    if enumDevicedrivers(@x[0],need,need) then
+    begin
+      count:=need div sizeof(pointer);
+      getmem(drivername,200);
+      try
+        for i:=0 to count-1 do
+        begin
+          GetDevicedriverBaseNameA(x[i],drivername,200);
+          list.addObject(inttohex(ptrUint(x[i]),8)+' - '+drivername, pointer(x[i]));
+        end;
+
+
+      finally
+        freemem(drivername);
+      end;
+    end;
+  finally
+    freemem(x);
   end;
 end;
 

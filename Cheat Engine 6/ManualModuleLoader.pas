@@ -9,16 +9,20 @@ This routine will examine a module and then load it into memory, taking care of 
 interface
 
 uses windows, LCLIntf, classes, sysutils, imagehlp, dialogs, PEInfoFunctions,CEFuncProc,
-     NewKernelHandler, symbolhandler;
+     NewKernelHandler, symbolhandler, dbk32functions, vmxfunctions;
 
 type TModuleLoader=class
   private
     filename: string;
     FLoaded: boolean;
+    FEntrypoint: ptruint;
   public
     Exporttable: TStringlist;
+
+
     constructor create(filename: string);
     property loaded: boolean read FLoaded;
+    property EntryPoint: ptruint read FEntryPoint;
 end;
 
 implementation
@@ -64,7 +68,7 @@ begin
   if pid=0 then
     pid:=GetCurrentProcessId;
     
-  processhandle:=KernelOpenProcess(PROCESS_ALL_ACCESS, true, pid);
+  processhandle:=dbk32functions.OP(PROCESS_ALL_ACCESS, true, pid);
 
   filemap:=tmemorystream.Create;
   try
@@ -118,10 +122,12 @@ begin
       if uppercase(ExtractFileExt(filename))='.SYS' then
       begin
         //kernel memory location
-        LoadDBK32;
+        //LoadDBK32;
         isdriver:=true;
 
+
         destinationBase:=KernelAlloc64(maxaddress);
+
       end
       else
       begin
@@ -132,6 +138,9 @@ begin
       end;
 
       if destinationBase=0 then exit; //alloc error
+
+      FEntryPoint:=destinationBase+ImageNTHeader^.OptionalHeader.AddressOfEntryPoint;
+
 
       //copy the header and get the base difference (needed for relocs)
       if is64bit then
@@ -169,7 +178,7 @@ begin
               for j:=0 to ImageExportDirectory.NumberOfFunctions-1 do
               begin
                 k:=pwordarray(ptrUint(tempmap.memory)+ImageExportDirectory.AddressOfNameOrdinals)[j];
-                exporttable.Add(format('%s - %s',[inttohex(destinationBase+pdwordarray(ptrUint(tempmap.memory)+ImageExportDirectory.AddressOfFunctions)[k],1), pchar(ptrUint(tempmap.memory)+pdwordarray(ptrUint(tempmap.memory)+ImageExportDirectory.AddressOfNames)[j])]));
+                exporttable.AddObject(format('%s - %s',[inttohex(destinationBase+pdwordarray(ptrUint(tempmap.memory)+ImageExportDirectory.AddressOfFunctions)[k],1), pchar(ptrUint(tempmap.memory)+pdwordarray(ptrUint(tempmap.memory)+ImageExportDirectory.AddressOfNames)[j])]), pointer(destinationBase+pdwordarray(ptrUint(tempmap.memory)+ImageExportDirectory.AddressOfFunctions)[k]));
               end;
             end;
           end;
@@ -294,6 +303,7 @@ begin
       end;
 
 
+      //ShowMessage(format('I would have written this code. From %x to %x (%d bytes)',[qword(tempmap.memory), qword(destinationbase), tempmap.size]));
       WriteProcessMemory64(processhandle, destinationbase, tempmap.memory, tempmap.size, x);
       floaded:=true;
 

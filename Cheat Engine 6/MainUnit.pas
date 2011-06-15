@@ -18,7 +18,7 @@ uses
   customtypehandler, lua,luahandler, lauxlib, lualib, frmSelectionlistunit,
   htmlhelp, win32int, {defaulttranslator,} fileaccess, formdesignerunit,
   ceguicomponents, frmautoinjectunit, cesupport, trainergenerator, genericHotkey,
-  luafile, xmplayer_server, sharedMemory{$ifdef windows},win32proc{$endif};
+  luafile, xmplayer_server, sharedMemory{$ifdef windows},win32proc{$endif}, vmxfunctions;
 
 //the following are just for compatibility
 
@@ -378,6 +378,7 @@ type
     procedure Foundlist3SelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
     procedure Label3Click(Sender: TObject);
+    procedure Label57Click(Sender: TObject);
     procedure lblcompareToSavedScanClick(Sender: TObject);
     procedure Label58Click(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
@@ -2347,6 +2348,41 @@ end;
 
 procedure TMainForm.Label3Click(Sender: TObject);
 begin
+
+end;
+
+
+
+
+
+procedure TMainForm.Label57Click(Sender: TObject);
+var p: pointer;
+  var l: tstringlist;
+var t: TModuleLoader;
+  q: qword;
+begin
+  t:=TModuleLoader.create(cheatenginedir+'dbk64.sys');
+
+ // p:=dbvm_kernelalloc(4096);
+ // showmessage(inttohex(ptruint(p),8));
+ // l:=tstringlist.create;
+ { if t.loaded then
+  begin
+    ZeroMemory(@dobject, sizeof(dobject));
+    q:=dbvm_executeDriverEntry(pointer(t.entrypoint), @dobject,nil);
+
+
+    showmessage('dobject.DriverUnload='+inttohex(ptruint(dobject.DriverUnload),8));
+    showmessage('dobject.MajorFunction[IRP_MJ_CREATE]='+inttohex(ptruint(dobject.MajorFunction[IRP_MJ_CREATE]),8));
+    showmessage('dobject.MajorFunction[IRP_MJ_CLOSE]='+inttohex(ptruint(dobject.MajorFunction[IRP_MJ_CLOSE]),8));
+    showmessage('dobject.MajorFunction[IRP_MJ_DEVICE_CONTROL]='+inttohex(ptruint(dobject.MajorFunction[IRP_MJ_DEVICE_CONTROL]),8));
+
+  end
+  else
+    showmessage('failed to load');
+
+         }
+
 
 end;
 

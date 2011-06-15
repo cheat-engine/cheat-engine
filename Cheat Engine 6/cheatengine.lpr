@@ -52,7 +52,7 @@ uses
   IconStuff, cetranslator, frmStringMapUnit, MemFuncs, frmStringPointerScanUnit,
   frmStructPointerRescanUnit, sharedMemory, disassemblerComments,
   frmFilePatcherUnit, LuaCanvas, LuaPen, LuaFont, LuaBrush, LuaPicture, LuaMenu,
-  LuaDebug, frmUltimapUnit;
+  LuaDebug, frmUltimapUnit, DBK64SecondaryLoader;
 
 {$R cheatengine.res}
 {$R manifest.res}

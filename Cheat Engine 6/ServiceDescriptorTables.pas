@@ -57,7 +57,7 @@ var
 implementation
 
 
-uses MemoryBrowserFormUnit;
+uses MemoryBrowserFormUnit, dbk32functions;
 
 resourcestring
   rsServiceDescriptorTable = 'Service Descriptor Table';
@@ -101,7 +101,7 @@ var sdtstruct: tsdtstruct;
     s: string;
 begin
 //open own process in case kernelmode openprocess wasn't used
-  p:=KernelOpenProcess(PROCESS_ALL_ACCESS,true,getcurrentprocessid);
+  p:=dbk32functions.OP(PROCESS_ALL_ACCESS,true,getcurrentprocessid);
 
   second:=true;
 
@@ -119,13 +119,13 @@ begin
       x:=treeview1.Items.Add(nil, rsServiceDescriptorTableShadow);
     end;
 
-    if KernelReadProcessMemory(p,pointer(sdt),@sdtstruct,sizeof(sdtstruct),nrofbytes) then
+    if RPM(p,pointer(sdt),@sdtstruct,sizeof(sdtstruct),nrofbytes) then
     begin
       getmem(functionpointers,sdtstruct.nrofpointers*4);
       getmem(parametercounts,sdtstruct.nrofpointers);
       try
-        if KernelReadProcessMemory(p,sdtstruct.parametercounts,parametercounts,sdtstruct.nrofpointers,nrofbytes) then
-          if KernelReadProcessMemory(p,sdtstruct.functionpointers,functionpointers,sdtstruct.nrofpointers*4,nrofbytes) then
+        if RPM(p,sdtstruct.parametercounts,parametercounts,sdtstruct.nrofpointers,nrofbytes) then
+          if RPM(p,sdtstruct.functionpointers,functionpointers,sdtstruct.nrofpointers*4,nrofbytes) then
           begin
             for i:=0 to sdtstruct.nrofpointers-1 do
             begin

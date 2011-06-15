@@ -28,6 +28,7 @@ var
 
 implementation
 
+uses dbk32functions;
 
 procedure TfrmThreadListEx.updatelist;
 var ths: thandle;

@@ -9,6 +9,9 @@
 int _fltused;
 
 
+typedef VOID F(UINT_PTR param);
+typedef F *PF;
+
 
 typedef struct _criticalSection
 {
@@ -215,6 +218,7 @@ extern UINT64 getR15(void);
 
 int getCpuCount(void);
 
+BOOL loadedbydbvm;
 int PTESize;
 UINT_PTR PAGE_SIZE_LARGE;
 UINT_PTR MAX_PDE_POS;
@@ -240,5 +244,6 @@ void csEnter(PcriticalSection CS);
 void csLeave(PcriticalSection CS);
 
 void forEachCpu(PKDEFERRED_ROUTINE dpcfunction,  PVOID DeferredContext, PVOID  SystemArgument1, PVOID  SystemArgument2);
+void forEachCpuPassive(PF f, UINT_PTR param);
 
 #endif;
