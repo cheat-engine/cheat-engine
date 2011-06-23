@@ -1017,7 +1017,7 @@ begin
 
     try
       staticscanner.ownerform:=self;
-      staticscanner.filename:=savedialog1.FileName;
+      staticscanner.filename:=utf8toansi(savedialog1.FileName);
       staticscanner.reverse:=true; //since 5.6 this is always true
 
       staticscanner.noReadOnly:=frmpointerscannersettings.cbNoReadOnly.checked;
@@ -1311,7 +1311,7 @@ end;
 procedure Tfrmpointerscanner.Open1Click(Sender: TObject);
 begin
   if opendialog1.Execute then
-    OpenPointerfile(Opendialog1.filename);
+    OpenPointerfile(utf8toansi(Opendialog1.filename));
 end;
 
 function TRescanWorker.isMatchToValue(p:pointer): boolean;
@@ -1703,7 +1703,7 @@ begin
           begin
 
 
-            rescan.filename:=savedialog1.filename;
+            rescan.filename:=utf8toansi(savedialog1.filename);
             if cbDelay.checked then
               rescan.delay:=delay
             else

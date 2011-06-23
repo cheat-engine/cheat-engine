@@ -18,7 +18,7 @@ uses
   customtypehandler, lua,luahandler, lauxlib, lualib, frmSelectionlistunit,
   htmlhelp, win32int, {defaulttranslator,} fileaccess, formdesignerunit,
   ceguicomponents, frmautoinjectunit, cesupport, trainergenerator, genericHotkey,
-  luafile, xmplayer_server, sharedMemory{$ifdef windows},win32proc{$endif}, vmxfunctions;
+  luafile, xmplayer_server, sharedMemory{$ifdef windows},win32proc{$endif}, vmxfunctions, FileUtil;
 
 //the following are just for compatibility
 

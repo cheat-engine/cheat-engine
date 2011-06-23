@@ -66,6 +66,13 @@ type TProcessListInfo=record
 end;
 PProcessListInfo=^TProcessListInfo;
 
+
+type tmoduledata =class
+  public
+    moduleaddress: ptrUint;
+    modulesize: dword;
+end;
+
 function StrToQWordEx(s: string): qword;
 
 function ConvertHexStrToRealStr(const s: string): string;
@@ -90,6 +97,9 @@ procedure GetProcessList(ProcessList: TListBox; NoPID: boolean=false); overload;
 procedure GetProcessList(ProcessList: TStrings; NoPID: boolean=false); overload;
 procedure cleanProcessList(processlist: TStrings);
 procedure GetWindowList(ProcessList: TListBox; showInvisible: boolean=true);
+procedure GetModuleList(ModuleList: TStrings; withSystemModules: boolean);
+procedure cleanModuleList(ModuleList: TStrings);
+
 function AvailMem:SIZE_T;
 function isreadable(address:ptrUint):boolean;
 
@@ -2239,6 +2249,69 @@ begin
 
     closehandle(SNAPHandle);
   end;
+end;
+
+procedure GetModuleList(ModuleList: TStrings; withSystemModules: boolean);
+var ths: thandle;
+    me32: MODULEENTRY32;
+    x: pchar;
+    moduledata: tmoduledata;
+    i: integer;
+    alreadyInTheList: boolean;
+begin
+  cleanModuleList(modulelist);
+
+  ths:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE or TH32CS_SNAPMODULE32,processid);
+  if ths<>0 then
+  begin
+    try
+      zeromemory(@me32,sizeof(me32));
+      me32.dwSize:=sizeof(me32);
+      if module32first(ths,me32) then
+      repeat
+        x:=@me32.szModule[0];
+
+        if (withSystemModules) or (not symhandler.inSystemModule(ptrUint(me32.modBaseAddr))) then
+        begin
+          alreadyInTheList:=false;
+          for i:=0 to ModuleList.count-1 do
+          begin
+            moduledata:=tmoduledata(ModuleList.objects[i]);
+            if moduledata.moduleaddress=ptrUint(me32.modBaseAddr) then
+            begin
+              alreadyInTheList:=true;
+              break;
+            end;
+          end;
+
+          if not alreadyInTheList then
+          begin
+            moduledata:=tmoduledata.Create;
+            moduledata.moduleaddress:=ptrUint(me32.modBaseAddr);
+            moduledata.modulesize:=me32.modBaseSize;
+
+            ModuleList.AddObject(x,moduledata);
+          end;
+        end;
+      until module32next(ths,me32)=false;
+
+    finally
+      closehandle(ths);
+    end;
+  end;
+end;
+
+procedure cleanModuleList(ModuleList: TStrings);
+var i: integer;
+begin
+  for i:=0 to ModuleList.Count-1 do
+    if ModuleList.Objects[i]<>nil then
+    begin
+      tmoduledata(ModuleList.Objects[i]).Free;
+      ModuleList.Objects[i]:=nil;
+    end;
+
+  ModuleList.Clear;
 end;
 
 procedure cleanProcessList(processlist: TStrings);

@@ -68,9 +68,19 @@ begin
   end;
 
   if launch32bit then
-    ShellExecute(0, 'open', pchar(selfpath+'cheatengine-i386.exe'), pchar(param), pchar(selfpath), sw_show)
+  begin
+    if fileexists(selfpath+'cheatengine-i386.exe') then
+      ShellExecute(0, 'open', pchar(selfpath+'cheatengine-i386.exe'), pchar(param), pchar(selfpath), sw_show)
+    else
+      MessageBox(0, 'cheatengine-i386.exe could not be found. Please disable/uninstall your anti virus and reinstall Cheat Engine to fix this','Cheat Engine launch error',MB_OK or MB_ICONERROR);
+  end
   else
-    ShellExecute(0, 'open', pchar(selfpath+'cheatengine-x86_64.exe'), pchar(param), pchar(selfpath), sw_show)
+  begin
+    if FileExists(selfpath+'cheatengine-x86_64.exe') then
+      ShellExecute(0, 'open', pchar(selfpath+'cheatengine-x86_64.exe'), pchar(param), pchar(selfpath), sw_show)
+    else
+      MessageBox(0, 'cheatengine-x86_64.exe could not be found. Please disable/uninstall your anti virus and reinstall Cheat Engine to fix this','Cheat Engine launch error',MB_OK or MB_ICONERROR);
+  end;
 
 end.
 

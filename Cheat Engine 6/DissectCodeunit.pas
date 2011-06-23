@@ -9,11 +9,7 @@ uses
   Dialogs, StdCtrls, ComCtrls, ExtCtrls,DissectCodeThread,CEFuncProc,
   symbolhandler, LResources, frmReferencedStringsUnit, newkernelhandler, MemFuncs;
 
-type tmoduledata =class
-  public
-    moduleaddress: ptrUint;
-    modulesize: dword;
-end;
+
 
 type TOnDoneDissect=(odDoNothing, odOpenReferedStringList);
 
@@ -228,63 +224,13 @@ begin
 end;
 
 procedure TfrmDissectCode.cleanModuleList;
-var i: integer;
 begin
-  for i:=0 to lbModuleList.Count-1 do
-    tmoduledata(lbModuleList.Items.Objects[i]).Free;
-
-  lbModuleList.items.Clear;
+  cefuncproc.cleanModuleList(lbModulelist.items);
 end;
 
 procedure TfrmDissectCode.fillModuleList(withSystemModules: boolean);
-var ths: thandle;
-    me32: MODULEENTRY32;
-    x: pchar;
-    moduledata: tmoduledata;
-    i: integer;
-    alreadyInTheList: boolean;
 begin
-  cleanModuleList;
-
-
-  ths:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE or TH32CS_SNAPMODULE32,processid);
-  if ths<>0 then
-  begin
-    try
-      zeromemory(@me32,sizeof(me32));
-      me32.dwSize:=sizeof(me32);
-      if module32first(ths,me32) then
-      repeat
-        x:=@me32.szModule[0];
-
-        if (withSystemModules) or (not symhandler.inSystemModule(ptrUint(me32.modBaseAddr))) then
-        begin
-          alreadyInTheList:=false;
-          for i:=0 to lbModuleList.Items.count-1 do
-          begin
-            moduledata:=tmoduledata(lbModuleList.items.objects[i]);
-            if moduledata.moduleaddress=ptrUint(me32.modBaseAddr) then
-            begin
-              alreadyInTheList:=true;
-              break;
-            end;
-          end;
-
-          if not alreadyInTheList then
-          begin
-            moduledata:=tmoduledata.Create;
-            moduledata.moduleaddress:=ptrUint(me32.modBaseAddr);
-            moduledata.modulesize:=me32.modBaseSize;
-
-            lbModuleList.Items.AddObject(x,moduledata);
-          end;
-        end;
-      until module32next(ths,me32)=false;
-
-    finally
-      closehandle(ths);
-    end;
-  end;
+  cefuncproc.GetModuleList(lbModuleList.Items, withSystemModules);
 end;
 
 procedure TfrmDissectCode.FormShow(Sender: TObject);

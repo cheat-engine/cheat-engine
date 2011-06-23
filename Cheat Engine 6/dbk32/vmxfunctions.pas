@@ -27,6 +27,13 @@ const
 
   VMCALL_SWITCH_TO_KERNELMODE=30;
 
+  VMCALL_DISABLE_DATAPAGEFAULTS= 31;
+  VMCALL_ENABLE_DATAPAGEFAULTS= 32;
+  VMCALL_GETLASTSKIPPEDPAGEFAULT =33;
+
+  VMCALL_ULTIMAP_PAUSE =34;
+  VMCALL_ULTIMAP_RESUME= 35;
+
 type
   TOriginalState=packed record
     oldflags: dword;
@@ -46,6 +53,9 @@ function dbvm_raise_privilege: DWORD; stdcall;
 
 function dbvm_readMSR(msr: dword): QWORD;
 procedure dbvm_writeMSR(msr: dword; value: qword);
+
+function dbvm_ultimap_pause: DWORD;
+function dbvm_ultimap_resume: DWORD;
 
 procedure dbvm_switchToKernelMode(cs: word; rip: pointer; parameters: pointer);
 
@@ -295,6 +305,32 @@ begin
   result:=vmcall(@vmcallinfo,vmx_password1);
 end;
 
+function dbvm_ultimap_resume: DWORD;
+var vmcallinfo: packed record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_ULTIMAP_RESUME;
+  result:=vmcall(@vmcallinfo,vmx_password1);
+end;
+
+function dbvm_ultimap_pause: DWORD;
+var vmcallinfo: packed record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_ULTIMAP_PAUSE;
+  result:=vmcall(@vmcallinfo,vmx_password1);
+end;
+
 function dbvm_readMSR(msr: dword): QWORD;
 var vmcallinfo: packed record
   structsize: dword;
@@ -309,8 +345,6 @@ begin
   vmcallinfo.command:=VMCALL_READMSR;
   vmcallinfo.msr:=msr;
   result:=vmcall(@vmcallinfo,vmx_password1);
-
-
 end;
 
 procedure dbvm_writeMSR(msr: dword; value: qword);

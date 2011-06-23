@@ -6,8 +6,8 @@ object frameHotkeyConfig: TframeHotkeyConfig
   ClientHeight = 414
   ClientWidth = 488
   TabOrder = 0
-  DesignLeft = 726
-  DesignTop = 295
+  DesignLeft = 817
+  DesignTop = 135
   object Panel1: TPanel
     Left = 0
     Height = 364

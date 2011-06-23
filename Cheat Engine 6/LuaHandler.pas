@@ -2821,6 +2821,31 @@ begin
   lua_pop(L, parameters);
 end;
 
+function GenericHotkey_getKeys(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  GenericHotkey: TGenericHotkey;
+  i: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    Generichotkey:=lua_touserdata(L,-parameters);
+    lua_pop(L, parameters);
+
+    i:=0;
+    while (i<5) and (Generichotkey.keys[i]<>0) do
+      lua_pushinteger(L, Generichotkey.keys[i]);
+
+    result:=1;
+  end
+  else
+    lua_pop(L, parameters);
+
+
+end;
+
 function generichotkey_onHotkey(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
@@ -8544,6 +8569,7 @@ begin
 
     lua_register(LuaVM, 'createHotkey', createHotkey);
     lua_register(LuaVM, 'generichotkey_setKeys', generichotkey_setKeys);
+    lua_register(LuaVM, 'generichotkey_getKeys', generichotkey_getKeys);
     lua_register(LuaVM, 'generichotkey_onHotkey', generichotkey_onHotkey);
 
     lua_register(LuaVM, 'getPropertyList', getPropertyList);

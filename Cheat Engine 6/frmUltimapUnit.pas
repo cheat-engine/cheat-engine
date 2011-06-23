@@ -7,7 +7,8 @@ interface
 uses
   windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   DBK32functions, NewKernelHandler, cefuncproc, AvgLvlTree, ExtCtrls, ComCtrls,
-  math,  symbolhandler, maps, disassembler, multicpuexecution, syncobjs;
+  math,  symbolhandler, maps, Menus, disassembler, multicpuexecution, syncobjs,
+  genericHotkey, HotKeys, frmHotkeyExUnit, frmSelectionlistunit;
 
 
 
@@ -53,8 +54,10 @@ type
   { TfrmUltimap }
 
   TfrmUltimap = class(TForm)
+    btnPause: TButton;
+    btnStart: TButton;
+    btnStop: TButton;
     Button1: TButton;
-    Button2: TButton;
     Button3: TButton;
     Button4: TButton;
     Button5: TButton;
@@ -63,40 +66,40 @@ type
     Button8: TButton;
     cbLogToFile: TRadioButton;
     cbParseData: TRadioButton;
-    cbRing0: TCheckBox;
-    cbRing1Plus: TCheckBox;
-    cbConditional: TCheckBox;
-    cbNearRelCall: TCheckBox;
-    cbNearIndCall: TCheckBox;
-    cbNearRets: TCheckBox;
-    cbNearIndirectJump: TCheckBox;
-    cbNearRelativeJumps: TCheckBox;
-    cbFarBranches: TCheckBox;
     Edit1: TEdit;
     edtBufSize: TEdit;
     edtFilename: TEdit;
     edtWorkerCount: TEdit;
-    gbSelective: TGroupBox;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
+    Label5: TLabel;
+    lblLastfilterresult: TLabel;
     ListView1: TListView;
+    MenuItem1: TMenuItem;
     Panel1: TPanel;
     Panel2: TPanel;
     Panel3: TPanel;
-    Panel4: TPanel;
     Panel5: TPanel;
+    pmSetHotkey: TPopupMenu;
     Timer1: TTimer;
+    procedure btnStartClick(Sender: TObject);
+    procedure btnStopClick(Sender: TObject);
+    procedure btnPauseClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
+    procedure Button3Click(Sender: TObject);
+    procedure Button4Click(Sender: TObject);
     procedure Button5Click(Sender: TObject);
     procedure Button6Click(Sender: TObject);
+    procedure Button7Click(Sender: TObject);
     procedure Button9Click(Sender: TObject);
     procedure FilterClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure ListView1Data(Sender: TObject; Item: TListItem);
     procedure ListView1DblClick(Sender: TObject);
+    procedure MenuItem1Click(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
   private
     { private declarations }
@@ -109,10 +112,16 @@ type
     callTable: TMap;
     iscalldisassembler: TDisassembler;
 
+
+    FilterHotkey: array [0..3] of TGenericHotkey;
+    paused: boolean;
+
+
+    target_cr3: qword;
+    bufsize: dword;
     function branchcompare(Tree: TAvgLvlTree; Data1, Data2: Pointer): integer;
     procedure ApplyFilter(f: integer);
     function iscall(address: ptruint): boolean;
-    procedure setSelectiveMsr;
   public
     { public declarations }
   end; 
@@ -126,7 +135,13 @@ implementation
 
 {$R *.lfm}
 
-uses MemoryBrowserFormUnit;
+uses MemoryBrowserFormUnit, vmxfunctions;
+
+{$ifdef cpu64}
+const kernelbase=QWORD($800000000000);
+{$else}
+const kernelbase=DWORD($80000000);
+{$endif}
 
 {TUltimap_DataHandlerThread}
 procedure TUltimap_DataHandlerThread.UpdateBranchData(branchdata: PBranchData; BTS: PBTS);
@@ -156,8 +171,10 @@ begin
   new:=0;
   for i:=0 to size-1 do
   begin
-    lbt:=buf[i].LastBranchTo;
+    if (buf[i].LastBranchFrom>=kernelbase) then
+      continue; //don't add returns from kernelmode (interrupt/taskswitches. Useless info)
 
+    lbt:=buf[i].LastBranchTo;
 
     temp.toAddress:=lbt;
     tn:=branchtree.Find(@temp);
@@ -263,6 +280,11 @@ begin
 
     end else OutputDebugString('No event');
   end;
+
+  //just make sure it's really finished (could be there are still multiple threads waiting to continue)
+  while ultimap_waitForData(10, @UltimapDataEvent) do
+    ultimap_continue(@UltimapDataEvent);
+
 end;
 
 { TfrmUltimap }
@@ -273,38 +295,11 @@ begin
   result:=CompareValue(pbranchdata(Data1).toAddress, pbranchdata(Data2).toAddress);
 end;
 
-function setSelectiveMsrForEachCpu(value: pointer): BOOL; stdcall;
-begin
-  writemsr($1c8, dword(value));
-  result:=true;
-end;
 
-procedure TfrmUltimap.setSelectiveMsr;
-var value: dword;
-begin
-
-  if gbSelective.Enabled then
-  begin
-    value:=0;
-    if not cbRing0.checked then value:=value or (1 shl 0);
-    if not cbRing1Plus.checked then value:=value or (1 shl 1);
-    if not cbConditional.checked then value:=value or (1 shl 2);
-    if not cbNearRelCall.checked then value:=value or (1 shl 3);
-    if not cbNearIndCall.checked then value:=value or (1 shl 4);
-    if not cbNearRets.checked then value:=value or (1 shl 5);
-    if not cbNearIndirectJump.checked then value:=value or (1 shl 6);
-    if not cbNearRelativeJumps.checked then value:=value or (1 shl 7);
-    if not cbFarBranches.checked then value:=value or (1 shl 8);
-
-    foreachcpu(setSelectiveMsrForEachCpu,pointer(value));
-
-  end;
-end;
-
-procedure TfrmUltimap.Button1Click(Sender: TObject);
+procedure TfrmUltimap.btnStartClick(Sender: TObject);
 var
-  cr3: qword;
-  bufsize: dword;
+
+
   filename: widestring;
   workercount: integer;
   i: integer;
@@ -313,12 +308,14 @@ begin
   if Is64bitOS then raise exception.create('Please run the 64-bit version of Cheat Engine to make use of this feature');
   {$endif}
 
+  TotalBranches:=0;
 
   LoadDBK32;
 
 
 
-  GetCR3(processhandle, cr3);
+
+  GetCR3(processhandle, target_cr3);
   bufsize:=strtoint(edtBufSize.text);
   filename:=edtFilename.text;
   workercount:=strtoint(edtWorkerCount.text);
@@ -335,9 +332,9 @@ begin
   branchtree:=TAvgLvlTree.CreateObjectCompare(branchcompare);
   branchtreeCS:=TCriticalSection.Create;
 
-  setSelectiveMSR;
+  //setSelectiveMSR; Looks like I was wrong, this is Last Branch Record only, no data store
 
-  if ultimap(cr3, (1 shl 6) or (1 shl 7) or (1 shl 9) or (1 shl 8), bufsize, false, pwidechar(filename), workercount) then
+  if ultimap(target_cr3, (1 shl 6) or (1 shl 7) or (1 shl 9) or (1 shl 8), bufsize, false, pwidechar(filename), workercount) then
   begin
     for i:=0 to workercount-1 do
     begin
@@ -347,19 +344,86 @@ begin
       workers[i].Start;
     end;
   end;
+
+
+  paused:=false;
+  btnPause.tag:=1;
+  btnPause.caption:='Pause';
+  btnPause.enabled:=true;
+  btnStop.enabled:=true;
+  btnstart.enabled:=false;
 end;
 
-procedure TfrmUltimap.Button2Click(Sender: TObject);
+procedure TfrmUltimap.btnStopClick(Sender: TObject);
 var i: integer;
 begin
+  ultimap_disable();
+
   for i:=0 to length(workers)-1 do
     workers[i].Terminate;
 
   for i:=0 to length(workers)-1 do
+  begin
     workers[i].WaitFor;
+    workers[i].free;
+    workers[i]:=nil;
+  end;
+
+  setlength(workers,0);
 
 
-  ultimap_disable();
+  paused:=false;
+
+  btnStop.enabled:=false;
+  btnpause.enabled:=false;
+  btnStart.enabled:=true;
+
+end;
+
+function ultimap_pause(value: pointer): BOOL; stdcall;
+begin
+  dbvm_ultimap_pause; //stops setting the debugctl msr for the target process but does not reset logged the values
+end;
+
+function ultimap_resume(value: pointer): BOOL; stdcall;
+begin
+  dbvm_ultimap_resume; //stops setting the debugctl msr for the target process but does not reset logged the values
+end;
+
+procedure TfrmUltimap.btnPauseClick(Sender: TObject);
+begin
+  if not paused then
+  begin
+    foreachcpu(ultimap_pause,nil);
+    paused:=true;
+    btnPause.caption:='Resume';
+  end
+  else
+  begin
+    foreachcpu(ultimap_resume,nil);
+    paused:=false;
+    btnPause.caption:='Pause';
+  end;
+end;
+
+procedure TfrmUltimap.Button1Click(Sender: TObject);
+begin
+  ApplyFilter(4);
+end;
+
+procedure TfrmUltimap.Button3Click(Sender: TObject);
+begin
+  ApplyFilter(0);
+end;
+
+procedure TfrmUltimap.Button4Click(Sender: TObject);
+begin
+  ApplyFilter(1);
+end;
+
+procedure TfrmUltimap.Button7Click(Sender: TObject);
+begin
+  ApplyFilter(2);
 end;
 
 procedure TfrmUltimap.Button5Click(Sender: TObject);
@@ -369,6 +433,8 @@ var n: TAvgLvlTreeNode;
   count: integer;
   maxvalidlist: integer;
 begin
+  if branchtree=nil then exit;
+
   count:=0;
 
   if length(validlist)=0 then
@@ -407,16 +473,22 @@ var n: TAvgLvlTreeNode;
   d: PBranchdata;
   count: integer;
 begin
-  n:=branchtree.FindLowest;
-
-  d:=PBranchdata(n.Data);
-  while d<>nil do
+  if branchtree<>nil then
   begin
-    d.wrong:=false;
-    d:=d.Next;
+    n:=branchtree.FindLowest;
+
+    d:=PBranchdata(n.Data);
+    while d<>nil do
+    begin
+      d.wrong:=false;
+      d:=d.Next;
+    end;
+
   end;
 
 end;
+
+
 
 procedure TfrmUltimap.Button9Click(Sender: TObject);
 begin
@@ -426,6 +498,7 @@ end;
 function TfrmUltimap.iscall(address: ptruint): boolean;
 var iscall: boolean;
   x: string;
+  a: ptruint;
 begin
   //check if it's a call
   if callTable=nil then //create the calltable first
@@ -438,7 +511,8 @@ begin
   begin
     //not yet in the list
     //add if it's a call or not
-    iscalldisassembler.disassemble(address, x);
+    a:=address;
+    iscalldisassembler.disassemble(a, x);
     iscall:=iscalldisassembler.LastDisassembleData.iscall;
 
     callTable.Add(address, iscall);
@@ -454,11 +528,55 @@ var n: TAvgLvlTreeNode;
   notwrong: integer;
 
   countvalue: integer;
+  list:  tstringlist;
+
+  startaddress, stopaddress: PtrUInt;
+
+  r: TModalResult;
 begin
-  ultimap_flush;
+  if branchtree=nil then
+  begin
+    errorbeep;
+    exit;
+  end;
+
+  if length(workers)>0 then
+    ultimap_flush; //there are workers to handle this
 
   if f=3 then
     countvalue:=strtoint(edit1.text);
+
+  if f=4 then
+  begin
+    //show a modulelist to pick from
+    list:=tstringlist.Create;
+    GetModuleList(list, true);
+    try
+
+      with TfrmSelectionList.create(self, list) do
+      begin
+        r:=showmodal;
+
+       // showmessage('showmodal returned '+inttostr(r));
+
+        if r<>mrok then exit;
+
+       // showmessage('itemindex='+inttostr(itemindex));
+        if itemindex=-1 then exit;
+
+
+        startaddress:=tmoduledata(list.objects[itemindex]).moduleaddress;
+        stopaddress:=tmoduledata(list.objects[itemindex]).moduleaddress+tmoduledata(list.objects[itemindex]).modulesize;
+
+       // showMessage('startaddress='+inttohex(startaddress,8));
+      end;
+
+    finally
+      cleanModuleList(list);
+      list.free;
+    end;
+
+  end;
 
   n:=branchtree.FindLowest;
   wrongcount:=0;
@@ -472,8 +590,9 @@ begin
       case f of
         0: if not d.isCalled then d.wrong:=true; //filter out routines that where not called
         1: if d.isCalled then d.wrong:=true;     //filter out routines that where called
-        2: if not iscall(d.lastFromAddress) then d.wrong:=true;
+        2: if iscall(d.lastFromAddress)=false then d.wrong:=true;
         3: if d.count<>countvalue then d.wrong:=true;
+        4: if InRangeQ(d.toAddress, startaddress, stopaddress)=false then d.wrong:=true;
       end;
 
       if d.wrong then inc(wrongcount) else inc(notwrong);
@@ -483,7 +602,8 @@ begin
     d:=d.Next;
   end;
 
-  showmessage('filtered out '+inttostr(wrongcount)+' left:'+inttostr(notwrong));
+  lblLastfilterresult.caption:='Last filter results: filtered out '+inttostr(wrongcount)+' left:'+inttostr(notwrong);
+  beep;
 end;
 
 procedure TfrmUltimap.FilterClick(Sender: TObject);
@@ -495,22 +615,17 @@ begin
   ApplyFilter(f);
 end;
 
+procedure TfrmUltimap.FormClose(Sender: TObject; var CloseAction: TCloseAction);
+begin
+  if btnStop.enabled then
+    btnstop.click;
+end;
+
 procedure TfrmUltimap.FormCreate(Sender: TObject);
 begin
   edtWorkerCount.Text:=inttostr(GetCPUCount);
   label4.Caption:=inttostr(sizeof(TBTS));
 
-  try
-    readMSR($1c8);
-    gbSelective.enabled:=true;
-    cbConditional.checked:=false;
-    cbNearRelCall.checked:=false;
-    cbNearIndCall.checked:=false;
-    cbNearRets.checked:=false;
-    cbNearIndirectJump.checked:=false;
-    cbNearRelativeJumps.checked:=false;
-  except
-  end;
 end;
 
 procedure TfrmUltimap.ListView1Data(Sender: TObject; Item: TListItem);
@@ -522,13 +637,44 @@ begin
 end;
 
 procedure TfrmUltimap.ListView1DblClick(Sender: TObject);
+var x: integer;
 begin
-
   if listview1.selected<>nil then
   begin
-    memorybrowser.disassemblerview.SelectedAddress:=validlist[listview1.selected.Index].toAddress;
+    x:=listview1.ScreenToClient(mouse.CursorPos).x;
+    if x>listview1.Column[0].Width then
+      memorybrowser.disassemblerview.SelectedAddress:=validlist[listview1.selected.Index].lastFromAddress
+    else
+      memorybrowser.disassemblerview.SelectedAddress:=validlist[listview1.selected.Index].toAddress;
+
     if memorybrowser.visible=false then
       memorybrowser.show;
+  end;
+end;
+
+procedure TfrmUltimap.MenuItem1Click(Sender: TObject);
+var f: TfrmHotkeyEx;
+  i: integer;
+begin
+  if pmSetHotkey.PopupComponent<>nil then
+  begin
+    i:=pmSetHotkey.PopupComponent.Tag;
+
+    f:=TfrmHotkeyEx.Create(self);
+
+    if FilterHotkey[i]<>nil then
+    begin
+      f.newhotkey:=filterhotkey[i].keys;
+      f.edtHotkey.text:=ConvertKeyComboToString(f.newhotkey);
+    end;
+
+    if f.showmodal = mrok then
+    begin
+      if FilterHotkey[i]=nil then
+        FilterHotkey[i]:=TGenericHotkey.create(TButton(pmSetHotkey.PopupComponent).OnClick, f.newhotkey)
+      else
+        FilterHotkey[i].keys:=f.newhotkey;
+    end;
   end;
 end;
 
