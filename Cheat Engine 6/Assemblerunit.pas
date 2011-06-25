@@ -197,7 +197,7 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'CDQE';bytes:2;bt1:$48;bt2:$98),
 
   (mnemonic:'CLC';bytes:1;bt1:$f8),
-  (mnemonic:'CLD';bytes:1;bt1:$f8),
+  (mnemonic:'CLD';bytes:1;bt1:$fc),
   (mnemonic:'CLFLUSH';opcode1:eo_reg7;paramtype1:par_m8;bytes:2;bt1:$0f;bt2:$ae),
   (mnemonic:'CLI';bytes:1;bt1:$fa),
   (mnemonic:'CLTS';bytes:2;bt1:$0f;bt2:$06),

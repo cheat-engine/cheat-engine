@@ -40,10 +40,7 @@ type
     fRunning: boolean;
     procedure cleanupDeletedBreakpoints;
     function getDebugThreadHanderFromThreadID(tid: dword): TDebugThreadHandler;
-    {$ifdef cpu64}
-    procedure SetBreakpoint(breakpoint: PBreakpoint; UpdateForOneThread: TDebugThreadHandler=nil);
-    procedure UnsetBreakpoint(breakpoint: PBreakpoint);
-    {$endif}
+
     procedure GetBreakpointList(address: uint_ptr; size: integer; var bplist: TBreakpointSplitArray);
     procedure defaultConstructorcode;
     procedure lockSettings;
@@ -59,10 +56,10 @@ type
 
   public
     InitialBreakpointTriggered: boolean; //set by a debugthread when the first unknown exception is dealth with causing all subsequent unexpected breakpoitns to become unhandled
-    {$ifdef cpu32} //xp hack
+
     procedure SetBreakpoint(breakpoint: PBreakpoint; UpdateForOneThread: TDebugThreadHandler=nil);
-    procedure UnsetBreakpoint(breakpoint: PBreakpoint);
-    {$endif}
+    procedure UnsetBreakpoint(breakpoint: PBreakpoint; specificContext: PContext=nil);
+
 
     function lockThreadlist: TList;
     procedure unlockThreadlist;
@@ -563,7 +560,7 @@ begin
 
 end;
 
-procedure TDebuggerThread.UnsetBreakpoint(breakpoint: PBreakpoint);
+procedure TDebuggerThread.UnsetBreakpoint(breakpoint: PBreakpoint; specificContext: PContext=nil);
 var
   Debugregistermask: dword;
   oldprotect, bw: dword;
@@ -586,6 +583,17 @@ begin
     end
     else
     begin
+      if (specificContext<>nil) then
+      begin
+        case breakpoint.debugregister of
+          0: specificContext.Dr0 := 0;
+          1: specificContext.Dr1 := 0;
+          2: specificContext.Dr2 := 0;
+          3: specificContext.Dr3 := 0;
+        end;
+        specificContext.Dr7 := (specificContext.Dr7 and Debugregistermask);
+      end
+      else
       if breakpoint.ThreadID <> 0 then
       begin
         //only one thread
@@ -706,6 +714,7 @@ begin
     breakpoint.markedfordeletion := True;
     //set this flag so it gets deleted on next no-event
 
+    OutputDebugString('Disabled the breakpoint');
   finally
     breakpointCS.leave;
   end;

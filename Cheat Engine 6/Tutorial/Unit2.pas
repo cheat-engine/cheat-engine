@@ -9,7 +9,11 @@ uses
   Dialogs, StdCtrls, ExtCtrls, Buttons, LResources;
 
 type
+
+  { TForm2 }
+
   TForm2 = class(TForm)
+    Button3: TButton;
     Memo1: TMemo;
     Button1: TButton;
     Label1: TLabel;
@@ -17,6 +21,7 @@ type
     Button2: TButton;
     Timer1: TTimer;
     SpeedButton1: TSpeedButton;
+    procedure Button3Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure Button2Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -38,10 +43,32 @@ implementation
 
 uses Unit3;
 
+type TTester=class(TThread)
+    procedure execute; override;
+  end;
+
+
+procedure TTester.execute;
+begin
+  while form2.health<>666 do
+  asm
+    nop
+    nop
+    nop
+    nop
+    nop
+  end;
+end;
 
 procedure TForm2.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   application.Terminate;
+end;
+
+procedure TForm2.Button3Click(Sender: TObject);
+begin
+  TTester.create(false);
+  TTester.create(false);
 end;
 
 procedure TForm2.Button2Click(Sender: TObject);

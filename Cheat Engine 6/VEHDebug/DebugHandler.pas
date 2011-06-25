@@ -91,7 +91,14 @@ begin
      if i=0 then //hashandleddebugevent has been set.  After ce is done with it use the new context
      begin
        if ExceptionInfo.ContextRecord<>nil then
-         CopyMemory(ExceptionInfo.ContextRecord,@VEHSharedMem.CurrentContext[0],contextsize)
+       begin
+         CopyMemory(ExceptionInfo.ContextRecord,@VEHSharedMem.CurrentContext[0],contextsize);
+
+         //set the debug registers
+         PContext(@VEHSharedMem.CurrentContext[0])^.ContextFlags:=CONTEXT_DEBUG_REGISTERS;
+         SetThreadContext(GetCurrentThread, PContext(@VEHSharedMem.CurrentContext[0])^);
+
+       end;
      end
      else
      begin

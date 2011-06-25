@@ -16,7 +16,7 @@ object Form2: TForm2
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   Position = poOwnerFormCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   object Label1: TLabel
     Left = 40
     Height = 14
@@ -106,6 +106,15 @@ object Form2: TForm2
     Caption = 'Hit me'
     OnClick = Button2Click
     TabOrder = 2
+  end
+  object Button3: TButton
+    Left = 190
+    Height = 25
+    Top = 223
+    Width = 75
+    Caption = 'Test me'
+    OnClick = Button3Click
+    TabOrder = 3
   end
   object Timer1: TTimer
     Interval = 250

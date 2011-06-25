@@ -7,7 +7,7 @@ LazarusResources.Add('TForm2','FORMDATA',[
   +#2#5'Color'#7#9'clBtnFace'#10'Font.Color'#7#12'clWindowText'#11'Font.Height'
   +#2#245#9'Font.Name'#6#13'MS Sans Serif'#7'OnClose'#7#9'FormClose'#12'OnClose'
   +'Query'#7#14'FormCloseQuery'#8'OnCreate'#7#10'FormCreate'#8'Position'#7#17'p'
-  +'oOwnerFormCenter'#10'LCLVersion'#6#6'0.9.29'#0#6'TLabel'#6'Label1'#4'Left'#2
+  +'oOwnerFormCenter'#10'LCLVersion'#6#6'0.9.31'#0#6'TLabel'#6'Label1'#4'Left'#2
   +'('#6'Height'#2#14#3'Top'#3#232#0#5'Width'#2#19#7'Caption'#6#3'100'#11'Paren'
   +'tColor'#8#0#0#6'TLabel'#6'Label2'#4'Left'#2#0#6'Height'#2#14#3'Top'#3#232#0
   +#5'Width'#2'#'#7'Caption'#6#7'Health:'#11'ParentColor'#8#0#0#12'TSpeedButton'
@@ -46,6 +46,8 @@ LazarusResources.Add('TForm2','FORMDATA',[
   +'Caption'#6#4'Next'#7'Enabled'#8#7'OnClick'#7#12'Button1Click'#8'TabOrder'#2
   +#1#0#0#7'TButton'#7'Button2'#4'Left'#2'H'#6'Height'#2#21#3'Top'#3#229#0#5'Wi'
   +'dth'#2'2'#7'Caption'#6#6'Hit me'#7'OnClick'#7#12'Button2Click'#8'TabOrder'#2
-  +#2#0#0#6'TTimer'#6'Timer1'#8'Interval'#3#250#0#7'OnTimer'#7#11'Timer1Timer'#4
-  +'left'#3#136#0#3'top'#3#176#0#0#0#0
+  +#2#0#0#7'TButton'#7'Button3'#4'Left'#3#190#0#6'Height'#2#25#3'Top'#3#223#0#5
+  +'Width'#2'K'#7'Caption'#6#7'Test me'#7'OnClick'#7#12'Button3Click'#8'TabOrde'
+  +'r'#2#3#0#0#6'TTimer'#6'Timer1'#8'Interval'#3#250#0#7'OnTimer'#7#11'Timer1Ti'
+  +'mer'#4'left'#3#136#0#3'top'#3#176#0#0#0#0
 ]);

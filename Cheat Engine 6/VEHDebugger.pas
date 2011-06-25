@@ -112,6 +112,8 @@ begin
       c32.SegSs:=lpcontext.SegSs;
 
       CopyMemory(@c32.ext, @lpContext.fltsave,sizeof(c32.ext));
+
+
     end else c^:=lpContext;
 
    // end;// else lpContext:=c^;
@@ -119,6 +121,7 @@ begin
     c^:=lpContext;
     {$endif}
 
+    //Interesting effect: result:=NewKernelHandler.SetThreadContext(hThread,lpContext);
   end
   else
     result:=NewKernelHandler.SetThreadContext(hThread,lpContext);

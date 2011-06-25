@@ -365,6 +365,14 @@ begin
     end;
     {$endif}
 
+    if not bp.active then
+    begin
+      //disable the breakpoint in the current context (in case it got disabled while the breakpoint was being handled)
+      if bp.breakpointMethod=bpmDebugRegister then
+      begin
+        TdebuggerThread(debuggerthread).UnsetBreakpoint(bp, context);
+      end;
+    end;
   end;
 end;
 
@@ -974,11 +982,12 @@ var
 begin
   OutputDebugString('HandleDebugEvent:'+inttostr(debugEvent.dwDebugEventCode));
   //find the TDebugThreadHandler class that belongs to this thread
-  currentThread := nil;
 
+  currentThread := nil;
 
   threadlistCS.enter;
   try
+
     for i := 0 to ThreadList.Count - 1 do
     begin
       if TDebugThreadHandler(ThreadList.Items[i]).threadid = debugEvent.dwThreadId then

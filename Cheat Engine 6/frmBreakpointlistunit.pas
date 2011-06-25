@@ -18,6 +18,7 @@ type
   TfrmBreakpointlist = class(TForm)
     ListView1: TListView;
     MenuItem1: TMenuItem;
+    MenuItem2: TMenuItem;
     miShowShadow: TMenuItem;
     miDelBreakpoint: TMenuItem;
     miSetCondition: TMenuItem;
@@ -27,6 +28,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure ListBox1DblClick(Sender: TObject);
     procedure ListView1DblClick(Sender: TObject);
+    procedure MenuItem2Click(Sender: TObject);
     procedure miShowShadowClick(Sender: TObject);
     procedure miDelBreakpointClick(Sender: TObject);
     procedure miSetConditionClick(Sender: TObject);
@@ -127,6 +129,26 @@ begin
     finally
       debuggerthread.unlockbplist;
     end;
+  end;
+end;
+
+procedure TfrmBreakpointlist.MenuItem2Click(Sender: TObject);
+var bp: Pbreakpoint;
+ i: integer;
+begin
+  if listview1.Selected<>nil then
+  begin
+    debuggerthread.lockbplist; //prevent the list from updating/deleting bp's
+    try
+      if listview1.Selected<>nil then
+      begin
+        bp:=listview1.Selected.Data;
+        debuggerthread.UnsetBreakpoint(bp);
+      end;
+    finally
+      debuggerthread.unlockbplist;
+    end;
+
   end;
 end;
 

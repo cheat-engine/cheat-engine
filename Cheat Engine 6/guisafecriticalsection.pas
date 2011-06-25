@@ -48,10 +48,10 @@ begin
 
   if getcurrentthreadid = MainThreadID then
   begin
-    if maxtimeout=INFINITE then maxtimeout:=10000; //10 seconds max for the main gui
+   // if maxtimeout=INFINITE then maxtimeout:=10000; //10 seconds max for the main gui
     maxtimeout:=maxtimeout div 10;
 
-    while (e.WaitFor(10) = wrTimeout) and (deadlockprevention<maxtimeout) do
+    while (e.WaitFor(10) = wrTimeout) and ((maxtimeout=INFINITE) or (deadlockprevention<maxtimeout)) do
     begin
       CheckSynchronize;
       inc(deadlockprevention);
