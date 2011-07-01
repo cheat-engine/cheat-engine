@@ -162,7 +162,7 @@ var hdevice: thandle=INVALID_HANDLE_VALUE; //handle to my the device driver
     processevent,threadevent:thandle;
 
     ownprocess: thandle=0; //needed for simple kernelmemory access
-    Successfullyloaded:boolean;
+    //Successfullyloaded:boolean;
     iswow64: bool;
     //usealternatedebugmethod: boolean;
 
@@ -231,7 +231,7 @@ function GetSDTEntry(nr: integer; address: PDWORD; paramcount: PBYTE):boolean; s
 function GetSSDTEntry(nr: integer; address: PDWORD; paramcount: PBYTE):boolean; stdcall;
 
 function UserdefinedInterruptHook(interruptnr: integer; newCS: word; newEIP: uint64; addressofjumpback: uint64):boolean; stdcall;
-function executeKernelCode(address: uint64; parameters: uint64): BOOL; stdcall;
+function ExecuteKernelCode(address: uint64; parameters: uint64): BOOL; stdcall;
 function ultimap(cr3: QWORD; debugctl_value: QWORD; DS_AREA_SIZE: integer; savetofile: boolean; filename: widestring; handlercount: integer): Boolean; stdcall;
 function ultimap_disable: BOOLEAN; stdcall;
 function ultimap_waitForData(timeout: dword; output: PUltimapDataEvent): boolean;
@@ -312,7 +312,7 @@ end;
 
 function GetLoadedState: BOOLEAN; stdcall;
 begin
-  result:=(hdevice<>INVALID_HANDLE_VALUE) and Successfullyloaded;
+  result:=(hdevice<>INVALID_HANDLE_VALUE);
 end;
 
 {$W+}
@@ -1414,7 +1414,7 @@ begin
   end;
 end;
 
-function executeKernelCode(address: uint64; parameters: uint64): BOOL; stdcall;
+function ExecuteKernelCode(address: uint64; parameters: uint64): BOOL; stdcall;
 var
   cc: dword;
   input: record
@@ -1422,6 +1422,7 @@ var
     parameters: uint64;
   end;
 begin
+  OutputDebugString(pchar('ExecuteKernelCode('+inttohex(address,8)+','+inttohex(parameters,8)+')'));
   if (hdevice<>INVALID_HANDLE_VALUE) then
   begin
     input.address:=address;
@@ -1834,7 +1835,6 @@ begin
       {$endif}
 
     //  usealternatedebugmethod:=false;
-      Successfullyloaded:=false;
       iamprotected:=false;
       apppath:=nil;
       setlength(handlelist,0);
@@ -2038,7 +2038,6 @@ begin
               messagebox(0,'The driver failed to successfully initialize. Some functions may not completly work','DBK32.dll',MB_ICONERROR or MB_OK);
               }
 
-            Successfullyloaded:=true;
           end;
         end;
 

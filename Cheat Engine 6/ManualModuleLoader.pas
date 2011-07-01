@@ -72,21 +72,24 @@ begin
 
   filemap:=tmemorystream.Create;
   try
+    //showmessage('Loading '+filename);
     filemap.LoadFromFile(filename);
     
     if PImageDosHeader(filemap.Memory)^.e_magic<>IMAGE_DOS_SIGNATURE then
-      exit; //not a valid file
+      raise exception.create('not a valid file');
 
 
     tempmap:=tmemorystream.Create;
     try
       ImageNtHeader:=peinfo_getImageNtHeaders(filemap.Memory, filemap.Size);
-      if ImageNtHeader=nil then exit; //invalid
+      if ImageNtHeader=nil then
+        raise exception.create('Not a valid header');
 
       if ImageNTHeader^.FileHeader.Machine=$8664 then
       begin
         is64bit:=true;
-        if not Is64bitOS then exit; //can't be handled
+        if not Is64bitOS then
+          raise exception.create('Tried loading a 64-bit module on a 32-bit system');
 
         numberofrva:=PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.NumberOfRvaAndSizes;
       end else
@@ -137,7 +140,7 @@ begin
 
       end;
 
-      if destinationBase=0 then exit; //alloc error
+      if destinationBase=0 then raise exception.create('Allocation error');
 
       FEntryPoint:=destinationBase+ImageNTHeader^.OptionalHeader.AddressOfEntryPoint;
 
@@ -218,12 +221,14 @@ begin
                     begin
                       importfunctionnamews:=importfunctionname;
                       funcaddress:=GetKProcAddress64(@importfunctionnamews[1]);
-                      if funcaddress=0 then exit;
+                      if funcaddress=0 then
+                        raise exception.create('failed finding address of '+pwidechar(@importfunctionnamews[1]));
                     end
                     else
                     begin
                       funcaddress:=symhandler.getAddressFromName(importmodulename+'!'+importfunctionname, true, haserror);
-                      if haserror then exit;
+                      if haserror then
+                        raise exception.create('failed finding address of '+importmodulename+'!'+importfunctionname);
                     end;
 
                     PQWORD(importaddress)^:=funcaddress;
@@ -242,12 +247,15 @@ begin
                     begin
                       importfunctionnamews:=importfunctionname;
                       funcaddress:=GetKProcAddress64(@importfunctionnamews[1]);
-                      if funcaddress=0 then exit;
+                      if funcaddress=0 then
+                        raise exception.create('failed finding address of '+pwidechar(@importfunctionnamews[1]));
                     end
                     else
                     begin
                       funcaddress:=symhandler.getAddressFromName(importmodulename+'!'+importfunctionname, true, haserror);
-                      if haserror then exit;
+                      if haserror then
+                        raise exception.create('failed finding address of '+importmodulename+'!'+importfunctionname);
+
                     end;
 
                     pdword(importaddress)^:=funcaddress;

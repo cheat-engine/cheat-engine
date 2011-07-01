@@ -777,7 +777,7 @@ begin
                 j:=pluginhandler.LoadPlugin(s);
               end;
 
-              if (j>0) and (names[i][10]='B') then //enabled or not
+              if (j>=0) and (names[i][10]='B') then //enabled or not
               begin
                 if reg.ReadBool(names[i]) then
                   pluginhandler.EnablePlugin(j);

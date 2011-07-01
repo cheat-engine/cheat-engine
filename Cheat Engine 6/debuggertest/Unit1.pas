@@ -69,6 +69,22 @@ var
 
   health: dword;
 
+type
+  LPMODULEINFO = ^MODULEINFO;
+  {$EXTERNALSYM LPMODULEINFO}
+  _MODULEINFO = record
+    lpBaseOfDll: LPVOID;
+    SizeOfImage: DWORD;
+    EntryPoint: LPVOID;
+  end;
+  {$EXTERNALSYM _MODULEINFO}
+  MODULEINFO = _MODULEINFO;
+  {$EXTERNALSYM MODULEINFO}
+  TModuleInfo = MODULEINFO;
+  PModuleInfo = LPMODULEINFO;
+
+function GetModuleInformation(hProcess: HANDLE; hModule: HMODULE; var lpmodinfo: MODULEINFO; cb: DWORD): BOOL; stdcall; external 'Psapi.dll';
+
 implementation
 
 {$R *.lfm}
@@ -106,7 +122,7 @@ var
   lastvalue: byte;
 begin
   result:=0;
-  {
+
   if GetModuleInformation(GetCurrentProcess, GetModuleHandle(0), mi, sizeof(mi)) then
   begin
     p:=mi.lpBaseOfDll;
@@ -126,10 +142,10 @@ begin
 
   if result=0 then
   begin
-    showmessage('Integrity calculation failed');
-    application.Terminate;
+    showmessage('Integrity calculation failed:'+inttostr(getlasterror));
+    //application.Terminate;
   end;
-     }
+
 end;
 
 destructor TChangeHealthThread.destroy;
@@ -167,7 +183,7 @@ procedure x; stdcall;
 var a: qword;
 label weee;
 begin
-  a:=0;{
+  a:=0;
   asm
     push r14
     mov r14,$1234
@@ -193,7 +209,7 @@ weee:
     nop
     nop
     pop r14
-  end;    }
+  end;
 
   showmessage('executed and still alive. r14='+inttohex(a,8));
 end;
@@ -331,13 +347,13 @@ end;
 
 procedure TForm1.Button3Click(Sender: TObject);
 begin
- { asm
+  {asm
     nop
     push rbx
     mov rbx,$54321
     nop
     nop
-  end;  }
+  end; }
   x;
 
  { asm
@@ -390,7 +406,7 @@ end;
 procedure TForm1.Button8Click(Sender: TObject);
 begin
   if generateIntegrityValue<>originalIntegrityValue then
-    raise exception.Create('!!!INTEGRITY FAILED!!!')
+    showmessage('!!!INTEGRITY FAILED!!!')
   else
     showmessage('Everything is fine');
 

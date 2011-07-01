@@ -6972,6 +6972,9 @@ begin
     freeandnil(scantablist);
   end;
 
+  if pluginhandler<>nil then
+    freeandnil(pluginhandler);
+
 end;
 
 procedure TMainForm.tbSpeedChange(Sender: TObject);

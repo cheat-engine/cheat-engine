@@ -1105,16 +1105,23 @@ end;
 
 procedure TformSettings.Button5Click(Sender: TObject);
 var modulename: string;
+  dllpath: Tpathspecifier;
+  pluginid: integer;
 begin
 {$ifndef net}
 
   if clbplugins.ItemIndex<>-1 then
   begin
-    modulename:=extractfilename(Tpathspecifier(clbplugins.items.Objects[clbplugins.ItemIndex]).path);
+    dllpath:=Tpathspecifier(clbplugins.Items.Objects[clbplugins.ItemIndex]);
+    modulename:=extractfilename(dllpath.path);
     deletedmodules.add(modulename);
 
     Tpathspecifier(clbPlugins.Items.Objects[clbplugins.ItemIndex]).Free;
     clbPlugins.Items.Delete(clbplugins.ItemIndex);
+
+
+    pluginid:=pluginhandler.GetPluginID(dllpath.path);
+    pluginhandler.UnloadPlugin(pluginid);
   end;
 {$endif}
 end;

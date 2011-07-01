@@ -6,7 +6,7 @@ interface
 
 uses lclproc, windows, classes, sysutils,LCLIntf,checklst,menus,dialogs,CEFuncProc,NewKernelHandler, graphics;
 
-const CurrentPluginVersion=4;
+const CurrentPluginVersion=5;
 
 //structures
 type TPluginVersion = record
@@ -14,6 +14,190 @@ type TPluginVersion = record
   pluginname: pchar; //pointer to a 0-terminated string in the dll
 end;
 type PPluginVersion=^TPluginVersion;
+
+type TExportedFunctions5 = record
+  sizeofExportedFunctions: integer;
+  showmessage: pointer;
+  registerfunction: pointer;
+  unregisterfunction: pointer;
+  OpenedProcessID: ^dword;
+  OpenedProcessHandle: ^thandle;
+
+  GetMainWindowHandle: pointer;
+  AutoAssemble: pointer;
+  assembler: pointer;
+  disassembler: pointer;
+  ChangeRegistersAtAddress: pointer;
+  InjectDLL: pointer;
+  freezemem: pointer;
+  unfreezemem: pointer;
+  fixmem: pointer;
+  processlist: pointer;
+  reloadsettings: pointer;
+  getaddressfrompointer: pointer;
+
+  //pointers to the address that contains the pointers to the functions
+  ReadProcessMemory     :pointer;
+  WriteProcessMemory    :pointer;
+  GetThreadContext      :pointer;
+  SetThreadContext      :pointer;
+  SuspendThread         :pointer;
+  ResumeThread          :pointer;
+  OpenProcess           :pointer;
+  WaitForDebugEvent     :pointer;
+  ContinueDebugEvent    :pointer;
+  DebugActiveProcess    :pointer;
+  StopDebugging         :pointer;
+  StopRegisterChange    :pointer;
+  VirtualProtect        :pointer;
+  VirtualProtectEx      :pointer;
+  VirtualQueryEx        :pointer;
+  VirtualAllocEx        :pointer;
+  CreateRemoteThread    :pointer;
+  OpenThread            :pointer;
+  GetPEProcess          :pointer;
+  GetPEThread           :pointer;
+  GetThreadsProcessOffset:pointer;
+  GetThreadListEntryOffset:pointer;
+  GetProcessnameOffset  :pointer;
+  GetDebugportOffset    :pointer;
+  GetPhysicalAddress    :pointer;
+  ProtectMe             :pointer;
+  GetCR4                :pointer;
+  GetCR3                :pointer;
+  SetCR3                :pointer;
+  GetSDT                :pointer;
+  GetSDTShadow          :pointer;
+  setAlternateDebugMethod: pointer;
+  getAlternateDebugMethod: pointer;
+  DebugProcess          :pointer;
+  ChangeRegOnBP         :pointer;
+  RetrieveDebugData     :pointer;
+  StartProcessWatch     :pointer;
+  WaitForProcessListData:pointer;
+  GetProcessNameFromID  :pointer;
+  GetProcessNameFromPEProcess:pointer;
+  KernelOpenProcess       :pointer;
+  KernelReadProcessMemory :pointer;
+  KernelWriteProcessMemory:pointer;
+  KernelVirtualAllocEx    :pointer;
+  IsValidHandle           :pointer;
+  GetIDTCurrentThread     :pointer;
+  GetIDTs                 :pointer;
+  MakeWritable            :pointer;
+  GetLoadedState          :pointer;
+  DBKSuspendThread        :pointer;
+  DBKResumeThread         :pointer;
+  DBKSuspendProcess       :pointer;
+  DBKResumeProcess        :pointer;
+  KernelAlloc             :pointer;
+  GetKProcAddress         :pointer;
+  CreateToolhelp32Snapshot:pointer;
+  Process32First          :pointer;
+  Process32Next           :pointer;
+  Thread32First           :pointer;
+  Thread32Next            :pointer;
+  Module32First           :pointer;
+  Module32Next            :pointer;
+  Heap32ListFirst         :pointer;
+  Heap32ListNext          :pointer;
+
+  //advanced for delphi 7 enterprise dll programmers only
+  mainform                :pointer;
+  memorybrowser           :pointer;
+
+  //version 2 extension:
+  sym_nameToAddress         : pointer;
+  sym_addressToName         : pointer;
+  sym_generateAPIHookScript : pointer;
+
+  //version 3 extension
+  loadDBK32         : pointer;
+  loaddbvmifneeded  : pointer;
+  previousOpcode    : pointer;
+  nextOpcode        : pointer;
+  disassembleEx     : pointer;
+  loadModule        : pointer;
+  aa_AddExtraCommand: pointer;
+  aa_RemoveExtraCommand: pointer;
+
+  //version 4 extension
+  createTableEntry: pointer;
+  getTableEntry: pointer;
+  memrec_setDescription: pointer;
+  memrec_getDescription: pointer ;
+  memrec_getAddress: pointer;
+  memrec_setAddress: pointer;
+  memrec_getType: pointer;
+  memrec_setType: pointer;
+  memrec_getValue: pointer;
+  memrec_setValue: pointer;
+  memrec_getScript: pointer;
+  memrec_setScript: pointer;
+  memrec_isfrozen: pointer;
+  memrec_freeze: pointer;
+  memrec_unfreeze: pointer;
+  memrec_setColor: pointer;
+  memrec_appendtoentry: pointer;
+  memrec_delete: pointer;
+
+  getProcessIDFromProcessName: pointer;
+  openProcessEx: pointer;
+  debugProcessEx: pointer;
+  pause: pointer;
+  unpause: pointer;
+
+  debug_setBreakpoint: pointer;
+  debug_removeBreakpoint: pointer;
+  debug_continueFromBreakpoint: pointer;
+
+  closeCE: pointer;
+  hideAllCEWindows: pointer;
+  unhideMainCEwindow: pointer;
+  createForm: pointer;
+  form_centerScreen: pointer;
+  form_hide: pointer;
+  form_show: pointer;
+  form_onClose: pointer;
+
+  createPanel: pointer;
+  createGroupBox: pointer;
+  createButton: pointer;
+  createImage: pointer;
+  image_loadImageFromFile: pointer;
+  image_transparent: pointer;
+  image_stretch: pointer;
+
+  createLabel: pointer;
+  createEdit: pointer;
+  createMemo: pointer;
+  createTimer: pointer;
+  timer_setInterval: pointer;
+  timer_onTimer: pointer;
+  control_setCaption: pointer;
+  control_getCaption: pointer;
+  control_setPosition: pointer;
+  control_getX: pointer;
+  control_getY: pointer;
+  control_setSize: pointer;
+  control_getWidth: pointer;
+  control_getHeight: pointer;
+  control_setAlign: pointer;
+  control_onClick: pointer;
+
+  object_destroy: pointer;
+  messageDialog: pointer;
+  speedhack_setSpeed: pointer;
+
+  //version 5
+  ExecuteKernelCode: pointer;
+  UserdefinedInterruptHook: pointer;
+
+end;
+type PExportedFunctions5 = ^TExportedFunctions5;
+
+type TExportedFunctions = TExportedFunctions5; //<----adjust on new version
+
 
 type TExportedFunctions4 = record
   sizeofExportedFunctions: integer;
@@ -494,11 +678,15 @@ type TExportedFunctions1 = record
   memorybrowser           :pointer;
   previousOpcode          :pointer;
 end;
-type PExportedFunctions1 = ^TExportedFunctions1;  
+type PExportedFunctions1 = ^TExportedFunctions1;
+
+
+type PExportedFunctions = ^TExportedFunctions; //same
+
 
 //exported functions of the plugin
 type TGetVersion=function(var PluginVersion:TPluginVersion; TPluginVersionSize: integer):BOOL; stdcall;
-type TInitializePlugin=function(var ExportedFunctions: TExportedFunctions4; pluginid: dword):BOOL; stdcall;
+type TInitializePlugin=function(var ExportedFunctions: TExportedFunctions; pluginid: dword):BOOL; stdcall;
 type TDisablePlugin=function:BOOL; stdcall;
 
 
@@ -657,6 +845,7 @@ type TPluginHandler=class
     function GetPluginID(dllname:string):integer;
     function GetPluginName(dllname:string):string;
     function LoadPlugin(dllname: string):integer;
+    procedure UnloadPlugin(pluginid: integer);
     procedure FillCheckListBox(clb: TCheckListbox);
     procedure EnablePlugin(pluginid: integer);
     procedure DisablePlugin(pluginid: integer);
@@ -670,10 +859,11 @@ type TPluginHandler=class
     function unregisterfunction(pluginid,functionid: integer): boolean;
     property dllfilepath[pluginid: integer]: string read getdllfilepath;
     constructor create;
+    destructor destroy; override;
 end;
 
 var pluginhandler: TPluginhandler;
-    exportedfunctions: TExportedFunctions4;
+    exportedfunctions: TExportedFunctions;
 
     onAPIPointerChange: TNotifyEvent;
 
@@ -1120,19 +1310,20 @@ begin
 end;
 
 procedure TPluginHandler.EnablePlugin(pluginid: integer);
-var e: texportedfunctions4;
+var e: texportedfunctions;
     x: boolean;
 begin
   e:=exportedfunctions;  //save it to prevent plugins from fucking it up
 
-  if plugins[pluginid].pluginversion=1 then
-    e.sizeofExportedFunctions:=sizeof(Texportedfunctions1); //Just say it's smaller (order stays the same)
-
-  if plugins[pluginid].pluginversion=2 then
-    e.sizeofExportedFunctions:=sizeof(Texportedfunctions2);
-
-  if plugins[pluginid].pluginversion=3 then
-    e.sizeofExportedFunctions:=sizeof(Texportedfunctions3);
+  case plugins[pluginid].pluginversion of
+    1: e.sizeofExportedFunctions:=sizeof(Texportedfunctions1);
+    2: e.sizeofExportedFunctions:=sizeof(Texportedfunctions2);
+    3: e.sizeofExportedFunctions:=sizeof(Texportedfunctions3);
+    4: e.sizeofExportedFunctions:=sizeof(Texportedfunctions4);
+    5: e.sizeofExportedFunctions:=sizeof(Texportedfunctions5);
+    else
+      e.sizeofExportedFunctions:=sizeof(Texportedfunctions);
+  end;
 
   pluginMREW.BeginRead;
   if pluginid>=length(plugins) then exit;
@@ -1144,6 +1335,21 @@ begin
       if not x then raise exception.Create(Format(rsErrorEnabling, [plugins[pluginid].dllname]));
       plugins[pluginid].enabled:=true;
     end;
+  finally
+    pluginMREW.EndRead;
+  end;
+end;
+
+procedure TPluginHandler.UnloadPlugin(pluginid: integer);
+//will disable and unload the plugin
+begin
+  pluginMREW.BeginRead;
+  try
+    DisablePlugin(pluginid); //disable the plugin if it was active
+    FreeLibrary(plugins[pluginid].hmodule);
+    plugins[pluginid].dllname:='';
+    plugins[pluginid].filepath:='';
+    plugins[pluginid].name:='';
   finally
     pluginMREW.EndRead;
   end;
@@ -1247,7 +1453,7 @@ var hmodule: thandle;
     s: string;
     i: integer;
 begin
-  result:=0;
+  result:=-1;
   if uppercase(extractfileext(dllname))<>'.DLL' then raise exception.Create(Format(rsErrorLoadingOnlyDLLFilesAreAllowed, [dllname]));
 
   s:=uppercase(extractfilename(dllname));
@@ -1442,12 +1648,28 @@ begin
   end;
 end;
 
+destructor TPluginHandler.destroy;
+var i,j: integer;
+begin
+  pluginMREW.BeginRead;
+  try
+    for i:=0 to length(plugins)-1 do
+    begin
+      try
+        UnloadPlugin(i);
+      except
+      end;
+    end;
+  finally
+    pluginMREW.EndRead;
+  end;
+end;
 
 constructor TPluginHandler.create;
 var test: pchar;
 begin
   pluginMREW:=TMultiReadExclusiveWriteSynchronizer.Create;
-  exportedfunctions.sizeofExportedFunctions:=sizeof(TExportedFunctions4);
+  exportedfunctions.sizeofExportedFunctions:=sizeof(TExportedFunctions);
   exportedfunctions.showmessage:=@ce_showmessage;
   exportedfunctions.registerfunction:=@ce_registerfunction;
   exportedfunctions.unregisterfunction:=@ce_unregisterfunction;
@@ -1625,6 +1847,10 @@ begin
   exportedfunctions.object_destroy:=@ce_object_destroy;
   exportedfunctions.messageDialog:=@ce_messageDialog;
   exportedfunctions.speedhack_setSpeed:=@ce_speedhack_setSpeed;
+
+  //version 5
+  exportedfunctions.ExecuteKernelCode:=@ExecuteKernelCode;
+  exportedfunctions.UserdefinedInterruptHook:=@UserdefinedInterruptHook;
 
 end;
 

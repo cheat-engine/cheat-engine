@@ -828,6 +828,11 @@ begin
     end;
 
   except
+    on e: exception do
+    begin
+
+      messagebox(0, pchar(e.Message), 'LoadModule failed', MB_OK);
+    end;
   end;
 end;
 
