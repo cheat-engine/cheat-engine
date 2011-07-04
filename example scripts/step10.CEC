@@ -1,0 +1,15 @@
+#include <time.h>
+#include <string.h>
+char sec[50];
+
+#define addresstochange 0x2d40000
+struct tm *timep;
+time_t c;
+c=time(0);
+
+timep=localtime(&c);
+
+if (timep->tm_sec>=30)
+  *(int *)addresstochange=1000;
+else
+  *(int *)addresstochange=2000;

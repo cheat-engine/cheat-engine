@@ -1,0 +1,6 @@
+opcodes:		params:
+
+
++ eo_none,eo_none par_noparam,par_noparam,par_noparam 
++ eo_ib,eo_none   par_AL,par_imm8,par_noparam
+xxx

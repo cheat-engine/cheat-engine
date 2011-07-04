@@ -1,0 +1,1 @@
+This is the directory where object files for zlib (http://www.zlib.net) reside.

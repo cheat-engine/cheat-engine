@@ -1,0 +1,141 @@
+// line 340
+
+//
+//  Code Page Default Values.
+//
+
+const
+  CP_ACP        = 0; // default to ANSI code page
+  {$EXTERNALSYM CP_ACP}
+  CP_OEMCP      = 1; // default to OEM  code page
+  {$EXTERNALSYM CP_OEMCP}
+  CP_MACCP      = 2; // default to MAC  code page
+  {$EXTERNALSYM CP_MACCP}
+  CP_THREAD_ACP = 3; // current thread's ANSI code page
+  {$EXTERNALSYM CP_THREAD_ACP}
+  CP_SYMBOL     = 42; // SYMBOL translations
+  {$EXTERNALSYM CP_SYMBOL}
+
+  CP_UTF7 = 65000; // UTF-7 translation
+  {$EXTERNALSYM CP_UTF7}
+  CP_UTF8 = 65001; // UTF-8 translation
+  {$EXTERNALSYM CP_UTF8}
+
+// line 597
+
+const
+
+//
+//  The following LCTypes may be used in combination with any other LCTypes.
+//
+//    LOCALE_NOUSEROVERRIDE is also used in GetTimeFormat and
+//    GetDateFormat.
+//
+//    LOCALE_USE_CP_ACP is used in many of the A (Ansi) apis that need
+//    to do string translation.
+//
+//    LOCALE_RETURN_NUMBER will return the result from GetLocaleInfo as a
+//    number instead of a string.  This flag is only valid for the LCTypes
+//    beginning with LOCALE_I.
+//
+
+  LOCALE_NOUSEROVERRIDE = DWORD($80000000); // do not use user overrides
+  {$EXTERNALSYM LOCALE_NOUSEROVERRIDE}
+  LOCALE_USE_CP_ACP     = $40000000; // use the system ACP
+  {$EXTERNALSYM LOCALE_USE_CP_ACP}
+
+  LOCALE_RETURN_NUMBER = $20000000; // return number instead of string
+  {$EXTERNALSYM LOCALE_RETURN_NUMBER}
+
+// line 841
+
+const
+  LOCALE_IDEFAULTEBCDICCODEPAGE = $00001012; // default ebcdic code page
+  {$EXTERNALSYM LOCALE_IDEFAULTEBCDICCODEPAGE}
+  LOCALE_IPAPERSIZE             = $0000100A; // 1 = letter, 5 = legal, 8 = a3, 9 = a4
+  {$EXTERNALSYM LOCALE_IPAPERSIZE}
+  LOCALE_SENGCURRNAME           = $00001007; // english name of currency
+  {$EXTERNALSYM LOCALE_SENGCURRNAME}
+  LOCALE_SNATIVECURRNAME        = $00001008; // native name of currency
+  {$EXTERNALSYM LOCALE_SNATIVECURRNAME}
+  LOCALE_SYEARMONTH             = $00001006; // year month format string
+  {$EXTERNALSYM LOCALE_SYEARMONTH}
+  LOCALE_SSORTNAME              = $00001013; // sort name
+  {$EXTERNALSYM LOCALE_SSORTNAME}
+  LOCALE_IDIGITSUBSTITUTION     = $00001014; // 0 = context, 1 = none, 2 = national
+  {$EXTERNALSYM LOCALE_IDIGITSUBSTITUTION}
+
+// line 880
+
+  DATE_YEARMONTH  = $00000008; // use year month picture
+  {$EXTERNALSYM DATE_YEARMONTH}
+  DATE_LTRREADING = $00000010; // add marks for left to right reading order layout
+  {$EXTERNALSYM DATE_LTRREADING}
+  DATE_RTLREADING = $00000020; // add marks for right to left reading order layout
+  {$EXTERNALSYM DATE_RTLREADING}
+
+//
+//  Calendar Types.
+//
+//  These types are used for the EnumCalendarInfo and GetCalendarInfo
+//  NLS API routines.
+//  Some of these types are also used for the SetCalendarInfo NLS API
+//  routine.
+//
+
+//
+//  The following CalTypes may be used in combination with any other CalTypes.
+//
+//    CAL_NOUSEROVERRIDE
+//
+//    CAL_USE_CP_ACP is used in the A (Ansi) apis that need to do string
+//    translation.
+//
+//    CAL_RETURN_NUMBER will return the result from GetCalendarInfo as a
+//    number instead of a string.  This flag is only valid for the CalTypes
+//    beginning with CAL_I.
+//
+
+  CAL_NOUSEROVERRIDE = LOCALE_NOUSEROVERRIDE; // do not use user overrides
+  {$EXTERNALSYM CAL_NOUSEROVERRIDE}
+  CAL_USE_CP_ACP     = LOCALE_USE_CP_ACP; // use the system ACP
+  {$EXTERNALSYM CAL_USE_CP_ACP}
+  CAL_RETURN_NUMBER  = LOCALE_RETURN_NUMBER; // return number instead of string
+  {$EXTERNALSYM CAL_RETURN_NUMBER}
+
+// line 1014
+
+  CAL_SYEARMONTH       = $0000002f; // year month format string
+  {$EXTERNALSYM CAL_SYEARMONTH}
+  CAL_ITWODIGITYEARMAX = $00000030; // two digit year max
+  {$EXTERNALSYM CAL_ITWODIGITYEARMAX}
+
+// line 1424
+
+type
+  CALINFO_ENUMPROCEXA = function (lpCalendarInfoString: LPSTR; Calendar: CALID): BOOL; stdcall;
+  {$EXTERNALSYM CALINFO_ENUMPROCEXA}
+  TCalInfoEnumProcExA = CALINFO_ENUMPROCEXA;
+
+// line 1635
+
+{$IFDEF MSWINDOWS}
+
+{$IFNDEF CLR}
+
+function GetCalendarInfoA(Locale: LCID; Calendar: CALID; CalType: CALTYPE;
+  lpCalData: LPSTR; cchData: Integer; lpValue: LPDWORD): Integer; stdcall;
+{$EXTERNALSYM GetCalendarInfoA}
+function GetCalendarInfoW(Locale: LCID; Calendar: CALID; CalType: CALTYPE;
+  lpCalData: LPWSTR; cchData: Integer; lpValue: LPDWORD): Integer; stdcall;
+{$EXTERNALSYM GetCalendarInfoW}
+
+// line 1754
+
+function EnumCalendarInfoExA(lpCalInfoEnumProcEx: CALINFO_ENUMPROCEXA;
+  Locale: LCID; Calendar: CALID; CalType: CALTYPE): BOOL; stdcall;
+{$EXTERNALSYM EnumCalendarInfoExA}
+
+{$ENDIF ~CLR}
+
+{$ENDIF MSWINDOWS}

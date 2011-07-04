@@ -1,0 +1,12 @@
+// msidefs.h line 349
+
+// PIDs given specific meanings for Installer
+
+const
+  PID_MSIVERSION  = $0000000E; // integer, Installer version number (major*100+minor)
+  {$EXTERNALSYM PID_MSIVERSION}
+  PID_MSISOURCE   = $0000000F; // integer, type of file image, short/long, media/tree
+  {$EXTERNALSYM PID_MSISOURCE}
+  PID_MSIRESTRICT = $00000010; // integer, transform restrictions
+  {$EXTERNALSYM PID_MSIRESTRICT}
+

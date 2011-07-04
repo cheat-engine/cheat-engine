@@ -1,0 +1,263 @@
+02/09/23
+
+Integrating the UnderC DLL into your Program
+
+The UnderC DLL is a straightforward way to integrate a standard C++ scripting engine into your program.  It has a pretty small footprint and shouldn't significantly increase the size of modern GUI applications. This tutorial explores the available features of the DLL, what your options are in a GUI  program, and how to export classes and functions from your program to the scripting environment.  Since 1.1.3, the DLL has been available under the LGPL (Library Gnu Public License) which permits you to link your applications to UnderC dynamically, without putting any restraints on your licensing options.
+
+It is hard work building and debugging a large system, and having a scripting interface makes this easier, as well as making it possible for your users to customize this system. UC makes it straightforward to import functionality from your system, so it's possible to use it to test that functionality interactively, and even prototype future features.  The advantage of using standard C++ here as a scripting language is that prototyped code can then be incorporated into your project after being tested.
+
+Here is a simple C/C++ application which uses the DLL;  the exported entries are all simple C-style functions begining with 'uc_'. (Incidently this makes it straightforward to include in other languages like Delphi) You should link this program with ucc12.lib, which works with Microsoft C++ 6.0:
+
+c:\ucw\dll> cl usedl1.c ucc12.lib
+
+With Linux, this will do the job, assuming the shared library is in the same directory:
+
+/ucc/dll$ gcc usedl1.c -o usedl1 ucc12.so
+
+On Win32, using the mingw GCC port:
+
+c:\ucw\dll> gcc usedl1.c -o usedl1.exe ucc12.lib
+
+(in both cases, use g++ instead of gcc if compiling C++ programs, to make sure the proper libraries are included)
+
+
+// usedl1.c
+#include <stdio.h>
+#include "ucdl.h"
+
+int main()
+{
+ char buff[128];
+ int SZ = 128;
+ uc_init(NULL,0);
+ if (uc_exec("20*2.3;")) {
+   uc_result(buff,SZ);
+   printf("result was '%s'\n",buff);
+ } else {
+   uc_error(buff,SZ);
+   printf("error was '%d'\n",buff);
+ }
+ uc_finis();
+}
+
+Any application must use uc_init() and uc_finis() to initialize and finalize the UC shared library;  the uc_exec() function will evaluate any C++ expression, just as it would have been typed into the UC command prompt. The result of the evaluation can be retrieved by uc_result(), which is again exactly the response you would get from interactive evaluation - in this case '(double) 46.'. Any errors in evaluation cause uc_exec() to return false, in which case the error message can be got using uc_error().
+
+uc_exec() can be used directly to load and run scripts by executing the appropriate UC command.  For example, uc_exec("#l script.uc") will compile
+and run the file script.uc.  This may contain any standard C++ statements, plus any extra statements needed for running the script.
+
+// script.uc
+#include <iostream>
+#include <string>
+using namespace std;
+
+string s = "hello dolly";
+cout << "here we go " << s.substr(0,5) << endl;
+
+This will print 'here we go hello' on standard output. Do note the standard C++ headers which have been put in explicitly.  Any subsequent loading of scripts will not reload these headers, so you will not be paying for the repeated cost of including standard headers.  Of course, you could do this directly up front from your program, thus:
+
+uc_exec("#include <iostream>");
+uc_exec("#include <string>");
+uc_exec("using namespace std;");
+...
+uc_exec("#l script.uc");
+
+and leave out the first three code lines of script.uc.  
+
+The major differences between standard C++ programs and UnderC scripts are:
+
+(1) UC remembers the previous context, so there's no need to re-include system headers in each script file
+(2) Any C++ statements outside a function are evaluated immediately.
+(3) There are some built-in functions (like printf, sin, etc) which are
+available without needing system headers.
+
+If your scripts are going to include the standard headers (see classlib.h in your UC include directory) then you can save some typing by calling uc_init() with the second parameter set to some non-zero value:
+
+So:
+  uc_exec(NULL,1);
+Is equivalent to:
+  uc_exec(NULL,0);
+  uc_exec("#include <classlib.h>");
+  uc_exec("using namespace std;");
+
+Some C++ statements are awkward to evaluate using uc_exec() because they themselves contain double quote marks.  uc_include() is useful if you want to include a file:
+
+   uc_include("fred.h");
+
+To initialize a string, uc_set_quote() is useful:
+  uc_exec("string s;");
+  uc_set_quote("s","hello dolly");
+
+This is equivalent to but easier to type than:
+  uc_exec("s = \"hello dolly\";");
+
+Do remember that the full trickery of the C preprocessor is available; another
+way of getting around those quoted quote marks is to define a macro which "stringizes" its argument!
+
+  uc_exec("#define S(x) #x");
+  uc_exec("s = S(hello dolly);");
+
+uc_exec() can evaluate anything which UnderC would accept as a valid statement or command. You do have to explicitly use uc_result() and uc_error() to get any results out of it, and if evaluating an expression, you will get the C++ type of the result as well, which is useful to humans but irritating to computers. A useful alternative is uc_eval(), which combines these functions together:
+
+   uc_eval("20+30",buff,SZ);
+
+ 
+The result will simply be "50", with the "(int)" stripped away. Note that there is no semicolon necessary.  Otherwise this expression can be any valid C++ expression, which may contain functions, etc.  This is the real power of including a C++ interpreter, as opposed to some simple expression parser. For example, assuming I've defined some stuff in funs.uc
+
+// funs.uc
+double sqr(double x) { return x*x; }
+const double PI = 3.1412;
+
+Then in your code:
+
+  uc_include("funs.uc");
+  ...
+  uc_eval("2*PI*sqr(1.3)",buff,sizeof(buff));
+
+Usually of course the numbers need to be specified programmatically. This can be done the hard way:
+
+  double radius,area;
+  ...
+  sprintf(xbuff,"2*PI*sqr(%lf)",radius);
+  uc_eval(xbuff,buff,sizeof(buff));
+  area = atof(buff);
+
+It's much easier to work indirectly through references. Basically you map variables in the scripting environment onto actual variable addresses in your program. For example, assuming I already have radius and area declared:
+   uc_init_ref("double","radius",&radius);
+   uc_init_ref("double","area",&area);
+   ...
+   uc_exec("area = 2*PI*sqr(radius);");
+   
+Since the UC variables 'area' and 'radius' are references to our program variables, area is automatically updated when the assignment is evaluated.
+  
+Obviously uc_eval() is not going to be the fastest way to evaluate expressions, especially repeatedly.  The UnderC interpreter first compiles expressions to pcode, which is then executed by a virtual machine. The compilation step can be separated out, and the resulting pcode can be executed directly:
+
+  void *sqr_fn = uc_compile("double x","x*x");
+  ....
+  double res;
+  uc_eval_args(sqr_fn,&res,2.0);
+
+You can even ask UC to generate a small machine-code wrapper around such functions (called a 'native stub') so that they can be evaluated directly:
+
+  typedef double (*DFN)(double);
+  DFN pfn = uc_compile_fn("double x","sin(x)/x");
+  for(x = 0; x < 1.0; x += 0.1)
+    res[i++] = (*pfn)(x);
+
+Accessing Program Functionality Through Scripting
+
+Up to now, the UC DLL has provided a superior expression parsing and evaluation service for the program, but not much else.  At the very least, it should be easy to bind a scripting language to extra functionality you specify.
+
+It is straightforward to import functions from other DLLs into UC. For example, I have a simple C DLL dl1.dll containing several functions. This can be created using dl1.c:
+
+ // dl1.c
+  #ifdef _MSC_VER
+  #define EXPORT __declspec(dllexport)
+  #else
+  #define EXPORT
+  #endif
+
+  EXPORT double sqr(double x) 
+  { return x*x; }
+
+  EXPORT double area(double width, double height)
+  { return width*height; }
+
+This is compiled as follows:
+
+Microsoft:
+cl /LD dl1.c
+
+GNU:
+gcc -shared -o dl1.dll dl1.c
+
+Please note the MS-specific export directive - if a function doesn't have this attribute, it will not be exported using the MS tools.  On the other hand, GCC will try to export everything.  (It is useful to keep the compiler-dependent bit separate as export.h)
+
+Importing them simply requires including this file into UC:
+
+// dl1.uc
+#pragma dlink dl1.dll
+extern "C" {
+  double sqr(double x);
+  double area(double width, double height);
+}
+#pragma dlink
+
+It would be simpler to say '#lib dl1.dll',which is the usual UnderC command for importing a library, but the #pragma has the advantage of being C/C++ compatible. DL1.UC is in fact a valid C++ header, and with a few conditional compilation statements it can become a valid C header as well. (This is very useful because you can reuse headers which your project probably needed anyway.) Whether you use '#pragma dlink' or '#lib', the rules are the same. Any function prototypes found afterwards will be assumed to be a request to import that function from the DLL, which continues to be true until there is an empty link request ("#lib" or "#pragma dlink").  
+
+Your program can now use this DLL in UC code like so:
+  uc_include("dl1.uc");
+  uc_eval("sqr(2.3)",buff,sizeof(buff));
+
+We used 'extern "C"' because this was a C DLL but UC can also import C++ DLLs, provided it can generate the correct 'mangled' C++ function names. Currently UC will import MSVC++ 6.0 or GCC 2.95/2.96 DLLs correctly.  Using C++ DLLs it becomes possible to import whole classes, subject to some restrictions.
+
+It's not often realized that executables can also export functions and classes. You may already have much of your program's functionality farmed off to DLLs, but it is useful to be able to hook into the program itself. For example, here is a simple program which exports a function, and then calls a script which calls that function.
+
+// exports1.cpp
+#include "ucdl.h"
+#include "export.h"
+
+EXPORT double sqr(double x) { return x*x; }
+
+int main() {
+  uc_init(NULL,1);
+  uc_load("script2.uc"); 
+  uc_finis();
+}
+
+// script2.uc
+#lib $caller
+double sqr(double x);
+#lib
+
+cout << "square of 2 is " << sqr(2.0) << endl;
+
+Note the special '$caller' argument to #lib, which is a convenient and platform-independent
+way of dynamically linking to the _calling process_, that is, the program which loaded the DLLs in the first place.
+
+Since the functionality of your program is already organized as functions and classes, this means that UnderC scripts become true extensions of the system. 
+
+Note: we have already discussed how MS must be told explicitly to export functions, whether from a DLL or a program.  With the GCC compiler,  functions are not exported from executables by default.  Under Linux, you need to tell the linker to do this explicitly:
+
+gcc exports1.cpp -o exports1.dll -Wl,-E
+
+(and mingw?) 
+
+The UnderC DLL provides an alternative mechanism to exporting functions from your program: we could have also said:
+
+  uc_import("double sqr(double)",&sqr);
+
+This is useful when you want your scripts to refer to your functions using some other name. But please note that such functions must be declared with the __stdcall attribute under Win32.
+
+Integrating UC with GUI Applications
+
+A problem with the UnderC DLL is that normally the output of 'cout' (for instance) will go out to the text console, if there is one available. This is not very convenient for GUI applications, which would find it useful to redirect standard output to fill list controls, etc. So the DLL provides a redirection mechanism;  all your program has to do is supply a callback function, and import it into UnderC with the special name _dout_callback.  Under Win32, the callback must be a so-called __stdcall function call (which makes it possible to use this mechanism from a Delphi program, for instance) but on Linux all callbacks are 'cdecl', that is, the caller of the function takes responsibility for cleaning up the stack.
+
+/* usedl7.c
+ * Demonstrates redirection of DLL output
+ * to a specified callback function in the main program
+*/
+#include <stdio.h>
+#include "ucdl.h"
+
+// the actual callback must have this form 
+void STD dump_fn(char *buff)
+{
+ printf("'%s'",buff);
+}
+
+int main()
+{
+  uc_init(NULL,1);
+
+  // here we are telling UC to force the import of our callback,
+  // but with the specific name _dout_callback  
+  uc_import("void _dout_callback(char*)",&dump_fn);
+
+  // any output sent to cout will be sent to our callback,
+  // as soon as each line is flushed (which endl always does)
+  uc_exec("cout << 20.3 << \" and \" << 20 << endl;");
+  uc_exec("cout << 'x' << endl;");
+
+  uc_finis();
+}
+

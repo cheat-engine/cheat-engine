@@ -1,0 +1,2680 @@
+//==================================================================================================
+// presumable from any older WinNT.h or from WinIfs.h
+//==================================================================================================
+
+{$IFNDEF CLR}
+//--------------------------------------------------------------------------------------------------
+// NTFS Reparse Points
+//--------------------------------------------------------------------------------------------------
+
+// The reparse structure is used by layered drivers to store data in a
+// reparse point. The constraints on reparse tags are defined below.
+// This version of the reparse data buffer is only for Microsoft tags.
+
+(*$HPPEMIT 'typedef struct _REPARSE_DATA_BUFFER {'*)
+(*$HPPEMIT ''*)
+(*$HPPEMIT '    DWORD   ReparseTag;'*)
+(*$HPPEMIT '    WORD    ReparseDataLength;'*)
+(*$HPPEMIT '    WORD    Reserved;'*)
+(*$HPPEMIT ''*)
+(*$HPPEMIT '    union {'*)
+(*$HPPEMIT ''*)
+(*$HPPEMIT '        struct {'*)
+(*$HPPEMIT '            WORD    SubstituteNameOffset;'*)
+(*$HPPEMIT '            WORD    SubstituteNameLength;'*)
+(*$HPPEMIT '            WORD    PrintNameOffset;'*)
+(*$HPPEMIT '            WORD    PrintNameLength;'*)
+(*$HPPEMIT '            WCHAR   PathBuffer[1];'*)
+(*$HPPEMIT '        } SymbolicLinkReparseBuffer;'*)
+(*$HPPEMIT ''*)
+(*$HPPEMIT '        struct {'*)
+(*$HPPEMIT '            WORD    SubstituteNameOffset;'*)
+(*$HPPEMIT '            WORD    SubstituteNameLength;'*)
+(*$HPPEMIT '            WORD    PrintNameOffset;'*)
+(*$HPPEMIT '            WORD    PrintNameLength;'*)
+(*$HPPEMIT '            WCHAR   PathBuffer[1];'*)
+(*$HPPEMIT '        } MountPointReparseBuffer;'*)
+(*$HPPEMIT ''*)
+(*$HPPEMIT '        struct {'*)
+(*$HPPEMIT '            UCHAR   DataBuffer[1];'*)
+(*$HPPEMIT '        } GenericReparseBuffer;'*)
+(*$HPPEMIT '    };'*)
+(*$HPPEMIT ''*)
+(*$HPPEMIT '} REPARSE_DATA_BUFFER, *PREPARSE_DATA_BUFFER;'*)
+(*$HPPEMIT ''*)
+(*$HPPEMIT '#ifndef REPARSE_DATA_BUFFER_HEADER_SIZE'*)
+(*$HPPEMIT '#define REPARSE_DATA_BUFFER_HEADER_SIZE   8'*)
+(*$HPPEMIT '#endif'*)
+(*$HPPEMIT ''*)
+(*$HPPEMIT 'typedef struct _REPARSE_POINT_INFORMATION {'*)
+(*$HPPEMIT '        WORD    ReparseDataLength;'*)
+(*$HPPEMIT '        WORD    UnparsedNameLength;'*)
+(*$HPPEMIT '} REPARSE_POINT_INFORMATION, *PREPARSE_POINT_INFORMATION;'*)
+(*$HPPEMIT ''*)
+(*$HPPEMIT '#ifndef IO_REPARSE_TAG_VALID_VALUES'*)
+(*$HPPEMIT '#define IO_REPARSE_TAG_VALID_VALUES 0x0E000FFFF'*)
+(*$HPPEMIT '#endif'*)
+(*$HPPEMIT ''*)
+
+type
+  {$EXTERNALSYM _REPARSE_DATA_BUFFER}
+  _REPARSE_DATA_BUFFER = record
+    ReparseTag: DWORD;
+    ReparseDataLength: Word;
+    Reserved: Word;
+    case Integer of
+      0: ( // SymbolicLinkReparseBuffer and MountPointReparseBuffer
+        SubstituteNameOffset: Word;
+        SubstituteNameLength: Word;
+        PrintNameOffset: Word;
+        PrintNameLength: Word;
+        PathBuffer: array [0..0] of WCHAR);
+      1: ( // GenericReparseBuffer
+        DataBuffer: array [0..0] of Byte);
+  end;
+  {$EXTERNALSYM REPARSE_DATA_BUFFER}
+  REPARSE_DATA_BUFFER = _REPARSE_DATA_BUFFER;
+  {$EXTERNALSYM PREPARSE_DATA_BUFFER}
+  PREPARSE_DATA_BUFFER = ^_REPARSE_DATA_BUFFER;
+  TReparseDataBuffer = _REPARSE_DATA_BUFFER;
+  PReparseDataBuffer = PREPARSE_DATA_BUFFER;
+
+const
+  {$EXTERNALSYM REPARSE_DATA_BUFFER_HEADER_SIZE}
+  REPARSE_DATA_BUFFER_HEADER_SIZE = 8;
+
+type
+  {$EXTERNALSYM _REPARSE_POINT_INFORMATION}
+  _REPARSE_POINT_INFORMATION = record
+    ReparseDataLength: Word;
+    UnparsedNameLength: Word;
+  end;
+  {$EXTERNALSYM REPARSE_POINT_INFORMATION}
+  REPARSE_POINT_INFORMATION = _REPARSE_POINT_INFORMATION;
+  {$EXTERNALSYM PREPARSE_POINT_INFORMATION}
+  PREPARSE_POINT_INFORMATION = ^_REPARSE_POINT_INFORMATION;
+  TReparsePointInformation = _REPARSE_POINT_INFORMATION;
+  PReparsePointInformation = PREPARSE_POINT_INFORMATION;
+
+const
+  {$EXTERNALSYM IO_REPARSE_TAG_VALID_VALUES}
+  IO_REPARSE_TAG_VALID_VALUES = DWORD($E000FFFF);
+{$ENDIF ~CLR}
+
+//==================================================================================================
+
+// from JwaWinNT.pas (few declarations from JwaWinType)
+
+type
+  ULONGLONG = Int64;
+  {$EXTERNALSYM ULONGLONG}
+
+const
+  MAXLONGLONG = $7fffffffffffffff;
+  {$EXTERNALSYM MAXLONGLONG}
+
+type
+  PLONGLONG = ^LONGLONG;
+  {$EXTERNALSYM PLONGLONG}
+  PULONGLONG = ^ULONGLONG;
+  {$EXTERNALSYM PULONGLONG}
+
+const
+  ANYSIZE_ARRAY = 1;
+  {$EXTERNALSYM ANYSIZE_ARRAY}
+
+  MAX_NATURAL_ALIGNMENT = SizeOf(ULONG);
+  {$EXTERNALSYM MAX_NATURAL_ALIGNMENT}
+
+// line 72
+
+const
+  VER_SERVER_NT                      = DWORD($80000000);
+  {$EXTERNALSYM VER_SERVER_NT}
+  VER_WORKSTATION_NT                 = $40000000;
+  {$EXTERNALSYM VER_WORKSTATION_NT}
+  VER_SUITE_SMALLBUSINESS            = $00000001;
+  {$EXTERNALSYM VER_SUITE_SMALLBUSINESS}
+  VER_SUITE_ENTERPRISE               = $00000002;
+  {$EXTERNALSYM VER_SUITE_ENTERPRISE}
+  VER_SUITE_BACKOFFICE               = $00000004;
+  {$EXTERNALSYM VER_SUITE_BACKOFFICE}
+  VER_SUITE_COMMUNICATIONS           = $00000008;
+  {$EXTERNALSYM VER_SUITE_COMMUNICATIONS}
+  VER_SUITE_TERMINAL                 = $00000010;
+  {$EXTERNALSYM VER_SUITE_TERMINAL}
+  VER_SUITE_SMALLBUSINESS_RESTRICTED = $00000020;
+  {$EXTERNALSYM VER_SUITE_SMALLBUSINESS_RESTRICTED}
+  VER_SUITE_EMBEDDEDNT               = $00000040;
+  {$EXTERNALSYM VER_SUITE_EMBEDDEDNT}
+  VER_SUITE_DATACENTER               = $00000080;
+  {$EXTERNALSYM VER_SUITE_DATACENTER}
+  VER_SUITE_SINGLEUSERTS             = $00000100;
+  {$EXTERNALSYM VER_SUITE_SINGLEUSERTS}
+  VER_SUITE_PERSONAL                 = $00000200;
+  {$EXTERNALSYM VER_SUITE_PERSONAL}
+  VER_SUITE_BLADE                    = $00000400;
+  {$EXTERNALSYM VER_SUITE_BLADE}
+  VER_SUITE_EMBEDDED_RESTRICTED      = $00000800;
+  {$EXTERNALSYM VER_SUITE_EMBEDDED_RESTRICTED}
+  VER_SUITE_SECURITY_APPLIANCE       = $00001000;
+  {$EXTERNALSYM VER_SUITE_SECURITY_APPLIANCE}
+  VER_SUITE_STORAGE_SERVER           = $00002000;
+  {$EXTERNALSYM VER_SUITE_STORAGE_SERVER}
+  VER_SUITE_COMPUTE_SERVER           = $00004000;
+  {$EXTERNALSYM VER_SUITE_COMPUTE_SERVER}
+
+// line 515
+
+//
+//  A language ID is a 16 bit value which is the combination of a
+//  primary language ID and a secondary language ID.  The bits are
+//  allocated as follows:
+//
+//       +-----------------------+-------------------------+
+//       |     Sublanguage ID    |   Primary Language ID   |
+//       +-----------------------+-------------------------+
+//        15                   10 9                       0   bit
+//
+//
+//  Language ID creation/extraction macros:
+//
+//    MAKELANGID    - construct language id from a primary language id and
+//                    a sublanguage id.
+//    PRIMARYLANGID - extract primary language id from a language id.
+//    SUBLANGID     - extract sublanguage id from a language id.
+//
+
+function MAKELANGID(PrimaryLang, SubLang: USHORT): WORD;
+{$EXTERNALSYM MAKELANGID}
+function PRIMARYLANGID(LangId: WORD): WORD;
+{$EXTERNALSYM PRIMARYLANGID}
+function SUBLANGID(LangId: WORD): WORD;
+{$EXTERNALSYM SUBLANGID}
+
+//
+//  A locale ID is a 32 bit value which is the combination of a
+//  language ID, a sort ID, and a reserved area.  The bits are
+//  allocated as follows:
+//
+//       +-------------+---------+-------------------------+
+//       |   Reserved  | Sort ID |      Language ID        |
+//       +-------------+---------+-------------------------+
+//        31         20 19     16 15                      0   bit
+//
+//
+//  Locale ID creation/extraction macros:
+//
+//    MAKELCID            - construct the locale id from a language id and a sort id.
+//    MAKESORTLCID        - construct the locale id from a language id, sort id, and sort version.
+//    LANGIDFROMLCID      - extract the language id from a locale id.
+//    SORTIDFROMLCID      - extract the sort id from a locale id.
+//    SORTVERSIONFROMLCID - extract the sort version from a locale id.
+//
+
+const
+  NLS_VALID_LOCALE_MASK = $000fffff;
+  {$EXTERNALSYM NLS_VALID_LOCALE_MASK}
+
+function MAKELCID(LangId, SortId: WORD): DWORD;
+{$EXTERNALSYM MAKELCID}
+function MAKESORTLCID(LangId, SortId, SortVersion: WORD): DWORD;
+{$EXTERNALSYM MAKESORTLCID}
+function LANGIDFROMLCID(LocaleId: LCID): WORD;
+{$EXTERNALSYM LANGIDFROMLCID}
+function SORTIDFROMLCID(LocaleId: LCID): WORD;
+{$EXTERNALSYM SORTIDFROMLCID}
+function SORTVERSIONFROMLCID(LocaleId: LCID): WORD;
+{$EXTERNALSYM SORTVERSIONFROMLCID}
+
+// line 1154
+
+////////////////////////////////////////////////////////////////////////
+//                                                                    //
+//              Security Id     (SID)                                 //
+//                                                                    //
+////////////////////////////////////////////////////////////////////////
+//
+//
+// Pictorially the structure of an SID is as follows:
+//
+//         1   1   1   1   1   1
+//         5   4   3   2   1   0   9   8   7   6   5   4   3   2   1   0
+//      +---------------------------------------------------------------+
+//      |      SubAuthorityCount        |Reserved1 (SBZ)|   Revision    |
+//      +---------------------------------------------------------------+
+//      |                   IdentifierAuthority[0]                      |
+//      +---------------------------------------------------------------+
+//      |                   IdentifierAuthority[1]                      |
+//      +---------------------------------------------------------------+
+//      |                   IdentifierAuthority[2]                      |
+//      +---------------------------------------------------------------+
+//      |                                                               |
+//      +- -  -  -  -  -  -  -  SubAuthority[]  -  -  -  -  -  -  -  - -+
+//      |                                                               |
+//      +---------------------------------------------------------------+
+//
+//
+
+type
+  _SID_IDENTIFIER_AUTHORITY = record
+    Value: array [0..5] of Byte;
+  end;
+  {$EXTERNALSYM _SID_IDENTIFIER_AUTHORITY}
+  SID_IDENTIFIER_AUTHORITY = _SID_IDENTIFIER_AUTHORITY;
+  {$EXTERNALSYM SID_IDENTIFIER_AUTHORITY}
+  PSID_IDENTIFIER_AUTHORITY = ^_SID_IDENTIFIER_AUTHORITY;
+  {$EXTERNALSYM PSID_IDENTIFIER_AUTHORITY}
+
+  // PSid = ^SID;
+  _SID = record
+    Revision: Byte;
+    SubAuthorityCount: Byte;
+    IdentifierAuthority: SID_IDENTIFIER_AUTHORITY;
+    SubAuthority: array [0..ANYSIZE_ARRAY - 1] of DWORD;
+  end;
+  {$EXTERNALSYM _SID}
+  SID = _SID;
+  {$EXTERNALSYM SID}
+  PPSID = ^PSID;
+  {$NODEFINE PPSID}
+  TSid = SID;
+
+const
+  SID_REVISION                    = (1); // Current revision level
+  {$EXTERNALSYM SID_REVISION}
+  SID_MAX_SUB_AUTHORITIES         = (15);
+  {$EXTERNALSYM SID_MAX_SUB_AUTHORITIES}
+  SID_RECOMMENDED_SUB_AUTHORITIES = (1); // Will change to around 6 in a future release.
+  {$EXTERNALSYM SID_RECOMMENDED_SUB_AUTHORITIES}
+
+  {$IFNDEF CLR}
+  SECURITY_MAX_SID_SIZE = SizeOf(SID) - SizeOf(DWORD) + (SID_MAX_SUB_AUTHORITIES * SizeOf(DWORD));
+  {$EXTERNALSYM SECURITY_MAX_SID_SIZE}
+  {$ENDIF ~CLR}
+
+{$IFNDEF FPC}
+  SidTypeUser           = 1;
+  {$EXTERNALSYM SidTypeUser}
+  SidTypeGroup          = 2;
+  {$EXTERNALSYM SidTypeGroup}
+  SidTypeDomain         = 3;
+  {$EXTERNALSYM SidTypeDomain}
+  SidTypeAlias          = 4;
+  {$EXTERNALSYM SidTypeAlias}
+  SidTypeWellKnownGroup = 5;
+  {$EXTERNALSYM SidTypeWellKnownGroup}
+  SidTypeDeletedAccount = 6;
+  {$EXTERNALSYM SidTypeDeletedAccount}
+  SidTypeInvalid        = 7;
+  {$EXTERNALSYM SidTypeInvalid}
+  SidTypeUnknown        = 8;
+  {$EXTERNALSYM SidTypeUnknown}
+  SidTypeComputer       = 9;
+  {$EXTERNALSYM SidTypeComputer}
+{$ENDIF ~FPC}
+
+type
+  _SID_NAME_USE = DWORD;
+  {$EXTERNALSYM _SID_NAME_USE}
+//  SID_NAME_USE = _SID_NAME_USE;
+//  {$EXTERNALSYM SID_NAME_USE}
+  PSID_NAME_USE = ^SID_NAME_USE;
+  {$EXTERNALSYM PSID_NAME_USE}
+  TSidNameUse = SID_NAME_USE;
+  PSidNameUSe = PSID_NAME_USE;
+
+  PSID_AND_ATTRIBUTES = ^SID_AND_ATTRIBUTES;
+  {$EXTERNALSYM PSID_AND_ATTRIBUTES}
+  _SID_AND_ATTRIBUTES = record
+    Sid: PSID;
+    Attributes: DWORD;
+  end;
+  {$EXTERNALSYM _SID_AND_ATTRIBUTES}
+  SID_AND_ATTRIBUTES = _SID_AND_ATTRIBUTES;
+  {$EXTERNALSYM SID_AND_ATTRIBUTES}
+  TSidAndAttributes = SID_AND_ATTRIBUTES;
+  PSidAndAttributes = PSID_AND_ATTRIBUTES;
+
+  SID_AND_ATTRIBUTES_ARRAY = array [0..ANYSIZE_ARRAY - 1] of SID_AND_ATTRIBUTES;
+  {$EXTERNALSYM SID_AND_ATTRIBUTES_ARRAY}
+  PSID_AND_ATTRIBUTES_ARRAY = ^SID_AND_ATTRIBUTES_ARRAY;
+  {$EXTERNALSYM PSID_AND_ATTRIBUTES_ARRAY}
+  PSidAndAttributesArray = ^TSidAndAttributesArray;
+  TSidAndAttributesArray = SID_AND_ATTRIBUTES_ARRAY;
+
+/////////////////////////////////////////////////////////////////////////////
+//                                                                         //
+// Universal well-known SIDs                                               //
+//                                                                         //
+//     Null SID                     S-1-0-0                                //
+//     World                        S-1-1-0                                //
+//     Local                        S-1-2-0                                //
+//     Creator Owner ID             S-1-3-0                                //
+//     Creator Group ID             S-1-3-1                                //
+//     Creator Owner Server ID      S-1-3-2                                //
+//     Creator Group Server ID      S-1-3-3                                //
+//                                                                         //
+//     (Non-unique IDs)             S-1-4                                  //
+//                                                                         //
+/////////////////////////////////////////////////////////////////////////////
+
+const
+  SECURITY_NULL_SID_AUTHORITY: TSidIdentifierAuthority = (Value: (0, 0, 0, 0, 0, 0));
+  {$EXTERNALSYM SECURITY_NULL_SID_AUTHORITY}
+  SECURITY_WORLD_SID_AUTHORITY: TSidIdentifierAuthority = (Value: (0, 0, 0, 0, 0, 1));
+  {$EXTERNALSYM SECURITY_WORLD_SID_AUTHORITY}
+  SECURITY_LOCAL_SID_AUTHORITY: TSidIdentifierAuthority = (Value: (0, 0, 0, 0, 0, 2));
+  {$EXTERNALSYM SECURITY_LOCAL_SID_AUTHORITY}
+  SECURITY_CREATOR_SID_AUTHORITY: TSidIdentifierAuthority = (Value: (0, 0, 0, 0, 0, 3));
+  {$EXTERNALSYM SECURITY_CREATOR_SID_AUTHORITY}
+  SECURITY_NON_UNIQUE_AUTHORITY: TSidIdentifierAuthority = (Value: (0, 0, 0, 0, 0, 4));
+  {$EXTERNALSYM SECURITY_NON_UNIQUE_AUTHORITY}
+  SECURITY_RESOURCE_MANAGER_AUTHORITY: TSidIdentifierAuthority = (Value: (0, 0, 0, 0, 0, 9));
+  {$EXTERNALSYM SECURITY_RESOURCE_MANAGER_AUTHORITY}
+
+  SECURITY_NULL_RID                 = ($00000000);
+  {$EXTERNALSYM SECURITY_NULL_RID}
+  SECURITY_WORLD_RID                = ($00000000);
+  {$EXTERNALSYM SECURITY_WORLD_RID}
+  SECURITY_LOCAL_RID                = ($00000000);
+  {$EXTERNALSYM SECURITY_LOCAL_RID}
+
+  SECURITY_CREATOR_OWNER_RID        = ($00000000);
+  {$EXTERNALSYM SECURITY_CREATOR_OWNER_RID}
+  SECURITY_CREATOR_GROUP_RID        = ($00000001);
+  {$EXTERNALSYM SECURITY_CREATOR_GROUP_RID}
+
+  SECURITY_CREATOR_OWNER_SERVER_RID = ($00000002);
+  {$EXTERNALSYM SECURITY_CREATOR_OWNER_SERVER_RID}
+  SECURITY_CREATOR_GROUP_SERVER_RID = ($00000003);
+  {$EXTERNALSYM SECURITY_CREATOR_GROUP_SERVER_RID}
+
+/////////////////////////////////////////////////////////////////////////////
+//                                                                         //
+// NT well-known SIDs                                                        //
+//                                                                           //
+//     NT Authority            S-1-5                                         //
+//     Dialup                  S-1-5-1                                       //
+//                                                                           //
+//     Network                 S-1-5-2                                       //
+//     Batch                   S-1-5-3                                       //
+//     Interactive             S-1-5-4                                       //
+//     (Logon IDs)             S-1-5-5-X-Y                                   //
+//     Service                 S-1-5-6                                       //
+//     AnonymousLogon          S-1-5-7       (aka null logon session)        //
+//     Proxy                   S-1-5-8                                       //
+//     Enterprise DC (EDC)     S-1-5-9       (aka domain controller account) //
+//     Self                    S-1-5-10      (self RID)                      //
+//     Authenticated User      S-1-5-11      (Authenticated user somewhere)  //
+//     Restricted Code         S-1-5-12      (Running restricted code)       //
+//     Terminal Server         S-1-5-13      (Running on Terminal Server)    //
+//     Remote Logon            S-1-5-14      (Remote Interactive Logon)      //
+//     This Organization       S-1-5-15                                      //
+//                                                                           //
+//     Local System            S-1-5-18                                      //
+//     Local Service           S-1-5-19                                      //
+//     Network Service         S-1-5-20                                      //
+//                                                                           //
+//     (NT non-unique IDs)     S-1-5-0x15-... (NT Domain Sids)               //
+//                                                                           //
+//     (Built-in domain)       S-1-5-0x20                                    //
+//                                                                           //
+//     (Security Package IDs)  S-1-5-0x40                                    //
+//     NTLM Authentication     S-1-5-0x40-10                                 //
+//     SChannel Authentication S-1-5-0x40-14                                 //
+//     Digest Authentication   S-1-5-0x40-21                                 //
+//                                                                           //
+//     Other Organization      S-1-5-1000    (>=1000 can not be filtered)    //
+//                                                                           //
+//                                                                           //
+// NOTE: the relative identifier values (RIDs) determine which security      //
+//       boundaries the SID is allowed to cross.  Before adding new RIDs,    //
+//       a determination needs to be made regarding which range they should  //
+//       be added to in order to ensure proper "SID filtering"               //
+//                                                                         //
+/////////////////////////////////////////////////////////////////////////////
+
+const
+  SECURITY_NT_AUTHORITY: TSidIdentifierAuthority = (Value: (0, 0, 0, 0, 0, 5));
+  {$EXTERNALSYM SECURITY_NT_AUTHORITY}
+
+  SECURITY_DIALUP_RID                 = ($00000001);
+  {$EXTERNALSYM SECURITY_DIALUP_RID}
+  SECURITY_NETWORK_RID                = ($00000002);
+  {$EXTERNALSYM SECURITY_NETWORK_RID}
+  SECURITY_BATCH_RID                  = ($00000003);
+  {$EXTERNALSYM SECURITY_BATCH_RID}
+  SECURITY_INTERACTIVE_RID            = ($00000004);
+  {$EXTERNALSYM SECURITY_INTERACTIVE_RID}
+  SECURITY_LOGON_IDS_RID              = ($00000005);
+  {$EXTERNALSYM SECURITY_LOGON_IDS_RID}
+  SECURITY_LOGON_IDS_RID_COUNT        = (3);
+  {$EXTERNALSYM SECURITY_LOGON_IDS_RID_COUNT}
+  SECURITY_SERVICE_RID                = ($00000006);
+  {$EXTERNALSYM SECURITY_SERVICE_RID}
+  SECURITY_ANONYMOUS_LOGON_RID        = ($00000007);
+  {$EXTERNALSYM SECURITY_ANONYMOUS_LOGON_RID}
+  SECURITY_PROXY_RID                  = ($00000008);
+  {$EXTERNALSYM SECURITY_PROXY_RID}
+  SECURITY_ENTERPRISE_CONTROLLERS_RID = ($00000009);
+  {$EXTERNALSYM SECURITY_ENTERPRISE_CONTROLLERS_RID}
+  SECURITY_SERVER_LOGON_RID           = SECURITY_ENTERPRISE_CONTROLLERS_RID;
+  {$EXTERNALSYM SECURITY_SERVER_LOGON_RID}
+  SECURITY_PRINCIPAL_SELF_RID         = ($0000000A);
+  {$EXTERNALSYM SECURITY_PRINCIPAL_SELF_RID}
+  SECURITY_AUTHENTICATED_USER_RID     = ($0000000B);
+  {$EXTERNALSYM SECURITY_AUTHENTICATED_USER_RID}
+  SECURITY_RESTRICTED_CODE_RID        = ($0000000C);
+  {$EXTERNALSYM SECURITY_RESTRICTED_CODE_RID}
+  SECURITY_TERMINAL_SERVER_RID        = ($0000000D);
+  {$EXTERNALSYM SECURITY_TERMINAL_SERVER_RID}
+  SECURITY_REMOTE_LOGON_RID           = ($0000000E);
+  {$EXTERNALSYM SECURITY_REMOTE_LOGON_RID}
+  SECURITY_THIS_ORGANIZATION_RID      = ($0000000F);
+  {$EXTERNALSYM SECURITY_THIS_ORGANIZATION_RID}
+
+  SECURITY_LOCAL_SYSTEM_RID    = ($00000012);
+  {$EXTERNALSYM SECURITY_LOCAL_SYSTEM_RID}
+  SECURITY_LOCAL_SERVICE_RID   = ($00000013);
+  {$EXTERNALSYM SECURITY_LOCAL_SERVICE_RID}
+  SECURITY_NETWORK_SERVICE_RID = ($00000014);
+  {$EXTERNALSYM SECURITY_NETWORK_SERVICE_RID}
+
+  SECURITY_NT_NON_UNIQUE       = ($00000015);
+  {$EXTERNALSYM SECURITY_NT_NON_UNIQUE}
+  SECURITY_NT_NON_UNIQUE_SUB_AUTH_COUNT = (3);
+  {$EXTERNALSYM SECURITY_NT_NON_UNIQUE_SUB_AUTH_COUNT}
+
+  SECURITY_BUILTIN_DOMAIN_RID  = ($00000020);
+  {$EXTERNALSYM SECURITY_BUILTIN_DOMAIN_RID}
+
+  SECURITY_PACKAGE_BASE_RID       = ($00000040);
+  {$EXTERNALSYM SECURITY_PACKAGE_BASE_RID}
+  SECURITY_PACKAGE_RID_COUNT      = (2);
+  {$EXTERNALSYM SECURITY_PACKAGE_RID_COUNT}
+  SECURITY_PACKAGE_NTLM_RID       = ($0000000A);
+  {$EXTERNALSYM SECURITY_PACKAGE_NTLM_RID}
+  SECURITY_PACKAGE_SCHANNEL_RID   = ($0000000E);
+  {$EXTERNALSYM SECURITY_PACKAGE_SCHANNEL_RID}
+  SECURITY_PACKAGE_DIGEST_RID     = ($00000015);
+  {$EXTERNALSYM SECURITY_PACKAGE_DIGEST_RID}
+
+  SECURITY_MAX_ALWAYS_FILTERED    = ($000003E7);
+  {$EXTERNALSYM SECURITY_MAX_ALWAYS_FILTERED}
+  SECURITY_MIN_NEVER_FILTERED     = ($000003E8);
+  {$EXTERNALSYM SECURITY_MIN_NEVER_FILTERED}
+
+  SECURITY_OTHER_ORGANIZATION_RID = ($000003E8);
+  {$EXTERNALSYM SECURITY_OTHER_ORGANIZATION_RID}
+
+/////////////////////////////////////////////////////////////////////////////
+//                                                                         //
+// well-known domain relative sub-authority values (RIDs)...               //
+//                                                                         //
+/////////////////////////////////////////////////////////////////////////////
+
+// Well-known users ...
+
+  FOREST_USER_RID_MAX    = ($000001F3);
+  {$EXTERNALSYM FOREST_USER_RID_MAX}
+
+  DOMAIN_USER_RID_ADMIN  = ($000001F4);
+  {$EXTERNALSYM DOMAIN_USER_RID_ADMIN}
+  DOMAIN_USER_RID_GUEST  = ($000001F5);
+  {$EXTERNALSYM DOMAIN_USER_RID_GUEST}
+  DOMAIN_USER_RID_KRBTGT = ($000001F6);
+  {$EXTERNALSYM DOMAIN_USER_RID_KRBTGT}
+
+  DOMAIN_USER_RID_MAX    = ($000003E7);
+  {$EXTERNALSYM DOMAIN_USER_RID_MAX}
+
+// well-known groups ...
+
+  DOMAIN_GROUP_RID_ADMINS            = ($00000200);
+  {$EXTERNALSYM DOMAIN_GROUP_RID_ADMINS}
+  DOMAIN_GROUP_RID_USERS             = ($00000201);
+  {$EXTERNALSYM DOMAIN_GROUP_RID_USERS}
+  DOMAIN_GROUP_RID_GUESTS            = ($00000202);
+  {$EXTERNALSYM DOMAIN_GROUP_RID_GUESTS}
+  DOMAIN_GROUP_RID_COMPUTERS         = ($00000203);
+  {$EXTERNALSYM DOMAIN_GROUP_RID_COMPUTERS}
+  DOMAIN_GROUP_RID_CONTROLLERS       = ($00000204);
+  {$EXTERNALSYM DOMAIN_GROUP_RID_CONTROLLERS}
+  DOMAIN_GROUP_RID_CERT_ADMINS       = ($00000205);
+  {$EXTERNALSYM DOMAIN_GROUP_RID_CERT_ADMINS}
+  DOMAIN_GROUP_RID_SCHEMA_ADMINS     = ($00000206);
+  {$EXTERNALSYM DOMAIN_GROUP_RID_SCHEMA_ADMINS}
+  DOMAIN_GROUP_RID_ENTERPRISE_ADMINS = ($00000207);
+  {$EXTERNALSYM DOMAIN_GROUP_RID_ENTERPRISE_ADMINS}
+  DOMAIN_GROUP_RID_POLICY_ADMINS     = ($00000208);
+  {$EXTERNALSYM DOMAIN_GROUP_RID_POLICY_ADMINS}
+
+// well-known aliases ...
+
+  DOMAIN_ALIAS_RID_ADMINS           = ($00000220);
+  {$EXTERNALSYM DOMAIN_ALIAS_RID_ADMINS}
+  DOMAIN_ALIAS_RID_USERS            = ($00000221);
+  {$EXTERNALSYM DOMAIN_ALIAS_RID_USERS}
+  DOMAIN_ALIAS_RID_GUESTS           = ($00000222);
+  {$EXTERNALSYM DOMAIN_ALIAS_RID_GUESTS}
+  DOMAIN_ALIAS_RID_POWER_USERS      = ($00000223);
+  {$EXTERNALSYM DOMAIN_ALIAS_RID_POWER_USERS}
+
+  DOMAIN_ALIAS_RID_ACCOUNT_OPS      = ($00000224);
+  {$EXTERNALSYM DOMAIN_ALIAS_RID_ACCOUNT_OPS}
+  DOMAIN_ALIAS_RID_SYSTEM_OPS       = ($00000225);
+  {$EXTERNALSYM DOMAIN_ALIAS_RID_SYSTEM_OPS}
+  DOMAIN_ALIAS_RID_PRINT_OPS        = ($00000226);
+  {$EXTERNALSYM DOMAIN_ALIAS_RID_PRINT_OPS}
+  DOMAIN_ALIAS_RID_BACKUP_OPS       = ($00000227);
+  {$EXTERNALSYM DOMAIN_ALIAS_RID_BACKUP_OPS}
+
+  DOMAIN_ALIAS_RID_REPLICATOR       = ($00000228);
+  {$EXTERNALSYM DOMAIN_ALIAS_RID_REPLICATOR}
+  DOMAIN_ALIAS_RID_RAS_SERVERS      = ($00000229);
+  {$EXTERNALSYM DOMAIN_ALIAS_RID_RAS_SERVERS}
+  DOMAIN_ALIAS_RID_PREW2KCOMPACCESS = ($0000022A);
+  {$EXTERNALSYM DOMAIN_ALIAS_RID_PREW2KCOMPACCESS}
+  DOMAIN_ALIAS_RID_REMOTE_DESKTOP_USERS = ($0000022B);
+  {$EXTERNALSYM DOMAIN_ALIAS_RID_REMOTE_DESKTOP_USERS}
+  DOMAIN_ALIAS_RID_NETWORK_CONFIGURATION_OPS = ($0000022C);
+  {$EXTERNALSYM DOMAIN_ALIAS_RID_NETWORK_CONFIGURATION_OPS}
+  DOMAIN_ALIAS_RID_INCOMING_FOREST_TRUST_BUILDERS = ($0000022D);
+  {$EXTERNALSYM DOMAIN_ALIAS_RID_INCOMING_FOREST_TRUST_BUILDERS}
+
+  DOMAIN_ALIAS_RID_MONITORING_USERS      = ($0000022E);
+  {$EXTERNALSYM DOMAIN_ALIAS_RID_MONITORING_USERS}
+  DOMAIN_ALIAS_RID_LOGGING_USERS         = ($0000022F);
+  {$EXTERNALSYM DOMAIN_ALIAS_RID_LOGGING_USERS}
+  DOMAIN_ALIAS_RID_AUTHORIZATIONACCESS   = ($00000230);
+  {$EXTERNALSYM DOMAIN_ALIAS_RID_AUTHORIZATIONACCESS}
+  DOMAIN_ALIAS_RID_TS_LICENSE_SERVERS    = ($00000231);
+  {$EXTERNALSYM DOMAIN_ALIAS_RID_TS_LICENSE_SERVERS}
+
+// line 2495
+
+////////////////////////////////////////////////////////////////////////
+//                                                                    //
+//               NT Defined Privileges                                //
+//                                                                    //
+////////////////////////////////////////////////////////////////////////
+
+const
+  SE_CREATE_TOKEN_NAME        = 'SeCreateTokenPrivilege';
+  {$EXTERNALSYM SE_CREATE_TOKEN_NAME}
+  SE_ASSIGNPRIMARYTOKEN_NAME  = 'SeAssignPrimaryTokenPrivilege';
+  {$EXTERNALSYM SE_ASSIGNPRIMARYTOKEN_NAME}
+  SE_LOCK_MEMORY_NAME         = 'SeLockMemoryPrivilege';
+  {$EXTERNALSYM SE_LOCK_MEMORY_NAME}
+  SE_INCREASE_QUOTA_NAME      = 'SeIncreaseQuotaPrivilege';
+  {$EXTERNALSYM SE_INCREASE_QUOTA_NAME}
+  SE_UNSOLICITED_INPUT_NAME   = 'SeUnsolicitedInputPrivilege';
+  {$EXTERNALSYM SE_UNSOLICITED_INPUT_NAME}
+  SE_MACHINE_ACCOUNT_NAME     = 'SeMachineAccountPrivilege';
+  {$EXTERNALSYM SE_MACHINE_ACCOUNT_NAME}
+  SE_TCB_NAME                 = 'SeTcbPrivilege';
+  {$EXTERNALSYM SE_TCB_NAME}
+  SE_SECURITY_NAME            = 'SeSecurityPrivilege';
+  {$EXTERNALSYM SE_SECURITY_NAME}
+  SE_TAKE_OWNERSHIP_NAME      = 'SeTakeOwnershipPrivilege';
+  {$EXTERNALSYM SE_TAKE_OWNERSHIP_NAME}
+  SE_LOAD_DRIVER_NAME         = 'SeLoadDriverPrivilege';
+  {$EXTERNALSYM SE_LOAD_DRIVER_NAME}
+  SE_SYSTEM_PROFILE_NAME      = 'SeSystemProfilePrivilege';
+  {$EXTERNALSYM SE_SYSTEM_PROFILE_NAME}
+  SE_SYSTEMTIME_NAME          = 'SeSystemtimePrivilege';
+  {$EXTERNALSYM SE_SYSTEMTIME_NAME}
+  SE_PROF_SINGLE_PROCESS_NAME = 'SeProfileSingleProcessPrivilege';
+  {$EXTERNALSYM SE_PROF_SINGLE_PROCESS_NAME}
+  SE_INC_BASE_PRIORITY_NAME   = 'SeIncreaseBasePriorityPrivilege';
+  {$EXTERNALSYM SE_INC_BASE_PRIORITY_NAME}
+  SE_CREATE_PAGEFILE_NAME     = 'SeCreatePagefilePrivilege';
+  {$EXTERNALSYM SE_CREATE_PAGEFILE_NAME}
+  SE_CREATE_PERMANENT_NAME    = 'SeCreatePermanentPrivilege';
+  {$EXTERNALSYM SE_CREATE_PERMANENT_NAME}
+  SE_BACKUP_NAME              = 'SeBackupPrivilege';
+  {$EXTERNALSYM SE_BACKUP_NAME}
+  SE_RESTORE_NAME             = 'SeRestorePrivilege';
+  {$EXTERNALSYM SE_RESTORE_NAME}
+  SE_SHUTDOWN_NAME            = 'SeShutdownPrivilege';
+  {$EXTERNALSYM SE_SHUTDOWN_NAME}
+  SE_DEBUG_NAME               = 'SeDebugPrivilege';
+  {$EXTERNALSYM SE_DEBUG_NAME}
+  SE_AUDIT_NAME               = 'SeAuditPrivilege';
+  {$EXTERNALSYM SE_AUDIT_NAME}
+  SE_SYSTEM_ENVIRONMENT_NAME  = 'SeSystemEnvironmentPrivilege';
+  {$EXTERNALSYM SE_SYSTEM_ENVIRONMENT_NAME}
+  SE_CHANGE_NOTIFY_NAME       = 'SeChangeNotifyPrivilege';
+  {$EXTERNALSYM SE_CHANGE_NOTIFY_NAME}
+  SE_REMOTE_SHUTDOWN_NAME     = 'SeRemoteShutdownPrivilege';
+  {$EXTERNALSYM SE_REMOTE_SHUTDOWN_NAME}
+  SE_UNDOCK_NAME              = 'SeUndockPrivilege';
+  {$EXTERNALSYM SE_UNDOCK_NAME}
+  SE_SYNC_AGENT_NAME          = 'SeSyncAgentPrivilege';
+  {$EXTERNALSYM SE_SYNC_AGENT_NAME}
+  SE_ENABLE_DELEGATION_NAME   = 'SeEnableDelegationPrivilege';
+  {$EXTERNALSYM SE_ENABLE_DELEGATION_NAME}
+  SE_MANAGE_VOLUME_NAME       = 'SeManageVolumePrivilege';
+  {$EXTERNALSYM SE_MANAGE_VOLUME_NAME}
+  SE_IMPERSONATE_NAME         = 'SeImpersonatePrivilege';
+  {$EXTERNALSYM SE_IMPERSONATE_NAME}
+  SE_CREATE_GLOBAL_NAME       = 'SeCreateGlobalPrivilege';
+  {$EXTERNALSYM SE_CREATE_GLOBAL_NAME}
+
+//
+// Thread Information Block (TIB)
+//
+
+type
+  NT_TIB32 = packed record
+    ExceptionList: DWORD;
+    StackBase: DWORD;
+    StackLimit: DWORD;
+    SubSystemTib: DWORD;
+    case Integer of
+      0 : (
+        FiberData: DWORD;
+        ArbitraryUserPointer: DWORD;
+        Self: DWORD;
+      );
+      1 : (
+        Version: DWORD;
+      );
+  end;
+  {$EXTERNALSYM NT_TIB32}
+  PNT_TIB32 = ^NT_TIB32;
+  {$EXTERNALSYM PNT_TIB32}
+
+  NT_TIB64 = packed record
+    ExceptionList: TJclAddr64;
+    StackBase: TJclAddr64;
+    StackLimit: TJclAddr64;
+    SubSystemTib: TJclAddr64;
+    case Integer of
+      0 : (
+        FiberData: TJclAddr64;
+        ArbitraryUserPointer: TJclAddr64;
+        Self: TJclAddr64;
+      );
+      1 : (
+        Version: DWORD;
+      );
+  end;
+  {$EXTERNALSYM NT_TIB64}
+  PNT_TIB64 = ^NT_TIB64;
+  {$EXTERNALSYM PNT_TIB64}
+
+// line 2686
+
+//
+// Token information class structures
+//
+
+type
+  PTOKEN_USER = ^TOKEN_USER;
+  {$EXTERNALSYM PTOKEN_USER}
+  _TOKEN_USER = record
+    User: SID_AND_ATTRIBUTES;
+  end;
+  {$EXTERNALSYM _TOKEN_USER}
+  TOKEN_USER = _TOKEN_USER;
+  {$EXTERNALSYM TOKEN_USER}
+  TTokenUser = TOKEN_USER;
+  PTokenUser = PTOKEN_USER;
+
+// line 3858
+
+//
+// Define access rights to files and directories
+//
+
+//
+// The FILE_READ_DATA and FILE_WRITE_DATA constants are also defined in
+// devioctl.h as FILE_READ_ACCESS and FILE_WRITE_ACCESS. The values for these
+// constants *MUST* always be in sync.
+// The values are redefined in devioctl.h because they must be available to
+// both DOS and NT.
+//
+
+const
+  FILE_READ_DATA            = ($0001); // file & pipe
+  {$EXTERNALSYM FILE_READ_DATA}
+  FILE_LIST_DIRECTORY       = ($0001); // directory
+  {$EXTERNALSYM FILE_LIST_DIRECTORY}
+
+  FILE_WRITE_DATA           = ($0002); // file & pipe
+  {$EXTERNALSYM FILE_WRITE_DATA}
+  FILE_ADD_FILE             = ($0002); // directory
+  {$EXTERNALSYM FILE_ADD_FILE}
+
+  FILE_APPEND_DATA          = ($0004); // file
+  {$EXTERNALSYM FILE_APPEND_DATA}
+  FILE_ADD_SUBDIRECTORY     = ($0004); // directory
+  {$EXTERNALSYM FILE_ADD_SUBDIRECTORY}
+  FILE_CREATE_PIPE_INSTANCE = ($0004); // named pipe
+  {$EXTERNALSYM FILE_CREATE_PIPE_INSTANCE}
+
+  FILE_READ_EA = ($0008); // file & directory
+  {$EXTERNALSYM FILE_READ_EA}
+
+  FILE_WRITE_EA = ($0010); // file & directory
+  {$EXTERNALSYM FILE_WRITE_EA}
+
+  FILE_EXECUTE = ($0020); // file
+  {$EXTERNALSYM FILE_EXECUTE}
+  FILE_TRAVERSE = ($0020); // directory
+  {$EXTERNALSYM FILE_TRAVERSE}
+
+  FILE_DELETE_CHILD = ($0040); // directory
+  {$EXTERNALSYM FILE_DELETE_CHILD}
+
+  FILE_READ_ATTRIBUTES = ($0080); // all
+  {$EXTERNALSYM FILE_READ_ATTRIBUTES}
+
+  FILE_WRITE_ATTRIBUTES = ($0100); // all
+  {$EXTERNALSYM FILE_WRITE_ATTRIBUTES}
+
+  FILE_ALL_ACCESS = (STANDARD_RIGHTS_REQUIRED or SYNCHRONIZE or $1FF);
+  {$EXTERNALSYM FILE_ALL_ACCESS}
+
+  FILE_GENERIC_READ = (STANDARD_RIGHTS_READ or FILE_READ_DATA or
+    FILE_READ_ATTRIBUTES or FILE_READ_EA or SYNCHRONIZE);
+  {$EXTERNALSYM FILE_GENERIC_READ}
+
+  FILE_GENERIC_WRITE = (STANDARD_RIGHTS_WRITE or FILE_WRITE_DATA or
+    FILE_WRITE_ATTRIBUTES or FILE_WRITE_EA or FILE_APPEND_DATA or SYNCHRONIZE);
+  {$EXTERNALSYM FILE_GENERIC_WRITE}
+
+  FILE_GENERIC_EXECUTE = (STANDARD_RIGHTS_EXECUTE or FILE_READ_ATTRIBUTES or
+    FILE_EXECUTE or SYNCHRONIZE);
+  {$EXTERNALSYM FILE_GENERIC_EXECUTE}
+
+  FILE_SHARE_READ                    = $00000001;
+  {$EXTERNALSYM FILE_SHARE_READ}
+  FILE_SHARE_WRITE                   = $00000002;
+  {$EXTERNALSYM FILE_SHARE_WRITE}
+  FILE_SHARE_DELETE                  = $00000004;
+  {$EXTERNALSYM FILE_SHARE_DELETE}
+  FILE_ATTRIBUTE_READONLY            = $00000001;
+  {$EXTERNALSYM FILE_ATTRIBUTE_READONLY}
+  FILE_ATTRIBUTE_HIDDEN              = $00000002;
+  {$EXTERNALSYM FILE_ATTRIBUTE_HIDDEN}
+  FILE_ATTRIBUTE_SYSTEM              = $00000004;
+  {$EXTERNALSYM FILE_ATTRIBUTE_SYSTEM}
+  FILE_ATTRIBUTE_DIRECTORY           = $00000010;
+  {$EXTERNALSYM FILE_ATTRIBUTE_DIRECTORY}
+  FILE_ATTRIBUTE_ARCHIVE             = $00000020;
+  {$EXTERNALSYM FILE_ATTRIBUTE_ARCHIVE}
+  FILE_ATTRIBUTE_DEVICE              = $00000040;
+  {$EXTERNALSYM FILE_ATTRIBUTE_DEVICE}
+  FILE_ATTRIBUTE_NORMAL              = $00000080;
+  {$EXTERNALSYM FILE_ATTRIBUTE_NORMAL}
+  FILE_ATTRIBUTE_TEMPORARY           = $00000100;
+  {$EXTERNALSYM FILE_ATTRIBUTE_TEMPORARY}
+  FILE_ATTRIBUTE_SPARSE_FILE         = $00000200;
+  {$EXTERNALSYM FILE_ATTRIBUTE_SPARSE_FILE}
+  FILE_ATTRIBUTE_REPARSE_POINT       = $00000400;
+  {$EXTERNALSYM FILE_ATTRIBUTE_REPARSE_POINT}
+  FILE_ATTRIBUTE_COMPRESSED          = $00000800;
+  {$EXTERNALSYM FILE_ATTRIBUTE_COMPRESSED}
+  FILE_ATTRIBUTE_OFFLINE             = $00001000;
+  {$EXTERNALSYM FILE_ATTRIBUTE_OFFLINE}
+  FILE_ATTRIBUTE_NOT_CONTENT_INDEXED = $00002000;
+  {$EXTERNALSYM FILE_ATTRIBUTE_NOT_CONTENT_INDEXED}
+  FILE_ATTRIBUTE_ENCRYPTED           = $00004000;
+  {$EXTERNALSYM FILE_ATTRIBUTE_ENCRYPTED}
+  FILE_NOTIFY_CHANGE_FILE_NAME       = $00000001;
+  {$EXTERNALSYM FILE_NOTIFY_CHANGE_FILE_NAME}
+  FILE_NOTIFY_CHANGE_DIR_NAME        = $00000002;
+  {$EXTERNALSYM FILE_NOTIFY_CHANGE_DIR_NAME}
+  FILE_NOTIFY_CHANGE_ATTRIBUTES      = $00000004;
+  {$EXTERNALSYM FILE_NOTIFY_CHANGE_ATTRIBUTES}
+  FILE_NOTIFY_CHANGE_SIZE            = $00000008;
+  {$EXTERNALSYM FILE_NOTIFY_CHANGE_SIZE}
+  FILE_NOTIFY_CHANGE_LAST_WRITE      = $00000010;
+  {$EXTERNALSYM FILE_NOTIFY_CHANGE_LAST_WRITE}
+  FILE_NOTIFY_CHANGE_LAST_ACCESS     = $00000020;
+  {$EXTERNALSYM FILE_NOTIFY_CHANGE_LAST_ACCESS}
+  FILE_NOTIFY_CHANGE_CREATION        = $00000040;
+  {$EXTERNALSYM FILE_NOTIFY_CHANGE_CREATION}
+  FILE_NOTIFY_CHANGE_SECURITY        = $00000100;
+  {$EXTERNALSYM FILE_NOTIFY_CHANGE_SECURITY}
+  FILE_ACTION_ADDED                  = $00000001;
+  {$EXTERNALSYM FILE_ACTION_ADDED}
+  FILE_ACTION_REMOVED                = $00000002;
+  {$EXTERNALSYM FILE_ACTION_REMOVED}
+  FILE_ACTION_MODIFIED               = $00000003;
+  {$EXTERNALSYM FILE_ACTION_MODIFIED}
+  FILE_ACTION_RENAMED_OLD_NAME       = $00000004;
+  {$EXTERNALSYM FILE_ACTION_RENAMED_OLD_NAME}
+  FILE_ACTION_RENAMED_NEW_NAME       = $00000005;
+  {$EXTERNALSYM FILE_ACTION_RENAMED_NEW_NAME}
+  MAILSLOT_NO_MESSAGE                = DWORD(-1);
+  {$EXTERNALSYM MAILSLOT_NO_MESSAGE}
+  MAILSLOT_WAIT_FOREVER              = DWORD(-1);
+  {$EXTERNALSYM MAILSLOT_WAIT_FOREVER}
+  FILE_CASE_SENSITIVE_SEARCH         = $00000001;
+  {$EXTERNALSYM FILE_CASE_SENSITIVE_SEARCH}
+  FILE_CASE_PRESERVED_NAMES          = $00000002;
+  {$EXTERNALSYM FILE_CASE_PRESERVED_NAMES}
+  FILE_UNICODE_ON_DISK               = $00000004;
+  {$EXTERNALSYM FILE_UNICODE_ON_DISK}
+  FILE_PERSISTENT_ACLS               = $00000008;
+  {$EXTERNALSYM FILE_PERSISTENT_ACLS}
+  FILE_FILE_COMPRESSION              = $00000010;
+  {$EXTERNALSYM FILE_FILE_COMPRESSION}
+  FILE_VOLUME_QUOTAS                 = $00000020;
+  {$EXTERNALSYM FILE_VOLUME_QUOTAS}
+  FILE_SUPPORTS_SPARSE_FILES         = $00000040;
+  {$EXTERNALSYM FILE_SUPPORTS_SPARSE_FILES}
+  FILE_SUPPORTS_REPARSE_POINTS       = $00000080;
+  {$EXTERNALSYM FILE_SUPPORTS_REPARSE_POINTS}
+  FILE_SUPPORTS_REMOTE_STORAGE       = $00000100;
+  {$EXTERNALSYM FILE_SUPPORTS_REMOTE_STORAGE}
+  FILE_VOLUME_IS_COMPRESSED          = $00008000;
+  {$EXTERNALSYM FILE_VOLUME_IS_COMPRESSED}
+  FILE_SUPPORTS_OBJECT_IDS           = $00010000;
+  {$EXTERNALSYM FILE_SUPPORTS_OBJECT_IDS}
+  FILE_SUPPORTS_ENCRYPTION           = $00020000;
+  {$EXTERNALSYM FILE_SUPPORTS_ENCRYPTION}
+  FILE_NAMED_STREAMS                 = $00040000;
+  {$EXTERNALSYM FILE_NAMED_STREAMS}
+  FILE_READ_ONLY_VOLUME              = $00080000;
+  {$EXTERNALSYM FILE_READ_ONLY_VOLUME}
+
+// line 4052
+
+//
+// The reparse GUID structure is used by all 3rd party layered drivers to
+// store data in a reparse point. For non-Microsoft tags, The GUID field
+// cannot be GUID_NULL.
+// The constraints on reparse tags are defined below.
+// Microsoft tags can also be used with this format of the reparse point buffer.
+//
+
+type
+  TGenericReparseBuffer = record
+    DataBuffer: array [0..0] of BYTE;
+  end;
+
+  PREPARSE_GUID_DATA_BUFFER = ^REPARSE_GUID_DATA_BUFFER;
+  {$EXTERNALSYM PREPARSE_GUID_DATA_BUFFER}
+  _REPARSE_GUID_DATA_BUFFER = record
+    ReparseTag: DWORD;
+    ReparseDataLength: WORD;
+    Reserved: WORD;
+    ReparseGuid: TGUID;
+    GenericReparseBuffer: TGenericReparseBuffer;
+  end;
+  {$EXTERNALSYM _REPARSE_GUID_DATA_BUFFER}
+  REPARSE_GUID_DATA_BUFFER = _REPARSE_GUID_DATA_BUFFER;
+  {$EXTERNALSYM REPARSE_GUID_DATA_BUFFER}
+  TReparseGuidDataBuffer = REPARSE_GUID_DATA_BUFFER;
+  PReparseGuidDataBuffer = PREPARSE_GUID_DATA_BUFFER;
+
+const
+  REPARSE_GUID_DATA_BUFFER_HEADER_SIZE = 24;
+  {$EXTERNALSYM REPARSE_GUID_DATA_BUFFER_HEADER_SIZE}
+//
+// Maximum allowed size of the reparse data.
+//
+
+const
+  MAXIMUM_REPARSE_DATA_BUFFER_SIZE = 16 * 1024;
+  {$EXTERNALSYM MAXIMUM_REPARSE_DATA_BUFFER_SIZE}
+
+//
+// Predefined reparse tags.
+// These tags need to avoid conflicting with IO_REMOUNT defined in ntos\inc\io.h
+//
+
+  IO_REPARSE_TAG_RESERVED_ZERO = (0);
+  {$EXTERNALSYM IO_REPARSE_TAG_RESERVED_ZERO}
+  IO_REPARSE_TAG_RESERVED_ONE  = (1);
+  {$EXTERNALSYM IO_REPARSE_TAG_RESERVED_ONE}
+
+//
+// The value of the following constant needs to satisfy the following conditions:
+//  (1) Be at least as large as the largest of the reserved tags.
+//  (2) Be strictly smaller than all the tags in use.
+//
+
+  IO_REPARSE_TAG_RESERVED_RANGE = IO_REPARSE_TAG_RESERVED_ONE;
+  {$EXTERNALSYM IO_REPARSE_TAG_RESERVED_RANGE}
+
+//
+// The reparse tags are a DWORD. The 32 bits are laid out as follows:
+//
+//   3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
+//   1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
+//  +-+-+-+-+-----------------------+-------------------------------+
+//  |M|R|N|R|     Reserved bits     |       Reparse Tag Value       |
+//  +-+-+-+-+-----------------------+-------------------------------+
+//
+// M is the Microsoft bit. When set to 1, it denotes a tag owned by Microsoft.
+//   All ISVs must use a tag with a 0 in this position.
+//   Note: If a Microsoft tag is used by non-Microsoft software, the
+//   behavior is not defined.
+//
+// R is reserved.  Must be zero for non-Microsoft tags.
+//
+// N is name surrogate. When set to 1, the file represents another named
+//   entity in the system.
+//
+// The M and N bits are OR-able.
+// The following macros check for the M and N bit values:
+//
+
+//
+// Macro to determine whether a reparse point tag corresponds to a tag
+// owned by Microsoft.
+//
+
+function IsReparseTagMicrosoft(Tag: ULONG): Boolean;
+{$EXTERNALSYM IsReparseTagMicrosoft}
+
+//
+// Macro to determine whether a reparse point tag corresponds to a file
+// that is to be displayed with the slow icon overlay.
+//
+
+function IsReparseTagHighLatency(Tag: ULONG): Boolean;
+{$EXTERNALSYM IsReparseTagHighLatency}
+
+//
+// Macro to determine whether a reparse point tag is a name surrogate
+//
+
+function IsReparseTagNameSurrogate(Tag: ULONG): Boolean;
+{$EXTERNALSYM IsReparseTagNameSurrogate}
+
+const
+  IO_REPARSE_TAG_MOUNT_POINT = DWORD($A0000003);
+  {$EXTERNALSYM IO_REPARSE_TAG_MOUNT_POINT}
+  IO_REPARSE_TAG_HSM         = DWORD($C0000004);
+  {$EXTERNALSYM IO_REPARSE_TAG_HSM}
+  IO_REPARSE_TAG_SIS         = DWORD($80000007);
+  {$EXTERNALSYM IO_REPARSE_TAG_SIS}
+  IO_REPARSE_TAG_DFS         = DWORD($8000000A);
+  {$EXTERNALSYM IO_REPARSE_TAG_DFS}
+  IO_REPARSE_TAG_FILTER_MANAGER = DWORD($8000000B);
+  {$EXTERNALSYM IO_REPARSE_TAG_FILTER_MANAGER}
+  IO_COMPLETION_MODIFY_STATE = $0002;
+  {$EXTERNALSYM IO_COMPLETION_MODIFY_STATE}
+  IO_COMPLETION_ALL_ACCESS   = DWORD(STANDARD_RIGHTS_REQUIRED or SYNCHRONIZE or $3);
+  {$EXTERNALSYM IO_COMPLETION_ALL_ACCESS}
+  DUPLICATE_CLOSE_SOURCE     = $00000001;
+  {$EXTERNALSYM DUPLICATE_CLOSE_SOURCE}
+  DUPLICATE_SAME_ACCESS      = $00000002;
+  {$EXTERNALSYM DUPLICATE_SAME_ACCESS}
+
+// line 4763
+
+//
+// File header format.
+//
+
+{$IFNDEF CLR}
+
+type
+  PIMAGE_FILE_HEADER = ^IMAGE_FILE_HEADER;
+  {$EXTERNALSYM PIMAGE_FILE_HEADER}
+  _IMAGE_FILE_HEADER = record
+    Machine: WORD;
+    NumberOfSections: WORD;
+    TimeDateStamp: DWORD;
+    PointerToSymbolTable: DWORD;
+    NumberOfSymbols: DWORD;
+    SizeOfOptionalHeader: WORD;
+    Characteristics: WORD;
+  end;
+  {$EXTERNALSYM _IMAGE_FILE_HEADER}
+  IMAGE_FILE_HEADER = _IMAGE_FILE_HEADER;
+  {$EXTERNALSYM IMAGE_FILE_HEADER}
+  TImageFileHeader = IMAGE_FILE_HEADER;
+  PImageFileHeader = PIMAGE_FILE_HEADER;
+
+const
+  IMAGE_SIZEOF_FILE_HEADER = 20;
+  {$EXTERNALSYM IMAGE_SIZEOF_FILE_HEADER}
+
+  IMAGE_FILE_RELOCS_STRIPPED         = $0001; // Relocation info stripped from file.
+  {$EXTERNALSYM IMAGE_FILE_RELOCS_STRIPPED}
+  IMAGE_FILE_EXECUTABLE_IMAGE        = $0002; // File is executable  (i.e. no unresolved externel references).
+  {$EXTERNALSYM IMAGE_FILE_EXECUTABLE_IMAGE}
+  IMAGE_FILE_LINE_NUMS_STRIPPED      = $0004; // Line nunbers stripped from file.
+  {$EXTERNALSYM IMAGE_FILE_LINE_NUMS_STRIPPED}
+  IMAGE_FILE_LOCAL_SYMS_STRIPPED     = $0008; // Local symbols stripped from file.
+  {$EXTERNALSYM IMAGE_FILE_LOCAL_SYMS_STRIPPED}
+  IMAGE_FILE_AGGRESIVE_WS_TRIM       = $0010; // Agressively trim working set
+  {$EXTERNALSYM IMAGE_FILE_AGGRESIVE_WS_TRIM}
+  IMAGE_FILE_LARGE_ADDRESS_AWARE     = $0020; // App can handle >2gb addresses
+  {$EXTERNALSYM IMAGE_FILE_LARGE_ADDRESS_AWARE}
+  IMAGE_FILE_BYTES_REVERSED_LO       = $0080; // Bytes of machine word are reversed.
+  {$EXTERNALSYM IMAGE_FILE_BYTES_REVERSED_LO}
+  IMAGE_FILE_32BIT_MACHINE           = $0100; // 32 bit word machine.
+  {$EXTERNALSYM IMAGE_FILE_32BIT_MACHINE}
+  IMAGE_FILE_DEBUG_STRIPPED          = $0200; // Debugging info stripped from file in .DBG file
+  {$EXTERNALSYM IMAGE_FILE_DEBUG_STRIPPED}
+  IMAGE_FILE_REMOVABLE_RUN_FROM_SWAP = $0400; // If Image is on removable media, copy and run from the swap file.
+  {$EXTERNALSYM IMAGE_FILE_REMOVABLE_RUN_FROM_SWAP}
+  IMAGE_FILE_NET_RUN_FROM_SWAP       = $0800; // If Image is on Net, copy and run from the swap file.
+  {$EXTERNALSYM IMAGE_FILE_NET_RUN_FROM_SWAP}
+  IMAGE_FILE_SYSTEM                  = $1000; // System File.
+  {$EXTERNALSYM IMAGE_FILE_SYSTEM}
+  IMAGE_FILE_DLL                     = $2000; // File is a DLL.
+  {$EXTERNALSYM IMAGE_FILE_DLL}
+  IMAGE_FILE_UP_SYSTEM_ONLY          = $4000; // File should only be run on a UP machine
+  {$EXTERNALSYM IMAGE_FILE_UP_SYSTEM_ONLY}
+  IMAGE_FILE_BYTES_REVERSED_HI       = $8000; // Bytes of machine word are reversed.
+  {$EXTERNALSYM IMAGE_FILE_BYTES_REVERSED_HI}
+
+  IMAGE_FILE_MACHINE_UNKNOWN   = 0;
+  {$EXTERNALSYM IMAGE_FILE_MACHINE_UNKNOWN}
+  IMAGE_FILE_MACHINE_I386      = $014c; // Intel 386.
+  {$EXTERNALSYM IMAGE_FILE_MACHINE_I386}
+  IMAGE_FILE_MACHINE_R3000     = $0162; // MIPS little-endian, 0x160 big-endian
+  {$EXTERNALSYM IMAGE_FILE_MACHINE_R3000}
+  IMAGE_FILE_MACHINE_R4000     = $0166; // MIPS little-endian
+  {$EXTERNALSYM IMAGE_FILE_MACHINE_R4000}
+  IMAGE_FILE_MACHINE_R10000    = $0168; // MIPS little-endian
+  {$EXTERNALSYM IMAGE_FILE_MACHINE_R10000}
+  IMAGE_FILE_MACHINE_WCEMIPSV2 = $0169; // MIPS little-endian WCE v2
+  {$EXTERNALSYM IMAGE_FILE_MACHINE_WCEMIPSV2}
+  IMAGE_FILE_MACHINE_ALPHA     = $0184; // Alpha_AXP
+  {$EXTERNALSYM IMAGE_FILE_MACHINE_ALPHA}
+  IMAGE_FILE_MACHINE_SH3       = $01a2; // SH3 little-endian
+  {$EXTERNALSYM IMAGE_FILE_MACHINE_SH3}
+  IMAGE_FILE_MACHINE_SH3DSP    = $01a3;
+  {$EXTERNALSYM IMAGE_FILE_MACHINE_SH3DSP}
+  IMAGE_FILE_MACHINE_SH3E      = $01a4; // SH3E little-endian
+  {$EXTERNALSYM IMAGE_FILE_MACHINE_SH3E}
+  IMAGE_FILE_MACHINE_SH4       = $01a6; // SH4 little-endian
+  {$EXTERNALSYM IMAGE_FILE_MACHINE_SH4}
+  IMAGE_FILE_MACHINE_SH5       = $01a8; // SH5
+  {$EXTERNALSYM IMAGE_FILE_MACHINE_SH5}
+  IMAGE_FILE_MACHINE_ARM       = $01c0; // ARM Little-Endian
+  {$EXTERNALSYM IMAGE_FILE_MACHINE_ARM}
+  IMAGE_FILE_MACHINE_THUMB     = $01c2;
+  {$EXTERNALSYM IMAGE_FILE_MACHINE_THUMB}
+  IMAGE_FILE_MACHINE_AM33      = $01d3;
+  {$EXTERNALSYM IMAGE_FILE_MACHINE_AM33}
+  IMAGE_FILE_MACHINE_POWERPC   = $01F0; // IBM PowerPC Little-Endian
+  {$EXTERNALSYM IMAGE_FILE_MACHINE_POWERPC}
+  IMAGE_FILE_MACHINE_POWERPCFP = $01f1;
+  {$EXTERNALSYM IMAGE_FILE_MACHINE_POWERPCFP}
+  IMAGE_FILE_MACHINE_IA64      = $0200; // Intel 64
+  {$EXTERNALSYM IMAGE_FILE_MACHINE_IA64}
+  IMAGE_FILE_MACHINE_MIPS16    = $0266; // MIPS
+  {$EXTERNALSYM IMAGE_FILE_MACHINE_MIPS16}
+  IMAGE_FILE_MACHINE_ALPHA64   = $0284; // ALPHA64
+  {$EXTERNALSYM IMAGE_FILE_MACHINE_ALPHA64}
+  IMAGE_FILE_MACHINE_MIPSFPU   = $0366; // MIPS
+  {$EXTERNALSYM IMAGE_FILE_MACHINE_MIPSFPU}
+  IMAGE_FILE_MACHINE_MIPSFPU16 = $0466; // MIPS
+  {$EXTERNALSYM IMAGE_FILE_MACHINE_MIPSFPU16}
+  IMAGE_FILE_MACHINE_AXP64     = IMAGE_FILE_MACHINE_ALPHA64;
+  {$EXTERNALSYM IMAGE_FILE_MACHINE_AXP64}
+  IMAGE_FILE_MACHINE_TRICORE   = $0520; // Infineon
+  {$EXTERNALSYM IMAGE_FILE_MACHINE_TRICORE}
+  IMAGE_FILE_MACHINE_CEF       = $0CEF;
+  {$EXTERNALSYM IMAGE_FILE_MACHINE_CEF}
+  IMAGE_FILE_MACHINE_EBC       = $0EBC; // EFI Byte Code
+  {$EXTERNALSYM IMAGE_FILE_MACHINE_EBC}
+  IMAGE_FILE_MACHINE_AMD64     = $8664; // AMD64 (K8)
+  {$EXTERNALSYM IMAGE_FILE_MACHINE_AMD64}
+  IMAGE_FILE_MACHINE_M32R      = $9041; // M32R little-endian
+  {$EXTERNALSYM IMAGE_FILE_MACHINE_M32R}
+  IMAGE_FILE_MACHINE_CEE       = $C0EE;
+  {$EXTERNALSYM IMAGE_FILE_MACHINE_CEE}
+
+//
+// Directory format.
+//
+
+const
+  IMAGE_NUMBEROF_DIRECTORY_ENTRIES = 16;
+  {$EXTERNALSYM IMAGE_NUMBEROF_DIRECTORY_ENTRIES}
+
+//
+// Optional header format.
+//
+
+type
+  PIMAGE_OPTIONAL_HEADER32 = ^IMAGE_OPTIONAL_HEADER32;
+  {$EXTERNALSYM PIMAGE_OPTIONAL_HEADER32}
+
+  IMAGE_OPTIONAL_HEADER32 = _IMAGE_OPTIONAL_HEADER;
+  {$EXTERNALSYM IMAGE_OPTIONAL_HEADER32}
+  TImageOptionalHeader32 = IMAGE_OPTIONAL_HEADER32;
+  PImageOptionalHeader32 = PIMAGE_OPTIONAL_HEADER32;
+
+  PIMAGE_ROM_OPTIONAL_HEADER = ^IMAGE_ROM_OPTIONAL_HEADER;
+  {$EXTERNALSYM PIMAGE_ROM_OPTIONAL_HEADER}
+  _IMAGE_ROM_OPTIONAL_HEADER = record
+    Magic: Word;
+    MajorLinkerVersion: Byte;
+    MinorLinkerVersion: Byte;
+    SizeOfCode: DWORD;
+    SizeOfInitializedData: DWORD;
+    SizeOfUninitializedData: DWORD;
+    AddressOfEntryPoint: DWORD;
+    BaseOfCode: DWORD;
+    BaseOfData: DWORD;
+    BaseOfBss: DWORD;
+    GprMask: DWORD;
+    CprMask: array [0..3] of DWORD;
+    GpValue: DWORD;
+  end;
+  {$EXTERNALSYM _IMAGE_ROM_OPTIONAL_HEADER}
+  IMAGE_ROM_OPTIONAL_HEADER = _IMAGE_ROM_OPTIONAL_HEADER;
+  {$EXTERNALSYM IMAGE_ROM_OPTIONAL_HEADER}
+  TImageRomOptionalHeader = IMAGE_ROM_OPTIONAL_HEADER;
+  PImageRomOptionalHeader = PIMAGE_ROM_OPTIONAL_HEADER;
+
+  PIMAGE_OPTIONAL_HEADER64 = ^IMAGE_OPTIONAL_HEADER64;
+  {$EXTERNALSYM PIMAGE_OPTIONAL_HEADER64}
+  _IMAGE_OPTIONAL_HEADER64 = record
+    Magic: Word;
+    MajorLinkerVersion: Byte;
+    MinorLinkerVersion: Byte;
+    SizeOfCode: DWORD;
+    SizeOfInitializedData: DWORD;
+    SizeOfUninitializedData: DWORD;
+    AddressOfEntryPoint: DWORD;
+    BaseOfCode: DWORD;
+    ImageBase: Int64;
+    SectionAlignment: DWORD;
+    FileAlignment: DWORD;
+    MajorOperatingSystemVersion: Word;
+    MinorOperatingSystemVersion: Word;
+    MajorImageVersion: Word;
+    MinorImageVersion: Word;
+    MajorSubsystemVersion: Word;
+    MinorSubsystemVersion: Word;
+    Win32VersionValue: DWORD;
+    SizeOfImage: DWORD;
+    SizeOfHeaders: DWORD;
+    CheckSum: DWORD;
+    Subsystem: Word;
+    DllCharacteristics: Word;
+    SizeOfStackReserve: Int64;
+    SizeOfStackCommit: Int64;
+    SizeOfHeapReserve: Int64;
+    SizeOfHeapCommit: Int64;
+    LoaderFlags: DWORD;
+    NumberOfRvaAndSizes: DWORD;
+    DataDirectory: array [0..IMAGE_NUMBEROF_DIRECTORY_ENTRIES - 1] of IMAGE_DATA_DIRECTORY;
+  end;
+  {$EXTERNALSYM _IMAGE_OPTIONAL_HEADER64}
+  IMAGE_OPTIONAL_HEADER64 = _IMAGE_OPTIONAL_HEADER64;
+  {$EXTERNALSYM IMAGE_OPTIONAL_HEADER64}
+  TImageOptionalHeader64 = IMAGE_OPTIONAL_HEADER64;
+  PImageOptionalHeader64 = PIMAGE_OPTIONAL_HEADER64;
+
+const
+  IMAGE_SIZEOF_ROM_OPTIONAL_HEADER  = 56;
+  {$EXTERNALSYM IMAGE_SIZEOF_ROM_OPTIONAL_HEADER}
+  IMAGE_SIZEOF_STD_OPTIONAL_HEADER  = 28;
+  {$EXTERNALSYM IMAGE_SIZEOF_STD_OPTIONAL_HEADER}
+  IMAGE_SIZEOF_NT_OPTIONAL32_HEADER = 224;
+  {$EXTERNALSYM IMAGE_SIZEOF_NT_OPTIONAL32_HEADER}
+  IMAGE_SIZEOF_NT_OPTIONAL64_HEADER = 240;
+  {$EXTERNALSYM IMAGE_SIZEOF_NT_OPTIONAL64_HEADER}
+
+  IMAGE_NT_OPTIONAL_HDR32_MAGIC = $10b;
+  {$EXTERNALSYM IMAGE_NT_OPTIONAL_HDR32_MAGIC}
+  IMAGE_NT_OPTIONAL_HDR64_MAGIC = $20b;
+  {$EXTERNALSYM IMAGE_NT_OPTIONAL_HDR64_MAGIC}
+  IMAGE_ROM_OPTIONAL_HDR_MAGIC  = $107;
+  {$EXTERNALSYM IMAGE_ROM_OPTIONAL_HDR_MAGIC}
+
+(*
+type
+  IMAGE_OPTIONAL_HEADER = IMAGE_OPTIONAL_HEADER32;
+  {$EXTERNALSYM IMAGE_OPTIONAL_HEADER}
+  PIMAGE_OPTIONAL_HEADER = PIMAGE_OPTIONAL_HEADER32;
+  {$EXTERNALSYM PIMAGE_OPTIONAL_HEADER}
+*)
+
+const
+  IMAGE_SIZEOF_NT_OPTIONAL_HEADER = IMAGE_SIZEOF_NT_OPTIONAL32_HEADER;
+  {$EXTERNALSYM IMAGE_SIZEOF_NT_OPTIONAL_HEADER}
+  IMAGE_NT_OPTIONAL_HDR_MAGIC     = IMAGE_NT_OPTIONAL_HDR32_MAGIC;
+  {$EXTERNALSYM IMAGE_NT_OPTIONAL_HDR_MAGIC}
+
+type
+  PIMAGE_NT_HEADERS64 = ^IMAGE_NT_HEADERS64;
+  {$EXTERNALSYM PIMAGE_NT_HEADERS64}
+  _IMAGE_NT_HEADERS64 = record
+    Signature: DWORD;
+    FileHeader: IMAGE_FILE_HEADER;
+    OptionalHeader: IMAGE_OPTIONAL_HEADER64;
+  end;
+  {$EXTERNALSYM _IMAGE_NT_HEADERS64}
+  IMAGE_NT_HEADERS64 = _IMAGE_NT_HEADERS64;
+  {$EXTERNALSYM IMAGE_NT_HEADERS64}
+  TImageNtHeaders64 = IMAGE_NT_HEADERS64;
+  PImageNtHeaders64 = PIMAGE_NT_HEADERS64;
+
+  PIMAGE_NT_HEADERS32 = ^IMAGE_NT_HEADERS32;
+  {$EXTERNALSYM PIMAGE_NT_HEADERS32}
+  _IMAGE_NT_HEADERS = record
+    Signature: DWORD;
+    FileHeader: IMAGE_FILE_HEADER;
+    OptionalHeader: IMAGE_OPTIONAL_HEADER32;
+  end;
+  {$EXTERNALSYM _IMAGE_NT_HEADERS}
+  IMAGE_NT_HEADERS32 = _IMAGE_NT_HEADERS;
+  {$EXTERNALSYM IMAGE_NT_HEADERS32}
+  TImageNtHeaders32 = IMAGE_NT_HEADERS32;
+  PImageNtHeaders32 = PIMAGE_NT_HEADERS32;
+
+// Subsystem Values
+
+const
+  IMAGE_SUBSYSTEM_UNKNOWN                 = 0; // Unknown subsystem.
+  {$EXTERNALSYM IMAGE_SUBSYSTEM_UNKNOWN}
+  IMAGE_SUBSYSTEM_NATIVE                  = 1; // Image doesn't require a subsystem.
+  {$EXTERNALSYM IMAGE_SUBSYSTEM_NATIVE}
+  IMAGE_SUBSYSTEM_WINDOWS_GUI             = 2; // Image runs in the Windows GUI subsystem.
+  {$EXTERNALSYM IMAGE_SUBSYSTEM_WINDOWS_GUI}
+  IMAGE_SUBSYSTEM_WINDOWS_CUI             = 3; // Image runs in the Windows character subsystem.
+  {$EXTERNALSYM IMAGE_SUBSYSTEM_WINDOWS_CUI}
+  IMAGE_SUBSYSTEM_OS2_CUI                 = 5; // image runs in the OS/2 character subsystem.
+  {$EXTERNALSYM IMAGE_SUBSYSTEM_OS2_CUI}
+  IMAGE_SUBSYSTEM_POSIX_CUI               = 7; // image runs in the Posix character subsystem.
+  {$EXTERNALSYM IMAGE_SUBSYSTEM_POSIX_CUI}
+  IMAGE_SUBSYSTEM_NATIVE_WINDOWS          = 8; // image is a native Win9x driver.
+  {$EXTERNALSYM IMAGE_SUBSYSTEM_NATIVE_WINDOWS}
+  IMAGE_SUBSYSTEM_WINDOWS_CE_GUI          = 9; // Image runs in the Windows CE subsystem.
+  {$EXTERNALSYM IMAGE_SUBSYSTEM_WINDOWS_CE_GUI}
+  IMAGE_SUBSYSTEM_EFI_APPLICATION         = 10;
+  {$EXTERNALSYM IMAGE_SUBSYSTEM_EFI_APPLICATION}
+  IMAGE_SUBSYSTEM_EFI_BOOT_SERVICE_DRIVER = 11;
+  {$EXTERNALSYM IMAGE_SUBSYSTEM_EFI_BOOT_SERVICE_DRIVER}
+  IMAGE_SUBSYSTEM_EFI_RUNTIME_DRIVER      = 12;
+  {$EXTERNALSYM IMAGE_SUBSYSTEM_EFI_RUNTIME_DRIVER}
+  IMAGE_SUBSYSTEM_EFI_ROM                 = 13;
+  {$EXTERNALSYM IMAGE_SUBSYSTEM_EFI_ROM}
+  IMAGE_SUBSYSTEM_XBOX                    = 14;
+  {$EXTERNALSYM IMAGE_SUBSYSTEM_XBOX}
+
+// DllCharacteristics Entries
+
+//      IMAGE_LIBRARY_PROCESS_INIT           0x0001     // Reserved.
+//      IMAGE_LIBRARY_PROCESS_TERM           0x0002     // Reserved.
+//      IMAGE_LIBRARY_THREAD_INIT            0x0004     // Reserved.
+//      IMAGE_LIBRARY_THREAD_TERM            0x0008     // Reserved.
+  IMAGE_DLLCHARACTERISTICS_NO_ISOLATION = $0200;    // Image understands isolation and doesn't want it
+  {$EXTERNALSYM IMAGE_DLLCHARACTERISTICS_NO_ISOLATION}
+  IMAGE_DLLCHARACTERISTICS_NO_SEH  = $0400; // Image does not use SEH.  No SE handler may reside in this image
+  {$EXTERNALSYM IMAGE_DLLCHARACTERISTICS_NO_SEH}
+  IMAGE_DLLCHARACTERISTICS_NO_BIND = $0800; // Do not bind this image.
+  {$EXTERNALSYM IMAGE_DLLCHARACTERISTICS_NO_BIND}
+
+//                                           0x1000     // Reserved.
+
+  IMAGE_DLLCHARACTERISTICS_WDM_DRIVER = $2000; // Driver uses WDM model
+  {$EXTERNALSYM IMAGE_DLLCHARACTERISTICS_WDM_DRIVER}
+
+//                                           0x4000     // Reserved.
+
+  IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE = $8000;
+  {$EXTERNALSYM IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE}
+
+// Directory Entries
+
+  IMAGE_DIRECTORY_ENTRY_EXPORT    = 0; // Export Directory
+  {$EXTERNALSYM IMAGE_DIRECTORY_ENTRY_EXPORT}
+  IMAGE_DIRECTORY_ENTRY_IMPORT    = 1; // Import Directory
+  {$EXTERNALSYM IMAGE_DIRECTORY_ENTRY_IMPORT}
+  IMAGE_DIRECTORY_ENTRY_RESOURCE  = 2; // Resource Directory
+  {$EXTERNALSYM IMAGE_DIRECTORY_ENTRY_RESOURCE}
+  IMAGE_DIRECTORY_ENTRY_EXCEPTION = 3; // Exception Directory
+  {$EXTERNALSYM IMAGE_DIRECTORY_ENTRY_EXCEPTION}
+  IMAGE_DIRECTORY_ENTRY_SECURITY  = 4; // Security Directory
+  {$EXTERNALSYM IMAGE_DIRECTORY_ENTRY_SECURITY}
+  IMAGE_DIRECTORY_ENTRY_BASERELOC = 5; // Base Relocation Table
+  {$EXTERNALSYM IMAGE_DIRECTORY_ENTRY_BASERELOC}
+  IMAGE_DIRECTORY_ENTRY_DEBUG     = 6; // Debug Directory
+  {$EXTERNALSYM IMAGE_DIRECTORY_ENTRY_DEBUG}
+
+//      IMAGE_DIRECTORY_ENTRY_COPYRIGHT       7   // (X86 usage)
+
+  IMAGE_DIRECTORY_ENTRY_ARCHITECTURE   = 7; // Architecture Specific Data
+  {$EXTERNALSYM IMAGE_DIRECTORY_ENTRY_ARCHITECTURE}
+  IMAGE_DIRECTORY_ENTRY_GLOBALPTR      = 8; // RVA of GP
+  {$EXTERNALSYM IMAGE_DIRECTORY_ENTRY_GLOBALPTR}
+  IMAGE_DIRECTORY_ENTRY_TLS            = 9; // TLS Directory
+  {$EXTERNALSYM IMAGE_DIRECTORY_ENTRY_TLS}
+  IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG    = 10; // Load Configuration Directory
+  {$EXTERNALSYM IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG}
+  IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT   = 11; // Bound Import Directory in headers
+  {$EXTERNALSYM IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT}
+  IMAGE_DIRECTORY_ENTRY_IAT            = 12; // Import Address Table
+  {$EXTERNALSYM IMAGE_DIRECTORY_ENTRY_IAT}
+  IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT   = 13; // Delay Load Import Descriptors
+  {$EXTERNALSYM IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT}
+  IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR = 14; // COM Runtime descriptor
+  {$EXTERNALSYM IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR}
+
+//
+// Non-COFF Object file header
+//
+
+type
+  PAnonObjectHeader = ^ANON_OBJECT_HEADER;
+  ANON_OBJECT_HEADER = record
+    Sig1: Word;        // Must be IMAGE_FILE_MACHINE_UNKNOWN
+    Sig2: Word;        // Must be 0xffff
+    Version: Word;     // >= 1 (implies the CLSID field is present)
+    Machine: Word;
+    TimeDateStamp: DWORD;
+    ClassID: TCLSID;    // Used to invoke CoCreateInstance
+    SizeOfData: DWORD; // Size of data that follows the header
+  end;
+  {$EXTERNALSYM ANON_OBJECT_HEADER}
+  TAnonObjectHeader = ANON_OBJECT_HEADER;
+
+//
+// Section header format.
+//
+
+const
+  IMAGE_SIZEOF_SHORT_NAME = 8;
+  {$EXTERNALSYM IMAGE_SIZEOF_SHORT_NAME}
+
+type
+  PPImageSectionHeader = ^PImageSectionHeader;
+
+// IMAGE_FIRST_SECTION doesn't need 32/64 versions since the file header is the same either way.
+
+function IMAGE_FIRST_SECTION(NtHeader: PImageNtHeaders): PImageSectionHeader;
+{$EXTERNALSYM IMAGE_FIRST_SECTION}
+
+const
+  IMAGE_SIZEOF_SECTION_HEADER = 40;
+  {$EXTERNALSYM IMAGE_SIZEOF_SECTION_HEADER}
+
+//
+// Section characteristics.
+//
+//      IMAGE_SCN_TYPE_REG                   0x00000000  // Reserved.
+//      IMAGE_SCN_TYPE_DSECT                 0x00000001  // Reserved.
+//      IMAGE_SCN_TYPE_NOLOAD                0x00000002  // Reserved.
+//      IMAGE_SCN_TYPE_GROUP                 0x00000004  // Reserved.
+
+  IMAGE_SCN_TYPE_NO_PAD = $00000008; // Reserved.
+  {$EXTERNALSYM IMAGE_SCN_TYPE_NO_PAD}
+
+//      IMAGE_SCN_TYPE_COPY                  0x00000010  // Reserved.
+
+  IMAGE_SCN_CNT_CODE               = $00000020; // Section contains code.
+  {$EXTERNALSYM IMAGE_SCN_CNT_CODE}
+  IMAGE_SCN_CNT_INITIALIZED_DATA   = $00000040; // Section contains initialized data.
+  {$EXTERNALSYM IMAGE_SCN_CNT_INITIALIZED_DATA}
+  IMAGE_SCN_CNT_UNINITIALIZED_DATA = $00000080; // Section contains uninitialized data.
+  {$EXTERNALSYM IMAGE_SCN_CNT_UNINITIALIZED_DATA}
+
+  IMAGE_SCN_LNK_OTHER = $00000100; // Reserved.
+  {$EXTERNALSYM IMAGE_SCN_LNK_OTHER}
+  IMAGE_SCN_LNK_INFO  = $00000200; // Section contains comments or some other type of information.
+  {$EXTERNALSYM IMAGE_SCN_LNK_INFO}
+
+//      IMAGE_SCN_TYPE_OVER                  0x00000400  // Reserved.
+
+  IMAGE_SCN_LNK_REMOVE = $00000800; // Section contents will not become part of image.
+  {$EXTERNALSYM IMAGE_SCN_LNK_REMOVE}
+  IMAGE_SCN_LNK_COMDAT = $00001000; // Section contents comdat.
+  {$EXTERNALSYM IMAGE_SCN_LNK_COMDAT}
+
+//                                           0x00002000  // Reserved.
+//      IMAGE_SCN_MEM_PROTECTED - Obsolete   0x00004000
+
+  IMAGE_SCN_NO_DEFER_SPEC_EXC = $00004000; // Reset speculative exceptions handling bits in the TLB entries for this section.
+  {$EXTERNALSYM IMAGE_SCN_NO_DEFER_SPEC_EXC}
+  IMAGE_SCN_GPREL             = $00008000; // Section content can be accessed relative to GP
+  {$EXTERNALSYM IMAGE_SCN_GPREL}
+  IMAGE_SCN_MEM_FARDATA       = $00008000;
+  {$EXTERNALSYM IMAGE_SCN_MEM_FARDATA}
+
+//      IMAGE_SCN_MEM_SYSHEAP  - Obsolete    0x00010000
+
+  IMAGE_SCN_MEM_PURGEABLE = $00020000;
+  {$EXTERNALSYM IMAGE_SCN_MEM_PURGEABLE}
+  IMAGE_SCN_MEM_16BIT     = $00020000;
+  {$EXTERNALSYM IMAGE_SCN_MEM_16BIT}
+  IMAGE_SCN_MEM_LOCKED    = $00040000;
+  {$EXTERNALSYM IMAGE_SCN_MEM_LOCKED}
+  IMAGE_SCN_MEM_PRELOAD   = $00080000;
+  {$EXTERNALSYM IMAGE_SCN_MEM_PRELOAD}
+
+  IMAGE_SCN_ALIGN_1BYTES    = $00100000;
+  {$EXTERNALSYM IMAGE_SCN_ALIGN_1BYTES}
+  IMAGE_SCN_ALIGN_2BYTES    = $00200000;
+  {$EXTERNALSYM IMAGE_SCN_ALIGN_2BYTES}
+  IMAGE_SCN_ALIGN_4BYTES    = $00300000;
+  {$EXTERNALSYM IMAGE_SCN_ALIGN_4BYTES}
+  IMAGE_SCN_ALIGN_8BYTES    = $00400000;
+  {$EXTERNALSYM IMAGE_SCN_ALIGN_8BYTES}
+  IMAGE_SCN_ALIGN_16BYTES   = $00500000; // Default alignment if no others are specified.
+  {$EXTERNALSYM IMAGE_SCN_ALIGN_16BYTES}
+  IMAGE_SCN_ALIGN_32BYTES   = $00600000;
+  {$EXTERNALSYM IMAGE_SCN_ALIGN_32BYTES}
+  IMAGE_SCN_ALIGN_64BYTES   = $00700000;
+  {$EXTERNALSYM IMAGE_SCN_ALIGN_64BYTES}
+  IMAGE_SCN_ALIGN_128BYTES  = $00800000;
+  {$EXTERNALSYM IMAGE_SCN_ALIGN_128BYTES}
+  IMAGE_SCN_ALIGN_256BYTES  = $00900000;
+  {$EXTERNALSYM IMAGE_SCN_ALIGN_256BYTES}
+  IMAGE_SCN_ALIGN_512BYTES  = $00A00000;
+  {$EXTERNALSYM IMAGE_SCN_ALIGN_512BYTES}
+  IMAGE_SCN_ALIGN_1024BYTES = $00B00000;
+  {$EXTERNALSYM IMAGE_SCN_ALIGN_1024BYTES}
+  IMAGE_SCN_ALIGN_2048BYTES = $00C00000;
+  {$EXTERNALSYM IMAGE_SCN_ALIGN_2048BYTES}
+  IMAGE_SCN_ALIGN_4096BYTES = $00D00000;
+  {$EXTERNALSYM IMAGE_SCN_ALIGN_4096BYTES}
+  IMAGE_SCN_ALIGN_8192BYTES = $00E00000;
+  {$EXTERNALSYM IMAGE_SCN_ALIGN_8192BYTES}
+
+// Unused                                    0x00F00000
+
+  IMAGE_SCN_ALIGN_MASK = $00F00000;
+  {$EXTERNALSYM IMAGE_SCN_ALIGN_MASK}
+
+  IMAGE_SCN_LNK_NRELOC_OVFL = $01000000; // Section contains extended relocations.
+  {$EXTERNALSYM IMAGE_SCN_LNK_NRELOC_OVFL}
+  IMAGE_SCN_MEM_DISCARDABLE = $02000000; // Section can be discarded.
+  {$EXTERNALSYM IMAGE_SCN_MEM_DISCARDABLE}
+  IMAGE_SCN_MEM_NOT_CACHED  = $04000000; // Section is not cachable.
+  {$EXTERNALSYM IMAGE_SCN_MEM_NOT_CACHED}
+  IMAGE_SCN_MEM_NOT_PAGED   = $08000000; // Section is not pageable.
+  {$EXTERNALSYM IMAGE_SCN_MEM_NOT_PAGED}
+  IMAGE_SCN_MEM_SHARED      = $10000000; // Section is shareable.
+  {$EXTERNALSYM IMAGE_SCN_MEM_SHARED}
+  IMAGE_SCN_MEM_EXECUTE     = $20000000; // Section is executable.
+  {$EXTERNALSYM IMAGE_SCN_MEM_EXECUTE}
+  IMAGE_SCN_MEM_READ        = $40000000; // Section is readable.
+  {$EXTERNALSYM IMAGE_SCN_MEM_READ}
+  IMAGE_SCN_MEM_WRITE       = DWORD($80000000); // Section is writeable.
+  {$EXTERNALSYM IMAGE_SCN_MEM_WRITE}
+
+// line 6232
+
+//
+// Line number format.
+//
+
+type
+  TImgLineNoType = record
+    case Integer of
+      0: (SymbolTableIndex: DWORD);               // Symbol table index of function name if Linenumber is 0.
+      1: (VirtualAddress: DWORD);                 // Virtual address of line number.
+  end;
+
+  PIMAGE_LINENUMBER = ^IMAGE_LINENUMBER;
+  {$EXTERNALSYM PIMAGE_LINENUMBER}
+  _IMAGE_LINENUMBER = record
+    Type_: TImgLineNoType;
+    Linenumber: WORD;                         // Line number.
+  end;
+  {$EXTERNALSYM _IMAGE_LINENUMBER}
+  IMAGE_LINENUMBER = _IMAGE_LINENUMBER;
+  {$EXTERNALSYM IMAGE_LINENUMBER}
+  TImageLineNumber = IMAGE_LINENUMBER;
+  PImageLineNumber = PIMAGE_LINENUMBER;
+
+const
+  IMAGE_SIZEOF_LINENUMBER = 6;
+  {$EXTERNALSYM IMAGE_SIZEOF_LINENUMBER}
+
+// #include "poppack.h"                        // Back to 4 byte packing
+
+//
+// Based relocation format.
+//
+
+type
+  PIMAGE_BASE_RELOCATION = ^IMAGE_BASE_RELOCATION;
+  {$EXTERNALSYM PIMAGE_BASE_RELOCATION}
+  _IMAGE_BASE_RELOCATION = record
+    VirtualAddress: DWORD;
+    SizeOfBlock: DWORD;
+    //  WORD    TypeOffset[1];
+  end;
+  {$EXTERNALSYM _IMAGE_BASE_RELOCATION}
+  IMAGE_BASE_RELOCATION = _IMAGE_BASE_RELOCATION;
+  {$EXTERNALSYM IMAGE_BASE_RELOCATION}
+  TImageBaseRelocation = IMAGE_BASE_RELOCATION;
+  PImageBaseRelocation = PIMAGE_BASE_RELOCATION;
+
+const
+  IMAGE_SIZEOF_BASE_RELOCATION = 8;
+  {$EXTERNALSYM IMAGE_SIZEOF_BASE_RELOCATION}
+
+//
+// Based relocation types.
+//
+
+  IMAGE_REL_BASED_ABSOLUTE     = 0;
+  {$EXTERNALSYM IMAGE_REL_BASED_ABSOLUTE}
+  IMAGE_REL_BASED_HIGH         = 1;
+  {$EXTERNALSYM IMAGE_REL_BASED_HIGH}
+  IMAGE_REL_BASED_LOW          = 2;
+  {$EXTERNALSYM IMAGE_REL_BASED_LOW}
+  IMAGE_REL_BASED_HIGHLOW      = 3;
+  {$EXTERNALSYM IMAGE_REL_BASED_HIGHLOW}
+  IMAGE_REL_BASED_HIGHADJ      = 4;
+  {$EXTERNALSYM IMAGE_REL_BASED_HIGHADJ}
+  IMAGE_REL_BASED_MIPS_JMPADDR = 5;
+  {$EXTERNALSYM IMAGE_REL_BASED_MIPS_JMPADDR}
+
+  IMAGE_REL_BASED_MIPS_JMPADDR16 = 9;
+  {$EXTERNALSYM IMAGE_REL_BASED_MIPS_JMPADDR16}
+  IMAGE_REL_BASED_IA64_IMM64     = 9;
+  {$EXTERNALSYM IMAGE_REL_BASED_IA64_IMM64}
+  IMAGE_REL_BASED_DIR64          = 10;
+  {$EXTERNALSYM IMAGE_REL_BASED_DIR64}
+
+//
+// Archive format.
+//
+
+  IMAGE_ARCHIVE_START_SIZE       = 8;
+  {$EXTERNALSYM IMAGE_ARCHIVE_START_SIZE}
+  IMAGE_ARCHIVE_START            = '!<arch>'#10;
+  {$EXTERNALSYM IMAGE_ARCHIVE_START}
+  IMAGE_ARCHIVE_END              = '`'#10;
+  {$EXTERNALSYM IMAGE_ARCHIVE_END}
+  IMAGE_ARCHIVE_PAD              = #10;
+  {$EXTERNALSYM IMAGE_ARCHIVE_PAD}
+  IMAGE_ARCHIVE_LINKER_MEMBER    = '/               ';
+  {$EXTERNALSYM IMAGE_ARCHIVE_LINKER_MEMBER}
+  IMAGE_ARCHIVE_LONGNAMES_MEMBER = '//              ';
+  {$EXTERNALSYM IMAGE_ARCHIVE_LONGNAMES_MEMBER}
+
+type
+  PIMAGE_ARCHIVE_MEMBER_HEADER = ^IMAGE_ARCHIVE_MEMBER_HEADER;
+  {$EXTERNALSYM PIMAGE_ARCHIVE_MEMBER_HEADER}
+  _IMAGE_ARCHIVE_MEMBER_HEADER = record
+    Name: array [0..15] of Byte; // File member name - `/' terminated.
+    Date: array [0..11] of Byte; // File member date - decimal.
+    UserID: array [0..5] of Byte; // File member user id - decimal.
+    GroupID: array [0..5] of Byte; // File member group id - decimal.
+    Mode: array [0..7] of Byte; // File member mode - octal.
+    Size: array [0..9] of Byte; // File member size - decimal.
+    EndHeader: array [0..1] of Byte; // String to end header.
+  end;
+  {$EXTERNALSYM _IMAGE_ARCHIVE_MEMBER_HEADER}
+  IMAGE_ARCHIVE_MEMBER_HEADER = _IMAGE_ARCHIVE_MEMBER_HEADER;
+  {$EXTERNALSYM IMAGE_ARCHIVE_MEMBER_HEADER}
+  TImageArchiveMemberHeader = IMAGE_ARCHIVE_MEMBER_HEADER;
+  PImageArchiveMemberHeader = PIMAGE_ARCHIVE_MEMBER_HEADER;
+
+const
+  IMAGE_SIZEOF_ARCHIVE_MEMBER_HDR = 60;
+  {$EXTERNALSYM IMAGE_SIZEOF_ARCHIVE_MEMBER_HDR}
+
+// line 6346
+
+//
+// DLL support.
+//
+
+//
+// Export Format
+//
+
+type
+  PIMAGE_EXPORT_DIRECTORY = ^IMAGE_EXPORT_DIRECTORY;
+  {$EXTERNALSYM PIMAGE_EXPORT_DIRECTORY}
+  _IMAGE_EXPORT_DIRECTORY = record
+    Characteristics: DWORD;
+    TimeDateStamp: DWORD;
+    MajorVersion: Word;
+    MinorVersion: Word;
+    Name: DWORD;
+    Base: DWORD;
+    NumberOfFunctions: DWORD;
+    NumberOfNames: DWORD;
+    AddressOfFunctions: DWORD; // RVA from base of image
+    AddressOfNames: DWORD; // RVA from base of image
+    AddressOfNameOrdinals: DWORD; // RVA from base of image
+  end;
+  {$EXTERNALSYM _IMAGE_EXPORT_DIRECTORY}
+  IMAGE_EXPORT_DIRECTORY = _IMAGE_EXPORT_DIRECTORY;
+  {$EXTERNALSYM IMAGE_EXPORT_DIRECTORY}
+  TImageExportDirectory = IMAGE_EXPORT_DIRECTORY;
+  PImageExportDirectory = PIMAGE_EXPORT_DIRECTORY;
+
+//
+// Import Format
+//
+
+  PIMAGE_IMPORT_BY_NAME = ^IMAGE_IMPORT_BY_NAME;
+  {$EXTERNALSYM PIMAGE_IMPORT_BY_NAME}
+  _IMAGE_IMPORT_BY_NAME = record
+    Hint: Word;
+    Name: array [0..0] of AnsiChar;
+  end;
+  {$EXTERNALSYM _IMAGE_IMPORT_BY_NAME}
+  IMAGE_IMPORT_BY_NAME = _IMAGE_IMPORT_BY_NAME;
+  {$EXTERNALSYM IMAGE_IMPORT_BY_NAME}
+  TImageImportByName = IMAGE_IMPORT_BY_NAME;
+  PImageImportByName = PIMAGE_IMPORT_BY_NAME;
+
+// #include "pshpack8.h"                       // Use align 8 for the 64-bit IAT.
+
+  PIMAGE_THUNK_DATA64 = ^IMAGE_THUNK_DATA64;
+  {$EXTERNALSYM PIMAGE_THUNK_DATA64}
+  _IMAGE_THUNK_DATA64 = record
+    case Integer of
+      0: (ForwarderString: ULONGLONG);   // PBYTE
+      1: (Function_: ULONGLONG);         // PDWORD
+      2: (Ordinal: ULONGLONG);
+      3: (AddressOfData: ULONGLONG);     // PIMAGE_IMPORT_BY_NAME
+  end;
+  {$EXTERNALSYM _IMAGE_THUNK_DATA64}
+  IMAGE_THUNK_DATA64 = _IMAGE_THUNK_DATA64;
+  {$EXTERNALSYM IMAGE_THUNK_DATA64}
+  TImageThunkData64 = IMAGE_THUNK_DATA64;
+  PImageThunkData64 = PIMAGE_THUNK_DATA64;
+
+// #include "poppack.h"                        // Back to 4 byte packing
+
+  PIMAGE_THUNK_DATA32 = ^IMAGE_THUNK_DATA32;
+  {$EXTERNALSYM PIMAGE_THUNK_DATA32}
+  _IMAGE_THUNK_DATA32 = record
+    case Integer of
+      0: (ForwarderString: DWORD);   // PBYTE
+      1: (Function_: DWORD);         // PDWORD
+      2: (Ordinal: DWORD);
+      3: (AddressOfData: DWORD);     // PIMAGE_IMPORT_BY_NAME
+  end;
+  {$EXTERNALSYM _IMAGE_THUNK_DATA32}
+  IMAGE_THUNK_DATA32 = _IMAGE_THUNK_DATA32;
+  {$EXTERNALSYM IMAGE_THUNK_DATA32}
+  TImageThunkData32 = IMAGE_THUNK_DATA32;
+  PImageThunkData32 = PIMAGE_THUNK_DATA32;
+
+const
+  IMAGE_ORDINAL_FLAG64 = ULONGLONG($8000000000000000);
+  {$EXTERNALSYM IMAGE_ORDINAL_FLAG64}
+  IMAGE_ORDINAL_FLAG32 = DWORD($80000000);
+  {$EXTERNALSYM IMAGE_ORDINAL_FLAG32}
+
+function IMAGE_ORDINAL64(Ordinal: ULONGLONG): ULONGLONG;
+{$EXTERNALSYM IMAGE_ORDINAL64}
+function IMAGE_ORDINAL32(Ordinal: DWORD): DWORD;
+{$EXTERNALSYM IMAGE_ORDINAL32}
+function IMAGE_SNAP_BY_ORDINAL64(Ordinal: ULONGLONG): Boolean;
+{$EXTERNALSYM IMAGE_SNAP_BY_ORDINAL64}
+function IMAGE_SNAP_BY_ORDINAL32(Ordinal: DWORD): Boolean;
+{$EXTERNALSYM IMAGE_SNAP_BY_ORDINAL32}
+
+//
+// Thread Local Storage
+//
+
+type
+  PIMAGE_TLS_CALLBACK = procedure (DllHandle: Pointer; Reason: DWORD; Reserved: Pointer); stdcall;
+  {$EXTERNALSYM PIMAGE_TLS_CALLBACK}
+  TImageTlsCallback = PIMAGE_TLS_CALLBACK;
+
+  PIMAGE_TLS_DIRECTORY64 = ^IMAGE_TLS_DIRECTORY64;
+  {$EXTERNALSYM PIMAGE_TLS_DIRECTORY64}
+  _IMAGE_TLS_DIRECTORY64 = record
+    StartAddressOfRawData: ULONGLONG;
+    EndAddressOfRawData: ULONGLONG;
+    AddressOfIndex: ULONGLONG;         // PDWORD
+    AddressOfCallBacks: ULONGLONG;     // PIMAGE_TLS_CALLBACK *;
+    SizeOfZeroFill: DWORD;
+    Characteristics: DWORD;
+  end;
+  {$EXTERNALSYM _IMAGE_TLS_DIRECTORY64}
+  IMAGE_TLS_DIRECTORY64 = _IMAGE_TLS_DIRECTORY64;
+  {$EXTERNALSYM IMAGE_TLS_DIRECTORY64}
+  TImageTlsDirectory64 = IMAGE_TLS_DIRECTORY64;
+  PImageTlsDirectory64 = PIMAGE_TLS_DIRECTORY64;
+
+  PIMAGE_TLS_DIRECTORY32 = ^IMAGE_TLS_DIRECTORY32;
+  {$EXTERNALSYM PIMAGE_TLS_DIRECTORY32}
+  _IMAGE_TLS_DIRECTORY32 = record
+    StartAddressOfRawData: DWORD;
+    EndAddressOfRawData: DWORD;
+    AddressOfIndex: DWORD;             // PDWORD
+    AddressOfCallBacks: DWORD;         // PIMAGE_TLS_CALLBACK *
+    SizeOfZeroFill: DWORD;
+    Characteristics: DWORD;
+  end;
+  {$EXTERNALSYM _IMAGE_TLS_DIRECTORY32}
+  IMAGE_TLS_DIRECTORY32 = _IMAGE_TLS_DIRECTORY32;
+  {$EXTERNALSYM IMAGE_TLS_DIRECTORY32}
+  TImageTlsDirectory32 = IMAGE_TLS_DIRECTORY32;
+  PImageTlsDirectory32 = PIMAGE_TLS_DIRECTORY32;
+
+const
+  IMAGE_ORDINAL_FLAG = IMAGE_ORDINAL_FLAG32;
+  {$EXTERNALSYM IMAGE_ORDINAL_FLAG}
+
+function IMAGE_ORDINAL(Ordinal: DWORD): DWORD;
+{$EXTERNALSYM IMAGE_ORDINAL}
+
+type
+  IMAGE_THUNK_DATA = IMAGE_THUNK_DATA32;
+  {$EXTERNALSYM IMAGE_THUNK_DATA}
+  PIMAGE_THUNK_DATA = PIMAGE_THUNK_DATA32;
+  {$EXTERNALSYM PIMAGE_THUNK_DATA}
+  TImageThunkData = TImageThunkData32;
+  PImageThunkData = PImageThunkData32;
+
+function IMAGE_SNAP_BY_ORDINAL(Ordinal: DWORD): Boolean;
+{$EXTERNALSYM IMAGE_SNAP_BY_ORDINAL}
+
+type
+  IMAGE_TLS_DIRECTORY = IMAGE_TLS_DIRECTORY32;
+  {$EXTERNALSYM IMAGE_TLS_DIRECTORY}
+  PIMAGE_TLS_DIRECTORY = PIMAGE_TLS_DIRECTORY32;
+  {$EXTERNALSYM PIMAGE_TLS_DIRECTORY}
+  TImageTlsDirectory = TImageTlsDirectory32;
+  PImageTlsDirectory = PImageTlsDirectory32;
+
+  TIIDUnion = record
+    case Integer of
+      0: (Characteristics: DWORD);         // 0 for terminating null import descriptor
+      1: (OriginalFirstThunk: DWORD);      // RVA to original unbound IAT (PIMAGE_THUNK_DATA)
+  end;
+
+  PIMAGE_IMPORT_DESCRIPTOR = ^IMAGE_IMPORT_DESCRIPTOR;
+  {$EXTERNALSYM PIMAGE_IMPORT_DESCRIPTOR}
+  _IMAGE_IMPORT_DESCRIPTOR = record
+    Union: TIIDUnion;
+    TimeDateStamp: DWORD;                  // 0 if not bound,
+                                           // -1 if bound, and real date\time stamp
+                                           //     in IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT (new BIND)
+                                           // O.W. date/time stamp of DLL bound to (Old BIND)
+
+    ForwarderChain: DWORD;                 // -1 if no forwarders
+    Name: DWORD;
+    FirstThunk: DWORD;                     // RVA to IAT (if bound this IAT has actual addresses)
+  end;
+  {$EXTERNALSYM _IMAGE_IMPORT_DESCRIPTOR}
+  IMAGE_IMPORT_DESCRIPTOR = _IMAGE_IMPORT_DESCRIPTOR;
+  {$EXTERNALSYM IMAGE_IMPORT_DESCRIPTOR}
+  TImageImportDescriptor = IMAGE_IMPORT_DESCRIPTOR;
+  PImageImportDescriptor = PIMAGE_IMPORT_DESCRIPTOR;
+
+//
+// New format import descriptors pointed to by DataDirectory[ IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT ]
+//
+
+type
+  PIMAGE_BOUND_IMPORT_DESCRIPTOR = ^IMAGE_BOUND_IMPORT_DESCRIPTOR;
+  {$EXTERNALSYM PIMAGE_BOUND_IMPORT_DESCRIPTOR}
+  _IMAGE_BOUND_IMPORT_DESCRIPTOR = record
+    TimeDateStamp: DWORD;
+    OffsetModuleName: Word;
+    NumberOfModuleForwarderRefs: Word;
+    // Array of zero or more IMAGE_BOUND_FORWARDER_REF follows
+  end;
+  {$EXTERNALSYM _IMAGE_BOUND_IMPORT_DESCRIPTOR}
+  IMAGE_BOUND_IMPORT_DESCRIPTOR = _IMAGE_BOUND_IMPORT_DESCRIPTOR;
+  {$EXTERNALSYM IMAGE_BOUND_IMPORT_DESCRIPTOR}
+  TImageBoundImportDescriptor = IMAGE_BOUND_IMPORT_DESCRIPTOR;
+  PImageBoundImportDescriptor = PIMAGE_BOUND_IMPORT_DESCRIPTOR;
+
+  PIMAGE_BOUND_FORWARDER_REF = ^IMAGE_BOUND_FORWARDER_REF;
+  {$EXTERNALSYM PIMAGE_BOUND_FORWARDER_REF}
+  _IMAGE_BOUND_FORWARDER_REF = record
+    TimeDateStamp: DWORD;
+    OffsetModuleName: Word;
+    Reserved: Word;
+  end;
+  {$EXTERNALSYM _IMAGE_BOUND_FORWARDER_REF}
+  IMAGE_BOUND_FORWARDER_REF = _IMAGE_BOUND_FORWARDER_REF;
+  {$EXTERNALSYM IMAGE_BOUND_FORWARDER_REF}
+  TImageBoundForwarderRef = IMAGE_BOUND_FORWARDER_REF;
+  PImageBoundForwarderRef = PIMAGE_BOUND_FORWARDER_REF;
+
+//
+// Resource Format.
+//
+
+//
+// Resource directory consists of two counts, following by a variable length
+// array of directory entries.  The first count is the number of entries at
+// beginning of the array that have actual names associated with each entry.
+// The entries are in ascending order, case insensitive strings.  The second
+// count is the number of entries that immediately follow the named entries.
+// This second count identifies the number of entries that have 16-bit integer
+// Ids as their name.  These entries are also sorted in ascending order.
+//
+// This structure allows fast lookup by either name or number, but for any
+// given resource entry only one form of lookup is supported, not both.
+// This is consistant with the syntax of the .RC file and the .RES file.
+//
+
+  PIMAGE_RESOURCE_DIRECTORY = ^IMAGE_RESOURCE_DIRECTORY;
+  {$EXTERNALSYM PIMAGE_RESOURCE_DIRECTORY}
+  _IMAGE_RESOURCE_DIRECTORY = record
+    Characteristics: DWORD;
+    TimeDateStamp: DWORD;
+    MajorVersion: Word;
+    MinorVersion: Word;
+    NumberOfNamedEntries: Word;
+    NumberOfIdEntries: Word;
+    // IMAGE_RESOURCE_DIRECTORY_ENTRY DirectoryEntries[];
+  end;
+  {$EXTERNALSYM _IMAGE_RESOURCE_DIRECTORY}
+  IMAGE_RESOURCE_DIRECTORY = _IMAGE_RESOURCE_DIRECTORY;
+  {$EXTERNALSYM IMAGE_RESOURCE_DIRECTORY}
+  TImageResourceDirectory = IMAGE_RESOURCE_DIRECTORY;
+  PImageResourceDirectory = PIMAGE_RESOURCE_DIRECTORY;
+
+const
+  IMAGE_RESOURCE_NAME_IS_STRING    = DWORD($80000000);
+  {$EXTERNALSYM IMAGE_RESOURCE_NAME_IS_STRING}
+  IMAGE_RESOURCE_DATA_IS_DIRECTORY = DWORD($80000000);
+  {$EXTERNALSYM IMAGE_RESOURCE_DATA_IS_DIRECTORY}
+
+//
+// Each directory contains the 32-bit Name of the entry and an offset,
+// relative to the beginning of the resource directory of the data associated
+// with this directory entry.  If the name of the entry is an actual text
+// string instead of an integer Id, then the high order bit of the name field
+// is set to one and the low order 31-bits are an offset, relative to the
+// beginning of the resource directory of the string, which is of type
+// IMAGE_RESOURCE_DIRECTORY_STRING.  Otherwise the high bit is clear and the
+// low-order 16-bits are the integer Id that identify this resource directory
+// entry. If the directory entry is yet another resource directory (i.e. a
+// subdirectory), then the high order bit of the offset field will be
+// set to indicate this.  Otherwise the high bit is clear and the offset
+// field points to a resource data entry.
+//
+
+type
+  PIMAGE_RESOURCE_DIRECTORY_ENTRY = ^IMAGE_RESOURCE_DIRECTORY_ENTRY;
+  {$EXTERNALSYM PIMAGE_RESOURCE_DIRECTORY_ENTRY}
+  _IMAGE_RESOURCE_DIRECTORY_ENTRY = record
+    case Integer of
+      0: (
+        // DWORD NameOffset:31;
+        // DWORD NameIsString:1;
+        NameOffset: DWORD;
+        OffsetToData: DWORD
+      );
+      1: (
+        Name: DWORD;
+        // DWORD OffsetToDirectory:31;
+        // DWORD DataIsDirectory:1;
+        OffsetToDirectory: DWORD;
+      );
+      2: (
+        Id: WORD;
+      );
+  end;
+  {$EXTERNALSYM _IMAGE_RESOURCE_DIRECTORY_ENTRY}
+  IMAGE_RESOURCE_DIRECTORY_ENTRY = _IMAGE_RESOURCE_DIRECTORY_ENTRY;
+  {$EXTERNALSYM IMAGE_RESOURCE_DIRECTORY_ENTRY}
+  TImageResourceDirectoryEntry = IMAGE_RESOURCE_DIRECTORY_ENTRY;
+  PImageResourceDirectoryEntry = PIMAGE_RESOURCE_DIRECTORY_ENTRY;
+
+//
+// For resource directory entries that have actual string names, the Name
+// field of the directory entry points to an object of the following type.
+// All of these string objects are stored together after the last resource
+// directory entry and before the first resource data object.  This minimizes
+// the impact of these variable length objects on the alignment of the fixed
+// size directory entry objects.
+//
+
+type
+  PIMAGE_RESOURCE_DIRECTORY_STRING = ^IMAGE_RESOURCE_DIRECTORY_STRING;
+  {$EXTERNALSYM PIMAGE_RESOURCE_DIRECTORY_STRING}
+  _IMAGE_RESOURCE_DIRECTORY_STRING = record
+    Length: Word;
+    NameString: array [0..0] of CHAR;
+  end;
+  {$EXTERNALSYM _IMAGE_RESOURCE_DIRECTORY_STRING}
+  IMAGE_RESOURCE_DIRECTORY_STRING = _IMAGE_RESOURCE_DIRECTORY_STRING;
+  {$EXTERNALSYM IMAGE_RESOURCE_DIRECTORY_STRING}
+  TImageResourceDirectoryString = IMAGE_RESOURCE_DIRECTORY_STRING;
+  PImageResourceDirectoryString = PIMAGE_RESOURCE_DIRECTORY_STRING;
+
+  PIMAGE_RESOURCE_DIR_STRING_U = ^IMAGE_RESOURCE_DIR_STRING_U;
+  {$EXTERNALSYM PIMAGE_RESOURCE_DIR_STRING_U}
+  _IMAGE_RESOURCE_DIR_STRING_U = record
+    Length: Word;
+    NameString: array [0..0] of WCHAR;
+  end;
+  {$EXTERNALSYM _IMAGE_RESOURCE_DIR_STRING_U}
+  IMAGE_RESOURCE_DIR_STRING_U = _IMAGE_RESOURCE_DIR_STRING_U;
+  {$EXTERNALSYM IMAGE_RESOURCE_DIR_STRING_U}
+  TImageResourceDirStringU = IMAGE_RESOURCE_DIR_STRING_U;
+  PImageResourceDirStringU = PIMAGE_RESOURCE_DIR_STRING_U;
+
+//
+// Each resource data entry describes a leaf node in the resource directory
+// tree.  It contains an offset, relative to the beginning of the resource
+// directory of the data for the resource, a size field that gives the number
+// of bytes of data at that offset, a CodePage that should be used when
+// decoding code point values within the resource data.  Typically for new
+// applications the code page would be the unicode code page.
+//
+
+  PIMAGE_RESOURCE_DATA_ENTRY = ^IMAGE_RESOURCE_DATA_ENTRY;
+  {$EXTERNALSYM PIMAGE_RESOURCE_DATA_ENTRY}
+  _IMAGE_RESOURCE_DATA_ENTRY = record
+    OffsetToData: DWORD;
+    Size: DWORD;
+    CodePage: DWORD;
+    Reserved: DWORD;
+  end;
+  {$EXTERNALSYM _IMAGE_RESOURCE_DATA_ENTRY}
+  IMAGE_RESOURCE_DATA_ENTRY = _IMAGE_RESOURCE_DATA_ENTRY;
+  {$EXTERNALSYM IMAGE_RESOURCE_DATA_ENTRY}
+  TImageResourceDataEntry = IMAGE_RESOURCE_DATA_ENTRY;
+  PImageResourceDataEntry = PIMAGE_RESOURCE_DATA_ENTRY;
+  
+//
+// Load Configuration Directory Entry
+//
+
+type
+  PIMAGE_LOAD_CONFIG_DIRECTORY32 = ^IMAGE_LOAD_CONFIG_DIRECTORY32;
+  {$EXTERNALSYM PIMAGE_LOAD_CONFIG_DIRECTORY32}
+  IMAGE_LOAD_CONFIG_DIRECTORY32 = record
+    Size: DWORD;
+    TimeDateStamp: DWORD;
+    MajorVersion: WORD;
+    MinorVersion: WORD;
+    GlobalFlagsClear: DWORD;
+    GlobalFlagsSet: DWORD;
+    CriticalSectionDefaultTimeout: DWORD;
+    DeCommitFreeBlockThreshold: DWORD;
+    DeCommitTotalFreeThreshold: DWORD;
+    LockPrefixTable: DWORD;            // VA
+    MaximumAllocationSize: DWORD;
+    VirtualMemoryThreshold: DWORD;
+    ProcessHeapFlags: DWORD;
+    ProcessAffinityMask: DWORD;
+    CSDVersion: WORD;
+    Reserved1: WORD;
+    EditList: DWORD;                   // VA
+    SecurityCookie: DWORD;             // VA
+    SEHandlerTable: DWORD;             // VA
+    SEHandlerCount: DWORD;
+  end;
+  {$EXTERNALSYM IMAGE_LOAD_CONFIG_DIRECTORY32}
+  TImageLoadConfigDirectory32 = IMAGE_LOAD_CONFIG_DIRECTORY32;
+  PImageLoadConfigDirectory32 = PIMAGE_LOAD_CONFIG_DIRECTORY32;
+
+  PIMAGE_LOAD_CONFIG_DIRECTORY64 = ^IMAGE_LOAD_CONFIG_DIRECTORY64;
+  {$EXTERNALSYM PIMAGE_LOAD_CONFIG_DIRECTORY64}
+  IMAGE_LOAD_CONFIG_DIRECTORY64 = record
+    Size: DWORD;
+    TimeDateStamp: DWORD;
+    MajorVersion: WORD;
+    MinorVersion: WORD;
+    GlobalFlagsClear: DWORD;
+    GlobalFlagsSet: DWORD;
+    CriticalSectionDefaultTimeout: DWORD;
+    DeCommitFreeBlockThreshold: ULONGLONG;
+    DeCommitTotalFreeThreshold: ULONGLONG;
+    LockPrefixTable: ULONGLONG;         // VA
+    MaximumAllocationSize: ULONGLONG;
+    VirtualMemoryThreshold: ULONGLONG;
+    ProcessAffinityMask: ULONGLONG;
+    ProcessHeapFlags: DWORD;
+    CSDVersion: WORD;
+    Reserved1: WORD;
+    EditList: ULONGLONG;                // VA
+    SecurityCookie: ULONGLONG;             // VA
+    SEHandlerTable: ULONGLONG;             // VA
+    SEHandlerCount: ULONGLONG;
+  end;
+  {$EXTERNALSYM IMAGE_LOAD_CONFIG_DIRECTORY64}
+  TImageLoadConfigDirectory64 = IMAGE_LOAD_CONFIG_DIRECTORY64;
+  PImageLoadConfigDirectory64 = PIMAGE_LOAD_CONFIG_DIRECTORY64;
+
+  IMAGE_LOAD_CONFIG_DIRECTORY = IMAGE_LOAD_CONFIG_DIRECTORY32;
+  {$EXTERNALSYM IMAGE_LOAD_CONFIG_DIRECTORY}
+  PIMAGE_LOAD_CONFIG_DIRECTORY = PIMAGE_LOAD_CONFIG_DIRECTORY32;
+  {$EXTERNALSYM PIMAGE_LOAD_CONFIG_DIRECTORY}
+  TImageLoadConfigDirectory = TImageLoadConfigDirectory32;
+  PImageLoadConfigDirectory = PImageLoadConfigDirectory32;
+
+// line 6802
+
+//
+// Debug Format
+//
+(*
+type
+  PIMAGE_DEBUG_DIRECTORY = ^IMAGE_DEBUG_DIRECTORY;
+  {$EXTERNALSYM PIMAGE_DEBUG_DIRECTORY}
+  _IMAGE_DEBUG_DIRECTORY = record
+    Characteristics: DWORD;
+    TimeDateStamp: DWORD;
+    MajorVersion: Word;
+    MinorVersion: Word;
+    Type_: DWORD;
+    SizeOfData: DWORD;
+    AddressOfRawData: DWORD;
+    PointerToRawData: DWORD;
+  end;
+  {$EXTERNALSYM _IMAGE_DEBUG_DIRECTORY}
+  IMAGE_DEBUG_DIRECTORY = _IMAGE_DEBUG_DIRECTORY;
+  {$EXTERNALSYM IMAGE_DEBUG_DIRECTORY}
+  TImageDebugDirectory = IMAGE_DEBUG_DIRECTORY;
+  PImageDebugDirectory = PIMAGE_DEBUG_DIRECTORY;
+
+const
+  IMAGE_DEBUG_TYPE_UNKNOWN       = 0;
+  {$EXTERNALSYM IMAGE_DEBUG_TYPE_UNKNOWN}
+  IMAGE_DEBUG_TYPE_COFF          = 1;
+  {$EXTERNALSYM IMAGE_DEBUG_TYPE_COFF}
+  IMAGE_DEBUG_TYPE_CODEVIEW      = 2;
+  {$EXTERNALSYM IMAGE_DEBUG_TYPE_CODEVIEW}
+  IMAGE_DEBUG_TYPE_FPO           = 3;
+  {$EXTERNALSYM IMAGE_DEBUG_TYPE_FPO}
+  IMAGE_DEBUG_TYPE_MISC          = 4;
+  {$EXTERNALSYM IMAGE_DEBUG_TYPE_MISC}
+  IMAGE_DEBUG_TYPE_EXCEPTION     = 5;
+  {$EXTERNALSYM IMAGE_DEBUG_TYPE_EXCEPTION}
+  IMAGE_DEBUG_TYPE_FIXUP         = 6;
+  {$EXTERNALSYM IMAGE_DEBUG_TYPE_FIXUP}
+  IMAGE_DEBUG_TYPE_OMAP_TO_SRC   = 7;
+  {$EXTERNALSYM IMAGE_DEBUG_TYPE_OMAP_TO_SRC}
+  IMAGE_DEBUG_TYPE_OMAP_FROM_SRC = 8;
+  {$EXTERNALSYM IMAGE_DEBUG_TYPE_OMAP_FROM_SRC}
+  IMAGE_DEBUG_TYPE_BORLAND       = 9;
+  {$EXTERNALSYM IMAGE_DEBUG_TYPE_BORLAND}
+  IMAGE_DEBUG_TYPE_RESERVED10    = 10;
+  {$EXTERNALSYM IMAGE_DEBUG_TYPE_RESERVED10}
+  IMAGE_DEBUG_TYPE_CLSID         = 11;
+  {$EXTERNALSYM IMAGE_DEBUG_TYPE_CLSID}
+*)
+type
+  PIMAGE_COFF_SYMBOLS_HEADER = ^IMAGE_COFF_SYMBOLS_HEADER;
+  {$EXTERNALSYM PIMAGE_COFF_SYMBOLS_HEADER}
+  _IMAGE_COFF_SYMBOLS_HEADER = record
+    NumberOfSymbols: DWORD;
+    LvaToFirstSymbol: DWORD;
+    NumberOfLinenumbers: DWORD;
+    LvaToFirstLinenumber: DWORD;
+    RvaToFirstByteOfCode: DWORD;
+    RvaToLastByteOfCode: DWORD;
+    RvaToFirstByteOfData: DWORD;
+    RvaToLastByteOfData: DWORD;
+  end;
+  {$EXTERNALSYM _IMAGE_COFF_SYMBOLS_HEADER}
+  IMAGE_COFF_SYMBOLS_HEADER = _IMAGE_COFF_SYMBOLS_HEADER;
+  {$EXTERNALSYM IMAGE_COFF_SYMBOLS_HEADER}
+  TImageCoffSymbolsHeader = IMAGE_COFF_SYMBOLS_HEADER;
+  PImageCoffSymbolsHeader = PIMAGE_COFF_SYMBOLS_HEADER;
+
+const
+  FRAME_FPO    = 0;
+  {$EXTERNALSYM FRAME_FPO}
+  FRAME_TRAP   = 1;
+  {$EXTERNALSYM FRAME_TRAP}
+  FRAME_TSS    = 2;
+  {$EXTERNALSYM FRAME_TSS}
+  FRAME_NONFPO = 3;
+  {$EXTERNALSYM FRAME_NONFPO}
+
+  FPOFLAGS_PROLOG   = $00FF; // # bytes in prolog
+  FPOFLAGS_REGS     = $0700; // # regs saved
+  FPOFLAGS_HAS_SEH  = $0800; // TRUE if SEH in func
+  FPOFLAGS_USE_BP   = $1000; // TRUE if EBP has been allocated
+  FPOFLAGS_RESERVED = $2000; // reserved for future use
+  FPOFLAGS_FRAME    = $C000; // frame type
+
+type
+  PFPO_DATA = ^FPO_DATA;
+  {$EXTERNALSYM PFPO_DATA}
+  _FPO_DATA = record
+    ulOffStart: DWORD;       // offset 1st byte of function code
+    cbProcSize: DWORD;       // # bytes in function
+    cdwLocals: DWORD;        // # bytes in locals/4
+    cdwParams: WORD;         // # bytes in params/4
+    Flags: WORD;
+  end;
+  {$EXTERNALSYM _FPO_DATA}
+  FPO_DATA = _FPO_DATA;
+  {$EXTERNALSYM FPO_DATA}
+  TFpoData = FPO_DATA;
+  PFpoData = PFPO_DATA;
+
+const
+  SIZEOF_RFPO_DATA = 16;
+  {$EXTERNALSYM SIZEOF_RFPO_DATA}
+
+  IMAGE_DEBUG_MISC_EXENAME = 1;
+  {$EXTERNALSYM IMAGE_DEBUG_MISC_EXENAME}
+
+type
+  PIMAGE_DEBUG_MISC = ^IMAGE_DEBUG_MISC;
+  {$EXTERNALSYM PIMAGE_DEBUG_MISC}
+  _IMAGE_DEBUG_MISC = record
+    DataType: DWORD;   // type of misc data, see defines
+    Length: DWORD;     // total length of record, rounded to four byte multiple.
+    Unicode: ByteBool; // TRUE if data is unicode string
+    Reserved: array [0..2] of Byte;
+    Data: array [0..0] of Byte; // Actual data
+  end;
+  {$EXTERNALSYM _IMAGE_DEBUG_MISC}
+  IMAGE_DEBUG_MISC = _IMAGE_DEBUG_MISC;
+  {$EXTERNALSYM IMAGE_DEBUG_MISC}
+  TImageDebugMisc = IMAGE_DEBUG_MISC;
+  PImageDebugMisc = PIMAGE_DEBUG_MISC;
+
+//
+// Function table extracted from MIPS/ALPHA/IA64 images.  Does not contain
+// information needed only for runtime support.  Just those fields for
+// each entry needed by a debugger.
+//
+
+  PIMAGE_FUNCTION_ENTRY = ^IMAGE_FUNCTION_ENTRY;
+  {$EXTERNALSYM PIMAGE_FUNCTION_ENTRY}
+  _IMAGE_FUNCTION_ENTRY = record
+    StartingAddress: DWORD;
+    EndingAddress: DWORD;
+    EndOfPrologue: DWORD;
+  end;
+  {$EXTERNALSYM _IMAGE_FUNCTION_ENTRY}
+  IMAGE_FUNCTION_ENTRY = _IMAGE_FUNCTION_ENTRY;
+  {$EXTERNALSYM IMAGE_FUNCTION_ENTRY}
+  TImageFunctionEntry = IMAGE_FUNCTION_ENTRY;
+  PImageFunctionEntry = PIMAGE_FUNCTION_ENTRY;
+
+  PIMAGE_FUNCTION_ENTRY64 = ^IMAGE_FUNCTION_ENTRY64;
+  {$EXTERNALSYM PIMAGE_FUNCTION_ENTRY64}
+  _IMAGE_FUNCTION_ENTRY64 = record
+    StartingAddress: ULONGLONG;
+    EndingAddress: ULONGLONG;
+    case Integer of
+      0: (EndOfPrologue: ULONGLONG);
+      1: (UnwindInfoAddress: ULONGLONG);
+  end;
+  {$EXTERNALSYM _IMAGE_FUNCTION_ENTRY64}
+  IMAGE_FUNCTION_ENTRY64 = _IMAGE_FUNCTION_ENTRY64;
+  {$EXTERNALSYM IMAGE_FUNCTION_ENTRY64}
+  TImageFunctionEntry64 = IMAGE_FUNCTION_ENTRY64;
+  PImageFunctionEntry64 = PIMAGE_FUNCTION_ENTRY64;
+
+//
+// Debugging information can be stripped from an image file and placed
+// in a separate .DBG file, whose file name part is the same as the
+// image file name part (e.g. symbols for CMD.EXE could be stripped
+// and placed in CMD.DBG).  This is indicated by the IMAGE_FILE_DEBUG_STRIPPED
+// flag in the Characteristics field of the file header.  The beginning of
+// the .DBG file contains the following structure which captures certain
+// information from the image file.  This allows a debug to proceed even if
+// the original image file is not accessable.  This header is followed by
+// zero of more IMAGE_SECTION_HEADER structures, followed by zero or more
+// IMAGE_DEBUG_DIRECTORY structures.  The latter structures and those in
+// the image file contain file offsets relative to the beginning of the
+// .DBG file.
+//
+// If symbols have been stripped from an image, the IMAGE_DEBUG_MISC structure
+// is left in the image file, but not mapped.  This allows a debugger to
+// compute the name of the .DBG file, from the name of the image in the
+// IMAGE_DEBUG_MISC structure.
+//
+
+  PIMAGE_SEPARATE_DEBUG_HEADER = ^IMAGE_SEPARATE_DEBUG_HEADER;
+  {$EXTERNALSYM PIMAGE_SEPARATE_DEBUG_HEADER}
+  _IMAGE_SEPARATE_DEBUG_HEADER = record
+    Signature: Word;
+    Flags: Word;
+    Machine: Word;
+    Characteristics: Word;
+    TimeDateStamp: DWORD;
+    CheckSum: DWORD;
+    ImageBase: DWORD;
+    SizeOfImage: DWORD;
+    NumberOfSections: DWORD;
+    ExportedNamesSize: DWORD;
+    DebugDirectorySize: DWORD;
+    SectionAlignment: DWORD;
+    Reserved: array [0..1] of DWORD;
+  end;
+  {$EXTERNALSYM _IMAGE_SEPARATE_DEBUG_HEADER}
+  IMAGE_SEPARATE_DEBUG_HEADER = _IMAGE_SEPARATE_DEBUG_HEADER;
+  {$EXTERNALSYM IMAGE_SEPARATE_DEBUG_HEADER}
+  TImageSeparateDebugHeader = IMAGE_SEPARATE_DEBUG_HEADER;
+  PImageSeparateDebugHeader = PIMAGE_SEPARATE_DEBUG_HEADER;
+
+  _NON_PAGED_DEBUG_INFO = record
+    Signature: WORD;
+    Flags: WORD;
+    Size: DWORD;
+    Machine: WORD;
+    Characteristics: WORD;
+    TimeDateStamp: DWORD;
+    CheckSum: DWORD;
+    SizeOfImage: DWORD;
+    ImageBase: ULONGLONG;
+    //DebugDirectorySize
+    //IMAGE_DEBUG_DIRECTORY
+  end;
+  {$EXTERNALSYM _NON_PAGED_DEBUG_INFO}
+  NON_PAGED_DEBUG_INFO = _NON_PAGED_DEBUG_INFO;
+  {$EXTERNALSYM NON_PAGED_DEBUG_INFO}
+  PNON_PAGED_DEBUG_INFO = ^NON_PAGED_DEBUG_INFO;
+  {$EXTERNALSYM PNON_PAGED_DEBUG_INFO}
+
+const
+  IMAGE_SEPARATE_DEBUG_SIGNATURE = $4944;
+  {$EXTERNALSYM IMAGE_SEPARATE_DEBUG_SIGNATURE}
+  NON_PAGED_DEBUG_SIGNATURE      = $494E;
+  {$EXTERNALSYM NON_PAGED_DEBUG_SIGNATURE}
+
+  IMAGE_SEPARATE_DEBUG_FLAGS_MASK = $8000;
+  {$EXTERNALSYM IMAGE_SEPARATE_DEBUG_FLAGS_MASK}
+  IMAGE_SEPARATE_DEBUG_MISMATCH   = $8000; // when DBG was updated, the old checksum didn't match.
+  {$EXTERNALSYM IMAGE_SEPARATE_DEBUG_MISMATCH}
+
+//
+//  The .arch section is made up of headers, each describing an amask position/value
+//  pointing to an array of IMAGE_ARCHITECTURE_ENTRY's.  Each "array" (both the header
+//  and entry arrays) are terminiated by a quadword of 0xffffffffL.
+//
+//  NOTE: There may be quadwords of 0 sprinkled around and must be skipped.
+//
+
+const
+  IAHMASK_VALUE = $00000001; // 1 -> code section depends on mask bit
+                             // 0 -> new instruction depends on mask bit
+  IAHMASK_MBZ7  = $000000FE; // MBZ
+  IAHMASK_SHIFT = $0000FF00; // Amask bit in question for this fixup
+  IAHMASK_MBZ16 = DWORD($FFFF0000); // MBZ
+
+type
+  PIMAGE_ARCHITECTURE_HEADER = ^IMAGE_ARCHITECTURE_HEADER;
+  {$EXTERNALSYM PIMAGE_ARCHITECTURE_HEADER}
+  _ImageArchitectureHeader = record
+    Mask: DWORD;
+    FirstEntryRVA: DWORD;    // RVA into .arch section to array of ARCHITECTURE_ENTRY's
+  end;
+  {$EXTERNALSYM _ImageArchitectureHeader}
+  IMAGE_ARCHITECTURE_HEADER = _ImageArchitectureHeader;
+  {$EXTERNALSYM IMAGE_ARCHITECTURE_HEADER}
+  TImageArchitectureHeader = IMAGE_ARCHITECTURE_HEADER;
+  PImageArchitectureHeader = PIMAGE_ARCHITECTURE_HEADER;
+
+  PIMAGE_ARCHITECTURE_ENTRY = ^IMAGE_ARCHITECTURE_ENTRY;
+  {$EXTERNALSYM PIMAGE_ARCHITECTURE_ENTRY}
+  _ImageArchitectureEntry = record
+    FixupInstRVA: DWORD;                         // RVA of instruction to fixup
+    NewInst: DWORD;                              // fixup instruction (see alphaops.h)
+  end;
+  {$EXTERNALSYM _ImageArchitectureEntry}
+  IMAGE_ARCHITECTURE_ENTRY = _ImageArchitectureEntry;
+  {$EXTERNALSYM IMAGE_ARCHITECTURE_ENTRY}
+  TImageArchitectureEntry = IMAGE_ARCHITECTURE_ENTRY;
+  PImageArchitectureEntry = PIMAGE_ARCHITECTURE_ENTRY;
+
+// #include "poppack.h"                // Back to the initial value
+
+// The following structure defines the new import object.  Note the values of the first two fields,
+// which must be set as stated in order to differentiate old and new import members.
+// Following this structure, the linker emits two null-terminated strings used to recreate the
+// import at the time of use.  The first string is the import's name, the second is the dll's name.
+
+const
+  IMPORT_OBJECT_HDR_SIG2 = $ffff;
+  {$EXTERNALSYM IMPORT_OBJECT_HDR_SIG2}
+
+const
+  IOHFLAGS_TYPE = $0003;      // IMPORT_TYPE
+  IAHFLAGS_NAMETYPE = $001C;  // IMPORT_NAME_TYPE
+  IAHFLAGS_RESERVED = $FFE0;  // Reserved. Must be zero.
+
+type
+  PImportObjectHeader = ^IMPORT_OBJECT_HEADER;
+  IMPORT_OBJECT_HEADER = record
+    Sig1: WORD;                       // Must be IMAGE_FILE_MACHINE_UNKNOWN
+    Sig2: WORD;                       // Must be IMPORT_OBJECT_HDR_SIG2.
+    Version: WORD;
+    Machine: WORD;
+    TimeDateStamp: DWORD;             // Time/date stamp
+    SizeOfData: DWORD;                // particularly useful for incremental links
+    OrdinalOrHint: record
+    case Integer of
+      0: (Ordinal: WORD);             // if grf & IMPORT_OBJECT_ORDINAL
+      1: (Flags: DWORD);
+    end;
+    Flags: WORD;
+    //WORD    Type : 2;                   // IMPORT_TYPE
+    //WORD    NameType : 3;               // IMPORT_NAME_TYPE
+    //WORD    Reserved : 11;              // Reserved. Must be zero.
+  end;
+  {$EXTERNALSYM IMPORT_OBJECT_HEADER}
+  TImportObjectHeader = IMPORT_OBJECT_HEADER;
+
+  IMPORT_OBJECT_TYPE = (IMPORT_OBJECT_CODE, IMPORT_OBJECT_DATA, IMPORT_OBJECT_CONST);
+  {$EXTERNALSYM IMPORT_OBJECT_TYPE}
+  TImportObjectType = IMPORT_OBJECT_TYPE;
+
+  IMPORT_OBJECT_NAME_TYPE = (
+    IMPORT_OBJECT_ORDINAL,          // Import by ordinal
+    IMPORT_OBJECT_NAME,             // Import name == public symbol name.
+    IMPORT_OBJECT_NAME_NO_PREFIX,   // Import name == public symbol name skipping leading ?, @, or optionally _.
+    IMPORT_OBJECT_NAME_UNDECORATE); // Import name == public symbol name skipping leading ?, @, or optionally _
+                                    // and truncating at first @
+  {$EXTERNALSYM IMPORT_OBJECT_NAME_TYPE}
+  TImportObjectNameType = IMPORT_OBJECT_NAME_TYPE;
+
+  ReplacesCorHdrNumericDefines = DWORD;
+  {$EXTERNALSYM ReplacesCorHdrNumericDefines}
+
+const
+
+// COM+ Header entry point flags.
+
+  COMIMAGE_FLAGS_ILONLY               = $00000001;
+  {$EXTERNALSYM COMIMAGE_FLAGS_ILONLY}
+  COMIMAGE_FLAGS_32BITREQUIRED        = $00000002;
+  {$EXTERNALSYM COMIMAGE_FLAGS_32BITREQUIRED}
+  COMIMAGE_FLAGS_IL_LIBRARY           = $00000004;
+  {$EXTERNALSYM COMIMAGE_FLAGS_IL_LIBRARY}
+  COMIMAGE_FLAGS_STRONGNAMESIGNED     = $00000008;
+  {$EXTERNALSYM COMIMAGE_FLAGS_STRONGNAMESIGNED}
+  COMIMAGE_FLAGS_TRACKDEBUGDATA       = $00010000;
+  {$EXTERNALSYM COMIMAGE_FLAGS_TRACKDEBUGDATA}
+
+// Version flags for image.
+
+  COR_VERSION_MAJOR_V2                = 2;
+  {$EXTERNALSYM COR_VERSION_MAJOR_V2}
+  COR_VERSION_MAJOR                   = COR_VERSION_MAJOR_V2;
+  {$EXTERNALSYM COR_VERSION_MAJOR}
+  COR_VERSION_MINOR                   = 0;
+  {$EXTERNALSYM COR_VERSION_MINOR}
+  COR_DELETED_NAME_LENGTH             = 8;
+  {$EXTERNALSYM COR_DELETED_NAME_LENGTH}
+  COR_VTABLEGAP_NAME_LENGTH           = 8;
+  {$EXTERNALSYM COR_VTABLEGAP_NAME_LENGTH}
+
+// Maximum size of a NativeType descriptor.
+
+  NATIVE_TYPE_MAX_CB                  = 1;
+  {$EXTERNALSYM NATIVE_TYPE_MAX_CB}
+  COR_ILMETHOD_SECT_SMALL_MAX_DATASIZE= $FF;
+  {$EXTERNALSYM COR_ILMETHOD_SECT_SMALL_MAX_DATASIZE}
+
+// #defines for the MIH FLAGS
+
+  IMAGE_COR_MIH_METHODRVA             = $01;
+  {$EXTERNALSYM IMAGE_COR_MIH_METHODRVA}
+  IMAGE_COR_MIH_EHRVA                 = $02;
+  {$EXTERNALSYM IMAGE_COR_MIH_EHRVA}
+  IMAGE_COR_MIH_BASICBLOCK            = $08;
+  {$EXTERNALSYM IMAGE_COR_MIH_BASICBLOCK}
+
+// V-table constants
+
+  COR_VTABLE_32BIT                    = $01;          // V-table slots are 32-bits in size.
+  {$EXTERNALSYM COR_VTABLE_32BIT}
+  COR_VTABLE_64BIT                    = $02;          // V-table slots are 64-bits in size.
+  {$EXTERNALSYM COR_VTABLE_64BIT}
+  COR_VTABLE_FROM_UNMANAGED           = $04;          // If set, transition from unmanaged.
+  {$EXTERNALSYM COR_VTABLE_FROM_UNMANAGED}
+  COR_VTABLE_CALL_MOST_DERIVED        = $10;          // Call most derived method described by
+  {$EXTERNALSYM COR_VTABLE_CALL_MOST_DERIVED}
+
+// EATJ constants
+
+  IMAGE_COR_EATJ_THUNK_SIZE           = 32;            // Size of a jump thunk reserved range.
+  {$EXTERNALSYM IMAGE_COR_EATJ_THUNK_SIZE}
+
+// Max name lengths
+// Change to unlimited name lengths.
+
+  MAX_CLASS_NAME                      = 1024;
+  {$EXTERNALSYM MAX_CLASS_NAME}
+  MAX_PACKAGE_NAME                    = 1024;
+  {$EXTERNALSYM MAX_PACKAGE_NAME}
+
+{$ENDIF ~CLR}
+
+// COM+ 2.0 header structure.
+
+type
+  IMAGE_COR20_HEADER = record
+
+    // Header versioning
+
+    cb: DWORD;
+    MajorRuntimeVersion: WORD;
+    MinorRuntimeVersion: WORD;
+
+    // Symbol table and startup information
+
+    MetaData: IMAGE_DATA_DIRECTORY;
+    Flags: DWORD;
+    EntryPointToken: DWORD;
+
+    // Binding information
+
+    Resources: IMAGE_DATA_DIRECTORY;
+    StrongNameSignature: IMAGE_DATA_DIRECTORY;
+
+    // Regular fixup and binding information
+
+    CodeManagerTable: IMAGE_DATA_DIRECTORY;
+    VTableFixups: IMAGE_DATA_DIRECTORY;
+    ExportAddressTableJumps: IMAGE_DATA_DIRECTORY;
+
+    // Precompiled image info (internal use only - set to zero)
+
+    ManagedNativeHeader: IMAGE_DATA_DIRECTORY;
+  end;
+  {$IFDEF COMPILER6_UP}
+  {$EXTERNALSYM IMAGE_COR20_HEADER}
+  {$ENDIF COMPILER6_UP}
+  PIMAGE_COR20_HEADER = ^IMAGE_COR20_HEADER;
+  {$IFDEF COMPILER6_UP}
+  {$EXTERNALSYM PIMAGE_COR20_HEADER}
+  {$ENDIF COMPILER6_UP}
+  TImageCor20Header = IMAGE_COR20_HEADER;
+  PImageCor20Header = PIMAGE_COR20_HEADER;
+
+// line 7351
+
+const
+  COMPRESSION_FORMAT_NONE     = ($0000);
+  {$EXTERNALSYM COMPRESSION_FORMAT_NONE}
+  COMPRESSION_FORMAT_DEFAULT  = ($0001);
+  {$EXTERNALSYM COMPRESSION_FORMAT_DEFAULT}
+  COMPRESSION_FORMAT_LZNT1    = ($0002);
+  {$EXTERNALSYM COMPRESSION_FORMAT_LZNT1}
+  COMPRESSION_ENGINE_STANDARD = ($0000);
+  {$EXTERNALSYM COMPRESSION_ENGINE_STANDARD}
+  COMPRESSION_ENGINE_MAXIMUM  = ($0100);
+  {$EXTERNALSYM COMPRESSION_ENGINE_MAXIMUM}
+  COMPRESSION_ENGINE_HIBER    = ($0200);
+  {$EXTERNALSYM COMPRESSION_ENGINE_HIBER}
+
+// line 7462
+
+type
+  POSVERSIONINFOEXA = ^OSVERSIONINFOEXA;
+  {$EXTERNALSYM POSVERSIONINFOEXA}
+  _OSVERSIONINFOEXA = record
+    dwOSVersionInfoSize: DWORD;
+    dwMajorVersion: DWORD;
+    dwMinorVersion: DWORD;
+    dwBuildNumber: DWORD;
+    dwPlatformId: DWORD;
+    szCSDVersion: array [0..127] of CHAR;     // Maintenance string for PSS usage
+    wServicePackMajor: WORD;
+    wServicePackMinor: WORD;
+    wSuiteMask: WORD;
+    wProductType: BYTE;
+    wReserved: BYTE;
+  end;
+  {$EXTERNALSYM _OSVERSIONINFOEXA}
+  OSVERSIONINFOEXA = _OSVERSIONINFOEXA;
+  {$EXTERNALSYM OSVERSIONINFOEXA}
+  LPOSVERSIONINFOEXA = ^OSVERSIONINFOEXA;
+  {$EXTERNALSYM LPOSVERSIONINFOEXA}
+  TOSVersionInfoExA = _OSVERSIONINFOEXA;
+
+  POSVERSIONINFOEXW = ^OSVERSIONINFOEXW;
+  {$EXTERNALSYM POSVERSIONINFOEXW}
+  _OSVERSIONINFOEXW = record
+    dwOSVersionInfoSize: DWORD;
+    dwMajorVersion: DWORD;
+    dwMinorVersion: DWORD;
+    dwBuildNumber: DWORD;
+    dwPlatformId: DWORD;
+    szCSDVersion: array [0..127] of WCHAR;     // Maintenance string for PSS usage
+    wServicePackMajor: WORD;
+    wServicePackMinor: WORD;
+    wSuiteMask: WORD;
+    wProductType: BYTE;
+    wReserved: BYTE;
+  end;
+  {$EXTERNALSYM _OSVERSIONINFOEXW}
+  OSVERSIONINFOEXW = _OSVERSIONINFOEXW;
+  {$EXTERNALSYM OSVERSIONINFOEXW}
+  LPOSVERSIONINFOEXW = ^OSVERSIONINFOEXW;
+  {$EXTERNALSYM LPOSVERSIONINFOEXW}
+  RTL_OSVERSIONINFOEXW = _OSVERSIONINFOEXW;
+  {$EXTERNALSYM RTL_OSVERSIONINFOEXW}
+  PRTL_OSVERSIONINFOEXW = ^RTL_OSVERSIONINFOEXW;
+  {$EXTERNALSYM PRTL_OSVERSIONINFOEXW}
+  TOSVersionInfoExW = _OSVERSIONINFOEXW;
+
+{$IFDEF UNICODE}
+
+  OSVERSIONINFOEX = OSVERSIONINFOEXW;
+  {$EXTERNALSYM OSVERSIONINFOEX}
+  POSVERSIONINFOEX = POSVERSIONINFOEXW;
+  {$EXTERNALSYM POSVERSIONINFOEX}
+  LPOSVERSIONINFOEX = LPOSVERSIONINFOEXW;
+  {$EXTERNALSYM LPOSVERSIONINFOEX}
+  TOSVersionInfoEx = TOSVersionInfoExW;
+
+{$ELSE}
+
+  OSVERSIONINFOEX = OSVERSIONINFOEXA;
+  {$EXTERNALSYM OSVERSIONINFOEX}
+  POSVERSIONINFOEX = POSVERSIONINFOEXA;
+  {$EXTERNALSYM POSVERSIONINFOEX}
+  LPOSVERSIONINFOEX = LPOSVERSIONINFOEXA;
+  {$EXTERNALSYM LPOSVERSIONINFOEX}
+  TOSVersionInfoEx = TOSVersionInfoExA;  
+
+{$ENDIF}
+
+//
+// RtlVerifyVersionInfo() conditions
+//
+
+const
+  VER_EQUAL         = 1;
+  {$EXTERNALSYM VER_EQUAL}
+  VER_GREATER       = 2;
+  {$EXTERNALSYM VER_GREATER}
+  VER_GREATER_EQUAL = 3;
+  {$EXTERNALSYM VER_GREATER_EQUAL}
+  VER_LESS          = 4;
+  {$EXTERNALSYM VER_LESS}
+  VER_LESS_EQUAL    = 5;
+  {$EXTERNALSYM VER_LESS_EQUAL}
+  VER_AND           = 6;
+  {$EXTERNALSYM VER_AND}
+  VER_OR            = 7;
+  {$EXTERNALSYM VER_OR}
+
+  VER_CONDITION_MASK              = 7;
+  {$EXTERNALSYM VER_CONDITION_MASK}
+  VER_NUM_BITS_PER_CONDITION_MASK = 3;
+  {$EXTERNALSYM VER_NUM_BITS_PER_CONDITION_MASK}
+
+//
+// RtlVerifyVersionInfo() type mask bits
+//
+
+  VER_MINORVERSION     = $0000001;
+  {$EXTERNALSYM VER_MINORVERSION}
+  VER_MAJORVERSION     = $0000002;
+  {$EXTERNALSYM VER_MAJORVERSION}
+  VER_BUILDNUMBER      = $0000004;
+  {$EXTERNALSYM VER_BUILDNUMBER}
+  VER_PLATFORMID       = $0000008;
+  {$EXTERNALSYM VER_PLATFORMID}
+  VER_SERVICEPACKMINOR = $0000010;
+  {$EXTERNALSYM VER_SERVICEPACKMINOR}
+  VER_SERVICEPACKMAJOR = $0000020;
+  {$EXTERNALSYM VER_SERVICEPACKMAJOR}
+  VER_SUITENAME        = $0000040;
+  {$EXTERNALSYM VER_SUITENAME}
+  VER_PRODUCT_TYPE     = $0000080;
+  {$EXTERNALSYM VER_PRODUCT_TYPE}
+
+//
+// RtlVerifyVersionInfo() os product type values
+//
+
+  VER_NT_WORKSTATION       = $0000001;
+  {$EXTERNALSYM VER_NT_WORKSTATION}
+  VER_NT_DOMAIN_CONTROLLER = $0000002;
+  {$EXTERNALSYM VER_NT_DOMAIN_CONTROLLER}
+  VER_NT_SERVER            = $0000003;
+  {$EXTERNALSYM VER_NT_SERVER}
+
+//
+// dwPlatformId defines:
+//
+
+  VER_PLATFORM_WIN32s        = 0;
+  {$EXTERNALSYM VER_PLATFORM_WIN32s}
+  VER_PLATFORM_WIN32_WINDOWS = 1;
+  {$EXTERNALSYM VER_PLATFORM_WIN32_WINDOWS}
+  VER_PLATFORM_WIN32_NT      = 2;
+  {$EXTERNALSYM VER_PLATFORM_WIN32_NT}
+
+const
+//
+//
+// Predefined Value Types.
+//
+
+  REG_NONE      = ( 0 ); // No value type
+  {$EXTERNALSYM REG_NONE}
+  REG_SZ        = ( 1 ); // Unicode nul terminated string
+  {$EXTERNALSYM REG_SZ}
+  REG_EXPAND_SZ = ( 2 ); // Unicode nul terminated string
+  {$EXTERNALSYM REG_EXPAND_SZ}
+                                            // (with environment variable references)
+  REG_BINARY                     = ( 3 ); // Free form binary
+  {$EXTERNALSYM REG_BINARY}
+  REG_DWORD                      = ( 4 ); // 32-bit number
+  {$EXTERNALSYM REG_DWORD}
+  REG_DWORD_LITTLE_ENDIAN        = ( 4 ); // 32-bit number (same as REG_DWORD)
+  {$EXTERNALSYM REG_DWORD_LITTLE_ENDIAN}
+  REG_DWORD_BIG_ENDIAN           = ( 5 ); // 32-bit number
+  {$EXTERNALSYM REG_DWORD_BIG_ENDIAN}
+  REG_LINK                       = ( 6 ); // Symbolic Link (unicode)
+  {$EXTERNALSYM REG_LINK}
+  REG_MULTI_SZ                   = ( 7 ); // Multiple Unicode strings
+  {$EXTERNALSYM REG_MULTI_SZ}
+  REG_RESOURCE_LIST              = ( 8 ); // Resource list in the resource map
+  {$EXTERNALSYM REG_RESOURCE_LIST}
+  REG_FULL_RESOURCE_DESCRIPTOR   = ( 9 ); // Resource list in the hardware description
+  {$EXTERNALSYM REG_FULL_RESOURCE_DESCRIPTOR}
+  REG_RESOURCE_REQUIREMENTS_LIST = ( 10 );
+  {$EXTERNALSYM REG_RESOURCE_REQUIREMENTS_LIST}
+  REG_QWORD                      = ( 11 ); // 64-bit number
+  {$EXTERNALSYM REG_QWORD}
+  REG_QWORD_LITTLE_ENDIAN        = ( 11 ); // 64-bit number (same as REG_QWORD)
+  {$EXTERNALSYM REG_QWORD_LITTLE_ENDIAN}

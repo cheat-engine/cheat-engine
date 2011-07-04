@@ -1,0 +1,76 @@
+// STRINGSTREAM
+// UnderC Development Project, 2001
+
+#ifndef __STRINGSTREAM_
+#define __STRINGSTREAM_
+
+#include <iostream>
+#include <string>
+
+void _dout_callback(char*);
+
+namespace std {
+
+ class istringstream: public istream {
+  public:
+   istringstream(string& s) {
+    _str_cpy(&s,1);
+    hand = _get_std_stream(4);
+    m_redirect = true;
+   }
+
+   bool eof() { return _str_eof(0); }
+ };
+
+ class ostringstream: public ostream {
+  public:
+   ostringstream(string s = 0) {  // = "" doesn't work!!
+    _str_cpy(&s,3);
+    hand = _get_std_stream(5);
+    m_redirect = true;
+   } 
+
+   string str() {
+     string s;
+     _str_cpy(&s,2);
+     return s; 
+  }
+
+// *fix 1.2.3 Override flush to do nothing
+  void flush() { }
+ };
+
+struct _Ends_
+{ int t; };
+
+_Ends_ ends;
+
+// *add 1.2.3 A simple redirectable output class for the shared library
+#ifdef _USRDLL
+ class oredirect_stream: public ostringstream {
+ public:
+  void flush() {
+    string s = str();
+    _dout_callback(s.c_str());
+    s = "";
+    _str_cpy(&s,3);  // reset the string...
+  }
+ };
+
+ oredirect_stream dout;
+#endif
+
+} // namespace std
+
+std::ostream& operator<< (std::ostream& os,std::_Ends_& e)
+{
+// actually isn't needed with this weird implementation....
+ return os;
+}
+
+#endif
+
+
+
+
+

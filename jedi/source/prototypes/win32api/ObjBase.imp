@@ -1,0 +1,36 @@
+{$IFDEF MSWINDOWS}
+
+{$IFNDEF CLR}
+
+const
+  Ole32Lib = 'ole32.dll';
+  
+var
+  _StgCreateStorageEx: Pointer;
+
+function StgCreateStorageEx;
+begin
+  GetProcedureAddress(_StgCreateStorageEx, Ole32Lib, 'StgCreateStorageEx');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_StgCreateStorageEx]
+  end;
+end;
+
+var
+  _StgOpenStorageEx: Pointer;
+
+function StgOpenStorageEx;
+begin
+  GetProcedureAddress(_StgOpenStorageEx, Ole32Lib, 'StgOpenStorageEx');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_StgOpenStorageEx]
+  end;
+end;
+
+{$ENDIF ~CLR}
+
+{$ENDIF MSWINDOWS}

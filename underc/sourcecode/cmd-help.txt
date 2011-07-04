@@ -1,0 +1,31 @@
+UnderC Command-line Options (available with --help)
+
+ucc <options> { <source file> }
+
+Defaults to interactive mode if there's no source file specified; 
+reads C++ definitions from defs.h, looking first in current directory
+and then in the UnderC home directory.
+
+-H <path>  Override UC_HOME
+
+-I <path>  Add an include path
+
+-D <M>=<V>  Add a preprocessor macro
+
+-r <path>  Run in specified directory
+
+-T         If a typedef is available for a complex type, use it in any error
+
+-i         Force interactive mode, even if there is a source file specified
+
+-W         Suppress linker warnings
+
+-R         Switch on array checking on builtin arrays and vector<>
+
+-P         Switch on pointer checking
+
+-F         Attempt to optimize by inlining one-instruction functions
+
+-v         Version
+
+--help     This text

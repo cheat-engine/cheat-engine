@@ -1,0 +1,349 @@
+unit JclZLib;
+
+const
+  JclZLibStreamDefaultBufferSize = 32 * 1024;
+
+const
+  {$IFDEF MSWINDOWS}
+  JclZLibDefaultLineSeparator = #$0D#$0A;
+  {$ENDIF MSWINDOWS}
+  {$IFDEF UNIX}
+  JclZLibDefaultLineSeparator = #$0A;
+  {$ENDIF UNIX}
+
+const
+  WindowsPathDelimiter = '\';
+  UnixPathDelimiter = '/';
+  {$IFNDEF RTL140_UP}
+  {$IFDEF MSWINDOWS}
+  PathDelim = WindowsPathDelimiter;
+  {$ENDIF MSWINDOWS}
+  {$IFDEF UNIX}
+  PathDelim = UnixPathDelimiter;
+  {$ENDIF UNIX}
+  {$ENDIF ~RTL140_UP}
+
+//--------------------------------------------------------------------------------------------------
+// zlib format support
+//--------------------------------------------------------------------------------------------------
+
+type
+  TJclZLibStream = class(TStream)
+  protected
+    FStream: TStream;
+    FBufferSize: Integer;
+    FBuffer: Pointer;
+    FZLibStream: TZStreamRec;
+    procedure SetSize(NewSize: Longint); override;
+  public
+    constructor Create(const Stream: TStream; const BufferSize: Integer);
+    destructor Destroy; override;
+    function Seek(Offset: Longint; Origin: Word): Longint; override;
+  end;
+
+  TJclZLibReader = class(TJclZLibStream)
+  protected
+    FEndOfStream: Boolean;
+    procedure ReadNextBlock;
+    procedure FinishZLibStream;
+  public
+    constructor Create(const Stream: TStream;
+      const BufferSize: Integer = JclZLibStreamDefaultBufferSize;
+      const WindowBits: Integer = DEF_WBITS);
+
+    destructor Destroy; override;
+
+    function Read(var Buffer; Count: Longint): Longint; override;
+    function Write(const Buffer; Count: Longint): Longint; override;
+    function Seek(Offset: Longint; Origin: Word): Longint; override;
+
+    procedure Reset;
+    procedure SyncZLibStream;
+
+    property EndOfStream: Boolean read FEndOfStream;
+  end;
+
+  TJclZLibWriter = class(TJclZLibStream)
+  protected
+    procedure WriteNextBlock;
+    procedure FlushZLibStream(const Flush: Integer);
+  public
+    constructor Create(const Stream: TStream;
+      const BufferSize: Integer = JclZLibStreamDefaultBufferSize;
+      const Level: Integer = Z_DEFAULT_COMPRESSION;
+      const Strategy: Integer = Z_DEFAULT_STRATEGY;
+      const WindowBits: Integer = DEF_WBITS);
+
+    destructor Destroy; override;
+
+    function Read(var Buffer; Count: Longint): Longint; override;
+    function Write(const Buffer; Count: Longint): Longint; override;
+    function Seek(Offset: Longint; Origin: Word): Longint; override;
+
+    procedure Reset;
+  end;
+
+  EJclZLibError = class(EJclError);
+
+// zlib error texts
+function GetZLibErrorText(const ErrorCode: Integer): PResStringRec;
+
+function ZLibCompressMem(const Src: Pointer; SrcLen: Integer;
+  out Dst: Pointer; out DstLen: Integer; out DstCapacity: Integer;
+  const Level: Integer = Z_DEFAULT_COMPRESSION): Boolean;
+
+// Flush:
+//   Z_SYNC_FLUSH:  DstCapacity can be 0
+//   Z_FINISH:      decompress with faster routine in a single step
+//                  DstCapacity must be >= uncompressed size
+function ZLibDecompressMem(const Src: Pointer; SrcLen: Integer;
+  out Dst: Pointer; out DstLen: Integer; var DstCapacity: Integer;
+  const Flush: Integer = Z_SYNC_FLUSH): Boolean;
+
+type
+  TJclGZipStream = class(TStream)
+  protected
+    FStream: TStream;
+    FCRC32: LongWord;
+    FUncompressedSize: LongWord;
+    procedure SetSize(NewSize: Longint); override;
+  public
+    constructor Create(const Stream: TStream);
+    destructor Destroy; override;
+    function Seek(Offset: Longint; Origin: Word): Longint; override;
+  end;
+
+  TJclGZipReader = class(TJclGZipStream)
+  private
+    FZLibReader: TJclZLibReader;
+    FTextMode: Boolean;
+    FFilename: string;
+    FComment: string;
+    FTimeStamp: TJclUnixTime32;
+    FLevel: Integer;
+    FOperatingSystem: Byte;
+    FMultipartNumber: Word;
+    FExtraField: Pointer;
+    FExtraFieldSize: Integer;
+    FEndOfStream: Boolean;
+  public
+    constructor Create(const Stream: TStream;
+      const BufferSize: Integer = JclZLibStreamDefaultBufferSize;
+      const LineSeparator: string = JclZLibDefaultLineSeparator);
+
+    destructor Destroy; override;
+
+    function Read(var Buffer; Count: Longint): Longint; override;
+    function Write(const Buffer; Count: Longint): Longint; override;
+
+    property TextMode: Boolean read FTextMode;
+    property Filename: string read FFilename;
+    property Comment: string read FComment;
+    property TimeStamp: TJclUnixTime32 read FTimeStamp;
+    property Level: Integer read FLevel;
+    property OperatingSystem: Byte read FOperatingSystem;
+    property MultipartNumber: Word read FMultipartNumber;  // 0 = first part
+    property ExtraField: Pointer read FExtraField;
+    property ExtraFieldSize: Integer read FExtraFieldSize;
+
+    property EndOfStream: Boolean read FEndOfStream;
+  end;
+
+  TJclGZipWriter = class(TJclGZipStream)
+  private
+    FTextMode: Boolean;
+    FZLibWriter: TJclZLibWriter;
+  public
+    constructor Create(const Stream: TStream;
+      const BufferSize: Integer = JclZLibStreamDefaultBufferSize;
+      const Level: Integer = Z_DEFAULT_COMPRESSION;
+      const Strategie: Integer = Z_DEFAULT_STRATEGY;
+      const Filename: string = '';
+      const TimeStamp: TJclUnixTime32 = 0;
+      const Comment: string = '';
+      const TextMode: Boolean = False;
+      const ExtraField: Pointer = nil;
+      const ExtraFieldSize: Integer = 0);
+
+    destructor Destroy; override;
+
+    function Read(var Buffer; Count: Longint): Longint; override;
+    function Write(const Buffer; Count: Longint): Longint; override;
+  end;
+
+  EJclGZipError = class(EJclError);
+
+// gzip file extension
+const
+  JclGZipDefaultFileExtension = '.gz';
+
+// if DstFilename = '' -> DstFilename := SrcFilename + JclGZipDefaultFileExtension
+procedure GZipCompressFile(const SrcFilename: string; DstFilename: string;
+  const Level: Integer = Z_DEFAULT_COMPRESSION);
+procedure GZipDecompressFile(const SrcFilename: string; DstFilename: string);
+
+const
+  TarBlockSize = 512;
+
+type
+  TTarArchiveFormat = (
+    tafDefaultFormat,    // format to be decided later
+    tafV7Format,         // old V7 tar format
+    tafOldGnuFormat,     // GNU format as per before tar 1.12
+    tafPosixFormat,      // restricted, pure POSIX format
+    tafGnuFormat);       // POSIX format with GNU extensions
+
+type
+  PSparse = ^TSparse;
+  TSparse = packed record                 // offset
+    Offset: array [0..11] of AnsiChar;    //  $00
+    NumBytes: array [0..11] of AnsiChar;  //  $0C
+  end;                                    //  $18
+
+  PTarHeader = ^TTarHeader;
+  TTarHeader = packed record       // offset
+  case Integer of
+    0: (Buffer: array [0..TarBlockSize - 1] of Byte);
+    1: (
+      // Old UNIX TAR format
+      Name: array [0..99] of AnsiChar;          //  $000     Char + #0   / mit 0 gefüllt
+      Mode: array [0..7] of AnsiChar;           //  $064     Octal + ' '#0   9 + 3 bits              20 34 30 37 35 35 20 00
+      UID: array [0..7] of AnsiChar;            //  $06C     Octal + ' '#0   ignore on DOS           20 20 31 37 35 36 20 00
+      GID: array [0..7] of AnsiChar;            //  $074     Octal + ' '#0   ignore on DOS           20 20 20 31 34 34 20 00
+      Size: array [0..11] of AnsiChar;          //  $07C     Octal + ' '     size in bytes           20 20 20 20 20 20 20 20 20 20 30 20
+      MTime: array [0..11] of AnsiChar;         //  $088     Octal + ' '     last modify Unix        20 36 37 32 32 34 34 36 31 30 37 20
+      Chksum: array [0..7] of AnsiChar;         //  $094     Octal + ' '#0   >= 17 bit, init 0, add  20 20 37 35 37 32 00 20
+      TypeFlag: AnsiChar;                       //  $09C     Octal           + ' '#0 ??              35
+      Linkname: array [0..99] of AnsiChar;      //  $09D     Char + #0
+      // Extension of POSIX P1003.1
+      Magic: array [0..5] of AnsiChar;          //  $101     Char + #0                               75 73 74 61 72 20
+      Version: array [0..1] of AnsiChar;        //  $107     Octal + ' '                             20 00
+      UName: array [0..31] of AnsiChar;         //  $109     Char + #0                               72 63 64 00 ...
+      GName: array [0..31] of AnsiChar;         //  $129     Char + #0                               75 73 65 72 73 00 ...
+      DevMajor: array [0..7] of AnsiChar;       //  $149     Octal + ' '#0
+      DevMinor: array [0..7] of AnsiChar;       //  $151     Octal + ' '#0
+    case TTarArchiveFormat of
+      tafV7Format: (
+        FillV7: array [0..166] of AnsiChar);    //  $159
+      tafPosixFormat: (
+        Prefix: array [0..154] of AnsiChar;     //  $159         Prefix for name
+        FillPosix: array [0..11] of AnsiChar);  //  $1F4
+      tafOldGnuFormat: (
+        ATime: array [0..11] of AnsiChar;       //  $159
+        CTime: array [0..11] of AnsiChar;       //  $165
+        Offset: array [0..11] of AnsiChar;      //  $171
+        Longnames: array [0..3] of AnsiChar;    //  $17D
+        Pad: AnsiChar;                          //  $181
+        Sparses: array [0..3] of TSparse;       //  $182
+        IsExtended: AnsiChar;                   //  $1E2
+        RealSize: array [0..11] of AnsiChar;    //  $1E3
+        FillGnu: array [0..16] of AnsiChar));   //  $1EF
+  end;                                          //  $200
+
+// ModeFlag Flags
+type
+  TTarMode = (
+    tmOtherExec,   // execute/search by other
+    tmOtherWrite,  // write by other
+    tmOtherRead,   // read by other
+    tmGroupExec,   // execute/search by group
+    tmGroupWrite,  // write by group
+    tmGroupRead,   // read by group
+    tmOwnerExec,   // execute/search by owner
+    tmOwnerWrite,  // write by owner
+    tmOwnerRead,   // read by owner
+    tmSaveText,    // reserved
+    tmSetGID,      // set GID on execution
+    tmSetUID);     // set UID on execution
+  TTarModes = set of TTarMode;
+
+// TypeFlag
+type
+  TTarTypeFlag = AnsiChar;
+
+const                     //                     V7  Posix
+  ttfRegFile      = '0';  // regular file         x    x
+  ttfARegFile     = #0;   // regular file         x    x
+  ttfLink         = '1';  // link                 x    x
+  ttfSymbolicLink = '2';  // symbolic link        x
+  ttfCharacter    = '3';  // character special         x
+  ttfBlock        = '4';  // block special             x
+  ttfDirectory    = '5';  // directory                 x
+  ttfFIFO         = '6';  // FIFO special              x
+  ttfContiguous   = '7';  // contiguous file
+
+  // GNU extensions
+  ttfGnuDumpDir   = 'D';
+  ttfGnuLongLink  = 'K';  // next file have a long link name
+  ttfGnuLongName  = 'L';  // next file have a long name
+  ttfGnuMultiVol  = 'M';  // file began on another volume
+  ttfGnuNames     = 'N';  // long filename
+  ttfGnuSparse    = 'S';  // sparse files
+  ttfGnuVolHeader = 'V';  // Volume label (must be the first file)
+
+const
+  TarOldGnuMagic = 'ustar  '#0;  // old GNU  Magic + Version
+  TarPosixMagic  = 'ustar'#0;    // Posix or GNU
+  TarGnuVersion  = '00';
+
+  // other version for GNU-Magic:  'GNUtar '#0
+
+type
+  TJclTarFileType = (tftUnknown, tftEof, tftFile, tftDirectory);
+  
+  TJclTarFileSize = Int64;
+  
+
+  TJclTarReader = class(TObject)
+  private
+    function GetFileDateTime: TDateTime;
+  protected
+    FTarStream: TStream;
+    FHeader: TTarHeader;
+    FArchiveFormat: TTarArchiveFormat;
+    FFileType: TJclTarFileType;
+    FFilename: string;
+    FFileSize: TJclTarFileSize;
+    FFileTime: TJclUnixTime32;
+    function ReadHeader: Boolean;  // False if Eof
+    procedure ScanHeader;
+  public
+    constructor Create(const TarStream: TStream);
+    procedure CopyToStream(const FileStream: TStream; CanSeek: Boolean = False);
+    procedure CopyToFile(const FilePath: string);
+    procedure SkipFile;
+    procedure SkipFileSeek;
+    property FileType: TJclTarFileType read FFileType;
+    property Filename: string read FFilename;
+    property FileSize: TJclTarFileSize read FFileSize;
+    property FileTime: TJclUnixTime32 read FFileTime;
+    property FileDateTime: TDateTime read GetFileDateTime;
+  end;
+
+  TJclTarWriter = class(TObject)
+  protected
+    FTarStream: TStream;
+    procedure AddEof;
+  public
+    constructor Create(const TarStream: TStream);
+    destructor Destroy; override;
+    procedure AddFile(FileRoot, Filename: string);
+    procedure AddStream(const Stream: TStream; Filename: string;
+      FileSize: TJclTarFileSize; FileTime: TJclUnixTime32);
+    procedure AddDirectory(DirName: string);
+  end;
+
+  EJclTarError = class(EJclError);
+
+procedure TarAllFiles(const TarFilename, FileRoot: string);
+procedure TarFileList(const TarFilename, FileRoot: string; List: TStrings);
+procedure TarFileArray(const TarFilename, FileRoot: string; const Filenames: array of string);
+procedure TarGZipAllFiles(const TgzFilename, FileRoot: string);
+procedure TarGZipFileList(const TgzFilename, FileRoot: string; List: TStrings);
+procedure TarGZipFileArray(const TgzFilename, FileRoot: string; const Filenames: array of string);
+
+procedure UnTarAllFiles(const TarFilename: string; DstDir: string);
+procedure UnGZipTarAllFiles(const TgzFilename: string; DstDir: string);
+
+procedure GetFileList(RootDir: string; List: TStrings);
+

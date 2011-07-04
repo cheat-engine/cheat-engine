@@ -1,0 +1,8 @@
+*.dcu
+*.dpu
+*.hpp
+*.obj
+*.~*
+__history
+*.local
+*.identcache

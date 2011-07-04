@@ -1,0 +1,34 @@
+:Base Cheat Engine.hlp
+:Title Cheat Engine help
+:Index dummy=dummy.hlp ;(This is necessary when using KLinks - because of a bug in the help
+:Link dummy.hlp        ; compiler. Without this only the first keyword would be looked up!)
+1 About this helpfile=SHM_contents0001@Cheat Engine.hlp
+1 Cheat Engine
+2 About Cheat Engine=SHM_contents0002@Cheat Engine.hlp
+2 Standard scan settings=SHM_contents0003@Cheat Engine.hlp
+2 Select Process=SHM_contents0004@Cheat Engine.hlp
+2 Found list=SHM_contents0006@Cheat Engine.hlp
+2 Value types=SHM_contents0007@Cheat Engine.hlp
+2 Scan types=SHM_contents0009@Cheat Engine.hlp
+2 Address list=SHM_contents0010@Cheat Engine.hlp
+2 Comments=SHM_contents0011@Cheat Engine.hlp
+2 Memory view=SHM_contents0012@Cheat Engine.hlp
+2 About the debugger=SHM_contents0013@Cheat Engine.hlp
+2 Settings Window=SHM_contents0014@Cheat Engine.hlp
+2 Network versions=SHM_contents0015@Cheat Engine.hlp
+2 Trainer=SHM_contents0016@Cheat Engine.hlp
+2 Speedhack=SHM_contents0017@Cheat Engine.hlp
+2 Auto Assemble=SHM_contents0018@Cheat Engine.hlp
+1 Script engine=SHM_contents0019@Cheat Engine.hlp
+2 Other stuff=SHM_contents0020@Cheat Engine.hlp
+2 Tutorials
+3 Tutorials=SHM_contents0021@Cheat Engine.hlp
+3 Anti tab protected games=SHM_contents0022@Cheat Engine.hlp
+3 What is the difference in bytetype=SHM_contents0023@Cheat Engine.hlp
+3 3D pinball for windows (pointer+code)=SHM_contents0024@Cheat Engine.hlp
+3 Direct x-mess +anti-debug=SHM_contents0025@Cheat Engine.hlp
+3 Find out what addresses are accessed by a piece of code=SHM_contents0026@Cheat Engine.hlp
+3 Basic assembler=SHM_contents0027@Cheat Engine.hlp
+3 Code Injection and the auto assembler=SHM_contents0028@Cheat Engine.hlp
+3 Searching Tip=SHM_contents0029@Cheat Engine.hlp
+3 Remote desktop instead of network version=SHM_contents0030@Cheat Engine.hlp

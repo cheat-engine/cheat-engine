@@ -1,0 +1,83 @@
+(*$JPPDEFINEMACRO JCLVECTORINT(SELFCLASSNAME, ANCESTORCLASSNAME, COLLECTIONINTERFACENAME, LISTINTERFACENAME, ARRAYINTERFACENAME, ITRINTERFACENAME,
+  INTERFACEADDITIONAL, PRIVATEADDITIONAL, PROTECTEDADDITIONAL, PUBLICADDITIONAL, COLLECTIONFLAGS, OWNERSHIPDECLARATION,
+  CONSTKEYWORD, PARAMETERNAME, TYPENAME, DEFAULTVALUE, DYNARRAYTYPE, GETTERNAME, SETTERNAME)
+  SELFCLASSNAME = class(ANCESTORCLASSNAME, {$IFDEF THREADSAFE} IJclLockable, {$ENDIF THREADSAFE}
+    IJclIntfCloneable, IJclCloneable, IJclPackable, IJclGrowable, IJclContainer,INTERFACEADDITIONAL
+    COLLECTIONINTERFACENAME, LISTINTERFACENAME, ARRAYINTERFACENAME)
+  private
+    FItems: DYNARRAYTYPE;PRIVATEADDITIONAL
+  protected
+    procedure AssignDataTo(Dest: TJclAbstractContainerBase); override;
+    { IJclPackable }
+    procedure SetCapacity(Value: Integer); override;
+    { IJclCloneable }
+    function IJclCloneable.Clone = ObjectClone;
+    { IJclIntfCloneable }
+    function IJclIntfCloneable.Clone = IntfClone;
+    { COLLECTIONINTERFACENAME }
+    function Add(CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;COLLECTIONFLAGS
+    function AddAll(const ACollection: COLLECTIONINTERFACENAME): Boolean;COLLECTIONFLAGS
+    procedure Clear;COLLECTIONFLAGS
+    function Contains(CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;COLLECTIONFLAGS
+    function ContainsAll(const ACollection: COLLECTIONINTERFACENAME): Boolean;COLLECTIONFLAGS
+    function Equals(const ACollection: COLLECTIONINTERFACENAME): Boolean;COLLECTIONFLAGS
+    function First: ITRINTERFACENAME;COLLECTIONFLAGS
+    function IsEmpty: Boolean;COLLECTIONFLAGS
+    function Last: ITRINTERFACENAME;COLLECTIONFLAGS
+    function Remove(CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean; overload;COLLECTIONFLAGS
+    function RemoveAll(const ACollection: COLLECTIONINTERFACENAME): Boolean;COLLECTIONFLAGS
+    function RetainAll(const ACollection: COLLECTIONINTERFACENAME): Boolean;COLLECTIONFLAGS
+    function Size: Integer;COLLECTIONFLAGS
+    {$IFDEF SUPPORTS_FOR_IN}
+    function GetEnumerator: ITRINTERFACENAME;COLLECTIONFLAGS
+    {$ENDIF SUPPORTS_FOR_IN}
+    { LISTINTERFACENAME }
+    function Insert(Index: Integer; CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;
+    function InsertAll(Index: Integer; const ACollection: COLLECTIONINTERFACENAME): Boolean;
+    function GETTERNAME(Index: Integer): TYPENAME;
+    function IndexOf(CONSTKEYWORDPARAMETERNAME: TYPENAME): Integer;
+    function LastIndexOf(CONSTKEYWORDPARAMETERNAME: TYPENAME): Integer;
+    function Delete(Index: Integer): TYPENAME; overload;
+    procedure SETTERNAME(Index: Integer; CONSTKEYWORDPARAMETERNAME: TYPENAME);
+    function SubList(First, Count: Integer): LISTINTERFACENAME;PROTECTEDADDITIONAL
+  public
+    constructor Create(ACapacity: IntegerOWNERSHIPDECLARATION);
+    destructor Destroy; override;PUBLICADDITIONAL
+    property Items: DYNARRAYTYPE read FItems;
+  end;*)
+(*$JPPDEFINEMACRO JCLVECTORITRINT(SELFCLASSNAME, ITRINTERFACENAME, LISTINTERFACENAME,
+  CONSTKEYWORD, PARAMETERNAME, TYPENAME, GETTERNAME, SETTERNAME)
+  SELFCLASSNAME = class(TJclAbstractIterator, ITRINTERFACENAME, {$IFDEF THREADSAFE} IJclLockable, {$ENDIF THREADSAFE}
+    IJclIntfCloneable, IJclCloneable)
+  private
+    FCursor: Integer;
+    FStart: TItrStart;
+    FOwnList: LISTINTERFACENAME;
+  protected
+    function CreateEmptyIterator: TJclAbstractIterator; override;
+    procedure AssignPropertiesTo(Dest: TJclAbstractIterator); override;
+    { IJclCloneable }
+    function IJclCloneable.Clone = ObjectClone;
+    { IJclIntfCloneable }
+    function IJclIntfCloneable.Clone = IntfClone;
+    { ITRINTERFACENAME }
+    function Add(CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;
+    function Equals(const AIterator: ITRINTERFACENAME): Boolean;
+    function GETTERNAME: TYPENAME;
+    function HasNext: Boolean;
+    function HasPrevious: Boolean;
+    function Insert(CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;
+    function Next: TYPENAME;
+    function NextIndex: Integer;
+    function Previous: TYPENAME;
+    function PreviousIndex: Integer;
+    procedure Remove;
+    procedure Reset;
+    procedure SETTERNAME(CONSTKEYWORDPARAMETERNAME: TYPENAME);
+    {$IFDEF SUPPORTS_FOR_IN}
+    function MoveNext: Boolean;
+    property Current: TYPENAME read GETTERNAME;
+    {$ENDIF SUPPORTS_FOR_IN}
+  public
+    constructor Create(const OwnList: LISTINTERFACENAME; ACursor: Integer; AValid: Boolean; AStart: TItrStart);
+  end;*)

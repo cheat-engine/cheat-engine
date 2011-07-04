@@ -1,0 +1,18 @@
+type
+  PRasDialDlg = ^TRasDialDlg;
+  tagRASDIALDLG = packed record
+    dwSize: DWORD;
+    hwndOwner: HWND;
+    dwFlags: DWORD;
+    xDlg: Longint;
+    yDlg: Longint;
+    dwSubEntry: DWORD;
+    dwError: DWORD;
+    reserved: Longword;
+    reserved2: Longword;
+  end;
+  {$EXTERNALSYM tagRASDIALDLG}
+  RASDIALDLG = tagRASDIALDLG;
+  {$EXTERNALSYM RASDIALDLG}
+  TRasDialDlg = tagRASDIALDLG;
+

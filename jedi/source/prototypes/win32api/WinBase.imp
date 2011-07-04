@@ -1,0 +1,170 @@
+{$IFDEF MSWINDOWS}
+
+{$IFNDEF CLR}
+
+var
+  _BackupSeek: Pointer;
+
+function BackupSeek;
+begin
+  GetProcedureAddress(_BackupSeek, kernel32, 'BackupSeek');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_BackupSeek]
+  end;
+end;
+
+var
+  _AdjustTokenPrivileges: Pointer;
+
+function AdjustTokenPrivileges;
+begin
+  GetProcedureAddress(_AdjustTokenPrivileges, advapi32, 'AdjustTokenPrivileges');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_AdjustTokenPrivileges]
+  end;
+end;
+
+function CreateMutex(lpMutexAttributes: PSecurityAttributes; bInitialOwner: DWORD; lpName: PChar): THandle; stdcall;
+  external kernel32 name 'CreateMutexA';
+
+function GetVersionEx(var lpVersionInformation: TOSVersionInfoEx): BOOL; stdcall;
+  external kernel32 name 'GetVersionExA';
+function GetVersionEx(lpVersionInformation: POSVersionInfoEx): BOOL; stdcall;
+  external kernel32 name 'GetVersionExA';
+
+var
+  _SetWaitableTimer: Pointer;
+
+function SetWaitableTimer;
+begin
+  GetProcedureAddress(_SetWaitableTimer, kernel32, 'SetWaitableTimer');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_SetWaitableTimer]
+  end;
+end;
+var
+  _SetFileSecurityA: Pointer;
+
+function SetFileSecurityA;
+begin
+  GetProcedureAddress(_SetFileSecurityA, advapi32, 'SetFileSecurityA');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_SetFileSecurityA]
+  end;
+end;
+
+var
+  _SetFileSecurityW: Pointer;
+
+function SetFileSecurityW;
+begin
+  GetProcedureAddress(_SetFileSecurityW, advapi32, 'SetFileSecurityW');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_SetFileSecurityW]
+  end;
+end;
+
+var
+  _SetFileSecurity: Pointer;
+
+function SetFileSecurity;
+begin
+  GetProcedureAddress(_SetFileSecurity, advapi32, 'SetFileSecurity' + AWSuffix);
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_SetFileSecurity]
+  end;
+end;
+
+var
+  _GetFileSecurityA: Pointer;
+
+function GetFileSecurityA;
+begin
+  GetProcedureAddress(_GetFileSecurityA, advapi32, 'GetFileSecurityA');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_GetFileSecurityA]
+  end;
+end;
+
+var
+  _GetFileSecurityW: Pointer;
+
+function GetFileSecurityW;
+begin
+  GetProcedureAddress(_GetFileSecurityW, advapi32, 'GetFileSecurityW');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_GetFileSecurityW]
+  end;
+end;
+
+var
+  _GetFileSecurity: Pointer;
+
+function GetFileSecurity;
+begin
+  GetProcedureAddress(_GetFileSecurity, advapi32, 'GetFileSecurity' + AWSuffix);
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_GetFileSecurity]
+  end;
+end;
+
+var
+  _SetVolumeMountPoint: Pointer;
+
+function SetVolumeMountPoint;
+begin
+  GetProcedureAddress(_SetVolumeMountPoint, kernel32, 'SetVolumeMountPointA');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_SetVolumeMountPoint]
+  end;
+end;
+
+var
+  _DeleteVolumeMountPoint: Pointer;
+
+function DeleteVolumeMountPoint;
+begin
+  GetProcedureAddress(_DeleteVolumeMountPoint, kernel32, 'DeleteVolumeMountPointA');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_DeleteVolumeMountPoint]
+  end;
+end;
+
+var
+  _GetVolumeNameForVolMountPoint: Pointer;
+
+function GetVolumeNameForVolumeMountPoint;
+begin
+  GetProcedureAddress(_GetVolumeNameForVolMountPoint, kernel32, 'GetVolumeNameForVolumeMountPointA');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_GetVolumeNameForVolMountPoint]
+  end;
+end;
+
+{$ENDIF ~CLR}
+
+{$ENDIF MSWINDOWS}

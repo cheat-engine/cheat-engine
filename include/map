@@ -1,0 +1,289 @@
+// map
+// a 'pocket' implementation of std::map
+// UnderC Development Project, 2001.
+#ifndef __MAP_H
+#define __MAP_H
+#include <list>
+
+namespace std {
+
+template <class K, class T>
+class map
+{
+ struct Node {
+   T second;
+   Node *m_left, *m_right;
+   K first;
+ };
+ typedef Node *PNode;
+ typedef list<PNode> NodeStack;
+
+ PNode m_root;
+ int m_size;
+
+public:
+    class iterator {
+	  PNode m_node;
+	  NodeStack* m_stack;
+	public:
+	  iterator(PNode pe)
+            : m_node(pe),m_stack(NULL)
+          { }
+	  iterator()
+            : m_node(NULL),m_stack(NULL)
+          { }
+
+      iterator(const iterator& it)
+      {
+            m_node = it.m_node;
+            m_stack = it.m_stack;
+      }
+
+      ~iterator()
+      { 
+           //if (m_stack) delete m_stack;
+      }
+
+      bool operator == (const iterator& it) const
+      { return m_node == it.m_node; }
+
+      bool operator != (const iterator& it) const
+      { return m_node != it.m_node; }
+
+      void cursor(PNode pe)       { m_node = pe; }
+      PNode cursor()  const       { return m_node; }
+
+      void alloc_stack()
+      {
+	   m_stack = new NodeStack();
+      }
+
+      void go_down(PNode p)
+      {
+            m_stack->push_back(m_node);
+            m_node = p;
+      }
+
+      void next()
+      {
+            if (m_node->m_left)  go_down(m_node->m_left);     else
+            if (m_node->m_right) go_down(m_node->m_right);
+            else { // this is a leaf
+               while (m_stack->size() > 0) { // so for all nodes in this branch
+                 PNode old_node = m_node;
+                 m_node = m_stack->back();
+                 m_stack->pop_back();
+                 // try to visit the right nodes
+                 if (m_node->m_right && m_node->m_right != old_node) {
+                   go_down(m_node->m_right);
+                   return; 
+                 } 
+              }
+            }
+      }
+
+      void prior(){  }
+
+     Node& operator*()  const 
+     { 
+          return *m_node;
+     }
+
+     Node *operator->() const 
+     { 
+          return m_node;
+     }
+
+     void operator++()
+     {
+          next();
+     }
+
+     void operator--()
+     { prior(); }
+
+     void operator++(int)
+     { next(); }
+
+     void operator--(int)
+     { prior(); }
+
+    };
+
+   iterator begin() {
+     iterator ii (m_root);
+     ii.alloc_stack();
+     ii.next();
+     return ii;
+   }
+
+   iterator end() { return iterator(m_root); }
+
+
+
+  int  size() const { return m_size; }
+
+ PNode _alloc(const K& key, const T& val) {
+   PNode p = new Node;
+   p->first = key;
+   p->second = val;
+   p->m_left = NULL;
+   p->m_right = NULL;
+   m_size++;
+   return p;
+ }
+
+
+ PNode _find(const K& key, PNode p) const {
+  if (p == NULL) return NULL;
+  if (key == p->first) return p;
+  if (key < p->first) return _find(key,p->m_left);
+             else     return _find(key,p->m_right);
+ }
+
+ PNode _insert(const K& key, const T& val, PNode p) {
+   if (key == p->first) { p->second = val; return p; }
+   else
+   if (key < p->first) {
+        if (p->m_left == NULL) return p->m_left = _alloc(key,val); 
+                     else  return  _insert(key,val,p->m_left);
+   } else {
+        if (p->m_right == NULL) return p->m_right = _alloc(key,val);
+                     else  return  _insert(key,val,p->m_right);
+   }
+ }
+
+ iterator insert(const K& key, const T& val) {
+    return iterator(_insert(key,val,m_root));
+ }
+
+ iterator find(const K& key) {
+   return iterator(_find(key,m_root));
+ }
+
+ T& operator[] (const K& key) {
+   PNode p = _find(key,m_root);
+   T val = 0;   // '0' shd be T() !!
+   if (p == NULL) p = _insert(key,val,m_root); 
+   return p->second;
+ }
+
+ map() {
+   m_size = -1;
+   K key = 0;
+   T val = 0;
+   m_root = _alloc(key,val);
+ }
+
+};
+
+// vs 1.0.0 A fast specialization of map<string,int>
+#ifdef __UNDERC__
+template <>
+ class map<string,int>
+{
+  void *m_map;
+
+  struct StrPair {
+     string first;
+     int second;
+  };
+
+  public:
+ class iterator {
+	  void *m_iter;
+	public:
+	  iterator(void* ip)
+          : m_iter(ip)
+      { }
+
+	  iterator()
+          : m_iter(NULL)
+      { }
+
+      iterator(const iterator& it)
+      {
+          m_iter = it.m_iter;
+      }
+
+      ~iterator()
+      { 
+           //if (m_stack) delete m_stack;
+      }
+
+      bool operator == (const iterator& it) const
+      { return _map_iter_equal(m_iter,it.m_iter); }
+
+      bool operator != (const iterator& it) const
+      { return ! _map_iter_equal(m_iter,it.m_iter); }
+
+      void next()
+      { _map_iter_next(m_iter,0);  }
+
+      void prior() {}
+
+      StrPair& operator*()  const 
+      { 
+          static StrPair node;
+          _map_iter_fetch(m_iter,&node);
+          return node;
+      }
+
+      StrPair* operator->() const 
+      { 
+          static StrPair node;
+          _map_iter_fetch(m_iter,&node);
+          return &node;
+      }
+
+     void operator++()
+     {
+          next();
+     }
+
+     void operator--()
+     { prior(); }
+
+     void operator++(int)
+     { next(); }
+
+     void operator--(int)
+     { prior(); }
+
+    };
+
+  iterator begin() {
+      return iterator(_map_iter_ep(m_map,0));
+  }
+
+ iterator end() { 
+     return iterator(_map_iter_ep(m_map,1));
+ }
+
+ /*
+  iterator insert(const string& key, int val) {
+    return iterator(_insert(key,val,m_root));
+ }
+*/
+ iterator find(const string& key) {
+   return iterator(_map_iter_find(m_map,&key));
+ }
+
+   map() {
+     m_map = _map_create();
+   }
+   ~map() { _map_destroy(m_map); }
+
+   int size() { return _map_size(m_map); }
+  
+   int& operator[] (const string& key) {
+     int *pi = _map_find(&key,m_map);
+     if (pi == NULL) return *_map_insert(&key,0,m_map); 
+     else return *pi;
+  }
+ };
+#endif
+
+} // namespace std
+
+#endif

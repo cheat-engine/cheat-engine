@@ -1,0 +1,48 @@
+{$IFDEF MSWINDOWS}
+
+{$IFNDEF CLR}
+
+// objbase.h line 390
+const
+  STGFMT_STORAGE  = 0;
+  {$EXTERNALSYM STGFMT_STORAGE}
+  STGFMT_NATIVE   = 1;
+  {$EXTERNALSYM STGFMT_NATIVE}
+  STGFMT_FILE     = 3;
+  {$EXTERNALSYM STGFMT_FILE}
+  STGFMT_ANY      = 4;
+  {$EXTERNALSYM STGFMT_ANY}
+  STGFMT_DOCFILE  = 5;
+  {$EXTERNALSYM STGFMT_DOCFILE}
+// This is a legacy define to allow old component to builds
+  STGFMT_DOCUMENT = 0;
+  {$EXTERNALSYM STGFMT_DOCUMENT}
+
+// objbase.h line 913
+
+type
+  tagSTGOPTIONS = record
+    usVersion: Word;             // Versions 1 and 2 supported
+    reserved: Word;              // must be 0 for padding
+    ulSectorSize: Cardinal;      // docfile header sector size (512)
+    pwcsTemplateFile: PWideChar; // version 2 or above
+  end;
+  {$EXTERNALSYM tagSTGOPTIONS}
+  STGOPTIONS = tagSTGOPTIONS;
+  {$EXTERNALSYM STGOPTIONS}
+  PSTGOPTIONS = ^STGOPTIONS;
+  {$EXTERNALSYM PSTGOPTIONS}
+
+function StgCreateStorageEx(const pwcsName: PWideChar; grfMode: DWORD;
+  stgfmt: DWORD; grfAttrs: DWORD; pStgOptions: PSTGOPTIONS; reserved2: Pointer;
+  riid: PGUID; out stgOpen: IInterface):HResult; stdcall;
+{$EXTERNALSYM StgCreateStorageEx}
+
+function StgOpenStorageEx(const pwcsName: PWideChar; grfMode: DWORD;
+  stgfmt: DWORD; grfAttrs: DWORD; pStgOptions: PSTGOPTIONS; reserved2:Pointer;
+  riid: PGUID; out stgOpen: IInterface):HResult; stdcall;
+{$EXTERNALSYM StgOpenStorageEx}
+
+{$ENDIF ~CLR}
+
+{$ENDIF MSWINDOWS}

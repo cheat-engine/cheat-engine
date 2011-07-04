@@ -1,0 +1,213 @@
+(*$JPPDEFINEMACRO APPLYFUNCTION(FUNCNAME, CONSTKEYWORD, PARAMETERNAME, TYPENAME)
+FUNCNAME = function(CONSTKEYWORDPARAMETERNAME: TYPENAME): TYPENAME;*)
+(*$JPPDEFINEMACRO COMPAREFUNCTION(FUNCNAME, CONSTKEYWORD, TYPENAME)
+FUNCNAME = function(CONSTKEYWORDObj1, Obj2: TYPENAME): Integer;*)
+(*$JPPDEFINEMACRO EQUALITYCOMPAREFUNCTION(FUNCNAME, CONSTKEYWORD, TYPENAME)
+FUNCNAME = function(CONSTKEYWORDObj1, Obj2: TYPENAME): Boolean;*)
+(*$JPPDEFINEMACRO HASHFUNCTION(FUNCNAME, CONSTKEYWORD, PARAMETERNAME, TYPENAME)
+FUNCNAME = function(CONSTKEYWORDPARAMETERNAME: TYPENAME): Integer;*)
+(*$JPPDEFINEMACRO SORTPROC(PROCNAME, LISTINTERFACENAME, COMPAREFUNCNAME)
+PROCNAME = procedure(const AList: LISTINTERFACENAME; L, R: Integer; AComparator: COMPAREFUNCNAME);*)
+(*$JPPDEFINEMACRO EQUALITYCOMPARER(INTERFACENAME, GUID, EQUALITYCOMPARETYPENAME, CONSTKEYWORD, TYPENAME)
+  INTERFACENAME = interface
+    ['{GUID}']
+    function GetEqualityCompare: EQUALITYCOMPARETYPENAME;
+    procedure SetEqualityCompare(Value: EQUALITYCOMPARETYPENAME);
+    function ItemsEqual(CONSTKEYWORDA, B: TYPENAME): Boolean;
+    property EqualityCompare: EQUALITYCOMPARETYPENAME read GetEqualityCompare write SetEqualityCompare;
+  end;*)
+(*$JPPDEFINEMACRO COMPARER(INTERFACENAME, GUID, COMPARETYPENAME, CONSTKEYWORD, TYPENAME)
+  INTERFACENAME = interface
+    ['{GUID}']
+    function GetCompare: COMPARETYPENAME;
+    procedure SetCompare(Value: COMPARETYPENAME);
+    function ItemsCompare(CONSTKEYWORDA, B: TYPENAME): Integer;
+    property Compare: COMPARETYPENAME read GetCompare write SetCompare;
+  end;*)
+(*$JPPDEFINEMACRO HASHCONVERTER(INTERFACENAME, GUID, HASHCONVERTTYPENAME, CONSTKEYWORD, PARAMETERNAME, TYPENAME)
+  INTERFACENAME = interface
+    ['{GUID}']
+    function GetHashConvert: HASHCONVERTTYPENAME;
+    procedure SetHashConvert(Value: HASHCONVERTTYPENAME);
+    function Hash(CONSTKEYWORDPARAMETERNAME: TYPENAME): Integer;
+    property HashConvert: HASHCONVERTTYPENAME read GetHashConvert write SetHashConvert;
+  end;*)
+(*$JPPDEFINEMACRO ITERATOR(INTERFACENAME, ANCESTORNAME, GUID, CONSTKEYWORD, PARAMETERNAME, TYPENAME, GETTERNAME, SETTERNAME)
+  INTERFACENAME = interface(ANCESTORNAME)
+    ['{GUID}']
+    function Add(CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;
+    function Equals(const AIterator: INTERFACENAME): Boolean;
+    function GETTERNAME: TYPENAME;
+    function HasNext: Boolean;
+    function HasPrevious: Boolean;
+    function Insert(CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;
+    function Next: TYPENAME;
+    function NextIndex: Integer;
+    function Previous: TYPENAME;
+    function PreviousIndex: Integer;
+    procedure Remove;
+    procedure Reset;
+    procedure SETTERNAME(CONSTKEYWORDPARAMETERNAME: TYPENAME);
+    {$IFDEF SUPPORTS_FOR_IN}
+    function MoveNext: Boolean;
+    property Current: TYPENAME read GETTERNAME;
+    {$ENDIF SUPPORTS_FOR_IN}
+  end;*)
+(*$JPPDEFINEMACRO TREEITERATOR(INTERFACENAME, ANCESTORNAME, GUID, CONSTKEYWORD, PARAMETERNAME, TYPENAME)
+  INTERFACENAME = interface(ANCESTORNAME)
+    ['{GUID}']
+    function AddChild(CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;
+    function ChildrenCount: Integer;
+    procedure ClearChildren;
+    procedure DeleteChild(Index: Integer);
+    function GetChild(Index: Integer): TYPENAME;
+    function HasChild(Index: Integer): Boolean;
+    function HasParent: Boolean;
+    function IndexOfChild(CONSTKEYWORDPARAMETERNAME: TYPENAME): Integer;
+    function InsertChild(Index: Integer; CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;
+    function Parent: TYPENAME;
+    procedure SetChild(Index: Integer; CONSTKEYWORDPARAMETERNAME: TYPENAME);
+    property Children[Index: Integer]: TYPENAME read GetChild write SetChild;
+  end;*)
+(*$JPPDEFINEMACRO BINTREEITERATOR(INTERFACENAME, ANCESTORNAME, GUID, TYPENAME)
+  INTERFACENAME = interface(ANCESTORNAME)
+    ['{GUID}']
+    function HasLeft: Boolean;
+    function HasRight: Boolean;
+    function Left: TYPENAME;
+    function Right: TYPENAME;
+  end;*)
+(*$JPPDEFINEMACRO COLLECTION(INTERFACENAME, ANCESTORNAME, GUID, CONSTKEYWORD, PARAMETERNAME, TYPENAME, ITRNAME)
+  INTERFACENAME = interface(ANCESTORNAME)
+    ['{GUID}']
+    function Add(CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;
+    function AddAll(const ACollection: INTERFACENAME): Boolean;
+    procedure Clear;
+    function Contains(CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;
+    function ContainsAll(const ACollection: INTERFACENAME): Boolean;
+    function Equals(const ACollection: INTERFACENAME): Boolean;
+    function First: ITRNAME;
+    function IsEmpty: Boolean;
+    function Last: ITRNAME;
+    function Remove(CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;
+    function RemoveAll(const ACollection: INTERFACENAME): Boolean;
+    function RetainAll(const ACollection: INTERFACENAME): Boolean;
+    function Size: Integer;
+    {$IFDEF SUPPORTS_FOR_IN}
+    function GetEnumerator: ITRNAME;
+    {$ENDIF SUPPORTS_FOR_IN}
+  end;*)
+(*$JPPDEFINEMACRO LIST(INTERFACENAME, ANCESTORNAME, GUID, CONSTKEYWORD, PARAMETERNAME, TYPENAME, GETTERNAME, SETTERNAME, PROPNAME)
+  INTERFACENAME = interface(ANCESTORNAME)
+    ['{GUID}']
+    function Insert(Index: Integer; CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;
+    function InsertAll(Index: Integer; const ACollection: ANCESTORNAME): Boolean;
+    function GETTERNAME(Index: Integer): TYPENAME;
+    function IndexOf(CONSTKEYWORDPARAMETERNAME: TYPENAME): Integer;
+    function LastIndexOf(CONSTKEYWORDPARAMETERNAME: TYPENAME): Integer;
+    function Delete(Index: Integer): TYPENAME;
+    procedure SETTERNAME(Index: Integer; CONSTKEYWORDPARAMETERNAME: TYPENAME);
+    function SubList(First, Count: Integer): INTERFACENAME;
+    property PROPNAME[Key: Integer]: TYPENAME read GETTERNAME write SETTERNAME; default;
+  end;*)
+(*$JPPDEFINEMACRO ARRAY(INTERFACENAME, ANCESTORNAME, GUID, CONSTKEYWORD, PARAMETERNAME, TYPENAME, GETTERNAME, SETTERNAME, PROPNAME)
+  INTERFACENAME = interface(ANCESTORNAME)
+    ['{GUID}']
+    {$IFDEF CLR}
+    function GETTERNAME(Index: Integer): TYPENAME;
+    procedure SETTERNAME(Index: Integer; CONSTKEYWORDPARAMETERNAME: TYPENAME);
+    {$ENDIF CLR}
+    property PROPNAME[Index: Integer]: TYPENAME read GETTERNAME write SETTERNAME; default;
+  end;*)
+(*$JPPDEFINEMACRO SET(INTERFACENAME, ANCESTORNAME, GUID)
+  INTERFACENAME = interface(ANCESTORNAME)
+    ['{GUID}']
+    procedure Intersect(const ACollection: ANCESTORNAME);
+    procedure Subtract(const ACollection: ANCESTORNAME);
+    procedure Union(const ACollection: ANCESTORNAME);
+  end;*)
+(*$JPPDEFINEMACRO TREE(INTERFACENAME, ANCESTORNAME, GUID, ITRNAME)
+  INTERFACENAME = interface(ANCESTORNAME)
+    ['{GUID}']
+    function GetRoot: ITRNAME;
+    function GetTraverseOrder: TJclTraverseOrder;
+    procedure SetTraverseOrder(Value: TJclTraverseOrder);
+    property Root: ITRNAME read GetRoot;
+    property TraverseOrder: TJclTraverseOrder read GetTraverseOrder write SetTraverseOrder;
+  end;*)
+(*$JPPDEFINEMACRO MAP(INTERFACENAME, ANCESTORNAME, GUID, KEYCONSTKEYWORD, KEYTYPENAME, KEYSETNAME, VALUECONSTKEYWORD, VALUETYPENAME, VALUECOLLECTIONNAME)
+  INTERFACENAME = interface(ANCESTORNAME)
+    ['{GUID}']
+    procedure Clear;
+    function ContainsKey(KEYCONSTKEYWORDKey: KEYTYPENAME): Boolean;
+    function ContainsValue(VALUECONSTKEYWORDValue: VALUETYPENAME): Boolean;
+    function Equals(const AMap: INTERFACENAME): Boolean;
+    function GetValue(KEYCONSTKEYWORDKey: KEYTYPENAME): VALUETYPENAME;
+    function IsEmpty: Boolean;
+    function KeyOfValue(VALUECONSTKEYWORDValue: VALUETYPENAME): KEYTYPENAME;
+    function KeySet: KEYSETNAME;
+    procedure PutAll(const AMap: INTERFACENAME);
+    procedure PutValue(KEYCONSTKEYWORDKey: KEYTYPENAME; VALUECONSTKEYWORDValue: VALUETYPENAME);
+    function Remove(KEYCONSTKEYWORDKey: KEYTYPENAME): VALUETYPENAME;
+    function Size: Integer;
+    function Values: VALUECOLLECTIONNAME;
+    property Items[KEYCONSTKEYWORDKey: KEYTYPENAME]: VALUETYPENAME read GetValue write PutValue;
+      {$IFNDEF BUGGY_DEFAULT_INDEXED_PROP} default; {$ENDIF ~BUGGY_DEFAULT_INDEXED_PROP}
+  end;*)
+(*$JPPDEFINEMACRO MAP(INTERFACENAME, ANCESTORNAME, GUID, CONSTKEYWORD, TYPENAME, SETNAME, COLLECTIONNAME)
+  INTERFACENAME = interface(ANCESTORNAME)
+    ['{GUID}']
+    procedure Clear;
+    function ContainsKey(CONSTKEYWORDKey: TYPENAME): Boolean;
+    function ContainsValue(CONSTKEYWORDValue: TYPENAME): Boolean;
+    function Equals(const AMap: INTERFACENAME): Boolean;
+    function GetValue(CONSTKEYWORDKey: TYPENAME): TYPENAME;
+    function IsEmpty: Boolean;
+    function KeyOfValue(CONSTKEYWORDValue: TYPENAME): TYPENAME;
+    function KeySet: SETNAME;
+    procedure PutAll(const AMap: INTERFACENAME);
+    procedure PutValue(CONSTKEYWORDKey, Value: TYPENAME);
+    function Remove(CONSTKEYWORDKey: TYPENAME): TYPENAME;
+    function Size: Integer;
+    function Values: COLLECTIONNAME;
+    property Items[CONSTKEYWORDKey: TYPENAME]: TYPENAME read GetValue write PutValue;
+      {$IFNDEF BUGGY_DEFAULT_INDEXED_PROP} default; {$ENDIF ~BUGGY_DEFAULT_INDEXED_PROP}
+  end;*)
+(*$JPPDEFINEMACRO QUEUE(INTERFACENAME, ANCESTORNAME, GUID, CONSTKEYWORD, PARAMETERNAME, TYPENAME)
+  INTERFACENAME = interface(ANCESTORNAME)
+    ['{GUID}']
+    procedure Clear;
+    function Contains(CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;
+    function Dequeue: TYPENAME;
+    function Empty: Boolean;
+    function Enqueue(CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;
+    function Peek: TYPENAME;
+    function Size: Integer;
+  end;*)
+(*$JPPDEFINEMACRO SORTEDMAP(INTERFACENAME, ANCESTORNAME, GUID, KEYCONSTKEYWORD, KEYTYPENAME)
+  INTERFACENAME = interface(ANCESTORNAME)
+    ['{GUID}']
+    function FirstKey: KEYTYPENAME;
+    function HeadMap(KEYCONSTKEYWORDToKey: KEYTYPENAME): INTERFACENAME;
+    function LastKey: KEYTYPENAME;
+    function SubMap(KEYCONSTKEYWORDFromKey, ToKey: KEYTYPENAME): INTERFACENAME;
+    function TailMap(KEYCONSTKEYWORDFromKey: KEYTYPENAME): INTERFACENAME;
+  end;*)
+(*$JPPDEFINEMACRO SORTEDSET(INTERFACENAME, ANCESTORNAME, GUID, CONSTKEYWORD, TYPENAME)
+  INTERFACENAME = interface(ANCESTORNAME)
+    ['{GUID}']
+    function HeadSet(CONSTKEYWORDFinish: TYPENAME): INTERFACENAME;
+    function SubSet(CONSTKEYWORDStart, Finish: TYPENAME): INTERFACENAME;
+    function TailSet(CONSTKEYWORDStart: TYPENAME): INTERFACENAME;
+  end;*)
+(*$JPPDEFINEMACRO STACK(INTERFACENAME, ANCESTORNAME, GUID, CONSTKEYWORD, PARAMETERNAME, TYPENAME)
+  INTERFACENAME = interface(ANCESTORNAME)
+    ['{GUID}']
+    procedure Clear;
+    function Contains(CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;
+    function Empty: Boolean;
+    function Peek: TYPENAME;
+    function Pop: TYPENAME;
+    function Push(CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;
+    function Size: Integer;
+  end;*)

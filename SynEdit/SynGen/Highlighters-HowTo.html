@@ -1,0 +1,628 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1252">
+	<TITLE>Highlighters-HowTo</TITLE>
+	<STYLE>
+	<!--
+		body {
+       font-family:arial, sans-serif,helvetica;
+       font-size: 11pt;
+    }
+    .box {
+          border: 1px gray dotted;
+          background-color:#f3f3f3;
+          width: 700px;
+          font-size:15px;
+          font-family:Courier New, monospace;
+    }
+    .code {
+          margin-left: 60px;
+          font-size:15px;
+          font-family:Courier New, monospace;
+    }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="en-US">
+<center><h2><B>How to create a SynEdit highlighter</B></h2></center>
+<center><B>Document history</B><br>
+<TABLE WIDTH=583 BORDER=1 BORDERCOLOR="#000000" CELLPADDING=1 CELLSPACING=0>
+	<COL WIDTH=124>
+	<COL WIDTH=94>
+	<COL WIDTH=357>
+	<TR VALIGN=TOP>
+		<TD WIDTH=124>
+			<B>Contributor</B>
+		</TD>
+		<TD WIDTH=94>
+			<B>Date</B>
+		</TD>
+		<TD WIDTH=357>
+			<B>Changes</B>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=124>
+			Kirys
+		</TD>
+		<TD WIDTH=94>
+			2003/ 09 / 10
+		</TD>
+		<TD WIDTH=357>
+			HTML Conversion
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=124>
+			Pieter Polak
+		</TD>
+		<TD WIDTH=94>
+			2001/ 12 / 27
+		</TD>
+		<TD WIDTH=357>
+			Add the new syntax to specify the default attribute styles
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=124>
+			Pieter Polak
+		</TD>
+		<TD WIDTH=94>
+			2001/ 12 / 27
+		</TD>
+		<TD WIDTH=357>
+			Add	the new KEYS section syntax
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=124>
+			Pieter Polak
+		</TD>
+		<TD WIDTH=94>
+			2001/ 12 / 27
+		</TD>
+		<TD WIDTH=357>
+			Update the document for the new TOKENTYPES section
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=124>
+			Pieter Polak
+		</TD>
+		<TD WIDTH=94>
+			2001/ 10 / 04
+		</TD>
+		<TD WIDTH=357>
+			Include	the new &lsquo;SAMPLESOURCE&rsquo; section in the grammar file
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=124>
+			Pieter Polak
+		</TD>
+		<TD WIDTH=94>
+			2001/ 08 / 27
+		</TD>
+		<TD WIDTH=357>
+			Initial	setup of document
+		</TD>
+	</TR>
+</TABLE></center>
+<br>
+<h3><B>Todo:</B></h3>
+<UL>
+	<LI>Add more advanced highlighter stuff (explain the logic of the generated	highlighter source).
+</UL>
+<h3><B>Introduction</B></h3>
+<p>This
+document tries to give a explanation, on how to create your own
+custom highlighter for the TSynEdit component. This document starts
+with a step-by-step explanation on how to create a simple
+highlighter, but this will be expanded to cover advanced highlighting
+techniques.</p>
+<h3><B>Preparation</B></h3>
+<p>Creation
+of a new highlighter is best started with the creation of a grammar
+file. This grammar file (.msg file), is then used by the program
+SynGen to generate a basic skeleton of the highlighter source. For
+most highlighters this generated source is nothing more then a point
+to begin with, but for simple keyword highlighters, the result is
+directly usable.</p>
+<p>The
+layout of the grammar file, is rather straight forward (you can
+insert empty lines if you like. Text between { and } is considered as
+comment, and thus is ignored):</p>
+<UL>
+	<LI>The
+	first line contains the name of the highlighter class to be created
+	(e.g. TSynSampleSyn).<p>
+</UL>
+<UL>
+	<LI><p>The
+	second line contains the prefix of the enumeration type to be
+	created for the various types of tokens. The current series of
+	SynEdit highlighters use the prefix &lsquo;tk&rsquo; for this.</p>
+</UL>
+<UL>
+	<LI><p>The
+	third line contains either the keyword &lsquo;Sensitive&rsquo; to
+	indicate that the keywords of the highlighter are to be used case
+	sensitive, or it will contain the keyword &lsquo;IdentStart&rsquo;,
+	followed by a list of characters that can be used to make up valid
+	identifiers.</p>
+</UL>
+<UL>
+	<LI><p>After
+	this the keyword &lsquo;KEYS&rsquo; is in the file, after which all
+	the keywords to be highlighted are mentioned. Each keyword starts on
+	a new line. This section is ended by the terminator string &lsquo;|&lt;&gt;|&rsquo;.</p>
+</UL>
+<UL>
+	<LI><p>After
+	this the file contains the list of token types the highlighter will
+	recognize. By default the token types Identifier and Key should
+	always be there. Each token type starts on a new line, and the
+	section is again terminated by a line containing &lsquo;|&lt;&gt;|&rsquo;.</p>
+</UL>
+<UL>
+	<LI><p>After
+	this the keyword &lsquo;CHARS&rsquo; is in the file, after which all
+	the special character handling is coded in Pascal. This is just a
+	kind of a case statement, which will be clarified in the examples
+	listed later in this document. This section is also terminated by a
+	line containing &lsquo;|&lt;&gt;|&rsquo;.</p>
+</UL>
+<p>Based
+on this .msg file, we can run the SynGen program, which will generate
+the basic highlighter source for us. After that we can take the
+generated source file, and fine tune it for our special needs.</p>
+<h3><B>Example:
+creating a basic highlighter</B></h3>
+
+<p>In
+our first example we will attempt to create a new highlighter, which
+will highlight just one simple keyword &lsquo;Hello&rsquo;. This
+highlighter is not case sensitive, and will be based on a SynGen
+grammar file. This grammar file should look like this:</p>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<div class="box">
+TSynSampleSyn
+			  {first Identifier is considered to be the Class Name }</p>
+			<p>tk
+			             {second Identifier is considered to be the Identifier
+			Prefix }</p>
+			<p>IdentStart
+			'_', 'a'..'z', 'A'..'Z':: '_', '0'..'9', 'a'..'z', 'A'..'Z'::</p>
+			<p>TOKENTYPES</p>
+			<p>Identifier</p>
+			<p>Key</p>
+			<p>|&gt;&lt;|</p>
+			<p>KEYS
+			 { all between KEYS and |&gt;&lt;| is considered to be a keyword }</p>
+			<p>Hello</p>
+			<p>|&gt;&lt;|</p>
+			<p>CHARS</p>
+			<p>'A'..'Z',
+			'a'..'z', '_':: Ident</p>
+			<p>BeginProc</p>
+			<p>
+			 fTokenID := IdentKind((fLine + Run));</p>
+			<p>
+			 inc(Run, fStringLen);</p>
+			<p>
+			 while Identifiers[fLine[Run]] do</p>
+			<p>
+			   Inc(Run);</p>
+			<p>EndProc</p>
+			<p>|&gt;&lt;|</p>
+</div>
+<p>Once
+we have created this file (as sample.msg), we can startup SynGen. On
+startup, SynGen will prompt us to select the grammar file we have
+just created. After that, we are presented with a four-page window,
+which allows us to do some customizations:</p>
+<UL>
+	<LI><p>On
+	the first page (Highlighter) we will fill in some general
+	information about the highlighter. This contains the name of the
+	author, a short description, and the version of the highlighter.
+	This page also contains two checkboxes which give the user the
+	option to have the SynEdit standard comment header (with the GPL/MPL
+	information), and the option to have a GetKeywords function which
+	returns all keywords being highlighted.</p>
+</UL>
+<UL>
+	<LI><p>On
+	the second page (Language) we can fill in the default filter (for
+	this example we select &lsquo;All files&rsquo;), which can be used
+	for the FileOpen dialogbox in Delphi. We can also fill in the name
+	of the language being highlighted (for this example we call it
+	&lsquo;Sample&rsquo;).</p>
+</UL>
+<UL>
+	<LI><p>On
+	the third page (Attributes), we can assign different constants to
+	the Identifier and Reserved word tokens. We can keep the default
+	values now. On this page we can also set which type of token should
+	be used for non-keyword identifiers. In this example we will leave
+	it to the default value (Identifier).</p>
+</UL>
+<UL>
+	<LI><p>On
+	the fourth page (Private fields), we can add our own private field
+	declarations to the highlighter class. We don&rsquo;t need this now,
+	so we leave this page empty.</p>
+</UL>
+<p>After
+having filled in all fields in SynGen, we can press the &lsquo;Start&rsquo;
+button. After that SynGen will generate a Delphi unit, called
+sample.pas, which contains the implementation of the highlighter. You
+can use this highlighter in SynEdit, and it will only highlight the
+keyword &lsquo;Hello&rsquo; in bold. </FONT></FONT>
+</P>
+<p>If
+we now want to add more keywords to this highlighter, we simply add
+them in the grammar file, as new lines in the KEYS section. After
+regenerating the Pascal unit using SynGen, we will have the
+additional keywords being highlighted in SynEdit.</p>
+<h3><B>Adding
+support for comments and strings</B></h3>
+<p>After
+creating a simple highlighter like this, we want to add support for
+comments to the highlighter. In our sample language, comments are
+started with a &lsquo;{&lsquo; (brace open) character, and closed
+with a &lsquo;}&rsquo; character (Pascal style comments).</p>
+<p>To
+achieve this we must make two modifications to our grammar file:</p>
+<UL>
+	<LI><p>Add
+	a new token kind &lsquo;Comment&rsquo;</p>
+</UL>
+<UL>
+	<LI><p>Add
+	a new section &ldquo;ENCLOSEDBY&rdquo; which specifies the
+	delimiters of the comment section</p>
+</UL>
+<p>Based
+on this modification, our grammar file will now look like (with two
+keywords: &lsquo;Hello&rsquo; and &lsquo;World&rsquo;):</p>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<div class="box">
+			<p>TSynSampleSyn
+			  {first Identifier is considered to be the Class Name }</p>
+			<p>tk
+			             {second Identifier is considered to be the Identifier
+			Prefix }</p>
+			<p>IdentStart
+			'_', 'a'..'z', 'A'..'Z':: '_', '0'..'9', 'a'..'z', 'A'..'Z'::</p>
+			<p>TOKENTYPES</p>
+			<p>Identifier</p>
+			<p>Comment</p>
+			<p>Space</p>
+			<p>Key</p>
+			<p>|&gt;&lt;|</p>
+			<p>KEYS
+			 { all between KEYS and |&gt;&lt;| is considered to be a keyword }</p>
+			<p>Hello</p>
+			<p>World</p>
+			<p>|&gt;&lt;|</p>
+			<p>CHARS</p>
+			<p>'A'..'Z',
+			'a'..'z', '_':: Ident</p>
+			<p>BeginProc</p>
+			<p>
+			 fTokenID := IdentKind((fLine + Run));</p>
+			<p>
+			 inc(Run, fStringLen);</p>
+			<p>
+			 while Identifiers[fLine[Run]] do</p>
+			<p>
+			   Inc(Run);</p>
+			<p>EndProc</p>
+			<p>|&gt;&lt;|</p>
+			<p>ENCLOSEDBY</p>
+			<p>Comment,BraceComment,{,},MultiLine</p>
+			<p>|&gt;&lt;|</p>
+</div>
+<p>The
+ENCLOSEDBY section, can contain 1 or multiple lines to specifies
+token types which are recognized by a starting and ending sequence of
+characters. The syntax of each line is:</p>
+<p>&lt;Token
+name&gt; , &lt;Procedure name&gt; , &lt;starting sequence&gt; ,
+&lt;ending sequence&gt; [ , MultiLine]</p>
+<p>The
+&ldquo;Token name&rdquo; should be an already defined token name in
+the higher part of the grammar file. </p>
+<p>The
+&ldquo;Procesdure name&rdquo; should be unique for each line. This
+name is used to generate procedure names for each of the lines in the
+source code of the highlighter.</p>
+<UL>
+	<LI><p>The
+	&ldquo;Starting sequence&rdquo; specifies the string that denotes
+	the start of the token kind.</p>
+</UL>
+<UL>
+	<LI><p>The
+	&ldquo;Ending sequence&rdquo; specifies the string that denotes the
+	end of the token kind.</p>
+</UL>
+<UL>
+	<LI><p>The
+	last identifier &ldquo;MultiLine&rdquo;, is optional. If it is
+	specified then the token kind can continue on the next line, if no
+	ending sequence was found. If it is not specified, the token kind
+	will end on the end of the line.</p>
+</UL>
+<p>After
+you have generated the source code via the SynGen utility, you will
+see that you have a highlighter supporting two keywords (hello and
+world), and support for comments starting with { and ending with }. </FONT></FONT>
+</P>
+<p>Based
+on this logic we can now simply add support for /* .. */ C-style
+comments, by adding this line to the ENCLOSEDBY section:</p>
+<center><b><p>Comment,CstyleComment,/*,*/,MultiLine</p></b></center>
+<p>We can also add support for strings delimited by &ldquo; and &ldquo;.
+For this we add a new token kind &ldquo;String&rdquo;, and then this
+line to the ENCLOSEDBY section (note that strings are not allowed to
+cross multiple lines):</p>
+<center><b><p>String,String,&rdquo;,&rdquo;</p></b></center>
+<p>So now our grammar file looks like this:</p>
+<div class="box">
+			<p>TSynSampleSyn
+			  {first Identifier is considered to be the Class Name }</p>
+			<p>tk
+			             {second Identifier is considered to be the Identifier
+			Prefix }</p>
+			<p>IdentStart
+			'_', 'a'..'z', 'A'..'Z':: '_', '0'..'9', 'a'..'z', 'A'..'Z'::</p>
+			<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+			</P>
+			<p>TOKENTYPES</p>
+			<p>Identifier</p>
+			<p>Comment</p>
+			<p>Space</p>
+			<p>String</p>
+			<p>Key</p>
+			<p>|&gt;&lt;|</p>
+			<br>
+			<p>KEYS
+			 { all between KEYS and |&gt;&lt;| is considered to be a keyword }</p>
+			<p>Hello</p>
+			<p>World</p>
+			<p>|&gt;&lt;|</p>
+			<br>
+			<p>CHARS</p>
+			<p>'A'..'Z',
+			'a'..'z', '_':: Ident</p>
+			<br>
+			<p>BeginProc</p>
+			<p>
+			 fTokenID := IdentKind((fLine + Run));</p>
+			<p>
+			 inc(Run, fStringLen);</p>
+			<p>
+			 while Identifiers[fLine[Run]] do</p>
+			<p>
+			   Inc(Run);</p>
+			<p>EndProc</p>
+			<p>|&gt;&lt;|</p>
+			<br>
+			<p>ENCLOSEDBY</p>
+			<p>Comment,BraceComment,{,},MultiLine</p>
+			<p>Comment,CStyleComment,/*,*/,MultiLine</p>
+			<p>String,String,&quot;,&quot;</p>
+			<p>|&gt;&lt;|</p>
+</div>
+<p>Once
+you have generated the source code for this highlighter, and use it
+in your application, you can test it to see if it suits your needs.
+Once you have the generated source code from SynGen, you can further
+enhance it by modifying this code in Delphi.</p>
+<h3><B>Highlighting
+different kind of keywords</B></h3>
+<p>In
+our example till now, the highlighter will always recognize all
+keywords in the same way. All keywords are considered to be equal,
+and this will be highlighted with the same highlighter attribute. In
+practice you will often want to create a highlighter that will
+highlight e.g. data types in a different color then the other
+keywords. So now we will expand our grammar file, to add a new
+keyword &lsquo;SynEdit&rsquo;, which will be highlighted as a new
+token type &lsquo;Test&rsquo;. Our grammar file will become to look
+like this:</p>
+<div class="box">
+			<p>TSynSampleSyn
+			  {first Identifier is considered to be the Class Name }</p>
+			<p>tk
+			             {second Identifier is considered to be the Identifier
+			Prefix }</p>
+			<p>IdentStart
+			'_', 'a'..'z', 'A'..'Z':: '_', '0'..'9', 'a'..'z', 'A'..'Z'::</p>
+			<br>
+			<p>TOKENTYPES</p>
+			<p>Identifier</p>
+			<p>Comment</p>
+			<p>Space</p>
+			<p>String</p>
+			<p>Key</p>
+			<p>Test
+			     { <FONT FACE="Wingdings">&szlig;</FONT> Add the new token
+			type here }</p>
+			<p>|&gt;&lt;|</p>
+			<br>
+			<p>KEYS
+			 { all between KEYS and |&gt;&lt;| is considered to be a keyword }</p>
+			<p>Hello</p>
+			<p>World</p>
+			<p>|&gt;&lt;|</p>
+			<br>
+			<p>KEYS
+			Test    { <FONT FACE="Wingdings">&szlig;</FONT> Create a new KEYS
+			section, and specify the token type }</p>
+			<p>SynEdit
+			     { So now this keyword will be highlighted with the Test token
+			}</p>
+			<p>|&gt;&lt;|</p>
+			<br>
+			<p>CHARS</p>
+			<br>
+			<p>'A'..'Z',
+			'a'..'z', '_':: Ident</p>
+			<p>BeginProc</p>
+			<p>
+			 fTokenID := IdentKind((fLine + Run));</p>
+			<p>
+			 inc(Run, fStringLen);</p>
+			<p>
+			 while Identifiers[fLine[Run]] do</p>
+			<p>
+			   Inc(Run);</p>
+			<p>EndProc</p>
+			<br>
+			<p>|&gt;&lt;|</p>
+			<br>
+			<p>ENCLOSEDBY</p>
+			<br>
+			<p>Comment,BraceComment,{,},MultiLine</p>
+			<p>Comment,CStyleComment,/*,*/,MultiLine</p>
+			<p>String,String,&quot;,&quot;</p>
+			<br>
+			<p>&gt;&lt;|</p>
+</div>
+<p>As
+you&rsquo;ll notice, that there is an extension to the KEYS section,
+which allows you to specify the token type to use for the keywords in
+that section. If you don&rsquo;t specify a token type, it will
+consider the token type to be &lsquo;Keys&rsquo;.  You can create as
+many KEYS section as you, which in the grammar file, and even
+multiple sections with the same (or no) token type are allowed. The
+SynGen program will merge them automatically.</p>
+<p>After
+you have run this grammar file through the SynGen utility you can
+test your highlighter, and you&rsquo;ll notice that the SynEdit
+keyword is highlighted using a different attribute than the Hello and
+World keywords.</p>
+<h3><B>Setting
+the default highlighter attribute settings</B></h3>
+<p>One
+annoying thing so far about the generated highlighter is, that we
+should always modify the source code of the highlighter, if we want
+to provide default attribute styles for the different token types.
+Suppose we want to provide the user with the default settings of red
+strings, Italic and blue comments, and bold keywords, we now must
+modify our highlighter source code. This is not very nice, since this
+means that we might loose changes, once we want to regenerate the
+source code from the grammar file (e.g. because we added new
+keywords).</p>
+<p>So
+what we will do now, is that we&rsquo;ll modify our TOKENTYPES
+section, so that it includes the default styles for the different
+attributes.  The section will then look like this:</p>
+<div class="box">
+			<p>TOKENTYPES</p>
+			<p>Identifier</p>
+			<p>Comment
+			Style=[fsItalic]|Foreground=clNavy</p>
+			<p>Space</p>
+			<p>String
+			Foreground=clRed</p>
+			<p>Key
+			Style=[fsBold]</p>
+			<p>Test
+			Background=clSilver|Foreground=clBlue|Style=[fsUnderline,
+			fsItalic]</p>
+			<p>|&gt;&lt;|</p>
+</div>
+<p>As
+you&rsquo;ll notice, each token type can have 0 to 3 additional
+parameters, which specify the foreground, background and font style
+of the highlighter attribute. The different parameters are divided by
+a pipeline character (&lsquo;|&rsquo;), and the order in which the
+parameters are mentioned is irrelevant. You are also free to leave
+out any of the parameters, and then the highlighter attribute will
+keep it&rsquo;s default value for that parameter. </FONT></FONT>
+</P>
+<p>The
+value at the right sign of the equal operator, is considered to be
+valid Delphi code. The SynGen utility will assign this value directly
+to the associated attribute, and thus will not take any attempts to
+interpret it. This means that any of the following assignments are
+valid:</p>
+<div class="code">
+<p>Background=clWhite</p>
+<p>Background=$00FF00FF</p>
+<p>Background=RGB(255,255,255)</p>
+<p>etc.</p>
+</div>
+<h3><B>Adding
+sample source to the highlighter</B></h3>
+<p>Many
+highlighters in the SynEdit package, have implemented the
+GetSampleSource function. This function should return a code snippet,
+which demonstrates all the features of the highlighter. You can add
+sample source to your highlighter, by adding a SAMPLESOURCE section
+to your grammar file. The source you will enclose between the keyword
+&lsquo;SAMPLESOURCE&rsquo; and the terminator |&gt;&lt;|, will be
+taken literally by your new highlighter as the result of the
+GetSampleSource function. For our sample, our grammar file will be
+extended with this section (at the end of the file):</p>
+<div class="box">
+			<p>SAMPLESOURCE</p>
+			<p>{
+			Sample source for the demo highlighter }</p>
+			<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+			</P>
+			<p>This
+			highlighter will recognize the words Hello and </FONT></FONT>
+			</P>
+			<p>World
+			as keywords. It will also highlight &ldquo;Strings&rdquo;. </FONT></FONT>
+			</P>
+			<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+			</P>
+			<p>And
+			a special keyword type: SynEdit</p>
+			<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+			</P>
+			<p>/*
+			This style of comments is also highlighted */</p>
+			<p>|&gt;&lt;|</p>
+</div>
+<h3><B>Contributing
+your highlighter to the SynEdit package</B></h3>
+<p>Once you have finalized your highlighter, and want to contribute it to the
+SynEdit package, it should meet the following requirements:</p>
+<UL>
+	<LI><p>The
+	name of the highlighter class should be formatted as &lsquo;TSyn&rsquo;
+	+ LanguageName + &lsquo;Syn&rsquo;. So in our example it becomes
+	&lsquo;TSynSampleSyn&rsquo;.</p>
+	<LI><p>The
+	name of the highlighter unit should be formatted as &lsquo;SynHighlighter&rsquo;
+	+ LanguageName. So in our example it becomes &lsquo;SynHighlighterSample&rsquo;.</p>
+	<LI><p>If
+	the highlighter contains definitions of resourcestrings or consts
+	starting in the implementation section (SynGen will generate here 
+	&lsquo;SYNS_Lang*&rsquo;, &lsquo;SYNS_Filter*&rsquo; and optionally
+	&lsquo;SYNS_ATTR*&rsquo;), these should be moved to the
+	SynEditStr.pas unit.</p>
+	<LI><p>An
+	icon should be added for the highlighter in the SynEditReg.dcr file.</p>
+	<LI><p>The
+	highlighter should be registered on the &ldquo;SynEdit highlighters&rdquo;
+	component page in the SynEditReg.pas unit.</p>
+</UL>
+<h3><B>Sample sources</B></h3>
+<p>The
+sample sources from this tutorial are available in the SynEdit demos
+folder, as &lsquo;HighlighterDemo&rsquo;. This demo contains the
+grammar (.msg) file + a demo program showing the generated
+highlighter in use.</p>
+</BODY>
+</HTML>

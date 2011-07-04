@@ -1,0 +1,21 @@
+{$IFDEF MSWINDOWS}
+
+{$IFNDEF CLR}
+const
+  aclapilib = 'advapi32.dll';
+
+var
+  _SetNamedSecurityInfoW: Pointer;
+
+function SetNamedSecurityInfoW;
+begin
+  GetProcedureAddress(_SetNamedSecurityInfoW, aclapilib, 'SetNamedSecurityInfoW');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_SetNamedSecurityInfoW]
+  end;
+end;
+{$ENDIF ~CLR}
+
+{$ENDIF MSWINDOWS}

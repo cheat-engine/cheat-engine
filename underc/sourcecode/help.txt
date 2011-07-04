@@ -1,0 +1,113 @@
+UnderC Command Summary (available with #help)
+
+#q     Quit session
+
+#ql    Quit session, writing log file
+
+  The temp file is of the form <month><day>-<hour><min>
+
+#log   Write to <log file>
+
+  Currently only available in the Win32 GUI version (WCON)
+
+#cd    Change current directory <dir>
+
+#pwd   Show current directory
+
+#l     Load <file>
+
+#r     Run current program
+
+  This must have previously been loaded with #l
+
+#lib   Load <library> <import-file>
+
+  Any class declarations and function prototypes are
+  then imported from the specified shared library or DLL.
+  An optional import file can be used when linking DLLs without
+  symbolic imformation.
+
+  To end importing, it's important to say #lib (without a  parm)
+  Note: this is exactly the same as #pragma dlink <file>
+
+#alias Create an Alias for a Command
+
+  Aliases are defined like #define macros, but only substitute
+  the first token on the line, and pick up their arguments
+  separated by spaces. Commands or preprocessor directives can 
+  occur in the definition, and will be separated out; # has its
+  usual meaning as the stringizing and token-pasting operators.
+
+  For example,
+    #alias cd(x) @cd x @pwd
+    #alias D(obj,y,z) obj->set(y,z);
+    #alias L(f) @include #f
+
+  So the command "cd /test" is equivalent to
+    #cd /test
+    #pwd
+  and 'D p 10 20' expands to 'p->set(10,20)'
+
+#opt   Set Options
+
+ For example, #opt t+ v+
+
+ o- Auto Dissemble 
+ t- Function Trace
+ v- Verbose Mode
+ s- Strict Mode   (no implicit bool conversions)
+ p- Pointer Check
+ a- Access Control
+ c- Strip Prompt when Copying (WCON only)
+ C- C mode
+ T- Use typedef names if possible
+ L- Suppress Link Errors
+
+ The 'use typedefs' option is an interesting UnderC feature where
+ the compiler tries to use any defined typedefs instead of long
+ complex type names.  For example, if you have typedef'd IntMap
+ to be map<string,int>, then that type will appear as IntMap
+ in any error messages.
+
+#lv    Display all local variables
+
+#d     Display Variable
+
+#v     Information on Variable or Function
+
+#u     Dissemble Function
+
+#rm    Remove Symbol or Program
+
+  With 'main' as a parameter, removes the program.
+
+#s     Stop Program
+
+#mod   List Modules, or Position of Function
+
+  Without a parameter, lists all loaded modules
+  If given a function name, gives the file name and line number
+
+#types List Types <pat>
+
+  Can be given wildcards of the form pat* or *pat
+
+#funs  List Functions <pat>
+
+  Can be given wildcards of the form pat* or *pat
+
+#gt    Set Temporary Breakpoint at <file> <lineno>
+
+#b     Set Breakpoint at <file> <lineno>
+
+#bs    List Breakpoints in <file> 
+
+  This can also be used to set a number of breakpoints in a file,
+  when they have already been set with #b.  The new line numbers
+  follow the file name
+
+#ff    Set Frame <n>
+
+#mc    Clear All Macros
+
+  This will also clean out the global namespace.

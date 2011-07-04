@@ -1,0 +1,8 @@
+{$IFDEF MSWINDOWS}
+{$IFNDEF CLR}
+
+function NetApiBufferFree(Buffer: Pointer): NET_API_STATUS; stdcall;
+{$EXTERNALSYM NetApiBufferFree}
+
+{$ENDIF ~CLR}
+{$ENDIF MSWINDOWS}

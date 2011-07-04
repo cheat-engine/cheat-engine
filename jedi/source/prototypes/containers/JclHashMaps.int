@@ -1,0 +1,55 @@
+(*$JPPDEFINEMACRO JCLHASHMAPINT(ENTRYTYPENAME, ENTRYARRAYTYPENAME, BUCKETTYPENAME, BUCKETARRAYTYPENAME,
+  SELFCLASSNAME, ANCESTORNAME, MAPINTERFACENAME, KEYSETINTERFACENAME, VALUECOLLECTIONINTERFACENAME,
+  INTERFACEADDITIONAL, PRIVATEADDITIONAL, PROTECTEDADDITIONAL, PUBLICADDITIONAL, KEYOWNERSHIPDECLARATION, VALUEOWNERSHIPDECLARATION,
+  KEYCONSTKEYWORD, KEYTYPENAME, VALUECONSTKEYWORD, VALUETYPENAME)
+  ENTRYTYPENAME = record
+    Key: KEYTYPENAME;
+    Value: VALUETYPENAME;
+  end;
+
+  ENTRYARRAYTYPENAME = array of ENTRYTYPENAME;
+
+  BUCKETTYPENAME = class
+  public
+    Size: Integer;
+    Entries: ENTRYARRAYTYPENAME;
+  end;
+
+  BUCKETARRAYTYPENAME = array of BUCKETTYPENAME;
+
+  SELFCLASSNAME = class(ANCESTORNAME, {$IFDEF THREADSAFE} IJclLockable, {$ENDIF THREADSAFE}
+    IJclIntfCloneable, IJclCloneable, IJclGrowable, IJclPackable, IJclContainer,INTERFACEADDITIONAL
+    MAPINTERFACENAME)
+  private
+    FBuckets: BUCKETARRAYTYPENAME;
+    FHashFunction: TJclHashFunction;PRIVATEADDITIONAL
+  protected
+    procedure AssignDataTo(Dest: TJclAbstractContainerBase); override;
+    procedure AssignPropertiesTo(Dest: TJclAbstractContainerBase); override;
+    procedure MoveArray(var List: ENTRYARRAYTYPENAME; FromIndex, ToIndex, Count: Integer);
+    { IJclPackable }
+    procedure Pack; override;
+    procedure SetCapacity(Value: Integer); override;
+    { MAPINTERFACENAME }
+    procedure Clear;
+    function ContainsKey(KEYCONSTKEYWORDKey: KEYTYPENAME): Boolean;
+    function ContainsValue(VALUECONSTKEYWORDValue: VALUETYPENAME): Boolean;
+    function Equals(const AMap: MAPINTERFACENAME): Boolean;
+    function GetValue(KEYCONSTKEYWORDKey: KEYTYPENAME): VALUETYPENAME;
+    function IsEmpty: Boolean;
+    function KeyOfValue(VALUECONSTKEYWORDValue: VALUETYPENAME): KEYTYPENAME;
+    function KeySet: KEYSETINTERFACENAME;
+    procedure PutAll(const AMap: MAPINTERFACENAME);
+    procedure PutValue(KEYCONSTKEYWORDKey: KEYTYPENAME; VALUECONSTKEYWORDValue: VALUETYPENAME);
+    function Remove(KEYCONSTKEYWORDKey: KEYTYPENAME): VALUETYPENAME;
+    function Size: Integer;
+    function Values: VALUECOLLECTIONINTERFACENAME;
+    { IJclCloneable }
+    function IJclCloneable.Clone = ObjectClone;
+    { IJclIntfCloneable }
+    function IJclIntfCloneable.Clone = IntfClone;PROTECTEDADDITIONAL
+  public
+    constructor Create(ACapacity: IntegerVALUEOWNERSHIPDECLARATIONKEYOWNERSHIPDECLARATION);
+    destructor Destroy; override;
+    property HashFunction: TJclHashFunction read FHashFunction write FHashFunction;PUBLICADDITIONAL
+  end;*)

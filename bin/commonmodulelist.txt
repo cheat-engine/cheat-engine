@@ -1,0 +1,120 @@
+#write down modulenames that are commonly used by games
+#this decreases the number of wrong results in various types of memory inspection
+
+physxcore.dll #nvidia physx
+nxcooking.dll
+physxloader.dll
+physxextensions.dll
+cudart.dll
+openal32.dll
+vorbisfile.dll
+ogg.dll
+vorbis.dll
+vorbisenc.dll
+vorbisfile.dll
+binkw32.dll
+iconv.dll
+gameoverlayrenderer.dll  #steam
+mss32.dll
+dbghelp.dll
+umbra.dll
+unrar.dll
+cehook.dll
+allochook.dll
+dbghelp.dll
+
+#directx modules: (for games that load their directx file locally)
+d3dx9_24.dll
+d3dx9_25.dll
+d3dx9_26.dll
+d3dx9_27.dll
+d3dx9_28.dll
+d3dx9_29.dll
+d3dx9_30.dll
+d3dx9_31.dll
+d3dx9_32.dll
+d3dx9_33.dll
+d3dx9_34.dll
+d3dx9_35.dll
+d3dx9_36.dll
+d3dx9_37.dll
+d3dx9_38.dll
+d3dx9_39.dll
+d3dx9_40.dll
+d3dx9_41.dll
+d3dx9_42.dll
+d3dx9_43.dll
+d3dx9_44.dll
+d3dx9_45.dll
+d3dx10_33.dll
+d3dx10_34.dll
+d3dx10_35.dll
+d3dx10_36.dll
+d3dx10_37.dll
+d3dx10_38.dll
+d3dx10_39.dll
+d3dx10_40.dll
+d3dx10_41.dll
+d3dx10_42.dll
+d3dx10_43.dll
+d3dx10_44.dll
+d3dx10_45.dll
+
+#PSYCH'S ADDITIONS
+d3d9.dll  #hacked d3d9 (windowmodes, cheats etc)
+ffdshow.ax  #codec
+MP4Splitter.dll  #codec
+FLVSplitter.ax  #codec
+IMGDLL.dll
+ijl10.dll  #intel jpeg library
+zlib1.dll  #compression library
+steam_api.dll  #steam
+Steamclient.dll  #steam
+SteamAPIUpdater.dll  #steam
+UpdateDLLWrapper.dll  #steam
+gdf.dll  #game definition file
+gpudatabase.dll
+Lead3DEngine.dll
+Lead3DOffline.dll
+LeadD3DRender.dll
+LeadD3DRenderR.dll
+LeadD3DXenonR.dll
+systemdetection.dll
+DFA.dll  #securom
+EFLCGDF.dll  #game definition file
+FirewallInstallHelper.dll
+GameuxInstallHelper.dll
+LiveTokenHelper.dll  #GFWL
+paul.dll  #securom
+dsound.dll  #creative alchemy
+eax.dll  #directsound3d
+D3DCompiler_42.dll
+Sims3GDF.dll  #game definition file
+TSLHost.dll
+EAWebkit.dll
+patchw32.dll  #bink video?
+VistaShellSupport.dll
+bs.dll
+dvm.dll  #solidshield
+dvm_bf.dll  #solidshield
+dvm_Bootstrapper.dll  #solidshield
+GDFBinary.dll  #game definition file
+pcre3.dll  #perl
+QtCore4.dll
+QtGui4.dll
+QtNetwork4.dll
+winui.dll  #ui for securom module
+rld.dll  #no-disc fix
+skidrow.dll  #no-disc fix
+fmodex.dll  #fmod
+fmod_event.dll  #fmod
+dishp.dll  #disney happy pack?!
+GDFDLL.dll  #game definition file
+nvtt.dll  #nvidia
+wrap_oal.dll  #openal audio
+saAuditMT.dll  #uniloc
+saAudit2005MT.dll  #uniloc
+IntelLaptopGamingXP.dll
+IntelLaptopGamingVista.dll
+PathEngine.dll
+cufft.dll  #nvidia cuda

@@ -1,0 +1,78 @@
+UnderC Version 1.2.9 Release Notes
+
+1. member templates are now supported.
+
+We also fixed a bug in non-type template parameters, so this simple array class works:
+
+template <class T,int N>
+  struct Arr {
+     T m_arr[N];
+
+     T& operator[] (int idx)
+     { return m_arr[idx]; }
+
+     template <class IT>
+      void assign(IT s, IT e)
+      {
+       int i = 0;
+       for(; s != e; ++s)
+         m_arr[i++] = *s;
+      }
+  };
+
+A limitation: currently you may not define a member template outside the class body:
+
+template <class T,int N>
+  template <class IT>
+      void assign(IT s, IT e)
+      {
+       ...
+      }
+
+To celebrate member templates, <vector> has been updated to include the useful assign member:
+
+ int arr[] = {1,2,3};
+ vector<int> vi;          // should also be a ctor version...
+ vi.assign(arr,arr+3); 
+
+2. <map> has finally got a proper iterator, allowing one of my favourite four-liners:
+
+ // find the frequency of occuring words in a document
+  while (cin >> s)
+     m[s]++;
+  for(mi = m.begin(); mi != m.end(); ++mi) 
+    cout << mi->first << ' ' << mi->end << endl;
+
+ It also supports find().
+
+3. Module initialization and finalization is now much better handled. The problem is as follows: say I load a file containing the line 'ifstream in("fred.txt")' outside a function.  It's not particularly good style (you have to be absolutely sure that fred.txt does exist) but it illustrates an initialization issue.  Previous to this version, the object would always be created on load, and only destroyed at the end of the interactive session.  Now, loading any file with the extensions .c, .cpp and .cxx will create an explicit initialization function, which is _only_ called when the program is run. If you have test.cpp, then this function is called __test_init(), etc. It will also add a list of static objects to be destroyed to the 'loaded module list' (see 343ff in program.cpp); these will be executed when the program finishes.  You can now be pretty sure that static objects in a program will be re-created and destroyed afterwards, so the ifstream object above would be properly closed.
+
+This only matters to users who enjoy the interactive life; batch operation should not change.  Do note that loading files with any other extension will basically behave as before; objects created on load.  This is useful for importing stuff into an interactive session.  This only applies to files loaded with #l; #include remains dumb.  Be careful if you have previously been depending on #l to always initialize on load - it applies to everything, including array constants, etc. The only exception is integer constants, so the size of arrays is known at compile-time.
+
+4. The command-line version can evaluate expressions.
+  <your favourite command prompt> ucc -e 2*sin(2.2)
+  (double) 1.61699
+
+I'm not sure if this is _tremendously_ useful, except to people like me who dislike Windows Calculator and can't do arithmetric well.  If you put the expression in quotes, it may contain spaces and operators like >> which would otherwise confuse the command processor.
+
+5. Imported functions returning bool should now always work. I've introduced a new opcode, I2B, which converts from 32-bit integers to 8-bit bools by zeroing out the upper three bytes. I've only encountered this with DLLs built with MSVC++, but it's a nasty one. Certain hacks (see 88f, ucri.cpp) are no longer necessary.
+
+6. Arrays of zero size are explicitly forbidden.  I've done this particularly to catch odd initializers with the new strict module initialization stuff.  
+    int N() { return 999; }
+    const int K = N();   // perfectly good C++
+    int arr[K];          // will give zero-sized array error.
+
+7. Redefining a named enum is no longer a parse error. UC has to take a tolerant attitude to redeclaration because this will frequently take place during an interactive session; the enum problem meant that named enums could not be used when UC is being driven by an IDE.
+
+8. 'using std::vector' now works. Previously template names could not be used in this context.
+
+Thanks to François Revol, UC can now be built under BeOS; I've included his patches in 1.2.9. Any other x86 operating systems that you can think of? Non-x86 (like PPC) will require somebody to sit down and do some inline assembler, and rewrite that mad little code generator in directcall.cpp that does native stubs.
+
+
+
+
+
+
+
+
+

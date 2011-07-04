@@ -1,0 +1,452 @@
+(*$JPPDEFINEMACRO JCLSORTEDMAPIMP(SELFCLASSNAME, ENTRYARRAYTYPENAME,
+  STDMAPINTERFACENAME, SORTEDMAPINTERFACENAME, KEYSETINTERFACENAME, KEYITRINTERFACENAME, VALUECOLLECTIONINTERFACENAME,
+  KEYOWNERSHIPDECLARATION, VALUEOWNERSHIPDECLARATION, OWNERSHIPASSIGNMENTS,
+  KEYCONSTKEYWORD, KEYTYPENAME, KEYDEFAULT, VALUECONSTKEYWORD, VALUETYPENAME, VALUEDEFAULT)
+//=== { SELFCLASSNAME } ==============================================
+
+constructor SELFCLASSNAME.Create(ACapacity: IntegerVALUEOWNERSHIPDECLARATIONKEYOWNERSHIPDECLARATION);
+begin
+  inherited Create();OWNERSHIPASSIGNMENTS
+  SetCapacity(ACapacity);
+end;
+
+destructor SELFCLASSNAME.Destroy;
+begin
+  FReadOnly := False;
+  Clear;
+  inherited Destroy;
+end;
+
+procedure SELFCLASSNAME.AssignDataTo(Dest: TJclAbstractContainerBase);
+var
+  MyDest: SELFCLASSNAME;
+begin
+  inherited AssignDataTo(Dest);
+  if Dest is SELFCLASSNAME then
+  begin
+    MyDest := SELFCLASSNAME(Dest);
+    MyDest.SetCapacity(FSize);
+    MyDest.FEntries := FEntries;
+    MyDest.FSize := FSize;
+  end;
+end;
+
+function SELFCLASSNAME.BinarySearch(KEYCONSTKEYWORDKey: KEYTYPENAME): Integer;
+var
+  HiPos, LoPos, CompPos: Integer;
+  Comp: Integer;
+begin
+  {$JPPEXPANDMACRO READBEGIN}
+    LoPos := 0;
+    HiPos := FSize - 1;
+    CompPos := (HiPos + LoPos) div 2;
+    while HiPos >= LoPos do
+    begin
+      Comp := KeysCompare(FEntries[CompPos].Key, Key);
+      if Comp < 0 then
+        LoPos := CompPos + 1
+      else
+      if Comp > 0 then
+        HiPos := CompPos - 1
+      else
+      begin
+        HiPos := CompPos;
+        LoPos := CompPos + 1;
+      end;
+      CompPos := (HiPos + LoPos) div 2;
+    end;
+    Result := HiPos;
+  {$JPPEXPANDMACRO READEND}
+end;
+
+procedure SELFCLASSNAME.Clear;
+var
+  Index: Integer;
+begin
+  {$JPPEXPANDMACRO WRITEBEGIN}
+    for Index := 0 to FSize - 1 do
+    begin
+      FreeKey(FEntries[Index].Key);
+      FreeValue(FEntries[Index].Value);
+    end;
+    FSize := 0;
+    AutoPack;
+  {$JPPEXPANDMACRO WRITEEND}
+end;
+
+function SELFCLASSNAME.ContainsKey(KEYCONSTKEYWORDKey: KEYTYPENAME): Boolean;
+var
+  Index: Integer;
+begin
+  {$JPPEXPANDMACRO READBEGIN}
+    Index := BinarySearch(Key);
+    Result := (Index >= 0) and (KeysCompare(FEntries[Index].Key, Key) = 0);
+  {$JPPEXPANDMACRO READEND}
+end;
+
+function SELFCLASSNAME.ContainsValue(VALUECONSTKEYWORDValue: VALUETYPENAME): Boolean;
+var
+  Index: Integer;
+begin
+  {$JPPEXPANDMACRO READBEGIN}
+    Result := False;
+    for Index := 0 to FSize - 1 do
+      if ValuesCompare(FEntries[Index].Value, Value) = 0 then
+    begin
+      Result := True;
+      Break;
+    end;
+  {$JPPEXPANDMACRO READEND}
+end;
+
+{$JPPEXPANDMACRO CREATEEMPTYCONTAINER}
+function SELFCLASSNAME.Equals(const AMap: STDMAPINTERFACENAME): Boolean;
+var
+  It: KEYITRINTERFACENAME;
+  Index: Integer;
+  AKey: KEYTYPENAME;
+begin
+  {$JPPEXPANDMACRO READBEGIN}
+    Result := False;
+    if AMap = nil then
+      Exit;
+    if FSize <> AMap.Size then
+      Exit;
+    It := AMap.KeySet.First;
+    Index := 0;
+    while It.HasNext do
+    begin
+      if Index >= FSize then
+        Exit;
+      AKey := It.Next;
+      if ValuesCompare(AMap.GetValue(AKey), FEntries[Index].Value) <> 0 then
+        Exit;
+      Inc(Index);
+    end;
+    Result := True;
+  {$JPPEXPANDMACRO READEND}
+end;
+
+function SELFCLASSNAME.FirstKey: KEYTYPENAME;
+begin
+  {$JPPEXPANDMACRO READBEGIN}
+    Result := KEYDEFAULT;
+    if FSize > 0 then
+      Result := FEntries[0].Key
+    else
+    if not FReturnDefaultElements then
+      raise EJclNoSuchElementError.Create('');
+  {$JPPEXPANDMACRO READEND}
+end;
+
+{$JPPEXPANDMACRO FREEKEY}
+{$JPPEXPANDMACRO FREEVALUE}
+{$JPPEXPANDMACRO GETOWNSKEYS}
+{$JPPEXPANDMACRO GETOWNSVALUES}
+function SELFCLASSNAME.GetValue(KEYCONSTKEYWORDKey: KEYTYPENAME): VALUETYPENAME;
+var
+  Index: Integer;
+begin
+  {$JPPEXPANDMACRO READBEGIN}
+    Index := BinarySearch(Key);
+    Result := VALUEDEFAULT;
+    if (Index >= 0) and (KeysCompare(FEntries[Index].Key, Key) = 0) then
+      Result := FEntries[Index].Value
+    else if not FReturnDefaultElements then
+      raise EJclNoSuchElementError.Create('');
+  {$JPPEXPANDMACRO READEND}
+end;
+
+function SELFCLASSNAME.HeadMap(KEYCONSTKEYWORDToKey: KEYTYPENAME): SORTEDMAPINTERFACENAME;
+var
+  ToIndex: Integer;
+  NewMap: SELFCLASSNAME;
+begin
+  {$JPPEXPANDMACRO READBEGIN}
+    NewMap := CreateEmptyContainer as SELFCLASSNAME;
+    ToIndex := BinarySearch(ToKey);
+    if ToIndex >= 0 then
+    begin
+      NewMap.SetCapacity(ToIndex + 1);
+      NewMap.FSize := ToIndex + 1;
+      while ToIndex >= 0 do
+      begin
+        NewMap.FEntries[ToIndex] := FEntries[ToIndex];
+        Dec(ToIndex);
+      end;
+    end;
+    Result := NewMap;
+  {$JPPEXPANDMACRO READEND}
+end;
+
+function SELFCLASSNAME.IsEmpty: Boolean;
+begin
+  {$JPPEXPANDMACRO READBEGIN}
+    Result := FSize = 0;
+  {$JPPEXPANDMACRO READEND}
+end;
+
+function SELFCLASSNAME.KeyOfValue(VALUECONSTKEYWORDValue: VALUETYPENAME): KEYTYPENAME;
+var
+  Index: Integer;
+  Found: Boolean;
+begin
+  {$JPPEXPANDMACRO READBEGIN}
+   Found := False;
+    Result := KEYDEFAULT;
+    for Index := 0 to FSize - 1 do
+      if ValuesCompare(FEntries[Index].Value, Value) = 0 then
+    begin
+      Result := FEntries[Index].Key;
+      Found := True;
+      Break;
+    end;
+
+    if (not Found) and (not FReturnDefaultElements) then
+      raise EJclNoSuchElementError.Create('');
+  {$JPPEXPANDMACRO READEND}
+end;
+
+{$JPPEXPANDMACRO KEYSCOMPARE}
+function SELFCLASSNAME.KeySet: KEYSETINTERFACENAME;
+var
+  Index: Integer;
+begin
+  {$JPPEXPANDMACRO READBEGIN}
+    Result := {$JPPEXPANDMACRO CREATEEMPTYARRAYSET(FSize)};
+    for Index := 0 to FSize - 1 do
+      Result.Add(FEntries[Index].Key);
+  {$JPPEXPANDMACRO READEND}
+end;
+
+function SELFCLASSNAME.LastKey: KEYTYPENAME;
+begin
+  {$JPPEXPANDMACRO READBEGIN}
+    Result := KEYDEFAULT;
+    if FSize > 0 then
+      Result := FEntries[FSize - 1].Key
+    else
+    if not FReturnDefaultElements then
+      raise EJclNoSuchElementError.Create('');
+  {$JPPEXPANDMACRO READEND}
+end;
+
+procedure SELFCLASSNAME.MoveArray(FromIndex, ToIndex, Count: Integer);
+{$IFDEF CLR}
+var
+  I: Integer;
+begin
+  if FromIndex < ToIndex then
+  begin
+    for I := Count - 1 downto 0 do
+      FEntries[ToIndex + I] := FEntries[FromIndex + I];
+    if (ToIndex - FromIndex) < Count then
+      // overlapped source and target
+      for I := 0 to ToIndex - FromIndex - 1 do
+      begin
+        FEntries[FromIndex + I].Key := KEYDEFAULT;
+        FEntries[FromIndex + I].Value := VALUEDEFAULT;
+      end
+    else
+      // independant
+      for I := 0 to Count - 1 do
+      begin
+        FEntries[FromIndex + I].Key := KEYDEFAULT;
+        FEntries[FromIndex + I].Value := VALUEDEFAULT;
+      end;
+  end
+  else
+  if FromIndex > ToIndex then
+  begin
+    for I := 0 to Count - 1 do
+      FEntries[ToIndex + I] := FEntries[FromIndex + I];
+    if (FromIndex - ToIndex) < Count then
+      // overlapped source and target
+      for I := Count - FromIndex + ToIndex to Count - 1 do
+      begin
+        FEntries[FromIndex + I].Key := KEYDEFAULT;
+        FEntries[FromIndex + I].Value := VALUEDEFAULT;
+      end
+    else
+      // independant
+      for I := 0 to Count - 1 do
+      begin
+        FEntries[FromIndex + I].Key := KEYDEFAULT;
+        FEntries[FromIndex + I].Value := VALUEDEFAULT;
+      end;
+  end;
+end;
+{$ELSE}
+begin
+  if Count > 0 then
+  begin
+    Move(FEntries[FromIndex], FEntries[ToIndex], Count * SizeOf(FEntries[0]));
+    { Keep reference counting working }
+    if FromIndex < ToIndex then
+    begin
+      if (ToIndex - FromIndex) < Count then
+        FillChar(FEntries[FromIndex], (ToIndex - FromIndex) * SizeOf(FEntries[0]), 0)
+      else
+        FillChar(FEntries[FromIndex], Count * SizeOf(FEntries[0]), 0);
+    end
+    else
+    if FromIndex > ToIndex then
+    begin
+      if (FromIndex - ToIndex) < Count then
+        FillChar(FEntries[ToIndex + Count], (FromIndex - ToIndex) * SizeOf(FEntries[0]), 0)
+      else
+        FillChar(FEntries[FromIndex], Count * SizeOf(FEntries[0]), 0);
+    end;
+  end;
+end;
+{$ENDIF CLR}
+
+procedure SELFCLASSNAME.PutAll(const AMap: STDMAPINTERFACENAME);
+var
+  It: KEYITRINTERFACENAME;
+  Key: KEYTYPENAME;
+begin
+  {$JPPEXPANDMACRO WRITEBEGIN}
+    if AMap = nil then
+      Exit;
+    It := AMap.KeySet.First;
+    while It.HasNext do
+    begin
+      Key := It.Next;
+      PutValue(Key, AMap.GetValue(Key));
+    end;
+  {$JPPEXPANDMACRO WRITEEND}
+end;
+
+procedure SELFCLASSNAME.PutValue(KEYCONSTKEYWORDKey: KEYTYPENAME; VALUECONSTKEYWORDValue: VALUETYPENAME);
+var
+  Index: Integer;
+begin
+  {$JPPEXPANDMACRO WRITEBEGIN}
+    if FAllowDefaultElements or ((KeysCompare(Key, KEYDEFAULT) <> 0) and (ValuesCompare(Value, VALUEDEFAULT) <> 0)) then
+    begin
+      Index := BinarySearch(Key);
+
+      if (Index >= 0) and (KeysCompare(FEntries[Index].Key, Key) = 0) then
+      begin
+        FreeValue(FEntries[Index].Value);
+        FEntries[Index].Value := Value;
+      end
+      else
+      begin
+        if FSize = FCapacity then
+          AutoGrow;
+        if FSize < FCapacity then
+        begin
+          Inc(Index);
+          if (Index < FSize) and (KeysCompare(FEntries[Index].Key, Key) <> 0) then
+            MoveArray(Index, Index + 1, FSize - Index);
+          FEntries[Index].Key := Key;
+          FEntries[Index].Value := Value;
+          Inc(FSize);
+        end;
+      end;
+    end;
+  {$JPPEXPANDMACRO WRITEEND}
+end;
+
+function SELFCLASSNAME.Remove(KEYCONSTKEYWORDKey: KEYTYPENAME): VALUETYPENAME;
+var
+  Index: Integer;
+begin
+  {$JPPEXPANDMACRO WRITEBEGIN}
+    Index := BinarySearch(Key);
+    if (Index >= 0) and (KeysCompare(FEntries[Index].Key, Key) = 0) then
+    begin
+      Result := FreeValue(FEntries[Index].Value);
+      FreeKey(FEntries[Index].Key);
+      if Index < (FSize - 1) then
+        MoveArray(Index + 1, Index, FSize - Index - 1);
+      Dec(FSize);
+      AutoPack;
+    end
+    else
+      Result := VALUEDEFAULT;
+  {$JPPEXPANDMACRO WRITEEND}
+end;
+
+procedure SELFCLASSNAME.SetCapacity(Value: Integer);
+begin
+  {$JPPEXPANDMACRO WRITEBEGIN}
+    if FSize <= Value then
+    begin
+      SetLength(FEntries, Value);
+      inherited SetCapacity(Value);
+    end
+    else
+      raise EJclOperationNotSupportedError.Create;
+  {$JPPEXPANDMACRO WRITEEND}
+end;
+
+function SELFCLASSNAME.Size: Integer;
+begin
+  Result := FSize;
+end;
+
+function SELFCLASSNAME.SubMap(KEYCONSTKEYWORDFromKey, ToKey: KEYTYPENAME): SORTEDMAPINTERFACENAME;
+var
+  FromIndex, ToIndex: Integer;
+  NewMap: SELFCLASSNAME;
+begin
+  {$JPPEXPANDMACRO READBEGIN}
+    NewMap := CreateEmptyContainer as SELFCLASSNAME;
+    FromIndex := BinarySearch(FromKey);
+    if (FromIndex = -1) or (KeysCompare(FEntries[FromIndex].Key, FromKey) < 0) then
+      Inc(FromIndex);
+    ToIndex := BinarySearch(ToKey);
+    if (FromIndex >= 0) and (FromIndex <= ToIndex) then
+    begin
+      NewMap.SetCapacity(ToIndex - FromIndex + 1);
+      NewMap.FSize := ToIndex - FromIndex + 1;
+      while ToIndex >= FromIndex do
+      begin
+        NewMap.FEntries[ToIndex - FromIndex] := FEntries[ToIndex];
+        Dec(ToIndex);
+      end;
+    end;
+    Result := NewMap;
+  {$JPPEXPANDMACRO READEND}
+end;
+
+function SELFCLASSNAME.TailMap(KEYCONSTKEYWORDFromKey: KEYTYPENAME): SORTEDMAPINTERFACENAME;
+var
+  FromIndex, Index: Integer;
+  NewMap: SELFCLASSNAME;
+begin
+  {$JPPEXPANDMACRO READBEGIN}
+    NewMap := CreateEmptyContainer as SELFCLASSNAME;
+    FromIndex := BinarySearch(FromKey);
+    if (FromIndex = -1) or (KeysCompare(FEntries[FromIndex].Key, FromKey) < 0) then
+      Inc(FromIndex);
+    if (FromIndex >= 0) and (FromIndex < FSize) then
+    begin
+      NewMap.SetCapacity(FSize - FromIndex);
+      NewMap.FSize := FSize - FromIndex;
+      Index := FromIndex;
+      while Index < FSize do
+      begin
+        NewMap.FEntries[Index - FromIndex] := FEntries[Index];
+        Inc(Index);
+      end;
+    end;
+    Result := NewMap;
+  {$JPPEXPANDMACRO READEND}
+end;
+
+function SELFCLASSNAME.Values: VALUECOLLECTIONINTERFACENAME;
+var
+  Index: Integer;
+begin
+  {$JPPEXPANDMACRO READBEGIN}
+    Result := {$JPPEXPANDMACRO CREATEEMPTYARRAYLIST(FSize)};
+    for Index := 0 to FSize - 1 do
+      Result.Add(FEntries[Index].Value);
+  {$JPPEXPANDMACRO READEND}
+end;
+
+{$JPPEXPANDMACRO VALUESCOMPARE}*)

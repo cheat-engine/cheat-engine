@@ -1,0 +1,97 @@
+(*$JPPDEFINEMACRO JCLARRAYSETIMP(SELFCLASSNAME, COLLECTIONINTERFACENAME, ITRINTERFACENAME, CONSTKEYWORD, PARAMETERNAME, TYPENAME, DEFAULTVALUE, GETTERNAME)
+//=== { SELFCLASSNAME } ====================================================
+
+function SELFCLASSNAME.Add(CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;
+var
+  Idx: Integer;
+begin
+  {$JPPEXPANDMACRO WRITEBEGIN}
+    Result := FAllowDefaultElements or not ItemsEqual(PARAMETERNAME, DEFAULTVALUE);
+    if Result then
+    begin
+      Idx := BinarySearch(PARAMETERNAME);
+      if Idx >= 0 then
+        Result := not ItemsEqual(GETTERNAME(Idx), PARAMETERNAME) or CheckDuplicate
+      else
+        Result := True;
+      if Result then
+        Result := inherited Insert(Idx + 1, PARAMETERNAME);
+    end;
+  {$JPPEXPANDMACRO WRITEEND}
+end;
+
+function SELFCLASSNAME.AddAll(const ACollection: COLLECTIONINTERFACENAME): Boolean;
+var
+  It: ITRINTERFACENAME;
+begin
+  {$JPPEXPANDMACRO WRITEBEGIN}
+    Result := False;
+    if ACollection = nil then
+      Exit;
+    It := ACollection.First;
+    while It.HasNext do
+      Result := Add(It.Next) and Result;
+  {$JPPEXPANDMACRO WRITEEND}
+end;
+
+function SELFCLASSNAME.BinarySearch(CONSTKEYWORDPARAMETERNAME: TYPENAME): Integer;
+var
+  HiPos, LoPos, CompPos: Integer;
+  Comp: Integer;
+begin
+  {$JPPEXPANDMACRO READBEGIN}
+    LoPos := 0;
+    HiPos := Size - 1;
+    CompPos := (HiPos + LoPos) div 2;
+    while HiPos >= LoPos do
+    begin
+      Comp := ItemsCompare(GETTERNAME(CompPos), PARAMETERNAME);
+      if Comp < 0 then
+        LoPos := CompPos + 1
+      else
+      if Comp > 0 then
+        HiPos := CompPos - 1
+      else
+      begin
+        HiPos := CompPos;
+        LoPos := CompPos + 1;
+      end;
+      CompPos := (HiPos + LoPos) div 2;
+    end;
+    Result := HiPos;
+  {$JPPEXPANDMACRO READEND}
+end;
+
+function SELFCLASSNAME.Contains(CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;
+var
+  Idx: Integer;
+begin
+  {$JPPEXPANDMACRO READBEGIN}
+    Idx := BinarySearch(PARAMETERNAME);
+    if Idx >= 0 then
+      Result := ItemsEqual(GETTERNAME(Idx), PARAMETERNAME)
+    else
+      Result := False;
+  {$JPPEXPANDMACRO READEND}
+end;
+
+{$JPPEXPANDMACRO CREATEEMPTYCONTAINER}
+function SELFCLASSNAME.Insert(Index: Integer; CONSTKEYWORDPARAMETERNAME: TYPENAME): Boolean;
+begin
+  raise EJclOperationNotSupportedError.Create;
+end;
+
+procedure SELFCLASSNAME.Intersect(const ACollection: COLLECTIONINTERFACENAME);
+begin
+  RetainAll(ACollection);
+end;
+
+procedure SELFCLASSNAME.Subtract(const ACollection: COLLECTIONINTERFACENAME);
+begin
+  RemoveAll(ACollection);
+end;
+
+procedure SELFCLASSNAME.Union(const ACollection: COLLECTIONINTERFACENAME);
+begin
+  AddAll(ACollection);
+end;*)

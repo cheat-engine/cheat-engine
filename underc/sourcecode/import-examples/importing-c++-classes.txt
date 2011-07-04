@@ -1,0 +1,39 @@
+Any shared library that wishes to export C++ classes to UC
+must be relinked with the ucstub.cpp file. This redefines operator
+new and delete, so that both UC and the DLL use the same allocation
+strategy for objects.  In particular, an object from an imported
+class with virtual methods needs extra room for both a UC virtual
+method table (VMT) and a native virtual function table (vftable).
+
+Update: vs 1.2.0
+
+This is no longer always necessary, since UC 1.2 will choose an
+alternative strategy for associating the VMT with instances of imported
+classes. It will be somewhat slower, however. Also, you have to switch off
+global overallocation in UCW using the -O command line switch.
+
+In the case of Linux, shared libraries automatically use the overloaded 
+new & delete operators in UC, so the issue doesn't arise.
+
+To build a DLL using the MS command-line tools:
+c:\ucw\import-examples> cl -LD import5.cpp ucstub.cpp
+
+Where ucstub.cpp is no longer absolutely essential! If it wasn't there,
+then run ucw like so:
+
+c:\ucw\import-examples> ucw -O
+
+Then in your UC code have:
+ #lib import5.dll
+ #include "import5.h"
+ #lib
+
+To use GCC, either on Linux or Win32 (the Mingw release):
+
+~/stuff/ucw/import-examples$ g++ -shared import5.cpp -o import5
+
+The import1 example uses a 'fake' standard string class. Unfortunately
+UC can't cope with the real standard string (yet!) and so we have to
+use something which is similar.
+
+

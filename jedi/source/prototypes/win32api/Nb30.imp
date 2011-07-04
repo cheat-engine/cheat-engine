@@ -1,0 +1,20 @@
+{$IFDEF MSWINDOWS}
+
+{$IFNDEF CLR}
+
+var
+  _Netbios: Pointer;
+
+function Netbios;
+begin
+  GetProcedureAddress(_Netbios, 'netapi32.dll', 'Netbios');
+  asm
+    mov esp, ebp
+    pop ebp
+    jmp [_Netbios]
+  end;
+end;
+
+{$ENDIF ~CLR}
+
+{$ENDIF MSWINDOWS}

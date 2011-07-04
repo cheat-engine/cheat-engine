@@ -1,0 +1,204 @@
+
+{$IFNDEF CLR}
+
+const
+  IMAGE_SEPARATION = (64*1024);
+  {$EXTERNALSYM IMAGE_SEPARATION}
+
+type
+  PLOADED_IMAGE = ^LOADED_IMAGE;
+  {$EXTERNALSYM PLOADED_IMAGE}
+  _LOADED_IMAGE = record
+    ModuleName: PChar;
+    hFile: THandle;
+    MappedAddress: PAnsiChar;  // PUCHAR;
+    FileHeader: PImageNtHeaders;
+    LastRvaSection: PImageSectionHeader;
+    NumberOfSections: ULONG;
+    Sections: PImageSectionHeader;
+    Characteristics: ULONG;
+    fSystemImage: ByteBool;
+    fDOSImage: ByteBool;
+    Links: LIST_ENTRY;
+    SizeOfImage: ULONG;
+  end;
+  {$EXTERNALSYM _LOADED_IMAGE}
+  LOADED_IMAGE = _LOADED_IMAGE;
+  {$EXTERNALSYM LOADED_IMAGE}
+  TLoadedImage = LOADED_IMAGE;
+  PLoadedImage = PLOADED_IMAGE;
+
+// line 152
+
+function ReBaseImage(CurrentImageName: PAnsiChar; SymbolPath: PAnsiChar; fReBase: BOOL;
+  fRebaseSysfileOk: BOOL; fGoingDown: BOOL; CheckImageSize: ULONG;
+  var OldImageSize: ULONG; var OldImageBase: ULONG_PTR; var NewImageSize: ULONG;
+  var NewImageBase: ULONG_PTR; TimeStamp: ULONG): BOOL; stdcall;
+{$EXTERNALSYM ReBaseImage}
+
+function ReBaseImage64(CurrentImageName: PAnsiChar; SymbolPath: PAnsiChar; fReBase: BOOL;
+  fRebaseSysfileOk: BOOL; fGoingDown: BOOL; CheckImageSize: ULONG;
+  var OldImageSize: ULONG; var OldImageBase: TJclAddr64; var NewImageSize: ULONG;
+  var NewImageBase: TJclAddr64; TimeStamp: ULONG): BOOL; stdcall;
+{$EXTERNALSYM ReBaseImage64}
+
+// line 199
+
+//
+// Define checksum function prototypes.
+//
+
+function CheckSumMappedFile(BaseAddress: Pointer; FileLength: DWORD;
+  out HeaderSum, CheckSum: DWORD): PImageNtHeaders; stdcall;
+{$EXTERNALSYM CheckSumMappedFile}
+
+// line 227
+
+function GetImageUnusedHeaderBytes(const LoadedImage: LOADED_IMAGE;
+  var SizeUnusedHeaderBytes: DWORD): DWORD; stdcall;
+{$EXTERNALSYM GetImageUnusedHeaderBytes}
+
+// line 285
+
+function MapAndLoad(ImageName, DllPath: PChar; var LoadedImage: LOADED_IMAGE;
+  DotDll: BOOL; ReadOnly: BOOL): BOOL; stdcall;
+{$EXTERNALSYM MapAndLoad}
+
+function UnMapAndLoad(const LoadedImage: LOADED_IMAGE): BOOL; stdcall;
+{$EXTERNALSYM UnMapAndLoad}
+
+function TouchFileTimes(const FileHandle: THandle; const pSystemTime: TSystemTime): BOOL; stdcall;
+{$EXTERNALSYM TouchFileTimes}
+
+// line 347
+
+function ImageDirectoryEntryToData(Base: Pointer; MappedAsImage: ByteBool;
+  DirectoryEntry: USHORT; var Size: ULONG): Pointer; stdcall;
+{$EXTERNALSYM ImageDirectoryEntryToData}
+
+function ImageRvaToSection(NtHeaders: PImageNtHeaders; Base: Pointer; Rva: ULONG): PImageSectionHeader; stdcall;
+{$EXTERNALSYM ImageRvaToSection}
+
+function ImageRvaToVa(NtHeaders: PImageNtHeaders; Base: Pointer; Rva: ULONG;
+  LastRvaSection: PPImageSectionHeader): Pointer; stdcall;
+{$EXTERNALSYM ImageRvaToVa}
+
+{$ENDIF ~CLR}
+
+// line 461
+
+//
+// UnDecorateSymbolName Flags
+//
+
+const
+  UNDNAME_COMPLETE               = ($0000); // Enable full undecoration
+  {$EXTERNALSYM UNDNAME_COMPLETE}
+  UNDNAME_NO_LEADING_UNDERSCORES = ($0001); // Remove leading underscores from MS extended keywords
+  {$EXTERNALSYM UNDNAME_NO_LEADING_UNDERSCORES}
+  UNDNAME_NO_MS_KEYWORDS         = ($0002); // Disable expansion of MS extended keywords
+  {$EXTERNALSYM UNDNAME_NO_MS_KEYWORDS}
+  UNDNAME_NO_FUNCTION_RETURNS    = ($0004); // Disable expansion of return type for primary declaration
+  {$EXTERNALSYM UNDNAME_NO_FUNCTION_RETURNS}
+  UNDNAME_NO_ALLOCATION_MODEL    = ($0008); // Disable expansion of the declaration model
+  {$EXTERNALSYM UNDNAME_NO_ALLOCATION_MODEL}
+  UNDNAME_NO_ALLOCATION_LANGUAGE = ($0010); // Disable expansion of the declaration language specifier
+  {$EXTERNALSYM UNDNAME_NO_ALLOCATION_LANGUAGE}
+  UNDNAME_NO_MS_THISTYPE         = ($0020); // NYI Disable expansion of MS keywords on the 'this' type for primary declaration
+  {$EXTERNALSYM UNDNAME_NO_MS_THISTYPE}
+  UNDNAME_NO_CV_THISTYPE         = ($0040); // NYI Disable expansion of CV modifiers on the 'this' type for primary declaration
+  {$EXTERNALSYM UNDNAME_NO_CV_THISTYPE}
+  UNDNAME_NO_THISTYPE            = ($0060); // Disable all modifiers on the 'this' type
+  {$EXTERNALSYM UNDNAME_NO_THISTYPE}
+  UNDNAME_NO_ACCESS_SPECIFIERS   = ($0080); // Disable expansion of access specifiers for members
+  {$EXTERNALSYM UNDNAME_NO_ACCESS_SPECIFIERS}
+  UNDNAME_NO_THROW_SIGNATURES    = ($0100); // Disable expansion of 'throw-signatures' for functions and pointers to functions
+  {$EXTERNALSYM UNDNAME_NO_THROW_SIGNATURES}
+  UNDNAME_NO_MEMBER_TYPE         = ($0200); // Disable expansion of 'static' or 'virtual'ness of members
+  {$EXTERNALSYM UNDNAME_NO_MEMBER_TYPE}
+  UNDNAME_NO_RETURN_UDT_MODEL    = ($0400); // Disable expansion of MS model for UDT returns
+  {$EXTERNALSYM UNDNAME_NO_RETURN_UDT_MODEL}
+  UNDNAME_32_BIT_DECODE          = ($0800); // Undecorate 32-bit decorated names
+  {$EXTERNALSYM UNDNAME_32_BIT_DECODE}
+  UNDNAME_NAME_ONLY              = ($1000); // Crack only the name for primary declaration;
+  {$EXTERNALSYM UNDNAME_NAME_ONLY}
+                                                                                                   //  return just [scope::]name.  Does expand template params
+  UNDNAME_NO_ARGUMENTS    = ($2000); // Don't undecorate arguments to function
+  {$EXTERNALSYM UNDNAME_NO_ARGUMENTS}
+  UNDNAME_NO_SPECIAL_SYMS = ($4000); // Don't undecorate special names (v-table, vcall, vector xxx, metatype, etc)
+  {$EXTERNALSYM UNDNAME_NO_SPECIAL_SYMS}
+
+function UnDecorateSymbolName(DecoratedName: {$IFDEF CLR}string{$ELSE}PAnsiChar{$ENDIF};
+  UnDecoratedName: {$IFDEF CLR}string{$ELSE}PAnsiChar{$ENDIF}; UndecoratedLength: DWORD; Flags: DWORD): DWORD; stdcall;
+  {$IFDEF CLR}external 'imagehlp.dll' name 'UnDecorateSymbolName';{$ENDIF}
+{$EXTERNALSYM UnDecorateSymbolName}
+
+// line 1342
+
+type
+  _IMAGEHLP_LINE = packed record
+    SizeOfStruct: DWORD;           // set to sizeof(IMAGEHLP_LINE)
+    Key: Pointer;                  // internal
+    LineNumber: DWORD;             // line number in file
+    FileName: PChar;               // full filename
+    Address: DWORD;                // first instruction of line
+  end;
+
+  IMAGEHLP_LINE = _IMAGEHLP_LINE;
+  PIMAGEHLP_LINE = ^_IMAGEHLP_LINE;
+
+  TImageHlpLine = _IMAGEHLP_LINE;
+  PImageHlpLine = PIMAGEHLP_LINE;
+
+// line 1475
+
+//
+// options that are set/returned by SymSetOptions() & SymGetOptions()
+// these are used as a mask
+//
+
+const
+// defined in ImageHlp.pas
+//  SYMOPT_CASE_INSENSITIVE       = $00000001;
+//  {$EXTERNALSYM SYMOPT_CASE_INSENSITIVE}
+//  SYMOPT_UNDNAME                = $00000002;
+//  {$EXTERNALSYM SYMOPT_UNDNAME}
+//  SYMOPT_DEFERRED_LOADS         = $00000004;
+//  {$EXTERNALSYM SYMOPT_DEFERRED_LOADS}
+//  SYMOPT_NO_CPP                 = $00000008;
+//  {$EXTERNALSYM SYMOPT_NO_CPP}
+  SYMOPT_LOAD_LINES             = $00000010;
+  {$EXTERNALSYM SYMOPT_LOAD_LINES}
+  SYMOPT_OMAP_FIND_NEAREST      = $00000020;
+  {$EXTERNALSYM SYMOPT_OMAP_FIND_NEAREST}
+  SYMOPT_LOAD_ANYTHING          = $00000040;
+  {$EXTERNALSYM SYMOPT_LOAD_ANYTHING}
+  SYMOPT_IGNORE_CVREC           = $00000080;
+  {$EXTERNALSYM SYMOPT_IGNORE_CVREC}
+  SYMOPT_NO_UNQUALIFIED_LOADS   = $00000100;
+  {$EXTERNALSYM SYMOPT_NO_UNQUALIFIED_LOADS}
+  SYMOPT_FAIL_CRITICAL_ERRORS   = $00000200;
+  {$EXTERNALSYM SYMOPT_FAIL_CRITICAL_ERRORS}
+  SYMOPT_EXACT_SYMBOLS          = $00000400;
+  {$EXTERNALSYM SYMOPT_EXACT_SYMBOLS}
+  SYMOPT_ALLOW_ABSOLUTE_SYMBOLS = $00000800;
+  {$EXTERNALSYM SYMOPT_ALLOW_ABSOLUTE_SYMBOLS}
+  SYMOPT_IGNORE_NT_SYMPATH      = $00001000;
+  {$EXTERNALSYM SYMOPT_IGNORE_NT_SYMPATH}
+  SYMOPT_INCLUDE_32BIT_MODULES  = $00002000;
+  {$EXTERNALSYM SYMOPT_INCLUDE_32BIT_MODULES}
+  SYMOPT_PUBLICS_ONLY           = $00004000;
+  {$EXTERNALSYM SYMOPT_PUBLICS_ONLY}
+  SYMOPT_NO_PUBLICS             = $00008000;
+  {$EXTERNALSYM SYMOPT_NO_PUBLICS}
+  SYMOPT_AUTO_PUBLICS           = $00010000;
+  {$EXTERNALSYM SYMOPT_AUTO_PUBLICS}
+  SYMOPT_NO_IMAGE_SEARCH        = $00020000;
+  {$EXTERNALSYM SYMOPT_NO_IMAGE_SEARCH}
+  SYMOPT_SECURE                 = $00040000;
+  {$EXTERNALSYM SYMOPT_SECURE}
+  SYMOPT_NO_PROMPTS             = $00080000;
+  {$EXTERNALSYM SYMOPT_NO_PROMPTS}
+
+  SYMOPT_DEBUG                  = $80000000;
+  {$EXTERNALSYM SYMOPT_DEBUG}

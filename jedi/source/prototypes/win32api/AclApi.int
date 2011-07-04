@@ -1,0 +1,12 @@
+// From JwaAclApi
+
+// line 185
+
+{$IFDEF MSWINDOWS}
+{$IFNDEF CLR}
+function SetNamedSecurityInfoW(pObjectName: LPWSTR; ObjectType: SE_OBJECT_TYPE;
+  SecurityInfo: SECURITY_INFORMATION; psidOwner, psidGroup: PSID;
+  pDacl, pSacl: PACL): DWORD; stdcall;
+{$EXTERNALSYM SetNamedSecurityInfoW}
+{$ENDIF ~CLR}
+{$ENDIF MSWINDOWS}

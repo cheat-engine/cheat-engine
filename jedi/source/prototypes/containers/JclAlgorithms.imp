@@ -1,0 +1,168 @@
+(*$JPPDEFINEMACRO APPLYIMP(PROCNAME, ITRINTERFACENAME, CALLBACKTYPE, SETTERNAME)
+procedure PROCNAME(const First: ITRINTERFACENAME; Count: Integer; F: CALLBACKTYPE);
+var
+  I: Integer;
+begin
+  for I := Count - 1 downto 0 do
+    if First.HasNext then
+      First.SETTERNAME(F(First.Next))
+    else
+      Break;
+end;*)
+(*$JPPDEFINEMACRO FINDIMP(PROCNAME, ITRINTERFACENAME, CONSTKEYWORD, PARAMETERNAME, TYPENAME, CALLBACKTYPE)
+function PROCNAME(const First: ITRINTERFACENAME; Count: Integer;
+  CONSTKEYWORDPARAMETERNAME: TYPENAME; AComparator: CALLBACKTYPE): ITRINTERFACENAME;
+var
+  I: Integer;
+begin
+  Result := nil;
+  for I := Count - 1 downto 0 do
+    if First.HasNext then
+    begin
+      if AComparator(First.Next, PARAMETERNAME) = 0 then
+      begin
+        Result := First;
+        Break;
+      end;
+    end
+    else
+      Break;
+end;*)
+(*$JPPDEFINEMACRO FINDEQIMP(PROCNAME, ITRINTERFACENAME, CONSTKEYWORD, PARAMETERNAME, TYPENAME, CALLBACKTYPE)
+function PROCNAME(const First: ITRINTERFACENAME; Count: Integer;
+  CONSTKEYWORDPARAMETERNAME: TYPENAME; AEqualityComparator: CALLBACKTYPE): ITRINTERFACENAME;
+var
+  I: Integer;
+begin
+  Result := nil;
+  for I := Count - 1 downto 0 do
+    if First.HasNext then
+    begin
+      if AEqualityComparator(First.Next, PARAMETERNAME) then
+      begin
+        Result := First;
+        Break;
+      end;
+    end
+    else
+      Break;
+end;*)
+(*$JPPDEFINEMACRO COUNTOBJECTIMP(PROCNAME, ITRINTERFACENAME, CONSTKEYWORD, PARAMETERNAME, TYPENAME, CALLBACKTYPE)
+function PROCNAME(const First: ITRINTERFACENAME; Count: Integer;
+  CONSTKEYWORDPARAMETERNAME: TYPENAME; AComparator: CALLBACKTYPE): Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := Count - 1 downto 0 do
+    if First.HasNext then
+      Inc(Result, Ord(AComparator(First.Next, PARAMETERNAME) = 0))
+    else
+      Break;
+end;*)
+(*$JPPDEFINEMACRO COUNTOBJECTEQIMP(PROCNAME, ITRINTERFACENAME, CONSTKEYWORD, PARAMETERNAME, TYPENAME, CALLBACKTYPE)
+function PROCNAME(const First: ITRINTERFACENAME; Count: Integer;
+  CONSTKEYWORDPARAMETERNAME: TYPENAME; AEqualityComparator: CALLBACKTYPE): Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := Count - 1 downto 0 do
+    if First.HasNext then
+      Inc(Result, Ord(AEqualityComparator(First.Next, PARAMETERNAME)))
+    else
+      Break;
+end;*)
+(*$JPPDEFINEMACRO COPYIMP(PROCNAME, ITRINTERFACENAME, SETTERNAME)
+procedure PROCNAME(const First: ITRINTERFACENAME; Count: Integer;
+  const Output: ITRINTERFACENAME);
+var
+  I: Integer;
+begin
+  for I := Count - 1 downto 0 do
+    if Output.HasNext and First.HasNext then
+    begin
+      Output.Next;
+      Output.SETTERNAME(First.Next);
+    end
+    else
+      Break;
+end;*)
+(*$JPPDEFINEMACRO GENERATEIMP(PROCNAME, LISTINTERFACENAME, CONSTKEYWORD, PARAMETERNAME, TYPENAME)
+procedure PROCNAME(const List: LISTINTERFACENAME; Count: Integer;
+  CONSTKEYWORDPARAMETERNAME: TYPENAME);
+var
+  I: Integer;
+begin
+  List.Clear;
+  for I := 0 to Count - 1 do
+    List.Add(PARAMETERNAME);
+end;*)
+(*$JPPDEFINEMACRO FILLIMP(PROCNAME, ITRINTERFACENAME, CONSTKEYWORD, PARAMETERNAME, TYPENAME, SETTERNAME)
+procedure PROCNAME(const First: ITRINTERFACENAME; Count: Integer;
+  CONSTKEYWORDPARAMETERNAME: TYPENAME);
+var
+  I: Integer;
+begin
+  for I := Count - 1 downto 0 do
+    if First.HasNext then
+    begin
+      First.Next;
+      First.SETTERNAME(PARAMETERNAME);
+    end
+    else
+      Break;
+end;*)
+(*$JPPDEFINEMACRO REVERSEIMP(PROCNAME, ITRINTERFACENAME, TYPENAME, GETTERNAME, SETTERNAME)
+procedure PROCNAME(const First, Last: ITRINTERFACENAME);
+var
+  Obj: TYPENAME;
+begin
+  if not First.HasNext then
+    Exit;
+  if not Last.HasPrevious then
+    Exit;
+  while First.NextIndex < Last.PreviousIndex do
+  begin
+    Obj := First.Next;
+    Last.Previous;
+    First.SETTERNAME(Last.GETTERNAME);
+    Last.SETTERNAME(Obj);
+  end;
+end;*)
+(*$JPPDEFINEMACRO QUICKSORTIMP(PROCNAME, LISTINTERFACENAME, LEFT, RIGHT, CALLBACKTYPE, TYPENAME, GETTERNAME, SETTERNAME)
+procedure PROCNAME(const AList: LISTINTERFACENAME; LEFT, RIGHT: Integer;
+  AComparator: CALLBACKTYPE);
+var
+  I, J, P: Integer;
+  Obj: TYPENAME;
+begin
+  repeat
+    I := L;
+    J := R;
+    P := (LEFT + RIGHT) shr 1;
+    repeat
+      Obj := AList.GETTERNAME(P);
+      while AComparator(AList.GETTERNAME(I), Obj) < 0 do
+        Inc(I);
+      while AComparator(AList.GETTERNAME(J), Obj) > 0 do
+        Dec(J);
+      if I <= J then
+      begin
+        Obj := AList.GETTERNAME(I);
+        AList.SETTERNAME(I, AList.GETTERNAME(J));
+        AList.SETTERNAME(J, Obj);
+        if P = I then
+          P := J
+        else
+        if P = J then
+          P := I;
+        Inc(I);
+        Dec(J);
+      end;
+    until I > J;
+    if LEFT < J then
+      PROCNAME(AList, LEFT, J, AComparator);
+    L := I;
+  until I >= RIGHT;
+end;*)

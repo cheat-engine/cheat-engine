@@ -1,0 +1,55 @@
+unit JclIniFiles;
+
+{$I jcl.inc}
+
+interface
+uses
+  Classes, IniFiles, SysUtils;
+  
+//--------------------------------------------------------------------------------------------------
+// Initialization (ini) Files
+//--------------------------------------------------------------------------------------------------
+
+function IniReadBool(const FileName, Section, Line: string): Boolean;              // John C Molyneux
+function IniReadInteger(const FileName, Section, Line: string): Integer;           // John C Molyneux
+function IniReadString(const FileName, Section, Line: string): string;             // John C Molyneux
+procedure IniWriteBool(const FileName, Section, Line: string; Value: Boolean);     // John C Molyneux
+procedure IniWriteInteger(const FileName, Section, Line: string; Value: Integer);  // John C Molyneux
+procedure IniWriteString(const FileName, Section, Line, Value: string);            // John C Molyneux
+
+//--------------------------------------------------------------------------------------------------
+// Initialization (ini) Files helper routines
+//--------------------------------------------------------------------------------------------------
+
+procedure IniReadStrings(IniFile: TCustomIniFile; const Section: string; Strings: TStrings);
+procedure IniWriteStrings(IniFile: TCustomIniFile; const Section: string; Strings: TStrings);
+
+//--------------------------------------------------------------------------------------------------
+// IniFile interface without localized texts
+//--------------------------------------------------------------------------------------------------
+
+type
+  TJclISOMemIniFile = class(TMemIniFile)
+  public
+    function ReadDate(const Section, Name: string; Default: TDateTime): TDateTime; override;
+    function ReadDateTime(const Section, Name: string; Default: TDateTime): TDateTime; override;
+    function ReadFloat(const Section, Name: string; Default: Double): Double; override;
+    function ReadTime(const Section, Name: string; Default: TDateTime): TDateTime; override;
+    procedure WriteDate(const Section, Name: string; Value: TDateTime); override;
+    procedure WriteDateTime(const Section, Name: string; Value: TDateTime); override;
+    procedure WriteFloat(const Section, Name: string; Value: Double); override;
+    procedure WriteTime(const Section, Name: string; Value: TDateTime); override;
+  end;
+
+  TJclISOIniFile = class(TIniFile)
+  public
+    function ReadDate(const Section, Name: string; Default: TDateTime): TDateTime; override;
+    function ReadDateTime(const Section, Name: string; Default: TDateTime): TDateTime; override;
+    function ReadFloat(const Section, Name: string; Default: Double): Double; override;
+    function ReadTime(const Section, Name: string; Default: TDateTime): TDateTime; override;
+    procedure WriteDate(const Section, Name: string; Value: TDateTime); override;
+    procedure WriteDateTime(const Section, Name: string; Value: TDateTime); override;
+    procedure WriteFloat(const Section, Name: string; Value: Double); override;
+    procedure WriteTime(const Section, Name: string; Value: TDateTime); override;
+  end;
+
