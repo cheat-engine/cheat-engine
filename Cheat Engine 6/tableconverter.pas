@@ -97,21 +97,21 @@ begin
 
     ctfile.ReadBuffer(records,4);
 
+    //first create the 6 possible groups, unused ones will be deleted after filling is done
+    for i:=1 to 6 do
+    begin
+      cheatEntry:=doc.CreateElement('CheatEntry');
+      cheatEntry.AppendChild(doc.CreateElement('GroupHeader')).TextContent:='1';
+      cheatEntry.AppendChild(doc.CreateElement('Description')).TextContent:='Group '+inttostr(i);
+
+      groups[i].node:=cheatEntry;
+      groups[i].appendnode:=cheatEntry.AppendChild(doc.CreateElement('CheatEntries'));
+      groups[i].used:=false;
+    end;
+
     if records>0 then
     begin
       entries:=CheatTable.AppendChild(doc.CreateElement('CheatEntries'));
-
-      //first create the 6 possible groups, unused ones will be deleted after filling is done
-      for i:=1 to 6 do
-      begin
-        cheatEntry:=doc.CreateElement('CheatEntry');
-        cheatEntry.AppendChild(doc.CreateElement('GroupHeader')).TextContent:='1';
-        cheatEntry.AppendChild(doc.CreateElement('Description')).TextContent:='Group '+inttostr(i);
-
-        groups[i].node:=cheatEntry;
-        groups[i].appendnode:=cheatEntry.AppendChild(doc.CreateElement('CheatEntries'));
-        groups[i].used:=false;
-      end;
 
 
       for i:=0 to records-1 do
@@ -253,17 +253,17 @@ begin
         nrofbytes:=0;
         ctfile.ReadBuffer(nrofbytes,1);
         setlength(tempbefore,nrofbytes);
-        ctfile.ReadBuffer(pointer(tempbefore)^,nrofbytes);
+        ctfile.ReadBuffer(tempbefore[0],nrofbytes);
 
         nrofbytes:=0;
         ctfile.ReadBuffer(nrofbytes,1);
         setlength(tempactual,nrofbytes);
-        ctfile.ReadBuffer(pointer(tempactual)^,nrofbytes);
+        ctfile.ReadBuffer(tempactual[0],nrofbytes);
 
         nrofbytes:=0;
         ctfile.ReadBuffer(nrofbytes,1);
         setlength(tempafter,nrofbytes);
-        ctfile.ReadBuffer(pointer(tempafter)^,nrofbytes);
+        ctfile.ReadBuffer(tempafter[0],nrofbytes);
 
         nrofbytes:=0;
         ctfile.ReadBuffer(nrofbytes,1);
