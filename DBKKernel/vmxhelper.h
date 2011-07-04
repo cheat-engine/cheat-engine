@@ -37,6 +37,9 @@
 #define VMCALL_ENABLE_DATAPAGEFAULTS 32
 #define VMCALL_GETLASTSKIPPEDPAGEFAULT 33
 
+#define VMCALL_ULTIMAP_PAUSE 34
+#define VMCALL_ULTIMAP_RESUME 35
+
 
 typedef enum {virt_differentInterrupt=0, virt_emulateInterrupt=1} VMXInterruptRedirectType;
 

@@ -16,6 +16,25 @@
 
 BOOLEAN IsAddressSafe(UINT_PTR StartAddress)
 {
+	#ifdef AMD64
+	//cannonical check. Bits 48 to 63 must match bit 47
+	UINT_PTR toppart=(StartAddress >> 47);
+	if (toppart & 1)
+	{
+		//toppart must be 0x1ffff
+		if (toppart != 0x1ffff)
+			return FALSE;
+	}
+	else
+	{
+		//toppart must be 0
+		if (toppart != 0)
+			return FALSE;
+
+	}
+
+	#endif
+
 	//return TRUE;
 	if (loadedbydbvm)
 	{
@@ -29,8 +48,10 @@ BOOLEAN IsAddressSafe(UINT_PTR StartAddress)
 		vmx_enable_dataPageFaults();
 		lasterror=vmx_getLastSkippedPageFault();
 		enableInterrupts();
+
+		DbgPrint("IsAddressSafe dbvm-mode: lastError=%p\n", lasterror);
 		
-		return (lasterror==0); //unless address 0 is read of course...
+		if (lasterror) return FALSE;		
 	}
 
 
