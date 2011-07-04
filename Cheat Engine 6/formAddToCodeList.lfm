@@ -1,0 +1,69 @@
+object frmAddToCodeList: TfrmAddToCodeList
+  Left = 919
+  Height = 85
+  Top = 300
+  Width = 169
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsDialog
+  Caption = 'Region to add'
+  ClientHeight = 85
+  ClientWidth = 169
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnClose = FormClose
+  OnShow = FormShow
+  Position = poOwnerFormCenter
+  LCLVersion = '0.9.31'
+  object Label1: TLabel
+    Left = 30
+    Height = 14
+    Top = 8
+    Width = 24
+    Caption = 'From'
+    ParentColor = False
+  end
+  object Label2: TLabel
+    Left = 40
+    Height = 14
+    Top = 32
+    Width = 14
+    Caption = 'To'
+    ParentColor = False
+  end
+  object Edit1: TEdit
+    Left = 56
+    Height = 21
+    Top = 4
+    Width = 81
+    TabOrder = 0
+    Text = 'DDDDDDDD'
+  end
+  object Button1: TButton
+    Left = 8
+    Height = 25
+    Top = 56
+    Width = 75
+    Caption = 'OK'
+    Default = True
+    OnClick = Button1Click
+    TabOrder = 2
+  end
+  object Button2: TButton
+    Left = 88
+    Height = 25
+    Top = 56
+    Width = 75
+    Cancel = True
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 3
+  end
+  object Edit2: TEdit
+    Left = 56
+    Height = 21
+    Top = 28
+    Width = 81
+    TabOrder = 1
+    Text = 'FFFFFFFF'
+  end
+end

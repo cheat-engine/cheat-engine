@@ -1,0 +1,100 @@
+object FormMemoryRegions: TFormMemoryRegions
+  Left = 672
+  Height = 370
+  Top = 271
+  Width = 645
+  BorderIcons = [biSystemMenu]
+  Caption = 'Memory regions'
+  ClientHeight = 370
+  ClientWidth = 645
+  Font.Height = -14
+  Font.Name = 'MS Sans Serif'
+  OnClose = FormClose
+  OnShow = FormShow
+  Position = poOwnerFormCenter
+  LCLVersion = '0.9.31'
+  object Button1: TButton
+    Left = 363
+    Height = 31
+    Top = 364
+    Width = 93
+    Anchors = [akBottom]
+    Cancel = True
+    Caption = 'OK'
+    Default = True
+    ModalResult = 1
+    OnClick = Button1Click
+    TabOrder = 0
+  end
+  object ListView1: TListView
+    Left = 0
+    Height = 370
+    Top = 0
+    Width = 645
+    Align = alClient
+    Columns = <    
+      item
+        Caption = 'Address'
+        Width = 98
+      end    
+      item
+        Caption = 'Allocation Protect'
+        Width = 135
+      end    
+      item
+        Caption = 'State'
+        Width = 74
+      end    
+      item
+        Caption = 'Protect'
+        Width = 135
+      end    
+      item
+        Caption = 'Type'
+        Width = 62
+      end    
+      item
+        Caption = 'Size'
+        Width = 86
+      end    
+      item
+        Caption = 'Extra'
+        Width = 100
+      end>
+    HideSelection = False
+    MultiSelect = True
+    PopupMenu = PopupMenu1
+    ReadOnly = True
+    RowSelect = True
+    TabOrder = 1
+    ViewStyle = vsReport
+    OnDblClick = ListView1DblClick
+    OnResize = ListView1Resize
+  end
+  object PopupMenu1: TPopupMenu
+    OnPopup = PopupMenu1Popup
+    left = 136
+    top = 72
+    object Saveselectedregions1: TMenuItem
+      Caption = 'Save selected regions'
+      OnClick = Saveselectedregions1Click
+    end
+    object SelectAllReadableMemory1: TMenuItem
+      Caption = 'Select all readable memory'
+      OnClick = SelectAllReadableMemory1Click
+    end
+    object N1: TMenuItem
+      Caption = '-'
+    end
+    object Setselectedregionstobewritable1: TMenuItem
+      Caption = 'Set selected regions to be writable'
+      OnClick = Setselectedregionstobewritable1Click
+    end
+  end
+  object SaveDialog1: TSaveDialog
+    Title = 'Give the basename of the regions to be saved. (Can be a CT file)'
+    Options = [ofHideReadOnly, ofPathMustExist, ofEnableSizing]
+    left = 32
+    top = 56
+  end
+end

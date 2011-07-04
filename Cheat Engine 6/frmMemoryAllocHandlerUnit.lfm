@@ -1,0 +1,167 @@
+object frmMemoryAllocHandler: TfrmMemoryAllocHandler
+  Left = 631
+  Height = 279
+  Top = 372
+  Width = 525
+  BorderIcons = [biSystemMenu, biMinimize]
+  BorderStyle = bsSingle
+  Caption = 'Memory Allocations'
+  ClientHeight = 279
+  ClientWidth = 525
+  Font.Height = -14
+  Font.Name = 'MS Sans Serif'
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object GroupBox1: TGroupBox
+    Left = 0
+    Height = 238
+    Top = 41
+    Width = 525
+    Align = alClient
+    Caption = 'Data'
+    ClientHeight = 220
+    ClientWidth = 521
+    TabOrder = 0
+    object Label1: TLabel
+      Left = 40
+      Height = 17
+      Top = 64
+      Width = 38
+      Caption = 'Flags:'
+      ParentColor = False
+    end
+    object Label2: TLabel
+      Left = 40
+      Height = 17
+      Top = 16
+      Width = 90
+      Caption = 'Base Address:'
+      ParentColor = False
+    end
+    object lblHeapHandle: TLabel
+      Left = 144
+      Height = 1
+      Top = 48
+      Width = 1
+      ParentColor = False
+    end
+    object lblFlags: TLabel
+      Left = 144
+      Height = 1
+      Top = 64
+      Width = 1
+      ParentColor = False
+    end
+    object lblBaseAddress: TLabel
+      Left = 144
+      Height = 1
+      Top = 16
+      Width = 1
+      ParentColor = False
+    end
+    object Label3: TLabel
+      Left = 40
+      Height = 17
+      Top = 48
+      Width = 79
+      Caption = 'HeapHandle'
+      ParentColor = False
+    end
+    object Label4: TLabel
+      Left = 40
+      Height = 17
+      Top = 32
+      Width = 30
+      Caption = 'Size:'
+      ParentColor = False
+    end
+    object lblSize: TLabel
+      Left = 144
+      Height = 1
+      Top = 32
+      Width = 1
+      ParentColor = False
+    end
+    object lblErr: TLabel
+      Left = 40
+      Height = 17
+      Top = 88
+      Width = 388
+      Caption = 'Couldn''t find in heap. Found using the Alloc hook. (Not very useful)'
+      Font.Color = clRed
+      Font.Height = -14
+      Font.Name = 'MS Sans Serif'
+      ParentColor = False
+      ParentFont = False
+      Visible = False
+    end
+    object StatusBar1: TStatusBar
+      Left = 0
+      Height = 23
+      Top = 197
+      Width = 521
+      Panels = <      
+        item
+          Text = '-'
+          Width = 300
+        end      
+        item
+          Text = '--'
+          Width = 50
+        end>
+      SimplePanel = False
+    end
+  end
+  object Panel1: TPanel
+    Left = 0
+    Height = 41
+    Top = 0
+    Width = 525
+    Align = alTop
+    BevelOuter = bvNone
+    ClientHeight = 41
+    ClientWidth = 525
+    TabOrder = 1
+    object Edit1: TEdit
+      Left = 8
+      Height = 24
+      Top = 8
+      Width = 121
+      TabOrder = 0
+    end
+    object Button1: TButton
+      Left = 136
+      Height = 25
+      Top = 8
+      Width = 105
+      Caption = 'Check Address'
+      OnClick = Button1Click
+      TabOrder = 1
+    end
+    object btnReload: TButton
+      Left = 440
+      Height = 25
+      Top = 8
+      Width = 75
+      Caption = 'Reload'
+      OnClick = btnReloadClick
+      TabOrder = 2
+    end
+    object cbHookAllocs: TCheckBox
+      Left = 256
+      Height = 20
+      Top = 12
+      Width = 140
+      Caption = 'Hook alloc functions'
+      OnClick = cbHookAllocsClick
+      TabOrder = 3
+    end
+  end
+  object Timer1: TTimer
+    OnTimer = Timer1Timer
+    left = 4
+    top = 83
+  end
+end

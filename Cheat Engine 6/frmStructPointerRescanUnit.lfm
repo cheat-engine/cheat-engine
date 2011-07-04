@@ -1,0 +1,138 @@
+object frmStructPointerRescan: TfrmStructPointerRescan
+  Left = 288
+  Height = 317
+  Top = 150
+  Width = 267
+  Caption = 'Rescan'
+  ClientHeight = 317
+  ClientWidth = 267
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object rbMustBeDifferent: TRadioButton
+    Left = 8
+    Height = 17
+    Top = 232
+    Width = 101
+    Caption = 'Must be different'
+    Enabled = False
+    TabOrder = 0
+  end
+  object rbMustBeSame: TRadioButton
+    Left = 8
+    Height = 17
+    Top = 256
+    Width = 103
+    Caption = 'Must be the same'
+    TabOrder = 1
+  end
+  object Button1: TButton
+    Left = 56
+    Height = 25
+    Top = 288
+    Width = 75
+    Caption = 'Rescan'
+    Default = True
+    ModalResult = 1
+    TabOrder = 2
+  end
+  object cbCaseSensitive: TCheckBox
+    Left = 8
+    Height = 17
+    Top = 136
+    Width = 87
+    Caption = 'Case sensitive'
+    TabOrder = 3
+  end
+  object cbMustBeStart: TCheckBox
+    Left = 8
+    Height = 17
+    Top = 152
+    Width = 184
+    Caption = 'Must start with the provided string'
+    TabOrder = 4
+  end
+  object edtRegExp: TEdit
+    Left = 8
+    Height = 21
+    Top = 176
+    Width = 248
+    TabOrder = 5
+  end
+  object rbDiffDontCare: TRadioButton
+    Left = 8
+    Height = 17
+    Top = 208
+    Width = 136
+    Caption = 'Don''t care for difference'
+    Checked = True
+    Enabled = False
+    TabOrder = 6
+    TabStop = True
+  end
+  object Button2: TButton
+    Left = 136
+    Height = 25
+    Top = 288
+    Width = 75
+    Cancel = True
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 7
+  end
+  object cbPointerInRange: TCheckBox
+    Left = 8
+    Height = 17
+    Top = 40
+    Width = 135
+    Caption = 'Pointer must be in range'
+    OnChange = cbPointerInRangeChange
+    TabOrder = 8
+  end
+  object edtPointerStart: TEdit
+    Left = 8
+    Height = 21
+    Top = 62
+    Width = 155
+    Enabled = False
+    TabOrder = 9
+  end
+  object lblAnd: TLabel
+    Left = 9
+    Height = 14
+    Top = 86
+    Width = 19
+    Caption = 'and'
+    Enabled = False
+    ParentColor = False
+  end
+  object edtPointerStop: TEdit
+    Left = 8
+    Height = 21
+    Top = 102
+    Width = 155
+    Enabled = False
+    TabOrder = 10
+  end
+  object comboType: TComboBox
+    Left = 8
+    Height = 21
+    Top = 8
+    Width = 155
+    ItemHeight = 13
+    ItemIndex = 0
+    Items.Strings = (
+      'String'
+      '1 Byte'
+      '2 Bytes'
+      '4 Bytes'
+      '8 Bytes'
+      'Float'
+      'Double'
+      'Pointer (hex)'
+    )
+    OnChange = comboTypeChange
+    Style = csDropDownList
+    TabOrder = 11
+    Text = 'String'
+  end
+end

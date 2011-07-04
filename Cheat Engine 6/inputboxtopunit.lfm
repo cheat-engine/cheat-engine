@@ -1,0 +1,60 @@
+object InputboxTop: TInputboxTop
+  Left = 918
+  Height = 66
+  Top = 419
+  Width = 283
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsDialog
+  ClientHeight = 66
+  ClientWidth = 283
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  FormStyle = fsStayOnTop
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object Label1: TLabel
+    Left = 0
+    Height = 14
+    Top = 0
+    Width = 283
+    Align = alTop
+    Alignment = taCenter
+    Caption = 'Label1'
+    ParentColor = False
+  end
+  object Edit1: TEdit
+    Left = 5
+    Height = 21
+    Top = 16
+    Width = 273
+    TabOrder = 1
+    Text = 'edit1'
+  end
+  object Button1: TButton
+    Left = 64
+    Height = 25
+    Top = 40
+    Width = 75
+    Caption = 'OK'
+    Default = True
+    ModalResult = 1
+    TabOrder = 0
+  end
+  object Button2: TButton
+    Left = 144
+    Height = 25
+    Top = 40
+    Width = 75
+    Cancel = True
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 2
+  end
+  object Timer1: TTimer
+    Interval = 10
+    OnTimer = Timer1Timer
+    left = 6
+    top = 16
+  end
+end

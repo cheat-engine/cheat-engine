@@ -1,0 +1,42 @@
+object formPointerOrPointee: TformPointerOrPointee
+  Left = 626
+  Height = 101
+  Top = 269
+  Width = 335
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsSingle
+  Caption = 'Cheat Engine Pointer'
+  ClientHeight = 101
+  ClientWidth = 335
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Position = poMainFormCenter
+  LCLVersion = '0.9.31'
+  object Label1: TLabel
+    Left = 8
+    Height = 14
+    Top = 8
+    Width = 78
+    Caption = 'This is a pointer.'
+    ParentColor = False
+    WordWrap = True
+  end
+  object Button1: TButton
+    Left = 8
+    Height = 25
+    Top = 32
+    Width = 321
+    Caption = 'Find what writes to this pointer'
+    ModalResult = 6
+    TabOrder = 0
+  end
+  object Button2: TButton
+    Left = 8
+    Height = 25
+    Top = 64
+    Width = 321
+    Caption = 'Find what writes to the address pointed at by this pointer'
+    ModalResult = 7
+    TabOrder = 1
+  end
+end

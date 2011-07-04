@@ -1,0 +1,82 @@
+object frmStackView: TfrmStackView
+  Left = 887
+  Height = 240
+  Top = 415
+  Width = 320
+  BorderStyle = bsSizeToolWin
+  Caption = 'Stack View'
+  ClientHeight = 240
+  ClientWidth = 320
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnShow = FormShow
+  LCLVersion = '0.9.31'
+  object lvStack: TListView
+    Left = 0
+    Height = 240
+    Top = 0
+    Width = 320
+    Align = alClient
+    Columns = <    
+      item
+        Caption = 'Address'
+        MinWidth = 2
+        Width = 70
+      end    
+      item
+        Caption = 'Value'
+        MinWidth = 2
+        Width = 90
+      end    
+      item
+        Caption = 'Secondary'
+        MinWidth = 2
+        Width = 70
+      end>
+    HideSelection = False
+    MultiSelect = True
+    PopupMenu = PopupMenu1
+    ReadOnly = True
+    RowSelect = True
+    TabOrder = 0
+    ViewStyle = vsReport
+    OnDblClick = lvStackDblClick
+  end
+  object PopupMenu1: TPopupMenu
+    left = 108
+    top = 84
+    object miAddESP: TMenuItem
+      AutoCheck = True
+      Caption = '(esp+*)'
+      GroupIndex = 1
+      RadioItem = True
+      OnClick = miAddESPClick
+    end
+    object miAddEBP: TMenuItem
+      AutoCheck = True
+      Caption = '(ebp+*)'
+      Checked = True
+      GroupIndex = 1
+      RadioItem = True
+      OnClick = miAddESPClick
+    end
+    object MenuItem1: TMenuItem
+      Caption = '-'
+    end
+    object miCopyAddress: TMenuItem
+      Caption = 'Copy Address'
+      OnClick = miCopyAddressClick
+    end
+    object miCopyValue: TMenuItem
+      Tag = 1
+      Caption = 'Copy Value'
+      OnClick = miCopyAddressClick
+    end
+    object miCopySecondary: TMenuItem
+      Tag = 2
+      Caption = 'Copy Secondary'
+      OnClick = miCopyAddressClick
+    end
+  end
+end

@@ -1,0 +1,87 @@
+object frmReferencedStrings: TfrmReferencedStrings
+  Left = 801
+  Height = 308
+  Top = 377
+  Width = 616
+  Caption = 'Referenced Strings'
+  ClientHeight = 288
+  ClientWidth = 616
+  Font.Height = -13
+  Font.Name = 'MS Sans Serif'
+  Menu = MainMenu1
+  OnClose = FormClose
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object Splitter1: TSplitter
+    Left = 490
+    Height = 288
+    Top = 0
+    Width = 5
+    Align = alRight
+    ResizeAnchor = akRight
+  end
+  object lvStringlist: TListView
+    Left = 0
+    Height = 288
+    Top = 0
+    Width = 490
+    Align = alClient
+    Columns = <    
+      item
+        Caption = 'Address'
+        Width = 100
+      end    
+      item
+        Caption = 'Refcount'
+        Width = 75
+      end    
+      item
+        AutoSize = True
+        Caption = 'String'
+        Width = 311
+      end>
+    HideSelection = False
+    OwnerData = True
+    ReadOnly = True
+    RowSelect = True
+    TabOrder = 0
+    ViewStyle = vsReport
+    OnData = lvStringlistData
+    OnDblClick = lvStringlistDblClick
+    OnSelectItem = lvStringlistSelectItem
+  end
+  object lbReflist: TListBox
+    Left = 495
+    Height = 288
+    Top = 0
+    Width = 121
+    Align = alRight
+    ItemHeight = 0
+    OnDblClick = lbReflistDblClick
+    TabOrder = 1
+  end
+  object MainMenu1: TMainMenu
+    left = 16
+    top = 24
+    object Search1: TMenuItem
+      Caption = 'Search'
+      object Find1: TMenuItem
+        Caption = 'Find'
+        ShortCut = 16454
+        OnClick = Find1Click
+      end
+      object FindNext1: TMenuItem
+        Caption = 'Find Next'
+        ShortCut = 114
+        OnClick = FindNext1Click
+      end
+    end
+  end
+  object FindDialog1: TFindDialog
+    Options = [frDown, frHideMatchCase, frHideWholeWord, frHideUpDown]
+    OnFind = FindDialog1Find
+    left = 16
+    top = 56
+  end
+end

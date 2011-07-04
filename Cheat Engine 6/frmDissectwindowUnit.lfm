@@ -1,0 +1,97 @@
+object frmdissectWindow: TfrmdissectWindow
+  Left = 372
+  Height = 296
+  Top = 359
+  Width = 303
+  Caption = 'Dissect Windows'
+  ClientHeight = 296
+  ClientWidth = 303
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnClose = FormClose
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object TreeView1: TTreeView
+    Left = 0
+    Height = 211
+    Top = 0
+    Width = 303
+    Align = alClient
+    DefaultItemHeight = 15
+    HideSelection = False
+    Indent = 19
+    ReadOnly = True
+    TabOrder = 0
+    Options = [tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips]
+  end
+  object Button1: TButton
+    Left = 296
+    Height = 25
+    Top = 224
+    Width = 75
+    Caption = 'More Info'
+    OnClick = Button1Click
+    TabOrder = 1
+    Visible = False
+  end
+  object Panel1: TPanel
+    Left = 0
+    Height = 85
+    Top = 211
+    Width = 303
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 85
+    ClientWidth = 303
+    TabOrder = 2
+    object Button2: TButton
+      Left = 8
+      Height = 19
+      Top = 8
+      Width = 89
+      Caption = 'Toggle visible'
+      OnClick = Button2Click
+      TabOrder = 0
+    end
+    object Button3: TButton
+      Left = 104
+      Height = 19
+      Top = 8
+      Width = 89
+      Caption = 'Close window'
+      OnClick = Button3Click
+      TabOrder = 1
+    end
+    object Button5: TButton
+      Left = 116
+      Height = 25
+      Top = 56
+      Width = 75
+      Anchors = [akTop]
+      Caption = 'OK'
+      ModalResult = 1
+      TabOrder = 2
+    end
+    object Button4: TButton
+      Left = 90
+      Height = 19
+      Top = 32
+      Width = 129
+      Anchors = [akTop]
+      Caption = 'Capture Timer Messages'
+      OnClick = Button4Click
+      TabOrder = 3
+      Visible = False
+    end
+    object Button6: TButton
+      Left = 200
+      Height = 19
+      Top = 8
+      Width = 89
+      Caption = 'Change text'
+      OnClick = Button6Click
+      TabOrder = 4
+    end
+  end
+end

@@ -1,0 +1,44 @@
+object FormDebugStrings: TFormDebugStrings
+  Left = 654
+  Height = 221
+  Top = 320
+  Width = 321
+  Caption = 'Debug strings'
+  ClientHeight = 221
+  ClientWidth = 321
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Position = poOwnerFormCenter
+  LCLVersion = '0.9.31'
+  object ListBox1: TListBox
+    Left = 0
+    Height = 180
+    Top = 0
+    Width = 321
+    Align = alClient
+    ItemHeight = 0
+    TabOrder = 0
+  end
+  object Panel1: TPanel
+    Left = 0
+    Height = 41
+    Top = 180
+    Width = 321
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 41
+    ClientWidth = 321
+    TabOrder = 1
+    object Button1: TButton
+      Left = 124
+      Height = 25
+      Top = 8
+      Width = 75
+      Anchors = [akTop]
+      Caption = 'OK'
+      ModalResult = 1
+      OnClick = Button1Click
+      TabOrder = 0
+    end
+  end
+end

@@ -1,0 +1,200 @@
+object frmAutoInject: TfrmAutoInject
+  Left = 890
+  Height = 331
+  Top = 397
+  Width = 431
+  HelpContext = 1089
+  Caption = 'Auto assemble'
+  ClientHeight = 311
+  ClientWidth = 431
+  Font.Height = -14
+  Font.Name = 'MS Sans Serif'
+  Menu = MainMenu1
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object Panel1: TPanel
+    Left = 0
+    Height = 46
+    Top = 265
+    Width = 431
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 46
+    ClientWidth = 431
+    TabOrder = 0
+    OnResize = Panel1Resize
+    object Button1: TButton
+      Left = 214
+      Height = 31
+      Top = 10
+      Width = 92
+      Caption = 'Execute'
+      OnClick = Button1Click
+      TabOrder = 0
+    end
+  end
+  object Panel2: TPanel
+    Left = 0
+    Height = 265
+    Top = 0
+    Width = 431
+    Align = alClient
+    BevelOuter = bvNone
+    TabOrder = 1
+  end
+  object MainMenu1: TMainMenu
+    left = 8
+    top = 72
+    object File1: TMenuItem
+      Caption = 'File'
+      object miNewWindow: TMenuItem
+        Caption = 'New Window'
+        ShortCut = 16462
+        OnClick = miNewWindowClick
+      end
+      object New1: TMenuItem
+        Caption = 'New Tab'
+        Visible = False
+        OnClick = New1Click
+      end
+      object Load1: TMenuItem
+        Caption = 'Open'
+        ShortCut = 16463
+        OnClick = Load1Click
+      end
+      object Save1: TMenuItem
+        Caption = 'Save'
+        ShortCut = 16467
+        OnClick = Save1Click
+      end
+      object SaveAs1: TMenuItem
+        Caption = 'Save As...'
+        OnClick = SaveAs1Click
+      end
+      object Assigntocurrentcheattable1: TMenuItem
+        Caption = 'Assign to current cheat table'
+        OnClick = Assigntocurrentcheattable1Click
+      end
+      object N2: TMenuItem
+        Caption = '-'
+      end
+      object Exit1: TMenuItem
+        Caption = 'Exit'
+        OnClick = Exit1Click
+      end
+    end
+    object View1: TMenuItem
+      Caption = 'View'
+      object Syntaxhighlighting1: TMenuItem
+        Caption = 'Syntax highlighting'
+        Checked = True
+        OnClick = Syntaxhighlighting1Click
+      end
+      object AAPref1: TMenuItem
+        Caption = 'Preferences'
+        OnClick = AAPref1Click
+      end
+    end
+    object emplate1: TMenuItem
+      Caption = 'Template'
+      object Codeinjection1: TMenuItem
+        Caption = 'Code injection'
+        OnClick = Codeinjection1Click
+      end
+      object APIHook1: TMenuItem
+        Caption = 'API Hook'
+        OnClick = APIHook1Click
+      end
+      object Coderelocation1: TMenuItem
+        Caption = 'Code relocation'
+        OnClick = Coderelocation1Click
+      end
+      object CheatTablecompliantcodee1: TMenuItem
+        Caption = 'Cheat Table framework code'
+        OnClick = CheatTablecompliantcodee1Click
+      end
+    end
+    object Inject1: TMenuItem
+      Caption = 'Inject'
+      Visible = False
+      object Injectincurrentprocess1: TMenuItem
+        Caption = 'Inject into current process'
+        OnClick = Injectincurrentprocess1Click
+      end
+      object Injectintocurrentprocessandexecute1: TMenuItem
+        Caption = 'Inject into current process and execute'
+        OnClick = Injectintocurrentprocessandexecute1Click
+      end
+    end
+  end
+  object OpenDialog1: TOpenDialog
+    Title = 'Open CE assembly file'
+    DefaultExt = '.CEA'
+    Filter = 'Cheat Engine Assembly (*.CEA)|*.CEA|All Files (*.*)|*.*'
+    left = 8
+    top = 40
+  end
+  object SaveDialog1: TSaveDialog
+    Title = 'Open CE assembly file'
+    DefaultExt = '.CEA'
+    Filter = 'Cheat Engine Assembly (*.CEA)|*.CEA|All Files (*.*)|*.*'
+    Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
+    left = 40
+    top = 40
+  end
+  object PopupMenu1: TPopupMenu
+    left = 8
+    top = 8
+    object Cut1: TMenuItem
+      Caption = 'Cu&t'
+      ShortCut = 16472
+      OnClick = Cut1Click
+    end
+    object Copy1: TMenuItem
+      Caption = '&Copy'
+      ShortCut = 16451
+      OnClick = Copy1Click
+    end
+    object Paste1: TMenuItem
+      Caption = '&Paste'
+      ShortCut = 16470
+      OnClick = Paste1Click
+    end
+    object Undo1: TMenuItem
+      Caption = '&Undo'
+      ShortCut = 16474
+      OnClick = Undo1Click
+    end
+    object N6: TMenuItem
+      Caption = '-'
+    end
+    object Find1: TMenuItem
+      Caption = '&Find...'
+      ShortCut = 16454
+      OnClick = Find1Click
+    end
+  end
+  object closemenu: TPopupMenu
+    left = 40
+    top = 8
+    object Close1: TMenuItem
+      Caption = 'Close'
+      OnClick = Close1Click
+    end
+  end
+  object FindDialog1: TFindDialog
+    Options = [frDown, frHideMatchCase, frHideWholeWord, frHideUpDown]
+    OnFind = FindDialog1Find
+    left = 8
+    top = 104
+  end
+  object undotimer: TTimer
+    Interval = 250
+    left = 40
+    top = 72
+  end
+end

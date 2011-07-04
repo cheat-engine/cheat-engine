@@ -1,0 +1,53 @@
+object frmbreakthread: Tfrmbreakthread
+  Left = 466
+  Height = 204
+  Top = 226
+  Width = 439
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsSingle
+  Caption = 'Break Thread'
+  ClientHeight = 204
+  ClientWidth = 439
+  Font.Height = -14
+  Font.Name = 'MS Sans Serif'
+  OnCreate = FormCreate
+  Position = poOwnerFormCenter
+  LCLVersion = '0.9.31'
+  object Label1: TLabel
+    Left = 6
+    Height = 17
+    Top = 0
+    Width = 429
+    Caption = 'This process has more than 1 thread. Select the thread you wish to break'
+    ParentColor = False
+  end
+  object Threadlistbox: TListBox
+    Left = 6
+    Height = 139
+    Top = 20
+    Width = 427
+    ItemHeight = 0
+    OnDblClick = ThreadlistboxDblClick
+    TabOrder = 0
+  end
+  object Button1: TButton
+    Left = 118
+    Height = 31
+    Top = 167
+    Width = 92
+    Caption = 'OK'
+    Default = True
+    OnClick = Button1Click
+    TabOrder = 1
+  end
+  object Button2: TButton
+    Left = 236
+    Height = 31
+    Top = 167
+    Width = 93
+    Cancel = True
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 2
+  end
+end

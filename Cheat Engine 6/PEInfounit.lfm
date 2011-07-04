@@ -1,0 +1,219 @@
+object frmPEInfo: TfrmPEInfo
+  Left = 644
+  Height = 318
+  Top = 381
+  Width = 485
+  Caption = 'Portable Executable (PE) Info'
+  ClientHeight = 318
+  ClientWidth = 485
+  Font.Height = -14
+  Font.Name = 'MS Sans Serif'
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object GroupBox2: TGroupBox
+    Left = 177
+    Height = 318
+    Top = 0
+    Width = 308
+    Align = alClient
+    Caption = 'Info'
+    ClientHeight = 300
+    ClientWidth = 304
+    TabOrder = 0
+    object PageControl1: TPageControl
+      Left = 0
+      Height = 300
+      Top = 0
+      Width = 304
+      ActivePage = TabSheet1
+      Align = alClient
+      TabIndex = 0
+      TabOrder = 0
+      object TabSheet1: TTabSheet
+        Caption = 'All'
+        ClientHeight = 271
+        ClientWidth = 296
+        object PEItv: TTreeView
+          Left = 0
+          Height = 271
+          Top = 0
+          Width = 296
+          Align = alClient
+          DefaultItemHeight = 18
+          Indent = 19
+          TabOrder = 0
+        end
+      end
+      object TabSheet2: TTabSheet
+        Caption = 'Imports'
+        ClientHeight = 267
+        ClientWidth = 296
+        ImageIndex = 1
+        object lbImports: TListBox
+          Left = 0
+          Height = 267
+          Top = 0
+          Width = 296
+          Align = alClient
+          ItemHeight = 0
+          TabOrder = 0
+        end
+      end
+      object TabSheet3: TTabSheet
+        Caption = 'Exports'
+        ClientHeight = 267
+        ClientWidth = 296
+        ImageIndex = 2
+        object lbExports: TListBox
+          Left = 0
+          Height = 267
+          Top = 0
+          Width = 296
+          Align = alClient
+          ItemHeight = 0
+          TabOrder = 0
+        end
+      end
+      object TabSheet4: TTabSheet
+        Caption = 'Base Relocations'
+        ClientHeight = 267
+        ClientWidth = 296
+        ImageIndex = 3
+        object lbBaseReloc: TListBox
+          Left = 0
+          Height = 267
+          Top = 0
+          Width = 296
+          Align = alClient
+          ItemHeight = 0
+          TabOrder = 0
+        end
+      end
+    end
+  end
+  object Panel1: TPanel
+    Left = 0
+    Height = 318
+    Top = 0
+    Width = 177
+    Align = alLeft
+    BevelOuter = bvNone
+    ClientHeight = 318
+    ClientWidth = 177
+    TabOrder = 1
+    object LoadButton: TSpeedButton
+      Left = 59
+      Height = 30
+      Top = 201
+      Width = 31
+      Glyph.Data = {
+        D6020000424DD6020000000000003600000028000000100000000E0000000100
+        180000000000A0020000C40E0000C40E00000000000000000000C0C0C0C0C0C0
+        C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0
+        C0C0C0C0C0C0C0C0C0C000000000000000000000000000000000000000000000
+        0000000000000000000000C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0000000000000
+        008484008484008484008484008484008484008484008484008484000000C0C0
+        C0C0C0C0C0C0C0C0C0C000000000FFFF00000000848400848400848400848400
+        8484008484008484008484008484000000C0C0C0C0C0C0C0C0C0000000FFFFFF
+        00FFFF0000000084840084840084840084840084840084840084840084840084
+        84000000C0C0C0C0C0C000000000FFFFFFFFFF00FFFF00000000848400848400
+        8484008484008484008484008484008484008484000000C0C0C0000000FFFFFF
+        00FFFFFFFFFF00FFFF0000000000000000000000000000000000000000000000
+        0000000000000000000000000000FFFFFFFFFF00FFFFFFFFFF00FFFFFFFFFF00
+        FFFFFFFFFF00FFFF000000C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0000000FFFFFF
+        00FFFFFFFFFF00FFFFFFFFFF00FFFFFFFFFF00FFFFFFFFFF000000C0C0C0C0C0
+        C0C0C0C0C0C0C0C0C0C000000000FFFFFFFFFF00FFFF00000000000000000000
+        0000000000000000000000C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0000000
+        000000000000C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C00000
+        00000000000000C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0
+        C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0000000000000C0C0C0C0C0C0C0C0C0
+        C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0000000C0C0C0C0C0C0C0C0C00000
+        00C0C0C0000000C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0
+        C0C0C0C0C0000000000000000000C0C0C0C0C0C0C0C0C0C0C0C0
+      }
+      NumGlyphs = 0
+      OnClick = LoadButtonClick
+      ShowHint = True
+      ParentShowHint = False
+    end
+    object Label1: TLabel
+      Left = 10
+      Height = 17
+      Top = 236
+      Width = 89
+      Caption = 'No file opened'
+      ParentColor = False
+    end
+    object Label2: TLabel
+      Left = 10
+      Height = 17
+      Top = 256
+      Width = 51
+      Caption = 'address'
+      ParentColor = False
+    end
+    object GroupBox1: TGroupBox
+      Left = 10
+      Height = 178
+      Top = 20
+      Width = 161
+      Caption = 'MZ-Start'
+      ClientHeight = 160
+      ClientWidth = 157
+      TabOrder = 0
+      object edtAddress: TEdit
+        Left = 10
+        Height = 24
+        Top = 5
+        Width = 107
+        TabOrder = 0
+      end
+      object modulelist: TListBox
+        Left = 10
+        Height = 120
+        Top = 32
+        Width = 141
+        ItemHeight = 0
+        OnClick = modulelistClick
+        TabOrder = 1
+      end
+      object Button1: TButton
+        Left = 121
+        Height = 21
+        Top = 5
+        Width = 30
+        Caption = 'Info'
+        OnClick = Button1Click
+        TabOrder = 2
+      end
+    end
+    object RadioButton1: TRadioButton
+      Left = 10
+      Height = 20
+      Top = 207
+      Width = 42
+      Caption = 'File'
+      TabOrder = 1
+    end
+    object RadioButton2: TRadioButton
+      Left = 10
+      Height = 20
+      Top = 0
+      Width = 69
+      Caption = 'Memory'
+      Checked = True
+      TabOrder = 2
+      TabStop = True
+    end
+  end
+  object OpenDialog1: TOpenDialog
+    Filter = 'Executables|*.exe;*.sys;*.dll'
+    Options = [ofFileMustExist, ofEnableSizing]
+    left = 104
+    top = 168
+  end
+end

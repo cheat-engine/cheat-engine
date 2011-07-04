@@ -1,0 +1,188 @@
+object frmProcessInfo: TfrmProcessInfo
+  Left = 441
+  Height = 259
+  Top = 112
+  Width = 211
+  BorderIcons = []
+  Caption = 'Process/System Info'
+  ClientHeight = 259
+  ClientWidth = 211
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnClose = FormClose
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object Label1: TLabel
+    Left = 63
+    Height = 14
+    Top = 56
+    Width = 25
+    Caption = 'CR3:'
+    ParentColor = False
+  end
+  object Label2: TLabel
+    Left = 63
+    Height = 14
+    Top = 72
+    Width = 25
+    Caption = 'CR4:'
+    ParentColor = False
+  end
+  object Label3: TLabel
+    Left = 32
+    Height = 14
+    Top = 8
+    Width = 56
+    Caption = 'PEProcess:'
+    ParentColor = False
+  end
+  object Label4: TLabel
+    Left = 66
+    Height = 14
+    Top = 136
+    Width = 22
+    Caption = 'IDT:'
+    ParentColor = False
+  end
+  object lblcr3: TLabel
+    Left = 96
+    Height = 14
+    Top = 56
+    Width = 26
+    Caption = 'lblcr3'
+    ParentColor = False
+  end
+  object lblcr4: TLabel
+    Left = 96
+    Height = 14
+    Top = 72
+    Width = 26
+    Caption = 'lblcr4'
+    ParentColor = False
+  end
+  object lblPEPROCESS: TLabel
+    Left = 96
+    Height = 14
+    Top = 8
+    Width = 76
+    Caption = 'lblPEPROCESS'
+    ParentColor = False
+    OnDblClick = lblclick
+  end
+  object Label8: TLabel
+    Left = 24
+    Height = 14
+    Top = 24
+    Width = 64
+    Caption = 'Valid Handle:'
+    ParentColor = False
+  end
+  object lblisvalid: TLabel
+    Left = 96
+    Height = 14
+    Top = 24
+    Width = 40
+    Caption = 'lblisvalid'
+    ParentColor = False
+  end
+  object Label5: TLabel
+    Left = 62
+    Height = 14
+    Top = 88
+    Width = 26
+    Caption = 'SDT:'
+    ParentColor = False
+  end
+  object lblSdt: TLabel
+    Left = 96
+    Height = 14
+    Top = 88
+    Width = 27
+    Caption = 'lblSdt'
+    ParentColor = False
+    OnDblClick = lblclick
+  end
+  object Label6: TLabel
+    Left = 55
+    Height = 14
+    Top = 104
+    Width = 33
+    Caption = 'SSDT:'
+    ParentColor = False
+  end
+  object lblSsdt: TLabel
+    Left = 96
+    Height = 14
+    Top = 104
+    Width = 32
+    Caption = 'lblSsdt'
+    ParentColor = False
+    OnDblClick = lblclick
+  end
+  object Label7: TLabel
+    Left = 61
+    Height = 14
+    Top = 120
+    Width = 27
+    Caption = 'GDT:'
+    ParentColor = False
+  end
+  object lblGdt: TLabel
+    Left = 96
+    Height = 14
+    Top = 120
+    Width = 28
+    Caption = 'lblGdt'
+    ParentColor = False
+    OnDblClick = lblclick
+  end
+  object Label9: TLabel
+    Left = 63
+    Height = 14
+    Top = 40
+    Width = 25
+    Caption = 'CR0:'
+    ParentColor = False
+  end
+  object lblcr0: TLabel
+    Left = 96
+    Height = 14
+    Top = 40
+    Width = 26
+    Caption = 'lblcr0'
+    ParentColor = False
+  end
+  object lbidt: TListBox
+    Left = 96
+    Height = 57
+    Top = 136
+    Width = 112
+    Anchors = [akTop, akLeft, akRight]
+    ItemHeight = 0
+    OnDblClick = lbidtDblClick
+    TabOrder = 0
+  end
+  object Button1: TButton
+    Left = 75
+    Height = 25
+    Top = 224
+    Width = 75
+    Anchors = [akTop]
+    Caption = 'OK'
+    Default = True
+    ModalResult = 1
+    OnClick = Button1Click
+    TabOrder = 1
+  end
+  object Button2: TButton
+    Left = 133
+    Height = 17
+    Top = 200
+    Width = 75
+    Anchors = [akTop, akRight]
+    Caption = 'Threads>>'
+    OnClick = Button2Click
+    TabOrder = 2
+  end
+end

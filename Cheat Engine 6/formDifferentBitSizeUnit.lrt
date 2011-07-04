@@ -1,0 +1,7 @@
+TFORMDIFFERENTBITSIZE.CAPTION=Different sized row of bits
+TFORMDIFFERENTBITSIZE.LABELOLD.CAPTION=LabelOld
+TFORMDIFFERENTBITSIZE.LABELNEW.CAPTION=LabelNew
+TFORMDIFFERENTBITSIZE.LABEL1.CAPTION=The last time you scanned the number of bits was 90 and now it is 12. Please tell me how and how much i must change the bit offset to succesfully scan. (Left arrow+right arrow move the bits)
+TFORMDIFFERENTBITSIZE.EDIT1.TEXT=Edit1
+TFORMDIFFERENTBITSIZE.BUTTON1.CAPTION=OK
+TFORMDIFFERENTBITSIZE.OHNOYOUFOUNDME1.CAPTION=Oh no! You found me!!!

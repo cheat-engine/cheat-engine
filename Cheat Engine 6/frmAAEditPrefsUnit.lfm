@@ -1,0 +1,129 @@
+object frmAAEditPrefs: TfrmAAEditPrefs
+  Left = 782
+  Height = 173
+  Top = 296
+  Width = 189
+  BorderStyle = bsDialog
+  Caption = 'Editor preferences'
+  ClientHeight = 173
+  ClientWidth = 189
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object Panel2: TPanel
+    Left = 0
+    Height = 41
+    Top = 132
+    Width = 189
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 41
+    ClientWidth = 189
+    TabOrder = 0
+    object Button1: TButton
+      Left = 14
+      Height = 25
+      Top = 8
+      Width = 75
+      Caption = 'OK'
+      Default = True
+      ModalResult = 1
+      TabOrder = 0
+    end
+    object Button2: TButton
+      Left = 100
+      Height = 25
+      Top = 8
+      Width = 75
+      Cancel = True
+      Caption = 'Cancel'
+      ModalResult = 2
+      TabOrder = 1
+    end
+  end
+  object Panel1: TPanel
+    Left = 0
+    Height = 132
+    Top = 0
+    Width = 189
+    Align = alClient
+    BevelOuter = bvNone
+    ClientHeight = 132
+    ClientWidth = 189
+    TabOrder = 1
+    object cbShowLineNumbers: TCheckBox
+      Left = 32
+      Height = 19
+      Top = 8
+      Width = 109
+      Caption = 'Show line numbers'
+      OnClick = cbShowLineNumbersClick
+      TabOrder = 0
+    end
+    object cbShowGutter: TCheckBox
+      Left = 32
+      Height = 19
+      Top = 24
+      Width = 97
+      Caption = 'Show bar on left'
+      OnClick = cbShowGutterClick
+      TabOrder = 1
+    end
+    object cbSmartTab: TCheckBox
+      Left = 32
+      Height = 19
+      Top = 40
+      Width = 65
+      Caption = 'Smart tab'
+      OnClick = cbSmartTabClick
+      TabOrder = 2
+    end
+    object btnFont: TButton
+      Left = 16
+      Height = 25
+      Top = 104
+      Width = 161
+      Caption = 'font'
+      OnClick = btnFontClick
+      TabOrder = 3
+    end
+    object cbTabsToSpace: TCheckBox
+      Left = 32
+      Height = 19
+      Top = 56
+      Width = 88
+      Caption = 'Tabs to space'
+      OnClick = cbTabsToSpaceClick
+      TabOrder = 4
+    end
+    object edtTabWidth: TEdit
+      Left = 88
+      Height = 21
+      Top = 80
+      Width = 80
+      OnChange = edtTabWidthChange
+      TabOrder = 5
+      Text = '4'
+    end
+    object Label1: TLabel
+      Left = 31
+      Height = 14
+      Top = 83
+      Width = 51
+      Caption = 'Tab Width'
+      ParentColor = False
+    end
+  end
+  object FontDialog1: TFontDialog
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    MinFontSize = 0
+    MaxFontSize = 0
+    Options = [fdEffects, fdFixedPitchOnly]
+    left = 136
+    top = 8
+  end
+end

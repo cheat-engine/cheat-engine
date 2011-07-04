@@ -1,0 +1,1369 @@
+object formSettings: TformSettings
+  Left = 640
+  Height = 517
+  Top = 296
+  Width = 772
+  BorderIcons = [biSystemMenu]
+  Caption = 'Cheat Engine settings'
+  ClientHeight = 517
+  ClientWidth = 772
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnShow = FormShow
+  Position = poMainFormCenter
+  LCLVersion = '0.9.31'
+  object pnlConfig: TPanel
+    Left = 0
+    Height = 470
+    Top = 0
+    Width = 772
+    Align = alClient
+    ClientHeight = 470
+    ClientWidth = 772
+    TabOrder = 0
+    object tvMenuSelection: TTreeView
+      Left = 1
+      Height = 468
+      Top = 1
+      Width = 148
+      Align = alLeft
+      DefaultItemHeight = 15
+      HideSelection = False
+      Indent = 19
+      ReadOnly = True
+      RightClickSelect = True
+      ScrollBars = ssVertical
+      ShowRoot = False
+      TabOrder = 0
+      OnChange = tvMenuSelectionChange
+      OnCollapsing = tvMenuSelectionCollapsing
+      Options = [tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoRightClickSelect, tvoShowButtons, tvoShowLines, tvoToolTips]
+      Items.Data = {
+        F9FFFFFF020007000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF010000000000
+        0000011000000047656E6572616C2053657474696E6773FFFFFFFFFFFFFFFFFF
+        FFFFFFFFFFFFFF00000000000000000005000000546F6F6C73FFFFFFFFFFFFFF
+        FFFFFFFFFFFFFFFFFF00000000000000000007000000486F746B657973FFFFFF
+        FFFFFFFFFFFFFFFFFFFFFFFFFF0000000000000000000C000000556E72616E64
+        6F6D697A6572FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000000000000000000D
+        0000005363616E2053657474696E6773FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        00000000000000000007000000506C7567696E73FFFFFFFFFFFFFFFFFFFFFFFF
+        FFFFFFFF000000000000000000100000004465627567676572204F7074696F6E
+        73FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000050000004578
+        747261
+      }
+    end
+    object pcSetting: TPageControl
+      Left = 149
+      Height = 468
+      Top = 1
+      Width = 622
+      ActivePage = Plugins
+      Align = alClient
+      TabIndex = 4
+      TabOrder = 1
+      OnChange = pcSettingChange
+      object GeneralSettings: TTabSheet
+        Caption = 'General Settings'
+        ClientHeight = 442
+        ClientWidth = 614
+        object Label11: TLabel
+          Left = 221
+          Height = 14
+          Top = 373
+          Width = 14
+          Caption = 'ms'
+          ParentColor = False
+        end
+        object Label12: TLabel
+          Left = 221
+          Height = 14
+          Top = 397
+          Width = 14
+          Caption = 'ms'
+          ParentColor = False
+        end
+        object Label13: TLabel
+          Left = 87
+          Height = 14
+          Top = 376
+          Width = 73
+          Caption = 'Update interval'
+          ParentColor = False
+        end
+        object Label14: TLabel
+          Left = 90
+          Height = 14
+          Top = 401
+          Width = 70
+          Caption = 'Freeze interval'
+          ParentColor = False
+        end
+        object Label18: TLabel
+          Left = 1
+          Height = 14
+          Top = 424
+          Width = 159
+          Caption = 'Found address list update interval'
+          ParentColor = False
+        end
+        object Label19: TLabel
+          Left = 221
+          Height = 14
+          Top = 421
+          Width = 14
+          Caption = 'ms'
+          ParentColor = False
+        end
+        object Label23: TLabel
+          Left = 10
+          Height = 14
+          Top = 322
+          Width = 194
+          Caption = 'Automatically attach to processes named'
+          ParentColor = False
+        end
+        object Label24: TLabel
+          Left = 359
+          Height = 14
+          Top = 321
+          Width = 115
+          Caption = '(Seperate entries with ; )'
+          ParentColor = False
+        end
+        object cbShowUndo: TCheckBox
+          Left = 1
+          Height = 19
+          Top = 2
+          Width = 107
+          Caption = 'Show undo button'
+          Checked = True
+          State = cbChecked
+          TabOrder = 0
+        end
+        object cbCenterOnPopup: TCheckBox
+          Left = 1
+          Height = 19
+          Top = 41
+          Width = 223
+          Caption = 'Center Cheat Engine when bringing to front'
+          Checked = True
+          State = cbChecked
+          TabOrder = 1
+        end
+        object EditUpdateInterval: TEdit
+          Left = 165
+          Height = 21
+          Hint = 'The number of milliseconds that Cheat Engine will wait before refreshing the list of addresses'
+          Top = 369
+          Width = 53
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 2
+          Text = '500'
+        end
+        object EditFreezeInterval: TEdit
+          Left = 165
+          Height = 21
+          Hint = 'The number of milliseconds that Cheat Engine will wait before resetting the frozen addresses to their original value.'
+          Top = 394
+          Width = 53
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 3
+          Text = '100'
+        end
+        object GroupBox1: TGroupBox
+          Left = 0
+          Height = 64
+          Top = 250
+          Width = 602
+          Caption = 'Address list specific'
+          ClientHeight = 46
+          ClientWidth = 598
+          TabOrder = 4
+          object cbShowAsSigned: TCheckBox
+            Left = 13
+            Height = 19
+            Top = 0
+            Width = 178
+            Caption = 'Show values as if they are signed'
+            TabOrder = 0
+          end
+          object cbsimplecopypaste: TCheckBox
+            Left = 13
+            Height = 19
+            Top = 24
+            Width = 80
+            Caption = 'Simple paste'
+            TabOrder = 1
+          end
+        end
+        object cbUpdatefoundList: TCheckBox
+          Left = 1
+          Height = 19
+          Top = 22
+          Width = 278
+          Caption = 'Update the list of found addresses even after scanning'
+          Checked = True
+          OnClick = cbUpdatefoundListClick
+          State = cbChecked
+          TabOrder = 5
+        end
+        object editUpdatefoundInterval: TEdit
+          Left = 165
+          Height = 21
+          Hint = 'The number of milliseconds that Cheat Engine will wait before refreshing the list of addresses'
+          Top = 417
+          Width = 51
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 6
+          Text = '1000'
+        end
+        object cbHideAllWindows: TCheckBox
+          Left = 1
+          Height = 19
+          Top = 60
+          Width = 345
+          Caption = 'Hide some/all windows instead of trying to bring cheat engine to front'
+          Checked = True
+          OnClick = cbHideAllWindowsClick
+          State = cbChecked
+          TabOrder = 7
+        end
+        object btnExcludeProcesses: TButton
+          Left = 351
+          Height = 21
+          Top = 59
+          Width = 90
+          Caption = 'More...'
+          OnClick = btnExcludeProcessesClick
+          TabOrder = 8
+        end
+        object EditAutoAttach: TEdit
+          Left = 209
+          Height = 21
+          Hint = 'Type the name of the process you want to automatically open. Note: Only works when NO process has been opened yet'
+          Top = 317
+          Width = 143
+          TabOrder = 9
+        end
+        object cbAlwaysAutoAttach: TCheckBox
+          Left = 10
+          Height = 19
+          Top = 343
+          Width = 334
+          Caption = 'Even autoattach when another process has already been selected'
+          TabOrder = 10
+        end
+        object cbSaveWindowPos: TCheckBox
+          Left = 1
+          Height = 19
+          Top = 135
+          Width = 128
+          Caption = 'Save window positions'
+          Checked = True
+          State = cbChecked
+          TabOrder = 11
+        end
+        object cbProcessIcons: TCheckBox
+          Left = 1
+          Height = 19
+          Top = 207
+          Width = 172
+          Caption = 'Get process icons for processlist'
+          Checked = True
+          OnClick = cbProcessIconsClick
+          State = cbChecked
+          TabOrder = 12
+        end
+        object cbProcessIconsOnly: TCheckBox
+          Left = 20
+          Height = 19
+          Top = 225
+          Width = 180
+          Caption = 'Only show processes with an icon'
+          TabOrder = 13
+        end
+        object cbShowMainMenu: TCheckBox
+          Left = 1
+          Height = 19
+          Top = 171
+          Width = 101
+          Caption = 'Show main menu'
+          Checked = True
+          State = cbChecked
+          TabOrder = 14
+        end
+        object cbOldPointerAddMethod: TCheckBox
+          Left = 1
+          Height = 19
+          Top = 78
+          Width = 259
+          Caption = 'Pointer adding: Append pointerline instead of insert'
+          TabOrder = 15
+        end
+        object cbShowallWindows: TCheckBox
+          Left = 1
+          Height = 19
+          Top = 153
+          Width = 171
+          Caption = 'Show all windows in the taskbar'
+          TabOrder = 16
+        end
+        object cbAskIfTableHasLuascript: TCheckBox
+          Left = 1
+          Height = 19
+          Top = 96
+          Width = 172
+          Caption = 'Ask to run lua scripts from tables'
+          Checked = True
+          OnChange = cbAskIfTableHasLuascriptChange
+          State = cbChecked
+          TabOrder = 17
+        end
+        object cbAlwaysRunScript: TCheckBox
+          Left = 15
+          Height = 19
+          Top = 113
+          Width = 175
+          Caption = 'Always run lua scripts from tables'
+          Enabled = False
+          TabOrder = 18
+        end
+        object cbShowProcesslist: TCheckBox
+          Left = 1
+          Height = 19
+          Top = 189
+          Width = 167
+          Caption = 'Show process list in main menu'
+          TabOrder = 19
+        end
+      end
+      object tsHotkeys: TTabSheet
+        Caption = 'Hotkeys'
+        ClientHeight = 442
+        ClientWidth = 614
+        ImageIndex = 7
+        inline frameHotkeyConfig: TframeHotkeyConfig
+          Height = 442
+          Width = 614
+          Align = alClient
+          ClientHeight = 442
+          ClientWidth = 614
+          DesignLeft = 737
+          DesignTop = 306
+          inherited Panel1: TPanel
+            Height = 380
+            Top = 62
+            Width = 388
+            ClientHeight = 380
+            ClientWidth = 388
+            inherited Label1: TLabel
+              Height = 14
+              Width = 388
+            end
+            inherited ListBox1: TListBox
+              Height = 366
+              Top = 14
+              Width = 388
+              ItemHeight = 13
+            end
+          end
+          inherited Panel2: TPanel
+            Left = 388
+            Height = 380
+            Top = 62
+            Width = 226
+            ClientHeight = 380
+            ClientWidth = 226
+            inherited Label2: TLabel
+              Left = 7
+              Height = 14
+              Width = 35
+            end
+            inherited Edit1: TEdit
+              Left = 6
+              Height = 21
+              Top = 20
+              Width = 212
+            end
+            inherited Button3: TButton
+              Left = 158
+              Height = 21
+              Top = 49
+              Width = 60
+            end
+            inherited Panel3: TPanel
+              Left = 2
+              Height = 382
+              Top = 72
+              Width = 224
+              ClientHeight = 382
+              ClientWidth = 224
+              inherited Label52: TLabel
+                Left = 184
+                Height = 14
+                Top = 3
+                Width = 32
+              end
+              inherited edtSHSpeed: TEdit
+                Left = 160
+                Height = 21
+                Top = 22
+                Width = 57
+              end
+            end
+            inherited Panel4: TPanel
+              Left = 6
+              Height = 120
+              Top = 192
+              Width = 213
+              ClientHeight = 120
+              ClientWidth = 213
+              inherited Label3: TLabel
+                Left = 4
+                Height = 14
+                Width = 58
+              end
+              inherited Edit4: TEdit
+                Height = 21
+                Top = 20
+                Width = 205
+              end
+            end
+          end
+          inherited Panel5: TPanel
+            Height = 62
+            Width = 614
+            ClientHeight = 62
+            ClientWidth = 614
+            inherited Label4: TLabel
+              Left = 128
+              Height = 14
+              Top = 7
+              Width = 137
+            end
+            inherited Label5: TLabel
+              Left = 128
+              Height = 14
+              Top = 39
+              Width = 170
+            end
+            inherited edtKeypollInterval: TEdit
+              Height = 21
+              Width = 117
+            end
+            inherited edtHotkeyDelay: TEdit
+              Height = 21
+              Top = 32
+              Width = 117
+            end
+          end
+        end
+      end
+      object Unrandomizer: TTabSheet
+        Caption = 'Unrandomizer'
+        ClientHeight = 442
+        ClientWidth = 614
+        ImageIndex = 8
+        object Label5: TLabel
+          Left = 10
+          Height = 14
+          Top = 10
+          Width = 94
+          Caption = 'Default return value'
+          ParentColor = False
+        end
+        object edtDefault: TEdit
+          Left = 111
+          Height = 21
+          Top = 7
+          Width = 149
+          TabOrder = 0
+          Text = '0'
+        end
+        object cbIncremental: TCheckBox
+          Left = 11
+          Height = 19
+          Top = 39
+          Width = 104
+          Caption = 'Incremental value'
+          TabOrder = 1
+        end
+      end
+      object ScanSettings: TTabSheet
+        Caption = 'Scan Settings'
+        ClientHeight = 442
+        ClientWidth = 614
+        ImageIndex = 1
+        object Label3: TLabel
+          Left = 0
+          Height = 14
+          Top = 273
+          Width = 68
+          Caption = 'Thread priority'
+          ParentColor = False
+        end
+        object Label1: TLabel
+          Left = 0
+          Height = 14
+          Top = 7
+          Width = 115
+          Caption = 'Size of scanbuffer (KB) :'
+          ParentColor = False
+        end
+        object Label15: TLabel
+          Left = 175
+          Height = 14
+          Top = 7
+          Width = 137
+          Caption = '(Can affect scan speed a lot)'
+          ParentColor = False
+        end
+        object Label21: TLabel
+          Left = 0
+          Height = 14
+          Top = 185
+          Width = 190
+          Caption = 'Scan the following memory region types:'
+          ParentColor = False
+        end
+        object combothreadpriority: TComboBox
+          Left = 0
+          Height = 21
+          Top = 289
+          Width = 122
+          ItemHeight = 13
+          ItemIndex = 4
+          Items.Strings = (
+            'Idle'
+            'Lowest'
+            'Lower'
+            'Normal'
+            'Higher'
+            'Highest'
+            'TimeCritical'
+          )
+          PopupMenu = MainForm.emptypopup
+          TabOrder = 0
+          Text = 'Higher'
+        end
+        object cbFastscan: TCheckBox
+          Left = 0
+          Height = 19
+          Top = 39
+          Width = 130
+          Caption = 'Fast scan on by default'
+          Checked = True
+          State = cbChecked
+          TabOrder = 1
+        end
+        object cbSkip_PAGE_NOCACHE: TCheckBox
+          Left = 0
+          Height = 19
+          Hint = 'Some systems crash when trying to read memory with this protection. If that happens check this option.'
+          Top = 56
+          Width = 312
+          Caption = 'Don''t scan memory that is protected with the No Cache option'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 2
+        end
+        object cbMemImage: TCheckBox
+          Left = 0
+          Height = 19
+          Top = 224
+          Width = 355
+          Caption = 'MEM_IMAGE:Memory that is mapped into the view of an image section'
+          Checked = True
+          State = cbChecked
+          TabOrder = 3
+        end
+        object cbMemMapped: TCheckBox
+          Left = 0
+          Height = 19
+          Top = 244
+          Width = 531
+          Caption = 'MEM_MAPPED:Memory that is mapped into the view of a section. (E.g:File mapping, emulator memory, slow)'
+          TabOrder = 4
+        end
+        object cbMemPrivate: TCheckBox
+          Left = 0
+          Height = 19
+          Top = 204
+          Width = 206
+          Caption = 'MEM_PRIVATE:Memory that is private.'
+          Checked = True
+          State = cbChecked
+          TabOrder = 5
+        end
+        object EditBufsize: TEdit
+          Left = 119
+          Height = 21
+          Top = 5
+          Width = 51
+          TabOrder = 6
+          Text = '1024'
+        end
+        object cbDontusetempdir: TCheckBox
+          Left = 0
+          Height = 19
+          Top = 90
+          Width = 292
+          Caption = 'Don''t store the temporary scanfiles in the windows tempdir'
+          OnChange = cbDontusetempdirChange
+          TabOrder = 7
+        end
+        object edtTempScanFolder: TEdit
+          Left = 15
+          Height = 21
+          Top = 124
+          Width = 521
+          Enabled = False
+          TabOrder = 8
+        end
+        object Label2: TLabel
+          Left = 15
+          Height = 14
+          Top = 111
+          Width = 201
+          Caption = 'Store the temporary scanfiles here instead:'
+          Enabled = False
+          ParentColor = False
+        end
+        object LoadButton: TSpeedButton
+          Left = 535
+          Height = 25
+          Top = 123
+          Width = 25
+          Enabled = False
+          Glyph.Data = {
+            D6020000424DD6020000000000003600000028000000100000000E0000000100
+            180000000000A0020000C40E0000C40E00000000000000000000C0C0C0C0C0C0
+            C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0
+            C0C0C0C0C0C0C0C0C0C000000000000000000000000000000000000000000000
+            0000000000000000000000C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0000000000000
+            008484008484008484008484008484008484008484008484008484000000C0C0
+            C0C0C0C0C0C0C0C0C0C000000000FFFF00000000848400848400848400848400
+            8484008484008484008484008484000000C0C0C0C0C0C0C0C0C0000000FFFFFF
+            00FFFF0000000084840084840084840084840084840084840084840084840084
+            84000000C0C0C0C0C0C000000000FFFFFFFFFF00FFFF00000000848400848400
+            8484008484008484008484008484008484008484000000C0C0C0000000FFFFFF
+            00FFFFFFFFFF00FFFF0000000000000000000000000000000000000000000000
+            0000000000000000000000000000FFFFFFFFFF00FFFFFFFFFF00FFFFFFFFFF00
+            FFFFFFFFFF00FFFF000000C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0000000FFFFFF
+            00FFFFFFFFFF00FFFFFFFFFF00FFFFFFFFFF00FFFFFFFFFF000000C0C0C0C0C0
+            C0C0C0C0C0C0C0C0C0C000000000FFFFFFFFFF00FFFF00000000000000000000
+            0000000000000000000000C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0000000
+            000000000000C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C00000
+            00000000000000C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0
+            C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0000000000000C0C0C0C0C0C0C0C0C0
+            C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0000000C0C0C0C0C0C0C0C0C00000
+            00C0C0C0000000C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0
+            C0C0C0C0C0000000000000000000C0C0C0C0C0C0C0C0C0C0C0C0
+          }
+          NumGlyphs = 0
+          OnClick = LoadButtonClick
+          ShowHint = True
+          ParentShowHint = False
+        end
+        object cbAllIncludesCustomType: TCheckBox
+          Left = 0
+          Height = 19
+          Top = 73
+          Width = 292
+          Caption = 'Custom types are included with the ALL scan variabletype'
+          Checked = True
+          State = cbChecked
+          TabOrder = 9
+        end
+      end
+      object Plugins: TTabSheet
+        Caption = 'Plugins'
+        ClientHeight = 442
+        ClientWidth = 614
+        ImageIndex = 3
+        object Panel7: TPanel
+          Left = 517
+          Height = 442
+          Top = 0
+          Width = 97
+          Align = alRight
+          BevelOuter = bvNone
+          ClientHeight = 442
+          ClientWidth = 97
+          TabOrder = 0
+          object Button5: TButton
+            Left = 5
+            Height = 31
+            Top = 43
+            Width = 92
+            Caption = 'Delete'
+            OnClick = Button5Click
+            TabOrder = 0
+          end
+          object Button4: TButton
+            Left = 5
+            Height = 30
+            Top = 4
+            Width = 92
+            Caption = 'Add new'
+            OnClick = Button4Click
+            TabOrder = 1
+          end
+        end
+        object Panel8: TPanel
+          Left = 0
+          Height = 442
+          Top = 0
+          Width = 517
+          Align = alClient
+          BevelOuter = bvNone
+          ClientHeight = 442
+          ClientWidth = 517
+          TabOrder = 1
+          object Label22: TLabel
+            Left = 0
+            Height = 14
+            Top = 0
+            Width = 517
+            Align = alTop
+            Caption = 'The following plugins are available:'
+            ParentColor = False
+          end
+          object clbPlugins: TCheckListBox
+            Left = 0
+            Height = 428
+            Top = 14
+            Width = 517
+            Align = alClient
+            ItemHeight = 0
+            TabOrder = 0
+          end
+        end
+      end
+      object Assembler: TTabSheet
+        Caption = 'Debugger Options'
+        ClientHeight = 442
+        ClientWidth = 614
+        ImageIndex = 5
+        object replacewithnops: TCheckBox
+          Left = 15
+          Height = 19
+          Hint = 'If you type in a opcode and it is smaller than the opcode you replaced, it will fill the missing bytes with NOP instructions. If the opcode is longer it will replace the opcode(s) that have been overwritten with NOP''s'
+          Top = 73
+          Width = 206
+          Caption = 'Replace incomplete opcodes with nops'
+          Checked = True
+          OnClick = replacewithnopsClick
+          ParentShowHint = False
+          ShowHint = True
+          State = cbChecked
+          TabOrder = 0
+        end
+        object askforreplacewithnops: TCheckBox
+          Left = 31
+          Height = 19
+          Top = 92
+          Width = 134
+          Caption = 'Ask for replace with nop'
+          Checked = True
+          State = cbChecked
+          TabOrder = 1
+        end
+        object rbDebugAsBreakpoint: TRadioButton
+          Left = 15
+          Height = 19
+          Top = 9
+          Width = 144
+          Caption = 'Use hardware breakpoints'
+          Checked = True
+          OnChange = rbInt3AsBreakpointChange
+          TabOrder = 4
+          TabStop = True
+        end
+        object rbInt3AsBreakpoint: TRadioButton
+          Left = 15
+          Height = 19
+          Top = 29
+          Width = 240
+          Caption = 'Use int3 instructions for breakpoints (Unlimited)'
+          OnChange = rbInt3AsBreakpointChange
+          TabOrder = 2
+        end
+        object GroupBox2: TGroupBox
+          Left = 7
+          Height = 153
+          Top = 257
+          Width = 416
+          Caption = 'Debugger interface config'
+          ClientHeight = 135
+          ClientWidth = 412
+          TabOrder = 3
+          object pcDebugConfig: TPageControl
+            Left = 0
+            Height = 135
+            Top = 0
+            Width = 412
+            ActivePage = tsKernelDebugConfig
+            Align = alClient
+            TabIndex = 2
+            TabOrder = 0
+            object tsVEHDebugConfig: TTabSheet
+              Caption = 'VEH Debugger'
+              ClientHeight = 109
+              ClientWidth = 404
+              object RadioButton1: TRadioButton
+                Left = 2
+                Height = 19
+                Top = 43
+                Width = 194
+                Caption = 'Hook thread-create and destroy api''s'
+                Enabled = False
+                TabOrder = 2
+              end
+              object Label25: TLabel
+                Left = 2
+                Height = 14
+                Top = 3
+                Width = 82
+                Caption = 'Thread following:'
+                ParentColor = False
+              end
+              object RadioButton2: TRadioButton
+                Left = 2
+                Height = 19
+                Top = 67
+                Width = 117
+                Caption = 'Use processwatcher'
+                Enabled = False
+                TabOrder = 1
+              end
+              object RadioButton3: TRadioButton
+                Left = 2
+                Height = 19
+                Top = 19
+                Width = 90
+                Caption = 'Poll for threads'
+                Checked = True
+                TabOrder = 0
+                TabStop = True
+              end
+            end
+            object tsWindowsDebuggerConfig: TTabSheet
+              Caption = 'Windows Debugger'
+              ClientHeight = 109
+              ClientWidth = 404
+              object CheckBox1: TCheckBox
+                Left = 2
+                Height = 17
+                Top = 5
+                Width = 209
+                Caption = 'Try to prevent detection of the debugger'
+                OnChange = CheckBox1Change
+                TabOrder = 0
+              end
+            end
+            object tsKernelDebugConfig: TTabSheet
+              Caption = 'Kernel Debug'
+              ClientHeight = 109
+              ClientWidth = 404
+              object cbGlobalDebug: TCheckBox
+                Left = 4
+                Height = 19
+                Top = 5
+                Width = 147
+                Caption = 'Use Global Debug routines'
+                TabOrder = 0
+              end
+              object cbCanStepKernelcode: TCheckBox
+                Left = 4
+                Height = 19
+                Top = 26
+                Width = 180
+                Caption = 'Ability to step through kernel code'
+                TabOrder = 1
+              end
+            end
+          end
+        end
+        object rbgDebuggerInterface: TRadioGroup
+          Left = 7
+          Height = 87
+          Top = 169
+          Width = 161
+          AutoFill = True
+          AutoSize = True
+          Caption = 'Debugger method'
+          ChildSizing.LeftRightSpacing = 6
+          ChildSizing.TopBottomSpacing = 6
+          ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+          ChildSizing.EnlargeVertical = crsHomogenousChildResize
+          ChildSizing.ShrinkHorizontal = crsScaleChilds
+          ChildSizing.ShrinkVertical = crsScaleChilds
+          ChildSizing.Layout = cclLeftToRightThenTopToBottom
+          ChildSizing.ControlsPerLine = 1
+          ClientHeight = 69
+          ClientWidth = 157
+          TabOrder = 5
+          object cbUseVEHDebugger: TRadioButton
+            Left = 6
+            Height = 19
+            Top = 6
+            Width = 145
+            Caption = 'Use VEH Debugger'
+            OnChange = cbDebuggerInterfaceChange
+            OnClick = cbDebuggerInterfaceChange
+            TabOrder = 0
+          end
+          object cbUseWindowsDebugger: TRadioButton
+            Tag = 1
+            Left = 6
+            Height = 19
+            Top = 25
+            Width = 145
+            Caption = 'Use windows debugger'
+            Checked = True
+            OnChange = cbDebuggerInterfaceChange
+            OnClick = cbDebuggerInterfaceChange
+            TabOrder = 1
+            TabStop = True
+          end
+          object cbKDebug: TRadioButton
+            Tag = 2
+            Left = 6
+            Height = 19
+            Top = 44
+            Width = 145
+            Caption = 'Use kernelmode debugger'
+            OnChange = cbDebuggerInterfaceChange
+            OnClick = cbDebuggerInterfaceChange
+            TabOrder = 2
+          end
+        end
+        object Label4: TLabel
+          Left = 15
+          Height = 14
+          Top = 57
+          Width = 102
+          Caption = 'Single line assembler:'
+          ParentColor = False
+        end
+        object Label6: TLabel
+          Left = 15
+          Height = 14
+          Top = 121
+          Width = 230
+          Caption = 'Size of stack to record on "Find what... routines"'
+          ParentColor = False
+        end
+        object edtStacksize: TEdit
+          Left = 15
+          Height = 21
+          Top = 137
+          Width = 45
+          TabOrder = 6
+          Text = '4096'
+        end
+        object Label7: TLabel
+          Left = 63
+          Height = 14
+          Top = 139
+          Width = 27
+          Caption = 'Bytes'
+          ParentColor = False
+        end
+      end
+      object Extra: TTabSheet
+        Caption = 'Extra'
+        ClientHeight = 442
+        ClientWidth = 614
+        ImageIndex = 6
+        object TauntOldOsUser: TLabel
+          Left = 0
+          Height = 14
+          Top = 428
+          Width = 614
+          Align = alBottom
+          Alignment = taCenter
+          Caption = 'I really recommend upgrading to Windows 2000 or later mister Flintstone'
+          ParentColor = False
+          Visible = False
+        end
+        object GroupBox3: TGroupBox
+          Left = 0
+          Height = 86
+          Top = 0
+          Width = 614
+          Align = alTop
+          Caption = 'Use the following CE Kernel routines instead of the original windows version'
+          ClientHeight = 68
+          ClientWidth = 610
+          TabOrder = 0
+          object cbKernelQueryMemoryRegion: TCheckBox
+            Left = 10
+            Height = 19
+            Top = 2
+            Width = 159
+            Caption = 'Query memory region routines'
+            OnClick = cbKernelQueryMemoryRegionClick
+            TabOrder = 0
+          end
+          object cbKernelReadWriteProcessMemory: TCheckBox
+            Left = 10
+            Height = 19
+            Top = 21
+            Width = 282
+            Caption = 'Read/Write Process Memory  (Will cause slower scans)'
+            OnClick = cbKernelQueryMemoryRegionClick
+            TabOrder = 1
+          end
+          object cbKernelOpenProcess: TCheckBox
+            Left = 10
+            Height = 19
+            Top = 40
+            Width = 87
+            Caption = 'Open Process'
+            TabOrder = 2
+          end
+        end
+        object cbProcessWatcher: TCheckBox
+          Left = 1
+          Height = 19
+          Top = 94
+          Width = 188
+          Caption = 'Enable use of the Process Watcher'
+          TabOrder = 1
+        end
+        object CheckBox3: TCheckBox
+          Left = 7
+          Height = 19
+          Top = 422
+          Width = 123
+          Caption = 'Use APC to inject dll''s'
+          TabOrder = 2
+          Visible = False
+        end
+        object CheckBox4: TCheckBox
+          Left = 7
+          Height = 19
+          Top = 442
+          Width = 169
+          Caption = 'Use APC to create new threads'
+          TabOrder = 3
+          Visible = False
+        end
+        object Panel1: TPanel
+          Left = 183
+          Height = 19
+          Top = 134
+          Width = 368
+          BevelOuter = bvNone
+          TabOrder = 4
+        end
+      end
+      object tsTools: TTabSheet
+        Caption = 'tsTools'
+        ClientHeight = 442
+        ClientWidth = 614
+        ImageIndex = 9
+        object Panel2: TPanel
+          Left = 0
+          Height = 26
+          Top = 0
+          Width = 614
+          Align = alTop
+          BevelOuter = bvNone
+          ClientHeight = 26
+          ClientWidth = 614
+          TabOrder = 0
+          object cbShowTools: TCheckBox
+            Left = 0
+            Height = 19
+            Top = 0
+            Width = 127
+            Caption = 'Show ''tools'' menu item'
+            Checked = True
+            OnClick = cbShowToolsClick
+            State = cbChecked
+            TabOrder = 0
+          end
+        end
+        object Panel3: TPanel
+          Left = 386
+          Height = 416
+          Top = 26
+          Width = 228
+          Align = alRight
+          BevelOuter = bvNone
+          ClientHeight = 416
+          ClientWidth = 228
+          TabOrder = 1
+          object lblApplicationTool: TLabel
+            Left = 10
+            Height = 14
+            Top = 49
+            Width = 105
+            Caption = 'Application/Command'
+            Enabled = False
+            ParentColor = False
+          end
+          object lblShortcut: TLabel
+            Left = 10
+            Height = 14
+            Top = 98
+            Width = 44
+            Caption = 'Shortcut:'
+            Enabled = False
+            ParentColor = False
+          end
+          object lblShortcutText: TLabel
+            Left = 10
+            Height = 14
+            Top = 118
+            Width = 41
+            Caption = 'xxxxxxxx'
+            Enabled = False
+            ParentColor = False
+          end
+          object lblToolsName: TLabel
+            Left = 10
+            Height = 14
+            Top = 0
+            Width = 29
+            Caption = 'Name'
+            Enabled = False
+            ParentColor = False
+          end
+          object OpenButton: TSpeedButton
+            Left = 197
+            Height = 26
+            Top = 69
+            Width = 31
+            Enabled = False
+            Glyph.Data = {
+              D6020000424DD6020000000000003600000028000000100000000E0000000100
+              180000000000A0020000C40E0000C40E00000000000000000000C0C0C0C0C0C0
+              C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0
+              C0C0C0C0C0C0C0C0C0C000000000000000000000000000000000000000000000
+              0000000000000000000000C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0000000000000
+              008484008484008484008484008484008484008484008484008484000000C0C0
+              C0C0C0C0C0C0C0C0C0C000000000FFFF00000000848400848400848400848400
+              8484008484008484008484008484000000C0C0C0C0C0C0C0C0C0000000FFFFFF
+              00FFFF0000000084840084840084840084840084840084840084840084840084
+              84000000C0C0C0C0C0C000000000FFFFFFFFFF00FFFF00000000848400848400
+              8484008484008484008484008484008484008484000000C0C0C0000000FFFFFF
+              00FFFFFFFFFF00FFFF0000000000000000000000000000000000000000000000
+              0000000000000000000000000000FFFFFFFFFF00FFFFFFFFFF00FFFFFFFFFF00
+              FFFFFFFFFF00FFFF000000C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0000000FFFFFF
+              00FFFFFFFFFF00FFFFFFFFFF00FFFFFFFFFF00FFFFFFFFFF000000C0C0C0C0C0
+              C0C0C0C0C0C0C0C0C0C000000000FFFFFFFFFF00FFFF00000000000000000000
+              0000000000000000000000C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0000000
+              000000000000C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C00000
+              00000000000000C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0
+              C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0000000000000C0C0C0C0C0C0C0C0C0
+              C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0000000C0C0C0C0C0C0C0C0C00000
+              00C0C0C0000000C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0
+              C0C0C0C0C0000000000000000000C0C0C0C0C0C0C0C0C0C0C0C0
+            }
+            NumGlyphs = 0
+            OnClick = OpenButtonClick
+            ShowHint = True
+            ParentShowHint = False
+          end
+          object edtApplicationTool: TEdit
+            Left = 10
+            Height = 21
+            Top = 69
+            Width = 186
+            Enabled = False
+            MaxLength = 255
+            OnChange = edtApplicationToolChange
+            TabOrder = 1
+          end
+          object btnSetToolShortcut: TButton
+            Left = 10
+            Height = 21
+            Top = 138
+            Width = 92
+            Caption = 'Set shortcut'
+            Enabled = False
+            OnClick = btnSetToolShortcutClick
+            TabOrder = 2
+          end
+          object edtToolsName: TEdit
+            Left = 10
+            Height = 21
+            Top = 20
+            Width = 218
+            Enabled = False
+            MaxLength = 255
+            OnChange = edtToolsNameChange
+            TabOrder = 0
+          end
+        end
+        object Panel5: TPanel
+          Left = 0
+          Height = 416
+          Top = 26
+          Width = 386
+          Align = alClient
+          BevelOuter = bvNone
+          ClientHeight = 416
+          ClientWidth = 386
+          TabOrder = 2
+          object Panel4: TPanel
+            Left = 0
+            Height = 28
+            Top = 388
+            Width = 386
+            Align = alBottom
+            BevelOuter = bvNone
+            ClientHeight = 28
+            ClientWidth = 386
+            TabOrder = 0
+            object btnToolNew: TButton
+              Left = 10
+              Height = 21
+              Top = 4
+              Width = 92
+              Caption = 'New'
+              OnClick = btnToolNewClick
+              TabOrder = 0
+            end
+            object btnToolDelete: TButton
+              Left = 108
+              Height = 21
+              Top = 4
+              Width = 93
+              Caption = 'Delete'
+              OnClick = btnToolDeleteClick
+              TabOrder = 1
+            end
+          end
+          object lvTools: TListView
+            Left = 0
+            Height = 388
+            Top = 0
+            Width = 386
+            Align = alClient
+            Columns = <            
+              item
+                Caption = 'Name'
+                Width = 74
+              end            
+              item
+                Caption = 'Application'
+                Width = 234
+              end            
+              item
+                AutoSize = True
+                Caption = 'Shortcut'
+                Width = 74
+              end>
+            HideSelection = False
+            ReadOnly = True
+            RowSelect = True
+            TabOrder = 1
+            ViewStyle = vsReport
+            OnClick = lvToolsClick
+          end
+        end
+      end
+      object CodeFinder: TTabSheet
+        Caption = 'CodeFinder'
+        ClientHeight = 442
+        ClientWidth = 614
+        ImageIndex = 4
+        object cbHandleBreakpoints: TCheckBox
+          Left = 15
+          Height = 19
+          Top = 9
+          Width = 196
+          Caption = 'Handle beakpoints not caused by CE'
+          OnClick = CheckBox1Click
+          TabOrder = 0
+        end
+      end
+    end
+  end
+  object Panel6: TPanel
+    Left = 0
+    Height = 47
+    Top = 470
+    Width = 772
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 47
+    ClientWidth = 772
+    TabOrder = 1
+    OnResize = Panel6Resize
+    object AboutLabel: TLabel
+      Cursor = crHandPoint
+      Left = 724
+      Height = 14
+      Top = 33
+      Width = 46
+      Anchors = [akRight, akBottom]
+      Caption = 'About CE'
+      Font.Color = clBlue
+      Font.Height = -11
+      Font.Name = 'MS Sans Serif'
+      Font.Style = [fsUnderline]
+      ParentColor = False
+      ParentFont = False
+      OnClick = AboutLabelClick
+    end
+    object Button2: TButton
+      Left = 343
+      Height = 22
+      Top = 9
+      Width = 87
+      Anchors = [akTop, akRight]
+      Cancel = True
+      Caption = 'Cancel'
+      ModalResult = 2
+      OnClick = Button2Click
+      TabOrder = 0
+    end
+    object Button1: TButton
+      Left = 239
+      Height = 22
+      Top = 9
+      Width = 87
+      Anchors = [akTop, akRight]
+      Caption = 'OK'
+      Default = True
+      OnClick = Button1Click
+      TabOrder = 1
+    end
+  end
+  object defaultbuffer: TPopupMenu
+    left = 16
+    top = 264
+    object Default1: TMenuItem
+      Caption = 'Default'
+      OnClick = Default1Click
+    end
+  end
+  object OpenDialog1: TOpenDialog
+    DefaultExt = '.DLL'
+    Filter = 'Cheat Engine Plugins (*.dll)|*.dll'
+    left = 52
+    top = 264
+  end
+  object OpenDialog2: TOpenDialog
+    DefaultExt = '.exe'
+    Filter = 'Application (*.exe)|*.exe'
+    left = 52
+    top = 352
+  end
+  object SelectDirectoryDialog1: TSelectDirectoryDialog
+    left = 8
+    top = 176
+  end
+end

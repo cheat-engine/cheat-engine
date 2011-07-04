@@ -1,0 +1,1 @@
+Because fpc generates exe files that crap and die when the resources are touched

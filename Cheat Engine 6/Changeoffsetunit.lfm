@@ -1,0 +1,68 @@
+object ChangeOffset: TChangeOffset
+  Left = 958
+  Height = 113
+  Top = 378
+  Width = 200
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsSingle
+  Caption = 'Recalculate address'
+  ClientHeight = 113
+  ClientWidth = 200
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object TabControl1: TTabControl
+    Left = 0
+    Height = 113
+    Top = 0
+    Width = 201
+    OnChange = TabControl1Change
+    OnChanging = TabControl1Changing
+    TabIndex = 0
+    TabOrder = 0
+    Tabs.Strings = (
+      'Change by offset'
+      'Change to address'
+    )
+    TabStop = False
+    object Change: TButton
+      Left = 24
+      Height = 25
+      Top = 80
+      Width = 75
+      Caption = 'Change'
+      Default = True
+      ModalResult = 1
+      OnClick = ChangeClick
+      TabOrder = 0
+    end
+    object Button2: TButton
+      Left = 104
+      Height = 25
+      Top = 80
+      Width = 75
+      Cancel = True
+      Caption = 'Cancel'
+      ModalResult = 2
+      TabOrder = 1
+    end
+    object cbHexadecimal: TCheckBox
+      Left = 8
+      Height = 19
+      Top = 56
+      Width = 81
+      Caption = 'Hexadecimal'
+      OnClick = cbHexadecimalClick
+      TabOrder = 2
+    end
+    object Edit1: TEdit
+      Left = 8
+      Height = 21
+      Top = 32
+      Width = 185
+      TabOrder = 3
+    end
+  end
+end

@@ -1,0 +1,95 @@
+object frmFloatingPointPanel: TfrmFloatingPointPanel
+  Left = 1078
+  Height = 322
+  Top = 254
+  Width = 353
+  BorderStyle = bsSizeToolWin
+  Caption = 'FPU'
+  ClientHeight = 322
+  ClientWidth = 353
+  Font.Height = -14
+  Font.Name = 'MS Sans Serif'
+  OnCreate = FormCreate
+  OnShow = FormShow
+  LCLVersion = '0.9.31'
+  object PageControl1: TPageControl
+    Left = 0
+    Height = 322
+    Top = 0
+    Width = 353
+    ActivePage = TabSheet2
+    Align = alClient
+    TabIndex = 0
+    TabOrder = 0
+    object TabSheet2: TTabSheet
+      Caption = 'Extended'
+      ClientHeight = 293
+      ClientWidth = 345
+      ImageIndex = 1
+      object Panel1: TPanel
+        Left = 0
+        Height = 57
+        Top = 0
+        Width = 345
+        Align = alTop
+        BevelOuter = bvNone
+        ClientHeight = 57
+        ClientWidth = 345
+        TabOrder = 0
+        object ComboBox3: TComboBox
+          Left = 0
+          Height = 24
+          Top = 0
+          Width = 169
+          ItemHeight = 16
+          ItemIndex = 1
+          Items.Strings = (
+            'FPURegisters'
+            'XMMRegisters'
+          )
+          OnSelect = ComboBox1Select
+          Style = csDropDownList
+          TabOrder = 0
+          Text = 'XMMRegisters'
+        end
+        object ComboBox2: TComboBox
+          Left = 0
+          Height = 24
+          Top = 24
+          Width = 169
+          ItemHeight = 16
+          ItemIndex = 4
+          Items.Strings = (
+            'Byte'
+            '2 Bytes'
+            '4 Bytes'
+            '8 Bytes'
+            'Float'
+            'Double'
+            'Extended'
+          )
+          OnSelect = ComboBox1Select
+          Style = csDropDownList
+          TabOrder = 1
+          Text = 'Float'
+        end
+      end
+      object Memo1: TMemo
+        Left = 0
+        Height = 236
+        Top = 57
+        Width = 345
+        Align = alClient
+        Font.CharSet = ANSI_CHARSET
+        Font.Color = clBlack
+        Font.Height = -13
+        Font.Name = 'Courier'
+        ParentFont = False
+        ReadOnly = True
+        ScrollBars = ssBoth
+        TabOrder = 1
+        WordWrap = False
+      end
+    end
+  end
+end

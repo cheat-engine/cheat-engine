@@ -1,0 +1,102 @@
+object frmTracerConfig: TfrmTracerConfig
+  Left = 555
+  Height = 206
+  Top = 113
+  Width = 231
+  BorderStyle = bsSingle
+  Caption = 'Break and Trace config'
+  ClientHeight = 206
+  ClientWidth = 231
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object edtMaxTrace: TEdit
+    Left = 16
+    Height = 23
+    Top = 25
+    Width = 200
+    TabOrder = 0
+    Text = '1000'
+  end
+  object Label1: TLabel
+    Left = 16
+    Height = 16
+    Top = 8
+    Width = 112
+    Caption = 'Maximal trace count:'
+    ParentColor = False
+  end
+  object Label2: TLabel
+    Left = 16
+    Height = 16
+    Top = 56
+    Width = 203
+    Caption = 'Stop condition (Optional, LUA format)'
+    ParentColor = False
+  end
+  object edtCondition: TEdit
+    Left = 16
+    Height = 23
+    Top = 74
+    Width = 200
+    TabOrder = 1
+  end
+  object btnOK: TButton
+    Left = 40
+    Height = 25
+    Top = 176
+    Width = 75
+    Caption = 'OK'
+    Default = True
+    ModalResult = 1
+    TabOrder = 2
+  end
+  object btnCancel: TButton
+    Left = 132
+    Height = 25
+    Top = 176
+    Width = 75
+    Cancel = True
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 3
+  end
+  object cbDereferenceAddresses: TCheckBox
+    Left = 17
+    Height = 19
+    Top = 104
+    Width = 213
+    Caption = 'Dereference Addresses (Slows down)'
+    Checked = True
+    State = cbChecked
+    TabOrder = 4
+  end
+  object cbSaveStack: TCheckBox
+    Left = 17
+    Height = 19
+    Top = 127
+    Width = 210
+    Caption = 'Save stack snapshots (Eats memory)'
+    TabOrder = 5
+  end
+  object rbBreakOnAccess: TRadioButton
+    Left = 16
+    Height = 19
+    Top = 152
+    Width = 105
+    Caption = 'Break on Access'
+    TabOrder = 6
+    Visible = False
+  end
+  object rbBreakOnWrite: TRadioButton
+    Left = 128
+    Height = 19
+    Top = 152
+    Width = 97
+    Caption = 'Break on Write'
+    Checked = True
+    TabOrder = 7
+    TabStop = True
+    Visible = False
+  end
+end

@@ -1,0 +1,86 @@
+object frmModuleSafety: TfrmModuleSafety
+  Left = 216
+  Height = 263
+  Top = 122
+  Width = 298
+  BorderStyle = bsSingle
+  Caption = 'Module safety'
+  ClientHeight = 263
+  ClientWidth = 298
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object ListBox1: TListBox
+    Left = 8
+    Height = 153
+    Top = 72
+    Width = 281
+    ItemHeight = 0
+    MultiSelect = True
+    PopupMenu = PopupMenu1
+    TabOrder = 0
+  end
+  object Edit1: TEdit
+    Left = 8
+    Height = 21
+    Top = 48
+    Width = 201
+    TabOrder = 1
+  end
+  object Button1: TButton
+    Left = 216
+    Height = 21
+    Top = 48
+    Width = 75
+    Caption = 'Add'
+    OnClick = Button1Click
+    TabOrder = 2
+  end
+  object rbAllowList: TRadioButton
+    Left = 8
+    Height = 19
+    Top = 8
+    Width = 243
+    Caption = 'Prevent all modules from getting loaded except:'
+    OnClick = rbAllowListClick
+    TabOrder = 3
+  end
+  object rbDenyList: TRadioButton
+    Left = 8
+    Height = 19
+    Top = 26
+    Width = 200
+    Caption = 'Allow all modules to be loaded except:'
+    Checked = True
+    OnClick = rbAllowListClick
+    TabOrder = 4
+    TabStop = True
+  end
+  object cbGlobalDeny: TCheckBox
+    Left = 208
+    Height = 19
+    Top = 26
+    Width = 50
+    Caption = 'Global'
+    TabOrder = 5
+  end
+  object Button2: TButton
+    Left = 112
+    Height = 25
+    Top = 232
+    Width = 75
+    Caption = 'OK'
+    ModalResult = 1
+    TabOrder = 6
+  end
+  object PopupMenu1: TPopupMenu
+    left = 72
+    top = 96
+    object Remove1: TMenuItem
+      Caption = 'Remove'
+      Default = True
+      OnClick = Remove1Click
+    end
+  end
+end

@@ -1,0 +1,90 @@
+object frmCapturedTimers: TfrmCapturedTimers
+  Left = 502
+  Height = 179
+  Top = 144
+  Width = 507
+  Caption = 'frmCapturedTimers'
+  ClientHeight = 179
+  ClientWidth = 507
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnClose = FormClose
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object Label1: TLabel
+    Left = 0
+    Height = 14
+    Top = 0
+    Width = 507
+    Align = alTop
+    Caption = 'The following WM_TIMER messages have been received'
+    ParentColor = False
+  end
+  object Button1: TButton
+    Left = 210
+    Height = 25
+    Top = 123
+    Width = 75
+    Anchors = [akBottom]
+    Caption = 'Close'
+    OnClick = Button1Click
+    TabOrder = 0
+  end
+  object ListView1: TListView
+    Left = 0
+    Height = 105
+    Top = 14
+    Width = 507
+    Align = alTop
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    Columns = <    
+      item
+        Caption = 'Window Handle'
+        Width = 110
+      end    
+      item
+        Caption = 'Window Title'
+        Width = 120
+      end    
+      item
+        Caption = 'Window Class'
+        Width = 90
+      end    
+      item
+        Caption = 'Timer ID'
+        Width = 55
+      end    
+      item
+        Caption = 'TimerProc'
+        Width = 70
+      end    
+      item
+        Caption = 'Count'
+      end>
+    HideSelection = False
+    MultiSelect = True
+    ReadOnly = True
+    RowSelect = True
+    TabOrder = 1
+    ViewStyle = vsReport
+  end
+  object Edit1: TEdit
+    Left = 0
+    Height = 21
+    Top = 128
+    Width = 65
+    Anchors = [akLeft, akBottom]
+    TabOrder = 2
+    Text = '10'
+  end
+  object Button2: TButton
+    Left = 70
+    Height = 17
+    Top = 130
+    Width = 121
+    Anchors = [akLeft, akBottom]
+    Caption = 'Send timer messages'
+    OnClick = Button2Click
+    TabOrder = 3
+  end
+end

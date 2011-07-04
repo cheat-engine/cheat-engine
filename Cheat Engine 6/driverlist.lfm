@@ -1,0 +1,51 @@
+object frmDriverlist: TfrmDriverlist
+  Left = 717
+  Height = 229
+  Top = 356
+  Width = 326
+  BorderStyle = bsSingle
+  Caption = 'Driver list'
+  ClientHeight = 229
+  ClientWidth = 326
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnClose = FormClose
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object ListBox1: TListBox
+    Left = 0
+    Height = 193
+    Top = 0
+    Width = 326
+    Align = alTop
+    ItemHeight = 0
+    PopupMenu = PopupMenu1
+    TabOrder = 0
+  end
+  object Button1: TButton
+    Left = 128
+    Height = 25
+    Top = 200
+    Width = 75
+    Caption = 'OK'
+    ModalResult = 1
+    OnClick = Button1Click
+    TabOrder = 1
+  end
+  object FindDialog1: TFindDialog
+    Options = [frDown, frFindNext, frDisableMatchCase, frDisableUpDown, frDisableWholeWord]
+    OnFind = FindDialog1Find
+    left = 8
+    top = 8
+  end
+  object PopupMenu1: TPopupMenu
+    left = 8
+    top = 40
+    object Find1: TMenuItem
+      Caption = 'Find'
+      ShortCut = 16454
+      OnClick = Find1Click
+    end
+  end
+end

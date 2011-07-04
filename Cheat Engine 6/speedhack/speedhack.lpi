@@ -1,0 +1,178 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <ProjectOptions>
+    <PathDelim Value="\"/>
+    <Version Value="8"/>
+    <General>
+      <Flags>
+        <MainUnitHasCreateFormStatements Value="False"/>
+        <MainUnitHasTitleStatement Value="False"/>
+        <Runnable Value="False"/>
+      </Flags>
+      <MainUnit Value="0"/>
+      <TargetFileExt Value=".exe"/>
+      <UseAppBundle Value="False"/>
+      <ActiveWindowIndexAtStart Value="0"/>
+    </General>
+    <VersionInfo>
+      <Language Value=""/>
+      <CharSet Value=""/>
+      <StringTable Comments="" CompanyName="" FileDescription="" FileVersion="0.0.0.0" InternalName="" LegalCopyright="" LegalTrademarks="" OriginalFilename="" ProductName="" ProductVersion=""/>
+    </VersionInfo>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IgnoreBinaries Value="False"/>
+      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
+      <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+        <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+      </local>
+    </RunParams>
+    <RequiredPackages Count="1">
+      <Item1>
+        <PackageName Value="LCL"/>
+      </Item1>
+    </RequiredPackages>
+    <Units Count="3">
+      <Unit0>
+        <Filename Value="speedhack.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="1"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="18" Y="1"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="speedhackmain.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="speedhackmain"/>
+        <EditorIndex Value="0"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="62"/>
+        <CursorPos X="23" Y="78"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\win\wininc\redef.inc"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="736"/>
+        <CursorPos X="10" Y="752"/>
+        <UsageCount Value="10"/>
+      </Unit2>
+    </Units>
+    <JumpHistory Count="13" HistoryIndex="12">
+      <Position1>
+        <Filename Value="speedhack.lpr"/>
+        <Caret Line="10" Column="31" TopLine="4"/>
+      </Position1>
+      <Position2>
+        <Filename Value="speedhack.lpr"/>
+        <Caret Line="19" Column="12" TopLine="4"/>
+      </Position2>
+      <Position3>
+        <Filename Value="speedhack.lpr"/>
+        <Caret Line="36" Column="1" TopLine="5"/>
+      </Position3>
+      <Position4>
+        <Filename Value="speedhack.lpr"/>
+        <Caret Line="18" Column="11" TopLine="4"/>
+      </Position4>
+      <Position5>
+        <Filename Value="speedhack.lpr"/>
+        <Caret Line="34" Column="5" TopLine="4"/>
+      </Position5>
+      <Position6>
+        <Filename Value="speedhack.lpr"/>
+        <Caret Line="29" Column="21" TopLine="1"/>
+      </Position6>
+      <Position7>
+        <Filename Value="speedhack.lpr"/>
+        <Caret Line="35" Column="1" TopLine="4"/>
+      </Position7>
+      <Position8>
+        <Filename Value="speedhackmain.pas"/>
+        <Caret Line="7" Column="6" TopLine="1"/>
+      </Position8>
+      <Position9>
+        <Filename Value="speedhackmain.pas"/>
+        <Caret Line="63" Column="21" TopLine="47"/>
+      </Position9>
+      <Position10>
+        <Filename Value="speedhackmain.pas"/>
+        <Caret Line="12" Column="43" TopLine="1"/>
+      </Position10>
+      <Position11>
+        <Filename Value="speedhackmain.pas"/>
+        <Caret Line="82" Column="15" TopLine="59"/>
+      </Position11>
+      <Position12>
+        <Filename Value="speedhackmain.pas"/>
+        <Caret Line="62" Column="8" TopLine="55"/>
+      </Position12>
+      <Position13>
+        <Filename Value="speedhack.lpr"/>
+        <Caret Line="34" Column="3" TopLine="2"/>
+      </Position13>
+    </JumpHistory>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="9"/>
+    <PathDelim Value="\"/>
+    <Target>
+      <Filename Value="..\bin\speedhack-$(TargetCPU)"/>
+    </Target>
+    <SearchPaths>
+      <UnitOutputDirectory Value="unitbin"/>
+    </SearchPaths>
+    <Parsing>
+      <Style Value="1"/>
+      <SyntaxOptions>
+        <SyntaxMode Value="Delphi"/>
+      </SyntaxOptions>
+    </Parsing>
+    <CodeGeneration>
+      <Optimizations>
+        <VariablesInRegisters Value="True"/>
+        <OptimizationLevel Value="3"/>
+      </Optimizations>
+    </CodeGeneration>
+    <Linking>
+      <Debugging>
+        <UseLineInfoUnit Value="False"/>
+        <StripSymbols Value="True"/>
+      </Debugging>
+      <Options>
+        <ExecutableType Value="Library"/>
+      </Options>
+    </Linking>
+    <Other>
+      <CompilerMessages>
+        <UseMsgFile Value="True"/>
+      </CompilerMessages>
+      <CompilerPath Value="$(CompPath)"/>
+    </Other>
+  </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="3">
+      <Item1>
+        <Name Value="EAbort"/>
+      </Item1>
+      <Item2>
+        <Name Value="ECodetoolError"/>
+      </Item2>
+      <Item3>
+        <Name Value="EFOpenError"/>
+      </Item3>
+    </Exceptions>
+  </Debugging>
+</CONFIG>

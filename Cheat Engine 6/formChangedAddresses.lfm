@@ -1,0 +1,122 @@
+object frmChangedAddresses: TfrmChangedAddresses
+  Left = 607
+  Height = 289
+  Top = 128
+  Width = 381
+  Caption = 'Changed Addresses'
+  ClientHeight = 289
+  ClientWidth = 381
+  Font.Height = -14
+  Font.Name = 'MS Sans Serif'
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object lblInfo: TLabel
+    Left = 0
+    Height = 33
+    Top = 0
+    Width = 381
+    Align = alTop
+    Caption = 'The following addresses have been changed by the code you selected'
+    ParentColor = False
+    WordWrap = True
+  end
+  object Panel1: TPanel
+    Left = 0
+    Height = 42
+    Top = 247
+    Width = 381
+    Align = alBottom
+    Anchors = [akRight, akBottom]
+    ClientHeight = 42
+    ClientWidth = 381
+    TabOrder = 0
+    object OKButton: TButton
+      Left = 10
+      Height = 24
+      Top = 8
+      Width = 92
+      Caption = 'Stop'
+      Default = True
+      OnClick = OKButtonClick
+      TabOrder = 0
+    end
+    object cbDisplayType: TComboBox
+      Left = 194
+      Height = 24
+      Top = 8
+      Width = 179
+      Anchors = [akTop, akRight]
+      ItemHeight = 16
+      ItemIndex = 2
+      Items.Strings = (
+        'Byte'
+        '2 Bytes'
+        '4 Bytes'
+        'Float'
+        'Double'
+      )
+      Style = csDropDownList
+      TabOrder = 1
+      Text = '4 Bytes'
+    end
+  end
+  object Changedlist: TListView
+    Left = 0
+    Height = 214
+    Top = 33
+    Width = 381
+    Align = alClient
+    Columns = <    
+      item
+        Caption = 'Address'
+        Width = 123
+      end    
+      item
+        Caption = 'Value'
+        Width = 200
+      end    
+      item
+        Caption = 'Count'
+      end>
+    PopupMenu = PopupMenu1
+    ReadOnly = True
+    RowSelect = True
+    TabOrder = 1
+    ViewStyle = vsReport
+    OnColumnClick = ChangedlistColumnClick
+    OnCompare = ChangedlistCompare
+    OnDblClick = ChangedlistDblClick
+  end
+  object Timer1: TTimer
+    Interval = 500
+    OnTimer = Timer1Timer
+    left = 56
+    top = 64
+  end
+  object PopupMenu1: TPopupMenu
+    OnPopup = PopupMenu1Popup
+    left = 40
+    top = 104
+    object Showregisterstates1: TMenuItem
+      Caption = 'Show register states'
+      ShortCut = 16466
+      OnClick = Showregisterstates1Click
+    end
+    object Browsethismemoryregion1: TMenuItem
+      Caption = 'Browse this memory region'
+      ShortCut = 16450
+      OnClick = Browsethismemoryregion1Click
+    end
+    object micbShowAsHexadecimal: TMenuItem
+      AutoCheck = True
+      Caption = 'Show as hexadecimal'
+      GroupIndex = 1
+      ShortCut = 16456
+      OnClick = micbShowAsHexadecimalClick
+    end
+  end
+end

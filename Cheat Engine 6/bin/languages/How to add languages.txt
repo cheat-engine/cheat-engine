@@ -1,0 +1,19 @@
+create a language folder for your country (appropriate folder names are in the format of: en_US, nl_NL, ru_RU, etc...)
+copy the .po files to the appropriate folder and then start editing 
+
+
+Order of picking:
+  if there is a cheatengine.po it will pick that, else cheatengine-x86_64.po and if that fails cheatengine-i386.po
+  the 32-bit version can work perfectly fine with the 64-bit po
+
+
+By default it picks the system language, but you can overide this by adding --LANG langstr or -l langstr to the parameters of Cheat Engine
+
+
+editing po files.
+There are some po editing tools but you can also do it by hand
+msgid contains the original string and msgstr contains the translated string.
+If msgstr is empty the original string will be shown
+
+Certain strings are not present in the cheatengine.po file, but are present in lclstrconsts.po
+The lclstrconsts.po file belongs to the LCL that the Cheat Engine GUI is build upon

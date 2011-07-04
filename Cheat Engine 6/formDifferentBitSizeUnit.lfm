@@ -1,0 +1,81 @@
+object formDifferentBitSize: TformDifferentBitSize
+  Left = 1115
+  Height = 163
+  Top = 157
+  Width = 329
+  VertScrollBar.Visible = False
+  BorderIcons = [biSystemMenu]
+  Caption = 'Different sized row of bits'
+  ClientHeight = 163
+  ClientWidth = 329
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnCreate = FormCreate
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object Labelold: TLabel
+    Left = 120
+    Height = 17
+    Top = 56
+    Width = 73
+    Caption = 'LabelOld'
+    Font.Height = -16
+    Font.Name = 'Courier'
+    ParentColor = False
+    ParentFont = False
+  end
+  object LabelNew: TLabel
+    Left = 120
+    Height = 17
+    Top = 72
+    Width = 73
+    Caption = 'LabelNew'
+    Font.Height = -16
+    Font.Name = 'Courier'
+    ParentColor = False
+    ParentFont = False
+  end
+  object Label1: TLabel
+    Left = 0
+    Height = 41
+    Top = 0
+    Width = 321
+    AutoSize = False
+    Caption = 'The last time you scanned the number of bits was 90 and now it is 12. Please tell me how and how much i must change the bit offset to succesfully scan. (Left arrow+right arrow move the bits)'
+    ParentColor = False
+    WordWrap = True
+  end
+  object Edit1: TEdit
+    Left = 136
+    Height = 21
+    Top = 104
+    Width = 33
+    Anchors = []
+    OnKeyDown = Edit1KeyDown
+    OnKeyPress = Edit1KeyPress
+    PopupMenu = PopupMenu1
+    TabOrder = 0
+    Text = 'Edit1'
+  end
+  object Button1: TButton
+    Left = 120
+    Height = 25
+    Top = 102
+    Width = 75
+    Anchors = []
+    Caption = 'OK'
+    Default = True
+    OnClick = Button1Click
+    TabOrder = 1
+    TabStop = False
+  end
+  object PopupMenu1: TPopupMenu
+    left = 72
+    top = 80
+    object OhnoYoufoundme1: TMenuItem
+      Caption = 'Oh no! You found me!!!'
+      OnClick = OhnoYoufoundme1Click
+    end
+  end
+end

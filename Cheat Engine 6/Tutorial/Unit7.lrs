@@ -1,0 +1,58 @@
+LazarusResources.Add('TForm7','FORMDATA',[
+  'TPF0'#6'TForm7'#5'Form7'#4'Left'#3'>'#3#3'Top'#3#234#0#11'BorderStyle'#7#8'b'
+  +'sDialog'#7'Caption'#6#6'Step 6'#12'ClientHeight'#3#250#0#11'ClientWidth'#3
+  +';'#2#5'Color'#7#9'clBtnFace'#12'Font.Charset'#7#15'DEFAULT_CHARSET'#10'Font'
+  +'.Color'#7#12'clWindowText'#11'Font.Height'#2#245#9'Font.Name'#6#13'MS Sans '
+  +'Serif'#10'Font.Style'#11#0#8'Position'#7#17'poOwnerFormCenter'#7'OnClose'#7
+  +#9'FormClose'#12'OnCloseQuery'#7#14'FormCloseQuery'#8'OnCreate'#7#10'FormCre'
+  +'ate'#13'PixelsPerInch'#2'`'#0#6'TLabel'#6'Label1'#4'Left'#2#8#3'Top'#3#216#0
+  +#5'Width'#2#18#6'Height'#2#13#7'Caption'#6#3'100'#0#0#6'TLabel'#6'Label2'#4
+  +'Left'#2'`'#3'Top'#3#215#0#5'Width'#2#6#6'Height'#2#13#7'Caption'#6#1'3'#7'V'
+  +'isible'#8#0#0#12'TSpeedButton'#12'SpeedButton1'#4'Left'#3' '#2#3'Top'#3#232
+  +#0#5'Width'#2#25#6'Height'#2#17#7'Caption'#6#4'Skip'#4'Flat'#9#7'OnClick'#7
+  +#17'SpeedButton1Click'#0#0#5'TMemo'#5'Memo1'#4'Left'#2#0#3'Top'#2#0#5'Width'
+  +#3';'#2#6'Height'#3#185#0#5'Align'#7#5'alTop'#5'Color'#7#9'clBtnFace'#13'Lin'
+  +'es.Strings'#1#6'pIn the previous step I explained how to use the Code finde'
+  +'r to handle changing locations. But that method alone '#6'Bmakes it difficu'
+  +'lt to find the address to set the values you want.'#6#30'That''s why there '
+  +'are pointers:'#6#0#6'tAt the bottom you''ll find 2 buttons. One will change'
+  +' the value, and the other changes the value AND the location of '#6#10'the '
+  +'value.'#6'TFor this step you don''t really need to know assembler, but it h'
+  +'elps a lot if you do.'#6#0#6'rFirst find the address of the value. When you'
+  +'''ve found it use the function to find out what accesses this address.'#6'y'
+  +'Change the value again, and a item will show in the list. Double click that'
+  +' item. (or select and click on more info) and '#6'[a new window will open w'
+  +'ith detailed information on what happened when the instruction ran.'#6'kIf '
+  +'the assembler instruction doesn''t have anything between a ''['' and '']'' '
+  +'then use another item in the list.'#6'OIf it does it will say what it think'
+  +' will be the value of the pointer you need.'#6'tGo back to the main cheat e'
+  +'ngine window (you can keep this extra info window open if you want, but if '
+  +'you close it, '#6'qremember what is between the [ and ] ) and do a 4 byte s'
+  +'can in hexadecimal for the value the extra info told you.'#6'qWhen done sca'
+  +'nning it may return 1 or a few hundred addresses. Most of the time the addr'
+  +'ess you need will be the '#6'Hsmallest one. Now click on manually add and s'
+  +'elect the pointer checkbox.'#6#0#6'VThe window will change and allow you to'
+  +' type in the address of a pointer and a offset.'#6'.Fill in as address the '
+  +'address you just found.'#6'yIf the assembler instruction has a calculation '
+  +'(e.g: [esi+12]) at the end then type the value in that''s at the end. else '
+  +#6'Mleave it 0. If it was a more complicated instruction look at the calcula'
+  +'tion.'#6#0#6'*example of a more complicated instruction:'#6'-[EAX*2+EDX+000'
+  +'00310] eax=4C and edx=00801234.'#6'pIn this case EDX would be the value the'
+  +' pointer has, and EAX*2+00000310 the offset, so the offset you''d fill in '
+  +#6'kwould be 2*4C+00000310=3A8.  (this is all in hex, use cal.exe from windo'
+  +'ws in scientific mode to calculate)'#6#0#6'wBack to the tutorial, click OK '
+  +'and the address will be added, If all went right the address will show P->x'
+  +'xxxxxx, with '#6'bxxxxxxx being the address of the value you found. If that'
+  +'s not right, you''ve done something wrong.'#6'tNow, change the value using '
+  +'the pointer you added in 5000 and freeze it. Then click Change pointer, and'
+  +' if all went '#6'*right the next button will become visible.'#6#0#6#0#6#6'e'
+  +'xtra:'#6'NAnd you could also use the pointer scanner to find the pointer to'
+  +' this address'#0#8'ReadOnly'#9#10'ScrollBars'#7#10'ssVertical'#8'TabOrder'#2
+  +#0#0#0#7'TButton'#7'Button2'#4'Left'#3#248#0#3'Top'#3#192#0#5'Width'#2'K'#6
+  +'Height'#2#25#7'Caption'#6#4'Next'#7'Enabled'#8#8'TabOrder'#2#1#7'OnClick'#7
+  +#12'Button2Click'#0#0#7'TButton'#7'Button1'#4'Left'#2#8#3'Top'#3#228#0#5'Wid'
+  +'th'#2'Q'#6'Height'#2#19#7'Caption'#6#12'Change value'#8'TabOrder'#2#2#7'OnC'
+  +'lick'#7#12'Button1Click'#0#0#7'TButton'#7'Button3'#4'Left'#2']'#3'Top'#3#228
+  +#0#5'Width'#2'Q'#6'Height'#2#19#7'Caption'#6#14'Change pointer'#8'TabOrder'#2
+  +#3#7'OnClick'#7#12'Button3Click'#0#0#0
+]);

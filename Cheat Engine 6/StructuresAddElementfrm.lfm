@@ -1,0 +1,135 @@
+object frmStructuresAddElement: TfrmStructuresAddElement
+  Left = 782
+  Height = 171
+  Top = 342
+  Width = 300
+  BorderStyle = bsDialog
+  Caption = 'Add Element'
+  ClientHeight = 171
+  ClientWidth = 300
+  Font.Height = -14
+  Font.Name = 'MS Sans Serif'
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object Label1: TLabel
+    Left = 20
+    Height = 14
+    Top = 40
+    Width = 52
+    Caption = 'description'
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    ParentColor = False
+    ParentFont = False
+  end
+  object Label2: TLabel
+    Left = 240
+    Height = 14
+    Top = 88
+    Width = 40
+    Caption = 'Bytesize'
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    ParentColor = False
+    ParentFont = False
+  end
+  object Label3: TLabel
+    Left = 20
+    Height = 14
+    Top = 0
+    Width = 29
+    Caption = 'Offset'
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    ParentColor = False
+    ParentFont = False
+  end
+  object cbType: TComboBox
+    Left = 20
+    Height = 21
+    Top = 104
+    Width = 208
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    ItemHeight = 13
+    OnChange = cbTypeChange
+    ParentFont = False
+    Style = csDropDownList
+    TabOrder = 2
+  end
+  object cbPointerto: TCheckBox
+    Left = 20
+    Height = 19
+    Top = 81
+    Width = 67
+    Caption = 'pointer to:'
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    ParentFont = False
+    TabOrder = 1
+  end
+  object Button1: TButton
+    Left = 20
+    Height = 24
+    Top = 144
+    Width = 76
+    Caption = 'OK'
+    Default = True
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    ModalResult = 1
+    OnClick = Button1Click
+    ParentFont = False
+    TabOrder = 4
+  end
+  object Button2: TButton
+    Left = 112
+    Height = 24
+    Top = 144
+    Width = 76
+    Cancel = True
+    Caption = 'Cancel'
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    ModalResult = 2
+    ParentFont = False
+    TabOrder = 5
+  end
+  object edtDescription: TEdit
+    Left = 20
+    Height = 21
+    Top = 56
+    Width = 208
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    ParentFont = False
+    TabOrder = 0
+    Text = 'undefined'
+  end
+  object edtByteSize: TEdit
+    Left = 240
+    Height = 21
+    Top = 104
+    Width = 54
+    Enabled = False
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    OnChange = edtByteSizeChange
+    ParentFont = False
+    TabOrder = 3
+    Text = '0'
+  end
+  object edtOffset: TEdit
+    Left = 20
+    Height = 21
+    Top = 16
+    Width = 208
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    OnChange = edtOffsetChange
+    ParentFont = False
+    TabOrder = 6
+    Text = '0'
+  end
+end

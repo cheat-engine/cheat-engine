@@ -1,0 +1,62 @@
+object Comments: TComments
+  Left = 595
+  Height = 369
+  Top = 194
+  Width = 414
+  HelpContext = 11
+  BorderIcons = [biMaximize]
+  Caption = 'Comments'
+  ClientHeight = 369
+  ClientWidth = 414
+  Font.Height = -14
+  Font.Name = 'MS Sans Serif'
+  OnClose = FormClose
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object Panel1: TPanel
+    Left = 0
+    Height = 36
+    Top = 333
+    Width = 414
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 36
+    ClientWidth = 414
+    TabOrder = 0
+    OnResize = Panel1Resize
+    object Button1: TButton
+      Left = 168
+      Height = 31
+      Top = 0
+      Width = 87
+      Caption = 'Close'
+      OnClick = Button1Click
+      TabOrder = 0
+    end
+  end
+  object PageControl1: TPageControl
+    Left = 0
+    Height = 333
+    Top = 0
+    Width = 414
+    ActivePage = tsComment
+    Align = alClient
+    TabIndex = 0
+    TabOrder = 1
+    object tsComment: TTabSheet
+      Caption = 'Comments'
+      ClientHeight = 304
+      ClientWidth = 406
+      object Memo1: TMemo
+        Left = 0
+        Height = 304
+        Top = 0
+        Width = 406
+        Align = alClient
+        ScrollBars = ssBoth
+        TabOrder = 0
+      end
+    end
+  end
+end

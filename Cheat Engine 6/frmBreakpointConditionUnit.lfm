@@ -1,0 +1,116 @@
+object frmBreakpointCondition: TfrmBreakpointCondition
+  Left = 666
+  Height = 226
+  Top = 334
+  Width = 510
+  Caption = 'Breakpoint condition'
+  ClientHeight = 226
+  ClientWidth = 510
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object Button1: TButton
+    Left = 8
+    Height = 27
+    Top = 189
+    Width = 75
+    Anchors = [akLeft, akBottom]
+    Caption = 'OK'
+    Default = True
+    ModalResult = 1
+    TabOrder = 0
+  end
+  object Button2: TButton
+    Left = 96
+    Height = 27
+    Top = 189
+    Width = 75
+    Anchors = [akLeft, akBottom]
+    Cancel = True
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 1
+  end
+  object PageControl1: TPageControl
+    Left = 8
+    Height = 159
+    Top = 24
+    Width = 497
+    ActivePage = TabSheet1
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    TabIndex = 0
+    TabOrder = 2
+    object TabSheet1: TTabSheet
+      Caption = 'Easy formula'
+      ClientHeight = 131
+      ClientWidth = 489
+      object edtEasy: TEdit
+        Left = 4
+        Height = 23
+        Top = 56
+        Width = 480
+        Anchors = [akTop, akLeft, akRight]
+        TabOrder = 0
+      end
+      object Label1: TLabel
+        Left = 4
+        Height = 16
+        Top = 8
+        Width = 426
+        Caption = 'Give a formula that must return true if you want the breakpoint to trigger a break'
+        ParentColor = False
+      end
+      object Label2: TLabel
+        Left = 4
+        Height = 16
+        Top = 32
+        Width = 380
+        Caption = 'Example: EAX == 0x1234  (case sensitive and hexadecimal starts with 0x )'
+        ParentColor = False
+      end
+    end
+    object TabSheet2: TTabSheet
+      Caption = 'Complex function'
+      ClientHeight = 131
+      ClientWidth = 489
+      object mComplex: TMemo
+        Left = 0
+        Height = 131
+        Top = 0
+        Width = 489
+        Align = alClient
+        Lines.Strings = (
+          '--the register values like EAX and EBX can be read here. '
+          '--Changing them has no effect though'
+          '--Note: Keep in mind hexadecimal values start with 0x'
+          ''
+          'return (conditon) --return a non-zero value if you want to break'
+        )
+        ScrollBars = ssBoth
+        TabOrder = 0
+      end
+    end
+  end
+  object rbEasy: TRadioButton
+    Left = 14
+    Height = 19
+    Top = 1
+    Width = 43
+    Caption = 'Easy'
+    Checked = True
+    OnChange = rbEasyChange
+    OnClick = rbEasyChange
+    TabOrder = 3
+    TabStop = True
+  end
+  object rbComplex: TRadioButton
+    Left = 64
+    Height = 19
+    Top = 1
+    Width = 67
+    Caption = 'Complex'
+    OnChange = rbEasyChange
+    OnClick = rbEasyChange
+    TabOrder = 4
+  end
+end

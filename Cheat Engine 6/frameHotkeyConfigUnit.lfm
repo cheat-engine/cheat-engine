@@ -1,0 +1,216 @@
+object frameHotkeyConfig: TframeHotkeyConfig
+  Left = 0
+  Height = 414
+  Top = 0
+  Width = 488
+  ClientHeight = 414
+  ClientWidth = 488
+  TabOrder = 0
+  DesignLeft = 817
+  DesignTop = 135
+  object Panel1: TPanel
+    Left = 0
+    Height = 364
+    Top = 50
+    Width = 305
+    Align = alClient
+    BevelOuter = bvNone
+    ClientHeight = 364
+    ClientWidth = 305
+    TabOrder = 0
+    object Label1: TLabel
+      Left = 0
+      Height = 16
+      Top = 0
+      Width = 305
+      Align = alTop
+      Caption = 'Functions'
+      ParentColor = False
+    end
+    object ListBox1: TListBox
+      Left = 0
+      Height = 348
+      Top = 16
+      Width = 305
+      Align = alClient
+      ExtendedSelect = False
+      Items.Strings = (
+        'Popup/Hide cheat engine'
+        'Pause the selected process'
+        'Toggle the speedhack'
+        'Speedhack speed 1'
+        'Speedhack speed 2'
+        'Speedhack speed 3'
+        'Speedhack speed 4'
+        'Speedhack speed 5'
+        'Speedhack speed +'
+        'Speedhack speed -'
+        'Change type to Binary'
+        'Change type to Byte'
+        'Change type to 2 Bytes'
+        'Change type to 4 Bytes'
+        'Change type to 8 Bytes'
+        'Change type to Float'
+        'Change type to Double'
+        'Change type to Text'
+        'Change type to Array of byte'
+        'New Scan'
+        'New Scan-Exact Value'
+        'New Scan-Unknown Initial Value'
+        'Next Scan-Exact Value'
+        'Next Scan-Increased Value'
+        'Next Scan-Decreased Value'
+        'Next Scan-Changed Value'
+        'Next Scan-Unchanged Value'
+        'Toggle between first/last scan compare'
+        'Undo last scan'
+        'Cancel the current scan'
+        'Debug->Run'
+      )
+      ItemHeight = 15
+      OnClick = ListBox1Click
+      TabOrder = 0
+    end
+  end
+  object Panel2: TPanel
+    Left = 305
+    Height = 364
+    Top = 50
+    Width = 183
+    Align = alRight
+    BevelOuter = bvNone
+    ClientHeight = 364
+    ClientWidth = 183
+    TabOrder = 1
+    object Label2: TLabel
+      Left = 6
+      Height = 16
+      Top = 0
+      Width = 39
+      Caption = 'Hotkey'
+      ParentColor = False
+    end
+    object Edit1: TEdit
+      Left = 5
+      Height = 23
+      Top = 21
+      Width = 172
+      OnKeyDown = Edit1KeyDown
+      ReadOnly = True
+      TabOrder = 0
+    end
+    object Button3: TButton
+      Left = 128
+      Height = 19
+      Top = 47
+      Width = 49
+      Caption = 'Clear'
+      OnClick = Button3Click
+      TabOrder = 1
+    end
+    object Panel3: TPanel
+      Left = 8
+      Height = 0
+      Top = 64
+      Width = 170
+      Anchors = [akTop, akLeft, akRight, akBottom]
+      BevelOuter = bvNone
+      ClientHeight = 0
+      ClientWidth = 170
+      TabOrder = 2
+      Visible = False
+      object Label52: TLabel
+        Left = 9
+        Height = 16
+        Top = 2
+        Width = 33
+        Anchors = [akTop, akRight]
+        Caption = 'Speed'
+        ParentColor = False
+      end
+      object edtSHSpeed: TEdit
+        Left = 4
+        Height = 23
+        Top = 18
+        Width = 46
+        Anchors = [akTop, akRight]
+        TabOrder = 0
+        Text = '2'
+      end
+    end
+    object Panel4: TPanel
+      Left = 5
+      Height = 97
+      Top = 70
+      Width = 173
+      BevelOuter = bvNone
+      ClientHeight = 97
+      ClientWidth = 173
+      TabOrder = 3
+      Visible = False
+      object Label3: TLabel
+        Left = 3
+        Height = 16
+        Top = 1
+        Width = 62
+        Caption = 'Speed delta'
+        ParentColor = False
+      end
+      object Edit4: TEdit
+        Left = 4
+        Height = 23
+        Top = 19
+        Width = 166
+        TabOrder = 0
+        Text = '1'
+      end
+    end
+  end
+  object Panel5: TPanel
+    Left = 0
+    Height = 50
+    Top = 0
+    Width = 488
+    Align = alTop
+    BevelOuter = bvNone
+    ClientHeight = 50
+    ClientWidth = 488
+    TabOrder = 2
+    object Label4: TLabel
+      Left = 104
+      Height = 16
+      Top = 6
+      Width = 159
+      Caption = 'Keypoll interval (milliseconds)'
+      ParentColor = False
+    end
+    object Label5: TLabel
+      Left = 104
+      Height = 16
+      Top = 32
+      Width = 187
+      Caption = 'Delay between reactivating hotkeys'
+      ParentColor = False
+    end
+    object edtKeypollInterval: TEdit
+      Left = 2
+      Height = 23
+      Hint = 'Determines how quickly a hotkey keypress is detected'
+      Top = 2
+      Width = 95
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 0
+      Text = '100'
+    end
+    object edtHotkeyDelay: TEdit
+      Left = 2
+      Height = 23
+      Hint = 'Lets you specify how quickly a hotkey is repeated'
+      Top = 26
+      Width = 95
+      TabOrder = 1
+      Text = '100'
+    end
+  end
+end

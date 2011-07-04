@@ -1,0 +1,27 @@
+object frmIDT: TfrmIDT
+  Left = 928
+  Height = 321
+  Top = 337
+  Width = 299
+  Caption = 'IDT'
+  ClientHeight = 321
+  ClientWidth = 299
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnClose = FormClose
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object tvIDT: TTreeView
+    Left = 0
+    Height = 321
+    Top = 0
+    Width = 299
+    Align = alClient
+    DefaultItemHeight = 15
+    Indent = 19
+    ReadOnly = True
+    TabOrder = 0
+    Options = [tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips]
+  end
+end

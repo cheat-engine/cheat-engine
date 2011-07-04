@@ -1,0 +1,60 @@
+object frmHeaps: TfrmHeaps
+  Left = 513
+  Height = 316
+  Top = 198
+  Width = 253
+  BorderIcons = [biSystemMenu]
+  Caption = 'Current Heaplist'
+  ClientHeight = 316
+  ClientWidth = 253
+  Font.Height = -14
+  Font.Name = 'MS Sans Serif'
+  OnClose = FormClose
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object Panel1: TPanel
+    Left = 0
+    Height = 50
+    Top = 266
+    Width = 253
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 50
+    ClientWidth = 253
+    TabOrder = 0
+    object Button1: TButton
+      Left = 79
+      Height = 31
+      Top = 10
+      Width = 92
+      Anchors = [akTop]
+      Caption = 'Close'
+      ModalResult = 1
+      OnClick = Button1Click
+      TabOrder = 0
+    end
+  end
+  object ListView1: TListView
+    Left = 0
+    Height = 266
+    Top = 0
+    Width = 253
+    Align = alClient
+    Columns = <    
+      item
+        Caption = 'Address'
+        Width = 120
+      end    
+      item
+        AutoSize = True
+        Caption = 'Size'
+        Width = 129
+      end>
+    ReadOnly = True
+    RowSelect = True
+    TabOrder = 1
+    ViewStyle = vsReport
+    OnDblClick = ListView1DblClick
+  end
+end

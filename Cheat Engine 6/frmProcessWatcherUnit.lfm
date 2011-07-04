@@ -1,0 +1,69 @@
+object frmProcessWatcher: TfrmProcessWatcher
+  Left = 901
+  Height = 296
+  Top = 263
+  Width = 205
+  BorderIcons = [biSystemMenu]
+  Caption = 'Process watcher'
+  ClientHeight = 296
+  ClientWidth = 205
+  Font.Height = -14
+  Font.Name = 'MS Sans Serif'
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object tvProcesslist: TTreeView
+    Left = 0
+    Height = 228
+    Top = 0
+    Width = 205
+    Align = alClient
+    DefaultItemHeight = 18
+    Indent = 19
+    PopupMenu = pmthreadid
+    ReadOnly = True
+    ShowRoot = False
+    TabOrder = 0
+    OnDblClick = tvProcesslistDblClick
+    Options = [tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoToolTips]
+  end
+  object Panel1: TPanel
+    Left = 0
+    Height = 68
+    Top = 228
+    Width = 205
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 68
+    ClientWidth = 205
+    TabOrder = 1
+    OnResize = Panel1Resize
+    object btnOpen: TButton
+      Left = 39
+      Height = 21
+      Top = 10
+      Width = 110
+      Caption = 'Open process'
+      OnClick = btnOpenClick
+      TabOrder = 0
+    end
+    object btnAttach: TButton
+      Left = 39
+      Height = 21
+      Top = 39
+      Width = 110
+      Caption = 'Attach to process'
+      OnClick = btnAttachClick
+      TabOrder = 1
+    end
+  end
+  object pmthreadid: TPopupMenu
+    left = 56
+    top = 48
+    object ShowThreadIDs1: TMenuItem
+      Caption = 'Show ThreadID''s'
+      OnClick = ShowThreadIDs1Click
+    end
+  end
+end

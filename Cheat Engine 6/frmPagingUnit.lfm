@@ -1,0 +1,93 @@
+object frmPaging: TfrmPaging
+  Left = 678
+  Height = 240
+  Top = 262
+  Width = 404
+  Caption = 'Paging'
+  ClientHeight = 240
+  ClientWidth = 404
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  LCLVersion = '0.9.31'
+  object tvPage: TTreeView
+    Left = 0
+    Height = 182
+    Top = 58
+    Width = 404
+    Align = alClient
+    DefaultItemHeight = 17
+    PopupMenu = PopupMenu1
+    ReadOnly = True
+    TabOrder = 0
+    OnDblClick = tvPageDblClick
+    OnExpanding = tvPageExpanding
+    Options = [tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
+  end
+  object frmPaging: TPanel
+    Left = 0
+    Height = 58
+    Top = 0
+    Width = 404
+    Align = alTop
+    BevelOuter = bvNone
+    ClientHeight = 58
+    ClientWidth = 404
+    TabOrder = 1
+    object edtCR3: TEdit
+      Left = 5
+      Height = 23
+      Top = 24
+      Width = 192
+      TabOrder = 0
+    end
+    object Button1: TButton
+      Left = 208
+      Height = 25
+      Top = 22
+      Width = 75
+      Caption = 'Go'
+      OnClick = Button1Click
+      TabOrder = 1
+    end
+    object Label1: TLabel
+      Left = 5
+      Height = 16
+      Top = 4
+      Width = 302
+      Caption = 'Fill in the physical address of the paging base (or just cr3)'
+      ParentColor = False
+    end
+    object cb8byteentries: TCheckBox
+      Left = 312
+      Height = 19
+      Top = 8
+      Width = 92
+      Caption = '8-byte entries'
+      TabOrder = 2
+    end
+    object cb64bit: TCheckBox
+      Left = 312
+      Height = 19
+      Top = 32
+      Width = 51
+      Caption = '64-bit'
+      OnChange = cb64bitChange
+      TabOrder = 3
+    end
+  end
+  object FindDialog1: TFindDialog
+    Options = [frDown, frHideMatchCase, frHideWholeWord, frHideUpDown, frDisableMatchCase, frDisableUpDown, frDisableWholeWord, frEntireScope]
+    OnFind = FindDialog1Find
+    left = 49
+    top = 114
+  end
+  object PopupMenu1: TPopupMenu
+    left = 124
+    top = 83
+    object MenuItem1: TMenuItem
+      Caption = 'Find'
+      ShortCut = 16454
+      OnClick = MenuItem1Click
+    end
+  end
+end

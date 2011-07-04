@@ -1,0 +1,293 @@
+object frmUltimap: TfrmUltimap
+  Left = 522
+  Height = 399
+  Top = 277
+  Width = 687
+  Caption = 'frmUltimap'
+  ClientHeight = 399
+  ClientWidth = 687
+  OnClose = FormClose
+  OnCreate = FormCreate
+  LCLVersion = '0.9.31'
+  object Panel1: TPanel
+    Left = 0
+    Height = 399
+    Top = 0
+    Width = 687
+    Align = alClient
+    BevelOuter = bvNone
+    ClientHeight = 399
+    ClientWidth = 687
+    TabOrder = 0
+    object Label4: TLabel
+      Left = 322
+      Height = 16
+      Top = 352
+      Width = 35
+      Caption = 'Label4'
+      ParentColor = False
+    end
+    object Panel2: TPanel
+      Left = 0
+      Height = 215
+      Top = 184
+      Width = 687
+      Align = alClient
+      BevelOuter = bvNone
+      Caption = 'Panel2'
+      ClientHeight = 215
+      ClientWidth = 687
+      TabOrder = 0
+      object ListView1: TListView
+        Left = 0
+        Height = 165
+        Top = 0
+        Width = 687
+        Align = alClient
+        Columns = <        
+          item
+            Caption = 'Address To'
+            Width = 140
+          end        
+          item
+            Caption = 'Last origin'
+            Width = 140
+          end        
+          item
+            Caption = 'Count'
+          end>
+        HideSelection = False
+        OwnerData = True
+        ReadOnly = True
+        RowSelect = True
+        TabOrder = 0
+        ViewStyle = vsReport
+        OnData = ListView1Data
+        OnDblClick = ListView1DblClick
+      end
+      object Panel3: TPanel
+        Left = 0
+        Height = 50
+        Top = 165
+        Width = 687
+        Align = alBottom
+        BevelOuter = bvNone
+        ClientHeight = 50
+        ClientWidth = 687
+        TabOrder = 1
+        object Button5: TButton
+          Left = 264
+          Height = 25
+          Top = 10
+          Width = 155
+          Anchors = [akTop]
+          Caption = 'Show matching routines'
+          OnClick = Button5Click
+          TabOrder = 0
+        end
+      end
+    end
+    object Panel5: TPanel
+      Left = 0
+      Height = 184
+      Top = 0
+      Width = 687
+      Align = alTop
+      BevelOuter = bvNone
+      ClientHeight = 184
+      ClientWidth = 687
+      TabOrder = 1
+      object Button3: TButton
+        Left = 343
+        Height = 25
+        Top = 48
+        Width = 264
+        Caption = 'Target routine was called'
+        OnClick = Button3Click
+        TabOrder = 0
+      end
+      object Button4: TButton
+        Tag = 1
+        Left = 343
+        Height = 25
+        Top = 16
+        Width = 264
+        Caption = 'Target routine was not called'
+        OnClick = Button4Click
+        TabOrder = 1
+      end
+      object Button6: TButton
+        Left = 613
+        Height = 25
+        Top = 64
+        Width = 74
+        Caption = 'Reset'
+        OnClick = Button6Click
+        TabOrder = 2
+      end
+      object Button7: TButton
+        Tag = 2
+        Left = 343
+        Height = 25
+        Top = 80
+        Width = 264
+        Caption = 'Filter out routine(s) that where not CALL''ed'
+        OnClick = Button7Click
+        TabOrder = 3
+      end
+      object Button8: TButton
+        Tag = 3
+        Left = 343
+        Height = 25
+        Top = 112
+        Width = 264
+        Caption = 'Filter out routine(s) where callcount is NOT'
+        OnClick = FilterClick
+        TabOrder = 4
+      end
+      object Edit1: TEdit
+        Left = 616
+        Height = 23
+        Top = 112
+        Width = 71
+        TabOrder = 5
+        Text = '1'
+      end
+      object lblLastfilterresult: TLabel
+        Left = 343
+        Height = 16
+        Top = 1
+        Width = 89
+        Caption = 'Last filter results:'
+        ParentColor = False
+      end
+      object Button1: TButton
+        Left = 343
+        Height = 25
+        Top = 144
+        Width = 264
+        Caption = 'Filter out routines not in a specific module'
+        OnClick = Button1Click
+        TabOrder = 6
+      end
+      object btnStart: TButton
+        Left = 8
+        Height = 25
+        Top = 112
+        Width = 75
+        Caption = 'Start'
+        OnClick = btnStartClick
+        TabOrder = 7
+      end
+      object edtWorkerCount: TEdit
+        Left = 90
+        Height = 23
+        Top = 69
+        Width = 80
+        TabOrder = 8
+        Text = '1'
+      end
+      object cbLogToFile: TRadioButton
+        Left = 8
+        Height = 19
+        Top = 24
+        Width = 115
+        Caption = 'Log directly to file'
+        TabOrder = 9
+      end
+      object edtFilename: TEdit
+        Left = 130
+        Height = 23
+        Top = 24
+        Width = 80
+        TabOrder = 10
+        Text = 'c:\log.dat'
+      end
+      object Label1: TLabel
+        Left = 8
+        Height = 16
+        Top = 72
+        Width = 81
+        Caption = 'Worker threads'
+        ParentColor = False
+      end
+      object cbParseData: TRadioButton
+        Left = 8
+        Height = 19
+        Top = 48
+        Width = 74
+        Caption = 'Parse data'
+        Checked = True
+        TabOrder = 11
+        TabStop = True
+      end
+      object edtBufSize: TEdit
+        Left = 98
+        Height = 23
+        Top = 0
+        Width = 80
+        TabOrder = 12
+        Text = '4194304'
+      end
+      object Label2: TLabel
+        Left = 8
+        Height = 16
+        Top = 4
+        Width = 87
+        Caption = 'Event buffer size'
+        ParentColor = False
+      end
+      object btnStop: TButton
+        Left = 192
+        Height = 25
+        Top = 112
+        Width = 75
+        Caption = 'Stop'
+        Enabled = False
+        OnClick = btnStopClick
+        TabOrder = 13
+      end
+      object Label3: TLabel
+        Left = 8
+        Height = 16
+        Top = 160
+        Width = 7
+        Caption = '0'
+        ParentColor = False
+      end
+      object btnPause: TButton
+        Tag = 3
+        Left = 88
+        Height = 25
+        Top = 112
+        Width = 98
+        Caption = 'Pause/Resume'
+        Enabled = False
+        OnClick = btnPauseClick
+        TabOrder = 14
+      end
+      object Label5: TLabel
+        Left = 8
+        Height = 16
+        Top = 144
+        Width = 76
+        Caption = 'Banch targets:'
+        ParentColor = False
+      end
+    end
+  end
+  object Timer1: TTimer
+    Interval = 250
+    OnTimer = Timer1Timer
+    left = 294
+    top = 382
+  end
+  object pmSetHotkey: TPopupMenu
+    left = 268
+    top = 28
+    object MenuItem1: TMenuItem
+      Caption = 'Set hotkey'
+      OnClick = MenuItem1Click
+    end
+  end
+end

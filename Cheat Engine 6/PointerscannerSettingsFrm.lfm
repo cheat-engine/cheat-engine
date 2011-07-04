@@ -1,0 +1,369 @@
+object frmPointerScannerSettings: TfrmPointerScannerSettings
+  Left = 643
+  Height = 431
+  Top = 91
+  Width = 408
+  BorderStyle = bsSingle
+  Caption = 'Pointerscanner scanoptions'
+  ClientHeight = 431
+  ClientWidth = 408
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnCreate = FormCreate
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object edtAddress: TEdit
+    Left = 10
+    Height = 21
+    Top = 28
+    Width = 254
+    CharCase = ecUppercase
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    MaxLength = 8
+    OnChange = edtAddressChange
+    ParentFont = False
+    TabOrder = 0
+  end
+  object PSSettings: TPageControl
+    Left = 10
+    Height = 221
+    Top = 59
+    Width = 394
+    ActivePage = PSReverse
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    ParentFont = False
+    TabIndex = 0
+    TabOrder = 1
+    object PSReverse: TTabSheet
+      Caption = 'Reverse'
+      ClientHeight = 195
+      ClientWidth = 386
+      ImageIndex = 1
+      TabVisible = False
+      object Label10: TLabel
+        Left = 4
+        Height = 14
+        Top = 102
+        Width = 24
+        Caption = 'From'
+        ParentColor = False
+      end
+      object Label11: TLabel
+        Left = 90
+        Height = 14
+        Top = 102
+        Width = 17
+        Caption = 'To:'
+        ParentColor = False
+      end
+      object Label13: TLabel
+        Left = 4
+        Height = 14
+        Top = 83
+        Width = 201
+        Caption = 'Pointer path may only be inside this region:'
+        ParentColor = False
+      end
+      object Label14: TLabel
+        Left = 0
+        Height = 14
+        Top = 214
+        Width = 122
+        Caption = 'Maximum offset to accept'
+        Enabled = False
+        ParentColor = False
+        Visible = False
+      end
+      object CbAlligned: TCheckBox
+        Left = 0
+        Height = 17
+        Top = 0
+        Width = 175
+        Caption = 'Addresses must be 32-bit alligned'
+        Checked = True
+        State = cbChecked
+        TabOrder = 0
+      end
+      object edtReverseStop: TEdit
+        Left = 90
+        Height = 21
+        Top = 118
+        Width = 80
+        CharCase = ecUppercase
+        MaxLength = 8
+        TabOrder = 1
+        Text = '7FFFFFFF'
+      end
+      object edtReverseStart: TEdit
+        Left = 4
+        Height = 21
+        Top = 118
+        Width = 80
+        CharCase = ecUppercase
+        MaxLength = 8
+        TabOrder = 2
+        Text = '00000000'
+      end
+      object cbStaticOnly: TCheckBox
+        Left = 0
+        Height = 17
+        Top = 20
+        Width = 187
+        Caption = 'Only find paths with a static address'
+        Checked = True
+        State = cbChecked
+        TabOrder = 3
+      end
+      object cbStackAsBase: TCheckBox
+        Left = 0
+        Height = 17
+        Top = 194
+        Width = 330
+        Caption = 'Accept stack addresses of the main thread as base pointer as well'
+        TabOrder = 4
+        Visible = False
+      end
+      object Edit3: TEdit
+        Left = 0
+        Height = 21
+        Top = 233
+        Width = 149
+        Enabled = False
+        TabOrder = 5
+        Text = '4096'
+        Visible = False
+      end
+      object cbOnlyStackAsBase: TCheckBox
+        Left = 162
+        Height = 17
+        Top = 236
+        Width = 204
+        Caption = 'Only use the maintread stack as a base'
+        TabOrder = 6
+        Visible = False
+      end
+      object cbUseHeapData: TCheckBox
+        Left = 0
+        Height = 17
+        Top = 148
+        Width = 232
+        Caption = 'Improve pointerscan with gathered heap data'
+        OnClick = cbUseHeapDataClick
+        TabOrder = 7
+      end
+      object cbHeapOnly: TCheckBox
+        Left = 16
+        Height = 17
+        Hint = 'If the address you search for isn''t a heap address, the scan will return 0 results'
+        Top = 165
+        Width = 246
+        Caption = 'Only allow static and heap addresses in the path'
+        Enabled = False
+        OnClick = cbHeapOnlyClick
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 8
+      end
+      object cbOnlyOneStatic: TCheckBox
+        Left = 0
+        Height = 17
+        Top = 60
+        Width = 265
+        Caption = 'Stop traversing a path when a static has been found'
+        TabOrder = 9
+      end
+      object cbNoReadOnly: TCheckBox
+        Left = 0
+        Height = 17
+        Top = 40
+        Width = 220
+        Caption = 'Don''t include pointers with read-only nodes'
+        Checked = True
+        State = cbChecked
+        TabOrder = 10
+      end
+    end
+  end
+  object cbMustEndWithSpecificOffset: TCheckBox
+    Left = 10
+    Height = 17
+    Top = 300
+    Width = 197
+    Caption = 'Pointers must end with specific offsets'
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    OnClick = cbMustEndWithSpecificOffsetClick
+    ParentFont = False
+    TabOrder = 2
+  end
+  object Panel1: TPanel
+    Left = 0
+    Height = 107
+    Top = 324
+    Width = 408
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 107
+    ClientWidth = 408
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    ParentFont = False
+    TabOrder = 3
+    object Label3: TLabel
+      Left = 24
+      Height = 14
+      Top = 42
+      Width = 106
+      Caption = 'Maximum offset value:'
+      ParentColor = False
+    end
+    object Label12: TLabel
+      Left = 226
+      Height = 14
+      Top = 42
+      Width = 46
+      Caption = 'Max level'
+      ParentColor = False
+    end
+    object Label9: TLabel
+      Left = 16
+      Height = 14
+      Top = 10
+      Width = 114
+      Caption = 'Nr of threads scanning: '
+      ParentColor = False
+    end
+    object Button1: TButton
+      Left = 138
+      Height = 25
+      Top = 68
+      Width = 80
+      Caption = 'OK'
+      Default = True
+      OnClick = Button1Click
+      TabOrder = 0
+    end
+    object editStructsize: TEdit
+      Left = 158
+      Height = 21
+      Top = 38
+      Width = 60
+      TabOrder = 1
+      Text = '2048'
+    end
+    object editMaxLevel: TEdit
+      Left = 286
+      Height = 21
+      Top = 37
+      Width = 80
+      TabOrder = 2
+      Text = '5'
+    end
+    object btnCancel: TButton
+      Left = 226
+      Height = 25
+      Top = 68
+      Width = 93
+      Cancel = True
+      Caption = 'Cancel'
+      ModalResult = 2
+      TabOrder = 3
+    end
+    object edtThreadcount: TEdit
+      Left = 158
+      Height = 21
+      Top = 6
+      Width = 60
+      TabOrder = 4
+      Text = '2'
+    end
+    object ComboBox1: TComboBox
+      Left = 226
+      Height = 21
+      Top = 5
+      Width = 140
+      ItemHeight = 13
+      ItemIndex = 3
+      Items.Strings = (
+        'Idle'
+        'Lowest'
+        'Lower'
+        'Normal'
+        'Higher'
+        'Highest'
+        'TimeCritical'
+      )
+      TabOrder = 5
+      Text = 'Normal'
+    end
+  end
+  object cbValueType: TComboBox
+    Left = 272
+    Height = 21
+    Top = 28
+    Width = 132
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    ItemHeight = 13
+    ItemIndex = 0
+    Items.Strings = (
+      '4 Byte'
+      'Float'
+      'Double'
+    )
+    ParentFont = False
+    Style = csDropDownList
+    TabOrder = 4
+    Text = '4 Byte'
+  end
+  object Panel2: TPanel
+    Left = 8
+    Height = 25
+    Top = 0
+    Width = 425
+    BevelOuter = bvNone
+    ClientHeight = 25
+    ClientWidth = 425
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    ParentFont = False
+    TabOrder = 5
+    object rbFindAddress: TRadioButton
+      Left = 0
+      Height = 17
+      Top = 4
+      Width = 91
+      Caption = 'Address to find:'
+      Checked = True
+      OnChange = rbFindValueClick
+      TabOrder = 0
+      TabStop = True
+    end
+    object rbFindValue: TRadioButton
+      Left = 96
+      Height = 17
+      Top = 4
+      Width = 80
+      Caption = 'Value to find:'
+      OnChange = rbFindValueClick
+      TabOrder = 1
+    end
+  end
+  object CheckBox1: TCheckBox
+    Left = 10
+    Height = 17
+    Top = 280
+    Width = 216
+    Caption = 'Use pointermap from previous pointerscan'
+    Checked = True
+    Enabled = False
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    ParentFont = False
+    State = cbChecked
+    TabOrder = 6
+  end
+end

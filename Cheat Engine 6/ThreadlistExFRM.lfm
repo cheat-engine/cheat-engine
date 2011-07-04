@@ -1,0 +1,45 @@
+object frmThreadlistEx: TfrmThreadlistEx
+  Left = 832
+  Height = 220
+  Top = 251
+  Width = 272
+  Caption = 'ThreadInfo'
+  ClientHeight = 220
+  ClientWidth = 272
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnClose = FormClose
+  LCLVersion = '0.9.31'
+  object TreeView1: TTreeView
+    Left = 0
+    Height = 179
+    Top = 0
+    Width = 272
+    Align = alClient
+    DefaultItemHeight = 15
+    Indent = 19
+    ReadOnly = True
+    TabOrder = 0
+    Options = [tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips]
+  end
+  object Panel1: TPanel
+    Left = 0
+    Height = 41
+    Top = 179
+    Width = 272
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 41
+    ClientWidth = 272
+    TabOrder = 1
+    object Button1: TButton
+      Left = 96
+      Height = 25
+      Top = 8
+      Width = 75
+      Caption = 'OK'
+      OnClick = Button1Click
+      TabOrder = 0
+    end
+  end
+end

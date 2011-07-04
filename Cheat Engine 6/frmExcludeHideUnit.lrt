@@ -1,0 +1,9 @@
+TFRMEXCLUDEHIDE.CAPTION=Show/Hide settings
+TFRMEXCLUDEHIDE.LABEL4.CAPTION=Select the way cheat Engine hides/shows windows. (Will not work if a window that gets hidden or shown is not responding. E.g:Paused)
+TFRMEXCLUDEHIDE.LABEL1.CAPTION=Select the processes you want to exclude from being hidden. Doubleclick the process to add it to the list. (Or remove it from the list)
+TFRMEXCLUDEHIDE.RADIOBUTTON1.CAPTION=Only hide/show the foreground window
+TFRMEXCLUDEHIDE.RADIOBUTTON2.CAPTION=Hide/show ALL windows
+TFRMEXCLUDEHIDE.LABEL2.CAPTION=Current process list
+TFRMEXCLUDEHIDE.LABEL3.CAPTION=List of processes that will not hide
+TFRMEXCLUDEHIDE.BUTTON2.CAPTION=Cancel
+TFRMEXCLUDEHIDE.BUTTON1.CAPTION=OK

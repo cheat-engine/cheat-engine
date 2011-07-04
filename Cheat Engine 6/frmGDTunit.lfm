@@ -1,0 +1,27 @@
+object frmGDTinfo: TfrmGDTinfo
+  Left = 997
+  Height = 325
+  Top = 439
+  Width = 299
+  Caption = 'GDT'
+  ClientHeight = 325
+  ClientWidth = 299
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnClose = FormClose
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object TreeView1: TTreeView
+    Left = 0
+    Height = 325
+    Top = 0
+    Width = 299
+    Align = alClient
+    DefaultItemHeight = 15
+    Indent = 19
+    ReadOnly = True
+    TabOrder = 0
+    Options = [tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips]
+  end
+end

@@ -1,0 +1,91 @@
+object frmServiceDescriptorTables: TfrmServiceDescriptorTables
+  Left = 627
+  Height = 343
+  Top = 290
+  Width = 469
+  Caption = 'Service Descriptor Table'
+  ClientHeight = 323
+  ClientWidth = 469
+  Font.Height = -14
+  Font.Name = 'MS Sans Serif'
+  Menu = MainMenu1
+  OnClose = FormClose
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object TreeView1: TTreeView
+    Left = 0
+    Height = 323
+    Top = 0
+    Width = 469
+    Align = alClient
+    DefaultItemHeight = 18
+    HideSelection = False
+    Indent = 19
+    PopupMenu = PopupMenu1
+    RightClickSelect = True
+    TabOrder = 0
+    OnDblClick = TreeView1DblClick
+    Options = [tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoRightClickSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips]
+  end
+  object MainMenu1: TMainMenu
+    left = 8
+    top = 80
+    object File1: TMenuItem
+      Caption = 'File'
+      object Scancallnumbersandnames1: TMenuItem
+        Caption = 'Autoscan names for callnumbers'
+        OnClick = Scancallnumbersandnames1Click
+      end
+      object N1: TMenuItem
+        Caption = '-'
+      end
+      object Open1: TMenuItem
+        Caption = 'Load callnumber names'
+        ShortCut = 16463
+        OnClick = Open1Click
+      end
+      object Save1: TMenuItem
+        Caption = 'Save callnumber names'
+        ShortCut = 16467
+        OnClick = Save1Click
+      end
+    end
+    object CancelScan1: TMenuItem
+      Caption = 'Cancel Scan'
+      Visible = False
+      OnClick = CancelScan1Click
+    end
+  end
+  object OpenDialog1: TOpenDialog
+    DefaultExt = '.SDT'
+    Filter = 'SDT (*.sdt)|*.sdt'
+    left = 8
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.SDT'
+    Filter = 'SDT (*.sdt)|*.sdt'
+    left = 8
+    top = 40
+  end
+  object FindDialog1: TFindDialog
+    Options = [frDown, frFindNext, frDisableMatchCase, frDisableUpDown, frDisableWholeWord]
+    OnFind = FindDialog1Find
+    left = 8
+    top = 120
+  end
+  object PopupMenu1: TPopupMenu
+    left = 48
+    top = 80
+    object Find1: TMenuItem
+      Caption = 'Find'
+      ShortCut = 16454
+      OnClick = Find1Click
+    end
+    object GotoSTDaddress1: TMenuItem
+      Caption = 'Go to sdt entry'
+      ShortCut = 16455
+      OnClick = GotoSTDaddress1Click
+    end
+  end
+end

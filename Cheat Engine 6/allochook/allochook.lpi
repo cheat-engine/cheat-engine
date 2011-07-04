@@ -1,0 +1,206 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <ProjectOptions>
+    <Version Value="9"/>
+    <PathDelim Value="\"/>
+    <General>
+      <Flags>
+        <MainUnitHasCreateFormStatements Value="False"/>
+        <MainUnitHasTitleStatement Value="False"/>
+      </Flags>
+      <MainUnit Value="0"/>
+      <ResourceType Value="res"/>
+      <ActiveWindowIndexAtStart Value="0"/>
+    </General>
+    <i18n>
+      <EnableI18N LFM="False"/>
+    </i18n>
+    <VersionInfo>
+      <StringTable ProductVersion=""/>
+    </VersionInfo>
+    <BuildModes Count="1">
+      <Item1 Name="default" Default="True"/>
+    </BuildModes>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
+      <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+      </local>
+    </RunParams>
+    <Units Count="4">
+      <Unit0>
+        <Filename Value="allochook.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="allochook"/>
+        <EditorIndex Value="0"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="1" Y="29"/>
+        <UsageCount Value="28"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="hookedfunctions.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="hookedfunctions"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="1"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="249"/>
+        <CursorPos X="9" Y="121"/>
+        <UsageCount Value="28"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="C:\lazarus\fpc\2.4.3\source\packages\winunits-jedi\src\jwawindows.pas"/>
+        <UnitName Value="JwaWindows"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="345"/>
+        <CursorPos X="3" Y="363"/>
+        <UsageCount Value="9"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\win\wininc\redef.inc"/>
+        <EditorIndex Value="2"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="641"/>
+        <CursorPos X="65" Y="657"/>
+        <UsageCount Value="14"/>
+        <Loaded Value="True"/>
+      </Unit3>
+    </Units>
+    <JumpHistory Count="21" HistoryIndex="20">
+      <Position1>
+        <Filename Value="hookedfunctions.pas"/>
+        <Caret Line="122" Column="3" TopLine="1"/>
+      </Position1>
+      <Position2>
+        <Filename Value="hookedfunctions.pas"/>
+        <Caret Line="7" Column="28" TopLine="1"/>
+      </Position2>
+      <Position3>
+        <Filename Value="hookedfunctions.pas"/>
+        <Caret Line="126" Column="14" TopLine="110"/>
+      </Position3>
+      <Position4>
+        <Filename Value="hookedfunctions.pas"/>
+        <Caret Line="116" Column="34" TopLine="104"/>
+      </Position4>
+      <Position5>
+        <Filename Value="hookedfunctions.pas"/>
+        <Caret Line="120" Column="17" TopLine="109"/>
+      </Position5>
+      <Position6>
+        <Filename Value="hookedfunctions.pas"/>
+        <Caret Line="141" Column="19" TopLine="131"/>
+      </Position6>
+      <Position7>
+        <Filename Value="hookedfunctions.pas"/>
+        <Caret Line="120" Column="27" TopLine="101"/>
+      </Position7>
+      <Position8>
+        <Filename Value="hookedfunctions.pas"/>
+        <Caret Line="90" Column="36" TopLine="88"/>
+      </Position8>
+      <Position9>
+        <Filename Value="hookedfunctions.pas"/>
+        <Caret Line="134" Column="72" TopLine="114"/>
+      </Position9>
+      <Position10>
+        <Filename Value="hookedfunctions.pas"/>
+        <Caret Line="162" Column="20" TopLine="153"/>
+      </Position10>
+      <Position11>
+        <Filename Value="hookedfunctions.pas"/>
+        <Caret Line="169" Column="48" TopLine="153"/>
+      </Position11>
+      <Position12>
+        <Filename Value="hookedfunctions.pas"/>
+        <Caret Line="176" Column="58" TopLine="160"/>
+      </Position12>
+      <Position13>
+        <Filename Value="hookedfunctions.pas"/>
+        <Caret Line="198" Column="64" TopLine="182"/>
+      </Position13>
+      <Position14>
+        <Filename Value="hookedfunctions.pas"/>
+        <Caret Line="200" Column="60" TopLine="184"/>
+      </Position14>
+      <Position15>
+        <Filename Value="hookedfunctions.pas"/>
+        <Caret Line="223" Column="67" TopLine="207"/>
+      </Position15>
+      <Position16>
+        <Filename Value="hookedfunctions.pas"/>
+        <Caret Line="237" Column="10" TopLine="221"/>
+      </Position16>
+      <Position17>
+        <Filename Value="hookedfunctions.pas"/>
+        <Caret Line="241" Column="3" TopLine="237"/>
+      </Position17>
+      <Position18>
+        <Filename Value="hookedfunctions.pas"/>
+        <Caret Line="242" Column="65" TopLine="226"/>
+      </Position18>
+      <Position19>
+        <Filename Value="hookedfunctions.pas"/>
+        <Caret Line="286" Column="75" TopLine="270"/>
+      </Position19>
+      <Position20>
+        <Filename Value="allochook.lpr"/>
+        <Caret Line="15" Column="21" TopLine="1"/>
+      </Position20>
+      <Position21>
+        <Filename Value="allochook.lpr"/>
+        <Caret Line="28" Column="42" TopLine="1"/>
+      </Position21>
+    </JumpHistory>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="9"/>
+    <PathDelim Value="\"/>
+    <Target>
+      <Filename Value="..\bin\allochook-$(TargetCPU)"/>
+    </Target>
+    <SearchPaths>
+      <IncludeFiles Value="$(ProjOutDir)"/>
+      <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+    </SearchPaths>
+    <Parsing>
+      <Style Value="1"/>
+      <SyntaxOptions>
+        <SyntaxMode Value="Delphi"/>
+      </SyntaxOptions>
+    </Parsing>
+    <Linking>
+      <Options>
+        <ExecutableType Value="Library"/>
+      </Options>
+    </Linking>
+    <Other>
+      <CompilerMessages>
+        <UseMsgFile Value="True"/>
+      </CompilerMessages>
+      <CompilerPath Value="$(CompPath)"/>
+    </Other>
+  </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="3">
+      <Item1>
+        <Name Value="EAbort"/>
+      </Item1>
+      <Item2>
+        <Name Value="ECodetoolError"/>
+      </Item2>
+      <Item3>
+        <Name Value="EFOpenError"/>
+      </Item3>
+    </Exceptions>
+  </Debugging>
+</CONFIG>

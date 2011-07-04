@@ -1,0 +1,161 @@
+object frmExcludeHide: TfrmExcludeHide
+  Left = 903
+  Height = 359
+  Top = 176
+  Width = 453
+  Caption = 'Show/Hide settings'
+  ClientHeight = 359
+  ClientWidth = 453
+  Font.Height = -14
+  Font.Name = 'MS Sans Serif'
+  OnCreate = FormCreate
+  Position = poOwnerFormCenter
+  LCLVersion = '0.9.31'
+  object Label4: TLabel
+    Left = 0
+    Height = 41
+    Top = 0
+    Width = 453
+    Align = alTop
+    AutoSize = False
+    Caption = 'Select the way cheat Engine hides/shows windows. (Will not work if a window that gets hidden or shown is not responding. E.g:Paused)'
+    ParentColor = False
+    WordWrap = True
+  end
+  object Panel1: TPanel
+    Left = 0
+    Height = 318
+    Top = 41
+    Width = 453
+    Align = alClient
+    BevelOuter = bvNone
+    ClientHeight = 318
+    ClientWidth = 453
+    TabOrder = 0
+    OnResize = Panel1Resize
+    object Label1: TLabel
+      Left = 0
+      Height = 40
+      Top = 39
+      Width = 448
+      Anchors = [akTop, akLeft, akRight]
+      AutoSize = False
+      Caption = 'Select the processes you want to exclude from being hidden. Doubleclick the process to add it to the list. (Or remove it from the list)'
+      Enabled = False
+      ParentColor = False
+      WordWrap = True
+    end
+    object RadioButton1: TRadioButton
+      Left = 0
+      Height = 20
+      Top = -1
+      Width = 247
+      Caption = 'Only hide/show the foreground window'
+      Checked = True
+      OnClick = RadioButton1Click
+      TabOrder = 0
+      TabStop = True
+    end
+    object RadioButton2: TRadioButton
+      Left = 0
+      Height = 20
+      Top = 19
+      Width = 164
+      Caption = 'Hide/show ALL windows'
+      OnClick = RadioButton1Click
+      TabOrder = 1
+    end
+    object Panel2: TPanel
+      Left = 0
+      Height = 185
+      Top = 80
+      Width = 214
+      BevelOuter = bvNone
+      ClientHeight = 185
+      ClientWidth = 214
+      TabOrder = 2
+      object Label2: TLabel
+        Left = 0
+        Height = 17
+        Top = 0
+        Width = 214
+        Align = alTop
+        Caption = 'Current process list'
+        Enabled = False
+        ParentColor = False
+      end
+      object ListBox1: TListBox
+        Left = 0
+        Height = 168
+        Top = 17
+        Width = 214
+        Align = alClient
+        Enabled = False
+        ItemHeight = 0
+        OnDblClick = ListBox1DblClick
+        TabOrder = 0
+      end
+    end
+    object Panel3: TPanel
+      Left = 219
+      Height = 185
+      Top = 80
+      Width = 214
+      BevelOuter = bvNone
+      ClientHeight = 185
+      ClientWidth = 214
+      TabOrder = 3
+      object Label3: TLabel
+        Left = 0
+        Height = 17
+        Top = 0
+        Width = 214
+        Align = alTop
+        Caption = 'List of processes that will not hide'
+        Enabled = False
+        ParentColor = False
+      end
+      object ListBox2: TListBox
+        Left = 0
+        Height = 168
+        Top = 17
+        Width = 214
+        Align = alClient
+        Enabled = False
+        ItemHeight = 0
+        OnDblClick = ListBox2DblClick
+        TabOrder = 0
+      end
+    end
+    object Panel4: TPanel
+      Left = 120
+      Height = 41
+      Top = 272
+      Width = 195
+      BevelOuter = bvNone
+      ClientHeight = 41
+      ClientWidth = 195
+      TabOrder = 4
+      object Button2: TButton
+        Left = 101
+        Height = 31
+        Top = 2
+        Width = 92
+        Cancel = True
+        Caption = 'Cancel'
+        ModalResult = 2
+        TabOrder = 0
+      end
+      object Button1: TButton
+        Left = 5
+        Height = 31
+        Top = 2
+        Width = 92
+        Caption = 'OK'
+        Default = True
+        OnClick = Button1Click
+        TabOrder = 1
+      end
+    end
+  end
+end

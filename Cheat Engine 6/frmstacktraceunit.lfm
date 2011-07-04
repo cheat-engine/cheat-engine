@@ -1,0 +1,58 @@
+object frmStacktrace: TfrmStacktrace
+  Left = 582
+  Height = 274
+  Top = 263
+  Width = 683
+  BorderStyle = bsSizeToolWin
+  Caption = 'Stacktrace'
+  ClientHeight = 274
+  ClientWidth = 683
+  Font.Height = -14
+  Font.Name = 'MS Sans Serif'
+  OnClose = FormClose
+  OnCreate = FormCreate
+  Position = poOwnerFormCenter
+  LCLVersion = '0.9.31'
+  object ListView1: TListView
+    Left = 0
+    Height = 274
+    Top = 0
+    Width = 683
+    Align = alClient
+    Columns = <    
+      item
+        Caption = 'PC'
+        Width = 123
+      end    
+      item
+        Caption = 'Stack'
+        Width = 123
+      end    
+      item
+        Caption = 'Frame'
+        Width = 123
+      end    
+      item
+        Caption = 'Return'
+        Width = 123
+      end    
+      item
+        AutoSize = True
+        Caption = 'Parameters'
+        Width = 187
+      end>
+    PopupMenu = PopupMenu1
+    ReadOnly = True
+    RowSelect = True
+    TabOrder = 0
+    ViewStyle = vsReport
+  end
+  object PopupMenu1: TPopupMenu
+    left = 88
+    top = 56
+    object Refresh1: TMenuItem
+      Caption = 'Refresh'
+      OnClick = Refresh1Click
+    end
+  end
+end

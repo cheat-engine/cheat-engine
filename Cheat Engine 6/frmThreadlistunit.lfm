@@ -1,0 +1,42 @@
+object frmThreadlist: TfrmThreadlist
+  Left = 1342
+  Height = 187
+  Top = 741
+  Width = 313
+  BorderStyle = bsSizeToolWin
+  Caption = 'Threadlist'
+  ClientHeight = 187
+  ClientWidth = 313
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnClose = FormClose
+  OnCreate = FormCreate
+  Position = poOwnerFormCenter
+  LCLVersion = '0.9.31'
+  object threadTreeview: TTreeView
+    Left = 0
+    Height = 187
+    Top = 0
+    Width = 313
+    Align = alClient
+    DefaultItemHeight = 15
+    PopupMenu = PopupMenu1
+    ReadOnly = True
+    RowSelect = True
+    TabOrder = 0
+    OnExpanding = threadTreeviewExpanding
+    Options = [tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
+  end
+  object PopupMenu1: TPopupMenu
+    left = 80
+    top = 40
+    object Break1: TMenuItem
+      Caption = 'Break'
+      OnClick = Break1Click
+    end
+    object MenuItem1: TMenuItem
+      Caption = 'Clear debug registers'
+      OnClick = MenuItem1Click
+    end
+  end
+end

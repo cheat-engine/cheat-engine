@@ -1,0 +1,85 @@
+object frmFillMemory: TfrmFillMemory
+  Left = 830
+  Height = 111
+  Top = 408
+  Width = 168
+  BorderIcons = []
+  BorderStyle = bsSingle
+  Caption = 'Fill memory'
+  ClientHeight = 111
+  ClientWidth = 168
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnClose = FormClose
+  Position = poOwnerFormCenter
+  LCLVersion = '0.9.31'
+  object Label1: TLabel
+    Left = 16
+    Height = 14
+    Top = 8
+    Width = 24
+    Caption = 'From'
+    ParentColor = False
+  end
+  object Label2: TLabel
+    Left = 26
+    Height = 14
+    Top = 32
+    Width = 14
+    Caption = 'To'
+    ParentColor = False
+  end
+  object Label3: TLabel
+    Left = 5
+    Height = 14
+    Top = 56
+    Width = 35
+    Caption = 'Fill with'
+    ParentColor = False
+  end
+  object Edit1: TEdit
+    Left = 48
+    Height = 21
+    Top = 4
+    Width = 105
+    MaxLength = 8
+    TabOrder = 0
+  end
+  object Button1: TButton
+    Left = 8
+    Height = 25
+    Top = 80
+    Width = 75
+    Caption = 'OK'
+    Default = True
+    OnClick = Button1Click
+    TabOrder = 3
+  end
+  object Button2: TButton
+    Left = 88
+    Height = 25
+    Top = 80
+    Width = 75
+    Cancel = True
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 4
+  end
+  object Edit2: TEdit
+    Left = 48
+    Height = 21
+    Top = 28
+    Width = 105
+    TabOrder = 1
+  end
+  object Edit3: TEdit
+    Left = 48
+    Height = 21
+    Top = 52
+    Width = 105
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 2
+    Text = '0'
+  end
+end

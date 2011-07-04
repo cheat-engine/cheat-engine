@@ -1,0 +1,166 @@
+object frmMemviewPreferences: TfrmMemviewPreferences
+  Left = 628
+  Height = 245
+  Top = 374
+  Width = 193
+  Caption = 'Disassembler Preferences'
+  ClientHeight = 245
+  ClientWidth = 193
+  OnCreate = FormCreate
+  OnShow = FormShow
+  PopupMenu = pmColors
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object btnFont: TButton
+    Left = 8
+    Height = 25
+    Top = 0
+    Width = 179
+    Caption = 'Change font'
+    OnClick = btnFontClick
+    TabOrder = 0
+  end
+  object cbColorGroup: TComboBox
+    Left = 8
+    Height = 23
+    Top = 32
+    Width = 179
+    ItemHeight = 15
+    ItemIndex = 0
+    Items.Strings = (
+      'Normal'
+      'Highlighted'
+      'Highlighted secondary'
+      'Breakpoint'
+      'Highlighted breakpoint'
+      'Highlighted breakpoint secondary'
+    )
+    OnChange = cbColorGroupChange
+    Style = csDropDownList
+    TabOrder = 1
+    Text = 'Normal'
+  end
+  object GroupBox1: TGroupBox
+    Cursor = crHandPoint
+    Left = 4
+    Height = 148
+    Top = 56
+    Width = 181
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    Caption = 'Normal'
+    ClientHeight = 130
+    ClientWidth = 177
+    TabOrder = 2
+    OnClick = GroupBox1Click
+    object lblRegister: TLabel
+      Cursor = crHandPoint
+      Left = 6
+      Height = 16
+      Top = 32
+      Width = 73
+      Caption = 'Register color'
+      ParentColor = False
+      OnClick = lblRegisterClick
+    end
+    object lblNormal: TLabel
+      Cursor = crHandPoint
+      Left = 6
+      Height = 16
+      Top = 0
+      Width = 69
+      Caption = 'Default color'
+      ParentColor = False
+      OnClick = lblNormalClick
+    end
+    object lblSymbol: TLabel
+      Cursor = crHandPoint
+      Left = 6
+      Height = 16
+      Top = 64
+      Width = 71
+      Caption = 'Symbol color'
+      ParentColor = False
+      OnClick = lblSymbolClick
+    end
+    object lblHex: TLabel
+      Cursor = crHandPoint
+      Left = 6
+      Height = 16
+      Top = 96
+      Width = 99
+      Caption = 'Hexadecimal color'
+      ParentColor = False
+      OnClick = lblHexClick
+    end
+  end
+  object Button2: TButton
+    Left = 16
+    Height = 26
+    Top = 215
+    Width = 75
+    Anchors = [akLeft, akBottom]
+    Caption = 'Apply'
+    Default = True
+    OnClick = Button2Click
+    TabOrder = 3
+  end
+  object Button3: TButton
+    Left = 96
+    Height = 26
+    Top = 215
+    Width = 75
+    Anchors = [akLeft, akBottom]
+    Cancel = True
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 4
+  end
+  object ColorDialog1: TColorDialog
+    Color = clBlack
+    CustomColors.Strings = (
+      'ColorA=000000'
+      'ColorB=000080'
+      'ColorC=008000'
+      'ColorD=008080'
+      'ColorE=800000'
+      'ColorF=800080'
+      'ColorG=808000'
+      'ColorH=808080'
+      'ColorI=C0C0C0'
+      'ColorJ=0000FF'
+      'ColorK=00FF00'
+      'ColorL=00FFFF'
+      'ColorM=FF0000'
+      'ColorN=FF00FF'
+      'ColorO=FFFF00'
+      'ColorP=FFFFFF'
+      'ColorQ=C0DCC0'
+      'ColorR=F0CAA6'
+      'ColorS=F0FBFF'
+      'ColorT=A4A0A0'
+    )
+    left = 110
+    top = 100
+  end
+  object FontDialog1: TFontDialog
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -13
+    Font.Name = 'Arial'
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
+    MinFontSize = 0
+    MaxFontSize = 0
+    Options = [fdNoFaceSel, fdNoSimulations]
+    PreviewText = 'mov'
+    left = 88
+    top = 8
+  end
+  object pmColors: TPopupMenu
+    left = 32
+    top = 96
+    object miRestoreToDefaults: TMenuItem
+      Caption = 'Restore to defaults'
+      OnClick = miRestoreToDefaultsClick
+    end
+  end
+end

@@ -1,0 +1,29 @@
+inherited Form10: TForm10
+  Left = 554
+  Top = 400
+  Caption = 'Step 9'
+  Visible = True
+  inherited Label1: TLabel
+    Height = 14
+    Width = 19
+  end
+  inherited Label2: TLabel
+    Height = 14
+    Width = 35
+  end
+  inherited Memo1: TMemo
+    Lines.Strings = (
+      'In this step I''ll try to show a use for the custom scan type'
+      ''
+      'The value below is stored using a 32-bit xor value (ce103478)'
+      ''
+      'Find the value and change it to 5000'
+    )
+  end
+  inherited Button2: TButton
+    OnClick = Button2Click
+  end
+  inherited Button1: TButton
+    OnClick = Button1Click
+  end
+end

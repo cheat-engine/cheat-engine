@@ -1,0 +1,13 @@
+object formScanning: TformScanning
+  Left = 850
+  Height = 75
+  Top = 232
+  Width = 140
+  BorderIcons = []
+  BorderStyle = bsSingle
+  Caption = 'Scanning...'
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Position = poOwnerFormCenter
+  LCLVersion = '0.9.31'
+end

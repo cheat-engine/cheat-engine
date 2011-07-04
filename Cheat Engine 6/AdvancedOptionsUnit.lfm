@@ -1,0 +1,229 @@
+object AdvancedOptions: TAdvancedOptions
+  Left = 511
+  Height = 297
+  Top = 382
+  Width = 628
+  Caption = 'Advanced Options'
+  ClientHeight = 297
+  ClientWidth = 628
+  Font.Height = -14
+  Font.Name = 'MS Sans Serif'
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnResize = FormResize
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object Panel1: TPanel
+    Left = 0
+    Height = 42
+    Top = 255
+    Width = 628
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 42
+    ClientWidth = 628
+    TabOrder = 0
+    OnResize = Panel1Resize
+    object Button1: TButton
+      Left = 350
+      Height = 31
+      Top = 6
+      Width = 92
+      Anchors = [akBottom]
+      Caption = 'OK'
+      OnClick = Button1Click
+      TabOrder = 0
+    end
+    object Button4: TButton
+      Left = 0
+      Height = 21
+      Top = 21
+      Width = 100
+      Anchors = [akLeft, akBottom]
+      Caption = 'Direct X-Mess'
+      OnClick = Button4Click
+      TabOrder = 1
+      Visible = False
+    end
+  end
+  object Panel2: TPanel
+    Left = 0
+    Height = 38
+    Top = 0
+    Width = 628
+    Align = alTop
+    BevelOuter = bvNone
+    ClientHeight = 38
+    ClientWidth = 628
+    TabOrder = 1
+    OnResize = Panel2Resize
+    object Pausebutton: TSpeedButton
+      Left = 8
+      Height = 30
+      Hint = 'Pause the game'
+      Top = 4
+      Width = 31
+      AllowAllUp = True
+      Glyph.Data = {
+        76010000424D7601000000000000760000002800000020000000100000000100
+        04000000000000010000C40E0000C40E00001000000000000000000000000000
+        800000800000008080008000000080008000808000007F7F7F00BFBFBF000000
+        FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00333333333333
+        33333333333333333333333333333333333333FFFFFFFFFFFFF3300000000000
+        003337777777777777F330F777777777703337F33333333337F330F333333333
+        703337F33333333337F330F333333333703337F333FF3FF337F330F330030033
+        703337F3377F77F337F330F330030033703337F3377F77F337F330F330030033
+        703337F3377F77F337F330F330030033703337F3377F77F337F330F330030033
+        703337F33773773337F330F333333333703337F33333333337F330F333333333
+        703337F33333333337F330FFFFFFFFFFF03337FFFFFFFFFFF7F3300000000000
+        0033377777777777773333333333333333333333333333333333
+      }
+      GroupIndex = 1
+      NumGlyphs = 2
+      OnClick = PausebuttonClick
+      OnMouseMove = PausebuttonMouseMove
+      ShowCaption = False
+      ShowHint = True
+      ParentShowHint = False
+    end
+    object SaveButton: TSpeedButton
+      Left = 40
+      Height = 30
+      Hint = 'Create a standalone trainer'
+      Top = 4
+      Width = 31
+      Glyph.Data = {
+        CA020000424DCA0200000000000036000000280000000E0000000F0000000100
+        18000000000094020000C40E0000C40E00000000000000000000C0C0C0C0C0C0
+        C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0
+        C0C0C0C00000C0C0C00000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000084840084840000000000
+        00000000000000000000000000C6C6C6C6C6C600000000848400000000000000
+        00008484008484000000000000000000000000000000000000C6C6C6C6C6C600
+        0000008484000000000000000000848400848400000000000000000000000000
+        0000000000C6C6C6C6C6C6000000008484000000000000000000848400848400
+        0000000000000000000000000000000000000000000000000000008484000000
+        0000000000008484008484008484008484008484008484008484008484008484
+        0084840084840084840000000000000000008484008484000000000000000000
+        0000000000000000000000000000000084840084840000000000000000008484
+        000000C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C60000000084
+        840000000000000000008484000000C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6
+        C6C6C6C6C6C6C60000000084840000000000000000008484000000C6C6C6C6C6
+        C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C600000000848400000000000000
+        00008484000000C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C600
+        00000084840000000000000000008484000000C6C6C6C6C6C6C6C6C6C6C6C6C6
+        C6C6C6C6C6C6C6C6C6C6C60000000000000000000000000000008484000000C6
+        C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6C6000000C6C6C6000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000
+      }
+      NumGlyphs = 0
+      Visible = False
+      OnClick = SaveButtonClick
+      ShowHint = True
+      ParentShowHint = False
+    end
+    object Label1: TLabel
+      Left = 166
+      Height = 17
+      Top = 20
+      Width = 56
+      Caption = 'Code list:'
+      ParentColor = False
+    end
+  end
+  object Codelist2: TListView
+    Left = 0
+    Height = 217
+    Top = 38
+    Width = 628
+    Align = alClient
+    Columns = <    
+      item
+        Caption = 'Address'
+        MinWidth = 10
+        Width = 120
+      end    
+      item
+        Caption = 'Name'
+        MinWidth = 10
+        Width = 31
+      end>
+    ColumnClick = False
+    HideSelection = False
+    MultiSelect = True
+    PopupMenu = PopupMenu2
+    ReadOnly = True
+    RowSelect = True
+    TabOrder = 2
+    ViewStyle = vsReport
+    OnCustomDrawItem = Codelist2CustomDrawItem
+    OnDblClick = Codelist2DblClick
+    OnResize = Codelist2Resize
+  end
+  object PopupMenu2: TPopupMenu
+    OnPopup = PopupMenu2Popup
+    left = 112
+    top = 104
+    object Openthedisassemblerhere1: TMenuItem
+      Caption = 'Open the disassembler at this location'
+      Default = True
+      OnClick = Codelist2DblClick
+    end
+    object N2: TMenuItem
+      Caption = '-'
+    end
+    object miReplaceWithNops: TMenuItem
+      Caption = 'Replace with code that does nothing'
+      OnClick = miReplaceWithNopsClick
+    end
+    object miRestoreWithOriginal: TMenuItem
+      Caption = 'Restore with original code'
+      OnClick = miRestoreWithOriginalClick
+    end
+    object Findoutwhatthiscodechanges1: TMenuItem
+      Caption = 'Find out what addresses this code writes to'
+      OnClick = Findoutwhatthiscodechanges1Click
+    end
+    object N1: TMenuItem
+      Caption = '-'
+    end
+    object Rename1: TMenuItem
+      Caption = 'Rename'
+      OnClick = Rename1Click
+    end
+    object Remove1: TMenuItem
+      Caption = 'Remove from list'
+      ShortCut = 46
+      OnClick = Remove1Click
+    end
+    object N3: TMenuItem
+      Caption = '-'
+    end
+    object Replaceall1: TMenuItem
+      Caption = 'Replace all'
+      OnClick = Replaceall1Click
+    end
+  end
+  object OpenDialog1: TOpenDialog
+    Title = 'Select the file you want to search'
+    DefaultExt = '.exe'
+    Filter = 'Exefile (*.exe)|*.exe'
+    FilterIndex = 0
+    Options = [ofFileMustExist, ofEnableSizing]
+    left = 24
+    top = 88
+  end
+  object SaveDialog1: TSaveDialog
+    Filter = 'Standalone trainer (*.exe)|*.exe'
+    left = 88
+    top = 184
+  end
+  object Timer1: TTimer
+    Enabled = False
+    OnTimer = Timer1Timer
+    left = 104
+    top = 8
+  end
+end

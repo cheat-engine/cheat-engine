@@ -1,0 +1,156 @@
+object frmCodecaveScanner: TfrmCodecaveScanner
+  Left = 528
+  Height = 324
+  Top = 213
+  Width = 353
+  Caption = 'Scan for codecaves'
+  ClientHeight = 324
+  ClientWidth = 353
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnClose = FormClose
+  OnCloseQuery = FormCloseQuery
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object lbCodecaveList: TListBox
+    Left = 0
+    Height = 290
+    Top = 0
+    Width = 272
+    Align = alClient
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -16
+    Font.Name = 'Courier'
+    Font.Style = [fsBold]
+    ItemHeight = 0
+    MultiSelect = True
+    OnDblClick = lbCodecaveListDblClick
+    ParentFont = False
+    PopupMenu = PopupMenu1
+    TabOrder = 0
+  end
+  object Panel1: TPanel
+    Left = 272
+    Height = 290
+    Top = 0
+    Width = 81
+    Align = alRight
+    BevelOuter = bvNone
+    ClientHeight = 290
+    ClientWidth = 81
+    TabOrder = 1
+    object Label1: TLabel
+      Left = 10
+      Height = 14
+      Top = 0
+      Width = 64
+      Caption = 'Start Address'
+      ParentColor = False
+    end
+    object Label2: TLabel
+      Left = 10
+      Height = 14
+      Top = 48
+      Width = 64
+      Caption = 'Stop Address'
+      ParentColor = False
+    end
+    object Label3: TLabel
+      Left = 14
+      Height = 14
+      Top = 88
+      Width = 60
+      Caption = 'Size of cave'
+      ParentColor = False
+    end
+    object btnStart: TButton
+      Left = 4
+      Height = 25
+      Top = 160
+      Width = 75
+      Caption = 'Start'
+      Default = True
+      OnClick = btnStartClick
+      TabOrder = 0
+    end
+    object editStart: TEdit
+      Left = 0
+      Height = 21
+      Top = 16
+      Width = 81
+      CharCase = ecUppercase
+      Font.CharSet = ANSI_CHARSET
+      Font.Height = -13
+      Font.Name = 'Courier'
+      MaxLength = 8
+      ParentFont = False
+      TabOrder = 1
+      Text = '00400000'
+    end
+    object editStop: TEdit
+      Left = 0
+      Height = 21
+      Top = 64
+      Width = 81
+      CharCase = ecUppercase
+      Font.CharSet = ANSI_CHARSET
+      Font.Height = -13
+      Font.Name = 'Courier'
+      MaxLength = 8
+      ParentFont = False
+      TabOrder = 2
+      Text = '7FFFFFFF'
+    end
+    object editSize: TEdit
+      Left = 0
+      Height = 21
+      Top = 104
+      Width = 81
+      CharCase = ecUppercase
+      Font.CharSet = ANSI_CHARSET
+      Font.Height = -13
+      Font.Name = 'Courier'
+      ParentFont = False
+      TabOrder = 3
+      Text = '12'
+    end
+  end
+  object Panel2: TPanel
+    Left = 0
+    Height = 34
+    Top = 290
+    Width = 353
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 34
+    ClientWidth = 353
+    TabOrder = 2
+    object cbNoExecute: TCheckBox
+      Left = 0
+      Height = 19
+      Top = 1
+      Width = 227
+      Caption = 'Also scan non-executable read-only memory'
+      Checked = True
+      State = cbChecked
+      TabOrder = 0
+    end
+    object ProgressBar1: TProgressBar
+      Left = 0
+      Height = 17
+      Top = 17
+      Width = 353
+      Align = alBottom
+      TabOrder = 1
+    end
+  end
+  object PopupMenu1: TPopupMenu
+    left = 128
+    top = 24
+    object Copytoclipboard1: TMenuItem
+      Caption = 'Copy selection(s) to clipboard'
+      ShortCut = 16451
+      OnClick = Copytoclipboard1Click
+    end
+  end
+end

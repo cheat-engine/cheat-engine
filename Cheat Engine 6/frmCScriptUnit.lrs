@@ -1,0 +1,24 @@
+{ This is an automatically generated lazarus resource file }
+
+LazarusResources.Add('TfrmCScript','FORMDATA',[
+  'TPF0'#11'TfrmCScript'#10'frmCScript'#4'Left'#3#196#2#6'Height'#3#133#1#3'Top'
+  +#3#252#0#5'Width'#3#0#2#7'Caption'#6#16'C Script console'#12'ClientHeight'#3
+  +'l'#1#11'ClientWidth'#3#0#2#11'Font.Height'#2#242#9'Font.Name'#6#13'MS Sans '
+  +'Serif'#4'Menu'#7#9'MainMenu1'#7'OnClose'#7#9'FormClose'#8'OnCreate'#7#10'Fo'
+  +'rmCreate'#8'Position'#7#14'poScreenCenter'#10'LCLVersion'#6#6'0.9.29'#0#6'T'
+  +'Panel'#6'Panel1'#4'Left'#2#0#6'Height'#2#29#3'Top'#3'O'#1#5'Width'#3#0#2#5
+  +'Align'#7#8'alBottom'#10'BevelOuter'#7#6'bvNone'#12'ClientHeight'#2#29#11'Cl'
+  +'ientWidth'#3#0#2#8'TabOrder'#2#0#8'OnResize'#7#12'Panel1Resize'#0#5'TEdit'
+  +#10'edtCommand'#4'Left'#2#0#6'Height'#2#24#3'Top'#2#0#5'Width'#3'd'#2#9'OnKe'
+  +'yDown'#7#17'edtCommandKeyDown'#8'TabOrder'#2#0#0#0#0#5'TMemo'#5'Memo1'#4'Le'
+  +'ft'#2#0#6'Height'#3'O'#1#3'Top'#2#0#5'Width'#3#0#2#5'Align'#7#8'alClient'#8
+  +'ReadOnly'#9#10'ScrollBars'#7#10'ssVertical'#8'TabOrder'#2#1#0#0#9'TMainMenu'
+  +#9'MainMenu1'#4'left'#3#128#0#3'top'#2'('#0#9'TMenuItem'#5'File1'#7'Caption'
+  +#6#4'File'#0#9'TMenuItem'#8'Savelog1'#7'Caption'#6#8'Save log'#0#0#9'TMenuIt'
+  +'em'#19'Loadandparsescript1'#7'Caption'#6#21'Load and parse script'#8'ShortC'
+  +'ut'#3'O@'#0#0#9'TMenuItem'#10'Saveinput1'#7'Caption'#6#14'Save all input'#8
+  +'ShortCut'#3'S@'#0#0#0#9'TMenuItem'#8'Options1'#7'Caption'#6#7'Options'#0#9
+  +'TMenuItem'#8'Verbose1'#7'Caption'#6#7'Verbose'#7'Checked'#9#0#0#9'TMenuItem'
+  +#25'Clearallpreviouscommands1'#7'Caption'#6#27'Clear all previous commands'#0
+  +#0#0#0#0
+]);

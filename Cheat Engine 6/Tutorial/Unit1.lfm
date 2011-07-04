@@ -1,0 +1,89 @@
+object Form1: TForm1
+  Left = 306
+  Height = 226
+  Top = 344
+  Width = 571
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsDialog
+  Caption = 'Cheat Engine Tutorial v3'
+  ClientHeight = 226
+  ClientWidth = 571
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '0.9.29'
+  object Label1: TLabel
+    Left = 444
+    Height = 14
+    Top = 184
+    Width = 47
+    Caption = 'Password'
+    ParentColor = False
+  end
+  object Memo1: TMemo
+    Left = 0
+    Height = 185
+    Top = 0
+    Width = 571
+    Align = alTop
+    Color = clBtnFace
+    Lines.Strings = (
+      'Welcome to the Cheat Engine Tutorial. (v3.1)'
+      ''
+      'This tutorial will try to explain the basics of cheating on games, and getting you more familiar with Cheat Engine.'
+      ''
+      'First open Cheat Engine if it hasn''t been opened yet.'
+      'Then click on the ''open process'' icon. (top left icon, with the computer on it)'
+      ''
+      'When the process window is open find this tutorial. The process name is probably ''tutorial.exe'' unless you '
+      'renamed it.'
+      'Select it, and click ok. Just ignore all the other buttons right now, but experiment with them later if you feel like it.'
+      ''
+      'When everything went right, the process window should be gone now and at the top of CE the processname is '
+      'shown.'
+      ''
+      'Now, click NEXT to continue to the next step. (Or fill in the password to proceed to that particular step you want)'
+    )
+    ReadOnly = True
+    ScrollBars = ssVertical
+    TabOrder = 0
+  end
+  object Button1: TButton
+    Left = 248
+    Height = 25
+    Top = 192
+    Width = 75
+    Caption = 'Next'
+    OnClick = Button1Click
+    TabOrder = 1
+  end
+  object Edit1: TEdit
+    Left = 392
+    Height = 21
+    Hint = 'Use this to go imeadiatly to the step you want to try'
+    Top = 200
+    Width = 149
+    OnKeyPress = Edit1KeyPress
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 2
+    Text = '090453'
+  end
+  object Button2: TButton
+    Left = 541
+    Height = 21
+    Top = 200
+    Width = 30
+    Caption = 'OK'
+    OnClick = Button2Click
+    TabOrder = 3
+  end
+  object Timer1: TTimer
+    Interval = 250
+    OnTimer = Timer1Timer
+    left = 48
+    top = 120
+  end
+end

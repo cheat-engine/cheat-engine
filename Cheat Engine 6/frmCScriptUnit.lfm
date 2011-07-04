@@ -1,0 +1,74 @@
+object frmCScript: TfrmCScript
+  Left = 708
+  Height = 389
+  Top = 252
+  Width = 512
+  Caption = 'C Script console'
+  ClientHeight = 364
+  ClientWidth = 512
+  Font.Height = -14
+  Font.Name = 'MS Sans Serif'
+  Menu = MainMenu1
+  OnClose = FormClose
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '0.9.29'
+  object Panel1: TPanel
+    Left = 0
+    Height = 29
+    Top = 335
+    Width = 512
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 29
+    ClientWidth = 512
+    TabOrder = 0
+    OnResize = Panel1Resize
+    object edtCommand: TEdit
+      Left = 0
+      Height = 24
+      Top = 0
+      Width = 612
+      OnKeyDown = edtCommandKeyDown
+      TabOrder = 0
+    end
+  end
+  object Memo1: TMemo
+    Left = 0
+    Height = 335
+    Top = 0
+    Width = 512
+    Align = alClient
+    ReadOnly = True
+    ScrollBars = ssVertical
+    TabOrder = 1
+  end
+  object MainMenu1: TMainMenu
+    left = 128
+    top = 40
+    object File1: TMenuItem
+      Caption = 'File'
+      object Savelog1: TMenuItem
+        Caption = 'Save log'
+      end
+      object Loadandparsescript1: TMenuItem
+        Caption = 'Load and parse script'
+        ShortCut = 16463
+      end
+      object Saveinput1: TMenuItem
+        Caption = 'Save all input'
+        ShortCut = 16467
+      end
+    end
+    object Options1: TMenuItem
+      Caption = 'Options'
+      object Verbose1: TMenuItem
+        Caption = 'Verbose'
+        Checked = True
+      end
+      object Clearallpreviouscommands1: TMenuItem
+        Caption = 'Clear all previous commands'
+      end
+    end
+  end
+end

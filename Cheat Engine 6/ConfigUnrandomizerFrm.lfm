@@ -1,0 +1,56 @@
+object frmConfigUnrandomizer: TfrmConfigUnrandomizer
+  Left = 568
+  Height = 93
+  Top = 336
+  Width = 234
+  Caption = 'Randomizer config'
+  ClientHeight = 93
+  ClientWidth = 234
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object Label1: TLabel
+    Left = 0
+    Height = 14
+    Top = 8
+    Width = 94
+    Caption = 'Default return value'
+    ParentColor = False
+  end
+  object Button1: TButton
+    Left = 32
+    Height = 25
+    Top = 56
+    Width = 75
+    Caption = 'OK'
+    Default = True
+    TabOrder = 0
+  end
+  object Button2: TButton
+    Left = 120
+    Height = 25
+    Top = 56
+    Width = 75
+    Cancel = True
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 1
+  end
+  object edtDefault: TEdit
+    Left = 96
+    Height = 21
+    Top = 6
+    Width = 121
+    TabOrder = 2
+    Text = '0'
+  end
+  object cbIncremental: TCheckBox
+    Left = 1
+    Height = 19
+    Top = 32
+    Width = 104
+    Caption = 'Incremental value'
+    TabOrder = 3
+  end
+end

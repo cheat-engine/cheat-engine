@@ -1,0 +1,480 @@
+object frmTrainerGenerator: TfrmTrainerGenerator
+  Left = 701
+  Height = 310
+  Top = 410
+  Width = 692
+  Caption = 'Trainer generator'
+  ClientHeight = 310
+  ClientWidth = 692
+  Constraints.MinHeight = 310
+  Constraints.MinWidth = 690
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object Panel1: TPanel
+    Left = 190
+    Height = 310
+    Top = 0
+    Width = 502
+    Align = alRight
+    BevelOuter = bvNone
+    ClientHeight = 310
+    ClientWidth = 502
+    TabOrder = 0
+    object comboProcesslist: TComboBox
+      Left = 8
+      Height = 23
+      Top = 40
+      Width = 252
+      ItemHeight = 15
+      TabOrder = 0
+    end
+    object Label2: TLabel
+      Left = 8
+      Height = 16
+      Top = 24
+      Width = 71
+      Caption = 'Processname'
+      ParentColor = False
+    end
+    object cbPopupOnKeypress: TCheckBox
+      Left = 8
+      Height = 19
+      Top = 64
+      Width = 157
+      Caption = 'Popup trainer on keypress'
+      TabOrder = 1
+    end
+    object edtPopupHotkey: TEdit
+      Left = 8
+      Height = 23
+      Top = 88
+      Width = 175
+      OnKeyDown = edtPopupHotkeyKeyDown
+      ReadOnly = True
+      TabOrder = 2
+    end
+    object Button3: TButton
+      Left = 185
+      Height = 23
+      Top = 88
+      Width = 75
+      Caption = 'Clear'
+      OnClick = Button3Click
+      TabOrder = 3
+    end
+    object Label1: TLabel
+      Left = 276
+      Height = 16
+      Top = 184
+      Width = 166
+      Caption = 'Freeze interval (in milliseconds)'
+      ParentColor = False
+    end
+    object edtFreezeInterval: TEdit
+      Left = 276
+      Height = 23
+      Top = 200
+      Width = 220
+      TabOrder = 4
+      Text = '250'
+    end
+    object cbBeepOnAction: TCheckBox
+      Left = 276
+      Height = 19
+      Top = 128
+      Width = 99
+      Caption = 'Beep on action'
+      TabOrder = 5
+    end
+    object Button5: TButton
+      Left = 151
+      Height = 23
+      Hint = 'Generates the trainer script and saves the current table as a .CETRAINER'
+      Top = 280
+      Width = 109
+      Caption = 'Generate trainer'
+      Default = True
+      OnClick = Button5Click
+      ParentShowHint = False
+      PopupMenu = PopupMenu2
+      ShowHint = True
+      TabOrder = 6
+    end
+    object cbSupportCheatEngine: TCheckBox
+      Left = 8
+      Height = 19
+      Top = 1
+      Width = 233
+      Caption = 'Don''t support Cheat Engine (or yourself)'
+      Checked = True
+      OnChange = cbSupportCheatEngineChange
+      State = cbChecked
+      TabOrder = 7
+    end
+    object GroupBox2: TGroupBox
+      Left = 8
+      Height = 168
+      Top = 112
+      Width = 252
+      Caption = 'Automated gui config options'
+      ClientHeight = 150
+      ClientWidth = 248
+      TabOrder = 8
+      object cbCanResize: TCheckBox
+        Left = 2
+        Height = 19
+        Top = 136
+        Width = 142
+        Caption = 'User can resize window'
+        Checked = True
+        OnChange = cbCanResizeChange
+        State = cbChecked
+        TabOrder = 0
+      end
+      object mAbout: TMemo
+        Left = 6
+        Height = 50
+        Top = 56
+        Width = 241
+        Lines.Strings = (
+          'This trainer was made by Cheat Engine'
+          'www.cheatengine.org'
+        )
+        ScrollBars = ssVertical
+        TabOrder = 1
+      end
+      object Label3: TLabel
+        Left = 6
+        Height = 16
+        Top = 40
+        Width = 59
+        Caption = 'About text:'
+        ParentColor = False
+      end
+      object Button1: TButton
+        Left = 2
+        Height = 25
+        Top = 112
+        Width = 75
+        Caption = 'Set Icon'
+        OnClick = Button1Click
+        TabOrder = 2
+      end
+      object Button2: TButton
+        Left = 82
+        Height = 25
+        Top = 112
+        Width = 95
+        Caption = 'Set Side Image'
+        OnClick = Button2Click
+        TabOrder = 3
+      end
+      object edtCaption: TEdit
+        Left = 6
+        Height = 23
+        Top = 16
+        Width = 241
+        OnChange = edtCaptionChange
+        TabOrder = 4
+        Text = 'My trainer'
+      end
+      object Label4: TLabel
+        Left = 6
+        Height = 16
+        Top = 0
+        Width = 24
+        Caption = 'Title'
+        ParentColor = False
+      end
+    end
+    object btnDesignForm: TButton
+      Left = 292
+      Height = 25
+      Top = 240
+      Width = 179
+      Caption = 'Design userinterface manually'
+      OnClick = btnDesignFormClick
+      TabOrder = 9
+    end
+    object cbProtect: TCheckBox
+      Left = 276
+      Height = 19
+      Hint = 'Will encrypt the generated cetrainer file and when Cheat Engine loads this file back it will destroy the main form preventing the user from doing anything with it.'#13#10'Does not affect the standalone trainer because that one is protected by default'
+      Top = 152
+      Width = 209
+      Caption = 'Protect trainer from editing/reading'
+      Checked = True
+      Enabled = False
+      ParentShowHint = False
+      ShowHint = True
+      State = cbChecked
+      TabOrder = 10
+    end
+    object cbPlayXM: TCheckBox
+      Left = 276
+      Height = 19
+      Top = 21
+      Width = 117
+      Caption = 'Play XM music file'
+      OnChange = cbPlayXMChange
+      TabOrder = 11
+    end
+    object fnXM: TFileNameEdit
+      Left = 276
+      Height = 23
+      Top = 40
+      Width = 200
+      DialogOptions = []
+      Filter = 'XM files|*.XM'
+      FilterIndex = 0
+      HideDirectories = False
+      ButtonWidth = 23
+      NumGlyphs = 0
+      Enabled = False
+      MaxLength = 0
+      TabOrder = 12
+    end
+    object cbStopPlaying: TCheckBox
+      Left = 276
+      Height = 19
+      Top = 64
+      Width = 118
+      Caption = 'Stop playing when'
+      Checked = True
+      Enabled = False
+      OnChange = cbStopPlayingChange
+      State = cbChecked
+      TabOrder = 13
+    end
+    object rbStopWhenAttached: TRadioButton
+      Left = 292
+      Height = 19
+      Top = 82
+      Width = 150
+      Caption = 'Game has been attached'
+      Checked = True
+      Enabled = False
+      TabOrder = 14
+      TabStop = True
+    end
+    object rbStopWhenFocusLost: TRadioButton
+      Left = 292
+      Height = 19
+      Top = 100
+      Width = 118
+      Caption = 'Trainer loses focus'
+      Enabled = False
+      TabOrder = 15
+    end
+    object Label5: TLabel
+      Left = 276
+      Height = 16
+      Top = 264
+      Width = 39
+      Caption = 'Output'
+      ParentColor = False
+    end
+    object cbOutput: TComboBox
+      Left = 276
+      Height = 23
+      Top = 280
+      Width = 86
+      ItemHeight = 15
+      ItemIndex = 0
+      Items.Strings = (
+        'EXE'
+        'CETRAINER'
+        'CT'
+      )
+      OnSelect = cbOutputSelect
+      Style = csDropDownList
+      TabOrder = 16
+      Text = 'EXE'
+    end
+  end
+  object Panel2: TPanel
+    Left = 0
+    Height = 310
+    Top = 0
+    Width = 190
+    Align = alClient
+    ClientHeight = 310
+    ClientWidth = 190
+    TabOrder = 1
+    OnResize = Panel2Resize
+    object lvCheats: TListView
+      Left = 1
+      Height = 275
+      Top = 1
+      Width = 162
+      Align = alClient
+      Columns = <      
+        item
+          Caption = 'Hotkey'
+        end      
+        item
+          Caption = 'Description'
+          Width = 106
+        end>
+      PopupMenu = PopupMenu1
+      ReadOnly = True
+      RowSelect = True
+      TabOrder = 0
+      ViewStyle = vsReport
+      OnDblClick = lvCheatsDblClick
+      OnSelectItem = lvCheatsSelectItem
+    end
+    object Panel3: TPanel
+      Left = 1
+      Height = 33
+      Top = 276
+      Width = 188
+      Align = alBottom
+      ClientHeight = 33
+      ClientWidth = 188
+      TabOrder = 1
+      object btnDelete: TButton
+        Left = 3
+        Height = 23
+        Top = 4
+        Width = 87
+        Anchors = [akLeft, akBottom]
+        Caption = 'Delete Hotkey'
+        Enabled = False
+        OnClick = btnDeleteClick
+        TabOrder = 0
+      end
+      object btnAddHotkey: TButton
+        Left = 96
+        Height = 23
+        Top = 4
+        Width = 87
+        Anchors = [akLeft, akBottom]
+        Caption = 'Add Hotkey'
+        OnClick = btnAddHotkeyClick
+        TabOrder = 1
+      end
+    end
+    object Panel4: TPanel
+      Left = 163
+      Height = 275
+      Top = 1
+      Width = 26
+      Align = alRight
+      BevelOuter = bvNone
+      ClientHeight = 275
+      ClientWidth = 26
+      TabOrder = 2
+      object spbDown: TSpeedButton
+        Left = 0
+        Height = 27
+        Top = 249
+        Width = 21
+        Anchors = [akLeft, akBottom]
+        Enabled = False
+        Glyph.Data = {
+          76010000424D7601000000000000760000002800000020000000100000000100
+          04000000000000010000120B0000120B00001000000000000000000000000000
+          800000800000008080008000000080008000808000007F7F7F00BFBFBF000000
+          FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00333333303333
+          333333333337F33333333333333033333333333333373F333333333333090333
+          33333333337F7F33333333333309033333333333337373F33333333330999033
+          3333333337F337F33333333330999033333333333733373F3333333309999903
+          333333337F33337F33333333099999033333333373333373F333333099999990
+          33333337FFFF3FF7F33333300009000033333337777F77773333333333090333
+          33333333337F7F33333333333309033333333333337F7F333333333333090333
+          33333333337F7F33333333333309033333333333337F7F333333333333090333
+          33333333337F7F33333333333300033333333333337773333333
+        }
+        NumGlyphs = 2
+        OnClick = spbDownClick
+      end
+      object spbUp: TSpeedButton
+        Left = 0
+        Height = 28
+        Top = 220
+        Width = 21
+        Anchors = [akLeft, akBottom]
+        Enabled = False
+        Glyph.Data = {
+          76010000424D7601000000000000760000002800000020000000100000000100
+          04000000000000010000120B0000120B00001000000000000000000000000000
+          800000800000008080008000000080008000808000007F7F7F00BFBFBF000000
+          FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00333333000333
+          3333333333777F33333333333309033333333333337F7F333333333333090333
+          33333333337F7F33333333333309033333333333337F7F333333333333090333
+          33333333337F7F33333333333309033333333333FF7F7FFFF333333000090000
+          3333333777737777F333333099999990333333373F3333373333333309999903
+          333333337F33337F33333333099999033333333373F333733333333330999033
+          3333333337F337F3333333333099903333333333373F37333333333333090333
+          33333333337F7F33333333333309033333333333337373333333333333303333
+          333333333337F333333333333330333333333333333733333333
+        }
+        NumGlyphs = 2
+        OnClick = spbUpClick
+      end
+    end
+  end
+  object OpenPictureDialog1: TOpenPictureDialog
+    left = 40
+    top = 40
+  end
+  object OpenDialog1: TOpenDialog
+    left = 40
+    top = 144
+  end
+  object CETRAINERSaveDialog: TSaveDialog
+    Title = 'Save script as'
+    DefaultExt = '.CETRAINER'
+    Filter = 'Cheat Engine Table Trainer (*.CETRAINER)|*.CETRAINER'
+    Options = [ofReadOnly, ofOverwritePrompt, ofHideReadOnly, ofPathMustExist, ofEnableSizing]
+    left = 480
+    top = 140
+  end
+  object EXESaveDialog: TSaveDialog
+    Title = 'Save script as'
+    DefaultExt = '.EXE'
+    Filter = 'Cheat Engine EXE Trainer (*.EXE)|*.EXE'
+    Options = [ofReadOnly, ofOverwritePrompt, ofHideReadOnly, ofPathMustExist, ofEnableSizing]
+    left = 480
+    top = 196
+  end
+  object OpenDialog2: TOpenDialog
+    Title = 'Open icon file'
+    Filter = 'Icon files (.exe; *.dll; *.ico)|*.exe;*.dll;*.ico'
+    left = 224
+    top = 140
+  end
+  object CTSaveDialog: TSaveDialog
+    Title = 'Save script as'
+    DefaultExt = '.CT'
+    Filter = 'Cheat Engine Table (*.CT)|*.CT'
+    Options = [ofReadOnly, ofOverwritePrompt, ofHideReadOnly, ofPathMustExist, ofEnableSizing]
+    left = 480
+    top = 80
+  end
+  object PopupMenu1: TPopupMenu
+    left = 40
+    top = 216
+    object miEditHotkey: TMenuItem
+      Caption = 'Edit'
+      Default = True
+      OnClick = miEditHotkeyClick
+    end
+    object MenuItem1: TMenuItem
+      Caption = 'Rebuild Trainer Cheatlist'
+      OnClick = MenuItem1Click
+    end
+  end
+  object PopupMenu2: TPopupMenu
+    left = 400
+    top = 248
+    object MenuItem2: TMenuItem
+      Caption = 'Only generate the script'
+      OnClick = MenuItem2Click
+    end
+  end
+end

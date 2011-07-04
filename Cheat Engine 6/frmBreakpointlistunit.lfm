@@ -1,0 +1,92 @@
+object frmBreakpointlist: TfrmBreakpointlist
+  Left = 797
+  Height = 292
+  Top = 260
+  Width = 670
+  Caption = 'Breakpoint list'
+  ClientHeight = 292
+  ClientWidth = 670
+  Font.Height = -14
+  Font.Name = 'MS Sans Serif'
+  OnClose = FormClose
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object ListView1: TListView
+    Left = 0
+    Height = 292
+    Top = 0
+    Width = 670
+    Align = alClient
+    Columns = <    
+      item
+        Caption = 'Address'
+        Width = 90
+      end    
+      item
+        Caption = 'Size'
+      end    
+      item
+        Caption = 'Trigger'
+        Width = 90
+      end    
+      item
+        Caption = 'Type'
+        Width = 150
+      end    
+      item
+        Caption = 'On Hit'
+        Width = 90
+      end    
+      item
+        Alignment = taCenter
+        Caption = 'Active'
+        Width = 70
+      end    
+      item
+        Alignment = taCenter
+        Caption = 'Pending deletion'
+        Width = 125
+      end>
+    ColumnClick = False
+    HideSelection = False
+    PopupMenu = pmBreakpoint
+    ReadOnly = True
+    RowSelect = True
+    TabOrder = 0
+    ViewStyle = vsReport
+    OnDblClick = ListView1DblClick
+  end
+  object Timer1: TTimer
+    Interval = 5000
+    OnTimer = Timer1Timer
+    left = 45
+    top = 108
+  end
+  object pmBreakpoint: TPopupMenu
+    OnPopup = pmBreakpointPopup
+    left = 140
+    top = 116
+    object MenuItem2: TMenuItem
+      Caption = 'Disable breakpoint'
+      Visible = False
+      OnClick = MenuItem2Click
+    end
+    object miDelBreakpoint: TMenuItem
+      Caption = 'Delete breakpoint'
+      OnClick = miDelBreakpointClick
+    end
+    object miSetCondition: TMenuItem
+      Caption = 'Set/change condition'
+      OnClick = miSetConditionClick
+    end
+    object MenuItem1: TMenuItem
+      Caption = '-'
+    end
+    object miShowShadow: TMenuItem
+      AutoCheck = True
+      Caption = 'Show shadow breakpoints'
+      OnClick = miShowShadowClick
+    end
+  end
+end

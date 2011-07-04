@@ -1,0 +1,88 @@
+object Form6: TForm6
+  Left = 695
+  Height = 249
+  Top = 347
+  Width = 571
+  BorderStyle = bsDialog
+  Caption = 'Step 5'
+  ClientHeight = 249
+  ClientWidth = 571
+  Color = clBtnFace
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnClose = FormClose
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  Position = poOwnerFormCenter
+  LCLVersion = '0.9.29'
+  Visible = True
+  object Label1: TLabel
+    Left = 8
+    Height = 14
+    Top = 216
+    Width = 19
+    Caption = '100'
+    ParentColor = False
+  end
+  object SpeedButton1: TSpeedButton
+    Left = 544
+    Height = 17
+    Top = 231
+    Width = 25
+    Caption = 'Skip'
+    Flat = True
+    NumGlyphs = 0
+    OnClick = SpeedButton1Click
+  end
+  object Memo1: TMemo
+    Left = 0
+    Height = 185
+    Top = 0
+    Width = 571
+    Align = alTop
+    Color = clBtnFace
+    Lines.Strings = (
+      'Sometimes the location something is stored at changes when you restart the game, or even while you''re playing.. In '
+      'that case you can use 2 things to still make a table that works.'
+      'In this step I''ll try to describe how to use the Code Finder function.'
+      ''
+      'The value down here will be at a different location each time you start the tutorial, so a normal entry in the address '
+      'list wouldn''t work.'
+      'First try to find the address. (you''ve got to this point so I assume you know how to)'
+      'When you''ve found the address, right-click the address in Cheat Engine and choose "Find out what writes to this '
+      'address". A window will pop up with an empty list.'
+      'Then click on the Change value button in this tutorial, and go back to Cheat Engine. If everything went right there '
+      'should be an address with assembler code there now.'
+      'Click it and choose the replace option to replace it with code that does nothing. That will also add the code address '
+      'to the code list in the advanced options window. (Which gets saved if you save your table)'
+      ''
+      'Click on stop, so the game will start running normal again, and close to close the window.'
+      'Now, click on Change value, and if everything went right the Next button should become enabled.'
+      ''
+      'Note: When you''re freezing the address with a high enough speed it may happen that next becomes visible anyhow'
+    )
+    ReadOnly = True
+    ScrollBars = ssVertical
+    TabOrder = 0
+  end
+  object Button2: TButton
+    Left = 248
+    Height = 25
+    Top = 192
+    Width = 75
+    Caption = 'Next'
+    Enabled = False
+    OnClick = Button2Click
+    TabOrder = 1
+  end
+  object Button1: TButton
+    Left = 8
+    Height = 19
+    Top = 228
+    Width = 81
+    Caption = 'Change value'
+    OnClick = Button1Click
+    TabOrder = 2
+  end
+end

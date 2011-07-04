@@ -1,0 +1,46 @@
+{ This is an automatically generated lazarus resource file }
+
+LazarusResources.Add('TForm3','FORMDATA',[
+  'TPF0'#6'TForm3'#5'Form3'#4'Left'#3'$'#3#6'Height'#3#250#0#3'Top'#3#138#0#5'W'
+  +'idth'#3';'#2#11'BorderIcons'#11#12'biSystemMenu'#0#11'BorderStyle'#7#8'bsDi'
+  +'alog'#7'Caption'#6#6'Step 3'#12'ClientHeight'#3#250#0#11'ClientWidth'#3';'#2
+  +#5'Color'#7#9'clBtnFace'#10'Font.Color'#7#12'clWindowText'#11'Font.Height'#2
+  +#245#9'Font.Name'#6#13'MS Sans Serif'#7'OnClose'#7#9'FormClose'#12'OnCloseQu'
+  +'ery'#7#14'FormCloseQuery'#8'OnCreate'#7#10'FormCreate'#8'Position'#7#17'poO'
+  +'wnerFormCenter'#10'LCLVersion'#6#6'0.9.29'#7'Visible'#9#0#6'TLabel'#6'Label'
+  +'1'#4'Left'#3#18#1#6'Height'#2#13#3'Top'#3#216#0#5'Width'#2#22#9'Alignment'#7
+  +#8'taCenter'#8'AutoSize'#8#7'Caption'#6#4'Loss'#11'ParentColor'#8#7'Visible'
+  +#8#0#0#12'TSpeedButton'#12'SpeedButton1'#4'Left'#3' '#2#6'Height'#2#17#3'Top'
+  +#3#216#0#5'Width'#2#25#7'Caption'#6#4'Skip'#4'Flat'#9#9'NumGlyphs'#2#0#7'OnC'
+  +'lick'#7#17'SpeedButton1Click'#0#0#5'TMemo'#5'Memo1'#4'Left'#2#0#6'Height'#3
+  +#185#0#3'Top'#2#0#5'Width'#3';'#2#5'Align'#7#5'alTop'#5'Color'#7#9'clBtnFace'
+  +#13'Lines.Strings'#1#6'hOk, seeing that you''ve figured out how to find a va'
+  +'lue using exact value let''s move on to the next step.'#6#0#6'pIn the previ'
+  +'ous test we knew the initial value so we could do a exact value, but now we'
+  +' have a status bar where '#6'!we don''t know the starting value.'#6'mWe onl'
+  +'y know that the value is between 0 and 500. And each time you click ''hit m'
+  +'e'' you lose some health. The '#6'8amount you lose each time is shown above'
+  +' the status bar.'#6#0#6'sAgain there are several different ways to find the'
+  +' value. (like doing a decreased value by... scan), but I''ll only '#6'Bexpl'
+  +'ain the easiest. "Unknown initial value", and decreased value.'#6'hBecause '
+  +'you don''t know the value it is right now, a exact value wont do any good, '
+  +'so choose as scantype '#6'Z''Unknown initial value'', again, the value type'
+  +' is 4-bytes. (most windows apps use 4-bytes)'#6')click first scan and wait '
+  +'till it''s done.'#6#0#6'rWhen it is done click ''hit me''. You''ll lose som'
+  +'e of your health. (the amount you lost shows for a few seconds and '#6')the'
+  +'n disappears, but you don''t need that)'#6'JNow go to Cheat Engine, and cho'
+  +'ose ''Decreased Value'' and click ''Next Scan'''#6'[When that scan is done,'
+  +' click hit me again, and repeat the above till you only find a few. '#6#0#6
+  +'oWe know the value is between 0 and 500, so pick the one that is most likel'
+  +'y the address we need, and add it to '#6#9'the list.'#6';Now change the hea'
+  +'lth to 5000, to proceed to the next step.'#0#8'ReadOnly'#9#10'ScrollBars'#7
+  +#10'ssVertical'#8'TabOrder'#2#0#0#0#7'TButton'#7'Button1'#4'Left'#3#248#0#6
+  +'Height'#2#25#3'Top'#3#192#0#5'Width'#2'K'#7'Caption'#6#4'Next'#7'Enabled'#8
+  +#7'OnClick'#7#12'Button1Click'#8'TabOrder'#2#1#0#0#7'TButton'#7'Button2'#4'L'
+  +'eft'#2#0#6'Height'#2#17#3'Top'#3#208#0#5'Width'#2')'#7'Caption'#6#6'Hit me'
+  +#7'OnClick'#7#12'Button2Click'#8'TabOrder'#2#2#0#0#12'TProgressBar'#12'Progr'
+  +'essBar1'#4'Left'#2#0#6'Height'#2#16#3'Top'#3#234#0#5'Width'#3';'#2#5'Align'
+  +#7#8'alBottom'#8'TabOrder'#2#3#0#0#6'TTimer'#6'Timer1'#8'Interval'#3#250#0#7
+  +'OnTimer'#7#11'Timer1Timer'#4'left'#2#8#3'top'#2#8#0#0#6'TTimer'#6'Timer2'#7
+  +'OnTimer'#7#11'Timer2Timer'#4'left'#3'H'#1#3'top'#3#216#0#0#0#0
+]);

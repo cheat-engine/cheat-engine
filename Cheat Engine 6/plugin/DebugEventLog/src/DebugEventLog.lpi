@@ -1,0 +1,293 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <ProjectOptions>
+    <Version Value="9"/>
+    <PathDelim Value="\"/>
+    <General>
+      <Flags>
+        <MainUnitHasUsesSectionForAllUnits Value="False"/>
+        <MainUnitHasCreateFormStatements Value="False"/>
+        <MainUnitHasTitleStatement Value="False"/>
+      </Flags>
+      <MainUnit Value="0"/>
+      <ResourceType Value="res"/>
+      <UseXPManifest Value="True"/>
+      <Icon Value="0"/>
+      <ActiveWindowIndexAtStart Value="0"/>
+    </General>
+    <i18n>
+      <EnableI18N LFM="False"/>
+    </i18n>
+    <VersionInfo>
+      <StringTable ProductVersion=""/>
+    </VersionInfo>
+    <BuildModes Count="1" Active="Default">
+      <Item1 Name="Default" Default="True"/>
+    </BuildModes>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
+      <ExcludeFileFilter Value="*.(bak|ppu|o|so);*~;backup"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+      </local>
+    </RunParams>
+    <RequiredPackages Count="1">
+      <Item1>
+        <PackageName Value="LCL"/>
+      </Item1>
+    </RequiredPackages>
+    <Units Count="8">
+      <Unit0>
+        <Filename Value="DebugEventLog.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="0"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="10" Y="21"/>
+        <UsageCount Value="33"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="exportimplementation.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="exportimplementation"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="5"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="10"/>
+        <CursorPos X="24" Y="23"/>
+        <UsageCount Value="33"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="frmEventLogUnit.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmEventLog"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="frmEventLogUnit"/>
+        <EditorIndex Value="2"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="35"/>
+        <CursorPos X="9" Y="55"/>
+        <UsageCount Value="33"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="..\..\cepluginsdk.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="cepluginsdk"/>
+        <EditorIndex Value="1"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="45" Y="10"/>
+        <UsageCount Value="33"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\win\wininc\ascdef.inc"/>
+        <EditorIndex Value="6"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="170"/>
+        <CursorPos X="69" Y="186"/>
+        <UsageCount Value="16"/>
+        <Loaded Value="True"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\win\wininc\base.inc"/>
+        <EditorIndex Value="7"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="71"/>
+        <CursorPos X="23" Y="87"/>
+        <UsageCount Value="16"/>
+        <Loaded Value="True"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\objpas\classes\classesh.inc"/>
+        <EditorIndex Value="3"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1910"/>
+        <CursorPos X="3" Y="1941"/>
+        <UsageCount Value="16"/>
+        <Loaded Value="True"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\objpas\classes\classes.inc"/>
+        <EditorIndex Value="4"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="168"/>
+        <CursorPos X="45" Y="176"/>
+        <UsageCount Value="16"/>
+        <Loaded Value="True"/>
+      </Unit7>
+    </Units>
+    <JumpHistory Count="30" HistoryIndex="29">
+      <Position1>
+        <Filename Value="frmEventLogUnit.pas"/>
+        <Caret Line="98" Column="34" TopLine="82"/>
+      </Position1>
+      <Position2>
+        <Filename Value="frmEventLogUnit.pas"/>
+        <Caret Line="116" Column="38" TopLine="100"/>
+      </Position2>
+      <Position3>
+        <Filename Value="frmEventLogUnit.pas"/>
+        <Caret Line="122" Column="38" TopLine="106"/>
+      </Position3>
+      <Position4>
+        <Filename Value="exportimplementation.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
+      </Position4>
+      <Position5>
+        <Filename Value="exportimplementation.pas"/>
+        <Caret Line="50" Column="41" TopLine="1"/>
+      </Position5>
+      <Position6>
+        <Filename Value="exportimplementation.pas"/>
+        <Caret Line="23" Column="54" TopLine="7"/>
+      </Position6>
+      <Position7>
+        <Filename Value="..\..\cepluginsdk.pas"/>
+        <Caret Line="18" Column="24" TopLine="1"/>
+      </Position7>
+      <Position8>
+        <Filename Value="..\..\cepluginsdk.pas"/>
+        <Caret Line="283" Column="23" TopLine="264"/>
+      </Position8>
+      <Position9>
+        <Filename Value="..\..\cepluginsdk.pas"/>
+        <Caret Line="52" Column="1" TopLine="37"/>
+      </Position9>
+      <Position10>
+        <Filename Value="exportimplementation.pas"/>
+        <Caret Line="23" Column="95" TopLine="7"/>
+      </Position10>
+      <Position11>
+        <Filename Value="exportimplementation.pas"/>
+        <Caret Line="7" Column="29" TopLine="1"/>
+      </Position11>
+      <Position12>
+        <Filename Value="exportimplementation.pas"/>
+        <Caret Line="23" Column="24" TopLine="7"/>
+      </Position12>
+      <Position13>
+        <Filename Value="exportimplementation.pas"/>
+        <Caret Line="15" Column="40" TopLine="7"/>
+      </Position13>
+      <Position14>
+        <Filename Value="exportimplementation.pas"/>
+        <Caret Line="27" Column="20" TopLine="7"/>
+      </Position14>
+      <Position15>
+        <Filename Value="frmEventLogUnit.pas"/>
+        <Caret Line="36" Column="17" TopLine="18"/>
+      </Position15>
+      <Position16>
+        <Filename Value="frmEventLogUnit.pas"/>
+        <Caret Line="54" Column="12" TopLine="40"/>
+      </Position16>
+      <Position17>
+        <Filename Value="frmEventLogUnit.pas"/>
+        <Caret Line="53" Column="9" TopLine="40"/>
+      </Position17>
+      <Position18>
+        <Filename Value="frmEventLogUnit.pas"/>
+        <Caret Line="45" Column="10" TopLine="43"/>
+      </Position18>
+      <Position19>
+        <Filename Value="frmEventLogUnit.pas"/>
+        <Caret Line="49" Column="39" TopLine="43"/>
+      </Position19>
+      <Position20>
+        <Filename Value="DebugEventLog.lpr"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
+      </Position20>
+      <Position21>
+        <Filename Value="frmEventLogUnit.pas"/>
+        <Caret Line="167" Column="13" TopLine="155"/>
+      </Position21>
+      <Position22>
+        <Filename Value="DebugEventLog.lpr"/>
+        <Caret Line="2" Column="10" TopLine="1"/>
+      </Position22>
+      <Position23>
+        <Filename Value="..\..\cepluginsdk.pas"/>
+        <Caret Line="312" Column="80" TopLine="227"/>
+      </Position23>
+      <Position24>
+        <Filename Value="..\..\cepluginsdk.pas"/>
+        <Caret Line="244" Column="1" TopLine="224"/>
+      </Position24>
+      <Position25>
+        <Filename Value="..\..\cepluginsdk.pas"/>
+        <Caret Line="428" Column="1" TopLine="414"/>
+      </Position25>
+      <Position26>
+        <Filename Value="..\..\cepluginsdk.pas"/>
+        <Caret Line="308" Column="87" TopLine="295"/>
+      </Position26>
+      <Position27>
+        <Filename Value="..\..\cepluginsdk.pas"/>
+        <Caret Line="493" Column="24" TopLine="446"/>
+      </Position27>
+      <Position28>
+        <Filename Value="..\..\cepluginsdk.pas"/>
+        <Caret Line="448" Column="24" TopLine="431"/>
+      </Position28>
+      <Position29>
+        <Filename Value="..\..\cepluginsdk.pas"/>
+        <Caret Line="263" Column="6" TopLine="247"/>
+      </Position29>
+      <Position30>
+        <Filename Value="exportimplementation.pas"/>
+        <Caret Line="34" Column="3" TopLine="7"/>
+      </Position30>
+    </JumpHistory>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="9"/>
+    <PathDelim Value="\"/>
+    <SearchPaths>
+      <IncludeFiles Value="..\..;$(ProjOutDir)"/>
+      <OtherUnitFiles Value="..\.."/>
+    </SearchPaths>
+    <Parsing>
+      <SyntaxOptions>
+        <SyntaxMode Value="Delphi"/>
+      </SyntaxOptions>
+    </Parsing>
+    <Linking>
+      <Options>
+        <ExecutableType Value="Library"/>
+      </Options>
+    </Linking>
+    <Other>
+      <CompilerMessages>
+        <IgnoredMessages idx4055="True"/>
+        <UseMsgFile Value="True"/>
+      </CompilerMessages>
+      <CompilerPath Value="$(CompPath)"/>
+    </Other>
+  </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="3">
+      <Item1>
+        <Name Value="EAbort"/>
+      </Item1>
+      <Item2>
+        <Name Value="ECodetoolError"/>
+      </Item2>
+      <Item3>
+        <Name Value="EFOpenError"/>
+      </Item3>
+    </Exceptions>
+  </Debugging>
+</CONFIG>

@@ -1,0 +1,269 @@
+object frmExeTrainerGenerator: TfrmExeTrainerGenerator
+  Left = 492
+  Height = 266
+  Top = 319
+  Width = 576
+  Caption = 'Exe Trainer Generator'
+  ClientHeight = 266
+  ClientWidth = 576
+  Constraints.MinHeight = 234
+  Constraints.MinWidth = 490
+  OnActivate = FormActivate
+  OnClose = FormClose
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object Panel1: TPanel
+    Left = 0
+    Height = 216
+    Top = 0
+    Width = 328
+    Align = alLeft
+    BevelOuter = bvNone
+    ClientHeight = 216
+    ClientWidth = 328
+    TabOrder = 0
+    object GroupBox1: TGroupBox
+      Left = 0
+      Height = 62
+      Top = 0
+      Width = 328
+      Align = alTop
+      Caption = 'Process'
+      ClientHeight = 44
+      ClientWidth = 324
+      TabOrder = 0
+      object rb32: TRadioButton
+        Left = 10
+        Height = 19
+        Top = -4
+        Width = 142
+        Caption = 'Target process is 32-bit'
+        Checked = True
+        TabOrder = 0
+        TabStop = True
+      end
+      object rb64: TRadioButton
+        Left = 10
+        Height = 19
+        Top = 16
+        Width = 142
+        Caption = 'Target process is 64-bit'
+        TabOrder = 1
+      end
+    end
+    object GroupBox2: TGroupBox
+      Left = 0
+      Height = 74
+      Top = 62
+      Width = 328
+      Align = alTop
+      Caption = 'Features used'
+      ClientHeight = 56
+      ClientWidth = 324
+      TabOrder = 1
+      object cbVEHDebug: TCheckBox
+        Left = 10
+        Height = 19
+        Top = 26
+        Width = 97
+        Caption = 'VEH Debugger'
+        TabOrder = 0
+      end
+      object cbKernelDebug: TCheckBox
+        Left = 150
+        Height = 19
+        Top = 26
+        Width = 85
+        Caption = 'Kernel Tools'
+        TabOrder = 1
+      end
+      object cbXMPlayer: TCheckBox
+        Left = 150
+        Height = 19
+        Top = 2
+        Width = 70
+        Caption = 'XMPlayer'
+        TabOrder = 2
+      end
+      object cbSpeedhack: TCheckBox
+        Left = 10
+        Height = 19
+        Top = 2
+        Width = 77
+        Caption = 'Speedhack'
+        TabOrder = 3
+      end
+    end
+    object Button1: TButton
+      Left = 63
+      Height = 25
+      Top = 144
+      Width = 99
+      Caption = 'Change EXE Icon'
+      OnClick = Button1Click
+      TabOrder = 2
+    end
+    object comboCompression: TComboBox
+      Left = 240
+      Height = 23
+      Top = 146
+      Width = 80
+      ItemHeight = 15
+      ItemIndex = 3
+      Items.Strings = (
+        'None'
+        'Fastest'
+        'Default'
+        'Max'
+      )
+      Style = csDropDownList
+      TabOrder = 3
+      Text = 'Max'
+    end
+    object Label1: TLabel
+      Left = 168
+      Height = 16
+      Top = 149
+      Width = 71
+      Caption = 'Compression'
+      ParentColor = False
+    end
+    object Panel4: TPanel
+      Left = 13
+      Height = 40
+      Top = 138
+      Width = 40
+      BevelOuter = bvNone
+      BorderStyle = bsSingle
+      ClientHeight = 36
+      ClientWidth = 36
+      TabOrder = 4
+      object Image1: TImage
+        Left = 0
+        Height = 36
+        Top = 0
+        Width = 36
+        Align = alClient
+        Stretch = True
+      end
+    end
+  end
+  object Panel2: TPanel
+    Left = 0
+    Height = 50
+    Top = 216
+    Width = 576
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 50
+    ClientWidth = 576
+    TabOrder = 1
+    object Button2: TButton
+      Left = 251
+      Height = 25
+      Top = 16
+      Width = 75
+      Anchors = [akTop]
+      Caption = 'Generate'
+      OnClick = Button2Click
+      TabOrder = 0
+    end
+  end
+  object GroupBox3: TGroupBox
+    Left = 328
+    Height = 216
+    Top = 0
+    Width = 248
+    Align = alClient
+    Caption = 'Extra files'
+    ClientHeight = 198
+    ClientWidth = 244
+    TabOrder = 2
+    object ListView1: TListView
+      Left = 0
+      Height = 163
+      Top = 0
+      Width = 244
+      Align = alClient
+      Columns = <      
+        item
+          Caption = 'File'
+          Width = 100
+        end      
+        item
+          Caption = 'Relative folder'
+          Width = 90
+        end>
+      HideSelection = False
+      MultiSelect = True
+      PopupMenu = pmFiles
+      ReadOnly = True
+      RowSelect = True
+      TabOrder = 0
+      ViewStyle = vsReport
+      OnSelectItem = ListView1SelectItem
+    end
+    object Panel3: TPanel
+      Left = 0
+      Height = 35
+      Top = 163
+      Width = 244
+      Align = alBottom
+      BevelOuter = bvNone
+      ClientHeight = 35
+      ClientWidth = 244
+      TabOrder = 1
+      object btnRemoveFile: TButton
+        Left = 170
+        Height = 25
+        Top = 8
+        Width = 75
+        Anchors = [akTop, akRight]
+        Caption = 'Remove file'
+        Enabled = False
+        OnClick = btnRemoveFileClick
+        TabOrder = 0
+      end
+      object btnAddFile: TButton
+        Left = 90
+        Height = 25
+        Top = 8
+        Width = 75
+        Anchors = [akTop, akRight]
+        Caption = 'Add file(s)'
+        OnClick = btnAddFileClick
+        TabOrder = 1
+      end
+      object Button3: TButton
+        Left = 9
+        Height = 25
+        Top = 8
+        Width = 75
+        Anchors = [akTop, akRight]
+        Caption = 'Add folder'
+        OnClick = Button3Click
+        TabOrder = 2
+      end
+    end
+  end
+  object OpenDialog1: TOpenDialog
+    Options = [ofAllowMultiSelect, ofEnableSizing, ofViewDetail]
+    left = 392
+    top = 48
+  end
+  object pmFiles: TPopupMenu
+    OnPopup = pmFilesPopup
+    left = 472
+    top = 64
+    object miEditFolder: TMenuItem
+      Caption = 'Edit folder'
+      OnClick = miEditFolderClick
+    end
+  end
+  object SelectDirectoryDialog1: TSelectDirectoryDialog
+    left = 392
+    top = 104
+  end
+end

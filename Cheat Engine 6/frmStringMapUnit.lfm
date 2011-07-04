@@ -1,0 +1,124 @@
+object frmStringMap: TfrmStringMap
+  Left = 350
+  Height = 353
+  Top = 298
+  Width = 409
+  Caption = 'String map'
+  ClientHeight = 353
+  ClientWidth = 409
+  OnClose = FormClose
+  OnResize = FormResize
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object Panel1: TPanel
+    Left = 233
+    Height = 353
+    Top = 0
+    Width = 176
+    Align = alRight
+    ClientHeight = 353
+    ClientWidth = 176
+    TabOrder = 0
+    OnResize = Panel1Resize
+    object btnScan: TButton
+      Left = 9
+      Height = 25
+      Top = 40
+      Width = 155
+      Caption = 'Generate string map'
+      OnClick = btnScanClick
+      TabOrder = 0
+    end
+    object btnFree: TButton
+      Left = 9
+      Height = 25
+      Top = 72
+      Width = 155
+      Caption = 'Free the current list'
+      Enabled = False
+      OnClick = btnFreeClick
+      TabOrder = 1
+    end
+    object ProgressBar1: TProgressBar
+      Left = 9
+      Height = 20
+      Top = 8
+      Width = 155
+      TabOrder = 2
+    end
+    object lblStringCount: TLabel
+      Left = 9
+      Height = 16
+      Top = 112
+      Width = 75
+      Caption = 'Stringcount: 0'
+      ParentColor = False
+    end
+    object btnShowList: TButton
+      Left = 1
+      Height = 25
+      Top = 320
+      Width = 75
+      Caption = '<<Show list'
+      OnClick = btnShowListClick
+      TabOrder = 3
+    end
+    object edtRegExp: TEdit
+      Left = 9
+      Height = 23
+      Top = 192
+      Width = 155
+      Enabled = False
+      TabOrder = 4
+    end
+    object cbRegExp: TCheckBox
+      Left = 9
+      Height = 19
+      Top = 136
+      Width = 164
+      Caption = 'Strings must match reg exp'
+      OnChange = cbRegExpChange
+      TabOrder = 5
+    end
+    object cbCaseSensitive: TCheckBox
+      Left = 9
+      Height = 19
+      Top = 153
+      Width = 93
+      Caption = 'Case sensitive'
+      Enabled = False
+      TabOrder = 6
+    end
+    object cbMustBeStart: TCheckBox
+      Left = 9
+      Height = 19
+      Top = 170
+      Width = 89
+      Caption = 'Must be start'
+      Enabled = False
+      TabOrder = 7
+    end
+  end
+  object ListView1: TListView
+    Left = 0
+    Height = 353
+    Top = 0
+    Width = 233
+    Align = alClient
+    Columns = <    
+      item
+        Caption = 'Address'
+        Width = 80
+      end    
+      item
+        Caption = 'String'
+        Width = 150
+      end>
+    HideSelection = False
+    ReadOnly = True
+    RowSelect = True
+    TabOrder = 1
+    ViewStyle = vsReport
+    OnDblClick = ListView1DblClick
+  end
+end

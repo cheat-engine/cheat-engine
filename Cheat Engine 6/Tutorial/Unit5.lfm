@@ -1,0 +1,151 @@
+object Form5: TForm5
+  Left = 413
+  Height = 249
+  Top = 360
+  Width = 571
+  BorderStyle = bsDialog
+  Caption = 'Step 4'
+  ClientHeight = 249
+  ClientWidth = 571
+  Color = clBtnFace
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  OnClose = FormClose
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  Position = poOwnerFormCenter
+  LCLVersion = '0.9.29'
+  Visible = True
+  object Label1: TLabel
+    Left = 40
+    Height = 14
+    Top = 232
+    Width = 19
+    Caption = '100'
+    ParentColor = False
+  end
+  object Label2: TLabel
+    Left = 0
+    Height = 14
+    Top = 232
+    Width = 30
+    Caption = 'Ammo'
+    ParentColor = False
+  end
+  object Label3: TLabel
+    Left = 0
+    Height = 14
+    Top = 205
+    Width = 35
+    Caption = 'Health:'
+    ParentColor = False
+  end
+  object Label4: TLabel
+    Left = 40
+    Height = 14
+    Top = 205
+    Width = 19
+    Caption = '100'
+    ParentColor = False
+  end
+  object Label5: TLabel
+    Left = 120
+    Height = 14
+    Top = 205
+    Width = 27
+    Caption = '(float)'
+    ParentColor = False
+  end
+  object Label6: TLabel
+    Left = 120
+    Height = 14
+    Top = 232
+    Width = 39
+    Caption = '(double)'
+    ParentColor = False
+  end
+  object SpeedButton1: TSpeedButton
+    Left = 544
+    Height = 17
+    Top = 231
+    Width = 25
+    Caption = 'Skip'
+    Flat = True
+    NumGlyphs = 0
+    OnClick = SpeedButton1Click
+  end
+  object Memo1: TMemo
+    Left = 0
+    Height = 185
+    Top = 0
+    Width = 571
+    Align = alTop
+    Color = clBtnFace
+    Lines.Strings = (
+      'In the previous tutorial we used bytes to scan, but some games store information in so called ''floating point'' notations. '
+      '(probably to prevent simple memory scanners from finding it the easy way)'
+      'a floating point is a value with some digits behind the point. (like 5.12 or 11321.1)'
+      ''
+      'Below you see your health and ammo. Both are stored as Floating point notations, but health is stored as a float and '
+      'ammo is stored as a double.'
+      'Click on hit me to lose some health, and on shoot to decrease your ammo with 0.5'
+      ''
+      'You have to set BOTH values to 5000 or higher to proceed.'
+      ''
+      'Exact value scan will work fine here, but you may want to experiment with other types too.'
+      ''
+      ''
+      ''
+      ''
+      ''
+      ''
+      ''
+      ''
+      ''
+      ''
+      ''
+      ''
+      ''
+      ''
+      'Hint: It is recommended to disable "Fast Scan" for type double'
+    )
+    ReadOnly = True
+    ScrollBars = ssVertical
+    TabOrder = 0
+  end
+  object Button2: TButton
+    Left = 248
+    Height = 25
+    Top = 192
+    Width = 75
+    Caption = 'Next'
+    Enabled = False
+    OnClick = Button2Click
+    TabOrder = 1
+  end
+  object Button1: TButton
+    Left = 72
+    Height = 17
+    Top = 230
+    Width = 41
+    Caption = 'Fire'
+    OnClick = Button1Click
+    TabOrder = 2
+  end
+  object Button3: TButton
+    Left = 72
+    Height = 17
+    Top = 203
+    Width = 41
+    Caption = 'Hit me'
+    OnClick = Button3Click
+    TabOrder = 3
+  end
+  object Timer1: TTimer
+    Interval = 250
+    OnTimer = Timer1Timer
+    left = 432
+    top = 200
+  end
+end
