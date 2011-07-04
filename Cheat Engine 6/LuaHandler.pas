@@ -32,6 +32,8 @@ function Lua_ToString(L: Plua_State; i: Integer): string;
 procedure InitializeLuaScripts;
 procedure InitializeLua;
 
+function GetLuaState: PLUA_State; stdcall;
+
 
 implementation
 
@@ -50,6 +52,10 @@ resourcestring
   rsInvalidFloat = 'Invalid floating point string:%s';
   rsInvalidInt = 'Invalid integer:%s';
 
+function GetLuaState: PLUA_State; stdcall;
+begin
+  result:=LuaVM;
+end;
 
 function lua_isstring(L: PLua_state; i: integer): boolean;
 begin

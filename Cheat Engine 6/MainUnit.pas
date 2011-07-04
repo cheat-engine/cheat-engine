@@ -5263,6 +5263,9 @@ begin
   if speedhack<>nil then
     freeandnil(speedhack);
 
+  if pluginhandler<>nil then
+    freeandnil(pluginhandler);
+
  // EExternalException
 end;
 
@@ -6972,8 +6975,7 @@ begin
     freeandnil(scantablist);
   end;
 
-  if pluginhandler<>nil then
-    freeandnil(pluginhandler);
+
 
 end;
 

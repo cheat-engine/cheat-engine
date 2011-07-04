@@ -192,6 +192,7 @@ type TExportedFunctions5 = record
   //version 5
   ExecuteKernelCode: pointer;
   UserdefinedInterruptHook: pointer;
+  GetLuaState: pointer;
 
 end;
 type PExportedFunctions5 = ^TExportedFunctions5;
@@ -869,7 +870,7 @@ var pluginhandler: TPluginhandler;
 
 implementation
 
-uses MainUnit,memorybrowserformunit,formsettingsunit, pluginexports, SynHighlighterAA, DBK32functions;
+uses MainUnit,memorybrowserformunit,formsettingsunit, pluginexports, SynHighlighterAA, DBK32functions, luahandler;
 
 resourcestring
   rsErrorEnabling = 'Error enabling %s';
@@ -1851,7 +1852,7 @@ begin
   //version 5
   exportedfunctions.ExecuteKernelCode:=@ExecuteKernelCode;
   exportedfunctions.UserdefinedInterruptHook:=@UserdefinedInterruptHook;
-
+  exportedfunctions.GetLuaState:=@GetLuaState;
 end;
 
 end.
