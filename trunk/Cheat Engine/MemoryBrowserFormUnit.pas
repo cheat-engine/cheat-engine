@@ -2000,10 +2000,12 @@ procedure TMemoryBrowser.EAXLabelDblClick(Sender: TObject);
 var x: dword;
     i: integer;
     regname,input: string;
-    value: dword;
+    value: qword;
     rbase: string;
     context: PContext;
+    labeltext: string;
 begin
+  labeltext:=tlabel(sender).Caption;
 
   if (debuggerthread<>nil) and (debuggerthread.isWaitingToContinue) then
   begin
@@ -2039,8 +2041,8 @@ begin
         6408..6415: regname:='R'+inttostr(i-6400);
       end;
 
-      input:=copy(tlabel(sender).Caption,pos(' ',tlabel(sender).Caption)+1,8);
-      if i<20 then
+      input:=copy(labeltext,pos(' ',labeltext)+1,length(labeltext));
+      if (i<20) or (i>6400) then
       begin
         if not inputquery(rsChangeRegister, Format(rsWhatIsTheNewValueOf, [regname]), input) then exit;
       end
@@ -2053,7 +2055,7 @@ begin
 
       end;
 
-      value:=StrToInt('$'+input);
+      value:=symhandler.getAddressFromName(input);
 
 
       context:=debuggerthread.CurrentThread.context;
@@ -2094,10 +2096,18 @@ begin
         {$endif}
       end;
 
-      if (tlabel(sender).Tag>=9) and (tlabel(sender).tag<6400) then
-        tlabel(sender).Caption:=regname+' '+inttohex(value,4)
+      if (tlabel(sender).Tag>=9) and (tlabel(sender).tag<6400) then //flags or segment registers
+      begin
+        if (tlabel(sender).Tag>=20) then //flag
+          tlabel(sender).Caption:=regname+' '+inttohex(value,1)
+        else
+          tlabel(sender).Caption:=regname+' '+inttohex(value,4);
+      end
       else
-        tlabel(sender).Caption:=regname+' '+inttohex(value,8)
+      begin
+        //normal reg
+        tlabel(sender).Caption:=regname+' '+inttohex(value,processhandler.pointersize*2)
+      end;
     end;
 
   end;
