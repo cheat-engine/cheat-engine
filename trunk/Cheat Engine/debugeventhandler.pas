@@ -365,7 +365,7 @@ begin
     end;
     {$endif}
 
-    if not bp.active then
+    if (bp<>nil) and (not bp.active) then
     begin
       //disable the breakpoint in the current context (in case it got disabled while the breakpoint was being handled)
       if bp.breakpointMethod=bpmDebugRegister then
