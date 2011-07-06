@@ -5175,12 +5175,6 @@ begin
   //cleanup the user forms
   if formdesigner<>nil then
     formdesigner.close;
- {
-  for i:=0 to LuaForms.count-1 do
-    tceform(LuaForms[i]).free;
-
-  LuaForms.Clear;   }
-
 
   //undo unrandomize
   if unrandomize<>nil then
@@ -5266,7 +5260,6 @@ begin
   if pluginhandler<>nil then
     freeandnil(pluginhandler);
 
- // EExternalException
 end;
 
 
