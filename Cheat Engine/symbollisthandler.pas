@@ -204,7 +204,7 @@ begin
     AddressToString.Free;
 
   if StringToAddress<>nil then
-    AddressToString.Free;
+    StringToAddress.Free;
 
   inherited destroy;
 end;
