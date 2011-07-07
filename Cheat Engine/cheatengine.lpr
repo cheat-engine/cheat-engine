@@ -52,7 +52,8 @@ uses
   IconStuff, cetranslator, frmStringMapUnit, MemFuncs, frmStringPointerScanUnit,
   frmStructPointerRescanUnit, sharedMemory, disassemblerComments,
   frmFilePatcherUnit, LuaCanvas, LuaPen, LuaFont, LuaBrush, LuaPicture, LuaMenu,
-  LuaDebug, frmUltimapUnit, DBK64SecondaryLoader, frmHotkeyExUnit;
+  LuaDebug, frmUltimapUnit, DBK64SecondaryLoader, frmHotkeyExUnit,
+  SymbolListHandler;
 
 {$R cheatengine.res}
 {$R manifest.res}

@@ -5,7 +5,7 @@ unit symbolhandler;
 interface
 
 
-uses jwawindows, windows, classes,LCLIntf,imagehlp,{psapi,}sysutils,{tlhelp32,}cefuncproc,newkernelhandler,syncobjs;
+uses jwawindows, windows, classes,LCLIntf,imagehlp,{psapi,}sysutils,{tlhelp32,}cefuncproc,newkernelhandler,syncobjs, SymbolListHandler;
 
 {$ifdef autoassemblerdll}
 var
@@ -53,10 +53,11 @@ type TUserdefinedSymbolCallback=procedure;
 type
   TSymbolloaderthread=class(tthread)
   private
-    symbolprocesshandle: thandle;
+
     targetself: boolean;
     thisprocesshandle: thandle;
-    thisprocessid: dword;    
+    thisprocessid: dword;
+    currentModuleName: PSTR;
     procedure LoadDriverSymbols;
     procedure LoadDLLSymbols;
     procedure finishedLoadingSymbols;
@@ -68,6 +69,8 @@ type
     kernelsymbols: boolean;
     dllsymbols: boolean;
     searchpath: string;
+
+    symbollist: TSymbolListHandler;
 
     procedure execute; override;
     constructor create(targetself, CreateSuspended: boolean);
@@ -99,6 +102,7 @@ type
     searchpath: string;
 
     commonModuleList: tstringlist;
+    symbollist: TSymbolListHandler;
 
     function getusedprocesshandle :thandle;
     function getusedprocessid:dword;
@@ -302,12 +306,34 @@ begin
 
 end;
 
+
+function ES(SymName:PSTR; SymbolAddress:dword64; SymbolSize:ULONG; UserContext:pointer):bool;stdcall;
+var self: TSymbolloaderthread;
+    sym: PCESymbolInfo;
+begin
+  self:=TSymbolloaderthread(UserContext);
+
+  sym:=self.symbollist.AddString(self.currentModuleName+'.'+symname, symboladdress, symbolsize);
+  sym:=self.symbollist.AddString(symname, symboladdress, symbolsize,true); //don't add it as a address->string lookup  , (this way it always shows modulename+symbol)
+
+  result:=true;
+end;
+
+function EM(ModuleName:PSTR; BaseOfDll:dword64; UserContext:pointer):bool;stdcall;
+var self: TSymbolloaderthread;
+begin
+  self:=TSymbolloaderthread(UserContext);
+  self.CurrentModulename:=ModuleName;
+
+  result:=SymEnumerateSymbols64(self.thisprocesshandle, BaseOfDLL, @ES, self);
+end;
+
 procedure TSymbolloaderthread.execute;
 begin
   try
     try
       SymbolsLoaded:=false;
-      if symbolprocesshandle<>0 then Symcleanup(symbolprocesshandle); //cleanup first
+      symbollist.clear;
 
       SymbolsLoaded:=SymInitialize(thisprocesshandle,nil,true);
 
@@ -318,10 +344,13 @@ begin
 
         if kernelsymbols then LoadDriverSymbols;
         LoadDLLSymbols;
+
+        //enumerate all the data from the symbols , store it, and then uninitialize it freeing the files
+
+        SymEnumerateModules64(thisprocesshandle, @EM, self );
+
+        Symcleanup(thisprocesshandle);
       end else error:=true;
-
-
-      symbolprocesshandle:=processhandle;
     finally
       isloading:=false;
       //synchronize(finishedloadingsymbols);
@@ -334,7 +363,7 @@ end;
 destructor TSymbolloaderthread.destroy;
 begin
   //close the symbol handler for this processhandle
-  if symbolprocesshandle<>0 then Symcleanup(symbolprocesshandle); 
+
   inherited destroy;
 end;
 
@@ -505,6 +534,7 @@ begin
   symbolloaderthread:=tsymbolloaderthread.Create(targetself,true);
   symbolloaderthread.kernelsymbols:=kernelsymbols;
   symbolloaderthread.searchpath:=searchpath;
+  symbolloaderthread.symbollist:=symbollist;
   symbolloaderthread.start;
 
   symbolloadervalid.EndWrite;
@@ -891,10 +921,11 @@ end;
 
 
 function TSymhandler.getNameFromAddress(address:ptrUint;symbols:boolean; modules: boolean; baseaddress: PUINT64=nil; found: PBoolean=nil; hexcharsize: integer=8):string;
-var symbol :PSYMBOL_INFO;
+var //symbol :PSYMBOL_INFO;
     offset: qword;
     s: string;
     mi: tmoduleinfo;
+    si: PCESymbolInfo;
     processhandle: thandle;
 begin
 {$ifdef autoassemblerdll}
@@ -928,6 +959,26 @@ begin
       begin
         if isloaded then
         begin
+          si:=symbollist.FindAddress(address);
+          if si<>nil then
+          begin
+            result:=si.originalstring;
+
+            offset:=address-si.address;
+            if offset>0 then
+              result:=result+'+'+inttohex(offset,1);
+
+            if baseaddress<>nil then
+              baseaddress^:=si.Address;
+
+            if found<>nil then
+              found^:=true;
+
+            exit;
+          end;
+
+          {
+          //obsolete since ce 6.2
           getmem(symbol,sizeof(TSYMBOL_INFO)+255);
           try
             zeromemory(symbol,sizeof(TSYMBOL_INFO)+255);
@@ -955,7 +1006,7 @@ begin
 
           finally
             freemem(symbol);
-          end;
+          end;  }
         end;
 
       end;
@@ -1042,6 +1093,7 @@ end;
 function TSymhandler.getAddressFromName(name: string; waitforsymbols: boolean; out haserror: boolean; context: PContext):ptrUint;
 type TCalculation=(calcAddition, calcSubstraction);
 var mi: tmoduleinfo;
+    si: PCESymbolInfo;
     offset: dword;
     i,j: integer;
 
@@ -1059,7 +1111,7 @@ var mi: tmoduleinfo;
     nextoperation: TCalculation;
     regnr: integer;
 
-    symbol: PSYMBOL_INFO;
+    //symbol: PSYMBOL_INFO;
     s: string;
 begin
   hasPointer:=false;
@@ -1250,10 +1302,18 @@ begin
                   symbolloaderthread.WaitFor;
                 end;
 
-                //it's not a valid address, it's not a calculation, it's not a modulename+offset, so lets see if it's a module
+                //it's not a valid address, it's not a calculation, it's not a modulename+offset, so lets see if it's a symbol
 
-                tokens[i]:=StringReplace(tokens[i],'.','!',[]);
+                //tokens[i]:=StringReplace(tokens[i],'.','!',[]);
 
+                si:=symbollist.FindString(tokens[i]);
+                if si<>nil then
+                begin
+                  tokens[i]:=inttohex(si.address,8);
+                  continue;
+                end;
+
+                         {
                 getmem(symbol,sizeof(TSYMBOL_INFO)+255);
                 try
                   zeromemory(symbol,sizeof(TSYMBOL_INFO)+255);
@@ -1268,7 +1328,7 @@ begin
                   end;
                 finally
                   freemem(symbol);
-                end;
+                end; }
               end;
             end;
 
@@ -1628,6 +1688,9 @@ end;
 
 destructor TSymhandler.destroy;
 begin
+  if (symbollist<>nil) then
+    symbollist.free;
+
   if symbolloaderthread<>nil then
   begin
     symbolloaderthread.Terminate;
@@ -1660,6 +1723,8 @@ begin
 
   showmodules:=false;
   showsymbols:=true;
+
+  symbollist:=TSymbolListHandler.create;
 end;
 
 
