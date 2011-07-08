@@ -135,6 +135,7 @@ type
     procedure ReinitializeUserdefinedSymbolList;
     procedure fillMemoryRegionsWithModuleData(var mr: TMemoryregions; startaddress: dword; size: dword);
     procedure getModuleList(list: tstrings);
+    procedure GetSymbolList(address: ptruint; list: tstrings);
     function getmodulebyaddress(address: ptrUint; var mi: TModuleInfo):BOOLEAN;
     function getmodulebyname(modulename: string; var mi: TModuleInfo):BOOLEAN;
     function inModule(address: ptrUint): BOOLEAN; //returns true if the given address is part of a module
@@ -310,11 +311,13 @@ end;
 function ES(SymName:PSTR; SymbolAddress:dword64; SymbolSize:ULONG; UserContext:pointer):bool;stdcall;
 var self: TSymbolloaderthread;
     sym: PCESymbolInfo;
+    i: integer;
 begin
   self:=TSymbolloaderthread(UserContext);
 
-  sym:=self.symbollist.AddString(self.currentModuleName+'.'+symname, symboladdress, symbolsize);
-  sym:=self.symbollist.AddString(symname, symboladdress, symbolsize,true); //don't add it as a address->string lookup  , (this way it always shows modulename+symbol)
+  sym:=self.symbollist.AddSymbol(self.currentModuleName, self.currentModuleName+'.'+symname, symboladdress, symbolsize);
+  sym:=self.symbollist.AddSymbol(self.currentModuleName, symname, symboladdress, symbolsize,true); //don't add it as a address->string lookup  , (this way it always shows modulename+symbol)
+
 
   result:=true;
 end;
@@ -841,6 +844,24 @@ begin
   end;
 end;
 
+procedure TSymhandler.GetSymbolList(address: ptruint; list: tstrings);
+var si: PCESymbolInfo;
+    mi: TModuleInfo;
+begin
+  list.clear;
+  if getmodulebyaddress(address, mi) then
+  begin
+    si:=symbollist.FindFirstSymbolFromBase(mi.baseaddress);
+
+    while (si<>nil) and inrangeq(si.address, mi.baseaddress, mi.baseaddress+mi.basesize) do
+    begin
+      list.AddObject(si.originalstring, pointer(si.address));
+      si:=si.next;
+    end;
+
+  end;
+end;
+
 procedure TSymhandler.getModuleList(list: tstrings);
 var i: integer;
 begin
@@ -1306,29 +1327,13 @@ begin
 
                 //tokens[i]:=StringReplace(tokens[i],'.','!',[]);
 
-                si:=symbollist.FindString(tokens[i]);
+                si:=symbollist.FindSymbol(tokens[i]);
                 if si<>nil then
                 begin
                   tokens[i]:=inttohex(si.address,8);
                   continue;
                 end;
 
-                         {
-                getmem(symbol,sizeof(TSYMBOL_INFO)+255);
-                try
-                  zeromemory(symbol,sizeof(TSYMBOL_INFO)+255);
-                  symbol.SizeOfStruct:=sizeof(TSYMBOL_INFO);
-                  symbol.MaxNameLen:=254;
-
-
-                  if SymFromName(processhandle, pchar(tokens[i]), symbol ) then
-                  begin
-                    tokens[i]:=inttohex(symbol.Address,8);
-                    continue;
-                  end;
-                finally
-                  freemem(symbol);
-                end; }
               end;
             end;
 
