@@ -15,6 +15,7 @@ type
   TCESymbolInfo=record
     s: pchar; //lowercase string for searching
     originalstring: pchar;
+    module: pchar;
     address: qword;
     size: integer;
     previous: PCESymbolInfo;
@@ -32,9 +33,10 @@ type
   public
     constructor create;
     destructor destroy; override;
-    function AddString(s: string; address: ptruint; size: integer; skipaddresstostringlookup: boolean=false): PCESymbolInfo;
+    function AddSymbol(module: string; searchkey: string; address: ptruint; size: integer; skipaddresstostringlookup: boolean=false): PCESymbolInfo;
     function FindAddress(address: qword): PCESymbolInfo;
-    function FindString(s: string): PCESymbolInfo;
+    function FindSymbol(s: string): PCESymbolInfo;
+    function FindFirstSymbolFromBase(baseaddress: qword): PCESymbolInfo;
     procedure clear;
   end;
 
@@ -42,6 +44,25 @@ type
 implementation
 
 uses CEFuncProc;
+
+function TSymbolListHandler.FindFirstSymbolFromBase(baseaddress: qword): PCESymbolInfo;
+var search: TCESymbolInfo;
+  x: PCESymbolInfo;
+  z: TAvgLvlTreeNode;
+begin
+  result:=nil;
+  search.address:=baseaddress;
+  z:=AddressToString.FindNearest(@search);
+  if z<>nil then
+  begin
+    x:=PCESymbolInfo(z.data);
+
+    while (x<>nil) and (x.address<baseaddress) do
+      x:=x.next;
+
+    result:=x;
+  end;
+end;
 
 function TSymbolListHandler.FindAddress(address: qword): PCESymbolInfo;
 var search: TCESymbolInfo;
@@ -100,7 +121,7 @@ begin
   end;
 end;
 
-function TSymbolListHandler.FindString(s: string): PCESymbolInfo;
+function TSymbolListHandler.FindSymbol(s: string): PCESymbolInfo;
 var x: TCESymbolInfo;
   z: TAvgLvlTreeNode;
 begin
@@ -113,14 +134,15 @@ begin
     result:=nil;
 end;
 
-function TSymbolListHandler.AddString(s: string; address: ptruint; size: integer; skipaddresstostringlookup: boolean=false): PCESymbolInfo;
+function TSymbolListHandler.AddSymbol(module: string; searchkey: string; address: ptruint; size: integer; skipaddresstostringlookup: boolean=false): PCESymbolInfo;
 var new: PCESymbolInfo;
   n: TAvgLvlTreeNode;
   prev, next: TAvgLvlTreeNode;
 begin
   new:=getmem(sizeof(TCESymbolInfo));
-  new.originalstring:=strnew(pchar(s));
-  new.s:=strnew(pchar(lowercase(s)));
+  new.module:=strnew(pchar(module));
+  new.originalstring:=strnew(pchar(searchkey));
+  new.s:=strnew(pchar(lowercase(searchkey)));
   new.address:=address;
   new.size:=size;
 
@@ -178,6 +200,9 @@ begin
 
       if d.s<>nil then
         StrDispose(d.s);
+
+      if d.module<>nil then
+        strDispose(d.module);
 
       freemem(d);
       x:=AddressToString.FindSuccessor(x);

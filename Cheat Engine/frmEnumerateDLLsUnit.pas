@@ -125,6 +125,10 @@ begin
 end;
 
 procedure tenumthread.execute;
+var ml: Tstringlist;
+  i,j: integer;
+  mi: TModuleInfo;
+  sl: Tstringlist;
 begin
   freeonterminate:=true;
   symbolcount:=0;
@@ -133,7 +137,46 @@ begin
   symhandler.waitforsymbolsloaded;
   
   if not canceled then
-    SymEnumerateModules64(processhandle,@EM,self);
+  begin
+    sl:=tstringlist.create;
+    ml:=tstringlist.create;
+    try
+      symhandler.getModuleList(ml);
+      for i:=0 to ml.count-1 do
+      begin
+        if symhandler.getmodulebyaddress(ptruint(ml.Objects[i]), mi) then
+        begin
+          moduletext:=IntToHex(mi.baseaddress,8)+' - '+mi.modulename;
+          Synchronize(addmodule);
+        end;
+
+
+        sl.clear;
+        symhandler.GetSymbolList(mi.baseaddress, sl);
+        for j:=0 to sl.count-1 do
+        begin
+          inc(symbolcount);
+          symbolname[symbolcount]:=IntToHex(ptruint(sl.objects[j]),8)+' - '+sl[j];
+
+          if canceled then break;
+
+          if symbolcount=25 then
+            Synchronize(addsymbol);
+        end;
+
+
+        if canceled then break;
+
+        if symbolcount>0 then
+          synchronize(addsymbol);
+      end;
+
+    finally
+      ml.free;
+      sl.free;
+    end;
+
+  end;
 
   if symbolcount>0 then
     synchronize(addsymbol);
