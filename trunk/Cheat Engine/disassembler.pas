@@ -641,7 +641,7 @@ begin
               7:
               if shortint(memory[modrmbyte+1])>=0 then
                 result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'di'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'si'+endcolor+'-'+inttohexs(-shortint(memory[modrmbyte+1]),2)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'di'+endcolor+'-'+inttohexs(-shortint(memory[modrmbyte+1]),2)+'],';
 
 
               8:
