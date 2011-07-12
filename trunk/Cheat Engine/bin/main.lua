@@ -55,6 +55,8 @@ doKeyPress(key) : simmulates a key press
 
 shellExecute(command, parameters OPTIONAL, folder OPTIONAL, showcommand OPTIONAL): Executes a given command
 
+getTickCount() : 6.2: Returns the current tickcount since windows was started. Each tick is one millisecond
+processMessages() : 6.1: Lets the main eventhandler process the new messages (allows for new button clicks)
 
 speedhack_setSpeed(speed)
 injectDll(filename): Injects a dll, and returns true on success

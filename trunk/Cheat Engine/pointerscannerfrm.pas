@@ -938,7 +938,7 @@ begin
 
       haserror:=true;
       errorstring:='StaticScanner:'+e.message;
-      postmessage(ownerform.Handle,staticscanner_done,1,ptrUint(pchar(errorstring))); //I can just provide this string as it's static in the .code section
+      postmessage(ownerform.Handle,staticscanner_done,1,ptrUint(pchar(errorstring)));
       terminate;
     end;
   end;

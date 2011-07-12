@@ -81,8 +81,9 @@ end;
 
 procedure InitializeLuaScripts;
 var f: string;
-  i: integer;
+  i,r: integer;
   pc: pchar;
+  DirInfo: TSearchRec;
 begin
   f:='main.lua';
   if not FileExists(f) then //perhaps in the cedir
@@ -124,6 +125,40 @@ begin
   finally
     LuaCS.Leave;
   end;
+
+  //autorun folder
+  ZeroMemory(@DirInfo,sizeof(TSearchRec));
+  r := FindFirst(CheatEngineDir+'autorun'+pathdelim+'*.lua', FaAnyfile, DirInfo);
+  while (r = 0) do
+  begin
+    if (DirInfo.Attr and FaVolumeId <> FaVolumeID) then
+    begin
+      if ((DirInfo.Attr and FaDirectory) <> FaDirectory) then
+      begin
+        i:=lua_dofile(luavm, pchar(CheatEngineDir+'autorun'+pathdelim+DirInfo.name));
+        if i<>0 then //error
+        begin
+          i:=lua_gettop(luavm);
+          if i>0 then
+          begin
+            pc:=lua_tolstring(luavm, -1,nil);
+            if pc<>nil then
+              showmessage(DirInfo.name+' error:'+pc)
+            else
+              showmessage(DirInfo.name+' error');
+          end
+          else showmessage(DirInfo.name+' error');
+        end;
+
+        //reset stack
+        lua_pop(LuaVM, lua_gettop(luavm));
+      end;
+    end;
+    r := FindNext(DirInfo);
+  end;
+  FindClose(DirInfo);
+
+
 
 end;
 
@@ -1994,7 +2029,7 @@ begin
     if key<>0 then
     begin
       keybd_event(key, 0, 0, 0);
-      sleep(110);
+      windows.sleep(110);
       keybd_event(key, 0, KEYEVENTF_KEYUP, 0);
     end;
 
@@ -8463,6 +8498,20 @@ begin
 
 end;
 
+function getTickCount_lua(L: PLua_State): integer; cdecl;
+begin
+  lua_pop(L, lua_gettop(L));
+  result:=1;
+  lua_pushinteger(L, GetTickCount);
+end;
+
+function processMessages(L: PLua_State): integer; cdecl;
+begin
+  lua_pop(L, lua_gettop(L));
+  result:=0;
+  application.ProcessMessages;
+end;
+
 procedure InitializeLua;
 var s: tstringlist;
   k32: THandle;
@@ -8933,6 +8982,8 @@ begin
     lua_register(LuaVM, 'dbvm_initialize', dbvm_initialize);
 
     lua_register(LuaVM, 'shellExecute', shellExecute);
+    lua_register(LuaVM, 'getTickCount', getTickCount_lua);
+    lua_register(LuaVM, 'processMessages', processMessages);
 
 
     initializeLuaPicture;
