@@ -12,11 +12,11 @@ goto error
 :success
 	if "%AMD64%"=="1" goto x86success
 
-	copy .\obj%BUILD_ALT_DIR%\i386\dbk.sys "..\Cheat Engine 6\bin\dbk32.sys"
+	copy .\obj%BUILD_ALT_DIR%\i386\dbk.sys "..\Cheat Engine\bin\dbk32.sys"
 	goto successend
 
 :x86success:
-	copy .\obj%BUILD_ALT_DIR%\amd64\dbk.sys "..\Cheat Engine 6\bin\dbk64.sys"
+	copy .\obj%BUILD_ALT_DIR%\amd64\dbk.sys "..\Cheat Engine\bin\dbk64.sys"
 	goto successend
 
 
