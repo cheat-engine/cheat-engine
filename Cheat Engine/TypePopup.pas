@@ -208,7 +208,8 @@ begin
 
   if memoryrecord.vartype=vtString then
   begin
-    MemoryRecord.Extra.stringData.length:=bit;
+    val(edit1.Text,MemoryRecord.Extra.stringData.length,err);
+
     MemoryRecord.Extra.stringData.unicode:=cbunicode.checked;
   end;
 
