@@ -215,6 +215,7 @@ object frmModifyRegisters: TfrmModifyRegisters
     Height = 19
     Top = 42
     Width = 33
+    AllowGrayed = True
     BidiMode = bdRightToLeft
     Caption = 'CF'
     ParentBidiMode = False
