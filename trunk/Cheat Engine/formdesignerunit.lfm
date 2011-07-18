@@ -38,13 +38,13 @@ object FormDesigner: TFormDesigner
     object ToolButton6: TToolButton
       Left = 31
       Top = 2
-      Width = 4
+      Width = 5
       Caption = 'ToolButton6'
       Grouped = True
       Style = tbsDivider
     end
     object CEButton: TToolButton
-      Left = 35
+      Left = 36
       Hint = 'Button'
       Top = 2
       Caption = 'CEButton'
@@ -54,7 +54,7 @@ object FormDesigner: TFormDesigner
       Style = tbsCheck
     end
     object CELabel: TToolButton
-      Left = 65
+      Left = 66
       Hint = 'Label'
       Top = 2
       Caption = 'CELabel'
@@ -64,7 +64,7 @@ object FormDesigner: TFormDesigner
       Style = tbsCheck
     end
     object CEPanel: TToolButton
-      Left = 95
+      Left = 96
       Hint = 'Panel'
       Top = 2
       Caption = 'CEPanel'
@@ -74,7 +74,7 @@ object FormDesigner: TFormDesigner
       Style = tbsCheck
     end
     object CEImage: TToolButton
-      Left = 125
+      Left = 126
       Hint = 'Image'
       Top = 2
       Caption = 'faggg'
@@ -84,7 +84,7 @@ object FormDesigner: TFormDesigner
       Style = tbsCheck
     end
     object CEMemo: TToolButton
-      Left = 155
+      Left = 156
       Hint = 'Memo'
       Top = 2
       Caption = 'CEMemo'
@@ -94,7 +94,7 @@ object FormDesigner: TFormDesigner
       Style = tbsCheck
     end
     object CEEdit: TToolButton
-      Left = 185
+      Left = 186
       Hint = 'Edit'
       Top = 2
       Caption = 'CEEdit'
@@ -104,7 +104,7 @@ object FormDesigner: TFormDesigner
       Style = tbsCheck
     end
     object CEToggleBox: TToolButton
-      Left = 215
+      Left = 216
       Hint = 'Togglebox'
       Top = 2
       Caption = 'CEToggleBox'
@@ -114,7 +114,7 @@ object FormDesigner: TFormDesigner
       Style = tbsCheck
     end
     object CECheckbox: TToolButton
-      Left = 245
+      Left = 246
       Hint = 'CheckBox'
       Top = 2
       Caption = 'CECheckbox'
@@ -124,7 +124,7 @@ object FormDesigner: TFormDesigner
       Style = tbsCheck
     end
     object CEGroupBox: TToolButton
-      Left = 275
+      Left = 276
       Hint = 'GroupBox'
       Top = 2
       Caption = 'CEGroupBox'
@@ -134,7 +134,7 @@ object FormDesigner: TFormDesigner
       Style = tbsCheck
     end
     object CERadioGroup: TToolButton
-      Left = 305
+      Left = 306
       Hint = 'RadioGroup'
       Top = 2
       Caption = 'CERadioGroup'
@@ -144,7 +144,7 @@ object FormDesigner: TFormDesigner
       Style = tbsCheck
     end
     object CEListBox: TToolButton
-      Left = 335
+      Left = 336
       Hint = 'Listbox'
       Top = 2
       Caption = 'CEListBox'
@@ -154,7 +154,7 @@ object FormDesigner: TFormDesigner
       Style = tbsCheck
     end
     object CEComboBox: TToolButton
-      Left = 365
+      Left = 366
       Top = 2
       Caption = 'CEComboBox'
       Grouped = True
@@ -163,15 +163,15 @@ object FormDesigner: TFormDesigner
       Style = tbsCheck
     end
     object ToolButton1: TToolButton
-      Left = 515
+      Left = 516
       Top = 2
-      Width = 4
+      Width = 5
       Caption = 'ToolButton1'
       Grouped = True
       Style = tbsDivider
     end
     object CETimer: TToolButton
-      Left = 519
+      Left = 521
       Hint = 'Timer'
       Top = 2
       Caption = 'CETimer'
@@ -181,7 +181,7 @@ object FormDesigner: TFormDesigner
       Style = tbsCheck
     end
     object CEOpenDialog: TToolButton
-      Left = 549
+      Left = 551
       Hint = 'Opendialog'
       Top = 2
       Caption = 'CEOpenDialog'
@@ -191,7 +191,7 @@ object FormDesigner: TFormDesigner
       Style = tbsCheck
     end
     object CESavedialog: TToolButton
-      Left = 579
+      Left = 581
       Top = 2
       Caption = 'CESavedialog'
       Grouped = True
@@ -200,7 +200,7 @@ object FormDesigner: TFormDesigner
       Style = tbsCheck
     end
     object CEProgressbar: TToolButton
-      Left = 395
+      Left = 396
       Hint = 'ProgressBar'
       Top = 2
       Caption = 'CEProgressbar'
@@ -210,7 +210,7 @@ object FormDesigner: TFormDesigner
       Style = tbsCheck
     end
     object CETrackBar: TToolButton
-      Left = 425
+      Left = 426
       Hint = 'TrackBar'
       Top = 2
       Caption = 'CETrackBar'
@@ -220,7 +220,7 @@ object FormDesigner: TFormDesigner
       Style = tbsCheck
     end
     object CEListView: TToolButton
-      Left = 455
+      Left = 456
       Hint = 'ListView'
       Top = 2
       Caption = 'CEListView'
@@ -230,7 +230,7 @@ object FormDesigner: TFormDesigner
       Style = tbsCheck
     end
     object CESplitter: TToolButton
-      Left = 485
+      Left = 486
       Hint = 'Splitter'
       Top = 2
       Caption = 'CESplitter'
