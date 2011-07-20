@@ -248,6 +248,7 @@ control_getParent(control) : Returns nil or an object that inherits from the Win
 control_setParent(control) : Sets the parent for this control
 control_getPopupMenu(control)
 control_setPopupMenu(control)
+control_getFont(label): 6.2+: Returns the Font object of this object
 control_onClick(control, functionnameorstring) : Sets the onclick routine
 
 
@@ -340,7 +341,7 @@ graphicControl_getCanvas(graphiccontrol) : Returns the Canvas object for the giv
 
 Label Class: (Inheritance: GraphicControl->Control->Component->Object)
 createLabel(owner): Creates a Label class object which belongs to the given owner. Owner can be any object inherited from WinControl
-label_getFont(label): 6.2+: Returns the Font object of this label
+
 
 
 Splitter Class: (Inheritance: CustomControl->WinControl->Control->Component->Object)
