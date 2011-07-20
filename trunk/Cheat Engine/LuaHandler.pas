@@ -2947,6 +2947,25 @@ begin
   end else lua_pop(L, lua_gettop(L));
 end;
 
+function label_getFont(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  lbl: Tlabel;
+
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    lbl:=lua_touserdata(L,-1);
+    lua_pop(L, parameters);
+
+    lua_pushlightuserdata(L, lbl.Font);
+    result:=1;
+
+  end else lua_pop(L, parameters);
+end;
+
 function createEdit(L: Plua_State): integer; cdecl;
 var parameters: integer;
   f,p: pointer;
@@ -8512,6 +8531,43 @@ begin
   application.ProcessMessages;
 end;
 
+function integerToUserData(L: PLua_State): integer; cdecl;
+var
+  i: integer;
+  parameters: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    i:=lua_tointeger(L,-1);
+    lua_pop(L, parameters);
+
+    lua_pushlightuserdata(L, pointer(i));
+    result:=1;
+
+  end else lua_pop(L, parameters);
+end;
+
+function userDataToInteger(L: PLua_State): integer; cdecl;
+var
+  u: pointer;
+  parameters: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    u:=lua_touserdata(L,-1);
+    lua_pop(L, parameters);
+
+    lua_pushinteger(L, ptruint(u));
+    result:=1;
+
+  end else lua_pop(L, parameters);
+end;
+
+
 procedure InitializeLua;
 var s: tstringlist;
   k32: THandle;
@@ -8593,6 +8649,8 @@ begin
 
 
     lua_register(LuaVM, 'createLabel', createLabel);
+    lua_register(LuaVM, 'label_getFont', label_getFont);
+
     lua_register(LuaVM, 'createSplitter', createSplitter);
 
     lua_register(LuaVM, 'messageDialog', messageDialog);
@@ -8984,6 +9042,9 @@ begin
     lua_register(LuaVM, 'shellExecute', shellExecute);
     lua_register(LuaVM, 'getTickCount', getTickCount_lua);
     lua_register(LuaVM, 'processMessages', processMessages);
+
+    lua_register(LuaVM, 'integerToUserData', integerToUserData);
+    lua_register(LuaVM, 'userDataToInteger', userDataToInteger);
 
 
     initializeLuaPicture;

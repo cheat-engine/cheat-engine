@@ -6,6 +6,8 @@ require("defines")
 --[[
 
 List of CE specific functions:
+
+
 note: addresses can be strings, they will get interpreted by ce's symbolhandler
 readBytes(address,bytecount, ReturnAsTable ) : returns the bytes at the given address. If ReturnAsTable is true it will return a table instead of multiple bytes
   Reads the bytes at the given address and returns a table containing the read out bytes
@@ -56,7 +58,11 @@ doKeyPress(key) : simmulates a key press
 shellExecute(command, parameters OPTIONAL, folder OPTIONAL, showcommand OPTIONAL): Executes a given command
 
 getTickCount() : 6.2: Returns the current tickcount since windows was started. Each tick is one millisecond
-processMessages() : 6.1: Lets the main eventhandler process the new messages (allows for new button clicks)
+processMessages() : 6.2: Lets the main eventhandler process the new messages (allows for new button clicks)
+integerToUserData(int): 6.2: Converts a given integer to a userdata variable
+userDataToInteger(UserDataVar): 6.2: Converts a given userdata variable to an integer
+
+
 
 speedhack_setSpeed(speed)
 injectDll(filename): Injects a dll, and returns true on success
@@ -334,6 +340,7 @@ graphicControl_getCanvas(graphiccontrol) : Returns the Canvas object for the giv
 
 Label Class: (Inheritance: GraphicControl->Control->Component->Object)
 createLabel(owner): Creates a Label class object which belongs to the given owner. Owner can be any object inherited from WinControl
+label_getFont(label): 6.2+: Returns the Font object of this label
 
 
 Splitter Class: (Inheritance: CustomControl->WinControl->Control->Component->Object)
