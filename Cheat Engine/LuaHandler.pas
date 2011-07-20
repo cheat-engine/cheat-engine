@@ -2947,10 +2947,10 @@ begin
   end else lua_pop(L, lua_gettop(L));
 end;
 
-function label_getFont(L: PLua_State): integer; cdecl;
+function control_getFont(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
-  lbl: Tlabel;
+  c: TControl;
 
 begin
   result:=0;
@@ -2960,7 +2960,7 @@ begin
     lbl:=lua_touserdata(L,-1);
     lua_pop(L, parameters);
 
-    lua_pushlightuserdata(L, lbl.Font);
+    lua_pushlightuserdata(L, c.Font);
     result:=1;
 
   end else lua_pop(L, parameters);
@@ -8649,7 +8649,7 @@ begin
 
 
     lua_register(LuaVM, 'createLabel', createLabel);
-    lua_register(LuaVM, 'label_getFont', label_getFont);
+
 
     lua_register(LuaVM, 'createSplitter', createSplitter);
 
@@ -8720,6 +8720,7 @@ begin
     lua_register(LuaVM, 'control_getParent', control_getParent);
     lua_register(LuaVM, 'control_setPopupMenu', control_setPopupMenu);
     lua_register(LuaVM, 'control_getPopupMenu', control_getPopupMenu);
+    lua_register(LuaVM, 'control_getFont', control_getFont);
 
 
 
