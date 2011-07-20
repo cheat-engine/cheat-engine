@@ -489,6 +489,7 @@ begin
   lua_register(LuaVM, 'canvas_getWidth', canvas_getWidth);
   lua_register(LuaVM, 'canvas_getHeight', canvas_getHeight);
   lua_register(LuaVM, 'canvas_line', canvas_line);
+  lua_register(LuaVM, 'canvas_lineTo', canvas_lineTo);
   lua_register(LuaVM, 'canvas_rect', canvas_rect);
   lua_register(LuaVM, 'canvas_fillRect', canvas_fillRect);
   lua_register(LuaVM, 'canvas_textOut', canvas_textOut);
