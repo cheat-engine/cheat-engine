@@ -8763,7 +8763,7 @@ begin
     lua_register(LuaVM, 'radiogroup_getItems', radioGroup_getItems);
     lua_register(LuaVM, 'radiogroup_getColumns', radiogroup_getColumns);
     lua_register(LuaVM, 'radiogroup_setColumns', radiogroup_setColumns);
-    lua_register(LuaVM,' radiogroup_onClick', radiogroup_onClick);
+    lua_register(LuaVM, 'radiogroup_onClick', radiogroup_onClick);
 
     lua_register(LuaVM, 'createListBox', createListBox);
     lua_register(LuaVM, 'listbox_clear', listbox_clear);
