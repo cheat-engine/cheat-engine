@@ -426,7 +426,7 @@ var
 begin
   result:=0;
   parameters:=lua_gettop(L);
-  if parameters=8 then
+  if parameters=4 then
   begin
     canvas:=lua_touserdata(L,-parameters);
     x:=lua_tointeger(L,-parameters+1);
