@@ -37,7 +37,7 @@ var
 begin
   result:=0;
   parameters:=lua_gettop(L);
-  if parameters=1 then
+  if parameters=2 then
   begin
     brush:=lua_touserdata(L,-parameters);
     color:=lua_tointeger(L, -parameters+1);
