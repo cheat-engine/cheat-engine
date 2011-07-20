@@ -592,6 +592,8 @@ font_getName
 font_setName
 font_getSize
 font_setSize
+font_getColor
+font_setColor
 
 
 Graphic Class : (Inheritance: Object) : Abstract class
@@ -599,7 +601,7 @@ Graphic Class : (Inheritance: Object) : Abstract class
 Picture Class : (Inheritance: Object) : Container for the Graphic class
 createPicture()
 picture_loadFromFile(picture, filename)
-picture_loadFromStream(stream, originalextension OPTIONAL)
+picture_loadFromStream(picture, stream, originalextension OPTIONAL)
 picture_assign(picture, sourcepicture)
 picture_getGraphic(picture) : Gets the Graphic object of this picture
 
