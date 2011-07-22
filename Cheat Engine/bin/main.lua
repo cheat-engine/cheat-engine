@@ -325,6 +325,7 @@ form_saveToFile(form, filename): Saves a userdefined form. (DOES NOT WORK ON NOR
 form_centerScreen(form); : Places the form at the center of the screen
 form_hide(form) : Hide the form
 form_show(form) : show the form
+form_close(form): 6.2: Closes the form. Without an onClose this will be the same as hide 
 form_showModal(form) : show the form and wait for it to close and get the close result
 form_isForegroundWindow(form): returns true if the specified form has focus
 form_onClose(form, function)  : function (sender) : Return a CloseAction to determine how to close the window

@@ -2337,6 +2337,20 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
+function form_close(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  f: Tcustomform;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    f:=lua_touserdata(L, -1);
+    f.Close;
+  end;
+  lua_pop(L, lua_gettop(L));
+end;
+
 function form_showModal(L: Plua_State): integer; cdecl;
 var parameters: integer;
   f: tcustomform;
@@ -8762,6 +8776,7 @@ begin
     lua_register(LuaVM, 'form_onClose', form_onClose);
     lua_register(LuaVM, 'form_show', form_show);
     lua_register(LuaVM, 'form_hide', form_hide);
+    lua_register(LuaVM, 'form_close', form_close);
     lua_register(LuaVM, 'form_showModal', form_showModal);
     lua_register(LuaVM, 'form_isForegroundWindow', form_isForegroundWindow);
     lua_register(LuaVM, 'form_getMenu', form_getMenu);
