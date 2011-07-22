@@ -8742,6 +8742,9 @@ begin
     lua_register(LuaVM, 'strings_remove', strings_remove);
     lua_register(LuaVM, 'strings_getString', strings_getString);
     lua_register(LuaVM, 'strings_setString', strings_setString);
+    lua_register(LuaVM, 'strings_loadFromFile', strings_loadFromFile);
+    lua_register(LuaVM, 'strings_saveToFile', strings_saveToFile);
+
 
 
     lua_register(LuaVM, 'createStringlist', createStringlist);
