@@ -2957,7 +2957,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    lbl:=lua_touserdata(L,-1);
+    c:=lua_touserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, c.Font);
