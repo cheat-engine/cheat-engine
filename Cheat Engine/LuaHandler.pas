@@ -708,7 +708,7 @@ end;
 function print2(param: pointer): pointer;
 begin
   if frmLuaEngine=nil then
-    frmLuaEngine:=TfrmLuaEngine.Create(nil);
+    frmLuaEngine:=TfrmLuaEngine.Create(application);
 
   frmLuaEngine.mOutput.Lines.add(pchar(param));
 
