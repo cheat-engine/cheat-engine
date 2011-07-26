@@ -6,6 +6,7 @@ object frmNetworkConfig: TfrmNetworkConfig
   Caption = 'Connect to server'
   ClientHeight = 189
   ClientWidth = 293
+  OnCreate = FormCreate
   OnShow = FormShow
   Position = poOwnerFormCenter
   LCLVersion = '0.9.31'

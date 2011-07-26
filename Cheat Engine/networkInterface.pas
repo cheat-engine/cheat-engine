@@ -8,14 +8,25 @@ interface
 
 uses
   jwawindows, windows, Classes, SysUtils, Sockets, resolve, ctypes, networkconfig,
-  cefuncproc, newkernelhandler;
+  cefuncproc, newkernelhandler, math;
 
 type TCEConnection=class
   private
     socket: cint;
     fConnected: boolean;
+
+    rpmcache: array [0..15] of record //every connection is thread specific, so each thread has it's own rpmcache
+        lastupdate: TLargeInteger; //contains the last time this page was updated
+        baseaddress: PtrUInt;
+        memory: array [0..4095] of byte;
+      end;
+
     function receive(buffer: pointer; size: integer): integer;
     function send(buffer: pointer; size: integer): integer;
+
+    function CReadProcessMemory(hProcess: THandle; lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL;
+    function NReadProcessMemory(hProcess: THandle; lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL;
+
   public
     function Process32Next(hSnapshot: HANDLE; var lppe: PROCESSENTRY32; isfirst: boolean=false): BOOL;
     function Process32First(hSnapshot: HANDLE; var lppe: PROCESSENTRY32): BOOL;
@@ -23,7 +34,7 @@ type TCEConnection=class
     function CloseHandle(handle: THandle):WINBOOL;
     function OpenProcess(dwDesiredAccess:DWORD; bInheritHandle:WINBOOL; dwProcessId:DWORD):HANDLE;
     function VirtualQueryEx(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD;
-    function ReadProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL;
+    function ReadProcessMemory(hProcess: THandle; lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL;
     function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: DWORD): BOOL;
     function getVersion(var name: string): integer;
     property connected: boolean read fConnected;
@@ -142,7 +153,114 @@ begin
     end;
 end;
 
-function TCEConnection.ReadProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL;
+function TCEConnection.CReadProcessMemory(hProcess: THandle; lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL;
+//cached read process memory. Split up into pagechunks and check which pages need to be cached, and then read from the caches
+type TPageInfo=record
+    startaddress: ptruint;
+    memory: pbyte;
+  end;
+
+var pages: array of TPageInfo;
+  pagecount: ptruint;
+  i,j: integer;
+
+  oldest: integer;
+
+  freq: tlargeinteger;
+  currenttime: tlargeinteger;
+
+  x: dword;
+  blockoffset, blocksize: dword;
+  currentbase: ptruint;
+  currenttarget: ptruint;
+
+  m: PByte;
+begin
+  result:=false;
+  lpNumberOfBytesRead:=0;
+
+  pagecount:=1+((ptruint(lpBaseAddress)+nSize-1) shr 12) - (ptruint(lpBaseAddress) shr 12);
+  setlength(pages, pagecount);
+
+  QueryPerformanceFrequency(freq);
+  QueryPerformanceCounter(currenttime);
+
+  //if ptruint(lpBaseAddress)=$40000c then
+
+
+  for i:=0 to pagecount-1 do
+  begin
+    pages[i].startaddress:=(ptruint(lpBaseAddress) and ptruint(not $fff)) + (i*4096);
+    pages[i].memory:=nil;
+    //find the mapped page, if not found, map it
+
+    oldest:=0;
+
+
+
+
+    for j:=0 to 15 do
+    begin
+      if rpmcache[j].baseaddress=pages[i].startaddress then
+      begin
+        //check if the page is too old
+        if ((currenttime-rpmcache[j].lastupdate) / freq) > 0.5 then //too old, refetch
+          oldest:=i //so it gets reused
+        else //not too old, can still be used
+          pages[i].memory:=@rpmcache[j].memory[0];
+
+        break;
+      end;
+
+      if (rpmcache[j].lastupdate<rpmcache[oldest].lastupdate) then
+        oldest:=j;
+    end;
+
+    if pages[i].memory=nil then
+    begin
+      //map this page to the oldest entry
+      pages[i].memory:=@(rpmcache[oldest].memory[0]);
+      if not NReadProcessMemory(hProcess, pointer(pages[i].startaddress), pages[i].memory, 4096, x) then
+      begin
+        if i=0 then exit; //no need to continue, the start is unreadable
+        pages[i].memory:=nil; //mark as unreadable, perhaps a few bytes can still be read
+      end
+      else
+      begin
+        rpmcache[oldest].lastupdate:=currenttime; //successful read
+        rpmcache[oldest].baseaddress:=pages[i].startaddress;
+      end;
+    end;
+  end;
+
+  //all pages should be mapped now, so start copying till the end or till a nil map is encountered
+
+  currentbase:=ptruint(lpbaseaddress);
+  currenttarget:=ptruint(lpBuffer);
+  for i:=0 to pagecount-1 do
+  begin
+    if pages[i].memory=nil then exit; //done
+
+    m:=pbyte(pages[i].memory);
+
+    //check what part of this page can be copied
+    blockoffset:=currentbase and $fff; //start in this block
+    blocksize:=min(nsize, 4096-blockoffset);
+
+    CopyMemory(pointer(currenttarget), @m[blockoffset], blocksize);
+
+    currentbase:=currentbase+blocksize; //next page
+    currenttarget:=currenttarget+blocksize;
+    lpNumberOfBytesRead:=lpNumberOfBytesRead+blocksize;
+
+    nsize:=nsize-blocksize;
+  end;
+
+  result:=true; //everything got copied
+end;
+
+function TCEConnection.NReadProcessMemory(hProcess: THandle; lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL;
+//Network read process memory
 var
   input: packed record
     command: byte;
@@ -155,30 +273,52 @@ var
     bytesread: integer;
     //followed by the bytes
   end;
+begin
+  result:=false;
+  lpNumberOfBytesRead:=0;
 
+  //still here so not everything was cached
+  input.command:=CMD_READPROCESSMEMORY;
+  input.handle:=hProcess;
+  input.baseaddress:=ptruint(lpBaseAddress);
+  input.size:=nSize;
+  if send(@input, sizeof(input))>0 then
+  begin
+    if receive(@output, sizeof(output))>0 then
+    begin
+      if output.bytesread>0 then
+      begin
+        if receive(lpBuffer, output.bytesread)>0 then
+        begin
+          result:=true;
+          lpNumberOfBytesRead:=output.bytesread;
+        end;
+
+      end;
+    end;
+  end;
+end;
+
+function TCEConnection.ReadProcessMemory(hProcess: THandle; lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL;
 begin
   if ((hProcess shr 24) and $ff)= $ce then
   begin
     result:=false;
-    input.command:=CMD_READPROCESSMEMORY;
-    input.handle:=hProcess and $ffffff;
-    input.baseaddress:=ptruint(lpBaseAddress);
-    input.size:=nSize;
-    if send(@input, sizeof(input))>0 then
-    begin
-      if receive(@output, sizeof(output))>0 then
-      begin
-        if output.bytesread>0 then
-        begin
-          if receive(lpBuffer, output.bytesread)>0 then
-          begin
-            result:=true;
-            lpNumberOfBytesRead:=output.bytesread;
-          end;
+    lpNumberOfBytesRead:=0;
 
-        end;
-      end;
-    end;
+    hProcess:=hProcess and $ffffff;
+
+    if nsize=0 then exit;
+
+    if (nsize<=8192) then
+    begin
+      result:=CReadProcessMemory(hProcess, lpBaseAddress, lpBuffer, nsize, lpNumberOfBytesRead);
+    end
+    else //just fetch it all from the net , ce usually does not fetch more than 8KB for random accesses, so would be a waste of time
+      result:=NReadProcessMemory(hProcess, lpBaseaddress, lpbuffer, nsize, lpNumberOfBytesRead);
+
+
+
   end
   else
     result:=windows.ReadProcessMemory(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesRead);
@@ -371,7 +511,7 @@ begin
     result:=0;
     while (result<size) do
     begin
-      i:=fprecv(socket, pointer(ptruint(buffer)+result), size, 0);
+      i:=fprecv(socket, pointer(ptruint(buffer)+result), size-result, 0);
       if i<=0 then
       begin
         result:=i; //error
@@ -379,6 +519,7 @@ begin
       end;
 
       inc(result, i);
+
     end;
 
   {$else}
@@ -388,6 +529,7 @@ end;
 
 constructor TCEConnection.create;
 var SockAddr: TInetSockAddr;
+  retry: integer;
 begin
 
   socket:=INVALID_SOCKET;
@@ -401,8 +543,14 @@ begin
   SockAddr.Port := port;
   SockAddr.Addr := host.s_addr;
 
-  if fpconnect(socket, @SockAddr, sizeof(SockAddr)) >=0 then
-    fConnected:=true;
+  retry:=0;
+  while not (fConnected) and (retry<5) do
+  begin
+    if fpconnect(socket, @SockAddr, sizeof(SockAddr)) >=0 then
+      fConnected:=true
+    else
+      inc(retry);
+  end;
 end;
 
 destructor TCEConnection.destroy;
