@@ -2,6 +2,8 @@ unit vmxfunctions;
 
 interface
 
+{$mode DELPHI}
+
 uses windows, classes, dialogs, sysutils;
 
 const
@@ -409,7 +411,7 @@ begin
       getDriverList(d);
       base:=ptruint(d.Objects[0]);
       for i:=0 to kernelfunctions.Count-1 do
-        kernelfunctions.Objects[i]:=pointer(ptruint(kernelfunctions.objects[i])+base);
+        kernelfunctions.Objects[i]:=tobject(ptruint(kernelfunctions.objects[i])+base);
 
 
       //also add the hal.dll functions in the rare case it's imported by a driver...
@@ -422,7 +424,7 @@ begin
           try
             peinfo_getExportList(WindowsDir+'\System32\hal.dll', hal);
             for j:=0 to hal.count-1 do
-              hal.Objects[i]:=pointer(ptruint(hal.objects[i])+base);
+              hal.Objects[i]:=Tobject(ptruint(hal.objects[i])+base);
 
             kernelfunctions.AddStrings(hal);
           finally

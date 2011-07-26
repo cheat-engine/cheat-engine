@@ -657,6 +657,8 @@ var
   DBKDebug_GD_SetBreakpoint   : TDBKDebug_GD_SetBreakpoint;
 
 
+  closeHandle                 : function (hObject:HANDLE):WINBOOL; stdcall;
+
  {    just include vmxfunctions
   //dbvm ce000000+
   dbvm_changeselectors    :Tdbvm_changeselectors;
@@ -1239,8 +1241,9 @@ initialization
 
   IsWow64Process:=   GetProcAddress(WindowsKernel, 'IsWow64Process');
 
-  GetLargePageMinimum:=GetProcAddress(WindowsKernel, 'GetLargePageMinimum');
+  CloseHandle:=GetProcAddress(Windowskernel, 'CloseHandle');
 
+  GetLargePageMinimum:=GetProcAddress(WindowsKernel, 'GetLargePageMinimum');
   if not assigned(GetLargePageMinimum) then
     GetLargePageMinimum:=@GetLargePageMinimumStub;
 

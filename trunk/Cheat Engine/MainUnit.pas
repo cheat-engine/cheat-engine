@@ -18,7 +18,8 @@ uses
   customtypehandler, lua,luahandler, lauxlib, lualib, frmSelectionlistunit,
   htmlhelp, win32int, {defaulttranslator,} fileaccess, formdesignerunit,
   ceguicomponents, frmautoinjectunit, cesupport, trainergenerator, genericHotkey,
-  luafile, xmplayer_server, sharedMemory{$ifdef windows},win32proc{$endif}, vmxfunctions, FileUtil;
+  luafile, xmplayer_server, sharedMemory{$ifdef windows},win32proc{$endif},
+  vmxfunctions, FileUtil, networkInterfaceApi, networkconfig;
 
 //the following are just for compatibility
 
@@ -2348,7 +2349,7 @@ end;
 
 procedure TMainForm.Label3Click(Sender: TObject);
 begin
-
+  InitializeNetworkInterface;
 end;
 
 
@@ -4077,6 +4078,7 @@ begin
   foundlist:=tfoundlist.create(foundlist3,memscan);
 
   InitializeLuaScripts;
+
 end;
 
 procedure TMainForm.ChangedHandle(Sender: TObject);
@@ -6474,8 +6476,15 @@ var cr3: qword;
     HandlerCount: integer;
 begin
 
-  frmUltimap:=TfrmUltimap.create(application);
-  frmUltimap.show;
+  //frmUltimap:=TfrmUltimap.create(application);
+  //frmUltimap.show;
+
+  if frmNetworkConfig=nil then
+    frmNetworkConfig:=TfrmNetworkConfig.create(self);
+
+  frmNetworkConfig.Show;
+
+
 
   {
   GetCR3(processhandle, cr3);

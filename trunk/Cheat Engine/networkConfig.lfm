@@ -1,0 +1,116 @@
+object frmNetworkConfig: TfrmNetworkConfig
+  Left = 329
+  Height = 189
+  Top = 205
+  Width = 293
+  Caption = 'Connect to server'
+  ClientHeight = 189
+  ClientWidth = 293
+  OnShow = FormShow
+  Position = poOwnerFormCenter
+  LCLVersion = '0.9.31'
+  object GroupBox1: TGroupBox
+    Left = 0
+    Height = 116
+    Top = 0
+    Width = 293
+    Align = alClient
+    Caption = 'Discovered servers'
+    ClientHeight = 98
+    ClientWidth = 289
+    TabOrder = 0
+    object ListView1: TListView
+      Left = 0
+      Height = 98
+      Top = 0
+      Width = 289
+      Align = alClient
+      Columns = <      
+        item
+          Caption = 'IP'
+          Width = 200
+        end      
+        item
+          Caption = 'Port'
+          Width = 81
+        end>
+      PopupMenu = PopupMenu1
+      ReadOnly = True
+      RowSelect = True
+      TabOrder = 0
+      ViewStyle = vsReport
+      OnDblClick = ListView1DblClick
+      OnSelectItem = ListView1SelectItem
+    end
+  end
+  object Panel1: TPanel
+    Left = 0
+    Height = 73
+    Top = 116
+    Width = 293
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 73
+    ClientWidth = 293
+    TabOrder = 1
+    object edtHost: TEdit
+      Left = 8
+      Height = 23
+      Top = 16
+      Width = 216
+      TabOrder = 0
+    end
+    object edtPort: TEdit
+      Left = 232
+      Height = 23
+      Top = 16
+      Width = 48
+      TabOrder = 1
+      Text = '52736'
+    end
+    object btnConnect: TButton
+      Left = 72
+      Height = 25
+      Top = 44
+      Width = 75
+      Caption = 'Connect'
+      Default = True
+      OnClick = btnConnectClick
+      TabOrder = 2
+    end
+    object Label1: TLabel
+      Left = 8
+      Height = 16
+      Top = 1
+      Width = 26
+      Caption = 'Host'
+      ParentColor = False
+    end
+    object Label2: TLabel
+      Left = 232
+      Height = 16
+      Top = 0
+      Width = 23
+      Caption = 'Port'
+      ParentColor = False
+    end
+    object Button2: TButton
+      Left = 168
+      Height = 25
+      Top = 44
+      Width = 75
+      Cancel = True
+      Caption = 'Cancel'
+      ModalResult = 2
+      TabOrder = 3
+    end
+  end
+  object PopupMenu1: TPopupMenu
+    left = 117
+    top = 60
+    object MenuItem1: TMenuItem
+      Caption = 'Refresh list'
+      OnClick = MenuItem1Click
+    end
+  end
+end

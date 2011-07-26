@@ -86,6 +86,7 @@ uses MainUnit,ceguicomponents, opensave;
 
 resourcestring
   rsSaving = 'Saving...';
+  rsGenerate = 'Generate';
   rsFailureOnWriting = 'failure on writing';
   rsIconUpdateError = 'icon update error';
   rsFailureOpeningTheTrainerForResourceUpdates = 'Failure opening the trainer '
@@ -163,6 +164,7 @@ begin
     end;
   finally
     f.free;
+    button2.caption:=rsGenerate;
   end;
 end;
 
