@@ -1367,7 +1367,6 @@ object MainForm: TMainForm
       Width = 33
       Caption = 'Label3'
       ParentColor = False
-      Visible = False
       OnClick = Label3Click
     end
   end

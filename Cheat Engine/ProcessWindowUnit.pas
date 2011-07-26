@@ -20,7 +20,11 @@ public
 end;
 
 type
+
+  { TProcessWindow }
+
   TProcessWindow = class(TForm)
+    btnNetwork: TButton;
     ProcessList: TListBox;
     Panel1: TPanel;
     OpenDialog1: TOpenDialog;
@@ -29,9 +33,9 @@ type
     InputPIDmanually1: TMenuItem;
     Filter1: TMenuItem;
     Panel2: TPanel;
-    Button6: TButton;
-    Button2: TButton;
-    Button1: TButton;
+    btnProcessWatch: TButton;
+    btnWindowList: TButton;
+    btnProcesslist: TButton;
     Button5: TButton;
     btnCreateThread: TButton;
     Button4: TButton;
@@ -39,16 +43,17 @@ type
     OKButton: TButton;
     btnProcessListLong: TButton;
     Showinvisiblewindows1: TMenuItem;
+    procedure btnNetworkClick(Sender: TObject);
     procedure CancelButtonClick(Sender: TObject);
     procedure OKButtonClick(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
+    procedure btnProcesslistClick(Sender: TObject);
+    procedure btnWindowListClick(Sender: TObject);
     procedure btnCreateThreadClick(Sender: TObject);
     procedure Button4Click(Sender: TObject);
     procedure Button5Click(Sender: TObject);
     procedure InputPIDmanually1Click(Sender: TObject);
     procedure Filter1Click(Sender: TObject);
-    procedure Button6Click(Sender: TObject);
+    procedure btnProcessWatchClick(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure btnProcessListLongClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -79,7 +84,8 @@ var
 implementation
 
 
-uses MainUnit, formsettingsunit, advancedoptionsunit,frmProcessWatcherUnit,memorybrowserformunit;
+uses MainUnit, formsettingsunit, advancedoptionsunit,frmProcessWatcherUnit,
+  memorybrowserformunit, networkConfig;
 
 resourcestring
   rsIsnTAValidProcessID = '%s isn''t a valid processID';
@@ -167,8 +173,8 @@ procedure TProcesswindow.SetFilter(filter:string);
 begin
   ffilter:=filter;
   case currentlist of
-    0: button1.Click;
-    1: button2.click;
+    0: btnProcesslist.Click;
+    1: btnWindowList.click;
   end;
 
   filterlist;
@@ -182,19 +188,29 @@ begin
   ModalResult:=mrCancel;
 end;
 
+procedure TProcessWindow.btnNetworkClick(Sender: TObject);
+begin
+  if frmNetworkConfig=nil then
+    frmNetworkConfig:=tfrmNetworkConfig.create(self);
+
+  if frmNetworkConfig.ShowModal=mrok then
+    btnProcesslist.Click;
+
+end;
+
 procedure TProcessWindow.setbuttons;
 begin
   if formsettings.cbProcesswatcher.Checked then
   begin
-    button6.Visible:=true;
-    button1.Left:=7;
-    button2.Left:=83;
-    button6.Left:=159;
+    btnProcessWatch.Visible:=true;
+    btnProcesslist.Left:=7;
+    btnWindowList.Left:=83;
+    btnProcessWatch.Left:=159;
   end else
   begin
-    button6.Visible:=false;
-    button1.Left:=44;
-    button2.Left:=120;
+    btnProcessWatch.Visible:=false;
+    btnProcesslist.Left:=44;
+    btnWindowList.Left:=120;
   end;
 
 
@@ -239,7 +255,10 @@ begin
     ProcessHandler.ProcessHandle:=$FFFFFFFF;
   end
   else
-    DBKProcessMemory;
+  begin
+    if usephysical or usephysicaldbvm then
+      DBKProcessMemory;
+  end;
 
 end;
 
@@ -266,7 +285,7 @@ end;
 
 
 //button1click specific:
-procedure TProcessWindow.Button1Click(Sender: TObject);
+procedure TProcessWindow.btnProcesslistClick(Sender: TObject);
 var oldselection: string;
     oldselectionIndex: integer;
     i: integer;
@@ -319,7 +338,7 @@ begin
 
 end;
 
-procedure TProcessWindow.Button2Click(Sender: TObject);
+procedure TProcessWindow.btnWindowListClick(Sender: TObject);
 begin
   currentlist:=1;
   Showinvisiblewindows1.visible:=true;
@@ -439,7 +458,7 @@ begin
     filter:=fltr;
 end;
 
-procedure TProcessWindow.Button6Click(Sender: TObject);
+procedure TProcessWindow.btnProcessWatchClick(Sender: TObject);
 begin
 
   if frmprocesswatcher=nil then
@@ -505,7 +524,7 @@ procedure TProcessWindow.FormShow(Sender: TObject);
 begin
 
   currentchar:=1;
-  button1.click;
+  btnProcesslist.click;
 
   setbuttons;
 
@@ -516,7 +535,7 @@ begin
   if Showinvisiblewindows1.Visible then
   begin
     Showinvisiblewindows1.Checked:=not Showinvisiblewindows1.Checked;
-    button2.Click;
+    btnWindowList.Click;
   end;
 end;
 
