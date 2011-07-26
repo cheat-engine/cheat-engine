@@ -523,6 +523,7 @@ listitem_getSubItems(listitem): Returns a Strings object
 ListItems class : (Inheritance: TObject)
 listitems_clear(listitems)
 listitems_getCount(listitems)
+listitems_getItem(li, index) : 6.2:Return the listitem object at the given index
 listitems_add(listitems): Returns a new ListItem object
 
 
@@ -938,3 +939,4 @@ dbvm_raise_privilege   : Address of function dbvm_raise_privilege : DWORD; stdca
 dbvm_restore_interrupts: Address of function dbvm_restore_interrupts : DWORD; stdcall;
 dbvm_changeselectors   : Address of function dbvm_changeselectors(cs,ss,ds,es,fs,gs: dword): DWORD; stdcall; 
 --]]
+

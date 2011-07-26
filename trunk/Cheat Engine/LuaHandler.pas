@@ -6451,6 +6451,26 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
+function listitems_getItem(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  listitems: Tlistitems;
+  index: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    listitems:=lua_touserdata(L,-parameters);
+    index:=lua_tointeger(L,-parameters+1);
+    lua_pop(L, parameters);
+
+    lua_pushlightuserdata(L, listitems.Item[index]);
+    result:=1;
+
+  end else lua_pop(L, parameters);
+end;
+
 function listitems_getCount(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
@@ -8902,6 +8922,7 @@ begin
 
     lua_register(LuaVM, 'listitems_clear', listitems_clear);
     lua_register(LuaVM, 'listitems_getCount', listitems_getCount);
+    lua_register(LuaVM, 'listitems_getItem', listitems_getItem);
     lua_register(LuaVM, 'listitems_add', listitems_add);
 
 
