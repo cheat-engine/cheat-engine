@@ -236,10 +236,13 @@ begin
     PushFunction;
     lua_pushinteger(luavm, address);
     lua_pushinteger(luavm, integer(originalVariableType));
-    if lua_pcall(LuaVM, 2, 1, 0)>0 then
+    if lua_pcall(LuaVM, 2, 1, 0)=0 then
       result:=TVariableType(lua_tointeger(LuaVM,-1))
     else
       result:=originalVariableType;
+
+
+
 
   finally
     lua_settop(Luavm, oldstack);
@@ -276,7 +279,7 @@ begin
     pushFunction;
     lua_pushlightuserdata(luavm, sender);
     lua_pushstring(luavm, key);
-    if lua_pcall(LuaVM, 2, 1, 0)>0 then
+    if lua_pcall(LuaVM, 2, 1, 0)=0 then
     begin
       s:=lua_tostring(LuaVM,-1);
       if length(s)>0 then
