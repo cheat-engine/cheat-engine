@@ -5,8 +5,9 @@ unit networkConfig;
 interface
 
 uses
-  jwawindows, windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, ComCtrls, Menus, resolve, Sockets, ctypes;
+  jwawindows, windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics,
+  Dialogs, StdCtrls, ExtCtrls, ComCtrls, Menus, resolve, Sockets, ctypes,
+  registry;
 
 type
 
@@ -27,6 +28,7 @@ type
     Panel1: TPanel;
     PopupMenu1: TPopupMenu;
     procedure btnConnectClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure ListView1DblClick(Sender: TObject);
     procedure ListView1SelectItem(Sender: TObject; Item: TListItem;
@@ -252,9 +254,41 @@ end;
 
 
 procedure TfrmNetworkConfig.btnConnectClick(Sender: TObject);
+var reg: Tregistry;
 begin
   CEconnect(edtHost.text, strtoint(edtPort.text));
-  modalresult:=mrok; //still here so the connection is made
+
+  //still here so the connection is made
+  reg:=tregistry.create;
+  try
+    if reg.OpenKey('\Software\Cheat Engine\',false) then
+    begin
+      reg.WriteString('Last Connect IP', edtHost.text);
+      reg.WriteString('Last Connect Port', edtport.text);
+    end;
+  finally
+    reg.free;
+  end;
+
+  modalresult:=mrok;
+end;
+
+procedure TfrmNetworkConfig.FormCreate(Sender: TObject);
+var reg: tregistry;
+begin
+  reg:=tregistry.create;
+  try
+    if reg.OpenKey('\Software\Cheat Engine\',false) then
+    begin
+      if reg.ValueExists('Last Connect IP') then
+        edtHost.text:=reg.ReadString('Last Connect IP');
+
+      if reg.ValueExists('Last Connect Port') then
+        edtport.text:=reg.ReadString('Last Connect Port');
+    end;
+  finally
+    reg.free;
+  end;
 end;
 
 procedure TfrmNetworkConfig.ListView1DblClick(Sender: TObject);
