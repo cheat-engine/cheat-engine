@@ -92,14 +92,16 @@ begin
     if tceform(mainform.luaforms[i]).visible then
     begin
       //first visible window in the formlist becomes the new taskbar window
-      tceform(mainform.luaforms[i]).ShowInTaskBar:=stAlways;
+      try
+        tceform(mainform.luaforms[i]).ShowInTaskBar:=stAlways;
+        tceform(mainform.luaforms[i]).formstyle:=fsStayOnTop;
+        tceform(mainform.luaforms[i]).formstyle:=fsNormal;
 
-      tceform(mainform.luaforms[i]).formstyle:=fsStayOnTop;
+        application.title:=tceform(mainform.luaforms[i]).Caption;
+        application.icon:=tceform(mainform.luaforms[i]).Icon;
+      except
 
-      tceform(mainform.luaforms[i]).formstyle:=fsNormal;
-
-      application.title:=tceform(mainform.luaforms[i]).Caption;
-      application.icon:=tceform(mainform.luaforms[i]).Icon;
+      end;
 
       break;
     end;

@@ -204,7 +204,7 @@ begin
       if rpmcache[j].baseaddress=pages[i].startaddress then
       begin
         //check if the page is too old
-        if ((currenttime-rpmcache[j].lastupdate) / freq) > 0.5 then //too old, refetch
+        if ((currenttime-rpmcache[j].lastupdate) / freq) > 5 then //too old, refetch
           oldest:=i //so it gets reused
         else //not too old, can still be used
           pages[i].memory:=@rpmcache[j].memory[0];
@@ -335,26 +335,34 @@ type TWPMrecord=packed record
     PWPMRecord=^TWPMRecord;
 var
   input: PWPMrecord;
+  i: pbyte;
 
   output: packed record
     byteswritten: integer;
     //followed by the bytes
   end;
 
+  j: integer;
+
+  b: ptruint;
+
 begin
   if ((hProcess shr 24) and $ff)= $ce then
   begin
     result:=false;
+    lpNumberOfBytesWritten:=0;
+
     input:=getmem(sizeof(TWPMRecord)+nSize);
 
     input^.command:=CMD_WRITEPROCESSMEMORY;
     input^.handle:=hProcess and $ffffff;
     input^.baseaddress:=ptruint(lpBaseAddress);
     input^.size:=nSize;
+
     CopyMemory(@input[1], lpBuffer, nSize);
 
 
-    if send(@input, sizeof(TWPMRecord)+nSize)>0 then
+    if send(input, sizeof(TWPMRecord)+nSize)>0 then
     begin
       if receive(@output, sizeof(output))>0 then
       begin
@@ -362,6 +370,16 @@ begin
         begin
           result:=true;
           lpNumberOfBytesWritten:=output.byteswritten;
+
+          if (lpNumberOfBytesWritten>0) then //for 1 byte changes
+          begin
+            //clear rpm cache for this entry if there is one
+
+            b:=ptruint(lpBaseAddress) and (not $fff);
+            for j:=0 to 15 do
+              if rpmcache[j].baseaddress=b then
+                rpmcache[j].lastupdate:=0; //set to outdated
+          end;
         end;
       end;
     end;
