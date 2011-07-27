@@ -19,7 +19,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
       <MinorVersionNr Value="1"/>
-      <BuildNr Value="1835"/>
+      <BuildNr Value="1841"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="6.1"/>
@@ -156,15 +156,15 @@
         <PackageName Value="LCL"/>
       </Item5>
     </RequiredPackages>
-    <Units Count="207">
+    <Units Count="208">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="cheatengine"/>
-        <EditorIndex Value="14"/>
+        <EditorIndex Value="23"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="59"/>
-        <CursorPos X="1" Y="129"/>
+        <TopLine Value="83"/>
+        <CursorPos X="9" Y="89"/>
         <UsageCount Value="211"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -189,12 +189,11 @@
         <UnitName Value="MainUnit"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="4047"/>
-        <CursorPos X="1" Y="4070"/>
+        <TopLine Value="451"/>
+        <CursorPos X="25" Y="478"/>
         <UsageCount Value="211"/>
-        <Bookmarks Count="2">
+        <Bookmarks Count="1">
           <Item0 X="1" Y="1856" ID="2"/>
-          <Item1 X="1" Y="6482" ID="8"/>
         </Bookmarks>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -204,7 +203,7 @@
         <Filename Value="NewKernelHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="NewKernelHandler"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="15"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1169"/>
         <CursorPos X="32" Y="1176"/>
@@ -216,7 +215,7 @@
         <Filename Value="CEFuncProc.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="CEFuncProc"/>
-        <EditorIndex Value="9"/>
+        <EditorIndex Value="17"/>
         <WindowIndex Value="0"/>
         <TopLine Value="2335"/>
         <CursorPos X="1" Y="2351"/>
@@ -280,10 +279,12 @@
         <Filename Value="byteinterpreter.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="byteinterpreter"/>
+        <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="111" Y="9"/>
+        <TopLine Value="323"/>
+        <CursorPos X="35" Y="360"/>
         <UsageCount Value="200"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit10>
       <Unit11>
@@ -332,7 +333,7 @@
         <ComponentName Value="ProcessWindow"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="ProcessWindowUnit"/>
-        <EditorIndex Value="8"/>
+        <EditorIndex Value="16"/>
         <WindowIndex Value="0"/>
         <TopLine Value="86"/>
         <CursorPos X="4" Y="197"/>
@@ -345,10 +346,12 @@
         <Filename Value="MainUnit2.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="MainUnit2"/>
+        <EditorIndex Value="19"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="764"/>
+        <TopLine Value="10"/>
         <CursorPos X="49" Y="783"/>
         <UsageCount Value="203"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit16>
       <Unit17>
@@ -629,10 +632,12 @@
         <Filename Value="memscan.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="memscan"/>
+        <EditorIndex Value="12"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="5222"/>
-        <CursorPos X="1" Y="5236"/>
+        <TopLine Value="3329"/>
+        <CursorPos X="1" Y="3345"/>
         <UsageCount Value="209"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit41>
       <Unit42>
@@ -707,10 +712,12 @@
         <Filename Value="speedhack2.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="speedhack2"/>
+        <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="155"/>
+        <TopLine Value="88"/>
         <CursorPos X="7" Y="151"/>
         <UsageCount Value="202"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit48>
       <Unit49>
@@ -1295,7 +1302,7 @@
         <ComponentName Value="frmStructures"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Structuresfrm"/>
-        <EditorIndex Value="13"/>
+        <EditorIndex Value="22"/>
         <WindowIndex Value="0"/>
         <TopLine Value="2605"/>
         <CursorPos X="51" Y="2705"/>
@@ -1793,10 +1800,10 @@
         <Filename Value="LuaHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaHandler"/>
-        <EditorIndex Value="2"/>
+        <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="8707"/>
-        <CursorPos X="10" Y="9143"/>
+        <TopLine Value="6448"/>
+        <CursorPos X="40" Y="6465"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
           <WindowIndex Value="0"/>
@@ -1924,10 +1931,12 @@
         <Filename Value="LuaCaller.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaCaller"/>
+        <EditorIndex Value="9"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="83"/>
-        <CursorPos X="3" Y="86"/>
+        <TopLine Value="263"/>
+        <CursorPos X="50" Y="280"/>
         <UsageCount Value="234"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit154>
       <Unit155>
@@ -1956,10 +1965,13 @@
         <ComponentName Value="frmTrainerGenerator"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="trainergenerator"/>
+        <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="872"/>
-        <CursorPos X="30" Y="887"/>
+        <TopLine Value="1"/>
+        <CursorPos X="34" Y="12"/>
         <UsageCount Value="209"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit157>
       <Unit158>
@@ -2040,10 +2052,12 @@
         <Filename Value="IconStuff.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="IconStuff"/>
+        <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="155"/>
-        <CursorPos X="12" Y="169"/>
+        <TopLine Value="239"/>
+        <CursorPos X="36" Y="257"/>
         <UsageCount Value="200"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit165>
       <Unit166>
@@ -2220,7 +2234,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="7"/>
         <CursorPos X="1" Y="1"/>
-        <UsageCount Value="83"/>
+        <UsageCount Value="75"/>
       </Unit182>
       <Unit183>
         <Filename Value="frmHotkeyExUnit.pas"/>
@@ -2250,7 +2264,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1436"/>
         <CursorPos X="10" Y="1451"/>
-        <UsageCount Value="97"/>
+        <UsageCount Value="89"/>
       </Unit185>
       <Unit186>
         <Filename Value="C:\lazarus\fpc\2.4.4\source\rtl\objpas\math.pp"/>
@@ -2258,28 +2272,28 @@
         <WindowIndex Value="0"/>
         <TopLine Value="152"/>
         <CursorPos X="17" Y="159"/>
-        <UsageCount Value="96"/>
+        <UsageCount Value="88"/>
       </Unit186>
       <Unit187>
         <Filename Value="C:\lazarus\fpc\2.4.4\source\rtl\objpas\sysutils\osutilsh.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="12"/>
         <CursorPos X="11" Y="27"/>
-        <UsageCount Value="111"/>
+        <UsageCount Value="103"/>
       </Unit187>
       <Unit188>
         <Filename Value="C:\lazarus\fpc\2.4.4\source\rtl\objpas\sysutils\filutilh.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="14"/>
         <CursorPos X="3" Y="17"/>
-        <UsageCount Value="111"/>
+        <UsageCount Value="103"/>
       </Unit188>
       <Unit189>
         <Filename Value="C:\lazarus\fpc\2.4.4\source\rtl\objpas\sysutils\sysutils.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="42"/>
         <CursorPos X="7" Y="27"/>
-        <UsageCount Value="111"/>
+        <UsageCount Value="103"/>
       </Unit189>
       <Unit190>
         <Filename Value="C:\lazarus\lcl\stdctrls.pp"/>
@@ -2287,7 +2301,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1465"/>
         <CursorPos X="17" Y="1480"/>
-        <UsageCount Value="85"/>
+        <UsageCount Value="77"/>
       </Unit190>
       <Unit191>
         <Filename Value="C:\lazarus\lcl\controls.pp"/>
@@ -2295,14 +2309,14 @@
         <WindowIndex Value="0"/>
         <TopLine Value="872"/>
         <CursorPos X="14" Y="1427"/>
-        <UsageCount Value="85"/>
+        <UsageCount Value="77"/>
       </Unit191>
       <Unit192>
         <Filename Value="C:\lazarus\lcl\include\customlabel.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="410"/>
         <CursorPos X="8" Y="468"/>
-        <UsageCount Value="82"/>
+        <UsageCount Value="74"/>
       </Unit192>
       <Unit193>
         <Filename Value="C:\lazarus\lcl\graphics.pp"/>
@@ -2310,7 +2324,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="979"/>
         <CursorPos X="14" Y="1159"/>
-        <UsageCount Value="82"/>
+        <UsageCount Value="74"/>
       </Unit193>
       <Unit194>
         <Filename Value="C:\lazarus\fpc\2.4.4\source\packages\winunits-jedi\src\jwatlhelp32.pas"/>
@@ -2318,17 +2332,21 @@
         <WindowIndex Value="0"/>
         <TopLine Value="81"/>
         <CursorPos X="21" Y="96"/>
-        <UsageCount Value="81"/>
+        <UsageCount Value="73"/>
       </Unit194>
       <Unit195>
         <Filename Value="networkInterface.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="networkInterface"/>
-        <EditorIndex Value="1"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="42"/>
-        <CursorPos X="1" Y="391"/>
-        <UsageCount Value="107"/>
+        <TopLine Value="359"/>
+        <CursorPos X="53" Y="381"/>
+        <UsageCount Value="192"/>
+        <Bookmarks Count="1">
+          <Item0 X="16" Y="248" ID="8"/>
+        </Bookmarks>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit195>
@@ -2336,11 +2354,11 @@
         <Filename Value="networkInterfaceApi.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="networkInterfaceApi"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="138"/>
-        <CursorPos X="54" Y="166"/>
-        <UsageCount Value="64"/>
+        <TopLine Value="76"/>
+        <CursorPos X="1" Y="92"/>
+        <UsageCount Value="149"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit196>
@@ -2350,212 +2368,222 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="networkConfig"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="10"/>
+        <EditorIndex Value="18"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="197"/>
-        <CursorPos X="30" Y="224"/>
-        <UsageCount Value="47"/>
+        <TopLine Value="271"/>
+        <CursorPos X="37" Y="287"/>
+        <UsageCount Value="89"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit197>
       <Unit198>
-        <Filename Value="C:\lazarus\fpc\2.4.4\source\rtl\win\wininc\func.inc"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="169"/>
-        <CursorPos X="1" Y="184"/>
-        <UsageCount Value="7"/>
-      </Unit198>
-      <Unit199>
         <Filename Value="C:\lazarus\fpc\2.4.4\source\rtl\inc\socketsh.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="57"/>
         <CursorPos X="6" Y="72"/>
-        <UsageCount Value="12"/>
-      </Unit199>
-      <Unit200>
+        <UsageCount Value="4"/>
+      </Unit198>
+      <Unit199>
         <Filename Value="C:\lazarus\fpc\2.4.4\source\rtl\win\wininc\defines.inc"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
         <TopLine Value="496"/>
         <CursorPos X="14" Y="507"/>
-        <UsageCount Value="32"/>
+        <UsageCount Value="74"/>
         <Loaded Value="True"/>
-      </Unit200>
-      <Unit201>
+      </Unit199>
+      <Unit200>
         <Filename Value="C:\lazarus\fpc\2.4.4\source\rtl\objpas\classes\classesh.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1500"/>
         <CursorPos X="15" Y="1515"/>
-        <UsageCount Value="12"/>
-      </Unit201>
-      <Unit202>
+        <UsageCount Value="4"/>
+      </Unit200>
+      <Unit201>
         <Filename Value="C:\lazarus\fpc\2.4.4\source\rtl\win\tthread.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="100"/>
         <CursorPos X="3" Y="103"/>
-        <UsageCount Value="11"/>
-      </Unit202>
-      <Unit203>
+        <UsageCount Value="3"/>
+      </Unit201>
+      <Unit202>
         <Filename Value="C:\lazarus\fpc\2.4.4\source\packages\winunits-jedi\src\jwawindows.pas"/>
         <UnitName Value="JwaWindows"/>
-        <EditorIndex Value="12"/>
+        <EditorIndex Value="21"/>
         <WindowIndex Value="0"/>
         <TopLine Value="345"/>
         <CursorPos X="3" Y="363"/>
-        <UsageCount Value="11"/>
+        <UsageCount Value="53"/>
+        <Loaded Value="True"/>
+      </Unit202>
+      <Unit203>
+        <Filename Value="C:\lazarus\lcl\comctrls.pp"/>
+        <UnitName Value="ComCtrls"/>
+        <EditorIndex Value="20"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1012"/>
+        <CursorPos X="14" Y="1028"/>
+        <UsageCount Value="53"/>
         <Loaded Value="True"/>
       </Unit203>
       <Unit204>
-        <Filename Value="C:\lazarus\lcl\comctrls.pp"/>
-        <UnitName Value="ComCtrls"/>
-        <EditorIndex Value="11"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="1133"/>
-        <CursorPos X="3" Y="1149"/>
-        <UsageCount Value="11"/>
-        <Loaded Value="True"/>
-      </Unit204>
-      <Unit205>
         <Filename Value="C:\lazarus\lcl\interfaces\win32\win32winapi.inc"/>
-        <EditorIndex Value="6"/>
+        <EditorIndex Value="14"/>
         <WindowIndex Value="0"/>
         <TopLine Value="3582"/>
         <CursorPos X="1" Y="3598"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="53"/>
+        <Loaded Value="True"/>
+      </Unit204>
+      <Unit205>
+        <Filename Value="C:\lazarus\fpc\2.4.4\source\rtl\inc\threadh.inc"/>
+        <EditorIndex Value="13"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="59" Y="10"/>
+        <UsageCount Value="53"/>
         <Loaded Value="True"/>
       </Unit205>
       <Unit206>
-        <Filename Value="C:\lazarus\fpc\2.4.4\source\rtl\inc\threadh.inc"/>
-        <EditorIndex Value="5"/>
+        <Filename Value="C:\lazarus\fpc\2.4.4\source\rtl\win\wininc\redef.inc"/>
+        <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="13"/>
-        <CursorPos X="3" Y="29"/>
-        <UsageCount Value="10"/>
+        <TopLine Value="743"/>
+        <CursorPos X="65" Y="759"/>
+        <UsageCount Value="34"/>
         <Loaded Value="True"/>
       </Unit206>
+      <Unit207>
+        <Filename Value="C:\lazarus\fpc\2.4.4\source\rtl\win\wininc\struct.inc"/>
+        <EditorIndex Value="5"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="2142"/>
+        <CursorPos X="19" Y="2158"/>
+        <UsageCount Value="34"/>
+        <Loaded Value="True"/>
+      </Unit207>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="networkInterfaceApi.pas"/>
-        <Caret Line="39" Column="1" TopLine="22"/>
+        <Filename Value="networkInterface.pas"/>
+        <Caret Line="358" Column="1" TopLine="336"/>
       </Position1>
       <Position2>
-        <Filename Value="networkInterfaceApi.pas"/>
-        <Caret Line="48" Column="1" TopLine="22"/>
+        <Filename Value="networkInterface.pas"/>
+        <Caret Line="361" Column="1" TopLine="336"/>
       </Position2>
       <Position3>
-        <Filename Value="networkInterfaceApi.pas"/>
-        <Caret Line="49" Column="1" TopLine="22"/>
+        <Filename Value="networkInterface.pas"/>
+        <Caret Line="363" Column="1" TopLine="339"/>
       </Position3>
       <Position4>
-        <Filename Value="networkInterfaceApi.pas"/>
-        <Caret Line="60" Column="1" TopLine="44"/>
+        <Filename Value="networkInterface.pas"/>
+        <Caret Line="371" Column="122" TopLine="339"/>
       </Position4>
       <Position5>
         <Filename Value="networkInterface.pas"/>
-        <Caret Line="56" Column="1" TopLine="40"/>
+        <Caret Line="346" Column="1" TopLine="339"/>
       </Position5>
       <Position6>
         <Filename Value="networkInterface.pas"/>
-        <Caret Line="58" Column="1" TopLine="40"/>
+        <Caret Line="348" Column="1" TopLine="339"/>
       </Position6>
       <Position7>
         <Filename Value="networkInterface.pas"/>
-        <Caret Line="59" Column="1" TopLine="40"/>
+        <Caret Line="349" Column="1" TopLine="339"/>
       </Position7>
       <Position8>
         <Filename Value="networkInterface.pas"/>
-        <Caret Line="60" Column="1" TopLine="40"/>
+        <Caret Line="351" Column="1" TopLine="339"/>
       </Position8>
       <Position9>
         <Filename Value="networkInterface.pas"/>
-        <Caret Line="61" Column="1" TopLine="40"/>
+        <Caret Line="353" Column="1" TopLine="339"/>
       </Position9>
       <Position10>
         <Filename Value="networkInterface.pas"/>
-        <Caret Line="65" Column="1" TopLine="40"/>
+        <Caret Line="354" Column="1" TopLine="339"/>
       </Position10>
       <Position11>
-        <Filename Value="networkInterfaceApi.pas"/>
-        <Caret Line="63" Column="1" TopLine="44"/>
+        <Filename Value="networkInterface.pas"/>
+        <Caret Line="355" Column="1" TopLine="339"/>
       </Position11>
       <Position12>
-        <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="2405" Column="1" TopLine="2383"/>
+        <Filename Value="networkInterface.pas"/>
+        <Caret Line="356" Column="1" TopLine="339"/>
       </Position12>
       <Position13>
-        <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="2228" Column="1" TopLine="2212"/>
+        <Filename Value="networkInterface.pas"/>
+        <Caret Line="358" Column="1" TopLine="339"/>
       </Position13>
       <Position14>
-        <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="2230" Column="1" TopLine="2209"/>
+        <Filename Value="networkInterface.pas"/>
+        <Caret Line="361" Column="1" TopLine="339"/>
       </Position14>
       <Position15>
-        <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="2232" Column="1" TopLine="2209"/>
+        <Filename Value="networkInterface.pas"/>
+        <Caret Line="363" Column="1" TopLine="213"/>
       </Position15>
       <Position16>
-        <Filename Value="networkInterfaceApi.pas"/>
-        <Caret Line="151" Column="26" TopLine="138"/>
+        <Filename Value="networkInterface.pas"/>
+        <Caret Line="223" Column="1" TopLine="192"/>
       </Position16>
       <Position17>
-        <Filename Value="C:\lazarus\fpc\2.4.4\source\rtl\inc\threadh.inc"/>
-        <Caret Line="61" Column="35" TopLine="45"/>
+        <Filename Value="networkInterface.pas"/>
+        <Caret Line="210" Column="1" TopLine="192"/>
       </Position17>
       <Position18>
-        <Filename Value="networkInterfaceApi.pas"/>
-        <Caret Line="152" Column="24" TopLine="120"/>
+        <Filename Value="networkInterface.pas"/>
+        <Caret Line="212" Column="1" TopLine="192"/>
       </Position18>
       <Position19>
-        <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="2351" Column="1" TopLine="2335"/>
+        <Filename Value="networkInterface.pas"/>
+        <Caret Line="219" Column="1" TopLine="192"/>
       </Position19>
       <Position20>
-        <Filename Value="networkInterfaceApi.pas"/>
-        <Caret Line="137" Column="1" TopLine="120"/>
+        <Filename Value="networkInterface.pas"/>
+        <Caret Line="238" Column="1" TopLine="222"/>
       </Position20>
       <Position21>
-        <Filename Value="networkInterfaceApi.pas"/>
-        <Caret Line="140" Column="1" TopLine="120"/>
+        <Filename Value="networkInterface.pas"/>
+        <Caret Line="239" Column="1" TopLine="222"/>
       </Position21>
       <Position22>
-        <Filename Value="networkInterfaceApi.pas"/>
-        <Caret Line="137" Column="1" TopLine="120"/>
+        <Filename Value="networkInterface.pas"/>
+        <Caret Line="240" Column="1" TopLine="222"/>
       </Position22>
       <Position23>
-        <Filename Value="networkInterfaceApi.pas"/>
-        <Caret Line="147" Column="4" TopLine="137"/>
+        <Filename Value="networkInterface.pas"/>
+        <Caret Line="242" Column="1" TopLine="222"/>
       </Position23>
       <Position24>
-        <Filename Value="networkInterfaceApi.pas"/>
-        <Caret Line="166" Column="56" TopLine="138"/>
+        <Filename Value="networkInterface.pas"/>
+        <Caret Line="244" Column="1" TopLine="222"/>
       </Position24>
       <Position25>
         <Filename Value="networkInterface.pas"/>
-        <Caret Line="391" Column="1" TopLine="42"/>
+        <Caret Line="247" Column="1" TopLine="222"/>
       </Position25>
       <Position26>
-        <Filename Value="networkInterfaceApi.pas"/>
-        <Caret Line="167" Column="1" TopLine="138"/>
+        <Filename Value="networkInterface.pas"/>
+        <Caret Line="248" Column="1" TopLine="222"/>
       </Position26>
       <Position27>
-        <Filename Value="networkConfig.pas"/>
-        <Caret Line="224" Column="13" TopLine="52"/>
+        <Filename Value="networkInterface.pas"/>
+        <Caret Line="250" Column="1" TopLine="223"/>
       </Position27>
       <Position28>
-        <Filename Value="networkConfig.pas"/>
-        <Caret Line="256" Column="3" TopLine="254"/>
+        <Filename Value="networkInterface.pas"/>
+        <Caret Line="252" Column="1" TopLine="237"/>
       </Position28>
       <Position29>
-        <Filename Value="cheatengine.lpr"/>
-        <Caret Line="111" Column="10" TopLine="31"/>
+        <Filename Value="networkInterface.pas"/>
+        <Caret Line="210" Column="1" TopLine="194"/>
       </Position29>
       <Position30>
-        <Filename Value="ProcessWindowUnit.pas"/>
-        <Caret Line="307" Column="1" TopLine="291"/>
+        <Filename Value="networkInterface.pas"/>
+        <Caret Line="212" Column="1" TopLine="194"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>
@@ -2610,17 +2638,21 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <BreakPoints Count="1">
+    <BreakPoints Count="2">
       <Item1>
         <Kind Value="bpkSource"/>
         <Source Value="debughelper.pas"/>
         <Line Value="588"/>
       </Item1>
+      <Item2>
+        <Kind Value="bpkSource"/>
+        <Source Value="LuaCaller.pas"/>
+        <Line Value="234"/>
+      </Item2>
     </BreakPoints>
     <Watches Count="1">
       <Item1>
-        <Expression Value="snaphandle"/>
-        <DisplayStyle Value="wdfHex"/>
+        <Expression Value="(input^).command"/>
       </Item1>
     </Watches>
     <Exceptions Count="4" IgnoreAll="True">
