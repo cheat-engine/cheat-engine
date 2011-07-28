@@ -893,12 +893,14 @@ begin
 
       l.add('gAboutText=[['+s);
 
+
       for i:=1 to mabout.lines.Count-1 do
       begin
-        if i<mabout.lines.Count-1 then
-          l.add(mAbout.lines[i])
-        else
-          l.add(mAbout.lines[i]+']]');
+        s:=mAbout.lines[i];
+        if i=mabout.lines.Count-1 then
+          s:=s+']]';
+
+        l.add(s);
       end;
 
       l.add('');
