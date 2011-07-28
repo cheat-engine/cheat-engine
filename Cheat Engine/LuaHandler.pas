@@ -900,11 +900,11 @@ begin
 
       lua_pop(L, parameters);
 
-      getmem(v,maxsize);
+      getmem(v,maxsize+1);
       try
         if ReadProcessMemory(processhandle, pointer(address), v, maxsize, r) then
         begin
-          v[maxsize-1]:=#0;
+          v[maxsize]:=#0;
           lua_pushstring(L, v);
           result:=1;
         end;
