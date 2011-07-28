@@ -1125,18 +1125,19 @@ begin
 
   if lua_istable(L, -parameters+1) then
   begin
-    parameters:=lua_tointeger(L, -parameters+2);
+    parameters:=lua_tointeger(L, -parameters+2) +1; //+1 to be compatible with the non table version
 
 
     setlength(bytes,parameters-1);
 
-    for i:=0 to parameters-1 do
+    for i:=0 to parameters-2 do
     begin
       lua_pushinteger(L,i);
       lua_gettable(L, -3);
 
       j:=lua_tointeger(L,-1);
-      showmessage(inttostr(i)+','+inttostr(j));
+      bytes[i]:=j;
+//      showmessage(inttostr(i)+','+inttostr(j));
       lua_pop(L,1);
     end;
   end
