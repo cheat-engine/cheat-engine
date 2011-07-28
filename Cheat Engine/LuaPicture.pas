@@ -51,6 +51,8 @@ begin
     picture:=lua_touserdata(L,-parameters);
     stream:=lua_touserdata(L, -parameters+1);
 
+    stream.Position:=0;
+
     if parameters=3 then
       ext:=Lua_ToString(L, -parameters+2);
 
