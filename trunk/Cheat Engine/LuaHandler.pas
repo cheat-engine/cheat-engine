@@ -6665,6 +6665,8 @@ begin
       if TLuafile(mainform.Luafiles[i]).name=f then
       begin
         s:=TLuafile(mainform.Luafiles[i]).stream;
+
+        s.position:=0;
         lua_pushlightuserdata(L, TLuafile(s));
         result:=1;
       end;
@@ -6687,6 +6689,8 @@ begin
   begin
     lf:=lua_touserdata(L, -2);
     f:=Lua_ToString(L, -1);
+
+    lf.stream.Position:=0;
     lf.stream.SaveToFile(f);
   end;
 
@@ -6703,6 +6707,8 @@ begin
   begin
     lf:=lua_touserdata(L, -1);
     lua_pop(L, lua_gettop(L));
+
+    lf.stream.Position:=0;
     lua_pushlightuserdata(L, lf.stream);
   end
   else
