@@ -446,49 +446,54 @@ begin
 
 end;
 
-{
-type
-  TTSS=packed record
-    seglimit0_15: word;
-    baseaddress0_15: word;
-    baseaddress16_23: byte;
-    stuff: word;
-    baseaddress24_31: byte;
-    baseaddress32_63: dword;
-    reserved: dword;
-  end;
-
-  PTSS=^TTSS;   }
-
-
-
-
- { oldtr: word;
-
-  gdt: packed record
-    limit: word;
-    base: qword;
-  end;
-
-  thisTSS: PTSS;
-  TSSBase: qword;
-  KernelRSP: QWORD;   }
 
 type TKernelmodeFunction=function (parameters: pointer): ptruint;
 
 
-procedure dbvm_enterkernelmode(originalstate: POriginalState);
+procedure dbvm_enterkernelmode(originalstate: POriginalState); //mainly used for 64-bit systems requiring to stealth load the driver
 begin
   setupKernelFunctionList;
 
   dbvm_block_interrupts;
 
- { //STACK EXPERIMENT
- asm
-    str [oldtr]
-    sgdt [gdt]
+  {$ifdef cpu32}
+  asm
+    push ebx
+    mov ebx, originalstate
+
+    push eax
+    pushfd
+    pop eax
+
+    mov TOriginalState(ebx).oldflags,eax
+    pop eax
+
+    push eax
+
+    mov ax,cs
+    mov TOriginalState(ebx).oldcs,ax
+
+    mov ax,ss
+    mov TOriginalState(ebx).oldss,ax
+
+    mov ax,ds
+    mov TOriginalState(ebx).oldds,ax
+
+    mov ax,es
+    mov TOriginalState(ebx).oldes,ax
+
+    mov ax,fs
+    mov TOriginalState(ebx).oldfs,ax
+
+    mov ax,gs
+    mov TOriginalState(ebx).oldgs,ax
+    pop eax
+
+    pop ebx
   end;
-          }
+  {$endif}
+
+  {$ifdef cpu64}
   asm
     push rbx
     mov rbx, originalstate
@@ -496,13 +501,9 @@ begin
     push rax
     pushfd
     pop rax
-    mov TOriginalState(rbx).oldflags,rax
+    mov TOriginalState(rbx).oldflags,eax
     pop rax
 
-
-
-  {
-    mov oldstack,rsp }
 
     push rax
 
@@ -527,42 +528,21 @@ begin
 
     pop rbx
   end;
+  {$endif}
 
+{$ifdef cpu32}
+  //not really sure about the new ss, this is mainly meant for 64-bit users after all
+  dbvm_changeselectors($8, $10,originalstate.oldds,originalstate.oldes, originalstate.oldfs, originalstate.oldgs);
+{$else}
   dbvm_changeselectors($10, $18,originalstate.oldds,originalstate.oldes, originalstate.oldfs, originalstate.oldgs);
+{$endif}
 
+
+  {$ifdef cpu64}
   asm
     db $0f, $01, $f8 //swapgs
   end;
-
-{ //STACK EXPERIMENT
-//get the task gate descriptor
-  thisTSS:=PTSS(gdt.base+oldtr);
-
-  TSSBase:=thisTSS.baseaddress0_15;
-  TSSBase:=TSSBase or (QWORD(thisTSS.baseaddress16_23) shl 16);
-  TSSBase:=TSSBASE or (QWORD(thisTSS.baseaddress24_31) shl 24);
-  TSSBase:=TSSBase or (QWORD(thisTSS.baseaddress32_63) shl 32);
-
-  KernelRSP:=PQWORD(TSSBase+4)^;
-
-  //now copy the current stack to the kernelstack so I can get back eventually (btw, I hate alignment)
-  KernelRSP:=KernelRSP-4096;
-  CopyMemory(pointer(KernelRSP), pointer(oldstack), 1024);
-
-
-  asm
-    mov rsp,[KernelRSP ]
-
-    mov rax,oldstack
-    sub rax, rbp
-    add rax,rsp
-    mov rbx,rax
-
-    mov rax,oldstack
-    sub rax, r11
-    add rax,rsp
-    mov r11,rax
-end;       }
+  {$endif}
 
 
   dbvm_restore_interrupts;
@@ -574,20 +554,12 @@ begin
 
   dbvm_block_interrupts;
 
- { asm
-    mov newstack, rsp
-  end;
 
-  //dec(oldstack, (KernelRSP-newstack));
-
-  copymemory(pointer(oldstack), pointer(newstack), 1024);
-      }
+  {$ifdef cpu64}
   asm
     db $0f, $01, $f8 //swapgs
-   {
-    mov rsp, oldstack   }
-
   end;
+  {$endif}
 
 
 
@@ -595,17 +567,32 @@ begin
   dbvm_changeselectors(originalstate.oldcs, originalstate.oldss, originalstate.oldds, originalstate.oldes, originalstate.oldfs, originalstate.oldgs);
 
 
+  {$ifdef cpu32}
+  asm
+    push ebx
+    mov ebx, originalstate
 
+    mov eax,TOriginalState(ebx).oldflags
+    push eax
+    popfd
+
+    pop ebx
+  end;
+  {$endif}
+
+  {$ifdef cpu64}
   asm
     push rbx
     mov rbx, originalstate
 
-    mov rax,TOriginalState(rbx).oldflags
+    xor rax,rax
+    mov eax,TOriginalState(rbx).oldflags
     push rax
     popfd
 
     pop rbx
   end;
+  {$endif}
 
   dbvm_restore_interrupts;
 
@@ -674,7 +661,66 @@ begin
   end;
 end;
 
-procedure dbvm_localIntHandler_entry; nostackframe;
+procedure dbvm_localIntHandler_entry; nostackframe; //usually 64-bit only
+{$ifdef cpu32}
+//not implemented for 32-bit
+asm
+  sub esp,4096
+
+  mov [esp+$00],eax
+  mov [esp+$08],ebx
+  mov [esp+$10],ecx
+  mov [esp+$18],edx
+  mov [esp+$20],esi
+  mov [esp+$28],edi
+  mov [esp+$30],ebp
+  mov ax,ds
+  mov [esp+$38],ax
+
+  mov ax,es
+  mov [esp+$40],ax
+
+  mov ax,fs
+  mov [esp+$48],ax
+
+  mov ax,gs
+  mov [esp+$50],ax
+
+
+  mov ecx,[esp+4096]
+  sub esp,$30
+
+  sti
+  call dbvm_localIntHandler
+  cli
+  add esp,$30
+
+
+  mov ax,[esp+$50]
+  mov gs,ax
+
+  mov ax,[esp+$48]
+  mov fs,ax
+
+  mov ax,[esp+$40]
+  mov es,ax
+
+  mov ax,[esp+$38]
+  mov ds,ax
+
+  mov ebp,[esp+$30]
+  mov edi,[esp+$28]
+  mov esi,[esp+$20]
+  mov edx,[esp+$18]
+  mov ecx,[esp+$10]
+  mov ebx,[esp+$08]
+  mov eax,[esp+$00]
+
+  add esp,4096
+  //no errorcode in the emulation for 32-bit
+  iretd
+end;
+{$else}
 asm
   sub rsp,4096
 
@@ -749,9 +795,10 @@ asm
   mov rax,[rsp+$00]
 
   add rsp,4096
-  add rsp,8 //undo errorcode
+  add rsp,8 //undo errorcode (64-bit ALWAYS pushes an errorcode)
   db $48, $cf //iretq
 end;
+{$endif}
 
 function dbvm_executeDispatchIoctl(DispatchIoctl: pointer; DriverObject: pointer; dwIoControlCode: DWORD; lpInBuffer: pointer; nInBufferSize:integer; lpOutBuffer: pointer; nOutBufferSize: integer; lpBytesReturned: pdword): BOOL;
 var command: TCommand;
