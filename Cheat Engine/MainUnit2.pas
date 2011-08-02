@@ -12,7 +12,7 @@ uses windows, dialogs,forms,classes,LCLIntf, LCLProc, sysutils,registry,ComCtrls
 
 
 resourcestring
-  cename = 'Cheat Engine 6.1';
+  cename = 'Cheat Engine 6.2';
   rsPleaseWait = 'Please Wait!';
 
 procedure UpdateToolsMenu;
@@ -25,7 +25,7 @@ function getVarType2: TVariableType;
 
 
 
-const beta=''; //empty this for a release
+const beta=' Pre-Alpha (It will crash)'; //empty this for a release
 
 var
   CEnorm:string;

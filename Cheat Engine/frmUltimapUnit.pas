@@ -75,6 +75,7 @@ type
     Label3: TLabel;
     Label4: TLabel;
     Label5: TLabel;
+    Label6: TLabel;
     lblLastfilterresult: TLabel;
     ListView1: TListView;
     MenuItem1: TMenuItem;
@@ -352,6 +353,8 @@ begin
   btnPause.enabled:=true;
   btnStop.enabled:=true;
   btnstart.enabled:=false;
+
+  beep;
 end;
 
 procedure TfrmUltimap.btnStopClick(Sender: TObject);
@@ -378,6 +381,7 @@ begin
   btnpause.enabled:=false;
   btnStart.enabled:=true;
 
+  errorbeep;
 end;
 
 function ultimap_pause(value: pointer): BOOL; stdcall;
@@ -404,6 +408,7 @@ begin
     paused:=false;
     btnPause.caption:='Pause';
   end;
+  beep;
 end;
 
 procedure TfrmUltimap.Button1Click(Sender: TObject);
