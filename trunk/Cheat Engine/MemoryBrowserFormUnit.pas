@@ -26,6 +26,7 @@ type
     MenuItem11: TMenuItem;
     MenuItem12: TMenuItem;
     MenuItem13: TMenuItem;
+    MenuItem14: TMenuItem;
     miPointerSpider: TMenuItem;
     MenuItem9: TMenuItem;
     miDisassembly32: TMenuItem;
@@ -217,6 +218,7 @@ type
     procedure MenuItem10Click(Sender: TObject);
     procedure MenuItem11Click(Sender: TObject);
     procedure MenuItem12Click(Sender: TObject);
+    procedure MenuItem14Click(Sender: TObject);
     procedure miPointerSpiderClick(Sender: TObject);
     procedure MenuItem2Click(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
@@ -530,7 +532,8 @@ uses Valuechange,
   frmBreakpointConditionunit,
   frmStringMapUnit,
   frmStringpointerscanUnit,
-  frmFilePatcherUnit;
+  frmFilePatcherUnit,
+  frmUltimapUnit;
 
 
 resourcestring
@@ -911,6 +914,14 @@ begin
   f:=tfrmfilepatcher.create(self);
   f.showmodal;
   f.free;
+end;
+
+procedure TMemoryBrowser.MenuItem14Click(Sender: TObject);
+begin
+  if frmUltimap=nil then
+    frmUltimap:=TfrmUltimap.create(application);
+
+  frmUltimap.show;
 end;
 
 procedure TMemoryBrowser.miPointerSpiderClick(Sender: TObject);

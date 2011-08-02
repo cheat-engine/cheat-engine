@@ -3,7 +3,7 @@ object frmUltimap: TfrmUltimap
   Height = 399
   Top = 277
   Width = 687
-  Caption = 'frmUltimap'
+  Caption = 'Ultimap'
   ClientHeight = 399
   ClientWidth = 687
   OnClose = FormClose
@@ -40,7 +40,7 @@ object frmUltimap: TfrmUltimap
       TabOrder = 0
       object ListView1: TListView
         Left = 0
-        Height = 165
+        Height = 152
         Top = 0
         Width = 687
         Align = alClient
@@ -67,23 +67,33 @@ object frmUltimap: TfrmUltimap
       end
       object Panel3: TPanel
         Left = 0
-        Height = 50
-        Top = 165
+        Height = 63
+        Top = 152
         Width = 687
         Align = alBottom
         BevelOuter = bvNone
-        ClientHeight = 50
+        ClientHeight = 63
         ClientWidth = 687
         TabOrder = 1
         object Button5: TButton
           Left = 264
           Height = 25
-          Top = 10
+          Top = 3
           Width = 155
           Anchors = [akTop]
           Caption = 'Show matching routines'
           OnClick = Button5Click
           TabOrder = 0
+        end
+        object Label6: TLabel
+          Left = 0
+          Height = 31
+          Top = 32
+          Width = 687
+          Align = alBottom
+          Caption = 'General tip: Rightclick buttons and assign hotkeys to them. Especially useful in a fullscreen game and you''re looking for one specific thing'
+          ParentColor = False
+          WordWrap = True
         end
       end
     end
@@ -250,7 +260,7 @@ object frmUltimap: TfrmUltimap
       object Label3: TLabel
         Left = 8
         Height = 16
-        Top = 160
+        Top = 168
         Width = 7
         Caption = '0'
         ParentColor = False
@@ -269,7 +279,7 @@ object frmUltimap: TfrmUltimap
       object Label5: TLabel
         Left = 8
         Height = 16
-        Top = 144
+        Top = 153
         Width = 76
         Caption = 'Banch targets:'
         ParentColor = False

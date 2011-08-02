@@ -9,7 +9,7 @@ object MainForm: TMainForm
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AllowDropFiles = True
-  Caption = 'Cheat Engine 6.1'
+  Caption = 'Cheat Engine 6.2'
   ClientHeight = 550
   ClientWidth = 538
   Font.Height = -11
@@ -349,6 +349,7 @@ object MainForm: TMainForm
       Width = 82
       Caption = 'get dbvm version'
       ParentColor = False
+      Visible = False
       OnClick = Label57Click
     end
     object Label59: TLabel
@@ -358,6 +359,7 @@ object MainForm: TMainForm
       Width = 43
       Caption = 'Test cap'
       ParentColor = False
+      Visible = False
       OnClick = Label59Click
     end
     object Label61: TLabel
@@ -1367,6 +1369,7 @@ object MainForm: TMainForm
       Width = 33
       Caption = 'Label3'
       ParentColor = False
+      Visible = False
       OnClick = Label3Click
     end
   end

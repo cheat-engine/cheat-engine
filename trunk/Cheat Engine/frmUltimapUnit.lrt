@@ -1,10 +1,11 @@
-TFRMULTIMAP.CAPTION=frmUltimap
+TFRMULTIMAP.CAPTION=Ultimap
 TFRMULTIMAP.LABEL4.CAPTION=Label4
 TFRMULTIMAP.PANEL2.CAPTION=Panel2
 TFRMULTIMAP.LISTVIEW1.COLUMNS[0].CAPTION=Address To
 TFRMULTIMAP.LISTVIEW1.COLUMNS[1].CAPTION=Last origin
 TFRMULTIMAP.LISTVIEW1.COLUMNS[2].CAPTION=Count
 TFRMULTIMAP.BUTTON5.CAPTION=Show matching routines
+TFRMULTIMAP.LABEL6.CAPTION=General tip: Rightclick buttons and assign hotkeys to them. Especially useful in a fullscreen game and you're looking for one specific thing
 TFRMULTIMAP.BUTTON3.CAPTION=Target routine was called
 TFRMULTIMAP.BUTTON4.CAPTION=Target routine was not called
 TFRMULTIMAP.BUTTON6.CAPTION=Reset

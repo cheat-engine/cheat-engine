@@ -1,7 +1,7 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 736
+  Left = 121
   Height = 587
-  Top = 255
+  Top = 272
   Width = 722
   HelpContext = 12
   Caption = 'Memory Viewer'
@@ -1110,6 +1110,10 @@ object MemoryBrowser: TMemoryBrowser
         Caption = 'Structure spider'
         ShortCut = 49232
         OnClick = miPointerSpiderClick
+      end
+      object MenuItem14: TMenuItem
+        Caption = 'Ultimap'
+        OnClick = MenuItem14Click
       end
       object Watchmemoryallocations1: TMenuItem
         Caption = 'Watch memory allocations'
