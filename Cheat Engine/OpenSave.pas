@@ -598,7 +598,7 @@ begin
     mainform.frmLuaTableScript.assemblescreen.Text:='';
 
     if luaScript<>nil then
-      mainform.frmLuaTableScript.assemblescreen.Text:=luascript.TextContent;
+      mainform.frmLuaTableScript.assemblescreen.Text:=ansitoutf8(luascript.TextContent);
 
     if mainform.frmLuaTableScript.assemblescreen.Text<>'' then
     begin
@@ -1036,7 +1036,7 @@ begin
   if mainform.frmLuaTableScript.assemblescreen.lines.count>0 then
   begin
     luascript:=CheatTable.AppendChild(doc.CreateElement('LuaScript'));
-    luascript.TextContent:=mainform.frmLuaTableScript.assemblescreen.text;
+    luascript.TextContent:=Utf8ToAnsi(mainform.frmLuaTableScript.assemblescreen.text);
     mainform.frmLuaTableScript.assemblescreen.MarkTextAsSaved;
   end;
 

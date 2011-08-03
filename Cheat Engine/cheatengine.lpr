@@ -75,7 +75,7 @@ begin
       if (pos('.CETRAINER', uppercase(paramstr(i)))>0) or (pos('.CT', uppercase(paramstr(i)))>0) then
       begin
         mainformvisible:=uppercase(ExtractFileExt(paramstr(i)))<>'.CETRAINER';
-        LoadTable(paramstr(i),false);
+        LoadTable(ansitoutf8(paramstr(i)),false);
 
         if extractfilename(paramstr(i))='CET_TRAINER.CETRAINER' then
           deletefile(paramstr(i));
