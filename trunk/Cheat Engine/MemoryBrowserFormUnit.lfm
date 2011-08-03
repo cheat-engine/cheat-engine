@@ -771,6 +771,11 @@ object MemoryBrowser: TMemoryBrowser
         Caption = 'Opcodes'
         OnClick = CopyBytesAndOpcodesClick
       end
+      object MenuItem15: TMenuItem
+        Tag = 3
+        Caption = 'Bytes only (no address)'
+        OnClick = CopyBytesAndOpcodesClick
+      end
     end
     object N7: TMenuItem
       Caption = '-'

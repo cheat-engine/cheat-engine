@@ -94,6 +94,7 @@ begin
   end;
 
   i:=0;
+  temps:='';
 
   while (not terminated) and (currentaddress<=stopaddress) do
   begin
@@ -122,7 +123,8 @@ begin
     if specialpart<>'' then
       opcodepart:=opcodepart+' : '+specialpart;
 
-    temps:='';
+
+
     if address then
     begin
       temps:=addresspart;
@@ -146,13 +148,19 @@ begin
 
     if opcode then temps:=temps+opcodepart;
 
-    if copymode then
+    if (address or opcode) or (currentaddress>stopaddress) then
     begin
-      //save to clipboard
-      cpbuf.Add(temps);
-    end
-    else
-      writeln(f,temps); //write to file
+      //each line for address / opcode, and only one time at the and for bytes only
+      if copymode then
+      begin
+        //save to clipboard
+        cpbuf.Add(temps);
+      end
+      else
+        writeln(f,temps); //write to file
+
+      temps:=''; //erase the current data
+    end;
 
 
     if (i mod 10=0) and (currentaddress<{$ifdef cpu64}QWORD($7fffffffffffffff){$else}$7fffffff{$endif}) then
