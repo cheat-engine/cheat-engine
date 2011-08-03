@@ -4077,7 +4077,7 @@ begin
   memscan:=tmemscan.create(progressbar1);
   foundlist:=tfoundlist.create(foundlist3,memscan);
 
-  InitializeLuaScripts;
+
 
 end;
 
