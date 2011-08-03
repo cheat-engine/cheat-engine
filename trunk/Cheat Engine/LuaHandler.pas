@@ -8801,6 +8801,7 @@ begin
     lua_register(LuaVM, 'strings_clear', strings_clear);
     lua_register(LuaVM, 'strings_delete', strings_delete);
     lua_register(LuaVM, 'strings_getText', strings_getText);
+    lua_register(LuaVM, 'strings_setText', strings_getText);
     lua_register(LuaVM, 'strings_indexOf', strings_indexOf);
     lua_register(LuaVM, 'strings_insert', strings_insert);
     lua_register(LuaVM, 'strings_getCount', strings_getCount);
