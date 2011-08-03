@@ -182,6 +182,7 @@ var DECOMPRESSOR: TMemorystream;
   compression: Tcompressionlevel;
   i: integer;
 begin
+
   CETRAINER:=ExtractFilePath(filename)+'CET_TRAINER.CETRAINER';
   SaveTable(CETRAINER, true);
 
