@@ -125,6 +125,7 @@ begin
   Application.CreateForm(TComments, Comments);
   Application.CreateForm(TTypeForm, TypeForm);
   initcetitle;
+  InitializeLuaScripts;
 
   handleparameters;
   Application.Run;
