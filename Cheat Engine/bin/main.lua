@@ -63,6 +63,9 @@ integerToUserData(int): 6.2: Converts a given integer to a userdata variable
 userDataToInteger(UserDataVar): 6.2: Converts a given userdata variable to an integer
 
 
+writeToClipboard(text): 6.2: Writes the given text to the clipboard
+readFromClipboard(): 6.2: Reads the text from the clipboard
+
 
 speedhack_setSpeed(speed)
 injectDll(filename): Injects a dll, and returns true on success
@@ -179,6 +182,7 @@ splitDisassembledString(disassembledstring): Returns 4 strings. The address, byt
 
 getInstructionSize(address): Returns the size of an instruction (basically it disassembles the instruction and returns the number of bytes for you)
 getPreviousOpcode(address): Returns the address of the previous opcode (this is just an estimated guess)
+
 
 
 
