@@ -27,6 +27,7 @@ type
     MenuItem12: TMenuItem;
     MenuItem13: TMenuItem;
     MenuItem14: TMenuItem;
+    MenuItem15: TMenuItem;
     miPointerSpider: TMenuItem;
     MenuItem9: TMenuItem;
     miDisassembly32: TMenuItem;
@@ -2875,8 +2876,8 @@ begin
     copymode:=true;
 
 
-    checkbox1.checked:=true;
-    checkbox2.checked:=(_tag=0) or (_tag=1);
+    checkbox1.checked:=_tag<>3;
+    checkbox2.checked:=(_tag=0) or (_tag=1) or (_tag=3);
     checkbox3.checked:=(_tag=0) or (_tag=2);
     
     button1.click;
@@ -2947,7 +2948,7 @@ begin
   modulelist.free;
 end;
 
-procedure TMemoryBrowser.SetCodeAndDataBase;
+procedure TMemoryBrowser.setcodeanddatabase;
 var code,data: ptrUint;
 begin
   if processid=$ffffffff then  //file instead of process
