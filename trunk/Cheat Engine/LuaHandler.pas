@@ -10,7 +10,8 @@ uses
   windows, vmxfunctions, Classes, dialogs, SysUtils, lua, lualib, lauxlib, syncobjs, cefuncproc,
   newkernelhandler, autoassembler, Graphics, controls, LuaCaller, forms, ExtCtrls,
   StdCtrls, comctrls, ceguicomponents, generichotkey, luafile, xmplayer_server,
-  ExtraTrainerComponents, customtimer, menus, XMLRead, XMLWrite, DOM,ShellApi;
+  ExtraTrainerComponents, customtimer, menus, XMLRead, XMLWrite, DOM,ShellApi,
+  Clipbrd;
 
 var
   LuaVM: Plua_State;
@@ -8234,8 +8235,9 @@ begin
     dv:=lua_touserdata(L, -1);
     lua_pop(L, parameters);
 
-    result:=1;
+    result:=2;
     lua_pushinteger(L, dv.SelectedAddress);
+    lua_pushinteger(L, dv.SelectedAddress2); //6.2: Returns both addresses
   end
   else
     lua_pop(L, parameters);
@@ -8606,6 +8608,28 @@ begin
     result:=1;
 
   end else lua_pop(L, parameters);
+end;
+
+function writeToClipboard(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+    Clipboard.AsText:=Lua_ToString(L, -1);
+
+
+  lua_pop(L, parameters);
+end;
+
+function readFromClipboard(L: PLua_State): integer; cdecl;
+var s: string;
+begin
+  lua_pop(L, lua_gettop(L));
+
+  lua_pushstring(L, Clipboard.AsText);
+  result:=1;
 end;
 
 
@@ -9092,6 +9116,10 @@ begin
 
     lua_register(LuaVM, 'integerToUserData', integerToUserData);
     lua_register(LuaVM, 'userDataToInteger', userDataToInteger);
+
+    lua_register(LuaVM, 'writeToClipboard', writeToClipboard);
+    lua_register(LuaVM, 'readFromClipboard', readFromClipboard);
+
 
 
     initializeLuaPicture;
