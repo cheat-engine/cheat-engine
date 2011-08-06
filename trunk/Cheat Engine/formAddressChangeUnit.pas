@@ -210,7 +210,7 @@ begin
 
   if not rec.isPointer then
   begin
-    editaddress.Text:=rec.interpretableaddress;
+    editaddress.Text:=AnsiToUtf8(rec.interpretableaddress);
     if rec.VarType = vtBinary then
     begin
       bitpanel.Visible:=true;
@@ -242,7 +242,7 @@ begin
     for i:=0 to length(rec.pointeroffsets)-1 do
       pointerinfo[i].offset.text:=IntToHex(rec.pointeroffsets[i],1);
 
-    pointerinfo[length(pointerinfo)-1].address.text:=rec.interpretableaddress;
+    pointerinfo[length(pointerinfo)-1].address.text:=AnsiToUtf8(rec.interpretableaddress);
   end;
 
 
