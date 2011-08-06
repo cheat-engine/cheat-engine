@@ -1940,7 +1940,7 @@ begin
       if p.modulenr=-1 then
         item.Caption:=inttohex(p.moduleoffset,8)
       else
-        item.Caption:='"'+pointerscanresults.getModulename(p.modulenr)+'"'+'+'+inttohex(p.moduleoffset,8);
+        item.Caption:=ansitoutf8('"'+pointerscanresults.getModulename(p.modulenr)+'"'+'+'+inttohex(p.moduleoffset,8));
 
       for i:=p.offsetcount-1 downto 0 do
         item.SubItems.Add(inttohex(p.offsets[i],1));
@@ -2000,7 +2000,7 @@ begin
   if listview1.ItemIndex<>-1 then
   begin
     li:=listview1.Items.Item[listview1.ItemIndex];
-    t:=li.caption;
+    t:=utf8toansi(li.caption);
 
     try
       setlength(offsets,li.SubItems.Count);
