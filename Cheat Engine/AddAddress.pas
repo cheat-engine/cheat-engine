@@ -242,7 +242,7 @@ begin
   }
   list:=tstringlist.Create;
   try
-    if symhandler.ParseAsPointer(newaddress.text,list) then
+    if symhandler.ParseAsPointer(utf8toansi(newaddress.text),list) then
     begin
       cbpointer.Checked:=true;
 
@@ -303,11 +303,11 @@ begin
     end;
 
     try
-      address:=symhandler.getaddressfromname(NewAddress.text);
+      address:=symhandler.getaddressfromname(utf8toansi(NewAddress.text));
     except
       //don't complain
     end;
-  end else address:=symhandler.getaddressfromname(NewAddress.text); //complain when not valid
+  end else address:=symhandler.getaddressfromname(utf8toansi(NewAddress.text)); //complain when not valid
 
 
 
@@ -376,7 +376,7 @@ begin
   else
     baseaddress:=newaddress.text;
 
-  Mainform.addresslist.addaddress(description.text, baseaddress, offsets, length(offsets), vartype3,customtypename, stringlength,bit, cbunicode.checked );
+  Mainform.addresslist.addaddress(description.text, utf8toansi(baseaddress), offsets, length(offsets), vartype3,customtypename, stringlength,bit, cbunicode.checked );
 
   addform.close;
 
