@@ -88,8 +88,14 @@ implementation
 
 uses DBK32functions, cefuncproc, PEInfoFunctions;
 
-function vmcall(vmcallinfo:pointer; level1pass: dword): PtrUInt; stdcall;
-{$ifndef NOVMX}
+var vmcall :function(vmcallinfo:pointer; level1pass: dword): PtrUInt; stdcall;
+
+function vmcallUnSupported(vmcallinfo:pointer; level1pass: dword): PtrUInt; stdcall;
+begin
+  result:=0;
+end;
+
+function vmcallSupported(vmcallinfo:pointer; level1pass: dword): PtrUInt; stdcall;
 asm
   {$ifdef cpu64}
     push rdx
@@ -101,15 +107,13 @@ asm
     push edx
     mov eax,vmcallinfo
     mov edx,level1pass
-    vmcall
+    vmcall            //shjould raise an UD if the cpu does not support it
     pop edx
   {$endif}
 end;
-{$else}
-begin
-  result:=0;
-end;
-{$endif}
+
+
+
 
 function dbvm_version: dword; stdcall;
 var vmcallinfo: record
@@ -908,5 +912,35 @@ begin
     end;
   end else OutputDebugString('vmx_enabled=FALSE');
 end;
+
+var a,b,c,d: dword;
+initialization
+{$ifdef NOVMX}
+  vmcall:=vmcallUnSupported;
+{$else}
+  asm
+
+    push {$ifdef cpu64}rax{$else}eax{$endif}
+    push {$ifdef cpu64}rbx{$else}ebx{$endif}
+    push {$ifdef cpu64}rcx{$else}ecx{$endif}
+    push {$ifdef cpu64}rdx{$else}edx{$endif}
+    mov eax,0
+    cpuid
+    mov a,eax
+    mov b,ebx
+    mov c,ecx
+    mov d,edx
+    pop {$ifdef cpu64}rdx{$else}edx{$endif}
+    pop {$ifdef cpu64}rcx{$else}ecx{$endif}
+    pop {$ifdef cpu64}rbx{$else}ebx{$endif}
+    pop {$ifdef cpu64}rax{$else}eax{$endif}
+  end;
+
+  //GenuineIntel check
+  if (b=$756e6547) and (d=$49656e69) and (c=$6c65746e) then
+    vmcall:=vmcallSupported //intel instruction set
+  else
+    vmcall:=vmcallUnSupported;
+{$endif}
 
 end.
