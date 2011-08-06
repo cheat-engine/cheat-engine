@@ -1325,7 +1325,7 @@ begin
 
                 //it's not a valid address, it's not a calculation, it's not a modulename+offset, so lets see if it's a symbol
 
-                //tokens[i]:=StringReplace(tokens[i],'.','!',[]);
+                tokens[i]:=StringReplace(tokens[i],'!','.',[]);
 
                 si:=symbollist.FindSymbol(tokens[i]);
                 if si<>nil then
