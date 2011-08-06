@@ -88,30 +88,39 @@ implementation
 
 uses DBK32functions, cefuncproc, PEInfoFunctions;
 
-var vmcall :function(vmcallinfo:pointer; level1pass: dword): PtrUInt; stdcall;
+var vmcall :function(vmcallinfo:pointer; level1pass: dword): PtrUInt;
 
-function vmcallUnSupported(vmcallinfo:pointer; level1pass: dword): PtrUInt; stdcall;
+function vmcallUnSupported(vmcallinfo:pointer; level1pass: dword): PtrUInt;
 begin
   result:=0;
 end;
 
-function vmcallSupported(vmcallinfo:pointer; level1pass: dword): PtrUInt; stdcall;
-asm
-  {$ifdef cpu64}
-    push rdx
-    mov rax,vmcallinfo
-    mov edx,level1pass
-    vmcall
-    pop rdx
-  {$else}
-    push edx
-    mov eax,vmcallinfo
-    mov edx,level1pass
-    vmcall            //shjould raise an UD if the cpu does not support it
-    pop edx
-  {$endif}
-end;
+function vmcallSupported(vmcallinfo:pointer; level1pass: dword): PtrUInt;
+var r: ptruint;
+begin
+  asm
+    {$ifdef cpu64}
+      push rdx
+      mov rax,vmcallinfo
+      mov edx,level1pass
+      vmcall
+      pop rdx
 
+      mov r,rax
+    {$else}
+      push edx
+      mov eax,vmcallinfo
+      mov edx,level1pass
+      vmcall            //shjould raise an UD if the cpu does not support it
+      pop edx
+
+      mov r,eax
+    {$endif}
+  end;
+
+  result:=r;
+
+end;
 
 
 
