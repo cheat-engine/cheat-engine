@@ -214,6 +214,25 @@ begin
   end else lua_pop(L, parameters);
 end;
 
+function menuItem_insert(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  menuitem, menuitem2: TMenuItem;
+  index: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=3 then
+  begin
+    menuitem:=lua_touserdata(L,-3);
+    index:=lua_tointeger(L, -2);
+    menuitem2:=lua_touserdata(L,-1);
+    lua_pop(L, parameters);
+
+    menuitem.Insert(index, menuitem2);
+  end else lua_pop(L, parameters);
+end;
+
 function menuItem_delete(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
@@ -287,6 +306,7 @@ begin
   lua_register(LuaVM, 'menuItem_getCount', menuItem_getCount);
   lua_register(LuaVM, 'menuItem_getItem', menuItem_getItem);
   lua_register(LuaVM, 'menuItem_add', menuItem_add);
+  lua_register(LuaVM, 'menuItem_insert', menuItem_insert);
   lua_register(LuaVM, 'menuItem_delete', menuItem_delete);
   lua_register(LuaVM, 'menuItem_onClick', menuItem_onClick);
 
