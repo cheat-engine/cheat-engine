@@ -274,7 +274,8 @@ menuItem_getShortcut(menuitem): Returns the shortcut for this menu item
 menuItem_setShortcut(menuitem, shortcut): Sets the shortcut for this menuitem. A shortcut is a string in the form of ("ctrl+x")
 menuItem_getCount(menuitem)
 menuItem_getItem(menuitem, index) : Returns the menuitem object at the given index
-menuItem_add(menuItem, menuItem) : Adds a menuItem as a submenu item
+menuItem_add(menuitem, menuitem) : Adds a menuItem as a submenu item
+menuItem_insert(menuitem, index, menuitem): Adds a menuItem as a submenu item at the given index
 menuItem_delete(menuitem, index)
 menuItem_onClick(menuitem, function) : Sets an onClick event
 
@@ -519,8 +520,10 @@ listcolumns_getColumn(listcolumns, index): Returns a ListColum object;
 
 ListItem Class : (Inheritance: TObject)
 listitem_delete(listitem)
-listitem_getCaption(listitem)
-listitem_setCaption(listitem, string)
+listitem_getCaption(listitem) : Returns the first columns string of the listitem
+listitem_setCaption(listitem, string) : Sets the first column string of the listitem
+listitem_getChecked(listitem) : Returns true if the listitem is checked
+listitem_setChecked(listitem, state): Sets the checkbox of the listbox to the given state
 listitem_getSubItems(listitem): Returns a Strings object
 
 
