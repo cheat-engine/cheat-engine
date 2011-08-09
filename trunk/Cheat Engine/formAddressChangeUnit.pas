@@ -107,7 +107,7 @@ begin
   for i:=length(pointerinfo)-1 downto 0 do
   begin
     try
-      currentaddress:=symhandler.getaddressfromname(pointerinfo[i].address.Text);
+      currentaddress:=symhandler.getaddressfromname(utf8toansi(pointerinfo[i].address.Text));
       err:=0; //no exception...
     except
       err:=1;
@@ -567,14 +567,14 @@ begin
   if cbpointer.Checked then
   begin
     address:=0;
-    paddress:=symhandler.getaddressfromname(pointerinfo[length(pointerinfo)-1].address.text);
-    memoryrecord.interpretableaddress:=pointerinfo[length(pointerinfo)-1].address.text;
+    paddress:=symhandler.getaddressfromname(utf8toansi(pointerinfo[length(pointerinfo)-1].address.text));
+    memoryrecord.interpretableaddress:=utf8toansi(pointerinfo[length(pointerinfo)-1].address.text);
   end
   else
   begin
     paddress:=0;
-    addresS:=symhandler.getaddressfromname(editaddress.text);
-    memoryrecord.interpretableaddress:=editaddress.text;
+    addresS:=symhandler.getaddressfromname(utf8toansi(editaddress.text));
+    memoryrecord.interpretableaddress:=utf8toansi(editaddress.text);
   end;
 
 

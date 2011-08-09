@@ -111,7 +111,7 @@ begin
       push edx
       mov eax,vmcallinfo
       mov edx,level1pass
-      vmcall            //shjould raise an UD if the cpu does not support it
+      vmcall            //should raise an UD if the cpu does not support it  (or the password is wrong)
       pop edx
 
       mov r,eax

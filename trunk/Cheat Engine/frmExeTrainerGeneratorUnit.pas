@@ -184,6 +184,7 @@ var DECOMPRESSOR: TMemorystream;
 begin
 
   CETRAINER:=ExtractFilePath(filename)+'CET_TRAINER.CETRAINER';
+
   SaveTable(CETRAINER, true);
 
   button2.caption:=rsSaving+rot;

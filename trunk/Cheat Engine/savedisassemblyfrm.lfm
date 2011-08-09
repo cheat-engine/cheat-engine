@@ -1,7 +1,7 @@
 object frmSavedisassembly: TfrmSavedisassembly
-  Left = 802
+  Left = 1504
   Height = 140
-  Top = 381
+  Top = 536
   Width = 235
   BorderStyle = bsDialog
   Caption = 'Save disassembled output'

@@ -1,7 +1,7 @@
 object frmExeTrainerGenerator: TfrmExeTrainerGenerator
-  Left = 492
+  Left = 923
   Height = 266
-  Top = 319
+  Top = 449
   Width = 576
   Caption = 'Exe Trainer Generator'
   ClientHeight = 266
