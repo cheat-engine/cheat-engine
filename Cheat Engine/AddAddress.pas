@@ -267,7 +267,7 @@ begin
         pointerinfo[length(pointerinfo)-1-i].offset.Text:=inttohex(offsets[i],1);
 
 
-      pointerinfo[length(pointerinfo)-1].address.text:=baseaddress;
+      pointerinfo[length(pointerinfo)-1].address.text:=ansitoutf8(baseaddress);
       exit;
     end;
   finally
@@ -282,7 +282,7 @@ begin
     if pointerinfo[length(pointerinfo)-1].address.text='' then raise exception.Create(rsPleaseFillInAPointerAddress);
 
     try
-      pt:=symhandler.getaddressfromname(pointerinfo[length(pointerinfo)-1].address.text);
+      pt:=symhandler.getaddressfromname(utf8toansi(pointerinfo[length(pointerinfo)-1].address.text));
     except
       raise exception.Create(rsThePointerAddressYouFilledInIsnTAValidAddress+'');
     end;
