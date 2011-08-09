@@ -1573,7 +1573,7 @@ begin
   //unhandled exeption. Also clean lua stack
   lua_settop(luavm,0);
 
-  MessageDlg(E.message, mtError, [mbOK], 0);
+  MessageDlg(ansitoutf8(E.message), mtError, [mbOK], 0);
 end;
 
 resourcestring

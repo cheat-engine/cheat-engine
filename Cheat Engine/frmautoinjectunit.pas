@@ -1226,7 +1226,9 @@ procedure TfrmAutoInject.FormCreate(Sender: TObject);
 var x: array of integer;
     reg: tregistry;
 begin
-{$ifndef standalonetrainerwithassembler}
+
+
+  {$ifndef standalonetrainerwithassembler}
 
   setlength(scripts,1);
   scripts[0].currentundo:=0;
@@ -1268,6 +1270,8 @@ begin
   assemblescreen.Parent:=panel2;
 
   assemblescreen.Gutter.OnGutterClick:=gutterclick;
+
+  assemblescreen.name:='Assemblescreen';
 
   setlength(x,0);
   loadformposition(self,x);
