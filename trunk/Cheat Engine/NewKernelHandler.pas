@@ -659,6 +659,8 @@ var
 
   closeHandle                 : function (hObject:HANDLE):WINBOOL; stdcall;
 
+  GetLogicalProcessorInformation: function(Buffer: PSYSTEM_LOGICAL_PROCESSOR_INFORMATION; ReturnedLength: PDWORD): BOOL; stdcall;
+
  {    just include vmxfunctions
   //dbvm ce000000+
   dbvm_changeselectors    :Tdbvm_changeselectors;
@@ -1179,6 +1181,13 @@ begin
   OutputDebugString('sizeof fxstate = '+inttostr(sizeof(x.fxstate)));
 end;
 
+function NoGetLogicalProcessorInformation(Buffer: PSYSTEM_LOGICAL_PROCESSOR_INFORMATION; ReturnedLength: PDWORD): BOOL; stdcall;
+begin
+  ReturnedLength^:=0;
+  result:=false;
+end;
+
+
 
 var x: string;
   psa: thandle;
@@ -1242,6 +1251,10 @@ initialization
   IsWow64Process:=   GetProcAddress(WindowsKernel, 'IsWow64Process');
 
   CloseHandle:=GetProcAddress(Windowskernel, 'CloseHandle');
+  GetLogicalProcessorInformation:=GetProcAddress(Windowskernel, 'GetLogicalProcessorInformation');
+  if not assigned(GetLogicalProcessorInformation) then
+    GetLogicalProcessorInformation:=@NoGetLogicalProcessorInformation;
+
 
   GetLargePageMinimum:=GetProcAddress(WindowsKernel, 'GetLargePageMinimum');
   if not assigned(GetLargePageMinimum) then
@@ -1252,6 +1265,8 @@ initialization
   psa:=loadlibrary('Psapi.dll');
   EnumDeviceDrivers:=GetProcAddress(psa,'EnumDeviceDrivers');
   GetDevicedriverBaseNameA:=GetProcAddress(psa,'GetDeviceDriverBaseNameA');
+
+
 
   getLBROffset;
 
