@@ -474,6 +474,8 @@ begin
   i:=methodlist.IndexOf(name);
   NeedsToBeCreated:=i=-1;
 
+  //Note when adding new event types: ceguicomponents.pas: SetMethodProperty: Will need to be updated as well
+
   if ATypeInfo.Name ='TNotifyEvent' then
   begin
     result:=TMethod(TNotifyEvent(f.NotifyEvent));

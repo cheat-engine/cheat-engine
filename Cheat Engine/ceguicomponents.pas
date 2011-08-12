@@ -1107,7 +1107,19 @@ begin
   t.luaroutine:=TheMethodName;
   t.owner:=Instance;
 
-  SetMethodProp(instance, propinfo, TMethod(TNotifyEvent(t.NotifyEvent)));
+
+  //I wonder if I could use a case here...
+  if propinfo.PropType=TypeInfo(TCloseEvent) then
+    SetMethodProp(instance, propinfo, TMethod(TCloseEvent(t.CloseEvent)))
+  else
+  if propinfo.PropType=TypeInfo(TMouseEvent) then
+    SetMethodProp(instance, propinfo, TMethod(TMouseEvent(t.MouseEvent)))
+  else
+  if propinfo.PropType=TypeInfo(TKeyPressEvent) then
+    SetMethodProp(instance, propinfo, TMethod(TKeyPressEvent(t.KeyPressEvent)))
+  else
+    SetMethodProp(instance, propinfo, TMethod(TNotifyEvent(t.NotifyEvent)));
+
   handled:=true;
 end;
 
