@@ -291,10 +291,9 @@ begin
   offsetlist.delete(offsetlist.count-1);
   if offsetlist.count>0 then
   begin
-    self.Height:=btnAddOffset.top+btnAddOffset.Height+2+panel1.height;
-    
     btnAddOffset.top:=TOffsetEntry(offsetlist[offsetlist.count-1]).top;
     btnRemoveOffset.top:=btnAddOffset.top;
+    self.Height:=btnAddOffset.top+btnAddOffset.Height+2+panel1.height;
   end
   else
   begin
