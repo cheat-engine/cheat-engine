@@ -1633,6 +1633,8 @@ begin
   fadetimer:=1000;
   backlist:=TStack.create;
 
+  DoubleBuffered:=true; // http://cheatengine.org/mantis/view.php?id=280 , no effect for me, but should help those with no theme
+
   MemoryMap:=TMap.create(ituPtrSize, sizeof(TPageinfo));
   MemoryMapItterator:=TMapIterator.create(MemoryMap);
 
@@ -1688,6 +1690,7 @@ begin
   charsize:=offscreenbitmap.Canvas.TextWidth('X');
   byteSize:=offscreenbitmap.Canvas.TextWidth('XX X'); //byte space and the character it represents
   byteSizeWithoutChar:=offscreenbitmap.Canvas.TextWidth('XX ');
+
 
 
   update;
