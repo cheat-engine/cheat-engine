@@ -502,7 +502,7 @@ begin
       begin
         Add('function '+name+'(sender)');
         Add('');
-        Add('  return caHide --hide, not destroy');
+        Add('  return caHide --Possible options: caHide, caFree, caMinimize, caNone');
         Add('end');
         Add('');
       end;
@@ -540,7 +540,21 @@ begin
         Add('');
       end;
     end;
-
+  end
+  else
+  if ATypeInfo.name = 'TLVCheckedItemEvent' then
+  begin
+    result:=TMethod(TLVCheckedItemEvent(f.LVCheckedItemEvent));
+    if NeedsToBeCreated then
+    begin
+      with mainform.frmLuaTableScript.assemblescreen.Lines do
+      begin
+        Add('function '+name+'(sender, listitem)');
+        Add('');
+        Add('end');
+        Add('');
+      end;
+    end;
   end;
 
   onShowMethod(Name);

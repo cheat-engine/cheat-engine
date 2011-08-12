@@ -2749,7 +2749,9 @@ begin
 {$endif}
 
     if ((d shr 28) and 1)=1 then
+    begin
       result:=true; //it has hyperthreading
+    end;
   end;
 
 
