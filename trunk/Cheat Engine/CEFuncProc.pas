@@ -2717,13 +2717,9 @@ begin
       if GetLogicalProcessorInformation(l, @needed)then
       begin
         if l.Relationship=RelationProcessorCore then //one core, multiple processors. This should be enough indication, but let's check
-        begin
-
           result:=getbitcount(l.ProcessorMask)>1; //this cpuCORE has multiple logical processors, hyperthreading
-          exit;
-        end;
 
-
+        exit;
       end;
     finally
       freemem(l);
