@@ -814,7 +814,7 @@ end;
 procedure THexView.ChangeSelected;
 var unreadable: boolean;
 begin
-  if fhasSelection then
+  if isEditing or fhasSelection then
   begin
     getByte(selected,unreadable);
     if unreadable then exit;
