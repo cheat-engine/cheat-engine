@@ -113,6 +113,7 @@ function KeyToStr(key:word):string;
 
 
 procedure ConvertStringToBytes(scanvalue:string; hex:boolean;var bytes: TBytes);
+function GetBitCount(value: qword): integer;
 function getbit(bitnr: integer; bt: qword):integer;
 procedure setbit(bitnr: integer; var bt: Byte;state:integer); overload;
 procedure setbit(bitnr: integer; var bt: dword;state:integer); overload;
@@ -2681,50 +2682,64 @@ end;
 
 end;
 
+function GetBitCount(value: qword): integer;
+begin
+  result:=0;
+  while value>0 do
+  begin
+    if (value mod 2)=1 then inc(result);
+    value:=value shr 1;
+  end;
+end;
+
 function HasHyperthreading: boolean;
+type PSystemLogicalProcessorInformationArray=array [0..0] of TSystemLogicalProcessorInformation;
 var a,b,c,d: dword;
+
+  l: PSystemLogicalProcessorInformation; //8/13/2011: this structure is bugged because it's not propery aligned, but usefull enough for the first one
+  la: PSystemLogicalProcessorInformationArray absolute l;
+  needed: dword;
+
+  succeed: boolean;
 begin
   result:=false;
-{$ifdef cpu64}
-  asm
-    push rax
-    push rbx
-    push rcx
-    push rdx
-    mov rax,0
-    cpuid
-    mov a,eax
-    mov b,ebx
-    mov c,ecx
-    mov d,edx
-    pop rdx
-    pop rcx
-    pop rbx
-    pop rax
-  end;
-{$else}
-  asm
-    pushad
-    mov eax,0
-    cpuid
-    mov a,eax
-    mov b,ebx
-    mov c,ecx
-    mov d,edx
-    popad
-  end;
-{$endif}
+  succeed:=false;
 
-  if (b=$756e6547) and (d=$49656e69) and (c=$6c65746e) then
+  needed:=0;
+  l:=nil;
+  GetLogicalProcessorInformation(@l, @needed);
+
+  if needed>0 then
   begin
-    //intel cpu
-{$ifdef cpu64}
+    getmem(l, needed);
+    try
+      ZeroMemory(l, needed);
+      if GetLogicalProcessorInformation(l, @needed)then
+      begin
+        if l.Relationship=RelationProcessorCore then //one core, multiple processors. This should be enough indication, but let's check
+        begin
+
+          result:=getbitcount(l.ProcessorMask)>1; //this cpuCORE has multiple logical processors, hyperthreading
+          exit;
+        end;
+
+
+      end;
+    finally
+      freemem(l);
+    end;
+  end;
+
+  if not succeed then
+  begin
+    //not supported, fall back to cpuid
+  {$ifdef cpu64}
     asm
       push rax
       push rbx
       push rcx
       push rdx
-      mov rax,1
+      mov rax,0
       cpuid
       mov a,eax
       mov b,ebx
@@ -2735,10 +2750,10 @@ begin
       pop rbx
       pop rax
     end;
-{$else}
+  {$else}
     asm
       pushad
-      mov eax,1
+      mov eax,0
       cpuid
       mov a,eax
       mov b,ebx
@@ -2746,16 +2761,53 @@ begin
       mov d,edx
       popad
     end;
-{$endif}
+  {$endif}
 
-    if ((d shr 28) and 1)=1 then
+    if (b=$756e6547) and (d=$49656e69) and (c=$6c65746e) then
     begin
-      result:=true; //it has hyperthreading
+      //intel cpu
+  {$ifdef cpu64}
+      asm
+        push rax
+        push rbx
+        push rcx
+        push rdx
+        mov rax,1
+        cpuid
+        mov a,eax
+        mov b,ebx
+        mov c,ecx
+        mov d,edx
+        pop rdx
+        pop rcx
+        pop rbx
+        pop rax
+      end;
+  {$else}
+      asm
+        pushad
+        mov eax,1
+        cpuid
+        mov a,eax
+        mov b,ebx
+        mov c,ecx
+        mov d,edx
+        popad
+      end;
+  {$endif}
+
+      if ((d shr 28) and 1)=1 then
+      begin
+        result:=true; //it has support for hyperthreading
+      end;
     end;
+
   end;
 
 
 end;
+
+
 
 function GetCPUCount: integer;
 {
@@ -2772,14 +2824,8 @@ begin
   //get the cpu and system affinity mask, only processmask is used
   GetProcessAffinityMask(getcurrentprocess,PA,SA);
 
-  cpucount:=0;
-  while pa>0 do
-  begin
-    if (pa mod 2)=1 then inc(cpucount);
-    pa:=pa div 2;
-  end;
-
-  result:=cpucount;
+  result:=getbitcount(pa);
+  //in the future make use of getlogicalprocessorinformation
 
   if result=0 then result:=1;
 end;
