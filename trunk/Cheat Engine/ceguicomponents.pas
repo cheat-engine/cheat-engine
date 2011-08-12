@@ -104,7 +104,7 @@ published
 //  property OnEndDrag;
   property OnEnter;
   property OnExit;
- // property OnItemChecked;
+  property OnItemChecked;
 //  property OnKeyDown;
   property OnKeyPress;
 //  property OnKeyUp;
@@ -1109,6 +1109,9 @@ begin
 
 
   //I wonder if I could use a case here...
+  if propinfo.PropType=TypeInfo(TLVCheckedItemEvent) then
+    SetMethodProp(instance, propinfo, TMethod(TLVCheckedItemEvent(t.LVCheckedItemEvent)))
+  else
   if propinfo.PropType=TypeInfo(TCloseEvent) then
     SetMethodProp(instance, propinfo, TMethod(TCloseEvent(t.CloseEvent)))
   else

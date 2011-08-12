@@ -1272,6 +1272,7 @@ begin
   assemblescreen.Gutter.OnGutterClick:=gutterclick;
 
   assemblescreen.name:='Assemblescreen';
+  assemblescreen.Text:='';
 
   setlength(x,0);
   loadformposition(self,x);

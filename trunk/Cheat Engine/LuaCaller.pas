@@ -10,7 +10,8 @@ and results
 interface
 
 uses
-  Classes, Controls, SysUtils, ceguicomponents, forms, lua, lualib, lauxlib, CEFuncProc;
+  Classes, Controls, SysUtils, ceguicomponents, forms, lua, lualib, lauxlib,
+  comctrls, CEFuncProc;
 
 type
   TLuaCaller=class
@@ -24,12 +25,14 @@ type
       procedure NotifyEvent(sender: TObject);
       procedure MouseEvent(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
       procedure KeyPressEvent(Sender: TObject; var Key: char);
+      procedure LVCheckedItemEvent(Sender: TObject; Item: TListItem); //personal request to have this one added
       procedure CloseEvent(Sender: TObject; var CloseAction: TCloseAction);
       function ActivateEvent(sender: TObject; before, currentstate: boolean): boolean;
       procedure DisassemblerSelectionChangeEvent(sender: TObject; address, address2: ptruint);
       procedure ByteSelectEvent(sender: TObject; address: ptruint; address2: ptruint);
       procedure AddressChangeEvent(sender: TObject; address: ptruint);
       function AutoGuessEvent(address: ptruint; originalVariableType: TVariableType): TVariableType;
+
 
       constructor create;
       destructor destroy; override;
@@ -281,14 +284,40 @@ begin
     lua_pushstring(luavm, key);
     if lua_pcall(LuaVM, 2, 1, 0)=0 then
     begin
-      s:=lua_tostring(LuaVM,-1);
-      if length(s)>0 then
-        key:=s[1];
+      if lua_isstring(LuaVM, -1) then
+      begin
+        s:=lua_tostring(LuaVM,-1);
+        if length(s)>0 then
+          key:=s[1]
+        else
+          key:=#0; //invalid string
+      end
+      else
+      if lua_isnumber(LuaVM, -1) then
+        key:=chr(lua_tointeger(LuaVM, -1))
+      else
+        key:=#0; //invalid type returned
     end;
   finally
     lua_settop(Luavm, oldstack);
     luacs.leave;
   end;
+end;
+
+procedure TLuaCaller.LVCheckedItemEvent(Sender: TObject; Item: TListItem);
+var oldstack: integer;
+begin
+  Luacs.enter;
+  try
+    oldstack:=lua_gettop(Luavm);
+    pushFunction;
+    lua_pushlightuserdata(luavm, sender);
+    lua_pushlightuserdata(luavm, item);
+    lua_pcall(LuaVM, 2, 0, 0);
+  finally
+    lua_settop(Luavm, oldstack);
+    luacs.leave;
+  end
 end;
 
 end.

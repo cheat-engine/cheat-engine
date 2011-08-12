@@ -891,13 +891,17 @@ begin
       else
         s:='';
 
-      l.add('gAboutText=[['+s);
 
 
-      for i:=1 to mabout.lines.Count-1 do
+
+
+      for i:=0 to mabout.lines.Count-1 do
       begin
         s:=mAbout.lines[i];
-        if i=mabout.lines.Count-1 then
+        if i=0 then //first line
+          l.add('gAboutText=[['+s);
+
+        if i=mabout.lines.Count-1 then //last line
           s:=s+']]';
 
         l.add(s);

@@ -17,3 +17,25 @@ If msgstr is empty the original string will be shown
 
 Certain strings are not present in the cheatengine.po file, but are present in lclstrconsts.po
 The lclstrconsts.po file belongs to the LCL that the Cheat Engine GUI is build upon
+
+
+----
+example for dutch
+create the languages\nl_NL folder and move the .po files to there
+
+then translate the .po files
+e.g:
+before:
+#: mainunit.rscheatengine
+msgid "Cheat Engine"
+msgstr ""
+
+after:
+#: mainunit.rscheatengine
+msgid "Cheat Engine"
+msgstr "Valsspeel motor"
+
+
+(This is just an example, please don't translate blindly like this...)
+
+to test you would run cheat engine with --LANG nl_NL
