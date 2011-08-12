@@ -2024,8 +2024,12 @@ end;
 var p:^tp;
 begin
   p:=params;
-  p.control.Width:=p.width;
-  p.control.height:=p.height;
+  if p.width>=0 then
+    p.control.Width:=p.width;
+
+  if p.height>=0 then
+    p.control.height:=p.height;
+
   result:=nil;
 end;
 
