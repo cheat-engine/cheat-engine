@@ -237,6 +237,7 @@ const
 type
   TSynAASyn = class(TSynCustomHighlighter)
   private
+    fLineRef: string;
     fAsmStart: Boolean;
     fRange: TRangeState;
     fLine: PChar;
@@ -295,7 +296,8 @@ type
     function Func53: TtkTokenKind; //rsp
     function Func54: TtkTokenKind; //kalloc
     function Func55: TtkTokenKind; //aobscan
-    function Func59: TtkTokenKind; //readmem    
+    function Func59: TtkTokenKind; //readmem
+    function Func62: TtkTokenKind; //luacall
     function Func68: TtkTokenKind; //include
     function Func82: TtkTokenKind; //assert
     function Func92: TtkTokenKind; //globalalloc
@@ -498,6 +500,7 @@ begin
   fIdentFuncTable[54] := {$IFDEF FPC}@{$ENDIF}Func54;
   fIdentFuncTable[55] := {$IFDEF FPC}@{$ENDIF}Func55;
   fIdentFuncTable[59] := {$IFDEF FPC}@{$ENDIF}Func59;
+  fIdentFuncTable[62] := {$IFDEF FPC}@{$ENDIF}Func62;
   fIdentFuncTable[68] := {$IFDEF FPC}@{$ENDIF}Func68;
   fIdentFuncTable[82] := {$IFDEF FPC}@{$ENDIF}Func82;
   fIdentFuncTable[92] := {$IFDEF FPC}@{$ENDIF}Func92;
@@ -772,6 +775,12 @@ begin
     Result := tkIdentifier;
 end;
 
+function TSynAASyn.Func62: TtkTokenKind; //include
+begin
+  if KeyComp('luacall') then Result := tkKey else
+    Result := tkIdentifier;
+end;
+
 function TSynAASyn.Func68: TtkTokenKind; //include
 begin
   if KeyComp('include') then Result := tkKey else
@@ -961,7 +970,8 @@ end; { Create }
 
 procedure TSynAASyn.SetLine(const NewValue: string; LineNumber:Integer);
 begin
-  fLine := PChar(NewValue);
+  fLineRef := NewValue;
+  fLine := PChar(fLineRef);
   Run := 0;
   fLineNumber := LineNumber;
   Next;
