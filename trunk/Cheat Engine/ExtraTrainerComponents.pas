@@ -324,7 +324,10 @@ begin
   if present then
   begin
     if edit=nil then
+    begin
       edit:=tedit.Create(self);
+      edit.Text:=feditvalue;
+    end;
 
     edit.autosize:=false;
 
