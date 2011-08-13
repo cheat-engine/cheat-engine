@@ -24,7 +24,7 @@ function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targ
 
 implementation
 
-uses simpleaobscanner, StrUtils;
+uses simpleaobscanner, StrUtils, LuaHandler;
 
 resourcestring
   rsForwardJumpWithNoLabelDefined = 'Forward jump with no label defined';
@@ -40,6 +40,7 @@ resourcestring
   rsWrongSyntaxCreateThreadAddress = 'Wrong syntax. CreateThread(address)';
   rsCouldNotBeInjected = '%s could not be injected';
   rsWrongSyntaxLoadLibraryFilename = 'Wrong syntax. LoadLibrary(filename)';
+  rsWrongSyntaxLuaCall = 'Wrong Syntax. LuaCall(luacommand)';
   rsInvalidAddressForReadMem = 'Invalid address for ReadMem';
   rsInvalidSizeForReadMem = 'Invalid size for ReadMem';
   rsTheMemoryAtCouldNotBeFullyRead = 'The memory at %s could not be fully read';
@@ -701,6 +702,25 @@ begin
               setlength(assemblerlines,length(assemblerlines)-1);
               continue;
             end else raise exception.Create(rsWrongSyntaxLoadLibraryFilename);
+          end;
+
+          if uppercase(copy(currentline,1,8))='LUACALL(' then
+          begin
+            //execute a given lua command
+            a:=pos('(',currentline);
+            b:=length(currentline)-1;
+
+            if currentline[b]<>')' then b:=-1;
+
+            if (a>0) and (b>0) then
+            begin
+              s1:=trim(copy(currentline,a+1,b-a-1));
+
+              LUA_DoScript(s1); //raises an exception on error, which is exactly what we want here
+
+              setlength(assemblerlines,length(assemblerlines)-1);
+              continue;
+            end else raise exception.Create(rsWrongSyntaxLuaCall);
           end;
 
           if uppercase(copy(currentline,1,8))='READMEM(' then
