@@ -859,6 +859,25 @@ hexadecimalview_onAddressChange(hexadecimalview, function): function(hexadecimal
 hexadecimalview_onByteSelect(hexadecimalview, function): function(hexadecimalview, address, address2)
 
 
+Thread Class: (Inheritance: Object)
+createNativeThread(function) : 
+  Executes the given function in another thread using the systems thread mechanism
+  The function returns the Thread class object
+  function declaration: function (Thread)
+
+thread_freeOnTerminate(thread, state) : 
+  When set to true the thread object will free itself when the function ends (default=true)
+  Note: Use this only from inside the thread function as the thread might have already terminated and freed itself when called
+
+thread_synchronize(thread, function) :
+  Called from inside the thread. This wil cause the tread to get the main thread to execute the given function and wait for it to finish.
+  Usually for gui access
+  function ()
+
+thread_waitfor(thread) : Waits for the given thread to finish
+
+
+
 supportCheatEngine(attachwindow, hasclosebutton, width, height, position ,yoururl OPTIONAL, extraparameters OPTIONAL, percentageshown OPTIONAL): 
   Will show an advertising window which will help keep the development of Cheat Engine going.
   If you provide your own url it will be shown Up to 75% of the time. 
@@ -946,4 +965,5 @@ dbvm_raise_privilege   : Address of function dbvm_raise_privilege : DWORD; stdca
 dbvm_restore_interrupts: Address of function dbvm_restore_interrupts : DWORD; stdcall;
 dbvm_changeselectors   : Address of function dbvm_changeselectors(cs,ss,ds,es,fs,gs: dword): DWORD; stdcall; 
 --]]
+
 

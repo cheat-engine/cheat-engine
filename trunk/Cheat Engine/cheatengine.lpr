@@ -53,7 +53,8 @@ uses
   frmStructPointerRescanUnit, sharedMemory, disassemblerComments,
   frmFilePatcherUnit, LuaCanvas, LuaPen, LuaFont, LuaBrush, LuaPicture, LuaMenu,
   LuaDebug, frmUltimapUnit, DBK64SecondaryLoader, frmHotkeyExUnit,
-  SymbolListHandler, networkInterface, networkInterfaceApi, networkConfig;
+  SymbolListHandler, networkInterface, networkInterfaceApi, networkConfig,
+  LuaThread;
 
 {$R cheatengine.res}
 {$R manifest.res}

@@ -708,7 +708,7 @@ begin
           begin
             //execute a given lua command
             a:=pos('(',currentline);
-            b:=length(currentline)-1;
+            b:=length(currentline);
 
             if currentline[b]<>')' then b:=-1;
 

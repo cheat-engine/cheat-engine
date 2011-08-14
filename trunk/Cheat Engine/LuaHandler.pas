@@ -41,7 +41,7 @@ implementation
 uses mainunit, frmluaengineunit, plugin, pluginexports, MemoryRecordUnit, debuggertypedefinitions,
   symbolhandler, frmautoinjectunit, simpleaobscanner, addresslist, memscan, foundlisthelper,
   cesupport, DBK32functions, sharedMemory, disassembler, LuaCanvas, LuaPen, LuaFont, LuaBrush,
-  LuaPicture, LuaMenu, LuaDebug, MemoryBrowserFormUnit, disassemblerviewunit, hexviewunit,
+  LuaPicture, LuaMenu, LuaDebug, LuaThread, MemoryBrowserFormUnit, disassemblerviewunit, hexviewunit,
   CustomTypeHandler, byteinterpreter;
 
 resourcestring
@@ -4039,7 +4039,6 @@ begin
 
     if lua_isfunction(L,-1) then
     begin
-      routine:=Lua_ToString(L,-1);
       f:=luaL_ref(L,LUA_REGISTRYINDEX);
 
       lc:=TLuaCaller.create;
@@ -9167,7 +9166,8 @@ begin
     initializeLuaCanvas;
     initializeLuaMenu;
 
-    initializeLuaDebug;
+    initializeLuaDebug; //eventually I should add a LuaLuaDebug...
+    initializeLuaThread;
 
     s:=tstringlist.create;
     try
