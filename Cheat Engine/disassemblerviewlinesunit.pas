@@ -496,7 +496,7 @@ begin
               break;
             end;
 
-            else raise exception.create(rsInvalidDisassembly);
+            //else raise exception.create(rsInvalidDisassembly);
           end;
           inc(i);
         end;
