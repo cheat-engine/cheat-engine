@@ -93,6 +93,7 @@ type topcode=record
   bytes:byte;
   bt1,bt2,bt3: byte;
   norexw: boolean;
+ // RexPrefixOffset: byte; //if specified specifies which byte should be used for the rexw (e.g f3 before rex )
 end;
 
 
@@ -3019,8 +3020,8 @@ var itterator: integer;
 begin
   RexPrefixLocation:=length(bytes);
 
-  if opcodes[i].bt1=$66 then
-    inc(RexPrefixLocation); //it starts after the $66 prefix
+  if opcodes[i].bt1 in [$66, $f2, $f3] then
+    inc(RexPrefixLocation); //mandatory prefixes come before the rex byte
 
   add(bytes,[opcodes[i].bt1]);
   if opcodes[i].bytes>1 then add(bytes,[opcodes[i].bt2]);
