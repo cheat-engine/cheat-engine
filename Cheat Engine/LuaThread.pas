@@ -48,7 +48,7 @@ begin
   luaL_unref(L, LUA_REGISTRYINDEX, functionid);
 
   lua_pushnil(L);
-  lua_setglobal(L, pchar('CELUATHREAD_'+IntToHex(ptruint(self),8)));
+  lua_setglobal(L, pchar('CELUATHREAD_'+IntToHex(ptruint(L),8)));
 
   inherited destroy;
 end;
@@ -72,6 +72,7 @@ var
   c: TCEThread;
 
   newL: Plua_State;
+  s: string;
 begin
   result:=0;
   parameters:=lua_gettop(L);
@@ -93,7 +94,9 @@ begin
     end;
 
     newL:=lua_newthread(L);
-    lua_setglobal(L, pchar('CELUATHREAD_'+IntToHex(ptruint(newL),8)));
+    s:='CELUATHREAD_'+IntToHex(ptruint(newL),8);
+    showmessage(s);
+    lua_setglobal(L, pchar(s));
 
 
     //clear the stack  (just in case)
