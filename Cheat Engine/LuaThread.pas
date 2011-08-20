@@ -9,7 +9,7 @@ This unit contains the class used to control the threads spawned by lua
 interface
 
 uses
-  Classes, SysUtils,lua, lualib, lauxlib, LuaHandler;
+  Classes, SysUtils,lua, lualib, lauxlib, LuaHandler, dialogs;
 
 procedure initializeLuaThread;
 
@@ -46,6 +46,9 @@ destructor TCEThread.destroy;
 begin
   //dereference the function
   luaL_unref(L, LUA_REGISTRYINDEX, functionid);
+
+  lua_pushnil(L);
+  lua_setglobal(L, pchar('CELUATHREAD_'+IntToHex(ptruint(self),8)));
 
   inherited destroy;
 end;
@@ -90,8 +93,10 @@ begin
     end;
 
     newL:=lua_newthread(L);
+    lua_setglobal(L, pchar('CELUATHREAD_'+IntToHex(ptruint(newL),8)));
 
-    //clear the stack
+
+    //clear the stack  (just in case)
     lua_pop(L, lua_gettop(L));
 
     result:=1;
