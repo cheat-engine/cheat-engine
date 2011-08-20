@@ -9,7 +9,7 @@ This unit contains the class used to control the threads spawned by lua
 interface
 
 uses
-  Classes, SysUtils,lua, lualib, lauxlib, LuaHandler, dialogs;
+  Classes, SysUtils,lua, lualib, lauxlib, LuaHandler;
 
 procedure initializeLuaThread;
 
@@ -95,7 +95,6 @@ begin
 
     newL:=lua_newthread(L);
     s:='CELUATHREAD_'+IntToHex(ptruint(newL),8);
-    showmessage(s);
     lua_setglobal(L, pchar(s));
 
 
