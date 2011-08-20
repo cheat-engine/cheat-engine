@@ -187,19 +187,23 @@ end;
 
 procedure TfrmPointerScannerSettings.FormShow(Sender: TObject);
 var
-  bitcount: integer;
+  cpucount: integer;
 
 begin
-  bitcount:=GetCPUCount;
+  cpucount:=GetCPUCount;
 
+  //assumption: when a core with hyperthreading core is running at 100% it's hyperthreaded processor will be running at 90%
+  //This means that 10 cores are needed to provide an equivalent for one extra core when hyperthreading is used
+  //In short, leave the hyperhtreaded processors alone so the user can use that hardly useful processing power to surf the web or move the mouse...
+  //(at most use one)
   if HasHyperthreading then
-    bitcount:=1+(bitcount div 2);
+    cpucount:=1+(cpucount div 2);
 
 
   rbFindValueClick(rbFindAddress);
 
 
-  edtThreadcount.text:=inttostr(bitcount);
+  edtThreadcount.text:=inttostr(cpucount);
 
 
   //check what type of process it is

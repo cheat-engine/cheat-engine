@@ -28,8 +28,8 @@ type TPointerscanresultReader=class
 
     FFileName: string;
     files: array of record
-      startindex: integer;
-      lastindex: integer;
+      startindex: qword;
+      lastindex: qword;
       f: TFileStream;
     end;
 
@@ -104,7 +104,7 @@ begin
   //find which file to use
   for j:=0 to length(files)-1 do
   begin
-    if InRange(i, files[j].startindex, files[j].lastindex) then
+    if InRangeQ(i, files[j].startindex, files[j].lastindex) then
     begin
       files[j].f.Position:=sizeOfEntry*(i-files[j].startindex);
 
