@@ -3521,20 +3521,12 @@ end;
 
 procedure TMainForm.miFreezeNegativeClick(Sender: TObject);
 begin
-  if addresslist.selectedRecord<>nil then
-  begin
-    addresslist.selectedRecord.allowDecrease:=true;
-    addresslist.selectedRecord.active:=true;
-  end;
+  addresslist.ActivateSelected(ftAllowDecrease);
 end;
 
 procedure TMainForm.miFreezePositiveClick(Sender: TObject);
 begin
-  if addresslist.selectedRecord<>nil then
-  begin
-    addresslist.selectedRecord.allowIncrease:=true;
-    addresslist.selectedRecord.active:=true;
-  end;
+  addresslist.ActivateSelected(ftAllowIncrease);
 end;
 
 procedure TMainForm.miSaveScanresultsClick(Sender: TObject);

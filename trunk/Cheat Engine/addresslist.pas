@@ -20,6 +20,9 @@ type
   TCompareRoutine=function(a: tmemoryrecord; b: tmemoryrecord): integer of object;
 
 
+
+
+
   TAddresslist=class(TPanel)
   private
     lastSelected: integer;
@@ -95,7 +98,7 @@ type
     function GetTableXMLAsText(selectedonly: boolean): string;
     procedure AddTableXMLAsText(xml: string; simpleCopyPaste: boolean=true);
     procedure DeleteSelected(ask: boolean=true);
-    procedure ActivateSelected;
+    procedure ActivateSelected(FreezeType: TFreezeType=ftFrozen); //activates all selected entries in the addresslist
     procedure DeactivateSelected;
     procedure CreateGroup(groupname: string);
     procedure addAutoAssembleScript(script: string);
@@ -235,12 +238,20 @@ begin
   result:=TMemoryRecord(treeview.items[i].data);
 end;
 
-procedure TAddresslist.ActivateSelected;
-var i: integer;
+procedure TAddresslist.ActivateSelected(FreezeType: TFreezeType=ftFrozen);
+var
+  i: integer;
+  allowinc: boolean;
+  allowdec: boolean;
 begin
+  //note, I should upgrade the memoryrecord class with this type instead of two booleans
   for i:=0 to count-1 do
     if memrecitems[i].isSelected then
+    begin
+      memrecitems[i].allowIncrease:=FreezeType=ftAllowIncrease;
+      memrecitems[i].allowDecrease:=FreezeType=ftAllowDecrease;
       memrecitems[i].active:=true;
+    end;
 end;
 
 procedure TAddresslist.DeactivateSelected;
@@ -248,7 +259,7 @@ var i: integer;
 begin
   for i:=0 to count-1 do
     if memrecitems[i].isSelected then
-      memrecitems[i].active:=false;
+      memrecitems[i].active:=false;    //this will also reset the allow* booleans
 end;
 
 

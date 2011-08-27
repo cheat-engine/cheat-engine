@@ -11,7 +11,7 @@ uses
 
 type TMemrecHotkeyAction=(mrhToggleActivation, mrhToggleActivationAllowIncrease, mrhToggleActivationAllowDecrease, mrhSetValue, mrhIncreaseValue, mrhDecreaseValue);
 
-//type TFreezeType=(ftFrozen, ftAllowIncrease, ftAllowDecrease);
+type TFreezeType=(ftFrozen, ftAllowIncrease, ftAllowDecrease);
 
 
 
