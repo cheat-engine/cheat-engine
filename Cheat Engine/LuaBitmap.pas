@@ -1,6 +1,20 @@
-unit LuaPen;
+unit LuaBitmap;
 
 {$mode delphi}
+
+interface
+
+uses
+  Classes, SysUtils, Graphics, lua, lualib, lauxlib,LuaHandler;   ;
+
+procedure initializeLuaBitmap;
+
+implementation
+
+
+
+{
+unit LuaPen;
 
 interface
 
@@ -15,6 +29,7 @@ function pen_getColor(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   pen: TPen;
+
 begin
   result:=0;
   parameters:=lua_gettop(L);
@@ -82,7 +97,11 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-procedure initializeLuaPen;
+
+
+}
+
+procedure initializeLuaBitmap;
 begin
   lua_register(LuaVM, 'pen_getColor', pen_getColor);
   lua_register(LuaVM, 'pen_setColor', pen_setColor);

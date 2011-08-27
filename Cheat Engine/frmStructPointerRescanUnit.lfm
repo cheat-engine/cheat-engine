@@ -1,7 +1,7 @@
 object frmStructPointerRescan: TfrmStructPointerRescan
-  Left = 329
+  Left = 349
   Height = 317
-  Top = 144
+  Top = 142
   Width = 267
   Caption = 'Rescan'
   ClientHeight = 317
@@ -10,18 +10,18 @@ object frmStructPointerRescan: TfrmStructPointerRescan
   LCLVersion = '0.9.31'
   object rbMustBeDifferent: TRadioButton
     Left = 8
-    Height = 17
+    Height = 19
     Top = 232
-    Width = 101
+    Width = 111
     Caption = 'Must be different'
     Enabled = False
     TabOrder = 0
   end
   object rbMustBeSame: TRadioButton
     Left = 8
-    Height = 17
+    Height = 19
     Top = 256
-    Width = 103
+    Width = 114
     Caption = 'Must be the same'
     TabOrder = 1
   end
@@ -37,32 +37,32 @@ object frmStructPointerRescan: TfrmStructPointerRescan
   end
   object cbCaseSensitive: TCheckBox
     Left = 8
-    Height = 17
+    Height = 19
     Top = 136
-    Width = 87
+    Width = 93
     Caption = 'Case sensitive'
     TabOrder = 3
   end
   object cbMustBeStart: TCheckBox
     Left = 8
-    Height = 17
+    Height = 19
     Top = 152
-    Width = 184
+    Width = 202
     Caption = 'Must start with the provided string'
     TabOrder = 4
   end
   object edtRegExp: TEdit
     Left = 8
-    Height = 21
+    Height = 23
     Top = 176
     Width = 248
     TabOrder = 5
   end
   object rbDiffDontCare: TRadioButton
     Left = 8
-    Height = 17
+    Height = 19
     Top = 208
-    Width = 136
+    Width = 148
     Caption = 'Don''t care for difference'
     Checked = True
     Enabled = False
@@ -81,16 +81,16 @@ object frmStructPointerRescan: TfrmStructPointerRescan
   end
   object cbPointerInRange: TCheckBox
     Left = 8
-    Height = 17
+    Height = 19
     Top = 40
-    Width = 135
+    Width = 150
     Caption = 'Pointer must be in range'
     OnChange = cbPointerInRangeChange
     TabOrder = 8
   end
   object edtPointerStart: TEdit
     Left = 8
-    Height = 21
+    Height = 23
     Top = 62
     Width = 155
     Enabled = False
@@ -98,16 +98,16 @@ object frmStructPointerRescan: TfrmStructPointerRescan
   end
   object lblAnd: TLabel
     Left = 9
-    Height = 14
+    Height = 16
     Top = 86
-    Width = 19
+    Width = 21
     Caption = 'and'
     Enabled = False
     ParentColor = False
   end
   object edtPointerStop: TEdit
     Left = 8
-    Height = 21
+    Height = 23
     Top = 102
     Width = 155
     Enabled = False
@@ -115,10 +115,10 @@ object frmStructPointerRescan: TfrmStructPointerRescan
   end
   object comboType: TComboBox
     Left = 8
-    Height = 21
+    Height = 23
     Top = 8
     Width = 155
-    ItemHeight = 13
+    ItemHeight = 15
     ItemIndex = 0
     Items.Strings = (
       'String'

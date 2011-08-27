@@ -1,6 +1,7 @@
 unit LuaHandler;
 
-{todo: Split up into smaller units. 7800 lines is becomming too big}
+{todo: Split up into smaller units. 9255 lines is becomming too big}
+{todo2: dll injecting lua into a target process}
 
 {$mode delphi}
 
@@ -38,11 +39,12 @@ function GetLuaState: PLUA_State; stdcall;
 
 implementation
 
-uses mainunit, frmluaengineunit, plugin, pluginexports, MemoryRecordUnit, debuggertypedefinitions,
-  symbolhandler, frmautoinjectunit, simpleaobscanner, addresslist, memscan, foundlisthelper,
-  cesupport, DBK32functions, sharedMemory, disassembler, LuaCanvas, LuaPen, LuaFont, LuaBrush,
-  LuaPicture, LuaMenu, LuaDebug, LuaThread, MemoryBrowserFormUnit, disassemblerviewunit, hexviewunit,
-  CustomTypeHandler, byteinterpreter;
+uses mainunit, frmluaengineunit, plugin, pluginexports, MemoryRecordUnit,
+  debuggertypedefinitions, symbolhandler, frmautoinjectunit, simpleaobscanner,
+  addresslist, memscan, foundlisthelper, cesupport, DBK32functions, sharedMemory,
+  disassembler, LuaCanvas, LuaPen, LuaFont, LuaBrush, LuaPicture, LuaMenu,
+  LuaDebug, LuaThread, LuaGraphic, LuaProgressBar, LuaD3DHook, MemoryBrowserFormUnit,
+  disassemblerviewunit, hexviewunit, CustomTypeHandler, byteinterpreter;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -77,6 +79,7 @@ begin
       result:='';
   end;
 
+
 //unclear should there be a result:=Utf8ToAnsi(s); ?
 end;
 
@@ -86,6 +89,8 @@ var f: string;
   pc: pchar;
   DirInfo: TSearchRec;
 begin
+
+
   f:='main.lua';
   if not FileExists(f) then //perhaps in the cedir
   begin
@@ -2427,6 +2432,44 @@ begin
   end else lua_pop(L, parameters);
 end;
 
+
+function form_getBorderstyle(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  form: TCustomForm;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    form:=lua_touserdata(L,-1);
+    lua_pop(L, parameters);
+
+
+    lua_pushinteger(L, integer(form.Borderstyle));
+    result:=1;
+
+  end else lua_pop(L, parameters);
+end;
+
+function form_setBorderstyle(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  form: TCustomForm;
+  Borderstyle: TBorderStyle;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    form:=lua_touserdata(L,-2);
+    Borderstyle:=TBorderstyle(lua_tointeger(L,-1));
+    lua_pop(L, parameters);
+
+    form.Borderstyle:=Borderstyle;
+
+  end else lua_pop(L, parameters);
+end;
 
 
 function form_show(L: Plua_State): integer; cdecl;
@@ -5792,165 +5835,6 @@ begin
 end;
 
 
-function createProgressBar(L: Plua_State): integer; cdecl;
-var
-  ProgressBar: TCEProgressBar;
-  parameters: integer;
-  owner: TWincontrol;
-begin
-  result:=0;
-
-  parameters:=lua_gettop(L);
-  if parameters>=1 then
-    owner:=lua_touserdata(L, -parameters)
-  else
-    owner:=nil;
-
-  lua_pop(L, lua_gettop(L));
-
-
-  ProgressBar:=TCEProgressBar.Create(owner);
-  if owner<>nil then
-    ProgressBar.Parent:=owner;
-
-  lua_pushlightuserdata(L, ProgressBar);
-  result:=1;
-end;
-
-function progressbar_stepIt(L: Plua_State): integer; cdecl;
-var parameters: integer;
-    progressbar: TCustomProgressBar;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    progressbar:=lua_touserdata(L, -1);
-    progressbar.StepIt;
-  end;
-  lua_pop(L, lua_gettop(L));
-end;
-
-function progressbar_stepBy(L: Plua_State): integer; cdecl;
-var parameters: integer;
-    progressbar: TCustomProgressBar;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    progressbar:=lua_touserdata(L, -2);
-    progressbar.StepBy(lua_tointeger(L, -1));
-  end;
-  lua_pop(L, lua_gettop(L));
-end;
-
-
-function progressbar_getMax(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  progressbar: Tcustomprogressbar;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    progressbar:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, progressbar.max);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function progressbar_setMax(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  progressbar: Tcustomprogressbar;
-  a: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    progressbar:=lua_touserdata(L,-2);
-    progressbar.max:=lua_tointeger(L,-1);
-  end;
-
-  lua_pop(L, parameters);
-end;
-
-function progressbar_getMin(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  progressbar: Tcustomprogressbar;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    progressbar:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, progressbar.Min);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function progressbar_setMin(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  progressbar: Tcustomprogressbar;
-  a: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    progressbar:=lua_touserdata(L,-2);
-    progressbar.Min:=lua_tointeger(L,-1);
-  end;
-
-  lua_pop(L, parameters);
-end;
-
-
-function progressbar_getPosition(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  progressbar: Tcustomprogressbar;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    progressbar:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, progressbar.Position);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function progressbar_setPosition(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  progressbar: Tcustomprogressbar;
-  a: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    progressbar:=lua_touserdata(L,-2);
-    progressbar.Position:=lua_tointeger(L,-1);
-  end;
-
-  lua_pop(L, parameters);
-end;
 
 //trackbar
 function createTrackBar(L: Plua_State): integer; cdecl;
@@ -8666,6 +8550,53 @@ begin
   result:=1;
 end;
 
+function rasterImage_getCanvas(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  c: TrasterImage;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    c:=lua_touserdata(L,-1);
+    lua_pop(L, parameters);
+
+    lua_pushlightuserdata(L, c.Canvas);
+    result:=1;
+
+  end else lua_pop(L, parameters);
+end;
+
+
+function createBitmap(L: Plua_State): integer; cdecl;
+var
+  Bitmap: TBitmap;
+  parameters: integer;
+  width, height: integer;
+begin
+  result:=0;
+
+  parameters:=lua_gettop(L);
+  if parameters>=1 then
+    width:=lua_tointeger(L, -parameters)
+  else
+    width:=screen.width;
+
+  if parameters>=2 then
+    height:=lua_tointeger(L, -parameters+1)
+  else
+    height:=screen.height;
+
+
+  lua_pop(L, parameters);
+
+  Bitmap:=TBitmap.Create;
+
+
+  lua_pushlightuserdata(L, Bitmap);
+  result:=1;
+end;
 
 procedure InitializeLua;
 var s: tstringlist;
@@ -8778,6 +8709,7 @@ begin
     lua_register(LuaVM, 'image_getCanvas', image_getCanvas);
     lua_register(LuaVM, 'image_getPicture', Image_getPicture);
 
+    lua_register(LuaVM, 'rasterimage_getCanvas', rasterimage_getCanvas);
 
     lua_register(LuaVM, 'createHotkey', createHotkey);
     lua_register(LuaVM, 'generichotkey_setKeys', generichotkey_setKeys);
@@ -8943,15 +8875,7 @@ begin
     lua_register(LuaVM, 'combobox_getCanvas', combobox_getCanvas);
 
 
-    lua_register(LuaVM, 'createProgressBar', createProgressBar);
-    lua_register(LuaVM, 'progressbar_stepIt', progressbar_stepIt);
-    lua_register(LuaVM, 'progressbar_stepBy', progressbar_stepBy);
-    lua_register(LuaVM, 'progressbar_getMax', progressbar_getMax);
-    lua_register(LuaVM, 'progressbar_setMax', progressbar_setMax);
-    lua_register(LuaVM, 'progressbar_getMin', progressbar_getMin);
-    lua_register(LuaVM, 'progressbar_setMin', progressbar_setMin);
-    lua_register(LuaVM, 'progressbar_getPosition', progressbar_getPosition);
-    lua_register(LuaVM, 'progressbar_setPosition', progressbar_setPosition);
+    initializeLuaProgressbar;
 
     lua_register(LuaVM, 'createTrackBar', createTrackBar);
     lua_register(LuaVM, 'trackbar_getMax', trackbar_getMax);
@@ -9117,8 +9041,9 @@ begin
 
 
     lua_register(LuaVM, 'customControl_getCanvas', customControl_getCanvas);
+    lua_register(LuaVM, 'customcontrol_getCanvas', customControl_getCanvas);
     lua_register(LuaVM, 'graphicControl_getCanvas', graphicControl_getCanvas);
-
+    lua_register(LuaVM, 'graphiccontrol_getCanvas', graphicControl_getCanvas);
 
     lua_register(LuaVM, 'disassemblerview_getSelectedAddress', disassemblerview_getSelectedAddress);
     lua_register(LuaVM, 'disassemblerview_setSelectedAddress', disassemblerview_setSelectedAddress);
@@ -9157,6 +9082,7 @@ begin
     lua_register(LuaVM, 'writeToClipboard', writeToClipboard);
     lua_register(LuaVM, 'readFromClipboard', readFromClipboard);
 
+    lua_register(LuaVM, 'createBitmap', createBitmap);
 
 
     initializeLuaPicture;
@@ -9168,6 +9094,8 @@ begin
 
     initializeLuaDebug; //eventually I should add a LuaLuaDebug...
     initializeLuaThread;
+    initializeLuaGraphic;
+    initializeLuaD3DHook;
 
     s:=tstringlist.create;
     try

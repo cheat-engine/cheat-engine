@@ -19,6 +19,7 @@ type
     cbBasePointerMustBeInRange: TCheckBox;
     cbMustStartWithSpecificOffsets: TCheckBox;
     cbMustEndWithSpecificOffsets: TCheckBox;
+    cbRepeat: TCheckBox;
     edtBaseStart: TEdit;
     edtBaseEnd: TEdit;
     edtDelay: TEdit;

@@ -1,7 +1,7 @@
 object frmPointerScanner: TfrmPointerScanner
-  Left = 1282
+  Left = 884
   Height = 517
-  Top = 443
+  Top = 380
   Width = 622
   Caption = 'Pointer scan'
   ClientHeight = 497
@@ -12,6 +12,7 @@ object frmPointerScanner: TfrmPointerScanner
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnResize = FormResize
   Position = poScreenCenter
   LCLVersion = '0.9.31'
   object ProgressBar1: TProgressBar
@@ -155,6 +156,16 @@ object frmPointerScanner: TfrmPointerScanner
     OnData = ListView1Data
     OnDblClick = ListView1DblClick
     OnResize = ListView1Resize
+  end
+  object btnStopRescanLoop: TButton
+    Left = 248
+    Height = 25
+    Top = -1
+    Width = 144
+    Caption = 'Stop rescan loop'
+    OnClick = btnStopRescanLoopClick
+    TabOrder = 4
+    Visible = False
   end
   object MainMenu1: TMainMenu
     left = 144

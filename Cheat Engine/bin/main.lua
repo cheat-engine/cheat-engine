@@ -336,8 +336,13 @@ form_isForegroundWindow(form): returns true if the specified form has focus
 form_onClose(form, function)  : function (sender) : Return a CloseAction to determine how to close the window
 form_getMenu(form) : Returns the mainmenu object of this form
 form_setMenu(form, mainmenu)
+
+form_setBorderStyle(form, borderstyle): 6.2+: Sets the borderstyle of the window. Possible options: 
+form_getBorderStyle
+
 form_getDoNotSaveInTable(form): Returns the DoNotSaveInTable property
 form_setDoNotSaveInTable(form, boolean): Sets the DoNotSaveInTable property
+
 
 
 GraphicControl Class: (Inheritance: Control->Component->Object)
@@ -606,13 +611,33 @@ font_setColor
 
 
 Graphic Class : (Inheritance: Object) : Abstract class
+graphic_getWidth(graphic): Gets the current width in pixels of this graphics object
+graphic_setWidth(graphic, width): Sets thw width in pixels
+graphic_getHeight(graphic)
+graphic_setHeight(graphic, height)
+
+RasterImage class: (Inheritance: Graphic->Object) : Base class for some graphical controls
+rasterimage_getCanvas(RasterImage): Returns the Canvas object for this image
+
+
+Bitmap class: (Inheritance: CustomBitmap->RasterImage->Graphic->Object) : Bitmap based Graphic object
+PortableNetworkGraphic Class: (Inheritence: TCustomBitmap->RasterImage->Graphic->Object)
+JpegImage Class: (Inheritence: TCustomBitmap->RasterImage->Graphic->Object)
+ 
+
 
 Picture Class : (Inheritance: Object) : Container for the Graphic class
-createPicture()
+createPicture() : Returns a empty picture object
 picture_loadFromFile(picture, filename)
 picture_loadFromStream(picture, stream, originalextension OPTIONAL)
 picture_assign(picture, sourcepicture)
 picture_getGraphic(picture) : Gets the Graphic object of this picture
+picture_getPNG(picture): Returns a PortableNetworkGraphic Class object (Can be used from scratch)
+picture_getBitmap(picture): Returns a Bitmap Class object (Can be used from scratch)
+picture_getJpeg(picture): Returns a JpegImage Class object (Picture must be initialized with a jpeg file first)
+
+
+
 
 
 OpenDialog Class: (Inheritance: FileDialog->CommonDialog->Component->Object)
@@ -964,6 +989,39 @@ dbvm_block_interrupts  : Address of function dbvm_block_interrupts : DWORD; stdc
 dbvm_raise_privilege   : Address of function dbvm_raise_privilege : DWORD; stdcall;  
 dbvm_restore_interrupts: Address of function dbvm_restore_interrupts : DWORD; stdcall;
 dbvm_changeselectors   : Address of function dbvm_changeselectors(cs,ss,ds,es,fs,gs: dword): DWORD; stdcall; 
+
+
+
+
+
+
+
+d3dhook_initializeHook(overlaystoragesize):
+  Hooks direct3d and allocates a buffer with given size for storage of for the overlay images
+  (for one screen stretching overlay sized 1920x1080 you need at least 6220800 bytes)
+  If no size is provided 16MB is is used
+
+  Note: You can call this only once for a process
+
+d3dhook_createOverlay(Picture, x,y)
+  Sets the Picture object to be used for the overlay. 
+
+  Call this each time you have made a change to the bitmap and want to update it in the game. 
+  About the bitmap. The collor 0,0,0 (black) is used for transparency. If you wish black, try 0,0,1 or something similar
+
+  This functions returns an ID you can use with the d3dhook_updateOverlay function
+  If out of memory or the initialization failed, this returns nil
+
+d3dhook_updateOverlayImage(overlayid)
+  Call this function when you have changed anything to the image of the specified overlay
+
+d3dhook_updateOverlayPosition(overlayid, x,y)
+  Call this function when you wish to change the position this overlay has on the screen
+
+d3dhook_setOverlayVisibility(overlayid, booleanstate) : Sets if the overlay should be drawn or not.
+
+
+d3dhook_beginUpdate() : Use this function when you intend to update multiple overlays. Otherwise each update will have to wait for a frame render
+d3dhook_endUpdate() : When done updating, call this function to apply the changes
+
 --]]
-
-

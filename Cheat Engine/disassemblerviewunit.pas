@@ -83,8 +83,8 @@ type TDisassemblerview=class(TPanel)
     procedure DisCanvasPaint(Sender: TObject);
     procedure DisCanvasMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure DisCanvasMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
-  //  procedure SetPopupMenu(p: Tpopupmenu);
-  //  function getPopupMenu: Tpopupmenu; //hidden on purpose
+    procedure SetOriginalPopupMenu(p: Tpopupmenu);
+    function getOriginalPopupMenu: Tpopupmenu;
     procedure setSelectedAddress(address: ptrUint);
     procedure setSelectedAddress2(address: ptrUint);
     procedure setTopAddress(address: ptrUint);
@@ -131,7 +131,7 @@ type TDisassemblerview=class(TPanel)
     property TopAddress: ptrUint read fTopAddress write setTopAddress;
     property SelectedAddress: ptrUint read fSelectedAddress write setSelectedAddress;
     property SelectedAddress2: ptrUint read fSelectedAddress2 write setSelectedAddress2;
-    property PopupMenu: TPopupMenu read getPopupMenu write SetPopupMenu;
+    property PopupMenu: TPopupMenu read getOriginalPopupMenu write SetOriginalPopupMenu;
 end;
 
 
@@ -144,6 +144,16 @@ resourcestring
   rsBytes = 'Bytes';
   rsOpcode = 'Opcode';
   rsComment = 'Comment';
+
+procedure TDisassemblerview.SetOriginalPopupMenu(p: Tpopupmenu);
+begin
+  inherited popupmenu:=p;
+end;
+
+function TDisassemblerview.getOriginalPopupMenu: Tpopupmenu;
+begin
+  result:=inherited popupmenu;
+end;
 
 procedure TDisassemblerview.setJumplineState(state: tshowjumplinestate);
 begin
