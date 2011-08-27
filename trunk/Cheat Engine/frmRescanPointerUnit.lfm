@@ -1,11 +1,11 @@
 object frmRescanPointer: TfrmRescanPointer
-  Left = 1295
-  Height = 208
-  Top = 137
+  Left = 931
+  Height = 240
+  Top = 112
   Width = 267
   BorderStyle = bsDialog
   Caption = 'Rescan pointerlist'
-  ClientHeight = 208
+  ClientHeight = 240
   ClientWidth = 267
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
@@ -113,7 +113,7 @@ object frmRescanPointer: TfrmRescanPointer
   object cbMustStartWithSpecificOffsets: TCheckBox
     Left = 8
     Height = 19
-    Top = 128
+    Top = 152
     Width = 122
     Caption = 'Must start with offsets'
     OnChange = cbMustStartWithSpecificOffsetsChange
@@ -122,7 +122,7 @@ object frmRescanPointer: TfrmRescanPointer
   object pnlButtons: TPanel
     Left = 56
     Height = 34
-    Top = 176
+    Top = 204
     Width = 170
     BevelOuter = bvNone
     ClientHeight = 34
@@ -171,10 +171,18 @@ object frmRescanPointer: TfrmRescanPointer
   object cbMustEndWithSpecificOffsets: TCheckBox
     Left = 8
     Height = 19
-    Top = 152
+    Top = 176
     Width = 120
     Caption = 'Must end with offsets'
     OnChange = cbMustEndWithSpecificOffsetsChange
     TabOrder = 10
+  end
+  object cbRepeat: TCheckBox
+    Left = 8
+    Height = 19
+    Top = 128
+    Width = 153
+    Caption = 'Repeat rescan until stopped'
+    TabOrder = 11
   end
 end

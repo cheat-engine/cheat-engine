@@ -19,7 +19,7 @@ uses
   htmlhelp, win32int, {defaulttranslator,} fileaccess, formdesignerunit,
   ceguicomponents, frmautoinjectunit, cesupport, trainergenerator, genericHotkey,
   luafile, xmplayer_server, sharedMemory{$ifdef windows},win32proc{$endif},
-  vmxfunctions, FileUtil, networkInterfaceApi, networkconfig;
+  vmxfunctions, FileUtil, networkInterfaceApi, networkconfig, d3dhookUnit, PNGcomn;
 
 //the following are just for compatibility
 
@@ -4846,7 +4846,7 @@ procedure TMainForm.LogoClick(Sender: TObject);
 begin
   if messagedlg(rsDoYouWantToGoToTheCheatEngineWebsite,
     mtConfirmation, [mbYes, mbNo], 0) = mrYes then
-    ShellExecute(0, PChar('open'), PChar('http://www.cheatengine.org/?referredby=CE61'),
+    ShellExecute(0, PChar('open'), PChar('http://www.cheatengine.org/?referredby=CE62'),
       PChar(''), PChar(''), SW_MAXIMIZE);
 
 end;
@@ -6474,15 +6474,58 @@ var cr3: qword;
     filename: WideString;
 
     HandlerCount: integer;
+    img: TPicture;
+
+    b: TBitmap;
+
+    z: TPixmap;
+    c: tcanvas;
+
+    s: tmemorystream;
+    i: integer;
+
+    p: TJpegImage ;
 begin
 
-  //frmUltimap:=TfrmUltimap.create(application);
-  //frmUltimap.show;
+  //img.LoadFromFile('c:\test.png');
+  img:=TPicture.Create;
 
-  if frmNetworkConfig=nil then
-    frmNetworkConfig:=TfrmNetworkConfig.create(self);
 
-  frmNetworkConfig.Show;
+  c:=img.Png.Canvas;
+  c.Brush.Color:=clred;
+  c.FillRect(0,0,100,100);
+
+
+
+  d3dhook:=td3dhook.create(16*1024*1024);
+  i:=d3dhook.createOverlayFromPicture(img, 10,10);
+
+  if i=0 then beep;
+
+
+
+
+  //b:=img.Bitmap;
+ // b.SaveToFile('c:\bla.png');
+
+
+
+ // logo.Picture.LoadFromFile();
+
+ // showmessage(inttostr(img.Width));
+
+ // TRasterImage(img).loadfrom
+
+
+  {
+
+  f.Canvas.Pen.Color:=
+  }
+
+
+ //
+
+
 
 
 
@@ -6499,6 +6542,8 @@ begin
 
  // memorybrowser.Show;
  // memorybrowser.hexview.address:=x;    }
+
+
 
 
 end;

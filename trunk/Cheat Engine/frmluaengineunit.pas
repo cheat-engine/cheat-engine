@@ -91,7 +91,12 @@ begin
               moutput.lines.add(':(boolean)'+BoolToStr(lua_toboolean(Luavm, i),'true','false'))
             end
             else
-              moutput.lines.add(':'+'nil');
+            if lua_isnil(luavm,i) then
+            begin
+              moutput.lines.add(':'+'nil')
+            end
+            else
+              moutput.lines.add(':'+'unknown')
 
           end;
         end;

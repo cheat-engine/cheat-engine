@@ -224,6 +224,7 @@ type
   { Tfrmpointerscanner }
 
   Tfrmpointerscanner = class(TForm)
+    btnStopRescanLoop: TButton;
     ProgressBar1: TProgressBar;
     Panel1: TPanel;
     MainMenu1: TMainMenu;
@@ -251,7 +252,9 @@ type
     PopupMenu1: TPopupMenu;
     Resyncmodulelist1: TMenuItem;
     cbType: TComboBox;
+    procedure btnStopRescanLoopClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormResize(Sender: TObject);
     procedure ListView1Resize(Sender: TObject);
     procedure Method3Fastspeedandaveragememoryusage1Click(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
@@ -270,7 +273,9 @@ type
     start:tdatetime;
 
     rescan: trescanpointers;
+    rescanpointerform: TFrmRescanPointer;
     pointerlisthandler: TReversePointerListHandler;   //handled by the form for easy reuse
+
 
     procedure m_staticscanner_done(var message: tmessage); message staticscanner_done;
     procedure rescandone(var message: tmessage); message rescan_done;
@@ -1145,6 +1150,17 @@ begin
   SaveFormPosition(self, x);
 end;
 
+procedure Tfrmpointerscanner.btnStopRescanLoopClick(Sender: TObject);
+begin
+  btnStopRescanLoop.visible:=false;
+  rescanpointerform.cbRepeat.checked:=false;
+end;
+
+procedure Tfrmpointerscanner.FormResize(Sender: TObject);
+begin
+  btnStopRescanLoop.Left:=(clientwidth div 2) - (btnStopRescanLoop.Width div 2);
+end;
+
 procedure Tfrmpointerscanner.Timer2Timer(Sender: TObject);
 var i,j: integer;
     s: string;
@@ -1665,10 +1681,11 @@ begin
 
 
   finally
-    progressbar.Position:=0;
-    postmessage(ownerform.Handle,rescan_done,0,0);
     if rescanhelper<>nil then
       freeandnil(rescanhelper);
+
+    progressbar.Position:=0;
+    postmessage(ownerform.Handle,rescan_done,0,0);
   end;
 
 end;
@@ -1693,104 +1710,109 @@ begin
 
 
   try
+    if rescanpointerform=nil then
+      rescanpointerform:=TFrmRescanPointer.Create(self);
 
-    with TFrmRescanPointer.Create(self) do
+    with rescanpointerform do
     begin
-      try
-        if showmodal=mrok then
+
+      if (rescanpointerform.cbRepeat.checked) or (showmodal=mrok) then
+      begin
+        if (rescanpointerform.cbRepeat.checked) or savedialog1.Execute then
         begin
-          if savedialog1.Execute then
+          if cbRepeat.Checked then
+          begin
+            //show the stop rescan repeat button
+            btnStopRescanLoop.Visible:=true;
+            btnStopRescanLoop.BringToFront;
+          end;
+
+
+
+          rescan.filename:=utf8toansi(savedialog1.filename);
+          if cbDelay.checked then
+            rescan.delay:=delay
+          else
+            rescan.delay:=0;
+
+          rescan.mustbeinrange:=cbBasePointerMustBeInRange.checked;
+          if rescan.mustbeinrange then
+          begin
+            rescan.BaseStart:=baseStart;
+            rescan.BaseEnd:=baseEnd;
+          end;
+
+          setlength(rescan.startOffsetValues, length(startOffsetValues));
+          for i:=0 to length(startOffsetValues)-1 do
+            rescan.startOffsetValues[i]:=startOffsetValues[i];
+
+          setlength(rescan.endOffsetValues, length(endOffsetValues));
+          for i:=0 to length(endOffsetValues)-1 do
+            rescan.endOffsetValues[i]:=endOffsetValues[i];
+
+          if uppercase(rescan.filename)=uppercase(pointerscanresults.filename) then
+            rescan.overwrite:=true;
+
+
+
+          Rescanmemory1.Enabled:=false;
+          new1.Enabled:=false;
+
+          if rbFindAddress.Checked then
+          begin
+            address:=StrToQWordEx('$'+edtAddress.Text);
+
+            //rescan the pointerlist
+
+            rescan.address:=address;
+            rescan.forvalue:=false;
+
+          end
+          else
           begin
 
+            //if values, check what type of value
+            floataccuracy:=pos(FloatSettings.DecimalSeparator,edtAddress.Text);
+            if floataccuracy>0 then
+              floataccuracy:=length(edtAddress.Text)-floataccuracy;
 
-            rescan.filename:=utf8toansi(savedialog1.filename);
-            if cbDelay.checked then
-              rescan.delay:=delay
-            else
-              rescan.delay:=0;
-
-            rescan.mustbeinrange:=cbBasePointerMustBeInRange.checked;
-            if rescan.mustbeinrange then
-            begin
-              rescan.BaseStart:=baseStart;
-              rescan.BaseEnd:=baseEnd;
-            end;
-
-            setlength(rescan.startOffsetValues, length(startOffsetValues));
-            for i:=0 to length(startOffsetValues)-1 do
-              rescan.startOffsetValues[i]:=startOffsetValues[i];
-
-            setlength(rescan.endOffsetValues, length(endOffsetValues));
-            for i:=0 to length(endOffsetValues)-1 do
-              rescan.endOffsetValues[i]:=endOffsetValues[i];
-
-            if uppercase(rescan.filename)=uppercase(pointerscanresults.filename) then
-              rescan.overwrite:=true;
-
-
-
-            Rescanmemory1.Enabled:=false;
-            new1.Enabled:=false;
-
-            if rbFindAddress.Checked then
-            begin
-              address:=StrToQWordEx('$'+edtAddress.Text);
-
-              //rescan the pointerlist
-
-              rescan.address:=address;
-              rescan.forvalue:=false;
-
-            end
-            else
-            begin
-
-              //if values, check what type of value
-              floataccuracy:=pos(FloatSettings.DecimalSeparator,edtAddress.Text);
-              if floataccuracy>0 then
-                floataccuracy:=length(edtAddress.Text)-floataccuracy;
-
-              case cbValueType.ItemIndex of
-                0:
-                begin
-                  rescan.valuetype:=vtDword;
-                  val(edtAddress.Text, rescan.valuescandword, i);
-                  if i>0 then raise exception.Create(Format(
-                    rsIsNotAValid4ByteValue, [edtAddress.Text]));
-                end;
-
-                1:
-                begin
-                  rescan.valuetype:=vtSingle;
-                  val(edtAddress.Text, rescan.valuescansingle, i);
-                  if i>0 then raise exception.Create(Format(
-                    rsIsNotAValidFloatingPointValue, [edtAddress.Text]));
-                  rescan.valuescansingleMax:=rescan.valuescansingle+(1/(power(10,floataccuracy)));
-                end;
-
-                2:
-                begin
-                  rescan.valuetype:=vtDouble;
-                  val(edtAddress.Text, rescan.valuescandouble, i);
-                  if i>0 then raise exception.Create(Format(
-                    rsIsNotAValidDoubleValue, [edtAddress.Text]));
-                  rescan.valuescandoubleMax:=rescan.valuescandouble+(1/(power(10,floataccuracy)));
-                end;
+            case cbValueType.ItemIndex of
+              0:
+              begin
+                rescan.valuetype:=vtDword;
+                val(edtAddress.Text, rescan.valuescandword, i);
+                if i>0 then raise exception.Create(Format(
+                  rsIsNotAValid4ByteValue, [edtAddress.Text]));
               end;
 
+              1:
+              begin
+                rescan.valuetype:=vtSingle;
+                val(edtAddress.Text, rescan.valuescansingle, i);
+                if i>0 then raise exception.Create(Format(
+                  rsIsNotAValidFloatingPointValue, [edtAddress.Text]));
+                rescan.valuescansingleMax:=rescan.valuescansingle+(1/(power(10,floataccuracy)));
+              end;
 
-
-              rescan.forvalue:=true;
-
+              2:
+              begin
+                rescan.valuetype:=vtDouble;
+                val(edtAddress.Text, rescan.valuescandouble, i);
+                if i>0 then raise exception.Create(Format(
+                  rsIsNotAValidDoubleValue, [edtAddress.Text]));
+                rescan.valuescandoubleMax:=rescan.valuescandouble+(1/(power(10,floataccuracy)));
+              end;
             end;
-            rescan.start;
+
+
+
+            rescan.forvalue:=true;
+
           end;
+          rescan.start;
         end;
-
-
-      finally
-        free;
       end;
+
     end;
 
 
@@ -1821,8 +1843,18 @@ begin
   if rescan<>nil then
     freeandnil(rescan);
     
-  Rescanmemory1.Enabled:=true;
-  new1.Enabled:=true;
+
+
+  if (rescanpointerform<>nil) and rescanpointerform.cbRepeat.checked then
+  begin
+    //repeat
+    Rescanmemory1.Click;
+  end
+  else
+  begin
+    Rescanmemory1.Enabled:=true;
+    new1.Enabled:=true;
+  end;
 end;
 
 procedure Tfrmpointerscanner.btnStopScanClick(Sender: TObject);

@@ -19,6 +19,15 @@ ssAutoVertical=5
 ssAutoBoth=6
 
 
+bsNone=0
+bsSingle=1
+bsSizeable=2
+bsDialog=3
+bsToolWindow=4
+bsSizeToolWin=5
+
+
+
 --scan types: (fast scan methods)
 fsmNotAligned=0
 fsmAligned=1

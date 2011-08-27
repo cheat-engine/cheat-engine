@@ -1,6 +1,6 @@
 unit LuaDebug;
 
-{This unit will hold the debug_ specific lua functions}
+{This unit will hold the debug_ specific lua functions, not related to lua debugging}
 
 {$mode delphi}
 

@@ -512,7 +512,7 @@ begin
     mov rbx, originalstate
 
     push rax
-    pushfd
+    pushfq
     pop rax
     mov TOriginalState(rbx).oldflags,eax
     pop rax
@@ -601,7 +601,7 @@ begin
     xor rax,rax
     mov eax,TOriginalState(rbx).oldflags
     push rax
-    popfd
+    popfq
 
     pop rbx
   end;

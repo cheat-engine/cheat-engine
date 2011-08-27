@@ -103,6 +103,66 @@ begin
   end else lua_pop(L, parameters);
 end;
 
+function picture_getPNG(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  picture, picture2: Tpicture;
+  g: TPortableNetworkGraphic;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    picture:=lua_touserdata(L,-parameters);
+    lua_pop(L, parameters);
+
+    g:=picture.PNG;
+
+    result:=1;
+    lua_pushlightuserdata(L, g);
+  end else lua_pop(L, parameters);
+end;
+
+function picture_getBitmap(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  picture, picture2: Tpicture;
+  g: TBitmap;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    picture:=lua_touserdata(L,-parameters);
+    lua_pop(L, parameters);
+
+    g:=picture.Bitmap;
+
+    result:=1;
+    lua_pushlightuserdata(L, g);
+  end else lua_pop(L, parameters);
+end;
+
+function picture_getJpeg(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  picture, picture2: Tpicture;
+  g: TJpegImage;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    picture:=lua_touserdata(L,-parameters);
+    lua_pop(L, parameters);
+
+    g:=picture.Jpeg;
+
+    result:=1;
+    lua_pushlightuserdata(L, g);
+  end else lua_pop(L, parameters);
+end;
+
 procedure initializeLuaPicture;
 var x: TPicture;
 begin
@@ -111,6 +171,10 @@ begin
   lua_register(LuaVM, 'picture_loadFromStream',picture_loadFromStream);
   lua_register(LuaVM, 'picture_assign',picture_assign);
   lua_register(LuaVM, 'picture_getGraphic',picture_getGraphic);
+
+  lua_register(LuaVM, 'picture_getPNG',picture_getPNG);
+  lua_register(LuaVM, 'picture_getBitmap',picture_getBitmap);
+  lua_register(LuaVM, 'picture_getJpeg',picture_getJpeg);
 
 end;
 
