@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="CED3D10Hook"
-	ProjectGUID="{E01A897B-5AE9-4269-8474-B5BCA8E8D6EF}"
-	RootNamespace="CED3D10Hook"
+	Name="CED3D11Hook"
+	ProjectGUID="{798C430F-6464-4C8F-A01F-89FF2E8B723E}"
+	RootNamespace="CED3D11Hook"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -44,7 +44,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;CED3D10HOOK_EXPORTS"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;CED3D11HOOK_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -63,10 +63,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="d3dx10.lib"
-				OutputFile="..\..\bin\CED3D10Hook.dll"
+				AdditionalDependencies="d3dx11.lib"
+				OutputFile="..\..\bin\CED3D11Hook.dll"
 				LinkIncremental="2"
-				ModuleDefinitionFile="CED3D10Hook.def"
+				ModuleDefinitionFile="CED3D11Hook.def"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -120,7 +120,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;CED3D10HOOK_EXPORTS"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;CED3D11HOOK_EXPORTS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="2"
@@ -138,10 +138,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="d3dx10.lib"
-				OutputFile="..\..\bin\CED3D10Hook.dll"
+				AdditionalDependencies="d3dx11.lib"
+				OutputFile="..\..\bin\CED3D11Hook.dll"
 				LinkIncremental="1"
-				ModuleDefinitionFile="CED3D10Hook.def"
+				ModuleDefinitionFile="CED3D11Hook.def"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -196,7 +196,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;CED3D10HOOK_EXPORTS"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;CED3D11HOOK_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -215,10 +215,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="d3dx10.lib"
-				OutputFile="..\..\bin\CED3D10Hook64.dll"
+				AdditionalDependencies="d3dx11.lib"
+				OutputFile="..\..\bin\CED3D11Hook64.dll"
 				LinkIncremental="2"
-				ModuleDefinitionFile="CED3D10Hook.def"
+				ModuleDefinitionFile="CED3D11Hook.def"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="17"
@@ -273,7 +273,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;CED3D10HOOK_EXPORTS"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;CED3D11HOOK_EXPORTS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="2"
@@ -291,10 +291,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="d3dx10.lib"
-				OutputFile="..\..\bin\CED3D10Hook64.dll"
+				AdditionalDependencies="d3dx11.lib"
+				OutputFile="..\..\bin\CED3D11Hook64.dll"
 				LinkIncremental="1"
-				ModuleDefinitionFile="CED3D10Hook.def"
+				ModuleDefinitionFile="CED3D11Hook.def"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -333,15 +333,11 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\CED3D10Hook.cpp"
+				RelativePath=".\CED3D11Hook.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\CED3D10Hook.def"
-				>
-			</File>
-			<File
-				RelativePath="..\d3dhookshared.h"
+				RelativePath=".\CED3D11Hook.def"
 				>
 			</File>
 			<File
@@ -427,7 +423,11 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\CED3D10Hook.h"
+				RelativePath=".\CED3D11Hook.h"
+				>
+			</File>
+			<File
+				RelativePath="..\d3dhookshared.h"
 				>
 			</File>
 			<File
