@@ -195,7 +195,7 @@ resourcestring
   rsDoesnTContainNeededInformationWhereToPlaceTheMemor = '%s doesn''t contain needed information where to place the memory';
   rsThisIsNotAValidCheatTable = 'This is not a valid cheat table';
   rsThisIsNotAValidXmlFile = 'This is not a valid xml file';
-  rsUnknownExtention = 'Unknown extention';
+  rsUnknownExtention = 'Unknown extension';
   rsYouCanOnlyProtectAFileIfItHasAnCETRAINERExtension = 'You can only protect a file if it has an .CETRAINER extension';
   rsErrorSaving = 'Error saving...';
   rsAskIfStupid = 'Generating a trainer with the current state of the cheat '

@@ -1185,8 +1185,7 @@ begin
 
     if staticscanner.reverse then
     begin
-      lblRSTotalStaticPaths.caption:=format(rsPointerPathsFound+': %d', [scount]
-        );
+      lblRSTotalStaticPaths.caption:=format(rsPointerPathsFound+': %d', [scount]);
 
 {$ifdef benchmarkps}
       if (starttime=0) and (totalpathsevaluated<>0) then

@@ -1,0 +1,3 @@
+LIBRARY	"CED3D9Hook"
+EXPORTS   
+    D3D9Hook_Present_imp	@1
