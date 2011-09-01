@@ -239,11 +239,7 @@ constructor TD3DHook.create(size: integer);
 var h: thandle;
     s: TStringList;
 begin
-  {$ifdef D3DDebug}
-  sharename:='CED3D_DEBUG2';
-  {$else}
-  sharename:='CED3D_'+inttostr(ProcessID);
-  {$endif}
+  sharename:='CED3D_'+inttostr(processhandler.ProcessID);
 
   fprocessid:=processid;
   maxsize:=size;
@@ -263,7 +259,7 @@ begin
 
   shared.cheatenginedir:=CheatEngineDir;
 
-  shared.OverLayHasUpdate:=123456789;
+  shared.OverLayHasUpdate:=0;
 
   h:=CreateEventA(nil, true, false, pchar(sharename+'_READY') );
 

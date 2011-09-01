@@ -304,11 +304,11 @@ DWORD WINAPI InitializeD3DHookDll(PVOID params)
 	
 
 //#ifdef DEBUG	
-	sprintf_s(sharename, 100,"CED3D_DEBUG2");	
-	sprintf_s(eventname, 100,"CED3D_DEBUG2_READY");	
+//	sprintf_s(sharename, 100,"CED3D_DEBUG2");	
+	//sprintf_s(eventname, 100,"CED3D_DEBUG2_READY");	
 //#else
-//	sprintf_s(sharename, 100,"CED3D_%d", GetCurrentProcessId());
-//	sprintf_s(eventname, 100,"CED3D_%d_READY");	
+	sprintf_s(sharename, 100,"CED3D_%d", GetCurrentProcessId());
+	sprintf_s(eventname, 100,"%s_READY", sharename);	
 //#endif
  
 	fmhandle=OpenFileMappingA(FILE_MAP_EXECUTE | FILE_MAP_READ | FILE_MAP_WRITE, FALSE, sharename);
