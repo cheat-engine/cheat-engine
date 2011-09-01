@@ -11,7 +11,7 @@ interface
 
 uses
   windows, Classes, SysUtils, sharedMemory, forms, graphics, cefuncproc,
-  newkernelhandler, controls;
+  newkernelhandler, controls, Clipbrd;
 
 type
   TResourceInfo=packed record
@@ -29,6 +29,18 @@ type
   type TResourceInfoArray=array [0..0] of TResourceInfo;
 
   TD3DHookShared=packed record
+    cheatenginedir: array [0..199] of char;
+    dxgi_present: UINT64;
+    d3d9_present: UINT64;
+
+    dxgi_newpresent: UINT64;
+    d3d9_newpresent: UINT64;
+
+    dxgi_originalpresent: UINT64;
+    d3d9_originalpresent: UINT64;
+
+
+
     OverLayHasUpdate: integer; //When set to not 0 the renderer will check what needs to be updated
     overlaycount: integer;
     resources: TResourceInfoArray;
@@ -74,7 +86,7 @@ function safed3dhook(size: integer=16*1024*1024): TD3DHook;
 
 implementation
 
-uses frmautoinjectunit;
+uses frmautoinjectunit, autoassembler;
 
 procedure TD3DHook.beginupdate;
 var i: integer;
@@ -196,8 +208,8 @@ begin
   beginupdate;
 
 
-
   shared.overlaycount:=result;
+
 
   shared.resources[result-1].height:=p.Height;
   shared.resources[result-1].width:=p.width;
@@ -213,6 +225,7 @@ begin
 
 
   endupdate;
+
 end;
 
 destructor TD3DHook.Destroy;
@@ -223,6 +236,8 @@ begin
 end;
 
 constructor TD3DHook.create(size: integer);
+var h: thandle;
+    s: TStringList;
 begin
   {$ifdef D3DDebug}
   sharename:='CED3D_DEBUG2';
@@ -244,12 +259,47 @@ begin
   if shared=nil then
     raise exception.create('D3DHook: Failure to map the shared memory object');
 
-  //now inject the dll
-  //injectdll(cheatenginedir+'dxhook.dll');
+  ZeroMemory(shared, sizeof(TD3DHookShared));
+
+  shared.cheatenginedir:=CheatEngineDir;
+
+  shared.OverLayHasUpdate:=123456789;
+
+  h:=CreateEventA(nil, true, false, pchar(sharename+'_READY') );
+
+  if (h<>0) then
+  begin
+    //now inject the dll
+    injectdll(cheatenginedir+'d3dhook.dll');
+
+    //wait till the injection is done
+    WaitForSingleObject(h, INFINITE);
+    closehandle(h);
+
+    //and hook the functions
+    //(script: tstrings; address: string; addresstogoto: string; addresstostoreneworiginalfunction: string=''; nameextension:string='0');
+    s:=tstringlist.create;
+    try
+      if shared.d3d9_present<>0 then
+        generateAPIHookScript(s, inttohex(shared.d3d9_present,8), inttohex(shared.d3d9_newpresent,8),  inttohex(shared.d3d9_originalpresent,8), '0');
+
+      if shared.dxgi_present<>0 then
+        generateAPIHookScript(s, inttohex(shared.dxgi_present,8), inttohex(shared.dxgi_newpresent,8),  inttohex(shared.dxgi_originalpresent,8), '1');
+
+      //if there is a script execute it.
+      if (s.count>0) and (autoassemble(s,false)=false) then
+      begin
+        //on error write the script to the clipboard
+        clipboard.AsText:=s.text; //debug
+      end;
+    finally
+      s.free;
+    end;
 
 
-  //and hook the functions
- // generateAPIHookScript();
+  end;
+
+
 end;
 
 function safed3dhook(size: integer=16*1024*1024): TD3DHook;

@@ -1007,7 +1007,7 @@ d3dhook_createOverlay(Picture, x,y)
   Sets the Picture object to be used for the overlay. 
 
   Call this each time you have made a change to the bitmap and want to update it in the game. 
-  About the bitmap. The collor 0,0,0 (black) is used for transparency. If you wish black, try 0,0,1 or something similar
+  About the bitmap. The collor 255,255,255 (white) is used for transparency. If you wish white try 255,255,254 or something similar
 
   This functions returns an ID you can use with the d3dhook_updateOverlay function
   If out of memory or the initialization failed, this returns nil

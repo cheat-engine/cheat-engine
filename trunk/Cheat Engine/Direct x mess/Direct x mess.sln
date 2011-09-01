@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DXHookBase", "DXHookBase\DXHookBase.vcproj", "{13DDC5E9-93F1-4E03-AB46-1A280D36F7C0}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CED3D9Hook", "CED3D9Hook\CED3D9Hook.vcproj", "{3885B41D-A502-4BAC-BAF7-5064D66B7CB7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{13DDC5E9-93F1-4E03-AB46-1A280D36F7C0}.Debug|Win32.ActiveCfg = Debug|Win32
+		{13DDC5E9-93F1-4E03-AB46-1A280D36F7C0}.Debug|Win32.Build.0 = Debug|Win32
+		{13DDC5E9-93F1-4E03-AB46-1A280D36F7C0}.Debug|x64.ActiveCfg = Debug|x64
+		{13DDC5E9-93F1-4E03-AB46-1A280D36F7C0}.Debug|x64.Build.0 = Debug|x64
+		{13DDC5E9-93F1-4E03-AB46-1A280D36F7C0}.Release|Win32.ActiveCfg = Release|Win32
+		{13DDC5E9-93F1-4E03-AB46-1A280D36F7C0}.Release|Win32.Build.0 = Release|Win32
+		{13DDC5E9-93F1-4E03-AB46-1A280D36F7C0}.Release|x64.ActiveCfg = Release|x64
+		{13DDC5E9-93F1-4E03-AB46-1A280D36F7C0}.Release|x64.Build.0 = Release|x64
+		{3885B41D-A502-4BAC-BAF7-5064D66B7CB7}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3885B41D-A502-4BAC-BAF7-5064D66B7CB7}.Debug|Win32.Build.0 = Debug|Win32
+		{3885B41D-A502-4BAC-BAF7-5064D66B7CB7}.Debug|x64.ActiveCfg = Debug|x64
+		{3885B41D-A502-4BAC-BAF7-5064D66B7CB7}.Debug|x64.Build.0 = Debug|x64
+		{3885B41D-A502-4BAC-BAF7-5064D66B7CB7}.Release|Win32.ActiveCfg = Release|Win32
+		{3885B41D-A502-4BAC-BAF7-5064D66B7CB7}.Release|Win32.Build.0 = Release|Win32
+		{3885B41D-A502-4BAC-BAF7-5064D66B7CB7}.Release|x64.ActiveCfg = Release|x64
+		{3885B41D-A502-4BAC-BAF7-5064D66B7CB7}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

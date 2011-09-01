@@ -19,7 +19,8 @@ uses
   htmlhelp, win32int, {defaulttranslator,} fileaccess, formdesignerunit,
   ceguicomponents, frmautoinjectunit, cesupport, trainergenerator, genericHotkey,
   luafile, xmplayer_server, sharedMemory{$ifdef windows},win32proc{$endif},
-  vmxfunctions, FileUtil, networkInterfaceApi, networkconfig, d3dhookUnit, PNGcomn;
+  vmxfunctions, FileUtil, networkInterfaceApi, networkconfig, d3dhookUnit, PNGcomn,
+  FPimage;
 
 //the following are just for compatibility
 
@@ -6477,20 +6478,73 @@ var cr3: qword;
     i: integer;
 
     p: TJpegImage ;
+
+    cl: TFPColor;
 begin
 
   //img.LoadFromFile('c:\test.png');
   img:=TPicture.Create;
+
+  img.png.Width:=100;
+  img.png.height:=100;
+
 
 
   c:=img.Png.Canvas;
   c.Brush.Color:=clred;
   c.FillRect(0,0,100,100);
 
+  img.PNG.Transparent:=true;
+  img.PNG.TransparentMode:=tmFixed;
+  img.PNG.TransparentColor:=0;
+
+
+  img.PNG.Canvas.Colors[10,10]:=FPColor($7f,$ff, $00, $7f);
+  img.PNG.Canvas.Colors[10,11]:=FPColor($7f,$ff, $00, $7f);
+  img.PNG.Canvas.Colors[10,12]:=FPColor($7f,$ff, $00, $7f);
+  img.PNG.Canvas.Colors[11,10]:=FPColor($7f,$ff, $00, $7f);
+  img.PNG.Canvas.Colors[11,11]:=FPColor($7f,$ff, $00, $7f);
+  img.PNG.Canvas.Colors[11,12]:=FPColor($7f,$ff, $00, $7f);
+  img.PNG.Canvas.Colors[12,10]:=FPColor($7f,$ff, $00, $7f);
+  img.PNG.Canvas.Colors[12,11]:=FPColor($7f,$ff, $00, $7f);
+  img.PNG.Canvas.Colors[12,12]:=FPColor($7f,$ff, $00, $7f);
+
+
+  img.PNG.Canvas.Colors[20,10]:=FPColor($00,$ff, $00, $ff);
+  img.PNG.Canvas.Colors[20,11]:=FPColor($00,$ff, $00, $ff);;
+  img.PNG.Canvas.Colors[20,12]:=FPColor($00,$ff, $00, $ff);;
+  img.PNG.Canvas.Colors[21,10]:=FPColor($00,$ff, $00, $ff);;
+  img.PNG.Canvas.Colors[21,11]:=FPColor($00,$ff, $00, $ff);;
+  img.PNG.Canvas.Colors[21,12]:=FPColor($00,$ff, $00, $ff);;
+  img.PNG.Canvas.Colors[22,10]:=FPColor($00,$ff, $00, $ff);;
+  img.PNG.Canvas.Colors[22,11]:=FPColor($00,$ff, $00, $ff);;
+  img.PNG.Canvas.Colors[22,12]:=FPColor($00,$ff, $00, $ff);;
+
+  img.PNG.Canvas.Colors[30,10]:=FPColor($00,$ff, $00, $00);;
+  img.PNG.Canvas.Colors[30,11]:=FPColor($00,$ff, $00, 00);;
+  img.PNG.Canvas.Colors[30,12]:=FPColor($00,$ff, $00, 0);;
+  img.PNG.Canvas.Colors[31,10]:=FPColor($00,$ff, $00, 0);;
+  img.PNG.Canvas.Colors[31,11]:=FPColor($00,$ff, $00, 0);;
+  img.PNG.Canvas.Colors[31,12]:=FPColor($00,$ff, $00, 0);;
+  img.PNG.Canvas.Colors[32,10]:=FPColor($00,$ff, $00, 0);;
+  img.PNG.Canvas.Colors[32,11]:=FPColor($00,$ff, $00, 0);;
+  img.PNG.Canvas.Colors[32,12]:=FPColor($00,$ff, $00, 0);;
+
+
+  cl:=img.PNG.Canvas.Colors[12,12];
+  cl.green:=$ffff;
+  cl.alpha:=0;
+
+  img.PNG.Canvas.Colors[12,12]:=cl;
+  cl:=img.PNG.Canvas.Colors[12,12];
+  if cl.alpha=1 then beep;
+
+  //img.PNG.RawImage.Description.BitsPerPixel:=;
+
 
 
   d3dhook:=td3dhook.create(16*1024*1024);
-  i:=d3dhook.createOverlayFromPicture(img, 10,10);
+  i:=d3dhook.createOverlayFromPicture(img, 300,250);
 
   if i=0 then beep;
 
