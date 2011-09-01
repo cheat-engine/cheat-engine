@@ -1,0 +1,3 @@
+LIBRARY	"CED3D11Hook"
+EXPORTS   
+    D3D11Hook_SwapChain_Present_imp	@1
