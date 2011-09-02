@@ -37,6 +37,10 @@ private:
 	ID3D11RasterizerState *pOverlayRasterizer;
 	ID3D11BlendState *pTransparency;
 
+	ID3D11Texture2D *pDepthStencil;
+	ID3D11RenderTargetView *pRenderTargetView;
+	ID3D11DepthStencilView *pDepthStencilView;
+
 
 
 	BOOL Valid;
