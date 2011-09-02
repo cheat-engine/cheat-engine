@@ -345,6 +345,55 @@ DXMessD3D11Handler::DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD
 
 
 
+
+	//create a rendertarget
+    ID3D11Texture2D* pBackBuffer = NULL;
+	hr = sc->GetBuffer( 0, __uuidof( ID3D11Texture2D ), ( LPVOID* )&pBackBuffer );
+    if( FAILED( hr ) )
+        return;
+
+    hr = dev->CreateRenderTargetView( pBackBuffer, NULL, &pRenderTargetView );
+    pBackBuffer->Release();
+
+    if( FAILED( hr ) )
+        return;
+
+
+	DXGI_SWAP_CHAIN_DESC scdesc;
+	ZeroMemory(&scdesc,sizeof(scdesc));
+	sc->GetDesc(&scdesc);
+
+	
+	// Create depth stencil texture
+    D3D11_TEXTURE2D_DESC descDepth;
+	ZeroMemory( &descDepth, sizeof(descDepth) );
+    descDepth.Width = scdesc.BufferDesc.Width;
+    descDepth.Height = scdesc.BufferDesc.Height;
+    descDepth.MipLevels = 1;
+    descDepth.ArraySize = 1;
+    descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    descDepth.SampleDesc.Count = 1;
+    descDepth.SampleDesc.Quality = 0;
+    descDepth.Usage = D3D11_USAGE_DEFAULT;
+    descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+    descDepth.CPUAccessFlags = 0;
+    descDepth.MiscFlags = 0;
+    hr = dev->CreateTexture2D( &descDepth, NULL, &pDepthStencil );
+    if( FAILED( hr ) )
+        return;
+
+    // Create the depth stencil view
+    D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
+	ZeroMemory( &descDSV, sizeof(descDSV) );
+    descDSV.Format = descDepth.Format;
+    descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+    descDSV.Texture2D.MipSlice = 0;
+    hr = dev->CreateDepthStencilView( pDepthStencil, &descDSV, &pDepthStencilView );
+    if( FAILED( hr ) )
+        return;
+
+
+
 	//now create the texture of the overlay
 	hr=setupOverlayTexture();
 
@@ -413,22 +462,33 @@ void DXMessD3D11Handler::RenderOverlay()
 
 		ID3D11RasterizerState *oldRastersizerState=NULL;
 
+		ID3D11RenderTargetView *oldRenderTarget;
+		ID3D11DepthStencilView *oldDepthStencilView=NULL;
+
 		//save state
+
+		
 
 		dc->VSGetShader( &oldvs, &oldvsinstances, &vci_count);
 		dc->PSGetShader( &oldps, &oldpsinstances, &pci_count);
 		dc->PSGetSamplers(0,1, &oldPSSampler);
 		dc->PSGetShaderResources(0,1, &oldPSShaderResource);
 
+		dc->OMGetRenderTargets(1, &oldRenderTarget, &oldDepthStencilView);
 		dc->OMGetBlendState( &oldBlendState, oldblendFactor, &oldblendsamplemask);
 		dc->OMGetDepthStencilState( &oldDepthStencilState, &oldstencilref);
 
 		dc->IAGetPrimitiveTopology(&oldPrimitiveTopology);
 		dc->IAGetInputLayout(&oldInputLayout);
 		dc->IAGetIndexBuffer( &oldIndexBuffer, &oldIndexBufferFormat, &oldIndexBufferOffset);
-		dc->IAGetVertexBuffers(0,1,&oldVertexBuffer, &oldVertexBufferStrides, &oldVertexBufferOffset);
+		dc->IAGetVertexBuffers(0,1,&oldVertexBuffer, &oldVertexBufferStrides, &oldVertexBufferOffset); //I just need to save 1
 
 		dc->RSGetState(&oldRastersizerState);
+
+		UINT oldviewports=0;
+		D3D11_VIEWPORT viewports[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
+		dc->RSGetViewports(&oldviewports, NULL);
+		dc->RSGetViewports(&oldviewports, viewports);
 
 		//change state
 
@@ -437,8 +497,43 @@ void DXMessD3D11Handler::RenderOverlay()
 		dc->PSSetSamplers( 0, 1, &pSamplerLinear );
 		
 
+
+		
+		
+		
+		//small test to see if it CAN render at all
+		/*
+		float c[4];
+		c[0]=1;
+		c[1]=0;
+		c[2]=1;
+		c[3]=0.5;
+		dc->ClearRenderTargetView( pRenderTargetView, c );
+		*/
+
+		DXGI_SWAP_CHAIN_DESC desc;
+		swapchain->GetDesc(&desc);
+
+		D3D11_VIEWPORT vp;
+		vp.Width = desc.BufferDesc.Width;
+		vp.Height = desc.BufferDesc.Height;
+		vp.MinDepth = 0.0f;
+		vp.MaxDepth = 1.0f;
+		vp.TopLeftX = 0;
+		vp.TopLeftY = 0;
+		dc->RSSetViewports( 1, &vp );
+		 
+
+		
+		dc->OMSetRenderTargetsAndUnorderedAccessViews(0,NULL,NULL,0,0,NULL,NULL);
+		dc->OMSetRenderTargets(1, &pRenderTargetView, pDepthStencilView);		
+		dc->ClearDepthStencilView( pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0 );
+
 		dc->OMSetBlendState(pTransparency, blendFactor, 0xffffffff);
 		dc->OMSetDepthStencilState(NULL,0);
+		
+
+		
 
 		dc->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
 		dc->IASetInputLayout( pVertexLayout );
@@ -467,6 +562,7 @@ void DXMessD3D11Handler::RenderOverlay()
 		dc->PSSetSamplers(0, 1, &oldPSSampler);
 		dc->PSSetShaderResources(0,1, &oldPSShaderResource);
 
+		dc->OMSetRenderTargets(1, &oldRenderTarget, oldDepthStencilView);
 		dc->OMSetBlendState(oldBlendState, oldblendFactor, oldblendsamplemask);
 		dc->OMSetDepthStencilState(oldDepthStencilState, oldstencilref);
 
@@ -476,6 +572,7 @@ void DXMessD3D11Handler::RenderOverlay()
 		dc->IASetVertexBuffers(0,1,&oldVertexBuffer, &oldVertexBufferStrides, &oldVertexBufferOffset);
 
 		dc->RSSetState(oldRastersizerState);
+		dc->RSSetViewports(oldviewports, viewports);
 
 		dc->Release(); //lower the referencecount
 
