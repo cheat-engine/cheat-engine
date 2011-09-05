@@ -506,16 +506,18 @@ begin
 
         currentthread.suspend;
         currentthread.fillContext;
-        case breakpoint.debugregister of
-          0: currentthread.context.Dr0 := breakpoint.address;
-          1: currentthread.context.Dr1 := breakpoint.address;
-          2: currentthread.context.Dr2 := breakpoint.address;
-          3: currentthread.context.Dr3 := breakpoint.address;
+        if BPOverride or ((byte(currentthread.context.Dr7) and byte(Debugregistermask))=0) then
+        begin
+          case breakpoint.debugregister of
+            0: currentthread.context.Dr0 := breakpoint.address;
+            1: currentthread.context.Dr1 := breakpoint.address;
+            2: currentthread.context.Dr2 := breakpoint.address;
+            3: currentthread.context.Dr3 := breakpoint.address;
+          end;
+          currentthread.DebugRegistersUsedByCE:=currentthread.DebugRegistersUsedByCE or (1 shl breakpoint.debugregister);
+          currentthread.context.Dr7 :=(currentthread.context.Dr7 and clearmask) or Debugregistermask;
+          currentthread.setContext;
         end;
-        currentthread.context.Dr7 :=
-          (currentthread.context.Dr7 and clearmask) or Debugregistermask;
-
-        currentthread.setContext;
         currentthread.resume;
       end
       else
@@ -529,14 +531,21 @@ begin
             currentthread := threadlist.items[i];
             currentthread.suspend;
             currentthread.fillContext;
-            case breakpoint.debugregister of
-              0: currentthread.context.Dr0 := breakpoint.address;
-              1: currentthread.context.Dr1 := breakpoint.address;
-              2: currentthread.context.Dr2 := breakpoint.address;
-              3: currentthread.context.Dr3 := breakpoint.address;
+
+            if BPOverride or ((byte(currentthread.context.Dr7) and byte(Debugregistermask))=0) then
+            begin
+              //make sure this bp spot bp is not used
+              case breakpoint.debugregister of
+                0: currentthread.context.Dr0 := breakpoint.address;
+                1: currentthread.context.Dr1 := breakpoint.address;
+                2: currentthread.context.Dr2 := breakpoint.address;
+                3: currentthread.context.Dr3 := breakpoint.address;
+              end;
+
+              currentthread.DebugRegistersUsedByCE:=currentthread.DebugRegistersUsedByCE or (1 shl breakpoint.debugregister);
+              currentthread.context.Dr7 := (currentthread.context.Dr7 and clearmask) or Debugregistermask;
+              currentthread.setContext;
             end;
-            currentthread.context.Dr7 := (currentthread.context.Dr7 and clearmask) or Debugregistermask;
-            currentthread.setContext;
             currentthread.resume;
           end;
 
@@ -585,6 +594,8 @@ begin
     begin
       if (specificContext<>nil) then
       begin
+
+
         case breakpoint.debugregister of
           0: specificContext.Dr0 := 0;
           1: specificContext.Dr1 := 0;
@@ -603,14 +614,22 @@ begin
 
         currentthread.suspend;
         currentthread.fillContext;
-        case breakpoint.debugregister of
-          0: currentthread.context.Dr0 := 0;
-          1: currentthread.context.Dr1 := 0;
-          2: currentthread.context.Dr2 := 0;
-          3: currentthread.context.Dr3 := 0;
+
+        //check if this breakpoint was set in this thread
+        if (BPOverride) or ((currentthread.DebugRegistersUsedByCE and (1 shl breakpoint.debugregister))>0) then
+        begin
+          currentthread.DebugRegistersUsedByCE:=currentthread.DebugRegistersUsedByCE and (not (1 shl breakpoint.debugregister));
+
+          case breakpoint.debugregister of
+            0: currentthread.context.Dr0 := 0;
+            1: currentthread.context.Dr1 := 0;
+            2: currentthread.context.Dr2 := 0;
+            3: currentthread.context.Dr3 := 0;
+          end;
+          currentthread.context.Dr7 := (currentthread.context.Dr7 and Debugregistermask);
+          currentthread.setContext;
+
         end;
-        currentthread.context.Dr7 := (currentthread.context.Dr7 and Debugregistermask);
-        currentthread.setContext;
         currentthread.resume;
       end
       else
@@ -625,42 +644,48 @@ begin
 
             hasoldbp:=false; //now check if this thread actually has the breakpoint set (and not replaced or never even set)
 
-            case breakpoint.debugregister of
-              0:
-              begin
-                hasoldbp:=currentthread.context.Dr0=breakpoint.address;
-                if hasoldbp then
-                  currentthread.context.Dr0 := 0;
-              end;
-
-              1:
-              begin
-                hasoldbp:=currentthread.context.Dr1=breakpoint.address;
-                if hasoldbp then
-                  currentthread.context.Dr1 := 0;
-              end;
-
-              2:
-              begin
-                hasoldbp:=currentthread.context.Dr2=breakpoint.address;
-                if hasoldbp then
-                  currentthread.context.Dr2 := 0;
-              end;
-
-              3:
-              begin
-                hasoldbp:=currentthread.context.Dr3=breakpoint.address;
-                if hasoldbp then
-                  currentthread.context.Dr3 := 0;
-              end;
-            end;
-
-            if hasoldbp then
+            if (BPOverride) or ((currentthread.DebugRegistersUsedByCE and (1 shl breakpoint.debugregister))>0) then
             begin
-              currentthread.context.Dr7 := (currentthread.context.Dr7 and Debugregistermask);
-              currentthread.setcontext;
-            end;
+              currentthread.DebugRegistersUsedByCE:=currentthread.DebugRegistersUsedByCE and (not (1 shl breakpoint.debugregister));
 
+              case breakpoint.debugregister of
+                0:
+                begin
+                  hasoldbp:=currentthread.context.Dr0=breakpoint.address;
+                  if hasoldbp then
+                    currentthread.context.Dr0 := 0;
+                end;
+
+                1:
+                begin
+                  hasoldbp:=currentthread.context.Dr1=breakpoint.address;
+                  if hasoldbp then
+                    currentthread.context.Dr1 := 0;
+                end;
+
+                2:
+                begin
+                  hasoldbp:=currentthread.context.Dr2=breakpoint.address;
+                  if hasoldbp then
+                    currentthread.context.Dr2 := 0;
+                end;
+
+                3:
+                begin
+                  hasoldbp:=currentthread.context.Dr3=breakpoint.address;
+                  if hasoldbp then
+                    currentthread.context.Dr3 := 0;
+                end;
+              end;
+
+              if hasoldbp then
+              begin
+                currentthread.context.Dr7 := (currentthread.context.Dr7 and Debugregistermask);
+                currentthread.setcontext;
+              end;
+
+
+            end;
             currentthread.resume;
           end;
 
@@ -1749,7 +1774,11 @@ begin
   fRunning:=true;
   locksettings;
 
-  inherited Create(False);
+  inherited Create(true);
+
+  Start;
+
+
   WaitTillAttachedOrError;
 end;
 

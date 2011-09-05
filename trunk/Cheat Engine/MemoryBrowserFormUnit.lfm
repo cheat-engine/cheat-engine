@@ -1,7 +1,7 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 450
+  Left = 1182
   Height = 587
-  Top = 228
+  Top = 373
   Width = 722
   HelpContext = 12
   Caption = 'Memory Viewer'

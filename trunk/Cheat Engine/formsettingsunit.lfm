@@ -30,7 +30,7 @@ object formSettings: TformSettings
       Top = 1
       Width = 148
       Align = alLeft
-      DefaultItemHeight = 15
+      DefaultItemHeight = 16
       HideSelection = False
       Indent = 19
       ReadOnly = True
@@ -60,11 +60,12 @@ object formSettings: TformSettings
       Height = 468
       Top = 1
       Width = 622
-      ActivePage = tsHotkeys
+      ActivePage = Assembler
       Align = alClient
-      TabIndex = 1
+      TabIndex = 5
       TabOrder = 1
       OnChange = pcSettingChange
+      OnPageChanged = pcSettingChange
       object GeneralSettings: TTabSheet
         Caption = 'General Settings'
         ClientHeight = 442
@@ -798,7 +799,7 @@ object formSettings: TformSettings
         object GroupBox2: TGroupBox
           Left = 7
           Height = 153
-          Top = 257
+          Top = 273
           Width = 416
           Caption = 'Debugger interface config'
           ClientHeight = 135
@@ -894,7 +895,7 @@ object formSettings: TformSettings
         object rbgDebuggerInterface: TRadioGroup
           Left = 7
           Height = 87
-          Top = 169
+          Top = 185
           Width = 161
           AutoFill = True
           AutoSize = True
@@ -956,7 +957,7 @@ object formSettings: TformSettings
         object Label6: TLabel
           Left = 15
           Height = 14
-          Top = 121
+          Top = 145
           Width = 230
           Caption = 'Size of stack to record on "Find what... routines"'
           ParentColor = False
@@ -964,7 +965,7 @@ object formSettings: TformSettings
         object edtStacksize: TEdit
           Left = 15
           Height = 21
-          Top = 137
+          Top = 161
           Width = 45
           TabOrder = 6
           Text = '4096'
@@ -972,10 +973,18 @@ object formSettings: TformSettings
         object Label7: TLabel
           Left = 63
           Height = 14
-          Top = 139
+          Top = 163
           Width = 27
           Caption = 'Bytes'
           ParentColor = False
+        end
+        object cbOverrideExistingBPs: TCheckBox
+          Left = 15
+          Height = 19
+          Top = 121
+          Width = 277
+          Caption = 'Override existing breakpoints when setting breakpoints'
+          TabOrder = 7
         end
       end
       object Extra: TTabSheet

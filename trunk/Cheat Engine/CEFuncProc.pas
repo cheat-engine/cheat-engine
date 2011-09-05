@@ -635,6 +635,7 @@ var
   processhandler: TProcessHandler;
   PreventDebuggerDetection: boolean=false;
   preferHwBP: boolean=true;
+  BPOverride: boolean=false;
 
 type
   SYSTEM_INFO = record
