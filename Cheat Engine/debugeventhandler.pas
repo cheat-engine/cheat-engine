@@ -78,6 +78,8 @@ type
     ProcessId: dword;
     ThreadId:  dword;
     handle: THandle;
+
+    DebugRegistersUsedByCE: byte; //mask containing the bits for each DR used
     context: PContext;  //PContext but it does belong to this thread. It's due to alignment issues
 
     procedure TracerQuit;
@@ -1079,6 +1081,8 @@ end;
 procedure TDebugEventHandler.UpdateDebugEventWindow;
 {synchronize routine that updates the debug event window}
 var eventtext: string;
+
+  eventdata: PDebugEventData;
 begin
   if frmDebugEvents<>nil then //check if it's still here
   begin
@@ -1094,8 +1098,12 @@ begin
       RIP_EVENT: eventtext:='RIP_EVENT';
       UNLOAD_DLL_DEBUG_EVENT: eventtext:='UNLOAD_DLL_DEBUG_EVENT';
     end;
-    eventtext:=format('pid:%x tid:%x - %s',[currentdebugEvent.dwProcessId, currentdebugevent.dwThreadId, eventtext]);
-    frmDebugEvents.lbDebugEvents.Items.Add(eventtext);
+
+    eventtext:=format('pid:%x tid:%x - %s (eip:%x)',[currentdebugEvent.dwProcessId, currentdebugevent.dwThreadId, eventtext, TDebuggerthread(debuggerthread).currentThread.context.{$ifdef cpu64}Rip{$else}eip{$endif}]);
+
+    getmem(eventdata, sizeof(TDebugEventData));
+    eventdata.context:=TDebuggerthread(debuggerthread).currentThread.context^;
+    frmDebugEvents.lbDebugEvents.Items.AddObject(eventtext, tobject(eventdata));
 
     frmDebugEvents.lbDebugEvents.TopIndex:=frmDebugEvents.lbDebugEvents.items.count-1
   end;

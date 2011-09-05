@@ -19,24 +19,33 @@ object frmThreadlist: TfrmThreadlist
     Top = 0
     Width = 313
     Align = alClient
-    DefaultItemHeight = 15
+    DefaultItemHeight = 16
     PopupMenu = PopupMenu1
     ReadOnly = True
     RowSelect = True
     TabOrder = 0
+    OnDblClick = threadTreeviewDblClick
     OnExpanding = threadTreeviewExpanding
     Options = [tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
   end
   object PopupMenu1: TPopupMenu
     left = 80
     top = 40
-    object Break1: TMenuItem
+    object miBreak: TMenuItem
       Caption = 'Break'
-      OnClick = Break1Click
+      OnClick = miBreakClick
     end
-    object MenuItem1: TMenuItem
+    object miClearDebugRegisters: TMenuItem
       Caption = 'Clear debug registers'
-      OnClick = MenuItem1Click
+      OnClick = miClearDebugRegistersClick
+    end
+    object miFreezeThread: TMenuItem
+      Caption = 'Freeze thread'
+      OnClick = miFreezeThreadClick
+    end
+    object miResumeThread: TMenuItem
+      Caption = 'Resume thread'
+      OnClick = miResumeThreadClick
     end
   end
 end

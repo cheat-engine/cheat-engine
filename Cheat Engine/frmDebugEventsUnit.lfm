@@ -15,6 +15,7 @@ object frmDebugEvents: TfrmDebugEvents
     Width = 641
     Align = alClient
     ItemHeight = 0
+    OnDblClick = lbDebugEventsDblClick
     TabOrder = 0
   end
   object Panel1: TPanel

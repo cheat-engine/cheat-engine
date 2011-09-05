@@ -35,6 +35,7 @@ type
     cbCanStepKernelcode: TCheckBox;
     cbAllIncludesCustomType: TCheckBox;
     cbShowProcesslist: TCheckBox;
+    cbOverrideExistingBPs: TCheckBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
     edtStacksize: TEdit;
@@ -428,6 +429,10 @@ begin
       reg.WriteBool('Replace incomplete opcodes with NOPS',replacewithnops.checked);
       reg.WriteBool('Ask for replace with NOPS',askforreplacewithnops.checked);
       reg.WriteBool('Use Anti-debugdetection',checkbox1.checked);
+      reg.WriteBool('Override existing bp''s',cbOverrideExistingBPs.checked);
+      BPOverride:=cbOverrideExistingBPs.checked;
+
+
       reg.WriteBool('Handle unhandled breakpoints',cbhandlebreakpoints.Checked);
       reg.WriteBool('Fastscan on by default',cbFastscan.checked);
 

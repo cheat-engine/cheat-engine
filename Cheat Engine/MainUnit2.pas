@@ -565,6 +565,13 @@ begin
           if reg.ValueExists('Replace incomplete opcodes with NOPS') then
             replacewithnops.checked:=reg.readBool('Replace incomplete opcodes with NOPS');
 
+          if reg.ValueExists('Override existing bp''s') then
+            cbOverrideExistingBPs.checked:=reg.readBool('Override existing bp''s');
+
+          BPOverride:=cbOverrideExistingBPs.checked;
+
+
+
           try askforreplacewithnops.checked:=reg.readBool('Ask for replace with NOPS'); except end;
           try cbFastscan.checked:=reg.ReadBool('Fastscan on by default'); except end;
           try checkbox1.Checked:=reg.readbool('Use Anti-debugdetection'); except end;
