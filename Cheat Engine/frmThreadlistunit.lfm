@@ -1,7 +1,7 @@
 object frmThreadlist: TfrmThreadlist
-  Left = 1342
+  Left = 1591
   Height = 187
-  Top = 741
+  Top = 773
   Width = 313
   BorderStyle = bsSizeToolWin
   Caption = 'Threadlist'
@@ -20,13 +20,15 @@ object frmThreadlist: TfrmThreadlist
     Width = 313
     Align = alClient
     DefaultItemHeight = 16
+    MultiSelect = True
+    MultiSelectStyle = [msControlSelect, msVisibleOnly, msSiblingOnly]
     PopupMenu = PopupMenu1
     ReadOnly = True
     RowSelect = True
     TabOrder = 0
     OnDblClick = threadTreeviewDblClick
     OnExpanding = threadTreeviewExpanding
-    Options = [tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
+    Options = [tvoAllowMultiselect, tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
   end
   object PopupMenu1: TPopupMenu
     left = 80

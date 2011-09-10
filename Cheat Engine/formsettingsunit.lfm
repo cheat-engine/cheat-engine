@@ -1,7 +1,7 @@
 object formSettings: TformSettings
-  Left = 640
+  Left = 1132
   Height = 517
-  Top = 296
+  Top = 443
   Width = 772
   BorderIcons = [biSystemMenu]
   Caption = 'Cheat Engine settings'

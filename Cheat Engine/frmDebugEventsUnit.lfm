@@ -1,7 +1,7 @@
 object frmDebugEvents: TfrmDebugEvents
-  Left = 426
+  Left = 1263
   Height = 301
-  Top = 189
+  Top = 659
   Width = 641
   Caption = 'Debug Events'
   ClientHeight = 301

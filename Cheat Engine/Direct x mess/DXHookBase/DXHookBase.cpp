@@ -18,27 +18,33 @@
 
 PD3DHookShared shared;
 
+typedef HRESULT     (__stdcall *D3D9_RESET_ORIGINAL)(IDirect3DDevice9 *Device, D3DPRESENT_PARAMETERS *pPresentationParameters);
 typedef HRESULT     (__stdcall *D3D9_PRESENT_ORIGINAL)(IDirect3DDevice9 *Device, RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion);
 typedef HRESULT     (__stdcall *DXGI_PRESENT_ORIGINAL)(IDXGISwapChain *x, UINT SyncInterval, UINT Flags);
 typedef void        (__stdcall *D3D10PlusHookPresentAPICall)(IDXGISwapChain *swapchain, void *device, PD3DHookShared shared);
 typedef void        (__stdcall *D3D9HookPresentAPICall)(IDirect3DDevice9 *device, PD3DHookShared shared);
+typedef HRESULT     (__stdcall *D3D9HookResetAPICall)(D3D9_RESET_ORIGINAL originalfunction, IDirect3DDevice9 *device, D3DPRESENT_PARAMETERS *pPresentationParameters, PD3DHookShared shared);
 
 typedef IDirect3D9* (__stdcall *DIRECT3DCREATE9)(UINT SDKVersion); 
 typedef HRESULT     (__stdcall *D3D10CREATEDEVICEANDSWAPCHAIN)(IDXGIAdapter *pAdapter, D3D10_DRIVER_TYPE DriverType, HMODULE Software, UINT Flags, UINT SDKVersion, DXGI_SWAP_CHAIN_DESC *pSwapChainDesc, IDXGISwapChain **ppSwapChain, ID3D10Device **ppDevice);
 
+
+
+
 D3D10CREATEDEVICEANDSWAPCHAIN d3d10create=NULL;
 DIRECT3DCREATE9 D3DCreate9=NULL;
+D3D9_RESET_ORIGINAL D3D9_Reset_Original=NULL;
 D3D9_PRESENT_ORIGINAL D3D9_Present_Original=NULL;
 DXGI_PRESENT_ORIGINAL DXGI_Present_Original=NULL;
 D3D10PlusHookPresentAPICall D3D11Hook_SwapChain_Present=NULL;
 D3D10PlusHookPresentAPICall D3D10Hook_SwapChain_Present=NULL;
 D3D10PlusHookPresentAPICall D3D10_1Hook_SwapChain_Present=NULL;
 D3D9HookPresentAPICall D3D9Hook_Present;
-
+D3D9HookResetAPICall D3D9Hook_Reset;
 
 
 //this function is exported and only called by CE when inside CE
-void GetAddresses(uintptr_t *presentaddress, uintptr_t *d3d9presentaddress)
+void GetAddresses(uintptr_t *presentaddress, uintptr_t *d3d9presentaddress, uintptr_t *d3d9resetaddress)
 {
 	//create window and create a d3ddevice for dx9, dx10 and dx11H
 
@@ -143,7 +149,10 @@ void GetAddresses(uintptr_t *presentaddress, uintptr_t *d3d9presentaddress)
 						{
 							//get present address
 							uintptr_t *a=(uintptr_t *)*(uintptr_t *)d3d9device;
-							*d3d9presentaddress=a[17]; //17th element is Present()				
+
+							*d3d9resetaddress=a[16]; //16th element is reset
+							*d3d9presentaddress=a[17]; //17th element is Present()										
+							
 
 							//d3d9device->Present(NULL,NULL,0,NULL);
 							d3d9device->Release();
@@ -162,7 +171,34 @@ void GetAddresses(uintptr_t *presentaddress, uintptr_t *d3d9presentaddress)
 
 }
 
+HRESULT __stdcall D3D9_Reset_new(IDirect3DDevice9 *Device, D3DPRESENT_PARAMETERS *pPresentationParameters)
+{
+	if (shared)
+	{
+			if (D3D9Hook_Reset==NULL)
+			{
+				char dllpath[MAX_PATH];				
+				strcpy_s(dllpath, MAX_PATH, shared->CheatEngineDir);
+#ifdef AMD64
+				strcat_s(dllpath, MAX_PATH, "CED3D9Hook64.dll");
+#else
+				strcat_s(dllpath, MAX_PATH, "CED3D9Hook.dll");
+#endif
 
+				HMODULE hdll=LoadLibraryA((char *)dllpath);
+				D3D9Hook_Reset=(D3D9HookResetAPICall)GetProcAddress(hdll, "D3D9Hook_Reset_imp");
+			}
+
+			if (D3D9Hook_Reset)
+				return D3D9Hook_Reset(D3D9_Reset_Original, Device, pPresentationParameters, shared);
+			else
+				return D3D9_Reset_Original(Device, pPresentationParameters);
+	}
+	else
+		return D3D9_Reset_Original(Device, pPresentationParameters);
+
+
+}
 
 HRESULT __stdcall D3D9_Present_new(IDirect3DDevice9 *Device, RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion)
 {
@@ -296,7 +332,7 @@ DWORD WINAPI InitializeD3DHookDll(PVOID params)
 {
 	//called when the dll is injected
 	//open the map
-	uintptr_t present=0,d3d9present=0;
+	uintptr_t present=0,d3d9present=0, d3d9reset=0;
 	HANDLE fmhandle;
 
 	char sharename[100];
@@ -321,19 +357,22 @@ DWORD WINAPI InitializeD3DHookDll(PVOID params)
 
 		
 
-		GetAddresses(&present,&d3d9present);
+		GetAddresses(&present,&d3d9present, &d3d9reset);
 
 		//tell ce the address to hook
 		shared->dxgi_present=present;
 		shared->d3d9_present=d3d9present;
+		shared->d3d9_reset=d3d9reset;
 
 		//tell ce the address where the hook should point to
 		shared->dxgi_newpresent=(uintptr_t)IDXGISwapChain_Present_new;
 		shared->d3d9_newpresent=(uintptr_t)D3D9_Present_new;
+		shared->d3d9_newreset=(uintptr_t)D3D9_Reset_new;
 
 		//tell ce where it should write a pointer to the unhooked version of the hooked functions
 		shared->dxgi_originalpresent=(uintptr_t)&DXGI_Present_Original;
 		shared->d3d9_originalpresent=(uintptr_t)&D3D9_Present_Original;
+		shared->d3d9_originalreset=(uintptr_t)&D3D9_Reset_Original;
 	}
 
 	HANDLE eventhandle=OpenEventA(EVENT_MODIFY_STATE, FALSE, eventname);

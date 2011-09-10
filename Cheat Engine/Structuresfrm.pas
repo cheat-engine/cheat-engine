@@ -803,7 +803,8 @@ begin
               buf[k]:=0;
               buf[k-1]:=0;
               for j:=0 to k-1 do
-                if (buf[j]>0) and (buf[j]<32) then buf[j]:=ord('?');
+                if (buf[j] in [0..31]) then buf[j]:=ord('?');
+
               pwc:=@buf[0];
               ws:=pwc;
               currentvalues[c]:=ws;

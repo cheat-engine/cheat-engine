@@ -146,31 +146,37 @@ end;
 
 procedure TfrmThreadlist.miClearDebugRegistersClick(Sender: TObject);
 var threadlist: tlist;
-i: integer;
+i,j: integer;
 s: ttreenode;
 begin
   if debuggerthread<>nil then
   begin
-    if (threadTreeview.Selected<>nil) then
+    for j:=0 to threadTreeview.SelectionCount-1 do
     begin
-      s:=threadTreeview.Selected;
-      while s.level>0 do
-        s:=s.parent;
+      s:=threadTreeview.Selections[j];
+
+      // if (threadTreeview.Selected<>nil) then
+      begin
+        //s:=threadTreeview.Selected;
+        while s.level>0 do
+          s:=s.parent;
 
 
-      threadlist:=debuggerthread.lockThreadlist;
-      try
-        for i:=0 to threadlist.Count-1 do
-        begin
-          if TDebugThreadHandler(threadlist[i]).ThreadId=strtoint('$'+s.Text) then
+        threadlist:=debuggerthread.lockThreadlist;
+        try
+          for i:=0 to threadlist.Count-1 do
           begin
-            TDebugThreadHandler(threadlist[i]).clearDebugRegisters;
-            break;
+            if TDebugThreadHandler(threadlist[i]).ThreadId=strtoint('$'+s.Text) then
+            begin
+              TDebugThreadHandler(threadlist[i]).clearDebugRegisters;
+              break;
+            end;
           end;
+        finally
+          debuggerthread.unlockThreadlist;
         end;
-      finally
-        debuggerthread.unlockThreadlist;
       end;
+
     end;
 
   end

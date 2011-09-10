@@ -3,18 +3,24 @@
 
 #include <windows.h>
 
+
 #pragma pack(1)
 typedef struct 
 {
 	char CheatEngineDir[200];
 	UINT64 dxgi_present;
 	UINT64 d3d9_present;
+	UINT64 d3d9_reset;
 
 	UINT64 dxgi_newpresent; //From the dll: set this to the function address in the dll
 	UINT64 d3d9_newpresent;                              
+	UINT64 d3d9_newreset;
 
 	UINT64 dxgi_originalpresent; //From the dll: set this to the variable that should get the address of the original function with no hook
-	UINT64 d3d9_originalpresent;                              
+	UINT64 d3d9_originalpresent;   
+	UINT64 d3d9_originalreset;
+
+	
 
 	int OverLayHasUpdate;
 	int overlaycount;
@@ -33,5 +39,6 @@ typedef struct
 	} resources[1];	
 } *PD3DHookShared;
 #pragma pack()
+
 
 #endif

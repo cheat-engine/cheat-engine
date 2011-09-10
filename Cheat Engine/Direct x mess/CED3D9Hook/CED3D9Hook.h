@@ -51,9 +51,13 @@ public:
 	DXMessD3D9Handler(IDirect3DDevice9 *dev, PD3DHookShared shared);
 	~DXMessD3D9Handler();
 	void RenderOverlay();
-
+	void BeforeReset();
+	void AfterReset();
 };
 
+typedef HRESULT     (__stdcall *D3D9_RESET_ORIGINAL)(IDirect3DDevice9 *Device, D3DPRESENT_PARAMETERS *pPresentationParameters);
+
 void __stdcall D3D9Hook_Present_imp(IDirect3DDevice9 *device, PD3DHookShared shared);
+HRESULT __stdcall D3D9Hook_Reset_imp(D3D9_RESET_ORIGINAL originalfunction, IDirect3DDevice9 *device, D3DPRESENT_PARAMETERS *pPresentationParameters, PD3DHookShared shared);
 
 #endif
