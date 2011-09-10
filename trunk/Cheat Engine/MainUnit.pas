@@ -6481,7 +6481,6 @@ var cr3: qword;
 
     cl: TFPColor;
 begin
-
   //img.LoadFromFile('c:\test.png');
   img:=TPicture.Create;
 

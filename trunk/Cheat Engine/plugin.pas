@@ -4,9 +4,12 @@ unit plugin;
 
 interface
 
-uses lclproc, windows, classes, sysutils,LCLIntf,checklst,menus,dialogs,CEFuncProc,NewKernelHandler, graphics;
+uses lclproc, windows, classes, sysutils,LCLIntf,checklst,menus,dialogs,CEFuncProc,
+     NewKernelHandler, graphics, syncobjs;
 
 const CurrentPluginVersion=5;
+
+//todo: Move the type definitions to a different unit
 
 //structures
 type TPluginVersion = record
@@ -839,7 +842,7 @@ end;
 
 type TPluginHandler=class
   private
-    pluginMREW: TMultiReadExclusiveWriteSynchronizer;
+    pluginCS: TCriticalSection;
     plugins: array of TPlugin;
     function GetDLLFilePath(pluginid: integer):string;
   public
@@ -885,9 +888,9 @@ resourcestring
 
 function TPluginHandler.GetDLLFilePath(pluginid: integer):string;
 begin
-  pluginMREW.BeginRead;
+  pluginCS.Enter;
   result:=plugins[pluginid].filepath;
-  pluginMREW.EndRead;
+  pluginCS.Leave;
 end;
 
 function TPluginHandler.registerfunction(pluginid,functiontype:integer; init: pointer):integer;
@@ -933,7 +936,8 @@ var i: integer;
 begin
   result:=-1;
 
-  pluginmrew.BeginWrite;
+
+  pluginCS.enter;
   try
     if pluginid>=length(plugins) then exit;
 
@@ -1131,7 +1135,7 @@ begin
 
     inc(plugins[pluginid].nextid);
   finally
-    pluginmrew.EndWrite;
+    pluginCS.leave;
   end;
 end;
 
@@ -1141,7 +1145,7 @@ var i,j: integer;
 begin
   //remove it
   result:=false;
-  pluginmrew.BeginWrite;
+  pluginCS.enter;
   try
     if pluginid>=length(plugins) then exit;
 
@@ -1306,7 +1310,7 @@ begin
 
 
   finally
-    pluginmrew.EndWrite;
+    pluginCS.leave;
   end;
 end;
 
@@ -1326,25 +1330,26 @@ begin
       e.sizeofExportedFunctions:=sizeof(Texportedfunctions);
   end;
 
-  pluginMREW.BeginRead;
-  if pluginid>=length(plugins) then exit;
-  
+  pluginCS.Enter;
   try
+    if pluginid>=length(plugins) then exit;
+
     if not plugins[pluginid].enabled then
     begin
+      OutputDebugString('Calling EnablePlugin');
       x:=plugins[pluginid].EnablePlugin(e,pluginid);
       if not x then raise exception.Create(Format(rsErrorEnabling, [plugins[pluginid].dllname]));
       plugins[pluginid].enabled:=true;
     end;
   finally
-    pluginMREW.EndRead;
+    pluginCS.Leave;
   end;
 end;
 
 procedure TPluginHandler.UnloadPlugin(pluginid: integer);
 //will disable and unload the plugin
 begin
-  pluginMREW.BeginRead;
+  pluginCS.Enter;
   try
     DisablePlugin(pluginid); //disable the plugin if it was active
     FreeLibrary(plugins[pluginid].hmodule);
@@ -1352,14 +1357,14 @@ begin
     plugins[pluginid].filepath:='';
     plugins[pluginid].name:='';
   finally
-    pluginMREW.EndRead;
+    pluginCS.Leave;
   end;
 end;
 
 procedure TPluginHandler.DisablePlugin(pluginid: integer);
 var i: integer;
 begin
-  pluginMREW.BeginRead;
+  pluginCS.Enter;
   try
     if plugins[pluginid].enabled then
     begin
@@ -1398,7 +1403,7 @@ begin
 
     end;
   finally
-    pluginMREW.EndRead;
+    pluginCS.Leave;
   end;
 end;
 
@@ -1433,7 +1438,7 @@ var dname: string;
 begin
   result:=-1;
   dname:=uppercase(extractfilename(dllname));
-  pluginMREW.BeginRead;
+  pluginCS.Enter;
   for i:=0 to length(plugins)-1 do
   begin
     if uppercase(plugins[i].dllname)=dname then
@@ -1443,7 +1448,7 @@ begin
     end;
   end;
 
-  pluginMREW.EndRead;
+  pluginCS.Leave;
 end;
 
 
@@ -1458,7 +1463,7 @@ begin
   if uppercase(extractfileext(dllname))<>'.DLL' then raise exception.Create(Format(rsErrorLoadingOnlyDLLFilesAreAllowed, [dllname]));
 
   s:=uppercase(extractfilename(dllname));
-  pluginMREW.BeginRead;
+  pluginCS.Enter;
   try
     for i:=0 to length(plugins)-1 do
     begin
@@ -1470,7 +1475,7 @@ begin
       end;
     end;
   finally
-    pluginMREW.EndRead;
+    pluginCS.Leave;
   end;
 
   hmodule:=loadlibrary(pchar(dllname));
@@ -1489,7 +1494,7 @@ begin
     if PluginVersion.version>currentpluginversion then
       raise exception.Create(Format(rsErrorLoadingThisDllRequiresANewerVersionOfCeToFunc, [dllname]));
 
-    pluginMREW.BeginWrite;
+    pluginCS.enter;
     try
       try
         setlength(plugins,length(plugins)+1);
@@ -1526,7 +1531,7 @@ begin
         end;
       end;
     finally
-      pluginMREW.EndWrite;
+      pluginCS.leave;
     end;
 
   end else raise exception.Create(Format(rsErrorLoadingTheGetVersionFunctionReturnedFALSE, [dllname]));
@@ -1541,7 +1546,7 @@ begin
     Tpathspecifier(clb.Items.Objects[i]).Free;
 
   clb.Clear;
-  pluginMREW.BeginRead;
+  pluginCS.Enter;
   for i:=0 to length(plugins)-1 do
   begin
     x:=TPathSpecifier.Create;
@@ -1549,19 +1554,19 @@ begin
     j:=clb.Items.AddObject(plugins[i].dllname+':'+plugins[i].name,x);
     clb.Checked[j]:=plugins[i].enabled;
   end;
-  pluginMREW.EndRead;
+  pluginCS.Leave;
 end;
 
 procedure TPluginHandler.handleAutoAssemblerPlugin(line: ppchar; phase: integer);
 var i,j: integer;
 begin
-  pluginMREW.BeginRead;
+  pluginCS.Enter;
   try
     for i:=0 to length(plugins)-1 do
       for j:=0 to length(plugins[i].RegisteredFunctions8)-1 do
         plugins[i].RegisteredFunctions8[j].callback(line,phase);
   finally
-    pluginMREW.EndRead;
+    pluginCS.Leave;
   end;
 end;
 
@@ -1570,7 +1575,7 @@ var i,j: integer;
     addressofmenuitemstring: pchar;
     s: string;
 begin
-  pluginMREW.BeginRead;
+  pluginCS.Enter;
   try
     for i:=0 to length(plugins)-1 do
       for j:=0 to length(plugins[i].RegisteredFunctions6)-1 do
@@ -1581,20 +1586,20 @@ begin
         plugins[i].RegisteredFunctions6[j].menuitem.Caption:=addressofmenuitemstring;
       end;
   finally
-    pluginMREW.EndRead;
+    pluginCS.Leave;
   end;
 end;
 
 procedure TPluginHandler.handledisassemblerplugins(address: dword; addressStringPointer: pointer; bytestringpointer: pointer; opcodestringpointer: pointer; specialstringpointer: pointer; textcolor: PColor);
 var i,j: integer;
 begin
-  pluginMREW.BeginRead;
+  pluginCS.Enter;
   try
     for i:=0 to length(plugins)-1 do
       for j:=0 to length(plugins[i].RegisteredFunctions7)-1 do
         plugins[i].RegisteredFunctions7[j].callback(address, addressStringPointer, bytestringpointer, opcodestringpointer, specialstringpointer, textcolor);
   finally
-    pluginMREW.EndRead;
+    pluginCS.Leave;
   end;
 end;
 
@@ -1602,13 +1607,13 @@ function TPluginHandler.handledebuggerplugins(devent: PDebugEvent):integer;
 var i,j: integer;
 begin
   result:=0;
-  pluginMREW.BeginRead;
+  pluginCS.Enter;
   try
     for i:=0 to length(plugins)-1 do
       for j:=0 to length(plugins[i].RegisteredFunctions2)-1 do
         if plugins[i].RegisteredFunctions2[j].callback(devent)=1 then result:=1;
   finally
-    pluginMREW.EndRead;
+    pluginCS.Leave;
   end;
 end;
 
@@ -1616,7 +1621,7 @@ function TPluginHandler.handlenewprocessplugins(processid: dword; peprocess:dwor
 var i,j: integer;
 begin
   result:=true;
-  pluginMREW.BeginRead;
+  pluginCS.Enter;
   try
     for i:=0 to length(plugins)-1 do
       for j:=0 to length(plugins[i].Registeredfunctions3)-1 do
@@ -1627,7 +1632,7 @@ begin
           plugins[i].Registeredfunctions3[j].callback(processid,peprocess, created);
       end;
   finally
-    pluginMREW.EndRead;
+    pluginCS.Leave;
   end;
 end;
 
@@ -1639,20 +1644,20 @@ begin
 
 
   result:=true;
-  pluginMREW.BeginRead;
+  pluginCS.Enter;
   try
     for i:=0 to length(plugins)-1 do
       for j:=0 to length(plugins[i].RegisteredFunctions4)-1 do
         plugins[i].RegisteredFunctions4[j].callback(section);
   finally
-    pluginMREW.EndRead;
+    pluginCS.Leave;
   end;
 end;
 
 destructor TPluginHandler.destroy;
 var i,j: integer;
 begin
-  pluginMREW.BeginRead;
+  pluginCS.Enter;
   try
     for i:=0 to length(plugins)-1 do
     begin
@@ -1662,14 +1667,14 @@ begin
       end;
     end;
   finally
-    pluginMREW.EndRead;
+    pluginCS.Leave;
   end;
 end;
 
 constructor TPluginHandler.create;
 var test: pchar;
 begin
-  pluginMREW:=TMultiReadExclusiveWriteSynchronizer.Create;
+  pluginCS:=TCriticalSection.Create;
   exportedfunctions.sizeofExportedFunctions:=sizeof(TExportedFunctions);
   exportedfunctions.showmessage:=@ce_showmessage;
   exportedfunctions.registerfunction:=@ce_registerfunction;

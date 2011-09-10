@@ -1,7 +1,7 @@
 object Registers: TRegisters
-  Left = 1062
+  Left = 1493
   Height = 198
-  Top = 206
+  Top = 290
   Width = 154
   Caption = 'Registers'
   ClientHeight = 198

@@ -7,6 +7,21 @@
 using namespace std;
 map<IDirect3DDevice9 *, DXMessD3D9Handler *> D3D9devices;
 
+void DXMessD3D9Handler::BeforeReset()
+{
+	if (sprite)
+		sprite->OnLostDevice();
+
+	//sprite=NULL;
+}
+
+void DXMessD3D9Handler::AfterReset()
+{
+	if (sprite)
+		sprite->OnResetDevice();
+}
+
+
 HRESULT DXMessD3D9Handler::setupOverlayTexture()
 {
 	int i;
@@ -82,26 +97,47 @@ HRESULT DXMessD3D9Handler::setupOverlayTexture()
 void DXMessD3D9Handler::RenderOverlay()
 {	
 	int i;
-	dev->BeginScene();
+	HRESULT hr;
 
-	sprite->Begin(D3DXSPRITE_ALPHABLEND);
+	if (sprite)
+	{
+		if (shared->OverLayHasUpdate)
+			setupOverlayTexture();
 
-	for (i=0; i<OverlayCount; i++)
-	{	
-		overlays[i].x=20;
-		overlays[i].y=20;
-		sprite->Draw(overlays[0].pOverlayTex, NULL, NULL, &D3DXVECTOR3(overlays[0].x,overlays[0].y,0), D3DCOLOR_ARGB(255,255,255,255));
+		hr=dev->BeginScene();
+
+		if (SUCCEEDED(hr))
+		{
+			
+			sprite->OnLostDevice();
+			sprite->OnResetDevice();
+			hr=sprite->Begin(D3DXSPRITE_ALPHABLEND);
+
+		
+			if (SUCCEEDED(hr))
+			{
+
+				for (i=0; i<OverlayCount; i++)	
+					hr=sprite->Draw(overlays[0].pOverlayTex, NULL, NULL, &D3DXVECTOR3(overlays[0].x,overlays[0].y,0), D3DCOLOR_ARGB(255,255,255,255));
+		
+				hr=sprite->Flush();
+				
+				hr=sprite->End();
+
+			}
+		}
+		
+		dev->EndScene();
 	}
-
-	sprite->Flush();
-	sprite->End();
-	dev->EndScene();
+	
 }
 
 DXMessD3D9Handler::DXMessD3D9Handler(IDirect3DDevice9 *dev, PD3DHookShared shared)
 {
 	HRESULT hr;
 	sprite=NULL;
+
+	dev->AddRef();
 
 	this->dev=dev;
 	this->shared=shared;
@@ -112,7 +148,6 @@ DXMessD3D9Handler::DXMessD3D9Handler(IDirect3DDevice9 *dev, PD3DHookShared share
 	hr=D3DXCreateSprite(dev, &sprite); //
 	if( FAILED( hr ) )
 		return;
-
 
 	hr=setupOverlayTexture();
 	if( FAILED( hr ) )
@@ -128,11 +163,27 @@ DXMessD3D9Handler::~DXMessD3D9Handler()
 	
 void __stdcall D3D9Hook_Present_imp(IDirect3DDevice9 *device, PD3DHookShared shared)
 {
-	//look up the controller class for this device
-	if (D3D9devices[device]==NULL)
+
+	DXMessD3D9Handler *currenthandler=D3D9devices[device];
+	if (currenthandler==NULL)
 	{
-		DXMessD3D9Handler *dc=new DXMessD3D9Handler(device, shared);//create a new devicehandler
-		D3D9devices[device]=dc;
+		currenthandler=new DXMessD3D9Handler(device, shared);//create a new devicehandler
+		D3D9devices[device]=currenthandler;
 	}
-	D3D9devices[device]->RenderOverlay();	
+	currenthandler->RenderOverlay();	
+}
+
+HRESULT __stdcall D3D9Hook_Reset_imp(D3D9_RESET_ORIGINAL originalfunction, IDirect3DDevice9 *device, D3DPRESENT_PARAMETERS *pPresentationParameters, PD3DHookShared shared)
+{
+	HRESULT hr;
+	DXMessD3D9Handler *currenthandler=D3D9devices[device];
+	if (currenthandler)
+	{
+		currenthandler->BeforeReset();
+		hr=originalfunction(device, pPresentationParameters);
+		if (SUCCEEDED(hr))
+			currenthandler->AfterReset();		
+	}
+
+	return hr;
 }

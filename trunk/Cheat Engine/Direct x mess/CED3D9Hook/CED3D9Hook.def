@@ -1,3 +1,4 @@
 LIBRARY	"CED3D9Hook"
 EXPORTS   
     D3D9Hook_Present_imp	@1
+    D3D9Hook_Reset_imp		@2

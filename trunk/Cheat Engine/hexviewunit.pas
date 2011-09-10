@@ -488,6 +488,7 @@ begin
           if (stop-start)+1=processhandler.pointersize then
           begin
             //go to this selected address
+            gotoaddress:=0;
             if ReadProcessMemory(processhandle, pointer(start), @gotoaddress, processhandler.pointersize,x) then
             begin
               //save the current address in the history

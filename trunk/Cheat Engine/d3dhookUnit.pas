@@ -32,12 +32,15 @@ type
     cheatenginedir: array [0..199] of char;
     dxgi_present: UINT64;
     d3d9_present: UINT64;
+    d3d9_reset: UINT64;
 
     dxgi_newpresent: UINT64;
     d3d9_newpresent: UINT64;
+    d3d9_newreset: UINT64;
 
     dxgi_originalpresent: UINT64;
     d3d9_originalpresent: UINT64;
+    d3d9_originalreset: UINT64;
 
 
 
@@ -279,8 +282,11 @@ begin
       if shared.d3d9_present<>0 then
         generateAPIHookScript(s, inttohex(shared.d3d9_present,8), inttohex(shared.d3d9_newpresent,8),  inttohex(shared.d3d9_originalpresent,8), '0');
 
+      if shared.d3d9_reset<>0 then
+        generateAPIHookScript(s, inttohex(shared.d3d9_reset,8), inttohex(shared.d3d9_newreset,8),  inttohex(shared.d3d9_originalreset,8), '1');
+
       if shared.dxgi_present<>0 then
-        generateAPIHookScript(s, inttohex(shared.dxgi_present,8), inttohex(shared.dxgi_newpresent,8),  inttohex(shared.dxgi_originalpresent,8), '1');
+        generateAPIHookScript(s, inttohex(shared.dxgi_present,8), inttohex(shared.dxgi_newpresent,8),  inttohex(shared.dxgi_originalpresent,8), '2');
 
       //if there is a script execute it.
       if (s.count>0) and (autoassemble(s,false)=false) then
