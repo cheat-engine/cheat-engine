@@ -1020,6 +1020,14 @@ d3dhook_updateOverlayPosition(overlayid, x,y)
 
 d3dhook_setOverlayVisibility(overlayid, booleanstate) : Sets if the overlay should be drawn or not.
 
+d3dhook_setOverlayAsMouse(overlayid): 
+  Sets the specific overlay image as the mouse cursors. 
+  This is useful in case you are in a situation with no visible mousecursor this can be used to render one with more performance as the x,y coordinates are updated inside the target app itself on each frame
+  To disable the automatic updating of the overlay set as overlayid 0
+  To make the mouse invisible, use d3dhook_setOverlayVisibility for that
+
+  Note: The top left part of the overlay is the position of the mouse
+
 
 d3dhook_beginUpdate() : Use this function when you intend to update multiple overlays. Otherwise each update will have to wait for a frame render
 d3dhook_endUpdate() : When done updating, call this function to apply the changes

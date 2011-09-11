@@ -104,6 +104,27 @@ void DXMessD3D9Handler::RenderOverlay()
 		if (shared->OverLayHasUpdate)
 			setupOverlayTexture();
 
+		if ((shared->MouseOverlayId>=0) && (OverlayCount>=shared->MouseOverlayId) && (shared->resources[shared->MouseOverlayId].valid))
+		{
+			//update the mouse position each frame for as long as the mouse is valid
+			
+			D3DDEVICE_CREATION_PARAMETERS cp;
+			POINT p;
+			dev->GetCreationParameters(&cp);
+
+			p.x=0;
+			p.y=0;
+
+			GetCursorPos(&p);
+
+			ScreenToClient(cp.hFocusWindow, &p);	
+			
+			overlays[shared->MouseOverlayId].x=p.x;
+			overlays[shared->MouseOverlayId].y=p.y;
+		}
+
+
+
 		hr=dev->BeginScene();
 
 		if (SUCCEEDED(hr))
@@ -117,8 +138,9 @@ void DXMessD3D9Handler::RenderOverlay()
 			if (SUCCEEDED(hr))
 			{
 
-				for (i=0; i<OverlayCount; i++)	
-					hr=sprite->Draw(overlays[0].pOverlayTex, NULL, NULL, &D3DXVECTOR3(overlays[0].x,overlays[0].y,0), D3DCOLOR_ARGB(255,255,255,255));
+				for (i=0; i<OverlayCount; i++)
+					if (shared->resources[i].valid)
+						hr=sprite->Draw(overlays[0].pOverlayTex, NULL, NULL, &D3DXVECTOR3(overlays[0].x,overlays[0].y,0), D3DCOLOR_ARGB(255,255,255,255));
 		
 				hr=sprite->Flush();
 				

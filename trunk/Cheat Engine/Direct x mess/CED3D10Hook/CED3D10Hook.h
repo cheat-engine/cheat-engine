@@ -34,6 +34,9 @@ private:
 	ID3D10RasterizerState *pOverlayRasterizer;
 	ID3D10BlendState *pTransparency;
 
+	ID3D10Texture2D *pDepthStencil;
+	ID3D10RenderTargetView *pRenderTargetView;
+	ID3D10DepthStencilView *pDepthStencilView;
 
 	//ID3DX10Sprite *sprite; //in case the pixelshader stuff fails (I can't seem to set it to a lower PS version than 4...)
 
