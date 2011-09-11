@@ -351,6 +351,52 @@ DXMessD3D10Handler::DXMessD3D10Handler(ID3D10Device *dev, IDXGISwapChain *sc, PD
         return;
 
 
+	//create a rendertarget
+    ID3D10Texture2D* pBackBuffer = NULL;
+	hr = sc->GetBuffer( 0, __uuidof( ID3D10Texture2D ), ( LPVOID* )&pBackBuffer );
+    if( FAILED( hr ) )
+        return;
+
+    hr = dev->CreateRenderTargetView( pBackBuffer, NULL, &pRenderTargetView );
+    pBackBuffer->Release();
+
+    if( FAILED( hr ) )
+        return;
+
+
+	DXGI_SWAP_CHAIN_DESC scdesc;
+	ZeroMemory(&scdesc,sizeof(scdesc));
+	sc->GetDesc(&scdesc);
+
+	
+	// Create depth stencil texture
+    D3D10_TEXTURE2D_DESC descDepth;
+	ZeroMemory( &descDepth, sizeof(descDepth) );
+    descDepth.Width = scdesc.BufferDesc.Width;
+    descDepth.Height = scdesc.BufferDesc.Height;
+    descDepth.MipLevels = 1;
+    descDepth.ArraySize = 1;
+    descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    descDepth.SampleDesc.Count = 1;
+    descDepth.SampleDesc.Quality = 0;
+    descDepth.Usage = D3D10_USAGE_DEFAULT;
+    descDepth.BindFlags = D3D10_BIND_DEPTH_STENCIL;
+    descDepth.CPUAccessFlags = 0;
+    descDepth.MiscFlags = 0;
+    hr = dev->CreateTexture2D( &descDepth, NULL, &pDepthStencil );
+    if( FAILED( hr ) )
+        return;
+
+    // Create the depth stencil view
+    D3D10_DEPTH_STENCIL_VIEW_DESC descDSV;
+	ZeroMemory( &descDSV, sizeof(descDSV) );
+    descDSV.Format = descDepth.Format;
+    descDSV.ViewDimension = D3D10_DSV_DIMENSION_TEXTURE2D;
+    descDSV.Texture2D.MipSlice = 0;
+    hr = dev->CreateDepthStencilView( pDepthStencil, &descDSV, &pDepthStencilView );
+    if( FAILED( hr ) )
+        return;
+
 
 	//now create the texture of the overlay
 	hr=setupOverlayTexture();
@@ -371,6 +417,7 @@ void DXMessD3D10Handler::RenderOverlay()
 	HRESULT hr;
 	if (Valid)
 	{
+
 		
 
 		//render the overlay
@@ -378,6 +425,27 @@ void DXMessD3D10Handler::RenderOverlay()
 		//check if the overlay has an update
 		//if so, first update the texture
 
+		DXGI_SWAP_CHAIN_DESC desc;
+		swapchain->GetDesc(&desc);
+
+		if ((shared->MouseOverlayId>=0) && (OverlayCount>=shared->MouseOverlayId) && (shared->resources[shared->MouseOverlayId].valid))
+		{
+			//update the mouse position each frame for as long as the mouse is valid
+			POINT p;
+
+			p.x=0;
+			p.y=0;
+
+			GetCursorPos(&p);
+
+			ScreenToClient(desc.OutputWindow, &p);				
+			
+			shared->resources[shared->MouseOverlayId].x=p.x;
+			shared->resources[shared->MouseOverlayId].y=p.y;			
+			shared->resources[shared->MouseOverlayId].updatedpos=1;
+
+			shared->OverLayHasUpdate=1;
+		}
 
 		if (shared->OverLayHasUpdate)
 			setupOverlayTexture();
@@ -416,15 +484,17 @@ void DXMessD3D10Handler::RenderOverlay()
 		UINT oldVertexBufferOffset;
 
 		ID3D10RasterizerState *oldRastersizerState=NULL;
+		ID3D10RenderTargetView *oldRenderTarget;
+		ID3D10DepthStencilView *oldDepthStencilView=NULL;
 
 		//save state
-
 		
 		dev->VSGetShader( &oldvs);
 		dev->PSGetShader( &oldps);
 		dev->PSGetSamplers(0,1, &oldPSSampler);
 		dev->PSGetShaderResources(0,1, &oldPSShaderResource);
 
+		dev->OMGetRenderTargets(1, &oldRenderTarget, &oldDepthStencilView);
 		dev->OMGetBlendState( &oldBlendState, oldblendFactor, &oldblendsamplemask);
 		dev->OMGetDepthStencilState( &oldDepthStencilState, &oldstencilref);
 
@@ -435,15 +505,37 @@ void DXMessD3D10Handler::RenderOverlay()
 
 		dev->RSGetState(&oldRastersizerState);
 
+		UINT oldviewports=0;
+		D3D10_VIEWPORT viewports[D3D10_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
+		dev->RSGetViewports(&oldviewports, NULL);
+		dev->RSGetViewports(&oldviewports, viewports);
+
 		//change state
 
 	    dev->VSSetShader(pVertexShader);
 		dev->PSSetShader(pPixelShader);
 		dev->PSSetSamplers( 0, 1, &pSamplerLinear );
+
+
+
 		
+
+		D3D10_VIEWPORT vp;
+		vp.Width = desc.BufferDesc.Width;
+		vp.Height = desc.BufferDesc.Height;
+		vp.MinDepth = 0.0f;
+		vp.MaxDepth = 1.0f;
+		vp.TopLeftX = 0;
+		vp.TopLeftY = 0;
+		dev->RSSetViewports( 1, &vp );
+		
+
+		dev->OMSetRenderTargets(1, &pRenderTargetView, pDepthStencilView);		
+		dev->ClearDepthStencilView( pDepthStencilView, D3D10_CLEAR_DEPTH, 1.0f, 0 );
 
 		dev->OMSetBlendState(pTransparency, blendFactor, 0xffffffff);
 		dev->OMSetDepthStencilState(NULL,0);
+		
 
 		dev->IASetPrimitiveTopology( D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
 		dev->IASetInputLayout( pVertexLayout );
@@ -451,6 +543,8 @@ void DXMessD3D10Handler::RenderOverlay()
 		
 
 		dev->RSSetState(pOverlayRasterizer);
+
+
 
 		
 		for (i=0; i<OverlayCount; i++)
@@ -463,6 +557,7 @@ void DXMessD3D10Handler::RenderOverlay()
 	
 				//render
 				dev->DrawIndexed( 6, 0,0);
+				/*
 
 				//dev->VSSetShader(NULL);
 
@@ -498,7 +593,7 @@ void DXMessD3D10Handler::RenderOverlay()
 
 				//sprite->DrawSpritesImmediate(&s, 1, 0,0);
 				
-				//sprite->End();
+				//sprite->End();*/
 
 			}
 		}
@@ -509,15 +604,18 @@ void DXMessD3D10Handler::RenderOverlay()
 		dev->PSSetSamplers(0, 1, &oldPSSampler);
 		dev->PSSetShaderResources(0,1, &oldPSShaderResource);
 
+		dev->OMSetRenderTargets(1, &oldRenderTarget, oldDepthStencilView);
 		dev->OMSetBlendState(oldBlendState, oldblendFactor, oldblendsamplemask);
 		dev->OMSetDepthStencilState(oldDepthStencilState, oldstencilref);
-
+	
 		dev->IASetPrimitiveTopology(oldPrimitiveTopology);
 		dev->IASetInputLayout(oldInputLayout);
 		dev->IASetIndexBuffer(oldIndexBuffer, oldIndexBufferFormat, oldIndexBufferOffset);
 		dev->IASetVertexBuffers(0,1,&oldVertexBuffer, &oldVertexBufferStrides, &oldVertexBufferOffset);
 
 		dev->RSSetState(oldRastersizerState);
+		dev->RSSetViewports(oldviewports, viewports);
+
 	}
 
 }

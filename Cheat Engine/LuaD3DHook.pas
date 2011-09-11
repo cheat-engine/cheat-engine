@@ -125,6 +125,29 @@ begin
   end else lua_pop(L, parameters);
 end;
 
+function d3dhook_setOverlayAsMouse(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  d: TD3DHook;
+  overlayid: integer;
+  state: boolean;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    overlayid:=lua_tointeger(L, -parameters);
+    lua_pop(L, parameters);
+
+    d:=safed3dhook;
+    if d<>nil then
+      d.setOverlayAsMouse(overlayid);
+
+  end else lua_pop(L, parameters);
+end;
+
+
+
 function d3dhook_beginUpdate(L: PLua_State): integer; cdecl;
 var
   d: TD3DHook;
@@ -155,6 +178,7 @@ begin
   lua_register(LuaVM, 'd3dhook_updateOverlayImage', d3dhook_updateOverlayImage);
   lua_register(LuaVM, 'd3dhook_updateOverlayPosition', d3dhook_updateOverlayPosition);
   lua_register(LuaVM, 'd3dhook_setOverlayVisibility', d3dhook_setOverlayVisibility);
+  lua_register(LuaVM, 'd3dhook_setOverlayAsMouse', d3dhook_setOverlayAsMouse);
   lua_register(LuaVM, 'd3dhook_beginUpdate', d3dhook_beginUpdate);
   lua_register(LuaVM, 'd3dhook_endUpdate', d3dhook_endUpdate);
 end;

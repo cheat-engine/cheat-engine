@@ -44,6 +44,7 @@ type
 
 
 
+    MouseOverlayId: integer;
     OverLayHasUpdate: integer; //When set to not 0 the renderer will check what needs to be updated
     overlaycount: integer;
     resources: TResourceInfoArray;
@@ -77,6 +78,7 @@ type TD3DHook=class
     procedure SetOverlayVisibility(overlayid: integer; state: boolean);
     procedure updateOverlayImage(overlayid: integer);
     procedure updateOverlayPosition(overlayid,x,y: integer);
+    procedure setOverlayAsMouse(overlayid: integer);
 
     constructor create(size: integer);
     destructor destroy; override;
@@ -116,6 +118,11 @@ begin
   beginupdate;
   shared.resources[overlayid-1].updatedresource:=1;
   endupdate;
+end;
+
+procedure TD3DHook.setOverlayAsMouse(overlayid: integer);
+begin
+  shared.MouseOverlayId:=overlayid-1; //no update necesary
 end;
 
 procedure TD3DHook.updateOverlayPosition(overlayid,x,y: integer);
@@ -260,9 +267,9 @@ begin
 
   ZeroMemory(shared, sizeof(TD3DHookShared));
 
-  shared.cheatenginedir:=CheatEngineDir;
 
-  shared.OverLayHasUpdate:=0;
+  shared.cheatenginedir:=CheatEngineDir;
+  shared.MouseOverlayId:=-1;
 
   h:=CreateEventA(nil, true, false, pchar(sharename+'_READY') );
 

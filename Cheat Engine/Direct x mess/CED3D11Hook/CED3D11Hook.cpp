@@ -417,11 +417,33 @@ void DXMessD3D11Handler::RenderOverlay()
 
 		//render the overlay
 		ID3D11DeviceContext *dc;
-		dev->GetImmediateContext(&dc);
+		dev->GetImmediateContext(&dc); //increases the reference count
 
 
 		//check if the overlay has an update
 		//if so, first update the texture
+
+		DXGI_SWAP_CHAIN_DESC desc;
+		swapchain->GetDesc(&desc);
+
+		if ((shared->MouseOverlayId>=0) && (OverlayCount>=shared->MouseOverlayId) && (shared->resources[shared->MouseOverlayId].valid))
+		{
+			//update the mouse position each frame for as long as the mouse is valid
+			POINT p;
+
+			p.x=0;
+			p.y=0;
+
+			GetCursorPos(&p);
+
+			ScreenToClient(desc.OutputWindow, &p);				
+			
+			shared->resources[shared->MouseOverlayId].x=p.x;
+			shared->resources[shared->MouseOverlayId].y=p.y;			
+			shared->resources[shared->MouseOverlayId].updatedpos=1;
+
+			shared->OverLayHasUpdate=1;
+		}
 
 
 		if (shared->OverLayHasUpdate)
@@ -465,9 +487,7 @@ void DXMessD3D11Handler::RenderOverlay()
 		ID3D11RenderTargetView *oldRenderTarget;
 		ID3D11DepthStencilView *oldDepthStencilView=NULL;
 
-		//save state
-
-		
+		//save state		
 
 		dc->VSGetShader( &oldvs, &oldvsinstances, &vci_count);
 		dc->PSGetShader( &oldps, &oldpsinstances, &pci_count);
@@ -496,24 +516,6 @@ void DXMessD3D11Handler::RenderOverlay()
 		dc->PSSetShader( pPixelShader, NULL, 0 );
 		dc->PSSetSamplers( 0, 1, &pSamplerLinear );
 		
-
-
-		
-		
-		
-		//small test to see if it CAN render at all
-		/*
-		float c[4];
-		c[0]=1;
-		c[1]=0;
-		c[2]=1;
-		c[3]=0.5;
-		dc->ClearRenderTargetView( pRenderTargetView, c );
-		*/
-
-		DXGI_SWAP_CHAIN_DESC desc;
-		swapchain->GetDesc(&desc);
-
 		D3D11_VIEWPORT vp;
 		vp.Width = desc.BufferDesc.Width;
 		vp.Height = desc.BufferDesc.Height;
