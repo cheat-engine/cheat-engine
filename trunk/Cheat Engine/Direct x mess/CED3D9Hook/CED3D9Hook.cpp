@@ -119,10 +119,8 @@ void DXMessD3D9Handler::RenderOverlay()
 		{
 			D3DDEVICE_CREATION_PARAMETERS cp;
 			dev->GetCreationParameters(&cp);
-			shared->lastHwnd=(DWORD)cp.hFocusWindow;
+			shared->lastHwnd=(DWORD)cp.hFocusWindow;			
 		}
-
-		
 
 		if ((shared->MouseOverlayId>=0) && (OverlayCount>=shared->MouseOverlayId) && (shared->resources[shared->MouseOverlayId].valid))
 		{

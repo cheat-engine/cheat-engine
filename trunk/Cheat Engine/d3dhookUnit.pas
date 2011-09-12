@@ -107,6 +107,9 @@ type
     procedure updateOverlayPosition(overlayid,x,y: integer);
     procedure setOverlayAsMouse(overlayid: integer);
 
+    function getWidth: integer;
+    function getHeight: integer;
+
     constructor create(size: integer; hookhwnd: boolean=true);
     destructor destroy; override;
     property processid: dword read fprocessid;
@@ -144,6 +147,25 @@ begin
 
 end;
 
+
+function TD3DHook.getWidth: integer;
+var x: trect;
+begin
+  if GetClientRect(shared.lastHwnd, x) then
+    result:=x.Right-x.left
+  else
+    result:=0;
+
+end;
+
+function TD3DHook.getHeight: integer;
+var x: trect;
+begin
+  if GetClientRect(shared.lastHwnd, x) then
+    result:=x.bottom-x.top
+  else
+    result:=0;
+end;
 
 procedure TD3DHook.beginupdate;
 var i: integer;

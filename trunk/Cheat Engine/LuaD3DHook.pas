@@ -13,6 +13,50 @@ implementation
 
 uses d3dhookUnit, LuaCaller, LuaHandler;
 
+function d3dhook_getWidth(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  d: TD3DHook;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    d:=lua_touserdata(L,-parameters);
+    lua_pop(L, parameters);
+
+    d:=safed3dhook;
+    if d<>nil then
+    begin
+      lua_pushinteger(L, d.getWidth);
+      result:=1;
+    end;
+
+  end else lua_pop(L, parameters);
+end;
+
+function d3dhook_getHeight(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  d: TD3DHook;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    d:=lua_touserdata(L,-parameters);
+    lua_pop(L, parameters);
+
+    d:=safed3dhook;
+    if d<>nil then
+    begin
+      lua_pushinteger(L, d.getHeight);
+      result:=1;
+    end;
+
+  end else lua_pop(L, parameters);
+end;
+
 function d3dhook_initializeHook(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
@@ -226,6 +270,8 @@ begin
   lua_register(LuaVM, 'd3dhook_updateOverlayPosition', d3dhook_updateOverlayPosition);
   lua_register(LuaVM, 'd3dhook_setOverlayVisibility', d3dhook_setOverlayVisibility);
   lua_register(LuaVM, 'd3dhook_setOverlayAsMouse', d3dhook_setOverlayAsMouse);
+  lua_register(LuaVM, 'd3dhook_getWidth', d3dhook_getWidth);
+  lua_register(LuaVM, 'd3dhook_getHeight', d3dhook_getHeight);
   lua_register(LuaVM, 'd3dhook_onClick', d3dhook_onClick);
   lua_register(LuaVM, 'd3dhook_beginUpdate', d3dhook_beginUpdate);
   lua_register(LuaVM, 'd3dhook_endUpdate', d3dhook_endUpdate);

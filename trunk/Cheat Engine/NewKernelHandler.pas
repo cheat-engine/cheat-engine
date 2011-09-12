@@ -660,6 +660,7 @@ var
   closeHandle                 : function (hObject:HANDLE):WINBOOL; stdcall;
 
   GetLogicalProcessorInformation: function(Buffer: PSYSTEM_LOGICAL_PROCESSOR_INFORMATION; ReturnedLength: PDWORD): BOOL; stdcall;
+  PrintWindow                 : function (hwnd: HWND; hdcBlt: HDC; nFlags: UINT): BOOL; stdcall;
 
  {    just include vmxfunctions
   //dbvm ce000000+
@@ -1191,6 +1192,7 @@ end;
 
 var x: string;
   psa: thandle;
+  u32: thandle;
 
 
 resourcestring
@@ -1265,6 +1267,9 @@ initialization
   psa:=loadlibrary('Psapi.dll');
   EnumDeviceDrivers:=GetProcAddress(psa,'EnumDeviceDrivers');
   GetDevicedriverBaseNameA:=GetProcAddress(psa,'GetDeviceDriverBaseNameA');
+
+  u32:=loadlibrary('user32.dll');
+  PrintWindow:=GetProcAddress(u32,'PrintWindow');
 
 
 
