@@ -20,6 +20,12 @@ typedef struct
 	UINT64 d3d9_originalpresent;   
 	UINT64 d3d9_originalreset;
 
+	int hookwnd;
+	int clickedoverlay;
+	int clickedx;
+	int clickedy;
+
+	DWORD lastHwnd;
 	int MouseOverlayId; //set to -1 if no mouse overlayd ID is set, otherwise it contains an overlay ID to be used and rendered at the current mouse coords
 	
 

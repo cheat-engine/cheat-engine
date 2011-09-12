@@ -5,29 +5,36 @@ unit LuaD3DHook;
 interface
 
 uses
-  Classes, SysUtils, graphics, lua, lualib, lauxlib, LuaHandler;
+  Classes, SysUtils, graphics, lua, lualib, lauxlib;
 
 procedure initializeLuaD3DHook;
 
 implementation
 
-uses d3dhookUnit;
+uses d3dhookUnit, LuaCaller, LuaHandler;
 
 function d3dhook_initializeHook(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   size: integer;
+  hookwindow: boolean;
 begin
   result:=0;
   parameters:=lua_gettop(L);
-  if parameters=1 then
-    size:=lua_tointeger(L, -1)
+  if parameters>=1 then
+    size:=lua_tointeger(L, -parameters)
   else
     size:=16*1024*1024;
 
+  if parameters>=2 then
+    hookwindow:=lua_toboolean(L, -parameters+1)
+  else
+    hookwindow:=true;
+
+
   lua_pop(L, parameters);
 
-  lua_pushboolean(L, safed3dhook(size)<>nil);
+  lua_pushboolean(L, safed3dhook(size, hookwindow)<>nil);
   result:=1;
 end;
 
@@ -147,6 +154,46 @@ begin
 end;
 
 
+function d3dhook_onClick(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  d: TD3DHook;
+  f: integer;
+  routine: string;
+
+  lc: TLuaCaller;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    d:=lua_touserdata(L,-2);
+
+    CleanupLuaCall(TMethod(d.onClick));
+    d.onClick:=nil;
+
+    if lua_isfunction(L,-1) then
+    begin
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+      d.OnClick:=lc.D3DClickEvent;
+    end
+    else
+    if lua_isstring(L,-1) then
+    begin
+      routine:=lua_tostring(L,-1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+      d.OnClick:=lc.D3DClickEvent;
+    end;
+
+  end;
+
+  lua_pop(L, parameters);
+end;
+
 
 function d3dhook_beginUpdate(L: PLua_State): integer; cdecl;
 var
@@ -179,6 +226,7 @@ begin
   lua_register(LuaVM, 'd3dhook_updateOverlayPosition', d3dhook_updateOverlayPosition);
   lua_register(LuaVM, 'd3dhook_setOverlayVisibility', d3dhook_setOverlayVisibility);
   lua_register(LuaVM, 'd3dhook_setOverlayAsMouse', d3dhook_setOverlayAsMouse);
+  lua_register(LuaVM, 'd3dhook_onClick', d3dhook_onClick);
   lua_register(LuaVM, 'd3dhook_beginUpdate', d3dhook_beginUpdate);
   lua_register(LuaVM, 'd3dhook_endUpdate', d3dhook_endUpdate);
 end;

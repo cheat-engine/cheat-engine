@@ -8,6 +8,7 @@ typedef struct
 	IDirect3DTexture9 *pOverlayTex;
 	IDirect3DVertexBuffer9 *pOverlayVB; //currently unused in peference of the sprite
 	int x,y;
+	int actualHeight, actualWidth;
 } OverlayData9, *POverlayData9;
 
 

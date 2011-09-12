@@ -9,16 +9,19 @@ map<IDirect3DDevice9 *, DXMessD3D9Handler *> D3D9devices;
 
 void DXMessD3D9Handler::BeforeReset()
 {
+	
+
 	if (sprite)
 		sprite->OnLostDevice();
 
-	//sprite=NULL;
 }
 
 void DXMessD3D9Handler::AfterReset()
 {
 	if (sprite)
 		sprite->OnResetDevice();
+
+	shared->lastHwnd=0; //reset that
 }
 
 
@@ -80,6 +83,14 @@ HRESULT DXMessD3D9Handler::setupOverlayTexture()
 					return hr;
 				}
 
+				D3DSURFACE_DESC d;
+
+				overlays[i].pOverlayTex->GetLevelDesc(0, &d);
+				overlays[i].actualWidth=d.Width;
+				overlays[i].actualHeight=d.Height;
+
+
+
 			}
 
 			if ((shared->resources[i].updatedpos) || ((overlays[i].x==-1) && (overlays[i].y==-1)))
@@ -104,20 +115,29 @@ void DXMessD3D9Handler::RenderOverlay()
 		if (shared->OverLayHasUpdate)
 			setupOverlayTexture();
 
+		if (shared->lastHwnd==0)
+		{
+			D3DDEVICE_CREATION_PARAMETERS cp;
+			dev->GetCreationParameters(&cp);
+			shared->lastHwnd=(DWORD)cp.hFocusWindow;
+		}
+
+		
+
 		if ((shared->MouseOverlayId>=0) && (OverlayCount>=shared->MouseOverlayId) && (shared->resources[shared->MouseOverlayId].valid))
 		{
 			//update the mouse position each frame for as long as the mouse is valid
 			
-			D3DDEVICE_CREATION_PARAMETERS cp;
-			POINT p;
-			dev->GetCreationParameters(&cp);
+			
+
+			POINT p;	
 
 			p.x=0;
 			p.y=0;
 
 			GetCursorPos(&p);
 
-			ScreenToClient(cp.hFocusWindow, &p);	
+			ScreenToClient((HWND)shared->lastHwnd, &p);			
 			
 			overlays[shared->MouseOverlayId].x=p.x;
 			overlays[shared->MouseOverlayId].y=p.y;
@@ -140,7 +160,26 @@ void DXMessD3D9Handler::RenderOverlay()
 
 				for (i=0; i<OverlayCount; i++)
 					if (shared->resources[i].valid)
-						hr=sprite->Draw(overlays[0].pOverlayTex, NULL, NULL, &D3DXVECTOR3(overlays[0].x,overlays[0].y,0), D3DCOLOR_ARGB(255,255,255,255));
+					{
+						D3DXVECTOR3 scale,position;
+						
+						D3DXMATRIX m;
+
+						scale.x=(float)shared->resources[i].width / (float)overlays[i].actualWidth;
+						scale.y=(float)shared->resources[i].height / (float)overlays[i].actualHeight;
+						scale.z=1.0f;
+
+						position.x=overlays[i].x;
+						position.y=overlays[i].y;
+						position.z=0.0f;
+
+		
+
+						D3DXMatrixTransformation(&m, NULL, NULL, &scale, NULL, NULL, &position);
+						
+						sprite->SetTransform(&m);
+						hr=sprite->Draw(overlays[i].pOverlayTex, NULL, NULL, NULL, D3DCOLOR_ARGB(255,255,255,255));
+					}
 		
 				hr=sprite->Flush();
 				
