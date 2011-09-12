@@ -648,6 +648,8 @@ type
     procedure FormDesignerClose(Sender: TObject; var CloseAction: TCloseAction);
 
     procedure setIsProtected(p: boolean);
+
+    procedure d3dclicktest(overlayid: integer; x,y: integer);
   public
     { Public declarations }
     addresslist: TAddresslist;
@@ -6461,6 +6463,12 @@ var _us: string;
 
 var advapi: thandle;
     tu: unicodestring;
+
+procedure TMainform.d3dclicktest(overlayid: integer; x,y: integer);
+begin
+  showmessage('overlay '+inttostr(overlayid)+' was clicked at positon '+inttostr(x)+','+inttostr(y));
+end;
+
 procedure TMainForm.Label59Click(Sender: TObject);
 var cr3: qword;
     x: qword;
@@ -6542,10 +6550,18 @@ begin
 
 
 
-  d3dhook:=td3dhook.create(16*1024*1024);
+  d3dhook:=td3dhook.create(16*1024*1024, true);
+  d3dhook.beginupdate;
+  i:=d3dhook.createOverlayFromPicture(img, 10,10);
+
   i:=d3dhook.createOverlayFromPicture(img, 300,250);
+  d3dhook.endupdate;
+
 
   if i=0 then beep;
+
+
+  d3dhook.onclick:=d3dclicktest;
 
 
 

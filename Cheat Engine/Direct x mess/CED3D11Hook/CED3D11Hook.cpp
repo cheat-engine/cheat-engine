@@ -425,6 +425,9 @@ void DXMessD3D11Handler::RenderOverlay()
 
 		DXGI_SWAP_CHAIN_DESC desc;
 		swapchain->GetDesc(&desc);
+		shared->lastHwnd=(DWORD)desc.OutputWindow;
+
+		
 
 		if ((shared->MouseOverlayId>=0) && (OverlayCount>=shared->MouseOverlayId) && (shared->resources[shared->MouseOverlayId].valid))
 		{

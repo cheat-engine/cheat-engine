@@ -254,16 +254,18 @@ control_getPopupMenu(control)
 control_setPopupMenu(control)
 control_getFont(label): 6.2+: Returns the Font object of this object
 control_onClick(control, functionnameorstring) : Sets the onclick routine
+control_doClick(control): 6.2+: Executes the current function under onClick
 
 
 WinControl Class: (Inheritance: Control->Component->Object)
-wincontrol_getControlCount(control)  Returns the number of Controls attached to this class
-wincontrol_getControl(control,index) : Returns a WinControl class object
-wincontrol_canFocus(control): returns true if the object can be focused
-wincontrol_focused(control): returns boolean true when focused
-wincontrol_setFocus(control): tries to set keyboard focus the object
-wincontrol_onEnter(control, function) : Sets an onEnter event. (Triggered on focus enter)
-wincontrol_onExit(control, function) : Sets an onExit event. (Triggered on lost focus)
+wincontrol_getControlCount(wincontrol)  Returns the number of Controls attached to this class
+wincontrol_getControl(wincontrol,index) : Returns a WinControl class object
+wincontrol_getControlAtPos(wincontrol, x,y): 6.2: Gets the control at the given x,y position relative to the wincontrol's position 
+wincontrol_canFocus(wincontrol): returns true if the object can be focused
+wincontrol_focused(wincontrol): returns boolean true when focused
+wincontrol_setFocus(wincontrol): tries to set keyboard focus the object
+wincontrol_onEnter(wincontrol, function) : Sets an onEnter event. (Triggered on focus enter)
+wincontrol_onExit(wincontrol, function) : Sets an onExit event. (Triggered on lost focus)
 
 
 MenuItem class(Inheritance: Component->Object)
@@ -996,10 +998,14 @@ dbvm_changeselectors   : Address of function dbvm_changeselectors(cs,ss,ds,es,fs
 
 
 
-d3dhook_initializeHook(overlaystoragesize):
+d3dhook_initializeHook(overlaystoragesize, hookmessages):
   Hooks direct3d and allocates a buffer with given size for storage of for the overlay images
   (for one screen stretching overlay sized 1920x1080 you need at least 6220800 bytes)
-  If no size is provided 16MB is is used
+
+  hookmessages defines if you want to hook the windows message handler for the direct3d window. The d3dhook_onClick function makes use of that
+  
+
+  If no size is provided 16MB is is used and hookmessages is true
 
   Note: You can call this only once for a process
 
@@ -1027,6 +1033,14 @@ d3dhook_setOverlayAsMouse(overlayid):
   To make the mouse invisible, use d3dhook_setOverlayVisibility for that
 
   Note: The top left part of the overlay is the position of the mouse
+
+d3dhook_onClick(function):
+  Registers a function to be called when clicked on an visible overlay (excluding the mouse)
+  function definition: function d3dclick(overlayid, x,y)
+    x and y are coordinates in the overlay. If overlays overlap the last added overlay will be given
+  
+  Note: This can slow cause a slowdown in the game if there are a lot of overlays and you press the left button a lot
+
 
 
 d3dhook_beginUpdate() : Use this function when you intend to update multiple overlays. Otherwise each update will have to wait for a frame render

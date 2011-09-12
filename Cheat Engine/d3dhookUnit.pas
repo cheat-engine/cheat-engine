@@ -26,7 +26,7 @@ type
     resourceoffset: integer; //offset into the shared memory region containing the bitmat info
   end;
 
-  type TResourceInfoArray=array [0..0] of TResourceInfo;
+  type TResourceInfoArray=packed array [0..0] of TResourceInfo;
 
   TD3DHookShared=packed record
     cheatenginedir: array [0..199] of char;
@@ -42,7 +42,12 @@ type
     d3d9_originalpresent: UINT64;
     d3d9_originalreset: UINT64;
 
+    hookwnd: integer;
+    clickedoverlay: integer;
+    clickedx: integer;
+    clickedy: integer;
 
+    lastHwnd: DWORD;
 
     MouseOverlayId: integer;
     OverLayHasUpdate: integer; //When set to not 0 the renderer will check what needs to be updated
@@ -55,7 +60,22 @@ type
   PD3DHookShared=^TD3DHookShared;
 
 
-type TD3DHook=class
+type
+  TD3DClickEvent=procedure(overlayid: integer; x,y: integer) of object;
+
+  TD3DHook=class;
+
+  TD3DClickEventHandler=class(tthread)
+  private
+    owner: TD3DHook;
+    overlayid, x,y: integer;
+    procedure doclick;
+  public
+    procedure execute; override;
+  end;
+
+
+  TD3DHook=class
   private
     sharename: string;
     shared: PD3DHookShared; //local address of the D3DHookShared structure
@@ -68,9 +88,16 @@ type TD3DHook=class
 
     maxsize: integer;
     fprocessid: dword;
+
+    hasclickevent: THandle;
+    hashandledclickevent: THandle;
+
+    clickhandler: TD3DClickEventHandler;
+
     procedure waitforready;
     procedure UpdateResourceData;
   public
+    onclick: TD3DClickEvent;
     procedure beginupdate;
     procedure endupdate;
 
@@ -80,18 +107,43 @@ type TD3DHook=class
     procedure updateOverlayPosition(overlayid,x,y: integer);
     procedure setOverlayAsMouse(overlayid: integer);
 
-    constructor create(size: integer);
+    constructor create(size: integer; hookhwnd: boolean=true);
     destructor destroy; override;
     property processid: dword read fprocessid;
   end;
 
 var D3DHook: TD3DHook;
 
-function safed3dhook(size: integer=16*1024*1024): TD3DHook;
+function safed3dhook(size: integer=16*1024*1024; hookwindow: boolean=true): TD3DHook;
 
 implementation
 
 uses frmautoinjectunit, autoassembler;
+
+procedure TD3DClickEventHandler.doclick;
+begin
+  if assigned(owner.onclick) then
+    owner.onclick(overlayid, x,y);
+end;
+
+procedure TD3DClickEventHandler.execute;
+begin
+  while (not terminated) do
+  begin
+    if WaitForSingleObject(owner.hasclickevent, 5000)=WAIT_OBJECT_0 then
+    begin
+      //quickly save the variables and tell the game to continue
+      x:=owner.shared.clickedx;
+      y:=owner.shared.clickedy;
+      overlayid:=owner.shared.clickedoverlay;
+      SetEvent(owner.hashandledclickevent);
+
+      Synchronize(doclick);
+    end;
+  end;
+
+end;
+
 
 procedure TD3DHook.beginupdate;
 var i: integer;
@@ -245,7 +297,7 @@ begin
   inherited destroy;
 end;
 
-constructor TD3DHook.create(size: integer);
+constructor TD3DHook.create(size: integer; hookhwnd: boolean=true);
 var h: thandle;
     s: TStringList;
 begin
@@ -271,10 +323,25 @@ begin
   shared.cheatenginedir:=CheatEngineDir;
   shared.MouseOverlayId:=-1;
 
+  if hookhwnd then
+    shared.hookwnd:=1;
+
   h:=CreateEventA(nil, true, false, pchar(sharename+'_READY') );
 
   if (h<>0) then
   begin
+
+    if hookhwnd then
+    begin
+      hasclickevent:=CreateEventA(nil, false, false, pchar(sharename+'_HASCLICK') );
+      hashandledclickevent:=CreateEventA(nil, false, true, pchar(sharename+'_HANDLEDCLICK') );
+
+      clickhandler:=TD3DClickEventHandler.Create(true);
+      clickhandler.owner:=self;
+      clickhandler.start;
+    end;
+
+
     //now inject the dll
     injectdll(cheatenginedir+'d3dhook.dll');
 
@@ -311,13 +378,13 @@ begin
 
 end;
 
-function safed3dhook(size: integer=16*1024*1024): TD3DHook;
+function safed3dhook(size: integer=16*1024*1024; hookwindow: boolean=true): TD3DHook;
 //Calls the d3dhook constructor but captures exceptions
 begin
   if d3dhook=nil then
   begin
     try
-      d3dhook:=TD3DHook.Create(size);
+      d3dhook:=TD3DHook.Create(size, hookwindow);
     except
       d3dhook:=nil;
     end;
@@ -328,7 +395,7 @@ begin
     begin
       d3dhook.Free;
       try
-        d3dhook:=TD3DHook.Create(size);
+        d3dhook:=TD3DHook.Create(size, hookwindow);
       except
         d3dhook:=nil;
       end;

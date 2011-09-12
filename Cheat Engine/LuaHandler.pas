@@ -43,8 +43,9 @@ uses mainunit, frmluaengineunit, plugin, pluginexports, MemoryRecordUnit,
   debuggertypedefinitions, symbolhandler, frmautoinjectunit, simpleaobscanner,
   addresslist, memscan, foundlisthelper, cesupport, DBK32functions, sharedMemory,
   disassembler, LuaCanvas, LuaPen, LuaFont, LuaBrush, LuaPicture, LuaMenu,
-  LuaDebug, LuaThread, LuaGraphic, LuaProgressBar, LuaD3DHook, MemoryBrowserFormUnit,
-  disassemblerviewunit, hexviewunit, CustomTypeHandler, byteinterpreter;
+  LuaDebug, LuaThread, LuaGraphic, LuaProgressBar, LuaD3DHook, LuaWinControl,
+  MemoryBrowserFormUnit, disassemblerviewunit, hexviewunit, CustomTypeHandler,
+  byteinterpreter;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -3527,177 +3528,25 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function wincontrol_getControlCount(L: PLua_State): integer; cdecl;
+function control_doClick(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
-  wincontrol: TWinControl;
+  control: TControl;
+  Color: integer;
 begin
   result:=0;
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    wincontrol:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, wincontrol.ControlCount);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function wincontrol_getControl(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  wincontrol: TWinControl;
-  index: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    wincontrol:=lua_touserdata(L,-2);
-    index:=lua_tointeger(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushlightuserdata(L, wincontrol.Controls[index]);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function wincontrol_onEnter(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  wincontrol: TWinControl;
-  f: integer;
-  routine: string;
-
-  lc: TLuaCaller;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    wincontrol:=lua_touserdata(L,-2);
-
-    CleanupLuaCall(tmethod(wincontrol.OnEnter));
-    wincontrol.OnEnter:=nil;
-
-    if lua_isfunction(L,-1) then
-    begin
-      routine:=Lua_ToString(L,-1);
-      f:=luaL_ref(L,LUA_REGISTRYINDEX);
-
-      lc:=TLuaCaller.create;
-      lc.luaroutineIndex:=f;
-      wincontrol.OnEnter:=lc.NotifyEvent;
-    end
-    else
-    if lua_isstring(L,-1) then
-    begin
-      routine:=lua_tostring(L,-1);
-      lc:=TLuaCaller.create;
-      lc.luaroutine:=routine;
-      wincontrol.OnEnter:=lc.NotifyEvent;
-    end;
-
+    control:=lua_touserdata(L,-1);
+    if assigned(control.onclick) then
+      control.OnClick(control);
   end;
 
   lua_pop(L, parameters);
 end;
 
-function wincontrol_onExit(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  wincontrol: TWinControl;
-  f: integer;
-  routine: string;
 
-  lc: TLuaCaller;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    wincontrol:=lua_touserdata(L,-2);
-
-    CleanupLuaCall(tmethod(wincontrol.onExit));
-    wincontrol.onExit:=nil;
-
-    if lua_isfunction(L,-1) then
-    begin
-      routine:=Lua_ToString(L,-1);
-      f:=luaL_ref(L,LUA_REGISTRYINDEX);
-
-      lc:=TLuaCaller.create;
-      lc.luaroutineIndex:=f;
-      wincontrol.OnExit:=lc.NotifyEvent;
-    end
-    else
-    if lua_isstring(L,-1) then
-    begin
-      routine:=lua_tostring(L,-1);
-      lc:=TLuaCaller.create;
-      lc.luaroutine:=routine;
-      wincontrol.OnExit:=lc.NotifyEvent;
-    end;
-
-  end;
-
-  lua_pop(L, parameters);
-end;
-
-function wincontrol_canFocus(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  wincontrol: TWinControl;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    wincontrol:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushboolean(L, wincontrol.CanFocus);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function wincontrol_focused(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  wincontrol: TWinControl;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    wincontrol:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushboolean(L, wincontrol.Focused);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function wincontrol_setFocus(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  wincontrol: TWinControl;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    wincontrol:=lua_touserdata(L,-1);
-    wincontrol.SetFocus;
-  end;
-
-  lua_pop(L, parameters);
-end;
 
 function strings_add(L: Plua_State): integer; cdecl;
 var parameters: integer;
@@ -4079,6 +3928,8 @@ begin
 
     CleanupLuaCall(tmethod(control.onClick));
     control.onClick:=nil;
+
+
 
     if lua_isfunction(L,-1) then
     begin
@@ -4717,6 +4568,7 @@ begin
     lua_pushinteger(L, c.ComponentCount);
     result:=1;
   end else lua_pop(L, lua_gettop(l));
+
 end;
 
 function component_findComponentByName(L: PLua_state): integer; cdecl;
@@ -8741,6 +8593,7 @@ begin
     lua_register(LuaVM, 'control_setAlign', control_setAlign);
     lua_register(LuaVM, 'control_getAlign', control_getAlign);
     lua_register(LuaVM, 'control_onClick', control_onClick);
+    lua_register(LuaVM, 'control_doClick', control_doClick);
     lua_register(LuaVM, 'control_setEnabled', control_setEnabled);
     lua_register(LuaVM, 'control_getEnabled', control_getEnabled);
     lua_register(LuaVM, 'control_setVisible', control_setVisible);
@@ -8754,14 +8607,9 @@ begin
     lua_register(LuaVM, 'control_getFont', control_getFont);
 
 
+    initializeLuaWinControl;
 
-    lua_register(LuaVM, 'wincontrol_getControlCount', wincontrol_getControlCount);
-    lua_register(LuaVM, 'wincontrol_getControl', wincontrol_getControl);
-    lua_register(LuaVM, 'wincontrol_onEnter', wincontrol_OnEnter);
-    lua_register(LuaVM, 'wincontrol_onExit', wincontrol_OnExit);
-    lua_register(LuaVM, 'wincontrol_canFocus', wincontrol_canFocus);
-    lua_register(LuaVM, 'wincontrol_focused', wincontrol_focused);
-    lua_register(LuaVM, 'wincontrol_setFocus', wincontrol_setFocus);
+
 
     lua_register(LuaVM, 'strings_add', strings_add);
     lua_register(LuaVM, 'strings_clear', strings_clear);

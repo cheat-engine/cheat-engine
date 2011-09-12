@@ -54,7 +54,7 @@ uses
   frmFilePatcherUnit, LuaCanvas, LuaPen, LuaFont, LuaBrush, LuaPicture, LuaMenu,
   LuaDebug, frmUltimapUnit, DBK64SecondaryLoader, frmHotkeyExUnit,
   SymbolListHandler, networkInterface, networkInterfaceApi, networkConfig,
-  LuaThread, LuaGraphic, LuaProgressBar, d3dhookUnit, LuaD3DHook;
+  LuaThread, LuaGraphic, LuaProgressBar, d3dhookUnit, LuaD3DHook, LuaWinControl;
 
 {$R cheatengine.res}
 {$R manifest.res}

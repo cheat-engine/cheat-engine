@@ -32,7 +32,7 @@ type
       procedure ByteSelectEvent(sender: TObject; address: ptruint; address2: ptruint);
       procedure AddressChangeEvent(sender: TObject; address: ptruint);
       function AutoGuessEvent(address: ptruint; originalVariableType: TVariableType): TVariableType;
-
+      procedure D3DClickEvent(overlayid: integer; x,y: integer);
 
       constructor create;
       destructor destroy; override;
@@ -208,6 +208,27 @@ begin
   end;
 end;
 
+procedure TLuaCaller.D3DClickEvent(overlayid: integer; x,y: integer);
+var oldstack: integer;
+begin
+  Luacs.Enter;
+  try
+    oldstack:=lua_gettop(Luavm);
+
+    if canRun then
+    begin
+      PushFunction;
+      lua_pushinteger(luavm, overlayid);
+      lua_pushinteger(luavm, x);
+      lua_pushinteger(luavm, y);
+      lua_pcall(Luavm, 3,0,0)
+    end;
+  finally
+    lua_settop(Luavm, oldstack);
+    luacs.leave;
+  end;
+end;
+
 procedure TLuaCaller.AddressChangeEvent(sender: TObject; address: ptruint);
 var oldstack: integer;
 begin
@@ -228,6 +249,8 @@ begin
     luacs.leave;
   end;
 end;
+
+
 
 function TLuaCaller.AutoGuessEvent(address: ptruint; originalVariableType: TVariableType): TVariableType;
 var oldstack: integer;

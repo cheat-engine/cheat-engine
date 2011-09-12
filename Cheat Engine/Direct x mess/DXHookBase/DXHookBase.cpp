@@ -18,6 +18,10 @@
 
 PD3DHookShared shared;
 
+HANDLE hasClickEvent;
+HANDLE handledClickEvent;
+
+
 typedef HRESULT     (__stdcall *D3D9_RESET_ORIGINAL)(IDirect3DDevice9 *Device, D3DPRESENT_PARAMETERS *pPresentationParameters);
 typedef HRESULT     (__stdcall *D3D9_PRESENT_ORIGINAL)(IDirect3DDevice9 *Device, RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion);
 typedef HRESULT     (__stdcall *DXGI_PRESENT_ORIGINAL)(IDXGISwapChain *x, UINT SyncInterval, UINT Flags);
@@ -171,23 +175,142 @@ void GetAddresses(uintptr_t *presentaddress, uintptr_t *d3d9presentaddress, uint
 
 }
 
+#include <map>
+using namespace std;
+
+typedef LRESULT (CALLBACK *WNDPROCHOOK)(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+map<HWND, LONG_PTR> originalwndprocs;
+
+
+
+
+//windowhook
+int overlaydown=-1;
+
+
+LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	int i;
+	POINTS p;
+	RECT r;
+	LONG_PTR o=originalwndprocs[hwnd];
+
+	
+	switch(uMsg)	
+	{
+		case WM_LBUTTONDOWN:
+			p=MAKEPOINTS(lParam);
+
+
+			overlaydown=-1;
+			//check if an overlay is pressed down
+			for (i=shared->overlaycount; i>=0; i--)
+			{
+				if (i != shared->MouseOverlayId)
+				{
+					r.left=shared->resources[i].x;
+					r.top=shared->resources[i].y;
+					r.bottom=shared->resources[i].y+shared->resources[i].height;
+					r.right=shared->resources[i].x+shared->resources[i].width;
+
+					POINT p2;
+					p2.x=p.x;
+					p2.y=p.y;
+
+					if (PtInRect(&r, p2))
+					{
+						overlaydown=i;
+						break;
+					}
+				}
+				
+			}
+
+			break;
+		
+		case WM_LBUTTONUP:
+			//check if the same overlay is released
+			p=MAKEPOINTS(lParam);
+
+			if (overlaydown != -1)
+			{
+				//check if it is still focused
+				r.left=shared->resources[overlaydown].x;
+				r.top=shared->resources[overlaydown].y;
+				r.bottom=shared->resources[overlaydown].y+shared->resources[overlaydown].height;
+				r.right=shared->resources[overlaydown].x+shared->resources[overlaydown].width;
+
+				POINT p2;
+				p2.x=p.x;
+				p2.y=p.y;
+
+				if (PtInRect(&r, p2))
+				{
+					//still focused				
+					if (WaitForSingleObject(handledClickEvent, 5000)==WAIT_OBJECT_0) //wait for a previous click to get handled
+					{
+						shared->clickedoverlay=overlaydown;
+						shared->clickedx=p.x-shared->resources[overlaydown].x;
+						shared->clickedy=p.y-shared->resources[overlaydown].y;
+						SetEvent(hasClickEvent);
+					}
+					
+
+					break;
+				}
+			}
+			
+			break;
+	}
+
+	
+	return CallWindowProc((WNDPROC)o, hwnd, uMsg, wParam, lParam);
+}
+
+
+
+void hookIfNeeded(void)
+{
+	
+	if (originalwndprocs[(HWND)shared->lastHwnd]==NULL)
+	{
+		LONG_PTR o;
+		o=GetWindowLongPtrA((HWND)shared->lastHwnd, GWLP_WNDPROC);
+
+
+		originalwndprocs[(HWND)shared->lastHwnd]=o;
+
+		//now change it to point to the hook handler
+		SetWindowLongPtrA((HWND)shared->lastHwnd, GWLP_WNDPROC, (LONG_PTR)windowhook);  
+
+	}
+
+
+}
+
+
+void InitializeD3D9Api()
+{
+	char dllpath[MAX_PATH];				
+	strcpy_s(dllpath, MAX_PATH, shared->CheatEngineDir);
+#ifdef AMD64
+	strcat_s(dllpath, MAX_PATH, "CED3D9Hook64.dll");
+#else
+	strcat_s(dllpath, MAX_PATH, "CED3D9Hook.dll");
+#endif
+
+	HMODULE hdll=LoadLibraryA((char *)dllpath);
+	D3D9Hook_Reset=(D3D9HookResetAPICall)GetProcAddress(hdll, "D3D9Hook_Reset_imp");
+	D3D9Hook_Present=(D3D9HookPresentAPICall)GetProcAddress(hdll, "D3D9Hook_Present_imp");
+}
+
 HRESULT __stdcall D3D9_Reset_new(IDirect3DDevice9 *Device, D3DPRESENT_PARAMETERS *pPresentationParameters)
 {
 	if (shared)
 	{
-			if (D3D9Hook_Reset==NULL)
-			{
-				char dllpath[MAX_PATH];				
-				strcpy_s(dllpath, MAX_PATH, shared->CheatEngineDir);
-#ifdef AMD64
-				strcat_s(dllpath, MAX_PATH, "CED3D9Hook64.dll");
-#else
-				strcat_s(dllpath, MAX_PATH, "CED3D9Hook.dll");
-#endif
-
-				HMODULE hdll=LoadLibraryA((char *)dllpath);
-				D3D9Hook_Reset=(D3D9HookResetAPICall)GetProcAddress(hdll, "D3D9Hook_Reset_imp");
-			}
+			if (D3D9Hook_Reset==NULL)		
+				InitializeD3D9Api();
 
 			if (D3D9Hook_Reset)
 				return D3D9Hook_Reset(D3D9_Reset_Original, Device, pPresentationParameters, shared);
@@ -204,24 +327,14 @@ HRESULT __stdcall D3D9_Present_new(IDirect3DDevice9 *Device, RECT* pSourceRect,C
 {
 	if (shared)
 	{
-			if (D3D9Hook_Present==NULL)
-			{
+		if (D3D9Hook_Present==NULL)
+			InitializeD3D9Api();
 
-				char dllpath[MAX_PATH];				
-				strcpy_s(dllpath, MAX_PATH, shared->CheatEngineDir);
-#ifdef AMD64
-				strcat_s(dllpath, MAX_PATH, "CED3D9Hook64.dll");
-#else
-				strcat_s(dllpath, MAX_PATH, "CED3D9Hook.dll");
-#endif
+		if (D3D9Hook_Present)
+			D3D9Hook_Present(Device, shared);
 
-				HMODULE hdll=LoadLibraryA((char *)dllpath);
-				D3D9Hook_Present=(D3D9HookPresentAPICall)GetProcAddress(hdll, "D3D9Hook_Present_imp");
-			}
-
-			if (D3D9Hook_Present)
-				D3D9Hook_Present(Device, shared);
-
+		if ((shared->hookwnd) && (shared->lastHwnd))
+			hookIfNeeded();
 	}
 	return D3D9_Present_Original(Device, pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
 }
@@ -317,8 +430,10 @@ HRESULT __stdcall IDXGISwapChain_Present_new(IDXGISwapChain *x, UINT SyncInterva
 				D3D10_1Hook_SwapChain_Present(x, dev10_1, shared);
 
 			dev10_1->Release();
-		}		
+		}
 
+		if ((shared->hookwnd) && (shared->lastHwnd))
+			hookIfNeeded();
 	}
 	
 	//call original present
@@ -337,6 +452,8 @@ DWORD WINAPI InitializeD3DHookDll(PVOID params)
 
 	char sharename[100];
 	char eventname[100];
+	char hasclickeventname[100];
+	char handledclickeventname[100];
 	
 
 //#ifdef DEBUG	
@@ -345,6 +462,9 @@ DWORD WINAPI InitializeD3DHookDll(PVOID params)
 //#else
 	sprintf_s(sharename, 100,"CED3D_%d", GetCurrentProcessId());
 	sprintf_s(eventname, 100,"%s_READY", sharename);	
+
+	sprintf_s(hasclickeventname, 100,"%s_HASCLICK", sharename);
+	sprintf_s(handledclickeventname, 100,"%s_HANDLEDCLICK", sharename);
 //#endif
  
 	fmhandle=OpenFileMappingA(FILE_MAP_EXECUTE | FILE_MAP_READ | FILE_MAP_WRITE, FALSE, sharename);
@@ -381,6 +501,14 @@ DWORD WINAPI InitializeD3DHookDll(PVOID params)
 		SetEvent(eventhandle);
 		CloseHandle(eventhandle);
 	}
+
+	if (shared->hookwnd)
+	{
+		hasClickEvent=OpenEventA(EVENT_MODIFY_STATE | SYNCHRONIZE , FALSE, hasclickeventname);
+		handledClickEvent=OpenEventA(EVENT_MODIFY_STATE| SYNCHRONIZE, FALSE, handledclickeventname);
+	}
+
+
 
 #ifdef DEBUG
 	D3D9_Present_Original=(D3D9_PRESENT_ORIGINAL)d3d9present;

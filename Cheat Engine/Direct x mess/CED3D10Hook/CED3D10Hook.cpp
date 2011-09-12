@@ -428,6 +428,9 @@ void DXMessD3D10Handler::RenderOverlay()
 		DXGI_SWAP_CHAIN_DESC desc;
 		swapchain->GetDesc(&desc);
 
+		shared->lastHwnd=(DWORD)desc.OutputWindow;
+
+
 		if ((shared->MouseOverlayId>=0) && (OverlayCount>=shared->MouseOverlayId) && (shared->resources[shared->MouseOverlayId].valid))
 		{
 			//update the mouse position each frame for as long as the mouse is valid
