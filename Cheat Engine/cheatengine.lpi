@@ -19,7 +19,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
       <MinorVersionNr Value="1"/>
-      <BuildNr Value="1912"/>
+      <BuildNr Value="1916"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="6.1"/>
@@ -189,8 +189,8 @@
         <UnitName Value="MainUnit"/>
         <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="6537"/>
-        <CursorPos X="21" Y="6558"/>
+        <TopLine Value="6450"/>
+        <CursorPos X="10" Y="6470"/>
         <UsageCount Value="211"/>
         <Bookmarks Count="1">
           <Item0 X="1" Y="1859" ID="2"/>
@@ -205,8 +205,8 @@
         <UnitName Value="NewKernelHandler"/>
         <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="535"/>
-        <CursorPos X="3" Y="549"/>
+        <TopLine Value="652"/>
+        <CursorPos X="16" Y="1195"/>
         <UsageCount Value="211"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -1320,9 +1320,6 @@
         <TopLine Value="812"/>
         <CursorPos X="15" Y="807"/>
         <UsageCount Value="204"/>
-        <Bookmarks Count="1">
-          <Item0 X="22" Y="771" ID="8"/>
-        </Bookmarks>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit98>
@@ -1831,8 +1828,8 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="21"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="8584"/>
-        <CursorPos X="54" Y="8596"/>
+        <TopLine Value="8655"/>
+        <CursorPos X="49" Y="8678"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
           <WindowIndex Value="0"/>
@@ -1840,6 +1837,9 @@
           <CursorPos X="26" Y="9098"/>
         </ExtraEditor1>
         <UsageCount Value="200"/>
+        <Bookmarks Count="1">
+          <Item0 X="4" Y="2637" ID="8"/>
+        </Bookmarks>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit143>
@@ -2283,7 +2283,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1638"/>
         <CursorPos X="18" Y="1653"/>
-        <UsageCount Value="36"/>
+        <UsageCount Value="37"/>
         <Loaded Value="True"/>
       </Unit184>
       <Unit185>
@@ -2400,8 +2400,8 @@
         <UnitName Value="d3dhookUnit"/>
         <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="49"/>
-        <CursorPos X="17" Y="64"/>
+        <TopLine Value="146"/>
+        <CursorPos X="56" Y="164"/>
         <UsageCount Value="249"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -2434,8 +2434,8 @@
         <UnitName Value="LuaD3DHook"/>
         <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="161"/>
-        <CursorPos X="38" Y="172"/>
+        <TopLine Value="31"/>
+        <CursorPos X="37" Y="53"/>
         <UsageCount Value="205"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -2519,132 +2519,128 @@
         <WindowIndex Value="0"/>
         <TopLine Value="47"/>
         <CursorPos X="26" Y="73"/>
-        <UsageCount Value="21"/>
+        <UsageCount Value="23"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit210>
     </Units>
-    <JumpHistory Count="30" HistoryIndex="29">
+    <JumpHistory Count="29" HistoryIndex="28">
       <Position1>
-        <Filename Value="LuaD3DHook.pas"/>
-        <Caret Line="37" Column="25" TopLine="23"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="4725" Column="39" TopLine="4703"/>
       </Position1>
       <Position2>
-        <Filename Value="LuaD3DHook.pas"/>
-        <Caret Line="159" Column="27" TopLine="150"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position2>
       <Position3>
-        <Filename Value="LuaD3DHook.pas"/>
-        <Caret Line="8" Column="75" TopLine="1"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="3471" Column="32" TopLine="3448"/>
       </Position3>
       <Position4>
-        <Filename Value="LuaD3DHook.pas"/>
-        <Caret Line="172" Column="11" TopLine="158"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="3555" Column="29" TopLine="3543"/>
       </Position4>
       <Position5>
-        <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="398" Column="50" TopLine="381"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="9010" Column="46" TopLine="8995"/>
       </Position5>
       <Position6>
-        <Filename Value="frmautoinjectunit.pas"/>
-        <Caret Line="149" Column="163" TopLine="135"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position6>
       <Position7>
-        <Filename Value="LuaD3DHook.pas"/>
-        <Caret Line="38" Column="52" TopLine="29"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="3529" Column="5" TopLine="3508"/>
       </Position7>
       <Position8>
-        <Filename Value="frmDebugEventsUnit.pas"/>
-        <Caret Line="65" Column="30" TopLine="46"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="8589" Column="29" TopLine="8593"/>
       </Position8>
       <Position9>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="4083" Column="1" TopLine="4067"/>
+        <Caret Line="8588" Column="82" TopLine="8575"/>
       </Position9>
       <Position10>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="LuaWinControl.pas"/>
+        <Caret Line="10" Column="34" TopLine="46"/>
       </Position10>
       <Position11>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="4664" Column="42" TopLine="4641"/>
+        <Filename Value="LuaWinControl.pas"/>
+        <Caret Line="8" Column="32" TopLine="5"/>
       </Position11>
       <Position12>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="4725" Column="39" TopLine="4703"/>
+        <Filename Value="LuaWinControl.pas"/>
+        <Caret Line="70" Column="76" TopLine="47"/>
       </Position12>
       <Position13>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Caret Line="48" Column="3" TopLine="31"/>
       </Position13>
       <Position14>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="3471" Column="32" TopLine="3448"/>
+        <Caret Line="3893" Column="22" TopLine="3885"/>
       </Position14>
       <Position15>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="3555" Column="29" TopLine="3543"/>
+        <Caret Line="8581" Column="53" TopLine="8568"/>
       </Position15>
       <Position16>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="9010" Column="46" TopLine="8995"/>
+        <Caret Line="3535" Column="46" TopLine="3520"/>
       </Position16>
       <Position17>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Caret Line="9031" Column="1" TopLine="9004"/>
       </Position17>
       <Position18>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="3529" Column="5" TopLine="3508"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position18>
       <Position19>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="8589" Column="29" TopLine="8593"/>
+        <Caret Line="3912" Column="25" TopLine="3889"/>
       </Position19>
       <Position20>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="8588" Column="82" TopLine="8575"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="6470" Column="10" TopLine="6450"/>
       </Position20>
       <Position21>
-        <Filename Value="LuaWinControl.pas"/>
-        <Caret Line="10" Column="34" TopLine="46"/>
+        <Filename Value="LuaD3DHook.pas"/>
+        <Caret Line="175" Column="54" TopLine="161"/>
       </Position21>
       <Position22>
-        <Filename Value="LuaWinControl.pas"/>
-        <Caret Line="8" Column="32" TopLine="5"/>
+        <Filename Value="LuaD3DHook.pas"/>
+        <Caret Line="223" Column="55" TopLine="208"/>
       </Position22>
       <Position23>
-        <Filename Value="LuaWinControl.pas"/>
-        <Caret Line="70" Column="76" TopLine="47"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="8548" Column="58" TopLine="8533"/>
       </Position23>
       <Position24>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="48" Column="3" TopLine="31"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position24>
       <Position25>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="3893" Column="22" TopLine="3885"/>
+        <Filename Value="NewKernelHandler.pas"/>
+        <Caret Line="663" Column="9" TopLine="649"/>
       </Position25>
       <Position26>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="8581" Column="53" TopLine="8568"/>
+        <Filename Value="NewKernelHandler.pas"/>
+        <Caret Line="1271" Column="5" TopLine="1250"/>
       </Position26>
       <Position27>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="3535" Column="46" TopLine="3520"/>
+        <Filename Value="NewKernelHandler.pas"/>
+        <Caret Line="1266" Column="5" TopLine="1250"/>
       </Position27>
       <Position28>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="9031" Column="1" TopLine="9004"/>
+        <Caret Line="2637" Column="1" TopLine="2617"/>
       </Position28>
       <Position29>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Caret Line="2627" Column="66" TopLine="2617"/>
       </Position29>
-      <Position30>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="3912" Column="25" TopLine="3889"/>
-      </Position30>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
@@ -2698,12 +2694,17 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <BreakPoints Count="1">
+    <BreakPoints Count="2">
       <Item1>
         <Kind Value="bpkSource"/>
         <Source Value="C:\lazarus\fpc\2.5.1\source\rtl\objpas\sysutils\sysuthrd.inc"/>
         <Line Value="73"/>
       </Item1>
+      <Item2>
+        <Kind Value="bpkSource"/>
+        <Source Value="LuaHandler.pas"/>
+        <Line Value="2630"/>
+      </Item2>
     </BreakPoints>
     <Watches Count="2">
       <Item1>

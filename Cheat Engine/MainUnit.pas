@@ -6465,8 +6465,12 @@ var advapi: thandle;
     tu: unicodestring;
 
 procedure TMainform.d3dclicktest(overlayid: integer; x,y: integer);
+var w,h: integer;
 begin
-  showmessage('overlay '+inttostr(overlayid)+' was clicked at positon '+inttostr(x)+','+inttostr(y));
+  w:=d3dhook.getwidth;
+  h:=d3dhook.getheight;
+
+  showmessage('overlay '+inttostr(overlayid)+' was clicked at positon '+inttostr(x)+','+inttostr(y)+'   -   width='+inttostr(w)+' , height='+inttostr(h));
 end;
 
 procedure TMainForm.Label59Click(Sender: TObject);

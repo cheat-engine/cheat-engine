@@ -345,6 +345,7 @@ form_getBorderStyle
 form_getDoNotSaveInTable(form): Returns the DoNotSaveInTable property
 form_setDoNotSaveInTable(form, boolean): Sets the DoNotSaveInTable property
 
+form_printToRasterImage(form, rasterimage): Draws the contents of the form to a rasterimage class object
 
 
 GraphicControl Class: (Inheritance: Control->Component->Object)
@@ -1033,6 +1034,10 @@ d3dhook_setOverlayAsMouse(overlayid):
   To make the mouse invisible, use d3dhook_setOverlayVisibility for that
 
   Note: The top left part of the overlay is the position of the mouse
+
+d3dhook_getWidth(): Returns the width of the direct3d window. Note: At least one frame must have been rendered in the game for this to return anything useful
+d3dhook_getHeight(): Returns the height of the direct3d window.  ""
+
 
 d3dhook_onClick(function):
   Registers a function to be called when clicked on an visible overlay (excluding the mouse)

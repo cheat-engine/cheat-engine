@@ -8,11 +8,11 @@ unit LuaHandler;
 interface
 
 uses
-  windows, vmxfunctions, Classes, dialogs, SysUtils, lua, lualib, lauxlib, syncobjs, cefuncproc,
-  newkernelhandler, autoassembler, Graphics, controls, LuaCaller, forms, ExtCtrls,
-  StdCtrls, comctrls, ceguicomponents, generichotkey, luafile, xmplayer_server,
-  ExtraTrainerComponents, customtimer, menus, XMLRead, XMLWrite, DOM,ShellApi,
-  Clipbrd;
+  jwawindows, windows, vmxfunctions, Classes, dialogs, SysUtils, lua, lualib,
+  lauxlib, syncobjs, cefuncproc, newkernelhandler, autoassembler, Graphics,
+  controls, LuaCaller, forms, ExtCtrls, StdCtrls, comctrls, ceguicomponents,
+  generichotkey, luafile, xmplayer_server, ExtraTrainerComponents, customtimer,
+  menus, XMLRead, XMLWrite, DOM,ShellApi, Clipbrd;
 
 var
   LuaVM: Plua_State;
@@ -2612,6 +2612,31 @@ begin
   end;
 
   lua_pop(L, parameters);
+end;
+
+
+
+function form_printToRasterImage(L: Plua_State): integer; cdecl;
+var parameters: integer;
+  f: TCustomForm;
+  ri: TRasterImage;
+
+
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    f:=lua_touserdata(L, -2);
+    ri:=lua_touserdata(L, -1);
+
+    ri.Width:=f.ClientWidth;
+    ri.Height:=f.ClientHeight;
+
+    printwindow(f.handle, ri.Canvas.Handle, PW_CLIENTONLY);
+  end
+  else
+    lua_pop(L, lua_gettop(L));
 end;
 
 function listView_getCanvas(L: PLua_State): integer; cdecl;
@@ -8650,6 +8675,9 @@ begin
     lua_register(LuaVM, 'form_saveToFile', form_saveToFile);
     lua_register(LuaVM, 'form_setDoNotSaveInTable', form_setDoNotSaveInTable);
     lua_register(LuaVM, 'form_getDoNotSaveInTable', form_getDoNotSaveInTable);
+    lua_register(LuaVM, 'form_printToRasterImage', form_printToRasterImage);
+
+
 
 
 
