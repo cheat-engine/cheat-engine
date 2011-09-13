@@ -192,8 +192,11 @@ int overlaydown=-1;
 LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	int i;
+	int w,h;
+
 	POINTS p;
 	RECT r;
+	RECT cr;	
 	LONG_PTR o=originalwndprocs[hwnd];
 
 	
@@ -209,10 +212,28 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			{
 				if (i != shared->MouseOverlayId)
 				{
-					r.left=shared->resources[i].x;
-					r.top=shared->resources[i].y;
-					r.bottom=shared->resources[i].y+shared->resources[i].height;
-					r.right=shared->resources[i].x+shared->resources[i].width;
+					if ((shared->resources[i].x==-1) && (shared->resources[i].y==-1))
+					{
+						//center of screen overlay
+									
+						GetClientRect(hwnd, &cr);
+
+						w=cr.right-cr.left;
+						h=cr.bottom-cr.top;
+
+						r.left=(w / 2)-(shared->resources[i].width / 2);
+						r.right=(w / 2)+(shared->resources[i].width / 2);					
+						r.top=(h / 2)-(shared->resources[i].height / 2);
+						r.bottom=(h / 2)+(shared->resources[i].height / 2);					
+
+					}
+					else
+					{
+						r.left=shared->resources[i].x;
+						r.right=shared->resources[i].x+shared->resources[i].width;
+						r.top=shared->resources[i].y;
+						r.bottom=shared->resources[i].y+shared->resources[i].height;						
+					}
 
 					POINT p2;
 					p2.x=p.x;
@@ -236,10 +257,28 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			if (overlaydown != -1)
 			{
 				//check if it is still focused
-				r.left=shared->resources[overlaydown].x;
-				r.top=shared->resources[overlaydown].y;
-				r.bottom=shared->resources[overlaydown].y+shared->resources[overlaydown].height;
-				r.right=shared->resources[overlaydown].x+shared->resources[overlaydown].width;
+				if ((shared->resources[overlaydown].x==-1) && (shared->resources[overlaydown].y==-1))
+				{
+					//center of screen overlay
+					
+					GetClientRect(hwnd, &cr);
+
+					w=cr.right-cr.left;
+					h=cr.bottom-cr.top;
+
+					r.left=(w / 2)-(shared->resources[overlaydown].width / 2);
+					r.right=(w / 2)+(shared->resources[overlaydown].width / 2);					
+					r.top=(h / 2)-(shared->resources[overlaydown].height / 2);
+					r.bottom=(h / 2)+(shared->resources[overlaydown].height / 2);					
+
+				}
+				else
+				{
+					r.left=shared->resources[overlaydown].x;
+					r.top=shared->resources[overlaydown].y;
+					r.bottom=shared->resources[overlaydown].y+shared->resources[overlaydown].height;
+					r.right=shared->resources[overlaydown].x+shared->resources[overlaydown].width;
+				}
 
 				POINT p2;
 				p2.x=p.x;
@@ -251,8 +290,17 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					if (WaitForSingleObject(handledClickEvent, 5000)==WAIT_OBJECT_0) //wait for a previous click to get handled
 					{
 						shared->clickedoverlay=overlaydown;
-						shared->clickedx=p.x-shared->resources[overlaydown].x;
-						shared->clickedy=p.y-shared->resources[overlaydown].y;
+
+						if ((shared->resources[overlaydown].x==-1) && (shared->resources[overlaydown].y==-1))
+						{
+							shared->clickedx=p.x-((w / 2)-(shared->resources[overlaydown].width / 2));
+							shared->clickedy=p.y-((h / 2)-(shared->resources[overlaydown].height / 2));
+						}
+						else
+						{
+							shared->clickedx=p.x-shared->resources[overlaydown].x;
+							shared->clickedy=p.y-shared->resources[overlaydown].y;
+						}
 						SetEvent(hasClickEvent);
 					}
 					

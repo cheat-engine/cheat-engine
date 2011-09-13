@@ -12,7 +12,81 @@ struct OverlayVertex{
     XMFLOAT2 Tex;
 };
 
+HRESULT DXMessD3D10Handler::UpdateVBPosForOverlay(int i, DXGI_SWAP_CHAIN_DESC *desc)
+//pre: i must be valid
+{
+	//todo : Make it so the vertex buffer sets the coordinates and this all has -1,1 as base...
+	HRESULT hr=S_OK;
 
+	if (overlays[i].pOverlayVB)
+	{
+		if (overlays[i].pOverlayVB->Release()==0)
+			overlays[i].pOverlayVB=NULL;
+	}
+
+	//create the vertexbuffer or edit. (I think recreating is easier....)
+	float left;
+	float top;
+	float right;
+	float bottom;
+
+
+	if ((shared->resources[i].x==-1) && (shared->resources[i].y==-1))
+	{
+		//center of screen
+		left=((float)desc->BufferDesc.Width / 2.0f) - ((float)shared->resources[i].width / 2.0f);
+		right=((float)desc->BufferDesc.Width / 2.0f) + ((float)shared->resources[i].width / 2.0f);
+		top=((float)desc->BufferDesc.Height / 2.0f) - ((float)shared->resources[i].height / 2.0f);
+		bottom=((float)desc->BufferDesc.Height / 2.0f) + ((float)shared->resources[i].height / 2.0f);
+	}
+	else
+	{
+		left=shared->resources[i].x;
+		top=shared->resources[i].y;
+		right=shared->resources[i].x+shared->resources[i].width;
+		bottom=shared->resources[i].y+shared->resources[i].height;
+	}
+
+
+	//convert to -1 / +1 regions
+
+	left=(left / desc->BufferDesc.Width ) * 2 -1;
+	top=-((top / desc->BufferDesc.Height ) * 2 -1);
+
+	right=(right / desc->BufferDesc.Width) * 2-1;
+	bottom=-((bottom / desc->BufferDesc.Height) * 2-1);
+
+	OverlayVertex overlayVertices[] ={ //x,y,z, x,y
+		{XMFLOAT3(left, top, 0.0f), XMFLOAT2( 0.0f, 0.0f ) },
+		{XMFLOAT3(left, bottom, 0.0f), XMFLOAT2( 0.0f, 1.0f )},		
+		{XMFLOAT3(right, bottom, 0.0f), XMFLOAT2( 1.0f, 1.0f )},
+		
+		{XMFLOAT3(right, bottom, 0.0f), XMFLOAT2( 1.0f, 1.0f )},
+		{XMFLOAT3(right, top, 0.0f), XMFLOAT2( 1.0f, 0.0f )},
+		{XMFLOAT3(left, top, 0.0f), XMFLOAT2( 0.0f, 0.0f )},		
+	};
+
+	D3D10_BUFFER_DESC bd2d;
+	ZeroMemory( &bd2d, sizeof(bd2d) );
+	bd2d.Usage = D3D10_USAGE_DYNAMIC;
+	bd2d.ByteWidth = sizeof( OverlayVertex ) * 6;
+	bd2d.BindFlags = D3D10_BIND_VERTEX_BUFFER;
+	bd2d.CPUAccessFlags = D3D10_CPU_ACCESS_WRITE;
+   
+	D3D10_SUBRESOURCE_DATA InitData2d;
+	ZeroMemory( &InitData2d, sizeof(InitData2d) );
+	InitData2d.pSysMem = overlayVertices;
+	hr = dev->CreateBuffer( &bd2d, &InitData2d, &overlays[i].pOverlayVB );
+	if( FAILED( hr ) )
+	{
+		OutputDebugStringA("Vertexbuffer creation failed\n");
+		return hr;
+	}
+
+	shared->resources[i].updatedpos=0;
+
+	return hr;
+}
 
 HRESULT DXMessD3D10Handler::setupOverlayTexture()
 //hmm, I could update it to a x,y,width,height, winhandle method now...
@@ -101,57 +175,8 @@ HRESULT DXMessD3D10Handler::setupOverlayTexture()
 			}
 
 			if ((shared->resources[i].updatedpos) || (overlays[i].pOverlayVB==NULL))
-			{
-				if (overlays[i].pOverlayVB)
-				{
-					if (overlays[i].pOverlayVB->Release()==0)
-						overlays[i].pOverlayVB=NULL;
-				}
+				UpdateVBPosForOverlay(i, &desc);
 
-				//create the vertexbuffer or edit. (I think recreating is easier....)
-				float left=shared->resources[i].x;
-				float top=shared->resources[i].y;
-				float right=shared->resources[i].x+shared->resources[i].width;
-				float bottom=shared->resources[i].y+shared->resources[i].height;
-
-				//convert to -1 / +1 regions
-
-				left=(left / desc.BufferDesc.Width ) * 2 -1;
-				top=-((top / desc.BufferDesc.Height ) * 2 -1);
-
-				right=(right / desc.BufferDesc.Width) * 2-1;
-				bottom=-((bottom / desc.BufferDesc.Height) * 2-1);
-
-				OverlayVertex overlayVertices[] ={ //x,y,z, x,y
-					{XMFLOAT3(left, top, 0.0f), XMFLOAT2( 0.0f, 0.0f ) },
-					{XMFLOAT3(left, bottom, 0.0f), XMFLOAT2( 0.0f, 1.0f )},		
-					{XMFLOAT3(right, bottom, 0.0f), XMFLOAT2( 1.0f, 1.0f )},
-					
-					{XMFLOAT3(right, bottom, 0.0f), XMFLOAT2( 1.0f, 1.0f )},
-					{XMFLOAT3(right, top, 0.0f), XMFLOAT2( 1.0f, 0.0f )},
-					{XMFLOAT3(left, top, 0.0f), XMFLOAT2( 0.0f, 0.0f )},		
-				};
-
-				D3D10_BUFFER_DESC bd2d;
-				ZeroMemory( &bd2d, sizeof(bd2d) );
-				bd2d.Usage = D3D10_USAGE_DYNAMIC;
-				bd2d.ByteWidth = sizeof( OverlayVertex ) * 6;
-				bd2d.BindFlags = D3D10_BIND_VERTEX_BUFFER;
-				bd2d.CPUAccessFlags = D3D10_CPU_ACCESS_WRITE;
-			   
-				D3D10_SUBRESOURCE_DATA InitData2d;
-				ZeroMemory( &InitData2d, sizeof(InitData2d) );
-				InitData2d.pSysMem = overlayVertices;
-				hr = dev->CreateBuffer( &bd2d, &InitData2d, &overlays[i].pOverlayVB );
-				if( FAILED( hr ) )
-				{
-					OutputDebugStringA("Vertexbuffer creation failed\n");
-					return hr;
-				}
-
-				shared->resources[i].updatedpos=0;
-
-			}
 		}
 	}
 
@@ -445,9 +470,8 @@ void DXMessD3D10Handler::RenderOverlay()
 			
 			shared->resources[shared->MouseOverlayId].x=p.x;
 			shared->resources[shared->MouseOverlayId].y=p.y;			
-			shared->resources[shared->MouseOverlayId].updatedpos=1;
 
-			shared->OverLayHasUpdate=1;
+			UpdateVBPosForOverlay(shared->MouseOverlayId, &desc);	
 		}
 
 		if (shared->OverLayHasUpdate)
@@ -558,6 +582,9 @@ void DXMessD3D10Handler::RenderOverlay()
 				dev->IASetVertexBuffers( 0, 1, &overlays[i].pOverlayVB, &stride, &offset );
 				dev->PSSetShaderResources( 0, 1, &overlays[i].pOverlayTex );	
 	
+				if ((shared->resources[i].x==-1) && (shared->resources[i].y==-1))
+					UpdateVBPosForOverlay(i, &desc);	
+
 				//render
 				dev->DrawIndexed( 6, 0,0);
 				/*

@@ -1019,11 +1019,16 @@ d3dhook_createOverlay(Picture, x,y)
   This functions returns an ID you can use with the d3dhook_updateOverlay function
   If out of memory or the initialization failed, this returns nil
 
+  Setting the position to -1,-1 will make it so the overlay will be at the center of the screen
+
+
 d3dhook_updateOverlayImage(overlayid)
   Call this function when you have changed anything to the image of the specified overlay
 
 d3dhook_updateOverlayPosition(overlayid, x,y)
   Call this function when you wish to change the position this overlay has on the screen
+  Setting the position to -1,-1 will make it so the overlay will be at the center of the screen
+ 
 
 d3dhook_setOverlayVisibility(overlayid, booleanstate) : Sets if the overlay should be drawn or not.
 

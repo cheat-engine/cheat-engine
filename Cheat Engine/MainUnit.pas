@@ -6558,7 +6558,7 @@ begin
   d3dhook.beginupdate;
   i:=d3dhook.createOverlayFromPicture(img, 10,10);
 
-  i:=d3dhook.createOverlayFromPicture(img, 300,250);
+  i:=d3dhook.createOverlayFromPicture(img, -1,-1);
   d3dhook.endupdate;
 
 
