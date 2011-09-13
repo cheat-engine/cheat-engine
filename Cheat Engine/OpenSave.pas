@@ -1090,6 +1090,8 @@ end;
 procedure unprotecttrainer(filename: string; stream: TStream);
 var f: TMemorystream;
  m: pbytearray;
+ p: pchar;
+
  i: integer;
  k: byte;
 
@@ -1119,21 +1121,56 @@ begin
   end;
 
 
-  d:=Tdecompressionstream.create(f,true);
 
 
-
-  size:=1024;
-  getmem(b, size);
-  ActuallyRead:=1024;
-  while ActuallyRead>0 do
+  getmem(p,6);
+  copymemory(p,m,5);
+  p[5]:=#0;
+  if p='CHEAT' then
   begin
-    ActuallyRead:=d.read(b^, size);
-    if ActuallyRead>0 then
-      stream.Write(b^, ActuallyRead);
-  end;
+    //new storage method
 
-  freemem(b);
+    f.Position:=5;  //skip "CHEAT" header
+
+    d:=Tdecompressionstream.create(f,true);
+
+    i:=d.read(size, sizeof(size));
+    if i=sizeof(size) then
+    begin
+      getmem(b,size);
+      try
+        i:=d.read(b^, size);
+        if i>0 then
+        begin
+          stream.Write(b^, i);
+        end;
+      finally
+        freemem(b);
+      end;
+    end;
+  end
+  else
+  begin
+    //no CHEAT header, so old bad storage method
+
+    d:=Tdecompressionstream.create(f,true);
+
+    size:=1024;
+    getmem(b, size);
+    try
+      ActuallyRead:=1024;
+      while ActuallyRead>0 do
+      begin
+        ActuallyRead:=d.read(b^, size);
+        if ActuallyRead>0 then
+          stream.Write(b^, ActuallyRead);
+      end;
+
+
+    finally
+      freemem(b);
+    end;
+  end;
 
   d.free;
   f.free;
@@ -1150,6 +1187,7 @@ var f,f2: tmemorystream;
   i: integer;
   k: byte;
   c: Tcompressionstream;
+  s: string;
 
 begin
   if Uppercase(extractfileext(filename))<>'.CETRAINER' then raise exception.create(rsErrorSaving);
@@ -1158,8 +1196,13 @@ begin
   f.LoadFromFile(filename);
   f2:=tmemorystream.create;
 
+  s:='CHEAT';
+  f2.Write(s[1], 5);
+
   c:=Tcompressionstream.create(clmax, f2,true);
 
+  i:=f.size;
+  c.write(i, sizeof(i));
   c.write(f.Memory^, f.size);
   c.free;
   f.free;
