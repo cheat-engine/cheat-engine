@@ -22,6 +22,7 @@ type
     height: integer;
     x: integer;
     y: integer;
+    alphablend: Single;
     resourcesize: integer;
     resourceoffset: integer; //offset into the shared memory region containing the bitmat info
   end;
@@ -102,6 +103,7 @@ type
     procedure endupdate;
 
     function createOverlayFromPicture(p: TPicture; x,y: integer): integer;
+    procedure SetOverlayAlphaBlend(overlayid: integer; blend: single);
     procedure SetOverlayVisibility(overlayid: integer; state: boolean);
     procedure updateOverlayImage(overlayid: integer);
     procedure updateOverlayPosition(overlayid,x,y: integer);
@@ -126,7 +128,7 @@ uses frmautoinjectunit, autoassembler;
 procedure TD3DClickEventHandler.doclick;
 begin
   if assigned(owner.onclick) then
-    owner.onclick(overlayid, x,y);
+    owner.onclick(overlayid+1, x,y);
 end;
 
 procedure TD3DClickEventHandler.execute;
@@ -208,9 +210,14 @@ begin
   endupdate;
 end;
 
+procedure TD3DHook.SetOverlayAlphaBlend(overlayid: integer; blend: single);
+begin
+  shared.resources[overlayid-1].alphaBlend:=blend / 100.0;
+end;
+
 procedure TD3DHook.SetOverlayVisibility(overlayid: integer; state: boolean);
 begin
-  images[overlayid-1]:=nil;
+
   if state then
     shared.resources[overlayid-1].valid:=1
   else
@@ -299,6 +306,7 @@ begin
   shared.resources[result-1].width:=p.width;
   shared.resources[result-1].x:=x;
   shared.resources[result-1].y:=y;
+  shared.resources[result-1].alphablend:=1.0;
 
   shared.resources[result-1].updatedpos:=1;
   shared.resources[result-1].updatedresource:=1;

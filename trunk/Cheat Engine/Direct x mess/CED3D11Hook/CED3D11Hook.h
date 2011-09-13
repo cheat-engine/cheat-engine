@@ -11,6 +11,7 @@ typedef struct
 {
 	ID3D11Buffer *pOverlayVB;
 	ID3D11ShaderResourceView *pOverlayTex;
+	float x,y;
 } OverlayData, *POverlayData;
 
 class DXMessD3D11Handler
@@ -40,12 +41,13 @@ private:
 	ID3D11Texture2D *pDepthStencil;
 	ID3D11RenderTargetView *pRenderTargetView;
 	ID3D11DepthStencilView *pDepthStencilView;
+	ID3D11Buffer *pConstantBuffer;
 
 
 
 	BOOL Valid;
 	HRESULT setupOverlayTexture();
-	HRESULT UpdateVBPosForOverlay(int i, DXGI_SWAP_CHAIN_DESC *desc);
+	void UpdatePosForOverlay(int i, DXGI_SWAP_CHAIN_DESC *desc);
 public:
 	DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD3DHookShared shared);
 	~DXMessD3D11Handler();

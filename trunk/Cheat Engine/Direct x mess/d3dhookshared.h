@@ -41,6 +41,7 @@ typedef struct
 		int height;
 		int x;
 		int y;
+		float alphaBlend;
 		int resourcesize;
 		int resourceoffset;
 	} resources[1];	

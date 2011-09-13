@@ -12,80 +12,35 @@ struct OverlayVertex{
     XMFLOAT2 Tex;
 };
 
-HRESULT DXMessD3D10Handler::UpdateVBPosForOverlay(int i, DXGI_SWAP_CHAIN_DESC *desc)
+struct ConstantBuffer
+{	
+	XMFLOAT2 translation;	
+	FLOAT transparency;	
+	FLOAT garbage; //16 byte alignment crap
+};
+
+void DXMessD3D10Handler::UpdatePosForOverlay(int i, DXGI_SWAP_CHAIN_DESC *desc)
 //pre: i must be valid
 {
-	//todo : Make it so the vertex buffer sets the coordinates and this all has -1,1 as base...
-	HRESULT hr=S_OK;
-
-	if (overlays[i].pOverlayVB)
-	{
-		if (overlays[i].pOverlayVB->Release()==0)
-			overlays[i].pOverlayVB=NULL;
-	}
-
-	//create the vertexbuffer or edit. (I think recreating is easier....)
-	float left;
-	float top;
-	float right;
-	float bottom;
-
 
 	if ((shared->resources[i].x==-1) && (shared->resources[i].y==-1))
 	{
 		//center of screen
-		left=((float)desc->BufferDesc.Width / 2.0f) - ((float)shared->resources[i].width / 2.0f);
-		right=((float)desc->BufferDesc.Width / 2.0f) + ((float)shared->resources[i].width / 2.0f);
-		top=((float)desc->BufferDesc.Height / 2.0f) - ((float)shared->resources[i].height / 2.0f);
-		bottom=((float)desc->BufferDesc.Height / 2.0f) + ((float)shared->resources[i].height / 2.0f);
+		float newx,newy;
+		newx=((float)desc->BufferDesc.Width / 2.0f) - ((float)shared->resources[i].width / 2.0f);
+		newy=((float)desc->BufferDesc.Height / 2.0f) - ((float)shared->resources[i].height / 2.0f);
+
+		overlays[i].x=(float)((float)newx / (float)desc->BufferDesc.Width) *2.0f;
+		overlays[i].y=-(float)((float)newy / (float)desc->BufferDesc.Height) *2.0f;
+
+
 	}
 	else
 	{
-		left=shared->resources[i].x;
-		top=shared->resources[i].y;
-		right=shared->resources[i].x+shared->resources[i].width;
-		bottom=shared->resources[i].y+shared->resources[i].height;
+		overlays[i].x=(float)((float)shared->resources[i].x / (float)desc->BufferDesc.Width) *2.0f;
+		overlays[i].y=-(float)((float)shared->resources[i].y / (float)desc->BufferDesc.Height) *2.0f;
 	}
-
-
-	//convert to -1 / +1 regions
-
-	left=(left / desc->BufferDesc.Width ) * 2 -1;
-	top=-((top / desc->BufferDesc.Height ) * 2 -1);
-
-	right=(right / desc->BufferDesc.Width) * 2-1;
-	bottom=-((bottom / desc->BufferDesc.Height) * 2-1);
-
-	OverlayVertex overlayVertices[] ={ //x,y,z, x,y
-		{XMFLOAT3(left, top, 0.0f), XMFLOAT2( 0.0f, 0.0f ) },
-		{XMFLOAT3(left, bottom, 0.0f), XMFLOAT2( 0.0f, 1.0f )},		
-		{XMFLOAT3(right, bottom, 0.0f), XMFLOAT2( 1.0f, 1.0f )},
-		
-		{XMFLOAT3(right, bottom, 0.0f), XMFLOAT2( 1.0f, 1.0f )},
-		{XMFLOAT3(right, top, 0.0f), XMFLOAT2( 1.0f, 0.0f )},
-		{XMFLOAT3(left, top, 0.0f), XMFLOAT2( 0.0f, 0.0f )},		
-	};
-
-	D3D10_BUFFER_DESC bd2d;
-	ZeroMemory( &bd2d, sizeof(bd2d) );
-	bd2d.Usage = D3D10_USAGE_DYNAMIC;
-	bd2d.ByteWidth = sizeof( OverlayVertex ) * 6;
-	bd2d.BindFlags = D3D10_BIND_VERTEX_BUFFER;
-	bd2d.CPUAccessFlags = D3D10_CPU_ACCESS_WRITE;
-   
-	D3D10_SUBRESOURCE_DATA InitData2d;
-	ZeroMemory( &InitData2d, sizeof(InitData2d) );
-	InitData2d.pSysMem = overlayVertices;
-	hr = dev->CreateBuffer( &bd2d, &InitData2d, &overlays[i].pOverlayVB );
-	if( FAILED( hr ) )
-	{
-		OutputDebugStringA("Vertexbuffer creation failed\n");
-		return hr;
-	}
-
 	shared->resources[i].updatedpos=0;
-
-	return hr;
 }
 
 HRESULT DXMessD3D10Handler::setupOverlayTexture()
@@ -144,7 +99,7 @@ HRESULT DXMessD3D10Handler::setupOverlayTexture()
 		if (shared->resources[i].valid)
 		{
 
-			if ((shared->resources[i].updatedresource) || (overlays[i].pOverlayTex==NULL))
+			if ((shared->resources[i].updatedresource) || (overlays[i].pOverlayTex==NULL) || (overlays[i].pOverlayVB==NULL))
 			{
 				//(Re)create the texture
 				if (overlays[i].pOverlayTex)
@@ -170,12 +125,45 @@ HRESULT DXMessD3D10Handler::setupOverlayTexture()
 				test->Release();
 				texturex->Release();
 
+				//create the vertex buffer with the proper width/height
+				float right, bottom;
+
+				right=-1.0f+((float)shared->resources[i].width / (float)desc.BufferDesc.Width)*2.0f;
+				bottom=1.0f-((float)shared->resources[i].height / (float)desc.BufferDesc.Height)*2.0f;
+
+				OverlayVertex overlayVertices[] ={ //x,y,z, x,y
+					{XMFLOAT3(-1.0f, 1.0f, 0.0f), XMFLOAT2( 0.0f, 0.0f ) },
+					{XMFLOAT3(-1.0f, bottom, 0.0f), XMFLOAT2( 0.0f, 1.0f )},		
+					{XMFLOAT3(right, bottom, 0.0f), XMFLOAT2( 1.0f, 1.0f )},
+					
+					{XMFLOAT3(right, bottom, 0.0f), XMFLOAT2( 1.0f, 1.0f )},
+					{XMFLOAT3(right, 1.0f, 0.0f), XMFLOAT2( 1.0f, 0.0f )},
+					{XMFLOAT3(-1.0f, 1.0f, 0.0f), XMFLOAT2( 0.0f, 0.0f )},		
+				};
+
+				D3D10_BUFFER_DESC bd2d;
+				ZeroMemory( &bd2d, sizeof(bd2d) );
+				bd2d.Usage = D3D10_USAGE_DYNAMIC;
+				bd2d.ByteWidth = sizeof( OverlayVertex ) * 6;
+				bd2d.BindFlags = D3D10_BIND_VERTEX_BUFFER;
+				bd2d.CPUAccessFlags = D3D10_CPU_ACCESS_WRITE;
+			   
+				D3D10_SUBRESOURCE_DATA InitData2d;
+				ZeroMemory( &InitData2d, sizeof(InitData2d) );
+				InitData2d.pSysMem = overlayVertices;
+				hr = dev->CreateBuffer( &bd2d, &InitData2d, &overlays[i].pOverlayVB );
+				if( FAILED( hr ) )
+				{
+					OutputDebugStringA("Vertexbuffer creation failed\n");
+					return hr;
+				}
+
 				shared->resources[i].updatedresource=0;
 
 			}
 
 			if ((shared->resources[i].updatedpos) || (overlays[i].pOverlayVB==NULL))
-				UpdateVBPosForOverlay(i, &desc);
+				UpdatePosForOverlay(i, &desc);
 
 		}
 	}
@@ -357,15 +345,20 @@ DXMessD3D10Handler::DXMessD3D10Handler(ID3D10Device *dev, IDXGISwapChain *sc, PD
 	D3D10_BLEND_DESC blend;	
 	ZeroMemory( &blend, sizeof(blend) );
 
+	
+
 	blend.BlendEnable[0]		 = true;
-	blend.SrcBlend				 = D3D10_BLEND_ONE;
-	blend.DestBlend				 = D3D10_BLEND_INV_SRC_ALPHA;
+	blend.SrcBlend				 = D3D10_BLEND_SRC_ALPHA;	
+	blend.DestBlend				 = D3D10_BLEND_INV_SRC_ALPHA;	
 	blend.BlendOp				 = D3D10_BLEND_OP_ADD;
-	blend.SrcBlendAlpha			 = D3D10_BLEND_ONE;
+	blend.SrcBlendAlpha			 = D3D10_BLEND_ZERO;
 	blend.DestBlendAlpha		 = D3D10_BLEND_ZERO;
 	blend.BlendOpAlpha			 = D3D10_BLEND_OP_ADD;
+	blend.RenderTargetWriteMask[0]	 = D3D10_COLOR_WRITE_ENABLE_ALL;
 
-	blend.AlphaToCoverageEnable=true;
+
+	blend.AlphaToCoverageEnable=false;
+	
 
 	for (i=0; i<8; i++)
 		blend.RenderTargetWriteMask[i]=D3D10_COLOR_WRITE_ENABLE_ALL;
@@ -430,6 +423,18 @@ DXMessD3D10Handler::DXMessD3D10Handler(ID3D10Device *dev, IDXGISwapChain *sc, PD
 		return;
 
 	
+	// Create the constant buffer
+	D3D10_BUFFER_DESC bd;
+	ZeroMemory(&bd, sizeof(bd));
+ 
+	bd.Usage = D3D10_USAGE_DEFAULT;
+	bd.ByteWidth = sizeof(ConstantBuffer);
+	bd.BindFlags = D3D10_BIND_CONSTANT_BUFFER;
+	bd.CPUAccessFlags = 0;
+    hr = dev->CreateBuffer( &bd, NULL, &pConstantBuffer );
+    if( FAILED( hr ) )
+        return;
+
 
 
 	Valid=TRUE;
@@ -471,7 +476,7 @@ void DXMessD3D10Handler::RenderOverlay()
 			shared->resources[shared->MouseOverlayId].x=p.x;
 			shared->resources[shared->MouseOverlayId].y=p.y;			
 
-			UpdateVBPosForOverlay(shared->MouseOverlayId, &desc);	
+			UpdatePosForOverlay(shared->MouseOverlayId, &desc);	
 		}
 
 		if (shared->OverLayHasUpdate)
@@ -514,12 +519,18 @@ void DXMessD3D10Handler::RenderOverlay()
 		ID3D10RenderTargetView *oldRenderTarget;
 		ID3D10DepthStencilView *oldDepthStencilView=NULL;
 
+		ID3D10Buffer *oldConstantBuffersVS=NULL;
+		ID3D10Buffer *oldConstantBuffersPS=NULL;
+
 		//save state
 		
 		dev->VSGetShader( &oldvs);
+		dev->VSGetConstantBuffers(0,1, &oldConstantBuffersVS);
+
 		dev->PSGetShader( &oldps);
 		dev->PSGetSamplers(0,1, &oldPSSampler);
 		dev->PSGetShaderResources(0,1, &oldPSShaderResource);
+		dev->PSGetConstantBuffers(0,1, &oldConstantBuffersPS);
 
 		dev->OMGetRenderTargets(1, &oldRenderTarget, &oldDepthStencilView);
 		dev->OMGetBlendState( &oldBlendState, oldblendFactor, &oldblendsamplemask);
@@ -582,8 +593,16 @@ void DXMessD3D10Handler::RenderOverlay()
 				dev->IASetVertexBuffers( 0, 1, &overlays[i].pOverlayVB, &stride, &offset );
 				dev->PSSetShaderResources( 0, 1, &overlays[i].pOverlayTex );	
 	
-				if ((shared->resources[i].x==-1) && (shared->resources[i].y==-1))
-					UpdateVBPosForOverlay(i, &desc);	
+				ConstantBuffer cb;
+				UpdatePosForOverlay(i, &desc);
+				cb.transparency=shared->resources[i].alphaBlend;
+				cb.translation.x=overlays[i].x;
+				cb.translation.y=overlays[i].y;
+
+				dev->UpdateSubresource( pConstantBuffer, 0, NULL, &cb, 0, 0 );
+
+				dev->VSSetConstantBuffers(0,1, &pConstantBuffer);
+				dev->PSSetConstantBuffers(0,1, &pConstantBuffer);
 
 				//render
 				dev->DrawIndexed( 6, 0,0);
@@ -633,6 +652,9 @@ void DXMessD3D10Handler::RenderOverlay()
 		dev->PSSetShader(oldps);
 		dev->PSSetSamplers(0, 1, &oldPSSampler);
 		dev->PSSetShaderResources(0,1, &oldPSShaderResource);
+
+		dev->VSSetConstantBuffers(0,1, &oldConstantBuffersVS);
+		dev->PSSetConstantBuffers(0,1, &oldConstantBuffersPS);
 
 		dev->OMSetRenderTargets(1, &oldRenderTarget, oldDepthStencilView);
 		dev->OMSetBlendState(oldBlendState, oldblendFactor, oldblendsamplemask);

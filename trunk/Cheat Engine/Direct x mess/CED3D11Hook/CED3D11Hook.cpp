@@ -12,79 +12,35 @@ struct OverlayVertex{
     XMFLOAT2 Tex;
 };
 
-HRESULT DXMessD3D11Handler::UpdateVBPosForOverlay(int i, DXGI_SWAP_CHAIN_DESC *desc)
+struct ConstantBuffer
+{	
+	XMFLOAT2 translation;	
+	FLOAT transparency;	
+	FLOAT garbage; //16 byte alignment crap
+};
+
+void DXMessD3D11Handler::UpdatePosForOverlay(int i, DXGI_SWAP_CHAIN_DESC *desc)
 //pre: i must be valid
 {
-	//todo : Make it so the vertex buffer sets the coordinates and this all has -1,1 as base...
-	HRESULT hr=S_OK;
-
-	if (overlays[i].pOverlayVB)
-	{
-		if (overlays[i].pOverlayVB->Release()==0)
-			overlays[i].pOverlayVB=NULL;
-	}
-
-	//create the vertexbuffer or edit. (I think recreating is easier....)
-	float left;
-	float top;
-	float right;
-	float bottom;
-
 
 	if ((shared->resources[i].x==-1) && (shared->resources[i].y==-1))
 	{
 		//center of screen
-		left=((float)desc->BufferDesc.Width / 2.0f) - ((float)shared->resources[i].width / 2.0f);
-		right=((float)desc->BufferDesc.Width / 2.0f) + ((float)shared->resources[i].width / 2.0f);
-		top=((float)desc->BufferDesc.Height / 2.0f) - ((float)shared->resources[i].height / 2.0f);
-		bottom=((float)desc->BufferDesc.Height / 2.0f) + ((float)shared->resources[i].height / 2.0f);
+		float newx,newy;
+		newx=((float)desc->BufferDesc.Width / 2.0f) - ((float)shared->resources[i].width / 2.0f);
+		newy=((float)desc->BufferDesc.Height / 2.0f) - ((float)shared->resources[i].height / 2.0f);
+
+		overlays[i].x=(float)((float)newx / (float)desc->BufferDesc.Width) *2.0f;
+		overlays[i].y=-(float)((float)newy / (float)desc->BufferDesc.Height) *2.0f;
+
+
 	}
 	else
 	{
-		left=shared->resources[i].x;
-		top=shared->resources[i].y;
-		right=shared->resources[i].x+shared->resources[i].width;
-		bottom=shared->resources[i].y+shared->resources[i].height;
+		overlays[i].x=(float)((float)shared->resources[i].x / (float)desc->BufferDesc.Width) *2.0f;
+		overlays[i].y=-(float)((float)shared->resources[i].y / (float)desc->BufferDesc.Height) *2.0f;
 	}
-
-	//convert to -1 / +1 regions
-
-	left=(left / desc->BufferDesc.Width ) * 2 -1;
-	top=-((top / desc->BufferDesc.Height ) * 2 -1);
-
-	right=(right / desc->BufferDesc.Width) * 2-1;
-	bottom=-((bottom / desc->BufferDesc.Height) * 2-1);
-
-	OverlayVertex overlayVertices[] ={ //x,y,z, x,y
-		{XMFLOAT3(left, top, 0.0f), XMFLOAT2( 0.0f, 0.0f ) },
-		{XMFLOAT3(left, bottom, 0.0f), XMFLOAT2( 0.0f, 1.0f )},		
-		{XMFLOAT3(right, bottom, 0.0f), XMFLOAT2( 1.0f, 1.0f )},
-		
-		{XMFLOAT3(right, bottom, 0.0f), XMFLOAT2( 1.0f, 1.0f )},
-		{XMFLOAT3(right, top, 0.0f), XMFLOAT2( 1.0f, 0.0f )},
-		{XMFLOAT3(left, top, 0.0f), XMFLOAT2( 0.0f, 0.0f )},		
-	};
-
-	D3D11_BUFFER_DESC bd2d;
-	ZeroMemory( &bd2d, sizeof(bd2d) );
-	bd2d.Usage = D3D11_USAGE_DYNAMIC;
-	bd2d.ByteWidth = sizeof( OverlayVertex ) * 6;
-	bd2d.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bd2d.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-   
-	D3D11_SUBRESOURCE_DATA InitData2d;
-	ZeroMemory( &InitData2d, sizeof(InitData2d) );
-	InitData2d.pSysMem = overlayVertices;
-	hr = dev->CreateBuffer( &bd2d, &InitData2d, &overlays[i].pOverlayVB );
-	if( FAILED( hr ) )
-	{
-		OutputDebugStringA("Vertexbuffer creation failed\n");
-		return hr;
-	}
-
 	shared->resources[i].updatedpos=0;
-
-	return hr;
 }
 
 HRESULT DXMessD3D11Handler::setupOverlayTexture()
@@ -141,7 +97,7 @@ HRESULT DXMessD3D11Handler::setupOverlayTexture()
 		if (shared->resources[i].valid)
 		{
 
-			if ((shared->resources[i].updatedresource) || (overlays[i].pOverlayTex==NULL))
+			if ((shared->resources[i].updatedresource) || (overlays[i].pOverlayTex==NULL) || (overlays[i].pOverlayVB==NULL))
 			{
 				
 				//(Re)create the texture
@@ -168,12 +124,45 @@ HRESULT DXMessD3D11Handler::setupOverlayTexture()
 				test->Release();
 				texturex->Release();
 
+				//create the vertex buffer with the proper width/height
+				float right, bottom;
+
+				right=-1.0f+((float)shared->resources[i].width / (float)desc.BufferDesc.Width)*2.0f;
+				bottom=1.0f-((float)shared->resources[i].height / (float)desc.BufferDesc.Height)*2.0f;
+
+				OverlayVertex overlayVertices[] ={ //x,y,z, x,y
+					{XMFLOAT3(-1.0f, 1.0f, 0.0f), XMFLOAT2( 0.0f, 0.0f ) },
+					{XMFLOAT3(-1.0f, bottom, 0.0f), XMFLOAT2( 0.0f, 1.0f )},		
+					{XMFLOAT3(right, bottom, 0.0f), XMFLOAT2( 1.0f, 1.0f )},
+					
+					{XMFLOAT3(right, bottom, 0.0f), XMFLOAT2( 1.0f, 1.0f )},
+					{XMFLOAT3(right, 1.0f, 0.0f), XMFLOAT2( 1.0f, 0.0f )},
+					{XMFLOAT3(-1.0f, 1.0f, 0.0f), XMFLOAT2( 0.0f, 0.0f )},		
+				};
+
+				D3D11_BUFFER_DESC bd2d;
+				ZeroMemory( &bd2d, sizeof(bd2d) );
+				bd2d.Usage = D3D11_USAGE_DYNAMIC;
+				bd2d.ByteWidth = sizeof( OverlayVertex ) * 6;
+				bd2d.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+				bd2d.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+			   
+				D3D11_SUBRESOURCE_DATA InitData2d;
+				ZeroMemory( &InitData2d, sizeof(InitData2d) );
+				InitData2d.pSysMem = overlayVertices;
+				hr = dev->CreateBuffer( &bd2d, &InitData2d, &overlays[i].pOverlayVB );
+				if( FAILED( hr ) )
+				{
+					OutputDebugStringA("Vertexbuffer creation failed\n");
+					return hr;
+				}
+
 				shared->resources[i].updatedresource=0;
 
 			}
 
-			if ((shared->resources[i].updatedpos) || (overlays[i].pOverlayVB==NULL))
-				UpdateVBPosForOverlay(i, &desc);
+			if (shared->resources[i].updatedpos)
+				UpdatePosForOverlay(i, &desc);
 
 		}
 	}
@@ -289,7 +278,7 @@ DXMessD3D11Handler::DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD
 	if( FAILED( hr ) )
 	{
 		pBlob->Release();
-		OutputDebugStringA("CreatePixelShader failed\n");
+		OutputDebugStringA("CreateVertexShader failed\n");
 		return;
 	}
 	
@@ -353,16 +342,16 @@ DXMessD3D11Handler::DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD
 	ZeroMemory( &blend, sizeof(blend) );
 
 	rtbd.BlendEnable			 = true;
-	rtbd.SrcBlend				 = D3D11_BLEND_ONE;	
+	rtbd.SrcBlend				 = D3D11_BLEND_SRC_ALPHA;	
 	rtbd.DestBlend				 = D3D11_BLEND_INV_SRC_ALPHA;	
 	rtbd.BlendOp				 = D3D11_BLEND_OP_ADD;
-	rtbd.SrcBlendAlpha			 = D3D11_BLEND_ONE;
+	rtbd.SrcBlendAlpha			 = D3D11_BLEND_ZERO;
 	rtbd.DestBlendAlpha			 = D3D11_BLEND_ZERO;
 	rtbd.BlendOpAlpha			 = D3D11_BLEND_OP_ADD;
 	rtbd.RenderTargetWriteMask	 = D3D11_COLOR_WRITE_ENABLE_ALL;
 
 	blend.AlphaToCoverageEnable=false;
-	blend.IndependentBlendEnable=true;
+	blend.IndependentBlendEnable=true; //true;
 	blend.RenderTarget[0]=rtbd;
 
 	hr=dev->CreateBlendState(&blend, &pTransparency);
@@ -428,6 +417,20 @@ DXMessD3D11Handler::DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD
 
 	
 
+	// Create the constant buffer
+	D3D11_BUFFER_DESC bd;
+	ZeroMemory(&bd, sizeof(bd));
+ 
+	bd.Usage = D3D11_USAGE_DEFAULT;
+	bd.ByteWidth = sizeof(ConstantBuffer);
+	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bd.CPUAccessFlags = 0;
+    hr = dev->CreateBuffer( &bd, NULL, &pConstantBuffer );
+    if( FAILED( hr ) )
+        return;
+
+
+
 
 	Valid=TRUE;
 }
@@ -470,7 +473,7 @@ void DXMessD3D11Handler::RenderOverlay()
 			shared->resources[shared->MouseOverlayId].x=p.x;
 			shared->resources[shared->MouseOverlayId].y=p.y;			
 
-			UpdateVBPosForOverlay(shared->MouseOverlayId, &desc);			
+			UpdatePosForOverlay(shared->MouseOverlayId, &desc);			
 		}
 
 
@@ -515,16 +518,26 @@ void DXMessD3D11Handler::RenderOverlay()
 		ID3D11RenderTargetView *oldRenderTarget;
 		ID3D11DepthStencilView *oldDepthStencilView=NULL;
 
+
+		ID3D11Buffer *oldConstantBuffersVS=NULL;
+		ID3D11Buffer *oldConstantBuffersPS=NULL;
+
 		//save state		
 
+		dc->VSGetConstantBuffers(0,1, &oldConstantBuffersVS);
 		dc->VSGetShader( &oldvs, &oldvsinstances, &vci_count);
+		
+		dc->PSGetConstantBuffers(0,1, &oldConstantBuffersPS);
 		dc->PSGetShader( &oldps, &oldpsinstances, &pci_count);
 		dc->PSGetSamplers(0,1, &oldPSSampler);
 		dc->PSGetShaderResources(0,1, &oldPSShaderResource);
+		
+		
 
 		dc->OMGetRenderTargets(1, &oldRenderTarget, &oldDepthStencilView);
 		dc->OMGetBlendState( &oldBlendState, oldblendFactor, &oldblendsamplemask);
 		dc->OMGetDepthStencilState( &oldDepthStencilState, &oldstencilref);
+		
 
 		dc->IAGetPrimitiveTopology(&oldPrimitiveTopology);
 		dc->IAGetInputLayout(&oldInputLayout);
@@ -581,9 +594,18 @@ void DXMessD3D11Handler::RenderOverlay()
 				dc->IASetVertexBuffers( 0, 1, &overlays[i].pOverlayVB, &stride, &offset );
 				dc->PSSetShaderResources( 0, 1, &overlays[i].pOverlayTex );	
 	
-				//render
-				if ((shared->resources[i].x==-1) && (shared->resources[i].y==-1))
-					UpdateVBPosForOverlay(i, &desc);					
+				ConstantBuffer cb;
+				UpdatePosForOverlay(i, &desc);
+				cb.transparency=shared->resources[i].alphaBlend;
+				cb.translation.x=overlays[i].x;
+				cb.translation.y=overlays[i].y;
+
+				dc->UpdateSubresource( pConstantBuffer, 0, NULL, &cb, 0, 0 );
+
+				dc->VSSetConstantBuffers(0,1, &pConstantBuffer);
+				dc->PSSetConstantBuffers(0,1, &pConstantBuffer);
+				
+
 				
 				dc->DrawIndexed( 6, 0,0);
 			}
@@ -594,6 +616,10 @@ void DXMessD3D11Handler::RenderOverlay()
 		dc->PSSetShader(oldps, (ID3D11ClassInstance *const *)oldpsinstances, pci_count);
 		dc->PSSetSamplers(0, 1, &oldPSSampler);
 		dc->PSSetShaderResources(0,1, &oldPSShaderResource);
+
+		dc->VSSetConstantBuffers(0,1, &oldConstantBuffersVS);
+		dc->PSSetConstantBuffers(0,1, &oldConstantBuffersPS);
+
 
 		dc->OMSetRenderTargets(1, &oldRenderTarget, oldDepthStencilView);
 		dc->OMSetBlendState(oldBlendState, oldblendFactor, oldblendsamplemask);
