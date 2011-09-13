@@ -45,6 +45,7 @@ private:
 
 	BOOL Valid;
 	HRESULT setupOverlayTexture();
+	HRESULT UpdateVBPosForOverlay(int i, DXGI_SWAP_CHAIN_DESC *desc);
 public:
 	DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD3DHookShared shared);
 	~DXMessD3D11Handler();

@@ -167,10 +167,21 @@ void DXMessD3D9Handler::RenderOverlay()
 						scale.y=(float)shared->resources[i].height / (float)overlays[i].actualHeight;
 						scale.z=1.0f;
 
-						position.x=overlays[i].x;
-						position.y=overlays[i].y;
+						if ((overlays[i].x==-1) && (overlays[i].y==-1))
+						{
+							//center of screen
+							D3DVIEWPORT9 vp;
+							dev->GetViewport(&vp);
+							
+							position.x=((float)vp.Width / 2.0f) - ((float)shared->resources[i].width / 2.0f);
+							position.y=((float)vp.Height / 2.0f) - ((float)shared->resources[i].height / 2.0f);
+						}
+						else
+						{
+							position.x=overlays[i].x;
+							position.y=overlays[i].y;							
+						}	
 						position.z=0.0f;
-
 		
 
 						D3DXMatrixTransformation(&m, NULL, NULL, &scale, NULL, NULL, &position);
