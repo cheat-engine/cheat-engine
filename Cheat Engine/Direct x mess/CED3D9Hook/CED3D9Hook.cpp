@@ -187,11 +187,14 @@ void DXMessD3D9Handler::RenderOverlay()
 						D3DXMatrixTransformation(&m, NULL, NULL, &scale, NULL, NULL, &position);
 						
 						sprite->SetTransform(&m);
-						hr=sprite->Draw(overlays[i].pOverlayTex, NULL, NULL, NULL, D3DCOLOR_ARGB(255,255,255,255));
+
+						
+
+						hr=sprite->Draw(overlays[i].pOverlayTex, NULL, NULL, NULL, D3DCOLOR_ARGB((int)(shared->resources[i].alphaBlend*255),255,255,255));
 					}
 		
 				hr=sprite->Flush();
-				
+			
 				hr=sprite->End();
 
 			}

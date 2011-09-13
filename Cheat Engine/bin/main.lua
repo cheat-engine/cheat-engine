@@ -1031,6 +1031,7 @@ d3dhook_updateOverlayPosition(overlayid, x,y)
  
 
 d3dhook_setOverlayVisibility(overlayid, booleanstate) : Sets if the overlay should be drawn or not.
+d3dhook_setOverlayTransparency(overlayid, percentage): Sets the percentage in visibility of the overlay. 100 is fully visible, 0 is invisible.
 
 d3dhook_setOverlayAsMouse(overlayid): 
   Sets the specific overlay image as the mouse cursors. 

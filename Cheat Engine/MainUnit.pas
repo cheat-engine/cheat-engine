@@ -426,6 +426,7 @@ type
     procedure AddressKeyPress(Sender: TObject; var Key: char);
     procedure FoundListDblClick(Sender: TObject);
     procedure Browsethismemoryarrea1Click(Sender: TObject);
+    procedure TrackBar1Change(Sender: TObject);
     procedure UpdateTimerTimer(Sender: TObject);
     procedure FreezeTimerTimer(Sender: TObject);
     procedure Browsethismemoryregion1Click(Sender: TObject);
@@ -574,6 +575,9 @@ type
     scantypechangedbyhotkey: boolean;
 
     fIsProtected: boolean;
+
+    overlayid: integer;   //debug
+
     procedure doNewScan;
     procedure SetExpectedTableName;
 
@@ -4108,6 +4112,11 @@ begin
   end;
 end;
 
+procedure TMainForm.TrackBar1Change(Sender: TObject);
+begin
+
+end;
+
 procedure TMainForm.UpdateTimerTimer(Sender: TObject);
 begin
   if addresslist<>nil then
@@ -6464,6 +6473,8 @@ var _us: string;
 var advapi: thandle;
     tu: unicodestring;
 
+
+
 procedure TMainform.d3dclicktest(overlayid: integer; x,y: integer);
 var w,h: integer;
 begin
@@ -6558,7 +6569,10 @@ begin
   d3dhook.beginupdate;
   i:=d3dhook.createOverlayFromPicture(img, 10,10);
 
-  i:=d3dhook.createOverlayFromPicture(img, -1,-1);
+  overlayid:=d3dhook.createOverlayFromPicture(img, -1,-1);
+
+ // d3dhook.SetOverlayAlphaBlend(overlayid, trackbar1.Position);
+
   d3dhook.endupdate;
 
 
