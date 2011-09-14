@@ -19,7 +19,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
       <MinorVersionNr Value="1"/>
-      <BuildNr Value="1924"/>
+      <BuildNr Value="1925"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="6.1"/>
@@ -185,10 +185,11 @@
         <ComponentName Value="MainForm"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="MainUnit"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="663"/>
-        <CursorPos X="22" Y="677"/>
+        <TopLine Value="5210"/>
+        <CursorPos X="57" Y="5225"/>
         <UsageCount Value="211"/>
         <Bookmarks Count="3">
           <Item0 X="1" Y="1" ID="2"/>
@@ -1553,11 +1554,10 @@
         <Filename Value="addresslist.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="addresslist"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1533"/>
-        <CursorPos X="76" Y="1554"/>
+        <TopLine Value="1297"/>
+        <CursorPos X="3" Y="1308"/>
         <UsageCount Value="203"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -2250,7 +2250,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1226"/>
         <CursorPos X="30" Y="1239"/>
-        <UsageCount Value="87"/>
+        <UsageCount Value="88"/>
         <Loaded Value="True"/>
       </Unit184>
       <Unit185>
@@ -2298,7 +2298,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="2657"/>
         <CursorPos X="27" Y="2680"/>
-        <UsageCount Value="23"/>
+        <UsageCount Value="24"/>
         <Loaded Value="True"/>
       </Unit189>
       <Unit190>
@@ -2447,14 +2447,14 @@
         <WindowIndex Value="0"/>
         <TopLine Value="22"/>
         <CursorPos X="4" Y="36"/>
-        <UsageCount Value="93"/>
+        <UsageCount Value="92"/>
       </Unit207>
       <Unit208>
         <Filename Value="C:\lazarus\fpc\2.5.1\source\rtl\objpas\sysutils\sysuthrd.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="94"/>
         <CursorPos X="3" Y="72"/>
-        <UsageCount Value="93"/>
+        <UsageCount Value="92"/>
       </Unit208>
       <Unit209>
         <Filename Value="C:\lazarus\fpc\2.5.1\source\packages\fcl-base\src\syncobjs.pp"/>
@@ -2471,7 +2471,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="47"/>
         <CursorPos X="26" Y="73"/>
-        <UsageCount Value="163"/>
+        <UsageCount Value="164"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit210>
       <Unit211>
@@ -2542,123 +2542,131 @@
         <WindowIndex Value="0"/>
         <TopLine Value="4902"/>
         <CursorPos X="1" Y="4916"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="11"/>
         <Loaded Value="True"/>
       </Unit217>
     </Units>
-    <JumpHistory Count="28" HistoryIndex="27">
+    <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="C:\lazarus\lcl\include\treeview.inc"/>
-        <Caret Line="1520" Column="1" TopLine="1502"/>
+        <Caret Line="1524" Column="1" TopLine="1502"/>
       </Position1>
       <Position2>
         <Filename Value="C:\lazarus\lcl\include\treeview.inc"/>
-        <Caret Line="1521" Column="1" TopLine="1502"/>
+        <Caret Line="4869" Column="1" TopLine="4855"/>
       </Position2>
       <Position3>
         <Filename Value="C:\lazarus\lcl\include\treeview.inc"/>
-        <Caret Line="1524" Column="1" TopLine="1502"/>
+        <Caret Line="1540" Column="1" TopLine="1526"/>
       </Position3>
       <Position4>
         <Filename Value="C:\lazarus\lcl\include\treeview.inc"/>
-        <Caret Line="4869" Column="1" TopLine="4855"/>
+        <Caret Line="1541" Column="1" TopLine="1526"/>
       </Position4>
       <Position5>
         <Filename Value="C:\lazarus\lcl\include\treeview.inc"/>
-        <Caret Line="1540" Column="1" TopLine="1526"/>
+        <Caret Line="346" Column="1" TopLine="332"/>
       </Position5>
       <Position6>
         <Filename Value="C:\lazarus\lcl\include\treeview.inc"/>
-        <Caret Line="1541" Column="1" TopLine="1526"/>
+        <Caret Line="347" Column="1" TopLine="332"/>
       </Position6>
       <Position7>
         <Filename Value="C:\lazarus\lcl\include\treeview.inc"/>
-        <Caret Line="346" Column="1" TopLine="332"/>
+        <Caret Line="350" Column="1" TopLine="332"/>
       </Position7>
       <Position8>
         <Filename Value="C:\lazarus\lcl\include\treeview.inc"/>
-        <Caret Line="347" Column="1" TopLine="332"/>
+        <Caret Line="1542" Column="1" TopLine="1528"/>
       </Position8>
       <Position9>
         <Filename Value="C:\lazarus\lcl\include\treeview.inc"/>
-        <Caret Line="350" Column="1" TopLine="332"/>
+        <Caret Line="346" Column="1" TopLine="332"/>
       </Position9>
       <Position10>
         <Filename Value="C:\lazarus\lcl\include\treeview.inc"/>
-        <Caret Line="1542" Column="1" TopLine="1528"/>
+        <Caret Line="347" Column="1" TopLine="332"/>
       </Position10>
       <Position11>
         <Filename Value="C:\lazarus\lcl\include\treeview.inc"/>
-        <Caret Line="346" Column="1" TopLine="332"/>
+        <Caret Line="350" Column="1" TopLine="332"/>
       </Position11>
       <Position12>
         <Filename Value="C:\lazarus\lcl\include\treeview.inc"/>
-        <Caret Line="347" Column="1" TopLine="332"/>
+        <Caret Line="1543" Column="1" TopLine="1529"/>
       </Position12>
       <Position13>
         <Filename Value="C:\lazarus\lcl\include\treeview.inc"/>
-        <Caret Line="350" Column="1" TopLine="332"/>
+        <Caret Line="4874" Column="1" TopLine="4863"/>
       </Position13>
       <Position14>
         <Filename Value="C:\lazarus\lcl\include\treeview.inc"/>
-        <Caret Line="1543" Column="1" TopLine="1529"/>
+        <Caret Line="1547" Column="1" TopLine="1533"/>
       </Position14>
       <Position15>
         <Filename Value="C:\lazarus\lcl\include\treeview.inc"/>
-        <Caret Line="4874" Column="1" TopLine="4863"/>
+        <Caret Line="1548" Column="1" TopLine="1533"/>
       </Position15>
       <Position16>
         <Filename Value="C:\lazarus\lcl\include\treeview.inc"/>
-        <Caret Line="1547" Column="1" TopLine="1533"/>
+        <Caret Line="4881" Column="1" TopLine="4867"/>
       </Position16>
       <Position17>
         <Filename Value="C:\lazarus\lcl\include\treeview.inc"/>
-        <Caret Line="1548" Column="1" TopLine="1533"/>
+        <Caret Line="4882" Column="1" TopLine="4867"/>
       </Position17>
       <Position18>
         <Filename Value="C:\lazarus\lcl\include\treeview.inc"/>
-        <Caret Line="4881" Column="1" TopLine="4867"/>
+        <Caret Line="4883" Column="1" TopLine="4867"/>
       </Position18>
       <Position19>
         <Filename Value="C:\lazarus\lcl\include\treeview.inc"/>
-        <Caret Line="4882" Column="1" TopLine="4867"/>
+        <Caret Line="4884" Column="1" TopLine="4867"/>
       </Position19>
       <Position20>
         <Filename Value="C:\lazarus\lcl\include\treeview.inc"/>
-        <Caret Line="4883" Column="1" TopLine="4867"/>
+        <Caret Line="4916" Column="1" TopLine="4902"/>
       </Position20>
       <Position21>
-        <Filename Value="C:\lazarus\lcl\include\treeview.inc"/>
-        <Caret Line="4884" Column="1" TopLine="4867"/>
-      </Position21>
-      <Position22>
-        <Filename Value="C:\lazarus\lcl\include\treeview.inc"/>
-        <Caret Line="4916" Column="1" TopLine="4902"/>
-      </Position22>
-      <Position23>
         <Filename Value="addresslist.pas"/>
         <Caret Line="169" Column="16" TopLine="147"/>
+      </Position21>
+      <Position22>
+        <Filename Value="C:\lazarus\lcl\comctrls.pp"/>
+        <Caret Line="2860" Column="26" TopLine="2847"/>
+      </Position22>
+      <Position23>
+        <Filename Value="C:\lazarus\lcl\comctrls.pp"/>
+        <Caret Line="3023" Column="29" TopLine="3000"/>
       </Position23>
       <Position24>
         <Filename Value="C:\lazarus\lcl\comctrls.pp"/>
-        <Caret Line="2860" Column="26" TopLine="2847"/>
+        <Caret Line="2708" Column="18" TopLine="2691"/>
       </Position24>
       <Position25>
         <Filename Value="C:\lazarus\lcl\comctrls.pp"/>
-        <Caret Line="3023" Column="29" TopLine="3000"/>
+        <Caret Line="3004" Column="35" TopLine="3003"/>
       </Position25>
       <Position26>
-        <Filename Value="C:\lazarus\lcl\comctrls.pp"/>
-        <Caret Line="2708" Column="18" TopLine="2691"/>
+        <Filename Value="addresslist.pas"/>
+        <Caret Line="165" Column="9" TopLine="147"/>
       </Position26>
       <Position27>
-        <Filename Value="C:\lazarus\lcl\comctrls.pp"/>
-        <Caret Line="3004" Column="35" TopLine="3003"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="671" Column="79" TopLine="663"/>
       </Position27>
       <Position28>
         <Filename Value="addresslist.pas"/>
-        <Caret Line="165" Column="9" TopLine="147"/>
+        <Caret Line="1545" Column="50" TopLine="1533"/>
       </Position28>
+      <Position29>
+        <Filename Value="addresslist.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
+      </Position29>
+      <Position30>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="5210" Column="26" TopLine="5202"/>
+      </Position30>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
