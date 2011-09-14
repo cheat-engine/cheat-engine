@@ -1056,7 +1056,7 @@ begin
     1: indexstring:='ecx';
     2: indexstring:='edx';
     3: indexstring:='ebx';
-    4: if _mod = 0 then indexstring:='esp';
+    4: indexstring:='';//'esp';
     5: indexstring:='ebp';
     6: indexstring:='esi';
     7: indexstring:='edi';
