@@ -48,6 +48,12 @@ type
     d3d10_drawinstanced: UINT64;
     d3d10_drawauto: UINT64;
 
+    d3d11_drawindexed: UINT64;
+    d3d11_draw: UINT64;
+    d3d11_drawindexedinstanced: UINT64;
+    d3d11_drawinstanced: UINT64;
+    d3d11_drawauto: UINT64;
+
 
     dxgi_newpresent: UINT64;
     d3d9_newpresent: UINT64;
@@ -65,6 +71,12 @@ type
     d3d10_newdrawindexedinstanced: UINT64;
     d3d10_newdrawinstanced: UINT64;
     d3d10_newdrawauto: UINT64;
+
+    d3d11_newdrawindexed: UINT64;
+    d3d11_newdraw: UINT64;
+    d3d11_newdrawindexedinstanced: UINT64;
+    d3d11_newdrawinstanced: UINT64;
+    d3d11_newdrawauto: UINT64;
 
 
     dxgi_originalpresent: UINT64;
@@ -84,6 +96,11 @@ type
     d3d10_originaldrawinstanced: UINT64;
     d3d10_originaldrawauto: UINT64;
 
+    d3d11_originaldrawindexed: UINT64;
+    d3d11_originaldraw: UINT64;
+    d3d11_originaldrawindexedinstanced: UINT64;
+    d3d11_originaldrawinstanced: UINT64;
+    d3d11_originaldrawauto: UINT64;
 
 
     wireframe: integer;
@@ -490,6 +507,22 @@ begin
 
       if shared.d3d10_drawauto<>0 then
         generateAPIHookScript(s, inttohex(shared.d3d10_drawauto,8), inttohex(shared.d3d10_newdrawauto,8),  inttohex(shared.d3d10_originaldrawauto,8), '13');
+
+
+      if shared.d3d11_drawindexed<>0 then
+        generateAPIHookScript(s, inttohex(shared.d3d11_drawindexed,8), inttohex(shared.d3d11_newdrawindexed,8),  inttohex(shared.d3d11_originaldrawindexed,8), '14');
+
+      if shared.d3d11_draw<>0 then
+        generateAPIHookScript(s, inttohex(shared.d3d11_draw,8), inttohex(shared.d3d11_newdraw,8),  inttohex(shared.d3d11_originaldraw,8), '15');
+
+      if shared.d3d11_drawindexedinstanced<>0 then
+        generateAPIHookScript(s, inttohex(shared.d3d11_drawindexedinstanced,8), inttohex(shared.d3d11_newdrawindexedinstanced,8),  inttohex(shared.d3d11_originaldrawindexedinstanced,8), '16');
+
+      if shared.d3d11_drawinstanced<>0 then
+        generateAPIHookScript(s, inttohex(shared.d3d11_drawinstanced,8), inttohex(shared.d3d11_newdrawinstanced,8),  inttohex(shared.d3d11_originaldrawinstanced,8), '17');
+
+      if shared.d3d11_drawauto<>0 then
+        generateAPIHookScript(s, inttohex(shared.d3d11_drawauto,8), inttohex(shared.d3d11_newdrawauto,8),  inttohex(shared.d3d11_originaldrawauto,8), '18');
 
       clipboard.AsText:=s.text;
 

@@ -25,6 +25,12 @@ typedef struct
 	UINT64 d3d10_drawinstanced;
 	UINT64 d3d10_drawauto;	
 
+	UINT64 d3d11_drawindexed;
+	UINT64 d3d11_draw;
+	UINT64 d3d11_drawindexedinstanced;
+	UINT64 d3d11_drawinstanced;
+	UINT64 d3d11_drawauto;	
+
 	UINT64 dxgi_newpresent; //From the dll: set this to the function address in the dll
 	UINT64 d3d9_newpresent;                              
 	UINT64 d3d9_newreset;
@@ -42,6 +48,12 @@ typedef struct
 	UINT64 d3d10_newdrawinstanced;
 	UINT64 d3d10_newdrawauto;	
 
+	UINT64 d3d11_newdrawindexed;
+	UINT64 d3d11_newdraw;
+	UINT64 d3d11_newdrawindexedinstanced;
+	UINT64 d3d11_newdrawinstanced;
+	UINT64 d3d11_newdrawauto;	
+
 	UINT64 dxgi_originalpresent; //From the dll: set this to the variable that should get the address of the original function with no hook
 	UINT64 d3d9_originalpresent;   
 	UINT64 d3d9_originalreset;
@@ -58,6 +70,12 @@ typedef struct
 	UINT64 d3d10_originaldrawindexedinstanced;
 	UINT64 d3d10_originaldrawinstanced;
 	UINT64 d3d10_originaldrawauto;	
+
+	UINT64 d3d11_originaldrawindexed;
+	UINT64 d3d11_originaldraw;
+	UINT64 d3d11_originaldrawindexedinstanced;
+	UINT64 d3d11_originaldrawinstanced;
+	UINT64 d3d11_originaldrawauto;	
 
 	int wireframe;
 	int disabledzbuffer;

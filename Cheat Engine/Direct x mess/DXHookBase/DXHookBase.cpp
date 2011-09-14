@@ -37,6 +37,13 @@ typedef HRESULT		(__stdcall *D3D10_DRAWINDEXEDINSTANCED_ORIGINAL)(ID3D10Device *
 typedef HRESULT		(__stdcall *D3D10_DRAWINSTANCED_ORIGINAL)(ID3D10Device *device, UINT VertexCountPerInstance, UINT InstanceCount, UINT StartVertexLocation, UINT StartInstanceLocation);
 typedef HRESULT		(__stdcall *D3D10_DRAWAUTO_ORIGINAL)(ID3D10Device *device);
 
+typedef HRESULT		(__stdcall *D3D11_DRAWINDEXED_ORIGINAL)(ID3D11DeviceContext *dc, UINT IndexCount, UINT StartIndexLocation, INT BaseVertexLocation);
+typedef HRESULT		(__stdcall *D3D11_DRAW_ORIGINAL)(ID3D11DeviceContext *dc, UINT VertexCount, UINT StartVertexLocation);
+typedef HRESULT		(__stdcall *D3D11_DRAWINDEXEDINSTANCED_ORIGINAL)(ID3D11DeviceContext *dc, UINT IndexCountPerInstance, UINT InstanceCount, UINT StartIndexLocation, INT BaseVertexLocation, UINT StartInstanceLocation);
+typedef HRESULT		(__stdcall *D3D11_DRAWINSTANCED_ORIGINAL)(ID3D11DeviceContext *dc, UINT VertexCountPerInstance, UINT InstanceCount, UINT StartVertexLocation, UINT StartInstanceLocation);
+typedef HRESULT		(__stdcall *D3D11_DRAWAUTO_ORIGINAL)(ID3D11DeviceContext *dc);
+
+
 
 typedef HRESULT     (__stdcall *DXGI_PRESENT_ORIGINAL)(IDXGISwapChain *x, UINT SyncInterval, UINT Flags);
 typedef void        (__stdcall *D3D10PlusHookPresentAPICall)(IDXGISwapChain *swapchain, void *device, PD3DHookShared shared);
@@ -58,17 +65,27 @@ typedef HRESULT		(__stdcall *D3D10HookDrawIndexedInstancedAPICall)(D3D10_DRAWIND
 typedef HRESULT		(__stdcall *D3D10HookDrawInstancedAPICall)(D3D10_DRAWINSTANCED_ORIGINAL originalfunction, ID3D10Device *device, UINT VertexCountPerInstance, UINT InstanceCount, UINT StartVertexLocation, UINT StartInstanceLocation);
 typedef HRESULT		(__stdcall *D3D10HookDrawAutoAPICall)(D3D10_DRAWAUTO_ORIGINAL originalfunction, ID3D10Device *device);
 
+typedef HRESULT		(__stdcall *D3D11HookDrawIndexedAPICall)(D3D11_DRAWINDEXED_ORIGINAL originalfunction, ID3D11DeviceContext *dc, UINT IndexCount, UINT StartIndexLocation, INT BaseVertexLocation);
+typedef HRESULT		(__stdcall *D3D11HookDrawAPICall)(D3D11_DRAW_ORIGINAL originalfunction, ID3D11DeviceContext *dc, UINT VertexCount, UINT StartVertexLocation);
+typedef HRESULT		(__stdcall *D3D11HookDrawIndexedInstancedAPICall)(D3D11_DRAWINDEXEDINSTANCED_ORIGINAL originalfunction, ID3D11DeviceContext *dc, UINT IndexCountPerInstance, UINT InstanceCount, UINT StartIndexLocation, INT BaseVertexLocation, UINT StartInstanceLocation);
+typedef HRESULT		(__stdcall *D3D11HookDrawInstancedAPICall)(D3D11_DRAWINSTANCED_ORIGINAL originalfunction, ID3D11DeviceContext *dc, UINT VertexCountPerInstance, UINT InstanceCount, UINT StartVertexLocation, UINT StartInstanceLocation);
+typedef HRESULT		(__stdcall *D3D11HookDrawAutoAPICall)(D3D11_DRAWAUTO_ORIGINAL originalfunction, ID3D11DeviceContext *dc);
+
 
 
 
 typedef IDirect3D9* (__stdcall *DIRECT3DCREATE9)(UINT SDKVersion); 
 typedef HRESULT     (__stdcall *D3D10CREATEDEVICEANDSWAPCHAIN)(IDXGIAdapter *pAdapter, D3D10_DRIVER_TYPE DriverType, HMODULE Software, UINT Flags, UINT SDKVersion, DXGI_SWAP_CHAIN_DESC *pSwapChainDesc, IDXGISwapChain **ppSwapChain, ID3D10Device **ppDevice);
+typedef HRESULT     (__stdcall *D3D11CREATEDEVICEANDSWAPCHAIN)(IDXGIAdapter *pAdapter, D3D_DRIVER_TYPE DriverType, HMODULE Software, UINT Flags, CONST D3D_FEATURE_LEVEL* pFeatureLevels, UINT FeatureLevels, UINT SDKVersion, CONST DXGI_SWAP_CHAIN_DESC* pSwapChainDesc, IDXGISwapChain** ppSwapChain, ID3D11Device** ppDevice, D3D_FEATURE_LEVEL* pFeatureLevel, ID3D11DeviceContext** ppImmediateContext );
 
+  
+    
 
 
 
 
 D3D10CREATEDEVICEANDSWAPCHAIN d3d10create=NULL;
+D3D11CREATEDEVICEANDSWAPCHAIN d3d11create=NULL;
 DIRECT3DCREATE9 D3DCreate9=NULL;
 
 DXGI_PRESENT_ORIGINAL DXGI_Present_Original=NULL;
@@ -91,7 +108,11 @@ D3D10HookDrawIndexedInstancedAPICall D3D10Hook_DrawIndexedInstanced;
 D3D10HookDrawInstancedAPICall D3D10Hook_DrawInstanced;
 D3D10HookDrawAutoAPICall D3D10Hook_DrawAuto;
 
-
+D3D11HookDrawIndexedAPICall D3D11Hook_DrawIndexed;
+D3D11HookDrawAPICall D3D11Hook_Draw;
+D3D11HookDrawIndexedInstancedAPICall D3D11Hook_DrawIndexedInstanced;
+D3D11HookDrawInstancedAPICall D3D11Hook_DrawInstanced;
+D3D11HookDrawAutoAPICall D3D11Hook_DrawAuto;
 
 D3D9_RESET_ORIGINAL D3D9_Reset_Original=NULL;
 D3D9_PRESENT_ORIGINAL D3D9_Present_Original=NULL;
@@ -109,6 +130,11 @@ D3D10_DRAWINDEXEDINSTANCED_ORIGINAL D3D10_DrawIndexedInstanced_Original=NULL;
 D3D10_DRAWINSTANCED_ORIGINAL D3D10_DrawInstanced_Original=NULL;
 D3D10_DRAWAUTO_ORIGINAL D3D10_DrawAuto_Original=NULL;
 
+D3D11_DRAWINDEXED_ORIGINAL D3D11_DrawIndexed_Original=NULL;
+D3D11_DRAW_ORIGINAL D3D11_Draw_Original=NULL;
+D3D11_DRAWINDEXEDINSTANCED_ORIGINAL D3D11_DrawIndexedInstanced_Original=NULL;
+D3D11_DRAWINSTANCED_ORIGINAL D3D11_DrawInstanced_Original=NULL;
+D3D11_DRAWAUTO_ORIGINAL D3D11_DrawAuto_Original=NULL;
 
 
 
@@ -168,7 +194,40 @@ void GetAddresses(void)
 
 		IDXGISwapChain *pSwapChain;
 		ID3D10Device *pd3dDevice;
+		ID3D11Device *pd3dDevice11;
+		ID3D11DeviceContext *pd3dDevice11Context;
+		D3D_FEATURE_LEVEL fl;
+
+
+		HMODULE d3d11dll=LoadLibraryA("D3D11.dll");
+
+		if (d3d11dll)
+		{
+			d3d11create=(D3D11CREATEDEVICEANDSWAPCHAIN)GetProcAddress(d3d11dll, "D3D11CreateDeviceAndSwapChain");
+			hr=d3d11create( NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, NULL, 0, D3D11_SDK_VERSION, &sd, &pSwapChain, &pd3dDevice11, &fl, &pd3dDevice11Context);
+
+			if (SUCCEEDED(hr))
+			{	
+				//get the present function of the swapchain
+				uintptr_t *a=(uintptr_t *)*(uintptr_t *)pSwapChain;
+
 	
+				a=(uintptr_t *)*(uintptr_t *)pd3dDevice11Context;
+				shared->d3d11_drawindexed=a[12]; //DrawIndexed();  //v
+				shared->d3d11_draw=a[13]; //Draw();  //v
+				shared->d3d11_drawindexedinstanced=a[20];
+				shared->d3d11_drawinstanced=a[21];
+				shared->d3d11_drawauto=a[38];   //v
+				
+
+				//now cleanup
+				pSwapChain->Release();
+				pd3dDevice11Context->Release();
+				pd3dDevice11->Release();
+			}		
+		}
+
+
 		HMODULE d3d10dll=LoadLibraryA("D3D10.dll");
 
 		if (d3d10dll)
@@ -637,6 +696,92 @@ HRESULT	__stdcall D3D10_DrawAuto_new(ID3D10Device *device)
 	return D3D10_DrawAuto_Original(device);
 }
 
+void InitializeD3D11Api()
+{
+	char dllpath[MAX_PATH];				
+	strcpy_s(dllpath, MAX_PATH, shared->CheatEngineDir);
+#ifdef AMD64
+	strcat_s(dllpath, MAX_PATH, "CED3D11Hook64.dll");
+#else
+	strcat_s(dllpath, MAX_PATH, "CED3D11Hook.dll");
+#endif
+
+	HMODULE hdll=LoadLibraryA((char *)dllpath);
+
+
+	D3D11Hook_DrawIndexed=(D3D11HookDrawIndexedAPICall)GetProcAddress(hdll, "D3D11Hook_DrawIndexed_imp");
+	D3D11Hook_Draw=(D3D11HookDrawAPICall)GetProcAddress(hdll, "D3D11Hook_Draw_imp");
+	D3D11Hook_DrawIndexedInstanced=(D3D11HookDrawIndexedInstancedAPICall)GetProcAddress(hdll, "D3D11Hook_DrawIndexedInstanced_imp");
+	D3D11Hook_DrawInstanced=(D3D11HookDrawInstancedAPICall)GetProcAddress(hdll, "D3D11Hook_DrawInstanced_imp");
+	D3D11Hook_DrawAuto=(D3D11HookDrawAutoAPICall)GetProcAddress(hdll, "D3D11Hook_DrawAuto_imp");
+
+}
+
+HRESULT	__stdcall D3D11_DrawIndexed_new(ID3D11DeviceContext *dc, UINT IndexCount, UINT StartIndexLocation, INT BaseVertexLocation)
+{
+	if (shared)
+	{
+			if (D3D11Hook_DrawIndexed==NULL)		
+				InitializeD3D11Api();
+
+			if (D3D11Hook_DrawIndexed)
+				return D3D11Hook_DrawIndexed(D3D11_DrawIndexed_Original, dc, IndexCount, StartIndexLocation, BaseVertexLocation);
+	}
+	return D3D11_DrawIndexed_Original(dc, IndexCount, StartIndexLocation, BaseVertexLocation);
+}
+
+HRESULT	__stdcall D3D11_Draw_new(ID3D11DeviceContext *dc, UINT VertexCount, UINT StartVertexLocation)
+{
+	if (shared)
+	{
+			if (D3D11Hook_Draw==NULL)		
+				InitializeD3D11Api();
+
+			if (D3D11Hook_Draw)
+				return D3D11Hook_Draw(D3D11_Draw_Original, dc, VertexCount, StartVertexLocation);			
+	}
+	return D3D11_Draw_Original(dc, VertexCount, StartVertexLocation);
+}
+
+HRESULT	__stdcall D3D11_DrawIndexedInstanced_new(ID3D11DeviceContext *dc, UINT IndexCountPerInstance, UINT InstanceCount, UINT StartIndexLocation, INT BaseVertexLocation, UINT StartInstanceLocation)
+{
+	if (shared)
+	{
+			if (D3D11Hook_DrawIndexedInstanced==NULL)		
+				InitializeD3D11Api();
+
+			if (D3D11Hook_DrawIndexedInstanced)
+				return D3D11Hook_DrawIndexedInstanced(D3D11_DrawIndexedInstanced_Original, dc, IndexCountPerInstance, InstanceCount, StartIndexLocation, BaseVertexLocation, StartInstanceLocation);			
+	}
+	return D3D11_DrawIndexedInstanced_Original(dc, IndexCountPerInstance, InstanceCount, StartIndexLocation, BaseVertexLocation, StartInstanceLocation);			
+}
+
+HRESULT	__stdcall D3D11_DrawInstanced_new(ID3D11DeviceContext *dc, UINT VertexCountPerInstance, UINT InstanceCount, UINT StartVertexLocation, UINT StartInstanceLocation)
+{
+	if (shared)
+	{
+			if (D3D11Hook_DrawInstanced==NULL)		
+				InitializeD3D11Api();
+
+			if (D3D11Hook_DrawInstanced)
+				return D3D11Hook_DrawInstanced(D3D11_DrawInstanced_Original, dc, VertexCountPerInstance, InstanceCount, StartVertexLocation, StartInstanceLocation);
+	}
+	return D3D11_DrawInstanced_Original(dc, VertexCountPerInstance, InstanceCount, StartVertexLocation, StartInstanceLocation);
+}
+
+HRESULT	__stdcall D3D11_DrawAuto_new(ID3D11DeviceContext *dc)
+{
+	if (shared)
+	{
+			if (D3D11Hook_DrawAuto==NULL)		
+				InitializeD3D11Api();
+
+			if (D3D11Hook_DrawAuto)
+				return D3D11Hook_DrawAuto(D3D11_DrawAuto_Original, dc);
+	}
+	return D3D11_DrawAuto_Original(dc);
+}
+
 
 
 HRESULT __stdcall IDXGISwapChain_Present_new(IDXGISwapChain *x, UINT SyncInterval, UINT Flags)
@@ -800,6 +945,12 @@ DWORD WINAPI InitializeD3DHookDll(PVOID params)
 		shared->d3d10_newdrawinstanced=(uintptr_t)D3D10_DrawInstanced_new;
 		shared->d3d10_newdrawauto=(uintptr_t)D3D10_DrawAuto_new;
 		
+		shared->d3d11_newdrawindexed=(uintptr_t)D3D11_DrawIndexed_new;
+		shared->d3d11_newdraw=(uintptr_t)D3D11_Draw_new;
+		shared->d3d11_newdrawindexedinstanced=(uintptr_t)D3D11_DrawIndexedInstanced_new;
+		shared->d3d11_newdrawinstanced=(uintptr_t)D3D11_DrawInstanced_new;
+		shared->d3d11_newdrawauto=(uintptr_t)D3D11_DrawAuto_new;
+		
 
 
 		//tell ce where it should write a pointer to the unhooked version of the hooked functions
@@ -819,6 +970,12 @@ DWORD WINAPI InitializeD3DHookDll(PVOID params)
 		shared->d3d10_originaldrawindexedinstanced=(uintptr_t)&D3D10_DrawIndexedInstanced_Original;
 		shared->d3d10_originaldrawinstanced=(uintptr_t)&D3D10_DrawInstanced_Original;
 		shared->d3d10_originaldrawauto=(uintptr_t)&D3D10_DrawAuto_Original;
+
+		shared->d3d11_originaldrawindexed=(uintptr_t)&D3D11_DrawIndexed_Original;
+		shared->d3d11_originaldraw=(uintptr_t)&D3D11_Draw_Original;
+		shared->d3d11_originaldrawindexedinstanced=(uintptr_t)&D3D11_DrawIndexedInstanced_Original;
+		shared->d3d11_originaldrawinstanced=(uintptr_t)&D3D11_DrawInstanced_Original;
+		shared->d3d11_originaldrawauto=(uintptr_t)&D3D11_DrawAuto_Original;
 
 
 	}

@@ -1,3 +1,9 @@
 LIBRARY	"CED3D11Hook"
 EXPORTS   
     D3D11Hook_SwapChain_Present_imp	@1
+	D3D11Hook_DrawIndexed_imp @2
+	D3D11Hook_Draw_imp @3
+	D3D11Hook_DrawIndexedInstanced_imp @4
+	D3D11Hook_DrawInstanced_imp @5
+	D3D11Hook_DrawAuto_imp @6
+       
