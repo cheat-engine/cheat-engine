@@ -9,10 +9,13 @@ uses
   math, MemoryRecordUnit, FPCanvas, cefuncproc, newkernelhandler, menus,dom,
   XMLRead,XMLWrite, symbolhandler;
 
-type TTreeviewWithScroll=class(TTreeview)
+type
+  TTreeviewWithScroll=class(TTreeview)
+  protected
+    procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
   published
     property ScrolledTop;
-end;
+  end;
 
 type
   TDropByListviewEvent=procedure(sender: TObject; node: TTreenode; attachmode: TNodeAttachMode) of object;
@@ -150,6 +153,21 @@ resourcestring
   rsType = 'Type';
   rsValue = 'Value';
   rsScript = '<script>';
+
+procedure TTreeviewWithScroll.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var n: TTreenode;
+begin
+  //retarded solution for dealing with the expand click
+  n:=GetNodeAt(X, Y);
+  if n<>nil then
+  begin
+    if (x<n.DisplayTextLeft) then //before the text
+      x:=x+n.DisplayTextLeft+4; //click on the text instead
+
+  end;
+
+  inherited MouseDown(button, shift, x,y);
+end;
 
 procedure TAddresslist.refresh;
 begin
@@ -867,7 +885,7 @@ begin
   AllowExpansion:=true;
 
   r:=TMemoryRecord(node.data);
-  if (moHideChildren in r.options) and (not r.active) then //if not active then don't allow expanding
+  if ((moHideChildren in r.options) and (not r.active)) and (not (moAllowManualCollapseAndExpand in r.options)) then //if not active then don't allow expanding
     AllowExpansion:=false;
 end;
 
@@ -876,7 +894,7 @@ var r: TMemoryRecord;
 begin
   AllowCollapse:=false;
   r:=TMemoryRecord(node.data);
-  if (moHideChildren in r.options) and (not r.active) then //if not active then allow collapse
+  if ((moHideChildren in r.options) and (not r.active)) or (moAllowManualCollapseAndExpand in r.options) then //if not active then allow collapse, or if it's allowed to collapse
     AllowCollapse:=true;
 end;
 
@@ -1519,6 +1537,7 @@ begin
 
   treeview:=TTreeviewWithScroll.create(self); //TTreeview.create(self);
 
+
   treeview.RowSelect:=true;
   treeview.ReadOnly:=true;
   treeview.ShowRoot:=false;
@@ -1532,7 +1551,7 @@ begin
 
 
   treeview.AutoExpand:=true;
-  treeview.Options:=treeview.options+[tvoAutoExpand];
+  treeview.Options:=treeview.options+[tvoAutoExpand, tvoNoDoubleClickExpand];
 
 
   treeview.OnAdvancedCustomDrawItem:=AdvancedCustomDrawItem;

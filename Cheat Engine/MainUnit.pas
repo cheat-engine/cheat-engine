@@ -195,6 +195,7 @@ type
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
+    miAllowCollapse: TMenuItem;
     miSetCrosshair: TMenuItem;
     miWireframe: TMenuItem;
     miZbuffer: TMenuItem;
@@ -391,6 +392,7 @@ type
     procedure Label58Click(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
+    procedure miAllowCollapseClick(Sender: TObject);
     procedure miHookD3DClick(Sender: TObject);
     procedure miPresetAllClick(Sender: TObject);
     procedure miAddFileClick(Sender: TObject);
@@ -2496,6 +2498,19 @@ end;
 procedure TMainForm.MenuItem4Click(Sender: TObject);
 begin
   frmLuaTableScript.Show;
+end;
+
+procedure TMainForm.miAllowCollapseClick(Sender: TObject);
+begin
+  miAllowCollapse.Checked := not miAllowCollapse.Checked;
+
+  if addresslist.selectedRecord <> nil then
+  begin
+    if miAllowCollapse.Checked then
+      addresslist.selectedRecord.options := addresslist.selectedRecord.options + [moAllowManualCollapseAndExpand]
+    else
+      addresslist.selectedRecord.options := addresslist.selectedRecord.options - [moAllowManualCollapseAndExpand];
+  end;
 end;
 
 procedure TMainForm.miHookD3DClick(Sender: TObject);

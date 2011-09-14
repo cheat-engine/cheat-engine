@@ -15,7 +15,7 @@ type TFreezeType=(ftFrozen, ftAllowIncrease, ftAllowDecrease);
 
 
 
-type TMemrecOption=(moHideChildren, moBindActivation, moRecursiveSetValue);
+type TMemrecOption=(moHideChildren, moBindActivation, moRecursiveSetValue, moAllowManualCollapseAndExpand);
 type TMemrecOptions=set of TMemrecOption;
 
 type TMemrecStringData=record
