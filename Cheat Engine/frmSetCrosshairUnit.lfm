@@ -1,0 +1,98 @@
+object frmSetCrosshair: TfrmSetCrosshair
+  Left = 867
+  Height = 243
+  Top = 375
+  Width = 257
+  Caption = 'D3D: Set Crosshair'
+  ClientHeight = 223
+  ClientWidth = 257
+  Menu = MainMenu1
+  Position = poScreenCenter
+  LCLVersion = '0.9.31'
+  object Image1: TImage
+    Left = 0
+    Height = 160
+    Top = 0
+    Width = 257
+    Align = alClient
+    Center = True
+  end
+  object Panel1: TPanel
+    Left = 0
+    Height = 63
+    Top = 160
+    Width = 257
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 63
+    ClientWidth = 257
+    TabOrder = 0
+    OnResize = Panel1Resize
+    object Panel2: TPanel
+      Left = 0
+      Height = 32
+      Top = 0
+      Width = 257
+      Align = alTop
+      BevelOuter = bvNone
+      ClientHeight = 32
+      ClientWidth = 257
+      TabOrder = 0
+      object Label1: TLabel
+        Left = 7
+        Height = 16
+        Top = 4
+        Width = 62
+        Caption = 'Alphablend'
+        ParentColor = False
+      end
+      object TrackBar1: TTrackBar
+        Left = 80
+        Height = 25
+        Top = 0
+        Width = 172
+        Frequency = 10
+        Max = 100
+        OnChange = TrackBar1Change
+        Position = 100
+        TabOrder = 0
+      end
+    end
+    object Panel3: TPanel
+      Left = 0
+      Height = 31
+      Top = 32
+      Width = 257
+      Align = alClient
+      BevelOuter = bvNone
+      ClientHeight = 31
+      ClientWidth = 257
+      TabOrder = 1
+      object btnApply: TButton
+        Left = 80
+        Height = 25
+        Top = 0
+        Width = 91
+        Caption = 'Apply crosshair'
+        OnClick = btnApplyClick
+        TabOrder = 0
+      end
+    end
+  end
+  object MainMenu1: TMainMenu
+    left = 160
+    top = 16
+    object MenuItem1: TMenuItem
+      Caption = 'File'
+      object MenuItem2: TMenuItem
+        Caption = 'Load image'
+        ShortCut = 16463
+        OnClick = MenuItem2Click
+      end
+    end
+  end
+  object OpenPictureDialog1: TOpenPictureDialog
+    left = 56
+    top = 10
+  end
+end

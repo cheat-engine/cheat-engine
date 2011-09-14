@@ -8,7 +8,7 @@
 
 extern PD3DHookShared shared;
 
-void GetAddresses(uintptr_t *presentaddress, uintptr_t *d3d9presentaddress, uintptr_t *d3d9resetaddress);
+void GetAddresses(void);
 
 
 HRESULT __stdcall D3D9_Present_new(IDirect3DDevice9 *Device, RECT* pSourceRect,CONST RECT* pDestRect,HWND hDestWindowOverride,CONST RGNDATA* pDirtyRegion);

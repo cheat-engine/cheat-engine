@@ -10,24 +10,7 @@ cbuffer ConstantBuffer : register( b0 )
 	float garbage;
 }
 
-//cbuffer cbNeverChanges : register( b0 )
-//{
-//    matrix View;
-//};
-//
-//cbuffer cbChangeOnResize : register( b1 )
-//{
-//    matrix Projection;
-//};
-//
-//cbuffer cbChangesEveryFrame : register( b2 )
-//{
-//    matrix WorldX;
-//    float4 vMeshColor;
-//};
 
-
-//static float wtf;
 
 
 //--------------------------------------------------------------------------------------

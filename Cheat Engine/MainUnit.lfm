@@ -1880,6 +1880,33 @@ object MainForm: TMainForm
         OnClick = miAddFileClick
       end
     end
+    object mi3d: TMenuItem
+      Caption = 'D3D'
+      object miHookD3D: TMenuItem
+        Caption = 'Hook Direct3D'
+        OnClick = miHookD3DClick
+      end
+      object MenuItem11: TMenuItem
+        Caption = '-'
+      end
+      object miSetCrosshair: TMenuItem
+        Caption = 'Set custom crosshair'
+        Enabled = False
+        OnClick = miSetCrosshairClick
+      end
+      object miWireframe: TMenuItem
+        AutoCheck = True
+        Caption = 'Toggle wireframe mode'
+        Enabled = False
+        OnClick = miWireframeClick
+      end
+      object miZbuffer: TMenuItem
+        AutoCheck = True
+        Caption = 'Toggle disabled zbuffer'
+        Enabled = False
+        OnClick = miZbufferClick
+      end
+    end
     object ools1: TMenuItem
       Caption = '&Tools'
     end

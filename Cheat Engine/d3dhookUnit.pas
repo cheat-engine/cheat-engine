@@ -35,13 +35,59 @@ type
     d3d9_present: UINT64;
     d3d9_reset: UINT64;
 
+    d3d9_drawprimitive: UINT64;
+    d3d9_drawindexedprimitive: UINT64;
+    d3d9_drawprimitiveup: UINT64;
+    d3d9_drawindexedprimitiveup: UINT64;
+    d3d9_drawrectpatch: UINT64;
+    d3d9_drawtripatch: UINT64;
+
+    d3d10_drawindexed: UINT64;
+    d3d10_draw: UINT64;
+    d3d10_drawindexedinstanced: UINT64;
+    d3d10_drawinstanced: UINT64;
+    d3d10_drawauto: UINT64;
+
+
     dxgi_newpresent: UINT64;
     d3d9_newpresent: UINT64;
     d3d9_newreset: UINT64;
 
+    d3d9_newdrawprimitive: UINT64;
+    d3d9_newdrawindexedprimitive: UINT64;
+    d3d9_newdrawprimitiveup: UINT64;
+    d3d9_newdrawindexedprimitiveup: UINT64;
+    d3d9_newdrawrectpatch: UINT64;
+    d3d9_newdrawtripatch: UINT64;
+
+    d3d10_newdrawindexed: UINT64;
+    d3d10_newdraw: UINT64;
+    d3d10_newdrawindexedinstanced: UINT64;
+    d3d10_newdrawinstanced: UINT64;
+    d3d10_newdrawauto: UINT64;
+
+
     dxgi_originalpresent: UINT64;
     d3d9_originalpresent: UINT64;
     d3d9_originalreset: UINT64;
+
+    d3d9_originaldrawprimitive: UINT64;
+    d3d9_originaldrawindexedprimitive: UINT64;
+    d3d9_originaldrawprimitiveup: UINT64;
+    d3d9_originaldrawindexedprimitiveup: UINT64;
+    d3d9_originaldrawrectpatch: UINT64;
+    d3d9_originaldrawtripatch: UINT64;
+
+    d3d10_originaldrawindexed: UINT64;
+    d3d10_originaldraw: UINT64;
+    d3d10_originaldrawindexedinstanced: UINT64;
+    d3d10_originaldrawinstanced: UINT64;
+    d3d10_originaldrawauto: UINT64;
+
+
+
+    wireframe: integer;
+    disabledzbuffer: integer;
 
     hookwnd: integer;
     clickedoverlay: integer;
@@ -108,6 +154,8 @@ type
     procedure updateOverlayImage(overlayid: integer);
     procedure updateOverlayPosition(overlayid,x,y: integer);
     procedure setOverlayAsMouse(overlayid: integer);
+    procedure setDisabledZBuffer(state: boolean);
+    procedure setWireframeMode(state: boolean);
 
     function getWidth: integer;
     function getHeight: integer;
@@ -149,6 +197,22 @@ begin
 
 end;
 
+
+procedure TD3DHook.setDisabledZBuffer(state: boolean);
+begin
+  if state then
+    shared.disabledzbuffer:=1
+  else
+    shared.disabledzbuffer:=0;
+end;
+
+procedure TD3DHook.setWireframeMode(state: boolean);
+begin
+  if state then
+    shared.wireframe:=1
+  else
+    shared.wireframe:=0;
+end;
 
 function TD3DHook.getWidth: integer;
 var x: trect;
@@ -391,6 +455,43 @@ begin
 
       if shared.dxgi_present<>0 then
         generateAPIHookScript(s, inttohex(shared.dxgi_present,8), inttohex(shared.dxgi_newpresent,8),  inttohex(shared.dxgi_originalpresent,8), '2');
+
+
+      if shared.d3d9_drawprimitive<>0 then
+        generateAPIHookScript(s, inttohex(shared.d3d9_drawprimitive,8), inttohex(shared.d3d9_newdrawprimitive,8),  inttohex(shared.d3d9_originaldrawprimitive,8), '3');
+
+      if shared.d3d9_drawindexedprimitive<>0 then
+        generateAPIHookScript(s, inttohex(shared.d3d9_drawindexedprimitive,8), inttohex(shared.d3d9_newdrawindexedprimitive,8),  inttohex(shared.d3d9_originaldrawindexedprimitive,8), '4');
+
+      if shared.d3d9_drawprimitiveup<>0 then
+        generateAPIHookScript(s, inttohex(shared.d3d9_drawprimitiveup,8), inttohex(shared.d3d9_newdrawprimitiveup,8),  inttohex(shared.d3d9_originaldrawprimitiveup,8), '5');
+
+      if shared.d3d9_drawindexedprimitiveup<>0 then
+        generateAPIHookScript(s, inttohex(shared.d3d9_drawindexedprimitiveup,8), inttohex(shared.d3d9_newdrawindexedprimitiveup,8),  inttohex(shared.d3d9_originaldrawindexedprimitiveup,8), '6');
+
+      if shared.d3d9_drawrectpatch<>0 then
+        generateAPIHookScript(s, inttohex(shared.d3d9_drawrectpatch,8), inttohex(shared.d3d9_newdrawrectpatch,8),  inttohex(shared.d3d9_originaldrawrectpatch,8), '7');
+
+      if shared.d3d9_drawtripatch<>0 then
+        generateAPIHookScript(s, inttohex(shared.d3d9_drawtripatch,8), inttohex(shared.d3d9_newdrawtripatch,8),  inttohex(shared.d3d9_originaldrawtripatch,8), '8');
+
+
+      if shared.d3d10_drawindexed<>0 then
+        generateAPIHookScript(s, inttohex(shared.d3d10_drawindexed,8), inttohex(shared.d3d10_newdrawindexed,8),  inttohex(shared.d3d10_originaldrawindexed,8), '9');
+
+      if shared.d3d10_draw<>0 then
+        generateAPIHookScript(s, inttohex(shared.d3d10_draw,8), inttohex(shared.d3d10_newdraw,8),  inttohex(shared.d3d10_originaldraw,8), '10');
+
+      if shared.d3d10_drawindexedinstanced<>0 then
+        generateAPIHookScript(s, inttohex(shared.d3d10_drawindexedinstanced,8), inttohex(shared.d3d10_newdrawindexedinstanced,8),  inttohex(shared.d3d10_originaldrawindexedinstanced,8), '11');
+
+      if shared.d3d10_drawinstanced<>0 then
+        generateAPIHookScript(s, inttohex(shared.d3d10_drawinstanced,8), inttohex(shared.d3d10_newdrawinstanced,8),  inttohex(shared.d3d10_originaldrawinstanced,8), '12');
+
+      if shared.d3d10_drawauto<>0 then
+        generateAPIHookScript(s, inttohex(shared.d3d10_drawauto,8), inttohex(shared.d3d10_newdrawauto,8),  inttohex(shared.d3d10_originaldrawauto,8), '13');
+
+      clipboard.AsText:=s.text;
 
       //if there is a script execute it.
       if (s.count>0) and (autoassemble(s,false)=false) then
