@@ -1567,6 +1567,10 @@ object MainForm: TMainForm
         Caption = 'Setting a value to this entry sets same value to children'
         OnClick = miRecursiveSetValueClick
       end
+      object miAllowCollapse: TMenuItem
+        Caption = 'Allow manual collapse and expand'
+        OnClick = miAllowCollapseClick
+      end
     end
     object Plugins1: TMenuItem
       Caption = 'Plugins'
