@@ -194,6 +194,12 @@ type
     Label53: TLabel;
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
+    MenuItem11: TMenuItem;
+    miSetCrosshair: TMenuItem;
+    miWireframe: TMenuItem;
+    miZbuffer: TMenuItem;
+    miHookD3D: TMenuItem;
+    mi3d: TMenuItem;
     miUndoValue: TMenuItem;
     miPresetWritable: TMenuItem;
     MenuItem2: TMenuItem;
@@ -385,6 +391,7 @@ type
     procedure Label58Click(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
+    procedure miHookD3DClick(Sender: TObject);
     procedure miPresetAllClick(Sender: TObject);
     procedure miAddFileClick(Sender: TObject);
     procedure MenuItem9Click(Sender: TObject);
@@ -392,6 +399,7 @@ type
     procedure miResyncFormsWithLuaClick(Sender: TObject);
     procedure miCreateLuaFormClick(Sender: TObject);
     procedure MenuItem7Click(Sender: TObject);
+    procedure miSetCrosshairClick(Sender: TObject);
     procedure miTableClick(Sender: TObject);
     procedure miResetRangeClick(Sender: TObject);
     procedure miChangeColorClick(Sender: TObject);
@@ -410,7 +418,10 @@ type
     procedure miSaveScanresultsClick(Sender: TObject);
     procedure miShowAsBinaryClick(Sender: TObject);
     procedure miUndoValueClick(Sender: TObject);
+    procedure miWireframeClick(Sender: TObject);
+    procedure miZbufferClick(Sender: TObject);
     procedure miZeroTerminateClick(Sender: TObject);
+    procedure ools1Click(Sender: TObject);
     procedure Panel1Click(Sender: TObject);
     procedure Panel5Resize(Sender: TObject);
     procedure pmTablistPopup(Sender: TObject);
@@ -748,7 +759,7 @@ uses mainunit2, AddAddress, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup
   CommentsUnit, formsettingsunit, formAddressChangeUnit, Changeoffsetunit, FoundCodeUnit, advancedoptionsunit,
   frmProcessWatcherUnit,formPointerOrPointeeUnit,OpenSave, formmemoryregionsunit, formProcessInfo
   , PasteTableentryFRM,pointerscannerfrm,PointerscannerSettingsFrm,frmFloatingPointPanelUnit,
-  pluginexports, DBK32functions, frmUltimapUnit;
+  pluginexports, DBK32functions, frmUltimapUnit, frmSetCrosshairUnit;
 
 resourcestring
   rsInvalidStartAddress = 'Invalid start address: %s';
@@ -2406,6 +2417,16 @@ begin
   frmLuaTableScript.show;
 end;
 
+procedure TMainForm.miHookD3DClick(Sender: TObject);
+begin
+  if safed3dhook<>nil then
+  begin
+    miSetCrosshair.Enabled:=true;
+    miWireframe.enabled:=true;
+    miZbuffer.enabled:=true;
+  end;
+end;
+
 procedure TMainForm.miPresetAllClick(Sender: TObject);
 begin
   cbWritable.State:=cbGrayed;
@@ -2743,6 +2764,15 @@ end;
 procedure TMainForm.MenuItem7Click(Sender: TObject);
 begin
   close;
+end;
+
+procedure TMainForm.miSetCrosshairClick(Sender: TObject);
+begin
+  if frmSetCrosshair=nil then
+    frmSetCrosshair:=TfrmSetCrosshair.Create(self);
+
+  frmSetCrosshair.show;
+
 end;
 
 procedure TMainForm.miTableClick(Sender: TObject);
@@ -3562,10 +3592,25 @@ begin
     addresslist.selectedrecord.UndoSetValue;
 end;
 
+procedure TMainForm.miWireframeClick(Sender: TObject);
+begin
+  d3dhook.setWireframeMode(miWireframe.Checked);
+end;
+
+procedure TMainForm.miZbufferClick(Sender: TObject);
+begin
+    d3dhook.setDisabledZBuffer(miZbuffer.Checked);
+end;
+
 procedure TMainForm.miZeroTerminateClick(Sender: TObject);
 begin
   if (addresslist.selectedRecord<>nil) and (addresslist.selectedRecord.VarType=vtString) then
     addresslist.selectedRecord.Extra.stringData.ZeroTerminate:=not addresslist.selectedRecord.Extra.stringData.ZeroTerminate;
+end;
+
+procedure TMainForm.ools1Click(Sender: TObject);
+begin
+
 end;
 
 procedure TMainForm.Panel1Click(Sender: TObject);

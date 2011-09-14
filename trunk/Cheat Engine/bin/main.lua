@@ -1031,7 +1031,7 @@ d3dhook_updateOverlayPosition(overlayid, x,y)
  
 
 d3dhook_setOverlayVisibility(overlayid, booleanstate) : Sets if the overlay should be drawn or not.
-d3dhook_setOverlayTransparency(overlayid, percentage): Sets the percentage in visibility of the overlay. 100 is fully visible, 0 is invisible.
+d3dhook_setOverlayAlphaBlend(overlayid, percentage): Sets the percentage in visibility of the overlay. 100 is fully visible, 0 is invisible.
 
 d3dhook_setOverlayAsMouse(overlayid): 
   Sets the specific overlay image as the mouse cursors. 
@@ -1044,6 +1044,8 @@ d3dhook_setOverlayAsMouse(overlayid):
 d3dhook_getWidth(): Returns the width of the direct3d window. Note: At least one frame must have been rendered in the game for this to return anything useful
 d3dhook_getHeight(): Returns the height of the direct3d window.  ""
 
+d3dhook_setDisabledZBuffer(state): When true will disable the Z-Buffer (Depth testing)
+d3dhook_setWireframeMode(state): When true will show objects in wireframe mode
 
 d3dhook_onClick(function):
   Registers a function to be called when clicked on an visible overlay (excluding the mouse)

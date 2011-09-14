@@ -12,13 +12,55 @@ typedef struct
 	UINT64 d3d9_present;
 	UINT64 d3d9_reset;
 
+	UINT64 d3d9_drawprimitive;
+	UINT64 d3d9_drawindexedprimitive;
+	UINT64 d3d9_drawprimitiveup;
+	UINT64 d3d9_drawindexedprimitiveup;
+	UINT64 d3d9_drawrectpatch;
+	UINT64 d3d9_drawtripatch;
+
+	UINT64 d3d10_drawindexed;
+	UINT64 d3d10_draw;
+	UINT64 d3d10_drawindexedinstanced;
+	UINT64 d3d10_drawinstanced;
+	UINT64 d3d10_drawauto;	
+
 	UINT64 dxgi_newpresent; //From the dll: set this to the function address in the dll
 	UINT64 d3d9_newpresent;                              
 	UINT64 d3d9_newreset;
 
+	UINT64 d3d9_newdrawprimitive;
+	UINT64 d3d9_newdrawindexedprimitive;
+	UINT64 d3d9_newdrawprimitiveup;
+	UINT64 d3d9_newdrawindexedprimitiveup;
+	UINT64 d3d9_newdrawrectpatch;
+	UINT64 d3d9_newdrawtripatch;
+
+	UINT64 d3d10_newdrawindexed;
+	UINT64 d3d10_newdraw;
+	UINT64 d3d10_newdrawindexedinstanced;
+	UINT64 d3d10_newdrawinstanced;
+	UINT64 d3d10_newdrawauto;	
+
 	UINT64 dxgi_originalpresent; //From the dll: set this to the variable that should get the address of the original function with no hook
 	UINT64 d3d9_originalpresent;   
 	UINT64 d3d9_originalreset;
+
+	UINT64 d3d9_originaldrawprimitive;
+	UINT64 d3d9_originaldrawindexedprimitive;
+	UINT64 d3d9_originaldrawprimitiveup;
+	UINT64 d3d9_originaldrawindexedprimitiveup;
+	UINT64 d3d9_originaldrawrectpatch;
+	UINT64 d3d9_originaldrawtripatch;
+
+	UINT64 d3d10_originaldrawindexed;
+	UINT64 d3d10_originaldraw;
+	UINT64 d3d10_originaldrawindexedinstanced;
+	UINT64 d3d10_originaldrawinstanced;
+	UINT64 d3d10_originaldrawauto;	
+
+	int wireframe;
+	int disabledzbuffer;
 
 	int hookwnd;
 	int clickedoverlay;

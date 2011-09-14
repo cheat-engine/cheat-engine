@@ -6,6 +6,12 @@
 using namespace std;
 map<ID3D10Device *, DXMessD3D10Handler *> D3D10devices;
 
+PD3DHookShared shared=NULL;
+int insidehook=0;
+
+DXMessD3D10Handler *lastdevice;
+
+
 //definitions
 struct OverlayVertex{
     XMFLOAT3 Pos;
@@ -50,7 +56,6 @@ HRESULT DXMessD3D10Handler::setupOverlayTexture()
 	HRESULT hr;
 	ID3D10Resource *test;
 	ID3D10Texture2D *texturex;
-	D3D10_TEXTURE2D_DESC tdesc;
 	DXGI_SWAP_CHAIN_DESC desc;
 	int i;
 
@@ -341,6 +346,20 @@ DXMessD3D10Handler::DXMessD3D10Handler(ID3D10Device *dev, IDXGISwapChain *sc, PD
 	if( FAILED( hr ) )
         return;
 
+	rasterizerdesc.FillMode = D3D10_FILL_WIREFRAME;
+	hr=dev->CreateRasterizerState(&rasterizerdesc, &pWireframeRasterizer);
+	if( FAILED( hr ) )
+        pWireframeRasterizer=NULL; //no biggie
+
+
+	D3D10_DEPTH_STENCIL_DESC dsDesc;
+	ZeroMemory(&dsDesc, sizeof(dsDesc)); //everything 0, including DepthEnable
+	hr= dev->CreateDepthStencilState(&dsDesc, &pDisabledDepthStencilState);
+	if( FAILED( hr ) )
+		pDisabledDepthStencilState=NULL;
+
+
+
 
 	D3D10_BLEND_DESC blend;	
 	ZeroMemory( &blend, sizeof(blend) );
@@ -444,11 +463,8 @@ DXMessD3D10Handler::DXMessD3D10Handler(ID3D10Device *dev, IDXGISwapChain *sc, PD
 void DXMessD3D10Handler::RenderOverlay()
 {
 	int i;
-	HRESULT hr;
 	if (Valid)
 	{
-
-		
 
 		//render the overlay
 
@@ -604,6 +620,8 @@ void DXMessD3D10Handler::RenderOverlay()
 				dev->VSSetConstantBuffers(0,1, &pConstantBuffer);
 				dev->PSSetConstantBuffers(0,1, &pConstantBuffer);
 
+
+
 				//render
 				dev->DrawIndexed( 6, 0,0);
 				/*
@@ -673,14 +691,215 @@ void DXMessD3D10Handler::RenderOverlay()
 }
 
 
-void __stdcall D3D10Hook_SwapChain_Present_imp(IDXGISwapChain *swapchain, ID3D10Device *device, PD3DHookShared shared)
+void __stdcall D3D10Hook_SwapChain_Present_imp(IDXGISwapChain *swapchain, ID3D10Device *device, PD3DHookShared s)
 {
 	//look up the controller class for this device
-	if (D3D10devices[device]==NULL)
-	{
-		DXMessD3D10Handler *dc=new DXMessD3D10Handler(device, swapchain, shared);//create a new devicehandler
-		D3D10devices[device]=dc;
-	}
-	D3D10devices[device]->RenderOverlay();	
+	DXMessD3D10Handler *currentDevice=D3D10devices[device];
 
+	
+	if (currentDevice==NULL)
+	{
+		currentDevice=new DXMessD3D10Handler(device, swapchain, s);//create a new devicehandler
+		D3D10devices[device]=currentDevice;
+		shared=s;
+	}
+	insidehook=1; //tell the draw hooks not to mess with the following draw operations
+
+	lastdevice=currentDevice;
+
+	currentDevice->RenderOverlay();	
+	insidehook=0;
+
+}
+
+
+
+HRESULT __stdcall D3D10Hook_DrawIndexed_imp(D3D10_DRAWINDEXED_ORIGINAL originalfunction, ID3D10Device *device, UINT IndexCount, UINT StartIndexLocation, INT BaseVertexLocation)	
+{	
+	if ((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0) )
+	{
+		//setup for wireframe and/or zbuffer
+		HRESULT hr;
+		DXMessD3D10Handler *currentDevice=D3D10devices[device];
+
+		if (currentDevice==NULL) //this can happen in some situations when there is a layer inbetween
+			currentDevice=lastdevice;			
+	
+
+		if (currentDevice)
+		{
+			ID3D10DepthStencilState *oldDepthStencilState;
+			ID3D10RasterizerState *oldRasterizerState;
+
+			currentDevice->dev->OMGetDepthStencilState(&oldDepthStencilState,0);
+			currentDevice->dev->RSGetState(&oldRasterizerState);
+
+			if (shared->wireframe)
+				currentDevice->dev->RSSetState(currentDevice->pWireframeRasterizer);
+
+			if (shared->disabledzbuffer)
+				currentDevice->dev->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
+
+
+			hr=originalfunction(device, IndexCount, StartIndexLocation, BaseVertexLocation);
+			
+			currentDevice->dev->RSSetState(oldRasterizerState);
+			currentDevice->dev->OMSetDepthStencilState(oldDepthStencilState, 0);
+
+			return hr;
+		}		
+	}
+	return originalfunction(device, IndexCount, StartIndexLocation, BaseVertexLocation);
+}
+
+
+HRESULT __stdcall D3D10Hook_Draw_imp(D3D10_DRAW_ORIGINAL originalfunction, ID3D10Device *device, UINT VertexCount, UINT StartVertexLocation)
+{	
+	if ((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0) )
+	{
+		//setup for wireframe and/or zbuffer
+		HRESULT hr;
+		DXMessD3D10Handler *currentDevice=D3D10devices[device];
+
+		if (currentDevice==NULL) //this can happen in some situations when there is a layer inbetween
+			currentDevice=lastdevice;			
+
+
+		if (currentDevice)
+		{
+			ID3D10DepthStencilState *oldDepthStencilState;
+			ID3D10RasterizerState *oldRasterizerState;
+
+			currentDevice->dev->OMGetDepthStencilState(&oldDepthStencilState,0);
+			currentDevice->dev->RSGetState(&oldRasterizerState);
+
+			if (shared->wireframe)
+				currentDevice->dev->RSSetState(currentDevice->pWireframeRasterizer);
+
+			if (shared->disabledzbuffer)
+				currentDevice->dev->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
+
+
+			hr=originalfunction(device, VertexCount, StartVertexLocation);
+			
+			currentDevice->dev->RSSetState(oldRasterizerState);
+			currentDevice->dev->OMSetDepthStencilState(oldDepthStencilState, 0);
+
+			return hr;
+		}		
+	}
+	return originalfunction(device, VertexCount, StartVertexLocation);
+}
+
+HRESULT __stdcall D3D10Hook_DrawIndexedInstanced_imp(D3D10_DRAWINDEXEDINSTANCED_ORIGINAL originalfunction, ID3D10Device *device, UINT IndexCountPerInstance, UINT InstanceCount, UINT StartIndexLocation, INT BaseVertexLocation, UINT StartInstanceLocation)
+{	
+	if ((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0) )
+	{
+		//setup for wireframe and/or zbuffer
+		HRESULT hr;
+		DXMessD3D10Handler *currentDevice=D3D10devices[device];
+
+		if (currentDevice==NULL) //this can happen in some situations when there is a layer inbetween
+			currentDevice=lastdevice;	
+
+		if (currentDevice)
+		{
+			ID3D10DepthStencilState *oldDepthStencilState;
+			ID3D10RasterizerState *oldRasterizerState;
+
+			currentDevice->dev->OMGetDepthStencilState(&oldDepthStencilState,0);
+			currentDevice->dev->RSGetState(&oldRasterizerState);
+
+			if (shared->wireframe)
+				currentDevice->dev->RSSetState(currentDevice->pWireframeRasterizer);
+
+			if (shared->disabledzbuffer)
+				currentDevice->dev->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
+
+
+			hr=originalfunction(device, IndexCountPerInstance, InstanceCount, StartIndexLocation, BaseVertexLocation, StartInstanceLocation);
+			
+			currentDevice->dev->RSSetState(oldRasterizerState);
+			currentDevice->dev->OMSetDepthStencilState(oldDepthStencilState, 0);
+
+			return hr;
+		}		
+	}
+	return originalfunction(device, IndexCountPerInstance, InstanceCount, StartIndexLocation, BaseVertexLocation, StartInstanceLocation);
+}
+
+HRESULT __stdcall D3D10Hook_DrawInstanced_imp(D3D10_DRAWINSTANCED_ORIGINAL originalfunction, ID3D10Device *device, UINT VertexCountPerInstance, UINT InstanceCount, UINT StartVertexLocation, UINT StartInstanceLocation)
+{	
+	if ((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0) )
+	{
+		//setup for wireframe and/or zbuffer
+		HRESULT hr;
+		DXMessD3D10Handler *currentDevice=D3D10devices[device];
+
+		if (currentDevice==NULL) //this can happen in some situations when there is a layer inbetween
+			currentDevice=lastdevice;	
+
+		if (currentDevice)
+		{
+			ID3D10DepthStencilState *oldDepthStencilState;
+			ID3D10RasterizerState *oldRasterizerState;
+
+			currentDevice->dev->OMGetDepthStencilState(&oldDepthStencilState,0);
+			currentDevice->dev->RSGetState(&oldRasterizerState);
+
+			if (shared->wireframe)
+				currentDevice->dev->RSSetState(currentDevice->pWireframeRasterizer);
+
+			if (shared->disabledzbuffer)
+				currentDevice->dev->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
+
+
+			hr=originalfunction(device, VertexCountPerInstance, InstanceCount, StartVertexLocation, StartInstanceLocation);
+			
+			currentDevice->dev->RSSetState(oldRasterizerState);
+			currentDevice->dev->OMSetDepthStencilState(oldDepthStencilState, 0);
+
+			return hr;
+		}		
+	}
+	return originalfunction(device, VertexCountPerInstance, InstanceCount, StartVertexLocation, StartInstanceLocation);
+}
+
+HRESULT __stdcall D3D10Hook_DrawAuto_imp(D3D10_DRAWAUTO_ORIGINAL originalfunction, ID3D10Device *device)
+{	
+	if ((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0) )
+	{
+		//setup for wireframe and/or zbuffer
+		HRESULT hr;
+		DXMessD3D10Handler *currentDevice=D3D10devices[device];
+
+		if (currentDevice==NULL) //this can happen in some situations when there is a layer inbetween
+			currentDevice=lastdevice;	
+
+		if (currentDevice)
+		{
+			ID3D10DepthStencilState *oldDepthStencilState;
+			ID3D10RasterizerState *oldRasterizerState;
+
+			currentDevice->dev->OMGetDepthStencilState(&oldDepthStencilState,0);
+			currentDevice->dev->RSGetState(&oldRasterizerState);
+
+			if (shared->wireframe)
+				currentDevice->dev->RSSetState(currentDevice->pWireframeRasterizer);
+
+			if (shared->disabledzbuffer)
+				currentDevice->dev->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
+
+
+			hr=originalfunction(device);
+			
+			currentDevice->dev->RSSetState(oldRasterizerState);
+			currentDevice->dev->OMSetDepthStencilState(oldDepthStencilState, 0);
+
+			return hr;
+		}		
+	}
+	HRESULT br;
+	br=originalfunction(device);
+	return br;
 }

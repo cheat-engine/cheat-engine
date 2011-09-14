@@ -2,3 +2,10 @@ LIBRARY	"CED3D9Hook"
 EXPORTS   
     D3D9Hook_Present_imp	@1
     D3D9Hook_Reset_imp		@2
+	D3D9Hook_DrawPrimitive_imp @3
+	D3D9Hook_DrawIndexedPrimitive_imp @4
+	D3D9Hook_DrawPrimitiveUP_imp @5
+	D3D9Hook_DrawIndexedPrimitiveUP_imp @6
+	D3D9Hook_DrawRectPatch_imp @7
+	D3D9Hook_DrawTriPatch_imp @8
+

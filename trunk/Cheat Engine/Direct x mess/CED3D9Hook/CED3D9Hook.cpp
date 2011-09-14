@@ -7,6 +7,9 @@
 using namespace std;
 map<IDirect3DDevice9 *, DXMessD3D9Handler *> D3D9devices;
 
+PD3DHookShared shared=NULL; //set at first present
+int insidehook;
+
 void DXMessD3D9Handler::BeforeReset()
 {
 	
@@ -178,8 +181,8 @@ void DXMessD3D9Handler::RenderOverlay()
 						}
 						else
 						{
-							position.x=overlays[i].x;
-							position.y=overlays[i].y;							
+							position.x=(float)overlays[i].x;
+							position.y=(float)overlays[i].y;							
 						}	
 						position.z=0.0f;
 		
@@ -226,6 +229,7 @@ DXMessD3D9Handler::DXMessD3D9Handler(IDirect3DDevice9 *dev, PD3DHookShared share
 	if( FAILED( hr ) )
 		return;
 
+	
 
 }
 
@@ -234,23 +238,27 @@ DXMessD3D9Handler::~DXMessD3D9Handler()
 	D3D9devices[dev]=NULL;
 }
 	
-void __stdcall D3D9Hook_Present_imp(IDirect3DDevice9 *device, PD3DHookShared shared)
+void __stdcall D3D9Hook_Present_imp(IDirect3DDevice9 *device, PD3DHookShared s)
 {
 
+	
 	DXMessD3D9Handler *currenthandler=D3D9devices[device];
 	if (currenthandler==NULL)
 	{
-		currenthandler=new DXMessD3D9Handler(device, shared);//create a new devicehandler
+		currenthandler=new DXMessD3D9Handler(device, s);//create a new devicehandler
 		D3D9devices[device]=currenthandler;
+		shared=s;
 	}
+	insidehook=1;
 	currenthandler->RenderOverlay();	
+	insidehook=0;
 }
 
-HRESULT __stdcall D3D9Hook_Reset_imp(D3D9_RESET_ORIGINAL originalfunction, IDirect3DDevice9 *device, D3DPRESENT_PARAMETERS *pPresentationParameters, PD3DHookShared shared)
+HRESULT __stdcall D3D9Hook_Reset_imp(D3D9_RESET_ORIGINAL originalfunction, IDirect3DDevice9 *device, D3DPRESENT_PARAMETERS *pPresentationParameters)
 {
 	HRESULT hr;
 	DXMessD3D9Handler *currenthandler=D3D9devices[device];
-	if (currenthandler)
+	if (currenthandler) 
 	{
 		currenthandler->BeforeReset();
 		hr=originalfunction(device, pPresentationParameters);
@@ -260,3 +268,193 @@ HRESULT __stdcall D3D9Hook_Reset_imp(D3D9_RESET_ORIGINAL originalfunction, IDire
 
 	return hr;
 }
+
+HRESULT __stdcall D3D9Hook_DrawPrimitive_imp(D3D9_DRAWPRIMITIVE_ORIGINAL originalfunction, IDirect3DDevice9 *device, D3DPRIMITIVETYPE PrimitiveType,UINT StartVertex,UINT PrimitiveCount)
+{
+	
+	if ((shared) && (shared->wireframe) && (insidehook==0) )
+	{
+		//setup for wireframe	
+
+		DWORD oldfillmode;
+		DWORD oldzenable;
+		HRESULT hr,hr2;
+		
+		hr=device->GetRenderState(D3DRS_FILLMODE, &oldfillmode);
+		hr2=device->GetRenderState(D3DRS_ZENABLE, &oldzenable);
+
+
+		if (SUCCEEDED(hr) && SUCCEEDED(hr2))
+		{			
+			device->SetRenderState(D3DRS_FILLMODE,D3DFILL_WIREFRAME);
+			hr=originalfunction(device, PrimitiveType, StartVertex, PrimitiveCount);
+			device->SetRenderState(D3DRS_FILLMODE,oldfillmode);
+			device->SetRenderState(D3DRS_ZENABLE,oldzenable);
+			return hr;
+		}
+	}
+	return originalfunction(device, PrimitiveType, StartVertex, PrimitiveCount);	
+}
+
+HRESULT __stdcall D3D9Hook_DrawIndexedPrimitive_imp(D3D9_DRAWINDEXEDPRIMITIVE_ORIGINAL originalfunction, IDirect3DDevice9 *device, D3DPRIMITIVETYPE PrimitiveType,INT BaseVertexIndex,UINT MinVertexIndex,UINT NumVertices,UINT startIndex,UINT primCount)
+{	
+	if ((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0) )
+	{
+		//setup for wireframe and/or zbuffer	
+
+		DWORD oldfillmode;
+		DWORD oldzenable;
+		HRESULT hr,hr2;
+		
+		hr=device->GetRenderState(D3DRS_FILLMODE, &oldfillmode);
+		hr2=device->GetRenderState(D3DRS_ZENABLE, &oldzenable);
+
+
+		if (SUCCEEDED(hr) && SUCCEEDED(hr2))
+		{			
+			if (shared->wireframe)
+				device->SetRenderState(D3DRS_FILLMODE,D3DFILL_WIREFRAME);
+
+			if (shared->disabledzbuffer)
+				device->SetRenderState(D3DRS_ZENABLE,FALSE);
+
+			hr=originalfunction(device, PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount);
+			device->SetRenderState(D3DRS_FILLMODE,oldfillmode);
+			device->SetRenderState(D3DRS_ZENABLE,oldzenable);
+			return hr;
+		}
+	}
+	return originalfunction(device, PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount);
+}
+
+HRESULT __stdcall D3D9Hook_DrawPrimitiveUP_imp(D3D9_DRAWPRIMITIVEUP_ORIGINAL originalfunction, IDirect3DDevice9 *device, D3DPRIMITIVETYPE PrimitiveType,UINT PrimitiveCount,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride)
+{	
+	if ((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0) )
+	{
+		//setup for wireframe and/or zbuffer	
+
+		DWORD oldfillmode;
+		DWORD oldzenable;
+		HRESULT hr,hr2;
+		
+		hr=device->GetRenderState(D3DRS_FILLMODE, &oldfillmode);
+		hr2=device->GetRenderState(D3DRS_ZENABLE, &oldzenable);
+
+
+		if (SUCCEEDED(hr) && SUCCEEDED(hr2))
+		{			
+			if (shared->wireframe)
+				device->SetRenderState(D3DRS_FILLMODE,D3DFILL_WIREFRAME);
+
+			if (shared->disabledzbuffer)
+				device->SetRenderState(D3DRS_ZENABLE,FALSE);			
+	
+			hr=originalfunction(device, PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride);
+			device->SetRenderState(D3DRS_FILLMODE,oldfillmode);
+			device->SetRenderState(D3DRS_ZENABLE,oldzenable);
+			return hr;
+		}
+	}
+
+	return originalfunction(device, PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride);
+}
+
+HRESULT __stdcall D3D9Hook_DrawIndexedPrimitiveUP_imp(D3D9_DRAWINDEXEDPRIMITIVEUP_ORIGINAL originalfunction, IDirect3DDevice9 *device, D3DPRIMITIVETYPE PrimitiveType,UINT MinVertexIndex,UINT NumVertices,UINT PrimitiveCount,CONST void* pIndexData,D3DFORMAT IndexDataFormat,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride)
+{	
+	if ((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0) )
+	{
+		//setup for wireframe and/or zbuffer	
+
+		DWORD oldfillmode;
+		DWORD oldzenable;
+		HRESULT hr,hr2;
+		
+		hr=device->GetRenderState(D3DRS_FILLMODE, &oldfillmode);
+		hr2=device->GetRenderState(D3DRS_ZENABLE, &oldzenable);
+
+
+		if (SUCCEEDED(hr) && SUCCEEDED(hr2))
+		{			
+			if (shared->wireframe)
+				device->SetRenderState(D3DRS_FILLMODE,D3DFILL_WIREFRAME);
+
+			if (shared->disabledzbuffer)
+				device->SetRenderState(D3DRS_ZENABLE,FALSE);
+
+		
+			hr=originalfunction(device, PrimitiveType, MinVertexIndex, NumVertices, PrimitiveCount, pIndexData, IndexDataFormat, pVertexStreamZeroData, VertexStreamZeroStride);
+			device->SetRenderState(D3DRS_FILLMODE,oldfillmode);
+			device->SetRenderState(D3DRS_ZENABLE,oldzenable);
+			return hr;
+		}
+	}
+	return originalfunction(device, PrimitiveType, MinVertexIndex, NumVertices, PrimitiveCount, pIndexData, IndexDataFormat, pVertexStreamZeroData, VertexStreamZeroStride);
+}
+
+HRESULT __stdcall D3D9Hook_DrawRectPatch_imp(D3D9_DRAWRECTPATCH_ORIGINAL originalfunction, IDirect3DDevice9 *device, UINT Handle,CONST float* pNumSegs,CONST D3DRECTPATCH_INFO* pRectPatchInfo)
+{	
+	
+	if ((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0) )
+	{
+		//setup for wireframe and/or zbuffer	
+
+		DWORD oldfillmode;
+		DWORD oldzenable;
+		HRESULT hr,hr2;
+		
+		hr=device->GetRenderState(D3DRS_FILLMODE, &oldfillmode);
+		hr2=device->GetRenderState(D3DRS_ZENABLE, &oldzenable);
+
+
+		if (SUCCEEDED(hr) && SUCCEEDED(hr2))
+		{			
+			if (shared->wireframe)
+				device->SetRenderState(D3DRS_FILLMODE,D3DFILL_WIREFRAME);
+
+			if (shared->disabledzbuffer)
+				device->SetRenderState(D3DRS_ZENABLE,FALSE);
+
+			hr=originalfunction(device, Handle, pNumSegs, pRectPatchInfo);
+			device->SetRenderState(D3DRS_FILLMODE,oldfillmode);
+			device->SetRenderState(D3DRS_ZENABLE,oldzenable);
+			return hr;
+		}
+	}
+	return originalfunction(device, Handle, pNumSegs, pRectPatchInfo);
+}
+
+HRESULT __stdcall D3D9Hook_DrawTriPatch_imp(D3D9_DRAWTRIPATCH_ORIGINAL originalfunction, IDirect3DDevice9 *device, UINT Handle,CONST float* pNumSegs,CONST D3DTRIPATCH_INFO* pTriPatchInfo)
+{	
+	if ((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0) )
+	{
+		//setup for wireframe and/or zbuffer	
+
+		DWORD oldfillmode;
+		DWORD oldzenable;
+		HRESULT hr,hr2;
+		
+		hr=device->GetRenderState(D3DRS_FILLMODE, &oldfillmode);
+		hr2=device->GetRenderState(D3DRS_ZENABLE, &oldzenable);
+
+
+		if (SUCCEEDED(hr) && SUCCEEDED(hr2))
+		{			
+			if (shared->wireframe)
+				device->SetRenderState(D3DRS_FILLMODE,D3DFILL_WIREFRAME);
+
+			if (shared->disabledzbuffer)
+				device->SetRenderState(D3DRS_ZENABLE,FALSE);
+
+
+			hr=originalfunction(device, Handle, pNumSegs, pTriPatchInfo);
+			device->SetRenderState(D3DRS_FILLMODE,oldfillmode);
+			device->SetRenderState(D3DRS_ZENABLE,oldzenable);
+			return hr;
+		}
+	}
+	return originalfunction(device, Handle, pNumSegs, pTriPatchInfo);
+}
+
+
+	
+    //STDMETHOD(DrawTriPatch)(THIS_ UINT Handle,CONST float* pNumSegs,CONST D3DTRIPATCH_INFO* pTriPatchInfo) PURE;
