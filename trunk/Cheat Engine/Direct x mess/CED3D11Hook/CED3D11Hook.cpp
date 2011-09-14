@@ -6,6 +6,10 @@
 using namespace std;
 map<ID3D11Device *, DXMessD3D11Handler *> D3D11devices;
 
+DXMessD3D11Handler *lastdevice=NULL;
+int insidehook=0;
+PD3DHookShared shared;
+
 //definitions
 struct OverlayVertex{
     XMFLOAT3 Pos;
@@ -50,7 +54,6 @@ HRESULT DXMessD3D11Handler::setupOverlayTexture()
 	HRESULT hr;
 	ID3D11Resource *test;
 	ID3D11Texture2D *texturex;
-	D3D11_TEXTURE2D_DESC tdesc;
 	DXGI_SWAP_CHAIN_DESC desc;
 	int i;
 
@@ -207,6 +210,8 @@ DXMessD3D11Handler::DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD
 	dev->AddRef();
 	sc->AddRef();
 
+	dev->GetImmediateContext(&dc); //increases the reference count
+
 	D3D11_BUFFER_DESC bd2d;
 	D3D11_SUBRESOURCE_DATA InitData2d;
 
@@ -334,6 +339,19 @@ DXMessD3D11Handler::DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD
 	if( FAILED( hr ) )
         return;
 
+	rasterizerdesc.FillMode = D3D11_FILL_WIREFRAME;
+	hr=dev->CreateRasterizerState(&rasterizerdesc, &pWireframeRasterizer);
+	if( FAILED( hr ) )
+        pWireframeRasterizer=NULL; //no biggie
+
+
+	D3D11_DEPTH_STENCIL_DESC dsDesc;
+	ZeroMemory(&dsDesc, sizeof(dsDesc)); //everything 0, including DepthEnable
+	hr= dev->CreateDepthStencilState(&dsDesc, &pDisabledDepthStencilState);
+	if( FAILED( hr ) )
+		pDisabledDepthStencilState=NULL;
+
+
 
 	D3D11_BLEND_DESC blend;
 	
@@ -439,14 +457,11 @@ DXMessD3D11Handler::DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD
 void DXMessD3D11Handler::RenderOverlay()
 {
 	int i;
-	HRESULT hr;
 	if (Valid)
-	{
-		
+	{	
 
 		//render the overlay
-		ID3D11DeviceContext *dc;
-		dev->GetImmediateContext(&dc); //increases the reference count
+	
 
 
 		//check if the overlay has an update
@@ -558,8 +573,8 @@ void DXMessD3D11Handler::RenderOverlay()
 		dc->PSSetSamplers( 0, 1, &pSamplerLinear );
 		
 		D3D11_VIEWPORT vp;
-		vp.Width = desc.BufferDesc.Width;
-		vp.Height = desc.BufferDesc.Height;
+		vp.Width = (float)desc.BufferDesc.Width;
+		vp.Height = (float)desc.BufferDesc.Height;
 		vp.MinDepth = 0.0f;
 		vp.MaxDepth = 1.0f;
 		vp.TopLeftX = 0;
@@ -633,7 +648,7 @@ void DXMessD3D11Handler::RenderOverlay()
 		dc->RSSetState(oldRastersizerState);
 		dc->RSSetViewports(oldviewports, viewports);
 
-		dc->Release(); //lower the referencecount
+		
 
 		//check if the overlay texture needs to be updated, if so, getdc, update, continue
 	}
@@ -642,20 +657,241 @@ void DXMessD3D11Handler::RenderOverlay()
 
 
 
-void __stdcall D3D11Hook_SwapChain_Present_imp(IDXGISwapChain *swapchain, ID3D11Device *device, PD3DHookShared shared)
+void __stdcall D3D11Hook_SwapChain_Present_imp(IDXGISwapChain *swapchain, ID3D11Device *device, PD3DHookShared s)
 {
 	//look up the controller class for this device
-	if (D3D11devices[device]==NULL)
+
+	DXMessD3D11Handler *currenthandler=D3D11devices[device];
+	
+
+	if (currenthandler==NULL)
 	{
 		//OutputDebugStringA("New\n");
 		//D3D11devices[dev]=1;
 
-		DXMessD3D11Handler *dc=new DXMessD3D11Handler(device, swapchain, shared);//create a new devicehandler
+		currenthandler=new DXMessD3D11Handler(device, swapchain, s);//create a new devicehandler
 
 		//add to the map
-		D3D11devices[device]=dc;
+		D3D11devices[device]=currenthandler;
+		shared=s;
 
 	}
+	insidehook=1;
 	D3D11devices[device]->RenderOverlay();			
+	insidehook=0;
 
+	lastdevice=currenthandler;
+
+}
+
+
+HRESULT __stdcall D3D11Hook_DrawIndexed_imp(D3D11_DRAWINDEXED_ORIGINAL originalfunction, ID3D11DeviceContext *dc, UINT IndexCount, UINT StartIndexLocation, INT BaseVertexLocation)	
+{	
+	if ((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0) )
+	{
+		//setup for wireframe and/or zbuffer
+		HRESULT hr;
+		ID3D11Device *device=NULL;
+		dc->GetDevice(&device);		
+		
+		DXMessD3D11Handler *currentDevice=D3D11devices[device];		
+
+		if (currentDevice==NULL) //this can happen in some situations when there is a layer inbetween
+			currentDevice=lastdevice;			
+	
+
+		if (currentDevice)
+		{
+			ID3D11DepthStencilState *oldDepthStencilState;
+			ID3D11RasterizerState *oldRasterizerState;
+
+			currentDevice->dc->OMGetDepthStencilState(&oldDepthStencilState,0);
+			currentDevice->dc->RSGetState(&oldRasterizerState);
+
+			if (shared->wireframe)
+				currentDevice->dc->RSSetState(currentDevice->pWireframeRasterizer);
+
+			if (shared->disabledzbuffer)
+				currentDevice->dc->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
+
+
+			hr=originalfunction(dc, IndexCount, StartIndexLocation, BaseVertexLocation);
+			
+			currentDevice->dc->RSSetState(oldRasterizerState);
+			currentDevice->dc->OMSetDepthStencilState(oldDepthStencilState, 0);
+
+			return hr;
+		}		
+	}
+	return originalfunction(dc, IndexCount, StartIndexLocation, BaseVertexLocation);
+}
+
+
+HRESULT __stdcall D3D11Hook_Draw_imp(D3D11_DRAW_ORIGINAL originalfunction, ID3D11DeviceContext *dc, UINT VertexCount, UINT StartVertexLocation)
+{	
+	if ((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0) )
+	{
+		//setup for wireframe and/or zbuffer
+		HRESULT hr;
+		ID3D11Device *device=NULL;
+		dc->GetDevice(&device);		
+		
+		DXMessD3D11Handler *currentDevice=D3D11devices[device];		
+
+		device->Release();
+
+
+
+		if (currentDevice==NULL) //this can happen in some situations when there is a layer inbetween
+			currentDevice=lastdevice;			
+
+
+		if (currentDevice)
+		{
+			ID3D11DepthStencilState *oldDepthStencilState;
+			ID3D11RasterizerState *oldRasterizerState;
+
+			currentDevice->dc->OMGetDepthStencilState(&oldDepthStencilState,0);
+			currentDevice->dc->RSGetState(&oldRasterizerState);
+
+			if (shared->wireframe)
+				currentDevice->dc->RSSetState(currentDevice->pWireframeRasterizer);
+
+			if (shared->disabledzbuffer)
+				currentDevice->dc->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
+
+
+			hr=originalfunction(dc, VertexCount, StartVertexLocation);
+			
+			currentDevice->dc->RSSetState(oldRasterizerState);
+			currentDevice->dc->OMSetDepthStencilState(oldDepthStencilState, 0);
+
+			return hr;
+		}		
+	}
+	return originalfunction(dc, VertexCount, StartVertexLocation);
+}
+
+HRESULT __stdcall D3D11Hook_DrawIndexedInstanced_imp(D3D11_DRAWINDEXEDINSTANCED_ORIGINAL originalfunction, ID3D11DeviceContext *dc, UINT IndexCountPerInstance, UINT InstanceCount, UINT StartIndexLocation, INT BaseVertexLocation, UINT StartInstanceLocation)
+{	
+	if ((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0) )
+	{
+		//setup for wireframe and/or zbuffer
+		HRESULT hr;
+		ID3D11Device *device=NULL;
+		dc->GetDevice(&device);		
+		
+		DXMessD3D11Handler *currentDevice=D3D11devices[device];		
+		device->Release();
+
+		if (currentDevice==NULL) //this can happen in some situations when there is a layer inbetween
+			currentDevice=lastdevice;	
+
+		if (currentDevice)
+		{
+			ID3D11DepthStencilState *oldDepthStencilState;
+			ID3D11RasterizerState *oldRasterizerState;
+
+			currentDevice->dc->OMGetDepthStencilState(&oldDepthStencilState,0);
+			currentDevice->dc->RSGetState(&oldRasterizerState);
+
+			if (shared->wireframe)
+				currentDevice->dc->RSSetState(currentDevice->pWireframeRasterizer);
+
+			if (shared->disabledzbuffer)
+				currentDevice->dc->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
+
+
+			hr=originalfunction(dc, IndexCountPerInstance, InstanceCount, StartIndexLocation, BaseVertexLocation, StartInstanceLocation);
+			
+			currentDevice->dc->RSSetState(oldRasterizerState);
+			currentDevice->dc->OMSetDepthStencilState(oldDepthStencilState, 0);
+
+			return hr;
+		}		
+	}
+	return originalfunction(dc, IndexCountPerInstance, InstanceCount, StartIndexLocation, BaseVertexLocation, StartInstanceLocation);
+}
+
+HRESULT __stdcall D3D11Hook_DrawInstanced_imp(D3D11_DRAWINSTANCED_ORIGINAL originalfunction, ID3D11DeviceContext *dc, UINT VertexCountPerInstance, UINT InstanceCount, UINT StartVertexLocation, UINT StartInstanceLocation)
+{	
+	if ((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0) )
+	{
+		//setup for wireframe and/or zbuffer
+		HRESULT hr;
+		ID3D11Device *device=NULL;
+		dc->GetDevice(&device);		
+		
+		DXMessD3D11Handler *currentDevice=D3D11devices[device];		
+		device->Release();
+
+		if (currentDevice==NULL) //this can happen in some situations when there is a layer inbetween
+			currentDevice=lastdevice;	
+
+		if (currentDevice)
+		{
+			ID3D11DepthStencilState *oldDepthStencilState;
+			ID3D11RasterizerState *oldRasterizerState;
+
+			currentDevice->dc->OMGetDepthStencilState(&oldDepthStencilState,0);
+			currentDevice->dc->RSGetState(&oldRasterizerState);
+
+			if (shared->wireframe)
+				currentDevice->dc->RSSetState(currentDevice->pWireframeRasterizer);
+
+			if (shared->disabledzbuffer)
+				currentDevice->dc->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
+
+
+			hr=originalfunction(dc, VertexCountPerInstance, InstanceCount, StartVertexLocation, StartInstanceLocation);
+			
+			currentDevice->dc->RSSetState(oldRasterizerState);
+			currentDevice->dc->OMSetDepthStencilState(oldDepthStencilState, 0);
+
+			return hr;
+		}		
+	}
+	return originalfunction(dc, VertexCountPerInstance, InstanceCount, StartVertexLocation, StartInstanceLocation);
+}
+
+HRESULT __stdcall D3D11Hook_DrawAuto_imp(D3D11_DRAWAUTO_ORIGINAL originalfunction, ID3D11DeviceContext *dc)
+{	
+	if ((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0) )
+	{
+		//setup for wireframe and/or zbuffer
+		HRESULT hr;
+		ID3D11Device *device=NULL;
+		dc->GetDevice(&device);		
+		
+		DXMessD3D11Handler *currentDevice=D3D11devices[device];		
+		device->Release();
+
+		if (currentDevice==NULL) //this can happen in some situations when there is a layer inbetween
+			currentDevice=lastdevice;	
+
+		if (currentDevice)
+		{
+			ID3D11DepthStencilState *oldDepthStencilState;
+			ID3D11RasterizerState *oldRasterizerState;
+
+			currentDevice->dc->OMGetDepthStencilState(&oldDepthStencilState,0);
+			currentDevice->dc->RSGetState(&oldRasterizerState);
+
+			if (shared->wireframe)
+				currentDevice->dc->RSSetState(currentDevice->pWireframeRasterizer);
+
+			if (shared->disabledzbuffer)
+				currentDevice->dc->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
+
+
+			hr=originalfunction(dc);
+			
+			currentDevice->dc->RSSetState(oldRasterizerState);
+			currentDevice->dc->OMSetDepthStencilState(oldDepthStencilState, 0);
+
+			return hr;
+		}		
+	}
+
+	return originalfunction(dc);
 }

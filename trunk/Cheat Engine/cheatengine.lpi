@@ -188,7 +188,7 @@
         <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
         <TopLine Value="3594"/>
-        <CursorPos X="27" Y="3597"/>
+        <CursorPos X="51" Y="3600"/>
         <UsageCount Value="211"/>
         <Bookmarks Count="2">
           <Item0 X="1" Y="1874" ID="2"/>
@@ -2257,7 +2257,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1638"/>
         <CursorPos X="18" Y="1653"/>
-        <UsageCount Value="90"/>
+        <UsageCount Value="91"/>
         <Loaded Value="True"/>
       </Unit184>
       <Unit185>
@@ -2373,8 +2373,8 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="474"/>
-        <CursorPos X="1" Y="479"/>
+        <TopLine Value="507"/>
+        <CursorPos X="154" Y="525"/>
         <UsageCount Value="249"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -2484,7 +2484,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="47"/>
         <CursorPos X="26" Y="73"/>
-        <UsageCount Value="128"/>
+        <UsageCount Value="130"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit210>
@@ -2498,7 +2498,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="31"/>
         <CursorPos X="23" Y="65"/>
-        <UsageCount Value="38"/>
+        <UsageCount Value="40"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -2506,124 +2506,124 @@
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="frmSetCrosshairUnit.pas"/>
-        <Caret Line="74" Column="1" TopLine="55"/>
-      </Position1>
-      <Position2>
-        <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="194" Column="1" TopLine="180"/>
-      </Position2>
-      <Position3>
         <Filename Value="d3dhookUnit.pas"/>
         <Caret Line="195" Column="1" TopLine="180"/>
+      </Position1>
+      <Position2>
+        <Filename Value="frmSetCrosshairUnit.pas"/>
+        <Caret Line="74" Column="1" TopLine="55"/>
+      </Position2>
+      <Position3>
+        <Filename Value="frmSetCrosshairUnit.pas"/>
+        <Caret Line="65" Column="1" TopLine="55"/>
       </Position3>
       <Position4>
         <Filename Value="frmSetCrosshairUnit.pas"/>
-        <Caret Line="74" Column="1" TopLine="55"/>
+        <Caret Line="66" Column="1" TopLine="55"/>
       </Position4>
       <Position5>
-        <Filename Value="frmSetCrosshairUnit.pas"/>
-        <Caret Line="65" Column="1" TopLine="55"/>
-      </Position5>
-      <Position6>
-        <Filename Value="frmSetCrosshairUnit.pas"/>
-        <Caret Line="66" Column="1" TopLine="55"/>
-      </Position6>
-      <Position7>
         <Filename Value="MainUnit.pas"/>
         <Caret Line="2768" Column="20" TopLine="2768"/>
-      </Position7>
-      <Position8>
+      </Position5>
+      <Position6>
         <Filename Value="MainUnit.pas"/>
         <Caret Line="3597" Column="1" TopLine="3595"/>
-      </Position8>
-      <Position9>
+      </Position6>
+      <Position7>
         <Filename Value="d3dhookUnit.pas"/>
         <Caret Line="444" Column="57" TopLine="438"/>
+      </Position7>
+      <Position8>
+        <Filename Value="LuaD3DHook.pas"/>
+        <Caret Line="149" Column="58" TopLine="133"/>
+      </Position8>
+      <Position9>
+        <Filename Value="LuaD3DHook.pas"/>
+        <Caret Line="20" Column="50" TopLine="1"/>
       </Position9>
       <Position10>
         <Filename Value="LuaD3DHook.pas"/>
-        <Caret Line="149" Column="58" TopLine="133"/>
+        <Caret Line="271" Column="64" TopLine="256"/>
       </Position10>
       <Position11>
-        <Filename Value="LuaD3DHook.pas"/>
-        <Caret Line="20" Column="50" TopLine="1"/>
+        <Filename Value="d3dhookUnit.pas"/>
+        <Caret Line="169" Column="66" TopLine="160"/>
       </Position11>
       <Position12>
-        <Filename Value="LuaD3DHook.pas"/>
-        <Caret Line="271" Column="64" TopLine="256"/>
+        <Filename Value="d3dhookUnit.pas"/>
+        <Caret Line="40" Column="65" TopLine="29"/>
       </Position12>
       <Position13>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="169" Column="66" TopLine="160"/>
+        <Caret Line="484" Column="4" TopLine="470"/>
       </Position13>
       <Position14>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="40" Column="65" TopLine="29"/>
+        <Caret Line="488" Column="1" TopLine="476"/>
       </Position14>
       <Position15>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="484" Column="4" TopLine="470"/>
+        <Caret Line="491" Column="1" TopLine="476"/>
       </Position15>
       <Position16>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="488" Column="1" TopLine="476"/>
+        <Caret Line="494" Column="1" TopLine="476"/>
       </Position16>
       <Position17>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="491" Column="1" TopLine="476"/>
+        <Caret Line="479" Column="1" TopLine="474"/>
       </Position17>
       <Position18>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="494" Column="1" TopLine="476"/>
+        <Caret Line="480" Column="1" TopLine="474"/>
       </Position18>
       <Position19>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="479" Column="1" TopLine="474"/>
+        <Caret Line="482" Column="1" TopLine="474"/>
       </Position19>
       <Position20>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="480" Column="1" TopLine="474"/>
+        <Caret Line="483" Column="1" TopLine="474"/>
       </Position20>
       <Position21>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="482" Column="1" TopLine="474"/>
+        <Caret Line="485" Column="1" TopLine="474"/>
       </Position21>
       <Position22>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="483" Column="1" TopLine="474"/>
+        <Caret Line="486" Column="1" TopLine="474"/>
       </Position22>
       <Position23>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="485" Column="1" TopLine="474"/>
+        <Caret Line="488" Column="1" TopLine="474"/>
       </Position23>
       <Position24>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="486" Column="1" TopLine="474"/>
+        <Caret Line="489" Column="1" TopLine="474"/>
       </Position24>
       <Position25>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="488" Column="1" TopLine="474"/>
+        <Caret Line="491" Column="1" TopLine="486"/>
       </Position25>
       <Position26>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="489" Column="1" TopLine="474"/>
+        <Caret Line="492" Column="1" TopLine="486"/>
       </Position26>
       <Position27>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="491" Column="1" TopLine="486"/>
+        <Caret Line="496" Column="1" TopLine="486"/>
       </Position27>
       <Position28>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="492" Column="1" TopLine="486"/>
+        <Caret Line="494" Column="33" TopLine="477"/>
       </Position28>
       <Position29>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="496" Column="1" TopLine="486"/>
+        <Caret Line="495" Column="1" TopLine="485"/>
       </Position29>
       <Position30>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="494" Column="33" TopLine="477"/>
+        <Caret Line="492" Column="60" TopLine="485"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>
@@ -2678,7 +2678,7 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <BreakPoints Count="3">
+    <BreakPoints Count="4">
       <Item1>
         <Kind Value="bpkSource"/>
         <Source Value="C:\lazarus\fpc\2.5.1\source\rtl\objpas\sysutils\sysuthrd.inc"/>
@@ -2694,6 +2694,11 @@
         <Source Value="OpenSave.pas"/>
         <Line Value="1126"/>
       </Item3>
+      <Item4>
+        <Kind Value="bpkSource"/>
+        <Source Value="d3dhookUnit.pas"/>
+        <Line Value="512"/>
+      </Item4>
     </BreakPoints>
     <Watches Count="2">
       <Item1>
