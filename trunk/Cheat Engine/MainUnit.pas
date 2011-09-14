@@ -312,7 +312,7 @@ type
     Change1: TMenuItem;
     Description1: TMenuItem;
     Address1: TMenuItem;
-    ype1: TMenuItem;
+    Type1: TMenuItem;
     Value1: TMenuItem;
     pnlFloat: TPanel;
     rt3: TRadioButton;
@@ -537,7 +537,7 @@ type
     procedure File1Click(Sender: TObject);
     procedure Label61Click(Sender: TObject);
     procedure actOpenProcesslistExecute(Sender: TObject);
-    procedure ype1Click(Sender: TObject);
+    procedure Type1Click(Sender: TObject);
   private
     tabcounter: integer;
     //variable that only goes up, doesn't go down when a tab is deleted
@@ -5220,15 +5220,12 @@ begin
   DeleteThisRecord1.Visible := (addresslist.selectedRecord <> nil);
   Change1.Visible := (addresslist.selectedrecord <> nil) and
     (not (addresslist.selectedRecord.vartype = vtAutoAssembler));
-  address1.Enabled := (addresslist.selectedrecord <> nil) and
-    (not addresslist.selectedRecord.isGroupHeader);
-  ype1.Enabled := address1.Enabled;
-  Value1.Enabled := address1.Enabled;
-  Smarteditaddresses1.Enabled := True;
+  address1.visible := (addresslist.selectedrecord <> nil) and (not addresslist.selectedRecord.isGroupHeader);
+  Type1.visible := (addresslist.selectedrecord <> nil) and (not addresslist.selectedRecord.isGroupHeader);
+  Value1.visible := (addresslist.selectedrecord <> nil);
+  Smarteditaddresses1.visible := (addresslist.selectedrecord <> nil) and (not addresslist.selectedRecord.isGroupHeader);
 
-  BrowseThisMemoryRegion1.Visible :=
-    (addresslist.selectedRecord <> nil) and (not addresslist.selectedRecord.isGroupHeader) and
-    (not (addresslist.selectedRecord.vartype = vtAutoAssembler));
+  BrowseThisMemoryRegion1.Visible :=(addresslist.selectedRecord <> nil) and (not addresslist.selectedRecord.isGroupHeader) and (not (addresslist.selectedRecord.vartype = vtAutoAssembler));
   ShowAsHexadecimal1.Visible :=
     (addresslist.selectedRecord <> nil) and (addresslist.selectedRecord.VarType in
     [vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble, vtCustom, vtByteArray]) and
@@ -7699,7 +7696,7 @@ begin
   speedbutton1.Click;
 end;
 
-procedure TMainForm.ype1Click(Sender: TObject);
+procedure TMainForm.Type1Click(Sender: TObject);
 begin
   addresslist.doTypeChange;
 end;

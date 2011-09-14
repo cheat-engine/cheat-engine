@@ -1405,10 +1405,10 @@ object MainForm: TMainForm
         ShortCut = 49165
         OnClick = Address1Click
       end
-      object ype1: TMenuItem
+      object Type1: TMenuItem
         Caption = 'Type'
         ShortCut = 32781
-        OnClick = ype1Click
+        OnClick = Type1Click
       end
       object Value1: TMenuItem
         Caption = 'Value'
