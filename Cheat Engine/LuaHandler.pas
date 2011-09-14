@@ -22,6 +22,9 @@ var
 function lua_strtofloat(s: string): double;
 function lua_strtoint(s: string): integer;
 
+function lua_pcall(L: Plua_State; nargs, nresults, errf: Integer): Integer; cdecl;
+function lua_dostring(L: Plua_State; const str: PChar): Integer;
+
 procedure Lua_RegisterObject(name: string; o: TObject);
 function CheckIfConditionIsMetContext(context: PContext; script: string): boolean;
 procedure LUA_DoScript(s: string);
@@ -56,9 +59,36 @@ resourcestring
   rsInvalidFloat = 'Invalid floating point string:%s';
   rsInvalidInt = 'Invalid integer:%s';
 
+
+
 function GetLuaState: PLUA_State; stdcall;
 begin
   result:=LuaVM;
+end;
+
+function lua_pcall(L: Plua_State; nargs, nresults, errf: Integer): Integer; cdecl;
+var oldstack: integer;
+begin
+  try
+    oldstack:=lua_gettop(l);
+    result:=lua.lua_pcall(L, nargs, nresults, errf);
+  except
+    on e: exception do
+    begin
+      result:=LUA_ERRRUN;
+      lua_settop(l, oldstack);
+
+      lua_pushstring(l, e.Message);
+
+    end;
+  end;
+end;
+
+function lua_dostring(L: Plua_State; const str: PChar): Integer;
+begin
+  Result := luaL_loadstring(L, str);
+  if Result = 0 then
+    Result := lua_pcall(L, 0, LUA_MULTRET, 0);
 end;
 
 function lua_isstring(L: PLua_state; i: integer): boolean;

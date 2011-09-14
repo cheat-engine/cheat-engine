@@ -6,8 +6,8 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
-  StdCtrls, Menus, ExtCtrls, luahandler, SynMemo, SynCompletion, SynEdit, lua,
-  lauxlib, lualib, LuaSyntax, cefuncproc;
+  StdCtrls, Menus, ExtCtrls, SynMemo, SynCompletion, SynEdit, lua,
+  lauxlib, lualib, LuaSyntax, luahandler, cefuncproc;
 
 type
 
@@ -51,6 +51,7 @@ var
 implementation
 
 { TfrmLuaEngine }
+
 
 resourcestring
   rsError = 'error';
