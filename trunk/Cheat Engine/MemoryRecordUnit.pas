@@ -1298,6 +1298,8 @@ var
   i: integer;
 begin
   result:='';
+  if isGroupHeader then exit;
+
   bufsize:=getbytesize;
   if bufsize=0 then exit;
 

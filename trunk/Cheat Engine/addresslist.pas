@@ -804,7 +804,8 @@ begin
   memrec:=TMemoryRecord(node.data);
   value:=memrec.GetValue;
 
-  if (value = '??') or (value = 'NAN') or (value = 'INF') then
+
+  if (not memrec.isGroupHeader) and (value = '??') then
   begin
     beep; //my favourite sound
     exit;
@@ -893,18 +894,18 @@ begin
   begin
     //at least something was clicked
 
-    if TMemoryRecord(node.data).isGroupHeader then
+    {if TMemoryRecord(node.data).isGroupHeader then
     begin
       //it's a group doubleclick
       descriptiondblclick(node);
       exit;
-    end;
+    end;   }
 
     for i:=0 to header.Sections.count-1 do
       if inrange(p.x,header.Sections[i].Left,header.Sections[i].right) then
       begin
         //if it's a auto assemble script only do the description and value
-        if (TMemoryRecord(node.data).VarType=vtAutoAssembler) then
+        if (TMemoryRecord(node.data).VarType=vtAutoAssembler) or (TMemoryRecord(node.data).isGroupHeader) then
         begin
           case i of
             0: ; //frozen doubleclick
