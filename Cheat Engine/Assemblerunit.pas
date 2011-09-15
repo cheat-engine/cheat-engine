@@ -2685,6 +2685,19 @@ begin
 
   try
 
+    if (reg[k]='ESP') or (reg[-k]='ESP') or (reg[k]='RSP') or (reg[-k]='RSP') then //esp takes precedence
+    begin
+      if reg[-k]='ESP' then k:=-k;
+      if reg[-k]='RSP' then k:=-k;
+
+      setrm(modrm[0],4);
+      setlength(modrm,2);
+      setsibbase(modrm[1],4);
+      createsibscaleindex(modrm[1],reg[-k]);
+      found:=true;
+      exit;
+    end;
+
     if (reg[k]='EAX') or (reg[-k]='EAX') or (reg[k]='RAX') or (reg[-k]='RAX') then
     begin
       if reg[-k]='EAX' then k:=-k;
@@ -2697,9 +2710,6 @@ begin
 
         setsibbase(modrm[1],0);
         createsibscaleindex(modrm[1],reg[-k]);
-
-       // showmessage('RexPrefix='+inttohex(rexprefix,2));
-
       end else setrm(modrm[0],0); //no sib needed
       found:=true;
       exit;
