@@ -11,8 +11,9 @@ this class contains information about each element in a structure.
 ===========
 -parent: struct : If set, points to the owner struct
 -offset: int
+-bytesize: int
 -name: string
--type: TVariableType
+-type: TVariableTypeEx
 -struct: Class  : If type is vtPointer. Can be null to fill in later
 ---------------------
 ++create(parentstruct)
@@ -22,7 +23,9 @@ this class contains information about each element in a structure.
 +setName(string)
 +getType(): variabletype:  If it's a pointer, returns vtPointer
 +setType(variabletype, struct optional)
-+getValue(address):string :Independant of offset, just uses the type
++getByteSize(): int
++setByteSize(): int : Only valid for string and AOB
++getValue(address):string :Independant of offset, just uses the type for conversion to string
 +setValue(address, string)
 +getValueFromBase(structbaseaddress): string
 +setValueFromBase(structbaseaddress, string)
@@ -56,7 +59,19 @@ The struct class is a global class that contains all the data about the structur
 +DoChange(): Call onChange unless beginUpdate was called
 
 
-
+Column
+=======
+-address: ptruint
+-groupid: int
+-savedstate: pointer
+-savedstatesize: int
+--------------------
++getAddress(): ptruint
++setAddress(ptruint)
++saveState(): bool
++clearSavedState(): void
++getSavedState(): savedstate
++getSavedStateSize(): int
 
 
 
@@ -67,14 +82,32 @@ A child that has a pointer but no struct assigned yet, will have an extract butt
 
 frmstructures
 =============
--getName(index): string
--getValue(index, columnid): string
-
+-mainStruct: Struct
+-columns: list of Column
+-treeview.treenodes
+-------------
+-getStructElementFromTreenode(treenode): Struct
 -structchangedevent(struct) :
   Called whenever anything changed in the struct
   Go through the list of treenodes and find nodes that has as treenode.data the struct.
   Go through all the children and make changes where necesary. If treenode.data is not correct. Delete all children
   Remember the current scroll position
+
+
++getColumnCount()
++getColumn(index)
++addColumn()
++removeColumn(columnid)
++getMainStruct(): struct
++getStructAtIndex(index): struct;
++getName(index): string
++setName(index, string)
++getType(index)
++setType(index, vartype, size OPT, pointerto OPT)
++getValue(index, columnid): string
++getStructElement(index)
+
+
 
 
 
