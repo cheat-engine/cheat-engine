@@ -1645,7 +1645,7 @@ begin
 
 
   //  MessageBox(0,'bla','bla',0);
-  MessageDlg(ansitoutf8(E.message), mtError, [mbOK], 0);
+  MessageDlg(E.message, mtError, [mbOK], 0);
 
 end;
 

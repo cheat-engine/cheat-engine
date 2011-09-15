@@ -1017,7 +1017,7 @@ begin
 
 
     if symhandler.getmodulebyaddress(fAddress,mi) then
-      memoryInfo:=memoryInfo+' '+rsModule+'='+mi.modulename;
+      memoryInfo:=memoryInfo+' '+rsModule+'='+ansitoutf8(mi.modulename);
 
   except
   end;
@@ -1283,7 +1283,7 @@ begin
 
   currentaddress:=fAddress;
 
-  offscreenbitmap.Canvas.TextOut(0,0,ansitoutf8(memoryInfo));
+  offscreenbitmap.Canvas.TextOut(0,0,memoryInfo);
   offscreenbitmap.Canvas.TextOut(0, textheight, rsAddress);
 
   bheader:='';
