@@ -1,117 +1,5 @@
 unit Structuresfrm;
 
-{
-9/15/2011:
-Redesign as the original structure viewer has grown too much beyond it's original design specs
-Perhaps makes integration with lua more managable as well
-
-
-stuctelement
-this class contains information about each element in a structure.
-===========
--parent: struct : If set, points to the owner struct
--offset: int
--bytesize: int
--name: string
--type: TVariableTypeEx
--struct: Class  : If type is vtPointer. Can be null to fill in later
----------------------
-++create(parentstruct)
-+getOffset(): int :
-+setOffset(int) : Calls the parent's sort command when changed
-+getName(): string
-+setName(string)
-+getType(): variabletype:  If it's a pointer, returns vtPointer
-+setType(variabletype, struct optional)
-+getByteSize(): int
-+setByteSize(): int : Only valid for string and AOB
-+getValue(address):string :Independant of offset, just uses the type for conversion to string
-+setValue(address, string)
-+getValueFromBase(structbaseaddress): string
-+setValueFromBase(structbaseaddress, string)
-+isPointer(): bool : Returns true if type is vtPointer
-+getPointerStruct(): struct
-+setPointerStruct(struct)
-
-
-struct
-The struct class is a global class that contains all the data about the structure.
-======
--structname
--structelementlist : List
--isUpdating: boolean
--updateCalledSort: boolean
--updateChangedInformation: boolean;
--onChange: functionlist
----------------------
-+AddOnchangeNotification(function): Register a function to be called when anything has changed
-+getName(): string
-+setName(structname)
-+getElementCount()
-+getElement(index): structelement
-
-+beginUpdate()
-+addElement(): structelement :  Will create an empty struct element
-+removeElement(structelement)
-+sortElements(): Will sort the list based on offsets if beginUpdate isn't blocking it
-+endUpdate() : If sortElements was called call it now and call DoChange if anything has changed
-
-+DoChange(): Call onChange unless beginUpdate was called
-
-
-Column
-=======
--address: ptruint
--groupid: int
--savedstate: pointer
--savedstatesize: int
---------------------
-+getAddress(): ptruint
-+setAddress(ptruint)
-+saveState(): bool
-+clearSavedState(): void
-+getSavedState(): savedstate
-+getSavedStateSize(): int
-
-
-
-(Visible stuff)
-treenode.data contain the structure class their children belong to. The first node in the treeview is the main structure
-Children that are no pointer to another struct have nil for treenode.data
-A child that has a pointer but no struct assigned yet, will have an extract button but treenode.data will be null until extracted and the structure is created
-
-frmstructures
-=============
--mainStruct: Struct
--columns: list of Column
--treeview.treenodes
--------------
--getStructElementFromTreenode(treenode): Struct
--structchangedevent(struct) :
-  Called whenever anything changed in the struct
-  Go through the list of treenodes and find nodes that has as treenode.data the struct.
-  Go through all the children and make changes where necesary. If treenode.data is not correct. Delete all children
-  Remember the current scroll position
-
-
-+getColumnCount()
-+getColumn(index)
-+addColumn()
-+removeColumn(columnid)
-+getMainStruct(): struct
-+getStructAtIndex(index): struct;
-+getName(index): string
-+setName(index, string)
-+getType(index)
-+setType(index, vartype, size OPT, pointerto OPT)
-+getValue(index, columnid): string
-+getStructElement(index)
-
-
-
-
-
-}
 
 {$MODE Delphi}
 
@@ -121,104 +9,10 @@ uses
   windows, LCLIntf, LMessages, Messages, SysUtils, Variants, Classes, Graphics, Controls,
   Forms, Dialogs, Menus, StdCtrls, ExtCtrls, ComCtrls,CEFuncProc,NewKernelHandler,
   symbolhandler, {XMLDoc, XMLIntf,} byteinterpreter, dom, xmlread, xmlwrite,
-  LResources, registry;
+  LResources, registry, scrollTreeView;
 
 const structureversion=1;
 
-type
-  TTreeView = class(TCustomTreeView)
-  public
-    procedure WMHScroll(var Msg: TLMScroll); message LM_HSCROLL;
-  published
-    property Align;
-    property Anchors;
-    property AutoExpand;
-    property BorderSpacing;
-    //property BiDiMode;
-    property BackgroundColor;
-    property BorderStyle;
-    property BorderWidth;
-    property Color;
-    property Constraints;
-    property DefaultItemHeight;
-    property DragKind;
-    property DragCursor;
-    property DragMode;
-    property Enabled;
-    property ExpandSignType;
-    property Font;
-    property HideSelection;
-    property HotTrack;
-    property Images;
-    property Indent;
-    //property ParentBiDiMode;
-    property ParentColor default False;
-    property ParentFont;
-    property ParentShowHint;
-    property PopupMenu;
-    property ReadOnly;
-    property RightClickSelect;
-    property RowSelect;
-    property ScrollBars;
-    property SelectionColor;
-    property ShowButtons;
-    property ShowHint;
-    property ShowLines;
-    property ShowRoot;
-    property SortType;
-    property StateImages;
-    property TabOrder;
-    property TabStop default True;
-    property Tag;
-    property ToolTips;
-    property Visible;
-    property OnAddition;
-    property OnAdvancedCustomDraw;
-    property OnAdvancedCustomDrawItem;
-    property OnChange;
-    property OnChanging;
-    property OnClick;
-    property OnCollapsed;
-    property OnCollapsing;
-    property OnCompare;
-    property OnContextPopup;
-    property OnCreateNodeClass;
-    property OnCustomCreateItem;
-    property OnCustomDraw;
-    property OnCustomDrawItem;
-    property OnDblClick;
-    property OnDeletion;
-    property OnDragDrop;
-    property OnDragOver;
-    property OnEdited;
-    property OnEditing;
-    //property OnEndDock;
-    property OnEndDrag;
-    property OnEnter;
-    property OnExit;
-    property OnExpanded;
-    property OnExpanding;
-    property OnGetImageIndex;
-    property OnGetSelectedIndex;
-    property OnKeyDown;
-    property OnKeyPress;
-    property OnKeyUp;
-    property OnMouseDown;
-    property OnMouseEnter;
-    property OnMouseLeave;
-    property OnMouseMove;
-    property OnMouseUp;
-    property OnSelectionChanged;
-    property OnShowHint;
-    //property OnStartDock;
-    property OnStartDrag;
-    property OnUTF8KeyPress;
-    property Options;
-    property Items;
-    property TreeLineColor;
-    property TreeLinePenStyle;
-    property ExpandSignColor;
-  end;
 
 
 type TStructElement=record
@@ -367,8 +161,6 @@ type TbaseStructure=record
     procedure Addtoaddresslist1Click(Sender: TObject);
     procedure Recalculateaddress1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure HeaderControl1SectionResize(HeaderControl: THeaderControl;
-      Section: THeaderSection);
     procedure Addextraaddress1Click(Sender: TObject);
     procedure Undo1Click(Sender: TObject);
     procedure Cut1Click(Sender: TObject);
@@ -429,6 +221,7 @@ type TbaseStructure=record
 
     procedure SaveColors;
     procedure LoadColors;
+    procedure TreeViewHScroll(sender: TObject; scrolledleft, maxscrolledleft: integer);
   public
     { Public declarations }
     procedure setaddress(i: integer; x:ptrUint);
@@ -1408,7 +1201,7 @@ begin
 
         tvStructureView.items[0].Text:=s;
 
-        tvStructureView.Resize;
+       // tvStructureView.Resize;
       end;
 
   end;
@@ -2574,9 +2367,12 @@ begin
     freeandnil(currentstructure);
 end;
 
-procedure TfrmStructures.HeaderControl1SectionResize(
-  HeaderControl: THeaderControl; Section: THeaderSection);
+
+
+procedure TfrmStructures.TreeViewHScroll(sender: TObject; scrolledleft, maxscrolledleft: integer);
 begin
+  HeaderControl1.Left:=-scrolledleft;
+  HeaderControl1.Width:=tvStructureView.clientwidth  +maxscrolledleft+100;
 end;
 
 procedure TfrmStructures.FormCreate(Sender: TObject);
@@ -2585,6 +2381,8 @@ begin
   tvStructureView.left:=0;
   tvStructureView.width:=clientwidth;
   tvStructureView.height:=clientheight-tvStructureView.Top;
+
+  tvStructureView.onHScroll:=TreeViewHScroll;
 
   setlength(groups,1);
   setlength(addresses,1);
@@ -3329,15 +3127,6 @@ begin
 
 end;
 
-procedure TTreeview.WMHScroll(var Msg: TLMScroll);
-begin
-  inherited WMHScroll(msg);
-//  messagebox(0,'scroll','scroll',0);
-  frmStructures[0].HeaderControl1.Left:=-self.ScrolledLeft;
-
-  frmStructures[0].HeaderControl1.Width:=clientwidth+self.GetMaxScrollLeft+100;
-
-end;
 
 procedure TfrmStructures.miLockMemClick(Sender: TObject);
 var

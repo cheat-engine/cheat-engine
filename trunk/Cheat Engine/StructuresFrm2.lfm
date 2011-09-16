@@ -1,0 +1,163 @@
+object frmStructures2: TfrmStructures2
+  Left = 617
+  Height = 376
+  Top = 256
+  Width = 606
+  Caption = 'frmStructures2'
+  ClientHeight = 356
+  ClientWidth = 606
+  Menu = MainMenu1
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  LCLVersion = '0.9.31'
+  object tvStructureView: TTreeView
+    Left = 0
+    Height = 292
+    Top = 64
+    Width = 606
+    Align = alBottom
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderStyle = bsNone
+    DefaultItemHeight = 16
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -15
+    Font.Name = 'Courier'
+    HideSelection = False
+    Indent = 19
+    ParentFont = False
+    ReadOnly = True
+    RowSelect = True
+    ShowRoot = False
+    TabOrder = 0
+    Options = [tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoToolTips]
+  end
+  object Panel1: TPanel
+    Left = 0
+    Height = 41
+    Top = 0
+    Width = 606
+    Align = alTop
+    BevelOuter = bvNone
+    BorderStyle = bsSingle
+    ClientHeight = 37
+    ClientWidth = 602
+    TabOrder = 1
+    object edtAddress: TEdit
+      Left = 5
+      Height = 23
+      Top = 5
+      Width = 95
+      TabOrder = 0
+      Text = '00000000'
+    end
+  end
+  object HeaderControl1: THeaderControl
+    Left = 0
+    Height = 21
+    Top = 40
+    Width = 606
+    DragReorder = False
+    Sections = <    
+      item
+        Alignment = taLeftJustify
+        MinWidth = 50
+        Text = 'Offset-description'
+        Width = 250
+        Visible = True
+      end    
+      item
+        Alignment = taLeftJustify
+        MinWidth = 20
+        Text = 'Address: Value'
+        Width = 200
+        Visible = True
+      end>
+    OnSectionTrack = HeaderControl1SectionTrack
+    Anchors = [akTop, akLeft, akRight]
+  end
+  object MainMenu1: TMainMenu
+    left = 16
+    top = 72
+    object File1: TMenuItem
+      Caption = 'File'
+      object Newwindow1: TMenuItem
+        Caption = 'New window'
+      end
+      object N8: TMenuItem
+        Caption = '-'
+      end
+      object Open1: TMenuItem
+        Caption = 'Import'
+        ShortCut = 16457
+      end
+      object Save1: TMenuItem
+        Caption = 'Export'
+        ShortCut = 16453
+      end
+      object MenuItem2: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem3: TMenuItem
+        Caption = 'Save values'
+        ShortCut = 16467
+      end
+      object N7: TMenuItem
+        Caption = '-'
+      end
+      object Addextraaddress1: TMenuItem
+        Caption = 'Add extra address'
+        ShortCut = 16449
+      end
+    end
+    object MenuItem1: TMenuItem
+      Caption = 'View'
+      object miChangeColors: TMenuItem
+        Caption = 'Change colors'
+      end
+      object miUpdateInterval: TMenuItem
+        Caption = 'Update interval: 500'
+      end
+    end
+    object Structures1: TMenuItem
+      Caption = 'Structures'
+      object Definenewstructure1: TMenuItem
+        Caption = 'Define new structure'
+        ShortCut = 16462
+      end
+      object N1: TMenuItem
+        Caption = '-'
+      end
+    end
+    object Commands1: TMenuItem
+      Caption = 'Options'
+      Enabled = False
+      object Renamestructure1: TMenuItem
+        Caption = 'Rename structure'
+      end
+      object Deletecurrentstructure1: TMenuItem
+        Caption = 'Delete structure'
+      end
+      object Autoguessoffsets1: TMenuItem
+        Caption = 'Automatically guess offset types'
+      end
+      object MenuItem4: TMenuItem
+        Caption = '-'
+      end
+      object miSaveToCT: TMenuItem
+        AutoCheck = True
+        Caption = 'Save this structure in CT'
+        Checked = True
+        Visible = False
+      end
+      object miAutoCreate: TMenuItem
+        AutoCheck = True
+        Caption = 'Autocreate structures from undefined pointer types'
+      end
+      object miAutostructsize: TMenuItem
+        Tag = 4096
+        Caption = 'Autocreate structure size: 4096'
+      end
+    end
+  end
+end

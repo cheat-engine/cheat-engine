@@ -116,7 +116,7 @@ begin
       lua_pushlightuserdata(Luavm, sender);
 
 
-      if lua_pcall(Luavm, 1,1,0)=0 then //procedure(sender)
+      if lua_pcall(Luavm, 1,1,0)=0 then //procedure(sender)  lua_pcall returns 0 if success
       begin
         if lua_gettop(Luavm)>0 then
           CloseAction:=TCloseAction(lua_tointeger(LuaVM,-1));
@@ -262,7 +262,7 @@ begin
     PushFunction;
     lua_pushinteger(luavm, address);
     lua_pushinteger(luavm, integer(originalVariableType));
-    if lua_pcall(LuaVM, 2, 1, 0)=0 then
+    if lua_pcall(LuaVM, 2, 1, 0)=0 then         // lua_pcall returns 0 if success
       result:=TVariableType(lua_tointeger(LuaVM,-1))
     else
       result:=originalVariableType;
@@ -305,7 +305,7 @@ begin
     pushFunction;
     lua_pushlightuserdata(luavm, sender);
     lua_pushstring(luavm, key);
-    if lua_pcall(LuaVM, 2, 1, 0)=0 then
+    if lua_pcall(LuaVM, 2, 1, 0)=0 then  //lua_pcall returns 0 if success
     begin
       if lua_isstring(LuaVM, -1) then
       begin

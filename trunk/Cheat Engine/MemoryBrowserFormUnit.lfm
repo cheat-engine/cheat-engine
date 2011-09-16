@@ -1,7 +1,7 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 1182
+  Left = 863
   Height = 587
-  Top = 373
+  Top = 186
   Width = 722
   HelpContext = 12
   Caption = 'Memory Viewer'
@@ -1092,6 +1092,10 @@ object MemoryBrowser: TMemoryBrowser
         Caption = 'Dissect data/structures'
         ShortCut = 16452
         OnClick = Dissectdata2Click
+      end
+      object MenuItem16: TMenuItem
+        Caption = 'Dissect data/structures 2'
+        OnClick = MenuItem16Click
       end
       object Disectwindow1: TMenuItem
         Caption = 'Dissect window(s)'
