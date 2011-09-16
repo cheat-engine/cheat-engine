@@ -44,7 +44,7 @@ object frmStructures: TfrmStructures
     Width = 424
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderStyle = bsNone
-    DefaultItemHeight = 15
+    DefaultItemHeight = 16
     Font.CharSet = ANSI_CHARSET
     Font.Height = -15
     Font.Name = 'Courier'
@@ -84,7 +84,6 @@ object frmStructures: TfrmStructures
         Width = 200
         Visible = True
       end>
-    OnSectionResize = HeaderControl1SectionResize
     OnSectionTrack = HeaderControl1SectionTrack
     Anchors = [akTop, akLeft, akRight]
   end

@@ -55,7 +55,7 @@ uses
   LuaDebug, frmUltimapUnit, DBK64SecondaryLoader, frmHotkeyExUnit,
   SymbolListHandler, networkInterface, networkInterfaceApi, networkConfig,
   LuaThread, LuaGraphic, LuaProgressBar, d3dhookUnit, LuaD3DHook, LuaWinControl,
-  frmSetCrosshairUnit;
+  frmSetCrosshairUnit, StructuresFrm2, scrollTreeView;
 
 {$R cheatengine.res}
 {$R manifest.res}

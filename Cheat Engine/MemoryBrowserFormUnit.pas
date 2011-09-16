@@ -28,6 +28,7 @@ type
     MenuItem13: TMenuItem;
     MenuItem14: TMenuItem;
     MenuItem15: TMenuItem;
+    MenuItem16: TMenuItem;
     miPointerSpider: TMenuItem;
     MenuItem9: TMenuItem;
     miDisassembly32: TMenuItem;
@@ -220,6 +221,7 @@ type
     procedure MenuItem11Click(Sender: TObject);
     procedure MenuItem12Click(Sender: TObject);
     procedure MenuItem14Click(Sender: TObject);
+    procedure MenuItem16Click(Sender: TObject);
     procedure miPointerSpiderClick(Sender: TObject);
     procedure MenuItem2Click(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
@@ -525,6 +527,7 @@ uses Valuechange,
   ServiceDescriptorTables,
   frmReferencedStringsUnit,
   Structuresfrm,
+  Structuresfrm2,
   pointerscannerfrm,
   frmDebugEventsUnit,
   frmPagingUnit,
@@ -923,6 +926,25 @@ begin
     frmUltimap:=TfrmUltimap.create(application);
 
   frmUltimap.show;
+end;
+
+procedure TMemoryBrowser.MenuItem16Click(Sender: TObject);
+begin
+  if frmStructures2.count>0 then
+  begin
+    TfrmStructures2(frmStructures2[0]).edtAddress.Text:=inttohex(memorybrowser.memoryaddress,8);
+    TfrmStructures2(frmStructures2[0]).show;
+  end
+  else
+  begin
+    //create it
+    with tfrmstructures2.create(self) do
+    begin
+      edtAddress.Text:=inttohex(memoryaddress,8);
+      //applychanges(false);
+      show;
+    end;
+  end;
 end;
 
 procedure TMemoryBrowser.miPointerSpiderClick(Sender: TObject);
@@ -2508,8 +2530,6 @@ end;
 
 procedure TMemoryBrowser.Dissectdata2Click(Sender: TObject);
 begin
-{$ifndef net}
-
   if length(frmStructures)>0 then
   begin
     frmStructures[0].edtAddress.Text:=inttohex(memorybrowser.memoryaddress,8);
@@ -2525,21 +2545,14 @@ begin
       show;
     end;
   end;
-
-
-
-{$endif}
 end;
 
 procedure TMemoryBrowser.Symbolhandler1Click(Sender: TObject);
 begin
-{$ifndef net}
-
   if frmSymbolhandler=nil then
     frmSymbolhandler:=TfrmSymbolhandler.create(self);
 
   frmSymbolhandler.show;
-{$endif}
 end;
 
 procedure TMemoryBrowser.Allocatenonpagedmemory1Click(Sender: TObject);
