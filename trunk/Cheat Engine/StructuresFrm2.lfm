@@ -27,6 +27,7 @@ object frmStructures2: TfrmStructures2
     HideSelection = False
     Indent = 19
     ParentFont = False
+    PopupMenu = structviewMenu
     ReadOnly = True
     RowSelect = True
     ShowRoot = False
@@ -59,20 +60,12 @@ object frmStructures2: TfrmStructures2
         Text = 'Offset-description'
         Width = 250
         Visible = True
-      end    
-      item
-        Alignment = taLeftJustify
-        MinWidth = 20
-        Text = 'Address: Value'
-        Width = 200
-        Visible = True
       end>
     OnSectionTrack = HeaderControl1SectionTrack
     Anchors = [akTop, akLeft, akRight]
   end
   object MainMenu1: TMainMenu
-    left = 16
-    top = 72
+    left = 24
     object File1: TMenuItem
       Caption = 'File'
       object Newwindow1: TMenuItem
@@ -154,6 +147,53 @@ object frmStructures2: TfrmStructures2
         Tag = 4096
         Caption = 'Autocreate structure size: 4096'
       end
+    end
+  end
+  object structviewMenu: TPopupMenu
+    left = 40
+    top = 112
+    object miAddElement: TMenuItem
+      Caption = 'Add element'
+      ShortCut = 45
+      OnClick = miAddElementClick
+    end
+    object Deleteelement1: TMenuItem
+      Caption = 'Delete element'
+      ShortCut = 46
+      OnClick = Deleteelement1Click
+    end
+    object ChangeElement1: TMenuItem
+      Caption = 'Change element'
+      Default = True
+      ShortCut = 16397
+    end
+    object N2: TMenuItem
+      Caption = '-'
+    end
+    object Addtoaddresslist1: TMenuItem
+      Caption = 'Add to address list'
+      ShortCut = 65
+    end
+    object Memorybrowsepointer1: TMenuItem
+      Caption = 'Memory browse pointer'
+      ShortCut = 70
+      Visible = False
+    end
+    object Memorybrowsethisaddress1: TMenuItem
+      Caption = 'Memory browse this address'
+      ShortCut = 32
+    end
+    object N3: TMenuItem
+      Caption = '-'
+      Visible = False
+    end
+    object Recalculateaddress1: TMenuItem
+      Caption = 'Recalculate address'
+      Visible = False
+    end
+    object miUpdateOffsets: TMenuItem
+      Caption = 'Update this and following offsets'
+      ShortCut = 16469
     end
   end
 end

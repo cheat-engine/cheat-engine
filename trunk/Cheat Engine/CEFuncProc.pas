@@ -3191,6 +3191,8 @@ begin
     vtSingle: Result:='Float';
     vtDouble: Result:='Double';
     vtString: Result:='String';
+    vtUnicodeString: Result:='Unicode String';
+    vtPointer: result:='Pointer';
     vtAutoAssembler: Result:='Auto Assembler Script';
     vtCustom: Result:='Custom';
   end;
@@ -3209,6 +3211,8 @@ begin
   if s='float' then   Result :=vtSingle else
   if s='double' then Result :=vtDouble else
   if s='string' then  Result :=vtString else
+  if s='unicode string' then result:=vtUnicodeString else
+  if s='pointer' then result:=vtPointer else
   if s='custom' then  Result :=vtCustom else
   if s='auto assembler script' then result:=vtAutoAssembler;
 end;

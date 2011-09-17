@@ -236,6 +236,7 @@ var
 procedure sortStructure(struct: TbaseStructure);
 
 resourcestring
+
   rsThisIsQuiteABigStructureHowManyBytesDoYouWantToSav = 'This is quite a big '
     +'structure. How many bytes do you want to save?';
   rsStructureViewLock = 'Structure view lock';
