@@ -3,7 +3,7 @@ object frmStructures2: TfrmStructures2
   Height = 376
   Top = 284
   Width = 606
-  Caption = 'frmStructures2'
+  Caption = 'Structure dissect'
   ClientHeight = 356
   ClientWidth = 606
   Menu = MainMenu1
@@ -26,8 +26,10 @@ object frmStructures2: TfrmStructures2
     Font.Name = 'Courier'
     HideSelection = False
     Indent = 19
+    MultiSelect = True
+    MultiSelectStyle = [msControlSelect, msShiftSelect, msVisibleOnly, msSiblingOnly]
     ParentFont = False
-    PopupMenu = structviewMenu
+    PopupMenu = miUpdateChildToFull
     ReadOnly = True
     RowSelect = True
     ShowRoot = False
@@ -35,7 +37,7 @@ object frmStructures2: TfrmStructures2
     OnCollapsed = tvStructureViewCollapsed
     OnCollapsing = tvStructureViewCollapsing
     OnExpanded = tvStructureViewExpanded
-    Options = [tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoToolTips]
+    Options = [tvoAllowMultiselect, tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoToolTips]
   end
   object pnlAddresses: TPanel
     Left = 0
@@ -149,23 +151,33 @@ object frmStructures2: TfrmStructures2
       end
     end
   end
-  object structviewMenu: TPopupMenu
+  object miUpdateChildToFull: TPopupMenu
+    OnPopup = miUpdateChildToFullPopup
     left = 40
     top = 112
+    object miChangeElement: TMenuItem
+      Caption = 'Change element'
+      Default = True
+      ShortCut = 16397
+      OnClick = miChangeElementClick
+    end
     object miAddElement: TMenuItem
       Caption = 'Add element'
       ShortCut = 45
       OnClick = miAddElementClick
     end
-    object Deleteelement1: TMenuItem
-      Caption = 'Delete element'
+    object miDeleteElement: TMenuItem
+      Caption = 'Delete element(s)'
       ShortCut = 46
-      OnClick = Deleteelement1Click
+      OnClick = miDeleteElementClick
     end
-    object ChangeElement1: TMenuItem
-      Caption = 'Change element'
-      Default = True
-      ShortCut = 16397
+    object miAddChildElement: TMenuItem
+      Caption = 'Add child element'
+      OnClick = miAddChildElementClick
+    end
+    object miFullUpgrade: TMenuItem
+      Caption = 'Upgrade this child to full structure'
+      OnClick = miFullUpgradeClick
     end
     object N2: TMenuItem
       Caption = '-'

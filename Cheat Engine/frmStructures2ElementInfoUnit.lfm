@@ -1,11 +1,11 @@
 object frmStructures2ElementInfo: TfrmStructures2ElementInfo
   Left = 286
-  Height = 225
+  Height = 219
   Top = 180
   Width = 313
   BorderStyle = bsSingle
   Caption = 'Structure Info'
-  ClientHeight = 225
+  ClientHeight = 219
   ClientWidth = 313
   OnCreate = FormCreate
   Position = poScreenCenter
@@ -27,6 +27,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
     Top = 80
     Width = 40
     Caption = 'Bytesize'
+    Enabled = False
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
     ParentColor = False
@@ -48,6 +49,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
     Height = 21
     Top = 160
     Width = 208
+    Enabled = False
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
     ItemHeight = 13
@@ -69,7 +71,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
     Default = True
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
-    ModalResult = 1
+    OnClick = Button1Click
     ParentFont = False
     TabOrder = 1
   end
@@ -90,7 +92,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
     Left = 20
     Height = 21
     Top = 56
-    Width = 208
+    Width = 274
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
     ParentFont = False
@@ -113,7 +115,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
     Left = 20
     Height = 21
     Top = 16
-    Width = 208
+    Width = 274
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
     OnChange = edtOffsetChange
@@ -162,6 +164,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
     Top = 144
     Width = 107
     Caption = 'Structure pointed to'
+    Enabled = False
     ParentColor = False
   end
   object cbHexadecimal: TCheckBox
