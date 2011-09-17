@@ -1,7 +1,7 @@
 object frmStructures2: TfrmStructures2
-  Left = 617
+  Left = 878
   Height = 376
-  Top = 256
+  Top = 284
   Width = 606
   Caption = 'frmStructures2'
   ClientHeight = 356
@@ -10,6 +10,7 @@ object frmStructures2: TfrmStructures2
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnShow = FormShow
   LCLVersion = '0.9.31'
   object tvStructureView: TTreeView
     Left = 0
@@ -30,9 +31,12 @@ object frmStructures2: TfrmStructures2
     RowSelect = True
     ShowRoot = False
     TabOrder = 0
+    OnCollapsed = tvStructureViewCollapsed
+    OnCollapsing = tvStructureViewCollapsing
+    OnExpanded = tvStructureViewExpanded
     Options = [tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoToolTips]
   end
-  object Panel1: TPanel
+  object pnlAddresses: TPanel
     Left = 0
     Height = 41
     Top = 0
@@ -40,17 +44,7 @@ object frmStructures2: TfrmStructures2
     Align = alTop
     BevelOuter = bvNone
     BorderStyle = bsSingle
-    ClientHeight = 37
-    ClientWidth = 602
     TabOrder = 1
-    object edtAddress: TEdit
-      Left = 5
-      Height = 23
-      Top = 5
-      Width = 95
-      TabOrder = 0
-      Text = '00000000'
-    end
   end
   object HeaderControl1: THeaderControl
     Left = 0
@@ -108,6 +102,7 @@ object frmStructures2: TfrmStructures2
       object Addextraaddress1: TMenuItem
         Caption = 'Add extra address'
         ShortCut = 16449
+        OnClick = Addextraaddress1Click
       end
     end
     object MenuItem1: TMenuItem
@@ -124,6 +119,7 @@ object frmStructures2: TfrmStructures2
       object Definenewstructure1: TMenuItem
         Caption = 'Define new structure'
         ShortCut = 16462
+        OnClick = Definenewstructure1Click
       end
       object N1: TMenuItem
         Caption = '-'

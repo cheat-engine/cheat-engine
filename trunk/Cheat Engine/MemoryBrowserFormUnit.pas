@@ -932,7 +932,7 @@ procedure TMemoryBrowser.MenuItem16Click(Sender: TObject);
 begin
   if frmStructures2.count>0 then
   begin
-    TfrmStructures2(frmStructures2[0]).edtAddress.Text:=inttohex(memorybrowser.memoryaddress,8);
+   // TfrmStructures2(frmStructures2[0]).edtAddress.Text:=inttohex(memorybrowser.memoryaddress,8);
     TfrmStructures2(frmStructures2[0]).show;
   end
   else
@@ -940,8 +940,7 @@ begin
     //create it
     with tfrmstructures2.create(self) do
     begin
-      edtAddress.Text:=inttohex(memoryaddress,8);
-      //applychanges(false);
+      initialaddress:=memoryaddress;
       show;
     end;
   end;
