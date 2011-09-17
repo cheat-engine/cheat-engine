@@ -26,6 +26,7 @@ type
     Label3: TLabel;
     Label4: TLabel;
     Label5: TLabel;
+    procedure Button1Click(Sender: TObject);
     procedure cbHexadecimalChange(Sender: TObject);
     procedure cbSignedChange(Sender: TObject);
     procedure cbTypeChange(Sender: TObject);
@@ -35,6 +36,7 @@ type
     { private declarations }
     fOffset: integer;
     fbytesize: integer;
+    localChild: TDissectedStruct;
     procedure setOffset(i: integer);
     function getOffset: integer;
     procedure setDescription(d: string);
@@ -80,6 +82,10 @@ begin
       cbStructType.ItemIndex:=i;
       exit;
     end;
+
+  //still here so it's a "local" type
+  localChild:=s;
+  cbStructType.ItemIndex:=cbStructType.Items.AddObject('Local struct:'+s.name, s);
 end;
 
 function TfrmStructures2ElementInfo.getChildStruct: TDissectedStruct;
@@ -204,13 +210,27 @@ end;
 procedure TfrmStructures2ElementInfo.cbTypeChange(Sender: TObject);
 begin
   edtBytesize.enabled:=cbType.itemindex in [6,7,8];
+  Label2.enabled:=edtByteSize.enabled;
   cbHexadecimal.enabled:=cbtype.itemindex in [0,1,2,3,8];
   cbSigned.enabled:=cbHexadecimal.enabled;
+
+
+  label5.Enabled:=cbtype.itemindex=9;
+  cbStructType.enabled:=cbtype.itemindex=9;
+
 end;
 
 procedure TfrmStructures2ElementInfo.cbHexadecimalChange(Sender: TObject);
 begin
   hexadecimal:=cbHexadecimal.checked;
+end;
+
+procedure TfrmStructures2ElementInfo.Button1Click(Sender: TObject);
+begin
+  if (localChild<>nil) and (localchild<>getChildStruct) then
+    if MessageDlg('If you continue the old locally defined type '+localChild.name+' will be deleted. Continue? (Tip: You can make this type into a global type so it can be re-used over again)', mtWarning, [mbyes, mbno], 0)<>mryes then exit;
+
+  modalresult:=mrok;
 end;
 
 procedure TfrmStructures2ElementInfo.cbSignedChange(Sender: TObject);

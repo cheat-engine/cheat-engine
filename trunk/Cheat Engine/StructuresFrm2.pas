@@ -20,7 +20,7 @@ type
   TDissectedStruct=class;
   TStructelement=class
   private
-    parent: TDissectedStruct;
+    fparent: TDissectedStruct;
     foffset: integer;
     fbytesize: integer;
     fname: string;
@@ -29,6 +29,7 @@ type
     fchildstruct: TDissectedStruct;
   public
     constructor create(parent:TDissectedStruct);
+    function getParent: TDissectedStruct;
     function getOffset: integer;
     procedure setOffset(newOffset: integer);
     function getName: string;
@@ -56,6 +57,7 @@ type
     property Bytesize: integer read getByteSize write setByteSize;
     property ChildStruct: TDissectedStruct read getChildStruct write setChildStruct;
     property index: integer read getIndex;
+    property parent: TDissectedStruct read getParent;
   end;
 
 
@@ -66,6 +68,7 @@ type
     structelementlist: tlist;
 
     fUpdateCounter: integer;
+    fullstructupdate: boolean;
 
     updatecalledSort: boolean;
     updateChangedInformation: boolean;
@@ -129,15 +132,17 @@ type
   end;
 
   TfrmStructures2 = class(TForm)
+    miFullUpgrade: TMenuItem;
+    miAddChildElement: TMenuItem;
     miAddElement: TMenuItem;
     Addextraaddress1: TMenuItem;
     Addtoaddresslist1: TMenuItem;
     Autoguessoffsets1: TMenuItem;
-    ChangeElement1: TMenuItem;
+    miChangeElement: TMenuItem;
     Commands1: TMenuItem;
     Definenewstructure1: TMenuItem;
     Deletecurrentstructure1: TMenuItem;
-    Deleteelement1: TMenuItem;
+    miDeleteElement: TMenuItem;
     File1: TMenuItem;
     HeaderControl1: THeaderControl;
     MainMenu1: TMainMenu;
@@ -161,22 +166,26 @@ type
     Newwindow1: TMenuItem;
     Open1: TMenuItem;
     pnlAddresses: TPanel;
-    structviewMenu: TPopupMenu;
+    miUpdateChildToFull: TPopupMenu;
     Recalculateaddress1: TMenuItem;
     Renamestructure1: TMenuItem;
     Save1: TMenuItem;
     Structures1: TMenuItem;
     tvStructureView: TTreeView;
     procedure Addextraaddress1Click(Sender: TObject);
+    procedure miFullUpgradeClick(Sender: TObject);
+    procedure miChangeElementClick(Sender: TObject);
     procedure Definenewstructure1Click(Sender: TObject);
-    procedure Deleteelement1Click(Sender: TObject);
+    procedure miDeleteElementClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure HeaderControl1SectionTrack(HeaderControl: TCustomHeaderControl;
       Section: THeaderSection; Width: Integer; State: TSectionTrackState);
+    procedure miAddChildElementClick(Sender: TObject);
     procedure miAddElementClick(Sender: TObject);
+    procedure miUpdateChildToFullPopup(Sender: TObject);
     procedure tvStructureViewCollapsed(Sender: TObject; Node: TTreeNode);
     procedure tvStructureViewCollapsing(Sender: TObject; Node: TTreeNode;
       var AllowCollapse: Boolean);
@@ -228,6 +237,11 @@ type
   public
     { public declarations }
     initialaddress: integer;
+    procedure changeNode(n: ttreenode);
+    procedure addFromNode(n: TTreenode; asChild: boolean=false);
+    function getStructElementFromNode(node: TTreenode): TStructelement;
+    function getStructFromNode(node: TTreenode): TDissectedStruct;
+    function getChildStructFromNode(node: TTreenode): TDissectedStruct;
     function getMainStruct: TDissectedStruct;
     procedure onFullStructChange(sender: TDissectedStruct);   //called when a structure is changed (sort/add/remove entry)
     procedure onElementChange(struct:TDissectedStruct; element: TStructelement); //called when an element of a structure is changed
@@ -249,6 +263,11 @@ resourcestring
   rsUndefined = 'undefined';
 
 {Struct}
+
+function TStructelement.getParent: TDissectedStruct;
+begin
+  result:=fParent;
+end;
 
 function TStructelement.getOffset: integer;
 begin
@@ -398,7 +417,7 @@ end;
 
 constructor TStructelement.create(parent:TDissectedStruct);
 begin
-  self.parent:=parent;
+  fparent:=parent;
   fbytesize:=1;
 end;
 
@@ -457,7 +476,9 @@ begin
   begin
     for i:=0 to frmStructures2.Count-1 do
       TfrmStructures2(frmStructures2[i]).onFullStructChange(self);
-  end;
+  end
+  else
+    fullstructupdate:=true;
 end;
 
 procedure TDissectedStruct.DoElementChangeNotification(element: TStructelement);
@@ -482,6 +503,7 @@ begin
   inc(fUpdateCounter);
   updatecalledSort:=false;
   updateChangedInformation:=false;
+  fullstructupdate:=false;
 
   if updatedelements=nil then
     updatedelements:=TList.Create;
@@ -502,6 +524,12 @@ begin
       sortElements; //sort them now
       updatecalledSort:=false;
     end
+    else
+    if fullstructupdate then
+    begin
+      DoFullStructChangeNotification;
+      fullstructupdate:=false;
+    end
     else //no need to call the individual updates if sort was done.
     if updateChangedInformation then //not set for changing the offset, only for other visual stuff
     begin
@@ -511,6 +539,8 @@ begin
       updatedelements.clear;
       updateChangedInformation:=false;
     end;
+
+
   end;
 end;
 
@@ -697,9 +727,9 @@ begin
   clearSavedState;
   result:=false;
 
-  if parent.getMainStruct<>nil then
+  if parent.MainStruct<>nil then
   begin
-    fsavedstatesize:=parent.getMainStruct.getStructureSize;
+    fsavedstatesize:=parent.MainStruct.getStructureSize;
 
     if readprocessmemory(processhandle, pointer(faddress), buf, fsavedstatesize, x) then
       fsavedstate:=VirtualAllocEx(processhandle, nil, fsavedstatesize, MEM_COMMIT or MEM_RESERVE, PAGE_READWRITE);
@@ -901,6 +931,7 @@ end;
 
 
 
+
 procedure TfrmStructures2.FillTreenodeWithStructData(currentnode: TTreenode);
 var
   struct: TDissectedStruct;
@@ -977,7 +1008,6 @@ end;
 function TfrmStructures2.getMainStruct: TDissectedStruct;
 begin
   result:=mainStruct;
-
 end;
 
 procedure TfrmStructures2.InitializeFirstNode;
@@ -1069,57 +1099,170 @@ begin
   mainStruct.addToGlobalStructList;
 end;
 
-
-procedure TfrmStructures2.miAddElementClick(Sender: TObject);
-var
-  n: TTreenode;
-  struct: TDissectedStruct;
-
-
+function TfrmStructures2.getStructElementFromNode(node: TTreenode): TStructelement;
+var i: integer;
 begin
-  n:=tvStructureView.Selected;
-  if n=nil then    //if nothing is selected use the main structure
-    n:=tvStructureView.Items.GetFirstNode;
+  result:=nil;
+  if (node<>nil) and (node.level>0) then
+    result:=getStructFromNode(node)[node.index];
+end;
 
-  if n<>nil then
+function TfrmStructures2.getStructFromNode(node: TTreenode): TDissectedStruct;
+begin
+  result:=mainStruct;
+
+  if node<>nil then
+  begin
+    node:=node.parent;
+
+    if node<>nil then
+      result:=TDissectedStruct(node.data);
+  end;
+end;
+
+function TfrmStructures2.getChildStructFromNode(node: TTreenode): TDissectedStruct;
+begin
+  result:=nil;
+  if node=nil then exit;
+
+  result:=TDissectedStruct(node.data);
+end;
+
+procedure TfrmStructures2.changeNode(n: TTreenode);
+var
+  structelement: TStructElement;
+begin
+  structElement:=getStructElementFromNode(n);
+
+  if structElement<>nil then
+  begin
+    with tfrmstructures2ElementInfo.create(self) do
+    begin
+      //fill in basic info
+      description:=structelement.name;
+      offset:=structelement.offset;
+      vartype:=structelement.vartype;
+      bytesize:=structelement.bytesize;
+      childstruct:=structelement.childstruct;
+      hexadecimal:=structelement.displayMethod=dtHexadecimal;
+      signed:=structelement.displaymethod=dtSignedInteger;
+
+
+      if showmodal=mrok then
+      begin
+
+      end;
+
+      free;
+    end;
+  end;
+end;
+
+procedure TfrmStructures2.addFromNode(n: TTreenode; asChild: boolean=false);
+var
+  struct: TDissectedStruct;
+  structElement: TStructElement;
+begin
+  if asChild then
+    struct:=getChildStructFromNode(n)
+  else
+    struct:=getStructFromNode(n);  //find out what node this belongs to. (n can be nil, as that will return the mainstruct)
+
+  if struct<>nil then
   begin
     with tfrmstructures2ElementInfo.create(self) do
     begin
       //fill in some basic info
-      if n.parent=nil then
-      begin
-        //clicked on the main stuct element , set as initial offset the last offset
-        struct:=mainStruct;
-        offset:=struct.getStructureSize;
-      end
-      else
-      begin
-        //clicked on a node, find the offset and add it after that
-        struct:=TDissectedStruct(n.parent.data);
-        offset:=struct[n.Index].Offset+struct[n.Index].Bytesize;
-      end;
 
-      //show
+      if asChild then
+        structElement:=nil //adding as child from a rootnode
+      else
+        structElement:=getStructElementFromNode(n); //can return nil if no node was selected, or the mainnode was selected
+
+      if structelement=nil then
+        offset:=struct.getStructureSize
+      else         //clicked on a node, find the offset and add it after that
+        offset:=structElement.Offset+structElement.Bytesize;
+
+      //show the form to make modification
       if showmodal=mrok then
         struct.addElement(description, offset, vartype, bytesize, childstruct);
 
       free;
     end;
-
   end;
+
 end;
 
-procedure TfrmStructures2.Deleteelement1Click(Sender: TObject);
-var n: TTreenode;
-  struct: TDissectedStruct;
+procedure TfrmStructures2.miChangeElementClick(Sender: TObject);
 begin
-  n:=tvStructureView.Selected;
-  if (n<>nil) and (n.level>0) then
-  begin
-    struct:=TDissectedStruct(n.parent.data);
-    struct.delete(n.index);
-  end;
+  ChangeNode(tvStructureView.selected);
+end;
 
+
+procedure TfrmStructures2.miAddChildElementClick(Sender: TObject);
+begin
+  addFromNode(tvStructureView.selected, true);
+end;
+
+
+procedure TfrmStructures2.miAddElementClick(Sender: TObject);
+begin
+  addFromNode(tvStructureView.selected);
+end;
+
+procedure TfrmStructures2.miUpdateChildToFullPopup(Sender: TObject);
+var childstruct: TDissectedStruct;
+begin
+  ownerstruct:=getStructFromNode(tvStructureView.selected)
+  childstruct:=getChildStructFromNode(tvStructureView.selected)
+
+  miFullUpgrade.visible:=(childstruct<>nil) and (not childstruct.isInGlobalStructList);
+  miAddChildElement.visible:=(childstruct<>nil);
+  miDeleteElement.visible:=tvStructureView.Selected<>nil;
+  miChangeElement.visible:=getStructElementFromNode(tvStructureView.Selected);
+end;
+
+procedure TfrmStructures2.miDeleteElementClick(Sender: TObject);
+var elementlist: Tlist;
+  e: TStructelement;
+
+  struct: TDissectedStruct;
+  i: integer;
+begin
+
+  //fill the nodelist with all the selected entries that match the requirement: Same siblings only
+  struct:=nil;
+  elementlist:=tlist.create;
+  try
+    for i:=0 to tvStructureView.SelectionCount do
+    begin
+      e:=getStructElementFromNode(tvStructureView.Selections[i]);
+      if (e<>nil) and ((struct=nil) or (e.parent=struct))  then //the element can be null if it's the origin
+      begin
+        if struct=nil then
+          struct:=e.parent;
+
+        elementlist.add(e);
+      end;
+    end;
+
+    //now delete the entries in the list (if there are any)
+    if struct<>nil then
+    begin
+      struct.beginUpdate;
+      try
+        for i:=0 to elementlist.count-1 do
+          struct.removeElement(TStructelement(elementlist[i]));
+
+      finally
+        struct.endUpdate;
+      end;
+    end;
+
+  finally
+    elementlist.free;
+  end;
 end;
 
 procedure TfrmStructures2.addColumn;
@@ -1136,6 +1279,15 @@ procedure TfrmStructures2.Addextraaddress1Click(Sender: TObject);
 begin
   addColumn;
 end;
+
+procedure TfrmStructures2.miFullUpgradeClick(Sender: TObject);
+var struct: TDissectedStruct;
+begin
+  struct:=getChildStructFromNode(tvStructureView.Selected);
+  if struct<>nil then
+    struct.addToGlobalStructList;
+end;
+
 
 procedure TfrmStructures2.RefreshStructureList;
 var
