@@ -423,14 +423,15 @@ begin
       if (pos('E',x)=0) then  //no exponent
       begin
         //check if the value isn't bigger or smaller than 100000 or smaller than -100000
-        if (psingle(@buf[0])^<100000) and (psingle(@buf[0])^>-100000) then
+        if InRange(psingle(@buf[0])^, -100000.0, 100000.0) then
         begin
 
           if pos(DecimalSeparator,x)>0 then
             floathasseperator:=true;
 
           result:=vtSingle;
-          if not floathasseperator then exit;  //it's a full floating point value
+
+          if (length(x)<=4) or (not floathasseperator) then exit;  //it's a full floating point value or small enough to fit in 3 digits and a seperator (1.01, 1.1 ....)
         end;
       end;
     end;

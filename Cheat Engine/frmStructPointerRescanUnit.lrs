@@ -1,0 +1,36 @@
+{ This is an automatically generated lazarus resource file }
+
+LazarusResources.Add('TfrmStructPointerRescan','FORMDATA',[
+  'TPF0'#23'TfrmStructPointerRescan'#22'frmStructPointerRescan'#4'Left'#3']'#1#6
+  +'Height'#3'='#1#3'Top'#3#142#0#5'Width'#3#11#1#7'Caption'#6#6'Rescan'#12'Cli'
+  +'entHeight'#3'='#1#11'ClientWidth'#3#11#1#8'Position'#7#14'poScreenCenter'#10
+  +'LCLVersion'#6#6'0.9.31'#0#12'TRadioButton'#17'rbMustBeDifferent'#4'Left'#2#8
+  +#6'Height'#2#19#3'Top'#3#232#0#5'Width'#2'o'#7'Caption'#6#17'Must be differe'
+  +'nt'#7'Enabled'#8#8'TabOrder'#2#0#0#0#12'TRadioButton'#12'rbMustBeSame'#4'Le'
+  +'ft'#2#8#6'Height'#2#19#3'Top'#3#0#1#5'Width'#2'r'#7'Caption'#6#16'Must be t'
+  +'he same'#8'TabOrder'#2#1#0#0#7'TButton'#7'Button1'#4'Left'#2'8'#6'Height'#2
+  +#25#3'Top'#3' '#1#5'Width'#2'K'#7'Caption'#6#6'Rescan'#7'Default'#9#11'Modal'
+  +'Result'#2#1#8'TabOrder'#2#2#0#0#9'TCheckBox'#15'cbCaseSensitive'#4'Left'#2#8
+  +#6'Height'#2#19#3'Top'#3#136#0#5'Width'#2']'#7'Caption'#6#14'Case sensitive'
+  +#8'TabOrder'#2#3#0#0#9'TCheckBox'#13'cbMustBeStart'#4'Left'#2#8#6'Height'#2
+  +#19#3'Top'#3#152#0#5'Width'#3#202#0#7'Caption'#6'#Must start with the provid'
+  +'ed string'#8'TabOrder'#2#4#0#0#5'TEdit'#9'edtRegExp'#4'Left'#2#8#6'Height'#2
+  +#23#3'Top'#3#176#0#5'Width'#3#248#0#8'TabOrder'#2#5#0#0#12'TRadioButton'#14
+  +'rbDiffDontCare'#4'Left'#2#8#6'Height'#2#19#3'Top'#3#208#0#5'Width'#3#148#0#7
+  +'Caption'#6#25'Don''t care for difference'#7'Checked'#9#7'Enabled'#8#8'TabOr'
+  +'der'#2#6#7'TabStop'#9#0#0#7'TButton'#7'Button2'#4'Left'#3#136#0#6'Height'#2
+  +#25#3'Top'#3' '#1#5'Width'#2'K'#6'Cancel'#9#7'Caption'#6#6'Cancel'#11'ModalR'
+  +'esult'#2#2#8'TabOrder'#2#7#0#0#9'TCheckBox'#16'cbPointerInRange'#4'Left'#2#8
+  +#6'Height'#2#19#3'Top'#2'('#5'Width'#3#150#0#7'Caption'#6#24'Pointer must be'
+  +' in range'#8'OnChange'#7#22'cbPointerInRangeChange'#8'TabOrder'#2#8#0#0#5'T'
+  +'Edit'#15'edtPointerStart'#4'Left'#2#8#6'Height'#2#23#3'Top'#2'>'#5'Width'#3
+  +#155#0#7'Enabled'#8#8'TabOrder'#2#9#0#0#6'TLabel'#6'lblAnd'#4'Left'#2#9#6'He'
+  +'ight'#2#16#3'Top'#2'V'#5'Width'#2#21#7'Caption'#6#3'and'#7'Enabled'#8#11'Pa'
+  +'rentColor'#8#0#0#5'TEdit'#14'edtPointerStop'#4'Left'#2#8#6'Height'#2#23#3'T'
+  +'op'#2'f'#5'Width'#3#155#0#7'Enabled'#8#8'TabOrder'#2#10#0#0#9'TComboBox'#9
+  +'comboType'#4'Left'#2#8#6'Height'#2#23#3'Top'#2#8#5'Width'#3#155#0#10'ItemHe'
+  +'ight'#2#15#9'ItemIndex'#2#0#13'Items.Strings'#1#6#6'String'#6#6'1 Byte'#6#7
+  +'2 Bytes'#6#7'4 Bytes'#6#7'8 Bytes'#6#5'Float'#6#6'Double'#6#13'Pointer (hex'
+  +')'#0#8'OnChange'#7#15'comboTypeChange'#5'Style'#7#14'csDropDownList'#8'TabO'
+  +'rder'#2#11#4'Text'#6#6'String'#0#0#0
+]);

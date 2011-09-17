@@ -641,18 +641,6 @@ begin
       {$ifdef benchmarkps}
       inc(totalpathsevaluated);
       {$endif}
-     { if (not found) and (not staticonly) then
-      begin
-        //nothing was found, let's just say this is the final level and store it...
-
-        if level>0 then
-        begin
-          nostatic.moduleindex:=$FFFFFFFF;
-          nostatic.offset:=startvalue;
-          StorePath(level-1);
-        end;
-
-      end;}
       exit;
     end;
 

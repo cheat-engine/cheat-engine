@@ -55,7 +55,8 @@ uses
   LuaDebug, frmUltimapUnit, DBK64SecondaryLoader, frmHotkeyExUnit,
   SymbolListHandler, networkInterface, networkInterfaceApi, networkConfig,
   LuaThread, LuaGraphic, LuaProgressBar, d3dhookUnit, LuaD3DHook, LuaWinControl,
-  frmSetCrosshairUnit, StructuresFrm2, scrollTreeView;
+  frmSetCrosshairUnit, StructuresFrm2, scrollTreeView, 
+frmStructures2ElementInfoUnit;
 
 {$R cheatengine.res}
 {$R manifest.res}
@@ -130,6 +131,7 @@ begin
   InitializeLuaScripts;
 
   handleparameters;
+  Application.CreateForm(TfrmStructures2ElementInfo, frmStructures2ElementInfo);
   Application.Run;
 end.
 

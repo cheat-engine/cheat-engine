@@ -27,6 +27,7 @@ type
     procedure cbTypeChange(Sender: TObject);
     procedure edtByteSizeChange(Sender: TObject);
     procedure edtOffsetChange(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
   private
     { Private declarations }
@@ -79,6 +80,11 @@ procedure TfrmStructuresAddElement.edtOffsetChange(Sender: TObject);
 var x: integer;
 begin
   button1.Enabled:=TryStrToInt('$'+edtOffset.Text,x);
+end;
+
+procedure TfrmStructuresAddElement.FormCreate(Sender: TObject);
+begin
+
 end;
 
 procedure TfrmStructuresAddElement.FormShow(Sender: TObject);

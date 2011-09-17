@@ -88,6 +88,7 @@ type
     procedure sortElements;
     function addElement(name: string=''; offset: integer=0; vartype: TVariableType=vtByte; bytesize: integer=0; childstruct: TDissectedStruct=nil): TStructelement;
     procedure removeElement(element: TStructelement);
+    procedure delete(index: integer);
     procedure autoGuessStruct(baseaddress: ptruint; offset: integer; bytesize: integer);
     procedure addToGlobalStructList;
     procedure removeFromGlobalStructList;
@@ -109,6 +110,7 @@ type
     fsavedstatesize: integer;
     edtAddress: TEdit;
     columneditpopupmenu: TPopupMenu;
+    hsection: THeaderSection;
     procedure edtAddressChange(sender: TObject);
   public
     constructor create(parent: TfrmStructures2);
@@ -127,14 +129,20 @@ type
   end;
 
   TfrmStructures2 = class(TForm)
+    miAddElement: TMenuItem;
     Addextraaddress1: TMenuItem;
+    Addtoaddresslist1: TMenuItem;
     Autoguessoffsets1: TMenuItem;
+    ChangeElement1: TMenuItem;
     Commands1: TMenuItem;
     Definenewstructure1: TMenuItem;
     Deletecurrentstructure1: TMenuItem;
+    Deleteelement1: TMenuItem;
     File1: TMenuItem;
     HeaderControl1: THeaderControl;
     MainMenu1: TMainMenu;
+    Memorybrowsepointer1: TMenuItem;
+    Memorybrowsethisaddress1: TMenuItem;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
@@ -144,24 +152,31 @@ type
     miChangeColors: TMenuItem;
     miSaveToCT: TMenuItem;
     miUpdateInterval: TMenuItem;
+    miUpdateOffsets: TMenuItem;
     N1: TMenuItem;
+    N2: TMenuItem;
+    N3: TMenuItem;
     N7: TMenuItem;
     N8: TMenuItem;
     Newwindow1: TMenuItem;
     Open1: TMenuItem;
     pnlAddresses: TPanel;
+    structviewMenu: TPopupMenu;
+    Recalculateaddress1: TMenuItem;
     Renamestructure1: TMenuItem;
     Save1: TMenuItem;
     Structures1: TMenuItem;
     tvStructureView: TTreeView;
     procedure Addextraaddress1Click(Sender: TObject);
     procedure Definenewstructure1Click(Sender: TObject);
+    procedure Deleteelement1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure HeaderControl1SectionTrack(HeaderControl: TCustomHeaderControl;
       Section: THeaderSection; Width: Integer; State: TSectionTrackState);
+    procedure miAddElementClick(Sender: TObject);
     procedure tvStructureViewCollapsed(Sender: TObject; Node: TTreeNode);
     procedure tvStructureViewCollapsing(Sender: TObject; Node: TTreeNode;
       var AllowCollapse: Boolean);
@@ -227,7 +242,11 @@ implementation
 
 {$R *.lfm}
 
-uses Structuresfrm;
+uses frmStructures2ElementInfoUnit, Structuresfrm;
+
+resourcestring
+  rsAddressValue = 'Address: Value';
+  rsUndefined = 'undefined';
 
 {Struct}
 
@@ -517,6 +536,11 @@ begin
   DoFullStructChangeNotification;
 end;
 
+procedure TDissectedStruct.delete(index: integer);
+begin
+  removeElement(element[index]);
+end;
+
 procedure TDissectedStruct.autoGuessStruct(baseaddress: ptruint; offset: integer; bytesize: integer);
 var
   buf: pbytearray;
@@ -775,6 +799,11 @@ begin
   edtAddress.PopupMenu:=columneditpopupmenu;
   edtAddress.Parent:=parent.pnlAddresses;
 
+  hsection:=parent.headercontrol1.Sections.Add;
+  hsection.Text:=rsAddressValue;
+  hsection.Width:=200;
+  hsection.MinWidth:=20;
+
   SetProperEditboxPosition;
 end;
 
@@ -785,6 +814,9 @@ begin
     freeandnil(edtAddress);
 
   parent.columns.Remove(self);
+
+  parent.headercontrol1.Sections.Delete(hsection.Index);
+
 
   for i:=0 to parent.columns.Count-1 do
     TStructColumn( parent.columns.items[i]).SetProperEditboxPosition;
@@ -868,6 +900,7 @@ begin
 end;
 
 
+
 procedure TfrmStructures2.FillTreenodeWithStructData(currentnode: TTreenode);
 var
   struct: TDissectedStruct;
@@ -937,6 +970,7 @@ begin
   else
   begin
     //unknown pointer. Ask or autodefine a new one
+    showmessage('not yet implemented');
   end;
 end;
 
@@ -1033,6 +1067,59 @@ begin
   end;
 
   mainStruct.addToGlobalStructList;
+end;
+
+
+procedure TfrmStructures2.miAddElementClick(Sender: TObject);
+var
+  n: TTreenode;
+  struct: TDissectedStruct;
+
+
+begin
+  n:=tvStructureView.Selected;
+  if n=nil then    //if nothing is selected use the main structure
+    n:=tvStructureView.Items.GetFirstNode;
+
+  if n<>nil then
+  begin
+    with tfrmstructures2ElementInfo.create(self) do
+    begin
+      //fill in some basic info
+      if n.parent=nil then
+      begin
+        //clicked on the main stuct element , set as initial offset the last offset
+        struct:=mainStruct;
+        offset:=struct.getStructureSize;
+      end
+      else
+      begin
+        //clicked on a node, find the offset and add it after that
+        struct:=TDissectedStruct(n.parent.data);
+        offset:=struct[n.Index].Offset+struct[n.Index].Bytesize;
+      end;
+
+      //show
+      if showmodal=mrok then
+        struct.addElement(description, offset, vartype, bytesize, childstruct);
+
+      free;
+    end;
+
+  end;
+end;
+
+procedure TfrmStructures2.Deleteelement1Click(Sender: TObject);
+var n: TTreenode;
+  struct: TDissectedStruct;
+begin
+  n:=tvStructureView.Selected;
+  if (n<>nil) and (n.level>0) then
+  begin
+    struct:=TDissectedStruct(n.parent.data);
+    struct.delete(n.index);
+  end;
+
 end;
 
 procedure TfrmStructures2.addColumn;

@@ -259,8 +259,7 @@ object frmStructures: TfrmStructures
   end
   object PopupMenu2: TPopupMenu
     OnPopup = PopupMenu2Popup
-    left = 128
-    top = 8
+    left = 144
     object Undo1: TMenuItem
       Caption = '&Undo'
       ShortCut = 16474
