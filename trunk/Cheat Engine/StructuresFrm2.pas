@@ -1213,14 +1213,17 @@ end;
 
 procedure TfrmStructures2.miUpdateChildToFullPopup(Sender: TObject);
 var childstruct: TDissectedStruct;
+  ownerstruct: TDissectedStruct;
+  structelement: TStructelement;
 begin
   ownerstruct:=getStructFromNode(tvStructureView.selected);
   childstruct:=getChildStructFromNode(tvStructureView.selected);
+  structelement:=getStructElementFromNode(tvStructureView.Selected);
 
   miFullUpgrade.visible:=(childstruct<>nil) and (not childstruct.isInGlobalStructList);
   miAddChildElement.visible:=(childstruct<>nil);
   miDeleteElement.visible:=tvStructureView.Selected<>nil;
-  miChangeElement.visible:=getStructElementFromNode(tvStructureView.Selected);
+  miChangeElement.visible:=structElement<>nil;
 end;
 
 procedure TfrmStructures2.miDeleteElementClick(Sender: TObject);
