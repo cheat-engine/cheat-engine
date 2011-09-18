@@ -1214,8 +1214,8 @@ end;
 procedure TfrmStructures2.miUpdateChildToFullPopup(Sender: TObject);
 var childstruct: TDissectedStruct;
 begin
-  ownerstruct:=getStructFromNode(tvStructureView.selected)
-  childstruct:=getChildStructFromNode(tvStructureView.selected)
+  ownerstruct:=getStructFromNode(tvStructureView.selected);
+  childstruct:=getChildStructFromNode(tvStructureView.selected);
 
   miFullUpgrade.visible:=(childstruct<>nil) and (not childstruct.isInGlobalStructList);
   miAddChildElement.visible:=(childstruct<>nil);
