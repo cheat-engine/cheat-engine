@@ -167,7 +167,7 @@ type
     N3: TMenuItem;
     N7: TMenuItem;
     N8: TMenuItem;
-    Newwindow1: TMenuItem;
+    miNewWindow: TMenuItem;
     Open1: TMenuItem;
     pnlAddresses: TPanel;
     miUpdateChildToFull: TPopupMenu;
@@ -191,6 +191,7 @@ type
     procedure miAddChildElementClick(Sender: TObject);
     procedure miAddElementClick(Sender: TObject);
     procedure miUpdateChildToFullPopup(Sender: TObject);
+    procedure miNewWindowClick(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure tvStructureViewCollapsed(Sender: TObject; Node: TTreeNode);
     procedure tvStructureViewCollapsing(Sender: TObject; Node: TTreeNode;
@@ -202,6 +203,7 @@ type
     columns: Tlist;
 
 
+    procedure miSelectStructureClick(Sender: tobject);
     procedure InitializeFirstNode;
     procedure RefreshStructureList;
     procedure TreeViewHScroll(sender: TObject; scrolledleft, maxscrolledleft: integer);
@@ -920,6 +922,8 @@ begin
 
   frmStructures2.Add(self);
 
+  RefreshStructureList; //get the current structure list
+
   columns:=tlist.create;
 end;
 
@@ -1104,13 +1108,16 @@ begin
 end;
 
 procedure TfrmStructures2.InitializeFirstNode;
+//Clear the screen and setup the first node
 var tn: TTreenode;
 begin
-  if (tvStructureView.Items.Count=0) and (mainStruct<>nil) then
+  tvStructureView.Items.Clear;
+  if mainStruct<>nil then
   begin
     tn:=tvStructureView.Items.Add(nil, mainstruct.name);
     tn.Data:=mainStruct;
     tn.HasChildren:=true;
+    tn.Expand(false);
   end;
 end;
 
@@ -1121,8 +1128,20 @@ begin
   //update the childnode of the treenode with this struct to represent the new state
   if mainStruct<>nil then
   begin
-    InitializeFirstNode;
+
     currentNode:=tvStructureView.Items.GetFirstNode;
+    if currentnode=nil then
+    begin
+      InitializeFirstNode;
+      currentNode:=tvStructureView.Items.GetFirstNode;
+    end;
+
+    if currentnode<>nil then
+    begin
+      if currentnode.data=sender then
+        currentnode.text:=sender.name;
+    end;
+
 
     while currentnode<>nil do
     begin
@@ -1312,7 +1331,19 @@ begin
 
       //show the form to make modification
       if showmodal=mrok then
-        struct.addElement(description, offset, vartype, bytesize, childstruct);
+      begin
+        structElement:=struct.addElement(description, offset, vartype, bytesize, childstruct);
+        //set the selection to this entry
+        if not asChild then
+        begin
+          if (n=nil) or (n.level=0) then
+            n:=tvStructureView.Items.GetFirstNode
+          else
+            n:=n.parent;
+        end;
+
+        tvStructureView.Items.SelectOnlyThis(n.Items[structElement.Index]);
+      end;
 
       free;
     end;
@@ -1347,9 +1378,18 @@ begin
   structelement:=getStructElementFromNode(tvStructureView.Selected);
 
   miFullUpgrade.visible:=(childstruct<>nil) and (not childstruct.isInGlobalStructList);
+  miAddElement.visible:=(childstruct<>nil);
   miAddChildElement.visible:=(childstruct<>nil);
   miDeleteElement.visible:=tvStructureView.Selected<>nil;
   miChangeElement.visible:=structElement<>nil;
+
+
+end;
+
+procedure TfrmStructures2.miNewWindowClick(Sender: TObject);
+begin
+  with tfrmstructures2.create(application) do
+    show;
 end;
 
 procedure TfrmStructures2.Timer1Timer(Sender: TObject);
@@ -1364,7 +1404,15 @@ var elementlist: Tlist;
 
   struct: TDissectedStruct;
   i: integer;
+
+  originalindex: integer;
 begin
+  //save the old selection pos
+  if tvStructureView.Selected<>nil then
+    originalindex:=tvStructureView.Selected.AbsoluteIndex
+  else
+    originalindex:=-1;
+
 
   //fill the nodelist with all the selected entries that match the requirement: Same siblings only
   struct:=nil;
@@ -1398,6 +1446,11 @@ begin
   finally
     elementlist.free;
   end;
+
+  //restore the selection pos
+  if originalindex>=0 then
+    tvStructureView.Items.SelectOnlyThis(tvStructureView.Items[min(tvStructureView.items.count-1, originalindex)]);
+
 end;
 
 procedure TfrmStructures2.addColumn;
@@ -1425,6 +1478,12 @@ begin
     struct.addToGlobalStructList;
 end;
 
+procedure TfrmStructures2.miSelectStructureClick(Sender: tobject);
+//a structure has been selected from the menu. Handle it
+begin
+  mainStruct:=TdissectedStruct(TmenuItem(sender).Tag);
+  InitializeFirstNode;
+end;
 
 procedure TfrmStructures2.RefreshStructureList;
 var
@@ -1440,6 +1499,8 @@ begin
     s:=TDissectedStruct(DissectedStructs[i]).structname;
     mi:=tmenuitem.Create(Structures1);
     mi.Caption:=s;
+    mi.OnClick:=miSelectStructureClick;
+    mi.Tag:=ptruint(DissectedStructs[i]);
     Structures1.Add(mi);
   end;
 end;

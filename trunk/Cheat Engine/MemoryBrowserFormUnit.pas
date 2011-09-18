@@ -938,7 +938,7 @@ begin
   else
   begin
     //create it
-    with tfrmstructures2.create(self) do
+    with tfrmstructures2.create(application) do
     begin
       initialaddress:=memoryaddress;
       show;
