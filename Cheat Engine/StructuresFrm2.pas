@@ -234,6 +234,7 @@ type
     procedure addColumn;
     procedure removeColumn(columnid: integer);
     procedure FillTreenodeWithStructData(currentnode: TTreenode);
+    procedure setupNodeWithElement(node: TTreenode; element: TStructElement);
   public
     { public declarations }
     initialaddress: integer;
@@ -276,8 +277,11 @@ end;
 
 procedure TStructelement.setOffset(newOffset: integer);
 begin
-  fOffset:=newOffset;
-  parent.sortElements;
+  if newOffset<>fOffset then
+  begin
+    fOffset:=newOffset;
+    parent.sortElements;
+  end;
 end;
 
 function TStructelement.getName: string;
@@ -287,8 +291,11 @@ end;
 
 procedure TStructelement.setName(newname: string);
 begin
-  fname:=newname;
-  parent.DoElementChangeNotification(Self);
+  if newname<>fname then
+  begin
+    fname:=newname;
+    parent.DoElementChangeNotification(Self);
+  end;
 end;
 
 function TStructelement.getVartype: TVariableType;
@@ -298,8 +305,11 @@ end;
 
 procedure TStructelement.setVartype(newVartype: TVariableType);
 begin
-  fVartype:=newVartype;
-  parent.DoElementChangeNotification(self);
+  if newVartype<>fVartype then
+  begin
+    fVartype:=newVartype;
+    parent.DoElementChangeNotification(self);
+  end;
 end;
 
 function TStructelement.getDisplayMethod: TdisplayMethod;
@@ -309,7 +319,9 @@ end;
 
 procedure TStructelement.setDisplayMethod(newDisplayMethod: TdisplayMethod);
 begin
-  fDisplayMethod:=newDisplayMethod;
+  if newDisplayMethod<>fDisplayMethod then
+    fDisplayMethod:=newDisplayMethod;
+
   parent.DoElementChangeNotification(self);
 end;
 
@@ -336,8 +348,11 @@ end;
 
 procedure TStructelement.setBytesize(newByteSize: integer);
 begin
-  fbytesize:=max(1,newByteSize); //at least 1 byte
-  parent.DoElementChangeNotification(self);
+  if newByteSize<>fbytesize then
+  begin
+    fbytesize:=max(1,newByteSize); //at least 1 byte
+    parent.DoElementChangeNotification(self);
+  end;
 end;
 
 function TStructelement.getValue(address: ptruint): string;
@@ -929,8 +944,17 @@ begin
 
 end;
 
+procedure TfrmStructures2.setupNodeWithElement(node: TTreenode; element: TStructElement);
+begin
+  node.Text:=inttohex(element.Offset,4)+' - '+element.Name;
 
+  if (element.isPointer) then
+  begin
+    node.Data:=element.ChildStruct;
+    node.HasChildren:=true;
+  end;
 
+end;
 
 procedure TfrmStructures2.FillTreenodeWithStructData(currentnode: TTreenode);
 var
@@ -946,13 +970,8 @@ begin
 
   for i:=0 to struct.count-1 do
   begin
-    newnode:=tvStructureView.Items.AddChild(currentnode,inttohex(struct[i].Offset,4)+' - '+struct[i].Name);
-
-    if (struct[i].isPointer) then
-    begin
-      newnode.Data:=struct[i].ChildStruct;
-      newnode.HasChildren:=true;
-    end;
+    newnode:=tvStructureView.Items.AddChild(currentnode,'');
+    setupNodeWithElement(newnode, struct[i]);
   end;
 
   currentnode.Expand(false);
@@ -1064,8 +1083,23 @@ begin
 end;
 
 procedure TfrmStructures2.onElementChange(struct:TDissectedStruct; element: TStructelement);
+var i: integer;
+    n: Ttreenode;
 begin
   //find the treenodes that belong to this specific element and change them accordingly
+  for i:=0 to tvStructureView.Items.Count-1 do
+    if tvStructureView.Items[i].Data=struct then //this node contains the element
+    begin
+      if tvStructureView.Items[i].Expanded then
+      begin
+        //it's expanded so visible. Find the specific node and apply a update
+        n:=tvStructureView.Items[i].Items[element.index];
+
+        setupNodeWithElement(n, element);
+      end;
+    end;
+
+
 
 end;
 
@@ -1150,7 +1184,24 @@ begin
 
       if showmodal=mrok then
       begin
+        structElement.parent.beginUpdate;
+        try
+          structElement.name:=description;
+          structElement.offset:=offset;
+          structElement.vartype:=vartype;
+          structElement.bytesize:=bytesize;
+          structElement.childstruct:=childstruct;
+          if hexadecimal then
+            structelement.displayMethod:=dtHexadecimal
+          else
+          if signed then
+            structelement.displayMethod:=dtSignedInteger
+          else
+            structelement.displayMethod:=dtUnsignedInteger;
 
+        finally
+          structElement.parent.endupdate;
+        end;
       end;
 
       free;
