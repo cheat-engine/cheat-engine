@@ -305,15 +305,14 @@ var
   workercount: integer;
   i: integer;
 begin
+
   {$ifdef cpu32}
   if Is64bitOS then raise exception.create('Please run the 64-bit version of Cheat Engine to make use of this feature');
   {$endif}
 
   TotalBranches:=0;
 
-  LoadDBK32;
-
-
+  loaddbvmifneeded;
 
 
   GetCR3(processhandle, target_cr3);
