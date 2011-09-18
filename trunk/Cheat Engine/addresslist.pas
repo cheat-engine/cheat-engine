@@ -717,13 +717,12 @@ end;
 
 procedure TAddresslist.addressdblclick(node: TTreenode);
 begin
-
+  if TMemoryRecord(node.data).isGroupHeader then exit;
 
   with TFormaddresschange.Create(self) do
   begin
     memoryrecord:=TMemoryRecord(node.data);
     showmodal;
-
     free;
 
     memoryrecord.ReinterpretAddress;
@@ -742,6 +741,9 @@ begin
   TypeForm.RefreshCustomTypes;
 
   memrec:=TMemoryRecord(node.data);
+
+  if memrec.isGroupHeader then exit;
+
   OldType:=memrec.Vartype;
 
 
