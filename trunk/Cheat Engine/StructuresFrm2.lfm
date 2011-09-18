@@ -2,10 +2,10 @@ object frmStructures2: TfrmStructures2
   Left = 878
   Height = 376
   Top = 284
-  Width = 606
+  Width = 540
   Caption = 'Structure dissect'
   ClientHeight = 356
-  ClientWidth = 606
+  ClientWidth = 540
   Menu = MainMenu1
   OnClose = FormClose
   OnCreate = FormCreate
@@ -16,7 +16,7 @@ object frmStructures2: TfrmStructures2
     Left = 0
     Height = 292
     Top = 64
-    Width = 606
+    Width = 540
     Align = alBottom
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderStyle = bsNone
@@ -43,7 +43,7 @@ object frmStructures2: TfrmStructures2
     Left = 0
     Height = 41
     Top = 0
-    Width = 606
+    Width = 540
     Align = alTop
     BevelOuter = bvNone
     BorderStyle = bsSingle
@@ -53,7 +53,7 @@ object frmStructures2: TfrmStructures2
     Left = 0
     Height = 21
     Top = 40
-    Width = 606
+    Width = 540
     DragReorder = False
     Sections = <    
       item
@@ -207,5 +207,11 @@ object frmStructures2: TfrmStructures2
       Caption = 'Update this and following offsets'
       ShortCut = 16469
     end
+  end
+  object Timer1: TTimer
+    Interval = 500
+    OnTimer = Timer1Timer
+    left = 264
+    top = 80
   end
 end
