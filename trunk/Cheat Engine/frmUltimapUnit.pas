@@ -328,7 +328,7 @@ begin
     raise exception.create('The maximum number of workers is 64');
 
 
-  setlength(workers, workercount);
+
 
   branchtree:=TAvgLvlTree.CreateObjectCompare(branchcompare);
   branchtreeCS:=TCriticalSection.Create;
@@ -337,6 +337,7 @@ begin
 
   if ultimap(target_cr3, (1 shl 6) or (1 shl 7) or (1 shl 9) or (1 shl 8), bufsize, false, pwidechar(filename), workercount) then
   begin
+    setlength(workers, workercount);
     for i:=0 to workercount-1 do
     begin
       workers[i]:=TUltimap_DataHandlerThread.Create(true);
