@@ -74,6 +74,8 @@ type
     updateChangedInformation: boolean;
     updatedelements: Tlist;
 
+
+
     function isUpdating: boolean;
     function getStructureSize: integer;
     procedure DoFullStructChangeNotification;
@@ -115,11 +117,12 @@ type
     columneditpopupmenu: TPopupMenu;
     hsection: THeaderSection;
     procedure edtAddressChange(sender: TObject);
+    function getAddress: ptruint;
+    procedure setAddress(address: ptruint);
   public
     constructor create(parent: TfrmStructures2);
     destructor destroy; override;
-    function getAddress: ptruint;
-    procedure setAddress(address: ptruint);
+
     procedure clearSavedState;
     function saveState: boolean;
     function getSavedState: pointer;
@@ -129,6 +132,7 @@ type
     procedure SetProperEditboxPosition;
     property EditWidth: integer read getEditwidth;
     property EditLeft: integer read getEditleft;
+    property Address: ptruint read getAddress write setAddress;
   end;
 
   TfrmStructures2 = class(TForm)
@@ -171,6 +175,7 @@ type
     Renamestructure1: TMenuItem;
     Save1: TMenuItem;
     Structures1: TMenuItem;
+    Timer1: TTimer;
     tvStructureView: TTreeView;
     procedure Addextraaddress1Click(Sender: TObject);
     procedure miFullUpgradeClick(Sender: TObject);
@@ -186,6 +191,7 @@ type
     procedure miAddChildElementClick(Sender: TObject);
     procedure miAddElementClick(Sender: TObject);
     procedure miUpdateChildToFullPopup(Sender: TObject);
+    procedure Timer1Timer(Sender: TObject);
     procedure tvStructureViewCollapsed(Sender: TObject; Node: TTreeNode);
     procedure tvStructureViewCollapsing(Sender: TObject; Node: TTreeNode;
       var AllowCollapse: Boolean);
@@ -196,45 +202,16 @@ type
     columns: Tlist;
 
 
-
-//    procedure createNewStructure(name: string; baseAddress: ptruint);
-
-    {
-    frmstructures
-    =============
-    -mainStruct: DissectedStruct
-    -columns: list of Column
-    -treeview.treenodes
-    -------------
-    -getStructElementFromTreenode(treenode): DissectedStruct
-    -structchangedevent(DissectedStruct) :
-      Called whenever anything changed in the struct
-      Go through the list of treenodes and find nodes that has as treenode.data the struct.
-      Go through all the children and make changes where necesary. If treenode.data is not correct. Delete all children
-      Remember the current scroll position
-
-
-    +getColumnCount()
-    +getColumn(index)
-    +addColumn()
-    +removeColumn(columnid)
-    +getMainStruct(): struct
-    +createChildStruct(ownerstruct, index, address)
-    +getStructAtIndex(index): DissectedStruct;
-    +getName(index): string
-    +setName(index, string)
-    +getType(index)
-    +setType(index, vartype, size OPT, pointerto OPT)
-    +getValue(index, columnid): string
-    +getStructElement(index)
-    }
     procedure InitializeFirstNode;
     procedure RefreshStructureList;
     procedure TreeViewHScroll(sender: TObject; scrolledleft, maxscrolledleft: integer);
+    procedure TreeViewVScroll(sender: TObject);
     procedure addColumn;
     procedure removeColumn(columnid: integer);
     procedure FillTreenodeWithStructData(currentnode: TTreenode);
     procedure setupNodeWithElement(node: TTreenode; element: TStructElement);
+    procedure setNodeValues(node: TTreenode; element: TStructElement); //sets the values for the current nodes
+    procedure RefreshVisibleNodes;
   public
     { public declarations }
     initialaddress: integer;
@@ -257,11 +234,57 @@ implementation
 
 {$R *.lfm}
 
-uses frmStructures2ElementInfoUnit, Structuresfrm;
+uses frmStructures2ElementInfoUnit;
 
 resourcestring
   rsAddressValue = 'Address: Value';
   rsUndefined = 'undefined';
+
+  rsThisIsQuiteABigStructureHowManyBytesDoYouWantToSav = 'This is quite a big '
+     +'structure. How many bytes do you want to save?';
+   rsStructureViewLock = 'Structure view lock';
+   rsPointerTo = 'Pointer';
+   rsUnnamedStructure = 'unnamed structure';
+   rsStructureDefine = 'Structure define';
+   rsGiveTheNameForThisStructure = 'Give the name for this structure';
+   rsDoYouWantCheatEngineToTryAndFillInTheMostBasicType = 'Do you want Cheat '
+     +'Engine to try and fill in the most basic types of the struct using the '
+     +'current address?';
+   rsPleaseGiveAStartingSizeOfTheStructYouCanChangeThis = 'Please give a '
+     +'starting size of the struct (You can change this later if needed)';
+
+   rsMemoryDissect = 'Memory dissect';
+   rsFirstSelectAStructureYouWantToModifyOrDefine = 'First select a structure '
+     +'you want to modify or define one first';
+   rsUpdateInterval = 'Update interval';
+   rsNewInterval = 'New interval';
+   rsDissectData = 'Dissect Data';
+   rsHowManyBytesDoYouWantToShiftThisAndFollowingOffset = 'How many bytes do '
+     +'you want to shift this and following offsets?';
+   rsAreYouSureYouWantToDelete = 'Are you sure you want to delete %s?';
+   rsThisIsNotAValidStructureFile = 'This is not a valid structure file';
+   rsWrongVersion = 'This structure fils was generated with a newer version of '
+     +'Cheat Engine. (That means there''s more than likely a new version so '
+     +'please update....)';
+   rsUnkownFileExtension = 'Unkown file extension';
+   rsAreYouSureYouWantToRemoveAllStructures = 'Are you sure you want to remove '
+     +'all structures?';
+   rsRecalculateBaseOfStructure = 'Recalculate base of structure';
+   rsGiveTheAddressOfThisElement = 'Give the address of this element';
+   rsIHaveNoIdeaWhatMeans = 'I have no idea what %s means';
+   rsChangeGroup = 'Change group';
+   rsLockMemory = 'Lock memory';
+   rsUnlockMemory = 'Unlock memory';
+   rsRenameStructure = 'Rename structure';
+   rsGiveTheNewNameOfThisStructure = 'Give the new name of this structure';
+   rsPleaseGiveAStartingOffsetToEvaluate = 'Please give a starting offset to '
+     +'evaluate';
+   rsPleaseGiveTheSizeOfTheBlockToEvaluate = 'Please give the size of the '
+     +'block to evaluate';
+   rsStructureDefiner = 'Structure definer';
+   rsWhichGroupDoYouWantToSetThisAddressTo = 'Which group do you want to set '
+     +'this address to?';
+   rsAutogeneratedFor = 'Autogenerated for %s';
 
 {Struct}
 
@@ -359,6 +382,8 @@ function TStructelement.getValue(address: ptruint): string;
 var vt: TVariableType;
   ashex: boolean;
 begin
+
+
   if vartype=vtPointer then
   begin
     ashex:=true;
@@ -370,6 +395,7 @@ begin
   end
   else
   begin
+    result:='';
     vt:=vartype;
     ashex:=displaymethod=dtHexadecimal;
   end;
@@ -870,6 +896,12 @@ begin
 end;
 
 { TfrmStructures2 }
+
+procedure TfrmStructures2.TreeViewVScroll(sender: TObject);
+begin
+  RefreshVisibleNodes;
+end;
+
 procedure TfrmStructures2.TreeViewHScroll(sender: TObject; scrolledleft, maxscrolledleft: integer);
 begin
   HeaderControl1.Left:=-scrolledleft;
@@ -884,6 +916,7 @@ begin
   tvStructureView.height:=clientheight-tvStructureView.Top;
 
   tvStructureView.onHScroll:=TreeViewHScroll;
+  tvStructureView.onVScroll:=TreeViewVScroll;
 
   frmStructures2.Add(self);
 
@@ -921,8 +954,12 @@ procedure TfrmStructures2.HeaderControl1SectionTrack(
   State: TSectionTrackState);
 var x: integer;
     s: string;
+
 begin
-  tvStructureView.refresh;
+
+  x:=(HeaderControl1.Sections[HeaderControl1.Sections.Count-1].Left+HeaderControl1.Sections[HeaderControl1.Sections.Count-1].Width);
+  tvStructureView.ClientWidth:=x;
+
 
   if tvStructureView.Items.Count>0 then
   begin
@@ -930,29 +967,66 @@ begin
     if mainStruct<>nil then
     begin
       s:=mainStruct.structname+#13;
-      x:=(HeaderControl1.Sections[HeaderControl1.Sections.Count-1].Left+HeaderControl1.Sections[HeaderControl1.Sections.Count-1].Width);
 
       while tvStructureView.Canvas.TextWidth(s)<x do
         s:=s+'PADDING';
 
       tvStructureView.items[0].Text:=s;
-
-      // tvStructureView.Resize;
     end;
 
   end;
 
 end;
 
+procedure TfrmStructures2.RefreshVisibleNodes;
+var
+  i: integer;
+  start: integer;
+  stop: integer;
+
+  top: TTreenode;
+  Bottom: TTreenode;
+  e: Tstructelement;
+begin
+  top:=tvStructureView.TopItem;
+  bottom:=tvStructureView.BottomItem;
+
+  if (top=nil) or (bottom=nil) then exit; //empty list or bug
+
+  start:=top.AbsoluteIndex;
+  stop:=bottom.AbsoluteIndex;
+
+  tvStructureView.BeginUpdate;
+  for i:=start to stop do
+  begin
+    e:=getStructElementFromNode(tvStructureView.items[i]);
+    if e<>nil then
+      setNodeValues(tvStructureView.items[i],e);
+  end;
+  tvStructureView.EndUpdate;
+end;
+
+procedure TfrmStructures2.setNodeValues(node: TTreenode; element: TStructElement);
+var values: string;
+    i: integer;
+begin
+  values:=inttohex(element.Offset,4)+' - '+element.Name;
+  for i:=0 to columns.count-1 do
+    values:=values+#13+element.getValueFromBase(TStructColumn(columns[i]).address);
+
+  node.Text:=values;
+
+end;
+
 procedure TfrmStructures2.setupNodeWithElement(node: TTreenode; element: TStructElement);
 begin
-  node.Text:=inttohex(element.Offset,4)+' - '+element.Name;
-
+  setNodeValues(node, element);
   if (element.isPointer) then
   begin
     node.Data:=element.ChildStruct;
     node.HasChildren:=true;
   end;
+
 
 end;
 
@@ -1133,6 +1207,7 @@ begin
   mainStruct.addToGlobalStructList;
 end;
 
+
 function TfrmStructures2.getStructElementFromNode(node: TTreenode): TStructelement;
 var i: integer;
 begin
@@ -1277,6 +1352,12 @@ begin
   miChangeElement.visible:=structElement<>nil;
 end;
 
+procedure TfrmStructures2.Timer1Timer(Sender: TObject);
+begin
+  //refresh the visible nodes
+  RefreshVisibleNodes;
+end;
+
 procedure TfrmStructures2.miDeleteElementClick(Sender: TObject);
 var elementlist: Tlist;
   e: TStructelement;
@@ -1322,11 +1403,13 @@ end;
 procedure TfrmStructures2.addColumn;
 begin
   TStructColumn.create(self);
+  RefreshVisibleNodes;
 end;
 
 procedure TfrmStructures2.removeColumn(columnid: integer);
 begin
   columns.Delete(columnid);
+  RefreshVisibleNodes;
 end;
 
 procedure TfrmStructures2.Addextraaddress1Click(Sender: TObject);

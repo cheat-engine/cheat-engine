@@ -19,12 +19,15 @@ type
   TTreeView = class(TCustomTreeView)
   private
     fOnHScroll: THScrollEvent;
+    fOnVScroll: TNotifyEvent;
   public
     procedure WMHScroll(var Msg: TLMScroll); message LM_HSCROLL;
+    procedure WMVScroll(var Msg: TLMScroll); message LM_VSCROLL;
 
    // procedure resize;
   published
     property onHScroll: THScrollEvent read fOnHScroll write fOnHScroll;
+    property onVScroll: TNotifyEvent read fOnVScroll write fOnVScroll;
     property Align;
     property Anchors;
     property AutoExpand;
@@ -118,6 +121,14 @@ type
   end;
 
 implementation
+
+procedure TTreeview.WMVScroll(var Msg: TLMScroll);
+begin
+  inherited WMVScroll(msg);
+
+  if assigned(fOnVScroll) then
+    fOnVScroll(self);
+end;
 
 procedure TTreeview.WMHScroll(var Msg: TLMScroll);
 begin
