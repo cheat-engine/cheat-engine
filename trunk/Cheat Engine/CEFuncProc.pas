@@ -60,6 +60,8 @@ end;
 type TBitAddressArray=array [0..0] of TBitAddress;
 type PBitAddressArray=^TBitAddressArray;
 
+type ToffsetList=array of dword;
+
 type TProcessListInfo=record
   processID: dword;
   processIcon: HICON;
@@ -702,7 +704,7 @@ resourcestring
   rsExecute = 'Execute';
   rsPrintScreen = 'Print Screen';
   rsInsert = 'Insert';
-  rsDelete = 'Delete';
+  rsDeleteKey = 'Delete '; //added a space so the translator will leave it alone for th delete line
   rsHelp = 'Help';
   rsLeftWindowsKey = 'Left Windows key';
   rsRightWindowsKey = 'Right Windows key';
@@ -850,7 +852,7 @@ begin
         VK_EXECUTE	: newstr:=rsExecute;
         VK_SNAPSHOT	: newstr:=rsPrintScreen;
         VK_INSERT	: newstr:=rsInsert;
-        VK_DELETE	: newstr:=rsDelete;
+        VK_DELETE	: newstr:=rsDeleteKey;
         VK_HELP	: newstr:=rsHelp;
         VK_LWIN	: newstr:=rsLeftWindowsKey;
         VK_RWIN	: newstr:=rsRightWindowsKey;
@@ -1525,7 +1527,7 @@ begin
     VK_EXECUTE	: result:=rsExecute;
     VK_SNAPSHOT	: result:=rsPrintScreen;
     VK_INSERT	: result:=rsInsert;
-    VK_DELETE	: result:=rsDelete;
+    VK_DELETE	: result:=rsDeleteKey;
     VK_HELP	: result:=rsHelp;
     VK_LWIN	: result:=rsLeftWindowsKey;
     VK_RWIN	: result:=rsRightWindowsKey;
