@@ -1,7 +1,7 @@
 object frmdissectWindow: TfrmdissectWindow
-  Left = 372
+  Left = 387
   Height = 296
-  Top = 359
+  Top = 356
   Width = 303
   Caption = 'Dissect Windows'
   ClientHeight = 296
@@ -18,7 +18,7 @@ object frmdissectWindow: TfrmdissectWindow
     Top = 0
     Width = 303
     Align = alClient
-    DefaultItemHeight = 15
+    DefaultItemHeight = 16
     HideSelection = False
     Indent = 19
     ReadOnly = True

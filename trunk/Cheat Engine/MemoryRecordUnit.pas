@@ -1656,26 +1656,13 @@ begin
 
   if length(pointeroffsets)>0 then //it's a pointer
   begin
-
-
-    //find what writes to the address pointer at by this pointer
-    realaddress2:=BaseAddress;
-    for i:=length(pointeroffsets)-1 downto 0 do
+    //find the address this pointer points to
+    result:=getPointerAddress(BaseAddress, pointeroffsets, UnreadablePointer);
+    if UnreadablePointer then
     begin
-      realaddress:=0;
-      check:=readprocessmemory(processhandle,pointer(realaddress2),@realaddress,processhandler.pointersize,count);
-      if check and (count=processhandler.pointersize) then
-        realaddress2:=realaddress+pointeroffsets[i]
-      else
-      begin
-        result:=0;
-        UnreadablePointer:=true;
-        realAddress:=0;
-        exit;
-      end;
+      realAddress:=0;
+      result:=0;
     end;
-    UnreadablePointer:=false;
-    Result:=realaddress2;
   end
   else
     result:=BaseAddress; //not a pointer

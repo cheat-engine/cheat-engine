@@ -37,6 +37,7 @@ object frmStructures2: TfrmStructures2
     OnCollapsed = tvStructureViewCollapsed
     OnCollapsing = tvStructureViewCollapsing
     OnExpanded = tvStructureViewExpanded
+    OnExpanding = tvStructureViewExpanding
     Options = [tvoAllowMultiselect, tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoToolTips]
   end
   object pnlAddresses: TPanel
@@ -67,7 +68,7 @@ object frmStructures2: TfrmStructures2
     Anchors = [akTop, akLeft, akRight]
   end
   object MainMenu1: TMainMenu
-    left = 24
+    left = 32
     object File1: TMenuItem
       Caption = 'File'
       object miNewWindow: TMenuItem
@@ -109,6 +110,12 @@ object frmStructures2: TfrmStructures2
       object miUpdateInterval: TMenuItem
         Caption = 'Update interval: 500'
       end
+      object miShowAddresses: TMenuItem
+        AutoCheck = True
+        Caption = 'Show Addresses'
+        Checked = True
+        OnClick = miShowAddressesClick
+      end
     end
     object Structures1: TMenuItem
       Caption = 'Structures'
@@ -121,34 +128,38 @@ object frmStructures2: TfrmStructures2
         Caption = '-'
       end
     end
-    object Commands1: TMenuItem
+    object miCommands: TMenuItem
       Caption = 'Options'
       Enabled = False
       object Renamestructure1: TMenuItem
         Caption = 'Rename structure'
+        OnClick = Renamestructure1Click
       end
       object Deletecurrentstructure1: TMenuItem
         Caption = 'Delete structure'
+        OnClick = Deletecurrentstructure1Click
       end
-      object Autoguessoffsets1: TMenuItem
+      object miAutoGuess: TMenuItem
         Caption = 'Automatically guess offset types'
+        OnClick = miAutoGuessClick
       end
       object MenuItem4: TMenuItem
         Caption = '-'
       end
-      object miSaveToCT: TMenuItem
-        AutoCheck = True
-        Caption = 'Save this structure in CT'
-        Checked = True
-        Visible = False
-      end
       object miAutoCreate: TMenuItem
         AutoCheck = True
-        Caption = 'Autocreate structures from undefined pointer types'
+        Caption = 'Autocreate local structures from undefined pointer types'
+        Checked = True
       end
       object miAutostructsize: TMenuItem
         Tag = 4096
         Caption = 'Autocreate structure size: 4096'
+        OnClick = miAutostructsizeClick
+      end
+      object miDoNotSaveLocal: TMenuItem
+        AutoCheck = True
+        Caption = 'Do not save autocreated local structures'
+        OnClick = miDoNotSaveLocalClick
       end
     end
   end
