@@ -30,6 +30,7 @@ type
     procedure cbHexadecimalChange(Sender: TObject);
     procedure cbSignedChange(Sender: TObject);
     procedure cbTypeChange(Sender: TObject);
+    procedure edtByteSizeChange(Sender: TObject);
     procedure edtOffsetChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
   private
@@ -134,6 +135,10 @@ begin
     vtByteArray: cbType.ItemIndex:=8;
     vtPointer: cbType.ItemIndex:=9;
   end;
+
+  label2.enabled:=vt in [vtString, vtUnicodeString, vtByteArray];
+  edtByteSize.enabled:=label2.enabled;
+
 end;
 
 function TfrmStructures2ElementInfo.getVariableType: TVariableType;
@@ -218,6 +223,16 @@ begin
   label5.Enabled:=cbtype.itemindex=9;
   cbStructType.enabled:=cbtype.itemindex=9;
 
+end;
+
+procedure TfrmStructures2ElementInfo.edtByteSizeChange(Sender: TObject);
+begin
+  try
+    fbytesize:=StrToInt('$'+edtByteSize.text);
+    edtByteSize.Font.color:=clWindowText;
+  except
+    edtByteSize.Font.color:=clRed;
+  end;
 end;
 
 procedure TfrmStructures2ElementInfo.cbHexadecimalChange(Sender: TObject);

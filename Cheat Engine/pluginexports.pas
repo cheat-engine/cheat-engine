@@ -462,7 +462,7 @@ begin
 end;
 
 function ce_getaddressfrompointer(baseaddress: ptrUint; offsetcount: integer; offsets: PDwordArray):dword; stdcall;
-var a: ptrUint;
+var a,b: ptrUint;
     x: dword;
     i: integer;
 begin
@@ -471,7 +471,9 @@ begin
   i:=0;
   while (i<offsetcount) do
   begin
-    if not readprocessmemory(processhandle,pointer(a),@a,4,x) then exit;
+    b:=0;
+    if not readprocessmemory(processhandle,pointer(a),@b,processhandler.pointersize,x) then exit;
+    a:=b;
 
     inc(a,offsets[i]);
     inc(i);

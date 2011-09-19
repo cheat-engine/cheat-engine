@@ -169,6 +169,9 @@ function heapflagstostring(heapflags: dword): string;
 function allocationtypetostring(alloctype: dword): string;
 function allocationprotecttostring(protect: dword): string;
 function freetypetostring(freetype: dword):string;
+
+function getPointerAddress(address: ptruint; const offsets: array of dword; var hasError: boolean): ptruint;
+
 function isAddress(address: ptrUint):boolean;
 function isExecutableAddress(address: ptrUint):boolean;
 function MinX(a, b: ptrUint): ptrUint;inline; overload; //fpc2.4.1 has no support for unsigned
@@ -3483,7 +3486,30 @@ begin
   end;
 end;
 
+function getPointerAddress(address: ptruint; const offsets: array of dword; var hasError: boolean): ptruint;
+var realaddress, realaddress2: PtrUInt;
+    count: dword;
+    check: boolean;
+    i: integer;
+begin
+  realaddress2:=address;
+  for i:=length(offsets)-1 downto 0 do
+  begin
+    realaddress:=0;
+    check:=readprocessmemory(processhandle,pointer(realaddress2),@realaddress,processhandler.pointersize,count);
+    if check and (count=processhandler.pointersize) then
+      realaddress2:=realaddress+offsets[i]
+    else
+    begin
+      result:=0;
 
+      exit;
+    end;
+  end;
+
+  result:=realAddress2;
+  hasError:=false;
+end;
 
 
 initialization

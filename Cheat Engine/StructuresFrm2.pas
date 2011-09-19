@@ -50,6 +50,8 @@ type
 
     function getIndex: integer;
 
+    procedure AutoCreateChildStruct(name: string; address: ptruint);
+
     property Name: string read getName write setName;
     property VarType: TVariableType read getVarType write setVarType;
     property Offset: integer read getOffset write setOffset;
@@ -67,6 +69,9 @@ type
     structname: string;
     structelementlist: tlist;
 
+    fDoNotSaveLocal: boolean;
+    fAutoCreateStructsize: integer;
+
     fUpdateCounter: integer;
     fullstructupdate: boolean;
 
@@ -79,6 +84,7 @@ type
     function isUpdating: boolean;
     function getStructureSize: integer;
     procedure DoFullStructChangeNotification;
+    procedure DoDeleteStructNotification;
   public
     constructor create(name: string);
     destructor destroy; override;
@@ -89,6 +95,8 @@ type
     procedure beginUpdate;
     procedure endUpdate;
     procedure DoElementChangeNotification(element: TStructelement);
+
+    procedure OnDeleteStructNotification(structtodelete: TDissectedStruct);
 
     procedure sortElements;
     function addElement(name: string=''; offset: integer=0; vartype: TVariableType=vtByte; bytesize: integer=0; childstruct: TDissectedStruct=nil): TStructelement;
@@ -101,6 +109,8 @@ type
     function getIndexOf(element: TStructElement): integer;
     property structuresize : integer read getStructureSize;
     property name: string read getName write setName;
+    property doNotSaveLocal: boolean read fDoNotSaveLocal write fDoNotSaveLocal; //information for the saving/loading. Does not affect the sructure itself
+    property autoCreateStructsize: integer read fAutoCreateStructsize write fAutoCreateStructsize;
     property count: integer read getElementCount;
     property element[Index: Integer]: TStructelement read getElement; default;
   end;
@@ -136,14 +146,16 @@ type
   end;
 
   TfrmStructures2 = class(TForm)
+    miShowAddresses: TMenuItem;
+    miDoNotSaveLocal: TMenuItem;
     miFullUpgrade: TMenuItem;
     miAddChildElement: TMenuItem;
     miAddElement: TMenuItem;
     Addextraaddress1: TMenuItem;
     Addtoaddresslist1: TMenuItem;
-    Autoguessoffsets1: TMenuItem;
+    miAutoGuess: TMenuItem;
     miChangeElement: TMenuItem;
-    Commands1: TMenuItem;
+    miCommands: TMenuItem;
     Definenewstructure1: TMenuItem;
     Deletecurrentstructure1: TMenuItem;
     miDeleteElement: TMenuItem;
@@ -159,7 +171,6 @@ type
     miAutoCreate: TMenuItem;
     miAutostructsize: TMenuItem;
     miChangeColors: TMenuItem;
-    miSaveToCT: TMenuItem;
     miUpdateInterval: TMenuItem;
     miUpdateOffsets: TMenuItem;
     N1: TMenuItem;
@@ -178,6 +189,10 @@ type
     Timer1: TTimer;
     tvStructureView: TTreeView;
     procedure Addextraaddress1Click(Sender: TObject);
+    procedure Deletecurrentstructure1Click(Sender: TObject);
+    procedure miAutoGuessClick(Sender: TObject);
+    procedure miAutostructsizeClick(Sender: TObject);
+    procedure miDoNotSaveLocalClick(Sender: TObject);
     procedure miFullUpgradeClick(Sender: TObject);
     procedure miChangeElementClick(Sender: TObject);
     procedure Definenewstructure1Click(Sender: TObject);
@@ -190,17 +205,22 @@ type
       Section: THeaderSection; Width: Integer; State: TSectionTrackState);
     procedure miAddChildElementClick(Sender: TObject);
     procedure miAddElementClick(Sender: TObject);
+    procedure miShowAddressesClick(Sender: TObject);
     procedure miUpdateChildToFullPopup(Sender: TObject);
     procedure miNewWindowClick(Sender: TObject);
+    procedure Renamestructure1Click(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure tvStructureViewCollapsed(Sender: TObject; Node: TTreeNode);
     procedure tvStructureViewCollapsing(Sender: TObject; Node: TTreeNode;
       var AllowCollapse: Boolean);
     procedure tvStructureViewExpanded(Sender: TObject; Node: TTreeNode);
+    procedure tvStructureViewExpanding(Sender: TObject; Node: TTreeNode;
+      var AllowExpansion: Boolean);
   private
     { private declarations }
-    mainStruct: TDissectedStruct;
+    fmainStruct: TDissectedStruct;
     columns: Tlist;
+
 
 
     procedure miSelectStructureClick(Sender: tobject);
@@ -214,6 +234,7 @@ type
     procedure setupNodeWithElement(node: TTreenode; element: TStructElement);
     procedure setNodeValues(node: TTreenode; element: TStructElement); //sets the values for the current nodes
     procedure RefreshVisibleNodes;
+    procedure setMainStruct(struct: TDissectedStruct);
   public
     { public declarations }
     initialaddress: integer;
@@ -223,8 +244,14 @@ type
     function getStructFromNode(node: TTreenode): TDissectedStruct;
     function getChildStructFromNode(node: TTreenode): TDissectedStruct;
     function getMainStruct: TDissectedStruct;
+
+    function getAddressFromNode(node: TTreenode; column: TStructColumn; var hasError: boolean): ptruint;
+
+    procedure onAddedToStructList(sender: TDissectedStruct);
+    procedure onRemovedFromStructList(sender: TDissectedStruct);
     procedure onFullStructChange(sender: TDissectedStruct);   //called when a structure is changed (sort/add/remove entry)
     procedure onElementChange(struct:TDissectedStruct; element: TStructelement); //called when an element of a structure is changed
+    property mainStruct : TDissectedStruct read fmainStruct write setMainStruct;
   end; 
 
 var
@@ -458,6 +485,15 @@ begin
   result:=parent.getIndexOf(self);
 end;
 
+procedure TStructelement.AutoCreateChildStruct(name: string; address: ptruint);
+begin
+  if isPointer and (ChildStruct=nil) then
+  begin
+    ChildStruct:=TDissectedStruct.create(name);
+    ChildStruct.autoGuessStruct(address, 0, parent.autoCreateStructsize);
+  end;
+end;
+
 constructor TStructelement.create(parent:TDissectedStruct);
 begin
   fparent:=parent;
@@ -523,6 +559,8 @@ begin
   else
     fullstructupdate:=true;
 end;
+
+
 
 procedure TDissectedStruct.DoElementChangeNotification(element: TStructelement);
 var i: integer;
@@ -691,18 +729,29 @@ begin
 end;
 
 procedure TDissectedStruct.addToGlobalStructList;
+var i: integer;
 begin
   if not isInGlobalStructList then
   begin
     DissectedStructs.Add(self);
-    DoFullStructChangeNotification; //perhaps a bit overkill
+
+    //notify that this structure has been added
+    for i:=0 to frmStructures2.Count-1 do
+       TfrmStructures2(frmStructures2[i]).onAddedToStructList(self);
   end;
 end;
 
 procedure TDissectedStruct.removeFromGlobalStructList;
+var i: integer;
 begin
   if isInGlobalStructList then
+  begin
     DissectedStructs.Remove(self);
+
+    //notify that this structure has been removed
+    for i:=0 to frmStructures2.Count-1 do
+       TfrmStructures2(frmStructures2[i]).onRemovedFromStructList(self);
+  end;
 end;
 
 function TDissectedStruct.isInGlobalStructList: boolean;
@@ -715,10 +764,51 @@ begin
   result:=structelementlist.IndexOf(element);
 end;
 
+procedure TDissectedStruct.OnDeleteStructNotification(structtodelete: TDissectedStruct);
+var
+  i: integer;
+  s: TDissectedStruct;
+begin
+  //remove all mentioning of this struct
+  beginUpdate;
+  for i:=0 to count-1 do
+  begin
+    s:=element[i].ChildStruct;
+
+    if s<>nil then
+    begin
+      if element[i].ChildStruct=structtodelete then
+        element[i].ChildStruct:=nil
+      else
+      begin
+        //a struct but not the deleted one. Make sure it is a LOCAL one to prevent an infinite loop (a global struct can point to itself)
+        if not s.isInGlobalStructList then
+          s.OnDeleteStructNotification(structtodelete);
+      end;
+    end;
+  end;
+  endUpdate;
+end;
+
+procedure TDissectedStruct.DoDeleteStructNotification;
+var i: integer;
+begin
+  //tell each structure that it should remove all the childstruct mentions of this structure
+  for i:=0 to DissectedStructs.count-1 do
+  begin
+    if DissectedStructs[i]<>self then
+      TDissectedStruct(DissectedStructs[i]).OnDeleteStructNotification(self);
+  end;
+end;
+
 destructor TDissectedStruct.destroy;
 var i: integer;
 begin
   beginUpdate; //never endupdate
+
+  DoDeleteStructNotification;
+
+
   for i:=0 to structelementlist.Count-1 do
     TStructelement(structelementlist.Items[i]).free;
 
@@ -727,6 +817,8 @@ begin
 
 
   removeFromGlobalStructList;
+
+
   inherited destroy;
 end;
 
@@ -734,6 +826,8 @@ constructor TDissectedStruct.create(name: string);
 begin
   self.name:=name;
   structelementlist:=tlist.Create;
+
+  autoCreateStructsize:=4096; //default autocreate size
 end;
 
 { TStructColumn }
@@ -1010,13 +1104,66 @@ begin
   tvStructureView.EndUpdate;
 end;
 
+function TfrmStructures2.getAddressFromNode(node: TTreenode; column: TStructColumn; var hasError: boolean): ptruint;
+//Find out the address of this node
+var
+  offsets: array of dword;
+  i: integer;
+  lastoffsetentry: integer;
+  offset0: integer; //the offset at the base of the structure
+begin
+  result:=0;
+  if node.level=0 then
+  begin
+    result:=column.Address;
+    exit;
+  end;
+
+  setlength(offsets, node.Level-1);
+
+  lastoffsetentry:=node.level-2;
+
+  while node.level>1 do
+  begin
+    offsets[lastoffsetentry]:=getStructElementFromNode(node).Offset;
+    dec(lastoffsetentry);
+
+    node:=node.parent;
+  end;
+
+  //now at node.level=1
+  offset0:=getStructElementFromNode(node).Offset;
+  result:=getPointerAddress(column.Address+offset0,  offsets, hasError);
+end;
+
 procedure TfrmStructures2.setNodeValues(node: TTreenode; element: TStructElement);
 var values: string;
     i: integer;
+    error: boolean;
+    address: ptruint;
+    addressstring: string;
 begin
   values:=inttohex(element.Offset,4)+' - '+element.Name;
   for i:=0 to columns.count-1 do
-    values:=values+#13+element.getValueFromBase(TStructColumn(columns[i]).address);
+  begin
+    address:=getAddressFromNode(node, TStructColumn(columns[i]), error);
+
+    if miShowAddresses.checked then
+    begin
+      if not error then
+        addressstring:=inttohex(address,1)+' : '
+      else
+        addressstring:='??? :'
+    end
+    else
+      addressstring:='';
+
+
+    if not error then
+      values:=values+#13+addressstring+element.getValue(address)
+    else
+      values:=values+#13+addressstring+'???';
+  end;
 
   node.Text:=values;
 
@@ -1029,9 +1176,16 @@ begin
   begin
     node.Data:=element.ChildStruct;
     node.HasChildren:=true;
+  end
+  else
+  begin
+    //an update caused this node to lose it's pointerstate. If it had children, it doesn't anymore
+    node.data:=nil;
+    if node.HasChildren then
+      node.DeleteChildren;
+
+    node.haschildren:=false;
   end;
-
-
 end;
 
 procedure TfrmStructures2.FillTreenodeWithStructData(currentnode: TTreenode);
@@ -1061,7 +1215,7 @@ end;
 
 
 procedure TfrmStructures2.tvStructureViewCollapsed(Sender: TObject; Node: TTreeNode);
-var struct: TDissectedStruct;
+var struct, childstruct: TDissectedStruct;
 begin
   tvStructureView.BeginUpdate;
   node.DeleteChildren; //delete the children when collapsed
@@ -1069,13 +1223,15 @@ begin
   if node.parent<>nil then //almost always, and then it IS a child
   begin
     //get the structure this node belongs to
-    struct:=TDissectedStruct(node.parent.data);
+
+    struct:=getStructFromNode(node);
 
     //now get the element this node represents and check if it is a pointer
     node.HasChildren:=struct[node.Index].isPointer;
+
   end
-  else
-  if node.data<>nil then //root node (mainstruct)
+  else //root node (mainstruct)
+  if node.data<>nil then //weird if not...
   begin
     node.HasChildren:=true;
     node.Expand(false); //causes the expand the fill in the nodes
@@ -1095,10 +1251,30 @@ procedure TfrmStructures2.tvStructureViewExpanded(Sender: TObject;
 begin
   if node.data<>nil then
     FillTreenodeWithStructData(node)
-  else
+end;
+
+procedure TfrmStructures2.tvStructureViewExpanding(Sender: TObject;
+  Node: TTreeNode; var AllowExpansion: Boolean);
+var n: TStructelement;
+  error: boolean;
+  address: ptruint;
+begin
+  AllowExpansion:=true;
+  n:=getStructElementFromNode(node);
+  if (n<>nil) and (n.isPointer) and (n.ChildStruct=nil) then
   begin
-    //unknown pointer. Ask or autodefine a new one
-    showmessage('not yet implemented');
+    if miAutoCreate.Checked then
+    begin
+      //create a structure
+      address:=getAddressFromNode(node, TStructColumn(columns[0]), error);
+      if not error then
+        n.AutoCreateChildStruct('Autocreated from '+inttohex(address,8), address);
+
+      AllowExpansion:=not error;
+    end
+    else
+      AllowExpansion:=false;
+
   end;
 end;
 
@@ -1120,6 +1296,17 @@ begin
     tn.Expand(false);
   end;
 end;
+
+procedure TfrmStructures2.onAddedToStructList(sender: TDissectedStruct);
+begin
+  RefreshStructureList;
+end;
+
+procedure TfrmStructures2.onRemovedFromStructList(sender: TDissectedStruct);
+begin
+  RefreshStructureList;
+end;
+
 
 procedure TfrmStructures2.onFullStructChange(sender: TDissectedStruct);
 var currentNode: TTreenode;
@@ -1259,6 +1446,7 @@ end;
 procedure TfrmStructures2.changeNode(n: TTreenode);
 var
   structelement: TStructElement;
+
 begin
   structElement:=getStructElementFromNode(n);
 
@@ -1368,6 +1556,11 @@ begin
   addFromNode(tvStructureView.selected);
 end;
 
+procedure TfrmStructures2.miShowAddressesClick(Sender: TObject);
+begin
+  RefreshVisibleNodes;
+end;
+
 procedure TfrmStructures2.miUpdateChildToFullPopup(Sender: TObject);
 var childstruct: TDissectedStruct;
   ownerstruct: TDissectedStruct;
@@ -1390,6 +1583,17 @@ procedure TfrmStructures2.miNewWindowClick(Sender: TObject);
 begin
   with tfrmstructures2.create(application) do
     show;
+end;
+
+procedure TfrmStructures2.Renamestructure1Click(Sender: TObject);
+var newname: string;
+begin
+  if mainstruct<>nil then
+  begin
+    newname:=mainStruct.name;
+    if InputQuery('Give the new name for this structure', 'Structure rename', newname) then
+      mainStruct.name:=newname;
+  end;
 end;
 
 procedure TfrmStructures2.Timer1Timer(Sender: TObject);
@@ -1440,6 +1644,9 @@ begin
 
       finally
         struct.endUpdate;
+
+        if (not struct.isInGlobalStructList) and (struct.count=0) then
+          struct.free;
       end;
     end;
 
@@ -1468,6 +1675,65 @@ end;
 procedure TfrmStructures2.Addextraaddress1Click(Sender: TObject);
 begin
   addColumn;
+end;
+
+procedure TfrmStructures2.Deletecurrentstructure1Click(Sender: TObject);
+var s: TDissectedStruct;
+begin
+  s:=mainStruct;
+  mainstruct:=nil;
+
+  s.free;
+end;
+
+procedure TfrmStructures2.miAutoGuessClick(Sender: TObject);
+var
+  sStartOffset: string;
+  sStructSize: string;
+  //base: TbaseStructure;
+  startOffset: integer;
+  structSize: integer;
+begin
+  if mainStruct<>nil then
+  begin
+    {
+    base:=definedstructures[currentstructure.basestructure];
+    if length(base.structelement)>0 then
+      sStartOffset:=inttohex(base.structelement[length(base.structelement)-1].offset+base.structelement[length(base.structelement)-1].bytesize,1)
+    else
+      sStartOffset:='0';
+
+    if not inputquery(rsStructureDefine, rsPleaseGiveAStartingOffsetToEvaluate, sStartOffset) then exit;
+    startOffset:=StrToInt('$'+sStartOffset);
+
+    sStructSize:='4096';
+    if not inputquery(rsStructureDefine, rsPleaseGiveTheSizeOfTheBlockToEvaluate, sStructSize) then exit;
+    structSize:=StrToInt(sStructSize);
+
+    automaticallyGuessOffsets(addresses[0], startOffset, structsize, currentstructure.basestructure); }
+  end;
+end;
+
+procedure TfrmStructures2.miAutostructsizeClick(Sender: TObject);
+var newsize: string;
+begin
+  if mainstruct<>nil then
+  begin
+    newsize:=inttostr(mainstruct.autoCreateStructsize);
+    if InputQuery('Autocreate structure', 'Default size:', newsize) then
+    begin
+      mainstruct.autoCreateStructsize:=strtoint(newsize);
+      miAutostructsize.caption:='Autocreate structure size: '+inttostr(mainstruct.autoCreateStructsize);
+    end;
+  end;
+end;
+
+
+
+procedure TfrmStructures2.miDoNotSaveLocalClick(Sender: TObject);
+begin
+  if mainstruct<>nil then
+    mainstruct.DoNotSaveLocal:=miDoNotSaveLocal.checked;
 end;
 
 procedure TfrmStructures2.miFullUpgradeClick(Sender: TObject);
@@ -1503,6 +1769,16 @@ begin
     mi.Tag:=ptruint(DissectedStructs[i]);
     Structures1.Add(mi);
   end;
+end;
+
+procedure TfrmStructures2.setMainStruct(struct: TDissectedStruct);
+begin
+  fmainStruct:=struct;
+
+  if struct=nil then
+    tvStructureView.Items.Clear;
+
+  miCommands.Enabled:=struct<>nil;
 end;
 
 initialization

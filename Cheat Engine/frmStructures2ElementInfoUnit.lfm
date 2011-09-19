@@ -107,6 +107,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
     Enabled = False
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
+    OnChange = edtByteSizeChange
     ParentFont = False
     TabOrder = 4
     Text = '0'

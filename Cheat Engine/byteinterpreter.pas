@@ -10,7 +10,7 @@ type TAutoGuessEvent=function (address: ptruint; originalVariableType: TVariable
 
 function FindTypeOfData(address: ptrUint; buf: pbytearray; size: integer):TVariableType;
 function DataToString(buf: PByteArray; size: integer; vartype: TVariableType): string;
-function readAndParseAddress(address: ptrUint; variableType: TVariableType; customtype: TCustomType=nil; showashexadecimal: Boolean=false; showAsSigned: boolean=false; aobsize:integer=1): string;
+function readAndParseAddress(address: ptrUint; variableType: TVariableType; customtype: TCustomType=nil; showashexadecimal: Boolean=false; showAsSigned: boolean=false; bytesize:integer=1): string;
 procedure ParseStringAndWriteToAddress(value: string; address: ptruint; variabletype: TVariabletype; hexadecimal: boolean=false);
 
 var onAutoGuessRoutine: TAutoGuessEvent;
@@ -75,11 +75,14 @@ begin
 
 end;
 
-function readAndParseAddress(address: ptrUint; variableType: TVariableType; customtype: TCustomType=nil; showashexadecimal: Boolean=false; showAsSigned: boolean=false; aobsize:integer=1): string;
+function readAndParseAddress(address: ptrUint; variableType: TVariableType; customtype: TCustomType=nil; showashexadecimal: Boolean=false; showAsSigned: boolean=false; bytesize:integer=1): string;
 var buf: array [0..7] of byte;
     buf2: pbytearray;
     x: dword;
     i: integer;
+
+    s: pchar;
+    ws: PWideChar;
 begin
   result:='???';
   case variableType of
@@ -157,11 +160,40 @@ begin
           result:=floattostr(pdouble(@buf[0])^);
     end;
 
+    vtString:
+    begin
+      getmem(s, bytesize+1);
+      try
+        if ReadProcessMemory(processhandle,pointer(address),s,bytesize,x) then
+        begin
+          s[bytesize]:=#0;
+          result:=s;
+        end;
+      finally
+        freemem(s);
+      end;
+    end;
+
+    vtUnicodeString:
+    begin
+      getmem(ws, bytesize+2);
+      try
+        if ReadProcessMemory(processhandle,pointer(address),ws,bytesize,x) then
+        begin
+          pbytearray(ws)[bytesize+1]:=0;
+          pbytearray(ws)[bytesize]:=0;
+          result:=ws;
+        end;
+      finally
+        freemem(ws);
+      end;
+    end;
+
     vtByteArray:
     begin
-      getmem(buf2, aobsize);
+      getmem(buf2, bytesize);
       try
-        if ReadProcessMemory(processhandle,pointer(address),buf2,aobsize,x) then
+        if ReadProcessMemory(processhandle,pointer(address),buf2,bytesize,x) then
         begin
           result:='';
           if showashexadecimal then
