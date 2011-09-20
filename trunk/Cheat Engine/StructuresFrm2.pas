@@ -1284,7 +1284,6 @@ begin
 
 
 
-  groupbox.popupmenu:=grouppopup;
 
 
 
@@ -1294,6 +1293,9 @@ begin
   GroupBox.Caption:=groupname;
   GroupBox.height:=parent.pnlGroups.ClientHeight;
   groupbox.parent:=parent.pnlGroups;
+
+  groupbox.popupmenu:=grouppopup;
+
 
 end;
 
