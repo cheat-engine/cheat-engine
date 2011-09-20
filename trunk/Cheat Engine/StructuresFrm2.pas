@@ -123,15 +123,31 @@ type
     fgroupid: integer;
     fsavedstate: pointer; //points to a copy made in the target process
     fsavedstatesize: integer;
+    fFocused: boolean;
     edtAddress: TEdit;
     columneditpopupmenu: TPopupMenu;
     hsection: THeaderSection;
+    focusedShape: TShape;
+
+
+    fcompareValue: string;
+
+    miAddGroup: TMenuItem;
+
+
     procedure edtAddressChange(sender: TObject);
     function getAddress: ptruint;
     procedure setAddress(address: ptruint);
+    procedure setFocused(state: boolean);
+    function getFocused: boolean;
+    procedure AddGroupClick(sender: tobject);
   public
     constructor create(parent: TfrmStructures2);
     destructor destroy; override;
+
+
+    procedure focus;
+    procedure edtAddressEnter(sender: tobject);
 
     procedure clearSavedState;
     function saveState: boolean;
@@ -139,10 +155,14 @@ type
     function getSavedStateSize: integer;
     function getEditWidth: integer;
     function getEditLeft: integer;
+    function isXInColumn(x: integer): boolean;
     procedure SetProperEditboxPosition;
     property EditWidth: integer read getEditwidth;
     property EditLeft: integer read getEditleft;
     property Address: ptruint read getAddress write setAddress;
+    property Focused: boolean read getFocused write setFocused;
+    property CompareValue: string read fcompareValue write fcompareValue;
+    property GroupID: integer read fGroupId write fGroupId;
   end;
 
   TfrmStructures2 = class(TForm)
@@ -152,7 +172,7 @@ type
     miAddChildElement: TMenuItem;
     miAddElement: TMenuItem;
     Addextraaddress1: TMenuItem;
-    Addtoaddresslist1: TMenuItem;
+    miAddToAddresslist: TMenuItem;
     miAutoGuess: TMenuItem;
     miChangeElement: TMenuItem;
     miCommands: TMenuItem;
@@ -162,8 +182,8 @@ type
     File1: TMenuItem;
     HeaderControl1: THeaderControl;
     MainMenu1: TMainMenu;
-    Memorybrowsepointer1: TMenuItem;
-    Memorybrowsethisaddress1: TMenuItem;
+    miBrowsePointer: TMenuItem;
+    miBrowseAddress: TMenuItem;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
@@ -181,14 +201,17 @@ type
     miNewWindow: TMenuItem;
     Open1: TMenuItem;
     pnlAddresses: TPanel;
-    miUpdateChildToFull: TPopupMenu;
+    pmStructureView: TPopupMenu;
     Recalculateaddress1: TMenuItem;
     Renamestructure1: TMenuItem;
     Save1: TMenuItem;
     Structures1: TMenuItem;
-    Timer1: TTimer;
+    updatetimer: TTimer;
     tvStructureView: TTreeView;
     procedure Addextraaddress1Click(Sender: TObject);
+    procedure miBrowseAddressClick(Sender: TObject);
+    procedure miBrowsePointerClick(Sender: TObject);
+    procedure miAddToAddresslistClick(Sender: TObject);
     procedure Deletecurrentstructure1Click(Sender: TObject);
     procedure miAutoGuessClick(Sender: TObject);
     procedure miAutostructsizeClick(Sender: TObject);
@@ -206,10 +229,13 @@ type
     procedure miAddChildElementClick(Sender: TObject);
     procedure miAddElementClick(Sender: TObject);
     procedure miShowAddressesClick(Sender: TObject);
-    procedure miUpdateChildToFullPopup(Sender: TObject);
+    procedure pmStructureViewPopup(Sender: TObject);
     procedure miNewWindowClick(Sender: TObject);
+    procedure miUpdateIntervalClick(Sender: TObject);
     procedure Renamestructure1Click(Sender: TObject);
-    procedure Timer1Timer(Sender: TObject);
+    procedure tvStructureViewMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure updatetimerTimer(Sender: TObject);
     procedure tvStructureViewCollapsed(Sender: TObject; Node: TTreeNode);
     procedure tvStructureViewCollapsing(Sender: TObject; Node: TTreeNode;
       var AllowCollapse: Boolean);
@@ -219,10 +245,10 @@ type
   private
     { private declarations }
     fmainStruct: TDissectedStruct;
-    columns: Tlist;
+    fcolumns: Tlist;
 
 
-
+    procedure ApplyStructureCompare;
     procedure miSelectStructureClick(Sender: tobject);
     procedure InitializeFirstNode;
     procedure RefreshStructureList;
@@ -235,9 +261,14 @@ type
     procedure setNodeValues(node: TTreenode; element: TStructElement); //sets the values for the current nodes
     procedure RefreshVisibleNodes;
     procedure setMainStruct(struct: TDissectedStruct);
+    function getColumn(i: integer): TStructColumn;
+    procedure setColumn(i: integer; c: TStructColumn);
+    function getColumnCount: integer;
   public
     { public declarations }
     initialaddress: integer;
+    function getFocusedColumn: TStructColumn;
+    function getColumnAtXPos(x: integer): TStructColumn;
     procedure changeNode(n: ttreenode);
     procedure addFromNode(n: TTreenode; asChild: boolean=false);
     function getStructElementFromNode(node: TTreenode): TStructelement;
@@ -245,6 +276,7 @@ type
     function getChildStructFromNode(node: TTreenode): TDissectedStruct;
     function getMainStruct: TDissectedStruct;
 
+    procedure getPointerFromNode(node: TTreenode; column:TStructcolumn; var baseaddress: ptruint; var offsetlist: toffsetlist);
     function getAddressFromNode(node: TTreenode; column: TStructColumn; var hasError: boolean): ptruint;
 
     procedure onAddedToStructList(sender: TDissectedStruct);
@@ -252,6 +284,8 @@ type
     procedure onFullStructChange(sender: TDissectedStruct);   //called when a structure is changed (sort/add/remove entry)
     procedure onElementChange(struct:TDissectedStruct; element: TStructelement); //called when an element of a structure is changed
     property mainStruct : TDissectedStruct read fmainStruct write setMainStruct;
+    property columnCount: integer read getColumnCount;
+    property columns[index: integer]: TStructColumn read Getcolumn write setColumn;
   end; 
 
 var
@@ -263,7 +297,7 @@ implementation
 
 {$R *.lfm}
 
-uses frmStructures2ElementInfoUnit;
+uses MainUnit, frmStructures2ElementInfoUnit, MemoryBrowserFormUnit;
 
 resourcestring
   rsAddressValue = 'Address: Value';
@@ -832,6 +866,54 @@ end;
 
 { TStructColumn }
 
+function TStructColumn.isXInColumn(x: integer): boolean;
+begin
+  //check if this x position is in the current columns
+  result:=InRange(x, hsection.left, hsection.Right);
+end;
+
+procedure TStructColumn.focus;
+begin
+  focused:=true;
+end;
+
+procedure TStructColumn.edtAddressEnter(sender: tobject);
+begin
+  focus;
+end;
+
+function TStructColumn.getFocused:boolean;
+begin
+  result:=fFocused;
+end;
+
+procedure TStructColumn.setFocused(state: boolean);
+var i: integer;
+begin
+  if fFocused=state then exit;
+
+  //sets this column as the focused column
+  //(there can be only one focused column)
+
+
+  if state then //set the others to false
+  begin
+    for i:=0 to parent.columncount-1 do
+      if parent.columns[i]<>self then
+        TStructColumn(parent.columns[i]).focused:=false;
+  end;
+
+  //make focus visible
+
+  if parent.columncount>0 then
+    focusedShape.visible:=state
+  else
+    focusedShape.visible:=false;
+
+
+  fFocused:=state;
+end;
+
 procedure TStructColumn.clearSavedState;
 begin
 
@@ -923,13 +1005,26 @@ begin
 
 end;
 
+procedure TStructColumn.AddGroupClick(sender: tobject);
+var
+  sgroup: string;
+begin
+  sgroup:=inttostr(groupid);
+  InputQuery(rsStructureDefiner, rsWhichGroupDoYouWantToSetThisAddressTo, sgroup);
+  groupid:=strtoint(sgroup);
+
+  miAddGroup.Caption:='Set Group ID ('+inttostr(groupid)+')';
+
+  parent.RefreshVisibleNodes;
+end;
+
 procedure TStructColumn.SetProperEditboxPosition;
 var
   i: integer;
   edtWidth: integer;
   edtLeft: integer;
 begin
-  i:=parent.columns.IndexOf(self);
+  i:=parent.fcolumns.IndexOf(self);
 
   if i=0 then
   begin
@@ -939,8 +1034,8 @@ begin
   else
   begin
     //get the editwidth of the previous item in the columns list
-    edtWidth:=TStructColumn(parent.columns.items[i-1]).EditWidth;
-    edtLeft:=TStructColumn(parent.columns.items[i-1]).EditLeft+edtWidth+10;
+    edtWidth:=TStructColumn(parent.columns[i-1]).EditWidth;
+    edtLeft:=TStructColumn(parent.columns[i-1]).EditLeft+edtWidth+10;
   end;
 
   edtAddress.left:=edtLeft;
@@ -948,6 +1043,11 @@ begin
 
 
   edtAddress.top:=(parent.pnlAddresses.clientHeight div 2)-(edtAddress.height div 2);
+
+  focusedShape.Left:=edtAddress.left-1;
+  focusedShape.Width:=edtAddress.width+2;
+  focusedShape.Top:=edtAddress.top-1;
+  focusedShape.Height:=edtAddress.Height+2;
 
 end;
 
@@ -958,12 +1058,23 @@ begin
 
   columneditpopupmenu:=TPopupMenu.Create(parent);
 
-  parent.columns.Add(self);
+  miAddGroup:=TMenuItem.Create(columneditpopupmenu);
+  miAddGroup.Caption:='Set Group ID (None)';
+  miAddGroup.OnClick:=AddGroupClick;
+  columneditpopupmenu.Items.Add(miAddGroup);
+
+  parent.fcolumns.Add(self);
+
+  focusedShape:=TShape.Create(parent);
+  focusedShape.Shape:=stRectangle;  //stRoundRect;
+  focusedShape.visible:=false;
+  focusedShape.parent:=parent.pnlAddresses;
 
   edtAddress:=TEdit.Create(parent);
   edtAddress.Tag:=ptruint(self);
   edtAddress.OnChange:=edtAddressChange;
   edtAddress.PopupMenu:=columneditpopupmenu;
+  edtAddress.OnEnter:=edtAddressEnter;
   edtAddress.Parent:=parent.pnlAddresses;
 
   hsection:=parent.headercontrol1.Sections.Add;
@@ -980,15 +1091,18 @@ begin
   if edtAddress<>nil then
     freeandnil(edtAddress);
 
-  parent.columns.Remove(self);
+  parent.fcolumns.Remove(self);
 
   parent.headercontrol1.Sections.Delete(hsection.Index);
 
 
-  for i:=0 to parent.columns.Count-1 do
-    TStructColumn( parent.columns.items[i]).SetProperEditboxPosition;
+  for i:=0 to parent.columnCount-1 do
+    TStructColumn( parent.columns[i]).SetProperEditboxPosition;
 
   clearSavedState;
+
+  if focusedShape<>nil then
+    focusedShape.free;
 end;
 
 { TfrmStructures2 }
@@ -1018,7 +1132,7 @@ begin
 
   RefreshStructureList; //get the current structure list
 
-  columns:=tlist.create;
+  fcolumns:=tlist.create;
 end;
 
 procedure TfrmStructures2.FormClose(Sender: TObject;
@@ -1038,7 +1152,7 @@ end;
 
 procedure TfrmStructures2.FormShow(Sender: TObject);
 begin
-  if columns.Count=0 then //add the first column if necesary
+  if columnCount=0 then //add the first column if necesary
   begin
     addColumn;
     TStructColumn(columns[0]).setAddress(initialaddress);
@@ -1104,69 +1218,92 @@ begin
   tvStructureView.EndUpdate;
 end;
 
-function TfrmStructures2.getAddressFromNode(node: TTreenode; column: TStructColumn; var hasError: boolean): ptruint;
-//Find out the address of this node
+procedure TfrmStructures2.getPointerFromNode(node: TTreenode; column:TStructcolumn; var baseaddress: ptruint; var offsetlist: ToffsetList);
 var
-  offsets: array of dword;
   i: integer;
   lastoffsetentry: integer;
   offset0: integer; //the offset at the base of the structure
 begin
-  result:=0;
-  if node.level=0 then
-  begin
-    result:=column.Address;
-    exit;
-  end;
+  baseaddress:=column.Address;
+  setlength(offsetlist,0);
 
-  setlength(offsets, node.Level-1);
+  if (node=nil) or (node.level=0) then exit; //first entry in the mainstruct
 
+  setlength(offsetlist, node.Level-1);
   lastoffsetentry:=node.level-2;
 
   while node.level>1 do
   begin
-    offsets[lastoffsetentry]:=getStructElementFromNode(node).Offset;
+    offsetlist[lastoffsetentry]:=getStructElementFromNode(node).Offset;
     dec(lastoffsetentry);
 
     node:=node.parent;
   end;
 
   //now at node.level=1
-  offset0:=getStructElementFromNode(node).Offset;
-  result:=getPointerAddress(column.Address+offset0,  offsets, hasError);
+  //add the starting offset
+  inc(baseaddress, getStructElementFromNode(node).Offset);
+end;
+
+function TfrmStructures2.getAddressFromNode(node: TTreenode; column: TStructColumn; var hasError: boolean): ptruint;
+//Find out the address of this node
+var
+  baseaddress: ptruint;
+  offsets: array of dword;
+begin
+  getPointerFromNode(node,column, baseaddress, offsets);
+  result:=getPointerAddress(baseaddress,  offsets, hasError);
+end;
+
+procedure TfrmStructures2.ApplyStructureCompare;
+var groupvalues: array of boolean;
+begin
+  if columnCount>0 then
+  begin
+
+  end;
 end;
 
 procedure TfrmStructures2.setNodeValues(node: TTreenode; element: TStructElement);
-var values: string;
+var
+    addresslist: array of string;
+
+    values: string;
     i: integer;
     error: boolean;
     address: ptruint;
     addressstring: string;
 begin
   values:=inttohex(element.Offset,4)+' - '+element.Name;
-  for i:=0 to columns.count-1 do
+
+  setlength(addresslist, columncount);
+  for i:=0 to columnCount-1 do
   begin
     address:=getAddressFromNode(node, TStructColumn(columns[i]), error);
 
     if miShowAddresses.checked then
     begin
       if not error then
-        addressstring:=inttohex(address,1)+' : '
+        TStructColumn(columns[i]).compareValue:=inttohex(address,1)+' : '
       else
-        addressstring:='??? :'
+        TStructColumn(columns[i]).compareValue:='??? :'
     end
     else
-      addressstring:='';
+      TStructColumn(columns[i]).compareValue:='';
 
 
     if not error then
-      values:=values+#13+addressstring+element.getValue(address)
+      TStructColumn(columns[i]).compareValue:=element.getValue(address)
     else
-      values:=values+#13+addressstring+'???';
+      TStructColumn(columns[i]).compareValue:='???';
   end;
 
-  node.Text:=values;
+  ApplyStructureCompare; //sets the proper color in front of the columnvalue
 
+  for i:=0 to columncount-1 do
+    values:=#13+TStructColumn(columns[i]).compareValue;
+
+  node.Text:=values;
 end;
 
 procedure TfrmStructures2.setupNodeWithElement(node: TTreenode; element: TStructElement);
@@ -1561,7 +1698,7 @@ begin
   RefreshVisibleNodes;
 end;
 
-procedure TfrmStructures2.miUpdateChildToFullPopup(Sender: TObject);
+procedure TfrmStructures2.pmStructureViewPopup(Sender: TObject);
 var childstruct: TDissectedStruct;
   ownerstruct: TDissectedStruct;
   structelement: TStructelement;
@@ -1585,6 +1722,22 @@ begin
     show;
 end;
 
+procedure TfrmStructures2.miUpdateIntervalClick(Sender: TObject);
+var interval: string;
+begin
+  interval:=inttostr(updatetimer.interval);
+  if InputQuery(rsUpdateInterval, rsNewInterval+':', interval) then
+  begin
+    try
+      updatetimer.interval:=strtoint(interval);
+    except
+    end;
+
+    miUpdateInterval.caption:=rsUpdateInterval+': '+inttostr(
+      updatetimer.interval);
+  end;
+end;
+
 procedure TfrmStructures2.Renamestructure1Click(Sender: TObject);
 var newname: string;
 begin
@@ -1596,7 +1749,47 @@ begin
   end;
 end;
 
-procedure TfrmStructures2.Timer1Timer(Sender: TObject);
+procedure TfrmStructures2.tvStructureViewMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var i: integer;
+  c: TStructColumn;
+begin
+  c:=getColumnAtXPos(x);
+  if c<>nil then
+    c.focus;
+end;
+
+function TfrmStructures2.getFocusedColumn: TStructColumn;
+var i: integer;
+begin
+  result:=nil;
+  for i:=0 to columnCount-1 do
+    if TStructColumn(columns[i]).Focused then
+    begin
+      result:=tStructColumn(columns[i]);
+      exit;
+    end;
+
+  result:=columns[0]; //nothing found, so give the first column
+end;
+
+
+function TfrmStructures2.getColumnAtXPos(x: integer): TStructColumn;
+var i: integer;
+begin
+  result:=nil;
+  for i:=0 to columnCount-1 do
+    if TStructColumn(columns[i]).isXInColumn(x) then
+    begin
+      result:=tStructColumn(columns[i]);
+      exit;
+    end;
+
+end;
+
+
+
+procedure TfrmStructures2.updatetimerTimer(Sender: TObject);
 begin
   //refresh the visible nodes
   RefreshVisibleNodes;
@@ -1668,13 +1861,94 @@ end;
 
 procedure TfrmStructures2.removeColumn(columnid: integer);
 begin
-  columns.Delete(columnid);
+  fcolumns.Delete(columnid);
   RefreshVisibleNodes;
 end;
 
 procedure TfrmStructures2.Addextraaddress1Click(Sender: TObject);
 begin
   addColumn;
+end;
+
+procedure TfrmStructures2.miBrowseAddressClick(Sender: TObject);
+var
+  n: ttreenode;
+  a: ptruint;
+  error: boolean;
+  x: dword;
+begin
+  n:=tvStructureView.Selected;
+  if n<>nil then
+  begin
+    a:=getAddressFromNode(n, getFocusedColumn, error);
+
+    if not error then
+      MemoryBrowser.hexview.address:=a;
+  end;
+end;
+
+procedure TfrmStructures2.miBrowsePointerClick(Sender: TObject);
+var
+  n: ttreenode;
+  a: ptruint;
+  error: boolean;
+  x: dword;
+begin
+  n:=tvStructureView.Selected;
+  if n<>nil then
+  begin
+    a:=getAddressFromNode(n, getFocusedColumn, error);
+
+    if not error then
+    begin
+      //get the address this address points to
+      if ReadProcessMemory(processhandle, pointer(a), @a, processhandler.pointersize, x) and (x=processhandler.pointersize) then
+        MemoryBrowser.hexview.address:=a;
+    end;
+  end;
+end;
+
+
+procedure TfrmStructures2.miAddToAddresslistClick(Sender: TObject);
+var baseaddress: ptruint;
+  offsetlist: array of dword;
+  element, element2: TStructelement;
+
+  sname: string;
+  n: ttreenode;
+begin
+  n:=tvStructureView.Selected;
+  if n<>nil then
+  begin
+    element:=getStructElementFromNode(n);
+    if element<>nil then
+    begin
+      baseaddress:=0;
+      getPointerFromNode(n, getFocusedColumn, baseaddress, offsetlist);
+      if baseaddress<>0 then
+      begin
+        //add this baseaddress with it's offsetlist to the addresslist
+
+        sname:=element.Name;
+        while (n<>nil) and (n.level>=1) do
+        begin
+          element2:=getStructElementFromNode(n);
+          if element2<>nil then
+            sname:=element.name+'->'+sname;
+
+          n:=n.parent;
+        end;
+
+
+        mainform.addresslist.addaddress(element.Name, inttohex(baseaddress,1), offsetlist, length(offsetlist), element.VarType,'',element.Bytesize);
+      end;
+
+
+    end;
+
+
+    //mainform.a
+  end;
 end;
 
 procedure TfrmStructures2.Deletecurrentstructure1Click(Sender: TObject);
@@ -1779,6 +2053,21 @@ begin
     tvStructureView.Items.Clear;
 
   miCommands.Enabled:=struct<>nil;
+end;
+
+function TfrmStructures2.getColumn(i: integer): TStructColumn;
+begin
+  result:=TStructColumn(fcolumns[i]);
+end;
+
+procedure TfrmStructures2.setColumn(i: integer; c: TStructColumn);
+begin
+  fcolumns[i]:=c;
+end;
+
+function TfrmStructures2.getColumnCount: integer;
+begin
+  result:=fcolumns.count;
 end;
 
 initialization

@@ -342,6 +342,24 @@ end;
 procedure TMemoryRecord.setVarType(v:  TVariableType);
 begin
   case v of
+    vtUnicodeString: //this type was added later. convert it to a string
+    begin
+      fvartype:=vtString;
+      extra.stringData.unicode:=true;
+      extra.stringData.ZeroTerminate:=true;
+    end;
+
+    vtPointer:  //also added later. In this case show as a hex value
+    begin
+      if processhandler.is64bit then
+        fvartype:=vtQword
+      else
+        fvartype:=vtDword;
+
+      showAsHex:=true;
+    end;
+
+
     vtString: //if setting to the type of string enable the zero terminate method by default
       extra.stringData.ZeroTerminate:=true;
 
