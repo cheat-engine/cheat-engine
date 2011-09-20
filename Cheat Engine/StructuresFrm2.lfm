@@ -14,8 +14,8 @@ object frmStructures2: TfrmStructures2
   LCLVersion = '0.9.31'
   object tvStructureView: TTreeView
     Left = 0
-    Height = 292
-    Top = 64
+    Height = 284
+    Top = 72
     Width = 540
     Align = alBottom
     Anchors = [akTop, akLeft, akRight, akBottom]
@@ -42,9 +42,9 @@ object frmStructures2: TfrmStructures2
     OnMouseDown = tvStructureViewMouseDown
     Options = [tvoAllowMultiselect, tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoRightClickSelect, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoToolTips]
   end
-  object pnlAddresses: TPanel
+  object pnlGroups: TPanel
     Left = 0
-    Height = 41
+    Height = 57
     Top = 0
     Width = 540
     Align = alTop
@@ -55,7 +55,7 @@ object frmStructures2: TfrmStructures2
   object HeaderControl1: THeaderControl
     Left = 0
     Height = 21
-    Top = 40
+    Top = 56
     Width = 540
     DragReorder = False
     Sections = <    
@@ -70,7 +70,7 @@ object frmStructures2: TfrmStructures2
     Anchors = [akTop, akLeft, akRight]
   end
   object MainMenu1: TMainMenu
-    left = 32
+    left = 512
     object File1: TMenuItem
       Caption = 'File'
       object miNewWindow: TMenuItem
@@ -102,6 +102,11 @@ object frmStructures2: TfrmStructures2
         Caption = 'Add extra address'
         ShortCut = 16449
         OnClick = Addextraaddress1Click
+      end
+      object MenuItem5: TMenuItem
+        Caption = 'Add new group'
+        ShortCut = 16455
+        OnClick = MenuItem5Click
       end
     end
     object MenuItem1: TMenuItem
