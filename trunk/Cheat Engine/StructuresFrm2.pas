@@ -7,7 +7,8 @@ interface
 
 uses
   windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls, math,
-  StdCtrls, ComCtrls, Menus, lmessages, scrolltreeview, byteinterpreter, symbolhandler, cefuncproc, newkernelhandler;
+  StdCtrls, ComCtrls, Menus, lmessages, scrolltreeview, byteinterpreter, symbolhandler, cefuncproc,
+  newkernelhandler, frmSelectionlistunit;
 
 
 
@@ -116,23 +117,69 @@ type
   end;
 
   TfrmStructures2=class;
-  TStructColumn=class
+  TStructColumn=class;
+
+  TStructGroup=class //Will handle the group compares for each group
   private
     parent: TfrmStructures2;
+    fcolumns: TList;
+    fgroupname: string;
+    fMatches: boolean;
+    fcurrentString: string;
+    fNoMatchColor: TColor; //The color to use when not all elements have the same color
+    fMatchColor: tcolor; //The color to use when all elements in the group match
+    fAllMatchColorSame: TColor; //The color to use when all groups have matching elements AND the same value
+    fAllMatchColorDiff: TColor; //The color to use when all groups have matching alements but different values between groups
+
+    GroupBox: TGroupbox;
+    refcount: integer;
+    grouppopup: TPopupMenu;
+    miRename: TMenuItem;
+
+    function getColumnCount: integer;
+    function getColumn(i: integer): TStructColumn;
+    procedure RenameClick(sender: tobject);
+    procedure setGroupName(newname: string);
+  public
+    procedure setPositions;
+    constructor create(parent: TfrmStructures2; GroupName: string);
+    {
+    destructor destroy;
+    procedure addString(s:string); //sets matches to false if it doesn't match the previous string (also sets currentStrign to '' on false)
+    procedure clear; //sets matches to true
+    procedure ResetColors; //sets the colors based on the settings and position in the grouplist (e.g group deleted)
+    property Matches: boolean read fMatches;
+
+    property currentString: string read fCurrentString;
+    property NoMatchColor: Tcolor read fNoMatchcolor;
+    property MatchColor: TColor read fMatchColor;
+    property AllMatchColorSame: TColor read fAllMatchColorSame;
+    property AllMatchColorDiff: TColor read fAllMatchColorDiff; }
+    property groupname: string read fGroupName write setGroupName;
+    property box: TGroupbox read GroupBox;
+    property columnCount: integer read getColumnCount;
+    property columns[index: integer]: TStructColumn read Getcolumn;
+  end;
+
+
+  TStructColumn=class
+  private
+    parent: TStructGroup;
+
     faddress: ptruint;
-    fgroupid: integer;
     fsavedstate: pointer; //points to a copy made in the target process
     fsavedstatesize: integer;
     fFocused: boolean;
     edtAddress: TEdit;
     columneditpopupmenu: TPopupMenu;
-    hsection: THeaderSection;
+    miChangeGroup: TMenuItem;
+
     focusedShape: TShape;
 
 
     fcompareValue: string;
 
-    miAddGroup: TMenuItem;
+    procedure ChangeGroupClick(sender: tobject);
 
 
     procedure edtAddressChange(sender: TObject);
@@ -140,9 +187,10 @@ type
     procedure setAddress(address: ptruint);
     procedure setFocused(state: boolean);
     function getFocused: boolean;
-    procedure AddGroupClick(sender: tobject);
+    function getGlobalIndex: integer;
+    procedure setNewParent(group: TStructGroup);
   public
-    constructor create(parent: TfrmStructures2);
+    constructor create(parent: TStructGroup);
     destructor destroy; override;
 
 
@@ -162,10 +210,11 @@ type
     property Address: ptruint read getAddress write setAddress;
     property Focused: boolean read getFocused write setFocused;
     property CompareValue: string read fcompareValue write fcompareValue;
-    property GroupID: integer read fGroupId write fGroupId;
+    property GlobalIndex: integer read getGlobalIndex;
   end;
 
   TfrmStructures2 = class(TForm)
+    MenuItem5: TMenuItem;
     miShowAddresses: TMenuItem;
     miDoNotSaveLocal: TMenuItem;
     miFullUpgrade: TMenuItem;
@@ -200,7 +249,7 @@ type
     N8: TMenuItem;
     miNewWindow: TMenuItem;
     Open1: TMenuItem;
-    pnlAddresses: TPanel;
+    pnlGroups: TPanel;
     pmStructureView: TPopupMenu;
     Recalculateaddress1: TMenuItem;
     Renamestructure1: TMenuItem;
@@ -209,6 +258,7 @@ type
     updatetimer: TTimer;
     tvStructureView: TTreeView;
     procedure Addextraaddress1Click(Sender: TObject);
+    procedure MenuItem5Click(Sender: TObject);
     procedure miBrowseAddressClick(Sender: TObject);
     procedure miBrowsePointerClick(Sender: TObject);
     procedure miAddToAddresslistClick(Sender: TObject);
@@ -245,7 +295,7 @@ type
   private
     { private declarations }
     fmainStruct: TDissectedStruct;
-    fcolumns: Tlist;
+    fgroups: Tlist;
 
 
     procedure ApplyStructureCompare;
@@ -262,8 +312,10 @@ type
     procedure RefreshVisibleNodes;
     procedure setMainStruct(struct: TDissectedStruct);
     function getColumn(i: integer): TStructColumn;
-    procedure setColumn(i: integer; c: TStructColumn);
     function getColumnCount: integer;
+
+    function getGroup(i: integer): TStructGroup;
+    function getGroupCount: integer;
   public
     { public declarations }
     initialaddress: integer;
@@ -285,7 +337,9 @@ type
     procedure onElementChange(struct:TDissectedStruct; element: TStructelement); //called when an element of a structure is changed
     property mainStruct : TDissectedStruct read fmainStruct write setMainStruct;
     property columnCount: integer read getColumnCount;
-    property columns[index: integer]: TStructColumn read Getcolumn write setColumn;
+    property columns[index: integer]: TStructColumn read Getcolumn;
+    property groupcount: integer read getGroupCount;
+    property group[index: integer]: TStructGroup read getGroup;
   end; 
 
 var
@@ -866,9 +920,82 @@ end;
 
 { TStructColumn }
 
+procedure TStructColumn.setNewParent(group: TStructGroup);
+begin
+
+  parent.fcolumns.Remove(self);
+  parent:=group;
+  parent.fcolumns.Add(self);
+
+  edtAddress.parent:=group.box;
+  focusedShape.parent:=group.box;
+
+  group.setPositions; //update the gui
+end;
+
+procedure TStructColumn.ChangeGroupClick(sender: tobject);
+var
+  grouplist: TStringList;
+  l: TfrmSelectionList;
+  i: integer;
+
+  g: TStructGroup;
+  newname: string;
+begin
+  //input a window to choose which group
+  grouplist:=TStringList.create;
+  for i:=0 to parent.parent.groupcount-1 do
+    grouplist.AddObject(parent.parent.group[i].groupname, parent.parent.group[i]);
+
+  grouplist.AddObject('<New group>',nil);
+
+  l := TfrmSelectionList.Create(parent.parent, grouplist);
+  l.Caption := 'Group picker';
+  l.label1.Caption := 'Select the group this column should become part of';
+  l.ItemIndex := 0;
+
+  if (l.showmodal = mrOk) and (l.ItemIndex <> -1) then
+  begin
+    //apply change
+    if grouplist.Objects[l.itemindex]=nil then //new group
+    begin
+      newname:='Group '+inttostr(parent.parent.groupcount+1);
+      if inputquery('New group','Give the new name', newname) then
+        g:=TStructGroup.create(parent.parent, newname)
+      else
+        exit; //no new group, no change
+    end
+    else
+      g:=TStructGroup(grouplist.Objects[l.itemindex]);
+
+    setNewParent(g);
+  end;
+  l.free;
+  grouplist.free;
+
+
+end;
+
+function TStructColumn.getGlobalIndex: integer;
+var i: integer;
+begin
+  //can be optimized
+  result:=-1;
+  for i:=0 to parent.parent.columnCount-1 do
+    if parent.parent.columns[i]=self then
+    begin
+      result:=-1;
+      exit;
+    end;
+end;
+
 function TStructColumn.isXInColumn(x: integer): boolean;
+var i: integer;
+  hsection: Theadersection;
 begin
   //check if this x position is in the current columns
+  i:=getGlobalIndex;
+  hsection:=parent.parent.HeaderControl1.Sections[i+1];
   result:=InRange(x, hsection.left, hsection.Right);
 end;
 
@@ -896,21 +1023,15 @@ begin
   //(there can be only one focused column)
 
 
-  if state then //set the others to false
+  if state then //set all others to false
   begin
-    for i:=0 to parent.columncount-1 do
-      if parent.columns[i]<>self then
-        TStructColumn(parent.columns[i]).focused:=false;
+    for i:=0 to parent.parent.columncount-1 do
+      if parent.parent.columns[i]<>self then
+        parent.parent.columns[i].focused:=false;
   end;
 
   //make focus visible
-
-  if parent.columncount>0 then
-    focusedShape.visible:=state
-  else
-    focusedShape.visible:=false;
-
-
+  focusedShape.visible:=state;
   fFocused:=state;
 end;
 
@@ -946,9 +1067,9 @@ begin
   clearSavedState;
   result:=false;
 
-  if parent.MainStruct<>nil then
+  if parent.parent.MainStruct<>nil then
   begin
-    fsavedstatesize:=parent.MainStruct.getStructureSize;
+    fsavedstatesize:=parent.parent.MainStruct.getStructureSize;
 
     if readprocessmemory(processhandle, pointer(faddress), buf, fsavedstatesize, x) then
       fsavedstate:=VirtualAllocEx(processhandle, nil, fsavedstatesize, MEM_COMMIT or MEM_RESERVE, PAGE_READWRITE);
@@ -1005,19 +1126,6 @@ begin
 
 end;
 
-procedure TStructColumn.AddGroupClick(sender: tobject);
-var
-  sgroup: string;
-begin
-  sgroup:=inttostr(groupid);
-  InputQuery(rsStructureDefiner, rsWhichGroupDoYouWantToSetThisAddressTo, sgroup);
-  groupid:=strtoint(sgroup);
-
-  miAddGroup.Caption:='Set Group ID ('+inttostr(groupid)+')';
-
-  parent.RefreshVisibleNodes;
-end;
-
 procedure TStructColumn.SetProperEditboxPosition;
 var
   i: integer;
@@ -1028,21 +1136,21 @@ begin
 
   if i=0 then
   begin
-    edtWidth:=parent.pnlAddresses.Canvas.TextWidth('DDDDDDDDDDDDDDDD');
+    edtWidth:=120;
     edtLeft:=10;
   end
   else
   begin
     //get the editwidth of the previous item in the columns list
-    edtWidth:=TStructColumn(parent.columns[i-1]).EditWidth;
-    edtLeft:=TStructColumn(parent.columns[i-1]).EditLeft+edtWidth+10;
+    edtWidth:=parent.columns[i-1].EditWidth;
+    edtLeft:=parent.columns[i-1].EditLeft+edtWidth+10;
   end;
 
   edtAddress.left:=edtLeft;
   edtAddress.ClientWidth:=edtWidth;
 
 
-  edtAddress.top:=(parent.pnlAddresses.clientHeight div 2)-(edtAddress.height div 2);
+  edtAddress.top:=(parent.box.clientHeight div 2)-(edtAddress.height div 2);
 
   focusedShape.Left:=edtAddress.left-1;
   focusedShape.Width:=edtAddress.width+2;
@@ -1051,58 +1159,142 @@ begin
 
 end;
 
-constructor TStructColumn.create(parent: TfrmStructures2);
+constructor TStructColumn.create(parent: TStructGroup);
+var hsection: THeaderSection;
 begin
   if parent=nil then raise exception.create('TStructColumn.create Error');
   self.parent:=parent;
 
-  columneditpopupmenu:=TPopupMenu.Create(parent);
+  columneditpopupmenu:=TPopupMenu.Create(parent.parent);
 
-  miAddGroup:=TMenuItem.Create(columneditpopupmenu);
-  miAddGroup.Caption:='Set Group ID (None)';
-  miAddGroup.OnClick:=AddGroupClick;
-  columneditpopupmenu.Items.Add(miAddGroup);
 
-  parent.fcolumns.Add(self);
+  miChangeGroup:=TMenuItem.Create(columneditpopupmenu);
+  miChangeGroup.Caption:='Change Group';
+  miChangeGroup.OnClick:=ChangeGroupClick;
+  columneditpopupmenu.Items.Add(miChangeGroup);
 
-  focusedShape:=TShape.Create(parent);
+
+  parent.fcolumns.add(self);
+
+  focusedShape:=TShape.Create(parent.parent);
   focusedShape.Shape:=stRectangle;  //stRoundRect;
   focusedShape.visible:=false;
-  focusedShape.parent:=parent.pnlAddresses;
+  focusedShape.parent:=parent.box;
 
-  edtAddress:=TEdit.Create(parent);
+  edtAddress:=TEdit.Create(parent.parent);
   edtAddress.Tag:=ptruint(self);
   edtAddress.OnChange:=edtAddressChange;
   edtAddress.PopupMenu:=columneditpopupmenu;
   edtAddress.OnEnter:=edtAddressEnter;
-  edtAddress.Parent:=parent.pnlAddresses;
+  edtAddress.Parent:=parent.box;
 
-  hsection:=parent.headercontrol1.Sections.Add;
+  hsection:=parent.parent.headercontrol1.Sections.Add;
   hsection.Text:=rsAddressValue;
   hsection.Width:=200;
   hsection.MinWidth:=20;
 
-  SetProperEditboxPosition;
+  parent.setPositions;
 end;
 
 destructor TStructColumn.destroy;
 var i: integer;
 begin
-  if edtAddress<>nil then
-    freeandnil(edtAddress);
-
-  parent.fcolumns.Remove(self);
-
-  parent.headercontrol1.Sections.Delete(hsection.Index);
 
 
-  for i:=0 to parent.columnCount-1 do
-    TStructColumn( parent.columns[i]).SetProperEditboxPosition;
+  parent.fcolumns.remove(self);
+  //parent.parent.headercontrol1.Sections.Delete(hsection.Index);
 
   clearSavedState;
 
+  if edtAddress<>nil then
+    freeandnil(edtAddress);
+
   if focusedShape<>nil then
     focusedShape.free;
+
+  parent.setPositions;
+end;
+
+{ Tstructgroup }
+procedure TStructGroup.setGroupName(newname: string);
+begin
+  groupbox.Caption:=newname;
+  fgroupname:=newname;
+end;
+
+procedure TStructGroup.RenameClick(sender: tobject);
+var newname: string;
+begin
+  newname:=groupname;
+  if inputquery('Rename group', 'Give the new name for the group', newname) then
+    groupname:=newname;
+end;
+
+function TStructGroup.getColumnCount: integer;
+begin
+  result:=fcolumns.count;
+end;
+
+function TStructGroup.getColumn(i: integer): TStructColumn;
+begin
+  result:=fcolumns[i];
+end;
+
+procedure TStructGroup.setPositions;
+var i,j: integer;
+begin
+
+  for i:=0 to parent.groupcount-1 do
+  begin
+    //update the editboxes inside each group
+    for j:=0 to parent.group[i].columnCount-1 do
+      parent.group[i].columns[j].SetProperEditboxPosition;
+
+    //and then update the groupbox to fit in he grouppanel and right size
+    //set the left position
+    if i=0 then
+      parent.group[i].box.Left:=10
+    else
+      parent.group[i].box.Left:=parent.group[i-1].box.Left+parent.group[i-1].box.Width+10;
+
+    //set the width
+    if parent.group[i].columnCount>0 then
+      parent.group[i].box.width:=parent.group[i].columns[parent.group[i].columnCount-1].EditLeft+parent.group[i].columns[parent.group[i].columnCount-1].EditWidth+10
+    else
+      parent.group[i].box.width:=20;
+
+  end;
+
+end;
+
+constructor TStructGroup.create(parent: TfrmStructures2; GroupName: string);
+begin
+  self.parent:=parent;
+  parent.fgroups.Add(self);
+
+  fGroupName:=groupname;
+
+  fcolumns:=tlist.create;
+
+  grouppopup:=Tpopupmenu.create(parent);
+  miRename:=TmenuItem.create(grouppopup);
+  miRename.caption:='Rename';
+  miRename.OnClick:=RenameClick;
+  grouppopup.items.Add(miRename);
+
+
+
+  groupbox.popupmenu:=grouppopup;
+
+
+
+
+  //create the groupbox
+  GroupBox:=TGroupBox.Create(parent);
+  GroupBox.Caption:=groupname;
+  GroupBox.height:=parent.pnlGroups.ClientHeight;
+  groupbox.parent:=parent.pnlGroups;
+
 end;
 
 { TfrmStructures2 }
@@ -1132,7 +1324,7 @@ begin
 
   RefreshStructureList; //get the current structure list
 
-  fcolumns:=tlist.create;
+  fgroups:=tlist.create;
 end;
 
 procedure TfrmStructures2.FormClose(Sender: TObject;
@@ -1152,13 +1344,8 @@ end;
 
 procedure TfrmStructures2.FormShow(Sender: TObject);
 begin
-  if columnCount=0 then //add the first column if necesary
-  begin
-    addColumn;
-    TStructColumn(columns[0]).setAddress(initialaddress);
-  end;
-
-
+  addColumn;
+  columns[0].setAddress(initialaddress);
 end;
 
 procedure TfrmStructures2.HeaderControl1SectionTrack(
@@ -1256,12 +1443,20 @@ begin
 end;
 
 procedure TfrmStructures2.ApplyStructureCompare;
-var groupvalues: array of boolean;
+{
+will compare the groups to eachother and set the proper colorcodes
+}
+var
+  groups: array of integer;
+  i: integer;
 begin
+   {
   if columnCount>0 then
   begin
+    for i:=0 to columncount-1 do
+      columns[i].GroupID:=;
 
-  end;
+  end;}
 end;
 
 procedure TfrmStructures2.setNodeValues(node: TTreenode; element: TStructElement);
@@ -1764,9 +1959,9 @@ var i: integer;
 begin
   result:=nil;
   for i:=0 to columnCount-1 do
-    if TStructColumn(columns[i]).Focused then
+    if columns[i].Focused then
     begin
-      result:=tStructColumn(columns[i]);
+      result:=columns[i];
       exit;
     end;
 
@@ -1777,14 +1972,14 @@ end;
 function TfrmStructures2.getColumnAtXPos(x: integer): TStructColumn;
 var i: integer;
 begin
+  //find which header is clicked. This coincides with the form's structure list
   result:=nil;
-  for i:=0 to columnCount-1 do
-    if TStructColumn(columns[i]).isXInColumn(x) then
+  for i:=1 to HeaderControl1.Sections.count-1 do
+    if inrange(x, HeaderControl1.Sections[i].Left, HeaderControl1.Sections[i].Right) then
     begin
-      result:=tStructColumn(columns[i]);
+      result:=columns[i-1];
       exit;
     end;
-
 end;
 
 
@@ -1854,20 +2049,43 @@ begin
 end;
 
 procedure TfrmStructures2.addColumn;
+var c: TStructColumn;
 begin
-  TStructColumn.create(self);
+  if groupcount=0 then
+    TStructGroup.create(self,'Group 1');
+
+  c:=getFocusedColumn;
+  if c=nil then
+    TStructColumn.create(group[0])
+  else
+    TStructColumn.create(c.parent);
+
   RefreshVisibleNodes;
 end;
 
 procedure TfrmStructures2.removeColumn(columnid: integer);
 begin
-  fcolumns.Delete(columnid);
+  columns[columnid].free;
   RefreshVisibleNodes;
 end;
 
 procedure TfrmStructures2.Addextraaddress1Click(Sender: TObject);
 begin
   addColumn;
+end;
+
+procedure TfrmStructures2.MenuItem5Click(Sender: TObject);
+var s: string;
+  g: Tstructgroup;
+begin
+  s:='Group '+inttostr(groupcount+1);
+  if InputQuery('Name for this group','Structure define', s) then
+  begin
+    g:=TStructGroup.create(self, s);
+
+    //add the first address as well
+    TStructColumn.create(g);
+  end;
 end;
 
 procedure TfrmStructures2.miBrowseAddressClick(Sender: TObject);
@@ -2056,18 +2274,40 @@ begin
 end;
 
 function TfrmStructures2.getColumn(i: integer): TStructColumn;
+//look through the groups to find this column
+var j,c: integer;
 begin
-  result:=TStructColumn(fcolumns[i]);
+  result:=nil;
+  c:=0;
+  for j:=0 to groupcount-1 do
+  begin
+    if c+group[j].columnCount>i then
+    begin
+      result:=TStructColumn(group[j].columns[i-c]);
+      exit;
+    end
+    else
+      inc(c,group[j].columnCount);
+  end;
 end;
 
-procedure TfrmStructures2.setColumn(i: integer; c: TStructColumn);
-begin
-  fcolumns[i]:=c;
-end;
 
 function TfrmStructures2.getColumnCount: integer;
+var i: integer;
 begin
-  result:=fcolumns.count;
+  result:=0;
+  for i:=0 to groupcount-1 do
+    inc(result, group[i].columncount);
+end;
+
+function TfrmStructures2.getGroup(i: integer): TStructGroup;
+begin
+  result:=TStructGroup(fgroups[i]);
+end;
+
+function TfrmStructures2.getGroupCount: integer;
+begin
+  result:=fgroups.count;
 end;
 
 initialization
