@@ -29,8 +29,9 @@ object frmStructures2: TfrmStructures2
     MultiSelect = True
     MultiSelectStyle = [msControlSelect, msShiftSelect, msVisibleOnly, msSiblingOnly]
     ParentFont = False
-    PopupMenu = miUpdateChildToFull
+    PopupMenu = pmStructureView
     ReadOnly = True
+    RightClickSelect = True
     RowSelect = True
     ShowRoot = False
     TabOrder = 0
@@ -38,7 +39,8 @@ object frmStructures2: TfrmStructures2
     OnCollapsing = tvStructureViewCollapsing
     OnExpanded = tvStructureViewExpanded
     OnExpanding = tvStructureViewExpanding
-    Options = [tvoAllowMultiselect, tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoToolTips]
+    OnMouseDown = tvStructureViewMouseDown
+    Options = [tvoAllowMultiselect, tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoRightClickSelect, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoToolTips]
   end
   object pnlAddresses: TPanel
     Left = 0
@@ -109,6 +111,7 @@ object frmStructures2: TfrmStructures2
       end
       object miUpdateInterval: TMenuItem
         Caption = 'Update interval: 500'
+        OnClick = miUpdateIntervalClick
       end
       object miShowAddresses: TMenuItem
         AutoCheck = True
@@ -163,8 +166,8 @@ object frmStructures2: TfrmStructures2
       end
     end
   end
-  object miUpdateChildToFull: TPopupMenu
-    OnPopup = miUpdateChildToFullPopup
+  object pmStructureView: TPopupMenu
+    OnPopup = pmStructureViewPopup
     left = 40
     top = 112
     object miChangeElement: TMenuItem
@@ -194,18 +197,21 @@ object frmStructures2: TfrmStructures2
     object N2: TMenuItem
       Caption = '-'
     end
-    object Addtoaddresslist1: TMenuItem
+    object miAddToAddresslist: TMenuItem
       Caption = 'Add to address list'
       ShortCut = 65
+      OnClick = miAddToAddresslistClick
     end
-    object Memorybrowsepointer1: TMenuItem
+    object miBrowsePointer: TMenuItem
       Caption = 'Memory browse pointer'
       ShortCut = 70
       Visible = False
+      OnClick = miBrowsePointerClick
     end
-    object Memorybrowsethisaddress1: TMenuItem
+    object miBrowseAddress: TMenuItem
       Caption = 'Memory browse this address'
       ShortCut = 32
+      OnClick = miBrowseAddressClick
     end
     object N3: TMenuItem
       Caption = '-'
@@ -220,9 +226,9 @@ object frmStructures2: TfrmStructures2
       ShortCut = 16469
     end
   end
-  object Timer1: TTimer
+  object updatetimer: TTimer
     Interval = 500
-    OnTimer = Timer1Timer
+    OnTimer = updatetimerTimer
     left = 264
     top = 80
   end
