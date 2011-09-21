@@ -126,35 +126,31 @@ type
     fgroupname: string;
     fMatches: boolean;
     fcurrentString: string;
-    fNoMatchColor: TColor; //The color to use when not all elements have the same color
-    fMatchColor: tcolor; //The color to use when all elements in the group match
-    fAllMatchColorSame: TColor; //The color to use when all groups have matching elements AND the same value
-    fAllMatchColorDiff: TColor; //The color to use when all groups have matching alements but different values between groups
 
     GroupBox: TGroupbox;
     refcount: integer;
     grouppopup: TPopupMenu;
     miRename: TMenuItem;
+    miDelete: TMenuItem;
 
     function getColumnCount: integer;
     function getColumn(i: integer): TStructColumn;
     procedure RenameClick(sender: tobject);
+    procedure DeleteClick(sender: Tobject);
     procedure setGroupName(newname: string);
   public
     procedure setPositions;
     constructor create(parent: TfrmStructures2; GroupName: string);
+    destructor destroy; override;
     {
-    destructor destroy;
     procedure addString(s:string); //sets matches to false if it doesn't match the previous string (also sets currentStrign to '' on false)
     procedure clear; //sets matches to true
     procedure ResetColors; //sets the colors based on the settings and position in the grouplist (e.g group deleted)
     property Matches: boolean read fMatches;
 
     property currentString: string read fCurrentString;
-    property NoMatchColor: Tcolor read fNoMatchcolor;
-    property MatchColor: TColor read fMatchColor;
-    property AllMatchColorSame: TColor read fAllMatchColorSame;
-    property AllMatchColorDiff: TColor read fAllMatchColorDiff; }
+
+}
     property groupname: string read fGroupName write setGroupName;
     property box: TGroupbox read GroupBox;
     property columnCount: integer read getColumnCount;
@@ -173,6 +169,7 @@ type
     edtAddress: TEdit;
     columneditpopupmenu: TPopupMenu;
     miChangeGroup: TMenuItem;
+    miDelete: TMenuItem;
 
     focusedShape: TShape;
 
@@ -180,6 +177,7 @@ type
     fcompareValue: string;
 
     procedure ChangeGroupClick(sender: tobject);
+    procedure DeleteClick(sender: TObject);
 
 
     procedure edtAddressChange(sender: TObject);
@@ -196,6 +194,7 @@ type
 
     procedure focus;
     procedure edtAddressEnter(sender: tobject);
+    procedure edtaddressMousedown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 
     procedure clearSavedState;
     function saveState: boolean;
@@ -298,6 +297,13 @@ type
     fgroups: Tlist;
 
 
+    fDefaultColor: TColor;
+    fNoMatchColor: TColor; //The color to use when not all elements have the same color
+    fMatchColor: tcolor; //The color to use when all elements in the group match
+    fAllMatchColorSame: TColor; //The color to use when all groups have matching elements AND the same value
+    fAllMatchColorDiff: TColor; //The color to use when all groups have matching alements but different values between groups
+
+
     procedure ApplyStructureCompare;
     procedure miSelectStructureClick(Sender: tobject);
     procedure InitializeFirstNode;
@@ -335,6 +341,13 @@ type
     procedure onRemovedFromStructList(sender: TDissectedStruct);
     procedure onFullStructChange(sender: TDissectedStruct);   //called when a structure is changed (sort/add/remove entry)
     procedure onElementChange(struct:TDissectedStruct; element: TStructelement); //called when an element of a structure is changed
+
+    property DefaultColor: TColor read fDefaultColor;
+    property MatchColor: TColor read fMatchColor;
+    property NoMatchColor: Tcolor read fNoMatchcolor;
+    property AllMatchColorSame: TColor read fAllMatchColorSame;
+    property AllMatchColorDiff: TColor read fAllMatchColorDiff;
+
     property mainStruct : TDissectedStruct read fmainStruct write setMainStruct;
     property columnCount: integer read getColumnCount;
     property columns[index: integer]: TStructColumn read Getcolumn;
@@ -933,6 +946,12 @@ begin
   group.setPositions; //update the gui
 end;
 
+procedure TStructColumn.DeleteClick(sender: TObject);
+begin
+  if parent.parent.columnCount>0 then //leave one intact
+    free;
+end;
+
 procedure TStructColumn.ChangeGroupClick(sender: tobject);
 var
   grouplist: TStringList;
@@ -1005,6 +1024,11 @@ begin
 end;
 
 procedure TStructColumn.edtAddressEnter(sender: tobject);
+begin
+  focus;
+end;
+
+procedure TStructColumn.edtaddressMousedown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
   focus;
 end;
@@ -1173,6 +1197,11 @@ begin
   miChangeGroup.OnClick:=ChangeGroupClick;
   columneditpopupmenu.Items.Add(miChangeGroup);
 
+  miDelete:=TMenuItem.create(columneditpopupmenu);
+  miDelete.caption:='Delete address';
+  miDelete.OnClick:=DeleteClick;
+  columneditpopupmenu.Items.Add(miDelete);
+
 
   parent.fcolumns.add(self);
 
@@ -1187,6 +1216,7 @@ begin
   edtAddress.PopupMenu:=columneditpopupmenu;
   edtAddress.OnEnter:=edtAddressEnter;
   edtAddress.Parent:=parent.box;
+  edtAddress.OnMouseDown:=edtaddressMousedown;
 
   hsection:=parent.parent.headercontrol1.Sections.Add;
   hsection.Text:=rsAddressValue;
@@ -1228,6 +1258,13 @@ begin
   newname:=groupname;
   if inputquery('Rename group', 'Give the new name for the group', newname) then
     groupname:=newname;
+end;
+
+procedure TStructGroup.DeleteClick(sender: tobject);
+begin
+  //delete he current group if it's not the last one
+  if parent.groupcount>1 then
+    free;
 end;
 
 function TStructGroup.getColumnCount: integer;
@@ -1282,11 +1319,10 @@ begin
   miRename.OnClick:=RenameClick;
   grouppopup.items.Add(miRename);
 
-
-
-
-
-
+  miDelete:=TMenuItem.create(grouppopup);
+  miDelete.caption:='Delete group';
+  miDelete.OnClick:=DeleteClick;
+  grouppopup.items.Add(miDelete);
 
   //create the groupbox
   GroupBox:=TGroupBox.Create(parent);
@@ -1295,8 +1331,24 @@ begin
   groupbox.parent:=parent.pnlGroups;
 
   groupbox.popupmenu:=grouppopup;
+end;
 
+destructor TStructGroup.destroy;
+var i: integer;
+begin
+  //delete all the columns first
+  parent.fgroups.Remove(self);
 
+  while fcolumns.count>0 do
+    TStructColumn(fcolumns[0]).free;
+
+  if groupbox<>nil then
+    freeandnil(groupbox);
+
+  if grouppopup<>nil then
+    freeandnil(grouppopup);
+
+  inherited destroy;
 end;
 
 { TfrmStructures2 }

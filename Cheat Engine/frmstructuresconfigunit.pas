@@ -16,16 +16,12 @@ type
     Button1: TButton;
     Button2: TButton;
     ColorDialog1: TColorDialog;
-    GroupBox1: TGroupBox;
-    GroupBox2: TGroupBox;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
-    Label4: TLabel;
-    Label5: TLabel;
-    Label6: TLabel;
     Label7: TLabel;
-    Label8: TLabel;
+    Label9: TLabel;
+    procedure Button1Click(Sender: TObject);
     procedure ColorClickOld(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure ColorClick(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -36,23 +32,28 @@ type
     fdefaultText: TColor;
     fdifferentText: TColor;
     fgroupequalText: TColor;
+    fgroupdifferentText: TColor;
 
     fselectedbackgroundcolor: TColor;
     fselectedDefaultText: TColor;
     fselectedEqualText: TColor;
     fselectedDifferentText: TColor;
     fselectedGroupEqualText: TColor;
+    fselectedGroupDifferentText: TColor;
 
     procedure setbackgroundcolor(x: TColor);
     procedure setdefaultText(x: TColor);
     procedure setequalText(x: TColor);
     procedure setdifferentText(x: TColor);
     procedure setgroupequalText(x: TColor);
+    procedure setgroupdifferentText(x: TColor);
+
     procedure setselectedbackgroundcolor(x: TColor);
     procedure setselectedDefaultText(x: TColor);
     procedure setselectedEqualText(x: TColor);
     procedure setselectedDifferentText(x: TColor);
     procedure setselectedGroupEqualText(x: TColor);
+    procedure setselectedGroupDifferentText(x: TColor);
 
 
 
@@ -65,12 +66,14 @@ type
     property equalText: TColor read fequalText write setequalText;
     property differentText: TColor read fdifferentText write setdifferentText;
     property groupequalText: TColor read fgroupequalText write setgroupequalText;
+    property groupDifferentText: TColor read fgroupDifferentText write setgroupdifferentText;
 
     property selectedbackgroundcolor: TColor read fselectedbackgroundcolor write setselectedbackgroundcolor;
     property selectedDefaultText: TColor read fselectedDefaultText write setselectedDefaultText;
     property selectedEqualText: TColor read fselectedEqualText write setselectedEqualText;
     property selectedDifferentText: TColor read fselectedDifferentText write setselectedDifferentText;
     property selectedGroupEqualText: TColor read fselectedGroupEqualText write setselectedGroupEqualText;
+    property selectedgroupDifferentText: TColor read fselectedgroupDifferentText write setselectedgroupdifferentText;
   end; 
 
 var
@@ -83,7 +86,7 @@ implementation
 procedure TfrmStructuresConfig.setbackgroundcolor(x: TColor);
 begin
   fbackgroundcolor:=x;
-  groupbox1.color:=x;
+ // groupbox1.color:=x;
 end;
 
 procedure TfrmStructuresConfig.setdefaultText(x: TColor);
@@ -110,34 +113,47 @@ begin
   label3.Font.Color:=x;
 end;
 
+procedure TfrmStructuresConfig.setgroupdifferentText(x: TColor);
+begin
+  fgroupdifferentText:=x;
+  label9.Font.Color:=x;
+end;
+
+
 procedure TfrmStructuresConfig.setselectedbackgroundcolor(x: TColor);
 begin
   fselectedbackgroundcolor:=x;
-  groupbox2.color:=x;
+  //groupbox2.color:=x;
 end;
 
 procedure TfrmStructuresConfig.setselectedDefaultText(x: TColor);
 begin
   fselectedDefaultText:=x;
-  label4.font.color:=x;
+ // label4.font.color:=x;
 end;
 
 procedure TfrmStructuresConfig.setselectedEqualText(x: TColor);
 begin
   fselectedEqualText:=x;
-  label8.font.color:=x;
+ // label8.font.color:=x;
 end;
 
 procedure TfrmStructuresConfig.setselectedDifferentText(x: TColor);
 begin
   fselectedDifferentText:=x;
-  label5.font.color:=x;
+ // label5.font.color:=x;
 end;
 
 procedure TfrmStructuresConfig.setselectedGroupEqualText(x: TColor);
 begin
   fselectedGroupEqualText:=x;
-  label6.font.color:=x;
+  //label6.font.color:=x;
+end;
+
+procedure TfrmStructuresConfig.setselectedGroupDifferentText(x: TColor);
+begin
+  fselectedGroupEqualText:=x;
+  //label6.font.color:=x;
 end;
 
 function TfrmStructuresConfig.GetColor(tag: integer):TColor;
@@ -177,6 +193,11 @@ begin
   ColorDialog1.Color:=GetColor(TControl(sender).tag);
   if ColorDialog1.Execute then
     SetColor(TControl(sender).tag,ColorDialog1.Color);
+end;
+
+procedure TfrmStructuresConfig.Button1Click(Sender: TObject);
+begin
+
 end;
 
 procedure TfrmStructuresConfig.FormCreate(Sender: TObject);
