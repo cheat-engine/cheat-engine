@@ -8,7 +8,7 @@ interface
 uses
   windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls, math,
   StdCtrls, ComCtrls, Menus, lmessages, scrolltreeview, byteinterpreter, symbolhandler, cefuncproc,
-  newkernelhandler, frmSelectionlistunit;
+  newkernelhandler, frmSelectionlistunit, frmStructuresConfigUnit, registry;
 
 
 
@@ -126,6 +126,7 @@ type
     fgroupname: string;
     fMatches: boolean;
     fcurrentString: string;
+    isempty: boolean;
 
     GroupBox: TGroupbox;
     refcount: integer;
@@ -142,15 +143,13 @@ type
     procedure setPositions;
     constructor create(parent: TfrmStructures2; GroupName: string);
     destructor destroy; override;
-    {
-    procedure addString(s:string); //sets matches to false if it doesn't match the previous string (also sets currentStrign to '' on false)
+
     procedure clear; //sets matches to true
-    procedure ResetColors; //sets the colors based on the settings and position in the grouplist (e.g group deleted)
     property Matches: boolean read fMatches;
+    procedure addString(s:string); //sets matches to false if it doesn't match the previous string (also sets currentStrign to '' on false)
+
 
     property currentString: string read fCurrentString;
-
-}
     property groupname: string read fGroupName write setGroupName;
     property box: TGroupbox read GroupBox;
     property columnCount: integer read getColumnCount;
@@ -188,6 +187,10 @@ type
     function getGlobalIndex: integer;
     procedure setNewParent(group: TStructGroup);
   public
+    currentNodeAddress: string;    //temporary storage for rendering
+    currentNodeValue: string;
+    currentNodeColor: Tcolor;
+
     constructor create(parent: TStructGroup);
     destructor destroy; override;
 
@@ -264,6 +267,7 @@ type
     procedure Deletecurrentstructure1Click(Sender: TObject);
     procedure miAutoGuessClick(Sender: TObject);
     procedure miAutostructsizeClick(Sender: TObject);
+    procedure miChangeColorsClick(Sender: TObject);
     procedure miDoNotSaveLocalClick(Sender: TObject);
     procedure miFullUpgradeClick(Sender: TObject);
     procedure miChangeElementClick(Sender: TObject);
@@ -282,6 +286,10 @@ type
     procedure miNewWindowClick(Sender: TObject);
     procedure miUpdateIntervalClick(Sender: TObject);
     procedure Renamestructure1Click(Sender: TObject);
+    procedure tvStructureViewAdvancedCustomDrawItem(Sender: TCustomTreeView;
+      Node: TTreeNode; State: TCustomDrawState; Stage: TCustomDrawStage;
+      var PaintImages, DefaultDraw: Boolean);
+    procedure tvStructureViewDblClick(Sender: TObject);
     procedure tvStructureViewMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure updatetimerTimer(Sender: TObject);
@@ -303,8 +311,9 @@ type
     fAllMatchColorSame: TColor; //The color to use when all groups have matching elements AND the same value
     fAllMatchColorDiff: TColor; //The color to use when all groups have matching alements but different values between groups
 
+    procedure saveColors;
+    procedure loadcolors;
 
-    procedure ApplyStructureCompare;
     procedure miSelectStructureClick(Sender: tobject);
     procedure InitializeFirstNode;
     procedure RefreshStructureList;
@@ -314,7 +323,7 @@ type
     procedure removeColumn(columnid: integer);
     procedure FillTreenodeWithStructData(currentnode: TTreenode);
     procedure setupNodeWithElement(node: TTreenode; element: TStructElement);
-    procedure setNodeValues(node: TTreenode; element: TStructElement); //sets the values for the current nodes
+    procedure setCurrentNodeStringsInColumns(node: TTreenode; element: TStructElement);  //sets the value for the current node into the columns
     procedure RefreshVisibleNodes;
     procedure setMainStruct(struct: TDissectedStruct);
     function getColumn(i: integer): TStructColumn;
@@ -322,6 +331,7 @@ type
 
     function getGroup(i: integer): TStructGroup;
     function getGroupCount: integer;
+    procedure EditValueOfSelectedNode(node: TTreenode);
   public
     { public declarations }
     initialaddress: integer;
@@ -587,11 +597,17 @@ begin
 end;
 
 procedure TStructelement.AutoCreateChildStruct(name: string; address: ptruint);
+var c: TDissectedStruct;
 begin
   if isPointer and (ChildStruct=nil) then
   begin
-    ChildStruct:=TDissectedStruct.create(name);
-    ChildStruct.autoGuessStruct(address, 0, parent.autoCreateStructsize);
+    c:=TDissectedStruct.create(name);
+    c.autoGuessStruct(address, 0, parent.autoCreateStructsize);
+
+    if c.count>0 then
+      ChildStruct:=c
+    else
+      c.free;
   end;
 end;
 
@@ -1148,6 +1164,7 @@ begin
     edtAddress.Font.Color:=clWindowText;
   end;
 
+  parent.parent.tvStructureView.Refresh;
 end;
 
 procedure TStructColumn.SetProperEditboxPosition;
@@ -1161,13 +1178,13 @@ begin
   if i=0 then
   begin
     edtWidth:=120;
-    edtLeft:=10;
+    edtLeft:=3;
   end
   else
   begin
     //get the editwidth of the previous item in the columns list
     edtWidth:=parent.columns[i-1].EditWidth;
-    edtLeft:=parent.columns[i-1].EditLeft+edtWidth+10;
+    edtLeft:=parent.columns[i-1].EditLeft+edtWidth+3;
   end;
 
   edtAddress.left:=edtLeft;
@@ -1246,6 +1263,24 @@ begin
 end;
 
 { Tstructgroup }
+procedure TStructGroup.addString(s:string);
+begin
+  if isempty then
+  begin
+    fcurrentString:=s;
+    isempty:=false;
+  end
+  else
+    if fcurrentString<>s then
+      fMatches:=false;
+end;
+
+procedure TStructGroup.clear;
+begin
+  fMatches:=true;
+  isempty:=true;
+end;
+
 procedure TStructGroup.setGroupName(newname: string);
 begin
   groupbox.Caption:=newname;
@@ -1290,7 +1325,7 @@ begin
     //and then update the groupbox to fit in he grouppanel and right size
     //set the left position
     if i=0 then
-      parent.group[i].box.Left:=10
+      parent.group[i].box.Left:=3
     else
       parent.group[i].box.Left:=parent.group[i-1].box.Left+parent.group[i-1].box.Width+10;
 
@@ -1366,6 +1401,16 @@ end;
 
 procedure TfrmStructures2.FormCreate(Sender: TObject);
 begin
+  //set default colors
+
+  fDefaultColor:=clWindowText;
+  fMatchColor:=clGreen;
+  fNoMatchColor:=clRed;
+  fAllMatchColorSame:=clBlue;
+  fAllMatchColorDiff:=clYellow;
+
+
+
   tvStructureView.Top:=headercontrol1.top+headercontrol1.height;
   tvStructureView.left:=0;
   tvStructureView.width:=clientwidth;
@@ -1379,6 +1424,9 @@ begin
   RefreshStructureList; //get the current structure list
 
   fgroups:=tlist.create;
+
+  //then load from the registry if possible
+  LoadColors;
 end;
 
 procedure TfrmStructures2.FormClose(Sender: TObject;
@@ -1419,44 +1467,23 @@ begin
     //make the first line (structname) as long as x
     if mainStruct<>nil then
     begin
-      s:=mainStruct.structname+#13;
+      s:='                                         ';
 
       while tvStructureView.Canvas.TextWidth(s)<x do
-        s:=s+'PADDING';
+        s:=s+'        ';
 
       tvStructureView.items[0].Text:=s;
     end;
 
   end;
 
+  tvStructureView.Refresh;
+
 end;
 
 procedure TfrmStructures2.RefreshVisibleNodes;
-var
-  i: integer;
-  start: integer;
-  stop: integer;
-
-  top: TTreenode;
-  Bottom: TTreenode;
-  e: Tstructelement;
 begin
-  top:=tvStructureView.TopItem;
-  bottom:=tvStructureView.BottomItem;
-
-  if (top=nil) or (bottom=nil) then exit; //empty list or bug
-
-  start:=top.AbsoluteIndex;
-  stop:=bottom.AbsoluteIndex;
-
-  tvStructureView.BeginUpdate;
-  for i:=start to stop do
-  begin
-    e:=getStructElementFromNode(tvStructureView.items[i]);
-    if e<>nil then
-      setNodeValues(tvStructureView.items[i],e);
-  end;
-  tvStructureView.EndUpdate;
+  tvStructureView.Repaint;
 end;
 
 procedure TfrmStructures2.getPointerFromNode(node: TTreenode; column:TStructcolumn; var baseaddress: ptruint; var offsetlist: ToffsetList);
@@ -1496,68 +1523,105 @@ begin
   result:=getPointerAddress(baseaddress,  offsets, hasError);
 end;
 
-procedure TfrmStructures2.ApplyStructureCompare;
-{
-will compare the groups to eachother and set the proper colorcodes
-}
+
+procedure TfrmStructures2.setCurrentNodeStringsInColumns(node: TTreenode; element: TStructElement);
 var
-  groups: array of integer;
-  i: integer;
-begin
-   {
-  if columnCount>0 then
-  begin
-    for i:=0 to columncount-1 do
-      columns[i].GroupID:=;
-
-  end;}
-end;
-
-procedure TfrmStructures2.setNodeValues(node: TTreenode; element: TStructElement);
-var
-    addresslist: array of string;
-
-    values: string;
     i: integer;
     error: boolean;
     address: ptruint;
-    addressstring: string;
+
+    groupvalue: string;
+    allmatch: boolean;
+    allsame: boolean;
+
+    c: TStructColumn;
 begin
-  values:=inttohex(element.Offset,4)+' - '+element.Name;
-
-  setlength(addresslist, columncount);
-  for i:=0 to columnCount-1 do
+  if element<>nil then
   begin
-    address:=getAddressFromNode(node, TStructColumn(columns[i]), error);
+    for i:=0 to groupcount-1 do
+      group[i].clear;
 
-    if miShowAddresses.checked then
+    for i:=0 to columnCount-1 do
     begin
+      c:=columns[i];
+
+      address:=getAddressFromNode(node, columns[i], error);
+
       if not error then
-        TStructColumn(columns[i]).compareValue:=inttohex(address,1)+' : '
+      begin
+        c.currentNodeAddress:=inttohex(address,1)+' : ';
+        c.currentNodeValue:=element.getValue(address);
+      end
       else
-        TStructColumn(columns[i]).compareValue:='??? :'
-    end
-    else
-      TStructColumn(columns[i]).compareValue:='';
+      begin
+        c.currentNodeAddress:=inttohex(address,1)+'??? : ';
+        c.currentNodeValue:='???';
+      end;
+
+      //add this string for comparison
+      c.parent.addString(c.currentNodeValue);
+    end;
+
+    //now find out which groups have matching sets
+    allmatch:=true;
+    allsame:=true;
+
+    groupvalue:='';
+    for i:=0 to groupcount-1 do
+    begin
+      if group[i].Matches=false then
+      begin
+        allmatch:=false;
+        allsame:=false;
+        break;
+      end;
+
+      if i=0 then
+        groupvalue:=group[0].currentString
+      else
+      begin
+        if groupvalue<>group[i].currentString then
+          allsame:=false;
+      end;
+    end;
 
 
-    if not error then
-      TStructColumn(columns[i]).compareValue:=element.getValue(address)
-    else
-      TStructColumn(columns[i]).compareValue:='???';
+    for i:=0 to columncount-1 do
+    begin
+      c:=columns[i];
+
+      if c.parent.Matches then
+      begin
+        c.currentNodeColor:=fMatchColor;  //default match color
+
+        if (groupcount>1) and allmatch then //if all the groups have columns that match, and more than 1 group, then
+        begin
+          if allsame then //if all the groups have the same value then
+            c.currentNodeColor:=fAllMatchColorSame
+          else
+            c.currentNodeColor:=fAllMatchColorDiff;
+        end;
+      end
+      else
+        c.currentNodeColor:=fNoMatchColor;
+    end;
+
+  end
+  else
+  begin
+    //invalid struct
+    for i:=0 to columnCount-1 do
+    begin
+      c:=columns[i];
+      c.currentNodeColor:=tvStructureView.BackgroundColor;
+      c.currentNodeValue:='';
+      c.currentNodeAddress:='';
+    end;
   end;
-
-  ApplyStructureCompare; //sets the proper color in front of the columnvalue
-
-  for i:=0 to columncount-1 do
-    values:=#13+TStructColumn(columns[i]).compareValue;
-
-  node.Text:=values;
 end;
 
 procedure TfrmStructures2.setupNodeWithElement(node: TTreenode; element: TStructElement);
 begin
-  setNodeValues(node, element);
   if (element.isPointer) then
   begin
     node.Data:=element.ChildStruct;
@@ -1586,13 +1650,17 @@ begin
   struct:=TDissectedStruct(currentnode.data);
   currentnode.DeleteChildren;
 
-  for i:=0 to struct.count-1 do
+  if struct<>nil then
   begin
-    newnode:=tvStructureView.Items.AddChild(currentnode,'');
-    setupNodeWithElement(newnode, struct[i]);
-  end;
+    for i:=0 to struct.count-1 do
+    begin
+      newnode:=tvStructureView.Items.AddChild(currentnode,'');
+      setupNodeWithElement(newnode, struct[i]);
+    end;
 
-  currentnode.Expand(false);
+    currentnode.HasChildren:=true;
+    currentnode.Expand(false);
+  end;
 
   tvStructureView.EndUpdate;
 
@@ -1644,6 +1712,8 @@ procedure TfrmStructures2.tvStructureViewExpanding(Sender: TObject;
 var n: TStructelement;
   error: boolean;
   address: ptruint;
+  c: TStructColumn;
+  x: dword;
 begin
   AllowExpansion:=true;
   n:=getStructElementFromNode(node);
@@ -1651,10 +1721,20 @@ begin
   begin
     if miAutoCreate.Checked then
     begin
+
       //create a structure
-      address:=getAddressFromNode(node, TStructColumn(columns[0]), error);
+      c:=getFocusedColumn;
+      if c=nil then
+        c:=columns[0];
+
+      address:=getAddressFromNode(node, c, error);
+
       if not error then
-        n.AutoCreateChildStruct('Autocreated from '+inttohex(address,8), address);
+      begin
+        //dereference the pointer and fill it in if possible
+        if ReadProcessMemory(processhandle, pointer(address), @address, processhandler.pointersize, x) then
+          n.AutoCreateChildStruct('Autocreated from '+inttohex(address,8), address);
+      end;
 
       AllowExpansion:=not error;
     end
@@ -1676,7 +1756,7 @@ begin
   tvStructureView.Items.Clear;
   if mainStruct<>nil then
   begin
-    tn:=tvStructureView.Items.Add(nil, mainstruct.name);
+    tn:=tvStructureView.Items.Add(nil, '');
     tn.Data:=mainStruct;
     tn.HasChildren:=true;
     tn.Expand(false);
@@ -1708,13 +1788,6 @@ begin
       InitializeFirstNode;
       currentNode:=tvStructureView.Items.GetFirstNode;
     end;
-
-    if currentnode<>nil then
-    begin
-      if currentnode.data=sender then
-        currentnode.text:=sender.name;
-    end;
-
 
     while currentnode<>nil do
     begin
@@ -2011,7 +2084,6 @@ end;
 function TfrmStructures2.getFocusedColumn: TStructColumn;
 var i: integer;
 begin
-  result:=nil;
   for i:=0 to columnCount-1 do
     if columns[i].Focused then
     begin
@@ -2274,6 +2346,88 @@ begin
   end;
 end;
 
+procedure TfrmStructures2.saveColors;
+var reg: TRegistry;
+begin
+  reg:=tregistry.create;
+  try
+    Reg.RootKey := HKEY_CURRENT_USER;
+    if Reg.OpenKey('\Software\Cheat Engine\DissectData',true) then
+    begin
+      reg.WriteInteger('Default Color',fDefaultColor);
+      reg.WriteInteger('Match Color',fMatchColor);
+      reg.WriteInteger('No Match Color',fNoMatchColor);
+      reg.WriteInteger('All Match Color Same',fAllMatchColorSame);
+      reg.WriteInteger('All Match Color Diff',fAllMatchColorDiff);
+    end;
+  finally
+    reg.free;
+  end;
+end;
+
+procedure TfrmStructures2.loadcolors;
+var reg: TRegistry;
+begin
+  reg:=tregistry.create;
+  try
+    Reg.RootKey := HKEY_CURRENT_USER;
+    if Reg.OpenKey('\Software\Cheat Engine\DissectData',false) then
+    begin
+      if reg.ValueExists('Default Color') then fDefaultColor:=reg.ReadInteger('Default Color');
+      if reg.ValueExists('Match Color') then fMatchColor:=reg.ReadInteger('Match Color');
+      if reg.ValueExists('No Match Color') then fNoMatchColor:=reg.ReadInteger('No Match Color');
+      if reg.ValueExists('All Match Color Same') then fAllMatchColorSame:=reg.ReadInteger('All Match Color Same');
+      if reg.ValueExists('All Match Color Diff') then fAllMatchColorDiff:=reg.ReadInteger('All Match Color Diff');
+
+      RefreshVisibleNodes;
+    end;
+  finally
+    reg.free;
+  end;
+
+
+end;
+
+
+
+procedure TfrmStructures2.miChangeColorsClick(Sender: TObject);
+var c: TfrmStructuresConfig;
+begin
+  c:=TfrmStructuresConfig.create(self);
+  //setup the colors for the edit window
+  {
+  fDefaultColor: TColor;
+  fNoMatchColor: TColor; //The color to use when not all elements have the same color
+  fMatchColor: tcolor; //The color to use when all elements in the group match
+  fAllMatchColorSame: TColor; //The color to use when all groups have matching elements AND the same value
+  fAllMatchColorDiff: TColor; //The color to use when all groups have matching elements but at least one has different values between groups
+
+  }
+  c.defaultText:=fDefaultColor;
+  c.equalText:=fMatchColor;
+  c.differentText:=fNoMatchColor;
+  c.groupequalText:=fAllMatchColorSame;
+  c.groupDifferentText:=fAllMatchColorDiff;
+
+  //show and wait for the user
+  if c.showmodal=mrok then
+  begin
+    //apply new colors
+    fDefaultColor:=c.defaultText;
+    fMatchColor:=c.equalText;
+    fNoMatchColor:=c.differentText;
+    fAllMatchColorSame:=c.groupequalText;
+    fAllMatchColorDiff:=c.groupDifferentText;
+
+    savecolors;
+
+    //and show the new colors
+    RefreshVisibleNodes;
+  end;
+
+
+end;
+
 
 
 procedure TfrmStructures2.miDoNotSaveLocalClick(Sender: TObject);
@@ -2362,6 +2516,116 @@ end;
 function TfrmStructures2.getGroupCount: integer;
 begin
   result:=fgroups.count;
+end;
+
+procedure TfrmStructures2.tvStructureViewAdvancedCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode;
+  State: TCustomDrawState; Stage: TCustomDrawStage; var PaintImages, DefaultDraw: Boolean);
+var
+  textrect: trect;
+  linerect: trect;
+
+  textlinerect: trect;
+  fulltextline: trect;
+
+  clip: TRect;
+
+  se: TStructelement;
+  description: string;
+  s: string;
+
+  c: TStructColumn;
+  i: integer;
+  selected: boolean;
+begin
+  if stage=cdPostPaint then
+  begin
+    textrect:=node.DisplayRect(true);
+    linerect:=node.DisplayRect(false);
+
+    fulltextline:=linerect;
+    fulltextline.Left:=textrect.Left;
+    fulltextline.Right:=tvStructureView.ClientWidth;
+
+    //get the next text
+    se:=getStructElementFromNode(node);
+    if (se=nil) then
+      description:=mainstruct.name
+    else
+      description:=inttohex(se.Offset,4)+' - '+se.Name;
+
+    setCurrentNodeStringsInColumns(node,se);
+
+
+    //draw an empty line.
+    textlinerect.left:=textrect.left;
+    textlinerect.Top:=linerect.Top;
+    textlinerect.Right:=max(tvStructureView.clientwidth, headercontrol1.left+headercontrol1.Sections.Items[headercontrol1.Sections.Count-1].Left+headercontrol1.Sections.Items[headercontrol1.Sections.Count-1].Width);
+    textlinerect.Bottom:=linerect.Bottom;
+    if textlinerect.right<textlinerect.left then
+      textlinerect.right:=textlinerect.left;
+
+
+    //draw the description
+    clip:=textrect;
+    clip.Right:=headercontrol1.left+headercontrol1.Sections[0].Left+headercontrol1.Sections[0].Width;
+    selected:=(cdsSelected in State) or (cdsMarked in state);
+
+    if selected then
+      sender.Canvas.Font.Color:=InvertColor(fDefaultColor)
+    else
+      sender.Canvas.Font.Color:=fDefaultColor;
+
+
+    sender.Canvas.Refresh;
+    sender.Canvas.TextRect(clip,textrect.Left,textrect.Top,description);
+
+    //draw the columns
+    for i:=0 to columnCount-1 do
+    begin
+      c:=columns[i];
+      clip.left:=headercontrol1.left+headercontrol1.Sections[i+1].Left;
+      clip.right:=headercontrol1.left+headercontrol1.Sections[i+1].Right;
+
+      if selected then
+        sender.canvas.font.Color:=InvertColor(c.currentNodeColor)
+      else
+        sender.canvas.font.Color:=c.currentNodeColor;
+
+      sender.Canvas.Refresh;
+
+
+      if miShowAddresses.checked then
+        s:=c.currentNodeAddress
+      else
+        s:='';
+
+      s:=s+c.currentNodeValue;
+      sender.Canvas.TextRect(clip,clip.left,textrect.Top,s);
+    end;
+  end;
+  DefaultDraw:=true;
+end;
+
+procedure TfrmStructures2.EditValueOfSelectedNode(node: TTreenode);
+var address: PtrUInt;
+  error: boolean;
+  se: Tstructelement;
+begin
+  se:=getStructElementFromNode(node);
+  if se<>nil then
+  begin
+    address:=getAddressFromNode(node, getFocusedColumn, error);
+
+    if not error then
+    begin
+      //show the change value dialog
+    end;
+  end;
+end;
+
+procedure TfrmStructures2.tvStructureViewDblClick(Sender: TObject);
+begin
+  EditValueOfSelectedNode(tvStructureView.Selected);
 end;
 
 initialization
