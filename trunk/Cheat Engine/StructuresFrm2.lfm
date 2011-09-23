@@ -178,6 +178,10 @@ object frmStructures2: TfrmStructures2
     OnPopup = pmStructureViewPopup
     left = 40
     top = 112
+    object MenuItem6: TMenuItem
+      Caption = 'Change Value'
+      OnClick = MenuItem6Click
+    end
     object miChangeElement: TMenuItem
       Caption = 'Change element'
       Default = True
