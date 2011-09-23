@@ -178,9 +178,9 @@ object frmStructures2: TfrmStructures2
     OnPopup = pmStructureViewPopup
     left = 40
     top = 112
-    object MenuItem6: TMenuItem
+    object miChangeValue: TMenuItem
       Caption = 'Change Value'
-      OnClick = MenuItem6Click
+      OnClick = miChangeValueClick
     end
     object miChangeElement: TMenuItem
       Caption = 'Change element'
@@ -236,6 +236,7 @@ object frmStructures2: TfrmStructures2
     object miUpdateOffsets: TMenuItem
       Caption = 'Update this and following offsets'
       ShortCut = 16469
+      OnClick = miUpdateOffsetsClick
     end
   end
   object updatetimer: TTimer
