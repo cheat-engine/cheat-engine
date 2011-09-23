@@ -30,9 +30,12 @@ type
     { Private declarations }
     faddress: ptrUint;
     fvartype: byte;
+    fvartype2: Tvariabletype;
     procedure Updatevalue;
     procedure setaddress(x: ptrUint);
     procedure setvartype(x: byte);
+    procedure setvartype2(vt: TVariableType);
+    function getVartype: TVariabletype;
 
     procedure setunicode(x:boolean);
     function getunicode:boolean;
@@ -42,6 +45,7 @@ type
     slength: integer;
     property Address: ptrUint read faddress write setaddress;
     property vtype: byte read fvartype write setvartype;
+    property vartype: TVariableType read getVartype write setVartype2;
     property unicode: boolean read getunicode write setunicode;
   end;
 
@@ -71,6 +75,41 @@ begin
   faddress:=x;
   caption:=Format(rsChangeOffset, [inttohex(x, 8)]);
   updatevalue;
+end;
+
+procedure TValuechangeForm.setvartype2(vt: TVariableType);
+//9/23/2011: adding support for the 'new' type... (really old code here)
+begin
+  case vt of
+    vtByte: vartype.itemindex:=0;
+    vtWord: vartype.itemindex:=1;
+    vtDword: vartype.itemindex:=2;
+    vtQword: vartype.itemindex:=3;
+    vtSingle: vartype.itemindex:=4;
+    vtDouble: vartype.itemindex:=5;
+    vtString,vtUnicodeString:
+    begin
+      vartype.itemindex:=6;
+      cbunicode.checked:=vt=vtUnicodeString;
+    end;
+
+    vtByteArray: vartype.itemindex:=7;
+  end;
+end;
+
+function TValuechangeForm.getVartype: TVariabletype;
+begin
+  result:=vtbyte;
+  case vartype.itemindex of
+    0: result:=vtByte;
+    1: result:=vtWord;
+    2: result:=vtDword;
+    3: result:=vtQword;
+    4: result:=vtSingle;
+    5: result:=vtDouble;
+    6: if cbunicode.checked then result:=vtUnicodeString else result:=vtString;
+    7: result:=vtByteArray;
+  end;
 end;
 
 procedure TValuechangeForm.setvartype(x: byte);

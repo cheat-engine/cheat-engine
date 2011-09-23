@@ -8,7 +8,7 @@ interface
 uses
   windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls, math,
   StdCtrls, ComCtrls, Menus, lmessages, scrolltreeview, byteinterpreter, symbolhandler, cefuncproc,
-  newkernelhandler, frmSelectionlistunit, frmStructuresConfigUnit, registry;
+  newkernelhandler, frmSelectionlistunit, frmStructuresConfigUnit, registry, Valuechange;
 
 
 
@@ -217,6 +217,7 @@ type
 
   TfrmStructures2 = class(TForm)
     MenuItem5: TMenuItem;
+    MenuItem6: TMenuItem;
     miShowAddresses: TMenuItem;
     miDoNotSaveLocal: TMenuItem;
     miFullUpgrade: TMenuItem;
@@ -261,6 +262,7 @@ type
     tvStructureView: TTreeView;
     procedure Addextraaddress1Click(Sender: TObject);
     procedure MenuItem5Click(Sender: TObject);
+    procedure MenuItem6Click(Sender: TObject);
     procedure miBrowseAddressClick(Sender: TObject);
     procedure miBrowsePointerClick(Sender: TObject);
     procedure miAddToAddresslistClick(Sender: TObject);
@@ -331,7 +333,7 @@ type
 
     function getGroup(i: integer): TStructGroup;
     function getGroupCount: integer;
-    procedure EditValueOfSelectedNode(node: TTreenode);
+    procedure EditValueOfSelectedNode(node: TTreenode; c:TStructColumn);
   public
     { public declarations }
     initialaddress: integer;
@@ -2214,6 +2216,11 @@ begin
   end;
 end;
 
+procedure TfrmStructures2.MenuItem6Click(Sender: TObject);
+begin
+  EditValueOfSelectedNode(tvStructureView.selected, getFocusedColumn);
+end;
+
 procedure TfrmStructures2.miBrowseAddressClick(Sender: TObject);
 var
   n: ttreenode;
@@ -2606,26 +2613,44 @@ begin
   DefaultDraw:=true;
 end;
 
-procedure TfrmStructures2.EditValueOfSelectedNode(node: TTreenode);
-var address: PtrUInt;
+procedure TfrmStructures2.EditValueOfSelectedNode(node: TTreenode; c:TStructColumn);
+var a: PtrUInt;
   error: boolean;
   se: Tstructelement;
 begin
   se:=getStructElementFromNode(node);
   if se<>nil then
   begin
-    address:=getAddressFromNode(node, getFocusedColumn, error);
+    a:=getAddressFromNode(node, c, error);
 
     if not error then
     begin
       //show the change value dialog
+      with Tvaluechangeform.Create(self) do
+      begin
+        Address:=a;
+        vartype:=se.VarType;
+        showmodal;
+        free;
+      end;
     end;
   end;
 end;
 
 procedure TfrmStructures2.tvStructureViewDblClick(Sender: TObject);
+var
+  m: TPoint;
+  c: TStructColumn;
 begin
-  EditValueOfSelectedNode(tvStructureView.Selected);
+  //if first column is doubleclicked edit the type, else edit the value
+  m:=mouse.CursorPos;
+  m:=tvStructureView.ScreenToClient(m);
+  c:=getColumnAtXPos(m.x);
+
+  if c=nil then
+    miChangeElementClick(miChangeElement)
+  else
+    EditValueOfSelectedNode(tvStructureView.Selected,c);
 end;
 
 initialization
