@@ -37,10 +37,13 @@ object frmStructuresConfig: TfrmStructuresConfig
     Cursor = crHandPoint
     Left = 98
     Height = 16
+    Hint = 'Color used when only one group and all columns have the same value'
     Top = 16
     Width = 30
     Caption = 'Equal'
     ParentColor = False
+    ParentShowHint = False
+    ShowHint = True
     OnMouseDown = ColorClick
   end
   object Label1: TLabel
@@ -48,10 +51,13 @@ object frmStructuresConfig: TfrmStructuresConfig
     Cursor = crHandPoint
     Left = 94
     Height = 16
+    Hint = 'Color used when only one column'
     Top = 0
     Width = 39
     Caption = 'Default'
     ParentColor = False
+    ParentShowHint = False
+    ShowHint = True
     OnMouseDown = ColorClick
   end
   object Label2: TLabel
@@ -59,10 +65,13 @@ object frmStructuresConfig: TfrmStructuresConfig
     Cursor = crHandPoint
     Left = 90
     Height = 16
+    Hint = 'Color used when only one group and not all columns have the same value, or when multiple groups but not every group has matching columns'
     Top = 32
     Width = 47
     Caption = 'Different'
     ParentColor = False
+    ParentShowHint = False
+    ShowHint = True
     OnMouseDown = ColorClick
   end
   object Label3: TLabel
@@ -70,10 +79,13 @@ object frmStructuresConfig: TfrmStructuresConfig
     Cursor = crHandPoint
     Left = 80
     Height = 16
+    Hint = 'Color used when multiple groups and every member of every group has the same value, and that value matches that of each group'
     Top = 48
     Width = 66
     Caption = 'Group Equal'
     ParentColor = False
+    ParentShowHint = False
+    ShowHint = True
     OnMouseDown = ColorClick
   end
   object Label9: TLabel
@@ -81,10 +93,13 @@ object frmStructuresConfig: TfrmStructuresConfig
     Cursor = crHandPoint
     Left = 72
     Height = 16
+    Hint = 'Color used when multiple groups and every member of every group has the same value, but not each group has the same value'
     Top = 64
     Width = 83
     Caption = 'Group Different'
     ParentColor = False
+    ParentShowHint = False
+    ShowHint = True
     OnMouseDown = ColorClick
   end
   object ColorDialog1: TColorDialog

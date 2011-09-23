@@ -1,8 +1,13 @@
 TFRMSTRUCTURESCONFIG.CAPTION=Dissect Data Config
 TFRMSTRUCTURESCONFIG.BUTTON1.CAPTION=OK
 TFRMSTRUCTURESCONFIG.BUTTON2.CAPTION=Cancel
+TFRMSTRUCTURESCONFIG.LABEL7.HINT=Color used when only one group and all columns have the same value
 TFRMSTRUCTURESCONFIG.LABEL7.CAPTION=Equal
+TFRMSTRUCTURESCONFIG.LABEL1.HINT=Color used when only one column
 TFRMSTRUCTURESCONFIG.LABEL1.CAPTION=Default
+TFRMSTRUCTURESCONFIG.LABEL2.HINT=Color used when only one group and not all columns have the same value, or when multiple groups but not every group has matching columns
 TFRMSTRUCTURESCONFIG.LABEL2.CAPTION=Different
+TFRMSTRUCTURESCONFIG.LABEL3.HINT=Color used when multiple groups and every member of every group has the same value, and that value matches that of each group
 TFRMSTRUCTURESCONFIG.LABEL3.CAPTION=Group Equal
+TFRMSTRUCTURESCONFIG.LABEL9.HINT=Color used when multiple groups and every member of every group has the same value, but not each group has the same value
 TFRMSTRUCTURESCONFIG.LABEL9.CAPTION=Group Different

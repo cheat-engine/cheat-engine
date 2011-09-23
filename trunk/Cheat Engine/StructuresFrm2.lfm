@@ -14,8 +14,8 @@ object frmStructures2: TfrmStructures2
   LCLVersion = '0.9.31'
   object tvStructureView: TTreeView
     Left = 0
-    Height = 284
-    Top = 72
+    Height = 287
+    Top = 69
     Width = 540
     Align = alBottom
     Anchors = [akTop, akLeft, akRight, akBottom]
@@ -35,8 +35,10 @@ object frmStructures2: TfrmStructures2
     RowSelect = True
     ShowRoot = False
     TabOrder = 0
+    OnAdvancedCustomDrawItem = tvStructureViewAdvancedCustomDrawItem
     OnCollapsed = tvStructureViewCollapsed
     OnCollapsing = tvStructureViewCollapsing
+    OnDblClick = tvStructureViewDblClick
     OnExpanded = tvStructureViewExpanded
     OnExpanding = tvStructureViewExpanding
     OnMouseDown = tvStructureViewMouseDown
@@ -44,7 +46,7 @@ object frmStructures2: TfrmStructures2
   end
   object pnlGroups: TPanel
     Left = 0
-    Height = 57
+    Height = 51
     Top = 0
     Width = 540
     Align = alTop
@@ -55,7 +57,7 @@ object frmStructures2: TfrmStructures2
   object HeaderControl1: THeaderControl
     Left = 0
     Height = 21
-    Top = 56
+    Top = 50
     Width = 540
     DragReorder = False
     Sections = <    
@@ -113,6 +115,7 @@ object frmStructures2: TfrmStructures2
       Caption = 'View'
       object miChangeColors: TMenuItem
         Caption = 'Change colors'
+        OnClick = miChangeColorsClick
       end
       object miUpdateInterval: TMenuItem
         Caption = 'Update interval: 500'
