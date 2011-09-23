@@ -333,7 +333,7 @@ DXMessD3D10Handler::DXMessD3D10Handler(ID3D10Device *dev, IDXGISwapChain *sc, PD
 	rasterizerdesc.FrontCounterClockwise = false;
 	rasterizerdesc.DepthBias = 0;
 	rasterizerdesc.DepthBiasClamp = 0.0f;
-	rasterizerdesc.DepthClipEnable = true;
+	rasterizerdesc.DepthClipEnable = false;
 	rasterizerdesc.AntialiasedLineEnable = false;
 	
 	

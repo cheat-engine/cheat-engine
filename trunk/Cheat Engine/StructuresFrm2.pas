@@ -217,7 +217,7 @@ type
 
   TfrmStructures2 = class(TForm)
     MenuItem5: TMenuItem;
-    MenuItem6: TMenuItem;
+    miChangeValue: TMenuItem;
     miShowAddresses: TMenuItem;
     miDoNotSaveLocal: TMenuItem;
     miFullUpgrade: TMenuItem;
@@ -262,7 +262,7 @@ type
     tvStructureView: TTreeView;
     procedure Addextraaddress1Click(Sender: TObject);
     procedure MenuItem5Click(Sender: TObject);
-    procedure MenuItem6Click(Sender: TObject);
+    procedure miChangeValueClick(Sender: TObject);
     procedure miBrowseAddressClick(Sender: TObject);
     procedure miBrowsePointerClick(Sender: TObject);
     procedure miAddToAddresslistClick(Sender: TObject);
@@ -284,6 +284,7 @@ type
     procedure miAddChildElementClick(Sender: TObject);
     procedure miAddElementClick(Sender: TObject);
     procedure miShowAddressesClick(Sender: TObject);
+    procedure miUpdateOffsetsClick(Sender: TObject);
     procedure pmStructureViewPopup(Sender: TObject);
     procedure miNewWindowClick(Sender: TObject);
     procedure miUpdateIntervalClick(Sender: TObject);
@@ -402,7 +403,7 @@ resourcestring
    rsNewInterval = 'New interval';
    rsDissectData = 'Dissect Data';
    rsHowManyBytesDoYouWantToShiftThisAndFollowingOffset = 'How many bytes do '
-     +'you want to shift this and following offsets?';
+     +'you want to shift this and following offsets? (Decimal)';
    rsAreYouSureYouWantToDelete = 'Are you sure you want to delete %s?';
    rsThisIsNotAValidStructureFile = 'This is not a valid structure file';
    rsWrongVersion = 'This structure fils was generated with a newer version of '
@@ -2022,6 +2023,40 @@ begin
   RefreshVisibleNodes;
 end;
 
+procedure TfrmStructures2.miUpdateOffsetsClick(Sender: TObject);
+var offsetstring: string;
+  struct: TDissectedStruct;
+  element: TStructelement;
+  i: integer;
+  offset: integer;
+begin
+  //get the structure and the element to start from
+  struct:=getStructFromNode(tvStructureView.selected);
+  if struct<>nil then
+  begin
+    element:=getStructElementFromNode(tvStructureView.selected);
+    if (element=nil) and (struct.count>0) then
+      element:=struct[0];
+
+    if element<>nil then
+    begin
+      offsetstring:='0';
+      if InputQuery(rsDissectData, rsHowManyBytesDoYouWantToShiftThisAndFollowingOffset, offsetstring) then
+      begin
+
+        offset:=StrToInt(offsetstring);
+
+        struct.beginUpdate; //prevents sorting
+        for i:=element.index to struct.count-1 do
+          struct[i].Offset:=struct[i].offset+offset;
+
+        struct.endUpdate;//resort and update
+      end;
+    end;
+
+  end;
+end;
+
 procedure TfrmStructures2.pmStructureViewPopup(Sender: TObject);
 var childstruct: TDissectedStruct;
   ownerstruct: TDissectedStruct;
@@ -2216,7 +2251,7 @@ begin
   end;
 end;
 
-procedure TfrmStructures2.MenuItem6Click(Sender: TObject);
+procedure TfrmStructures2.miChangeValueClick(Sender: TObject);
 begin
   EditValueOfSelectedNode(tvStructureView.selected, getFocusedColumn);
 end;

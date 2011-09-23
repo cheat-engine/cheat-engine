@@ -15,7 +15,7 @@ uses
                                        
 type
   TValueChangeForm = class(TForm)
-    VarType: TComboBox;
+    cbVarType: TComboBox;
     Button1: TButton;
     Button2: TButton;
     ValueText: TEdit;
@@ -23,7 +23,7 @@ type
     procedure Button2Click(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Button1Click(Sender: TObject);
-    procedure VarTypeChange(Sender: TObject);
+    procedure cbVarTypeChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
@@ -45,7 +45,7 @@ type
     slength: integer;
     property Address: ptrUint read faddress write setaddress;
     property vtype: byte read fvartype write setvartype;
-    property vartype: TVariableType read getVartype write setVartype2;
+    property VarType: TVariableType read getVartype write setVartype2;
     property unicode: boolean read getunicode write setunicode;
   end;
 
@@ -80,27 +80,28 @@ end;
 procedure TValuechangeForm.setvartype2(vt: TVariableType);
 //9/23/2011: adding support for the 'new' type... (really old code here)
 begin
+
   case vt of
-    vtByte: vartype.itemindex:=0;
-    vtWord: vartype.itemindex:=1;
-    vtDword: vartype.itemindex:=2;
-    vtQword: vartype.itemindex:=3;
-    vtSingle: vartype.itemindex:=4;
-    vtDouble: vartype.itemindex:=5;
+    vtByte: cbVarType.itemindex:=0;
+    vtWord: cbVarType.itemindex:=1;
+    vtDword: cbVarType.itemindex:=2;
+    vtQword: cbVarType.itemindex:=3;
+    vtSingle: cbVarType.itemindex:=4;
+    vtDouble: cbVarType.itemindex:=5;
     vtString,vtUnicodeString:
     begin
-      vartype.itemindex:=6;
+      cbVarType.itemindex:=6;
       cbunicode.checked:=vt=vtUnicodeString;
     end;
 
-    vtByteArray: vartype.itemindex:=7;
+    vtByteArray: cbVarType.itemindex:=7;
   end;
 end;
 
 function TValuechangeForm.getVartype: TVariabletype;
 begin
   result:=vtbyte;
-  case vartype.itemindex of
+  case cbVarType.itemindex of
     0: result:=vtByte;
     1: result:=vtWord;
     2: result:=vtDword;
@@ -118,13 +119,13 @@ begin
 
 
   case x of
-    0: vartype.itemindex:=0;  //byte
-    1: vartype.itemindex:=1;  //word
-    2: vartype.itemindex:=2;  //dword
-    6: vartype.itemindex:=3;  //int64
-    4: vartype.itemindex:=4;  //float
-    5: vartype.itemindex:=5;  //double
-    7: vartype.itemindex:=6;  //text
+    0: cbVarType.itemindex:=0;  //byte
+    1: cbVarType.itemindex:=1;  //word
+    2: cbVarType.itemindex:=2;  //dword
+    6: cbVarType.itemindex:=3;  //int64
+    4: cbVarType.itemindex:=4;  //float
+    5: cbVarType.itemindex:=5;  //double
+    7: cbVarType.itemindex:=6;  //text
   end;
 
   updatevalue;
@@ -147,7 +148,7 @@ begin
   value4:=0;
   value5:=0;
 
-  case vartype.itemindex of
+  case cbVarType.itemindex of
       0 : begin //byte
             {$ifdef net}
             readprocessmemorynet(0,pointer(address),addr(value1),1,read);            
@@ -269,7 +270,7 @@ end;
 
 procedure TValueChangeForm.FormShow(Sender: TObject);
 begin
-  //vartype.ItemIndex:=0;
+  //cbVarType.ItemIndex:=0;
 
   valuetext.SetFocus;
   valuetext.SelectAll;
@@ -306,7 +307,7 @@ begin
 
   fs:=DefaultFormatSettings;
 
-  case vartype.itemindex of
+  case cbVarType.itemindex of
 {byte}  0       : writeprocessmemory(processhandle,pointer(address),addr(newvalue1),1,write);
 {word}  1       : writeprocessmemory(processhandle,pointer(address),addr(newvalue2),2,write);
 {dword} 2       : writeprocessmemory(processhandle,pointer(address),addr(newvalue3),4,write);
@@ -387,15 +388,15 @@ begin
   modalresult:=mrok;
 end;
 
-procedure TValueChangeForm.VarTypeChange(Sender: TObject);
+procedure TValueChangeForm.cbVarTypeChange(Sender: TObject);
 begin
   updatevalue;
 end;
 
 procedure TValueChangeForm.FormCreate(Sender: TObject);
 begin
-  vartype.Items.Delete(vartype.Items.Count-1);
-  vartype.itemindex:=0;
+  cbVarType.Items.Delete(cbVarType.Items.Count-1);
+  cbVarType.itemindex:=0;
 end;
 
 procedure TValueChangeForm.FormClose(Sender: TObject;

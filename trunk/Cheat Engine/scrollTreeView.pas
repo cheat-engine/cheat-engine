@@ -24,6 +24,9 @@ type
     procedure WMHScroll(var Msg: TLMScroll); message LM_HSCROLL;
     procedure WMVScroll(var Msg: TLMScroll); message LM_VSCROLL;
 
+
+
+
    // procedure resize;
   published
     property onHScroll: THScrollEvent read fOnHScroll write fOnHScroll;

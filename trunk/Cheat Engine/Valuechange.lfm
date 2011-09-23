@@ -15,7 +15,7 @@ object ValueChangeForm: TValueChangeForm
   OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '0.9.31'
-  object VarType: TComboBox
+  object cbVarType: TComboBox
     Left = 16
     Height = 21
     Top = 32
@@ -32,7 +32,7 @@ object ValueChangeForm: TValueChangeForm
       'Text'
       'Array of Bytes'
     )
-    OnChange = VarTypeChange
+    OnChange = cbVarTypeChange
     Style = csDropDownList
     TabOrder = 0
     Text = '1 Byte'
