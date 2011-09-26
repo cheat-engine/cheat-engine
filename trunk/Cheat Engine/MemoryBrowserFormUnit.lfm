@@ -1088,14 +1088,15 @@ object MemoryBrowser: TMemoryBrowser
         ShortCut = 16458
         OnClick = Dissectcode1Click
       end
-      object Dissectdata2: TMenuItem
+      object miDissectData: TMenuItem
+        Caption = 'Dissect data/structures old'
+        Visible = False
+        OnClick = miDissectDataClick
+      end
+      object miDissectData2: TMenuItem
         Caption = 'Dissect data/structures'
         ShortCut = 16452
-        OnClick = Dissectdata2Click
-      end
-      object MenuItem16: TMenuItem
-        Caption = 'Dissect data/structures 2'
-        OnClick = MenuItem16Click
+        OnClick = miDissectData2Click
       end
       object Disectwindow1: TMenuItem
         Caption = 'Dissect window(s)'

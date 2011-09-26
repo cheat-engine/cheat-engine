@@ -10,7 +10,7 @@ interface
 uses windows, forms, LCLIntf,registry, SysUtils,AdvancedOptionsUnit,CommentsUnit,
      CEFuncProc,classes,{formmemorymodifier,formMemoryTrainerUnit,}shellapi,
      {MemoryTrainerDesignUnit,}StdCtrls,{ExtraTrainerComponents,}Graphics,Controls,
-     tableconverter, ExtCtrls,Dialogs,NewKernelHandler, hotkeyhandler, structuresfrm,
+     tableconverter, ExtCtrls,Dialogs,NewKernelHandler, hotkeyhandler, structuresfrm, StructuresFrm2,
      comctrls,dom, xmlread,xmlwrite, FileUtil, ceguicomponents, zstream, luafile, disassemblerComments;
 
 
@@ -164,9 +164,9 @@ type
         FrozenValue : Dword;
   end;
 
-procedure LoadStructFromXMLNode(var struct: TbaseStructure; Structure: TDOMNode);
+procedure LoadStructFromXMLNode(var struct: TbaseStructure; Structure: TDOMNode); //obsolete
 
-procedure SaveStructToXMLNode(struct: TbaseStructure; Structures: TDOMNode);
+procedure SaveStructToXMLNode(struct: TbaseStructure; Structures: TDOMNode);   //obsolete
 
 {$ifdef net}
 var processhandle: thandle;
@@ -299,6 +299,10 @@ var
     r: integer;
     reg: Tregistry;
     version: integer;
+
+    tempstruct: TDissectedStruct;
+    svstring: string;
+    sv: integer;
 begin
   LUA_DoScript('tableIsLoading=true');
   try
@@ -555,6 +559,7 @@ begin
     while length(frmStructures)>0 do
       frmStructures[0].free;
 
+    {
     if Structures<>nil then
     begin
       setlength(definedstructures, Structures.ChildNodes.Count);
@@ -565,7 +570,35 @@ begin
       end;
     end
     else
-      setlength(definedstructures,0);
+      setlength(definedstructures,0);  }
+
+    if Structures<>nil then
+    begin
+      svstring:=TDOMElement(structures).GetAttribute('StructVersion');
+      if svstring='' then
+        sv:=1
+      else
+        sv:=StrToInt(svstring);
+
+      if sv>=2 then
+      begin
+        for i:=0 to Structures.ChildNodes.Count-1 do
+        begin
+          Structure:=Structures.ChildNodes[i];
+          tempstruct:=TDissectedStruct.createFromXMLNode(structure);
+          tempstruct.addToGlobalStructList;
+        end;
+      end
+      else
+      begin
+        //v1 structure. Needs conversion
+      end;
+
+      //fill in the structure references
+      for i:=0 to DissectedStructs.count-1 do
+        TDissectedStruct(DissectedStructs[i]).fillDelayLoadedChildstructs;
+    end;
+
 
 
     //disassemblercomments
@@ -934,7 +967,7 @@ end;
 
 procedure SaveXML(Filename: string);
 var doc: TXMLDocument;
-    CheatTable: TDOMNode;
+    CheatTable: TDOMElement;
     Files, Forms,Entries,Symbols, Structures, Comment,luascript, dcomments: TDOMNode;
     CodeRecords, CodeRecord, SymbolRecord: TDOMNode;
     CodeBytes: TDOMNode;
@@ -947,7 +980,7 @@ begin
   doc:=TXMLDocument.Create;
   //doc.Encoding:=;
 
-  CheatTable:=doc.AppendChild(doc.CreateElement('CheatTable'));
+  CheatTable:=TDOMElement(doc.AppendChild(TDOMNode(doc.CreateElement('CheatTable'))));
   TDOMElement(CheatTable).SetAttribute('CheatEngineTableVersion',IntToStr(CurrentTableVersion));
 
   if mainform.LuaForms.count>0 then
@@ -1019,11 +1052,20 @@ begin
     sl.free;
   end;
 
+  {
   if length(definedstructures)>0 then
   begin
     Structures:=CheatTable.AppendChild(doc.CreateElement('Structures'));
     for i:=0 to length(definedstructures)-1 do
       SaveStructToXMLNode(definedstructures[i],Structures);
+  end;
+  }
+  if DissectedStructs.Count>0 then
+  begin
+    Structures:=CheatTable.AppendChild(doc.CreateElement('Structures'));
+    TDOMElement(Structures).SetAttribute('StructVersion', inttostr(structureversion));
+    for i:=0 to DissectedStructs.Count-1 do
+      TDissectedStruct(DissectedStructs[i]).WriteToXMLNode(Structures);
   end;
 
   if comments.memo1.Lines.Count>0 then
