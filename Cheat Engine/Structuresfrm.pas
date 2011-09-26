@@ -11,7 +11,7 @@ uses
   symbolhandler, {XMLDoc, XMLIntf,} byteinterpreter, dom, xmlread, xmlwrite,
   LResources, registry, scrollTreeView;
 
-const structureversion=1;
+const structureversion=2;
 
 
 

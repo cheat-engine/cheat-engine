@@ -28,7 +28,7 @@ type
     MenuItem13: TMenuItem;
     MenuItem14: TMenuItem;
     MenuItem15: TMenuItem;
-    MenuItem16: TMenuItem;
+    miDissectData2: TMenuItem;
     miPointerSpider: TMenuItem;
     MenuItem9: TMenuItem;
     miDisassembly32: TMenuItem;
@@ -153,7 +153,7 @@ type
     Dissectdata1: TMenuItem;
     N10: TMenuItem;
     Showsymbols1: TMenuItem;
-    Dissectdata2: TMenuItem;
+    miDissectData: TMenuItem;
     N11: TMenuItem;
     N12: TMenuItem;
     Showmoduleaddresses1: TMenuItem;
@@ -221,7 +221,7 @@ type
     procedure MenuItem11Click(Sender: TObject);
     procedure MenuItem12Click(Sender: TObject);
     procedure MenuItem14Click(Sender: TObject);
-    procedure MenuItem16Click(Sender: TObject);
+    procedure miDissectData2Click(Sender: TObject);
     procedure miPointerSpiderClick(Sender: TObject);
     procedure MenuItem2Click(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
@@ -312,7 +312,7 @@ type
     procedure Makepagewritable1Click(Sender: TObject);
     procedure Dissectdata1Click(Sender: TObject);
     procedure Showsymbols1Click(Sender: TObject);
-    procedure Dissectdata2Click(Sender: TObject);
+    procedure miDissectDataClick(Sender: TObject);
     procedure Showmoduleaddresses1Click(Sender: TObject);
     procedure Symbolhandler1Click(Sender: TObject);
     procedure Allocatenonpagedmemory1Click(Sender: TObject);
@@ -928,7 +928,7 @@ begin
   frmUltimap.show;
 end;
 
-procedure TMemoryBrowser.MenuItem16Click(Sender: TObject);
+procedure TMemoryBrowser.miDissectData2Click(Sender: TObject);
 begin
   if frmStructures2.count>0 then
   begin
@@ -2527,7 +2527,7 @@ begin
 end;
 
 
-procedure TMemoryBrowser.Dissectdata2Click(Sender: TObject);
+procedure TMemoryBrowser.miDissectDataClick(Sender: TObject);
 begin
   if length(frmStructures)>0 then
   begin

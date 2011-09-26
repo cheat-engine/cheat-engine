@@ -1,7 +1,7 @@
 object frmStructures2: TfrmStructures2
-  Left = 878
+  Left = 833
   Height = 376
-  Top = 284
+  Top = 231
   Width = 540
   Caption = 'Structure dissect'
   ClientHeight = 356
@@ -14,8 +14,8 @@ object frmStructures2: TfrmStructures2
   LCLVersion = '0.9.31'
   object tvStructureView: TTreeView
     Left = 0
-    Height = 287
-    Top = 69
+    Height = 292
+    Top = 64
     Width = 540
     Align = alBottom
     Anchors = [akTop, akLeft, akRight, akBottom]
@@ -65,7 +65,7 @@ object frmStructures2: TfrmStructures2
         Alignment = taLeftJustify
         MinWidth = 50
         Text = 'Offset-description'
-        Width = 250
+        Width = 160
         Visible = True
       end>
     OnSectionTrack = HeaderControl1SectionTrack
