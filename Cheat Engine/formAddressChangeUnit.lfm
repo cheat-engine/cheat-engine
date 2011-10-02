@@ -283,7 +283,7 @@ object formAddressChange: TformAddressChange
     Text = 'Edit1'
   end
   object Edit2: TEdit
-    Left = 328
+    Left = 331
     Height = 21
     Top = 160
     Width = 58
@@ -299,7 +299,7 @@ object formAddressChange: TformAddressChange
     ParentColor = False
   end
   object SpeedButton1: TSpeedButton
-    Left = 304
+    Left = 307
     Height = 22
     Top = 160
     Width = 23
@@ -307,7 +307,7 @@ object formAddressChange: TformAddressChange
     NumGlyphs = 0
   end
   object SpeedButton2: TSpeedButton
-    Left = 392
+    Left = 395
     Height = 22
     Top = 160
     Width = 23
@@ -315,24 +315,24 @@ object formAddressChange: TformAddressChange
     NumGlyphs = 0
   end
   object SpeedButton3: TSpeedButton
-    Left = 304
+    Left = 307
     Height = 22
-    Top = 113
+    Top = 120
     Width = 23
     NumGlyphs = 0
   end
   object Edit3: TEdit
-    Left = 328
+    Left = 331
     Height = 21
-    Top = 113
+    Top = 120
     Width = 58
     TabOrder = 10
     Text = 'Edit2'
   end
   object SpeedButton4: TSpeedButton
-    Left = 392
+    Left = 395
     Height = 22
-    Top = 113
+    Top = 120
     Width = 23
     NumGlyphs = 0
   end
@@ -361,14 +361,14 @@ object formAddressChange: TformAddressChange
     ParentColor = False
   end
   object SpeedButton5: TSpeedButton
-    Left = 304
+    Left = 307
     Height = 22
     Top = 72
     Width = 23
     NumGlyphs = 0
   end
   object Edit4: TEdit
-    Left = 328
+    Left = 331
     Height = 21
     Top = 72
     Width = 58
@@ -376,7 +376,7 @@ object formAddressChange: TformAddressChange
     Text = 'Edit2'
   end
   object SpeedButton6: TSpeedButton
-    Left = 392
+    Left = 395
     Height = 22
     Top = 72
     Width = 23

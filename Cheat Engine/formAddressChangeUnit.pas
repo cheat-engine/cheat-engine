@@ -19,11 +19,10 @@ type
     lblPointerAddressToValue: TLabel; //Address -> Value
     edtOffset: Tedit;
     sbDecrease, sbIncrease: TSpeedButton;
-    ftop: integer;
+
   public
     constructor create(parent: TPointerinfo);
-    procedure setTop(newtop: integer);
-    property top: integer read fTop write setTop;
+    procedure setTop(var newtop: integer);
     property owner: TPointerinfo read fowner;
   end;
 
@@ -34,8 +33,11 @@ type
     baseAddress: TEdit;  //the bottom line
     baseValue: Tlabel;
     offsets: Tlist; //the lines above it
+    function getValueLeft: integer;
   public
     property owner: TformAddressChange read fowner;
+    property valueLeft: integer read getValueLeft; //gets the basevalue.left
+
     procedure setupPositionsAndSizes;
     constructor create(owner: TformAddressChange);
     destructor destroy; override;
@@ -142,8 +144,10 @@ resourcestring
 
 { TOffsetInfo }
 
-procedure TOffsetInfo.setTop(newtop: integer);
-var currenttop: integer;
+procedure TOffsetInfo.setTop(var newtop: integer);
+{
+Sets the offset's position and returns the position for the new offsetline
+}
 begin
   if edtOffset.parent<>nil then
   begin
@@ -156,20 +160,25 @@ begin
 
 
   //only show the pointeraddresstovalue line if not the first line
-  ftop:=newtop;
-  currenttop:=newtop;
   if owner.offsets.IndexOf(self)>0 then
   begin
     //top starts with the pointeraddresstovalue line
+    lblPointerAddressToValue.top:=newtop;
     lblPointerAddressToValue.visible:=true;
-    currenttop:=lblPointerAddressToValue.Top+lblPointerAddressToValue.Height+3;
+    newtop:=lblPointerAddressToValue.Top+lblPointerAddressToValue.Height+3;
   end
   else
     lblPointerAddressToValue.visible:=false;
 
+  sbDecrease.top:=newtop;
+  sbIncrease.top:=newtop;
+  edtOffset.top:=newtop;
 
+  sbDecrease.left:=owner.valueleft;
+  edtOffset.left:=sbDecrease.left+sbDecrease.Width+1;
+  sbIncrease.left:=edtOffset.Left+edtOffset.Width+1;
 
-
+  newtop:=sbDecrease.top+sbDecrease.height+3;
 end;
 
 constructor TOffsetInfo.create(parent: TPointerinfo);
@@ -205,9 +214,29 @@ end;
 
 { TPointerInfo }
 
+function TPointerInfo.getValueLeft: integer;
+begin
+  result:=baseValue.left;
+end;
+
 procedure TPointerInfo.setupPositionsAndSizes;
+var
+  currentTop: integer;
+  i: integer;
 begin
   //place offsets and set size
+  Color:=clgreen;     //debug
+
+  currentTop:=0;
+  for i:=0 to offsets.count-1 do
+    TOffsetInfo(offsets[i]).setTop(currentTop);
+
+  baseAddress.top:=currentTop;
+  baseValue.top:=baseAddress.Top+(baseAddress.Height div 2)-(baseValue.height div 2);
+
+  ClientHeight:=baseAddress.Top+baseAddress.Height+3;
+  ClientWidth:=TOffsetInfo(offsets[i]).sbIncrease.Left+TOffsetInfo(offsets[i]).sbIncrease.width+2;
+
 
   //update buttons of the form
   with owner do
@@ -227,11 +256,9 @@ begin
     while offsets.count>0 do //destruction of a offset removes it automagically from the list
       TOffsetInfo(offsets[0]).Free;
 
-  owner.pointerinfo.Remove(self);
-
   owner.btnOk.top:=owner.cbPointer.Top+owner.cbPointer.Height+3;
   owner.btnCancel.top:=owner.btnOk.top;
-  ClientHeight:=btnOk.top+btnOk.Height+3;
+  ClientHeight:=owner.btnOk.top+owner.btnOk.Height+3;
 
   inherited Destroy;
 end;
@@ -241,10 +268,22 @@ begin
   //create the objects
   fowner:=owner;
   offsets:=tlist.create;
+  parent:=owner;
+
+  BevelOuter:=bvNone;
+  left:=owner.cbPointer.Left;
+
+  baseAddress:=tedit.create(self);
+  baseAddress.parent:=self;
+  baseAddress.left:=0;
+  baseAddress.Width:=80;
+
+
+  baseValue:=tlabel.create(self);
+  baseValue.parent:=self;
+  baseValue.left:=baseAddress.left+baseAddress.Width+3;
 
   TOffsetInfo.Create(self);
-
-  parent:=owner;
 
   setupPositionsAndSizes;
 end;
@@ -593,16 +632,16 @@ begin
   else
     cbPointer.top:=cbvarType.top+cbvarType.Height+3;
 
-  if pointerinfo.count>0 then
+(*  if pointerinfo.count>0 then
   begin
-  (*  //adjust the pointerline start addresses
+    //adjust the pointerline start addresses
     {for i:=0 to length(pointerinfo)-1 do
       pointerinfo[i].}
 
-    btnok.top:=pointerinfo[length(pointerinfo)-1].address.top+pointerinfo[length(pointerinfo)-1].address.height+6  *)
+    btnok.top:=pointerinfo[length(pointerinfo)-1].address.top+pointerinfo[length(pointerinfo)-1].address.height+6
   end
   else
-    btnok.top:=cbPointer.top+cbPointer.height+6;
+    btnok.top:=cbPointer.top+cbPointer.height+6;     *)
 
   btnCancel.top:=btnok.top;
   clientheight:=btncancel.top+btnCancel.height+6;
