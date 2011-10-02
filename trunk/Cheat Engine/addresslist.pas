@@ -105,6 +105,7 @@ type
     procedure DeactivateSelected;
     procedure CreateGroup(groupname: string);
     procedure addAutoAssembleScript(script: string);
+    function addAddressManually(initialaddress: string=''): TMemoryRecord;
     function addaddress(description: string; address: string; const offsets: array of dword; offsetcount: integer; vartype: TVariableType; customtypename: string=''; length: integer=0; startbit: integer=0; unicode: boolean=false; node: TTreenode=nil; attachmode: TNodeAttachMode=naAdd): TMemoryRecord;
     function getRecordWithDescription(description: string): TMemoryRecord;
     function getRecordWithID(id: integer): TMemoryRecord;
@@ -617,6 +618,34 @@ begin
       exit;
     end;
 
+end;
+
+function TAddresslist.addAddressManually(initialaddress: string=''): TMemoryRecord;
+var mr: TMemoryRecord;
+begin
+  Treeview.BeginUpdate;
+  mr:=addaddress(initialaddress,'No description',[],0, vtDword);
+
+  //changevalue, if cancel, delete
+  with TFormaddresschange.Create(self) do
+  begin
+    memoryrecord:=mr;
+    if showmodal<>mrok then
+    begin
+      mr.free; //not ok, elete
+      mr:=nil;
+    end
+    else
+    begin
+      mr.ReinterpretAddress;
+      mr.treenode.update;
+    end;
+
+    free;
+  end;
+
+  treeview.EndUpdate;
+  result:=mr;
 end;
 
 function TAddresslist.addaddress(description: string; address: string; const offsets: array of dword; offsetcount: integer; vartype: TVariableType; customtypename: string=''; length: integer=0; startbit: integer=0; unicode: boolean=false; node: TTreenode=nil; attachmode: TNodeAttachMode=naAdd): TMemoryRecord;

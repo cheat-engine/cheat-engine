@@ -164,7 +164,7 @@ type
 
 implementation
 
-uses formsettingsunit, Valuechange, AddAddress;
+uses formsettingsunit, Valuechange, MainUnit;
 
 resourcestring
   rsBigFuckingError = 'Big fucking error';
@@ -643,15 +643,9 @@ end;
 
 procedure THexView.AddSelectedAddressToCheatTable;
 begin
-  if fhasSelection or isediting then
-  begin
-    //selected
-    if addform=nil then
-      addform:=Taddform.create(self);
+  if fhasSelection or isediting then //selected
+    mainform.addresslist.addAddressManually(inttohex(selected,8));
 
-    addform.NewAddress.text:=inttohex(selected,8);
-    addform.showmodal;
-  end;
 end;
 
 function THexView.GetSelectionStart: ptruint;

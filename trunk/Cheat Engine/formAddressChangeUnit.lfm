@@ -1,38 +1,38 @@
 object formAddressChange: TformAddressChange
-  Left = 842
-  Height = 155
-  Top = 352
-  Width = 349
+  Left = 1004
+  Height = 263
+  Top = 342
+  Width = 519
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Change address'
-  ClientHeight = 155
-  ClientWidth = 349
+  ClientHeight = 263
+  ClientWidth = 519
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   Position = poScreenCenter
   LCLVersion = '0.9.31'
   object Label1: TLabel
-    Left = 10
+    Left = 8
     Height = 14
-    Top = 10
+    Top = 8
     Width = 107
     Caption = 'Give the new address:'
     ParentColor = False
   end
   object editAddress: TEdit
-    Left = 10
+    Left = 8
     Height = 21
-    Top = 30
+    Top = 24
     Width = 168
     OnKeyPress = editAddressKeyPress
     TabOrder = 0
   end
   object btnOk: TButton
-    Left = 10
+    Left = 8
     Height = 25
-    Top = 121
+    Top = 232
     Width = 80
     Caption = 'OK'
     Default = True
@@ -40,9 +40,9 @@ object formAddressChange: TformAddressChange
     TabOrder = 1
   end
   object btnCancel: TButton
-    Left = 98
+    Left = 96
     Height = 25
-    Top = 121
+    Top = 232
     Width = 80
     Cancel = True
     Caption = 'Cancel'
@@ -50,184 +50,347 @@ object formAddressChange: TformAddressChange
     TabOrder = 2
   end
   object cbPointer: TCheckBox
-    Left = 10
+    Left = 8
     Height = 19
-    Top = 59
+    Top = 176
     Width = 53
     Caption = 'Pointer'
     OnChange = cbPointerClick
     TabOrder = 3
   end
-  object BitPanel: TPanel
-    Left = 187
-    Height = 54
-    Top = 0
-    Width = 159
-    BevelOuter = bvNone
-    ClientHeight = 54
-    ClientWidth = 159
-    TabOrder = 4
-    Visible = False
-    object Label4: TLabel
-      Left = 4
-      Height = 14
-      Top = 20
-      Width = 7
-      Caption = '0'
-      ParentColor = False
-    end
-    object Label5: TLabel
-      Left = 25
-      Height = 14
-      Top = 20
-      Width = 7
-      Caption = '1'
-      ParentColor = False
-    end
-    object Label6: TLabel
-      Left = 43
-      Height = 14
-      Top = 20
-      Width = 7
-      Caption = '2'
-      ParentColor = False
-    end
-    object Label7: TLabel
-      Left = 64
-      Height = 14
-      Top = 20
-      Width = 7
-      Caption = '3'
-      ParentColor = False
-    end
-    object Label8: TLabel
-      Left = 84
-      Height = 14
-      Top = 20
-      Width = 7
-      Caption = '4'
-      ParentColor = False
-    end
-    object Label9: TLabel
-      Left = 103
-      Height = 14
-      Top = 20
-      Width = 7
-      Caption = '5'
-      ParentColor = False
-    end
-    object Label10: TLabel
-      Left = 122
-      Height = 14
-      Top = 20
-      Width = 7
-      Caption = '6'
-      ParentColor = False
-    end
-    object Label11: TLabel
-      Left = 143
-      Height = 14
-      Top = 20
-      Width = 7
-      Caption = '7'
-      ParentColor = False
-    end
-    object Label2: TLabel
-      Left = 59
-      Height = 14
-      Top = 0
-      Width = 37
-      Caption = 'Startbit:'
-      ParentColor = False
-    end
-    object RadioButton1: TRadioButton
-      Left = 0
-      Height = 19
-      Top = 34
-      Width = 20
-      Checked = True
-      TabOrder = 0
-      TabStop = True
-    end
-    object RadioButton2: TRadioButton
-      Left = 20
-      Height = 19
-      Top = 34
-      Width = 20
-      TabOrder = 1
-    end
-    object RadioButton3: TRadioButton
-      Left = 39
-      Height = 19
-      Top = 34
-      Width = 20
-      TabOrder = 2
-    end
-    object RadioButton4: TRadioButton
-      Left = 59
-      Height = 19
-      Top = 34
-      Width = 20
-      TabOrder = 3
-    end
-    object RadioButton5: TRadioButton
-      Left = 79
-      Height = 19
-      Top = 34
-      Width = 20
-      TabOrder = 4
-    end
-    object RadioButton6: TRadioButton
-      Left = 98
-      Height = 19
-      Top = 34
-      Width = 20
-      TabOrder = 5
-    end
-    object RadioButton7: TRadioButton
-      Left = 118
-      Height = 19
-      Top = 34
-      Width = 20
-      TabOrder = 6
-    end
-    object RadioButton8: TRadioButton
-      Left = 138
-      Height = 19
-      Top = 34
-      Width = 20
-      TabOrder = 7
-    end
-  end
   object btnAddOffset: TButton
-    Left = 10
+    Left = 8
     Height = 26
-    Top = 86
-    Width = 90
+    Top = 200
+    Width = 87
     Caption = 'Add pointer'
     OnClick = btnAddOffsetClick
-    TabOrder = 5
+    TabOrder = 4
     Visible = False
   end
   object btnRemoveOffset: TButton
-    Left = 108
+    Left = 100
     Height = 26
-    Top = 86
-    Width = 90
+    Top = 200
+    Width = 87
     Caption = 'Remove'
     OnClick = btnRemoveOffsetClick
-    TabOrder = 6
+    TabOrder = 5
     Visible = False
+  end
+  object cbvarType: TComboBox
+    Left = 8
+    Height = 21
+    Top = 48
+    Width = 168
+    ItemHeight = 13
+    Items.Strings = (
+      'Binary'
+      'Byte'
+      '2 Bytes'
+      '4 Bytes'
+      '8 Bytes'
+      'Float'
+      'Double'
+      'Text'
+      'Array of Bytes'
+    )
+    OnChange = cbvarTypeChange
+    Style = csDropDownList
+    TabOrder = 6
+  end
+  object pnlExtra: TPanel
+    Left = 8
+    Height = 95
+    Top = 80
+    Width = 176
+    BevelOuter = bvNone
+    ClientHeight = 95
+    ClientWidth = 176
+    TabOrder = 7
+    object cbunicode: TCheckBox
+      Left = 48
+      Height = 19
+      Top = 18
+      Width = 60
+      Caption = 'Unicode'
+      TabOrder = 0
+    end
+    object edtSize: TEdit
+      Left = 0
+      Height = 21
+      Top = 16
+      Width = 45
+      TabOrder = 1
+      Text = '10'
+    end
+    object lengthlabel: TLabel
+      Left = 0
+      Height = 14
+      Top = 0
+      Width = 34
+      Caption = 'Length'
+      ParentColor = False
+    end
+    object pnlBitinfo: TPanel
+      Left = 0
+      Height = 54
+      Top = 39
+      Width = 159
+      BevelOuter = bvNone
+      ClientHeight = 54
+      ClientWidth = 159
+      TabOrder = 2
+      Visible = False
+      object Label4: TLabel
+        Left = 4
+        Height = 14
+        Top = 20
+        Width = 7
+        Caption = '0'
+        ParentColor = False
+      end
+      object Label5: TLabel
+        Left = 25
+        Height = 14
+        Top = 20
+        Width = 7
+        Caption = '1'
+        ParentColor = False
+      end
+      object Label6: TLabel
+        Left = 43
+        Height = 14
+        Top = 20
+        Width = 7
+        Caption = '2'
+        ParentColor = False
+      end
+      object Label7: TLabel
+        Left = 64
+        Height = 14
+        Top = 20
+        Width = 7
+        Caption = '3'
+        ParentColor = False
+      end
+      object Label8: TLabel
+        Left = 84
+        Height = 14
+        Top = 20
+        Width = 7
+        Caption = '4'
+        ParentColor = False
+      end
+      object Label9: TLabel
+        Left = 103
+        Height = 14
+        Top = 20
+        Width = 7
+        Caption = '5'
+        ParentColor = False
+      end
+      object Label10: TLabel
+        Left = 122
+        Height = 14
+        Top = 20
+        Width = 7
+        Caption = '6'
+        ParentColor = False
+      end
+      object Label11: TLabel
+        Left = 143
+        Height = 14
+        Top = 20
+        Width = 7
+        Caption = '7'
+        ParentColor = False
+      end
+      object Label2: TLabel
+        Left = 0
+        Height = 14
+        Top = 0
+        Width = 37
+        Caption = 'Startbit:'
+        ParentColor = False
+      end
+      object RadioButton1: TRadioButton
+        Left = 0
+        Height = 19
+        Top = 34
+        Width = 20
+        Checked = True
+        TabOrder = 0
+        TabStop = True
+      end
+      object RadioButton2: TRadioButton
+        Left = 20
+        Height = 19
+        Top = 34
+        Width = 20
+        TabOrder = 1
+      end
+      object RadioButton3: TRadioButton
+        Left = 39
+        Height = 19
+        Top = 34
+        Width = 20
+        TabOrder = 2
+      end
+      object RadioButton4: TRadioButton
+        Left = 59
+        Height = 19
+        Top = 34
+        Width = 20
+        TabOrder = 3
+      end
+      object RadioButton5: TRadioButton
+        Left = 79
+        Height = 19
+        Top = 34
+        Width = 20
+        TabOrder = 4
+      end
+      object RadioButton6: TRadioButton
+        Left = 98
+        Height = 19
+        Top = 34
+        Width = 20
+        TabOrder = 5
+      end
+      object RadioButton7: TRadioButton
+        Left = 118
+        Height = 19
+        Top = 34
+        Width = 20
+        TabOrder = 6
+      end
+      object RadioButton8: TRadioButton
+        Left = 138
+        Height = 19
+        Top = 34
+        Width = 20
+        TabOrder = 7
+      end
+    end
+  end
+  object Edit1: TEdit
+    Left = 232
+    Height = 21
+    Top = 181
+    Width = 72
+    TabOrder = 8
+    Text = 'Edit1'
+  end
+  object Edit2: TEdit
+    Left = 328
+    Height = 21
+    Top = 160
+    Width = 58
+    TabOrder = 9
+    Text = 'Edit2'
+  end
+  object Label3: TLabel
+    Left = 234
+    Height = 14
+    Top = 144
+    Width = 154
+    Caption = '[pointeraddress+offset]->address'
+    ParentColor = False
+  end
+  object SpeedButton1: TSpeedButton
+    Left = 304
+    Height = 22
+    Top = 160
+    Width = 23
+    Caption = '<'
+    NumGlyphs = 0
+  end
+  object SpeedButton2: TSpeedButton
+    Left = 392
+    Height = 22
+    Top = 160
+    Width = 23
+    Caption = '>'
+    NumGlyphs = 0
+  end
+  object SpeedButton3: TSpeedButton
+    Left = 304
+    Height = 22
+    Top = 113
+    Width = 23
+    NumGlyphs = 0
+  end
+  object Edit3: TEdit
+    Left = 328
+    Height = 21
+    Top = 113
+    Width = 58
+    TabOrder = 10
+    Text = 'Edit2'
+  end
+  object SpeedButton4: TSpeedButton
+    Left = 392
+    Height = 22
+    Top = 113
+    Width = 23
+    NumGlyphs = 0
+  end
+  object Value: TLabel
+    Left = 307
+    Height = 14
+    Top = 184
+    Width = 37
+    Caption = '->Value'
+    ParentColor = False
+  end
+  object Label15: TLabel
+    Left = 234
+    Height = 14
+    Top = 96
+    Width = 70
+    Caption = 'pointeraddress'
+    ParentColor = False
+  end
+  object Label16: TLabel
+    Left = 307
+    Height = 14
+    Top = 96
+    Width = 68
+    Caption = 'valueofpointer'
+    ParentColor = False
+  end
+  object SpeedButton5: TSpeedButton
+    Left = 304
+    Height = 22
+    Top = 72
+    Width = 23
+    NumGlyphs = 0
+  end
+  object Edit4: TEdit
+    Left = 328
+    Height = 21
+    Top = 72
+    Width = 58
+    TabOrder = 11
+    Text = 'Edit2'
+  end
+  object SpeedButton6: TSpeedButton
+    Left = 392
+    Height = 22
+    Top = 72
+    Width = 23
+    NumGlyphs = 0
   end
   object Timer1: TTimer
     OnTimer = Timer1Timer
-    left = 184
-    top = 56
+    left = 8
+    top = 32
   end
   object Timer2: TTimer
     Interval = 1
     OnTimer = Timer2Timer
-    left = 269
-    top = 69
+    left = 48
+    top = 32
   end
 end

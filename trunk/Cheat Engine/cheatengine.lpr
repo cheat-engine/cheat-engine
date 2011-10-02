@@ -14,7 +14,7 @@ uses
   formsettingsunit, HotkeyHandler, formhotkeyunit, AdvancedOptionsUnit,
   inputboxtopunit, plugin, pluginexports, tlgUnit, aboutunit,
   frmProcesswatcherExtraUnit, frmProcessWatcherUnit, ModuleSafetyUnit,
-  frmExcludeHideUnit, ConfigUnrandomizerFrm, AddAddress, HotKeys, TypePopup,
+  frmExcludeHideUnit, ConfigUnrandomizerFrm, HotKeys, TypePopup,
   CommentsUnit, FoundCodeUnit, foundlisthelper, unrandomizer, SaveFirstScan,
   savedscanhandler, memscan, formScanningUnit, KernelDebugger,
   formDifferentBitSizeUnit, formAddressChangeUnit, Changeoffsetunit, speedhack2,

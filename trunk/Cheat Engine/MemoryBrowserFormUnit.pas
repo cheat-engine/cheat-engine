@@ -1845,7 +1845,7 @@ begin
     if not ((s1='call') or (s1='loop')) then //not a call or loop
     begin
       //then do a step
-      Step1.Click;
+      Step1Click(step1);
       exit;
     end
     else

@@ -5118,7 +5118,7 @@ end;
 
 procedure TMemscan.CreateScanfolder;
 var guid: TGUID;
-    usedtempdir: widestring;
+    usedtempdir: string;
 begin
   CreateGUID(guid);
   if (length(tempdiralternative)>2) and dontusetempdir then
