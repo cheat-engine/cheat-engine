@@ -20,7 +20,7 @@ uses
   ceguicomponents, frmautoinjectunit, cesupport, trainergenerator, genericHotkey,
   luafile, xmplayer_server, sharedMemory{$ifdef windows}, win32proc{$endif},
   vmxfunctions, FileUtil, networkInterfaceApi, networkconfig, d3dhookUnit, PNGcomn,
-  FPimage;
+  FPimage, byteinterpreter;
 
 //the following are just for compatibility
 
@@ -195,6 +195,8 @@ type
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
+    miChangeValue: TMenuItem;
+    miAddAddress: TMenuItem;
     miAllowCollapse: TMenuItem;
     miSetCrosshair: TMenuItem;
     miWireframe: TMenuItem;
@@ -288,7 +290,7 @@ type
     rbBit: TRadioButton;
     rbDec: TRadioButton;
     scanvalue: TEdit;
-    PopupMenu1: TPopupMenu;
+    foundlistpopup: TPopupMenu;
     Browsethismemoryarrea1: TMenuItem;
     Removeselectedaddresses1: TMenuItem;
     Selectallitems1: TMenuItem;
@@ -390,8 +392,10 @@ type
     procedure Label57Click(Sender: TObject);
     procedure lblcompareToSavedScanClick(Sender: TObject);
     procedure Label58Click(Sender: TObject);
+    procedure miChangeValueClick(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
+    procedure miAddAddressClick(Sender: TObject);
     procedure miAllowCollapseClick(Sender: TObject);
     procedure miHookD3DClick(Sender: TObject);
     procedure miPresetAllClick(Sender: TObject);
@@ -461,7 +465,7 @@ type
     procedure Freezealladdresses2Click(Sender: TObject);
     procedure PopupMenu2Popup(Sender: TObject);
     procedure Unfreezealladdresses1Click(Sender: TObject);
-    procedure PopupMenu1Popup(Sender: TObject);
+    procedure foundlistpopupPopup(Sender: TObject);
     procedure Removeselectedaddresses1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CommentButtonClick(Sender: TObject);
@@ -591,6 +595,7 @@ type
     fIsProtected: boolean;
 
     overlayid: integer;   //debug
+    lastAddedAddress: string;
 
     procedure doNewScan;
     procedure SetExpectedTableName;
@@ -764,7 +769,7 @@ var
 implementation
 
 
-uses mainunit2, AddAddress, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup
+uses mainunit2, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup
   , HotKeys{, standaloneunit}, aboutunit, formScanningUnit, formhotkeyunit,
   formDifferentBitSizeUnit,
   CommentsUnit, formsettingsunit, formAddressChangeUnit, Changeoffsetunit,
@@ -1643,7 +1648,6 @@ begin
   //unhandled exeption. Also clean lua stack
 
 
-
   //  MessageBox(0,'bla','bla',0);
   MessageDlg(E.message, mtError, [mbOK], 0);
 
@@ -2498,6 +2502,12 @@ end;
 procedure TMainForm.MenuItem4Click(Sender: TObject);
 begin
   frmLuaTableScript.Show;
+end;
+
+procedure TMainForm.miAddAddressClick(Sender: TObject);
+begin
+  if assigned(Foundlist3.OnDblClick) then
+    Foundlist3.OnDblClick(foundlist3);
 end;
 
 procedure TMainForm.miAllowCollapseClick(Sender: TObject);
@@ -4535,11 +4545,11 @@ begin
 end;
 
 procedure TMainForm.Button1Click(Sender: TObject);
+var mr: Tmemoryrecord;
 begin
-  if addform = nil then
-    addform := Taddform.Create(self);
-
-  addform.showmodal;
+  mr:=addresslist.addAddressManually(lastAddedAddress);
+  if mr<>nil then
+    lastAddedAddress:=mr.addressString; //store the last used string
 end;
 
 procedure TMainForm.ScanTypeChange(Sender: TObject);
@@ -5312,7 +5322,7 @@ begin
 
 end;
 
-procedure TMainForm.PopupMenu1Popup(Sender: TObject);
+procedure TMainForm.foundlistpopupPopup(Sender: TObject);
 begin
 
   Browsethismemoryregioninthedisassembler1.Enabled := Foundlist3.SelCount >= 1;
@@ -6768,6 +6778,57 @@ end;
 
 procedure TMainForm.Label58Click(Sender: TObject);
 begin
+
+end;
+
+procedure TMainForm.miChangeValueClick(Sender: TObject);
+var
+  a: ptruint;
+  newvalue: string;
+  extra: dword;
+  value: string;
+  i: integer;
+  vt: TVariableType;
+  customtype: TCustomType;
+begin
+  if foundlist3.Selected<>nil then
+  begin
+    a:=foundlist.GetAddress(foundlist3.Selected.Index, extra, Value);
+
+    if InputQuery('Change value', 'Give the new value for the selected address(es)', value) then
+    begin
+      for i:=0 to foundlist3.items.Count-1 do
+      begin
+        if foundlist3.Items[i].Selected then
+        begin
+          if foundlist.vartype=9 then  //all, extra contains the vartype
+          begin
+            if extra<$1000 then
+            begin
+              vt:=TVariableType(extra);
+            end
+            else
+            begin //custom type
+              vt:=vtCustom;
+              customtype:=tcustomtype(customTypes[extra-$1000]);
+            end;
+          end
+          else
+            vt:=OldVarTypeToNewVarType(foundlist.vartype);
+
+          if (vt=vtString) and (cbUnicode.checked) then
+            vt:=vtUnicodeString;
+
+          ParseStringAndWriteToAddress(value, a, vt, false, customtype);
+
+        end;
+
+      end;
+
+    end;
+
+  end;
+
 
 end;
 

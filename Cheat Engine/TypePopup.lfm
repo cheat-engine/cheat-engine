@@ -1,7 +1,7 @@
 object TypeForm: TTypeForm
-  Left = 837
+  Left = 288
   Height = 98
-  Top = 304
+  Top = 760
   Width = 489
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
@@ -72,9 +72,9 @@ object TypeForm: TTypeForm
     TabOrder = 2
   end
   object LengthPanel: TPanel
-    Left = 213
+    Left = 217
     Height = 33
-    Top = 15
+    Top = 16
     Width = 143
     BevelOuter = bvNone
     ClientHeight = 33
@@ -98,9 +98,9 @@ object TypeForm: TTypeForm
     end
   end
   object BitPanel: TPanel
-    Left = 226
+    Left = 217
     Height = 36
-    Top = 44
+    Top = 48
     Width = 252
     BevelOuter = bvNone
     ClientHeight = 36

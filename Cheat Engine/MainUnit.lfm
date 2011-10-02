@@ -790,7 +790,7 @@ object MainForm: TMainForm
       OwnerData = True
       ParentFont = False
       ParentShowHint = False
-      PopupMenu = PopupMenu1
+      PopupMenu = foundlistpopup
       ReadOnly = True
       RowSelect = True
       ShowHint = True
@@ -1578,10 +1578,19 @@ object MainForm: TMainForm
       Visible = False
     end
   end
-  object PopupMenu1: TPopupMenu
-    OnPopup = PopupMenu1Popup
-    left = 104
-    top = 184
+  object foundlistpopup: TPopupMenu
+    OnPopup = foundlistpopupPopup
+    left = 24
+    top = 160
+    object miAddAddress: TMenuItem
+      Caption = 'Add selected addresses to the addresslist'
+      Default = True
+      OnClick = miAddAddressClick
+    end
+    object miChangeValue: TMenuItem
+      Caption = 'Change value of selected addresses'
+      OnClick = miChangeValueClick
+    end
     object Browsethismemoryarrea1: TMenuItem
       Caption = 'Browse this memory region'
       ShortCut = 16450

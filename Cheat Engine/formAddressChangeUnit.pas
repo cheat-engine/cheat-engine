@@ -5,37 +5,76 @@ unit formAddressChangeUnit;
 interface
 
 uses
-  windows, LCLIntf, LResources, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls,CEFuncProc,NewKernelHandler,symbolhandler, memoryrecordunit;
-
-type TPointerInfo=record
-  addresstext:tlabel;
-  address:Tedit;
-  offsettext: tlabel;
-  offset: tedit;
-  ValueAtAddressText:Tlabel;
-  FinalDestination: Tlabel;
-end;
+  windows, LCLIntf, LResources, Messages, SysUtils, Variants, Classes, Graphics,
+  Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls, Buttons, Arrow, Spin,
+  CEFuncProc, NewKernelHandler, symbolhandler, memoryrecordunit, types;
 
 type
+  TformAddressChange=class;
+  TPointerInfo=class;
+
+  TOffsetInfo=class
+  private
+    fowner: TPointerInfo;
+    lblPointerAddressToValue: TLabel; //Address -> Value
+    edtOffset: Tedit;
+    sbDecrease, sbIncrease: TSpeedButton;
+    ftop: integer;
+  public
+    constructor create(parent: TPointerinfo);
+    procedure setTop(newtop: integer);
+    property top: integer read fTop write setTop;
+    property owner: TPointerinfo read fowner;
+  end;
+
+
+  TPointerInfo=class(TCustomPanel)
+  private
+    fowner: TformAddressChange;
+    baseAddress: TEdit;  //the bottom line
+    baseValue: Tlabel;
+    offsets: Tlist; //the lines above it
+  public
+    property owner: TformAddressChange read fowner;
+    procedure setupPositionsAndSizes;
+    constructor create(owner: TformAddressChange);
+    destructor destroy; override;
+
+  end;
 
   { TformAddressChange }
 
   TformAddressChange = class(TForm)
+    Edit1: TEdit;
+    Edit2: TEdit;
+    Edit3: TEdit;
+    Edit4: TEdit;
+    Value: TLabel;
+    Label15: TLabel;
+    Label16: TLabel;
+    Label3: TLabel;
+    pnlBitinfo: TPanel;
+    cbunicode: TCheckBox;
+    cbvarType: TComboBox;
+    edtSize: TEdit;
     editAddress: TEdit;
     btnOk: TButton;
     btnCancel: TButton;
     cbPointer: TCheckBox;
     Label1: TLabel;
-    BitPanel: TPanel;
+    Label10: TLabel;
+    Label11: TLabel;
+    Label2: TLabel;
     Label4: TLabel;
     Label5: TLabel;
     Label6: TLabel;
     Label7: TLabel;
     Label8: TLabel;
     Label9: TLabel;
-    Label10: TLabel;
-    Label11: TLabel;
+    lengthlabel: TLabel;
+    pnlExtra: TPanel;
+    btnAddOffset: TButton;
+    btnRemoveOffset: TButton;
     RadioButton1: TRadioButton;
     RadioButton2: TRadioButton;
     RadioButton3: TRadioButton;
@@ -44,11 +83,15 @@ type
     RadioButton6: TRadioButton;
     RadioButton7: TRadioButton;
     RadioButton8: TRadioButton;
-    Label2: TLabel;
-    btnAddOffset: TButton;
-    btnRemoveOffset: TButton;
+    SpeedButton1: TSpeedButton;
+    SpeedButton2: TSpeedButton;
+    SpeedButton3: TSpeedButton;
+    SpeedButton4: TSpeedButton;
+    SpeedButton5: TSpeedButton;
+    SpeedButton6: TSpeedButton;
     Timer1: TTimer;
     Timer2: TTimer;
+    procedure cbvarTypeChange(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure cbPointerClick(Sender: TObject);
@@ -58,11 +101,14 @@ type
     procedure editAddressKeyPress(Sender: TObject; var Key: Char);
     procedure FormShow(Sender: TObject);
     procedure FormWindowStateChange(Sender: TObject);
+    procedure pcExtraChange(Sender: TObject);
+    procedure tsStartbitContextPopup(Sender: TObject; MousePos: TPoint;
+      var Handled: Boolean);
     procedure Timer1Timer(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
   private
     { Private declarations }
-    pointerinfo: array of TPointerinfo;
+    pointerinfo: TPointerInfo;
     fMemoryRecord: TMemoryRecord;
     delayedpointerresize: boolean;
     procedure offsetKeyPress(sender: TObject; var key:char);
@@ -94,6 +140,117 @@ resourcestring
   rsIsNotAValidOffset = '%s is not a valid offset';
   rsNotAllOffsetsHaveBeenFilledIn = 'Not all offsets have been filled in';
 
+{ TOffsetInfo }
+
+procedure TOffsetInfo.setTop(newtop: integer);
+var currenttop: integer;
+begin
+  if edtOffset.parent<>nil then
+  begin
+    //only assign a parent when the positions ar finally set
+    edtOffset.parent:=owner;
+    lblPointerAddressToValue.parent:=owner;
+    sbDecrease.parent:=owner;
+    sbIncrease.parent:=owner;
+  end;
+
+
+  //only show the pointeraddresstovalue line if not the first line
+  ftop:=newtop;
+  currenttop:=newtop;
+  if owner.offsets.IndexOf(self)>0 then
+  begin
+    //top starts with the pointeraddresstovalue line
+    lblPointerAddressToValue.visible:=true;
+    currenttop:=lblPointerAddressToValue.Top+lblPointerAddressToValue.Height+3;
+  end
+  else
+    lblPointerAddressToValue.visible:=false;
+
+
+
+
+end;
+
+constructor TOffsetInfo.create(parent: TPointerinfo);
+begin
+  fowner:=parent;
+
+  fowner.offsets.Add(self);
+
+  //create a pointeraddress label (visible if not first)
+  lblPointerAddressToValue:=TLabel.Create(parent);
+  lblPointerAddressToValue.Caption:='[Pointeraddress+offset] -> valueitpointsto';
+  lblPointerAddressToValue.parent:=parent;
+
+  //an offset editbox
+  edtOffset:=Tedit.create(parent);
+  edtOffset.width:=50;
+
+
+  //two buttons, one for + and one for -
+  sbDecrease:=TSpeedButton.create(parent);
+  sbDecrease.height:=edtOffset.height;
+  sbDecrease.width:=sbDecrease.height;
+  sbDecrease.caption:='<';
+
+
+  sbIncrease:=TSpeedButton.create(parent);
+  sbIncrease.height:=sbDecrease.height;
+  sbIncrease.width:=sbDecrease.width;
+  sbIncrease.caption:='>';
+
+
+end;
+
+{ TPointerInfo }
+
+procedure TPointerInfo.setupPositionsAndSizes;
+begin
+  //place offsets and set size
+
+  //update buttons of the form
+  with owner do
+  begin
+    btnAddOffset.top:=self.top+self.height+3;
+    btnRemoveOffset.top:=btnAddOffset.top;
+
+    btnOk.top:=btnAddOffset.Top+btnAddOffset.Height+3;
+    btnCancel.top:=btnOk.top;
+    ClientHeight:=btnOk.top+btnOk.Height+3;
+  end;
+end;
+
+destructor TPointerInfo.destroy;
+begin
+  if offsets<>nil then
+    while offsets.count>0 do //destruction of a offset removes it automagically from the list
+      TOffsetInfo(offsets[0]).Free;
+
+  owner.pointerinfo.Remove(self);
+
+  owner.btnOk.top:=owner.cbPointer.Top+owner.cbPointer.Height+3;
+  owner.btnCancel.top:=owner.btnOk.top;
+  ClientHeight:=btnOk.top+btnOk.Height+3;
+
+  inherited Destroy;
+end;
+
+constructor TPointerInfo.create(owner: TformAddressChange);
+begin
+  //create the objects
+  fowner:=owner;
+  offsets:=tlist.create;
+
+  TOffsetInfo.Create(self);
+
+  parent:=owner;
+
+  setupPositionsAndSizes;
+end;
+
+{ Tformaddresschange }
+
 procedure Tformaddresschange.processaddress;
 var i,j,err,err2: integer;
     currentaddress,currentaddress2: ptrUint;
@@ -101,6 +258,7 @@ var i,j,err,err2: integer;
     read:dword;
     check: boolean;
 begin
+  {
   if length(pointerinfo)=0 then exit;
 
 
@@ -177,14 +335,14 @@ begin
     else
       pointerinfo[i-1].address.text:=IntToHex(currentaddress2+currentoffset,8);
 
-  end;
+  end;   }
 end;
 
 
 procedure Tformaddresschange.offsetKeyPress(sender: TObject; var key:char);
 begin
-  if key<>'-' then hexadecimal(key);
-  if cbpointer.Checked then timer1.Interval:=1;
+{  if key<>'-' then hexadecimal(key);
+  if cbpointer.Checked then timer1.Interval:=1;   }
 
 end;
 
@@ -200,6 +358,14 @@ begin
 
 end;
 
+procedure TformAddressChange.cbvarTypeChange(Sender: TObject);
+begin
+  pnlExtra.visible:=cbvarType.itemindex in [0,7,8];
+  pnlBitinfo.visible:=cbvarType.itemindex = 0;
+
+  AdjustHeightAndButtons;
+end;
+
 
 
 procedure TformAddressChange.setMemoryRecord(rec: TMemoryRecord);
@@ -213,7 +379,7 @@ begin
     editaddress.Text:=AnsiToUtf8(rec.interpretableaddress);
     if rec.VarType = vtBinary then
     begin
-      bitpanel.Visible:=true;
+      pnlBitinfo.Visible:=true;
       case rec.Extra.bitData.Bit of
         0: radiobutton1.checked:=true;
         1: radiobutton2.checked:=true;
@@ -224,7 +390,7 @@ begin
         6: radiobutton7.checked:=true;
         7: radiobutton8.checked:=true;
       end;
-      clientwidth:=bitpanel.Left+bitpanel.width;
+      clientwidth:=pnlBitinfo.Left+pnlBitinfo.width;
     end
     else
       clientwidth:=btnRemoveOffset.Left+btnRemoveOffset.Width+5;
@@ -232,6 +398,7 @@ begin
   end;
 
 
+  (*
   if rec.IsPointer then
   begin
     cbPointer.Checked:=true;
@@ -243,7 +410,7 @@ begin
       pointerinfo[i].offset.text:=IntToHex(rec.pointeroffsets[i],1);
 
     pointerinfo[length(pointerinfo)-1].address.text:=AnsiToUtf8(rec.interpretableaddress);
-  end;
+  end;    *)
 
 
   processaddress;
@@ -255,6 +422,7 @@ end;
 procedure TformAddressChange.DelayedResize;
 var i,a,b: integer;
 begin
+ (*
   for i:=0 to length(pointerinfo)-1 do
   begin
     pointerinfo[i].ValueAtAddressText.left:=4;
@@ -269,7 +437,7 @@ begin
   a:=pointerinfo[length(pointerinfo)-1].FinalDestination.left;
   b:=pointerinfo[length(pointerinfo)-1].FinalDestination.width;
 
-  clientwidth:=a+b+5;
+  clientwidth:=a+b+5;  *)
 end;
 
 procedure TformAddressChange.cbPointerClick(Sender: TObject);
@@ -278,6 +446,18 @@ var i: integer;
 
     a,b,c,d: integer;
 begin
+  if cbpointer.checked then
+  begin
+    if pointerinfo=nil then
+      pointerinfo:=TPointerInfo.create(self); //creation will do the gui update
+  end
+  else
+  begin
+    if pointerinfo<>nil then
+      freeandnil(pointerinfo);
+  end;
+
+  (*
   if cbpointer.checked then
   begin
 
@@ -370,8 +550,8 @@ begin
   begin
     if memoryrecord.VarType=vtAutoAssembler then
     begin
-      bitpanel.Visible:=true;
-      clientwidth:=bitpanel.left+bitpanel.Width+5;
+      pnlBitinfo.Visible:=true;
+      clientwidth:=pnlBitinfo.left+pnlBitinfo.Width+5;
     end else clientwidth:=editaddress.Left+editaddress.Width+5;
 
     clientheight:=cbPointer.Top+cbPointer.Height+8+btnOk.Height+8;
@@ -392,13 +572,35 @@ begin
     setlength(pointerinfo,0);
 
   end;
-  AdjustHeightAndButtons;
+  AdjustHeightAndButtons;  *)
 end;
 
 procedure TformAddressChange.AdjustHeightAndButtons;
+var i: integer;
 begin
-  if length(pointerinfo)>0 then
-    btnok.top:=pointerinfo[length(pointerinfo)-1].address.top+pointerinfo[length(pointerinfo)-1].address.height+6
+  if pnlExtra.visible then
+  begin
+
+    //check if pnlbits is visible
+    if pnlBitinfo.visible then
+      pnlExtra.height:=pnlBitinfo.Top+pnlBitinfo.Height+3
+    else
+      pnlExtra.height:=edtSize.top+edtSize.Height+3;
+
+
+    cbPointer.top:=pnlExtra.top+pnlExtra.Height+3;
+  end
+  else
+    cbPointer.top:=cbvarType.top+cbvarType.Height+3;
+
+  if pointerinfo.count>0 then
+  begin
+  (*  //adjust the pointerline start addresses
+    {for i:=0 to length(pointerinfo)-1 do
+      pointerinfo[i].}
+
+    btnok.top:=pointerinfo[length(pointerinfo)-1].address.top+pointerinfo[length(pointerinfo)-1].address.height+6  *)
+  end
   else
     btnok.top:=cbPointer.top+cbPointer.height+6;
 
@@ -412,6 +614,7 @@ var
   i: integer;
   oldmethod: boolean;
 begin
+  (*
   if length(pointerinfo)=1 then cbPointer.checked:=false
   else
   begin
@@ -443,7 +646,7 @@ begin
     setlength(pointerinfo,length(pointerinfo)-1);
     AdjustHeightAndButtons; //height:=height-rowheight;
 
-  end;
+  end;*)
 end;
 
 procedure TformAddressChange.btnAddOffsetClick(Sender: TObject);
@@ -453,6 +656,7 @@ var
   oldaddress: string;
   oldmethod: boolean;
 begin
+  (*
   rowheight:=pointerinfo[length(pointerinfo)-1].ValueAtAddressText.height;
   rowheight:=rowheight+pointerinfo[length(pointerinfo)-1].address.height;
   inc(rowheight,2);
@@ -538,7 +742,7 @@ begin
     pointerinfo[length(pointerinfo)-1].address.Text:=oldaddress;
   end;
     
-  AdjustHeightAndButtons; //height:=height+rowheight;
+  AdjustHeightAndButtons; //height:=height+rowheight;     *)
 end;
 
 procedure TformAddressChange.btnOkClick(Sender: TObject);
@@ -564,7 +768,7 @@ begin
   if memoryrecord.vartype=vtbinary then
     memoryrecord.Extra.bitData.Bit:=bit;
 
-  if cbpointer.Checked then
+ (* if cbpointer.Checked then
   begin
     address:=0;
     paddress:=symhandler.getaddressfromname(utf8toansi(pointerinfo[length(pointerinfo)-1].address.text));
@@ -599,7 +803,7 @@ begin
   begin
     memoryrecord.PointerOffsets[i]:=offsets[i];
     memoryrecord.active:=false;
-  end;
+  end;     *)
 
   modalresult:=mrok;
 end;
@@ -618,6 +822,17 @@ begin
 end;
 
 procedure TformAddressChange.FormWindowStateChange(Sender: TObject);
+begin
+
+end;
+
+procedure TformAddressChange.pcExtraChange(Sender: TObject);
+begin
+
+end;
+
+procedure TformAddressChange.tsStartbitContextPopup(Sender: TObject;
+  MousePos: TPoint; var Handled: Boolean);
 begin
 
 end;

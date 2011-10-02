@@ -11,13 +11,16 @@ type TAutoGuessEvent=function (address: ptruint; originalVariableType: TVariable
 function FindTypeOfData(address: ptrUint; buf: pbytearray; size: integer):TVariableType;
 function DataToString(buf: PByteArray; size: integer; vartype: TVariableType): string;
 function readAndParseAddress(address: ptrUint; variableType: TVariableType; customtype: TCustomType=nil; showashexadecimal: Boolean=false; showAsSigned: boolean=false; bytesize:integer=1): string;
-procedure ParseStringAndWriteToAddress(value: string; address: ptruint; variabletype: TVariabletype; hexadecimal: boolean=false);
+procedure ParseStringAndWriteToAddress(value: string; address: ptruint; variabletype: TVariabletype; hexadecimal: boolean=false; customtype: TCustomType=nil);
 
 var onAutoGuessRoutine: TAutoGuessEvent;
 
 implementation
 
-procedure ParseStringAndWriteToAddress(value: string; address: ptruint; variabletype: TVariabletype; hexadecimal: boolean=false);
+procedure ParseStringAndWriteToAddress(value: string; address: ptruint; variabletype: TVariabletype; hexadecimal: boolean=false; customtype: TCustomType=nil);
+{
+Function to wrap all the occasional writing in
+}
 var v: qword;
     s: single;
     d: double;
@@ -27,6 +30,7 @@ var v: qword;
     ba: PByteArray;
 
     b: tbytes;
+    us: Widestring;
 begin
   if variabletype=vtByteArray then
   begin
@@ -67,6 +71,27 @@ begin
       vtQWord: WriteProcessMemory(processhandle, pointer(address), @v, 8, x);
       vtSingle: WriteProcessMemory(processhandle, pointer(address), @s, 4, x);
       vtDouble: WriteProcessMemory(processhandle, pointer(address), @d, 8, x);
+
+      vtString: WriteProcessMemory(processhandle, pointer(address), @value[1], length(value), x);
+      vtUnicodeString:
+      begin
+        us:=value;
+        WriteProcessMemory(processhandle, pointer(address), @us[1], length(us)*2, x);
+      end;
+
+      vtCustom:
+      begin
+        getmem(ba, customtype.bytesize);
+        try
+          if ReadProcessMemory(processhandle, pointer(address), ba, customtype.bytesize, x) then
+          begin
+            customtype.ConvertIntegerToData(v, ba);
+            WriteProcessMemory(processhandle, pointer(address), ba, customtype.bytesize, x);
+          end;
+        finally
+          freemem(ba);
+        end;
+      end;
     end;
 
   end;
