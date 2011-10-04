@@ -1205,7 +1205,7 @@ begin
         //get the new value
         oldvalue:=frozenValue;
         newvalue:=GetValue;
-        if showashex or (VarType in [vtByte..vtDouble, vtCustom]) then
+        if showashex or (VarType in [vtByte..vtQword, vtCustom]) then
         begin
           //handle as a decimal
 
