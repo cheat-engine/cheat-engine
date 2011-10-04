@@ -487,8 +487,7 @@ implementation
 uses Valuechange,
   MainUnit,
   debugeventhandler,
-  
-  AddAddress,
+
   findwindowunit,
   frmstacktraceunit,
   frmBreakThreadUnit,

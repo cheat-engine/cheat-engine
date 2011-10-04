@@ -440,8 +440,8 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'FINCSTP';bytes:2;bt1:$d9;bt2:$f7),
   (mnemonic:'FINIT';bytes:3;bt1:$9b;bt2:$db;bt3:$e3),
 
-  (mnemonic:'FIST';opcode1:eo_reg2;paramtype1:par_m32;bytes:1;bt1:$df),
-  (mnemonic:'FIST';opcode1:eo_reg2;paramtype1:par_m16;bytes:1;bt1:$db),
+  (mnemonic:'FIST';opcode1:eo_reg2;paramtype1:par_m32;bytes:1;bt1:$db),
+  (mnemonic:'FIST';opcode1:eo_reg2;paramtype1:par_m16;bytes:1;bt1:$df),
   (mnemonic:'FISTP';opcode1:eo_reg3;paramtype1:par_m16;bytes:1;bt1:$df),
   (mnemonic:'FISTP';opcode1:eo_reg3;paramtype1:par_m32;bytes:1;bt1:$db),
   (mnemonic:'FISTP';opcode1:eo_reg7;paramtype1:par_m64;bytes:1;bt1:$df),
