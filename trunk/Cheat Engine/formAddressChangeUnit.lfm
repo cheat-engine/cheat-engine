@@ -108,6 +108,7 @@ object formAddressChange: TformAddressChange
     ClientHeight = 95
     ClientWidth = 176
     TabOrder = 7
+    Visible = False
     object cbunicode: TCheckBox
       Left = 48
       Height = 19

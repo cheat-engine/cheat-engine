@@ -144,7 +144,7 @@ getAutoAttachList(): returns the AutoAttach StringList object. It can be control
 
 
 AOBScan(x,x,x,x,...):
-scans the currently opened process and returns a stringlist containing all the results. don't forget to free this list when done
+scans the currently opened process and returns a StringList object containing all the results. don't forget to free this list when done
 Bytevalue of higher than 255 or anything not an integer will be seen as a wildcard
 AOBScan(aobstring): see above but here you just input one string
 

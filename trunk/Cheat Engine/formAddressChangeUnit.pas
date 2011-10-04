@@ -22,6 +22,7 @@ type
 
   public
     constructor create(parent: TPointerinfo);
+    destructor destroy; override;
     procedure setTop(var newtop: integer);
     property owner: TPointerinfo read fowner;
   end;
@@ -33,6 +34,9 @@ type
     baseAddress: TEdit;  //the bottom line
     baseValue: Tlabel;
     offsets: Tlist; //the lines above it
+
+    btnAddOffset: TButton;
+    btnRemoveOffset: TButton;
     function getValueLeft: integer;
   public
     property owner: TformAddressChange read fowner;
@@ -181,6 +185,24 @@ begin
   newtop:=sbDecrease.top+sbDecrease.height+3;
 end;
 
+destructor TOffsetInfo.destroy;
+begin
+  if lblPointerAddressToValue<>nil then
+    freeandnil(lblPointerAddressToValue);
+
+  if edtOffset<>nil then
+    freeandnil(edtOffset);
+
+  if sbDecrease<>nil then
+    freeandnil(sbDecrease);
+
+  if sbIncrease<>nil then
+    freeandnil(sbIncrease);
+
+  fowner.offsets.Remove(self);
+  inherited destroy;
+end;
+
 constructor TOffsetInfo.create(parent: TPointerinfo);
 begin
   fowner:=parent;
@@ -225,7 +247,7 @@ var
   i: integer;
 begin
   //place offsets and set size
-  Color:=clgreen;     //debug
+
 
   currentTop:=0;
   for i:=0 to offsets.count-1 do
@@ -266,12 +288,17 @@ end;
 constructor TPointerInfo.create(owner: TformAddressChange);
 begin
   //create the objects
+  inherited create(owner);
+
+
   fowner:=owner;
   offsets:=tlist.create;
   parent:=owner;
+  Color:=clgreen;     //debug
 
   BevelOuter:=bvNone;
   left:=owner.cbPointer.Left;
+  top:=owner.cbPointer.Top+owner.cbPointer.Height+3;
 
   baseAddress:=tedit.create(self);
   baseAddress.parent:=self;
@@ -429,11 +456,7 @@ begin
         6: radiobutton7.checked:=true;
         7: radiobutton8.checked:=true;
       end;
-      clientwidth:=pnlBitinfo.Left+pnlBitinfo.width;
     end
-    else
-      clientwidth:=btnRemoveOffset.Left+btnRemoveOffset.Width+5;
-
   end;
 
 
@@ -461,7 +484,9 @@ end;
 procedure TformAddressChange.DelayedResize;
 var i,a,b: integer;
 begin
- (*
+  AdjustHeightAndButtons;
+
+  (*
   for i:=0 to length(pointerinfo)-1 do
   begin
     pointerinfo[i].ValueAtAddressText.left:=4;
@@ -632,16 +657,12 @@ begin
   else
     cbPointer.top:=cbvarType.top+cbvarType.Height+3;
 
-(*  if pointerinfo.count>0 then
-  begin
-    //adjust the pointerline start addresses
-    {for i:=0 to length(pointerinfo)-1 do
-      pointerinfo[i].}
 
-    btnok.top:=pointerinfo[length(pointerinfo)-1].address.top+pointerinfo[length(pointerinfo)-1].address.height+6
-  end
+  if pointerinfo=nil then
+    btnok.top:=cbPointer.Top+cbPointer.Height+3
   else
-    btnok.top:=cbPointer.top+cbPointer.height+6;     *)
+    btnok.top:=pointerinfo.Top+pointerinfo.Height+3;
+
 
   btnCancel.top:=btnok.top;
   clientheight:=btncancel.top+btnCancel.height+6;
@@ -886,8 +907,7 @@ end;
 procedure TformAddressChange.Timer2Timer(Sender: TObject);
 begin
   //lazarus bug bypass for not setting proper width when the window is not visible, and no event to signal when it's finally visible (onshow isn't one of them)
-  if delayedpointerresize then
-    DelayedResize;
+  DelayedResize;
 
   timer2.enabled:=false;
 end;
