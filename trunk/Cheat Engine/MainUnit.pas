@@ -6857,7 +6857,7 @@ end;
 procedure TMainForm.Label59Click(Sender: TObject);
 var
   cr3: qword;
-  x: qword;
+  x,y: qword;
   filename: WideString;
 
   HandlerCount: integer;
@@ -6875,6 +6875,15 @@ var
 
   cl: TFPColor;
 begin
+  x:=QWORD($fffffffffffffff0);
+  i:=-1;
+
+  y:=x+i;
+  showmessage(IntToHex(y,16));
+  exit;
+
+
+
   //img.LoadFromFile('c:\test.png');
   img := TPicture.Create;
 

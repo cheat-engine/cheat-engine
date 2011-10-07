@@ -1754,7 +1754,7 @@ function TfrmStructures2.getAddressFromNode(node: TTreenode; column: TStructColu
 //Find out the address of this node
 var
   baseaddress: ptruint;
-  offsets: array of dword;
+  offsets: array of integer;
 begin
   getPointerFromNode(node,column, baseaddress, offsets);
   result:=getPointerAddress(baseaddress,  offsets, hasError);
@@ -2541,7 +2541,7 @@ end;
 
 procedure TfrmStructures2.miAddToAddresslistClick(Sender: TObject);
 var baseaddress: ptruint;
-  offsetlist: array of dword;
+  offsetlist: array of integer;
   element, element2: TStructelement;
 
   sname: string;

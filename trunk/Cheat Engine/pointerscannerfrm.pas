@@ -2010,7 +2010,7 @@ procedure Tfrmpointerscanner.ListView1DblClick(Sender: TObject);
 var
   li: tlistitem;
   i: integer;
-  offsets: array of dword;
+  offsets: array of integer;
   t: string;
   c: integer;
 

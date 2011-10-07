@@ -1,13 +1,13 @@
 object formAddressChange: TformAddressChange
-  Left = 1004
-  Height = 263
-  Top = 342
-  Width = 519
+  Left = 781
+  Height = 277
+  Top = 297
+  Width = 191
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Change address'
-  ClientHeight = 263
-  ClientWidth = 519
+  ClientHeight = 277
+  ClientWidth = 191
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
@@ -16,23 +16,24 @@ object formAddressChange: TformAddressChange
   object Label1: TLabel
     Left = 8
     Height = 14
-    Top = 8
-    Width = 107
-    Caption = 'Give the new address:'
+    Top = 0
+    Width = 42
+    Caption = 'Address:'
     ParentColor = False
   end
   object editAddress: TEdit
     Left = 8
     Height = 21
-    Top = 24
-    Width = 168
+    Top = 16
+    Width = 112
+    OnChange = editAddressChange
     OnKeyPress = editAddressKeyPress
     TabOrder = 0
   end
   object btnOk: TButton
     Left = 8
     Height = 25
-    Top = 232
+    Top = 240
     Width = 80
     Caption = 'OK'
     Default = True
@@ -40,9 +41,9 @@ object formAddressChange: TformAddressChange
     TabOrder = 1
   end
   object btnCancel: TButton
-    Left = 96
+    Left = 104
     Height = 25
-    Top = 232
+    Top = 240
     Width = 80
     Cancel = True
     Caption = 'Cancel'
@@ -52,38 +53,19 @@ object formAddressChange: TformAddressChange
   object cbPointer: TCheckBox
     Left = 8
     Height = 19
-    Top = 176
+    Top = 216
     Width = 53
     Caption = 'Pointer'
     OnChange = cbPointerClick
     TabOrder = 3
   end
-  object btnAddOffset: TButton
-    Left = 8
-    Height = 26
-    Top = 200
-    Width = 87
-    Caption = 'Add pointer'
-    OnClick = btnAddOffsetClick
-    TabOrder = 4
-    Visible = False
-  end
-  object btnRemoveOffset: TButton
-    Left = 100
-    Height = 26
-    Top = 200
-    Width = 87
-    Caption = 'Remove'
-    OnClick = btnRemoveOffsetClick
-    TabOrder = 5
-    Visible = False
-  end
   object cbvarType: TComboBox
     Left = 8
     Height = 21
-    Top = 48
-    Width = 168
+    Top = 96
+    Width = 176
     ItemHeight = 13
+    ItemIndex = 3
     Items.Strings = (
       'Binary'
       'Byte'
@@ -97,17 +79,18 @@ object formAddressChange: TformAddressChange
     )
     OnChange = cbvarTypeChange
     Style = csDropDownList
-    TabOrder = 6
+    TabOrder = 4
+    Text = '4 Bytes'
   end
   object pnlExtra: TPanel
     Left = 8
     Height = 95
-    Top = 80
+    Top = 120
     Width = 176
     BevelOuter = bvNone
     ClientHeight = 95
     ClientWidth = 176
-    TabOrder = 7
+    TabOrder = 5
     Visible = False
     object cbunicode: TCheckBox
       Left = 48
@@ -275,123 +258,46 @@ object formAddressChange: TformAddressChange
       end
     end
   end
-  object Edit1: TEdit
-    Left = 232
-    Height = 21
-    Top = 181
-    Width = 72
-    TabOrder = 8
-    Text = 'Edit1'
+  object lblValue: TLabel
+    Left = 120
+    Height = 14
+    Top = 19
+    Width = 34
+    Caption = '=Value'
+    ParentColor = False
   end
-  object Edit2: TEdit
-    Left = 331
+  object edtDescription: TEdit
+    Left = 8
     Height = 21
-    Top = 160
-    Width = 58
-    TabOrder = 9
-    Text = 'Edit2'
+    Top = 56
+    Width = 176
+    TabOrder = 6
   end
   object Label3: TLabel
-    Left = 234
+    Left = 8
     Height = 14
-    Top = 144
-    Width = 154
-    Caption = '[pointeraddress+offset]->address'
+    Top = 40
+    Width = 54
+    Caption = 'Description'
     ParentColor = False
   end
-  object SpeedButton1: TSpeedButton
-    Left = 307
-    Height = 22
-    Top = 160
-    Width = 23
-    Caption = '<'
-    NumGlyphs = 0
-  end
-  object SpeedButton2: TSpeedButton
-    Left = 395
-    Height = 22
-    Top = 160
-    Width = 23
-    Caption = '>'
-    NumGlyphs = 0
-  end
-  object SpeedButton3: TSpeedButton
-    Left = 307
-    Height = 22
-    Top = 120
-    Width = 23
-    NumGlyphs = 0
-  end
-  object Edit3: TEdit
-    Left = 331
-    Height = 21
-    Top = 120
-    Width = 58
-    TabOrder = 10
-    Text = 'Edit2'
-  end
-  object SpeedButton4: TSpeedButton
-    Left = 395
-    Height = 22
-    Top = 120
-    Width = 23
-    NumGlyphs = 0
-  end
-  object Value: TLabel
-    Left = 307
+  object Label12: TLabel
+    Left = 9
     Height = 14
-    Top = 184
-    Width = 37
-    Caption = '->Value'
+    Top = 80
+    Width = 25
+    Caption = 'Type'
     ParentColor = False
-  end
-  object Label15: TLabel
-    Left = 234
-    Height = 14
-    Top = 96
-    Width = 70
-    Caption = 'pointeraddress'
-    ParentColor = False
-  end
-  object Label16: TLabel
-    Left = 307
-    Height = 14
-    Top = 96
-    Width = 68
-    Caption = 'valueofpointer'
-    ParentColor = False
-  end
-  object SpeedButton5: TSpeedButton
-    Left = 307
-    Height = 22
-    Top = 72
-    Width = 23
-    NumGlyphs = 0
-  end
-  object Edit4: TEdit
-    Left = 331
-    Height = 21
-    Top = 72
-    Width = 58
-    TabOrder = 11
-    Text = 'Edit2'
-  end
-  object SpeedButton6: TSpeedButton
-    Left = 395
-    Height = 22
-    Top = 72
-    Width = 23
-    NumGlyphs = 0
   end
   object Timer1: TTimer
     OnTimer = Timer1Timer
-    left = 8
-    top = 32
+    left = 136
+    top = 192
   end
   object Timer2: TTimer
     Interval = 1
     OnTimer = Timer2Timer
-    left = 48
-    top = 32
+    left = 136
+    top = 152
   end
 end
