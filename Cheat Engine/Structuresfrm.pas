@@ -2075,7 +2075,7 @@ procedure TfrmStructures.Addtoaddresslist1Click(Sender: TObject);
 var
   selectedstructure,ts: tstructure;
   selectednode,tn: ttreenode;
-  offsets: array of dword;
+  offsets: array of integer;
 
   objectname: string;
 

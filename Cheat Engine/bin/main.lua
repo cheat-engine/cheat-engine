@@ -68,7 +68,7 @@ readFromClipboard(): 6.2: Reads the text from the clipboard
 
 
 speedhack_setSpeed(speed)
-injectDll(filename): Injects a dll, and returns true on success
+injectDLL(filename): Injects a dll, and returns true on success
 
 
 registerCustomTypeLua(typename, bytecount, bytestovaluefunction, valuetobytesfunction)

@@ -114,7 +114,7 @@ type
     interpretableaddress: string;
 
 
-    pointeroffsets: array of dword; //if set this is an pointer
+    pointeroffsets: array of integer; //if set this is an pointer
 
 
 

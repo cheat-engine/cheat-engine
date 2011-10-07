@@ -60,7 +60,7 @@ end;
 type TBitAddressArray=array [0..0] of TBitAddress;
 type PBitAddressArray=^TBitAddressArray;
 
-type ToffsetList=array of dword;
+type ToffsetList=array of integer;
 
 type TProcessListInfo=record
   processID: dword;
@@ -80,6 +80,8 @@ function StrToQWordEx(s: string): qword;
 function ConvertHexStrToRealStr(const s: string): string;
 function HexStrToInt(const S: string): Integer;
 function HexStrToInt64(const S: string): Int64;
+
+function IntToHexSigned(v: INT64; digits: integer): string;
 
 function NewVarTypeToOldVarType(i: TVariableType):integer;
 function OldVarTypeToNewVarType(i: integer):TVariableType;
@@ -172,7 +174,7 @@ function allocationtypetostring(alloctype: dword): string;
 function allocationprotecttostring(protect: dword): string;
 function freetypetostring(freetype: dword):string;
 
-function getPointerAddress(address: ptruint; const offsets: array of dword; var hasError: boolean): ptruint;
+function getPointerAddress(address: ptruint; const offsets: array of integer; var hasError: boolean): ptruint;
 
 function isAddress(address: ptrUint):boolean;
 function isExecutableAddress(address: ptrUint):boolean;
@@ -3091,6 +3093,14 @@ begin
   end;
 end;
 
+function IntToHexSigned(v: INT64; digits: integer): string;
+begin
+  if v>=0 then
+    result:=inttohex(v, digits)
+  else
+    result:='-'+inttohex(-v, digits);
+end;
+
 function HexStrToInt(const S: string): Integer;
 begin
   result:=StrToint(ConvertHexStrToRealStr(s));
@@ -3488,7 +3498,7 @@ begin
   end;
 end;
 
-function getPointerAddress(address: ptruint; const offsets: array of dword; var hasError: boolean): ptruint;
+function getPointerAddress(address: ptruint; const offsets: array of integer; var hasError: boolean): ptruint;
 var realaddress, realaddress2: PtrUInt;
     count: dword;
     check: boolean;

@@ -106,7 +106,7 @@ type
     procedure CreateGroup(groupname: string);
     procedure addAutoAssembleScript(script: string);
     function addAddressManually(initialaddress: string=''): TMemoryRecord;
-    function addaddress(description: string; address: string; const offsets: array of dword; offsetcount: integer; vartype: TVariableType; customtypename: string=''; length: integer=0; startbit: integer=0; unicode: boolean=false; node: TTreenode=nil; attachmode: TNodeAttachMode=naAdd): TMemoryRecord;
+    function addaddress(description: string; address: string; const offsets: array of integer; offsetcount: integer; vartype: TVariableType; customtypename: string=''; length: integer=0; startbit: integer=0; unicode: boolean=false; node: TTreenode=nil; attachmode: TNodeAttachMode=naAdd): TMemoryRecord;
     function getRecordWithDescription(description: string): TMemoryRecord;
     function getRecordWithID(id: integer): TMemoryRecord;
 
@@ -648,7 +648,7 @@ begin
   result:=mr;
 end;
 
-function TAddresslist.addaddress(description: string; address: string; const offsets: array of dword; offsetcount: integer; vartype: TVariableType; customtypename: string=''; length: integer=0; startbit: integer=0; unicode: boolean=false; node: TTreenode=nil; attachmode: TNodeAttachMode=naAdd): TMemoryRecord;
+function TAddresslist.addaddress(description: string; address: string; const offsets: array of integer; offsetcount: integer; vartype: TVariableType; customtypename: string=''; length: integer=0; startbit: integer=0; unicode: boolean=false; node: TTreenode=nil; attachmode: TNodeAttachMode=naAdd): TMemoryRecord;
 var
   memrec: TMemoryRecord;
   i: integer;
