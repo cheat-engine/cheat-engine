@@ -121,6 +121,7 @@ type
     RadioButton8: TRadioButton;
     Timer1: TTimer;
     Timer2: TTimer;
+    procedure btnCancelClick(Sender: TObject);
     procedure cbvarTypeChange(Sender: TObject);
     procedure editAddressChange(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -130,6 +131,7 @@ type
     procedure btnAddOffsetOldClick(Sender: TObject);
     procedure btnOkClick(Sender: TObject);
     procedure editAddressKeyPress(Sender: TObject; var Key: Char);
+    procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormWindowStateChange(Sender: TObject);
     procedure pcExtraChange(Sender: TObject);
@@ -150,12 +152,24 @@ type
     procedure DisablePointerExternal(var m: TMessage); message WM_disablePointer;
     procedure setVarType(vt: TVariableType);
     function getVartype: TVariableType;
+    procedure setLength(l: integer);
+    function getLength: integer;
+    procedure setStartbit(b: integer);
+    function getStartbit: integer;
+    procedure setUnicode(state: boolean);
+    function getUnicode: boolean;
+    procedure setDescription(s: string);
+    function getDescription: string;
   public
     { Public declarations }
     index: integer;
     index2: integer;
     property memoryrecord: TMemoryRecord read fMemoryRecord write setMemoryRecord;
     property vartype: TVariableType read getVartype write setVartype;
+    property length: integer read getLength write setLength;
+    property startbit: integer read getStartbit write setStartbit;
+    property unicode: boolean read getUnicode write setUnicode;
+    property description: string read getDescription write setDescription;
   end;
 
 var
@@ -638,6 +652,78 @@ end;
 
 { Tformaddresschange }
 
+procedure Tformaddresschange.setDescription(s: string);
+begin
+  edtDescription.Text:=s;
+end;
+
+function Tformaddresschange.getDescription: string;
+begin
+  result:=edtDescription.Text;
+end;
+
+procedure Tformaddresschange.setUnicode(state: boolean);
+begin
+  cbunicode.checked:=state;
+end;
+
+function Tformaddresschange.getUnicode: boolean;
+begin
+  result:=cbunicode.checked;
+end;
+
+procedure Tformaddresschange.setStartbit(b: integer);
+begin
+  case b of
+    0: RadioButton1.checked:=true;
+    1: RadioButton2.checked:=true;
+    2: RadioButton3.checked:=true;
+    3: RadioButton4.checked:=true;
+    4: RadioButton5.checked:=true;
+    5: RadioButton6.checked:=true;
+    6: RadioButton7.checked:=true;
+    7: RadioButton8.checked:=true;
+  end;
+end;
+
+function Tformaddresschange.getStartbit: integer;
+begin
+  result:=0;
+  if RadioButton1.checked then
+    result:=0
+  else
+  if RadioButton2.checked then
+    result:=1
+  else
+  if RadioButton3.checked then
+    result:=2
+  else
+  if RadioButton4.checked then
+    result:=3
+  else
+  if RadioButton5.checked then
+    result:=4
+  else
+  if RadioButton6.checked then
+    result:=5
+  else
+  if RadioButton7.checked then
+    result:=6
+  else
+  if RadioButton8.checked then
+    result:=7;
+
+end;
+
+procedure Tformaddresschange.setLength(l: integer);
+begin
+  edtSize.text:=inttostr(l);
+end;
+
+function Tformaddresschange.getLength: integer;
+begin
+  result:=StrToIntDef(edtSize.Text,0)
+end;
 
 procedure Tformaddresschange.setVarType(vt: TVariableType);
 begin
@@ -732,6 +818,11 @@ begin
   AdjustHeightAndButtons;
 
   processaddress;
+end;
+
+procedure TformAddressChange.btnCancelClick(Sender: TObject);
+begin
+
 end;
 
 procedure TformAddressChange.editAddressChange(Sender: TObject);
@@ -831,122 +922,6 @@ begin
       freeandnil(pointerinfo);
   end;
 
-  (*
-  if cbpointer.checked then
-  begin
-
-    editAddress.Enabled:=false;
-
-    btnAddOffsetOld.visible:=true;
-    btnRemoveOffsetOld.visible:=true;
-    //create a address+offset combination and disable the normal address
-
-    startoffset:=btnAddOffsetOld.Top+btnAddOffsetOld.Height+2;
-
-    setlength(pointerinfo,1);
-    pointerinfo[length(pointerinfo)-1].ValueAtAddressText:=TLabel.Create(self);
-    with pointerinfo[length(pointerinfo)-1].ValueAtAddressText do
-    begin
-      top:=startoffset;
-      left:=4;
-
-      caption:=rsThisPointerPointsToAddress+' ????????.'; // The offset you chose brings it to ????????';
-      showhint:=true;
-      onkeypress:=offsetKeyPress;
-      parent:=self;
-    end;
-
-    if pointerinfo[length(pointerinfo)-1].ValueAtAddressText.AutoSizeDelayed then delayedpointerresize:=true;
-
-
-    pointerinfo[length(pointerinfo)-1].FinalDestination:=TLabel.Create(self);
-    with pointerinfo[length(pointerinfo)-1].FinalDestination do
-    begin
-      top:=startoffset;
-      left:=pointerinfo[length(pointerinfo)-1].ValueAtAddressText.left+pointerinfo[length(pointerinfo)-1].ValueAtAddressText.width+20;
-      caption:=rsTheOffsetYouChoseBringsItTo+' ????????';
-      showhint:=true;
-      onkeypress:=offsetKeyPress;
-      parent:=self;
-    end;
-
-    inputoffset:=startoffset+pointerinfo[length(pointerinfo)-1].ValueAtAddressText.height;
-
-    pointerinfo[length(pointerinfo)-1].addresstext:=Tlabel.Create(self);
-    with pointerinfo[length(pointerinfo)-1].addresstext do
-    begin
-      top:=inputoffset+2;
-      left:=4;
-      caption:=rsAddressOfPointer;
-      parent:=self;
-    end;  
-
-    pointerinfo[length(pointerinfo)-1].address:=TEdit.create(self);
-    with pointerinfo[length(pointerinfo)-1].address do
-    begin
-      top:=inputoffset;
-      left:=pointerinfo[length(pointerinfo)-1].addresstext.left+pointerinfo[length(pointerinfo)-1].addresstext.width+3;
-      width:=105;
-      onkeypress:=editAddress.onkeypress;
-      parent:=self;
-    end;
-
-    pointerinfo[length(pointerinfo)-1].offsettext:=Tlabel.create(self);
-    with pointerinfo[length(pointerinfo)-1].offsettext do
-    begin
-      top:=inputoffset+2;
-      left:=pointerinfo[length(pointerinfo)-1].FinalDestination.left;
-      caption:=rsOffsetHex;
-      parent:=self;
-    end;
-
-    pointerinfo[length(pointerinfo)-1].offset:=TEdit.create(self);
-    with pointerinfo[length(pointerinfo)-1].offset do
-    begin
-      top:=inputoffset;
-      left:=pointerinfo[length(pointerinfo)-1].offsettext.left+pointerinfo[length(pointerinfo)-1].offsettext.width+5;
-      width:=70;
-      text:='0';
-      hint:=rsFillInTheNrOfBytesAfterTheLocationThePointerPoints;
-      showhint:=true;
-      onkeypress:=offsetKeyPress;
-      parent:=self;
-    end;
-
-    a:=pointerinfo[length(pointerinfo)-1].FinalDestination.left;
-    b:=pointerinfo[length(pointerinfo)-1].FinalDestination.width;
-
-    clientwidth:=a+b+5;
-
-
-  end
-  else
-  begin
-    if memoryrecord.VarType=vtAutoAssembler then
-    begin
-      pnlBitinfo.Visible:=true;
-      clientwidth:=pnlBitinfo.left+pnlBitinfo.Width+5;
-    end else clientwidth:=editaddress.Left+editaddress.Width+5;
-
-    clientheight:=cbPointer.Top+cbPointer.Height+8+btnOk.Height+8;
-    editaddress.enabled:=true;
-    btnAddOffsetOld.visible:=false;
-    btnRemoveOffsetOld.visible:=false;
-
-    for i:=0 to length(PointerInfo)-1 do
-    begin
-      pointerinfo[i].addresstext.free;
-      pointerinfo[i].address.Free;
-      pointerinfo[i].offsettext.Free;
-      pointerinfo[i].offset.Free;
-      pointerinfo[i].ValueAtAddressText.Free;
-      pointerinfo[i].FinalDestination.Free;
-    end;
-
-    setlength(pointerinfo,0);
-
-  end;
-  AdjustHeightAndButtons;  *)
 end;
 
 procedure TformAddressChange.DisablePointerExternal(var m: TMessage);
@@ -1006,6 +981,8 @@ var bit: integer;
 
     i: integer;
 begin
+
+  {
   if RadioButton1.checked then bit:=0 else
   if RadioButton2.checked then bit:=1 else
   if RadioButton3.checked then Bit:=2 else
@@ -1056,15 +1033,19 @@ begin
     memoryrecord.active:=false;
   end;     *)
 
-  modalresult:=mrok;
+  modalresult:=mrok; }
 end;
 
 procedure TformAddressChange.editAddressKeyPress(Sender: TObject;
   var Key: Char);
 begin
-  hexadecimal(key);
-  if cbpointer.Checked then timer1.Interval:=1;
-  
+
+end;
+
+procedure TformAddressChange.FormDestroy(Sender: TObject);
+begin
+  if pointerinfo<>nil then
+    freeandnil(pointerinfo);
 end;
 
 procedure TformAddressChange.FormShow(Sender: TObject);
