@@ -10,7 +10,7 @@ object formAddressChange: TformAddressChange
   ClientWidth = 191
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
-  OnClose = FormClose
+  OnDestroy = FormDestroy
   Position = poScreenCenter
   LCLVersion = '0.9.31'
   object Label1: TLabel
@@ -199,7 +199,7 @@ object formAddressChange: TformAddressChange
         ParentColor = False
       end
       object RadioButton1: TRadioButton
-        Left = 0
+        Left = 4
         Height = 19
         Top = 34
         Width = 20
@@ -291,13 +291,13 @@ object formAddressChange: TformAddressChange
   end
   object Timer1: TTimer
     OnTimer = Timer1Timer
-    left = 136
-    top = 192
+    left = 160
+    top = 144
   end
   object Timer2: TTimer
     Interval = 1
     OnTimer = Timer2Timer
     left = 136
-    top = 152
+    top = 136
   end
 end

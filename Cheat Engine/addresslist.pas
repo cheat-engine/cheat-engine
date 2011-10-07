@@ -623,6 +623,8 @@ end;
 function TAddresslist.addAddressManually(initialaddress: string=''): TMemoryRecord;
 var mr: TMemoryRecord;
 begin
+  result:=nil;
+
   Treeview.BeginUpdate;
   mr:=addaddress(initialaddress,'No description',[],0, vtDword);
 
