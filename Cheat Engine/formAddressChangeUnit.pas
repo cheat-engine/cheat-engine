@@ -87,7 +87,7 @@ type
   { TformAddressChange }
 
   TformAddressChange = class(TForm)
-    edtDescription: TEdit;
+    editDescription: TEdit;
     Label12: TLabel;
     Label3: TLabel;
     lblValue: TLabel;
@@ -152,21 +152,23 @@ type
     procedure DisablePointerExternal(var m: TMessage); message WM_disablePointer;
     procedure setVarType(vt: TVariableType);
     function getVartype: TVariableType;
-    procedure setLength(l: integer);
-    function getLength: integer;
+    procedure sLength(l: integer);
+    function gLength: integer;
     procedure setStartbit(b: integer);
     function getStartbit: integer;
     procedure setUnicode(state: boolean);
     function getUnicode: boolean;
     procedure setDescription(s: string);
     function getDescription: string;
+    procedure setAddress(var address: string; var offsets: Toffsetlist);
+    function getAddress(var address: string; var offsets: ToffsetList): boolean;
   public
     { Public declarations }
     index: integer;
     index2: integer;
     property memoryrecord: TMemoryRecord read fMemoryRecord write setMemoryRecord;
     property vartype: TVariableType read getVartype write setVartype;
-    property length: integer read getLength write setLength;
+    property length: integer read gLength write sLength;
     property startbit: integer read getStartbit write setStartbit;
     property unicode: boolean read getUnicode write setUnicode;
     property description: string read getDescription write setDescription;
@@ -652,14 +654,68 @@ end;
 
 { Tformaddresschange }
 
+procedure Tformaddresschange.setAddress(var address: string; var offsets: Toffsetlist);
+var i: integer;
+begin
+  if system.length(offsets)=0 then
+  begin
+    //no pointer
+    cbPointer.Checked:=false;
+    editAddress.Text:=address;
+  end
+  else
+  begin
+    //pointer
+    cbPointer.Checked:=true;
+    pointerinfo.baseAddress.Text:=address;
+
+    for i:=0 to system.length(offsets)-1 do
+      TOffsetInfo.create(pointerinfo);
+
+    pointerinfo.setupPositionsAndSizes;
+
+    for i:=system.length(offsets)-1 downto 0 do
+      pointerinfo.offset[i].offset:=offsets[system.length(offsets)-1-i];
+
+    pointerinfo.processAddress;
+  end;
+
+end;
+
+function Tformaddresschange.getAddress(var address: string; var offsets: ToffsetList): boolean;
+var
+  i: integer;
+begin
+  result:=false;
+  if pointerinfo=nil then
+  begin
+    setlength(offsets,0);
+    address:=editAddress.Text;
+    result:=true;
+  end
+  else
+  begin
+    if not pointerinfo.invalidBaseAddress then
+    begin
+      address:=pointerinfo.baseAddress.text;
+      setlength(offsets, pointerinfo.offsetcount);
+
+      for i:=pointerinfo.offsetcount-1 downto 0 do //fill the array inverse
+        offsets[i]:=pointerinfo.offset[pointerinfo.offsetcount-1-i].offset;
+
+      result:=true;
+    end;
+  end;
+end;
+
 procedure Tformaddresschange.setDescription(s: string);
 begin
-  edtDescription.Text:=s;
+  editDescription.Text:=s;
 end;
 
 function Tformaddresschange.getDescription: string;
 begin
-  result:=edtDescription.Text;
+  result:=editDescription.Text;
 end;
 
 procedure Tformaddresschange.setUnicode(state: boolean);
@@ -715,12 +771,12 @@ begin
 
 end;
 
-procedure Tformaddresschange.setLength(l: integer);
+procedure Tformaddresschange.sLength(l: integer);
 begin
   edtSize.text:=inttostr(l);
 end;
 
-function Tformaddresschange.getLength: integer;
+function Tformaddresschange.gLength: integer;
 begin
   result:=StrToIntDef(edtSize.Text,0)
 end;
@@ -814,6 +870,7 @@ procedure TformAddressChange.cbvarTypeChange(Sender: TObject);
 begin
   pnlExtra.visible:=cbvarType.itemindex in [0,7,8];
   pnlBitinfo.visible:=cbvarType.itemindex = 0;
+  cbunicode.visible:=cbvarType.itemindex = 7;
 
   AdjustHeightAndButtons;
 
@@ -832,54 +889,7 @@ end;
 
 
 
-procedure TformAddressChange.setMemoryRecord(rec: TMemoryRecord);
-var i: integer;
-    tmp:string;
-begin
-  fMemoryRecord:=rec;
 
-  edtDescription.Text:=rec.Description;
-  vartype:=rec.VarType;
-
-  if not rec.isPointer then
-  begin
-    editaddress.Text:=AnsiToUtf8(rec.interpretableaddress);
-    if rec.VarType = vtBinary then
-    begin
-      pnlBitinfo.Visible:=true;
-      case rec.Extra.bitData.Bit of
-        0: radiobutton1.checked:=true;
-        1: radiobutton2.checked:=true;
-        2: radiobutton3.checked:=true;
-        3: radiobutton4.checked:=true;
-        4: radiobutton5.checked:=true;
-        5: radiobutton6.checked:=true;
-        6: radiobutton7.checked:=true;
-        7: radiobutton8.checked:=true;
-      end;
-    end
-  end;
-
-
-  (*
-  if rec.IsPointer then
-  begin
-    cbPointer.Checked:=true;
-
-    for i:=1 to length(rec.pointeroffsets)-1 do btnAddOffsetOld.Click; //add lines  (-1 because checking the cbpointer already adds one)
-
-    //fill the lines
-    for i:=0 to length(rec.pointeroffsets)-1 do
-      pointerinfo[i].offset.text:=IntToHex(rec.pointeroffsets[i],1);
-
-    pointerinfo[length(pointerinfo)-1].address.text:=AnsiToUtf8(rec.interpretableaddress);
-  end;    *)
-
-
-  processaddress;
-  AdjustHeightAndButtons
-
-end;
 
 
 procedure TformAddressChange.DelayedResize;
@@ -971,9 +981,46 @@ begin
 
 end;
 
+procedure TformAddressChange.setMemoryRecord(rec: TMemoryRecord);
+var i: integer;
+    tmp:string;
+begin
+  fMemoryRecord:=rec;
+
+  description:=rec.Description;
+  vartype:=rec.VarType;
+
+  setAddress(rec.interpretableaddress, rec.pointeroffsets);
+
+  case vartype of
+    vtBinary:
+    begin
+      startbit:=rec.Extra.bitData.Bit;
+      length:=rec.Extra.bitdata.bitlength;
+    end;
+
+    vtString:
+    begin
+      unicode:=rec.Extra.stringData.unicode;
+      length:=rec.Extra.stringData.length;
+    end;
+
+    vtByteArray:
+    begin
+      length:=rec.Extra.byteData.bytelength;
+    end;
+
+  end;
+
+
+  processaddress;
+  AdjustHeightAndButtons
+
+end;
+
 procedure TformAddressChange.btnOkClick(Sender: TObject);
 var bit: integer;
-    address: dword;
+    address: string;
     err:integer;
 
     paddress: dword;
@@ -981,59 +1028,36 @@ var bit: integer;
 
     i: integer;
 begin
-
-  {
-  if RadioButton1.checked then bit:=0 else
-  if RadioButton2.checked then bit:=1 else
-  if RadioButton3.checked then Bit:=2 else
-  if RadioButton4.checked then Bit:=3 else
-  if RadioButton5.checked then Bit:=4 else
-  if RadioButton6.checked then Bit:=5 else
-  if RadioButton7.checked then Bit:=6 else
-                               Bit:=7;
+  memoryrecord.Vartype:=vartype;
 
 
-  if memoryrecord.vartype=vtbinary then
-    memoryrecord.Extra.bitData.Bit:=bit;
-
- (* if cbpointer.Checked then
-  begin
-    address:=0;
-    paddress:=symhandler.getaddressfromname(utf8toansi(pointerinfo[length(pointerinfo)-1].address.text));
-    memoryrecord.interpretableaddress:=utf8toansi(pointerinfo[length(pointerinfo)-1].address.text);
-  end
-  else
-  begin
-    paddress:=0;
-    addresS:=symhandler.getaddressfromname(utf8toansi(editaddress.text));
-    memoryrecord.interpretableaddress:=utf8toansi(editaddress.text);
-  end;
-
-
-  setlength(offsets,length(pointerinfo));
-
-  for i:=0 to length(pointerinfo)-1 do
-  begin
-    if length(pointerinfo[i].offset.Text)>0 then
+  case vartype of
+    vtBinary:
     begin
-      if pointerinfo[i].offset.Text[1]='-' then
-        val('-$'+copy(pointerinfo[i].offset.Text,2,length(pointerinfo[i].offset.Text)-1),offsets[i],err)
-      else
-        val('$'+pointerinfo[i].offset.Text,offsets[i],err);
+      memoryrecord.Extra.bitData.Bit:=startbit;
+      memoryrecord.Extra.bitData.bitlength:=length;
+    end;
 
-      if err<>0 then raise exception.Create(Format(rsIsNotAValidOffset, [pointerinfo[i].offset.Text]));
-    end else raise exception.Create(rsNotAllOffsetsHaveBeenFilledIn);
+    vtString:
+    begin
+      memoryrecord.Extra.stringData.length:=length;
+      memoryrecord.Extra.stringData.unicode:=unicode;
+    end;
+
+    vtByteArray:
+      memoryrecord.Extra.byteData.bytelength:=length;
   end;
 
-  setlength(memoryrecord.pointeroffsets, length(offsets));
+  memoryrecord.Description:=description;
 
-  for i:=0 to length(offsets)-1 do
-  begin
-    memoryrecord.PointerOffsets[i]:=offsets[i];
-    memoryrecord.active:=false;
-  end;     *)
+  getAddress(address, offsets);
+  memoryrecord.interpretableaddress:=address;
+  setlength(memoryrecord.pointeroffsets, system.length(offsets));
+  for i:=0 to system.length(offsets)-1 do
+    memoryrecord.pointeroffsets[i]:=offsets[i];
 
-  modalresult:=mrok; }
+
+  modalresult:=mrok;
 end;
 
 procedure TformAddressChange.editAddressKeyPress(Sender: TObject;

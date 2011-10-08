@@ -266,7 +266,7 @@ object formAddressChange: TformAddressChange
     Caption = '=Value'
     ParentColor = False
   end
-  object edtDescription: TEdit
+  object editDescription: TEdit
     Left = 8
     Height = 21
     Top = 56
