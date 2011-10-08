@@ -1,7 +1,7 @@
 object formSettings: TformSettings
-  Left = 1132
+  Left = 774
   Height = 517
-  Top = 443
+  Top = 308
   Width = 772
   BorderIcons = [biSystemMenu]
   Caption = 'Cheat Engine settings'
@@ -65,7 +65,6 @@ object formSettings: TformSettings
       TabIndex = 0
       TabOrder = 1
       OnChange = pcSettingChange
-      OnPageChanged = pcSettingChange
       object GeneralSettings: TTabSheet
         Caption = 'General Settings'
         ClientHeight = 442

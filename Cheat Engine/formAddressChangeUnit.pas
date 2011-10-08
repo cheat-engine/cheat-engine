@@ -555,9 +555,6 @@ begin
   ClientHeight:=btnAddOffset.Top+btnAddOffset.Height+3;
   //Width will be set using the UpdateLabels method of individial offsets when the current offset it too small
 
-  //first set the initial width
-  //newwidth:=offset[offsetcount-1].lblPointerAddressToValue.Left+ offset[offsetcount-1].lblPointerAddressToValue.Canvas.TextWidth('[XXXXXXXX + XXXX] -> XXXXXXXX  ')+16;
- // if newwidth>clientwidth then clientwidth:=newwidth;
 
   //update buttons of the form
   with owner do
@@ -669,7 +666,8 @@ begin
     cbPointer.Checked:=true;
     pointerinfo.baseAddress.Text:=address;
 
-    for i:=0 to system.length(offsets)-1 do
+    //create offsets
+    for i:=pointerinfo.offsetcount to system.length(offsets)-1 do
       TOffsetInfo.create(pointerinfo);
 
     pointerinfo.setupPositionsAndSizes;
@@ -887,32 +885,9 @@ begin
   processaddress;
 end;
 
-
-
-
-
-
 procedure TformAddressChange.DelayedResize;
-var i,a,b: integer;
 begin
   AdjustHeightAndButtons;
-
-  (*
-  for i:=0 to length(pointerinfo)-1 do
-  begin
-    pointerinfo[i].ValueAtAddressText.left:=4;
-
-    pointerinfo[i].FinalDestination.left:=pointerinfo[i].ValueAtAddressText.left+pointerinfo[i].ValueAtAddressText.width+20;
-    pointerinfo[i].addresstext.left:=4;
-    pointerinfo[i].address.left:=pointerinfo[i].addresstext.left+pointerinfo[i].addresstext.width+3;
-    pointerinfo[i].offsettext.left:=pointerinfo[i].FinalDestination.left;
-    pointerinfo[i].offset.left:=pointerinfo[i].offsettext.left+pointerinfo[i].offsettext.width+5;
-  end;
-
-  a:=pointerinfo[length(pointerinfo)-1].FinalDestination.left;
-  b:=pointerinfo[length(pointerinfo)-1].FinalDestination.width;
-
-  clientwidth:=a+b+5;  *)
 end;
 
 procedure TformAddressChange.cbPointerClick(Sender: TObject);
@@ -964,6 +939,8 @@ begin
   begin
     pointerinfo.top:=cbPointer.Top+cbPointer.Height+3;
     btnok.top:=pointerinfo.Top+pointerinfo.Height+3;
+
+    pointerinfo.setupPositionsAndSizes;
   end;
 
 
@@ -1014,7 +991,7 @@ begin
 
 
   processaddress;
-  AdjustHeightAndButtons
+  AdjustHeightAndButtons;
 
 end;
 
@@ -1097,7 +1074,11 @@ procedure TformAddressChange.Timer1Timer(Sender: TObject);
 begin
   timer1.Interval:=1000;
   if visible and cbpointer.checked then
-    processaddress;
+    if pointerinfo<>nil then
+      pointerinfo.processaddress;
+
+  processaddress;
+
 end;
 
 procedure TformAddressChange.Timer2Timer(Sender: TObject);

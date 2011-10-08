@@ -10,7 +10,7 @@ interface
 
 uses
   windows, Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs, math, ComCtrls, ExtCtrls, StdCtrls,
-  maps, cefuncproc, memfuncs, newkernelhandler, AvgLvlTree, bigmemallochandler, symbolhandler, Regex, RegExpr;
+  maps, cefuncproc, memfuncs, newkernelhandler, AvgLvlTree, bigmemallochandler, symbolhandler, oldRegExpr;
 
 type
 
