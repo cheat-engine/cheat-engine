@@ -275,7 +275,13 @@ begin
     if e then
       lblPointerAddressToValue.Caption:=sbase+sign+soffset+' = ????????'
     else
-      lblPointerAddressToValue.Caption:=sbase+sign+soffset+' = '+inttohex(fBaseAddress+offset,8)
+    begin
+      if processhandler.is64bit then
+        lblPointerAddressToValue.Caption:=sbase+sign+soffset+' = '+inttohex(qword(fBaseAddress+offset),8)
+      else
+        lblPointerAddressToValue.Caption:=sbase+sign+soffset+' = '+inttohex(dword(fBaseAddress+offset),8)
+
+    end;
   end
   else
     lblPointerAddressToValue.Caption:='['+sbase+sign+soffset+'] -> '+SPointsTo;
