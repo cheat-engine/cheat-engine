@@ -625,8 +625,7 @@ var mr: TMemoryRecord;
 begin
   result:=nil;
 
-  Treeview.BeginUpdate;
-  mr:=addaddress(initialaddress,'No description',[],0, vtDword);
+  mr:=addaddress('No description',initialaddress,[],0, vtDword);
 
   //changevalue, if cancel, delete
   with TFormaddresschange.Create(self) do
@@ -646,7 +645,7 @@ begin
     free;
   end;
 
-  treeview.EndUpdate;
+
   result:=mr;
 end;
 

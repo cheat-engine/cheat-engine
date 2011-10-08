@@ -341,6 +341,7 @@ end;
 
 procedure TMemoryRecord.setVarType(v:  TVariableType);
 begin
+  //setup some of the default settings
   case v of
     vtUnicodeString: //this type was added later. convert it to a string
     begin
