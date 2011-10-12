@@ -230,6 +230,8 @@ type
 
   TfrmStructures2 = class(TForm)
     MenuItem5: TMenuItem;
+    miAutoFillGaps: TMenuItem;
+    miFillGaps: TMenuItem;
     miChangeValue: TMenuItem;
     miShowAddresses: TMenuItem;
     miDoNotSaveLocal: TMenuItem;
@@ -379,7 +381,7 @@ type
     property columns[index: integer]: TStructColumn read Getcolumn;
     property groupcount: integer read getGroupCount;
     property group[index: integer]: TStructGroup read getGroup;
-  end; 
+  end;
 
 var
   frmStructures2: TList;
@@ -2600,13 +2602,6 @@ var
 begin
   if mainStruct<>nil then
   begin
-    {
-    base:=definedstructures[currentstructure.basestructure];
-    if length(base.structelement)>0 then
-      sStartOffset:=inttohex(base.structelement[length(base.structelement)-1].offset+base.structelement[length(base.structelement)-1].bytesize,1)
-    else
-      sStartOffset:='0';
-
     if not inputquery(rsStructureDefine, rsPleaseGiveAStartingOffsetToEvaluate, sStartOffset) then exit;
     startOffset:=StrToInt('$'+sStartOffset);
 
@@ -2614,7 +2609,8 @@ begin
     if not inputquery(rsStructureDefine, rsPleaseGiveTheSizeOfTheBlockToEvaluate, sStructSize) then exit;
     structSize:=StrToInt(sStructSize);
 
-    automaticallyGuessOffsets(addresses[0], startOffset, structsize, currentstructure.basestructure); }
+
+    mainStruct.autoGuessStruct(getFocusedColumn.Address+startOffset, startOffset, structsize);
   end;
 end;
 
