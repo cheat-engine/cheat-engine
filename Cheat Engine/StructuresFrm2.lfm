@@ -114,7 +114,7 @@ object frmStructures2: TfrmStructures2
     object MenuItem1: TMenuItem
       Caption = 'View'
       object miChangeColors: TMenuItem
-        Caption = 'Change colors'
+        Caption = 'Default Settings'
         OnClick = miChangeColorsClick
       end
       object miUpdateInterval: TMenuItem
@@ -151,15 +151,18 @@ object frmStructures2: TfrmStructures2
         OnClick = Deletecurrentstructure1Click
       end
       object miAutoGuess: TMenuItem
-        Caption = 'Automatically guess offset types'
+        Caption = 'Autoguess offset types'
         OnClick = miAutoGuessClick
+      end
+      object miFillGaps: TMenuItem
+        Caption = 'Fill gaps'
       end
       object MenuItem4: TMenuItem
         Caption = '-'
       end
       object miAutoCreate: TMenuItem
         AutoCheck = True
-        Caption = 'Autocreate local structures from undefined pointer types'
+        Caption = 'Autocreate local structures when expanding undefined pointer types'
         Checked = True
       end
       object miAutostructsize: TMenuItem
@@ -171,6 +174,10 @@ object frmStructures2: TfrmStructures2
         AutoCheck = True
         Caption = 'Do not save autocreated local structures'
         OnClick = miDoNotSaveLocalClick
+      end
+      object miAutoFillGaps: TMenuItem
+        AutoCheck = True
+        Caption = 'Fill gaps automatically'
       end
     end
   end

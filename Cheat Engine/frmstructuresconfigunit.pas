@@ -169,6 +169,7 @@ begin
     7: result:=selectedGroupEqualText;
     8: result:=EqualText;
     9: result:=selectedEqualText;
+    10: result:=selectedgroupDifferentText;
   end;
 end;
 
@@ -185,6 +186,7 @@ begin
     7: selectedGroupEqualText:=color;
     8: EqualText:=color;
     9: selectedEqualText:=color;
+    10: selectedgroupDifferentText:=color;
   end;
 end;
 
