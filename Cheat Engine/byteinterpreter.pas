@@ -354,6 +354,8 @@ begin
 
   //check if it matches a string
   result:=vtDword;
+  if size<4 then exit;
+
   try
 
     floathasseperator:=false;
@@ -508,7 +510,12 @@ begin
               if pdouble(@buf[0])^>psingle(@buf[0])^ then exit; //float has a smaller value
             end;
 
-            result:=vtDouble;
+            //if 4 bytes after this address is a float then override thise double to a single type
+            if FindTypeOfData(address+4, @buf[4], size-4)=vtSingle then
+              result:=vtSingle
+            else
+              result:=vtDouble;
+
             exit;
           end;
         end;
@@ -538,12 +545,8 @@ begin
     if result=vtDword then
     begin
       //check if the value is a human usable value (between 0 and 10000 or dividable by at least 100)
-      if pdword(@buf[0])^ > 10000 then
-      begin
-        if (pdword(@buf[0])^ mod 100) > 0 then
-          result:=vtByte;
-      end;
-
+      if (pdword(@buf[0])^ > 10000) and (PInteger(@buf[0])^<>-1) and ((pdword(@buf[0])^ mod 100) > 0) then
+        result:=vtByte;
     end;
 
   finally
