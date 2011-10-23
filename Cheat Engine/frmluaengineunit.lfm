@@ -77,6 +77,7 @@ object frmLuaEngine: TfrmLuaEngine
       ParentColor = False
       ParentFont = False
       TabOrder = 0
+      OnKeyDown = mScriptKeyDown
       Gutter.Visible = False
       Gutter.Width = 57
       Gutter.MouseActions = <      
@@ -671,6 +672,7 @@ object frmLuaEngine: TfrmLuaEngine
           Priority = 0
         end>
       Options = [eoAutoIndent, eoGroupUndo, eoSmartTabs, eoTabsToSpaces, eoTrimTrailingSpaces, eoBracketHighlight]
+      VisibleSpecialChars = [vscSpace, vscTabAtLast]
       BracketHighlightStyle = sbhsBoth
       inline SynLeftGutterPartList1: TSynGutterPartList
         object SynGutterMarks1: TSynGutterMarks

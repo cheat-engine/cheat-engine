@@ -2,6 +2,10 @@ unit frmStructuresConfigUnit;
 
 {$MODE Delphi}
 
+{
+Note: The "Selected" part has been removed
+}
+
 interface
 
 uses
@@ -169,7 +173,7 @@ begin
     7: result:=selectedGroupEqualText;
     8: result:=EqualText;
     9: result:=selectedEqualText;
-    10: result:=selectedgroupDifferentText;
+    10: result:=groupDifferentText;
   end;
 end;
 
@@ -186,7 +190,7 @@ begin
     7: selectedGroupEqualText:=color;
     8: EqualText:=color;
     9: selectedEqualText:=color;
-    10: selectedgroupDifferentText:=color;
+    10: groupDifferentText:=color;
   end;
 end;
 

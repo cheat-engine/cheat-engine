@@ -19,7 +19,6 @@ object frmStructuresConfig: TfrmStructuresConfig
     Caption = 'OK'
     Default = True
     ModalResult = 1
-    OnClick = Button1Click
     TabOrder = 0
   end
   object Button2: TButton
