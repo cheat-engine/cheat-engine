@@ -3,6 +3,11 @@ unit LuaHandler;
 {todo: Split up into smaller units. 9255 lines is becomming too big}
 {todo2: dll injecting lua into a target process}
 
+
+{Note:
+Assume all strings passed between lua are in UTF8 pformat
+}
+
 {$mode delphi}
 
 interface
@@ -8349,34 +8354,33 @@ end;
 function shellExecute(L: PLua_State): integer; cdecl;
 var
   pcount: integer;
-  command: pchar;
-  parameters: pchar;
-  folder: pchar;
+  command: string;
+  parameters: string;
+  folder: string;
   showcommand: integer;
 begin
   pcount:=lua_gettop(L);
   if pcount>=1 then
   begin
-    command:=lua.lua_tostring(L, -pcount);
-    folder:=nil;
+    command:=utf8toansi(lua_tostring(L, -pcount));
 
     if pcount>=2 then
-      parameters:=lua.lua_tostring(L, -pcount+1)
+      parameters:=utf8toansi(lua_tostring(L, -pcount+1))
     else
-      parameters:=nil;
+      parameters:='';
 
 
     if pcount>=3 then
-      folder:=lua.lua_tostring(L, -pcount+2)
+      folder:=utf8toansi(lua_tostring(L, -pcount+2))
     else
-      folder:=nil;
+      folder:='';
 
     if pcount>=4 then
       showcommand:=lua_tointeger(L, -pcount+3)
     else
       showcommand:=SW_NORMAL;
 
-    shellapi.shellexecute(0,'open',command,parameters,folder,showcommand);
+    shellapi.shellexecute(0,'open',pchar(command),pchar(parameters),pchar(folder),showcommand);
   end;
 
   lua_pop(L, lua_gettop(L));
@@ -8504,6 +8508,7 @@ begin
   lua_pushlightuserdata(L, Bitmap);
   result:=1;
 end;
+
 
 procedure InitializeLua;
 var s: tstringlist;
@@ -8984,6 +8989,8 @@ begin
 
     lua_register(LuaVM, 'integerToUserData', integerToUserData);
     lua_register(LuaVM, 'userDataToInteger', userDataToInteger);
+
+
 
     lua_register(LuaVM, 'writeToClipboard', writeToClipboard);
     lua_register(LuaVM, 'readFromClipboard', readFromClipboard);

@@ -1639,7 +1639,7 @@ begin
   fMatchColor:=clGreen;
   fNoMatchColor:=clRed;
   fAllMatchColorSame:=clBlue;
-  fAllMatchColorDiff:=clYellow;
+  fAllMatchColorDiff:=$640064;
 
 
 
@@ -2690,6 +2690,8 @@ begin
   c.differentText:=fNoMatchColor;
   c.groupequalText:=fAllMatchColorSame;
   c.groupDifferentText:=fAllMatchColorDiff;
+
+
 
   //show and wait for the user
   if c.showmodal=mrok then

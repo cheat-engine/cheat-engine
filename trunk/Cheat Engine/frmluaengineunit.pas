@@ -5,7 +5,7 @@ unit frmLuaEngineUnit;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
+  windows, Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
   StdCtrls, Menus, ExtCtrls, SynMemo, SynCompletion, SynEdit, lua,
   lauxlib, lualib, LuaSyntax, luahandler, cefuncproc;
 
@@ -37,6 +37,8 @@ type
     procedure MenuItem2Click(Sender: TObject);
     procedure MenuItem3Click(Sender: TObject);
     procedure MenuItem5Click(Sender: TObject);
+    procedure mScriptKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState
+      );
     procedure Panel2Resize(Sender: TObject);
   private
     { private declarations }
@@ -158,6 +160,17 @@ procedure TfrmLuaEngine.MenuItem5Click(Sender: TObject);
 begin
   moutput.Clear;
 end;
+
+procedure TfrmLuaEngine.mScriptKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if key=vk_return then
+  begin
+    btnExecute.click;
+    mScript.ClearAll;
+  end;
+end;
+
 
 initialization
   {$I frmluaengineunit.lrs}

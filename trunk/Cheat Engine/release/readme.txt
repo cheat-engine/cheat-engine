@@ -7,6 +7,7 @@ Fixed the first plugin from not getting activated at restart
 Changes:
 Added a profiler so you can find function entry points and see how often they are called
 Deleting a plugin now calls FreeLibrary on it
+Ctrl+enter in the luaengine form now automatically executes the command
 
 
 How to use:

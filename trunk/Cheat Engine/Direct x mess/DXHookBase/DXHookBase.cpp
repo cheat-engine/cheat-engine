@@ -341,7 +341,11 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	
 	switch(uMsg)	
 	{
-		case WM_LBUTTONDOWN:
+		case WM_LBUTTONDOWN:			
+			
+			GetClientRect(hwnd, &r);
+			ClipCursor(&r);
+
 			p=MAKEPOINTS(lParam);
 
 
