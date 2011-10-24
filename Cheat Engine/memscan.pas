@@ -2723,7 +2723,7 @@ begin
 
     if variabletype = vtByteArray then
     begin
-      ConvertStringToBytes(scanvalue1,hexadecimal,abs_arraytofind);
+      ConvertStringToBytes(trim(scanvalue1),hexadecimal,abs_arraytofind);
       abs_arraylength:=length(abs_arraytofind);
     end;
 
@@ -2737,7 +2737,7 @@ begin
           scanvalue2:=scanvalue2+'$';
         end;
 
-        binarystring:=cefuncproc.inttobin(strtoint(scanvalue1))
+        binarystring:=cefuncproc.inttobin(strtoint(trim(scanvalue1)))
       end
       else
         binarystring:=scanvalue1;

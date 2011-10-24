@@ -714,6 +714,7 @@ type
 
     mustClose: boolean;
 
+
     procedure RefreshCustomTypes;
 
     procedure autoattachcheck;
@@ -2151,8 +2152,11 @@ var
   fname, expectedfilename: string;
 
   wasActive: boolean;
+  DoNotOpenAssociatedTable: boolean;
   //set to true if the table had AA scripts enabled or the code list had nopped instruction
 begin
+  DoNotOpenAssociatedTable:=false;
+
   outputdebugstring('openProcessEpilogue called');
   symhandler.reinitialize;
   symhandler.waitforsymbolsloaded;
@@ -2248,6 +2252,7 @@ begin
         //yes, so keep the list
         //go through the list and chek for auto assemble entries, and check if one is enabled. If so, ask to disable (withotu actually disabling)
         wasActive := False;
+        DoNotOpenAssociatedTable:=true; //user kept the list, do not load the associated table
 
         for i := 0 to addresslist.Count - 1 do
           if (addresslist[i].VarType = vtAutoAssembler) and (addresslist[i].active) then
@@ -2298,17 +2303,17 @@ begin
     expectedFilename := FName + '.ct';
 
 
-  if not autoattachopen then
+  if not (autoattachopen or DoNotOpenAssociatedTable) then
   begin
-    if fileexists(TablesDir + '\' + expectedfilename) or fileexists(expectedfilename) or
+    if fileexists(TablesDir +  pathdelim + expectedfilename) or fileexists(expectedfilename) or
       fileexists(cheatenginedir + expectedfilename) then
     begin
       if messagedlg(Format(rsLoadTheAssociatedTable, [expectedFilename]),
         mtConfirmation, [mbYes, mbNo], 0) = mrYes then
       begin
         autoopen := True;
-        if fileexists(TablesDir + '\' + expectedfilename) then
-          opendialog1.FileName := TablesDir + '\' + expectedfilename
+        if fileexists(TablesDir + pathdelim + expectedfilename) then
+          opendialog1.FileName := TablesDir + pathdelim + expectedfilename
         else
         if fileexists(expectedfilename) then
           opendialog1.FileName := expectedfilename
@@ -6305,6 +6310,8 @@ var
   Extension: string;
 
 begin
+
+
   merge := False;
   if not autoopen then
     if CheckIfSaved = False then
