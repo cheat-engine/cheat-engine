@@ -10,7 +10,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
-  ComCtrls, StdCtrls;
+  ComCtrls, StdCtrls, ExtCtrls, registry;
 
 type
 
@@ -19,14 +19,25 @@ type
   TfrmStructuresConfig = class(TForm)
     Button1: TButton;
     Button2: TButton;
+    cbAutoCreate: TCheckBox;
+    cbAutoDestroyLocal: TCheckBox;
+    cbDoNotSaveLocal: TCheckBox;
+    cbAutoFillGaps: TCheckBox;
     ColorDialog1: TColorDialog;
+    edtAutostructsize: TEdit;
+    GroupBox1: TGroupBox;
+    GroupBox2: TGroupBox;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
+    Label4: TLabel;
     Label7: TLabel;
     Label9: TLabel;
+    Panel1: TPanel;
+    Panel2: TPanel;
     procedure Button1Click(Sender: TObject);
     procedure ColorClickOld(Sender: TObject);
+    procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure ColorClick(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
   private
@@ -201,14 +212,76 @@ begin
     SetColor(TControl(sender).tag,ColorDialog1.Color);
 end;
 
-procedure TfrmStructuresConfig.Button1Click(Sender: TObject);
+procedure TfrmStructuresConfig.FormClose(Sender: TObject;
+  var CloseAction: TCloseAction);
 begin
 
 end;
 
-procedure TfrmStructuresConfig.FormCreate(Sender: TObject);
+procedure TfrmStructuresConfig.Button1Click(Sender: TObject);
+var
+  reg: TRegistry;
+  autosize: integer;
 begin
+  autosize:=strtoint(edtAutostructsize.text);
 
+  reg:=tregistry.create;
+  try
+    Reg.RootKey := HKEY_CURRENT_USER;
+    if Reg.OpenKey('\Software\Cheat Engine\DissectData',true) then
+    begin
+
+      reg.WriteInteger('Default Color',defaultText);
+      reg.WriteInteger('Match Color',equalText);
+      reg.WriteInteger('No Match Color',differentText);
+      reg.WriteInteger('All Match Color Same',groupequalText);
+      reg.WriteInteger('All Match Color Diff',groupDifferentText);
+
+      reg.WriteBool('Autocreate', cbAutoCreate.Checked);
+      reg.WriteInteger('Autocreate Size', autosize);
+      reg.WriteBool('Autodestroy', cbAutoDestroyLocal.Checked);
+      reg.WriteBool('Don''t save local', cbDoNotSaveLocal.Checked);
+      reg.WriteBool('Autofill', cbAutoFillGaps.Checked);
+    end;
+  finally
+    reg.free;
+  end;
+end;
+
+procedure TfrmStructuresConfig.FormCreate(Sender: TObject);
+var reg: tregistry;
+begin
+  //load the settings from the registry
+  //def colors
+
+  defaultText:=clWindowText;
+  equalText:=clGreen;
+  differentText:=clRed;
+  groupequalText:=clBlue;
+  groupDifferentText:=$640064;
+
+
+  reg:=tregistry.create;
+  try
+    Reg.RootKey := HKEY_CURRENT_USER;
+    if Reg.OpenKey('\Software\Cheat Engine\DissectData',false) then
+    begin
+      if reg.ValueExists('Default Color') then defaultText:=reg.ReadInteger('Default Color');
+      if reg.ValueExists('Match Color') then equalText:=reg.ReadInteger('Match Color');
+      if reg.ValueExists('No Match Color') then differentText:=reg.ReadInteger('No Match Color');
+      if reg.ValueExists('All Match Color Same') then groupequalText:=reg.ReadInteger('All Match Color Same');
+      if reg.ValueExists('All Match Color Diff') then groupDifferentText:=reg.ReadInteger('All Match Color Diff');
+
+      if reg.ValueExists('Autocreate') then cbAutoCreate.Checked:=reg.ReadBool('Autocreate');
+      if reg.ValueExists('Autocreate Size') then edtAutostructsize.text:=inttostr(reg.ReadInteger('Autocreate Size'));
+      if reg.ValueExists('Autodestroy') then cbAutoDestroyLocal.Checked:=reg.ReadBool('Autodestroy');
+      if reg.ValueExists('Don''t save local') then cbDoNotSaveLocal.Checked:=reg.ReadBool('Don''t save local');
+      if reg.ValueExists('Autofill') then cbAutoFillGaps.Checked:=reg.ReadBool('Autofill');
+
+    end;
+  finally
+    reg.free;
+  end;
 end;
 
 procedure TfrmStructuresConfig.ColorClick(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);

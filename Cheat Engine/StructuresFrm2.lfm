@@ -140,7 +140,7 @@ object frmStructures2: TfrmStructures2
       end
     end
     object miCommands: TMenuItem
-      Caption = 'Options'
+      Caption = 'Structure Options'
       Enabled = False
       object Renamestructure1: TMenuItem
         Caption = 'Rename structure'
@@ -161,23 +161,25 @@ object frmStructures2: TfrmStructures2
         Caption = '-'
       end
       object miAutoCreate: TMenuItem
-        AutoCheck = True
         Caption = 'Autocreate local structures when expanding undefined pointer types'
-        Checked = True
+        OnClick = miAutoCreateClick
       end
       object miAutostructsize: TMenuItem
         Tag = 4096
         Caption = 'Autocreate structure size: 4096'
         OnClick = miAutostructsizeClick
       end
+      object miAutoDestroyLocal: TMenuItem
+        Caption = 'Autodestroy local structures when closed'
+        OnClick = miAutoDestroyLocalClick
+      end
       object miDoNotSaveLocal: TMenuItem
-        AutoCheck = True
         Caption = 'Do not save autocreated local structures'
         OnClick = miDoNotSaveLocalClick
       end
       object miAutoFillGaps: TMenuItem
-        AutoCheck = True
         Caption = 'Fill gaps automatically'
+        OnClick = miAutoFillGapsClick
       end
     end
   end
