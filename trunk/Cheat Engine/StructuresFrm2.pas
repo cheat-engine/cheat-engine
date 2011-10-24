@@ -72,8 +72,12 @@ type
     structname: string;
     structelementlist: tlist;
 
-    fDoNotSaveLocal: boolean;
+    fAutoCreate: boolean;
     fAutoCreateStructsize: integer;
+    fDoNotSaveLocal: boolean;
+    fAutoDestroy: boolean;
+    fAutoFill: boolean;
+
 
     fUpdateCounter: integer;
     fullstructupdate: boolean;
@@ -86,14 +90,23 @@ type
 
     function isUpdating: boolean;
     function getStructureSize: integer;
+    procedure DoOptionsChangedNotification;
     procedure DoFullStructChangeNotification;
     procedure DoDeleteStructNotification;
+    procedure setupDefaultSettings;
+
+    procedure setDoNotSaveLocal(state: boolean);
+    procedure setAutoCreateStructsize(size: integer);
+    procedure setAutoCreate(state: boolean);
+    procedure setAutoDestroy(state: boolean);
+    procedure setAutoFill(state: boolean);
   public
     constructor create(name: string);
     constructor createFromXMLNode(structure: TDOMNode);
     procedure WriteToXMLNode(node: TDOMNode);
 
     destructor destroy; override;
+
 
 
 
@@ -119,8 +132,16 @@ type
     function getIndexOf(element: TStructElement): integer;
     property structuresize : integer read getStructureSize;
     property name: string read getName write setName;
-    property doNotSaveLocal: boolean read fDoNotSaveLocal write fDoNotSaveLocal; //information for the saving/loading. Does not affect the sructure itself
-    property autoCreateStructsize: integer read fAutoCreateStructsize write fAutoCreateStructsize;
+
+    //these properties are just for the gui
+    property DoNotSaveLocal: boolean read fDoNotSaveLocal write setDoNotSaveLocal;
+    property AutoCreateStructsize: integer read fAutoCreateStructsize write setAutoCreateStructsize;
+    property AutoCreate: boolean read fAutoCreate write setAutoCreate;
+    property AutoDestroy: boolean read fAutoDestroy write setAutoDestroy;
+    property AutoFill: boolean read fAutoFill write setAutoFill;
+
+
+
     property count: integer read getElementCount;
     property element[Index: Integer]: TStructelement read getElement; default;
   end;
@@ -230,6 +251,7 @@ type
 
   TfrmStructures2 = class(TForm)
     MenuItem5: TMenuItem;
+    miAutoDestroyLocal: TMenuItem;
     miAutoFillGaps: TMenuItem;
     miFillGaps: TMenuItem;
     miChangeValue: TMenuItem;
@@ -277,6 +299,9 @@ type
     tvStructureView: TTreeView;
     procedure Addextraaddress1Click(Sender: TObject);
     procedure MenuItem5Click(Sender: TObject);
+    procedure miAutoCreateClick(Sender: TObject);
+    procedure miAutoDestroyLocalClick(Sender: TObject);
+    procedure miAutoFillGapsClick(Sender: TObject);
     procedure miChangeValueClick(Sender: TObject);
     procedure miBrowseAddressClick(Sender: TObject);
     procedure miBrowsePointerClick(Sender: TObject);
@@ -329,8 +354,8 @@ type
     fAllMatchColorSame: TColor; //The color to use when all groups have matching elements AND the same value
     fAllMatchColorDiff: TColor; //The color to use when all groups have matching alements but different values between groups
 
-    procedure saveColors;
-    procedure loadcolors;
+    procedure UpdateCurrentStructOptions;
+    procedure setupColors;
 
     procedure miSelectStructureClick(Sender: tobject);
     procedure InitializeFirstNode;
@@ -368,6 +393,7 @@ type
     procedure onAddedToStructList(sender: TDissectedStruct);
     procedure onRemovedFromStructList(sender: TDissectedStruct);
     procedure onFullStructChange(sender: TDissectedStruct);   //called when a structure is changed (sort/add/remove entry)
+    procedure onStructOptionsChange(sender: TDissectedStruct);
     procedure onElementChange(struct:TDissectedStruct; element: TStructelement); //called when an element of a structure is changed
 
     property DefaultColor: TColor read fDefaultColor;
@@ -700,6 +726,16 @@ begin
 
 end;
 
+procedure TDissectedStruct.DoOptionsChangedNotification;
+//update all windows with this as the current structure
+var i: integer;
+begin
+  for i:=0 to frmStructures2.Count-1 do
+    TfrmStructures2(frmStructures2[i]).onStructOptionsChange(self);
+
+end;
+
+
 procedure TDissectedStruct.DoFullStructChangeNotification;
 var i: integer;
 begin
@@ -969,6 +1005,12 @@ begin
 
 
 
+  TDOMElement(structnode).SetAttribute('DoNotSaveLocal',BoolToStr(fDoNotSaveLocal,'1','0'));
+  TDOMElement(structnode).SetAttribute('AutoCreate',BoolToStr(fAutoCreate,'1','0'));
+  TDOMElement(structnode).SetAttribute('AutoCreateStructsize',inttostr(fAutoCreateStructsize));
+  TDOMElement(structnode).SetAttribute('AutoDestroy',BoolToStr(fAutoDestroy,'1','0'));
+  TDOMElement(structnode).SetAttribute('AutoFill',BoolToStr(fAutoFill,'1','0'));
+
   elementnodes:=TDOMElement(structnode.AppendChild(TDOMNode(doc.CreateElement('Elements'))));
 
   for i:=0 to count-1 do
@@ -1033,6 +1075,57 @@ begin
   endUpdate;
 end;
 
+procedure TDissectedStruct.setDoNotSaveLocal(state: boolean);
+begin
+  fDoNotSaveLocal:=state;
+  DoOptionsChangedNotification;
+end;
+
+procedure TDissectedStruct.setAutoCreateStructsize(size: integer);
+begin
+  fAutoCreateStructsize:=size;
+  DoOptionsChangedNotification;
+end;
+
+procedure TDissectedStruct.setAutoCreate(state: boolean);
+begin
+  fAutoCreate:=state;
+  DoOptionsChangedNotification;
+end;
+
+procedure TDissectedStruct.setAutoDestroy(state: boolean);
+begin
+  fAutoDestroy:=state;
+  DoOptionsChangedNotification;
+end;
+
+procedure TDissectedStruct.setAutoFill(state: boolean);
+begin
+  fAutoFill:=state;
+  DoOptionsChangedNotification;
+end;
+
+procedure TDissectedStruct.setupDefaultSettings;
+//loads the default settings for new structures
+var reg: Tregistry;
+begin
+  reg:=tregistry.create;
+  try
+    Reg.RootKey := HKEY_CURRENT_USER;
+    if Reg.OpenKey('\Software\Cheat Engine\DissectData',false) then
+    begin
+      if reg.ValueExists('Autocreate') then fAutoCreate:=reg.ReadBool('Autocreate');
+      if reg.ValueExists('Autocreate Size') then fAutoCreateStructsize:=reg.ReadInteger('Autocreate Size');
+      if reg.ValueExists('Autodestroy') then fAutoDestroy:=reg.ReadBool('Autodestroy');
+      if reg.ValueExists('Don''t save local') then fDoNotSaveLocal:=reg.ReadBool('Don''t save local');
+      if reg.ValueExists('Autofill') then fAutoFill:=reg.ReadBool('Autofill');
+
+    end;
+  finally
+    reg.free;
+  end;
+end;
+
 constructor TDissectedStruct.createFromXMLNode(structure: TDOMNode);
 //Create the structure with the given data and possible local structs as well
 var
@@ -1053,12 +1146,21 @@ begin
   self.name:='';
   structelementlist:=tlist.Create;
   autoCreateStructsize:=4096; //default autocreate size
+  setupDefaultSettings;
 
   beginUpdate;
   try
     if structure.NodeName='Structure' then
     begin
       self.name:=TDOMElement(structure).GetAttribute('Name');
+
+      fDoNotSaveLocal:=TDOMElement(structure).GetAttribute('DoNotSaveLocal')='1';
+      fAutoCreate:=TDOMElement(structure).GetAttribute('AutoCreate')='1';
+      fAutoCreateStructsize:=StrToIntDef(TDOMElement(structure).GetAttribute('AutoCreate'), 4096);
+      fAutoDestroy:=TDOMElement(structure).GetAttribute('AutoDestroy')='1';
+      fAutoFill:=TDOMElement(structure).GetAttribute('AutoFill')='1';
+
+
       elementnodes:=TDOMElement(structure.FindNode('Elements'));
       if elementnodes<>nil then
       begin
@@ -1101,6 +1203,7 @@ begin
   structelementlist:=tlist.Create;
 
   autoCreateStructsize:=4096; //default autocreate size
+  setupDefaultSettings;
 end;
 
 destructor TDissectedStruct.destroy;
@@ -1635,13 +1738,8 @@ var x: array of integer;
 begin
   //set default colors
 
-  fDefaultColor:=clWindowText;
-  fMatchColor:=clGreen;
-  fNoMatchColor:=clRed;
-  fAllMatchColorSame:=clBlue;
-  fAllMatchColorDiff:=$640064;
-
-
+  if frmStructuresConfig=nil then
+    frmStructuresConfig:=TfrmStructuresConfig.Create(self);
 
   tvStructureView.Top:=headercontrol1.top+headercontrol1.height;
   tvStructureView.left:=0;
@@ -1668,10 +1766,8 @@ begin
     end;
   end;
 
-  //finally load the colors from the registry if possible
 
-
-  LoadColors;
+  setupColors; //load colors and default struct options
 end;
 
 procedure TfrmStructures2.FormClose(Sender: TObject;
@@ -1894,10 +1990,13 @@ var
   i: integer;
 begin
   tvStructureView.OnExpanded:=nil;
+  tvStructureView.OnCollapsed:=nil;
 
   tvStructureView.BeginUpdate;
-  struct:=TDissectedStruct(currentnode.data);
   currentnode.DeleteChildren;
+
+  struct:=TDissectedStruct(currentnode.data);
+
 
   if struct<>nil then
   begin
@@ -1914,6 +2013,7 @@ begin
   tvStructureView.EndUpdate;
 
   tvStructureView.OnExpanded:=tvStructureViewExpanded;
+  tvStructureView.OnCollapsed:=tvStructureViewCollapsed;
 end;
 
 
@@ -1932,6 +2032,25 @@ begin
     //now get the element this node represents and check if it is a pointer
     node.HasChildren:=struct[node.Index].isPointer;
 
+    if miAutoDestroyLocal.checked then //delete autocreated local structs when closed
+    begin
+      childstruct:=TDissectedStruct(node.data);
+      if childstruct<>nil then
+      begin
+        if not childstruct.isInGlobalStructList then
+        begin
+          //delete this local struct
+          childstruct.free;
+
+          {$ifdef DEBUG}
+          assert(node.data=nil);
+          {$endif}
+          node.data:=nil;   //not necesary
+        end;
+      end;
+
+    end;
+
   end
   else //root node (mainstruct)
   if node.data<>nil then //weird if not...
@@ -1941,12 +2060,18 @@ begin
   end;
 
   tvStructureView.EndUpdate;
+
+
+
+
 end;
 
 procedure TfrmStructures2.tvStructureViewCollapsing(Sender: TObject;
   Node: TTreeNode; var AllowCollapse: Boolean);
 begin
   AllowCollapse:=node.level>0;
+
+
 end;
 
 procedure TfrmStructures2.tvStructureViewExpanded(Sender: TObject;
@@ -2022,6 +2147,11 @@ begin
   RefreshStructureList;
 end;
 
+procedure TfrmStructures2.onStructOptionsChange(sender: TDissectedStruct);
+begin
+  if mainStruct=sender then
+    UpdateCurrentStructOptions;
+end;
 
 procedure TfrmStructures2.onFullStructChange(sender: TDissectedStruct);
 var currentNode: TTreenode;
@@ -2119,6 +2249,7 @@ begin
   end;
 
   mainStruct.addToGlobalStructList;
+  UpdateCurrentStructOptions;
 end;
 
 
@@ -2497,6 +2628,24 @@ begin
   end;
 end;
 
+procedure TfrmStructures2.miAutoCreateClick(Sender: TObject);
+begin
+  if mainstruct<>nil then
+    mainStruct.AutoCreate:=not mainstruct.AutoCreate;
+end;
+
+procedure TfrmStructures2.miAutoDestroyLocalClick(Sender: TObject);
+begin
+  if mainstruct<>nil then
+    mainstruct.AutoDestroy:=not mainstruct.AutoDestroy;
+end;
+
+procedure TfrmStructures2.miAutoFillGapsClick(Sender: TObject);
+begin
+  if mainstruct<>nil then
+    mainstruct.AutoFill:=not mainstruct.AutoFill;
+end;
+
 procedure TfrmStructures2.miChangeValueClick(Sender: TObject);
 begin
   EditValueOfSelectedNode(tvStructureView.selected, getFocusedColumn);
@@ -2621,61 +2770,37 @@ begin
   begin
     newsize:=inttostr(mainstruct.autoCreateStructsize);
     if InputQuery('Autocreate structure', 'Default size:', newsize) then
-    begin
       mainstruct.autoCreateStructsize:=strtoint(newsize);
-      miAutostructsize.caption:='Autocreate structure size: '+inttostr(mainstruct.autoCreateStructsize);
-    end;
   end;
 end;
 
-procedure TfrmStructures2.saveColors;
-var reg: TRegistry;
+procedure TfrmStructures2.setupColors;
 begin
-  reg:=tregistry.create;
-  try
-    Reg.RootKey := HKEY_CURRENT_USER;
-    if Reg.OpenKey('\Software\Cheat Engine\DissectData',true) then
-    begin
-      reg.WriteInteger('Default Color',fDefaultColor);
-      reg.WriteInteger('Match Color',fMatchColor);
-      reg.WriteInteger('No Match Color',fNoMatchColor);
-      reg.WriteInteger('All Match Color Same',fAllMatchColorSame);
-      reg.WriteInteger('All Match Color Diff',fAllMatchColorDiff);
-    end;
-  finally
-    reg.free;
-  end;
+  fDefaultColor:=frmStructuresConfig.defaultText;
+  fMatchColor:=frmStructuresConfig.equalText;
+  fNoMatchColor:=frmStructuresConfig.differentText;
+  fAllMatchColorSame:=frmStructuresConfig.groupequalText;
+  fAllMatchColorDiff:=frmStructuresConfig.groupDifferentText;
+
+
 end;
 
-procedure TfrmStructures2.loadcolors;
-var reg: TRegistry;
+procedure TfrmStructures2.UpdateCurrentStructOptions;
 begin
-  reg:=tregistry.create;
-  try
-    Reg.RootKey := HKEY_CURRENT_USER;
-    if Reg.OpenKey('\Software\Cheat Engine\DissectData',false) then
-    begin
-      if reg.ValueExists('Default Color') then fDefaultColor:=reg.ReadInteger('Default Color');
-      if reg.ValueExists('Match Color') then fMatchColor:=reg.ReadInteger('Match Color');
-      if reg.ValueExists('No Match Color') then fNoMatchColor:=reg.ReadInteger('No Match Color');
-      if reg.ValueExists('All Match Color Same') then fAllMatchColorSame:=reg.ReadInteger('All Match Color Same');
-      if reg.ValueExists('All Match Color Diff') then fAllMatchColorDiff:=reg.ReadInteger('All Match Color Diff');
-
-      RefreshVisibleNodes;
-    end;
-  finally
-    reg.free;
+  if mainStruct<>nil then
+  begin
+    miAutoCreate.Checked:=mainstruct.AutoCreate;
+    miAutostructsize.caption:='Autocreate structure size: '+inttostr(mainstruct.autoCreateStructsize);
+    miAutoDestroyLocal.Checked:=mainstruct.AutoDestroy;
+    miDoNotSaveLocal.checked:=mainstruct.DoNotSaveLocal;
+    miAutoFillGaps.Checked:=mainStruct.AutoFill;
   end;
-
-
 end;
-
 
 
 procedure TfrmStructures2.miChangeColorsClick(Sender: TObject);
 var c: TfrmStructuresConfig;
 begin
-  c:=TfrmStructuresConfig.create(self);
   //setup the colors for the edit window
   {
   fDefaultColor: TColor;
@@ -2685,6 +2810,7 @@ begin
   fAllMatchColorDiff: TColor; //The color to use when all groups have matching elements but at least one has different values between groups
 
   }
+  {
   c.defaultText:=fDefaultColor;
   c.equalText:=fMatchColor;
   c.differentText:=fNoMatchColor;
@@ -2693,17 +2819,19 @@ begin
 
 
 
+
+  }
   //show and wait for the user
-  if c.showmodal=mrok then
+  if frmStructuresConfig.showmodal=mrok then
   begin
-    //apply new colors
-    fDefaultColor:=c.defaultText;
+    //just apply new colors
+
+   { fDefaultColor:=c.defaultText;
     fMatchColor:=c.equalText;
     fNoMatchColor:=c.differentText;
     fAllMatchColorSame:=c.groupequalText;
-    fAllMatchColorDiff:=c.groupDifferentText;
+    fAllMatchColorDiff:=c.groupDifferentText; }
 
-    savecolors;
 
     //and show the new colors
     RefreshVisibleNodes;
@@ -2717,7 +2845,7 @@ end;
 procedure TfrmStructures2.miDoNotSaveLocalClick(Sender: TObject);
 begin
   if mainstruct<>nil then
-    mainstruct.DoNotSaveLocal:=miDoNotSaveLocal.checked;
+    mainstruct.DoNotSaveLocal:=not mainstruct.DoNotSaveLocal;
 end;
 
 procedure TfrmStructures2.miFullUpgradeClick(Sender: TObject);
@@ -2733,6 +2861,7 @@ procedure TfrmStructures2.miSelectStructureClick(Sender: tobject);
 begin
   mainStruct:=TdissectedStruct(TmenuItem(sender).Tag);
   InitializeFirstNode;
+  UpdateCurrentStructOptions;
 end;
 
 procedure TfrmStructures2.RefreshStructureList;

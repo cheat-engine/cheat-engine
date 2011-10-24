@@ -131,7 +131,6 @@ begin
   InitializeLuaScripts;
 
   handleparameters;
-  Application.CreateForm(TfrmStructures2ElementInfo, frmStructures2ElementInfo);
   Application.Run;
 end.
 
