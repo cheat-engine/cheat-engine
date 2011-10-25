@@ -276,14 +276,14 @@ end;
 
 procedure TForm9.Button2Click(Sender: TObject);
 begin
-  {
+
   hide;
   form10:=tform10.create(self);
   form10.show;
-  }
-  hide;
+
+ { hide;
   form4:=tform4.create(self);
-  form4.show;
+  form4.show; }
 end;
 
 procedure TForm9.SpeedButton1Click(Sender: TObject);
