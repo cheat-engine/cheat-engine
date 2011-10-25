@@ -162,6 +162,7 @@ object frmStructures2: TfrmStructures2
       end
       object miFillGaps: TMenuItem
         Caption = 'Fill gaps'
+        OnClick = miFillGapsClick
       end
       object MenuItem4: TMenuItem
         Caption = '-'
@@ -185,6 +186,7 @@ object frmStructures2: TfrmStructures2
       end
       object miAutoFillGaps: TMenuItem
         Caption = 'Fill gaps automatically'
+        Visible = False
         OnClick = miAutoFillGapsClick
       end
     end

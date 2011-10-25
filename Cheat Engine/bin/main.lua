@@ -1045,6 +1045,7 @@ d3dhook_getHeight(): Returns the height of the direct3d window.  ""
 
 d3dhook_setDisabledZBuffer(state): When true will disable the Z-Buffer (Depth testing)
 d3dhook_setWireframeMode(state): When true will show objects in wireframe mode
+d3dhook_setMouseClip(state): Requires HookMessages to be true. When true will keep the mouse cursor inside the game. (Handy for strategy games that don't support multiple displays)
 
 d3dhook_onClick(function):
   Registers a function to be called when clicked on an visible overlay (excluding the mouse)

@@ -305,6 +305,27 @@ begin
 end;
 
 
+function d3dhook_setMouseClip(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  d: TD3DHook;
+  state: boolean;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    state:=lua_toboolean(L, -parameters);
+
+    lua_pop(L, parameters);
+
+    d:=safed3dhook;
+    if d<>nil then
+      d.setMouseClip(state);
+
+  end else lua_pop(L, parameters);
+end;
+
 procedure initializeLuaD3DHook;
 begin
   lua_register(LuaVM, 'd3dhook_initializeHook', d3dhook_initializeHook);
@@ -317,6 +338,7 @@ begin
   lua_register(LuaVM, 'd3dhook_getHeight', d3dhook_getHeight);
   lua_register(LuaVM, 'd3dhook_setDisabledZBuffer', d3dhook_setDisabledZBuffer);
   lua_register(LuaVM, 'd3dhook_setWireframeMode', d3dhook_setWireframeMode);
+  lua_register(LuaVM, 'd3dhook_setMouseClip', d3dhook_setMouseClip);
   lua_register(LuaVM, 'd3dhook_onClick', d3dhook_onClick);
   lua_register(LuaVM, 'd3dhook_beginUpdate', d3dhook_beginUpdate);
   lua_register(LuaVM, 'd3dhook_endUpdate', d3dhook_endUpdate);

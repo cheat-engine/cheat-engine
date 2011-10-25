@@ -354,7 +354,6 @@ begin
 
   //check if it matches a string
   result:=vtDword;
-  if size<4 then exit;
 
   try
 

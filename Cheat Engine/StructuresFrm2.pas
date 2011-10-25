@@ -115,6 +115,7 @@ type
     function getElementCount: integer;
     function getElement(index: integer): TStructelement;
     procedure fillDelayLoadedChildstructs;
+
     procedure beginUpdate;
     procedure endUpdate;
     procedure DoElementChangeNotification(element: TStructelement);
@@ -126,6 +127,7 @@ type
     procedure removeElement(element: TStructelement);
     procedure delete(index: integer);
     procedure autoGuessStruct(baseaddress: ptruint; offset: integer; bytesize: integer);
+    procedure fillGaps(structbase: ptruint; askiftoobig: boolean);
     procedure addToGlobalStructList;
     procedure removeFromGlobalStructList;
     function isInGlobalStructList: boolean;
@@ -312,6 +314,7 @@ type
     procedure miAutostructsizeClick(Sender: TObject);
     procedure miChangeColorsClick(Sender: TObject);
     procedure miDoNotSaveLocalClick(Sender: TObject);
+    procedure miFillGapsClick(Sender: TObject);
     procedure miFullUpgradeClick(Sender: TObject);
     procedure miChangeElementClick(Sender: TObject);
     procedure Definenewstructure1Click(Sender: TObject);
@@ -833,12 +836,61 @@ end;
 procedure TDissectedStruct.removeElement(element: TStructelement);
 begin
   structelementlist.Remove(element);
+
   DoFullStructChangeNotification;
 end;
 
 procedure TDissectedStruct.delete(index: integer);
 begin
   removeElement(element[index]);
+end;
+
+procedure TDissectedStruct.fillGaps(structbase: ptruint; askiftoobig: boolean);
+//Will find gaps and fill them up. If a gap is bigger than 512, ask the user, or skip if not asked
+var i,j: integer;
+  size: integer;
+  smallestacceptedsize: integer;
+  v: TVariableType;
+
+  newoffset: integer;
+begin
+  i:=1;
+  smallestacceptedsize:=512;
+  while i<count do
+  begin
+    size:=element[i].Offset-(element[i-1].Offset+element[i-1].Bytesize);
+    if size>0 then
+    begin
+      if size>smallestacceptedsize then
+      begin
+        if (askiftoobig=false) or (MessageDlg('The gap between offset '+inttohex(element[i-1].Offset,1)+' and '+inttohex(element[i-1].Offset,1)+' is '+inttostr(size)+' bytes long. Autofill this?', mtConfirmation, [mbyes,mbno],0)<>mryes) then
+        begin
+          inc(i);
+          continue;
+        end;
+      end;
+      smallestacceptedsize:=max(smallestacceptedsize, size); //update the smallestacceptedsize
+
+      //and fill this range
+      v:=element[i-1].VarType;
+      newoffset:=element[i-1].Offset+element[i-1].Bytesize;
+      if (v in [vtDword, vtSingle]) and (size in [4,8,12,16,20,24,32]) then //previous was a 4 byte type and nicely aligned, so fill with the same type
+      begin
+        for j:=0 to (size div 4)-1 do
+        begin
+          addElement('', newOffset, v);
+          inc(newOffset,4);
+        end;
+      end
+      else
+      begin
+        //not really sure what to fill it with so use the autoguess method
+        autoGuessStruct(structbase+newoffset, newoffset, size);
+      end;
+    end;
+
+    inc(i);
+  end;
 end;
 
 procedure TDissectedStruct.autoGuessStruct(baseaddress: ptruint; offset: integer; bytesize: integer);
@@ -1844,7 +1896,6 @@ begin
   begin
     offsetlist[i]:=getStructElementFromNode(node).Offset;
     inc(i);
-//    dec(lastoffsetentry);
 
     node:=node.parent;
   end;
@@ -2864,6 +2915,14 @@ procedure TfrmStructures2.miDoNotSaveLocalClick(Sender: TObject);
 begin
   if mainstruct<>nil then
     mainstruct.DoNotSaveLocal:=not mainstruct.DoNotSaveLocal;
+end;
+
+procedure TfrmStructures2.miFillGapsClick(Sender: TObject);
+begin
+
+  if mainstruct<>nil then
+    mainstruct.fillGaps(getFocusedColumn.address, true);
+
 end;
 
 procedure TfrmStructures2.miFullUpgradeClick(Sender: TObject);

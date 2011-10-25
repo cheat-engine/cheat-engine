@@ -81,6 +81,7 @@ typedef struct
 	int disabledzbuffer;
 
 	int hookwnd;
+	int clipmouseinwindow;
 	int clickedoverlay;
 	int clickedx;
 	int clickedy;

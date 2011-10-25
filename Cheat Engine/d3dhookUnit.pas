@@ -107,11 +107,15 @@ type
     disabledzbuffer: integer;
 
     hookwnd: integer;
+    clipmouseinwindow: integer;
+
     clickedoverlay: integer;
     clickedx: integer;
     clickedy: integer;
 
     lastHwnd: DWORD;
+
+
 
     MouseOverlayId: integer;
     OverLayHasUpdate: integer; //When set to not 0 the renderer will check what needs to be updated
@@ -173,6 +177,7 @@ type
     procedure setOverlayAsMouse(overlayid: integer);
     procedure setDisabledZBuffer(state: boolean);
     procedure setWireframeMode(state: boolean);
+    function setMouseClip(state: boolean);
 
     function getWidth: integer;
     function getHeight: integer;
@@ -229,6 +234,14 @@ begin
     shared.wireframe:=1
   else
     shared.wireframe:=0;
+end;
+
+function TD3DHook.setMouseClip(state: boolean);
+begin
+  if state then
+    shared.clipmouseinwindow:=1
+  else
+    shared.clipmouseinwindow:=0;
 end;
 
 function TD3DHook.getWidth: integer;
