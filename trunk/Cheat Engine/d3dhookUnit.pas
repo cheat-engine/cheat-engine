@@ -177,7 +177,7 @@ type
     procedure setOverlayAsMouse(overlayid: integer);
     procedure setDisabledZBuffer(state: boolean);
     procedure setWireframeMode(state: boolean);
-    function setMouseClip(state: boolean);
+    procedure setMouseClip(state: boolean);
 
     function getWidth: integer;
     function getHeight: integer;
@@ -236,7 +236,7 @@ begin
     shared.wireframe:=0;
 end;
 
-function TD3DHook.setMouseClip(state: boolean);
+procedure TD3DHook.setMouseClip(state: boolean);
 begin
   if state then
     shared.clipmouseinwindow:=1

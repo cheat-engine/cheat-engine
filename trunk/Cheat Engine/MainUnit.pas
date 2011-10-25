@@ -2543,7 +2543,7 @@ end;
 
 procedure TMainForm.miLockMouseInGameClick(Sender: TObject);
 begin
-  d3dhook.ClipMouseInWindow(miLockMouseInGame.checked);
+  d3dhook.setMouseClip(miLockMouseInGame.checked);
 end;
 
 procedure TMainForm.miPresetAllClick(Sender: TObject);
