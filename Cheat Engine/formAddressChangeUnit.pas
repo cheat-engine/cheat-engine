@@ -7,7 +7,7 @@ interface
 uses
   windows, LCLIntf, LResources, Messages, SysUtils, Variants, Classes, Graphics,
   Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls, Buttons, Arrow, Spin,
-  CEFuncProc, NewKernelHandler, symbolhandler, memoryrecordunit, types, byteinterpreter;
+  CEFuncProc, NewKernelHandler, symbolhandler, memoryrecordunit, types, byteinterpreter, math;
 
 const WM_disablePointer=WM_USER+1;
 
@@ -26,8 +26,18 @@ type
     edtOffset: Tedit;
     sbDecrease, sbIncrease: TSpeedButton;
     istop: boolean;
+
+    repeatstart: dword;
+    repeattimer: TTimer;
+    repeatdirection: integer;
     procedure setOffset(o: integer);
     procedure offsetchange(sender: TObject);
+
+    procedure RepeatClick(sender: TObject);
+    procedure DecreaseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure IncreaseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure IncreaseDecreaseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+
     procedure DecreaseClick(sender: TObject);
     procedure IncreaseClick(sender: TObject);
     procedure setBaseAddress(address: ptruint);
@@ -192,6 +202,53 @@ resourcestring
   rsNotAllOffsetsHaveBeenFilledIn = 'Not all offsets have been filled in';
 
 { TOffsetInfo }
+
+procedure TOffsetInfo.RepeatClick(sender: TObject);
+begin
+  if repeatdirection=0 then
+    DecreaseClick(nil)
+  else
+    IncreaseClick(nil);
+
+  repeattimer.Interval:=max(10,500-((GetTickCount-repeatstart) div 10));
+  self.owner.owner.Caption:=inttostr(repeattimer.Interval);
+end;
+
+procedure TOffsetInfo.DecreaseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  if repeattimer<>nil then
+    freeandnil(repeattimer);
+
+  repeatstart:=GetTickCount;
+  repeatdirection:=0; //tell the timer to decrease
+
+  repeattimer:=TTimer.Create(self.owner.owner);
+  repeattimer.Interval:=500;
+  repeattimer.OnTimer:=RepeatClick;
+
+  DecreaseClick(sender);
+end;
+
+procedure TOffsetInfo.IncreaseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  if repeattimer<>nil then
+    freeandnil(repeattimer);
+
+  repeatstart:=GetTickCount;
+  repeatdirection:=1; //tell the timer to increase
+  repeattimer:=TTimer.Create(self.owner.owner);
+  repeattimer.Interval:=500;
+  repeattimer.OnTimer:=RepeatClick;
+
+  IncreaseClick(sender);
+end;
+
+procedure TOffsetInfo.IncreaseDecreaseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  //destroy the repeat timer
+  if repeattimer<>nil then
+    freeandnil(repeattimer);
+end;
 
 
 procedure TOffsetInfo.DecreaseClick(sender: TObject);
@@ -421,14 +478,18 @@ begin
   sbDecrease.height:=edtOffset.height;
   sbDecrease.width:=sbDecrease.height;
   sbDecrease.caption:='<';
-  sbDecrease.OnClick:=DecreaseClick;
+ // sbDecrease.OnClick:=DecreaseClick;
+  sbDecrease.OnMouseDown:=DecreaseDown;
+  sbDecrease.OnMouseUp:=IncreaseDecreaseUp;
+
 
   sbIncrease:=TSpeedButton.create(parent);
   sbIncrease.height:=sbDecrease.height;
   sbIncrease.width:=sbDecrease.width;
   sbIncrease.caption:='>';
-  sbIncrease.OnClick:=IncreaseClick;
-
+ // sbIncrease.OnClick:=IncreaseClick;
+  sbIncrease.OnMouseDown:=IncreaseDown;
+  sbIncrease.OnMouseUp:=IncreaseDecreaseUp;
 
   edtOffset.width:=owner.baseAddress.Width-2*sbIncrease.Height-2;
 
@@ -678,8 +739,8 @@ begin
 
     pointerinfo.setupPositionsAndSizes;
 
-    for i:=system.length(offsets)-1 downto 0 do
-      pointerinfo.offset[i].offset:=offsets[system.length(offsets)-1-i];
+    for i:=0 to system.length(offsets)-1 do
+      pointerinfo.offset[i].offset:=offsets[i];
 
     pointerinfo.processAddress;
   end;
@@ -1037,7 +1098,7 @@ begin
   memoryrecord.interpretableaddress:=address;
   setlength(memoryrecord.pointeroffsets, system.length(offsets));
   for i:=0 to system.length(offsets)-1 do
-    memoryrecord.pointeroffsets[i]:=offsets[i];
+    memoryrecord.pointeroffsets[i]:=offsets[system.length(offsets)-1-i];
 
 
   modalresult:=mrok;

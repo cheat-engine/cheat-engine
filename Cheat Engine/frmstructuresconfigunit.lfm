@@ -119,6 +119,8 @@ object frmStructuresConfig: TfrmStructuresConfig
         Top = 0
         Width = 380
         Caption = 'Autocreate local structures when expanding undefined pointer types'
+        Checked = True
+        State = cbChecked
         TabOrder = 0
       end
       object edtAutostructsize: TEdit

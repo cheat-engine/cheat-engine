@@ -48,7 +48,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
     Left = 20
     Height = 21
     Top = 160
-    Width = 208
+    Width = 274
     Enabled = False
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
@@ -97,7 +97,6 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
     Font.Name = 'MS Sans Serif'
     ParentFont = False
     TabOrder = 3
-    Text = 'undefined'
   end
   object edtByteSize: TEdit
     Left = 240
