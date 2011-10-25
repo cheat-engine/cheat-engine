@@ -114,7 +114,7 @@ object frmStructures2: TfrmStructures2
     object MenuItem1: TMenuItem
       Caption = 'View'
       object miChangeColors: TMenuItem
-        Caption = 'Default Settings'
+        Caption = 'Default settings'
         OnClick = miChangeColorsClick
       end
       object miUpdateInterval: TMenuItem
@@ -123,7 +123,13 @@ object frmStructures2: TfrmStructures2
       end
       object miShowAddresses: TMenuItem
         AutoCheck = True
-        Caption = 'Show Addresses'
+        Caption = 'Show addresses'
+        Checked = True
+        OnClick = miShowAddressesClick
+      end
+      object miShowTypeForEntriesWithNoDescription: TMenuItem
+        AutoCheck = True
+        Caption = 'Show type for entries with no description'
         Checked = True
         OnClick = miShowAddressesClick
       end

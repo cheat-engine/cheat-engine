@@ -251,6 +251,7 @@ type
 
   TfrmStructures2 = class(TForm)
     MenuItem5: TMenuItem;
+    miShowTypeForEntriesWithNoDescription: TMenuItem;
     miAutoDestroyLocal: TMenuItem;
     miAutoFillGaps: TMenuItem;
     miFillGaps: TMenuItem;
@@ -869,7 +870,6 @@ begin
         e:=addElement();
         e.Offset:=currentOffset;
         e.vartype:=vt;
-        e.name:=VariableTypeToString(vt);
 
         if vt in [vtString, vtUnicodeString] then
         begin
@@ -1109,6 +1109,9 @@ procedure TDissectedStruct.setupDefaultSettings;
 //loads the default settings for new structures
 var reg: Tregistry;
 begin
+  fAutoCreate:=true; //default settings in case of no previous settings
+  fAutoCreateStructsize:=4096;
+
   reg:=tregistry.create;
   try
     Reg.RootKey := HKEY_CURRENT_USER;
@@ -1821,7 +1824,8 @@ begin
   tvStructureView.Repaint;
 end;
 
-procedure TfrmStructures2.getPointerFromNode(node: TTreenode; column:TStructcolumn; var baseaddress: ptruint; var offsetlist: ToffsetList);
+procedure TfrmStructures2.getPointerFromNode(node: TTreenode;
+  column: TStructcolumn; var baseaddress: ptruint; var offsetlist: toffsetlist);
 var
   i: integer;
   lastoffsetentry: integer;
@@ -1835,10 +1839,12 @@ begin
   setlength(offsetlist, node.Level-1);
   lastoffsetentry:=node.level-2;
 
+  i:=0;
   while node.level>1 do
   begin
-    offsetlist[lastoffsetentry]:=getStructElementFromNode(node).Offset;
-    dec(lastoffsetentry);
+    offsetlist[i]:=getStructElementFromNode(node).Offset;
+    inc(i);
+//    dec(lastoffsetentry);
 
     node:=node.parent;
   end;
@@ -2282,7 +2288,7 @@ begin
   result:=TDissectedStruct(node.data);
 end;
 
-procedure TfrmStructures2.changeNode(n: TTreenode);
+procedure TfrmStructures2.changeNode(n: ttreenode);
 var
   structelement: TStructElement;
 
@@ -2345,6 +2351,18 @@ begin
     with tfrmstructures2ElementInfo.create(self) do
     begin
       //fill in some basic info
+      structElement:=getStructElementFromNode(n);
+
+      if structElement<>nil then
+      begin
+        //set the default variabes to the type of the currently selected item
+        vartype:=structElement.VarType;
+        bytesize:=structElement.Bytesize;
+        signed:=structElement.DisplayMethod=dtSignedInteger;
+        hexadecimal:=structElement.DisplayMethod=dtHexadecimal;
+      end
+      else
+        vartype:=vtDword;
 
       if asChild then
         structElement:=nil //adding as child from a rootnode
@@ -2949,6 +2967,9 @@ var
   c: TStructColumn;
   i: integer;
   selected: boolean;
+
+  nodescription: boolean; //if set render the description using a lighter color
+  r,g,b: byte;
 begin
   if stage=cdPostPaint then
   begin
@@ -2961,10 +2982,20 @@ begin
 
     //get the next text
     se:=getStructElementFromNode(node);
+
+    nodescription:=false;
     if (se=nil) then
       description:=mainstruct.name
     else
-      description:=inttohex(se.Offset,4)+' - '+se.Name;
+    begin
+      if (se.name='') and (miShowTypeForEntriesWithNoDescription.checked) then
+      begin
+        nodescription:=true;
+        description:=inttohex(se.Offset,4)+' - '+VariableTypeToString(se.VarType);
+      end
+      else
+        description:=inttohex(se.Offset,4)+' - '+se.Name;
+    end;
 
     setCurrentNodeStringsInColumns(node,se);
 
@@ -2987,6 +3018,15 @@ begin
       sender.Canvas.Font.Color:=InvertColor(fDefaultColor)
     else
       sender.Canvas.Font.Color:=fDefaultColor;
+
+    if nodescription then
+    begin        //blatantly stolen from DecColor   (why the fuck is there no incColor ?)
+      RedGreenBlue(ColorToRGB(sender.Canvas.Font.Color), R, G, B);
+      R := Max(0, Integer(R) + 75);
+      G := Max(0, Integer(G) + 75);
+      B := Max(0, Integer(B) + 75);
+      sender.Canvas.Font.Color := RGBToColor(R, G, B);
+    end;
 
 
     sender.Canvas.Refresh;

@@ -96,6 +96,8 @@ begin
 
     vtByteArray: cbVarType.itemindex:=7;
   end;
+
+  updatevalue;
 end;
 
 function TValuechangeForm.getVartype: TVariabletype;

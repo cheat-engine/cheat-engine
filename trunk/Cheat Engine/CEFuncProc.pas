@@ -3505,7 +3505,7 @@ var realaddress, realaddress2: PtrUInt;
     i: integer;
 begin
   realaddress2:=address;
-  for i:=0 to length(offsets)-1 do
+  for i:=length(offsets)-1 downto 0 do
   begin
     realaddress:=0;
     check:=readprocessmemory(processhandle,pointer(realaddress2),@realaddress,processhandler.pointersize,count);
