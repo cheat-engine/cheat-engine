@@ -1,29 +1,180 @@
 inherited Form10: TForm10
-  Left = 554
-  Top = 400
+  Left = 619
+  Height = 270
+  Top = 555
   Caption = 'Step 9'
+  ClientHeight = 270
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
   Visible = True
   inherited Label1: TLabel
-    Height = 14
-    Width = 19
+    Left = 478
+    Top = 10
+    Visible = False
   end
   inherited Label2: TLabel
-    Height = 14
-    Width = 35
+    Left = 440
+    Top = 10
+    Visible = False
+  end
+  inherited SpeedButton1: TSpeedButton
+    Left = 546
+    Top = 251
   end
   inherited Memo1: TMemo
     Lines.Strings = (
-      'In this step I''ll try to show a use for the custom scan type'
+      'This step will explain how to deal with code that is used for other object of the same type'
       ''
-      'The value below is stored using a 32-bit xor value (ce103478)'
+      'Often when you''ve found health of a unit or your own player, you will find that if you remove the code, it affects '
+      'enemies as well.'
+      'In these cases you must find out how to distinguish between your and the enemies objects.'
+      'Sometimes this is as easy as checking the first 4 bytes (Function pointer table) which often point to a unique location '
+      'for the player, and sometimes it''s a team number, or a pointer to a pointer to a pointer to a pointer to a pointer to a '
+      'playername. It all depends on the complexity of the game, and your luck'
       ''
-      'Find the value and change it to 5000'
+      'The easiest method is finding what addresses the code you found writes to and then use the dissect data feature to '
+      'compare against two structures. (Your unit(s)/player and the enemies) And then see if you can find out a way to '
+      'distinguish between them.'
+      'When you have found out how to distinguish between you and the computer you can inject an assembler script that '
+      'checks for the condition and then either do not execute the code or do something else. (One hit kills for example)'
+      'Alternatively, you can also use this to build a so called "Array of byte" string which you can use to search which will '
+      'result in a list of all your or the enemies players'
+      ''
+      'In this tutorial I have implemented the most amazing game you will ever play.'
+      'It has 4 players. 2 Players belong to your team, and 2 Players belong to the computer. '
+      'Your task is to find the code that writes the health and make it so you win the game WITHOUT freezing your health'
+      'To continue, press "Restart game and autoplay" to test that your code is correct'
+      ''
+      ''
+      'Tip: Health is a float'
+      'Tip2: There are multiple solutions'
     )
   end
   inherited Button2: TButton
     OnClick = Button2Click
   end
   inherited Button1: TButton
+    Left = 502
+    Top = 8
     OnClick = Button1Click
+    Visible = False
+  end
+  object Label3: TLabel[6]
+    Left = 2
+    Height = 14
+    Top = 192
+    Width = 71
+    Caption = 'Player 1: Dave'
+    ParentColor = False
+  end
+  object Label4: TLabel[7]
+    Left = 2
+    Height = 14
+    Top = 203
+    Width = 56
+    Caption = 'Health: 100'
+    ParentColor = False
+  end
+  object Label5: TLabel[8]
+    Left = 80
+    Height = 14
+    Top = 192
+    Width = 63
+    Caption = 'Player 2: Eric'
+    ParentColor = False
+  end
+  object Label6: TLabel[9]
+    Left = 80
+    Height = 14
+    Top = 203
+    Width = 56
+    Caption = 'Health: 100'
+    ParentColor = False
+  end
+  object Button3: TButton[10]
+    Left = 248
+    Height = 20
+    Top = 224
+    Width = 75
+    Caption = 'Restart game'
+    OnClick = Button3Click
+    TabOrder = 3
+  end
+  object Label7: TLabel[11]
+    Left = 352
+    Height = 14
+    Top = 189
+    Width = 79
+    Caption = 'C. Player 3: HAL'
+    ParentColor = False
+  end
+  object Label8: TLabel[12]
+    Left = 352
+    Height = 14
+    Top = 203
+    Width = 56
+    Caption = 'Health: 500'
+    ParentColor = False
+  end
+  object Label9: TLabel[13]
+    Left = 454
+    Height = 14
+    Top = 189
+    Width = 82
+    Caption = 'C. Player 4: KITT'
+    ParentColor = False
+  end
+  object Label10: TLabel[14]
+    Left = 454
+    Height = 14
+    Top = 203
+    Width = 56
+    Caption = 'Health: 500'
+    ParentColor = False
+  end
+  object Button4: TButton[15]
+    Left = 352
+    Height = 21
+    Top = 216
+    Width = 43
+    Caption = 'Attack'
+    OnClick = Button4Click
+    TabOrder = 4
+  end
+  object Button5: TButton[16]
+    Left = 454
+    Height = 21
+    Top = 216
+    Width = 43
+    Caption = 'Attack'
+    OnClick = Button5Click
+    TabOrder = 5
+  end
+  object Button6: TButton[17]
+    Left = 214
+    Height = 20
+    Top = 248
+    Width = 144
+    Caption = 'Restart game and autoplay'
+    OnClick = Button6Click
+    TabOrder = 6
+  end
+  object Button7: TButton[18]
+    Left = 80
+    Height = 21
+    Top = 216
+    Width = 43
+    Caption = 'Attack'
+    OnClick = Button7Click
+    TabOrder = 7
+  end
+  object Button8: TButton[19]
+    Left = 0
+    Height = 21
+    Top = 216
+    Width = 43
+    Caption = 'Attack'
+    OnClick = Button8Click
+    TabOrder = 8
   end
 end

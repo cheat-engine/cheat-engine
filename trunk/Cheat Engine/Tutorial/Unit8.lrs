@@ -1,57 +1,59 @@
+{ This is an automatically generated lazarus resource file }
+
 LazarusResources.Add('TForm8','FORMDATA',[
-  'TPF0'#6'TForm8'#5'Form8'#4'Left'#3':'#2#3'Top'#3#247#1#11'BorderStyle'#7#8'b'
-  +'sDialog'#7'Caption'#6#6'Step 7'#12'ClientHeight'#3#250#0#11'ClientWidth'#3
-  +';'#2#5'Color'#7#9'clBtnFace'#12'Font.Charset'#7#15'DEFAULT_CHARSET'#10'Font'
-  +'.Color'#7#12'clWindowText'#11'Font.Height'#2#245#9'Font.Name'#6#13'MS Sans '
-  +'Serif'#10'Font.Style'#11#0#8'Position'#7#14'poScreenCenter'#7'OnClose'#7#9
-  +'FormClose'#12'OnCloseQuery'#7#14'FormCloseQuery'#8'OnCreate'#7#10'FormCreat'
-  +'e'#13'PixelsPerInch'#2'`'#0#6'TLabel'#6'Label1'#4'Left'#2'('#3'Top'#3#232#0
-  +#5'Width'#2#18#6'Height'#2#13#7'Caption'#6#3'100'#0#0#6'TLabel'#6'Label2'#4
-  +'Left'#2#0#3'Top'#3#232#0#5'Width'#2'"'#6'Height'#2#13#7'Caption'#6#7'Health'
-  +':'#0#0#12'TSpeedButton'#12'SpeedButton1'#4'Left'#3' '#2#3'Top'#3#232#0#5'Wi'
-  +'dth'#2#25#6'Height'#2#17#7'Caption'#6#4'Skip'#4'Flat'#9#7'OnClick'#7#17'Spe'
-  +'edButton1Click'#0#0#5'TMemo'#5'Memo1'#4'Left'#2#0#3'Top'#2#0#5'Width'#3';'#2
-  +#6'Height'#3#185#0#5'Align'#7#5'alTop'#5'Color'#7#9'clBtnFace'#13'Lines.Stri'
-  +'ngs'#1#6'nCode injection is a technique where one injects a piece of code i'
-  +'nto the target process, and then reroute the '#6'5execution of code to go t'
-  +'hrough your own written code'#6#0#6'vIn this tutorial you''ll have a health'
-  +' value and a button that will decrease your health with 1 each time you cli'
-  +'ck it.'#6'gYour task is to use code injection to increase the value of your'
-  +' health with 2 every time it is clicked'#6#0#6'?Start with finding the addr'
-  +'ess and then find what writes to it.'#6'pthen when you''ve found the code t'
-  +'hat decreases it browse to that address in the disassembler, and open the a'
-  +'uto '#6#25'assembler window (ctrl+a)'#6'{There click on template and then c'
-  +'ode injection, and give it the address that decreases health (If it isn''t '
-  +'already filled '#6#13'in correctly)'#6'XThat will generate a basic auto ass'
-  +'embler injection framework you can use for your code.'#6#0#6'pNotice the al'
-  +'loc, that will allocate a block of memory for your code cave, in the past, '
-  +'in the pre windows 2000 '#6'qsystems, people had to find code caves in the '
-  +'memory(regions of memory unused by the game), but that''s luckily a '#6'pth'
-  +'ing of the past since windows 2000, and will these days cause errors when t'
-  +'rying to be used, due to SP2 of XP '#6#27'and the NX bit of new CPU''s'#6#0
-  +#6'RAlso notice the line newmem: and originalcode: and the text "Place your '
-  +'code here"'#6'NAs you guessed it, write your code here that will increase t'
-  +'he  health with 2.'#6'Ea usefull assembler instruction in this case is the '
-  +'"ADD instruction"'#6#24'here are a few examples:'#6'="ADD [00901234],9" to '
-  +'increase the address at 00901234 with 9'#6'B"ADD [ESP+4],9" to increase the'
-  +' address pointed to by ESP+4 with 9'#6'rIn this case, you''ll have to use t'
-  +'he same thing between the brackets as the original code has that decreases '
-  +'your '#6#6'health'#6#0#6#7'Notice:'#6'tIt is recommended to delete the line'
-  +' that decreases your health from the original code section, else you''ll ha'
-  +'ve to '#6'tincrease your health with 3 (you increase with 3, the original c'
-  +'ode decreases with 1, so the end result is increase '#6'Swith 2), which mig'
-  +'ht become confusing. But it''s all up to you and your programming.'#6#0#6#9
-  +'Notice 2:'#6'sIn some games the original code can exist out of multiple ins'
-  +'tructions, and sometimes, not always, it might happen '#6'lthat a code at a'
-  +'nother place jumps into your jump instruction end will then cause unknown b'
-  +'ehavior. If that '#6'uhappens, you should usually look near that instructio'
-  +'n and see the jumps and fix it, or perhaps even choose to use a '#6'xdiffer'
-  +'ent address to do the code injection from. As long as you''re able to figur'
-  +'e out the address to change from inside '#6#19'your injected code.'#0#8'Rea'
-  +'dOnly'#9#10'ScrollBars'#7#10'ssVertical'#8'TabOrder'#2#0#0#0#7'TButton'#7'B'
-  +'utton2'#4'Left'#3#248#0#3'Top'#3#192#0#5'Width'#2'K'#6'Height'#2#25#7'Capti'
-  +'on'#6#4'Next'#7'Enabled'#8#8'TabOrder'#2#1#7'OnClick'#7#12'Button2Click'#0#0
-  +#7'TButton'#7'Button1'#4'Left'#2'@'#3'Top'#3#230#0#5'Width'#2')'#6'Height'#2
-  +#17#7'Caption'#6#6'Hit me'#8'TabOrder'#2#2#7'OnClick'#7#12'Button1Click'#0#0
-  +#0
+  'TPF0'#6'TForm8'#5'Form8'#4'Left'#3':'#2#6'Height'#3#250#0#3'Top'#3#247#1#5'W'
+  +'idth'#3';'#2#11'BorderStyle'#7#8'bsDialog'#7'Caption'#6#6'Step 7'#12'Client'
+  +'Height'#3#250#0#11'ClientWidth'#3';'#2#5'Color'#7#9'clBtnFace'#10'Font.Colo'
+  +'r'#7#12'clWindowText'#11'Font.Height'#2#245#9'Font.Name'#6#13'MS Sans Serif'
+  +#7'OnClose'#7#9'FormClose'#12'OnCloseQuery'#7#14'FormCloseQuery'#8'OnCreate'
+  +#7#10'FormCreate'#8'Position'#7#14'poScreenCenter'#10'LCLVersion'#6#6'0.9.31'
+  +#0#6'TLabel'#6'Label1'#4'Left'#2'('#6'Height'#2#14#3'Top'#3#232#0#5'Width'#2
+  +#19#7'Caption'#6#3'100'#11'ParentColor'#8#0#0#6'TLabel'#6'Label2'#4'Left'#2#0
+  +#6'Height'#2#14#3'Top'#3#232#0#5'Width'#2'#'#7'Caption'#6#7'Health:'#11'Pare'
+  +'ntColor'#8#0#0#12'TSpeedButton'#12'SpeedButton1'#4'Left'#3' '#2#6'Height'#2
+  +#17#3'Top'#3#232#0#5'Width'#2#25#7'Caption'#6#4'Skip'#4'Flat'#9#9'NumGlyphs'
+  +#2#0#7'OnClick'#7#17'SpeedButton1Click'#0#0#5'TMemo'#5'Memo1'#4'Left'#2#0#6
+  +'Height'#3#185#0#3'Top'#2#0#5'Width'#3';'#2#5'Align'#7#5'alTop'#5'Color'#7#9
+  +'clBtnFace'#13'Lines.Strings'#1#6'nCode injection is a technique where one i'
+  +'njects a piece of code into the target process, and then reroute the '#6'5e'
+  +'xecution of code to go through your own written code'#6#0#6'vIn this tutori'
+  +'al you''ll have a health value and a button that will decrease your health '
+  +'with 1 each time you click it.'#6'gYour task is to use code injection to in'
+  +'crease the value of your health with 2 every time it is clicked'#6#0#6'?Sta'
+  +'rt with finding the address and then find what writes to it.'#6'pthen when '
+  +'you''ve found the code that decreases it browse to that address in the disa'
+  +'ssembler, and open the auto '#6#25'assembler window (ctrl+a)'#6'{There clic'
+  +'k on template and then code injection, and give it the address that decreas'
+  +'es health (If it isn''t already filled '#6#13'in correctly)'#6'XThat will g'
+  +'enerate a basic auto assembler injection framework you can use for your cod'
+  +'e.'#6#0#6'pNotice the alloc, that will allocate a block of memory for your '
+  +'code cave, in the past, in the pre windows 2000 '#6'qsystems, people had to'
+  +' find code caves in the memory(regions of memory unused by the game), but t'
+  +'hat''s luckily a '#6'pthing of the past since windows 2000, and will these '
+  +'days cause errors when trying to be used, due to SP2 of XP '#6#27'and the N'
+  +'X bit of new CPU''s'#6#0#6'RAlso notice the line newmem: and originalcode: '
+  +'and the text "Place your code here"'#6'NAs you guessed it, write your code '
+  +'here that will increase the  health with 2.'#6'Ea usefull assembler instruc'
+  +'tion in this case is the "ADD instruction"'#6#24'here are a few examples:'#6
+  +'="ADD [00901234],9" to increase the address at 00901234 with 9'#6'B"ADD [ES'
+  +'P+4],9" to increase the address pointed to by ESP+4 with 9'#6'rIn this case'
+  +', you''ll have to use the same thing between the brackets as the original c'
+  +'ode has that decreases your '#6#6'health'#6#0#6#7'Notice:'#6'tIt is recomme'
+  +'nded to delete the line that decreases your health from the original code s'
+  +'ection, else you''ll have to '#6'tincrease your health with 3 (you increase'
+  +' with 3, the original code decreases with 1, so the end result is increase '
+  +#6'Swith 2), which might become confusing. But it''s all up to you and your '
+  +'programming.'#6#0#6#9'Notice 2:'#6'sIn some games the original code can exi'
+  +'st out of multiple instructions, and sometimes, not always, it might happen'
+  +' '#6'lthat a code at another place jumps into your jump instruction end wil'
+  +'l then cause unknown behavior. If that '#6'uhappens, you should usually loo'
+  +'k near that instruction and see the jumps and fix it, or perhaps even choos'
+  +'e to use a '#6'xdifferent address to do the code injection from. As long as'
+  +' you''re able to figure out the address to change from inside '#6#19'your i'
+  +'njected code.'#0#8'ReadOnly'#9#10'ScrollBars'#7#10'ssVertical'#8'TabOrder'#2
+  +#0#0#0#7'TButton'#7'Button2'#4'Left'#3#248#0#6'Height'#2#25#3'Top'#3#192#0#5
+  +'Width'#2'K'#7'Caption'#6#4'Next'#7'Enabled'#8#7'OnClick'#7#12'Button2Click'
+  +#8'TabOrder'#2#1#0#0#7'TButton'#7'Button1'#4'Left'#2'@'#6'Height'#2#17#3'Top'
+  +#3#230#0#5'Width'#2')'#7'Caption'#6#6'Hit me'#7'OnClick'#7#12'Button1Click'#8
+  +'TabOrder'#2#2#0#0#0
 ]);

@@ -13,7 +13,7 @@ object Form9: TForm9
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   Position = poOwnerFormCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   Visible = True
   object Label1: TLabel
     Left = 8

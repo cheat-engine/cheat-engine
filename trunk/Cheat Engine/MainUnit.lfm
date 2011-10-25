@@ -1938,6 +1938,10 @@ object MainForm: TMainForm
         ShortCut = 112
         OnClick = Helpindex1Click
       end
+      object miTutorial: TMenuItem
+        Caption = 'Cheat Engine Tutorial'
+        OnClick = miTutorialClick
+      end
       object N8: TMenuItem
         Caption = '-'
       end

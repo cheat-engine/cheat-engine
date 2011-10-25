@@ -195,6 +195,7 @@ type
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
+    miTutorial: TMenuItem;
     miLockMouseInGame: TMenuItem;
     miChangeValue: TMenuItem;
     miAddAddress: TMenuItem;
@@ -393,6 +394,7 @@ type
     procedure Label57Click(Sender: TObject);
     procedure lblcompareToSavedScanClick(Sender: TObject);
     procedure Label58Click(Sender: TObject);
+    procedure miTutorialClick(Sender: TObject);
     procedure miChangeValueClick(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
@@ -5872,7 +5874,9 @@ begin
 
     if messagedlg('Do you want to try out the tutorial?', mtConfirmation,
       [mbYes, mbNo], 0) = mrYes then
-      shellexecute(0, 'open', 'Tutorial-i386.exe', nil, nil, sw_show);
+        miTutorial.Click;
+
+
   end;
 
 
@@ -6794,6 +6798,11 @@ end;
 procedure TMainForm.Label58Click(Sender: TObject);
 begin
 
+end;
+
+procedure TMainForm.miTutorialClick(Sender: TObject);
+begin
+  shellexecute(0, 'open', 'Tutorial-i386.exe', nil, nil, sw_show);
 end;
 
 procedure TMainForm.miChangeValueClick(Sender: TObject);
