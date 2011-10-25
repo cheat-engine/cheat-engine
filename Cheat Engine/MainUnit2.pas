@@ -25,7 +25,7 @@ function getVarType2: TVariableType;
 
 
 
-const beta=' Pre-Alpha (It will crash)'; //empty this for a release
+const beta=' Alpha 1'; //empty this for a release
 
 var
   CEnorm:string;
