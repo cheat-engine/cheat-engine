@@ -1918,6 +1918,11 @@ object MainForm: TMainForm
         Enabled = False
         OnClick = miZbufferClick
       end
+      object miLockMouseInGame: TMenuItem
+        Caption = 'Lock mouse in game window'
+        Enabled = False
+        OnClick = miLockMouseInGameClick
+      end
     end
     object ools1: TMenuItem
       Caption = '&Tools'

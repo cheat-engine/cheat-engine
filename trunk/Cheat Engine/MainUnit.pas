@@ -195,6 +195,7 @@ type
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
+    miLockMouseInGame: TMenuItem;
     miChangeValue: TMenuItem;
     miAddAddress: TMenuItem;
     miAllowCollapse: TMenuItem;
@@ -398,6 +399,7 @@ type
     procedure miAddAddressClick(Sender: TObject);
     procedure miAllowCollapseClick(Sender: TObject);
     procedure miHookD3DClick(Sender: TObject);
+    procedure miLockMouseInGameClick(Sender: TObject);
     procedure miPresetAllClick(Sender: TObject);
     procedure miAddFileClick(Sender: TObject);
     procedure MenuItem9Click(Sender: TObject);
@@ -2535,7 +2537,13 @@ begin
     miSetCrosshair.Enabled := True;
     miWireframe.Enabled := True;
     miZbuffer.Enabled := True;
+    miLockMouseInGame.enabled := True;
   end;
+end;
+
+procedure TMainForm.miLockMouseInGameClick(Sender: TObject);
+begin
+  d3dhook.ClipMouseInWindow(miLockMouseInGame.checked);
 end;
 
 procedure TMainForm.miPresetAllClick(Sender: TObject);

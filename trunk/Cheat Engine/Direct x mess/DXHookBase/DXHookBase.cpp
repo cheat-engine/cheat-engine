@@ -326,7 +326,7 @@ map<HWND, LONG_PTR> originalwndprocs;
 
 //windowhook
 int overlaydown=-1;
-
+int waslockedin=0;
 
 LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -343,8 +343,20 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		case WM_LBUTTONDOWN:			
 			
-			GetClientRect(hwnd, &r);
-			ClipCursor(&r);
+			if (shared->clipmouseinwindow)
+			{
+				GetClientRect(hwnd, &r);
+				ClipCursor(&r);
+				waslockedin=1;
+			}
+			else
+			{
+				if (waslockedin)
+				{//release the lock
+					ClipCursor(NULL);
+					waslockedin=0;
+				}
+			}
 
 			p=MAKEPOINTS(lParam);
 
