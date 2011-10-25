@@ -113,7 +113,7 @@ begin
 end;
 
 begin
-  Application.Title:='Cheat Engine 6.1';
+  Application.Title:='Cheat Engine 6.2 Alpha';
   Application.Initialize;
   getcedir;
   doTranslation;
