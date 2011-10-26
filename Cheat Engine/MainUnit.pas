@@ -2545,7 +2545,9 @@ end;
 
 procedure TMainForm.miLockMouseInGameClick(Sender: TObject);
 begin
-  d3dhook.setMouseClip(miLockMouseInGame.checked);
+  safed3dhook;
+  if d3dhook<>nil then
+    d3dhook.setMouseClip(miLockMouseInGame.checked);
 end;
 
 procedure TMainForm.miPresetAllClick(Sender: TObject);
@@ -3745,12 +3747,16 @@ end;
 
 procedure TMainForm.miWireframeClick(Sender: TObject);
 begin
-  d3dhook.setWireframeMode(miWireframe.Checked);
+  safed3dhook;
+  if d3dhook<>nil then
+    d3dhook.setWireframeMode(miWireframe.Checked);
 end;
 
 procedure TMainForm.miZbufferClick(Sender: TObject);
 begin
-  d3dhook.setDisabledZBuffer(miZbuffer.Checked);
+  safed3dhook;
+  if d3dhook<>nil then
+    d3dhook.setDisabledZBuffer(miZbuffer.Checked);
 end;
 
 procedure TMainForm.miZeroTerminateClick(Sender: TObject);
