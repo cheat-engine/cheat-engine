@@ -62,16 +62,22 @@ end;
 
 procedure TfrmSetCrosshair.TrackBar1Change(Sender: TObject);
 begin
-  if overlayid<>0 then
+  safed3dhook;
+
+  if (d3dhook<>nil) and (overlayid<>0) then
     d3dhook.SetOverlayAlphaBlend(overlayid, trackbar1.position );
 end;
 
 procedure TfrmSetCrosshair.btnApplyClick(Sender: TObject);
 begin
-   if overlayid=0 then
-    overlayid:=D3DHook.createOverlayFromPicture(image1.Picture, -1,-1)
-  else
-    D3DHook.updateOverlayImage(overlayid);
+  safed3dhook;
+  if d3dhook<>nil then
+  begin
+    if overlayid=0 then
+      overlayid:=D3DHook.createOverlayFromPicture(image1.Picture, -1,-1)
+    else
+      D3DHook.updateOverlayImage(overlayid);
+  end;
 
   TrackBar1Change(trackbar1);
 end;

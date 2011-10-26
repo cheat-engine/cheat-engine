@@ -369,6 +369,7 @@ procedure TD3DHook.waitforready;
 var i: integer;
 //wait till the overlayhasupdate variable is set to 0. Timeout of 2 second  (0.5 fps games suck)
 begin
+
   if isupdating=0 then
   begin
     i:=0;
@@ -427,7 +428,7 @@ var h: thandle;
 begin
   sharename:='CED3D_'+inttostr(processhandler.ProcessID);
 
-  fprocessid:=processid;
+  fprocessid:=processhandler.processid;
   maxsize:=size;
 
   createSharedMemory(sharename, sizeof(TD3DHookShared)+maxsize);
@@ -557,6 +558,7 @@ end;
 
 function safed3dhook(size: integer=16*1024*1024; hookwindow: boolean=true): TD3DHook;
 //Calls the d3dhook constructor but captures exceptions
+var wr: DWORD;
 begin
   if d3dhook=nil then
   begin
@@ -576,6 +578,14 @@ begin
       except
         d3dhook:=nil;
       end;
+    end
+    else
+    begin
+      //same process
+      wr:=WaitForSingleObject(processhandle, 0);
+      if wr<>WAIT_TIMEOUT then //not alive anymore
+        freeandnil(d3dhook);
+
     end;
 
   end;
