@@ -48,7 +48,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
     Left = 20
     Height = 21
     Top = 160
-    Width = 274
+    Width = 208
     Enabled = False
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
@@ -184,5 +184,30 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
     Caption = 'Signed'
     OnChange = cbSignedChange
     TabOrder = 8
+  end
+  object lblOffsetInto: TLabel
+    Left = 240
+    Height = 14
+    Top = 144
+    Width = 49
+    Caption = 'Offset into'
+    Enabled = False
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    ParentColor = False
+    ParentFont = False
+  end
+  object edtChildstart: TEdit
+    Left = 240
+    Height = 21
+    Top = 160
+    Width = 54
+    Enabled = False
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    OnChange = edtChildstartChange
+    ParentFont = False
+    TabOrder = 9
+    Text = '0'
   end
 end

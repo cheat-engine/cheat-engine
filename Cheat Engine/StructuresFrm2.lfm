@@ -164,6 +164,10 @@ object frmStructures2: TfrmStructures2
         Caption = 'Fill gaps'
         OnClick = miFillGapsClick
       end
+      object miFindRelations: TMenuItem
+        Caption = 'Find relations'
+        OnClick = miFindRelationsClick
+      end
       object MenuItem4: TMenuItem
         Caption = '-'
       end
