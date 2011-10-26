@@ -415,6 +415,8 @@ private
 checks if the given xml document contains cheatentries that aren't aa scripts
 }
 var CheatEntries, currentEntry: TDOMNode;
+  vt: TVariableType;
+  vtnode: TDOMNode;
 begin
   result:=true;
   //go through the list untill one is found that has the custom type
@@ -424,7 +426,8 @@ begin
     currentEntry:=CheatEntries.FirstChild;
     while currententry<>nil do
     begin
-      if StringToVariableType(currententry.findnode('VariableType').TextContent)<>vtAutoAssembler then
+      vtnode:=currententry.findnode('VariableType');
+      if (vtnode=nil) or (StringToVariableType(vtnode.TextContent)<>vtAutoAssembler) then
       begin
         result:=false;
         exit;
