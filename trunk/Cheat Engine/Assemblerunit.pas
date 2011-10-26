@@ -287,7 +287,7 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'CMPPS';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_xmm;paramtype2:par_xmm_m128;paramtype3:par_imm8;bytes:2;bt1:$0f;bt2:$c2),
 
   (mnemonic:'CMPSB';bytes:1;bt1:$a6),
-  (mnemonic:'CMPSD';bytes:1;bt1:$a6),
+  (mnemonic:'CMPSD';bytes:1;bt1:$a7),
   (mnemonic:'CMPSD';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_xmm;paramtype2:par_xmm_m64;paramtype3:par_imm8;bytes:3;bt1:$f2;bt2:$0f;bt3:$c2),
   (mnemonic:'CMPSS';opcode1:eo_reg;opcode2:eo_ib;paramtype1:par_xmm;paramtype2:par_xmm_m32;paramtype3:par_imm8;bytes:3;bt1:$f3;bt2:$0f;bt3:$c2),
   (mnemonic:'CMPSW';bytes:2;bt1:$66;bt2:$a6),
