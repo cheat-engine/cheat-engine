@@ -28,7 +28,7 @@ type
     fvartype: TVariableType;
     fdisplayMethod: TdisplayMethod;
     fchildstruct: TDissectedStruct;
-
+    fchildstructstart: integer; //offset into the childstruct where this pointer starts. Always 0 for local structs, can be higher than 0 for other defined structs
   public
     delayLoadedStructname: string;
     constructor create(parent:TDissectedStruct);
@@ -50,6 +50,7 @@ type
     function isPointer: boolean;
     function getChildStruct: TDissectedStruct;
     procedure setChildStruct(newChildStruct: TDissectedStruct);
+    procedure setChildStructStart(offset: integer);
 
     function getIndex: integer;
 
@@ -61,6 +62,7 @@ type
     property DisplayMethod: TdisplayMethod read getDisplayMethod write setDisplayMethod;
     property Bytesize: integer read getByteSize write setByteSize;
     property ChildStruct: TDissectedStruct read getChildStruct write setChildStruct;
+    property ChildStructStart: integer read fchildstructstart write setChildStructStart;
     property index: integer read getIndex;
     property parent: TDissectedStruct read getParent;
   end;
@@ -132,6 +134,7 @@ type
     procedure removeFromGlobalStructList;
     function isInGlobalStructList: boolean;
     function getIndexOf(element: TStructElement): integer;
+    function getIndexOfOffset(offset: dword): integer;
     property structuresize : integer read getStructureSize;
     property name: string read getName write setName;
 
@@ -253,6 +256,7 @@ type
 
   TfrmStructures2 = class(TForm)
     MenuItem5: TMenuItem;
+    miFindRelations: TMenuItem;
     miShowTypeForEntriesWithNoDescription: TMenuItem;
     miAutoDestroyLocal: TMenuItem;
     miAutoFillGaps: TMenuItem;
@@ -315,6 +319,7 @@ type
     procedure miChangeColorsClick(Sender: TObject);
     procedure miDoNotSaveLocalClick(Sender: TObject);
     procedure miFillGapsClick(Sender: TObject);
+    procedure miFindRelationsClick(Sender: TObject);
     procedure miFullUpgradeClick(Sender: TObject);
     procedure miChangeElementClick(Sender: TObject);
     procedure Definenewstructure1Click(Sender: TObject);
@@ -653,6 +658,12 @@ end;
 procedure TStructelement.setChildStruct(newChildStruct: TDissectedStruct);
 begin
   fchildstruct:=newChildStruct;
+  parent.DoElementChangeNotification(self);
+end;
+
+procedure TStructelement.setChildStructStart(offset: integer);
+begin
+  fchildstructstart:=offset;
   parent.DoElementChangeNotification(self);
 end;
 
@@ -1004,6 +1015,18 @@ begin
   result:=structelementlist.IndexOf(element);
 end;
 
+function TDissectedStruct.getIndexOfOffset(offset: dword): integer;
+//Find the first index where the offset is equal or bigger than the searched for index
+begin
+  result:=0;
+  while result<count do
+  begin
+    if element[result].Offset>=offset then break; //found it
+    inc(result);
+  end;
+  //if nothing is found result will contain the current count, resulting in nothing
+end;
+
 procedure TDissectedStruct.OnDeleteStructNotification(structtodelete: TDissectedStruct);
 var
   i: integer;
@@ -1070,10 +1093,15 @@ begin
     elementnode:=TDOMElement(elementnodes.AppendChild(doc.CreateElement('Element')));
 
     elementnode.SetAttribute('Offset', IntToStr(element[i].Offset));
-    elementnode.SetAttribute('Description', utf8toansi(element[i].Name));
+    if element[i].Name<>'' then
+      elementnode.SetAttribute('Description', utf8toansi(element[i].Name));
+
     elementnode.SetAttribute('Vartype', VariableTypeToString(element[i].VarType));
     elementnode.SetAttribute('Bytesize', IntToStr(element[i].Bytesize));
     elementnode.SetAttribute('DisplayMethod', DisplaymethodToString(element[i].DisplayMethod));
+
+    if element[i].ChildStructStart<>0 then
+      elementnode.SetAttribute('ChildStructStart', IntToStr(element[i].ChildStructStart));
 
     if (element[i].isPointer) and (element[i].ChildStruct<>nil) then
     begin
@@ -1197,6 +1225,8 @@ var
 
   childstruct: TDissectedStruct;
   childname: string;
+  ChildStructStartS: string;
+  ChildStructStart: integer;
 begin
   self.name:='';
   structelementlist:=tlist.Create;
@@ -1227,6 +1257,13 @@ begin
           bytesize:=strtoint(tdomelement(elementnodes.ChildNodes[i]).GetAttribute('Bytesize'));
           displaymethod:=StringToDisplayMethod(tdomelement(elementnodes.ChildNodes[i]).GetAttribute('DisplayMethod'));
 
+          ChildStructStartS:=tdomelement(elementnodes.ChildNodes[i]).GetAttribute('ChildStructStart');
+          if ChildStructStartS<>'' then
+            ChildStructStart:=strtoint(ChildStructStartS)
+          else
+            ChildStructStart:=0;
+
+
           childstruct:=nil;
           childname:='';
           if vartype=vtPointer then
@@ -1243,6 +1280,8 @@ begin
 
           if (childstruct=nil) and (childname<>'') then
             se.delayLoadedStructname:=childname;
+
+          se.ChildStructStart:=ChildStructStart;
 
         end;
       end;
@@ -1882,6 +1921,10 @@ var
   i: integer;
   lastoffsetentry: integer;
   offset0: integer; //the offset at the base of the structure
+  prevnode: TTreenode;
+  displacement: integer;
+
+  parentelement: TStructelement;
 begin
   baseaddress:=column.Address;
   setlength(offsetlist,0);
@@ -1891,13 +1934,22 @@ begin
   setlength(offsetlist, node.Level-1);
   lastoffsetentry:=node.level-2;
 
+
   i:=0;
   while node.level>1 do
   begin
-    offsetlist[i]:=getStructElementFromNode(node).Offset;
+    prevnode:=node.parent;
+
+    parentelement:=getStructElementFromNode(node.parent);
+    if parentelement<>nil then
+      displacement:=parentelement.ChildStructStart
+    else
+      displacement:=0;
+
+    offsetlist[i]:=getStructElementFromNode(node).Offset-displacement;
     inc(i);
 
-    node:=node.parent;
+    node:=prevnode;
   end;
 
   //now at node.level=1
@@ -2043,8 +2095,10 @@ end;
 procedure TfrmStructures2.FillTreenodeWithStructData(currentnode: TTreenode);
 var
   struct: TDissectedStruct;
+  se: TStructelement;
   newnode: TTreenode;
   i: integer;
+  startindex: integer;
 begin
   tvStructureView.OnExpanded:=nil;
   tvStructureView.OnCollapsed:=nil;
@@ -2055,9 +2109,16 @@ begin
   struct:=TDissectedStruct(currentnode.data);
 
 
+
   if struct<>nil then
   begin
-    for i:=0 to struct.count-1 do
+    //get the start index of this structure
+    startindex:=0;
+    se:=getStructElementFromNode(currentnode);
+    if (se<>nil) and (se.ChildStructStart<>0) then
+      startindex:=struct.getIndexOfOffset(se.ChildStructStart);
+
+    for i:=startindex to struct.count-1 do
     begin
       newnode:=tvStructureView.Items.AddChild(currentnode,'');
       setupNodeWithElement(newnode, struct[i]);
@@ -2312,10 +2373,22 @@ end;
 
 function TfrmStructures2.getStructElementFromNode(node: TTreenode): TStructelement;
 var i: integer;
+  s: TDissectedStruct;
 begin
   result:=nil;
   if (node<>nil) and (node.level>0) then
-    result:=getStructFromNode(node)[node.index];
+  begin
+    i:=0;
+    s:=getStructFromNode(node.parent);
+    if s<>nil then
+    begin
+      i:=s[node.parent.Index].ChildStructStart;
+      i:=getStructFromNode(node).getIndexOfOffset(i);
+    end;
+
+    result:=getStructFromNode(node)[node.index+i];
+  end;
+
 end;
 
 function TfrmStructures2.getStructFromNode(node: TTreenode): TDissectedStruct;
@@ -2376,6 +2449,8 @@ begin
             structelement.displayMethod:=dtSignedInteger
           else
             structelement.displayMethod:=dtUnsignedInteger;
+
+          structelement.ChildStructStart:=childstructstart;
 
         finally
           structElement.parent.endupdate;
@@ -2925,6 +3000,8 @@ begin
 
 end;
 
+
+
 procedure TfrmStructures2.miFullUpgradeClick(Sender: TObject);
 var struct: TDissectedStruct;
 begin
@@ -3019,7 +3096,7 @@ var
 
   clip: TRect;
 
-  se: TStructelement;
+  se, se2: TStructelement;
   description: string;
   s: string;
 
@@ -3029,6 +3106,8 @@ var
 
   nodescription: boolean; //if set render the description using a lighter color
   r,g,b: byte;
+
+  displacement: integer;
 begin
   if stage=cdPostPaint then
   begin
@@ -3050,7 +3129,15 @@ begin
       if (se.name='') and (miShowTypeForEntriesWithNoDescription.checked) then
       begin
         nodescription:=true;
+
         description:=inttohex(se.Offset,4)+' - '+VariableTypeToString(se.VarType);
+
+        if (se.VarType=vtPointer) and (se.ChildStruct<>nil) then
+        begin
+          description:=description+' to '+se.ChildStruct.name;
+          if se.ChildStructStart<>0 then
+            description:=description+'+'+inttohex(se.ChildStructStart,1);
+        end;
       end
       else
         description:=inttohex(se.Offset,4)+' - '+se.Name;
@@ -3156,6 +3243,12 @@ begin
     miChangeElementClick(miChangeElement)
   else
     EditValueOfSelectedNode(tvStructureView.Selected,c);
+end;
+
+procedure TfrmStructures2.miFindRelationsClick(Sender: TObject);
+begin
+  //show the "find Relations" form where the user can fill in known addresses for structures
+  //the structures will then check each pointer and fill them in
 end;
 
 initialization

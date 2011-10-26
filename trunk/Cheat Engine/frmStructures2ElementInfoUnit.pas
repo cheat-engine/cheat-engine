@@ -19,6 +19,7 @@ type
     cbHexadecimal: TCheckBox;
     cbSigned: TCheckBox;
     edtByteSize: TEdit;
+    edtChildstart: TEdit;
     edtDescription: TEdit;
     edtOffset: TEdit;
     Label1: TLabel;
@@ -26,17 +27,20 @@ type
     Label3: TLabel;
     Label4: TLabel;
     Label5: TLabel;
+    lblOffsetInto: TLabel;
     procedure Button1Click(Sender: TObject);
     procedure cbHexadecimalChange(Sender: TObject);
     procedure cbSignedChange(Sender: TObject);
     procedure cbTypeChange(Sender: TObject);
     procedure edtByteSizeChange(Sender: TObject);
+    procedure edtChildstartChange(Sender: TObject);
     procedure edtOffsetChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
   private
     { private declarations }
     fOffset: integer;
     fbytesize: integer;
+    Fchildstructstart: integer;
     localChild: TDissectedStruct;
     procedure setOffset(i: integer);
     function getOffset: integer;
@@ -52,6 +56,7 @@ type
     function getBytesize: integer;
     procedure setChildStruct(s: TDissectedStruct);
     function getChildStruct: TDissectedStruct;
+    procedure setChildStructStart(o: integer);
   public
     { public declarations }
     property description: string read getDescription write setDescription;
@@ -61,6 +66,7 @@ type
     property vartype: TVariableType read getVariableType write setVariableType;
     property bytesize: integer read getBytesize write setBytesize;
     property childstruct: TDissectedStruct read getChildStruct write setChildStruct;
+    property childstructstart: integer read Fchildstructstart write setChildStructStart;
   end; 
 
 var
@@ -73,6 +79,12 @@ implementation
 
 
 { TfrmStructures2ElementInfo }
+
+procedure TfrmStructures2ElementInfo.setChildStructStart(o: integer);
+begin
+  Fchildstructstart:=o;
+  edtChildstart.Text:=inttohex(o,1);
+end;
 
 procedure TfrmStructures2ElementInfo.setChildStruct(s: TDissectedStruct);
 var i: integer;
@@ -139,6 +151,7 @@ begin
   label2.enabled:=vt in [vtString, vtUnicodeString, vtByteArray];
   edtByteSize.enabled:=label2.enabled;
 
+  cbTypeChange(cbType);
 end;
 
 function TfrmStructures2ElementInfo.getVariableType: TVariableType;
@@ -213,25 +226,38 @@ begin
 end;
 
 procedure TfrmStructures2ElementInfo.cbTypeChange(Sender: TObject);
+var i: integer;
 begin
-  edtBytesize.enabled:=cbType.itemindex in [6,7,8];
+  i:=cbType.itemindex;
+  edtBytesize.enabled:=i in [6,7,8];
   Label2.enabled:=edtByteSize.enabled;
-  cbHexadecimal.enabled:=cbtype.itemindex in [0,1,2,3,8];
+  cbHexadecimal.enabled:=i in [0,1,2,3,8];
   cbSigned.enabled:=cbHexadecimal.enabled;
 
 
-  label5.Enabled:=cbtype.itemindex=9;
-  cbStructType.enabled:=cbtype.itemindex=9;
-
+  label5.Enabled:=i=9;
+  cbStructType.enabled:=i=9;
+  lblOffsetInto.Enabled:=i=9;
+  edtChildstart.enabled:=i=9;
 end;
 
 procedure TfrmStructures2ElementInfo.edtByteSizeChange(Sender: TObject);
 begin
   try
-    fbytesize:=StrToInt('$'+edtByteSize.text);
+    fbytesize:=StrToInt(edtByteSize.text);
     edtByteSize.Font.color:=clWindowText;
   except
     edtByteSize.Font.color:=clRed;
+  end;
+end;
+
+procedure TfrmStructures2ElementInfo.edtChildstartChange(Sender: TObject);
+begin
+  try
+    Fchildstructstart:=StrToInt('$'+edtChildstart.text);
+    edtChildstart.Font.color:=clWindowText;
+  except
+    edtChildstart.Font.color:=clRed;
   end;
 end;
 

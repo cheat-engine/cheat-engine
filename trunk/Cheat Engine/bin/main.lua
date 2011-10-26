@@ -1052,7 +1052,7 @@ d3dhook_onClick(function):
   function definition: function d3dclick(overlayid, x,y)
     x and y are coordinates in the overlay. If overlays overlap the last added overlay will be given
   
-  Note: This can slow cause a slowdown in the game if there are a lot of overlays and you press the left button a lot
+  Note: This can cause a slowdown in the game if there are a lot of overlays and you press the left button a lot
 
 
 
