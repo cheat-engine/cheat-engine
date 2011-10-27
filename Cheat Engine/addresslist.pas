@@ -632,7 +632,6 @@ var mr: TMemoryRecord;
 begin
   result:=nil;
 
-  Treeview.BeginUpdateBounds;
 
 
   Treeview.BeginUpdate;
