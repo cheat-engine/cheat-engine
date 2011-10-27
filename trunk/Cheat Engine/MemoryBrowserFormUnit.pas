@@ -2073,6 +2073,8 @@ var x: dword;
     rbase: string;
     context: PContext;
     labeltext: string;
+
+    eipwasfocused: boolean;
 begin
   labeltext:=tlabel(sender).Caption;
 
@@ -2093,7 +2095,11 @@ begin
         5: regname:=rbase+'DI';
         6: regname:=rbase+'BP';
         7: regname:=rbase+'SP';
-        8: regname:=rbase+'IP';
+        8:
+        begin
+          regname:=rbase+'IP';
+          eipwasfocused:=disassemblerview.SelectedAddress=debuggerthread.CurrentThread.context.{$ifdef cpu32}EIP{$else}Rip{$endif};
+        end;
         9: regname:='CS';
         10: regname:='SS';
         11: regname:='DS';
@@ -2137,7 +2143,12 @@ begin
         5: context.{$ifdef cpu64}Rdi{$else}Edi{$endif}:=value;    //edi
         6: context.{$ifdef cpu64}Rbp{$else}Ebp{$endif}:=value;    //ebp
         7: context.{$ifdef cpu64}Rsp{$else}Esp{$endif}:=value;    //esp
-        8: context.{$ifdef cpu64}Rip{$else}Eip{$endif}:=value;    //eip
+        8:
+        begin
+          context.{$ifdef cpu64}Rip{$else}Eip{$endif}:=value;    //eip
+          if eipwasfocused then
+            disassemblerview.SelectedAddress:=value;
+        end;
         9: context.segcs:=value;    //cs
         10: context.segss:=value;    //ss
         11: context.segds:=value;    //ds
