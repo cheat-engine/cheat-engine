@@ -1620,6 +1620,27 @@ begin
   lua_pop(L, parameters);
 end;
 
+function memoryrecord_isSelected(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  direction: integer;
+  memrec: pointer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    memrec:=lua_touserdata(L, -parameters);
+    lua_pop(L, parameters);
+
+
+
+    lua_pushboolean(L, ce_memrec_isSelected(memrec));
+    result:=1;
+  end
+  else lua_pop(L, parameters);
+end;
+
 
 function memoryrecord_isActive(L: PLua_State): integer; cdecl;
 var
@@ -8556,6 +8577,7 @@ begin
     lua_register(LuaVM, 'memoryrecord_getScript', memoryrecord_getScript);
     lua_register(LuaVM, 'memoryrecord_setScript', memoryrecord_setScript);
     lua_register(LuaVM, 'memoryrecord_isActive', memoryrecord_isActive);
+    lua_register(LuaVM, 'memoryrecord_isSelected', memoryrecord_isSelected);
     lua_register(LuaVM, 'memoryrecord_freeze', memoryrecord_freeze);
     lua_register(LuaVM, 'memoryrecord_unfreeze', memoryrecord_unfreeze);
     lua_register(LuaVM, 'memoryrecord_setColor', memoryrecord_setColor);

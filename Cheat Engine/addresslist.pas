@@ -1611,7 +1611,6 @@ begin
 
 
 
-
   header:=THeaderControl.Create(self);
   header.parent:=self;
   header.Align:=alTop;

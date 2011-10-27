@@ -10,6 +10,7 @@ object formAddressChange: TformAddressChange
   ClientWidth = 191
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
+  OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poScreenCenter
   LCLVersion = '0.9.31'
@@ -127,7 +128,7 @@ object formAddressChange: TformAddressChange
       TabOrder = 2
       Visible = False
       object Label4: TLabel
-        Left = 4
+        Left = 6
         Height = 14
         Top = 20
         Width = 7
@@ -135,7 +136,7 @@ object formAddressChange: TformAddressChange
         ParentColor = False
       end
       object Label5: TLabel
-        Left = 25
+        Left = 22
         Height = 14
         Top = 20
         Width = 7
@@ -143,7 +144,7 @@ object formAddressChange: TformAddressChange
         ParentColor = False
       end
       object Label6: TLabel
-        Left = 43
+        Left = 45
         Height = 14
         Top = 20
         Width = 7
@@ -151,7 +152,7 @@ object formAddressChange: TformAddressChange
         ParentColor = False
       end
       object Label7: TLabel
-        Left = 64
+        Left = 66
         Height = 14
         Top = 20
         Width = 7
@@ -159,7 +160,7 @@ object formAddressChange: TformAddressChange
         ParentColor = False
       end
       object Label8: TLabel
-        Left = 84
+        Left = 86
         Height = 14
         Top = 20
         Width = 7
@@ -167,7 +168,7 @@ object formAddressChange: TformAddressChange
         ParentColor = False
       end
       object Label9: TLabel
-        Left = 103
+        Left = 105
         Height = 14
         Top = 20
         Width = 7
@@ -175,7 +176,7 @@ object formAddressChange: TformAddressChange
         ParentColor = False
       end
       object Label10: TLabel
-        Left = 122
+        Left = 124
         Height = 14
         Top = 20
         Width = 7
@@ -183,7 +184,7 @@ object formAddressChange: TformAddressChange
         ParentColor = False
       end
       object Label11: TLabel
-        Left = 143
+        Left = 145
         Height = 14
         Top = 20
         Width = 7
@@ -215,42 +216,42 @@ object formAddressChange: TformAddressChange
         TabOrder = 1
       end
       object RadioButton3: TRadioButton
-        Left = 39
+        Left = 43
         Height = 19
         Top = 34
         Width = 20
         TabOrder = 2
       end
       object RadioButton4: TRadioButton
-        Left = 59
+        Left = 64
         Height = 19
         Top = 34
         Width = 20
         TabOrder = 3
       end
       object RadioButton5: TRadioButton
-        Left = 79
+        Left = 84
         Height = 19
         Top = 34
         Width = 20
         TabOrder = 4
       end
       object RadioButton6: TRadioButton
-        Left = 98
+        Left = 103
         Height = 19
         Top = 34
         Width = 20
         TabOrder = 5
       end
       object RadioButton7: TRadioButton
-        Left = 118
+        Left = 122
         Height = 19
         Top = 34
         Width = 20
         TabOrder = 6
       end
       object RadioButton8: TRadioButton
-        Left = 138
+        Left = 143
         Height = 19
         Top = 34
         Width = 20
@@ -291,13 +292,13 @@ object formAddressChange: TformAddressChange
   end
   object Timer1: TTimer
     OnTimer = Timer1Timer
-    left = 160
-    top = 144
+    left = 88
+    top = 40
   end
   object Timer2: TTimer
     Interval = 1
     OnTimer = Timer2Timer
-    left = 136
-    top = 136
+    left = 40
+    top = 40
   end
 end

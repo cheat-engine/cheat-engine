@@ -52,7 +52,7 @@ object frmSavedisassembly: TfrmSavedisassembly
     Width = 149
     TabOrder = 2
   end
-  object CheckBox1: TCheckBox
+  object cbAddress: TCheckBox
     Left = 15
     Height = 19
     Top = 10
@@ -62,7 +62,7 @@ object frmSavedisassembly: TfrmSavedisassembly
     State = cbChecked
     TabOrder = 3
   end
-  object CheckBox2: TCheckBox
+  object cbBytes: TCheckBox
     Left = 104
     Height = 19
     Top = 10
@@ -72,7 +72,7 @@ object frmSavedisassembly: TfrmSavedisassembly
     State = cbChecked
     TabOrder = 4
   end
-  object CheckBox3: TCheckBox
+  object cbOpcode: TCheckBox
     Left = 176
     Height = 19
     Top = 10

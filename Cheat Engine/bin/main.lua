@@ -723,6 +723,7 @@ memoryrecord_freeze(te, updownfreeze OPTIONAL): sets the entry to frozen state. 
 memoryrecord_unfreeze(te) :unfreezes an entry
 memoryrecord_setColor(te, colorrgb): Sets the color of the entry
 memoryrecord_appendToEntry(te,te) : Adds the entry to another entry
+memoryrecord_isSelected(te): (6.2+) Returns true or false depending on if it's currently selected or not
 memoryrecord_delete(te) : It's unknown what this function does, all that is known is that after using this command other memrec routines with this table entry value don't work anymore...
 
 

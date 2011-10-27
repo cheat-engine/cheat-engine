@@ -164,7 +164,8 @@ end;
 procedure TfrmLuaEngine.mScriptKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-  if key=vk_return then
+
+  if (ssCtrl in shift) and (key=vk_return) then
   begin
     btnExecute.click;
     mScript.ClearAll;

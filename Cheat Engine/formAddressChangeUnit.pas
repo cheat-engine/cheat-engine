@@ -7,7 +7,8 @@ interface
 uses
   windows, LCLIntf, LResources, Messages, SysUtils, Variants, Classes, Graphics,
   Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls, Buttons, Arrow, Spin,
-  CEFuncProc, NewKernelHandler, symbolhandler, memoryrecordunit, types, byteinterpreter, math;
+  CEFuncProc, NewKernelHandler, symbolhandler, memoryrecordunit, types, byteinterpreter,
+  math, CustomTypeHandler;
 
 const WM_disablePointer=WM_USER+1;
 
@@ -141,6 +142,7 @@ type
     procedure btnAddOffsetOldClick(Sender: TObject);
     procedure btnOkClick(Sender: TObject);
     procedure editAddressKeyPress(Sender: TObject; var Key: Char);
+    procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormWindowStateChange(Sender: TObject);
@@ -903,7 +905,7 @@ begin
   if not e then
   begin
     //get the vartype and parse it
-    lblValue.caption:='='+readAndParseAddress(a, vartype, nil,false, false, StrToIntDef(edtSize.text,1));
+    lblValue.caption:='='+readAndParseAddress(a, vartype, TcustomType(cbvarType.items.objects[cbvarType.ItemIndex]),false, false, StrToIntDef(edtSize.text,1));
   end
   else
     lblValue.caption:='=???';
@@ -1090,6 +1092,10 @@ begin
 
     vtByteArray:
       memoryrecord.Extra.byteData.bytelength:=length;
+
+    vtCustom:
+      memoryrecord.CustomTypeName:=cbvarType.Caption;
+
   end;
 
   memoryrecord.Description:=description;
@@ -1108,6 +1114,17 @@ procedure TformAddressChange.editAddressKeyPress(Sender: TObject;
   var Key: Char);
 begin
 
+end;
+
+procedure TformAddressChange.FormCreate(Sender: TObject);
+var i: integer;
+begin
+  //fill the varlist with custom types
+  for i:=0 to customTypes.Count-1 do
+    cbvarType.Items.AddObject(TCustomType(customtypes[i]).name, customtypes[i]);
+
+
+  cbvarType.DropDownCount:=cbvarType.Items.Count;
 end;
 
 procedure TformAddressChange.FormDestroy(Sender: TObject);

@@ -27,7 +27,7 @@ type
     MenuItem12: TMenuItem;
     MenuItem13: TMenuItem;
     MenuItem14: TMenuItem;
-    MenuItem15: TMenuItem;
+    miCopyBytesOnly: TMenuItem;
     miDissectData2: TMenuItem;
     miPointerSpider: TMenuItem;
     MenuItem9: TMenuItem;
@@ -221,6 +221,7 @@ type
     procedure MenuItem11Click(Sender: TObject);
     procedure MenuItem12Click(Sender: TObject);
     procedure MenuItem14Click(Sender: TObject);
+    procedure miCopyBytesOnlyClick(Sender: TObject);
     procedure miDissectData2Click(Sender: TObject);
     procedure miPointerSpiderClick(Sender: TObject);
     procedure MenuItem2Click(Sender: TObject);
@@ -925,6 +926,42 @@ begin
     frmUltimap:=TfrmUltimap.create(application);
 
   frmUltimap.show;
+end;
+
+procedure TMemoryBrowser.miCopyBytesOnlyClick(Sender: TObject);
+var start, stop: ptruint;
+   l,i: integer;
+   x: string;
+   x2: dword;
+   buf: pbytearray;
+
+   result: string;
+begin
+  //Unrelated to the copy bytes. This indicates the user just wants and AOB
+  start:=minX(disassemblerview.SelectedAddress, disassemblerview.SelectedAddress2);
+  stop:=maxX(disassemblerview.SelectedAddress, disassemblerview.SelectedAddress2);
+
+  //adjust stop to go AFTER the instruction
+  disassemble(stop, x);
+
+  l:=stop-start;
+
+  if l<65535 then //not going to do more than that
+  begin
+    getmem(buf, i);
+    try
+      if readprocessmemory(processhandle, pointer(start), buf, l, x2) then
+      begin
+        result:='';
+        for i:=0 to l-1 do
+          result:=result+inttohex(buf[i],2)+' ';
+
+        Clipboard.AsText:=copy(result,1,length(result)-1);
+      end;
+    finally
+      freemem(buf);
+    end;
+  end;
 end;
 
 procedure TMemoryBrowser.miDissectData2Click(Sender: TObject);
@@ -2872,6 +2909,8 @@ procedure TMemoryBrowser.CopyBytesAndOpcodesClick(Sender: TObject);
 var a,b: ptrUint;
     _tag: integer;
 begin
+
+
   _tag:=(sender as tmenuitem).Tag;
 
 
@@ -2887,9 +2926,9 @@ begin
     copymode:=true;
 
 
-    checkbox1.checked:=_tag<>3;
-    checkbox2.checked:=(_tag=0) or (_tag=1) or (_tag=3);
-    checkbox3.checked:=(_tag=0) or (_tag=2);
+    cbAddress.checked:=_tag<>3;
+    cbBytes.checked:=(_tag=0) or (_tag=1) or (_tag=3);
+    cbOpcode.checked:=(_tag=0) or (_tag=2);
     
     button1.click;
     waittilldone;
