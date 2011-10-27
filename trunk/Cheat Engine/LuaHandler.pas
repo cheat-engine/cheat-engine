@@ -7202,6 +7202,38 @@ begin
   end else lua_pop(L, parameters);
 end;
 
+function addresslist_getSelectedRecords(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  addresslist: TAddresslist;
+  i,c: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    addresslist:=lua_touserdata(L,-1);
+
+
+    lua_newtable(L);
+    result:=1;
+
+    c:=0;
+    for i:=0 to addresslist.Count-1 do
+    begin
+      if addresslist[i].isSelected then
+      begin
+        lua_pushinteger(L, c);
+        lua_pushlightuserdata(L, addresslist[i]);
+        lua_settable(L, -3);
+        inc(c);
+      end;
+    end;
+
+  end
+  else lua_pop(L, parameters);
+end;
+
 function addresslist_getMemoryRecord(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
@@ -8923,6 +8955,8 @@ begin
     Lua_register(LuaVM, 'addresslist_getMemoryRecordByDescription', addresslist_getMemoryRecordByDescription);
     Lua_register(LuaVM, 'addresslist_getMemoryRecordByID', addresslist_getMemoryRecordByID);
     Lua_register(LuaVM, 'addresslist_createMemoryRecord', addresslist_createMemoryRecord);
+    Lua_register(LuaVM, 'addresslist_getSelectedRecords', addresslist_getSelectedRecords);
+
 
     Lua_register(LuaVM, 'createMemScan', createMemScan);
     Lua_register(LuaVM, 'getCurrentMemscan', getCurrentMemscan);

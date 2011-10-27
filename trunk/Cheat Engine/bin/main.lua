@@ -735,6 +735,8 @@ addresslist_getMemoryRecordByID(addresslist, ID)
 
 addresslist_createMemoryRecord(addresslist) : createTableEntry: creates an generic cheat table entry and add it to the list. Returns a tableentry pointer you can use with memrec routines
 
+addresslist_getSelectedRecords(Addresslist): 6.2+: Returns a table of all the selected records
+
 
 
 
@@ -1061,3 +1063,4 @@ d3dhook_beginUpdate() : Use this function when you intend to update multiple ove
 d3dhook_endUpdate() : When done updating, call this function to apply the changes
 
 --]]
+

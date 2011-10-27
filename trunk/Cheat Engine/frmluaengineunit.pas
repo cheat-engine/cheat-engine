@@ -85,19 +85,16 @@ begin
           else
           begin
             if lua_islightuserdata(luavm,i) then
-            begin
-              moutput.lines.add(':p->'+inttohex(ptruint(lua_touserdata(luavm,i)),1));
-
-            end else
+              moutput.lines.add(':p->'+inttohex(ptruint(lua_touserdata(luavm,i)),1))
+            else
             if lua_isboolean(luavm,i) then
-            begin
               moutput.lines.add(':(boolean)'+BoolToStr(lua_toboolean(Luavm, i),'true','false'))
-            end
             else
             if lua_isnil(luavm,i) then
-            begin
               moutput.lines.add(':'+'nil')
-            end
+            else
+            if lua_istable(luavm, i) then
+              moutput.lines.add(':'+'table')
             else
               moutput.lines.add(':'+'unknown')
 
