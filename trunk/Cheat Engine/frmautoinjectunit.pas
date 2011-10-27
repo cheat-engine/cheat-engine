@@ -1255,6 +1255,7 @@ begin
   assemblescreen:=TSynEdit.Create(self);
   assemblescreen.Highlighter:=AAHighlighter;
   assemblescreen.Options:=SYNEDIT_DEFAULT_OPTIONS - [eoScrollPastEol]+[eoTabIndent];
+  assemblescreen.Font.Quality:=fqDefault;
   assemblescreen.WantTabs:=true;
   assemblescreen.TabWidth:=4;
 
@@ -1286,6 +1287,9 @@ begin
 
       if reg.valueexists('Font.size') then
         assemblescreen.Font.size:=reg.ReadInteger('Font.size');
+
+      if reg.valueexists('Font.quality') then
+        assemblescreen.Font.quality:=TFontQuality(reg.ReadInteger('Font.quality'));
 
       if reg.valueexists('Show Line Numbers') then
         assemblescreen.Gutter.linenumberpart.visible:=reg.ReadBool('Show Line Numbers');
@@ -1575,6 +1579,10 @@ begin
           begin
             reg.WriteString('Font.name', assemblescreen.Font.Name);
             reg.WriteInteger('Font.size', assemblescreen.Font.size);
+            reg.WriteInteger('Font.quality', integer(assemblescreen.Font.Quality));
+
+
+
             //assemblescreen.Font.
 
             reg.WriteBool('Show Line Numbers', assemblescreen.Gutter.linenumberpart.visible);
