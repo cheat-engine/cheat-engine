@@ -152,7 +152,7 @@ type
     function GetRealAddress: PtrUInt;
     function getBaseAddress: ptrUint; //if it's a pointer, return the base address
     procedure RefreshCustomType;
-    procedure ReinterpretAddress;
+    procedure ReinterpretAddress(forceremovalofoldaddress: boolean=false);
     property Value: string read GetValue write SetValue;
     property bytesize: integer read getByteSize;
 
@@ -1181,15 +1181,22 @@ begin
     CustomType:=GetCustomTypeFromName(fCustomTypeName);
 end;
 
-procedure TMemoryRecord.ReinterpretAddress;
+procedure TMemoryRecord.ReinterpretAddress(forceremovalofoldaddress: boolean=false);
 var
   a: ptrUint;
 begin
+
   a:=symhandler.getAddressFromName(interpretableaddress,false,couldnotinterpretaddress);
   if not couldnotinterpretaddress then
-    baseaddress:=a;
-
-
+    baseaddress:=a
+  else
+  begin
+    if forceremovalofoldaddress then
+    begin
+      RealAddress:=0;
+      baseaddress:=0;
+    end;
+  end;
 end;
 
 procedure TMemoryRecord.ApplyFreeze;

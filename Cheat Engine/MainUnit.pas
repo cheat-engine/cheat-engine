@@ -4570,7 +4570,7 @@ var mr: Tmemoryrecord;
 begin
   mr:=addresslist.addAddressManually(lastAddedAddress);
   if mr<>nil then
-    lastAddedAddress:=mr.addressString; //store the last used string
+    lastAddedAddress:=mr.interpretableaddress; //store the last used string
 end;
 
 procedure TMainForm.ScanTypeChange(Sender: TObject);
