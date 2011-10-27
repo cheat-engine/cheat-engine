@@ -641,7 +641,7 @@ begin
     end
     else
     begin
-      mr.ReinterpretAddress;
+      mr.ReinterpretAddress(true);
       mr.treenode.update;
     end;
 
@@ -758,7 +758,7 @@ begin
     showmodal;
     free;
 
-    memoryrecord.ReinterpretAddress;
+    memoryrecord.ReinterpretAddress(true);
     node.update;
   end;
 end;
