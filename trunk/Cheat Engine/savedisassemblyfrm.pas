@@ -30,9 +30,9 @@ type
     Edit2: TEdit;
     Label1: TLabel;
     Label2: TLabel;
-    CheckBox1: TCheckBox;
-    CheckBox2: TCheckBox;
-    CheckBox3: TCheckBox;
+    cbAddress: TCheckBox;
+    cbBytes: TCheckBox;
+    cbOpcode: TCheckBox;
     SaveDialog1: TSaveDialog;
     ProgressBar1: TProgressBar;
     procedure Button1Click(Sender: TObject);
@@ -95,12 +95,13 @@ begin
 
   i:=0;
   temps:='';
+  temps2:='';
 
   while (not terminated) and (currentaddress<=stopaddress) do
   begin
     oldaddress:=currentaddress;
-    temps:=disassemble(currentaddress); //contains the addresspart, bytepart and opcode part
-    splitDisassembledString(temps,true,addresspart,bytepart,opcodepart,specialpart);
+    temps2:=disassemble(currentaddress); //contains the addresspart, bytepart and opcode part
+    splitDisassembledString(temps2,true,addresspart,bytepart,opcodepart,specialpart);
 
     if disassembler.showsymbols then
     begin
@@ -125,6 +126,7 @@ begin
 
 
 
+
     if address then
     begin
       temps:=addresspart;
@@ -134,9 +136,11 @@ begin
     if bytes then
     begin
       temps:=temps+bytepart;
+      temps:=temps+' ';
+
       if opcode then
       begin
-        temps:=temps+' ';
+
         if address then
           while length(temps)<(11+(9*3)) do temps:=temps+' '
         else
@@ -226,9 +230,9 @@ begin
   if (FCopyMode) or savedialog1.Execute then
   begin
     SaveDisassemblyThread:=TSaveDisassemblyThread.Create(true);
-    SaveDisassemblyThread.address:=checkbox1.checked;
-    SaveDisassemblyThread.bytes:=checkbox2.Checked;
-    SaveDisassemblyThread.opcode:=checkbox3.Checked;
+    SaveDisassemblyThread.address:=cbAddress.checked;
+    SaveDisassemblyThread.bytes:=cbBytes.Checked;
+    SaveDisassemblyThread.opcode:=cbOpcode.Checked;
     SaveDisassemblyThread.startaddress:=startaddress;
     SaveDisassemblyThread.stopaddress:=stopaddress;
     SaveDisassemblyThread.filename:=savedialog1.FileName;

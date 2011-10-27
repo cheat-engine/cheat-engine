@@ -50,6 +50,7 @@ function ce_memrec_getValue(memrec: pointer; value: pchar; maxsize: integer): BO
 function ce_memrec_setValue(memrec: pointer; value: pchar): BOOL; stdcall;
 function ce_memrec_getScript(memrec: pointer): pchar; stdcall;
 function ce_memrec_setScript(memrec: pointer; script: pchar): BOOL; stdcall;
+function ce_memrec_isSelected(memrec: pointer): BOOL; stdcall;
 function ce_memrec_isFrozen(memrec: pointer): BOOL; stdcall;
 function ce_memrec_freeze(memrec: pointer; direction: integer): BOOL; stdcall;
 function ce_memrec_unfreeze(memrec: pointer): BOOL; stdcall;
@@ -1112,6 +1113,18 @@ begin
       end;
 
     end;
+  except
+  end;
+end;
+
+function ce_memrec_isSelected(memrec: pointer): BOOL; stdcall;
+var m: TMemoryRecord;
+begin
+  result:=false;
+  try
+    m:=memrec;
+    if (m is TMemoryRecord) then
+      result:=m.isSelected;
   except
   end;
 end;

@@ -427,7 +427,7 @@ implementation
 
 {$R *.lfm}
 
-uses MainUnit, frmStructures2ElementInfoUnit, MemoryBrowserFormUnit;
+uses MainUnit, frmStructures2ElementInfoUnit, MemoryBrowserFormUnit, frmStructureLinkerUnit;
 
 resourcestring
   rsAddressValue = 'Address: Value';
@@ -2879,10 +2879,13 @@ end;
 procedure TfrmStructures2.Deletecurrentstructure1Click(Sender: TObject);
 var s: TDissectedStruct;
 begin
+  tvStructureView.items.clear;
   s:=mainStruct;
   mainstruct:=nil;
 
   s.free;
+
+
 end;
 
 procedure TfrmStructures2.miAutoGuessClick(Sender: TObject);
@@ -3246,9 +3249,15 @@ begin
 end;
 
 procedure TfrmStructures2.miFindRelationsClick(Sender: TObject);
+var sl: TfrmStructureLinker;
 begin
   //show the "find Relations" form where the user can fill in known addresses for structures
   //the structures will then check each pointer and fill them in
+
+  sl:=TfrmStructureLinker.Create(self);
+  sl.ShowModal;
+  sl.free;
+
 end;
 
 initialization
