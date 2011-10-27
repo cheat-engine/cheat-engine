@@ -48,7 +48,11 @@ type
 
     function getTreeNodes: TTreenodes;
     procedure setTreeNodes(t: TTreenodes);
+
+    //Rendering happens here...
     procedure AdvancedCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode; State: TCustomDrawState; Stage: TCustomDrawStage; var PaintImages, DefaultDraw: Boolean);
+    //^^^
+
     procedure SelectionUpdate(sender: TObject);
     procedure sectiontrack(HeaderControl: TCustomHeaderControl; Section: THeaderSection; Width: Integer; State: TSectionTrackState);
     procedure sectionClick(HeaderControl: TCustomHeaderControl; Section: THeaderSection);
@@ -628,7 +632,14 @@ var mr: TMemoryRecord;
 begin
   result:=nil;
 
+  Treeview.BeginUpdateBounds;
+
+
+  Treeview.BeginUpdate;
   mr:=addaddress('No description',initialaddress,[],0, vtDword);
+  mr.treenode.Visible:=false;
+  treeview.EndUpdate;
+
 
   //changevalue, if cancel, delete
   with TFormaddresschange.Create(self) do
@@ -641,12 +652,17 @@ begin
     end
     else
     begin
+      mr.treenode.Visible:=true;
       mr.ReinterpretAddress(true);
       mr.treenode.update;
     end;
 
     free;
   end;
+
+
+
+
 
 
   result:=mr;
@@ -1404,8 +1420,6 @@ var
   descriptionstart: integer;
 begin
   //multiselect implementation
-
-
   DefaultDraw:=true;
   PaintImages:=true;
 
