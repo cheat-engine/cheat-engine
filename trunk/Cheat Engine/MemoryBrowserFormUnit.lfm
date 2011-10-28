@@ -100,6 +100,7 @@ object MemoryBrowser: TMemoryBrowser
           Font.Name = 'Courier'
           ParentColor = False
           ParentFont = False
+          PopupMenu = pmRegisters
           OnClick = EAXLabelDblClick
           OnMouseDown = RegisterMouseDown
         end
@@ -115,6 +116,7 @@ object MemoryBrowser: TMemoryBrowser
           Font.Name = 'Courier'
           ParentColor = False
           ParentFont = False
+          PopupMenu = pmRegisters
           OnClick = EAXLabelDblClick
           OnMouseDown = RegisterMouseDown
         end
@@ -130,6 +132,7 @@ object MemoryBrowser: TMemoryBrowser
           Font.Name = 'Courier'
           ParentColor = False
           ParentFont = False
+          PopupMenu = pmRegisters
           OnClick = EAXLabelDblClick
           OnMouseDown = RegisterMouseDown
         end
@@ -145,6 +148,7 @@ object MemoryBrowser: TMemoryBrowser
           Font.Name = 'Courier'
           ParentColor = False
           ParentFont = False
+          PopupMenu = pmRegisters
           OnClick = EAXLabelDblClick
           OnMouseDown = RegisterMouseDown
         end
@@ -160,6 +164,7 @@ object MemoryBrowser: TMemoryBrowser
           Font.Name = 'Courier'
           ParentColor = False
           ParentFont = False
+          PopupMenu = pmRegisters
           OnClick = EAXLabelDblClick
           OnMouseDown = RegisterMouseDown
         end
@@ -175,6 +180,7 @@ object MemoryBrowser: TMemoryBrowser
           Font.Name = 'Courier'
           ParentColor = False
           ParentFont = False
+          PopupMenu = pmRegisters
           OnClick = EAXLabelDblClick
           OnMouseDown = RegisterMouseDown
         end
@@ -190,6 +196,7 @@ object MemoryBrowser: TMemoryBrowser
           Font.Name = 'Courier'
           ParentColor = False
           ParentFont = False
+          PopupMenu = pmRegisters
           OnClick = EAXLabelDblClick
           OnMouseDown = RegisterMouseDown
         end
@@ -205,6 +212,7 @@ object MemoryBrowser: TMemoryBrowser
           Font.Name = 'Courier'
           ParentColor = False
           ParentFont = False
+          PopupMenu = pmRegisters
           OnClick = EAXLabelDblClick
           OnMouseDown = RegisterMouseDown
         end
@@ -220,6 +228,7 @@ object MemoryBrowser: TMemoryBrowser
           Font.Name = 'Courier'
           ParentColor = False
           ParentFont = False
+          PopupMenu = pmRegisters
           OnClick = EAXLabelDblClick
           OnMouseDown = RegisterMouseDown
         end
@@ -1262,6 +1271,18 @@ object MemoryBrowser: TMemoryBrowser
       GroupIndex = 2
       RadioItem = True
       OnClick = miAddESPClick
+    end
+  end
+  object pmRegisters: TPopupMenu
+    left = 640
+    top = 192
+    object miShowIndisassembler: TMenuItem
+      Caption = 'Show in disassembler'
+      OnClick = miShowIndisassemblerClick
+    end
+    object miShowInHexview: TMenuItem
+      Caption = 'Show in hexview'
+      OnClick = miShowInHexviewClick
     end
   end
 end
