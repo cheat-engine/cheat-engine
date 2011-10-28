@@ -1557,16 +1557,16 @@ begin
             labels[j].defined:=true;
             ok1:=true;
 
-            //fill in the undefined opcodes
+            //reassemble the instructions that had no target
             for k:=0 to length(labels[j].references)-1 do
             begin
               a:=length(assembled[labels[j].references[k]].bytes); //original size of the assembled code
               s1:=replacetoken(assemblerlines[labels[j].references2[k]],labels[j].labelname,IntToHex(labels[j].address,8));
-              assemble(s1,assembled[labels[j].references[k]].address,assembled[labels[j].references[k]].bytes);
+              assemble(s1,assembled[labels[j].references[k]].address,assembled[labels[j].references[k]].bytes, apLong);
 
               b:=length(assembled[labels[j].references[k]].bytes); //new size
 
-              setlength(assembled[labels[j].references[k]].bytes,a);
+              setlength(assembled[labels[j].references[k]].bytes,a); //original size (original size is always bigger or equal than newsize)
               //fill the difference with nops (not the most efficient approach, but it should work)
               for l:=b to a-1 do
                 assembled[labels[j].references[k]].bytes[l]:=$90;
