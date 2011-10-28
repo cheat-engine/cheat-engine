@@ -27,6 +27,8 @@ type
     MenuItem12: TMenuItem;
     MenuItem13: TMenuItem;
     MenuItem14: TMenuItem;
+    miShowIndisassembler: TMenuItem;
+    miShowInHexview: TMenuItem;
     miCopyBytesOnly: TMenuItem;
     miDissectData2: TMenuItem;
     miPointerSpider: TMenuItem;
@@ -63,6 +65,7 @@ type
     memorypopup: TPopupMenu;
     Goto1: TMenuItem;
     debuggerpopup: TPopupMenu;
+    pmRegisters: TPopupMenu;
     sbShowFloats: TButton;
     Timer2: TTimer;
     Panel1: TPanel;
@@ -221,6 +224,7 @@ type
     procedure MenuItem11Click(Sender: TObject);
     procedure MenuItem12Click(Sender: TObject);
     procedure MenuItem14Click(Sender: TObject);
+    procedure miShowIndisassemblerClick(Sender: TObject);
     procedure miCopyBytesOnlyClick(Sender: TObject);
     procedure miDissectData2Click(Sender: TObject);
     procedure miPointerSpiderClick(Sender: TObject);
@@ -237,6 +241,7 @@ type
     procedure miFindWhatAccessesClick(Sender: TObject);
     procedure miFindWhatWritesClick(Sender: TObject);
     procedure miSepClick(Sender: TObject);
+    procedure miShowInHexviewClick(Sender: TObject);
     procedure miTextPreferencesClick(Sender: TObject);
     procedure miDebugEventsClick(Sender: TObject);
     procedure miLuaEngineClick(Sender: TObject);
@@ -433,6 +438,8 @@ type
     procedure setHexviewAddress(a: ptrUint);
     function getHexviewAddress:ptrUint;
     procedure hexviewKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure setContextValueByTag(value: ptruint; tag: integer);
+    function  getContextValueByTag(tag: integer): ptruint;
   public
     { Public declarations }
     FSymbolsLoaded: Boolean;
@@ -451,6 +458,7 @@ type
     cancelsearch: boolean;
 
     ischild: boolean; //determines if it's the main memorybrowser or a child
+
 
     procedure FindwhatThiscodeAccesses(address: ptrUint);
 
@@ -928,6 +936,7 @@ begin
   frmUltimap.show;
 end;
 
+
 procedure TMemoryBrowser.miCopyBytesOnlyClick(Sender: TObject);
 var start, stop: ptruint;
    l,i: integer;
@@ -1308,6 +1317,11 @@ end;
 procedure TMemoryBrowser.miSepClick(Sender: TObject);
 begin
   hexview.bytesPerSeperator:=TMenuItem(sender).Tag;
+end;
+
+procedure TMemoryBrowser.miShowInHexviewClick(Sender: TObject);
+begin
+  hexview.address:=getContextValueByTag(pmRegisters.PopupComponent.Tag);
 end;
 
 procedure TMemoryBrowser.miTextPreferencesClick(Sender: TObject);
@@ -2065,6 +2079,115 @@ procedure TMemoryBrowser.HexEditKeyDown(Sender: TObject; var Key: Word;
 begin
 end;
 
+procedure TMemoryBrowser.miShowIndisassemblerClick(Sender: TObject);
+begin
+  disassemblerview.SelectedAddress:=getContextValueByTag(pmRegisters.PopupComponent.Tag);
+end;
+
+function TMemoryBrowser.getContextValueByTag(tag: integer): ptruint;
+var context: PCONTEXT;
+begin
+  result:=0;
+  if (debuggerthread<>nil) and (debuggerthread.CurrentThread<>nil) then
+  begin
+    context:=debuggerthread.CurrentThread.context;
+    case Tag of
+      0: result:=context.{$ifdef cpu64}Rax{$else}Eax{$endif};    //eax
+      1: result:=context.{$ifdef cpu64}Rbx{$else}Ebx{$endif};    //ebx
+      2: result:=context.{$ifdef cpu64}Rcx{$else}Ecx{$endif};    //ecx
+      3: result:=context.{$ifdef cpu64}Rdx{$else}Edx{$endif};    //edx
+      4: result:=context.{$ifdef cpu64}Rsi{$else}Esi{$endif};    //esi
+      5: result:=context.{$ifdef cpu64}Rdi{$else}Edi{$endif};    //edi
+      6: result:=context.{$ifdef cpu64}Rbp{$else}Ebp{$endif};    //ebp
+      7: result:=context.{$ifdef cpu64}Rsp{$else}Esp{$endif};    //esp
+      8: result:=context.{$ifdef cpu64}Rip{$else}Eip{$endif};    //eip
+      9: result:=context.segcs;    //cs
+      10: result:=context.segss;    //ss
+      11: result:=context.segds;    //ds
+      12: result:=context.seges;    //es
+      13: result:=context.segfs;    //fs
+      14: result:=context.seggs;    //gs
+
+      20: result:=getbit(0,context.eflags); //0=cf
+      21: result:=getbit(2,context.eflags); //2=pf
+      22: result:=getbit(4,context.eflags); //4=af
+      23: result:=getbit(6,context.eflags); //6=zf
+      24: result:=getbit(7,context.eflags); //7=sf
+      25: result:=getbit(10,context.eflags); //10=df
+      26: result:=getbit(11,context.eflags); //11=of
+
+      {$ifdef cpu64}
+      6408: result:=context.r8;
+      6409: result:=context.r9;
+      6410: result:=context.r10;
+      6411: result:=context.r11;
+      6412: result:=context.r12;
+      6413: result:=context.r13;
+      6414: result:=context.r14;
+      6415: result:=context.r15;
+      {$endif}
+    end;
+
+  end;
+end;
+
+procedure TMemoryBrowser.setContextValueByTag(value: ptruint; tag: integer);
+var context: PCONTEXT;
+    EIPWasFocused: boolean;
+begin
+
+  if (debuggerthread<>nil) and (debuggerthread.CurrentThread<>nil) then
+  begin
+    eipwasfocused:=disassemblerview.SelectedAddress=debuggerthread.CurrentThread.context.{$ifdef cpu32}EIP{$else}Rip{$endif};
+
+
+    context:=debuggerthread.CurrentThread.context;
+    case tag of
+      0: context.{$ifdef cpu64}Rax{$else}Eax{$endif}:=value;    //eax
+      1: context.{$ifdef cpu64}Rbx{$else}Ebx{$endif}:=value;    //ebx
+      2: context.{$ifdef cpu64}Rcx{$else}Ecx{$endif}:=value;    //ecx
+      3: context.{$ifdef cpu64}Rdx{$else}Edx{$endif}:=value;    //edx
+      4: context.{$ifdef cpu64}Rsi{$else}Esi{$endif}:=value;    //esi
+      5: context.{$ifdef cpu64}Rdi{$else}Edi{$endif}:=value;    //edi
+      6: context.{$ifdef cpu64}Rbp{$else}Ebp{$endif}:=value;    //ebp
+      7: context.{$ifdef cpu64}Rsp{$else}Esp{$endif}:=value;    //esp
+      8:
+      begin
+        context.{$ifdef cpu64}Rip{$else}Eip{$endif}:=value;    //eip
+        if EIPWasFocused then
+          disassemblerview.SelectedAddress:=value;
+      end;
+
+      9: context.segcs:=value;    //cs
+      10: context.segss:=value;    //ss
+      11: context.segds:=value;    //ds
+      12: context.seges:=value;    //es
+      13: context.segfs:=value;    //fs
+      14: context.seggs:=value;    //gs
+
+      20: setbit(0,context.eflags,value); //0=cf
+      21: setbit(2,context.eflags,value); //2=pf
+      22: setbit(4,context.eflags,value); //4=af
+      23: setbit(6,context.eflags,value); //6=zf
+      24: setbit(7,context.eflags,value); //7=sf
+      25: setbit(10,context.eflags,value); //10=df
+      26: setbit(11,context.eflags,value); //11=of
+
+      {$ifdef cpu64}
+      6408: context.r8:=value;
+      6409: context.r9:=value;
+      6410: context.r10:=value;
+      6411: context.r11:=value;
+      6412: context.r12:=value;
+      6413: context.r13:=value;
+      6414: context.r14:=value;
+      6415: context.r15:=value;
+      {$endif}
+    end;
+
+  end;
+end;
+
 procedure TMemoryBrowser.EAXLabelDblClick(Sender: TObject);
 var x: dword;
     i: integer;
@@ -2074,7 +2197,6 @@ var x: dword;
     context: PContext;
     labeltext: string;
 
-    eipwasfocused: boolean;
 begin
   labeltext:=tlabel(sender).Caption;
 
@@ -2095,11 +2217,7 @@ begin
         5: regname:=rbase+'DI';
         6: regname:=rbase+'BP';
         7: regname:=rbase+'SP';
-        8:
-        begin
-          regname:=rbase+'IP';
-          eipwasfocused:=disassemblerview.SelectedAddress=debuggerthread.CurrentThread.context.{$ifdef cpu32}EIP{$else}Rip{$endif};
-        end;
+        8: regname:=rbase+'IP';
         9: regname:='CS';
         10: regname:='SS';
         11: regname:='DS';
@@ -2133,48 +2251,10 @@ begin
       value:=symhandler.getAddressFromName(input);
 
 
-      context:=debuggerthread.CurrentThread.context;
-      case tlabel(sender).Tag of
-        0: context.{$ifdef cpu64}Rax{$else}Eax{$endif}:=value;    //eax
-        1: context.{$ifdef cpu64}Rbx{$else}Ebx{$endif}:=value;    //ebx
-        2: context.{$ifdef cpu64}Rcx{$else}Ecx{$endif}:=value;    //ecx
-        3: context.{$ifdef cpu64}Rdx{$else}Edx{$endif}:=value;    //edx
-        4: context.{$ifdef cpu64}Rsi{$else}Esi{$endif}:=value;    //esi
-        5: context.{$ifdef cpu64}Rdi{$else}Edi{$endif}:=value;    //edi
-        6: context.{$ifdef cpu64}Rbp{$else}Ebp{$endif}:=value;    //ebp
-        7: context.{$ifdef cpu64}Rsp{$else}Esp{$endif}:=value;    //esp
-        8:
-        begin
-          context.{$ifdef cpu64}Rip{$else}Eip{$endif}:=value;    //eip
-          if eipwasfocused then
-            disassemblerview.SelectedAddress:=value;
-        end;
-        9: context.segcs:=value;    //cs
-        10: context.segss:=value;    //ss
-        11: context.segds:=value;    //ds
-        12: context.seges:=value;    //es
-        13: context.segfs:=value;    //fs
-        14: context.seggs:=value;    //gs
+      SetContextValueByTag(value, tlabel(sender).Tag);
 
-        20: setbit(0,context.eflags,value); //0=cf
-        21: setbit(2,context.eflags,value); //2=pf
-        22: setbit(4,context.eflags,value); //4=af
-        23: setbit(6,context.eflags,value); //6=zf
-        24: setbit(7,context.eflags,value); //7=sf
-        25: setbit(10,context.eflags,value); //10=df
-        26: setbit(11,context.eflags,value); //11=of
 
-        {$ifdef cpu64}
-        6408: context.r8:=value;
-        6409: context.r9:=value;
-        6410: context.r10:=value;
-        6411: context.r11:=value;
-        6412: context.r12:=value;
-        6413: context.r13:=value;
-        6414: context.r14:=value;
-        6415: context.r15:=value;
-        {$endif}
-      end;
+
 
       if (tlabel(sender).Tag>=9) and (tlabel(sender).tag<6400) then //flags or segment registers
       begin
@@ -3562,6 +3642,7 @@ begin
       r8label.top:=esplabel.top+(ebxlabel.top-eaxlabel.top);
       r8label.Cursor:=eaxlabel.Cursor;
       r8label.Tag:=6408;
+      r8label.PopupMenu:=pmRegisters;
       r8label.onclick:=EAXLabelDblClick;
       r8label.OnMouseDown:=RegisterMouseDown;
     end;
@@ -3575,6 +3656,7 @@ begin
       r9label.top:=r8label.top+(ebxlabel.top-eaxlabel.top);
       r9label.Cursor:=eaxlabel.Cursor;
       r9label.Tag:=6409;
+      r9label.PopupMenu:=pmRegisters;
       r9label.onclick:=EAXLabelDblClick;
       r9label.OnMouseDown:=RegisterMouseDown;
     end;
@@ -3588,6 +3670,7 @@ begin
       r10label.top:=r9label.top+(ebxlabel.top-eaxlabel.top);
       r10label.Cursor:=eaxlabel.Cursor;
       r10label.Tag:=6410;
+      r10label.PopupMenu:=pmRegisters;
       r10label.onclick:=EAXLabelDblClick;
       r10label.OnMouseDown:=RegisterMouseDown;
     end;
@@ -3601,6 +3684,7 @@ begin
       r11label.top:=r10label.top+(ebxlabel.top-eaxlabel.top);
       r11label.Cursor:=eaxlabel.Cursor;
       r11label.Tag:=6411;
+      r11label.PopupMenu:=pmRegisters;
       r11label.onclick:=EAXLabelDblClick;
       r11label.OnMouseDown:=RegisterMouseDown;
     end;
@@ -3614,6 +3698,7 @@ begin
       r12label.top:=r11label.top+(ebxlabel.top-eaxlabel.top);
       r12label.Cursor:=eaxlabel.Cursor;
       r12label.Tag:=6412;
+      r12label.PopupMenu:=pmRegisters;
       r12label.onclick:=EAXLabelDblClick;
       r12label.OnMouseDown:=RegisterMouseDown;
     end;
@@ -3627,6 +3712,7 @@ begin
       r13label.top:=r12label.top+(ebxlabel.top-eaxlabel.top);
       r13label.Cursor:=eaxlabel.Cursor;
       r13label.Tag:=6413;
+      r13label.PopupMenu:=pmRegisters;
       r13label.onclick:=EAXLabelDblClick;
       r13label.OnMouseDown:=RegisterMouseDown;
     end;
@@ -3640,6 +3726,7 @@ begin
       r14label.top:=r13label.top+(ebxlabel.top-eaxlabel.top);
       r14label.Cursor:=eaxlabel.Cursor;
       r14label.Tag:=6414;
+      r14label.PopupMenu:=pmRegisters;
       r14label.onclick:=EAXLabelDblClick;
       r14label.OnMouseDown:=RegisterMouseDown;
     end;
@@ -3653,6 +3740,7 @@ begin
       r15label.top:=r14label.top+(ebxlabel.top-eaxlabel.top);
       r15label.Cursor:=eaxlabel.Cursor;
       r15label.Tag:=6415;
+      r15label.PopupMenu:=pmRegisters;
       r15label.onclick:=EAXLabelDblClick;
       r15label.OnMouseDown:=RegisterMouseDown;
     end;
