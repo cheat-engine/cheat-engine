@@ -1,5 +1,10 @@
 --Defines:
 
+--checkbox state defines
+cbUnchecked=0
+cbChecked=1
+cbGrayed=2
+
 
 --onMouseEvent button defines:
 mbLeft=0
