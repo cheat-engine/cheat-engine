@@ -433,8 +433,8 @@ CheckBox Class: (Inheritance: ButtonControl->WinControl->Control->Component->Obj
 createCheckBox(owner): Creates a CheckBox class object which belongs to the given owner. Owner can be any object inherited from WinControl
 checkbox_getAllowGrayed(CheckBox)
 checkbox_setAllowGrayed(CheckBox, boolean)
-checkbox_getState(checkbox)
-checkbox_setState(checkbox, boolean)
+checkbox_getState(checkbox): Returns a state for the checkbox. (cbUnchecked, cbChecked, cbGrayed)
+checkbox_setState(checkbox, boolean): Sets the state of the checkbox
 checkbox_onChange(checkbox, function)
 
 ToggleBox Class: (Inheritance: CheckBox->ButtonControl->WinControl->Control->Component->Object)
