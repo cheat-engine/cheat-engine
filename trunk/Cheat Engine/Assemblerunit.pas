@@ -1532,7 +1532,9 @@ type
 type ttokens=array of string;
 type TAssemblerBytes=array of byte;
 
-function Assemble(opcode:string; address: ptrUint;var bytes: TAssemblerBytes): boolean;
+type TassemblerPreference=(apNone, apShort, apLong);
+
+function Assemble(opcode:string; address: ptrUint;var bytes: TAssemblerBytes; assemblerPreference: TassemblerPreference=apNone): boolean;
 function GetOpcodesIndex(opcode: string): integer;
 
 //function tokenize(opcode:string; var tokens: ttokens): boolean;
@@ -1571,7 +1573,7 @@ type TSingleLineAssembler=class
 
     function HandleTooBigAddress(opcode: string; address: ptrUint;var bytes: TAssemblerBytes; actualdisplacement: integer): boolean;
   public
-    function Assemble(opcode:string; address: ptrUint;var bytes: TAssemblerBytes): boolean;
+    function Assemble(opcode:string; address: ptrUint;var bytes: TAssemblerBytes;assemblerPreference: TassemblerPreference=apNone): boolean;
     property REX_W: boolean read getRex_W write setRex_W;
     property REX_R: boolean read getRex_R write setRex_R;
     property REX_X: boolean read getRex_X write setRex_X;
@@ -3126,12 +3128,12 @@ end;
 
 
 
-function Assemble(opcode:string; address: ptrUint;var bytes: TAssemblerBytes): boolean;
+function Assemble(opcode:string; address: ptrUint;var bytes: TAssemblerBytes; assemblerPreference: TassemblerPreference=apNone): boolean;
 begin
-  result:=SingleLineAssembler.assemble(opcode, address, bytes);
+  result:=SingleLineAssembler.assemble(opcode, address, bytes, assemblerPreference);
 end;
 
-function TSingleLineAssembler.Assemble(opcode:string; address: ptrUint;var bytes: TAssemblerBytes): boolean;
+function TSingleLineAssembler.Assemble(opcode:string; address: ptrUint;var bytes: TAssemblerBytes;assemblerPreference: TassemblerPreference=apNone): boolean;
 var tokens: ttokens;
     i,j,k,l: integer;
     v,v2: qword;
@@ -3223,6 +3225,14 @@ begin
 
   overrideShort:=Pos('SHORT ',parameter1)>0;
   overrideLong:=(Pos('LONG ',parameter1)>0) or (Pos('FAR ',parameter1)>0);
+
+  if not (overrideShort or overrideLong) and (assemblerPreference<>apNone) then //no override chooce by the user and not a normal preference
+  begin
+    if assemblerPreference=apLong then
+      overrideLong:=true
+    else if assemblerPreference=apShort then
+      overrideShort:=true;
+  end;
 
 
   paramtype1:=gettokentype(parameter1,parameter2);
