@@ -3389,6 +3389,7 @@ begin
 
 
   v:=0;
+  v2:=0;
   vtype:=0;
   v2type:=0;
 
@@ -3398,26 +3399,34 @@ begin
     vtype:=StringValueToType(parameter1);
   end;
 
-  if paramtype2=ttValue then if v=0 then
+  if paramtype2=ttValue then
   begin
-    v:=StrToQWordEx(parameter2);
-    vtype:=StringValueToType(parameter2);
-  end
-  else
-  begin
-    v2:=StrToQWordEx(parameter2);
-    v2type:=StringValueToType(parameter2);
+    if paramtype1<>ttValue then
+    begin
+      v:=StrToQWordEx(parameter2);
+      vtype:=StringValueToType(parameter2);
+    end
+    else
+    begin
+      //first v field is already in use, use v2
+      v2:=StrToQWordEx(parameter2);
+      v2type:=StringValueToType(parameter2);
+    end;
   end;
 
-  if paramtype3=ttValue then if v=0 then
+  if paramtype3=ttValue then
   begin
-    v:=StrToQWordEx(parameter3);
-    vtype:=StringValueToType(parameter3);
-  end
-  else
-  begin
-    v2:=StrToQWordEx(parameter3);
-    v2type:=StringValueToType(parameter3);
+    if paramtype1<>ttvalue then
+    begin
+      v:=StrToQWordEx(parameter3);
+      vtype:=StringValueToType(parameter3);
+    end
+    else
+    begin
+      //first v field is already in use, use v2
+      v2:=StrToQWordEx(parameter3);
+      v2type:=StringValueToType(parameter3);
+    end;
   end;
 
   signedvtype:=SignedValueToType(v);
