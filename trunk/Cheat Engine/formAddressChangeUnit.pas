@@ -1056,6 +1056,9 @@ begin
       length:=rec.Extra.byteData.bytelength;
     end;
 
+    vtCustom:
+      cbvarType.ItemIndex:=cbvarType.Items.IndexOf(fMemoryRecord.CustomTypeName);
+
   end;
 
 

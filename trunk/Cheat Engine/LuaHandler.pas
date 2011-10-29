@@ -7218,7 +7218,7 @@ begin
     lua_newtable(L);
     result:=1;
 
-    c:=0;
+    c:=1; //seems lua tables prefer to start at 1 instead of 0
     for i:=0 to addresslist.Count-1 do
     begin
       if addresslist[i].isSelected then
