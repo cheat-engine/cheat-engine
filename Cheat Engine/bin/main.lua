@@ -710,7 +710,7 @@ memoryrecord_onDeactivate(memoryrecord, function): function (memoryrecord, befor
 memoryrecord_onDestroy(memoryrecord, function): function (memoryrecord) : Called when a memory record is destroyed
 memoryrecord_setDescription(te, description): sets the specified description for this entry
 memoryrecord_getDescription(te): gets the current description of this entry
-memoryrecord_getAddress(te): returns the address and optional offsets for a pointer (note that in 64-bit kernelmode addresses will be rounded down...)
+memoryrecord_getAddress(te): returns the address and optional offsets for a pointer 
 memoryrecord_setAddress(te,address,offsets OPTIONAL) : Sets the address of a entry. You can give as many offsets as you need
 memoryrecord_getType(te) : returns the Variable type. (vtByte to vtCustom)
 memoryrecord_setType(te, vartype) : sets the type of the entry
@@ -1048,7 +1048,7 @@ d3dhook_getHeight(): Returns the height of the direct3d window.  ""
 
 d3dhook_setDisabledZBuffer(state): When true will disable the Z-Buffer (Depth testing)
 d3dhook_setWireframeMode(state): When true will show objects in wireframe mode
-d3dhook_setMouseClip(state): Requires HookMessages to be true. When true will keep the mouse cursor inside the game. (Handy for strategy games that don't support multiple displays)
+d3dhook_setMouseClip(state): Requires HookMessages to be true. When true will keep the mouse cursor inside the game. (Handy for certain strategy games that don't support windowed mode or multiple displays )
 
 d3dhook_onClick(function):
   Registers a function to be called when clicked on an visible overlay (excluding the mouse)
@@ -1063,4 +1063,39 @@ d3dhook_beginUpdate() : Use this function when you intend to update multiple ove
 d3dhook_endUpdate() : When done updating, call this function to apply the changes
 
 --]]
+
+
+--[[ Not yet implemented
+Structure class:
+
+createStructure(name): Returns an empty structure object
+structure_getName(structure)
+structure_setName(structure,name)
+structure_getSize(structure): Calculates the size of the structure
+structure_getElementCount(structure): Returns the number of elements in this structure
+structure_getElement(structure, index): Returns a structureElement object
+structure_getElementByOffset(structure, offset): Returns a structureElement object where the specified offset is at least the requested ofset
+structure_addElement(structure): Returns a blank structureElement
+structure_autoGuess(structure, baseaddresstoguessfrom, offset, size)
+structure_beginUpdate(structure): Call this when you want to make multiple updates to a structure. It will speed up the update process
+structure_endUpdate(structure): Call this when done
+structure_addToGlobalStructureList(structure)
+structure_removeFromGlobalStructureList(structure)
+
+
+StructureElement class:
+structureElement_getOwnerStructure
+structureElement_getOffset(se)
+structureElement_setOffset(se, offset)
+structureElement_getName(se)
+structureElement_setName(se, name)
+structureElement_getVartype(se)
+structureElement_setVartype(se, vartype)
+structureElement_getChildStruct(se)
+structureElement_setChildStruct(se, structure)
+structureElement_getBytesize(se)
+structureElement_setBytesize(se, size)
+
+--]]
+
 

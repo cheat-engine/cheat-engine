@@ -475,17 +475,17 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 void hookIfNeeded(void)
 {
-	
-	if (originalwndprocs[(HWND)shared->lastHwnd]==NULL)
+	HWND h=(HWND)shared->lastHwnd;
+	if (originalwndprocs[h]==NULL)
 	{
 		LONG_PTR o;
-		o=GetWindowLongPtrA((HWND)shared->lastHwnd, GWLP_WNDPROC);
+		o=GetWindowLongPtrA(h, GWLP_WNDPROC);
 
 
-		originalwndprocs[(HWND)shared->lastHwnd]=o;
+		originalwndprocs[h]=o;
 
 		//now change it to point to the hook handler
-		SetWindowLongPtrA((HWND)shared->lastHwnd, GWLP_WNDPROC, (LONG_PTR)windowhook);  
+		SetWindowLongPtrA(h, GWLP_WNDPROC, (LONG_PTR)windowhook);  
 
 	}
 
