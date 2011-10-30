@@ -109,11 +109,13 @@ begin
       i:=lua_gettop(luavm);
       if i>0 then
       begin
+        {
+        //is currently shown inside the pcall function
         pc:=lua_tolstring(luavm, -1,nil);
         if pc<>nil then
           mOutput.lines.add(rsError+':'+pc)
         else
-          moutput.lines.add(rsError+':'+'nil');
+          moutput.lines.add(rsError+':'+'nil'); }
 
         lua_pop(luavm, i);
       end else moutput.lines.add(rsError);
