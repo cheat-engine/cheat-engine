@@ -32,6 +32,7 @@ type
   public
     delayLoadedStructname: string;
     constructor create(parent:TDissectedStruct);
+    destructor destroy; override;
     function getParent: TDissectedStruct;
     function getOffset: integer;
     procedure setOffset(newOffset: integer);
@@ -685,6 +686,12 @@ begin
     else
       c.free;
   end;
+end;
+
+destructor TStructelement.destroy;
+begin
+  parent.removeElement(self);
+  inherited destroy;
 end;
 
 constructor TStructelement.create(parent:TDissectedStruct);

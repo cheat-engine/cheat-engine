@@ -1127,7 +1127,7 @@ begin
       lua_newtable(L);
       for i:=0 to x-1 do
       begin
-        lua_pushinteger(L, i);
+        lua_pushinteger(L, i+1);
         lua_pushinteger(L, bytes[i]);
         lua_settable(L, -3);
       end;
@@ -1411,6 +1411,7 @@ var
   offsets: array of dword;
   offsetcount: integer;
   i: integer;
+  tabletop: integer;
 begin
   result:=0;
   offsetcount:=0;
@@ -1424,20 +1425,31 @@ begin
 
     if ce_memrec_getAddress(memrec, @address, nil, 0, @offsetcount) then
     begin
+      lua_pushinteger(L,address);
+      result:=1;
+
       if offsetcount>0 then
       begin
+        //pointer, return a secondary result (table) which contains the baseaddress and offsets
         setlength(offsets,offsetcount);
         ce_memrec_getAddress(memrec, @address, @offsets[0], length(offsets), @offsetcount);
+
+        lua_newtable(L);
+        tabletop:=lua_gettop(L);
+
+        lua_pushinteger(L,1); //index
+        lua_pushinteger(L, TMemoryRecord(memrec).getBaseAddress); //value
+        lua_settable(L, tabletop);
+
+        for i:=0 to offsetcount-1 do
+        begin
+          lua_pushinteger(L, i+2);
+          lua_pushinteger(L, offsets[i]);
+          lua_settable(L, tabletop);
+        end;
+
+        inc(result,1); //add the table as a result
       end;
-
-
-      lua_pushinteger(L,address);
-
-      for i:=0 to offsetcount-1 do
-        lua_pushinteger(L, offsets[i]);
-
-      result:=1+offsetcount;
-
 
     end;
 
