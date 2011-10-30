@@ -31,6 +31,7 @@ type
     repeatstart: dword;
     repeattimer: TTimer;
     repeatdirection: integer;
+    stepsize: integer;
     procedure setOffset(o: integer);
     procedure offsetchange(sender: TObject);
 
@@ -213,13 +214,17 @@ begin
     IncreaseClick(nil);
 
   repeattimer.Interval:=max(10,500-((GetTickCount-repeatstart) div 10));
-  self.owner.owner.Caption:=inttostr(repeattimer.Interval);
 end;
 
 procedure TOffsetInfo.DecreaseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
   if repeattimer<>nil then
     freeandnil(repeattimer);
+
+  if ssCtrl in shift then
+    stepsize:=1
+  else
+    stepsize:=4;
 
   repeatstart:=GetTickCount;
   repeatdirection:=0; //tell the timer to decrease
@@ -235,6 +240,11 @@ procedure TOffsetInfo.IncreaseDown(Sender: TObject; Button: TMouseButton; Shift:
 begin
   if repeattimer<>nil then
     freeandnil(repeattimer);
+
+  if ssCtrl in shift then
+    stepsize:=1
+  else
+    stepsize:=4;
 
   repeatstart:=GetTickCount;
   repeatdirection:=1; //tell the timer to increase
@@ -255,12 +265,12 @@ end;
 
 procedure TOffsetInfo.DecreaseClick(sender: TObject);
 begin
-  offset:=offset-4;
+  offset:=offset-stepsize;
 end;
 
 procedure TOffsetInfo.IncreaseClick(sender: TObject);
 begin
-  offset:=offset+4;
+  offset:=offset+stepsize;
 end;
 
 
@@ -448,6 +458,7 @@ end;
 constructor TOffsetInfo.create(parent: TPointerinfo);
 var insertinsteadofadd: boolean;
 begin
+  stepsize:=4;
   fowner:=parent;
 
   //check if ctrl is pressed, if so, insert instead of append (or the other way depending on settings)
