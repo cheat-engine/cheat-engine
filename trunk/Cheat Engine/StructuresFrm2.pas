@@ -2600,6 +2600,9 @@ begin
   miDeleteElement.visible:=tvStructureView.Selected<>nil;
   miChangeElement.visible:=structElement<>nil;
 
+  miBrowseAddress.Visible:=tvStructureView.Selected<>nil;
+  miBrowsePointer.visible:=(structelement<>nil) and (structelement.isPointer);
+
 
 end;
 
