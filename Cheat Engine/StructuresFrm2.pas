@@ -338,6 +338,7 @@ type
     procedure pmStructureViewPopup(Sender: TObject);
     procedure miNewWindowClick(Sender: TObject);
     procedure miUpdateIntervalClick(Sender: TObject);
+    procedure pnlGroupsClick(Sender: TObject);
     procedure Renamestructure1Click(Sender: TObject);
     procedure tvStructureViewAdvancedCustomDrawItem(Sender: TCustomTreeView;
       Node: TTreeNode; State: TCustomDrawState; Stage: TCustomDrawStage;
@@ -405,6 +406,7 @@ type
     procedure onFullStructChange(sender: TDissectedStruct);   //called when a structure is changed (sort/add/remove entry)
     procedure onStructOptionsChange(sender: TDissectedStruct);
     procedure onElementChange(struct:TDissectedStruct; element: TStructelement); //called when an element of a structure is changed
+    procedure onStructureDelete(sender: TDissectedStruct);
 
     property DefaultColor: TColor read fDefaultColor;
     property MatchColor: TColor read fMatchColor;
@@ -1040,6 +1042,8 @@ var
   s: TDissectedStruct;
 begin
   //remove all mentioning of this struct
+  if structtodelete=self then exit;
+
   beginUpdate;
   for i:=0 to count-1 do
   begin
@@ -1063,6 +1067,11 @@ end;
 procedure TDissectedStruct.DoDeleteStructNotification;
 var i: integer;
 begin
+  //tell each form that it should close this structure
+  for i:=0 to frmStructures2.Count-1 do
+    TfrmStructures2(frmStructures2[i]).OnStructureDelete(self);
+
+
   //tell each structure that it should remove all the childstruct mentions of this structure
   for i:=0 to DissectedStructs.count-1 do
   begin
@@ -1312,15 +1321,16 @@ var i: integer;
 begin
   beginUpdate; //never endupdate
 
-  DoDeleteStructNotification;
-
-
-  for i:=0 to structelementlist.Count-1 do
-    TStructelement(structelementlist.Items[i]).free;
 
   if structelementlist<>nil then
-    freeandnil(structelementlist);
+  begin
+    while structelementlist.Count>0 do
+      TStructelement(structelementlist.Items[0]).free;
 
+    freeandnil(structelementlist);
+  end;
+
+  DoDeleteStructNotification;
 
   removeFromGlobalStructList;
 
@@ -2272,6 +2282,15 @@ begin
   RefreshStructureList;
 end;
 
+procedure TfrmStructures2.onStructureDelete(sender: TDissectedStruct);
+begin
+  if sender=mainStruct then
+  begin
+    mainstruct:=nil;
+    tvStructureView.Items.Clear;
+  end;
+end;
+
 procedure TfrmStructures2.onStructOptionsChange(sender: TDissectedStruct);
 begin
   if mainStruct=sender then
@@ -2361,6 +2380,10 @@ begin
   //ask if it should be filled in automatically
   autoFillIn:=messagedlg(rsDoYouWantCheatEngineToTryAndFillInTheMostBasicType, mtconfirmation, [mbyes, mbno, mbcancel], 0);
   if autoFillIn=mrcancel then exit;
+
+  mainStruct:=nil;
+  tvStructureView.items.clear;
+
 
   mainStruct:=TDissectedStruct.create(structname);
 
@@ -2595,7 +2618,7 @@ begin
   structelement:=getStructElementFromNode(tvStructureView.Selected);
 
   miFullUpgrade.visible:=(childstruct<>nil) and (not childstruct.isInGlobalStructList);
-  miAddElement.visible:=(childstruct<>nil);
+  miAddElement.visible:=(ownerstruct<>nil) or (childstruct<>nil);
   miAddChildElement.visible:=(childstruct<>nil);
   miDeleteElement.visible:=tvStructureView.Selected<>nil;
   miChangeElement.visible:=structElement<>nil;
@@ -2604,6 +2627,12 @@ begin
   miBrowsePointer.visible:=(structelement<>nil) and (structelement.isPointer);
 
 
+  miChangeValue.Visible:=structelement<>nil;
+  miUpdateOffsets.visible:=structelement<>nil;
+  miAddToAddresslist.Visible:=structelement<>nil;
+
+  n1.visible:=ownerstruct<>nil;
+  n2.visible:=ownerstruct<>nil;
 end;
 
 procedure TfrmStructures2.miNewWindowClick(Sender: TObject);
@@ -2626,6 +2655,11 @@ begin
     miUpdateInterval.caption:=rsUpdateInterval+': '+inttostr(
       updatetimer.interval);
   end;
+end;
+
+procedure TfrmStructures2.pnlGroupsClick(Sender: TObject);
+begin
+
 end;
 
 procedure TfrmStructures2.Renamestructure1Click(Sender: TObject);
@@ -2851,6 +2885,7 @@ var baseaddress: ptruint;
 
   sname: string;
   n: ttreenode;
+  name: string;
 begin
   n:=tvStructureView.Selected;
   if n<>nil then
@@ -2874,8 +2909,11 @@ begin
           n:=n.parent;
         end;
 
+        name:=element.Name;
+        if name='' then
+          name:=VariableTypeToString(element.VarType);
 
-        mainform.addresslist.addaddress(element.Name, inttohex(baseaddress,1), offsetlist, length(offsetlist), element.VarType,'',element.Bytesize);
+        mainform.addresslist.addaddress(name, inttohex(baseaddress,1), offsetlist, length(offsetlist), element.VarType,'',element.Bytesize);
       end;
 
 
@@ -2887,15 +2925,15 @@ begin
 end;
 
 procedure TfrmStructures2.Deletecurrentstructure1Click(Sender: TObject);
-var s: TDissectedStruct;
 begin
-  tvStructureView.items.clear;
-  s:=mainStruct;
-  mainstruct:=nil;
-
-  s.free;
-
-
+  if mainstruct<>nil then
+  begin
+    if messagedlg('Are you sure you want to delete the structure named :'+mainstruct.structname+' ?', mtConfirmation, [mbyes,mbno],0) = mryes then
+    begin
+      mainstruct.free;
+      mainstruct:=nil; //should happen automatically thanks to the destroy procedure of the struct
+    end;
+  end;
 end;
 
 procedure TfrmStructures2.miAutoGuessClick(Sender: TObject);
@@ -3122,6 +3160,8 @@ var
 
   displacement: integer;
 begin
+  if mainstruct=nil then exit; //no rendering
+
   if stage=cdPostPaint then
   begin
     textrect:=node.DisplayRect(true);
