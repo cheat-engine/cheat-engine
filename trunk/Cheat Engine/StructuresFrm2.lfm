@@ -53,6 +53,7 @@ object frmStructures2: TfrmStructures2
     BevelOuter = bvNone
     BorderStyle = bsSingle
     TabOrder = 1
+    OnClick = pnlGroupsClick
   end
   object HeaderControl1: THeaderControl
     Left = 0
@@ -197,7 +198,7 @@ object frmStructures2: TfrmStructures2
   end
   object pmStructureView: TPopupMenu
     OnPopup = pmStructureViewPopup
-    left = 40
+    left = 48
     top = 112
     object miChangeValue: TMenuItem
       Caption = 'Change Value'
