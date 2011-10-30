@@ -710,7 +710,7 @@ memoryrecord_onDeactivate(memoryrecord, function): function (memoryrecord, befor
 memoryrecord_onDestroy(memoryrecord, function): function (memoryrecord) : Called when a memory record is destroyed
 memoryrecord_setDescription(te, description): sets the specified description for this entry
 memoryrecord_getDescription(te): gets the current description of this entry
-memoryrecord_getAddress(te): returns the address and optional offsets for a pointer 
+memoryrecord_getAddress(te): returns the address. If it is a pointer it returns a secondary return value which is a table which starts as base address followed by the offset)
 memoryrecord_setAddress(te,address,offsets OPTIONAL) : Sets the address of a entry. You can give as many offsets as you need
 memoryrecord_getType(te) : returns the Variable type. (vtByte to vtCustom)
 memoryrecord_setType(te, vartype) : sets the type of the entry
@@ -1066,16 +1066,16 @@ d3dhook_endUpdate() : When done updating, call this function to apply the change
 
 
 --[[ Not yet implemented
-Structure class:
+Structure class: (Inheritance: Object)
 
 createStructure(name): Returns an empty structure object
 structure_getName(structure)
 structure_setName(structure,name)
 structure_getSize(structure): Calculates the size of the structure
 structure_getElementCount(structure): Returns the number of elements in this structure
-structure_getElement(structure, index): Returns a structureElement object
-structure_getElementByOffset(structure, offset): Returns a structureElement object where the specified offset is at least the requested ofset
-structure_addElement(structure): Returns a blank structureElement
+structure_getElement(structure, index): Returns a structureElement object (Changing offsets can change the index)
+structure_getElementByOffset(structure, offset): Returns a structureElement object where the specified offset is at least the requested offset
+structure_addElement(structure): Adds a new blank structureElement and returns it
 structure_autoGuess(structure, baseaddresstoguessfrom, offset, size)
 structure_beginUpdate(structure): Call this when you want to make multiple updates to a structure. It will speed up the update process
 structure_endUpdate(structure): Call this when done
@@ -1083,13 +1083,13 @@ structure_addToGlobalStructureList(structure)
 structure_removeFromGlobalStructureList(structure)
 
 
-StructureElement class:
-structureElement_getOwnerStructure
-structureElement_getOffset(se)
-structureElement_setOffset(se, offset)
-structureElement_getName(se)
-structureElement_setName(se, name)
-structureElement_getVartype(se)
+StructureElement class: (Inheritance: Object)
+structureElement_getOwnerStructure(se): Returns the structure this element belongs to
+structureElement_getOffset(se): Rerurns the offset of this element
+structureElement_setOffset(se, offset): Sets the offset of this element
+structureElement_getName(se): Returns the name of this element
+structureElement_setName(se, name): Sets the name of this element (tip: Leave blank if you only want to set the name of the variable)
+structureElement_getVartype(se): Returns the variable type of this element (check Variable types in defines.lua)
 structureElement_setVartype(se, vartype)
 structureElement_getChildStruct(se)
 structureElement_setChildStruct(se, structure)

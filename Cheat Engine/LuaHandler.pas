@@ -71,8 +71,10 @@ begin
   result:=LuaVM;
 end;
 
+//todo: let the user define a default error function
 function lua_pcall(L: Plua_State; nargs, nresults, errf: Integer): Integer; cdecl;
 var oldstack: integer;
+  error: string;
 begin
   try
     oldstack:=lua_gettop(l);
@@ -84,7 +86,24 @@ begin
       lua_settop(l, oldstack);
 
       lua_pushstring(l, e.Message);
+    end;
+  end;
 
+  if result=LUA_ERRRUN then //an error occured, there is currently no error handler function so use this code here to show it
+  begin
+    if GetCurrentThreadId=MainThreadID then
+    begin
+      error:=Lua_ToString(l, -1);
+      if (error<>'') then
+      begin
+        if frmLuaEngine=nil then
+          frmLuaEngine:=TfrmLuaEngine.Create(application);
+
+        frmLuaEngine.mOutput.Lines.add('Error:'+error);
+
+        if frmLuaEngine.cbShowOnPrint.checked then
+          frmLuaEngine.show;
+      end;
     end;
   end;
 end;
