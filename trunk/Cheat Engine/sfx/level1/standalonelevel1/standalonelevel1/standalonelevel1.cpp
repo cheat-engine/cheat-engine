@@ -67,6 +67,8 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 		if (GetTempFileNameA(tempfolder,"CET",0,tempdir)>0)
 		{
 			int i;
+			struct stat status;
+
 			DeleteFile(tempdir);
 			//strcat(tempfolder
 			//printf("tempdir=%s\n",tempdir);
@@ -102,7 +104,16 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 				  MessageBoxA(0,"Failure launching this trainer. Make sure Cheat Engine is properly installed on your system","Launch Error",MB_OK | MB_ICONERROR);
 
 			  }
-				  
+			  
+			  //Because Cheat Engine deletes files with name CET_TRAINER.CETRAINER it can be used to determine when ce is finished with it			  
+			  //Wait 30 seconds max for ce to delete the file
+			  i=30;
+			  while (i && (stat(Archive, &status) == 0))
+			  {				  
+				  Sleep(1000);
+				  i--;
+			  }
+
 #else
 			  strcpy(Decompressor, tempdir);
 			  strcat(Decompressor, "\\");
@@ -134,9 +145,11 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 				//  printf("Failed to launch decompessor:%d\n", GetLastError());
 
 			  DeleteFileA(Decompressor);
+			  
 #endif
 
-			  DeleteFileA(Archive);
+			  DeleteFileA(Archive); 
+			  
 			  
 			  RemoveDirectoryA(tempdir);
 

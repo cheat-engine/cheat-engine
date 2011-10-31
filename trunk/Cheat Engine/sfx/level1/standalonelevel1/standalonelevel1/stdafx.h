@@ -16,6 +16,7 @@
 
 #ifdef TINY
 #include <shellapi.h>
+#include <sys/stat.h> 
 #endif
 
 // TODO: reference additional headers your program requires here
