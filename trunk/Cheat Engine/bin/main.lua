@@ -714,6 +714,7 @@ memoryrecord_getAddress(te): returns the address. If it is a pointer it returns 
 memoryrecord_setAddress(te,address,offsets OPTIONAL) : Sets the address of a entry. You can give as many offsets as you need
 memoryrecord_getType(te) : returns the Variable type. (vtByte to vtCustom)
 memoryrecord_setType(te, vartype) : sets the type of the entry
+
 memoryrecord_getValue(te): returns the current value of the cheat table entry as a string
 memoryrecord_setValue(te, value): sets the value of a cheat table entry
 memoryrecord_getScript(te) : If the entry is of type vtAutoAssembler then you can get the script with this routine
@@ -1097,6 +1098,21 @@ structureElement_getChildStructStart(se)
 structureElement_setChildStructStart(se, offset)
 structureElement_getBytesize(se)
 structureElement_setBytesize(se, size)
+
+
+memoryrecord_string_getSize(te)
+memoryrecord_string_setSize(te, integer)
+memoryrecord_string_getUnicode(te)
+memoryrecord_string_setUnicode(te, boolean)
+memoryrecord_binary_getStartbit(te)
+memoryrecord_binary_setStartbit(te, integer)
+memoryrecord_binary_getSize(te)
+memoryrecord_binary_setSize(te, integer)
+memoryrecord_aob_getSize(te)
+memoryrecord_aob_setSize(te, integer)
+
+
+
 
 --]]
 
