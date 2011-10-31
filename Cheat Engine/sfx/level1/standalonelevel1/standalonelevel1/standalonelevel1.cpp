@@ -5,12 +5,7 @@
 
 #include "stdafx.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <windows.h>
-#include <AccCtrl.h>
-#include <Sddl.h>
-#include <shlwapi.h>
+
 
 BOOL CreateMyDACL(SECURITY_ATTRIBUTES *);
 
@@ -38,26 +33,26 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
 
 	char tempfolder[MAX_PATH];
+
+#ifndef TINY
 	HRSRC Decomp=FindResource(GetModuleHandle(0), "DECOMPRESSOR", RT_RCDATA);
+#endif
+
 	HRSRC Arch=FindResource(GetModuleHandle(0), "ARCHIVE", RT_RCDATA);
 
+#ifndef TINY
 	if ((Decomp==0) || (Archive==0))
 	  return 0;
 
-	
-
 	int Decomp_size=SizeofResource(GetModuleHandle(0), Decomp);
+#endif
+
 	int Arch_size=SizeofResource(GetModuleHandle(0), Arch);
 
+#ifndef TINY
 	HGLOBAL Decomp_memory=LoadResource(GetModuleHandle(0), Decomp);
+#endif
     HGLOBAL Arch_memory=LoadResource(GetModuleHandle(0), Arch);
-
-
-	//printf("Decomp=%x (%p: %d)\nArchive=%x (%p: %d)\n", Decomp,Decomp_memory, Decomp_size, Arch,Arch_memory,Arch_size);
-
-
-
-
 
 
 
@@ -82,7 +77,11 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 			  DWORD bw;
 			  strcpy(Archive, tempdir);
 			  strcat(Archive, "\\");
+#ifdef TINY
+			  strcat(Archive, "CET_TRAINER.CETRAINER");
+#else
 			  strcat(Archive, "CET_Archive.dat");
+#endif
 			
 			  h=CreateFile(Archive, GENERIC_WRITE,FILE_SHARE_READ | FILE_SHARE_WRITE, &sa, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
 			  if (h)
@@ -91,6 +90,20 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 				  CloseHandle(h);
 			  }
 
+			 
+#ifdef TINY
+			  //shellexecute the .cetrainer
+			  i=(int)ShellExecute(NULL,"open",Archive,NULL,NULL, SW_SHOWNORMAL);
+			  if (i<=32)
+			  {
+				if (i==SE_ERR_ASSOCINCOMPLETE)
+				  MessageBoxA(0,"Your system must have Cheat Engine installed to be able to use this trainer\nwww.cheatengine.org","Launch Error",MB_OK | MB_ICONERROR);
+				else
+				  MessageBoxA(0,"Failure launching this trainer. Make sure Cheat Engine is properly installed on your system","Launch Error",MB_OK | MB_ICONERROR);
+
+			  }
+				  
+#else
 			  strcpy(Decompressor, tempdir);
 			  strcat(Decompressor, "\\");
 			  strcat(Decompressor, SelfName);
@@ -120,9 +133,11 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 				  MessageBox(0,"Failure loading the trainer. Your tempfolder must allow execution. (Check your anti virus)\n","Trainer failure", MB_OK | MB_ICONERROR);
 				//  printf("Failed to launch decompessor:%d\n", GetLastError());
 
+			  DeleteFileA(Decompressor);
+#endif
 
 			  DeleteFileA(Archive);
-			  DeleteFileA(Decompressor);
+			  
 			  RemoveDirectoryA(tempdir);
 
 			}
