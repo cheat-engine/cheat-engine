@@ -214,6 +214,7 @@ begin
 
         if not tiny then
         begin
+          //all files go into a compressed archive
 
           case comboCompression.itemindex of
             0: compression:=clnone;
