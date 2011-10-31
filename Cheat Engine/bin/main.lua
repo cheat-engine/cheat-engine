@@ -1093,6 +1093,8 @@ structureElement_getVartype(se): Returns the variable type of this element (chec
 structureElement_setVartype(se, vartype)
 structureElement_getChildStruct(se)
 structureElement_setChildStruct(se, structure)
+structureElement_getChildStructStart(se)
+structureElement_setChildStructStart(se, offset)
 structureElement_getBytesize(se)
 structureElement_setBytesize(se, size)
 
