@@ -80,7 +80,7 @@ begin
         mainformvisible:=uppercase(ExtractFileExt(paramstr(i)))<>'.CETRAINER';
         LoadTable(ansitoutf8(paramstr(i)),false);
 
-        if extractfilename(paramstr(i))='CET_TRAINER.CETRAINER' then
+        if extractfilename(paramstr(i))='CET_TRAINER.CETRAINER' then //Let's just hope no-one names their trainer exactly this...
           deletefile(paramstr(i));
 
         break;

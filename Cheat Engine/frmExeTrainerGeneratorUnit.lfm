@@ -1,12 +1,12 @@
 object frmExeTrainerGenerator: TfrmExeTrainerGenerator
-  Left = 923
-  Height = 266
-  Top = 449
+  Left = 781
+  Height = 270
+  Top = 314
   Width = 576
   Caption = 'Exe Trainer Generator'
-  ClientHeight = 266
+  ClientHeight = 270
   ClientWidth = 576
-  Constraints.MinHeight = 234
+  Constraints.MinHeight = 270
   Constraints.MinWidth = 490
   OnActivate = FormActivate
   OnClose = FormClose
@@ -16,18 +16,18 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
   LCLVersion = '0.9.31'
   object Panel1: TPanel
     Left = 0
-    Height = 216
+    Height = 220
     Top = 0
     Width = 328
     Align = alLeft
     BevelOuter = bvNone
-    ClientHeight = 216
+    ClientHeight = 220
     ClientWidth = 328
     TabOrder = 0
     object GroupBox1: TGroupBox
       Left = 0
       Height = 62
-      Top = 0
+      Top = 40
       Width = 328
       Align = alTop
       Caption = 'Process'
@@ -56,7 +56,7 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
     object GroupBox2: TGroupBox
       Left = 0
       Height = 74
-      Top = 62
+      Top = 102
       Width = 328
       Align = alTop
       Caption = 'Features used'
@@ -97,18 +97,18 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
       end
     end
     object Button1: TButton
-      Left = 63
+      Left = 56
       Height = 25
-      Top = 144
+      Top = 182
       Width = 99
       Caption = 'Change EXE Icon'
       OnClick = Button1Click
       TabOrder = 2
     end
     object comboCompression: TComboBox
-      Left = 240
+      Left = 232
       Height = 23
-      Top = 146
+      Top = 184
       Width = 80
       ItemHeight = 15
       ItemIndex = 3
@@ -123,17 +123,17 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
       Text = 'Max'
     end
     object Label1: TLabel
-      Left = 168
+      Left = 160
       Height = 16
-      Top = 149
+      Top = 187
       Width = 71
       Caption = 'Compression'
       ParentColor = False
     end
     object Panel4: TPanel
-      Left = 13
+      Left = 11
       Height = 40
-      Top = 138
+      Top = 175
       Width = 40
       BevelOuter = bvNone
       BorderStyle = bsSingle
@@ -149,41 +149,76 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
         Stretch = True
       end
     end
+    object GroupBox4: TGroupBox
+      Left = 0
+      Height = 40
+      Top = 0
+      Width = 328
+      Align = alTop
+      Caption = 'Trainer size'
+      ClientHeight = 22
+      ClientWidth = 324
+      TabOrder = 5
+      object cbTiny: TRadioButton
+        Left = 86
+        Height = 19
+        Hint = 'Only put the trainer data in the trainer. The user must have Cheat Engine installed to run this trainer'
+        Top = 0
+        Width = 43
+        Caption = 'Tiny'
+        OnChange = cbTrainersizeChange
+        TabOrder = 0
+      end
+      object cbGigantic: TRadioButton
+        Left = 10
+        Height = 19
+        Hint = 'Puts the Cheat Engine executable, dll''s and other requirements into the trainer'
+        Top = 0
+        Width = 64
+        Caption = 'Gigantic'
+        Checked = True
+        OnChange = cbTrainersizeChange
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 1
+        TabStop = True
+      end
+    end
   end
   object Panel2: TPanel
     Left = 0
     Height = 50
-    Top = 216
+    Top = 220
     Width = 576
     Align = alBottom
     BevelOuter = bvNone
     ClientHeight = 50
     ClientWidth = 576
     TabOrder = 1
-    object Button2: TButton
+    object btnGenerateTrainer: TButton
       Left = 251
       Height = 25
       Top = 16
       Width = 75
       Anchors = [akTop]
       Caption = 'Generate'
-      OnClick = Button2Click
+      OnClick = btnGenerateTrainerClick
       TabOrder = 0
     end
   end
   object GroupBox3: TGroupBox
     Left = 328
-    Height = 216
+    Height = 220
     Top = 0
     Width = 248
     Align = alClient
     Caption = 'Extra files'
-    ClientHeight = 198
+    ClientHeight = 202
     ClientWidth = 244
     TabOrder = 2
     object ListView1: TListView
       Left = 0
-      Height = 163
+      Height = 167
       Top = 0
       Width = 244
       Align = alClient
@@ -208,7 +243,7 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
     object Panel3: TPanel
       Left = 0
       Height = 35
-      Top = 163
+      Top = 167
       Width = 244
       Align = alBottom
       BevelOuter = bvNone

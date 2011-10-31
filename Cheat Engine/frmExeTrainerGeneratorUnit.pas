@@ -6,7 +6,7 @@ interface
 
 uses
   windows, Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, ExtCtrls,
-  dialogs, StdCtrls, ComCtrls, Menus, cefuncproc, IconStuff, zstream;
+  dialogs, StdCtrls, ComCtrls, Menus, cefuncproc, IconStuff, zstream, registry;
 
 
 type
@@ -22,7 +22,7 @@ type
 
   TfrmExeTrainerGenerator = class(TForm)
     Button1: TButton;
-    Button2: TButton;
+    btnGenerateTrainer: TButton;
     btnAddFile: TButton;
     btnRemoveFile: TButton;
     Button3: TButton;
@@ -34,6 +34,7 @@ type
     GroupBox1: TGroupBox;
     GroupBox2: TGroupBox;
     GroupBox3: TGroupBox;
+    GroupBox4: TGroupBox;
     Image1: TImage;
     Label1: TLabel;
     ListView1: TListView;
@@ -44,14 +45,17 @@ type
     Panel3: TPanel;
     Panel4: TPanel;
     pmFiles: TPopupMenu;
+    cbTiny: TRadioButton;
+    cbGigantic: TRadioButton;
     rb32: TRadioButton;
     rb64: TRadioButton;
     SelectDirectoryDialog1: TSelectDirectoryDialog;
     procedure btnAddFileClick(Sender: TObject);
     procedure btnRemoveFileClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
+    procedure btnGenerateTrainerClick(Sender: TObject);
     procedure Button3Click(Sender: TObject);
+    procedure cbTrainersizeChange(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
@@ -159,17 +163,17 @@ begin
       archive.CopyFrom(f, block);
       dec(i,block);
 
-      button2.caption:=rsSaving+rot;
+      btnGenerateTrainer.caption:=rsSaving+rot;
       application.ProcessMessages;
     end;
   finally
     f.free;
-    button2.caption:=rsGenerate;
+    btnGenerateTrainer.caption:=rsGenerate;
   end;
 end;
 
 
-procedure TfrmExeTrainerGenerator.Button2Click(Sender: TObject);
+procedure TfrmExeTrainerGenerator.btnGenerateTrainerClick(Sender: TObject);
 var DECOMPRESSOR: TMemorystream;
   CETRAINER: string;
   icon: tmemorystream;
@@ -181,92 +185,110 @@ var DECOMPRESSOR: TMemorystream;
 
   compression: Tcompressionlevel;
   i: integer;
+
+  tiny: boolean;
+
+  basefile: string;
 begin
+
+  tiny:=cbTiny.Checked;
 
   CETRAINER:=ExtractFilePath(filename)+'CET_TRAINER.CETRAINER';
 
   SaveTable(CETRAINER, true);
 
-  button2.caption:=rsSaving+rot;
-  button2.enabled:=false;
+  btnGenerateTrainer.caption:=rsSaving+rot;
+  btnGenerateTrainer.enabled:=false;
   saving:=true;
 
   application.ProcessMessages;
   try
-    if CopyFile(cheatenginedir+'standalonephase1.dat', filename) then
+    if tiny then basefile:='tiny' else basefile:='standalonephase1';
+
+    if CopyFile(cheatenginedir+basefile+'.dat', filename) then
     begin
       updatehandle:=BeginUpdateResourceA(pchar(filename), false);
       if updatehandle<>0 then
       begin
         _archive:=TMemorystream.create; //create the archive
 
-        case comboCompression.itemindex of
-          0: compression:=clnone;
-          1: compression:=clfastest;
-          2: compression:=cldefault;
-          3: compression:=clmax;
-        end;
-
-        archive:=Tcompressionstream.create(compression, _archive, true);
-
-
-        decompressor:=TMemorystream.create;
-        decompressor.LoadFromFile(cheatenginedir+'standalonephase2.dat');
-
-        addfile(CETRAINER);
-        deletefile(cetrainer);
-
-        for i:=0 to listview1.Items.Count-1 do
-          addfile(TFileData(listview1.items[i].data).filepath, TFileData(listview1.items[i].data).folder);
-
-        addfile(cheatenginedir+'defines.lua');
-
-        if rb32.checked then
+        if not tiny then
         begin
-          addfile(cheatenginedir+'cheatengine-i386.exe');
-          addfile(cheatenginedir+'lua5.1-32.dll');
-          addfile(cheatenginedir+'win32\dbghelp.dll','win32');
 
-          if cbSpeedhack.checked then
-            addfile(cheatenginedir+'speedhack-i386.dll');
+          case comboCompression.itemindex of
+            0: compression:=clnone;
+            1: compression:=clfastest;
+            2: compression:=cldefault;
+            3: compression:=clmax;
+          end;
 
-          if cbvehdebug.checked then
-            addfile(cheatenginedir+'vehdebug-i386.dll');
-
-          if cbKernelDebug.checked then
-            addfile(cheatenginedir+'dbk32.sys');
+          archive:=Tcompressionstream.create(compression, _archive, true);
 
 
+          decompressor:=TMemorystream.create;
+          decompressor.LoadFromFile(cheatenginedir+'standalonephase2.dat');
+
+          addfile(CETRAINER);
+          deletefile(cetrainer);
+
+          for i:=0 to listview1.Items.Count-1 do
+            addfile(TFileData(listview1.items[i].data).filepath, TFileData(listview1.items[i].data).folder);
+
+          addfile(cheatenginedir+'defines.lua');
+
+          if rb32.checked then
+          begin
+            addfile(cheatenginedir+'cheatengine-i386.exe');
+            addfile(cheatenginedir+'lua5.1-32.dll');
+            addfile(cheatenginedir+'win32\dbghelp.dll','win32');
+
+            if cbSpeedhack.checked then
+              addfile(cheatenginedir+'speedhack-i386.dll');
+
+            if cbvehdebug.checked then
+              addfile(cheatenginedir+'vehdebug-i386.dll');
+
+            if cbKernelDebug.checked then
+              addfile(cheatenginedir+'dbk32.sys');
+
+
+          end
+          else
+          begin
+            addfile(cheatenginedir+'cheatengine-x86_64.exe');
+            addfile(cheatenginedir+'lua5.1-64.dll');
+
+            if cbSpeedhack.checked then
+              addfile(cheatenginedir+'speedhack-x86_64.dll');
+
+            if cbvehdebug.checked then
+              addfile(cheatenginedir+'vehdebug-x86_64.dll');
+
+            if cbKernelDebug.checked then
+              addfile(cheatenginedir+'dbk64.sys');
+          end;
+
+          if cbXMPlayer.checked then
+            addfile(cheatenginedir+'xmplayer.exe');
+
+
+          archive.free;
         end
         else
-        begin
-          addfile(cheatenginedir+'cheatengine-x86_64.exe');
-          addfile(cheatenginedir+'lua5.1-64.dll');
-
-          if cbSpeedhack.checked then
-            addfile(cheatenginedir+'speedhack-x86_64.dll');
-
-          if cbvehdebug.checked then
-            addfile(cheatenginedir+'vehdebug-x86_64.dll');
-
-          if cbKernelDebug.checked then
-            addfile(cheatenginedir+'dbk64.sys');
-        end;
-
-        if cbXMPlayer.checked then
-          addfile(cheatenginedir+'xmplayer.exe');
-
-
-        archive.free;
+          _archive.LoadFromFile(CETRAINER); //tiny version has the .cetrainer only
 
 
         if not UpdateResourceA(updatehandle, RT_RCDATA, 'ARCHIVE', 0, _archive.memory, _archive.size) then
           raise exception.create(rsFailureOnWriting+' ARCHIVE:'+inttostr(
             getlasterror()));
 
-        if not UpdateResourceA(updatehandle, RT_RCDATA, 'DECOMPRESSOR', 0, decompressor.memory, decompressor.size) then
-          raise exception.create(rsFailureOnWriting+' DECOMPRESSOR:'+inttostr(
-            getlasterror()));
+        if not tiny then
+        begin
+          //tiny has no decompressor
+          if not UpdateResourceA(updatehandle, RT_RCDATA, 'DECOMPRESSOR', 0, decompressor.memory, decompressor.size) then
+            raise exception.create(rsFailureOnWriting+' DECOMPRESSOR:'+inttostr(
+              getlasterror()));
+        end;
 
         icon:=tmemorystream.create;
         try
@@ -316,7 +338,7 @@ begin
       freeandnil(_archive);
 
     saving:=false;
-    button2.enabled:=true;
+    btnGenerateTrainer.enabled:=true;
 
 
   end;
@@ -377,6 +399,29 @@ procedure TfrmExeTrainerGenerator.Button3Click(Sender: TObject);
 begin
   if SelectDirectoryDialog1.Execute then
     addDirToList(SelectDirectoryDialog1.FileName);
+end;
+
+procedure TfrmExeTrainerGenerator.cbTrainersizeChange(Sender: TObject);
+begin
+  groupbox1.enabled:=cbGigantic.checked;
+  GroupBox2.enabled:=cbGigantic.checked;
+  rb32.enabled:=cbGigantic.Checked;
+  rb64.enabled:=cbGigantic.checked;
+  cbSpeedhack.enabled:=cbGigantic.Checked;
+  cbVEHDebug.enabled:=cbGigantic.checked;
+  cbXMPlayer.Enabled:=cbGigantic.checked;
+  cbKernelDebug.enabled:=cbGigantic.Checked;
+
+  label1.enabled:=cbGigantic.checked;
+  comboCompression.enabled:=cbGigantic.checked;
+
+  GroupBox3.enabled:=cbGigantic.checked;
+  ListView1.enabled:=cbGigantic.checked;
+  Button3.enabled:=cbGigantic.checked;
+
+  btnAddFile.enabled:=cbGigantic.checked;
+  btnRemoveFile.enabled:=listview1.Selected<>nil;
+
 end;
 
 procedure TfrmExeTrainerGenerator.Button1Click(Sender: TObject);
