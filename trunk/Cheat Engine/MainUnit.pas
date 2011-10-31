@@ -681,6 +681,7 @@ type
     procedure setIsProtected(p: boolean);
 
     procedure d3dclicktest(overlayid: integer; x, y: integer);
+    procedure updated3dgui;
   public
     { Public declarations }
     addresslist: TAddresslist;
@@ -2532,20 +2533,26 @@ begin
   end;
 end;
 
+procedure TMainForm.updated3dgui;
+begin
+  miSetCrosshair.Enabled := d3dhook<>nil;
+  miWireframe.Enabled := d3dhook<>nil;
+  miZbuffer.Enabled := d3dhook<>nil;
+  miLockMouseInGame.enabled := d3dhook<>nil;
+end;
+
 procedure TMainForm.miHookD3DClick(Sender: TObject);
 begin
-  if safed3dhook <> nil then
-  begin
-    miSetCrosshair.Enabled := True;
-    miWireframe.Enabled := True;
-    miZbuffer.Enabled := True;
-    miLockMouseInGame.enabled := True;
-  end;
+  safed3dhook;
+
+  updated3dgui;
 end;
 
 procedure TMainForm.miLockMouseInGameClick(Sender: TObject);
 begin
   safed3dhook;
+  updated3dgui;
+
   if d3dhook<>nil then
     d3dhook.setMouseClip(miLockMouseInGame.checked);
 end;
@@ -2907,7 +2914,6 @@ begin
     frmSetCrosshair := TfrmSetCrosshair.Create(self);
 
   frmSetCrosshair.Show;
-
 end;
 
 procedure TMainForm.miTableClick(Sender: TObject);
@@ -3750,6 +3756,8 @@ begin
   safed3dhook;
   if d3dhook<>nil then
     d3dhook.setWireframeMode(miWireframe.Checked);
+
+  updated3dgui;
 end;
 
 procedure TMainForm.miZbufferClick(Sender: TObject);
@@ -3757,6 +3765,8 @@ begin
   safed3dhook;
   if d3dhook<>nil then
     d3dhook.setDisabledZBuffer(miZbuffer.Checked);
+
+  updated3dgui;
 end;
 
 procedure TMainForm.miZeroTerminateClick(Sender: TObject);
