@@ -247,15 +247,15 @@ object frmStructures: TfrmStructures
   object OpenDialog1: TOpenDialog
     DefaultExt = '.CSX'
     Filter = 'Cheat Engine structure files (*.CES;*.CSX)|*.CES;*.CSX;*.XML|All Files (*.*)|*.*'
-    left = 8
-    top = 144
+    left = 160
+    top = 72
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = '.CSX'
     Filter = 'Cheat Engine structure files (*.CSX)|*.CSX|All Files (*.*)|*.*'
     Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
-    left = 40
-    top = 144
+    left = 232
+    top = 72
   end
   object PopupMenu2: TPopupMenu
     OnPopup = PopupMenu2Popup
