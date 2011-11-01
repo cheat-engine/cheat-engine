@@ -1080,27 +1080,39 @@ d3dhook_endUpdate() : When done updating, call this function to apply the change
 --]]
 
 
---[[ Not yet implemented
+--[[ 
 Structure class: (Inheritance: Object)
 
-createStructure(name): Returns an empty structure object
+getStructureCount(): Returns the number of Global structures. (Global structures are the visible structures)
+getStructure(index): Returns the Structure object at the given index
+
+createStructure(name): Returns an empty structure object (Not yet added to the Global list. Call structure_addToGlobalStructureList manually)
+
 structure_getName(structure)
 structure_setName(structure,name)
 structure_getSize(structure): Calculates the size of the structure
 structure_getElementCount(structure): Returns the number of elements in this structure
+
+
+
+
+
 structure_getElement(structure, index): Returns a structureElement object (Changing offsets can change the index)
 structure_getElementByOffset(structure, offset): Returns a structureElement object where the specified offset is at least the requested offset
+
+
 structure_addElement(structure): Adds a new blank structureElement and returns it
 structure_autoGuess(structure, baseaddresstoguessfrom, offset, size)
+
 structure_beginUpdate(structure): Call this when you want to make multiple updates to a structure. It will speed up the update process
 structure_endUpdate(structure): Call this when done
-structure_addToGlobalStructureList(structure)
-structure_removeFromGlobalStructureList(structure)
+structure_addToGlobalStructureList(structure): Add this to the list of structures for the user to select from. (Global structures will get saved to the table)
+structure_removeFromGlobalStructureList(structure): Remove from the list of structures. 
 
 
 StructureElement class: (Inheritance: Object)
 structureElement_getOwnerStructure(se): Returns the structure this element belongs to
-structureElement_getOffset(se): Rerurns the offset of this element
+structureElement_getOffset(se): Returns the offset of this element
 structureElement_setOffset(se, offset): Sets the offset of this element
 structureElement_getName(se): Returns the name of this element
 structureElement_setName(se, name): Sets the name of this element (tip: Leave blank if you only want to set the name of the variable)
@@ -1110,8 +1122,8 @@ structureElement_getChildStruct(se)
 structureElement_setChildStruct(se, structure)
 structureElement_getChildStructStart(se)
 structureElement_setChildStructStart(se, offset)
-structureElement_getBytesize(se)
-structureElement_setBytesize(se, size)
+structureElement_getBytesize(se): Gets the bytesize of the element. Usually returns the size of the type, except for string and aob
+structureElement_setBytesize(se, size): sets the bytesize for types that are affected (string, aob)
 
 
 
