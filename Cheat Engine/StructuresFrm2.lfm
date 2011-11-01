@@ -86,10 +86,12 @@ object frmStructures2: TfrmStructures2
       object Open1: TMenuItem
         Caption = 'Import'
         ShortCut = 16457
+        OnClick = Open1Click
       end
       object Save1: TMenuItem
         Caption = 'Export'
         ShortCut = 16453
+        OnClick = Save1Click
       end
       object MenuItem2: TMenuItem
         Caption = '-'
@@ -97,6 +99,7 @@ object frmStructures2: TfrmStructures2
       object MenuItem3: TMenuItem
         Caption = 'Save values'
         ShortCut = 16467
+        OnClick = MenuItem3Click
       end
       object N7: TMenuItem
         Caption = '-'
@@ -266,5 +269,24 @@ object frmStructures2: TfrmStructures2
     OnTimer = updatetimerTimer
     left = 264
     top = 80
+  end
+  object OpenDialog1: TOpenDialog
+    DefaultExt = '.CSX'
+    Filter = 'Cheat Engine structure files (*.CES;*.CSX)|*.CES;*.CSX;*.XML|All Files (*.*)|*.*'
+    left = 48
+    top = 192
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.CSX'
+    Filter = 'Cheat Engine structure files (*.CSX)|*.CSX|All Files (*.*)|*.*'
+    Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
+    left = 152
+    top = 192
+  end
+  object saveValues: TSaveDialog
+    DefaultExt = '.txt'
+    Filter = 'Text Files (*.txt)|*.txt'
+    left = 152
+    top = 264
   end
 end

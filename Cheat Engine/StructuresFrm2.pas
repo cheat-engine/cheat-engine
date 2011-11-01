@@ -8,7 +8,8 @@ interface
 uses
   windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls, math,
   StdCtrls, ComCtrls, Menus, lmessages, scrolltreeview, byteinterpreter, symbolhandler, cefuncproc,
-  newkernelhandler, frmSelectionlistunit, frmStructuresConfigUnit, registry, Valuechange, DOM;
+  newkernelhandler, frmSelectionlistunit, frmStructuresConfigUnit, registry, Valuechange, DOM,
+  XMLRead, XMLWrite;
 
 
 
@@ -297,15 +298,19 @@ type
     N8: TMenuItem;
     miNewWindow: TMenuItem;
     Open1: TMenuItem;
+    OpenDialog1: TOpenDialog;
     pnlGroups: TPanel;
     pmStructureView: TPopupMenu;
     Recalculateaddress1: TMenuItem;
     Renamestructure1: TMenuItem;
     Save1: TMenuItem;
+    SaveDialog1: TSaveDialog;
+    saveValues: TSaveDialog;
     Structures1: TMenuItem;
     updatetimer: TTimer;
     tvStructureView: TTreeView;
     procedure Addextraaddress1Click(Sender: TObject);
+    procedure MenuItem3Click(Sender: TObject);
     procedure MenuItem5Click(Sender: TObject);
     procedure miAutoCreateClick(Sender: TObject);
     procedure miAutoDestroyLocalClick(Sender: TObject);
@@ -335,11 +340,13 @@ type
     procedure miAddElementClick(Sender: TObject);
     procedure miShowAddressesClick(Sender: TObject);
     procedure miUpdateOffsetsClick(Sender: TObject);
+    procedure Open1Click(Sender: TObject);
     procedure pmStructureViewPopup(Sender: TObject);
     procedure miNewWindowClick(Sender: TObject);
     procedure miUpdateIntervalClick(Sender: TObject);
     procedure pnlGroupsClick(Sender: TObject);
     procedure Renamestructure1Click(Sender: TObject);
+    procedure Save1Click(Sender: TObject);
     procedure tvStructureViewAdvancedCustomDrawItem(Sender: TCustomTreeView;
       Node: TTreeNode; State: TCustomDrawState; Stage: TCustomDrawStage;
       var PaintImages, DefaultDraw: Boolean);
@@ -1359,7 +1366,7 @@ end;
 
 procedure TStructColumn.DeleteClick(sender: TObject);
 begin
-  if parent.parent.columnCount>0 then //leave one intact
+  if parent.parent.columnCount>1 then //leave one intact
     free;
 end;
 
@@ -1676,10 +1683,8 @@ end;
 destructor TStructColumn.destroy;
 var i: integer;
 begin
-
-
   parent.fcolumns.remove(self);
-  //parent.parent.headercontrol1.Sections.Delete(hsection.Index);
+  parent.parent.headercontrol1.Sections.Delete(parent.parent.HeaderControl1.Sections.Count-1);
 
   clearSavedState;
 
@@ -1690,6 +1695,10 @@ begin
     focusedShape.free;
 
   parent.setPositions;
+
+  if parent.fcolumns.Count=0 then
+    parent.Free;
+
 end;
 
 { Tstructgroup }
@@ -1812,6 +1821,8 @@ begin
 
   if grouppopup<>nil then
     freeandnil(grouppopup);
+
+  setPositions;
 
   inherited destroy;
 end;
@@ -2611,6 +2622,57 @@ begin
   end;
 end;
 
+procedure TfrmStructures2.Open1Click(Sender: TObject);
+var doc: TXMLDocument;
+  structnode: TDOMNode;
+  s: TDissectedStruct;
+begin
+  if Opendialog1.Execute then
+  begin
+    mainstruct:=nil;
+    tvStructureView.items.clear;
+
+    ReadXMLFile(doc, Opendialog1.FileName);
+
+    if doc<>nil then
+    begin
+      structnode:=doc.FindNode('Structures');
+
+      if structnode.ChildNodes.Count>0 then
+        s:=TDissectedStruct.createFromXMLNode(structnode.ChildNodes[0]);
+
+      if s<>nil then
+        s.addToGlobalStructList;
+
+      mainstruct:=s;
+
+
+      onFullStructChange(mainstruct);
+      RefreshStructureList;
+    end;
+
+    doc.Free;
+  end;
+end;
+
+procedure TfrmStructures2.Save1Click(Sender: TObject);
+var doc: TXMLDocument;
+  structnode: TDOMNode;
+begin
+  if mainstruct=nil then exit;
+
+  if Savedialog1.Execute then
+  begin
+    doc:=TXMLDocument.Create;
+    structnode:=TDOMElement(doc.AppendChild(TDOMNode(doc.CreateElement('Structures'))));
+
+    mainstruct.WriteToXMLNode(structnode);
+    WriteXML(structnode, savedialog1.filename);
+
+    doc.Free;
+  end;
+end;
+
 procedure TfrmStructures2.pmStructureViewPopup(Sender: TObject);
 var childstruct: TDissectedStruct;
   ownerstruct: TDissectedStruct;
@@ -2675,6 +2737,9 @@ begin
       mainStruct.name:=newname;
   end;
 end;
+
+
+
 
 procedure TfrmStructures2.tvStructureViewMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -2803,6 +2868,52 @@ end;
 procedure TfrmStructures2.Addextraaddress1Click(Sender: TObject);
 begin
   addColumn;
+end;
+
+procedure TfrmStructures2.MenuItem3Click(Sender: TObject);
+var i,j: integer;
+  se: TStructelement;
+  c: TStructColumn;
+  s: string;
+  f: TStringList;
+  node: TTreenode;
+begin
+  if saveValues.execute then
+  begin
+    f:=tstringlist.create;
+    for i:=0 to tvStructureView.Items.Count-1 do
+    begin
+      node:=tvStructureView.Items[i];
+      s:='';
+      se:=getStructElementFromNode(node);
+
+      if se<>nil then
+      begin
+        for j:=0 to node.level do
+          s:=s+'   ';
+
+        setCurrentNodeStringsInColumns(node,se);
+
+        //column now contains the strings
+        for j:=0 to columnCount-1 do
+        begin
+          c:=columns[j];
+
+          if miShowAddresses.checked then
+            s:=c.currentNodeAddress
+          else
+            s:='';
+
+          s:=s+c.currentNodeValue+'  -  ';
+        end;
+
+      end;
+    end;
+
+    f.free;
+
+
+  end;
 end;
 
 procedure TfrmStructures2.MenuItem5Click(Sender: TObject);
@@ -3023,6 +3134,7 @@ begin
   if frmStructuresConfig.showmodal=mrok then
   begin
     //just apply new colors
+    setupColors; //gets the colors from the structures config
 
    { fDefaultColor:=c.defaultText;
     fMatchColor:=c.equalText;
