@@ -498,6 +498,188 @@ begin
 end;
 
 
+function memoryrecord_string_getSize(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  memoryrecord: Tmemoryrecord;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    memoryrecord:=lua_touserdata(L,-parameters);
+    lua_pop(L, parameters);
+
+    lua_pushinteger(L, memoryrecord.Extra.stringData.length);
+    result:=1;
+  end else lua_pop(L, parameters);
+end;
+
+function memoryrecord_string_setSize(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  memoryrecord: Tmemoryrecord;
+  size: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    memoryrecord:=lua_touserdata(L,-parameters);
+    size:=lua_tointeger(L, -parameters+1);
+    lua_pop(L, parameters);
+
+    memoryrecord.Extra.stringData.length:=size;
+
+  end else lua_pop(L, parameters);
+end;
+
+function memoryrecord_string_getUnicode(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  memoryrecord: Tmemoryrecord;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    memoryrecord:=lua_touserdata(L,-parameters);
+    lua_pop(L, parameters);
+
+    lua_pushboolean(L, memoryrecord.Extra.stringData.unicode);
+    result:=1;
+  end else lua_pop(L, parameters);
+end;
+
+function memoryrecord_string_setUnicode(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  memoryrecord: Tmemoryrecord;
+  unicode: boolean;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    memoryrecord:=lua_touserdata(L,-parameters);
+    unicode:=lua_toboolean(L, -parameters+1);
+    lua_pop(L, parameters);
+
+    memoryrecord.Extra.stringData.unicode:=unicode;
+
+  end else lua_pop(L, parameters);
+end;
+
+function memoryrecord_binary_getStartbit(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  memoryrecord: Tmemoryrecord;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    memoryrecord:=lua_touserdata(L,-parameters);
+    lua_pop(L, parameters);
+
+    lua_pushinteger(L, memoryrecord.Extra.bitData.Bit);
+    result:=1;
+  end else lua_pop(L, parameters);
+end;
+
+function memoryrecord_binary_setStartbit(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  memoryrecord: Tmemoryrecord;
+  Startbit: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    memoryrecord:=lua_touserdata(L,-parameters);
+    Startbit:=lua_tointeger(L, -parameters+1);
+    lua_pop(L, parameters);
+
+    memoryrecord.Extra.bitData.Bit:=Startbit;
+
+  end else lua_pop(L, parameters);
+end;
+
+
+function memoryrecord_binary_getSize(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  memoryrecord: Tmemoryrecord;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    memoryrecord:=lua_touserdata(L,-parameters);
+    lua_pop(L, parameters);
+
+    lua_pushinteger(L, memoryrecord.Extra.bitData.bitlength);
+    result:=1;
+  end else lua_pop(L, parameters);
+end;
+
+function memoryrecord_binary_setSize(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  memoryrecord: Tmemoryrecord;
+  size: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    memoryrecord:=lua_touserdata(L,-parameters);
+    size:=lua_tointeger(L, -parameters+1);
+    lua_pop(L, parameters);
+
+    memoryrecord.Extra.bitData.bitlength:=size;
+
+  end else lua_pop(L, parameters);
+end;
+
+function memoryrecord_aob_getSize(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  memoryrecord: Tmemoryrecord;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    memoryrecord:=lua_touserdata(L,-parameters);
+    lua_pop(L, parameters);
+
+    lua_pushinteger(L, memoryrecord.Extra.byteData.bytelength);
+    result:=1;
+  end else lua_pop(L, parameters);
+end;
+
+function memoryrecord_aob_setSize(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  memoryrecord: Tmemoryrecord;
+  size: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    memoryrecord:=lua_touserdata(L,-parameters);
+    size:=lua_tointeger(L, -parameters+1);
+    lua_pop(L, parameters);
+
+    memoryrecord.Extra.byteData.bytelength:=size;
+
+  end else lua_pop(L, parameters);
+end;
+
+
 function memoryrecord_onActivate(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
@@ -647,6 +829,19 @@ begin
   lua_register(LuaVM, 'memoryrecord_appendToEntry', memoryrecord_appendToEntry);
   lua_register(LuaVM, 'memoryrecord_delete', memoryrecord_delete);
 
+  lua_register(LuaVM, 'memoryrecord_string_getSize', memoryrecord_string_getSize);
+  lua_register(LuaVM, 'memoryrecord_string_setSize', memoryrecord_string_setSize);
+  lua_register(LuaVM, 'memoryrecord_string_getUnicode', memoryrecord_string_getUnicode);
+  lua_register(LuaVM, 'memoryrecord_string_setUnicode', memoryrecord_string_setUnicode);
+  lua_register(LuaVM, 'memoryrecord_binary_getStartbit', memoryrecord_binary_getStartbit);
+  lua_register(LuaVM, 'memoryrecord_binary_setStartbit', memoryrecord_binary_setStartbit);
+  lua_register(LuaVM, 'memoryrecord_binary_getSize', memoryrecord_binary_getSize);
+  lua_register(LuaVM, 'memoryrecord_binary_setSize', memoryrecord_binary_setSize);
+  lua_register(LuaVM, 'memoryrecord_aob_getSize', memoryrecord_aob_getSize);
+  lua_register(LuaVM, 'memoryrecord_aob_setSize', memoryrecord_aob_setSize);
+
+
+
   lua_register(LuaVM, 'memoryrecord_getID', memoryrecord_getID);
   lua_register(LuaVM, 'memoryrecord_getHotkeyCount', memoryrecord_getHotkeyCount);
   lua_register(LuaVM, 'memoryrecord_getHotkey', memoryrecord_getHotkey);
@@ -654,6 +849,7 @@ begin
   lua_register(LuaVM, 'memoryrecord_onActivate', memoryrecord_onActivate);
   lua_register(LuaVM, 'memoryrecord_onDeactivate', memoryrecord_onDeactivate);
   lua_register(LuaVM, 'memoryrecord_onDestroy', memoryrecord_onDestroy);
+
 end;
 
 end.

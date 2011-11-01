@@ -724,6 +724,20 @@ memoryrecord_freeze(te, updownfreeze OPTIONAL): sets the entry to frozen state. 
 memoryrecord_unfreeze(te) :unfreezes an entry
 memoryrecord_setColor(te, colorrgb): Sets the color of the entry
 memoryrecord_appendToEntry(te,te) : Adds the entry to another entry
+
+
+memoryrecord_string_getSize(te):(6.2+) 
+memoryrecord_string_setSize(te, integer):(6.2+) 
+memoryrecord_string_getUnicode(te):(6.2+) 
+memoryrecord_string_setUnicode(te, boolean):(6.2+) 
+memoryrecord_binary_getStartbit(te):(6.2+) 
+memoryrecord_binary_setStartbit(te, integer):(6.2+) 
+memoryrecord_binary_getSize(te):(6.2+) 
+memoryrecord_binary_setSize(te, integer):(6.2+) 
+memoryrecord_aob_getSize(te):(6.2+) 
+memoryrecord_aob_setSize(te, integer):(6.2+) 
+
+
 memoryrecord_isSelected(te): (6.2+) Returns true or false depending on if it's currently selected or not
 memoryrecord_delete(te) : It's unknown what this function does, all that is known is that after using this command other memrec routines with this table entry value don't work anymore...
 
@@ -1100,16 +1114,6 @@ structureElement_getBytesize(se)
 structureElement_setBytesize(se, size)
 
 
-memoryrecord_string_getSize(te)
-memoryrecord_string_setSize(te, integer)
-memoryrecord_string_getUnicode(te)
-memoryrecord_string_setUnicode(te, boolean)
-memoryrecord_binary_getStartbit(te)
-memoryrecord_binary_setStartbit(te, integer)
-memoryrecord_binary_getSize(te)
-memoryrecord_binary_setSize(te, integer)
-memoryrecord_aob_getSize(te)
-memoryrecord_aob_setSize(te, integer)
 
 
 
