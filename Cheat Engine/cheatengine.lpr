@@ -56,7 +56,7 @@ uses
   SymbolListHandler, networkInterface, networkInterfaceApi, networkConfig,
   LuaThread, LuaGraphic, LuaProgressBar, d3dhookUnit, LuaD3DHook, LuaWinControl,
   frmSetCrosshairUnit, StructuresFrm2, scrollTreeView, 
-frmStructures2ElementInfoUnit, frmStructureLinkerUnit, LuaMemoryRecord;
+frmStructures2ElementInfoUnit, frmStructureLinkerUnit, LuaMemoryRecord, LuaStructure;
 
 {$R cheatengine.res}
 {$R manifest.res}

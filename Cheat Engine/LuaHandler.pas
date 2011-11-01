@@ -53,8 +53,7 @@ uses mainunit, frmluaengineunit, plugin, pluginexports, MemoryRecordUnit,
   disassembler, LuaCanvas, LuaPen, LuaFont, LuaBrush, LuaPicture, LuaMenu,
   LuaDebug, LuaThread, LuaGraphic, LuaProgressBar, LuaD3DHook, LuaWinControl,
   LuaMemoryRecord,  MemoryBrowserFormUnit, disassemblerviewunit, hexviewunit,
-  CustomTypeHandler,
-  byteinterpreter;
+  CustomTypeHandler, LuaStructure, byteinterpreter;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -8462,6 +8461,7 @@ begin
     initializeLuaThread;
     initializeLuaGraphic;
     initializeLuaD3DHook;
+    initializeLuaStructure;
 
     s:=tstringlist.create;
     try

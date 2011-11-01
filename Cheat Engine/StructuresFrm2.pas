@@ -724,7 +724,10 @@ end;
 
 function TDissectedStruct.getElement(index: integer): TStructelement;
 begin
-  result:=TStructelement(structelementlist.Items[index]);
+  if (index>=0) and (index<structelementlist.Count) then
+    result:=TStructelement(structelementlist.Items[index])
+  else
+    result:=nil;
 end;
 
 function TDissectedStruct.isUpdating: boolean;
