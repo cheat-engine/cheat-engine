@@ -2889,7 +2889,7 @@ begin
 
       if se<>nil then
       begin
-        for j:=0 to node.level do
+        for j:=0 to node.level-1 do
           s:=s+'   ';
 
         setCurrentNodeStringsInColumns(node,se);
@@ -2909,6 +2909,8 @@ begin
 
       end;
     end;
+
+    f.SaveToFile(saveValues.FileName);
 
     f.free;
 
