@@ -2908,6 +2908,8 @@ begin
         end;
 
       end;
+
+      f.add(s);
     end;
 
     f.SaveToFile(saveValues.FileName);
