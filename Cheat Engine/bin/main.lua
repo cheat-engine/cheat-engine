@@ -70,6 +70,8 @@ speedhack_setSpeed(speed)
 injectDLL(filename): Injects a dll, and returns true on success
 
 
+
+
 registerCustomTypeLua(typename, bytecount, bytestovaluefunction, valuetobytesfunction)
   Registers a Custom type based on lua functions
   The bytes to value function should be defined as "function bytestovalue (b1,b2,b3,b4)" and return an integer as result
@@ -338,13 +340,14 @@ form_onClose(form, function)  : function (sender) : Return a CloseAction to dete
 form_getMenu(form) : Returns the mainmenu object of this form
 form_setMenu(form, mainmenu)
 
-form_setBorderStyle(form, borderstyle): 6.2+: Sets the borderstyle of the window. Possible options: 
+form_setBorderStyle(form, borderstyle): 6.2+: Sets the borderstyle of the window
 form_getBorderStyle
 
 form_getDoNotSaveInTable(form): Returns the DoNotSaveInTable property
 form_setDoNotSaveInTable(form, boolean): Sets the DoNotSaveInTable property
 
-form_printToRasterImage(form, rasterimage): Draws the contents of the form to a rasterimage class object
+form_printToRasterImage(form, rasterimage):6.2+: Draws the contents of the form to a rasterimage class object
+form_dragNow(form): 6.2+: Call this on mousedown on any object if you wish that the mousemove will drag the whole form arround. Useful for borderless windows (Dragging will stop when the mouse button is released)
 
 
 GraphicControl Class: (Inheritance: Control->Component->Object)
@@ -1071,7 +1074,7 @@ d3dhook_initializeHook(overlaystoragesize, hookmessages):
   hookmessages defines if you want to hook the windows message handler for the direct3d window. The d3dhook_onClick function makes use of that
   
 
-  If no size is provided 16MB is is used and hookmessages is true
+  If no size is provided 16MB is used and hookmessages is true
 
   Note: You can call this only once for a process
 
