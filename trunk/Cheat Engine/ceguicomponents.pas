@@ -112,7 +112,7 @@ published
   property OnMouseEnter;
   property OnMouseLeave;
 //  property OnMouseMove;
-//  property OnMouseUp;
+  property OnMouseUp;
   property OnResize;
 //  property OnSelectItem;
  // property OnStartDock;
@@ -145,7 +145,7 @@ published
   property OnMouseEnter;
   property OnMouseLeave;
 //  property OnMouseMove;
-//  property OnMouseUp;
+  property OnMouseUp;
 //  property OnStartDock;
 //  property OnStartDrag;
   property Orientation;
@@ -189,7 +189,7 @@ type TCETrackBar=class(TCustomTrackBar)
     property OnMouseEnter;
     property OnMouseLeave;
  //   property OnMouseMove;
- //   property OnMouseUp;
+    property OnMouseUp;
  //   property OnMouseWheel;
  //   property OnMouseWheelDown;
  //   property OnMouseWheelUp;
@@ -254,7 +254,7 @@ type TCEListBox=class(TCustomListBox)
  //   property OnMeasureItem;
  //   property OnMouseMove;
     property OnMouseDown;
-//    property OnMouseUp;
+    property OnMouseUp;
     property OnMouseEnter;
     property OnMouseLeave;
  //   property OnMouseWheel;
@@ -328,7 +328,7 @@ published
   property OnMouseEnter;
   property OnMouseLeave;
 //  property OnMouseMove;
-//  property OnMouseUp;
+  property OnMouseUp;
  // property OnStartDrag;
   property OnSelect;
  // property OnUTF8KeyPress;
@@ -396,7 +396,7 @@ published
   property OnMouseEnter;
   property OnMouseLeave;
 //  property OnMouseMove;
-//  property OnMouseUp;
+  property OnMouseUp;
   property OnResize;
 //  property OnStartDock;
 //  property OnStartDrag;
@@ -444,7 +444,7 @@ published
     property OnMouseEnter;
     property OnMouseLeave;
  //   property OnMouseMove;
-//    property OnMouseUp;
+    property OnMouseUp;
     property OnResize;
  //   property OnStartDrag;
  //   property OnUTF8KeyPress;
@@ -497,7 +497,7 @@ type TCECheckBox=class(TCustomCheckBox)
     property OnMouseEnter;
     property OnMouseLeave;
   //  property OnMouseMove;
-  //  property OnMouseUp;
+    property OnMouseUp;
     property OnResize;
  //   property OnStartDrag;
  //   property OnUTF8KeyPress;
@@ -541,7 +541,7 @@ type TCEToggleBox=class(TCustomCheckbox)
     property OnMouseEnter;
     property OnMouseLeave;
  //   property OnMouseMove;
-  //  property OnMouseUp;
+    property OnMouseUp;
  //   property OnStartDrag;
     property ParentShowHint;
   //  property PopupMenu;
@@ -595,7 +595,7 @@ type TCEEdit=class(TCustomEdit)
     property OnMouseEnter;
     property OnMouseLeave;
    // property OnMouseMove;
-  //  property OnMouseUp;
+    property OnMouseUp;
     property OnResize;
  //   property OnStartDrag;
   //  property OnUTF8KeyPress;
@@ -691,7 +691,7 @@ type TCEForm=class(TCustomForm)
     property OnMouseEnter;
     property OnMouseLeave;
   //  property OnMouseMove;
- //   property OnMouseUp;
+    property OnMouseUp;
 //    property OnMouseWheel;
 //    property OnMouseWheelDown;
   //  property OnMouseWheelUp;
@@ -759,7 +759,7 @@ type TCEMemo=class(TCustomMemo)
     property OnMouseEnter;
     property OnMouseLeave;
  //   property OnMouseMove;
-//    property OnMouseUp;
+    property OnMouseUp;
  //   property OnMouseWheel;
  //   property OnMouseWheelDown;
  //   property OnMouseWheelUp;
@@ -803,7 +803,7 @@ type TCEImage=class(TCustomImage)
     property OnMouseEnter;
     property OnMouseLeave;
    // property OnMouseMove;
-   // property OnMouseUp;
+    property OnMouseUp;
   //  property OnMouseWheel;
   //  property OnMouseWheelDown;
   //  property OnMouseWheelUp;
@@ -874,7 +874,7 @@ published
     property OnMouseEnter;
     property OnMouseLeave;
   //  property OnMouseMove;
-  //  property OnMouseUp;
+    property OnMouseUp;
     property OnResize;
   //  property OnStartDock;
    // property OnStartDrag;
@@ -916,7 +916,7 @@ published
   //property OnEndDrag;
   property OnMouseDown;
  // property OnMouseMove;
-//  property OnMouseUp;
+  property OnMouseUp;
   property OnMouseEnter;
   property OnMouseLeave;
   property OnChangeBounds;
@@ -962,7 +962,7 @@ type TCEButton=class(TCustomButton)
     property OnMouseEnter;
     property OnMouseLeave;
     //property OnMouseMove;
-    //property OnMouseUp;
+    property OnMouseUp;
     property OnResize;
     //property OnStartDrag;
    // property OnUTF8KeyPress;
