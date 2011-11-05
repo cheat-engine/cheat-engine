@@ -13,7 +13,7 @@ readBytes(address,bytecount, ReturnAsTable ) : returns the bytes at the given ad
   Reads the bytes at the given address and returns a table containing the read out bytes
 
 writeBytes(address, x,x,x,x,...) : Write the given bytes to the given address from a table
-writeBytes(address, table, count) : Write the given bytes to the given address from a table 
+writeBytes(address, table) : Write the given bytes to the given address from a table 
 
 
 readBytesLocal(address,bytecount, ReturnAsTable) : See readBytes but then it's for Cheat engine's memory
@@ -258,6 +258,14 @@ control_onClick(control, functionnameorstring) : Sets the onclick routine
 control_doClick(control): 6.2+: Executes the current function under onClick
 
 
+
+Region Class (6.2+): (Region->GraphicsObject->Object)
+createRegion(): Created an empty region
+region_addRectangle(region, x1, y1, x2, y2): Adds a rectangle to the region
+region_addPolygon(region, tablewithcoordinates): Adds an array of 2D locations. (example : {{0,0},{100,100}, {0,100}} for a triangle )
+
+
+
 WinControl Class: (Inheritance: Control->Component->Object)
 wincontrol_getControlCount(wincontrol)  Returns the number of Controls attached to this class
 wincontrol_getControl(wincontrol,index) : Returns a WinControl class object
@@ -265,6 +273,8 @@ wincontrol_getControlAtPos(wincontrol, x,y): 6.2: Gets the control at the given 
 wincontrol_canFocus(wincontrol): returns true if the object can be focused
 wincontrol_focused(wincontrol): returns boolean true when focused
 wincontrol_setFocus(wincontrol): tries to set keyboard focus the object
+wincontrol_setShape(wincontrol, Region):6.2+: Sets the region object as the new shape for this wincontrol
+wincontrol_setShape(wincontrol, Bitmap):6.2+
 wincontrol_onEnter(wincontrol, function) : Sets an onEnter event. (Triggered on focus enter)
 wincontrol_onExit(wincontrol, function) : Sets an onExit event. (Triggered on lost focus)
 
@@ -1135,3 +1145,5 @@ d3dhook_endUpdate() : When done updating, call this function to apply the change
 --]]
 
 
+--[[ not yet implemented
+--]]

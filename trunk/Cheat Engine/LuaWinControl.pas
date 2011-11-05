@@ -5,7 +5,7 @@ unit LuaWinControl;
 interface
 
 uses
-  Classes, SysUtils, controls, lua, lualib, lauxlib,LuaHandler;
+  Classes, SysUtils, controls, lua, lualib, lauxlib,LuaHandler, graphics;
 
 procedure initializeLuaWinControl;
 
@@ -208,6 +208,31 @@ begin
   lua_pop(L, parameters);
 end;
 
+function wincontrol_setShape(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  wincontrol: TWinControl;
+  x: TObject;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    wincontrol:=lua_touserdata(L,1);
+    x:=lua_touserdata(L, 2);
+
+    if (x is TBitmap) then
+      wincontrol.SetShape(TBitmap(x))
+    else
+    if (x is TRegion) then
+      wincontrol.SetShape(TRegion(x))
+
+
+  end;
+
+  lua_pop(L, parameters);
+end;
+
 procedure initializeLuaWinControl;
 begin
   lua_register(LuaVM, 'wincontrol_getControlCount', wincontrol_getControlCount);
@@ -218,6 +243,8 @@ begin
   lua_register(LuaVM, 'wincontrol_canFocus', wincontrol_canFocus);
   lua_register(LuaVM, 'wincontrol_focused', wincontrol_focused);
   lua_register(LuaVM, 'wincontrol_setFocus', wincontrol_setFocus);
+  lua_register(LuaVM, 'wincontrol_setShape', wincontrol_setShape);
+
 end;
 
 end.
