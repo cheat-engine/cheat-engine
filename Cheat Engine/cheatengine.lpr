@@ -57,7 +57,7 @@ uses
   LuaThread, LuaGraphic, LuaProgressBar, d3dhookUnit, LuaD3DHook, LuaWinControl,
   frmSetCrosshairUnit, StructuresFrm2, scrollTreeView,
   frmStructures2ElementInfoUnit, frmStructureLinkerUnit, LuaMemoryRecord,
-  LuaStructure, LuaForm;
+  LuaStructure, LuaForm, regionex, LuaRegion;
 
 {$R cheatengine.res}
 {$R manifest.res}

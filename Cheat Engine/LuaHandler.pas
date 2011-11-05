@@ -53,7 +53,7 @@ uses mainunit, frmluaengineunit, plugin, pluginexports, MemoryRecordUnit,
   disassembler, LuaCanvas, LuaPen, LuaFont, LuaBrush, LuaPicture, LuaMenu,
   LuaDebug, LuaThread, LuaGraphic, LuaProgressBar, LuaD3DHook, LuaWinControl,
   LuaMemoryRecord, LuaForm, MemoryBrowserFormUnit, disassemblerviewunit, hexviewunit,
-  CustomTypeHandler, LuaStructure, byteinterpreter;
+  CustomTypeHandler, LuaStructure, LuaRegion, byteinterpreter;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -1184,21 +1184,18 @@ begin
   else
     address:=lua_tointeger(L,-parameters);
 
-  if lua_istable(L, -parameters+1) then
+  if lua_istable(L, 2) then
   begin
-    parameters:=lua_tointeger(L, -parameters+2) +1; //+1 to be compatible with the non table version
+    parameters:=lua_objlen(L, 2);
+    setlength(bytes, parameters);
 
-
-    setlength(bytes,parameters-1);
-
-    for i:=0 to parameters-2 do
+    for i:=1 to parameters do
     begin
       lua_pushinteger(L,i);
-      lua_gettable(L, -3);
+      lua_gettable(L, 2);
 
       j:=lua_tointeger(L,-1);
-      bytes[i]:=j;
-//      showmessage(inttostr(i)+','+inttostr(j));
+      bytes[i-1]:=j;
       lua_pop(L,1);
     end;
   end
@@ -8070,6 +8067,7 @@ begin
     initializeLuaGraphic;
     initializeLuaD3DHook;
     initializeLuaStructure;
+    initializeLuaRegion;
 
     s:=tstringlist.create;
     try
