@@ -2117,7 +2117,7 @@ begin
   if length(token)=0 then exit; //empty string
 
 
-  quotechar:="";
+  quotechar:=#0;
 
   setlength(tokens,0);
   result:=false;
@@ -2270,7 +2270,7 @@ var i,j,last: integer;
     t: string;
     ispartial: boolean;
 begin
-  quotechar:="";
+  quotechar:=#0;
   setlength(tokens,0);
 
   while (length(opcode)>0) and ((opcode[length(opcode)]=' ') or (opcode[length(opcode)]=',')) do

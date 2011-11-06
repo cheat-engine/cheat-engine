@@ -176,6 +176,8 @@ var buf: PByteArray;
   str: string;
   index, len: integer;
 begin
+  totalhandled:=0;
+
   try
     //get memory regions
     buf:=nil;

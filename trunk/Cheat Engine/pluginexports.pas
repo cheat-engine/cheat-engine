@@ -2195,7 +2195,7 @@ begin
   end;
 
   p.buttons:=buttoncombination;
-  result:=integer(pluginsync(ce_messageDialog2, @p));
+  result:=ptruint(pluginsync(ce_messageDialog2, @p));
 
 end;
 
@@ -2581,7 +2581,7 @@ begin
   p.propertyname:=propertyname;
   p.value:=value;
   p.maxsize:=maxsize;
-  result:=integer(pluginsync(ce_getProperty2, @p));
+  result:=ptruint(pluginsync(ce_getProperty2, @p));
 end;
 
 

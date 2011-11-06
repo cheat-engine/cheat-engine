@@ -23,11 +23,9 @@ implementation
 procedure TRegionEx.AddPolygon(polygon: array of POINT);
 var
   lRGN: HRGN;
-  h: THandle;
 begin
   lRGN := CreatePolygonRgn(polygon[0], length(polygon), WINDING);
-  h:=GetHandle;
-  CombineRgn(h, h, lRGN, RGN_OR);
+  CombineRgn(Handle, Handle, lRGN, RGN_OR);
   DeleteObject(lRGN);
 end;
 

@@ -331,6 +331,7 @@ begin
 
   GlobalDesignHook.AddHandlerComponentRenamed(OnComponentRenamed);
 
+  setlength(x,0);
   loadedfromsave:=loadformposition(self, x);
 
   methodlist:=tstringlist.create;
@@ -768,7 +769,7 @@ end;
 procedure tformdesigner.ofm(Reader: TReader; const MethodName: string; var Address: Pointer; var Error: Boolean);
 begin
  // showmessage('OnFindMethod:'+MethodName);
-  address:=0;
+  address:=nil;
   error:=false;
 end;
 
@@ -810,6 +811,7 @@ begin
 
     oid.Selection.Add(f);
 
+    setlength(x,0);
     if not loadformposition(oid, x) then
     begin
       oid.left:=0;

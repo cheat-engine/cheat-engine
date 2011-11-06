@@ -59,7 +59,7 @@ uses networkInterfaceApi;
 
 type TDiscovery=class(tthread)
   private
-    s: integer;
+    s: cint;
 
     server: record
       ip: string;
