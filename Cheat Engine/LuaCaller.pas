@@ -24,6 +24,7 @@ type
       owner: TPersistent;
       procedure NotifyEvent(sender: TObject);
       procedure MouseEvent(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+      procedure MouseMoveEvent(Sender: TObject; Shift: TShiftState; X, Y: Integer);
       procedure KeyPressEvent(Sender: TObject; var Key: char);
       procedure LVCheckedItemEvent(Sender: TObject; Item: TListItem); //personal request to have this one added
       procedure CloseEvent(Sender: TObject; var CloseAction: TCloseAction);
@@ -270,6 +271,24 @@ begin
 
 
 
+  finally
+    lua_settop(Luavm, oldstack);
+    luacs.leave;
+  end;
+end;
+
+procedure TLuaCaller.MouseMoveEvent(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+var oldstack: integer;
+begin
+  Luacs.enter;
+  try
+    oldstack:=lua_gettop(Luavm);
+    pushFunction;
+    lua_pushlightuserdata(luavm, sender);
+    lua_pushinteger(luavm, x);
+    lua_pushinteger(luavm, y);
+
+    lua_pcall(LuaVM, 3, 0, 0);
   finally
     lua_settop(Luavm, oldstack);
     luacs.leave;

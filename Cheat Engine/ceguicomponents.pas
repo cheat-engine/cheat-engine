@@ -111,7 +111,7 @@ published
   property OnMouseDown;
   property OnMouseEnter;
   property OnMouseLeave;
-//  property OnMouseMove;
+  property OnMouseMove;
   property OnMouseUp;
   property OnResize;
 //  property OnSelectItem;
@@ -144,7 +144,7 @@ published
   property OnMouseDown;
   property OnMouseEnter;
   property OnMouseLeave;
-//  property OnMouseMove;
+  property OnMouseMove;
   property OnMouseUp;
 //  property OnStartDock;
 //  property OnStartDrag;
@@ -188,7 +188,7 @@ type TCETrackBar=class(TCustomTrackBar)
     property OnMouseDown;
     property OnMouseEnter;
     property OnMouseLeave;
- //   property OnMouseMove;
+    property OnMouseMove;
     property OnMouseUp;
  //   property OnMouseWheel;
  //   property OnMouseWheelDown;
@@ -252,7 +252,7 @@ type TCEListBox=class(TCustomListBox)
  //   property OnKeyDown;
  //   property OnKeyUp;
  //   property OnMeasureItem;
- //   property OnMouseMove;
+    property OnMouseMove;
     property OnMouseDown;
     property OnMouseUp;
     property OnMouseEnter;
@@ -327,7 +327,7 @@ published
   property OnMouseDown;
   property OnMouseEnter;
   property OnMouseLeave;
-//  property OnMouseMove;
+  property OnMouseMove;
   property OnMouseUp;
  // property OnStartDrag;
   property OnSelect;
@@ -395,7 +395,7 @@ published
   property OnMouseDown;
   property OnMouseEnter;
   property OnMouseLeave;
-//  property OnMouseMove;
+  property OnMouseMove;
   property OnMouseUp;
   property OnResize;
 //  property OnStartDock;
@@ -443,7 +443,7 @@ published
     property OnMouseDown;
     property OnMouseEnter;
     property OnMouseLeave;
- //   property OnMouseMove;
+    property OnMouseMove;
     property OnMouseUp;
     property OnResize;
  //   property OnStartDrag;
@@ -496,7 +496,7 @@ type TCECheckBox=class(TCustomCheckBox)
     property OnMouseDown;
     property OnMouseEnter;
     property OnMouseLeave;
-  //  property OnMouseMove;
+    property OnMouseMove;
     property OnMouseUp;
     property OnResize;
  //   property OnStartDrag;
@@ -540,7 +540,7 @@ type TCEToggleBox=class(TCustomCheckbox)
     property OnMouseDown;
     property OnMouseEnter;
     property OnMouseLeave;
- //   property OnMouseMove;
+    property OnMouseMove;
     property OnMouseUp;
  //   property OnStartDrag;
     property ParentShowHint;
@@ -594,7 +594,7 @@ type TCEEdit=class(TCustomEdit)
     property OnMouseDown;
     property OnMouseEnter;
     property OnMouseLeave;
-   // property OnMouseMove;
+    property OnMouseMove;
     property OnMouseUp;
     property OnResize;
  //   property OnStartDrag;
@@ -692,7 +692,7 @@ type TCEForm=class(TCustomForm)
     property OnMouseDown;
     property OnMouseEnter;
     property OnMouseLeave;
-  //  property OnMouseMove;
+    property OnMouseMove;
     property OnMouseUp;
 //    property OnMouseWheel;
 //    property OnMouseWheelDown;
@@ -760,7 +760,7 @@ type TCEMemo=class(TCustomMemo)
     property OnMouseDown;
     property OnMouseEnter;
     property OnMouseLeave;
- //   property OnMouseMove;
+    property OnMouseMove;
     property OnMouseUp;
  //   property OnMouseWheel;
  //   property OnMouseWheelDown;
@@ -804,7 +804,7 @@ type TCEImage=class(TCustomImage)
     property OnMouseDown;
     property OnMouseEnter;
     property OnMouseLeave;
-   // property OnMouseMove;
+    property OnMouseMove;
     property OnMouseUp;
   //  property OnMouseWheel;
   //  property OnMouseWheelDown;
@@ -875,7 +875,7 @@ published
     property OnMouseDown;
     property OnMouseEnter;
     property OnMouseLeave;
-  //  property OnMouseMove;
+    property OnMouseMove;
     property OnMouseUp;
     property OnResize;
   //  property OnStartDock;
@@ -917,7 +917,7 @@ published
   //property OnDragOver;
   //property OnEndDrag;
   property OnMouseDown;
- // property OnMouseMove;
+  property OnMouseMove;
   property OnMouseUp;
   property OnMouseEnter;
   property OnMouseLeave;
@@ -963,7 +963,7 @@ type TCEButton=class(TCustomButton)
     property OnMouseDown;
     property OnMouseEnter;
     property OnMouseLeave;
-    //property OnMouseMove;
+    property OnMouseMove;
     property OnMouseUp;
     property OnResize;
     //property OnStartDrag;
@@ -1111,6 +1111,7 @@ begin
 
 
   //I wonder if I could use a case here...
+  //Note: If changed here, also change in formDesigner.pas at method TFormDesigner.onCreateMethod
   if propinfo.PropType=TypeInfo(TLVCheckedItemEvent) then
     SetMethodProp(instance, propinfo, TMethod(TLVCheckedItemEvent(t.LVCheckedItemEvent)))
   else
@@ -1119,6 +1120,9 @@ begin
   else
   if propinfo.PropType=TypeInfo(TMouseEvent) then
     SetMethodProp(instance, propinfo, TMethod(TMouseEvent(t.MouseEvent)))
+  else
+  if propinfo.PropType=TypeInfo(TMouseMoveEvent) then
+    SetMethodProp(instance, propinfo, TMethod(TMouseMoveEvent(t.MouseMoveEvent)))
   else
   if propinfo.PropType=TypeInfo(TKeyPressEvent) then
     SetMethodProp(instance, propinfo, TMethod(TKeyPressEvent(t.KeyPressEvent)))
