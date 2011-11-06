@@ -5158,7 +5158,7 @@ begin
 end;
 
 procedure TMemscan.DeleteScanfolder;
-var usedtempdir,tempdiralternative: string;
+var usedtempdir: string;
     Info : TSearchRec;
     f: string;
     age: longint;

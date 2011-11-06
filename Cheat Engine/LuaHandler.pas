@@ -3461,6 +3461,7 @@ var parameters: integer;
 
   size: integer;
 begin
+  buf:=nil;
   result:=0;
   parameters:=lua_gettop(L);
   if parameters=2 then
@@ -5552,7 +5553,7 @@ begin
         s:=TLuafile(mainform.Luafiles[i]).stream;
 
         s.position:=0;
-        lua_pushlightuserdata(L, TLuafile(s));
+        lua_pushlightuserdata(L, s);
         result:=1;
       end;
 
@@ -7507,7 +7508,7 @@ begin
     i:=lua_tointeger(L,-1);
     lua_pop(L, parameters);
 
-    lua_pushlightuserdata(L, pointer(i));
+    lua_pushlightuserdata(L, pointer(ptruint(i)));
     result:=1;
 
   end else lua_pop(L, parameters);

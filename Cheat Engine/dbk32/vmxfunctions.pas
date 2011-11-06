@@ -658,6 +658,7 @@ function dbvm_localIntHandler(x: pointer): integer;
 var c: PCommand;
     i,j,k: integer;
 begin
+  result:=0;
   //kernelmode. IRQL=passive
   c:=x;
   case c.command of

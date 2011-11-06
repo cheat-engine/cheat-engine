@@ -59,7 +59,7 @@ end;
 function TWindowsDebuggerInterface.DebugActiveProcessStop(dwProcessID: DWORD): BOOL;
 begin
   if assigned(CEDebugger.DebugActiveProcessStop) then
-    CEDebugger.DebugActiveProcessStop(dwProcessID);
+    result:=CEDebugger.DebugActiveProcessStop(dwProcessID);
 end;
 
 function TWindowsDebuggerInterface.DebugActiveProcess(dwProcessId: DWORD): WINBOOL;

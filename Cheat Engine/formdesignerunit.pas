@@ -167,7 +167,7 @@ begin
   begin
     f:=TCEForm(GlobalDesignHook.LookupRoot);
 
-    f.LoadFromFile(OpenDialog1.filename);
+    f.LoadFromFile(UTF8ToAnsi(OpenDialog1.filename));
     setFormName;
   end;
 end;
@@ -179,7 +179,7 @@ begin
   begin
     f:=TCEForm(GlobalDesignHook.LookupRoot);
 
-    f.SaveToFile(Savedialog1.filename);
+    f.SaveToFile(Utf8ToAnsi(Savedialog1.filename));
   end;
 end;
 
