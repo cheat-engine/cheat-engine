@@ -1,12 +1,13 @@
 object FormDesigner: TFormDesigner
   Left = 414
-  Height = 35
+  Height = 55
   Top = 148
   Width = 794
   BorderStyle = bsSizeToolWin
-  Caption = 'FormDesigner'
+  Caption = 'Form Designer'
   ClientHeight = 35
   ClientWidth = 794
+  Menu = MainMenu1
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -1948,5 +1949,31 @@ object FormDesigner: TFormDesigner
       Caption = 'Send to back'
       OnClick = miSendToBackClick
     end
+  end
+  object MainMenu1: TMainMenu
+    left = 632
+    object MenuItem1: TMenuItem
+      Caption = 'File'
+      object miSave: TMenuItem
+        Caption = 'Save'
+        OnClick = miSaveClick
+      end
+      object miLoad: TMenuItem
+        Caption = 'Load'
+        OnClick = miLoadClick
+      end
+    end
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.FRM'
+    Filter = 'Form files(*.frm)|*.FRM'
+    left = 192
+    top = 88
+  end
+  object OpenDialog1: TOpenDialog
+    DefaultExt = '.FRM'
+    Filter = 'Form files(*.frm)|*.FRM'
+    left = 336
+    top = 88
   end
 end

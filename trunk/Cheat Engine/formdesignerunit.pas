@@ -22,9 +22,15 @@ type
 
   TFormDesigner = Class(TForm)
     ImageList1: TImageList;
+    MainMenu1: TMainMenu;
+    MenuItem1: TMenuItem;
+    miSave: TMenuItem;
+    miLoad: TMenuItem;
     miBringToFront: TMenuItem;
     miSendToBack: TMenuItem;
+    OpenDialog1: TOpenDialog;
     PopupMenu1: TPopupMenu;
+    SaveDialog1: TSaveDialog;
     ToolBar1: TToolBar;
     CEButton: TToolButton;
     CELabel: TToolButton;
@@ -53,6 +59,8 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure foundlist3Data(Sender: TObject; Item: TListItem);
+    procedure miLoadClick(Sender: TObject);
+    procedure miSaveClick(Sender: TObject);
     procedure miBringToFrontClick(Sender: TObject);
     procedure miSendToBackClick(Sender: TObject);
     procedure TBClick(Sender: TObject);
@@ -84,6 +92,7 @@ type
     function CompatibleMethodExists(const Name: String; InstProp: PInstProp; var MethodIsCompatible,MethodIsPublished,IdentIsMethod: boolean):boolean;
 
     procedure OnComponentRenamed(AComponent: TComponent);
+    procedure setFormName;
   public
     { public declarations }
     oid:TObjectInspectorDlg;
@@ -137,11 +146,40 @@ uses mainunit;
 
 resourcestring
   rsInvalidObject = '{Invalid object}';
+  rsFormDesignerCaption = 'Form Designer';
+
+procedure TFormDesigner.setFormName;
+begin
+  if (GlobalDesignHook.LookupRoot<>nil) and (GlobalDesignHook.LookupRoot is TComponent) then
+    caption:='Form Designer'+':'+TComponent(GlobalDesignHook.LookupRoot).name;
+end;
 
 procedure TFormDesigner.foundlist3Data(Sender: TObject; Item: TListItem);
 begin
   item.caption:=inttostr(item.index);
   item.SubItems.Add(inttostr(globalcounter*(1+item.index)));
+end;
+
+procedure TFormDesigner.miLoadClick(Sender: TObject);
+var f: TCeform;
+begin
+  if (GlobalDesignHook.LookupRoot<>nil) and (GlobalDesignHook.LookupRoot is TCEForm) and (OpenDialog1.Execute) then
+  begin
+    f:=TCEForm(GlobalDesignHook.LookupRoot);
+
+    f.LoadFromFile(OpenDialog1.filename);
+  end;
+end;
+
+procedure TFormDesigner.miSaveClick(Sender: TObject);
+var f: TCeform;
+begin
+  if (GlobalDesignHook.LookupRoot<>nil) and (GlobalDesignHook.LookupRoot is TCEForm) and (SaveDialog1.Execute) then
+  begin
+    f:=TCEForm(GlobalDesignHook.LookupRoot);
+
+    f.SaveToFile(Savedialog1.filename);
+  end;
 end;
 
 procedure TFormDesigner.miBringToFrontClick(Sender: TObject);
@@ -245,7 +283,10 @@ end;
 procedure TFormDesigner.OnComponentRenamed(AComponent: TComponent);
 begin
   if (AComponent is TCustomForm) then
-    Lua_RegisterObject(AComponent.name, AComponent)
+  begin
+    Lua_RegisterObject(AComponent.name, AComponent);
+    setFormName;
+  end
   else
     Lua_RegisterObject(TCustomForm(GlobalDesignHook.LookupRoot).name +'_'+AComponent.Name, AComponent);
 end;
@@ -310,7 +351,7 @@ end;
 
 procedure TFormDesigner.FormShow(Sender: TObject);
 begin
-  clientheight:=toolbar1.height;
+  self.clientheight:=toolbar1.height;
 end;
 
 
@@ -737,6 +778,8 @@ var x: array of integer;
   r: trect;
 begin
   GlobalDesignHook.LookupRoot:=f;
+
+  setFormName;
 
   if oid=nil then //no oid yet
   begin

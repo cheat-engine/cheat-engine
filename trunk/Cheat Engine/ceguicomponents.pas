@@ -10,7 +10,7 @@ interface
 uses
   zstream, Classes, SysUtils, Controls, forms,ComCtrls, StdCtrls, ExtCtrls, Buttons, lcltype,
   dialogs, JvDesignSurface, DOM, typinfo, LResources, JvDesignImp, JvDesignUtils,
-  graphics, math;
+  graphics, math, xmlread,xmlwrite;
 
 type TCESplitter=class(TCustomSplitter)
   property Align;
@@ -628,6 +628,8 @@ type TCEForm=class(TCustomForm)
     designsurface: TJvDesignSurface;
     procedure ResyncWithLua(Base: TComponent); overload;
     procedure ResyncWithLua; overload;
+    procedure SaveToFile(filename: string);
+    procedure LoadFromFile(filename: string);
     procedure SaveToXML(Node: TDOMNode);
     procedure LoadFromXML(Node: TDOMNode);
     procedure RestoreToDesignState;
@@ -1246,7 +1248,12 @@ var s: string;
   read: integer;
 
   realsize: dword;
+  wasActive: boolean;
 begin
+  wasActive:=active;
+  active:=false;
+
+
   if saveddesign=nil then
     saveddesign:=TMemorystream.create;
 
@@ -1276,6 +1283,40 @@ begin
   end;
 
   RestoreToDesignState;
+
+  active:=wasActive;
+end;
+
+procedure TCEForm.SaveToFile(filename: string);
+var
+  xmldoc: TXMLDocument;
+  formnode: TDOMNode;
+begin
+  xmldoc:=TXMLDocument.Create;
+
+  formnode:=xmldoc.appendchild(xmldoc.createElement('FormData'));
+
+  SaveCurrentStateasDesign;
+  SaveToXML(formnode);
+
+  WriteXML(xmldoc, filename);
+end;
+
+procedure TCEForm.LoadFromFile(filename: string);
+var
+  formnode: TDOMNode;
+  xmldoc: TXMLDocument;
+begin
+  xmldoc:=nil;
+  ReadXMLFile(xmldoc, filename);
+
+  if xmldoc<>nil then
+  begin
+    formnode:=xmldoc.FindNode('FormData');
+
+    LoadFromXML(formnode);
+    ResyncWithLua;
+  end;
 end;
 
 procedure TCEForm.paint;

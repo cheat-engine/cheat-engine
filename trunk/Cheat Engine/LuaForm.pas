@@ -250,8 +250,7 @@ end;
 function createFormFromFile(L: Plua_State): integer; cdecl;
 var filename: string;
   f: TCEForm;
-  formnode: TDOMNode;
-  xmldoc: TXMLDocument;
+
   parameters: integer;
 begin
   result:=0;
@@ -262,19 +261,12 @@ begin
     lua_pop(L, lua_gettop(L));
 
     try
-      xmldoc:=nil;
-      ReadXMLFile(xmldoc, filename);
+      f:=TCEForm.Create(application);
+      f.LoadFromFile(filename);
 
-      if xmldoc<>nil then
-      begin
-        formnode:=xmldoc.FindNode('FormData');
-        f:=TCEForm.Create(application);
-        f.LoadFromXML(formnode);
-        f.ResyncWithLua;
 
-        lua_pushlightuserdata(L, f);
-        result:=1;
-      end;
+      lua_pushlightuserdata(L, f);
+      result:=1;
     except
       on e: exception do
       begin
@@ -291,9 +283,6 @@ function form_saveToFile(L: Plua_State): integer; cdecl;
 var parameters: integer;
   f: TCEForm;
   filename: string;
-
-  xmldoc: TXMLDocument;
-  formnode: TDOMNode;
 begin
   result:=0;
   parameters:=lua_gettop(L);
@@ -305,17 +294,9 @@ begin
 
     if (f is TCEForm) then
     begin
-
-
       try
-        xmldoc:=TXMLDocument.Create;
-
-        formnode:=xmldoc.appendchild(xmldoc.createElement('FormData'));
-
-        f.SaveCurrentStateasDesign;
-        f.SaveToXML(formnode);
-
-        WriteXML(xmldoc, filename);
+        f.SaveToFile(filename);
+        //no errors
 
         result:=1;
         lua_pushboolean(L, true);
