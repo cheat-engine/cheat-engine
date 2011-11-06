@@ -1042,10 +1042,12 @@ begin
       for i:=0 to sl.count-1 do
       begin
         extradata:=pointer(sl.Objects[i]);
-        SymbolRecord:=symbols.AppendChild(doc.CreateElement('SymbolEntry'));
-        SymbolRecord.AppendChild(doc.CreateElement('Name')).TextContent:=sl[i];
-
-        SymbolRecord.AppendChild(doc.CreateElement('Address')).TextContent:=extradata.addressstring;
+        if extradata.doNotSave=false then
+        begin
+          SymbolRecord:=symbols.AppendChild(doc.CreateElement('SymbolEntry'));
+          SymbolRecord.AppendChild(doc.CreateElement('Name')).TextContent:=sl[i];
+          SymbolRecord.AppendChild(doc.CreateElement('Address')).TextContent:=extradata.addressstring;
+        end;
       end;
     end;
   finally

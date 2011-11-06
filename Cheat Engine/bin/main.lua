@@ -770,7 +770,7 @@ addresslist_getSelectedRecords(Addresslist): 6.2+: Returns a table of all the se
 
 
 
-registerSymbol(symbolname, address)
+registerSymbol(symbolname, address, OPTIONAL donotsave): Registers a userdefined symbol. If donotsave is true this symbol will not get saved when the table is saved
 unregisterSymbol(symbolname)
 
 getNameFromAddress(address)
