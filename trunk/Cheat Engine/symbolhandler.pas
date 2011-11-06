@@ -26,6 +26,7 @@ type TUDSEnum=record
   address: ptrUint;
   allocsize: dword;
   addressstring: pchar; //points to the string
+  doNotSave: boolean;
 end;
 
 type symexception=class(Exception);
@@ -38,6 +39,7 @@ type TUserdefinedsymbol=record
 
   allocsize: dword; //if it is a global alloc, allocsize>0
   processid: dword; //the processid this memory was allocated to (in case of processswitches)
+  doNotSave: boolean; //if true this will cause this entry to not be saved when the user saves the table
 end;
 
 type TModuleInfo=record
@@ -157,7 +159,7 @@ type
     function GetUserdefinedSymbolByName(symbolname:string):ptrUint;
     function SetUserdefinedSymbolAllocSize(symbolname:string; size: dword): boolean;
     function GetUserdefinedSymbolByAddress(address:ptrUint):string;
-    procedure AddUserdefinedSymbol(addressstring: string; symbolname: string);
+    procedure AddUserdefinedSymbol(addressstring: string; symbolname: string; donotsave: boolean=false);
     procedure EnumerateUserdefinedSymbols(list:tstrings);
 
     function ParseAsPointer(s: string; list:tstrings): boolean;
@@ -722,7 +724,7 @@ begin
   end;
 end;
 
-procedure TSymhandler.AddUserdefinedSymbol(addressstring: string; symbolname: string);
+procedure TSymhandler.AddUserdefinedSymbol(addressstring: string; symbolname: string; DoNotSave: Boolean=false);
 {
 This routine will add the symbolname+address combination to the symbollist
 }
@@ -744,6 +746,7 @@ begin
     userdefinedsymbols[userdefinedsymbolspos].symbolname:=symbolname;
     userdefinedsymbols[userdefinedsymbolspos].allocsize:=0;
     userdefinedsymbols[userdefinedsymbolspos].processid:=0;
+    userdefinedsymbols[userdefinedsymbolspos].doNotSave:=DoNotSave;
     inc(userdefinedsymbolspos);
   finally
     userdefinedsymbolsMREW.endwrite;
@@ -771,6 +774,7 @@ begin
     extradata.address:=userdefinedsymbols[i].address;
     extradata.allocsize:=userdefinedsymbols[i].allocsize;
     extradata.addressstring:=@userdefinedsymbols[i].addressstring[1];
+    extradata.doNotSave:=userdefinedsymbols[i].doNotSave;
 
     list.Addobject(userdefinedsymbols[i].symbolname,pointer(extradata));
     //just don't forget to free it at the caller's end

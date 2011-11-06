@@ -5769,19 +5769,24 @@ function registerSymbol(L: Plua_State): integer; cdecl;
 var parameters: integer;
   symbolname: string;
   address: string;
+  donotsave: boolean;
 begin
   result:=0;
 
   parameters:=lua_gettop(L);
-  if (parameters=2) then
+  if (parameters>=2) then
   begin
-    symbolname:=Lua_ToString(L, -2);
-    if lua_isstring(L, -1) then
-      address:=lua_tostring(L,-1)
+    symbolname:=Lua_ToString(L, -parameters);
+    if lua_isstring(L, -parameters+1) then
+      address:=lua_tostring(L,-parameters+1)
     else
-      address:=IntToHex(lua_tointeger(L,-1),1);
+      address:=IntToHex(lua_tointeger(L,-parameters+1),1);
 
-    symhandler.AddUserdefinedSymbol(address, symbolname);
+
+    donotsave:=(parameters>=3) and (lua_toboolean(L, -parameters+2));
+
+
+    symhandler.AddUserdefinedSymbol(address, symbolname, donotsave);
   end;
 
   lua_pop(L, lua_gettop(L));
