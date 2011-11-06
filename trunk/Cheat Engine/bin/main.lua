@@ -250,7 +250,7 @@ control_setVisible(control, boolean) : sets the visible state of the control
 control_getColor(control) : gets the color
 control_setColor(control, rgb) : Sets the color
 control_getParent(control) : Returns nil or an object that inherits from the Wincontrol class
-control_setParent(control) : Sets the parent for this control
+control_setParent(control, wincontrol) : Sets the parent for this control
 control_getPopupMenu(control)
 control_setPopupMenu(control)
 control_getFont(label): 6.2+: Returns the Font object of this object

@@ -168,6 +168,7 @@ begin
     f:=TCEForm(GlobalDesignHook.LookupRoot);
 
     f.LoadFromFile(OpenDialog1.filename);
+    setFormName;
   end;
 end;
 
@@ -458,6 +459,7 @@ begin
 
   oid.RefreshPropertyValues;
 
+  setFormName;
 end;
 
 procedure TFormDesigner.surfaceOnChange(sender: tobject);
@@ -559,6 +561,22 @@ begin
       with mainform.frmLuaTableScript.assemblescreen.Lines do
       begin
         Add('function '+name+'(sender, button, x, y)');
+        Add('');
+        Add('end');
+        Add('');
+      end;
+    end;
+  end
+  else
+  if ATypeInfo.Name ='TMouseMoveEvent' then
+  begin
+    result:=TMethod(TMouseMoveEvent(f.MouseMoveEvent));
+
+    if NeedsToBeCreated then
+    begin
+      with mainform.frmLuaTableScript.assemblescreen.Lines do
+      begin
+        Add('function '+name+'(sender, x, y)');
         Add('');
         Add('end');
         Add('');

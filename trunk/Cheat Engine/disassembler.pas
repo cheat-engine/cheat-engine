@@ -105,6 +105,7 @@ type
       iscall: boolean; //set if it's a call
       isret: boolean; //set if it's a ret
       isconditionaljump: boolean; //set if it's only effective when an conditon is met
+
     end;
 
 
@@ -8674,7 +8675,7 @@ begin
                                end;
 
                            2:  begin
-                                 description:='store real';
+                                 description:='store single';
                                  lastdisassembledata.opcode:='fst';
                                  lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,32);
 
@@ -8682,7 +8683,7 @@ begin
                                end;
 
                            3:  begin
-                                 description:='store real';
+                                 description:='store single';
                                  lastdisassembledata.opcode:='fstp';
                                  lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,32);
 
@@ -9073,7 +9074,7 @@ begin
                                   end;
 
                               7:  begin
-                                    description:='store real';
+                                    description:='store extended';
                                     lastdisassembledata.opcode:='fstp';
                                     lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,80);
 
@@ -9282,7 +9283,7 @@ begin
                                  end;
 
                              2:  begin
-                                   description:='store real';
+                                   description:='store double';
                                    lastdisassembledata.opcode:='fst';
                                    lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,64);
 
@@ -9290,7 +9291,7 @@ begin
                                  end;
 
                              3:  begin
-                                   description:='store real';
+                                   description:='store double';
                                    lastdisassembledata.opcode:='fstp';
                                    lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,64);
 
