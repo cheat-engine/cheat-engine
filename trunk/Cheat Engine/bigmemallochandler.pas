@@ -39,7 +39,7 @@ resourcestring
 
 constructor TBigMemoryAllocHandler.create;
 begin
-  currentbuffer:=0;
+  currentbuffer:=nil;
   memoryleft:=0;
   lastsize:=1;
 

@@ -1232,7 +1232,7 @@ begin
     //show the ad config window
 
     if adwindow=nil then
-       adwindow:=TADWindow.CreateNew(application, true);
+       adwindow:=TADWindow.Create2(application, true);
 
     adwindow.Width:=468;
     adwindow.height:=60;

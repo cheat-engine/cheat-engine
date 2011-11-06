@@ -1,7 +1,7 @@
 object frmLuaEngine: TfrmLuaEngine
-  Left = 534
+  Left = 239
   Height = 287
-  Top = 200
+  Top = 280
   Width = 596
   HelpContext = 19
   Caption = 'Lua Engine'
@@ -76,6 +76,7 @@ object frmLuaEngine: TfrmLuaEngine
       Font.Quality = fqNonAntialiased
       ParentColor = False
       ParentFont = False
+      PopupMenu = pmEditor
       TabOrder = 0
       OnKeyDown = mScriptKeyDown
       Gutter.Visible = False
@@ -835,5 +836,29 @@ object frmLuaEngine: TfrmLuaEngine
     Filter = 'Lua files (*.lua)|*.lua'
     left = 128
     top = 43
+  end
+  object pmEditor: TPopupMenu
+    left = 59
+    top = 184
+    object MenuItem7: TMenuItem
+      Caption = 'Cut'
+      ShortCut = 16472
+      OnClick = MenuItem7Click
+    end
+    object MenuItem8: TMenuItem
+      Caption = 'Copy'
+      ShortCut = 16451
+      OnClick = MenuItem8Click
+    end
+    object MenuItem9: TMenuItem
+      Caption = 'Paste'
+      ShortCut = 16470
+      OnClick = MenuItem9Click
+    end
+    object MenuItem10: TMenuItem
+      Caption = 'Undo'
+      ShortCut = 16474
+      OnClick = MenuItem10Click
+    end
   end
 end

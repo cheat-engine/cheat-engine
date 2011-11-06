@@ -1099,7 +1099,7 @@ end;
 
 procedure TSynLuaSyn.SetRange(Value: Pointer);
 begin
-  fRange := TRangeState(PtrInt(Value));
+  fRange := TRangeState(PtrUInt(Value));
 end;
 
 function TSynLuaSyn.GetRange: Pointer;

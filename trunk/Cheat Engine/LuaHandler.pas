@@ -6691,7 +6691,7 @@ begin
     lua_pop(L, lua_gettop(L));
 
     if adwindow=nil then
-      adwindow:=TADWindow.CreateNew(nil, hasclosebutton);
+      adwindow:=TADWindow.Create2(Application, hasclosebutton);
 
     adwindow.clientWidth:=width;
     adwindow.clientheight:=height;

@@ -421,6 +421,8 @@ function TVEHDebugInterface.DebugActiveProcessStop(dwProcessID: DWORD): WINBOOL;
 var prefix: string;
 s: Tstringlist;
 begin
+  result:=false;
+
   if active and (processhandler.processid=processhandler.processid) then
   begin
     try
@@ -433,13 +435,17 @@ begin
       try
         s.Add('CreateThread("vehdebug'+prefix+'.UnloadVEH")');
         if autoassemble(s,false) then
+        begin
           active:=false;
-
+          result:=true;
+        end;
       finally
         s.free;
       end;
     except
     end;
+
+
   end;
 end;
 

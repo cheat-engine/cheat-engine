@@ -17,10 +17,14 @@ type
     btnExecute: TButton;
     GroupBox1: TGroupBox;
     MainMenu1: TMainMenu;
+    MenuItem10: TMenuItem;
     MenuItem4: TMenuItem;
     MenuItem5: TMenuItem;
     MenuItem6: TMenuItem;
     cbShowOnPrint: TMenuItem;
+    MenuItem7: TMenuItem;
+    MenuItem8: TMenuItem;
+    MenuItem9: TMenuItem;
     mOutput: TMemo;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
@@ -28,15 +32,20 @@ type
     OpenDialog1: TOpenDialog;
     Panel1: TPanel;
     Panel2: TPanel;
+    pmEditor: TPopupMenu;
     SaveDialog1: TSaveDialog;
     Splitter1: TSplitter;
     mScript: TSynEdit;
     procedure btnExecuteClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure MenuItem10Click(Sender: TObject);
     procedure MenuItem2Click(Sender: TObject);
     procedure MenuItem3Click(Sender: TObject);
     procedure MenuItem5Click(Sender: TObject);
+    procedure MenuItem7Click(Sender: TObject);
+    procedure MenuItem8Click(Sender: TObject);
+    procedure MenuItem9Click(Sender: TObject);
     procedure mScriptKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState
       );
     procedure Panel2Resize(Sender: TObject);
@@ -142,6 +151,11 @@ begin
   SaveFormPosition(self, [panel1.height]);
 end;
 
+procedure TfrmLuaEngine.MenuItem10Click(Sender: TObject);
+begin
+  mscript.Undo;
+end;
+
 procedure TfrmLuaEngine.MenuItem2Click(Sender: TObject);
 begin
   if OpenDialog1.Execute then
@@ -158,6 +172,21 @@ end;
 procedure TfrmLuaEngine.MenuItem5Click(Sender: TObject);
 begin
   moutput.Clear;
+end;
+
+procedure TfrmLuaEngine.MenuItem7Click(Sender: TObject);
+begin
+  mscript.CutToClipboard;
+end;
+
+procedure TfrmLuaEngine.MenuItem8Click(Sender: TObject);
+begin
+  mscript.CopyToClipboard;
+end;
+
+procedure TfrmLuaEngine.MenuItem9Click(Sender: TObject);
+begin
+  mscript.PasteFromClipboard;
 end;
 
 procedure TfrmLuaEngine.mScriptKeyDown(Sender: TObject; var Key: Word;

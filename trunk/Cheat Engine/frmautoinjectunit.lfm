@@ -147,8 +147,8 @@ object frmAutoInject: TfrmAutoInject
     top = 40
   end
   object PopupMenu1: TPopupMenu
-    left = 8
-    top = 8
+    left = 136
+    top = 16
     object Cut1: TMenuItem
       Caption = 'Cu&t'
       ShortCut = 16472
