@@ -957,7 +957,7 @@ begin
 
   if l<65535 then //not going to do more than that
   begin
-    getmem(buf, i);
+    getmem(buf, l);
     try
       if readprocessmemory(processhandle, pointer(start), buf, l, x2) then
       begin
