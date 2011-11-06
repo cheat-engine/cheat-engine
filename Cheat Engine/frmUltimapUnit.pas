@@ -387,11 +387,13 @@ end;
 function ultimap_pause(value: pointer): BOOL; stdcall;
 begin
   dbvm_ultimap_pause; //stops setting the debugctl msr for the target process but does not reset logged the values
+  result:=true;
 end;
 
 function ultimap_resume(value: pointer): BOOL; stdcall;
 begin
   dbvm_ultimap_resume; //stops setting the debugctl msr for the target process but does not reset logged the values
+  result:=true;
 end;
 
 procedure TfrmUltimap.btnPauseClick(Sender: TObject);
