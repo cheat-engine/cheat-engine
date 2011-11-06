@@ -72,8 +72,8 @@ type
 
 
 
-    function GetColor(tag: integer):TColor;
-    procedure SetColor(tag: integer; color: TColor);
+    function Get_Color(tag: integer):TColor;     //_ because inherited method exists
+    procedure Set_Color(tag: integer; color: TColor);
   public
     { public declarations }
     property backgroundcolor: TColor read fbackgroundcolor write setBackgroundColor;
@@ -171,7 +171,7 @@ begin
   //label6.font.color:=x;
 end;
 
-function TfrmStructuresConfig.GetColor(tag: integer):TColor;
+function TfrmStructuresConfig.Get_Color(tag: integer):TColor;
 begin
   case tag of
     0: result:=backgroundcolor;
@@ -188,7 +188,7 @@ begin
   end;
 end;
 
-procedure TfrmStructuresConfig.SetColor(tag: integer; color: TColor);
+procedure TfrmStructuresConfig.Set_Color(tag: integer; color: TColor);
 begin
   case tag of
     0: backgroundcolor:=color;
@@ -207,9 +207,9 @@ end;
 
 procedure TfrmStructuresConfig.ColorClickOld(Sender: TObject);
 begin
-  ColorDialog1.Color:=GetColor(TControl(sender).tag);
+  ColorDialog1.Color:=Get_Color(TControl(sender).tag);
   if ColorDialog1.Execute then
-    SetColor(TControl(sender).tag,ColorDialog1.Color);
+    Set_Color(TControl(sender).tag,ColorDialog1.Color);
 end;
 
 procedure TfrmStructuresConfig.FormClose(Sender: TObject;
@@ -286,9 +286,9 @@ end;
 
 procedure TfrmStructuresConfig.ColorClick(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-  ColorDialog1.Color:=GetColor(TControl(sender).tag);
+  ColorDialog1.Color:=Get_Color(TControl(sender).tag);
   if ColorDialog1.Execute then
-    SetColor(TControl(sender).tag,ColorDialog1.Color);
+    Set_Color(TControl(sender).tag,ColorDialog1.Color);
 end;
 
 initialization

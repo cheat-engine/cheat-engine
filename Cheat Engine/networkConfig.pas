@@ -95,7 +95,7 @@ begin
   if s<>INVALID_SOCKET then
   begin
     olds:=s;
-    s:=INVALID_SOCKET;
+    s:=cint(INVALID_SOCKET);
     CloseSocket(olds);
   end;
 
@@ -191,7 +191,7 @@ begin
   if s<>INVALID_SOCKET then
   begin
     closesocket(s);
-    s:=invalid_socket;
+    s:=cint(invalid_socket);
   end;
 
 end;

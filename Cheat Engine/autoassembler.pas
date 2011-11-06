@@ -1729,7 +1729,7 @@ begin
           begin
             try
               symhandler.DeleteUserdefinedSymbol(addsymbollist[i]); //delete old one so you can add the new one
-              symhandler.AddUserdefinedSymbol(inttohex(allocs[j].address,8),addsymbollist[i]);
+              symhandler.AddUserdefinedSymbol(inttohex(allocs[j].address,8),addsymbollist[i], true);
               ok1:=true;
             except
               //don't crash when it's already defined or address=0

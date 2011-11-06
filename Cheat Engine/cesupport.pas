@@ -37,7 +37,7 @@ type TADWindow=class(TCustomForm)
     procedure setUserUrl(url: string);
     procedure setUserPercentage(percentage: integer);
     procedure LoadAd;
-    constructor CreateNew(AOwner: TComponent;canclose: boolean);
+    constructor Create2(AOwner: TComponent;canclose: boolean);
     destructor destroy; override;
 end;
 
@@ -204,7 +204,7 @@ begin
   browserisvalid:=false;
 end;
 
-constructor TADWindow.createNew(AOwner: TComponent; canclose: boolean);
+constructor TADWindow.create2(AOwner: TComponent; canclose: boolean);
 begin
   inherited createnew(AOwner);
 

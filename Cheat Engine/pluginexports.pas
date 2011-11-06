@@ -1420,7 +1420,7 @@ end;
 
 function ce_openProcess(pid: dword): BOOL; stdcall;
 begin
-  result:=pluginsync(ce_openProcess2, pointer(pid))<>nil;
+  result:=pluginsync(ce_openProcess2, pointer(PtrUInt(pid)))<>nil;
 end;
 
 function ce_pause2(params: pointer): pointer;
@@ -1450,7 +1450,7 @@ end;
 function ce_debugProcess2(params: pointer):pointer;
 var debuggerinterface: integer;
 begin
-  debuggerinterface:=integer(params);
+  debuggerinterface:=PtrUInt(params);
   case debuggerinterface of
     1: formSettings.cbUseWindowsDebugger.checked:=true;
     2: formSettings.cbUseVEHDebugger.checked:=true;
@@ -1465,7 +1465,7 @@ end;
 
 function ce_debugProcess(debuggerinterface: integer): BOOL; stdcall;
 begin
-  result:=pluginsync(ce_debugProcess2, pointer(debuggerinterface))<>nil;
+  result:=pluginsync(ce_debugProcess2, pointer(PtrUInt(debuggerinterface)))<>nil;
 end;
 
 type
@@ -1544,7 +1544,7 @@ end;
 
 function ce_debug_continueFromBreakpoint(ContinueOption: TContinueOption): BOOL; stdcall;
 begin
-  result:=pluginsync(ce_debug_continueFromBreakpoint2, pointer(integer(ContinueOption)))<>nil;
+  result:=pluginsync(ce_debug_continueFromBreakpoint2, pointer(PtrUInt(ContinueOption)))<>nil;
 end;
 
 function ce_closeCE2(params: pointer):pointer;
@@ -2016,24 +2016,24 @@ end;
 
 function ce_control_getX2(params: pointer): pointer;
 begin
-  result:=pointer(TControl(params).left);
+  result:=pointer(PtrUInt(TControl(params).left));
 end;
 
 
 function ce_control_getX(control: pointer): integer; stdcall;
 begin
-  result:=integer(pluginsync(ce_control_getX2, control));
+  result:=PtrUInt(pluginsync(ce_control_getX2, control));
 end;
 
 function ce_control_getY2(params: pointer): pointer;
 begin
-  result:=pointer(TControl(params).top);
+  result:=pointer(PtrUInt(TControl(params).top));
 end;
 
 
 function ce_control_getY(control: pointer): integer; stdcall;
 begin
-  result:=integer(pluginsync(ce_control_getY2, control));
+  result:=PtrUInt(pluginsync(ce_control_getY2, control));
 end;
 
 function ce_control_setSize2(params: pointer): pointer;
@@ -2067,24 +2067,24 @@ end;
 
 function ce_control_getWidth2(params: pointer): pointer;
 begin
-  result:=pointer(TControl(params).width);
+  result:=pointer(PtrUInt(TControl(params).width));
 end;
 
 
 function ce_control_getWidth(control: pointer): integer; stdcall;
 begin
-  result:=integer(pluginsync(ce_control_getWidth2, control));
+  result:=PtrUInt(pluginsync(ce_control_getWidth2, control));
 end;
 
 function ce_control_getHeight2(params: pointer): pointer;
 begin
-  result:=pointer(TControl(params).height);
+  result:=pointer(PtrUInt(TControl(params).height));
 end;
 
 
 function ce_control_getHeight(control: pointer): integer; stdcall;
 begin
-  result:=integer(pluginsync(ce_control_getHeight2, control));
+  result:=PtrUInt(pluginsync(ce_control_getHeight2, control));
 end;
 
 function ce_control_setAlign2(params: pointer): pointer;
@@ -2145,7 +2145,7 @@ end;
 var p:^tp;
 begin
   p:=params;
-  result:=pointer(MessageDlg(p.message, p.messagetype, p.buttons,0));
+  result:=pointer(PtrUInt(MessageDlg(p.message, p.messagetype, p.buttons,0)));
 end;
 
 function ce_messageDialog(message: pchar; messagetype: integer; buttoncombination: integer): integer; stdcall;
@@ -2173,7 +2173,7 @@ begin
     3: p.buttons:=mbOKCancel;
   end;
 
-  result:=integer(pluginsync(ce_messageDialog2, @p));
+  result:=PtrUInt(pluginsync(ce_messageDialog2, @p));
 end;
 
 function ce_messageDialog_Lua(message: pchar; messagetype: integer; buttoncombination: TMsgDlgButtons): integer;

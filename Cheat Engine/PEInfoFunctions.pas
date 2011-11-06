@@ -379,7 +379,7 @@ begin
 
 
         if functionname<>nil then
-          dllList.AddObject(functionname, pointer(addresslist[i]));
+          dllList.AddObject(functionname, pointer(ptruint(addresslist[i])));
       end;
       result:=true;
 

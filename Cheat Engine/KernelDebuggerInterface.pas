@@ -216,7 +216,7 @@ begin
     end;
 
 
-    threadpoller.resume;
+    threadpoller.Start;
   end
   else
     raise exception.create('DBKDebug_StartDebugging failed');

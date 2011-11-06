@@ -483,6 +483,7 @@ end;
 
   command: byte;
 begin
+  result:=0;
   command:=CMD_GETVERSION;
   if fpsend(socket, @command, 1,0)>0 then
   begin
@@ -493,6 +494,8 @@ begin
 
       name:=_name;
       freemem(_name);
+
+      result:=length(name);
     end;
   end;
 end;
@@ -550,7 +553,7 @@ var SockAddr: TInetSockAddr;
   retry: integer;
 begin
 
-  socket:=INVALID_SOCKET;
+  socket:=cint(INVALID_SOCKET);
 
   if (host.s_addr=0) or (port=0) then exit;
 
