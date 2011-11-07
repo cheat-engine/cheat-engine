@@ -124,6 +124,8 @@ type
     locked: boolean;
     targetself: boolean;
 
+    ExceptionOnLuaLookup: boolean;
+
     property showmodules: boolean read fshowmodules write setshowmodules;
     property showsymbols: boolean read fshowsymbols write setshowsymbols;
 
@@ -146,6 +148,7 @@ type
     function getNameFromAddress(address:ptrUint; var found: boolean; hexcharsize: integer=8):string; overload;
     function getNameFromAddress(address:ptrUint;symbols:boolean; modules: boolean; baseaddress: PUINT64=nil; found: PBoolean=nil; hexcharsize: integer=8):string; overload;
 
+    function getAddressFromNameL(name: string):ptrUint; //Called by lua. Looks at ExceptionOnLookup
     function getAddressFromName(name: string):ptrUint; overload;
     function getAddressFromName(name: string; waitforsymbols: boolean):ptrUint; overload;
     function getAddressFromName(name: string; waitforsymbols: boolean; out haserror: boolean):ptrUint; overload;
@@ -1086,7 +1089,18 @@ end;
 
 
 
-
+function TSymhandler.getAddressFromNameL(name: string):ptrUint;
+var e: boolean;
+begin
+  result:=getAddressFromName(name, true, e);
+  if e then
+  begin
+    if ExceptionOnLuaLookup then
+      raise symexception.Create(Format(rsFailureDeterminingWhatMeans, [name]))
+    else
+      result:=0;
+  end;
+end;
 
 function TSymhandler.getAddressFromName(name:string):ptrUint;
 begin
@@ -1113,6 +1127,7 @@ end;
 function TSymhandler.getAddressFromName(name: string; waitforsymbols: boolean; out haserror: boolean):ptrUint;
 begin
   result:=getAddressFromName(name, waitforsymbols, haserror,nil);
+  if haserror then result:=0;
 end;
 
 function TSymhandler.getAddressFromName(name: string; waitforsymbols: boolean; out haserror: boolean; context: PContext):ptrUint;
@@ -1732,6 +1747,7 @@ begin
 
   showmodules:=false;
   showsymbols:=true;
+  ExceptionOnLuaLookup:=true;
 
   symbollist:=TSymbolListHandler.create;
 end;

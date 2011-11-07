@@ -846,7 +846,7 @@ begin
       //ShowMessage(inttostr(lua_type(L, -1)));
 
       if lua_isstring(L, -1) then
-        address:=symhandler.getAddressFromName(lua_tostring(L,-1))
+        address:=symhandler.getAddressFromNameL(lua_tostring(L,-1))
       else
         address:=lua_tointeger(L,-1);
 
@@ -881,7 +881,7 @@ begin
     if parameters=1 then
     begin
       if lua_isstring(L, -1) then
-        address:=symhandler.getAddressFromName(lua_tostring(L,-1))
+        address:=symhandler.getAddressFromNameL(lua_tostring(L,-1))
       else
         address:=lua_tointeger(L,-1);
 
@@ -915,7 +915,7 @@ begin
     if parameters=1 then
     begin
       if lua_isstring(L, -1) then
-        address:=symhandler.getAddressFromName(lua_tostring(L,-1))
+        address:=symhandler.getAddressFromNameL(lua_tostring(L,-1))
       else
         address:=lua_tointeger(L,-1);
 
@@ -950,7 +950,7 @@ begin
     if parameters>=1 then
     begin
       if lua_isstring(L, -parameters) then
-        address:=symhandler.getAddressFromName(lua_tostring(L,-2))
+        address:=symhandler.getAddressFromNameL(lua_tostring(L,-2))
       else
         address:=lua_tointeger(L,-parameters);
 
@@ -996,7 +996,7 @@ begin
     if parameters=2 then
     begin
       if lua_isstring(L, -2) then
-        address:=symhandler.getAddressFromName(lua_tostring(L,-2))
+        address:=symhandler.getAddressFromNameL(lua_tostring(L,-2))
       else
         address:=lua_tointeger(L,-2);
 
@@ -1026,7 +1026,7 @@ begin
     if parameters=2 then
     begin
       if lua_isstring(L, -2) then
-        address:=symhandler.getAddressFromName(lua_tostring(L,-2))
+        address:=symhandler.getAddressFromNameL(lua_tostring(L,-2))
       else
         address:=lua_tointeger(L,-2);
 
@@ -1058,7 +1058,7 @@ begin
     if parameters=2 then
     begin
       if lua_isstring(L, -2) then
-        address:=symhandler.getAddressFromName(lua_tostring(L,-2))
+        address:=symhandler.getAddressFromNameL(lua_tostring(L,-2))
       else
         address:=lua_tointeger(L,-2);
 
@@ -1089,7 +1089,7 @@ begin
     if parameters=2 then
     begin
       if lua_isstring(L, -2) then
-        address:=symhandler.getAddressFromName(lua_tostring(L,-2))
+        address:=symhandler.getAddressFromNameL(lua_tostring(L,-2))
       else
         address:=lua_tointeger(L,-2);
 
@@ -1120,7 +1120,7 @@ begin
   parameters:=lua_gettop(L);
 
   if lua_isstring(L, -parameters) then
-    addresstoread:=symhandler.getAddressFromName(lua_tostring(L,-parameters))
+    addresstoread:=symhandler.getAddressFromNameL(lua_tostring(L,-parameters))
   else
     addresstoread:=lua_tointeger(L,-parameters);
 
@@ -1180,7 +1180,7 @@ begin
 
 
   if lua_isstring(L, -parameters) then
-    address:=symhandler.getAddressFromName(lua_tostring(L,-parameters))
+    address:=symhandler.getAddressFromNameL(lua_tostring(L,-parameters))
   else
     address:=lua_tointeger(L,-parameters);
 
@@ -1633,7 +1633,7 @@ begin
           if lua_isstring(L, i) then
           begin
             e:=false;
-            address:=symhandler.getAddressFromName(lua_tostring(L, i), false,e);
+            address:=symhandler.getAddressFromNameL(lua_tostring(L, i));
             if e then //unrecognizable address
             begin
               lua_pop(L, lua_gettop(L));
@@ -1671,7 +1671,7 @@ begin
     if lua_isstring(L, -1) then
     begin
       e:=false;
-      address:=symhandler.getAddressFromName(lua_tostring(L, -1), false,e);
+      address:=symhandler.getAddressFromNameL(lua_tostring(L, -1));
       if e then //unrecognizable address
       begin
         lua_pop(L, lua_gettop(L));
@@ -3347,7 +3347,7 @@ begin
     s:=Lua_ToString(L, -1);
     lua_pop(L, lua_gettop(l));
 
-    lua_pushinteger(L,symhandler.getAddressFromName(s));
+    lua_pushinteger(L,symhandler.getAddressFromNameL(s));
     result:=1;
   end
   else
@@ -3365,7 +3365,7 @@ begin
   if parameters=1 then
   begin
     if lua_isstring(L, -1) then
-      address:=symhandler.getAddressFromName(lua_tostring(L,-1))
+      address:=symhandler.getAddressFromNameL(lua_tostring(L,-1))
     else
       address:=lua_tointeger(L,-1);
 
@@ -3387,7 +3387,7 @@ begin
   if parameters=1 then
   begin
     if lua_isstring(L, -1) then
-      address:=symhandler.getAddressFromName(lua_tostring(L,-1))
+      address:=symhandler.getAddressFromNameL(lua_tostring(L,-1))
     else
       address:=lua_tointeger(L,-1);
 
@@ -3409,7 +3409,7 @@ begin
   if parameters=1 then
   begin
     if lua_isstring(L, -1) then
-      address:=symhandler.getAddressFromName(lua_tostring(L,-1))
+      address:=symhandler.getAddressFromNameL(lua_tostring(L,-1))
     else
       address:=lua_tointeger(L,-1);
 
@@ -5696,7 +5696,7 @@ begin
   begin
     filename:=Lua_ToString(L, -2);
     if lua_isstring(L, -1) then
-      address:=symhandler.getAddressFromName(lua_tostring(L,-1))
+      address:=symhandler.getAddressFromNameL(lua_tostring(L,-1))
     else
       address:=lua_tointeger(L,-1);
 
@@ -5736,7 +5736,7 @@ begin
   begin
     filename:=Lua_ToString(L, -3);
     if lua_isstring(L, -2) then
-      address:=symhandler.getAddressFromName(lua_tostring(L,-2))
+      address:=symhandler.getAddressFromNameL(lua_tostring(L,-2))
     else
       address:=lua_tointeger(L,-2);
 
@@ -6413,12 +6413,12 @@ begin
     input2:=Lua_ToString(L, -parameters+5);
 
     if lua_isstring(L, -parameters+6) then
-      startaddress:=symhandler.getAddressFromName(Lua_ToString(L, -parameters+6))
+      startaddress:=symhandler.getAddressFromNameL(Lua_ToString(L, -parameters+6))
     else
       startaddress:=lua_tointeger(L, -parameters+6);
 
     if lua_isstring(L, -parameters+7) then
-      stopaddress:=symhandler.getAddressFromName(Lua_ToString(L, -parameters+7))
+      stopaddress:=symhandler.getAddressFromNameL(Lua_ToString(L, -parameters+7))
     else
       stopaddress:=lua_tointeger(L, -parameters+7);
 
@@ -6793,14 +6793,14 @@ begin
   if parameters>=1 then
   begin
     if lua_isstring(L, -parameters) then
-      address:=symhandler.getAddressFromName(Lua_ToString(L,-parameters))
+      address:=symhandler.getAddressFromNameL(Lua_ToString(L,-parameters))
     else
       address:=lua_tointeger(L, -parameters);
 
     if parameters>=2 then
     begin
       if lua_isstring(L, -parameters+1) then
-        parameter:=symhandler.getAddressFromName(Lua_ToString(L,-parameters+1))
+        parameter:=symhandler.getAddressFromNameL(Lua_ToString(L,-parameters+1))
       else
         parameter:=lua_tointeger(L, -parameters+1);
     end
@@ -6932,7 +6932,7 @@ begin
   if parameters=1 then
   begin
     if lua_isstring(L, -parameters) then
-      address:=symhandler.getAddressFromName(lua_tostring(L,-parameters))
+      address:=symhandler.getAddressFromNameL(lua_tostring(L,-parameters))
     else
       address:=lua_tointeger(L,-parameters);
 
@@ -6956,7 +6956,7 @@ begin
   if parameters=1 then
   begin
     if lua_isstring(L, -parameters) then
-      address:=symhandler.getAddressFromName(lua_tostring(L,-parameters))
+      address:=symhandler.getAddressFromNameL(lua_tostring(L,-parameters))
     else
       address:=lua_tointeger(L,-parameters);
 
@@ -6981,7 +6981,7 @@ begin
   if parameters=1 then
   begin
     if lua_isstring(L, -parameters) then
-      address:=symhandler.getAddressFromName(lua_tostring(L,-parameters))
+      address:=symhandler.getAddressFromNameL(lua_tostring(L,-parameters))
     else
       address:=lua_tointeger(L,-parameters);
 
@@ -7056,7 +7056,7 @@ begin
   begin
     hv:=lua_touserdata(L, -2);
     if lua_isstring(L, -1) then
-      address:=symhandler.getAddressFromName(Lua_ToString(L, -1))
+      address:=symhandler.getAddressFromNameL(Lua_ToString(L, -1))
     else
       address:=lua_tointeger(L, -1);
 
@@ -7182,7 +7182,7 @@ begin
   begin
     dv:=lua_touserdata(L, -2);
     if lua_isstring(L, -1) then
-      address:=symhandler.getAddressFromName(Lua_ToString(L, -1))
+      address:=symhandler.getAddressFromNameL(Lua_ToString(L, -1))
     else
       address:=lua_tointeger(L, -1);
 
@@ -7378,7 +7378,7 @@ begin
   begin
     apiID:=lua_tointeger(L, -2);
     if lua_isstring(L, -1) then
-      address:=symhandler.getAddressFromName(Lua_ToString(L, -1))
+      address:=symhandler.getAddressFromNameL(Lua_ToString(L, -1))
     else
       address:=lua_tointeger(L, -1);
 
@@ -7607,6 +7607,18 @@ begin
   result:=1;
 end;
 
+
+function errorOnLookupFailure(L: Plua_State): integer; cdecl;
+var
+  parameters: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+    symhandler.ExceptionOnLuaLookup:=lua_toboolean(L, -1);
+
+  lua_pop(L, parameters);
+end;
 
 procedure InitializeLua;
 var s: tstringlist;
@@ -8059,6 +8071,8 @@ begin
     lua_register(LuaVM, 'readFromClipboard', readFromClipboard);
 
     lua_register(LuaVM, 'createBitmap', createBitmap);
+    lua_register(LuaVM, 'errorOnLookupFailure', errorOnLookupFailure);
+
 
 
     initializeLuaPicture;

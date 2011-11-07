@@ -197,7 +197,7 @@ begin
     struct:=lua_touserdata(L,-parameters);
 
     if lua_isstring(L, -1) then
-      base:=symhandler.getAddressFromName(lua_tostring(L,-parameters+1))
+      base:=symhandler.getAddressFromNameL(lua_tostring(L,-parameters+1))
     else
       base:=lua_tointeger(L,-parameters+1);
 
