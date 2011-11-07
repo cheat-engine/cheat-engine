@@ -30,6 +30,7 @@ writeString(address,string) : Write a string to the specified address. Returns t
 getAddress(string): returns the address of a symbol. Can be a modulename or an export
 reinitializeSymbolhandler(): reinitializes the symbolhandler. E.g when new modules have been loaded
 
+errorOnLookupFailure(state): If set to true (default) address lookups in stringform will raise an error if it can not be looked up. This includes symbolnames that are not defined and pointers that are bad. If set to false it will return 0 in those cases
 
 generateAPIHookScript(address, addresstojumpto, addresstogetnewcalladdress OPT) : Generates an auto assembler script which will hook the given address when executed
 autoAssemble(text, targetself OPTIONAL) : runs the auto assembler with the given text. Returns true on success (if targetself is set it will assemble into Cheat Engine itself)
