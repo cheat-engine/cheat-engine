@@ -2163,12 +2163,13 @@ begin
   DoNotOpenAssociatedTable:=false;
 
   outputdebugstring('openProcessEpilogue called');
+
   symhandler.reinitialize;
-  symhandler.waitforsymbolsloaded;
+//  symhandler.waitforsymbolsloaded;
+
   reinterpretaddresses;
 
-  if oldprocess = 0 then
-    //set disassembler and hexview of membrowser to what the main header says
+  if oldprocess = 0 then //set disassembler and hexview of membrowser to what the main header says
     memorybrowser.setcodeanddatabase;
 
   outputdebugstring('After setcodeanddatabase');
@@ -6497,7 +6498,7 @@ procedure TMainForm.Forcerechecksymbols1Click(Sender: TObject);
 begin
   symhandler.reinitialize;
   symhandler.waitforsymbolsloaded;
-  addresslist.needsToReinterpret := True;
+//  addresslist.needsToReinterpret := True;
   addresslist.reinterpretAddresses;
 end;
 

@@ -48,6 +48,7 @@ type TModuleInfo=record
   isSystemModule: boolean;
   baseaddress: ptrUint;
   basesize: dword;
+
 end;
 
 type TUserdefinedSymbolCallback=procedure;
@@ -79,6 +80,8 @@ type
     destructor destroy; override;
   end;
 
+  TModuleInfoArray=array of TModuleInfo;
+
   TTokens=array of string;
 
   PBoolean=^boolean;
@@ -88,7 +91,7 @@ type
     symbolloaderthread: TSymbolloaderthread;
 
     modulelistpos: integer;
-    modulelist: array of TModuleInfo;
+    modulelist: TModuleInfoArray;
 
     symbolloadervalid: TMultiReadExclusiveWriteSynchronizer;
     modulelistMREW: TMultiReadExclusiveWriteSynchronizer;
@@ -105,6 +108,8 @@ type
 
     commonModuleList: tstringlist;
     symbollist: TSymbolListHandler;
+
+    SymbolsLoadedNotification: array of TNotifyEvent;
 
     function getusedprocesshandle :thandle;
     function getusedprocessid:dword;
@@ -135,7 +140,7 @@ type
     property hasError: boolean read geterror;
     procedure waitforsymbolsloaded;
     procedure reinitialize;
-    procedure loadmodulelist;
+    function loadmodulelist: boolean; //returns true if a change was detected from the previous list
     procedure ReinitializeUserdefinedSymbolList;
     procedure fillMemoryRegionsWithModuleData(var mr: TMemoryregions; startaddress: dword; size: dword);
     procedure getModuleList(list: tstrings);
@@ -171,6 +176,11 @@ type
     procedure loadCommonModuleList;
     function getCommonModuleList: Tstringlist;
     procedure RegisterUserdefinedSymbolCallback(callback: TUserdefinedSymbolCallback);
+
+
+    procedure RemoveFinishedLoadingSymbolsNotification(n: TNotifyEvent);
+    procedure AddFinishedLoadingSymbolsNotification(n: TNotifyEvent);
+    procedure NotifyFinishedLoadingSymbols; //go through the list of functions to call when the symbollist has finished loading
     constructor create;
     destructor destroy; override;
 end;
@@ -309,7 +319,7 @@ end;
 
 procedure TSymbolloaderthread.finishedLoadingSymbols;
 begin
-
+  if (not targetself) and (symhandler<>nil) then symhandler.NotifyFinishedLoadingSymbols;
 end;
 
 
@@ -323,8 +333,11 @@ begin
   sym:=self.symbollist.AddSymbol(self.currentModuleName, self.currentModuleName+'.'+symname, symboladdress, symbolsize);
   sym:=self.symbollist.AddSymbol(self.currentModuleName, symname, symboladdress, symbolsize,true); //don't add it as a address->string lookup  , (this way it always shows modulename+symbol)
 
+  {$ifdef SYMPERFTEST}
+  sleep(1000);
+  {$endif}
 
-  result:=true;
+  result:=not self.terminated;
 end;
 
 function EM(ModuleName:PSTR; BaseOfDll:dword64; UserContext:pointer):bool;stdcall;
@@ -333,7 +346,7 @@ begin
   self:=TSymbolloaderthread(UserContext);
   self.CurrentModulename:=ModuleName;
 
-  result:=SymEnumerateSymbols64(self.thisprocesshandle, BaseOfDLL, @ES, self);
+  result:=(not self.terminated) and (SymEnumerateSymbols64(self.thisprocesshandle, BaseOfDLL, @ES, self));
 end;
 
 procedure TSymbolloaderthread.execute;
@@ -361,7 +374,7 @@ begin
       end else error:=true;
     finally
       isloading:=false;
-      //synchronize(finishedloadingsymbols);
+      synchronize(finishedloadingsymbols);
     end;
   except
     outputdebugstring(rsSymbolloaderthreadHasCrashed);
@@ -529,23 +542,24 @@ end;
 
 procedure TSymhandler.reinitialize;
 begin
-  loadmodulelist;
-
-  symbolloadervalid.BeginWrite;
-  if symbolloaderthread<>nil then
+  if loadmodulelist then //if loadmodulelist returns true it has detected a change in the previous modulelist (baseaddresschange or new/deleted module)
   begin
-    symbolloaderthread.Terminate;
-    symbolloaderthread.WaitFor; //wait till it's done
-    symbolloaderthread.Free;
+    symbolloadervalid.BeginWrite;
+    if symbolloaderthread<>nil then
+    begin
+      symbolloaderthread.Terminate;
+      symbolloaderthread.WaitFor; //wait till it's done
+      freeandnil(symbolloaderthread);
+    end;
+
+    symbolloaderthread:=tsymbolloaderthread.Create(targetself,true);
+    symbolloaderthread.kernelsymbols:=kernelsymbols;
+    symbolloaderthread.searchpath:=searchpath;
+    symbolloaderthread.symbollist:=symbollist;
+    symbolloaderthread.start;
+
+    symbolloadervalid.EndWrite;
   end;
-
-  symbolloaderthread:=tsymbolloaderthread.Create(targetself,true);
-  symbolloaderthread.kernelsymbols:=kernelsymbols;
-  symbolloaderthread.searchpath:=searchpath;
-  symbolloaderthread.symbollist:=symbollist;
-  symbolloaderthread.start;
-
-  symbolloadervalid.EndWrite;
 
   ReinitializeUserdefinedSymbolList;
 end;
@@ -985,14 +999,17 @@ begin
     try
       if (symbolloaderthread<>nil) then
       begin
-        if isloaded then
+        //if isloaded then
         begin
           si:=symbollist.FindAddress(address);
+
+
           if si<>nil then
           begin
+            offset:=address-si.address;
+
             result:=si.originalstring;
 
-            offset:=address-si.address;
             if offset>0 then
               result:=result+'+'+inttohex(offset,1);
 
@@ -1002,39 +1019,11 @@ begin
             if found<>nil then
               found^:=true;
 
+
+
             exit;
           end;
 
-          {
-          //obsolete since ce 6.2
-          getmem(symbol,sizeof(TSYMBOL_INFO)+255);
-          try
-            zeromemory(symbol,sizeof(TSYMBOL_INFO)+255);
-            symbol.SizeOfStruct:=sizeof(TSYMBOL_INFO);
-            symbol.MaxNameLen:=254;
-
-
-            if SymFromAddr(processhandle,address,@offset,symbol) then
-            begin
-              //found it
-              s:=pchar(@symbol.Name[0]);
-              if offset=0 then
-                result:=s
-              else
-                result:=s+'+'+inttohex(offset,1);
-
-              if baseaddress<>nil then
-                baseaddress^:=symbol.Address;
-
-              if found<>nil then
-                found^:=true;
-
-              exit;
-            end;
-
-          finally
-            freemem(symbol);
-          end;  }
         end;
 
       end;
@@ -1089,7 +1078,7 @@ end;
 
 
 
-function TSymhandler.getAddressFromNameL(name: string):ptrUint;
+function TSymhandler.getAddressFromNameL(name: string):ptrUint;  //Lua
 var e: boolean;
 begin
   result:=getAddressFromName(name, true, e);
@@ -1331,27 +1320,36 @@ begin
               //check the symbols
               if (symbolloaderthread<>nil) then
               begin
-                if symbolloaderthread.isloading and not waitforsymbols then
-                begin
-                  if not waitforsymbols then
-                  begin
-                    haserror:=true;
-                    exit;
-                  end;
-
-                  symbolloaderthread.WaitFor;
-                end;
 
                 //it's not a valid address, it's not a calculation, it's not a modulename+offset, so lets see if it's a symbol
 
+
+                //check if it's in
                 tokens[i]:=StringReplace(tokens[i],'!','.',[]);
 
                 si:=symbollist.FindSymbol(tokens[i]);
+
+                if si=nil then //not found
+                begin
+
+                  if waitforsymbols then
+                  begin
+                    symbolloaderthread.WaitFor;
+
+                    //check again now that the symbols are loaded
+                    si:=symbollist.FindSymbol(tokens[i]);
+                  end;
+
+                end;
+
                 if si<>nil then
                 begin
                   tokens[i]:=inttohex(si.address,8);
                   continue;
                 end;
+
+
+
 
               end;
             end;
@@ -1452,7 +1450,7 @@ begin
 end;
 
 
-procedure TSymhandler.loadmodulelist;
+function TSymhandler.loadmodulelist: boolean;  //todo: change to a quicker lookup kind of storage (tree)
 var
   ths: thandle;
   me32:MODULEENTRY32;
@@ -1464,82 +1462,112 @@ var
   modulename: string;
 
   alreadyInTheList: boolean;
-begin
-  try
-{$ifdef autoassemblerdll}
-  processid:=symbolhandler.ProcessID;
-{$else}
-  if targetself then
-    processid:=getcurrentprocessid
-  else
-    processid:=cefuncproc.ProcessID;
-{$endif}
-  
-  modulelistMREW.BeginWrite;
-  try
-    modulelistpos:=0;
-    if processid=0 then exit;
 
-    //refresh the module list
-    ths:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE or TH32CS_SNAPMODULE32,processid);
-    if ths<>0 then
-    begin
-      me32.dwSize:=sizeof(MODULEENTRY32);
+  oldmodulelist: array of qword;
+
+begin
+  result:=false;
+
+
+  try
+
+    if targetself then
+      processid:=getcurrentprocessid
+    else
+      processid:=cefuncproc.ProcessID;
+
+    modulelistMREW.BeginWrite;
+    try
+      if processid=0 then exit;
+
+
+      //make a copy of the old list addresses to compare against
+      setlength(oldmodulelist, modulelistpos);
+      for i:=0 to modulelistpos-1 do
+        oldmodulelist[i]:=modulelist[i].baseaddress;
+
+      modulelistpos:=0;
+
+      //refresh the module list
+
+      ths:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE or TH32CS_SNAPMODULE32,processid);
       if ths<>0 then
       begin
-        try
-          if module32first(ths,me32) then
-          repeat
-            x:=me32.szExePath;
-            modulename:=extractfilename(x);
+        me32.dwSize:=sizeof(MODULEENTRY32);
+        if ths<>0 then
+        begin
+          try
+            if module32first(ths,me32) then
+            repeat
+              x:=me32.szExePath;
+              modulename:=extractfilename(x);
 
-            alreadyInTheList:=false;
-            //check if this modulename is already in the list, and if so check if it's the same base, else add it
-            for i:=0 to modulelistpos-1 do
-            begin
-              if (modulelist[i].baseaddress=ptrUint(me32.modBaseAddr)) then
+              alreadyInTheList:=false;
+              //check if this modulename is already in the list, and if so check if it's the same base, else add it
+              for i:=0 to modulelistpos-1 do
               begin
-                alreadyInTheList:=true;
-                break; //it's in the list, no need to continue looking, break out of the for loop
+                if (modulelist[i].baseaddress=ptrUint(me32.modBaseAddr)) then
+                begin
+                  alreadyInTheList:=true;
+                  break; //it's in the list, no need to continue looking, break out of the for loop
+                end;
               end;
-            end;
 
-            if not alreadyInTheList then
-            begin
-              if modulelistpos+1>=length(modulelist) then
-                setlength(modulelist,length(modulelist)*2);
+              if not alreadyInTheList then
+              begin
+                if modulelistpos+1>=length(modulelist) then
+                  setlength(modulelist,length(modulelist)*2);
 
 
-              modulelist[modulelistpos].modulename:=modulename;
-              modulelist[modulelistpos].modulepath:=x;
+                modulelist[modulelistpos].modulename:=modulename;
+                modulelist[modulelistpos].modulepath:=x;
 
-              //all windows folder files are system modules, except when it is an .exe (minesweeper in xp)
-              modulelist[modulelistpos].isSystemModule:=(pos(lowercase(windowsdir),lowercase(x))>0) and (ExtractFileExt(lowercase(x))<>'.exe');
+                //all windows folder files are system modules, except when it is an .exe (minesweeper in xp)
+                modulelist[modulelistpos].isSystemModule:=(pos(lowercase(windowsdir),lowercase(x))>0) and (ExtractFileExt(lowercase(x))<>'.exe');
 
-              if (not modulelist[modulelistpos].isSystemModule) and (commonModuleList<>nil) then //check if it's a common module (e.g nvidia physx dll's)
-                modulelist[modulelistpos].isSystemModule:=commonModuleList.IndexOf(lowercase(modulelist[modulelistpos].modulename))<>-1;
+                if (not modulelist[modulelistpos].isSystemModule) and (commonModuleList<>nil) then //check if it's a common module (e.g nvidia physx dll's)
+                  modulelist[modulelistpos].isSystemModule:=commonModuleList.IndexOf(lowercase(modulelist[modulelistpos].modulename))<>-1;
 
-              modulelist[modulelistpos].baseaddress:=ptrUint(me32.modBaseAddr);
-              modulelist[modulelistpos].basesize:=me32.modBaseSize;
-              inc(modulelistpos);
-            end;
+                modulelist[modulelistpos].baseaddress:=ptrUint(me32.modBaseAddr);
+                modulelist[modulelistpos].basesize:=me32.modBaseSize;
+                inc(modulelistpos);
+              end;
 
-          until not module32next(ths,me32);
-        finally
-          closehandle(ths);
+            until not module32next(ths,me32);
+          finally
+            closehandle(ths);
+          end;
         end;
       end;
+
+
+    finally
+      modulelistmrew.EndWrite;
     end;
-  finally
-    modulelistmrew.EndWrite;
-  end;
+
+    if length(oldmodulelist)=modulelistpos then
+    begin
+      for i:=0 to modulelistpos-1 do
+      begin
+        if oldmodulelist[i]<>modulelist[i].baseaddress then
+        begin
+          //the order changed
+          result:=true;
+          break;
+        end;
+      end;
+    end
+    else
+      result:=true; //the length of the list changed
 
   except
     //MessageBox(0,'procedure TSymhandler.loadmodulelist','procedure TSymhandler.loadmodulelist',0);
   end;
 
 
-  reinitializeDisassemblerComments; //the comments list is depending on the modulelist since it is written using modulename+offset
+
+  if result then
+    reinitializeDisassemblerComments; //the comments list is depending on the modulelist since it is written using modulename+offset
 end;
 
 
@@ -1709,18 +1737,48 @@ begin
   end;
 end;
 
+procedure TSymhandler.RemoveFinishedLoadingSymbolsNotification(n: TNotifyEvent);
+var i,j: integer;
+begin
+  //search and destroy
+  for i:=0 to length(SymbolsLoadedNotification)-1 do
+    if (TMethod(SymbolsLoadedNotification[i]).Data = TMethod(n).Data) and (TMethod(SymbolsLoadedNotification[i]).Code = TMethod(n).Code) then
+    begin
+      for j:=i to length(SymbolsLoadedNotification)-2 do
+        SymbolsLoadedNotification[j]:=SymbolsLoadedNotification[j+1];
+
+      setlength(SymbolsLoadedNotification, length(SymbolsLoadedNotification)-1);
+      break;
+    end;
+end;
+
+procedure TSymhandler.AddFinishedLoadingSymbolsNotification(n: TNotifyEvent); //there is no remove
+begin
+  setlength(SymbolsLoadedNotification, length(SymbolsLoadedNotification)+1);
+  SymbolsLoadedNotification[length(SymbolsLoadedNotification)-1]:=n;
+end;
+
+procedure TSymhandler.NotifyFinishedLoadingSymbols;
+var i: integer;
+begin
+  //tell all notification routines that the symbollist has been updated and is ready for use
+  for i:=0 to length(SymbolsLoadedNotification)-1 do
+    SymbolsLoadedNotification[i](self);
+end;
 
 destructor TSymhandler.destroy;
 begin
-  if (symbollist<>nil) then
-    symbollist.free;
+
 
   if symbolloaderthread<>nil then
   begin
     symbolloaderthread.Terminate;
     symbolloaderthread.WaitFor;
-    symbolloaderthread.free;
+    freeandnil(symbolloaderthread);
   end;
+
+  if (symbollist<>nil) then
+    symbollist.free;
 
   if commonModuleList<>nil then
     commonModuleList.free;
@@ -1782,10 +1840,10 @@ end;
 
 finalization
   if selfsymhandler<>nil then
-    selfsymhandler.free;
+    freeandnil(selfsymhandler);
 
   if symhandler<>nil then
-    symhandler.free;
+    freeandnil(symhandler);
   
 end.
 

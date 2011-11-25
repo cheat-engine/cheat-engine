@@ -29,7 +29,7 @@ object frmEnumerateDLLs: TfrmEnumerateDLLs
     Top = 17
     Width = 369
     Align = alClient
-    DefaultItemHeight = 15
+    DefaultItemHeight = 16
     Font.CharSet = ANSI_CHARSET
     Font.Height = -15
     Font.Name = 'Courier'
