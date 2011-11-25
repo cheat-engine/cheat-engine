@@ -86,8 +86,9 @@ type
     function valuetypecompare(a: tmemoryrecord; b: tmemoryrecord): integer;
     function valuecompare(a: tmemoryrecord; b: tmemoryrecord): integer;
     procedure sort(firstnode: ttreenode; compareRoutine: TCompareRoutine; direction: boolean);
+    procedure SymbolsLoaded(sender: TObject);
   public
-    needsToReinterpret: boolean;
+    //needsToReinterpret: boolean;
 
     procedure sortByActive;
     procedure sortByDescription;
@@ -122,6 +123,7 @@ type
     procedure doValueChange;
 
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
     property Items: TTreeNodes read getTreeNodes write SetTreeNodes;
 
     procedure clear;
@@ -208,11 +210,11 @@ begin
     for i:=0 to count-1 do
       MemRecItems[i].ReinterpretAddress;
 
-    needsToReinterpret:=false;
+    //needsToReinterpret:=false;
   end;
 
-  if symhandler.isloaded=false then
-    needsToReinterpret:=true;
+  //if symhandler.isloaded=false then
+  //  needsToReinterpret:=true;
 end;
 
 procedure TAddresslist.setPopupMenu(menu: TPopupMenu);
@@ -1579,6 +1581,11 @@ begin
 end;
 
 
+procedure TAddresslist.SymbolsLoaded(sender: TObject);
+begin
+  ReinterpretAddresses;
+end;
+
 constructor TAddresslist.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -1670,6 +1677,16 @@ begin
   treeview.ScrollBars:=ssVertical;
   treeview.Align:=alClient;
 
+  symhandler.AddFinishedLoadingSymbolsNotification(SymbolsLoaded);
+
+end;
+
+destructor TAddresslist.Destroy;
+begin
+  clear;
+
+  symhandler.RemoveFinishedLoadingSymbolsNotification(SymbolsLoaded);
+  inherited destroy;
 end;
 
 end.

@@ -33,7 +33,7 @@ type
   public
     constructor create;
     destructor destroy; override;
-    function AddSymbol(module: string; searchkey: string; address: ptruint; size: integer; skipaddresstostringlookup: boolean=false): PCESymbolInfo;
+    function AddSymbol(module: string; searchkey: string; address: qword; size: integer; skipaddresstostringlookup: boolean=false): PCESymbolInfo;
     function FindAddress(address: qword): PCESymbolInfo;
     function FindSymbol(s: string): PCESymbolInfo;
     function FindFirstSymbolFromBase(baseaddress: qword): PCESymbolInfo;
@@ -134,7 +134,7 @@ begin
     result:=nil;
 end;
 
-function TSymbolListHandler.AddSymbol(module: string; searchkey: string; address: ptruint; size: integer; skipaddresstostringlookup: boolean=false): PCESymbolInfo;
+function TSymbolListHandler.AddSymbol(module: string; searchkey: string; address: qword; size: integer; skipaddresstostringlookup: boolean=false): PCESymbolInfo;
 var new: PCESymbolInfo;
   n: TAvgLvlTreeNode;
   prev, next: TAvgLvlTreeNode;

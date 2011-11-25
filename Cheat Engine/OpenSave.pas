@@ -917,7 +917,7 @@ begin
 
   mainform.autoattachcheck; //check if it added an auto attach check and see if it's currently running
 
-  mainform.addresslist.needsToReinterpret:=true;
+//  mainform.addresslist.needsToReinterpret:=true;
 end;
 
 

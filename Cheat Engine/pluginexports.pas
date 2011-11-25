@@ -1960,10 +1960,10 @@ begin
 
   s:=pchar(p.control.Caption);
 
-  l:=min(length(s), p.maxsize-2);
+  l:=min(length(s), p.maxsize-1);
   CopyMemory(p.caption, s, l);
 
-  p.caption[l+1]:=#0;
+  p.caption[l]:=#0;
 
   result:=pointer(1);
 end;

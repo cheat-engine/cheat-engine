@@ -96,33 +96,6 @@ begin
   end else canceled:=true;
 end;
 
-function ES(SymName:PSTR; SymbolAddress:dword64; SymbolSize:ULONG; UserContext:pointer):bool;stdcall;
-begin
-  with tenumthread(usercontext) do
-  begin
-    inc(symbolcount);
-    symbolname[symbolcount]:=IntToHex(SymbolAddress,8)+' - '+SymName+' ('+IntToStr(SymbolSize)+')';
-
-    if symbolcount=25 then
-      Synchronize(addsymbol);
-    result:=not canceled;
-  end;
-end;
-
-function EM(ModuleName:PSTR; BaseOfDll:dword64; UserContext:pointer):bool;stdcall;
-begin
-  result:=not canceled;
-
-  with tenumthread(usercontext) do
-  begin
-    if symbolcount>0 then
-      synchronize(addsymbol);
-    moduletext:=IntToHex(BaseOfDll,8)+' - '+ModuleName;
-    Synchronize(addmodule);
-  end;
-  SymEnumerateSymbols64(processhandle,BaseOfDLL,@ES,usercontext);
-
-end;
 
 procedure tenumthread.execute;
 var ml: Tstringlist;
@@ -134,7 +107,7 @@ begin
   symbolcount:=0;
   Priority:=tpLower;
 
-  symhandler.waitforsymbolsloaded;
+ // symhandler.waitforsymbolsloaded;
   
   if not canceled then
   begin
