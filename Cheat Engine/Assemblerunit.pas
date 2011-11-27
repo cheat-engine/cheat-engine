@@ -4508,7 +4508,7 @@ begin
         addopcode(bytes,j);
 
 
-        createmodrm(bytes,eotoreg(opcodes[k].opcode1),parameter1);
+        createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
         add(bytes,[byte(v)]);
         result:=true;
         exit;
