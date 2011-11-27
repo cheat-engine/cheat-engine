@@ -995,6 +995,8 @@ begin
             4: valuedblclick(node);
           end;
         end;
+
+        break;
       end;
   end;
 end;
