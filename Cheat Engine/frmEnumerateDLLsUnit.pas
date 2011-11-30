@@ -66,10 +66,13 @@ var canceled: boolean; //global var for only this unit
 procedure tenumthread.Done;
 begin
   if frmEnumerateDLLs<>nil then
-    frmEnumerateDLLs.button2.visible:=false
+  begin
+    frmEnumerateDLLs.button2.visible:=false;
+    if x<>nil then frmEnumerateDLLs.treeview1.EndUpdate;
+  end
   else canceled:=true;
 
-  if x<>nil then frmEnumerateDLLs.treeview1.EndUpdate;
+
 end;
 
 procedure tenumthread.addsymbol;
