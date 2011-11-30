@@ -1697,10 +1697,10 @@ begin
           baseaddress:=$FFFFFFFF;
           {$endif}
 
-          for i:=0 to length(dealloc)-1 do
+          for i:=0 to length(ceallocarray)-1 do
           begin
             if ceallocarray[i].address<baseaddress then
-              baseaddress:=dealloc[i];
+              baseaddress:=ceallocarray[i].address;
           end;
           virtualfreeex(processhandle,pointer(baseaddress),0,MEM_RELEASE);
         end;

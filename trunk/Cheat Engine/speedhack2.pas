@@ -46,7 +46,10 @@ begin
     symhandler.reinitialize;
     symhandler.waitforsymbolsloaded;
   except
-    raise exception.Create(rsFailureEnablingSpeedhackDLLInjectionFailed);
+    on e: exception do
+    begin
+      raise exception.Create(rsFailureEnablingSpeedhackDLLInjectionFailed+': '+e.message);
+    end;
   end;
 
        
@@ -158,9 +161,14 @@ begin
     script.add('call InitializeSpeedhack');
 
     if processhandler.is64Bit then
+    begin
       script.add('add rsp,#40');
-
-    script.add('ret');
+      script.add('ret');
+    end
+    else
+    begin
+      script.add('ret 4');
+    end;
 
     script.add('newspeed:');
     script.add('dd '+inttohex(pdword(@x)^,8));

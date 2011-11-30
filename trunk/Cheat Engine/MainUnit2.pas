@@ -117,13 +117,14 @@ begin
 
 end;
 
-function GetScanType: Integer;
+function GetScanType: Integer;  //todo: update to new type
+var vt: integer;
 begin
   with mainform do
   begin
     result:=exact_value;
 
-    if getvartype in [0,1,2,3,4,6,9] then
+    if not (getvartype in [5,7,8]) then //not binary, string or bytearray
     begin
       if not nextscanbutton.enabled then
       begin
