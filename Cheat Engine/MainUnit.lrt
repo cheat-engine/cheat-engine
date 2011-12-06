@@ -9,7 +9,7 @@ TMAINFORM.PROCESSLABEL.CAPTION=No Process Selected
 TMAINFORM.FOUNDCOUNTLABEL.HINT=This shows the ammount of addresses found
 TMAINFORM.FOUNDCOUNTLABEL.CAPTION=0
 TMAINFORM.SCANTEXT.CAPTION=Scan Value
-TMAINFORM.LABEL4.CAPTION=Scan Type
+TMAINFORM.LBLSCANTYPE.CAPTION=Scan Type
 TMAINFORM.LABEL8.CAPTION=Value Type
 TMAINFORM.LABEL6.CAPTION=Found:
 TMAINFORM.SPEEDBUTTON2.HINT=Delete all addresses from the list
@@ -33,6 +33,15 @@ TMAINFORM.LABEL2.CAPTION=Stop
 TMAINFORM.LABEL1.CAPTION=Start
 TMAINFORM.RBFSMALIGNED.CAPTION=Alignment
 TMAINFORM.RBFSMLASTDIGTS.CAPTION=Last Digits
+TMAINFORM.CBCOPYONWRITE.HINT=Unchecked:
+Do not scan copy-on-write memory
+
+Checked:
+Only scan copy-on-write memory
+
+Gray:
+Don't care if it's copy-on-write or not
+TMAINFORM.CBCOPYONWRITE.CAPTION=CopyOnWrite
 TMAINFORM.CBWRITABLE.HINT=Unchecked:
 Do not scan writable memory
 
@@ -51,15 +60,6 @@ Only scan executable memory
 Gray:
 Don't care if it's executable or not
 TMAINFORM.CBEXECUTABLE.CAPTION=Executable
-TMAINFORM.CBCOPYONWRITE.HINT=Unchecked:
-Do not scan copy-on-write memory
-
-Checked:
-Only scan copy-on-write memory
-
-Gray:
-Don't care if it's copy-on-write or not
-TMAINFORM.CBCOPYONWRITE.CAPTION=CopyOnWrite
 TMAINFORM.NEXTSCANBUTTON.CAPTION=Next Scan
 TMAINFORM.BTNMEMORYVIEW.CAPTION=Memory View
 TMAINFORM.BUTTON1.CAPTION=Add Address Manually

@@ -154,7 +154,7 @@ object MainForm: TMainForm
       ParentBidiMode = False
       ParentColor = False
     end
-    object Label4: TLabel
+    object lblScanType: TLabel
       Left = 199
       Height = 14
       Top = 124
@@ -542,47 +542,58 @@ object MainForm: TMainForm
         OnChange = rbFsmAlignedChange
         TabOrder = 5
       end
-      object cbWritable: TCheckBox
-        Left = 3
-        Height = 19
-        Hint = 'Unchecked:'#13#10'Do not scan writable memory'#13#10#13#10'Checked:'#13#10'Only scan writable memory'#13#10#13#10'Gray:'#13#10'Don''t care if it''s writable memory or not'
-        Top = 45
-        Width = 59
-        AllowGrayed = True
-        Caption = 'Writable'
-        Checked = True
-        ParentShowHint = False
+      object Panel2: TPanel
+        Left = -1
+        Height = 36
+        Top = 44
+        Width = 199
+        BevelOuter = bvNone
+        ClientHeight = 36
+        ClientWidth = 199
         PopupMenu = pmScanRegion
-        ShowHint = True
-        State = cbChecked
         TabOrder = 7
-      end
-      object cbExecutable: TCheckBox
-        Left = 100
-        Height = 19
-        Hint = 'Unchecked:'#13#10'Do not scan executable memory'#13#10#13#10'Checked:'#13#10'Only scan executable memory'#13#10#13#10'Gray:'#13#10'Don''t care if it''s executable or not'
-        Top = 45
-        Width = 73
-        AllowGrayed = True
-        Caption = 'Executable'
-        ParentShowHint = False
-        PopupMenu = pmScanRegion
-        ShowHint = True
-        State = cbGrayed
-        TabOrder = 8
-      end
-      object cbCopyOnWrite: TCheckBox
-        Left = 3
-        Height = 19
-        Hint = 'Unchecked:'#13#10'Do not scan copy-on-write memory'#13#10#13#10'Checked:'#13#10'Only scan copy-on-write memory'#13#10#13#10'Gray:'#13#10'Don''t care if it''s copy-on-write or not'
-        Top = 64
-        Width = 83
-        AllowGrayed = True
-        Caption = 'CopyOnWrite'
-        ParentShowHint = False
-        PopupMenu = pmScanRegion
-        ShowHint = True
-        TabOrder = 9
+        object cbCopyOnWrite: TCheckBox
+          Left = 4
+          Height = 19
+          Hint = 'Unchecked:'#13#10'Do not scan copy-on-write memory'#13#10#13#10'Checked:'#13#10'Only scan copy-on-write memory'#13#10#13#10'Gray:'#13#10'Don''t care if it''s copy-on-write or not'
+          Top = 15
+          Width = 83
+          AllowGrayed = True
+          Caption = 'CopyOnWrite'
+          ParentShowHint = False
+          PopupMenu = pmScanRegion
+          ShowHint = True
+          TabOrder = 0
+        end
+        object cbWritable: TCheckBox
+          Left = 4
+          Height = 19
+          Hint = 'Unchecked:'#13#10'Do not scan writable memory'#13#10#13#10'Checked:'#13#10'Only scan writable memory'#13#10#13#10'Gray:'#13#10'Don''t care if it''s writable memory or not'
+          Top = -2
+          Width = 59
+          AllowGrayed = True
+          Caption = 'Writable'
+          Checked = True
+          ParentShowHint = False
+          PopupMenu = pmScanRegion
+          ShowHint = True
+          State = cbChecked
+          TabOrder = 1
+        end
+        object cbExecutable: TCheckBox
+          Left = 105
+          Height = 19
+          Hint = 'Unchecked:'#13#10'Do not scan executable memory'#13#10#13#10'Checked:'#13#10'Only scan executable memory'#13#10#13#10'Gray:'#13#10'Don''t care if it''s executable or not'
+          Top = -2
+          Width = 73
+          AllowGrayed = True
+          Caption = 'Executable'
+          ParentShowHint = False
+          PopupMenu = pmScanRegion
+          ShowHint = True
+          State = cbGrayed
+          TabOrder = 2
+        end
       end
     end
     object NextScanButton: TButton
@@ -646,6 +657,7 @@ object MainForm: TMainForm
         'Text'
         'Array of Bytes'
         'All (Byte to Double)'
+        'Grouped'
       )
       OnChange = VarTypeChange
       OnDropDown = VarTypeDropDown

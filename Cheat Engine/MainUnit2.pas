@@ -164,7 +164,7 @@ var i: integer;
 begin
   i:=getVarType;
 
-  if i>=10 then
+  if i>=11 then
     result:=vtCustom
   else
   case i of
@@ -178,6 +178,7 @@ begin
     7: result:=vtString;
     8: result:=vtByteArray;
     9: result:=vtAll;
+    10: result:=vtGrouped;
   end;
 
 
@@ -198,8 +199,8 @@ Text = 7
   result:=-1;
   with mainform do
   begin
-    if vartype.itemindex>=10 then
-      result:=10 //"custom"
+    if vartype.itemindex>=11 then
+      result:=11 //"custom"
     else
     case VarType.ItemIndex of
       0: result:=5; //binary
@@ -212,6 +213,7 @@ Text = 7
       7: result:=7; //text
       8: result:=8; //array of byte
       9: result:=9; //all, only for new memscan
+      10: result:=10; //grouped, only for memscan
 
 
     end;
