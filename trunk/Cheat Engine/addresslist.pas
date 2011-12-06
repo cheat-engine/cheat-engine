@@ -964,12 +964,6 @@ begin
   begin
     //at least something was clicked
 
-    {if TMemoryRecord(node.data).isGroupHeader then
-    begin
-      //it's a group doubleclick
-      descriptiondblclick(node);
-      exit;
-    end;   }
 
     for i:=0 to header.Sections.count-1 do
       if inrange(p.x,header.Sections[i].Left,header.Sections[i].right) then

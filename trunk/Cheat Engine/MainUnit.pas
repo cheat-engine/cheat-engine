@@ -20,7 +20,7 @@ uses
   ceguicomponents, frmautoinjectunit, cesupport, trainergenerator, genericHotkey,
   luafile, xmplayer_server, sharedMemory{$ifdef windows}, win32proc{$endif},
   vmxfunctions, FileUtil, networkInterfaceApi, networkconfig, d3dhookUnit, PNGcomn,
-  FPimage, byteinterpreter;
+  FPimage, byteinterpreter, frmgroupscanalgoritmgeneratorunit, vartypestrings;
 
 //the following are just for compatibility
 
@@ -179,9 +179,9 @@ type
   { TMainForm }
 
   TMainForm = class(TForm)
-    cbWritable: TCheckBox;
-    cbExecutable: TCheckBox;
     cbCopyOnWrite: TCheckBox;
+    cbExecutable: TCheckBox;
+    cbWritable: TCheckBox;
     ColorDialog1: TColorDialog;
     CreateGroup: TMenuItem;
     edtAlignment: TEdit;
@@ -240,6 +240,7 @@ type
     miFreezePositive: TMenuItem;
     miFreezeNegative: TMenuItem;
     Panel1: TPanel;
+    Panel2: TPanel;
     pmTablist: TPopupMenu;
     pmValueType: TPopupMenu;
     pmResetRange: TPopupMenu;
@@ -272,7 +273,7 @@ type
     ProcessLabel: TLabel;
     foundcountlabel: TLabel;
     ScanText: TLabel;
-    Label4: TLabel;
+    lblScanType: TLabel;
     Label8: TLabel;
     LoadButton: TSpeedButton;
     SaveButton: TSpeedButton;
@@ -560,6 +561,8 @@ type
     cancelbuttonenabler: TTimer;
     //timer that will enable the cancelbutton after 3 seconds
 
+    groupconfigbutton: TButton;
+
     oldwidth, oldheight: integer;
     newaddress: ptrUint;
     isbit: boolean;
@@ -756,6 +759,8 @@ type
     procedure AddressListAutoAssemblerEdit(Sender: TObject; memrec: TMemoryRecord);
     procedure createFormdesigner;
     procedure UpdateMenu;
+
+    procedure DoGroupconfigButtonClick(sender: tobject);
 
     property foundcount: int64 read ffoundcount write setfoundcount;
     property RoundingType: TRoundingType read GetRoundingType write SetRoundingType;
@@ -1562,7 +1567,7 @@ begin
   vartype.Enabled := False;
   scantype.Enabled := False;
   scantext.Enabled := False;
-  label4.Enabled := False;
+  lblScanType.Enabled := False;
   label8.Enabled := False;
   cbHexadecimal.Enabled := False;
   cbCaseSensitive.Enabled := False;
@@ -1604,7 +1609,7 @@ begin
   vartype.Enabled := not scanstarted;
   scantype.Enabled := True;
   scantext.Enabled := True;
-  label4.Enabled := True;
+  lblScanType.Enabled := True;
   label8.Enabled := True;
   cbHexadecimal.Enabled := True;
   cbCaseSensitive.Enabled := True;
@@ -1851,7 +1856,7 @@ begin
 
     ScanText.Caption := strScantextcaptiontoValue;
 
-    if (varType.ItemIndex in [1, 2, 3, 4, 5, 6, 9]) or (vartype.ItemIndex >= 10) then
+    if (varType.ItemIndex in [1, 2, 3, 4, 5, 6, 9]) or (vartype.ItemIndex >= 11) then
       //byte-word-dword--8bytes-float-double-all   - custom
     begin
 
@@ -2045,7 +2050,7 @@ begin
 
   end
   else
-  if realvartype = 10 then //custom
+  if realvartype >= 11 then //custom
   begin
     ct := TCustomType(vartype.items.objects[vartype.ItemIndex]);
     customname := ct.Name;
@@ -2198,7 +2203,7 @@ begin
     vartype.Enabled := False;
     scantype.Enabled := False;
     scantext.Enabled := False;
-    label4.Enabled := False;
+    lblScanType.Enabled := False;
     label8.Enabled := False;
 
     scanvalue.Visible := False;
@@ -3042,8 +3047,8 @@ var
 begin
   vartype.items.BeginUpdate;
   try
-    while VarType.Items.Count > 10 do
-      vartype.items.Delete(10);
+    while VarType.Items.Count > 11 do
+      vartype.items.Delete(11);
 
 
     for i := 0 to customTypes.Count - 1 do
@@ -3958,6 +3963,20 @@ var
 
   PODirectory, Lang, FallbackLang: string;
 begin
+  vartype.Items.Clear;
+  vartype.items.add(rs_vtBinary);
+  vartype.items.add(rs_vtByte);
+  vartype.items.add(rs_vtWord);
+  vartype.items.add(rs_vtDword);
+  vartype.items.add(rs_vtQword);
+  vartype.items.add(rs_vtSingle);
+  vartype.items.add(rs_vtDouble);
+  vartype.items.add(rs_vtString);
+  vartype.items.add(rs_vtByteArray);
+  vartype.items.add(rs_vtAll);
+  vartype.items.add(rs_vtGrouped);
+
+
   {$ifdef windows}
   {$ifdef cpu64}
   //lazarus bug bypass
@@ -4725,7 +4744,7 @@ begin
           end;
         end;
 
-        1..4, 10:
+        1..4:
         begin
           if washexadecimal then
           begin
@@ -4773,6 +4792,19 @@ begin
 
           wasaob := True;
         end;
+
+        else
+        begin
+          if ovartype>=11 then
+          begin
+            if washexadecimal then
+            begin
+              oldvaluei := StrToQWordEx('$' + oldvalue);
+            end
+            else
+              oldvaluei := StrToQWordEx(oldvalue);
+          end;
+        end;
       end;
     except
       //could not get parsed, if the target is aob then convert the text to an aob, else give up
@@ -4799,7 +4831,7 @@ begin
 
       end;
 
-      1..4, 10: //integer or custom
+      1..4: //integer or custom
       begin
         if wasfloat then
           oldvaluei := trunc(oldvaluef); //convert the float to an integer
@@ -4894,6 +4926,20 @@ begin
         Result := s;
       end;
 
+      else
+      begin
+        if nvartype>=11 then
+        begin
+          if wasfloat then
+            oldvaluei := trunc(oldvaluef); //convert the float to an integer
+
+          if ishexadecimal then
+            Result := inttohex(oldvaluei, 1)
+          else
+            Result := IntToStr(oldvaluei);
+        end;
+      end;
+
     end;
 
 
@@ -4930,6 +4976,8 @@ var
 
   washex: boolean;
   oldvalue: string;
+
+
 begin
   //todo: rewrite this
   oldscantype := scantype.ItemIndex;
@@ -4988,7 +5036,7 @@ begin
     exact_value, Advanced_Scan]) then
     scantype.ItemIndex := 0;
 
-  if (newvartype in [1, 2, 3, 4, 9]) or (newvartype >= 10) then //if normal or custom type
+  if (newvartype in [1, 2, 3, 4, 9]) or (newvartype >= 11) then //if normal or custom type
   begin
     casevis := False;
     hexvis := True;
@@ -5053,9 +5101,35 @@ begin
 
       end;
 
+
     end;
 
   cbHexadecimal.Caption := hextext;
+
+  //group code (12/4/2011)
+  scantype.visible:=newvartype<>10;
+  lblscantype.visible:=newvartype<>10;
+
+  if newvartype=10 then
+  begin
+    //create groupconfig button
+    groupconfigbutton:=Tbutton.create(self);
+    groupconfigbutton.caption:='Generate groupscan command';
+    groupconfigbutton.parent:=scantype.Parent;
+    groupconfigbutton.Left:=scantype.left;
+    groupconfigbutton.top:=scantype.top;
+    groupconfigbutton.width:=scantype.width;
+    groupconfigbutton.height:=scantype.height;
+    groupconfigbutton.Anchors:=scantype.anchors;
+    groupconfigbutton.OnClick:=DoGroupconfigButtonClick;
+
+  end
+  else
+  begin
+    //destroy button if it exists
+    if groupconfigbutton<>nil then
+      freeandnil(groupconfigbutton);
+  end;
 
  { tc:=tbitmap.Create;
   tc.canvas.Font:=cbHexadecimal.Font;
@@ -5101,6 +5175,9 @@ begin
 
   panel5.OnResize(panel5); //lazarus, force the scantext left
 
+
+  if ScanType.itemindex=-1 then
+    ScanType.itemindex:=0; //just in case something has set it to -1
 end;
 
 procedure TMainForm.LogoClick(Sender: TObject);
@@ -6916,6 +6993,10 @@ var
 
   cl: TFPColor;
 begin
+
+
+  exit;
+
   x:=QWORD($fffffffffffffff0);
   i:=-1;
 
@@ -7810,6 +7891,18 @@ end;
 procedure TMainForm.Type1Click(Sender: TObject);
 begin
   addresslist.doTypeChange;
+end;
+
+procedure TMainForm.DoGroupconfigButtonClick(sender: tobject);
+var gcf: TfrmGroupScanAlgoritmGenerator;
+begin
+  gcf:=TfrmGroupScanAlgoritmGenerator.create(self);
+  gcf.parseParameters(scanvalue.text);
+
+  if gcf.showmodal=mrok then
+    scanvalue.text:=gcf.getparameters;
+
+  gcf.free;
 end;
 
 initialization

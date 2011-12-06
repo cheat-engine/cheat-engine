@@ -2,12 +2,15 @@ Cheat Engine 6.1
 
 Fixes:
 Fixed the first plugin from not getting activated at restart
+Custom types can now do an unknown initial value scan
 
 
 Changes:
 Added a profiler so you can find function entry points and see how often they are called
 Deleting a plugin now calls FreeLibrary on it
 Ctrl+enter in the luaengine form now automatically executes the command
+Add direct 3d hook functions
+
 
 
 How to use:
