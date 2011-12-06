@@ -619,7 +619,6 @@ var i,j: integer;
 
   ctn: string;
   c: TCustomType;
-  currentoffset: integer;
 
   gdi: integer;
   FloatSettings: TFormatSettings;
@@ -651,46 +650,16 @@ begin
 
       setlength(groupdata, groupdatalength);
 
-      groupdata[gdi].offset:=currentoffset;
+      groupdata[gdi].offset:=0;
 
       //setting the itemindex automatically creates the next entry
-      case command[gdi] of
-        '1':
-        begin
-          groupdata[gdi].vartype:=vtByte;
-          currentoffset:=currentoffset+1;
-        end;
-
-        '2':
-        begin
-          groupdata[gdi].vartype:=vtWord;
-          currentoffset:=currentoffset+2;
-        end;
-
-        '4':
-        begin
-          groupdata[gdi].vartype:=vtDWord;
-          currentoffset:=currentoffset+4;
-        end;
-
-        '8':
-        begin
-          groupdata[gdi].vartype:=vtQWord;
-          currentoffset:=currentoffset+8;
-        end;
-
-        'F':
-        begin
-          groupdata[gdi].vartype:=vtSingle;
-          currentoffset:=currentoffset+4;
-        end;
-
-        'D':
-        begin
-          groupdata[gdi].vartype:=vtDouble;
-          currentoffset:=currentoffset+8;
-        end;
-
+      case command[0] of
+        '1': groupdata[gdi].vartype:=vtByte;
+        '2': groupdata[gdi].vartype:=vtWord;
+        '4': groupdata[gdi].vartype:=vtDWord;
+        '8': groupdata[gdi].vartype:=vtQWord;
+        'F': groupdata[gdi].vartype:=vtSingle;
+        'D': groupdata[gdi].vartype:=vtDouble;
         'C':
         begin
           //custom type
@@ -709,9 +678,6 @@ begin
 
           groupdata[gdi].vartype:=vtCustom;
           groupdata[gdi].customtype:=c;
-
-          currentoffset:=currentoffset+c.bytesize;
-
         end;
       end;
 
