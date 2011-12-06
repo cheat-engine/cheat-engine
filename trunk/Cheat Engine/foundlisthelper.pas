@@ -608,7 +608,12 @@ begin
         setlength(read8,0);
       end;
 
-      10: //custom routine
+      10:
+      begin
+        //group
+      end;
+
+      11: //custom routine
       begin
         try
           getmem(tempbuf,customType.bytesize);
