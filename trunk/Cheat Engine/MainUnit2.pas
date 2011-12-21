@@ -771,7 +771,8 @@ begin
       UpdateToolsMenu;
 
 
-      if Reg.OpenKey('\Software\Cheat Engine\plugins',false) then
+
+      if Reg.OpenKey('\Software\Cheat Engine\Plugins'{$ifdef cpu64}+'64'{$else}+'32'{$endif},false) then
       begin
         names:=TStringList.create;
         try

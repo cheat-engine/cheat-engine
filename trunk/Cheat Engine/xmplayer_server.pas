@@ -23,6 +23,7 @@ type TXMPlayer=class
     procedure pause;
     procedure resume;
     procedure stop;
+    procedure setVolume(v: integer);
     property isPlaying: boolean read fisplaying;
 end;
 
@@ -122,6 +123,20 @@ var command: byte;
 begin
   command:=XMPLAYER_STOP;
   writefile(audiopipe, command, 1,w, nil);
+  fisPlaying:=false;
+end;
+
+procedure TXMPlayer.setVolume(v: integer);
+var command: packed record
+  command: byte;
+  volume: byte;
+end;
+  w: dword;
+begin
+  command.command:=XMPLAYER_SETVOLUME;
+  command.volume:=v;
+  writefile(audiopipe, command, 2,w, nil);
+
   fisPlaying:=false;
 end;
 

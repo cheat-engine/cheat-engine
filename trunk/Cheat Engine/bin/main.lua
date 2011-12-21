@@ -569,7 +569,8 @@ listview_getCanvas(listview)
 Timer Class : (Inheritance: Component->object)
 createTimer(owner, enabled OPT): 
   Creates a timer object. If enabled is not given it will be enabled by default (will start as soon as an onTimer event has been assigned)
-  Owner may be nil, but you will be responsible for destroying it
+  Owner may be nil, but you will be responsible for destroying it instead of being the responsibility of the owner object)
+
 timer_setInterval(timer, interval) : Sets the speed on how often the timer should trigger. In milliseconds (1000=1 second)
 timer_onTimer(timer, function)
 timer_getEnabled(timer)
@@ -1150,3 +1151,4 @@ d3dhook_endUpdate() : When done updating, call this function to apply the change
 --]]
 
 xmm registers
+loadPlugin(dllnameorpath)

@@ -42,6 +42,10 @@
             </Optimizations>
           </CodeGeneration>
           <Linking>
+            <Debugging>
+              <GenerateDebugInfo Value="True"/>
+              <DebugInfoType Value="dsAuto"/>
+            </Debugging>
             <LinkSmart Value="True"/>
             <Options>
               <ExecutableType Value="Library"/>
@@ -78,7 +82,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="16" Y="10"/>
-        <UsageCount Value="100"/>
+        <UsageCount Value="140"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -87,11 +91,12 @@
         <Filename Value="init.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="init"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="92"/>
-        <CursorPos X="38" Y="185"/>
-        <UsageCount Value="100"/>
+        <TopLine Value="2"/>
+        <CursorPos X="1" Y="88"/>
+        <UsageCount Value="140"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit1>
@@ -99,12 +104,11 @@
         <Filename Value="DebugHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DebugHandler"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="82"/>
+        <TopLine Value="108"/>
         <CursorPos X="23" Y="98"/>
-        <UsageCount Value="100"/>
+        <UsageCount Value="140"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit2>
@@ -114,14 +118,14 @@
         <WindowIndex Value="0"/>
         <TopLine Value="7854"/>
         <CursorPos X="33" Y="7867"/>
-        <UsageCount Value="43"/>
+        <UsageCount Value="39"/>
       </Unit3>
       <Unit4>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\win\wininc\struct.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1132"/>
         <CursorPos X="27" Y="1144"/>
-        <UsageCount Value="43"/>
+        <UsageCount Value="39"/>
       </Unit4>
       <Unit5>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\packages\winunits-jedi\src\jwawindows.pas"/>
@@ -129,7 +133,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="672"/>
         <CursorPos X="3" Y="687"/>
-        <UsageCount Value="43"/>
+        <UsageCount Value="39"/>
       </Unit5>
       <Unit6>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\packages\winunits-jedi\src\jwawinbase.pas"/>
@@ -137,7 +141,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="5705"/>
         <CursorPos X="1" Y="5718"/>
-        <UsageCount Value="43"/>
+        <UsageCount Value="39"/>
       </Unit6>
       <Unit7>
         <Filename Value="VEHDebugSharedMem.pas"/>
@@ -147,7 +151,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="9"/>
         <CursorPos X="3" Y="14"/>
-        <UsageCount Value="100"/>
+        <UsageCount Value="140"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit7>
@@ -156,7 +160,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1577"/>
         <CursorPos X="6" Y="1560"/>
-        <UsageCount Value="43"/>
+        <UsageCount Value="39"/>
       </Unit8>
       <Unit9>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\packages\winunits-jedi\src\jwatlhelp32.pas"/>
@@ -164,14 +168,14 @@
         <WindowIndex Value="0"/>
         <TopLine Value="267"/>
         <CursorPos X="1" Y="280"/>
-        <UsageCount Value="43"/>
+        <UsageCount Value="39"/>
       </Unit9>
       <Unit10>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\inc\dynarrh.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="8"/>
         <CursorPos X="102" Y="32"/>
-        <UsageCount Value="9"/>
+        <UsageCount Value="5"/>
       </Unit10>
       <Unit11>
         <Filename Value="threadpoll.pas"/>
@@ -181,7 +185,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="29"/>
         <CursorPos X="8" Y="35"/>
-        <UsageCount Value="60"/>
+        <UsageCount Value="100"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit11>
@@ -190,7 +194,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="843"/>
         <CursorPos X="3" Y="259"/>
-        <UsageCount Value="23"/>
+        <UsageCount Value="19"/>
       </Unit12>
       <Unit13>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\packages\winunits-jedi\src\jwawindows.pas"/>
@@ -198,21 +202,21 @@
         <WindowIndex Value="0"/>
         <TopLine Value="669"/>
         <CursorPos X="3" Y="687"/>
-        <UsageCount Value="11"/>
+        <UsageCount Value="7"/>
       </Unit13>
       <Unit14>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\win\wininc\struct.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="3559"/>
         <CursorPos X="11" Y="3576"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="6"/>
       </Unit14>
       <Unit15>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\win\wininc\func.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="143"/>
         <CursorPos X="73" Y="159"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="6"/>
       </Unit15>
       <Unit16>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\packages\fcl-base\src\syncobjs.pp"/>
@@ -220,35 +224,35 @@
         <WindowIndex Value="0"/>
         <TopLine Value="104"/>
         <CursorPos X="17" Y="106"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="6"/>
       </Unit16>
       <Unit17>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\inc\threadh.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="136"/>
         <CursorPos X="11" Y="153"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="6"/>
       </Unit17>
       <Unit18>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\objpas\classes\classesh.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1496"/>
         <CursorPos X="14" Y="1512"/>
-        <UsageCount Value="15"/>
+        <UsageCount Value="11"/>
       </Unit18>
       <Unit19>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\win\tthread.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="99"/>
         <CursorPos X="3" Y="111"/>
-        <UsageCount Value="15"/>
+        <UsageCount Value="11"/>
       </Unit19>
       <Unit20>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\win\wininc\ascdef.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="62"/>
         <CursorPos X="11" Y="78"/>
-        <UsageCount Value="15"/>
+        <UsageCount Value="11"/>
       </Unit20>
       <Unit21>
         <Filename Value="extcont.pas"/>
@@ -258,7 +262,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="107"/>
         <CursorPos X="12" Y="134"/>
-        <UsageCount Value="28"/>
+        <UsageCount Value="68"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit21>
@@ -268,7 +272,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="127"/>
         <CursorPos X="63" Y="183"/>
-        <UsageCount Value="9"/>
+        <UsageCount Value="5"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit22>
     </Units>
@@ -418,6 +422,7 @@
     </CodeGeneration>
     <Linking>
       <Debugging>
+        <DebugInfoType Value="dsAuto"/>
         <UseLineInfoUnit Value="False"/>
         <StripSymbols Value="True"/>
       </Debugging>

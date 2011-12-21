@@ -1,11 +1,11 @@
 object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
   Left = 995
-  Height = 247
+  Height = 279
   Top = 176
   Width = 309
   BorderStyle = bsSingle
   Caption = 'Generate groupscan command'
-  ClientHeight = 247
+  ClientHeight = 279
   ClientWidth = 309
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -13,7 +13,7 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
   Position = poScreenCenter
   LCLVersion = '0.9.31'
   object edtBlocksize: TEdit
-    Left = 16
+    Left = 14
     Height = 23
     Top = 144
     Width = 80
@@ -21,7 +21,7 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
     TabOrder = 0
   end
   object Label1: TLabel
-    Left = 16
+    Left = 14
     Height = 16
     Top = 128
     Width = 49
@@ -41,9 +41,9 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
     TabOrder = 1
   end
   object Button1: TButton
-    Left = 64
+    Left = 69
     Height = 25
-    Top = 216
+    Top = 256
     Width = 75
     Caption = 'OK'
     Default = True
@@ -51,9 +51,9 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
     TabOrder = 2
   end
   object Button2: TButton
-    Left = 160
+    Left = 165
     Height = 25
-    Top = 216
+    Top = 256
     Width = 75
     Cancel = True
     Caption = 'Cancel'
@@ -61,9 +61,9 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
     TabOrder = 3
   end
   object cbOutOfOrder: TCheckBox
-    Left = 16
+    Left = 14
     Height = 19
-    Top = 168
+    Top = 208
     Width = 85
     Caption = 'Out of order'
     OnChange = cbOutOfOrderChange
@@ -72,7 +72,7 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
   object cbTypeAligned: TCheckBox
     Left = 32
     Height = 19
-    Top = 184
+    Top = 224
     Width = 133
     Caption = 'Must be type-aligned'
     Checked = True
@@ -81,12 +81,28 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
     TabOrder = 5
   end
   object lblMin: TLabel
-    Left = 103
+    Left = 96
     Height = 16
     Top = 147
     Width = 35
     Caption = 'lblMin'
     ParentColor = False
     Visible = False
+  end
+  object edtBlockalignment: TEdit
+    Left = 14
+    Height = 23
+    Top = 184
+    Width = 80
+    TabOrder = 6
+    Text = '4'
+  end
+  object Label2: TLabel
+    Left = 14
+    Height = 16
+    Top = 168
+    Width = 87
+    Caption = 'Block alignment'
+    ParentColor = False
   end
 end

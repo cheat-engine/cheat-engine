@@ -31,10 +31,12 @@ type
   TGroupData=class  //seperate for each scanner object
   private
     fblocksize: integer;
+    fAlignsize: integer;
     outoforder: boolean;
     outoforder_aligned: boolean;
     groupdata: array of record
-      offset: integer; //filled during OOO scans to determine if multiple items have been found (If you do OOO scans and use byte and 4 byte together, define byte later...)
+      wildcard: boolean;   //if set this is just used for offset calculations for non ooo scans
+      offset: integer; //filled during out of order scans to determine if multiple items have been found (If you do OOO scans and use byte and 4 byte together, define byte later...)
       vartype: TVariableType;
       customtype: TCustomtype;
       valuei: qword;
@@ -46,7 +48,7 @@ type
 
     groupdatalength: integer;
 
-    scanner: TScanner;
+   // scanner: TScanner;
     procedure parse(s:string);
 
     function ByteScan(value: byte; buf: Pbytearray; var startoffset: integer): boolean;
@@ -58,11 +60,12 @@ type
     function CustomScan(ct: Tcustomtype; value: integer; buf: pointer; var startoffset: integer): boolean;
 
   public
-    constructor create(scanner: TScanner; parameters: string);
+    constructor create(parameters: string);
     function compareblock(newvalue,oldvalue: pointer): boolean; //oldvalue is kinda ignored
     function compareblock_outoforder(newvalue,oldvalue: pointer): boolean; //oldvalue is kinda ignored
 
     property blocksize: integer read fblocksize;
+    property alignsize: integer read fAlignsize;
   end;
 
   Tscanfilewriter=class(tthread)
@@ -622,7 +625,11 @@ var i,j: integer;
 
   gdi: integer;
   FloatSettings: TFormatSettings;
+
+
+  calculatedblocksize: integer;
 begin
+  calculatedblocksize:=0;
   floatsettings:=DefaultFormatSettings;
 
   i:=pos(':', s);
@@ -630,6 +637,9 @@ begin
 
   command:=copy(s,1, i-1);
   value:=copy(s,i+1, length(s));
+
+  if command='BA' then
+    fAlignsize:=strtoint(value);
 
   if command='BS' then
     fblocksize:=strtoint(value);
@@ -652,14 +662,43 @@ begin
 
       groupdata[gdi].offset:=0;
 
-      //setting the itemindex automatically creates the next entry
-      case command[0] of
-        '1': groupdata[gdi].vartype:=vtByte;
-        '2': groupdata[gdi].vartype:=vtWord;
-        '4': groupdata[gdi].vartype:=vtDWord;
-        '8': groupdata[gdi].vartype:=vtQWord;
-        'F': groupdata[gdi].vartype:=vtSingle;
-        'D': groupdata[gdi].vartype:=vtDouble;
+      case command[1] of
+        '1':
+        begin
+          groupdata[gdi].vartype:=vtByte;
+          inc(calculatedblocksize);
+        end;
+
+        '2':
+        begin
+          groupdata[gdi].vartype:=vtWord;
+          inc(calculatedblocksize,2);
+        end;
+
+        '4':
+        begin
+          groupdata[gdi].vartype:=vtDWord;
+          inc(calculatedblocksize,4);
+        end;
+
+        '8':
+        begin
+          groupdata[gdi].vartype:=vtQWord;
+          inc(calculatedblocksize,8);
+        end;
+
+        'F':
+        begin
+          groupdata[gdi].vartype:=vtSingle;
+          inc(calculatedblocksize,4);
+        end;
+
+        'D':
+        begin
+          groupdata[gdi].vartype:=vtDouble;
+          inc(calculatedblocksize,8);
+        end;
+
         'C':
         begin
           //custom type
@@ -678,63 +717,67 @@ begin
 
           groupdata[gdi].vartype:=vtCustom;
           groupdata[gdi].customtype:=c;
+
+          inc(calculatedblocksize,c.bytesize);
         end;
       end;
 
-      try
-        groupdata[gdi].valuei:=strtoqwordex(value);
-      except
-        groupdata[gdi].valuei:=lua_strtoint(value);
-      end;
+      if (value<>'*') and (value<>'') then
+      begin
+        try
+          groupdata[gdi].valuei:=strtoqwordex(value);
+        except
+          groupdata[gdi].valuei:=lua_strtoint(value);
+        end;
 
-      try
-        groupdata[gdi].valuef:=strtofloat(value,FloatSettings);
-      except
-        if FloatSettings.DecimalSeparator=',' then
-          FloatSettings.DecimalSeparator:='.'
-        else
-          FloatSettings.DecimalSeparator:=',';
-
-        //try again
         try
           groupdata[gdi].valuef:=strtofloat(value,FloatSettings);
         except
-          //see if lua knows better
+          if FloatSettings.DecimalSeparator=',' then
+            FloatSettings.DecimalSeparator:='.'
+          else
+            FloatSettings.DecimalSeparator:=',';
+
+          //try again
           try
-            groupdata[gdi].valuef:=lua_strtofloat(value);
+            groupdata[gdi].valuef:=strtofloat(value,FloatSettings);
           except
-            raise exception.Create(Format(rsIsNotAValidValue, [value]));
+            //see if lua knows better
+            try
+              groupdata[gdi].valuef:=lua_strtofloat(value);
+            except
+              raise exception.Create(Format(rsIsNotAValidValue, [value]));
+            end;
           end;
+
         end;
 
-      end;
+        groupdata[gdi].floataccuracy:=pos(FloatSettings.DecimalSeparator,value);
+        if groupdata[gdi].floataccuracy>0 then
+          groupdata[gdi].floataccuracy:=length(value)-groupdata[gdi].floataccuracy;
 
-      groupdata[gdi].floataccuracy:=pos(FloatSettings.DecimalSeparator,value);
-      if groupdata[gdi].floataccuracy>0 then
-        groupdata[gdi].floataccuracy:=length(value)-groupdata[gdi].floataccuracy;
-
-      groupdata[gdi].minfvalue:=groupdata[gdi].valuef-(1/(power(10,groupdata[gdi].floataccuracy)));
-      groupdata[gdi].maxfvalue:=groupdata[gdi].valuef+(1/(power(10,groupdata[gdi].floataccuracy)));
-
+        groupdata[gdi].minfvalue:=groupdata[gdi].valuef-(1/(power(10,groupdata[gdi].floataccuracy)));
+        groupdata[gdi].maxfvalue:=groupdata[gdi].valuef+(1/(power(10,groupdata[gdi].floataccuracy)));
+        groupdata[gdi].wildcard:=false;
+      end
+      else
+        groupdata[gdi].wildcard:=true;
 
 
     end;
 
   end;
 
-  if outoforder then
-    scanner.CheckRoutine:=compareblock_outoforder
-  else
-    scanner.checkroutine:=compareblock;
-
-
+  if not outoforder then
+    fblocksize:=calculatedblocksize; //set the correct blocksize
 end;
 
-constructor TGroupData.create(scanner: TScanner; parameters: string);
+constructor TGroupData.create(parameters: string);
 var start, i: integer;
   p,s: string;
 begin
-  self.scanner:=scanner;
+  fAlignsize:=4; //if not provided, 4
+
   p:=uppercase(parameters);
 
   start:=1;
@@ -749,56 +792,58 @@ begin
 
 end;
 
-function TGroupData.compareblock(newvalue,oldvalue: pointer): boolean; //oldvalue is kinda ignored
+function TGroupData.compareblock(newvalue,oldvalue: pointer): boolean;
 var i: integer;
 begin
   result:=true;
   for i:=0 to groupdatalength-1 do
   begin
+
     if result=false then exit;
 
     case groupdata[i].vartype of
       vtByte:
       begin
-        result:=pbyte(newvalue)^=groupdata[i].valuei;
+        result:=groupdata[i].wildcard or (pbyte(newvalue)^=groupdata[i].valuei);
         inc(newvalue, 1);
       end;
 
       vtWord:
       begin
-        result:=pword(newvalue)^=groupdata[i].valuei;
+        result:=groupdata[i].wildcard or (pword(newvalue)^=groupdata[i].valuei);
         inc(newvalue, 2);
       end;
 
       vtDWord:
       begin
-        result:=pdword(newvalue)^=groupdata[i].valuei;
+        result:=groupdata[i].wildcard or (pdword(newvalue)^=groupdata[i].valuei);
         inc(newvalue, 4);
       end;
 
       vtQWord:
       begin
-        result:=pqword(newvalue)^=groupdata[i].valuei;
+        result:=groupdata[i].wildcard or (pqword(newvalue)^=groupdata[i].valuei);
         inc(newvalue, 8);
       end;
 
       vtSingle:
       begin
-        result:=(psingle(newvalue)^>groupdata[i].minfvalue) and (psingle(newvalue)^<groupdata[i].maxfvalue); //default extreme rounded
+        result:=groupdata[i].wildcard or ((psingle(newvalue)^>groupdata[i].minfvalue) and (psingle(newvalue)^<groupdata[i].maxfvalue)); //default extreme rounded
         inc(newvalue, 4);
       end;
 
       vtDouble:
       begin
-        result:=(pdouble(newvalue)^>groupdata[i].minfvalue) and (pdouble(newvalue)^<groupdata[i].maxfvalue);
+        result:=groupdata[i].wildcard or ((pdouble(newvalue)^>groupdata[i].minfvalue) and (pdouble(newvalue)^<groupdata[i].maxfvalue));
         inc(newvalue, 8);
       end;
 
       vtCustom:
       begin
-        result:=groupdata[i].customType.ConvertDataToInteger(newvalue)=groupdata[i].valuei;
+        result:=groupdata[i].wildcard or (groupdata[i].customType.ConvertDataToInteger(newvalue)=groupdata[i].valuei);
         inc(newvalue, groupdata[i].customType.bytesize);
       end;
+
     end;
   end;
 
@@ -819,7 +864,14 @@ end;
 function TGroupData.WordScan(value: word; buf: pointer; var startoffset: integer): boolean;
 var current: pointer;
   i: integer;
+
+  align: integer;
 begin
+  if outoforder_aligned then
+    align:=2
+  else
+    align:=1;
+
   current:=buf;
   inc(current, startoffset);
   i:=startoffset;
@@ -833,15 +885,21 @@ begin
       exit;
     end;
 
-    inc(current);
-    inc(i);
+    inc(current, align);
+    inc(i, align);
   end;
 end;
 
 function TGroupData.DWordScan(value: dword; buf: pointer; var startoffset: integer): boolean;
 var current: pointer;
   i: integer;
+  align: integer;
 begin
+  if outoforder_aligned then
+    align:=4
+  else
+    align:=1;
+
   current:=buf;
   inc(current, startoffset);
   i:=startoffset;
@@ -855,15 +913,21 @@ begin
       exit;
     end;
 
-    inc(current);
-    inc(i);
+    inc(current,align);
+    inc(i,align);
   end;
 end;
 
 function TGroupData.QWordScan(value: qword; buf: pointer; var startoffset: integer): boolean;
 var current: pointer;
   i: integer;
+  align: integer;
 begin
+  if outoforder_aligned then
+    align:=4
+  else
+    align:=1;
+
   current:=buf;
   inc(current, startoffset);
   i:=startoffset;
@@ -877,15 +941,21 @@ begin
       exit;
     end;
 
-    inc(current);
-    inc(i);
+    inc(current,align);
+    inc(i,align);
   end;
 end;
 
 function TGroupData.SingleScan(minf,maxf: double; buf: pointer; var startoffset: integer): boolean;
 var current: pointer;
   i: integer;
+  align: integer;
 begin
+  if outoforder_aligned then
+    align:=4
+  else
+    align:=1;
+
   current:=buf;
   inc(current, startoffset);
   i:=startoffset;
@@ -899,15 +969,21 @@ begin
       exit;
     end;
 
-    inc(current);
-    inc(i);
+    inc(current,align);
+    inc(i,align);
   end;
 end;
 
 function TGroupData.DoubleScan(minf,maxf: double; buf: pointer; var startoffset: integer): boolean;
 var current: pointer;
   i: integer;
+  align: integer;
 begin
+  if outoforder_aligned then
+    align:=4
+  else
+    align:=1;
+
   current:=buf;
   inc(current, startoffset);
   i:=startoffset;
@@ -921,15 +997,21 @@ begin
       exit;
     end;
 
-    inc(current);
-    inc(i);
+    inc(current,align);
+    inc(i,align);
   end;
 end;
 
 function TGroupData.CustomScan(ct: Tcustomtype; value: integer; buf: pointer; var startoffset: integer): boolean;
 var current: pointer;
   i: integer;
+  align: integer;
 begin
+  if outoforder_aligned then
+    align:=4
+  else
+    align:=1;
+
   current:=buf;
   inc(current, startoffset);
   i:=startoffset;
@@ -945,8 +1027,8 @@ begin
       exit;
     end;
 
-    inc(current);
-    inc(i);
+    inc(current,align);
+    inc(i,align);
   end;
 end;
 
@@ -990,6 +1072,9 @@ begin
       begin
         while result and isin do
         begin
+          if outoforder_aligned then //adjust currentoffset to be aligned on the current type alignment
+            currentoffset:=(currentoffset+1) and $fffffffe;
+
           result:=WordScan(groupdata[i].valuei, newvalue, currentoffset);
           isin:=isinlist;
         end;
@@ -999,6 +1084,9 @@ begin
       begin
         while result and isin do
         begin
+          if outoforder_aligned then //adjust currentoffset to be aligned on the current type alignment
+            currentoffset:=(currentoffset+3) and $fffffffc;
+
           result:=DWordScan(groupdata[i].valuei, newvalue, currentoffset);
           isin:=isinlist;
         end;
@@ -1008,6 +1096,9 @@ begin
       begin
         while result and isin do
         begin
+          if outoforder_aligned then //adjust currentoffset to be aligned on the current type alignment
+            currentoffset:=(currentoffset+3) and $fffffffc;
+
           result:=QWordScan(groupdata[i].valuei, newvalue, currentoffset);
           isin:=isinlist;
         end;
@@ -1017,6 +1108,9 @@ begin
       begin
         while result and isin do
         begin
+          if outoforder_aligned then //adjust currentoffset to be aligned on the current type alignment
+            currentoffset:=(currentoffset+3) and $fffffffc;
+
           result:=SingleScan(groupdata[i].minfvalue, groupdata[i].maxfvalue, newvalue, currentoffset);
           isin:=isinlist;
         end;
@@ -1026,6 +1120,9 @@ begin
       begin
         while result and isin do
         begin
+          if outoforder_aligned then //adjust currentoffset to be aligned on the current type alignment
+            currentoffset:=(currentoffset+3) and $fffffffc;
+
           result:=DoubleScan(groupdata[i].minfvalue, groupdata[i].maxfvalue, newvalue, currentoffset);
           isin:=isinlist;
         end;
@@ -1035,6 +1132,9 @@ begin
       begin
         while result and isin do
         begin
+          if outoforder_aligned then //adjust currentoffset to be aligned on the current type alignment
+            currentoffset:=(currentoffset+3) and $fffffffc;
+
           result:=CustomScan(groupdata[i].customtype, groupdata[i].valuei, newvalue, currentoffset);
           isin:=isinlist;
         end;
@@ -3005,7 +3105,7 @@ begin
 
   if variableType=vtGrouped then
   begin
-    groupdata:=TGroupData.create(self, scanvalue1);
+    groupdata:=TGroupData.create(scanvalue1);
   end
   else
   if scanOption in [soCustom, soExactValue,soValueBetween,soBiggerThan,soSmallerThan, soDecreasedValueBy, soIncreasedValueBy] then
@@ -3558,6 +3658,15 @@ begin
 
     vtGrouped:
     begin
+      if groupdata.outoforder then
+        CheckRoutine:=groupdata.compareblock_outoforder
+      else
+        checkroutine:=groupdata.compareblock;
+
+      fastscanmethod:=fsmAligned;
+      fastscanalignsize:=groupdata.alignsize;
+
+
       flushroutine:=stringFlush;
       StoreResultRoutine:=ArrayOfByteSaveResult;
       FoundBufferSize:=0;
