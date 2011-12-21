@@ -537,6 +537,8 @@ begin
       if isreadable(pdword(@buf[0])^) then
       begin
         result:=vtPointer;
+
+       // if inrange(pdword(@buf[0])^, $3d000000, $44800000)=false then //if it's not in this range, assume it's a pointer. Otherwise, could be a float
         exit;
       end;
     end;

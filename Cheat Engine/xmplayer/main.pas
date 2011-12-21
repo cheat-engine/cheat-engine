@@ -19,6 +19,13 @@ procedure StartListening;
 
 implementation
 
+procedure HandleSetVolumeCommand;
+var volume: byte; //range from 0 to 25
+begin
+  if readfile(pipe, volume, 4, x,nil) then
+    uFMOD_SetVolume(volume);
+end;
+
 procedure HandleLoadFileCommand;
 var size: integer;
   x: dword;
@@ -69,6 +76,7 @@ begin
           XMPLAYER_PAUSE: uFMOD_Pause;
           XMPLAYER_RESUME: uFMOD_Resume;
           XMPLAYER_STOP: uFMOD_StopSong;
+          XMPLAYER_SETVOLUME: HandleSetVolumeCommand;
         end;
 
       end;

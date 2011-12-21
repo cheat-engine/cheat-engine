@@ -337,7 +337,15 @@ var processhandle2: Thandle;
     stacksize: integer;
 
     dllpath: Tpathspecifier;
+
+    cpu: string;
 begin
+
+  {$ifdef cpu64}
+  cpu:='64';
+  {$else}
+  cpu:='32';
+  {$endif}
 
 {$ifndef net}
 
@@ -658,8 +666,8 @@ begin
     end;
 
     //save the plugins
-    reg.DeleteKey('\Software\Cheat Engine\Plugins');
-    if Reg.OpenKey('\Software\Cheat Engine\Plugins',true) then
+    reg.DeleteKey('\Software\Cheat Engine\Plugins'+cpu);
+    if Reg.OpenKey('\Software\Cheat Engine\Plugins'+cpu,true) then
     begin
       for i:=0 to clbplugins.Count-1 do
       begin

@@ -15,8 +15,10 @@ type
     Button2: TButton;
     cbTypeAligned: TCheckBox;
     cbOutOfOrder: TCheckBox;
+    edtBlockalignment: TEdit;
     edtBlocksize: TEdit;
     Label1: TLabel;
+    Label2: TLabel;
     lblMin: TLabel;
     ScrollBox1: TScrollBox;
     procedure Button1Click(Sender: TObject);
@@ -315,6 +317,9 @@ begin
   command:=copy(s,1, i-1);
   value:=copy(s,i+1, length(s));
 
+  if command='BA' then
+    edtBlockalignment.text:=value;
+
   if command='BS' then
     edtBlocksize.text:=value;
 
@@ -395,15 +400,22 @@ var
   i: integer;
   vi: TVariableInfo;
   s: string;
+  ba: integer;
 begin
   result:='';
   try
-    bs:=strtoint(edtBlocksize.text);
-    result:='BS:'+inttostr(bs)+' ';
+
+    ba:=strtoint(edtBlockalignment.text);
+    if ba<>4 then
+      result:=result+'BA:'+inttostr(ba);
+
 
     if cbOutOfOrder.checked then
     begin
-      result:='OOO:';
+      bs:=strtoint(edtBlocksize.text);
+      result:=result+'BS:'+inttostr(bs)+' ';
+
+      result:=result+'OOO:';
       if cbTypeAligned.checked then
         result:=result+'A'
       else

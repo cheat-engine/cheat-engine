@@ -50,10 +50,11 @@
         <Filename Value="main.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="main"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="1" Y="8"/>
+        <TopLine Value="7"/>
+        <CursorPos X="39" Y="23"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
       </Unit1>
@@ -68,26 +69,23 @@
       </Unit2>
       <Unit3>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\win\wininc\defines.inc"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
         <TopLine Value="2176"/>
         <CursorPos X="18" Y="2189"/>
         <UsageCount Value="10"/>
-        <Loaded Value="True"/>
       </Unit3>
       <Unit4>
         <Filename Value="uFMOD.pp"/>
         <UnitName Value="uFMOD"/>
         <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="34"/>
-        <CursorPos X="18" Y="37"/>
+        <TopLine Value="214"/>
+        <CursorPos X="22" Y="233"/>
         <UsageCount Value="10"/>
         <Loaded Value="True"/>
       </Unit4>
     </Units>
-    <JumpHistory Count="13" HistoryIndex="12">
+    <JumpHistory Count="22" HistoryIndex="21">
       <Position1>
         <Filename Value="main.pas"/>
         <Caret Line="8" Column="37" TopLine="1"/>
@@ -140,6 +138,42 @@
         <Filename Value="main.pas"/>
         <Caret Line="32" Column="15" TopLine="14"/>
       </Position13>
+      <Position14>
+        <Filename Value="main.pas"/>
+        <Caret Line="68" Column="39" TopLine="49"/>
+      </Position14>
+      <Position15>
+        <Filename Value="main.pas"/>
+        <Caret Line="27" Column="7" TopLine="11"/>
+      </Position15>
+      <Position16>
+        <Filename Value="uFMOD.pp"/>
+        <Caret Line="63" Column="29" TopLine="49"/>
+      </Position16>
+      <Position17>
+        <Filename Value="uFMOD.pp"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
+      </Position17>
+      <Position18>
+        <Filename Value="main.pas"/>
+        <Caret Line="26" Column="14" TopLine="7"/>
+      </Position18>
+      <Position19>
+        <Filename Value="uFMOD.pp"/>
+        <Caret Line="215" Column="55" TopLine="192"/>
+      </Position19>
+      <Position20>
+        <Filename Value="uFMOD.pp"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
+      </Position20>
+      <Position21>
+        <Filename Value="uFMOD.pp"/>
+        <Caret Line="208" Column="73" TopLine="180"/>
+      </Position21>
+      <Position22>
+        <Filename Value="uFMOD.pp"/>
+        <Caret Line="209" Column="57" TopLine="181"/>
+      </Position22>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
@@ -161,6 +195,7 @@
     </CodeGeneration>
     <Linking>
       <Debugging>
+        <DebugInfoType Value="dsAuto"/>
         <UseLineInfoUnit Value="False"/>
         <StripSymbols Value="True"/>
       </Debugging>
