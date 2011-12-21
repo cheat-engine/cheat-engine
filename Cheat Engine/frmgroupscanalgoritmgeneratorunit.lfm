@@ -1,11 +1,11 @@
 object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
   Left = 995
-  Height = 279
+  Height = 306
   Top = 176
   Width = 309
   BorderStyle = bsSingle
   Caption = 'Generate groupscan command'
-  ClientHeight = 279
+  ClientHeight = 306
   ClientWidth = 309
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -15,7 +15,7 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
   object edtBlocksize: TEdit
     Left = 14
     Height = 23
-    Top = 144
+    Top = 160
     Width = 80
     Enabled = False
     TabOrder = 0
@@ -23,7 +23,7 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
   object Label1: TLabel
     Left = 14
     Height = 16
-    Top = 128
+    Top = 144
     Width = 49
     Caption = 'Blocksize'
     ParentColor = False
@@ -31,7 +31,7 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
   object ScrollBox1: TScrollBox
     Left = 14
     Height = 120
-    Top = 8
+    Top = 16
     Width = 281
     HorzScrollBar.Page = 277
     VertScrollBar.Increment = 11
@@ -43,7 +43,7 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
   object Button1: TButton
     Left = 69
     Height = 25
-    Top = 256
+    Top = 272
     Width = 75
     Caption = 'OK'
     Default = True
@@ -53,7 +53,7 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
   object Button2: TButton
     Left = 165
     Height = 25
-    Top = 256
+    Top = 272
     Width = 75
     Cancel = True
     Caption = 'Cancel'
@@ -63,7 +63,7 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
   object cbOutOfOrder: TCheckBox
     Left = 14
     Height = 19
-    Top = 208
+    Top = 224
     Width = 85
     Caption = 'Out of order'
     OnChange = cbOutOfOrderChange
@@ -72,7 +72,7 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
   object cbTypeAligned: TCheckBox
     Left = 32
     Height = 19
-    Top = 224
+    Top = 240
     Width = 133
     Caption = 'Must be type-aligned'
     Checked = True
@@ -83,7 +83,7 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
   object lblMin: TLabel
     Left = 96
     Height = 16
-    Top = 147
+    Top = 163
     Width = 35
     Caption = 'lblMin'
     ParentColor = False
@@ -92,7 +92,7 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
   object edtBlockalignment: TEdit
     Left = 14
     Height = 23
-    Top = 184
+    Top = 200
     Width = 80
     TabOrder = 6
     Text = '4'
@@ -100,9 +100,17 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
   object Label2: TLabel
     Left = 14
     Height = 16
-    Top = 168
+    Top = 184
     Width = 87
     Caption = 'Block alignment'
+    ParentColor = False
+  end
+  object Label3: TLabel
+    Left = 14
+    Height = 16
+    Top = 0
+    Width = 217
+    Caption = 'Leave a value empty or use * for wildcard'
     ParentColor = False
   end
 end

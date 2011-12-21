@@ -19,6 +19,7 @@ type
     edtBlocksize: TEdit;
     Label1: TLabel;
     Label2: TLabel;
+    Label3: TLabel;
     lblMin: TLabel;
     ScrollBox1: TScrollBox;
     procedure Button1Click(Sender: TObject);

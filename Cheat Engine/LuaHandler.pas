@@ -53,11 +53,11 @@ uses mainunit, frmluaengineunit, plugin, pluginexports, MemoryRecordUnit,
   disassembler, LuaCanvas, LuaPen, LuaFont, LuaBrush, LuaPicture, LuaMenu,
   LuaDebug, LuaThread, LuaGraphic, LuaProgressBar, LuaD3DHook, LuaWinControl,
   LuaMemoryRecord, LuaForm, MemoryBrowserFormUnit, disassemblerviewunit, hexviewunit,
-  CustomTypeHandler, LuaStructure, LuaRegion, byteinterpreter;
+  CustomTypeHandler, LuaStructure, LuaRegion, LuaXMPlayer, byteinterpreter;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
-    +'rom the main thread';
+    +'from the main thread';
   rsUndefinedLuaError = 'Undefined lua error';
   rsCheatengineIsBeingAFag = 'Cheatengine is being a fag';
   rsPluginAddress = 'Plugin Address';
@@ -5601,82 +5601,7 @@ begin
     lua_pop(L, lua_gettop(L));
 end;
 
-function xmplayer_playXM(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  lf: TLuaFile;
-  f: string;
-  i: integer;
-begin
-  if xmplayer=nil then
-    xmplayer:=TXMPlayer.create;
 
-  result:=0;
-  parameters:=lua_gettop(L);
-  if (xmplayer<>nil) and (parameters=1) then
-  begin
-    if lua_islightuserdata(L,-1) then //stream
-      xmplayer.playXM(tstream(lua_touserdata(L,-1)))
-    else
-      xmplayer.playXM(Lua_ToString(L,-1))
-  end;
-
-  lua_pop(L, lua_gettop(L));
-end;
-
-function xmplayer_pause(L: Plua_State): integer; cdecl;
-var parameters: integer;
-begin
-  if xmplayer=nil then
-    xmplayer:=TXMPlayer.create;
-
-  result:=0;
-  lua_pop(L, lua_gettop(L));
-
-  if xmplayer<>nil then
-     xmplayer.pause;
-end;
-
-function xmplayer_resume(L: Plua_State): integer; cdecl;
-var parameters: integer;
-begin
-  if xmplayer=nil then
-    xmplayer:=TXMPlayer.create;
-
-  result:=0;
-  lua_pop(L, lua_gettop(L));
-
-  if xmplayer<>nil then
-     xmplayer.resume;
-end;
-
-function xmplayer_stop(L: Plua_State): integer; cdecl;
-var parameters: integer;
-begin
-  if xmplayer=nil then
-    xmplayer:=TXMPlayer.create;
-
-  result:=0;
-  lua_pop(L, lua_gettop(L));
-
-  if xmplayer<>nil then
-     xmplayer.stop;
-end;
-
-function xmplayer_isPlaying(L: Plua_State): integer; cdecl;
-var parameters: integer;
-begin
-  if xmplayer=nil then
-    xmplayer:=TXMPlayer.create;
-
-  result:=0;
-  lua_pop(L, lua_gettop(L));
-
-  if xmplayer<>nil then
-  begin
-    result:=1;
-    lua_pushboolean(L, xmplayer.isPlaying);
-  end;
-end;
 
 function readRegionFromFile(L: Plua_State): integer; cdecl;
 var parameters: integer;
@@ -7933,11 +7858,8 @@ begin
     Lua_register(LuaVM, 'tablefile_saveToFile', tablefile_saveToFile);
     Lua_register(LuaVM, 'tablefile_getData', tablefile_getData);
 
-    Lua_register(LuaVM, 'xmplayer_playXM', xmplayer_playXM);
-    Lua_register(LuaVM, 'xmplayer_pause', xmplayer_pause);
-    Lua_register(LuaVM, 'xmplayer_resume', xmplayer_resume);
-    Lua_register(LuaVM, 'xmplayer_stop', xmplayer_stop);
-    Lua_register(LuaVM, 'xmplayer_isPlaying', xmplayer_isPlaying);
+    InitializeLuaXMPlayer;
+
 
     Lua_register(LuaVM, 'writeRegionToFile', writeRegionToFile);
     Lua_register(LuaVM, 'readRegionFromFile', readRegionFromFile);
