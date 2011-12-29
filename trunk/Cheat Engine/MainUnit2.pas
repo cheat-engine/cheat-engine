@@ -575,7 +575,9 @@ begin
 
 
 
-          try askforreplacewithnops.checked:=reg.readBool('Ask for replace with NOPS'); except end;
+          if reg.ValueExists('Ask for replace with NOPS') then
+            askforreplacewithnops.checked:=reg.readBool('Ask for replace with NOPS');
+
           try cbFastscan.checked:=reg.ReadBool('Fastscan on by default'); except end;
           try checkbox1.Checked:=reg.readbool('Use Anti-debugdetection'); except end;
           try cbhandlebreakpoints.Checked:=reg.ReadBool('Handle unhandled breakpoints'); except end;

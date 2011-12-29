@@ -1152,3 +1152,4 @@ d3dhook_endUpdate() : When done updating, call this function to apply the change
 
 xmm registers
 loadPlugin(dllnameorpath)
+getModuleSize(modulename)
