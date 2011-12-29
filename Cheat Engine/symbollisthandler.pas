@@ -171,6 +171,7 @@ begin
   new.size:=size;
 
   cs.Beginwrite;
+//  sleep(1);
   try
     if not skipaddresstostringlookup then
     begin

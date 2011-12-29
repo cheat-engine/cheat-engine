@@ -98,6 +98,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
+
     canvas:=lua_touserdata(L,-1);
     lua_pop(L, parameters);
 

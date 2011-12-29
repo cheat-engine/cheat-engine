@@ -1807,6 +1807,7 @@ function customControl_getCanvas(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   c: TCustomControl;
+  i: integer;
 begin
   result:=0;
   parameters:=lua_gettop(L);
@@ -1815,7 +1816,11 @@ begin
     c:=lua_touserdata(L,-1);
     lua_pop(L, parameters);
 
+    if c.Canvas.handle=0 then
+      i:=c.Canvas.Pixels[0,0];
+
     lua_pushlightuserdata(L, c.Canvas);
+
     result:=1;
 
   end else lua_pop(L, parameters);
