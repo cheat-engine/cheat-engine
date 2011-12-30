@@ -197,6 +197,10 @@ object frmStructures2: TfrmStructures2
         Visible = False
         OnClick = miAutoFillGapsClick
       end
+      object miDefaultHexadecimal: TMenuItem
+        Caption = 'Default integer types to hexadecimal'
+        OnClick = miDefaultHexadecimalClick
+      end
     end
   end
   object pmStructureView: TPopupMenu

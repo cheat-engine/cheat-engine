@@ -81,6 +81,7 @@ type
     fDoNotSaveLocal: boolean;
     fAutoDestroy: boolean;
     fAutoFill: boolean;
+    fDefaultHex: boolean;
 
 
     fUpdateCounter: integer;
@@ -104,6 +105,7 @@ type
     procedure setAutoCreate(state: boolean);
     procedure setAutoDestroy(state: boolean);
     procedure setAutoFill(state: boolean);
+    procedure setDefaultHex(state: boolean);
   public
     constructor create(name: string);
     constructor createFromXMLNode(structure: TDOMNode);
@@ -146,6 +148,7 @@ type
     property AutoCreate: boolean read fAutoCreate write setAutoCreate;
     property AutoDestroy: boolean read fAutoDestroy write setAutoDestroy;
     property AutoFill: boolean read fAutoFill write setAutoFill;
+    property DefaultHex: boolean read fDefaultHex write setDefaultHex;
 
 
 
@@ -258,6 +261,7 @@ type
 
   TfrmStructures2 = class(TForm)
     MenuItem5: TMenuItem;
+    miDefaultHexadecimal: TMenuItem;
     miFindRelations: TMenuItem;
     miShowTypeForEntriesWithNoDescription: TMenuItem;
     miAutoDestroyLocal: TMenuItem;
@@ -323,6 +327,7 @@ type
     procedure miAutoGuessClick(Sender: TObject);
     procedure miAutostructsizeClick(Sender: TObject);
     procedure miChangeColorsClick(Sender: TObject);
+    procedure miDefaultHexadecimalClick(Sender: TObject);
     procedure miDoNotSaveLocalClick(Sender: TObject);
     procedure miFillGapsClick(Sender: TObject);
     procedure miFindRelationsClick(Sender: TObject);
@@ -501,6 +506,8 @@ end;
 function StringToDisplayMethod(s: string): TdisplayMethod;
 begin
   s:=LowerCase(s);
+  result:=dtUnsignedInteger;
+
   if s='unsigned integer' then result:=dtUnsignedInteger else
   if s='signed integer' then result:=dtSignedInteger else
   if s='hexadecimal' then result:=dtHexadecimal;
@@ -1111,6 +1118,7 @@ begin
   TDOMElement(structnode).SetAttribute('AutoCreateStructsize',inttostr(fAutoCreateStructsize));
   TDOMElement(structnode).SetAttribute('AutoDestroy',BoolToStr(fAutoDestroy,'1','0'));
   TDOMElement(structnode).SetAttribute('AutoFill',BoolToStr(fAutoFill,'1','0'));
+  TDOMElement(structnode).SetAttribute('DefaultHex',BoolToStr(fDefaultHex,'1','0'));
 
   elementnodes:=TDOMElement(structnode.AppendChild(TDOMNode(doc.CreateElement('Elements'))));
 
@@ -1211,6 +1219,12 @@ begin
   DoOptionsChangedNotification;
 end;
 
+procedure TDissectedStruct.setDefaultHex(state: boolean);
+begin
+  fDefaultHex:=state;
+  DoOptionsChangedNotification;
+end;
+
 procedure TDissectedStruct.setupDefaultSettings;
 //loads the default settings for new structures
 var reg: Tregistry;
@@ -1228,6 +1242,7 @@ begin
       if reg.ValueExists('Autodestroy') then fAutoDestroy:=reg.ReadBool('Autodestroy');
       if reg.ValueExists('Don''t save local') then fDoNotSaveLocal:=reg.ReadBool('Don''t save local');
       if reg.ValueExists('Autofill') then fAutoFill:=reg.ReadBool('Autofill');
+      if reg.ValueExists('DefaultHex') then fDefaultHex:=reg.ReadBool('DefaultHex');
 
     end;
   finally
@@ -1270,6 +1285,7 @@ begin
       fAutoCreateStructsize:=StrToIntDef(TDOMElement(structure).GetAttribute('AutoCreate'), 4096);
       fAutoDestroy:=TDOMElement(structure).GetAttribute('AutoDestroy')='1';
       fAutoFill:=TDOMElement(structure).GetAttribute('AutoFill')='1';
+      fDefaultHex:=TDOMElement(structure).GetAttribute('DefaultHex')='1';
 
 
       elementnodes:=TDOMElement(structure.FindNode('Elements'));
@@ -2523,16 +2539,27 @@ begin
       //fill in some basic info
       structElement:=getStructElementFromNode(n);
 
+
+
       if structElement<>nil then
       begin
         //set the default variabes to the type of the currently selected item
         vartype:=structElement.VarType;
         bytesize:=structElement.Bytesize;
         signed:=structElement.DisplayMethod=dtSignedInteger;
-        hexadecimal:=structElement.DisplayMethod=dtHexadecimal;
+
+
+        if struct.DefaultHex and (vartype in [vtByte..vtQword, vtByteArray]) then   //if defaulthex is set and the previous item was an integer type then use the defaulthex's state
+          hexadecimal:=struct.DefaultHex
+        else
+          hexadecimal:=structElement.DisplayMethod=dtHexadecimal
+
       end
       else
+      begin
         vartype:=vtDword;
+        hexadecimal:=struct.DefaultHex;
+      end;
 
       if asChild then
         structElement:=nil //adding as child from a rootnode
@@ -3115,6 +3142,7 @@ begin
     miAutoDestroyLocal.Checked:=mainstruct.AutoDestroy;
     miDoNotSaveLocal.checked:=mainstruct.DoNotSaveLocal;
     miAutoFillGaps.Checked:=mainStruct.AutoFill;
+    miDefaultHexadecimal.checked:=mainstruct.DefaultHex;
   end;
 end;
 
@@ -3160,6 +3188,12 @@ begin
   end;
 
 
+end;
+
+procedure TfrmStructures2.miDefaultHexadecimalClick(Sender: TObject);
+begin
+  if mainstruct<>nil then
+    mainstruct.DefaultHex:=not mainstruct.DefaultHex;
 end;
 
 

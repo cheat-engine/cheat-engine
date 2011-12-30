@@ -23,6 +23,7 @@ type
     cbAutoDestroyLocal: TCheckBox;
     cbDoNotSaveLocal: TCheckBox;
     cbAutoFillGaps: TCheckBox;
+    cbDefaultHex: TCheckBox;
     ColorDialog1: TColorDialog;
     edtAutostructsize: TEdit;
     GroupBox1: TGroupBox;
@@ -242,6 +243,7 @@ begin
       reg.WriteBool('Autodestroy', cbAutoDestroyLocal.Checked);
       reg.WriteBool('Don''t save local', cbDoNotSaveLocal.Checked);
       reg.WriteBool('Autofill', cbAutoFillGaps.Checked);
+      reg.WriteBool('DefaultHex', cbDefaultHex.Checked);
     end;
   finally
     reg.free;
@@ -277,6 +279,7 @@ begin
       if reg.ValueExists('Autodestroy') then cbAutoDestroyLocal.Checked:=reg.ReadBool('Autodestroy');
       if reg.ValueExists('Don''t save local') then cbDoNotSaveLocal.Checked:=reg.ReadBool('Don''t save local');
       if reg.ValueExists('Autofill') then cbAutoFillGaps.Checked:=reg.ReadBool('Autofill');
+      if reg.ValueExists('DefaultHex') then cbDefaultHex.Checked:=reg.ReadBool('DefaultHex');
 
     end;
   finally
