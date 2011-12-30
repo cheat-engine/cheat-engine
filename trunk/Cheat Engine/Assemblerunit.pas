@@ -822,15 +822,16 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'MOVNTQ';opcode1:eo_reg;paramtype1:par_m64;paramtype2:par_mm;bytes:2;bt1:$0f;bt2:$e7),
 
 
-  (mnemonic:'MOVQ';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_rm32;bytes:2;bt1:$0f;bt2:$6e),
-  (mnemonic:'MOVQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_rm32;bytes:3;bt1:$f3;bt2:$0f;bt3:$7e),
-
-
   (mnemonic:'MOVQ';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$6f),
   (mnemonic:'MOVQ';opcode1:eo_reg;paramtype1:par_mm_m64;paramtype2:par_mm;bytes:2;bt1:$0f;bt2:$7f),
 
   (mnemonic:'MOVQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m64;bytes:3;bt1:$f3;bt2:$0f;bt3:$7e),
   (mnemonic:'MOVQ';opcode1:eo_reg;paramtype1:par_xmm_m64;paramtype2:par_xmm;bytes:3;bt1:$66;bt2:$0f;bt3:$d6),
+
+  (mnemonic:'MOVQ';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_rm32;bytes:2;bt1:$0f;bt2:$6e),
+  (mnemonic:'MOVQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_rm32;bytes:3;bt1:$f3;bt2:$0f;bt3:$7e),
+
+
 
   (mnemonic:'MOVQ2DQ';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_mm;bytes:3;bt1:$66;bt2:$0f;bt3:$d6),
 
@@ -4362,7 +4363,7 @@ begin
 
       if (opcodes[j].paramtype2=par_xmm_m32) and (isxmm_m32(paramtype2)) then
       begin
-        //xmm,xmm/m32
+        //r32,xmm/m32
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
         begin
           addopcode(bytes,j);
@@ -4373,7 +4374,7 @@ begin
 
       if (opcodes[j].paramtype2=par_mm_m64) and (ismm_m64(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='['))) then
       begin
-        //mm,mm/m64
+        //r32,mm/m64
         addopcode(bytes,j);
         result:=createmodrm(bytes,getreg(parameter1),parameter2);
         exit;
@@ -4918,6 +4919,14 @@ begin
         exit;
       end;
 
+      if (opcodes[j].paramtype2=par_mm_m64) and (ismm_m64(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='['))) then
+      begin
+        //mm,mm/m64
+        addopcode(bytes,j);
+        result:=createmodrm(bytes,getreg(parameter1),parameter2);
+        exit;
+      end;
+
       if (opcodes[j].paramtype2=par_xmm_m64) and (isxmm_m64(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='['))) then
       begin
         //mm,xmm/m64
@@ -5024,6 +5033,7 @@ begin
 
       if (opcodes[j].paramtype2=par_mm_m64) and (ismm_m64(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='['))) then
       begin
+        //xmm,mm/m64
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
         begin
           //xmm,mm/m64
