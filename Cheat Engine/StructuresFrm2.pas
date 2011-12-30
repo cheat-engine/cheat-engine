@@ -1319,6 +1319,7 @@ begin
           end;
 
           se:=addElement(description, offset, vartype, bytesize, childstruct);
+          se.DisplayMethod:=displaymethod;
 
           if (childstruct=nil) and (childname<>'') then
             se.delayLoadedStructname:=childname;
