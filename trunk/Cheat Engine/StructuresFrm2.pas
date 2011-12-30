@@ -2548,6 +2548,14 @@ begin
       if showmodal=mrok then
       begin
         structElement:=struct.addElement(description, offset, vartype, bytesize, childstruct);
+        if hexadecimal then
+          structelement.DisplayMethod:=dtHexadecimal
+        else
+        if signed then
+          structElement.DisplayMethod:=dtSignedInteger
+        else
+          structElement.DisplayMethod:=dtUnsignedInteger; //default, but set anyhow
+
         //set the selection to this entry
         if not asChild then
         begin
