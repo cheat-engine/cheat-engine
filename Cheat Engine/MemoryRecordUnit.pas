@@ -62,8 +62,10 @@ type
 
 
     UnreadablePointer: boolean;
-    BaseAddress: ptrUint;
-    RealAddress: ptrUint;
+    BaseAddress: ptrUint; //Base address
+    RealAddress: ptrUint; //If pointer, or offset the real address
+    IsOffset: boolean;
+
 
     fActive: boolean;
     fAllowDecrease: boolean;
@@ -108,6 +110,7 @@ type
     function getChild(index: integer): TMemoryRecord;
 
     procedure setID(i: integer);
+    function getParent: TMemoryRecord;
   public
 
 
@@ -137,6 +140,8 @@ type
     autoAssembleWindow: TForm; //window storage for an auto assembler editor window
 
     function hasSelectedParent: boolean;
+    function hasParent: boolean;
+
 
     function isBeingEdited: boolean;
     function showAsSigned: boolean;
@@ -154,7 +159,7 @@ type
     procedure increaseValue(value: string);
     procedure decreaseValue(value: string);
     function GetRealAddress: PtrUInt;
-    function getBaseAddress: ptrUint; //if it's a pointer, return the base address
+    function getBaseAddress: ptrUint; //return the base address, if offset, the calculated address
     procedure RefreshCustomType;
     function ReinterpretAddress(forceremovalofoldaddress: boolean=false): boolean;
     property Value: string read GetValue write SetValue;
@@ -194,6 +199,7 @@ type
 
     property Count: integer read getChildCount;
     property Child[index: integer]: TMemoryRecord read getChild; default;
+    property Parent: TMemoryRecord read getParent;
 
     property onActivate: TActivateEvent read fOnActivate write fOnActivate;
     property onDeactivate: TActivateEvent read fOnDeActivate write fOndeactivate;
@@ -263,7 +269,9 @@ end;
 
 function TMemoryRecord.getChildCount: integer;
 begin
-  result:=treenode.Count;
+  result:=0;
+  if treenode<>nil then
+    result:=treenode.Count;
 end;
 
 function TMemoryRecord.getChild(index: integer): TMemoryRecord;
@@ -651,6 +659,20 @@ begin
   SetVisibleChildrenState;
 
 
+end;
+
+function TMemoryRecord.getParent: TMemoryRecord;
+var tn: TTreenode;
+begin
+  result:=nil;
+  tn:=treenode.parent;
+  if tn<>nil then
+    result:=TMemoryRecord(tn.data);
+end;
+
+function TMemoryRecord.hasParent: boolean;
+begin
+  result:=treenode.parent<>nil;
 end;
 
 function TMemoryRecord.hasSelectedParent: boolean;
@@ -1205,21 +1227,33 @@ function TMemoryRecord.ReinterpretAddress(forceremovalofoldaddress: boolean=fals
 //Returns false if interpretation failed
 var
   a: ptrUint;
+  s: string;
+  i: integer;
 begin
-
-  a:=symhandler.getAddressFromName(interpretableaddress,false,couldnotinterpretaddress);
-  if not couldnotinterpretaddress then
-    baseaddress:=a
-  else
+  if forceremovalofoldaddress then
   begin
-    if forceremovalofoldaddress then
-    begin
-      RealAddress:=0;
-      baseaddress:=0;
-    end;
+    RealAddress:=0;
+    baseaddress:=0;
   end;
 
+  a:=symhandler.getAddressFromName(interpretableaddress,false,couldnotinterpretaddress);
   result:=not couldnotinterpretaddress;
+
+  if result then
+  begin
+
+    s:=trim(interpretableaddress);
+    isOffset:=(s<>'') and (s[1] in ['+','-']);
+    baseaddress:=a;
+  end;
+
+
+  //update the children
+  if result or forceremovalofoldaddress then
+    for i:=0 to count-1 do
+      Child[i].ReinterpretAddress(forceremovalofoldaddress);
+
+
 end;
 
 procedure TMemoryRecord.ApplyFreeze;
@@ -1690,7 +1724,10 @@ end;
 
 function TMemoryRecord.getBaseAddress: ptrUint;
 begin
-  result:=BaseAddress;
+  if IsOffset and hasParent then
+    result:=parent.RealAddress+baseaddress //assuming that the parent has had it's real address calculated first
+  else
+    result:=BaseAddress;
 end;
 
 function TMemoryRecord.GetRealAddress: PtrUInt;
@@ -1706,7 +1743,7 @@ begin
   if length(pointeroffsets)>0 then //it's a pointer
   begin
     //find the address this pointer points to
-    result:=getPointerAddress(BaseAddress, pointeroffsets, UnreadablePointer);
+    result:=getPointerAddress(getBaseAddress, pointeroffsets, UnreadablePointer);
     if UnreadablePointer then
     begin
       realAddress:=0;
@@ -1714,7 +1751,7 @@ begin
     end;
   end
   else
-    result:=BaseAddress; //not a pointer
+    result:=getBaseAddress; //not a pointer
 
   self.RealAddress:=result;
 end;

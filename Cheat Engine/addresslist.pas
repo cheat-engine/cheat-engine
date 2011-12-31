@@ -203,12 +203,19 @@ end;
 
 procedure TAddresslist.ReinterpretAddresses;
 var i: integer;
+  tn: TTreeNode;
 begin
  // if symhandler.isloaded and (needsToReinterpret) then
   begin
     RefreshCustomTypes;
-    for i:=0 to count-1 do
-      MemRecItems[i].ReinterpretAddress;
+
+    //update 12/31/2011. Reinterpretaddress now also calls it automatically for it's children. So only call for the level 1 entries
+    tn:=treeview.Items.GetFirstNode;
+    while tn<>nil do
+    begin
+      TMemoryRecord(tn.data).ReinterpretAddress;
+      tn:=tn.GetNextSibling;
+    end;
 
     //needsToReinterpret:=false;
   end;

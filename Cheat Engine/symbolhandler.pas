@@ -1143,6 +1143,7 @@ var mi: tmoduleinfo;
     //symbol: PSYMBOL_INFO;
     s: string;
 begin
+  name:=trim(name);
   hasPointer:=false;
   haserror:=false;
   offset:=0;
@@ -1208,6 +1209,8 @@ begin
   end;
 {$endif}
 
+
+
   val('$'+name,result,i);
   if i=0 then exit; //it's a valid hexadecimal string
 
@@ -1228,8 +1231,8 @@ begin
     exit;
   end;
 
-  //if it starts with a *, - or + or ends with it, then it's a bad formula
-  if (tokens[0][1] in ['*','+','-']) or (tokens[length(tokens)-1][1] in ['*','+','-']) then
+  //if it starts with a * or ends with *, - or +, then it's a bad formula
+  if (tokens[0][1] ='*') or (tokens[length(tokens)-1][1] in ['*','+','-']) then
   begin
     haserror:=true;
     exit;
