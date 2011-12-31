@@ -2003,17 +2003,24 @@ begin
   begin
     lc:=TLuaCaller.create;
 
-    if lua_isfunction(L, -parameters) then
+    if lua_isfunction(L, 1) then
+    begin
+      lua_pushvalue(L, 1);
       lc.luaroutineindex:=luaL_ref(L,LUA_REGISTRYINDEX)
+    end
     else
-      lc.luaroutine:=lua_tostring(L,-parameters);
+      lc.luaroutine:=lua_tostring(L,1);
+
+    parameters:=min(parameters,5);
 
     zeromemory(@keys,sizeof(keys));
-    for i:=-parameters+1 to -1 do
-      keys[i+parameters-1]:=lua_tointeger(L, i);
+    for i:=2 to parameters do
+      keys[i-2]:=lua_tointeger(L, i);
+
 
     h:=TGenericHotkey.create(lc.NotifyEvent, keys);
 
+    lua_pop(L, lua_gettop(L));
 
     lua_pushlightuserdata(L, h);
     result:=1;
