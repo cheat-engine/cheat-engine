@@ -60,9 +60,9 @@ object formSettings: TformSettings
       Height = 468
       Top = 1
       Width = 622
-      ActivePage = Plugins
+      ActivePage = GeneralSettings
       Align = alClient
-      TabIndex = 4
+      TabIndex = 0
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
