@@ -10,7 +10,7 @@ interface
 uses
   zstream, Classes, SysUtils, Controls, forms,ComCtrls, StdCtrls, ExtCtrls, Buttons, lcltype,
   dialogs, JvDesignSurface, DOM, typinfo, LResources, JvDesignImp, JvDesignUtils,
-  graphics, math, xmlread,xmlwrite;
+  graphics, math, xmlread,xmlwrite, WSStdCtrls;
 
 type TCESplitter=class(TCustomSplitter)
   property Align;
@@ -513,44 +513,9 @@ type TCECheckBox=class(TCustomCheckBox)
     property Visible;
   end;
 
-type TCEToggleBox=class(TCustomCheckbox)
-  protected
-    procedure CreateParams(var Params: TCreateParams); override;
-  public
-    constructor Create(TheOwner: TComponent); override;
-  published
-    property AllowGrayed;
-    property Anchors;
-    property AutoSize;
-    property BorderSpacing;
-    property Caption;
-    property Checked;
-  //  property DragCursor;
- //   property DragKind;
- //   property DragMode;
-    property Enabled;
-    property Hint;
-    property OnChange;
-    property OnClick;
-//   property OnDragDrop;
-//    property OnDragOver;
-//    property OnEndDrag;
-    property OnEnter;
-    property OnExit;
-    property OnMouseDown;
-    property OnMouseEnter;
-    property OnMouseLeave;
-    property OnMouseMove;
-    property OnMouseUp;
- //   property OnStartDrag;
-    property ParentShowHint;
-  //  property PopupMenu;
-    property ShowHint;
-    property State;
-    property TabOrder;
-    property TabStop default True;
-    property Visible;
-  end;
+
+type TCEToggleBox=class(TToggleBox); //there is no custom...
+
 
 type TCEEdit=class(TCustomEdit)
   public
@@ -982,19 +947,6 @@ implementation
 
 uses luahandler,luacaller, formdesignerunit;
 
-procedure TCEToggleBox.CreateParams(var Params: TCreateParams);
-begin
-  inherited CreateParams(Params);
-  Params.Style := (Params.Style and not BS_3STATE) or BS_AUTOCHECKBOX or BS_PUSHLIKE;
-end;
-
-constructor TCEToggleBox.Create(TheOwner : TComponent);
-begin
-  inherited Create(TheOwner);
-  fCompStyle := csToggleBox;
-  TabStop := True;
-end;
-
 constructor TCECheckBox.Create(TheOwner: TComponent);
 begin
   inherited Create(TheOwner);
@@ -1373,7 +1325,9 @@ initialization
   RegisterClass(TCEImage);
   RegisterClass(TCEMemo);
   RegisterClass(TCEEdit);
+  {$ifdef windows} //some components are not implemented in other os's yet
   RegisterClass(TCEToggleBox);
+  {$endif}
 
   RegisterClass(TCEComboBox);
   RegisterClass(TCEListBox);
