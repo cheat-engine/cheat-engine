@@ -103,6 +103,10 @@ type
     procedure setVarType(v:  TVariableType);
     function getHotkeyCount: integer;
     function getHotkey(index: integer): TMemoryRecordHotkey;
+
+    function getChildCount: integer;
+    function getChild(index: integer): TMemoryRecord;
+
     procedure setID(i: integer);
   public
 
@@ -188,6 +192,9 @@ type
     property HotkeyCount: integer read getHotkeyCount;
     property Hotkey[index: integer]: TMemoryRecordHotkey read getHotkey;
 
+    property Count: integer read getChildCount;
+    property Child[index: integer]: TMemoryRecord read getChild; default;
+
     property onActivate: TActivateEvent read fOnActivate write fOnActivate;
     property onDeactivate: TActivateEvent read fOnDeActivate write fOndeactivate;
     property onDestroy: TNotifyEvent read fOnDestroy write fOnDestroy;
@@ -253,6 +260,19 @@ begin
 end;
 
 {---------------------------------MemoryRecord---------------------------------}
+
+function TMemoryRecord.getChildCount: integer;
+begin
+  result:=treenode.Count;
+end;
+
+function TMemoryRecord.getChild(index: integer): TMemoryRecord;
+begin
+  if index<Count then
+    result:=TMemoryRecord(treenode.Items[index].Data)
+  else
+    result:=nil;
+end;
 
 function TMemoryRecord.getHotkeyCount: integer;
 begin
