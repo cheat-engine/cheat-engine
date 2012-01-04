@@ -6,6 +6,8 @@ Order of picking:
   if there is a cheatengine.po it will pick that, else cheatengine-x86_64.po and if that fails cheatengine-i386.po
   the 32-bit version can work perfectly fine with the 64-bit po
 
+  Same for the tutorial
+
 
 By default it picks the system language, but you can overide this by adding --LANG langstr or -l langstr to the parameters of Cheat Engine
 

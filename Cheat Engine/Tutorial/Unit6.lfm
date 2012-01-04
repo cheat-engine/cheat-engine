@@ -1,7 +1,7 @@
 object Form6: TForm6
-  Left = 695
+  Left = 621
   Height = 249
-  Top = 347
+  Top = 340
   Width = 571
   BorderStyle = bsDialog
   Caption = 'Step 5'
@@ -15,7 +15,7 @@ object Form6: TForm6
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   Position = poOwnerFormCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   Visible = True
   object Label1: TLabel
     Left = 8
@@ -43,24 +43,7 @@ object Form6: TForm6
     Align = alTop
     Color = clBtnFace
     Lines.Strings = (
-      'Sometimes the location something is stored at changes when you restart the game, or even while you''re playing.. In '
-      'that case you can use 2 things to still make a table that works.'
-      'In this step I''ll try to describe how to use the Code Finder function.'
       ''
-      'The value down here will be at a different location each time you start the tutorial, so a normal entry in the address '
-      'list wouldn''t work.'
-      'First try to find the address. (you''ve got to this point so I assume you know how to)'
-      'When you''ve found the address, right-click the address in Cheat Engine and choose "Find out what writes to this '
-      'address". A window will pop up with an empty list.'
-      'Then click on the Change value button in this tutorial, and go back to Cheat Engine. If everything went right there '
-      'should be an address with assembler code there now.'
-      'Click it and choose the replace option to replace it with code that does nothing. That will also add the code address '
-      'to the code list in the advanced options window. (Which gets saved if you save your table)'
-      ''
-      'Click on stop, so the game will start running normal again, and close to close the window.'
-      'Now, click on Change value, and if everything went right the Next button should become enabled.'
-      ''
-      'Note: When you''re freezing the address with a high enough speed it may happen that next becomes visible anyhow'
     )
     ReadOnly = True
     ScrollBars = ssVertical

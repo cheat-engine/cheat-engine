@@ -35,6 +35,26 @@ implementation
 
 uses Unit2, Unit3, Unit4, Unit5, Unit6, Unit7, Unit8, Unit9, Unit10;
 
+resourcestring
+  rsFirstStepTooHardBetterGiveUpNow =
+    'First step too hard? Better give up now!';
+
+  rsTutorial1='Welcome to the Cheat Engine Tutorial. (v3.1)'+#13#10+
+              ''+#13#10+
+              'This tutorial will try to explain the basics of cheating on games, and getting you more familiar with Cheat Engine.'+#13#10+
+              ''+#13#10+
+              'First open Cheat Engine if it hasn''t been opened yet.'+#13#10+
+              'Then click on the ''open process'' icon. (top left icon, with the computer on it)'+#13#10+
+              ''+#13#10+
+              'When the process window is open find this tutorial. The process name is probably ''tutorial.exe'' unless you'+#13#10+
+              'renamed it.'+#13#10+
+              'Select it, and click ok. Just ignore all the other buttons right now, but experiment with them later if you feel like it.'+#13#10+
+              ''+#13#10+
+              'When everything went right, the process window should be gone now and at the top of CE the processname is'+#13#10+
+              'shown.'+#13#10+
+              ''+#13#10+
+              'Now, click NEXT to continue to the next step. (Or fill in the password to proceed to that particular step you want)';
+
 
 procedure TForm1.Button1Click(Sender: TObject);
 begin
@@ -87,6 +107,8 @@ procedure TForm1.FormCreate(Sender: TObject);
 begin
   forms.Application.ShowButtonGlyphs:=sbgNever;
   randomize;
+
+  memo1.lines.text:=rsTutorial1;
 end;
 
 procedure TForm1.Button2Click(Sender: TObject);
@@ -173,7 +195,7 @@ end;
 
 procedure TForm1.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
-  canclose:=MessageDlg('First step too hard? Better give up now!',mtconfirmation,[mbyes,mbno],0)=mryes;
+  canclose:=MessageDlg(rsFirstStepTooHardBetterGiveUpNow, mtconfirmation, [mbyes, mbno], 0)=mryes;
 end;
 
 initialization

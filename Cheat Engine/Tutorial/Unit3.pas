@@ -40,15 +40,48 @@ implementation
 
 uses Unit4, Unit5;
 
+resourcestring
+  rsStep3UnknownInitialValuePW = 'Step 3: Unknown initial value (PW=';
+  rsDead = 'Seems you''ve done it again! Let me get a replacement! (And restart your scan!)';
+  rsTryAgain3 = 'Step 3 isn''t really that hard. Just do a new scan, unkown initial value and then decreased value till you find it. Almost everyone gets past'
+    +' this one. Sure you want to quit?';
+  rsLOSER = 'LOSER';
+
+  rsTutorialStep3=
+    'Ok, seeing that you''ve figured out how to find a value using exact value let''s move on to the next step.'+#13#10+
+          ''+#13#10+
+          'In the previous test we knew the initial value so we could do a exact value, but now we have a status bar where '+#13#10+
+          'we don''t know the starting value.'+#13#10+
+          'We only know that the value is between 0 and 500. And each time you click ''hit me'' you lose some health. The '+#13#10+
+          'amount you lose each time is shown above the status bar.'+#13#10+
+          ''+#13#10+
+          'Again there are several different ways to find the value. (like doing a decreased value by... scan), but I''ll only '+#13#10+
+          'explain the easiest. "Unknown initial value", and decreased value.'+#13#10+
+          'Because you don''t know the value it is right now, a exact value wont do any good, so choose as scantype '+#13#10+
+          '''Unknown initial value'', again, the value type is 4-bytes. (most windows apps use 4-bytes)'+#13#10+
+          'click first scan and wait till it''s done.'+#13#10+
+          ''+#13#10+
+          'When it is done click ''hit me''. You''ll lose some of your health. (the amount you lost shows for a few seconds and '+#13#10+
+          'then disappears, but you don''t need that)'+#13#10+
+          'Now go to Cheat Engine, and choose ''Decreased Value'' and click ''Next Scan'''+#13#10+
+          'When that scan is done, click hit me again, and repeat the above till you only find a few. '+#13#10+
+          ''+#13#10+
+          'We know the value is between 0 and 500, so pick the one that is most likely the address we need, and add it to '+#13#10+
+          'the list.'+#13#10+
+          'Now change the health to 5000, to proceed to the next step.';
+
+
 
 procedure TForm3.FormCreate(Sender: TObject);
 begin
+  memo1.lines.text:=rsTutorialStep3;
+
   health:=random(500);
   progressbar1.Min:=-2000;
   progressbar1.Max:=-2000+health;
   progressbar1.Position:=-2000+health;
 
-  memo1.Lines.Insert(0,'Step 3: Unknown initial value (PW='+inttostr(419482)+')');
+  memo1.Lines.Insert(0, rsStep3UnknownInitialValuePW+inttostr(419482)+')');
   memo1.SelStart:=0;
 end;
 
@@ -61,7 +94,7 @@ begin
 
   if health<0 then
   begin
-    showmessage('Seems you''ve done it again! Let me get a replacement! (And restart your scan!)');
+    showmessage(rsDead);
     health:=random(500);
     progressbar1.Min:=-2000;
     progressbar1.Max:=-2000+health;
@@ -105,12 +138,12 @@ end;
 
 procedure TForm3.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
-  canclose:=MessageDlg('Step 3 isn''t really that hard. Just do a new scan, unkown initial value and then decreased value till you find it. Almost everyone gets past this one. Sure you want to quit?',mtconfirmation,[mbyes,mbno],0)=mryes;
+  canclose:=MessageDlg(rsTryAgain3, mtconfirmation, [mbyes, mbno], 0)=mryes;
 end;
 
 procedure TForm3.SpeedButton1Click(Sender: TObject);
 begin
-  showmessage('LOSER');
+  showmessage(rsLOSER);
   button1.Click;
 end;
 

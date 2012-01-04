@@ -1,7 +1,7 @@
 inherited Form10: TForm10
-  Left = 619
+  Left = 582
   Height = 270
-  Top = 555
+  Top = 549
   Caption = 'Step 9'
   ClientHeight = 270
   OnCloseQuery = FormCloseQuery
@@ -23,31 +23,7 @@ inherited Form10: TForm10
   end
   inherited Memo1: TMemo
     Lines.Strings = (
-      'This step will explain how to deal with code that is used for other object of the same type'
       ''
-      'Often when you''ve found health of a unit or your own player, you will find that if you remove the code, it affects '
-      'enemies as well.'
-      'In these cases you must find out how to distinguish between your and the enemies objects.'
-      'Sometimes this is as easy as checking the first 4 bytes (Function pointer table) which often point to a unique location '
-      'for the player, and sometimes it''s a team number, or a pointer to a pointer to a pointer to a pointer to a pointer to a '
-      'playername. It all depends on the complexity of the game, and your luck'
-      ''
-      'The easiest method is finding what addresses the code you found writes to and then use the dissect data feature to '
-      'compare against two structures. (Your unit(s)/player and the enemies) And then see if you can find out a way to '
-      'distinguish between them.'
-      'When you have found out how to distinguish between you and the computer you can inject an assembler script that '
-      'checks for the condition and then either do not execute the code or do something else. (One hit kills for example)'
-      'Alternatively, you can also use this to build a so called "Array of byte" string which you can use to search which will '
-      'result in a list of all your or the enemies players'
-      ''
-      'In this tutorial I have implemented the most amazing game you will ever play.'
-      'It has 4 players. 2 Players belong to your team, and 2 Players belong to the computer. '
-      'Your task is to find the code that writes the health and make it so you win the game WITHOUT freezing your health'
-      'To continue, press "Restart game and autoplay" to test that your code is correct'
-      ''
-      ''
-      'Tip: Health is a float'
-      'Tip2: There are multiple solutions'
     )
   end
   inherited Button2: TButton

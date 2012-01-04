@@ -70,12 +70,50 @@ implementation
 
 uses Unit4;
 
+resourcestring
+  rsThisPlayerIsAlreadyDeadRestartTheGame = 'This player is already dead. Restart the game';
+  rsDEAD = 'DEAD';
+  rsHealth = 'Health: %s';
+  rsStop = 'Stop';
+  rsRestartGameAndAutoplay = 'Restart game and autoplay';
+  rsFailureYourTeamDied = 'Failure. Your team died';
+  rsTryAgain10 = 'Can''t figure out how to do this? Don''t worry. Try asking in the forum at cheatengine.org or perhaps someone already explained it better '
+    +'there. Are you sure you want to quit?';
+  rsStep9SharedCodePW = 'Step 9: Shared code: (PW=%s)';
+
+  rsTutorialStep9=
+    'This step will explain how to deal with code that is used for other object of the same type'+#13#10+
+    ''+#13#10+
+    'Often when you''ve found health of a unit or your own player, you will find that if you remove the code, it affects '+#13#10+
+    'enemies as well.'+#13#10+
+    'In these cases you must find out how to distinguish between your and the enemies objects.'+#13#10+
+    'Sometimes this is as easy as checking the first 4 bytes (Function pointer table) which often point to a unique location '+#13#10+
+    'for the player, and sometimes it''s a team number, or a pointer to a pointer to a pointer to a pointer to a pointer to a '+#13#10+
+    'playername. It all depends on the complexity of the game, and your luck'+#13#10+
+    ''+#13#10+
+    'The easiest method is finding what addresses the code you found writes to and then use the dissect data feature to '+#13#10+
+    'compare against two structures. (Your unit(s)/player and the enemies) And then see if you can find out a way to '+#13#10+
+    'distinguish between them.'+#13#10+
+    'When you have found out how to distinguish between you and the computer you can inject an assembler script that '+#13#10+
+    'checks for the condition and then either do not execute the code or do something else. (One hit kills for example)'+#13#10+
+    'Alternatively, you can also use this to build a so called "Array of byte" string which you can use to search which will '+#13#10+
+    'result in a list of all your or the enemies players'+#13#10+
+    ''+#13#10+
+    'In this tutorial I have implemented the most amazing game you will ever play.'+#13#10+
+    'It has 4 players. 2 Players belong to your team, and 2 Players belong to the computer. '+#13#10+
+    'Your task is to find the code that writes the health and make it so you win the game WITHOUT freezing your health'+#13#10+
+    'To continue, press "Restart game and autoplay" to test that your code is correct'+#13#10+
+    ''+#13#10+
+    ''+#13#10+
+    'Tip: Health is a float'+#13#10+
+    'Tip2: There are multiple solutions';
+
 procedure TPlayer.Hit(damage: integer);
 var x: single;
 begin
   if health=0 then
   begin
-    showmessage('this player is already dead. Restart the game');
+    showmessage(rsThisPlayerIsAlreadyDeadRestartTheGame);
     exit;
   end;
 
@@ -83,9 +121,9 @@ begin
   health:=x;
 
   if health=0 then
-    healthlabel.Caption:='DEAD'
+    healthlabel.Caption:=rsDEAD
   else
-    healthlabel.caption:='Health: '+FloatToStr(health);
+    healthlabel.caption:=Format(rsHealth, [FloatToStr(health)]);
 
   unrelatedrandomlychangingthing:=random(5000000);
 end;
@@ -114,7 +152,7 @@ begin
   p1.boguscrap:=random(10000);
   p1.team:=1;
   p1.healthlabel:=Label4;
-  p1.healthlabel.caption:='Health: '+FloatToStr(p1.health);
+  p1.healthlabel.caption:=Format(rsHealth, [FloatToStr(p1.health)]);
 
   getmem(z, 1+random(90000));
 
@@ -124,7 +162,7 @@ begin
   p2.boguscrap:=random(10000);
   p2.team:=1;
   p2.healthlabel:=Label6;
-  p2.healthlabel.caption:='Health: '+FloatToStr(p2.health);
+  p2.healthlabel.caption:=Format(rsHealth, [FloatToStr(p2.health)]);
 
   p1.teammate:=p2;
   p2.teammate:=p1;
@@ -137,7 +175,7 @@ begin
   p3.boguscrap:=random(10000);
   p3.team:=2;
   p3.healthlabel:=label8;
-  p3.healthlabel.caption:='Health: '+FloatToStr(p3.health);
+  p3.healthlabel.caption:=Format(rsHealth, [FloatToStr(p3.health)]);
 
   getmem(z, 1+random(90000));
 
@@ -147,7 +185,7 @@ begin
   p4.boguscrap:=random(10000);
   p4.team:=2;
   p4.healthlabel:=label10;
-  p4.healthlabel.caption:='Health: '+FloatToStr(p4.health);
+  p4.healthlabel.caption:=Format(rsHealth, [FloatToStr(p4.health)]);
 
   p3.teammate:=p4;
   p4.teammate:=p3;
@@ -165,16 +203,16 @@ end;
 
 procedure TForm10.Button6Click(Sender: TObject);
 begin
-  if button6.Caption='Stop' then
+  if button6.Caption=rsStop then
   begin
-    button6.Caption:='Restart game and autoplay';
+    button6.Caption:=rsRestartGameAndAutoplay;
     exit;
   end;
 
   button3.Click;
-  button6.Caption:='Stop';
+  button6.Caption:=rsStop;
 
-  while button6.Caption='Stop' do
+  while button6.Caption=rsStop do
   begin
     if p1.health>0 then p1.Hit(2+random(5));
     if p2.health>0 then p2.Hit(2+random(5));
@@ -185,15 +223,15 @@ begin
 
     if (p1.health=0) and (p2.health=0) then
     begin
-      ShowMessage('Failure. Your team died');
-      button6.Caption:='Restart game and autoplay';
+      ShowMessage(rsFailureYourTeamDied);
+      button6.Caption:=rsRestartGameAndAutoplay;
       break;
     end;
 
     if (p3.health=0) and (p4.health=0) then
     begin
       button2.enabled:=true;
-      button6.Caption:='Restart game and autoplay';
+      button6.Caption:=rsRestartGameAndAutoplay;
       break;
     end;
   end;
@@ -211,13 +249,14 @@ end;
 
 procedure TForm10.FormCloseQuery(Sender: TObject; var CanClose: boolean);
 begin
-  canclose:=MessageDlg('Can''t figure out how to do this? Don''t worry. Try asking in the forum at cheatengine.org or perhaps someone already explained it better there. Are you sure you want to quit?',mtconfirmation,[mbyes,mbno],0)=mryes;
+  canclose:=MessageDlg(rsTryAgain10, mtconfirmation, [mbyes, mbno], 0)=mryes;
 end;
 
 procedure TForm10.FormCreate(Sender: TObject);
 begin
       //31337157
-  memo1.Lines.Insert(0,'Step 9: Shared code: (PW='+inttostr(313)+inttostr(37157)+')');
+  memo1.lines.text:=rsTutorialStep9;
+  memo1.Lines.Insert(0, Format(rsStep9SharedCodePW, [inttostr(313)+inttostr(37157)]));
 
   button3.Click;
 

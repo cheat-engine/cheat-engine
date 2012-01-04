@@ -1,7 +1,7 @@
 object Form5: TForm5
-  Left = 413
+  Left = 491
   Height = 249
-  Top = 360
+  Top = 355
   Width = 571
   BorderStyle = bsDialog
   Caption = 'Step 4'
@@ -15,7 +15,7 @@ object Form5: TForm5
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   Position = poOwnerFormCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   Visible = True
   object Label1: TLabel
     Left = 40
@@ -82,34 +82,6 @@ object Form5: TForm5
     Width = 571
     Align = alTop
     Color = clBtnFace
-    Lines.Strings = (
-      'In the previous tutorial we used bytes to scan, but some games store information in so called ''floating point'' notations. '
-      '(probably to prevent simple memory scanners from finding it the easy way)'
-      'a floating point is a value with some digits behind the point. (like 5.12 or 11321.1)'
-      ''
-      'Below you see your health and ammo. Both are stored as Floating point notations, but health is stored as a float and '
-      'ammo is stored as a double.'
-      'Click on hit me to lose some health, and on shoot to decrease your ammo with 0.5'
-      ''
-      'You have to set BOTH values to 5000 or higher to proceed.'
-      ''
-      'Exact value scan will work fine here, but you may want to experiment with other types too.'
-      ''
-      ''
-      ''
-      ''
-      ''
-      ''
-      ''
-      ''
-      ''
-      ''
-      ''
-      ''
-      ''
-      ''
-      'Hint: It is recommended to disable "Fast Scan" for type double'
-    )
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 0
