@@ -64,7 +64,7 @@ type
     UnreadablePointer: boolean;
     BaseAddress: ptrUint; //Base address
     RealAddress: ptrUint; //If pointer, or offset the real address
-    IsOffset: boolean;
+    fIsOffset: boolean;
 
 
     fActive: boolean;
@@ -149,6 +149,7 @@ type
     procedure endEdit;
 
     function isPointer: boolean;
+    function isOffset: boolean;
     procedure ApplyFreeze;
 
     function GetValue: string;
@@ -891,6 +892,11 @@ begin
   result:=length(pointeroffsets)>0;
 end;
 
+function TMemoryRecord.isOffset: boolean;
+begin
+  result:=fIsOffset;
+end;
+
 function TMemoryRecord.hasHotkeys: boolean;
 begin
   result:=HotkeyCount>0;
@@ -1243,7 +1249,7 @@ begin
   begin
 
     s:=trim(interpretableaddress);
-    isOffset:=(s<>'') and (s[1] in ['+','-']);
+    fIsOffset:=(s<>'') and (s[1] in ['+','-']);
     baseaddress:=a;
   end;
 
@@ -1724,7 +1730,7 @@ end;
 
 function TMemoryRecord.getBaseAddress: ptrUint;
 begin
-  if IsOffset and hasParent then
+  if fIsOffset and hasParent then
     result:=parent.RealAddress+baseaddress //assuming that the parent has had it's real address calculated first
   else
     result:=BaseAddress;
