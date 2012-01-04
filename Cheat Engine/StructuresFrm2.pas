@@ -960,9 +960,9 @@ begin
         e.Offset:=currentOffset;
         e.vartype:=vt;
 
-        if vt=vtDword then
+        if vt in [vtByte..vtQword] then
         begin
-          if not isHumanReadableInteger(pinteger(@buf[i])^) then
+          if fDefaultHex or ((vt=vtDword) and (not isHumanReadableInteger(pinteger(@buf[i])^))) then
             e.DisplayMethod:=dtHexadecimal;
 
         end
