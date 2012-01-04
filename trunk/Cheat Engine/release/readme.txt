@@ -14,6 +14,7 @@ Added direct 3d hook functions (can be used to show trainers inside games)
 Plugins settings between the 32 and 64-bit executable are now seperated
 Recalculate addresses with only one selection now only updates the siblings and children. Doesn't touch the parent node
 Addresslist entries can have the notation +xxx and -xxx, which will calculate the address based on the parent address (If the parent address changes, these change automatically
+The structure dissect has been rewritten from scratch, and the functions have been exposed to lua as well
 
 
 How to use:
@@ -30,4 +31,4 @@ For more information about Cheat Engine or tables for it
 and other things, goto this url:
 http://www.cheatengine.org/
 or
-http://www.heijnen1.demon.nl/
+http://members.upc.nl/cheatengine/
