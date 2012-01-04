@@ -80,6 +80,7 @@ type
     CustomType: TCustomType;
     fCustomTypeName: string;
     fColor: TColor;
+    fVisible: boolean;
 
     fVarType : TVariableType;
 
@@ -98,6 +99,7 @@ type
     procedure setActive(state: boolean);
     procedure setAllowDecrease(state: boolean);
     procedure setAllowIncrease(state: boolean);
+    procedure setVisible(state: boolean);
     procedure setShowAsHex(state: boolean);
     procedure setOptions(newOptions: TMemrecOptions);
     procedure setCustomTypeName(name: string);
@@ -108,6 +110,8 @@ type
 
     function getChildCount: integer;
     function getChild(index: integer): TMemoryRecord;
+
+
 
     procedure setID(i: integer);
     function getParent: TMemoryRecord;
@@ -198,6 +202,7 @@ type
     property HotkeyCount: integer read getHotkeyCount;
     property Hotkey[index: integer]: TMemoryRecordHotkey read getHotkey;
 
+    property visible: boolean read fVisible write setVisible;
     property Count: integer read getChildCount;
     property Child[index: integer]: TMemoryRecord read getChild; default;
     property Parent: TMemoryRecord read getParent;
@@ -1189,6 +1194,13 @@ begin
 
   SetVisibleChildrenState;
 
+end;
+
+procedure TMemoryRecord.setVisible(state: boolean);
+begin
+  fVisible:=state;
+  if treenode<>nil then
+    treenode.update;
 end;
 
 procedure TMemoryRecord.setShowAsHex(state:boolean);

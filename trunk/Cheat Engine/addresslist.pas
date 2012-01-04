@@ -642,11 +642,10 @@ begin
   result:=nil;
 
 
-
   Treeview.BeginUpdate;
   mr:=addaddress('No description',initialaddress,[],0, vtDword);
-  mr.treenode.Visible:=false;
-  treeview.EndUpdate;
+  mr.visible:=false;
+  Treeview.EndUpdate;
 
 
   //changevalue, if cancel, delete
@@ -661,18 +660,14 @@ begin
     end
     else
     begin
-      mr.treenode.Visible:=true;
       mr.ReinterpretAddress(true);
-      mr.treenode.update;
+      mr.visible:=true;
     end;
 
     free;
   end;
 
-
-
-
-
+  //treeview.EndUpdate;
 
   result:=mr;
 end;
@@ -1444,6 +1439,9 @@ begin
     sender.Canvas.FillRect(fulltextline); //whipe the original text
 
     //exit;
+
+    if not memrec.visible then //don't render it
+      exit;
 
 
     if memrec.isSelected then
