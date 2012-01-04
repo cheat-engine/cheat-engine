@@ -1,7 +1,7 @@
 object frmStructures2ElementInfo: TfrmStructures2ElementInfo
-  Left = 286
+  Left = 982
   Height = 219
-  Top = 180
+  Top = 96
   Width = 313
   BorderStyle = bsSingle
   Caption = 'Structure Info'
