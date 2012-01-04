@@ -8,6 +8,8 @@ uses windows, LCLIntf, sysutils, symbolhandler, CEFuncProc, NewKernelHandler, ma
 
 type TAutoGuessEvent=function (address: ptruint; originalVariableType: TVariableType): TVariableType of object;
 
+function isHumanReadableInteger(v: integer): boolean; //returns false if it's not an easy readable integer
+
 function FindTypeOfData(address: ptrUint; buf: pbytearray; size: integer):TVariableType;
 function DataToString(buf: PByteArray; size: integer; vartype: TVariableType): string;
 function readAndParseAddress(address: ptrUint; variableType: TVariableType; customtype: TCustomType=nil; showashexadecimal: Boolean=false; showAsSigned: boolean=false; bytesize:integer=1): string;
@@ -336,9 +338,20 @@ begin
   end;
 end;
 
+function isHumanReadableInteger(v: integer): boolean;
+begin
+  //check if the value is a human usable value (between 0 and 10000 or dividable by at least 100)
+
+  //Human readable if:
+  //The value is in the range of -10000 and 10000
+  //The value is dividable by 100
+
+  result:=inrange(v, -10000, 10000) or ((v mod 100)=0);
+end;
+
 function FindTypeOfData(address: ptrUint; buf: pbytearray; size: integer):TVariableType;
 {
-takes the given
+takes the given address and memoryblock and converts it to a variable type based on some guesses
 }
 var x: string;
     i: integer;
@@ -543,12 +556,8 @@ begin
       end;
     end;
 
-    if result=vtDword then
-    begin
-      //check if the value is a human usable value (between 0 and 10000 or dividable by at least 100)
-      if (pdword(@buf[0])^ > 10000) and (PInteger(@buf[0])^<>-1) and ((pdword(@buf[0])^ mod 100) > 0) then
-        result:=vtByte;
-    end;
+    //1/4/2012: Removed the test for human readability. Keep 4 bytes, but display as a hex dword at other locations
+
 
   finally
     if assigned(onAutoGuessRoutine) then
