@@ -1608,9 +1608,9 @@ begin
 
     case VarType of
       vtCustom: if customtype<>nil then customtype.ConvertIntegerToData(strtoint(currentValue), pdw);
-      vtByte: pb^:=strtoint(currentValue);
-      vtWord: pw^:=strtoint(currentValue);
-      vtDword: pdw^:=strtoint(currentValue);
+      vtByte: pb^:=StrToQWordEx(currentValue);
+      vtWord: pw^:=StrToQWordEx(currentValue);
+      vtDword: pdw^:=StrToQWordEx(currentValue);
       vtQword: pqw^:=StrToQWordEx(currentValue);
       vtSingle: if (not fShowAsHex) or (not TryStrToInt('$'+currentvalue, li^)) then
       begin
