@@ -98,7 +98,7 @@ type
 
     userdefinedsymbolspos: integer;
     userdefinedsymbols: array of TUserdefinedsymbol;
-    userdefinedsymbolsMREW: TMultireadExclusiveWriteSynchronizer;
+    userdefinedsymbolsCS: TCriticalSection; //not actively used and needs reentry which isn't implemented in the MREW
 
     fshowmodules: boolean;   //--determines what is returned by getnamefromaddress
     fshowsymbols: boolean;   ///
@@ -595,7 +595,7 @@ function TSymhandler.DeleteUserdefinedSymbol(symbolname:string):boolean;
 var i,j: integer;
 begin
   result:=false;
-  userdefinedsymbolsMREW.beginwrite;
+  userdefinedsymbolsCS.enter;
   try
     for i:=0 to userdefinedsymbolspos-1 do
       if uppercase(userdefinedsymbols[i].symbolname)=uppercase(symbolname) then
@@ -614,7 +614,7 @@ begin
         break;
       end;
   finally
-    userdefinedsymbolsMREW.endwrite;
+    userdefinedsymbolsCS.leave;
   end;
 
   if assigned(UserdefinedSymbolCallback) then
@@ -632,10 +632,10 @@ begin
   result:=false;
   if size=0 then raise exception.Create(rsPleaseProvideABiggerSize);
 
-  userdefinedsymbolsMREW.beginread;
+  userdefinedsymbolsCS.enter;
   try
     i:=GetUserdefinedSymbolByNameIndex(symbolname);
-    if i=-1 then //doesn't exist yet. Add it
+    if i=-1 then
     begin
       p:=virtualallocex(processhandle,nil,size,MEM_COMMIT , PAGE_EXECUTE_READWRITE);
       if p=nil then
@@ -644,7 +644,6 @@ begin
       i:=GetUserdefinedSymbolByNameIndex(symbolname);
       userdefinedsymbols[i].allocsize:=size;
       userdefinedsymbols[i].processid:=processid;
-
     end
     else
     begin
@@ -668,19 +667,22 @@ begin
         userdefinedsymbols[i].processid:=processid;
       end;
     end;
-    result:=true; //managed to get here without crashing...
-    if assigned(UserdefinedSymbolCallback) then
-      UserdefinedSymbolCallback();
   finally
-    userdefinedsymbolsMREW.EndRead;
+    userdefinedsymbolsCS.leave;
   end;
+
+  result:=true; //managed to get here without crashing...
+  if assigned(UserdefinedSymbolCallback) then
+     UserdefinedSymbolCallback();
+
+
 end;
 
 function TSymhandler.GetUserdefinedSymbolByNameIndex(symbolname:string):integer;
 var i: integer;
 begin
   result:=-1;
-  userdefinedsymbolsMREW.beginread;
+  userdefinedsymbolsCS.enter;
   try
     for i:=0 to userdefinedsymbolspos-1 do
     begin
@@ -691,7 +693,7 @@ begin
       end;
     end;
   finally
-    userdefinedsymbolsMREW.endread;
+    userdefinedsymbolsCS.leave;
   end;
 end;
 
@@ -699,7 +701,7 @@ function TSymhandler.GetUserdefinedSymbolByAddressIndex(address: dword):integer;
 var i: integer;
 begin
   result:=-1;
-  userdefinedsymbolsMREW.beginread;
+  userdefinedsymbolsCS.enter;
   try
     for i:=0 to userdefinedsymbolspos-1 do
       if userdefinedsymbols[i].address=address then
@@ -708,7 +710,7 @@ begin
         break;
       end;
   finally
-    userdefinedsymbolsMREW.endread;
+    userdefinedsymbolsCS.leave;
   end;  
 end;
 
@@ -717,13 +719,13 @@ var i:integer;
 begin
   result:=0;
 
-  userdefinedsymbolsMREW.beginread;
+  userdefinedsymbolsCS.enter;
   try
     i:=GetUserdefinedSymbolByNameIndex(symbolname);
     if i=-1 then exit;
     result:=userdefinedsymbols[i].address;
   finally
-    userdefinedsymbolsMREW.endread;
+    userdefinedsymbolsCS.leave;
   end;
 end;
 
@@ -731,13 +733,13 @@ function TSymhandler.GetUserdefinedSymbolByAddress(address:ptrUint):string;
 var i:integer;
 begin
   result:='';
-  userdefinedsymbolsMREW.beginread;
+  userdefinedsymbolsCS.enter;
   try
     i:=GetUserdefinedSymbolByAddressIndex(address);
     if i=-1 then exit;
     result:=userdefinedsymbols[i].symbolname;
   finally
-    userdefinedsymbolsMREW.endread;
+    userdefinedsymbolsCS.leave;
   end;
 end;
 
@@ -753,7 +755,7 @@ begin
   address:=getAddressFromName(addressstring);
   if address=0 then raise symexception.Create(rsYouCanTAddASymbolWithAddress0);
 
-  userdefinedsymbolsMREW.beginwrite;
+  userdefinedsymbolsCS.enter;
   try
     if userdefinedsymbolspos+1>=length(userdefinedsymbols) then
       setlength(userdefinedsymbols,length(userdefinedsymbols)*2);
@@ -766,7 +768,7 @@ begin
     userdefinedsymbols[userdefinedsymbolspos].doNotSave:=DoNotSave;
     inc(userdefinedsymbolspos);
   finally
-    userdefinedsymbolsMREW.endwrite;
+    userdefinedsymbolsCS.leave;
   end;
 
 
@@ -784,7 +786,7 @@ var i: integer;
     extradata: ^TUDSEnum;
 begin
   list.Clear;
-  userdefinedsymbolsMREW.BeginRead;
+  userdefinedsymbolsCS.enter;
   for i:=0 to userdefinedsymbolspos-1 do
   begin
     getmem(extradata,sizeof(TUDSEnum));
@@ -796,7 +798,7 @@ begin
     list.Addobject(userdefinedsymbols[i].symbolname,pointer(extradata));
     //just don't forget to free it at the caller's end
   end;
-  userdefinedsymbolsMREW.EndRead;
+  userdefinedsymbolsCS.leave;
 end;
 
 procedure TSymhandler.fillMemoryRegionsWithModuleData(var mr: TMemoryregions; startaddress: dword; size: dword);
@@ -1769,6 +1771,7 @@ begin
     SymbolsLoadedNotification[i](self);
 end;
 
+
 destructor TSymhandler.destroy;
 begin
 
@@ -1790,17 +1793,18 @@ begin
 
   symbolloadervalid.Free;
   modulelistMREW.free;
-  userdefinedsymbolsMREW.free;
+  userdefinedsymbolsCS.free;
 
   setlength(userdefinedsymbols,0);
   setlength(modulelist,0);
 end;
 
+
 constructor TSymhandler.create;
 begin
   symbolloadervalid:=TMultiReadExclusiveWriteSynchronizer.create;
   modulelistMREW:=TMultiReadExclusiveWriteSynchronizer.create;
-  userdefinedsymbolsMREW:=TMultireadExclusiveWriteSynchronizer.create;
+  userdefinedsymbolsCS:=TCriticalSection.create;
 
   //setlength(internalsymbols,4);
   setlength(userdefinedsymbols,32);
