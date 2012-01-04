@@ -652,10 +652,11 @@ begin
   //changevalue, if cancel, delete
   with TFormaddresschange.Create(self) do
   begin
+    caption:='Add address';
     memoryrecord:=mr;
     if showmodal<>mrok then
     begin
-      mr.free; //not ok, elete
+      mr.free; //not ok, delete
       mr:=nil;
     end
     else

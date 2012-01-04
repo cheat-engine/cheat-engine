@@ -556,7 +556,8 @@ begin
           try formsettings.EditNetworkUpdateInterval.Text:=IntToStr(i); except end;
           {$endif}
 
-          try cbShowAsSigned.checked:=reg.readbool('Show values as signed'); except end;
+          if reg.ValueExists('Show values as signed') then
+            cbShowAsSigned.checked:=reg.readbool('Show values as signed');
 
           if reg.ValueExists('AutoAttach') then
             EditAutoAttach.Text:=reg.ReadString('AutoAttach');
