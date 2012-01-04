@@ -1081,9 +1081,10 @@ end;
 procedure TMemoryRecord.setActive(state: boolean);
 var f: string;
     i: integer;
-
 begin
   //6.0 compatibility
+  if state=fActive then exit; //no need to execute this is it's the same state
+
   if (state) then
     LUA_memrec_callback(self, '_memrec_'+description+'_activating')
   else
