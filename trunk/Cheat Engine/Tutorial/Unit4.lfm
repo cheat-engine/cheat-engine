@@ -1,43 +1,43 @@
 object Form4: TForm4
-  Left = 283
-  Top = 674
+  Left = 263
+  Height = 85
+  Top = 682
+  Width = 378
   BorderIcons = []
   BorderStyle = bsDialog
   Caption = 'Tutorial End'
   ClientHeight = 85
   ClientWidth = 378
   Color = clBtnFace
-  Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
-  Font.Style = []
-  Position = poOwnerFormCenter
   OnClose = FormClose
-  PixelsPerInch = 96
+  Position = poOwnerFormCenter
+  LCLVersion = '0.9.31'
   object Label1: TLabel
     Left = 8
+    Height = 14
     Top = 8
-    Width = 271
-    Height = 13
-    Caption = 'Well done, you'#39've completed the tutorial of Cheat Engine.'
+    Width = 272
+    Caption = 'Well done, you''ve completed the tutorial of Cheat Engine.'
+    ParentColor = False
   end
   object Label2: TLabel
     Left = 8
+    Height = 14
     Top = 24
-    Width = 361
-    Height = 13
-    Caption = 
-      'Just play around with the tutorial and learn how the other scanm' +
-      'ethods work.'
+    Width = 362
+    Caption = 'Just play around with the tutorial and learn how the other scanmethods work.'
+    ParentColor = False
   end
   object Button1: TButton
     Left = 160
+    Height = 25
     Top = 48
     Width = 75
-    Height = 25
     Caption = 'OK'
-    TabOrder = 0
     OnClick = Button1Click
+    TabOrder = 0
   end
 end

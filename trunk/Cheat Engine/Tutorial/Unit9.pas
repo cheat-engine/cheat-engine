@@ -88,6 +88,45 @@ implementation
 
 uses Unit4, Unit10;
 
+resourcestring
+  rsStep8MultilevelPointersPW = 'Step 8: Multilevel pointers: (PW=%s)';
+  rsUnrandomizerDetected = 'Unrandomizer detected';
+  rsYouVeGotSecondsLeftToChangeTheValueTo5000 = 'You''ve got %s seconds left to change the value to 5000';
+  rsTryAgain9 = 'Aw, you''ve almost reached the end. But don''t worry, multilevel pointers can be a real pain when dealing with. If you get more experienced '
+    +'someday you can try it again. Are you sure you want to quit?';
+  rsLOSER = 'LOSER';
+
+  rsTutorialStep8=
+          'This step will explain how to use multi-level pointers.'+#13#10+
+          'In step 6 you had a simple level-1 pointer, with the first address found already being the real base address.'+#13#10+
+          'This step however is a level-4 pointer. It has a pointer to a pointer to a pointer to a pointer to a pointer to the health.'+#13#10+
+          ''+#13#10+
+          'You basicly do the same as in step 6. Find out what accesses the value, look at the instruction and what probably is '+#13#10+
+          'the base pointer value, and what is the offset, and already fill that in or write it down. But in this case the address '+#13#10+
+          'you''ll find will also be a pointer. You just have to find out the pointer to that pointer exactly the same way as you did '+#13#10+
+          'with the value. Find out what accesses that address you found, look at the assembler instruction, note the probable '+#13#10+
+          'instruction and offset, and use that.'+#13#10+
+          'and continue till you can''t get any further (usually when the base address is a static address, shown up as green)'+#13#10+
+          ''+#13#10+
+          'Click Change Value to let the tutorial access the health.'+#13#10+
+          'If you think you''ve found the pointer path click Change Register. The pointers and value will then change and you''ll '+#13#10+
+          'have 3 seconds to freeze the address to 5000'+#13#10+
+          ''+#13#10+
+          'Extra: This problem can also be solved using a auto assembler script, or using the pointer scanner'+#13#10+
+          'Extra2: In some situations it is recommended to change ce''s codefinder settings to Access violations when '+#13#10+
+          'encountering instructions like mov eax,[eax] since debugregisters show it AFTER it was changed, making it hard to '+#13#10+
+          'find out the the value of the pointer'+#13#10+
+          ''+#13#10+
+          ''+#13#10+
+          ''+#13#10+
+          ''+#13#10+
+          ''+#13#10+
+          'Extra3: If you''re still reading. You might notice that when looking at the assembler instructions that the pointer is '+#13#10+
+          'being read and filled out in the same codeblock (same routine, if you know assembler, look up till the start of the '+#13#10+
+          'routine). This doesn''t always happen, but can be really useful in finding a '+#13#10+
+          'pointer when debugging is troublesome';
+
+
 
 procedure TForm9.relocate;
 begin
@@ -146,7 +185,8 @@ begin
   basepointer.p.p.p.health:=random(4000);
   label1.caption:=inttostr(basepointer.p.p.p.health);
 
-  memo1.Lines.Insert(0,'Step 8: Multilevel pointers: (PW='+inttostr(525)+inttostr(927)+')');
+  memo1.lines.text:=rsTutorialStep8;
+  memo1.Lines.Insert(0, Format(rsStep8MultilevelPointersPW, [inttostr(525)+inttostr(927)]));
   memo1.SelStart:=0;
 end;
 
@@ -162,7 +202,7 @@ begin
   a:=basepointer;
   if (a.a=a.b) and (a.b=a.c) and (a.c=a.d) and (a.d=a.e) and (a.e=a.f) then
   begin
-    showmessage('Unrandomizer detected');
+    showmessage(rsUnrandomizerDetected);
     exit;
   end;
 
@@ -170,7 +210,7 @@ begin
   b:=a.p;
   if (b.a=b.b) and (b.b=b.c) and (b.c=b.d) and (b.d=b.e) and (b.e=b.f) then
   begin
-    showmessage('Unrandomizer detected');
+    showmessage(rsUnrandomizerDetected);
     exit;
   end;
 
@@ -178,7 +218,7 @@ begin
   c:=b.p;
   if (c.a=c.b) and (c.b=c.c) and (c.c=c.d) and (c.d=c.e) and (c.e=c.f) then
   begin
-    showmessage('Unrandomizer detected');
+    showmessage(rsUnrandomizerDetected);
     exit;
   end;
 
@@ -186,7 +226,7 @@ begin
   d:=c.p;
   if (d.a=d.b) and (d.b=d.c) and (d.c=d.d) and (d.d=d.e) and (d.e=d.f) then
   begin
-    showmessage('Unrandomizer detected');
+    showmessage(rsUnrandomizerDetected);
     exit;
   end;
 
@@ -209,7 +249,7 @@ begin
   a:=basepointer;
   if (a.a=a.b) and (a.b=a.c) and (a.c=a.d) and (a.d=a.e) and (a.e=a.f) then
   begin
-    showmessage('Unrandomizer detected');
+    showmessage(rsUnrandomizerDetected);
     exit;
   end;
 
@@ -217,7 +257,7 @@ begin
   b:=a.p;
   if (b.a=b.b) and (b.b=b.c) and (b.c=b.d) and (b.d=b.e) and (b.e=b.f) then
   begin
-    showmessage('Unrandomizer detected');
+    showmessage(rsUnrandomizerDetected);
     exit;
   end;
 
@@ -225,7 +265,7 @@ begin
   c:=b.p;
   if (c.a=c.b) and (c.b=c.c) and (c.c=c.d) and (c.d=c.e) and (c.e=c.f) then
   begin
-    showmessage('Unrandomizer detected');
+    showmessage(rsUnrandomizerDetected);
     exit;
   end;
 
@@ -233,7 +273,7 @@ begin
   d:=c.p;
   if (d.a=d.b) and (d.b=d.c) and (d.c=d.d) and (d.d=d.e) and (d.e=d.f) then
   begin
-    showmessage('Unrandomizer detected');
+    showmessage(rsUnrandomizerDetected);
     exit;
   end;
 
@@ -247,7 +287,7 @@ begin
 
   while k>0 do
   begin
-    label2.Caption:='You''ve got '+IntToStR(k)+' seconds left to change the value to 5000';
+    label2.Caption:=Format(rsYouVeGotSecondsLeftToChangeTheValueTo5000, [IntToStR(k)]);
     label2.Repaint;
     sleep(1000);
     deC(k);
@@ -271,7 +311,7 @@ end;
 
 procedure TForm9.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
-  canclose:=MessageDlg('Aw, you''ve almost reached the end. But don''t worry, multilevel pointers can be a real pain when dealing with. If you get more experienced someday you can try it again. Are you sure you want to quit?',mtconfirmation,[mbyes,mbno],0)=mryes;
+  canclose:=MessageDlg(rsTryAgain9, mtconfirmation, [mbyes, mbno], 0)=mryes;
 end;
 
 procedure TForm9.Button2Click(Sender: TObject);
@@ -288,7 +328,7 @@ end;
 
 procedure TForm9.SpeedButton1Click(Sender: TObject);
 begin
-  showmessage('LOSER');
+  showmessage(rsLOSER);
   button2.Click;
 end;
 

@@ -6,7 +6,7 @@ Custom types can now do an unknown initial value scan
 Fixed the auto assembler highlighter from hiding some text while typing
 
 
-Changes:
+Additions and changes:
 Added a profiler so you can find function entry points and see how often they are called
 Deleting a plugin now calls FreeLibrary on it
 Ctrl+enter in the luaengine form now automatically executes the command
@@ -15,6 +15,8 @@ Plugins settings between the 32 and 64-bit executable are now seperated
 Recalculate addresses with only one selection now only updates the siblings and children. Doesn't touch the parent node
 Addresslist entries can have the notation +xxx and -xxx, which will calculate the address based on the parent address (If the parent address changes, these change automatically
 The structure dissect has been rewritten from scratch, and the functions have been exposed to lua as well
+Added a new step to the tutorial (step9) showing how to deal with shared code
+Made the tutorial translatable as well
 
 
 How to use:

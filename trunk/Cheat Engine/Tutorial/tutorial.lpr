@@ -13,13 +13,15 @@ uses
   Unit7 in 'Unit7.pas' {Form7},
   Unit8 in 'Unit8.pas' {Form8},
   Unit9 in 'Unit9.pas' {Form9},
-  Unit10 in 'Unit10.pas' {Form10};
+  Unit10 in 'Unit10.pas', cetranslator {Form10};
 
 {$R *.res}
 
 begin
   Application.Initialize;
+  doTranslation;
   Application.CreateForm(TForm1, Form1);
   Application.TaskBarBehavior:=tbMultiButton;
+
   Application.Run;
 end.

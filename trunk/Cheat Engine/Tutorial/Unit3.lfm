@@ -1,7 +1,7 @@
 object Form3: TForm3
-  Left = 804
+  Left = 741
   Height = 250
-  Top = 138
+  Top = 176
   Width = 571
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
@@ -16,7 +16,7 @@ object Form3: TForm3
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   Position = poOwnerFormCenter
-  LCLVersion = '0.9.29'
+  LCLVersion = '0.9.31'
   Visible = True
   object Label1: TLabel
     Left = 274
@@ -47,27 +47,7 @@ object Form3: TForm3
     Align = alTop
     Color = clBtnFace
     Lines.Strings = (
-      'Ok, seeing that you''ve figured out how to find a value using exact value let''s move on to the next step.'
-      ''
-      'In the previous test we knew the initial value so we could do a exact value, but now we have a status bar where '
-      'we don''t know the starting value.'
-      'We only know that the value is between 0 and 500. And each time you click ''hit me'' you lose some health. The '
-      'amount you lose each time is shown above the status bar.'
-      ''
-      'Again there are several different ways to find the value. (like doing a decreased value by... scan), but I''ll only '
-      'explain the easiest. "Unknown initial value", and decreased value.'
-      'Because you don''t know the value it is right now, a exact value wont do any good, so choose as scantype '
-      '''Unknown initial value'', again, the value type is 4-bytes. (most windows apps use 4-bytes)'
-      'click first scan and wait till it''s done.'
-      ''
-      'When it is done click ''hit me''. You''ll lose some of your health. (the amount you lost shows for a few seconds and '
-      'then disappears, but you don''t need that)'
-      'Now go to Cheat Engine, and choose ''Decreased Value'' and click ''Next Scan'''
-      'When that scan is done, click hit me again, and repeat the above till you only find a few. '
-      ''
-      'We know the value is between 0 and 500, so pick the one that is most likely the address we need, and add it to '
-      'the list.'
-      'Now change the health to 5000, to proceed to the next step.'
+      'See resourcestrings'
     )
     ReadOnly = True
     ScrollBars = ssVertical
