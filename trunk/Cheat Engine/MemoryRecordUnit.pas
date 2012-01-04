@@ -303,6 +303,7 @@ end;
 
 constructor TMemoryRecord.create(AOwner: TObject);
 begin
+  fVisible:=true;
   fid:=-1;
   fOwner:=AOwner;
   fColor:=clWindowText;
