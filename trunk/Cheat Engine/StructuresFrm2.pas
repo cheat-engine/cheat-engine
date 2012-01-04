@@ -960,6 +960,13 @@ begin
         e.Offset:=currentOffset;
         e.vartype:=vt;
 
+        if vt=vtDword then
+        begin
+          if not isHumanReadableInteger(pinteger(@buf[i])^) then
+            e.DisplayMethod:=dtHexadecimal;
+
+        end
+        else
         if vt in [vtString, vtUnicodeString] then
         begin
           //find out the size of the string
@@ -3321,6 +3328,7 @@ var
   r,g,b: byte;
 
   displacement: integer;
+
 begin
   if mainstruct=nil then exit; //no rendering
 
@@ -3346,6 +3354,12 @@ begin
         nodescription:=true;
 
         description:=inttohex(se.Offset,4)+' - '+VariableTypeToString(se.VarType);
+
+        //show nondefault displaymethods
+        case se.DisplayMethod of
+          dtHexadecimal: description:=description+' (Hexadecimal)';
+          dtSignedInteger: description:=description+' (Signed)';
+        end;
 
         if (se.VarType=vtPointer) and (se.ChildStruct<>nil) then
         begin
