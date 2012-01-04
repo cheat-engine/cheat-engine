@@ -4468,21 +4468,20 @@ var
   sel: TMemoryRecord;
   tempaddress: ptrUint;
 
+  updatelist: Tlist;
+  tn: TTreenode;
+  minlevel: integer; //if the scan for entries goes below this, it means it got outside the current node
+
 begin
-  if addresslist.Count = 0 then
+  if (addresslist.Count = 0) or (addresslist.SelCount=0) then
     exit;
+
 
   res := -1;
 
   //first find out how many where selected.
   i := 0;
-  selectedi := 0;
-  while (i < addresslist.Count) and (selectedi < 2) do
-  begin
-    if addresslist[i].isSelected then
-      Inc(selectedi);
-    Inc(i);
-  end;
+  selectedi := addresslist.SelCount;
 
   firstispointer := False;
 
@@ -4547,51 +4546,53 @@ begin
     raise Exception.Create(strNotAValidValue);
   calculate := changeoffset.offset;
 
-  for i := 0 to addresslist.Count - 1 do
+
+
+  updatelist:=TList.create;
+  if (addresslist.SelCount=1) then //recalculate all siblings and their children
   begin
-    if ((selectedi > 1) and addresslist[i].isSelected) or (selectedi = 1) then
+    tn:=addresslist.selectedRecord.treenode.parent;
+    if tn=nil then //everything
     begin
-      if (not addresslist[i].IsPointer) then
+      for i:=0 to addresslist.count-1 do
+        updatelist.Add(addresslist[i]);
+    end
+    else
+    begin
+      //only the siblings and children
+
+      tn:=tn.Items[0];
+      minlevel:=tn.level;
+
+      while (tn<>nil) and (tn.level>=minlevel) do
       begin
-        //check if it's a normal address or a interpretable address
-        val('$' + addresslist[i].interpretableaddress, tempaddress, err);
-
-        if err > 0 then
-        begin
-          if res = -1 then
-          begin
-            res := messagedlg(Format(rsTheRecordWithDescriptionHasAsInterpretableAddressT,
-              [addresslist[i].Description, addresslist[i].interpretableaddress,
-              symhandler.getNameFromAddress(addresslist[i].getBaseAddress + calculate, True, True)]),
-              mtConfirmation, [mbYes, mbNo, mbNoToAll, mbYesToAll, mbCancel], 0);
-            if res = mrCancel then
-              exit;
-          end;
-
-          ok := (res = mrYes) or (res = mrYesToAll);
-
-          if (res = mrYes) or (res = mrNo) then
-            res := -1; //reset (not an xxx to all)
-        end
-        else
-          ok := True;
-
-      end
-      else
-        ok := True;
-
-      if ok then
-      begin
-        tempaddress := addresslist[i].getBaseAddress;
-
-        Inc(tempaddress, calculate);
-        addresslist[i].interpretableaddress :=
-          symhandler.getNameFromAddress(tempaddress, True, True);
+        updatelist.add(tn.data);
+        tn:=tn.GetNext;
       end;
-    end;
 
+    end;
+  end
+  else
+  begin
+    //recalculate all the selected entries
+    for i:=0 to addresslist.count-1 do
+      if addresslist[i].isSelected then
+        updatelist.add(addresslist[i]);
   end;
 
+  //now recalculate all the selected entries
+  for i:=0 to updatelist.count-1 do
+  begin
+    if not tmemoryrecord(updatelist[i]).isOffset then
+    begin
+      tempaddress := tmemoryrecord(updatelist[i]).getBaseAddress;
+      Inc(tempaddress, calculate);
+      tmemoryrecord(updatelist[i]).interpretableaddress := symhandler.getNameFromAddress(tempaddress, True, True);
+    end;
+  end;
+
+
+  updatelist.free;
   addresslist.ReinterpretAddresses;
 end;
 
@@ -6992,7 +6993,10 @@ var
   p: TJpegImage;
 
   cl: TFPColor;
+  tb: TCEToggleBox;
 begin
+  tb:=TCEToggleBox.Create(self);
+  tb.parent:=panel5;
 
 
   exit;
