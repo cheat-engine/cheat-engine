@@ -5,7 +5,8 @@ unit frmStructures2ElementInfoUnit;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls, cefuncproc, StructuresFrm2;
+  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
+  cefuncproc, StructuresFrm2, vartypestrings, math;
 
 type
 
@@ -223,6 +224,27 @@ begin
 
   for i:=0 to DissectedStructs.Count-1 do
     cbStructType.items.AddObject(TDissectedStruct(DissectedStructs[i]).name, DissectedStructs[i]);
+
+  cbStructType.DropDownCount:=min(16, cbStructType.items.count);
+
+
+  //fill the type combobox (for translations)
+
+  cbtype.Items.clear;
+  //Note to others: Keep this order!
+  cbtype.items.add(rs_vtByte);
+  cbtype.items.add(rs_vtWord);
+  cbtype.items.add(rs_vtDWord);
+  cbtype.items.add(rs_vtQWord);
+  cbtype.items.add(rs_vtSingle);
+  cbtype.items.add(rs_vtDouble);
+  cbtype.items.add(rs_vtString);
+  cbtype.items.add(rs_vtUnicodeString);
+  cbtype.items.add(rs_vtByteArray);
+  cbtype.items.add(rs_vtPointer);
+
+
+  cbType.dropdowncount:=min(16, cbType.items.count);
 end;
 
 procedure TfrmStructures2ElementInfo.cbTypeChange(Sender: TObject);
@@ -231,8 +253,8 @@ begin
   i:=cbType.itemindex;
   edtBytesize.enabled:=i in [6,7,8];
   Label2.enabled:=edtByteSize.enabled;
-  cbHexadecimal.enabled:=i in [0,1,2,3,8];
-  cbSigned.enabled:=cbHexadecimal.enabled;
+  cbHexadecimal.enabled:=i in [0,1,2,3,4,5,8];
+  cbSigned.enabled:=i in [0,1,2,3,8];
 
 
   label5.Enabled:=i=9;
