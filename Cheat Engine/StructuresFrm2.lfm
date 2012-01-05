@@ -209,6 +209,7 @@ object frmStructures2: TfrmStructures2
     top = 112
     object miChangeValue: TMenuItem
       Caption = 'Change Value'
+      ShortCut = 13
       OnClick = miChangeValueClick
     end
     object miChangeElement: TMenuItem
