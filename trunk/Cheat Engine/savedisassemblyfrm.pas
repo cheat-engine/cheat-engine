@@ -68,7 +68,6 @@ var oldaddress, currentaddress: ptrUint;
     temps2: string;
     addresspart, bytepart, opcodepart, specialpart: string;
     i: integer;
-    clip: tclipboard;
     cpbuf: tstringlist;
     y,z:string;
     mi: TModuleInfo;
@@ -83,7 +82,6 @@ begin
 
   if copymode then
   begin
-    clip:=tclipboard.Create;
     cpbuf:=tstringlist.Create;
 
   end
@@ -173,8 +171,7 @@ begin
 
   if copymode then
   begin
-    clip.SetTextBuf(cpbuf.GetText);
-    clip.Free;
+    clipboard.AsText:=cpbuf.GetText;
     cpbuf.free;
   end
   else
