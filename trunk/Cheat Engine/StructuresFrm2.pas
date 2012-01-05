@@ -397,7 +397,7 @@ type
 
     function getGroup(i: integer): TStructGroup;
     function getGroupCount: integer;
-    procedure EditValueOfSelectedNode(node: TTreenode; c:TStructColumn);
+    procedure EditValueOfSelectedNodes(c:TStructColumn);
   public
     { public declarations }
     initialaddress: integer;
@@ -648,8 +648,11 @@ begin
     hex:=displaymethod=dtHexadecimal;
   end;
 
-  ParseStringAndWriteToAddress(value, address, vt, hex);
-  parent.DoElementChangeNotification(self);
+  try
+    ParseStringAndWriteToAddress(value, address, vt, hex);
+    parent.DoElementChangeNotification(self);
+  except
+  end;
 end;
 
 function TStructelement.getValueFromBase(baseaddress: ptruint): string;
@@ -3019,7 +3022,7 @@ end;
 
 procedure TfrmStructures2.miChangeValueClick(Sender: TObject);
 begin
-  EditValueOfSelectedNode(tvStructureView.selected, getFocusedColumn);
+  EditValueOfSelectedNodes(getFocusedColumn);
 end;
 
 procedure TfrmStructures2.miBrowseAddressClick(Sender: TObject);
@@ -3456,11 +3459,17 @@ begin
   DefaultDraw:=true;
 end;
 
-procedure TfrmStructures2.EditValueOfSelectedNode(node: TTreenode; c:TStructColumn);
+procedure TfrmStructures2.EditValueOfSelectedNodes(c:TStructColumn);
 var a: PtrUInt;
   error: boolean;
   se: Tstructelement;
+  node: TTreeNode;
+  i: integer;
+  s: string;
 begin
+  node:=tvStructureView.Selected;
+  if node=nil then exit;
+
   se:=getStructElementFromNode(node);
   if se<>nil then
   begin
@@ -3473,7 +3482,22 @@ begin
       begin
         Address:=a;
         vartype:=se.VarType;
-        showmodal;
+        if showmodal=mrok then
+        begin
+          //showmodal already changed the value for the original one, but I need to change it for ALL selected entries.
+
+          s:=ValueText.Text;
+
+          for i:=0 to tvStructureView.SelectionCount-1 do
+          begin
+            se:=getStructElementFromNode(tvStructureView.Selections[i]);
+            a:=getAddressFromNode(tvStructureView.Selections[i], c, error);
+            if not error then
+              se.setvalue(a, s); //I knew there was a reason I implemented this
+          end;
+        end;
+
+
         free;
       end;
     end;
@@ -3493,7 +3517,7 @@ begin
   if c=nil then
     miChangeElementClick(miChangeElement)
   else
-    EditValueOfSelectedNode(tvStructureView.Selected,c);
+    EditValueOfSelectedNodes(c);
 end;
 
 procedure TfrmStructures2.miFindRelationsClick(Sender: TObject);
