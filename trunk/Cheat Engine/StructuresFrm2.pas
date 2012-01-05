@@ -403,7 +403,7 @@ type
     initialaddress: integer;
     function getFocusedColumn: TStructColumn;
     function getColumnAtXPos(x: integer): TStructColumn;
-    procedure changeNode(n: ttreenode);
+    procedure changeNodes;
     procedure addFromNode(n: TTreenode; asChild: boolean=false);
     function getStructElementFromNode(node: TTreenode): TStructelement;
     function getStructFromNode(node: TTreenode): TDissectedStruct;
@@ -2480,33 +2480,53 @@ begin
   result:=TDissectedStruct(node.data);
 end;
 
-procedure TfrmStructures2.changeNode(n: ttreenode);
+procedure TfrmStructures2.changeNodes;
 var
-  structelement: TStructElement;
-
+  s, structelement: TStructElement;
+  n: TTreenode;
+  i: integer;
+  ei: TfrmStructures2ElementInfo;
 begin
+  n:=tvStructureView.selected;
+  if n=nil then exit;
+
   structElement:=getStructElementFromNode(n);
+  if structElement=nil then exit;
 
-  if structElement<>nil then
+  ei:=tfrmstructures2ElementInfo.create(self);
+
+  with ei do
   begin
-    with tfrmstructures2ElementInfo.create(self) do
+    description:=structelement.name;
+    offset:=structelement.offset;
+    vartype:=structelement.vartype;
+    bytesize:=structelement.bytesize;
+    childstruct:=structelement.childstruct;
+    hexadecimal:=structelement.displayMethod=dtHexadecimal;
+    signed:=structelement.displaymethod=dtSignedInteger;
+
+    if tvStructureView.SelectionCount>1 then
+      edtOffset.Enabled:=false;
+
+    //fill in basic info
+
+
+
+    if showmodal=mrok then
     begin
-      //fill in basic info
-      description:=structelement.name;
-      offset:=structelement.offset;
-      vartype:=structelement.vartype;
-      bytesize:=structelement.bytesize;
-      childstruct:=structelement.childstruct;
-      hexadecimal:=structelement.displayMethod=dtHexadecimal;
-      signed:=structelement.displaymethod=dtSignedInteger;
-
-
-      if showmodal=mrok then
+      for i:=0 to tvStructureView.SelectionCount-1 do
       begin
+        structElement:=getStructElementFromNode(tvStructureView.Selections[i]);
+        if structelement=nil then continue;
+
+
         structElement.parent.beginUpdate;
         try
           structElement.name:=description;
-          structElement.offset:=offset;
+
+          if tvStructureView.SelectionCount=1 then //only update the offset if only one entry is selected (e.g the user might be so stupid to select a level 1 and a level 3 of a completly different structure....)
+            structElement.offset:=offset;
+
           structElement.vartype:=vartype;
           structElement.bytesize:=bytesize;
           structElement.childstruct:=childstruct;
@@ -2523,11 +2543,13 @@ begin
         finally
           structElement.parent.endupdate;
         end;
-      end;
 
-      free;
+      end;
     end;
+
+    free;
   end;
+
 end;
 
 procedure TfrmStructures2.addFromNode(n: TTreenode; asChild: boolean=false);
@@ -2611,7 +2633,7 @@ end;
 
 procedure TfrmStructures2.miChangeElementClick(Sender: TObject);
 begin
-  ChangeNode(tvStructureView.selected);
+  ChangeNodes;
 end;
 
 
