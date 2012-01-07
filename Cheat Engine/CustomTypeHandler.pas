@@ -8,7 +8,7 @@ This class is used as a wrapper for different kinds of custom types
 interface
 
 uses
-  Classes, SysUtils,cefuncproc, autoassembler, lua, lauxlib, lualib, luahandler;
+  windows, Classes, SysUtils,cefuncproc, autoassembler, lua, lauxlib, lualib, luahandler;
 
 type TConversionRoutine=function(data: pointer):integer; stdcall;
 type TReverseConversionRoutine=procedure(i: integer; output: pointer); stdcall;
@@ -33,6 +33,8 @@ type
     c: TCEAllocArray;
     currentscript: tstringlist;
     fCustomTypeType: TCustomTypeType; //plugins set this to cttPlugin
+    fScriptUsesFloat: boolean;
+
 
     procedure unloadscript;
     procedure setName(n: string);
@@ -40,6 +42,7 @@ type
   public
 
     bytesize: integer;
+    preferedAlignment: integer;
 
     function ConvertDataToInteger(data: pointer): integer;
     function ConvertDataToIntegerLua(data: pbytearray): integer;
@@ -59,6 +62,7 @@ type
     property functiontypename: string read ffunctiontypename write setfunctiontypename; //lua
     property CustomTypeType: TCustomTypeType read fCustomTypeType;
     property script: string read getScript write setScript;
+    property scriptUsesFloat: boolean read fScriptUsesFloat;
 end;
 
 function GetCustomTypeFromName(name:string):TCustomType; //global function to retrieve a custom type
@@ -181,7 +185,15 @@ begin
 end;
 
 procedure TCustomType.ConvertIntegerToData(i: integer; output: pointer);
+var f: single;
 begin
+
+  if scriptUsesFloat then //convert to a float and pass that
+  begin
+    f:=i;
+    i:=pdword(@f)^;
+  end;
+
   if assigned(reverseroutine) then
     reverseroutine(i,output)
   else
@@ -228,6 +240,9 @@ end;
 
 
 function TCustomType.ConvertDataToInteger(data: pointer): integer;
+var
+  i: dword;
+  f: single absolute i;
 begin
   if assigned(routine) then
     result:=routine(data)
@@ -238,6 +253,12 @@ begin
       result:=ConvertDataToIntegerLua(data)
     else
       result:=0;
+  end;
+
+  if fScriptUsesFloat then //the result is still in float state
+  begin
+    i:=result;
+    result:=trunc(f);
   end;
 end;
 
@@ -270,6 +291,8 @@ var i: integer;
 
   oldname: string;
   oldfunctiontypename: string;
+  newpreferedalignment, oldpreferedalignment: integer;
+  oldScriptUsesFloat, newScriptUsesFloat: boolean;
   newroutine, oldroutine: TConversionRoutine;
   newreverseroutine, oldreverseroutine: TReverseConversionRoutine;
   newbytesize, oldbytesize: integer;
@@ -280,6 +303,9 @@ begin
   oldroutine:=routine;
   oldreverseroutine:=reverseroutine;
   oldbytesize:=bytesize;
+  oldpreferedalignment:=preferedalignment;
+  oldScriptUsesFloat:=fScriptUsesFloat;
+
   setlength(oldallocarray, length(c));
   for i:=0 to length(c)-1 do
     oldallocarray[i]:=c[i];
@@ -296,6 +322,9 @@ begin
 
         if autoassemble(s,false, true, false, true, c) then
         begin
+          newpreferedalignment:=-1;
+          newScriptUsesFloat:=false;
+
           //find alloc "ConvertRoutine"
           for i:=0 to length(c)-1 do
           begin
@@ -308,17 +337,31 @@ begin
             if uppercase(c[i].varname)='BYTESIZE' then
               newbytesize:=pinteger(c[i].address)^;
 
+            if uppercase(c[i].varname)='PREFEREDALIGNMENT' then
+              newpreferedalignment:=pinteger(c[i].address)^;
+
+            if uppercase(c[i].varname)='USESFLOAT' then
+              newScriptUsesFloat:=PBOOL(c[i].address)^;
+
             if uppercase(c[i].varname)='CONVERTBACKROUTINE' then
               newreverseroutine:=pointer(c[i].address);
           end;
 
+          if newpreferedalignment=-1 then
+            newpreferedalignment:=newbytesize;
+
+
+
           //still here
-          unloadscript; //unmload the old script
+          unloadscript; //unload the old script
 
           //and now set the new values
           bytesize:=newbytesize;
           routine:=newroutine;
           reverseroutine:=newreverseroutine;
+
+          preferedAlignment:=newpreferedalignment;
+          fScriptUsesFloat:=newScriptUsesFloat;
 
           fCustomTypeType:=cttAutoAssembler;
           if currentscript<>nil then
@@ -418,6 +461,8 @@ begin
       routine:=oldroutine;
       reverseroutine:=oldreverseroutine;
       bytesize:=oldbytesize;
+      preferedAlignment:=oldpreferedalignment;
+      fScriptUsesFloat:=oldScriptUsesFloat;
 
       setlength(c,length(oldallocarray));
       for i:=0 to length(oldallocarray)-1 do
