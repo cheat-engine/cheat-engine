@@ -391,6 +391,7 @@ begin
     vtQword:  x.cbVartype.itemindex:=4;
     vtSingle: x.cbVartype.itemindex:=5;
     vtDouble: x.cbVartype.itemindex:=6;
+    vtPointer: if processhandler.is64Bit then x.cbVartype.itemindex:=4 else x.cbVartype.itemindex:=3;
   end;
 
   x.vartypeselect(x.cbVartype);

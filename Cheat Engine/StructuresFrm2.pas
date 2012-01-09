@@ -3198,7 +3198,7 @@ begin
             if (e<>nil) then
             begin
               //add this element (if it's a valid type)
-              if e.vartype in [vtByte..vtDouble] then
+              if e.vartype in [vtByte..vtDouble, vtPointer] then
               begin
                 //get the address
                 address:=getAddressFromNode(n, getFocusedColumn, err);
