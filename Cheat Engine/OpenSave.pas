@@ -580,19 +580,18 @@ begin
       else
         sv:=StrToInt(svstring);
 
-      if sv>=2 then
+
+      for i:=0 to Structures.ChildNodes.Count-1 do
       begin
-        for i:=0 to Structures.ChildNodes.Count-1 do
-        begin
-          Structure:=Structures.ChildNodes[i];
-          tempstruct:=TDissectedStruct.createFromXMLNode(structure);
-          tempstruct.addToGlobalStructList;
-        end;
-      end
-      else
-      begin
-        //v1 structure. Needs conversion
+        Structure:=Structures.ChildNodes[i];
+        if sv>=2 then
+          tempstruct:=TDissectedStruct.createFromXMLNode(structure)
+        else  //v1 structure(pre 6.2). Needs conversion
+          tempstruct:=TDissectedStruct.createFromOutdatedXMLNode(structure);
+
+        tempstruct.addToGlobalStructList;
       end;
+
 
       //fill in the structure references
       for i:=0 to DissectedStructs.count-1 do
@@ -1055,6 +1054,7 @@ begin
   end;
 
   {
+  //old pre 6.2
   if length(definedstructures)>0 then
   begin
     Structures:=CheatTable.AppendChild(doc.CreateElement('Structures'));

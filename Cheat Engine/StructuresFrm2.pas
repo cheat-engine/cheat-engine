@@ -109,6 +109,8 @@ type
   public
     constructor create(name: string);
     constructor createFromXMLNode(structure: TDOMNode);
+    constructor createFromOutdatedXMLNode(structure: TDOMNode);
+
     procedure WriteToXMLNode(node: TDOMNode);
 
     destructor destroy; override;
@@ -1257,6 +1259,165 @@ begin
     end;
   finally
     reg.free;
+  end;
+end;
+
+constructor TDissectedStruct.createFromOutdatedXMLNode(structure: TDOMNode);
+//Constructor for loading old V1 structures
+var tempnode: TDOMNode;
+  elements: TDOMNode;
+  element, tempelement: TDOMNode;
+  i: integer;
+  currentOffset: dword;
+  findoffset: boolean;
+
+  offset: integer;
+  description: string;
+  vartype: TVariableType;
+  bytesize: integer;
+  displaymethod: TdisplayMethod;
+  childstruct: string;
+  isPointer: boolean;
+  structurenr: integer;
+
+  se: TStructelement;
+begin
+  currentoffset:=0;
+
+  self.name:='';
+  structelementlist:=tlist.Create;
+  autoCreateStructsize:=4096; //default autocreate size
+  setupDefaultSettings;
+
+  beginupdate;
+  try
+    if structure.NodeName='Structure' then
+    begin
+      tempnode:=structure.FindNode('Name');
+      if tempnode<>nil then
+        self.name:=tempnode.TextContent;
+
+      elements:=structure.FindNode('Elements');
+      for i:=0 to elements.childnodes.count-1 do
+      begin
+        element:=elements.ChildNodes[i];
+
+        childstruct:='';
+        findoffset:=true;
+        tempnode:=element.FindNode('Offset');
+        if tempnode<>nil then
+        begin
+          try
+            offset:=strtoint(tempnode.textcontent);
+            findoffset:=false; //the offset was fetched properly, no need to calculate it
+          except
+
+          end;
+        end;
+
+        if findoffset then //it couldn't be read out
+          offset:=currentoffset;  //calculated offset
+
+
+        tempnode:=element.FindNode('Description');
+        if tempnode<>nil then
+          description:=tempnode.TextContent;
+
+        {
+        tempnode:=element.FindNode('PointerTo');
+        tempnode:=element.FindNode('PointerToSize');   }
+
+
+        tempnode:=element.FindNode('Structurenr');
+        if tempnode<>nil then
+        begin
+          displaymethod:=dtUnsignedInteger;
+          structurenr:=strtoint(tempnode.TextContent);
+          case structurenr of
+            -1,-2,-3: //byte
+            begin
+              vartype:=vtByte;
+              bytesize:=1;
+
+              if structurenr=-2 then
+                displaymethod:=dtSignedInteger
+              else
+              if structurenr=-3 then
+                displaymethod:=dtHexadecimal;
+            end;
+
+            -4,-5,-6: //word
+            begin
+              vartype:=vtWord;
+              bytesize:=2;
+
+              if structurenr=-5 then
+                displaymethod:=dtSignedInteger
+              else
+              if structurenr=-6 then
+                displaymethod:=dtHexadecimal;
+            end;
+
+            -7,-8,-9: //dword
+            begin
+              vartype:=vtDWord;
+              bytesize:=4;
+
+              if structurenr=-8 then
+                displaymethod:=dtSignedInteger
+              else
+              if structurenr=-9 then
+                displaymethod:=dtHexadecimal;
+            end;
+
+            -10,-11: //qword
+            begin
+              vartype:=vtQWord;
+              bytesize:=8;
+
+              if structurenr=-11 then
+                displaymethod:=dtHexadecimal;
+            end;
+
+            -12: //single
+            begin
+              vartype:=vtSingle;
+              bytesize:=4;
+            end;
+
+            -13: //double
+            begin
+              vartype:=vtDouble;
+              bytesize:=8;
+            end;
+
+            -14: //string
+            begin
+              vartype:=vtString;
+            end;
+
+            -15: //unicode string
+            begin
+              vartype:=vtUnicodeString;
+            end;
+          end;
+        end;
+
+        tempnode:=element.FindNode('Bytesize');
+        if tempnode<>nil then
+          bytesize:=strtoint(tempnode.TextContent);
+
+
+        se:=addElement(description, offset, vartype, bytesize, nil);
+        se.DisplayMethod:=displaymethod;
+
+        currentoffset:=offset+Bytesize;
+      end;
+
+
+    end; //structure.NodeName='Structure'
+  finally
+    endupdate;
   end;
 end;
 
