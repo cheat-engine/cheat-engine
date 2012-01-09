@@ -1,9 +1,10 @@
-Cheat Engine 6.1
+Cheat Engine 6.2
 
 Fixes:
 Fixed the first plugin from not getting activated at restart
 Custom types can now do an unknown initial value scan
 Fixed the auto assembler highlighter from hiding some text while typing
+Fixed the lua scan routines from ignoring the RWC parameters
 
 
 Additions and changes:
