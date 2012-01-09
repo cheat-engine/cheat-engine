@@ -825,7 +825,7 @@ object MainForm: TMainForm
       Color = clRed
       ParentColor = False
       TabOrder = 15
-      object SpeedButton1: TSpeedButton
+      object sbOpenProcess: TSpeedButton
         Left = 3
         Height = 25
         Hint = 'Select a process to open'
@@ -1371,7 +1371,6 @@ object MainForm: TMainForm
       Caption = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
       ParentColor = False
       Visible = False
-      OnClick = lblcompareToSavedScanClick
     end
     object Label3: TLabel
       Left = 376
@@ -1722,6 +1721,14 @@ object MainForm: TMainForm
     object File1: TMenuItem
       Caption = '&File'
       OnClick = File1Click
+      object MenuItem8: TMenuItem
+        Caption = 'Open Process'
+        OnClick = ShowProcessListButtonClick
+      end
+      object miOpenFile: TMenuItem
+        Caption = 'Open File'
+        OnClick = miOpenFileClick
+      end
       object miAddTab: TMenuItem
         Caption = 'Add scan tab'
         ShortCut = 16468

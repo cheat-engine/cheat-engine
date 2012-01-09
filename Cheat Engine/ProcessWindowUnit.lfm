@@ -76,13 +76,13 @@ object ProcessWindow: TProcessWindow
         OnClick = btnProcesslistClick
         TabOrder = 2
       end
-      object Button5: TButton
+      object btnOpenFile: TButton
         Left = 32
         Height = 19
         Top = 88
         Width = 177
         Caption = 'Open file'
-        OnClick = Button5Click
+        OnClick = btnOpenFileClick
         TabOrder = 3
       end
       object btnCreateThread: TButton
