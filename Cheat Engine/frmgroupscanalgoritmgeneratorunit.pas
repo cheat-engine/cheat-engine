@@ -37,6 +37,9 @@ type
 
     procedure parseParameters(p:string);
     function getParameters: string;
+
+
+    procedure AddLine(valuetype: TVariableType; value: string);
   end;
 
 
@@ -169,7 +172,7 @@ begin
 
   //lazarus bug, once scrolled down the clientsizewithbar will be different
   if i=0 then
-    width:=frm.ScrollBox1.VertScrollBar.ClientSizeWithBar
+    width:=frm.ScrollBox1.ClientWidth-frm.scrollbox1.VertScrollBar.Size
   else
     width:=TVariableInfo(frm.Varinfolist[0]).width;
 
@@ -375,6 +378,23 @@ begin
 
   end;
 
+end;
+
+procedure TfrmGroupScanAlgoritmGenerator.AddLine(valuetype: TVariableType; value: string);
+var x: TVariableInfo;
+begin
+  x:=TVariableInfo(Varinfolist[Varinfolist.count-1]);
+  case valuetype of
+    vtByte :  x.cbVartype.itemindex:=1;
+    vtWord :  x.cbVartype.itemindex:=2;
+    vtDword:  x.cbVartype.itemindex:=3;
+    vtQword:  x.cbVartype.itemindex:=4;
+    vtSingle: x.cbVartype.itemindex:=5;
+    vtDouble: x.cbVartype.itemindex:=6;
+  end;
+
+  x.vartypeselect(x.cbVartype);
+  x.edtValue.text:=value;
 end;
 
 procedure TfrmGroupScanAlgoritmGenerator.parseParameters(p:string);

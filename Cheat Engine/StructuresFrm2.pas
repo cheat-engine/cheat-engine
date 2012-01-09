@@ -9,7 +9,7 @@ uses
   windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls, math,
   StdCtrls, ComCtrls, Menus, lmessages, scrolltreeview, byteinterpreter, symbolhandler, cefuncproc,
   newkernelhandler, frmSelectionlistunit, frmStructuresConfigUnit, registry, Valuechange, DOM,
-  XMLRead, XMLWrite;
+  XMLRead, XMLWrite, Clipbrd;
 
 
 
@@ -45,7 +45,7 @@ type
     procedure setDisplayMethod(newDisplayMethod: TdisplayMethod);
     function getBytesize: integer;
     procedure setBytesize(newByteSize: integer);
-    function getValue(address: ptruint): string;
+    function getValue(address: ptruint; hashexprefix: boolean=false): string;
     procedure setvalue(address: ptruint; value: string);
     function getValueFromBase(baseaddress: ptruint): string;
     procedure setValueFromBase(baseaddress: ptruint; value: string);
@@ -263,6 +263,7 @@ type
 
   TfrmStructures2 = class(TForm)
     MenuItem5: TMenuItem;
+    miGenerateGroupscan: TMenuItem;
     miDefaultHexadecimal: TMenuItem;
     miFindRelations: TMenuItem;
     miShowTypeForEntriesWithNoDescription: TMenuItem;
@@ -318,6 +319,7 @@ type
     procedure Addextraaddress1Click(Sender: TObject);
     procedure MenuItem3Click(Sender: TObject);
     procedure MenuItem5Click(Sender: TObject);
+    procedure miGenerateGroupscanClick(Sender: TObject);
     procedure miAutoCreateClick(Sender: TObject);
     procedure miAutoDestroyLocalClick(Sender: TObject);
     procedure miAutoFillGapsClick(Sender: TObject);
@@ -444,7 +446,8 @@ implementation
 
 {$R *.lfm}
 
-uses MainUnit, frmStructures2ElementInfoUnit, MemoryBrowserFormUnit, frmStructureLinkerUnit;
+uses MainUnit, frmStructures2ElementInfoUnit, MemoryBrowserFormUnit,
+  frmStructureLinkerUnit, frmgroupscanalgoritmgeneratorunit;
 
 resourcestring
   rsAddressValue = 'Address: Value';
@@ -607,16 +610,15 @@ begin
   end;
 end;
 
-function TStructelement.getValue(address: ptruint): string;
+function TStructelement.getValue(address: ptruint; hashexprefix: boolean=false): string;
 var vt: TVariableType;
   ashex: boolean;
 begin
-
-
   if vartype=vtPointer then
   begin
     ashex:=true;
     result:='P->';
+
     if processhandler.is64Bit then
       vt:=vtQword
     else
@@ -628,6 +630,9 @@ begin
     vt:=vartype;
     ashex:=displaymethod=dtHexadecimal;
   end;
+
+  if hashexprefix and ashex then
+    result:='0x'; //also takes care of P->
 
   result:=result+readAndParseAddress(address, vt,  nil, ashex, displayMethod=dtSignedInteger, bytesize);
 end;
@@ -3035,7 +3040,7 @@ begin
   struct:=nil;
   elementlist:=tlist.create;
   try
-    for i:=0 to tvStructureView.SelectionCount do
+    for i:=0 to tvStructureView.SelectionCount-1 do
     begin
       e:=getStructElementFromNode(tvStructureView.Selections[i]);
       if (e<>nil) and ((struct=nil) or (e.parent=struct))  then //the element can be null if it's the origin
@@ -3160,6 +3165,102 @@ begin
 
     //add the first address as well
     TStructColumn.create(g);
+  end;
+end;
+
+procedure TfrmStructures2.miGenerateGroupscanClick(Sender: TObject);
+var gcf: TfrmGroupScanAlgoritmGenerator;
+  previous, e: TStructelement;
+  n: TTreeNode;
+  err: boolean;
+  address: ptruint;
+  i,j: integer;
+begin
+  if mainstruct<>nil then
+  begin
+    gcf:=TfrmGroupScanAlgoritmGenerator.create(self);
+
+    //fill the algoritm with what is currently selected
+
+    for i:=0 to tvStructureView.items.Count-1 do //find the first selected element
+    begin
+      if tvStructureView.items[i].MultiSelected or tvStructureView.items[i].Selected then
+      begin
+        //found the first element, from here, add all selected siblings and fill in wildcards
+        n:=tvStructureView.items[i];
+        previous:=nil;
+        while n<>nil do
+        begin
+
+          if n.MultiSelected or n.Selected then
+          begin
+            e:=getStructElementFromNode(n);
+            if (e<>nil) then
+            begin
+              //add this element (if it's a valid type)
+              if e.vartype in [vtByte..vtDouble] then
+              begin
+                //get the address
+                address:=getAddressFromNode(n, getFocusedColumn, err);
+                if not err then
+                begin
+                  //everything ok, add it
+                  if previous<>nil then //Fill gaps with the previous element
+                  begin
+
+                    j:=e.Offset-(previous.Offset+previous.Bytesize);   //get the number of bytes to fill
+                    while j>0 do
+                    begin
+                      if j>=8 then
+                      begin
+                        gcf.addline(vtQword, '*');
+                        dec(j,8)
+                      end
+                      else
+                      if j>=4 then
+                      begin
+                        gcf.addline(vtDword, '*');
+                        dec(j,4)
+                      end
+                      else
+                      if j>=2 then
+                      begin
+                        gcf.addline(vtWord, '*');
+                        dec(j,2)
+                      end
+                      else
+                      begin
+                        gcf.addline(vtByte, '*');
+                        dec(j);
+                      end;
+                    end;
+
+                  end;
+
+
+                  gcf.AddLine(e.VarType, e.getValue(address, true));
+                  previous:=e;
+                end;
+              end;
+            end;
+          end;
+          n:=n.GetNextSibling;
+        end;
+
+        //    gcf.addByte(value)
+
+        break;
+      end;
+
+    end;
+
+    if gcf.showmodal=mrok then
+      mainform.scanvalue.text:=gcf.getparameters;
+
+    clipboard.astext:=gcf.getparameters;
+
+    gcf.free;
+
   end;
 end;
 

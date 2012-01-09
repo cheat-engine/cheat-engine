@@ -255,6 +255,10 @@ object frmStructures2: TfrmStructures2
       ShortCut = 32
       OnClick = miBrowseAddressClick
     end
+    object miGenerateGroupscan: TMenuItem
+      Caption = 'Generate groupscan command'
+      OnClick = miGenerateGroupscanClick
+    end
     object N3: TMenuItem
       Caption = '-'
       Visible = False
