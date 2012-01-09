@@ -16,7 +16,8 @@ Recalculate addresses with only one selection now only updates the siblings and 
 Addresslist entries can have the notation +xxx and -xxx, which will calculate the address based on the parent address (If the parent address changes, these change automatically
 The structure dissect has been rewritten from scratch, and the functions have been exposed to lua as well
 Added a new step to the tutorial (step9) showing how to deal with shared code
-Made the tutorial translatable as well
+Made the tutorial translatable as well (You can even translate it to unbroken English)
+Added a loop option to the pointerscanner rescan
 
 
 How to use:
