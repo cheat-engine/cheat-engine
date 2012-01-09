@@ -36,7 +36,7 @@ type
     btnProcessWatch: TButton;
     btnWindowList: TButton;
     btnProcesslist: TButton;
-    Button5: TButton;
+    btnOpenFile: TButton;
     btnCreateThread: TButton;
     Button4: TButton;
     CancelButton: TButton;
@@ -50,7 +50,7 @@ type
     procedure btnWindowListClick(Sender: TObject);
     procedure btnCreateThreadClick(Sender: TObject);
     procedure Button4Click(Sender: TObject);
-    procedure Button5Click(Sender: TObject);
+    procedure btnOpenFileClick(Sender: TObject);
     procedure InputPIDmanually1Click(Sender: TObject);
     procedure Filter1Click(Sender: TObject);
     procedure btnProcessWatchClick(Sender: TObject);
@@ -419,7 +419,7 @@ begin
 
 end;
 
-procedure TProcessWindow.Button5Click(Sender: TObject);
+procedure TProcessWindow.btnOpenFileClick(Sender: TObject);
 begin
 
   if opendialog2.execute then

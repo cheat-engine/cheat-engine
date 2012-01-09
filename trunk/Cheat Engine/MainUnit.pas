@@ -195,6 +195,8 @@ type
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
+    miOpenFile: TMenuItem;
+    MenuItem8: TMenuItem;
     miTutorial: TMenuItem;
     miLockMouseInGame: TMenuItem;
     miChangeValue: TMenuItem;
@@ -312,7 +314,7 @@ type
     Findoutwhataccessesthisaddress1: TMenuItem;
     Showashexadecimal1: TMenuItem;
     Panel7: TPanel;
-    SpeedButton1: TSpeedButton;
+    sbOpenProcess: TSpeedButton;
     cbPauseWhileScanning: TCheckBox;
     Change1: TMenuItem;
     Description1: TMenuItem;
@@ -393,8 +395,7 @@ type
       Selected: boolean);
     procedure Label3Click(Sender: TObject);
     procedure Label57Click(Sender: TObject);
-    procedure lblcompareToSavedScanClick(Sender: TObject);
-    procedure Label58Click(Sender: TObject);
+    procedure miOpenFileClick(Sender: TObject);
     procedure miTutorialClick(Sender: TObject);
     procedure miChangeValueClick(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
@@ -2508,6 +2509,31 @@ begin
 
 end;
 
+procedure TMainForm.miOpenFileClick(Sender: TObject);
+var
+  oldprocess: Dword;
+  resu: integer;
+  oldprocesshandle: thandle;
+  oldprocessname: string;
+begin
+  if not openprocessPrologue then
+    exit;
+
+  oldprocessname := copy(mainform.ProcessLabel.Caption, pos(
+    '-', mainform.ProcessLabel.Caption) + 1, length(mainform.ProcessLabel.Caption));
+
+  oldprocess := processID;
+  oldprocesshandle := processhandle;
+
+  if Processwindow = nil then
+    ProcessWindow := TProcessWindow.Create(nil);
+
+  ProcessWindow.btnOpenFile.click;
+
+  if ProcessWindow.modalresult=mrOK then
+    openProcessEpilogue(oldprocessname, oldprocess, oldprocesshandle);
+end;
+
 
 
 procedure TMainForm.MenuItem1Click(Sender: TObject);
@@ -4263,7 +4289,7 @@ begin
 
 {$ifdef ceasinjectabledll}
   //panel7.Visible:=false;
-  speedbutton1.Enabled := False;
+  sbOpenProcess.Enabled := False;
   processid := getcurrentprocessid;
   processhandle := getcurrentprocess;
   enableGui;
@@ -6218,7 +6244,7 @@ end;
 
 procedure TMainForm.OpenProcesslist1Click(Sender: TObject);
 begin
-  speedbutton1.Click;
+  sbOpenProcess.Click;
 end;
 
 procedure TMainForm.CloseCheatEngine1Click(Sender: TObject);
@@ -6884,16 +6910,6 @@ begin
   end;
 end;
 
-
-procedure TMainForm.lblcompareToSavedScanClick(Sender: TObject);
-begin
-
-end;
-
-procedure TMainForm.Label58Click(Sender: TObject);
-begin
-
-end;
 
 procedure TMainForm.miTutorialClick(Sender: TObject);
 begin
@@ -7889,7 +7905,7 @@ end;
 
 procedure TMainForm.actOpenProcesslistExecute(Sender: TObject);
 begin
-  speedbutton1.Click;
+  sbOpenProcess.Click;
 end;
 
 procedure TMainForm.Type1Click(Sender: TObject);
