@@ -5034,7 +5034,7 @@ begin
       //custom type is ALWAYS the decider
       if rbFsmAligned.Checked then
         edtAlignment.Text := inttohex(
-          TCustomType(vartype.Items.Objects[vartype.ItemIndex]).bytesize, 1);
+          TCustomType(vartype.Items.Objects[vartype.ItemIndex]).preferedAlignment, 1);
     end
     else
     begin
