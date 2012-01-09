@@ -111,7 +111,7 @@ type
     end;
 
     vartype: record
-      options: string;
+      //options: TStringList;
       ItemIndex: integer;
       Enabled: boolean;
     end;
@@ -395,6 +395,7 @@ type
       Selected: boolean);
     procedure Label3Click(Sender: TObject);
     procedure Label57Click(Sender: TObject);
+    procedure lblcompareToSavedScanClick(Sender: TObject);
     procedure miOpenFileClick(Sender: TObject);
     procedure miTutorialClick(Sender: TObject);
     procedure miChangeValueClick(Sender: TObject);
@@ -686,6 +687,9 @@ type
 
     procedure d3dclicktest(overlayid: integer; x, y: integer);
     procedure updated3dgui;
+
+    procedure createGroupConfigButton;
+    procedure destroyGroupConfigButton;
   public
     { Public declarations }
     addresslist: TAddresslist;
@@ -2509,6 +2513,11 @@ begin
 
 end;
 
+procedure TMainForm.lblcompareToSavedScanClick(Sender: TObject);
+begin
+
+end;
+
 procedure TMainForm.miOpenFileClick(Sender: TObject);
 var
   oldprocess: Dword;
@@ -3422,7 +3431,7 @@ begin
   scanstate.scantype.ItemIndex := scantype.ItemIndex;
   scanstate.scantype.dropdowncount := scantype.DropDownCount;
 
-  scanstate.vartype.options := vartype.Items.Text;
+  //scanstate.vartype.options := vartype.Items;
   scanstate.vartype.Enabled := vartype.Enabled;
   scanstate.vartype.ItemIndex := vartype.ItemIndex;
 
@@ -3545,7 +3554,7 @@ begin
     scantype.ItemIndex := newstate.scantype.ItemIndex;
     scantype.DropDownCount := newstate.scantype.dropdowncount;
 
-    vartype.items.Text := newstate.vartype.options;
+   // vartype.items.Text := newstate.vartype.options;
     vartype.Enabled := newstate.vartype.Enabled;
     vartype.ItemIndex := newstate.vartype.ItemIndex;
 
@@ -3604,6 +3613,11 @@ begin
     memscan := newstate.memscan;
     foundlist := newstate.foundlist;
 
+
+    if VarType.itemindex=10 then
+      createGroupConfigButton
+    else
+      destroyGroupConfigButton;
 
     UpdateScanType;
 
@@ -4975,6 +4989,28 @@ begin
 
 end;
 
+procedure TMainform.createGroupConfigButton;
+begin
+  if groupconfigbutton=nil then
+  begin
+    groupconfigbutton:=Tbutton.create(self);
+    groupconfigbutton.caption:='Generate groupscan command';
+    groupconfigbutton.parent:=scantype.Parent;
+    groupconfigbutton.Left:=scantype.left;
+    groupconfigbutton.top:=scantype.top;
+    groupconfigbutton.width:=scantype.width;
+    groupconfigbutton.height:=scantype.height;
+    groupconfigbutton.Anchors:=scantype.anchors;
+    groupconfigbutton.OnClick:=DoGroupconfigButtonClick;
+  end;
+end;
+
+procedure TMainform.destroyGroupConfigButton;
+begin
+  if groupconfigbutton<>nil then
+    freeandnil(groupconfigbutton);
+end;
+
 procedure TMainForm.VarTypeChange(Sender: TObject);
 var
   a: int64;
@@ -5140,16 +5176,7 @@ begin
   if newvartype=10 then
   begin
     //create groupconfig button
-    groupconfigbutton:=Tbutton.create(self);
-    groupconfigbutton.caption:='Generate groupscan command';
-    groupconfigbutton.parent:=scantype.Parent;
-    groupconfigbutton.Left:=scantype.left;
-    groupconfigbutton.top:=scantype.top;
-    groupconfigbutton.width:=scantype.width;
-    groupconfigbutton.height:=scantype.height;
-    groupconfigbutton.Anchors:=scantype.anchors;
-    groupconfigbutton.OnClick:=DoGroupconfigButtonClick;
-
+    createGroupConfigButton;
   end
   else
   begin

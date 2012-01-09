@@ -64,6 +64,8 @@ type
     function compareblock(newvalue,oldvalue: pointer): boolean; //oldvalue is kinda ignored
     function compareblock_outoforder(newvalue,oldvalue: pointer): boolean; //oldvalue is kinda ignored
 
+//    function saveResult(address: ptruint; oldvalue: pointer);  //store the groupdata offsets
+
     property blocksize: integer read fblocksize;
     property alignsize: integer read fAlignsize;
   end;
@@ -4192,6 +4194,9 @@ begin
 
     vtCustom:
     begin
+      if customtype=nil then
+        raise exception.create('Custom type is nil');
+
       variablesize:=customtype.bytesize;
       fastscanalignsize:=min(4, variablesize);
     end;
@@ -5557,6 +5562,7 @@ begin
 
   inc(fnextscanCount);
 
+
   if scanController<>nil then
   begin
 
@@ -5578,7 +5584,9 @@ begin
   scanController.compareToSavedScan:=compareToSavedScan;
   scanController.savedscanname:=savedscanname;
   scanController.variableType:=CurrentVariableType;
-  scanController.customtype:=CurrentCustomType;
+  scancontroller.customType:=customtype;
+
+
   scanController.roundingtype:=roundingtype;
 
   scanController.fastscanalignment:=fastscanalignment;
@@ -5612,11 +5620,17 @@ Spawn the controller thread and fill it with the required data
 Popup the wait window, or not ?
 }
 begin
+
+  if (variableType=vtCustom) and (customtype=nil) then
+    raise exception.create('customType=nil');
+
+
   if attachedFoundlist<>nil then
     TFoundList(Attachedfoundlist).Deinitialize;
 
 
   if scanController<>nil then freeandnil(scanController);
+
   if SaveFirstScanThread<>nil then
   begin
     SaveFirstScanThread.Terminate; //it should quit, saving took to long and the user already started a new one
@@ -5627,6 +5641,18 @@ begin
 
   currentVariableType:=VariableType;
   currentCustomType:=customtype;
+
+  if fastscanparameter<>'' then
+    self.fastscanalignment:=strtoint('$'+fastscanparameter)
+  else
+    self.fastscanalignment:=1;
+
+  self.fastscanmethod:=fastscanmethod;
+  self.fastscandigitcount:=length(fastscanparameter);
+
+  self.startaddress:=startaddress;
+  self.stopaddress:=stopaddress;
+
 
   scanController:=TscanController.Create(true);
   scanController.OwningMemScan:=self;
@@ -5641,23 +5667,12 @@ begin
 
   scanController.roundingtype:=roundingtype;
 
-  if fastscanparameter<>'' then
-    self.fastscanalignment:=strtoint('$'+fastscanparameter)
-  else
-    self.fastscanalignment:=1;
-
-  self.fastscanmethod:=fastscanmethod;
-  self.fastscandigitcount:=length(fastscanparameter);
-
   scanController.fastscanalignment:=fastscanalignment;
   scanController.fastscanmethod:=fastscanmethod;
   scancontroller.fastscandigitcount:=fastscandigitcount;
 
   scanController.scanValue1:=scanvalue1; //usual scanvalue
   scanController.scanValue2:=scanValue2; //2nd value for between scan
-
-  self.startaddress:=startaddress;
-  self.stopaddress:=stopaddress;
 
   scanController.startaddress:=startaddress;
   scanController.stopaddress:=stopaddress;
@@ -5674,7 +5689,7 @@ begin
 
   scanController.allincludescustomtypes:=formsettings.cballincludescustomtype.checked;
 
-  flastscantype:=stFirstScan;
+  fLastscantype:=stFirstScan;
 
   scanController.start;
 

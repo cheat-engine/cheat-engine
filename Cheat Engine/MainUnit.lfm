@@ -1,9 +1,9 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 1013
+  Left = 921
   Height = 570
   Hint = ' '
-  Top = 268
+  Top = 266
   Width = 538
   HelpContext = 3
   HorzScrollBar.Visible = False
@@ -1371,6 +1371,7 @@ object MainForm: TMainForm
       Caption = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
       ParentColor = False
       Visible = False
+      OnClick = lblcompareToSavedScanClick
     end
     object Label3: TLabel
       Left = 376
@@ -1721,14 +1722,6 @@ object MainForm: TMainForm
     object File1: TMenuItem
       Caption = '&File'
       OnClick = File1Click
-      object MenuItem8: TMenuItem
-        Caption = 'Open Process'
-        OnClick = ShowProcessListButtonClick
-      end
-      object miOpenFile: TMenuItem
-        Caption = 'Open File'
-        OnClick = miOpenFileClick
-      end
       object miAddTab: TMenuItem
         Caption = 'Add scan tab'
         ShortCut = 16468
@@ -1737,6 +1730,14 @@ object MainForm: TMainForm
       object New1: TMenuItem
         Caption = 'Clear list'
         OnClick = New1Click
+      end
+      object MenuItem8: TMenuItem
+        Caption = 'Open Process'
+        OnClick = ShowProcessListButtonClick
+      end
+      object miOpenFile: TMenuItem
+        Caption = 'Open File'
+        OnClick = miOpenFileClick
       end
       object N7: TMenuItem
         Caption = '-'
