@@ -13,7 +13,7 @@ interface
 uses windows, LCLIntf,sysutils, classes,ComCtrls,dialogs, NewKernelHandler,math,
      SyncObjs, windows7taskbar,SaveFirstScan, savedscanhandler, autoassembler,
      symbolhandler, CEFuncProc,shellapi, customtypehandler,lua,lualib,lauxlib,
-     LuaHandler, fileaccess;
+     LuaHandler, fileaccess, groupscancommandparser;
 
 
 type TCheckRoutine=function(newvalue,oldvalue: pointer):boolean of object;
@@ -46,7 +46,7 @@ type
       floataccuracy: integer;
     end;
 
-    groupdatalength: integer;
+    groupdatalength: integer;  //saves a getLenghth lookup call
 
    // scanner: TScanner;
     procedure parse(s:string);
@@ -64,7 +64,8 @@ type
     function compareblock(newvalue,oldvalue: pointer): boolean; //oldvalue is kinda ignored
     function compareblock_outoforder(newvalue,oldvalue: pointer): boolean; //oldvalue is kinda ignored
 
-//    function saveResult(address: ptruint; oldvalue: pointer);  //store the groupdata offsets
+    //use genericsaveresult for saving the original memory
+    //use a custom address file for
 
     property blocksize: integer read fblocksize;
     property alignsize: integer read fAlignsize;
@@ -279,6 +280,7 @@ type
     procedure GenericSaveResult(address: ptruint; oldvalue: pointer); //only use as last resort : Call to copymemory just to store one entry
     procedure allSaveResult(address: ptruint; oldvalue: pointer);
     procedure binarySaveResult(address: ptruint; oldvalue: pointer);
+    procedure groupSaveResult(address: ptruint; oldvalue: pointer);
     procedure arrayOfByteSaveResult(address: ptruint; oldvalue: pointer);
     procedure ByteSaveResult(address: ptruint; oldvalue: pointer);
     procedure WordSaveResult(address: ptruint; oldvalue: pointer);
@@ -291,6 +293,7 @@ type
     procedure genericFlush; //generic routine for flushing the buffer
     procedure stringFlush; //don't save the memory
     procedure binaryFlush; //don't save memory AND use foundaddressb for results
+    procedure groupFlush; //don't save memory
     procedure allFlush;
 
 
@@ -316,6 +319,8 @@ type
     roundingtype: TRoundingtype;
     hexadecimal: boolean;
     binaryStringAsDecimal: boolean;
+
+    PreviousOffsetCount: integer; //holds the offsecount of the previous scan (for calculating the entry position)
 
 
     unicode: boolean;
@@ -498,7 +503,8 @@ type
     //array stuff:
     arrayLength:   integer;
 
-    FLastScanType: TScanType;
+    fLastScanType: TScanType;
+    fLastScanValue: String;
     fscanresultfolder: string; //the location where all the scanfiles will be stored
 
     fnextscanCount: integer;
@@ -543,12 +549,12 @@ type
     procedure saveresults(resultname: string);
     function getsavedresults(r: tstrings): integer;
 
+    property LastScanValue: string read fLastScanValue;
     property LastScanType: TScanType read FLastScanType;
     property ScanresultFolder: string read fScanResultFolder; //read only, it's configured during creation
     property VarType: TVariableType read currentVariableType;
     property CustomType: TCustomType read currentCustomType;
     property nextscanCount: integer read fnextscanCount;
-
 
   end;
 
@@ -640,17 +646,6 @@ begin
   command:=copy(s,1, i-1);
   value:=copy(s,i+1, length(s));
 
-  if command='BA' then
-    fAlignsize:=strtoint(value);
-
-  if command='BS' then
-    fblocksize:=strtoint(value);
-
-  if command='OOO' then
-  begin
-    outoforder:=true;
-    outoforder_aligned:=value='A';
-  end;
 
   if length(command)>0 then
   begin
@@ -770,27 +765,53 @@ begin
 
   end;
 
-  if not outoforder then
-    fblocksize:=calculatedblocksize; //set the correct blocksize
+
 end;
 
 constructor TGroupData.create(parameters: string);
 var start, i: integer;
   p,s: string;
+
+  gcp: TGroupscanCommandParser;
+
+  floatsettings: TFormatSettings;
 begin
-  fAlignsize:=4; //if not provided, 4
+  floatsettings:=DefaultFormatSettings;
 
-  p:=uppercase(parameters);
+  gcp:=TGroupscanCommandParser.create;
+  try
+    gcp.parse(parameters);
+    fblocksize:=gcp.blocksize;
+    fAlignsize:=gcp.blockalignment;
 
-  start:=1;
-  for i:=1 to length(p) do
-    if (p[i]=' ') or (i=length(p)) then
+    outoforder:=gcp.outOfOrder;
+    outoforder_aligned:=gcp.typeAligned;
+
+    groupdatalength:=length(gcp.elements);
+    setlength(groupdata, groupdatalength);
+    for i:=0 to Length(gcp.elements)-1 do
     begin
-      s:=trim(copy(p, start, i+1-start));
-      start:=i;
+      groupdata[i].wildcard:=gcp.elements[i].wildcard;
+      groupdata[i].offset:=gcp.elements[i].offset;
+      groupdata[i].vartype:=gcp.elements[i].vartype;
+      groupdata[i].customtype:=gcp.elements[i].customtype;
+      groupdata[i].valuei:=gcp.elements[i].valueint;
+      groupdata[i].valuef:=gcp.elements[i].valuefloat;
 
-      parse(s);
+      groupdata[i].floataccuracy:=pos(gcp.FloatSettings.DecimalSeparator,gcp.elements[i].uservalue);
+      if groupdata[i].floataccuracy>0 then
+        groupdata[i].floataccuracy:=length(gcp.elements[i].uservalue)-groupdata[i].floataccuracy;
+
+
+      groupdata[i].minfvalue:=groupdata[i].valuef-(1/(power(10,groupdata[i].floataccuracy)));
+      groupdata[i].maxfvalue:=groupdata[i].valuef+(1/(power(10,groupdata[i].floataccuracy)));
     end;
+
+
+
+  finally
+    gcp.free;
+  end;
 
 end;
 
@@ -2329,6 +2350,23 @@ begin
 
 end;
 
+procedure TScanner.groupSaveResult(address: ptruint; oldvalue: pointer);
+var i: integer;
+  entry: PGroupAddress;
+begin
+  entry:=PGroupAddress(ptruint(CurrentAddressBuffer)+ found*(sizeof(ptruint)+sizeof(dword)*groupdata.groupdatalength));
+  entry.address:=address;
+
+
+
+  for i:=0 to groupdata.groupdatalength-1 do
+    entry.offsets[i]:=groupdata.groupdata[i].offset;
+
+  inc(found);
+  if found>=buffersize then
+      flushroutine;
+end;
+
 procedure TScanner.allSaveResult(address: ptruint; oldvalue: pointer);
 {
 note: eventually replace bit with a binary representation of all types that match
@@ -2414,6 +2452,13 @@ end;
 procedure TScanner.binaryFlush;
 begin
   AddressFile.WriteBuffer(CurrentAddressBuffer^,sizeof(TBitAddress)*found);
+  inc(totalfound,found);
+  found:=0;
+end;
+
+procedure TScanner.groupflush;
+begin                                                         //address, offset,offset,...
+  AddressFile.WriteBuffer(CurrentAddressBuffer^,found*(sizeof(ptruint)+sizeof(dword)*groupdata.groupdatalength));
   inc(totalfound,found);
   found:=0;
 end;
@@ -3358,6 +3403,15 @@ begin
     getmem(SecondaryAddressBuffer,buffersize*sizeof(Tbitaddress));
   end
   else
+  if variabletype = vtGrouped then
+  begin
+    //stored as:
+    //Address, offset1, offset2, offset3.....
+    //assuming the rare occasion of a blocksize bigger than 65535 dword offset size is chosen
+    getmem(CurrentAddressBuffer,buffersize*(sizeof(ptruint)+sizeof(dword)*groupdata.groupdatalength));
+    getmem(SecondaryAddressBuffer,buffersize*(sizeof(ptruint)+sizeof(dword)*1+groupdata.groupdatalength));
+  end
+  else
   begin
     getmem(CurrentAddressBuffer,buffersize*sizeof(ptruint));
     getmem(SecondaryAddressBuffer,buffersize*sizeof(ptruint));
@@ -3669,13 +3723,18 @@ begin
       fastscanalignsize:=groupdata.alignsize;
 
 
-      flushroutine:=stringFlush;
-      StoreResultRoutine:=ArrayOfByteSaveResult;
+      StoreResultRoutine:=groupSaveResult;
+      flushroutine:=groupFlush;
+
+
       FoundBufferSize:=0;
 
-      variablesize:=groupdata.blocksize;   //this is why there is no nextscan (varsize of 4096)
+      variablesize:=groupdata.blocksize;   //this is why there is no nextscan data to compare against (varsize of 4096)
       if groupdata.outoforder and groupdata.outoforder_aligned then
         fastscanalignsize:=variablesize; //else use the given alignment
+
+      if scannernr=0 then //write the header for groupdata (after the normal header comes the number of offsets)
+        Addressfile.WriteBuffer(groupdata.groupdatalength, sizeof(groupdata.groupdatalength));
 
     end;
 
@@ -3691,16 +3750,21 @@ procedure TScanner.nextNextscan;
 var oldAddressfile: TFileStream;
     oldMemoryfile: TFileStream;
     i: qword;
+    j: integer;
     stopindex: qword;
     chunksize: integer;
 
     oldaddresses: array of PtrUint;
     oldaddressesb: array of tbitaddress;
+    oldaddressesGroup: PByteArray;
     oldmemory: pointer;
+    groupelementsize: integer;
 
 begin
   if startentry>stopentry then //don't bother
     exit;
+
+  oldAddressesGroup:=nil;
 
   configurescanroutine;
   oldAddressFile:=nil;
@@ -3728,6 +3792,18 @@ begin
       end;
 
       oldMemoryFile.seek(variablesize*startentry,soFromBeginning);
+    end
+    else
+    if self.variableType = vtGrouped then
+    begin
+      //addressfile of 7+offsetcount+(address+offsetcount)+....
+      setlength(oldaddresses,buffersize); //normal addresslist, just a special addressfile
+
+      groupelementsize:=(sizeof(ptruint)+sizeof(dword)*PreviousOffsetCount);
+      getmem(oldaddressesGroup, buffersize*groupelementsize);
+
+
+      oldAddressFile.seek(7+sizeof(ptruint)+ startentry*groupelementsize,soFromBeginning);   //header+offsetcount+startentry*addressEntrysize (address followed by offsets)
     end
     else
     begin
@@ -3768,7 +3844,15 @@ begin
         else
         begin
 
-          oldAddressFile.ReadBuffer(oldaddresses[0],chunksize*sizeof(ptruint));
+          if variableType = vtGrouped then
+          begin
+            //load the grouped address list and convert to a regular addresslist
+            oldAddressFile.ReadBuffer(oldaddressesGroup[0],chunksize*groupelementsize);
+            for j:=0 to chunksize-1 do
+              oldAddresses[0]:=PGroupAddress(@OldaddressesGroup[j*groupelementsize]).address;
+          end
+          else  //normal addresslist, no need to convert
+            oldAddressFile.ReadBuffer(oldaddresses[0],chunksize*sizeof(ptruint));
 
           if not compareToSavedScan then
           begin
@@ -3792,6 +3876,9 @@ begin
     if oldAddressFile<>nil then oldAddressFile.free;
     if oldMemoryFile<>nil then oldMemoryFile.free;
     if oldmemory<>nil then virtualfree(oldmemory,0,MEM_RELEASE);
+
+    if oldaddressesGroup<>nil then
+      freemem(oldaddressesGroup);
   end;
 end;
 
@@ -4198,7 +4285,7 @@ begin
         raise exception.create('Custom type is nil');
 
       variablesize:=customtype.bytesize;
-      fastscanalignsize:=min(4, variablesize);
+      fastscanalignsize:=customtype.preferedAlignment;
     end;
 
   end;
@@ -4224,16 +4311,20 @@ procedure TScanController.NextNextScan;
 NextNextScan will read results of the previous scan, and pass it off to scanner threads
 }
 var 
-    AddressFile: TFileStream;
-    blocksize: qword;
-    i: integer;
+  AddressFile: TFileStream;
+  blocksize: qword;
+  i: integer;
 
-    currententry: qword;
-    datatype: string[6];
+  currententry: qword;
+  datatype: string[6];
+  offsetcount: integer;
 begin
-  threadcount:=getcpucount;
+  offsetcount:=0;
+
   if (variableType=vtCustom) and (customType<>nil) and (customtype.CustomTypeType=cttLuaScript) then
-    threadcount:=1;
+    threadcount:=1
+  else
+    threadcount:=GetCPUCount;
 
   
   //read the results and split up
@@ -4241,6 +4332,17 @@ begin
   try
     if variableType in [vtbinary,vtall] then //it uses a specific TBitAddress instead of a dword
       totalAddresses:=(addressfile.size-7) div sizeof(TBitAddress)
+    else
+    if variableType = vtGrouped then
+    begin
+      //read the number of offsets used previously (can be different from the current input)
+      addressFile.Position:=7;
+      addressFile.ReadBuffer(offsetcount, sizeof(offsetcount));
+      addressfile.Position:=0; //reset position
+
+      //the addresslist is buildup of address,offset1,offset2,...,offsetcount-1, address, offset1, offset2, ...., offsetcount-1, address,.....
+      totalAddresses:=addressfile.size-7-sizeof(offsetcount) div (sizeof(ptruint)+offsetcount*sizeof(offsetcount));
+    end
     else
       totalAddresses:=(addressfile.size-7) div sizeof(ptruint);
 
@@ -4309,11 +4411,16 @@ begin
           scanners[i].useNextNextscan:=true; //address result scan so nextnextscan
           scanners[i].allincludescustomtypes:=allincludescustomtypes;
 
+          if variableType=vtGrouped then
+            scanners[i].PreviousOffsetCount:=offsetcount;
+
           if i=0 then //first thread gets the header part
           begin
             datatype:='NORMAL';
             scanners[i].AddressFile.WriteBuffer(datatype,sizeof(datatype));
           end;
+
+
         end;
 
 
@@ -4947,6 +5054,7 @@ begin
           datatype:='NORMAL';
 
         scanners[i].AddressFile.WriteBuffer(datatype,sizeof(datatype));
+
       end;
 
     end;
@@ -5547,6 +5655,7 @@ begin
 
   if previousMemoryBuffer<>nil then virtualfree(previousMemoryBuffer,0,MEM_RELEASE);
   fLastscantype:=stNewScan;
+  fLastScanValue:='';
 
   deletescanfolder;
   createscanfolder;
@@ -5609,6 +5718,7 @@ begin
   scanController.allincludescustomtypes:=formsettings.cballincludescustomtype.checked;
 
   fLastscantype:=stNextScan;
+  fLastScanValue:=scanvalue1;
 
   scanController.start;
 
@@ -5690,6 +5800,7 @@ begin
   scanController.allincludescustomtypes:=formsettings.cballincludescustomtype.checked;
 
   fLastscantype:=stFirstScan;
+  fLastScanValue:=scanValue1;
 
   scanController.start;
 

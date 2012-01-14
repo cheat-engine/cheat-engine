@@ -62,7 +62,7 @@ type
       PropInfo: PPropInfo; var Content: string); override;
   end;
 
-procedure doTranslation;
+procedure doTranslation(specificlocale: string='');
 
 implementation
 
@@ -238,20 +238,23 @@ end;
 var LocalTranslator: TAbstractTranslator;
 
 
-procedure doTranslation;
+procedure doTranslation(specificlocale: string='');
 var
   Dot1: integer;
   LCLPath: string;
 
 begin
-
   //It is safe to place code here as no form is initialized before unit
   //initialization made
 
   LocalTranslator := nil;
   // search first po translation resources
   try
-     lcfn := FindLocaleFileName('.po');
+     if specificlocale='' then
+       lcfn := FindLocaleFileName('.po')
+     else
+       lcfn := specificlocale;
+
      if lcfn <> '' then
      begin
        Translations.TranslateResourceStrings(lcfn);

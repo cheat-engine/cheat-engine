@@ -58,7 +58,7 @@ uses
   frmSetCrosshairUnit, StructuresFrm2, scrollTreeView,
   frmStructures2ElementInfoUnit, frmStructureLinkerUnit, LuaMemoryRecord,
   LuaStructure, LuaForm, regionex, LuaRegion, frmgroupscanalgoritmgeneratorunit,
-  vartypestrings, LuaXMPlayer;
+  vartypestrings, LuaXMPlayer, groupscancommandparser;
 
 {$R cheatengine.res}
 {$R manifest.res}
@@ -71,19 +71,24 @@ procedure HandleParameters;
 {Keep in mind: Responsible for not making the mainform visible}
 var i: integer;
   mainformvisible: boolean;
+  p: string;
 begin
   mainformvisible:=true;
   try
 
     for i:=0 to Paramcount do
     begin
-      if (pos('.CETRAINER', uppercase(paramstr(i)))>0) or (pos('.CT', uppercase(paramstr(i)))>0) then
+      p:=paramstr(i);
+      if (pos('.CETRAINER', uppercase(p))>0) or (pos('.CT', uppercase(p))>0) then
       begin
-        mainformvisible:=uppercase(ExtractFileExt(paramstr(i)))<>'.CETRAINER';
-        LoadTable(ansitoutf8(paramstr(i)),false);
+        //add the path of this CT to the lua lookup
+        LUA_DoScript('package.path = package.path .. ";'+ExtractFilePath(p)+'?.lua";');
 
-        if extractfilename(paramstr(i))='CET_TRAINER.CETRAINER' then //Let's just hope no-one names their trainer exactly this...
-          deletefile(paramstr(i));
+        mainformvisible:=uppercase(ExtractFileExt(p))<>'.CETRAINER';
+        LoadTable(ansitoutf8(p),false);
+
+        if ExtractFileName(p)='CET_TRAINER.CETRAINER' then //Let's just hope no-one names their trainer exactly this...
+          DeleteFile(p);
 
         break;
       end;

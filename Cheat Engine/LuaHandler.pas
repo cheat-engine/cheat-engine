@@ -5565,7 +5565,7 @@ begin
         s:=TLuafile(mainform.Luafiles[i]).stream;
 
         s.position:=0;
-        lua_pushlightuserdata(L, s);
+        lua_pushlightuserdata(L, mainform.Luafiles[i]); //return the tableFile, not the stream. To get the stream, use  tablefile_getData
         result:=1;
       end;
 

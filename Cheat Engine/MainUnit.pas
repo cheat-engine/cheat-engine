@@ -2020,7 +2020,7 @@ var
   startbit: integer;
   l: integer;
 
-  realvartype: integer;
+  vt: TVariableType;
   tempvartype: TVariableType;
   addressstring: string;
 
@@ -2032,30 +2032,21 @@ begin
   //first check if this address is already in the list!
   customname := '';
 
-  realvartype := getvartype;
-  if realvartype = 5 then //binary
+  vt := getvartype;
+  if vt = vtBinary then //binary
   begin
     startbit := foundlist.getstartbit(line);
     l := memscan.Getbinarysize;
   end
   else
-  if realvartype = 9 then //all
+  if vt = vtAll then //all
   begin
     l := 0;
     startbit := 0;
-    tempvartype := TVariableType(foundlist.getstartbit(line));
-    case tempvartype of
-      vtByte: realvartype := 0;
-      vtWord: realvartype := 1;
-      vtDWord: realvartype := 2;
-      vtQWord: realvartype := 6;
-      vtSingle: realvartype := 3;
-      vtDouble: realvartype := 4;
-    end;
-
+    vt := TVariableType(foundlist.getstartbit(line));
   end
   else
-  if realvartype >= 11 then //custom
+  if vt=vtCustom then //custom
   begin
     ct := TCustomType(vartype.items.objects[vartype.ItemIndex]);
     customname := ct.Name;
@@ -2074,7 +2065,8 @@ begin
 
 
   m := addresslist.addaddress(strNoDescription, addressString, [], 0,
-    OldVarTypeToNewVarType(realvartype), customname, l, startbit, False, node, attachmode);
+    vt, customname, l, startbit, False, node, attachmode);
+
   if m.VarType = vtBinary then
     m.Extra.bitData.showasbinary := rbBit.Checked
   else
@@ -5520,7 +5512,7 @@ begin
     Browsethismemoryarrea1.Enabled := True;
   end;
 
-  Removeselectedaddresses1.Visible := not (GetVarType in [5, 8]);
+  Removeselectedaddresses1.Visible := not (GetVarType in [vtBinary, vtByteArray, vtAll]);
 
 end;
 
@@ -5819,39 +5811,30 @@ end;
 
 procedure TMainForm.cbHexadecimalClick(Sender: TObject);
 var
-  x: int64;
+  x: qword;
   i: integer;
 begin
 
   if dontconvert then
     exit;
-{  if VarType.Text='Byte' then    getVarType:=0 else
-  if VarType.Text='2 Bytes' then getVarType:=1 else
-  if VarType.Text='4 Bytes' then getVarType:=2 else
-  if VarType.Text='8 Bytes' then getvarType:=6 else
-  if Vartype.Text='Float' then   getVarType:=3 else
-  if Vartype.Text='Double' then  getVarType:=4 else
-  if VarType.Text='Bit' then     getVarType:=5 else
-  if vartype.Text='Text'then     getVarType:=7 else
-  if vartype.Text='Array of Bytes' then getVarType:=8 else}
 
   if cbHexadecimal.Checked then
   begin
     //convert what is in scanvalue to hexadecimal notation
     val(scanvalue.Text, x, i);
     case GetVarType of
-      0: scanvalue.Text := IntToHex(byte(x), 2);
-      1: scanvalue.Text := inttohex(word(x), 4);
-      2: scanvalue.Text := inttohex(dword(x), 8);
-      6: scanvalue.Text := inttohex(int64(x), 16);
+      vtByte: scanvalue.Text := IntToHex(byte(x), 2);
+      vtWord: scanvalue.Text := inttohex(word(x), 4);
+      vtDword: scanvalue.Text := inttohex(dword(x), 8);
+      vtQword: scanvalue.Text := inttohex(qword(x), 16);
     end;
 
   end
   else
   begin
-    //convert to decimal noatation
+    //convert to decimal notation
     case GetVarType of
-      0, 1, 2, 6:
+      vtByte, vtWord, vtDword, vtQWord:
       begin
         if length(scanvalue.Text) > 0 then
         begin
@@ -6879,12 +6862,12 @@ begin
 
     Value := AnsiToUtf8(Value);
 
-    if foundlist.vartype = 5 then //binary
+    if foundlist.vartype = vtBinary then //binary
     begin
       address := address + '^' + IntToStr(extra);
     end
     else
-    if foundlist.vartype = 9 then //all
+    if foundlist.vartype = vtAll then //all
     begin
       if extra >= $1000 then
       begin
@@ -6963,7 +6946,7 @@ begin
       begin
         if foundlist3.Items[i].Selected then
         begin
-          if foundlist.vartype=9 then  //all, extra contains the vartype
+          if foundlist.vartype=vtAll then  //all, extra contains the vartype
           begin
             if extra<$1000 then
             begin
@@ -6976,7 +6959,7 @@ begin
             end;
           end
           else
-            vt:=OldVarTypeToNewVarType(foundlist.vartype);
+            vt:=foundlist.vartype;
 
           if (vt=vtString) and (cbUnicode.checked) then
             vt:=vtUnicodeString;
@@ -7038,8 +7021,6 @@ var
   cl: TFPColor;
   tb: TCEToggleBox;
 begin
-  tb:=TCEToggleBox.Create(self);
-  tb.parent:=panel5;
 
 
   exit;
@@ -7571,7 +7552,7 @@ end;
 
 procedure TMainform.scanepilogue(canceled: boolean);
 var
-  vtype: integer;
+  vtype: TVariableType;
   i: integer;
   bytes: tbytes;
 begin
@@ -7580,9 +7561,9 @@ begin
   if not canceled then
   begin
     case vtype of
-      5: i := memscan.getbinarysize;
-      7: i := length(scanvalue.Text);
-      8: //array of byte
+      vtBinary: i := memscan.getbinarysize;
+      vtString: i := length(scanvalue.Text);
+      vtByteArray: //array of byte
       begin
         setlength(bytes, 0);
         try
