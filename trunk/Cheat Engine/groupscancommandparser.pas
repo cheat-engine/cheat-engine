@@ -27,6 +27,7 @@ type
       valueint: qword;
       valuefloat: double;
       customtype: TCustomType;
+      bytesize: integer;
     end;
 
     blocksize: integer;
@@ -79,37 +80,38 @@ begin
       '1':
       begin
         elements[j].vartype:=vtByte;
-        inc(calculatedBlocksize, 1);
+        elements[j].bytesize:=1;
+
       end;
 
       '2':
       begin
         elements[j].vartype:=vtWord;
-        inc(calculatedBlocksize, 2);
+        elements[j].bytesize:=2;
       end;
 
       '4':
       begin
         elements[j].vartype:=vtDWord;
-        inc(calculatedBlocksize, 4);
+        elements[j].bytesize:=4;
       end;
 
       '8':
       begin
         elements[j].vartype:=vtQword;
-        inc(calculatedBlocksize, 8);
+        elements[j].bytesize:=8;
       end;
 
       'F':
       begin
         elements[j].vartype:=vtSingle;
-        inc(calculatedBlocksize, 4);
+        elements[j].bytesize:=4;
       end;
 
       'D':
       begin
         elements[j].vartype:=vtDouble;
-        inc(calculatedBlocksize, 8);
+        elements[j].bytesize:=8;
       end;
 
       'C':
@@ -126,7 +128,7 @@ begin
         ctn:=copy(command, i+1, j-i-1);
         elements[j].customtype:=GetCustomTypeFromName(ctn);
         if elements[j].customtype<>nil then
-          inc(calculatedBlocksize, elements[j].customtype.bytesize)
+          elements[j].bytesize:=elements[j].customtype.bytesize
         else
           raise exception.create('Custom type not recognized: '+ctn);
       end;
@@ -136,18 +138,21 @@ begin
         if (length(command)>=2) and (command[2]='U') then
         begin
           elements[j].vartype:=vtUnicodeString;
-          inc(calculatedBlocksize,length(value)*2);
+          elements[j].bytesize:=length(value)*2;
         end
         else
         begin
           elements[j].vartype:=vtString;
-          inc(calculatedBlocksize,length(value));
+          elements[j].bytesize:=length(value);
         end;
       end;
     end;
     elements[j].uservalue:=value;
 
-    elements[j].wildcard:=(value='') or (value = '*');
+    inc(calculatedBlocksize, elements[j].bytesize);
+
+    elements[j].wildcard:=(value='') or ((not (elements[j].vartype in [vtString, vtUnicodeString])) and (value = '*'));
+
     if not elements[j].wildcard then
     begin
       case elements[j].vartype of
@@ -218,6 +223,12 @@ begin
 
   if blocksize=-1 then  //check if set by the user, if not (or the user is a complete retard that sets size to -1)
     blocksize:=calculatedBlocksize;
+
+  if outOfOrder then
+    for i:=0 to length(elements)-1 do
+      if elements[i].wildcard then
+        raise exception.create('Wildcards/Empty are not allowed for Out of Order scans');
+
 end;
 
 constructor TGroupscanCommandParser.create(command: string='');
