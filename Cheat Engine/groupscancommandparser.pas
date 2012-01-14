@@ -67,7 +67,7 @@ begin
     typeAligned:=value='A';
   end;
 
-  if (length(command)>0) and (command[1] in ['1','2','4','8','F','D','C']) then
+  if (length(command)>=1) and (command[1] in ['1','2','4','8','F','D','C','S']) then
   begin
     j:=length(elements);
     setlength(elements, j+1);
@@ -129,6 +129,14 @@ begin
           inc(calculatedBlocksize, elements[j].customtype.bytesize)
         else
           raise exception.create('Custom type not recognized: '+ctn);
+      end;
+
+      'S':
+      begin
+        if (length(command)>=2) and (command[2]='U') then
+          elements[j].vartype:=vtUnicodeString
+        else
+          elements[j].vartype:=vtString;
       end;
     end;
     elements[j].uservalue:=value;

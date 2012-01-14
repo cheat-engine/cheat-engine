@@ -6,7 +6,8 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, CustomTypeHandler, math, strutils, cefuncproc, groupscancommandparser;
+  ExtCtrls, CustomTypeHandler, math, strutils, cefuncproc, groupscancommandparser,
+  vartypestrings;
 
 type
   { TfrmGroupScanAlgoritmGenerator }
@@ -20,10 +21,13 @@ type
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
+    lblMustBeDividable: TLabel;
     lblMin: TLabel;
     ScrollBox1: TScrollBox;
     procedure Button1Click(Sender: TObject);
     procedure cbOutOfOrderChange(Sender: TObject);
+    procedure cbTypeAlignedChange(Sender: TObject);
+    procedure edtBlockalignmentChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -104,6 +108,8 @@ begin
     4: result:='8:';
     5: result:='f:';
     6: result:='d:';
+    7: result:='s:';
+    8: result:='su:';
     else
     begin
       //custom
@@ -186,12 +192,16 @@ begin
   cbVartype:=Tcombobox.create(self);
 
   cbvartype.Items.Add('');
-  cbvartype.Items.Add('1 Byte');
-  cbvartype.Items.Add('2 Bytes');
-  cbvartype.Items.Add('4 Bytes');
-  cbvartype.Items.Add('8 Bytes');
-  cbvartype.Items.Add('Float');
-  cbvartype.Items.Add('Double');
+
+
+  cbvartype.Items.Add(rs_vtByte);
+  cbvartype.Items.Add(rs_vtWord);
+  cbvartype.Items.Add(rs_vtDword);
+  cbvartype.Items.Add(rs_vtQword);
+  cbvartype.Items.Add(rs_vtSingle);
+  cbvartype.Items.Add(rs_vtDouble);
+  cbvartype.Items.Add(rs_vtString);
+  cbvartype.Items.Add(rs_vtUnicodeString);
 
   for i:=0 to customTypes.count-1 do
     cbVartype.items.AddObject(TCustomType(customtypes[i]).name, customtypes[i]);
@@ -259,7 +269,28 @@ begin
   lblMin.visible:=cbOutOfOrder.checked;
   cbTypeAligned.enabled:=cbOutOfOrder.checked;
   edtBlocksize.enabled:=cbOutOfOrder.checked;
+
+  lblMustBeDividable.visible:=cbOutOfOrder.checked and cbTypeAligned.checked;
+
   sizechange;
+end;
+
+procedure TfrmGroupScanAlgoritmGenerator.cbTypeAlignedChange(Sender: TObject);
+begin
+
+end;
+
+procedure TfrmGroupScanAlgoritmGenerator.edtBlockalignmentChange(Sender: TObject);
+var i: integer;
+  correct: boolean;
+begin
+  correct:=TryStrToInt(edtBlockalignment.text,i);
+  if correct and ((i mod 4)=0) then
+  begin
+    lblMustBeDividable.font.color:=clWindowText
+  end
+  else
+    lblMustBeDividable.font.color:=clRed; //error
 end;
 
 procedure TfrmGroupScanAlgoritmGenerator.Button1Click(Sender: TObject);
@@ -317,6 +348,8 @@ begin
     vtQword:  x.cbVartype.itemindex:=4;
     vtSingle: x.cbVartype.itemindex:=5;
     vtDouble: x.cbVartype.itemindex:=6;
+    vtString: x.cbVartype.ItemIndex:=7;
+    vtUnicodeString: x.cbVartype.ItemIndex:=8;
     vtPointer: if processhandler.is64Bit then x.cbVartype.itemindex:=4 else x.cbVartype.itemindex:=3;
   end;
 
@@ -345,6 +378,8 @@ begin
       vtQword: x.cbVartype.itemindex:=4;
       vtSingle: x.cbVartype.itemindex:=5;
       vtDouble: x.cbVartype.itemindex:=6;
+      vtString: x.cbVartype.ItemIndex:=7;
+      vtUnicodeString: x.cbVartype.ItemIndex:=8;
       vtCustom: x.cbVartype.ItemIndex:=x.cbVartype.Items.IndexOf(gcp.elements[i].customtype.name);
     end;
 

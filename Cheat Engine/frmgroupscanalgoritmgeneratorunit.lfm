@@ -77,6 +77,7 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
     Caption = 'Must be type-aligned'
     Checked = True
     Enabled = False
+    OnChange = cbOutOfOrderChange
     State = cbChecked
     TabOrder = 5
   end
@@ -94,6 +95,7 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
     Height = 23
     Top = 200
     Width = 80
+    OnChange = edtBlockalignmentChange
     TabOrder = 6
     Text = '4'
   end
@@ -112,5 +114,14 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
     Width = 217
     Caption = 'Leave a value empty or use * for wildcard'
     ParentColor = False
+  end
+  object lblMustBeDividable: TLabel
+    Left = 96
+    Height = 16
+    Top = 202
+    Width = 120
+    Caption = 'Must be dividable by 4'
+    ParentColor = False
+    Visible = False
   end
 end
