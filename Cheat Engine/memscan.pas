@@ -39,11 +39,15 @@ type
       offset: integer; //filled during out of order scans to determine if multiple items have been found (If you do OOO scans and use byte and 4 byte together, define byte later...)
       vartype: TVariableType;
       customtype: TCustomtype;
+      value: string;
+      widevalue: widestring;
       valuei: qword;
       valuef: double;
       minfvalue: double;
       maxfvalue: double;
       floataccuracy: integer;
+
+      bytesize: integer;
     end;
 
     groupdatalength: integer;  //saves a getLenghth lookup call
@@ -58,6 +62,13 @@ type
     function SingleScan(minf,maxf: double; buf: pointer; var startoffset: integer): boolean;
     function DoubleScan(minf,maxf: double; buf: pointer; var startoffset: integer): boolean;
     function CustomScan(ct: Tcustomtype; value: integer; buf: pointer; var startoffset: integer): boolean;
+
+    function StringScan(st: pchar; buf: Pbytearray; var startoffset: integer): boolean;
+    function WideStringScan(st: pwidechar; buf: Pbytearray; var startoffset: integer): boolean;
+
+
+    function testString(buf: PChar; ts: pchar): boolean;
+    function testWideString(buf: PWideChar; ts: pwidechar): boolean;
 
   public
     constructor create(parameters: string);
@@ -805,6 +816,11 @@ begin
 
       groupdata[i].minfvalue:=groupdata[i].valuef-(1/(power(10,groupdata[i].floataccuracy)));
       groupdata[i].maxfvalue:=groupdata[i].valuef+(1/(power(10,groupdata[i].floataccuracy)));
+
+      groupdata[i].value:=uppercase(gcp.elements[i].uservalue);
+      groupdata[i].widevalue:=uppercase(gcp.elements[i].uservalue);
+
+      groupdata[i].bytesize:=gcp.elements[i].bytesize;
     end;
 
 
@@ -815,13 +831,46 @@ begin
 
 end;
 
+function TGroupData.testString(buf: PChar; ts: pchar): boolean;
+var i: integer;
+begin
+  result:=false;
+  for i:=0 to length(ts)-1 do
+  begin
+    if pchar(buf)[(i-1)] in ['a'..'z'] then //change to uppercase
+      dec(pbytearray(buf)[(i-1)],$20);
+
+    if ts[i]<>(pchar(buf)[i]) then exit;
+  end;
+
+  result:=true;
+end;
+
+
+function TGroupData.testWideString(buf: PWideChar; ts: pwidechar): boolean;
+var i: integer;
+begin
+  result:=false;
+  i:=0;
+
+  for i:=0 to length(ts)-1 do
+  begin
+    if pchar(buf)[(i-1)*sizeof(wchar)] in ['a'..'z'] then //change to uppercase
+      dec(pbytearray(buf)[(i-1)*sizeof(wchar)],$20);
+
+    if ts[i]<>(pwidechar(buf)[i]) then exit;
+  end;
+
+  result:=true;
+end;
+
 function TGroupData.compareblock(newvalue,oldvalue: pointer): boolean;
+//ordered scan
 var i: integer;
 begin
   result:=true;
   for i:=0 to groupdatalength-1 do
   begin
-
     if result=false then exit;
 
     case groupdata[i].vartype of
@@ -859,6 +908,18 @@ begin
       begin
         result:=groupdata[i].wildcard or ((pdouble(newvalue)^>groupdata[i].minfvalue) and (pdouble(newvalue)^<groupdata[i].maxfvalue));
         inc(newvalue, 8);
+      end;
+
+      vtString:
+      begin
+        result:=groupdata[i].wildcard or testString(newvalue, @groupdata[i].value[1]);
+        inc(newvalue, groupdata[i].bytesize);
+      end;
+
+      vtUnicodeString:
+      begin
+        result:=groupdata[i].wildcard or testWideString(newvalue, @groupdata[i].widevalue[1]);
+        inc(newvalue, groupdata[i].bytesize);
       end;
 
       vtCustom:
@@ -1055,6 +1116,30 @@ begin
   end;
 end;
 
+function TGroupData.StringScan(st: pchar; buf: Pbytearray; var startoffset: integer): boolean;
+var i: integer;
+begin
+  for i:=startoffset to blocksize-1 do
+    if testString(pchar(@buf[i]), st) then
+    begin
+      startoffset:=i+1;
+      result:=true;
+      exit;
+    end;
+end;
+
+function TGroupData.WideStringScan(st: pwidechar; buf: Pbytearray; var startoffset: integer): boolean;
+var i: integer;
+begin
+  for i:=startoffset to blocksize-1 do
+    if testWideString(pwidechar(@buf[i]), st) then
+    begin
+      startoffset:=i+1;
+      result:=true;
+      exit;
+    end;
+end;
+
 
 function TGroupData.compareblock_outoforder(newvalue,oldvalue: pointer): boolean; //oldvalue is kinda ignored
 var i,j: integer;
@@ -1078,6 +1163,9 @@ begin
   for i:=0 to groupdatalength-1 do
   begin
     if result=false then exit;
+
+    if groupdata[i].wildcard then continue; //really, it's useless for out of order scans
+
     isin:=true;
 
     currentoffset:=0;
@@ -1147,6 +1235,24 @@ begin
             currentoffset:=(currentoffset+3) and $fffffffc;
 
           result:=DoubleScan(groupdata[i].minfvalue, groupdata[i].maxfvalue, newvalue, currentoffset);
+          isin:=isinlist;
+        end;
+      end;
+
+      vtString:
+      begin
+        while result and isin do
+        begin
+          result:=StringScan(@groupdata[i].value[1], newvalue, currentoffset);
+          isin:=isinlist;
+        end;
+      end;
+
+      vtUnicodeString:
+      begin
+        while result and isin do
+        begin
+          result:=WideStringScan(@groupdata[i].widevalue[1], newvalue, currentoffset);
           isin:=isinlist;
         end;
       end;
@@ -1687,6 +1793,7 @@ begin
   result:=false;
   for i:=1 to length(scanvalue1) do
   begin
+    pbytearray(newvalue)[(i-1)]:=pbytearray(newvalue)[(i-1)] and $df;
     if pchar(newvalue)[(i-1)] in ['a'..'z'] then //change to uppercase
       dec(pbytearray(newvalue)[(i-1)],$20);
 
