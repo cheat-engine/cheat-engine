@@ -134,9 +134,15 @@ begin
       'S':
       begin
         if (length(command)>=2) and (command[2]='U') then
-          elements[j].vartype:=vtUnicodeString
+        begin
+          elements[j].vartype:=vtUnicodeString;
+          inc(calculatedBlocksize,length(value)*2);
+        end
         else
+        begin
           elements[j].vartype:=vtString;
+          inc(calculatedBlocksize,length(value));
+        end;
       end;
     end;
     elements[j].uservalue:=value;
