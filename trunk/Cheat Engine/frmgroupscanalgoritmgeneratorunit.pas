@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, CustomTypeHandler, math, strutils, cefuncproc;
+  ExtCtrls, CustomTypeHandler, math, strutils, cefuncproc, groupscancommandparser;
 
 type
   { TfrmGroupScanAlgoritmGenerator }
@@ -31,7 +31,6 @@ type
     { private declarations }
     Varinfolist: TList;
     procedure sizechange;
-    procedure parse(s: string);
   public
     { public declarations }
 
@@ -172,7 +171,7 @@ begin
 
   //lazarus bug, once scrolled down the clientsizewithbar will be different
   if i=0 then
-    width:=frm.ScrollBox1.ClientWidth-frm.scrollbox1.VertScrollBar.Size
+    width:=frm.ScrollBox1.ClientWidth-frm.scrollbox1.VertScrollBar.Size-6
   else
     width:=TVariableInfo(frm.Varinfolist[0]).width;
 
@@ -200,7 +199,7 @@ begin
   cbvartype.Style:=csDropDownList;
 
   cbVartype.width:=(clientwidth div 2)-3;
-  edtValue.width:=(clientwidth div 2)-4;
+  edtValue.width:=(clientwidth div 2)-5;
 
   cbVartype.left:=0;
   edtValue.Left:=(clientwidth div 2)+3;
@@ -307,79 +306,6 @@ begin
 end;
 
 
-procedure TfrmGroupScanAlgoritmGenerator.parse(s:string);
-var i,j: integer;
-  command, value: string;
-  x: TVariableInfo;
-
-  ctn: string;
-  c: TCustomType;
-begin
-  i:=pos(':', s);
-  if i=-1 then exit;
-
-  command:=copy(s,1, i-1);
-  value:=copy(s,i+1, length(s));
-
-  if command='BA' then
-    edtBlockalignment.text:=value;
-
-  if command='BS' then
-    edtBlocksize.text:=value;
-
-  if command='OOO' then
-  begin
-    cbOutOfOrder.checked:=true;
-    cbTypeAligned.checked:=value='A';
-  end;
-
-  if length(command)>0 then
-  begin
-    if command[1] in ['1','2','4','8','F','D','C'] then
-    begin
-      x:=TVariableInfo(Varinfolist[Varinfolist.count-1]);
-
-      //setting the itemindex automatically creates the next entry
-      case command[1] of
-        '1': x.cbVartype.itemindex:=1;
-        '2': x.cbVartype.itemindex:=2;
-        '4': x.cbVartype.itemindex:=3;
-        '8': x.cbVartype.itemindex:=4;
-        'F': x.cbVartype.itemindex:=5;
-        'D': x.cbVartype.itemindex:=6;
-        'C':
-        begin
-          //custom type
-          i:=pos('(', command);
-
-          for j:=length(command) downto i do
-          begin
-            if command[j]=')' then break;
-          end;
-
-          ctn:=copy(command, i+1, j-i-1);
-
-          c:=GetCustomTypeFromName(ctn);
-          i:=x.cbVartype.Items.IndexOf(c.name);
-          if i<>-1 then
-            x.cbVartype.ItemIndex:=i
-          else
-            exit;
-        end;
-      end;
-
-      //for some fucked up reason setting the itemindex does not trigger onchange
-      x.vartypeselect(x.cbVartype);
-
-
-
-      x.edtValue.text:=value;
-    end;
-
-  end;
-
-end;
-
 procedure TfrmGroupScanAlgoritmGenerator.AddLine(valuetype: TVariableType; value: string);
 var x: TVariableInfo;
 begin
@@ -399,20 +325,32 @@ begin
 end;
 
 procedure TfrmGroupScanAlgoritmGenerator.parseParameters(p:string);
-var start, i: integer;
-  s: string;
+var i,j: integer;
+  command, value: string;
+  x: TVariableInfo;
+
+  ctn: string;
+  c: TCustomType;
+
+  gcp: TGroupscanCommandParser;
 begin
-  p:=uppercase(p);
-
-  start:=1;
-  for i:=1 to length(p) do
-    if (p[i]=' ') or (i=length(p)) then
-    begin
-      s:=trim(copy(p, start, i+1-start));
-      start:=i;
-
-      parse(s);
+  gcp:=TGroupscanCommandParser.create(p);
+  for i:=0 to length(gcp.elements)-1 do
+  begin
+    x:=TVariableInfo(Varinfolist[Varinfolist.count-1]);
+    case gcp.elements[i].vartype of
+      vtByte: x.cbVartype.itemindex:=1;
+      vtWord: x.cbVartype.itemindex:=2;
+      vtDword: x.cbVartype.itemindex:=3;
+      vtQword: x.cbVartype.itemindex:=4;
+      vtSingle: x.cbVartype.itemindex:=5;
+      vtDouble: x.cbVartype.itemindex:=6;
+      vtCustom: x.cbVartype.ItemIndex:=x.cbVartype.Items.IndexOf(gcp.elements[i].customtype.name);
     end;
+
+    x.vartypeselect(x.cbVartype);
+    x.edtValue.text:=gcp.elements[i].uservalue;
+  end;
 
 end;
 

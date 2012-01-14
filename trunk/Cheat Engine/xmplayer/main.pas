@@ -21,6 +21,7 @@ implementation
 
 procedure HandleSetVolumeCommand;
 var volume: byte; //range from 0 to 25
+  x: dword;
 begin
   if readfile(pipe, volume, 4, x,nil) then
     uFMOD_SetVolume(volume);

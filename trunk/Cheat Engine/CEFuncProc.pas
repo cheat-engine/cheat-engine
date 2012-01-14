@@ -52,6 +52,18 @@ Type TMemoryRegion = record
 type TMemoryRegions = array of TMemoryRegion;
 type PMemoryRegions = ^TMemoryRegions;
 
+
+type
+  TGroupAddress=record
+    address: ptruint;
+    offsets: array [0..999999] of dword;
+  end;
+  PGroupAddress=^TGroupAddress;
+  TGroupAddressArray=array [0..999999] of TGroupAddress;
+  PGroupAddressArray=^TGroupAddressArray;
+
+
+
 type TBitAddress = record
   address: ptruint;
   bit: ptruint; //in 64-bit when it was dword it would get aligned to 64-bit anyhow
@@ -83,7 +95,7 @@ function HexStrToInt64(const S: string): Int64;
 
 function IntToHexSigned(v: INT64; digits: integer): string;
 
-function NewVarTypeToOldVarType(i: TVariableType):integer;
+//function NewVarTypeToOldVarType(i: TVariableType):integer;
 function OldVarTypeToNewVarType(i: integer):TVariableType;
 function VariableTypeToString(variableType: TVariableType): string;
 function StringToVariableType(s: string): TVariableType;
@@ -199,7 +211,6 @@ procedure SetLanguage;
 {$endif}
 
 procedure DetachIfPossible;
-
 
 
 
@@ -3157,6 +3168,8 @@ begin
 
 end;
 
+
+    {
 function NewVarTypeToOldVarType(i: TVariableType):integer;
 begin
   result:=2;
@@ -3173,8 +3186,9 @@ begin
     vtCustom: result:=10;
     vtAutoAssembler: result:=255;
   end;
-end;
+end;   }
 
+//for loading old pre 6.0 .CT files
 function OldVarTypeToNewVarType(i: integer):TVariableType;
 begin
   result:=vtDword;

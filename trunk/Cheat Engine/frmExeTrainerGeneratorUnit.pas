@@ -94,7 +94,7 @@ resourcestring
   rsFailureOnWriting = 'failure on writing';
   rsIconUpdateError = 'icon update error';
   rsFailureOpeningTheTrainerForResourceUpdates = 'Failure opening the trainer '
-    +'for resource updates';
+    +'for resource updates. Make sure you do not watch the creation';
   rsTheTrainerHasBeenSuccessfullyGenerated = 'The trainer has been '
     +'successfully generated';
   rsNone = 'None';

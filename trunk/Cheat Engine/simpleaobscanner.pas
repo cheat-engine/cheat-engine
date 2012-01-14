@@ -59,7 +59,7 @@ begin
   ms.waittillreallydone; //wait till it's finished scanning AND saving
 
 
-  count:=foundlist.Initialize(8,nil);
+  count:=foundlist.Initialize(vtByteArray,nil);
 
   for i:=0 to count-1 do
   begin

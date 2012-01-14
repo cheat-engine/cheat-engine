@@ -9,6 +9,9 @@ uses
   Dialogs, StdCtrls, ExtCtrls, LResources{,tlhelp32, XPMan};
 
 type
+
+  { TForm1 }
+
   TForm1 = class(TForm)
     Memo1: TMemo;
     Button1: TButton;
@@ -33,7 +36,7 @@ var
 
 implementation
 
-uses Unit2, Unit3, Unit4, Unit5, Unit6, Unit7, Unit8, Unit9, Unit10;
+uses Unit2, Unit3, Unit4, Unit5, Unit6, Unit7, Unit8, Unit9, Unit10, cetranslator;
 
 resourcestring
   rsFirstStepTooHardBetterGiveUpNow =

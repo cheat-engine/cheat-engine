@@ -86,14 +86,14 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="21">
+    <Units Count="24">
       <Unit0>
         <Filename Value="tutorial.lpr"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="11"/>
+        <EditorIndex Value="13"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
-        <CursorPos X="60" Y="17"/>
+        <CursorPos X="5" Y="22"/>
         <UsageCount Value="27"/>
         <Loaded Value="True"/>
       </Unit0>
@@ -106,8 +106,8 @@
         <UnitName Value="Unit1"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="17" Y="7"/>
+        <TopLine Value="8"/>
+        <CursorPos X="1" Y="28"/>
         <UsageCount Value="27"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -119,7 +119,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit2"/>
-        <EditorIndex Value="1"/>
+        <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="36" Y="133"/>
@@ -134,7 +134,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit3"/>
-        <EditorIndex Value="2"/>
+        <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
         <TopLine Value="54"/>
         <CursorPos X="37" Y="77"/>
@@ -149,7 +149,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit4"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
         <TopLine Value="11"/>
         <CursorPos X="26" Y="16"/>
@@ -164,7 +164,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit5"/>
-        <EditorIndex Value="5"/>
+        <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
         <TopLine Value="81"/>
         <CursorPos X="37" Y="96"/>
@@ -179,7 +179,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit6"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="9"/>
         <WindowIndex Value="0"/>
         <TopLine Value="99"/>
         <CursorPos X="36" Y="110"/>
@@ -194,7 +194,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit7"/>
-        <EditorIndex Value="9"/>
+        <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
         <TopLine Value="150"/>
         <CursorPos X="18" Y="167"/>
@@ -209,7 +209,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit8"/>
-        <EditorIndex Value="10"/>
+        <EditorIndex Value="12"/>
         <WindowIndex Value="0"/>
         <TopLine Value="104"/>
         <CursorPos X="36" Y="109"/>
@@ -224,8 +224,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit9"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="14"/>
+        <EditorIndex Value="16"/>
         <WindowIndex Value="0"/>
         <TopLine Value="182"/>
         <CursorPos X="37" Y="188"/>
@@ -240,7 +239,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit10"/>
-        <EditorIndex Value="12"/>
+        <EditorIndex Value="14"/>
         <WindowIndex Value="0"/>
         <TopLine Value="240"/>
         <CursorPos X="12" Y="258"/>
@@ -259,17 +258,18 @@
         <Filename Value="cetranslator.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="cetranslator"/>
-        <EditorIndex Value="16"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="18"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="224"/>
-        <CursorPos X="1" Y="253"/>
+        <TopLine Value="93"/>
+        <CursorPos X="24" Y="243"/>
         <UsageCount Value="22"/>
         <Loaded Value="True"/>
       </Unit12>
       <Unit13>
         <Filename Value="C:\lazarus\fpc\2.5.1\source\packages\fcl-base\src\custapp.pp"/>
         <UnitName Value="CustApp"/>
-        <EditorIndex Value="17"/>
+        <EditorIndex Value="19"/>
         <WindowIndex Value="0"/>
         <TopLine Value="241"/>
         <CursorPos X="22" Y="269"/>
@@ -278,7 +278,7 @@
       </Unit13>
       <Unit14>
         <Filename Value="Unit3.lfm"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
         <TopLine Value="43"/>
         <CursorPos X="27" Y="50"/>
@@ -288,7 +288,7 @@
       </Unit14>
       <Unit15>
         <Filename Value="Unit5.lfm"/>
-        <EditorIndex Value="6"/>
+        <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
         <TopLine Value="86"/>
         <CursorPos X="1" Y="86"/>
@@ -298,7 +298,7 @@
       </Unit15>
       <Unit16>
         <Filename Value="Unit6.lfm"/>
-        <EditorIndex Value="8"/>
+        <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
         <TopLine Value="37"/>
         <CursorPos X="9" Y="46"/>
@@ -324,7 +324,7 @@
       </Unit18>
       <Unit19>
         <Filename Value="Unit10.lfm"/>
-        <EditorIndex Value="13"/>
+        <EditorIndex Value="15"/>
         <WindowIndex Value="0"/>
         <TopLine Value="26"/>
         <CursorPos X="7" Y="26"/>
@@ -334,7 +334,7 @@
       </Unit19>
       <Unit20>
         <Filename Value="Unit9.lfm"/>
-        <EditorIndex Value="15"/>
+        <EditorIndex Value="17"/>
         <WindowIndex Value="0"/>
         <TopLine Value="46"/>
         <CursorPos X="9" Y="53"/>
@@ -342,127 +342,155 @@
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="LFM"/>
       </Unit20>
+      <Unit21>
+        <Filename Value="C:\lazarus\lcl\controls.pp"/>
+        <UnitName Value="Controls"/>
+        <EditorIndex Value="2"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="2429"/>
+        <CursorPos X="14" Y="2446"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit21>
+      <Unit22>
+        <Filename Value="Unit1.lfm"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="50"/>
+        <CursorPos X="15" Y="54"/>
+        <UsageCount Value="10"/>
+        <DefaultSyntaxHighlighter Value="LFM"/>
+      </Unit22>
+      <Unit23>
+        <Filename Value="C:\lazarus\fpc\2.5.1\source\rtl\objpas\objpas.pp"/>
+        <UnitName Value="objpas"/>
+        <EditorIndex Value="1"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="372"/>
+        <CursorPos X="3" Y="377"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit23>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="cetranslator.pas"/>
-        <Caret Line="253" Column="1" TopLine="236"/>
-      </Position1>
-      <Position2>
-        <Filename Value="C:\lazarus\fpc\2.5.1\source\packages\fcl-base\src\custapp.pp"/>
-        <Caret Line="247" Column="66" TopLine="241"/>
-      </Position2>
-      <Position3>
-        <Filename Value="C:\lazarus\fpc\2.5.1\source\packages\fcl-base\src\custapp.pp"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
-      </Position3>
-      <Position4>
-        <Filename Value="C:\lazarus\fpc\2.5.1\source\packages\fcl-base\src\custapp.pp"/>
-        <Caret Line="38" Column="21" TopLine="10"/>
-      </Position4>
-      <Position5>
-        <Filename Value="C:\lazarus\fpc\2.5.1\source\packages\fcl-base\src\custapp.pp"/>
-        <Caret Line="86" Column="84" TopLine="58"/>
-      </Position5>
-      <Position6>
-        <Filename Value="C:\lazarus\fpc\2.5.1\source\packages\fcl-base\src\custapp.pp"/>
-        <Caret Line="250" Column="19" TopLine="222"/>
-      </Position6>
-      <Position7>
         <Filename Value="C:\lazarus\fpc\2.5.1\source\packages\fcl-base\src\custapp.pp"/>
         <Caret Line="269" Column="22" TopLine="241"/>
+      </Position1>
+      <Position2>
+        <Filename Value="cetranslator.pas"/>
+        <Caret Line="253" Column="1" TopLine="236"/>
+      </Position2>
+      <Position3>
+        <Filename Value="cetranslator.pas"/>
+        <Caret Line="255" Column="1" TopLine="236"/>
+      </Position3>
+      <Position4>
+        <Filename Value="cetranslator.pas"/>
+        <Caret Line="256" Column="1" TopLine="236"/>
+      </Position4>
+      <Position5>
+        <Filename Value="cetranslator.pas"/>
+        <Caret Line="89" Column="1" TopLine="72"/>
+      </Position5>
+      <Position6>
+        <Filename Value="cetranslator.pas"/>
+        <Caret Line="90" Column="1" TopLine="72"/>
+      </Position6>
+      <Position7>
+        <Filename Value="cetranslator.pas"/>
+        <Caret Line="92" Column="1" TopLine="72"/>
       </Position7>
       <Position8>
         <Filename Value="cetranslator.pas"/>
-        <Caret Line="253" Column="1" TopLine="236"/>
+        <Caret Line="93" Column="1" TopLine="72"/>
       </Position8>
       <Position9>
         <Filename Value="cetranslator.pas"/>
-        <Caret Line="255" Column="1" TopLine="236"/>
+        <Caret Line="95" Column="1" TopLine="72"/>
       </Position9>
       <Position10>
-        <Filename Value="cetranslator.pas"/>
-        <Caret Line="256" Column="1" TopLine="236"/>
-      </Position10>
-      <Position11>
-        <Filename Value="cetranslator.pas"/>
-        <Caret Line="89" Column="1" TopLine="72"/>
-      </Position11>
-      <Position12>
-        <Filename Value="cetranslator.pas"/>
-        <Caret Line="90" Column="1" TopLine="72"/>
-      </Position12>
-      <Position13>
-        <Filename Value="cetranslator.pas"/>
-        <Caret Line="92" Column="1" TopLine="72"/>
-      </Position13>
-      <Position14>
-        <Filename Value="cetranslator.pas"/>
-        <Caret Line="93" Column="1" TopLine="72"/>
-      </Position14>
-      <Position15>
-        <Filename Value="cetranslator.pas"/>
-        <Caret Line="95" Column="1" TopLine="72"/>
-      </Position15>
-      <Position16>
         <Filename Value="C:\lazarus\fpc\2.5.1\source\packages\fcl-base\src\custapp.pp"/>
         <Caret Line="269" Column="22" TopLine="241"/>
-      </Position16>
-      <Position17>
+      </Position10>
+      <Position11>
         <Filename Value="Unit1.pas"/>
         <Caret Line="43" Column="129" TopLine="30"/>
-      </Position17>
-      <Position18>
+      </Position11>
+      <Position12>
         <Filename Value="Unit1.pas"/>
         <Caret Line="42" Column="186" TopLine="25"/>
-      </Position18>
-      <Position19>
+      </Position12>
+      <Position13>
         <Filename Value="Unit1.pas"/>
         <Caret Line="43" Column="83" TopLine="25"/>
-      </Position19>
-      <Position20>
+      </Position13>
+      <Position14>
         <Filename Value="Unit1.pas"/>
         <Caret Line="98" Column="25" TopLine="93"/>
-      </Position20>
-      <Position21>
+      </Position14>
+      <Position15>
         <Filename Value="Unit2.pas"/>
         <Caret Line="85" Column="65" TopLine="48"/>
-      </Position21>
-      <Position22>
+      </Position15>
+      <Position16>
         <Filename Value="Unit2.pas"/>
         <Caret Line="57" Column="35" TopLine="40"/>
-      </Position22>
-      <Position23>
+      </Position16>
+      <Position17>
         <Filename Value="Unit3.pas"/>
         <Caret Line="57" Column="43" TopLine="45"/>
-      </Position23>
-      <Position24>
+      </Position17>
+      <Position18>
         <Filename Value="Unit5.pas"/>
         <Caret Line="80" Column="91" TopLine="70"/>
-      </Position24>
-      <Position25>
+      </Position18>
+      <Position19>
         <Filename Value="Unit6.pas"/>
         <Caret Line="63" Column="121" TopLine="36"/>
-      </Position25>
-      <Position26>
+      </Position19>
+      <Position20>
         <Filename Value="Unit7.pas"/>
         <Caret Line="86" Column="86" TopLine="48"/>
-      </Position26>
-      <Position27>
+      </Position20>
+      <Position21>
         <Filename Value="Unit7.pas"/>
         <Caret Line="167" Column="37" TopLine="48"/>
-      </Position27>
-      <Position28>
+      </Position21>
+      <Position22>
         <Filename Value="Unit8.pas"/>
         <Caret Line="68" Column="35" TopLine="55"/>
-      </Position28>
-      <Position29>
-        <Filename Value="Unit10.pas"/>
-        <Caret Line="109" Column="42" TopLine="122"/>
-      </Position29>
-      <Position30>
+      </Position22>
+      <Position23>
         <Filename Value="Unit9.pas"/>
         <Caret Line="99" Column="18" TopLine="86"/>
+      </Position23>
+      <Position24>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="7" Column="11" TopLine="1"/>
+      </Position24>
+      <Position25>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="65" Column="17" TopLine="43"/>
+      </Position25>
+      <Position26>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="69" Column="4" TopLine="48"/>
+      </Position26>
+      <Position27>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="67" Column="15" TopLine="48"/>
+      </Position27>
+      <Position28>
+        <Filename Value="C:\lazarus\fpc\2.5.1\source\rtl\objpas\objpas.pp"/>
+        <Caret Line="109" Column="14" TopLine="92"/>
+      </Position28>
+      <Position29>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="67" Column="15" TopLine="48"/>
+      </Position29>
+      <Position30>
+        <Filename Value="Unit1.pas"/>
+        <Caret Line="66" Column="15" TopLine="47"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>

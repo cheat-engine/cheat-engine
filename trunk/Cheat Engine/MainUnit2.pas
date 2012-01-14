@@ -18,11 +18,12 @@ resourcestring
 procedure UpdateToolsMenu;
 procedure LoadSettingsFromRegistry;
 procedure initcetitle;
-function GetScanType: Integer;
-function getVarType: Integer;
-function GetScanType2: TScanOption;
+
+function getVarType: TVariableType;
 function getVarType2: TVariableType;
 
+function GetScanType: TScanOption;
+function GetScanType2: TScanOption;
 
 
 const beta=' Alpha 3'; //empty this for a release
@@ -93,65 +94,45 @@ uses KernelDebugger,mainunit;
 
 function GetScanType2: TScanOption;
 {
-Determine the current scanoption.
-If it's a custom type vatriable, it's always of type custom
+not needed anymore
 }
 begin
-  if getVarType2=vtAutoAssembler then result:=soCustom
-  else
-  case GetScanType of
-    exact_value:       result:=soExactValue;
-    biggerthan:        result:=soBiggerThan;
-    smallerthan:       result:=soSmallerThan;
-    valueBetween:      result:=soValueBetween;
-    Advanced_scan:     result:=soUnknownValue;
-
-    Increased_value:   result:=soIncreasedValue;
-    Increased_value_by:result:=soIncreasedValueBy;
-    Decreased_value:   result:=soDecreasedValue;
-    Decreased_value_by:result:=soDecreasedValueBy;
-    Changed_value:     result:=soChanged;
-    Unchanged_value:   result:=soUnchanged;
-    else result:=soExactValue;
-  end;
-
+  result:=GetScanType;
 end;
 
-function GetScanType: Integer;  //todo: update to new type
-var vt: integer;
+function GetScanType: TScanOption;
 begin
+  result:=soExactValue;
   with mainform do
   begin
-    result:=exact_value;
-
-    if not (getvartype in [5,7,8]) then //not binary, string or bytearray
+    if not (getvartype in [vtBinary,vtString,vtByteArray]) then //not binary, string or bytearray
     begin
       if not nextscanbutton.enabled then
       begin
         //first scan
         case scantype.ItemIndex of
-          0: result:=exact_value;
-          1: result:=biggerthan;
-          2: result:=smallerthan;
-          3: result:=valuebetween;
-          4: result:=Advanced_scan;
+          0: result:=soExactValue;
+          1: result:=soBiggerThan;
+          2: result:=soSmallerThan;
+          3: result:=soValueBetween;
+          4: result:=soUnknownValue;
         end;
       end
       else
       begin
         //next scan
         case scantype.itemindex of
-          0: result:=exact_value;
-          1: result:=biggerthan;
-          2: result:=smallerthan;
-          3: result:=valuebetween;
-          4: result:=increased_value;
-          5: result:=increased_value_by;
-          6: result:=decreased_value;
-          7: result:=decreased_value_by;
-          8: result:=changed_value;
-          9: result:=unchanged_value;
-          10: result:=sameasfirst;
+          0: result:=soExactValue;
+          1: result:=soBiggerThan;
+          2: result:=soSmallerThan;
+          3: result:=soValueBetween;
+          4: result:=soIncreasedValue;
+          5: result:=soIncreasedValueBy;
+          6: result:=soDecreasedValue;
+          7: result:=soDecreasedValueBy;
+          8: result:=soChanged;
+          9: result:=soUnchanged;
+
         end;
       end;
     end;
@@ -159,64 +140,29 @@ begin
 end;
 
 
-function getVarType2: TVariableType;
-var i: integer;
+function getVarType2: TVariableType; //obsolete
 begin
-  i:=getVarType;
-
-  if i>=11 then
-    result:=vtCustom
-  else
-  case i of
-    5: result:=vtBinary;
-    0: result:=vtByte;
-    1: result:=vtWord;
-    2: result:=vtDword;
-    6: result:=vtQword;
-    3: result:=vtSingle;
-    4: result:=vtDouble;
-    7: result:=vtString;
-    8: result:=vtByteArray;
-    9: result:=vtAll;
-    10: result:=vtGrouped;
-  end;
-
+  result:=getVarType;
 
 end;
 
-function getVarType: Integer;
+function getVarType: TVariableType;
 begin
-  {
-Bit = 5
-Byte =0
-2 Bytes =1
-4 Bytes =2
-8 Bytes =6
-Float =3
-Double =4
-Text = 7
-}
-  result:=-1;
-  with mainform do
-  begin
-    if vartype.itemindex>=11 then
-      result:=11 //"custom"
-    else
-    case VarType.ItemIndex of
-      0: result:=5; //binary
-      1: result:=0; //byte
-      2: result:=1; //2 bytes
-      3: result:=2; //4 bytes
-      4: result:=6; //8 bytes
-      5: result:=3; //float
-      6: result:=4; //double
-      7: result:=7; //text
-      8: result:=8; //array of byte
-      9: result:=9; //all, only for new memscan
-      10: result:=10; //grouped, only for memscan
-
-
-    end;
+  if mainform.vartype.itemindex>=11 then
+    result:=vtCustom
+  else
+  case mainform.VarType.ItemIndex of
+    0: result:=vtBinary; //binary
+    1: result:=vtByte; //byte
+    2: result:=vtWord; //2 bytes
+    3: result:=vtDword; //4 bytes
+    4: result:=vtQword; //8 bytes
+    5: result:=vtSingle; //float
+    6: result:=vtDouble; //double
+    7: result:=vtString; //text
+    8: result:=vtByteArray; //array of byte
+    9: result:=vtAll; //all, only for new memscan
+    10: result:=vtGrouped; //grouped, only for memscan
   end;
 end;
 

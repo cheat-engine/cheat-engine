@@ -1,12 +1,14 @@
 unit foundlisthelper;
 
 {$MODE Delphi}
-//todo: Change to the 'new' vartype
+
+//todo: Change the list to the same kind of list used in the pointerscan (so no more concatenating the results)
+
 
 interface
 
 uses windows, LCLIntf,sysutils,classes,ComCtrls,StdCtrls,symbolhandler, CEFuncProc,
-     NewKernelHandler, memscan, CustomTypeHandler;
+     NewKernelHandler, memscan, CustomTypeHandler, byteinterpreter, groupscancommandparser;
 
 type TScanType=(fs_advanced,fs_addresslist);
 
@@ -29,7 +31,7 @@ type
 
     addressfile: tfilestream;
     scantype: TScanType;
-    fvartype: integer;
+    fvartype: TVariableType;
     customType: TCustomType;
     varlength: integer; //bitlength, stringlength, customscan
     hexadecimal: boolean; //show result in hexadecimal notation (when possible)
@@ -40,6 +42,7 @@ type
     lastrebase: integer;
     addresslist: array [0..1023] of ptruint; //this is a small list of addresses in the list
     addresslistb: array [0..1023] of TBitAddress; //idem, but in case of bit
+    addresslistg: PByteArray;
     addresslistfirst: qword; //index number the addresslist[0] has
 
     valuelist: array [0..1023] of string;
@@ -48,14 +51,17 @@ type
     fisUnknownInitialValue: boolean;
 
     fCount: UInt64;
+
+    gcp: Tgroupscancommandparser;
+    groupElementSize: integer;
   public
     function GetVarLength: integer;
     procedure deleteaddress(i:integer);
     procedure clear;
     procedure RefetchValueList;
     function Initialize: int64; overload;
-    function Initialize(vartype: integer; customtype: TCustomType):int64; overload;
-    function Initialize(vartype,varlength: integer; hexadecimal,signed,binaryasdecimal,unicode: boolean; customtype: TCustomType):int64; overload;  //initialize after a scan
+    function Initialize(vartype: TVariableType; customtype: TCustomType):int64; overload;
+    function Initialize(vartype: TVariableType; varlength: integer; hexadecimal,signed,binaryasdecimal,unicode: boolean; customtype: TCustomType):int64; overload;  //initialize after a scan
     procedure Deinitialize; //free filehandles before the scan
     function GetStartBit(i: integer):dword;
     function GetAddressOnly(i: integer; var extra: dword): ptruint;
@@ -65,7 +71,7 @@ type
     function GetModuleNamePlusOffset(i: integer):string;
     procedure RebaseAddresslist(i: integer);
     procedure RebaseAddresslistAgain; //calls rebaseaddresslist with the same parameter as last time
-    property vartype: integer read fvartype;
+    property vartype: TVariableType read fvartype;
     property isUnicode: boolean read unicode;
     property isUnknownInitialValue: boolean read fisUnknownInitialValue;
     property count: uint64 read fCount;
@@ -167,34 +173,40 @@ begin
   try
     //memoryfile is initialized
 
-    if vartype in [5,9] then
+    if vartype in [vtBinary,vtAll] then
       addresspos:=7+sizeof(sizeof(TBitAddress))*i
+    else
+    if vartype =vtGrouped then
+      addresspos:=7+sizeof(dword)+groupElementSize
     else
       addresspos:=7+sizeof(sizeof(ptruint))*i;
 
-		case vartype of
-			0: memorypos:=sizeof(byte)*i;
-			1: memorypos:=sizeof(word)*i;
-			2: memorypos:=sizeof(dword)*i;
-			3: memorypos:=sizeof(single)*i;
-			4: memorypos:=sizeof(double)*i;
-			6: memorypos:=sizeof(int64)*i;		
-		end; //no 5 and 7 since they have no values
+    case vartype of
+      vtByte: memorypos:=sizeof(byte)*i;
+      vtWord: memorypos:=sizeof(word)*i;
+      vtDword: memorypos:=sizeof(dword)*i;
+      vtSingle: memorypos:=sizeof(single)*i;
+      vtDouble: memorypos:=sizeof(double)*i;
+      vtQword: memorypos:=sizeof(int64)*i;
+    end; //no binary , string,aob or group since they have no values stored
 
     addressfile.Position:=0;
     memoryfile.Position:=0;
 
     outaddress.CopyFrom(addressfile,addresspos);
-    if vartype in [5,9] then
-			addressfile.Position:=addresspos+sizeof(TBitAddress)
-		else
-			addressfile.Position:=addresspos+sizeof(ptruint);
+    if vartype in [vtBinary,vtAll] then
+      addressfile.Position:=addresspos+sizeof(TBitAddress)
+    else
+    if vartype=vtGrouped then
+      addressfile.position:=addresspos+groupElementSize
+    else
+      addressfile.Position:=addresspos+sizeof(ptruint);
 
     if addressfile.Size-addressfile.Position>0 then
       outaddress.CopyFrom(addressfile,addressfile.Size-addressfile.Position);
 
     //memory
-    if not (vartype in [5,7]) then
+    if not (vartype in [vtBinary,vtAll, vtGrouped]) then
     begin
       outmemory.CopyFrom(memoryfile,memorypos);
       memoryfile.Position:=memorypos+sizeof(dword);
@@ -204,12 +216,12 @@ begin
     end;
     
 
-	finally
-	  memoryfile.free;
-          outaddress.free;
-          outmemory.free;
-          freemem(buf);
-        end;
+  finally
+    memoryfile.free;
+    outaddress.free;
+    outmemory.free;
+    freemem(buf);
+  end;
 
   //still here, not crashed, so out with the old, in with the new...
   deinitialize;
@@ -247,8 +259,9 @@ begin
   k:=foundlist.Items.Count-j;
   if k>1024 then k:=1024;
 
-  if vartype in [5,9] then
+  if vartype in [vtBinary,vtAll] then
   begin
+    //binary/all
     addressfile.Position:=7+j*sizeof(TBitAddress);
 
     k:=sizeof(TBitAddress)*k;
@@ -256,7 +269,15 @@ begin
     addresslistfirst:=j;
   end
   else
+  if vartype=vtGrouped then
   begin
+    addressfile.Position:=7+sizeof(dword)+j*sizeof(groupElementSize);
+    k:=groupElementSize*k;
+    addressfile.ReadBuffer(addresslistG[0],k);
+  end
+  else
+  begin
+    //normal
     addressfile.Position:=7+j*sizeof(ptruint);
 
     k:=sizeof(ptruint)*k;
@@ -360,10 +381,15 @@ begin
 
   j:=i-addresslistfirst;
 
-  if vartype in [5,9] then  //bit,all
+  if vartype in [vtAll,vtBinary] then  //bit,all
   begin
     result:=addresslistb[j].address;
     extra:=addresslistb[j].bit;
+  end
+  else
+  if vartype=vtGrouped then
+  begin
+    result:=PGroupAddress(ptruint(addresslistg)+j*groupElementSize)^.address;
   end
   else
   begin
@@ -411,7 +437,7 @@ var j,k,l: integer;
     temp,temp2: string;
     tempbuf: pointer;
     resultstring: pchar;
-    vtype: integer;
+    vtype: TVariableType;
 begin
   if i=-1 then exit;
 
@@ -428,90 +454,23 @@ begin
 
   if valuelist[j]='' then
   begin
-    if vartype=9 then
+    if vartype=vtAll then
     begin
       //override vtype with the type it scanned
       if extra >=$1000 then
       begin
         customtype:=tcustomtype(customTypes[extra-$1000]);
-        vtype:=10;
+        vtype:=vtCustom;
       end
       else
-      begin
-        case TVariableType(extra) of
-          vtByte:   vtype:=0;
-          vtWord:   vtype:=1;
-          vtDword:  vtype:=2;
-          vtQword:  vtype:=6;
-          vtSingle: vtype:=3;
-          vtDouble: vtype:=4;
-        end;
-      end;
+        vtype:=TVariableType(extra);
+
     end else vtype:=vartype;
 
 
+
     case vtype of
-      0: //byte
-      begin
-        if readprocessmemory(processhandle,pointer(currentaddress),@read1,1,count) then
-	begin
-          if hexadecimal then
-            valuelist[j]:=IntToHex(read1,2)
-          else
-          if signed then
-            valuelist[j]:=IntToStr(ShortInt(read1))
-          else
-            valuelist[j]:=IntToStr(read1);
-	end
-	else valuelist[j]:='??';
-      end;
-
-      1: //word
-      begin
-        if readprocessmemory(processhandle,pointer(currentaddress),@read2,2,count) then
-	begin
-          if hexadecimal then
-            valuelist[j]:=IntToHex(read2,4)
-	  else
-          if signed then
-	    valuelist[j]:=IntToStr(SmallInt(read2))
-          else
-            valuelist[j]:=IntToStr(read2);
-	end
-	else valuelist[j]:='??';
-      end;
-
-      2: //dword
-      begin
-        if readprocessmemory(processhandle,pointer(currentaddress),@read3,4,count) then
-        begin
-          if hexadecimal then
-            valuelist[j]:=IntToHex(read3,8)
-          else if signed then
-            valuelist[j]:=IntToStr(Longint(read3))
-          else
-            valuelist[j]:=IntToStr(read3);
-        end
-	else valuelist[j]:='??';
-      end;
-
-      3:
-      begin //float
-        if readprocessmemory(processhandle,pointer(currentaddress),@read4,4,count) then
-          valuelist[j]:=FloatToStr(read4)
-        else
-          valuelist[j]:='??';
-      end;
-
-      4:
-      begin //double
-        if readprocessmemory(processhandle,pointer(currentaddress),@read5,8,count) then
-          valuelist[j]:=FloatToStr(read5)
-        else
-          valuelist[j]:='??';
-      end;
-
-      5:
+      vtBinary:
       begin //binary
         //read the bytes
 
@@ -552,103 +511,38 @@ begin
         valuelist[j]:='??';
       end;
 
-      6:
-      begin //int64
-        if readprocessmemory(processhandle,pointer(currentaddress),@read6,8,count) then
-        begin
-          if hexadecimal then
-            valuelist[j]:=inttohex(read6,16)
-          else
-            valuelist[j]:=inttostr(read6)
-	end
-	else
-          valuelist[j]:='??';
-      end;
 
-
-      7:
+      vtString:
       begin  //text
         if unicode then
         begin
-          getmem(read72,varlength*2+2);
-          if readprocessmemory(processhandle,pointer(currentaddress),read72,varlength*2,count) then
-          begin
-            read72[varlength]:=chr(0);
-            valuelist[j]:=read72;
-          end
-          else valuelist[j]:='??';
-          freemem(read72);
+          vtype:=vtUnicodeString;
+          nrofbytes:=varlength*2;
         end
         else
-        begin
-          getmem(read7,varlength+1);
-          if readprocessmemory(processhandle,pointer(currentaddress),read7,varlength,count) then
-          begin
-            read7[varlength]:=chr(0);
-            valuelist[j]:=read7;
-          end
-          else valuelist[j]:='??';
-          freemem(read7);
-        end;
+          nrofbytes:=varlength;
       end;
 
-      8:
-      begin //array of byte
-        setlength(read8,varlength);
+      vtByteArray: nrofbytes:=varlength;
 
-        if readprocessmemory(processhandle,pointer(currentaddress),read8,varlength,count) then
-        begin
-          temp:='';
-          for j:=0 to varlength-1 do
-            temp:=temp+IntToHex(read8[j],2)+' ';
-
-          valuelist[j]:=temp;
-        end else valuelist[j]:='??';
-
-        setlength(read8,0);
-      end;
-
-      10:
+      vtGrouped:
       begin
-        //group
+        //group check the offsets and parse accordingly (with help of the previously saved groupscan command)
+        valuelist[j]:='Not yet implemented'; //todo: Guess what?
       end;
 
-      11: //custom routine
-      begin
-        try
-          getmem(tempbuf,customType.bytesize);
-          try
-            if readprocessmemory(processhandle,pointer(currentaddress),tempbuf,customType.bytesize,count) then
-            begin
-              if customType<>nil then
-              begin
-                read3:=customType.ConvertDataToInteger(tempbuf);
-                if hexadecimal then
-                  valuelist[j]:=IntToHex(read3,8)
-                else if signed then
-                  valuelist[j]:=IntToStr(Longint(read3))
-                else
-                  valuelist[j]:=IntToStr(read3);
-              end else valuelist[j]:=rsUndefinedError;
 
-            end
-            else
-              valuelist[j]:='??';
-          finally
-            freemem(tempbuf);
-          end;
-        except
-          valuelist[j]:=rsError;
-        end;
-      end;
     end;
+
+    if not (vtype in [vtBinary,vtGrouped]) then
+      valuelist[j]:=readAndParseAddress(currentaddress, vtype, customtype, hexadecimal, signed, nrofbytes);
 
   end;
   value:=valuelist[j];
 end;
 
 
-function TFoundList.Initialize(vartype: integer; customtype: TCustomType=nil):int64;
+function TFoundList.Initialize(vartype: TVariableType; customtype: TCustomType=nil):int64;
 var dataType:  String[6];  //REGION or NORMAL  (Always region in this procedure)
     i: uint64;
 begin
@@ -657,7 +551,6 @@ begin
 
   foundlist.itemindex:=-1;
   foundlist.items.count:=0;
-
 
 
   fvartype:=vartype;
@@ -691,12 +584,26 @@ begin
         fisUnknownInitialValue:=false;
         scantype:=fs_addresslist;
 
-        if vartype in [5,9] then //bit, or all (address+bit)
+        if vartype in [vtBinary,vtAll] then //bit, or all (address+bit)
         begin
           result:=(addressfile.Size-sizeof(datatype)) div sizeof(TBitAddress);
 
 
 
+        end
+        else
+        if vartype=vtGrouped then
+        begin //group
+          gcp:=TGroupscanCommandParser.Create(memscan.LastScanValue);
+
+          groupElementSize:=sizeof(ptruint)+sizeof(dword)*length(gcp.elements);
+
+          if addresslistg<>nil then
+            freemem(addresslistg);
+
+          addresslistg:=getmem(1024*groupElementSize);
+
+          result:=(addressfile.Size-sizeof(datatype)) div groupElementSize;
         end
         else //normal (address)
         begin
@@ -705,7 +612,7 @@ begin
 
         end;
 
-        i:=min(result,100000000);
+        i:=min(result,10000000);
         foundlist.Items.Count:=i;
         while foundlist.Items.Count=0 do
         begin
@@ -746,7 +653,7 @@ begin
 end;
 
 
-function TFoundList.Initialize(vartype,varlength: integer; hexadecimal,signed,binaryasdecimal,unicode: boolean; customtype: TCustomType=nil):int64;
+function TFoundList.Initialize(vartype: TVariableType; varlength: integer; hexadecimal,signed,binaryasdecimal,unicode: boolean; customtype: TCustomType=nil):int64;
 begin
   result:=Initialize(vartype,customtype);
 
@@ -763,7 +670,8 @@ end;
 
 function TFoundList.Initialize: int64;
 begin
-  result:=Initialize(NewVarTypeToOldVarType(memscan.vartype),memscan.CustomType);
+
+  result:=Initialize(memscan.vartype,memscan.CustomType);
 end;
 
 procedure TFoundlist.Deinitialize;
@@ -781,6 +689,9 @@ begin
 
   if createdfoundlist then
     foundlist.free;
+
+  if addresslistg<>nil then
+    freemem(addresslistg);
 end;
 
 constructor TFoundlist.create(foundlist: tlistview; memscan: TMemScan);

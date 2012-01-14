@@ -19,7 +19,7 @@ uses
 
 begin
   Application.Initialize;
-  doTranslation;
+  //doTranslation;
   Application.CreateForm(TForm1, Form1);
   Application.TaskBarBehavior:=tbMultiButton;
 

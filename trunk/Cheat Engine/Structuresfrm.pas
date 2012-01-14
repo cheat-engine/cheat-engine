@@ -1,6 +1,24 @@
 unit Structuresfrm;
 
 
+{      O
+      OB
+     OBS
+    OBSO
+   OBSOL
+  OBSOLE
+ OBSOLET
+OBSOLETE
+BSOLETE
+SOLETE
+OLETE
+LETE
+ETE
+TE
+E
+
+}
+
 {$MODE Delphi}
 
 interface
@@ -2094,6 +2112,7 @@ var
 
   m: tmemoryrecord;
 begin
+
   if currentstructure=nil then exit;
   objectname:='';
   address:='';
@@ -2281,15 +2300,15 @@ begin
 
 
     // Tstructure(selectednode.Parent.Data)
-
-    m:=mainform.addresslist.addaddress(objectname, address, offsets, length(offsets), OldVarTypeToNewVarType(vtype), '', vlength);
+    {
+    m:=mainform.addresslist.addaddress(objectname, address, offsets, length(offsets), vtype, '', vlength);
     if unicode then
       m.Extra.stringData.unicode:=true;
 
     if showashex then
       m.showAsHex:=showashex;
 
-    mainform.itemshavechanged:=true;
+    mainform.itemshavechanged:=true;   }
   end;
 end;
 

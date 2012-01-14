@@ -16,6 +16,8 @@ var parameters: integer;
   lf: TLuaFile;
   f: string;
   i: integer;
+  o: TObject;
+  s: TStream;
 begin
   if xmplayer=nil then
     xmplayer:=TXMPlayer.create;
@@ -24,8 +26,17 @@ begin
   parameters:=lua_gettop(L);
   if (xmplayer<>nil) and (parameters=1) then
   begin
-    if lua_islightuserdata(L,-1) then //stream
-      xmplayer.playXM(tstream(lua_touserdata(L,-1)))
+    if lua_islightuserdata(L,-1) then //Object, if the given object is a LuaFile, get the stream. If it's a stream, use it as it is
+    begin
+      o:=lua_touserdata(L,-1);
+      if o is TStream then
+        s:=TStream(o)
+      else
+      if o is TLuafile then
+        s:=TLuafile(o).stream;
+
+      xmplayer.playXM(s)
+    end
     else
       xmplayer.playXM(Lua_ToString(L,-1))
   end;
