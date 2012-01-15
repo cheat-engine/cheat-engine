@@ -64,7 +64,7 @@ type
     function Initialize(vartype: TVariableType; varlength: integer; hexadecimal,signed,binaryasdecimal,unicode: boolean; customtype: TCustomType):int64; overload;  //initialize after a scan
     procedure Deinitialize; //free filehandles before the scan
     function GetStartBit(i: integer):dword;
-    function GetAddressOnly(i: integer; var extra: dword): ptruint;
+    function GetAddressOnly(i: integer; var extra: dword; groupdata: PPGroupAddress=nil): ptruint;
     function GetAddress(i: integer;var extra: dword; var value:string): ptruint; overload; //extra for stuff like bitnr
     function GetAddress(i: integer):ptruint; overload;
     function InModule(i: integer):boolean;
@@ -364,7 +364,7 @@ begin
   result:=extra;
 end;
 
-function TFoundList.GetAddressOnly(i: integer; var extra: dword): ptruint;
+function TFoundList.GetAddressOnly(i: integer; var extra: dword; groupdata: PPGroupAddress=nil): ptruint;
 var j: integer;
 begin
   extra:=0;
@@ -390,6 +390,8 @@ begin
   if vartype=vtGrouped then
   begin
     result:=PGroupAddress(ptruint(addresslistg)+j*groupElementSize)^.address;
+    if groupdata<>nil then
+      groupdata^:=PGroupAddress(ptruint(addresslistg)+j*groupElementSize);
   end
   else
   begin
@@ -438,6 +440,8 @@ var j,k,l: integer;
     tempbuf: pointer;
     resultstring: pchar;
     vtype: TVariableType;
+
+    groupdata: PGroupAddress;
 begin
   if i=-1 then exit;
 
@@ -446,8 +450,9 @@ begin
   extra:=0;
   value:='';
   result:=0;
+  groupdata:=nil;
 
-  currentaddress:=GetAddressOnly(i,extra);
+  currentaddress:=GetAddressOnly(i,extra, @groupdata);
 
   result:=currentaddress;
   j:=i-addresslistfirst;
@@ -525,10 +530,29 @@ begin
 
       vtByteArray: nrofbytes:=varlength;
 
-      vtGrouped:
+      vtGrouped: //assumption is made that people have upgraded to faster cpu's by now since the ALL type was last added
       begin
         //group check the offsets and parse accordingly (with help of the previously saved groupscan command)
-        valuelist[j]:='Not yet implemented'; //todo: Guess what?
+
+        if groupdata<>nil then
+        begin
+          valuelist[j]:='';
+          for k:=0 to length(gcp.elements)-1 do
+          begin
+            valuelist[j]:=valuelist[j]+gcp.elements[k].command+'['+inttohex(groupdata^.offsets[k],1)+']:';
+
+            if not gcp.elements[k].wildcard then
+              valuelist[j]:=valuelist[j]+readAndParseAddress(currentaddress+groupdata^.offsets[k], gcp.elements[k].vartype, gcp.elements[k].customtype, false, false, gcp.elements[k].bytesize)
+            else
+              valuelist[j]:=valuelist[j]+'*';
+
+
+            if k<>length(gcp.elements)-1 then
+              valuelist[j]:=valuelist[j]+' ';
+
+          end;
+        end;
+
       end;
 
 
