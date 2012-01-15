@@ -19,7 +19,7 @@ writeBytes(address, table) : Write the given bytes to the given address from a t
 readBytesLocal(address,bytecount, ReturnAsTable) : See readBytes but then it's for Cheat engine's memory
 writeBytesLocal(address, x,x,x,x,...) : See writeBytes but then it's for Cheat Engine's memory
 writeBytesLocal(address, table, , count) : See writeBytes but then it's for Cheat Engine's memory
-readInteger(address) : Reads a integer from the specified address
+readInteger(address) : Reads an integer from the specified address
 readFloat(address) : Reads a single precision floating point value from the specified address
 readDouble(address) : Reads a double precision floating point value from the specified address
 readString(address, maxlength) : maxlength is just so you won't freeze for too long, set to 6000 if you don't care too much
@@ -1149,7 +1149,21 @@ d3dhook_endUpdate() : When done updating, call this function to apply the change
 
 --[[ not yet implemented
 --]]
+--since lua does not support 128Bit calculations this method is used
+GetXMMPointer(xmmregnr) : 
+  Returns the address of the specified xmm register.
+  This is a LOCAL Cheat Engine address. Use Local memory access functions
+  xmmregnr can be 0 to 15 (0 to 7 on 32-bit)
 
-xmm registers
+--The following functions work on pointer objects. These affect LOCAL Cheat Engine memory
+readIntegerLocal(address) : Reads a integer from the specified address in CE's memory
+readFloatLocal(address) : Reads a single precision floating point value from the specified address in CE's memory
+readDoubleLocal(address) : Reads a double precision floating point value from the specified address in CE's memory
+writeIntegerLocal(address,value) : Writes an integer to the specified address in CE's memory. Returns true on success
+writeFloatLocal(address,value) : Writes a single precision floating point to the specified address in CE's memory. Returns true on success
+writeDoubleLocal(address,value) : Writes a double precision floating point to the specified address in CE's memory. Returns true on success
+
+
+
 loadPlugin(dllnameorpath)
 getModuleSize(modulename)
