@@ -3910,7 +3910,7 @@ begin
       getmem(oldaddressesGroup, buffersize*groupelementsize);
 
 
-      oldAddressFile.seek(7+sizeof(ptruint)+ startentry*groupelementsize,soFromBeginning);   //header+offsetcount+startentry*addressEntrysize (address followed by offsets)
+      oldAddressFile.seek(7+sizeof(dword)+startentry*groupelementsize,soFromBeginning);   //header+offsetcount+startentry*addressEntrysize (address followed by offsets)
     end
     else
     begin
@@ -3956,15 +3956,17 @@ begin
             //load the grouped address list and convert to a regular addresslist
             oldAddressFile.ReadBuffer(oldaddressesGroup[0],chunksize*groupelementsize);
             for j:=0 to chunksize-1 do
-              oldAddresses[0]:=PGroupAddress(@OldaddressesGroup[j*groupelementsize]).address;
+              oldAddresses[j]:=PGroupAddress(@OldaddressesGroup[j*groupelementsize]).address;
           end
           else  //normal addresslist, no need to convert
+          begin
             oldAddressFile.ReadBuffer(oldaddresses[0],chunksize*sizeof(ptruint));
 
-          if not compareToSavedScan then
-          begin
-            if not (self.variableType in [vtString,vtByteArray]) then //skip the types with no previous result stored
-              oldMemoryFile.ReadBuffer(oldmemory^,chunksize*variablesize);
+            if not compareToSavedScan then
+            begin
+              if not (self.variableType in [vtString,vtByteArray]) then //skip the types with no previous result stored
+                oldMemoryFile.ReadBuffer(oldmemory^,chunksize*variablesize);
+            end;
           end;
 
 
@@ -4448,7 +4450,7 @@ begin
       addressfile.Position:=0; //reset position
 
       //the addresslist is buildup of address,offset1,offset2,...,offsetcount-1, address, offset1, offset2, ...., offsetcount-1, address,.....
-      totalAddresses:=addressfile.size-7-sizeof(offsetcount) div (sizeof(ptruint)+offsetcount*sizeof(offsetcount));
+      totalAddresses:=(addressfile.size-7-sizeof(offsetcount)) div (sizeof(ptruint)+offsetcount*sizeof(dword));
     end
     else
       totalAddresses:=(addressfile.size-7) div sizeof(ptruint);

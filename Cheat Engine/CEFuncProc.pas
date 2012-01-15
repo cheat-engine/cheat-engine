@@ -59,6 +59,7 @@ type
     offsets: array [0..999999] of dword;
   end;
   PGroupAddress=^TGroupAddress;
+  PPGroupAddress=^PGroupAddress;
   TGroupAddressArray=array [0..999999] of TGroupAddress;
   PGroupAddressArray=^TGroupAddressArray;
 

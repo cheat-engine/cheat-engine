@@ -28,6 +28,7 @@ type
       valuefloat: double;
       customtype: TCustomType;
       bytesize: integer;
+      command: string;
     end;
 
     blocksize: integer;
@@ -74,6 +75,7 @@ begin
     setlength(elements, j+1);
 
     elements[j].offset:=calculatedBlocksize;
+    elements[j].command:=command;
 
 
     case command[1] of
