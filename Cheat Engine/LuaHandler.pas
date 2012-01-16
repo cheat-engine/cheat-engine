@@ -53,7 +53,8 @@ uses mainunit, frmluaengineunit, plugin, pluginexports, MemoryRecordUnit,
   disassembler, LuaCanvas, LuaPen, LuaFont, LuaBrush, LuaPicture, LuaMenu,
   LuaDebug, LuaThread, LuaGraphic, LuaProgressBar, LuaD3DHook, LuaWinControl,
   LuaMemoryRecord, LuaForm, MemoryBrowserFormUnit, disassemblerviewunit, hexviewunit,
-  CustomTypeHandler, LuaStructure, LuaRegion, LuaXMPlayer, byteinterpreter;
+  CustomTypeHandler, LuaStructure, LuaRegion, LuaXMPlayer, LuaMemscan, LuaFoundlist,
+  byteinterpreter;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -830,7 +831,7 @@ begin
   result:=0;
 end;
 
-function readInteger(L: PLua_State): integer; cdecl;
+function readIntegerEx(L: PLua_State; processhandle: thandle): integer; cdecl;
 var
   parameters: integer;
   address: ptruint;
@@ -850,7 +851,6 @@ begin
       else
         address:=lua_tointeger(L,-1);
 
-
       lua_pop(L, parameters);
 
       v:=0;
@@ -867,7 +867,17 @@ begin
   end;
 end;
 
-function readFloat(L: PLua_State): integer; cdecl;
+function readIntegerLocal(L: PLua_State): integer; cdecl;
+begin
+  result:=readIntegerEx(L, GetCurrentProcess);
+end;
+
+function readInteger(L: PLua_State): integer; cdecl;
+begin
+  result:=readIntegerEx(L, ProcessHandle);
+end;
+
+function readFloatEx(L: PLua_State; ProcessHandle: THandle): integer; cdecl;
 var
   parameters: integer;
   address: ptruint;
@@ -901,7 +911,17 @@ begin
   end;
 end;
 
-function readDouble(L: PLua_State): integer; cdecl;
+function readFloatLocal(L: PLua_State): integer; cdecl;
+begin
+  result:=readFloatEx(L, GetCurrentProcess);
+end;
+
+function readFloat(L: PLua_State): integer; cdecl;
+begin
+  result:=readFloatEx(L, ProcessHandle);
+end;
+
+function readDoubleEx(L: PLua_State; ProcessHandle: THandle): integer; cdecl;
 var
   parameters: integer;
   address: ptruint;
@@ -935,7 +955,17 @@ begin
   end;
 end;
 
-function readString(L: PLua_State): integer; cdecl;
+function readDoubleLocal(L: PLua_State): integer; cdecl;
+begin
+  result:=readDoubleEx(L, GetCurrentProcess);
+end;
+
+function readDouble(L: PLua_State): integer; cdecl;
+begin
+  result:=readDoubleEx(L, processhandle);
+end;
+
+function readStringEx(L: PLua_State; ProcessHandle: THandle): integer; cdecl;
 var
   parameters: integer;
   address: ptruint;
@@ -982,7 +1012,17 @@ begin
   end;
 end;
 
-function writeInteger(L: PLua_State): integer; cdecl;
+function readStringLocal(L: PLua_State): integer; cdecl;
+begin
+  result:=readStringEx(L, GetCurrentProcess);
+end;
+
+function readString(L: PLua_State): integer; cdecl;
+begin
+  result:=readStringEx(L, processhandle);
+end;
+
+function writeIntegerEx(L: PLua_State; processhandle: THandle): integer; cdecl;
 var
   parameters: integer;
   address: ptruint;
@@ -1012,7 +1052,17 @@ begin
   end;
 end;
 
-function writeFloat(L: PLua_State): integer; cdecl;
+function writeIntegerLocal(L: PLua_State): integer; cdecl;
+begin
+  result:=writeIntegerEx(L, GetCurrentProcess);
+end;
+
+function writeInteger(L: PLua_State): integer; cdecl;
+begin
+  result:=writeIntegerEx(L, processhandle);
+end;
+
+function writeFloatEx(L: PLua_State; processhandle: THandle): integer; cdecl;
 var
   parameters: integer;
   address: ptruint;
@@ -1044,7 +1094,18 @@ begin
   end;
 end;
 
-function writeDouble(L: PLua_State): integer; cdecl;
+function writeFloatLocal(L: PLua_State): integer; cdecl;
+begin
+  result:=writeFloatEx(L, GetCurrentProcess);
+end;
+
+function writeFloat(L: PLua_State): integer; cdecl;
+begin
+  result:=writeFloatEx(L, processhandle);
+end;
+
+
+function writeDoubleEx(L: PLua_State; processhandle: THandle): integer; cdecl;
 var
   parameters: integer;
   address: ptruint;
@@ -1075,7 +1136,17 @@ begin
   end;
 end;
 
-function writeString(L: PLua_State): integer; cdecl;
+function writeDoubleLocal(L: PLua_State): integer; cdecl;
+begin
+  result:=writeDoubleEx(L, GetCurrentProcess);
+end;
+
+function writeDouble(L: PLua_State): integer; cdecl;
+begin
+  result:=writeDoubleEx(L, processhandle);
+end;
+
+function writeStringEx(L: PLua_State; processhandle: THandle): integer; cdecl;
 var
   parameters: integer;
   address: ptruint;
@@ -1104,6 +1175,16 @@ begin
     result:=0;
     lua_pop(L, lua_gettop(L));
   end;
+end;
+
+function writeStringLocal(L: PLua_State): integer; cdecl;
+begin
+  result:=writeStringEx(L, GetCurrentProcess);
+end;
+
+function writeString(L: PLua_State): integer; cdecl;
+begin
+  result:=writeStringEx(L, processhandle);
 end;
 
 function readBytesEx(processhandle: dword; L: PLua_State): integer; cdecl;
@@ -3345,6 +3426,27 @@ begin
   lua_pop(L, lua_gettop(L));
   result:=1;
   lua_pushinteger(L, processid);
+end;
+
+function getModuleSize(L: PLua_state): integer; cdecl;
+var
+  parameters: integer;
+  modulename: string;
+  mi: TModuleInfo;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    modulename:=Lua_ToString(L, 1);
+    lua_pop(L, lua_gettop(l));
+
+    if symhandler.getmodulebyname(modulename, mi) then
+    begin
+      lua_pushinteger(L, mi.basesize);
+      result:=1;
+    end;
+  end;
 end;
 
 function getAddress(L: PLua_state): integer; cdecl;
@@ -6319,273 +6421,7 @@ end;
 
 
 
-//memscan_firstScan(memscan, scanOption, vartype, roundingtype, input1, input2, startAddress,
-//                  stopAddress, protectionflags, alignmenttype, "alignmentparam", isHexadecimalInput,
-//                  isNotABinaryString, isunicodescan, iscasesensitive, ispercentagescan);
-function memscan_firstScan(L: Plua_State): integer; cdecl;
-var
-  parameters: integer;
-  memscan: Tmemscan;
-  scanOption: TScanOption;
-  vartype: TVariableType;
-  roundingtype: TRoundingType;
-  input1: string;
-  input2: string;
-  startaddress: ptruint;
-  stopaddress: ptruint;
-  protectionflags: string;
-  alignmenttype: TFastScanMethod;
-  alignmentparam: String;
-  isHexadecimalInput, isNotABinaryString, isunicodescan, iscasesensitive, ispercentagescan: boolean;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=15 then
-  begin
-    memscan:=lua_touserdata(L, -parameters);
-    scanOption:=TScanOption(lua_tointeger(L, -parameters+1));
-    vartype:=TVariableType(lua_tointeger(L, -parameters+2));
-    roundingtype:=TRoundingType(lua_tointeger(L, -parameters+3));
-    input1:=Lua_ToString(L, -parameters+4);
-    input2:=Lua_ToString(L, -parameters+5);
 
-    if lua_isstring(L, -parameters+6) then
-      startaddress:=symhandler.getAddressFromNameL(Lua_ToString(L, -parameters+6))
-    else
-      startaddress:=lua_tointeger(L, -parameters+6);
-
-    if lua_isstring(L, -parameters+7) then
-      stopaddress:=symhandler.getAddressFromNameL(Lua_ToString(L, -parameters+7))
-    else
-      stopaddress:=lua_tointeger(L, -parameters+7);
-
-    protectionflags:=Lua_ToString(L, -parameters+8);
-    alignmenttype:=TFastScanMethod(lua_tointeger(L, -parameters+9));
-    alignmentparam:=lua_tostring(L, -parameters+10);
-
-    isHexadecimalInput:=lua_toboolean(L, -parameters+11);
-    isNotABinaryString:=lua_toboolean(L, -parameters+12);
-    isunicodescan:=lua_toboolean(L, -parameters+13);
-    iscasesensitive:=lua_toboolean(L, -parameters+14);
-
-    lua_pop(L, lua_gettop(L));
-
-    memscan.parseProtectionflags(protectionflags);
-
-    memscan.firstscan(scanoption, vartype, roundingtype, input1,input2, startaddress,stopaddress, isHexadecimalInput, isNotABinaryString, isunicodescan, iscasesensitive, alignmenttype, alignmentparam, nil );
-  end
-  else
-  begin
-    lua_pop(L, lua_gettop(L));
-    lua_pushstring(L, 'Not all parameters have been given');
-    lua_error(L);
-  end;
-
-
-end;
-
-function memscan_nextScan(L: Plua_State): integer; cdecl;
-var
-  parameters: integer;
-  memscan: Tmemscan;
-  scanOption: TScanOption;
-  roundingtype: TRoundingType;
-  input1: string;
-  input2: string;
-  isHexadecimalInput, isNotABinaryString, isunicodescan, iscasesensitive, ispercentagescan: boolean;
-  savedscanname: string;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters>=10 then
-  begin
-    memscan:=lua_touserdata(L, -parameters);
-    scanOption:=TScanOption(lua_tointeger(L, -parameters+1));
-    roundingtype:=TRoundingType(lua_tointeger(L, -parameters+2));
-    input1:=Lua_ToString(L, -parameters+3);
-    input2:=Lua_ToString(L, -parameters+4);
-
-    isHexadecimalInput:=lua_toboolean(L, -parameters+5);
-    isNotABinaryString:=lua_toboolean(L, -parameters+6);
-    isunicodescan:=lua_toboolean(L, -parameters+7);
-    iscasesensitive:=lua_toboolean(L, -parameters+8);
-    ispercentagescan:=lua_toboolean(L, -parameters+9);
-
-    if parameters=11 then
-      savedscanname:=Lua_ToString(L, -parameters+10)
-    else
-      savedscanname:='';
-
-    lua_pop(L, lua_gettop(L));
-
-    memscan.nextscan(scanoption, roundingtype, input1,input2, isHexadecimalInput, isNotABinaryString, isunicodescan, iscasesensitive, ispercentagescan, savedscanname<>'', savedscanname );
-  end else lua_pop(L, lua_gettop(L));
-end;
-
-function memscan_waitTillDone(L: Plua_State): integer; cdecl;
-var
-  parameters: integer;
-  memscan: Tmemscan;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    memscan:=lua_touserdata(L, -parameters);
-    lua_pop(L, lua_gettop(L));
-
-    memscan.waittillreallydone;
-  end else lua_pop(L, lua_gettop(L));
-end;
-
-function memscan_getAttachedFoundlist(L: Plua_State): integer; cdecl;
-var
-  parameters: integer;
-  memscan: Tmemscan;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    memscan:=lua_touserdata(L, -parameters);
-    lua_pop(L, lua_gettop(L));
-
-    result:=1;
-    lua_pushlightuserdata(L,memscan.attachedFoundlist);
-  end else lua_pop(L, lua_gettop(L));
-end;
-
-
-function memscan_saveCurrentResults(L: Plua_State): integer; cdecl;
-var
-  parameters: integer;
-  memscan: Tmemscan;
-  name: string;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    memscan:=lua_touserdata(L, -parameters);
-    name:=Lua_ToString(L, -parameters+1);
-    lua_pop(L, lua_gettop(L));
-
-    memscan.saveresults(name);
-  end else lua_pop(L, lua_gettop(L));
-end;
-
-function createFoundList(L: Plua_State): integer; cdecl;
-var
-  parameters: integer;
-  foundlist: TFoundlist;
-  memscan: TMemScan;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-    memscan:=lua_touserdata(L, -1)
-  else
-    raise exception.create('createfoundlist(nil)');
-
-  lua_pop(L, lua_gettop(L));
-
-  foundlist:=TFoundList.create(nil, memscan);
-
-  lua_pushlightuserdata(L, foundlist);
-  result:=1;
-end;
-
-function foundlist_initialize(L: Plua_State): integer; cdecl;
-var
-  parameters: integer;
-  foundlist: Tfoundlist;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    foundlist:=lua_touserdata(L, -parameters);
-    lua_pop(L, lua_gettop(L));
-
-    foundlist.Initialize;
-  end else lua_pop(L, lua_gettop(L));
-end;
-
-function foundlist_deinitialize(L: Plua_State): integer; cdecl;
-var
-  parameters: integer;
-  foundlist: Tfoundlist;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    foundlist:=lua_touserdata(L, -parameters);
-    lua_pop(L, lua_gettop(L));
-
-    foundlist.deinitialize;
-  end else lua_pop(L, lua_gettop(L));
-end;
-
-function foundlist_getCount(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  foundlist: Tfoundlist;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    foundlist:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, foundlist.Count);
-    result:=1;
-  end else lua_pop(L, parameters);
-end;
-
-function foundlist_getAddress(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  foundlist: Tfoundlist;
-  index: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    foundlist:=lua_touserdata(L,-2);
-    index:=lua_tointeger(L,-1);
-    lua_pop(L, parameters);
-
-
-    lua_pushstring(L, inttohex(foundlist.GetAddress(index),8));
-    result:=1;
-  end else lua_pop(L, parameters);
-end;
-
-function foundlist_getValue(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  foundlist: Tfoundlist;
-  b: dword;
-  value: string;
-  index: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    foundlist:=lua_touserdata(L,-2);
-    index:=lua_tointeger(L,-1);
-    lua_pop(L, parameters);
-
-    foundlist.GetAddress(index, b, value);
-
-    lua_pushstring(L, value);
-    result:=1;
-  end else lua_pop(L, parameters);
-end;
 
 function supportCheatEngine(L: Plua_State): integer; cdecl;
 var
@@ -7557,6 +7393,39 @@ begin
   lua_pop(L, parameters);
 end;
 
+function loadPlugin(L: PLua_State): integer; cdecl;
+var
+  p: string;
+  parameters: integer;
+  pluginid: integer;
+begin
+  result:=1;
+  pluginid:=0;
+
+  parameters:=lua_gettop(L);
+
+  if parameters=1 then
+  begin
+    p:=Lua_ToString(L, -1);
+    try
+
+      pluginid:=pluginhandler.LoadPlugin(p);
+      if pluginid<>-1 then
+        pluginhandler.EnablePlugin(pluginid);
+    except
+      pluginid:=-1;
+    end;
+
+  end;
+
+  lua_pop(L, parameters);
+
+  if pluginid=-1 then
+    lua_pushnil(L)
+  else
+    lua_pushinteger(L, pluginid);
+end;
+
 procedure InitializeLua;
 var s: tstringlist;
   k32: THandle;
@@ -7578,10 +7447,20 @@ begin
     lua_register(LuaVM, 'readFloat', readFloat);
     lua_register(LuaVM, 'readDouble', readDouble);
     lua_register(LuaVM, 'readString', readString);
+    lua_register(LuaVM, 'readIntegerLocal', readIntegerLocal);
+    lua_register(LuaVM, 'readFloatLocal', readFloatLocal);
+    lua_register(LuaVM, 'readDoubleLocal', readDoubleLocal);
+    lua_register(LuaVM, 'readStringLocal', readStringLocal);
+
     lua_register(LuaVM, 'writeInteger', writeInteger);
     lua_register(LuaVM, 'writeFloat', writeFloat);
     lua_register(LuaVM, 'writeDouble', writeDouble);
     lua_register(LuaVM, 'writeString', writeString);
+    lua_register(LuaVM, 'writeIntegerLocal', writeIntegerLocal);
+    lua_register(LuaVM, 'writeFloatLocal', writeFloatLocal);
+    lua_register(LuaVM, 'writeDoubleLocal', writeDoubleLocal);
+    lua_register(LuaVM, 'writeStringLocal', writeStringLocal);
+
 
     lua_register(LuaVM, 'readBytesLocal', readbyteslocal);
     lua_register(LuaVM, 'writeBytesLocal', writebyteslocal);
@@ -7632,6 +7511,8 @@ begin
     lua_register(LuaVM, 'AOBScan', AOBScan);
     lua_register(LuaVM, 'getOpenedProcessID', getOpenedProcessID);
     lua_register(LuaVM, 'getAddress', getAddress);
+    lua_register(LuaVM, 'getModuleSize', getModuleSize);
+
     lua_register(LuaVM, 'reinitializeSymbolhandler', reinitializeSymbolhandler);
 
     //ce6.1
@@ -7913,19 +7794,10 @@ begin
 
     Lua_register(LuaVM, 'createMemScan', createMemScan);
     Lua_register(LuaVM, 'getCurrentMemscan', getCurrentMemscan);
-    Lua_register(LuaVM, 'memscan_firstScan', memscan_firstScan);
-    Lua_register(LuaVM, 'memscan_nextScan', memscan_nextScan);
-    Lua_register(LuaVM, 'memscan_waitTillDone', memscan_waitTillDone);
-    Lua_register(LuaVM, 'memscan_saveCurrentResults', memscan_saveCurrentResults);
-    Lua_register(LuaVM, 'memscan_getAttachedFoundlist', memscan_getAttachedFoundlist);
 
+    InitializeMemscan;
+    InitializeFoundlist;
 
-    Lua_register(LuaVM, 'createFoundList', createFoundList);
-    Lua_register(LuaVM, 'foundlist_initialize', foundlist_initialize);
-    Lua_register(LuaVM, 'foundlist_deinitialize', foundlist_deinitialize);
-    Lua_register(LuaVM, 'foundlist_getCount', foundlist_getCount);
-    Lua_register(LuaVM, 'foundlist_getAddress', foundlist_getAddress);
-    Lua_register(LuaVM, 'foundlist_getValue', foundlist_getValue);
 
     Lua_register(LuaVM, 'supportCheatEngine', supportCheatEngine);
     Lua_register(LuaVM, 'fuckCheatEngine', fuckCheatEngine);
@@ -8006,6 +7878,9 @@ begin
 
     lua_register(LuaVM, 'createBitmap', createBitmap);
     lua_register(LuaVM, 'errorOnLookupFailure', errorOnLookupFailure);
+
+    lua_register(LuaVM, 'loadPlugin', loadPlugin);
+
 
 
 

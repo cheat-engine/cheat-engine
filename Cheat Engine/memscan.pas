@@ -522,13 +522,13 @@ type
 
 
     savedresults: tstringlist;
-
+    fonlyOne: boolean;
 
     procedure DeleteScanfolder;
     procedure createScanfolder;
     function DeleteFolder(dir: string) : boolean;
   public
-    onlyOne: boolean;
+
 
 
     scanWritable: Tscanregionpreference;
@@ -566,7 +566,8 @@ type
     property VarType: TVariableType read currentVariableType;
     property CustomType: TCustomType read currentCustomType;
     property nextscanCount: integer read fnextscanCount;
-
+  published
+    property OnlyOne: boolean read fOnlyOne write fOnlyOne;
   end;
 
 
