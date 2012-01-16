@@ -58,8 +58,8 @@ getOpenedProcessID() : Returns the currently opened process. If none is open, re
 getProcessIDFromProcessName(name) : returns a processid
 openProcess(processid) : causes cheat engine to open the given processid
 openProcess(processname): causes cheat engine to find and open the given process
-pause : pauses the current opened process
-unpause: resumes the current opened process
+pause() : pauses the current opened process
+unpause(): resumes the current opened process
 
 
 getPixel(x,y) : returns the rgb value of the pixel at the specific screen coordinate
