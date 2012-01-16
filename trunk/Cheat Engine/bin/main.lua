@@ -9,6 +9,7 @@ List of CE specific functions:
 
 
 note: addresses can be strings, they will get interpreted by ce's symbolhandler
+
 readBytes(address,bytecount, ReturnAsTable ) : returns the bytes at the given address. If ReturnAsTable is true it will return a table instead of multiple bytes
   Reads the bytes at the given address and returns a table containing the read out bytes
 
@@ -16,9 +17,6 @@ writeBytes(address, x,x,x,x,...) : Write the given bytes to the given address fr
 writeBytes(address, table) : Write the given bytes to the given address from a table 
 
 
-readBytesLocal(address,bytecount, ReturnAsTable) : See readBytes but then it's for Cheat engine's memory
-writeBytesLocal(address, x,x,x,x,...) : See writeBytes but then it's for Cheat Engine's memory
-writeBytesLocal(address, table, , count) : See writeBytes but then it's for Cheat Engine's memory
 readInteger(address) : Reads an integer from the specified address
 readFloat(address) : Reads a single precision floating point value from the specified address
 readDouble(address) : Reads a double precision floating point value from the specified address
@@ -27,7 +25,24 @@ writeInteger(address,value) : Writes an integer to the specified address. Return
 writeFloat(address,value) : Writes a single precision floating point to the specified address. Returns true on success
 writeDouble(address,value) : Writes a double precision floating point to the specified address. Returns true on success
 writeString(address,string) : Write a string to the specified address. Returns true on success
+
+readBytesLocal(address,bytecount, ReturnAsTable) : See readBytes but then it's for Cheat engine's memory
+readIntegerLocal(address) : Reads a integer from the specified address in CE's memory
+readFloatLocal(address) : Reads a single precision floating point value from the specified address in CE's memory
+readDoubleLocal(address) : Reads a double precision floating point value from the specified address in CE's memory
+readStringLocal(address)
+writeIntegerLocal(address,value) : Writes an integer to the specified address in CE's memory. Returns true on success
+writeFloatLocal(address,value) : Writes a single precision floating point to the specified address in CE's memory. Returns true on success
+writeDoubleLocal(address,value) : Writes a double precision floating point to the specified address in CE's memory. Returns true on success
+writeStringLocal(address,string)
+writeBytesLocal(address, x,x,x,x,...) : See writeBytes but then it's for Cheat Engine's memory
+writeBytesLocal(address, table, , count) : See writeBytes but then it's for Cheat Engine's memory
+
+
+
+
 getAddress(string): returns the address of a symbol. Can be a modulename or an export
+getModuleSize(modulename): Returns the size of a given module (Use getAddress to get the base address)
 reinitializeSymbolhandler(): reinitializes the symbolhandler. E.g when new modules have been loaded
 
 errorOnLookupFailure(state): If set to true (default) address lookups in stringform will raise an error if it can not be looked up. This includes symbolnames that are not defined and pointers that are bad. If set to false it will return 0 in those cases
@@ -70,6 +85,7 @@ readFromClipboard(): 6.2: Reads the text from the clipboard
 speedhack_setSpeed(speed)
 injectDLL(filename): Injects a dll, and returns true on success
 
+loadPlugin(dllnameorpath): Loads the given plugin. Returns nil on failure. On success returns a value of 0 or greater
 
 
 
@@ -120,6 +136,10 @@ debugProcess(interface OPT): starts the debugger for the currently opened proces
 debug_setBreakpoint(address, size OPTIONAL, trigger OPTIONAL) : sets a breakpoint of a specific size at the given address. if trigger is bptExecute then size is ignored. If trigger is ignored then it will be of type bptExecute, which obviously also ignores the size then as well
 debug_removeBreakpoint(address) : if the given address is a part of a breakpoint it will be removed
 debug_continueFromBreakpoint(continueMethod) : if the debugger is currently waiting to continue you can continue with this. Valid parameters are :co_run (just continue), co_stepinto(when on top of a call, follow it), co_stepover (when on top of a call run till after the call)
+debug_getXMMPointer(xmmregnr) : 
+  Returns the address of the specified xmm register of the thread that is currently broken
+  This is a LOCAL Cheat Engine address. Use Local memory access functions to read and modify
+  xmmregnr can be 0 to 15 (0 to 7 on 32-bit)
 
 
 The following routines describe last branch recording. These functions only work when kernelmode debugging is used and using windows XP (vista and later work less effective or not at all because the operating system interferes.  Might also be intel specific. A dbvm upgrade in the future might make this work for windows vista and later)
@@ -882,11 +902,16 @@ memscan_nextScan(memscan, scanoption, roundingtype, input1,input2, isHexadecimal
   ispercentage: When true and the scanoption is of type soValueBetween, soIncreasedValueBy or soDecreasedValueBy will cause CE to do a precentage scan instead of a normal value scan
   savedResultName: String that holds the name of a saved result list that should be compared against. First scan is called "FIRST"
 
-
 memscan_newscan(memscan) : Clears the current results
 memscan_waitTillDone(memscan)
 memscan_saveCurrentResults(memscan, name)
 memscan_getAttachedFoundlist(memscan) : Returns a FoundList object if one is attached to this scanresults. Returns nil otherwise
+
+6.2+:
+memscan_returnOnlyOneResult(memscan, state): If set to true before you start a scan, this will cause the scanner to only return one result. Note that it does not work with a foundlist
+memscan_getOnlyResult(memscan): Only works if returnOnlyOneResult is true. Returns nil if not found, else returns the address that was found (integer)
+
+
 
 FoundList
 The foundlist is an object that opens the current memscan's result file and provides an interface for reading out the addresses
@@ -1145,25 +1170,3 @@ d3dhook_endUpdate() : When done updating, call this function to apply the change
 
 
 --]]
-
-
---[[ not yet implemented
---]]
---since lua does not support 128Bit calculations this method is used
-GetXMMPointer(xmmregnr) : 
-  Returns the address of the specified xmm register.
-  This is a LOCAL Cheat Engine address. Use Local memory access functions
-  xmmregnr can be 0 to 15 (0 to 7 on 32-bit)
-
---The following functions work on pointer objects. These affect LOCAL Cheat Engine memory
-readIntegerLocal(address) : Reads a integer from the specified address in CE's memory
-readFloatLocal(address) : Reads a single precision floating point value from the specified address in CE's memory
-readDoubleLocal(address) : Reads a double precision floating point value from the specified address in CE's memory
-writeIntegerLocal(address,value) : Writes an integer to the specified address in CE's memory. Returns true on success
-writeFloatLocal(address,value) : Writes a single precision floating point to the specified address in CE's memory. Returns true on success
-writeDoubleLocal(address,value) : Writes a double precision floating point to the specified address in CE's memory. Returns true on success
-
-
-
-loadPlugin(dllnameorpath)
-getModuleSize(modulename)

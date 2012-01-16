@@ -84,12 +84,36 @@ begin
     lua_pop(L, parameters);
 end;
 
+function debug_getXMMPointer(L: PLua_State): integer; cdecl;
+var
+  c: ptruint;
+  xmmreg: integer;
+  parameters: integer;
+begin
+  result:=1;
+  c:=0;
+
+  parameters:=lua_gettop(L);
+
+  if parameters=1 then
+  begin
+    xmmreg:=lua_tointeger(L, -1);
+    if (debuggerthread<>nil) and (debuggerthread.CurrentThread<>nil) then
+      c:=ptruint(@debuggerthread.CurrentThread.context.FltSave.XmmRegisters[xmmreg]);
+  end;
+
+  lua_pop(L, lua_gettop(L));
+  lua_pushinteger(L, c);
+end;
+
 
 procedure initializeLuaDebug;
 begin
   lua_register(LuaVM, 'debug_setLastBranchRecording', debug_setLastBranchRecording);
   lua_register(LuaVM, 'debug_getMaxLastBranchRecord', debug_getMaxLastBranchRecord);
   lua_register(LuaVM, 'debug_getLastBranchRecord', debug_getLastBranchRecord);
+  lua_register(LuaVM, 'debug_getXMMPointer', debug_getXMMPointer);
+
 
 end;
 
