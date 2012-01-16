@@ -937,6 +937,7 @@ end;
 function TGroupData.ByteScan(value: byte; buf: Pbytearray; var startoffset: integer): boolean;
 var i: integer;
 begin
+  result:=false;
   for i:=startoffset to blocksize-1 do
     if buf[i]=value then
     begin
@@ -952,6 +953,7 @@ var current: pointer;
 
   align: integer;
 begin
+  result:=false;
   if outoforder_aligned then
     align:=2
   else
@@ -980,6 +982,7 @@ var current: pointer;
   i: integer;
   align: integer;
 begin
+  result:=false;
   if outoforder_aligned then
     align:=4
   else
@@ -1008,6 +1011,7 @@ var current: pointer;
   i: integer;
   align: integer;
 begin
+  result:=false;
   if outoforder_aligned then
     align:=4
   else
@@ -1036,6 +1040,7 @@ var current: pointer;
   i: integer;
   align: integer;
 begin
+  result:=false;
   if outoforder_aligned then
     align:=4
   else
@@ -1064,6 +1069,7 @@ var current: pointer;
   i: integer;
   align: integer;
 begin
+  result:=false;
   if outoforder_aligned then
     align:=4
   else
@@ -1092,6 +1098,7 @@ var current: pointer;
   i: integer;
   align: integer;
 begin
+  result:=false;
   if outoforder_aligned then
     align:=4
   else
@@ -1120,6 +1127,7 @@ end;
 function TGroupData.StringScan(st: pchar; buf: Pbytearray; var startoffset: integer): boolean;
 var i: integer;
 begin
+  result:=false;
   for i:=startoffset to blocksize-1 do
     if testString(pchar(@buf[i]), st) then
     begin
@@ -1132,6 +1140,7 @@ end;
 function TGroupData.WideStringScan(st: pwidechar; buf: Pbytearray; var startoffset: integer): boolean;
 var i: integer;
 begin
+  result:=false;
   for i:=startoffset to blocksize-1 do
     if testWideString(pwidechar(@buf[i]), st) then
     begin
@@ -1147,7 +1156,7 @@ var i,j: integer;
   currentoffset: integer;
   isin: boolean;
 
-function isinlist: boolean; //check if currently in the list of offsets
+function isinlist: boolean; //check if currently in the list of offsets, if so, return true and adjust the current offset so the scan starts from next offset
 var c: integer;
 begin
   result:=false;
@@ -1155,6 +1164,10 @@ begin
     if groupdata[c].offset=currentoffset then
     begin
       result:=true;
+
+      //if outoforder_aligned then //increase by the alignment
+      //  inc(currentoffset, groupdata[i].alignment);
+
       exit;
     end;
 end;
@@ -1176,7 +1189,7 @@ begin
         while result and isin do
         begin
           result:=ByteScan(groupdata[i].valuei, newvalue, currentoffset);
-          isin:=isinlist;
+          isin:=result and isinlist;
         end;
       end;
 
@@ -1188,7 +1201,7 @@ begin
             currentoffset:=(currentoffset+1) and $fffffffe;
 
           result:=WordScan(groupdata[i].valuei, newvalue, currentoffset);
-          isin:=isinlist;
+          isin:=result and isinlist;
         end;
       end;
 
@@ -1200,7 +1213,7 @@ begin
             currentoffset:=(currentoffset+3) and $fffffffc;
 
           result:=DWordScan(groupdata[i].valuei, newvalue, currentoffset);
-          isin:=isinlist;
+          isin:=result and isinlist;
         end;
       end;
 
@@ -1212,7 +1225,7 @@ begin
             currentoffset:=(currentoffset+3) and $fffffffc;
 
           result:=QWordScan(groupdata[i].valuei, newvalue, currentoffset);
-          isin:=isinlist;
+          isin:=result and isinlist;
         end;
       end;
 
@@ -1224,7 +1237,7 @@ begin
             currentoffset:=(currentoffset+3) and $fffffffc;
 
           result:=SingleScan(groupdata[i].minfvalue, groupdata[i].maxfvalue, newvalue, currentoffset);
-          isin:=isinlist;
+          isin:=result and isinlist;
         end;
       end;
 
@@ -1236,7 +1249,7 @@ begin
             currentoffset:=(currentoffset+3) and $fffffffc;
 
           result:=DoubleScan(groupdata[i].minfvalue, groupdata[i].maxfvalue, newvalue, currentoffset);
-          isin:=isinlist;
+          isin:=result and isinlist;
         end;
       end;
 
@@ -1245,7 +1258,7 @@ begin
         while result and isin do
         begin
           result:=StringScan(@groupdata[i].value[1], newvalue, currentoffset);
-          isin:=isinlist;
+          isin:=result and isinlist;
         end;
       end;
 
@@ -1254,7 +1267,7 @@ begin
         while result and isin do
         begin
           result:=WideStringScan(@groupdata[i].widevalue[1], newvalue, currentoffset);
-          isin:=isinlist;
+          isin:=result and isinlist;
         end;
       end;
 
@@ -1266,12 +1279,12 @@ begin
             currentoffset:=(currentoffset+3) and $fffffffc;
 
           result:=CustomScan(groupdata[i].customtype, groupdata[i].valuei, newvalue, currentoffset);
-          isin:=isinlist;
+          isin:=result and isinlist;
         end;
       end;
 
     end;
-    groupdata[i].offset:=currentoffset;
+    groupdata[i].offset:=currentoffset-1;
   end;
 end;
 

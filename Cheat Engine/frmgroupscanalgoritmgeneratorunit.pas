@@ -387,6 +387,13 @@ begin
     x.edtValue.text:=gcp.elements[i].uservalue;
   end;
 
+
+  edtBlocksize.Text:=inttostr(gcp.blocksize);
+  edtBlockalignment.text:=inttostr(gcp.blockalignment);
+  cbOutOfOrder.checked:=gcp.outOfOrder;
+  cbTypeAligned.checked:=gcp.typeAligned;
+
+
 end;
 
 function TfrmGroupScanAlgoritmGenerator.getParameters: string;
@@ -412,9 +419,9 @@ begin
 
       result:=result+'OOO:';
       if cbTypeAligned.checked then
-        result:=result+'A'
+        result:=result+'A '
       else
-        result:=result+'U';
+        result:=result+'U ';
     end;
 
     for i:=0 to Varinfolist.count-1 do
