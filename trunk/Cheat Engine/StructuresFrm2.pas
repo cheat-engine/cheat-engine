@@ -3653,6 +3653,7 @@ var
   r,g,b: byte;
 
   displacement: integer;
+  varname: string;
 
 begin
   if mainstruct=nil then exit; //no rendering
@@ -3678,7 +3679,12 @@ begin
       begin
         nodescription:=true;
 
-        description:=inttohex(se.Offset,4)+' - '+VariableTypeToString(se.VarType);
+        if se.vartype=vtCustom then
+          varname:=se.CustomType.name
+        else
+          varname:=VariableTypeToString(se.VarType);
+
+        description:=inttohex(se.Offset,4)+' - '+varname;
 
         //show nondefault displaymethods
         case se.DisplayMethod of
