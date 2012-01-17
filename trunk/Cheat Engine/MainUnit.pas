@@ -2418,7 +2418,10 @@ begin
   if length(filenames) > 0 then
   begin
     if CheckIfSaved then
+    begin
       LoadTable(filenames[0], False);
+      reinterpretaddresses;
+    end;
   end;
 end;
 
