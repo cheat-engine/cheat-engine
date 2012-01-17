@@ -180,10 +180,16 @@ begin
 end;
 
 procedure x; stdcall;
+{$ifdef cpu32}
+var a: dword;
+{$else}
 var a: qword;
+{$endif}
 label weee;
 begin
   a:=0;
+
+  {$ifdef cpu64}
   asm
     push r14
     mov r14,$1234
@@ -212,6 +218,29 @@ weee:
   end;
 
   showmessage('executed and still alive. r14='+inttohex(a,8));
+  {$else}
+  asm
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    push eax
+    mov eax,$12345678
+    mov a,eax
+    pop eax
+    nop
+    nop
+    nop
+    nop
+    nop
+  end;
+
+  showmessage('executed and still alive. eax='+inttohex(a,8));
+  {$endif}
 end;
 
 procedure TForm1.Button1Click(Sender: TObject);

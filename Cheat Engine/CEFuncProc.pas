@@ -61,7 +61,7 @@ type
   end;
   PGroupAddress=^TGroupAddress;
   PPGroupAddress=^PGroupAddress;
-  TGroupAddressArray=array [0..999999] of TGroupAddress;
+  TGroupAddressArray=array [0..0] of TGroupAddress;
   PGroupAddressArray=^TGroupAddressArray;
 
 

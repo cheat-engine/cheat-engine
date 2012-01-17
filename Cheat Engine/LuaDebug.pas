@@ -99,7 +99,7 @@ begin
   begin
     xmmreg:=lua_tointeger(L, -1);
     if (debuggerthread<>nil) and (debuggerthread.CurrentThread<>nil) then
-      c:=ptruint(@debuggerthread.CurrentThread.context.FltSave.XmmRegisters[xmmreg]);
+      c:=ptruint(@debuggerthread.CurrentThread.context.{$ifdef cpu64}FltSave.XmmRegisters{$else}ext.XMMRegisters.LegacyXMM{$endif}[xmmreg]);
   end;
 
   lua_pop(L, lua_gettop(L));
