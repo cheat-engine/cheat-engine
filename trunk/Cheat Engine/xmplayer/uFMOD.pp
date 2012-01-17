@@ -235,31 +235,142 @@ const
 
 implementation
 
-{ *** Import: kernel32 *** }
-function WaitForSingleObject(hObject,dwTimeout:LongWord):LongWord; stdcall; external 'kernel32.dll' name 'WaitForSingleObject';
-function CloseHandle(hObject:LongWord):LongWord; stdcall; external 'kernel32.dll' name 'CloseHandle';
-function CreateThread(lpThreadAttributes:Pointer;dwStackSize:LongWord;lpStartAddress,lpParameter:Pointer;dwCreationFlags:LongWord;lpThreadId:Pointer):LongWord; stdcall; external 'kernel32.dll' name 'CreateThread';
-function SetThreadPriority(hThread,nPriority:LongWord):LongWord; stdcall; external 'kernel32.dll' name 'SetThreadPriority';
-function HeapAlloc(hHeap,dwFlags,dwBytes:LongWord):LongWord; stdcall; external 'kernel32.dll' name 'HeapAlloc';
-function HeapCreate(flOptions,dwInitialSize,dwMaximumSize:LongWord):LongWord; stdcall; external 'kernel32.dll' name 'HeapCreate';
-function HeapDestroy(hHeap:LongWord):LongWord; stdcall; external 'kernel32.dll' name 'HeapDestroy';
-procedure Sleep(cMillis:LongWord); stdcall; external 'kernel32.dll' name 'Sleep';
-function FindResourceA(hModule:LongWord;lpName,lpType:AnsiString):LongWord; stdcall; external 'kernel32.dll' name 'FindResourceA';
-function LoadResource(hModule,hrsrc:LongWord):LongWord; stdcall; external 'kernel32.dll' name 'LoadResource';
-function SizeofResource(hModule,hrsrc:LongWord):LongWord; stdcall; external 'kernel32.dll' name 'SizeofResource';
-function CreateFileA(lpFileName:AnsiString;dwDesiredAccess,dwShareMode:LongWord;lpSecurityAttributes:Pointer;dwCreationDistribution,dwFlagsAndAttributes,hTemplateFile:LongWord):LongWord; stdcall; external 'kernel32.dll' name 'CreateFileA';
-function CreateFileW(lpFileName:Pointer;dwDesiredAccess,dwShareMode:LongWord;lpSecurityAttributes:Pointer;dwCreationDistribution,dwFlagsAndAttributes,hTemplateFile:LongWord):LongWord; stdcall; external 'kernel32.dll' name 'CreateFileW';
-function ReadFile(hFile:LongWord;lpBuffer:Pointer;nNumberOfBytesToRead:LongWord;lpNumberOfBytesRead,lpOverlapped:Pointer):LongWord; stdcall; external 'kernel32.dll' name 'ReadFile';
-function SetFilePointer(hFile,lDistanceToMove:LongWord;lpDistanceToMoveHigh:Pointer;dwMoveMethod:LongWord):LongWord; stdcall; external 'kernel32.dll' name 'SetFilePointer';
 
-{ *** Import: winmm *** }
-function waveOutUnprepareHeader(hwo,pwh:Pointer;cbwh:LongWord):LongWord; stdcall; external 'winmm.dll' name 'waveOutUnprepareHeader';
-function waveOutWrite(hwo,pwh:Pointer;cbwh:LongWord):LongWord; stdcall; external 'winmm.dll' name 'waveOutWrite';
-function waveOutClose(hwo:Pointer):LongWord; stdcall; external 'winmm.dll' name 'waveOutClose';
-function waveOutGetPosition(hwo,pmmt:Pointer;cbmmt:LongWord):LongWord; stdcall; external 'winmm.dll' name 'waveOutGetPosition';
-function waveOutOpen(phwo:Pointer;uDeviceID:LongWord;pwfx,dwCallback,dwCallbackInstance:Pointer;fdwOpen:LongWord):LongWord; stdcall; external 'winmm.dll' name 'waveOutOpen';
-function waveOutPrepareHeader(hwo,pwh:Pointer;cbwh:LongWord):LongWord; stdcall; external 'winmm.dll' name 'waveOutPrepareHeader';
-function waveOutReset(hwo:Pointer):LongWord; stdcall; external 'winmm.dll' name 'waveOutReset';
+
+
+function _WaitForSingleObject(hObject,dwTimeout:LongWord):LongWord; stdcall; external 'kernel32.dll' name 'WaitForSingleObject';
+function _CloseHandle(hObject:LongWord):LongWord; stdcall; external 'kernel32.dll' name 'CloseHandle';
+function _CreateThread(lpThreadAttributes:Pointer;dwStackSize:LongWord;lpStartAddress,lpParameter:Pointer;dwCreationFlags:LongWord;lpThreadId:Pointer):LongWord; stdcall; external 'kernel32.dll' name 'CreateThread';
+function _SetThreadPriority(hThread,nPriority:LongWord):LongWord; stdcall; external 'kernel32.dll' name 'SetThreadPriority';
+function _HeapAlloc(hHeap,dwFlags,dwBytes:LongWord):LongWord; stdcall; external 'kernel32.dll' name 'HeapAlloc';
+function _HeapCreate(flOptions,dwInitialSize,dwMaximumSize:LongWord):LongWord; stdcall; external 'kernel32.dll' name 'HeapCreate';
+function _HeapDestroy(hHeap:LongWord):LongWord; stdcall; external 'kernel32.dll' name 'HeapDestroy';
+procedure _Sleep(cMillis:LongWord); stdcall; external 'kernel32.dll' name 'Sleep';
+function _FindResourceA(hModule:LongWord;lpName,lpType:AnsiString):LongWord; stdcall; external 'kernel32.dll' name 'FindResourceA';
+function _LoadResource(hModule,hrsrc:LongWord):LongWord; stdcall; external 'kernel32.dll' name 'LoadResource';
+function _SizeofResource(hModule,hrsrc:LongWord):LongWord; stdcall; external 'kernel32.dll' name 'SizeofResource';
+function _CreateFileA(lpFileName:AnsiString;dwDesiredAccess,dwShareMode:LongWord;lpSecurityAttributes:Pointer;dwCreationDistribution,dwFlagsAndAttributes,hTemplateFile:LongWord):LongWord; stdcall; external 'kernel32.dll' name 'CreateFileA';
+function _CreateFileW(lpFileName:Pointer;dwDesiredAccess,dwShareMode:LongWord;lpSecurityAttributes:Pointer;dwCreationDistribution,dwFlagsAndAttributes,hTemplateFile:LongWord):LongWord; stdcall; external 'kernel32.dll' name 'CreateFileW';
+function _ReadFile(hFile:LongWord;lpBuffer:Pointer;nNumberOfBytesToRead:LongWord;lpNumberOfBytesRead,lpOverlapped:Pointer):LongWord; stdcall; external 'kernel32.dll' name 'ReadFile';
+function _SetFilePointer(hFile,lDistanceToMove:LongWord;lpDistanceToMoveHigh:Pointer;dwMoveMethod:LongWord):LongWord; stdcall; external 'kernel32.dll' name 'SetFilePointer';
+
+function _waveOutUnprepareHeader(hwo,pwh:Pointer;cbwh:LongWord):LongWord; stdcall; external 'winmm.dll' name 'waveOutUnprepareHeader';
+function _waveOutWrite(hwo,pwh:Pointer;cbwh:LongWord):LongWord; stdcall; external 'winmm.dll' name 'waveOutWrite';
+function _waveOutClose(hwo:Pointer):LongWord; stdcall; external 'winmm.dll' name 'waveOutClose';
+function _waveOutGetPosition(hwo,pmmt:Pointer;cbmmt:LongWord):LongWord; stdcall; external 'winmm.dll' name 'waveOutGetPosition';
+function _waveOutOpen(phwo:Pointer;uDeviceID:LongWord;pwfx,dwCallback,dwCallbackInstance:Pointer;fdwOpen:LongWord):LongWord; stdcall; external 'winmm.dll' name 'waveOutOpen';
+function _waveOutPrepareHeader(hwo,pwh:Pointer;cbwh:LongWord):LongWord; stdcall; external 'winmm.dll' name 'waveOutPrepareHeader';
+function _waveOutReset(hwo:Pointer):LongWord; stdcall; external 'winmm.dll' name 'waveOutReset';
+
+function WaitForSingleObject(hObject,dwTimeout:LongWord):LongWord; stdcall; public name 'WaitForSingleObject';
+begin
+  result:=_WaitForSingleObject(hObject, dwTimeout);
+end;
+
+function CloseHandle(hObject:LongWord):LongWord; stdcall; public name 'CloseHandle';
+begin
+  result:=_CloseHandle(hObject);
+end;
+
+function CreateThread(lpThreadAttributes:Pointer;dwStackSize:LongWord;lpStartAddress,lpParameter:Pointer;dwCreationFlags:LongWord;lpThreadId:Pointer):LongWord; stdcall; public name 'CreateThread';
+begin
+  result:=_CreateThread(lpThreadAttributes, dwStackSize, lpStartAddress, lpParameter, dwCreationFlags, lpThreadId);
+end;
+
+function SetThreadPriority(hThread,nPriority:LongWord):LongWord; stdcall; public name 'SetThreadPriority';
+begin
+  result:=_SetThreadPriority(hThread, nPriority);
+end;
+
+function HeapAlloc(hHeap,dwFlags,dwBytes:LongWord):LongWord; stdcall; public name 'HeapAlloc';
+begin
+  result:=_HeapAlloc(hHeap, dwFlags, dwBytes);
+end;
+
+function HeapCreate(flOptions,dwInitialSize,dwMaximumSize:LongWord):LongWord; stdcall; public name 'HeapCreate';
+begin
+  result:=_HeapCreate(flOptions, dwInitialSize, dwMaximumSize);
+end;
+
+function HeapDestroy(hHeap:LongWord):LongWord; stdcall; public name 'HeapDestroy';
+begin
+  result:=_HeapDestroy(hHeap);
+end;
+
+procedure Sleep(cMillis:LongWord); stdcall; public name 'Sleep';
+begin
+  _Sleep(cMillis);
+end;
+
+function FindResourceA(hModule:LongWord;lpName,lpType:AnsiString):LongWord; stdcall; public name 'FindResourceA';
+begin
+  result:=_FindResourceA(hModule, lpName, lpType);
+end;
+
+function LoadResource(hModule,hrsrc:LongWord):LongWord; stdcall; public name 'LoadResource';
+begin
+  result:=_LoadResource(hModule, hrsrc);
+end;
+
+function SizeofResource(hModule,hrsrc:LongWord):LongWord; stdcall; public name 'SizeofResource';
+begin
+  result:=_SizeofResource(hModule, hrsrc);
+end;
+
+function CreateFileA(lpFileName:AnsiString;dwDesiredAccess,dwShareMode:LongWord;lpSecurityAttributes:Pointer;dwCreationDistribution,dwFlagsAndAttributes,hTemplateFile:LongWord):LongWord; stdcall; public name 'CreateFileA';
+begin
+  result:=_CreateFileA(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDistribution, dwFlagsAndAttributes, hTemplateFile);
+end;
+
+function CreateFileW(lpFileName:Pointer;dwDesiredAccess,dwShareMode:LongWord;lpSecurityAttributes:Pointer;dwCreationDistribution,dwFlagsAndAttributes,hTemplateFile:LongWord):LongWord; stdcall; public name 'CreateFileW';
+begin
+  result:=_CreateFileW(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDistribution, dwFlagsAndAttributes, hTemplateFile);
+end;
+
+function ReadFile(hFile:LongWord;lpBuffer:Pointer;nNumberOfBytesToRead:LongWord;lpNumberOfBytesRead,lpOverlapped:Pointer):LongWord; stdcall; public name 'ReadFile';
+begin
+  result:=_ReadFile(hFile, lpBuffer, nNumberOfBytesToRead, lpNumberOfBytesRead, lpOverlapped);
+end;
+
+function SetFilePointer(hFile,lDistanceToMove:LongWord;lpDistanceToMoveHigh:Pointer;dwMoveMethod:LongWord):LongWord; stdcall; public name 'SetFilePointer';
+begin
+  result:=_SetFilePointer(hFile, lDistanceToMove, lpDistanceToMoveHigh, dwMoveMethod);
+end;
+
+function waveOutUnprepareHeader(hwo,pwh:Pointer;cbwh:LongWord):LongWord; stdcall; public name 'waveOutUnprepareHeader';
+begin
+  result:=_waveOutUnprepareHeader(hwo, pwh, cbwh);
+end;
+
+function waveOutWrite(hwo,pwh:Pointer;cbwh:LongWord):LongWord; stdcall; public name 'waveOutWrite';
+begin
+  result:=_waveOutWrite(hwo, pwh, cbwh);
+end;
+
+function waveOutClose(hwo:Pointer):LongWord; stdcall; public name 'waveOutClose';
+begin
+  result:=_waveOutClose(hwo);
+end;
+
+function waveOutGetPosition(hwo,pmmt:Pointer;cbmmt:LongWord):LongWord; stdcall; public name 'waveOutGetPosition';
+begin
+  result:=_waveOutGetPosition(hwo, pmmt, cbmmt);
+end;
+
+function waveOutOpen(phwo:Pointer;uDeviceID:LongWord;pwfx,dwCallback,dwCallbackInstance:Pointer;fdwOpen:LongWord):LongWord; stdcall; public name 'waveOutOpen';
+begin
+  result:=_waveOutOpen(phwo, uDeviceID, pwfx, dwCallback, dwCallbackInstance, fdwOpen);
+end;
+
+function waveOutPrepareHeader(hwo,pwh:Pointer;cbwh:LongWord):LongWord; stdcall; public name 'waveOutPrepareHeader';
+begin
+  result:=_waveOutPrepareHeader(hwo, pwh, cbwh);
+end;
+
+function waveOutReset(hwo:Pointer):LongWord; stdcall; public name 'waveOutReset';
+begin
+  result:=_waveOutReset(hwo);
+end;
 
 {$L libufmod}
 

@@ -86,7 +86,7 @@ begin
 
 
 
-  end else messagebox(0,'Please give a unique audio pipe id', 'Param error',MB_OK or MB_ICONERROR);
+  end else messagebox(0,'Please give an unique audio pipe id', 'Param error',MB_OK or MB_ICONERROR);
 end;
 
 end.
