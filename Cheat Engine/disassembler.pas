@@ -1252,9 +1252,12 @@ begin
 
 
   if isdefault then
+  begin
     showsymbols:=symhandler.showsymbols;
+    showmodules:=symhandler.showmodules;
+  end;
 
-  if showsymbols then
+  if showsymbols or showmodules then
     intToHexs:=inttohexs_withsymbols
   else
     intToHexs:=inttohexs_withoutsymbols;
@@ -10930,15 +10933,19 @@ end;
 function TDisAssembler.inttohexs_withsymbols(address:ptrUint;chars: integer; signed: boolean=false; signedsize: integer=0):string;
 var found: boolean;
 begin
-  if showsymbols and (chars>=8) then
+  if (showsymbols or showmodules) and (chars>=8) then
   begin
-    result:=symhandler.getNameFromAddress(address,found,chars);
+    found:=false;
+    result:=symhandler.getNameFromAddress(address,showsymbols, showmodules, nil, @found,chars);
+
     if syntaxhighlighting then
     begin
       if not found then
         result:=colorhex+result+endcolor
       else
         result:=colorsymbol+result+endcolor;
+
+
     end;
 
   end

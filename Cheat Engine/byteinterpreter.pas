@@ -10,12 +10,13 @@ type TAutoGuessEvent=function (address: ptruint; originalVariableType: TVariable
 
 function isHumanReadableInteger(v: integer): boolean; //returns false if it's not an easy readable integer
 
-function FindTypeOfData(address: ptrUint; buf: pbytearray; size: integer):TVariableType;
+function FindTypeOfData(address: ptrUint; buf: pbytearray; size: integer; CustomType: PCustomType=nil):TVariableType;
 function DataToString(buf: PByteArray; size: integer; vartype: TVariableType): string;
 function readAndParseAddress(address: ptrUint; variableType: TVariableType; customtype: TCustomType=nil; showashexadecimal: Boolean=false; showAsSigned: boolean=false; bytesize:integer=1): string;
 procedure ParseStringAndWriteToAddress(value: string; address: ptruint; variabletype: TVariabletype; hexadecimal: boolean=false; customtype: TCustomType=nil);
 
 var onAutoGuessRoutine: TAutoGuessEvent;
+
 
 implementation
 
@@ -349,9 +350,11 @@ begin
   result:=inrange(v, -10000, 10000) or ((v mod 100)=0);
 end;
 
-function FindTypeOfData(address: ptrUint; buf: pbytearray; size: integer):TVariableType;
+function FindTypeOfData(address: ptrUint; buf: pbytearray; size: integer; CustomType: PCustomType=nil):TVariableType;
 {
 takes the given address and memoryblock and converts it to a variable type based on some guesses
+
+if CustomType is not nil it will also evaluate using the provided custom types (if the result is an unreadable dword)
 }
 var x: string;
     i: integer;
@@ -395,13 +398,12 @@ begin
       exit;
     end;
 
-    if couldbestringcounter then //check if the 4th byte of the 'string' is a char or not
-      if (buf[5]>=32) or (buf[i]<=127) then
-      begin
-        //this is a string counter
-        result:=vtByte;
-        exit;
-      end;
+    if couldbestringcounter and ((buf[5]>=32) or (buf[5]<=127)) then //check if the 4th byte of the 'string' is a char or not
+    begin
+      //this is a string counter
+      result:=vtByte;
+      exit;
+    end;
 
 
     //check if unicode
@@ -507,7 +509,7 @@ begin
       end;
     end;
 
-    if size>=8 then  //check if a double can be used
+    if (size>=8) then  //check if a double can be used
     begin
       if pdouble(@buf[0])^<>0 then
       begin
@@ -556,8 +558,19 @@ begin
       end;
     end;
 
-    //1/4/2012: Removed the test for human readability. Keep 4 bytes, but display as a hex dword at other locations
-
+    //if customtype is not nil check if the dword is humanreadable or not
+    if (customtype<>nil) and (result=vtDword) and (isHumanReadableInteger(pdword(@buf[0])^)=false) then
+    begin
+      //not human readable, see if there is a custom type that IS human readable
+      for i:=0 to customTypes.count-1 do
+      begin
+        if isHumanReadableInteger(TCustomType(customtypes[i]).ConvertDataToInteger(@buf[0])) then
+        begin
+          result:=vtCustom;
+          CustomType^:=customtypes[i];
+        end;
+      end;
+    end;
 
   finally
     if assigned(onAutoGuessRoutine) then

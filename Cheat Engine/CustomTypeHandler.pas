@@ -63,7 +63,8 @@ type
     property CustomTypeType: TCustomTypeType read fCustomTypeType;
     property script: string read getScript write setScript;
     property scriptUsesFloat: boolean read fScriptUsesFloat;
-end;
+  end;
+  PCustomType=^TCustomType;
 
 function GetCustomTypeFromName(name:string):TCustomType; //global function to retrieve a custom type
 

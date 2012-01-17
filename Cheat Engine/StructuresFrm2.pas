@@ -9,7 +9,7 @@ uses
   windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls, math,
   StdCtrls, ComCtrls, Menus, lmessages, scrolltreeview, byteinterpreter, symbolhandler, cefuncproc,
   newkernelhandler, frmSelectionlistunit, frmStructuresConfigUnit, registry, Valuechange, DOM,
-  XMLRead, XMLWrite, Clipbrd;
+  XMLRead, XMLWrite, Clipbrd, CustomTypeHandler;
 
 
 
@@ -27,6 +27,7 @@ type
     fbytesize: integer;
     fname: string;
     fvartype: TVariableType;
+    fCustomType: TCustomtype;
     fdisplayMethod: TdisplayMethod;
     fchildstruct: TDissectedStruct;
     fchildstructstart: integer; //offset into the childstruct where this pointer starts. Always 0 for local structs, can be higher than 0 for other defined structs
@@ -41,6 +42,8 @@ type
     procedure setName(newname: string);
     function getVartype: TVariableType;
     procedure setVartype(newVartype: TVariableType);
+    function getCustomType: TCustomType;
+    procedure setCustomType(newCustomtype: TcustomType);
     function getDisplayMethod: TdisplayMethod;
     procedure setDisplayMethod(newDisplayMethod: TdisplayMethod);
     function getBytesize: integer;
@@ -60,6 +63,7 @@ type
 
     property Name: string read getName write setName; //stored as utf8
     property VarType: TVariableType read getVarType write setVarType;
+    property CustomType: TCustomType read getCustomType write setCustomType;
     property Offset: integer read getOffset write setOffset;
     property DisplayMethod: TdisplayMethod read getDisplayMethod write setDisplayMethod;
     property Bytesize: integer read getByteSize write setByteSize;
@@ -131,7 +135,7 @@ type
     procedure OnDeleteStructNotification(structtodelete: TDissectedStruct);
 
     procedure sortElements;
-    function addElement(name: string=''; offset: integer=0; vartype: TVariableType=vtByte; bytesize: integer=0; childstruct: TDissectedStruct=nil): TStructelement;
+    function addElement(name: string=''; offset: integer=0; vartype: TVariableType=vtByte; customtype:TCustomtype=nil; bytesize: integer=0; childstruct: TDissectedStruct=nil): TStructelement;
     procedure removeElement(element: TStructelement);
     procedure delete(index: integer);
     procedure autoGuessStruct(baseaddress: ptruint; offset: integer; bytesize: integer);
@@ -567,6 +571,20 @@ begin
   end;
 end;
 
+function TStructelement.getCustomType: TCustomType;
+begin
+  result:=fCustomType;
+end;
+
+procedure TStructelement.setCustomType(newCustomtype: TcustomType);
+begin
+  if newCustomtype<>fCustomType then
+  begin
+    fCustomType:=newCustomtype;
+    parent.DoElementChangeNotification(self);
+  end;
+end;
+
 function TStructelement.getDisplayMethod: TdisplayMethod;
 begin
   result:=fDisplayMethod;
@@ -595,8 +613,7 @@ begin
       vtSingle: result:=4;
       vtDouble: result:=8;
       vtPointer: result:=processhandler.pointersize;
-      else
-        result:=1; //in case I forgot something
+      vtCustom: if customtype<>nil then result:=CustomType.bytesize;
     end;
   end;
 end;
@@ -634,7 +651,8 @@ begin
   if hashexprefix and ashex then
     result:='0x'; //also takes care of P->
 
-  result:=result+readAndParseAddress(address, vt,  nil, ashex, displayMethod=dtSignedInteger, bytesize);
+
+  result:=result+readAndParseAddress(address, vt,  fCustomType, ashex, displayMethod=dtSignedInteger, bytesize);
 end;
 
 procedure TStructelement.setvalue(address: ptruint; value: string);
@@ -656,7 +674,7 @@ begin
   end;
 
   try
-    ParseStringAndWriteToAddress(value, address, vt, hex);
+    ParseStringAndWriteToAddress(value, address, vt, hex, fCustomType);
     parent.DoElementChangeNotification(self);
   except
   end;
@@ -864,7 +882,7 @@ begin
   end;
 end;
 
-function TDissectedStruct.addElement(name: string=''; offset: integer=0; vartype: TVariableType=vtByte; bytesize: integer=0; childstruct: TDissectedStruct=nil): TStructelement;
+function TDissectedStruct.addElement(name: string=''; offset: integer=0; vartype: TVariableType=vtByte; customType: TCustomtype=nil; bytesize: integer=0; childstruct: TDissectedStruct=nil): TStructelement;
 begin
   beginUpdate;
   result:=TStructelement.create(self);
@@ -873,6 +891,7 @@ begin
   result.name:=name;
   result.offset:=offset;
   result.vartype:=vartype;
+  result.CustomType:=customType;
   result.childstruct:=childstruct;
   result.bytesize:=bytesize;
 
@@ -951,7 +970,15 @@ var
   vt: TVariableType;
 
   e: TStructelement;
+
+  customtype: TCustomType;
+  ctp: PCustomType;
 begin
+  if frmStructuresConfig.cbAutoGuessCustomTypes.checked then
+    ctp:=@customtype
+  else
+    ctp:=nil;
+
   //figure out the structure for this base address
   getmem(buf, bytesize);
 
@@ -965,10 +992,12 @@ begin
       i:=0;
       while i<x do
       begin
-        vt:=FindTypeOfData(baseAddress+i,@buf[i],bytesize-i);
+        vt:=FindTypeOfData(baseAddress+i,@buf[i],bytesize-i, ctp);
         e:=addElement();
         e.Offset:=currentOffset;
         e.vartype:=vt;
+        if vt=vtCustom then
+          e.CustomType:=customtype;
 
         if vt in [vtByte..vtQword] then
         begin
@@ -1148,6 +1177,8 @@ begin
       elementnode.SetAttribute('Description', utf8toansi(element[i].Name));
 
     elementnode.SetAttribute('Vartype', VariableTypeToString(element[i].VarType));
+    if element[i].CustomType<>nil then
+      elementnode.SetAttribute('Customtype', element[i].CustomType.name);
     elementnode.SetAttribute('Bytesize', IntToStr(element[i].Bytesize));
     elementnode.SetAttribute('DisplayMethod', DisplaymethodToString(element[i].DisplayMethod));
 
@@ -1413,7 +1444,7 @@ begin
           bytesize:=strtoint(tempnode.TextContent);
 
 
-        se:=addElement(description, offset, vartype, bytesize, nil);
+        se:=addElement(description, offset, vartype,nil, bytesize, nil);
         se.DisplayMethod:=displaymethod;
 
         currentoffset:=offset+Bytesize;
@@ -1437,8 +1468,10 @@ var
   offset: integer;
   description: string;
   vartype: TVariableType;
+  customtype: TCustomType;
   bytesize: integer;
   displaymethod :TdisplayMethod;
+
 
   childstruct: TDissectedStruct;
   childname: string;
@@ -1472,6 +1505,7 @@ begin
           offset:=strtoint(tdomelement(elementnodes.ChildNodes[i]).GetAttribute('Offset'));
           description:=AnsiToUtf8(tdomelement(elementnodes.ChildNodes[i]).GetAttribute('Description'));
           vartype:=StringToVariableType(tdomelement(elementnodes.ChildNodes[i]).GetAttribute('Vartype'));
+          CustomType:=GetCustomTypeFromName(tdomelement(elementnodes.ChildNodes[i]).GetAttribute('Customtype'));
           bytesize:=strtoint(tdomelement(elementnodes.ChildNodes[i]).GetAttribute('Bytesize'));
           displaymethod:=StringToDisplayMethod(tdomelement(elementnodes.ChildNodes[i]).GetAttribute('DisplayMethod'));
 
@@ -1494,7 +1528,7 @@ begin
               childname:=AnsiToUtf8(tdomelement(elementnodes.ChildNodes[i]).GetAttribute('ChildStruct'));
           end;
 
-          se:=addElement(description, offset, vartype, bytesize, childstruct);
+          se:=addElement(description, offset, vartype, customtype, bytesize, childstruct);
           se.DisplayMethod:=displaymethod;
 
           if (childstruct=nil) and (childname<>'') then
@@ -2669,6 +2703,8 @@ begin
     description:=structelement.name;
     offset:=structelement.offset;
     vartype:=structelement.vartype;
+    customtype:=structelement.CustomType;
+
     bytesize:=structelement.bytesize;
     childstruct:=structelement.childstruct;
     hexadecimal:=structelement.displayMethod=dtHexadecimal;
@@ -2697,6 +2733,7 @@ begin
             structElement.offset:=offset;
 
           structElement.vartype:=vartype;
+          structElement.CustomType:=customtype;
           structElement.bytesize:=bytesize;
           structElement.childstruct:=childstruct;
           if hexadecimal then
@@ -2744,6 +2781,7 @@ begin
       begin
         //set the default variabes to the type of the currently selected item
         vartype:=structElement.VarType;
+        customtype:=structElement.CustomType;
         bytesize:=structElement.Bytesize;
         signed:=structElement.DisplayMethod=dtSignedInteger;
 
@@ -2773,7 +2811,7 @@ begin
       //show the form to make modification
       if showmodal=mrok then
       begin
-        structElement:=struct.addElement(description, offset, vartype, bytesize, childstruct);
+        structElement:=struct.addElement(description, offset, vartype, customtype, bytesize, childstruct);
         if hexadecimal then
           structelement.DisplayMethod:=dtHexadecimal
         else
@@ -3198,7 +3236,7 @@ begin
             if (e<>nil) then
             begin
               //add this element (if it's a valid type)
-              if e.vartype in [vtByte..vtDouble, vtPointer] then
+              if e.vartype in [vtByte..vtDouble, vtstring, vtunicodestring, vtCustom, vtPointer] then
               begin
                 //get the address
                 address:=getAddressFromNode(n, getFocusedColumn, err);
@@ -3238,7 +3276,7 @@ begin
                   end;
 
 
-                  gcf.AddLine(e.VarType, e.getValue(address, true));
+                  gcf.AddLine(e.VarType, e.CustomType, e.getValue(address, true));
                   previous:=e;
                 end;
               end;

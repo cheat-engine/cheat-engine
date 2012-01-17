@@ -1467,7 +1467,7 @@ begin
   FStacktraceSize:=4096;
   
 
-  setlength(x, 6);
+  setlength(x, 0);
 
   if loadformposition(self,x) then
   begin
@@ -1476,8 +1476,21 @@ begin
     disassemblerview.setheaderWidth(2,x[2]);
     disassemblerview.setheaderWidth(3,x[3]);
 
-    panel1.height:=x[4];
-    registerview.width:=x[5];
+    if length(x)>4 then
+    begin
+      panel1.height:=x[4];
+      registerview.width:=x[5];
+    end;
+
+    if length(x)>6 then
+    begin
+      Showsymbols1.checked:=x[6]=1;
+      Showmoduleaddresses1.checked:=x[7]=1;
+
+      symhandler.showsymbols:=showsymbols1.Checked;
+      symhandler.showmodules:=Showmoduleaddresses1.Checked;
+    end;
+
 
     setlength(x,0);
     posloadedfromreg:=true;
@@ -2942,8 +2955,11 @@ begin
                               disassemblerview.getheaderwidth(2),
                               disassemblerview.getheaderwidth(3),
                               panel1.height,
-                              registerview.width
+                              registerview.width,
+                              strtoint(BoolToStr(Showsymbols1.checked,'1','0')),
+                              strtoint(BoolToStr(Showmoduleaddresses1.checked,'1','0'))
                       ]);
+
 
     end;
   end;

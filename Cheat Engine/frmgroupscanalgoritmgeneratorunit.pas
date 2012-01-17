@@ -42,7 +42,8 @@ type
     function getParameters: string;
 
 
-    procedure AddLine(valuetype: TVariableType; value: string);
+    procedure AddLine(valuetype: TVariableType; customtype: TCustomtype; value: string); overload;
+    procedure AddLine(valuetype: TVariableType; value: string); overload;
   end;
 
 
@@ -337,7 +338,7 @@ begin
 end;
 
 
-procedure TfrmGroupScanAlgoritmGenerator.AddLine(valuetype: TVariableType; value: string);
+procedure TfrmGroupScanAlgoritmGenerator.AddLine(valuetype: TVariableType; customtype: TCustomtype; value: string);
 var x: TVariableInfo;
 begin
   x:=TVariableInfo(Varinfolist[Varinfolist.count-1]);
@@ -351,10 +352,16 @@ begin
     vtString: x.cbVartype.ItemIndex:=7;
     vtUnicodeString: x.cbVartype.ItemIndex:=8;
     vtPointer: if processhandler.is64Bit then x.cbVartype.itemindex:=4 else x.cbVartype.itemindex:=3;
+    vtCustom: x.cbVartype.ItemIndex:=x.cbVartype.Items.IndexOf(customtype.name);
   end;
 
   x.vartypeselect(x.cbVartype);
   x.edtValue.text:=value;
+end;
+
+procedure TfrmGroupScanAlgoritmGenerator.AddLine(valuetype: TVariableType; value: string);
+begin
+  addline(valuetype, nil, value);
 end;
 
 procedure TfrmGroupScanAlgoritmGenerator.parseParameters(p:string);

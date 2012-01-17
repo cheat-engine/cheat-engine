@@ -1,12 +1,12 @@
 object frmStructuresConfig: TfrmStructuresConfig
-  Left = 426
-  Height = 232
-  Top = 277
+  Left = 573
+  Height = 267
+  Top = 278
   Width = 499
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Dissect Data Config'
-  ClientHeight = 232
+  ClientHeight = 267
   ClientWidth = 499
   OnClose = FormClose
   OnCreate = FormCreate
@@ -14,22 +14,22 @@ object frmStructuresConfig: TfrmStructuresConfig
   LCLVersion = '0.9.31'
   object Panel1: TPanel
     Left = 0
-    Height = 192
+    Height = 227
     Top = 0
     Width = 499
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 192
+    ClientHeight = 227
     ClientWidth = 499
     TabOrder = 0
     object GroupBox1: TGroupBox
       Left = 0
-      Height = 192
+      Height = 227
       Top = 0
       Width = 105
       Align = alLeft
       Caption = 'Colors'
-      ClientHeight = 174
+      ClientHeight = 209
       ClientWidth = 101
       TabOrder = 0
       object Label7: TLabel
@@ -103,80 +103,110 @@ object frmStructuresConfig: TfrmStructuresConfig
         OnMouseDown = ColorClick
       end
     end
-    object GroupBox2: TGroupBox
+    object Panel3: TPanel
       Left = 105
-      Height = 192
+      Height = 227
       Top = 0
       Width = 394
       Align = alClient
-      Caption = 'Default options for new structures'
-      ClientHeight = 174
-      ClientWidth = 390
+      BevelOuter = bvNone
+      ClientHeight = 227
+      ClientWidth = 394
       TabOrder = 1
-      object cbAutoCreate: TCheckBox
-        Left = 5
-        Height = 19
+      object GroupBox2: TGroupBox
+        Left = 0
+        Height = 186
         Top = 0
-        Width = 380
-        Caption = 'Autocreate local structures when expanding undefined pointer types'
-        Checked = True
-        State = cbChecked
+        Width = 394
+        Align = alClient
+        Caption = 'Default options for new structures'
+        ClientHeight = 168
+        ClientWidth = 390
         TabOrder = 0
+        object cbAutoCreate: TCheckBox
+          Left = 5
+          Height = 19
+          Top = 0
+          Width = 380
+          Caption = 'Autocreate local structures when expanding undefined pointer types'
+          Checked = True
+          State = cbChecked
+          TabOrder = 0
+        end
+        object edtAutostructsize: TEdit
+          Left = 5
+          Height = 23
+          Top = 40
+          Width = 72
+          TabOrder = 1
+          Text = '4096'
+        end
+        object cbAutoDestroyLocal: TCheckBox
+          Left = 5
+          Height = 19
+          Top = 72
+          Width = 237
+          Caption = 'Autodestroy local structures when closed'
+          TabOrder = 2
+        end
+        object cbDoNotSaveLocal: TCheckBox
+          Left = 5
+          Height = 19
+          Top = 96
+          Width = 231
+          Caption = 'Do not save autocreated local structures'
+          TabOrder = 3
+        end
+        object cbAutoFillGaps: TCheckBox
+          Left = 5
+          Height = 19
+          Top = 120
+          Width = 138
+          Caption = 'Fill gaps automatically'
+          TabOrder = 4
+        end
+        object Label4: TLabel
+          Left = 5
+          Height = 16
+          Top = 21
+          Width = 131
+          Caption = 'Autocreate structure size'
+          ParentColor = False
+        end
+        object cbDefaultHex: TCheckBox
+          Left = 5
+          Height = 19
+          Top = 144
+          Width = 262
+          Caption = 'Default to hexadecimal for new integer entries'
+          TabOrder = 5
+        end
       end
-      object edtAutostructsize: TEdit
-        Left = 5
-        Height = 23
-        Top = 40
-        Width = 72
+      object GroupBox3: TGroupBox
+        Left = 0
+        Height = 41
+        Top = 186
+        Width = 394
+        Align = alBottom
+        Caption = 'Global options'
+        ClientHeight = 23
+        ClientWidth = 390
         TabOrder = 1
-        Text = '4096'
-      end
-      object cbAutoDestroyLocal: TCheckBox
-        Left = 5
-        Height = 19
-        Top = 72
-        Width = 237
-        Caption = 'Autodestroy local structures when closed'
-        TabOrder = 2
-      end
-      object cbDoNotSaveLocal: TCheckBox
-        Left = 5
-        Height = 19
-        Top = 96
-        Width = 231
-        Caption = 'Do not save autocreated local structures'
-        TabOrder = 3
-      end
-      object cbAutoFillGaps: TCheckBox
-        Left = 5
-        Height = 19
-        Top = 120
-        Width = 138
-        Caption = 'Fill gaps automatically'
-        TabOrder = 4
-      end
-      object Label4: TLabel
-        Left = 5
-        Height = 16
-        Top = 21
-        Width = 131
-        Caption = 'Autocreate structure size'
-        ParentColor = False
-      end
-      object cbDefaultHex: TCheckBox
-        Left = 5
-        Height = 19
-        Top = 144
-        Width = 262
-        Caption = 'Default to hexadecimal for new integer entries'
-        TabOrder = 5
+        object cbAutoGuessCustomTypes: TCheckBox
+          Left = 6
+          Height = 19
+          Top = 0
+          Width = 150
+          Caption = 'Autoguess custom types'
+          TabOrder = 0
+        end
       end
     end
   end
   object Panel2: TPanel
     Left = 0
     Height = 40
-    Top = 192
+    Top = 227
     Width = 499
     Align = alBottom
     ClientHeight = 40

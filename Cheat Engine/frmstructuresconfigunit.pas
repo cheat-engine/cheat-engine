@@ -21,13 +21,15 @@ type
     Button2: TButton;
     cbAutoCreate: TCheckBox;
     cbAutoDestroyLocal: TCheckBox;
-    cbDoNotSaveLocal: TCheckBox;
     cbAutoFillGaps: TCheckBox;
     cbDefaultHex: TCheckBox;
+    cbDoNotSaveLocal: TCheckBox;
+    cbAutoGuessCustomTypes: TCheckBox;
     ColorDialog1: TColorDialog;
     edtAutostructsize: TEdit;
     GroupBox1: TGroupBox;
     GroupBox2: TGroupBox;
+    GroupBox3: TGroupBox;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
@@ -36,6 +38,7 @@ type
     Label9: TLabel;
     Panel1: TPanel;
     Panel2: TPanel;
+    Panel3: TPanel;
     procedure Button1Click(Sender: TObject);
     procedure ColorClickOld(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -244,6 +247,10 @@ begin
       reg.WriteBool('Don''t save local', cbDoNotSaveLocal.Checked);
       reg.WriteBool('Autofill', cbAutoFillGaps.Checked);
       reg.WriteBool('DefaultHex', cbDefaultHex.Checked);
+
+      reg.writeBool('Autoguess Custom Types', cbAutoGuessCustomTypes.checked);
+
+
     end;
   finally
     reg.free;
@@ -280,7 +287,7 @@ begin
       if reg.ValueExists('Don''t save local') then cbDoNotSaveLocal.Checked:=reg.ReadBool('Don''t save local');
       if reg.ValueExists('Autofill') then cbAutoFillGaps.Checked:=reg.ReadBool('Autofill');
       if reg.ValueExists('DefaultHex') then cbDefaultHex.Checked:=reg.ReadBool('DefaultHex');
-
+      if reg.ValueExists('Autoguess Custom Types') then cbAutoGuessCustomTypes.checked:=reg.ReadBool('Autoguess Custom Types');
     end;
   finally
     reg.free;

@@ -1914,6 +1914,7 @@ object MainForm: TMainForm
     end
     object mi3d: TMenuItem
       Caption = 'D3D'
+      OnClick = mi3dClick
       object miHookD3D: TMenuItem
         Caption = 'Hook Direct3D'
         OnClick = miHookD3DClick
@@ -1930,12 +1931,14 @@ object MainForm: TMainForm
         AutoCheck = True
         Caption = 'Toggle wireframe mode'
         Enabled = False
+        Visible = False
         OnClick = miWireframeClick
       end
       object miZbuffer: TMenuItem
         AutoCheck = True
         Caption = 'Toggle disabled zbuffer'
         Enabled = False
+        Visible = False
         OnClick = miZbufferClick
       end
       object miLockMouseInGame: TMenuItem
