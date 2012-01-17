@@ -1253,7 +1253,7 @@ begin
 end;
 
 function TMemoryRecord.ReinterpretAddress(forceremovalofoldaddress: boolean=false): boolean;
-//Returns false if interpretation failed
+//Returns false if interpretation failed (not really used for anything right now)
 var
   a: ptrUint;
   s: string;
@@ -1278,11 +1278,8 @@ begin
 
 
   //update the children
-  if result or forceremovalofoldaddress then
-    for i:=0 to count-1 do
-      Child[i].ReinterpretAddress(forceremovalofoldaddress);
-
-
+  for i:=0 to count-1 do
+    Child[i].ReinterpretAddress(forceremovalofoldaddress);
 end;
 
 procedure TMemoryRecord.ApplyFreeze;
