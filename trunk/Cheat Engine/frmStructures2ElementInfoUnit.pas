@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  cefuncproc, StructuresFrm2, vartypestrings, math;
+  cefuncproc, StructuresFrm2, vartypestrings, math, CustomTypeHandler;
 
 type
 
@@ -53,6 +53,8 @@ type
     function getSigned: boolean;
     procedure setVariableType(vt: TVariableType);
     function getVariableType: TVariableType;
+    procedure setCustomType(ct: TCustomType);
+    function getCustomType: TCustomType;
     procedure setBytesize(i: integer);
     function getBytesize: integer;
     procedure setChildStruct(s: TDissectedStruct);
@@ -65,6 +67,7 @@ type
     property hexadecimal: boolean read getHexadecimal write setHexadecimal;
     property signed: boolean read getSigned write setsigned;
     property vartype: TVariableType read getVariableType write setVariableType;
+    property customtype: TCustomtype read getCustomType write setCustomtype;
     property bytesize: integer read getBytesize write setBytesize;
     property childstruct: TDissectedStruct read getChildStruct write setChildStruct;
     property childstructstart: integer read Fchildstructstart write setChildStructStart;
@@ -168,7 +171,34 @@ begin
     7: result:=vtUnicodeString;
     8: result:=vtByteArray;
     9: result:=vtPointer;
+    else
+      result:=vtCustom;
   end;
+end;
+
+procedure TfrmStructures2ElementInfo.setCustomType(ct: TCustomType);
+var i: integer;
+begin
+  //find the index with the given ct and focus that
+  if ct<>nil then
+  begin
+    for i:=9 to cbtype.Items.Count-1 do
+      if cbType.items.Objects[i]=ct then
+      begin
+        cbType.ItemIndex:=i;
+        exit;
+      end;
+
+    setVariableType(vtCustom); //triggers an graphical update
+  end;
+
+
+end;
+
+function TfrmStructures2ElementInfo.getCustomType: TCustomType;
+begin
+  if (cbType.ItemIndex<>-1) then
+    result:=TCustomType(cbType.Items.Objects[cbType.ItemIndex]); //returns nil or the custom type
 end;
 
 procedure TfrmStructures2ElementInfo.setHexadecimal(state: boolean);
@@ -242,6 +272,11 @@ begin
   cbtype.items.add(rs_vtUnicodeString);
   cbtype.items.add(rs_vtByteArray);
   cbtype.items.add(rs_vtPointer);
+
+
+  //add custom types
+  for i:=0 to customTypes.count-1 do
+    cbType.items.AddObject(TCustomType(customTypes[i]).name, customtypes[i]);
 
 
   cbType.dropdowncount:=min(16, cbType.items.count);

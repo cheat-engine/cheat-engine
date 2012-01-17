@@ -1810,7 +1810,7 @@ begin
   setlength(userdefinedsymbols,32);
   setlength(modulelist,32);
 
-  showmodules:=false;
+  showmodules:=true;
   showsymbols:=true;
   ExceptionOnLuaLookup:=true;
 

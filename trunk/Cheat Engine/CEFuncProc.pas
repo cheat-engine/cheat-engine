@@ -42,6 +42,7 @@ type TFastScanMethod=(fsmNotAligned=0, fsmAligned=1, fsmLastDigits=2);
 
 
 Type TBytes = array of integer; //An array that represents a row of byte. Ints are used to be able to represent wildcards (-1)
+     TWindowPosArray=TBytes;
 type tfloatscan=(rounded,extremerounded,truncated);
 Type TMemoryRegion = record
   BaseAddress: ptrUint;
@@ -180,7 +181,7 @@ Function GetRelativeFilePath(filename: string):string;
 function GetCPUCount: integer;
 function HasHyperthreading: boolean;
 procedure SaveFormPosition(form: TCustomform; extra: array of integer);
-function LoadFormPosition(form: TCustomform; var x: array of integer):boolean;
+function LoadFormPosition(form: TCustomform; var x: TWindowPosArray):boolean;
 
 function heapflagstostring(heapflags: dword): string;
 function allocationtypetostring(alloctype: dword): string;
@@ -655,6 +656,8 @@ var
   PreventDebuggerDetection: boolean=false;
   preferHwBP: boolean=true;
   BPOverride: boolean=false;
+
+
 
 type
   SYSTEM_INFO = record
@@ -2846,56 +2849,66 @@ begin
   if result=0 then result:=1;
 end;
 
-function LoadFormPosition(form: Tcustomform; var x: array of integer):boolean;
+
+function LoadFormPosition(form: Tcustomform; var x: TWindowPosArray):boolean;
 var reg: tregistry;
     s: string;
-    buf: array of integer;
-    buf2: array [0..100] of byte;
+    buf: PIntegerArray;
     i: integer;
     z: integer;
 begin
   result:=false;
-  reg:=tregistry.create;
+  buf:=nil;
   try
-    Reg.RootKey := HKEY_CURRENT_USER;
-    if Reg.OpenKey('\Software\Cheat Engine',false) then
-    begin
-      if reg.valueexists('Save window positions') then
-        if reg.readbool('Save window positions') = false then exit;
-    end;
-
-    if Reg.OpenKey('\Software\Cheat Engine\Window Positions',false) then
-    begin
-      s:=form.Name;
-      s:=s+' Position';
-
-      if reg.ValueExists(s) then
+    reg:=tregistry.create;
+    try
+      Reg.RootKey := HKEY_CURRENT_USER;
+      if Reg.OpenKey('\Software\Cheat Engine',false) then
       begin
-
-        setlength(buf,4+length(x)); //for some reason it checks if
-
-        z:=reg.ReadBinaryData(s,buf[0],length(buf)*sizeof(integer));
-
-        form.position:=poDesigned;
-        form.top:=buf[0];
-        form.Left:=buf[1];
-        form.width:=buf[2];
-        form.height:=buf[3];
-
-        if form.top<0 then form.top:=0;
-        if form.left<0 then form.left:=0;
-
-
-        for i:=0 to length(x)-1 do
-          x[i]:=buf[4+i];
-
-        setlength(buf,0);
-
-        result:=true;
+        if reg.valueexists('Save window positions') then
+          if reg.readbool('Save window positions') = false then exit;
       end;
+
+      if Reg.OpenKey('\Software\Cheat Engine\Window Positions',false) then
+      begin
+        s:=form.Name;
+        s:=s+' Position';
+
+        if reg.ValueExists(s) then
+        begin
+          i:=reg.GetDataSize(s);
+          setlength(x, (i div 4)-4);
+
+          getmem(buf, i);
+
+          z:=reg.ReadBinaryData(s,buf[0],i);
+
+          form.position:=poDesigned;
+          form.top:=buf[0];
+          form.Left:=buf[1];
+          form.width:=buf[2];
+          form.height:=buf[3];
+
+          if form.top<0 then form.top:=0;
+          if form.left<0 then form.left:=0;
+
+
+          for i:=0 to length(x)-1 do
+            x[i]:=buf[4+i];
+
+
+
+          result:=true;
+        end;
+      end;
+    finally
+      if buf<>nil then
+        freemem(buf);
+
+      reg.free;
     end;
-  finally
-    reg.free;
+
+  except
   end;
 end;
 

@@ -954,6 +954,7 @@ object MemoryBrowser: TMemoryBrowser
       end
       object Showmoduleaddresses1: TMenuItem
         Caption = 'Show module addresses'
+        Checked = True
         ShortCut = 16461
         OnClick = Showmoduleaddresses1Click
       end

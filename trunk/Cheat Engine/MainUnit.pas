@@ -396,6 +396,7 @@ type
     procedure Label3Click(Sender: TObject);
     procedure Label57Click(Sender: TObject);
     procedure lblcompareToSavedScanClick(Sender: TObject);
+    procedure mi3dClick(Sender: TObject);
     procedure miOpenFileClick(Sender: TObject);
     procedure miTutorialClick(Sender: TObject);
     procedure miChangeValueClick(Sender: TObject);
@@ -2511,6 +2512,11 @@ end;
 procedure TMainForm.lblcompareToSavedScanClick(Sender: TObject);
 begin
 
+end;
+
+procedure TMainForm.mi3dClick(Sender: TObject);
+begin
+  miHookD3D.checked:=(D3DHook<>nil) and (D3DHook.processid=processid);
 end;
 
 procedure TMainForm.miOpenFileClick(Sender: TObject);
