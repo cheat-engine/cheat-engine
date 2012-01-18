@@ -55,6 +55,7 @@ type
     gcp: Tgroupscancommandparser;
     groupElementSize: integer;
   public
+    function getGCP: TGroupscanCommandParser;
     function GetVarLength: integer;
     procedure deleteaddress(i:integer);
     procedure clear;
@@ -64,6 +65,7 @@ type
     function Initialize(vartype: TVariableType; varlength: integer; hexadecimal,signed,binaryasdecimal,unicode: boolean; customtype: TCustomType):int64; overload;  //initialize after a scan
     procedure Deinitialize; //free filehandles before the scan
     function GetStartBit(i: integer):dword;
+    function GetGroupAddress(i: integer): PGroupAddress;
     function GetAddressOnly(i: integer; var extra: dword; groupdata: PPGroupAddress=nil): ptruint;
     function GetAddress(i: integer;var extra: dword; var value:string): ptruint; overload; //extra for stuff like bitnr
     function GetAddress(i: integer):ptruint; overload;
@@ -145,6 +147,11 @@ end;
 function TFoundList.GetVarLength:integer;
 begin
   result:=varlength;
+end;
+
+function TFoundList.getGCP: TGroupscanCommandParser;
+begin
+  result:=gcp;
 end;
 
 procedure TFoundList.deleteaddress(i:integer);
@@ -362,6 +369,15 @@ var extra: dword;
 begin
   GetAddressOnly(i,extra);
   result:=extra;
+end;
+
+function TFoundList.GetGroupAddress(i: integer): PGroupAddress;
+var extra: dword;
+    ga: PGroupAddress;
+begin
+  ga:=nil;
+  GetAddressOnly(i, extra, @ga);
+  result:=ga;
 end;
 
 function TFoundList.GetAddressOnly(i: integer; var extra: dword; groupdata: PPGroupAddress=nil): ptruint;
