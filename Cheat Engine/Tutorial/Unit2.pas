@@ -13,7 +13,6 @@ type
   { TForm2 }
 
   TForm2 = class(TForm)
-    Button3: TButton;
     Memo1: TMemo;
     Button1: TButton;
     Label1: TLabel;
