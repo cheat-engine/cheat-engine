@@ -73,15 +73,6 @@ object Form2: TForm2
     OnClick = Button2Click
     TabOrder = 2
   end
-  object Button3: TButton
-    Left = 190
-    Height = 25
-    Top = 223
-    Width = 75
-    Caption = 'Test me'
-    OnClick = Button3Click
-    TabOrder = 3
-  end
   object Timer1: TTimer
     Interval = 250
     OnTimer = Timer1Timer

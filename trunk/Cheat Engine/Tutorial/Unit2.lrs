@@ -19,9 +19,7 @@ LazarusResources.Add('TForm2','FORMDATA',[
   +#3#248#0#6'Height'#2#25#3'Top'#3#192#0#5'Width'#2'K'#7'Caption'#6#4'Next'#7
   +'Enabled'#8#7'OnClick'#7#12'Button1Click'#8'TabOrder'#2#1#0#0#7'TButton'#7'B'
   +'utton2'#4'Left'#2'H'#6'Height'#2#21#3'Top'#3#229#0#5'Width'#2'2'#7'Caption'
-  +#6#6'Hit me'#7'OnClick'#7#12'Button2Click'#8'TabOrder'#2#2#0#0#7'TButton'#7
-  +'Button3'#4'Left'#3#190#0#6'Height'#2#25#3'Top'#3#223#0#5'Width'#2'K'#7'Capt'
-  +'ion'#6#7'Test me'#7'OnClick'#7#12'Button3Click'#8'TabOrder'#2#3#0#0#6'TTime'
-  +'r'#6'Timer1'#8'Interval'#3#250#0#7'OnTimer'#7#11'Timer1Timer'#4'left'#3#136
-  +#0#3'top'#3#176#0#0#0#0
+  +#6#6'Hit me'#7'OnClick'#7#12'Button2Click'#8'TabOrder'#2#2#0#0#6'TTimer'#6'T'
+  +'imer1'#8'Interval'#3#250#0#7'OnTimer'#7#11'Timer1Timer'#4'left'#3#136#0#3't'
+  +'op'#3#176#0#0#0#0
 ]);
