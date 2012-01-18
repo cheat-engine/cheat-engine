@@ -20,7 +20,8 @@ uses
   ceguicomponents, frmautoinjectunit, cesupport, trainergenerator, genericHotkey,
   luafile, xmplayer_server, sharedMemory{$ifdef windows}, win32proc{$endif},
   vmxfunctions, FileUtil, networkInterfaceApi, networkconfig, d3dhookUnit, PNGcomn,
-  FPimage, byteinterpreter, frmgroupscanalgoritmgeneratorunit, vartypestrings;
+  FPimage, byteinterpreter, frmgroupscanalgoritmgeneratorunit, vartypestrings,
+  groupscancommandparser;
 
 //the following are just for compatibility
 
@@ -2019,15 +2020,19 @@ procedure TMainForm.AddToRecord(Line: integer; node: TTreenode = nil;
 var
   Address: ptrUint;
   startbit: integer;
-  l: integer;
+  i,l: integer;
 
   vt: TVariableType;
   tempvartype: TVariableType;
   addressstring: string;
+  newaddresstring: string;
 
   ct: TCustomType;
   customname: string;
   m: TMemoryRecord;
+  ga: PGroupAddress;
+
+  gcp: TGroupscanCommandParser;
 begin
 
   //first check if this address is already in the list!
@@ -2065,14 +2070,54 @@ begin
     addressstring := inttohex(address, 8);
 
 
-  m := addresslist.addaddress(strNoDescription, addressString, [], 0,
-    vt, customname, l, startbit, False, node, attachmode);
+  if vt=vtGrouped then
+  begin
+    //add as a group
+    ga:=foundlist.GetGroupAddress(line);
+    if ga=nil then
+      raise exception.create('groupscan data invalid');
 
-  if m.VarType = vtBinary then
-    m.Extra.bitData.showasbinary := rbBit.Checked
+    gcp:=foundlist.getGCP;
+    if gcp=nil then
+      raise exception.create('Groupscan result with no groupscanparser');
+
+
+    for i:=0 to length(gcp.elements)-1 do
+    begin
+      if not gcp.elements[i].wildcard then
+      begin
+        if gcp.elements[i].customtype<>nil then
+          customname:=gcp.elements[i].customtype.name
+        else
+          customname:='';
+
+        l:=gcp.elements[i].bytesize;
+
+        vt:=gcp.elements[i].vartype;
+        if vt=vtUnicodeString then
+        begin
+          vt:=vtString;
+          l:=l div 2;
+        end;
+
+        newaddresstring:=addressstring+'+'+inttohex(ga.offsets[i],1);
+        addresslist.addaddress(strNoDescription, newaddresstring, [], 0, vt, customname, l, 0, gcp.elements[i].vartype=vtUnicodeString, node, attachmode);
+      end;
+    end;
+
+  end
   else
-  if (m.VarType = vtString) then
-    m.Extra.stringData.unicode := foundlist.isUnicode;
+  begin
+    m := addresslist.addaddress(strNoDescription, addressString, [], 0,
+      vt, customname, l, startbit, False, node, attachmode);
+
+    if m.VarType = vtBinary then
+      m.Extra.bitData.showasbinary := rbBit.Checked
+    else
+    if (m.VarType = vtString) then
+      m.Extra.stringData.unicode := foundlist.isUnicode;
+  end;
+
 end;
 
 procedure TMainForm.SetExpectedTableName;
