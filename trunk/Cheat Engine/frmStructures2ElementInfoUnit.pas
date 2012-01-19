@@ -215,7 +215,7 @@ end;
 procedure TfrmStructures2ElementInfo.setSigned(state: boolean);
 begin
   if state then hexadecimal:=false;
-  cbSigned.checked:=false;
+  cbSigned.checked:=state;
 end;
 
 function TfrmStructures2ElementInfo.getSigned: boolean;
@@ -320,7 +320,9 @@ end;
 
 procedure TfrmStructures2ElementInfo.cbHexadecimalChange(Sender: TObject);
 begin
+  cbHexadecimal.OnChange:=nil;
   hexadecimal:=cbHexadecimal.checked;
+  cbHexadecimal.onchange:=cbHexadecimalChange;
 end;
 
 procedure TfrmStructures2ElementInfo.Button1Click(Sender: TObject);
@@ -333,7 +335,9 @@ end;
 
 procedure TfrmStructures2ElementInfo.cbSignedChange(Sender: TObject);
 begin
+  cbSigned.onchange:=nil;
   signed:=cbSigned.checked;
+  cbSigned.onchange:=cbSignedChange;
 end;
 
 procedure TfrmStructures2ElementInfo.edtOffsetChange(Sender: TObject);
