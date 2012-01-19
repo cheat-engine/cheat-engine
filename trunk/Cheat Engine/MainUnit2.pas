@@ -10,6 +10,7 @@ uses windows, dialogs,forms,classes,LCLIntf, LCLProc, sysutils,registry,ComCtrls
      formsettingsunit, cefuncproc,AdvancedOptionsUnit, MemoryBrowserFormUnit,
      memscan,plugin, hotkeyhandler,frmProcessWatcherunit, newkernelhandler;
 
+const ceversion=6.2;
 
 resourcestring
   cename = 'Cheat Engine 6.2';
@@ -26,7 +27,7 @@ function GetScanType: TScanOption;
 function GetScanType2: TScanOption;
 
 
-const beta=' Alpha 3'; //empty this for a release
+const beta=' Beta 1'; //empty this for a release
 
 var
   CEnorm:string;

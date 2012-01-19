@@ -47,7 +47,7 @@ function GetLuaState: PLUA_State; stdcall;
 
 implementation
 
-uses mainunit, frmluaengineunit, plugin, pluginexports, MemoryRecordUnit,
+uses mainunit, mainunit2, frmluaengineunit, plugin, pluginexports, MemoryRecordUnit,
   debuggertypedefinitions, symbolhandler, frmautoinjectunit, simpleaobscanner,
   addresslist, memscan, foundlisthelper, cesupport, DBK32functions, sharedMemory,
   disassembler, LuaCanvas, LuaPen, LuaFont, LuaBrush, LuaPicture, LuaMenu,
@@ -7426,6 +7426,18 @@ begin
     lua_pushinteger(L, pluginid);
 end;
 
+function getCEVersion(L: PLua_State): integer; cdecl;
+var
+  p: string;
+  parameters: integer;
+  pluginid: integer;
+begin
+  lua_pop(L, lua_gettop(L));
+
+  result:=1;
+  lua_pushnumber(L, ceversion);
+end;
+
 procedure InitializeLua;
 var s: tstringlist;
   k32: THandle;
@@ -7880,6 +7892,8 @@ begin
     lua_register(LuaVM, 'errorOnLookupFailure', errorOnLookupFailure);
 
     lua_register(LuaVM, 'loadPlugin', loadPlugin);
+
+    lua_register(LuaVM, 'getCEVersion', getCEVersion);
 
 
 

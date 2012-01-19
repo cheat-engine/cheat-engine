@@ -359,6 +359,7 @@ object MainForm: TMainForm
       Width = 43
       Caption = 'Test cap'
       ParentColor = False
+      Visible = False
       OnClick = Label59Click
     end
     object Label61: TLabel
@@ -1380,6 +1381,7 @@ object MainForm: TMainForm
       Width = 33
       Caption = 'Label3'
       ParentColor = False
+      Visible = False
       OnClick = Label3Click
     end
   end
