@@ -7,6 +7,7 @@ require("defines")
 
 List of CE specific functions:
 
+getCEVersion(): Returns a floating point value. Returns 6.2 or higher
 
 note: addresses can be strings, they will get interpreted by ce's symbolhandler
 

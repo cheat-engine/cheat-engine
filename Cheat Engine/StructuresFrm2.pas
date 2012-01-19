@@ -2721,6 +2721,8 @@ begin
     begin
       for i:=0 to tvStructureView.SelectionCount-1 do
       begin
+        tvStructureView.Selections[i].Collapse(true); //close the selections (destroys autocreated structure nodes)
+
         structElement:=getStructElementFromNode(tvStructureView.Selections[i]);
         if structelement=nil then continue;
 

@@ -3462,6 +3462,7 @@ begin
                   
     if variableType = vtString then
     begin
+
       widescanvalue1:=scanvalue1;
     end;    
 
