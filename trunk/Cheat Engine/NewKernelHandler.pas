@@ -701,13 +701,13 @@ uses
 
 
 resourcestring
-  rsToUseThisFunctionIn64BitYouWillNeedToRunDBVM = 'To use this function in 64-bit you will need to run DBVM. There is a high chance running DBVM can crash your system and make '
+  rsToUseThisFunctionYouWillNeedToRunDBVM = 'To use this function you will need to run DBVM. There is a high chance running DBVM can crash your system and make '
     +'you lose your data(So don''t forget to save first). Do you want to run DBVM?';
   rsDidNotLoadDBVM = 'I don''t know what you did, you didn''t crash, but you also didn''t load DBVM';
   rsPleaseRebootAndPressF8BeforeWindowsBoots = 'Please reboot and press f8 before windows boots. Then enable unsigned drivers. Alternatively, you could buy yourself a business '
     +'class certificicate and sign the driver yourself (or try debug signing)';
   rsTheDriverNeedsToBeLoadedToBeAbleToUseThisFunction = 'The driver needs to be loaded to be able to use this function.';
-  rsYourCpuMustBeAbleToRunDbvmToUseThisFunctionIn64Bit = 'Your cpu must be able to run dbvm to use this function in 64-bit';
+  rsYourCpuMustBeAbleToRunDbvmToUseThisFunction = 'Your cpu must be able to run dbvm to use this function';
   rsCouldnTBeOpened = '%s couldn''t be opened';
 
 
@@ -748,6 +748,7 @@ begin
 end;
 
 
+
 function loaddbvmifneeded: BOOL;  stdcall;
 var signed: BOOL;
 begin
@@ -755,14 +756,14 @@ begin
   if assigned(isDriverLoaded) then
   begin
     result:=false;
-    if Is64bitOS and (not isRunningDBVM) then
+    if (not isRunningDBVM) then
     begin
       if isDBVMCapable then
       begin
         signed:=false;
         if isDriverLoaded(@signed) then
         begin
-          if MessageDlg(rsToUseThisFunctionIn64BitYouWillNeedToRunDBVM, mtWarning, [mbyes, mbno], 0)=mryes then
+          if MessageDlg(rsToUseThisFunctionYouWillNeedToRunDBVM, mtWarning, [mbyes, mbno], 0)=mryes then
           begin
             LaunchDBVM;
             if not isRunningDBVM then raise exception.Create(rsDidNotLoadDBVM);
@@ -780,7 +781,7 @@ begin
             raise exception.Create(rsTheDriverNeedsToBeLoadedToBeAbleToUseThisFunction);
           end;
         end;
-      end else raise exception.Create(rsYourCpuMustBeAbleToRunDbvmToUseThisFunctionIn64Bit);
+      end else raise exception.Create(rsYourCpuMustBeAbleToRunDbvmToUseThisFunction);
     end
     else result:=true;
 

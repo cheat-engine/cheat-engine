@@ -21,9 +21,9 @@ object frmUltimap: TfrmUltimap
     TabOrder = 0
     object Label4: TLabel
       Left = 322
-      Height = 16
+      Height = 14
       Top = 352
-      Width = 35
+      Width = 32
       Caption = 'Label4'
       ParentColor = False
     end
@@ -87,8 +87,8 @@ object frmUltimap: TfrmUltimap
         end
         object Label6: TLabel
           Left = 0
-          Height = 31
-          Top = 32
+          Height = 14
+          Top = 49
           Width = 687
           Align = alBottom
           Caption = 'General tip: Rightclick buttons and assign hotkeys to them. Especially useful in a fullscreen game and you''re looking for one specific thing'
@@ -157,17 +157,17 @@ object frmUltimap: TfrmUltimap
       end
       object Edit1: TEdit
         Left = 616
-        Height = 23
-        Top = 112
+        Height = 21
+        Top = 114
         Width = 71
         TabOrder = 5
         Text = '1'
       end
       object lblLastfilterresult: TLabel
         Left = 343
-        Height = 16
+        Height = 14
         Top = 1
-        Width = 89
+        Width = 85
         Caption = 'Last filter results:'
         ParentColor = False
       end
@@ -191,7 +191,7 @@ object frmUltimap: TfrmUltimap
       end
       object edtWorkerCount: TEdit
         Left = 90
-        Height = 23
+        Height = 21
         Top = 69
         Width = 80
         TabOrder = 8
@@ -199,15 +199,15 @@ object frmUltimap: TfrmUltimap
       end
       object cbLogToFile: TRadioButton
         Left = 8
-        Height = 19
+        Height = 17
         Top = 24
-        Width = 115
+        Width = 103
         Caption = 'Log directly to file'
         TabOrder = 9
       end
       object edtFilename: TEdit
         Left = 130
-        Height = 23
+        Height = 21
         Top = 24
         Width = 80
         TabOrder = 10
@@ -215,17 +215,17 @@ object frmUltimap: TfrmUltimap
       end
       object Label1: TLabel
         Left = 8
-        Height = 16
+        Height = 14
         Top = 72
-        Width = 81
+        Width = 76
         Caption = 'Worker threads'
         ParentColor = False
       end
       object cbParseData: TRadioButton
         Left = 8
-        Height = 19
+        Height = 17
         Top = 48
-        Width = 74
+        Width = 70
         Caption = 'Parse data'
         Checked = True
         TabOrder = 11
@@ -233,7 +233,7 @@ object frmUltimap: TfrmUltimap
       end
       object edtBufSize: TEdit
         Left = 98
-        Height = 23
+        Height = 21
         Top = 0
         Width = 80
         TabOrder = 12
@@ -241,9 +241,9 @@ object frmUltimap: TfrmUltimap
       end
       object Label2: TLabel
         Left = 8
-        Height = 16
+        Height = 14
         Top = 4
-        Width = 87
+        Width = 83
         Caption = 'Event buffer size'
         ParentColor = False
       end
@@ -259,7 +259,7 @@ object frmUltimap: TfrmUltimap
       end
       object Label3: TLabel
         Left = 8
-        Height = 16
+        Height = 14
         Top = 168
         Width = 7
         Caption = '0'
@@ -278,9 +278,9 @@ object frmUltimap: TfrmUltimap
       end
       object Label5: TLabel
         Left = 8
-        Height = 16
+        Height = 14
         Top = 153
-        Width = 76
+        Width = 72
         Caption = 'Banch targets:'
         ParentColor = False
       end
@@ -289,8 +289,8 @@ object frmUltimap: TfrmUltimap
   object Timer1: TTimer
     Interval = 250
     OnTimer = Timer1Timer
-    left = 294
-    top = 382
+    left = 184
+    top = 352
   end
   object pmSetHotkey: TPopupMenu
     left = 268
