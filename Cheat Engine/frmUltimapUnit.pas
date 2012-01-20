@@ -312,7 +312,8 @@ begin
 
   TotalBranches:=0;
 
-  loaddbvmifneeded;
+  if not loaddbvmifneeded then
+    raise exception.create('This feature requires DBVM');
 
 
   GetCR3(processhandle, target_cr3);
