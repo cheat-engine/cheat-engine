@@ -531,6 +531,7 @@ procedure LoadDBK32; stdcall;
 procedure OutputDebugString(msg: string);
 
 
+procedure NeedsDBVM;
 function loaddbvmifneeded: BOOL; stdcall;
 function isRunningDBVM: boolean;
 function isDBVMCapable: boolean;
@@ -747,7 +748,20 @@ begin
   end else result:=false; //32-bit can't run 64
 end;
 
+procedure NeedsDBVM;
+begin
+  if (not isRunningDBVM) then
+  begin
+    if isDBVMCapable and (MessageDlg(rsToUseThisFunctionYouWillNeedToRunDBVM, mtWarning, [mbyes, mbno], 0)=mryes) then
+    begin
+      LaunchDBVM;
+      if not isRunningDBVM then raise exception.Create(rsDidNotLoadDBVM);
+    end;
 
+    if not isRunningDBVM then
+      raise exception.create('DBVM is not loaded. This feature is not usable');
+  end;
+end;
 
 function loaddbvmifneeded: BOOL;  stdcall;
 var signed: BOOL;
@@ -756,7 +770,7 @@ begin
   if assigned(isDriverLoaded) then
   begin
     result:=false;
-    if (not isRunningDBVM) then
+    if is64bitos and (not isRunningDBVM) then
     begin
       if isDBVMCapable then
       begin
