@@ -1580,8 +1580,12 @@ end;
 
 procedure TStructColumn.setNewParent(group: TStructGroup);
 begin
-
   parent.fcolumns.Remove(self);
+
+  if parent.fcolumns.Count=0 then //group has 0 entries , destroy the group
+    parent.Free;
+
+
   parent:=group;
   parent.fcolumns.Add(self);
 
@@ -1636,6 +1640,9 @@ begin
   end;
   l.free;
   grouplist.free;
+
+
+
 
 
 end;
