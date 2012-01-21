@@ -61,6 +61,7 @@ object frmStructureLinker: TfrmStructureLinker
       Width = 75
       Cancel = True
       Caption = 'Cancel'
+      ModalResult = 2
       TabOrder = 1
     end
   end
