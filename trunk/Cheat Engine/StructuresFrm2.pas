@@ -3155,7 +3155,7 @@ procedure TfrmStructures2.MenuItem3Click(Sender: TObject);
 var i,j: integer;
   se: TStructelement;
   c: TStructColumn;
-  s: string;
+  s,s2: string;
   f: TStringList;
   node: TTreenode;
 begin
@@ -3171,7 +3171,7 @@ begin
       if se<>nil then
       begin
         for j:=0 to node.level-1 do
-          s:=s+'   ';
+          s:=s+'     ';
 
         setCurrentNodeStringsInColumns(node,se);
 
@@ -3181,12 +3181,14 @@ begin
           c:=columns[j];
 
           if miShowAddresses.checked then
-            s:=c.currentNodeAddress
+            s2:=c.currentNodeAddress
           else
-            s:='';
+            s2:='';
 
-          s:=s+c.currentNodeValue+'  -  ';
+          s:=s+s2+c.currentNodeValue+'  -  ';
         end;
+
+        s:=copy(s,1,length(s)-5); //strip the '     ' or '  -  '
 
       end;
 
