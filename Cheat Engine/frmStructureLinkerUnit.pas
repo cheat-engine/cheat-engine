@@ -92,6 +92,7 @@ begin
   for i:=0 to length(struct)-1 do
     fillInStruct(struct[i]);
 
+  modalresult:=mrOk;
 end;
 
 function TfrmStructureLinker.FindStructWithAddress(address: ptruint): pstructinfo;
