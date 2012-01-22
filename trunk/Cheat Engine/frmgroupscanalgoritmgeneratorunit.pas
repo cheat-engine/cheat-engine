@@ -421,7 +421,7 @@ begin
 
     ba:=strtoint(edtBlockalignment.text);
     if ba<>4 then
-      result:=result+'BA:'+inttostr(ba);
+      result:=result+'BA:'+inttostr(ba)+' ';
 
 
     if cbOutOfOrder.checked then
