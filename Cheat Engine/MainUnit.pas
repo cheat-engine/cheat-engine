@@ -7075,7 +7075,9 @@ var
   cl: TFPColor;
   tb: TCEToggleBox;
 begin
-
+  showmessage('launching dbvm');
+  LaunchDBVM;
+  showmessage('still alive!!!');
 
   exit;
 
