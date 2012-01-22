@@ -44,15 +44,14 @@ type
 implementation
 
 procedure TGroupscanCommandParser.parseToken(s: string); //todo: add support for strings
-var i: integer;
-  j: integer;
+var i,j,k: integer;
   command,value: string;
   ctn: string;
 begin
   i:=pos(':', s);
   if i=-1 then exit;
 
-  command:=copy(s,1,i-1);
+  command:=uppercase(copy(s,1,i-1));
   value:=copy(s,i+1, length(s));
 
 
@@ -122,12 +121,12 @@ begin
         elements[j].vartype:=vtCustom;
         i:=pos('(', command);
 
-        for j:=length(command) downto i do
+        for k:=length(command) downto i do
         begin
-          if command[j]=')' then break;
+          if command[k]=')' then break;
         end;
 
-        ctn:=copy(command, i+1, j-i-1);
+        ctn:=copy(command, i+1, k-i-1);
         elements[j].customtype:=GetCustomTypeFromName(ctn);
         if elements[j].customtype<>nil then
           elements[j].bytesize:=elements[j].customtype.bytesize
@@ -147,6 +146,16 @@ begin
           elements[j].vartype:=vtString;
           elements[j].bytesize:=length(value);
         end;
+
+        //remove quote part from value
+        if (value<>'') and (value[1]='''') and (value[length(value)]='''') then
+        begin
+          value[1]:=' ';
+          value[length(value)]:=' ';
+          value:=trim(value);
+        end;
+
+
       end;
     end;
     elements[j].uservalue:=value;
@@ -193,8 +202,6 @@ begin
 
   FloatSettings:=DefaultFormatSettings;
 
-  command:=uppercase(command);
-
   start:=1;
   inquote:=false;
   inbraces:=false;
@@ -203,16 +210,25 @@ begin
     if (command[i] in [' ','''','(',')']) or (i=length(command)) then
     begin
       if command[i]='''' then
+      begin
         inquote:=not inquote;
+        continue;
+      end;
 
       if inquote then continue;
 
       //not inside a quote
       if command[i]='(' then //check if custom type name
-        inbraces:=true
+      begin
+        inbraces:=true;
+        continue;
+      end
       else
       if command[i]=')' then
+      begin
         inbraces:=false;
+        continue;
+      end;
 
       if inbraces then continue;
       //not inside braces or a quote, handle the token
@@ -235,8 +251,7 @@ end;
 
 constructor TGroupscanCommandParser.create(command: string='');
 begin
-  if command<>'' then
-    parse(command);
+  parse(command);
 end;
 
 

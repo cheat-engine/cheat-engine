@@ -109,20 +109,24 @@ begin
     4: result:='8:';
     5: result:='f:';
     6: result:='d:';
-    7: result:='s:';
-    8: result:='su:';
+    7: result:='s:''';
+    8: result:='su:''';
     else
     begin
       //custom
       ct:=Tcustomtype(cbVartype.Items.Objects[cbVartype.itemindex]);
       if ct<>nil then
-        result:='ct('+ct.name+'):'
+        result:='c('+ct.name+'):'
       else
         exit;
     end;
   end;
 
   result:=result+edtValue.text;
+
+  if cbVartype.itemindex in [7,8] then
+    result:=result+'''';
+
 end;
 
 procedure TVariableInfo.vartypeselect(Sender: TObject);
@@ -208,6 +212,7 @@ begin
     cbVartype.items.AddObject(TCustomType(customtypes[i]).name, customtypes[i]);
 
   cbvartype.Style:=csDropDownList;
+  cbVartype.DropDownCount:=min(16,cbVartype.items.count);
 
   cbVartype.width:=(clientwidth div 2)-3;
   edtValue.width:=(clientwidth div 2)-5;
