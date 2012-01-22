@@ -187,6 +187,7 @@ void vmxoffload(PCWSTR dbvmimgpath)
 
 
 	DbgPrint("vmxoffload\n");
+	DbgPrint("initializedvmm=%d\n", initializedvmm); 
 
 	if (!initializedvmm)
 	{			
@@ -560,6 +561,7 @@ void vmxoffload(PCWSTR dbvmimgpath)
 		}
 	}
 
+	DbgPrint("initializedvmm=%d\n", initializedvmm); 
 	if (initializedvmm)
 	{
 		KIRQL oldirql;
@@ -688,16 +690,17 @@ void vmxoffload(PCWSTR dbvmimgpath)
 
 		DbgPrint("Calling entervmm2. (Originalstate=%p (%llx))\n",originalstate,originalstatePA);
 		{//debug code
-			LARGE_INTEGER wait;
-			wait.QuadPart=-10000LL * 1000; //5 seconds should be enough time
+		//	LARGE_INTEGER wait;
+		//	wait.QuadPart=-10000LL * 1000; //5 seconds should be enough time
 			
-			KeDelayExecutionThread(KernelMode, TRUE, &wait);
+		//	KeDelayExecutionThread(KernelMode, TRUE, &wait);
 		}
 		
 
 		//call to entervmmprologue, pushes the return value on the stack
 		enterVMMPrologue();
 
+		//just a way to find this code...
 		disableInterrupts();
 		disableInterrupts();
 		disableInterrupts();
@@ -724,6 +727,7 @@ void vmxoffload(PCWSTR dbvmimgpath)
 		
 		DbgPrint("cpunr=%d\n",cpunr());
 #else
+
 		
 		{
 			ULONG vmmentryeip;
@@ -740,9 +744,10 @@ void vmxoffload(PCWSTR dbvmimgpath)
 
 		__asm{
 			
-			cli //goodbye interrupts
+			cli //goodbye interrupts						
 			xchg bx,bx
-			
+
+	
 			mov ebx,vmmPA
 			__emit 0x8b
 			__emit 0xeb //mov ebp,ebx
@@ -756,9 +761,21 @@ void vmxoffload(PCWSTR dbvmimgpath)
 			
 			call [enterVMM2]
 			
+			//Will never get here. NEVER
+			FUUUUU:
+			xchg bx,bx
+			jmp FUUUUU
+	
+			
 
 enterVMMEpilogue:
 			//cli //test
+			nop
+			nop
+			xchg bx,bx //bochs bp
+			nop
+			nop
+			sti				
 			nop
 			nop
 			nop						
@@ -766,6 +783,7 @@ enterVMMEpilogue:
 			nop
 			nop						
 		}
+		KeLowerIrql(oldirql);
 		
 #endif
 		DbgPrint("Returning\n");
