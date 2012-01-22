@@ -1567,7 +1567,7 @@ begin
 
   for i:=0 to AdvancedOptions.numberofcodes-1 do
   begin
-    if InRangeX(disassemblerview.SelectedAddress, AdvancedOptions.code[i].Address, AdvancedOptions.code[i].Address+length(AdvancedOptions.code[i].actualopcode) ) then
+    if InRangeX(disassemblerview.SelectedAddress, AdvancedOptions.code[i].Address, AdvancedOptions.code[i].Address+length(AdvancedOptions.code[i].actualopcode)-1 ) then
     begin
       for j:=0 to AdvancedOptions.Codelist2.Items.count-1 do
         AdvancedOptions.Codelist2.Items[j].Selected:=false;
@@ -2891,9 +2891,10 @@ begin
   miTogglebreakpoint.visible:=not ischild;
 
   inadvancedoptions:=false;
+
   for i:=0 to AdvancedOptions.numberofcodes-1 do
   begin
-    if InRangeX(disassemblerview.SelectedAddress, AdvancedOptions.code[i].Address, AdvancedOptions.code[i].Address+length(AdvancedOptions.code[i].actualopcode) ) then
+    if InRangeX(disassemblerview.SelectedAddress, AdvancedOptions.code[i].Address, AdvancedOptions.code[i].Address+length(AdvancedOptions.code[i].actualopcode)-1 ) then
     begin
       inadvancedoptions:=true;
 

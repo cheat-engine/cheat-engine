@@ -9,7 +9,8 @@ uses
   Dialogs, ceguicomponents, lclintf, StdCtrls, EditBtn, ExtCtrls, ExtDlgs,
   ComCtrls, Buttons, Menus, ExtraTrainerComponents, cefuncproc, HotkeyHandler,
   HotKeys, symbolhandler, luacaller, formdesignerunit, opensave, luafile,
-  frmAdConfigUnit, cesupport, IconStuff, memoryrecordunit, frmSelectionlistunit;
+  frmAdConfigUnit, cesupport, IconStuff, memoryrecordunit, frmSelectionlistunit,
+  mainunit2;
 
 type
   TTrainerForm=class(TCEForm)
@@ -740,6 +741,12 @@ begin
   l.add('');
   l.add('--Uncomment the following line if this is a Cheat Table format trainer and you don''t want CE to show (Tip, save as .CETRAINER alternatively)');
   l.add('--hideAllCEWindows()');
+  l.add('');
+  l.add('RequiredCEVersion='+floattostr(ceversion));
+  l.add('if (getCEVersion==nil) or (getCEVersion()<RequiredCEVersion) then');
+  l.add('  messageDialog(''Please install Cheat Engine ''..RequiredCEVersion, mtError, mbOK)');
+  l.add('  closeCE()');
+  l.add('end');
 
   try
     cheatpanel:=TCEPanel(trainerform.FindComponent('CHEATPANEL'));
