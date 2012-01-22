@@ -27,7 +27,7 @@ function GetScanType: TScanOption;
 function GetScanType2: TScanOption;
 
 
-const beta=' Beta 1'; //empty this for a release
+const beta=' Beta 2'; //empty this for a release
 
 var
   CEnorm:string;
