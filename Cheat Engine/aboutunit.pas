@@ -70,7 +70,7 @@ resourcestring
   rsYourSystemSupportsDBVM = 'Your system supports DBVM';
   rsThisMeansThatYouReCurrentlyNotRunningDbvm = 'This means that you''re currently not running dbvm, but that your system is capable of running it';
   rsDidYouReallyThinkYouDFindAnEasterEggByDoingThisWel = 'Did you really think you''d find an easter egg by doing this? Well, you know what? You where right!';
-  rsAreYouSureYouWantToLaunchDBVM = 'Are you sure you want to launch DBVM? You seem to be running in 32-bit, so don''t really need it that badly';
+  rsAreYouSureYouWantToLaunchDBVM = 'Are you sure you want to launch DBVM? You seem to be running in 32-bit, so don''t really need it that badly (Except for ultimap and cloaked operations)';
 
 procedure TAbout.Button1Click(Sender: TObject);
 begin
@@ -285,7 +285,12 @@ begin
     begin
       if messagedlg(rsAreYouSureYouWantToLaunchDBVM, mtWarning, [mbno, mbyes], 0)=mryes then
       begin
-        launchdbvm;
+        loaddbk32;
+        if assigned(launchdbvm) then
+          launchdbvm
+        else
+          raise exception.create('launchdbvm was not assigned');
+
         formshow(self);
       end;
     end
