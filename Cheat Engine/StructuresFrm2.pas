@@ -3026,10 +3026,23 @@ procedure TfrmStructures2.tvStructureViewMouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var i: integer;
   c: TStructColumn;
+  n: TTreenode;
 begin
   c:=getColumnAtXPos(x);
   if c<>nil then
     c.focus;
+
+  if (button=mbRight) then //lazarus 32774: Is rightclickselect is on it does not deselect other lines
+  begin
+    n:=tvStructureView.GetNodeAt(x,y);
+    if n<>nil then
+    begin
+      if not ((ssShift in Shift) or (ssCtrl in Shift)) then
+        tvStructureView.Items.SelectOnlyThis(n)
+      else
+        n.Selected:=true;
+    end;
+  end;
 end;
 
 function TfrmStructures2.getFocusedColumn: TStructColumn;
@@ -3795,27 +3808,17 @@ begin
     if not error then
     begin
       //show the change value dialog
-      with Tvaluechangeform.Create(self) do
+      s:=se.getValue(a);
+      if InputQuery('Change Value','New value for this address:', s) then
       begin
-        Address:=a;
-        vartype:=se.VarType;
-        if showmodal=mrok then
+        //try setting the value
+        for i:=0 to tvStructureView.SelectionCount-1 do
         begin
-          //showmodal already changed the value for the original one, but I need to change it for ALL selected entries.
-
-          s:=ValueText.Text;
-
-          for i:=0 to tvStructureView.SelectionCount-1 do
-          begin
-            se:=getStructElementFromNode(tvStructureView.Selections[i]);
-            a:=getAddressFromNode(tvStructureView.Selections[i], c, error);
-            if not error then
-              se.setvalue(a, s); //I knew there was a reason I implemented this
-          end;
+          se:=getStructElementFromNode(tvStructureView.Selections[i]);
+          a:=getAddressFromNode(tvStructureView.Selections[i], c, error);
+          if not error then
+            se.setvalue(a, s); //I knew there was a reason I implemented this
         end;
-
-
-        free;
       end;
     end;
   end;

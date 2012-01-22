@@ -32,7 +32,6 @@ object frmStructures2: TfrmStructures2
     ParentFont = False
     PopupMenu = pmStructureView
     ReadOnly = True
-    RightClickSelect = True
     RowSelect = True
     ShowRoot = False
     TabOrder = 0
@@ -43,7 +42,7 @@ object frmStructures2: TfrmStructures2
     OnExpanded = tvStructureViewExpanded
     OnExpanding = tvStructureViewExpanding
     OnMouseDown = tvStructureViewMouseDown
-    Options = [tvoAllowMultiselect, tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoRightClickSelect, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoToolTips]
+    Options = [tvoAllowMultiselect, tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoToolTips]
   end
   object pnlGroups: TPanel
     Left = 0
