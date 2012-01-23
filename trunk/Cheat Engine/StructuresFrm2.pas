@@ -9,7 +9,7 @@ uses
   windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls, math,
   StdCtrls, ComCtrls, Menus, lmessages, scrolltreeview, byteinterpreter, symbolhandler, cefuncproc,
   newkernelhandler, frmSelectionlistunit, frmStructuresConfigUnit, registry, Valuechange, DOM,
-  XMLRead, XMLWrite, Clipbrd, CustomTypeHandler;
+  XMLRead, XMLWrite, Clipbrd, CustomTypeHandler, strutils;
 
 
 
@@ -396,6 +396,7 @@ type
     procedure addColumn;
     procedure removeColumn(columnid: integer);
     procedure FillTreenodeWithStructData(currentnode: TTreenode);
+    function getDisplayedDescription(se: TStructelement): string;
     procedure setupNodeWithElement(node: TTreenode; element: TStructElement);
     procedure setCurrentNodeStringsInColumns(node: TTreenode; element: TStructElement);  //sets the value for the current node into the columns
     procedure RefreshVisibleNodes;
@@ -405,6 +406,8 @@ type
 
     function getGroup(i: integer): TStructGroup;
     function getGroupCount: integer;
+
+
     procedure EditValueOfSelectedNodes(c:TStructColumn);
   public
     { public declarations }
@@ -3172,19 +3175,22 @@ var i,j: integer;
   f: TStringList;
   node: TTreenode;
 begin
+
   if saveValues.execute then
   begin
     f:=tstringlist.create;
     for i:=0 to tvStructureView.Items.Count-1 do
     begin
       node:=tvStructureView.Items[i];
-      s:='';
       se:=getStructElementFromNode(node);
 
       if se<>nil then
       begin
-        for j:=0 to node.level-1 do
-          s:=s+'     ';
+        s:=getDisplayedDescription(se);
+        s:=PadRight(S, 25);
+
+        for j:=1 to node.level-1 do
+          s:=AddChar('-',S,length(s)+5);
 
         setCurrentNodeStringsInColumns(node,se);
 
@@ -3194,15 +3200,20 @@ begin
           c:=columns[j];
 
           if miShowAddresses.checked then
-            s2:=c.currentNodeAddress
+          begin
+            s2:=PadRight(c.currentNodeAddress+c.currentNodeValue,30);
+            setlength(s2,30); //cut of excess
+          end
           else
-            s2:='';
+          begin
+            s2:=PadRight(c.currentNodeValue,20);
+            setlength(s2,20);
+          end;
 
-          s:=s+s2+c.currentNodeValue+'  -  ';
+
+
+          s:=s+s2;
         end;
-
-        s:=copy(s,1,length(s)-5); //strip the '     ' or '  -  '
-
       end;
 
       f.add(s);
@@ -3654,6 +3665,40 @@ begin
   result:=fgroups.count;
 end;
 
+function TfrmStructures2.getDisplayedDescription(se: TStructelement): string;
+var description, varname: string;
+begin
+  result:='';
+  if se=nil then exit;
+
+  if (se.name='') and (miShowTypeForEntriesWithNoDescription.checked) then
+  begin
+    if se.vartype=vtCustom then
+      varname:=se.CustomType.name
+    else
+      varname:=VariableTypeToString(se.VarType);
+
+    description:=inttohex(se.Offset,4)+' - '+varname;
+
+    //show nondefault displaymethods
+    case se.DisplayMethod of
+      dtHexadecimal: description:=description+' (Hex)';
+      dtSignedInteger: description:=description+' (Signed)';
+    end;
+
+    if (se.VarType=vtPointer) and (se.ChildStruct<>nil) then
+    begin
+      description:=description+' to '+se.ChildStruct.name;
+      if se.ChildStructStart<>0 then
+        description:=description+'+'+inttohex(se.ChildStructStart,1);
+    end;
+  end
+  else
+    description:=inttohex(se.Offset,4)+' - '+se.Name;
+
+  result:=description;
+end;
+
 procedure TfrmStructures2.tvStructureViewAdvancedCustomDrawItem(Sender: TCustomTreeView; Node: TTreeNode;
   State: TCustomDrawState; Stage: TCustomDrawStage; var PaintImages, DefaultDraw: Boolean);
 var
@@ -3677,7 +3722,7 @@ var
   r,g,b: byte;
 
   displacement: integer;
-  varname: string;
+  //varname: string;
 
 begin
   if mainstruct=nil then exit; //no rendering
@@ -3694,38 +3739,11 @@ begin
     //get the next text
     se:=getStructElementFromNode(node);
 
-    nodescription:=false;
+    nodescription:=(se<>nil) and (se.name='');
     if (se=nil) then
       description:=mainstruct.name
     else
-    begin
-      if (se.name='') and (miShowTypeForEntriesWithNoDescription.checked) then
-      begin
-        nodescription:=true;
-
-        if se.vartype=vtCustom then
-          varname:=se.CustomType.name
-        else
-          varname:=VariableTypeToString(se.VarType);
-
-        description:=inttohex(se.Offset,4)+' - '+varname;
-
-        //show nondefault displaymethods
-        case se.DisplayMethod of
-          dtHexadecimal: description:=description+' (Hexadecimal)';
-          dtSignedInteger: description:=description+' (Signed)';
-        end;
-
-        if (se.VarType=vtPointer) and (se.ChildStruct<>nil) then
-        begin
-          description:=description+' to '+se.ChildStruct.name;
-          if se.ChildStructStart<>0 then
-            description:=description+'+'+inttohex(se.ChildStructStart,1);
-        end;
-      end
-      else
-        description:=inttohex(se.Offset,4)+' - '+se.Name;
-    end;
+      description:=getDisplayedDescription(se);
 
     setCurrentNodeStringsInColumns(node,se);
 
