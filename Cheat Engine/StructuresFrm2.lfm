@@ -34,7 +34,7 @@ object frmStructures2: TfrmStructures2
     ReadOnly = True
     RowSelect = True
     ShowRoot = False
-    TabOrder = 0
+    TabOrder = 1
     OnAdvancedCustomDrawItem = tvStructureViewAdvancedCustomDrawItem
     OnCollapsed = tvStructureViewCollapsed
     OnCollapsing = tvStructureViewCollapsing
@@ -52,7 +52,7 @@ object frmStructures2: TfrmStructures2
     Align = alTop
     BevelOuter = bvNone
     BorderStyle = bsSingle
-    TabOrder = 1
+    TabOrder = 0
     OnClick = pnlGroupsClick
   end
   object HeaderControl1: THeaderControl

@@ -8,8 +8,8 @@ object frmStructuresConfig: TfrmStructuresConfig
   Caption = 'Dissect Data Config'
   ClientHeight = 267
   ClientWidth = 499
-  OnClose = FormClose
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   Position = poScreenCenter
   LCLVersion = '0.9.31'
   object Panel1: TPanel

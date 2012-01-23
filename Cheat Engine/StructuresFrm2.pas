@@ -2101,7 +2101,7 @@ begin
   //set default colors
 
   if frmStructuresConfig=nil then
-    frmStructuresConfig:=TfrmStructuresConfig.Create(self);
+    frmStructuresConfig:=TfrmStructuresConfig.Create(application);
 
   tvStructureView.Top:=headercontrol1.top+headercontrol1.height;
   tvStructureView.left:=0;

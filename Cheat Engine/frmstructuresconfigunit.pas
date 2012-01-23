@@ -44,6 +44,7 @@ type
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure ColorClick(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure FormDestroy(Sender: TObject);
   private
     { private declarations }
     fbackgroundcolor: TColor;
@@ -299,6 +300,11 @@ begin
   ColorDialog1.Color:=Get_Color(TControl(sender).tag);
   if ColorDialog1.Execute then
     Set_Color(TControl(sender).tag,ColorDialog1.Color);
+end;
+
+procedure TfrmStructuresConfig.FormDestroy(Sender: TObject);
+begin
+ // showmessage('this should never happen');
 end;
 
 initialization
