@@ -3174,6 +3174,7 @@ var i,j: integer;
   s,s2: string;
   f: TStringList;
   node: TTreenode;
+  cc: integer;
 begin
 
   if saveValues.execute then
@@ -3195,6 +3196,7 @@ begin
         setCurrentNodeStringsInColumns(node,se);
 
         //column now contains the strings
+        cc:=columnCount;
         for j:=0 to columnCount-1 do
         begin
           c:=columns[j];
@@ -3202,12 +3204,15 @@ begin
           if miShowAddresses.checked then
           begin
             s2:=PadRight(c.currentNodeAddress+c.currentNodeValue,30);
-            setlength(s2,30); //cut of excess
+
+            if j<cc-1 then //not the last column
+              setlength(s2,30); //cut of excess
           end
           else
           begin
             s2:=PadRight(c.currentNodeValue,20);
-            setlength(s2,20);
+            if j<cc-1 then
+              setlength(s2,20);
           end;
 
 
