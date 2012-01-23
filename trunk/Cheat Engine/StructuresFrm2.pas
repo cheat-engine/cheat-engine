@@ -2987,7 +2987,10 @@ end;
 procedure TfrmStructures2.miNewWindowClick(Sender: TObject);
 begin
   with tfrmstructures2.create(application) do
+  begin
+    initialaddress:=self.getFocusedColumn.Address;
     show;
+  end;
 end;
 
 procedure TfrmStructures2.miUpdateIntervalClick(Sender: TObject);
