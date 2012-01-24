@@ -21,6 +21,7 @@ struct
 } NewGDTDescriptor;
 #pragma pack()
 
+#pragma pack(1) 
 typedef struct
 { //ok, everything uint64, I hate these incompatibilities with alignment between gcc and ms c
 	UINT64		cpucount;
@@ -67,6 +68,7 @@ typedef struct
 	UINT64		gsbase;
 
 } OriginalState, *POriginalState;
+#pragma pack() 
 
 unsigned char *enterVMM2;
 POriginalState originalstate;
@@ -204,7 +206,7 @@ void vmxoffload(PCWSTR dbvmimgpath)
 			NTSTATUS OpenedFile;
 
 			vmmPA=(UINT_PTR)MmGetPhysicalAddress(vmm).QuadPart;
-			DbgPrint("Allocated memory at virtual address %p (physical address %llx)\n",vmm,MmGetPhysicalAddress(vmm));
+			DbgPrint("Allocated memory at virtual address %p (physical address %I64x)\n",vmm,MmGetPhysicalAddress(vmm));
 			RtlZeroMemory(vmm,4*1024*1024); //initialize
 
 			RtlInitUnicodeString(&filename, dbvmimgpath);
@@ -270,7 +272,7 @@ void vmxoffload(PCWSTR dbvmimgpath)
 						PUINT64		PageDirPtr=(PUINT64)(pagedirptrbase+4096);
 						PUINT64		PageDir=(PUINT64)(pagedirptrbase+4096+4096);
 
-						DbgPrint("pagedirptrbase=%llx (physical address %llx)\n",pagedirptrbase,MmGetPhysicalAddress((PVOID)pagedirptrbase));
+						DbgPrint("pagedirptrbase=%I64x (physical address %I64x)\n",pagedirptrbase,MmGetPhysicalAddress((PVOID)pagedirptrbase));
 
 						pagedirptrbasePA=(UINT_PTR)MmGetPhysicalAddress((PVOID)pagedirptrbase).QuadPart;
 						
@@ -281,13 +283,13 @@ void vmxoffload(PCWSTR dbvmimgpath)
 						((PPDPTE_PAE)(&PageMapLevel4[0]))->P=1;
 						((PPDPTE_PAE)(&PageMapLevel4[0]))->RW=1;
 
-						DbgPrint("PageMapLevel4[0]=%llx\n",PageMapLevel4[0]);
+						DbgPrint("PageMapLevel4[0]=%I64x\n",PageMapLevel4[0]);
 						
 
 						PageDirPtr[0]=MmGetPhysicalAddress(PageDir).QuadPart;
 						((PPDPTE_PAE)(&PageDirPtr[0]))->P=1;
 						((PPDPTE_PAE)(&PageDirPtr[0]))->RW=1;
-						DbgPrint("PageDirPtr[0]=%llx\n",PageDirPtr[0]);
+						DbgPrint("PageDirPtr[0]=%I64x\n",PageDirPtr[0]);
 						
 
 						PageDir[0]=0;
@@ -295,7 +297,7 @@ void vmxoffload(PCWSTR dbvmimgpath)
 						((PPDE2MB_PAE)(&PageDir[0]))->US=1;
 						((PPDE2MB_PAE)(&PageDir[0]))->RW=0;
 						((PPDE2MB_PAE)(&PageDir[0]))->PS=1; //2MB*/
-						DbgPrint("PageDir[0]=%llx\n",PageDir[0]);
+						DbgPrint("PageDir[0]=%I64x\n",PageDir[0]);
 
 
 
@@ -304,7 +306,7 @@ void vmxoffload(PCWSTR dbvmimgpath)
 						((PPDE2MB_PAE)(&PageDir[1]))->US=1;
 						((PPDE2MB_PAE)(&PageDir[1]))->RW=0;
 						((PPDE2MB_PAE)(&PageDir[1]))->PS=1; //2MB
-						DbgPrint("PageDir[1]=%llx\n",PageDir[1]);
+						DbgPrint("PageDir[1]=%I64x\n",PageDir[1]);
 						
 
 						{
@@ -317,7 +319,7 @@ void vmxoffload(PCWSTR dbvmimgpath)
 							((PPDE2MB_PAE)(&PageDir[2]))->RW=1;
 							((PPDE2MB_PAE)(&PageDir[2]))->PS=0; //points to a pagetable 
 
-							DbgPrint("PageDir[2]=%llx\n",PageDir[2]);
+							DbgPrint("PageDir[2]=%I64x\n",PageDir[2]);
 
 							//fill in the pagetable
 							for (i=0; i<512; i++)
@@ -338,7 +340,7 @@ void vmxoffload(PCWSTR dbvmimgpath)
 							((PPDE2MB_PAE)(&PageDir[3]))->RW=1;
 							((PPDE2MB_PAE)(&PageDir[3]))->PS=0; 
 
-							DbgPrint("PageDir[3]=%llx\n",PageDir[3]);
+							DbgPrint("PageDir[3]=%I64x\n",PageDir[3]);
 
 							//fill in the pagetable
 							for (i=0; i<512; i++)
@@ -379,7 +381,7 @@ void vmxoffload(PCWSTR dbvmimgpath)
 						
 						
 						maxPA.QuadPart=0x003fffffULL; //allocate 4k at the lower 4MB
-						DbgPrint("Before enterVMM2 alloc: maxPA=%llx, bam=%llx\n", maxPA.QuadPart);
+						DbgPrint("Before enterVMM2 alloc: maxPA=%I64x, bam=%I64x\n", maxPA.QuadPart);
 
 
 						enterVMM2=MmAllocateContiguousMemory(4096,maxPA);
@@ -387,8 +389,8 @@ void vmxoffload(PCWSTR dbvmimgpath)
 						{
 							unsigned char *original=(unsigned char *)enterVMM;
 							RtlZeroMemory(enterVMM2,4096);
-							DbgPrint("enterVMM is located at %p (%llx)\n", enterVMM, MmGetPhysicalAddress(enterVMM).QuadPart);
-							DbgPrint("enterVMM2 is located at %p (%llx)\n", enterVMM2, MmGetPhysicalAddress(enterVMM2).QuadPart);
+							DbgPrint("enterVMM is located at %p (%I64x)\n", enterVMM, MmGetPhysicalAddress(enterVMM).QuadPart);
+							DbgPrint("enterVMM2 is located at %p (%I64x)\n", enterVMM2, MmGetPhysicalAddress(enterVMM2).QuadPart);
 
 
 							DbgPrint("Copying function till end\n");
@@ -429,7 +431,7 @@ void vmxoffload(PCWSTR dbvmimgpath)
 						}
 
 						RtlZeroMemory(TemporaryPagingSetup,4096*4);
-						DbgPrint("TemporaryPagingSetup is located at %p (%llx)\n", TemporaryPagingSetup, MmGetPhysicalAddress(TemporaryPagingSetup).QuadPart);
+						DbgPrint("TemporaryPagingSetup is located at %p (%I64x)\n", TemporaryPagingSetup, MmGetPhysicalAddress(TemporaryPagingSetup).QuadPart);
 
 
 						TemporaryPagingSetupPA=(UINT_PTR)MmGetPhysicalAddress(TemporaryPagingSetup).QuadPart;
@@ -579,39 +581,63 @@ void vmxoffload(PCWSTR dbvmimgpath)
 		originalstate->originalLME=(int)(((DWORD)(readMSR(0xc0000080)) >> 8) & 1);
 		DbgPrint("originalstate->originalLME=%d",originalstate->originalLME);
 
-		originalstate->cr0=getCR0();
-		DbgPrint("originalstate->cr0=%llx",originalstate->cr0);
+		originalstate->cr0=(UINT_PTR)getCR0();
+		
 
-		originalstate->cr2=getCR2();
-		DbgPrint("originalstate->cr2=%llx",originalstate->cr2);
+		DbgPrint("originalstate->cr0=%I64x",originalstate->cr0);
 
-		originalstate->cr3=getCR3();
-		DbgPrint("originalstate->cr3=%llx",originalstate->cr3);
+		/*
+		{
+			int xxx;
+			unsigned char *x;
+			x=&originalstate->cr0;
+			for (xxx=0; xxx<8; xxx++)
+			{
+				DbgPrint("%x ",x[xxx]);
+			}
+		}
+		*/
 
-		originalstate->cr4=getCR4();
-		DbgPrint("originalstate->cr4=%llx",originalstate->cr4);
+		originalstate->cr2=(UINT_PTR)getCR2();
+		DbgPrint("originalstate->cr2=%I64x",originalstate->cr2);
+		/*
+		{
+			int xxx;
+			unsigned char *x;
+			x=&originalstate->cr2;
+			for (xxx=0; xxx<8; xxx++)
+			{
+				DbgPrint("%x ",x[xxx]);
+			}
+		}*/
+
+		originalstate->cr3=(UINT_PTR)getCR3();
+		DbgPrint("originalstate->cr3=%I64x",originalstate->cr3);
+
+		originalstate->cr4=(UINT_PTR)getCR4();
+		DbgPrint("originalstate->cr4=%I64x",originalstate->cr4);
 
 		originalstate->ss=getSS();
-		DbgPrint("originalstate->ss=%llx",originalstate->ss);
+		DbgPrint("originalstate->ss=%I64x",originalstate->ss);
 		originalstate->cs=getCS();
-		DbgPrint("originalstate->cs=%llx",originalstate->cs);
+		DbgPrint("originalstate->cs=%I64x",originalstate->cs);
 		originalstate->ds=getDS();
-		DbgPrint("originalstate->ds=%llx",originalstate->ds);
+		DbgPrint("originalstate->ds=%I64x",originalstate->ds);
 		originalstate->es=getES();
-		DbgPrint("originalstate->es=%llx",originalstate->es);
+		DbgPrint("originalstate->es=%I64x",originalstate->es);
 		originalstate->fs=getFS();
-		DbgPrint("originalstate->fs=%llx",originalstate->fs);
+		DbgPrint("originalstate->fs=%I64x",originalstate->fs);
 		originalstate->gs=getGS();
-		DbgPrint("originalstate->gs=%llx",originalstate->gs);
+		DbgPrint("originalstate->gs=%I64x",originalstate->gs);
 		originalstate->ldt=GetLDT();
-		DbgPrint("originalstate->ldt=%llx",originalstate->ldt);
+		DbgPrint("originalstate->ldt=%I64x",originalstate->ldt);
 		originalstate->tr=GetTR();
-		DbgPrint("originalstate->tr=%llx",originalstate->tr);
+		DbgPrint("originalstate->tr=%I64x",originalstate->tr);
 
 		originalstate->fsbase=readMSR(0xc0000100);
 		originalstate->gsbase=readMSR(0xc0000101);
 
-		DbgPrint("originalstate->fsbase=%llx originalstate->gsbase=%llx\n", originalstate->fsbase, originalstate->gsbase);
+		DbgPrint("originalstate->fsbase=%I64x originalstate->gsbase=%I64x\n", originalstate->fsbase, originalstate->gsbase);
 
 
 		originalstate->dr7=getDR7();
@@ -623,15 +649,15 @@ void vmxoffload(PCWSTR dbvmimgpath)
 		originalstate->gdtbase=(ULONG_PTR)gdt.vector;
 		originalstate->gdtlimit=gdt.wLimit;
 
-		DbgPrint("originalstate->gdtbase=%llx",originalstate->gdtbase);
-		DbgPrint("originalstate->gdtlimit=%llx",originalstate->gdtlimit);
+		DbgPrint("originalstate->gdtbase=%I64x",originalstate->gdtbase);
+		DbgPrint("originalstate->gdtlimit=%I64x",originalstate->gdtlimit);
 
 		GetIDT(&idt);
 		originalstate->idtbase=(ULONG_PTR)idt.vector;
 		originalstate->idtlimit=idt.wLimit;
 
-		DbgPrint("originalstate->idtbase=%llx",originalstate->idtbase);
-		DbgPrint("originalstate->idtlimit=%llx",originalstate->idtlimit);
+		DbgPrint("originalstate->idtbase=%I64x",originalstate->idtbase);
+		DbgPrint("originalstate->idtlimit=%I64x",originalstate->idtlimit);
 		
 		
 		eflags=getEflags();		
@@ -641,43 +667,43 @@ void vmxoffload(PCWSTR dbvmimgpath)
 
 
 
-		DbgPrint("originalstate->rflags=%llx",originalstate->rflags);
+		DbgPrint("originalstate->rflags=%I64x",originalstate->rflags);
 
 
 		originalstate->rsp=getRSP();
-		DbgPrint("originalstate->rsp=%llx",originalstate->rsp);
+		DbgPrint("originalstate->rsp=%I64x",originalstate->rsp);
 		originalstate->rbp=getRBP();
-		DbgPrint("originalstate->rbp=%llx",originalstate->rbp);
+		DbgPrint("originalstate->rbp=%I64x",originalstate->rbp);
 
 		originalstate->rax=getRAX();
-		DbgPrint("originalstate->rax=%llx",originalstate->rax);
+		DbgPrint("originalstate->rax=%I64x",originalstate->rax);
 		originalstate->rbx=getRBX();
-		DbgPrint("originalstate->rbx=%llx",originalstate->rbx);
+		DbgPrint("originalstate->rbx=%I64x",originalstate->rbx);
 		originalstate->rcx=getRCX();
-		DbgPrint("originalstate->rcx=%llx",originalstate->rcx);
+		DbgPrint("originalstate->rcx=%I64x",originalstate->rcx);
 		originalstate->rdx=getRDX();
-		DbgPrint("originalstate->rdx=%llx",originalstate->rdx);
+		DbgPrint("originalstate->rdx=%I64x",originalstate->rdx);
 		originalstate->rsi=getRSI();
-		DbgPrint("originalstate->rsi=%llx",originalstate->rsi);
+		DbgPrint("originalstate->rsi=%I64x",originalstate->rsi);
 		originalstate->rdi=getRDI();
-		DbgPrint("originalstate->rdi=%llx",originalstate->rdi);
+		DbgPrint("originalstate->rdi=%I64x",originalstate->rdi);
 #ifdef AMD64
 		originalstate->r8=getR8();
-		DbgPrint("originalstate->r8=%llx",originalstate->r8);
+		DbgPrint("originalstate->r8=%I64x",originalstate->r8);
 		originalstate->r9=getR9();
-		DbgPrint("originalstate->r9=%llx",originalstate->r9);
+		DbgPrint("originalstate->r9=%I64x",originalstate->r9);
 		originalstate->r10=getR10();
-		DbgPrint("originalstate->r10=%llx",originalstate->r10);
+		DbgPrint("originalstate->r10=%I64x",originalstate->r10);
 		originalstate->r11=getR11();
-		DbgPrint("originalstate->r11=%llx",originalstate->r11);
+		DbgPrint("originalstate->r11=%I64x",originalstate->r11);
 		originalstate->r12=getR12();
-		DbgPrint("originalstate->r12=%llx",originalstate->r12);
+		DbgPrint("originalstate->r12=%I64x",originalstate->r12);
 		originalstate->r13=getR13();
-		DbgPrint("originalstate->r13=%llx",originalstate->r13);
+		DbgPrint("originalstate->r13=%I64x",originalstate->r13);
 		originalstate->r14=getR14();
-		DbgPrint("originalstate->r14=%llx",originalstate->r14);
+		DbgPrint("originalstate->r14=%I64x",originalstate->r14);
 		originalstate->r15=getR15();
-		DbgPrint("originalstate->r15=%llx",originalstate->r15);
+		DbgPrint("originalstate->r15=%I64x",originalstate->r15);
 #endif
 		
 
@@ -747,7 +773,7 @@ void vmxoffload(PCWSTR dbvmimgpath)
 			cli //goodbye interrupts						
 			xchg bx,bx
 
-	
+
 			mov ebx,vmmPA
 			__emit 0x8b
 			__emit 0xeb //mov ebp,ebx
@@ -765,8 +791,8 @@ void vmxoffload(PCWSTR dbvmimgpath)
 			FUUUUU:
 			xchg bx,bx
 			jmp FUUUUU
-	
-			
+
+		
 
 enterVMMEpilogue:
 			//cli //test
