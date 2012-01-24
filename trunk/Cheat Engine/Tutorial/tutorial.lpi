@@ -22,7 +22,7 @@
       <Item1 Name="debug" Default="True"/>
       <Item2 Name="release">
         <CompilerOptions>
-          <Version Value="11"/>
+          <Version Value="10"/>
           <PathDelim Value="\"/>
           <Target>
             <Filename Value="..\bin\tutorial-$(TargetCPU)"/>
@@ -43,7 +43,7 @@
           </CodeGeneration>
           <Linking>
             <Debugging>
-              <GenerateDebugInfo Value="False"/>
+              <DebugInfoType Value="dsAuto"/>
               <UseLineInfoUnit Value="False"/>
               <StripSymbols Value="True"/>
             </Debugging>
@@ -93,7 +93,7 @@
         <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
-        <CursorPos X="5" Y="22"/>
+        <CursorPos X="3" Y="22"/>
         <UsageCount Value="27"/>
         <Loaded Value="True"/>
       </Unit0>
@@ -106,7 +106,7 @@
         <UnitName Value="Unit1"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="8"/>
+        <TopLine Value="29"/>
         <CursorPos X="1" Y="28"/>
         <UsageCount Value="27"/>
         <Loaded Value="True"/>
@@ -119,11 +119,10 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit2"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
         <TopLine Value="103"/>
-        <CursorPos X="36" Y="132"/>
+        <CursorPos X="76" Y="112"/>
         <UsageCount Value="27"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -135,10 +134,11 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit3"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
         <TopLine Value="54"/>
-        <CursorPos X="37" Y="77"/>
+        <CursorPos X="7" Y="61"/>
         <UsageCount Value="27"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -481,7 +481,7 @@
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="11"/>
+    <Version Value="10"/>
     <PathDelim Value="\"/>
     <Target>
       <Filename Value="..\bin\tutorial-$(TargetCPU)"/>
@@ -499,6 +499,7 @@
     </CodeGeneration>
     <Linking>
       <Debugging>
+        <DebugInfoType Value="dsAuto"/>
         <UseLineInfoUnit Value="False"/>
       </Debugging>
       <Options>
