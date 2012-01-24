@@ -298,7 +298,7 @@ void setCR3(UINT64 newCR3)
 
 UINT64 getCR3(void)
 {
-	return (unsigned)__readcr3();
+	return __readcr3();
 }
 
 
@@ -310,7 +310,7 @@ void setCR4(UINT64 newcr4)
 
 UINT64 getCR4(void)
 {
-	return (unsigned)__readcr4();
+	return __readcr4();
 }
 
 void GetIDT(PIDT pIdt)
