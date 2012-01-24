@@ -1579,9 +1579,19 @@ begin
 end;
 
 procedure LaunchDBVM; stdcall;
+var fc: dword;
 begin
   if not vmx_enabled then
   begin
+    fc:=readMSR($3a); //get IA32_FEATURE_CONTROL
+
+    if (fc and 1)=1 then
+    begin
+      //the feature control msr is locked
+      if (fc and (1 shl 2))=0 then
+        raise exception.create('Could not launch DBVM: The Intel-VT feature has been disabled in your BIOS');
+    end;
+
     foreachcpu(internal_LaunchDBVM,nil);
 
     configure_vmx(vmx_password1, vmx_password2);
