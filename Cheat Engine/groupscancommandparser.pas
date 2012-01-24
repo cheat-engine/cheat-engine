@@ -9,7 +9,7 @@ This unit contains the class that reads a groupscan command and parses it. The r
 interface
 
 uses
-  Classes, SysUtils, cefuncproc, CustomTypeHandler;
+  Classes, SysUtils, cefuncproc, CustomTypeHandler, strutils;
 
 type
   TGroupscanCommandParser=class
@@ -48,7 +48,8 @@ var i,j,k: integer;
   command,value: string;
   ctn: string;
 begin
-  i:=pos(':', s);
+
+  i:=rpos(':', s);
   if i=-1 then exit;
 
   command:=uppercase(copy(s,1,i-1));
@@ -82,7 +83,6 @@ begin
       begin
         elements[j].vartype:=vtByte;
         elements[j].bytesize:=1;
-
       end;
 
       '2':
