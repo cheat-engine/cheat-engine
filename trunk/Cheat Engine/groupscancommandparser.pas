@@ -178,7 +178,7 @@ begin
     if not elements[j].wildcard then
     begin
       case elements[j].vartype of
-        vtByte..vtQword: elements[j].valueint:=StrToQWordEx(value);
+        vtByte..vtQword, vtCustom: elements[j].valueint:=StrToQWordEx(value);
 
 
         vtSingle, vtDouble:
