@@ -53,7 +53,6 @@ type
     groupdatalength: integer;  //saves a getLenghth lookup call
 
    // scanner: TScanner;
-    procedure parse(s:string);
 
     function ByteScan(value: byte; buf: Pbytearray; var startoffset: integer): boolean;
     function WordScan(value: word; buf: pointer; var startoffset: integer): boolean;
@@ -72,8 +71,8 @@ type
 
   public
     constructor create(parameters: string);
-    function compareblock(newvalue,oldvalue: pointer): boolean; //oldvalue is kinda ignored
-    function compareblock_outoforder(newvalue,oldvalue: pointer): boolean; //oldvalue is kinda ignored
+    function compareblock(newvalue,oldvalue: pointer): boolean; //Check if the values are at their specific offsets
+    function compareblock_outoforder(newvalue,oldvalue: pointer): boolean; //Scan the blocks for the values
 
     //use genericsaveresult for saving the original memory
     //use a custom address file for
@@ -635,150 +634,6 @@ begin
 end;
 
 //==================TGroupData===============//
-
-procedure TGroupData.parse(s:string);
-var i,j: integer;
-  command, value: string;
-
-  ctn: string;
-  c: TCustomType;
-
-  gdi: integer;
-  FloatSettings: TFormatSettings;
-
-
-  calculatedblocksize: integer;
-begin
-  calculatedblocksize:=0;
-  floatsettings:=DefaultFormatSettings;
-
-  i:=pos(':', s);
-  if i=-1 then raise exception.create('Error parsing '+s);
-
-  command:=copy(s,1, i-1);
-  value:=copy(s,i+1, length(s));
-
-
-  if length(command)>0 then
-  begin
-    if command[1] in ['1','2','4','8','F','D','C'] then
-    begin
-      gdi:=length(groupdata);
-
-      groupdatalength:=gdi+1;
-
-      setlength(groupdata, groupdatalength);
-
-      groupdata[gdi].offset:=0;
-
-      case command[1] of
-        '1':
-        begin
-          groupdata[gdi].vartype:=vtByte;
-          inc(calculatedblocksize);
-        end;
-
-        '2':
-        begin
-          groupdata[gdi].vartype:=vtWord;
-          inc(calculatedblocksize,2);
-        end;
-
-        '4':
-        begin
-          groupdata[gdi].vartype:=vtDWord;
-          inc(calculatedblocksize,4);
-        end;
-
-        '8':
-        begin
-          groupdata[gdi].vartype:=vtQWord;
-          inc(calculatedblocksize,8);
-        end;
-
-        'F':
-        begin
-          groupdata[gdi].vartype:=vtSingle;
-          inc(calculatedblocksize,4);
-        end;
-
-        'D':
-        begin
-          groupdata[gdi].vartype:=vtDouble;
-          inc(calculatedblocksize,8);
-        end;
-
-        'C':
-        begin
-          //custom type
-          i:=pos('(', command);
-
-          for j:=length(command) downto i do
-          begin
-            if command[j]=')' then break;
-          end;
-
-          ctn:=copy(command, i+1, j-i-1);
-
-          c:=GetCustomTypeFromName(ctn);
-
-          if c=nil then raise exception.create(ctn+' is not a valid custom type');
-
-          groupdata[gdi].vartype:=vtCustom;
-          groupdata[gdi].customtype:=c;
-
-          inc(calculatedblocksize,c.bytesize);
-        end;
-      end;
-
-      if (value<>'*') and (value<>'') then
-      begin
-        try
-          groupdata[gdi].valuei:=strtoqwordex(value);
-        except
-          groupdata[gdi].valuei:=lua_strtoint(value);
-        end;
-
-        try
-          groupdata[gdi].valuef:=strtofloat(value,FloatSettings);
-        except
-          if FloatSettings.DecimalSeparator=',' then
-            FloatSettings.DecimalSeparator:='.'
-          else
-            FloatSettings.DecimalSeparator:=',';
-
-          //try again
-          try
-            groupdata[gdi].valuef:=strtofloat(value,FloatSettings);
-          except
-            //see if lua knows better
-            try
-              groupdata[gdi].valuef:=lua_strtofloat(value);
-            except
-              raise exception.Create(Format(rsIsNotAValidValue, [value]));
-            end;
-          end;
-
-        end;
-
-        groupdata[gdi].floataccuracy:=pos(FloatSettings.DecimalSeparator,value);
-        if groupdata[gdi].floataccuracy>0 then
-          groupdata[gdi].floataccuracy:=length(value)-groupdata[gdi].floataccuracy;
-
-        groupdata[gdi].minfvalue:=groupdata[gdi].valuef-(1/(power(10,groupdata[gdi].floataccuracy)));
-        groupdata[gdi].maxfvalue:=groupdata[gdi].valuef+(1/(power(10,groupdata[gdi].floataccuracy)));
-        groupdata[gdi].wildcard:=false;
-      end
-      else
-        groupdata[gdi].wildcard:=true;
-
-
-    end;
-
-  end;
-
-
-end;
 
 constructor TGroupData.create(parameters: string);
 var start, i: integer;
