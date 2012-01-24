@@ -47,10 +47,21 @@ procedure TGroupscanCommandParser.parseToken(s: string); //todo: add support for
 var i,j,k: integer;
   command,value: string;
   ctn: string;
+  bracketcount: integer;
 begin
 
-  i:=rpos(':', s);
-  if i=-1 then exit;
+  //deal with custom types with a ':' and don't mess up strings
+  bracketcount:=0;
+  for i:=1 to length(s)-1 do
+  begin
+    case s[i] of
+      ':': if bracketcount=0 then break; //found it
+      '(': inc(bracketcount);
+      ')': dec(bracketcount);
+    end;
+  end;
+
+  if i=length(s) then exit;
 
   command:=uppercase(copy(s,1,i-1));
   value:=copy(s,i+1, length(s));
