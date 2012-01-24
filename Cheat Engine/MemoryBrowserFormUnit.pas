@@ -588,7 +588,7 @@ resourcestring
   rsGetKernelAddress = 'Get kernel address';
   rsGiveTheNameOfTheFunctionYouWantToFindCaseSensitive = 'Give the name of the function you want to find (Case sensitive,certain words can cause blue screens)';
   rsAssemblyScan = 'Assembly scan';
-  rsInputTheAssemblyCodeToFindWilcardsSupported = 'Input the assembly code to find. wilcards( * ) supported.';
+  rsInputTheAssemblyCodeToFindWilcardsSupported = 'Input the assembly code to find. Wildcards( * ) supported.';
   rsSymbolHandler = 'Symbol handler';
   rsPleaseSpecifyTheNewSymbolSearchpathSeperatesPaths = 'Please specify the new symbol searchpath (; seperates paths)';
   rsMemoryBrowser = 'MemoryBrowser';
