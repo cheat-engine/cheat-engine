@@ -65,10 +65,10 @@ type
     function Initialize(vartype: TVariableType; varlength: integer; hexadecimal,signed,binaryasdecimal,unicode: boolean; customtype: TCustomType):int64; overload;  //initialize after a scan
     procedure Deinitialize; //free filehandles before the scan
     function GetStartBit(i: integer):dword;
-    function GetGroupAddress(i: integer): PGroupAddress;
-    function GetAddressOnly(i: integer; var extra: dword; groupdata: PPGroupAddress=nil): ptruint;
-    function GetAddress(i: integer;var extra: dword; var value:string): ptruint; overload; //extra for stuff like bitnr
-    function GetAddress(i: integer):ptruint; overload;
+    function GetGroupAddress(i: qword): PGroupAddress;
+    function GetAddressOnly(i: qword; var extra: dword; groupdata: PPGroupAddress=nil): ptruint;
+    function GetAddress(i: qword;var extra: dword; var value:string): ptruint; overload; //extra for stuff like bitnr
+    function GetAddress(i: qword):ptruint; overload;
     function InModule(i: integer):boolean;
     function GetModuleNamePlusOffset(i: integer):string;
     procedure RebaseAddresslist(i: integer);
@@ -277,10 +277,11 @@ begin
   end
   else
   if vartype=vtGrouped then
-  begin
-    addressfile.Position:=7+sizeof(dword)+j*sizeof(groupElementSize);
+  begin                 //7+elementcount+ X*groupelement
+    addressfile.Position:=7+sizeof(dword)+j*groupElementSize;
     k:=groupElementSize*k;
     addressfile.ReadBuffer(addresslistG[0],k);
+    addresslistfirst:=j;
   end
   else
   begin
@@ -371,7 +372,7 @@ begin
   result:=extra;
 end;
 
-function TFoundList.GetGroupAddress(i: integer): PGroupAddress;
+function TFoundList.GetGroupAddress(i: qword): PGroupAddress;
 var extra: dword;
     ga: PGroupAddress;
 begin
@@ -380,8 +381,8 @@ begin
   result:=ga;
 end;
 
-function TFoundList.GetAddressOnly(i: integer; var extra: dword; groupdata: PPGroupAddress=nil): ptruint;
-var j: integer;
+function TFoundList.GetAddressOnly(i: qword; var extra: dword; groupdata: PPGroupAddress=nil): ptruint;
+var j: qword;
 begin
   extra:=0;
   result:=0;
@@ -392,10 +393,11 @@ begin
   if addressfile=nil then exit; //during a scan
   if scantype=fs_advanced then exit; //should never happen...
 
-  if (i<addresslistfirst) or (i>=addresslistfirst+1024) then
+  if not InRangeQ(i, addresslistfirst, addresslistfirst+1023) then
     RebaseAddresslist(i);
 
   j:=i-addresslistfirst;
+
 
   if vartype in [vtAll,vtBinary] then  //bit,all
   begin
@@ -430,14 +432,14 @@ begin
 end;
 
 
-function TFoundList.GetAddress(i: integer):ptruint;
+function TFoundList.GetAddress(i: qword):ptruint;
 var a: dword;
     b: string;
 begin
   result:=getaddress(i,a,b);
 end;
 
-function TFoundList.GetAddress(i: integer;var extra: dword; var value: string): ptruint;
+function TFoundList.GetAddress(i: qword;var extra: dword; var value: string): ptruint;
 var j,k,l: integer;
     currentaddress: ptrUint;
     read1: byte;
