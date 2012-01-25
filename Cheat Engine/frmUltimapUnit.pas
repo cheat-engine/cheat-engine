@@ -312,10 +312,12 @@ begin
 
   TotalBranches:=0;
 
+  LoadDBK32;
   NeedsDBVM;
 
 
-  GetCR3(processhandle, target_cr3);
+
+  GetCR3(GetPEProcess(processid), target_cr3);
   bufsize:=strtoint(edtBufSize.text);
   filename:=edtFilename.text;
   workercount:=strtoint(edtWorkerCount.text);
