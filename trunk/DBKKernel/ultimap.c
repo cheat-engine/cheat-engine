@@ -15,9 +15,9 @@ JUMPBACK perfmonJumpBackLocation;
 
 
 #ifdef AMD64
-PAPIC APIC_BASE=(PAPIC)0xfffffffffffe0000;
+volatile PAPIC APIC_BASE=(PAPIC)0xfffffffffffe0000;
 #else
-PAPIC APIC_BASE=(PAPIC)0xfffe0000;
+volatile PAPIC APIC_BASE=(PAPIC)0xfffe0000;
 #endif
 
 BOOL SaveToFile; //If set it will save the results to a file instead of sending a message to the usermode app that is watching the data
@@ -155,6 +155,9 @@ int perfmon_interrupt_centry(void)
 	void *temp;
 	int causedbyme=(DS_AREA[cpunr()]->BTS_IndexBaseAddress>=DS_AREA[cpunr()]->BTS_InterruptThresholdAddress);
 	UINT_PTR blocksize;
+
+	DbgPrint("perfmon_interrupt_centry\n", cpunr());
+
 
 	if (causedbyme)
 	{
@@ -401,12 +404,13 @@ Call this for each processor
 	DS_AREA_SIZE=params->DS_AREA_SIZE;
 	
 
-	DbgPrint("ultimap(%llx, %llx, %d)", params->cr3, params->dbgctl_msr, params->DS_AREA_SIZE);
+	DbgPrint("ultimap(%I64x, %I64x, %d)", (UINT64)params->cr3, (UINT64)params->dbgctl_msr, params->DS_AREA_SIZE);
 	DS_AREA[cpunr()]=NULL;
 
 	if (params->DS_AREA_SIZE)
 	{
 		DS_AREA[cpunr()]=ExAllocatePool(NonPagedPool, params->DS_AREA_SIZE);
+		RtlZeroMemory(DS_AREA[cpunr()],  params->DS_AREA_SIZE);
 
 		DbgPrint("DS_AREA[%d]=%p", cpunr(), DS_AREA[cpunr()]);
 
@@ -432,7 +436,13 @@ Call this for each processor
 
 		int perfmonIVT=(APIC_BASE->LVT_Performance_Monitor.a) & 0xff;
 
+		DbgPrint("APIC_BASE->LVT_Performance_Monitor.a=%x\n", APIC_BASE->LVT_Performance_Monitor.a);
+		if (perfmonIVT==0) //if not setup at all then set it up now
+			perfmonIVT=0xfe; 
+
 		APIC_BASE->LVT_Performance_Monitor.a=perfmonIVT; //clear mask flag if it was set
+
+		DbgPrint("APIC_BASE->LVT_Performance_Monitor.a=%x\n", APIC_BASE->LVT_Performance_Monitor.a);
 
 	
 
@@ -493,6 +503,10 @@ NTSTATUS ultimap(UINT64 cr3, UINT64 dbgctl_msr, int DS_AREA_SIZE, BOOL savetofil
 
 	DataBlock=ExAllocatePool(NonPagedPool, sizeof(_DataBlock) * MaxDataBlocks);
 	DataReadyPointerList=ExAllocatePool(NonPagedPool, sizeof(PVOID) * MaxDataBlocks);
+
+	RtlZeroMemory(DataBlock, sizeof(_DataBlock) * MaxDataBlocks);
+	RtlZeroMemory(DataReadyPointerList, sizeof(PVOID) * MaxDataBlocks);
+
 
 	if ((DataBlock) && (DataReadyPointerList))
 	{

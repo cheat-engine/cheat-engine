@@ -189,7 +189,7 @@ int inthook_HookInterrupt(unsigned char intnr, int newCS, ULONG_PTR newEIP, PJUM
 
 		InterruptHook[intnr].dbvmInterruptEmulation=0;
 
-		DbgPrint("int %d will now go to %x:%x\n",intnr, newCS, newEIP);
+		DbgPrint("int %d will now go to %x:%p\n",intnr, newCS, newEIP);
 
 	}
 
