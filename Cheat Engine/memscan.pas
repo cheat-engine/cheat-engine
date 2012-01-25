@@ -651,10 +651,10 @@ begin
     fblocksize:=gcp.blocksize;
     fAlignsize:=gcp.blockalignment;
 
-    if fblocksize=0 then
+    if fblocksize<=0 then
       raise exception.create('Nothing to scan for');
 
-    if fAlignsize=0 then
+    if fAlignsize<=0 then
       raise exception.create('Stupid alignsize');
 
 
