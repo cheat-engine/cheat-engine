@@ -159,7 +159,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 	else
 		IoControlCode=Irp->Flags;
 		
-	DbgPrint("DispatchIoctl. IoControlCode=%x\n", IoControlCode);
+	//DbgPrint("DispatchIoctl. IoControlCode=%x\n", IoControlCode);
 
 	
 	
@@ -520,7 +520,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 					if (ntStatus==STATUS_SUCCESS)
 					{
                         offset=(UINT_PTR)(pinp->startaddress)-(UINT_PTR)viewBase.QuadPart;
-						RtlCopyMemory(&memoryview[offset],&pinp2[8],toread);
+						RtlCopyMemory(&memoryview[offset],&pinp2[16],toread);
 
 						ZwUnmapViewOfSection(
 							NtCurrentProcess(), //processhandle
@@ -1373,7 +1373,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 
 				
 				DbgPrint("IOCTL_CE_ULTIMAP:\n");
-				DbgPrint("ultimap(%llx, %llx, %d):\n", inp->targetCR3, inp->dbgctl, inp->dsareasize);
+				DbgPrint("ultimap(%I64x, %I64x, %d):\n", (UINT64)inp->targetCR3, (UINT64)inp->dbgctl, inp->dsareasize);
 
 				if (inp->savetofile)
 					DbgPrint("filename=%S\n", &inp->filename[0]);
