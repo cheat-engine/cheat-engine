@@ -384,7 +384,7 @@ end;
 
 procedure dbvm_switchToKernelMode(cs: word; rip: pointer; parameters: pointer);
 {
-Will emulate a fotware interrupt that goes to the given cs:rip
+Will emulate a software interrupt that goes to the given cs:rip
 Make sure cs:rip is paged in because paging is not possible until interrupts are enabled back again (so swapgs and sti as soon as possible)
 }
 var vmcallinfo: packed record
