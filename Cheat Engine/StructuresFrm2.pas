@@ -1915,6 +1915,7 @@ begin
   hsection.MinWidth:=20;
 
   parent.setPositions;
+  Address:=MemoryBrowser.hexview.address;
 end;
 
 destructor TStructColumn.destroy;
@@ -2660,11 +2661,16 @@ begin
   if (node<>nil) and (node.level>0) then
   begin
     i:=0;
-    s:=getStructFromNode(node.parent);
-    if s<>nil then
+
+    //get the structure this node belongs to
+    if (node.parent.level)>0 then //not the mainstruct
     begin
-      i:=s[node.parent.Index].ChildStructStart;
-      i:=getStructFromNode(node).getIndexOfOffset(i);
+      s:=getStructFromNode(node.parent);
+      if s<>nil then
+      begin
+        i:=s[node.parent.Index].ChildStructStart;
+        i:=getStructFromNode(node).getIndexOfOffset(i);
+      end;
     end;
 
     result:=getStructFromNode(node)[node.index+i];
@@ -2722,6 +2728,9 @@ begin
 
     if tvStructureView.SelectionCount>1 then
       edtOffset.Enabled:=false;
+
+
+    childstructstart:=structelement.ChildStructStart;
 
     //fill in basic info
 
@@ -2988,7 +2997,7 @@ procedure TfrmStructures2.miNewWindowClick(Sender: TObject);
 begin
   with tfrmstructures2.create(application) do
   begin
-    initialaddress:=self.getFocusedColumn.Address;
+    initialaddress:=MemoryBrowser.hexview.address; //self.getFocusedColumn.Address;
     show;
   end;
 end;

@@ -59,7 +59,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
     )
     ParentFont = False
     Style = csDropDownList
-    TabOrder = 0
+    TabOrder = 5
     Text = 'Undefined'
   end
   object Button1: TButton
@@ -73,7 +73,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
     Font.Name = 'MS Sans Serif'
     OnClick = Button1Click
     ParentFont = False
-    TabOrder = 1
+    TabOrder = 7
   end
   object Button2: TButton
     Left = 112
@@ -86,7 +86,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
     Font.Name = 'MS Sans Serif'
     ModalResult = 2
     ParentFont = False
-    TabOrder = 2
+    TabOrder = 8
   end
   object edtDescription: TEdit
     Left = 20
@@ -96,7 +96,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
     ParentFont = False
-    TabOrder = 3
+    TabOrder = 0
   end
   object edtByteSize: TEdit
     Left = 240
@@ -108,7 +108,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
     Font.Name = 'MS Sans Serif'
     OnChange = edtByteSizeChange
     ParentFont = False
-    TabOrder = 4
+    TabOrder = 2
     Text = '0'
   end
   object edtOffset: TEdit
@@ -120,7 +120,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
     Font.Name = 'MS Sans Serif'
     OnChange = edtOffsetChange
     ParentFont = False
-    TabOrder = 5
+    TabOrder = 9
     Text = '0'
   end
   object cbType: TComboBox
@@ -147,7 +147,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
     OnChange = cbTypeChange
     ParentFont = False
     Style = csDropDownList
-    TabOrder = 6
+    TabOrder = 1
     Text = '4 Bytes'
   end
   object Label4: TLabel
@@ -174,7 +174,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
     Width = 88
     Caption = 'Hexadecimal'
     OnChange = cbHexadecimalChange
-    TabOrder = 7
+    TabOrder = 3
   end
   object cbSigned: TCheckBox
     Left = 120
@@ -183,7 +183,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
     Width = 56
     Caption = 'Signed'
     OnChange = cbSignedChange
-    TabOrder = 8
+    TabOrder = 4
   end
   object lblOffsetInto: TLabel
     Left = 240
@@ -207,7 +207,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
     Font.Name = 'MS Sans Serif'
     OnChange = edtChildstartChange
     ParentFont = False
-    TabOrder = 9
+    TabOrder = 6
     Text = '0'
   end
 end

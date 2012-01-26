@@ -286,8 +286,9 @@ procedure TfrmStructures2ElementInfo.cbTypeChange(Sender: TObject);
 var i: integer;
 begin
   i:=cbType.itemindex;
-  edtBytesize.enabled:=i in [6,7,8];
-  Label2.enabled:=edtByteSize.enabled;
+  edtBytesize.visible:=i in [6,7,8];
+  Label2.visible:=edtByteSize.enabled;
+
   cbHexadecimal.enabled:=i in [0,1,2,3,4,5,8];
   cbSigned.enabled:=i in [0,1,2,3,8];
 
