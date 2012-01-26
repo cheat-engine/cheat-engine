@@ -195,6 +195,8 @@ function GetPhysicalAddress(hProcess:THandle;lpBaseAddress:pointer;var Address:i
 
 function GetCR4:DWORD; stdcall;
 function GetCR3(hProcess:THANDLE;var CR3:system.QWORD):BOOL; stdcall;
+function GetCR3FromPID(pid: system.QWORD;var CR3:system.QWORD):BOOL; stdcall;
+
 //function SetCR3(hProcess:THANDLE;CR3: DWORD):BOOL; stdcall;
 function GetCR0:DWORD; stdcall;
 function GetSDT:DWORD; stdcall;
@@ -530,6 +532,24 @@ begin
   end;
 end;
 
+function GetCR3FromPID(pid: system.QWORD;var CR3:system.QWORD):BOOL; stdcall;
+var cc:dword;
+    x,y:dword;
+    i: integer;
+    _cr3: uint64;
+begin
+  cr3:=0;
+  result:=false;
+  if hdevice<>INVALID_HANDLE_VALUE then
+  begin
+    cc:=IOCTL_CE_GETCR3;
+    x:=pid;
+    result:=deviceiocontrol(hdevice,cc,@x,4,@_cr3,8,y,nil);
+
+    outputdebugstring(pchar('GetCR3: return '+inttohex(_cr3,16)));
+    if result then CR3:=_cr3 else cr3:=0;
+  end;
+end;
 
 
 {function SetCR3(hProcess:THANDLE;CR3: DWORD):BOOL; stdcall;
@@ -1463,9 +1483,9 @@ function ultimap(cr3: QWORD; debugctl_value: QWORD; DS_AREA_SIZE: integer; savet
 var
   cc: dword;
   input: packed record
-    CR3: uint64;
-    DEBUGCTL: uint64;
-    DS_AREA_SIZE: uint64;
+    CR3: QWORD;
+    DEBUGCTL: QWORD;
+    DS_AREA_SIZE: QWORD;
     SaveToFile:BOOL;
     HandlerCount: integer;
     filename: array [0..199] of WideChar;
@@ -1474,7 +1494,7 @@ var
 
   DS_AREA: QWORD;
 begin
-
+  outputdebugstring(pchar(Format('ultimap: %x,%x,%d',[cr3, debugctl_value, DS_AREA_SIZE])));
 
   if (hdevice<>INVALID_HANDLE_VALUE) then
   begin
