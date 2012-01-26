@@ -3622,6 +3622,9 @@ begin
     mi.Caption:=s;
     mi.OnClick:=miSelectStructureClick;
     mi.Tag:=ptruint(DissectedStructs[i]);
+    mi.RadioItem:=true;
+    mi.AutoCheck:=true;
+    mi.Checked:=mainStruct=TDissectedStruct(DissectedStructs[i]);
     Structures1.Add(mi);
   end;
 end;
