@@ -596,28 +596,33 @@ begin
 
   end;
 
-  n:=branchtree.FindLowest;
   wrongcount:=0;
   notwrong:=0;
 
-  d:=PBranchdata(n.Data);
-  while d<>nil do
+  n:=branchtree.FindLowest;
+  if n<>nil then
   begin
-    if not d.wrong then
+
+
+    d:=PBranchdata(n.Data);
+    while d<>nil do
     begin
-      case f of
-        0: if not d.isCalled then d.wrong:=true; //filter out routines that where not called
-        1: if d.isCalled then d.wrong:=true;     //filter out routines that where called
-        2: if iscall(d.lastFromAddress)=false then d.wrong:=true;
-        3: if d.count<>countvalue then d.wrong:=true;
-        4: if InRangeQ(d.toAddress, startaddress, stopaddress)=false then d.wrong:=true;
+      if not d.wrong then
+      begin
+        case f of
+          0: if not d.isCalled then d.wrong:=true; //filter out routines that where not called
+          1: if d.isCalled then d.wrong:=true;     //filter out routines that where called
+          2: if iscall(d.lastFromAddress)=false then d.wrong:=true;
+          3: if d.count<>countvalue then d.wrong:=true;
+          4: if InRangeQ(d.toAddress, startaddress, stopaddress)=false then d.wrong:=true;
+        end;
+
+        if d.wrong then inc(wrongcount) else inc(notwrong);
       end;
 
-      if d.wrong then inc(wrongcount) else inc(notwrong);
+      d.isCalled:=false;
+      d:=d.Next;
     end;
-
-    d.isCalled:=false;
-    d:=d.Next;
   end;
 
   lblLastfilterresult.caption:='Last filter results: filtered out '+inttostr(wrongcount)+' left:'+inttostr(notwrong);
