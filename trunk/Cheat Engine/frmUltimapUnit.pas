@@ -304,6 +304,7 @@ var
   filename: widestring;
   workercount: integer;
   i: integer;
+  //eprocess: qword;
 begin
 
   {$ifdef cpu32}
@@ -313,11 +314,19 @@ begin
   TotalBranches:=0;
 
   LoadDBK32;
+
+  {$ifndef NOVMX}  //for debugging purpose
   NeedsDBVM;
+  {$endif}
 
 
+  //eprocess:=GetPEProcess(processid);
 
-  GetCR3(GetPEProcess(processid), target_cr3);
+  //OutputDebugString('Going to start ultimap for processid '+inttohex(processid,1)+' which has EProcess: '+inttohex(eprocess,8));
+
+  GetCR3FromPID(processid, target_cr3);
+  OutputDebugString('CR3='+inttohex(target_cr3,8));
+
   bufsize:=strtoint(edtBufSize.text);
   filename:=edtFilename.text;
   workercount:=strtoint(edtWorkerCount.text);
