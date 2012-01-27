@@ -669,6 +669,10 @@ begin
     else
       vt:=vtDword;
     hex:=true;
+
+    //strip optional P-> part
+    if copy(value, 1,3)='P->' then
+      value:=copy(value,4, length(value)-3);
   end
   else
   begin
