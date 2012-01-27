@@ -2656,25 +2656,28 @@ end;
 function TfrmStructures2.getStructElementFromNode(node: TTreenode): TStructelement;
 var i: integer;
   s: TDissectedStruct;
+  nodestruct: TDissectedStruct;
+
+  pse: TStructelement;
+  n: TTreenode;
 begin
-  result:=nil;
+  //find the structure this node belongs
   if (node<>nil) and (node.level>0) then
   begin
-    i:=0;
+    pse:=getStructElementFromNode(node.parent);
+    nodestruct:=TDissectedStruct(node.parent.data);
 
-    //get the structure this node belongs to
-    if (node.parent.level)>0 then //not the mainstruct
-    begin
-      s:=getStructFromNode(node.parent);
-      if s<>nil then
-      begin
-        i:=s[node.parent.Index].ChildStructStart;
-        i:=getStructFromNode(node).getIndexOfOffset(i);
-      end;
-    end;
 
-    result:=getStructFromNode(node)[node.index+i];
-  end;
+    if pse<>nil then
+      i:=nodestruct.getIndexOfOffset(pse.ChildStructStart)
+    else
+      i:=0;
+
+    result:=nodestruct[node.index+i];
+  end
+  else
+    result:=nil;
+
 
 end;
 
@@ -3535,6 +3538,7 @@ end;
 procedure TfrmStructures2.miChangeColorsClick(Sender: TObject);
 var c: TfrmStructuresConfig;
 begin
+
   //setup the colors for the edit window
   {
   fDefaultColor: TColor;
