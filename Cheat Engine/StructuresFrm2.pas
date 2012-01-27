@@ -312,7 +312,7 @@ type
     OpenDialog1: TOpenDialog;
     pnlGroups: TPanel;
     pmStructureView: TPopupMenu;
-    Recalculateaddress1: TMenuItem;
+    miRecalculateAddress: TMenuItem;
     Renamestructure1: TMenuItem;
     Save1: TMenuItem;
     SaveDialog1: TSaveDialog;
@@ -358,6 +358,7 @@ type
     procedure miNewWindowClick(Sender: TObject);
     procedure miUpdateIntervalClick(Sender: TObject);
     procedure pnlGroupsClick(Sender: TObject);
+    procedure miRecalculateAddressClick(Sender: TObject);
     procedure Renamestructure1Click(Sender: TObject);
     procedure Save1Click(Sender: TObject);
     procedure tvStructureViewAdvancedCustomDrawItem(Sender: TCustomTreeView;
@@ -2996,8 +2997,12 @@ begin
   miUpdateOffsets.visible:=structelement<>nil;
   miAddToAddresslist.Visible:=structelement<>nil;
 
+  miRecalculateAddress.Visible:=(structelement<>nil) and (tvStructureView.selected.Level=1);
+
   n1.visible:=ownerstruct<>nil;
   n2.visible:=ownerstruct<>nil;
+
+  N3.visible:=miRecalculateAddress.visible or miUpdateOffsets.visible;
 end;
 
 procedure TfrmStructures2.miNewWindowClick(Sender: TObject);
@@ -3029,6 +3034,7 @@ procedure TfrmStructures2.pnlGroupsClick(Sender: TObject);
 begin
 
 end;
+
 
 procedure TfrmStructures2.Renamestructure1Click(Sender: TObject);
 var newname: string;
@@ -3101,6 +3107,34 @@ begin
   //refresh the visible nodes
   RefreshVisibleNodes;
 end;
+
+procedure TfrmStructures2.miRecalculateAddressClick(Sender: TObject);
+var s: string;
+  n: TTreenode;
+  e: boolean;
+  a: string;
+  oldaddress, newaddress: ptruint;
+  offset: ptruint;
+begin
+  n:=tvStructureView.Selected;
+  if (n<>nil) and (n.level=1) then //recalculate can only be done on the main structure
+  begin
+    oldaddress:=getAddressFromNode(n, getFocusedColumn, e);
+    if not e then
+    begin
+      a:=inttohex(memorybrowser.hexview.address,8);
+      if inputquery(rsRecalculateBaseOfStructure, rsGiveTheAddressOfThisElement, a) then
+      begin
+        newaddress:=StrToQWordEx('$'+a);
+        offset:=newaddress-oldaddress;
+        getFocusedColumn.Address:=getFocusedColumn.Address+offset;
+      end;
+
+    end;
+
+  end;
+end;
+
 
 procedure TfrmStructures2.miDeleteElementClick(Sender: TObject);
 var elementlist: Tlist;
