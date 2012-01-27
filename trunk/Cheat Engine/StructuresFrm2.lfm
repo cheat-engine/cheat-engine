@@ -257,15 +257,17 @@ object frmStructures2: TfrmStructures2
     end
     object miGenerateGroupscan: TMenuItem
       Caption = 'Generate groupscan command'
+      ShortCut = 49223
       OnClick = miGenerateGroupscanClick
     end
     object N3: TMenuItem
       Caption = '-'
       Visible = False
     end
-    object Recalculateaddress1: TMenuItem
+    object miRecalculateAddress: TMenuItem
       Caption = 'Recalculate address'
-      Visible = False
+      ShortCut = 16466
+      OnClick = miRecalculateAddressClick
     end
     object miUpdateOffsets: TMenuItem
       Caption = 'Update this and following offsets'
