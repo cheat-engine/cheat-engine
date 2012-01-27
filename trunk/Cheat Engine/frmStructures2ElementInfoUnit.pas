@@ -60,6 +60,7 @@ type
     procedure setChildStruct(s: TDissectedStruct);
     function getChildStruct: TDissectedStruct;
     procedure setChildStructStart(o: integer);
+    function getChildStructStart: integer;
   public
     { public declarations }
     property description: string read getDescription write setDescription;
@@ -70,7 +71,7 @@ type
     property customtype: TCustomtype read getCustomType write setCustomtype;
     property bytesize: integer read getBytesize write setBytesize;
     property childstruct: TDissectedStruct read getChildStruct write setChildStruct;
-    property childstructstart: integer read Fchildstructstart write setChildStructStart;
+    property childstructstart: integer read getchildstructstart write setChildStructStart;
   end; 
 
 var
@@ -108,6 +109,14 @@ end;
 function TfrmStructures2ElementInfo.getChildStruct: TDissectedStruct;
 begin
   result:=TDissectedStruct(cbStructType.Items.Objects[cbStructType.ItemIndex]);
+end;
+
+function TfrmStructures2ElementInfo.getChildstructstart: integer;
+begin
+  if vartype=vtPointer then
+    result:=Fchildstructstart
+  else
+    result:=0;
 end;
 
 procedure TfrmStructures2ElementInfo.setBytesize(i: integer);
