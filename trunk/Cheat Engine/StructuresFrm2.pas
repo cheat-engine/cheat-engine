@@ -3525,6 +3525,7 @@ var
 begin
   if mainStruct<>nil then
   begin
+    sStartOffset:=inttohex(mainstruct.structuresize,1);
     if not inputquery(rsStructureDefine, rsPleaseGiveAStartingOffsetToEvaluate, sStartOffset) then exit;
     startOffset:=StrToInt('$'+sStartOffset);
 
