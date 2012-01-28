@@ -1,7 +1,7 @@
 object frmStructuresConfig: TfrmStructuresConfig
-  Left = 573
+  Left = 442
   Height = 267
-  Top = 278
+  Top = 692
   Width = 499
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
