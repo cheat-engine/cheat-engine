@@ -198,7 +198,7 @@ object frmStructures2: TfrmStructures2
         OnClick = miAutoFillGapsClick
       end
       object miDefaultHexadecimal: TMenuItem
-        Caption = 'Default integer types to hexadecimal'
+        Caption = 'New integer types default to hexadecimal'
         OnClick = miDefaultHexadecimalClick
       end
     end
