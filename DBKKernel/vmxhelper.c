@@ -1,5 +1,6 @@
 #pragma warning( disable: 4103)
 #include "ntddk.h"
+#include <windef.h>
 #include "vmxhelper.h"
 
 #ifdef AMD64
@@ -258,6 +259,9 @@ unsigned int vmx_ultimap(UINT_PTR cr3towatch, UINT64 debugctl_value, void *store
 	vmcallinfo.cr3=(UINT64)cr3towatch;
 	vmcallinfo.debugctl=(UINT64)debugctl_value;
 	vmcallinfo.storeaddress=(UINT64)storeaddress;
+
+	DbgPrint("vmx_ultimap(%I64x, %I64x, %p)\n", (UINT64)cr3towatch, (UINT64)debugctl_value, storeaddress);
+	
 
 	return (unsigned int)dovmcall(&vmcallinfo, vmx_password1);
 }
