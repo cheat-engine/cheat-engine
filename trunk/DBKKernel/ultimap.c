@@ -340,12 +340,20 @@ VOID ultimap_disable_dpc(IN struct _KDPC *Dpc, IN PVOID DeferredContext, IN PVOI
 {
 	int i;
 	DbgPrint("ultimap_disable()\n");
-	i=vmx_ultimap_disable();
 
-	if (DS_AREA[cpunr()])
+	if (vmxusable)
 	{
-		ExFreePool(DS_AREA[cpunr()]);
-		DS_AREA[cpunr()]=NULL;
+		i=vmx_ultimap_disable();	
+
+		if (DS_AREA[cpunr()])
+		{
+			ExFreePool(DS_AREA[cpunr()]);
+			DS_AREA[cpunr()]=NULL;
+		}
+	}
+	else
+	{
+		DbgPrint("vmx not usable\n");
 	}
 }
 
@@ -454,7 +462,14 @@ Call this for each processor
 	}
 
 	//and finally activate the mapping
-	vmx_ultimap((UINT_PTR)params->cr3, params->dbgctl_msr, DS_AREA[cpunr()]);
+	if (vmxusable)
+	{
+		vmx_ultimap((UINT_PTR)params->cr3, params->dbgctl_msr, DS_AREA[cpunr()]);
+	}
+	else
+	{
+		DbgPrint("vmxusable is false\n");
+	}
 }
 
 
