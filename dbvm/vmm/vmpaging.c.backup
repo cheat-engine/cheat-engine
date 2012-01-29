@@ -1,0 +1,1235 @@
+#include "vmpaging.h"
+#include "vmmhelper.h"
+#include "common.h"
+#include "mm.h"
+#include "main.h"
+
+
+int allocvirtualpagememory(void)
+{
+  //allocates memory to be used for paging (Pagedirptr, pagedir, pagetable, of any kind)
+  sendstringf("Allocating memory for pagetable\n\r");
+  
+	unsigned int toAllocate=maxAllocatableMemory();
+  sendstringf("toAllocate=%x bytes\n\r",toAllocate);
+  
+  if (VirtualMachinePagingspace)
+    return -1; //error, it was already allocated
+
+  if (toAllocate<32*1024)
+    return -1; //just not enough
+
+	toAllocate-=16*1024; //leave 16KB for other stuff, theoretically there shouldn't be much, except userstuff
+	toAllocate=toAllocate & 0xfffff000;
+  
+  sendstringf("final toAllocate=%x bytes\n\r",toAllocate);
+  VirtualMachinePagingspace=malloc(toAllocate);
+  if (VirtualMachinePagingspace==NULL)
+    sendstringf("Failed allocating memory\n\r");
+}
+
+void handleFullTLB(void)
+{
+	if ((VirtualMachinePagingspaceFreeSpot-VirtualMachinePagingspaceFreeSpot)>0x00200000)
+	{
+		//lame method: Clean up whole tlb and restart
+		VirtualMachinePagingspaceFreeSpot=VirtualMachinePagingspaceFreeSpot+4096;
+		zeromemory(VirtualMachinePagingspaceFreeSpot,4096);
+
+		//faster method:	
+    			
+		
+	}
+}
+
+ULONG getPhysicalAddressVM(ULONG address)
+{
+  regCR4 usedCR4;
+  usedCR4.CR4=vmread32(0x6804);
+  ULONG  physicaladdress=0;
+  ULONG  pagebase;  
+  
+  
+  if ((vmread32(0x6004) & 0x80000001) == 0x80000001)
+  {
+    //sendstring("protectedmode and paging, so use guest's pagetable\n\r");
+    pagebase=guestCR3; //protected mode with paging on, so use the guest's pagetable
+  }
+  else
+  {
+    //sendstringf("realmode or nonpaged, use emulated pagetable\n\r");
+    pagebase=vmread32(0x6802); //realmode or nonpaged, so use the emulated nonpaged pagetable
+  }
+  
+  //sendstringf("pagebase=%8\n\r",pagebase);
+  
+  
+  if (usedCR4.PAE)
+  {
+    //in pae mode
+    ULONG       pagedirptrentry=address >> 30;
+    ULONG       pagedirentry=address >> 21 & 0x1ff;
+    ULONG       pagetableentry=address >> 12 & 0x1ff; //when it's not a big sized page
+    PPDPTE_PAE  realpagedirptrtable=(PPDPTE_PAE)MapPhysicalMemory(pagebase,4096,0x00800000);
+    PPDE_PAE    realpagedirtable=(PPDE_PAE)MapPhysicalMemory(realpagedirptrtable[pagedirptrentry].PFN << 12,4096,0x00a00000);
+    PPTE_PAE    realpagetable=(PPTE_PAE)MapPhysicalMemory(realpagedirtable[pagedirentry].PFN << 12, 4096, 0x00c00000);          
+    
+    //sendstringf("pagedirptrentry=%d\n\r",pagedirptrentry);
+    //sendstringf("pagedirentry=%d\n\r",pagedirentry);
+    //sendstringf("pagetableentry=%d\n\r",pagetableentry);
+    
+    //sendstringf("Mapped pagedirptrtable(%8) at %8\n\r",pagebase, (ULONG)realpagedirptrtable);
+    
+    
+    if (realpagedirptrtable[pagedirptrentry].P==1)
+    {
+      //sendstringf("realpagedirptrtable=%8\n\r",*(ULONG*)(&realpagedirptrtable[pagedirptrentry]));
+      if (realpagedirtable[pagedirentry].P==1)
+      {
+        //sendstringf("realpagedirtable=%8\n\r",*(ULONG*)(&realpagedirtable[pagedirentry]));
+        if (realpagedirtable[pagedirentry].PS==1)
+        { 
+          //big page
+          //sendstring("Big page\n\r");
+          physicaladdress=realpagedirtable[pagedirentry].PFN << 12;
+          physicaladdress+=address & 0x1FFFFF;
+        }
+        else
+        {          
+          //sendstringf("small pagedir, so has table\n\r");
+          //sendstringf("realpagedirtable=%8\n\r",*(ULONG*)(&realpagetable[pagetableentry]));
+          //it has a pagetable
+          if (realpagetable[pagetableentry].P==1)
+          {
+            physicaladdress=realpagetable[pagetableentry].PFN << 12;
+            physicaladdress+=address & 0xFFF;
+          }
+          else
+          {
+            //sendstring("realpagetable[pagetableentry].P==0\n\r");
+            return 0;
+          }
+        }
+      }
+      else
+      {
+        //sendstring("realpagedirtable[pagedirentry].P==0\n\r");
+        return 0;
+      }    
+    }
+    else
+    {
+      //sendstring("realpagedirptrtable[pagedirptrentry].P==0\n\r");
+      return 0;
+    } 
+    
+  }
+  else
+  {
+    //nonpae mode
+    ULONG pagedirentry=address >> 22;
+    ULONG pagetableentry=address >> 12 & 0x3ff; //when it's not a big sized page
+    PPDE  realpagedirtable=(PPDE)MapPhysicalMemory(pagebase,4096,0x00800000);
+    PPTE  realpagetable=(PPTE)MapPhysicalMemory(realpagedirtable[pagedirentry].PFN << 12,4096, 0x00a00000);          
+        
+    if (realpagedirtable[pagedirentry].P==1)
+    {
+      if (realpagedirtable[pagedirentry].PS==1)
+      { 
+        //big page
+        physicaladdress=realpagedirtable[pagedirentry].PFN << 12;
+        physicaladdress+=address & 0x3FFFFF;
+      }
+      else
+      {          
+        //it has a pagetable
+        if (realpagetable[pagetableentry].P==1)
+        {
+          physicaladdress=realpagetable[pagetableentry].PFN << 12;
+          physicaladdress+=address & 0xFFF;
+        }
+        else
+          return 0;
+      }
+    }
+    else
+      return 0;
+  }  
+  
+  return physicaladdress;  
+}
+
+int ReadVMMemory(ULONG address, unsigned char *buf,int size)
+/* Reads the memory at address specified by address into buf with size size , duh! */
+{
+  /* Look this address up in the pagetable */
+  ULONG  physicaladdress = getPhysicalAddressVM(address);
+  
+  unsigned char *tempbuf;
+  int i;
+  
+
+  if (physicaladdress==0)
+    return 0;
+  
+  //physical address is now known, so map it at 0x00800000
+  
+  //sendstringf("Reading physical address %8\n\r",physicaladdress);
+  tempbuf=(unsigned char *)MapPhysicalMemory(physicaladdress,size,0x00800000);
+  for (i=0; i<size; i++)
+    buf[i]=tempbuf[i]; 
+    
+  return size;
+  
+}
+
+
+int handleINVLPG(void)
+{
+  ULONG address=vmread32(0x6400);
+  regCR0 fakeCR0;
+  regCR4 fakeCR4;
+ 
+  fakeCR0.CR0=vmread32(0x6004);
+  fakeCR4.CR4=vmread32(0x6006);
+  //not in paged mode, so do nothing
+  
+  
+  sendstringf("handling INVLPG for address %8\n\r",address);
+  
+//  zeromemory(VirtualMachinePagingspace,4096);
+//  return 0;
+  
+  vmwrite32(0x681e,vmread32(0x681e)+vmread32(0x440c)); //next instruction
+  
+  if (fakeCR0.PE==0 || fakeCR0.PG==0) //if protectedmode or paging is off then do nothing
+    return 0;
+  
+  if (fakeCR4.PAE)
+  {
+    ULONG       pagedirptrentry=address >> 30;
+    ULONG       pagedirentry=address >> 21 & 0x1ff;
+    ULONG       pagetableentry=address >> 12 & 0x1ff; //when it's not a big sized page
+    PPDPTE_PAE  realpagedirptrtable=VirtualMachinePagingspace;
+    PPDE_PAE    realpagedirtable=(PPDE_PAE)MapPhysicalMemory(realpagedirptrtable[pagedirptrentry].PFN << 12,4096,0x10000000);
+    PPTE_PAE    realpagetable=(PPTE_PAE)MapPhysicalMemory(realpagedirtable[pagedirentry].PFN << 12,4096,0x10200000);          
+   
+    //set the present bit to 0 on the pagetable or pagedir (if it's a PS==1)    
+    
+    if (realpagedirptrtable[pagedirptrentry].P==1)
+    {
+      if (realpagedirtable[pagedirentry].P==1)
+      {
+        if (realpagedirtable[pagedirentry].PS==1) 
+          realpagedirtable[pagedirentry].P=0; //big page, so this is the offending entry
+        else          
+          realpagetable[pagetableentry].P=0; //it has a pagetable
+      }      
+   
+    }  
+    return 0;    
+  }
+  else
+  {
+    //non pae
+    ULONG pagedirentry=address >> 22;
+    ULONG pagetableentry=address >> 12 & 0x3ff; //when it's not a big sized page
+    PPDE  realpagedirtable=VirtualMachinePagingspace;
+    PPTE  realpagetable=(PPTE)MapPhysicalMemory(realpagedirtable[pagedirentry].PFN << 12,4096,0x10000000);          
+       
+    realpagedirtable[pagedirentry].P=0;
+    
+    if (realpagedirtable[pagedirentry].P==1)
+    {
+      if (realpagedirtable[pagedirentry].PS==1) 
+        realpagedirtable[pagedirentry].P=0; //big page, so this is the offending entry
+      else          
+        realpagetable[pagetableentry].P=0; //it has a pagetable
+    }
+    return 0;    
+  }  
+}
+
+int handleVMPageException(void)
+{  
+  regCR0 fakeCR0;
+  regCR4 fakeCR4;
+	PFerrorcode errorcode;
+  ULONG fakepagebase=guestCR3 & 0xfffffffc;
+  ULONG faultingaddress=vmread32(0x6400); //on pagefaults the exitqualification contains the address
+
+	errorcode.errorcode=vmread32(0x4406);
+  fakeCR0.CR0=vmread32(0x6004);
+  fakeCR4.CR4=vmread32(0x6006);
+  
+  //return 1;
+   
+//  if (fakeCR4.PAE) //debug
+    //nosendchar=0;
+  
+  sendstringf("guest cs=%8\n\r",vmread32(0x802));
+  sendstringf("guest eip=%8\n\r",vmread32(0x681e));  
+  sendstringf("address=%8\n\r",faultingaddress);
+  sendstringf("errorcode P=%d\n\r",errorcode.P);
+  sendstringf("errorcode W=%d\n\r",errorcode.W);
+  sendstringf("errorcode US=%d\n\r",errorcode.US);
+  sendstringf("errorcode RSVD=%d\n\r",errorcode.RSVD);
+  sendstringf("errorcode ID=%d\n\r",errorcode.ID);
+  
+  
+  //get the guest's CR3  (guestCR3 variable, of this cpu)
+	//get the vmm's CR3 used for the guests (not hard, it's VirtualMachinePagingspace)
+	//returns 0 if handled, 1 if it needs to be handled by guest , 2 if it's a huge bug
+
+  if (fakeCR4.PAE)
+  {
+    unsigned int pagedirptrentry=faultingaddress >> 30;
+		unsigned int pagedirentry=faultingaddress >> 21 & 0x1ff;
+		unsigned int pagetableentry=faultingaddress >> 12 & 0x1ff; //when it's not a big sized page
+
+    PPDPTE_PAE realpagedirptrtable=VirtualMachinePagingspace;
+		PPDE_PAE 	 realpagedirtable=(PPDE_PAE)MapPhysicalMemory(realpagedirptrtable[pagedirptrentry].PFN << 12,4096,0x10000000);
+    PPTE_PAE   realpagetable=(PPTE_PAE)MapPhysicalMemory(realpagedirtable[pagedirentry].PFN << 12,4096,0x10200000);          
+
+		PPDPTE_PAE fakepagedirptrtable=(PPDPTE_PAE)MapPhysicalMemory(fakepagebase, 4096, 0x10400000);
+		PPDE_PAE   fakepagedirtable=(PPDE_PAE)MapPhysicalMemory(fakepagedirptrtable[pagedirptrentry].PFN << 12,4096,0x10600000);
+    PPTE_PAE   fakepagetable=(PPTE_PAE)MapPhysicalMemory(fakepagedirtable[pagedirentry].PFN << 12,4096,0x10800000);
+
+    sendstringf("PAE paging handling (fakepagepage=%8):\n\r",(ULONG)fakepagebase);
+    sendstringf("realpagedirptrtable=%8 realpagedirtable=%8 realpagetable=%8\n\r",(ULONG)realpagedirptrtable, (ULONG)realpagedirtable,(ULONG)realpagetable);
+    sendstringf("fakepagedirptrtable=%8 fakepagedirtable=%8 fakepagetable=%8\n\r",(ULONG)fakepagedirptrtable, (ULONG)fakepagedirtable,(ULONG)fakepagetable);
+    
+    sendstringf("pagedirptrentry=%d pagedirentry=%d pagetableentry=%d\n\r",pagedirptrentry,pagedirentry,pagetableentry);    
+    
+    
+    //emulate using PAE
+    //consult the PageDirPTR (upper 2 bits)
+    if (realpagedirptrtable[pagedirptrentry].P)
+    {
+      //pagedirptr is present
+
+      sendstring("Real pagedirptr entry is present\n\r");
+
+			if (realpagedirtable[pagedirentry].P)
+			{
+				sendstring("Real pagedirtable entry is present\n\r");
+        
+        //first check if the page/guest coherency is ok
+        if (
+           (realpagedirtable[pagedirentry].PS != fakepagedirtable[pagedirentry].PS) || //Pagesize got changed
+           ((realpagedirtable[pagedirentry].PS == 1) && (realpagedirtable[pagedirentry].PFN != fakepagedirtable[pagedirentry].PFN)) //or big page doesn't point to what it used to be (shouldn't happen often) 
+           )
+        {
+          //it got changed., flush so it loads the new state
+          realpagedirtable[pagedirentry].P=0;
+          return 0; //flush this pagedir entry
+        }
+              
+        
+				//pagedir entry is set to paged
+				//check readwrite/supervisor stuff
+        
+				//if (realpagedirtable[pagedirentry].PS==1)
+				{
+					
+					if (errorcode.W==1 && realpagedirtable[pagedirentry].RW==0)
+					{
+						sendstringf("real pagedirtable entry is set to readonly and it is a write operation\n\r");
+						if (errorcode.US==0 && fakeCR0.WP==0) //this is allowed
+						{
+							sendstringf("In kernelmode and kernelmode write protect is off. Allow and make writable+dirty\n\r");
+							//this is allowed no need to check the protection bit              
+	            realpagedirtable[pagedirentry].RW=1;
+              if (realpagedirtable[pagedirentry].PS==1)
+							  fakepagedirtable[pagedirentry].D=1; //i'm feeling dirty
+							return 0; //continue
+						}
+	
+						if (errorcode.US==0 && fakeCR0.WP==1) //check the RW bit
+						{
+							sendstringf("In kernelmode and write protect is ON\n\r");
+							if (fakepagedirtable[pagedirentry].RW==0)
+							{
+								sendstringf("According to the guest is is readonly, so let the guest handle it\n\r");
+								return 1; //WP=1 and page is readonly according to the guest, so page fault for the guest
+							}
+							else
+							{
+								sendstringf("According to the guest it is writable, so allow and make writable+dirty\n\r");
+								//writable
+		            realpagedirtable[pagedirentry].RW=1;
+                if (realpagedirtable[pagedirentry].PS==1)
+								  fakepagedirtable[pagedirentry].D=1;
+								return 0; //continue
+							}
+						}
+	
+						if (errorcode.US==1)
+						{
+							sendstring("In usermode\n\r");
+							//usermode pagefault
+							if (fakepagedirtable[pagedirentry].RW==0) //readonly
+							{
+								sendstringf("According to the guest it is readonly, so let the guest handle it\n\r");
+								return 1; //readonly, so raise error
+							}
+							else
+							{
+								sendstringf("According to the guest it is writable, so allow and make writable+dirty\n\r");
+								//writable
+		            realpagedirtable[pagedirentry].RW=1;
+                if (realpagedirtable[pagedirentry].PS==1)
+								  fakepagedirtable[pagedirentry].D=1;
+								return 0; //continue
+							}						
+						}
+					}
+          /*
+          else
+          {          
+            sendstring("Not a write or readonly, so let it get handled by the guest\n\r");
+            return 1;
+          }
+          */
+				}
+				
+        if (realpagedirtable[pagedirentry].PS==0)
+				{			
+					sendstring("PS==0: This pagedir entry has a pagetable\n\r");		
+					//4K pagedir, so it has a table					
+          if (realpagetable[pagetableentry].P)
+          {
+						sendstring("Real pagetable entry is present\n\r");
+
+            //pagetable is set to paged
+            if (errorcode.W==1 && realpagetable[pagetableentry].RW==0)
+            {
+							sendstringf("real pagetable entry is set to readonly and it is a write operation\n\r");
+              //it was a write and the pagetable has been set to nonwritable
+              if (errorcode.US==0 && fakeCR0.WP==0) //this is allowed (ring0, write, write protect for ring0 is off)
+              {
+								sendstringf("In kernelmode and kernelmode write protect is off. Allow and make writable+dirty\n\r");
+                //this is allowed no need to check the protection bit                
+                realpagetable[pagetableentry].RW=1;
+                fakepagetable[pagetableentry].D=1; //i'm feeling dirty
+                return 0; //continue
+              }
+              
+              if (errorcode.US==0 && fakeCR0.WP==1) //write protect for ring0 is enabled
+              {
+								sendstringf("In kernelmode and write protect is ON\n\r");
+                if (fakepagetable[pagetableentry].RW==0) //is readonly according to the guest. 
+								{
+									sendstringf("According to the guest it is readonly, so let the guest handle it\n\r");
+                  return 1; //WP=1 and page is readonly according to the guest, so page fault for the guest
+								}
+                else
+                {
+									sendstringf("According to the guest it is writable, so allow and make writable+dirty\n\r");
+                  //writable
+                                    
+                  realpagetable[pagetableentry].RW=1;
+                  fakepagetable[pagetableentry].D=1;
+                  return 0; //continue
+                }
+              } 
+              
+              if (errorcode.US==1)
+              {
+								sendstring("in usermode\n\r");
+                //usermode pagefault
+                if (fakepagetable[pagetableentry].RW==0) //readonly
+								{
+									sendstringf("According to the guest it is readonly, so let the guest handle it\n\r");
+                  return 1; //readonly, so raise error
+								}
+                else
+                {
+                  //writable
+									sendstringf("According to the guest it is writable, so allow and make writable+dirty\n\r");
+                  realpagetable[pagetableentry].RW=1;
+                  fakepagetable[pagetableentry].D=1;
+                  return 0; //continue
+                }           
+              }
+            }            
+          }
+          else
+          {
+						sendstring("Real pagetable entry is not present\n\r");
+
+            //pagetable hasn't been set present
+            if (fakepagedirptrtable[pagedirptrentry].P==0)
+						{
+							sendstringf("pagedirptrentry is not present according to the guest\n\r");
+              return 1; //not present according to the guest (weird error though)
+						}
+
+            if (fakepagedirtable[pagedirentry].P==0)
+						{
+							sendstringf("pagedirentry is not present according to the guest\n\r");
+              return 1;
+						}
+              
+            if (fakepagetable[pagetableentry].P==0)
+						{
+							sendstringf("pagetableentry is not present according to the guest\n\r");
+              return 1;
+						}
+              
+            //still here so the pagedirentry is valid according to the guest.
+            //copy the pagetable info, set rw to 0
+						sendstringf("Copying guests pagetable info (exception of RW to 0 and setting A to 1)\n\r");
+            realpagetable[pagetableentry]=fakepagetable[pagetableentry];
+            fakepagetable[pagetableentry].A=1;
+            realpagetable[pagetableentry].RW=0; //readonly so a write will allow me to set it to dirty
+            
+            if (((realpagetable[pagetableentry].PFN << 12)>=vmmstart) && (realpagetable[pagetableentry].PFN << 12)<(vmmstart+0x00400000))
+            {
+              nosendchar=0; //override debugflag, this is a important error
+              sendstringf("invalid memory mapped\n\r");
+              sendstringf("PAE paging handling (fakepagepage=%8):\n\r",(ULONG)fakepagebase);
+              sendstringf("realpagedirptrtable=%8 realpagedirtable=%8 realpagetable=%8\n\r",(ULONG)realpagedirptrtable, (ULONG)realpagedirtable,(ULONG)realpagetable);
+              sendstringf("fakepagedirptrtable=%8 fakepagedirtable=%8 fakepagetable=%8\n\r",(ULONG)fakepagedirptrtable, (ULONG)fakepagedirtable,(ULONG)fakepagetable);
+              
+              sendstringf("pagedirptrentry=%d pagedirentry=%d pagetableentry=%d\n\r",pagedirptrentry,pagedirentry,pagetableentry);    
+                
+              return 2;           
+            }            
+            
+            return 0; 
+          }
+
+				}
+
+				//nothing matched, so it's probably something not done by me
+				return 1;
+			}
+			else
+			{
+				sendstring("Real pagedir entry is not present\n\r");
+				//pagedir entry is not paged
+				//get the guest's pagedir entry and check the state
+				if (fakepagedirptrtable[pagedirptrentry].P==0)
+				{
+					sendstringf("pagedirptrentry is not present according to the guest\n\r");
+					return 1; //not present according to the guest (weird error though)
+				}
+
+				if (fakepagedirtable[pagedirentry].P==0)
+				{
+					sendstringf("pagedirentry is not present according to the guest\n\r");
+					return 1; //also not present according to the guest, so let it handle by the guest
+				}
+
+				//still here so the pagedirentry is valid according to the guest.
+				//copy the needed data and allocate a pagetable if needed
+				sendstringf("Copying guests pagedirentry info (exception of RW to 0 and setting A to 1)\n\r");
+				realpagedirtable[pagedirentry]=fakepagedirtable[pagedirentry]; //guess what that could be
+				if (fakepagedirtable[pagedirentry].PS==0)
+				{
+					sendstringf("...and since it has a pagetable attached allocated my own pagetable\n\r"); 
+					//this points to a pagetable, allocate one (overwrite the PFN)
+					zeromemory(VirtualMachinePagingspaceFreeSpot,4096);  
+					realpagedirtable[pagedirentry].PFN=VirtualToPhysical((ULONG)VirtualMachinePagingspaceFreeSpot) >> 12;
+					VirtualMachinePagingspaceFreeSpot+=4096;
+				}
+        else
+        {
+            if (((realpagedirtable[pagedirentry].PFN << 12)>=vmmstart) && (realpagedirtable[pagedirentry].PFN << 12)<(vmmstart+0x00400000))
+            {
+              nosendchar=0; //override debugflag, this is a important error
+              sendstringf("invalid memory mapped\n\r");
+              sendstringf("PAE paging handling (fakepagepage=%8):\n\r",(ULONG)fakepagebase);
+              sendstringf("realpagedirptrtable=%8 realpagedirtable=%8 realpagetable=%8\n\r",(ULONG)realpagedirptrtable, (ULONG)realpagedirtable,(ULONG)realpagetable);
+              sendstringf("fakepagedirptrtable=%8 fakepagedirtable=%8 fakepagetable=%8\n\r",(ULONG)fakepagedirptrtable, (ULONG)fakepagedirtable,(ULONG)fakepagetable);
+              
+              sendstringf("pagedirptrentry=%d pagedirentry=%d pagetableentry=%d\n\r",pagedirptrentry,pagedirentry,pagetableentry);    
+                
+              return 2;           
+            }   
+        }
+
+				fakepagedirtable[pagedirentry].A=1; //tell the guest it has been accessed
+				realpagedirtable[pagedirentry].RW=0; //when writing to it break so we can set the dirty bit in the fake table if needed        
+        
+				handleFullTLB();
+				return 0;
+			}
+    }
+    else
+    {
+      //it's not marked present
+			sendstring("Real pagedirptr entry is not present\n\r");
+
+      //get the guest's pagedirptrentry and check the state
+       //0x10000000 for cpu1, 0x20000000 cpu2, etc...
+      
+      PPDPTE_PAE fakepagedirptrtable=(PPDPTE_PAE)MapPhysicalMemory(fakepagebase,4,0x10000000);
+      if (fakepagedirptrtable[pagedirptrentry].P==0)
+      {
+        sendstring("pagedirptrentry also not set to not present in guest\n\r");
+        sendstringf("fakepagedirptrtable=%8 pagedirptrentry=%x\n\r",(ULONG)fakepagedirptrtable,(ULONG)pagedirptrentry);
+        return 1; //also not present according to the guest, so let it handle by the guest
+      }
+          
+      //still here so according to the guest it is present
+      //copy the data
+			sendstringf("Copying guests pagedirptrentry info with the exception of the pagedir it points to(allocate that)\n\r");
+
+      realpagedirptrtable[pagedirptrentry]=fakepagedirptrtable[pagedirptrentry];
+        
+      //allocate a 4K region for the pagedir it describes (pagedirptr entry so only pagedirs)
+      zeromemory(VirtualMachinePagingspaceFreeSpot,4096);        
+      realpagedirptrtable[pagedirptrentry].PFN=VirtualToPhysical((ULONG)VirtualMachinePagingspaceFreeSpot) >> 12;
+      VirtualMachinePagingspaceFreeSpot+=4096;
+
+			handleFullTLB(); //check if the tlb is full and if so make adjustments
+        
+      return 0;
+
+    }    
+  }
+  else
+  { 
+    //normal  
+    
+    //real table is that of the vmm, fake is the one of the virtual machine
+      
+    ULONG pagedirentry=faultingaddress >> 22;
+    ULONG pagetableentry=faultingaddress >> 12 & 0x3ff; //when it's not a big sized page
+    PPDE  realpagedirtable=VirtualMachinePagingspace;
+    PPDE  fakepagedirtable=(PPDE)MapPhysicalMemory(fakepagebase, 4096, 0x10200000);
+
+    int   causedbyactivepde=0;
+
+/*
+    sendstringf("Normal pagingmode handling (fakepagepage=%8):\n\r",(ULONG)fakepagebase);
+    sendstringf("realpagedirtable=%8 realpagetable=%8\n\r",(ULONG)VirtualToPhysical((ULONG)realpagedirtable),(ULONG)VirtualToPhysical((ULONG)realpagetable));
+    sendstringf("fakepagedirtable=%8 fakepagetable=%8\n\r",(ULONG)VirtualToPhysical((ULONG)fakepagedirtable),(ULONG)VirtualToPhysical((ULONG)fakepagetable));
+    sendstringf("pagedirentry=%d pagetableentry=%d\n\r",pagedirentry,pagetableentry);
+    
+    sendstringf("before:\n\r");  
+    sendstringf("fakepagedirtable[pagedirentry]=%8\n\r",*(ULONG*)(&fakepagedirtable[pagedirentry]));
+    sendstringf("fakepagetable[pagetableentry]=%8\n\r",*(ULONG*)(&fakepagetable[pagetableentry]));
+
+    sendstringf("realpagedirtable[pagedirentry]=%8\n\r",*(ULONG*)(&realpagedirtable[pagedirentry]));
+    sendstringf("realpagetable[pagetableentry]=%8\n\r",*(ULONG*)(&realpagetable[pagetableentry]));
+
+*/
+    
+    
+    //1: consult if the active PDE is the cause
+    if ((errorcode.P==0) && (realpagedirtable[pagedirentry].P==0))
+    {      
+      causedbyactivepde=1; //nonpresent
+    }
+    else
+    {    
+      //check consistency between old and new
+      if (                    
+          (realpagedirtable[pagedirentry].PS!=fakepagedirtable[pagedirentry].PS) ||
+          ((realpagedirtable[pagedirentry].PS==1) && (realpagedirtable[pagedirentry].PFN!=fakepagedirtable[pagedirentry].PFN)) || //bigpage and PFN changed
+          (realpagedirtable[pagedirentry].US!=fakepagedirtable[pagedirentry].US)          
+         )
+      {
+        //it changed, retry from start
+        realpagedirtable[pagedirentry].P=1;
+        return 0;          
+      }
+       
+      
+        
+      if (errorcode.P==1)
+      {
+        //fault due to access violation
+        if (errorcode.US==1)
+        {
+          //usermode
+          if (realpagedirtable[pagedirentry].US==0)
+          {
+            //supervisor only page
+            causedbyactivepde=1;
+          }
+          else
+          {  
+            //not supervisor page
+            if (errorcode.W)
+            {
+              //write instruction, check RW bit
+              if (realpagedirtable[pagedirentry].RW==0)
+              {
+                //readonly, and it was a write, and in usermode
+                causedbyactivepde=1;                
+              }
+            }  
+          }
+        }
+        else
+        {
+          //supervisor mode
+          if ((errorcode.W) && (realpagedirtable[pagedirentry].RW==0))
+          {
+            //write instruction, since WP=1 this is caused by the pde, regardless of supervisor or not
+            causedbyactivepde=1;                
+          }
+        }        
+      }
+    }
+
+
+    
+    if (causedbyactivepde)
+    {
+      sendstring("pagedir: Fault caused by state of PDE\n\r");
+      
+      //2: active pde is cause of exception, check guest
+      if (fakepagedirtable[pagedirentry].P==0)
+      {
+        sendstring("pagedir: fakepagedirtable[pagedirentry].P==0\n\r");
+        return 1; //nonpresent , cause exception
+      }
+      else
+      {
+        //fault due to access violation
+        if (errorcode.US==1)
+        {
+          //access from usermode
+          if (fakepagedirtable[pagedirentry].US==0)
+          {
+            //supervisor only page
+            sendstringf("pagedir: Supervisor only page access from usermode\n\r");
+            return 1;
+          }
+          else
+          {  
+            //not supervisor page
+            if (errorcode.W)
+            {
+              //write instruction, check RW bit
+              if (fakepagedirtable[pagedirentry].RW==0)
+              {
+                //readonly, and it was a write, and in usermode
+                sendstringf("pagedir: Readonly and a write operation, in usermode\n\r");
+                return 1;                
+              }
+            }  
+          }
+        }
+        else
+        {
+          //supervisor mode
+          if (errorcode.W)
+          {
+            //write instruction, check RW bit
+            if ((fakepagedirtable[pagedirentry].RW==0) && (fakeCR0.WP==1 || fakepagedirtable[pagedirentry].US==0))
+            {
+              //readonly and WP is 1, or target is a supervisor readonly page
+              sendstringf("pagedir: Readonly and a write operation, in supervisor mode, CR0.WP==1 or US==0\n\r");
+              return 1;                
+            }
+          }
+        }        
+        
+      }
+      
+      //still here, so not a problem with the guest's pde      
+      //3: check if PFN points to the vmm, if so, block
+      
+      if (((fakepagedirtable[pagedirentry].PFN << 12)>=vmmstart) && (fakepagedirtable[pagedirentry].PFN << 12)<(vmmstart+0x00400000))
+      {
+        nosendchar=0;
+        sendstring("pagedir: VMM memory accessed\n\r");
+        return 2;        
+      }
+      
+      //4: if active pde is not present then set active pde to guest pde
+      if (realpagedirtable[pagedirentry].P==0)
+      {
+        //fill in guest entry
+        sendstring("pagedir: Active pagedirentry is not present, copying data\n\r");
+        
+        realpagedirtable[pagedirentry]=fakepagedirtable[pagedirentry];
+                
+        if (fakepagedirtable[pagedirentry].PS==0)
+        {
+          //has a pagetable
+          sendstringf("pagedir: It has a pagetable, so allocated a empty pagetable for it (%8)\n\r",(ULONG)VirtualToPhysical((ULONG)VirtualMachinePagingspaceFreeSpot));
+          zeromemory(VirtualMachinePagingspaceFreeSpot,4096);        
+          realpagedirtable[pagedirentry].PFN=VirtualToPhysical((ULONG)VirtualMachinePagingspaceFreeSpot) >> 12;
+          VirtualMachinePagingspaceFreeSpot+=4096;
+
+          
+        }
+        
+        //e
+        sendstring("pagedir: setting accessed bit in guest\n\r");
+        fakepagedirtable[pagedirentry].A=1;
+        
+        //f (could actually be skipped)
+        if ((fakepagedirtable[pagedirentry].D==1) || (fakepagedirtable[pagedirentry].PS==0))
+        {
+          sendstring("pagedir: D==1 || PS==0 , setting RW bit like guest RW\n\r");
+          realpagedirtable[pagedirentry].RW=1; //fakepagedirtable[pagedirentry].RW;
+        }
+          
+        //g
+        if ((fakepagedirtable[pagedirentry].D==0) && (fakepagedirtable[pagedirentry].PS==1) && (errorcode.W==1) )
+        {
+          sendstring("pagedir: D==0 && PS==1 && write operation, Set dirty to 1 and writable to guests state\n\r");
+          realpagedirtable[pagedirentry].RW=1; //fakepagedirtable[pagedirentry].RW;
+          fakepagedirtable[pagedirentry].D=1;
+        }
+        
+        //h
+        if ((fakepagedirtable[pagedirentry].D==0) && (fakepagedirtable[pagedirentry].PS==1) && (errorcode.W==0) )
+        {
+          sendstring("pagedir: D==0 && PS==1 && no write operation, set RW to 0\n\r");          
+          realpagedirtable[pagedirentry].RW=0; //to be able to capture writes so dirty gets set
+        }
+        
+        //i
+        
+        handleFullTLB(); //check if the tlb is full and if so make adjustments
+        return 0; //restart instruction  
+      }
+      
+      //it is present
+      if ((realpagedirtable[pagedirentry].PS==1) && (errorcode.W==1) )
+      {        
+        realpagedirtable[pagedirentry].RW=1;
+        fakepagedirtable[pagedirentry].D=1;
+        sendstring("Active PDE is present, PS==1, Write operation, D==0 according to the guest, Set D to 1 and RW to 1\n\r"); 
+        return 0;
+      } 
+      
+      return 1; //send fault to guest (e.g reserved bits set)
+      
+    }
+    else
+    {      
+      int causedbyactivepte=0;
+      
+      sendstring("Not caused by PDE\n\r");
+      
+      //not caused by the active pde
+      //step 7->
+      //7: 4Mbyte page, but it wasn't the cause
+      if (realpagedirtable[pagedirentry].PS==1)
+      {
+        sendstring("realpagedirtable[pagedirentry].PS==1, but not caused by pde. Clear PDE\n\r");
+        realpagedirtable[pagedirentry].P=0;
+        return 0; //try again
+      }
+      
+      PPTE  realpagetable=(PPTE)MapPhysicalMemory(realpagedirtable[pagedirentry].PFN << 12,4096,0x10000000);          
+      PPTE  fakepagetable=(PPTE)MapPhysicalMemory(fakepagedirtable[pagedirentry].PFN << 12,4096,0x10400000);
+      
+      
+      //8: consult if the active PTE is the cause
+      if ((errorcode.P==0) && (realpagetable[pagetableentry].P==0))
+      {
+        causedbyactivepte=1; //nonpresent
+      }
+      else
+      {
+        
+        //check consistency between old and new
+        if (          
+            (realpagetable[pagetableentry].PFN!=fakepagetable[pagetableentry].PFN) ||
+            (realpagetable[pagetableentry].US!=fakepagetable[pagetableentry].US)           
+           )
+        {
+          //it changed, retry from start
+          realpagedirtable[pagedirentry].P=1;
+          return 0;          
+        }
+      
+        if (errorcode.P==1)
+        {
+          //fault due to access violation
+          if (errorcode.US==1)
+          {
+            //usermode
+            if (realpagetable[pagetableentry].US==0)
+            {
+              //supervisor only page
+              causedbyactivepte=1;
+            }
+            else
+            {  
+              //not supervisor page
+              if (errorcode.W)
+              {
+                //write instruction, check RW bit
+                if (realpagetable[pagetableentry].RW==0)
+                {
+                  //readonly, and it was a write, and in usermode
+                  causedbyactivepte=1;                
+                }
+              }  
+            }
+          }
+          else
+          {
+            //supervisor mode
+            if (errorcode.W)
+            {
+              //write instruction
+              if (realpagetable[pagetableentry].RW==0)
+              {
+                //readonly, and it was a write, WP=1 so also break on usermode writes
+                causedbyactivepte=1;                
+              }
+            }
+          }        
+        }
+      }
+      
+      
+      if (causedbyactivepte)
+      {
+        sendstring("Caused by active PTE\n\r");
+        //2: active pde is cause of exception, check guest
+        if (fakepagetable[pagetableentry].P==0)
+        {
+          sendstring("pagetable: fakepagetable[pagetableentry].P==0\n\r");
+          return 1; //nonpresent , cause exception
+        }
+        else
+        {      
+
+          //fault due to access violation
+          if (errorcode.US==1)
+          {
+            //usermode
+            if (fakepagetable[pagetableentry].US==0)
+            {
+              //supervisor only page
+              sendstring("pagetable: access to supervisor only page from usermode\n\r");
+              return 1;
+            }
+            else
+            {  
+              //not supervisor page
+              if (errorcode.W)
+              {
+                //write instruction, check RW bit
+                if (fakepagetable[pagetableentry].RW==0)
+                {
+                  //readonly, and it was a write, and in usermode
+                  sendstring("pagetable: Write operation to usermode page in usermode, where RW==0\n\r");                    
+                  return 1;                
+                }
+              }  
+            }
+          }
+          else
+          {
+            //supervisor mode
+            if (errorcode.W)
+            {
+              //write instruction, check RW bit
+              if ((fakepagetable[pagetableentry].RW==0) && (fakeCR0.WP==1 || fakepagetable[pagetableentry].US==0))
+              {
+                //readonly and WP is 1, or target is a supervisor readonly page
+                sendstringf("pagetable: Readonly and a write operation, in supervisor mode, CR0.WP==1 or US==0\n\r");
+                return 1;                
+              }
+            }
+          }        
+          
+        }
+          
+        //still here, so not a cause for a guest exception, so writes should be allowed if it was a write
+        
+        //11
+        if (((fakepagetable[pagetableentry].PFN << 12)>=vmmstart) && (fakepagetable[pagetableentry].PFN << 12)<(vmmstart+0x00400000))
+        {
+          nosendchar=0;
+          sendstring("VMM memory accessed\n\r");
+          return 2;        
+        }    
+        
+        //12
+        if (realpagetable[pagetableentry].P==0)
+        {
+          //fill in guest entry (a,b,c)
+          realpagetable[pagetableentry]=fakepagetable[pagetableentry];
+          
+          //d
+          fakepagetable[pagetableentry].A=1;
+          
+          //e 
+          if (fakepagetable[pagetableentry].D==1)
+            realpagetable[pagetableentry].RW=1; //fakepagetable[pagetableentry].RW;
+            
+          //f
+          if ((fakepagetable[pagetableentry].D==0) && (errorcode.W==1) )
+          {
+            realpagetable[pagetableentry].RW=1; //fakepagetable[pagetableentry].RW;
+            fakepagetable[pagetableentry].D=1;
+          }
+          
+          //g
+          if ((fakepagetable[pagetableentry].D==0) && (errorcode.W==0) )
+            realpagetable[pagetableentry].RW=0; //to be able to capture writes so dirty gets set
+          
+          //h
+          
+          sendstringf("after:\n\r");  
+          sendstringf("fakepagedirtable[pagedirentry]=%8\n\r",*(ULONG*)(&fakepagedirtable[pagedirentry]));
+          sendstringf("fakepagetable[pagetableentry]=%8\n\r",*(ULONG*)(&fakepagetable[pagetableentry]));
+      
+          sendstringf("realpagedirtable[pagedirentry]=%8\n\r",*(ULONG*)(&realpagedirtable[pagedirentry]));
+          sendstringf("realpagetable[pagetableentry]=%8\n\r",*(ULONG*)(&realpagetable[pagetableentry]));
+
+          
+          return 0; //restart instruction
+        }
+        
+        //13:
+        if (errorcode.W==1)
+        {
+          sendstring("Making pagetabelentry writable for write operation\n\r");
+          fakepagetable[pagetableentry].D=1;
+          realpagetable[pagetableentry].RW=1; 
+          return 0; //restart
+        }
+          
+        
+        
+        
+      }
+      else
+      {
+        //9, not caused by the active pte, tlb inconsistency
+        sendstring("Not caused by active PTE, inconsistent, clear PTE and try again\n\r");
+        realpagetable[pagetableentry].P=0;
+        return 0; //try again
+      }   
+         
+        
+      
+    }
+    
+    
+        
+  
+  } //end of non pae mode
+  
+  sendstring("ALERT!!!!!! EOR REACHED!!!!\n\r");
+}
+
+int emulatePaging(void)
+/*
+Called when paging is set from 0 to 1
+Called when CR3 is written to
+Called when the pagetable is written to
+*/
+{
+
+  sendstring("Settig up guest paging\n\r");
+
+
+  /* initial release: just use the guest's CR3, when thats working, use TLB emulation to hide vmm */
+
+    
+  
+
+	//read the guest's CR3 and use that to emulate the pagetable
+	if (VirtualMachinePagingspace==NULL)
+  	allocvirtualpagememory();
+    
+  //-------------------
+  /*
+  if  ((vmread32(0x6004) & 0x80000001)==0x80000001)
+  {
+    vmwrite32(0x6802,guestCR3);
+    return 0;
+  }
+  */
+  //-------------------
+      
+    
+  //setup a empty level0 table (basicly just zero it) , no need to know if it is pae here
+  zeromemory(VirtualMachinePagingspace,4096);  
+  vmwrite32(0x6802,(ULONG)VirtualToPhysical((ULONG)VirtualMachinePagingspace));
+  VirtualMachinePagingspaceFreeSpot=VirtualMachinePagingspace+4096;
+
+	/* guestCR3 contains the physical address of the pagedirptr
+	   (or pagedir if pae isn't enabled for the guest, which adds one 
+			more extra level of emulation) 
+	*/
+
+	/* Use the TLB lookup method, Set everything to non-present and only allocate when accessed */
+  //regarding writable=0 init in ring0: on a taskswitch from ring0 to ring3 is a cr3 modification accompanied anyhow
+
+	
+
+}
+
+int setupA20maskedPaging(void)
+{
+  int i;
+  PPDPTE_PAE VirtualMachinePageDirPointer;
+  PPDE_PAE   VirtualMachinePageDir;
+  PPTE_PAE   VirtualMachinePageTable;
+  
+  sendstringf("setting up real mode paging\n\r");
+//sets up a identity mapped memory with overflow to 0 after 1 MB
+//uses PAE so set CR4 to pae mode
+	if (VirtualMachinePagingspace==NULL)
+    allocvirtualpagememory();
+
+	VirtualMachinePageDirPointer=VirtualMachinePagingspace;
+	VirtualMachinePageDir=VirtualMachinePagingspace+0x1000;
+	VirtualMachinePageTable=VirtualMachinePagingspace+0x1000+2048*8;
+    
+  
+  zeromemory(VirtualMachinePageDirPointer,4096);
+  zeromemory(VirtualMachinePageDir,2048*8); //to map 00000000 to ffffffff (one entry can map 0x00200000, 2048=0x00200000*2048=0x100000000)
+  zeromemory(VirtualMachinePageTable,4096); //4096=able to map 0x00200000 bytes, in this case 0x00200000 to 0x00400000
+  
+  sendstringf("VirtualMachinePageDirPointer=%8\n\r",(ULONG)VirtualMachinePageDirPointer);
+  sendstringf("VirtualMachinePageDir=%8\n\r",(ULONG)VirtualMachinePageDir);
+  sendstringf("VirtualMachinePageTable=%8\n\r",(ULONG)VirtualMachinePageTable);
+  
+  for (i=0; i<4; i++)
+  {
+    VirtualMachinePageDirPointer[i].P=1;    
+    VirtualMachinePageDirPointer[i].PFN=VirtualToPhysical((ULONG)VirtualMachinePageDir+(i*4096)) >> 12;
+  }
+
+  //00000000-001fffff (low memory, map this using seperate pages)  
+  VirtualMachinePageDir[0].P=1;
+  VirtualMachinePageDir[0].A=0;
+  VirtualMachinePageDir[0].RW=1;
+  VirtualMachinePageDir[0].US=1;
+  VirtualMachinePageDir[0].PS=0; //has a pagetable
+  VirtualMachinePageDir[0].PFN=VirtualToPhysical((ULONG)VirtualMachinePageTable) >> 12;
+
+  
+  for (i=1; i<2048; i++)  //512 in one pagedir, 4 pagedirs=2048 entries
+  {
+    //identity map these regions (easy when switching to protected mode)
+    VirtualMachinePageDir[i].P=1;
+    VirtualMachinePageDir[i].A=0;  
+    VirtualMachinePageDir[i].RW=1;
+    VirtualMachinePageDir[i].US=1;
+    VirtualMachinePageDir[i].PS=1; //no pagetable      
+    VirtualMachinePageDir[i].PFN=(i*0x00200000) >> 12;
+  }
+  
+  //now configure the first pagetable for the low memory of 00000000 to fffff and the wraparround after 0x100000 bytes
+  for (i=0; i<(512); i++)
+  {
+    VirtualMachinePageTable[i].P=1;
+    VirtualMachinePageTable[i].A=0;
+    VirtualMachinePageTable[i].RW=1;
+    VirtualMachinePageTable[i].US=1;
+    VirtualMachinePageTable[i].PFN=i % 256;
+  } 
+
+  vmwrite32(0x6802,(ULONG)VirtualToPhysical((ULONG)VirtualMachinePagingspace));
+}
+
+int setupRealModePaging(void)
+/* called on switch to realmode and when the a20 line is modified */
+{
+  PPDPTE_PAE VirtualMachinePageDirPointer;
+  PPDE_PAE   VirtualMachinePageDir;
+  ULONG      address;
+
+    
+  
+  //check if the A20 line is enabled, if so
+  setupNonPagedPaging();  
+  //else
+  //setupA20maskedPaging();  
+  
+  //but make the VMM accessible... (VirtualMachineTSS_V8086 has to be readable by the vm86 monitor)
+  /*
+  address=(ULONG)VirtualToPhysical((ULONG)VirtualMachineTSS_V8086);  
+  {
+    ULONG       pagedirptrentry=address >> 30;
+    ULONG       pagedirentry=address >> 21 & 0x1ff;
+    PPDPTE_PAE  pagedirptrtable=VirtualMachinePagingspace;
+    PPDE_PAE    pagedirtable=(PPDE_PAE)MapPhysicalMemory(pagedirptrtable[pagedirptrentry].PFN << 12,4096,0x10000000);
+    
+    pagedirtable[pagedirentry].PFN=address >> 12;  
+    
+  }*/
+  
+}
+
+int setupNonPagedPaging(void)
+{
+//sets up a identify mapped memory (faking the vmm memory as ffpages)
+//uses PAE so set CR4 to pae mode
+  PPDPTE_PAE VirtualMachinePageDirPointer;
+  PPDE_PAE   VirtualMachinePageDir;
+  DWORD      pfn_vmmstart=vmmstart >> 12;
+  DWORD      pfn_vmmstop=(vmmstart+0x00400000) >> 12;
+
+	unsigned int i;
+  
+  sendstringf("Setting up protected mode paging\n\r");
+
+	if (VirtualMachinePagingspace==NULL)
+    allocvirtualpagememory();
+
+	VirtualMachinePageDirPointer=VirtualMachinePagingspace;
+	VirtualMachinePageDir=VirtualMachinePagingspace+0x1000;
+
+  zeromemory(VirtualMachinePageDirPointer,4096);
+  zeromemory(VirtualMachinePageDir,2048*8); //to map 00000000 to ffffffff (one entry can map 0x00200000, 2048=0x00200000*2048=0x100000000)
+  
+  sendstringf("VirtualMachinePageDirPointer=%8\n\r",(ULONG)VirtualMachinePageDirPointer);
+  sendstringf("VirtualMachinePageDir=%8\n\r",(ULONG)VirtualMachinePageDir);
+  
+  for (i=0; i<4; i++)
+  {
+    VirtualMachinePageDirPointer[i].P=1;    
+    VirtualMachinePageDirPointer[i].PFN=VirtualToPhysical((ULONG)VirtualMachinePageDir+(i*4096)) >> 12;
+  }
+  
+  for (i=0; i<2048; i++)  //512 in one pagedir, 4 pagedirs=2048 entries
+  {
+    //identity map these regions (easy when switching to protected mode)
+    VirtualMachinePageDir[i].P=1;
+    VirtualMachinePageDir[i].A=0;  
+    VirtualMachinePageDir[i].RW=1;
+    VirtualMachinePageDir[i].US=1;
+    VirtualMachinePageDir[i].PS=1; //no pagetable   
+    
+    VirtualMachinePageDir[i].PCD=0;
+    VirtualMachinePageDir[i].PWT=0;   
+    VirtualMachinePageDir[i].PFN=(unsigned int )((i*0x00200000) >> 12);
+		
+    
+		//check if this pfn points to the vmm
+		if ((VirtualMachinePageDir[i].PFN>=pfn_vmmstart) && (VirtualMachinePageDir[i].PFN<pfn_vmmstop))
+		{
+      //if so, fake dir     
+      
+      if ((vmread32(0x6004) & 1)==1) //really protected mode
+      {        
+        VirtualMachinePageDir[i].PS=0;
+        VirtualMachinePageDir[i].RW=0; //readonly
+			  VirtualMachinePageDir[i].PFN=VirtualToPhysical((ULONG)ffpagetable) >> 12;
+      } //else actualy realmode, so allow, except writes
+      else
+      {
+        //unless the guest is in realmode and this is just a move to execute privileged instructions, then only readonly and supervisormode
+        VirtualMachinePageDir[i].RW=0;
+        VirtualMachinePageDir[i].US=0; //ring0 only                
+      }
+		}
+    
+
+  }
+  
+  vmwrite32(0x6802,(ULONG)VirtualToPhysical((ULONG)VirtualMachinePagingspace)); //set guest's cr3 (real one) to this address
+
+}

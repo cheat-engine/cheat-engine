@@ -1,0 +1,15 @@
+OUTPUT_FORMAT("binary")
+ENTRY(main)
+SECTIONS
+{
+  .text  0x7c00 : {
+    *(.text)
+  }
+  .data 0x7c00 : {
+    *(.data)
+  }
+  .bss  :
+  { 					
+    *(.bss)
+  }
+}

@@ -1,0 +1,200 @@
+vmcall_instruction:
+eax=pointer to information structure
+edx=level1pass (if wrong, immeadiate UD exception is raised)
+
+information struct:
+ULONG structsize
+ULONG level2pass; (if wrong, UD exception is raised)
+ULONG command
+... Extra data depending on command
+ 
+
+command:
+0: verify vmm
+returns 0xcexxxxxxxx in eax , where xxxxxx=version number of vmm
+
+1: Change password
+params:
+ULONG password1 : New password for password 1
+ULONG password2 : New password for password 2
+
+2: total memory cloak toggle
+This will enable or disable memory cloaking for ALL processes (slow, but safe)
+note that memorycloak will be only get activated after a CR3 change (taskswitch)
+
+note: non-pae seems to work and is optimized, but PAE mode tends crash, and is unoptimized, same for pml4 (64-bit)
+
+return 0 if turned off, returns 1 if turned on
+
+
+3: Read physical memory
+params:
+UINT64 sourcePA         : Source physical address
+DWORD  size             : Number of bytes to read
+UINT64 destinationVA    : Destination virtual address
+DWORD  nopagefault      : Determines if a pagefault should be rissen if the destinationVA is not paged
+
+returns:
+EAX=bytes read
+
+notes:
+It is recommended that the destinationVA is only 4096 bytes on systems with very low memory
+(example: page 1 gets paged in, but page 2 gets paged out, then page2 gets paged in, but page 1
+gets paged out, causing a infinite loop)
+
+
+4: Write physical memory
+params:
+UINT64 destinationPA  : Destination Physical address
+DWORD size            : Number of bytes to write
+UINT64 sourceVA			  : Source virtual address
+DWORD nopagefault     : Determines if a pagefault should be rissen if the destinationVA is not paged
+
+returns:
+EAX=bytes written
+
+notes:
+It is recommended that the sourceVA is only 4096 bytes on systems with very low memory
+
+
+5: Set fake sysentermsr state
+params:
+enabled    : 0=Don't fake sysenter 1=Fake sysenter
+
+note: Please remember that each cpu core can have it's own sysenter msr's. So call it for 
+all cpu's
+Disabling it will change the msr's back to what the os thinks it is
+
+
+if fake sysenter is enabled the next 2 functions are available, else invalid opcode is generated
+6: Get Real sysenter msr (you can get the fake one by just getting the msr)
+params:
+&sysenter_CS : Address to the location where to store the current sysenter_CS value
+&sysenter_EIP: Address to the location where to store the current sysenter_EIP value
+&sysenter_ESP: Address to the location where to store the current sysenter_ESP value
+
+best use:
+Use the synter msr value in your own sysenter handling routine to jump to the real routine
+
+note:
+Try to keep these addresses to point to the same page, else it may page in 3 pages for one 
+instrucction, which may cause a infinite loop on a 16KB system... (yeah right, just to be 
+safe...)
+  
+7:
+Set real sysenter msr
+
+params: (all 4 byte)
+sysenter_CS  : New sysenter_CS value
+sysenter_EIP : New sysenter_EIP value
+sysenter_ESP : New sysenter_ESP value
+
+8: Configure internal routines  (Not yet implemented)
+params:
+os: 0=windows xp pro sp 2
+
+used for stuff like getcurrentprocessid, getcurrentthreadid, ...
+
+9: Redirect interrupt 1
+params:
+ULONG type: 0=int1 vector redirect
+            1=skip idt vector and make use of a static address and segment selectors.
+
+ULONG newintvector: intvector where int1 interrupts will be redirected to, when type=0, else ignored
+
+UINT64 rip;     //address to jump to
+ULONG  cs;      //when in a 64-bit os, this MUST be a 64-bit segment selector
+
+
+
+Usefull for certain os's that don't allow registering int1 (e.g microsoft windows)
+Note: This is not CPU specific, so make sure ALL cpu's have this vector handled in their IDT
+
+Restore it by setting type to 0 and newintvector to 1
+
+
+10: Did a int1 happen?
+returns true of false depending if it has firered a redirected int1 since last call
+
+This is usefull for writing your isr and using redirects. That way you can see if a interrupt
+in your isr was because of a int1 int, or if it was for the original int handler.
+REMEMBER: Always and only call this function in your redirected_inthandler
+
+
+11: Change register at address (Not yet implemented)
+Will change the registers when a breakpoint happens on a targeted process and the address is 
+registered with this call.
+Params:
+
+12: change segment registers
+params:
+ULONG cs  :new cs segment selector
+ULONG ss  :new ss segment selector
+ULONG ds  :new ds segment selector
+ULONG es  :new es segment selector
+ULONG fs  :new fs segment selector
+ULONG gs  :new gs segment selector
+
+13: Disable interrupts
+Might be usefull when changing access rights from usermode to kernelmode. You then probably
+don't want a taskchange or other interrupt to fire while you're in there.
+
+Please try not to execute a iret in this state, it'll unblock the nmi blocking. (of course
+I have no idea why you'd want to anyhow)
+
+14: Resume interrupts
+Sets the interrupt state back to the state it was in prior to the disable of interrupts.
+
+
+15: Get current processid
+Will return the processid of the current running process. Not really usefull, but can be
+used as a test to verify that the correct os-specific routines are used
+
+16: Register cr3-change callback
+ULONG  callbacktype  :0=32-bit stdcall, 1=64-bit
+UINT64 callback_eip  :address to go to when cr3 gets changed
+ULONG	 callback_cs   :cs to be used for callback
+UINT64 callback_esp  :esp when inside callback (note that this will imeadiatly get changes
+										  due to the param pushes if 32-bit stdcall is used)
+ULONG  callback_ss   :ss segment to be used for callback
+
+callback function declaration:
+64-bit: void cr3_callback(UINT64 oldcr3, UINT64 newcr3);
+32-bit: void cr3_callback(ULONG oldcr3, ULONG newcr3);
+
+Enabling this will decrease speed of the system since edits of CR3 will then cause all
+registers to be saved and a state change to the callback function
+
+note: ALWAYS exit with a return from cr3-change callback vmcall, forgetting it will probably 
+		  crash the whole system
+note2: There can only be ONE at a time
+note3: Do not use this when global memory cloaking is enabled
+
+
+17: Return from cr3-change callback
+UINT64 newcr3        :cr3 will get this value. cr3 reads will shown what the guest wanted
+                      it to be. (You can of course set it to what it should be...)
+                                          
+This will also restore all registers and selectors to the previous state
+
+
+DBVM Version 6+
+26: Read msr (VMCALL_READMSR)
+ULONG msr : The msr to read out
+UINT64 msrreturnvalue : This space will receive the value of the msr
+
+27: Write msr (VMCALL_WRITEMSR)
+ULONG msr : The msr to write to
+UINT64 value: The msr value to write
+
+28: ultimap (VMCALL_ULTIMAP)
+QWORD cr3towatch
+QWORD debugctrlvalueyouwantset
+QWORD addressofthestore
+
+29: ultimap_disable (VMCALL_ULTIMAP_DISABLE)
+
+
+-----
+note:
+result of 0xcedead means that the function was not implemented(yet)
