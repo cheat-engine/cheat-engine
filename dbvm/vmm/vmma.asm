@@ -1029,16 +1029,23 @@ pop rdi
 pop rdx
 pop rcx
 pop rbx
+
+cmp rax,0
 pop rax
+je inthandlerx_noerrorcode
 
-add rsp,8
+;errocode
+add rsp,16 ;undo push (intnr) and errorcode
+jmp inthandlerx_exit
 
-;mov qword [rsp],menu
-;mov qword [rsp+8],80
-;mov qword [rsp+16],0
-;mov qword [rsp+24],0x007ffff0
-;mov qword [rsp+32],0
+inthandlerx_noerrorcode:
+add rsp,8  ;undo push (intnr)
+
+inthandlerx_exit:
 iretq
+
+
+
 db 0xcc
 db 0xcc
 db 0xcc
