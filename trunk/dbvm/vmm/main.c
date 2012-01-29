@@ -23,6 +23,7 @@
 #include "vmxcontrolstructures.h"
 
 #include "test.h"
+#include "vmcall.h"
 
 /*
 //#include "logo.c"
@@ -1335,34 +1336,19 @@ int testexception(void)
 
   volatile int result=2;
 
-  displayline("Enabling interrupts and see if we can catch one\n");
-  *(BYTE *)0xeeee=12;
+
+  bochsbp();
 
   __asm("nop");
   __asm("nop");
   __asm("nop");
-  cpuinfo[0].OnInterrupt.RIP=(QWORD)&&InterruptFiredxx; //set interrupt location
-  cpuinfo[0].OnInterrupt.RSP=getRSP();
+
+  result=readMSRSafe(&cpuinfo[0], 553);
 
   //nothing happened
-  result=0;
-  int z=12;
-  z=z / result;
+  //result=0;
+  displayline("result=%d\n", result);
 
-  cpuinfo[0].OnInterrupt.RIP=0;
-  displayline("None happened\n");
-  result=2;
-
-InterruptFiredxx:
-  if (result!=2)
-  {
-    sendstringf("Interrupt fired\n\r");
-    displayline("Interrupt fired\n");
-    //interrupt location
-    //something happened
-        //change cs:ip to the according location
-    result=1;
-  }
 
   return result;
 }

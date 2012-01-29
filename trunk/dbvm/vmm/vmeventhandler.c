@@ -1497,7 +1497,7 @@ int handleRDMSR(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     default:
       nosendchar[getAPICID()]=0;
-      sendstring("MSR read event for msr that wasn\'t supposed to cause a exit!!!\n\r");
+      sendstring("MSR read event for msr that wasn\'t supposed to cause an exit!!!\n\r");
       sendstring("Emulating GPF(0)");
       return raiseGeneralProtectionFault(0);
       //return 1;
