@@ -66,7 +66,10 @@ procedure dbvm_enterkernelmode(originalstate: POriginalState);
 procedure dbvm_returntousermode(originalstate: POriginalState);
 function dbvm_kernelalloc(size: dword): pointer;
 function dbvm_copyMemory(destination, target: pointer; size: integer): boolean;
+
+//got lost since last harddisk crash. Not 'that' important, but will take a while to reimplement
 function dbvm_executeDriverEntry(driverentry: pointer; DriverObject: pointer; RegistryPath: pointer): integer;
+
 
 function dbvm_executeDispatchIoctl(DispatchIoctl: pointer; DriverObject: pointer; dwIoControlCode: DWORD; lpInBuffer: pointer; nInBufferSize:integer; lpOutBuffer: pointer; nOutBufferSize: integer; lpBytesReturned: pdword): BOOL;
 
@@ -812,7 +815,7 @@ asm
   mov rax,[rsp+$00]
 
   add rsp,4096
-  add rsp,8 //undo errorcode (64-bit ALWAYS pushes an errorcode)
+  add rsp,8 //undo errorcode (64-bit ALWAYS pushes an errorcode, in this emulation)
   db $48, $cf //iretq
 end;
 {$endif}
@@ -833,6 +836,7 @@ begin
 
   dbvm_switchToKernelMode($10, @dbvm_localIntHandler_entry, @command);
 end;
+
 
 function dbvm_executeDriverEntry(driverentry: pointer; DriverObject: pointer; RegistryPath: pointer): integer;
 var command: TCommand;
