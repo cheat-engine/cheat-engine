@@ -739,7 +739,7 @@ void vmm_entry(void)
   memorycloak=0;
   Password1=0x76543210; //later to be filled in by user, sector on disk, or at compile time
   Password2=0xfedcba98;
-  dbvmversion=6; //version 1 was the 32-bit only version, 2 added 32-bit, 3 had a revised int1 redirect option, 4 has major bugfixes, 5=more fixes and some basic device recog, 6=Even more compatibility fixes, rm emu, and new vmcalls
+  dbvmversion=7; //version 1 was the 32-bit only version, 2 added 32-bit, 3 had a revised int1 redirect option, 4 has major bugfixes, 5=more fixes and some basic device recog, 6=Even more compatibility fixes, rm emu, and new vmcalls, 7=driver loading
   int1redirection=1; //redirect to int vector 1 , ooh, what a weird redirection....
   int3redirection=3;
   int14redirection=14;
