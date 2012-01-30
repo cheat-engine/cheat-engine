@@ -10577,7 +10577,6 @@ begin
 
   if LastDisassembleData.isjump then
   begin
-
     if LastDisassembleData.modrmValueType=dvtAddress then
     begin
       jumpAddress:=LastDisassembleData.modrmValue;
@@ -10607,10 +10606,9 @@ begin
         //jumpaddress now contains the address of the address to jump to
         //so, get the address it actually jumps to
         if not ReadProcessMemory(processhandle, pointer(jumpAddress), @jumpAddress, processhandler.pointersize,x) then exit;
-
-        result:='->'+symhandler.getNameFromAddress(jumpAddress);
       end;
 
+      result:=result+'->'+symhandler.getNameFromAddress(jumpAddress);
     end;
 
 
@@ -10820,8 +10818,8 @@ begin
         end;
 
 
-          if isjumper then
-            valuetype:=2; //handle it as a dword
+        if isjumper then
+          valuetype:=2; //handle it as a dword
 
         value:=0;
         fvalue:=0;
