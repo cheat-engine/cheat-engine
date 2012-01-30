@@ -3575,47 +3575,16 @@ end;
 
 
 procedure TfrmStructures2.miChangeColorsClick(Sender: TObject);
-var c: TfrmStructuresConfig;
 begin
-
-  //setup the colors for the edit window
-  {
-  fDefaultColor: TColor;
-  fNoMatchColor: TColor; //The color to use when not all elements have the same color
-  fMatchColor: tcolor; //The color to use when all elements in the group match
-  fAllMatchColorSame: TColor; //The color to use when all groups have matching elements AND the same value
-  fAllMatchColorDiff: TColor; //The color to use when all groups have matching elements but at least one has different values between groups
-
-  }
-  {
-  c.defaultText:=fDefaultColor;
-  c.equalText:=fMatchColor;
-  c.differentText:=fNoMatchColor;
-  c.groupequalText:=fAllMatchColorSame;
-  c.groupDifferentText:=fAllMatchColorDiff;
-
-
-
-
-  }
   //show and wait for the user
   if frmStructuresConfig.showmodal=mrok then
   begin
     //just apply new colors
     setupColors; //gets the colors from the structures config
 
-   { fDefaultColor:=c.defaultText;
-    fMatchColor:=c.equalText;
-    fNoMatchColor:=c.differentText;
-    fAllMatchColorSame:=c.groupequalText;
-    fAllMatchColorDiff:=c.groupDifferentText; }
-
-
     //and show the new colors
     RefreshVisibleNodes;
   end;
-
-
 end;
 
 procedure TfrmStructures2.miDefaultHexadecimalClick(Sender: TObject);

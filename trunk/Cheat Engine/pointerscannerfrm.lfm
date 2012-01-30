@@ -168,8 +168,8 @@ object frmPointerScanner: TfrmPointerScanner
     Visible = False
   end
   object MainMenu1: TMainMenu
-    left = 144
-    top = 200
+    left = 464
+    top = 40
     object File1: TMenuItem
       Caption = 'File'
       object New1: TMenuItem

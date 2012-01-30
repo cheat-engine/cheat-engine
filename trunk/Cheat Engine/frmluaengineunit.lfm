@@ -1,7 +1,7 @@
 object frmLuaEngine: TfrmLuaEngine
-  Left = 239
+  Left = 496
   Height = 287
-  Top = 280
+  Top = 263
   Width = 596
   HelpContext = 19
   Caption = 'Lua Engine'
@@ -79,8 +79,7 @@ object frmLuaEngine: TfrmLuaEngine
       PopupMenu = pmEditor
       TabOrder = 0
       OnKeyDown = mScriptKeyDown
-      Gutter.Visible = False
-      Gutter.Width = 57
+      Gutter.Width = 19
       Gutter.MouseActions = <      
         item
           Shift = []
@@ -678,6 +677,7 @@ object frmLuaEngine: TfrmLuaEngine
       inline SynLeftGutterPartList1: TSynGutterPartList
         object SynGutterMarks1: TSynGutterMarks
           Width = 24
+          Visible = False
         end
         object SynGutterLineNumber1: TSynGutterLineNumber
           Width = 17
@@ -691,6 +691,7 @@ object frmLuaEngine: TfrmLuaEngine
         end
         object SynGutterChanges1: TSynGutterChanges
           Width = 4
+          Visible = False
           ModifiedColor = 59900
           SavedColor = clGreen
         end
@@ -698,6 +699,7 @@ object frmLuaEngine: TfrmLuaEngine
           Width = 2
         end
         object SynGutterCodeFolding1: TSynGutterCodeFolding
+          Visible = False
           MouseActions = <          
             item
               Shift = []

@@ -7075,7 +7075,10 @@ var
   cl: TFPColor;
   tb: TCEToggleBox;
 begin
+ // foundlist3.Items[0].checked;
+
   showmessage('launching dbvm');
+
   LaunchDBVM;
   showmessage('still alive!!!');
 

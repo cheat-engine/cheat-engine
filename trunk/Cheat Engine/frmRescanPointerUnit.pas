@@ -20,6 +20,7 @@ type
     cbMustStartWithSpecificOffsets: TCheckBox;
     cbMustEndWithSpecificOffsets: TCheckBox;
     cbRepeat: TCheckBox;
+    cbNoValueCheck: TCheckBox;
     edtBaseStart: TEdit;
     edtBaseEnd: TEdit;
     edtDelay: TEdit;
@@ -35,6 +36,7 @@ type
     procedure cbBasePointerMustBeInRangeChange(Sender: TObject);
     procedure cbMustEndWithSpecificOffsetsChange(Sender: TObject);
     procedure cbMustStartWithSpecificOffsetsChange(Sender: TObject);
+    procedure cbNoValueCheckChange(Sender: TObject);
     procedure rbFindAddressClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
   private
@@ -262,6 +264,16 @@ begin
   end;
 
   updatePositions;
+end;
+
+procedure TfrmRescanPointer.cbNoValueCheckChange(Sender: TObject);
+var newstate: boolean;
+begin
+  newstate:=not cbNoValueCheck.checked;
+  rbFindAddress.enabled:=newstate;
+  rbFindValue.enabled:=newstate;
+  edtAddress.enabled:=newstate;
+  cbValueType.enabled:=newstate;
 end;
 
 procedure TfrmRescanPointer.updatePositions;

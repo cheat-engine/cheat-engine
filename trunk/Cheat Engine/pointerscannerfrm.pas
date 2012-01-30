@@ -28,6 +28,7 @@ type
     tempfile: tfilestream;
     tempbuffer: TMemoryStream;
 
+    novaluecheck: boolean;
     PointerAddressToFind: ptrUint;
     forvalue: boolean;
     valuetype: TVariableType;
@@ -84,6 +85,7 @@ type
     startOffsetValues: array of dword;
     endoffsetvalues: array of dword;
 
+    novaluecheck: boolean; //when set to true the value and final address are not compared, just check that he final address is in fact readable
     procedure execute; override;
   end;
 
@@ -1399,7 +1401,7 @@ begin
                 end;
             end;
 
-            if length(endoffsetvalues)>0 then
+            if valid and (length(endoffsetvalues)>0) then
             begin
               j:=0;
               for i:=length(endoffsetvalues)-1 downto 0 do
@@ -1440,24 +1442,27 @@ begin
 
             if valid then
             begin
-              if forvalue then
+              if novaluecheck or forvalue then
               begin
                 //evaluate the address (address must be accessible)
                 if rescanhelper.ispointer(address) then
                 begin
-                  value:=rescanhelper.findAddress(address);
-                  if value=nil then
+                  if novaluecheck=false then //check if the value is correct
                   begin
-                    //value is not yet stored, fetch it and add it to the list
-                    if ReadProcessMemory(processhandle,pointer(address),tempvalue,valuesize,x) then
-                      value:=rescanhelper.AddAddress(address, tempvalue, valuesize)
-                    else
-                      valid:=false; //unreadable even though ispointer returned true....
+                    value:=rescanhelper.findAddress(address);
+                    if value=nil then
+                    begin
+                      //value is not yet stored, fetch it and add it to the list
+                      if ReadProcessMemory(processhandle,pointer(address),tempvalue,valuesize,x) then
+                        value:=rescanhelper.AddAddress(address, tempvalue, valuesize)
+                      else
+                        valid:=false; //unreadable even though ispointer returned true....
+                    end;
+
+
+                    if (value=nil) or (not isMatchToValue(value)) then
+                      valid:=false; //invalid value
                   end;
-
-
-                  if (value=nil) or (not isMatchToValue(value)) then
-                    valid:=false; //invalid value
                 end else valid:=false; //unreadable address
               end
               else
@@ -1544,7 +1549,7 @@ begin
     rescanworkercount:=GetCPUCount;
     if HasHyperthreading then rescanworkercount:=(rescanworkercount div 2)+1;
 
-    rescanworkercount:=1;
+    rescanworkercount:=1;   //only one for now. Todo: Make this multithreaded
 
     blocksize:=TotalPointersToEvaluate div rescanworkercount;
 
@@ -1563,6 +1568,8 @@ begin
       rescanworkers[i].offsetlength:=ownerform.OpenedPointerfile.offsetlength;
       rescanworkers[i].modulelist:=ownerform.OpenedPointerfile.modulelist;    }
       rescanworkers[i].PointerAddressToFind:=self.address;
+      rescanworkers[i].novaluecheck:=novaluecheck;
+
       rescanworkers[i].forvalue:=forvalue;
       rescanworkers[i].valuetype:=valuetype;
       rescanworkers[i].valuescandword:=valuescandword;
@@ -1707,6 +1714,8 @@ begin
       begin
         if (rescanpointerform.cbRepeat.checked) or savedialog1.Execute then
         begin
+          rescan.novaluecheck:=cbNoValueCheck.checked;
+
           if cbRepeat.Checked then
           begin
             //show the stop rescan repeat button
@@ -1745,49 +1754,52 @@ begin
           Rescanmemory1.Enabled:=false;
           new1.Enabled:=false;
 
-          if rbFindAddress.Checked then
+          if cbNoValueCheck.checked=false then
           begin
-            address:=StrToQWordEx('$'+edtAddress.Text);
+            if rbFindAddress.Checked then
+            begin
+              address:=StrToQWordEx('$'+edtAddress.Text);
 
-            //rescan the pointerlist
+              //rescan the pointerlist
 
-            rescan.address:=address;
-            rescan.forvalue:=false;
+              rescan.address:=address;
+              rescan.forvalue:=false;
 
-          end
-          else
-          begin
+            end
+            else
+            begin
 
-            //if values, check what type of value
-            floataccuracy:=pos(FloatSettings.DecimalSeparator,edtAddress.Text);
-            if floataccuracy>0 then
-              floataccuracy:=length(edtAddress.Text)-floataccuracy;
+              //if values, check what type of value
+              floataccuracy:=pos(FloatSettings.DecimalSeparator,edtAddress.Text);
+              if floataccuracy>0 then
+                floataccuracy:=length(edtAddress.Text)-floataccuracy;
 
-            case cbValueType.ItemIndex of
-              0:
-              begin
-                rescan.valuetype:=vtDword;
-                val(edtAddress.Text, rescan.valuescandword, i);
-                if i>0 then raise exception.Create(Format(
-                  rsIsNotAValid4ByteValue, [edtAddress.Text]));
-              end;
+              case cbValueType.ItemIndex of
+                0:
+                begin
+                  rescan.valuetype:=vtDword;
+                  val(edtAddress.Text, rescan.valuescandword, i);
+                  if i>0 then raise exception.Create(Format(
+                    rsIsNotAValid4ByteValue, [edtAddress.Text]));
+                end;
 
-              1:
-              begin
-                rescan.valuetype:=vtSingle;
-                val(edtAddress.Text, rescan.valuescansingle, i);
-                if i>0 then raise exception.Create(Format(
-                  rsIsNotAValidFloatingPointValue, [edtAddress.Text]));
-                rescan.valuescansingleMax:=rescan.valuescansingle+(1/(power(10,floataccuracy)));
-              end;
+                1:
+                begin
+                  rescan.valuetype:=vtSingle;
+                  val(edtAddress.Text, rescan.valuescansingle, i);
+                  if i>0 then raise exception.Create(Format(
+                    rsIsNotAValidFloatingPointValue, [edtAddress.Text]));
+                  rescan.valuescansingleMax:=rescan.valuescansingle+(1/(power(10,floataccuracy)));
+                end;
 
-              2:
-              begin
-                rescan.valuetype:=vtDouble;
-                val(edtAddress.Text, rescan.valuescandouble, i);
-                if i>0 then raise exception.Create(Format(
-                  rsIsNotAValidDoubleValue, [edtAddress.Text]));
-                rescan.valuescandoubleMax:=rescan.valuescandouble+(1/(power(10,floataccuracy)));
+                2:
+                begin
+                  rescan.valuetype:=vtDouble;
+                  val(edtAddress.Text, rescan.valuescandouble, i);
+                  if i>0 then raise exception.Create(Format(
+                    rsIsNotAValidDoubleValue, [edtAddress.Text]));
+                  rescan.valuescandoubleMax:=rescan.valuescandouble+(1/(power(10,floataccuracy)));
+                end;
               end;
             end;
 
