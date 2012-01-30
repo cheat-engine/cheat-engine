@@ -323,7 +323,7 @@ resourcestring
   rsOffset = 'Offset';
   rsPointsTo = 'Points to';
   rsPointercount = 'pointercount';
-  rsOnlyTheFirst10000000EntriesWillBeDisplayed = 'Only the first 10000000 '
+  rsOnlyTheFirst1000000EntriesWillBeDisplayed = 'Only the first 1000000 '
     +'entries will be displayed. Rescan will still work with all results.  ('
     +'This is completly normal for a pointerscan, you MUST do a few rescans)';
   rsPointerScan = 'Pointer scan';
@@ -1291,10 +1291,10 @@ begin
 
   panel1.Caption:=rsPointercount+':'+inttostr(Pointerscanresults.count);
 
-  if (Pointerscanresults.count>10000000) then
+  if (Pointerscanresults.count>1000000) then
   begin
-    listview1.Items.Count:=10000000;
-    showmessage(rsOnlyTheFirst10000000EntriesWillBeDisplayed);
+    listview1.Items.Count:=1000000;
+    showmessage(rsOnlyTheFirst1000000EntriesWillBeDisplayed);
   end else listview1.Items.Count:=Pointerscanresults.count;
 
   listview1.Align:=alClient;
