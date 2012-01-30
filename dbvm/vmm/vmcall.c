@@ -867,7 +867,18 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       vmregisters->rax = currentcpuinfo->IgnorePageFaults.LastIgnoredPageFault;
       currentcpuinfo->IgnorePageFaults.LastIgnoredPageFault=0;
       break;
+    }
 
+    case VMCALL_SWITCH_TO_KERNELMODE:
+    {
+      DWORD cs=*(DWORD *)&vmcall_instruction[3];
+      QWORD rip=*(QWORD *)&vmcall_instruction[4];
+      QWORD parameters=*(QWORD *)&vmcall_instruction[6];
+
+      //change CS and EIP (also setup the stack properly)
+      emulateExceptionInterrupt(currentcpuinfo, vmregisters, cs,rip,1, parameters );
+      vmregisters->rax=0;
+      break;
     }
 
 

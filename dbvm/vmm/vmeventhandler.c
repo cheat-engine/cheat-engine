@@ -44,7 +44,7 @@ int raiseGeneralProtectionFault(UINT64 errorcode)
 }
 
 
-int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, unsigned int cs, UINT64 rip, int haserrorcode, int errorcode)
+int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, unsigned int cs, UINT64 rip, int haserrorcode, UINT64 errorcode)
 {
   //this routine will let you call a routine as if it was called by a interrupt caused by a exception.
   //usefull for idt1 bypass and can be used for other 'extra' interrupt types
@@ -273,7 +273,7 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
       sendstringf("SF-cs:rip=%x:%6\n", vmread(vm_guest_cs),vmread(vm_guest_rip));
       sendstringf("SF-ss:rsp=%x:%6\n", vmread(vm_guest_ss),vmread(vm_guest_rsp));
       sendstringf("SF-cr2=%6\n", getCR2());
-      sendstringf("Errorcode=%x\n", errorcode);
+      sendstringf("Errorcode=%6\n", errorcode);
       sendstringf("Mapped TSS(vma=%6) at vmma=%6\n\r",vmread(vm_guest_tr_base), (UINT64)_TSS);
 
       sendvmstate(currentcpuinfo, vmregisters);

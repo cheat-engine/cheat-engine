@@ -1,8 +1,8 @@
 #ifndef COMMON_H_
 #define COMMON_H_
 
-#define DEBUG //comment for release
-#define DEBUGINTHANDLER //comment for release
+//#define DEBUG //comment for release
+//#define DEBUGINTHANDLER //comment for release
 
 //#define DISPLAYDEBUG //send serialport debug output to the display
 
