@@ -2,10 +2,10 @@ object frmUltimap: TfrmUltimap
   Left = 522
   Height = 399
   Top = 277
-  Width = 687
+  Width = 689
   Caption = 'Ultimap'
   ClientHeight = 399
-  ClientWidth = 687
+  ClientWidth = 689
   OnClose = FormClose
   OnCreate = FormCreate
   LCLVersion = '0.9.31'
@@ -13,11 +13,11 @@ object frmUltimap: TfrmUltimap
     Left = 0
     Height = 399
     Top = 0
-    Width = 687
+    Width = 689
     Align = alClient
     BevelOuter = bvNone
     ClientHeight = 399
-    ClientWidth = 687
+    ClientWidth = 689
     TabOrder = 0
     object Label4: TLabel
       Left = 322
@@ -31,18 +31,18 @@ object frmUltimap: TfrmUltimap
       Left = 0
       Height = 215
       Top = 184
-      Width = 687
+      Width = 689
       Align = alClient
       BevelOuter = bvNone
       Caption = 'Panel2'
       ClientHeight = 215
-      ClientWidth = 687
+      ClientWidth = 689
       TabOrder = 0
       object ListView1: TListView
         Left = 0
         Height = 152
         Top = 0
-        Width = 687
+        Width = 689
         Align = alClient
         Columns = <        
           item
@@ -69,14 +69,14 @@ object frmUltimap: TfrmUltimap
         Left = 0
         Height = 63
         Top = 152
-        Width = 687
+        Width = 689
         Align = alBottom
         BevelOuter = bvNone
         ClientHeight = 63
-        ClientWidth = 687
+        ClientWidth = 689
         TabOrder = 1
         object Button5: TButton
-          Left = 264
+          Left = 265
           Height = 25
           Top = 3
           Width = 155
@@ -89,7 +89,7 @@ object frmUltimap: TfrmUltimap
           Left = 0
           Height = 31
           Top = 32
-          Width = 687
+          Width = 689
           Align = alBottom
           Caption = 'General tip: Rightclick buttons and assign hotkeys to them. Especially useful in a fullscreen game and you''re looking for one specific thing'
           ParentColor = False
@@ -101,11 +101,11 @@ object frmUltimap: TfrmUltimap
       Left = 0
       Height = 184
       Top = 0
-      Width = 687
+      Width = 689
       Align = alTop
       BevelOuter = bvNone
       ClientHeight = 184
-      ClientWidth = 687
+      ClientWidth = 689
       TabOrder = 1
       object Button3: TButton
         Left = 343
@@ -127,9 +127,9 @@ object frmUltimap: TfrmUltimap
         TabOrder = 1
       end
       object Button6: TButton
-        Left = 613
+        Left = 616
         Height = 25
-        Top = 64
+        Top = 0
         Width = 74
         Caption = 'Reset'
         OnClick = Button6Click
@@ -283,6 +283,15 @@ object frmUltimap: TfrmUltimap
         Width = 76
         Caption = 'Banch targets:'
         ParentColor = False
+      end
+      object Button2: TButton
+        Left = 616
+        Height = 25
+        Top = 136
+        Width = 73
+        Caption = 'Reset Count'
+        OnClick = Button2Click
+        TabOrder = 15
       end
     end
   end
