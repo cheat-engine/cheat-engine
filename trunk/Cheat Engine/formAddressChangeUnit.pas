@@ -861,6 +861,7 @@ end;
 
 procedure Tformaddresschange.setVarType(vt: TVariableType);
 begin
+  cbvarType.onchange:=nil;
   case vt of
     vtBinary: cbvarType.ItemIndex:=0;
     vtByte: cbvarType.ItemIndex:=1;
@@ -872,6 +873,8 @@ begin
     vtString: cbvarType.ItemIndex:=7;
     vtByteArray: cbvarType.ItemIndex:=8;
   end;
+  cbvarType.onchange:=cbvarTypeChange;
+  cbvarTypeChange(cbvarType);
 end;
 
 function Tformaddresschange.getVartype: TVariableType;
