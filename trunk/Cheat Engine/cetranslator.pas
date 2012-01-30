@@ -39,7 +39,7 @@ interface
 
 uses
   Classes, SysUtils, LResources, GetText, Controls, typinfo, FileUtil, LCLProc,
-  Translations;
+  Translations, IniFiles;
 
 type
   TDefaultTranslator = class(TAbstractTranslator)
@@ -62,7 +62,7 @@ type
       PropInfo: PPropInfo; var Content: string); override;
   end;
 
-procedure doTranslation(specificlocale: string='');
+procedure doTranslation;
 
 implementation
 
@@ -76,6 +76,7 @@ function FindLocaleFileName(LCExt: string): string;
 var
   Lang, T: string;
   i: integer;
+  lini: TIniFile;
 
   function GetLocaleFileName(const LangID, LCExt: string): string;
   var
@@ -98,6 +99,7 @@ var
     Result := '';
   end;
 
+
 begin
   Result := '';
   Lang := '';
@@ -110,6 +112,19 @@ begin
   //Win32 user may decide to override locale with LANG variable.
   if Lang = '' then
     Lang := GetEnvironmentVariableUTF8('LANG');
+
+  if (lang = '') and (FileExists(cheatenginedir+ 'languages' + DirectorySeparator+'language.ini')) then
+  begin
+    try
+      lini:=TIniFile.Create(cheatenginedir+'languages' + DirectorySeparator+'language.ini');
+      try
+        lang:=lini.ReadString('Language','PreferedLanguage','');
+      finally
+        lini.Free;
+      end;
+    except
+    end;
+  end;
 
   if Lang = '' then
     LCLGetLanguageIDs(Lang, T);
@@ -238,7 +253,7 @@ end;
 var LocalTranslator: TAbstractTranslator;
 
 
-procedure doTranslation(specificlocale: string='');
+procedure doTranslation;
 var
   Dot1: integer;
   LCLPath: string;
@@ -246,14 +261,14 @@ var
 begin
   //It is safe to place code here as no form is initialized before unit
   //initialization made
+//  if specificlocale then
+
 
   LocalTranslator := nil;
   // search first po translation resources
   try
-     if specificlocale='' then
-       lcfn := FindLocaleFileName('.po')
-     else
-       lcfn := specificlocale;
+     lcfn := FindLocaleFileName('.po');
+
 
      if lcfn <> '' then
      begin

@@ -39,7 +39,7 @@ interface
 
 uses
   Classes, SysUtils, LResources, GetText, Controls, typinfo, FileUtil, LCLProc,
-  Translations, forms;
+  Translations, forms, IniFiles;
 
 type
   TDefaultTranslator = class(TAbstractTranslator)
@@ -76,6 +76,7 @@ function FindLocaleFileName(LCExt: string): string;
 var
   Lang, T: string;
   i: integer;
+  lini: TIniFile;
 
   function GetLocaleFileName(const LangID, LCExt: string): string;
   var
@@ -112,6 +113,19 @@ begin
   //Win32 user may decide to override locale with LANG variable.
   if Lang = '' then
     Lang := GetEnvironmentVariableUTF8('LANG');
+
+  if (lang = '') and (FileExists(Application.Location+ 'languages' + DirectorySeparator+'language.ini')) then
+  begin
+    try
+      lini:=TIniFile.Create(Application.Location+'languages' + DirectorySeparator+'language.ini');
+      try
+        lang:=lini.ReadString('Language','PreferedLanguage','');
+      finally
+        lini.Free;
+      end;
+    except
+    end;
+  end;
 
   if Lang = '' then
     LCLGetLanguageIDs(Lang, T);
