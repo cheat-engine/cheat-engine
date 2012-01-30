@@ -2647,7 +2647,7 @@ end;
 procedure TMainForm.miPresetAllClick(Sender: TObject);
 begin
   cbWritable.State := cbGrayed;
-  cbCaseSensitive.state := cbGrayed;
+  cbCopyOnWrite.state := cbGrayed;
   cbExecutable.state := cbGrayed;
 end;
 
