@@ -58,6 +58,7 @@ type
     btnStart: TButton;
     btnStop: TButton;
     Button1: TButton;
+    Button2: TButton;
     Button3: TButton;
     Button4: TButton;
     Button5: TButton;
@@ -89,6 +90,7 @@ type
     procedure btnStopClick(Sender: TObject);
     procedure btnPauseClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
     procedure Button4Click(Sender: TObject);
     procedure Button5Click(Sender: TObject);
@@ -429,6 +431,26 @@ begin
   ApplyFilter(4);
 end;
 
+procedure TfrmUltimap.Button2Click(Sender: TObject);
+var n: TAvgLvlTreeNode;
+  d: PBranchdata;
+  count: integer;
+begin
+  if (branchtree<>nil) and (messagedlg('This will reset the callcount of functions back to 0. This can not be undone. Continue?', mtConfirmation, [mbyes, mbno], 0)=mryes) then
+  begin
+    n:=branchtree.FindLowest;
+
+    d:=PBranchdata(n.Data);
+    while d<>nil do
+    begin
+      d.count:=0;
+      d:=d.Next;
+    end;
+  end;
+
+  listview1.Refresh;
+end;
+
 procedure TfrmUltimap.Button3Click(Sender: TObject);
 begin
   ApplyFilter(0);
@@ -491,7 +513,7 @@ var n: TAvgLvlTreeNode;
   d: PBranchdata;
   count: integer;
 begin
-  if branchtree<>nil then
+  if (branchtree<>nil) and (messagedlg('This will bring back all found instructions. Continue?', mtConfirmation, [mbyes, mbno], 0)=mryes) then
   begin
     n:=branchtree.FindLowest;
 
@@ -501,7 +523,6 @@ begin
       d.wrong:=false;
       d:=d.Next;
     end;
-
   end;
 
 end;
