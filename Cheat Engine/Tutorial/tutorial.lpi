@@ -134,7 +134,6 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit3"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
         <TopLine Value="54"/>
@@ -259,10 +258,11 @@
         <Filename Value="cetranslator.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="cetranslator"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="16"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="93"/>
-        <CursorPos X="24" Y="243"/>
+        <TopLine Value="96"/>
+        <CursorPos X="54" Y="108"/>
         <UsageCount Value="31"/>
         <Loaded Value="True"/>
       </Unit12>
