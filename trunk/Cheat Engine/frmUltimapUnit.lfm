@@ -1,23 +1,23 @@
 object frmUltimap: TfrmUltimap
   Left = 522
-  Height = 399
-  Top = 277
-  Width = 689
+  Height = 451
+  Top = 225
+  Width = 747
   Caption = 'Ultimap'
-  ClientHeight = 399
-  ClientWidth = 689
+  ClientHeight = 451
+  ClientWidth = 747
   OnClose = FormClose
   OnCreate = FormCreate
   LCLVersion = '0.9.31'
   object Panel1: TPanel
     Left = 0
-    Height = 399
+    Height = 451
     Top = 0
-    Width = 689
+    Width = 747
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 399
-    ClientWidth = 689
+    ClientHeight = 451
+    ClientWidth = 747
     TabOrder = 0
     object Label4: TLabel
       Left = 322
@@ -29,20 +29,20 @@ object frmUltimap: TfrmUltimap
     end
     object Panel2: TPanel
       Left = 0
-      Height = 215
-      Top = 184
-      Width = 689
+      Height = 235
+      Top = 216
+      Width = 747
       Align = alClient
       BevelOuter = bvNone
       Caption = 'Panel2'
-      ClientHeight = 215
-      ClientWidth = 689
+      ClientHeight = 235
+      ClientWidth = 747
       TabOrder = 0
       object ListView1: TListView
         Left = 0
-        Height = 152
+        Height = 172
         Top = 0
-        Width = 689
+        Width = 747
         Align = alClient
         Columns = <        
           item
@@ -58,6 +58,7 @@ object frmUltimap: TfrmUltimap
           end>
         HideSelection = False
         OwnerData = True
+        PopupMenu = PopupMenu1
         ReadOnly = True
         RowSelect = True
         TabOrder = 0
@@ -68,15 +69,15 @@ object frmUltimap: TfrmUltimap
       object Panel3: TPanel
         Left = 0
         Height = 63
-        Top = 152
-        Width = 689
+        Top = 172
+        Width = 747
         Align = alBottom
         BevelOuter = bvNone
         ClientHeight = 63
-        ClientWidth = 689
+        ClientWidth = 747
         TabOrder = 1
         object Button5: TButton
-          Left = 265
+          Left = 294
           Height = 25
           Top = 3
           Width = 155
@@ -87,9 +88,9 @@ object frmUltimap: TfrmUltimap
         end
         object Label6: TLabel
           Left = 0
-          Height = 31
-          Top = 32
-          Width = 689
+          Height = 16
+          Top = 47
+          Width = 747
           Align = alBottom
           Caption = 'General tip: Rightclick buttons and assign hotkeys to them. Especially useful in a fullscreen game and you''re looking for one specific thing'
           ParentColor = False
@@ -99,13 +100,13 @@ object frmUltimap: TfrmUltimap
     end
     object Panel5: TPanel
       Left = 0
-      Height = 184
+      Height = 216
       Top = 0
-      Width = 689
+      Width = 747
       Align = alTop
       BevelOuter = bvNone
-      ClientHeight = 184
-      ClientWidth = 689
+      ClientHeight = 216
+      ClientWidth = 747
       TabOrder = 1
       object Button3: TButton
         Left = 343
@@ -127,7 +128,7 @@ object frmUltimap: TfrmUltimap
         TabOrder = 1
       end
       object Button6: TButton
-        Left = 616
+        Left = 672
         Height = 25
         Top = 0
         Width = 74
@@ -147,19 +148,20 @@ object frmUltimap: TfrmUltimap
       end
       object Button8: TButton
         Tag = 3
-        Left = 343
+        Left = 344
         Height = 25
-        Top = 112
+        Top = 144
         Width = 264
         Caption = 'Filter out routine(s) where callcount is NOT'
         OnClick = FilterClick
         TabOrder = 4
       end
       object Edit1: TEdit
-        Left = 616
+        Left = 617
         Height = 23
-        Top = 114
-        Width = 71
+        Top = 144
+        Width = 40
+        OnKeyDown = Edit1KeyDown
         TabOrder = 5
         Text = '1'
       end
@@ -172,9 +174,9 @@ object frmUltimap: TfrmUltimap
         ParentColor = False
       end
       object Button1: TButton
-        Left = 343
+        Left = 344
         Height = 25
-        Top = 144
+        Top = 176
         Width = 264
         Caption = 'Filter out routines not in a specific module'
         OnClick = Button1Click
@@ -285,21 +287,31 @@ object frmUltimap: TfrmUltimap
         ParentColor = False
       end
       object Button2: TButton
-        Left = 616
+        Left = 665
         Height = 25
-        Top = 136
+        Top = 142
         Width = 73
         Caption = 'Reset Count'
         OnClick = Button2Click
         TabOrder = 15
+      end
+      object Button9: TButton
+        Tag = 5
+        Left = 344
+        Height = 25
+        Top = 112
+        Width = 264
+        Caption = 'Filter out return from RET''s'
+        OnClick = Button9Click
+        TabOrder = 16
       end
     end
   end
   object Timer1: TTimer
     Interval = 250
     OnTimer = Timer1Timer
-    left = 184
-    top = 352
+    left = 85
+    top = 320
   end
   object pmSetHotkey: TPopupMenu
     left = 268
@@ -307,6 +319,14 @@ object frmUltimap: TfrmUltimap
     object MenuItem1: TMenuItem
       Caption = 'Set hotkey'
       OnClick = MenuItem1Click
+    end
+  end
+  object PopupMenu1: TPopupMenu
+    left = 85
+    top = 258
+    object MenuItem2: TMenuItem
+      Caption = 'Flush buffers'
+      OnClick = MenuItem2Click
     end
   end
 end

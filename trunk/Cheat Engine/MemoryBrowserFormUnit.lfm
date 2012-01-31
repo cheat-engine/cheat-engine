@@ -1133,6 +1133,7 @@ object MemoryBrowser: TMemoryBrowser
       end
       object MenuItem14: TMenuItem
         Caption = 'Ultimap'
+        ShortCut = 49237
         OnClick = MenuItem14Click
       end
       object Watchmemoryallocations1: TMenuItem
