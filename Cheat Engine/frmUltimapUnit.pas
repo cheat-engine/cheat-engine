@@ -43,6 +43,7 @@ type
     procedure UpdateBranchData(branchdata: PBranchData; BTS: PBTS);
     procedure map(buf: PBTSArray; size: integer);
   public
+    workerid: integer;
     branchtree: TAvgLvlTree;
     branchtreeCS: TCriticalSection;
     procedure execute; override;
@@ -65,6 +66,7 @@ type
     Button6: TButton;
     Button7: TButton;
     Button8: TButton;
+    Button9: TButton;
     cbLogToFile: TRadioButton;
     cbParseData: TRadioButton;
     Edit1: TEdit;
@@ -80,11 +82,13 @@ type
     lblLastfilterresult: TLabel;
     ListView1: TListView;
     MenuItem1: TMenuItem;
+    MenuItem2: TMenuItem;
     Panel1: TPanel;
     Panel2: TPanel;
     Panel3: TPanel;
     Panel5: TPanel;
     pmSetHotkey: TPopupMenu;
+    PopupMenu1: TPopupMenu;
     Timer1: TTimer;
     procedure btnStartClick(Sender: TObject);
     procedure btnStopClick(Sender: TObject);
@@ -97,12 +101,14 @@ type
     procedure Button6Click(Sender: TObject);
     procedure Button7Click(Sender: TObject);
     procedure Button9Click(Sender: TObject);
+    procedure Edit1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FilterClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure ListView1Data(Sender: TObject; Item: TListItem);
     procedure ListView1DblClick(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
+    procedure MenuItem2Click(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
   private
     { private declarations }
@@ -113,7 +119,9 @@ type
     validlist: array of PBranchdata;
 
     callTable: TMap;
+    retTable: TMap;
     iscalldisassembler: TDisassembler;
+    isretdisassembler: TDisassembler;   //not really needed...
 
 
     FilterHotkey: array [0..3] of TGenericHotkey;
@@ -125,6 +133,9 @@ type
     function branchcompare(Tree: TAvgLvlTree; Data1, Data2: Pointer): integer;
     procedure ApplyFilter(f: integer);
     function iscall(address: ptruint): boolean;
+    function isret(address: ptruint): boolean;
+
+    procedure flush;
   public
     { public declarations }
   end; 
@@ -133,6 +144,12 @@ var
   frmUltimap: TfrmUltimap;
 
   TotalBranches: system.dword;
+  isFlushing: boolean;
+  cpulist: TIntegerSet;
+  workdone: integer;
+  workercount: integer;
+  hashandled: THandle;
+  flushcs: TCriticalSection;
 
 implementation
 
@@ -265,6 +282,7 @@ begin
       try
 
         OutputDebugString('UltimapDataEvent.BlockID='+inttostr(UltimapDataEvent.BlockID));
+        OutputDebugString('UltimapDataEvent.CpuID='+inttostr(UltimapDataEvent.CpuID));
         OutputDebugString('UltimapDataEvent.Address='+inttohex(UltimapDataEvent.Address,8));
         OutputDebugString('UltimapDataEvent.Size='+inttostr(UltimapDataEvent.Size));
 
@@ -279,9 +297,38 @@ begin
 
       finally
         ultimap_continue(@UltimapDataEvent);
-      end;
 
-    end else OutputDebugString('No event');
+        if isFlushing then
+        begin
+          flushcs.enter;
+
+          if isflushing then //check again in case it changed back...
+          begin
+            //Is this cpuid in the list?
+
+            if not (integer(UltimapDataEvent.CpuID) in cpulist) then
+            begin
+              //If not, add it and increase workdone
+              cpulist:=cpulist+[integer(UltimapDataEvent.CpuID)];
+
+              inc(workdone);
+              if workdone>=workercount then
+                setevent(hashandled);
+            end;
+
+
+
+
+          end;
+
+          flushcs.leave;
+        end;
+
+      end;
+    end;
+
+
+
   end;
 
   //just make sure it's really finished (could be there are still multiple threads waiting to continue)
@@ -304,7 +351,7 @@ var
 
 
   filename: widestring;
-  workercount: integer;
+
   i: integer;
   //eprocess: qword;
 begin
@@ -347,17 +394,25 @@ begin
 
   //setSelectiveMSR; Looks like I was wrong, this is Last Branch Record only, no data store
 
+
+
   if ultimap(target_cr3, (1 shl 6) or (1 shl 7) or (1 shl 9) or (1 shl 8), bufsize, false, pwidechar(filename), workercount) then
   begin
+    hashandled:=CreateEvent(nil, true, false, nil);
     setlength(workers, workercount);
     for i:=0 to workercount-1 do
     begin
+
+
       workers[i]:=TUltimap_DataHandlerThread.Create(true);
       workers[i].branchtree:=branchtree;
       workers[i].branchtreeCS:=branchtreeCS;
+      workers[i].workerid:=i;
       workers[i].Start;
     end;
   end;
+
+
 
 
   paused:=false;
@@ -436,16 +491,24 @@ var n: TAvgLvlTreeNode;
   d: PBranchdata;
   count: integer;
 begin
-  if (branchtree<>nil) and (messagedlg('This will reset the callcount of functions back to 0. This can not be undone. Continue?', mtConfirmation, [mbyes, mbno], 0)=mryes) then
-  begin
-    n:=branchtree.FindLowest;
-
-    d:=PBranchdata(n.Data);
-    while d<>nil do
+  flush;
+  branchtreecs.Enter;
+  try
+    if (branchtree<>nil) and (messagedlg('This will reset the callcount of functions back to 0. This can not be undone. Continue?', mtConfirmation, [mbyes, mbno], 0)=mryes) then
     begin
-      d.count:=0;
-      d:=d.Next;
+      n:=branchtree.FindLowest;
+
+      if n=nil then exit;
+
+      d:=PBranchdata(n.Data);
+      while d<>nil do
+      begin
+        d.count:=0;
+        d:=d.Next;
+      end;
     end;
+  finally
+    branchtreecs.leave;
   end;
 
   listview1.Refresh;
@@ -485,24 +548,29 @@ begin
 
   //first find the count
   n:=branchtree.FindLowest;
-  d:=PBranchdata(n.Data);
-  while d<>nil do
+  if n<>nil then
   begin
-    if d.wrong=false then
+
+    d:=PBranchdata(n.Data);
+    while d<>nil do
     begin
-      inc(count);
-
-      //check if enough memory is available for this list, if not, allocate it
-      if count>=maxvalidlist then
+      if d.wrong=false then
       begin
-        maxvalidlist:=maxvalidlist*4;
-        setlength(validlist, maxvalidlist);
+        inc(count);
+
+        //check if enough memory is available for this list, if not, allocate it
+        if count>=maxvalidlist then
+        begin
+          maxvalidlist:=maxvalidlist*4;
+          setlength(validlist, maxvalidlist);
+        end;
+
+        validlist[count-1]:=d;
+
       end;
-
-      validlist[count-1]:=d;
-
+      d:=d.Next;
     end;
-    d:=d.Next;
+
   end;
 
   listview1.Items.Count:=count;
@@ -513,25 +581,39 @@ var n: TAvgLvlTreeNode;
   d: PBranchdata;
   count: integer;
 begin
-  if (branchtree<>nil) and (messagedlg('This will bring back all found instructions. Continue?', mtConfirmation, [mbyes, mbno], 0)=mryes) then
-  begin
-    n:=branchtree.FindLowest;
+  flush;
 
-    d:=PBranchdata(n.Data);
-    while d<>nil do
+  branchtreeCS.enter;
+  try
+    if (branchtree<>nil) and (messagedlg('This will bring back all found instructions. Continue?', mtConfirmation, [mbyes, mbno], 0)=mryes) then
     begin
-      d.wrong:=false;
-      d:=d.Next;
-    end;
-  end;
+      n:=branchtree.FindLowest;
+      if n=nil then exit;
 
+      d:=PBranchdata(n.Data);
+      while d<>nil do
+      begin
+        d.wrong:=false;
+        d:=d.Next;
+      end;
+    end;
+
+  finally
+    branchtreeCS.leave;
+  end;
 end;
 
 
 
 procedure TfrmUltimap.Button9Click(Sender: TObject);
 begin
+  applyfilter(5);
+end;
 
+procedure TfrmUltimap.Edit1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if key=VK_RETURN then
+    button8.click;
 end;
 
 function TfrmUltimap.iscall(address: ptruint): boolean;
@@ -560,6 +642,32 @@ begin
   result:=iscall;
 end;
 
+function TfrmUltimap.isret(address: ptruint): boolean;
+var isret: boolean;
+  x: string;
+  a: ptruint;
+begin
+  //check if it's a ret
+  if rettable=nil then //create the calltable first
+  begin
+    rettable:=TMap.Create(ituPtrSize,sizeof(boolean));
+    isretdisassembler:=Tdisassembler.create;
+  end;
+
+  if not rettable.GetData(address, isret) then
+  begin
+    //not yet in the list
+    //add if it's a ret or not
+    a:=address;
+    isretdisassembler.disassemble(a, x);
+    isret:=iscalldisassembler.LastDisassembleData.isret;
+
+    callTable.Add(address, isret);
+  end;
+
+  result:=isret;
+end;
+
 procedure TfrmUltimap.ApplyFilter(f: integer);
 var n: TAvgLvlTreeNode;
   d: PBranchdata;
@@ -579,8 +687,8 @@ begin
     exit;
   end;
 
-  if length(workers)>0 then
-    ultimap_flush; //there are workers to handle this
+  flush;
+
 
   if f=3 then
     countvalue:=strtoint(edit1.text);
@@ -620,30 +728,39 @@ begin
   wrongcount:=0;
   notwrong:=0;
 
-  n:=branchtree.FindLowest;
-  if n<>nil then
-  begin
+  branchtreeCS.enter;
 
+  try
 
-    d:=PBranchdata(n.Data);
-    while d<>nil do
+    n:=branchtree.FindLowest;
+    if n<>nil then
     begin
-      if not d.wrong then
+
+
+      d:=PBranchdata(n.Data);
+      while d<>nil do
       begin
-        case f of
-          0: if not d.isCalled then d.wrong:=true; //filter out routines that where not called
-          1: if d.isCalled then d.wrong:=true;     //filter out routines that where called
-          2: if iscall(d.lastFromAddress)=false then d.wrong:=true;
-          3: if d.count<>countvalue then d.wrong:=true;
-          4: if InRangeQ(d.toAddress, startaddress, stopaddress)=false then d.wrong:=true;
+        if not d.wrong then
+        begin
+          case f of
+            0: if not d.isCalled then d.wrong:=true; //filter out routines that where not called
+            1: if d.isCalled then d.wrong:=true;     //filter out routines that where called
+            2: if iscall(d.lastFromAddress)=false then d.wrong:=true;
+            3: if d.count<>countvalue then d.wrong:=true;
+            4: if InRangeQ(d.toAddress, startaddress, stopaddress)=false then d.wrong:=true;
+            5: if isret(d.lastFromAddress) then d.wrong:=true;
+          end;
+
+          if d.wrong then inc(wrongcount) else inc(notwrong);
         end;
 
-        if d.wrong then inc(wrongcount) else inc(notwrong);
+        d.isCalled:=false;
+        d:=d.Next;
       end;
-
-      d.isCalled:=false;
-      d:=d.Next;
     end;
+
+  finally
+    branchtreecs.Leave;
   end;
 
   lblLastfilterresult.caption:='Last filter results: filtered out '+inttostr(wrongcount)+' left:'+inttostr(notwrong);
@@ -669,6 +786,8 @@ procedure TfrmUltimap.FormCreate(Sender: TObject);
 begin
   edtWorkerCount.Text:=inttostr(GetCPUCount);
   label4.Caption:=inttostr(sizeof(TBTS));
+
+  flushcs:=TCriticalSection.Create;
 
 end;
 
@@ -722,10 +841,62 @@ begin
   end;
 end;
 
+procedure TfrmUltimap.MenuItem2Click(Sender: TObject);
+begin
+  flush;
+  listview1.Refresh;
+end;
+
 procedure TfrmUltimap.Timer1Timer(Sender: TObject);
 begin
   label3.caption:=IntToStr(TotalBranches);
   listview1.Refresh;
+end;
+
+procedure TfrmUltimap.flush;
+var i: integer;
+begin
+  if workercount=0 then exit;
+
+  isFlushing:=false;
+
+
+
+  //reset
+  flushcs.enter;
+  try
+    cpulist:=[];
+    ResetEvent(hashandled);
+    workdone:=0;
+    isFlushing:=true;
+  finally
+    flushcs.leave;
+  end;
+
+
+  ultimap_flush; //trigger all cpu cores to flush their data to the workers
+  WaitForSingleObject(hashandled, 5000);
+
+  //reset
+  isFlushing:=false;
+
+  //flush twice (it's a big turd)
+  flushcs.enter;
+  try
+    cpulist:=[];
+    ResetEvent(hashandled);
+    workdone:=0;
+    isFlushing:=true;
+  finally
+    flushcs.leave;
+  end;
+  ultimap_flush;
+  WaitForSingleObject(hashandled, 5000);
+
+
+  //done flushing
+  isFlushing:=false;  //no more wasted cycles checking the critical section
+
 end;
 
 end.

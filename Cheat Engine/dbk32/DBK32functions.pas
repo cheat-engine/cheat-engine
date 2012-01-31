@@ -143,6 +143,7 @@ type       //The DataEvent structure contains the address and blockid. Use this 
     Address: Qword;
     Size: Qword;
     BlockID: Qword;
+    CpuID: Qword;
     KernelAddress: QWORD;
     Mdl: QWORD;
   end;
@@ -1457,6 +1458,7 @@ end;
 procedure ultimap_flush;   //call this only when the workers are ACTIVE
 var cc: dword;
 begin
+
   if (hdevice<>INVALID_HANDLE_VALUE) then
     deviceiocontrol(hdevice,IOCTL_CE_ULTIMAP_FLUSH,nil,0,nil,0,cc,nil);
 end;
