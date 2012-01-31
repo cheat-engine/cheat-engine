@@ -258,9 +258,9 @@ unsigned int vmx_ultimap(UINT_PTR cr3towatch, UINT64 debugctl_value, void *store
 	vmcallinfo.command=VMCALL_ULTIMAP;
 	vmcallinfo.cr3=(UINT64)cr3towatch;
 	vmcallinfo.debugctl=(UINT64)debugctl_value;
-	vmcallinfo.storeaddress=(UINT64)storeaddress;
+	vmcallinfo.storeaddress=(UINT64)(UINT_PTR)storeaddress;
 
-	DbgPrint("vmx_ultimap(%I64x, %I64x, %p)\n", (UINT64)cr3towatch, (UINT64)debugctl_value, storeaddress);
+	DbgPrint("vmx_ultimap(%I64x, %I64x, %I64x)\n", (UINT64)vmcallinfo.cr3, (UINT64)vmcallinfo.debugctl, vmcallinfo.storeaddress);
 	
 
 	return (unsigned int)dovmcall(&vmcallinfo, vmx_password1);

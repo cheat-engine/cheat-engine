@@ -167,7 +167,10 @@ Return Value:
 	
 	criticalSection csTest;
 	
-	DbgPrint("I'm alive!\n");
+	DbgPrint("sizeof(DS_AREA_MANAGEMENT)=%d\n", sizeof(DS_AREA_MANAGEMENT));
+	DbgPrint("sizeof(BTS)=%d\n", sizeof(BTS));
+
+
 
 	//DbgPrint("%S",oa.ObjectName.Buffer); 
 	
