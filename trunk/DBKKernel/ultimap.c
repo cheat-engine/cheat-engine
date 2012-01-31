@@ -34,6 +34,7 @@ typedef struct
 	BOOL Available;
 	PBTS Data;
 	int DataSize;
+	int CpuID;
 	KEVENT DataReady;    
 } _DataBlock;
 
@@ -65,11 +66,15 @@ void ultimap_flushBuffers(void)
 	DbgPrint("ultimap_flushBuffers_all has returned\n");
 	//it returned and all worker thread are currently working on this data (it only returns when it has send a worker to work)
 
+
 	//now wait for all workers to finish
 	//do this by aquiring all semaphore slots and waiting for them to return again
-	forEachCpuPassive(ultimap_flushBuffers_all,0);
-	DbgPrint("ultimap_flushBuffers_all has returned a second time\n"); //this means that the previous blocks have been dealt with
+	//forEachCpuPassive(ultimap_flushBuffers_all,0);
+	//DbgPrint("ultimap_flushBuffers_all has returned a second time\n"); //this means that the previous blocks have been dealt with
 
+
+	//actually... no, this is no guarantee. Now that the buffers are empty handling is so fast that while block 2,3,4,5 and 6 are still being handled block 1 can become available multiple times
+	
 }
 
 
@@ -120,7 +125,7 @@ Called from usermode to wait for data
 		else
 			r=KeWaitForMultipleObjects(MaxDataBlocks, DataReadyPointerList, WaitAny, UserRequest, UserMode, TRUE, &wait, waitblock);
 
-		ExFreePool(waitblock);
+		ExFreePool(waitblock);	
 
 		data->Block=r-STATUS_WAIT_0;
 
@@ -134,6 +139,7 @@ Called from usermode to wait for data
 
 			data->Address=(UINT_PTR)MmMapLockedPagesSpecifyCache((PMDL)data->Mdl, UserMode, MmCached, NULL, FALSE, NormalPagePriority);
 			data->Size=DataBlock[data->Block].DataSize;
+			data->CpuID=DataBlock[data->Block].CpuID;
 
 			return STATUS_SUCCESS;	
 		}
@@ -254,6 +260,7 @@ int perfmon_interrupt_centry(void)
 					DbgPrint("Using datablock %d\n", currentblock);
 					DataBlock[currentblock].Data=temp;
 					DataBlock[currentblock].DataSize=(int)blocksize;
+					DataBlock[currentblock].CpuID=cpunr();
 					
 					DbgPrint("Calling KeSetEvent/KeWaitForSingleObject\n");
 					KeSetEvent(&DataBlock[currentblock].DataReady, 1, FALSE); //Trigger a worker thread to start working
@@ -262,6 +269,10 @@ int perfmon_interrupt_centry(void)
 				}				
 
 
+			}
+			else
+			{
+				DbgPrint("if ((DataBlock) && (KeWaitForSingleObject(&DataBlockSemaphore, Executive, KernelMode, FALSE, NULL) == STATUS_SUCCESS)) failed\n");
 			}
 			
 		}
@@ -468,7 +479,7 @@ Call this for each processor
 	}
 	else
 	{
-		DbgPrint("vmxusable is false\n");
+		DbgPrint("vmxusable is false. So no ultimap for you!!!\n");
 	}
 }
 

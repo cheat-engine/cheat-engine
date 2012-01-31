@@ -66,6 +66,7 @@ typedef struct
 	UINT64 Address;
 	UINT64 Size;
 	UINT64 Block;
+	UINT64 CpuID;
 	UINT64 KernelAddress;
 	UINT64 Mdl; //go ahead, scream
 } ULTIMAPDATAEVENT, *PULTIMAPDATAEVENT;

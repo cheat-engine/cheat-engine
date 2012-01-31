@@ -28,6 +28,24 @@ typedef PCHAR (*GET_PROCESS_IMAGE_NAME) (PEPROCESS Process);
 GET_PROCESS_IMAGE_NAME PsGetProcessImageFileName; 
 
 
+/*
+typedef struct
+{
+	int listcount;
+	char cpunrs[255];
+} CPULISTFILLSTRUCT, *PCPULISTFILLSTRUCT;
+
+VOID GetCPUIDS_all(PCPULISTFILLSTRUCT p)
+{
+	DbgPrint("GetCPUIDS_all(for cpu %d)\n", cpunr());
+	if (p->listcount<255)
+	{
+		p->cpunrs[p->listcount]=cpunr();
+		p->listcount++;
+	}
+}
+*/
+
 
 void mykapc2(PKAPC Apc, PKNORMAL_ROUTINE NormalRoutine, PVOID NormalContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
@@ -662,7 +680,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 
 		case IOCTL_CE_GETCR3:
 			{
-				UINT64 cr3reg=0;
+				UINT_PTR cr3reg=0;
 				PEPROCESS selectedprocess;
 
 
@@ -1416,6 +1434,14 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				ntStatus=STATUS_SUCCESS;
 				break;
 			}
+
+			/*
+		case IOCTL_CE_GETCPUIDS:
+			{
+				CPULISTFILLSTRUCT x;	
+
+				forEachCpuPassive(GetCPUIDS_all,&x);
+			}*/
 
 
 
