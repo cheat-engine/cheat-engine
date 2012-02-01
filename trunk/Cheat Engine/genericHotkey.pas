@@ -34,6 +34,8 @@ begin
   UnregisterGenericHotkey(self);
 
   CleanupLuaCall(tmethod(onNotify));
+
+  Inherited destroy;
 end;
 
 end.
