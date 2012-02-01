@@ -36,12 +36,31 @@ const
   VMCALL_ULTIMAP_PAUSE =34;
   VMCALL_ULTIMAP_RESUME= 35;
 
+  VMCALL_ULTIMAP_DEBUGINFO = 36;
+
 type
   TOriginalState=packed record
     oldflags: dword;
     oldcs, oldss, oldds, oldes, oldfs, oldgs: word;
   end;
   POriginalState=^TOriginalState;
+
+  TULTIMAPDEBUGINFO=packed record
+    Active: QWORD; //set to 1 when active
+    CR3: QWORD; //Holds the CR3 value to watch taskswitch to and from
+    DEBUGCTL:QWORD; //Holds the DebugCTL value to set when inside the target process
+    DS_AREA:QWORD; //Holds the DS_AREA to set when
+    OriginalDebugCTL :QWORD; //When inside the target process this holds the debugctl that was set before entering. Return this on readMSR (and set with writeMSR when inside the process)
+    OriginalDS_AREA :QWORD; //When inside the target process this holds the DS_AREA that was set before entering. Return this with readMSR ('''')
+    CR3_switchcount:QWORD;
+    CR3_switchcount2:QWORD;
+    LastOldCR3:QWORD;
+    LastNewCR3:QWORD;
+  end;
+  PULTIMAPDEBUGINFO=^TULTIMAPDEBUGINFO;
+
+
+
 
 function dbvm_version: dword; stdcall;
 function dbvm_changepassword(password1,password2: dword):dword; stdcall;
@@ -58,6 +77,7 @@ procedure dbvm_writeMSR(msr: dword; value: qword);
 
 function dbvm_ultimap_pause: DWORD;
 function dbvm_ultimap_resume: DWORD;
+function dbvm_ultimap_debuginfo(debuginfo: PULTIMAPDEBUGINFO): DWORD;
 
 procedure dbvm_switchToKernelMode(cs: word; rip: pointer; parameters: pointer);
 
@@ -326,6 +346,22 @@ begin
   result:=vmcall(@vmcallinfo,vmx_password1);
 end;
 
+function dbvm_ultimap_debuginfo(debuginfo: PULTIMAPDEBUGINFO): DWORD;
+var vmcallinfo: packed record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+  debuginfo: TULTIMAPDEBUGINFO;
+end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_ULTIMAP_DEBUGINFO;
+  result:=vmcall(@vmcallinfo,vmx_password1);
+
+  debuginfo^:=vmcallinfo.debuginfo;
+end;
+
 function dbvm_ultimap_resume: DWORD;
 var vmcallinfo: packed record
   structsize: dword;
@@ -407,6 +443,8 @@ begin
   vmcallinfo.parameters:=ptruint(parameters);
   vmcall(@vmcallinfo,vmx_password1);
 end;
+
+
 
 var kernelfunctions: Tstringlist;
 
