@@ -96,6 +96,15 @@ object frmUltimap: TfrmUltimap
           ParentColor = False
           WordWrap = True
         end
+        object Label7: TLabel
+          Left = 24
+          Height = 16
+          Top = 9
+          Width = 36
+          Caption = 'Debug'
+          ParentColor = False
+          OnClick = Label7Click
+        end
       end
     end
     object Panel5: TPanel

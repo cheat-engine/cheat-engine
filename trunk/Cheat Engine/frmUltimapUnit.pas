@@ -79,6 +79,7 @@ type
     Label4: TLabel;
     Label5: TLabel;
     Label6: TLabel;
+    Label7: TLabel;
     lblLastfilterresult: TLabel;
     ListView1: TListView;
     MenuItem1: TMenuItem;
@@ -105,6 +106,7 @@ type
     procedure FilterClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
+    procedure Label7Click(Sender: TObject);
     procedure ListView1Data(Sender: TObject; Item: TListItem);
     procedure ListView1DblClick(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
@@ -788,6 +790,27 @@ begin
   label4.Caption:=inttostr(sizeof(TBTS));
 
   flushcs:=TCriticalSection.Create;
+
+end;
+
+procedure TfrmUltimap.Label7Click(Sender: TObject);
+var debuginfo: TULTIMAPDEBUGINFO;
+  s: tstringlist;
+begin
+  dbvm_ultimap_debuginfo(@debuginfo);
+
+  s:=tstringlist.create;
+  s.add(format('Active=%x', [debuginfo.Active]));
+  s.add(format('CR3=%x', [debuginfo.CR3]));
+  s.add(format('DEBUGCTL=%x', [debuginfo.DEBUGCTL]));
+  s.add(format('DS_AREA=%x', [debuginfo.DS_AREA]));
+  s.add(format('OriginalDebugCTL=%x', [debuginfo.OriginalDebugCTL]));
+  s.add(format('OriginalDS_AREA=%x', [debuginfo.OriginalDS_AREA]));
+  s.add(format('CR3_switchcount=%x', [debuginfo.CR3_switchcount]));
+  s.add(format('CR3_switchcount2=%x', [debuginfo.CR3_switchcount2]));
+  s.add(format('LastOldCR3=%x', [debuginfo.LastOldCR3]));
+  s.add(format('LastOldCR3=%x', [debuginfo.LastOldCR3]));
+  showmessage(s.Text);
 
 end;
 
