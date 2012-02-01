@@ -846,6 +846,19 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       break;
     }
 
+    case VMCALL_ULTIMAP_DEBUGINFO:
+    {
+
+
+#ifdef ULTIMAPDEBUG
+      PULTIMAPDEBUGINFO Output=&vmcall_instruction[3];
+
+      ultimap_debugoutput(currentcpuinfo, Output);
+#endif
+      vmregisters->rax = 0;
+      break;
+    }
+
     case VMCALL_DISABLE_DATAPAGEFAULTS:
     {
       currentcpuinfo->IgnorePageFaults.Active=1;

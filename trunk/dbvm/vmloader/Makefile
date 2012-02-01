@@ -1,5 +1,5 @@
 ASM = yasm
-CC = gcc -m32
+CC = gcc -m32 -fno-stack-protector
 LD = ld -melf_i386
 AFLAGS = -f elf32
 LDFLAGS = -T kernel.lnk

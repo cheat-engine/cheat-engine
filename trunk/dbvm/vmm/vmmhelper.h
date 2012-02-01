@@ -243,6 +243,13 @@ typedef volatile struct _cpuinfo
     QWORD DS_AREA; //Holds the DS_AREA to set when
     QWORD OriginalDebugCTL; //When inside the target process this holds the debugctl that was set before entering. Return this on readMSR (and set with writeMSR when inside the process)
     QWORD OriginalDS_AREA; //When inside the target process this holds the DS_AREA that was set before entering. Return this with readMSR ('''')
+
+#ifdef ULTIMAPDEBUG
+    QWORD CR3_switchcount;
+    QWORD CR3_switchcount2;
+    QWORD LastOldCR3;
+    QWORD LastNewCR3;
+#endif
   } Ultimap;
 
   struct
