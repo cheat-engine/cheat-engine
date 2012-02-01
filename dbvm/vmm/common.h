@@ -5,6 +5,7 @@
 //#define DEBUGINTHANDLER //comment for release
 
 //#define DISPLAYDEBUG //send serialport debug output to the display
+#define ULTIMAPDEBUG //for debugging ultimap (I seem to have misplaced my serial port...)
 
 
 #define BYTE unsigned char

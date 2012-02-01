@@ -12,6 +12,34 @@
 #include "vmmhelper.h"
 #include "main.h"
 
+#ifdef ULTIMAPDEBUG
+
+
+
+void ultimap_debugoutput(pcpuinfo currentcpuinfo, PULTIMAPDEBUGINFO UltimapDebugInfo)
+{
+
+	int error;
+	UINT64 pagefaultaddress;
+
+	if (!error)
+	{
+		UltimapDebugInfo->Active=currentcpuinfo->Ultimap.Active;
+		UltimapDebugInfo->CR3=currentcpuinfo->Ultimap.CR3;
+		UltimapDebugInfo->DEBUGCTL=currentcpuinfo->Ultimap.DEBUGCTL;
+		UltimapDebugInfo->DS_AREA=currentcpuinfo->Ultimap.DS_AREA;
+		UltimapDebugInfo->OriginalDebugCTL=currentcpuinfo->Ultimap.OriginalDebugCTL;
+		UltimapDebugInfo->OriginalDS_AREA=currentcpuinfo->Ultimap.OriginalDS_AREA;
+		UltimapDebugInfo->CR3_switchcount=currentcpuinfo->Ultimap.CR3_switchcount;
+		UltimapDebugInfo->CR3_switchcount2=currentcpuinfo->Ultimap.CR3_switchcount2;
+		UltimapDebugInfo->LastOldCR3=currentcpuinfo->Ultimap.LastOldCR3;
+		UltimapDebugInfo->LastNewCR3=currentcpuinfo->Ultimap.LastNewCR3;
+		UltimapDebugInfo->CpuNr=currentcpuinfo->cpunr;
+	}
+
+}
+#endif
+
 void ultimap_pause(pcpuinfo currentcpuinfo)
 {
   ultimap_disable(currentcpuinfo);
@@ -48,10 +76,21 @@ void ultimap_handleCR3Change(pcpuinfo currentcpuinfo, QWORD oldcr3, QWORD newcr3
  * Called when cr3 changes and ultimap is active
  */
 {
+
+
+	currentcpuinfo->Ultimap.CR3_switchcount++;
+
     if (oldcr3 != newcr3)
     {
       if (currentcpuinfo->Ultimap.CR3==newcr3) //if the new cr3 is the process to watch
       {
+    	currentcpuinfo->Ultimap.CR3_switchcount2++;
+
+    	currentcpuinfo->Ultimap.LastOldCR3=oldcr3;
+    	currentcpuinfo->Ultimap.LastNewCR3=newcr3;
+
+
+
         //set the MSR values
         currentcpuinfo->Ultimap.OriginalDebugCTL=vmread(vm_guest_IA32_DEBUGCTL);
         currentcpuinfo->Ultimap.OriginalDS_AREA=readMSR(IA32_DS_AREA);

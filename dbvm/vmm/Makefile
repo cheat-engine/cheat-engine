@@ -2,7 +2,7 @@ ASM = yasm
 LD = ld
 CC = gcc
 AFLAGS = -f elf64 -DSERIALPORT=${SERIALPORT}
-CFLAGS = -O3 -W -Wall -DSERIALPORT=${SERIALPORT} -DSUPPORT_64BIT_OFFSET -DDARKBYTESFUCKEDUPCROSSCOMPILER -fno-builtin-strlen -fno-builtin-strcat -fno-builtin-strcpy -fno-builtin-malloc -fno-builtin-memcpy -fno-builtin-snprintf -fno-builtin-memset -g
+CFLAGS = -O3 -W -Wall -DSERIALPORT=${SERIALPORT} -DSUPPORT_64BIT_OFFSET -DDARKBYTESFUCKEDUPCROSSCOMPILER -fno-builtin-strlen -fno-builtin-strcat -fno-builtin-strcpy -fno-builtin-malloc -fno-builtin-memcpy -fno-builtin-snprintf -fno-builtin-memset -fno-stack-protector -g
 LDFLAGS = -T vmm.lnk -Map vmm.map
 C2FLAGS = -Wconversion
 
