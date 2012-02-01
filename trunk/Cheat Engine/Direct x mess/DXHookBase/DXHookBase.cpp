@@ -144,6 +144,7 @@ D3D11_DRAWAUTO_ORIGINAL D3D11_DrawAuto_Original=NULL;
 void GetAddresses(void)
 {
 	//create window and create a d3ddevice for dx9, dx10 and dx11H
+	OutputDebugStringA("GetAddresses()");
 
 	HRESULT hr=S_OK;
 	HWND x=0;
@@ -226,6 +227,8 @@ void GetAddresses(void)
 				pd3dDevice11->Release();
 			}		
 		}
+		else
+			OutputDebugStringA("D3D11.dll not loaded");
 
 
 		HMODULE d3d10dll=LoadLibraryA("D3D10.dll");
@@ -259,6 +262,8 @@ void GetAddresses(void)
 				pd3dDevice->Release();
 			}		
 		}
+		else
+			OutputDebugStringA("D3D10 dll not loaded");
 
 		//now the same for d3d9 to get the present function of d3d9device
 		HMODULE d3d9dll=LoadLibraryA("D3D9.dll");
@@ -299,15 +304,28 @@ void GetAddresses(void)
 
 							//d3d9device->Present(NULL,NULL,0,NULL);
 							d3d9device->Release();
+
+							OutputDebugStringA("Success: Fetched the Direct3D9 method addresses");
 						}
+						else
+							OutputDebugStringA("d3d9device is NULL");
+
 					}
+					else
+						OutputDebugStringA("FAILED d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, x, D3DCREATE_SOFTWARE_VERTEXPROCESSING, &d3dpp, &d3d9device);");
 
 					d3d9->Release();
 				}
+				else
+					OutputDebugStringA("D3DCreate9 failed");
 			}
+			else
+				OutputDebugStringA("Direct3DCreate9 not found");
 
 
 		}
+		else
+		  OutputDebugStringA("D3D9 dll not loaded");
 
 		DestroyWindow(x);	
 	}
@@ -503,16 +521,37 @@ void InitializeD3D9Api()
 	strcat_s(dllpath, MAX_PATH, "CED3D9Hook.dll");
 #endif
 
-	HMODULE hdll=LoadLibraryA((char *)dllpath);
-	D3D9Hook_Reset=(D3D9HookResetAPICall)GetProcAddress(hdll, "D3D9Hook_Reset_imp");
-	D3D9Hook_Present=(D3D9HookPresentAPICall)GetProcAddress(hdll, "D3D9Hook_Present_imp");
+	OutputDebugStringA("InitializeD3D9Api()");
+	OutputDebugStringA("dllpath = :");
+	OutputDebugStringA(dllpath);
 
-	D3D9Hook_DrawPrimitive=(D3D9HookDrawPrimitiveAPICall)GetProcAddress(hdll, "D3D9Hook_DrawPrimitive_imp");
-    D3D9Hook_DrawIndexedPrimitive=(D3D9HookDrawIndexedPrimitiveAPICall)GetProcAddress(hdll, "D3D9Hook_DrawIndexedPrimitive_imp");
-    D3D9Hook_DrawPrimitiveUP=(D3D9HookDrawPrimitiveUPAPICall)GetProcAddress(hdll, "D3D9Hook_DrawPrimitiveUP_imp");
-    D3D9Hook_DrawIndexedPrimitiveUP=(D3D9HookDrawIndexedPrimitiveUPAPICall)GetProcAddress(hdll, "D3D9Hook_DrawIndexedPrimitiveUP_imp");
-    D3D9Hook_DrawRectPatch=(D3D9HookDrawRectPatchAPICall)GetProcAddress(hdll, "D3D9Hook_DrawRectPatch_imp");
-    D3D9Hook_DrawTriPatch=(D3D9HookDrawTriPatchAPICall)GetProcAddress(hdll, "D3D9Hook_DrawTriPatch_imp");
+
+	HMODULE hdll=LoadLibraryA((char *)dllpath);
+	if (hdll)
+	{
+		D3D9Hook_Reset=(D3D9HookResetAPICall)GetProcAddress(hdll, "D3D9Hook_Reset_imp");
+		D3D9Hook_Present=(D3D9HookPresentAPICall)GetProcAddress(hdll, "D3D9Hook_Present_imp");
+
+		D3D9Hook_DrawPrimitive=(D3D9HookDrawPrimitiveAPICall)GetProcAddress(hdll, "D3D9Hook_DrawPrimitive_imp");
+		D3D9Hook_DrawIndexedPrimitive=(D3D9HookDrawIndexedPrimitiveAPICall)GetProcAddress(hdll, "D3D9Hook_DrawIndexedPrimitive_imp");
+		D3D9Hook_DrawPrimitiveUP=(D3D9HookDrawPrimitiveUPAPICall)GetProcAddress(hdll, "D3D9Hook_DrawPrimitiveUP_imp");
+		D3D9Hook_DrawIndexedPrimitiveUP=(D3D9HookDrawIndexedPrimitiveUPAPICall)GetProcAddress(hdll, "D3D9Hook_DrawIndexedPrimitiveUP_imp");
+		D3D9Hook_DrawRectPatch=(D3D9HookDrawRectPatchAPICall)GetProcAddress(hdll, "D3D9Hook_DrawRectPatch_imp");
+		D3D9Hook_DrawTriPatch=(D3D9HookDrawTriPatchAPICall)GetProcAddress(hdll, "D3D9Hook_DrawTriPatch_imp");
+
+		if (D3D9Hook_Reset && D3D9Hook_Present && D3D9Hook_DrawPrimitive && D3D9Hook_DrawIndexedPrimitive && D3D9Hook_DrawPrimitiveUP && D3D9Hook_DrawIndexedPrimitiveUP && D3D9Hook_DrawRectPatch && D3D9Hook_DrawTriPatch)
+			OutputDebugStringA("D3D9Hook: SUCCESSFULLY LOADED");		
+		else
+			OutputDebugStringA("D3D9Hook: Not all exports found");
+
+	}
+	else
+	{
+		int err=GetLastError();		
+		char msg[255];
+		sprintf_s(msg, 255, "LoadLibraryA for the D3D9 hook failed: %d", err);
+		OutputDebugStringA(msg);
+	}
 }
 
 HRESULT	__stdcall D3D9_DrawPrimitive_new(IDirect3DDevice9 *Device, D3DPRIMITIVETYPE PrimitiveType,UINT StartVertex,UINT PrimitiveCount)
