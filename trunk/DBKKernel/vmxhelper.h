@@ -40,8 +40,25 @@
 #define VMCALL_ULTIMAP_PAUSE 34
 #define VMCALL_ULTIMAP_RESUME 35
 
+#define VMCALL_ULTIMAP_DEBUGINFO 36
+
 
 typedef enum {virt_differentInterrupt=0, virt_emulateInterrupt=1} VMXInterruptRedirectType;
+
+typedef struct
+{
+	UINT64 Active; //set to 1 when active
+	UINT64 CR3; //Holds the CR3 value to watch taskswitch to and from
+	UINT64 DEBUGCTL; //Holds the DebugCTL value to set when inside the target process
+	UINT64 DS_AREA; //Holds the DS_AREA to set when
+	UINT64 OriginalDebugCTL; //When inside the target process this holds the debugctl that was set before entering. Return this on readMSR (and set with writeMSR when inside the process)
+	UINT64 OriginalDS_AREA; //When inside the target process this holds the DS_AREA that was set before entering. Return this with readMSR ('''')
+	UINT64 CR3_switchcount;
+	UINT64 CR3_switchcount2;
+	UINT64 LastOldCR3;
+	UINT64 LastNewCR3;
+} ULTIMAPDEBUGINFO, *PULTIMAPDEBUGINFO;
+
 
 unsigned int vmcall(void *vmcallinfo, unsigned int level1pass);
 
@@ -59,6 +76,8 @@ unsigned int vmx_exit_cr3_callback(unsigned int newcr3);
 
 unsigned int vmx_ultimap(UINT_PTR cr3towatch, UINT64 debugctl_value, void *storeaddress);
 unsigned int vmx_ultimap_disable();
+
+unsigned int vmx_ultimap_getDebugInfo(PULTIMAPDEBUGINFO debuginfo);
 
 unsigned int vmxusable;
 unsigned int vmx_password1;
