@@ -31,14 +31,16 @@ object frmStructuresConfig: TfrmStructuresConfig
       Caption = 'Colors'
       ClientHeight = 209
       ClientWidth = 101
+      Color = clWindow
+      ParentColor = False
       TabOrder = 0
       object Label7: TLabel
-        Tag = 8
+        Tag = 2
         Cursor = crHandPoint
         Left = 32
         Height = 16
         Hint = 'Color used when only one group and all columns have the same value'
-        Top = 16
+        Top = 40
         Width = 30
         Caption = 'Equal'
         ParentColor = False
@@ -52,7 +54,7 @@ object frmStructuresConfig: TfrmStructuresConfig
         Left = 28
         Height = 16
         Hint = 'Color used when only one column'
-        Top = 0
+        Top = 24
         Width = 39
         Caption = 'Default'
         ParentColor = False
@@ -61,12 +63,12 @@ object frmStructuresConfig: TfrmStructuresConfig
         OnMouseDown = ColorClick
       end
       object Label2: TLabel
-        Tag = 2
+        Tag = 3
         Cursor = crHandPoint
         Left = 24
         Height = 16
         Hint = 'Color used when only one group and not all columns have the same value, or when multiple groups but not every group has matching columns'
-        Top = 32
+        Top = 56
         Width = 47
         Caption = 'Different'
         ParentColor = False
@@ -75,12 +77,12 @@ object frmStructuresConfig: TfrmStructuresConfig
         OnMouseDown = ColorClick
       end
       object Label3: TLabel
-        Tag = 3
+        Tag = 4
         Cursor = crHandPoint
         Left = 14
         Height = 16
         Hint = 'Color used when multiple groups and every member of every group has the same value, and that value matches that of each group'
-        Top = 48
+        Top = 72
         Width = 66
         Caption = 'Group Equal'
         ParentColor = False
@@ -89,18 +91,36 @@ object frmStructuresConfig: TfrmStructuresConfig
         OnMouseDown = ColorClick
       end
       object Label9: TLabel
-        Tag = 10
+        Tag = 5
         Cursor = crHandPoint
         Left = 6
         Height = 16
         Hint = 'Color used when multiple groups and every member of every group has the same value, but not each group has the same value'
-        Top = 64
+        Top = 88
         Width = 83
         Caption = 'Group Different'
         ParentColor = False
         ParentShowHint = False
         ShowHint = True
         OnMouseDown = ColorClick
+      end
+      object comboBackground: TComboBox
+        Left = 0
+        Height = 23
+        Top = 0
+        Width = 101
+        Align = alTop
+        ItemHeight = 15
+        ItemIndex = 0
+        Items.Strings = (
+          'Normal'
+          'Highlighted'
+        )
+        OnChange = comboBackgroundChange
+        ParentBidiMode = False
+        Style = csDropDownList
+        TabOrder = 0
+        Text = 'Normal'
       end
     end
     object Panel3: TPanel
@@ -259,6 +279,6 @@ object frmStructuresConfig: TfrmStructuresConfig
       'ColorT=A4A0A0'
     )
     left = 32
-    top = 104
+    top = 152
   end
 end

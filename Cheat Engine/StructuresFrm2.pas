@@ -386,6 +386,14 @@ type
     fAllMatchColorSame: TColor; //The color to use when all groups have matching elements AND the same value
     fAllMatchColorDiff: TColor; //The color to use when all groups have matching alements but different values between groups
 
+    fDefaultColorHighlighted: TColor;
+    fNoMatchColorHighlighted: TColor; //The color to use when not all elements have the same color
+    fMatchColorHighlighted: tcolor; //The color to use when all elements in the group match
+    fAllMatchColorSameHighlighted: TColor; //The color to use when all groups have matching elements AND the same value
+    fAllMatchColorDiffHighlighted: TColor; //The color to use when all groups have matching alements but different values between groups
+
+
+
     procedure UpdateCurrentStructOptions;
     procedure setupColors;
 
@@ -399,7 +407,7 @@ type
     procedure FillTreenodeWithStructData(currentnode: TTreenode);
     function getDisplayedDescription(se: TStructelement): string;
     procedure setupNodeWithElement(node: TTreenode; element: TStructElement);
-    procedure setCurrentNodeStringsInColumns(node: TTreenode; element: TStructElement);  //sets the value for the current node into the columns
+    procedure setCurrentNodeStringsInColumns(node: TTreenode; element: TStructElement; highlighted: boolean=false);  //sets the value for the current node into the columns
     procedure RefreshVisibleNodes;
     procedure setMainStruct(struct: TDissectedStruct);
     function getColumn(i: integer): TStructColumn;
@@ -2242,7 +2250,7 @@ begin
 end;
 
 
-procedure TfrmStructures2.setCurrentNodeStringsInColumns(node: TTreenode; element: TStructElement);
+procedure TfrmStructures2.setCurrentNodeStringsInColumns(node: TTreenode; element: TStructElement; highlighted: boolean=false);
 {
 This method will get the address and value of the current node and store them temporarily in the column for the renderer to fetch
 }
@@ -2320,18 +2328,37 @@ begin
 
       if c.parent.Matches then
       begin
-        c.currentNodeColor:=fMatchColor;  //default match color
+        if not highlighted then
+          c.currentNodeColor:=fMatchColor //default match color
+        else
+          c.currentNodeColor:=fMatchColorHighlighted;
+
 
         if (groupcount>1) and allmatch then //if all the groups have columns that match, and more than 1 group, then
         begin
           if allsame then //if all the groups have the same value then
-            c.currentNodeColor:=fAllMatchColorSame
+          begin
+            if not highlighted then
+              c.currentNodeColor:=fAllMatchColorSame
+            else
+              c.currentNodeColor:=fAllMatchColorSameHighlighted;
+          end
           else
-            c.currentNodeColor:=fAllMatchColorDiff;
+          begin
+            if not highlighted then
+              c.currentNodeColor:=fAllMatchColorDiff
+            else
+              c.currentNodeColor:=fAllMatchColorDiffHighlighted;
+          end;
         end;
       end
       else
-        c.currentNodeColor:=fNoMatchColor;
+      begin
+        if not highlighted then
+          c.currentNodeColor:=fNoMatchColor
+        else
+          c.currentNodeColor:=fNoMatchColorHighlighted;
+      end;
     end;
 
   end
@@ -2341,7 +2368,11 @@ begin
     for i:=0 to columnCount-1 do
     begin
       c:=columns[i];
-      c.currentNodeColor:=tvStructureView.BackgroundColor;
+      if not highlighted then
+        c.currentNodeColor:=tvStructureView.BackgroundColor
+      else
+        c.currentNodeColor:=tvStructureView.SelectionColor;
+
       c.currentNodeValue:='';
       c.currentNodeAddress:='';
     end;
@@ -3558,6 +3589,11 @@ begin
   fAllMatchColorDiff:=frmStructuresConfig.groupDifferentText;
 
 
+  fDefaultColorHighlighted:=frmStructuresConfig.selecteddefaultText;
+  fMatchColorHighlighted:=frmStructuresConfig.selectedequalText;
+  fNoMatchColorHighlighted:=frmStructuresConfig.selecteddifferentText;
+  fAllMatchColorSameHighlighted:=frmStructuresConfig.selectedgroupequalText;
+  fAllMatchColorDiffHighlighted:=frmStructuresConfig.selectedgroupDifferentText;
 end;
 
 procedure TfrmStructures2.UpdateCurrentStructOptions;
@@ -3777,7 +3813,8 @@ begin
     else
       description:=getDisplayedDescription(se);
 
-    setCurrentNodeStringsInColumns(node,se);
+    selected:=(cdsSelected in State) or (cdsMarked in state);
+    setCurrentNodeStringsInColumns(node,se,selected);
 
 
     //draw an empty line.
@@ -3792,10 +3829,10 @@ begin
     //draw the description
     clip:=textrect;
     clip.Right:=headercontrol1.left+headercontrol1.Sections[0].Left+headercontrol1.Sections[0].Width;
-    selected:=(cdsSelected in State) or (cdsMarked in state);
+
 
     if selected then
-      sender.Canvas.Font.Color:=InvertColor(fDefaultColor)
+      sender.Canvas.Font.Color:=fDefaultColorHighlighted
     else
       sender.Canvas.Font.Color:=fDefaultColor;
 
@@ -3819,10 +3856,7 @@ begin
       clip.left:=headercontrol1.left+headercontrol1.Sections[i+1].Left;
       clip.right:=headercontrol1.left+headercontrol1.Sections[i+1].Right;
 
-      if selected then
-        sender.canvas.font.Color:=InvertColor(c.currentNodeColor)
-      else
-        sender.canvas.font.Color:=c.currentNodeColor;
+      sender.canvas.font.Color:=c.currentNodeColor;
 
       sender.Canvas.Refresh;
 

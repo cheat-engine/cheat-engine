@@ -10,6 +10,7 @@ TFRMSTRUCTURESCONFIG.LABEL3.HINT=Color used when multiple groups and every membe
 TFRMSTRUCTURESCONFIG.LABEL3.CAPTION=Group Equal
 TFRMSTRUCTURESCONFIG.LABEL9.HINT=Color used when multiple groups and every member of every group has the same value, but not each group has the same value
 TFRMSTRUCTURESCONFIG.LABEL9.CAPTION=Group Different
+TFRMSTRUCTURESCONFIG.COMBOBACKGROUND.TEXT=Normal
 TFRMSTRUCTURESCONFIG.GROUPBOX2.CAPTION=Default options for new structures
 TFRMSTRUCTURESCONFIG.CBAUTOCREATE.CAPTION=Autocreate local structures when expanding undefined pointer types
 TFRMSTRUCTURESCONFIG.EDTAUTOSTRUCTSIZE.TEXT=4096
