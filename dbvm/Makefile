@@ -2,6 +2,7 @@
 SERIALPORT=0x3f8
 #SERIALPORT=0xbf00
 
+
 all:
 	make -C vmm	all SERIALPORT=${SERIALPORT}
 	make -C common all SERIALPORT=${SERIALPORT}
