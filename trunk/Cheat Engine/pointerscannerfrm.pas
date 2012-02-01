@@ -1801,11 +1801,10 @@ begin
                   rescan.valuescandoubleMax:=rescan.valuescandouble+(1/(power(10,floataccuracy)));
                 end;
               end;
+
+              rescan.forvalue:=true;
             end;
 
-
-
-            rescan.forvalue:=true;
 
           end;
           rescan.start;
