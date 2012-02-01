@@ -69,6 +69,7 @@ type
     Button9: TButton;
     cbLogToFile: TRadioButton;
     cbParseData: TRadioButton;
+    cbPreemptiveFlush: TCheckBox;
     Edit1: TEdit;
     edtBufSize: TEdit;
     edtFilename: TEdit;
@@ -79,11 +80,11 @@ type
     Label4: TLabel;
     Label5: TLabel;
     Label6: TLabel;
-    Label7: TLabel;
     lblLastfilterresult: TLabel;
     ListView1: TListView;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
+    MenuItem3: TMenuItem;
     Panel1: TPanel;
     Panel2: TPanel;
     Panel3: TPanel;
@@ -91,6 +92,7 @@ type
     pmSetHotkey: TPopupMenu;
     PopupMenu1: TPopupMenu;
     Timer1: TTimer;
+    Flusher: TTimer;
     procedure btnStartClick(Sender: TObject);
     procedure btnStopClick(Sender: TObject);
     procedure btnPauseClick(Sender: TObject);
@@ -102,15 +104,19 @@ type
     procedure Button6Click(Sender: TObject);
     procedure Button7Click(Sender: TObject);
     procedure Button9Click(Sender: TObject);
+    procedure cbPreemptiveFlushChange(Sender: TObject);
     procedure Edit1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FilterClick(Sender: TObject);
+    procedure FlusherTimer(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure Label7Click(Sender: TObject);
     procedure ListView1Data(Sender: TObject; Item: TListItem);
     procedure ListView1DblClick(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
     procedure MenuItem2Click(Sender: TObject);
+    procedure MenuItem3Click(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
   private
     { private declarations }
@@ -126,7 +132,7 @@ type
     isretdisassembler: TDisassembler;   //not really needed...
 
 
-    FilterHotkey: array [0..3] of TGenericHotkey;
+    FilterHotkey: array [0..2] of TGenericHotkey;
     paused: boolean;
 
 
@@ -160,7 +166,7 @@ implementation
 uses MemoryBrowserFormUnit, vmxfunctions;
 
 {$ifdef cpu64}
-const kernelbase=QWORD($800000000000);
+const kernelbase=QWORD($800000000000);        //sign extended to :$ffff800000000000
 {$else}
 const kernelbase=DWORD($80000000);
 {$endif}
@@ -612,6 +618,11 @@ begin
   applyfilter(5);
 end;
 
+procedure TfrmUltimap.cbPreemptiveFlushChange(Sender: TObject);
+begin
+  flusher.enabled:=cbPreemptiveFlush.checked;
+end;
+
 procedure TfrmUltimap.Edit1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
   if key=VK_RETURN then
@@ -778,6 +789,12 @@ begin
   ApplyFilter(f);
 end;
 
+procedure TfrmUltimap.FlusherTimer(Sender: TObject);
+begin
+  if btnStop.enabled then
+    ultimap_flush;
+end;
+
 procedure TfrmUltimap.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
   if btnStop.enabled then
@@ -785,32 +802,72 @@ begin
 end;
 
 procedure TfrmUltimap.FormCreate(Sender: TObject);
+var x: TWindowPosArray;
+  i: integer;
+  kc: TKeyCombo;
+  ne: TNotifyEvent;
 begin
   edtWorkerCount.Text:=inttostr(GetCPUCount);
   label4.Caption:=inttostr(sizeof(TBTS));
 
   flushcs:=TCriticalSection.Create;
 
+  setlength(x, 0);
+  loadformposition(self,x);
+  if length(x)>=3*6 then
+  begin
+    for i:=0 to 2 do
+    begin
+      if x[6*i+0]=1 then  //active hotkey
+      begin
+        case i of
+          0: ne:=Button3.onclick;
+          1: ne:=Button4.onclick;
+          2: ne:=btnPause.onclick;
+        end;
+
+        kc[0]:=x[6*i+1];
+        kc[1]:=x[6*i+2];
+        kc[2]:=x[6*i+3];
+        kc[3]:=x[6*i+4];
+        kc[4]:=x[6*i+5];
+
+        //register the hotkey
+        FilterHotkey[i]:=TGenericHotkey.create(ne, kc)
+      end;
+
+    end;
+
+  end;
+end;
+
+procedure TfrmUltimap.FormDestroy(Sender: TObject);
+var x: array of integer;
+  i: integer;
+begin
+  setlength(x, 3*6); //hk0active,k1,k2,k3,k4,k5,hk1active,k1,k2,k3,k4,k5, hk2active,k1,k2,k3,k4,k5
+  for i:=0 to length(x)-1 do
+    x[i]:=0;
+
+  for i:=0 to 2 do
+  begin
+    if FilterHotkey[i]<>nil then
+    begin
+      x[6*i+0]:=1;
+      x[6*i+1]:=FilterHotkey[i].keys[0];
+      x[6*i+2]:=FilterHotkey[i].keys[1];
+      x[6*i+3]:=FilterHotkey[i].keys[2];
+      x[6*i+4]:=FilterHotkey[i].keys[3];
+      x[6*i+5]:=FilterHotkey[i].keys[4];
+    end;
+  end;
+
+  saveformposition(self,x);
 end;
 
 procedure TfrmUltimap.Label7Click(Sender: TObject);
-var debuginfo: TULTIMAPDEBUGINFO;
-  s: tstringlist;
 begin
-  dbvm_ultimap_debuginfo(@debuginfo);
 
-  s:=tstringlist.create;
-  s.add(format('Active=%x', [debuginfo.Active]));
-  s.add(format('CR3=%x', [debuginfo.CR3]));
-  s.add(format('DEBUGCTL=%x', [debuginfo.DEBUGCTL]));
-  s.add(format('DS_AREA=%x', [debuginfo.DS_AREA]));
-  s.add(format('OriginalDebugCTL=%x', [debuginfo.OriginalDebugCTL]));
-  s.add(format('OriginalDS_AREA=%x', [debuginfo.OriginalDS_AREA]));
-  s.add(format('CR3_switchcount=%x', [debuginfo.CR3_switchcount]));
-  s.add(format('CR3_switchcount2=%x', [debuginfo.CR3_switchcount2]));
-  s.add(format('LastOldCR3=%x', [debuginfo.LastOldCR3]));
-  s.add(format('LastOldCR3=%x', [debuginfo.LastOldCR3]));
-  showmessage(s.Text);
 
 end;
 
@@ -868,6 +925,18 @@ procedure TfrmUltimap.MenuItem2Click(Sender: TObject);
 begin
   flush;
   listview1.Refresh;
+end;
+
+procedure TfrmUltimap.MenuItem3Click(Sender: TObject);
+var
+  i: integer;
+begin
+  if pmSetHotkey.PopupComponent<>nil then
+  begin
+    i:=pmSetHotkey.PopupComponent.Tag;
+    if FilterHotkey[i]<>nil then
+      FreeAndNil(FilterHotkey[i]);
+  end;
 end;
 
 procedure TfrmUltimap.Timer1Timer(Sender: TObject);
