@@ -26,6 +26,7 @@ type
     cbDoNotSaveLocal: TCheckBox;
     cbAutoGuessCustomTypes: TCheckBox;
     ColorDialog1: TColorDialog;
+    comboBackground: TComboBox;
     edtAutostructsize: TEdit;
     GroupBox1: TGroupBox;
     GroupBox2: TGroupBox;
@@ -41,6 +42,7 @@ type
     Panel3: TPanel;
     procedure Button1Click(Sender: TObject);
     procedure ColorClickOld(Sender: TObject);
+    procedure comboBackgroundChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure ColorClick(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -61,14 +63,14 @@ type
     fselectedGroupEqualText: TColor;
     fselectedGroupDifferentText: TColor;
 
-    procedure setbackgroundcolor(x: TColor);
+//    procedure setbackgroundcolor(x: TColor);
     procedure setdefaultText(x: TColor);
     procedure setequalText(x: TColor);
     procedure setdifferentText(x: TColor);
     procedure setgroupequalText(x: TColor);
     procedure setgroupdifferentText(x: TColor);
 
-    procedure setselectedbackgroundcolor(x: TColor);
+ //   procedure setselectedbackgroundcolor(x: TColor);
     procedure setselectedDefaultText(x: TColor);
     procedure setselectedEqualText(x: TColor);
     procedure setselectedDifferentText(x: TColor);
@@ -81,14 +83,14 @@ type
     procedure Set_Color(tag: integer; color: TColor);
   public
     { public declarations }
-    property backgroundcolor: TColor read fbackgroundcolor write setBackgroundColor;
+   // property backgroundcolor: TColor read fbackgroundcolor write setBackgroundColor;
     property defaultText: TColor read fdefaultText write setdefaultText;
     property equalText: TColor read fequalText write setequalText;
     property differentText: TColor read fdifferentText write setdifferentText;
     property groupequalText: TColor read fgroupequalText write setgroupequalText;
     property groupDifferentText: TColor read fgroupDifferentText write setgroupdifferentText;
 
-    property selectedbackgroundcolor: TColor read fselectedbackgroundcolor write setselectedbackgroundcolor;
+   // property selectedbackgroundcolor: TColor read fselectedbackgroundcolor write setselectedbackgroundcolor;
     property selectedDefaultText: TColor read fselectedDefaultText write setselectedDefaultText;
     property selectedEqualText: TColor read fselectedEqualText write setselectedEqualText;
     property selectedDifferentText: TColor read fselectedDifferentText write setselectedDifferentText;
@@ -101,112 +103,124 @@ var
 
 implementation
 
-{ TfrmStructuresConfig }
+resourcestring
+  rsNormal = 'Normal';
+  rsHighlighted = 'Highlighted';
 
+{ TfrmStructuresConfig }
+  {
 procedure TfrmStructuresConfig.setbackgroundcolor(x: TColor);
 begin
   fbackgroundcolor:=x;
  // groupbox1.color:=x;
-end;
+end;    }
 
 procedure TfrmStructuresConfig.setdefaultText(x: TColor);
 begin
   fdefaultText:=x;
-  label1.Font.Color:=x;
+  if comboBackground.itemindex=0 then
+    label1.Font.Color:=x;
 end;
 
 procedure TfrmStructuresConfig.setequalText(x: TColor);
 begin
   fequaltext:=x;
-  label7.Font.Color:=x;
+  if comboBackground.itemindex=0 then
+    label7.Font.Color:=x;
 end;
 
 procedure TfrmStructuresConfig.setdifferentText(x: TColor);
 begin
   fdifferentText:=x;
-  label2.Font.Color:=x;
+  if comboBackground.itemindex=0 then
+    label2.Font.Color:=x;
 end;
 
 procedure TfrmStructuresConfig.setgroupequalText(x: TColor);
 begin
   fgroupequalText:=x;
-  label3.Font.Color:=x;
+  if comboBackground.itemindex=0 then
+    label3.Font.Color:=x;
 end;
 
 procedure TfrmStructuresConfig.setgroupdifferentText(x: TColor);
 begin
   fgroupdifferentText:=x;
-  label9.Font.Color:=x;
+  if comboBackground.itemindex=0 then
+    label9.Font.Color:=x;
 end;
 
-
+    {
 procedure TfrmStructuresConfig.setselectedbackgroundcolor(x: TColor);
 begin
   fselectedbackgroundcolor:=x;
   //groupbox2.color:=x;
-end;
+end;  }
 
 procedure TfrmStructuresConfig.setselectedDefaultText(x: TColor);
 begin
   fselectedDefaultText:=x;
- // label4.font.color:=x;
+  if comboBackground.itemindex=1 then
+    label1.font.color:=x;
 end;
 
 procedure TfrmStructuresConfig.setselectedEqualText(x: TColor);
 begin
   fselectedEqualText:=x;
- // label8.font.color:=x;
+  if comboBackground.itemindex=1 then
+    label7.font.color:=x;
 end;
 
 procedure TfrmStructuresConfig.setselectedDifferentText(x: TColor);
 begin
   fselectedDifferentText:=x;
- // label5.font.color:=x;
+  if comboBackground.itemindex=1 then
+    label2.font.color:=x;
 end;
 
 procedure TfrmStructuresConfig.setselectedGroupEqualText(x: TColor);
 begin
   fselectedGroupEqualText:=x;
-  //label6.font.color:=x;
+  if comboBackground.itemindex=1 then
+    label3.font.color:=x;
 end;
 
 procedure TfrmStructuresConfig.setselectedGroupDifferentText(x: TColor);
 begin
   fselectedGroupEqualText:=x;
-  //label6.font.color:=x;
+  if comboBackground.itemindex=1 then
+    label9.font.color:=x;
 end;
 
 function TfrmStructuresConfig.Get_Color(tag: integer):TColor;
 begin
   case tag of
-    0: result:=backgroundcolor;
     1: result:=defaulttext;
-    2: result:=differentText;
-    3: result:=groupequaltext;
-    4: result:=selectedbackgroundcolor;
-    5: result:=selectedDefaultText;
-    6: result:=selectedDifferentText;
-    7: result:=selectedGroupEqualText;
-    8: result:=EqualText;
-    9: result:=selectedEqualText;
-    10: result:=groupDifferentText;
+    2: result:=EqualText;
+    3: result:=differentText;
+    4: result:=groupequaltext;
+    5: result:=groupDifferentText;
+    6: result:=selecteddefaulttext;
+    7: result:=selectedEqualText;
+    8: result:=selecteddifferentText;
+    9: result:=selectedgroupequaltext;
+    10: result:=selectedgroupDifferentText;
   end;
 end;
 
 procedure TfrmStructuresConfig.Set_Color(tag: integer; color: TColor);
 begin
   case tag of
-    0: backgroundcolor:=color;
     1: defaulttext:=color;
-    2: differentText:=color;
-    3: groupequaltext:=color;
-    4: selectedbackgroundcolor:=color;
-    5: selectedDefaultText:=color;
-    6: selectedDifferentText:=color;
-    7: selectedGroupEqualText:=color;
-    8: EqualText:=color;
-    9: selectedEqualText:=color;
-    10: groupDifferentText:=color;
+    2: EqualText:=color;
+    3: differentText:=color;
+    4: groupequaltext:=color;
+    5: groupDifferentText:=color;
+    6: selecteddefaulttext:=color;
+    7: selectedEqualText:=color;
+    8: selecteddifferentText:=color;
+    9: selectedgroupequaltext:=color;
+    10: selectedgroupDifferentText:=color;
   end;
 end;
 
@@ -215,6 +229,30 @@ begin
   ColorDialog1.Color:=Get_Color(TControl(sender).tag);
   if ColorDialog1.Execute then
     Set_Color(TControl(sender).tag,ColorDialog1.Color);
+end;
+
+procedure TfrmStructuresConfig.comboBackgroundChange(Sender: TObject);
+begin
+  if comboBackground.itemindex=0 then
+  begin
+    //normal colors
+    Label1.Font.color:=fdefaultText;
+    Label7.font.color:=fequalText;
+    Label2.font.color:=fdifferentText;
+    label3.font.color:=fgroupequalText;
+    Label9.font.color:=fgroupdifferentText;
+    groupbox1.Color:=clWindow;
+  end
+  else
+  begin
+    //highlighted
+    Label1.Font.color:=fselecteddefaultText;
+    Label7.font.color:=fselectedequalText;
+    Label2.font.color:=fselecteddifferentText;
+    label3.font.color:=fselectedgroupequalText;
+    Label9.font.color:=fselectedgroupdifferentText;
+    groupbox1.color:=clHighlight;
+  end;
 end;
 
 procedure TfrmStructuresConfig.FormClose(Sender: TObject;
@@ -241,6 +279,12 @@ begin
       reg.WriteInteger('No Match Color',differentText);
       reg.WriteInteger('All Match Color Same',groupequalText);
       reg.WriteInteger('All Match Color Diff',groupDifferentText);
+
+      reg.WriteInteger('Selected Default Color',selecteddefaultText);
+      reg.WriteInteger('Selected Match Color',selectedequalText);
+      reg.WriteInteger('Selected No Match Color',selecteddifferentText);
+      reg.WriteInteger('Selected All Match Color Same',selectedgroupequalText);
+      reg.WriteInteger('Selected All Match Color Diff',selectedgroupDifferentText);
 
       reg.WriteBool('Autocreate', cbAutoCreate.Checked);
       reg.WriteInteger('Autocreate Size', autosize);
@@ -270,6 +314,12 @@ begin
   groupequalText:=clBlue;
   groupDifferentText:=$640064;
 
+  selecteddefaultText:=InvertColor(defaultText);
+  selectedequalText:=InvertColor(equalText);
+  selecteddifferentText:=InvertColor(differentText);
+  selectedgroupequalText:=InvertColor(groupequalText);
+  selectedgroupDifferentText:=InvertColor(groupDifferentText);
+
 
   reg:=tregistry.create;
   try
@@ -282,6 +332,12 @@ begin
       if reg.ValueExists('All Match Color Same') then groupequalText:=reg.ReadInteger('All Match Color Same');
       if reg.ValueExists('All Match Color Diff') then groupDifferentText:=reg.ReadInteger('All Match Color Diff');
 
+      if reg.ValueExists('Selected Default Color') then selecteddefaultText:=reg.ReadInteger('Selected Default Color');
+      if reg.ValueExists('Selected Match Color') then selectedequalText:=reg.ReadInteger('Selected Match Color');
+      if reg.ValueExists('Selected No Match Color') then selecteddifferentText:=reg.ReadInteger('Selected No Match Color');
+      if reg.ValueExists('Selected All Match Color Same') then selectedgroupequalText:=reg.ReadInteger('Selected All Match Color Same');
+      if reg.ValueExists('Selected All Match Color Diff') then selectedgroupDifferentText:=reg.ReadInteger('Selected All Match Color Diff');
+
       if reg.ValueExists('Autocreate') then cbAutoCreate.Checked:=reg.ReadBool('Autocreate');
       if reg.ValueExists('Autocreate Size') then edtAutostructsize.text:=inttostr(reg.ReadInteger('Autocreate Size'));
       if reg.ValueExists('Autodestroy') then cbAutoDestroyLocal.Checked:=reg.ReadBool('Autodestroy');
@@ -293,13 +349,20 @@ begin
   finally
     reg.free;
   end;
+
+  comboBackground.Items.Clear;
+  comboBackground.Items.Add(rsNormal);
+  comboBackground.Items.Add(rsHighlighted);
+  comboBackground.itemindex:=0;
 end;
 
 procedure TfrmStructuresConfig.ColorClick(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var i: integer;
 begin
-  ColorDialog1.Color:=Get_Color(TControl(sender).tag);
+  i:=comboBackground.itemindex*5;
+  ColorDialog1.Color:=Get_Color(TControl(sender).tag+i);
   if ColorDialog1.Execute then
-    Set_Color(TControl(sender).tag,ColorDialog1.Color);
+    Set_Color(TControl(sender).tag+i,ColorDialog1.Color);
 end;
 
 procedure TfrmStructuresConfig.FormDestroy(Sender: TObject);

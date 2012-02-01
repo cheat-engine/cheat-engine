@@ -1304,11 +1304,12 @@ end;
 procedure TfrmStructures.miChangeColorsClick(Sender: TObject);
 var c: TfrmStructuresConfig;
 begin
+  {
   c:=TfrmStructuresConfig.create(self);
 
 
   begin
-    c.backgroundcolor:=self.backgroundcolor;
+  //  c.backgroundcolor:=self.backgroundcolor;
     c.defaultText:=self.defaultText;
     c.equalText:=self.equalText;
     c.differentText:=self.differentText;
@@ -1339,7 +1340,7 @@ begin
       LoadColors; //and do an update on the components
     end;
     c.free;
-  end;
+  end;   }
 end;
 
 
