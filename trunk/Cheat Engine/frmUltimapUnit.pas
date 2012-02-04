@@ -19,6 +19,9 @@ type
     lastFromAddress: ptruint;
     //other stuff to come (e.g: triggered since last check)
     count: integer;
+{$ifdef predictlog}
+    predicted: boolean;
+{$endif}
     isCalled: boolean;  //the worker sets this to true when called. The user check sets this to false
     wrong: boolean; //set to true if a user check has failed
 
@@ -177,6 +180,11 @@ begin
   InterLockedIncrement(branchdata.count);
 
   branchdata.lastFromAddress:=BTS.LastBranchFrom;
+  {$ifdef predictlog}
+  if bts.Predicted=1 then
+    branchdata.predicted:=true;
+  {$endif}
+
   branchdata.isCalled:=true;
 end;
 
@@ -239,6 +247,9 @@ begin
         newbranchdata.isCalled:=true;
         newbranchdata.wrong:=false;
         newbranchdata.lastFromAddress:=buf[i].LastBranchFrom;
+{$ifdef predictlog}
+        newbranchdata.predicted:=buf[i].Predicted<>0;
+{$endif}
 
 
         tn:=branchtree.Add(newbranchdata);
@@ -876,6 +887,11 @@ begin
   item.caption:=symhandler.getNameFromAddress(validlist[item.Index].toAddress, true, true);
   item.SubItems.Add(symhandler.getNameFromAddress(validlist[item.Index].lastFromAddress, true, true));
   item.SubItems.Add(IntToStr(validlist[item.Index].count));
+
+{$ifdef predictlog}
+  if validlist[item.Index].predicted then
+    item.subitems.add('X');
+{$endif}
 
 end;
 
