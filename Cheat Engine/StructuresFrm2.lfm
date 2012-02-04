@@ -137,6 +137,12 @@ object frmStructures2: TfrmStructures2
         Checked = True
         OnClick = miShowAddressesClick
       end
+      object miEverythingHex: TMenuItem
+        AutoCheck = True
+        Caption = 'View everything as hexadecimal'
+        ShortCut = 16456
+        OnClick = miShowAddressesClick
+      end
     end
     object Structures1: TMenuItem
       Caption = 'Structures'
