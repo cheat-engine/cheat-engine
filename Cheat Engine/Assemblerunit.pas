@@ -1837,6 +1837,7 @@ end;
 
 
 function TokenToRegisterbit(token:string): TTokenType;
+//todo: Optimize with a case statement A->AL/AH/AX , B->BL/ .....
 begin
   result:=ttRegister32bit;
 
@@ -2897,15 +2898,13 @@ begin
 
       if (reg[k]='R12') or (reg[-k]='R12') then
       begin
+
         if reg[-k]='R12' then k:=-k;
 
-        if (reg[-k]<>'') then //sib needed
-        begin
-          setrm(modrm[0],4);
-          setlength(modrm,2);
-          setsibbase(modrm[1],12);
-          createsibscaleindex(modrm[1],reg[-k]);
-        end else setrm(modrm[0],12); //no sib needed
+        setrm(modrm[0],4);
+        setlength(modrm,2);
+        setsibbase(modrm[1],12);
+        createsibscaleindex(modrm[1],reg[-k]);
         found:=true;
         exit;
       end;
