@@ -48,7 +48,7 @@ type
     procedure setDisplayMethod(newDisplayMethod: TdisplayMethod);
     function getBytesize: integer;
     procedure setBytesize(newByteSize: integer);
-    function getValue(address: ptruint; hashexprefix: boolean=false): string;
+    function getValue(address: ptruint; hashexprefix: boolean=false; showAsHexOverride: boolean=false): string;
     procedure setvalue(address: ptruint; value: string);
     function getValueFromBase(baseaddress: ptruint): string;
     procedure setValueFromBase(baseaddress: ptruint; value: string);
@@ -267,6 +267,7 @@ type
 
   TfrmStructures2 = class(TForm)
     MenuItem5: TMenuItem;
+    miEverythingHex: TMenuItem;
     miGenerateGroupscan: TMenuItem;
     miDefaultHexadecimal: TMenuItem;
     miFindRelations: TMenuItem;
@@ -639,7 +640,7 @@ begin
   end;
 end;
 
-function TStructelement.getValue(address: ptruint; hashexprefix: boolean=false): string;
+function TStructelement.getValue(address: ptruint; hashexprefix: boolean=false; showAsHexOverride: boolean=false): string;
 var vt: TVariableType;
   ashex: boolean;
 begin
@@ -659,6 +660,10 @@ begin
     vt:=vartype;
     ashex:=displaymethod=dtHexadecimal;
   end;
+
+
+  if showAsHexOverride then
+    ashex:=true;
 
   if hashexprefix and ashex then
     result:='0x'; //also takes care of P->
@@ -2268,11 +2273,15 @@ var
 
     c: TStructColumn;
     savedstate: ptruint;
+    everythinghex: boolean;
+
 begin
   if element<>nil then
   begin
     for i:=0 to groupcount-1 do
       group[i].clear;
+
+    everythinghex:=miEverythingHex.checked;
 
     for i:=0 to columnCount-1 do
     begin
@@ -2286,10 +2295,11 @@ begin
       else
         address:=displayaddress;
 
+
       if not error then
       begin
         c.currentNodeAddress:=inttohex(displayaddress,1)+' : ';
-        c.currentNodeValue:=element.getValue(address);
+        c.currentNodeValue:=element.getValue(address, false, everythinghex);
       end
       else
       begin
@@ -3333,6 +3343,7 @@ begin
   end;
 end;
 
+
 procedure TfrmStructures2.miGenerateGroupscanClick(Sender: TObject);
 var gcf: TfrmGroupScanAlgoritmGenerator;
   previous, e: TStructelement;
@@ -3794,6 +3805,7 @@ var
 
   displacement: integer;
   //varname: string;
+
 
 begin
   if mainstruct=nil then exit; //no rendering
