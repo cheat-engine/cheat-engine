@@ -4,19 +4,10 @@ unit autoassembler;
 
 interface
 
-uses jwawindows, windows, Assemblerunit, classes,{$ifndef autoassemblerdll}CEFuncProc,{$endif}
-LCLIntf,symbolhandler,sysutils,dialogs,controls, NewKernelHandler{$ifndef standalonetrainerwithassemblerandaobscanner} ,plugin{$endif};
+uses jwawindows, windows, Assemblerunit, classes,CEFuncProc,
+LCLIntf,symbolhandler,sysutils,dialogs,controls, NewKernelHandler ,plugin;
 
-{$ifdef autoassemblerdll}
-type TCEAlloc=record
-  address: dword;
-  varname: string;
-  size: dword;
-end;
 
-type PCEAlloc=^TCEAlloc;
-type TCEAllocArray=array of TCEAlloc;
-{$endif}
 
 function getenableanddisablepos(code:tstrings;var enablepos,disablepos: integer): boolean;
 function autoassemble(code: tstrings;popupmessages: boolean):boolean; overload;
@@ -346,7 +337,7 @@ var i,j,k,l,e: integer;
     labels: array of tlabel;
     defines: array of tdefine;
     fullaccess: array of tfullaccess;
-    dealloc: array of dword;
+    dealloc: array of PtrUInt;
     addsymbollist: array of string;
     deletesymbollist: array of string;
     createthread: array of string;
