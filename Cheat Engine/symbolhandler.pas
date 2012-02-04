@@ -116,7 +116,7 @@ type
     function getisloaded:boolean;
     function geterror:boolean;
     function GetUserdefinedSymbolByNameIndex(symbolname:string):integer;
-    function GetUserdefinedSymbolByAddressIndex(address: dword):integer;
+    function GetUserdefinedSymbolByAddressIndex(address: ptruint):integer;
 
     procedure setshowmodules(x: boolean); //todo: Move this to the disassembler and let that decide
     procedure setshowsymbols(x: boolean);
@@ -142,7 +142,7 @@ type
     procedure reinitialize;
     function loadmodulelist: boolean; //returns true if a change was detected from the previous list
     procedure ReinitializeUserdefinedSymbolList;
-    procedure fillMemoryRegionsWithModuleData(var mr: TMemoryregions; startaddress: dword; size: dword);
+    procedure fillMemoryRegionsWithModuleData(var mr: TMemoryregions; startaddress: ptruint; size: dword);
     procedure getModuleList(list: tstrings);
     procedure GetSymbolList(address: ptruint; list: tstrings);
     function getmodulebyaddress(address: ptrUint; var mi: TModuleInfo):BOOLEAN;
@@ -574,14 +574,14 @@ end;
 
 procedure TSymhandler.ReinitializeUserdefinedSymbolList;
 var i: integer;
- x: dword;
+ x: qword;
  err: integer;
  haserror: boolean;
 begin
   for i:=0 to userdefinedsymbolspos-1 do
   begin
     val('$'+userdefinedsymbols[i].addressstring, x, err);
-    if err>0 then //iot's not a hexadecimal value
+    if err>0 then //it's not a hexadecimal value
     begin
       x:=getAddressFromName(userdefinedsymbols[i].addressstring, false,haserror);
       if not haserror then
@@ -697,7 +697,7 @@ begin
   end;
 end;
 
-function TSymhandler.GetUserdefinedSymbolByAddressIndex(address: dword):integer;
+function TSymhandler.GetUserdefinedSymbolByAddressIndex(address: ptruint):integer;
 var i: integer;
 begin
   result:=-1;
@@ -748,7 +748,7 @@ procedure TSymhandler.AddUserdefinedSymbol(addressstring: string; symbolname: st
 This routine will add the symbolname+address combination to the symbollist
 }
 var
-  address: dword;
+  address: ptruint;
 begin
   if getuserdefinedsymbolbyname(symbolname)>0 then raise symexception.Create(symbolname+' '+rsAlreadyExists);
 
@@ -801,11 +801,11 @@ begin
   userdefinedsymbolsCS.leave;
 end;
 
-procedure TSymhandler.fillMemoryRegionsWithModuleData(var mr: TMemoryregions; startaddress: dword; size: dword);
+procedure TSymhandler.fillMemoryRegionsWithModuleData(var mr: TMemoryregions; startaddress: ptruint; size: dword);
 {
 This routine will fill in a TMemoryRegions array with the base and startaddress of the modules it found
 }
-var currentaddress: dword;
+var currentaddress: ptruint;
     mi: tmoduleinfo;
     sizeleft: dword;
     i: integer;
@@ -1012,7 +1012,7 @@ begin
 
             result:=si.originalstring;
 
-            if offset>0 then
+            if offset>0 then  //unsigned, always bigger
               result:=result+'+'+inttohex(offset,1);
 
             if baseaddress<>nil then
@@ -1125,7 +1125,7 @@ function TSymhandler.getAddressFromName(name: string; waitforsymbols: boolean; o
 type TCalculation=(calcAddition, calcSubstraction);
 var mi: tmoduleinfo;
     si: PCESymbolInfo;
-    offset: dword;
+    offset: integer;
     i,j: integer;
 
     p: pchar;
@@ -1584,7 +1584,7 @@ If it is a invalid pointer, or can not be resolved, the result is NULL
 }
 var i: integer;
     list: tstringlist;
-    offsets: array of dword;
+    offsets: array of integer;
     baseaddress: dword;
     off: string;
     realaddress, realaddress2: ptrUint;
