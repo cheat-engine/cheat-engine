@@ -774,43 +774,43 @@ begin
 
               8:
               if integer(dwordptr^)>=0 then
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'r8'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'r8'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r8'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r8'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+'],';
 
               9:
               if integer(dwordptr^)>=0 then
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'r9'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'r9'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r9'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r9'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+'],';
 
              10:
               if integer(dwordptr^)>=0 then
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'r10'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'r10'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r10'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r10'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+'],';
 
              11:
               if integer(dwordptr^)>=0 then
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'r11'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'r11'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r11'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r11'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+'],';
 
              12:
               if integer(dwordptr^)>=0 then
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'r12'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'r12'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r12'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r12'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+'],';
 
              13:
               if integer(dwordptr^)>=0 then
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'r13'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'r13'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r13'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r13'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+'],';
 
              14:
               if integer(dwordptr^)>=0 then
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'r14'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'r14'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r14'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r14'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+'],';
 
              15:
               if integer(dwordptr^)>=0 then
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'r15'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'r15'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r15'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r15'+endcolor+'-'+inttohexs(-integer(dwordptr^),8)+'],';
 
             end;
             inc(last,4);
@@ -10572,6 +10572,7 @@ var
   value: ptrUint;
   vtype: TVariableType;
   a: boolean;
+  s: string;
 begin
   result:='';
 
@@ -10585,6 +10586,8 @@ begin
     end
     else
     begin
+      if LastDisassembleData.parameterValueType=dvtNone then
+        exit; //jump with no address (e.g reg)
 
       jumpAddress:=LastDisassembleData.parameterValue;
     end;
@@ -10608,7 +10611,10 @@ begin
         if not ReadProcessMemory(processhandle, pointer(jumpAddress), @jumpAddress, processhandler.pointersize,x) then exit;
       end;
 
-      result:=result+'->'+symhandler.getNameFromAddress(jumpAddress);
+
+      s:=symhandler.getNameFromAddress(jumpAddress);
+      if pos(s, LastDisassembleData.parameters)=0 then //no need to show a comment if it's exactly the same
+        result:=result+'->'+s;
     end;
 
 
