@@ -420,7 +420,7 @@ type
     procedure EditValueOfSelectedNodes(c:TStructColumn);
   public
     { public declarations }
-    initialaddress: integer;
+    initialaddress: PtrUInt;
     function getFocusedColumn: TStructColumn;
     function getColumnAtXPos(x: integer): TStructColumn;
     procedure changeNodes;
@@ -2157,8 +2157,11 @@ end;
 
 procedure TfrmStructures2.FormShow(Sender: TObject);
 begin
-  addColumn;
-  columns[0].setAddress(initialaddress);
+  if columnCount=0 then
+  begin
+    addColumn;
+    columns[0].setAddress(initialaddress);
+  end;
 end;
 
 procedure TfrmStructures2.HeaderControl1SectionTrack(
