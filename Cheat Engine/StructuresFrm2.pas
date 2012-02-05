@@ -267,6 +267,7 @@ type
 
   TfrmStructures2 = class(TForm)
     MenuItem5: TMenuItem;
+    miExportAll: TMenuItem;
     miEverythingHex: TMenuItem;
     miGenerateGroupscan: TMenuItem;
     miDefaultHexadecimal: TMenuItem;
@@ -324,6 +325,7 @@ type
     procedure Addextraaddress1Click(Sender: TObject);
     procedure MenuItem3Click(Sender: TObject);
     procedure MenuItem5Click(Sender: TObject);
+    procedure miExportAllClick(Sender: TObject);
     procedure miGenerateGroupscanClick(Sender: TObject);
     procedure miAutoCreateClick(Sender: TObject);
     procedure miAutoDestroyLocalClick(Sender: TObject);
@@ -2971,6 +2973,7 @@ procedure TfrmStructures2.Open1Click(Sender: TObject);
 var doc: TXMLDocument;
   structnode: TDOMNode;
   s: TDissectedStruct;
+  i: integer;
 begin
   if Opendialog1.Execute then
   begin
@@ -2983,17 +2986,25 @@ begin
     begin
       structnode:=doc.FindNode('Structures');
 
-      if structnode.ChildNodes.Count>0 then
-        s:=TDissectedStruct.createFromXMLNode(structnode.ChildNodes[0]);
+      for i:=0 to structnode.ChildNodes.Count-1 do
+      begin
+        s:=TDissectedStruct.createFromXMLNode(structnode.ChildNodes[i]);
 
-      if s<>nil then
-        s.addToGlobalStructList;
+        if s<>nil then
+        begin
+          s.addToGlobalStructList;
 
-      mainstruct:=s;
+          if mainstruct=nil then
+          begin
+            mainstruct:=s;
+
+            onFullStructChange(mainstruct);
+            RefreshStructureList;
+          end;
+        end;
+      end;
 
 
-      onFullStructChange(mainstruct);
-      RefreshStructureList;
     end;
 
     doc.Free;
@@ -3340,6 +3351,26 @@ begin
 
     //add the first address as well
     TStructColumn.create(g);
+  end;
+end;
+
+procedure TfrmStructures2.miExportAllClick(Sender: TObject);
+var
+  doc: TXMLDocument;
+  structnode: TDOMNode;
+  i: integer;
+begin
+  if Savedialog1.Execute then
+  begin
+    doc:=TXMLDocument.Create;
+    structnode:=TDOMElement(doc.AppendChild(TDOMNode(doc.CreateElement('Structures'))));
+
+    for i:=0 to DissectedStructs.Count-1 do
+      TDissectedStruct(DissectedStructs[i]).WriteToXMLNode(structnode);
+
+    WriteXML(structnode, savedialog1.filename);
+
+    doc.Free;
   end;
 end;
 
