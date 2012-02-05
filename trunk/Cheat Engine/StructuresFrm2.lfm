@@ -89,9 +89,14 @@ object frmStructures2: TfrmStructures2
         OnClick = Open1Click
       end
       object Save1: TMenuItem
-        Caption = 'Export'
+        Caption = 'Export current structure'
         ShortCut = 16453
         OnClick = Save1Click
+      end
+      object miExportAll: TMenuItem
+        Caption = 'Export all structures'
+        ShortCut = 16467
+        OnClick = miExportAllClick
       end
       object MenuItem2: TMenuItem
         Caption = '-'
