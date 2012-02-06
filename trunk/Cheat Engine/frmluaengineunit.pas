@@ -18,9 +18,10 @@ type
     GroupBox1: TGroupBox;
     MainMenu1: TMainMenu;
     MenuItem10: TMenuItem;
+    MenuItem11: TMenuItem;
     MenuItem4: TMenuItem;
     MenuItem5: TMenuItem;
-    MenuItem6: TMenuItem;
+    miView: TMenuItem;
     cbShowOnPrint: TMenuItem;
     MenuItem7: TMenuItem;
     MenuItem8: TMenuItem;
@@ -40,6 +41,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure MenuItem10Click(Sender: TObject);
+    procedure MenuItem11Click(Sender: TObject);
     procedure MenuItem2Click(Sender: TObject);
     procedure MenuItem3Click(Sender: TObject);
     procedure MenuItem5Click(Sender: TObject);
@@ -65,7 +67,7 @@ implementation
 
 
 resourcestring
-  rsError = 'error';
+  rsError = 'Script Error';
 
 procedure TfrmLuaEngine.Panel2Resize(Sender: TObject);
 begin
@@ -75,10 +77,17 @@ end;
 procedure TfrmLuaEngine.btnExecuteClick(Sender: TObject);
 var pc: pchar;
   i,j: integer;
+
+  oldprintoutput: Tstrings;
 begin
   luacs.Enter;
+  oldprintoutput:=lua_oldprintoutput;
   try
     mOutput.lines.add(mscript.text);
+
+
+    lua_setPrintOutput(mOutput.lines);
+
     if lua_dostring(luavm, pchar(mScript.text) )=0 then
     begin
 
@@ -118,19 +127,20 @@ begin
       i:=lua_gettop(luavm);
       if i>0 then
       begin
-        {
+
         //is currently shown inside the pcall function
         pc:=lua_tolstring(luavm, -1,nil);
         if pc<>nil then
           mOutput.lines.add(rsError+':'+pc)
         else
-          moutput.lines.add(rsError+':'+'nil'); }
+          moutput.lines.add(rsError+':'+'nil');
 
         lua_pop(luavm, i);
       end else moutput.lines.add(rsError);
 
     end;
   finally
+    lua_setPrintOutput(oldprintoutput);
     luacs.Leave;
   end;
 end;
@@ -154,6 +164,15 @@ end;
 procedure TfrmLuaEngine.MenuItem10Click(Sender: TObject);
 begin
   mscript.Undo;
+end;
+
+procedure TfrmLuaEngine.MenuItem11Click(Sender: TObject);
+var f: TfrmLuaEngine;
+begin
+  f:=TfrmLuaEngine.create(application);
+  f.miView.visible:=false;
+
+  f.show;
 end;
 
 procedure TfrmLuaEngine.MenuItem2Click(Sender: TObject);

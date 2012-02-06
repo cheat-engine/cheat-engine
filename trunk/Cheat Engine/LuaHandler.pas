@@ -45,6 +45,9 @@ procedure InitializeLua;
 function GetLuaState: PLUA_State; stdcall;
 
 
+function lua_oldprintoutput:TStrings;
+procedure lua_setPrintOutput(output: TStrings);
+
 implementation
 
 uses mainunit, mainunit2, frmluaengineunit, plugin, pluginexports, MemoryRecordUnit,
@@ -66,6 +69,18 @@ resourcestring
   rsInvalidInt = 'Invalid integer:%s';
 
 
+var
+  printoutput: TStrings;
+
+function lua_oldprintoutput:TStrings;
+begin
+  result:=printoutput;
+end;
+
+procedure lua_setPrintOutput(output: TStrings);
+begin
+  printoutput:=output;
+end;
 
 function GetLuaState: PLUA_State; stdcall;
 begin
@@ -97,13 +112,19 @@ begin
       error:=Lua_ToString(l, -1);
       if (error<>'') then
       begin
-        if frmLuaEngine=nil then
-          frmLuaEngine:=TfrmLuaEngine.Create(application);
+        if printoutput=nil then
+        begin
+          if frmLuaEngine=nil then
+            frmLuaEngine:=TfrmLuaEngine.Create(application);
+          printoutput:=frmLuaEngine.mOutput.Lines;
+        end;
 
-        frmLuaEngine.mOutput.Lines.add('Error:'+error);
+        printoutput.add('Error:'+error);
 
-        if frmLuaEngine.cbShowOnPrint.checked then
+        if (frmLuaEngine<>nil) and (printoutput=frmLuaEngine.mOutput.lines) and (frmLuaEngine.cbShowOnPrint.checked) then
           frmLuaEngine.show;
+
+        lua_pop(L, lua_gettop(L));
       end;
     end;
   end;
@@ -769,12 +790,18 @@ end;
 
 function print2(param: pointer): pointer;
 begin
-  if frmLuaEngine=nil then
-    frmLuaEngine:=TfrmLuaEngine.Create(application);
 
-  frmLuaEngine.mOutput.Lines.add(pchar(param));
+  if printoutput=nil then
+  begin
+    if frmLuaEngine=nil then
+      frmLuaEngine:=TfrmLuaEngine.Create(application);
 
-  if frmLuaEngine.cbShowOnPrint.checked then
+    printoutput:=frmLuaEngine.mOutput.Lines;
+  end;
+
+  printoutput.add(pchar(param));
+
+  if (frmLuaEngine<>nil) and (printoutput=frmLuaEngine.mOutput.lines) and (frmLuaEngine.cbShowOnPrint.checked) then
     frmLuaEngine.show;
 
   result:=nil;
