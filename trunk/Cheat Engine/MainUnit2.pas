@@ -20,11 +20,7 @@ procedure UpdateToolsMenu;
 procedure LoadSettingsFromRegistry;
 procedure initcetitle;
 
-function getVarType: TVariableType;
-function getVarType2: TVariableType;
 
-function GetScanType: TScanOption;
-function GetScanType2: TScanOption;
 
 
 const beta=' Beta 4'; //empty this for a release
@@ -92,80 +88,6 @@ implementation
 
 
 uses KernelDebugger,mainunit;
-
-function GetScanType2: TScanOption;
-{
-not needed anymore
-}
-begin
-  result:=GetScanType;
-end;
-
-function GetScanType: TScanOption;
-begin
-  result:=soExactValue;
-  with mainform do
-  begin
-    if not (getvartype in [vtBinary,vtString,vtByteArray]) then //not binary, string or bytearray
-    begin
-      if not nextscanbutton.enabled then
-      begin
-        //first scan
-        case scantype.ItemIndex of
-          0: result:=soExactValue;
-          1: result:=soBiggerThan;
-          2: result:=soSmallerThan;
-          3: result:=soValueBetween;
-          4: result:=soUnknownValue;
-        end;
-      end
-      else
-      begin
-        //next scan
-        case scantype.itemindex of
-          0: result:=soExactValue;
-          1: result:=soBiggerThan;
-          2: result:=soSmallerThan;
-          3: result:=soValueBetween;
-          4: result:=soIncreasedValue;
-          5: result:=soIncreasedValueBy;
-          6: result:=soDecreasedValue;
-          7: result:=soDecreasedValueBy;
-          8: result:=soChanged;
-          9: result:=soUnchanged;
-
-        end;
-      end;
-    end;
-  end;
-end;
-
-
-function getVarType2: TVariableType; //obsolete
-begin
-  result:=getVarType;
-
-end;
-
-function getVarType: TVariableType;
-begin
-  if mainform.vartype.itemindex>=11 then
-    result:=vtCustom
-  else
-  case mainform.VarType.ItemIndex of
-    0: result:=vtBinary; //binary
-    1: result:=vtByte; //byte
-    2: result:=vtWord; //2 bytes
-    3: result:=vtDword; //4 bytes
-    4: result:=vtQword; //8 bytes
-    5: result:=vtSingle; //float
-    6: result:=vtDouble; //double
-    7: result:=vtString; //text
-    8: result:=vtByteArray; //array of byte
-    9: result:=vtAll; //all, only for new memscan
-    10: result:=vtGrouped; //grouped, only for memscan
-  end;
-end;
 
 procedure UpdateToolsMenu;
 var i: integer;

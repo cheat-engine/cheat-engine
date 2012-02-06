@@ -465,7 +465,7 @@ implementation
 
 {$R *.lfm}
 
-uses MainUnit, frmStructures2ElementInfoUnit, MemoryBrowserFormUnit,
+uses MainUnit, mainunit2, frmStructures2ElementInfoUnit, MemoryBrowserFormUnit,
   frmStructureLinkerUnit, frmgroupscanalgoritmgeneratorunit;
 
 resourcestring
@@ -3462,9 +3462,21 @@ begin
     end;
 
     if gcf.showmodal=mrok then
-      mainform.scanvalue.text:=gcf.getparameters;
+    begin
+      if (mainform.VarType.enabled) or (mainform.getVarType=vtGrouped) then
+      begin
+        if mainform.getVarType<>vtGrouped then
+          mainform.setVarType(vtGrouped);
 
-    clipboard.astext:=gcf.getparameters;
+        mainform.scanvalue.text:=gcf.getparameters;
+      end
+      else
+        showmessage('The groupscan command has been copied to the clipboard');
+
+      clipboard.astext:=gcf.getparameters;
+
+
+    end;
 
     gcf.free;
 
