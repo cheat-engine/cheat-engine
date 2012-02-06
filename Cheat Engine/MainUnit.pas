@@ -769,6 +769,14 @@ type
 
     procedure DoGroupconfigButtonClick(sender: tobject);
 
+    function getVarType: TVariableType;
+    function getVarType2: TVariableType;
+    procedure setVarType(vt: TVariableType);
+
+    function GetScanType: TScanOption;
+    function GetScanType2: TScanOption;
+
+
     property foundcount: int64 read ffoundcount write setfoundcount;
     property RoundingType: TRoundingType read GetRoundingType write SetRoundingType;
     property ScanStart: ptruint read getScanStart write setScanStart;
@@ -7991,6 +7999,103 @@ begin
 
   gcf.free;
 end;
+
+
+function TMainForm.GetScanType2: TScanOption;
+{
+not needed anymore
+}
+begin
+  result:=GetScanType;
+end;
+
+function TMainForm.GetScanType: TScanOption;
+begin
+  result:=soExactValue;
+  begin
+    if not (getvartype in [vtBinary,vtString,vtByteArray]) then //not binary, string or bytearray
+    begin
+      if not nextscanbutton.enabled then
+      begin
+        //first scan
+        case scantype.ItemIndex of
+          0: result:=soExactValue;
+          1: result:=soBiggerThan;
+          2: result:=soSmallerThan;
+          3: result:=soValueBetween;
+          4: result:=soUnknownValue;
+        end;
+      end
+      else
+      begin
+        //next scan
+        case scantype.itemindex of
+          0: result:=soExactValue;
+          1: result:=soBiggerThan;
+          2: result:=soSmallerThan;
+          3: result:=soValueBetween;
+          4: result:=soIncreasedValue;
+          5: result:=soIncreasedValueBy;
+          6: result:=soDecreasedValue;
+          7: result:=soDecreasedValueBy;
+          8: result:=soChanged;
+          9: result:=soUnchanged;
+
+        end;
+      end;
+    end;
+  end;
+end;
+
+
+function TMainForm.getVarType2: TVariableType; //obsolete
+begin
+  result:=getVarType;
+
+end;
+
+function TMainForm.getVarType: TVariableType;
+begin
+  if vartype.itemindex>=11 then
+    result:=vtCustom
+  else
+  case VarType.ItemIndex of
+    0: result:=vtBinary; //binary
+    1: result:=vtByte; //byte
+    2: result:=vtWord; //2 bytes
+    3: result:=vtDword; //4 bytes
+    4: result:=vtQword; //8 bytes
+    5: result:=vtSingle; //float
+    6: result:=vtDouble; //double
+    7: result:=vtString; //text
+    8: result:=vtByteArray; //array of byte
+    9: result:=vtAll; //all, only for new memscan
+    10: result:=vtGrouped; //grouped, only for memscan
+  end;
+end;
+
+procedure TMainForm.setVarType(vt: TVariableType);
+begin
+  if vartype.enabled then
+  begin
+    case vt of
+      vtBinary: vartype.itemindex:=0;
+      vtByte: vartype.itemindex:=1;
+      vtWord: vartype.itemindex:=2;
+      vtDword: vartype.itemindex:=3;
+      vtQword: vartype.itemindex:=4;
+      vtSingle: vartype.itemindex:=5;
+      vtDouble: vartype.itemindex:=6;
+      vtString: vartype.itemindex:=7;
+      vtByteArray: vartype.itemindex:=8;
+      vtAll: vartype.itemindex:=9;
+      vtGrouped: vartype.itemindex:=10;
+    end;
+
+    vartype.OnChange(vartype);
+  end;
+end;
+
 
 initialization
   DecimalSeparator := '.';
