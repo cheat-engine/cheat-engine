@@ -177,6 +177,7 @@ object frmStructures2: TfrmStructures2
       end
       object miFillGaps: TMenuItem
         Caption = 'Fill gaps'
+        ShortCut = 49223
         OnClick = miFillGapsClick
       end
       object miFindRelations: TMenuItem
@@ -219,7 +220,7 @@ object frmStructures2: TfrmStructures2
     left = 48
     top = 112
     object miChangeValue: TMenuItem
-      Caption = 'Change Value'
+      Caption = 'Change value'
       ShortCut = 13
       OnClick = miChangeValueClick
     end
@@ -284,6 +285,19 @@ object frmStructures2: TfrmStructures2
       Caption = 'Update this and following offsets'
       ShortCut = 16469
       OnClick = miUpdateOffsetsClick
+    end
+    object N4: TMenuItem
+      Caption = '-'
+    end
+    object miCopy: TMenuItem
+      Caption = 'Copy element(s)'
+      ShortCut = 16451
+      OnClick = miCopyClick
+    end
+    object miPaste: TMenuItem
+      Caption = 'Paste elements(s) after current entry'
+      ShortCut = 16470
+      OnClick = miPasteClick
     end
   end
   object updatetimer: TTimer

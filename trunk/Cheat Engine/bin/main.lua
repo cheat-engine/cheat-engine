@@ -951,6 +951,7 @@ createNativeThread(function) :
   The function returns the Thread class object
   function declaration: function (Thread)
 
+
 thread_freeOnTerminate(thread, state) : 
   When set to true the thread object will free itself when the function ends (default=true)
   Note: Use this only from inside the thread function as the thread might have already terminated and freed itself when called
@@ -1130,6 +1131,11 @@ d3dhook_createOverlay(Picture, x,y)
 
 d3dhook_updateOverlayImage(overlayid)
   Call this function when you have changed anything to the image of the specified overlay
+  Tip: 
+    This update takes more cpu cycles than other functions, so think before you use it.
+    Example: If you only have 3 different things to show, you might want to choose to have 3 overlays
+    and hide the other two instead of updating the image every time
+
 
 d3dhook_updateOverlayPosition(overlayid, x,y)
   Call this function when you wish to change the position this overlay has on the screen
@@ -1165,8 +1171,6 @@ d3dhook_onClick(function):
 
 d3dhook_beginUpdate() : Use this function when you intend to update multiple overlays. Otherwise each update will have to wait for a frame render
 d3dhook_endUpdate() : When done updating, call this function to apply the changes
-
-
 
 
 
