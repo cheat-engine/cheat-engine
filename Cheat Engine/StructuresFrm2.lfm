@@ -80,6 +80,10 @@ object frmStructures2: TfrmStructures2
         Caption = 'New window'
         OnClick = miNewWindowClick
       end
+      object miClear: TMenuItem
+        Caption = 'Delete all structures'
+        OnClick = miClearClick
+      end
       object N8: TMenuItem
         Caption = '-'
       end
@@ -295,7 +299,7 @@ object frmStructures2: TfrmStructures2
       OnClick = miCopyClick
     end
     object miPaste: TMenuItem
-      Caption = 'Paste elements(s) after current entry'
+      Caption = 'Paste elements(s)'
       ShortCut = 16470
       OnClick = miPasteClick
     end

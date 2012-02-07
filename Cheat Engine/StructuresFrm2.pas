@@ -270,6 +270,7 @@ type
 
   TfrmStructures2 = class(TForm)
     MenuItem5: TMenuItem;
+    miClear: TMenuItem;
     miCopy: TMenuItem;
     miPaste: TMenuItem;
     N4: TMenuItem;
@@ -331,6 +332,7 @@ type
     procedure Addextraaddress1Click(Sender: TObject);
     procedure MenuItem3Click(Sender: TObject);
     procedure MenuItem5Click(Sender: TObject);
+    procedure miClearClick(Sender: TObject);
     procedure miCopyClick(Sender: TObject);
     procedure miExportAllClick(Sender: TObject);
     procedure miGenerateGroupscanClick(Sender: TObject);
@@ -3372,6 +3374,21 @@ begin
 
     //add the first address as well
     TStructColumn.create(g);
+  end;
+end;
+
+procedure TfrmStructures2.miClearClick(Sender: TObject);
+begin
+  if MessageDlg('Are you sure you want to delete all the defined structures ?', mtWarning, [mbyes, mbno],0)=mryes then
+  begin
+    if mainstruct<>nil then //this one first
+    begin
+      mainstruct.free;
+      mainstruct:=nil;
+    end;
+
+    while DissectedStructs.Count>0 do
+      TDissectedStruct(DissectedStructs[0]).free;
   end;
 end;
 
