@@ -3397,48 +3397,94 @@ var
   baseoffset: dword; //startoffset to start appending from  (currently selected+size)
   doc: TXMLDocument;
   elementnodes: TDOMElement;
-  i: integer;
+  i,j,k: integer;
   e: TStructelement;
   firstoffset: dword;
   ss: Tstringstream;
+
+  struct: TDissectedStruct;
+
+  pathtobase: array of integer; //since the parent treenode might collapse if it's a pointer to itself...
+  n: TTreenode;
 begin
   if (mainstruct<>nil) and (tvStructureView.Selected<>nil) then
   begin
     e:=getStructElementFromNode(tvStructureView.Selected);
-    baseoffset:=e.Offset+e.Bytesize;
+    struct:=getStructFromNode(tvStructureView.Selected);
 
-    doc:=nil;
-    ss:=TStringStream.create(clipboard.AsText);
-    try
-      try
-      ReadXMLFile(doc, ss);
-      if doc<>nil then
-      begin
-        elementnodes:=TDOMElement(doc.FindNode('Elements'));
-        if elementnodes<>nil then
-        begin
-          mainStruct.beginUpdate;
-          for i:=0 to elementnodes.ChildNodes.Count-1 do
-          begin
-            e:=TStructelement.createFromXMLElement(mainstruct, TDOMElement(elementnodes.ChildNodes[i]));
-            if i=0 then firstoffset:=e.Offset;
-
-            e.offset:=baseoffset+(e.offset-firstoffset);
-            mainStruct.structelementlist.Add(e);
-          end;
-          mainstruct.sortElements;
-          mainstruct.endUpdate;
-        end;
-
-        doc.free;
-      end;
-      except
-      end;
-    finally
-      ss.free;
+    setlength(pathtobase,0);
+    n:=tvStructureView.Selected.parent;
+    while n.parent<>nil do
+    begin
+      setlength(pathtobase, length(pathtobase)+1);
+      pathtobase[length(pathtobase)-1]:=n.Index;
+      n:=n.parent;
     end;
 
+
+
+    if (e<>nil) and (struct<>nil) then
+    begin
+
+      baseoffset:=e.Offset+e.Bytesize;
+
+      doc:=nil;
+      ss:=TStringStream.create(clipboard.AsText);
+      try
+        try
+          ReadXMLFile(doc, ss);
+          if doc<>nil then
+          begin
+            elementnodes:=TDOMElement(doc.FindNode('Elements'));
+            if elementnodes<>nil then
+            begin
+              struct.beginUpdate;
+              for i:=0 to elementnodes.ChildNodes.Count-1 do
+              begin
+                e:=TStructelement.createFromXMLElement(struct, TDOMElement(elementnodes.ChildNodes[i]));
+                if i=0 then firstoffset:=e.Offset;
+
+                e.offset:=baseoffset+(e.offset-firstoffset);
+                struct.structelementlist.Add(e);
+              end;
+              struct.sortElements;
+              struct.endUpdate;
+            end;
+
+            doc.free;
+          end;
+
+          //select the last added element
+          i:=struct.getIndexOfOffset(e.offset);
+          n:=tvStructureView.Items.GetFirstNode;
+
+          //open the path if it was closed
+          for j:=length(pathtobase)-1 downto 0 do
+          begin
+            k:=pathtobase[j];
+            if k<n.Count then
+            begin
+              if n.Items[k].HasChildren then
+              begin
+                n.Items[k].Expanded:=true;
+                n:=n.items[k];
+              end
+              else
+                exit; //give up
+            end;
+          end;
+
+          tvStructureView.Items.SelectOnlyThis(n.items[i]);
+        except
+        end;
+      finally
+        ss.free;
+      end;
+
+    end;
   end;
+
+
 
 end;
 

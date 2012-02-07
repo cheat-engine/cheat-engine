@@ -222,7 +222,7 @@ object frmStructures2: TfrmStructures2
   object pmStructureView: TPopupMenu
     OnPopup = pmStructureViewPopup
     left = 48
-    top = 112
+    top = 120
     object miChangeValue: TMenuItem
       Caption = 'Change value'
       ShortCut = 13
