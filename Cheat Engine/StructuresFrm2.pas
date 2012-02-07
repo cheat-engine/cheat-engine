@@ -270,6 +270,9 @@ type
 
   TfrmStructures2 = class(TForm)
     MenuItem5: TMenuItem;
+    miCopy: TMenuItem;
+    miPaste: TMenuItem;
+    N4: TMenuItem;
     miExportAll: TMenuItem;
     miEverythingHex: TMenuItem;
     miGenerateGroupscan: TMenuItem;
@@ -328,6 +331,7 @@ type
     procedure Addextraaddress1Click(Sender: TObject);
     procedure MenuItem3Click(Sender: TObject);
     procedure MenuItem5Click(Sender: TObject);
+    procedure miCopyClick(Sender: TObject);
     procedure miExportAllClick(Sender: TObject);
     procedure miGenerateGroupscanClick(Sender: TObject);
     procedure miAutoCreateClick(Sender: TObject);
@@ -357,6 +361,7 @@ type
       Section: THeaderSection; Width: Integer; State: TSectionTrackState);
     procedure miAddChildElementClick(Sender: TObject);
     procedure miAddElementClick(Sender: TObject);
+    procedure miPasteClick(Sender: TObject);
     procedure miShowAddressesClick(Sender: TObject);
     procedure miUpdateOffsetsClick(Sender: TObject);
     procedure Open1Click(Sender: TObject);
@@ -2939,6 +2944,8 @@ begin
   addFromNode(tvStructureView.selected);
 end;
 
+
+
 procedure TfrmStructures2.miShowAddressesClick(Sender: TObject);
 begin
   RefreshVisibleNodes;
@@ -3067,6 +3074,11 @@ begin
   n2.visible:=ownerstruct<>nil;
 
   N3.visible:=miRecalculateAddress.visible or miUpdateOffsets.visible;
+
+  micopy.Visible:=structelement<>nil;
+  mipaste.Visible:=structelement<>nil;
+  n4.visible:=n3.visible and (miCopy.visible or mipaste.visible);
+
 end;
 
 procedure TfrmStructures2.miNewWindowClick(Sender: TObject);
@@ -3360,6 +3372,87 @@ begin
 
     //add the first address as well
     TStructColumn.create(g);
+  end;
+end;
+
+procedure TfrmStructures2.miPasteClick(Sender: TObject);
+var
+  baseoffset: dword; //startoffset to start appending from  (currently selected+size)
+  doc: TXMLDocument;
+  elementnodes: TDOMElement;
+  i: integer;
+  e: TStructelement;
+  firstoffset: dword;
+  ss: Tstringstream;
+begin
+  if (mainstruct<>nil) and (tvStructureView.Selected<>nil) then
+  begin
+    e:=getStructElementFromNode(tvStructureView.Selected);
+    baseoffset:=e.Offset+e.Bytesize;
+
+    doc:=nil;
+    ss:=TStringStream.create(clipboard.AsText);
+    try
+      try
+      ReadXMLFile(doc, ss);
+      if doc<>nil then
+      begin
+        elementnodes:=TDOMElement(doc.FindNode('Elements'));
+        if elementnodes<>nil then
+        begin
+          mainStruct.beginUpdate;
+          for i:=0 to elementnodes.ChildNodes.Count-1 do
+          begin
+            e:=TStructelement.createFromXMLElement(mainstruct, TDOMElement(elementnodes.ChildNodes[i]));
+            if i=0 then firstoffset:=e.Offset;
+
+            e.offset:=baseoffset+(e.offset-firstoffset);
+            mainStruct.structelementlist.Add(e);
+          end;
+          mainstruct.sortElements;
+          mainstruct.endUpdate;
+        end;
+
+        doc.free;
+      end;
+      except
+      end;
+    finally
+      ss.free;
+    end;
+
+  end;
+
+end;
+
+procedure TfrmStructures2.miCopyClick(Sender: TObject);
+var
+  doc: TXMLDocument;
+  elementnodes: TDOMElement;
+  i: integer;
+  se: TStructelement;
+  ms: TStringStream;
+begin
+  if mainstruct<>nil then
+  begin
+    doc:=TXMLDocument.Create;
+    elementnodes:=TDOMElement(doc.AppendChild(TDOMNode(doc.CreateElement('Elements'))));
+
+    for i:=0 to tvStructureView.SelectionCount-1 do
+    begin
+      se:=getStructElementFromNode(tvStructureView.Selections[i]);
+      if se<>nil then
+        se.WriteToXMLNode(elementnodes);
+    end;
+
+
+    ms:=TStringStream.create('');
+    WriteXML(elementnodes, ms);
+
+    Clipboard.AsText:=ms.DataString;
+    ms.free;
+
+    doc.Free;
   end;
 end;
 
