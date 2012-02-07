@@ -33,6 +33,7 @@ type
     fchildstructstart: integer; //offset into the childstruct where this pointer starts. Always 0 for local structs, can be higher than 0 for other defined structs
   public
     delayLoadedStructname: string;
+    constructor createFromXMLElement(parent:TDissectedStruct; element: TDOMElement);
     constructor create(parent:TDissectedStruct);
     destructor destroy; override;
     function getParent: TDissectedStruct;
@@ -60,6 +61,8 @@ type
     function getIndex: integer;
 
     procedure AutoCreateChildStruct(name: string; address: ptruint);
+
+    procedure WriteToXMLNode(elementnodes: TDOMNode);
 
     property Name: string read getName write setName; //stored as utf8
     property VarType: TVariableType read getVarType write setVarType;
@@ -539,6 +542,45 @@ end;
 
 {Struct}
 
+procedure TStructelement.WriteToXMLNode(elementnodes: TDOMNode);
+var
+  doc: TDOMDocument;
+  elementnode: TDOMElement;
+begin
+  doc:=elementnodes.OwnerDocument;
+  elementnode:=TDOMElement(elementnodes.AppendChild(doc.CreateElement('Element')));
+
+  elementnode.SetAttribute('Offset', IntToStr(self.Offset));
+  if self.Name<>'' then
+    elementnode.SetAttribute('Description', utf8toansi(self.Name));
+
+  elementnode.SetAttribute('Vartype', VariableTypeToString(self.VarType));
+  if self.CustomType<>nil then
+    elementnode.SetAttribute('Customtype', self.CustomType.name);
+
+  elementnode.SetAttribute('Bytesize', IntToStr(self.Bytesize));
+  elementnode.SetAttribute('DisplayMethod', DisplaymethodToString(self.DisplayMethod));
+
+  if self.ChildStructStart<>0 then
+    elementnode.SetAttribute('ChildStructStart', IntToStr(self.ChildStructStart));
+
+  if (self.isPointer) and (self.ChildStruct<>nil) then
+  begin
+    if (self.ChildStruct.isInGlobalStructList) then
+    begin
+      //set childstruct as an attribute
+      elementnode.SetAttribute('ChildStruct', utf8toansi(self.ChildStruct.Name));
+    end
+    else
+    begin
+      //local struct, only save if allowed
+      if (parent<>nil) and (parent.doNotSaveLocal=false) then  //save this whole struct
+        ChildStruct.WriteToXMLNode(elementnode);
+    end;
+  end;
+
+end;
+
 function TStructelement.getParent: TDissectedStruct;
 begin
   result:=fParent;
@@ -767,6 +809,38 @@ begin
   fbytesize:=1;
 end;
 
+constructor TStructelement.createFromXMLElement(parent:TDissectedStruct; element: tdomelement);
+var ChildStructStartS: string;
+  childnode: TDOMElement;
+  childname: string;
+begin
+  fparent:=parent;
+  self.foffset:=strtoint(element.GetAttribute('Offset'));
+  self.fname:=AnsiToUtf8(element.GetAttribute('Description'));
+  self.fvartype:=StringToVariableType(element.GetAttribute('Vartype'));
+  self.fCustomType:=GetCustomTypeFromName(element.GetAttribute('Customtype'));
+  self.fdisplayMethod:=StringToDisplayMethod(element.GetAttribute('DisplayMethod'));
+  self.fbytesize:=strtoint(element.GetAttribute('Bytesize'));
+
+  ChildStructStartS:=element.GetAttribute('ChildStructStart');
+  if ChildStructStartS<>'' then
+    fChildStructStart:=strtoint(ChildStructStartS)
+  else
+    fChildStructStart:=0;
+
+
+
+  if fvartype=vtPointer then
+  begin
+    //check if it has a child struct
+    childnode:=TDOMElement(element.FindNode('Structure'));
+    if childnode<>nil then
+      fchildstruct:=TDissectedStruct.createFromXMLNode(childnode)
+    else
+      delayLoadedStructname:=AnsiToUtf8(element.GetAttribute('ChildStruct'));
+  end;
+
+end;
 
 {TDissectedStruct}
 
@@ -1173,7 +1247,7 @@ var
   doc: TDOMDocument;
 
   structnode: TDOMElement;
-  elementnodes, elementnode: TDOMElement;
+  elementnodes: TDOMElement;
 begin
   doc:=node.OwnerDocument;
 
@@ -1192,40 +1266,7 @@ begin
   elementnodes:=TDOMElement(structnode.AppendChild(TDOMNode(doc.CreateElement('Elements'))));
 
   for i:=0 to count-1 do
-  begin
-    elementnode:=TDOMElement(elementnodes.AppendChild(doc.CreateElement('Element')));
-
-    elementnode.SetAttribute('Offset', IntToStr(element[i].Offset));
-    if element[i].Name<>'' then
-      elementnode.SetAttribute('Description', utf8toansi(element[i].Name));
-
-    elementnode.SetAttribute('Vartype', VariableTypeToString(element[i].VarType));
-    if element[i].CustomType<>nil then
-      elementnode.SetAttribute('Customtype', element[i].CustomType.name);
-    elementnode.SetAttribute('Bytesize', IntToStr(element[i].Bytesize));
-    elementnode.SetAttribute('DisplayMethod', DisplaymethodToString(element[i].DisplayMethod));
-
-    if element[i].ChildStructStart<>0 then
-      elementnode.SetAttribute('ChildStructStart', IntToStr(element[i].ChildStructStart));
-
-    if (element[i].isPointer) and (element[i].ChildStruct<>nil) then
-    begin
-      if (element[i].ChildStruct.isInGlobalStructList) then
-      begin
-        //set childstruct as an attribute
-        elementnode.SetAttribute('ChildStruct', utf8toansi(element[i].ChildStruct.Name));
-      end
-      else
-      begin
-        //local struct, only save if allowed
-        if doNotSaveLocal=false then
-        begin
-          //save this whole struct
-          element[i].ChildStruct.WriteToXMLNode(elementnode);
-        end;
-      end;
-    end;
-  end;
+    element[i].WriteToXMLNode(elementnodes);
 end;
 
 procedure TDissectedStruct.fillDelayLoadedChildstructs;
@@ -1524,42 +1565,9 @@ begin
       if elementnodes<>nil then
       begin
         for i:=0 to elementnodes.ChildNodes.Count-1 do
-        begin
-          offset:=strtoint(tdomelement(elementnodes.ChildNodes[i]).GetAttribute('Offset'));
-          description:=AnsiToUtf8(tdomelement(elementnodes.ChildNodes[i]).GetAttribute('Description'));
-          vartype:=StringToVariableType(tdomelement(elementnodes.ChildNodes[i]).GetAttribute('Vartype'));
-          CustomType:=GetCustomTypeFromName(tdomelement(elementnodes.ChildNodes[i]).GetAttribute('Customtype'));
-          bytesize:=strtoint(tdomelement(elementnodes.ChildNodes[i]).GetAttribute('Bytesize'));
-          displaymethod:=StringToDisplayMethod(tdomelement(elementnodes.ChildNodes[i]).GetAttribute('DisplayMethod'));
+          TStructelement.createFromXMLElement(self, TDOMELement(elementnodes.ChildNodes[i]));
 
-          ChildStructStartS:=tdomelement(elementnodes.ChildNodes[i]).GetAttribute('ChildStructStart');
-          if ChildStructStartS<>'' then
-            ChildStructStart:=strtoint(ChildStructStartS)
-          else
-            ChildStructStart:=0;
-
-
-          childstruct:=nil;
-          childname:='';
-          if vartype=vtPointer then
-          begin
-            //check if it has a child struct
-            childnode:=TDOMElement(elementnodes.ChildNodes[i].FindNode('Structure'));
-            if childnode<>nil then
-              childstruct:=TDissectedStruct.createFromXMLNode(childnode)
-            else
-              childname:=AnsiToUtf8(tdomelement(elementnodes.ChildNodes[i]).GetAttribute('ChildStruct'));
-          end;
-
-          se:=addElement(description, offset, vartype, customtype, bytesize, childstruct);
-          se.DisplayMethod:=displaymethod;
-
-          if (childstruct=nil) and (childname<>'') then
-            se.delayLoadedStructname:=childname;
-
-          se.ChildStructStart:=ChildStructStart;
-
-        end;
+        sortElements;
       end;
     end;
   finally
