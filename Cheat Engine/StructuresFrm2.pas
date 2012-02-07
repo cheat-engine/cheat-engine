@@ -1565,7 +1565,8 @@ begin
       if elementnodes<>nil then
       begin
         for i:=0 to elementnodes.ChildNodes.Count-1 do
-          TStructelement.createFromXMLElement(self, TDOMELement(elementnodes.ChildNodes[i]));
+          structelementlist.Add(TStructelement.createFromXMLElement(self, TDOMELement(elementnodes.ChildNodes[i])));
+
 
         sortElements;
       end;
