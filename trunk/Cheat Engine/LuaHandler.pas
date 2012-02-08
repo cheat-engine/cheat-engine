@@ -7465,6 +7465,46 @@ begin
   lua_pushnumber(L, ceversion);
 end;
 
+function lua_Utf8ToAnsi(L: Plua_State): integer; cdecl;
+var
+  s: string;
+  parameters: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+
+  if parameters=1 then
+  begin
+    s:=Lua_ToString(L, -1);
+    lua_pop(L, parameters);
+
+    lua_pushstring(L, Utf8ToAnsi(s));
+    result:=1;
+  end
+  else
+    lua_pop(L, parameters);
+end;
+
+function lua_AnsitoUTF8(L: Plua_State): integer; cdecl;
+var
+  s: string;
+  parameters: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+
+  if parameters=1 then
+  begin
+    s:=Lua_ToString(L, -1);
+    lua_pop(L, parameters);
+
+    lua_pushstring(L, AnsiToUtf8(s));
+    result:=1;
+  end
+  else
+    lua_pop(L, parameters);
+end;
+
 procedure InitializeLua;
 var s: tstringlist;
   k32: THandle;
@@ -7922,6 +7962,8 @@ begin
 
     lua_register(LuaVM, 'getCEVersion', getCEVersion);
 
+    lua_register(LuaVM, 'Utf8ToAnsi', lua_Utf8ToAnsi);
+    lua_register(LuaVM, 'AnsiToUtf8', lua_AnsiToUtf8);
 
 
 
