@@ -7,7 +7,7 @@
 #pragma pack(1)
 typedef struct 
 {
-	char CheatEngineDir[200];
+	char CheatEngineDir[256];
 	UINT64 dxgi_present;
 	UINT64 d3d9_present;
 	UINT64 d3d9_reset;
@@ -86,12 +86,31 @@ typedef struct
 	int clickedx;
 	int clickedy;
 
+	struct
+	{
+		int hasconsole;
+		int consolevisible;		
+		DWORD consolekey;
+
+		int overlayid;
+
+		struct
+		{
+			UINT uMsg;
+			UINT64 wParam;
+			UINT64 lParam;
+		} lastmessage;
+		
+
+	} console;
+
 	DWORD lastHwnd;
 	int MouseOverlayId; //set to -1 if no mouse overlayd ID is set, otherwise it contains an overlay ID to be used and rendered at the current mouse coords
 	
 
 	int OverLayHasUpdate;
 	int overlaycount;
+
 
 	struct _bitmap {
 		int valid;
@@ -106,6 +125,7 @@ typedef struct
 		int resourcesize;
 		int resourceoffset;
 	} resources[1];	
+	//etc...etc...etc...
 } *PD3DHookShared;
 #pragma pack()
 
