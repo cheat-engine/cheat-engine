@@ -2570,6 +2570,13 @@ end;
 procedure TMainForm.mi3dClick(Sender: TObject);
 begin
   miHookD3D.checked:=(D3DHook<>nil) and (D3DHook.processid=processid);
+
+  miLockMouseInGame.enabled:=miHookD3D.checked;
+  miSetCrosshair.enabled:=miHookD3D.checked;
+
+  if miHookD3D.checked=false then
+    miLockMouseInGame.checked:=false;
+
 end;
 
 procedure TMainForm.miOpenFileClick(Sender: TObject);
