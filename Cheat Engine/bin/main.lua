@@ -40,6 +40,9 @@ writeBytesLocal(address, x,x,x,x,...) : See writeBytes but then it's for Cheat E
 writeBytesLocal(address, table, , count) : See writeBytes but then it's for Cheat Engine's memory
 
 
+AnsiToUtf8(string): Converts a string in Ansi encoding to UTF8
+Utf8ToAnsi(string): Converts a string in UTF8 encoding to Ansi
+Note: GUI components mainly show in UTF8, some other functions use Ansi, try to find out which ones...
 
 
 getAddress(string): returns the address of a symbol. Can be a modulename or an export
