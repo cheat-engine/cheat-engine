@@ -30,7 +30,7 @@ type
   type TResourceInfoArray=packed array [0..0] of TResourceInfo;
 
   TD3DHookShared=packed record
-    cheatenginedir: array [0..199] of char;
+    cheatenginedir: array [0..255] of char;
     dxgi_present: UINT64;
     d3d9_present: UINT64;
     d3d9_reset: UINT64;
@@ -112,6 +112,18 @@ type
     clickedoverlay: integer;
     clickedx: integer;
     clickedy: integer;
+
+    console: packed record
+      hasconsole: integer;
+      consolvevisible: integer;
+      consolekey: dword;
+      overlayid: integer;
+      lastmessage: packed record
+        uMsg: DWORD;
+        wParam: UINT64;
+        lParam: UINT64;
+      end;
+    end;
 
     lastHwnd: DWORD;
 

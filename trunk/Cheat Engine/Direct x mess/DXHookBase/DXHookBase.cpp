@@ -18,8 +18,15 @@
 
 PD3DHookShared shared;
 
+char haskeyboardeventname[50]; //defined here due to delayed initialization (overlayid and events are created later on)
+char handledkeyboardeventname[50];
+
 HANDLE hasClickEvent;
 HANDLE handledClickEvent;
+
+HANDLE hasKeyboardEvent;
+HANDLE handledKeyboardEvent;
+
 
 
 typedef HRESULT     (__stdcall *D3D9_RESET_ORIGINAL)(IDirect3DDevice9 *Device, D3DPRESENT_PARAMETERS *pPresentationParameters);
@@ -356,14 +363,77 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	RECT cr;	
 	LONG_PTR o=originalwndprocs[hwnd];
 
-	
+
 	switch(uMsg)	
 	{
+
+		
+	
+		case WM_KEYDOWN:
+			if (shared->console.hasconsole)
+			{
+				if (!shared->console.consolevisible)
+				{
+					//check if the console keys is pressed
+					if (wParam==shared->console.consolekey)
+					{
+						shared->resources[shared->console.overlayid].valid=1;
+						shared->console.hasconsole=1;
+					}
+				}
+				else
+				{
+					//send the char to ce
+					if (hasKeyboardEvent==NULL)
+					{
+						//get event code info
+						hasKeyboardEvent=OpenEventA(EVENT_MODIFY_STATE | SYNCHRONIZE , FALSE, haskeyboardeventname);
+						handledKeyboardEvent=OpenEventA(EVENT_MODIFY_STATE| SYNCHRONIZE, FALSE, handledkeyboardeventname);
+					}
+
+					if (hasKeyboardEvent)
+					{
+						shared->console.lastmessage.uMsg=uMsg;
+						shared->console.lastmessage.wParam=wParam;
+						shared->console.lastmessage.lParam=lParam;
+
+						SetEvent(hasKeyboardEvent);
+						WaitForSingleObject(handledKeyboardEvent, 10000);
+
+						return DefWindowProcA(hwnd, uMsg, wParam, lParam);
+					}
+					else OutputDebugStringA("Keyboard event handler events are not present");
+				}				
+			}
+
+			
+			
+			break;
+		
+			
+
 		case WM_LBUTTONDOWN:			
 			
 			if (shared->clipmouseinwindow)
-			{
-				GetClientRect(hwnd, &r);
+			{							
+				POINT pt;
+
+				GetClientRect(hwnd, &r);			
+
+				//convert the client coordinates to screen coordinates
+				pt.x=r.left;
+				pt.y=r.top;
+				ClientToScreen(hwnd, &pt);
+				r.left=pt.x;
+				r.top=pt.y;
+
+				pt.x=r.right;
+				pt.y=r.bottom;
+				ClientToScreen(hwnd, &pt);
+				r.right=pt.x;
+				r.bottom=pt.y;
+
+
 				ClipCursor(&r);
 				waslockedin=1;
 			}
@@ -486,7 +556,7 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	}
 
 	
-	return CallWindowProc((WNDPROC)o, hwnd, uMsg, wParam, lParam);
+	return CallWindowProcA((WNDPROC)o, hwnd, uMsg, wParam, lParam); //call the original window message handler
 }
 
 
@@ -948,21 +1018,26 @@ DWORD WINAPI InitializeD3DHookDll(PVOID params)
 	uintptr_t present=0,d3d9present=0, d3d9reset=0;
 	HANDLE fmhandle;
 
-	char sharename[100];
-	char eventname[100];
-	char hasclickeventname[100];
-	char handledclickeventname[100];
+	char sharename[50];
+	char eventname[50];
+	char hasclickeventname[50];
+	char handledclickeventname[50];
+
+
 	
 
 //#ifdef DEBUG	
 //	sprintf_s(sharename, 100,"CED3D_DEBUG2");	
 	//sprintf_s(eventname, 100,"CED3D_DEBUG2_READY");	
 //#else
-	sprintf_s(sharename, 100,"CED3D_%d", GetCurrentProcessId());
-	sprintf_s(eventname, 100,"%s_READY", sharename);	
+	sprintf_s(sharename, 50,"CED3D_%d", GetCurrentProcessId());
+	sprintf_s(eventname, 50,"%s_READY", sharename);	
 
-	sprintf_s(hasclickeventname, 100,"%s_HASCLICK", sharename);
-	sprintf_s(handledclickeventname, 100,"%s_HANDLEDCLICK", sharename);
+	sprintf_s(hasclickeventname, 50,"%s_HASCLICK", sharename);
+	sprintf_s(handledclickeventname, 50,"%s_HANDLEDCLICK", sharename);
+
+	sprintf_s(haskeyboardeventname, 50,"%s_HASKEYBOARD", sharename);
+	sprintf_s(handledkeyboardeventname, 50,"%s_HANDLEDKEYBOARD", sharename);
 //#endif
  
 	fmhandle=OpenFileMappingA(FILE_MAP_EXECUTE | FILE_MAP_READ | FILE_MAP_WRITE, FALSE, sharename);
@@ -1047,6 +1122,8 @@ DWORD WINAPI InitializeD3DHookDll(PVOID params)
 		hasClickEvent=OpenEventA(EVENT_MODIFY_STATE | SYNCHRONIZE , FALSE, hasclickeventname);
 		handledClickEvent=OpenEventA(EVENT_MODIFY_STATE| SYNCHRONIZE, FALSE, handledclickeventname);
 	}
+
+
 
 
 
