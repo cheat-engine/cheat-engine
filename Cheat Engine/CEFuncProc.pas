@@ -3242,6 +3242,7 @@ begin
 end;
 
 function StringToVariableType(s: string): TVariableType;
+//NEVER translate this, use the vartypestrings unit for that
 begin
   s:=trim(lowercase(s));
   if s='all' then result:=vtAll else
@@ -3257,6 +3258,7 @@ begin
   if s='unicode string' then result:=vtUnicodeString else
   if s='pointer' then result:=vtPointer else
   if s='custom' then  Result :=vtCustom else
+  if s='grouped' then result:=vtGrouped else
   if s='auto assembler script' then result:=vtAutoAssembler;
 end;
 

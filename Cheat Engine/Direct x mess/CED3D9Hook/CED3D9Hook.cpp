@@ -60,7 +60,9 @@ HRESULT DXMessD3D9Handler::setupOverlayTexture()
 			overlays[i].pOverlayTex=NULL;
 			overlays[i].y=overlays[i].x=-1;
 				
-			overlays[i].pOverlayVB=NULL;			
+			overlays[i].pOverlayVB=NULL;	
+			overlays[i].actualWidth=0;
+			overlays[i].actualHeight=0;		
 		}	
 
 		OverlayCount=newcount;

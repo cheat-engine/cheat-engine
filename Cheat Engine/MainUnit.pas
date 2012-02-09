@@ -443,6 +443,7 @@ type
     procedure pmValueTypePopup(Sender: TObject);
     procedure rbAllMemoryChange(Sender: TObject);
     procedure rbFsmAlignedChange(Sender: TObject);
+    procedure Save1Click(Sender: TObject);
     procedure ScanTypeSelect(Sender: TObject);
     procedure ShowProcessListButtonClick(Sender: TObject);
     procedure NewScanClick(Sender: TObject);
@@ -923,7 +924,7 @@ end;
 
 
 
-procedure TMainform.Hotkey2(var Message: TMessage);
+procedure TMainForm.Hotkey2(var Message: TMessage);
 type
   PNotifyEvent = ^TNotifyEvent;
 var
@@ -1425,7 +1426,7 @@ begin
 end;
 
 
-procedure TMainform.PluginSync(var m: TMessage);
+procedure TMainForm.PluginSync(var m: TMessage);
 var
   func: TPluginFunc;
   params: pointer;
@@ -1439,13 +1440,13 @@ end;
 
 //----------------------------------
 
-function TMainform.getSelectedVariableType: TVariableType;
+function TMainForm.getSelectedVariableType: TVariableType;
   {wrapper for the new getVarType2 in the new scanroutine}
 begin
   Result := getVarType2;
 end;
 
-function TMainform.getScanStart: ptruint;
+function TMainForm.getScanStart: ptruint;
 begin
   try
 
@@ -1455,12 +1456,12 @@ begin
   end;
 end;
 
-procedure TMainform.setScanStart(newscanstart: ptruint);
+procedure TMainForm.setScanStart(newscanstart: ptruint);
 begin
   FromAddress.Text := inttohex(newscanstart, 8);
 end;
 
-function TMainform.getScanStop: ptruint;
+function TMainForm.getScanStop: ptruint;
 begin
   try
     Result := StrToQWordEx('$' + ToAddress.Text);
@@ -1469,18 +1470,18 @@ begin
   end;
 end;
 
-procedure TMainform.setScanStop(newscanstop: ptruint);
+procedure TMainForm.setScanStop(newscanstop: ptruint);
 begin
   ToAddress.Text := inttohex(newscanstop, 8);
 end;
 
 
-function TMainform.getFastscan: boolean;
+function TMainForm.getFastscan: boolean;
 begin
   Result := cbFastscan.Enabled and cbFastscan.Checked;
 end;
 
-procedure TMainform.setFastScan(state: boolean);
+procedure TMainForm.setFastScan(state: boolean);
 begin
   cbFastscan.Checked := state;
 end;
@@ -1488,7 +1489,7 @@ end;
 
 
 
-function TMainform.GetRoundingType: TRoundingType;
+function TMainForm.GetRoundingType: TRoundingType;
   {Property function to get the current rounding type}
 begin
   Result := rtTruncated;
@@ -1502,7 +1503,7 @@ begin
     Result := rtTruncated;
 end;
 
-procedure TMainform.SetRoundingType(rt: TRoundingType);
+procedure TMainForm.SetRoundingType(rt: TRoundingType);
 {Property function to set the current rounding type}
 begin
   case rt of
@@ -1513,7 +1514,7 @@ begin
 end;
 
 
-procedure TMainform.setfoundcount(x: int64);
+procedure TMainForm.setfoundcount(x: int64);
 var
   xdouble: double;
 begin
@@ -1522,7 +1523,7 @@ begin
   foundcountlabel.Caption := Format('%.0n', [xdouble]);
 end;
 
-procedure TMainform.DestroyCancelButton;
+procedure TMainForm.DestroyCancelButton;
 begin
   if cancelbutton <> nil then
     FreeAndNil(cancelbutton);
@@ -1530,7 +1531,7 @@ begin
     FreeAndNil(cancelbuttonenabler);
 end;
 
-procedure TMainform.SpawnCancelButton;
+procedure TMainForm.SpawnCancelButton;
 begin
   cancelbutton := TButton.Create(self);
   with cancelbutton do
@@ -1563,7 +1564,7 @@ begin
 end;
 
 
-procedure TMainform.DisableGui;
+procedure TMainForm.disableGui;
 {
 This procedure will disable the gui. E.g while scanning the memory with no wait
 screen.
@@ -1592,7 +1593,7 @@ begin
   undoscan.Enabled := False;
 end;
 
-procedure TMainform.EnableGui(isnextscan: boolean);
+procedure TMainForm.enableGui(isnextscan: boolean);
 {
 Enables the gui options according to what type of scan is currently used
 no scan, enable everything
@@ -1648,7 +1649,7 @@ end;
 resourcestring
   strWindowFailedToHide = 'A window failed to hide';
 
-procedure TMainform.toggleWindow;
+procedure TMainForm.toggleWindow;
 var
   c: integer;
 begin
@@ -1667,7 +1668,7 @@ begin
 end;
 
 
-procedure TMainform.exceptionhandler(Sender: TObject; E: Exception);
+procedure TMainForm.exceptionhandler(Sender: TObject; E: Exception);
 begin
   // screen.Cursor := crdefault;
 
@@ -2010,7 +2011,7 @@ begin
 end;
 
 
-procedure TMainform.reinterpretaddresses;
+procedure TMainForm.reinterpretaddresses;
 begin
   if addresslist <> nil then
     addresslist.ReinterpretAddresses;
@@ -2018,7 +2019,7 @@ end;
 
 
 
-procedure TMainform.AddAutoAssembleScript(script: string);
+procedure TMainForm.AddAutoAssembleScript(script: string);
 begin
   addresslist.addAutoAssembleScript(script);
 end;
@@ -2190,7 +2191,7 @@ resourcestring
     'Hrmpf... Because I''m in a good mood i''ll let you go this time. But don''t do it again you filthy pirate';
   rsAprilFools = 'April fools!!!!';
 
-function TMainform.openprocessPrologue: boolean;
+function TMainForm.openprocessPrologue: boolean;
 begin
 
   Result := False;
@@ -2206,8 +2207,7 @@ begin
   Result := True;
 end;
 
-procedure TMainform.openProcessEpilogue(oldprocessname: string;
-  oldprocess: dword; oldprocesshandle: dword; autoattachopen: boolean = False);
+procedure TMainForm.openProcessEpilogue(oldprocessname: string; oldprocess: dword; oldprocesshandle: dword; autoattachopen: boolean);
 var
   i, j: integer;
   fname, expectedfilename: string;
@@ -2434,6 +2434,17 @@ begin
     alignsizechangedbyuser := False;
 
   VarType.OnChange(vartype);
+end;
+
+procedure TMainForm.Save1Click(Sender: TObject);
+var
+  protect: boolean;
+begin
+  protect := False;
+  if (savedialog1.FileName = '') then
+    actSave.Execute
+  else
+    savetable(savedialog1.FileName);
 end;
 
 procedure TMainForm.ScanTypeSelect(Sender: TObject);
@@ -3942,7 +3953,7 @@ begin
   miDeleteCustomType.Visible := miEditCustomType.Visible;
 end;
 
-procedure TMainform.aprilfoolsscan;
+procedure TMainForm.aprilfoolsscan;
 begin
 
   if aprilfools then
@@ -3968,7 +3979,7 @@ begin
   end;
 end;
 
-procedure TMainform.donewscan;
+procedure TMainForm.doNewScan;
 begin
   if SaveFirstScanThread <> nil then //stop saving the results of the fist scan
   begin
@@ -4035,7 +4046,7 @@ resourcestring
   strClickToGoHome = 'Click here to go to the Cheat Engine homepage';
   rsLuaScriptCheatTable = 'Lua script: Cheat Table';
 
-function TMainform.onhelp(Command: word; Data: PtrInt; var CallHelp: boolean): boolean;
+function TMainForm.onhelp(Command: word; Data: PtrInt; var CallHelp: boolean): boolean;
 begin
   callhelp := False;
   Result := True;
@@ -5050,7 +5061,7 @@ begin
 
 end;
 
-procedure TMainform.createGroupConfigButton;
+procedure TMainForm.createGroupConfigButton;
 begin
   if groupconfigbutton=nil then
   begin
@@ -5066,7 +5077,7 @@ begin
   end;
 end;
 
-procedure TMainform.destroyGroupConfigButton;
+procedure TMainForm.destroyGroupConfigButton;
 begin
   if groupconfigbutton<>nil then
     freeandnil(groupconfigbutton);
@@ -5756,12 +5767,12 @@ begin
 
 end;
 
-procedure TMainForm.copySelectedRecords;
+procedure TMainForm.CopySelectedRecords;
 begin
   clipboard.astext := addresslist.GetTableXMLAsText(True);
 end;
 
-procedure TMainform.paste(simplecopypaste: boolean);
+procedure TMainForm.paste(simplecopypaste: boolean);
 {
 this routine will paste a entry from the cplipboard into the addresslist of CE
 If simplecopypaste is false frmPasteTableentry is shown to let the user change
@@ -5957,7 +5968,7 @@ resourcestring
   strUnhideAll = 'will bring all windows back';
   rsBringsCheatEngineToFront = 'brings Cheat Engine to front';
 
-procedure TMainform.adjustbringtofronttext;
+procedure TMainForm.adjustbringtofronttext;
 var
   hotkey: string;
   reg: TRegistry;
@@ -6224,7 +6235,7 @@ begin
   cb.Free;
 end;
 
-procedure TMainform.checkpaste;
+procedure TMainForm.checkpaste;
 var
   cb: TClipboard;
   Text: string;
@@ -6559,6 +6570,8 @@ begin
     end;
 
     LoadTable(Opendialog1.filename, merge);
+    SaveDialog1.filename:=Opendialog1.filename;
+
     reinterpretaddresses;
 
   end;
@@ -6618,8 +6631,7 @@ begin
   tfrmautoinject.Create(self).Show;
 end;
 
-procedure TMainform.changeScriptCallback(memrec: TMemoryRecord;
-  script: string; changed: boolean);
+procedure TMainForm.changeScriptCallback(memrec: TMemoryRecord; script: string; changed: boolean);
 {
 Gets called when a edit script is done
 }
@@ -6630,7 +6642,7 @@ begin
   memrec.endEdit; //release it so the user can delete it if he/she wants to
 end;
 
-procedure TMainform.AddressListAutoAssemblerEdit(Sender: TObject; memrec: TMemoryRecord);
+procedure TMainForm.AddressListAutoAssemblerEdit(Sender: TObject; memrec: TMemoryRecord);
 var
   x: TFrmAutoInject;
   y: array of integer;
@@ -6685,7 +6697,7 @@ begin
   addresslist.reinterpretAddresses;
 end;
 
-procedure TMainform.edit;
+procedure TMainForm.Edit;
 var
   frmPasteTableentry: TfrmPasteTableentry;
   replace_find: string;
@@ -6818,7 +6830,7 @@ begin
 
 end;
 
-procedure TMainform.OnToolsClick(Sender: TObject);
+procedure TMainForm.OnToolsClick(Sender: TObject);
 begin
   shellexecute(0, 'open', PChar(
     formsettings.lvTools.Items[TMenuItem(Sender).Tag].SubItems[0]), nil, nil, SW_SHOW);
@@ -7057,7 +7069,7 @@ var
 
 
 
-procedure TMainform.d3dclicktest(overlayid: integer; x, y: integer);
+procedure TMainForm.d3dclicktest(overlayid: integer; x, y: integer);
 var
   w, h: integer;
 begin
@@ -7069,178 +7081,12 @@ begin
 end;
 
 procedure TMainForm.Label59Click(Sender: TObject);
-var
-  cr3: qword;
-  x,y: qword;
-  filename: WideString;
-
-  HandlerCount: integer;
-  img: TPicture;
-
-  b: TBitmap;
-
-  z: TPixmap;
-  c: tcanvas;
-
-  s: tmemorystream;
-  i: integer;
-
-  p: TJpegImage;
-
-  cl: TFPColor;
-  tb: TCEToggleBox;
 begin
- // foundlist3.Items[0].checked;
 
-  showmessage('launching dbvm');
+  safed3dhook;
+  while d3dhook.getWidth=0 do CheckSynchronize;
 
-  LaunchDBVM;
-  showmessage('still alive!!!');
-
-  exit;
-
-  x:=QWORD($fffffffffffffff0);
-  i:=-1;
-
-  y:=x+i;
-  showmessage(IntToHex(y,16));
-  exit;
-
-
-
-  //img.LoadFromFile('c:\test.png');
-  img := TPicture.Create;
-
-  img.png.Width := 100;
-  img.png.Height := 100;
-
-
-
-  c := img.Png.Canvas;
-  c.Brush.Color := clred;
-  c.FillRect(0, 0, 100, 100);
-
-  img.PNG.Transparent := True;
-  img.PNG.TransparentMode := tmFixed;
-  img.PNG.TransparentColor := 0;
-
-
-  img.PNG.Canvas.Colors[10, 10] := FPColor($7f, $ff, $00, $7f);
-  img.PNG.Canvas.Colors[10, 11] := FPColor($7f, $ff, $00, $7f);
-  img.PNG.Canvas.Colors[10, 12] := FPColor($7f, $ff, $00, $7f);
-  img.PNG.Canvas.Colors[11, 10] := FPColor($7f, $ff, $00, $7f);
-  img.PNG.Canvas.Colors[11, 11] := FPColor($7f, $ff, $00, $7f);
-  img.PNG.Canvas.Colors[11, 12] := FPColor($7f, $ff, $00, $7f);
-  img.PNG.Canvas.Colors[12, 10] := FPColor($7f, $ff, $00, $7f);
-  img.PNG.Canvas.Colors[12, 11] := FPColor($7f, $ff, $00, $7f);
-  img.PNG.Canvas.Colors[12, 12] := FPColor($7f, $ff, $00, $7f);
-
-
-  img.PNG.Canvas.Colors[20, 10] := FPColor($00, $ff, $00, $ff);
-  img.PNG.Canvas.Colors[20, 11] := FPColor($00, $ff, $00, $ff);
-  ;
-  img.PNG.Canvas.Colors[20, 12] := FPColor($00, $ff, $00, $ff);
-  ;
-  img.PNG.Canvas.Colors[21, 10] := FPColor($00, $ff, $00, $ff);
-  ;
-  img.PNG.Canvas.Colors[21, 11] := FPColor($00, $ff, $00, $ff);
-  ;
-  img.PNG.Canvas.Colors[21, 12] := FPColor($00, $ff, $00, $ff);
-  ;
-  img.PNG.Canvas.Colors[22, 10] := FPColor($00, $ff, $00, $ff);
-  ;
-  img.PNG.Canvas.Colors[22, 11] := FPColor($00, $ff, $00, $ff);
-  ;
-  img.PNG.Canvas.Colors[22, 12] := FPColor($00, $ff, $00, $ff);
-  ;
-
-  img.PNG.Canvas.Colors[30, 10] := FPColor($00, $ff, $00, $00);
-  ;
-  img.PNG.Canvas.Colors[30, 11] := FPColor($00, $ff, $00, 00);
-  ;
-  img.PNG.Canvas.Colors[30, 12] := FPColor($00, $ff, $00, 0);
-  ;
-  img.PNG.Canvas.Colors[31, 10] := FPColor($00, $ff, $00, 0);
-  ;
-  img.PNG.Canvas.Colors[31, 11] := FPColor($00, $ff, $00, 0);
-  ;
-  img.PNG.Canvas.Colors[31, 12] := FPColor($00, $ff, $00, 0);
-  ;
-  img.PNG.Canvas.Colors[32, 10] := FPColor($00, $ff, $00, 0);
-  ;
-  img.PNG.Canvas.Colors[32, 11] := FPColor($00, $ff, $00, 0);
-  ;
-  img.PNG.Canvas.Colors[32, 12] := FPColor($00, $ff, $00, 0);
-  ;
-
-
-  cl := img.PNG.Canvas.Colors[12, 12];
-  cl.green := $ffff;
-  cl.alpha := 0;
-
-  img.PNG.Canvas.Colors[12, 12] := cl;
-  cl := img.PNG.Canvas.Colors[12, 12];
-  if cl.alpha = 1 then
-    beep;
-
-  //img.PNG.RawImage.Description.BitsPerPixel:=;
-
-
-
-  d3dhook := td3dhook.Create(16 * 1024 * 1024, True);
-  d3dhook.beginupdate;
-  i := d3dhook.createOverlayFromPicture(img, 10, 10);
-
-  overlayid := d3dhook.createOverlayFromPicture(img, -1, -1);
-
-  // d3dhook.SetOverlayAlphaBlend(overlayid, trackbar1.Position);
-
-  d3dhook.endupdate;
-
-
-  if i = 0 then
-    beep;
-
-
-  d3dhook.onclick := d3dclicktest;
-
-
-
-
-  //b:=img.Bitmap;
-  // b.SaveToFile('c:\bla.png');
-
-
-
-  // logo.Picture.LoadFromFile();
-
-  // showmessage(inttostr(img.Width));
-
-  // TRasterImage(img).loadfrom
-
-
-  {
-
-  f.Canvas.Pen.Color:=
-  }
-
-
-
-
-  {
-  GetCR3(processhandle, cr3);
-
-  filename:='c:\bla.log';
-
- // showmessage(inttostr(length(filename)));
-
-  HandlerCount:=1;
-
-  ultimap(cr3, (1 shl 6) or (1 shl 7) or (1 shl 9) or (1 shl 8), 1024*4096, false, pwidechar(filename), HandlerCount);
-
- // memorybrowser.Show;
- // memorybrowser.hexview.address:=x;    }
-
+  d3dhook.createConsole(0);
 end;
 
 procedure ChangeIcon(hModule: HModule; restype: PChar; resname: PChar;
@@ -7263,7 +7109,7 @@ begin
   end;
 end;
 
-procedure TMainform.autoattachcheck;
+procedure TMainForm.autoattachcheck;
 var
   pl: TStringList;
   i, j, k: integer;
@@ -7539,7 +7385,7 @@ begin
     NewScan.Click;
 end;
 
-procedure Tmainform.CancelbuttonClick(Sender: TObject);
+procedure TMainForm.CancelbuttonClick(Sender: TObject);
 begin
   if cancelbutton.tag = 0 then
   begin
@@ -7563,7 +7409,7 @@ begin
   end;
 end;
 
-procedure Tmainform.CancelbuttonenablerInterval(Sender: TObject);
+procedure TMainForm.CancelbuttonenablerInterval(Sender: TObject);
 begin
   if cancelbutton <> nil then
     cancelbutton.Enabled := True;
@@ -7624,7 +7470,7 @@ begin
   SpawnCancelButton;
 end;
 
-procedure TMainform.scanepilogue(canceled: boolean);
+procedure TMainForm.scanEpilogue(canceled: boolean);
 var
   vtype: TVariableType;
   i: integer;

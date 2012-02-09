@@ -99,7 +99,9 @@ typedef struct
 			UINT uMsg;
 			UINT64 wParam;
 			UINT64 lParam;
+			DWORD character;
 		} lastmessage;
+		
 		
 
 	} console;
@@ -124,7 +126,7 @@ typedef struct
 		float alphaBlend;
 		int resourcesize;
 		int resourceoffset;
-	} resources[1];	
+	} resources[100];	
 	//etc...etc...etc...
 } *PD3DHookShared;
 #pragma pack()
