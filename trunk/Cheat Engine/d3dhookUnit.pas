@@ -11,7 +11,7 @@ interface
 
 uses
   windows, Classes, SysUtils, sharedMemory, forms, graphics, cefuncproc,
-  newkernelhandler, controls, Clipbrd;
+  newkernelhandler, controls, Clipbrd, strutils, LuaHandler;
 
 type
   TCEMessage=packed record
@@ -125,6 +125,7 @@ type
       consolevisible: integer;
       consolekey: dword;
       overlayid: integer;
+      cursorid: integer;
       lastmessage: TCEMessage;
 
     end;
@@ -190,13 +191,16 @@ type
 
     messagehandler: TD3DMessageHandler;
 
+    consoleCursorId: integer;
     consoleOverlayid: integer;
     consoleImage: TPicture;
+    consoleCursorImage: TPicture;
 
 
     procedure waitforready;
     procedure UpdateResourceData;
     procedure UpdateConsoleOverlay(command: string; log: Tstrings);
+    procedure UpdateConsolecursorPos(command: string; pos: integer);
   public
     onclick: TD3DClickEvent;
     procedure beginupdate;
@@ -235,8 +239,9 @@ procedure TD3DMessageHandler.dokeyboard;
 var virtualkey: dword;
     scancode: dword;
 
-
+    c,c2: string;
     s: pchar;
+    old: tstrings;
 begin
   //check the size of the window. If it's changed, reinitialize the consoleoverlay
   owner.ReinitializeConsoleIfNeeded;
@@ -245,14 +250,53 @@ begin
   virtualkey:=owner.shared.console.lastmessage.wParam;
   scancode:=(owner.shared.console.lastmessage.lparam shr 16) and $FF;
 
-  //todo: implement me
 
   //handle keys like delete, backspace, etc...
   case virtualkey of
+    VK_RETURN:
+    begin
+      //execute the command
+      consolelog.add(consolecommand);
+
+      LuaCS.enter;
+      old:=lua_oldprintoutput;
+      lua_setPrintOutput(consolelog);
+      lua_dostring(LuaVM, pchar(consolecommand));
+      lua_setPrintOutput(old);
+      luacs.Leave;
+
+      consolecommand:='';
+      consolecursorpos:=0;
+    end;
+    VK_LEFT:
+    begin
+      if consolecursorpos>0 then
+        dec(consolecursorpos);
+    end;
+
+    VK_RIGHT:
+    begin
+      if consolecursorpos<length(consolecommand) then
+        inc(consolecursorpos);
+    end;
+    VK_BACK:
+    begin
+      //delete the character before the cursorpos
+      if consolecursorpos>0 then
+      begin
+        c:=copy(consolecommand, 1, consolecursorpos-1);
+        c2:=copy(consolecommand, consolecursorpos+1, length(consolecommand));
+        consolecommand:=c+c2;
+        dec(consolecursorpos);
+      end;
+    end;
+
     VK_DELETE:
     begin
       //delete the character after the current cursor
-
+      c:=copy(consolecommand, 1, consolecursorpos);
+      c2:=copy(consolecommand, consolecursorpos+2, length(consolecommand));
+      consolecommand:=c+c2;
     end
     else
     begin
@@ -262,16 +306,21 @@ begin
         //it's a character
         s:=@owner.shared.console.lastmessage.character;
 
+        c:=copy(consolecommand, 1, consolecursorpos);
+        c2:=copy(consolecommand, consolecursorpos+1, length(consolecommand));
+
+
+        consolecommand:=c+s+c2;
+
+        inc(consolecursorpos);
       end;
     end;
   end;
 
 
+  owner.updateConsoleOverlay(consolecommand,consolelog);
+  owner.updateConsoleCursorPos(consolecommand, consolecursorpos);
 
-
-  owner.updateConsoleOverlay(s,consolelog);
-
-  // owner.updateConsoleOverlay('cAn i dO qUPERcASE?:',consolelog);
 
 end;
 
@@ -284,9 +333,13 @@ end;
 procedure TD3DMessageHandler.execute;
 var eventlist: array of THandle;
     r: dword;
+
+    cursor: boolean;
+    cursorstart: dword;
 begin
+  cursorstart:=gettickcount;
   consolelog:=tstringlist.create;
-  consolecursorpos:=1;
+  consolecursorpos:=0;
 
   setlength(eventlist,2);
   eventlist[0]:=owner.hasclickevent;
@@ -294,7 +347,7 @@ begin
 
   while (not terminated) do
   begin
-    r:=WaitForMultipleObjects(2, @eventlist[0], false, 5000);
+    r:=WaitForMultipleObjects(2, @eventlist[0], false, 100);
     case r of
       WAIT_OBJECT_0:
       begin
@@ -311,9 +364,17 @@ begin
       begin
         //keyboard event
         lastmessage:=owner.shared.console.lastmessage;
-        Synchronize(dokeyboard);
         SetEvent(owner.hashandledkeyboardevent);
+
+        Synchronize(dokeyboard);
+        cursorstart:=GetTickCount;
       end;
+    end;
+
+    if owner.consoleCursorId<>-1 then //toggle the cursor visible or invisible based on the current time and if a key was pressed (keep the cursor visible rigth after pressing a key, so reset the timerstart)
+    begin
+      cursor:=(owner.shared.console.consolevisible=1) and (((GetTickCount-cursorstart) mod 1000)<500);
+      owner.SetOverlayVisibility(owner.consoleCursorId, cursor);
     end;
 
   end;
@@ -340,24 +401,26 @@ begin
   lineheight:=c.GetTextHeight('FUUUU');
 
   c.Brush.Color:=$111111;
-  c.FillRect(0,0,c.Width, c.Height-(lineheight+2));
+  c.FillRect(0,0,(c.Width-1), (c.Height-1)-(lineheight+2));
 
   c.Brush.color:=$000000;
-  c.FillRect(0,c.height-(lineheight+1),c.width, c.height);
+  c.FillRect(0,(c.height-1)-(lineheight+1),(c.width-1), (c.height-1));
 
   c.pen.color:=clred;
-  c.Line(0,c.Height-(lineheight+2), c.width, c.Height-(lineheight+2));
+  c.Line(0,(c.Height-1)-(lineheight+2), (c.width-1), (c.Height-1)-(lineheight+2));
+
+  //todo: In the future implement font rendering inside the dxhook and render on top of the overlay
 
   //now render the text
   //command
-  c.TextOut(4,c.Height-(lineheight+1), command);
+  c.TextOut(4,(c.Height-1)-(lineheight+1), command);
 
   //and the log (from bottom to top, till the max is reached)
   c.Brush.Color:=$111111;
 
   if log<>nil then
   begin
-    linepos:=c.Height-(lineheight+2)-lineheight; //the last line
+    linepos:=(c.Height-1)-(lineheight+2)-lineheight; //the last line
 
     for i:=log.Count-1 downto 0 do
     begin
@@ -371,7 +434,15 @@ begin
   updateOverlayImage(consoleOverlayid, true);
 end;
 
+procedure TD3DHook.UpdateConsolecursorPos(command: string; pos: integer);
+begin
+  shared.resources[consoleCursorId-1].x:=4+consoleImage.bitmap.Canvas.TextWidth(copy(command, 1,pos));
+  shared.resources[consoleCursorId-1].updatedpos:=1;
+  shared.OverLayHasUpdate:=1;
+end;
+
 procedure TD3DHook.reinitializeConsoleIfNeeded;
+var c: TCanvas;
 begin
   if getHeight=0 then exit;
   if getWidth=0 then exit;
@@ -388,11 +459,24 @@ begin
     SetOverlayVisibility(consoleOverlayid, false);
   end;
 
+  if consoleCursorId=-1 then
+  begin
+    consoleCursorImage:=TPicture.create;
+    consoleCursorImage.Bitmap.Height:=consoleimage.Bitmap.canvas.GetTextHeight('F');
+    consoleCursorImage.Bitmap.Width:=3;
+    c:=consoleCursorImage.Bitmap.canvas;
+    c.Brush.Color:=$fefefe;
+    c.FillRect(0,0,consoleCursorImage.Bitmap.width-1,consoleCursorImage.Bitmap.Height-1);
+    consoleCursorId:=createOverlayFromPicture(consoleCursorImage,4, getheight-consoleCursorImage.height);
+    SetOverlayVisibility(consoleCursorId, false);
+  end;
+
   if (consoleImage.Width<>getWidth) or (consoleImage.Height<>getHeight div 3) then
   begin
     consoleImage.bitmap.Width:=getWidth;
     consoleimage.bitmap.Height:=getheight div 3;
     shared.resources[consoleOverlayid-1].y:=getheight-(getheight div 3);
+    shared.resources[consoleCursorId-1].y:=getheight-consoleCursorImage.height;
   end;
 
 
@@ -417,6 +501,7 @@ begin
 
   shared.console.consolekey:=192; //tilde
   shared.console.overlayid:=consoleOverlayid-1;
+  shared.console.cursorid:=consolecursorid-1;
   shared.console.hasconsole:=1;
 
 
@@ -568,7 +653,7 @@ begin
 
 
         shared.resources[i].resourcesize:=s.Size;
-        inc(start, s.size);
+        start:=pointer(PtrUint(start)+s.size);
       end;
     end;
 
@@ -639,6 +724,7 @@ var h: thandle;
     s: TStringList;
 begin
   consoleOverlayid:=-1;
+  consoleCursorId:=-1;
 
   sharename:='CED3D_'+inttostr(processhandler.ProcessID);
 
