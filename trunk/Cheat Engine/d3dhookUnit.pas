@@ -244,20 +244,29 @@ begin
   //handle the key
   virtualkey:=owner.shared.console.lastmessage.wParam;
   scancode:=(owner.shared.console.lastmessage.lparam shr 16) and $FF;
-{
-  GetAsyncKeyState(VK_CAPITAL);
+
+  //todo: implement me
+
+  //handle keys like delete, backspace, etc...
+  case virtualkey of
+    VK_DELETE:
+    begin
+      //delete the character after the current cursor
+
+    end
+    else
+    begin
+      //not a control key, check if it's a character
+      if owner.shared.console.lastmessage.character<>0 then
+      begin
+        //it's a character
+        s:=@owner.shared.console.lastmessage.character;
+
+      end;
+    end;
+  end;
 
 
-  getmem(s,128);
-
-  ToUnicode(virtualkey, MapVirtualKey(virtualkey, 0), @owner.shared.console.keyboardstate[0], s, 64,0);
- }
-  if owner.shared.console.lastmessage.character<>0 then
-  begin
-    s:=@owner.shared.console.lastmessage.character;
-  end
-  else
-    s:='No valid key';
 
 
   owner.updateConsoleOverlay(s,consolelog);
