@@ -14,6 +14,13 @@ uses
   newkernelhandler, controls, Clipbrd;
 
 type
+  TCEMessage=packed record
+    uMsg: DWORD;
+    wParam: UINT64;
+    lParam: UINT64;
+    character: DWORD;
+  end;
+
   TResourceInfo=packed record
     valid: integer;
     updatedpos: integer;
@@ -115,14 +122,11 @@ type
 
     console: packed record
       hasconsole: integer;
-      consolvevisible: integer;
+      consolevisible: integer;
       consolekey: dword;
       overlayid: integer;
-      lastmessage: packed record
-        uMsg: DWORD;
-        wParam: UINT64;
-        lParam: UINT64;
-      end;
+      lastmessage: TCEMessage;
+
     end;
 
     lastHwnd: DWORD;
@@ -145,11 +149,20 @@ type
 
   TD3DHook=class;
 
-  TD3DClickEventHandler=class(tthread)
+  TD3DMessageHandler=class(tthread)
   private
     owner: TD3DHook;
-    overlayid, x,y: integer;
+    overlayid, x,y: integer; //clicked overlay
+
+    lastmessage: TCEMessage;
+
+    consolelog: Tstringlist;
+    consolecursorpos: integer;
+    consolecommand: string;
+
+
     procedure doclick;
+    procedure dokeyboard;
   public
     procedure execute; override;
   end;
@@ -172,10 +185,18 @@ type
     hasclickevent: THandle;
     hashandledclickevent: THandle;
 
-    clickhandler: TD3DClickEventHandler;
+    haskeyboardevent: THandle;        //todo: combine into one "HasMessage" event, but for now, to make sure I don't break anything, this method...
+    hashandledkeyboardevent: THandle;
+
+    messagehandler: TD3DMessageHandler;
+
+    consoleOverlayid: integer;
+    consoleImage: TPicture;
+
 
     procedure waitforready;
     procedure UpdateResourceData;
+    procedure UpdateConsoleOverlay(command: string; log: Tstrings);
   public
     onclick: TD3DClickEvent;
     procedure beginupdate;
@@ -184,7 +205,7 @@ type
     function createOverlayFromPicture(p: TPicture; x,y: integer): integer;
     procedure SetOverlayAlphaBlend(overlayid: integer; blend: single);
     procedure SetOverlayVisibility(overlayid: integer; state: boolean);
-    procedure updateOverlayImage(overlayid: integer);
+    procedure updateOverlayImage(overlayid: integer; skipsync: boolean=false);
     procedure updateOverlayPosition(overlayid,x,y: integer);
     procedure setOverlayAsMouse(overlayid: integer);
     procedure setDisabledZBuffer(state: boolean);
@@ -193,6 +214,9 @@ type
 
     function getWidth: integer;
     function getHeight: integer;
+
+    procedure createConsole(virtualkey: DWORD);
+    procedure reinitializeConsoleIfNeeded;
 
     constructor create(size: integer; hookhwnd: boolean=true);
     destructor destroy; override;
@@ -207,30 +231,187 @@ implementation
 
 uses frmautoinjectunit, autoassembler;
 
-procedure TD3DClickEventHandler.doclick;
+procedure TD3DMessageHandler.dokeyboard;
+var virtualkey: dword;
+    scancode: dword;
+
+
+    s: pchar;
+begin
+  //check the size of the window. If it's changed, reinitialize the consoleoverlay
+  owner.ReinitializeConsoleIfNeeded;
+
+  //handle the key
+  virtualkey:=owner.shared.console.lastmessage.wParam;
+  scancode:=(owner.shared.console.lastmessage.lparam shr 16) and $FF;
+{
+  GetAsyncKeyState(VK_CAPITAL);
+
+
+  getmem(s,128);
+
+  ToUnicode(virtualkey, MapVirtualKey(virtualkey, 0), @owner.shared.console.keyboardstate[0], s, 64,0);
+ }
+  if owner.shared.console.lastmessage.character<>0 then
+  begin
+    s:=@owner.shared.console.lastmessage.character;
+  end
+  else
+    s:='No valid key';
+
+
+  owner.updateConsoleOverlay(s,consolelog);
+
+  // owner.updateConsoleOverlay('cAn i dO qUPERcASE?:',consolelog);
+
+end;
+
+procedure TD3DMessageHandler.doclick;
 begin
   if assigned(owner.onclick) then
     owner.onclick(overlayid+1, x,y);
 end;
 
-procedure TD3DClickEventHandler.execute;
+procedure TD3DMessageHandler.execute;
+var eventlist: array of THandle;
+    r: dword;
 begin
+  consolelog:=tstringlist.create;
+  consolecursorpos:=1;
+
+  setlength(eventlist,2);
+  eventlist[0]:=owner.hasclickevent;
+  eventlist[1]:=owner.haskeyboardevent;
+
   while (not terminated) do
   begin
-    if WaitForSingleObject(owner.hasclickevent, 5000)=WAIT_OBJECT_0 then
-    begin
-      //quickly save the variables and tell the game to continue
-      x:=owner.shared.clickedx;
-      y:=owner.shared.clickedy;
-      overlayid:=owner.shared.clickedoverlay;
-      SetEvent(owner.hashandledclickevent);
+    r:=WaitForMultipleObjects(2, @eventlist[0], false, 5000);
+    case r of
+      WAIT_OBJECT_0:
+      begin
+        //click event: quickly save the variables and tell the game to continue
+        x:=owner.shared.clickedx;
+        y:=owner.shared.clickedy;
+        overlayid:=owner.shared.clickedoverlay;
+        SetEvent(owner.hashandledclickevent);
 
-      Synchronize(doclick);
+        Synchronize(doclick);
+      end;
+
+      WAIT_OBJECT_0+1:
+      begin
+        //keyboard event
+        lastmessage:=owner.shared.console.lastmessage;
+        Synchronize(dokeyboard);
+        SetEvent(owner.hashandledkeyboardevent);
+      end;
     end;
+
   end;
 
 end;
 
+procedure TD3DHook.UpdateConsoleOverlay(command: string; log: Tstrings);
+var c: TCanvas;
+    lineheight: integer;
+    i: integer;
+    linepos: integer;
+    minelinepos: integer;
+begin
+  //Build the console from bottom to top
+  //Bottom is the command line, black
+  //above that is the history and log
+  //Make sure that the log does not come above "consoleimage.Height"
+
+  //first fill it to dark grey
+  c:=consoleImage.Bitmap.Canvas;
+
+  c.Font.Color:=$fefefe;
+  c.Font.Style:=[fsBold];
+  lineheight:=c.GetTextHeight('FUUUU');
+
+  c.Brush.Color:=$111111;
+  c.FillRect(0,0,c.Width, c.Height-(lineheight+2));
+
+  c.Brush.color:=$000000;
+  c.FillRect(0,c.height-(lineheight+1),c.width, c.height);
+
+  c.pen.color:=clred;
+  c.Line(0,c.Height-(lineheight+2), c.width, c.Height-(lineheight+2));
+
+  //now render the text
+  //command
+  c.TextOut(4,c.Height-(lineheight+1), command);
+
+  //and the log (from bottom to top, till the max is reached)
+  c.Brush.Color:=$111111;
+
+  if log<>nil then
+  begin
+    linepos:=c.Height-(lineheight+2)-lineheight; //the last line
+
+    for i:=log.Count-1 downto 0 do
+    begin
+      c.textout(4, linepos, log[i]);
+      linepos:=linepos-lineheight;
+      if linepos<0 then break; //max reached
+    end;
+  end;
+
+
+  updateOverlayImage(consoleOverlayid, true);
+end;
+
+procedure TD3DHook.reinitializeConsoleIfNeeded;
+begin
+  if getHeight=0 then exit;
+  if getWidth=0 then exit;
+
+  if consoleOverlayid=-1 then
+  begin
+    //first time created
+    consoleimage:=TPicture.Create;
+    consoleimage.Bitmap.width:=getWidth;
+    consoleimage.Bitmap.Height:=getheight div 3;
+
+    consoleOverlayid:=createOverlayFromPicture(consoleimage,0, getheight-(getheight div 3));
+    SetOverlayAlphaBlend(consoleOverlayid, 88);
+    SetOverlayVisibility(consoleOverlayid, false);
+  end;
+
+  if (consoleImage.Width<>getWidth) or (consoleImage.Height<>getHeight div 3) then
+  begin
+    consoleImage.bitmap.Width:=getWidth;
+    consoleimage.bitmap.Height:=getheight div 3;
+    shared.resources[consoleOverlayid-1].y:=getheight-(getheight div 3);
+  end;
+
+
+end;
+
+procedure TD3DHook.createConsole(virtualkey: DWORD);
+var s: tstringlist;
+begin
+  if shared.hookwnd=0 then raise exception.create('D3DHook was initialized without hooking the window. Restart the target app');
+  //create an overlay
+
+  reinitializeConsoleIfNeeded;
+
+  //debug code
+  s:=tstringlist.create;
+  s.add('This');
+  s.add('Was');
+  s.add('A');
+  s.add('Test');
+  UpdateConsoleOverlay('Bla', s);
+
+
+  shared.console.consolekey:=192; //tilde
+  shared.console.overlayid:=consoleOverlayid-1;
+  shared.console.hasconsole:=1;
+
+
+end;
 
 procedure TD3DHook.setDisabledZBuffer(state: boolean);
 begin
@@ -295,11 +476,17 @@ begin
   end;
 end;
 
-procedure TD3DHook.updateOverlayImage(overlayid: integer);
+procedure TD3DHook.updateOverlayImage(overlayid: integer; skipsync: boolean=false);
 begin
+  if skipsync then
+    inc(isupdating);  //prevents the locking
+
   beginupdate;
   shared.resources[overlayid-1].updatedresource:=1;
   endupdate;
+
+  if skipsync then
+    endupdate;
 end;
 
 procedure TD3DHook.setOverlayAsMouse(overlayid: integer);
@@ -347,10 +534,14 @@ begin
   try
     for i:=0 to shared.overlaycount-1 do
     begin
-      if (shared.resources[i].valid<>0) then
+//      if (shared.resources[i].valid<>0) then
       begin
         s.Clear;
         images[i].SaveToStream(s);
+
+
+        shared.resources[i].height:=images[i].Height;
+        shared.resources[i].width:=images[i].width;
 
         shared.resources[i].resourceoffset:=PtrUInt(start)-ptruint(shared);
 
@@ -438,6 +629,8 @@ constructor TD3DHook.create(size: integer; hookhwnd: boolean=true);
 var h: thandle;
     s: TStringList;
 begin
+  consoleOverlayid:=-1;
+
   sharename:='CED3D_'+inttostr(processhandler.ProcessID);
 
   fprocessid:=processhandler.processid;
@@ -473,9 +666,13 @@ begin
       hasclickevent:=CreateEventA(nil, false, false, pchar(sharename+'_HASCLICK') );
       hashandledclickevent:=CreateEventA(nil, false, true, pchar(sharename+'_HANDLEDCLICK') );
 
-      clickhandler:=TD3DClickEventHandler.Create(true);
-      clickhandler.owner:=self;
-      clickhandler.start;
+      haskeyboardevent:=CreateEventA(nil, false, false, pchar(sharename+'_HASKEYBOARD') );
+      hashandledkeyboardevent:=CreateEventA(nil, false, true, pchar(sharename+'_HANDLEDKEYBOARD') );
+
+
+      messagehandler:=TD3DMessageHandler.Create(true);
+      messagehandler.owner:=self;
+      messagehandler.start;
     end;
 
 

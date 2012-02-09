@@ -18,8 +18,7 @@
 
 PD3DHookShared shared;
 
-char haskeyboardeventname[50]; //defined here due to delayed initialization (overlayid and events are created later on)
-char handledkeyboardeventname[50];
+
 
 HANDLE hasClickEvent;
 HANDLE handledClickEvent;
@@ -378,27 +377,32 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					if (wParam==shared->console.consolekey)
 					{
 						shared->resources[shared->console.overlayid].valid=1;
+						shared->OverLayHasUpdate=1;
 						shared->console.hasconsole=1;
+						shared->console.consolevisible=1;
 					}
 				}
 				else
 				{
-					//send the char to ce
-					if (hasKeyboardEvent==NULL)
-					{
-						//get event code info
-						hasKeyboardEvent=OpenEventA(EVENT_MODIFY_STATE | SYNCHRONIZE , FALSE, haskeyboardeventname);
-						handledKeyboardEvent=OpenEventA(EVENT_MODIFY_STATE| SYNCHRONIZE, FALSE, handledkeyboardeventname);
-					}
 
 					if (hasKeyboardEvent)
 					{
+						BYTE keyboardstate[256];
+						
 						shared->console.lastmessage.uMsg=uMsg;
 						shared->console.lastmessage.wParam=wParam;
 						shared->console.lastmessage.lParam=lParam;
 
+						GetKeyboardState(keyboardstate);
+						shared->console.lastmessage.character=0;
+						ToAscii(wParam, (lParam >> 16) & 0xff, keyboardstate, (LPWORD)&shared->console.lastmessage.character,0);
+
 						SetEvent(hasKeyboardEvent);
 						WaitForSingleObject(handledKeyboardEvent, 10000);
+						
+						
+
+						//TranslateMessage(uMsg);
 
 						return DefWindowProcA(hwnd, uMsg, wParam, lParam);
 					}
@@ -1023,6 +1027,8 @@ DWORD WINAPI InitializeD3DHookDll(PVOID params)
 	char hasclickeventname[50];
 	char handledclickeventname[50];
 
+	char haskeyboardeventname[50]; 
+	char handledkeyboardeventname[50];
 
 	
 
@@ -1121,6 +1127,9 @@ DWORD WINAPI InitializeD3DHookDll(PVOID params)
 	{
 		hasClickEvent=OpenEventA(EVENT_MODIFY_STATE | SYNCHRONIZE , FALSE, hasclickeventname);
 		handledClickEvent=OpenEventA(EVENT_MODIFY_STATE| SYNCHRONIZE, FALSE, handledclickeventname);
+
+		hasKeyboardEvent=OpenEventA(EVENT_MODIFY_STATE | SYNCHRONIZE , FALSE, haskeyboardeventname);
+		handledKeyboardEvent=OpenEventA(EVENT_MODIFY_STATE| SYNCHRONIZE, FALSE, handledkeyboardeventname);
 	}
 
 
