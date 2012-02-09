@@ -377,14 +377,21 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					if (wParam==shared->console.consolekey)
 					{
 						shared->resources[shared->console.overlayid].valid=1;
-						shared->OverLayHasUpdate=1;
-						shared->console.hasconsole=1;
+						shared->resources[shared->console.cursorid].valid=1;
+						shared->OverLayHasUpdate=1;						
 						shared->console.consolevisible=1;
 					}
 				}
 				else
 				{
-
+					if (wParam==shared->console.consolekey)
+					{
+						shared->resources[shared->console.overlayid].valid=0;
+						shared->resources[shared->console.cursorid].valid=0;
+						shared->OverLayHasUpdate=1;						
+						shared->console.consolevisible=0;
+					}
+					else
 					if (hasKeyboardEvent)
 					{
 						BYTE keyboardstate[256];

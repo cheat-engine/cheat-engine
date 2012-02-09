@@ -93,6 +93,7 @@ typedef struct
 		DWORD consolekey;
 
 		int overlayid;
+		int cursorid;
 
 		struct
 		{
