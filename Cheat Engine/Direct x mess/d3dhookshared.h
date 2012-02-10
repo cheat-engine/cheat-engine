@@ -5,7 +5,7 @@
 
 
 #pragma pack(1)
-typedef struct 
+typedef volatile struct 
 {
 	char CheatEngineDir[256];
 	UINT64 dxgi_present;

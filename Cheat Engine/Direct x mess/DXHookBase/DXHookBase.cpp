@@ -376,10 +376,10 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					//check if the console keys is pressed
 					if (wParam==shared->console.consolekey)
 					{
+						shared->console.consolevisible=1;
 						shared->resources[shared->console.overlayid].valid=1;
 						shared->resources[shared->console.cursorid].valid=1;
-						shared->OverLayHasUpdate=1;						
-						shared->console.consolevisible=1;
+						shared->OverLayHasUpdate=1;												
 					}
 				}
 				else
@@ -406,10 +406,7 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 						SetEvent(hasKeyboardEvent);
 						WaitForSingleObject(handledKeyboardEvent, 10000);
-						
-						
 
-						//TranslateMessage(uMsg);
 
 						return DefWindowProcA(hwnd, uMsg, wParam, lParam);
 					}
@@ -595,7 +592,7 @@ void hookIfNeeded(void)
 void InitializeD3D9Api()
 {
 	char dllpath[MAX_PATH];				
-	strcpy_s(dllpath, MAX_PATH, shared->CheatEngineDir);
+	strcpy_s(dllpath, MAX_PATH, (char *)shared->CheatEngineDir);
 #ifdef AMD64
 	strcat_s(dllpath, MAX_PATH, "CED3D9Hook64.dll");
 #else
@@ -749,7 +746,7 @@ HRESULT __stdcall D3D9_Present_new(IDirect3DDevice9 *Device, RECT* pSourceRect,C
 void InitializeD3D10Api()
 {
 	char dllpath[MAX_PATH];				
-	strcpy_s(dllpath, MAX_PATH, shared->CheatEngineDir);
+	strcpy_s(dllpath, MAX_PATH, (char *)shared->CheatEngineDir);
 #ifdef AMD64
 	strcat_s(dllpath, MAX_PATH, "CED3D10Hook64.dll");
 #else
@@ -835,7 +832,7 @@ HRESULT	__stdcall D3D10_DrawAuto_new(ID3D10Device *device)
 void InitializeD3D11Api()
 {
 	char dllpath[MAX_PATH];				
-	strcpy_s(dllpath, MAX_PATH, shared->CheatEngineDir);
+	strcpy_s(dllpath, MAX_PATH, (char *)shared->CheatEngineDir);
 #ifdef AMD64
 	strcat_s(dllpath, MAX_PATH, "CED3D11Hook64.dll");
 #else
@@ -944,7 +941,7 @@ HRESULT __stdcall IDXGISwapChain_Present_new(IDXGISwapChain *x, UINT SyncInterva
 				D3D11Hook_SwapChain_Present=(D3D10PlusHookPresentAPICall)D3D11Hook_SwapChain_Present_imp;
 #else
 				char dllpath[MAX_PATH];
-				strcpy_s(dllpath, MAX_PATH, shared->CheatEngineDir);
+				strcpy_s(dllpath, MAX_PATH, (char *)shared->CheatEngineDir);
 				strcat_s(dllpath, MAX_PATH, "CED3D11Hook.dll");
 
 				HMODULE hdll=LoadLibraryA(dllpath);
@@ -970,7 +967,7 @@ HRESULT __stdcall IDXGISwapChain_Present_new(IDXGISwapChain *x, UINT SyncInterva
 			    D3D10Hook_SwapChain_Present=(D3D10PlusHookPresentAPICall)D3D10Hook_SwapChain_Present_imp;
 #else
 				char dllpath[MAX_PATH];
-				strcpy_s(dllpath, MAX_PATH, shared->CheatEngineDir);
+				strcpy_s(dllpath, MAX_PATH, (char *)shared->CheatEngineDir);
 				strcat_s(dllpath, MAX_PATH, "CED3D10Hook.dll");
 
 				HMODULE hdll=LoadLibraryA(dllpath);
@@ -997,7 +994,7 @@ HRESULT __stdcall IDXGISwapChain_Present_new(IDXGISwapChain *x, UINT SyncInterva
 				D3D10_1Hook_SwapChain_Present=(D3D10PlusHookPresentAPICall)D3D10Hook_SwapChain_Present_imp; //since 10_1 inherits from 10 this should just work
 #else
 				char dllpath[MAX_PATH];
-				strcpy_s(dllpath, MAX_PATH, shared->CheatEngineDir);
+				strcpy_s(dllpath, MAX_PATH, (char *)shared->CheatEngineDir);
 				strcat_s(dllpath, MAX_PATH, "CED3D10Hook.dll");
 
 				HMODULE hdll=LoadLibraryA(dllpath);

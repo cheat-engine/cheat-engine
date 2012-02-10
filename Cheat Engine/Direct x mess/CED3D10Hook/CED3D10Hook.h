@@ -14,7 +14,7 @@ typedef struct
 class DXMessD3D10Handler
 {
 private:
-	PD3DHookShared shared;
+	volatile PD3DHookShared shared;
 
 	
 	IDXGISwapChain *swapchain;
