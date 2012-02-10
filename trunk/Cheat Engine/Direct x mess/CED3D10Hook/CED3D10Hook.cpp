@@ -365,7 +365,7 @@ DXMessD3D10Handler::DXMessD3D10Handler(ID3D10Device *dev, IDXGISwapChain *sc, PD
 	ZeroMemory( &blend, sizeof(blend) );
 
 	
-
+	
 	blend.BlendEnable[0]		 = true;
 	blend.SrcBlend				 = D3D10_BLEND_SRC_ALPHA;	
 	blend.DestBlend				 = D3D10_BLEND_INV_SRC_ALPHA;	
@@ -381,6 +381,9 @@ DXMessD3D10Handler::DXMessD3D10Handler(ID3D10Device *dev, IDXGISwapChain *sc, PD
 
 	for (i=0; i<8; i++)
 		blend.RenderTargetWriteMask[i]=D3D10_COLOR_WRITE_ENABLE_ALL;
+	
+	
+
 
 	pTransparency=NULL;
 	hr=dev->CreateBlendState(&blend, &pTransparency);
@@ -501,15 +504,11 @@ void DXMessD3D10Handler::RenderOverlay()
 
 		UINT stride = sizeof( OverlayVertex );
 		UINT offset = 0;
-		float blendFactor[] = {1.0f, 1.0f, 1.0f, 1.0f};
+		float blendFactor[] = {0.0f, 0.0f, 0.0f, 0.0f};
 
 		ID3D10VertexShader *oldvs=NULL;
-		//ID3D10ClassInstance *oldvsinstances=NULL;
-		//UINT vci_count=0;
-
 		ID3D10PixelShader *oldps=NULL;
-		//ID3D10ClassInstance *oldpsinstances=NULL;
-		//UINT pci_count=0;
+		ID3D10GeometryShader *oldgs=NULL;
 
 		ID3D10SamplerState *oldPSSampler=NULL;
 		ID3D10ShaderResourceView *oldPSShaderResource=NULL;
@@ -543,6 +542,8 @@ void DXMessD3D10Handler::RenderOverlay()
 		dev->VSGetShader( &oldvs);
 		dev->VSGetConstantBuffers(0,1, &oldConstantBuffersVS);
 
+		dev->GSGetShader(&oldgs);
+
 		dev->PSGetShader( &oldps);
 		dev->PSGetSamplers(0,1, &oldPSSampler);
 		dev->PSGetShaderResources(0,1, &oldPSShaderResource);
@@ -564,8 +565,10 @@ void DXMessD3D10Handler::RenderOverlay()
 		dev->RSGetViewports(&oldviewports, NULL);
 		dev->RSGetViewports(&oldviewports, viewports);
 
-		//change state
+		
 
+		//change state
+		dev->GSSetShader(NULL); //not used
 	    dev->VSSetShader(pVertexShader);
 		dev->PSSetShader(pPixelShader);
 		dev->PSSetSamplers( 0, 1, &pSamplerLinear );
@@ -584,11 +587,13 @@ void DXMessD3D10Handler::RenderOverlay()
 		dev->RSSetViewports( 1, &vp );
 		
 
-		dev->OMSetRenderTargets(1, &pRenderTargetView, pDepthStencilView);		
+		dev->OMSetRenderTargets(1, &pRenderTargetView, NULL); //pDepthStencilView);		
 		dev->ClearDepthStencilView( pDepthStencilView, D3D10_CLEAR_DEPTH, 1.0f, 0 );
 
 		dev->OMSetBlendState(pTransparency, blendFactor, 0xffffffff);
-		dev->OMSetDepthStencilState(NULL,0);
+		//dev->OMSetDepthStencilState(NULL,0);
+		dev->OMSetDepthStencilState(pDisabledDepthStencilState, 0);;
+
 		
 
 		dev->IASetPrimitiveTopology( D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
@@ -598,7 +603,9 @@ void DXMessD3D10Handler::RenderOverlay()
 
 		dev->RSSetState(pOverlayRasterizer);
 
+		
 
+		
 
 		
 		for (i=0; i<OverlayCount; i++)
@@ -612,6 +619,7 @@ void DXMessD3D10Handler::RenderOverlay()
 				ConstantBuffer cb;
 				UpdatePosForOverlay(i, &desc);
 				cb.transparency=shared->resources[i].alphaBlend;
+
 				cb.translation.x=overlays[i].x;
 				cb.translation.y=overlays[i].y;
 
@@ -621,9 +629,11 @@ void DXMessD3D10Handler::RenderOverlay()
 				dev->PSSetConstantBuffers(0,1, &pConstantBuffer);
 
 
+				
 
 				//render
 				dev->DrawIndexed( 6, 0,0);
+
 				/*
 
 				//dev->VSSetShader(NULL);
@@ -666,6 +676,7 @@ void DXMessD3D10Handler::RenderOverlay()
 		}
 
 		//restore
+		dev->GSSetShader(oldgs);
 		dev->VSSetShader(oldvs);
 		dev->PSSetShader(oldps);
 		dev->PSSetSamplers(0, 1, &oldPSSampler);

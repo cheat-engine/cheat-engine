@@ -508,6 +508,10 @@ void DXMessD3D11Handler::RenderOverlay()
 		ID3D11ClassInstance *oldpsinstances=NULL;
 		UINT pci_count=0;
 
+		ID3D11GeometryShader *oldgs=NULL;
+		ID3D11ClassInstance *oldgsinstances=NULL;
+		UINT gci_count=0;
+
 		ID3D11SamplerState *oldPSSampler=NULL;
 		ID3D11ShaderResourceView *oldPSShaderResource=NULL;
 		ID3D11BlendState *oldBlendState=NULL;
@@ -541,6 +545,8 @@ void DXMessD3D11Handler::RenderOverlay()
 
 		dc->VSGetConstantBuffers(0,1, &oldConstantBuffersVS);
 		dc->VSGetShader( &oldvs, &oldvsinstances, &vci_count);
+
+		dc->GSGetShader( &oldgs, &oldgsinstances, &gci_count);
 		
 		dc->PSGetConstantBuffers(0,1, &oldConstantBuffersPS);
 		dc->PSGetShader( &oldps, &oldpsinstances, &pci_count);
@@ -566,8 +572,10 @@ void DXMessD3D11Handler::RenderOverlay()
 		dc->RSGetViewports(&oldviewports, NULL);
 		dc->RSGetViewports(&oldviewports, viewports);
 
+
 		//change state
 
+		dc->GSSetShader(NULL,NULL,0);
 	    dc->VSSetShader( pVertexShader, NULL, 0 );
 		dc->PSSetShader( pPixelShader, NULL, 0 );
 		dc->PSSetSamplers( 0, 1, &pSamplerLinear );
@@ -588,7 +596,8 @@ void DXMessD3D11Handler::RenderOverlay()
 		dc->ClearDepthStencilView( pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0 );
 
 		dc->OMSetBlendState(pTransparency, blendFactor, 0xffffffff);
-		dc->OMSetDepthStencilState(NULL,0);
+		//dc->OMSetDepthStencilState(NULL,0);
+		dc->OMSetDepthStencilState(pDisabledDepthStencilState,0);
 		
 
 		
@@ -599,6 +608,7 @@ void DXMessD3D11Handler::RenderOverlay()
 		
 
 		dc->RSSetState(pOverlayRasterizer);
+		
 
 		
 		for (i=0; i<OverlayCount; i++)
@@ -627,6 +637,7 @@ void DXMessD3D11Handler::RenderOverlay()
 		}
 
 		//restore
+		dc->GSSetShader(oldgs, (ID3D11ClassInstance *const *)oldgsinstances, gci_count);
 		dc->VSSetShader(oldvs, (ID3D11ClassInstance *const *)oldvsinstances, vci_count);
 		dc->PSSetShader(oldps, (ID3D11ClassInstance *const *)oldpsinstances, pci_count);
 		dc->PSSetSamplers(0, 1, &oldPSSampler);
