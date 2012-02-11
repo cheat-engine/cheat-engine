@@ -52,6 +52,8 @@ typedef HRESULT		(__stdcall *D3D11_DRAWAUTO_ORIGINAL)(ID3D11DeviceContext *dc);
 
 
 typedef HRESULT     (__stdcall *DXGI_PRESENT_ORIGINAL)(IDXGISwapChain *x, UINT SyncInterval, UINT Flags);
+typedef HRESULT     (__stdcall *DXGI_RESIZEBUFFERS_ORIGINAL)(IDXGISwapChain *x, UINT BufferCount, UINT Width, UINT Height, DXGI_FORMAT NewFormat, UINT SwapChainFlags);
+
 typedef void        (__stdcall *D3D10PlusHookPresentAPICall)(IDXGISwapChain *swapchain, void *device, PD3DHookShared shared);
 typedef void        (__stdcall *D3D9HookPresentAPICall)(IDirect3DDevice9 *device, PD3DHookShared shared);
 typedef HRESULT     (__stdcall *D3D9HookResetAPICall)(D3D9_RESET_ORIGINAL originalfunction, IDirect3DDevice9 *device, D3DPRESENT_PARAMETERS *pPresentationParameters);
@@ -95,9 +97,13 @@ D3D11CREATEDEVICEANDSWAPCHAIN d3d11create=NULL;
 DIRECT3DCREATE9 D3DCreate9=NULL;
 
 DXGI_PRESENT_ORIGINAL DXGI_Present_Original=NULL;
+DXGI_RESIZEBUFFERS_ORIGINAL DXGI_ResizeBuffers_Original=NULL;
 D3D10PlusHookPresentAPICall D3D11Hook_SwapChain_Present=NULL;
+D3D10PlusHookPresentAPICall D3D11Hook_SwapChain_ResizeBuffers=NULL;
 D3D10PlusHookPresentAPICall D3D10Hook_SwapChain_Present=NULL;
+D3D10PlusHookPresentAPICall D3D10Hook_SwapChain_ResizeBuffers=NULL;
 D3D10PlusHookPresentAPICall D3D10_1Hook_SwapChain_Present=NULL;
+D3D10PlusHookPresentAPICall D3D10_1Hook_SwapChain_ResizeBuffers=NULL;
 
 D3D9HookPresentAPICall D3D9Hook_Present;
 D3D9HookResetAPICall D3D9Hook_Reset;
@@ -249,7 +255,8 @@ void GetAddresses(void)
 				//get the present function of the swapchain
 				uintptr_t *a=(uintptr_t *)*(uintptr_t *)pSwapChain;
 
-				shared->dxgi_present=a[8]; //8th element is Present()			
+				shared->dxgi_present=a[8]; //8th element is Present()		
+				shared->dxgi_resizebuffers=a[13]; 
 			
 							
 
@@ -915,106 +922,147 @@ HRESULT	__stdcall D3D11_DrawAuto_new(ID3D11DeviceContext *dc)
 	return D3D11_DrawAuto_Original(dc);
 }
 
-
-
-HRESULT __stdcall IDXGISwapChain_Present_new(IDXGISwapChain *x, UINT SyncInterval, UINT Flags)
+int GetDXVersionAndInitDLL(IDXGISwapChain *x, void *device)
 {
 
-	if (shared)	
+	
+
+	//find what kind of device this is				
+	if (SUCCEEDED(x->GetDevice(__uuidof(ID3D11Device), (void**)device)))
 	{
-		ID3D11Device *dev11;
-		ID3D10Device1 *dev10_1;
-		ID3D10Device *dev10;
+		//D3D11
 
-		
-
-		//find what kind of device this is				
-		if (SUCCEEDED(x->GetDevice(__uuidof(ID3D11Device), (void**)&dev11)))
+		//make sure the D3DHook11.dll is loaded and pass on this device ,swapchain and shared buffer
+		if ((D3D11Hook_SwapChain_Present==NULL) || (D3D11Hook_SwapChain_ResizeBuffers==NULL))
 		{
-			//D3D11
-
-			//make sure the D3DHook11.dll is loaded and pass on this device ,swapchain and shared buffer
-			if (D3D11Hook_SwapChain_Present==NULL)
-			{
-				//load the dll and use getprocaddress
-#ifdef DEBUG
-				D3D11Hook_SwapChain_Present=(D3D10PlusHookPresentAPICall)D3D11Hook_SwapChain_Present_imp;
-#else
+			//load the dll and use getprocaddress
 				char dllpath[MAX_PATH];
 				strcpy_s(dllpath, MAX_PATH, (char *)shared->CheatEngineDir);
 				strcat_s(dllpath, MAX_PATH, "CED3D11Hook.dll");
 
 				HMODULE hdll=LoadLibraryA(dllpath);
 				D3D11Hook_SwapChain_Present=(D3D10PlusHookPresentAPICall)GetProcAddress(hdll, "D3D11Hook_SwapChain_Present_imp");
-#endif
-			}
-
-
-			if (D3D11Hook_SwapChain_Present)
-				D3D11Hook_SwapChain_Present(x, dev11, shared);
-
-			dev11->Release();
+				D3D11Hook_SwapChain_ResizeBuffers=(D3D10PlusHookPresentAPICall)GetProcAddress(hdll, "D3D11Hook_SwapChain_ResizeBuffers_imp");
 		}
-		else
-		if (SUCCEEDED(x->GetDevice(__uuidof(ID3D10Device), (void**)&dev10)))
+		return 11;
+	}
+	else
+	if (SUCCEEDED(x->GetDevice(__uuidof(ID3D10Device), (void**)device)))
+	{
+
+		if ((D3D10Hook_SwapChain_Present==NULL) || (D3D10Hook_SwapChain_ResizeBuffers==NULL))
 		{
-			//D3D11
+			char dllpath[MAX_PATH];
+			strcpy_s(dllpath, MAX_PATH, (char *)shared->CheatEngineDir);
+			strcat_s(dllpath, MAX_PATH, "CED3D10Hook.dll");
 
-			//make sure the D3DHook10.dll is loaded and pass on this device ,swapchain and shared buffer
-			if (D3D10Hook_SwapChain_Present==NULL)
-			{
-#ifdef DEBUG
-			    D3D10Hook_SwapChain_Present=(D3D10PlusHookPresentAPICall)D3D10Hook_SwapChain_Present_imp;
-#else
-				char dllpath[MAX_PATH];
-				strcpy_s(dllpath, MAX_PATH, (char *)shared->CheatEngineDir);
-				strcat_s(dllpath, MAX_PATH, "CED3D10Hook.dll");
+			HMODULE hdll=LoadLibraryA(dllpath);
+			D3D10Hook_SwapChain_Present=(D3D10PlusHookPresentAPICall)GetProcAddress(hdll, "D3D10Hook_SwapChain_Present_imp");
+			D3D10Hook_SwapChain_ResizeBuffers=(D3D10PlusHookPresentAPICall)GetProcAddress(hdll, "D3D10Hook_SwapChain_ResizeBuffers_imp");
 
-				HMODULE hdll=LoadLibraryA(dllpath);
-				D3D10Hook_SwapChain_Present=(D3D10PlusHookPresentAPICall)GetProcAddress(hdll, "D3D10Hook_SwapChain_Present_imp");
-#endif
 		
-			}
-
-			if (D3D10Hook_SwapChain_Present)
-				D3D10Hook_SwapChain_Present(x, dev10, shared);
-
-			dev10->Release();
 		}
-		else
-		if (SUCCEEDED(x->GetDevice(__uuidof(ID3D10Device1), (void**)&dev10_1)))
+		return 10;
+
+	}
+	else
+	if (SUCCEEDED(x->GetDevice(__uuidof(ID3D10Device1), (void**)device)))
+	{
+		//D3D10.1
+
+		//make sure the D3DHook10.1.dll is loaded and pass on this device ,swapchain and shared buffer
+		if ((D3D10_1Hook_SwapChain_Present==NULL) || (D3D10_1Hook_SwapChain_ResizeBuffers==NULL))
 		{
-			//D3D10.1
+			char dllpath[MAX_PATH];
+			strcpy_s(dllpath, MAX_PATH, (char *)shared->CheatEngineDir);
+			strcat_s(dllpath, MAX_PATH, "CED3D10Hook.dll");
 
-			//make sure the D3DHook10.1.dll is loaded and pass on this device ,swapchain and shared buffer
-			if (D3D10_1Hook_SwapChain_Present==NULL)
-			{
-#ifdef DEBUG
-				//D3D10_1Hook_SwapChain_Present=(D3D10PlusHookPresentAPICall)D3D10_1Hook_SwapChain_Present_imp;
-				D3D10_1Hook_SwapChain_Present=(D3D10PlusHookPresentAPICall)D3D10Hook_SwapChain_Present_imp; //since 10_1 inherits from 10 this should just work
-#else
-				char dllpath[MAX_PATH];
-				strcpy_s(dllpath, MAX_PATH, (char *)shared->CheatEngineDir);
-				strcat_s(dllpath, MAX_PATH, "CED3D10Hook.dll");
-
-				HMODULE hdll=LoadLibraryA(dllpath);
-				D3D10_1Hook_SwapChain_Present=(D3D10PlusHookPresentAPICall)GetProcAddress(hdll, "D3D10Hook_SwapChain_Present_imp");
-#endif
-			}
-
-			if (D3D10_1Hook_SwapChain_Present)
-				D3D10_1Hook_SwapChain_Present(x, dev10_1, shared);
-
-			dev10_1->Release();
+			HMODULE hdll=LoadLibraryA(dllpath);
+			D3D10_1Hook_SwapChain_Present=(D3D10PlusHookPresentAPICall)GetProcAddress(hdll, "D3D10Hook_SwapChain_Present_imp");
+			D3D10_1Hook_SwapChain_ResizeBuffers=(D3D10PlusHookPresentAPICall)GetProcAddress(hdll, "D3D10Hook_SwapChain_ResizeBuffers_imp");
 		}
+
+		return 101;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+HRESULT __stdcall IDXGISwapChain_ResizeBuffers_new(IDXGISwapChain *x, UINT BufferCount, UINT Width, UINT Height, DXGI_FORMAT NewFormat, UINT SwapChainFlags)
+{
+   /*
+	if (shared)
+	{
+		IUnknown *dev;
+		int version=GetDXVersionAndInitDLL(x, &dev);
+
+		switch (version)
+		{			
+			case 10:
+				if (D3D10Hook_SwapChain_ResizeBuffers)
+					D3D10Hook_SwapChain_ResizeBuffers(x, dev, shared);
+				break;
+
+			case 101:
+				if (D3D10_1Hook_SwapChain_ResizeBuffers)
+					D3D10_1Hook_SwapChain_ResizeBuffers(x, dev, shared);
+				break;
+
+			case 11:
+				if (D3D11Hook_SwapChain_ResizeBuffers)
+					D3D11Hook_SwapChain_ResizeBuffers(x, dev, shared);
+				break;
+		}
+
+		if (version)
+			dev->Release();
+	}
+
+*/
+
+	return DXGI_ResizeBuffers_Original(x, BufferCount, Width, Height, NewFormat, SwapChainFlags);
+}
+
+HRESULT __stdcall IDXGISwapChain_Present_new(IDXGISwapChain *x, UINT SyncInterval, UINT Flags)
+{
+/*
+	if (shared)	
+	{
+		IUnknown *dev;
+
+		int version=GetDXVersionAndInitDLL(x, &dev);
+		switch (version)
+		{
+			case 10:
+				if (D3D10Hook_SwapChain_Present)
+					D3D10Hook_SwapChain_Present(x, dev, shared);
+				break;
+
+			case 101:
+				if (D3D10_1Hook_SwapChain_Present)
+					D3D10_1Hook_SwapChain_Present(x, dev, shared);
+				break;
+
+			case 11:
+				if (D3D11Hook_SwapChain_Present)
+					D3D11Hook_SwapChain_Present(x, dev, shared);
+				break;
+		}
+
+		if (version)
+			dev->Release();
 
 		if ((shared->hookwnd) && (shared->lastHwnd))
 			hookIfNeeded();
+
+
 	}
-	
+	*/
+
 	//call original present
 	return DXGI_Present_Original(x, SyncInterval, Flags);
-	//return x->Present(SyncInterval, Flags);	
 }
 
 
@@ -1067,6 +1115,7 @@ DWORD WINAPI InitializeD3DHookDll(PVOID params)
 
 		//tell ce the address where the hook should point to
 		shared->dxgi_newpresent=(uintptr_t)IDXGISwapChain_Present_new;
+		shared->dxgi_newresizebuffers=(uintptr_t)IDXGISwapChain_ResizeBuffers_new;
 		shared->d3d9_newpresent=(uintptr_t)D3D9_Present_new;
 		shared->d3d9_newreset=(uintptr_t)D3D9_Reset_new;
 
@@ -1095,6 +1144,7 @@ DWORD WINAPI InitializeD3DHookDll(PVOID params)
 
 		//tell ce where it should write a pointer to the unhooked version of the hooked functions
 		shared->dxgi_originalpresent=(uintptr_t)&DXGI_Present_Original;
+		shared->dxgi_originalresizebuffers=(uintptr_t)&DXGI_ResizeBuffers_Original;
 		shared->d3d9_originalpresent=(uintptr_t)&D3D9_Present_Original;
 		shared->d3d9_originalreset=(uintptr_t)&D3D9_Reset_Original;
 

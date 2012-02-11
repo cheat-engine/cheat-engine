@@ -39,6 +39,7 @@ type
   TD3DHookShared=packed record
     cheatenginedir: array [0..255] of char;
     dxgi_present: UINT64;
+    dxgi_resizebuffers: UINT64;
     d3d9_present: UINT64;
     d3d9_reset: UINT64;
 
@@ -63,6 +64,7 @@ type
 
 
     dxgi_newpresent: UINT64;
+    dxgi_newresizebuffers: UINT64;
     d3d9_newpresent: UINT64;
     d3d9_newreset: UINT64;
 
@@ -87,6 +89,7 @@ type
 
 
     dxgi_originalpresent: UINT64;
+    dxgi_originalresizebuffers: UINT64;
     d3d9_originalpresent: UINT64;
     d3d9_originalreset: UINT64;
 
@@ -373,7 +376,7 @@ begin
 
     if owner.consoleCursorId<>-1 then //toggle the cursor visible or invisible based on the current time and if a key was pressed (keep the cursor visible rigth after pressing a key, so reset the timerstart)
     begin
-      cursor:=(owner.shared.console.consolevisible=1) and (((GetTickCount-cursorstart) mod 1000)<500);
+      cursor:=true; //(owner.shared.console.consolevisible=1) and (((GetTickCount-cursorstart) mod 1000)<500);
       owner.SetOverlayVisibility(owner.consoleCursorId, cursor);
     end;
 
@@ -401,26 +404,26 @@ begin
   lineheight:=c.GetTextHeight('FUUUU');
 
   c.Brush.Color:=$111111;
-  c.FillRect(0,0,(c.Width-1), (c.Height-1)-(lineheight+2));
+  c.FillRect(0,0,(c.Width), (c.Height)-(lineheight+2));
 
   c.Brush.color:=$000000;
-  c.FillRect(0,(c.height-1)-(lineheight+1),(c.width-1), (c.height-1));
+  c.FillRect(0,(c.height)-(lineheight+1),(c.width), (c.height));
 
   c.pen.color:=clred;
-  c.Line(0,(c.Height-1)-(lineheight+2), (c.width-1), (c.Height-1)-(lineheight+2));
+  c.Line(0,(c.Height)-(lineheight+2), (c.width-1), (c.Height)-(lineheight+2));
 
   //todo: In the future implement font rendering inside the dxhook and render on top of the overlay
 
   //now render the text
   //command
-  c.TextOut(4,(c.Height-1)-(lineheight+1), command);
+  c.TextOut(4,(c.Height)-(lineheight+1), command);
 
   //and the log (from bottom to top, till the max is reached)
   c.Brush.Color:=$111111;
 
   if log<>nil then
   begin
-    linepos:=(c.Height-1)-(lineheight+2)-lineheight; //the last line
+    linepos:=(c.Height)-(lineheight+2)-lineheight; //the last line
 
     for i:=log.Count-1 downto 0 do
     begin
@@ -466,7 +469,7 @@ begin
     consoleCursorImage.Bitmap.Width:=3;
     c:=consoleCursorImage.Bitmap.canvas;
     c.Brush.Color:=$fefefe;
-    c.FillRect(0,0,consoleCursorImage.Bitmap.width-1,consoleCursorImage.Bitmap.Height-1);
+    c.FillRect(0,0,consoleCursorImage.Bitmap.width,consoleCursorImage.Bitmap.Height);
     consoleCursorId:=createOverlayFromPicture(consoleCursorImage,4, getheight-consoleCursorImage.height);
     SetOverlayVisibility(consoleCursorId, false);
   end;
@@ -534,20 +537,20 @@ end;
 function TD3DHook.getWidth: integer;
 var x: trect;
 begin
-  if GetClientRect(shared.lastHwnd, x) then
+  if (shared<>nil) and (GetClientRect(shared.lastHwnd, x)) then
     result:=x.Right-x.left
   else
     result:=0;
-
 end;
 
 function TD3DHook.getHeight: integer;
 var x: trect;
 begin
-  if GetClientRect(shared.lastHwnd, x) then
+  if (shared<>nil) and (GetClientRect(shared.lastHwnd, x)) then
     result:=x.bottom-x.top
   else
     result:=0;
+
 end;
 
 procedure TD3DHook.beginupdate;
@@ -791,7 +794,6 @@ begin
       if shared.dxgi_present<>0 then
         generateAPIHookScript(s, inttohex(shared.dxgi_present,8), inttohex(shared.dxgi_newpresent,8),  inttohex(shared.dxgi_originalpresent,8), '2');
 
-
       if shared.d3d9_drawprimitive<>0 then
         generateAPIHookScript(s, inttohex(shared.d3d9_drawprimitive,8), inttohex(shared.d3d9_newdrawprimitive,8),  inttohex(shared.d3d9_originaldrawprimitive,8), '3');
 
@@ -841,6 +843,10 @@ begin
 
       if shared.d3d11_drawauto<>0 then
         generateAPIHookScript(s, inttohex(shared.d3d11_drawauto,8), inttohex(shared.d3d11_newdrawauto,8),  inttohex(shared.d3d11_originaldrawauto,8), '18');
+
+      if shared.dxgi_resizebuffers<>0 then
+        generateAPIHookScript(s, inttohex(shared.dxgi_resizebuffers,8), inttohex(shared.dxgi_newresizebuffers,8),  inttohex(shared.dxgi_originalresizebuffers,8), '19');
+
 
       clipboard.AsText:=s.text;
 
