@@ -6,7 +6,7 @@ interface
 
 uses
   LCLIntf, LResources, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs,symbolhandler,disassembler, StdCtrls, ComCtrls, ActnList, Clipbrd;
+  Dialogs,symbolhandler,disassembler, StdCtrls, ComCtrls, ActnList, Clipbrd, strutils;
 
 type
   TfrmSavedisassembly = class;
@@ -73,6 +73,8 @@ var oldaddress, currentaddress: ptrUint;
     mi: TModuleInfo;
 
     disassembler: TDisassembler;
+
+    addresslength: integer;
 begin
   disassembler:=TDisassembler.Create;
   disassembler.showmodules:=memorybrowser.Showmoduleaddresses1.checked;
@@ -94,6 +96,8 @@ begin
   i:=0;
   temps:='';
   temps2:='';
+
+  addresslength:=0;
 
   while (not terminated) and (currentaddress<=stopaddress) do
   begin
@@ -119,33 +123,26 @@ begin
       end;
     end;
 
+    if addresslength=0 then
+      addresslength:=length(addresspart)+1;
+
     if specialpart<>'' then
       opcodepart:=opcodepart+' : '+specialpart;
 
 
-
-
     if address then
     begin
-      temps:=addresspart;
-      if bytes or opcode then temps:=temps+' - ';
+      temps:=PadRight(addresspart, addresslength);
+      if bytes or opcode then temps:=temps+'- ';
     end;
 
     if bytes then
     begin
-      temps:=temps+bytepart;
-      temps:=temps+' ';
+      temps:=temps+padright(bytepart, 21);
 
       if opcode then
-      begin
+        temps:=temps+' - '
 
-        if address then
-          while length(temps)<(11+(9*3)) do temps:=temps+' '
-        else
-          while length(temps)<(9*3) do temps:=temps+' ';
-
-        temps:=temps+'- '
-      end;
     end;
 
     if opcode then temps:=temps+opcodepart;
