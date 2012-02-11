@@ -70,7 +70,7 @@ resourcestring
 
 
 procedure TfrmDissectCode.btnStartClick(Sender: TObject);
-var start,stop:dword;
+var start,stop:PtrUInt;
     tempregions: tmemoryregions;
     i,j: integer;
     temp: tmemoryregion;

@@ -293,7 +293,7 @@ end;
 procedure TfrmReferencedStrings.lbReflistDblClick(Sender: TObject);
 begin
   if lbreflist.ItemIndex<>-1 then
-    memorybrowser.disassemblerview.SelectedAddress:=strtoint('$'+lbreflist.Items[lbreflist.ItemIndex]);
+    memorybrowser.disassemblerview.SelectedAddress:=StrToQWordEx('$'+lbreflist.Items[lbreflist.ItemIndex]);
 end;
 
 procedure TfrmReferencedStrings.Find1Click(Sender: TObject);

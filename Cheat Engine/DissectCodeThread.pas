@@ -1,6 +1,7 @@
 unit DissectCodeThread;
 
 {$MODE Delphi}
+//todo: Reimplement using Map or binary tree
 
 interface
 
@@ -68,7 +69,7 @@ type
 
     function isstring(address: ptrUint): boolean;
 
-    procedure addAddress(list: PDissectDataArray; address: ptrUint; referencedBy: dword; couldbestring: boolean=false);
+    procedure addAddress(list: PDissectDataArray; address: ptrUint; referencedBy: ptruint; couldbestring: boolean=false);
     function findaddress(list: PDissectDataArray; address: ptrUint):PAddresslist;
   public
     percentagedone: dword;
@@ -109,7 +110,14 @@ that data will be added to a list that the disassemblerview can read out for dat
 
 }
 
-type TDatapath=array[0..7] of record
+{$ifdef cpu64}
+const maxdepth=15;
+{$else}
+const maxdepth=7;
+{$endif}
+
+
+type TDatapath=array[0..maxdepth] of record
   list: PDissectDataArray;
   entrynr: integer;
 end;
@@ -130,16 +138,16 @@ begin
   result:=nil;
   level:=0;
   currentarray:=list;
-  while level<7 do
+  while level<maxdepth do
   begin
-    entrynr:=address shr ((7-level)*4) and $f;
+    entrynr:=address shr ((maxdepth-level)*4) and $f;
     if currentarray[entrynr].DissectDataArray=nil then exit; //not in the list
 
     currentarray:=currentarray[entrynr].DissectDataArray;
     inc(level);
   end;
 
-  entrynr:=address shr ((7-level)*4) and $f;
+  entrynr:=address shr ((maxdepth-level)*4) and $f;
   result:=currentarray[entrynr].addresslist;
 end;
 
@@ -223,7 +231,28 @@ function datapathToAddress(datapath: PDatapath): ptrUint;
 {
 for use when find the address of a map after traversing it
 }
+//var a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15: byte;
 begin
+  {$ifdef cpu64}
+  result:=
+          qword(qword(datapath[0].entrynr) shl 60)+
+          qword(qword(datapath[1].entrynr) shl 56)+
+          qword(qword(datapath[2].entrynr) shl 52)+
+          qword(qword(datapath[3].entrynr) shl 48)+
+          qword(qword(datapath[4].entrynr) shl 44)+
+          qword(qword(datapath[5].entrynr) shl 40)+
+          qword(qword(datapath[6].entrynr) shl 36)+
+          qword(qword(datapath[7].entrynr) shl 32)+
+          qword(qword(datapath[8].entrynr) shl 28)+
+          qword(qword(datapath[9].entrynr) shl 24)+
+          qword(qword(datapath[10].entrynr) shl 20)+
+          qword(qword(datapath[11].entrynr) shl 16)+
+          qword(qword(datapath[12].entrynr) shl 12)+
+          qword(qword(datapath[13].entrynr) shl 8)+
+          qword(qword(datapath[14].entrynr) shl 4)+
+          qword(datapath[15].entrynr);
+  {$else}
+
   result:=datapath[0].entrynr shl 28+
           datapath[1].entrynr shl 24+
           datapath[2].entrynr shl 20+
@@ -232,6 +261,8 @@ begin
           datapath[5].entrynr shl 8+
           datapath[6].entrynr shl 4+
           datapath[7].entrynr;
+
+  {$endif}
 end;
 
 
@@ -242,7 +273,7 @@ var
 begin
   list:=datapath[level].list;
  
-  if level<7 then
+  if level<maxdepth then
   begin
     for i:=0 to 15 do
     begin
@@ -287,7 +318,7 @@ begin
 end;
 
 
-procedure TDissectCodeThread.addAddress(list: PDissectDataArray; address: ptrUint; referencedBy: dword; couldbestring: boolean=false);
+procedure TDissectCodeThread.addAddress(list: PDissectDataArray; address: ptrUint; referencedBy: ptruint; couldbestring: boolean=false);
 var
   level: integer;
   entrynr: integer;
@@ -296,10 +327,10 @@ begin
   currentarray:=list;
 
   level:=0;
-  while level<7 do
+  while level<maxdepth do
   begin
     //add the path if needed
-    entrynr:=address shr ((7-level)*4) and $f;
+    entrynr:=address shr ((maxdepth-level)*4) and $f;
     if currentarray[entrynr].DissectDataArray=nil then //allocate
     begin
       getmem(temp, sizeof(TdissectDataArray));
@@ -311,8 +342,8 @@ begin
     inc(level);
   end;
 
-  //got till level 7
-  entrynr:=address shr ((7-level)*4) and $f;
+  //got till level maxdepth
+  entrynr:=address shr ((maxdepth-level)*4) and $f;
   if currentarray[entrynr].addresslist=nil then //allocate
   begin
     getmem(currentarray[entrynr].addresslist,sizeof(Taddresslist));
