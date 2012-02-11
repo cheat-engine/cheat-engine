@@ -181,7 +181,62 @@ HRESULT DXMessD3D10Handler::setupOverlayTexture()
 
 DXMessD3D10Handler::~DXMessD3D10Handler()
 {
-	dev->Release();	
+	int i;
+	OutputDebugStringA("DXMessD3D10Handler destructor");
+
+	i=0;
+
+
+	if (pOverlayIB)
+		pOverlayIB->Release();
+
+	if (overlays)
+		free(overlays);	
+
+	if (pPixelShader)
+		pPixelShader->Release();
+
+	if (pVertexShader)
+		pVertexShader->Release();
+
+	if (pVertexLayout)
+		pVertexLayout->Release();
+
+	if (pSamplerLinear)
+		pSamplerLinear->Release();
+
+	if (pOverlayRasterizer)
+		pOverlayRasterizer->Release();
+
+	if (pTransparency)
+		pTransparency->Release();
+
+	if (pDepthStencil)
+		pDepthStencil->Release();
+
+	if (pRenderTargetView)
+		pRenderTargetView->Release();
+
+	if (pDepthStencilView)
+		pDepthStencilView->Release();
+
+	if (pConstantBuffer)
+		pConstantBuffer->Release();
+
+	if (pWireframeRasterizer)
+		pWireframeRasterizer->Release();
+
+
+	if (pDisabledDepthStencilState)
+		pDisabledDepthStencilState->Release();
+
+	if (dev)
+	  dev->Release();
+
+	if (swapchain)
+	  swapchain->Release();
+
+	
 }
 
 DXMessD3D10Handler::DXMessD3D10Handler(ID3D10Device *dev, IDXGISwapChain *sc, PD3DHookShared shared)
@@ -191,7 +246,7 @@ DXMessD3D10Handler::DXMessD3D10Handler(ID3D10Device *dev, IDXGISwapChain *sc, PD
 
 
 	//hr=D3DX10CreateSprite(dev, 0, &sprite);
-
+	
 	pOverlayIB=NULL;
 
 
@@ -202,6 +257,13 @@ DXMessD3D10Handler::DXMessD3D10Handler(ID3D10Device *dev, IDXGISwapChain *sc, PD
 	pSamplerLinear=NULL;
 	pOverlayRasterizer=NULL;
 	pTransparency=NULL;
+	pDepthStencil=NULL;
+	pRenderTargetView=NULL;
+	pDepthStencilView=NULL;
+	pConstantBuffer=NULL;
+
+	pWireframeRasterizer=NULL;
+	pDisabledDepthStencilState=NULL;
 
 	OverlayCount=0;
 	overlays=NULL;
@@ -210,13 +272,24 @@ DXMessD3D10Handler::DXMessD3D10Handler(ID3D10Device *dev, IDXGISwapChain *sc, PD
 
 	Valid=FALSE;
 
+	
+
+
 	this->shared=shared;
+
+	this->dev=NULL;
+	this->swapchain=NULL;
+
+
+	
+
+
 	this->dev=dev;
-	this->swapchain=sc;
+	this->dev->AddRef();
+	this->swapchain=sc;	
+	this->swapchain->AddRef();
 
-	dev->AddRef();
-	sc->AddRef();
-
+	
 	D3D10_BUFFER_DESC bd2d;
 	D3D10_SUBRESOURCE_DATA InitData2d;
 
@@ -235,6 +308,8 @@ DXMessD3D10Handler::DXMessD3D10Handler(ID3D10Device *dev, IDXGISwapChain *sc, PD
     bd2d.CPUAccessFlags = 0;
     InitData2d.pSysMem = overlayIndices;
     hr = dev->CreateBuffer( &bd2d, &InitData2d, &pOverlayIB );
+
+	
 
     if( FAILED( hr ) )
 	{
@@ -351,14 +426,11 @@ DXMessD3D10Handler::DXMessD3D10Handler(ID3D10Device *dev, IDXGISwapChain *sc, PD
 	if( FAILED( hr ) )
         pWireframeRasterizer=NULL; //no biggie
 
-
 	D3D10_DEPTH_STENCIL_DESC dsDesc;
 	ZeroMemory(&dsDesc, sizeof(dsDesc)); //everything 0, including DepthEnable
 	hr= dev->CreateDepthStencilState(&dsDesc, &pDisabledDepthStencilState);
 	if( FAILED( hr ) )
 		pDisabledDepthStencilState=NULL;
-
-
 
 
 	D3D10_BLEND_DESC blend;	
@@ -465,6 +537,11 @@ DXMessD3D10Handler::DXMessD3D10Handler(ID3D10Device *dev, IDXGISwapChain *sc, PD
 
 void DXMessD3D10Handler::RenderOverlay()
 {
+
+
+
+
+
 	int i;
 	if (Valid)
 	{
@@ -476,6 +553,8 @@ void DXMessD3D10Handler::RenderOverlay()
 
 		DXGI_SWAP_CHAIN_DESC desc;
 		swapchain->GetDesc(&desc);
+
+			
 
 		shared->lastHwnd=(DWORD)desc.OutputWindow;
 
@@ -498,9 +577,12 @@ void DXMessD3D10Handler::RenderOverlay()
 			UpdatePosForOverlay(shared->MouseOverlayId, &desc);	
 		}
 
+		
+
 		if (shared->OverLayHasUpdate)
 			setupOverlayTexture();
 
+		
 
 		UINT stride = sizeof( OverlayVertex );
 		UINT offset = 0;
@@ -537,10 +619,17 @@ void DXMessD3D10Handler::RenderOverlay()
 		ID3D10Buffer *oldConstantBuffersVS=NULL;
 		ID3D10Buffer *oldConstantBuffersPS=NULL;
 
+		D3D10_VIEWPORT vp;
+		UINT oldviewports=0;
+		D3D10_VIEWPORT viewports[D3D10_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
+
 		//save state
 		
 		dev->VSGetShader( &oldvs);
+		
+
 		dev->VSGetConstantBuffers(0,1, &oldConstantBuffersVS);
+		
 
 		dev->GSGetShader(&oldgs);
 
@@ -549,23 +638,34 @@ void DXMessD3D10Handler::RenderOverlay()
 		dev->PSGetShaderResources(0,1, &oldPSShaderResource);
 		dev->PSGetConstantBuffers(0,1, &oldConstantBuffersPS);
 
+		
+		
+
 		dev->OMGetRenderTargets(1, &oldRenderTarget, &oldDepthStencilView);
 		dev->OMGetBlendState( &oldBlendState, oldblendFactor, &oldblendsamplemask);
 		dev->OMGetDepthStencilState( &oldDepthStencilState, &oldstencilref);
+		
+	
 
+		
 		dev->IAGetPrimitiveTopology(&oldPrimitiveTopology);
 		dev->IAGetInputLayout(&oldInputLayout);
 		dev->IAGetIndexBuffer( &oldIndexBuffer, &oldIndexBufferFormat, &oldIndexBufferOffset);
 		dev->IAGetVertexBuffers(0,1,&oldVertexBuffer, &oldVertexBufferStrides, &oldVertexBufferOffset);
 
+		
+
 		dev->RSGetState(&oldRastersizerState);
 
-		UINT oldviewports=0;
-		D3D10_VIEWPORT viewports[D3D10_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
+		
+		
 		dev->RSGetViewports(&oldviewports, NULL);
 		dev->RSGetViewports(&oldviewports, viewports);
 
 		
+
+	//	if (0)
+		{
 
 		//change state
 		dev->GSSetShader(NULL); //not used
@@ -577,7 +677,7 @@ void DXMessD3D10Handler::RenderOverlay()
 
 		
 
-		D3D10_VIEWPORT vp;
+		
 		vp.Width = desc.BufferDesc.Width;
 		vp.Height = desc.BufferDesc.Height;
 		vp.MinDepth = 0.0f;
@@ -591,7 +691,6 @@ void DXMessD3D10Handler::RenderOverlay()
 		dev->ClearDepthStencilView( pDepthStencilView, D3D10_CLEAR_DEPTH, 1.0f, 0 );
 
 		dev->OMSetBlendState(pTransparency, blendFactor, 0xffffffff);
-		//dev->OMSetDepthStencilState(NULL,0);
 		dev->OMSetDepthStencilState(pDisabledDepthStencilState, 0);;
 
 		
@@ -675,37 +774,98 @@ void DXMessD3D10Handler::RenderOverlay()
 			}
 		}
 
+		}
+
 		//restore
 		dev->GSSetShader(oldgs);
+		if (oldgs)
+			oldgs->Release();
+
 		dev->VSSetShader(oldvs);
+		if (oldvs)
+			oldvs->Release();
+
 		dev->PSSetShader(oldps);
+		if (oldps)
+			oldps->Release();
+
 		dev->PSSetSamplers(0, 1, &oldPSSampler);
+		if (oldPSSampler)
+			oldPSSampler->Release();
+			
 		dev->PSSetShaderResources(0,1, &oldPSShaderResource);
+		if (oldPSShaderResource)
+			oldPSShaderResource->Release();
 
 		dev->VSSetConstantBuffers(0,1, &oldConstantBuffersVS);
+		if (oldConstantBuffersVS)
+			oldConstantBuffersVS->Release();
+
+
 		dev->PSSetConstantBuffers(0,1, &oldConstantBuffersPS);
+		if (oldConstantBuffersPS)
+			oldConstantBuffersPS->Release();
 
 		dev->OMSetRenderTargets(1, &oldRenderTarget, oldDepthStencilView);
+		if (oldRenderTarget)
+			oldRenderTarget->Release();
+
+		if (oldDepthStencilView)
+			oldDepthStencilView->Release();
+
 		dev->OMSetBlendState(oldBlendState, oldblendFactor, oldblendsamplemask);
+		if (oldBlendState)
+			oldBlendState->Release();
+
 		dev->OMSetDepthStencilState(oldDepthStencilState, oldstencilref);
-	
+		if (oldDepthStencilState)
+			oldDepthStencilState->Release();
+
+		
 		dev->IASetPrimitiveTopology(oldPrimitiveTopology);
 		dev->IASetInputLayout(oldInputLayout);
+		if (oldInputLayout)
+			oldInputLayout->Release();
+
 		dev->IASetIndexBuffer(oldIndexBuffer, oldIndexBufferFormat, oldIndexBufferOffset);
+		if (oldIndexBuffer)
+			oldIndexBuffer->Release();
+
 		dev->IASetVertexBuffers(0,1,&oldVertexBuffer, &oldVertexBufferStrides, &oldVertexBufferOffset);
+		if (oldVertexBuffer)
+			oldVertexBuffer->Release();
 
 		dev->RSSetState(oldRastersizerState);
-		dev->RSSetViewports(oldviewports, viewports);
+		if (oldRastersizerState)
+			oldRastersizerState->Release();
 
+		dev->RSSetViewports(oldviewports, viewports);
 	}
 
 }
 
+void __stdcall D3D10Hook_SwapChain_ResizeBuffers_imp(IDXGISwapChain *swapchain, ID3D10Device *device, PD3DHookShared s)
+{
+	//release all buffers
+	DXMessD3D10Handler *currentDevice=D3D10devices[device];
+	if (currentDevice)
+	{
+		D3D10devices[device]=NULL;
+
+		device->ClearState();
+		delete(currentDevice);
+	}
+
+	
+
+}
 
 void __stdcall D3D10Hook_SwapChain_Present_imp(IDXGISwapChain *swapchain, ID3D10Device *device, PD3DHookShared s)
 {
 	//look up the controller class for this device
 	DXMessD3D10Handler *currentDevice=D3D10devices[device];
+
+		
 
 	
 	if (currentDevice==NULL)

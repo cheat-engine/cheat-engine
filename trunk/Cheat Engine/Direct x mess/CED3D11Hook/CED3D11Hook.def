@@ -6,4 +6,4 @@ EXPORTS
 	D3D11Hook_DrawIndexedInstanced_imp @4
 	D3D11Hook_DrawInstanced_imp @5
 	D3D11Hook_DrawAuto_imp @6
-       
+    D3D11Hook_SwapChain_ResizeBuffers_imp @7   

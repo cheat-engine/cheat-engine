@@ -9,6 +9,7 @@ typedef volatile struct
 {
 	char CheatEngineDir[256];
 	UINT64 dxgi_present;
+	UINT64 dxgi_resizebuffers;
 	UINT64 d3d9_present;
 	UINT64 d3d9_reset;
 
@@ -32,6 +33,7 @@ typedef volatile struct
 	UINT64 d3d11_drawauto;	
 
 	UINT64 dxgi_newpresent; //From the dll: set this to the function address in the dll
+	UINT64 dxgi_newresizebuffers;
 	UINT64 d3d9_newpresent;                              
 	UINT64 d3d9_newreset;
 
@@ -55,6 +57,7 @@ typedef volatile struct
 	UINT64 d3d11_newdrawauto;	
 
 	UINT64 dxgi_originalpresent; //From the dll: set this to the variable that should get the address of the original function with no hook
+	UINT64 dxgi_originalresizebuffers;
 	UINT64 d3d9_originalpresent;   
 	UINT64 d3d9_originalreset;
 

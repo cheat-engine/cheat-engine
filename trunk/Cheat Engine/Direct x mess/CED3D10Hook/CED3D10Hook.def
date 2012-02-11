@@ -1,9 +1,9 @@
 LIBRARY	"CED3D10Hook"
 EXPORTS   
     D3D10Hook_SwapChain_Present_imp	@1
-	D3D10Hook_DrawIndexed_imp @2
+    D3D10Hook_DrawIndexed_imp @2
 	D3D10Hook_Draw_imp @3
 	D3D10Hook_DrawIndexedInstanced_imp @4
 	D3D10Hook_DrawInstanced_imp @5
 	D3D10Hook_DrawAuto_imp @6
-       
+    D3D10Hook_SwapChain_ResizeBuffers_imp @7   

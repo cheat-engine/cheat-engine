@@ -666,6 +666,9 @@ void DXMessD3D11Handler::RenderOverlay()
 
 }
 
+void __stdcall D3D11Hook_SwapChain_ResizeBuffers_imp(IDXGISwapChain *swapchain, ID3D10Device *device, PD3DHookShared s)
+{
+}
 
 
 void __stdcall D3D11Hook_SwapChain_Present_imp(IDXGISwapChain *swapchain, ID3D11Device *device, PD3DHookShared s)
