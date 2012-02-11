@@ -91,6 +91,8 @@ end;
 function lua_pcall(L: Plua_State; nargs, nresults, errf: Integer): Integer; cdecl;
 var oldstack: integer;
   error: string;
+
+  usesluaengineform: boolean;
 begin
   try
     oldstack:=lua_gettop(l);
@@ -112,17 +114,23 @@ begin
       error:=Lua_ToString(l, -1);
       if (error<>'') then
       begin
+        usesluaengineform:=false;
         if printoutput=nil then
         begin
           if frmLuaEngine=nil then
             frmLuaEngine:=TfrmLuaEngine.Create(application);
+
           printoutput:=frmLuaEngine.mOutput.Lines;
+          usesluaengineform:=true;
         end;
 
         printoutput.add('Error:'+error);
 
-        if (frmLuaEngine<>nil) and (printoutput=frmLuaEngine.mOutput.lines) and (frmLuaEngine.cbShowOnPrint.checked) then
+        if (frmLuaEngine<>nil) and usesluaengineform and (frmLuaEngine.cbShowOnPrint.checked) then
           frmLuaEngine.show;
+
+        if usesluaengineform then
+          printoutput:=nil;
 
         lua_pop(L, lua_gettop(L));
       end;
@@ -789,20 +797,26 @@ begin
 end;
 
 function print2(param: pointer): pointer;
+var usesluaengineform: boolean;
 begin
+  usesluaengineform:=false;
 
   if printoutput=nil then
   begin
     if frmLuaEngine=nil then
-      frmLuaEngine:=TfrmLuaEngine.Create(application);
+      frmLuaEngine:=TfrmLuaEngine.Create(MemoryBrowser);
 
     printoutput:=frmLuaEngine.mOutput.Lines;
+    usesluaengineform:=true;
   end;
 
   printoutput.add(pchar(param));
 
-  if (frmLuaEngine<>nil) and (printoutput=frmLuaEngine.mOutput.lines) and (frmLuaEngine.cbShowOnPrint.checked) then
+  if (frmLuaEngine<>nil) and usesluaengineform and (frmLuaEngine.cbShowOnPrint.checked) then
     frmLuaEngine.show;
+
+  if usesluaengineform then
+    printoutput:=nil;
 
   result:=nil;
 end;
