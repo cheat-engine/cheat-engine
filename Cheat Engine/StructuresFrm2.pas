@@ -1562,7 +1562,7 @@ begin
 
       fDoNotSaveLocal:=TDOMElement(structure).GetAttribute('DoNotSaveLocal')='1';
       fAutoCreate:=TDOMElement(structure).GetAttribute('AutoCreate')='1';
-      fAutoCreateStructsize:=StrToIntDef(TDOMElement(structure).GetAttribute('AutoCreate'), 4096);
+      fAutoCreateStructsize:=StrToIntDef(TDOMElement(structure).GetAttribute('AutoCreateStructsize'), 4096);
       fAutoDestroy:=TDOMElement(structure).GetAttribute('AutoDestroy')='1';
       fAutoFill:=TDOMElement(structure).GetAttribute('AutoFill')='1';
       fDefaultHex:=TDOMElement(structure).GetAttribute('DefaultHex')='1';
