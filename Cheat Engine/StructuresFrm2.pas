@@ -1023,6 +1023,7 @@ var i,j: integer;
   v: TVariableType;
 
   newoffset: integer;
+  e: TStructelement;
 begin
   i:=1;
   smallestacceptedsize:=512;
@@ -1048,7 +1049,11 @@ begin
       begin
         for j:=0 to (size div 4)-1 do
         begin
-          addElement('', newOffset, v);
+          e:=addElement('', newOffset, v);
+
+          if fDefaultHex and (v in [vtByte..vtQword]) then
+            e.DisplayMethod:=dtHexadecimal;
+
           inc(newOffset,4);
         end;
       end
