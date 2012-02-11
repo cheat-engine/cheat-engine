@@ -181,17 +181,24 @@ HRESULT DXMessD3D10Handler::setupOverlayTexture()
 
 DXMessD3D10Handler::~DXMessD3D10Handler()
 {
-	int i;
-	OutputDebugStringA("DXMessD3D10Handler destructor");
-
-	i=0;
-
-
 	if (pOverlayIB)
 		pOverlayIB->Release();
 
 	if (overlays)
+	{
+		int i;
+		for (i=0; i<OverlayCount; i++)
+		{
+			if (overlays[i].pOverlayTex)
+				overlays[i].pOverlayTex->Release();
+
+			if (overlays[i].pOverlayVB)
+				overlays[i].pOverlayVB->Release();
+
+			
+		}
 		free(overlays);	
+	}
 
 	if (pPixelShader)
 		pPixelShader->Release();
@@ -664,9 +671,6 @@ void DXMessD3D10Handler::RenderOverlay()
 
 		
 
-	//	if (0)
-		{
-
 		//change state
 		dev->GSSetShader(NULL); //not used
 	    dev->VSSetShader(pVertexShader);
@@ -733,47 +737,7 @@ void DXMessD3D10Handler::RenderOverlay()
 				//render
 				dev->DrawIndexed( 6, 0,0);
 
-				/*
-
-				//dev->VSSetShader(NULL);
-
-				D3DXMATRIX m,m2;
-				DXGI_SWAP_CHAIN_DESC scdesc;
-				
-				swapchain->GetDesc(&scdesc);			
-				D3DXMatrixOrthoOffCenterLH(&m2, 0, (float)scdesc.BufferDesc.Width, (float)scdesc.BufferDesc.Height, 0, 0, 1);
-				//sprite->SetProjectionTransform(&m2);
-
-				//sprite->Begin(D3DX10_SPRITE_SAVE_STATE);
-
-				D3DX10_SPRITE s;
-
-				
-				ZeroMemory(&s,sizeof(s));				
-				D3DXMatrixTransformation2D(&s.matWorld, &D3DXVECTOR2(0, 0), 0, &D3DXVECTOR2(shared->resources[i].width, shared->resources[i].height), &D3DXVECTOR2(0, 0), 0, &D3DXVECTOR2(shared->resources[i].width / 2.0f+shared->resources[i].x, shared->resources[i].height / 2.0f+shared->resources[i].y));
-
-
-			//	
-
-				
-
-
-				s.TexCoord=D3DXVECTOR2( 0, 0 );
-				s.TexSize=D3DXVECTOR2( 0.5f, 0.5f );
-				s.ColorModulate=0xffffffff;
-				s.pTexture=overlays[i].pOverlayTex;
-				s.TextureIndex=0;
-
-				
-				dev->RSSetState(pOverlayRasterizer);
-
-				//sprite->DrawSpritesImmediate(&s, 1, 0,0);
-				
-				//sprite->End();*/
-
 			}
-		}
-
 		}
 
 		//restore

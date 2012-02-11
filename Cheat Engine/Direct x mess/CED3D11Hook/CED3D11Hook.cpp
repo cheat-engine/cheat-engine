@@ -178,7 +178,73 @@ HRESULT DXMessD3D11Handler::setupOverlayTexture()
 
 DXMessD3D11Handler::~DXMessD3D11Handler()
 {
-	dev->Release();	
+	if (pOverlayIB)
+		pOverlayIB->Release();
+
+	if (overlays)
+	{
+		int i;
+		for (i=0; i<OverlayCount; i++)
+		{
+			if (overlays[i].pOverlayTex)
+				overlays[i].pOverlayTex->Release();
+
+			if (overlays[i].pOverlayVB)
+				overlays[i].pOverlayVB->Release();
+
+
+		}
+		free(overlays);			
+	}
+
+	if (pPixelShader)
+		pPixelShader->Release();
+
+	if (pVertexShader)
+		pVertexShader->Release();
+
+	if (pVertexLayout)
+		pVertexLayout->Release();
+
+	if (pSamplerLinear)
+		pSamplerLinear->Release();
+
+	if (pOverlayRasterizer)
+		pOverlayRasterizer->Release();
+
+	if (pTransparency)
+		pTransparency->Release();
+
+	if (pDepthStencil)
+		pDepthStencil->Release();
+
+	if (pRenderTargetView)
+		pRenderTargetView->Release();
+
+	if (pDepthStencilView)
+		pDepthStencilView->Release();
+
+	if (pConstantBuffer)
+		pConstantBuffer->Release();
+
+	if (pWireframeRasterizer)
+		pWireframeRasterizer->Release();
+
+
+	if (pDisabledDepthStencilState)
+		pDisabledDepthStencilState->Release();
+
+	if (dc)
+		dc->Release();
+
+	if (dev)
+	  dev->Release();
+
+	if (swapchain)
+	  swapchain->Release();
+
+	
+
 }
 
 DXMessD3D11Handler::DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD3DHookShared shared)
@@ -210,6 +276,7 @@ DXMessD3D11Handler::DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD
 	dev->AddRef();
 	sc->AddRef();
 
+	dc=NULL;
 	dev->GetImmediateContext(&dc); //increases the reference count
 
 	D3D11_BUFFER_DESC bd2d;
@@ -456,6 +523,8 @@ DXMessD3D11Handler::DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD
 
 void DXMessD3D11Handler::RenderOverlay()
 {
+	
+
 	int i;
 	if (Valid)
 	{	
@@ -501,15 +570,15 @@ void DXMessD3D11Handler::RenderOverlay()
 		float blendFactor[] = {1.0f, 1.0f, 1.0f, 1.0f};
 
 		ID3D11VertexShader *oldvs=NULL;
-		ID3D11ClassInstance *oldvsinstances=NULL;
+		ID3D11ClassInstance **oldvsinstances=NULL;
 		UINT vci_count=0;
 
 		ID3D11PixelShader *oldps=NULL;
-		ID3D11ClassInstance *oldpsinstances=NULL;
+		ID3D11ClassInstance **oldpsinstances=NULL;
 		UINT pci_count=0;
 
 		ID3D11GeometryShader *oldgs=NULL;
-		ID3D11ClassInstance *oldgsinstances=NULL;
+		ID3D11ClassInstance **oldgsinstances=NULL;
 		UINT gci_count=0;
 
 		ID3D11SamplerState *oldPSSampler=NULL;
@@ -544,12 +613,36 @@ void DXMessD3D11Handler::RenderOverlay()
 		//save state		
 
 		dc->VSGetConstantBuffers(0,1, &oldConstantBuffersVS);
-		dc->VSGetShader( &oldvs, &oldvsinstances, &vci_count);
+		dc->VSGetShader( &oldvs, NULL, &vci_count);
+		if (vci_count)
+		{
+			if (oldvs)
+				oldvs->Release();
 
-		dc->GSGetShader( &oldgs, &oldgsinstances, &gci_count);
+			oldvsinstances=new ID3D11ClassInstance*[vci_count];
+			dc->VSGetShader( &oldvs, oldvsinstances, &vci_count);
+		}
+
+		dc->GSGetShader( &oldgs, NULL, &gci_count);
+		if (gci_count)
+		{
+			if (oldgs)
+				oldgs->Release();
+
+			oldgsinstances=new ID3D11ClassInstance*[gci_count];
+			dc->GSGetShader( &oldgs, oldgsinstances, &gci_count);
+		}
 		
 		dc->PSGetConstantBuffers(0,1, &oldConstantBuffersPS);
-		dc->PSGetShader( &oldps, &oldpsinstances, &pci_count);
+		dc->PSGetShader( &oldps, NULL, &pci_count);
+		if (pci_count)
+		{
+			if (oldps)
+				oldps->Release();
+			oldpsinstances=new ID3D11ClassInstance*[pci_count];
+			dc->PSGetShader( &oldps, oldpsinstances, &pci_count);
+		}
+
 		dc->PSGetSamplers(0,1, &oldPSSampler);
 		dc->PSGetShaderResources(0,1, &oldPSShaderResource);
 		
@@ -637,26 +730,91 @@ void DXMessD3D11Handler::RenderOverlay()
 		}
 
 		//restore
-		dc->GSSetShader(oldgs, (ID3D11ClassInstance *const *)oldgsinstances, gci_count);
-		dc->VSSetShader(oldvs, (ID3D11ClassInstance *const *)oldvsinstances, vci_count);
-		dc->PSSetShader(oldps, (ID3D11ClassInstance *const *)oldpsinstances, pci_count);
+		dc->GSSetShader(oldgs, oldgsinstances, gci_count);
+		if (oldgs)
+			oldgs->Release();
+
+		if (oldgsinstances)
+		{
+			for (UINT j=0; j<gci_count; j++)
+				oldgsinstances[j]->Release();
+			delete [] oldgsinstances;
+		}
+
+		dc->VSSetShader(oldvs, oldvsinstances, vci_count);
+		if (oldvs)
+			oldvs->Release();
+
+		if (oldvsinstances)
+		{
+			for (UINT j=0; j<gci_count; j++)
+				oldvsinstances[j]->Release();
+			delete [] oldvsinstances;
+		}
+
+		dc->PSSetShader(oldps, oldpsinstances, pci_count);
+		if (oldps)
+			oldps->Release();
+
+		if (oldpsinstances)
+		{
+			for (UINT j=0; j<pci_count; j++)
+				oldpsinstances[j]->Release();
+			delete [] oldpsinstances;
+		}
+
 		dc->PSSetSamplers(0, 1, &oldPSSampler);
+		if (oldPSSampler)
+			oldPSSampler->Release();
+
+
 		dc->PSSetShaderResources(0,1, &oldPSShaderResource);
+		if (oldPSShaderResource)
+			oldPSShaderResource->Release();
 
 		dc->VSSetConstantBuffers(0,1, &oldConstantBuffersVS);
+		if (oldConstantBuffersVS)
+			oldConstantBuffersVS->Release();		
+
 		dc->PSSetConstantBuffers(0,1, &oldConstantBuffersPS);
+		if (oldConstantBuffersPS)
+			oldConstantBuffersPS->Release();
 
 
 		dc->OMSetRenderTargets(1, &oldRenderTarget, oldDepthStencilView);
+		if (oldRenderTarget)
+			oldRenderTarget->Release();
+
+		if (oldDepthStencilView)
+			oldDepthStencilView->Release();
+
 		dc->OMSetBlendState(oldBlendState, oldblendFactor, oldblendsamplemask);
+		if (oldBlendState)
+			oldBlendState->Release();
+
+
 		dc->OMSetDepthStencilState(oldDepthStencilState, oldstencilref);
+		if (oldDepthStencilState)
+			oldDepthStencilState->Release();
 
 		dc->IASetPrimitiveTopology(oldPrimitiveTopology);
 		dc->IASetInputLayout(oldInputLayout);
+		if (oldInputLayout)
+			oldInputLayout->Release();
+
 		dc->IASetIndexBuffer(oldIndexBuffer, oldIndexBufferFormat, oldIndexBufferOffset);
+		if (oldIndexBuffer)
+			oldIndexBuffer->Release();
+		
 		dc->IASetVertexBuffers(0,1,&oldVertexBuffer, &oldVertexBufferStrides, &oldVertexBufferOffset);
+		if (oldVertexBuffer)
+			oldVertexBuffer->Release();
+
 
 		dc->RSSetState(oldRastersizerState);
+		if (oldRastersizerState)
+			oldRastersizerState->Release();
+
 		dc->RSSetViewports(oldviewports, viewports);
 
 		
@@ -666,8 +824,16 @@ void DXMessD3D11Handler::RenderOverlay()
 
 }
 
-void __stdcall D3D11Hook_SwapChain_ResizeBuffers_imp(IDXGISwapChain *swapchain, ID3D10Device *device, PD3DHookShared s)
+void __stdcall D3D11Hook_SwapChain_ResizeBuffers_imp(IDXGISwapChain *swapchain, ID3D11Device *device, PD3DHookShared s)
 {
+	DXMessD3D11Handler *currentDevice=D3D11devices[device];
+	if (currentDevice)
+	{
+		D3D11devices[device]=NULL;
+
+		//currentDevice->dc->ClearState();
+		delete(currentDevice);
+	}
 }
 
 
@@ -677,6 +843,7 @@ void __stdcall D3D11Hook_SwapChain_Present_imp(IDXGISwapChain *swapchain, ID3D11
 
 	DXMessD3D11Handler *currenthandler=D3D11devices[device];
 	
+
 
 	if (currenthandler==NULL)
 	{
@@ -690,6 +857,7 @@ void __stdcall D3D11Hook_SwapChain_Present_imp(IDXGISwapChain *swapchain, ID3D11
 		shared=s;
 
 	}
+
 	insidehook=1;
 	D3D11devices[device]->RenderOverlay();			
 	insidehook=0;
