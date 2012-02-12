@@ -27,7 +27,7 @@ private:
 
 
 
-	ID3D10PixelShader *pPixelShader;
+	ID3D10PixelShader *pPixelShader, *pPixelShaderNormal;
 	ID3D10VertexShader *pVertexShader;
 	ID3D10InputLayout *pVertexLayout;
 

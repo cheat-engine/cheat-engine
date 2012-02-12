@@ -127,6 +127,7 @@ typedef volatile struct
 		int height;
 		int x;
 		int y;
+		int hasTransparency; //set to 1 if 255,255,255=100% transpart
 		float alphaBlend;
 		int resourcesize;
 		int resourceoffset;

@@ -2815,7 +2815,7 @@ begin
     begin
       for i:=0 to tvStructureView.SelectionCount-1 do
       begin
-        tvStructureView.Selections[i].Collapse(true); //close the selections (destroys autocreated structure nodes)
+        tvStructureView.Selections[i].Collapse(true); //close the selections (destroys autocreated structure nodes if destroy is enabled)
 
         structElement:=getStructElementFromNode(tvStructureView.Selections[i]);
         if structelement=nil then continue;
@@ -2841,6 +2841,15 @@ begin
             structelement.displayMethod:=dtUnsignedInteger;
 
           structelement.ChildStructStart:=childstructstart;
+
+          if structelement.VarType<>vtPointer then
+          begin
+            if (structelement.ChildStruct<>nil) and (not structelement.ChildStruct.isInGlobalStructList) then
+              structelement.ChildStruct.free;
+
+            structelement.ChildStruct:=nil;
+            structelement.ChildStructStart:=0;
+          end;
 
         finally
           structElement.parent.endupdate;
