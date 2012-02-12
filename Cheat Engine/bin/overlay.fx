@@ -59,5 +59,14 @@ float4 PS( PS_INPUT input): SV_Target
 
     return r;
 
+}
 
+float4 PSNormal( PS_INPUT input): SV_Target
+{
+    //pixel shader for overlays that do not use the 255,255,255 = transparency rule
+    float4 r;
+    r=txDiffuse.Sample( samLinear, input.Tex )*transparency;      
+    r[3]=r[3]*transparency;
+
+    return r; 
 }

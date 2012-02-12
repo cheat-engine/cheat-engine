@@ -355,6 +355,29 @@ DXMessD3D10Handler::DXMessD3D10Handler(ID3D10Device *dev, IDXGISwapChain *sc, PD
 
 	pBlob = NULL;
 	pErrorBlob = NULL;
+	hr=D3DX10CompileFromFileA( shaderfile, NULL, NULL, "PSNormal", "ps_4_0", D3DCOMPILE_ENABLE_STRICTNESS, 0, NULL, &pBlob, &pErrorBlob, NULL );
+
+	if (pErrorBlob) 
+		pErrorBlob->Release();
+
+	if( FAILED( hr ) )
+	{
+		OutputDebugStringA("pixelshader compilation failed\n");
+		return;
+	}
+
+    hr = dev->CreatePixelShader( pBlob->GetBufferPointer(), pBlob->GetBufferSize(), &pPixelShaderNormal );
+	pBlob->Release();
+	if( FAILED( hr ) )
+	{
+		OutputDebugStringA("CreatePixelShader failed\n");
+		return;
+	}
+
+
+
+	pBlob = NULL;
+	pErrorBlob = NULL;
 
 	hr=D3DX10CompileFromFileA( shaderfile, NULL, NULL, "VS", "vs_4_0", D3DCOMPILE_ENABLE_STRICTNESS, 0, NULL, &pBlob, &pErrorBlob, NULL );
 
@@ -717,6 +740,11 @@ void DXMessD3D10Handler::RenderOverlay()
 			{			
 				//set the vertexbuffer and texture and render
 				dev->IASetVertexBuffers( 0, 1, &overlays[i].pOverlayVB, &stride, &offset );
+				if (shared->resources[i].hasTransparency)
+					dev->PSSetShader( pPixelShader);
+				else
+					dev->PSSetShader( pPixelShaderNormal);
+
 				dev->PSSetShaderResources( 0, 1, &overlays[i].pOverlayTex );	
 	
 				ConstantBuffer cb;

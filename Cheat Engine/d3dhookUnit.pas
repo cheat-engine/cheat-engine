@@ -29,6 +29,7 @@ type
     height: integer;
     x: integer;
     y: integer;
+    hasTransparency: integer;
     alphablend: Single;
     resourcesize: integer;
     resourceoffset: integer; //offset into the shared memory region containing the bitmat info
@@ -434,7 +435,11 @@ begin
   end;
 
 
-  updateOverlayImage(consoleOverlayid, true);
+  UpdateResourceData;
+  shared.resources[consoleOverlayid-1].updatedresource:=1;
+  shared.OverLayHasUpdate:=1;
+//  updateOverlayImage(consoleOverlayid, true);
+
 end;
 
 procedure TD3DHook.UpdateConsolecursorPos(command: string; pos: integer);

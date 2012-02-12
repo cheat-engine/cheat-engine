@@ -331,6 +331,31 @@ DXMessD3D11Handler::DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD
 		return;
 	}
 
+	//load the "normal" pixel shader
+	pBlob = NULL;
+	pErrorBlob = NULL;
+	hr=D3DX11CompileFromFileA( shaderfile, NULL, NULL, "PSNormal", "ps_4_0", D3DCOMPILE_ENABLE_STRICTNESS, 0, NULL, &pBlob, &pErrorBlob, NULL );
+
+	if (pErrorBlob) 
+		pErrorBlob->Release();
+
+	if( FAILED( hr ) )
+	{
+		OutputDebugStringA("pixelshader compilation failed\n");
+		return;
+	}
+
+    hr = dev->CreatePixelShader( pBlob->GetBufferPointer(), pBlob->GetBufferSize(), NULL, &pPixelShaderNormal );
+	pBlob->Release();
+	if( FAILED( hr ) )
+	{
+		OutputDebugStringA("CreatePixelShader failed\n");
+		return;
+	}
+	
+
+
+
 	pBlob = NULL;
 	pErrorBlob = NULL;
 
@@ -670,7 +695,7 @@ void DXMessD3D11Handler::RenderOverlay()
 
 		dc->GSSetShader(NULL,NULL,0);
 	    dc->VSSetShader( pVertexShader, NULL, 0 );
-		dc->PSSetShader( pPixelShader, NULL, 0 );
+		
 		dc->PSSetSamplers( 0, 1, &pSamplerLinear );
 		
 		D3D11_VIEWPORT vp;
@@ -710,6 +735,11 @@ void DXMessD3D11Handler::RenderOverlay()
 			{			
 				//set the vertexbuffer and texture and render
 				dc->IASetVertexBuffers( 0, 1, &overlays[i].pOverlayVB, &stride, &offset );
+				if (shared->resources[i].hasTransparency)
+					dc->PSSetShader( pPixelShader, NULL, 0 );
+				else
+					dc->PSSetShader( pPixelShaderNormal, NULL, 0 );
+
 				dc->PSSetShaderResources( 0, 1, &overlays[i].pOverlayTex );	
 	
 				ConstantBuffer cb;
