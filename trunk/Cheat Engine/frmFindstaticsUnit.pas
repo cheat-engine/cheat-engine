@@ -144,13 +144,15 @@ var oldpos,currentpos: ptrUint;
     hexcount,hexstart: integer;
     isstruct: boolean;
     isstatic: boolean;
-    static: ptrUint;
+    _static: ptrUint;
     found: boolean;
 
     mbi: _MEMORY_BASIC_INFORMATION;
 
     oldshowsymbols: boolean;
     oldshowmodules: boolean;
+    d: TDisassembler;
+    s: string;
 begin
   freeonterminate:=true;
 
@@ -158,13 +160,10 @@ begin
   i:=0;
 
   try
-    oldshowsymbols:=symhandler.showsymbols;
-    oldshowmodules:=symhandler.showmodules;
+    d:=TDisassembler.Create;
+    d.showmodules:=false;
+    d.showsymbols:=false;
 
-    symhandler.locked:=false;
-    symhandler.showsymbols:=false;
-    symhandler.showmodules:=false;
-    symhandler.locked:=true;
 
     while (not terminated) and (currentpos<=stopaddress) do
     begin
@@ -183,7 +182,7 @@ begin
 
       oldpos:=currentpos;
 
-      opcode:=disassemble(currentpos,x);
+      opcode:=d.disassemble(currentpos,x);
 
       j:=pos('[',opcode);
       if j>0 then
@@ -202,11 +201,18 @@ begin
           begin
             if hexstart=-1 then hexstart:=j;
             inc(hexcount);
-            if hexcount=8 then
+            if hexcount>=8 then
             begin
               //found one
+              s:='';
+              for k:=j to length(x) do //find the length of this hexstring
+                if not (x[k] in ['0'..'9','a'..'f','A'..'F']) then
+                  s:=copy(x,hexstart,k-hexstart+1);
 
-              static:=StrToInt('$'+copy(x,hexstart,8));
+              if s='' then s:=copy(x,hexstart,length(x)-hexstart+1);
+
+
+              _static:=StrToQWordEx('$'+s);
               isstatic:=true;
             end;
           end else
@@ -218,11 +224,11 @@ begin
       end;
 
 
-      if isstatic and (static>=filterstart) and (static<=filterstop) then
+      if isstatic and (_static>=filterstart) and (_static<=filterstop) then
       begin
         found:=false;
         for j:=0 to length(staticlist)-1 do
-          if staticlist[j].s=static then
+          if staticlist[j].s=_static then
           begin
             inc(staticlist[j].referencecount);
             updatetype:=updateEntry;
@@ -238,7 +244,7 @@ begin
           //add it to the list.
           k:=length(staticlist);
           setlength(staticlist,k+1);
-          staticlist[k].s:=static;
+          staticlist[k].s:=_static;
           staticlist[k].isstruct:=isstruct;
           staticlist[k].referencecount:=1;
 
@@ -260,10 +266,7 @@ begin
   finally
     synchronize(done);
 
-
-    symhandler.locked:=false;
-    symhandler.showsymbols:=oldshowsymbols;
-    symhandler.showmodules:=oldshowmodules;
+    d.free;
   end;
 
 end;
@@ -290,7 +293,31 @@ var ths: thandle;
     me32: MODULEENTRY32;
     x: pchar;
     first:boolean;
+    diff: integer;
 begin
+  if processhandler.is64bit then
+  begin
+    diff:=edit1.width;
+    edit1.MaxLength:=16;
+    edit2.MaxLength:=16;
+    edit3.MaxLength:=16;
+    edit4.MaxLength:=16;
+
+
+    edit1.width:=edit1.width*2;
+    edit2.width:=edit1.width;
+    Edit3.width:=edit1.width;
+    Edit4.width:=edit1.width;
+
+    Edit3.text:='0000000000000000';
+    Edit4.text:='7fffffffffffffff';
+
+
+    width:=width+diff;
+    panel1.width:=panel1.width+diff;
+    button1.left:=(panel1.clientwidth div 2) - (button1.width div 2)
+  end;
+
   ths:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE,processid);
   if ths<>0 then
   begin
@@ -311,6 +338,9 @@ begin
   LastSortedColumn := -1;
   Ascending := True;
   button1.Caption:=strScan;
+
+
+
 end;
 
 procedure TfrmFindStatics.Button1Click(Sender: TObject);
@@ -362,8 +392,10 @@ begin
 end;
 
 procedure TfrmFindStatics.FormShow(Sender: TObject);
+var diff: integer;
 begin
   listview1.clear;
+
 end;
 
 procedure TfrmFindStatics.ListView1Compare(Sender: TObject; Item1,
@@ -372,7 +404,7 @@ begin
   case data of
     0: Compare := AnsiCompareText(Item1.Caption, Item2.Caption);
     1: Compare := AnsiCompareText(Item1.SubItems[0],Item2.SubItems[0]);
-    2: Compare := StrToInt(Item1.SubItems[1])-StrToInt(Item2.SubItems[1]);
+    2: Compare := StrToQWordEx(Item1.SubItems[1])-StrToQWordEx(Item2.SubItems[1]);
   end;
 
   if not Ascending then
@@ -382,7 +414,7 @@ end;
 procedure TfrmFindStatics.ListView1DblClick(Sender: TObject);
 begin
   if listview1.Selected<>nil then
-    memorybrowser.memoryaddress:=StrToInt('$'+listview1.selected.caption);
+    memorybrowser.memoryaddress:=StrToQWordEx('$'+listview1.selected.caption);
 end;
 
 initialization

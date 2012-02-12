@@ -2,11 +2,10 @@ object frmFindStatics: TfrmFindStatics
   Left = 813
   Height = 320
   Top = 411
-  Width = 351
-  BorderStyle = bsToolWindow
+  Width = 367
   Caption = 'Find static addresses'
   ClientHeight = 320
-  ClientWidth = 351
+  ClientWidth = 367
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
@@ -18,19 +17,19 @@ object frmFindStatics: TfrmFindStatics
     Left = 0
     Height = 17
     Top = 303
-    Width = 351
+    Width = 367
     Align = alBottom
     TabOrder = 0
   end
   object Panel1: TPanel
-    Left = 270
+    Left = 280
     Height = 284
     Top = 0
-    Width = 81
+    Width = 87
     Align = alRight
     BevelOuter = bvNone
     ClientHeight = 284
-    ClientWidth = 81
+    ClientWidth = 87
     TabOrder = 1
     object Label1: TLabel
       Left = 8
@@ -126,17 +125,17 @@ object frmFindStatics: TfrmFindStatics
     Left = 0
     Height = 19
     Top = 284
-    Width = 351
+    Width = 367
     Align = alBottom
     BevelOuter = bvNone
     ClientHeight = 19
-    ClientWidth = 351
+    ClientWidth = 367
     TabOrder = 2
     object CheckBox1: TCheckBox
       Left = 0
       Height = 19
       Top = 0
-      Width = 351
+      Width = 367
       Anchors = [akTop, akLeft, akRight]
       Caption = 'Only disassemble and check executable code'
       Checked = True
@@ -148,17 +147,17 @@ object frmFindStatics: TfrmFindStatics
     Left = 0
     Height = 284
     Top = 0
-    Width = 270
+    Width = 280
     Align = alClient
     BevelOuter = bvNone
     ClientHeight = 284
-    ClientWidth = 270
+    ClientWidth = 280
     TabOrder = 3
     object ListView1: TListView
       Left = 0
       Height = 284
       Top = 0
-      Width = 270
+      Width = 280
       Align = alClient
       Columns = <      
         item
