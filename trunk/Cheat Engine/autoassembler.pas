@@ -4,8 +4,8 @@ unit autoassembler;
 
 interface
 
-uses jwawindows, windows, Assemblerunit, classes,CEFuncProc,
-LCLIntf,symbolhandler,sysutils,dialogs,controls, NewKernelHandler ,plugin;
+uses jwawindows, windows, Assemblerunit, classes,
+LCLIntf,symbolhandler,sysutils,dialogs,controls, CEFuncProc, NewKernelHandler ,plugin;
 
 
 
