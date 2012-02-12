@@ -6,7 +6,7 @@ interface
 
 uses dialogs,LCLIntf,sysutils,imagehlp;
 
-const opcodecount=1079; //I wish there was a easier way than to handcount
+const opcodecount=1080; //I wish there was a easier way than to handcount
 
 
 type TTokenType=(
@@ -848,6 +848,7 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'MOVSX';opcode1:eo_reg;paramtype1:par_r16;paramtype2:par_rm8;bytes:3;bt1:$66;bt2:$0f;bt3:$be),
   (mnemonic:'MOVSX';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_rm8;bytes:2;bt1:$0f;bt2:$be),
   (mnemonic:'MOVSX';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_rm16;bytes:2;bt1:$0f;bt2:$bf),
+  (mnemonic:'MOVSXD';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_rm32;bytes:1;bt1:$63),   //actuall r64,rm32 but the usage of the 64-bit register turns it into a rex_w itself
 
   (mnemonic:'MOVUPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$10),
   (mnemonic:'MOVUPD';opcode1:eo_reg;paramtype1:par_xmm_m128;paramtype2:par_xmm;bytes:3;bt1:$66;bt2:$0f;bt3:$11),
@@ -4515,6 +4516,7 @@ begin
       end;
 
     end;
+
 
 
     if (opcodes[j].paramtype1=par_sreg) and (paramtype1=ttRegistersreg) then

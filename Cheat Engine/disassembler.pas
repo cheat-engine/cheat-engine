@@ -61,6 +61,7 @@ type
     function r8(bt:byte): string;
     function r16(bt:byte): string;
     function r32(bt:byte): string;
+    function r64(bt:byte): string;  //for a few specific ones
     function xmm(bt:byte): string;
     function mm(bt:byte): string;
     function sreg(bt:byte): string;
@@ -308,7 +309,6 @@ end;
 
 function TDisassembler.r32(bt:byte): string;
 begin
-
   case getreg(bt) of
     0: if rex_w then result:='rax' else result:='eax';
     1: if rex_w then result:='rcx' else result:='ecx';
@@ -326,6 +326,29 @@ begin
    13: if rex_w then result:='r13' else result:='r13d';
    14: if rex_w then result:='r14' else result:='r14d';
    15: if rex_w then result:='r15' else result:='r15d';
+  end;
+  result:=colorreg+result+endcolor;
+end;
+
+function TDisassembler.r64(bt:byte): string;
+begin
+  case getreg(bt) of
+    0: result:='rax';
+    1: result:='rcx';
+    2: result:='rdx';
+    3: result:='rbx';
+    4: result:='rsp';
+    5: result:='rbp';
+    6: result:='rsi';
+    7: result:='rdi';
+    8: result:='r8';
+    9: result:='r9';
+   10: result:='r10';
+   11: result:='r11';
+   12: result:='r12';
+   13: result:='r13';
+   14: result:='r14';
+   15: result:='r15';
   end;
   result:=colorreg+result+endcolor;
 end;
@@ -6027,11 +6050,23 @@ begin
             end;
 
       $63 : begin
-              //arpl
-              lastdisassembledata.opcode:='arpl';
-              lastdisassembledata.parameters:=modrm(memory,prefix2,1,1,last)+r16(memory[1]);
-              inc(offset,last-1);
-              description:='adjust rpl field of segment selector';
+              //arpl or movsxd
+              if is64bit then
+              begin
+                lastdisassembledata.opcode:='movsxd';
+                RexPrefix:=RexPrefix and (not BIT_REX_W);
+
+                lastdisassembledata.parameters:=' '+r64(memory[1])+','+modrm(memory,prefix2,1,0,last,32);
+                inc(offset,last-1);
+                description:='Move doubleword to quadword with signextension'
+              end
+              else
+              begin
+                lastdisassembledata.opcode:='arpl';
+                lastdisassembledata.parameters:=modrm(memory,prefix2,1,1,last)+r16(memory[1]);
+                inc(offset,last-1);
+                description:='adjust rpl field of segment selector';
+              end;
             end;
 
       $68 : begin
