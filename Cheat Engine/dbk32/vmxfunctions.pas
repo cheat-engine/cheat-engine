@@ -56,6 +56,7 @@ type
     CR3_switchcount2:QWORD;
     LastOldCR3:QWORD;
     LastNewCR3:QWORD;
+    cpunr: QWORD;
   end;
   PULTIMAPDEBUGINFO=^TULTIMAPDEBUGINFO;
 
