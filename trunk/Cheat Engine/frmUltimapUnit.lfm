@@ -94,7 +94,7 @@ object frmUltimap: TfrmUltimap
           Top = 32
           Width = 747
           Align = alBottom
-          Caption = 'General tip: "Pause/Resume", "Code dit not get executed" and "Code has been executed" can be rightclicked and assigned a hotkey for use inside games so you don''t have to alt tab out'
+          Caption = 'General tip: "Pause/Resume", "Code did not get executed" and "Code has been executed" can be rightclicked and assigned a hotkey for use inside games so you don''t have to alt tab out'
           ParentColor = False
           WordWrap = True
         end
