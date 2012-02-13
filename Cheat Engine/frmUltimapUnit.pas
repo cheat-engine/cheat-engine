@@ -31,9 +31,9 @@ type
 
 
   TBTS=packed record
-    LastBranchFrom: PtrUInt;
-    LastBranchTo:   PtrUInt;
-    Predicted:      PtrUInt;
+    LastBranchFrom: QWord;
+    LastBranchTo:   QWord;
+    Predicted:      QWord;
   end;
   PBTS=^TBTS;
   TBTSArray=array [0..0] of TBTS;
