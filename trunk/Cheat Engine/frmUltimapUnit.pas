@@ -807,9 +807,17 @@ begin
 end;
 
 procedure TfrmUltimap.FormClose(Sender: TObject; var CloseAction: TCloseAction);
+var i: integer;
 begin
   if btnStop.enabled then
     btnstop.click;
+
+  for i:=0 to 2 do
+    if FilterHotkey[i]<>nil then
+      freeandnil(FilterHotkey[i]);
+
+
+
 end;
 
 procedure TfrmUltimap.FormCreate(Sender: TObject);
