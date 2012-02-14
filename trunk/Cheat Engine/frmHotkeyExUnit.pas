@@ -5,7 +5,7 @@ unit frmHotkeyExUnit;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls, cefuncproc;
+  windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls, cefuncproc;
 
 type
 
@@ -17,6 +17,7 @@ type
     Button3: TButton;
     edtHotkey: TEdit;
     Label1: TLabel;
+    procedure Button3Click(Sender: TObject);
     procedure edtHotkeyKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
   private
@@ -49,6 +50,12 @@ begin
       if newhotkey[i]=key then break;
   end;
 
+  edtHotkey.Text:=ConvertKeyComboToString(newhotkey);
+end;
+
+procedure TfrmHotkeyEx.Button3Click(Sender: TObject);
+begin
+  ZeroMemory(@newhotkey, sizeof(newhotkey));
   edtHotkey.Text:=ConvertKeyComboToString(newhotkey);
 end;
 
