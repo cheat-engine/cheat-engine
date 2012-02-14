@@ -169,6 +169,9 @@ implementation
 
 uses MemoryBrowserFormUnit, vmxfunctions;
 
+resourcestring
+  rsRemoveHotkey = 'Remove hotkey (%s)';
+
 {$ifdef cpu64}
 const kernelbase=QWORD($800000000000);        //sign extended to :$ffff800000000000
 {$else}
@@ -461,7 +464,7 @@ begin
   end;
 
   setlength(workers,0);
-
+  workercount:=0;
 
   paused:=false;
 
@@ -818,7 +821,8 @@ begin
       freeandnil(FilterHotkey[i]);
 
 
-
+  CloseAction:=cafree;
+  frmUltimap:=nil;
 end;
 
 procedure TfrmUltimap.FormCreate(Sender: TObject);
@@ -973,6 +977,9 @@ begin
 
     miSetHotkey.enabled:=FilterHotkey[i]=nil;
     miRemoveHotkey.enabled:=not miSetHotkey.enabled;
+
+    if miRemoveHotkey.enabled then
+      miRemoveHotkey.Caption:=Format(rsRemoveHotkey, [ConvertKeyComboToString(FilterHotkey[i].keys)]);
   end
   else
   begin
