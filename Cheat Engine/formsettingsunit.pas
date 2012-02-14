@@ -156,6 +156,7 @@ type
     procedure cbAskIfTableHasLuascriptChange(Sender: TObject);
     procedure cbDontusetempdirChange(Sender: TObject);
     procedure cbDebuggerInterfaceChange(Sender: TObject);
+    procedure cbKernelQueryMemoryRegionChange(Sender: TObject);
     procedure CheckBox1Change(Sender: TObject);
     procedure EditBufSizeKeyPress(Sender: TObject; var Key: Char);
     procedure Default1Click(Sender: TObject);
@@ -779,6 +780,11 @@ begin
 
 end;
 
+procedure TformSettings.cbKernelQueryMemoryRegionChange(Sender: TObject);
+begin
+
+end;
+
 procedure TformSettings.CheckBox1Change(Sender: TObject);
 begin
   PreventDebuggerDetection:=checkbox1.checked;
@@ -1073,7 +1079,7 @@ end;
 
 procedure TformSettings.cbKernelQueryMemoryRegionClick(Sender: TObject);
 begin
-  if (cbkdebug.checked) or (cbKernelQueryMemoryRegion.Checked) or (cbKernelReadWriteProcessMemory.Checked) then
+  if (cbKernelQueryMemoryRegion.Checked) or (cbKernelReadWriteProcessMemory.Checked) then
   begin
     cbKernelOpenProcess.Checked:=true;
     cbKernelOpenProcess.Enabled:=false;
