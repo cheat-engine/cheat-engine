@@ -7,6 +7,7 @@ object frmHotkeyEx: TfrmHotkeyEx
   Caption = 'Set Hotkey'
   ClientHeight = 79
   ClientWidth = 286
+  Position = poScreenCenter
   LCLVersion = '0.9.31'
   object Button1: TButton
     Left = 56
@@ -49,6 +50,7 @@ object frmHotkeyEx: TfrmHotkeyEx
     Top = 18
     Width = 49
     Caption = 'Clear'
+    OnClick = Button3Click
     TabOrder = 3
   end
 end

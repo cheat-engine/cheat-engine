@@ -85,9 +85,9 @@ type
     Label6: TLabel;
     lblLastfilterresult: TLabel;
     ListView1: TListView;
-    MenuItem1: TMenuItem;
+    miSetHotkey: TMenuItem;
     MenuItem2: TMenuItem;
-    MenuItem3: TMenuItem;
+    miRemoveHotkey: TMenuItem;
     Panel1: TPanel;
     Panel2: TPanel;
     Panel3: TPanel;
@@ -117,9 +117,10 @@ type
     procedure Label7Click(Sender: TObject);
     procedure ListView1Data(Sender: TObject; Item: TListItem);
     procedure ListView1DblClick(Sender: TObject);
-    procedure MenuItem1Click(Sender: TObject);
+    procedure miSetHotkeyClick(Sender: TObject);
     procedure MenuItem2Click(Sender: TObject);
-    procedure MenuItem3Click(Sender: TObject);
+    procedure miRemoveHotkeyClick(Sender: TObject);
+    procedure pmSetHotkeyPopup(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
   private
     { private declarations }
@@ -919,7 +920,7 @@ begin
   end;
 end;
 
-procedure TfrmUltimap.MenuItem1Click(Sender: TObject);
+procedure TfrmUltimap.miSetHotkeyClick(Sender: TObject);
 var f: TfrmHotkeyEx;
   i: integer;
 begin
@@ -935,7 +936,7 @@ begin
       f.edtHotkey.text:=ConvertKeyComboToString(f.newhotkey);
     end;
 
-    if f.showmodal = mrok then
+    if (f.showmodal = mrok) and (f.newhotkey[0]<>0) then
     begin
       if FilterHotkey[i]=nil then
         FilterHotkey[i]:=TGenericHotkey.create(TButton(pmSetHotkey.PopupComponent).OnClick, f.newhotkey)
@@ -951,7 +952,7 @@ begin
   listview1.Refresh;
 end;
 
-procedure TfrmUltimap.MenuItem3Click(Sender: TObject);
+procedure TfrmUltimap.miRemoveHotkeyClick(Sender: TObject);
 var
   i: integer;
 begin
@@ -960,6 +961,23 @@ begin
     i:=pmSetHotkey.PopupComponent.Tag;
     if FilterHotkey[i]<>nil then
       FreeAndNil(FilterHotkey[i]);
+  end;
+end;
+
+procedure TfrmUltimap.pmSetHotkeyPopup(Sender: TObject);
+var i: integer;
+begin
+  if pmSetHotkey.PopupComponent<>nil then
+  begin
+    i:=pmSetHotkey.PopupComponent.Tag;
+
+    miSetHotkey.enabled:=FilterHotkey[i]=nil;
+    miRemoveHotkey.enabled:=not miSetHotkey.enabled;
+  end
+  else
+  begin
+    miSetHotkey.enabled:=false;
+    miRemoveHotkey.enabled:=false;
   end;
 end;
 

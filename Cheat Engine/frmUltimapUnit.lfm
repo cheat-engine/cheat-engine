@@ -1,7 +1,7 @@
 object frmUltimap: TfrmUltimap
-  Left = 522
+  Left = 1028
   Height = 451
-  Top = 225
+  Top = 223
   Width = 747
   Caption = 'Ultimap'
   ClientHeight = 451
@@ -331,15 +331,16 @@ object frmUltimap: TfrmUltimap
     top = 320
   end
   object pmSetHotkey: TPopupMenu
+    OnPopup = pmSetHotkeyPopup
     left = 268
     top = 28
-    object MenuItem1: TMenuItem
+    object miSetHotkey: TMenuItem
       Caption = 'Set hotkey'
-      OnClick = MenuItem1Click
+      OnClick = miSetHotkeyClick
     end
-    object MenuItem3: TMenuItem
+    object miRemoveHotkey: TMenuItem
       Caption = 'Remove hotkey'
-      OnClick = MenuItem3Click
+      OnClick = miRemoveHotkeyClick
     end
   end
   object PopupMenu1: TPopupMenu
