@@ -28,86 +28,92 @@ void DXMessD3D9Handler::AfterReset()
 }
 
 
-HRESULT DXMessD3D9Handler::setupOverlayTexture()
+BOOL DXMessD3D9Handler::UpdateTextures()
 {
 	int i;
-	HRESULT hr=S_OK;
+	HRESULT hr;
 
-	if (shared->overlaycount==0)
-		return S_OK;
+	WaitForSingleObject((HANDLE)(shared->TextureLock), INFINITE);
 
-	if (shared->overlaycount > OverlayCount)
-	{	
-		//update the textures if needed{
-		int newcount=shared->overlaycount;
+	if (shared->textureCount)
+	{
+		
+
+		if (shared->textureCount > TextureCount)
+		{	
+				
+			//update the textures if needed{
 	
 
-		if (overlays==NULL) //initial alloc
+			if (textures==NULL) //initial alloc
+				textures=(TextureData9 *)malloc(sizeof(TextureData9)* shared->textureCount);			
+			else //realloc
+				textures=(TextureData9 *)realloc(textures, sizeof(TextureData9)* shared->textureCount);			
+
+
+			//initialize the new entries to NULL
+			for (i=TextureCount; i<shared->textureCount; i++)
+			{
+				textures[i].pTexture=NULL;
+				textures[i].actualWidth=0;
+				textures[i].actualHeight=0;		
+			}	
+
+			TextureCount=shared->textureCount;
+			
+		}
+
+		for (i=0; i<TextureCount; i++)
 		{
 			
-			overlays=(OverlayData9 *)malloc(sizeof(OverlayData9)* newcount);			
-		}
-		else
-		{
-			//realloc
-			overlays=(OverlayData9 *)realloc(overlays, sizeof(OverlayData9)* newcount);			
-		}
-
-
-		//initialize the new entries to NULL
-		for (i=OverlayCount; i<shared->overlaycount; i++)
-		{
-			overlays[i].pOverlayTex=NULL;
-			overlays[i].y=overlays[i].x=-1;
+			if (tea[i].AddressOfTexture)
+			{
 				
-			overlays[i].pOverlayVB=NULL;	
-			overlays[i].actualWidth=0;
-			overlays[i].actualHeight=0;		
-		}	
-
-		OverlayCount=newcount;
-	}
-
-	for (i=0; i<OverlayCount; i++)
-	{
-		if (shared->resources[i].valid)
-		{
-			if ((shared->resources[i].updatedresource) || (overlays[i].pOverlayTex==NULL))
-			{
-				if (overlays[i].pOverlayTex)
+				
+				if ((tea[i].hasBeenUpdated) || (textures[i].pTexture==NULL))
 				{
+					if (textures[i].pTexture)
+					{
+						//already has a texture, so an update. Free the old one	first
+						textures[i].pTexture->Release();
+						textures[i].pTexture=NULL; //should always happen
+					}
+
 					
-					if (overlays[i].pOverlayTex->Release()==0)
-						overlays[i].pOverlayTex=NULL; //should always happen
-				}				
 
-				hr=D3DXCreateTextureFromFileInMemoryEx(dev, (void *)(uintptr_t(shared)+shared->resources[i].resourceoffset), shared->resources[i].resourcesize, D3DX_DEFAULT, D3DX_DEFAULT, 1,0,D3DFMT_A8R8G8B8, D3DPOOL_MANAGED,D3DX_DEFAULT,D3DX_DEFAULT, 0xFFFFFFFF, NULL, NULL, &overlays[i].pOverlayTex);
-				if( FAILED( hr ) )
-				{
-					OutputDebugStringA("Failure creating a texture");
-					return hr;
-				}
+					hr=D3DXCreateTextureFromFileInMemoryEx(dev, (void *)(tea[i].AddressOfTexture), tea[i].size, D3DX_DEFAULT, D3DX_DEFAULT, 1,0,D3DFMT_A8R8G8B8, D3DPOOL_MANAGED,D3DX_DEFAULT,D3DX_DEFAULT, tea[i].colorKey, NULL, NULL, &textures[i].pTexture);
+					if( FAILED( hr ) )
+					{
+						OutputDebugStringA("Failure creating a texture");
+						return hr;
+					}
+					
 
-				D3DSURFACE_DESC d;
-
-				overlays[i].pOverlayTex->GetLevelDesc(0, &d);
-				overlays[i].actualWidth=d.Width;
-				overlays[i].actualHeight=d.Height;
-
-
-
+					D3DSURFACE_DESC d;
+					textures[i].pTexture->GetLevelDesc(0, &d);
+					textures[i].actualWidth=d.Width;
+					textures[i].actualHeight=d.Height;
+				}			
 			}
-
-			if ((shared->resources[i].updatedpos) || ((overlays[i].x==-1) && (overlays[i].y==-1)))
+			else
 			{
-				overlays[i].x=shared->resources[i].x;
-				overlays[i].y=shared->resources[i].y;
+				//It's NULL
+				if (textures[i].pTexture)
+				{
+					textures[i].pTexture->Release();
+					textures[i].pTexture=NULL;
+				}
 			}
+			
 		}
 	}
+	if (shared->texturelistHasUpdate)
+		InterlockedExchange((volatile LONG *)&shared->texturelistHasUpdate,0);		
+	
+	
+	SetEvent((HANDLE)(shared->TextureLock));
 
-	shared->OverLayHasUpdate=0;
-	return hr;	
+	return TRUE;	
 }
 
 void DXMessD3D9Handler::RenderOverlay()
@@ -117,9 +123,6 @@ void DXMessD3D9Handler::RenderOverlay()
 
 	if (sprite)
 	{
-		if (shared->OverLayHasUpdate)
-			setupOverlayTexture();
-
 		if (shared->lastHwnd==0)
 		{
 			D3DDEVICE_CREATION_PARAMETERS cp;
@@ -127,85 +130,120 @@ void DXMessD3D9Handler::RenderOverlay()
 			shared->lastHwnd=(DWORD)cp.hFocusWindow;			
 		}
 
-		if ((shared->MouseOverlayId>=0) && (OverlayCount>=shared->MouseOverlayId) && (shared->resources[shared->MouseOverlayId].valid))
-		{
-			//update the mouse position each frame for as long as the mouse is valid
-			
-			
-
-			POINT p;	
-
-			p.x=0;
-			p.y=0;
-
-			GetCursorPos(&p);
-
-			ScreenToClient((HWND)shared->lastHwnd, &p);			
-			
-			overlays[shared->MouseOverlayId].x=p.x;
-			overlays[shared->MouseOverlayId].y=p.y;
-		}
-
-
+		if (shared->texturelistHasUpdate)
+			UpdateTextures();
+		
 
 		hr=dev->BeginScene();
 
 		if (SUCCEEDED(hr))
 		{
 			
-			sprite->OnLostDevice();
-			sprite->OnResetDevice();
+			
 			hr=sprite->Begin(D3DXSPRITE_ALPHABLEND);
+			if (!SUCCEEDED(hr))
+			{
+				sprite->OnLostDevice();
+				sprite->OnResetDevice();
+				hr=sprite->Begin(D3DXSPRITE_ALPHABLEND);
+			}
 
+			
 		
 			if (SUCCEEDED(hr))
 			{
+				BOOL hasLock=FALSE;
+				i=0;
 
-				for (i=0; i<OverlayCount; i++)
-					if (shared->resources[i].valid)
+				if (shared->UseCommandlistLock)
+					hasLock=WaitForSingleObject((HANDLE)shared->CommandlistLock, INFINITE)==WAIT_OBJECT_0;
+				
+
+				while (shared->RenderCommands[i].Command)
+				{
+					switch (shared->RenderCommands[i].Command)
 					{
-						D3DXVECTOR3 scale,position;
-						
-						D3DXMATRIX m;
-
-						scale.x=(float)shared->resources[i].width / (float)overlays[i].actualWidth;
-						scale.y=(float)shared->resources[i].height / (float)overlays[i].actualHeight;
-						scale.z=1.0f;
-
-						if ((overlays[i].x==-1) && (overlays[i].y==-1))
+						case rcDrawSprite:
 						{
-							//center of screen
-							D3DVIEWPORT9 vp;
-							dev->GetViewport(&vp);
-							
-							position.x=((float)vp.Width / 2.0f) - ((float)shared->resources[i].width / 2.0f);
-							position.y=((float)vp.Height / 2.0f) - ((float)shared->resources[i].height / 2.0f);
+							D3DXVECTOR3 scale,position;
+							D3DXMATRIX m;
+							int tid=shared->RenderCommands[i].sprite.textureid;
+
+							if ((tid<TextureCount) && (textures[tid].pTexture))
+							{
+								//render a sprite
+
+								//set the dimensions
+								scale.x=(float)shared->RenderCommands[i].sprite.width / (float)textures[tid].actualWidth;
+								scale.y=(float)shared->RenderCommands[i].sprite.height / (float)textures[tid].actualHeight;
+								scale.z=1.0f;
+
+								//set the position
+								if ((shared->RenderCommands[i].sprite.x==-1) && (shared->RenderCommands[i].sprite.y==-1))
+								{
+									//Center of the screen
+									D3DVIEWPORT9 vp;
+									dev->GetViewport(&vp);
+									
+									position.x=((float)vp.Width / 2.0f) - ((float)shared->RenderCommands[i].sprite.width / 2.0f);
+									position.y=((float)vp.Height / 2.0f) - ((float)shared->RenderCommands[i].sprite.height / 2.0f);
+								}
+								else
+								if (shared->RenderCommands[i].sprite.isMouse)
+								{
+									//set to the position of the mouse (center is origin)
+									
+									POINT p;	
+
+									p.x=0;
+									p.y=0;
+
+									GetCursorPos(&p);
+									ScreenToClient((HWND)shared->lastHwnd, &p);			
+									position.x=(float)p.x-((float)shared->RenderCommands[i].sprite.width / 2.0f);  //make the center of the texture the position of the mouse (to add crosshairs, and normal mousecursors just have to keep that in mind so only render in the bottom left quadrant
+									position.y=(float)p.y-((float)shared->RenderCommands[i].sprite.height / 2.0f);								
+									
+								}
+								else
+								{
+									position.x=(float)shared->RenderCommands[i].sprite.x;
+									position.y=(float)shared->RenderCommands[i].sprite.y;	
+									
+								}
+								position.z=0.0f;
+
+								D3DXMatrixTransformation(&m, NULL, NULL, &scale, NULL, NULL, &position);						
+								sprite->SetTransform(&m);					
+
+								hr=sprite->Draw(textures[tid].pTexture, NULL, NULL, NULL, D3DCOLOR_ARGB((int)(shared->RenderCommands[i].sprite.alphablend*255),255,255,255));						
+							}
+							break;
 						}
-						else
+
+						case rcDrawFont:
 						{
-							position.x=(float)overlays[i].x;
-							position.y=(float)overlays[i].y;							
-						}	
-						position.z=0.0f;
-		
+							//nyi
+							break;
+						}
 
-						D3DXMatrixTransformation(&m, NULL, NULL, &scale, NULL, NULL, &position);
-						
-						sprite->SetTransform(&m);
-
-						
-
-						hr=sprite->Draw(overlays[i].pOverlayTex, NULL, NULL, NULL, D3DCOLOR_ARGB((int)(shared->resources[i].alphaBlend*255),255,255,255));
 					}
-		
-				hr=sprite->Flush();
-			
-				hr=sprite->End();
 
+					i++;
+				}
+
+				if (hasLock) //release the lock if it was obtained
+					SetEvent((HANDLE)shared->CommandlistLock);
+		
+				hr=sprite->Flush();			
+				hr=sprite->End();
 			}
+			
+			
+			dev->EndScene();
 		}
 		
-		dev->EndScene();
+		
+		
 	}
 	
 }
@@ -220,19 +258,16 @@ DXMessD3D9Handler::DXMessD3D9Handler(IDirect3DDevice9 *dev, PD3DHookShared share
 	this->dev=dev;
 	this->shared=shared;
 
-	overlays=NULL;
-	OverlayCount=0;
+	textures=NULL;
+	TextureCount=0;
 
 	hr=D3DXCreateSprite(dev, &sprite); //
 	if( FAILED( hr ) )
 		return;
 
-	hr=setupOverlayTexture();
-	if( FAILED( hr ) )
-		return;
+	tea=(PTextureEntry)((uintptr_t)shared+shared->texturelist);
 
-	
-
+	UpdateTextures();
 }
 
 DXMessD3D9Handler::~DXMessD3D9Handler()

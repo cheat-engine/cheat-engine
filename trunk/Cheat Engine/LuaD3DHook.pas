@@ -90,6 +90,11 @@ var
   d: TD3DHook;
   i: integer;
 begin
+
+  {$ifndef D3DDebug}
+  {$error You forgot to reimplement this}
+  {$endif}
+  {
   result:=0;
   parameters:=lua_gettop(L);
   if parameters=3 then
@@ -107,7 +112,7 @@ begin
       result:=1;
     end;
 
-  end else lua_pop(L, parameters);
+  end else lua_pop(L, parameters); }
 end;
 
 function d3dhook_updateOverlayImage(L: PLua_State): integer; cdecl;
@@ -176,26 +181,6 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function d3dhook_setOverlayAsMouse(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  d: TD3DHook;
-  overlayid: integer;
-  state: boolean;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    overlayid:=lua_tointeger(L, -parameters);
-    lua_pop(L, parameters);
-
-    d:=safed3dhook;
-    if d<>nil then
-      d.setOverlayAsMouse(overlayid);
-
-  end else lua_pop(L, parameters);
-end;
 
 
 function d3dhook_onClick(L: PLua_State): integer; cdecl;
@@ -247,7 +232,7 @@ begin
   lua_pop(L, lua_gettop(L));
   d:=safed3dhook;
   if d<>nil then
-    d.beginupdate;
+    d.beginTextureupdate;
 end;
 
 function d3dhook_endUpdate(L: PLua_State): integer; cdecl;
@@ -258,7 +243,7 @@ begin
   lua_pop(L, lua_gettop(L));
   d:=safed3dhook;
   if d<>nil then
-    d.endupdate;
+    d.endTextureupdate;
 end;
 
 
@@ -333,7 +318,6 @@ begin
   lua_register(LuaVM, 'd3dhook_updateOverlayImage', d3dhook_updateOverlayImage);
   lua_register(LuaVM, 'd3dhook_updateOverlayPosition', d3dhook_updateOverlayPosition);
   lua_register(LuaVM, 'd3dhook_setOverlayVisibility', d3dhook_setOverlayVisibility);
-  lua_register(LuaVM, 'd3dhook_setOverlayAsMouse', d3dhook_setOverlayAsMouse);
   lua_register(LuaVM, 'd3dhook_getWidth', d3dhook_getWidth);
   lua_register(LuaVM, 'd3dhook_getHeight', d3dhook_getHeight);
   lua_register(LuaVM, 'd3dhook_setDisabledZBuffer', d3dhook_setDisabledZBuffer);

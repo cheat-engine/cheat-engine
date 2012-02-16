@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
-  Menus, StdCtrls, ExtDlgs, ComCtrls;
+  Menus, StdCtrls, ExtDlgs, ComCtrls, d3dhookUnit;
 
 type
 
@@ -30,7 +30,8 @@ type
     procedure TrackBar1Change(Sender: TObject);
   private
     { private declarations }
-    overlayid: integer;
+    crosshairTexture: TD3DHook_Texture;
+    crosshairSprite: TD3dhook_Sprite;
   public
     { public declarations }
   end; 
@@ -40,17 +41,17 @@ var
 
 implementation
 
-uses d3dhookUnit;
+
 
 { TfrmSetCrosshair }
 
 procedure TfrmSetCrosshair.MenuItem2Click(Sender: TObject);
 begin
   if OpenPictureDialog1.Execute then
+  begin
     image1.Picture.LoadFromFile(OpenPictureDialog1.FileName);
-
-
-
+    btnApply.enabled:=true;
+  end;
 end;
 
 procedure TfrmSetCrosshair.Panel1Resize(Sender: TObject);
@@ -63,20 +64,30 @@ end;
 procedure TfrmSetCrosshair.TrackBar1Change(Sender: TObject);
 begin
   safed3dhook;
-
-  if (d3dhook<>nil) and (overlayid<>0) then
-    d3dhook.SetOverlayAlphaBlend(overlayid, trackbar1.position );
+  {$ifndef D3DDebug}
+  {$error You forgot to reimplement this}
+  {$endif}
+   {
+  if (d3dhook<>nil) and (corsshairSprite<>nil) then
+    corsshairSprite.SetAlphaBlend(trackbar1.position); }
 end;
 
 procedure TfrmSetCrosshair.btnApplyClick(Sender: TObject);
+
 begin
   safed3dhook;
   if d3dhook<>nil then
   begin
-    if overlayid=0 then
-      overlayid:=D3DHook.createOverlayFromPicture(image1.Picture, -1,-1)
+    if crosshairtexture=nil then
+    begin
+      crosshairtexture:=D3DHook.createTexture(image1.Picture);
+      crosshairSprite:=d3dhook.createSprite(crosshairtexture);
+      {$ifndef D3DDebug}
+      {$error You forgot to reimplement the x=-1,y=-1 rule}
+      {$endif}
+    end
     else
-      D3DHook.updateOverlayImage(overlayid);
+      crosshairtexture.LoadTextureByPicture(image1.Picture);
   end;
 
   TrackBar1Change(trackbar1);

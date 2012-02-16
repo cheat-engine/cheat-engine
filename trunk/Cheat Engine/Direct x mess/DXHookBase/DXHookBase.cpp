@@ -358,6 +358,7 @@ map<HWND, LONG_PTR> originalwndprocs;
 //windowhook
 int overlaydown=-1;
 int waslockedin=0;
+int appdoestranslate=0;
 
 LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -373,7 +374,12 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	switch(uMsg)	
 	{
 
-		
+		case WM_CHAR:
+			{
+				appdoestranslate=1;
+				break;
+			}
+
 	
 		case WM_KEYDOWN:
 			if (shared->console.hasconsole)
@@ -384,19 +390,25 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					if (wParam==shared->console.consolekey)
 					{
 						shared->console.consolevisible=1;
+						/*
 						shared->resources[shared->console.overlayid].valid=1;
 						shared->resources[shared->console.cursorid].valid=1;
-						shared->OverLayHasUpdate=1;												
+						
+						shared->OverLayHasUpdate=1;		
+						*/
 					}
 				}
 				else
 				{
 					if (wParam==shared->console.consolekey)
 					{
+						/*
 						shared->resources[shared->console.overlayid].valid=0;
 						shared->resources[shared->console.cursorid].valid=0;
 						shared->OverLayHasUpdate=1;						
+						*/
 						shared->console.consolevisible=0;
+						
 					}
 					else
 					if (hasKeyboardEvent)
@@ -415,7 +427,7 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 						WaitForSingleObject(handledKeyboardEvent, 10000);
 
 
-						return DefWindowProcA(hwnd, uMsg, wParam, lParam);
+						return DefWindowProcA(hwnd, uMsg, wParam, lParam); //no handling 
 					}
 					else OutputDebugStringA("Keyboard event handler events are not present");
 				}				
@@ -464,6 +476,7 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			p=MAKEPOINTS(lParam);
 
 
+			/*
 			overlaydown=-1;
 			//check if an overlay is pressed down
 			for (i=shared->overlaycount; i>=0; i--)
@@ -504,11 +517,12 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					}
 				}
 				
-			}
+			}*/
 
 			break;
 		
 		case WM_LBUTTONUP:
+			/*
 			//check if the same overlay is released
 			p=MAKEPOINTS(lParam);
 
@@ -565,7 +579,7 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 					break;
 				}
-			}
+			}*/
 			
 			break;
 	}
