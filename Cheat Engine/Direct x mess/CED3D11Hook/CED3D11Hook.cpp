@@ -732,7 +732,8 @@ void DXMessD3D11Handler::RenderOverlay()
 		for (i=0; i<OverlayCount; i++)
 		{
 			if (shared->resources[i].valid)
-			{			
+			{					
+
 				//set the vertexbuffer and texture and render
 				dc->IASetVertexBuffers( 0, 1, &overlays[i].pOverlayVB, &stride, &offset );
 				if (shared->resources[i].hasTransparency)

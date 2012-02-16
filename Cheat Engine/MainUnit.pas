@@ -7081,12 +7081,19 @@ begin
 end;
 
 procedure TMainForm.Label59Click(Sender: TObject);
+var t: TD3DHook_Texture;
+  s: TD3DHook_Sprite;
 begin
 
   safed3dhook;
   while d3dhook.getWidth=0 do CheckSynchronize;
 
-  d3dhook.createConsole(0);
+  t:=d3dhook.createTexture(logo.Picture);
+  s:=d3dhook.createSprite(t);
+
+
+
+//  d3dhook.createConsole(0);
 end;
 
 procedure ChangeIcon(hModule: HModule; restype: PChar; resname: PChar;

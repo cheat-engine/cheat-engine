@@ -5,6 +5,82 @@
 
 
 #pragma pack(1)
+
+/*
+CE Rendering:
+First it checks for updated textures. (See 1.1)
+Then it renders based on the render command list. (See 1.2)
+
+
+1.1: How ce updates a texture:
+                 CE                                  RENDERER
+Sets texturelistHasUpdate to 0
+Sets hasBeenUpdated to 0
+allocate a new block of memory
+copy the imagedata to there
+Finally update AddressOfTexture
+set hasBeenUpdated to 1
+And set texturelistHasUpdate to 1                     
+														The renderer sees that texturelistHasUpdate is 1
+														It goes through the list of textures looking for hasBeenUpdated=1
+It then waits for the HasHandledTextureUpdate			If found, it destroys the texture associated with the specific spot
+<waiting>			         							Then creates a new texture based on the data of AddressofTexture
+														Set hasBeenUpdated to 0
+														continues looking for other updated textures
+														Then sets texturelistHasUpdate to 0
+														And calls setEvent for HasHandledTextureUpdate
+<ce wakes up and does stuff> 
+
+*/
+
+typedef volatile struct
+{
+	UINT64 AddressOfTexture;
+	int size;
+	DWORD colorKey;
+	int hasBeenUpdated;
+	int reserved;
+} *PTextureEntry;
+
+
+
+
+//The rendercommand is used in an array inside PD3DHookShared. It can change often
+enum RenderCommandEnum { rcEndOfCommandlist=0,  //Stop going through the list
+						 rcIgnored=1,  //Ignore (Being updated)
+						 rcDrawSprite=2,		//Render the sprite at the given position
+						 rcDrawFont=3			//Render some text at the given coordinates. The string is located at  "addressoftext"						 
+   					};
+
+typedef volatile struct
+{
+	int Command;
+
+	union
+	{
+		struct
+		{
+			float x;
+			float y;
+			float alphablend;
+			int width;
+			int height;				
+			int isMouse;
+			int textureid;
+		} sprite;
+
+		struct
+		{
+			float x;
+			float y;
+			float alphablend;
+			DWORD color;
+			UINT64 addressoftext;
+		} font;
+	};
+
+} D3DRenderCommand, *PD3DRenderCommand;
+
 typedef volatile struct 
 {
 	char CheatEngineDir[256];
@@ -111,8 +187,18 @@ typedef volatile struct
 	} console;
 
 	DWORD lastHwnd;
-	int MouseOverlayId; //set to -1 if no mouse overlayd ID is set, otherwise it contains an overlay ID to be used and rendered at the current mouse coords
+ 
+	int texturelistHasUpdate; //If 1 this means that CE might be waiting for the HasHandledTextureUpdate event (if it is a high priority update)
+	int textureCount;	
+	UINT64 texturelist; //offset into texturelist based on the start of the shared object (once setup, this does not change)
+	UINT64 TextureLock; //
+
+	UINT64 CommandlistLock;
+	int UseCommandlistLock; //set to 1 if you wish to make use of the command list locking feature (might slow down due to acuiring/releasing of the event)
 	
+	D3DRenderCommand RenderCommands[100000];
+
+/*
 
 	int OverLayHasUpdate;
 	int overlaycount;
@@ -131,7 +217,7 @@ typedef volatile struct
 		float alphaBlend;
 		int resourcesize;
 		int resourceoffset;
-	} resources[100];	
+	} resources[100];	*/
 	//etc...etc...etc...
 } *PD3DHookShared;
 #pragma pack()

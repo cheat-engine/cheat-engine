@@ -1178,3 +1178,14 @@ d3dhook_endUpdate() : When done updating, call this function to apply the change
 
 
 --]]
+
+add sprites with overlayid's
+
+d3dhook_createTexture()
+d3dhook_createSprite()
+
+sprite_setPosition()
+sprite_setTexture(x,y) : Z determines if the sprite will be drawn over or under the pevious texture
+sprite_setWidth()
+sprite_setHeight()
+sprite_setZOrder()

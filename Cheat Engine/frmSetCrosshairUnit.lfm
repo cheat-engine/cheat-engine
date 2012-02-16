@@ -74,6 +74,7 @@ object frmSetCrosshair: TfrmSetCrosshair
         Top = 0
         Width = 91
         Caption = 'Apply crosshair'
+        Enabled = False
         OnClick = btnApplyClick
         TabOrder = 0
       end

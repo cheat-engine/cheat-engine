@@ -5,11 +5,9 @@
 
 typedef struct
 {
-	IDirect3DTexture9 *pOverlayTex;
-	IDirect3DVertexBuffer9 *pOverlayVB; //currently unused in peference of the sprite
-	int x,y;
+	IDirect3DTexture9 *pTexture;
 	int actualHeight, actualWidth;
-} OverlayData9, *POverlayData9;
+} TextureData9, *PTextureData9;
 
 
 class DXMessD3D9Handler
@@ -19,14 +17,15 @@ private:
 
 	IDirect3DDevice9 *dev;
 
-	OverlayData9 *overlays;
-	int OverlayCount;
+	TextureData9 *textures;
+	int TextureCount;
 	
 	ID3DXSprite *sprite; 
 
+	PTextureEntry tea; //texture entry area
 
 	BOOL Valid;
-	HRESULT setupOverlayTexture();
+	BOOL UpdateTextures();
 public:
 	DXMessD3D9Handler(IDirect3DDevice9 *dev, PD3DHookShared shared);
 	~DXMessD3D9Handler();

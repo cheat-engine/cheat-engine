@@ -21,21 +21,51 @@ type
     character: DWORD;
   end;
 
-  TResourceInfo=packed record
-    valid: integer;
-    updatedpos: integer;
-    updatedresource: integer;
-    width: integer;
-    height: integer;
-    x: integer;
-    y: integer;
-    hasTransparency: integer;
-    alphablend: Single;
-    resourcesize: integer;
-    resourceoffset: integer; //offset into the shared memory region containing the bitmat info
+  TTextureEntry=packed record
+    AddressOfTexture: UINT64;
+    size: integer;
+    colorKey: dword;
+    hasBeenUpdated: integer;
+    reserved: integer;
   end;
 
-  type TResourceInfoArray=packed array [0..0] of TResourceInfo;
+  TTextureEntryArray=Array [0..1000] of TTextureEntry;
+  PTextureEntryArray=^TTextureEntryArray;
+
+  type TRenderCommandEnum=(rcEndOfCommandlist=0, //Stop going through the list
+  			   rcIgnored=1,  //Ignore (Being updated)
+  			   rcDrawSprite=2,		//Render the sprite at the given position
+  			   rcDrawFont=3	);		//Render some text at the given coordinates. The string is located at  "addressoftext"
+
+  TSpriteCommand=packed record
+    x: single;
+    y: single;
+    alphablend: single;
+    width: integer;
+    height: integer;
+    isMouse: integer;
+    textureid: integer;
+  end;
+
+  TFontCommand=packed record
+    x: single;
+    y: single;
+    alphablend: single;
+    color: DWORD;
+    addressoftext: UINT64;
+  end;
+
+  TRenderCommand=packed record
+    command: integer;
+    case TRenderCommandEnum of
+      rcDrawSprite: (Sprite: TSpriteCommand);
+      rcDrawFont: (Font: TFontCommand);
+  end;
+  PRenderCommand=^TRenderCommand;
+
+  TRenderCommandarray=array [0..100] of TRenderCommand;
+  PRenderCommandArray=^TRenderCommandArray;
+
 
   TD3DHookShared=packed record
     cheatenginedir: array [0..255] of char;
@@ -135,14 +165,15 @@ type
     end;
 
     lastHwnd: DWORD;
+    texturelistHasUpdate: integer; //If 1 this means that CE might be waiting for the HasHandledTextureUpdate event (if it is a high priority update)
+    textureCount: integer;
+    texturelist: UINT64 ; //offset into texturelist based on the start of the shared object (once setup, this does not change)
+    TextureLock: UINT64 ; //target process handle
+    commandListLock: UINT64;
+    useCommandListLock: integer;
 
 
-
-    MouseOverlayId: integer;
-    OverLayHasUpdate: integer; //When set to not 0 the renderer will check what needs to be updated
-    overlaycount: integer;
-    resources: TResourceInfoArray;
-    //followed by the resource data
+    //followed by the rendercommands
 
 
   end;
@@ -173,16 +204,99 @@ type
   end;
 
 
-  TD3DHook=class
+  TD3DHook_Texture=class(TObject)
+  private
+    id: integer;
+    owner: TD3DHook;
+    resource: ptruint; //address where the current resource is located
+    fheight: integer;
+    fwidth: integer;
+  public
+    function getID: integer;
+   {
+
+    procedure LoadTextureFromFile(filename: string);
+
+    constructor Create(filename: string); overload;  }
+    procedure LoadTextureByPicture(picture: TPicture);
+    constructor Create(owner: TD3DHook; picture: TPicture);
+    constructor Create(owner: TD3DHook);
+    destructor destroy; override;
+
+    property height: integer read fheight;
+    property width: integer read fwidth;
+  end;
+
+  TD3DHook_RenderObject=class(TObject)
+  protected
+    owner: TD3DHook;
+    updatecount: integer;
+    procedure setZOrder(newpos: integer);
+  public
+    function getIndex: integer;
+    procedure beginUpdate;
+    procedure endUpdate;
+    procedure UpdateRenderCommand; virtual; abstract;
+
+    destructor destroy; override;
+    constructor create(owner: TD3DHook);
+
+  published
+    property zOrder: integer read getIndex write setZOrder;
+  end;
+
+  TD3DHook_Sprite=class(TD3DHook_RenderObject)
+  private
+    ftexture: TD3DHook_Texture;
+    fx: single;
+    fy: single;
+    falphablend: single;
+    fwidth: integer;
+    fheight: integer;
+    fIsMouse: boolean;
+
+    fvisible: boolean;
+    procedure setVisible(state: boolean);
+    procedure setIsMouse(state: boolean);
+    procedure setTexture(s: TD3DHook_Texture);
+    procedure setX(v: single);
+    procedure setY(v: single);
+    procedure setWidth(v: integer);
+    procedure setHeight(v: integer);
+    procedure setAlphaBlend(v: single);
+  public
+
+    procedure UpdateRenderCommand; override;
+
+    constructor create(owner: TD3DHook; texture: TD3DHook_Texture);
+  published
+    property alphaBlend: single read falphablend write setAlphablend;
+    property x: single read fx write setX;
+    property y: single read fy write setY;
+    property width: integer read fWidth write setWidth;
+    property height: integer read fHeight write setHeight;
+    property visible: boolean read fVisible write setVisible;
+    property isMouse: boolean read fIsMouse write setIsMouse;
+    property texture: TD3DHook_Texture read ftexture write setTexture;
+  end;
+
+
+  TD3DHook=class(TObject)
   private
     sharename: string;
     shared: PD3DHookShared; //local address of the D3DHookShared structure
 
+    tea: PTextureEntryArray;
+
+
     fmhandle: THandle;
 
-    images: array of TPicture;
+    textures: TList;
+    commandlist: TList; //collection of pointer to objects used for lookup and id management.  1-on-1 relation to the renderCommands list
+    renderCommandList: PRenderCommandArray;
 
-    isupdating: integer;
+    isupdating: integer; //update counter for the texture list
+    isupdatingCL: integer; //update counter for the command list
 
     maxsize: integer;
     fprocessid: dword;
@@ -193,6 +307,9 @@ type
     haskeyboardevent: THandle;        //todo: combine into one "HasMessage" event, but for now, to make sure I don't break anything, this method...
     hashandledkeyboardevent: THandle;
 
+    texturelock: THandle;
+    CommandListLock: THandle;
+
     messagehandler: TD3DMessageHandler;
 
     consoleCursorId: integer;
@@ -201,27 +318,34 @@ type
     consoleCursorImage: TPicture;
 
 
-    procedure waitforready;
     procedure UpdateResourceData;
     procedure UpdateConsoleOverlay(command: string; log: Tstrings);
     procedure UpdateConsolecursorPos(command: string; pos: integer);
   public
     onclick: TD3DClickEvent;
-    procedure beginupdate;
-    procedure endupdate;
+    procedure beginTextureUpdate;
+    procedure endTextureUpdate;
 
-    function createOverlayFromPicture(p: TPicture; x,y: integer): integer;
+    procedure beginCommandListUpdate;
+    procedure endCommandListUpdate;
+
+    function createTexture(p: TPicture): TD3DHook_Texture;
+    function createSprite(texture: TD3DHook_Texture): TD3DHook_Sprite;
+
+
     procedure SetOverlayAlphaBlend(overlayid: integer; blend: single);
     procedure SetOverlayVisibility(overlayid: integer; state: boolean);
     procedure updateOverlayImage(overlayid: integer; skipsync: boolean=false);
     procedure updateOverlayPosition(overlayid,x,y: integer);
-    procedure setOverlayAsMouse(overlayid: integer);
     procedure setDisabledZBuffer(state: boolean);
     procedure setWireframeMode(state: boolean);
     procedure setMouseClip(state: boolean);
 
     function getWidth: integer;
     function getHeight: integer;
+
+    procedure setCommandListLockFeature(state: boolean);
+
 
     procedure createConsole(virtualkey: DWORD);
     procedure reinitializeConsoleIfNeeded;
@@ -385,6 +509,248 @@ begin
 
 end;
 
+//----------------------------D3DHook_RenderObject------------------------------
+
+procedure TD3DHook_RenderObject.setZOrder(newpos: integer);
+var
+  mypos: integer;
+  replaced: TD3DHook_RenderObject;
+begin
+  //change the order of the commandlist
+  mypos:=zorder;
+  if (newpos<>mypos) and (newpos<owner.commandlist.count) then
+  begin
+    replaced:=TD3DHook_RenderObject(owner.commandlist[newpos]);
+
+    owner.beginCommandListUpdate;
+
+    owner.renderCommandList^[newpos].command:=integer(rcIgnored); //in case the locking option is not used. Will cause some flickering in the worst case
+    owner.renderCommandList^[mypos].command:=integer(rcIgnored);
+
+    owner.commandlist[newpos]:=self;
+    owner.commandlist[mypos]:=replaced;
+
+    //now update mine and the replaced one's rendercommand entry
+    UpdateRenderCommand;
+    if replaced<>nil then
+      replaced.UpdateRenderCommand;
+
+    owner.endCommandListUpdate;
+  end;
+end;
+
+function TD3DHook_RenderObject.getIndex: integer;
+begin
+  result:=owner.commandlist.IndexOf(self);
+end;
+
+procedure TD3DHook_RenderObject.beginUpdate;
+begin
+  inc(updatecount);
+end;
+
+procedure TD3DHook_RenderObject.endUpdate;
+begin
+  if updatecount>0 then
+    dec(updatecount);
+
+  if updatecount=0 then
+    UpdateRenderCommand;
+end;
+
+destructor TD3DHook_RenderObject.destroy;
+var index: integer;
+begin
+  index:=getindex;
+  owner.renderCommandList^[Index].command:=integer(rcIgnored);
+  owner.commandlist[index]:=nil;
+end;
+
+constructor TD3DHook_RenderObject.create(owner: TD3DHook);
+begin
+  self.owner:=owner;
+  owner.commandlist.Add(self);
+end;
+
+//-------------------------------D3DHook_Sprite---------------------------------
+procedure TD3DHook_Sprite.setWidth(v: integer);
+begin
+  beginUpdate;
+  fwidth:=v;
+  endUpdate;
+end;
+
+procedure TD3DHook_Sprite.setHeight(v: integer);
+begin
+  beginUpdate;
+  fheight:=v;
+  endUpdate;
+end;
+
+procedure TD3DHook_Sprite.setAlphaBlend(v: single);
+begin
+  BeginUpdate;
+  falphablend:=v;
+  endUpdate;
+end;
+
+procedure TD3DHook_Sprite.setX(v: single);
+begin
+  beginUpdate;
+  fx:=v;
+  endUpdate;
+end;
+
+procedure TD3DHook_Sprite.setY(v: single);
+begin
+  beginUpdate;
+  fy:=v;
+  endUpdate;
+end;
+
+procedure TD3DHook_Sprite.setIsMouse(state: boolean);
+begin
+  beginUpdate;
+  fIsMouse:=state;
+  endUpdate;
+end;
+
+procedure TD3DHook_Sprite.setVisible(state: boolean);
+begin
+  beginUpdate;
+  fvisible:=state;
+  endUpdate;
+end;
+
+
+procedure TD3DHook_Sprite.setTexture(s: TD3DHook_Texture);
+begin
+  BeginUpdate;
+  ftexture:=s;
+  width:=s.width;
+  height:=s.height;
+  EndUpdate;
+end;
+
+procedure TD3DHook_Sprite.UpdateRenderCommand;
+var index: integer;
+begin
+  index:=getindex;
+  owner.beginCommandListUpdate;
+
+  if owner.renderCommandList^[index].command<>integer(rcDrawSprite) then //something completly new
+    owner.renderCommandList^[index].command:=integer(rcIgnored); //in case the lock is not used
+
+  owner.renderCommandList^[index].Sprite.x:=x;
+  owner.renderCommandList^[index].Sprite.y:=y;
+  owner.renderCommandList^[index].Sprite.alphablend:=alphablend;
+  owner.renderCommandList^[index].Sprite.width:=width;
+  owner.renderCommandList^[index].Sprite.height:=height;
+  owner.renderCommandList^[index].Sprite.ismouse:=integer(ismouse);
+  owner.renderCommandList^[index].Sprite.textureid:=texture.getID;
+  owner.renderCommandList^[index].command:=integer(rcDrawSprite);
+
+  owner.endCommandListUpdate;
+end;
+
+constructor TD3DHook_Sprite.create(owner: TD3DHook; texture: TD3DHook_Texture);
+begin
+  inherited create(owner);
+  alphablend:=1;
+
+  setTexture(texture);
+end;
+
+//-------------------------------d3dhook_texture--------------------------------
+procedure TD3DHook_Texture.LoadTextureByPicture(picture: TPicture);
+var m: tmemorystream;
+    newblock: pointer;
+    x: dword;
+    msp: pointer;
+    s: integer;
+begin
+  m:=TMemoryStream.create;
+  picture.PNG.SaveToStream(m);
+
+  owner.beginTextureUpdate;
+
+  newblock:=VirtualAllocEx(processhandle, nil, m.Size, MEM_COMMIT or MEM_RESERVE, PAGE_READWRITE);
+  if newblock<>nil then
+  begin
+    msp:=m.Memory;
+    s:=m.size;
+    if WriteProcessMemory(processhandle, newblock, m.memory, m.size, x) then
+    begin
+      owner.tea[id].AddressOfTexture:=qword(newblock);
+      owner.tea[id].Size:=m.size;
+      owner.tea[id].hasBeenUpdated:=1;
+      owner.tea[id].colorKey:=$ffffffff; //white and alpha
+
+      //free old block if possible
+      if (resource<>0) then
+        VirtualFreeEx(processhandle, pointer(resource),0,MEM_RELEASE);
+
+      fheight:=picture.Height;
+      fwidth:=picture.Width;
+    end;
+
+    resource:=qword(newblock);
+  end;
+
+  m.free;
+
+  owner.endTextureUpdate;
+end;
+
+function TD3DHook_Texture.getID: integer;
+begin
+  result:=id;
+end;
+
+destructor TD3DHook_Texture.destroy;
+begin
+  owner.beginTextureUpdate;
+
+  owner.tea[id].AddressOfTexture:=0;
+  owner.tea[id].hasBeenUpdated:=1; //marks for deletion
+
+  VirtualFreeEx(processhandle, pointer(resource),0,MEM_RELEASE);
+
+  owner.textures[id]:=nil;
+  owner.endTextureUpdate;
+  inherited destroy;
+end;
+
+constructor TD3DHook_Texture.Create(owner: TD3DHook);
+var i: integer;
+begin
+  self.owner:=owner;
+  id:=-1;
+
+  //find a empty slot, and if not found, add it instead
+  for i:=0 to owner.textures.count-1 do
+    if owner.textures[i]=nil then
+    begin
+      id:=i;
+      owner.textures[id]:=self;
+      break;
+    end;
+
+  if id=-1 then
+    id:=owner.textures.add(self);
+end;
+
+constructor TD3DHook_Texture.Create(owner: TD3DHook; picture: TPicture);
+var m: TMemoryStream;
+begin
+  create(owner);
+
+  LoadTextureByPicture(picture);
+end;
+
+
+
+//----------------------------------D3dhook-------------------------------------
 procedure TD3DHook.UpdateConsoleOverlay(command: string; log: Tstrings);
 var c: TCanvas;
     lineheight: integer;
@@ -436,17 +802,16 @@ begin
 
 
   UpdateResourceData;
-  shared.resources[consoleOverlayid-1].updatedresource:=1;
-  shared.OverLayHasUpdate:=1;
-//  updateOverlayImage(consoleOverlayid, true);
+{  shared.resources[consoleOverlayid-1].updatedresource:=1;
+  shared.OverLayHasUpdate:=1;         }
 
 end;
 
 procedure TD3DHook.UpdateConsolecursorPos(command: string; pos: integer);
 begin
-  shared.resources[consoleCursorId-1].x:=4+consoleImage.bitmap.Canvas.TextWidth(copy(command, 1,pos));
+ { shared.resources[consoleCursorId-1].x:=4+consoleImage.bitmap.Canvas.TextWidth(copy(command, 1,pos));
   shared.resources[consoleCursorId-1].updatedpos:=1;
-  shared.OverLayHasUpdate:=1;
+  shared.OverLayHasUpdate:=1;     }
 end;
 
 procedure TD3DHook.reinitializeConsoleIfNeeded;
@@ -455,6 +820,7 @@ begin
   if getHeight=0 then exit;
   if getWidth=0 then exit;
 
+  {
   if consoleOverlayid=-1 then
   begin
     //first time created
@@ -487,7 +853,7 @@ begin
     shared.resources[consoleCursorId-1].y:=getheight-consoleCursorImage.height;
   end;
 
-
+   }
 end;
 
 procedure TD3DHook.createConsole(virtualkey: DWORD);
@@ -558,22 +924,52 @@ begin
 
 end;
 
-procedure TD3DHook.beginupdate;
-var i: integer;
+procedure TD3DHook.setCommandListLockFeature(state: boolean);
 begin
-  waitforready;
+  shared.useCommandListLock:=integer(state);
+end;
+
+procedure TD3DHook.beginCommandListUpdate;
+begin
+  if isupdatingCL=0 then //start of an edit
+    WaitForSingleObject(CommandListLock, INFINITE);  //obtain lock
+
+  inc(isupdatingCL);
+end;
+
+procedure TD3DHook.endCommandListUpdate;
+begin
+  renderCommandList^[commandlist.count-1].command:=integer(rcEndOfCommandlist);
+
+  if isupdatingCL>0 then
+  begin
+    dec(isupdatingCL);
+    if isupdatingCL=0 then
+      SetEvent(CommandListLock); //release the lock
+  end;
+
+
+end;
+
+procedure TD3DHook.beginTextureUpdate;
+begin
+  if isupdating=0 then //start of an edit
+    WaitForSingleObject(TextureLock, INFINITE);  //obtain lock
+
   inc(isupdating);
 end;
 
-procedure TD3DHook.endupdate;
+procedure TD3DHook.endTextureUpdate;
 begin
   if isupdating>0 then
   begin
     dec(isupdating);
     if isupdating=0 then
     begin
-      updateResourceData;
-      shared.OverLayHasUpdate:=1;
+      shared.textureCount:=textures.count;
+      shared.texturelistHasUpdate:=1;
+
+      SetEvent(TextureLock); //release the lock
     end;
   end;
 end;
@@ -583,43 +979,38 @@ begin
   if skipsync then
     inc(isupdating);  //prevents the locking
 
-  beginupdate;
-  shared.resources[overlayid-1].updatedresource:=1;
-  endupdate;
+  beginTextureUpdate;
+ { shared.resources[overlayid-1].updatedresource:=1;  }
+  endTextureUpdate;
 
   if skipsync then
-    endupdate;
-end;
-
-procedure TD3DHook.setOverlayAsMouse(overlayid: integer);
-begin
-  shared.MouseOverlayId:=overlayid-1; //no update necesary
+    endTextureUpdate;
 end;
 
 procedure TD3DHook.updateOverlayPosition(overlayid,x,y: integer);
 begin
-  beginupdate;
-  shared.resources[overlayid-1].x:=x;
+  beginTextureUpdate;
+ { shared.resources[overlayid-1].x:=x;
   shared.resources[overlayid-1].y:=y;
-  shared.resources[overlayid-1].updatedpos:=1;
-  endupdate;
+  shared.resources[overlayid-1].updatedpos:=1; }
+  endTextureUpdate;
 end;
 
 procedure TD3DHook.SetOverlayAlphaBlend(overlayid: integer; blend: single);
 begin
-  shared.resources[overlayid-1].alphaBlend:=blend / 100.0;
+ { shared.resources[overlayid-1].alphaBlend:=blend / 100.0;    }
 end;
 
 procedure TD3DHook.SetOverlayVisibility(overlayid: integer; state: boolean);
 begin
-
+{
   if state then
     shared.resources[overlayid-1].valid:=1
   else
     shared.resources[overlayid-1].valid:=0;
 
   if isupdating=0 then
-    shared.OverLayHasUpdate:=1;
+    shared.OverLayHasUpdate:=1;}
 end;
 
 procedure TD3DHook.UpdateResourceData;
@@ -630,7 +1021,7 @@ var
   start: PByteArray;
 begin
   //now update all the entries
-  s:=tmemorystream.Create;
+ { s:=tmemorystream.Create;
   start:=@shared.resources[shared.overlaycount];
 
   try
@@ -667,58 +1058,25 @@ begin
 
   finally
     s.free;
-  end;
+  end;     }
 end;
 
-procedure TD3DHook.waitforready;
-var i: integer;
-//wait till the overlayhasupdate variable is set to 0. Timeout of 2 second  (0.5 fps games suck)
+
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++version 2
+function TD3DHook.createTexture(p: TPicture): TD3DHook_Texture;
 begin
-
-  if isupdating=0 then
-  begin
-    i:=0;
-    while (i<200) and (shared.OverLayHasUpdate<>0) do    //max 2 second
-    begin
-      sleep(10); //wait till the last update has been handled
-      inc(i);
-    end;
-    shared.OverLayHasUpdate:=0; //screw it
-  end;
+  beginTextureUpdate;
+  result:=TD3DHook_Texture.Create(self, p);
+  endTextureUpdate;
 end;
 
-function TD3DHook.createOverlayFromPicture(p: TPicture; x,y: integer): integer;
-var
-  i: integer;
+function TD3DHook.createSprite(texture: TD3DHook_Texture): TD3DHook_Sprite;
 begin
-  setlength(images, length(images)+1);
-  result:=length(images);
-
-  images[result-1]:=p;
-
-  beginupdate;
-
-
-  shared.overlaycount:=result;
-
-
-  shared.resources[result-1].height:=p.Height;
-  shared.resources[result-1].width:=p.width;
-  shared.resources[result-1].x:=x;
-  shared.resources[result-1].y:=y;
-  shared.resources[result-1].alphablend:=1.0;
-
-  shared.resources[result-1].updatedpos:=1;
-  shared.resources[result-1].updatedresource:=1;
-  shared.resources[result-1].resourceoffset:=0; //this will be updated when endupdate is called which calls updateresourcedata when ready
-  shared.resources[result-1].resourcesize:=0;
-  shared.resources[result-1].valid:=1;
-
-
-
-  endupdate;
-
+  beginCommandListUpdate;
+  result:=TD3DHook_Sprite.create(self, texture);
+  endCommandListUpdate;
 end;
+
 
 destructor TD3DHook.Destroy;
 begin
@@ -731,6 +1089,9 @@ constructor TD3DHook.create(size: integer; hookhwnd: boolean=true);
 var h: thandle;
     s: TStringList;
 begin
+  textures:=TList.create;
+  commandlist:=TList.create;
+
   consoleOverlayid:=-1;
   consoleCursorId:=-1;
 
@@ -752,9 +1113,12 @@ begin
 
   ZeroMemory(shared, sizeof(TD3DHookShared));
 
-
+  shared.texturelist:=sizeof(TD3DHookShared)+(maxsize div 2);
   shared.cheatenginedir:=CheatEngineDir;
-  shared.MouseOverlayId:=-1;
+
+  tea:=PTextureEntryArray(ptruint(shared)+shared.texturelist);
+  renderCommandList:=PRenderCommandArray(ptruint(shared)+sizeof(TD3dHookShared));;
+
 
   if hookhwnd then
     shared.hookwnd:=1;
@@ -777,6 +1141,13 @@ begin
       messagehandler.owner:=self;
       messagehandler.start;
     end;
+
+
+    TextureLock:=CreateEventA(nil, false, true, nil);
+    DuplicateHandle(GetCurrentProcess, TextureLock, processhandle, @shared.TextureLock,DUPLICATE_SAME_ACCESS, false,0);
+
+    CommandListLock:=CreateEventA(nil, false, true, nil);
+    DuplicateHandle(GetCurrentProcess, CommandListLock, processhandle, @shared.CommandListLock,DUPLICATE_SAME_ACCESS, false,0);
 
 
     //now inject the dll
