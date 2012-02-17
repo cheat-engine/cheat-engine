@@ -40,9 +40,8 @@ BOOL DXMessD3D9Handler::UpdateTextures()
 		
 
 		if (shared->textureCount > TextureCount)
-		{	
-				
-			//update the textures if needed{
+		{				
+			//update the textures if needed
 	
 
 			if (textures==NULL) //initial alloc

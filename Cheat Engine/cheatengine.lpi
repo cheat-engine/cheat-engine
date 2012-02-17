@@ -19,7 +19,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
       <MinorVersionNr Value="2"/>
-      <BuildNr Value="2420"/>
+      <BuildNr Value="2421"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" ProductVersion="6.2" FileDescription="Cheat Engine"/>
@@ -164,7 +164,7 @@
         <PackageName Value="LCL"/>
       </Item5>
     </RequiredPackages>
-    <Units Count="229">
+    <Units Count="231">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -193,10 +193,10 @@
         <ComponentName Value="MainForm"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="MainUnit"/>
-        <EditorIndex Value="12"/>
+        <EditorIndex Value="13"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="7075"/>
-        <CursorPos X="1" Y="7091"/>
+        <TopLine Value="3024"/>
+        <CursorPos X="14" Y="3034"/>
         <UsageCount Value="211"/>
         <Bookmarks Count="1">
           <Item0 X="1" Y="1" ID="2"/>
@@ -209,7 +209,7 @@
         <Filename Value="NewKernelHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="NewKernelHandler"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="12"/>
         <WindowIndex Value="0"/>
         <TopLine Value="247"/>
         <CursorPos X="1" Y="257"/>
@@ -221,7 +221,7 @@
         <Filename Value="CEFuncProc.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="CEFuncProc"/>
-        <EditorIndex Value="1"/>
+        <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
         <TopLine Value="737"/>
         <CursorPos X="1" Y="754"/>
@@ -319,7 +319,7 @@
         <Filename Value="autoassembler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="autoassembler"/>
-        <EditorIndex Value="6"/>
+        <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
         <TopLine Value="350"/>
         <CursorPos X="12" Y="366"/>
@@ -1789,9 +1789,10 @@
         <Filename Value="LuaHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaHandler"/>
+        <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="104"/>
-        <CursorPos X="1" Y="131"/>
+        <TopLine Value="7598"/>
+        <CursorPos X="1" Y="7614"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
           <WindowIndex Value="0"/>
@@ -1799,6 +1800,7 @@
           <CursorPos X="54" Y="113"/>
         </ExtraEditor1>
         <UsageCount Value="200"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit142>
       <Unit143>
@@ -1899,8 +1901,8 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="formdesignerunit"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="314"/>
-        <CursorPos X="18" Y="334"/>
+        <TopLine Value="263"/>
+        <CursorPos X="39" Y="275"/>
         <UsageCount Value="236"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit151>
@@ -1908,10 +1910,12 @@
         <Filename Value="ceguicomponents.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="ceguicomponents"/>
+        <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="940"/>
-        <CursorPos X="1" Y="950"/>
+        <TopLine Value="407"/>
+        <CursorPos X="33" Y="407"/>
         <UsageCount Value="236"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit152>
       <Unit153>
@@ -2140,10 +2144,12 @@
         <Filename Value="LuaFont.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaFont"/>
+        <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="63" Y="8"/>
+        <TopLine Value="101"/>
+        <CursorPos X="30" Y="8"/>
         <UsageCount Value="214"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit174>
       <Unit175>
@@ -2287,11 +2293,10 @@
         <Filename Value="d3dhookUnit.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="d3dhookUnit"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="512"/>
-        <CursorPos X="24" Y="534"/>
+        <TopLine Value="557"/>
+        <CursorPos X="17" Y="574"/>
         <UsageCount Value="249"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -2300,12 +2305,10 @@
         <Filename Value="LuaD3DHook.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaD3DHook"/>
-        <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
         <TopLine Value="300"/>
         <CursorPos X="1" Y="321"/>
         <UsageCount Value="205"/>
-        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit189>
       <Unit190>
@@ -2324,10 +2327,11 @@
         <ComponentName Value="frmSetCrosshair"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmSetCrosshairUnit"/>
-        <EditorIndex Value="5"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="64"/>
-        <CursorPos X="59" Y="86"/>
+        <TopLine Value="73"/>
+        <CursorPos X="1" Y="98"/>
         <UsageCount Value="204"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -2377,7 +2381,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="591"/>
         <CursorPos X="14" Y="607"/>
-        <UsageCount Value="75"/>
+        <UsageCount Value="72"/>
       </Unit195>
       <Unit196>
         <Filename Value="frmStructureLinkerUnit.pas"/>
@@ -2475,21 +2479,21 @@
         <WindowIndex Value="0"/>
         <TopLine Value="127"/>
         <CursorPos X="18" Y="146"/>
-        <UsageCount Value="91"/>
+        <UsageCount Value="88"/>
       </Unit204>
       <Unit205>
         <Filename Value="C:\lazarus\fpc\2.5.1\source\rtl\inc\wstringh.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="10" Y="24"/>
-        <UsageCount Value="18"/>
+        <UsageCount Value="15"/>
       </Unit205>
       <Unit206>
         <Filename Value="C:\lazarus\lcl\include\customcombobox.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="904"/>
         <CursorPos X="1" Y="925"/>
-        <UsageCount Value="52"/>
+        <UsageCount Value="49"/>
       </Unit206>
       <Unit207>
         <Filename Value="C:\lazarus\fpc\2.5.1\source\rtl\objpas\math.pp"/>
@@ -2497,7 +2501,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="134"/>
         <CursorPos X="10" Y="151"/>
-        <UsageCount Value="43"/>
+        <UsageCount Value="40"/>
       </Unit207>
       <Unit208>
         <Filename Value="LuaXMPlayer.pas"/>
@@ -2514,7 +2518,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1114"/>
         <CursorPos X="1" Y="1131"/>
-        <UsageCount Value="56"/>
+        <UsageCount Value="53"/>
       </Unit209>
       <Unit210>
         <Filename Value="C:\lazarus\lcl\comctrls.pp"/>
@@ -2522,7 +2526,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1007"/>
         <CursorPos X="21" Y="1019"/>
-        <UsageCount Value="37"/>
+        <UsageCount Value="34"/>
       </Unit210>
       <Unit211>
         <Filename Value="groupscancommandparser.pas"/>
@@ -2558,16 +2562,16 @@
         <Filename Value="C:\lazarus\fpc\2.5.1\source\packages\fcl-registry\src\registry.pp"/>
         <UnitName Value="registry"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="181"/>
-        <CursorPos X="1" Y="197"/>
-        <UsageCount Value="18"/>
+        <TopLine Value="30"/>
+        <CursorPos X="3" Y="46"/>
+        <UsageCount Value="15"/>
       </Unit214>
       <Unit215>
         <Filename Value="C:\lazarus\fpc\2.5.1\source\packages\fcl-registry\src\winreg.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="128"/>
         <CursorPos X="3" Y="133"/>
-        <UsageCount Value="17"/>
+        <UsageCount Value="14"/>
       </Unit215>
       <Unit216>
         <Filename Value="C:\lazarus\fpc\2.5.1\source\rtl\objpas\objpas.pp"/>
@@ -2575,15 +2579,15 @@
         <WindowIndex Value="0"/>
         <TopLine Value="12"/>
         <CursorPos X="8" Y="28"/>
-        <UsageCount Value="83"/>
+        <UsageCount Value="80"/>
       </Unit216>
       <Unit217>
         <Filename Value="C:\lazarus\fpc\2.5.1\source\rtl\objpas\classes\classesh.inc"/>
-        <EditorIndex Value="2"/>
+        <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
         <TopLine Value="874"/>
         <CursorPos X="14" Y="890"/>
-        <UsageCount Value="93"/>
+        <UsageCount Value="101"/>
         <Loaded Value="True"/>
       </Unit217>
       <Unit218>
@@ -2591,7 +2595,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="4709"/>
         <CursorPos X="6" Y="4725"/>
-        <UsageCount Value="79"/>
+        <UsageCount Value="76"/>
       </Unit218>
       <Unit219>
         <Filename Value="C:\lazarus\lcl\graphics.pp"/>
@@ -2599,15 +2603,15 @@
         <WindowIndex Value="0"/>
         <TopLine Value="91"/>
         <CursorPos X="3" Y="95"/>
-        <UsageCount Value="65"/>
+        <UsageCount Value="62"/>
       </Unit219>
       <Unit220>
         <Filename Value="C:\lazarus\lcl\include\picture.inc"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
         <TopLine Value="390"/>
         <CursorPos X="1" Y="417"/>
-        <UsageCount Value="86"/>
+        <UsageCount Value="101"/>
         <Loaded Value="True"/>
       </Unit220>
       <Unit221>
@@ -2615,7 +2619,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="992"/>
         <CursorPos X="10" Y="1008"/>
-        <UsageCount Value="62"/>
+        <UsageCount Value="59"/>
       </Unit221>
       <Unit222>
         <Filename Value="C:\lazarus\lcl\lclintf.pas"/>
@@ -2623,31 +2627,29 @@
         <WindowIndex Value="0"/>
         <TopLine Value="56"/>
         <CursorPos X="10" Y="72"/>
-        <UsageCount Value="61"/>
+        <UsageCount Value="58"/>
       </Unit222>
       <Unit223>
         <Filename Value="C:\lazarus\fpc\2.5.1\source\rtl\win\wininc\func.inc"/>
-        <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
         <TopLine Value="172"/>
         <CursorPos X="10" Y="188"/>
-        <UsageCount Value="101"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="100"/>
       </Unit223>
       <Unit224>
         <Filename Value="C:\lazarus\fpc\2.5.1\source\rtl\objpas\sysutils\sysunih.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="5"/>
         <CursorPos X="36" Y="31"/>
-        <UsageCount Value="51"/>
+        <UsageCount Value="48"/>
       </Unit224>
       <Unit225>
         <Filename Value="C:\lazarus\lcl\include\rasterimage.inc"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="9"/>
         <WindowIndex Value="0"/>
         <TopLine Value="623"/>
         <CursorPos X="1" Y="650"/>
-        <UsageCount Value="73"/>
+        <UsageCount Value="89"/>
         <Loaded Value="True"/>
       </Unit225>
       <Unit226>
@@ -2655,127 +2657,145 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1667"/>
         <CursorPos X="1" Y="1683"/>
-        <UsageCount Value="48"/>
+        <UsageCount Value="45"/>
       </Unit226>
       <Unit227>
         <Filename Value="C:\lazarus\fpc\2.5.1\source\rtl\inc\objpash.inc"/>
-        <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
         <TopLine Value="186"/>
         <CursorPos X="22" Y="192"/>
-        <UsageCount Value="53"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="64"/>
       </Unit227>
       <Unit228>
         <Filename Value="C:\lazarus\fpc\2.5.1\source\rtl\inc\objpas.inc"/>
-        <EditorIndex Value="9"/>
         <WindowIndex Value="0"/>
         <TopLine Value="265"/>
         <CursorPos X="9" Y="267"/>
-        <UsageCount Value="53"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="64"/>
       </Unit228>
+      <Unit229>
+        <Filename Value="C:\lazarus\lcl\extctrls.pp"/>
+        <UnitName Value="ExtCtrls"/>
+        <EditorIndex Value="5"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="579"/>
+        <CursorPos X="3" Y="595"/>
+        <UsageCount Value="26"/>
+        <Loaded Value="True"/>
+      </Unit229>
+      <Unit230>
+        <Filename Value="LuaRadioGroup.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="LuaRadioGroup"/>
+        <EditorIndex Value="3"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="115"/>
+        <CursorPos X="41" Y="135"/>
+        <UsageCount Value="51"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit230>
     </Units>
-    <JumpHistory Count="30" HistoryIndex="29">
+    <JumpHistory Count="29" HistoryIndex="28">
       <Position1>
-        <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="268" Column="23" TopLine="239"/>
+        <Filename Value="frmSetCrosshairUnit.pas"/>
+        <Caret Line="84" Column="18" TopLine="67"/>
       </Position1>
       <Position2>
-        <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="257" Column="26" TopLine="251"/>
+        <Filename Value="frmSetCrosshairUnit.pas"/>
+        <Caret Line="81" Column="1" TopLine="67"/>
       </Position2>
       <Position3>
-        <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="538" Column="3" TopLine="528"/>
+        <Filename Value="frmSetCrosshairUnit.pas"/>
+        <Caret Line="72" Column="1" TopLine="64"/>
       </Position3>
       <Position4>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="247" Column="5" TopLine="231"/>
+        <Caret Line="592" Column="1" TopLine="576"/>
       </Position4>
       <Position5>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="563" Column="1" TopLine="547"/>
+        <Caret Line="549" Column="1" TopLine="533"/>
       </Position5>
       <Position6>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="260" Column="20" TopLine="243"/>
+        <Caret Line="550" Column="1" TopLine="533"/>
       </Position6>
       <Position7>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="536" Column="31" TopLine="523"/>
+        <Caret Line="593" Column="1" TopLine="577"/>
       </Position7>
       <Position8>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="239" Column="19" TopLine="220"/>
+        <Caret Line="594" Column="1" TopLine="577"/>
       </Position8>
       <Position9>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="519" Column="19" TopLine="500"/>
+        <Caret Line="554" Column="1" TopLine="538"/>
       </Position9>
       <Position10>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="239" Column="16" TopLine="223"/>
+        <Caret Line="555" Column="1" TopLine="538"/>
       </Position10>
       <Position11>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="518" Column="3" TopLine="515"/>
+        <Caret Line="557" Column="1" TopLine="538"/>
       </Position11>
       <Position12>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="238" Column="5" TopLine="223"/>
+        <Caret Line="558" Column="1" TopLine="538"/>
       </Position12>
       <Position13>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="517" Column="21" TopLine="500"/>
+        <Caret Line="638" Column="1" TopLine="622"/>
       </Position13>
       <Position14>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="235" Column="16" TopLine="222"/>
+        <Caret Line="544" Column="1" TopLine="528"/>
       </Position14>
       <Position15>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="516" Column="17" TopLine="504"/>
+        <Caret Line="545" Column="1" TopLine="528"/>
       </Position15>
       <Position16>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="525" Column="19" TopLine="510"/>
+        <Caret Line="639" Column="1" TopLine="623"/>
       </Position16>
       <Position17>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="524" Column="2" TopLine="510"/>
+        <Caret Line="943" Column="1" TopLine="927"/>
       </Position17>
       <Position18>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="529" Column="23" TopLine="510"/>
+        <Caret Line="944" Column="1" TopLine="927"/>
       </Position18>
       <Position19>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="270" Column="22" TopLine="259"/>
+        <Caret Line="946" Column="1" TopLine="927"/>
       </Position19>
       <Position20>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="622" Column="20" TopLine="610"/>
+        <Caret Line="947" Column="1" TopLine="927"/>
       </Position20>
       <Position21>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="235" Column="19" TopLine="221"/>
+        <Caret Line="641" Column="1" TopLine="625"/>
       </Position21>
       <Position22>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="550" Column="14" TopLine="529"/>
+        <Caret Line="643" Column="1" TopLine="625"/>
       </Position22>
       <Position23>
-        <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="259" Column="1" TopLine="206"/>
+        <Filename Value="frmSetCrosshairUnit.pas"/>
+        <Caret Line="71" Column="78" TopLine="64"/>
       </Position23>
       <Position24>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="536" Column="25" TopLine="514"/>
+        <Caret Line="644" Column="5" TopLine="634"/>
       </Position24>
       <Position25>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="269" Column="35" TopLine="247"/>
+        <Caret Line="269" Column="15" TopLine="253"/>
       </Position25>
       <Position26>
         <Filename Value="d3dhookUnit.pas"/>
@@ -2783,20 +2803,16 @@
       </Position26>
       <Position27>
         <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="269" Column="34" TopLine="253"/>
+        <Caret Line="242" Column="24" TopLine="232"/>
       </Position27>
       <Position28>
-        <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="635" Column="46" TopLine="635"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="3036" Column="7" TopLine="3024"/>
       </Position28>
       <Position29>
-        <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="238" Column="34" TopLine="232"/>
+        <Filename Value="frmSetCrosshairUnit.pas"/>
+        <Caret Line="71" Column="78" TopLine="64"/>
       </Position29>
-      <Position30>
-        <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="536" Column="35" TopLine="510"/>
-      </Position30>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
@@ -2857,7 +2873,7 @@
         <WatchScope Value="wpsLocal"/>
         <WatchKind Value="wpkWrite"/>
         <Source Value="LuaHandler.pas"/>
-        <Line Value="6465"/>
+        <Line Value="6327"/>
       </Item1>
       <Item2>
         <Kind Value="bpkSource"/>
@@ -2871,26 +2887,13 @@
         <WatchScope Value="wpsLocal"/>
         <WatchKind Value="wpkWrite"/>
         <Source Value="LuaHandler.pas"/>
-        <Line Value="5727"/>
+        <Line Value="5589"/>
       </Item3>
     </BreakPoints>
-    <Watches Count="4">
+    <Watches Count="1">
       <Item1>
-        <Expression Value="address"/>
-        <DisplayStyle Value="wdfHex"/>
+        <Expression Value="ftexture"/>
       </Item1>
-      <Item2>
-        <Expression Value="tempaddress"/>
-        <DisplayStyle Value="wdfHex"/>
-      </Item2>
-      <Item3>
-        <Expression Value="oldaddress"/>
-        <DisplayStyle Value="wdfHex"/>
-      </Item3>
-      <Item4>
-        <Expression Value="referencedby"/>
-        <DisplayStyle Value="wdfHex"/>
-      </Item4>
     </Watches>
     <Exceptions Count="8" IgnoreAll="True">
       <Item1>

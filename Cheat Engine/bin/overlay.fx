@@ -6,6 +6,7 @@ SamplerState samLinear : register( s0 );
 cbuffer ConstantBuffer : register( b0 )
 {	
 	float2 translation;
+	float2 scaling;
 	float transparency;	
 	float garbage;
 }
@@ -33,8 +34,18 @@ struct PS_INPUT
 PS_INPUT VS( VS_INPUT input )
 {
     PS_INPUT r=input;
+
+    //scale to the required size (calculated by the renderer)
+    r.Pos[0]=r.Pos[0]*scaling[0];
+    r.Pos[1]=r.Pos[1]*scaling[1];
+
+    //position the sprite so the origin is at the top left
+    r.Pos[0]+=1.0f*scaling[0];
+    r.Pos[1]-=1.0f*scaling[1];
+
+    //now translate to the proper position (0,0=center)
     r.Pos[0]+=translation[0];
-    r.Pos[1]+=translation[1];
+    r.Pos[1]-=translation[1];
    
     return r;
 }
@@ -52,7 +63,7 @@ float4 PS( PS_INPUT input): SV_Target
     r=txDiffuse.Sample( samLinear, input.Tex );      
     
 
-    if ((r[0]+r[1]+r[2]==3) && (r[3]==1))
+    if ((r[0]+r[1]+r[2]==3.00f) && (r[3]==1.0f))
       r[3]=0.0f; //pure white with no transparency. Set it to see through
     else
       r[3]=r[3]*transparency;
@@ -65,8 +76,10 @@ float4 PSNormal( PS_INPUT input): SV_Target
 {
     //pixel shader for overlays that do not use the 255,255,255 = transparency rule
     float4 r;
-    r=txDiffuse.Sample( samLinear, input.Tex )*transparency;      
+    r=txDiffuse.Sample( samLinear, input.Tex ); 
     r[3]=r[3]*transparency;
+    return r;
 
-    return r; 
+//    r[3]=r[3]*transparency;
+//    return float4(0.0f, 1.0f, 0.0f, 1.0f);
 }

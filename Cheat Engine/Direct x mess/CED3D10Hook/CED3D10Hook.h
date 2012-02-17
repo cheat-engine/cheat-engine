@@ -5,11 +5,11 @@
 
 
 typedef struct
-{
-	ID3D10Buffer *pOverlayVB;
-	ID3D10ShaderResourceView *pOverlayTex;
-	float x,y;
-} OverlayData10, *POverlayData10;
+{	
+	ID3D10ShaderResourceView *pTexture;
+	int actualHeight, actualWidth;
+	DWORD colorKey;
+} TextureData10, *PTextureData10;
 
 class DXMessD3D10Handler
 {
@@ -20,10 +20,13 @@ private:
 	IDXGISwapChain *swapchain;
 
 	
-	ID3D10Buffer *pOverlayIB;
+	ID3D10Buffer *pSpriteIB;
+	ID3D10Buffer *pSpriteVB;
 
-	int OverlayCount;
-	OverlayData10 *overlays;
+	int TextureCount;
+	TextureData10 *textures;
+
+	PTextureEntry tea; //texture entry area
 
 
 
@@ -32,7 +35,7 @@ private:
 	ID3D10InputLayout *pVertexLayout;
 
 	ID3D10SamplerState *pSamplerLinear;
-	ID3D10RasterizerState *pOverlayRasterizer;
+	ID3D10RasterizerState *pSpriteRasterizer;
 	
 	ID3D10BlendState *pTransparency;
 
@@ -48,7 +51,7 @@ private:
 
 
 	BOOL Valid;
-	HRESULT setupOverlayTexture();
+	BOOL UpdateTextures();
 	void UpdatePosForOverlay(int i, DXGI_SWAP_CHAIN_DESC *desc);
 public:
 	ID3D10Device *dev;
