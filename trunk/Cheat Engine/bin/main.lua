@@ -488,6 +488,9 @@ radiogroup_getRows(radiogroup): Returns the number of rows
 radiogroup_getItems(radiogroup): Returns a Strings object
 radiogroup_getColumns(radiogroup): Returns the nuber of columns
 radiogroup_setColumns(radiogroup, count)
+radiogroup_getItemIndex(radiogroup)
+radiogroup_setItemIndex(radiogroup)
+
 radiogroup_onClick(radiogroup, function)
 
 
@@ -1179,6 +1182,8 @@ d3dhook_endUpdate() : When done updating, call this function to apply the change
 
 --]]
 
+--[[
+
 add sprites with overlayid's
 
 d3dhook_createTexture()
@@ -1189,3 +1194,5 @@ sprite_setTexture(x,y) : Z determines if the sprite will be drawn over or under 
 sprite_setWidth()
 sprite_setHeight()
 sprite_setZOrder()
+
+--]]

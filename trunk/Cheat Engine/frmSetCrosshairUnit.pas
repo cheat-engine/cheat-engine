@@ -67,24 +67,35 @@ begin
   {$ifndef D3DDebug}
   {$error You forgot to reimplement this}
   {$endif}
-   {
-  if (d3dhook<>nil) and (corsshairSprite<>nil) then
-    corsshairSprite.SetAlphaBlend(trackbar1.position); }
+
+  if (d3dhook<>nil) and (crosshairSprite<>nil) then
+    crosshairSprite.alphaBlend:=trackbar1.position / 100;
 end;
 
 procedure TfrmSetCrosshair.btnApplyClick(Sender: TObject);
-
+var old: td3dhook;
 begin
+  old:=d3dhook;
+
   safed3dhook;
   if d3dhook<>nil then
   begin
+    if old<>d3dhook then
+    begin
+      crosshairtexture:=nil; //don't free. Perhaps the game got terminated due to a freeze in the renderer (lock acquired)
+      crosshairSprite:=nil;
+    end;
+
+
     if crosshairtexture=nil then
     begin
       crosshairtexture:=D3DHook.createTexture(image1.Picture);
       crosshairSprite:=d3dhook.createSprite(crosshairtexture);
-      {$ifndef D3DDebug}
-      {$error You forgot to reimplement the x=-1,y=-1 rule}
-      {$endif}
+      crosshairSprite.beginUpdate;
+      crosshairsprite.x:=-1;
+      crosshairsprite.y:=-1;
+      crosshairsprite.endupdate;
+
     end
     else
       crosshairtexture.LoadTextureByPicture(image1.Picture);

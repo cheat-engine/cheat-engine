@@ -636,19 +636,27 @@ procedure TD3DHook_Sprite.UpdateRenderCommand;
 var index: integer;
 begin
   index:=getindex;
+
   owner.beginCommandListUpdate;
 
-  if owner.renderCommandList^[index].command<>integer(rcDrawSprite) then //something completly new
-    owner.renderCommandList^[index].command:=integer(rcIgnored); //in case the lock is not used
+  if (index<>-1) and (texture<>nil) then
+  begin
+    if owner.renderCommandList^[index].command<>integer(rcDrawSprite) then //something completly new
+      owner.renderCommandList^[index].command:=integer(rcIgnored); //in case the lock is not used
 
-  owner.renderCommandList^[index].Sprite.x:=x;
-  owner.renderCommandList^[index].Sprite.y:=y;
-  owner.renderCommandList^[index].Sprite.alphablend:=alphablend;
-  owner.renderCommandList^[index].Sprite.width:=width;
-  owner.renderCommandList^[index].Sprite.height:=height;
-  owner.renderCommandList^[index].Sprite.ismouse:=integer(ismouse);
-  owner.renderCommandList^[index].Sprite.textureid:=texture.getID;
-  owner.renderCommandList^[index].command:=integer(rcDrawSprite);
+    owner.renderCommandList^[index].Sprite.x:=x;
+    owner.renderCommandList^[index].Sprite.y:=y;
+    owner.renderCommandList^[index].Sprite.alphablend:=alphablend;
+    owner.renderCommandList^[index].Sprite.width:=width;
+    owner.renderCommandList^[index].Sprite.height:=height;
+    owner.renderCommandList^[index].Sprite.ismouse:=integer(ismouse);
+    owner.renderCommandList^[index].Sprite.textureid:=texture.getID;
+    owner.renderCommandList^[index].command:=integer(rcDrawSprite);
+  end
+  else
+    owner.renderCommandList^[index].command:=integer(rcIgnored);
+
+
 
   owner.endCommandListUpdate;
 end;
@@ -656,9 +664,11 @@ end;
 constructor TD3DHook_Sprite.create(owner: TD3DHook; texture: TD3DHook_Texture);
 begin
   inherited create(owner);
+  beginupdate;
   alphablend:=1;
 
   setTexture(texture);
+  endUpdate;
 end;
 
 //-------------------------------d3dhook_texture--------------------------------
@@ -939,7 +949,7 @@ end;
 
 procedure TD3DHook.endCommandListUpdate;
 begin
-  renderCommandList^[commandlist.count-1].command:=integer(rcEndOfCommandlist);
+  renderCommandList^[commandlist.count].command:=integer(rcEndOfCommandlist);
 
   if isupdatingCL>0 then
   begin

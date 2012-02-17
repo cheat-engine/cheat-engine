@@ -1006,7 +1006,7 @@ int GetDXVersionAndInitDLL(IDXGISwapChain *x, void *device)
 
 HRESULT __stdcall IDXGISwapChain_ResizeBuffers_new(IDXGISwapChain *x, UINT BufferCount, UINT Width, UINT Height, DXGI_FORMAT NewFormat, UINT SwapChainFlags)
 {
-   /*
+
 	if (shared)
 	{
 		IUnknown *dev;
@@ -1034,14 +1034,14 @@ HRESULT __stdcall IDXGISwapChain_ResizeBuffers_new(IDXGISwapChain *x, UINT Buffe
 			dev->Release();
 	}
 
-*/
+
 
 	return DXGI_ResizeBuffers_Original(x, BufferCount, Width, Height, NewFormat, SwapChainFlags);
 }
 
 HRESULT __stdcall IDXGISwapChain_Present_new(IDXGISwapChain *x, UINT SyncInterval, UINT Flags)
 {
-/*
+
 	if (shared)	
 	{
 		IUnknown *dev;
@@ -1073,7 +1073,7 @@ HRESULT __stdcall IDXGISwapChain_Present_new(IDXGISwapChain *x, UINT SyncInterva
 
 
 	}
-	*/
+	
 
 	//call original present
 	return DXGI_Present_Original(x, SyncInterval, Flags);
