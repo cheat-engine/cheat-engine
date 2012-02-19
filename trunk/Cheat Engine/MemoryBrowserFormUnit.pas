@@ -559,7 +559,7 @@ resourcestring
   rsGotoAddress = 'Goto Address';
   rsFillInTheAddressYouWantToGoTo = 'Fill in the address you want to go to';
   rsMemoryViewerRunning = 'Memory Viewer - Running';
-  rsCheatEngineSingleLingeAssembler = 'Cheat Engine single-linge assembler';
+  rsCheatEngineSingleLingeAssembler = 'Cheat Engine single-line assembler';
   rsTypeYourAssemblerCodeHereAddress = 'Type your assembler code here: (address=%s)';
   rsTheGeneratedCodeIsByteSLongButTheSelectedOpcodeIsB = 'The generated code is %s byte(s) long, but the selected opcode is %s byte(s) long! Do you want to replace the '
     +'incomplete opcode(s) with NOP''s?';
