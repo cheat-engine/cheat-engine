@@ -9,10 +9,9 @@
 
 typedef struct
 {
-	ID3D11Buffer *pOverlayVB;
-	ID3D11ShaderResourceView *pOverlayTex;
-	float x,y;
-} OverlayData, *POverlayData;
+	ID3D11ShaderResourceView *pTexture;
+	DWORD colorKey;
+} TextureData11, *PTextureData11;
 
 class DXMessD3D11Handler
 {
@@ -23,10 +22,12 @@ private:
 	IDXGISwapChain *swapchain;
 
 	
-	ID3D11Buffer *pOverlayIB;
+	ID3D11Buffer *pSpriteVB;
 
-	int OverlayCount;
-	OverlayData *overlays;
+	int TextureCount;
+	TextureData11 *textures;
+
+	PTextureEntry tea; //texture entry area
 
 
 
@@ -35,7 +36,7 @@ private:
 	ID3D11InputLayout *pVertexLayout;
 
 	ID3D11SamplerState *pSamplerLinear;
-	ID3D11RasterizerState *pOverlayRasterizer;
+	ID3D11RasterizerState *pSpriteRasterizer;
 	ID3D11BlendState *pTransparency;
 
 	ID3D11Texture2D *pDepthStencil;
@@ -46,8 +47,7 @@ private:
 
 
 	BOOL Valid;
-	HRESULT setupOverlayTexture();
-	void UpdatePosForOverlay(int i, DXGI_SWAP_CHAIN_DESC *desc);
+	BOOL UpdateTextures();
 public:
 	ID3D11Device *dev;
 	ID3D11DeviceContext *dc;

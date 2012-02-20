@@ -11,7 +11,7 @@ int insidehook=0;
 PD3DHookShared shared;
 
 //definitions
-struct OverlayVertex{
+struct SpriteVertex{
     XMFLOAT3 Pos;
     XMFLOAT2 Tex;
 };
@@ -19,36 +19,14 @@ struct OverlayVertex{
 struct ConstantBuffer
 {	
 	XMFLOAT2 translation;	
-	FLOAT transparency;	
+	XMFLOAT2 scaling;
+	FLOAT transparency;		
 	FLOAT garbage; //16 byte alignment crap
+	FLOAT garbage2;
+	FLOAT garbage3;
 };
 
-void DXMessD3D11Handler::UpdatePosForOverlay(int i, DXGI_SWAP_CHAIN_DESC *desc)
-//pre: i must be valid
-{
-
-	if ((shared->resources[i].x==-1) && (shared->resources[i].y==-1))
-	{
-		//center of screen
-		float newx,newy;
-		newx=((float)desc->BufferDesc.Width / 2.0f) - ((float)shared->resources[i].width / 2.0f);
-		newy=((float)desc->BufferDesc.Height / 2.0f) - ((float)shared->resources[i].height / 2.0f);
-
-		overlays[i].x=(float)((float)newx / (float)desc->BufferDesc.Width) *2.0f;
-		overlays[i].y=-(float)((float)newy / (float)desc->BufferDesc.Height) *2.0f;
-
-
-	}
-	else
-	{
-		overlays[i].x=(float)((float)shared->resources[i].x / (float)desc->BufferDesc.Width) *2.0f;
-		overlays[i].y=-(float)((float)shared->resources[i].y / (float)desc->BufferDesc.Height) *2.0f;
-	}
-	shared->resources[i].updatedpos=0;
-}
-
-HRESULT DXMessD3D11Handler::setupOverlayTexture()
-//hmm, I could update it to a x,y,width,height, winhandle method now...
+BOOL DXMessD3D11Handler::UpdateTextures()
 {
 	//call this each time the resolution changes (when the buffer changes)
 	HRESULT hr;
@@ -57,145 +35,113 @@ HRESULT DXMessD3D11Handler::setupOverlayTexture()
 	DXGI_SWAP_CHAIN_DESC desc;
 	int i;
 
-	if (shared->overlaycount==0)
-		return S_OK;
-
-	ZeroMemory(&desc, sizeof(desc));
-	hr=swapchain->GetDesc(&desc);
-	if (FAILED(hr))
-		return hr;
+	int newTextureCount;
 
 
+	WaitForSingleObject((HANDLE)(shared->TextureLock), INFINITE);
 	
-	if (shared->overlaycount > OverlayCount)
+	if (shared->textureCount)
 	{
-		int newcount=shared->overlaycount;
-	
+		ZeroMemory(&desc, sizeof(desc));
+		hr=swapchain->GetDesc(&desc);
+		if (FAILED(hr))
+			return hr;
 
-		if (overlays==NULL) //initial alloc
-		{
+		newTextureCount=shared->textureCount;
+
+		if (shared->textureCount > TextureCount)
+		{				
+			//update the textures if needed
+			if (textures==NULL) //initial alloc
+				textures=(TextureData11 *)malloc(sizeof(TextureData11)* shared->textureCount);			
+			else //realloc
+				textures=(TextureData11 *)realloc(textures, sizeof(TextureData11)* shared->textureCount);		
+
+			//initialize the new entries to NULL
+			for (i=TextureCount; i<shared->textureCount; i++)
+				textures[i].pTexture=NULL;	
 			
-			overlays=(OverlayData *)malloc(sizeof(OverlayData)* newcount);			
 		}
-		else
-		{
-			//realloc
-			overlays=(OverlayData *)realloc(overlays, sizeof(OverlayData)* newcount);			
-		}
-
 		
 
-		//initialize the new entries to NULL
-		for (i=OverlayCount; i<shared->overlaycount; i++)
-		{
-			overlays[i].pOverlayTex=NULL;
-			overlays[i].pOverlayVB=NULL;			
-		}	
-
-		OverlayCount=newcount;
-	}
-
-	for (i=0; i<OverlayCount; i++)
-	{
-		if (shared->resources[i].valid)
-		{
-
-			if ((shared->resources[i].updatedresource) || (overlays[i].pOverlayTex==NULL) || (overlays[i].pOverlayVB==NULL))
-			{
-				
-				//(Re)create the texture
-				if (overlays[i].pOverlayTex)
+		for (i=0; i<newTextureCount; i++)
+		{			
+			if (tea[i].AddressOfTexture)
+			{	
+				if ((tea[i].hasBeenUpdated) || (textures[i].pTexture==NULL))
 				{
-					if (overlays[i].pOverlayTex->Release()==0)
-						overlays[i].pOverlayTex=NULL; //should always happen
-				}
+					if (textures[i].pTexture)
+					{
+						//already has a texture, so an update. Free the old one	first
+						textures[i].pTexture->Release();
+						textures[i].pTexture=NULL; //should always happen
+					}
 
-				hr=D3DX11CreateTextureFromMemory(dev, (void *)(uintptr_t(shared)+shared->resources[i].resourceoffset), shared->resources[i].resourcesize, NULL, NULL, &test, NULL);
-				if( FAILED( hr ) )
-				{
-					OutputDebugStringA("Failure creating a texture");
-					return hr;
-				}
+					hr=D3DX11CreateTextureFromMemory(dev, (void *)(tea[i].AddressOfTexture), tea[i].size, NULL, NULL, &test, NULL);
+					if( FAILED( hr ) )
+					{
+						OutputDebugStringA("Failure creating a texture");
+						return hr;
+					}
 
-				//not sure if this is needed or if I can just pass the texturex as resource for resourceview
-				hr=test->QueryInterface(__uuidof(ID3D11Texture2D), (void **)(&texturex));			
-
-				hr=dev->CreateShaderResourceView(test, NULL, &overlays[i].pOverlayTex);
-				if( FAILED( hr ) )
-					return hr;
-
-				test->Release();
-				texturex->Release();
-
-				//create the vertex buffer with the proper width/height
-				float right, bottom;
-
-				right=-1.0f+((float)shared->resources[i].width / (float)desc.BufferDesc.Width)*2.0f;
-				bottom=1.0f-((float)shared->resources[i].height / (float)desc.BufferDesc.Height)*2.0f;
-
-				OverlayVertex overlayVertices[] ={ //x,y,z, x,y
-					{XMFLOAT3(-1.0f, 1.0f, 0.0f), XMFLOAT2( 0.0f, 0.0f ) },
-					{XMFLOAT3(-1.0f, bottom, 0.0f), XMFLOAT2( 0.0f, 1.0f )},		
-					{XMFLOAT3(right, bottom, 0.0f), XMFLOAT2( 1.0f, 1.0f )},
 					
-					{XMFLOAT3(right, bottom, 0.0f), XMFLOAT2( 1.0f, 1.0f )},
-					{XMFLOAT3(right, 1.0f, 0.0f), XMFLOAT2( 1.0f, 0.0f )},
-					{XMFLOAT3(-1.0f, 1.0f, 0.0f), XMFLOAT2( 0.0f, 0.0f )},		
-				};
+					hr=test->QueryInterface(__uuidof(ID3D11Texture2D), (void **)(&texturex));	
 
-				D3D11_BUFFER_DESC bd2d;
-				ZeroMemory( &bd2d, sizeof(bd2d) );
-				bd2d.Usage = D3D11_USAGE_DYNAMIC;
-				bd2d.ByteWidth = sizeof( OverlayVertex ) * 6;
-				bd2d.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-				bd2d.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-			   
-				D3D11_SUBRESOURCE_DATA InitData2d;
-				ZeroMemory( &InitData2d, sizeof(InitData2d) );
-				InitData2d.pSysMem = overlayVertices;
-				hr = dev->CreateBuffer( &bd2d, &InitData2d, &overlays[i].pOverlayVB );
-				if( FAILED( hr ) )
-				{
-					OutputDebugStringA("Vertexbuffer creation failed\n");
-					return hr;
+					
+					hr=dev->CreateShaderResourceView(test, NULL, &textures[i].pTexture);
+					if( FAILED( hr ) )
+						return hr;
+				
+
+					textures[i].colorKey=tea[i].colorKey;
+
+
+					test->Release();
+					texturex->Release();
 				}
-
-				shared->resources[i].updatedresource=0;
-
 			}
-
-			if (shared->resources[i].updatedpos)
-				UpdatePosForOverlay(i, &desc);
-
+			else
+			{
+				//It's NULL (cleanup)
+				if (textures[i].pTexture)
+				{
+					textures[i].pTexture->Release();
+					textures[i].pTexture=NULL;
+				}				
+			}
 		}
+
+		TextureCount=newTextureCount;
+		
+
+		
 	}
 
+	if (shared->texturelistHasUpdate)
+		InterlockedExchange((volatile LONG *)&shared->texturelistHasUpdate,0);		
 
-	shared->OverLayHasUpdate=0;
-	return hr;
+	SetEvent((HANDLE)(shared->TextureLock));
+
+	return TRUE;	
 
 }
 
+
 DXMessD3D11Handler::~DXMessD3D11Handler()
 {
-	if (pOverlayIB)
-		pOverlayIB->Release();
-
-	if (overlays)
+	if (textures)
 	{
 		int i;
-		for (i=0; i<OverlayCount; i++)
+		for (i=0; i<TextureCount; i++)
 		{
-			if (overlays[i].pOverlayTex)
-				overlays[i].pOverlayTex->Release();
-
-			if (overlays[i].pOverlayVB)
-				overlays[i].pOverlayVB->Release();
-
-
+			if (textures[i].pTexture)
+				textures[i].pTexture->Release();
 		}
-		free(overlays);			
+		free(textures);	
 	}
+
+	if (pSpriteVB)
+		pSpriteVB->Release();
 
 	if (pPixelShader)
 		pPixelShader->Release();
@@ -209,8 +155,8 @@ DXMessD3D11Handler::~DXMessD3D11Handler()
 	if (pSamplerLinear)
 		pSamplerLinear->Release();
 
-	if (pOverlayRasterizer)
-		pOverlayRasterizer->Release();
+	if (pSpriteRasterizer)
+		pSpriteRasterizer->Release();
 
 	if (pTransparency)
 		pTransparency->Release();
@@ -251,19 +197,25 @@ DXMessD3D11Handler::DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD
 {
 	HRESULT hr;
 
-	pOverlayIB=NULL;
-
-
 	pPixelShader=NULL;
 	pVertexShader=NULL;
 	pVertexLayout=NULL;
 
 	pSamplerLinear=NULL;
-	pOverlayRasterizer=NULL;
+	pSpriteRasterizer=NULL;
 	pTransparency=NULL;
+	pDepthStencil=NULL;
+	pRenderTargetView=NULL;
+	pDepthStencilView=NULL;
+	pConstantBuffer=NULL;
 
-	OverlayCount=0;
-	overlays=NULL;
+	pWireframeRasterizer=NULL;
+	pDisabledDepthStencilState=NULL;
+
+	TextureCount=0;
+	textures=NULL;
+
+	tea=NULL;
 
 
 
@@ -283,29 +235,9 @@ DXMessD3D11Handler::DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD
 	D3D11_SUBRESOURCE_DATA InitData2d;
 
 	
-    WORD overlayIndices[] =
-    {
-        0,1,2,
-		3,4,5,
-    };
-
-	ZeroMemory( &bd2d, sizeof(bd2d) );
-
-    bd2d.Usage = D3D11_USAGE_DEFAULT;
-    bd2d.ByteWidth = sizeof( WORD ) * 6;
-    bd2d.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    bd2d.CPUAccessFlags = 0;
-    InitData2d.pSysMem = overlayIndices;
-    hr = dev->CreateBuffer( &bd2d, &InitData2d, &pOverlayIB );
-
-    if( FAILED( hr ) )
-	{
-		OutputDebugStringA("Indexbuffer creation failed\n");
-		return;
-	}
 
 	
-
+	//create the shaders
     ID3DBlob* pBlob = NULL;
 	ID3DBlob* pErrorBlob = NULL;
 
@@ -393,6 +325,32 @@ DXMessD3D11Handler::DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD
 
 	pBlob->Release();
 
+	//create rectangular vertex buffer for sprites
+	SpriteVertex spriteVertices[] ={ 
+		{XMFLOAT3( 1.0f,  1.0f, 1.0f), XMFLOAT2( 1.0f, 0.0f ) },
+		{XMFLOAT3( 1.0f, -1.0f, 1.0f), XMFLOAT2( 1.0f, 1.0f )},		
+		{XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT2( 0.0f, 1.0f )},
+		
+		{XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT2( 0.0f, 1.0f )},
+		{XMFLOAT3(-1.0f,  1.0f, 1.0f), XMFLOAT2( 0.0f, 0.0f )},
+		{XMFLOAT3( 1.0f,  1.0f, 1.0f), XMFLOAT2( 1.0f, 0.0f )},		
+	};
+
+	ZeroMemory( &bd2d, sizeof(bd2d) );
+	bd2d.Usage = D3D11_USAGE_DYNAMIC;
+	bd2d.ByteWidth = sizeof( SpriteVertex ) * 6;
+	bd2d.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	bd2d.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+	ZeroMemory( &InitData2d, sizeof(InitData2d) );
+	InitData2d.pSysMem = spriteVertices;
+	hr = dev->CreateBuffer( &bd2d, &InitData2d, &pSpriteVB );
+	if( FAILED( hr ) )
+	{
+		OutputDebugStringA("Vertexbuffer creation failed\n");
+		return;
+	}
+
 
 
     D3D11_SAMPLER_DESC sampDesc;
@@ -427,7 +385,7 @@ DXMessD3D11Handler::DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD
 	rasterizerdesc.SlopeScaledDepthBias = 0.0f;
 
 
-	hr=dev->CreateRasterizerState(&rasterizerdesc, &pOverlayRasterizer);
+	hr=dev->CreateRasterizerState(&rasterizerdesc, &pSpriteRasterizer);
 	if( FAILED( hr ) )
         return;
 
@@ -442,7 +400,6 @@ DXMessD3D11Handler::DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD
 	hr= dev->CreateDepthStencilState(&dsDesc, &pDisabledDepthStencilState);
 	if( FAILED( hr ) )
 		pDisabledDepthStencilState=NULL;
-
 
 
 	D3D11_BLEND_DESC blend;
@@ -517,15 +474,9 @@ DXMessD3D11Handler::DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD
     if( FAILED( hr ) )
         return;
 
-
-
-	//now create the texture of the overlay
-	hr=setupOverlayTexture();
-
-	if( FAILED( hr ) )
-		return;
-
-	
+	//now load the textures
+	tea=(PTextureEntry)((uintptr_t)shared+shared->texturelist);
+	UpdateTextures();
 
 	// Create the constant buffer
 	D3D11_BUFFER_DESC bd;
@@ -541,22 +492,17 @@ DXMessD3D11Handler::DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD
 
 
 
-
 	Valid=TRUE;
 }
 
 
 void DXMessD3D11Handler::RenderOverlay()
 {
-	
-
 	int i;
 	if (Valid)
 	{	
-
 		//render the overlay
-	
-
+		BOOL hasLock=FALSE;
 
 		//check if the overlay has an update
 		//if so, first update the texture
@@ -564,33 +510,12 @@ void DXMessD3D11Handler::RenderOverlay()
 		DXGI_SWAP_CHAIN_DESC desc;
 		swapchain->GetDesc(&desc);
 		shared->lastHwnd=(DWORD)desc.OutputWindow;
-
-		
-
-		if ((shared->MouseOverlayId>=0) && (OverlayCount>=shared->MouseOverlayId) && (shared->resources[shared->MouseOverlayId].valid))
-		{
-			//update the mouse position each frame for as long as the mouse is valid
-			POINT p;
-
-			p.x=0;
-			p.y=0;
-
-			GetCursorPos(&p);
-
-			ScreenToClient(desc.OutputWindow, &p);				
-			
-			shared->resources[shared->MouseOverlayId].x=p.x;
-			shared->resources[shared->MouseOverlayId].y=p.y;			
-
-			UpdatePosForOverlay(shared->MouseOverlayId, &desc);			
-		}
+	
+		if (shared->texturelistHasUpdate)
+			UpdateTextures();
 
 
-		if (shared->OverLayHasUpdate)
-			setupOverlayTexture();
-
-
-		UINT stride = sizeof( OverlayVertex );
+		UINT stride = sizeof( SpriteVertex );
 		UINT offset = 0;
 		float blendFactor[] = {1.0f, 1.0f, 1.0f, 1.0f};
 
@@ -714,7 +639,6 @@ void DXMessD3D11Handler::RenderOverlay()
 		dc->ClearDepthStencilView( pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0 );
 
 		dc->OMSetBlendState(pTransparency, blendFactor, 0xffffffff);
-		//dc->OMSetDepthStencilState(NULL,0);
 		dc->OMSetDepthStencilState(pDisabledDepthStencilState,0);
 		
 
@@ -722,43 +646,106 @@ void DXMessD3D11Handler::RenderOverlay()
 
 		dc->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
 		dc->IASetInputLayout( pVertexLayout );
-		dc->IASetIndexBuffer( pOverlayIB, DXGI_FORMAT_R16_UINT, 0 );
+		dc->IASetIndexBuffer( NULL, DXGI_FORMAT_R16_UINT, 0 );
 		
 
-		dc->RSSetState(pOverlayRasterizer);
+		dc->RSSetState(pSpriteRasterizer);
+
+		if (shared->UseCommandlistLock)
+			hasLock=WaitForSingleObject((HANDLE)shared->CommandlistLock, INFINITE)==WAIT_OBJECT_0;
 		
 
 		
-		for (i=0; i<OverlayCount; i++)
+		i=0;
+		while (shared->RenderCommands[i].Command)
 		{
-			if (shared->resources[i].valid)
-			{					
+			switch (shared->RenderCommands[i].Command)
+			{
+				case rcDrawSprite:
+				{
+					if (shared->RenderCommands[i].sprite.textureid<TextureCount)
+					{
+						BOOL ColorKeyCrapper=textures[shared->RenderCommands[i].sprite.textureid].colorKey;					
+						XMFLOAT3 position;				
 
-				//set the vertexbuffer and texture and render
-				dc->IASetVertexBuffers( 0, 1, &overlays[i].pOverlayVB, &stride, &offset );
-				if (shared->resources[i].hasTransparency)
-					dc->PSSetShader( pPixelShader, NULL, 0 );
-				else
-					dc->PSSetShader( pPixelShaderNormal, NULL, 0 );
+						dc->IASetVertexBuffers( 0, 1, &pSpriteVB, &stride, &offset );
 
-				dc->PSSetShaderResources( 0, 1, &overlays[i].pOverlayTex );	
+						if (ColorKeyCrapper)
+							dc->PSSetShader( pPixelShader, NULL, 0);
+						else
+							dc->PSSetShader( pPixelShaderNormal, NULL, 0);
+
+						dc->PSSetSamplers( 0, 1, &pSamplerLinear );						
+						dc->PSSetShaderResources( 0, 1, &textures[shared->RenderCommands[i].sprite.textureid].pTexture );
+
+						if ((shared->RenderCommands[i].sprite.x==-1) && (shared->RenderCommands[i].sprite.y==-1))
+						{
+							//Center of the screen						
+							position.x=((float)vp.Width / 2.0f) - ((float)shared->RenderCommands[i].sprite.width / 2.0f);
+							position.y=((float)vp.Height / 2.0f) - ((float)shared->RenderCommands[i].sprite.height / 2.0f);
+						}
+						else
+						if (shared->RenderCommands[i].sprite.isMouse)
+						{
+							//set to the position of the mouse (center is origin)
+							
+							POINT p;	
+
+							p.x=0;
+							p.y=0;
+
+							GetCursorPos(&p);
+							ScreenToClient((HWND)shared->lastHwnd, &p);			
+							position.x=(float)p.x-((float)shared->RenderCommands[i].sprite.width / 2.0f);  //make the center of the texture the position of the mouse (to add crosshairs, and normal mousecursors just have to keep that in mind so only render in the bottom left quadrant
+							position.y=(float)p.y-((float)shared->RenderCommands[i].sprite.height / 2.0f);								
+							
+						}
+						else
+						{
+							position.x=(float)shared->RenderCommands[i].sprite.x;
+							position.y=(float)shared->RenderCommands[i].sprite.y;								
+						}			
+			
+						if (ColorKeyCrapper) //Full pixels only (transparency gets messed if subpixel trickery is done)
+						{
+							position.x=(int)position.x;
+							position.y=(int)position.y;
+						}
+
+						ConstantBuffer cb;					
+						cb.transparency=shared->RenderCommands[i].sprite.alphablend;
+
+						
+						cb.scaling.x=(float)shared->RenderCommands[i].sprite.width/(float)vp.Width;
+						cb.scaling.y=(float)shared->RenderCommands[i].sprite.height/(float)vp.Height;
 	
-				ConstantBuffer cb;
-				UpdatePosForOverlay(i, &desc);
-				cb.transparency=shared->resources[i].alphaBlend;
-				cb.translation.x=overlays[i].x;
-				cb.translation.y=overlays[i].y;
+						cb.translation.x=-1.0f+((float)((float)position.x * 2)/(float)vp.Width);
+						cb.translation.y=-1.0f+((float)((float)position.y * 2)/(float)vp.Height);
 
-				dc->UpdateSubresource( pConstantBuffer, 0, NULL, &cb, 0, 0 );
+						dc->UpdateSubresource( pConstantBuffer, 0, NULL, &cb, 0, 0 );
 
-				dc->VSSetConstantBuffers(0,1, &pConstantBuffer);
-				dc->PSSetConstantBuffers(0,1, &pConstantBuffer);
+						dc->VSSetConstantBuffers(0,1, &pConstantBuffer);
+						dc->PSSetConstantBuffers(0,1, &pConstantBuffer);
+
+						dc->Draw(6,0);
+					
+					}
 				
+					break;
+				}
 
-				
-				dc->DrawIndexed( 6, 0,0);
+				case rcDrawFont:
+				{
+					//nyi
+					break;
+				}
 			}
+
+			i++;				
 		}
+
+		if (hasLock) //release the lock if it was obtained
+			SetEvent((HANDLE)shared->CommandlistLock);
 
 		//restore
 		dc->GSSetShader(oldgs, oldgsinstances, gci_count);

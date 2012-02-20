@@ -28,30 +28,6 @@ struct ConstantBuffer
 	FLOAT garbage3;
 };
 
-void DXMessD3D10Handler::UpdatePosForOverlay(int i, DXGI_SWAP_CHAIN_DESC *desc)
-//pre: i must be valid
-{
-	/*
-
-	if ((shared->resources[i].x==-1) && (shared->resources[i].y==-1))
-	{
-		//center of screen
-		float newx,newy;
-		newx=((float)desc->BufferDesc.Width / 2.0f) - ((float)shared->resources[i].width / 2.0f);
-		newy=((float)desc->BufferDesc.Height / 2.0f) - ((float)shared->resources[i].height / 2.0f);
-
-		overlays[i].x=(float)((float)newx / (float)desc->BufferDesc.Width) *2.0f;
-		overlays[i].y=-(float)((float)newy / (float)desc->BufferDesc.Height) *2.0f;
-
-
-	}
-	else
-	{
-		overlays[i].x=(float)((float)shared->resources[i].x / (float)desc->BufferDesc.Width) *2.0f;
-		overlays[i].y=-(float)((float)shared->resources[i].y / (float)desc->BufferDesc.Height) *2.0f;
-	}
-	shared->resources[i].updatedpos=0;*/
-}
 
 BOOL DXMessD3D10Handler::UpdateTextures()
 {
@@ -88,8 +64,8 @@ BOOL DXMessD3D10Handler::UpdateTextures()
 			for (i=TextureCount; i<shared->textureCount; i++)
 			{
 				textures[i].pTexture=NULL;
-				textures[i].actualWidth=0;
-				textures[i].actualHeight=0;		
+				//textures[i].actualWidth=0;
+				//textures[i].actualHeight=0;		
 			}	
 
 			
@@ -119,10 +95,10 @@ BOOL DXMessD3D10Handler::UpdateTextures()
 					
 					hr=test->QueryInterface(__uuidof(ID3D10Texture2D), (void **)(&texturex));	
 
-					D3D10_TEXTURE2D_DESC d;
-					texturex->GetDesc(&d);
-					textures[i].actualWidth=d.Width;
-					textures[i].actualHeight=d.Height;
+					//D3D10_TEXTURE2D_DESC d;
+					//texturex->GetDesc(&d);
+					//textures[i].actualWidth=d.Width;
+					//textures[i].actualHeight=d.Height;
 
 					
 					hr=dev->CreateShaderResourceView(test, NULL, &textures[i].pTexture);
@@ -166,23 +142,20 @@ BOOL DXMessD3D10Handler::UpdateTextures()
 DXMessD3D10Handler::~DXMessD3D10Handler()
 {
 	
-	/*
-	if (overlays)
+	
+	if (textures)
 	{
 		int i;
-		for (i=0; i<OverlayCount; i++)
+		for (i=0; i<TextureCount; i++)
 		{
-			if (overlays[i].pOverlayTex)
-				overlays[i].pOverlayTex->Release();
-
-			if (overlays[i].pOverlayVB)
-				overlays[i].pOverlayVB->Release();
-
-			
+			if (textures[i].pTexture)
+				textures[i].pTexture->Release();
 		}
-		free(overlays);	
+		free(textures);	
 	}
-*/
+
+	if (pSpriteVB)
+		pSpriteVB->Release();
 
 	if (pPixelShader)
 		pPixelShader->Release();
@@ -235,9 +208,6 @@ DXMessD3D10Handler::DXMessD3D10Handler(ID3D10Device *dev, IDXGISwapChain *sc, PD
 	HRESULT hr;
 	int i;
 
-
-	//hr=D3DX10CreateSprite(dev, 0, &sprite);
-	
 
 	pPixelShader=NULL;
 	pVertexShader=NULL;
@@ -408,33 +378,6 @@ DXMessD3D10Handler::DXMessD3D10Handler(ID3D10Device *dev, IDXGISwapChain *sc, PD
 	}
 
 
-	
-	
-    WORD overlayIndices[] =
-    {
-        0,1,2,
-		3,4,5,
-    };
-
-	ZeroMemory( &bd2d, sizeof(bd2d) );
-
-    bd2d.Usage = D3D10_USAGE_DEFAULT;
-    bd2d.ByteWidth = sizeof( WORD ) * 6;
-    bd2d.BindFlags = D3D10_BIND_INDEX_BUFFER;
-    bd2d.CPUAccessFlags = 0;
-	
-	ZeroMemory( &InitData2d, sizeof(InitData2d) );
-    InitData2d.pSysMem = overlayIndices;
-    hr = dev->CreateBuffer( &bd2d, &InitData2d, &pSpriteIB );
-
-	
-
-    if( FAILED( hr ) )
-	{
-		OutputDebugStringA("Indexbuffer creation failed\n");
-		return;
-	}
-
 
     D3D10_SAMPLER_DESC sampDesc;
     ZeroMemory( &sampDesc, sizeof(sampDesc) );
@@ -476,6 +419,7 @@ DXMessD3D10Handler::DXMessD3D10Handler(ID3D10Device *dev, IDXGISwapChain *sc, PD
 	hr=dev->CreateRasterizerState(&rasterizerdesc, &pWireframeRasterizer);
 	if( FAILED( hr ) )
         pWireframeRasterizer=NULL; //no biggie
+
 
 	D3D10_DEPTH_STENCIL_DESC dsDesc;
 	ZeroMemory(&dsDesc, sizeof(dsDesc)); //everything 0, including DepthEnable
@@ -587,13 +531,11 @@ void DXMessD3D10Handler::RenderOverlay()
 	int i;
 	if (Valid)
 	{
-
 		//render the overlay
+		BOOL hasLock=FALSE;
 
 		//check if the overlay has an update
-		//if so, first update the texture
-
-		BOOL hasLock;
+		//if so, first update the texture		
 
 		DXGI_SWAP_CHAIN_DESC desc;
 		swapchain->GetDesc(&desc);
@@ -602,12 +544,10 @@ void DXMessD3D10Handler::RenderOverlay()
 		if (shared->texturelistHasUpdate)
 			UpdateTextures();
 
-	
-
 		
 		UINT stride = sizeof( SpriteVertex );
 		UINT offset = 0;
-		float blendFactor[] = {0.0f, 0.0f, 0.0f, 0.0f};
+		float blendFactor[] = {1.0f, 1.0f, 1.0f, 1.0f};
 
 		ID3D10VertexShader *oldvs=NULL;
 		ID3D10PixelShader *oldps=NULL;
@@ -716,7 +656,7 @@ void DXMessD3D10Handler::RenderOverlay()
 		dev->IASetPrimitiveTopology( D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
 		dev->IASetInputLayout( pVertexLayout );
 	
-		dev->IASetIndexBuffer( pSpriteIB, DXGI_FORMAT_R16_UINT, 0 );
+//		dev->IASetIndexBuffer( pSpriteIB, DXGI_FORMAT_R16_UINT, 0 );
 		dev->IASetIndexBuffer( NULL, DXGI_FORMAT_R16_UINT, 0 );
 		
 
@@ -736,10 +676,8 @@ void DXMessD3D10Handler::RenderOverlay()
 					if (shared->RenderCommands[i].sprite.textureid<TextureCount)
 					{
 						BOOL ColorKeyCrapper=textures[shared->RenderCommands[i].sprite.textureid].colorKey;
-					
-						XMFLOAT2 Position;
+						XMFLOAT3 position;
 
-						D3DXVECTOR3 position;
 						dev->IASetVertexBuffers( 0, 1, &pSpriteVB, &stride, &offset );
 
 						if (ColorKeyCrapper)
@@ -815,21 +753,7 @@ void DXMessD3D10Handler::RenderOverlay()
 
 			i++;				
 		}
-	/*	
-		
 
-		
-		for (i=0; i<OverlayCount; i++)
-		{
-			if (shared->resources[i].valid)
-			{			
-				//set the vertexbuffer and texture and render
-
-
-			}
-		}
-
-		*/
 		if (hasLock) //release the lock if it was obtained
 			SetEvent((HANDLE)shared->CommandlistLock);
 
