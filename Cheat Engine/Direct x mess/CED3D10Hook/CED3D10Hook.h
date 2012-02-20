@@ -7,7 +7,6 @@
 typedef struct
 {	
 	ID3D10ShaderResourceView *pTexture;
-	int actualHeight, actualWidth;
 	DWORD colorKey;
 } TextureData10, *PTextureData10;
 
@@ -18,9 +17,6 @@ private:
 
 	
 	IDXGISwapChain *swapchain;
-
-	
-	ID3D10Buffer *pSpriteIB;
 	ID3D10Buffer *pSpriteVB;
 
 	int TextureCount;
@@ -47,12 +43,8 @@ private:
 	ID3D10DepthStencilView *pDepthStencilView;
 	ID3D10Buffer *pConstantBuffer;
 
-	//ID3DX10Sprite *sprite; //in case the pixelshader stuff fails (I can't seem to set it to a lower PS version than 4...)
-
-
 	BOOL Valid;
 	BOOL UpdateTextures();
-	void UpdatePosForOverlay(int i, DXGI_SWAP_CHAIN_DESC *desc);
 public:
 	ID3D10Device *dev;
 	ID3D10RasterizerState *pWireframeRasterizer;
