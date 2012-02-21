@@ -409,15 +409,16 @@ DXMessD3D11Handler::DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD
 	ZeroMemory( &blend, sizeof(blend) );
 
 	rtbd.BlendEnable			 = true;
-	rtbd.SrcBlend				 = D3D11_BLEND_SRC_ALPHA;	
-	rtbd.DestBlend				 = D3D11_BLEND_INV_SRC_ALPHA;	
+	rtbd.SrcBlend				 = D3D11_BLEND_SRC_COLOR;	
+	rtbd.DestBlend				 = D3D11_BLEND_ZERO;
 	rtbd.BlendOp				 = D3D11_BLEND_OP_ADD;
+	
 	rtbd.SrcBlendAlpha			 = D3D11_BLEND_ZERO;
 	rtbd.DestBlendAlpha			 = D3D11_BLEND_ZERO;
 	rtbd.BlendOpAlpha			 = D3D11_BLEND_OP_ADD;
 	rtbd.RenderTargetWriteMask	 = D3D11_COLOR_WRITE_ENABLE_ALL;
 
-	blend.AlphaToCoverageEnable=false;
+	blend.AlphaToCoverageEnable=true;
 	blend.IndependentBlendEnable=true; //true;
 	blend.RenderTarget[0]=rtbd;
 
