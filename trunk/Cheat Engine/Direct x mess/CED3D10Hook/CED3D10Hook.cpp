@@ -434,8 +434,9 @@ DXMessD3D10Handler::DXMessD3D10Handler(ID3D10Device *dev, IDXGISwapChain *sc, PD
 	
 	
 	blend.BlendEnable[0]		 = true;
-	blend.SrcBlend				 = D3D10_BLEND_SRC_ALPHA;	
-	blend.DestBlend				 = D3D10_BLEND_INV_SRC_ALPHA;	
+
+	blend.SrcBlend				 = D3D10_BLEND_SRC_COLOR               ;	
+	blend.DestBlend				 = D3D10_BLEND_ZERO;
 	blend.BlendOp				 = D3D10_BLEND_OP_ADD;
 	blend.SrcBlendAlpha			 = D3D10_BLEND_ZERO;
 	blend.DestBlendAlpha		 = D3D10_BLEND_ZERO;
@@ -443,7 +444,8 @@ DXMessD3D10Handler::DXMessD3D10Handler(ID3D10Device *dev, IDXGISwapChain *sc, PD
 	blend.RenderTargetWriteMask[0]	 = D3D10_COLOR_WRITE_ENABLE_ALL;
 
 
-	blend.AlphaToCoverageEnable=false;
+
+	blend.AlphaToCoverageEnable=true;
 	
 
 	for (i=0; i<8; i++)
@@ -547,7 +549,7 @@ void DXMessD3D10Handler::RenderOverlay()
 		
 		UINT stride = sizeof( SpriteVertex );
 		UINT offset = 0;
-		float blendFactor[] = {1.0f, 1.0f, 1.0f, 1.0f};
+		float blendFactor[] = {0.0f, 0.0f, 0.0f, 0.0f};
 
 		ID3D10VertexShader *oldvs=NULL;
 		ID3D10PixelShader *oldps=NULL;
@@ -680,10 +682,10 @@ void DXMessD3D10Handler::RenderOverlay()
 
 						dev->IASetVertexBuffers( 0, 1, &pSpriteVB, &stride, &offset );
 
-						if (ColorKeyCrapper)
+						//if (ColorKeyCrapper)
 							dev->PSSetShader( pPixelShader);
-						else
-							dev->PSSetShader( pPixelShaderNormal);
+						//else
+						//	dev->PSSetShader( pPixelShaderNormal);
 
 						dev->PSSetSamplers( 0, 1, &pSamplerLinear );						
 						dev->PSSetShaderResources( 0, 1, &textures[shared->RenderCommands[i].sprite.textureid].pTexture );

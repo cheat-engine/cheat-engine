@@ -7090,6 +7090,8 @@ begin
 
   t:=d3dhook.createTexture(logo.Picture);
   s:=d3dhook.createSprite(t);
+  s.x:=-1;
+  s.y:=-1;
 
 
 

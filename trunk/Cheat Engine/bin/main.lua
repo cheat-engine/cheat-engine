@@ -1195,4 +1195,6 @@ sprite_setWidth()
 sprite_setHeight()
 sprite_setZOrder()
 
+makeWritable(address)
+
 --]]

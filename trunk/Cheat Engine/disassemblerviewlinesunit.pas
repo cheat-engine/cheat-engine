@@ -412,7 +412,7 @@ begin
   fcanvas.font.Style:=fcanvas.font.Style-[fsBold];
 
   i:=fcanvas.TextWidth(popcodestring+'  ');
-  j:=fcanvas.textwidth('XXXXXX');
+  j:=fcanvas.textwidth('XXXXXXX');
 
   if i>j then
     i:=fHeaders.Items[2].Left+1+i+fcanvas.textwidth(' ')
