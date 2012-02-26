@@ -43,7 +43,7 @@ type
 
 implementation
 
-procedure TGroupscanCommandParser.parseToken(s: string); //todo: add support for strings
+procedure TGroupscanCommandParser.parseToken(s: string);
 var i,j,k: integer;
   command,value: string;
   ctn: string;
@@ -80,7 +80,7 @@ begin
     typeAligned:=value='A';
   end;
 
-  if (length(command)>=1) and (command[1] in ['1','2','4','8','F','D','C','S']) then
+  if (length(command)>=1) and (command[1] in ['1','2','4','8','F','D','C','S','W']) then
   begin
     j:=length(elements);
     setlength(elements, j+1);
@@ -167,6 +167,13 @@ begin
         end;
 
 
+      end;
+
+      'W': //wildcard of random size (implemented as a string of specific size with wildcard value)
+      begin
+        elements[j].vartype:=vtString;
+        elements[j].bytesize:=strtoint(value);
+        value:=''; //set as a wildcard
       end;
     end;
     elements[j].uservalue:=value;

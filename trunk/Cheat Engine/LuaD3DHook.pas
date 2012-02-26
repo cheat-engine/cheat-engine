@@ -82,106 +82,6 @@ begin
   result:=1;
 end;
 
-function d3dhook_createOverlay(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  picture: Tpicture;
-  x,y: integer;
-  d: TD3DHook;
-  i: integer;
-begin
-
-  {$ifndef D3DDebug}
-  {$error You forgot to reimplement this}
-  {$endif}
-  {
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=3 then
-  begin
-    picture:=lua_touserdata(L,-parameters);
-    x:=lua_tointeger(L, -parameters+1);
-    y:=lua_tointeger(L, -parameters+2);
-    lua_pop(L, parameters);
-
-    d:=safed3dhook;
-    if d<>nil then
-    begin
-      i:=d.createOverlayFromPicture(picture,x,y);
-      lua_pushinteger(L, i);
-      result:=1;
-    end;
-
-  end else lua_pop(L, parameters); }
-end;
-
-function d3dhook_updateOverlayImage(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  d: TD3DHook;
-  overlayid: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    overlayid:=lua_tointeger(L, -parameters);
-    lua_pop(L, parameters);
-
-    d:=safed3dhook;
-    if d<>nil then
-      d.updateOverlayImage(overlayid);
-
-  end else lua_pop(L, parameters);
-end;
-
-function d3dhook_updateOverlayPosition(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  d: TD3DHook;
-  overlayid,x,y: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=3 then
-  begin
-    overlayid:=lua_tointeger(L, -parameters);
-    x:=lua_tointeger(L, -parameters+1);
-    y:=lua_tointeger(L, -parameters+2);
-
-    lua_pop(L, parameters);
-
-    d:=safed3dhook;
-    if d<>nil then
-      d.updateOverlayPosition(overlayid,x,y);
-
-  end else lua_pop(L, parameters);
-end;
-
-function d3dhook_setOverlayVisibility(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  d: TD3DHook;
-  overlayid: integer;
-  state: boolean;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    overlayid:=lua_tointeger(L, -parameters);
-    state:=lua_toboolean(L, -parameters+1);
-
-    lua_pop(L, parameters);
-
-    d:=safed3dhook;
-    if d<>nil then
-      d.SetOverlayVisibility(overlayid,state);
-
-  end else lua_pop(L, parameters);
-end;
-
-
 
 function d3dhook_onClick(L: PLua_State): integer; cdecl;
 var
@@ -314,10 +214,6 @@ end;
 procedure initializeLuaD3DHook;
 begin
   lua_register(LuaVM, 'd3dhook_initializeHook', d3dhook_initializeHook);
-  lua_register(LuaVM, 'd3dhook_createOverlay', d3dhook_createOverlay);
-  lua_register(LuaVM, 'd3dhook_updateOverlayImage', d3dhook_updateOverlayImage);
-  lua_register(LuaVM, 'd3dhook_updateOverlayPosition', d3dhook_updateOverlayPosition);
-  lua_register(LuaVM, 'd3dhook_setOverlayVisibility', d3dhook_setOverlayVisibility);
   lua_register(LuaVM, 'd3dhook_getWidth', d3dhook_getWidth);
   lua_register(LuaVM, 'd3dhook_getHeight', d3dhook_getHeight);
   lua_register(LuaVM, 'd3dhook_setDisabledZBuffer', d3dhook_setDisabledZBuffer);

@@ -1432,7 +1432,10 @@ begin
       begin
         if customtype<>nil then
         begin
-          if showashex then result:=inttohex(customtype.ConvertDataToInteger(buf),8) else if showassigned then result:=inttostr(integer(customtype.ConvertDataToInteger(buf))) else result:=inttostr(customtype.ConvertDataToInteger(buf));
+          if customtype.scriptUsesFloat then
+            result:=FloatToStr(customtype.ConvertDataToFloat(buf))
+          else
+            if showashex then result:=inttohex(customtype.ConvertDataToInteger(buf),8) else if showassigned then result:=inttostr(integer(customtype.ConvertDataToInteger(buf))) else result:=inttostr(customtype.ConvertDataToInteger(buf));
         end
         else
           result:='error';
@@ -1613,7 +1616,17 @@ begin
       if not check then exit;
 
     case VarType of
-      vtCustom: if customtype<>nil then customtype.ConvertIntegerToData(strtoint(currentValue), pdw);
+      vtCustom:
+      begin
+        if customtype<>nil then
+        Begin
+          if customtype.scriptUsesFloat then
+            customtype.ConvertFloatToData(strtofloat(currentValue), ps)
+          else
+            customtype.ConvertIntegerToData(strtoint(currentValue), pdw);
+
+        end;
+      end;
       vtByte: pb^:=StrToQWordEx(currentValue);
       vtWord: pw^:=StrToQWordEx(currentValue);
       vtDword: pdw^:=StrToQWordEx(currentValue);

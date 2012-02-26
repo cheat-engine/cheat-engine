@@ -1856,6 +1856,7 @@ var
   floatvis: boolean;
   t: TStringList;
   old, old2: TNotifyEvent;
+  ct: Tcustomtype;
 begin
   old := scantype.OnChange;
   old2 := scantype.OnSelect;
@@ -1876,13 +1877,18 @@ begin
       //byte-word-dword--8bytes-float-double-all   - custom
     begin
 
-      if vartype.ItemIndex in [5, 6, 9] then //float/all
+      if (vartype.ItemIndex in [5, 6, 9]) or (vartype.ItemIndex >= 11) then //float/all, custom
       begin
-        if oldindex = 0 then
-          floatvis := True;
+        ct:=TCustomtype(vartype.Items.Objects[vartype.itemindex]);
+        if (ct=nil) or (ct.scriptUsesFloat) then
+        begin
+          //handle as a float value
+          if oldindex = 0 then
+            floatvis := True;
 
-        if vartype.ItemIndex <> 9 then
-          hexvis := False;
+          if vartype.ItemIndex <> 9 then
+            hexvis := False;
+        end;
       end;
 
       ScanType.Items.Add(strExactValue);

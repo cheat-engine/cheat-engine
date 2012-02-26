@@ -61,6 +61,7 @@ type
     function SingleScan(minf,maxf: double; buf: pointer; var startoffset: integer): boolean;
     function DoubleScan(minf,maxf: double; buf: pointer; var startoffset: integer): boolean;
     function CustomScan(ct: Tcustomtype; value: integer; buf: pointer; var startoffset: integer): boolean;
+    function CustomScanFloat(ct: Tcustomtype; minf, maxf: single; buf: pointer; var startoffset: integer): boolean;
 
     function StringScan(st: pchar; buf: Pbytearray; var startoffset: integer): boolean;
     function WideStringScan(st: pwidechar; buf: Pbytearray; var startoffset: integer): boolean;
@@ -274,6 +275,21 @@ type
     function CustomDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
     function CustomChanged(newvalue,oldvalue: pointer): boolean;
     function CustomUnChanged(newvalue,oldvalue: pointer): boolean;
+
+    function CustomFloatExact(newvalue,oldvalue: pointer): boolean;
+    function CustomFloatBetween(newvalue,oldvalue: pointer): boolean;
+    function CustomFloatBetweenPercentage(newvalue,oldvalue: pointer): boolean;
+    function CustomFloatBiggerThan(newvalue,oldvalue: pointer): boolean;
+    function CustomFloatSmallerThan(newvalue,oldvalue: pointer): boolean;
+    function CustomFloatIncreasedValue(newvalue,oldvalue: pointer): boolean;
+    function CustomFloatIncreasedValueBy(newvalue,oldvalue: pointer): boolean;
+    function CustomFloatIncreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
+    function CustomFloatDecreasedValue(newvalue,oldvalue: pointer): boolean;
+    function CustomFloatDecreasedValueBy(newvalue,oldvalue: pointer): boolean;
+    function CustomFloatDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
+    function CustomFloatChanged(newvalue,oldvalue: pointer): boolean;
+    function CustomFloatUnChanged(newvalue,oldvalue: pointer): boolean;
+
 
 
     //following types only have exact: Array of byte, binary and string
@@ -730,6 +746,7 @@ end;
 function TGroupData.compareblock(newvalue,oldvalue: pointer): boolean;
 //ordered scan
 var i: integer;
+  f: single;
 begin
   result:=true;
   for i:=0 to groupdatalength-1 do
@@ -787,7 +804,14 @@ begin
 
       vtCustom:
       begin
-        result:=groupdata[i].wildcard or (groupdata[i].customType.ConvertDataToInteger(newvalue)=groupdata[i].valuei);
+        if groupdata[i].customType.scriptUsesFloat then
+        begin
+          f:=groupdata[i].customType.ConvertDataToFloat(newvalue);
+          result:=groupdata[i].wildcard or ((f>groupdata[i].minfvalue) and (f<groupdata[i].maxfvalue));
+        end
+        else
+          result:=groupdata[i].wildcard or (groupdata[i].customType.ConvertDataToInteger(newvalue)=groupdata[i].valuei);
+
         inc(newvalue, groupdata[i].customType.bytesize);
       end;
 
@@ -970,8 +994,6 @@ begin
   inc(current, startoffset);
   i:=startoffset;
 
-
-
   while i<(blocksize-ct.bytesize-1) do
   begin
     if ct.ConvertDataToInteger(current)=value then
@@ -984,7 +1006,41 @@ begin
     inc(current,align);
     inc(i,align);
   end;
+
 end;
+
+function TGroupData.CustomScanFloat(ct: Tcustomtype; minf, maxf: single; buf: pointer; var startoffset: integer): boolean;
+var current: pointer;
+  i: integer;
+  align: integer;
+  f: single;
+begin
+  result:=false;
+  if outoforder_aligned then
+    align:=4
+  else
+    align:=1;
+
+  current:=buf;
+  inc(current, startoffset);
+  i:=startoffset;
+
+  while i<(blocksize-ct.bytesize-1) do
+  begin
+    f:=ct.ConvertDataToFloat(current);
+    if (f>minf) and (f<maxf) then
+    begin
+      startoffset:=i+1;
+      result:=true;
+      exit;
+    end;
+
+    inc(current,align);
+    inc(i,align);
+  end;
+
+end;
+
 
 function TGroupData.StringScan(st: pchar; buf: Pbytearray; var startoffset: integer): boolean;
 var i: integer;
@@ -1140,7 +1196,12 @@ begin
           if outoforder_aligned then //adjust currentoffset to be aligned on the current type alignment
             currentoffset:=(currentoffset+3) and $fffffffc;
 
-          result:=CustomScan(groupdata[i].customtype, groupdata[i].valuei, newvalue, currentoffset);
+
+          if groupdata[i].customtype.scriptUsesFloat then
+            result:=CustomScanFloat(groupdata[i].customtype, groupdata[i].minfvalue, groupdata[i].maxfvalue, newvalue, currentoffset)
+          else
+            result:=CustomScan(groupdata[i].customtype, groupdata[i].valuei, newvalue, currentoffset);
+
           isin:=result and isinlist;
         end;
       end;
@@ -1173,7 +1234,11 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
-      customtypesmatch[j]:=customtypesmatch[j] and CustomExact(newvalue,oldvalue)
+
+      if customtype.scriptUsesFloat then
+        customtypesmatch[j]:=customtypesmatch[j] and CustomFloatExact(newvalue,oldvalue)
+      else
+        customtypesmatch[j]:=customtypesmatch[j] and CustomExact(newvalue,oldvalue)
     end;
   end;
 
@@ -1212,7 +1277,11 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
-      customtypesmatch[j]:=customtypesmatch[j] and CustomBetween(newvalue,oldvalue)
+
+      if customtype.scriptUsesFloat then
+        customtypesmatch[j]:=customtypesmatch[j] and CustomFloatBetween(newvalue,oldvalue)
+      else
+        customtypesmatch[j]:=customtypesmatch[j] and CustomBetween(newvalue,oldvalue)
     end;
   end;
 
@@ -1250,7 +1319,11 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
-      customtypesmatch[j]:=customtypesmatch[j] and CustomBetweenPercentage(newvalue,oldvalue)
+
+      if customtype.scriptUsesFloat then
+        customtypesmatch[j]:=customtypesmatch[j] and CustomFloatBetweenPercentage(newvalue,oldvalue)
+      else
+        customtypesmatch[j]:=customtypesmatch[j] and CustomBetweenPercentage(newvalue,oldvalue)
     end;
   end;
 
@@ -1288,7 +1361,10 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
-      customtypesmatch[j]:=customtypesmatch[j] and CustomBiggerThan(newvalue,oldvalue)
+      if customtype.scriptUsesFloat then
+        customtypesmatch[j]:=customtypesmatch[j] and CustomFloatBiggerThan(newvalue,oldvalue)
+      else
+        customtypesmatch[j]:=customtypesmatch[j] and CustomBiggerThan(newvalue,oldvalue)
     end;
   end;
 
@@ -1326,7 +1402,10 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
-      customtypesmatch[j]:=customtypesmatch[j] and CustomSmallerThan(newvalue,oldvalue)
+      if customtype.scriptUsesFloat then
+        customtypesmatch[j]:=customtypesmatch[j] and CustomFloatSmallerThan(newvalue,oldvalue)
+      else
+        customtypesmatch[j]:=customtypesmatch[j] and CustomSmallerThan(newvalue,oldvalue)
     end;
   end;
 
@@ -1364,7 +1443,10 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
-      customtypesmatch[j]:=customtypesmatch[j] and CustomIncreasedValue(newvalue,oldvalue)
+      if customtype.scriptUsesFloat then
+        customtypesmatch[j]:=customtypesmatch[j] and CustomFloatIncreasedValue(newvalue,oldvalue)
+      else
+        customtypesmatch[j]:=customtypesmatch[j] and CustomIncreasedValue(newvalue,oldvalue)
     end;
   end;
 
@@ -1402,7 +1484,10 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
-      customtypesmatch[j]:=customtypesmatch[j] and CustomIncreasedValueBy(newvalue,oldvalue)
+      if customtype.scriptUsesFloat then
+        customtypesmatch[j]:=customtypesmatch[j] and CustomFloatIncreasedValueBy(newvalue,oldvalue)
+      else
+        customtypesmatch[j]:=customtypesmatch[j] and CustomIncreasedValueBy(newvalue,oldvalue)
     end;
   end;
 
@@ -1440,7 +1525,10 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
-      customtypesmatch[j]:=customtypesmatch[j] and CustomIncreasedValueByPercentage(newvalue,oldvalue)
+      if customtype.scriptUsesFloat then
+        customtypesmatch[j]:=customtypesmatch[j] and CustomFloatIncreasedValueByPercentage(newvalue,oldvalue)
+      else
+        customtypesmatch[j]:=customtypesmatch[j] and CustomIncreasedValueByPercentage(newvalue,oldvalue)
     end;
   end;
 
@@ -1479,7 +1567,10 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
-      customtypesmatch[j]:=customtypesmatch[j] and CustomDecreasedValue(newvalue,oldvalue)
+      if customtype.scriptUsesFloat then
+        customtypesmatch[j]:=customtypesmatch[j] and CustomFloatDecreasedValue(newvalue,oldvalue)
+      else
+        customtypesmatch[j]:=customtypesmatch[j] and CustomDecreasedValue(newvalue,oldvalue)
     end;
   end;
 
@@ -1517,7 +1608,10 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
-      customtypesmatch[j]:=customtypesmatch[j] and CustomDecreasedValueBy(newvalue,oldvalue)
+      if customtype.scriptUsesFloat then
+        customtypesmatch[j]:=customtypesmatch[j] and CustomFloatDecreasedValueBy(newvalue,oldvalue)
+      else
+        customtypesmatch[j]:=customtypesmatch[j] and CustomDecreasedValueBy(newvalue,oldvalue)
     end;
   end;
 
@@ -1555,7 +1649,10 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
-      customtypesmatch[j]:=customtypesmatch[j] and CustomDecreasedValueByPercentage(newvalue,oldvalue)
+      if customtype.scriptUsesFloat then
+        customtypesmatch[j]:=customtypesmatch[j] and CustomFloatDecreasedValueByPercentage(newvalue,oldvalue)
+      else
+        customtypesmatch[j]:=customtypesmatch[j] and CustomDecreasedValueByPercentage(newvalue,oldvalue)
     end;
   end;
 
@@ -1593,7 +1690,10 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
-      customtypesmatch[j]:=customtypesmatch[j] and CustomChanged(newvalue,oldvalue)
+      if customtype.scriptUsesFloat then
+        customtypesmatch[j]:=customtypesmatch[j] and CustomFloatChanged(newvalue,oldvalue)
+      else
+        customtypesmatch[j]:=customtypesmatch[j] and CustomChanged(newvalue,oldvalue)
     end;
   end;
 
@@ -1631,7 +1731,10 @@ begin
     for j:=0 to customtypecount-1 do
     begin
       customtype:=tcustomtype(customTypes[j]);
-      customtypesmatch[j]:=customtypesmatch[j] and CustomUnchanged(newvalue,oldvalue)
+      if customtype.scriptUsesFloat then
+        customtypesmatch[j]:=customtypesmatch[j] and CustomFloatUnchanged(newvalue,oldvalue)
+      else
+        customtypesmatch[j]:=customtypesmatch[j] and CustomUnchanged(newvalue,oldvalue)
     end;
   end;
 
@@ -1933,6 +2036,100 @@ begin
   result:=customType.ConvertDataToInteger(newvalue)=customType.ConvertDataToInteger(oldvalue);
 end;
 //--------------/\custom/\
+
+
+//--------------Custom Float-------------
+
+function TScanner.CustomFloatExact(newvalue,oldvalue: pointer): boolean;
+var f: single;
+begin
+  result:=false;
+  f:=customType.ConvertDataToFloat(newvalue);
+  case roundingtype of
+    rtRounded:
+      result:=(RoundTo(f,-floataccuracy)=svalue);
+
+    rtExtremerounded:
+      result:=(f>minsvalue) and (f<maxsvalue);
+
+    rtTruncated:
+      result:=(f>=svalue) and (f<maxsvalue);
+  end;
+
+end;
+
+function TScanner.CustomFloatBetween(newvalue,oldvalue: pointer):boolean;
+var f: single;
+begin
+  f:=customType.ConvertDataToFloat(newvalue);
+  result:=(f>=svalue) and (f<=svalue2);
+end;
+
+function TScanner.CustomFloatBetweenPercentage(newvalue,oldvalue: pointer): boolean;
+var new: single;
+    old: single;
+begin
+  new:=customType.ConvertDataToFloat(newvalue);
+  old:=customType.ConvertDataToFloat(oldvalue);
+  result:=(new>old*svalue) and (new<=old*svalue2);
+end;
+
+function TScanner.CustomFloatBiggerThan(newvalue,oldvalue: pointer):boolean;
+begin
+  result:=customType.ConvertDataToFloat(newvalue)>svalue;
+end;
+
+function TScanner.CustomFloatSmallerThan(newvalue,oldvalue: pointer):boolean;
+begin
+  result:=customType.ConvertDataToFloat(newvalue)<svalue;
+end;
+
+function TScanner.CustomFloatIncreasedValue(newvalue,oldvalue: pointer):boolean;
+begin
+  result:=customType.ConvertDataToFloat(newvalue)>customType.ConvertDataToFloat(oldvalue);
+end;
+
+function TScanner.CustomFloatIncreasedValueBy(newvalue,oldvalue: pointer):boolean;
+begin
+  result:=RoundTo(customType.ConvertDataToFloat(newvalue),-floataccuracy)=RoundTo(customType.ConvertDataToFloat(oldvalue)+svalue,-floataccuracy);
+end;
+
+function TScanner.CustomFloatDecreasedValue(newvalue,oldvalue: pointer):boolean;
+begin
+  result:=customType.ConvertDataToFloat(newvalue)<customType.ConvertDataToFloat(oldvalue);
+end;
+
+function TScanner.CustomFloatDecreasedValueBy(newvalue,oldvalue: pointer):boolean;
+begin
+  result:=RoundTo(customType.ConvertDataToFloat(newvalue),-floataccuracy)=RoundTo(customType.ConvertDataToFloat(oldvalue)-svalue,-floataccuracy);
+end;
+
+function TScanner.CustomFloatIncreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
+var new, old: single;
+begin
+  new:=customType.ConvertDataToFloat(newvalue);
+  old:=customType.ConvertDataToFloat(oldvalue);
+  result:=(new>old+old*svalue) and (new<old+old*svalue2);
+end;
+
+function TScanner.CustomFloatDecreasedValueByPercentage(newvalue,oldvalue: pointer): boolean;
+var new, old: single;
+begin
+  new:=customType.ConvertDataToFloat(newvalue);
+  old:=customType.ConvertDataToFloat(oldvalue);
+  result:=(new>old-old*svalue2) and (new<old-old*svalue);
+end;
+
+function TScanner.CustomFloatChanged(newvalue,oldvalue: pointer):boolean;
+begin
+  result:=customType.ConvertDataToFloat(newvalue)<>customType.ConvertDataToFloat(oldvalue);
+end;
+
+function TScanner.CustomFloatUnchanged(newvalue,oldvalue: pointer):boolean;
+begin
+  result:=customType.ConvertDataToFloat(newvalue)=customType.ConvertDataToFloat(oldvalue);
+end;
+//   ^^^^CustomFloat^^^^
 
 //dword:
 function TScanner.DWordExact(newvalue,oldvalue: pointer): boolean;
@@ -3236,7 +3433,7 @@ begin
       end;
     end;
 
-    if percentage or (variableType in [vtsingle,vtDouble,vtAll]) then
+    if percentage or (variableType in [vtsingle,vtDouble,vtAll, vtCustom]) then
     begin
       try
         dvalue:=strtofloat(scanvalue1,FloatSettings);
@@ -3673,26 +3870,54 @@ begin
       FoundBufferSize:=buffersize*customtype.bytesize;
       StoreResultRoutine:=GenericSaveResult;
 
-      case scanOption of
-        soExactValue:       checkRoutine:=customExact;
-        soValueBetween:     if percentage then
-                              checkroutine:=customBetweenPercentage
-                            else
-                              checkroutine:=customBetween;
-        soBiggerThan:       checkroutine:=customBiggerThan;
-        soSmallerThan:      checkroutine:=customSmallerThan;
-        soIncreasedValue:   checkroutine:=customIncreasedValue;
-        soIncreasedValueBy: if percentage then
-                              checkroutine:=customIncreasedValueByPercentage
-                            else
-                              checkroutine:=customIncreasedValueBy;
-        soDecreasedValue:   checkroutine:=customDecreasedValue;
-        soDecreasedValueBy: if percentage then
-                              checkroutine:=customDecreasedValueByPercentage
-                            else
-                              checkroutine:=customDecreasedValueBy;
-        soChanged:          checkroutine:=customChanged;
-        soUnChanged:        checkroutine:=customUnchanged;
+
+      if customType.scriptUsesFloat then
+      begin
+        case scanOption of
+          soExactValue:       checkRoutine:=customFloatExact;
+          soValueBetween:     if percentage then
+                                checkroutine:=customFloatBetweenPercentage
+                              else
+                                checkroutine:=customFloatBetween;
+          soBiggerThan:       checkroutine:=customFloatBiggerThan;
+          soSmallerThan:      checkroutine:=customFloatSmallerThan;
+          soIncreasedValue:   checkroutine:=customFloatIncreasedValue;
+          soIncreasedValueBy: if percentage then
+                                checkroutine:=customFloatIncreasedValueByPercentage
+                              else
+                                checkroutine:=customFloatIncreasedValueBy;
+          soDecreasedValue:   checkroutine:=customFloatDecreasedValue;
+          soDecreasedValueBy: if percentage then
+                                checkroutine:=customFloatDecreasedValueByPercentage
+                              else
+                                checkroutine:=customFloatDecreasedValueBy;
+          soChanged:          checkroutine:=customFloatChanged;
+          soUnChanged:        checkroutine:=customFloatUnchanged;
+        end;
+      end
+      else
+      begin
+        case scanOption of
+          soExactValue:       checkRoutine:=customExact;
+          soValueBetween:     if percentage then
+                                checkroutine:=customBetweenPercentage
+                              else
+                                checkroutine:=customBetween;
+          soBiggerThan:       checkroutine:=customBiggerThan;
+          soSmallerThan:      checkroutine:=customSmallerThan;
+          soIncreasedValue:   checkroutine:=customIncreasedValue;
+          soIncreasedValueBy: if percentage then
+                                checkroutine:=customIncreasedValueByPercentage
+                              else
+                                checkroutine:=customIncreasedValueBy;
+          soDecreasedValue:   checkroutine:=customDecreasedValue;
+          soDecreasedValueBy: if percentage then
+                                checkroutine:=customDecreasedValueByPercentage
+                              else
+                                checkroutine:=customDecreasedValueBy;
+          soChanged:          checkroutine:=customChanged;
+          soUnChanged:        checkroutine:=customUnchanged;
+        end;
       end;
     end;
 

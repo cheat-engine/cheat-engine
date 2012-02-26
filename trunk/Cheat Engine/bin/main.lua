@@ -25,7 +25,7 @@ readString(address, maxlength) : maxlength is just so you won't freeze for too l
 writeInteger(address,value) : Writes an integer to the specified address. Returns true on success
 writeFloat(address,value) : Writes a single precision floating point to the specified address. Returns true on success
 writeDouble(address,value) : Writes a double precision floating point to the specified address. Returns true on success
-writeString(address,string) : Write a string to the specified address. Returns true on success
+writeString(address,maxlength) : Write a string to the specified address. Returns true on success
 
 readBytesLocal(address,bytecount, ReturnAsTable) : See readBytes but then it's for Cheat engine's memory
 readIntegerLocal(address) : Reads a integer from the specified address in CE's memory
@@ -1183,8 +1183,9 @@ d3dhook_endUpdate() : When done updating, call this function to apply the change
 --]]
 
 --[[
-
 add sprites with overlayid's
+
+treeview
 
 d3dhook_createTexture()
 d3dhook_createSprite()
@@ -1196,5 +1197,8 @@ sprite_setHeight()
 sprite_setZOrder()
 
 makeWritable(address)
+
+getThreadList
+
 
 --]]

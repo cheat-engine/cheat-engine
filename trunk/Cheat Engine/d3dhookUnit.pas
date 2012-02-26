@@ -1287,6 +1287,7 @@ begin
   end;
 
   result:=d3dhook;
+
 end;
 
 end.

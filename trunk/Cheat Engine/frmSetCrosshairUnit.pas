@@ -30,6 +30,8 @@ type
     procedure TrackBar1Change(Sender: TObject);
   private
     { private declarations }
+    oldhook: td3dhook;
+    oldpid: dword;
     crosshairTexture: TD3DHook_Texture;
     crosshairSprite: TD3dhook_Sprite;
   public
@@ -64,28 +66,33 @@ end;
 procedure TfrmSetCrosshair.TrackBar1Change(Sender: TObject);
 begin
   safed3dhook;
-  {$ifndef D3DDebug}
-  {$error You forgot to reimplement this}
-  {$endif}
+
+  if (oldhook<>d3dhook) or (d3dhook.processid<>oldpid) then
+  begin
+    crosshairtexture:=nil;
+    crosshairSprite:=nil;
+  end;
+
+  oldhook:=d3dhook;
+  oldpid:=d3dhook.processid;
 
   if (d3dhook<>nil) and (crosshairSprite<>nil) then
     crosshairSprite.alphaBlend:=trackbar1.position / 100;
 end;
 
 procedure TfrmSetCrosshair.btnApplyClick(Sender: TObject);
-var old: td3dhook;
 begin
-  old:=d3dhook;
-
   safed3dhook;
   if d3dhook<>nil then
   begin
-    if old<>d3dhook then
+    if (oldhook<>d3dhook) or (d3dhook.processid<>oldpid) then
     begin
       crosshairtexture:=nil; //don't free. Perhaps the game got terminated due to a freeze in the renderer (lock acquired)
       crosshairSprite:=nil;
     end;
 
+    oldhook:=d3dhook;
+    oldpid:=d3dhook.processid;
 
     if crosshairtexture=nil then
     begin
