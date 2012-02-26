@@ -3,6 +3,8 @@
 
 #include "stdafx.h"
 
+
+
 using namespace std;
 map<ID3D11Device *, DXMessD3D11Handler *> D3D11devices;
 
@@ -25,6 +27,176 @@ struct ConstantBuffer
 	FLOAT garbage2;
 	FLOAT garbage3;
 };
+
+void FontRenderer::SetViewport(D3D11_VIEWPORT *newvp)
+{
+	this->vp=*newvp;
+}
+
+void FontRenderer::SetupFontVertexBuffer(int count)
+{
+
+	if (currentMaxCharacterCount<count)
+	{
+		HRESULT hr;
+		D3D11_BUFFER_DESC bd2d;
+
+
+		count+=4; //let's add a bit of overhead
+		if (pFontVB)
+		{
+			pFontVB->Release();
+			pFontVB=NULL;
+		}
+
+		ZeroMemory( &bd2d, sizeof(bd2d) );
+		bd2d.Usage = D3D11_USAGE_DYNAMIC;
+		bd2d.ByteWidth = sizeof( SpriteVertex ) * 6 * count; //size of a vertex*verticel per char*charcount
+		bd2d.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+		bd2d.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	                           
+		hr = dev->CreateBuffer( &bd2d, NULL, &pFontVB );
+
+		if (SUCCEEDED(hr))
+		{
+			currentMaxCharacterCount=count;
+		}
+	}
+}
+
+void FontRenderer::DrawText(char *s, int strlen, XMCOLOR color)
+{
+	SetupFontVertexBuffer(strlen);
+
+	if (currentMaxCharacterCount<strlen) return; //error
+
+	//The following code is mainly ripped from DXUTgui.cpp and modified
+    float fCharTexSizeX = 0.010526315f;
+    float fGlyphSizeX = 15.0f / vp.Width;
+    float fGlyphSizeY = 42.0f /  vp.Height;
+
+
+    float fRectLeft = 0;
+    float fRectTop = 1.0f;
+
+    fRectLeft = fRectLeft * 2.0f - 1.0f;
+    fRectTop = fRectTop * 2.0f - 1.0f;
+
+    float fOriginalLeft = fRectLeft;
+    float fTexTop = 0.0f;
+    float fTexBottom = 1.0f;
+
+
+	//fill the FontVB with the sizes and texture coordinates
+
+	D3D11_MAPPED_SUBRESOURCE sr;
+
+	if (SUCCEEDED(dc->Map(pFontVB,0, D3D11_MAP_WRITE_DISCARD, 0, &sr)))
+	{
+		int i;
+		SpriteVertex *vertices=(SpriteVertex *)sr.pData;
+
+		for (i=0; i<strlen; i++)
+		{
+			if( s[i] == '\n' )
+			{
+				fRectLeft = fOriginalLeft;
+				fRectTop -= fGlyphSizeY;
+
+				continue;
+			}
+
+			float fRectRight = fRectLeft + fGlyphSizeX;
+			float fRectBottom = fRectTop - fGlyphSizeY;
+			float fTexLeft = ( s[i] - 32 ) * fCharTexSizeX;
+			float fTexRight = fTexLeft + fCharTexSizeX;
+
+			
+
+
+			vertices[i*6+0].Pos=XMFLOAT3( fRectLeft, fRectTop, 1.0f );
+			vertices[i*6+0].Tex=XMFLOAT2( fTexLeft, fTexTop );
+			vertices[i*6+1].Pos=XMFLOAT3( fRectRight, fRectTop, 1.0f );
+			vertices[i*6+1].Tex=XMFLOAT2( fTexRight, fTexTop );
+			vertices[i*6+2].Pos=XMFLOAT3( fRectLeft, fRectBottom, 1.0f );
+			vertices[i*6+2].Tex=XMFLOAT2( fTexLeft, fTexBottom );
+
+			vertices[i*6+3].Pos=XMFLOAT3( fRectRight, fRectTop, 1.0f);
+			vertices[i*6+3].Tex=XMFLOAT2( fTexRight, fTexTop  );
+			vertices[i*6+4].Pos=XMFLOAT3( fRectRight, fRectBottom,  1.0f);
+			vertices[i*6+4].Tex=XMFLOAT2( fTexRight, fTexBottom  );
+			vertices[i*6+5].Pos=XMFLOAT3( fRectLeft, fRectBottom,  1.0f);
+			vertices[i*6+5].Tex=XMFLOAT2( fTexLeft, fTexBottom );
+		
+			fRectLeft += fGlyphSizeX;
+		}
+
+
+
+
+		dc->Unmap(pFontVB, 0);
+	}
+
+	
+
+	//then render
+	UINT stride = sizeof( SpriteVertex );
+	UINT offset = 0;
+
+	dc->IASetVertexBuffers( 0, 1, &pFontVB, &stride, &offset );
+	dc->PSSetShaderResources( 0, 1, &pFontTexture );
+
+	dc->Draw(6*strlen,0);
+}
+
+FontRenderer::FontRenderer(IDXGISwapChain *swapchain, ID3D11Device *dev, ID3D11DeviceContext *dc, PD3DHookShared shared)
+{
+	HRESULT hr;
+	char filename[MAX_PATH];
+
+	pFontVB=NULL;
+	pFontTexture=0;
+	currentMaxCharacterCount=0;
+
+	this->swapchain=swapchain;
+	this->dev=dev;
+	this->dc=dc;
+	this->shared=shared;
+
+	swapchain->AddRef();
+	dev->AddRef();
+	dc->AddRef();
+
+	sprintf_s(filename,MAX_PATH, "%s%s", shared->CheatEngineDir,"font.dds");
+
+	hr=D3DX11CreateShaderResourceViewFromFileA(dev, filename, NULL, NULL, &pFontTexture, NULL);
+	if( FAILED( hr ) )
+	{
+		OutputDebugStringA("Failure creating the font textire");
+		return;
+	}
+
+	//create a vertexbuffer to hold the characters
+	currentMaxCharacterCount=0;
+	SetupFontVertexBuffer(32); //init to 32 chars
+
+
+}
+
+FontRenderer::~FontRenderer()
+{
+	if (pFontTexture)
+		pFontTexture->Release();
+
+	if (pFontVB)
+		pFontVB->Release();
+
+	
+	dc->Release();
+	dev->Release();
+	swapchain->Release();
+}
+
 
 BOOL DXMessD3D11Handler::UpdateTextures()
 {
@@ -129,6 +301,12 @@ BOOL DXMessD3D11Handler::UpdateTextures()
 
 DXMessD3D11Handler::~DXMessD3D11Handler()
 {
+
+
+	if (fontRenderer)
+		delete(fontRenderer);
+	
+
 	if (textures)
 	{
 		int i;
@@ -241,10 +419,10 @@ DXMessD3D11Handler::DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD
     ID3DBlob* pBlob = NULL;
 	ID3DBlob* pErrorBlob = NULL;
 
-	char shaderfile[MAX_PATH];
-	sprintf_s(shaderfile,MAX_PATH, "%s%s", shared->CheatEngineDir,"overlay.fx");
+	char filename[MAX_PATH];
+	sprintf_s(filename,MAX_PATH, "%s%s", shared->CheatEngineDir,"overlay.fx");
 
-	hr=D3DX11CompileFromFileA( shaderfile, NULL, NULL, "PS", "ps_4_0", D3DCOMPILE_ENABLE_STRICTNESS, 0, NULL, &pBlob, &pErrorBlob, NULL );
+	hr=D3DX11CompileFromFileA( filename, NULL, NULL, "PS", "ps_4_0", D3DCOMPILE_ENABLE_STRICTNESS, 0, NULL, &pBlob, &pErrorBlob, NULL );
 
 	if (pErrorBlob) 
 		pErrorBlob->Release();
@@ -266,7 +444,7 @@ DXMessD3D11Handler::DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD
 	//load the "normal" pixel shader
 	pBlob = NULL;
 	pErrorBlob = NULL;
-	hr=D3DX11CompileFromFileA( shaderfile, NULL, NULL, "PSNormal", "ps_4_0", D3DCOMPILE_ENABLE_STRICTNESS, 0, NULL, &pBlob, &pErrorBlob, NULL );
+	hr=D3DX11CompileFromFileA( filename, NULL, NULL, "PSNormal", "ps_4_0", D3DCOMPILE_ENABLE_STRICTNESS, 0, NULL, &pBlob, &pErrorBlob, NULL );
 
 	if (pErrorBlob) 
 		pErrorBlob->Release();
@@ -291,7 +469,7 @@ DXMessD3D11Handler::DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD
 	pBlob = NULL;
 	pErrorBlob = NULL;
 
-	hr=D3DX11CompileFromFileA( shaderfile, NULL, NULL, "VS", "vs_4_0", D3DCOMPILE_ENABLE_STRICTNESS, 0, NULL, &pBlob, &pErrorBlob, NULL );
+	hr=D3DX11CompileFromFileA( filename, NULL, NULL, "VS", "vs_4_0", D3DCOMPILE_ENABLE_STRICTNESS, 0, NULL, &pBlob, &pErrorBlob, NULL );
 
 	if (pErrorBlob) 
 		pErrorBlob->Release();
@@ -337,10 +515,10 @@ DXMessD3D11Handler::DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD
 	};
 
 	ZeroMemory( &bd2d, sizeof(bd2d) );
-	bd2d.Usage = D3D11_USAGE_DYNAMIC;
+	bd2d.Usage = D3D11_USAGE_IMMUTABLE;
 	bd2d.ByteWidth = sizeof( SpriteVertex ) * 6;
 	bd2d.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bd2d.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	//bd2d.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
 	ZeroMemory( &InitData2d, sizeof(InitData2d) );
 	InitData2d.pSysMem = spriteVertices;
@@ -351,6 +529,8 @@ DXMessD3D11Handler::DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD
 		return;
 	}
 
+	//Create the basic font
+	fontRenderer = new FontRenderer(sc, dev, dc, shared);
 
 
     D3D11_SAMPLER_DESC sampDesc;
@@ -408,19 +588,20 @@ DXMessD3D11Handler::DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD
 	ZeroMemory( &rtbd, sizeof(rtbd) );
 	ZeroMemory( &blend, sizeof(blend) );
 
+
 	rtbd.BlendEnable			 = true;
-	rtbd.SrcBlend				 = D3D11_BLEND_SRC_COLOR;	
-	rtbd.DestBlend				 = D3D11_BLEND_ZERO;
+	rtbd.SrcBlend				 = D3D11_BLEND_SRC_ALPHA;	
+	rtbd.DestBlend				 = D3D11_BLEND_INV_SRC_ALPHA;	
 	rtbd.BlendOp				 = D3D11_BLEND_OP_ADD;
-	
-	rtbd.SrcBlendAlpha			 = D3D11_BLEND_ZERO;
-	rtbd.DestBlendAlpha			 = D3D11_BLEND_ZERO;
+	rtbd.SrcBlendAlpha			 = D3D11_BLEND_SRC_ALPHA;
+	rtbd.DestBlendAlpha			 = D3D11_BLEND_INV_SRC_ALPHA;
 	rtbd.BlendOpAlpha			 = D3D11_BLEND_OP_ADD;
 	rtbd.RenderTargetWriteMask	 = D3D11_COLOR_WRITE_ENABLE_ALL;
 
-	blend.AlphaToCoverageEnable=true;
-	blend.IndependentBlendEnable=true; //true;
+	blend.AlphaToCoverageEnable=false;
+	blend.IndependentBlendEnable=false; //true;
 	blend.RenderTarget[0]=rtbd;
+
 
 	hr=dev->CreateBlendState(&blend, &pTransparency);
 	if( FAILED( hr ) )
@@ -518,7 +699,7 @@ void DXMessD3D11Handler::RenderOverlay()
 
 		UINT stride = sizeof( SpriteVertex );
 		UINT offset = 0;
-		float blendFactor[] = {1.0f, 1.0f, 1.0f, 1.0f};
+		float blendFactor[] = {0.1f, 1.0f, 1.0f, 0.1f};
 
 		ID3D11VertexShader *oldvs=NULL;
 		ID3D11ClassInstance **oldvsinstances=NULL;
@@ -656,6 +837,33 @@ void DXMessD3D11Handler::RenderOverlay()
 			hasLock=WaitForSingleObject((HANDLE)shared->CommandlistLock, INFINITE)==WAIT_OBJECT_0;
 		
 
+		{
+			dc->IASetVertexBuffers( 0, 1, &pSpriteVB, &stride, &offset );
+			dc->PSSetShader( pPixelShaderNormal, NULL, 0);
+			dc->PSSetSamplers( 0, 1, &pSamplerLinear );						
+			
+
+			ConstantBuffer cb;					
+			cb.transparency=1.0f;						
+			cb.scaling.x=2.0f;
+			cb.scaling.y=2.0f;
+			
+			cb.translation.x=-1.0f;
+			cb.translation.y=-1.0f;
+
+			cb.translation.x=-1.0f+((float)((float)100 * 2)/(float)vp.Width);
+			cb.translation.y=-1.0f+((float)((float)100 * 2)/(float)vp.Height);
+
+
+			dc->UpdateSubresource( pConstantBuffer, 0, NULL, &cb, 0, 0 );
+
+			dc->VSSetConstantBuffers(0,1, &pConstantBuffer);
+			dc->PSSetConstantBuffers(0,1, &pConstantBuffer);
+
+			fontRenderer->SetViewport(&vp);
+			fontRenderer->DrawText("Bla\nThis is cool\nlol",20, 0xffffffff);
+		}
+
 		
 		i=0;
 		while (shared->RenderCommands[i].Command)
@@ -671,9 +879,9 @@ void DXMessD3D11Handler::RenderOverlay()
 
 						dc->IASetVertexBuffers( 0, 1, &pSpriteVB, &stride, &offset );
 
-						if (ColorKeyCrapper)
-							dc->PSSetShader( pPixelShader, NULL, 0);
-						else
+						//if (ColorKeyCrapper)
+						//	dc->PSSetShader( pPixelShader, NULL, 0);
+						//else
 							dc->PSSetShader( pPixelShaderNormal, NULL, 0);
 
 						dc->PSSetSamplers( 0, 1, &pSamplerLinear );						
@@ -728,6 +936,9 @@ void DXMessD3D11Handler::RenderOverlay()
 						dc->VSSetConstantBuffers(0,1, &pConstantBuffer);
 						dc->PSSetConstantBuffers(0,1, &pConstantBuffer);
 
+
+						
+						
 						dc->Draw(6,0);
 					
 					}
@@ -737,7 +948,9 @@ void DXMessD3D11Handler::RenderOverlay()
 
 				case rcDrawFont:
 				{
-					//nyi
+					
+
+					//dc->Draw(6, characterindex*6)
 					break;
 				}
 			}

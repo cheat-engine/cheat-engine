@@ -88,7 +88,11 @@ begin
         try
           if ReadProcessMemory(processhandle, pointer(address), ba, customtype.bytesize, x) then
           begin
-            customtype.ConvertIntegerToData(v, ba);
+            if customtype.scriptUsesFloat then
+              customtype.ConvertFloatToData(s, ba)
+            else
+              customtype.ConvertIntegerToData(v, ba);
+
             WriteProcessMemory(processhandle, pointer(address), ba, customtype.bytesize, x);
           end;
         finally
@@ -256,10 +260,16 @@ begin
           if ReadProcessMemory(processhandle,pointer(address),buf2,customtype.bytesize,x) then
           begin
             try
-              if showashexadecimal then
+              if showashexadecimal and (customtype.scriptUsesFloat=false) then
                 result:=inttohex(customtype.ConvertDataToInteger(buf2),8)
               else
-                result:=IntToStr(customtype.ConvertDataToInteger(buf2));
+              begin
+                if customtype.scriptUsesFloat then
+                  result:=FloatToStr(customtype.ConvertDataToFloat(buf2))
+                else
+                  result:=IntToStr(customtype.ConvertDataToInteger(buf2));
+              end;
+
             except //no need to flood the user with meaningless error messages
             end;
           end;
@@ -273,7 +283,7 @@ end;
 
 
 function DataToString(buf: PByteArray; size: integer; vartype: TVariableType): string;
-{note: If type is of stringo unicode, the last 2 bytes will get set to 0, so watch what you're calling}
+{note: If type is of string unicode, the last 2 bytes will get set to 0, so watch what you're calling}
 var tr: Widestring;
     i: integer;
     a: ptruint;
@@ -361,6 +371,7 @@ var x: string;
     isstring: boolean;
     e: integer;
     v: qword;
+    f: single;
 
     floathasseperator: boolean;
     couldbestringcounter: boolean;
@@ -564,10 +575,31 @@ begin
       //not human readable, see if there is a custom type that IS human readable
       for i:=0 to customTypes.count-1 do
       begin
-        if isHumanReadableInteger(TCustomType(customtypes[i]).ConvertDataToInteger(@buf[0])) then
+        if TCustomType(customtypes[i]).scriptUsesFloat then
         begin
-          result:=vtCustom;
-          CustomType^:=customtypes[i];
+          //float check
+          f:=TCustomType(customtypes[i]).ConvertDataToFloat(@buf[0]);
+          x:=floattostr(f);
+
+          if (pos('E',x)=0) and (f<>0) and InRange(f, -100000.0, 100000.0) then
+          begin
+            result:=vtCustom;
+            CustomType^:=customtypes[i];
+
+            if (pos(DecimalSeparator,x)=0) then
+              break; //found one that has no decimal seperator
+
+          end;
+        end
+        else
+        begin
+          //dword check
+          if isHumanReadableInteger(TCustomType(customtypes[i]).ConvertDataToInteger(@buf[0])) then
+          begin
+            result:=vtCustom;
+            CustomType^:=customtypes[i];
+            break;
+          end;
         end;
       end;
     end;

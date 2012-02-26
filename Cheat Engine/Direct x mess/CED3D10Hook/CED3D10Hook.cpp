@@ -682,10 +682,10 @@ void DXMessD3D10Handler::RenderOverlay()
 
 						dev->IASetVertexBuffers( 0, 1, &pSpriteVB, &stride, &offset );
 
-						//if (ColorKeyCrapper)
+						if (ColorKeyCrapper)
 							dev->PSSetShader( pPixelShader);
-						//else
-						//	dev->PSSetShader( pPixelShaderNormal);
+						else
+							dev->PSSetShader( pPixelShaderNormal);
 
 						dev->PSSetSamplers( 0, 1, &pSamplerLinear );						
 						dev->PSSetShaderResources( 0, 1, &textures[shared->RenderCommands[i].sprite.textureid].pTexture );

@@ -4,7 +4,26 @@
 #include "stdafx.h"
 
 
+class FontRenderer
+{
+private:
+	D3D11_VIEWPORT vp;
+	PD3DHookShared shared;
+	IDXGISwapChain *swapchain;
+	ID3D11Device *dev;
+	ID3D11DeviceContext *dc;
 
+	int currentMaxCharacterCount; //holds the number of vertices in pSpriteVB divided by 6
+	ID3D11Buffer *pFontVB;
+	ID3D11ShaderResourceView *pFontTexture;
+
+	void SetupFontVertexBuffer(int count);
+public:
+	void SetViewport(D3D11_VIEWPORT *newvp);
+	void DrawText(char *s, int strlen, XMCOLOR color);
+	FontRenderer(IDXGISwapChain *swapchain, ID3D11Device *dev, ID3D11DeviceContext *dc, PD3DHookShared shared);
+	~FontRenderer();
+};
 
 
 typedef struct
@@ -19,10 +38,13 @@ private:
 	PD3DHookShared shared;
 
 	
-	IDXGISwapChain *swapchain;
+	
 
 	
 	ID3D11Buffer *pSpriteVB;
+	FontRenderer *fontRenderer;
+
+
 
 	int TextureCount;
 	TextureData11 *textures;
@@ -49,6 +71,7 @@ private:
 	BOOL Valid;
 	BOOL UpdateTextures();
 public:
+	IDXGISwapChain *swapchain;
 	ID3D11Device *dev;
 	ID3D11DeviceContext *dc;
 	ID3D11RasterizerState *pWireframeRasterizer;

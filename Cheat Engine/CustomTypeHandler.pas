@@ -36,6 +36,7 @@ type
     fScriptUsesFloat: boolean;
 
 
+
     procedure unloadscript;
     procedure setName(n: string);
     procedure setfunctiontypename(n: string);
@@ -44,10 +45,22 @@ type
     bytesize: integer;
     preferedAlignment: integer;
 
+    //these 4 functions are just to make it easier
+    procedure ConvertToData(f: single; output: pointer); overload;
+    function ConvertFromData(data: pointer): single; overload;
+    procedure ConvertToData(i: integer; output: pointer); overload;
+    function ConvertFromData(data: pointer): integer; overload;
+
     function ConvertDataToInteger(data: pointer): integer;
     function ConvertDataToIntegerLua(data: pbytearray): integer;
     procedure ConvertIntegerToData(i: integer; output: pointer);
     procedure ConvertIntegerToDataLua(i: integer; output: pbytearray);
+
+    function ConvertDataToFloat(data: pointer): single;
+    function ConvertDataToFloatLua(data: pbytearray): single;
+    procedure ConvertFloatToData(f: single; output: pointer);
+    procedure ConvertFloatToDataLua(f: single; output: pbytearray);
+
 
 
     function getScript:string;
@@ -261,6 +274,148 @@ begin
     i:=result;
     result:=trunc(f);
   end;
+end;
+
+
+procedure TCustomType.ConvertFloatToDataLua(f: single; output: pbytearray);
+//I REALLY doubt anyone in their right mind would use lua to encode a float as bytes, but it's here...
+var
+  L: PLua_State;
+  r: integer;
+  c,b: integer;
+begin
+  l:=LuaVM;
+
+  LuaCS.Enter;
+  try
+    if lua_valuetobytesfunctionid=-1 then
+    begin
+      lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(lua_valuetobytes));
+      lua_valuetobytesfunctionid:=luaL_ref(LuaVM,LUA_REGISTRYINDEX);
+    end;
+    lua_rawgeti(Luavm, LUA_REGISTRYINDEX, lua_valuetobytesfunctionid);
+
+    lua_pushnumber(L, f);
+    if lua_pcall(l,1,bytesize,0)=0 then
+    begin
+      r:=lua_gettop(L);
+      if r>0 then
+      begin
+        b:=0;
+        for c:=-r to -1 do
+        begin
+          output[b]:=lua_tointeger(L, c);
+          inc(b);
+        end;
+
+        lua_pop(L,r);
+      end;
+    end;
+
+
+  finally
+    LuaCS.Leave;
+  end;
+end;
+
+
+procedure TCustomType.ConvertFloatToData(f: single; output: pointer);
+var i: integer;
+begin
+
+  i:=pdword(@f)^; //convert the f to a integer without conversion (reverseroutine takes an integer, but could be any 32-bit value really)
+
+  if not scriptUsesFloat then //WHY even call this ?
+    i:=trunc(f);
+
+  if assigned(reverseroutine) then
+    reverseroutine(i,output)
+  else
+  begin
+    //possible lua
+    if fCustomTypeType=cttLuaScript then
+      ConvertFloatToDataLua(i, output);
+  end;
+end;
+
+function TCustomType.ConvertDataToFloatLua(data: PByteArray): single;
+//again, why would anyone use lua for this ?
+var
+  L: PLua_State;
+  i: integer;
+begin
+  l:=LuaVM;
+
+  LuaCS.Enter;
+  try
+    if lua_bytestovaluefunctionid=-1 then
+    begin
+      lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(lua_bytestovalue));
+      lua_bytestovaluefunctionid:=luaL_ref(LuaVM,LUA_REGISTRYINDEX);
+    end;
+
+
+    lua_rawgeti(Luavm, LUA_REGISTRYINDEX, lua_bytestovaluefunctionid);
+
+
+
+    for i:=0 to bytesize-1 do
+      lua_pushinteger(L,data[i]);
+
+    lua_call(L, bytesize,1);
+    result:=lua_tonumber(L, -1);
+
+    lua_pop(L,lua_gettop(l));
+  finally
+    LuaCS.Leave;
+  end;
+
+end;
+
+
+
+function TCustomType.ConvertDataToFloat(data: pointer): single;
+var
+  i: dword;
+  f: single absolute i;
+begin
+  if assigned(routine) then
+  begin
+    i:=routine(data);
+
+    if not fScriptUsesFloat then //the result is in integer format ,
+      f:=i; //convert the integer to float
+  end
+  else
+  begin
+    //possible lua
+    if fCustomTypeType=cttLuaScript then
+      f:=ConvertDataToFloatLua(data)
+    else
+      f:=0;
+  end;
+
+  result:=f;
+end;
+
+procedure TCustomType.ConvertToData(f: single; output: pointer);
+begin
+  ConvertFloatToData(f, output);
+end;
+
+function TCustomType.ConvertFromData(data: pointer): single;
+begin
+  result:=ConvertDataToFloat(data);
+end;
+
+procedure TCustomType.ConvertToData(i: integer; output: pointer);
+begin
+  ConvertIntegerToData(i, output);
+end;
+
+function TCustomType.ConvertFromData(data: pointer): integer;
+begin
+  result:=ConvertDataToInteger(data);
 end;
 
 procedure TCustomType.unloadscript;
