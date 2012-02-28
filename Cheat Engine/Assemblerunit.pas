@@ -1536,7 +1536,7 @@ type TAssemblerBytes=array of byte;
 
 type TassemblerPreference=(apNone, apShort, apLong);
 
-function Assemble(opcode:string; address: ptrUint;var bytes: TAssemblerBytes; assemblerPreference: TassemblerPreference=apNone): boolean;
+function Assemble(opcode:string; address: ptrUint;var bytes: TAssemblerBytes; assemblerPreference: TassemblerPreference=apNone; skiprangecheck: boolean=false): boolean;
 function GetOpcodesIndex(opcode: string): integer;
 
 //function tokenize(opcode:string; var tokens: ttokens): boolean;
@@ -1575,7 +1575,8 @@ type TSingleLineAssembler=class
 
     function HandleTooBigAddress(opcode: string; address: ptrUint;var bytes: TAssemblerBytes; actualdisplacement: integer): boolean;
   public
-    function Assemble(opcode:string; address: ptrUint;var bytes: TAssemblerBytes;assemblerPreference: TassemblerPreference=apNone): boolean;
+    function Assemble(opcode:string; address: ptrUint;var bytes: TAssemblerBytes;assemblerPreference: TassemblerPreference=apNone; skiprangecheck: boolean=false): boolean;
+
     property REX_W: boolean read getRex_W write setRex_W;
     property REX_R: boolean read getRex_R write setRex_R;
     property REX_X: boolean read getRex_X write setRex_X;
@@ -2105,11 +2106,9 @@ end;
 
 function rewrite(var token:string): boolean;
 var i,j,k,err,err2: integer;
-    a,b: dword;
+    a,b: qword;
     tokens: array of string;
     last: integer;
-
-    disp: dword;
 
     temp: string;
     haserror: boolean;
@@ -2197,11 +2196,23 @@ begin
     if (length(tokens[i])>1) and (not (tokens[i][1] in ['[',']','+','-','*'])) then //3/16/2011: 11:15 (replaced or with and)
     begin
       val('$'+tokens[i],j,err);
-      if (err<>0) and (getreg(tokens[i],false)=-1) then
+      if (err<>0) and (getreg(tokens[i],false)=-1) then    //not a hexadecimal value and not a register
       begin
         temp:=inttohex(symhandler.getaddressfromname(tokens[i], false, haserror),8);
         if not haserror then
-          tokens[i]:=temp;
+          tokens[i]:=temp //can be rewritten as a hexadecimal
+        else
+        begin
+          if (i<length(tokens[i])) then
+          begin
+            //perhaps it can be concatenated with the next one
+            if (length(tokens[i+1])>0) and (not (tokens[i+1][1] in ['[',']','(',')'])) then //not an invalid token char
+            begin
+              tokens[i+1]:=tokens[i]+tokens[i+1];
+              tokens[i]:='';
+            end;
+          end;
+        end;
       end;
     end;
   end;
@@ -3131,12 +3142,12 @@ end;
 
 
 
-function Assemble(opcode:string; address: ptrUint;var bytes: TAssemblerBytes; assemblerPreference: TassemblerPreference=apNone): boolean;
+function Assemble(opcode:string; address: ptrUint;var bytes: TAssemblerBytes; assemblerPreference: TassemblerPreference=apNone; skiprangecheck: boolean=false): boolean;
 begin
-  result:=SingleLineAssembler.assemble(opcode, address, bytes, assemblerPreference);
+  result:=SingleLineAssembler.assemble(opcode, address, bytes, assemblerPreference, skiprangecheck);
 end;
 
-function TSingleLineAssembler.Assemble(opcode:string; address: ptrUint;var bytes: TAssemblerBytes;assemblerPreference: TassemblerPreference=apNone): boolean;
+function TSingleLineAssembler.Assemble(opcode:string; address: ptrUint;var bytes: TAssemblerBytes;assemblerPreference: TassemblerPreference=apNone; skiprangecheck: boolean=false): boolean;
 var tokens: ttokens;
     i,j,k,l: integer;
     v,v2: qword;
@@ -5436,7 +5447,9 @@ begin
           begin
             setlength(bytes,0);
             //result:=HandleTooBigAddress(opcode,address, bytes, actualdisplacement);
-            raise exception.create('offset too big');
+
+            if skiprangecheck=false then  //for syntax checking
+              raise exception.create('offset too big');
           end
           else
             pdword(@bytes[relativeAddressLocation])^:=actualdisplacement-(address+length(bytes));

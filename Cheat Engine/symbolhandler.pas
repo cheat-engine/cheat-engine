@@ -1361,8 +1361,18 @@ begin
 
 
             //not a register or symbol
-            haserror:=true;
-            exit;
+            //One last attempt to fix it, check if it is the last symbol, if not add it. (perhaps the symbol got split into tokens)
+            if i<length(tokens)-1 then
+            begin
+              tokens[i+1]:=tokens[i]+tokens[i+1]; //(if not, it will error out eventually anyhow)
+              tokens[i]:=''; //empty
+            end
+            else
+            begin
+              haserror:=true;
+              exit;
+            end;
+
           end;
         end;
       end
