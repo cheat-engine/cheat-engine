@@ -1203,7 +1203,7 @@ begin
 
           try
             //replace identifiers in the line with their address
-            if not assemble(currentline,currentaddress,assembled[0].bytes) then raise exception.Create('bla');
+            if not assemble(currentline,currentaddress,assembled[0].bytes, apNone, true) then raise exception.Create('bla');
           except
             raise exception.Create(rsThisInstructionCanTBeCompiled);
           end;
