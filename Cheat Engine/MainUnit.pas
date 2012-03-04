@@ -5568,7 +5568,7 @@ begin
     (not addresslist.selectedRecord.isGroupHeader);
 
 
-  miShowAsSigned.visible:=(addresslist.selectedRecord <> nil) and (Showashexadecimal1.visible and not Showashexadecimal1.checked);
+  miShowAsSigned.visible:=(addresslist.selectedRecord <> nil) and (not addresslist.selectedRecord.showAsHex);
   miShowAsSigned.Checked:=(addresslist.selectedRecord <> nil) and (addresslist.selectedrecord.showAsSigned);
 
   if (addresslist.selectedRecord <> nil) and (addresslist.selectedrecord.VarType =
