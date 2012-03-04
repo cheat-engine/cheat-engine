@@ -56,21 +56,7 @@ PS_INPUT VS( VS_INPUT input )
 //--------------------------------------------------------------------------------------
 
 
-
-float4 PS( PS_INPUT input): SV_Target
-{
-    float4 r;
-    r=txDiffuse.Sample( samLinear, input.Tex );      
-    
-
-    if ((r[0]+r[1]+r[2]==3.00f) && (r[3]==1.0f))
-      r[3]=0.0f; //pure white with no transparency. Set it to see through
-    else
-      r[3]=r[3]*transparency;
-
-    return r;
-
-}
+//For those wondering: Here used to be a secondary pixelshader. It's gone (yup, it's gone)
 
 float4 PSNormal( PS_INPUT input): SV_Target
 {

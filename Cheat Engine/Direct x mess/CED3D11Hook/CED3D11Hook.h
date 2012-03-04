@@ -4,6 +4,26 @@
 #include "stdafx.h"
 
 
+typedef struct
+{
+	//texture coordinates for each character
+	float offset; //offset where this character starts
+	float charwidth; //width in pixel of this character	
+} CHARINFO, *PCHARINFO;
+
+typedef struct
+{
+	float charheight; //height in pixels of each character
+	float fullwidth; //width in pixels of the full fontmap
+	CHARINFO charinfo[96];
+} FONTMAP, *PFONTMAP;
+
+typedef struct
+{	
+	ID3D11ShaderResourceView *pTexture;
+	PFONTMAP DefinedFontMap; //Optional pointer to a fontmaparray if it's a font texture
+} TextureData11, *PTextureData11;
+
 class FontRenderer
 {
 private:
@@ -15,22 +35,18 @@ private:
 
 	int currentMaxCharacterCount; //holds the number of vertices in pSpriteVB divided by 6
 	ID3D11Buffer *pFontVB;
-	ID3D11ShaderResourceView *pFontTexture;
+	PTextureData11 pFontTexture;
 
 	void SetupFontVertexBuffer(int count);
 public:
+	void SetFont(PTextureData11 fonttexture);
 	void SetViewport(D3D11_VIEWPORT *newvp);
-	void DrawText(char *s, int strlen, XMCOLOR color);
+	void DrawText(char *s, int strlen);
 	FontRenderer(IDXGISwapChain *swapchain, ID3D11Device *dev, ID3D11DeviceContext *dc, PD3DHookShared shared);
 	~FontRenderer();
 };
 
 
-typedef struct
-{
-	ID3D11ShaderResourceView *pTexture;
-	DWORD colorKey;
-} TextureData11, *PTextureData11;
 
 class DXMessD3D11Handler
 {
@@ -53,7 +69,7 @@ private:
 
 
 
-	ID3D11PixelShader *pPixelShader, *pPixelShaderNormal;
+	ID3D11PixelShader *pPixelShaderNormal;
 	ID3D11VertexShader *pVertexShader;
 	ID3D11InputLayout *pVertexLayout;
 

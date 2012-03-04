@@ -21,7 +21,7 @@ uses
   luafile, xmplayer_server, sharedMemory{$ifdef windows}, win32proc{$endif},
   vmxfunctions, FileUtil, networkInterfaceApi, networkconfig, d3dhookUnit, PNGcomn,
   FPimage, byteinterpreter, frmgroupscanalgoritmgeneratorunit, vartypestrings,
-  groupscancommandparser;
+  groupscancommandparser, GraphType, IntfGraphics, RemoteMemoryManager;
 
 //the following are just for compatibility
 
@@ -196,6 +196,7 @@ type
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
+    miShowAsSigned: TMenuItem;
     miOpenFile: TMenuItem;
     MenuItem8: TMenuItem;
     miTutorial: TMenuItem;
@@ -399,6 +400,7 @@ type
     procedure lblcompareToSavedScanClick(Sender: TObject);
     procedure mi3dClick(Sender: TObject);
     procedure miOpenFileClick(Sender: TObject);
+    procedure miShowAsSignedClick(Sender: TObject);
     procedure miTutorialClick(Sender: TObject);
     procedure miChangeValueClick(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
@@ -2537,10 +2539,77 @@ begin
 
 end;
 
-procedure TMainForm.Label3Click(Sender: TObject);
-begin
 
-  raise Exception.Create('bla');
+var t: TRemoteMemoryManager;
+procedure TMainForm.Label3Click(Sender: TObject);
+var x: TPortableNetworkGraphic;
+  z: TLazIntfImage;
+  i,j: integer;
+  c: TFPColor;
+
+  y: tpicture;
+
+  m: array [0..8] of ptruint;
+
+begin
+  if t=nil then
+    t:=tremotememorymanager.create;
+
+  m[0]:=t.alloc(64);
+  m[1]:=t.alloc(128);
+  m[2]:=t.alloc(16);
+  m[3]:=t.alloc(256);
+  m[4]:=t.alloc(32);
+  m[5]:=t.alloc(32);
+  m[6]:=t.alloc(32);
+  m[7]:=t.alloc(32);
+  m[8]:=t.alloc(32);
+
+  t.dealloc(m[0]);
+  m[0]:=t.alloc(32);
+  t.dealloc(m[2]);
+  m[2]:=t.alloc(512);
+  t.dealloc(m[5]);
+  m[5]:=t.alloc(16);
+
+
+
+
+
+
+
+ {
+ //code to convert a 24 bit picture to a 32-bit picture with transparency
+
+  y:=tpicture.create;
+   y.Bitmap.Canvas.brush.color:=clred;
+   y.bitmap.width:=100;
+   y.bitmap.height:=100;
+   y.bitmap.Canvas.FillRect(0,0,100,100);
+
+   y.bitmap.canvas.font:=mainform.Font;
+
+   y.bitmap.canvas.brush.color:=clblue;
+   y.bitmap.Canvas.TextOut(0,0,'test');
+
+   y.png.SaveToFile('c:\yyy.png');
+
+  x:=TPortableNetworkGraphic.Create;
+  x.PixelFormat:=pf32bit;
+  x.Transparent:=true;
+  x.TransparentColor:=clBlue;
+
+  x.width:=y.width;
+  x.height:=y.height;
+  x.canvas.CopyRect(rect(0,0,100,100), y.bitmap.canvas, rect(0,0,100,100));
+
+  x.TransparentColor:=clRed;
+  x.SaveToFile('c:\xxx.png');
+
+  x.free;
+
+     }
+
 end;
 
 
@@ -2619,6 +2688,22 @@ begin
 
   if ProcessWindow.modalresult=mrOK then
     openProcessEpilogue(oldprocessname, oldprocess, oldprocesshandle);
+end;
+
+procedure TMainForm.miShowAsSignedClick(Sender: TObject);
+var
+  i: integer;
+  newstate: boolean;
+begin
+  if addresslist.selectedRecord <> nil then
+  begin
+    newstate := not addresslist.selectedRecord.showAsSigned;
+
+    for i := 0 to addresslist.Count - 1 do
+      if addresslist[i].isSelected then
+        addresslist[i].showAsSigned := newstate;
+  end;
+
 end;
 
 
@@ -5482,6 +5567,10 @@ begin
     [vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble, vtCustom, vtByteArray]) and
     (not addresslist.selectedRecord.isGroupHeader);
 
+
+  miShowAsSigned.visible:=(addresslist.selectedRecord <> nil) and (Showashexadecimal1.visible and not Showashexadecimal1.checked);
+  miShowAsSigned.Checked:=(addresslist.selectedRecord <> nil) and (addresslist.selectedrecord.showAsSigned);
+
   if (addresslist.selectedRecord <> nil) and (addresslist.selectedrecord.VarType =
     vtBinary) then
   begin
@@ -7089,15 +7178,39 @@ end;
 procedure TMainForm.Label59Click(Sender: TObject);
 var t: TD3DHook_Texture;
   s: TD3DHook_Sprite;
-begin
 
+  f: tfont;
+
+  fm: TD3DHook_FontMap;
+  tc: TD3Dhook_TextContainer;
+
+  p2: TPicture;
+begin
   safed3dhook;
   while d3dhook.getWidth=0 do CheckSynchronize;
 
-  t:=d3dhook.createTexture(logo.Picture);
+  p2:=tpicture.create;
+  p2.PNG.PixelFormat:=pf32bit;
+  p2.png.Transparent:=true;
+  p2.png.TransparentColor:=clWhite;
+
+  p2.png.width:=logo.picture.width;
+  p2.png.height:=logo.picture.height;
+  p2.png.canvas.CopyRect(rect(0,0,p2.png.width,p2.png.height), logo.picture.Bitmap.canvas, rect(0,0,p2.png.width,p2.png.height));
+
+
+  t:=d3dhook.createTexture(p2);
   s:=d3dhook.createSprite(t);
   s.x:=-1;
   s.y:=-1;
+
+  f:=tfont.Create;
+  f.Assign(mainform.font);
+  f.Color:=clblue;
+  f.Size:=f.size*2;
+  fm:=d3dhook.createFontMap(f);
+
+  tc:=d3dhook.createTextContainer(fm,100,100,'My first test');
 
 
 

@@ -11,7 +11,7 @@ interface
 
 uses
   windows, Classes, SysUtils, sharedMemory, forms, graphics, cefuncproc,
-  newkernelhandler, controls, Clipbrd, strutils, LuaHandler;
+  newkernelhandler, controls, Clipbrd, strutils, LuaHandler, RemoteMemoryManager;
 
 type
   TCEMessage=packed record
@@ -23,10 +23,9 @@ type
 
   TTextureEntry=packed record
     AddressOfTexture: UINT64;
+    AddressOfFontmap: UINT64;
     size: integer;
-    colorKey: dword;
     hasBeenUpdated: integer;
-    reserved: integer;
   end;
 
   TTextureEntryArray=Array [0..1000] of TTextureEntry;
@@ -38,25 +37,21 @@ type
   			   rcDrawFont=3	);		//Render some text at the given coordinates. The string is located at  "addressoftext"
 
   TSpriteCommand=packed record
-    x: single;
-    y: single;
-    alphablend: single;
     width: integer;
     height: integer;
-    isMouse: integer;
     textureid: integer;
   end;
 
   TFontCommand=packed record
-    x: single;
-    y: single;
-    alphablend: single;
-    color: DWORD;
     addressoftext: UINT64;
+    fontid: integer;
   end;
 
   TRenderCommand=packed record
     command: integer;
+    x: single;
+    y: single;
+    alphablend: single;
     case TRenderCommandEnum of
       rcDrawSprite: (Sprite: TSpriteCommand);
       rcDrawFont: (Font: TFontCommand);
@@ -206,9 +201,10 @@ type
 
   TD3DHook_Texture=class(TObject)
   private
+    resource: ptruint; //address where the current resource is located
+  protected
     id: integer;
     owner: TD3DHook;
-    resource: ptruint; //address where the current resource is located
     fheight: integer;
     fwidth: integer;
   public
@@ -227,11 +223,29 @@ type
     property width: integer read fwidth;
   end;
 
+  TD3DHook_FontMap=class(TD3DHook_Texture)
+  private
+    fontmapdata: ptruint;
+  public
+    procedure ChangeFont(font: TFont);
+    constructor Create(owner: TD3DHook; font: TFont);
+    destructor destroy; override;
+  end;
+
   TD3DHook_RenderObject=class(TObject)
+  private
+    fx: single;
+    fy: single;
+    falphablend: single;
+    fvisible: boolean;
+    procedure setX(v: single);
+    procedure setY(v: single);
+    procedure setAlphaBlend(v: single);
+    procedure setVisible(state: boolean);
+    procedure setZOrder(newpos: integer);
   protected
     owner: TD3DHook;
     updatecount: integer;
-    procedure setZOrder(newpos: integer);
   public
     function getIndex: integer;
     procedure beginUpdate;
@@ -243,40 +257,55 @@ type
 
   published
     property zOrder: integer read getIndex write setZOrder;
+    property alphaBlend: single read falphablend write setAlphablend;
+    property x: single read fx write setX;
+    property y: single read fy write setY;
+    property visible: boolean read fVisible write setVisible;
   end;
 
-  TD3DHook_Sprite=class(TD3DHook_RenderObject)
+  TD3Dhook_TextContainer=class(TD3DHook_RenderObject)   //class for rendering text
+  private
+    maxTextLength: integer;
+    AddressOfText: QWORD;
+    fFontMap: TD3DHook_FontMap;
+    fText: string;
+
+    addressChangedThisUpdate: boolean;
+    oldAddressOfText: QWORD;
+  private
+    procedure setFontMap(fm: TD3DHook_FontMap);
+    procedure setText(s: string);
+  public
+    procedure UpdateRenderCommand; override;
+
+
+    destructor destroy; override;
+    constructor create(owner: TD3DHook; fontmap: TD3DHook_FontMap; x,y: single; text: string);
+  published
+    property FontMap: TD3DHook_FontMap read fFontMap write setFontMap;
+    property Text: String read fText write setText;
+  end;
+
+  TD3DHook_Sprite=class(TD3DHook_RenderObject)     //clas for rendering textures
   private
     ftexture: TD3DHook_Texture;
-    fx: single;
-    fy: single;
-    falphablend: single;
     fwidth: integer;
     fheight: integer;
-    fIsMouse: boolean;
 
-    fvisible: boolean;
-    procedure setVisible(state: boolean);
-    procedure setIsMouse(state: boolean);
+
     procedure setTexture(s: TD3DHook_Texture);
-    procedure setX(v: single);
-    procedure setY(v: single);
+
     procedure setWidth(v: integer);
     procedure setHeight(v: integer);
-    procedure setAlphaBlend(v: single);
+
   public
 
     procedure UpdateRenderCommand; override;
 
     constructor create(owner: TD3DHook; texture: TD3DHook_Texture);
   published
-    property alphaBlend: single read falphablend write setAlphablend;
-    property x: single read fx write setX;
-    property y: single read fy write setY;
     property width: integer read fWidth write setWidth;
     property height: integer read fHeight write setHeight;
-    property visible: boolean read fVisible write setVisible;
-    property isMouse: boolean read fIsMouse write setIsMouse;
     property texture: TD3DHook_Texture read ftexture write setTexture;
   end;
 
@@ -317,6 +346,7 @@ type
     consoleImage: TPicture;
     consoleCursorImage: TPicture;
 
+    memman: TRemoteMemoryManager;
 
     procedure UpdateResourceData;
     procedure UpdateConsoleOverlay(command: string; log: Tstrings);
@@ -331,6 +361,9 @@ type
 
     function createTexture(p: TPicture): TD3DHook_Texture;
     function createSprite(texture: TD3DHook_Texture): TD3DHook_Sprite;
+
+    function createFontMap(f: TFont): TD3DHook_FontMap;
+    function createTextContainer(fontmap: TD3DHook_FontMap; x,y: single; text: string): TD3Dhook_TextContainer;
 
 
     procedure SetOverlayAlphaBlend(overlayid: integer; blend: single);
@@ -511,6 +544,35 @@ end;
 
 //----------------------------D3DHook_RenderObject------------------------------
 
+procedure TD3DHook_RenderObject.setAlphaBlend(v: single);
+begin
+  BeginUpdate;
+  falphablend:=v;
+  endUpdate;
+end;
+
+procedure TD3DHook_RenderObject.setX(v: single);
+begin
+  beginUpdate;
+  fx:=v;
+  endUpdate;
+end;
+
+procedure TD3DHook_RenderObject.setY(v: single);
+begin
+  beginUpdate;
+  fy:=v;
+  endUpdate;
+end;
+
+
+procedure TD3DHook_RenderObject.setVisible(state: boolean);
+begin
+  beginUpdate;
+  fvisible:=state;
+  endUpdate;
+end;
+
 procedure TD3DHook_RenderObject.setZOrder(newpos: integer);
 var
   mypos: integer;
@@ -564,12 +626,90 @@ begin
   index:=getindex;
   owner.renderCommandList^[Index].command:=integer(rcIgnored);
   owner.commandlist[index]:=nil;
+
+  inherited destroy;
 end;
 
 constructor TD3DHook_RenderObject.create(owner: TD3DHook);
 begin
   self.owner:=owner;
+  falphablend:=1;
+  fvisible:=true;
   owner.commandlist.Add(self);
+end;
+
+//----------------------------D3DHook_TextContainer-----------------------------
+procedure TD3Dhook_TextContainer.setText(s: string);
+var
+  x: dword;
+begin
+  BeginUpdate;
+
+  fText:=s;
+  if length(s)+1>maxTextLength then //+1 for 0 terminator
+  begin
+    if AddressOfText<>0 then //free the old block
+      owner.memman.dealloc(AddressOfText);
+
+    maxTextLength:=length(s)+16;
+    AddressOfText:=owner.memman.alloc(maxTextLength);
+  end;
+
+  WriteProcessMemory(processhandle, pointer(AddressOfText), @s[1], length(s)+1, x); //just write
+
+  endUpdate;
+end;
+
+procedure TD3Dhook_TextContainer.setFontMap(fm: TD3DHook_FontMap);
+begin
+  BeginUpdate;
+  fFontMap:=fm;
+  endUpdate;
+end;
+
+procedure TD3Dhook_TextContainer.UpdateRenderCommand;
+var index: integer;
+begin
+  index:=getindex;
+  owner.beginCommandListUpdate;
+
+  if (index<>-1) and (fFontmap<>nil) and (fVisible) then
+  begin
+    if owner.renderCommandList^[index].command<>integer(rcDrawFont) then //something completly new
+      owner.renderCommandList^[index].command:=integer(rcIgnored);
+
+    owner.renderCommandList^[index].x:=x;
+    owner.renderCommandList^[index].y:=y;
+    owner.renderCommandList^[index].alphablend:=alphablend;
+    owner.renderCommandList^[index].Font.fontid:=fFontmap.getID;
+    owner.renderCommandList^[index].Font.addressoftext:=AddressOfText;
+
+    owner.renderCommandList^[index].command:=integer(rcDrawFont);
+  end
+  else
+    owner.renderCommandList^[index].command:=integer(rcIgnored);
+
+  owner.endCommandListUpdate;
+end;
+
+destructor TD3Dhook_TextContainer.destroy;
+begin
+  if AddressOfText<>0 then
+    owner.memman.dealloc(addressoftext);
+  inherited destroy;
+end;
+
+constructor TD3Dhook_TextContainer.create(owner: TD3DHook; fontmap: TD3DHook_FontMap; x,y: single; text: string);
+begin
+  inherited create(owner);
+
+  beginupdate;
+  self.x:=x;
+  self.y:=y;
+  self.FontMap:=fontmap;
+  self.text:=text;
+
+  endUpdate;
 end;
 
 //-------------------------------D3DHook_Sprite---------------------------------
@@ -587,42 +727,6 @@ begin
   endUpdate;
 end;
 
-procedure TD3DHook_Sprite.setAlphaBlend(v: single);
-begin
-  BeginUpdate;
-  falphablend:=v;
-  endUpdate;
-end;
-
-procedure TD3DHook_Sprite.setX(v: single);
-begin
-  beginUpdate;
-  fx:=v;
-  endUpdate;
-end;
-
-procedure TD3DHook_Sprite.setY(v: single);
-begin
-  beginUpdate;
-  fy:=v;
-  endUpdate;
-end;
-
-procedure TD3DHook_Sprite.setIsMouse(state: boolean);
-begin
-  beginUpdate;
-  fIsMouse:=state;
-  endUpdate;
-end;
-
-procedure TD3DHook_Sprite.setVisible(state: boolean);
-begin
-  beginUpdate;
-  fvisible:=state;
-  endUpdate;
-end;
-
-
 procedure TD3DHook_Sprite.setTexture(s: TD3DHook_Texture);
 begin
   BeginUpdate;
@@ -639,17 +743,16 @@ begin
 
   owner.beginCommandListUpdate;
 
-  if (index<>-1) and (texture<>nil) then
+  if (index<>-1) and (texture<>nil) and (fVisible) then
   begin
     if owner.renderCommandList^[index].command<>integer(rcDrawSprite) then //something completly new
-      owner.renderCommandList^[index].command:=integer(rcIgnored); //in case the lock is not used
+      owner.renderCommandList^[index].command:=integer(rcIgnored);
 
-    owner.renderCommandList^[index].Sprite.x:=x;
-    owner.renderCommandList^[index].Sprite.y:=y;
-    owner.renderCommandList^[index].Sprite.alphablend:=alphablend;
+    owner.renderCommandList^[index].x:=x;
+    owner.renderCommandList^[index].y:=y;
+    owner.renderCommandList^[index].alphablend:=alphablend;
     owner.renderCommandList^[index].Sprite.width:=width;
     owner.renderCommandList^[index].Sprite.height:=height;
-    owner.renderCommandList^[index].Sprite.ismouse:=integer(ismouse);
     owner.renderCommandList^[index].Sprite.textureid:=texture.getID;
     owner.renderCommandList^[index].command:=integer(rcDrawSprite);
   end
@@ -665,11 +768,114 @@ constructor TD3DHook_Sprite.create(owner: TD3DHook; texture: TD3DHook_Texture);
 begin
   inherited create(owner);
   beginupdate;
-  alphablend:=1;
+
 
   setTexture(texture);
   endUpdate;
 end;
+
+//-------------------------------d3dhook_font-----------------------------------
+
+procedure TD3DHook_FontMap.ChangeFont(font: TFont);
+var s: string;
+    i: integer;
+    charpos: integer;
+
+    p: TPicture;
+
+
+    m: TMemorystream;
+    charwidth: word; //65535 if the max size of one character (oh noes, but what if I want more? Then you're a retard!)
+
+    newblock: pointer;
+    x: dword;
+begin
+  p:=TPicture.Create;
+  p.PNG.PixelFormat:=pf32bit;
+  p.png.canvas.font:=font;
+  p.png.canvas.brush.color:=InvertColor(font.color);
+  p.png.Transparent:=true;
+  p.png.TransparentColor:=p.png.canvas.brush.color;
+  p.png.width:=100;
+  p.png.height:=100; //initial setup
+
+  //create a fontmap picture with this font and set that as the texture
+  //also fill in the fontmap layout
+
+  s:='';
+  for i:=32 to 127 do
+    s:=s+chr(i);
+
+
+  fheight:=p.png.canvas.GetTextHeight(s); //get the max height
+
+
+  //calculate the width based on a per character rendering. (perhaps the whole string might have been using a half pixel at some spots...)
+  fwidth:=0;
+  for i:=32 to 127 do
+    fwidth:=fwidth+p.png.canvas.GetTextWidth(chr(i));
+
+
+  //setup the image
+
+  p.png.Width:=fwidth;
+  p.png.height:=fheight;
+
+  m:=tmemorystream.create;  //buffer to obtain the fontmap data
+  m.WriteBuffer(fheight, sizeof(word)); //2 bytes for the height of all characters
+
+  //now fill it in
+  charpos:=0;
+  for i:=32 to 127 do
+  begin
+    p.PNG.canvas.TextOut(charpos, 0, chr(i));
+    charwidth:=p.png.Canvas.GetTextWidth(chr(i));
+    m.WriteBuffer(charwidth,2);
+    charpos:=charpos+charwidth;
+  end;
+
+  newblock:=pointer(owner.memman.alloc(m.size));
+
+
+  if newblock<>nil then
+  begin
+    if WriteProcessMemory(processhandle, newblock, m.memory, m.size, x) then
+    begin
+      owner.beginTextureUpdate;
+
+      //set the font state
+
+      owner.tea[id].AddressOfFontmap:=qword(newblock);
+      owner.tea[id].hasBeenUpdated:=1;
+
+      //free old block if possible
+      if (resource<>0) then
+        owner.memman.dealloc(fontmapdata);
+
+
+      LoadTextureByPicture(p);
+      owner.endTextureUpdate;
+
+      fontmapdata:=qword(newblock);
+    end;
+  end;
+end;
+
+destructor TD3DHook_FontMap.destroy;
+begin
+  if fontmapdata<>0 then
+    owner.memman.dealloc(fontmapdata);
+
+  inherited destroy;
+end;
+
+constructor TD3DHook_FontMap.Create(owner: TD3DHook; font: TFont);
+begin
+  inherited create(owner);
+  ChangeFont(font);
+
+end;
+
 
 //-------------------------------d3dhook_texture--------------------------------
 procedure TD3DHook_Texture.LoadTextureByPicture(picture: TPicture);
@@ -684,7 +890,7 @@ begin
 
   owner.beginTextureUpdate;
 
-  newblock:=VirtualAllocEx(processhandle, nil, m.Size, MEM_COMMIT or MEM_RESERVE, PAGE_READWRITE);
+  newblock:=pointer(owner.memman.alloc(m.size));
   if newblock<>nil then
   begin
     msp:=m.Memory;
@@ -694,11 +900,10 @@ begin
       owner.tea[id].AddressOfTexture:=qword(newblock);
       owner.tea[id].Size:=m.size;
       owner.tea[id].hasBeenUpdated:=1;
-      owner.tea[id].colorKey:=$ffffffff; //white and alpha
 
       //free old block if possible
       if (resource<>0) then
-        VirtualFreeEx(processhandle, pointer(resource),0,MEM_RELEASE);
+        owner.memman.dealloc(resource);
 
       fheight:=picture.Height;
       fwidth:=picture.Width;
@@ -724,7 +929,8 @@ begin
   owner.tea[id].AddressOfTexture:=0;
   owner.tea[id].hasBeenUpdated:=1; //marks for deletion
 
-  VirtualFreeEx(processhandle, pointer(resource),0,MEM_RELEASE);
+  if resource<>0 then
+    owner.memman.dealloc(resource);
 
   owner.textures[id]:=nil;
   owner.endTextureUpdate;
@@ -1073,6 +1279,20 @@ end;
 
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++version 2
+function TD3DHook.createFontMap(f: TFont): TD3DHook_FontMap;
+begin
+  beginTextureUpdate;
+  result:=TD3DHook_FontMap.Create(self, f);
+  endTextureUpdate;
+end;
+
+function TD3DHook.createTextContainer(fontmap: TD3DHook_FontMap; x,y: single; text: string): TD3Dhook_TextContainer;
+begin
+  beginCommandListUpdate;
+  result:=TD3Dhook_TextContainer.create(self, fontmap, x,y,text);
+  endCommandListUpdate;
+end;
+
 function TD3DHook.createTexture(p: TPicture): TD3DHook_Texture;
 begin
   beginTextureUpdate;
@@ -1092,6 +1312,17 @@ destructor TD3DHook.Destroy;
 begin
   UnmapViewOfFile(shared);
   closehandle(fmhandle);
+
+  if messagehandler<>nil then
+  begin
+    messagehandler.terminate;
+    messagehandler.Free;
+  end;
+
+  commandlist.free;
+  textures.free;
+
+  memman.free;
   inherited destroy;
 end;
 
@@ -1099,6 +1330,7 @@ constructor TD3DHook.create(size: integer; hookhwnd: boolean=true);
 var h: thandle;
     s: TStringList;
 begin
+  memman:=TRemoteMemoryManager.create;
   textures:=TList.create;
   commandlist:=TList.create;
 
