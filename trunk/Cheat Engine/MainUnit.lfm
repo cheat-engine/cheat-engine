@@ -1380,7 +1380,6 @@ object MainForm: TMainForm
       Width = 33
       Caption = 'Label3'
       ParentColor = False
-      Visible = False
       OnClick = Label3Click
     end
   end
@@ -1446,6 +1445,10 @@ object MainForm: TMainForm
       GroupIndex = 2
       ShortCut = 16450
       OnClick = Browsethismemoryregion1Click
+    end
+    object miShowAsSigned: TMenuItem
+      Caption = 'Show as signed'
+      OnClick = miShowAsSignedClick
     end
     object Showashexadecimal1: TMenuItem
       Caption = 'Show as hexadecimal'

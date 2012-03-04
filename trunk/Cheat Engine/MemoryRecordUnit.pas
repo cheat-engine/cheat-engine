@@ -67,6 +67,9 @@ type
     fIsOffset: boolean;
 
 
+    fShowAsSignedOverride: boolean;
+    fShowAsSigned: boolean;
+
     fActive: boolean;
     fAllowDecrease: boolean;
     fAllowIncrease: boolean;
@@ -107,6 +110,9 @@ type
     procedure setVarType(v:  TVariableType);
     function getHotkeyCount: integer;
     function getHotkey(index: integer): TMemoryRecordHotkey;
+    function GetshowAsSigned: boolean;
+    procedure setShowAsSigned(state: boolean);
+
 
     function getChildCount: integer;
     function getChild(index: integer): TMemoryRecord;
@@ -148,7 +154,6 @@ type
 
 
     function isBeingEdited: boolean;
-    function showAsSigned: boolean;
     procedure beginEdit;
     procedure endEdit;
 
@@ -194,6 +199,7 @@ type
     property allowDecrease: boolean read fallowDecrease write setAllowDecrease;
     property allowIncrease: boolean read fallowIncrease write setAllowIncrease;
     property showAsHex: boolean read fShowAsHex write setShowAsHex;
+    property showAsSigned: boolean read getShowAsSigned write setShowAsSigned;
     property options: TMemrecOptions read fOptions write setOptions;
     property CustomTypeName: string read fCustomTypeName write setCustomTypeName;
     property Color: TColor read fColor write setColor;
@@ -463,6 +469,13 @@ begin
   tempnode:=CheatEntry.FindNode('ShowAsHex');
   if tempnode<>nil then
     fshowashex:=tempnode.textcontent='1';
+
+  tempnode:=CheatEntry.FindNode('ShowAsSigned');
+  if tempnode<>nil then
+  begin
+    fShowAsSignedOverride:=true;
+    fShowAsSigned:=tempnode.textcontent='1';
+  end;
 
 
   tempnode:=CheatEntry.FindNode('Color');
@@ -763,6 +776,14 @@ begin
   if showAsHex then
     cheatEntry.AppendChild(doc.CreateElement('ShowAsHex')).TextContent:='1';
 
+  if fShowAsSignedOverride then
+  begin
+    if fShowAsSigned then
+      cheatEntry.AppendChild(doc.CreateElement('ShowAsSigned')).TextContent:='1'
+    else
+      cheatEntry.AppendChild(doc.CreateElement('ShowAsSigned')).TextContent:='0';
+  end;
+
 
   cheatEntry.AppendChild(doc.CreateElement('Color')).TextContent:=inttohex(fcolor,6);
 
@@ -873,9 +894,20 @@ begin
   treenode.Update;
 end;
 
-function TMemoryRecord.showAsSigned: boolean;
+
+procedure TMemoryRecord.setShowAsSigned(state: boolean);
 begin
-  result:=formSettings.cbShowAsSigned.checked;
+  fShowAsSignedOverride:=true;
+  fShowAsSigned:=state;
+  refresh;
+end;
+
+function TMemoryRecord.GetShowAsSigned: boolean;
+begin
+  if fShowAsSignedOverride then
+    result:=fShowAsSigned
+  else
+    result:=formSettings.cbShowAsSigned.checked;
 end;
 
 function TMemoryRecord.isBeingEdited: boolean;

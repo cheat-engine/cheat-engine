@@ -36,10 +36,9 @@ It then waits for the HasHandledTextureUpdate			If found, it destroys the textur
 typedef volatile struct
 {
 	UINT64 AddressOfTexture;
+	UINT64 AddressOfFontmap;
 	int size;
-	DWORD colorKey;
-	int hasBeenUpdated;
-	int reserved;
+	int hasBeenUpdated;	
 } *PTextureEntry;
 
 
@@ -55,27 +54,23 @@ enum RenderCommandEnum { rcEndOfCommandlist=0,  //Stop going through the list
 typedef volatile struct
 {
 	int Command;
+	float x;
+	float y;
+	float alphablend;
 
 	union
 	{
 		struct
 		{
-			float x;
-			float y;
-			float alphablend;
 			int width;
 			int height;				
-			int isMouse;
 			int textureid;
 		} sprite;
 
 		struct
 		{
-			float x;
-			float y;
-			float alphablend;
-			DWORD color;
 			UINT64 addressoftext;
+			int fontid;
 		} font;
 	};
 

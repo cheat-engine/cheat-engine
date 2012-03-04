@@ -1123,6 +1123,8 @@ d3dhook_initializeHook(overlaystoragesize, hookmessages):
 
   Note: You can call this only once for a process
 
+
+
 d3dhook_createOverlay(Picture, x,y)
   Sets the Picture object to be used for the overlay. 
 
@@ -1187,14 +1189,34 @@ add sprites with overlayid's
 
 treeview
 
-d3dhook_createTexture()
-d3dhook_createSprite()
+
+rasterimage_getPixelFormat
+rasterimage_setPixelFormat
+
+rasterimage_setTransparent
+rasterimage_getTransparent
+rasterimage_setTransparentColor
+rasterimage_getTransparentColor
+
+
+d3dhook_Font->d3dhook_Texture->Object
+
+d3dhook_createFont
+
+d3dhook_createTexture(picture, hasTransparency OPTIONAL, transparentColor OPTIONAL)
+  if the picture is not a 
+
+d3dhook_createTexture(filename)
+d3dhook_createSprite(texture)
 
 sprite_setPosition()
 sprite_setTexture(x,y) : Z determines if the sprite will be drawn over or under the pevious texture
 sprite_setWidth()
 sprite_setHeight()
 sprite_setZOrder()
+
+d3dhook_createFont(font)
+d3dhook_createText(d3dfont)
 
 makeWritable(address)
 
