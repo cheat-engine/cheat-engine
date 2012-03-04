@@ -2203,10 +2203,10 @@ begin
           tokens[i]:=temp //can be rewritten as a hexadecimal
         else
         begin
-          if (i<length(tokens[i])) then
+          if (i<length(tokens)-1) then
           begin
             //perhaps it can be concatenated with the next one
-            if (length(tokens[i+1])>0) and (not (tokens[i+1][1] in ['[',']','(',')'])) then //not an invalid token char
+            if (length(tokens[i+1])>0) and (not (tokens[i+1][1] in ['''','"','[',']','(',')'])) then //not an invalid token char
             begin
               tokens[i+1]:=tokens[i]+tokens[i+1];
               tokens[i]:='';
