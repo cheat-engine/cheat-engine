@@ -2050,6 +2050,9 @@ var
   ga: PGroupAddress;
 
   gcp: TGroupscanCommandParser;
+
+  extra: dword;
+  value: string;
 begin
 
   //first check if this address is already in the list!
@@ -2066,7 +2069,23 @@ begin
   begin
     l := 0;
     startbit := 0;
-    vt := TVariableType(foundlist.getstartbit(line));
+
+    extra:=0;
+    address:=foundlist.GetAddress(line, extra, Value);
+
+    if extra >= $1000 then
+    begin
+      ct:=TCustomType(customTypes[extra - $1000]);
+      customname := ct.Name;
+      vt:=vtCustom;
+    end
+    else
+    begin
+      ct:=nil;
+      vt := TVariableType(foundlist.getstartbit(line));
+    end;
+
+
   end
   else
   if vt=vtCustom then //custom
