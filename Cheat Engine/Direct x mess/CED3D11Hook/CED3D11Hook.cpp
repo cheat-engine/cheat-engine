@@ -28,19 +28,9 @@ struct ConstantBuffer
 	FLOAT garbage3;
 };
 
-void FontRenderer::SetFont(PTextureData11 fonttexture)
-{
-	this->pFontTexture=fonttexture;
-}
 
-void FontRenderer::SetViewport(D3D11_VIEWPORT *newvp)
+void DXMessD3D11Handler::SetupFontVertexBuffer(int count)
 {
-	this->vp=*newvp;
-}
-
-void FontRenderer::SetupFontVertexBuffer(int count)
-{
-
 	if (currentMaxCharacterCount<count)
 	{
 		HRESULT hr;
@@ -69,7 +59,7 @@ void FontRenderer::SetupFontVertexBuffer(int count)
 	}
 }
 
-void FontRenderer::DrawText(char *s, int strlen)
+void DXMessD3D11Handler::DrawString(D3D11_VIEWPORT vp, PTextureData11 pFontTexture, char *s, int strlen)
 {
 	if (pFontTexture)
 	{
@@ -161,48 +151,6 @@ void FontRenderer::DrawText(char *s, int strlen)
 	}
 }
 
-FontRenderer::FontRenderer(IDXGISwapChain *swapchain, ID3D11Device *dev, ID3D11DeviceContext *dc, PD3DHookShared shared)
-{
-	pFontTexture=NULL;
-	pFontVB=NULL;
-	pFontTexture=0;
-	currentMaxCharacterCount=0;
-
-	this->swapchain=swapchain;
-	this->dev=dev;
-	this->dc=dc;
-	this->shared=shared;
-
-	swapchain->AddRef();
-	dev->AddRef();
-	dc->AddRef();
-/*
-	sprintf_s(filename,MAX_PATH, "%s%s", shared->CheatEngineDir,"font.dds");
-
-	hr=D3DX11CreateShaderResourceViewFromFileA(dev, filename, NULL, NULL, &pFontTexture, NULL);
-	if( FAILED( hr ) )
-	{
-		OutputDebugStringA("Failure creating the font textire");
-		return;
-	}*/
-
-	//create a vertexbuffer to hold the characters
-	currentMaxCharacterCount=0;
-	SetupFontVertexBuffer(32); //init to 32 chars
-
-
-}
-
-FontRenderer::~FontRenderer()
-{
-	if (pFontVB)
-		pFontVB->Release();
-
-	
-	dc->Release();
-	dev->Release();
-	swapchain->Release();
-}
 
 
 BOOL DXMessD3D11Handler::UpdateTextures()
@@ -342,10 +290,6 @@ DXMessD3D11Handler::~DXMessD3D11Handler()
 {
 
 
-	if (fontRenderer)
-		delete(fontRenderer);
-	
-
 	if (textures)
 	{
 		int i;
@@ -356,6 +300,9 @@ DXMessD3D11Handler::~DXMessD3D11Handler()
 		}
 		free(textures);	
 	}
+
+	if (pFontVB)
+		pFontVB->Release();
 
 	if (pSpriteVB)
 		pSpriteVB->Release();
@@ -423,10 +370,14 @@ DXMessD3D11Handler::DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD
 	pDepthStencil=NULL;
 	pRenderTargetView=NULL;
 	pDepthStencilView=NULL;
-	pConstantBuffer=NULL;
+	pConstantBuffer=NULL;	
 
 	pWireframeRasterizer=NULL;
 	pDisabledDepthStencilState=NULL;
+
+	pSpriteVB=NULL;
+	pFontVB=NULL;
+		
 
 	TextureCount=0;
 	textures=NULL;
@@ -547,9 +498,6 @@ DXMessD3D11Handler::DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD
 		OutputDebugStringA("Vertexbuffer creation failed\n");
 		return;
 	}
-
-	//Create the basic font
-	fontRenderer = new FontRenderer(sc, dev, dc, shared);
 
 
     D3D11_SAMPLER_DESC sampDesc;
@@ -690,6 +638,11 @@ DXMessD3D11Handler::DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD
     hr = dev->CreateBuffer( &bd, NULL, &pConstantBuffer );
     if( FAILED( hr ) )
         return;
+
+
+	//create a vertexbuffer to hold the characters
+	currentMaxCharacterCount=0;
+	SetupFontVertexBuffer(32); //init to 32 chars
 
 
 
@@ -988,17 +941,7 @@ void DXMessD3D11Handler::RenderOverlay()
 					dc->VSSetConstantBuffers(0,1, &pConstantBuffer);
 					dc->PSSetConstantBuffers(0,1, &pConstantBuffer);
 
-					fontRenderer->SetViewport(&vp);
-
-					fontRenderer->SetFont(&textures[shared->RenderCommands[i].font.fontid]);
-					
-
-					
-
-													
-					fontRenderer->DrawText(s,strlen(s));
-				
-
+					DrawString(vp, &textures[shared->RenderCommands[i].font.fontid], s,strlen(s));
 
 					//dc->Draw(6, characterindex*6)
 					break;
