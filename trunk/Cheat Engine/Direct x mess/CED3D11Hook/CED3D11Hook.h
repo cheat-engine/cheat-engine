@@ -24,6 +24,8 @@ typedef struct
 	PFONTMAP DefinedFontMap; //Optional pointer to a fontmaparray if it's a font texture
 } TextureData11, *PTextureData11;
 
+
+/*
 class FontRenderer
 {
 private:
@@ -33,9 +35,8 @@ private:
 	ID3D11Device *dev;
 	ID3D11DeviceContext *dc;
 
-	int currentMaxCharacterCount; //holds the number of vertices in pSpriteVB divided by 6
-	ID3D11Buffer *pFontVB;
-	PTextureData11 pFontTexture;
+	
+
 
 	void SetupFontVertexBuffer(int count);
 public:
@@ -44,7 +45,7 @@ public:
 	void DrawText(char *s, int strlen);
 	FontRenderer(IDXGISwapChain *swapchain, ID3D11Device *dev, ID3D11DeviceContext *dc, PD3DHookShared shared);
 	~FontRenderer();
-};
+};*/
 
 
 
@@ -58,7 +59,12 @@ private:
 
 	
 	ID3D11Buffer *pSpriteVB;
-	FontRenderer *fontRenderer;
+
+	int currentMaxCharacterCount; //holds the number of vertices in pSpriteVB divided by 6
+	ID3D11Buffer *pFontVB;
+	
+
+	//FontRenderer *fontRenderer;
 
 
 
@@ -86,6 +92,10 @@ private:
 
 	BOOL Valid;
 	BOOL UpdateTextures();
+
+	void SetupFontVertexBuffer(int count);
+	void DrawString(D3D11_VIEWPORT vp, PTextureData11 pFontTexture, char *s, int strlen);
+
 public:
 	IDXGISwapChain *swapchain;
 	ID3D11Device *dev;

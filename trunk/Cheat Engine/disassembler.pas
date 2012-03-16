@@ -9581,7 +9581,7 @@ begin
                       if memory[1]>=$e0 then
                       begin
                         lastdisassembledata.opcode:='fnstsw';
-                        lastdisassembledata.parameters:='ax';
+                        lastdisassembledata.parameters:=colorreg+'ax'+endcolor;
                       end
                       else
                       begin
