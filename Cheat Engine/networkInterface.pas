@@ -535,6 +535,11 @@ begin
       i:=fprecv(socket, pointer(ptruint(buffer)+result), size-result, 0);
       if i<=0 then
       begin
+        fConnected:=false;
+        if socket<>0 then
+          CloseSocket(socket);
+
+        socket:=0;
         result:=i; //error
         exit;
       end;
