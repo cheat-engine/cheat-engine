@@ -87,9 +87,27 @@ begin
 end;
 
 function NetworkReadProcessMemory(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL; stdcall;
+var a,b,c,d: dword;
 begin
   if getConnection<>nil then
-    result:=connection.readProcessMemory(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesRead)
+  begin
+    result:=connection.readProcessMemory(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesRead);
+    if (result=false) and (connection.connected=false) and (getConnection<>nil) then //try again one more time
+    begin
+      //try a smaller chunk
+      a:=nsize div 2;
+      b:=nsize-a;
+      c:=0;
+      d:=0;
+      result:=connection.readProcessMemory(hProcess, lpBaseAddress, lpBuffer, a, c);
+      if result and (b>0) then
+        result:=connection.readProcessMemory(hProcess, pointer(ptruint(lpBaseAddress)+a), pointer(ptruint(lpBuffer)+a), b, d);
+
+      lpNumberOfBytesRead:=c+d;
+    end;
+
+
+  end
   else
     result:=false;
 end;
