@@ -295,7 +295,7 @@ begin
         end;
 
       end;
-    end;
+    end;//else connection error
   end;
 end;
 
