@@ -267,6 +267,12 @@ BOOL DXMessD3D11Handler::UpdateTextures()
 					textures[i].pTexture->Release();
 					textures[i].pTexture=NULL;
 				}				
+
+				if (textures[i].DefinedFontMap)
+				{
+					free(textures[i].DefinedFontMap);
+					textures[i].DefinedFontMap=NULL;
+				}
 			}
 		}
 
@@ -284,7 +290,6 @@ BOOL DXMessD3D11Handler::UpdateTextures()
 	return TRUE;	
 
 }
-
 
 DXMessD3D11Handler::~DXMessD3D11Handler()
 {
@@ -360,7 +365,7 @@ DXMessD3D11Handler::~DXMessD3D11Handler()
 DXMessD3D11Handler::DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD3DHookShared shared)
 {
 	HRESULT hr;
-
+    pPixelShaderNormal=NULL;
 	pVertexShader=NULL;
 	pVertexLayout=NULL;
 

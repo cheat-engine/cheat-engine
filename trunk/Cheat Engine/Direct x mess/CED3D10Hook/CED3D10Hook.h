@@ -3,21 +3,37 @@
 
 #include "stdafx.h"
 
+typedef struct
+{
+	//texture coordinates for each character
+	float offset; //offset where this character starts
+	float charwidth; //width in pixel of this character	
+} CHARINFO, *PCHARINFO;
+
+typedef struct
+{
+	float charheight; //height in pixels of each character
+	float fullwidth; //width in pixels of the full fontmap
+	CHARINFO charinfo[96];
+} FONTMAP, *PFONTMAP;
+
 
 typedef struct
 {	
 	ID3D10ShaderResourceView *pTexture;
-	DWORD colorKey;
+	PFONTMAP DefinedFontMap; //Optional pointer to a fontmaparray if it's a font texture
 } TextureData10, *PTextureData10;
 
 class DXMessD3D10Handler
 {
 private:
-	volatile PD3DHookShared shared;
-
-	
+	volatile PD3DHookShared shared;	
 	IDXGISwapChain *swapchain;
 	ID3D10Buffer *pSpriteVB;
+
+	int currentMaxCharacterCount; //holds the number of vertices in pSpriteVB divided by 6
+	ID3D10Buffer *pFontVB;
+	
 
 	int TextureCount;
 	TextureData10 *textures;
@@ -26,25 +42,25 @@ private:
 
 
 
-	ID3D10PixelShader *pPixelShader, *pPixelShaderNormal;
+	ID3D10PixelShader *pPixelShaderNormal;
 	ID3D10VertexShader *pVertexShader;
 	ID3D10InputLayout *pVertexLayout;
 
 	ID3D10SamplerState *pSamplerLinear;
-	ID3D10RasterizerState *pSpriteRasterizer;
-	
+	ID3D10RasterizerState *pSpriteRasterizer;	
 	ID3D10BlendState *pTransparency;
 
 	ID3D10Texture2D *pDepthStencil;
-	
-
-
 	ID3D10RenderTargetView *pRenderTargetView;
 	ID3D10DepthStencilView *pDepthStencilView;
 	ID3D10Buffer *pConstantBuffer;
 
 	BOOL Valid;
 	BOOL UpdateTextures();
+
+	void SetupFontVertexBuffer(int count);
+	void DrawString(D3D10_VIEWPORT vp, PTextureData10 pFontTexture, char *s, int strlen);
+
 public:
 	ID3D10Device *dev;
 	ID3D10RasterizerState *pWireframeRasterizer;
