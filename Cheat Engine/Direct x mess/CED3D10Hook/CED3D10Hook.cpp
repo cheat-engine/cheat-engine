@@ -29,6 +29,131 @@ struct ConstantBuffer
 };
 
 
+void DXMessD3D10Handler::SetupFontVertexBuffer(int count)
+{
+	if (currentMaxCharacterCount<count)
+	{
+		HRESULT hr;
+		D3D10_BUFFER_DESC bd2d;
+
+
+		count+=4; //let's add a bit of overhead
+		if (pFontVB)
+		{
+			pFontVB->Release();
+			pFontVB=NULL;
+		}
+
+		ZeroMemory( &bd2d, sizeof(bd2d) );
+		bd2d.Usage = D3D10_USAGE_DYNAMIC;
+		bd2d.ByteWidth = sizeof( SpriteVertex ) * 6 * count; //size of a vertex*verticel per char*charcount
+		bd2d.BindFlags = D3D10_BIND_VERTEX_BUFFER;
+		bd2d.CPUAccessFlags = D3D10_CPU_ACCESS_WRITE;
+	                           
+		hr = dev->CreateBuffer( &bd2d, NULL, &pFontVB );
+
+		if (SUCCEEDED(hr))
+		{
+			currentMaxCharacterCount=count;
+		}
+	}
+}
+
+void DXMessD3D10Handler::DrawString(D3D10_VIEWPORT vp, PTextureData10 pFontTexture, char *s, int strlen)
+{
+	if (pFontTexture)
+	{
+		SetupFontVertexBuffer(strlen);
+
+		if (currentMaxCharacterCount<strlen) return; //error
+
+		//The following code is mainly ripped from DXUTgui.cpp and modified to support dynamic sized characters
+		
+		
+		float fGlyphSizeY = (pFontTexture->DefinedFontMap->charheight*2) / vp.Height;
+
+
+		float fRectLeft = 0;
+		float fRectTop = 1.0f;
+
+		fRectLeft = fRectLeft * 2.0f - 1.0f;
+		fRectTop = fRectTop * 2.0f - 1.0f;
+
+		float fOriginalLeft = fRectLeft;  //0*2.0f-1.0f=-1.0f
+		float fTexTop = 0.0f;
+		float fTexBottom = 1.0f;
+
+
+		//fill the FontVB with the sizes and texture coordinates
+
+		SpriteVertex *vertices;
+
+		
+
+		
+
+		if (SUCCEEDED(pFontVB->Map(D3D10_MAP_WRITE_DISCARD, 0, (void **)&vertices)))
+		{
+			int i,j;			
+
+			for (j=0, i=0; i<strlen; i++)
+			{
+				if( s[i] == '\n' )
+				{
+					fRectLeft = fOriginalLeft;
+					fRectTop -= fGlyphSizeY;
+
+					continue;
+				}
+
+				float fGlyphSizeX = (pFontTexture->DefinedFontMap->charinfo[s[i]-32].charwidth*2) / vp.Width;
+
+				float fCharTexSizeX = pFontTexture->DefinedFontMap->charinfo[s[i]-32].charwidth / (pFontTexture->DefinedFontMap->fullwidth);  //0.010526315f;
+
+				float fRectRight = fRectLeft + fGlyphSizeX;
+				float fRectBottom = fRectTop - fGlyphSizeY;
+				float fTexLeft = pFontTexture->DefinedFontMap->charinfo[s[i]-32].offset / pFontTexture->DefinedFontMap->fullwidth;				
+				float fTexRight = fTexLeft + fCharTexSizeX;
+				
+
+
+				vertices[j*6+0].Pos=XMFLOAT3( fRectLeft, fRectTop, 1.0f );
+				vertices[j*6+0].Tex=XMFLOAT2( fTexLeft, fTexTop );
+				vertices[j*6+1].Pos=XMFLOAT3( fRectRight, fRectTop, 1.0f );
+				vertices[j*6+1].Tex=XMFLOAT2( fTexRight, fTexTop );
+				vertices[j*6+2].Pos=XMFLOAT3( fRectLeft, fRectBottom, 1.0f );
+				vertices[j*6+2].Tex=XMFLOAT2( fTexLeft, fTexBottom );
+
+				vertices[j*6+3].Pos=XMFLOAT3( fRectRight, fRectTop, 1.0f);
+				vertices[j*6+3].Tex=XMFLOAT2( fTexRight, fTexTop  );
+				vertices[j*6+4].Pos=XMFLOAT3( fRectRight, fRectBottom,  1.0f);
+				vertices[j*6+4].Tex=XMFLOAT2( fTexRight, fTexBottom  );
+				vertices[j*6+5].Pos=XMFLOAT3( fRectLeft, fRectBottom,  1.0f);
+				vertices[j*6+5].Tex=XMFLOAT2( fTexLeft, fTexBottom );
+			
+				j++;
+				fRectLeft += fGlyphSizeX;
+			}
+
+
+
+
+			pFontVB->Unmap();
+		}
+
+		
+
+		//then render
+		UINT stride = sizeof( SpriteVertex );
+		UINT offset = 0;
+
+		dev->IASetVertexBuffers( 0, 1, &pFontVB, &stride, &offset );
+		dev->PSSetShaderResources( 0, 1, &pFontTexture->pTexture );
+
+		dev->Draw(6*strlen,0);
+	}
+}
+
 BOOL DXMessD3D10Handler::UpdateTextures()
 {
 	//call this each time the resolution changes (when the buffer changes)
@@ -63,12 +188,10 @@ BOOL DXMessD3D10Handler::UpdateTextures()
 			//initialize the new entries to NULL
 			for (i=TextureCount; i<shared->textureCount; i++)
 			{
-				textures[i].pTexture=NULL;
-				//textures[i].actualWidth=0;
-				//textures[i].actualHeight=0;		
-			}	
-
-			
+				textures[i].pTexture=NULL;	
+				textures[i].DefinedFontMap=NULL;
+			}
+		
 		}
 		
 
@@ -85,6 +208,13 @@ BOOL DXMessD3D10Handler::UpdateTextures()
 						textures[i].pTexture=NULL; //should always happen
 					}
 
+					if (textures[i].DefinedFontMap)
+					{
+						//already has a fontmap. Free the old one
+						free(textures[i].DefinedFontMap);
+						textures[i].DefinedFontMap=NULL;
+					}
+
 					hr=D3DX10CreateTextureFromMemory(dev, (void *)(tea[i].AddressOfTexture), tea[i].size, NULL, NULL, &test, NULL);
 					if( FAILED( hr ) )
 					{
@@ -95,22 +225,39 @@ BOOL DXMessD3D10Handler::UpdateTextures()
 					
 					hr=test->QueryInterface(__uuidof(ID3D10Texture2D), (void **)(&texturex));	
 
-					//D3D10_TEXTURE2D_DESC d;
-					//texturex->GetDesc(&d);
-					//textures[i].actualWidth=d.Width;
-					//textures[i].actualHeight=d.Height;
 
-					
 					hr=dev->CreateShaderResourceView(test, NULL, &textures[i].pTexture);
 					if( FAILED( hr ) )
 						return hr;
-				
-
-					textures[i].colorKey=tea[i].colorKey;
-
+			
 
 					test->Release();
 					texturex->Release();
+
+					if (tea[i].AddressOfFontmap)
+					{
+						int j;
+						float currentOffset=0;
+
+						textures[i].DefinedFontMap=(PFONTMAP)malloc(sizeof(FONTMAP));
+						//now parse the fontmap provided by ce and fill in the gaps						
+						
+						
+						WORD *cefontmap=(WORD *)(tea[i].AddressOfFontmap);											
+						textures[i].DefinedFontMap->charheight=(float)cefontmap[0];
+
+						for (j=0; j<96; j++)
+						{
+							textures[i].DefinedFontMap->charinfo[j].offset=currentOffset;
+							textures[i].DefinedFontMap->charinfo[j].charwidth=(float)cefontmap[j+1];
+
+							currentOffset+=cefontmap[j+1];
+						}						
+
+						textures[i].DefinedFontMap->fullwidth=currentOffset;
+					}
+
+					tea[i].hasBeenUpdated=0;
 				}
 			}
 			else
@@ -119,8 +266,14 @@ BOOL DXMessD3D10Handler::UpdateTextures()
 				if (textures[i].pTexture)
 				{
 					textures[i].pTexture->Release();
-					textures[i].pTexture=NULL;
+					textures[i].pTexture=NULL;					
 				}				
+
+				if (textures[i].DefinedFontMap)
+				{
+					free(textures[i].DefinedFontMap);
+					textures[i].DefinedFontMap=NULL;
+				}
 			}
 		}
 
@@ -154,11 +307,14 @@ DXMessD3D10Handler::~DXMessD3D10Handler()
 		free(textures);	
 	}
 
+	if (pFontVB)
+		pFontVB->Release();
+
 	if (pSpriteVB)
 		pSpriteVB->Release();
 
-	if (pPixelShader)
-		pPixelShader->Release();
+	if (pPixelShaderNormal)
+		pPixelShaderNormal->Release();
 
 	if (pVertexShader)
 		pVertexShader->Release();
@@ -209,7 +365,7 @@ DXMessD3D10Handler::DXMessD3D10Handler(ID3D10Device *dev, IDXGISwapChain *sc, PD
 	int i;
 
 
-	pPixelShader=NULL;
+	pPixelShaderNormal=NULL;
 	pVertexShader=NULL;
 	pVertexLayout=NULL;
 
@@ -224,6 +380,10 @@ DXMessD3D10Handler::DXMessD3D10Handler(ID3D10Device *dev, IDXGISwapChain *sc, PD
 	pWireframeRasterizer=NULL;
 	pDisabledDepthStencilState=NULL;
 
+	pSpriteVB=NULL;
+	pFontVB=NULL;
+		
+
 	TextureCount=0;
 	textures=NULL;
 
@@ -233,18 +393,7 @@ DXMessD3D10Handler::DXMessD3D10Handler(ID3D10Device *dev, IDXGISwapChain *sc, PD
 
 	Valid=FALSE;
 
-	
-
-
 	this->shared=shared;
-
-	this->dev=NULL;
-	this->swapchain=NULL;
-
-
-	
-
-
 	this->dev=dev;
 	this->dev->AddRef();
 	this->swapchain=sc;	
@@ -256,29 +405,6 @@ DXMessD3D10Handler::DXMessD3D10Handler(ID3D10Device *dev, IDXGISwapChain *sc, PD
 	ID3DBlob* pErrorBlob = NULL;
 	char shaderfile[MAX_PATH];
 	sprintf_s(shaderfile,MAX_PATH, "%s%s", shared->CheatEngineDir,"overlay.fx");
-
-	//pixel shader with transparency override
-	hr=D3DX10CompileFromFileA( shaderfile, NULL, NULL, "PS", "ps_4_0", D3DCOMPILE_ENABLE_STRICTNESS, 0, NULL, &pBlob, &pErrorBlob, NULL );
-
-	if (pErrorBlob) 
-	{
-		OutputDebugStringA((LPCSTR)pErrorBlob->GetBufferPointer());
-		pErrorBlob->Release();
-	}
-
-	if( FAILED( hr ) )
-	{
-		OutputDebugStringA("pixelshader compilation failed\n");
-		return;
-	}
-
-    hr = dev->CreatePixelShader( pBlob->GetBufferPointer(), pBlob->GetBufferSize(), &pPixelShader );
-	pBlob->Release();
-	if( FAILED( hr ) )
-	{
-		OutputDebugStringA("CreatePixelShader failed\n");
-		return;
-	}
 
 	//normal pixel shader
 	pBlob = NULL;
@@ -435,17 +561,17 @@ DXMessD3D10Handler::DXMessD3D10Handler(ID3D10Device *dev, IDXGISwapChain *sc, PD
 	
 	blend.BlendEnable[0]		 = true;
 
-	blend.SrcBlend				 = D3D10_BLEND_SRC_COLOR               ;	
-	blend.DestBlend				 = D3D10_BLEND_ZERO;
+	blend.SrcBlend				 = D3D10_BLEND_SRC_ALPHA               ;	
+	blend.DestBlend				 = D3D10_BLEND_INV_SRC_ALPHA;
 	blend.BlendOp				 = D3D10_BLEND_OP_ADD;
-	blend.SrcBlendAlpha			 = D3D10_BLEND_ZERO;
-	blend.DestBlendAlpha		 = D3D10_BLEND_ZERO;
+	blend.SrcBlendAlpha			 = D3D10_BLEND_SRC_ALPHA;
+	blend.DestBlendAlpha		 = D3D10_BLEND_INV_SRC_ALPHA;
 	blend.BlendOpAlpha			 = D3D10_BLEND_OP_ADD;
 	blend.RenderTargetWriteMask[0]	 = D3D10_COLOR_WRITE_ENABLE_ALL;
 
 
 
-	blend.AlphaToCoverageEnable=true;
+	blend.AlphaToCoverageEnable=false;
 	
 
 	for (i=0; i<8; i++)
@@ -522,7 +648,9 @@ DXMessD3D10Handler::DXMessD3D10Handler(ID3D10Device *dev, IDXGISwapChain *sc, PD
     if( FAILED( hr ) )
         return;
 
-
+	//create a vertexbuffer to hold the characters
+	currentMaxCharacterCount=0;
+	SetupFontVertexBuffer(32); //init to 32 chars
 
 	Valid=TRUE;
 }
@@ -630,7 +758,7 @@ void DXMessD3D10Handler::RenderOverlay()
 		//change state
 		dev->GSSetShader(NULL); //not used
 	    dev->VSSetShader(pVertexShader);
-		dev->PSSetShader(pPixelShader);
+		dev->PSSetShader(pPixelShaderNormal);
 		dev->PSSetSamplers( 0, 1, &pSamplerLinear );
 
 
@@ -677,27 +805,23 @@ void DXMessD3D10Handler::RenderOverlay()
 				{
 					if (shared->RenderCommands[i].sprite.textureid<TextureCount)
 					{
-						BOOL ColorKeyCrapper=textures[shared->RenderCommands[i].sprite.textureid].colorKey;
-						XMFLOAT3 position;
+					
+						XMFLOAT3 position;				
 
 						dev->IASetVertexBuffers( 0, 1, &pSpriteVB, &stride, &offset );
-
-						if (ColorKeyCrapper)
-							dev->PSSetShader( pPixelShader);
-						else
-							dev->PSSetShader( pPixelShaderNormal);
+						dev->PSSetShader( pPixelShaderNormal);
 
 						dev->PSSetSamplers( 0, 1, &pSamplerLinear );						
 						dev->PSSetShaderResources( 0, 1, &textures[shared->RenderCommands[i].sprite.textureid].pTexture );
 
-						if ((shared->RenderCommands[i].sprite.x==-1) && (shared->RenderCommands[i].sprite.y==-1))
+						if ((shared->RenderCommands[i].x==-1) && (shared->RenderCommands[i].y==-1))
 						{
 							//Center of the screen						
 							position.x=((float)vp.Width / 2.0f) - ((float)shared->RenderCommands[i].sprite.width / 2.0f);
 							position.y=((float)vp.Height / 2.0f) - ((float)shared->RenderCommands[i].sprite.height / 2.0f);
 						}
 						else
-						if (shared->RenderCommands[i].sprite.isMouse)
+						if ((shared->RenderCommands[i].x==-2) && (shared->RenderCommands[i].y==-2))
 						{
 							//set to the position of the mouse (center is origin)
 							
@@ -714,18 +838,12 @@ void DXMessD3D10Handler::RenderOverlay()
 						}
 						else
 						{
-							position.x=(float)shared->RenderCommands[i].sprite.x;
-							position.y=(float)shared->RenderCommands[i].sprite.y;								
+							position.x=(float)shared->RenderCommands[i].x;
+							position.y=(float)shared->RenderCommands[i].y;								
 						}			
 			
-						if (ColorKeyCrapper) //Full pixels only (transparency gets messed if subpixel trickery is done)
-						{
-							position.x=(int)position.x;
-							position.y=(int)position.y;
-						}
-
 						ConstantBuffer cb;					
-						cb.transparency=shared->RenderCommands[i].sprite.alphablend;
+						cb.transparency=shared->RenderCommands[i].alphablend;
 
 						
 						cb.scaling.x=(float)shared->RenderCommands[i].sprite.width/(float)vp.Width;
@@ -739,6 +857,9 @@ void DXMessD3D10Handler::RenderOverlay()
 						dev->VSSetConstantBuffers(0,1, &pConstantBuffer);
 						dev->PSSetConstantBuffers(0,1, &pConstantBuffer);
 
+
+						
+						
 						dev->Draw(6,0);
 					
 					}
@@ -748,7 +869,65 @@ void DXMessD3D10Handler::RenderOverlay()
 
 				case rcDrawFont:
 				{
-					//nyi
+					XMFLOAT3 position;	
+					PTextureData10 td;
+					char *s;
+
+					if (!hasLock)
+						hasLock=WaitForSingleObject((HANDLE)shared->CommandlistLock, INFINITE)==WAIT_OBJECT_0; //fonts demand a lock  (stringpointer)
+
+					position.x=(float)shared->RenderCommands[i].x;
+					position.y=(float)shared->RenderCommands[i].y;		
+
+					td=&textures[shared->RenderCommands[i].font.fontid];
+					s=(char *)shared->RenderCommands[i].font.addressoftext;
+
+					if (position.x==-1) 
+					{
+						//horizontal center
+						//calculate the width
+						float width=0;
+						int slen=strlen(s);
+
+						for (i=0; i<slen; i++)
+						{
+							width+=td->DefinedFontMap->charinfo[32-i].charwidth;
+						}
+						position.x=((float)vp.Width / 2.0f) - ((float)width / 2.0f);
+						
+					}
+
+					if (position.y==-1)
+					{						
+						//vertical center						
+						position.y=((float)vp.Height / 2.0f) - ((float)td->DefinedFontMap->charheight / 2.0f);
+					}
+
+				
+					dev->PSSetShader( pPixelShaderNormal);
+					dev->PSSetSamplers( 0, 1, &pSamplerLinear );						
+					
+
+					ConstantBuffer cb;					
+					cb.transparency=shared->RenderCommands[i].alphablend;						
+					cb.scaling.x=1.0f;
+					cb.scaling.y=1.0f;//if you wish a bigger font, use a bigger font, don't scale (ugly)
+					
+					cb.translation.x=-1.0f;
+					cb.translation.y=-1.0f;
+
+					cb.translation.x=-1.0f+((float)((float)position.x * 2)/(float)vp.Width);
+					cb.translation.y=-1.0f+((float)((float)position.y * 2)/(float)vp.Height);
+
+
+					dev->UpdateSubresource( pConstantBuffer, 0, NULL, &cb, 0, 0 );
+
+					dev->VSSetConstantBuffers(0,1, &pConstantBuffer);
+					dev->PSSetConstantBuffers(0,1, &pConstantBuffer);
+
+					DrawString(vp, &textures[shared->RenderCommands[i].font.fontid], s,strlen(s));
+
+					//dev->Draw(6, characterindex*6)
 					break;
 				}
 			}

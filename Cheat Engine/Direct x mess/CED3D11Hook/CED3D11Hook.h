@@ -24,49 +24,16 @@ typedef struct
 	PFONTMAP DefinedFontMap; //Optional pointer to a fontmaparray if it's a font texture
 } TextureData11, *PTextureData11;
 
-
-/*
-class FontRenderer
-{
-private:
-	D3D11_VIEWPORT vp;
-	PD3DHookShared shared;
-	IDXGISwapChain *swapchain;
-	ID3D11Device *dev;
-	ID3D11DeviceContext *dc;
-
-	
-
-
-	void SetupFontVertexBuffer(int count);
-public:
-	void SetFont(PTextureData11 fonttexture);
-	void SetViewport(D3D11_VIEWPORT *newvp);
-	void DrawText(char *s, int strlen);
-	FontRenderer(IDXGISwapChain *swapchain, ID3D11Device *dev, ID3D11DeviceContext *dc, PD3DHookShared shared);
-	~FontRenderer();
-};*/
-
-
-
 class DXMessD3D11Handler
 {
 private:
-	PD3DHookShared shared;
-
-	
-	
-
-	
+	volatile PD3DHookShared shared;
+	IDXGISwapChain *swapchain;	
 	ID3D11Buffer *pSpriteVB;
 
 	int currentMaxCharacterCount; //holds the number of vertices in pSpriteVB divided by 6
 	ID3D11Buffer *pFontVB;
 	
-
-	//FontRenderer *fontRenderer;
-
-
 
 	int TextureCount;
 	TextureData11 *textures;
@@ -88,16 +55,13 @@ private:
 	ID3D11DepthStencilView *pDepthStencilView;
 	ID3D11Buffer *pConstantBuffer;
 
-
-
 	BOOL Valid;
 	BOOL UpdateTextures();
 
 	void SetupFontVertexBuffer(int count);
 	void DrawString(D3D11_VIEWPORT vp, PTextureData11 pFontTexture, char *s, int strlen);
 
-public:
-	IDXGISwapChain *swapchain;
+public:	
 	ID3D11Device *dev;
 	ID3D11DeviceContext *dc;
 	ID3D11RasterizerState *pWireframeRasterizer;
