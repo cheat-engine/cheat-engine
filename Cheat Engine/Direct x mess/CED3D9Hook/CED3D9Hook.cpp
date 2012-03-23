@@ -31,12 +31,14 @@ void DXMessD3D9Handler::AfterReset()
 BOOL DXMessD3D9Handler::UpdateTextures()
 {
 	int i;
+	int newTextureCount;
 	HRESULT hr;
 
 	WaitForSingleObject((HANDLE)(shared->TextureLock), INFINITE);
 
 	if (shared->textureCount)
 	{
+		newTextureCount=shared->textureCount;
 		
 
 		if (shared->textureCount > TextureCount)
@@ -55,7 +57,8 @@ BOOL DXMessD3D9Handler::UpdateTextures()
 			{
 				textures[i].pTexture=NULL;
 				textures[i].actualWidth=0;
-				textures[i].actualHeight=0;		
+				textures[i].actualHeight=0;	
+				textures[i].DefinedFontMap=NULL;
 			}	
 
 			TextureCount=shared->textureCount;
@@ -78,9 +81,16 @@ BOOL DXMessD3D9Handler::UpdateTextures()
 						textures[i].pTexture=NULL; //should always happen
 					}
 
+					if (textures[i].DefinedFontMap)
+					{
+						//already has a fontmap. Free the old one
+						free(textures[i].DefinedFontMap);
+						textures[i].DefinedFontMap=NULL;
+					}
+
 					
 
-					hr=D3DXCreateTextureFromFileInMemoryEx(dev, (void *)(tea[i].AddressOfTexture), tea[i].size, D3DX_DEFAULT, D3DX_DEFAULT, 1,0,D3DFMT_A8R8G8B8, D3DPOOL_MANAGED,D3DX_DEFAULT,D3DX_DEFAULT, tea[i].colorKey, NULL, NULL, &textures[i].pTexture);
+					hr=D3DXCreateTextureFromFileInMemoryEx(dev, (void *)(tea[i].AddressOfTexture), tea[i].size, D3DX_DEFAULT, D3DX_DEFAULT, 1,0,D3DFMT_A8R8G8B8, D3DPOOL_MANAGED,D3DX_DEFAULT,D3DX_DEFAULT, 0, NULL, NULL, &textures[i].pTexture);
 					if( FAILED( hr ) )
 					{
 						OutputDebugStringA("Failure creating a texture");
@@ -92,6 +102,32 @@ BOOL DXMessD3D9Handler::UpdateTextures()
 					textures[i].pTexture->GetLevelDesc(0, &d);
 					textures[i].actualWidth=d.Width;
 					textures[i].actualHeight=d.Height;
+
+					if (tea[i].AddressOfFontmap)
+					{
+						int j;
+						float currentOffset=0;
+
+						textures[i].DefinedFontMap=(PFONTMAP)malloc(sizeof(FONTMAP));
+						//now parse the fontmap provided by ce and fill in the gaps						
+						
+						
+						WORD *cefontmap=(WORD *)(tea[i].AddressOfFontmap);											
+						textures[i].DefinedFontMap->charheight=(float)cefontmap[0];
+
+						for (j=0; j<96; j++)
+						{
+							textures[i].DefinedFontMap->charinfo[j].offset=currentOffset;
+							textures[i].DefinedFontMap->charinfo[j].charwidth=(float)cefontmap[j+1];
+
+							currentOffset+=cefontmap[j+1];
+						}						
+
+						textures[i].DefinedFontMap->fullwidth=currentOffset;
+					}
+
+					tea[i].hasBeenUpdated=0;
+
 				}			
 			}
 			else
@@ -101,6 +137,12 @@ BOOL DXMessD3D9Handler::UpdateTextures()
 				{
 					textures[i].pTexture->Release();
 					textures[i].pTexture=NULL;
+				}
+
+				if (textures[i].DefinedFontMap)
+				{				
+					free(textures[i].DefinedFontMap);
+					textures[i].DefinedFontMap=NULL;
 				}
 			}
 			
@@ -178,7 +220,7 @@ void DXMessD3D9Handler::RenderOverlay()
 								scale.z=1.0f;
 
 								//set the position
-								if ((shared->RenderCommands[i].sprite.x==-1) && (shared->RenderCommands[i].sprite.y==-1))
+								if ((shared->RenderCommands[i].x==-1) && (shared->RenderCommands[i].y==-1))
 								{
 									//Center of the screen
 									D3DVIEWPORT9 vp;
@@ -188,7 +230,7 @@ void DXMessD3D9Handler::RenderOverlay()
 									position.y=((float)vp.Height / 2.0f) - ((float)shared->RenderCommands[i].sprite.height / 2.0f);
 								}
 								else
-								if (shared->RenderCommands[i].sprite.isMouse)
+								if ((shared->RenderCommands[i].x==-2) && (shared->RenderCommands[i].y==-2))
 								{
 									//set to the position of the mouse (center is origin)
 									
@@ -205,8 +247,8 @@ void DXMessD3D9Handler::RenderOverlay()
 								}
 								else
 								{
-									position.x=(float)shared->RenderCommands[i].sprite.x;
-									position.y=(float)shared->RenderCommands[i].sprite.y;	
+									position.x=(float)shared->RenderCommands[i].x;
+									position.y=(float)shared->RenderCommands[i].y;	
 									
 								}
 								position.z=0.0f;
@@ -214,7 +256,7 @@ void DXMessD3D9Handler::RenderOverlay()
 								D3DXMatrixTransformation(&m, NULL, NULL, &scale, NULL, NULL, &position);						
 								sprite->SetTransform(&m);					
 
-								hr=sprite->Draw(textures[tid].pTexture, NULL, NULL, NULL, D3DCOLOR_ARGB((int)(shared->RenderCommands[i].sprite.alphablend*255),255,255,255));						
+								hr=sprite->Draw(textures[tid].pTexture, NULL, NULL, NULL, D3DCOLOR_ARGB((int)(shared->RenderCommands[i].alphablend*255),255,255,255));						
 							}
 							break;
 						}

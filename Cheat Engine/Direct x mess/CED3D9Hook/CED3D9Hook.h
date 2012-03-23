@@ -5,8 +5,23 @@
 
 typedef struct
 {
+	//texture coordinates for each character
+	float offset; //offset where this character starts
+	float charwidth; //width in pixel of this character	
+} CHARINFO, *PCHARINFO;
+
+typedef struct
+{
+	float charheight; //height in pixels of each character
+	float fullwidth; //width in pixels of the full fontmap
+	CHARINFO charinfo[96];
+} FONTMAP, *PFONTMAP;
+
+typedef struct
+{
 	IDirect3DTexture9 *pTexture;
 	int actualHeight, actualWidth;
+	PFONTMAP DefinedFontMap; //Optional pointer to a fontmaparray if it's a font texture
 } TextureData9, *PTextureData9;
 
 
