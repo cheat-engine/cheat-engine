@@ -41,6 +41,7 @@ private:
 
 	BOOL Valid;
 	BOOL UpdateTextures();
+	void DrawString(D3DXVECTOR3 position, PTextureData9 pFontTexture, char *s, int strlen);
 public:
 	DXMessD3D9Handler(IDirect3DDevice9 *dev, PD3DHookShared shared);
 	~DXMessD3D9Handler();
