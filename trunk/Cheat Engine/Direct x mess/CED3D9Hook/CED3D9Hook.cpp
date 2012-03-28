@@ -10,6 +10,61 @@ map<IDirect3DDevice9 *, DXMessD3D9Handler *> D3D9devices;
 PD3DHookShared shared=NULL; //set at first present
 int insidehook;
 
+void DXMessD3D9Handler::DrawString(D3DXVECTOR3 position, PTextureData9 pFontTexture, char *s, int strlen)
+/*
+Render the text using the sprite object (select a texture region and draw that specific character) .Coordinates are in normal x,y coordinates
+Pre: Sprite must be active
+*/
+{
+	int i;
+	D3DXVECTOR3 currentpos = position;
+	float fGlyphSizeY = pFontTexture->DefinedFontMap->charheight;
+	position.z=0;
+
+	D3DXVECTOR3 scale;
+	D3DXMATRIX m;
+
+	//calculate the original size of the texture
+
+	scale.x=(float)pFontTexture->DefinedFontMap->fullwidth / (float)pFontTexture->actualWidth;
+	scale.y=(float)pFontTexture->DefinedFontMap->charheight / (float)pFontTexture->actualHeight;
+	scale.z=1.0f;
+
+
+
+	for (i=0; i<strlen; i++)
+	{
+		if( s[i] == '\n' ) //next line
+		{
+			currentpos.x=position.x;
+			currentpos.y+=fGlyphSizeY;
+
+			continue;
+		}
+
+		float offset=pFontTexture->DefinedFontMap->charinfo[s[i]-32].offset;
+		float width=pFontTexture->DefinedFontMap->charinfo[s[i]-32].charwidth;
+		RECT charactertexture;
+
+		charactertexture.left=(LONG)offset;
+		charactertexture.top=0;
+		charactertexture.bottom=(LONG)fGlyphSizeY;
+		charactertexture.right=(LONG)(offset+width);	
+
+		
+
+		D3DXMatrixTransformation(&m, NULL, NULL, &scale, NULL, NULL, &currentpos);						
+		sprite->SetTransform(&m);					
+
+		sprite->Draw(pFontTexture->pTexture, &charactertexture, NULL, NULL, D3DCOLOR_ARGB(255,255,255,255));		
+
+		currentpos.x+=width;
+
+
+
+	}	
+}
+
 void DXMessD3D9Handler::BeforeReset()
 {
 	
@@ -263,7 +318,50 @@ void DXMessD3D9Handler::RenderOverlay()
 
 						case rcDrawFont:
 						{
-							//nyi
+							D3DXVECTOR3 position;
+							PTextureData9 td;
+							char *s;
+
+							D3DVIEWPORT9 vp;
+							dev->GetViewport(&vp);
+						
+
+
+							if (!hasLock)
+								hasLock=WaitForSingleObject((HANDLE)shared->CommandlistLock, INFINITE)==WAIT_OBJECT_0; //fonts demand a lock  (stringpointer)
+
+							position.x=(float)shared->RenderCommands[i].x;
+							position.y=(float)shared->RenderCommands[i].y;	
+
+							td=&textures[shared->RenderCommands[i].font.fontid];
+							s=(char *)shared->RenderCommands[i].font.addressoftext;	
+
+							if (position.x==-1) 
+							{
+								//horizontal center
+								//calculate the width
+								float width=0;
+								int slen=strlen(s);
+
+								for (i=0; i<slen; i++)
+								{
+									width+=td->DefinedFontMap->charinfo[32-i].charwidth;
+								}
+								position.x=((float)vp.Width / 2.0f) - ((float)width / 2.0f);
+								
+							}
+
+							if (position.y==-1)
+							{						
+								//vertical center						
+								position.y=((float)vp.Height / 2.0f) - ((float)td->DefinedFontMap->charheight / 2.0f);
+							}
+
+							//now draw the string (nyi)
+							//DrawString(position, &textures[shared->RenderCommands[i].font.fontid], s,strlen(s));
+
+
+
 							break;
 						}
 
