@@ -7206,6 +7206,7 @@ var t: TD3DHook_Texture;
   p2: TPicture;
 begin
   safed3dhook;
+  if d3dhook=nil then raise exception.create('d3dhook failed');
   while d3dhook.getWidth=0 do CheckSynchronize;
 
   p2:=tpicture.create;
@@ -7229,7 +7230,7 @@ begin
   f.Size:=f.size*2;
   fm:=d3dhook.createFontMap(f);
 
-  tc:=d3dhook.createTextContainer(fm,100,100,'My first test');
+  tc:=d3dhook.createTextContainer(fm,100,100,'This is a test');
 
 
 
