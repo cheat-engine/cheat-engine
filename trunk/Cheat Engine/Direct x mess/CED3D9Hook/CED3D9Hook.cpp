@@ -24,12 +24,12 @@ Pre: Sprite must be active
 	D3DXVECTOR3 scale;
 	D3DXMATRIX m;
 
+
 	//calculate the original size of the texture
 
-	scale.x=(float)pFontTexture->DefinedFontMap->fullwidth / (float)pFontTexture->actualWidth;
-	scale.y=(float)pFontTexture->DefinedFontMap->charheight / (float)pFontTexture->actualHeight;
+	scale.x=1.0f;
+	scale.y=1.0f;
 	scale.z=1.0f;
-
 
 
 	for (i=0; i<strlen; i++)
@@ -49,9 +49,7 @@ Pre: Sprite must be active
 		charactertexture.left=(LONG)offset;
 		charactertexture.top=0;
 		charactertexture.bottom=(LONG)fGlyphSizeY;
-		charactertexture.right=(LONG)(offset+width);	
-
-		
+		charactertexture.right=(LONG)offset+width;	
 
 		D3DXMatrixTransformation(&m, NULL, NULL, &scale, NULL, NULL, &currentpos);						
 		sprite->SetTransform(&m);					
@@ -110,9 +108,7 @@ BOOL DXMessD3D9Handler::UpdateTextures()
 			//initialize the new entries to NULL
 			for (i=TextureCount; i<shared->textureCount; i++)
 			{
-				textures[i].pTexture=NULL;
-				textures[i].actualWidth=0;
-				textures[i].actualHeight=0;	
+				textures[i].pTexture=NULL;				
 				textures[i].DefinedFontMap=NULL;
 			}	
 
@@ -143,20 +139,23 @@ BOOL DXMessD3D9Handler::UpdateTextures()
 						textures[i].DefinedFontMap=NULL;
 					}
 
+					D3DXIMAGE_INFO imageinfo;
+					ZeroMemory(&imageinfo, sizeof(imageinfo));
 					
 
-					hr=D3DXCreateTextureFromFileInMemoryEx(dev, (void *)(tea[i].AddressOfTexture), tea[i].size, D3DX_DEFAULT, D3DX_DEFAULT, 1,0,D3DFMT_A8R8G8B8, D3DPOOL_MANAGED,D3DX_DEFAULT,D3DX_DEFAULT, 0, NULL, NULL, &textures[i].pTexture);
+					hr=D3DXCreateTextureFromFileInMemoryEx(dev, (void *)(tea[i].AddressOfTexture), tea[i].size, D3DX_DEFAULT, D3DX_DEFAULT, 1,0,D3DFMT_A8R8G8B8, D3DPOOL_MANAGED,D3DX_FILTER_NONE,D3DX_DEFAULT, 0, &imageinfo, NULL, &textures[i].pTexture);
 					if( FAILED( hr ) )
 					{
 						OutputDebugStringA("Failure creating a texture");
 						return hr;
 					}
-					
 
 					D3DSURFACE_DESC d;
 					textures[i].pTexture->GetLevelDesc(0, &d);
-					textures[i].actualWidth=d.Width;
-					textures[i].actualHeight=d.Height;
+
+					textures[i].width=imageinfo.Width;
+					textures[i].height=imageinfo.Height;				
+					
 
 					if (tea[i].AddressOfFontmap)
 					{
@@ -270,9 +269,11 @@ void DXMessD3D9Handler::RenderOverlay()
 								//render a sprite
 
 								//set the dimensions
-								scale.x=(float)shared->RenderCommands[i].sprite.width / (float)textures[tid].actualWidth;
-								scale.y=(float)shared->RenderCommands[i].sprite.height / (float)textures[tid].actualHeight;
+								
+								scale.x=(float)shared->RenderCommands[i].sprite.width / (float)textures[tid].width;
+								scale.y=(float)shared->RenderCommands[i].sprite.height / (float)textures[tid].height;
 								scale.z=1.0f;
+								
 
 								//set the position
 								if ((shared->RenderCommands[i].x==-1) && (shared->RenderCommands[i].y==-1))
@@ -308,10 +309,18 @@ void DXMessD3D9Handler::RenderOverlay()
 								}
 								position.z=0.0f;
 
+								RECT texturepos;
+
+								texturepos.left=0;
+								texturepos.top=0;
+								texturepos.bottom=textures[tid].height;  //shared->RenderCommands[i].sprite.height;
+								texturepos.right=textures[tid].width; //shared->RenderCommands[i].sprite.width;
+
+
 								D3DXMatrixTransformation(&m, NULL, NULL, &scale, NULL, NULL, &position);						
 								sprite->SetTransform(&m);					
 
-								hr=sprite->Draw(textures[tid].pTexture, NULL, NULL, NULL, D3DCOLOR_ARGB((int)(shared->RenderCommands[i].alphablend*255),255,255,255));						
+								hr=sprite->Draw(textures[tid].pTexture, &texturepos, NULL, NULL, D3DCOLOR_ARGB((int)(shared->RenderCommands[i].alphablend*255),255,255,255));						
 							}
 							break;
 						}
@@ -332,6 +341,7 @@ void DXMessD3D9Handler::RenderOverlay()
 
 							position.x=(float)shared->RenderCommands[i].x;
 							position.y=(float)shared->RenderCommands[i].y;	
+							position.z=0;
 
 							td=&textures[shared->RenderCommands[i].font.fontid];
 							s=(char *)shared->RenderCommands[i].font.addressoftext;	
@@ -358,7 +368,7 @@ void DXMessD3D9Handler::RenderOverlay()
 							}
 
 							//now draw the string (nyi)
-							//DrawString(position, &textures[shared->RenderCommands[i].font.fontid], s,strlen(s));
+							DrawString(position, &textures[shared->RenderCommands[i].font.fontid], s,strlen(s));
 
 
 

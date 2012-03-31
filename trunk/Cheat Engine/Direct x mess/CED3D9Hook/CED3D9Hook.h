@@ -20,7 +20,7 @@ typedef struct
 typedef struct
 {
 	IDirect3DTexture9 *pTexture;
-	int actualHeight, actualWidth;
+	float width,height;
 	PFONTMAP DefinedFontMap; //Optional pointer to a fontmaparray if it's a font texture
 } TextureData9, *PTextureData9;
 
