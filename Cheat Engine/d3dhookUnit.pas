@@ -359,7 +359,8 @@ type
     procedure beginCommandListUpdate;
     procedure endCommandListUpdate;
 
-    function createTexture(p: TPicture): TD3DHook_Texture;
+    function createTexture(f: string): TD3DHook_Texture; overload;
+    function createTexture(p: TPicture): TD3DHook_Texture; overload;
     function createSprite(texture: TD3DHook_Texture): TD3DHook_Sprite;
 
     function createFontMap(f: TFont): TD3DHook_FontMap;
@@ -1289,8 +1290,25 @@ end;
 function TD3DHook.createTextContainer(fontmap: TD3DHook_FontMap; x,y: single; text: string): TD3Dhook_TextContainer;
 begin
   beginCommandListUpdate;
-  result:=TD3Dhook_TextContainer.create(self, fontmap, x,y,text);
-  endCommandListUpdate;
+  try
+    result:=TD3Dhook_TextContainer.create(self, fontmap, x,y,text);
+  finally
+    endCommandListUpdate;
+  end;
+end;
+
+function TD3DHook.createTexture(f: string): TD3DHook_Texture; overload;
+var p: TPicture;
+begin
+  p:=tpicture.Create;
+  beginTextureUpdate;
+  try
+    p.LoadFromFile(f);
+    result:=TD3DHook_Texture.Create(self, p);
+  finally
+    p.free;
+    endTextureUpdate;
+  end;
 end;
 
 function TD3DHook.createTexture(p: TPicture): TD3DHook_Texture;
