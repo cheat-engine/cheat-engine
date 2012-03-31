@@ -57,7 +57,7 @@ uses mainunit, mainunit2, frmluaengineunit, plugin, pluginexports, MemoryRecordU
   LuaDebug, LuaThread, LuaGraphic, LuaProgressBar, LuaD3DHook, LuaWinControl,
   LuaMemoryRecord, LuaForm, MemoryBrowserFormUnit, disassemblerviewunit, hexviewunit,
   CustomTypeHandler, LuaStructure, LuaRegion, LuaXMPlayer, LuaMemscan, LuaFoundlist,
-  LuaRadioGroup, byteinterpreter;
+  LuaRadioGroup, LuaRasterImage, byteinterpreter;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -7235,23 +7235,7 @@ begin
   result:=1;
 end;
 
-function rasterImage_getCanvas(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  c: TrasterImage;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    c:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
 
-    lua_pushlightuserdata(L, c.Canvas);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
 
 
 function createBitmap(L: Plua_State): integer; cdecl;
@@ -7483,7 +7467,7 @@ begin
     lua_register(LuaVM, 'image_getCanvas', image_getCanvas);
     lua_register(LuaVM, 'image_getPicture', Image_getPicture);
 
-    lua_register(LuaVM, 'rasterimage_getCanvas', rasterimage_getCanvas);
+    initializeLuaRasterImage;
 
     lua_register(LuaVM, 'createHotkey', createHotkey);
     lua_register(LuaVM, 'generichotkey_setKeys', generichotkey_setKeys);

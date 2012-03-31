@@ -662,6 +662,13 @@ graphic_setHeight(graphic, height)
 
 RasterImage class: (Inheritance: Graphic->Object) : Base class for some graphical controls
 rasterimage_getCanvas(RasterImage): Returns the Canvas object for this image
+rasterimage_getPixelFormat: 6.2: gets the pixelformat
+rasterimage_setPixelFormat: 6.2:
+
+rasterimage_setTransparent: 6.2:
+rasterimage_getTransparent: 6.2:
+rasterimage_setTransparentColor: 6.2:
+rasterimage_getTransparentColor: 6.2:
 
 
 Bitmap class: (Inheritance: CustomBitmap->RasterImage->Graphic->Object) : Bitmap based Graphic object
@@ -1108,13 +1115,15 @@ dbvm_changeselectors   : Address of function dbvm_changeselectors(cs,ss,ds,es,fs
 
 
 
+--]]
 
 
 
 
-d3dhook_initializeHook(overlaystoragesize, hookmessages):
-  Hooks direct3d and allocates a buffer with given size for storage of for the overlay images
-  (for one screen stretching overlay sized 1920x1080 you need at least 6220800 bytes)
+--[[
+
+d3dhook_initializeHook(textureandcommandlistsize, hookmessages):
+  Hooks direct3d and allocates a buffer with given size for storage of for the rendercommand list
 
   hookmessages defines if you want to hook the windows message handler for the direct3d window. The d3dhook_onClick function makes use of that
   
@@ -1124,103 +1133,101 @@ d3dhook_initializeHook(overlaystoragesize, hookmessages):
   Note: You can call this only once for a process
 
 
-
-d3dhook_createOverlay(Picture, x,y)
-  Sets the Picture object to be used for the overlay. 
-
-  Call this each time you have made a change to the bitmap and want to update it in the game. 
-  About the bitmap. The color 255,255,255 (white) is used for transparency. If you wish white try 255,255,254 or something similar
-
-  This functions returns an ID you can use with the d3dhook_updateOverlay function
-  If out of memory or the initialization failed, this returns nil
-
-  Setting the position to -1,-1 will make it so the overlay will be at the center of the screen
-
-
-d3dhook_updateOverlayImage(overlayid)
-  Call this function when you have changed anything to the image of the specified overlay
-  Tip: 
-    This update takes more cpu cycles than other functions, so think before you use it.
-    Example: If you only have 3 different things to show, you might want to choose to have 3 overlays
-    and hide the other two instead of updating the image every time
-
-
-d3dhook_updateOverlayPosition(overlayid, x,y)
-  Call this function when you wish to change the position this overlay has on the screen
-  Setting the position to -1,-1 will make it so the overlay will be at the center of the screen
- 
-
-d3dhook_setOverlayVisibility(overlayid, booleanstate) : Sets if the overlay should be drawn or not.
-d3dhook_setOverlayAlphaBlend(overlayid, percentage): Sets the percentage in visibility of the overlay. 100 is fully visible, 0 is invisible.
-
-d3dhook_setOverlayAsMouse(overlayid): 
-  Sets the specific overlay image as the mouse cursors. 
-  This is useful in case you are in a situation with no visible mousecursor this can be used to render one with more performance as the x,y coordinates are updated inside the target app itself on each frame
-  To disable the automatic updating of the overlay set as overlayid 0
-  To make the mouse invisible, use d3dhook_setOverlayVisibility for that
-
-  Note: The top left part of the overlay is the position of the mouse
-
 d3dhook_getWidth(): Returns the width of the direct3d window. Note: At least one frame must have been rendered in the game for this to return anything useful
 d3dhook_getHeight(): Returns the height of the direct3d window.  ""
 
 d3dhook_setDisabledZBuffer(state): When true will disable the Z-Buffer (Depth testing)
 d3dhook_setWireframeMode(state): When true will show objects in wireframe mode
-d3dhook_setMouseClip(state): Requires HookMessages to be true. When true will keep the mouse cursor inside the game. (Handy for certain strategy games that don't support windowed mode or multiple displays )
+d3dhook_setMouseClip(state): Requires HookMessages to be true. When true will keep the mouse cursor inside the game. (Handy for certain strategy games, that don't support windowed mode or multiple displays )
+
+
 
 d3dhook_onClick(function):
-  Registers a function to be called when clicked on an visible overlay (excluding the mouse)
-  function definition: function d3dclick(overlayid, x,y)
-    x and y are coordinates in the overlay. If overlays overlap the last added overlay will be given
+  Registers a function to be called when clicked on an sprite (excluding the mouse)
+  function definition: function d3dclick(d3dhook_spite, x,y)
+    x and y are coordinates in the sprite object. If sprites overlap the highest zorder sprite will be given. It does NOT care if a transparent part is clicked or not
   
-  Note: This can cause a slowdown in the game if there are a lot of overlays and you press the left button a lot
+  Note: This can cause a slowdown in the game if there are a lot of sprites and you press the left button a lot
 
 
 
-d3dhook_beginUpdate() : Use this function when you intend to update multiple overlays. Otherwise each update will have to wait for a frame render
-d3dhook_endUpdate() : When done updating, call this function to apply the changes
+d3dhook_beginCommandListUpdate() : Use this function when you intent to update multiple sprites and textcontainers. Otherwise artifacts may occur (sprite 1 might be drawn at the new location while sprite 2 might still be at the old location when a frame is rendered)
+
+d3dhook_endCommandListUpdate() : When done updating, call this function to apply the changes
 
 
 
---]]
+D3DHook_Texture Class (Inheritance: Object)
+This class controls the texture in memory. Without a sprite to use it, it won't show
 
---[[
-add sprites with overlayid's
-
-treeview
-
-
-rasterimage_getPixelFormat
-rasterimage_setPixelFormat
-
-rasterimage_setTransparent
-rasterimage_getTransparent
-rasterimage_setTransparentColor
-rasterimage_getTransparentColor
+d3dhook_texture_getHeight(d3dhook_texture)
+d3dhook_texture_getWidth(d3dhook_texture)
+d3dhook_texture_loadTextureByPicture(d3dhook_texture, picture)
+d3dhook_texture_getHeight(d3dhook_texture)
+d3dhook_texture_getWidth(d3dhook_texture)
 
 
-d3dhook_Font->d3dhook_Texture->Object
+D3DHook_FontMap Class (Inheritance: D3DHook_Texture->Object)
+A fontmap is a texture that contains extra data regarding the characters. This class is used by the textcontainer
+Current implementation only supports 96 characters (character 32 to 127)
+d3dhook_fontmap_changeFont(d3dhook_fontmap, font): Changes the fontmap to the selected font
 
-d3dhook_createFont
 
-d3dhook_createTexture(picture, hasTransparency OPTIONAL, transparentColor OPTIONAL)
-  if the picture is not a 
+D3DHook_RenderObject Class (Inheritance: Object
+The renderobject is the abstract class used to control in what manner objects are rendered.
+The sprite and TextContainer classed inherit from this
 
-d3dhook_createTexture(filename)
-d3dhook_createSprite(texture)
+d3dhook_renderobject_getX(d3dhook_renderobject)
+d3dhook_renderobject_setX(d3dhook_renderobject, x)
+d3dhook_renderobject_getY(d3dhook_renderobject)
+d3dhook_renderobject_setY(d3dhook_renderobject, y)
+d3dhook_renderobject_getAlphablend(d3dhook_renderobject)
+d3dhook_renderobject_setAlphablend(d3dhook_renderobject, x)
+d3dhook_renderobject_getVisible(d3dhook_renderobject)
+d3dhook_renderobject_setVisible(d3dhook_renderobject, x)
+d3dhook_renderobject_getZOrder(d3dhook_renderobject)
+d3dhook_renderobject_setZOrder(d3dhook_renderobject, x)
 
-sprite_setPosition()
-sprite_setTexture(x,y) : Z determines if the sprite will be drawn over or under the pevious texture
-sprite_setWidth()
-sprite_setHeight()
-sprite_setZOrder()
 
-d3dhook_createFont(font)
-d3dhook_createText(d3dfont)
+D3DHook_Sprite Class (Inheritance: D3DHook_RenderObject->Object)
+A d3dhook_sprite class is a visible texture on the screen.
 
-makeWritable(address)
+d3dhook_sprite_getWidth(d3dhook_sprite)
+d3dhook_sprite_setWidth(d3dhook_sprite, width)
+d3dhook_sprite_getHeight(d3dhook_sprite)
+d3dhook_sprite_setHeight(d3dhook_sprite, height)
+d3dhook_sprite_getTexture(d3dhook_sprite)
+d3dhook_sprite_setTexture(d3dhook_sprite, d3dhook_texture)
 
-getThreadList
+D3Dhook_TextContainer Class (Inheritance: D3DHook_RenderObject->Object)
+A d3dhook_sprite class draws a piece of text on the screen based on the used fontmap.
+While you could use a texture with the text, updating a texture in memory is slow. So if you wish to do a lot of text updates, use a textcontainer
+
+d3dhook_textcontainer_getFontMap(d3dhook_textcontainer)
+d3dhook_textcontainer_setFontMap(d3dhook_textcontainer, d3dhook_fontmap)
+d3dhook_textcontainer_getText(d3dhook_textcontainer)
+d3dhook_textcontainer_setText(d3dhook_textcontainer, string)
+
+
+
+d3dhook_createTexture(filename) : Returns a d3dhook_texture object
+d3dhook_createTexture(picture, hasTransparency OPTIONAL, transparentColor OPTIONAL): Returns a d3dhook_texture object
+  if the picture is not a transparent image the transparentcolor parameter can be used to make it transparent
+
+
+d3dhook_createSprite(d3dhook_texture): returns a d3dhook_sprite object
+d3dhook_createFontMap(font): Returns a d3dhook_fontmap object
+d3dhook_createTextContainer(d3dhook_fontmap, x, y, text): Returns a d3dhook_textContainer object
+
+
+fullAccess(address,size): Changes the protection of a block of memory to writable and executable
+
+getThreadList(List): fills a List object with the threadlist of the currently opened process. Format: Hexadecimal threadid-string)
+
+getProcessList(List): Fills a List object with the processlist of the system. Format: %x- 
+
+
+
 
 
 --]]
