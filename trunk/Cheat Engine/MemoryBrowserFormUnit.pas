@@ -12,7 +12,7 @@ uses
   disassemblerviewunit, peinfofunctions ,dissectcodethread,stacktrace2,
   NewKernelHandler, ComCtrls, LResources, byteinterpreter, StrUtils, hexviewunit,
   debughelper, debuggertypedefinitions,frmMemviewPreferencesUnit, registry,
-  scrollboxex, disassemblercomments;
+  scrollboxex, disassemblercomments, multilineinputqueryunit;
 
 
 type
@@ -2744,21 +2744,26 @@ begin
 end;
 
 procedure TMemoryBrowser.Assemblycode1Click(Sender: TObject);
-var s:string;
+var s:tstringlist;
 
 begin
+  s:=tstringlist.create;
+  try
 
-  s:='';
-  if inputquery(rsAssemblyScan, rsInputTheAssemblyCodeToFindWilcardsSupported, s) then
-  begin
-    if s='' then exit;
-    with TfrmDisassemblyscan.create(self) do
+    if multilineinputquery(rsAssemblyScan, rsInputTheAssemblyCodeToFindWilcardsSupported, s) then
     begin
-      startaddress:=disassemblerview.SelectedAddress;
-      stringtofind:=s;
-      show;
+      if s.Count=0 then exit;
+      with TfrmDisassemblyscan.create(self) do
+      begin
+        startaddress:=disassemblerview.SelectedAddress;
+        stringstofind:=s;
+        show;
+      end;
+
     end;
 
+  finally
+    s.free;
   end;
 end;
 

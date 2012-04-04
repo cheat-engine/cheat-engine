@@ -164,7 +164,7 @@ type
     textureCount: integer;
     texturelist: UINT64 ; //offset into texturelist based on the start of the shared object (once setup, this does not change)
     TextureLock: UINT64 ; //target process handle
-    commandListLock: UINT64;
+    commandListLock: UINT64;  //lockinforder: FIRST commandlist, THEN texturelist.
     useCommandListLock: integer;
 
 
@@ -175,15 +175,17 @@ type
   PD3DHookShared=^TD3DHookShared;
 
 
+
 type
-  TD3DClickEvent=procedure(overlayid: integer; x,y: integer) of object;
+  TD3DHook_RenderObject=class;
+  TD3DClickEvent=procedure(renderobject: TObject; x,y: integer) of object;
 
   TD3DHook=class;
 
   TD3DMessageHandler=class(tthread)
   private
     owner: TD3DHook;
-    overlayid, x,y: integer; //clicked overlay
+    rendercommandid, x,y: integer; //clicked overlay
 
     lastmessage: TCEMessage;
 
@@ -489,7 +491,7 @@ end;
 procedure TD3DMessageHandler.doclick;
 begin
   if assigned(owner.onclick) then
-    owner.onclick(overlayid+1, x,y);
+    owner.onclick(TD3DHook_RenderObject(owner.commandlist[rendercommandid]), x,y);
 end;
 
 procedure TD3DMessageHandler.execute;
@@ -516,7 +518,7 @@ begin
         //click event: quickly save the variables and tell the game to continue
         x:=owner.shared.clickedx;
         y:=owner.shared.clickedy;
-        overlayid:=owner.shared.clickedoverlay;
+        rendercommandid:=owner.shared.clickedoverlay;
         SetEvent(owner.hashandledclickevent);
 
         Synchronize(doclick);
@@ -1171,7 +1173,10 @@ end;
 procedure TD3DHook.beginTextureUpdate;
 begin
   if isupdating=0 then //start of an edit
+  begin
+    beginCommandListUpdate;
     WaitForSingleObject(TextureLock, INFINITE);  //obtain lock
+  end;
 
   inc(isupdating);
 end;
@@ -1187,6 +1192,8 @@ begin
       shared.texturelistHasUpdate:=1;
 
       SetEvent(TextureLock); //release the lock
+
+      endCommandListUpdate;
     end;
   end;
 end;
@@ -1375,10 +1382,10 @@ begin
 
   shared.texturelist:=sizeof(TD3DHookShared)+(maxsize div 2);
   shared.cheatenginedir:=CheatEngineDir;
+  shared.useCommandListLock:=1;
 
   tea:=PTextureEntryArray(ptruint(shared)+shared.texturelist);
   renderCommandList:=PRenderCommandArray(ptruint(shared)+sizeof(TD3dHookShared));;
-
 
   if hookhwnd then
     shared.hookwnd:=1;

@@ -272,3 +272,15 @@ SW_SHOWMINNOACTIVE = 7;
 SW_SHOWNA = 8;
 SW_SHOWNOACTIVATE = 4;
 SW_SHOWNORMAL = 1;
+
+
+--Pixelformat
+pfDevice = 0
+pf1bit = 1
+pf4bit = 2
+pf8bit = 3
+pf15bit = 4
+pf16bit = 5
+pf24bit = 6
+pf32bit = 7
+pfCustom = 8

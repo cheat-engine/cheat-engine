@@ -712,6 +712,14 @@ begin
       memrec.showAsHex:=true; //aob's are hex by default
       memrec.Extra.byteData.bytelength:=length;
     end;
+
+    vtPointer:
+    begin
+      if processhandler.is64Bit then
+        vartype:=vtQword
+      else
+        vartype:=vtDword;
+    end;
   end;
 
   memrec.ReinterpretAddress;

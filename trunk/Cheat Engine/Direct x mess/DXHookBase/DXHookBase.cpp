@@ -357,18 +357,21 @@ map<HWND, LONG_PTR> originalwndprocs;
 
 //windowhook
 int overlaydown=-1;
+RECT oldoverlayrect;
+
 int waslockedin=0;
 int appdoestranslate=0;
 
 LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	int i;
-	int w,h;
 
 	POINTS p;
 	RECT r;
 	RECT cr;	
 	LONG_PTR o=originalwndprocs[hwnd];
+	BOOL hasTextureLock=FALSE;
+	BOOL haslock=FALSE;
 
 
 	switch(uMsg)	
@@ -442,8 +445,10 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		case WM_LBUTTONDOWN:			
 			
 			if (shared->clipmouseinwindow)
-			{							
+			{				
+				//lock the mouse inside the current client region
 				POINT pt;
+
 
 				GetClientRect(hwnd, &r);			
 
@@ -476,113 +481,138 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			p=MAKEPOINTS(lParam);
 
 
-			/*
+			//check if an sprite is pressed down
 			overlaydown=-1;
-			//check if an overlay is pressed down
-			for (i=shared->overlaycount; i>=0; i--)
+
+			if (shared->UseCommandlistLock)
+				hasLock=WaitForSingleObject((HANDLE)shared->CommandlistLock, INFINITE)==WAIT_OBJECT_0;
+
+			//find the end of the list
+			i=0;
+			while (shared->RenderCommands[i].Command)
+				i++;
+
+			for (i=i-1; i>=0; i--)
 			{
-				if (i != shared->MouseOverlayId)
+				int x,y,width, height;
+				x=shared->RenderCommands[i].x;
+				y=shared->RenderCommands[i].y;
+
+				if ((x==-2) || (y==-1))
+					continue; //mouse objects are not clickable
+
+				if ((x==-1) || (y==-1)) //the client rect is required
+					GetClientRect(hwnd, &cr);
+
+				switch (shared->RenderCommands[i].Command)
 				{
-					if ((shared->resources[i].x==-1) && (shared->resources[i].y==-1))
+					case rcDrawSprite:
 					{
-						//center of screen overlay
-									
-						GetClientRect(hwnd, &cr);
+						width=shared->RenderCommands[i].sprite.width;
+						height=shared->RenderCommands[i].sprite.height;
 
-						w=cr.right-cr.left;
-						h=cr.bottom-cr.top;
+						if (x==-1)
+							x=((cr.right-cr.left) / 2)-(width / 2);
 
-						r.left=(w / 2)-(shared->resources[i].width / 2);
-						r.right=(w / 2)+(shared->resources[i].width / 2);					
-						r.top=(h / 2)-(shared->resources[i].height / 2);
-						r.bottom=(h / 2)+(shared->resources[i].height / 2);					
+						if (y==-1)
+							y=((cr.bottom-cr.top) / 2)-(height / 2);
 
-					}
-					else
-					{
-						r.left=shared->resources[i].x;
-						r.right=shared->resources[i].x+shared->resources[i].width;
-						r.top=shared->resources[i].y;
-						r.bottom=shared->resources[i].y+shared->resources[i].height;						
+						
+						break;
 					}
 
-					POINT p2;
-					p2.x=p.x;
-					p2.y=p.y;
-
-					if (PtInRect(&r, p2))
+					case rcDrawFont:
 					{
-						overlaydown=i;
+						PTextureEntry tea=(PTextureEntry)((uintptr_t)shared+shared->texturelist);
+						if (hasTextureLock==FALSE)					
+							hasTextureLock=(WaitForSingleObject((HANDLE)(shared->TextureLock), INFINITE)==WAIT_OBJECT_0);						
+
+						PFONTMAP fm=(PFONTMAP)(tea[shared->RenderCommands[i].font.fontid].AddressOfFontmap)
+							
+						height=fm->charheight;					
+
+						//if the clicked y position falls between y and y+height then count the full size of this string to determine the width, else skip it
+
+					    if (y==-1)					
+							y=((cr.bottom-cr.top) / 2)-(height / 2);						
+
+						if ((p.y>=y) && (p.y<y+height))
+						{
+							//clicked inside the range, find out the width
+							int j;
+							char *text=(char *)(shared->RenderCommands[i].font.addressoftext);
+							width=0;
+							for (j=0; j<strlen(text); j++)							
+								width+=fm->charinfo[32-text[j]].charwidth;
+
+							if (x==-1)
+								x=((cr.right-cr.left) / 2)-(width / 2);
+							
+						}
+						else						
+							continue; //not inside the range
+						
+
 						break;
 					}
 				}
-				
-			}*/
 
+				//x,y width and height are now filled in, check if it was clicked
+				r.left=x;
+				r.right=x+width;
+				r.top=y;
+				r.bottom=y+height;
+			
+				if (PtInRect(&r, p))
+				{
+					overlaydown=i; //this object was clicked
+					oldoverlayrect=r;
+					break;
+				}
+			}
+
+			if (hasTextureLock)
+				SetEvent((HANDLE)(shared->TextureLock));
+
+			if (hasLock)
+				SetEvent((HANDLE)(HANDLE)shared->CommandlistLock);
+
+
+			
 			break;
 		
 		case WM_LBUTTONUP:
-			/*
+			
 			//check if the same overlay is released
+			//known bug: It doesn't handle zorder rearangement while the mouse is down
+
 			p=MAKEPOINTS(lParam);
 
 			if (overlaydown != -1)
 			{
-				//check if it is still focused
-				if ((shared->resources[overlaydown].x==-1) && (shared->resources[overlaydown].y==-1))
-				{
-					//center of screen overlay
-					
-					GetClientRect(hwnd, &cr);
-
-					w=cr.right-cr.left;
-					h=cr.bottom-cr.top;
-
-					r.left=(w / 2)-(shared->resources[overlaydown].width / 2);
-					r.right=(w / 2)+(shared->resources[overlaydown].width / 2);					
-					r.top=(h / 2)-(shared->resources[overlaydown].height / 2);
-					r.bottom=(h / 2)+(shared->resources[overlaydown].height / 2);					
-
-				}
-				else
-				{
-					r.left=shared->resources[overlaydown].x;
-					r.top=shared->resources[overlaydown].y;
-					r.bottom=shared->resources[overlaydown].y+shared->resources[overlaydown].height;
-					r.right=shared->resources[overlaydown].x+shared->resources[overlaydown].width;
-				}
-
-				POINT p2;
-				p2.x=p.x;
-				p2.y=p.y;
-
-				if (PtInRect(&r, p2))
+				//check if it is still in the same rect
+				if (PtInRect(&oldoverlayrect, p))
 				{
 					//still focused				
 					if (WaitForSingleObject(handledClickEvent, 5000)==WAIT_OBJECT_0) //wait for a previous click to get handled
 					{
 						shared->clickedoverlay=overlaydown;
 
-						if ((shared->resources[overlaydown].x==-1) && (shared->resources[overlaydown].y==-1))
-						{
-							shared->clickedx=p.x-((w / 2)-(shared->resources[overlaydown].width / 2));
-							shared->clickedy=p.y-((h / 2)-(shared->resources[overlaydown].height / 2));
-						}
-						else
-						{
-							shared->clickedx=p.x-shared->resources[overlaydown].x;
-							shared->clickedy=p.y-shared->resources[overlaydown].y;
-						}
+						shared->clickedx=p.x-oldoverlayrect.left;
+						shared->clickedy=p.y-oldoverlayrect.top;
+						
 						SetEvent(hasClickEvent);
 					}
 					
 
 					break;
 				}
-			}*/
+			}
 			
 			break;
 	}
+
+	
 
 	
 	return CallWindowProcA((WNDPROC)o, hwnd, uMsg, wParam, lParam); //call the original window message handler

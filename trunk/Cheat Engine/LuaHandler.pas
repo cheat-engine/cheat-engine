@@ -5,7 +5,7 @@ unit LuaHandler;
 
 
 {Note:
-Assume all strings passed between lua are in UTF8 pformat
+Assume all strings passed between lua are in UTF8 format
 }
 
 {$mode delphi}
@@ -7365,6 +7365,30 @@ begin
     lua_pop(L, parameters);
 end;
 
+
+function fullAccess(L: PLua_state): integer; cdecl;
+var parameters: integer;
+  address: ptruint;
+  size: integer;
+  op: dword;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    if lua_isstring(L, -1) then
+      address:=symhandler.getAddressFromNameL(lua_tostring(L,-2))
+    else
+      address:=lua_tointeger(L,-2);
+
+    size:=lua_tointeger(L,-1);
+
+    lua_pop(L, lua_gettop(l));
+
+    virtualprotectex(processhandle,pointer(address),size,PAGE_EXECUTE_READWRITE,op);
+  end;
+end;
+
 procedure InitializeLua;
 var s: tstringlist;
   k32: THandle;
@@ -7817,8 +7841,10 @@ begin
 
     lua_register(LuaVM, 'getCEVersion', getCEVersion);
 
-    lua_register(LuaVM, 'Utf8ToAnsi', lua_Utf8ToAnsi);
-    lua_register(LuaVM, 'AnsiToUtf8', lua_AnsiToUtf8);
+    lua_register(LuaVM, 'utf8ToAnsi', lua_Utf8ToAnsi);
+    lua_register(LuaVM, 'ansiToUtf8', lua_AnsiToUtf8);
+
+    lua_register(LuaVM, 'fullAccess', fullAccess);
 
 
 

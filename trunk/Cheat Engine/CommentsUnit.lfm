@@ -54,6 +54,12 @@ object Comments: TComments
         Top = 0
         Width = 406
         Align = alClient
+        Font.CharSet = ANSI_CHARSET
+        Font.Height = -15
+        Font.Name = 'Courier'
+        Font.Pitch = fpFixed
+        Font.Quality = fqDraft
+        ParentFont = False
         ScrollBars = ssBoth
         TabOrder = 0
       end

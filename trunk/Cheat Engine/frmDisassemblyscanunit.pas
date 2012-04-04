@@ -5,9 +5,9 @@ unit frmDisassemblyscanunit;
 interface
 
 uses
-  LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
+  windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs,disassembler,{$ifndef net}NewKernelHandler,{$endif}CEFuncProc, ExtCtrls, StdCtrls,
-  ComCtrls, LResources, LCLProc, Menus;
+  ComCtrls, LResources, LCLProc, Menus, strutils, OldRegExpr;
 
 type
   TfrmDisassemblyscan = class;
@@ -16,10 +16,11 @@ type
   private
     foundline: string;
     disassembler: TDisassembler; //this thread specific disassembler
+    function checkAddress(x: ptruint): ptruint;
   public
     currentaddress:ptrUint;
     startaddress: ptrUint;
-    strings: array of string;
+    regexpressions: array of TRegExprEngine;
     ownerform: TfrmDisassemblyscan;
     procedure execute; override;
     procedure foundone;
@@ -55,7 +56,7 @@ type
   public
     { Public declarations }
     startaddress: ptrUint;
-    stringtofind: string;
+    stringstofind: tstrings;  //externally allocated stringlist object (should be set as a property in the future)
   end;
 
 
@@ -77,11 +78,54 @@ begin
 end;
 
 destructor TDisassemblerthread.destroy;
+var i: integer;
 begin
   if disassembler<>nil then
     freeandnil(disassembler);
 
+  for i:=0 to length(regexpressions)-1 do
+    if regexpressions[i]<>nil then
+      regexpressions[i].Free;
+
   inherited destroy;
+end;
+
+
+function TDisassemblerthread.checkAddress(x: ptruint): PtrUInt;
+//check this address if it's the correct address.
+//if so, add to the list
+//Return the address of the next instruction
+var found: boolean;
+   d: string;
+   y: string;
+
+   i,j: integer;
+   matchpos,offset: integer;
+begin
+  for i:=0 to length(regexpressions)-1 do
+  begin
+    //check if it confirms to the search querry
+
+    //disassemble
+    d:=uppercase(disassembler.disassemble(x,y));
+    if i=0 then
+    begin
+      foundline:=d;
+      result:=x; //if it's the firt line return this address
+    end;
+
+
+    d:=d+'  ';   //why???? WHY???????
+    matchpos:=0;
+    offset:=1;
+
+    if regexpressions[i].MatchString(d,matchpos,offset)=false then exit;
+
+    //if RegExprPos(regexpressions[i],pchar(d),index,len)=false then exit; //if not a match then exit
+  end;
+
+  //still here so a match
+  synchronize(foundone);
 end;
 
 procedure TDisassemblerthread.execute;
@@ -94,6 +138,7 @@ var x: ptrUint;
     maxaddress: ptruint;
 
 begin
+  try
   x:=startaddress;
   currentaddress:=x;
   maxaddress:=currentaddress;
@@ -113,28 +158,14 @@ begin
       end;
     end;
 
-    d:=uppercase(disassembler.disassemble(x,y));
-    y:=d;
+    x:=checkAddress(x);
 
-    found:=true;
-    for i:=0 to length(strings)-1 do
-    begin
-      j:=pos(strings[i],d);
-      if j>0 then
-        d:=copy(d,j+length(strings[i]),length(d))
-      else
-      begin
-        found:=false;
-        break;
-      end;
-    end;
 
-    if found then
-    begin
-      foundline:=y;
-      synchronize(foundone);
-    end;
 
+  end;
+  except
+    on e:exception do
+      messagebox(0,pchar(e.message),pchar('scan error'), 0);
   end;
 end;
 
@@ -175,12 +206,43 @@ end;
 procedure TfrmDisassemblyscan.FormShow(Sender: TObject);
 var i,j: integer;
     c: integer;
+    s: string;
 begin
-  stringtofind:=uppercase(stringtofind);
 
   //split up into different strings when wildcards are used
   disassemblerthread:=Tdisassemblerthread.Create(true);
 
+  i:=0;
+  while i<stringstofind.count do //cleanup the userinput
+    if trim(stringstofind[i])='' then
+      stringstofind.Delete(i)
+    else
+    begin
+      stringstofind[i]:=StringReplace(RegExprEscapeStr(stringstofind[i]), '\*','.*',[rfReplaceAll]);
+      inc(i);
+    end;
+
+  setlength(disassemblerthread.regexpressions,stringstofind.count);
+  for i:=0 to length(Disassemblerthread.regexpressions)-1 do
+    Disassemblerthread.regexpressions[i]:=nil;//init to nil
+
+  try
+    for i:=0 to length(disassemblerthread.regexpressions)-1 do //create a regular expression for each entry
+    begin
+      s:=stringstofind[i];
+      disassemblerthread.regexpressions[i]:=GenerateRegExprEngine(pchar(s), [ref_caseinsensitive]);
+    end;
+  except
+    on e:exception do
+    begin
+      disassemblerthread.free;
+      disassemblerthread:=nil;
+      raise exception.create(e.message);
+    end;
+  end;
+
+
+  {
   setlength(disassemblerthread.strings,1);
   for i:=1 to length(stringtofind) do
   begin
@@ -207,9 +269,9 @@ begin
     disassemblerthread:=nil;
     close;
   end
-  else
+  else  }
   begin
-    setlength(disassemblerthread.strings,c);
+   // disassemblerthread.strings:=stringstofind;
     disassemblerthread.startaddress:=memorybrowser.disassemblerview.TopAddress;
     disassemblerthread.ownerform:=self;
     disassemblerthread.start;
