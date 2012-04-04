@@ -7,7 +7,7 @@ interface
 uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs,disassembler,{$ifndef net}NewKernelHandler,{$endif}CEFuncProc, ExtCtrls, StdCtrls,
-  ComCtrls, LResources, LCLProc, Menus, strutils, OldRegExpr;
+  ComCtrls, LResources, LCLProc, Menus, strutils, OldRegExpr, RegExpr;
 
 type
   TfrmDisassemblyscan = class;
@@ -20,7 +20,7 @@ type
   public
     currentaddress:ptrUint;
     startaddress: ptrUint;
-    regexpressions: array of TRegExprEngine;
+    regexpressions: array of TRegExpr;
     ownerform: TfrmDisassemblyscan;
     procedure execute; override;
     procedure foundone;
@@ -95,7 +95,7 @@ function TDisassemblerthread.checkAddress(x: ptruint): PtrUInt;
 //check this address if it's the correct address.
 //if so, add to the list
 //Return the address of the next instruction
-var found: boolean;
+var ok: boolean;
    d: string;
    y: string;
 
@@ -119,7 +119,9 @@ begin
     matchpos:=0;
     offset:=1;
 
-    if regexpressions[i].MatchString(d,matchpos,offset)=false then exit;
+    ok:=regexpressions[i].Exec(d);
+
+    if (not ok) or (regexpressions[i].MatchPos[0]=0) then exit;
 
     //if RegExprPos(regexpressions[i],pchar(d),index,len)=false then exit; //if not a match then exit
   end;
@@ -230,7 +232,9 @@ begin
     for i:=0 to length(disassemblerthread.regexpressions)-1 do //create a regular expression for each entry
     begin
       s:=stringstofind[i];
-      disassemblerthread.regexpressions[i]:=GenerateRegExprEngine(pchar(s), [ref_caseinsensitive]);
+      disassemblerthread.regexpressions[i]:=TRegExpr.Create;
+      disassemblerthread.regexpressions[i].Expression:=stringstofind[i];
+      disassemblerthread.regexpressions[i].ModifierI:=true;
     end;
   except
     on e:exception do
