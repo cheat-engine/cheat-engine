@@ -132,7 +132,10 @@ begin
   lua_pop(L, lua_gettop(L));
   d:=safed3dhook;
   if d<>nil then
+  begin
+    d.beginCommandListUpdate;
     d.beginTextureupdate;
+  end;
 end;
 
 function d3dhook_endUpdate(L: PLua_State): integer; cdecl;
@@ -143,7 +146,10 @@ begin
   lua_pop(L, lua_gettop(L));
   d:=safed3dhook;
   if d<>nil then
+  begin
     d.endTextureupdate;
+    d.endCommandListUpdate;
+  end;
 end;
 
 
@@ -214,14 +220,16 @@ end;
 procedure initializeLuaD3DHook;
 begin
   lua_register(LuaVM, 'd3dhook_initializeHook', d3dhook_initializeHook);
+  lua_register(LuaVM, 'd3dhook_onClick', d3dhook_onClick);
+  lua_register(LuaVM, 'd3dhook_beginUpdate', d3dhook_beginUpdate);
+  lua_register(LuaVM, 'd3dhook_endUpdate', d3dhook_endUpdate);
   lua_register(LuaVM, 'd3dhook_getWidth', d3dhook_getWidth);
   lua_register(LuaVM, 'd3dhook_getHeight', d3dhook_getHeight);
   lua_register(LuaVM, 'd3dhook_setDisabledZBuffer', d3dhook_setDisabledZBuffer);
   lua_register(LuaVM, 'd3dhook_setWireframeMode', d3dhook_setWireframeMode);
   lua_register(LuaVM, 'd3dhook_setMouseClip', d3dhook_setMouseClip);
-  lua_register(LuaVM, 'd3dhook_onClick', d3dhook_onClick);
-  lua_register(LuaVM, 'd3dhook_beginUpdate', d3dhook_beginUpdate);
-  lua_register(LuaVM, 'd3dhook_endUpdate', d3dhook_endUpdate);
+
+
 end;
 
 end.

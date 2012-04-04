@@ -58,7 +58,7 @@ uses
   frmSetCrosshairUnit, StructuresFrm2, scrollTreeView,
   frmStructures2ElementInfoUnit, frmStructureLinkerUnit, LuaMemoryRecord,
   LuaStructure, LuaForm, regionex, LuaRegion, frmgroupscanalgoritmgeneratorunit,
-  vartypestrings, LuaXMPlayer, groupscancommandparser, LuaMemscan, LuaFoundlist, LuaRadioGroup, RemoteMemoryManager, LuaRasterImage;
+  vartypestrings, LuaXMPlayer, groupscancommandparser, LuaMemscan, LuaFoundlist, LuaRadioGroup, RemoteMemoryManager, LuaRasterImage, multilineinputqueryunit;
 
 {$R cheatengine.res}
 {$R manifest.res}

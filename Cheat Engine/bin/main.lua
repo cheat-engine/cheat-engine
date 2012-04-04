@@ -7,7 +7,12 @@ require("defines")
 
 List of CE specific functions:
 
-getCEVersion(): Returns a floating point value. Returns 6.2 or higher
+getCEVersion():6.2: Returns a floating point value
+
+
+fullAccess(address,size):6.2: Changes the protection of a block of memory to writable and executable
+
+
 
 note: addresses can be strings, they will get interpreted by ce's symbolhandler
 
@@ -40,8 +45,8 @@ writeBytesLocal(address, x,x,x,x,...) : See writeBytes but then it's for Cheat E
 writeBytesLocal(address, table, , count) : See writeBytes but then it's for Cheat Engine's memory
 
 
-AnsiToUtf8(string): Converts a string in Ansi encoding to UTF8
-Utf8ToAnsi(string): Converts a string in UTF8 encoding to Ansi
+ansiToUtf8(string): Converts a string in Ansi encoding to UTF8
+utf8ToAnsi(string): Converts a string in UTF8 encoding to Ansi
 Note: GUI components mainly show in UTF8, some other functions use Ansi, try to find out which ones...
 
 
@@ -662,13 +667,13 @@ graphic_setHeight(graphic, height)
 
 RasterImage class: (Inheritance: Graphic->Object) : Base class for some graphical controls
 rasterimage_getCanvas(RasterImage): Returns the Canvas object for this image
-rasterimage_getPixelFormat: 6.2: gets the pixelformat
-rasterimage_setPixelFormat: 6.2:
+rasterimage_getPixelFormat((rasterimage): 6.2: Returns the current pixelformat
+rasterimage_setPixelFormat(rasterimage, pixelformat): 6.2: Sets the pixelformat for this image. Will clear the current image if it had one. Supported pixelformats: pf1bit, pf4bit, pf8bit, pf15bit, pf16bit, pf24bit, pf32bit (recommended)
 
-rasterimage_setTransparent: 6.2:
-rasterimage_getTransparent: 6.2:
-rasterimage_setTransparentColor: 6.2:
-rasterimage_getTransparentColor: 6.2:
+rasterimage_setTransparent(rasterimage,state): 6.2: Will set the image to support transparency or not
+rasterimage_getTransparent(rasterimage): 6.2: Returns true if the image supports transparency
+rasterimage_setTransparentColor(rasterimage, color): 6.2:Sets the color that will be rendered as transparent when drawn
+rasterimage_getTransparentColor(rasterimage): 6.2: Returns the color set to be transparent
 
 
 Bitmap class: (Inheritance: CustomBitmap->RasterImage->Graphic->Object) : Bitmap based Graphic object
@@ -1114,13 +1119,8 @@ dbvm_restore_interrupts: Address of function dbvm_restore_interrupts : DWORD; st
 dbvm_changeselectors   : Address of function dbvm_changeselectors(cs,ss,ds,es,fs,gs: dword): DWORD; stdcall; 
 
 
-
---]]
-
-
-
-
---[[
+D3DHOOK_ functions:
+The d3dhook functions provide a method to render graphics and text inside the game, as long as it is running in directx9, 10 or 11
 
 d3dhook_initializeHook(textureandcommandlistsize, hookmessages):
   Hooks direct3d and allocates a buffer with given size for storage of for the rendercommand list
@@ -1133,13 +1133,20 @@ d3dhook_initializeHook(textureandcommandlistsize, hookmessages):
   Note: You can call this only once for a process
 
 
+d3dhook_beginUpdate() : Use this function when you intent to update multiple sprites,textcontainers or textures. Otherwise artifacts may occur (sprite 1 might be drawn at the new location while sprite 2 might still be at the old location when a frame is rendered)
+
+d3dhook_endUpdate() : When done updating, call this function to apply the changes
+
+
 d3dhook_getWidth(): Returns the width of the direct3d window. Note: At least one frame must have been rendered in the game for this to return anything useful
 d3dhook_getHeight(): Returns the height of the direct3d window.  ""
 
+
 d3dhook_setDisabledZBuffer(state): When true will disable the Z-Buffer (Depth testing)
 d3dhook_setWireframeMode(state): When true will show objects in wireframe mode
-d3dhook_setMouseClip(state): Requires HookMessages to be true. When true will keep the mouse cursor inside the game. (Handy for certain strategy games, that don't support windowed mode or multiple displays )
 
+
+d3dhook_setMouseClip(state): Requires HookMessages to be true. When true will keep the mouse cursor inside the game. (Handy for certain strategy games, that don't support windowed mode or multiple displays )
 
 
 d3dhook_onClick(function):
@@ -1150,10 +1157,16 @@ d3dhook_onClick(function):
   Note: This can cause a slowdown in the game if there are a lot of sprites and you press the left button a lot
 
 
+--]]
 
-d3dhook_beginCommandListUpdate() : Use this function when you intent to update multiple sprites and textcontainers. Otherwise artifacts may occur (sprite 1 might be drawn at the new location while sprite 2 might still be at the old location when a frame is rendered)
 
-d3dhook_endCommandListUpdate() : When done updating, call this function to apply the changes
+
+
+--[[
+
+
+
+
 
 
 
@@ -1219,8 +1232,6 @@ d3dhook_createSprite(d3dhook_texture): returns a d3dhook_sprite object
 d3dhook_createFontMap(font): Returns a d3dhook_fontmap object
 d3dhook_createTextContainer(d3dhook_fontmap, x, y, text): Returns a d3dhook_textContainer object
 
-
-fullAccess(address,size): Changes the protection of a block of memory to writable and executable
 
 getThreadList(List): fills a List object with the threadlist of the currently opened process. Format: Hexadecimal threadid-string)
 

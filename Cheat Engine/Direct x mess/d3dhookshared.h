@@ -33,6 +33,21 @@ It then waits for the HasHandledTextureUpdate			If found, it destroys the textur
 
 */
 
+typedef struct
+{
+	//texture coordinates for each character
+	float offset; //offset where this character starts
+	float charwidth; //width in pixel of this character	
+} CHARINFO, *PCHARINFO;
+
+
+typedef struct
+{
+	float charheight; //height in pixels of each character
+	float fullwidth; //width in pixels of the full fontmap
+	CHARINFO charinfo[96];
+} FONTMAP, *PFONTMAP;
+
 typedef volatile struct
 {
 	UINT64 AddressOfTexture;

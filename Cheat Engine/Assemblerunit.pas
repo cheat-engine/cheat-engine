@@ -2239,8 +2239,10 @@ begin
 
   for i:=1 to length(tokens)-2 do
   begin
+    //get the value of the token before and after this token
     val('$'+tokens[i-1],a,err);
     val('$'+tokens[i+1],b,err2);
+    //if no error, check if this token is a mathemetical value
     if (err=0) and (err2=0) then
     begin
       case tokens[i][1] of
@@ -2259,6 +2261,14 @@ begin
           tokens[i]:='';
           tokens[i+1]:='';
         end;
+      end;
+    end
+    else
+    begin
+      if (err2=0) and (tokens[i][1]='-') then //before is not a valid value, but after it is. and this is a -  (so -value)
+      begin
+        tokens[i]:='+';
+        tokens[i+1]:=inttohex(-b,8);
       end;
     end;
   end;
