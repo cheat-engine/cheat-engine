@@ -61,6 +61,8 @@ var
 
 
   x,y: integer;
+
+  debug: integer;
 begin
   setlength(c,0);
   result:=0;
@@ -88,18 +90,26 @@ begin
         begin
           //it's a table
 
+          debug:=lua_gettop(L);
+
+
+
           //get x
           lua_pushinteger(l, 1);
           lua_gettable(L, coordinateTable);
-          c[coordinate-1].x:=lua_tointeger(L, -1);
+          x:=lua_tointeger(L, -1);
+          c[coordinate-1].x:=x;
           lua_pop(L, 1);
 
           //get y
           lua_pushinteger(l, 2);
           lua_gettable(L, coordinateTable);
-          c[coordinate-1].y:=lua_tointeger(L, -1);
+          y:=lua_tointeger(L, -1);
+          c[coordinate-1].y:=y;
           lua_pop(L, 1);
         end else exit;
+
+        lua_pop(L,1);
       end;
 
       //still here so valid coordinates
