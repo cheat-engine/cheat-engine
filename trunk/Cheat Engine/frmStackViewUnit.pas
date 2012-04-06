@@ -7,7 +7,7 @@ interface
 uses
   windows, cefuncproc, newkernelhandler, Classes, SysUtils, FileUtil, LResources,
   Forms, Controls, Graphics, Dialogs, StdCtrls, Menus, stacktrace2, Clipbrd, ComCtrls,
-  strutils;
+  strutils, frmSelectionlistunit;
 
 type
 
@@ -16,6 +16,8 @@ type
   TfrmStackView = class(TForm)
     lvStack: TListView;
     MenuItem1: TMenuItem;
+    MenuItem2: TMenuItem;
+    MenuItem3: TMenuItem;
     miCopyValue: TMenuItem;
     miCopySecondary: TMenuItem;
     miCopyAddress: TMenuItem;
@@ -27,6 +29,7 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure lvStackDblClick(Sender: TObject);
+    procedure MenuItem3Click(Sender: TObject);
     procedure miAddESPClick(Sender: TObject);
     procedure miCopyAddressClick(Sender: TObject);
   private
@@ -44,7 +47,7 @@ var
 
 implementation
 
-uses MemoryBrowserFormUnit;
+uses MemoryBrowserFormUnit, StructuresFrm2;
 
 procedure TfrmStackView.miAddESPClick(Sender: TObject);
 begin
@@ -98,6 +101,52 @@ begin
     else
       MemoryBrowser.hexview.address:=a;
   end;
+end;
+
+procedure TfrmStackView.MenuItem3Click(Sender: TObject);
+var
+  i: integer;
+  s: tstringlist;
+  f: TfrmSelectionList;
+
+  structurefrm: TfrmStructures2;
+  new: boolean;
+
+begin
+  //find out which data dissect windows are open
+  s:=tstringlist.create;
+
+  for i:=0 to frmStructures2.Count-1 do
+    s.add(TfrmStructures2(frmStructures2).Caption);
+
+  s.add('<New window>');
+
+  f:=TfrmSelectionList.Create(self, s);
+
+  f.caption:='Lock and add to structure dissect';
+  f.label1.Caption:='Select the structure dissect window you wish to add this region to';
+
+  if f.showmodal=mrok then
+  begin
+    if f.itemindex>=frmStructures2.Count then       //new window
+    begin
+      structurefrm:=tfrmstructures2.create(application);
+      structurefrm.show;
+    end
+    else
+      structurefrm:=TfrmStructures2(frmStructures2[f.itemindex]);
+
+    //add this esp (c.rsp/esp) as locked address
+
+    structurefrm.addLockedAddress({$ifdef cpu64}c.rsp{$else}c.esp{$endif}, stack,size);
+
+    structurefrm.show;
+
+    if structurefrm.mainStruct=nil then //if no structure is selected define it then
+      structurefrm.Definenewstructure1.click;
+
+  end;
+
 end;
 
 procedure TfrmStackView.FormDestroy(Sender: TObject);

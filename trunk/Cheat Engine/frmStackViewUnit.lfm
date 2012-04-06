@@ -78,5 +78,12 @@ object frmStackView: TfrmStackView
       Caption = 'Copy Secondary'
       OnClick = miCopyAddressClick
     end
+    object MenuItem2: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem3: TMenuItem
+      Caption = 'Lock and add this view to a structure dissect window'
+      OnClick = MenuItem3Click
+    end
   end
 end

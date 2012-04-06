@@ -5,7 +5,7 @@ unit DebugHelper;
 interface
 
 uses
-  Windows, Classes, SysUtils, Controls, syncobjs, guisafecriticalsection, Dialogs,
+  Windows, Classes, SysUtils, Controls, forms, syncobjs, guisafecriticalsection, Dialogs,
   foundcodeunit, debugeventhandler, cefuncproc, newkernelhandler, comctrls,
   debuggertypedefinitions, formChangedAddresses, frmTracerUnit, KernelDebuggerInterface, VEHDebugger,
   WindowsDebugger, debuggerinterfaceAPIWrapper, debuggerinterface,symbolhandler;
@@ -989,7 +989,7 @@ begin
 
   //still here
   //create a foundcodedialog and add the breakpoint
-  foundcodedialog := Tfoundcodedialog.Create(nil);
+  foundcodedialog := Tfoundcodedialog.Create(application);
   case bpt of
     bptAccess : foundcodedialog.Caption:=Format(rsTheFollowingOpcodesAccessed, [
       inttohex(address, 8)]);
@@ -1200,7 +1200,7 @@ begin
 
   end;
 
-  frmchangedaddresses:=tfrmChangedAddresses.Create(nil) ;
+  frmchangedaddresses:=tfrmChangedAddresses.Create(application) ;
   frmchangedaddresses.show;
 
   AddBreakpoint(nil, address, bptExecute, method, bo_FindWhatCodeAccesses, usedDebugRegister, 1, nil, 0, frmchangedaddresses);
@@ -1733,7 +1733,7 @@ begin
   //clean up some debug views
 
   if formdebugstrings = nil then
-    formdebugstrings := Tformdebugstrings.Create(nil);
+    formdebugstrings := Tformdebugstrings.Create(application);
 
   formdebugstrings.listbox1.Clear;
 end;

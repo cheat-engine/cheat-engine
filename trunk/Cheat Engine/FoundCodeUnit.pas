@@ -272,7 +272,7 @@ begin
   itemindex:=foundcodelist.ItemIndex;
   if itemindex<>-1 then
   begin
-    FormFoundCodeListExtra:=TFormFoundCodeListExtra.Create(nil);
+    FormFoundCodeListExtra:=TFormFoundCodeListExtra.Create(application);
     if useexceptions then
       FormFoundCodeListExtra.Label18.Visible:=false
     else

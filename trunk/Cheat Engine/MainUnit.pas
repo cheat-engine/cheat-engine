@@ -2440,7 +2440,7 @@ begin
   oldprocesshandle := processhandle;
 
   if Processwindow = nil then
-    ProcessWindow := TProcessWindow.Create(nil);
+    ProcessWindow := TProcessWindow.Create(application);
 
   resu := ProcessWindow.ShowModal;
 
@@ -2701,7 +2701,7 @@ begin
   oldprocesshandle := processhandle;
 
   if Processwindow = nil then
-    ProcessWindow := TProcessWindow.Create(nil);
+    ProcessWindow := TProcessWindow.Create(application);
 
   ProcessWindow.btnOpenFile.click;
 

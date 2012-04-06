@@ -756,7 +756,7 @@ end;
 procedure TMemoryBrowser.miDebugEventsClick(Sender: TObject);
 begin
   if frmDebugEvents=nil then
-    frmDebugEvents:=tfrmDebugEvents.create(nil);
+    frmDebugEvents:=tfrmDebugEvents.create(application);
 
   frmDebugEvents.show;
 end;
@@ -773,7 +773,7 @@ end;
 
 procedure TMemoryBrowser.miPagingClick(Sender: TObject);
 begin
-  TfrmPaging.create(nil).show;
+  TfrmPaging.create(application).show;
 end;
 
 procedure TMemoryBrowser.miUserdefinedCommentClick(Sender: TObject);
@@ -1410,7 +1410,7 @@ begin
 
   disassembler:=true;
 
-  disassemblerview:=TDisassemblerview.Create(nil);
+  disassemblerview:=TDisassemblerview.Create(self);
   disassemblerview.Align:=alClient;
   disassemblerview.Parent:=panel5;
   disassemblerview.PopupMenu:=debuggerpopup;
@@ -1442,7 +1442,7 @@ begin
 
 
 
-  hexview:=THexview.create(nil);
+  hexview:=THexview.create(self);
   hexview.Align:=alClient;
   hexview.parent:=panel3;
   hexview.popupmenu:=memorypopup;
@@ -1941,7 +1941,7 @@ end;
 procedure TMemoryBrowser.Stacktrace1Click(Sender: TObject);
 begin
   if frmstacktrace=nil then
-    frmstacktrace:=tfrmstacktrace.create(nil);
+    frmstacktrace:=tfrmstacktrace.create(application);
 
   frmstacktrace.Show;
 end;
@@ -2516,7 +2516,7 @@ begin
   symhandler.reinitialize;
   
   if frmEnumerateDLLs=nil then
-    frmEnumerateDLLs:=tfrmEnumerateDLLs.create(nil);
+    frmEnumerateDLLs:=tfrmEnumerateDLLs.create(application);
 
   frmEnumerateDLLs.show;
   frmEnumerateDLLs.enumerate;

@@ -1880,7 +1880,7 @@ begin
         if rbStringscan.checked then
         begin
           if frmStringMap=nil then
-            frmStringMap:=tfrmStringMap.Create(nil);
+            frmStringMap:=tfrmStringMap.Create(application);
 
           frmstringmap.cbRegExp.checked:=cbRegExp.checked;
           frmstringmap.cbCaseSensitive.checked:=cbCaseSensitive.checked;
