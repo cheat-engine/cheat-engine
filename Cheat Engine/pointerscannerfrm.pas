@@ -970,7 +970,7 @@ begin
 
   start:=now;
   if frmpointerscannersettings=nil then
-    frmpointerscannersettings:=tfrmpointerscannersettings.create(nil);
+    frmpointerscannersettings:=tfrmpointerscannersettings.create(application);
 
   if frmpointerscannersettings.Visible then exit; //already open, so no need to make again
 
@@ -1885,7 +1885,7 @@ end;
 procedure Tfrmpointerscanner.openscanner(var message: tmessage);
 begin
   if frmpointerscannersettings=nil then
-    frmpointerscannersettings:=tfrmpointerscannersettings.create(nil);
+    frmpointerscannersettings:=tfrmpointerscannersettings.create(application);
 
   frmpointerscannersettings.edtAddress.text:=inttohex(message.WParam,8);
   Method3Fastspeedandaveragememoryusage1.Click;

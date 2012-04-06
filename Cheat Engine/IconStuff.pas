@@ -163,7 +163,7 @@ var opendialog: Topendialog;
 begin
   result:=nil;
   iconlist:=tlist.Create;
-  opendialog:=TOpenDialog.Create(nil);
+  opendialog:=TOpenDialog.Create(application);
 
 
 

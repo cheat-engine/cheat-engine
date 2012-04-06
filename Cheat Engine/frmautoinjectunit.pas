@@ -291,7 +291,7 @@ end;
 procedure TfrmAutoInject.miNewWindowClick(Sender: TObject);
 var f: TfrmAutoInject;
 begin
-  f:=TfrmAutoInject.Create(nil);
+  f:=TfrmAutoInject.Create(application);
   f.luamode:=luamode;
 
   f.show;
