@@ -221,6 +221,8 @@ begin
     else
     begin
       stringstofind[i]:=StringReplace(RegExprEscapeStr(stringstofind[i]), '\*','.*',[rfReplaceAll]);
+
+      stringstofind[i]:=StringReplace(stringstofind[i], '+','\+',[rfReplaceAll]);
       inc(i);
     end;
 
