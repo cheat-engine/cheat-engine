@@ -204,6 +204,7 @@ function FindFreeBlockForRegion(base: ptrUint; size: dword): pointer;
 function getProcessnameFromProcessID(pid: dword): string;
 procedure getDriverList(list: tstrings);
 
+function EscapeStringForRegEx(const S: string): string;
 
 procedure errorbeep;
 
@@ -3551,6 +3552,31 @@ begin
 
   result:=realAddress2;
   hasError:=false;
+end;
+
+
+function EscapeStringForRegEx(const S: string): string;      //copied and modified from the RegExprEscapeStr in the OldRegExpr.pp unit (it forgot the '+' check)
+var
+  i, len   : integer;
+  s1: string;
+begin
+  result:= '';
+  s1:='';
+  if (S = '') then
+   exit;
+
+  len := Length (S);
+
+  for i := 1 to len do
+    begin
+      if (S [i] in ['(','|', '.', '*', '?', '^', '$', '-', '+', '[', '{', '}', ']', ')', '\']) then
+        begin
+          s1 := s1 + '\';
+        end;
+
+      s1 := s1 + S[i];
+    end;
+  result:=s1;
 end;
 
 

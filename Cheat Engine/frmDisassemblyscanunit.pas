@@ -220,9 +220,9 @@ begin
       stringstofind.Delete(i)
     else
     begin
-      stringstofind[i]:=StringReplace(RegExprEscapeStr(stringstofind[i]), '\*','.*',[rfReplaceAll]);
+      stringstofind[i]:=StringReplace(EscapeStringForRegEx(stringstofind[i]), '\*','.*',[rfReplaceAll]);
 
-      stringstofind[i]:=StringReplace(stringstofind[i], '+','\+',[rfReplaceAll]);
+
       inc(i);
     end;
 
