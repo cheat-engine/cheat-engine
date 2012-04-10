@@ -293,6 +293,11 @@ object frmStructures2: TfrmStructures2
     object N4: TMenuItem
       Caption = '-'
     end
+    object MenuItem6: TMenuItem
+      Caption = 'Find value'
+      ShortCut = 16454
+      OnClick = MenuItem6Click
+    end
     object miCopy: TMenuItem
       Caption = 'Copy element(s)'
       ShortCut = 16451
@@ -328,5 +333,11 @@ object frmStructures2: TfrmStructures2
     Filter = 'Text Files (*.txt)|*.txt'
     left = 152
     top = 264
+  end
+  object FindDialog1: TFindDialog
+    Options = [frDown, frHideWholeWord, frHideEntireScope]
+    OnFind = FindDialog1Find
+    left = 152
+    top = 128
   end
 end

@@ -371,7 +371,7 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	RECT cr;	
 	LONG_PTR o=originalwndprocs[hwnd];
 	BOOL hasTextureLock=FALSE;
-	BOOL haslock=FALSE;
+	BOOL hasLock=FALSE;
 
 
 	switch(uMsg)	
@@ -527,7 +527,7 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 						if (hasTextureLock==FALSE)					
 							hasTextureLock=(WaitForSingleObject((HANDLE)(shared->TextureLock), INFINITE)==WAIT_OBJECT_0);						
 
-						PFONTMAP fm=(PFONTMAP)(tea[shared->RenderCommands[i].font.fontid].AddressOfFontmap)
+						PFONTMAP fm=(PFONTMAP)(tea[shared->RenderCommands[i].font.fontid].AddressOfFontmap);
 							
 						height=fm->charheight;					
 
@@ -539,7 +539,7 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 						if ((p.y>=y) && (p.y<y+height))
 						{
 							//clicked inside the range, find out the width
-							int j;
+							unsigned int j;
 							char *text=(char *)(shared->RenderCommands[i].font.addressoftext);
 							width=0;
 							for (j=0; j<strlen(text); j++)							
@@ -562,8 +562,13 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				r.right=x+width;
 				r.top=y;
 				r.bottom=y+height;
+
+				POINT p2;
+
+				p2.x=p.x;
+				p2.y=p.y;
 			
-				if (PtInRect(&r, p))
+				if (PtInRect(&r, p2))
 				{
 					overlaydown=i; //this object was clicked
 					oldoverlayrect=r;
@@ -587,11 +592,15 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			//known bug: It doesn't handle zorder rearangement while the mouse is down
 
 			p=MAKEPOINTS(lParam);
+			POINT p2;
+
+			p2.x=p.x;
+			p2.y=p.y;
 
 			if (overlaydown != -1)
 			{
 				//check if it is still in the same rect
-				if (PtInRect(&oldoverlayrect, p))
+				if (PtInRect(&oldoverlayrect, p2))
 				{
 					//still focused				
 					if (WaitForSingleObject(handledClickEvent, 5000)==WAIT_OBJECT_0) //wait for a previous click to get handled
