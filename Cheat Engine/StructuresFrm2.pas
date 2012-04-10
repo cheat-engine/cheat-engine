@@ -271,7 +271,9 @@ type
   end;
 
   TfrmStructures2 = class(TForm)
+    FindDialog1: TFindDialog;
     MenuItem5: TMenuItem;
+    MenuItem6: TMenuItem;
     miClear: TMenuItem;
     miCopy: TMenuItem;
     miPaste: TMenuItem;
@@ -332,8 +334,10 @@ type
     updatetimer: TTimer;
     tvStructureView: TTreeView;
     procedure Addextraaddress1Click(Sender: TObject);
+    procedure FindDialog1Find(Sender: TObject);
     procedure MenuItem3Click(Sender: TObject);
     procedure MenuItem5Click(Sender: TObject);
+    procedure MenuItem6Click(Sender: TObject);
     procedure miClearClick(Sender: TObject);
     procedure miCopyClick(Sender: TObject);
     procedure miExportAllClick(Sender: TObject);
@@ -431,6 +435,8 @@ type
     function getGroup(i: integer): TStructGroup;
     function getGroupCount: integer;
 
+    procedure getValues(f: Tstrings); //fills a strings object with all the values
+    function searchString(search: string; findoptions: TFindOptions): integer;
 
     procedure EditValueOfSelectedNodes(c:TStructColumn);
   public
@@ -3336,68 +3342,163 @@ begin
   addColumn;
 end;
 
-procedure TfrmStructures2.MenuItem3Click(Sender: TObject);
+procedure TfrmStructures2.FindDialog1Find(Sender: TObject);
+var i: integer;
+  n: ttreenode;
+begin
+  i:=searchString(FindDialog1.FindText, finddialog1.Options);
+  if i<>-1 then
+  begin
+    n:=tvStructureView.Items[i];
+    tvStructureView.Items.SelectOnlyThis(n);
+    n.MakeVisible;
+  end;
+end;
+
+function TfrmStructures2.searchString(search: string; findoptions: TFindOptions): integer;
+{
+Searches the current list for the specified value
+}
 var i,j: integer;
   se: TStructelement;
   c: TStructColumn;
   s,s2: string;
-  f: TStringList;
   node: TTreenode;
   cc: integer;
+
+  casesensitive: boolean;
+begin
+  result:=-1;
+
+  casesensitive:=frMatchCase in findoptions;
+
+  if not casesensitive then
+    search:=uppercase(search);
+
+  if tvStructureView.Selected<>nil then
+    i:=tvStructureView.Selected.AbsoluteIndex
+  else
+    i:=-1;
+
+  if frDown in findoptions then
+    i:=i+1
+  else
+    i:=i-1;
+
+
+  while (i>0) and (i<tvStructureView.Items.Count) do
+  begin
+    node:=tvStructureView.Items[i];
+    se:=getStructElementFromNode(node);
+
+    if se<>nil then
+    begin
+
+      s:=se.Name;
+
+
+
+      setCurrentNodeStringsInColumns(node,se);
+
+      //column now contains the strings
+      cc:=columnCount;
+      for j:=0 to columnCount-1 do
+      begin
+        c:=columns[j];
+        s:=s+c.currentNodeValue;
+      end;
+
+      if not casesensitive then
+        s:=uppercase(s);
+
+      if pos(search,s)>0 then //fouind a match
+      begin
+        result:=i;
+        exit;
+      end;
+    end;
+
+
+    if frDown in findoptions then
+      i:=i+1
+    else
+      i:=i-1;
+
+  end;
+
+  beep;
+
+
+
+end;
+
+
+procedure TfrmStructures2.getValues(f: Tstrings);
+var i,j: integer;
+  se: TStructelement;
+  c: TStructColumn;
+  s,s2: string;
+  node: TTreenode;
+  cc: integer;
+begin
+  f.clear;
+
+  for i:=0 to tvStructureView.Items.Count-1 do
+  begin
+    node:=tvStructureView.Items[i];
+    se:=getStructElementFromNode(node);
+
+    if se<>nil then
+    begin
+      s:=getDisplayedDescription(se);
+      s:=PadRight(S, 25);
+
+      for j:=1 to node.level-1 do
+        s:=AddChar('-',S,length(s)+5);
+
+      setCurrentNodeStringsInColumns(node,se);
+
+      //column now contains the strings
+      cc:=columnCount;
+      for j:=0 to columnCount-1 do
+      begin
+        c:=columns[j];
+
+        if miShowAddresses.checked then
+        begin
+          s2:=PadRight(c.currentNodeAddress+c.currentNodeValue,30);
+
+          if j<cc-1 then //not the last column
+            setlength(s2,30); //cut of excess
+        end
+        else
+        begin
+          s2:=PadRight(c.currentNodeValue,20);
+          if j<cc-1 then
+            setlength(s2,20);
+        end;
+
+
+
+        s:=s+s2;
+      end;
+    end;
+
+    f.add(s);
+  end;
+end;
+
+procedure TfrmStructures2.MenuItem3Click(Sender: TObject);
+var
+  f: TStringList;
 begin
 
   if saveValues.execute then
   begin
     f:=tstringlist.create;
-    for i:=0 to tvStructureView.Items.Count-1 do
-    begin
-      node:=tvStructureView.Items[i];
-      se:=getStructElementFromNode(node);
-
-      if se<>nil then
-      begin
-        s:=getDisplayedDescription(se);
-        s:=PadRight(S, 25);
-
-        for j:=1 to node.level-1 do
-          s:=AddChar('-',S,length(s)+5);
-
-        setCurrentNodeStringsInColumns(node,se);
-
-        //column now contains the strings
-        cc:=columnCount;
-        for j:=0 to columnCount-1 do
-        begin
-          c:=columns[j];
-
-          if miShowAddresses.checked then
-          begin
-            s2:=PadRight(c.currentNodeAddress+c.currentNodeValue,30);
-
-            if j<cc-1 then //not the last column
-              setlength(s2,30); //cut of excess
-          end
-          else
-          begin
-            s2:=PadRight(c.currentNodeValue,20);
-            if j<cc-1 then
-              setlength(s2,20);
-          end;
-
-
-
-          s:=s+s2;
-        end;
-      end;
-
-      f.add(s);
-    end;
-
+    getValues(f);
     f.SaveToFile(saveValues.FileName);
-
     f.free;
-
-
   end;
 end;
 
@@ -3413,6 +3514,11 @@ begin
     //add the first address as well
     TStructColumn.create(g);
   end;
+end;
+
+procedure TfrmStructures2.MenuItem6Click(Sender: TObject);
+begin
+  finddialog1.Execute;
 end;
 
 procedure TfrmStructures2.miClearClick(Sender: TObject);
@@ -4213,4 +4319,4 @@ initialization
   frmStructures2:=tlist.Create;
 
 end.
-
+//add expandallnodes(maxlevel)
