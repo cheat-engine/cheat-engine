@@ -1,13 +1,13 @@
 object ProcessWindow: TProcessWindow
   Left = 988
-  Height = 362
+  Height = 353
   Top = 330
-  Width = 248
+  Width = 245
   HelpContext = 4
   BorderIcons = [biSystemMenu]
   Caption = 'Process List'
-  ClientHeight = 362
-  ClientWidth = 248
+  ClientHeight = 353
+  ClientWidth = 245
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
@@ -17,9 +17,9 @@ object ProcessWindow: TProcessWindow
   LCLVersion = '0.9.31'
   object ProcessList: TListBox
     Left = 0
-    Height = 176
+    Height = 167
     Top = 0
-    Width = 248
+    Width = 245
     Align = alClient
     ItemHeight = 16
     OnDblClick = OKButtonClick
@@ -31,27 +31,27 @@ object ProcessWindow: TProcessWindow
   object Panel1: TPanel
     Left = 0
     Height = 186
-    Top = 176
-    Width = 248
+    Top = 167
+    Width = 245
     Align = alBottom
     BevelInner = bvLowered
     BevelOuter = bvNone
     ClientHeight = 186
-    ClientWidth = 248
+    ClientWidth = 245
     TabOrder = 1
     object Panel2: TPanel
       Left = 1
       Height = 184
       Top = 1
-      Width = 246
+      Width = 243
       Align = alClient
       BevelOuter = bvNone
       ClientHeight = 184
-      ClientWidth = 246
+      ClientWidth = 243
       TabOrder = 0
       object btnProcessWatch: TButton
         Left = 164
-        Height = 18
+        Height = 20
         Top = 120
         Width = 76
         Caption = 'Process watch'
@@ -60,7 +60,7 @@ object ProcessWindow: TProcessWindow
       end
       object btnWindowList: TButton
         Left = 83
-        Height = 18
+        Height = 20
         Top = 120
         Width = 76
         Caption = 'Window List'
@@ -69,7 +69,7 @@ object ProcessWindow: TProcessWindow
       end
       object btnProcesslist: TButton
         Left = 7
-        Height = 18
+        Height = 20
         Top = 120
         Width = 76
         Caption = 'Process List'
@@ -78,7 +78,7 @@ object ProcessWindow: TProcessWindow
       end
       object btnOpenFile: TButton
         Left = 32
-        Height = 19
+        Height = 21
         Top = 88
         Width = 177
         Caption = 'Open file'
@@ -87,7 +87,7 @@ object ProcessWindow: TProcessWindow
       end
       object btnCreateThread: TButton
         Left = 32
-        Height = 19
+        Height = 21
         Top = 64
         Width = 177
         Caption = 'Create process'
@@ -96,7 +96,7 @@ object ProcessWindow: TProcessWindow
       end
       object Button4: TButton
         Left = 32
-        Height = 19
+        Height = 21
         Top = 40
         Width = 177
         Caption = 'Attach debugger to process'
@@ -125,23 +125,23 @@ object ProcessWindow: TProcessWindow
       end
       object btnProcessListLong: TButton
         Left = 55
-        Height = 19
-        Top = 166
+        Height = 21
+        Top = 164
         Width = 129
         Caption = 'Process List(long)'
         OnClick = btnProcessListLongClick
         TabOrder = 8
       end
+      object btnNetwork: TButton
+        Left = 83
+        Height = 20
+        Top = 142
+        Width = 76
+        Caption = 'Network'
+        OnClick = btnNetworkClick
+        TabOrder = 9
+      end
     end
-  end
-  object btnNetwork: TButton
-    Left = 83
-    Height = 18
-    Top = 318
-    Width = 76
-    Caption = 'Network'
-    OnClick = btnNetworkClick
-    TabOrder = 2
   end
   object OpenDialog1: TOpenDialog
     DefaultExt = '.EXE'
