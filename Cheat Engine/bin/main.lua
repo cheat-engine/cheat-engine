@@ -1169,7 +1169,6 @@ d3dhook_onClick(function):
 
 
 
-
 D3DHook_Texture Class (Inheritance: Object)
 This class controls the texture in memory. Without a sprite to use it, it won't show
 
@@ -1237,6 +1236,22 @@ getThreadList(List): fills a List object with the threadlist of the currently op
 
 getProcessList(List): Fills a List object with the processlist of the system. Format: %x- 
 
+
+setMethodProperty(class, propertyname, methodtype, function): Sets a function for the given method property.
+  Note that the methodtype MUST match the given property. Providing the wrong one can cause unexpected crashes
+  methodtype can be:
+      mtNotifyEvent: function(sender)
+      mtMouseEvent: function(Sender, button, x,y)
+      mtMouseMoveEvent: function(sender, x, y)
+      mtKeyPressEvent: function(Sender, key) : return key
+      mtLVCheckedItemEvent: function(Sender, Item)
+      mtCloseEvent: function(Sender): return closeaction
+      mtActivateEvent: function(sender, before, currentstate): return boolean
+      mtDisassemblerSelectionChangeEvent: function(sender, address, address2)
+      mtByteSelectEvent: function(sender, address, address2)
+      mtAddressChangeEvent: function(sender, address)
+      mtAutoGuessEvent: function(address, originalVariableType): return VariableType
+      mtD3DClickEvent: function(renderobject, x, y)                   
 
 
 
