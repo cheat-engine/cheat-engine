@@ -11,7 +11,7 @@ interface
 
 uses
   Classes, Controls, SysUtils, ceguicomponents, forms, lua, lualib, lauxlib,
-  comctrls, CEFuncProc;
+  comctrls, CEFuncProc, typinfo;
 
 type
   TLuaCaller=class
@@ -41,6 +41,8 @@ type
 
 procedure CleanupLuaCall(event: TMethod);   //cleans up a luacaller class if it was assigned if it was set
 
+procedure setMethodProperty(O: TObject; propertyname: string; method: TMethod);
+
 implementation
 
 uses luahandler, MainUnit;
@@ -49,7 +51,14 @@ procedure CleanupLuaCall(event: TMethod);
 begin
   if (event.code<>nil) and (event.data<>nil) and (TObject(event.data) is TLuaCaller) then
     TLuaCaller(event.data).free;
+end;
 
+procedure setMethodProperty(O: TObject; propertyname: string; method: TMethod);
+var orig: TMethod;
+begin
+  orig:=GetMethodProp(o, propertyname);
+  CleanupLuaCall(orig);
+  SetMethodProp(O, propertyname, method);
 end;
 
 constructor TLuaCaller.create;
@@ -361,6 +370,9 @@ begin
     luacs.leave;
   end
 end;
+
+
+
 
 end.
 
