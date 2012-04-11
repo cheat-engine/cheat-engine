@@ -17,7 +17,7 @@ uses
   lauxlib, syncobjs, cefuncproc, newkernelhandler, autoassembler, Graphics,
   controls, LuaCaller, forms, ExtCtrls, StdCtrls, comctrls, ceguicomponents,
   generichotkey, luafile, xmplayer_server, ExtraTrainerComponents, customtimer,
-  menus, XMLRead, XMLWrite, DOM,ShellApi, Clipbrd;
+  menus, XMLRead, XMLWrite, DOM,ShellApi, Clipbrd, typinfo;
 
 var
   LuaVM: Plua_State;
@@ -3723,6 +3723,81 @@ begin
   end;
 
   lua_pop(L, lua_gettop(l));
+end;
+
+function setMethodProperty(L: PLua_state): integer; cdecl;
+var parameters: integer;
+  c: tobject;
+  p: string;
+
+  pi: ppropinfo;
+
+  lc: TLuaCaller;
+  m: TMethod;
+
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=3 then
+  begin
+    c:=lua_touserdata(L,1);
+    p:=Lua_ToString(L,2);
+
+    lc:=TLuaCaller.create;
+
+    if lua_isfunction(L, 3) then
+    begin
+      lua_pushvalue(L, 3);
+      lc.luaroutineindex:=luaL_ref(L,LUA_REGISTRYINDEX)
+    end
+    else
+      lc.luaroutine:=lua_tostring(L,3);
+
+    lua_pop(L, lua_gettop(L));
+
+    //look up the info of this property
+    pi:=GetPropInfo(c,p);
+    if (pi<>nil) and (pi.proptype<>nil) and (pi.PropType.Kind=tkMethod) then
+    begin
+      //it's a valid method property
+      if pi.PropType.Name ='TNotifyEvent' then
+        m:=tmethod(TNotifyEvent(lc.NotifyEvent))
+      else
+      if pi.PropType.Name ='TCloseEvent' then
+        m:=tmethod(TCloseEvent(lc.CloseEvent))
+      else
+      if pi.PropType.Name ='TMouseEvent' then
+        m:=tmethod(TMouseEvent(lc.MouseEvent()))
+      else
+      if pi.PropType.Name ='TMouseMoveEvent' then
+        m:=tmethod(TMouseMoveEvent(lc.MouseMoveEvent))
+      else
+      if pi.PropType.Name ='TKeyPressEvent' then
+        m:=tmethod(TKeyPressEvent(lc.KeyPressEvent))
+      else
+      if pi.PropType.Name ='TLVCheckedItemEvent' then
+        m:=tmethod(TLVCheckedItemEvent(lc.LVCheckedItemEvent))
+      else
+      begin
+        lc.free;
+        lua_pushstring(L, pchar('This type of method:'+pi.PropType.Name+' is not yet supported'));
+        lua_error(L);
+        exit;
+      end;
+
+      luacaller.setMethodProperty(c,p,m);
+
+    end
+    else
+    begin
+      lc.free;
+      lua_pushstring(L, 'This is an invalid class or method property');
+      lua_error(L);
+      exit;
+    end;
+
+
+  end;
 end;
 
 function object_getClassName(L: PLua_state): integer; cdecl;
