@@ -888,7 +888,12 @@ begin
       //ShowMessage(inttostr(lua_type(L, -1)));
 
       if lua_isstring(L, -1) then
-        address:=symhandler.getAddressFromNameL(lua_tostring(L,-1))
+      begin
+        if processhandle=GetCurrentProcess then
+          address:=selfsymhandler.getAddressFromNameL(lua_tostring(L,-1))
+        else
+          address:=symhandler.getAddressFromNameL(lua_tostring(L,-1))
+      end
       else
         address:=lua_tointeger(L,-1);
 
@@ -932,7 +937,12 @@ begin
     if parameters=1 then
     begin
       if lua_isstring(L, -1) then
-        address:=symhandler.getAddressFromNameL(lua_tostring(L,-1))
+      begin
+        if processhandle=GetCurrentProcess then
+          address:=selfsymhandler.getAddressFromNameL(lua_tostring(L,-1))
+        else
+          address:=symhandler.getAddressFromNameL(lua_tostring(L,-1))
+      end
       else
         address:=lua_tointeger(L,-1);
 
@@ -976,7 +986,12 @@ begin
     if parameters=1 then
     begin
       if lua_isstring(L, -1) then
-        address:=symhandler.getAddressFromNameL(lua_tostring(L,-1))
+      begin
+        if processhandle=GetCurrentProcess then
+          address:=selfsymhandler.getAddressFromNameL(lua_tostring(L,-1))
+        else
+          address:=symhandler.getAddressFromNameL(lua_tostring(L,-1))
+      end
       else
         address:=lua_tointeger(L,-1);
 
@@ -1021,7 +1036,12 @@ begin
     if parameters>=1 then
     begin
       if lua_isstring(L, -parameters) then
-        address:=symhandler.getAddressFromNameL(lua_tostring(L,-2))
+      begin
+        if processhandle=GetCurrentProcess then
+          address:=selfsymhandler.getAddressFromNameL(lua_tostring(L,-2))
+        else
+          address:=symhandler.getAddressFromNameL(lua_tostring(L,-2))
+      end
       else
         address:=lua_tointeger(L,-parameters);
 
@@ -1077,7 +1097,12 @@ begin
     if parameters=2 then
     begin
       if lua_isstring(L, -2) then
-        address:=symhandler.getAddressFromNameL(lua_tostring(L,-2))
+      begin
+        if processhandle=GetCurrentProcess then
+          address:=symhandler.getAddressFromNameL(lua_tostring(L,-2))
+        else
+          address:=symhandler.getAddressFromNameL(lua_tostring(L,-2))
+      end
       else
         address:=lua_tointeger(L,-2);
 
@@ -1117,7 +1142,12 @@ begin
     if parameters=2 then
     begin
       if lua_isstring(L, -2) then
-        address:=symhandler.getAddressFromNameL(lua_tostring(L,-2))
+      begin
+        if processhandle=GetCurrentProcess then
+          address:=symhandler.getAddressFromNameL(lua_tostring(L,-2))
+        else
+          address:=symhandler.getAddressFromNameL(lua_tostring(L,-2))
+      end
       else
         address:=lua_tointeger(L,-2);
 
@@ -1160,7 +1190,12 @@ begin
     if parameters=2 then
     begin
       if lua_isstring(L, -2) then
-        address:=symhandler.getAddressFromNameL(lua_tostring(L,-2))
+      begin
+        if processhandle=GetCurrentProcess then
+          address:=symhandler.getAddressFromNameL(lua_tostring(L,-2))
+        else
+          address:=symhandler.getAddressFromNameL(lua_tostring(L,-2))
+      end
       else
         address:=lua_tointeger(L,-2);
 
@@ -1201,7 +1236,12 @@ begin
     if parameters=2 then
     begin
       if lua_isstring(L, -2) then
-        address:=symhandler.getAddressFromNameL(lua_tostring(L,-2))
+      begin
+        if processhandle=GetCurrentProcess then
+          address:=selfsymhandler.getAddressFromNameL(lua_tostring(L,-2))
+        else
+          address:=symhandler.getAddressFromNameL(lua_tostring(L,-2))
+      end
       else
         address:=lua_tointeger(L,-2);
 
@@ -1242,7 +1282,12 @@ begin
   parameters:=lua_gettop(L);
 
   if lua_isstring(L, -parameters) then
-    addresstoread:=symhandler.getAddressFromNameL(lua_tostring(L,-parameters))
+  begin
+    if processhandle=GetCurrentProcess then
+      addresstoread:=selfsymhandler.getAddressFromNameL(lua_tostring(L,-parameters))
+    else
+      addresstoread:=symhandler.getAddressFromNameL(lua_tostring(L,-parameters));
+  end
   else
     addresstoread:=lua_tointeger(L,-parameters);
 
@@ -1302,7 +1347,12 @@ begin
 
 
   if lua_isstring(L, -parameters) then
-    address:=symhandler.getAddressFromNameL(lua_tostring(L,-parameters))
+  begin
+    if processhandle=GetCurrentProcess then
+      address:=selfsymhandler.getAddressFromNameL(lua_tostring(L,-parameters))
+    else
+      address:=symhandler.getAddressFromNameL(lua_tostring(L,-parameters))
+  end
   else
     address:=lua_tointeger(L,-parameters);
 
@@ -3494,15 +3544,29 @@ function getAddress(L: PLua_state): integer; cdecl;
 var parameters: integer;
   s: string;
 
+  local: boolean;
+
 begin
   result:=0;
   parameters:=lua_gettop(L);
   if parameters>=1 then
   begin
-    s:=Lua_ToString(L, -1);
+    s:=Lua_ToString(L, 1);
+
+    if parameters>=2 then
+      local:=lua_toboolean(L, 2)
+    else
+      local:=false;
+
+
     lua_pop(L, lua_gettop(l));
 
-    lua_pushinteger(L,symhandler.getAddressFromNameL(s));
+
+    if not local then
+      lua_pushinteger(L,symhandler.getAddressFromNameL(s))
+    else
+      lua_pushinteger(L,selfsymhandler.getAddressFromNameL(s));
+
     result:=1;
   end
   else

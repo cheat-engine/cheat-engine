@@ -50,7 +50,7 @@ utf8ToAnsi(string): Converts a string in UTF8 encoding to Ansi
 Note: GUI components mainly show in UTF8, some other functions use Ansi, try to find out which ones...
 
 
-getAddress(string): returns the address of a symbol. Can be a modulename or an export
+getAddress(string, local OPTIONAL): returns the address of a symbol. Can be a modulename or an export. set Local to true if you wish to querry the symboltable of the ce process
 getModuleSize(modulename): Returns the size of a given module (Use getAddress to get the base address)
 reinitializeSymbolhandler(): reinitializes the symbolhandler. E.g when new modules have been loaded
 
@@ -1237,21 +1237,8 @@ getThreadList(List): fills a List object with the threadlist of the currently op
 getProcessList(List): Fills a List object with the processlist of the system. Format: %x- 
 
 
-setMethodProperty(class, propertyname, methodtype, function): Sets a function for the given method property.
-  Note that the methodtype MUST match the given property. Providing the wrong one can cause unexpected crashes
-  methodtype can be:
-      mtNotifyEvent: function(sender)
-      mtMouseEvent: function(Sender, button, x,y)
-      mtMouseMoveEvent: function(sender, x, y)
-      mtKeyPressEvent: function(Sender, key) : return key
-      mtLVCheckedItemEvent: function(Sender, Item)
-      mtCloseEvent: function(Sender): return closeaction
-      mtActivateEvent: function(sender, before, currentstate): return boolean
-      mtDisassemblerSelectionChangeEvent: function(sender, address, address2)
-      mtByteSelectEvent: function(sender, address, address2)
-      mtAddressChangeEvent: function(sender, address)
-      mtAutoGuessEvent: function(address, originalVariableType): return VariableType
-      mtD3DClickEvent: function(renderobject, x, y)                   
+setMethodProperty(class, propertyname, function): Sets a function for the given method property.
+    
 
 
 
