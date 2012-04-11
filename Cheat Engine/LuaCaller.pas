@@ -17,7 +17,7 @@ type
   TLuaCaller=class
     private
       function canRun: boolean;
-      procedure pushFunction;
+
     public
       luaroutine: string;
       luaroutineindex: integer;
@@ -35,6 +35,10 @@ type
       function AutoGuessEvent(address: ptruint; originalVariableType: TVariableType): TVariableType;
       procedure D3DClickEvent(renderobject: TObject; x,y: integer);
 
+
+      procedure pushFunction;
+
+
       constructor create;
       destructor destroy; override;
   end;
@@ -42,6 +46,14 @@ type
 procedure CleanupLuaCall(event: TMethod);   //cleans up a luacaller class if it was assigned if it was set
 
 procedure setMethodProperty(O: TObject; propertyname: string; method: TMethod);
+
+function LuaCaller_NotifyEvent(L: PLua_state): integer; cdecl;
+function LuaCaller_CloseEvent(L: PLua_state): integer; cdecl;
+function LuaCaller_MouseEvent(L: PLua_state): integer; cdecl;
+function LuaCaller_MouseMoveEvent(L: PLua_state): integer; cdecl;
+function LuaCaller_KeyPressEvent(L: PLua_state): integer; cdecl;
+function LuaCaller_LVCheckedItemEvent(L: PLua_state): integer; cdecl;
+
 
 implementation
 
@@ -372,7 +384,158 @@ begin
 end;
 
 
+//----------------------------Lua implementation-----------------------------
+function LuaCaller_NotifyEvent(L: PLua_state): integer; cdecl;
+var
+  parameters: integer;
+  m: TMethod;
+  sender: TObject;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters>=3 then
+  begin
+    m.code:=lua_touserdata(L, 1);
+    m.data:=lua_touserdata(L, 2);
+    sender:=lua_touserdata(L, 3);
+    lua_pop(L, lua_gettop(L));
 
+    TNotifyEvent(m)(sender);
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
+
+function LuaCaller_CloseEvent(L: PLua_state): integer; cdecl;
+var
+  parameters: integer;
+  m: TMethod;
+  sender: TObject;
+  closeaction: TCloseAction;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters>=3 then
+  begin
+    m.code:=lua_touserdata(L, 1);
+    m.data:=lua_touserdata(L, 2);
+    sender:=lua_touserdata(L, 3);
+    lua_pop(L, lua_gettop(L));
+
+    TCloseEvent(m)(sender, closeaction);
+
+    lua_pushinteger(L, integer(closeaction));
+    result:=1;
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
+
+function LuaCaller_MouseEvent(L: PLua_state): integer; cdecl;
+var
+  parameters: integer;
+  m: TMethod;
+  sender: TObject;
+  button: TMouseButton;
+  shift: TShiftState;
+  x,y: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters>=6 then
+  begin
+    m.code:=lua_touserdata(L, 1);
+    m.data:=lua_touserdata(L, 2);
+    sender:=lua_touserdata(L, 3);
+    button:=TMouseButton(lua_tointeger(L, 4));
+
+    x:=lua_tointeger(L, 5);
+    y:=lua_tointeger(L, 6);
+
+    lua_pop(L, lua_gettop(L));
+
+    TMouseEvent(m)(sender, button, [], x,y);
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
+
+function LuaCaller_MouseMoveEvent(L: PLua_state): integer; cdecl;
+var
+  parameters: integer;
+  m: TMethod;
+  sender: TObject;
+  x,y: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters>=5 then
+  begin
+    m.code:=lua_touserdata(L, 1);
+    m.data:=lua_touserdata(L, 2);
+    sender:=lua_touserdata(L, 3);
+    x:=lua_tointeger(L, 5);
+    y:=lua_tointeger(L, 6);
+    lua_pop(L, lua_gettop(L));
+
+    TMouseMoveEvent(m)(sender, [],x,y);
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
+
+function LuaCaller_KeyPressEvent(L: PLua_state): integer; cdecl;
+var
+  parameters: integer;
+  m: TMethod;
+  sender: TObject;
+  key: char;
+  s: string;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters>=3 then
+  begin
+    m.code:=lua_touserdata(L, 1);
+    m.data:=lua_touserdata(L, 2);
+    sender:=lua_touserdata(L, 3);
+    s:=Lua_ToString(L,4);
+    if length(s)>0 then
+      key:=s[1]
+    else
+      key:=' ';
+
+    lua_pop(L, lua_gettop(L));
+
+    TKeyPressEvent(m)(sender, key);
+    lua_pushstring(L, key);
+    result:=1;
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
+
+function LuaCaller_LVCheckedItemEvent(L: PLua_state): integer; cdecl;
+var
+  parameters: integer;
+  m: TMethod;
+  sender: TObject;
+  item: TListItem;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters>=3 then
+  begin
+    m.code:=lua_touserdata(L, 1);
+    m.data:=lua_touserdata(L, 2);
+    sender:=lua_touserdata(L, 3);
+    lua_pop(L, lua_gettop(L));
+
+    TLVCheckedItemEvent(m)(sender,item);
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
 
 end.
 

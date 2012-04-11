@@ -3725,6 +3725,97 @@ begin
   lua_pop(L, lua_gettop(l));
 end;
 
+
+function getMethodProperty(L: PLua_state): integer; cdecl;
+var parameters: integer;
+  c: tobject;
+  p: string;
+  pi: ppropinfo;
+  m: TMethod;
+
+  c2: tobject;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters>=2 then
+  begin
+    c:=lua_touserdata(L,1);
+    p:=Lua_ToString(L,2);
+
+    lua_pop(L, lua_gettop(L));
+
+    m:=GetMethodProp(c,p);
+
+    pi:=GetPropInfo(c,p);
+
+    if (pi=nil) or (pi.proptype=nil) or (pi.PropType.Kind<>tkMethod) then
+    begin
+      lua_pushstring(L, 'This is an invalid class or method property');
+      lua_error(L);
+      exit;
+    end;
+
+
+    if m.data<>nil then
+    begin
+      if tobject(m.Data)is TLuaCaller then
+      begin
+        TLuaCaller(m.data).pushFunction;
+        result:=1;
+      end
+      else
+      begin
+        //not a lua function
+
+        //this can (and often is) a class specific thing
+
+        lua_pushlightuserdata(L, m.Data);
+        lua_pushlightuserdata(L, m.Code);
+
+
+
+        if pi.PropType.Name ='TNotifyEvent' then
+          lua_pushcfunction(L, LuaCaller_NotifyEvent)
+        else
+        if pi.PropType.Name ='TCloseEvent' then
+          lua_pushcfunction(L, LuaCaller_CloseEvent)
+        else
+        if pi.PropType.Name ='TMouseEvent' then
+          lua_pushcfunction(L, LuaCaller_MouseEvent)
+        else
+        if pi.PropType.Name ='TMouseMoveEvent' then
+          lua_pushcfunction(L, LuaCaller_MouseMoveEvent)
+        else
+        if pi.PropType.Name ='TKeyPressEvent' then
+          lua_pushcfunction(L, LuaCaller_KeyPressEvent)
+        else
+        if pi.PropType.Name ='TLVCheckedItemEvent' then
+          lua_pushcfunction(L, LuaCaller_LVCheckedItemEvent)
+        else
+        begin
+          lua_pushstring(L, 'This type of method:'+pi.PropType.Name+' is not yet supported');
+          lua_error(L);
+          exit;
+        end;
+
+
+        result:=1;
+      end;
+    end
+    else
+    begin
+      lua_pushnil(L);
+      result:=1;
+    end;
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+
+
+
+
+end;
+
 function setMethodProperty(L: PLua_state): integer; cdecl;
 var parameters: integer;
   c: tobject;
@@ -3797,7 +3888,9 @@ begin
     end;
 
 
-  end;
+  end
+  else
+    lua_pop(L, lua_gettop(L));
 end;
 
 function object_getClassName(L: PLua_state): integer; cdecl;
@@ -7640,6 +7733,9 @@ begin
     lua_register(LuaVM, 'getPropertyList', getPropertyList);
     lua_register(LuaVM, 'setProperty', setProperty);
     lua_register(LuaVM, 'getProperty', getProperty);
+    lua_register(LuaVM, 'setMethodProperty', setMethodProperty);
+    lua_register(LuaVM, 'getMethodProperty', getMethodProperty);
+
 
     lua_register(LuaVM, 'object_getClassName', object_getClassName);
     lua_register(LuaVM, 'object_destroy', object_destroy);

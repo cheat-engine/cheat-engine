@@ -114,6 +114,9 @@ begin
             if lua_istable(luavm, i) then
               moutput.lines.add(':'+'table')
             else
+            if lua_isfunction(luavm,i) then
+              moutput.lines.add(':'+'function')
+            else
               moutput.lines.add(':'+'unknown')
 
           end;

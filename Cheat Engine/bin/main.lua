@@ -222,7 +222,14 @@ getPropertyList(class) : Returns a stringlist object containing all the publishe
 setProperty(class, propertyname, propertyvalue) : Sets the value of a published property of a class (Won't work for method properties)
 getProperty(class, propertyname) : Gets the value of a published property of a class (Won't work for method properties)
 setMethodProperty(class, propertyname, function):6.2: Sets the method property to the specific function
-    
+getMethodProperty(Class, propertyname): 
+  Returns a lua function if it was pointing to a lua function. 
+  BUT if it was pointing to a internal routine it returns the following: function, code, data
+    In this case, the function call parameters are preceded by the code and data parameters followed by the original parameter(s)
+    example 1: notify event function(sender)->function(code, data, sender)
+    example 2: mouse event  function(sender, button, x, y)->function(code, data, sender, button, x, y)
+  
+
 
 
 
