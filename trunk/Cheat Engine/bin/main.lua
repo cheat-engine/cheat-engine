@@ -221,6 +221,10 @@ undefined property functions. Not all properties of all classes have been explic
 getPropertyList(class) : Returns a stringlist object containing all the published properties of the specified class (free the list when done) (Note, not all classed with properties have 'published' properties. E.g: stringlist)
 setProperty(class, propertyname, propertyvalue) : Sets the value of a published property of a class (Won't work for method properties)
 getProperty(class, propertyname) : Gets the value of a published property of a class (Won't work for method properties)
+setMethodProperty(class, propertyname, function):6.2: Sets the method property to the specific function
+    
+
+
 
 getFormCount() : Returns the total number of forms assigned to the main CE application
 getForm(index): Returns the form at the specific index
@@ -1237,8 +1241,6 @@ getThreadList(List): fills a List object with the threadlist of the currently op
 getProcessList(List): Fills a List object with the processlist of the system. Format: %x- 
 
 
-setMethodProperty(class, propertyname, function): Sets a function for the given method property.
-    
 
 
 
