@@ -6157,6 +6157,8 @@ var
 
   firsttime: boolean;
   x: array of integer;
+
+  t: tcomponent;
 begin
   if onetimeonly then
     exit;

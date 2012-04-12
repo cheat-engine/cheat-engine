@@ -3769,9 +3769,6 @@ begin
 
         //this can (and often is) a class specific thing
 
-        lua_pushlightuserdata(L, m.Data);
-        lua_pushlightuserdata(L, m.Code);
-
 
 
         if pi.PropType.Name ='TNotifyEvent' then
@@ -3797,6 +3794,9 @@ begin
           lua_error(L);
           exit;
         end;
+
+        lua_pushlightuserdata(L, m.Code);
+        lua_pushlightuserdata(L, m.Data);
 
 
         result:=3;
