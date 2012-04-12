@@ -26,11 +26,11 @@ writeBytes(address, table) : Write the given bytes to the given address from a t
 readInteger(address) : Reads an integer from the specified address
 readFloat(address) : Reads a single precision floating point value from the specified address
 readDouble(address) : Reads a double precision floating point value from the specified address
-readString(address, maxlength) : maxlength is just so you won't freeze for too long, set to 6000 if you don't care too much
+readString(address, maxlength, widechar OPTIONAL) : Reads a string till it encounters a 0-terminator. Maxlength is just so you won't freeze for too long, set to 6000 if you don't care too much. Set WideChar to true if it is encoded using a widechar formatting
 writeInteger(address,value) : Writes an integer to the specified address. Returns true on success
 writeFloat(address,value) : Writes a single precision floating point to the specified address. Returns true on success
 writeDouble(address,value) : Writes a double precision floating point to the specified address. Returns true on success
-writeString(address,maxlength) : Write a string to the specified address. Returns true on success
+writeString(address,text, widechar OPTIONAL) : Write a string to the specified address. Returns true on success
 
 readBytesLocal(address,bytecount, ReturnAsTable) : See readBytes but then it's for Cheat engine's memory
 readIntegerLocal(address) : Reads a integer from the specified address in CE's memory
@@ -224,11 +224,13 @@ getProperty(class, propertyname) : Gets the value of a published property of a c
 setMethodProperty(class, propertyname, function):6.2: Sets the method property to the specific function
 getMethodProperty(Class, propertyname): 
   Returns a lua function if it was pointing to a lua function. 
-  BUT if it was pointing to a internal routine it returns the following: function, code, data
-    In this case, the function call parameters are preceded by the code and data parameters followed by the original parameter(s)
+  BUT if it was pointing to a native routine it returns the following: function, code, data
+    In this case, the function returned needs 2 more parameters to precede the original: code and data
     example 1: notify event function(sender)->function(code, data, sender)
     example 2: mouse event  function(sender, button, x, y)->function(code, data, sender, button, x, y)
   
+    example usage:
+     fun, code,data=getMethodProperty(c,"OnClick")
 
 
 
@@ -1246,7 +1248,6 @@ d3dhook_createTextContainer(d3dhook_fontmap, x, y, text): Returns a d3dhook_text
 getThreadList(List): fills a List object with the threadlist of the currently opened process. Format: Hexadecimal threadid-string)
 
 getProcessList(List): Fills a List object with the processlist of the system. Format: %x- 
-
 
 
 

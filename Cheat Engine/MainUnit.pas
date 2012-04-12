@@ -2739,8 +2739,7 @@ end;
 
 procedure TMainForm.miAddAddressClick(Sender: TObject);
 begin
-  if assigned(Foundlist3.OnDblClick) then
-    Foundlist3.OnDblClick(foundlist3);
+  SpeedButton3.Click;
 end;
 
 procedure TMainForm.miAllowCollapseClick(Sender: TObject);
@@ -6162,6 +6161,8 @@ var
 begin
   if onetimeonly then
     exit;
+
+
 
   onetimeonly := True;
   Set8087CW($133f);
