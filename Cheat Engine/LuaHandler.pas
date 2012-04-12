@@ -3799,7 +3799,7 @@ begin
         end;
 
 
-        result:=1;
+        result:=3;
       end;
     end
     else
