@@ -307,6 +307,12 @@ begin
   cbStructType.enabled:=i=9;
   lblOffsetInto.Enabled:=i=9;
   edtChildstart.enabled:=i=9;
+
+  if i=9 then   //pointer, uncheck hex and signed
+  begin
+    cbHexadecimal.checked:=false;
+    cbSigned.checked:=false;
+  end;
 end;
 
 procedure TfrmStructures2ElementInfo.edtByteSizeChange(Sender: TObject);
