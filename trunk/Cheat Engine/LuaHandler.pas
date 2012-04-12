@@ -1027,8 +1027,12 @@ var
   address: ptruint;
 
   v: pchar;
+  w: pwidechar absolute v;
+  s: string;
   r: dword;
   maxsize: integer;
+
+  usewidechar: boolean;
 begin
   result:=0;
   try
@@ -1038,17 +1042,22 @@ begin
       if lua_isstring(L, -parameters) then
       begin
         if processhandle=GetCurrentProcess then
-          address:=selfsymhandler.getAddressFromNameL(lua_tostring(L,-2))
+          address:=selfsymhandler.getAddressFromNameL(lua_tostring(L,1))
         else
-          address:=symhandler.getAddressFromNameL(lua_tostring(L,-2))
+          address:=symhandler.getAddressFromNameL(lua_tostring(L,1))
       end
       else
         address:=lua_tointeger(L,-parameters);
 
-      if parameters=2 then
-        maxsize:=lua_tointeger(L,-1)
+      if parameters>=2 then
+        maxsize:=lua_tointeger(L,2)
       else
         maxsize:=50;
+
+      if parameters>=3 then
+        usewidechar:=lua_toboolean(L,3)
+      else
+        usewidechar:=false;
 
       lua_pop(L, parameters);
 
@@ -1057,7 +1066,16 @@ begin
         if ReadProcessMemory(processhandle, pointer(address), v, maxsize, r) then
         begin
           v[maxsize]:=#0;
-          lua_pushstring(L, v);
+          if usewidechar then
+          begin
+            v[maxsize-1]:=#0;
+            s:=w;
+          end
+          else
+            s:=v;
+
+
+          lua_pushstring(L, s);
           result:=1;
         end;
 
@@ -1228,28 +1246,44 @@ var
   address: ptruint;
 
   v: pchar;
+  usewidechar: boolean;
+
+  w: widestring;
   r: dword;
 begin
   result:=0;
   try
     parameters:=lua_gettop(L);
-    if parameters=2 then
+    if parameters>=2 then
     begin
-      if lua_isstring(L, -2) then
+      if lua_isstring(L, 1) then
       begin
         if processhandle=GetCurrentProcess then
-          address:=selfsymhandler.getAddressFromNameL(lua_tostring(L,-2))
+          address:=selfsymhandler.getAddressFromNameL(lua_tostring(L,1))
         else
-          address:=symhandler.getAddressFromNameL(lua_tostring(L,-2))
+          address:=symhandler.getAddressFromNameL(lua_tostring(L,1))
       end
       else
-        address:=lua_tointeger(L,-2);
+        address:=lua_tointeger(L,1);
 
-      v:=lua.lua_tostring(L, -1);
+      v:=lua.lua_tostring(L, 2);
+
+      if parameters>=3 then
+        usewidechar:=lua.lua_toboolean(L, 3)
+      else
+        usewidechar:=false;
 
       lua_pop(L, parameters);
 
-      lua_pushboolean(L, WriteProcessMemory(processhandle, pointer(address), v, length(v), r));
+      if usewidechar then
+      begin
+        //convert the ansi sring to a widestring
+        w:=v;
+        lua_pushboolean(L, WriteProcessMemory(processhandle, pointer(address), @w[1], length(w)*2, r));
+      end
+      else
+        lua_pushboolean(L, WriteProcessMemory(processhandle, pointer(address), v, length(v), r));
+
       result:=1;
     end;
   except
@@ -6226,8 +6260,12 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    cheatcomponent:=lua_touserdata(L,-2);
-    cheatcomponent.EditValue:=Lua_ToString(L,-1);
+    cheatcomponent:=lua_touserdata(L,1);
+    if (cheatcomponent=nil) or (not (cheatcomponent is tcheat)) then
+      raise exception.create('The provided cheat component is not a valid cheat component');
+
+
+    cheatcomponent.EditValue:=Lua_ToString(L,2);
   end;
   lua_pop(L, parameters);
 end;
