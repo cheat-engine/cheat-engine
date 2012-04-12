@@ -18,7 +18,7 @@ note: addresses can be strings, they will get interpreted by ce's symbolhandler
 
 readBytes(address,bytecount, ReturnAsTable ) : returns the bytes at the given address. If ReturnAsTable is true it will return a table instead of multiple bytes
   Reads the bytes at the given address and returns a table containing the read out bytes
-
+ 
 writeBytes(address, x,x,x,x,...) : Write the given bytes to the given address from a table
 writeBytes(address, table) : Write the given bytes to the given address from a table 
 
@@ -36,11 +36,11 @@ readBytesLocal(address,bytecount, ReturnAsTable) : See readBytes but then it's f
 readIntegerLocal(address) : Reads a integer from the specified address in CE's memory
 readFloatLocal(address) : Reads a single precision floating point value from the specified address in CE's memory
 readDoubleLocal(address) : Reads a double precision floating point value from the specified address in CE's memory
-readStringLocal(address)
+readStringLocal(address, maxlength, widechar OPTIONAL)
 writeIntegerLocal(address,value) : Writes an integer to the specified address in CE's memory. Returns true on success
 writeFloatLocal(address,value) : Writes a single precision floating point to the specified address in CE's memory. Returns true on success
 writeDoubleLocal(address,value) : Writes a double precision floating point to the specified address in CE's memory. Returns true on success
-writeStringLocal(address,string)
+writeStringLocal(address,string, widechar OPTIONAL)
 writeBytesLocal(address, x,x,x,x,...) : See writeBytes but then it's for Cheat Engine's memory
 writeBytesLocal(address, table, , count) : See writeBytes but then it's for Cheat Engine's memory
 
