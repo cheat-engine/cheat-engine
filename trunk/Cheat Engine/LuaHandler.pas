@@ -3842,6 +3842,16 @@ begin
       lc.luaroutineindex:=luaL_ref(L,LUA_REGISTRYINDEX)
     end
     else
+    if lua_isnil(L,3) then
+    begin
+      //special case. nil the event
+      lua_pop(L, lua_gettop(L));
+      m.code:=nil;
+      m.data:=nil;
+      luacaller.setMethodProperty(c,p,m);
+      exit;
+    end
+    else
       lc.luaroutine:=lua_tostring(L,3);
 
     lua_pop(L, lua_gettop(L));
