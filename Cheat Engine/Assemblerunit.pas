@@ -2265,7 +2265,7 @@ begin
     end
     else
     begin
-      if (err2=0) and (tokens[i][1]='-') then //before is not a valid value, but after it is. and this is a -  (so -value)
+      if (err2=0) and (tokens[i][1]='-') and (tokens[i-1]<>'#') then //before is not a valid value, but after it is. and this is a -  (so -value) (don't mess with #-10000)
       begin
         tokens[i]:='+';
         tokens[i+1]:=inttohex(-b,8);
