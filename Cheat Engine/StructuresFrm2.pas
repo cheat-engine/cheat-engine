@@ -2592,7 +2592,15 @@ begin
       begin
         //dereference the pointer and fill it in if possible
         if ReadProcessMemory(processhandle, pointer(address), @address, processhandler.pointersize, x) then
-          n.AutoCreateChildStruct('Autocreated from '+inttohex(address,8), address);
+        begin
+          //check if the address pointed to is readable
+          if ReadProcessMemory(processhandle, pointer(address), @x, 1, x) then
+            n.AutoCreateChildStruct('Autocreated from '+inttohex(address,8), address)
+          else
+            error:=true;
+        end
+        else
+          error:=true;
       end;
 
       AllowExpansion:=not error;
