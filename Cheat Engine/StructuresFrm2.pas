@@ -421,7 +421,7 @@ type
     procedure RefreshStructureList;
     procedure TreeViewHScroll(sender: TObject; scrolledleft, maxscrolledleft: integer);
     procedure TreeViewVScroll(sender: TObject);
-    function addColumn: TStructColumn;
+
     procedure removeColumn(columnid: integer);
     procedure FillTreenodeWithStructData(currentnode: TTreenode);
     function getDisplayedDescription(se: TStructelement): string;
@@ -445,6 +445,7 @@ type
 
     procedure addLockedAddress(shownaddress: ptruint; memoryblock: pointer; size: integer); //call this to add a locked address, and copy the memoryblock to the target process)
 
+    function addColumn: TStructColumn;
     function getFocusedColumn: TStructColumn;
     function getColumnAtXPos(x: integer): TStructColumn;
     procedure changeNodes;
@@ -4321,6 +4322,7 @@ begin
   //add a column and lock it with the given state
   addColumn.LockAddress(shownaddress, memoryblock, size);
 end;
+
 
 initialization
   DissectedStructs:=TList.create;
