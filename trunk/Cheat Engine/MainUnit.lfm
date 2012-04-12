@@ -421,142 +421,22 @@ object MainForm: TMainForm
       Enabled = False
       ParentColor = False
       TabOrder = 0
-      object cbFastScan: TCheckBox
-        Left = 3
-        Height = 19
-        Top = 90
-        Width = 68
-        Caption = 'Fast Scan'
-        Checked = True
-        Enabled = False
-        Font.Height = -11
-        Font.Name = 'MS Sans Serif'
-        OnChange = cbFastScanChange
-        ParentFont = False
-        ParentShowHint = False
-        ShowHint = True
-        State = cbChecked
-        TabOrder = 0
-      end
-      object cbPauseWhileScanning: TCheckBox
-        Left = 3
-        Height = 19
-        Top = 110
-        Width = 170
-        Caption = 'Pause the game while scanning'
-        Enabled = False
-        OnClick = cbPauseWhileScanningClick
-        TabOrder = 1
-      end
-      object edtAlignment: TEdit
-        Left = 72
-        Height = 21
-        Top = 89
-        Width = 48
-        Enabled = False
-        OnKeyPress = edtAlignmentKeyPress
-        TabOrder = 2
-        Text = '4'
-      end
-      object Label2: TLabel
-        Left = 6
-        Height = 14
-        Top = 27
-        Width = 23
-        Caption = 'Stop'
-        Enabled = False
-        ParentColor = False
-        PopupMenu = pmResetRange
-      end
-      object Label1: TLabel
-        Left = 6
-        Height = 14
-        Top = 3
-        Width = 23
-        Caption = 'Start'
-        Enabled = False
-        ParentColor = False
-        PopupMenu = pmResetRange
-      end
-      object FromAddress: TMemo
-        Left = 41
-        Height = 21
-        Top = 0
-        Width = 153
-        Alignment = taRightJustify
-        Enabled = False
-        Font.CharSet = ANSI_CHARSET
-        Font.Height = -13
-        Font.Name = 'Courier'
-        Font.Pitch = fpFixed
-        Font.Quality = fqDraft
-        Lines.Strings = (
-          '00000000'
-        )
-        MaxLength = 8
-        ParentFont = False
-        PopupMenu = pmResetRange
-        TabOrder = 3
-        WantReturns = False
-        WordWrap = False
-      end
-      object ToAddress: TMemo
-        Left = 41
-        Height = 21
-        Top = 21
-        Width = 153
-        Alignment = taRightJustify
-        Enabled = False
-        Font.CharSet = ANSI_CHARSET
-        Font.Height = -13
-        Font.Name = 'Courier'
-        Font.Pitch = fpFixed
-        Font.Quality = fqDraft
-        Lines.Strings = (
-          '7FFFFFFF'
-        )
-        MaxLength = 8
-        ParentFont = False
-        PopupMenu = pmResetRange
-        TabOrder = 4
-        WantReturns = False
-        WordWrap = False
-      end
-      object rbFsmAligned: TRadioButton
-        Left = 127
-        Height = 19
-        Top = 81
-        Width = 66
-        Caption = 'Alignment'
-        Checked = True
-        OnChange = rbFsmAlignedChange
-        TabOrder = 6
-        TabStop = True
-      end
-      object rbfsmLastDigts: TRadioButton
-        Left = 127
-        Height = 19
-        Top = 97
-        Width = 69
-        Caption = 'Last Digits'
-        OnChange = rbFsmAlignedChange
-        TabOrder = 5
-      end
       object Panel2: TPanel
-        Left = -1
+        Left = 0
         Height = 36
-        Top = 44
-        Width = 199
+        Top = 43
+        Width = 198
+        Align = alTop
         BevelOuter = bvNone
         ClientHeight = 36
-        ClientWidth = 199
+        ClientWidth = 198
         PopupMenu = pmScanRegion
-        TabOrder = 7
+        TabOrder = 0
         object cbCopyOnWrite: TCheckBox
           Left = 4
           Height = 19
           Hint = 'Unchecked:'#13#10'Do not scan copy-on-write memory'#13#10#13#10'Checked:'#13#10'Only scan copy-on-write memory'#13#10#13#10'Gray:'#13#10'Don''t care if it''s copy-on-write or not'
-          Top = 15
+          Top = 17
           Width = 83
           AllowGrayed = True
           Caption = 'CopyOnWrite'
@@ -593,6 +473,149 @@ object MainForm: TMainForm
           ShowHint = True
           State = cbGrayed
           TabOrder = 2
+        end
+      end
+      object Panel3: TPanel
+        Left = 0
+        Height = 43
+        Top = 0
+        Width = 198
+        Align = alTop
+        BevelOuter = bvNone
+        ClientHeight = 43
+        ClientWidth = 198
+        TabOrder = 1
+        object FromAddress: TMemo
+          Left = 41
+          Height = 21
+          Top = 0
+          Width = 153
+          Alignment = taRightJustify
+          Enabled = False
+          Font.CharSet = ANSI_CHARSET
+          Font.Height = -13
+          Font.Name = 'Courier'
+          Font.Pitch = fpFixed
+          Font.Quality = fqDraft
+          Lines.Strings = (
+            '00000000'
+          )
+          MaxLength = 8
+          ParentFont = False
+          PopupMenu = pmResetRange
+          TabOrder = 0
+          WantReturns = False
+          WordWrap = False
+        end
+        object ToAddress: TMemo
+          Left = 41
+          Height = 21
+          Top = 21
+          Width = 153
+          Alignment = taRightJustify
+          Enabled = False
+          Font.CharSet = ANSI_CHARSET
+          Font.Height = -13
+          Font.Name = 'Courier'
+          Font.Pitch = fpFixed
+          Font.Quality = fqDraft
+          Lines.Strings = (
+            '7FFFFFFF'
+          )
+          MaxLength = 8
+          ParentFont = False
+          PopupMenu = pmResetRange
+          TabOrder = 1
+          WantReturns = False
+          WordWrap = False
+        end
+        object Label2: TLabel
+          Left = 6
+          Height = 14
+          Top = 27
+          Width = 23
+          Caption = 'Stop'
+          Enabled = False
+          ParentColor = False
+          PopupMenu = pmResetRange
+        end
+        object Label1: TLabel
+          Left = 6
+          Height = 14
+          Top = 3
+          Width = 23
+          Caption = 'Start'
+          Enabled = False
+          ParentColor = False
+          PopupMenu = pmResetRange
+        end
+      end
+      object Panel6: TPanel
+        Left = 0
+        Height = 51
+        Top = 79
+        Width = 198
+        Align = alClient
+        BevelOuter = bvNone
+        ClientHeight = 51
+        ClientWidth = 198
+        TabOrder = 2
+        object cbFastScan: TCheckBox
+          Left = 4
+          Height = 19
+          Top = 7
+          Width = 68
+          Caption = 'Fast Scan'
+          Checked = True
+          Enabled = False
+          Font.Height = -11
+          Font.Name = 'MS Sans Serif'
+          OnChange = cbFastScanChange
+          ParentFont = False
+          ParentShowHint = False
+          ShowHint = True
+          State = cbChecked
+          TabOrder = 0
+        end
+        object edtAlignment: TEdit
+          Left = 72
+          Height = 21
+          Top = 7
+          Width = 48
+          Enabled = False
+          OnKeyPress = edtAlignmentKeyPress
+          TabOrder = 1
+          Text = '4'
+        end
+        object cbPauseWhileScanning: TCheckBox
+          Left = 4
+          Height = 19
+          Top = 33
+          Width = 170
+          Caption = 'Pause the game while scanning'
+          Enabled = False
+          OnClick = cbPauseWhileScanningClick
+          TabOrder = 2
+        end
+        object rbfsmLastDigts: TRadioButton
+          Left = 123
+          Height = 19
+          Top = 17
+          Width = 69
+          Caption = 'Last Digits'
+          OnChange = rbFsmAlignedChange
+          TabOrder = 3
+        end
+        object rbFsmAligned: TRadioButton
+          Left = 123
+          Height = 19
+          Top = 0
+          Width = 66
+          Caption = 'Alignment'
+          Checked = True
+          OnChange = rbFsmAlignedChange
+          TabOrder = 4
+          TabStop = True
         end
       end
     end
@@ -1707,6 +1730,11 @@ object MainForm: TMainForm
       OnExecute = actOpenProcesslistExecute
       ShortCut = 16464
     end
+    object actOpenDissectStructure: TAction
+      Caption = 'actOpenDissectStructure'
+      OnExecute = actOpenDissectStructureExecute
+      ShortCut = 16452
+    end
   end
   object UpdateFoundlisttimer: TTimer
     Interval = 500
@@ -2044,16 +2072,16 @@ object MainForm: TMainForm
     top = 72
   end
   object pmResetRange: TPopupMenu
-    left = 360
-    top = 176
+    left = 344
+    top = 216
     object miResetRange: TMenuItem
       Caption = 'Reset range'
       OnClick = miResetRangeClick
     end
   end
   object pmScanRegion: TPopupMenu
-    left = 352
-    top = 232
+    left = 296
+    top = 176
     object miPresetAll: TMenuItem
       Caption = 'Preset: Scan all memory'
       OnClick = miPresetAllClick

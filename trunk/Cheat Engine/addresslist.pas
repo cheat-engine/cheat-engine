@@ -90,6 +90,8 @@ type
   public
     //needsToReinterpret: boolean;
 
+    function focused:boolean; override;
+
     procedure sortByActive;
     procedure sortByDescription;
     procedure sortByAddress;
@@ -1594,6 +1596,13 @@ end;
 procedure TAddresslist.SymbolsLoaded(sender: TObject);
 begin
   ReinterpretAddresses;
+end;
+
+
+function TAddresslist.focused: boolean;
+begin
+  result:=inherited focused;
+  if not result then result:=treeview.Focused;
 end;
 
 constructor TAddresslist.Create(AOwner: TComponent);

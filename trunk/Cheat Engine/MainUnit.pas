@@ -180,8 +180,11 @@ type
   { TMainForm }
 
   TMainForm = class(TForm)
+    actOpenDissectStructure: TAction;
     cbCopyOnWrite: TCheckBox;
     cbExecutable: TCheckBox;
+    cbFastScan: TCheckBox;
+    cbPauseWhileScanning: TCheckBox;
     cbWritable: TCheckBox;
     ColorDialog1: TColorDialog;
     CreateGroup: TMenuItem;
@@ -245,6 +248,8 @@ type
     miFreezeNegative: TMenuItem;
     Panel1: TPanel;
     Panel2: TPanel;
+    Panel3: TPanel;
+    Panel6: TPanel;
     pmTablist: TPopupMenu;
     pmValueType: TPopupMenu;
     pmResetRange: TPopupMenu;
@@ -311,13 +316,11 @@ type
     Paste2: TMenuItem;
     Splitter1: TSplitter;
     cbCaseSensitive: TCheckBox;
-    cbFastScan: TCheckBox;
     Foundlist3: TListView;
     Findoutwhataccessesthisaddress1: TMenuItem;
     Showashexadecimal1: TMenuItem;
     Panel7: TPanel;
     sbOpenProcess: TSpeedButton;
-    cbPauseWhileScanning: TCheckBox;
     Change1: TMenuItem;
     Description1: TMenuItem;
     Address1: TMenuItem;
@@ -384,6 +387,7 @@ type
     actMemoryView: TAction;
     Label61: TLabel;
     actOpenProcesslist: TAction;
+    procedure actOpenDissectStructureExecute(Sender: TObject);
     procedure Address1Click(Sender: TObject);
     procedure cbFastScanChange(Sender: TObject);
     procedure Description1Click(Sender: TObject);
@@ -807,7 +811,7 @@ uses mainunit2, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup
   formProcessInfo
   , PasteTableentryFRM, pointerscannerfrm, PointerscannerSettingsFrm,
   frmFloatingPointPanelUnit,
-  pluginexports, DBK32functions, frmUltimapUnit, frmSetCrosshairUnit;
+  pluginexports, DBK32functions, frmUltimapUnit, frmSetCrosshairUnit, StructuresFrm2;
 
 resourcestring
   rsInvalidStartAddress = 'Invalid start address: %s';
@@ -2520,6 +2524,54 @@ end;
 procedure TMainForm.Address1Click(Sender: TObject);
 begin
   addresslist.doAddressChange;
+end;
+
+procedure TMainForm.actOpenDissectStructureExecute(Sender: TObject);
+var address: ptruint;
+  i: integer;
+  f: TfrmStructures2;
+  found: boolean;
+  c: TStructColumn;
+begin
+  if frmStructures2.count>0 then
+  begin
+    if addresslist.Focused and (addresslist.selectedRecord<>nil) and (addresslist.selectedRecord.isGroupHeader=false) and (addresslist.selectedRecord.VarType<>vtAutoAssembler) then
+    begin
+      //add this address if it's not yet in the list
+      address:=addresslist.selectedRecord.GetRealAddress;
+      f:=TfrmStructures2(frmStructures2[0]);
+      for i:=0 to f.columnCount-1 do
+        if f.columns[i].Address=address then
+        begin
+          found:=true;
+          f.columns[i].focus;
+          break;
+        end;
+
+      if not found then
+      begin
+        c:=f.addColumn;
+        c.Address:=address;
+        c.focus;
+      end;
+    end;
+
+    TfrmStructures2(frmStructures2[0]).show;
+  end
+  else
+  begin
+    //create it
+    with tfrmstructures2.create(application) do
+    begin
+      //fill in the selected memoryrecord if there is one, else use the memoryview hexview address
+      initialaddress:=MemoryBrowser.hexview.address;
+
+      if (addresslist.selectedRecord<>nil) and (addresslist.selectedRecord.isGroupHeader=false) and (addresslist.selectedRecord.VarType<>vtAutoAssembler) then
+        initialaddress:=addresslist.selectedRecord.GetRealAddress;
+
+      show;
+    end;
+  end;
 end;
 
 procedure TMainForm.cbFastScanChange(Sender: TObject);
