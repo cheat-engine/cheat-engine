@@ -9,7 +9,7 @@ uses
   cefuncproc,newkernelhandler, autoassembler, hotkeyhandler, dom, XMLRead,XMLWrite,
   customtypehandler, fileutil, LCLProc;
 
-type TMemrecHotkeyAction=(mrhToggleActivation, mrhToggleActivationAllowIncrease, mrhToggleActivationAllowDecrease, mrhSetValue, mrhIncreaseValue, mrhDecreaseValue);
+type TMemrecHotkeyAction=(mrhToggleActivation, mrhToggleActivationAllowIncrease, mrhToggleActivationAllowDecrease, mrhActivate, mrhDeactivate, mrhSetValue, mrhIncreaseValue, mrhDecreaseValue);
 
 type TFreezeType=(ftFrozen, ftAllowIncrease, ftAllowDecrease);
 
@@ -1097,6 +1097,9 @@ begin
           active:=true;
         end;
 
+        mrhActivate: active:=true;
+        mrhDeactivate: active:=false;
+
 
       end;
     except
@@ -1837,6 +1840,8 @@ begin
     mrhToggleActivation: result:='Toggle Activation';
     mrhToggleActivationAllowIncrease: result:='Toggle Activation Allow Increase';
     mrhToggleActivationAllowDecrease: result:='Toggle Activation Allow Decrease';
+    mrhActivate: result:='Activate';
+    mrhDeactivate: result:='Deactivate';
     mrhSetValue: result:='Set Value';
     mrhIncreaseValue: result:='Increase Value';
     mrhDecreaseValue: result:='Decrease Value';
@@ -1848,6 +1853,8 @@ begin
   if text = 'Toggle Activation' then result:=mrhToggleActivation else
   if text = 'Toggle Activation Allow Increase' then result:=mrhToggleActivationAllowIncrease else
   if text = 'Toggle Activation Allow Decrease' then result:=mrhToggleActivationAllowDecrease else
+  if text = 'Activate' then result:=mrhActivate else
+  if text = 'Deactivate' then result:=mrhDeactivate else
   if text = 'Set Value' then result:=mrhSetValue else
   if text = 'Increase Value' then result:=mrhIncreaseValue else
   if text = 'Decrease Value' then result:=mrhDecreaseValue
