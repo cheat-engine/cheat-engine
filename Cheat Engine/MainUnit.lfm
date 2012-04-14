@@ -1685,7 +1685,7 @@ object MainForm: TMainForm
   end
   object ccpmenu: TPopupMenu
     OnPopup = ccpmenuPopup
-    left = 504
+    left = 480
     top = 88
     object Cut2: TMenuItem
       Caption = 'Cut'
@@ -2025,8 +2025,8 @@ object MainForm: TMainForm
   end
   object pmValueType: TPopupMenu
     OnPopup = pmValueTypePopup
-    left = 104
-    top = 240
+    left = 120
+    top = 248
     object miDefineNewCustomType: TMenuItem
       Caption = 'Define new custom type (Auto Assembler)'
       OnClick = miDefineNewCustomTypeClick

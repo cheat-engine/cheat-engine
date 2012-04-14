@@ -227,6 +227,8 @@ begin
 
   LuaCS.Enter;
   try
+    result:=0;
+
     if lua_bytestovaluefunctionid=-1 then
     begin
       lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(lua_bytestovalue));
@@ -234,8 +236,11 @@ begin
     end;
 
 
+   // messagebox(0,'going to call rawgeti','bla',0);
     lua_rawgeti(Luavm, LUA_REGISTRYINDEX, lua_bytestovaluefunctionid);
 
+
+   // messagebox(0,'after call rawgeti','bla',0);
 
 
     for i:=0 to bytesize-1 do

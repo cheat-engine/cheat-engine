@@ -237,6 +237,8 @@ begin
   begin
     //execute
     LUA_DoScript(assemblescreen.Text);
+    modalresult:=mrok; //not modal anymore, but can still be used to pass info
+    if editscript2 or CustomTypeScript then close;
   end
   else
   begin
