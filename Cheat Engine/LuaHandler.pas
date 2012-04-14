@@ -3719,8 +3719,19 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    c:=lua_touserdata(L, -2);
-    p:=Lua_ToString(L, -1);
+    if lua_isuserdata(L,1) then
+      c:=lua_touserdata(L, 1)
+    else
+    if lua_isnumber(L,1) then
+      c:=pointer(lua_tointeger(L,1))
+    else
+    begin
+      p:=Lua_ToString(L,1);
+      if p<>'' then
+        c:=pointer(StrToInt64(p));
+    end;
+
+    p:=Lua_ToString(L, 2);
 
     lua_pop(L, lua_gettop(l));
 
@@ -3749,9 +3760,20 @@ begin
   parameters:=lua_gettop(L);
   if parameters=3 then
   begin
-    c:=lua_touserdata(L, -3);
-    p:=Lua_ToString(L, -2);
-    v:=Lua_ToString(L, -1);
+    if lua_isuserdata(L,1) then
+      c:=lua_touserdata(L, 1)
+    else
+    if lua_isnumber(L,1) then
+      c:=pointer(lua_tointeger(L,1))
+    else
+    begin
+      p:=Lua_ToString(L,1);
+      if p<>'' then
+        c:=pointer(StrToInt64(p));
+    end;
+
+    p:=Lua_ToString(L, 2);
+    v:=Lua_ToString(L, 3);
 
     ce_setProperty(c,pchar(p),pchar(v));
   end;
@@ -3773,7 +3795,18 @@ begin
   parameters:=lua_gettop(L);
   if parameters>=2 then
   begin
-    c:=lua_touserdata(L,1);
+    if lua_isuserdata(L,1) then
+      c:=lua_touserdata(L, 1)
+    else
+    if lua_isnumber(L,1) then
+      c:=pointer(lua_tointeger(L,1))
+    else
+    begin
+      p:=Lua_ToString(L,1);
+      if p<>'' then
+        c:=pointer(StrToInt64(p));
+    end;
+
     p:=Lua_ToString(L,2);
 
     lua_pop(L, lua_gettop(L));
@@ -3865,7 +3898,18 @@ begin
   parameters:=lua_gettop(L);
   if parameters=3 then
   begin
-    c:=lua_touserdata(L,1);
+    if lua_isuserdata(L,1) then
+      c:=lua_touserdata(L, 1)
+    else
+    if lua_isnumber(L,1) then
+      c:=pointer(lua_tointeger(L,1))
+    else
+    begin
+      p:=Lua_ToString(L,1);
+      if p<>'' then
+        c:=pointer(StrToInt64(p));
+    end;
+
     p:=Lua_ToString(L,2);
 
     lc:=TLuaCaller.create;
