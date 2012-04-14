@@ -152,6 +152,19 @@ object frmStructures2: TfrmStructures2
         ShortCut = 16456
         OnClick = miShowAddressesClick
       end
+      object MenuItem7: TMenuItem
+        Caption = '-'
+      end
+      object miExpandAllDefined: TMenuItem
+        Caption = 'Expand all defined pointers'
+        ShortCut = 49240
+        OnClick = miExpandAllDefinedClick
+      end
+      object miExpandAll: TMenuItem
+        Caption = 'Expand all defined and undefined pointers'
+        ShortCut = 57432
+        OnClick = miExpandAllClick
+      end
     end
     object Structures1: TMenuItem
       Caption = 'Structures'

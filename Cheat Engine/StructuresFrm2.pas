@@ -274,6 +274,9 @@ type
     FindDialog1: TFindDialog;
     MenuItem5: TMenuItem;
     MenuItem6: TMenuItem;
+    MenuItem7: TMenuItem;
+    miExpandAll: TMenuItem;
+    miExpandAllDefined: TMenuItem;
     miClear: TMenuItem;
     miCopy: TMenuItem;
     miPaste: TMenuItem;
@@ -338,6 +341,8 @@ type
     procedure MenuItem3Click(Sender: TObject);
     procedure MenuItem5Click(Sender: TObject);
     procedure MenuItem6Click(Sender: TObject);
+    procedure miExpandAllClick(Sender: TObject);
+    procedure miExpandAllDefinedClick(Sender: TObject);
     procedure miClearClick(Sender: TObject);
     procedure miCopyClick(Sender: TObject);
     procedure miExportAllClick(Sender: TObject);
@@ -439,6 +444,7 @@ type
     function searchString(search: string; findoptions: TFindOptions): integer;
 
     procedure EditValueOfSelectedNodes(c:TStructColumn);
+    procedure expandtree(all: boolean);
   public
     { public declarations }
     initialaddress: PtrUInt;
@@ -3528,6 +3534,43 @@ end;
 procedure TfrmStructures2.MenuItem6Click(Sender: TObject);
 begin
   finddialog1.Execute;
+end;
+
+
+
+procedure TfrmStructures2.expandtree(all: boolean);
+var
+  i: integer;
+  maxlevel: integer;
+begin
+  tvStructureView.BeginUpdate;
+  try
+    if mainstruct<>nil then
+    begin
+      maxlevel:=frmStructuresConfig.maxautoexpandlevel+1;
+      i:=1;
+      while i<tvStructureView.Items.Count do
+      begin
+        if tvStructureView.Items[i].HasChildren and (tvStructureView.Items[i].Level<maxlevel) and (all or (getStructElementFromNode(tvStructureView.Items[i]).ChildStruct<>nil)) then
+          tvStructureView.Items[i].Expand(false);
+
+        inc(i);
+      end;
+
+    end;
+  finally
+    tvStructureView.EndUpdate;
+  end;
+end;
+
+procedure TfrmStructures2.miExpandAllDefinedClick(Sender: TObject);
+begin
+  expandtree(false);
+end;
+
+procedure TfrmStructures2.miExpandAllClick(Sender: TObject);
+begin
+  expandtree(true);
 end;
 
 procedure TfrmStructures2.miClearClick(Sender: TObject);

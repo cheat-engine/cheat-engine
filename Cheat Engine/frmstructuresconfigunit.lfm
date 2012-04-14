@@ -1,12 +1,12 @@
 object frmStructuresConfig: TfrmStructuresConfig
-  Left = 442
-  Height = 241
-  Top = 692
+  Left = 769
+  Height = 261
+  Top = 245
   Width = 499
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Dissect Data Config'
-  ClientHeight = 241
+  ClientHeight = 261
   ClientWidth = 499
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -14,22 +14,22 @@ object frmStructuresConfig: TfrmStructuresConfig
   LCLVersion = '0.9.31'
   object Panel1: TPanel
     Left = 0
-    Height = 201
+    Height = 221
     Top = 0
     Width = 499
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 201
+    ClientHeight = 221
     ClientWidth = 499
     TabOrder = 0
     object GroupBox1: TGroupBox
       Left = 0
-      Height = 201
+      Height = 221
       Top = 0
       Width = 105
       Align = alLeft
       Caption = 'Colors'
-      ClientHeight = 183
+      ClientHeight = 203
       ClientWidth = 101
       Color = clWindow
       ParentColor = False
@@ -125,22 +125,22 @@ object frmStructuresConfig: TfrmStructuresConfig
     end
     object Panel3: TPanel
       Left = 105
-      Height = 201
+      Height = 221
       Top = 0
       Width = 394
       Align = alClient
       BevelOuter = bvNone
-      ClientHeight = 201
+      ClientHeight = 221
       ClientWidth = 394
       TabOrder = 1
       object GroupBox2: TGroupBox
         Left = 0
-        Height = 160
+        Height = 161
         Top = 0
         Width = 394
         Align = alClient
         Caption = 'Default options for new structures'
-        ClientHeight = 142
+        ClientHeight = 143
         ClientWidth = 390
         TabOrder = 0
         object cbAutoCreate: TCheckBox
@@ -205,12 +205,12 @@ object frmStructuresConfig: TfrmStructuresConfig
       end
       object GroupBox3: TGroupBox
         Left = 0
-        Height = 41
-        Top = 160
+        Height = 60
+        Top = 161
         Width = 394
         Align = alBottom
         Caption = 'Global options'
-        ClientHeight = 23
+        ClientHeight = 42
         ClientWidth = 390
         TabOrder = 1
         object cbAutoGuessCustomTypes: TCheckBox
@@ -221,13 +221,29 @@ object frmStructuresConfig: TfrmStructuresConfig
           Caption = 'Autoguess custom types'
           TabOrder = 0
         end
+        object Label5: TLabel
+          Left = 5
+          Height = 16
+          Top = 22
+          Width = 123
+          Caption = 'Max auto-expand level:'
+          ParentColor = False
+        end
+        object edtMaxAutoExpandLevel: TEdit
+          Left = 127
+          Height = 23
+          Top = 18
+          Width = 31
+          TabOrder = 1
+          Text = '1'
+        end
       end
     end
   end
   object Panel2: TPanel
     Left = 0
     Height = 40
-    Top = 201
+    Top = 221
     Width = 499
     Align = alBottom
     ClientHeight = 40
