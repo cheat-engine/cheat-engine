@@ -985,6 +985,10 @@ begin
     starttime:=0;
 
     if not savedialog1.Execute then exit;
+
+    if (frmpointerscannersettings.cbReusePointermap.checked=false) and (pointerlisthandler<>nil) then
+      freeandnil(pointerlisthandler);
+
         
     btnStopScan.enabled:=true;
 
@@ -1046,6 +1050,8 @@ begin
         for i:=0 to frmpointerscannersettings.offsetlist.count-1 do
           staticscanner.mustendwithoffsetlist[i]:=TOffsetEntry(frmpointerscannersettings.offsetlist[i]).offset;
       end;
+
+
 
       staticscanner.onlyOneStaticInPath:=frmpointerscannersettings.cbOnlyOneStatic.checked;
 
@@ -1738,13 +1744,24 @@ begin
             rescan.BaseEnd:=baseEnd;
           end;
 
-          setlength(rescan.startOffsetValues, length(startOffsetValues));
-          for i:=0 to length(startOffsetValues)-1 do
-            rescan.startOffsetValues[i]:=startOffsetValues[i];
+          if cbMustStartWithSpecificOffsets.checked then
+          begin
+            setlength(rescan.startOffsetValues, length(startOffsetValues));
+            for i:=0 to length(startOffsetValues)-1 do
+              rescan.startOffsetValues[i]:=startOffsetValues[i];
+          end
+          else
+            setlength(rescan.startOffsetValues,0); //shouldn't be necesary, but just in case
 
-          setlength(rescan.endOffsetValues, length(endOffsetValues));
-          for i:=0 to length(endOffsetValues)-1 do
-            rescan.endOffsetValues[i]:=endOffsetValues[i];
+
+          if cbMustEndWithSpecificOffsets.checked then
+          begin
+            setlength(rescan.endOffsetValues, length(endOffsetValues));
+            for i:=0 to length(endOffsetValues)-1 do
+              rescan.endOffsetValues[i]:=endOffsetValues[i];
+          end
+          else
+            setlength(rescan.endoffsetvalues,0);
 
           if uppercase(rescan.filename)=uppercase(pointerscanresults.filename) then
             rescan.overwrite:=true;

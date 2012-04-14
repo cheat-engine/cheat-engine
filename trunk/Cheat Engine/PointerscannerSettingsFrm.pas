@@ -68,7 +68,7 @@ type
     rbFindAddress: TRadioButton;
     rbFindValue: TRadioButton;
     cbOnlyOneStatic: TCheckBox;
-    CheckBox1: TCheckBox;
+    cbReusePointermap: TCheckBox;
     procedure Button1Click(Sender: TObject);
     procedure cbMustEndWithSpecificOffsetChange(Sender: TObject);
     procedure FormShow(Sender: TObject);

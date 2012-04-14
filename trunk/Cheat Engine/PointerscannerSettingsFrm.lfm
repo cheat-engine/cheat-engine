@@ -351,7 +351,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       TabOrder = 1
     end
   end
-  object CheckBox1: TCheckBox
+  object cbReusePointermap: TCheckBox
     Left = 10
     Height = 19
     Top = 280

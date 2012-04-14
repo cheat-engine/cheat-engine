@@ -27,6 +27,7 @@ type
     cbAutoGuessCustomTypes: TCheckBox;
     ColorDialog1: TColorDialog;
     comboBackground: TComboBox;
+    edtMaxAutoExpandLevel: TEdit;
     edtAutostructsize: TEdit;
     GroupBox1: TGroupBox;
     GroupBox2: TGroupBox;
@@ -35,6 +36,7 @@ type
     Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
+    Label5: TLabel;
     Label7: TLabel;
     Label9: TLabel;
     Panel1: TPanel;
@@ -63,6 +65,8 @@ type
     fselectedGroupEqualText: TColor;
     fselectedGroupDifferentText: TColor;
 
+
+
 //    procedure setbackgroundcolor(x: TColor);
     procedure setdefaultText(x: TColor);
     procedure setequalText(x: TColor);
@@ -83,6 +87,7 @@ type
     procedure Set_Color(tag: integer; color: TColor);
   public
     { public declarations }
+    maxautoexpandlevel: integer;
    // property backgroundcolor: TColor read fbackgroundcolor write setBackgroundColor;
     property defaultText: TColor read fdefaultText write setdefaultText;
     property equalText: TColor read fequalText write setequalText;
@@ -96,7 +101,7 @@ type
     property selectedDifferentText: TColor read fselectedDifferentText write setselectedDifferentText;
     property selectedGroupEqualText: TColor read fselectedGroupEqualText write setselectedGroupEqualText;
     property selectedgroupDifferentText: TColor read fselectedgroupDifferentText write setselectedgroupdifferentText;
-  end; 
+  end;
 
 var
   frmStructuresConfig: TfrmStructuresConfig;
@@ -267,6 +272,7 @@ var
   autosize: integer;
 begin
   autosize:=strtoint(edtAutostructsize.text);
+  maxautoexpandlevel:=strtoint(edtMaxAutoExpandLevel.text);
 
   reg:=tregistry.create;
   try
@@ -294,12 +300,14 @@ begin
       reg.WriteBool('DefaultHex', cbDefaultHex.Checked);
 
       reg.writeBool('Autoguess Custom Types', cbAutoGuessCustomTypes.checked);
-
+      reg.WriteInteger('Max Auto-Expand Level',maxautoexpandlevel);
 
     end;
   finally
     reg.free;
   end;
+
+
 end;
 
 procedure TfrmStructuresConfig.FormCreate(Sender: TObject);
@@ -308,6 +316,7 @@ begin
   //load the settings from the registry
   //def colors
 
+  maxautoexpandlevel:=1;
   defaultText:=clWindowText;
   equalText:=clGreen;
   differentText:=clRed;
@@ -345,6 +354,11 @@ begin
       if reg.ValueExists('Autofill') then cbAutoFillGaps.Checked:=reg.ReadBool('Autofill');
       if reg.ValueExists('DefaultHex') then cbDefaultHex.Checked:=reg.ReadBool('DefaultHex');
       if reg.ValueExists('Autoguess Custom Types') then cbAutoGuessCustomTypes.checked:=reg.ReadBool('Autoguess Custom Types');
+      if reg.ValueExists('Max Auto-Expand Level') then maxautoexpandlevel:=reg.ReadInteger('Max Auto-Expand Level');
+
+
+
+
     end;
   finally
     reg.free;
@@ -354,6 +368,8 @@ begin
   comboBackground.Items.Add(rsNormal);
   comboBackground.Items.Add(rsHighlighted);
   comboBackground.itemindex:=0;
+
+  edtMaxAutoExpandLevel.text:=inttostr(maxautoexpandlevel);
 end;
 
 procedure TfrmStructuresConfig.ColorClick(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
