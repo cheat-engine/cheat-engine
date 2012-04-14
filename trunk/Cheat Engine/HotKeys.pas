@@ -74,9 +74,13 @@ uses MainUnit;
 resourcestring
   rsHotkeyID = 'Hotkey ID=%s';
   rsToggleScript = 'Toggle script';
+  rsEnableScript = 'Enable script';
+  rsDisableScript = 'Disable script';
   rsToggleFreeze = 'Toggle freeze';
   rsToggleFreezeAndAllowIncrease = 'Toggle freeze and allow increase';
   rsToggleFreezeAndAllowDecrease = 'Toggle freeze and allow decrease';
+  rsFreeze = 'Freeze';
+  rsUnfreeze = 'Unfreeze';
   rsSetValueTo = 'Set value to:';
   rsDecreaseValueWith = 'Decrease value with:';
   rsIncreaseValueWith = 'Increase value with:';
@@ -85,13 +89,26 @@ resourcestring
 
 function THotkeyform.getHotkeyAction: TMemrecHotkeyAction;
 begin
-  case cbFreezedirection.ItemIndex of
-    0: result:=mrhToggleActivation;
-    1: result:=mrhToggleActivationAllowIncrease;
-    2: result:=mrhToggleActivationAllowDecrease;
-    3: result:=mrhSetValue;
-    4: result:=mrhDecreaseValue;
-    5: result:=mrhIncreaseValue;
+  if fmemrec.vartype=vtAutoAssembler then
+  begin
+    case cbFreezedirection.ItemIndex of
+      0: result:=mrhToggleActivation;
+      1: result:=mrhActivate;
+      2: result:=mrhDeactivate;
+    end;
+  end
+  else
+  begin
+    case cbFreezedirection.ItemIndex of
+      0: result:=mrhToggleActivation;
+      1: result:=mrhToggleActivationAllowIncrease;
+      2: result:=mrhToggleActivationAllowDecrease;
+      3: result:=mrhActivate;
+      4: result:=mrhDeactivate;
+      5: result:=mrhSetValue;
+      6: result:=mrhDecreaseValue;
+      7: result:=mrhIncreaseValue;
+    end;
   end;
 
 end;
@@ -111,6 +128,8 @@ begin
     mrhToggleActivation:                   result:=cbFreezedirection.Items[0];
     mrhToggleActivationAllowIncrease:      result:=cbFreezedirection.Items[1];
     mrhToggleActivationAllowDecrease:      result:=cbFreezedirection.Items[2];
+    mrhActivate:                           result:=cbFreezedirection.items[3];
+    mrhDeactivate:                         result:=cbFreezedirection.items[3];
     mrhSetValue:                           result:=cbFreezedirection.Items[3];
     mrhDecreaseValue:                      result:=cbFreezedirection.Items[4];
     mrhIncreaseValue:                      result:=cbFreezedirection.Items[5];
@@ -126,7 +145,9 @@ begin
   begin
     cbFreezedirection.Clear;
     cbFreezedirection.Items.add(rsToggleScript);
-    cbFreezedirection.Enabled:=false;
+    cbFreezedirection.items.add(rsEnableScript);
+    cbFreezedirection.items.add(rsDisableScript);
+    cbFreezedirection.ItemIndex:=0;
     edtFreezeValue.visible:=false;
   end;
 
@@ -311,6 +332,8 @@ begin
     add(rsToggleFreeze);
     add(rsToggleFreezeAndAllowIncrease);
     add(rsToggleFreezeAndAllowDecrease);
+    add(rsFreeze);
+    add(rsUnfreeze);
     add(rsSetValueTo);
     add(rsDecreaseValueWith);
     add(rsIncreaseValueWith);
