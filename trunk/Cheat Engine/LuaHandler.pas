@@ -7719,6 +7719,7 @@ var s: tstringlist;
 begin
 
   LuaVM:=lua_open();
+
   if LuaVM<>nil then
   begin
     luaL_openlibs(LuaVM);

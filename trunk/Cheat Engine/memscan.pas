@@ -4496,7 +4496,7 @@ begin
         raise exception.create('Custom type is nil');
 
       variablesize:=customtype.bytesize;
-      fastscanalignsize:=customtype.preferedAlignment;
+      fastscanalignsize:=1;
     end;
 
   end;
