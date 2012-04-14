@@ -73,6 +73,7 @@ type
     cbLogToFile: TRadioButton;
     cbParseData: TRadioButton;
     cbPreemptiveFlush: TCheckBox;
+    cbfilterOutNewEntries: TCheckBox;
     Edit1: TEdit;
     edtBufSize: TEdit;
     edtFilename: TEdit;
@@ -108,6 +109,7 @@ type
     procedure Button7Click(Sender: TObject);
     procedure Button9Click(Sender: TObject);
     procedure cbPreemptiveFlushChange(Sender: TObject);
+    procedure cbfilterOutNewEntriesChange(Sender: TObject);
     procedure Edit1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FilterClick(Sender: TObject);
     procedure FlusherTimer(Sender: TObject);
@@ -140,6 +142,7 @@ type
     paused: boolean;
 
 
+
     target_cr3: qword;
     bufsize: dword;
     function branchcompare(Tree: TAvgLvlTree; Data1, Data2: Pointer): integer;
@@ -162,6 +165,8 @@ var
   workercount: integer;
   hashandled: THandle;
   flushcs: TCriticalSection;
+
+  filteroutnewentries: boolean;
 
 implementation
 
@@ -249,7 +254,7 @@ begin
         newbranchdata.count:=1;
         newbranchdata.toAddress:=lbt;
         newbranchdata.isCalled:=true;
-        newbranchdata.wrong:=false;
+        newbranchdata.wrong:=filteroutnewentries;
         newbranchdata.lastFromAddress:=buf[i].LastBranchFrom;
 {$ifdef predictlog}
         newbranchdata.predicted:=buf[i].Predicted<>0;
@@ -638,6 +643,11 @@ begin
   flusher.enabled:=cbPreemptiveFlush.checked;
 end;
 
+procedure TfrmUltimap.cbfilterOutNewEntriesChange(Sender: TObject);
+begin
+  filteroutnewentries:=cbfilterOutNewEntries.checked;
+end;
+
 procedure TfrmUltimap.Edit1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
   if key=VK_RETURN then
@@ -831,6 +841,7 @@ var x: TWindowPosArray;
   kc: TKeyCombo;
   ne: TNotifyEvent;
 begin
+  filteroutnewentries:=false;
   edtWorkerCount.Text:=inttostr(GetCPUCount);
   label4.Caption:=inttostr(sizeof(TBTS));
 
