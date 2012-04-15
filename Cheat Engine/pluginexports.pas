@@ -2416,7 +2416,7 @@ begin
     end;
 
 
-    mainform.openProcessEpilogue('',0,0,false);
+    mainform.openProcessEpilogue('',0,0,true);
     mainform.ProcessLabel.caption:=inttohex(processid,8)+'-'+p.path;
     result:=pointer(1);
   except
