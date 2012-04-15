@@ -405,10 +405,36 @@ end;
 
 procedure TfrmThreadlist.threadTreeviewExpanding(Sender: TObject;
   Node: TTreeNode; var AllowExpansion: Boolean);
+function rw2str(x: byte): string;
+begin
+  case x of
+    0: result:='Execute';
+    1: result:='Write';
+    2: result:='I/O';
+    3: result:='Access';
+  end;
+end;
+
+function len2str(x: byte): string;
+begin
+  case x of
+    0: result:='1 byte';
+    1: result:='2 bytes';
+    2: result:='8 bytes';
+    3: result:='4 bytes';
+  end;
+end;
+
 var tid: dword;
 th: thandle;
 c: TContext;
 prefix: char;
+s: string;
+rw: byte;
+len: byte;
+
+drinfo: string;
+
 begin
   if node.level=0 then
   begin
@@ -429,7 +455,49 @@ begin
         threadTreeview.items.AddChild(node,'dr2='+inttohex(c.Dr2,{$ifdef cpu64}16{$else}8{$endif}));
         threadTreeview.items.AddChild(node,'dr3='+inttohex(c.Dr3,{$ifdef cpu64}16{$else}8{$endif}));
         threadTreeview.items.AddChild(node,'dr6='+inttohex(c.Dr6,{$ifdef cpu64}16{$else}8{$endif}));
-        threadTreeview.items.AddChild(node,'dr7='+inttohex(c.Dr7,{$ifdef cpu64}16{$else}8{$endif}));
+
+        s:='dr7='+inttohex(c.Dr7,{$ifdef cpu64}16{$else}8{$endif});
+
+        if c.dr7 and 1=1 then
+        begin
+          rw:=(c.dr7 shr 16) and 3;
+          len:=(c.dr7 shr 18) and 3;
+
+          drinfo:=drinfo+'1('+rw2str(rw)+' - '+len2str(len)+') ';
+        end;
+
+        if c.dr7 and 4=4 then
+        begin
+          rw:=(c.dr7 shr 16) and 3;
+          len:=(c.dr7 shr 18) and 3;
+
+          drinfo:=drinfo+'2('+rw2str(rw)+' - '+len2str(len)+') ';
+        end;
+
+        if c.dr7 and 16=16 then
+        begin
+          s:=s+'3(';
+          rw:=(c.dr7 shr 16) and 3;
+          len:=(c.dr7 shr 18) and 3;
+
+          drinfo:=drinfo+'3('+rw2str(rw)+' - '+len2str(len)+') ';
+        end;
+
+        if c.dr7 and 64=64 then
+        begin
+
+          rw:=(c.dr7 shr 16) and 3;
+          len:=(c.dr7 shr 18) and 3;
+
+          drinfo:=drinfo+'4('+rw2str(rw)+' - '+len2str(len)+') ';
+        end;
+
+
+
+        if drinfo<>'' then
+          s:=s+' :'+drinfo;
+
+        threadTreeview.items.AddChild(node,s);
 
         if processhandler.is64Bit then
           prefix:='r'

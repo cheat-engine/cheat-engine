@@ -899,6 +899,7 @@ object MemoryBrowser: TMemoryBrowser
       end
       object Threadlist1: TMenuItem
         Caption = 'Threadlist'
+        ShortCut = 16468
         OnClick = Threadlist1Click
       end
       object Debugstrings1: TMenuItem
