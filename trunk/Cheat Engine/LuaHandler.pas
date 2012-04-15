@@ -3455,16 +3455,16 @@ begin
   breakonentrypoint:=false;
 
   if parameters>0 then
-    path:=lua_tostring(L, -parameters);
+    path:=lua_tostring(L, 1);
 
   if parameters>1 then
-    params:=lua_tostring(L, (-parameters)+1);
+    params:=lua_tostring(L, 2);
 
   if parameters>2 then
-    debug:=lua_toboolean(L, (-parameters)+2);
+    debug:=lua_toboolean(L, 3);
 
   if parameters>3 then
-    breakonentrypoint:=lua_toboolean(L, (-parameters)+3);
+    breakonentrypoint:=lua_toboolean(L, 4);
 
   if path<>'' then
     ce_createProcess(pchar(path), pchar(params), debug, breakonentrypoint);
