@@ -63,6 +63,7 @@ messageDialog(text, type, buttons...) : pops up a messagebox with a specific ico
 sleep(milliseconds): pauses for the number of specified milliseconds (1000= 1 sec...)
 
 getProcesslist(Strings):6.2: Fills a Strings inherited object with the processlist of the system. Format: %x-pidname
+getThreadList(List):6.2: fills a List object with the threadlist of the currently opened process. Format: %x
 
 
 getOpenedProcessID() : Returns the currently opened process. If none is open, returns 0
@@ -1247,7 +1248,6 @@ d3dhook_createFontMap(font): Returns a d3dhook_fontmap object
 d3dhook_createTextContainer(d3dhook_fontmap, x, y, text): Returns a d3dhook_textContainer object
 
 
-getThreadList(List): fills a List object with the threadlist of the currently opened process. Format: threadid-string)
 
 
 
