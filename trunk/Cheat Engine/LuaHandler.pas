@@ -7713,6 +7713,29 @@ begin
   end;
 end;
 
+
+function getProcessList_lua(L: PLua_state): integer; cdecl;
+var parameters: integer;
+  s: tstrings;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters>=1 then
+  begin
+    s:=lua_touserdata(L,1);
+    lua_pop(L, lua_gettop(l));
+    if (s<>nil) and (s is TStrings) then
+      GetProcessList(s)
+    else
+    begin
+      lua_pushstring(L,'getProcessList: the provided List object is not valid');
+      lua_error(L);
+    end;
+  end
+  else
+    lua_pop(L, lua_gettop(l));
+end;
+
 procedure InitializeLua;
 var s: tstringlist;
   k32: THandle;
@@ -8173,6 +8196,7 @@ begin
     lua_register(LuaVM, 'ansiToUtf8', lua_AnsiToUtf8);
 
     lua_register(LuaVM, 'fullAccess', fullAccess);
+    lua_register(LuaVM, 'getProcessList', getProcessList_lua);
 
 
 
