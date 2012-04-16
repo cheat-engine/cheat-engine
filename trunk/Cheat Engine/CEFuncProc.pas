@@ -113,6 +113,7 @@ function rewritedata(processhandle: thandle; address:ptrUint; buffer: pointer; v
 
 procedure GetProcessList(ProcessList: TListBox; NoPID: boolean=false); overload;
 procedure GetProcessList(ProcessList: TStrings; NoPID: boolean=false); overload;
+procedure GetThreadList(threadlist: TStrings);
 procedure cleanProcessList(processlist: TStrings);
 procedure GetWindowList(ProcessList: TListBox; showInvisible: boolean=true);
 procedure GetModuleList(ModuleList: TStrings; withSystemModules: boolean);
@@ -2356,8 +2357,24 @@ begin
   processlist.clear;
 end;
 
+procedure GetThreadList(threadlist: TStrings);
+var
+  ths: THandle;
+  te32: THREADENTRY32;
+begin
+  threadlist.clear;
+  ths:=CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD,processid);
+  te32.dwSize:=sizeof(te32);
+  if Thread32First(ths,te32) then
+  repeat
+    threadlist.Add(inttohex(te32.th32ThreadID,1));
+  until Thread32next(ths,te32)=false;
+
+  closehandle(ths);
+end;
+
 procedure GetProcessList(ProcessList: TStrings; NoPID: boolean=false);
-Var SNAPHandle: THandle;
+var SNAPHandle: THandle;
     ProcessEntry: PROCESSENTRY32;
     Check: Boolean;
 
