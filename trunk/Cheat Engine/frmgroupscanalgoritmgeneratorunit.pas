@@ -67,6 +67,9 @@ var
 
 implementation
 
+resourcestring
+  rsWildcard='Skip nr of bytes:';
+
 {$R *.lfm}
 
 function TVariableInfo.bytesize: integer;
@@ -89,6 +92,16 @@ begin
         4: result:=8;
         5: result:=4;
         6: result:=8;
+        7: result:=length(edtvalue.text);
+        8: result:=length(edtvalue.text)*2;
+        9:
+        begin
+          try
+            result:=strtoint(edtValue.text);
+          except
+          end;
+        end;
+
       end;
 
     end;
@@ -111,6 +124,7 @@ begin
     6: result:='d:';
     7: result:='s:''';
     8: result:='su:''';
+    9: result:='w:';
     else
     begin
       //custom
@@ -207,6 +221,8 @@ begin
   cbvartype.Items.Add(rs_vtDouble);
   cbvartype.Items.Add(rs_vtString);
   cbvartype.Items.Add(rs_vtUnicodeString);
+  cbvartype.Items.Add(rsWildcard);
+
 
   for i:=0 to customTypes.count-1 do
     cbVartype.items.AddObject(TCustomType(customtypes[i]).name, customtypes[i]);
