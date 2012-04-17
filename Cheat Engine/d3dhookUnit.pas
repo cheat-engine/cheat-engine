@@ -788,7 +788,7 @@ var s: string;
 
 
     m: TMemorystream;
-    charwidth: word; //65535 if the max size of one character (oh noes, but what if I want more? Then you're a retard!)
+    charwidth: word; //65535 if the max size of one character
 
     newblock: pointer;
     x: dword;

@@ -1173,44 +1173,41 @@ d3dhook_onClick(function):
   Note: This can cause a slowdown in the game if there are a lot of sprites and you press the left button a lot
 
 
---]]
-
-
-
-
---[[
-
-
-
-
-
 
 D3DHook_Texture Class (Inheritance: Object)
 This class controls the texture in memory. Without a sprite to use it, it won't show
 
+
+d3dhook_createTexture(filename) : Returns a d3dhook_texture object
+d3dhook_createTexture(picture, transparentColor OPTIONAL): Returns a d3dhook_texture object
+  if the picture is not a transparent image the transparentcolor parameter can be used to make one of it's colors transparent
+
 d3dhook_texture_getHeight(d3dhook_texture)
 d3dhook_texture_getWidth(d3dhook_texture)
 d3dhook_texture_loadTextureByPicture(d3dhook_texture, picture)
-d3dhook_texture_getHeight(d3dhook_texture)
-d3dhook_texture_getWidth(d3dhook_texture)
+
 
 
 D3DHook_FontMap Class (Inheritance: D3DHook_Texture->Object)
 A fontmap is a texture that contains extra data regarding the characters. This class is used by the textcontainer
 Current implementation only supports 96 characters (character 32 to 127)
+
+d3dhook_createFontMap(font): Returns a d3dhook_fontmap object
 d3dhook_fontmap_changeFont(d3dhook_fontmap, font): Changes the fontmap to the selected font
 
 
-D3DHook_RenderObject Class (Inheritance: Object
+D3DHook_RenderObject Class (Inheritance: Object)
 The renderobject is the abstract class used to control in what manner objects are rendered.
 The sprite and TextContainer classed inherit from this
 
-d3dhook_renderobject_getX(d3dhook_renderobject)
-d3dhook_renderobject_setX(d3dhook_renderobject, x)
-d3dhook_renderobject_getY(d3dhook_renderobject)
-d3dhook_renderobject_setY(d3dhook_renderobject, y)
-d3dhook_renderobject_getAlphablend(d3dhook_renderobject)
-d3dhook_renderobject_setAlphablend(d3dhook_renderobject, x)
+
+d3dhook_renderobject_getX(d3dhook_renderobject): Gets the x coordinate of the object. Floating point
+d3dhook_renderobject_setX(d3dhook_renderobject, x): Returns the x coordinate of the object
+d3dhook_renderobject_getY(d3dhook_renderobject): Sets the y coordinate of the object
+d3dhook_renderobject_setY(d3dhook_renderobject, y): Returns the y coordinate of the object
+
+d3dhook_renderobject_getAlphablend(d3dhook_renderobject): Returns the current alphablend value. 1.0 is fully visible and 0.0=invisible
+d3dhook_renderobject_setAlphablend(d3dhook_renderobject, x): Sets the alphablend value.
 d3dhook_renderobject_getVisible(d3dhook_renderobject)
 d3dhook_renderobject_setVisible(d3dhook_renderobject, x)
 d3dhook_renderobject_getZOrder(d3dhook_renderobject)
@@ -1220,38 +1217,23 @@ d3dhook_renderobject_setZOrder(d3dhook_renderobject, x)
 D3DHook_Sprite Class (Inheritance: D3DHook_RenderObject->Object)
 A d3dhook_sprite class is a visible texture on the screen.
 
+d3dhook_createSprite(d3dhook_texture): returns a d3dhook_sprite object
 d3dhook_sprite_getWidth(d3dhook_sprite)
 d3dhook_sprite_setWidth(d3dhook_sprite, width)
 d3dhook_sprite_getHeight(d3dhook_sprite)
 d3dhook_sprite_setHeight(d3dhook_sprite, height)
-d3dhook_sprite_getTexture(d3dhook_sprite)
-d3dhook_sprite_setTexture(d3dhook_sprite, d3dhook_texture)
+d3dhook_sprite_getTexture(d3dhook_sprite): Returns a d3dhook_texture object
+d3dhook_sprite_setTexture(d3dhook_sprite, d3dhook_texture): Sets the texture to render with this sprite (width and height will get reset)
+
 
 D3Dhook_TextContainer Class (Inheritance: D3DHook_RenderObject->Object)
 A d3dhook_sprite class draws a piece of text on the screen based on the used fontmap.
 While you could use a texture with the text, updating a texture in memory is slow. So if you wish to do a lot of text updates, use a textcontainer
 
+
+d3dhook_createTextContainer(d3dhook_fontmap, x, y, text): Returns a d3dhook_textContainer object
 d3dhook_textcontainer_getFontMap(d3dhook_textcontainer)
 d3dhook_textcontainer_setFontMap(d3dhook_textcontainer, d3dhook_fontmap)
 d3dhook_textcontainer_getText(d3dhook_textcontainer)
 d3dhook_textcontainer_setText(d3dhook_textcontainer, string)
-
-
-
-d3dhook_createTexture(filename) : Returns a d3dhook_texture object
-d3dhook_createTexture(picture, hasTransparency OPTIONAL, transparentColor OPTIONAL): Returns a d3dhook_texture object
-  if the picture is not a transparent image the transparentcolor parameter can be used to make it transparent
-
-
-d3dhook_createSprite(d3dhook_texture): returns a d3dhook_sprite object
-d3dhook_createFontMap(font): Returns a d3dhook_fontmap object
-d3dhook_createTextContainer(d3dhook_fontmap, x, y, text): Returns a d3dhook_textContainer object
-
-
-
-
-
-
-
-
 --]]
