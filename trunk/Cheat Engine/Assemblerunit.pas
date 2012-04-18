@@ -4886,6 +4886,19 @@ begin
           exit;
         end;
       end;
+
+      if (opcodes[j].paramtype2=par_mm) and (paramtype2=ttRegistermm) then
+      begin
+        //r32/m32,mm,
+        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+        begin
+          //r32/m32,mm
+          addopcode(bytes,j);
+          result:=createmodrm(bytes,getreg(parameter2), parameter1);
+
+        end;
+
+      end;
     end;
 
     if (opcodes[j].paramtype1=par_mm) and (paramtype1=ttRegistermm) then

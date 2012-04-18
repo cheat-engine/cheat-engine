@@ -3510,16 +3510,36 @@ begin
                         else
                         if $66 in prefix2 then
                         begin
-                          description:='move 32 bits';
-                          lastdisassembledata.opcode:='movd';
-                          lastdisassembledata.parameters:=modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
+                          if Rex_W then
+                          begin
+                            description:='move 64 bits';
+                            lastdisassembledata.opcode:='movq';
+                          end
+                          else
+                          begin
+                            description:='move 32 bits';
+                            lastdisassembledata.opcode:='movd';
+                          end;
+
+
+                          lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last)+xmm(memory[2]);  //r32/rm32,xmm
                           inc(offset,last-1);
                         end
                         else
                         begin
-                          description:='move 32 bits';
-                          lastdisassembledata.opcode:='movd';
-                          lastdisassembledata.parameters:=modrm(memory,prefix2,2,3,last)+mm(memory[2]);
+                          if Rex_W then
+                          begin
+                            description:='move 64 bits';
+                            lastdisassembledata.opcode:='movq';
+                          end
+                          else
+                          begin
+                            description:='move 32 bits';
+                            lastdisassembledata.opcode:='movd';
+                          end;
+
+
+                          lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last)+mm(memory[2]); //r32/rm32,mm
                           inc(offset,last-1);
                         end;
                       end;
