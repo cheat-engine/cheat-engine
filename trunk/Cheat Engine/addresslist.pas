@@ -1257,7 +1257,7 @@ begin
   CurrentlyDraggedOverAfter:=false;
 
 
-  if (CurrentlyDraggedOverNode<>nil) and (TMemoryRecord(CurrentlyDraggedOverNode.data).isGroupHeader=false) then //if something focused AND not a groupheader
+  if (CurrentlyDraggedOverNode<>nil) then //if something focused AND not a groupheader
   begin
 
     t:=treeview.ScrolledTop+y;
