@@ -5,7 +5,7 @@ unit main;
 interface
 
 {$ifndef cpu32}
-{$error The xmplayer can ONLY be used in 32-bit}
+{$error The xmplayer can ONLY be compiled for 32-bit}
 {$endif}
 
 uses
@@ -30,8 +30,9 @@ end;
 procedure HandleLoadFileCommand;
 var size: integer;
   x: dword;
+  extraparameter: byte;
 begin
-  if readfile(pipe, size, 4, x,nil) then
+  if readfile(pipe, size, 4, x,nil) then //get the size of the xmfile in memory
   begin
     uFMOD_StopSong;
 
@@ -39,8 +40,14 @@ begin
       freemem(currentsong);
 
     getmem(currentsong, size);
-    if readfile(pipe, currentsong^, size, x,nil) then
-      uFMOD_PlaySong(currentsong, size, XM_MEMORY);
+    if readfile(pipe, currentsong^, size, x,nil) then    //load the file
+    begin
+      //load the extra parameter
+      if readfile(pipe, extraparameter, 1,x, nil) then    //could be noloop and/or suspended (usually 0)
+      begin
+        uFMOD_PlaySong(currentsong, size, XM_MEMORY or extraparameter);
+      end;
+    end;
   end;
 end;
 

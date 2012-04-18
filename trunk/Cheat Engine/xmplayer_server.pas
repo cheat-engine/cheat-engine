@@ -18,8 +18,8 @@ type TXMPlayer=class
     audiopipe: THandle;
   public
     constructor create;
-    procedure playXM(filename: string); overload;
-    procedure playXM(stream: TStream); overload;
+    procedure playXM(filename: string; noloop: boolean=false); overload;
+    procedure playXM(stream: TStream; noloop: boolean=false); overload;
     procedure pause;
     procedure resume;
     procedure stop;
@@ -63,19 +63,20 @@ begin
 
 end;
 
-procedure TXMPlayer.playXM(filename: string);
+procedure TXMPlayer.playXM(filename: string; noloop: boolean);
 var f: Tfilestream;
 begin
   f:=TFilestream.create(filename, fmOpenRead or fmShareDenyNone);
-  playXM(f);
+  playXM(f, noloop);
   f.free;
 end;
 
-procedure TXMPlayer.playXM(stream: TStream);
+procedure TXMPlayer.playXM(stream: TStream; noloop: boolean=false);
 var buf: TMemorystream;
   command: byte;
   size: integer;
   w: dword;
+  extraparam: byte;
 begin
   stream.Position:=0;
   buf:=TMemorystream.create;
@@ -89,6 +90,12 @@ begin
   //data
   buf.CopyFrom(stream, stream.size);
   //send buffer to the audiopipe
+
+  extraparam:=0;
+  if noloop then
+    extraparam:=extraparam or 8; //no_loop
+
+  buf.WriteBuffer(extraparam, 1);
 
   WriteFile(audiopipe, buf.memory^, buf.size, w, nil);
 
