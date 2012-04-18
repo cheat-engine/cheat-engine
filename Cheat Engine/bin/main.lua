@@ -729,8 +729,9 @@ tablefile_getData(tablefile, filename) : Gets a MemoryStream object
 
 findTableFile(filename): Returns the TableFile class object for the saved file
 
-xmplayer_playXM(filename)
-xmplayer_playXM(Stream)
+xmplayer_playXM(filename, OPTIONAL noloop)
+xmplayer_playXM(tablefile, OPTIONAL noloop)
+xmplayer_playXM(Stream, OPTIONAL noloop)
 xmplayer_pause()
 xmplayer_resume()
 xmplayer_stop()

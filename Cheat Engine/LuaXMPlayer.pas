@@ -18,27 +18,33 @@ var parameters: integer;
   i: integer;
   o: TObject;
   s: TStream;
+  noloop: boolean;
 begin
   if xmplayer=nil then
     xmplayer:=TXMPlayer.create;
 
   result:=0;
   parameters:=lua_gettop(L);
-  if (xmplayer<>nil) and (parameters=1) then
+  if (xmplayer<>nil) and (parameters>=1) then
   begin
-    if lua_islightuserdata(L,-1) then //Object, if the given object is a LuaFile, get the stream. If it's a stream, use it as it is
+    if parameters>=2 then
+      noloop:=lua_toboolean(L,2)
+    else
+      noloop:=false;
+
+    if lua_islightuserdata(L,1) then //Object, if the given object is a LuaFile, get the stream. If it's a stream, use it as it is
     begin
-      o:=lua_touserdata(L,-1);
+      o:=lua_touserdata(L,1);
       if o is TStream then
         s:=TStream(o)
       else
       if o is TLuafile then
         s:=TLuafile(o).stream;
 
-      xmplayer.playXM(s)
+      xmplayer.playXM(s, noloop)
     end
     else
-      xmplayer.playXM(Lua_ToString(L,-1))
+      xmplayer.playXM(Lua_ToString(L,1), noloop)
   end;
 
   lua_pop(L, lua_gettop(L));
