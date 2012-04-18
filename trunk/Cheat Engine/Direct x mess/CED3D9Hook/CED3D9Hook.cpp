@@ -49,7 +49,7 @@ Pre: Sprite must be active
 		charactertexture.left=(LONG)offset;
 		charactertexture.top=0;
 		charactertexture.bottom=(LONG)fGlyphSizeY;
-		charactertexture.right=(LONG)offset+width;	
+		charactertexture.right=(LONG)(offset+width);	
 
 		D3DXMatrixTransformation(&m, NULL, NULL, &scale, NULL, NULL, &currentpos);						
 		sprite->SetTransform(&m);					
@@ -153,8 +153,8 @@ BOOL DXMessD3D9Handler::UpdateTextures()
 					D3DSURFACE_DESC d;
 					textures[i].pTexture->GetLevelDesc(0, &d);
 
-					textures[i].width=imageinfo.Width;
-					textures[i].height=imageinfo.Height;				
+					textures[i].width=(float)imageinfo.Width;
+					textures[i].height=(float)imageinfo.Height;				
 					
 
 					if (tea[i].AddressOfFontmap)
@@ -215,6 +215,12 @@ void DXMessD3D9Handler::RenderOverlay()
 {	
 	int i;
 	HRESULT hr;
+	D3DVIEWPORT9 vp;
+	POINT clientMousepos;
+	vp.Width=0;
+	clientMousepos.x=-1;
+	clientMousepos.y=-1;
+
 
 	if (sprite)
 	{
@@ -266,6 +272,7 @@ void DXMessD3D9Handler::RenderOverlay()
 
 							if ((tid<TextureCount) && (textures[tid].pTexture))
 							{
+
 								//render a sprite
 
 								//set the dimensions
@@ -276,45 +283,66 @@ void DXMessD3D9Handler::RenderOverlay()
 								
 
 								//set the position
-								if ((shared->RenderCommands[i].x==-1) && (shared->RenderCommands[i].y==-1))
+								
+								//set x
+								if (shared->RenderCommands[i].x==-2)
 								{
-									//Center of the screen
-									D3DVIEWPORT9 vp;
-									dev->GetViewport(&vp);
-									
+									//mouse position
+									if (clientMousepos.x==-1)
+									{
+										//get the mouse position
+										GetCursorPos(&clientMousepos);
+										ScreenToClient((HWND)shared->lastHwnd, &clientMousepos);	
+									}
+
+									//set x to the x position of the mouse (center is origin)
+									position.x=(float)clientMousepos.x-((float)shared->RenderCommands[i].sprite.width / 2.0f);  //make the center of the texture the position of the mouse (to add crosshairs, and normal mousecursors just have to keep that in mind so only render in the bottom left quadrant
+								}
+								else
+								if (shared->RenderCommands[i].x==-1) //center
+								{
+									if (!vp.Width)									
+										dev->GetViewport(&vp);
+
 									position.x=((float)vp.Width / 2.0f) - ((float)shared->RenderCommands[i].sprite.width / 2.0f);
+								}
+								else
+									position.x=shared->RenderCommands[i].x;
+
+
+
+								//set y
+								if (shared->RenderCommands[i].y==-2)
+								{
+									//set to the position of the mouse (center is origin)
+								
+									if (clientMousepos.x==-1)
+									{
+										//get the mouse position
+										GetCursorPos(&clientMousepos);
+										ScreenToClient((HWND)shared->lastHwnd, &clientMousepos);										
+									}									
+									position.y=(float)clientMousepos.y-((float)shared->RenderCommands[i].sprite.height / 2.0f);		
+								}
+								else
+								if (shared->RenderCommands[i].y==-2)
+								{
+									if (!vp.Width)									
+										dev->GetViewport(&vp);
+
 									position.y=((float)vp.Height / 2.0f) - ((float)shared->RenderCommands[i].sprite.height / 2.0f);
 								}
 								else
-								if ((shared->RenderCommands[i].x==-2) && (shared->RenderCommands[i].y==-2))
-								{
-									//set to the position of the mouse (center is origin)
-									
-									POINT p;	
-
-									p.x=0;
-									p.y=0;
-
-									GetCursorPos(&p);
-									ScreenToClient((HWND)shared->lastHwnd, &p);			
-									position.x=(float)p.x-((float)shared->RenderCommands[i].sprite.width / 2.0f);  //make the center of the texture the position of the mouse (to add crosshairs, and normal mousecursors just have to keep that in mind so only render in the bottom left quadrant
-									position.y=(float)p.y-((float)shared->RenderCommands[i].sprite.height / 2.0f);								
-									
-								}
-								else
-								{
-									position.x=(float)shared->RenderCommands[i].x;
 									position.y=(float)shared->RenderCommands[i].y;	
 									
-								}
 								position.z=0.0f;
 
 								RECT texturepos;
 
 								texturepos.left=0;
 								texturepos.top=0;
-								texturepos.bottom=textures[tid].height;  //shared->RenderCommands[i].sprite.height;
-								texturepos.right=textures[tid].width; //shared->RenderCommands[i].sprite.width;
+								texturepos.bottom=(LONG)textures[tid].height;  //shared->RenderCommands[i].sprite.height;
+								texturepos.right=(LONG)textures[tid].width; //shared->RenderCommands[i].sprite.width;
 
 
 								D3DXMatrixTransformation(&m, NULL, NULL, &scale, NULL, NULL, &position);						
@@ -397,10 +425,75 @@ void DXMessD3D9Handler::RenderOverlay()
 	
 }
 
+
+/*
+
+typedef ULONG (__stdcall *RELEASE)(IUnknown *self);
+typedef ULONG (__stdcall *ADDREF)(IUnknown *self);
+
+
+int careAboutRefcount=1;
+ADDREF origAddRef;
+RELEASE origRelease;
+
+
+ULONG __stdcall d3d9devAddRef(IUnknown *self)
+{
+	int i=0;
+	if (insidehook==0)
+	{
+		i=origAddRef(self);
+	}
+		
+	return i;
+}
+
+ULONG __stdcall d3d9devRelease(IUnknown *self)
+{
+	int i;
+	if (insidehook)
+		return 1;
+
+	origAddRef(self);
+	i=origRelease(self);
+
+	if (i==1)
+	{
+		//free the DXMess handler
+		MessageBoxA(0,"Going to free the handler","FREE Device", MB_OK);		
+	}
+
+	i=origRelease(self);		
+	return 0; //i;
+}
+*/
+
 DXMessD3D9Handler::DXMessD3D9Handler(IDirect3DDevice9 *dev, PD3DHookShared shared)
 {
 	HRESULT hr;
 	sprite=NULL;
+
+	
+	//Failed experiment. For some reason a[1] and a[2] get restored to their original address (which is the main reason why I use the deep hook method)
+	//If it is important, I can add Release and AddRef to the hooklist at a later date
+	/*
+	if (careAboutRefcount)
+	{
+		DWORD old;
+		//hook AddRef and Release for this object
+		uintptr_t *a=(uintptr_t *)*(uintptr_t *)dev;
+		VirtualProtect(dev, 8, PAGE_EXECUTE_READWRITE, &old);
+		
+		
+
+		origAddRef=(ADDREF)a[1];
+		origRelease=(RELEASE)a[2];
+		a[1]=(uintptr_t)&d3d9devAddRef;
+		a[2]=(uintptr_t)&d3d9devRelease;
+		VirtualProtect(dev, 8, old, &old);
+	}
+	*/
+
 
 	dev->AddRef();
 
@@ -425,9 +518,8 @@ DXMessD3D9Handler::~DXMessD3D9Handler()
 }
 	
 void __stdcall D3D9Hook_Present_imp(IDirect3DDevice9 *device, PD3DHookShared s)
-{
-
-	
+{	
+	insidehook=1;
 	DXMessD3D9Handler *currenthandler=D3D9devices[device];
 	if (currenthandler==NULL)
 	{
@@ -435,7 +527,7 @@ void __stdcall D3D9Hook_Present_imp(IDirect3DDevice9 *device, PD3DHookShared s)
 		D3D9devices[device]=currenthandler;
 		shared=s;
 	}
-	insidehook=1;
+	
 	currenthandler->RenderOverlay();	
 	insidehook=0;
 }

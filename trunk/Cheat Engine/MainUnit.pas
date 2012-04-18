@@ -180,6 +180,7 @@ type
   { TMainForm }
 
   TMainForm = class(TForm)
+    actOpenLuaEngine: TAction;
     actOpenDissectStructure: TAction;
     cbCopyOnWrite: TCheckBox;
     cbExecutable: TCheckBox;
@@ -388,6 +389,7 @@ type
     Label61: TLabel;
     actOpenProcesslist: TAction;
     procedure actOpenDissectStructureExecute(Sender: TObject);
+    procedure actOpenLuaEngineExecute(Sender: TObject);
     procedure Address1Click(Sender: TObject);
     procedure cbFastScanChange(Sender: TObject);
     procedure Description1Click(Sender: TObject);
@@ -2572,6 +2574,11 @@ begin
       show;
     end;
   end;
+end;
+
+procedure TMainForm.actOpenLuaEngineExecute(Sender: TObject);
+begin
+  MemoryBrowser.miLuaEngine.Click;
 end;
 
 procedure TMainForm.cbFastScanChange(Sender: TObject);
