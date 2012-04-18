@@ -662,7 +662,11 @@ void DXMessD3D10Handler::RenderOverlay()
 	if (Valid)
 	{
 		//render the overlay
+		POINT clientMousepos;
 		BOOL hasLock=FALSE;
+
+		clientMousepos.x=-1;
+		clientMousepos.y=-1;
 
 		//check if the overlay has an update
 		//if so, first update the texture		
@@ -814,33 +818,46 @@ void DXMessD3D10Handler::RenderOverlay()
 						dev->PSSetSamplers( 0, 1, &pSamplerLinear );						
 						dev->PSSetShaderResources( 0, 1, &textures[shared->RenderCommands[i].sprite.textureid].pTexture );
 
-						if ((shared->RenderCommands[i].x==-1) && (shared->RenderCommands[i].y==-1))
+						if (shared->RenderCommands[i].x==-1) //center	
 						{
-							//Center of the screen						
-							position.x=((float)vp.Width / 2.0f) - ((float)shared->RenderCommands[i].sprite.width / 2.0f);
+							position.x=((float)vp.Width / 2.0f) - ((float)shared->RenderCommands[i].sprite.width / 2.0f);						
+						}
+						else
+						if (shared->RenderCommands[i].x==-2) //mouse
+						{
+							if (clientMousepos.x==-1)
+							{
+								//get the mouse position
+								GetCursorPos(&clientMousepos);
+								ScreenToClient((HWND)shared->lastHwnd, &clientMousepos);	
+							}
+
+							position.x=(float)clientMousepos.x-((float)shared->RenderCommands[i].sprite.width / 2.0f); 
+						}
+						else
+							position.x=(float)shared->RenderCommands[i].x;
+
+
+						if (shared->RenderCommands[i].y==-1) //center
+						{
 							position.y=((float)vp.Height / 2.0f) - ((float)shared->RenderCommands[i].sprite.height / 2.0f);
 						}
 						else
-						if ((shared->RenderCommands[i].x==-2) && (shared->RenderCommands[i].y==-2))
+						if (shared->RenderCommands[i].y==-2) //mouse
 						{
-							//set to the position of the mouse (center is origin)
-							
-							POINT p;	
+							if (clientMousepos.y==-1)
+							{
+								//get the mouse position
+								GetCursorPos(&clientMousepos);
+								ScreenToClient((HWND)shared->lastHwnd, &clientMousepos);	
+							}
+							position.y=(float)clientMousepos.y-((float)shared->RenderCommands[i].sprite.height / 2.0f);	
 
-							p.x=0;
-							p.y=0;
-
-							GetCursorPos(&p);
-							ScreenToClient((HWND)shared->lastHwnd, &p);			
-							position.x=(float)p.x-((float)shared->RenderCommands[i].sprite.width / 2.0f);  //make the center of the texture the position of the mouse (to add crosshairs, and normal mousecursors just have to keep that in mind so only render in the bottom left quadrant
-							position.y=(float)p.y-((float)shared->RenderCommands[i].sprite.height / 2.0f);								
-							
 						}
 						else
-						{
-							position.x=(float)shared->RenderCommands[i].x;
-							position.y=(float)shared->RenderCommands[i].y;								
-						}			
+							position.y=(float)shared->RenderCommands[i].y;
+
+
 			
 						ConstantBuffer cb;					
 						cb.transparency=shared->RenderCommands[i].alphablend;

@@ -1735,6 +1735,11 @@ object MainForm: TMainForm
       OnExecute = actOpenDissectStructureExecute
       ShortCut = 16452
     end
+    object actOpenLuaEngine: TAction
+      Caption = 'actOpenLuaEngine'
+      OnExecute = actOpenLuaEngineExecute
+      ShortCut = 57420
+    end
   end
   object UpdateFoundlisttimer: TTimer
     Interval = 500
