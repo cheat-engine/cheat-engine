@@ -41,6 +41,9 @@ Pre: Sprite must be active
 
 			continue;
 		}
+		else
+		if ((s[i] < 32) || (s[i] > 127))
+			continue;//invalid char
 
 		float offset=pFontTexture->DefinedFontMap->charinfo[s[i]-32].offset;
 		float width=pFontTexture->DefinedFontMap->charinfo[s[i]-32].charwidth;
