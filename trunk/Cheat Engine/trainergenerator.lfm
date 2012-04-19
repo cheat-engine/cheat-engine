@@ -1,11 +1,11 @@
 object frmTrainerGenerator: TfrmTrainerGenerator
-  Left = 1212
-  Height = 310
-  Top = 577
-  Width = 692
+  Left = 677
+  Height = 336
+  Top = 251
+  Width = 696
   Caption = 'Trainer generator'
-  ClientHeight = 310
-  ClientWidth = 692
+  ClientHeight = 336
+  ClientWidth = 696
   Constraints.MinHeight = 310
   Constraints.MinWidth = 690
   OnClose = FormClose
@@ -14,13 +14,13 @@ object frmTrainerGenerator: TfrmTrainerGenerator
   Position = poScreenCenter
   LCLVersion = '0.9.31'
   object Panel1: TPanel
-    Left = 190
-    Height = 310
+    Left = 194
+    Height = 336
     Top = 0
     Width = 502
     Align = alRight
     BevelOuter = bvNone
-    ClientHeight = 310
+    ClientHeight = 336
     ClientWidth = 502
     TabOrder = 0
     object comboProcesslist: TComboBox
@@ -294,22 +294,32 @@ object frmTrainerGenerator: TfrmTrainerGenerator
       TabOrder = 16
       Text = 'EXE'
     end
+    object Label6: TLabel
+      Left = 0
+      Height = 31
+      Top = 305
+      Width = 502
+      Align = alBottom
+      Caption = 'Tip: The trainer generator is a tool for beginners. It is recommended to learn lua and the formdesigner and save as .exe manually to experience the full power of a Cheat Engine trainer'
+      ParentColor = False
+      WordWrap = True
+    end
   end
   object Panel2: TPanel
     Left = 0
-    Height = 310
+    Height = 336
     Top = 0
-    Width = 190
+    Width = 194
     Align = alClient
-    ClientHeight = 310
-    ClientWidth = 190
+    ClientHeight = 336
+    ClientWidth = 194
     TabOrder = 1
     OnResize = Panel2Resize
     object lvCheats: TListView
       Left = 1
-      Height = 275
+      Height = 301
       Top = 1
-      Width = 162
+      Width = 166
       Align = alClient
       Columns = <      
         item
@@ -330,11 +340,11 @@ object frmTrainerGenerator: TfrmTrainerGenerator
     object Panel3: TPanel
       Left = 1
       Height = 33
-      Top = 276
-      Width = 188
+      Top = 302
+      Width = 192
       Align = alBottom
       ClientHeight = 33
-      ClientWidth = 188
+      ClientWidth = 192
       TabOrder = 1
       object btnDelete: TButton
         Left = 3
@@ -359,19 +369,19 @@ object frmTrainerGenerator: TfrmTrainerGenerator
       end
     end
     object Panel4: TPanel
-      Left = 163
-      Height = 275
+      Left = 167
+      Height = 301
       Top = 1
       Width = 26
       Align = alRight
       BevelOuter = bvNone
-      ClientHeight = 275
+      ClientHeight = 301
       ClientWidth = 26
       TabOrder = 2
       object spbDown: TSpeedButton
         Left = 0
         Height = 27
-        Top = 249
+        Top = 275
         Width = 21
         Anchors = [akLeft, akBottom]
         Enabled = False
@@ -395,7 +405,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
       object spbUp: TSpeedButton
         Left = 0
         Height = 28
-        Top = 220
+        Top = 246
         Width = 21
         Anchors = [akLeft, akBottom]
         Enabled = False
@@ -470,8 +480,8 @@ object frmTrainerGenerator: TfrmTrainerGenerator
     end
   end
   object PopupMenu2: TPopupMenu
-    left = 400
-    top = 248
+    left = 288
+    top = 264
     object MenuItem2: TMenuItem
       Caption = 'Only generate the script'
       OnClick = MenuItem2Click

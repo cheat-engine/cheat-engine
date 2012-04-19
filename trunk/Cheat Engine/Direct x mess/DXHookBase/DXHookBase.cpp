@@ -391,14 +391,16 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				{
 					//check if the console keys is pressed
 					if (wParam==shared->console.consolekey)
-					{
+					{						
+						//tell ce to create a console background sprite, a cursor, a fontmap and a textcontainer
+
+						//make the console entries visible
+
+						shared->console.lastmessage.uMsg=0xffffffff; //special identifier to show the console stuff
+						SetEvent(hasKeyboardEvent);
+						WaitForSingleObject(handledKeyboardEvent, 2000); //wait for ce finish this (so the next frame rendered has the console)
+
 						shared->console.consolevisible=1;
-						/*
-						shared->resources[shared->console.overlayid].valid=1;
-						shared->resources[shared->console.cursorid].valid=1;
-						
-						shared->OverLayHasUpdate=1;		
-						*/
 					}
 				}
 				else
@@ -410,6 +412,10 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 						shared->resources[shared->console.cursorid].valid=0;
 						shared->OverLayHasUpdate=1;						
 						*/
+						shared->console.lastmessage.uMsg=0xfffffffe; //special identifier to hide the console stuff
+
+						SetEvent(hasKeyboardEvent);
+						WaitForSingleObject(handledKeyboardEvent, 2000); 
 						shared->console.consolevisible=0;
 						
 					}
@@ -423,11 +429,13 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 						shared->console.lastmessage.lParam=lParam;
 
 						GetKeyboardState(keyboardstate);
-						shared->console.lastmessage.character=0;
+						shared->console.lastmessage.character=0;						
 						ToAscii(wParam, (lParam >> 16) & 0xff, keyboardstate, (LPWORD)&shared->console.lastmessage.character,0);
 
+						
 						SetEvent(hasKeyboardEvent);
 						WaitForSingleObject(handledKeyboardEvent, 10000);
+						
 
 
 						return DefWindowProcA(hwnd, uMsg, wParam, lParam); //no handling 
@@ -435,8 +443,7 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					else OutputDebugStringA("Keyboard event handler events are not present");
 				}				
 			}
-
-			
+		
 			
 			break;
 		
@@ -498,7 +505,7 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				x=shared->RenderCommands[i].x;
 				y=shared->RenderCommands[i].y;
 
-				if ((x==-2) || (y==-1))
+				if ((x==-2) || (y==-2))
 					continue; //mouse objects are not clickable
 
 				if ((x==-1) || (y==-1)) //the client rect is required

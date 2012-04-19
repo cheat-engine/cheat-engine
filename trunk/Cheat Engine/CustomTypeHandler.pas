@@ -8,7 +8,7 @@ This class is used as a wrapper for different kinds of custom types
 interface
 
 uses
-  windows, Classes, SysUtils,cefuncproc, autoassembler, lua, lauxlib, lualib, luahandler;
+  {windows, }Classes, SysUtils,cefuncproc, autoassembler, lua, lauxlib, lualib, luahandler;
 
 type TConversionRoutine=function(data: pointer):integer; stdcall;
 type TReverseConversionRoutine=procedure(i: integer; output: pointer); stdcall;
@@ -502,7 +502,7 @@ begin
               newpreferedalignment:=pinteger(c[i].address)^;
 
             if uppercase(c[i].varname)='USESFLOAT' then
-              newScriptUsesFloat:=PBOOL(c[i].address)^;
+              newScriptUsesFloat:=pbyte(c[i].address)^<>0;
 
             if uppercase(c[i].varname)='CONVERTBACKROUTINE' then
               newreverseroutine:=pointer(c[i].address);

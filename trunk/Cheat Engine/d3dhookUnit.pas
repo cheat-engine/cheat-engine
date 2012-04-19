@@ -181,6 +181,10 @@ type
   TD3DClickEvent=procedure(renderobject: TObject; x,y: integer) of object;
 
   TD3DHook=class;
+  TD3DHook_Texture=class;
+  TD3DHook_Sprite=class;
+  TD3DHook_Fontmap=class;
+  TD3DHook_TextContainer=class;
 
   TD3DMessageHandler=class(tthread)
   private
@@ -189,9 +193,22 @@ type
 
     lastmessage: TCEMessage;
 
-    consolelog: Tstringlist;
-    consolecursorpos: integer;
-    consolecommand: string;
+
+
+    console: record
+      log: Tstringlist;
+      cursorpos: integer;
+
+      backgroundtexture: TD3DHook_Texture;
+      background: TD3DHook_Sprite;
+      cursortexture: TD3DHook_Texture;
+      cursor: TD3DHook_sprite;
+      seperator: TD3dhook_sprite; //horizontal line splitting commandline from output
+      fontmap: TD3DHook_Fontmap;
+      output: TD3DHook_textcontainer; //history/output
+      commandline: TD3DHook_TextContainer; //commandline
+    end;
+    procedure setConsoleCursorPos;
 
 
     procedure doclick;
@@ -228,7 +245,9 @@ type
   TD3DHook_FontMap=class(TD3DHook_Texture)
   private
     fontmapdata: ptruint;
+    localfontmapcopy: TMemorystream; //used by calculateFontwidth
   public
+    function calculateFontWidth(s:string): integer;
     procedure ChangeFont(font: TFont);
     constructor Create(owner: TD3DHook; font: TFont);
     destructor destroy; override;
@@ -282,7 +301,7 @@ type
 
 
     destructor destroy; override;
-    constructor create(owner: TD3DHook; fontmap: TD3DHook_FontMap; x,y: single; text: string);
+    constructor create(owner: TD3DHook; fontmap: TD3DHook_FontMap; x,y: single; text: string; minsize: integer=0);
   published
     property FontMap: TD3DHook_FontMap read fFontMap write setFontMap;
     property Text: String read fText write setText;
@@ -343,10 +362,7 @@ type
 
     messagehandler: TD3DMessageHandler;
 
-    consoleCursorId: integer;
-    consoleOverlayid: integer;
-    consoleImage: TPicture;
-    consoleCursorImage: TPicture;
+
 
     memman: TRemoteMemoryManager;
 
@@ -397,7 +413,20 @@ function safed3dhook(size: integer=16*1024*1024; hookwindow: boolean=true): TD3D
 
 implementation
 
-uses frmautoinjectunit, autoassembler;
+uses frmautoinjectunit, autoassembler, MainUnit;
+
+procedure TD3DMessageHandler.setConsoleCursorPos;
+var s: string;
+begin
+  if console.cursor<>nil then
+  begin
+    console.cursor.y:=console.commandline.y;
+
+    s:=copy(console.commandline.Text,1, console.cursorpos);
+
+    console.cursor.x:=console.fontmap.calculateFontWidth(s);
+  end;
+end;
 
 procedure TD3DMessageHandler.dokeyboard;
 var virtualkey: dword;
@@ -406,85 +435,191 @@ var virtualkey: dword;
     c,c2: string;
     s: pchar;
     old: tstrings;
+    p: tpicture;
+    f: tfont;
+    maxlines: integer;
+    currentlines: integer;
+    i: integer;
+    l: string;
 begin
   //check the size of the window. If it's changed, reinitialize the consoleoverlay
-  owner.ReinitializeConsoleIfNeeded;
+
+  //just create or show the console
+  if console.background=nil then
+  begin
+    owner.beginTextureUpdate;
+
+    try
+      p:=tpicture.Create;
+      p.png.canvas.brush.color:=clBlack;
+      p.png.width:=1;
+      p.png.height:=1;
+
+      console.backgroundtexture:=TD3DHook_Texture.Create(owner, p);
+      p.free;
+
+      console.background:=TD3DHook_Sprite.create(owner, console.backgroundtexture);
+
+
+      console.background.width:=owner.getWidth;
+      console.background.height:=owner.getHeight div 2;
+      console.background.x:=0;
+      console.background.y:=owner.getHeight div 2;
+      console.background.alphaBlend:=0.80;
+
+      p:=tpicture.Create;
+      p.png.canvas.brush.color:=clWhite;
+      p.png.width:=1;
+      p.png.height:=1;
+      p.png.Canvas.Pixels[0,0]:=clWhite;
+      console.cursortexture:=TD3DHook_Texture.Create(owner, p);
+      p.free;
+
+      console.cursor:=TD3DHook_sprite.create(owner, console.cursortexture);
+
+
+      f:=tfont.create;
+      f.Assign(mainform.Font);
+      f.color:=clWhite;
+      f.Size:=f.size*2;
+
+      console.fontmap:=TD3DHook_FontMap.Create(owner, f);
+      console.commandline:=TD3Dhook_TextContainer.create(owner, console.fontmap, 0, owner.getHeight-console.fontmap.height,'',256);
+
+      console.seperator:=TD3DHook_sprite.create(owner, console.cursortexture); //same color
+      console.seperator.x:=0;
+      console.seperator.y:=owner.getHeight-console.fontmap.height;
+      console.seperator.height:=1;
+      console.seperator.width:=owner.getWidth;
+
+
+      console.output:=TD3Dhook_TextContainer.create(owner, console.fontmap, 0, owner.getHeight div 2,'',8192);
+
+
+      console.cursor.width:=3;
+      console.cursor.height:=console.fontmap.height;
+      //
+    finally
+      owner.endTextureUpdate;
+    end;
+  end;
+
+
+  setConsoleCursorPos;
+
+  if lastmessage.uMsg=$ffffffff then
+  begin
+    console.background.visible:=true;
+    console.seperator.visible:=true;
+    console.cursor.visible:=true;
+    console.output.visible:=true;
+    console.commandline.visible:=true;
+    exit; //nothing else to do
+  end;
+
+  if lastmessage.uMsg=$fffffffe then
+  begin
+    console.background.visible:=false;
+    console.seperator.visible:=false;
+    console.cursor.visible:=false;
+    console.output.visible:=false;
+    console.commandline.visible:=false;
+    exit;
+  end;
+
 
   //handle the key
-  virtualkey:=owner.shared.console.lastmessage.wParam;
-  scancode:=(owner.shared.console.lastmessage.lparam shr 16) and $FF;
+  virtualkey:=lastmessage.wParam;
+  scancode:=(lastmessage.lparam shr 16) and $FF;
 
+  owner.beginTextureUpdate;
 
   //handle keys like delete, backspace, etc...
   case virtualkey of
     VK_RETURN:
     begin
       //execute the command
-      consolelog.add(consolecommand);
+      console.log.add(console.commandline.Text);
 
       LuaCS.enter;
       old:=lua_oldprintoutput;
-      lua_setPrintOutput(consolelog);
-      lua_dostring(LuaVM, pchar(consolecommand));
+      lua_setPrintOutput(console.log);
+      lua_dostring(LuaVM, pchar(console.commandline.Text));
       lua_setPrintOutput(old);
       luacs.Leave;
 
-      consolecommand:='';
-      consolecursorpos:=0;
+      //calculate the max number of lines
+      maxlines:=trunc((console.seperator.y-console.background.y) / console.output.FontMap.height);
+      currentlines:=0;
+      l:='';
+      for i:=max(0, console.log.Count-maxlines) to console.log.Count-1 do
+      begin
+        l:=l+console.log[i]+#13#10;
+
+        inc(currentlines);
+        if (currentlines>=maxlines) then break;
+      end;
+
+
+      console.output.y:=console.seperator.y-(currentlines*console.output.FontMap.height);
+      console.output.Text:=l;
+
+      console.commandline.Text:='';
+      console.cursorpos:=0;
     end;
     VK_LEFT:
     begin
-      if consolecursorpos>0 then
-        dec(consolecursorpos);
+      if console.cursorpos>0 then
+        dec(console.cursorpos);
     end;
 
     VK_RIGHT:
     begin
-      if consolecursorpos<length(consolecommand) then
-        inc(consolecursorpos);
+      if console.cursorpos<length(console.commandline.Text) then
+        inc(console.cursorpos);
     end;
     VK_BACK:
     begin
       //delete the character before the cursorpos
-      if consolecursorpos>0 then
+      if console.cursorpos>0 then
       begin
-        c:=copy(consolecommand, 1, consolecursorpos-1);
-        c2:=copy(consolecommand, consolecursorpos+1, length(consolecommand));
-        consolecommand:=c+c2;
-        dec(consolecursorpos);
+        c:=copy(console.commandline.text, 1, console.cursorpos-1);
+        c2:=copy(console.commandline.text, console.cursorpos+1, length(console.commandline.Text));
+        console.commandline.text:=c+c2;
+        dec(console.cursorpos);
       end;
     end;
 
     VK_DELETE:
     begin
       //delete the character after the current cursor
-      c:=copy(consolecommand, 1, consolecursorpos);
-      c2:=copy(consolecommand, consolecursorpos+2, length(consolecommand));
-      consolecommand:=c+c2;
+      c:=copy(console.commandline.text, 1, console.cursorpos);
+      c2:=copy(console.commandline.text, console.cursorpos+2, length(console.commandline.text));
+      console.commandline.text:=c+c2;
     end
     else
     begin
       //not a control key, check if it's a character
-      if owner.shared.console.lastmessage.character<>0 then
+      if lastmessage.character<>0 then
       begin
         //it's a character
-        s:=@owner.shared.console.lastmessage.character;
+        s:=@lastmessage.character;
 
-        c:=copy(consolecommand, 1, consolecursorpos);
-        c2:=copy(consolecommand, consolecursorpos+1, length(consolecommand));
+        c:=copy(console.commandline.text, 1, console.cursorpos);
+        c2:=copy(console.commandline.text, console.cursorpos+1, length(console.commandline.text));
 
 
-        consolecommand:=c+s+c2;
+        console.commandline.text:=c+s+c2;
 
-        inc(consolecursorpos);
+        inc(console.cursorpos);
       end;
     end;
   end;
 
 
-  owner.updateConsoleOverlay(consolecommand,consolelog);
-  owner.updateConsoleCursorPos(consolecommand, consolecursorpos);
+  setConsoleCursorPos;
 
+  owner.endTextureUpdate;
 
 end;
 
@@ -502,8 +637,8 @@ var eventlist: array of THandle;
     cursorstart: dword;
 begin
   cursorstart:=gettickcount;
-  consolelog:=tstringlist.create;
-  consolecursorpos:=0;
+  console.log:=tstringlist.create;
+  console.cursorpos:=0;
 
   setlength(eventlist,2);
   eventlist[0]:=owner.hasclickevent;
@@ -528,18 +663,14 @@ begin
       begin
         //keyboard event
         lastmessage:=owner.shared.console.lastmessage;
-        SetEvent(owner.hashandledkeyboardevent);
-
         Synchronize(dokeyboard);
+        SetEvent(owner.hashandledkeyboardevent);
         cursorstart:=GetTickCount;
       end;
     end;
 
-    if owner.consoleCursorId<>-1 then //toggle the cursor visible or invisible based on the current time and if a key was pressed (keep the cursor visible rigth after pressing a key, so reset the timerstart)
-    begin
-      cursor:=true; //(owner.shared.console.consolevisible=1) and (((GetTickCount-cursorstart) mod 1000)<500);
-      owner.SetOverlayVisibility(owner.consoleCursorId, cursor);
-    end;
+    if (owner.shared.console.consolevisible=1) and (console.cursor<>nil) then  //toggle the cursor visible or invisible based on the current time and if a key was pressed (keep the cursor visible rigth after pressing a key, so reset the timerstart)
+      console.cursor.visible:=(((GetTickCount-cursorstart) mod 1000)<500);
 
   end;
 
@@ -549,6 +680,8 @@ end;
 
 procedure TD3DHook_RenderObject.setAlphaBlend(v: single);
 begin
+  if falphablend=v then exit;
+
   BeginUpdate;
   falphablend:=v;
   endUpdate;
@@ -556,6 +689,8 @@ end;
 
 procedure TD3DHook_RenderObject.setX(v: single);
 begin
+  if fx=v then exit;
+
   beginUpdate;
   fx:=v;
   endUpdate;
@@ -563,6 +698,8 @@ end;
 
 procedure TD3DHook_RenderObject.setY(v: single);
 begin
+  if fy=v then exit;
+
   beginUpdate;
   fy:=v;
   endUpdate;
@@ -571,6 +708,8 @@ end;
 
 procedure TD3DHook_RenderObject.setVisible(state: boolean);
 begin
+  if fvisible=state then exit; //no change, no update
+
   beginUpdate;
   fvisible:=state;
   endUpdate;
@@ -645,6 +784,7 @@ end;
 procedure TD3Dhook_TextContainer.setText(s: string);
 var
   x: dword;
+  nul: byte;
 begin
   BeginUpdate;
 
@@ -658,7 +798,13 @@ begin
     AddressOfText:=owner.memman.alloc(maxTextLength);
   end;
 
-  WriteProcessMemory(processhandle, pointer(AddressOfText), @s[1], length(s)+1, x); //just write
+  if s='' then
+  begin
+    nul:=0;
+    WriteProcessMemory(processhandle, pointer(AddressOfText), @nul, 1, x);
+  end
+  else
+    WriteProcessMemory(processhandle, pointer(AddressOfText), @s[1], length(s)+1, x); //just write
 
   endUpdate;
 end;
@@ -702,11 +848,18 @@ begin
   inherited destroy;
 end;
 
-constructor TD3Dhook_TextContainer.create(owner: TD3DHook; fontmap: TD3DHook_FontMap; x,y: single; text: string);
+constructor TD3Dhook_TextContainer.create(owner: TD3DHook; fontmap: TD3DHook_FontMap; x,y: single; text: string; minsize: integer=0);
 begin
   inherited create(owner);
 
   beginupdate;
+
+  if minsize<>0 then
+  begin
+    maxTextLength:=minsize;
+    AddressOfText:=owner.memman.alloc(maxTextLength);
+  end;
+
   self.x:=x;
   self.y:=y;
   self.FontMap:=fontmap;
@@ -779,6 +932,21 @@ end;
 
 //-------------------------------d3dhook_font-----------------------------------
 
+function TD3DHook_FontMap.calculateFontWidth(s:string): integer;
+var cwa: PWordarray;
+  i: integer;
+  c: byte;
+begin
+  result:=0;
+  cwa:=localfontmapcopy.memory;
+  for i:=1 to length(s) do
+  begin
+    c:=ord(s[i]);
+    if c in [32..127] then
+      inc(result,cwa[c-32+1]);
+  end;
+end;
+
 procedure TD3DHook_FontMap.ChangeFont(font: TFont);
 var s: string;
     i: integer;
@@ -787,7 +955,6 @@ var s: string;
     p: TPicture;
 
 
-    m: TMemorystream;
     charwidth: word; //65535 if the max size of one character
 
     newblock: pointer;
@@ -824,8 +991,11 @@ begin
   p.png.Width:=fwidth;
   p.png.height:=fheight;
 
-  m:=tmemorystream.create;  //buffer to obtain the fontmap data
-  m.WriteBuffer(fheight, sizeof(word)); //2 bytes for the height of all characters
+  if localfontmapcopy<>nil then
+    freeandnil(localfontmapcopy);
+
+  localfontmapcopy:=tmemorystream.create;  //buffer to obtain the fontmap data
+  localfontmapcopy.WriteBuffer(fheight, sizeof(word)); //2 bytes for the height of all characters
 
   //now fill it in
   charpos:=0;
@@ -833,16 +1003,16 @@ begin
   begin
     p.PNG.canvas.TextOut(charpos, 0, chr(i));
     charwidth:=p.png.Canvas.GetTextWidth(chr(i));
-    m.WriteBuffer(charwidth,2);
+    localfontmapcopy.WriteBuffer(charwidth,2);
     charpos:=charpos+charwidth;
   end;
 
-  newblock:=pointer(owner.memman.alloc(m.size));
+  newblock:=pointer(owner.memman.alloc(localfontmapcopy.size));
 
 
   if newblock<>nil then
   begin
-    if WriteProcessMemory(processhandle, newblock, m.memory, m.size, x) then
+    if WriteProcessMemory(processhandle, newblock, localfontmapcopy.memory, localfontmapcopy.size, x) then
     begin
       owner.beginTextureUpdate;
 
@@ -983,6 +1153,7 @@ begin
   //Make sure that the log does not come above "consoleimage.Height"
 
   //first fill it to dark grey
+  {
   c:=consoleImage.Bitmap.Canvas;
 
   c.Font.Color:=$fefefe;
@@ -1020,7 +1191,7 @@ begin
   end;
 
 
-  UpdateResourceData;
+  UpdateResourceData;    }
 {  shared.resources[consoleOverlayid-1].updatedresource:=1;
   shared.OverLayHasUpdate:=1;         }
 
@@ -1078,6 +1249,7 @@ end;
 procedure TD3DHook.createConsole(virtualkey: DWORD);
 var s: tstringlist;
 begin
+  {
   if shared.hookwnd=0 then raise exception.create('D3DHook was initialized without hooking the window. Restart the target app');
   //create an overlay
 
@@ -1097,7 +1269,7 @@ begin
   shared.console.cursorid:=consolecursorid-1;
   shared.console.hasconsole:=1;
 
-
+         }
 end;
 
 procedure TD3DHook.setDisabledZBuffer(state: boolean);
@@ -1359,8 +1531,6 @@ begin
   textures:=TList.create;
   commandlist:=TList.create;
 
-  consoleOverlayid:=-1;
-  consoleCursorId:=-1;
 
   sharename:='CED3D_'+inttostr(processhandler.ProcessID);
 
@@ -1383,6 +1553,9 @@ begin
   shared.texturelist:=sizeof(TD3DHookShared)+(maxsize div 2);
   shared.cheatenginedir:=CheatEngineDir;
   shared.useCommandListLock:=1;
+
+  shared.console.hasconsole:=1;
+  shared.console.consolekey:=$c0;
 
   tea:=PTextureEntryArray(ptruint(shared)+shared.texturelist);
   renderCommandList:=PRenderCommandArray(ptruint(shared)+sizeof(TD3dHookShared));;

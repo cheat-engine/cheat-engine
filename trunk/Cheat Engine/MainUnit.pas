@@ -821,6 +821,173 @@ resourcestring
   rsThisButtonWillTryToCancelTheCurrentScanClickTwiceT =
     'This button will try to cancel the current scan. Click twice to force an exit';
   rsCancel = 'Cancel';
+  strWindowFailedToHide = 'A window failed to hide';
+  strAccessed = 'The following opcodes accessed the selected address';
+  strOpcodeRead = 'The following opcodes read from the selected address';
+  strOpcodeChanged = 'The following opcodes changed the selected address';
+  strAskToSave = 'You haven''t saved your last changes yet. Save Now?';
+  strScantextcaptiontotext = 'Text:';
+  strScantextcaptiontoValue = 'Value:';
+  strsearchForText = 'Search for text';
+  strSearchForArray = 'Search for this array';
+  rsValue = 'Value %';
+  rsBetween = 'between %';
+  rsAtLeastXx = 'at least xx%';
+  rsAnd = 'and';
+  strConfirmProcessTermination =
+    'This will close the current process. Are you sure you want to do this?';
+  strError = 'Error';
+  strErrorwhileOpeningProcess = 'Error while opening this process';
+  strKeepList = 'Keep the current address list/code list?';
+  strInfoAboutTable = 'Info about this table:';
+  strPhysicalMemory = 'Physical Memory';
+  rsThereAreOneOrMoreAutoAssemblerEntriesOrCodeChanges =
+    'There are one or more auto assembler entries or code changes enabled in this table. Do you want them disabled? (without '
+    + 'executing the disable part)';
+  rsLoadTheAssociatedTable = 'Load the associated table? (%s)';
+  rsGroup = 'Group %s';
+  rsGroups = 'Groups';
+  rsWhatDoYouWantTheGroupnameToBe = 'What do you want the groupname to be?';
+  rsAreYouSureYouWantToDeleteThisForm = 'Are you sure you want to delete this form?';
+  rsRenameFile = 'Rename file';
+  rsGiveTheNewFilename = 'Give the new filename';
+  rsRestoreAndShow = 'Restore and show';
+  rsEdit = 'Edit';
+  rsDelete = 'Delete';
+  rsRename = 'Rename';
+  rsSaveToDisk = 'Save to disk';
+  rsAreYouSureYouWantToDelete = 'Are you sure you want to delete %s?';
+  rsCheatEngine = 'Cheat Engine';
+  rsWhatWillBeTheNewNameForThisTab = 'What will be the new name for this tab?';
+  rsScan = 'Scan';
+  rsScanresult = 'Scanresult';
+  rsSaveScanResults = 'Save scan results';
+  rsWhatNameDoYouWantToGiveToTheseScanresults =
+    'What name do you want to give to these scanresults?';
+  rsThankYouForTryingOutCheatEngineBecauseItHasExpired =
+    'Thank you for trying out Cheat Engine. Because it has expired Cheat Engine will now close. Is that ok with you?';
+  rsWHATAreYouSayingYouReGoingToContinueUsingCEILLEGAL =
+    'WHAT!!! Are you saying you''re going to continue using CE ILLEGALLY??? If you say yes, i''m going to mail the cops to '
+    + 'get you and send you to jail!!!';
+  rsHrmpfBecauseIMInAGoodMoodILlLetYouGoThisTimeButDon =
+    'Hrmpf... Because I''m in a good mood i''ll let you go this time. But don''t do it again you filthy pirate';
+  rsAprilFools = 'April fools!!!!';
+  strClickToGoHome = 'Click here to go to the Cheat Engine homepage';
+  rsLuaScriptCheatTable = 'Lua script: Cheat Table';
+  strChangeDescription1 = 'Description';
+  strChangeDescription2 = 'Change the description to:';
+
+  strNotTheSameSize1 = 'The text you entered isn''t the same size as the original. Continue?';
+  strNotTheSameSize2 = 'Not the same size!';
+  strAdd0 = 'Do you want to add a ''0''-terminator at the end?';
+  strNotAValidNotation = 'This is not a valid notation';
+  strNotSameAmmountofBytes =
+    'The number of bytes you typed is not the same as the previous ammount. Continue?';
+  strNotAValidBinaryNotation = ' is not a valid binary notation!';
+
+  strValue = 'Value';
+  strChange1Value = 'Change this value to:';
+  strChangeMoreValues = 'Change these values to:';
+
+  strSelectedAddressIsAPointer =
+    'The selected address is a pointer. Are you sure? (the base pointer will get the address)';
+  strMorePointers = 'There are more pointers selected. Do you want to change them as well?';
+  strMorePointers2 =
+    'You have selected one or more pointers. Do you want to change them as well?';
+  strNotAValidValue = 'This is not an valid value';
+  rsComparingToF = 'Comparing to first scan results';
+  rsTheRecordWithDescriptionHasAsInterpretableAddressT =
+    'The record with description ''%s'' has as interpretable address ''%s''. The recalculation will change it to %s. Do you '
+    + 'want to edit it to the new address?';
+  rsSavedScanResults = 'Saved scan results';
+  rsSelectTheSavedScanResultFromTheListBelow =
+    'Select the saved scan result from the list below';
+  rsComparingTo = 'Comparing to %s';
+  rsHex = 'Hex';
+  rsDoYouWantToGoToTheCheatEngineWebsite =
+    'Do you want to go to the Cheat Engine website?';
+
+  strdeleteall = 'Are you sure you want to delete all addresses?';
+  stralreadyin = 'This address is already in the list';
+  stralreadyinlistmultiple = 'One or more addresses where already in the list';
+  strsethotkey = 'Set a hotkey';
+  strshowasdecimal = 'Show as decimal value';
+  strshowashex = 'Show as hexadecimal value';
+  strFreezeAddressInList = 'Freeze the address in this list';
+  strFreezeAllAddresses = 'Freeze all addresses in this list';
+  strUnfreezeAllAddresses = 'Unfreeze all addresses in this list';
+  strUnfreezeAddressInList = 'Unfreeze the address in this list';
+  strDeleteAddress = 'Delete this address';
+  strDeleteTheseAddresses = 'Delete these addresses';
+  strRecalculateAddress = 'Recalculate address';
+  strRecalculateSelectedAddresses = 'Recalculate selected addresses';
+  strRecalculateAllAddresses = 'Recalculate all addresses';
+
+  strRemoveFromGroup = 'Remove from group ';
+
+  strChangeScript = 'Change script';
+  strEnableCheat = 'Enable cheat';
+  strDisableCheat = 'Disable cheat';
+
+  strForceRecheck = 'Force recheck symbols';
+  rsSetChangeHotkeys = 'Set/Change hotkeys';
+  rsShowAsDecimal = 'Show as decimal';
+  rsShowAsBinary = 'Show as binary';
+  rsShowAsHexadecimal = 'Show as hexadecimal';
+  rsRemoveSelectedAddresses = 'Remove selected addresses';
+  rsRemoveSelectedAddress = 'Remove selected address';
+  rsThisListIsHuge =
+    'This list is huge and deleting multiple items will require CE to traverse the whole list and can take a while. Are you sure?';
+  rsFindOutWhatAccessesThisPointer = 'Find out what accesses this pointer';
+  rsFindWhatAccessesTheAddressPointedAtByThisPointer =
+    'Find what accesses the address pointed at by this pointer';
+  rsFindOutWhatWritesThisPointer = 'Find out what writes this pointer';
+  rsFindWhatWritesTheAddressPointedAtByThisPointer =
+    'Find what writes the address pointed at by this pointer';
+
+  strconfirmUndo = 'Do you really want to go back to the results of the previous scan?';
+
+  strHideForeground = 'will hide the foreground window';
+  strHideAll = 'will hide all windows';
+  strUnHideForeground = 'will bring the foreground window back';
+  strUnhideAll = 'will bring all windows back';
+  rsBringsCheatEngineToFront = 'brings Cheat Engine to front';
+
+  strhappybirthday = 'Let''s sing Happy Birthday for Dark Byte today!';
+  strXMess = 'Merry christmas and happy new year';
+  strNewyear = 'And what are your good intentions for this year? ;-)';
+  strfuture = 'Wow,I never imagined people would use Cheat Engine up to today';
+  rsLicenseExpired =
+    'Your license to use Cheat Engine has expired. You can buy a license to use cheat engine for 1 month for $200, 6 months for only $1000 and for 1 year for ' + 'only $1800. If you don''t renew your license Cheat Engine will be severely limited in it''s abilities. (e.g: Next scan has been disabled)';
+  rsEXPIRED = 'EXPIRED';
+  strdontbother =
+    'Don''t even bother. Cheat Engine uses the main thread to receive messages when the scan is done, freeze it and CE will crash!';
+  rsTheProcessIsnTFullyOpenedIndicatingAInvalidProcess =
+    'The process isn''t fully opened. Indicating a invalid ProcessID. You still want to find out the EPROCESS? (BSOD is '
+    + 'possible)';
+  rsUnrandomizerInfo =
+    'This will scan for and change some routines that are commonly used to generate a random value so they always return the same. Please be aware that there ' + 'is a chance it overwrites the wrong routines causing the program to crash, or that the program uses an unknown random generator. Continue?';
+
+  strUnknownExtension = 'Unknown extension';
+  rsDoYouWishToMergeTheCurrentTableWithThisTable =
+    'Do you wish to merge the current table with this table?';
+  rsDoYouWantToProtectThisTrainerFileFromEditing =
+    'Do you want to protect this trainer file from editing?';
+  rsAutoAssembleEdit = 'Auto Assemble edit: %s';
+  rsEditAddresses = 'Edit addresses';
+  rsScanError = 'Scan error:%s';
+  rsShown = 'shown';
+  rsTerminatingScan = 'Terminating scan...';
+  rsThisButtonWillForceCancelAScanExpectMemoryLeaks =
+    'This button will force cancel a scan. Expect memory leaks';
+  rsForceTermination = 'Force termination';
+  rsYouAreLowOnDiskspaceOnTheFolderWhereTheScanresults =
+    'You are low on diskspace on the folder where the scanresults are stored. Scanning might fail. Are you sure you want to '
+    + 'continue?';
+  rsIsNotAValidSpeed = '%s is not a valid speed';
+  rsAreYouSureYouWantToEraseTheDataInTheCurrentTable =
+    'Are you sure you want to erase the data in the current table?';
+
 
 var
   ncol: TColor;
@@ -1654,8 +1821,7 @@ begin
 
 end;
 
-resourcestring
-  strWindowFailedToHide = 'A window failed to hide';
+
 
 procedure TMainForm.toggleWindow;
 var
@@ -1688,22 +1854,7 @@ begin
 
 end;
 
-resourcestring
-  strAccessed = 'The following opcodes accessed the selected address';
 
-
-resourcestring
-  strOpcodeRead = 'The following opcodes read from the selected address';
-
-
-
-resourcestring
-  strOpcodeChanged = 'The following opcodes changed the selected address';
-
-
-
-resourcestring
-  strAskToSave = 'You haven''t saved your last changes yet. Save Now?';
 
 function TMainForm.CheckIfSaved: boolean;
 var
@@ -1732,15 +1883,8 @@ begin
   end;
 end;
 
-resourcestring
-  strScantextcaptiontotext = 'Text:';
-  strScantextcaptiontoValue = 'Value:';
-  strsearchForText = 'Search for text';
-  strSearchForArray = 'Search for this array';
-  rsValue = 'Value %';
-  rsBetween = 'between %';
-  rsAtLeastXx = 'at least xx%';
-  rsAnd = 'and';
+
+
 
 
 //--------------------------cbpercentage--------------
@@ -2184,45 +2328,7 @@ begin
   Opendialog1.FileName := expectedFilename;
 end;
 
-resourcestring
-  strConfirmProcessTermination =
-    'This will close the current process. Are you sure you want to do this?';
-  strError = 'Error';
-  strErrorwhileOpeningProcess = 'Error while opening this process';
-  strKeepList = 'Keep the current address list/code list?';
-  strInfoAboutTable = 'Info about this table:';
-  strPhysicalMemory = 'Physical Memory';
-  rsThereAreOneOrMoreAutoAssemblerEntriesOrCodeChanges =
-    'There are one or more auto assembler entries or code changes enabled in this table. Do you want them disabled? (without '
-    + 'executing the disable part)';
-  rsLoadTheAssociatedTable = 'Load the associated table? (%s)';
-  rsGroup = 'Group %s';
-  rsGroups = 'Groups';
-  rsWhatDoYouWantTheGroupnameToBe = 'What do you want the groupname to be?';
-  rsAreYouSureYouWantToDeleteThisForm = 'Are you sure you want to delete this form?';
-  rsRenameFile = 'Rename file';
-  rsGiveTheNewFilename = 'Give the new filename';
-  rsRestoreAndShow = 'Restore and show';
-  rsEdit = 'Edit';
-  rsDelete = 'Delete';
-  rsRename = 'Rename';
-  rsSaveToDisk = 'Save to disk';
-  rsAreYouSureYouWantToDelete = 'Are you sure you want to delete %s?';
-  rsCheatEngine = 'Cheat Engine';
-  rsWhatWillBeTheNewNameForThisTab = 'What will be the new name for this tab?';
-  rsScan = 'Scan';
-  rsScanresult = 'Scanresult';
-  rsSaveScanResults = 'Save scan results';
-  rsWhatNameDoYouWantToGiveToTheseScanresults =
-    'What name do you want to give to these scanresults?';
-  rsThankYouForTryingOutCheatEngineBecauseItHasExpired =
-    'Thank you for trying out Cheat Engine. Because it has expired Cheat Engine will now close. Is that ok with you?';
-  rsWHATAreYouSayingYouReGoingToContinueUsingCEILLEGAL =
-    'WHAT!!! Are you saying you''re going to continue using CE ILLEGALLY??? If you say yes, i''m going to mail the cops to '
-    + 'get you and send you to jail!!!';
-  rsHrmpfBecauseIMInAGoodMoodILlLetYouGoThisTimeButDon =
-    'Hrmpf... Because I''m in a good mood i''ll let you go this time. But don''t do it again you filthy pirate';
-  rsAprilFools = 'April fools!!!!';
+
 
 function TMainForm.openprocessPrologue: boolean;
 begin
@@ -4210,9 +4316,7 @@ begin
   //   ExtractFilePath();
 end;
 
-resourcestring
-  strClickToGoHome = 'Click here to go to the Cheat Engine homepage';
-  rsLuaScriptCheatTable = 'Lua script: Cheat Table';
+
 
 function TMainForm.onhelp(Command: word; Data: PtrInt; var CallHelp: boolean): boolean;
 begin
@@ -4655,9 +4759,7 @@ begin
   freezetimer.Enabled := True;
 end;
 
-resourcestring
-  strChangeDescription1 = 'Description';
-  strChangeDescription2 = 'Change the description to:';
+
 
 
 //vars for changevalue
@@ -4667,20 +4769,7 @@ var
   askfordifferentsizesonce: boolean;
   asked: boolean;
 
-resourcestring
-  strNotTheSameSize1 = 'The text you entered isn''t the same size as the original. Continue?';
-  strNotTheSameSize2 = 'Not the same size!';
-  strAdd0 = 'Do you want to add a ''0''-terminator at the end?';
-  strNotAValidNotation = 'This is not a valid notation';
-  strNotSameAmmountofBytes =
-    'The number of bytes you typed is not the same as the previous ammount. Continue?';
-  strNotAValidBinaryNotation = ' is not a valid binary notation!';
 
-
-resourcestring
-  strValue = 'Value';
-  strChange1Value = 'Change this value to:';
-  strChangeMoreValues = 'Change these values to:';
 
 
 procedure TMainForm.Browsethismemoryregion1Click(Sender: TObject);
@@ -4713,24 +4802,7 @@ begin
   end;
 end;
 
-resourcestring
-  strSelectedAddressIsAPointer =
-    'The selected address is a pointer. Are you sure? (the base pointer will get the address)';
-  strMorePointers = 'There are more pointers selected. Do you want to change them as well?';
-  strMorePointers2 =
-    'You have selected one or more pointers. Do you want to change them as well?';
-  strNotAValidValue = 'This is not an valid value';
-  rsComparingToF = 'Comparing to first scan results';
-  rsTheRecordWithDescriptionHasAsInterpretableAddressT =
-    'The record with description ''%s'' has as interpretable address ''%s''. The recalculation will change it to %s. Do you '
-    + 'want to edit it to the new address?';
-  rsSavedScanResults = 'Saved scan results';
-  rsSelectTheSavedScanResultFromTheListBelow =
-    'Select the saved scan result from the list below';
-  rsComparingTo = 'Comparing to %s';
-  rsHex = 'Hex';
-  rsDoYouWantToGoToTheCheatEngineWebsite =
-    'Do you want to go to the Cheat Engine website?';
+
 
 procedure TMainForm.Calculatenewvaluepart21Click(Sender: TObject);
 var
@@ -5503,8 +5575,7 @@ begin
   CanClose := mustclose or CheckIfSaved;
 end;
 
-resourcestring
-  strdeleteall = 'Are you sure you want to delete all addresses?';
+
 
 procedure TMainForm.SpeedButton2Click(Sender: TObject);
 begin
@@ -5512,9 +5583,7 @@ begin
     addresslist.Clear;
 end;
 
-resourcestring
-  stralreadyin = 'This address is already in the list';
-  stralreadyinlistmultiple = 'One or more addresses where already in the list';
+
 
 
 procedure TMainForm.AddresslistDropByListview(Sender: TObject;
@@ -5573,41 +5642,6 @@ end;
 
 
 
-resourcestring
-  strsethotkey = 'Set a hotkey';
-  strshowasdecimal = 'Show as decimal value';
-  strshowashex = 'Show as hexadecimal value';
-  strFreezeAddressInList = 'Freeze the address in this list';
-  strFreezeAllAddresses = 'Freeze all addresses in this list';
-  strUnfreezeAllAddresses = 'Unfreeze all addresses in this list';
-  strUnfreezeAddressInList = 'Unfreeze the address in this list';
-  strDeleteAddress = 'Delete this address';
-  strDeleteTheseAddresses = 'Delete these addresses';
-  strRecalculateAddress = 'Recalculate address';
-  strRecalculateSelectedAddresses = 'Recalculate selected addresses';
-  strRecalculateAllAddresses = 'Recalculate all addresses';
-
-  strRemoveFromGroup = 'Remove from group ';
-
-  strChangeScript = 'Change script';
-  strEnableCheat = 'Enable cheat';
-  strDisableCheat = 'Disable cheat';
-
-  strForceRecheck = 'Force recheck symbols';
-  rsSetChangeHotkeys = 'Set/Change hotkeys';
-  rsShowAsDecimal = 'Show as decimal';
-  rsShowAsBinary = 'Show as binary';
-  rsShowAsHexadecimal = 'Show as hexadecimal';
-  rsRemoveSelectedAddresses = 'Remove selected addresses';
-  rsRemoveSelectedAddress = 'Remove selected address';
-  rsThisListIsHuge =
-    'This list is huge and deleting multiple items will require CE to traverse the whole list and can take a while. Are you sure?';
-  rsFindOutWhatAccessesThisPointer = 'Find out what accesses this pointer';
-  rsFindWhatAccessesTheAddressPointedAtByThisPointer =
-    'Find what accesses the address pointed at by this pointer';
-  rsFindOutWhatWritesThisPointer = 'Find out what writes this pointer';
-  rsFindWhatWritesTheAddressPointedAtByThisPointer =
-    'Find what writes the address pointed at by this pointer';
 
 procedure TMainForm.PopupMenu2Popup(Sender: TObject);
 var
@@ -6113,8 +6147,6 @@ begin
   end;
 end;
 
-resourcestring
-  strconfirmUndo = 'Do you really want to go back to the results of the previous scan?';
 
 procedure TMainForm.UndoScanClick(Sender: TObject);
 var
@@ -6132,13 +6164,6 @@ begin
     undoscan.Enabled := False;
   end;
 end;
-
-resourcestring
-  strHideForeground = 'will hide the foreground window';
-  strHideAll = 'will hide all windows';
-  strUnHideForeground = 'will bring the foreground window back';
-  strUnhideAll = 'will bring all windows back';
-  rsBringsCheatEngineToFront = 'brings Cheat Engine to front';
 
 procedure TMainForm.adjustbringtofronttext;
 var
@@ -6187,14 +6212,6 @@ begin
   //  fronthotkey:=hotkey;
 end;
 
-resourcestring
-  strhappybirthday = 'Let''s sing Happy Birthday for Dark Byte today!';
-  strXMess = 'Merry christmas and happy new year';
-  strNewyear = 'And what are your good intentions for this year? ;-)';
-  strfuture = 'Wow,I never imagined people would use Cheat Engine up to today';
-  rsLicenseExpired =
-    'Your license to use Cheat Engine has expired. You can buy a license to use cheat engine for 1 month for $200, 6 months for only $1000 and for 1 year for ' + 'only $1800. If you don''t renew your license Cheat Engine will be severely limited in it''s abilities. (e.g: Next scan has been disabled)';
-  rsEXPIRED = 'EXPIRED';
 
 var
   onetimeonly: boolean = False; //to protect against make mainform visible (.show)
@@ -6546,15 +6563,6 @@ end;
 
 
 
-resourcestring
-  strdontbother =
-    'Don''t even bother. Cheat Engine uses the main thread to receive messages when the scan is done, freeze it and CE will crash!';
-  rsTheProcessIsnTFullyOpenedIndicatingAInvalidProcess =
-    'The process isn''t fully opened. Indicating a invalid ProcessID. You still want to find out the EPROCESS? (BSOD is '
-    + 'possible)';
-  rsUnrandomizerInfo =
-    'This will scan for and change some routines that are commonly used to generate a random value so they always return the same. Please be aware that there ' + 'is a chance it overwrites the wrong routines causing the program to crash, or that the program uses an unknown random generator. Continue?';
-
 procedure TMainForm.cbPauseWhileScanningClick(Sender: TObject);
 
 begin
@@ -6666,26 +6674,6 @@ begin
   end;
 end;
 
-resourcestring
-  strUnknownExtension = 'Unknown extension';
-  rsDoYouWishToMergeTheCurrentTableWithThisTable =
-    'Do you wish to merge the current table with this table?';
-  rsDoYouWantToProtectThisTrainerFileFromEditing =
-    'Do you want to protect this trainer file from editing?';
-  rsAutoAssembleEdit = 'Auto Assemble edit: %s';
-  rsEditAddresses = 'Edit addresses';
-  rsScanError = 'Scan error:%s';
-  rsShown = 'shown';
-  rsTerminatingScan = 'Terminating scan...';
-  rsThisButtonWillForceCancelAScanExpectMemoryLeaks =
-    'This button will force cancel a scan. Expect memory leaks';
-  rsForceTermination = 'Force termination';
-  rsYouAreLowOnDiskspaceOnTheFolderWhereTheScanresults =
-    'You are low on diskspace on the folder where the scanresults are stored. Scanning might fail. Are you sure you want to '
-    + 'continue?';
-  rsIsNotAValidSpeed = '%s is not a valid speed';
-  rsAreYouSureYouWantToEraseTheDataInTheCurrentTable =
-    'Are you sure you want to erase the data in the current table?';
 
 procedure TMainForm.SaveIntialTablesDir(dir: string);
 var
