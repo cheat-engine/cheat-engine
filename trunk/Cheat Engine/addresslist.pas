@@ -5,7 +5,7 @@ unit addresslist;
 interface
 
 uses
-  Windows, Classes, SysUtils, controls, stdctrls, comctrls, ExtCtrls, graphics,
+  LCLIntf, LCLType, Classes, SysUtils, controls, stdctrls, comctrls, ExtCtrls, graphics,
   math, MemoryRecordUnit, FPCanvas, cefuncproc, newkernelhandler, menus,dom,
   XMLRead,XMLWrite, symbolhandler;
 
@@ -1369,8 +1369,10 @@ begin
   //Because the multiselect of lazarus is horribly broken in the build I use, I've just implemented it myself
 
   shift:=GetKeyShiftState;
+
   if (GetKeyState(VK_RBUTTON) and $8000)<>0 then
     Include(shift,ssRight);
+
 
   if Treeview.Selected<>nil then
   begin

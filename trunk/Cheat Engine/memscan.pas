@@ -4386,7 +4386,9 @@ begin
   if OwningMemScan.progressbar<>nil then
   begin
     OwningMemScan.progressbar.Position:=OwningMemScan.GetProgress(totaladdressestoscan,currentlyscanned);
+    {$ifdef windows}
     SetProgressValue(OwningMemScan.progressbar.Position, OwningMemScan.progressbar.Max);
+    {$endif}
   end;
 end;
 
