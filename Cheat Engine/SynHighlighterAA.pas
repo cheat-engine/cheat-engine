@@ -266,6 +266,8 @@ type
     fPackageSource: Boolean;
     function KeyHash(ToHash: PChar): Integer;
     function KeyComp(const aKey: string): Boolean;
+    function Func6: TtkTokenKind; //db
+    function Func8: TtkTokenKind; //dd
     function Func9: TtkTokenKind; //ah
     function Func10: TtkTokenKind; //bh
     function Func11: TtkTokenKind; //ch
@@ -278,7 +280,7 @@ type
     function Func23: TtkTokenKind; //ebp
     function Func25: TtkTokenKind; //ax / 25
     function Func26: TtkTokenKind; //bx
-    function Func27: TtkTokenKind; //cx
+    function Func27: TtkTokenKind; //cx  / dw
     function Func28: TtkTokenKind; //dx / si
     function Func30: TtkTokenKind; //eax / eip
     function Func31: TtkTokenKind; //ebx / rdi
@@ -469,6 +471,8 @@ begin
     pF^ := {$IFDEF FPC}@{$ENDIF}AltFunc;
     Inc(pF);
   end;
+  fIdentFuncTable[6] := {$IFDEF FPC}@{$ENDIF}Func6;
+  fIdentFuncTable[8] := {$IFDEF FPC}@{$ENDIF}Func8;
   fIdentFuncTable[9] := {$IFDEF FPC}@{$ENDIF}Func9;
   fIdentFuncTable[10] := {$IFDEF FPC}@{$ENDIF}Func10;
   fIdentFuncTable[11] := {$IFDEF FPC}@{$ENDIF}Func11;
@@ -543,6 +547,50 @@ begin
     end;
   end else Result := False;
 end; { KeyComp }
+
+function TSynAASyn.Func6: TtkTokenKind;
+var s: string;
+begin
+  Result := tkIdentifier;
+  if KeyComp('db') then
+  begin
+    //db.  could be db xx xx xx
+    //or
+    //aobscan(xxx, 00 11 db aa)
+
+    s:=trim(copy(fline, 1, ftokenpos));
+    if s='' then //first token
+    begin
+      s:=lowercase(copy(trim(fToIdent),1,2));
+      if (s='db') then
+        Result := tkKey;
+
+    end;
+  end;
+
+end;
+
+function TSynAASyn.Func8: TtkTokenKind;
+var s: string;
+begin
+  Result := tkIdentifier;
+  if KeyComp('dd') then
+  begin
+    //dd.  could be dd dd
+    //or
+    //aobscan(xxx, 00 11 dd aa)
+
+    s:=trim(copy(fline, 1, ftokenpos));
+    if s='' then //first token
+    begin
+      s:=lowercase(copy(trim(fToIdent),1,2));
+      if (s='dd') then
+        Result := tkKey;
+
+    end;
+  end;
+
+end;
 
 function TSynAASyn.Func9: TtkTokenKind;
 begin
@@ -633,7 +681,8 @@ end;
 function TSynAASyn.Func27: TtkTokenKind;
 begin
   if KeyComp('cx') then Result := tkRegister else
-    Result := tkIdentifier;
+    if KeyComp('dw') then Result := tkKey else
+      Result := tkIdentifier;
 end;
 
 function TSynAASyn.Func28: TtkTokenKind;
@@ -884,8 +933,8 @@ begin
         fProcTable[I] := {$IFDEF FPC}@{$ENDIF}SpaceProc;
       '#': fProcTable[I] := {$IFDEF FPC}@{$ENDIF}IntegerProc;
       #39: fProcTable[I] := {$IFDEF FPC}@{$ENDIF}StringProc;
-      '0'..'9': fProcTable[I] := {$IFDEF FPC}@{$ENDIF}NumberProc;
-      'A'..'Z', 'a'..'z', '_':
+      '0'..'9','A'..'F','a'..'f': fProcTable[I] := {$IFDEF FPC}@{$ENDIF}NumberProc;
+      'G'..'Z', 'g'..'z', '_':
         fProcTable[I] := {$IFDEF FPC}@{$ENDIF}IdentProc;
       '{': fProcTable[I] := {$IFDEF FPC}@{$ENDIF}BraceOpenProc;
       '}', '!', '"', '%', '&', '('..'/', ':'..'@', '['..'^', '`', '~':
