@@ -48,6 +48,7 @@ type
     Label3: TLabel;
     Label4: TLabel;
     Label5: TLabel;
+    Label6: TLabel;
     lvCheats: TListView;
     mAbout: TMemo;
     MenuItem1: TMenuItem;

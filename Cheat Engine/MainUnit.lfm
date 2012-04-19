@@ -1873,7 +1873,7 @@ object MainForm: TMainForm
         Caption = '-'
       end
       object MenuItem9: TMenuItem
-        Caption = 'Generate trainer from table'
+        Caption = 'Generate generic trainer lua script from table'
         OnClick = MenuItem9Click
       end
       object MenuItem5: TMenuItem

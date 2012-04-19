@@ -1139,7 +1139,7 @@ dbvm_changeselectors   : Address of function dbvm_changeselectors(cs,ss,ds,es,fs
 D3DHOOK_ functions:
 The d3dhook functions provide a method to render graphics and text inside the game, as long as it is running in directx9, 10 or 11
 
-d3dhook_initializeHook(textureandcommandlistsize, hookmessages):
+d3dhook_initializeHook(textureandcommandlistsize OPTIONAL, hookmessages OPTIONAL):
   Hooks direct3d and allocates a buffer with given size for storage of for the rendercommand list
 
   hookmessages defines if you want to hook the windows message handler for the direct3d window. The d3dhook_onClick function makes use of that
@@ -1195,6 +1195,7 @@ Current implementation only supports 96 characters (character 32 to 127)
 
 d3dhook_createFontMap(font): Returns a d3dhook_fontmap object
 d3dhook_fontmap_changeFont(d3dhook_fontmap, font): Changes the fontmap to the selected font
+d3dhook_fontmap_getTextWidth(d3dhook_fontmap, string): Returns the width of the given string in pixels
 
 
 D3DHook_RenderObject Class (Inheritance: Object)

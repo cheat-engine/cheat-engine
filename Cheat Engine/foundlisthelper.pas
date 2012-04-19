@@ -7,8 +7,9 @@ unit foundlisthelper;
 
 interface
 
-uses windows, LCLIntf,sysutils,classes,ComCtrls,StdCtrls,symbolhandler, CEFuncProc,
-     NewKernelHandler, memscan, CustomTypeHandler, byteinterpreter, groupscancommandparser;
+uses LCLIntf,sysutils,classes,ComCtrls,StdCtrls,symbolhandler, CEFuncProc,
+     NewKernelHandler, memscan, CustomTypeHandler, byteinterpreter,
+     groupscancommandparser, math;
 
 type TScanType=(fs_advanced,fs_addresslist);
 

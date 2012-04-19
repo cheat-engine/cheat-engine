@@ -86,7 +86,6 @@ end;
 function d3dhook_onClick(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
-  d: TD3DHook;
   f: integer;
   routine: string;
 
@@ -94,33 +93,34 @@ var
 begin
   result:=0;
   parameters:=lua_gettop(L);
-  if parameters=2 then
+  if parameters=1 then
   begin
-    d:=lua_touserdata(L,-2);
-
-    CleanupLuaCall(TMethod(d.onClick));
-    d.onClick:=nil;
-
-    if lua_isfunction(L,-1) then
+    if D3DHook<>nil then
     begin
-      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+      CleanupLuaCall(TMethod(d3dhook.onClick));
+      d3dhook.onClick:=nil;
 
-      lc:=TLuaCaller.create;
-      lc.luaroutineIndex:=f;
-      d.OnClick:=lc.D3DClickEvent;
-    end
-    else
-    if lua_isstring(L,-1) then
-    begin
-      routine:=lua_tostring(L,-1);
-      lc:=TLuaCaller.create;
-      lc.luaroutine:=routine;
-      d.OnClick:=lc.D3DClickEvent;
+      if lua_isfunction(L,1) then
+      begin
+        f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+        lc:=TLuaCaller.create;
+        lc.luaroutineIndex:=f;
+        d3dhook.OnClick:=lc.D3DClickEvent;
+      end
+      else
+      if lua_isstring(L,1) then
+      begin
+        routine:=lua_tostring(L,1);
+        lc:=TLuaCaller.create;
+        lc.luaroutine:=routine;
+        d3dhook.OnClick:=lc.D3DClickEvent;
+      end;
+
     end;
-
   end;
 
-  lua_pop(L, parameters);
+  lua_pop(L, lua_gettop(L));
 end;
 
 
@@ -333,6 +333,30 @@ begin
       lua_pushlightuserdata(L, d3dhook.createFontMap(f));
       result:=1;
     end;
+  end
+  else
+    lua_pop(L, parameters);
+end;
+
+
+
+function d3dhook_fontmap_getTextWidth(L: PLua_State): integer; cdecl;
+var parameters: integer;
+  fm: TD3DHook_FontMap;
+  s: string;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+
+  if parameters>=2 then
+  begin
+    fm:=lua_touserdata(L,1);
+    s:=Lua_ToString(L,2);
+    lua_pop(L, parameters);
+
+
+    lua_pushinteger(L, fm.calculateFontWidth(s));
+    result:=1;
   end
   else
     lua_pop(L, parameters);
@@ -805,6 +829,8 @@ begin
 
   lua_register(LuaVM, 'd3dhook_createFontmap', d3dhook_createFontmap);
   lua_register(LuaVM, 'd3dhook_fontmap_changeFont', d3dhook_fontmap_changeFont);
+  lua_register(LuaVM, 'd3dhook_fontmap_getTextWidth', d3dhook_fontmap_getTextWidth);
+
 
   lua_register(LuaVM, 'd3dhook_renderobject_getX', d3dhook_renderobject_getX);
   lua_register(LuaVM, 'd3dhook_renderobject_setX', d3dhook_renderobject_setX);
