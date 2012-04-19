@@ -63,6 +63,9 @@ void DXMessD3D10Handler::DrawString(D3D10_VIEWPORT vp, PTextureData10 pFontTextu
 {
 	if (pFontTexture)
 	{
+		if (strlen==0)
+			return;
+
 		SetupFontVertexBuffer(strlen);
 
 		if (currentMaxCharacterCount<strlen) return; //error
@@ -105,6 +108,10 @@ void DXMessD3D10Handler::DrawString(D3D10_VIEWPORT vp, PTextureData10 pFontTextu
 
 					continue;
 				}
+				else
+				if ((s[i] < 32) || (s[i] > 127))
+					continue;//invalid char
+
 
 				float fGlyphSizeX = (pFontTexture->DefinedFontMap->charinfo[s[i]-32].charwidth*2) / vp.Width;
 

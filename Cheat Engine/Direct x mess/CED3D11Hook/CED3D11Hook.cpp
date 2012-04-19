@@ -102,6 +102,9 @@ void DXMessD3D11Handler::DrawString(D3D11_VIEWPORT vp, PTextureData11 pFontTextu
 
 					continue;
 				}
+				if ((s[i] < 32) || (s[i] > 127))
+					continue;//invalid char
+
 
 				float fGlyphSizeX = (pFontTexture->DefinedFontMap->charinfo[s[i]-32].charwidth*2) / vp.Width;
 
