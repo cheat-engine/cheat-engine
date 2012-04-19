@@ -1507,14 +1507,16 @@ end;
 
 destructor TD3DHook.Destroy;
 begin
-  UnmapViewOfFile(shared);
-  closehandle(fmhandle);
-
   if messagehandler<>nil then
   begin
     messagehandler.terminate;
     messagehandler.Free;
   end;
+
+
+  UnmapViewOfFile(shared);
+  closehandle(fmhandle);
+
 
   commandlist.free;
   textures.free;
