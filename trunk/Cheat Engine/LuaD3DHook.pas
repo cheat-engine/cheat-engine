@@ -217,6 +217,27 @@ begin
   end else lua_pop(L, parameters);
 end;
 
+function d3dhook_enableConsole(L: PLua_State): integer; cdecl;
+var
+  d: TD3DHook;
+  parameters: integer;
+  key: dword;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    key:=lua_tointeger(L, key);
+
+    lua_pop(L, parameters);
+
+    d:=safed3dhook;
+    if d<>nil then
+      d.enableConsole(key);
+
+  end else lua_pop(L, parameters);
+end;
+
 function d3dhook_createTexture(L: PLua_State): integer; cdecl;
 var parameters: integer;
   o: TObject;
@@ -821,6 +842,8 @@ begin
   lua_register(LuaVM, 'd3dhook_setDisabledZBuffer', d3dhook_setDisabledZBuffer);
   lua_register(LuaVM, 'd3dhook_setWireframeMode', d3dhook_setWireframeMode);
   lua_register(LuaVM, 'd3dhook_setMouseClip', d3dhook_setMouseClip);
+  lua_register(LuaVM, 'd3dhook_enableConsole', d3dhook_enableConsole);
+
 
   lua_register(LuaVM, 'd3dhook_createTexture', d3dhook_createTexture);
   lua_register(LuaVM, 'd3dhook_texture_getHeight', d3dhook_texture_getHeight);

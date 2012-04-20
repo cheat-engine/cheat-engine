@@ -392,7 +392,7 @@ type
     procedure setCommandListLockFeature(state: boolean);
 
 
-    procedure createConsole(virtualkey: DWORD);
+    procedure enableConsole(virtualkey: DWORD);
 
     constructor create(size: integer; hookhwnd: boolean=true);
     destructor destroy; override;
@@ -1133,30 +1133,10 @@ end;
 
 //----------------------------------D3dhook-------------------------------------
 
-procedure TD3DHook.createConsole(virtualkey: DWORD);
-var s: tstringlist;
+procedure TD3DHook.enableConsole(virtualkey: DWORD);
 begin
-  {
-  if shared.hookwnd=0 then raise exception.create('D3DHook was initialized without hooking the window. Restart the target app');
-  //create an overlay
-
-  reinitializeConsoleIfNeeded;
-
-  //debug code
-  s:=tstringlist.create;
-  s.add('This');
-  s.add('Was');
-  s.add('A');
-  s.add('Test');
-  UpdateConsoleOverlay('Bla', s);
-
-
-  shared.console.consolekey:=192; //tilde
-  shared.console.overlayid:=consoleOverlayid-1;
-  shared.console.cursorid:=consolecursorid-1;
   shared.console.hasconsole:=1;
-
-         }
+  shared.console.consolekey:=virtualkey;
 end;
 
 procedure TD3DHook.setDisabledZBuffer(state: boolean);
@@ -1356,8 +1336,7 @@ begin
   shared.cheatenginedir:=CheatEngineDir;
   shared.useCommandListLock:=1;
 
-  shared.console.hasconsole:=1;
-  shared.console.consolekey:=$c0;
+
 
   tea:=PTextureEntryArray(ptruint(shared)+shared.texturelist);
   renderCommandList:=PRenderCommandArray(ptruint(shared)+sizeof(TD3dHookShared));;

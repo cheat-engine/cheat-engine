@@ -1165,6 +1165,8 @@ d3dhook_setWireframeMode(state): When true will show objects in wireframe mode
 
 d3dhook_setMouseClip(state): Requires HookMessages to be true. When true will keep the mouse cursor inside the game. (Handy for certain strategy games, that don't support windowed mode or multiple displays )
 
+d3dhook_enableConsole(virtualkey): Adds a (lua)console to the specific game. The given key will bring it up (0xc0=tilde)
+
 
 d3dhook_onClick(function):
   Registers a function to be called when clicked on an sprite (excluding the mouse)
