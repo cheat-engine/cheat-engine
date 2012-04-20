@@ -366,9 +366,6 @@ type
 
     memman: TRemoteMemoryManager;
 
-    procedure UpdateResourceData;
-    procedure UpdateConsoleOverlay(command: string; log: Tstrings);
-    procedure UpdateConsolecursorPos(command: string; pos: integer);
   public
     onclick: TD3DClickEvent;
     procedure beginTextureUpdate;
@@ -385,10 +382,6 @@ type
     function createTextContainer(fontmap: TD3DHook_FontMap; x,y: single; text: string): TD3Dhook_TextContainer;
 
 
-    procedure SetOverlayAlphaBlend(overlayid: integer; blend: single);
-    procedure SetOverlayVisibility(overlayid: integer; state: boolean);
-    procedure updateOverlayImage(overlayid: integer; skipsync: boolean=false);
-    procedure updateOverlayPosition(overlayid,x,y: integer);
     procedure setDisabledZBuffer(state: boolean);
     procedure setWireframeMode(state: boolean);
     procedure setMouseClip(state: boolean);
@@ -400,7 +393,6 @@ type
 
 
     procedure createConsole(virtualkey: DWORD);
-    procedure reinitializeConsoleIfNeeded;
 
     constructor create(size: integer; hookhwnd: boolean=true);
     destructor destroy; override;
@@ -1140,111 +1132,6 @@ end;
 
 
 //----------------------------------D3dhook-------------------------------------
-procedure TD3DHook.UpdateConsoleOverlay(command: string; log: Tstrings);
-var c: TCanvas;
-    lineheight: integer;
-    i: integer;
-    linepos: integer;
-    minelinepos: integer;
-begin
-  //Build the console from bottom to top
-  //Bottom is the command line, black
-  //above that is the history and log
-  //Make sure that the log does not come above "consoleimage.Height"
-
-  //first fill it to dark grey
-  {
-  c:=consoleImage.Bitmap.Canvas;
-
-  c.Font.Color:=$fefefe;
-  c.Font.Style:=[fsBold];
-  lineheight:=c.GetTextHeight('FUUUU');
-
-  c.Brush.Color:=$111111;
-  c.FillRect(0,0,(c.Width), (c.Height)-(lineheight+2));
-
-  c.Brush.color:=$000000;
-  c.FillRect(0,(c.height)-(lineheight+1),(c.width), (c.height));
-
-  c.pen.color:=clred;
-  c.Line(0,(c.Height)-(lineheight+2), (c.width-1), (c.Height)-(lineheight+2));
-
-  //todo: In the future implement font rendering inside the dxhook and render on top of the overlay
-
-  //now render the text
-  //command
-  c.TextOut(4,(c.Height)-(lineheight+1), command);
-
-  //and the log (from bottom to top, till the max is reached)
-  c.Brush.Color:=$111111;
-
-  if log<>nil then
-  begin
-    linepos:=(c.Height)-(lineheight+2)-lineheight; //the last line
-
-    for i:=log.Count-1 downto 0 do
-    begin
-      c.textout(4, linepos, log[i]);
-      linepos:=linepos-lineheight;
-      if linepos<0 then break; //max reached
-    end;
-  end;
-
-
-  UpdateResourceData;    }
-{  shared.resources[consoleOverlayid-1].updatedresource:=1;
-  shared.OverLayHasUpdate:=1;         }
-
-end;
-
-procedure TD3DHook.UpdateConsolecursorPos(command: string; pos: integer);
-begin
- { shared.resources[consoleCursorId-1].x:=4+consoleImage.bitmap.Canvas.TextWidth(copy(command, 1,pos));
-  shared.resources[consoleCursorId-1].updatedpos:=1;
-  shared.OverLayHasUpdate:=1;     }
-end;
-
-procedure TD3DHook.reinitializeConsoleIfNeeded;
-var c: TCanvas;
-begin
-  if getHeight=0 then exit;
-  if getWidth=0 then exit;
-
-  {
-  if consoleOverlayid=-1 then
-  begin
-    //first time created
-    consoleimage:=TPicture.Create;
-    consoleimage.Bitmap.width:=getWidth;
-    consoleimage.Bitmap.Height:=getheight div 3;
-
-    consoleOverlayid:=createOverlayFromPicture(consoleimage,0, getheight-(getheight div 3));
-    SetOverlayAlphaBlend(consoleOverlayid, 88);
-    SetOverlayVisibility(consoleOverlayid, false);
-  end;
-
-  if consoleCursorId=-1 then
-  begin
-    consoleCursorImage:=TPicture.create;
-    consoleCursorImage.Bitmap.Height:=consoleimage.Bitmap.canvas.GetTextHeight('F');
-    consoleCursorImage.Bitmap.Width:=3;
-    c:=consoleCursorImage.Bitmap.canvas;
-    c.Brush.Color:=$fefefe;
-    c.FillRect(0,0,consoleCursorImage.Bitmap.width,consoleCursorImage.Bitmap.Height);
-    consoleCursorId:=createOverlayFromPicture(consoleCursorImage,4, getheight-consoleCursorImage.height);
-    SetOverlayVisibility(consoleCursorId, false);
-  end;
-
-  if (consoleImage.Width<>getWidth) or (consoleImage.Height<>getHeight div 3) then
-  begin
-    consoleImage.bitmap.Width:=getWidth;
-    consoleimage.bitmap.Height:=getheight div 3;
-    shared.resources[consoleOverlayid-1].y:=getheight-(getheight div 3);
-    shared.resources[consoleCursorId-1].y:=getheight-consoleCursorImage.height;
-  end;
-
-   }
-end;
 
 procedure TD3DHook.createConsole(virtualkey: DWORD);
 var s: tstringlist;
@@ -1368,93 +1255,6 @@ begin
       endCommandListUpdate;
     end;
   end;
-end;
-
-procedure TD3DHook.updateOverlayImage(overlayid: integer; skipsync: boolean=false);
-begin
-  if skipsync then
-    inc(isupdating);  //prevents the locking
-
-  beginTextureUpdate;
- { shared.resources[overlayid-1].updatedresource:=1;  }
-  endTextureUpdate;
-
-  if skipsync then
-    endTextureUpdate;
-end;
-
-procedure TD3DHook.updateOverlayPosition(overlayid,x,y: integer);
-begin
-  beginTextureUpdate;
- { shared.resources[overlayid-1].x:=x;
-  shared.resources[overlayid-1].y:=y;
-  shared.resources[overlayid-1].updatedpos:=1; }
-  endTextureUpdate;
-end;
-
-procedure TD3DHook.SetOverlayAlphaBlend(overlayid: integer; blend: single);
-begin
- { shared.resources[overlayid-1].alphaBlend:=blend / 100.0;    }
-end;
-
-procedure TD3DHook.SetOverlayVisibility(overlayid: integer; state: boolean);
-begin
-{
-  if state then
-    shared.resources[overlayid-1].valid:=1
-  else
-    shared.resources[overlayid-1].valid:=0;
-
-  if isupdating=0 then
-    shared.OverLayHasUpdate:=1;}
-end;
-
-procedure TD3DHook.UpdateResourceData;
-//Fill in the resources and the offsets pointing to them
-var
-  i,j: integer;
-  s: TMemoryStream;
-  start: PByteArray;
-begin
-  //now update all the entries
- { s:=tmemorystream.Create;
-  start:=@shared.resources[shared.overlaycount];
-
-  try
-    for i:=0 to shared.overlaycount-1 do
-    begin
-//      if (shared.resources[i].valid<>0) then
-      begin
-        s.Clear;
-        images[i].SaveToStream(s);
-
-
-        shared.resources[i].height:=images[i].Height;
-        shared.resources[i].width:=images[i].width;
-
-        shared.resources[i].resourceoffset:=PtrUInt(start)-ptruint(shared);
-
-        if shared.resources[i].resourceoffset+s.Size>maxsize then
-        begin
-          //out of memory, set this and all following overlays to unusable (stays valid so if a previous overlays is destroyed one might become available again)
-          for j:=i to shared.overlaycount-1 do
-            shared.resources[j].resourceoffset:=0;  //mark as invalid
-
-          exit;
-        end;
-
-        //copy the resource to the target process
-        CopyMemory(start, s.Memory, s.Size);
-
-
-        shared.resources[i].resourcesize:=s.Size;
-        start:=pointer(PtrUint(start)+s.size);
-      end;
-    end;
-
-  finally
-    s.free;
-  end;     }
 end;
 
 
@@ -1586,10 +1386,12 @@ begin
 
 
     TextureLock:=CreateEventA(nil, false, true, nil);
-    DuplicateHandle(GetCurrentProcess, TextureLock, processhandle, @shared.TextureLock,DUPLICATE_SAME_ACCESS, false,0);
+
+
+    DuplicateHandle(GetCurrentProcess, TextureLock, processhandle, @shared.TextureLock,0, false,DUPLICATE_SAME_ACCESS);
 
     CommandListLock:=CreateEventA(nil, false, true, nil);
-    DuplicateHandle(GetCurrentProcess, CommandListLock, processhandle, @shared.CommandListLock,DUPLICATE_SAME_ACCESS, false,0);
+    DuplicateHandle(GetCurrentProcess, CommandListLock, processhandle, @shared.CommandListLock,0, false,DUPLICATE_SAME_ACCESS);
 
 
     //now inject the dll

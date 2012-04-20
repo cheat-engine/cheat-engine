@@ -279,8 +279,16 @@ void DXMessD3D9Handler::RenderOverlay()
 								//render a sprite
 
 								//set the dimensions
-								
-								scale.x=(float)shared->RenderCommands[i].sprite.width / (float)textures[tid].width;
+								if (shared->RenderCommands[i].sprite.width==-1)
+								{
+									if (!vp.Width)									
+										dev->GetViewport(&vp);
+
+									scale.x=(float)vp.Width / (float)textures[tid].width;
+								}
+								else
+									scale.x=(float)shared->RenderCommands[i].sprite.width / (float)textures[tid].width;
+
 								scale.y=(float)shared->RenderCommands[i].sprite.height / (float)textures[tid].height;
 								scale.z=1.0f;
 								
@@ -328,7 +336,7 @@ void DXMessD3D9Handler::RenderOverlay()
 									position.y=(float)clientMousepos.y-((float)shared->RenderCommands[i].sprite.height / 2.0f);		
 								}
 								else
-								if (shared->RenderCommands[i].y==-2)
+								if (shared->RenderCommands[i].y==-1)
 								{
 									if (!vp.Width)									
 										dev->GetViewport(&vp);
@@ -357,50 +365,55 @@ void DXMessD3D9Handler::RenderOverlay()
 						}
 
 						case rcDrawFont:
-						{
-							D3DXVECTOR3 position;
-							PTextureData9 td;
-							char *s;
+						{							
+							int tid=shared->RenderCommands[i].font.fontid;							
 
-							D3DVIEWPORT9 vp;
-							dev->GetViewport(&vp);
-						
-
-
-							if (!hasLock)
-								hasLock=WaitForSingleObject((HANDLE)shared->CommandlistLock, INFINITE)==WAIT_OBJECT_0; //fonts demand a lock  (stringpointer)
-
-							position.x=(float)shared->RenderCommands[i].x;
-							position.y=(float)shared->RenderCommands[i].y;	
-							position.z=0;
-
-							td=&textures[shared->RenderCommands[i].font.fontid];
-							s=(char *)shared->RenderCommands[i].font.addressoftext;	
-
-							if (position.x==-1) 
+							if ((tid<TextureCount) && (textures[tid].pTexture))
 							{
-								//horizontal center
-								//calculate the width
-								float width=0;
-								int slen=strlen(s);
+								char *s;
+								D3DXVECTOR3 position;
+								PTextureData9 td;
 
-								for (i=0; i<slen; i++)
-								{
-									width+=td->DefinedFontMap->charinfo[32-i].charwidth;
-								}
-								position.x=((float)vp.Width / 2.0f) - ((float)width / 2.0f);
+								if (!vp.Width)									
+									dev->GetViewport(&vp);
 								
+
+								if (!hasLock)
+									hasLock=WaitForSingleObject((HANDLE)shared->CommandlistLock, INFINITE)==WAIT_OBJECT_0; //fonts demand a lock  (stringpointer)
+
+								position.x=(float)shared->RenderCommands[i].x;
+								position.y=(float)shared->RenderCommands[i].y;	
+								position.z=0;
+
+								td=&textures[shared->RenderCommands[i].font.fontid];
+								s=(char *)shared->RenderCommands[i].font.addressoftext;	
+
+								if (position.x==-1) 
+								{
+									//horizontal center
+									//calculate the width
+									float width=0;
+									int slen=strlen(s);
+									int j;
+
+									for (j=0; j<slen; j++)
+									{
+										width+=td->DefinedFontMap->charinfo[32-j].charwidth;
+									}
+									position.x=((float)vp.Width / 2.0f) - ((float)width / 2.0f);
+									
+								}
+
+								if (position.y==-1)
+								{						
+									//vertical center						
+									position.y=((float)vp.Height / 2.0f) - ((float)td->DefinedFontMap->charheight / 2.0f);
+								}
+
+								//now draw the string
+								DrawString(position, &textures[shared->RenderCommands[i].font.fontid], s,strlen(s));
+
 							}
-
-							if (position.y==-1)
-							{						
-								//vertical center						
-								position.y=((float)vp.Height / 2.0f) - ((float)td->DefinedFontMap->charheight / 2.0f);
-							}
-
-							//now draw the string (nyi)
-							DrawString(position, &textures[shared->RenderCommands[i].font.fontid], s,strlen(s));
-
 
 
 							break;
