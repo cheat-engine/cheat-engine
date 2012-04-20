@@ -1,7 +1,7 @@
 #SERIALPORT is the port to communicate with the debugger, usually 0x3f8, on db's system it's 0xef00
-#SERIALPORT=0x3f8
+SERIALPORT=0x3f8
 #SERIALPORT=0xbf00
-SERIALPORT=0xec00
+#SERIALPORT=0xec00
 
 
 all:
