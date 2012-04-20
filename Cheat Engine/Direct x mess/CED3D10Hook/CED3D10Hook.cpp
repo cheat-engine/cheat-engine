@@ -869,8 +869,11 @@ void DXMessD3D10Handler::RenderOverlay()
 						ConstantBuffer cb;					
 						cb.transparency=shared->RenderCommands[i].alphablend;
 
-						
-						cb.scaling.x=(float)shared->RenderCommands[i].sprite.width/(float)vp.Width;
+						if (shared->RenderCommands[i].sprite.width==-1)
+							cb.scaling.x=(float)vp.Width/(float)vp.Width; //1.0
+						else						
+							cb.scaling.x=(float)shared->RenderCommands[i].sprite.width/(float)vp.Width;
+
 						cb.scaling.y=(float)shared->RenderCommands[i].sprite.height/(float)vp.Height;
 	
 						cb.translation.x=-1.0f+((float)((float)position.x * 2)/(float)vp.Width);
@@ -893,65 +896,72 @@ void DXMessD3D10Handler::RenderOverlay()
 
 				case rcDrawFont:
 				{
-					XMFLOAT3 position;	
-					PTextureData10 td;
-					char *s;
+					int tid=shared->RenderCommands[i].font.fontid;							
 
-					if (!hasLock)
-						hasLock=WaitForSingleObject((HANDLE)shared->CommandlistLock, INFINITE)==WAIT_OBJECT_0; //fonts demand a lock  (stringpointer)
-
-					position.x=(float)shared->RenderCommands[i].x;
-					position.y=(float)shared->RenderCommands[i].y;		
-
-					td=&textures[shared->RenderCommands[i].font.fontid];
-					s=(char *)shared->RenderCommands[i].font.addressoftext;
-
-					if (position.x==-1) 
+					if ((tid<TextureCount) && (textures[tid].pTexture))
 					{
-						//horizontal center
-						//calculate the width
-						float width=0;
-						int slen=strlen(s);
+							
+						XMFLOAT3 position;	
+						PTextureData10 td;
+						char *s;
 
-						for (i=0; i<slen; i++)
+						if (!hasLock)
+							hasLock=WaitForSingleObject((HANDLE)shared->CommandlistLock, INFINITE)==WAIT_OBJECT_0; //fonts demand a lock  (stringpointer)
+
+						position.x=(float)shared->RenderCommands[i].x;
+						position.y=(float)shared->RenderCommands[i].y;		
+
+						td=&textures[tid];
+						s=(char *)shared->RenderCommands[i].font.addressoftext;
+
+						if (position.x==-1) 
 						{
-							width+=td->DefinedFontMap->charinfo[32-i].charwidth;
+							//horizontal center
+							//calculate the width
+							float width=0;
+							int slen=strlen(s);
+							int j;
+
+							for (j=0; j<slen; j++)
+							{
+								width+=td->DefinedFontMap->charinfo[32-j].charwidth;
+							}
+							position.x=((float)vp.Width / 2.0f) - ((float)width / 2.0f);
+							
 						}
-						position.x=((float)vp.Width / 2.0f) - ((float)width / 2.0f);
+
+						if (position.y==-1)
+						{						
+							//vertical center						
+							position.y=((float)vp.Height / 2.0f) - ((float)td->DefinedFontMap->charheight / 2.0f);
+						}
+
+					
+						dev->PSSetShader( pPixelShaderNormal);
+						dev->PSSetSamplers( 0, 1, &pSamplerLinear );						
 						
+
+						ConstantBuffer cb;					
+						cb.transparency=shared->RenderCommands[i].alphablend;						
+						cb.scaling.x=1.0f;
+						cb.scaling.y=1.0f;//if you wish a bigger font, use a bigger font, don't scale (ugly)
+						
+						cb.translation.x=-1.0f;
+						cb.translation.y=-1.0f;
+
+						cb.translation.x=-1.0f+((float)((float)position.x * 2)/(float)vp.Width);
+						cb.translation.y=-1.0f+((float)((float)position.y * 2)/(float)vp.Height);
+
+
+						dev->UpdateSubresource( pConstantBuffer, 0, NULL, &cb, 0, 0 );
+
+						dev->VSSetConstantBuffers(0,1, &pConstantBuffer);
+						dev->PSSetConstantBuffers(0,1, &pConstantBuffer);
+
+						DrawString(vp, &textures[tid], s,strlen(s));
 					}
 
-					if (position.y==-1)
-					{						
-						//vertical center						
-						position.y=((float)vp.Height / 2.0f) - ((float)td->DefinedFontMap->charheight / 2.0f);
-					}
-
-				
-					dev->PSSetShader( pPixelShaderNormal);
-					dev->PSSetSamplers( 0, 1, &pSamplerLinear );						
 					
-
-					ConstantBuffer cb;					
-					cb.transparency=shared->RenderCommands[i].alphablend;						
-					cb.scaling.x=1.0f;
-					cb.scaling.y=1.0f;//if you wish a bigger font, use a bigger font, don't scale (ugly)
-					
-					cb.translation.x=-1.0f;
-					cb.translation.y=-1.0f;
-
-					cb.translation.x=-1.0f+((float)((float)position.x * 2)/(float)vp.Width);
-					cb.translation.y=-1.0f+((float)((float)position.y * 2)/(float)vp.Height);
-
-
-					dev->UpdateSubresource( pConstantBuffer, 0, NULL, &cb, 0, 0 );
-
-					dev->VSSetConstantBuffers(0,1, &pConstantBuffer);
-					dev->PSSetConstantBuffers(0,1, &pConstantBuffer);
-
-					DrawString(vp, &textures[shared->RenderCommands[i].font.fontid], s,strlen(s));
-
-					//dev->Draw(6, characterindex*6)
 					break;
 				}
 			}
