@@ -227,7 +227,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    key:=lua_tointeger(L, key);
+    key:=lua_tointeger(L, 1);
 
     lua_pop(L, parameters);
 
