@@ -460,7 +460,7 @@ mov ebx,0
 
 
 enummem:
-mov byte [es:0xdead],2
+;mov byte [es:0xdead],2
 
 mov eax,0e820h
 mov ecx,20
@@ -848,7 +848,7 @@ sti
 mov ax,0x0201 ;read 1 sector
 xor bx,bx ;write to 0x0 ;(so ds:bx=7000:0000)
 
-mov word [0xdead],0xdead  ;;debug for bochs (watch write 0x7dead)
+;mov word [0xdead],0xdead  ;;debug for bochs (watch write 0x7dead)
 
 mov cl,[0]  ;sector
 mov dh,[1]  ;head

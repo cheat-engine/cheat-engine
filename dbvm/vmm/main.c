@@ -24,6 +24,7 @@
 
 #include "test.h"
 #include "vmcall.h"
+#include "psod.h" //for pink screen of death support
 
 /*
 //#include "logo.c"
@@ -1323,6 +1324,8 @@ void vmm_entry(void)
 #endif
 
 
+
+
   menu2();
 
 
@@ -1394,7 +1397,7 @@ void menu2(void)
     displayline("4: Interrupt test\n");
     displayline("5: Breakpoint test\n");
     displayline("6: Math test\n");
-    displayline("7: Virtual 8086 test\n");
+    displayline("7: Test PSOD\n");
     displayline("8: PCI enum test (finds db's serial port)\n");
     displayline("9: test input\n");
     displayline("a: test branch profiling\n");
@@ -1518,137 +1521,8 @@ void menu2(void)
 
           case '7':
           {
-            //setup a TSS
-            #include "vmpaging.h"
-            sendstring("Setting up v8086 TSS\n\r");
-            displayline("stage 1: Setting up TSS\n");
-            setupTSS8086(); //VirtualMachineTSS_V8086 is now valid
-
-            displayline("stage 2: Setting up identify map paging\n");
-            //set up 32-bit paging
-            PPDPTE_PAE VirtualMachinePageDirPointer;
-            PPDE_PAE   VirtualMachinePageDir;
-
-            unsigned int i;
-
-            sendstringf("Setting up protected mode paging for nonpaged emu\n\r");
-
-            //nonpagedEmulationPagedir=0;
-            nonpagedEmulationPagedir=malloc(4096+4096+4096*8); //pml4+pagedirpointer + pagedirs to map 00000000 till 1ffffffff, since one entry maps 00200000 bytes
-            sendstringf("nonpagedEmulationPagedir=%6\n\r",nonpagedEmulationPagedir);
-
-            zeromemory(nonpagedEmulationPagedir,4096+4096+4096*8);
-
-            VirtualMachinePageDirPointer=nonpagedEmulationPagedir;
-            VirtualMachinePageDir=(void *)((UINT64)VirtualMachinePageDirPointer+0x1000);
-
-            sendstringf("VirtualMachinePageDirPointer=%6\n\r",(UINT64)VirtualMachinePageDirPointer);
-            sendstringf("VirtualMachinePageDir=%6\n\r",(UINT64)VirtualMachinePageDir);
-
-            for (i=0; i<8; i++)
-            {
-              VirtualMachinePageDirPointer[i].P=1;
-
-              VirtualMachinePageDirPointer[i].PFN=VirtualToPhysical((UINT64)VirtualMachinePageDir+(i*4096)) >> 12;
-            }
-
-            for (i=0; i<4096; i++)  //512 in one pagedir, 4 pagedirs=2048 entries
-            {
-              //identity map these regions (easy when switching to protected mode)
-              VirtualMachinePageDir[i].P=1;
-              VirtualMachinePageDir[i].A=0;
-              VirtualMachinePageDir[i].RW=1;
-              VirtualMachinePageDir[i].US=1;
-              VirtualMachinePageDir[i].PS=1; //no pagetable
-
-              VirtualMachinePageDir[i].PCD=0;
-              VirtualMachinePageDir[i].PWT=0;
-              VirtualMachinePageDir[i].PFN=(UINT64)(((UINT64)i*0x00200000) >> 12);
-
-              if ((i!=0) && (VirtualMachinePageDir[i].PFN==0))
-              {
-                nosendchar[getAPICID()]=0;
-                sendstringf("Invalid PFN set : %d\n\r", i);
-                while (1);
-              }
-
-
-            }
-
-            //sendstring("stage 3: Copying memory\n\r");
-            //displayline("stage 3: Copying memory");
-            copymem((void *)0x2000,(void *)(UINT64)&virtual8086entry32bit,(UINT64)&vmxstartup_end-(UINT64)&moveto32bitstart);
-
-            displayline("stage 4: Storing used variables");
-            sendstring("stage 4: Storing used vartiables\n\r");
-            *(DWORD *)0x3000=(DWORD)VirtualToPhysical((UINT64)nonpagedEmulationPagedir);
-            sendstringf("0x3000=%x\n\r",*(DWORD *)0x3000);
-
-            ULONG gdtaddress=getGDTbase();
-
-
-            TSS *mainTSS=malloc(4096);
-
-            PGDT_ENTRY currentgdt=(PGDT_ENTRY)getGDTbase();
-            currentgdt=(PGDT_ENTRY)((UINT64)(&currentgdt[8])-8);
-            currentgdt->Limit0_15=sizeof(TSS);
-            currentgdt->Base0_23=(DWORD)VirtualToPhysical((UINT64)mainTSS);
-            currentgdt->Type=0x9;
-            currentgdt->System=0;
-            currentgdt->DPL=0;
-            currentgdt->P=1;
-            currentgdt->Limit16_19=sizeof(TSS) >> 16;
-            currentgdt->AVL=1;
-            currentgdt->Reserved=0;
-            currentgdt->B_D=0;
-            currentgdt->G=0;
-            currentgdt->Base24_31=(DWORD)VirtualToPhysical((UINT64)mainTSS) >> 24;
-
-            unsigned char *c;
-
-            VirtualMachineTSS_V8086->CR3=*(DWORD *)0x3000;
-            sendstringf("VM CR3 set to %x\n\r",VirtualMachineTSS_V8086->CR3);
-            VirtualMachineTSS_V8086->EAX=0x11223344;
-            VirtualMachineTSS_V8086->CS=0;
-            VirtualMachineTSS_V8086->EIP=0x2000+((UINT64)&realmodetest-(UINT64)&virtual8086entry32bit);
-            VirtualMachineTSS_V8086->EFLAGS=(1<<1) | (1<<17) | (1<<12) | (1<<13); //reserved bit and vm and iopl=3
-            VirtualMachineTSS_V8086->ESP0=0x007f0000;
-            VirtualMachineTSS_V8086->SS0=8;
-
-
-            c=(unsigned char *)(VirtualMachineTSS_V8086);
-            c[sizeof(TSS)+2]=0; //0x28;
-
-
-
-
-
-
-
-
-
-            *(DWORD *)0x3004=(DWORD)VirtualToPhysical(gdtaddress);
-            sendstringf("0x3004=%x\n\r",*(DWORD *)0x3004);
-            *(DWORD *)0x3008=(DWORD)VirtualToPhysical((UINT64)idttable32);
-            sendstringf("0x3008=%x\n\r",*(DWORD *)0x3008);
-            *(DWORD *)0x300c=(DWORD)VirtualToPhysical((UINT64)&inthandler_32);
-            sendstringf("0x300c=%x\n\r",*(DWORD *)0x300c);
-            *(DWORD *)0x3010=(DWORD)VirtualToPhysical((UINT64)VirtualMachineTSS_V8086);
-            sendstringf("0x3010=%x\n\r",*(DWORD *)0x3010);
-            *(DWORD *)0x3014=(DWORD)VirtualToPhysical((UINT64)jumptable);
-            sendstringf("0x3014=%x\n\r",*(DWORD *)0x3014);
-
-            //sendstring("Copying gdt to low memory (for other realmode code)\n\r");
-            copymem((void *)0x50000,(void *)(UINT64)gdtaddress,0x50); //copy gdt to 0x50000
-
-
-            sendstringf("Calling virtual8086_start()\n\r");
-            displayline("Calling virtual8086_start()\n");
-
-
-            virtual8086_start();
-            sendstringf("FUUUUUCK!\n\r");
-            displayline("FUUUUUCK!\n");
+            PSOD("FUUUUUUU");
+            break;
           }
 
           case '8':
@@ -2212,6 +2086,7 @@ void startvmx(pcpuinfo currentcpuinfo)
   UINT64 a,b,c,d;
 
 
+
   displayline("%d: startvmx:\n",currentcpuinfo->cpunr);
 #ifdef DEBUG
   sendstringf("currentcpuinfo=%6  (cpunr=%d)\n\r",(UINT64)currentcpuinfo, currentcpuinfo->cpunr);
@@ -2270,6 +2145,8 @@ void startvmx(pcpuinfo currentcpuinfo)
       sendstringf("\tMaximum logical cpu\'s=%d\n\r",max_logical_cpu);
       sendstringf("\tinitial APIC=%d\n\r",initial_APIC);
     }
+
+   // PSOD("Line 2149: PSOD Test");
 
     if (isAMD)
     {
