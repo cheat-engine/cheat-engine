@@ -453,7 +453,7 @@ begin
       console.background:=TD3DHook_Sprite.create(owner, console.backgroundtexture);
 
 
-      console.background.width:=owner.getWidth;
+      console.background.width:=-1; //full width
       console.background.height:=owner.getHeight div 2;
       console.background.x:=0;
       console.background.y:=owner.getHeight div 2;
@@ -482,7 +482,7 @@ begin
       console.seperator.x:=0;
       console.seperator.y:=owner.getHeight-console.fontmap.height;
       console.seperator.height:=1;
-      console.seperator.width:=owner.getWidth;
+      console.seperator.width:=-1; //full width
 
 
       console.output:=TD3Dhook_TextContainer.create(owner, console.fontmap, 0, owner.getHeight div 2,'',8192);
