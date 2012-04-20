@@ -1392,7 +1392,7 @@ global virtual8086_start
 ;----------------------------;
 virtual8086_start:
 ;called from 64-bit, so still in 64-bit mode
-call clearScreen
+
 
 
 jmp far [moveto32bitstart]
@@ -1407,6 +1407,10 @@ global virtual8086entry32bit
 virtual8086entry32bit:
 ;this gets moved to 0x2000
 
+
+mov byte [0xb8000],'1';
+mov byte [0xb8001],15;
+
 ;disable paging
 mov eax,cr0
 and eax,0x7FFFFFFF
@@ -1415,30 +1419,61 @@ mov cr0,eax
 xor eax,eax
 mov cr3,eax
 
-;unset IA32_EFER_LME to 0 (enable 64 bits)
+mov byte [0xb8000],'2';
+mov byte [0xb8001],15;
+
+
+
+;unset IA32_EFER_LME to 0 (disable 64 bits)
 mov ecx,0xc0000080
 rdmsr
 and eax,0xFFFFFEFF
 wrmsr
 
+
 mov eax,cr4
 or eax,1
 mov cr4,eax
 
+mov byte [0xb8000],'3';
+mov byte [0xb8001],15;
+
+
+xchg bx,bx
 mov word [0x40000],0x4f
 mov eax,[0x3004]
 mov dword [0x40002],eax
 lgdt [0x40000]
 
-mov eax,[0x3000]
-mov cr3,eax
-mov eax,cr0
-or eax,0x80000000
+
+mov byte [0xb8000],'4';
+mov byte [0xb8001],15;
+
+
+
+;xchg bx,bx
+;xor eax,eax
+;mov cr0,eax
+jmp (4*8):(0x2000+entry16-virtual8086entry32bit)
+
+bits 16
+
+entry16:
+xor eax,eax
 mov cr0,eax
-jmp virtual8086entry32bit2
+jmp 0:(0x2000+realmodetest-virtual8086entry32bit)
 
-virtual8086entry32bit2:
 
+;mov eax,[0x3000]
+;mov cr3,eax
+;mov eax,cr0
+;or eax,0x80000000 ;enable paging
+;mov cr0,eax
+;jmp virtual8086entry32bit2
+
+;virtual8086entry32bit2:
+
+bits 32
 nop
 mov ax,8
 mov ds,ax
@@ -1447,10 +1482,10 @@ mov fs,ax
 mov gs,ax
 mov ss,ax
 
-mov byte [0xdead],1
+;mov byte [0xdead],1
 
 mov word [0x40008],256*8
-mov eax,[0x3008]
+mov eax,[0x3008] ;idt table
 mov dword [0x4000a],eax
 lidt [0x40008]
 
@@ -1489,23 +1524,6 @@ push ds
 mov ax,8
 mov ds,ax
 
-;mov al,4
-;cmp byte [ebp+4],13
-;jne pint
-
-;mov al,6
-
-;pint:
-
-;mov byte [0xb8000],'P';
-;mov byte [0xb8001],al;
-;mov byte [0xb8002],'I';
-;mov byte [0xb8003],al;
-;mov byte [0xb8004],'N';
-;mov byte [0xb8005],al;
-;mov byte [0xb8006],'T';
-;mov byte [0xb8007],al;
-
 ;save state in realmode stack
 sub word [ebp+0x14],6 ;decrease stack with 6 (3 pushes)
 
@@ -1542,6 +1560,49 @@ iret
 bits 16
 global realmodetest
 realmodetest:
+
+xor eax,eax
+mov cr0,eax
+mov cr3,eax
+mov cr4,eax
+
+xor eax,eax
+xor ebx,ebx
+xor ecx,ecx
+xor edx,edx
+xor esi,esi
+xor edi,edi
+xor ebp,ebp
+xor esp,esp
+
+
+
+mov ax,0xb800
+mov ds,ax
+mov byte [ds:0],'5'
+mov byte [ds:1],15
+
+jmp 0:(0x2000+realmodetest_b-virtual8086entry32bit)
+realmodetest_b:
+
+mov ax,0xb800
+mov ds,ax
+mov byte [ds:0],'6'
+mov byte [ds:1],15
+
+
+mov ax,0x8000
+mov ds,ax
+mov es,ax
+mov word [0],0x400   ;  256*4
+mov dword [2],0
+lidt [0x0]
+
+mov word [0],0   ;  0
+mov dword [2],0
+lgdt [0x0]
+
+
 nop
 nop
 nop
@@ -1550,22 +1611,90 @@ mov ds,ax
 mov es,ax
 mov fs,ax
 mov gs,ax
-mov ax,0x8000
+mov ax,0x4000
 mov ss,ax
-mov sp,0xfff0
+mov sp,0xff00
 nop
 nop
 nop
-sti
+cli
 nop
-nop
-nop
-nop
-nop
-int 13
-nop
-jmp vm_basicinit
 
+mov ax,0xb800
+mov ds,ax
+mov byte [ds:0],'7'
+mov byte [ds:1],15
+
+
+mov ah,0
+mov al,3
+int 10h
+
+
+mov ax,0xb800
+mov ds,ax
+mov byte [ds:0],'8'
+mov byte [ds:1],15
+
+;at 80x25 now
+
+showpsod:
+xchg bx,bx
+cld
+mov ax,0b800h
+mov si,0
+mov di,0
+mov ds,ax
+mov es,ax
+mov cx,(80*25)
+mov ax,05000h  ;pink background, black text
+rep stosw
+
+;write the message (stored at 40000h)
+
+mov ax,06000h
+mov ds,ax
+mov si,0
+mov di,0
+
+psod_loop:
+cmp byte [ds:si],0
+je psod_lock ;reached end
+
+cmp byte [ds:si],10
+je newline
+
+cmp byte [ds:si],13
+je newline
+
+jmp nonewline
+
+newline:
+xor dx,dx
+add di,80*2
+mov ax,di
+mov cx,80*2
+div cx
+sub di,dx
+
+add si,1
+jmp psod_loop
+
+
+;newline
+
+nonewline:
+mov al,[ds:si]
+mov [es:di],al
+
+add si,1
+add di,2
+
+jmp psod_loop
+
+
+psod_lock:
+jmp psod_lock
 
 
 
@@ -1766,6 +1895,8 @@ mov ebx,CR0
 
 vm_basicinit:
 cli
+xchg bx,bx
+
 xor ax,ax
 mov ds,ax
 mov es,ax
