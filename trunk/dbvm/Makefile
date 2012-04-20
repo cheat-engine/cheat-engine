@@ -1,6 +1,7 @@
 #SERIALPORT is the port to communicate with the debugger, usually 0x3f8, on db's system it's 0xef00
-SERIALPORT=0x3f8
+#SERIALPORT=0x3f8
 #SERIALPORT=0xbf00
+SERIALPORT=0xec00
 
 
 all:
@@ -19,7 +20,7 @@ install: all
 	sync
 
 usb: install
-	dd if=vmdisk.img of=/dev/sdc
+	dd if=vmdisk.img of=/dev/sdb
 	sync
 	
 disk: install
