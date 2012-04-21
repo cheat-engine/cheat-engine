@@ -3370,12 +3370,21 @@ begin
 end;
 
 procedure TMainForm.setGbScanOptionsEnabled(state: boolean);
-var
-  i: integer;
+procedure setstaterecursive(c: TWinControl);
+var i: integer;
 begin
-  gbScanOptions.Enabled := state;
-  for i := 0 to gbScanOptions.ControlCount - 1 do
-    gbScanOptions.Controls[i].Enabled := state;
+  c.enabled:=state;
+  for i:=0 to c.ControlCount-1 do
+  begin
+    if (c.Controls[i] is TWinControl) then
+      setstaterecursive(twincontrol(c.controls[i]))
+    else
+      c.controls[i].enabled:=state;
+  end;
+
+end;
+begin
+  setstaterecursive(gbScanOptions);
 end;
 
 procedure TMainForm.LoadCustomTypesFromRegistry;
