@@ -124,15 +124,27 @@ begin
   Increase value with:
 
   }
-  case a of
-    mrhToggleActivation:                   result:=cbFreezedirection.Items[0];
-    mrhToggleActivationAllowIncrease:      result:=cbFreezedirection.Items[1];
-    mrhToggleActivationAllowDecrease:      result:=cbFreezedirection.Items[2];
-    mrhActivate:                           result:=cbFreezedirection.items[3];
-    mrhDeactivate:                         result:=cbFreezedirection.items[3];
-    mrhSetValue:                           result:=cbFreezedirection.Items[3];
-    mrhDecreaseValue:                      result:=cbFreezedirection.Items[4];
-    mrhIncreaseValue:                      result:=cbFreezedirection.Items[5];
+  if x.VarType=vtAutoAssembler then
+  begin
+    case a of
+      mrhToggleActivation:                   result:=cbFreezedirection.Items[0];
+      mrhActivate:                           result:=cbFreezedirection.items[1];
+      mrhDeactivate:                         result:=cbFreezedirection.items[2];
+    end;
+  end
+  else
+  begin
+    case a of
+      mrhToggleActivation:                   result:=cbFreezedirection.Items[0];
+      mrhToggleActivationAllowIncrease:      result:=cbFreezedirection.Items[1];
+      mrhToggleActivationAllowDecrease:      result:=cbFreezedirection.Items[2];
+      mrhActivate:                           result:=cbFreezedirection.items[3];
+      mrhDeactivate:                         result:=cbFreezedirection.items[4];
+      mrhSetValue:                           result:=cbFreezedirection.Items[5];
+      mrhDecreaseValue:                      result:=cbFreezedirection.Items[6];
+      mrhIncreaseValue:                      result:=cbFreezedirection.Items[7];
+    end;
+
   end;
 end;
 
