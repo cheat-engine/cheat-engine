@@ -124,7 +124,7 @@ begin
   Increase value with:
 
   }
-  if x.VarType=vtAutoAssembler then
+  if memrec.VarType=vtAutoAssembler then
   begin
     case a of
       mrhToggleActivation:                   result:=cbFreezedirection.Items[0];
