@@ -710,6 +710,7 @@ var generated: tstringlist;
   fname: string;
 
   memrecname,hotkeyname: string;
+  screwit: tstringlist;
 begin
 
 
@@ -894,26 +895,28 @@ begin
       l.add('  showMessage(gAboutText)');
       l.add('end');
 
-      if mabout.lines.Count>0 then
-        s:=mAbout.lines[0]
-      else
-        s:='';
+      s:='';
 
-
-
+      screwit:=tstringlist.create;
 
 
       for i:=0 to mabout.lines.Count-1 do
       begin
         s:=mAbout.lines[i];
-        if i=0 then //first line
-          l.add('gAboutText=[['+s);
-
-        if i=mabout.lines.Count-1 then //last line
-          s:=s+']]';
-
-        l.add(s);
+        screwit.add(s);
       end;
+
+
+      if screwit.Count>0 then
+      begin
+        screwit[0]:='gAboutText=[['+screwit[0];
+        screwit[screwit.count-1]:=screwit[screwit.count-1]+']]';
+        l.AddStrings(screwit);
+      end
+      else
+        l.add('gAboutText=""');
+
+      screwit.free;
 
       l.add('');
     end;
@@ -1007,19 +1010,25 @@ begin
   case cbOutput.ItemIndex of
     0:
     begin
+      MainForm.miShowLuaScript.click;
+      exit;
+    end;
+
+    1:
+    begin
       if not EXESaveDialog.Execute then exit;
       f:=EXESaveDialog.FileName;
       protect:=true;
     end;
 
-    1:
+    2:
     begin
       if not CETRAINERSaveDialog.Execute then exit;
       f:=CETRAINERSaveDialog.FileName;
       protect:=cbProtect.checked;
     end;
 
-    2:
+    3:
     begin
       if not CTSaveDialog.Execute then exit;
       f:=CTSaveDialog.FileName;
