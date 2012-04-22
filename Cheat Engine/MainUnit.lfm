@@ -1927,10 +1927,10 @@ object MainForm: TMainForm
     object miTable: TMenuItem
       Caption = 'Table'
       OnClick = miTableClick
-      object MenuItem4: TMenuItem
+      object miShowLuaScript: TMenuItem
         Caption = 'Show Cheat Table Lua Script'
         ShortCut = 49228
-        OnClick = MenuItem4Click
+        OnClick = miShowLuaScriptClick
       end
       object MenuItem10: TMenuItem
         Caption = '-'

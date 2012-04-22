@@ -283,8 +283,9 @@ object frmTrainerGenerator: TfrmTrainerGenerator
       Top = 280
       Width = 86
       ItemHeight = 15
-      ItemIndex = 0
+      ItemIndex = 1
       Items.Strings = (
+        'Script only'
         'EXE'
         'CETRAINER'
         'CT'

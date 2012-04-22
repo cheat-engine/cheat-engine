@@ -218,7 +218,7 @@ type
     miPresetWritable: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
-    MenuItem4: TMenuItem;
+    miShowLuaScript: TMenuItem;
     MenuItem5: TMenuItem;
     miPresetAll: TMenuItem;
     miAddFile: TMenuItem;
@@ -412,7 +412,7 @@ type
     procedure miTutorialClick(Sender: TObject);
     procedure miChangeValueClick(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
-    procedure MenuItem4Click(Sender: TObject);
+    procedure miShowLuaScriptClick(Sender: TObject);
     procedure miAddAddressClick(Sender: TObject);
     procedure miAllowCollapseClick(Sender: TObject);
     procedure miHookD3DClick(Sender: TObject);
@@ -2900,7 +2900,7 @@ begin
   addresslist.SelectAll;
 end;
 
-procedure TMainForm.MenuItem4Click(Sender: TObject);
+procedure TMainForm.miShowLuaScriptClick(Sender: TObject);
 begin
   frmLuaTableScript.Show;
 end;
