@@ -8,7 +8,7 @@ This class is used as a wrapper for different kinds of custom types
 interface
 
 uses
-  {windows, }Classes, SysUtils,cefuncproc, autoassembler, lua, lauxlib, lualib, luahandler;
+  {windows, }dialogs, Classes, SysUtils,cefuncproc, autoassembler, lua, lauxlib, lualib, luahandler;
 
 type TConversionRoutine=function(data: pointer):integer; stdcall;
 type TReverseConversionRoutine=procedure(i: integer; output: pointer); stdcall;
@@ -70,6 +70,7 @@ type
     destructor destroy; override;
 
     procedure remove;  //call this instead of destroy
+    procedure showDebugInfo;
 
     property name: string read fName write setName;
     property functiontypename: string read ffunctiontypename write setfunctiontypename; //lua
@@ -670,6 +671,14 @@ begin
   if i<>-1 then
     customTypes.Delete(i);
 
+end;
+
+procedure TCustomType.showDebugInfo;
+var x,y: pointer;
+begin
+  x:=@routine;
+  y:=@reverseroutine;
+  ShowMessage(format('routine=%p reverseroutine=%p',[x, y]));
 end;
 
 destructor TCustomType.destroy;

@@ -200,6 +200,7 @@ type
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
+    miShowCustomTypeDebug: TMenuItem;
     miShowAsSigned: TMenuItem;
     miOpenFile: TMenuItem;
     MenuItem8: TMenuItem;
@@ -407,6 +408,7 @@ type
     procedure mi3dClick(Sender: TObject);
     procedure miOpenFileClick(Sender: TObject);
     procedure miShowAsSignedClick(Sender: TObject);
+    procedure miShowCustomTypeDebugClick(Sender: TObject);
     procedure miTutorialClick(Sender: TObject);
     procedure miChangeValueClick(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
@@ -2892,6 +2894,7 @@ end;
 
 
 
+
 procedure TMainForm.MenuItem1Click(Sender: TObject);
 begin
   addresslist.SelectAll;
@@ -4234,7 +4237,19 @@ begin
   miEditCustomType.Visible := (vartype.ItemIndex <> -1) and
     (vartype.items.objects[vartype.ItemIndex] <> nil);
   miDeleteCustomType.Visible := miEditCustomType.Visible;
+
+  miShowCustomTypeDebug.visible:=miEditCustomType.Visible and (GetKeyState(VK_SHIFT) and 32768=32768);
+
 end;
+
+
+procedure TMainForm.miShowCustomTypeDebugClick(Sender: TObject);
+var ct: TCustomType;
+begin
+  ct:=TCustomType(vartype.items.objects[vartype.ItemIndex]);
+  ct.showDebugInfo;
+end;
+
 
 procedure TMainForm.aprilfoolsscan;
 begin

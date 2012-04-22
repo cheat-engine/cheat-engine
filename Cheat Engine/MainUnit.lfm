@@ -2050,6 +2050,11 @@ object MainForm: TMainForm
       Caption = 'Delete selected custom type'
       OnClick = miDeleteCustomTypeClick
     end
+    object miShowCustomTypeDebug: TMenuItem
+      Caption = 'Show custom type debug info'
+      Visible = False
+      OnClick = miShowCustomTypeDebugClick
+    end
   end
   object ColorDialog1: TColorDialog
     Color = clBlack
