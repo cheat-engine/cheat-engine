@@ -451,8 +451,8 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'FISUBR';opcode1:eo_reg5;paramtype1:par_m32;bytes:1;bt1:$da),
   (mnemonic:'FISUBR';opcode1:eo_reg5;paramtype1:par_m16;bytes:1;bt1:$de),
 
-  (mnemonic:'FLD';opcode1:eo_reg0;paramtype1:par_m32;bytes:1;bt1:$d9),
   (mnemonic:'FLD';opcode1:eo_reg0;paramtype1:par_m64;bytes:1;bt1:$dd),
+  (mnemonic:'FLD';opcode1:eo_reg0;paramtype1:par_m32;bytes:1;bt1:$d9),
   (mnemonic:'FLD';opcode1:eo_reg5;paramtype1:par_m80;bytes:1;bt1:$db),
   (mnemonic:'FLD';opcode1:eo_pi;paramtype1:par_st;bytes:2;bt1:$d9;bt2:$c0),
 
@@ -5207,8 +5207,9 @@ begin
       if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
       begin
         //m64
-        //                                   //check if it is especially designed to be 32 bit, or if it is a default answer (so CAN be 64)
-        if (paramtype1=ttMemorylocation64) or (parameter1[1]='[') then
+        //
+
+        if (gettokentype(parameter1,parameter2)=ttMemoryLocation64) then
         begin
           //verified, it is a 64 bit location, and if it was detected as 32 it was due to defaulting to 32
           addopcode(bytes,j);
