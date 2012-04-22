@@ -900,13 +900,7 @@ begin
       screwit:=tstringlist.create;
 
 
-      for i:=0 to mabout.lines.Count-1 do
-      begin
-        s:=mAbout.lines[i];
-        screwit.add(s);
-      end;
-
-
+      screwit.AddStrings(mabout.lines);
       if screwit.Count>0 then
       begin
         screwit[0]:='gAboutText=[['+screwit[0];
