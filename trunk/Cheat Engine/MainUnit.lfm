@@ -1735,7 +1735,7 @@ object MainForm: TMainForm
     object actOpenDissectStructure: TAction
       Caption = 'actOpenDissectStructure'
       OnExecute = actOpenDissectStructureExecute
-      ShortCut = 16452
+      ShortCut = 49220
     end
     object actOpenLuaEngine: TAction
       Caption = 'actOpenLuaEngine'
