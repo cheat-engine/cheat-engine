@@ -3077,6 +3077,9 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
       {
         nosendchar[getAPICID()]=0;
         sendstring("TRIPPLEFAULT TRIPPLEFAULT!!! OMGWTF?\n");
+        sendvmstate(currentcpuinfo, vmregisters);
+        displayPreviousStates();
+        ShowCurrentInstructions(currentcpuinfo);
         while (1) ;
 
       }
