@@ -137,6 +137,7 @@ vtBinary=9
 vtAutoAssembler=11
 vtPointer=12 --Only used by autoguess and structures
 vtCustom=13
+vtGrouped=14
 
 --Key codes
 VK_LBUTTON = 1
