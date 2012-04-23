@@ -23,6 +23,7 @@ int getOpperand(PINSTRUCTIONDATA id);
 int setSegment(int segmentnr, WORD value);
 UINT64 getOpperandValue(VMRegisters *vmregisters, int opperand, _registerType registerType);
 int emulateRMinterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, int intnr);
+int emulateHLT(pcpuinfo currentcpuinfo, VMRegisters *vmregisters);
 int getparityflag(unsigned char value);
 
 int opcode_CALLE8(pcpuinfo currentcpuinfo, PINSTRUCTIONDATA id)
@@ -59,6 +60,22 @@ int opcode_CALLE8(pcpuinfo currentcpuinfo, PINSTRUCTIONDATA id)
   else
     return 1; //opperandsize of 32-bit is not supported yet
 
+}
+
+int opcode_HLTF4(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTIONDATA id)
+{
+	//realmode HLT emu
+
+	//handleHLT(currentcpuinfo);
+	sendstringf("opcode_HLTF4. HLT emu");
+    vmwrite(vm_guest_rip,vmread(vm_guest_rip)+1);
+    id->size=0;
+
+    vmwrite(vm_guest_interruptability_state,0);
+
+    emulateHLT(currentcpuinfo, vmregisters);
+
+    return 2;
 }
 
 int opcode_JMPE9(pcpuinfo currentcpuinfo, PINSTRUCTIONDATA id)
@@ -869,6 +886,8 @@ int opcode_MOVC7(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTION
 
 }
 
+
+
 int opcode_POP58to5F(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTIONDATA id,int offset)
 {
   int error;
@@ -998,6 +1017,110 @@ int opcode_POPSegment(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRU
   return 0;
 }
 
+int opcode_PUSH50to57(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTIONDATA id, int offset)
+{
+  int error;
+  UINT64 pagefaultaddress;
+
+  sendstring("PUSH 50 to 57\n");
+
+  if (!id->opperandsize)
+  {
+    //16 bit
+    //push the value on the stack
+
+	//decrease sp with 2
+	vmwrite(vm_guest_rsp, (vmread(vm_guest_rsp) & 0xffffffffffff0000ULL) + (WORD)(vmread(vm_guest_rsp)-2));
+
+    WORD *stack=(WORD *)mapVMmemory(currentcpuinfo, vmread(vm_guest_ss_base)+(vmread(vm_guest_rsp) & 0xffff), 2, currentcpuinfo->AvailableVirtualAddress, &error, &pagefaultaddress);
+
+    //write the value of the register to *stack
+    switch (offset)
+    {
+      case 0:
+        *stack=(WORD)vmregisters->rax;
+        break;
+
+      case 1:
+    	*stack=(WORD)vmregisters->rcx;
+        break;
+
+      case 2:
+    	*stack=(WORD)vmregisters->rdx;
+        break;
+
+      case 3:
+    	*stack=(WORD)vmregisters->rbx;
+        break;
+
+      case 4:
+    	*stack=(WORD)vmread(vm_guest_rsp)+2; //old rsp value
+        break;
+
+      case 5:
+    	*stack=(WORD)vmregisters->rbp;
+        break;
+
+      case 6:
+    	*stack=(WORD)vmregisters->rsi;
+        break;
+
+      case 7:
+    	*stack=(WORD)vmregisters->rdi;
+        break;
+    }
+
+
+
+  }
+  else
+  {
+    //32-bit
+	//decrease sp with 2
+	vmwrite(vm_guest_rsp, (vmread(vm_guest_rsp) & 0xffffffffffff0000ULL) + (WORD)(vmread(vm_guest_rsp)-4));
+    DWORD *stack=(DWORD *)mapVMmemory(currentcpuinfo, vmread(vm_guest_ss_base)+(vmread(vm_guest_rsp) & 0xffff), 4, currentcpuinfo->AvailableVirtualAddress, &error, &pagefaultaddress);
+
+    //write the value of *stack to the chosen register
+    switch (offset)
+    {
+      case 0:
+        *stack=(DWORD)vmregisters->rax;
+        break;
+
+      case 1:
+    	  *stack=(DWORD)vmregisters->rcx;
+        break;
+
+      case 2:
+    	  *stack=(DWORD)vmregisters->rdx;
+        break;
+
+      case 3:
+    	  *stack=(DWORD)vmregisters->rbx;
+        break;
+
+      case 4:
+    	  *stack=(DWORD)vmread(vm_guest_rsp)+4; //old rsp value
+        break;
+
+      case 5:
+    	  *stack=(DWORD)vmregisters->rbp;
+        break;
+
+      case 6:
+    	  *stack=(DWORD)vmregisters->rsi;
+        break;
+
+      case 7:
+    	  *stack=(DWORD)vmregisters->rdi;
+        break;
+    }
+
+  }
+
+  return 0; //all ok
+}
+
 int opcode_PUSHSegment(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTIONDATA id,int segment)
 {
   int error;
@@ -1026,6 +1149,8 @@ int opcode_PUSHSegment(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTR
 
   return 0;
 }
+
+
 
 int opcode_PUSH68(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTIONDATA id)
 {
@@ -1916,6 +2041,14 @@ int emulateRMinstruction2(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PIN
     case 0x1f: return opcode_POPSegment(currentcpuinfo, vmregisters, id, 3); //pop ds
 
     case 0x31: return opcode_XOR31(currentcpuinfo, vmregisters, id);
+    case 0x50: return opcode_PUSH50to57(currentcpuinfo, vmregisters, id,0);
+    case 0x51: return opcode_PUSH50to57(currentcpuinfo, vmregisters, id,1);
+    case 0x52: return opcode_PUSH50to57(currentcpuinfo, vmregisters, id,2);
+    case 0x53: return opcode_PUSH50to57(currentcpuinfo, vmregisters, id,3);
+    case 0x54: return opcode_PUSH50to57(currentcpuinfo, vmregisters, id,4);
+    case 0x55: return opcode_PUSH50to57(currentcpuinfo, vmregisters, id,5);
+    case 0x56: return opcode_PUSH50to57(currentcpuinfo, vmregisters, id,6);
+    case 0x57: return opcode_PUSH50to57(currentcpuinfo, vmregisters, id,7);
     case 0x58: return opcode_POP58to5F(currentcpuinfo, vmregisters, id,0);
     case 0x59: return opcode_POP58to5F(currentcpuinfo, vmregisters, id,1);
     case 0x5a: return opcode_POP58to5F(currentcpuinfo, vmregisters, id,2);
@@ -1961,6 +2094,7 @@ int emulateRMinstruction2(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PIN
     case 0xe9: return opcode_JMPE9(currentcpuinfo, id);
     case 0xea: return opcode_JMPEA(id);
     case 0xeb: return opcode_JMPEB(id);
+    case 0xf4: return opcode_HLTF4(currentcpuinfo, vmregisters, id);
 
 
     case 0xfa: return opcode_CLI();
@@ -2010,6 +2144,49 @@ int emulateRMinstruction(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
 #pragma GCC push_options
 #pragma GCC optimize ("O0")
+int emulateHLT(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
+{
+  volatile int result=2;
+  sendstringf("emulateHLT:");
+  UINT64 guestrflags=vmread(vm_guest_rflags);
+  PRFLAGS pguestrflags=(PRFLAGS)&guestrflags;
+
+
+  if (pguestrflags->IF)
+  {
+	  currentcpuinfo->OnInterrupt.RIP=(volatile void *)&&InterruptFired; //set interrupt location
+	  currentcpuinfo->OnInterrupt.RSP=getRSP();
+
+	  __asm("sti"); //enable interrupts
+	  __asm("hlt"); //this nop is ignored
+	  __asm("cli"); //disable interrupts
+
+	  //nothing happened (weird)
+	  sendstringf("emulateHLT returned without an interrupt! WTF!");
+	  currentcpuinfo->OnInterrupt.RIP=0;
+	  result=-1;
+
+	  InterruptFired:
+	  if (result==2)
+	  {
+		  sendstringf("emulateHLT caught interrupt %d", currentcpuinfo->LastInterrupt);
+
+		  result=emulateRMinterrupt(currentcpuinfo, vmregisters, currentcpuinfo->LastInterrupt);
+
+	  }
+  }
+  else
+  {
+	  sendstring("emulateHLT called in a state that will not work");
+	  return 0;
+  }
+
+  return result;
+
+
+
+}
+
 int testRMinterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 {
   volatile int result=2;
@@ -2034,7 +2211,7 @@ int testRMinterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
       __asm("sti"); //enable interrupts
       __asm("nop"); //this nop is ignored
-      __asm("nop"); //this nop captures theinterrupt
+      __asm("nop"); //this nop captures the interrupt
       __asm("cli"); //disable interrupts
       //nothing happened
       currentcpuinfo->OnInterrupt.RIP=0;
@@ -2136,13 +2313,33 @@ int emulateRealMode(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       return FALSE;
     }
 
+#ifdef DEBUG
 
     switch (address)
     {
+
       case 0x264f:
       case 0x2658:
-      case 0x265b:
+      case 0x265b:  //   OR EAX, 0x11 (66 83c8 11 )
       case 0x265f:
+      case 0xbffc:
+      case 0xc001:
+      case 0xc004: //case 0xc001: 66 25 ffff0000 - AND EAX, 0xffff
+      case 0xc00c: //switches to protected mode
+      case 0xc04e:
+      case 0xc053:
+      case 0xc056:
+
+      case 0xc058:
+      case 0xc05a:
+      case 0xc05c:
+      case 0xc05e:
+      case 0xc060: //66 RET (db 66) not handled
+
+      case 0xcee8: //HLT
+
+      case 0x20000:
+
       case 0x2006e:
       case 0x2006f:
       case 0x20071:
@@ -2152,7 +2349,8 @@ int emulateRealMode(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       case 0x2007c:
       case 0x2007d:
       case 0x20080:
-      case 0x20083: //not handled
+      case 0x20083:  //IRET (CF) not handled
+
       case 0x200cc:
       case 0x200d1:
       case 0x200d7:
@@ -2173,24 +2371,20 @@ int emulateRealMode(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       case 0x20106:
       case 0x20109:
       case 0x2010c:
-      case 0x2010d:
-      case 0x2010f:
-      case 0x20111:
-      case 0x20113:
-      case 0x20115:
-      case 0x20117:
-      case 0x2011a:
-      case 0x2011c:
-      case 0x2011f: //not handled (mov eax,[0x7dfa] )
-      case 0x20123:
-      case 0x20126:
-      case 0x20127:
+      case 0x2010d: //XCHG BX,BX (87 db) not handled
+
+      case 0x20125:
       case 0x20128:
-      case 0x20129: //interrupt here
-      case 0x20826: //lgdt
+      case 0x20129:
+      case 0x2012a:
+      case 0x2012b: //interupts enabled here
+
+      case 0x201d8:
+      case 0x201db: //201db : c1eb 04 - SHR BX, 0x4 Not handled
+      case 0x20826:
       case 0x2082b:
       case 0x20830:
-      case 0x20833: //or eax,edx (unhandled)
+      case 0x20833: //20833 : 66 0bc2 - OR EAX, EDX
       case 0x20836:
       case 0x208a0:
       case 0x208a5:
@@ -2199,26 +2393,40 @@ int emulateRealMode(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       case 0x208aa:
       case 0x208ab:
       case 0x208ac:
-      case 0x208af: //push word [0x1536] (unhandled)  (ff 36 36 15 )
+      case 0x208af: //ff36 3615 - PUSH WORD [0x1536] unhandled
       case 0x208cf:
       case 0x208d4:
       case 0x208d5:
-      case 0x208d7: //leave (unhandled)
+      case 0x208d7: //LEAVE (c9)
 
+      case 0x2b00ba:
+      case 0x2b00bd:
+      case 0x2b00bf:
+      case 0x2b00c1:
+      case 0x2b00c3:
+      case 0x2b00c9:
+      case 0x2b00cb:
+      case 0x2b00cd:
 
+      case 0xf3240:
+      case 0xf3241: //fc - CLD not handled
 
-      case 0xfe987:
-      case 0xfada0:
-      case 0xfada1: //cld (unhandled)
-      case 0xffc58:
-      case 0xffc59:
-      case 0xffc5a:  //push SI (unhandled)
       case 0xffea5:
-
+      case 0xfe05e:
+      case 0xfe05f:
+      case 0xfe060:
+      case 0xfe063:
+      case 0xfe064:
+      case 0xfe065:
+      case 0xfe066:
+      case 0xfe069:
+      case 0xfe06c: //INC WORD [SI] (ff 04) not handled
+      case 0xfe987:
 
         skip=1;
         break;
     }
+#endif
 
 
 
