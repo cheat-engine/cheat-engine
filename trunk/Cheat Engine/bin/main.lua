@@ -337,6 +337,7 @@ menuItem_add(menuitem, menuitem) : Adds a menuItem as a submenu item
 menuItem_insert(menuitem, index, menuitem): Adds a menuItem as a submenu item at the given index
 menuItem_delete(menuitem, index)
 menuItem_onClick(menuitem, function) : Sets an onClick event
+menuItem_doClick(menuitem): Executes the onClick method if one is assigned
 
 
 Menu Class: (Inheritance: Component->Object)
