@@ -406,7 +406,17 @@ begin
       vtQword: x.cbVartype.itemindex:=4;
       vtSingle: x.cbVartype.itemindex:=5;
       vtDouble: x.cbVartype.itemindex:=6;
-      vtString: x.cbVartype.ItemIndex:=7;
+      vtString:
+      begin
+        if gcp.elements[i].wildcard then
+        begin
+          x.cbVartype.itemindex:=9;
+          gcp.elements[i].uservalue:=inttostr(gcp.elements[i].bytesize);
+        end
+        else
+          x.cbVartype.ItemIndex:=7;
+
+      end;
       vtUnicodeString: x.cbVartype.ItemIndex:=8;
       vtCustom: x.cbVartype.ItemIndex:=x.cbVartype.Items.IndexOf(gcp.elements[i].customtype.name);
     end;
@@ -421,6 +431,7 @@ begin
   cbOutOfOrder.checked:=gcp.outOfOrder;
   cbTypeAligned.checked:=gcp.typeAligned;
 
+  gcp.free;
 
 end;
 
