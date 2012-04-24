@@ -13,6 +13,7 @@ implementation
 
 uses LuaCaller;
 
+
 function menu_getItems(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
@@ -292,6 +293,24 @@ begin
   lua_pop(L, parameters);
 end;
 
+function menuItem_doClick(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  mi: TMenuItem;
+  Color: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    mi:=lua_touserdata(L,1);
+    if assigned(mi.onclick) then
+      mi.OnClick(mi);
+  end;
+
+  lua_pop(L, parameters);
+end;
+
 procedure initializeLuaMenu;
 begin
   lua_register(LuaVM, 'menu_getItems', menu_getItems);
@@ -309,8 +328,7 @@ begin
   lua_register(LuaVM, 'menuItem_insert', menuItem_insert);
   lua_register(LuaVM, 'menuItem_delete', menuItem_delete);
   lua_register(LuaVM, 'menuItem_onClick', menuItem_onClick);
-
-
+  lua_register(LuaVM, 'menuItem_doClick', menuItem_doClick);
 end;
 
 end.
