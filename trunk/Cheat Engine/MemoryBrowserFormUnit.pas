@@ -3648,7 +3648,10 @@ procedure TMemoryBrowser.UpdateDebugContext(threadhandle: THandle; threadid: dwo
 var temp: string;
     Regstart: string;
     charcount: integer;
-    x: dword;
+    x,bs: dword;
+    stackaddress: PtrUInt;
+    i: integer;
+
 begin
   if processhandler.is64Bit then
   begin
@@ -4074,8 +4077,19 @@ begin
   if laststack=nil then
     getmem(laststack,stacktraceSize);
 
+  //get a stackview
+  i:=0;
+  stackaddress:=lastdebugcontext.{$ifdef cpu64}rsp{$else}esp{$endif};
+  while i<stacktracesize do
+  begin
+    bs:=4096-((stackaddress+i) mod 4096);
+    bs:=min(stacktraceSize-i, bs);
 
-  readprocessmemory(processhandle, pointer(lastdebugcontext.{$ifdef cpu64}rsp{$else}esp{$endif}), laststack, stacktracesize, x);
+
+    readprocessmemory(processhandle, pointer(stackaddress+i), pointer(ptruint(laststack)+i), bs, x);
+
+    inc(i,bs);
+  end;
 
 
   reloadStacktrace;
