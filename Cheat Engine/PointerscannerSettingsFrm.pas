@@ -27,6 +27,7 @@ type TOffsetEntry=class(Tedit)
     procedure KeyPress(var Key: Char); override;
   public
     constructor create(AOwner: TComponent); override;
+  published
     property offset: dword read getOffset write setOffset;
 end;
 
@@ -280,6 +281,7 @@ begin
     
   with offsetentry do
   begin
+    offsetentry.Name:='edtOffset'+inttostr(offsetlist.Count);
     top:=panel1.top;
     left:=cbMustEndWithSpecificOffset.left+15;
     self.Height:=self.Height+height+2;
@@ -316,9 +318,11 @@ begin
 
     offsetlist:=TComponentList.create;
     offsetlist.Add(offsetentry);
-    
+
+
     with offsetentry do
     begin
+      offsetentry.Name:='edtOffset'+inttostr(offsetlist.Count);
       top:=panel1.top;
       left:=cbMustEndWithSpecificOffset.left+15;
       self.Height:=self.Height+height+2;
@@ -330,6 +334,7 @@ begin
 
     with btnAddOffset do
     begin
+      name:='btnAddOffset';
       caption:=rsAdd;
       left:=offsetentry.Left+offsetentry.Width+3;
       width:=60;
@@ -345,6 +350,7 @@ begin
     
     with btnRemoveOffset do
     begin
+      name:='btnRemoveOffset';
       caption:=rsRemove;
       left:=btnAddOffset.Left+btnAddOffset.Width+3;
       width:=60;
