@@ -93,6 +93,7 @@ function dbvm_executeDriverEntry(driverentry: pointer; DriverObject: pointer; Re
 
 
 function dbvm_executeDispatchIoctl(DispatchIoctl: pointer; DriverObject: pointer; dwIoControlCode: DWORD; lpInBuffer: pointer; nInBufferSize:integer; lpOutBuffer: pointer; nOutBufferSize: integer; lpBytesReturned: pdword): BOOL;
+function dbvm_testSwitchToKernelmode: integer; //returns 123 on success
 
 function dbvm_getProcAddress(functionname: string): pointer;
 
@@ -704,6 +705,7 @@ begin
   //kernelmode. IRQL=passive
   c:=x;
   case c.command of
+    $FFFFFFFF: pinteger(c.result)^:=123;  //test
     0: pptruint(c.result)^:=ptruint(ExAllocatePool(0, c.param1)); //Allocate memory
     1:   //copy memory
     begin
@@ -717,6 +719,8 @@ begin
 
     3:  //Dipatch IOCTL
       PBOOL(c.result)^:=executeDispatchIOCTL_fromKernelMode(TDispatchIOCTL(c.param1), pointer(c.param2), dword(c.param3), pointer(c.param4), dword(c.param5), pointer(c.param6), dword(c.param7), pointer(c.param8));
+
+
   end;
 end;
 
@@ -781,6 +785,7 @@ asm
 end;
 {$else}
 asm
+
   sub rsp,4096
 
   mov [rsp+$00],rax
@@ -854,10 +859,23 @@ asm
   mov rax,[rsp+$00]
 
   add rsp,4096
+
   add rsp,8 //undo errorcode (64-bit ALWAYS pushes an errorcode, in this emulation)
   db $48, $cf //iretq
 end;
 {$endif}
+
+function dbvm_testSwitchToKernelmode: integer;
+var command: TCommand;
+begin
+  setupKernelFunctionList;
+
+  command.command:=$ffffffff;
+  command.result:=@result;
+  dbvm_switchToKernelMode($10, @dbvm_localIntHandler_entry, @command);
+end;
+
+
 
 function dbvm_executeDispatchIoctl(DispatchIoctl: pointer; DriverObject: pointer; dwIoControlCode: DWORD; lpInBuffer: pointer; nInBufferSize:integer; lpOutBuffer: pointer; nOutBufferSize: integer; lpBytesReturned: pdword): BOOL;
 var command: TCommand;

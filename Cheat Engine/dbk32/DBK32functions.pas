@@ -2003,7 +2003,8 @@ begin
           begin
             if getlasterror=577 then
             begin
-              messagebox(0,'Please reboot and press F8 during boot. Then choose "allow unsigned drivers". '+#13#10+'Alternatively you could sign the driver yourself.'+#13#10+'Just buy yourself a class 3 business signing certificate and sign the driver. Then you''ll never have to reboot again to use this driver','DBK32 error',MB_ICONERROR or mb_ok);
+              if dbvm_version=0 then
+                messagebox(0,'Please reboot and press F8 during boot. Then choose "allow unsigned drivers". '+#13#10+'Alternatively you could sign the driver yourself.'+#13#10+'Just buy yourself a class 3 business signing certificate and sign the driver. Then you''ll never have to reboot again to use this driver','DBK32 error',MB_ICONERROR or mb_ok);
               failedduetodriversigning:=true;
             end; //else could already be started
           end;

@@ -77,9 +77,13 @@ begin
   part:=0;
   result:=INVALID_HANDLE_VALUE;
 
-  try
 
+  //ShowMessage('SecondaryDriverLoad');
+
+  try
     part:=1;
+   // ShowMessage('Part 1');
+
     //load the 64 bit driver
     if dbvmversion=0 then
     begin
@@ -88,10 +92,12 @@ begin
     end;
 
     part:=2;
+    //ShowMessage('Part 2');
 
     ml:=TModuleLoader.create(CheatEngineDir+'dbk64.sys');
 
     part:=3;
+   // ShowMessage('Part 3');
     if ml.loaded then
     begin
       part:=4;
@@ -102,7 +108,7 @@ begin
       begin
         result:=$fff00fff;
         part:=6;
-        ShowMessage('success');
+        ShowMessage('Success. The driver has been loaded thanks to dbvm');
       end
       else
         showMessage('The driver failed to initialize');

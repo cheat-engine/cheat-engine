@@ -2869,13 +2869,16 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    control:=lua_touserdata(L,-1);
+    control:=lua_touserdata(L,1);
     if assigned(control.onclick) then
       control.OnClick(control);
   end;
 
   lua_pop(L, parameters);
 end;
+
+
+
 
 
 
