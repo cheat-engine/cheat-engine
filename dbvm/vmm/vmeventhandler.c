@@ -1194,7 +1194,7 @@ int handleIOAccess(VMRegisters *vmregisters)
     }
 
 
-    case SERIALPORT+1:
+    case SERIALPORT+1:  //3f9
     {
       // unsigned char Interrupt_Enable_Register; //baseport+1 read/write
       // unsigned char Devisor_Latch_High; //baseport+1 read/write DLAB=1
@@ -1225,7 +1225,7 @@ int handleIOAccess(VMRegisters *vmregisters)
       return 0;
     }
 
-    case SERIALPORT+2:
+    case SERIALPORT+2: //3fa
     {
       //  unsigned char Interrupt_Identification_Register; //baseport+2 read
       //  unsigned char FIFO_Control_Register; //baseport+2 write
@@ -1242,7 +1242,7 @@ int handleIOAccess(VMRegisters *vmregisters)
       return 0;
     }
 
-    case SERIALPORT+3:
+    case SERIALPORT+3: //3fb
     {
       //  unsigned char Line_Control_Register; //baseport+3 read/write
 
@@ -1258,7 +1258,7 @@ int handleIOAccess(VMRegisters *vmregisters)
       return 0;
     }
 
-    case SERIALPORT+4:
+    case SERIALPORT+4: //3fc
     {
       //unsigned char Modem_Control_Register; //baseport+4 read/write
 
@@ -1274,7 +1274,7 @@ int handleIOAccess(VMRegisters *vmregisters)
       return 0;
     }
 
-    case SERIALPORT+5:
+    case SERIALPORT+5: //3fd
     {
       //unsigned char Line_Status_Register; //baseport+5 read
       if (iodata.direction==1) //read (there is no write)
@@ -1285,7 +1285,7 @@ int handleIOAccess(VMRegisters *vmregisters)
       return 0;
     }
 
-    case SERIALPORT+6:
+    case SERIALPORT+6: //3fe
     {
       //unsigned char Modem_Status_Register; //baseport+6 read
       if (iodata.direction==1) //read (there is no write)
@@ -1297,7 +1297,7 @@ int handleIOAccess(VMRegisters *vmregisters)
 
     }
 
-    case SERIALPORT+7:
+    case SERIALPORT+7: //3ff
     {
       if (iodata.direction==0) //write
       {

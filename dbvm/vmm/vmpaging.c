@@ -454,7 +454,7 @@ UINT64 getPhysicalAddressVM(pcpuinfo currentcpuinfo, UINT64 address, int *notpag
   if (usedCR4.PAE)
   {
     //in pae mode
-    sendstring("PAE paging\n\r");
+   // sendstring("PAE paging\n\r");
 
     UINT64      pagedirptrentry=(UINT64)address >> 30;
     //sendstringf("pagedirptrentry=%d\n\r", pagedirptrentry);

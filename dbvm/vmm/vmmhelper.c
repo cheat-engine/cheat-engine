@@ -57,6 +57,7 @@ char * getVMExitReassonString(void)
 	  case 14: return "INVLPG";
 	  case 18: return "VMCALL";
 	  case 28: return "Controlregister access";
+	  case vm_exit_io_access: return "IO Access";
 
 	  case 31: return "RDMSR";
 	  case 32: return "WRMSR";
@@ -304,8 +305,8 @@ void displayPreviousStates(void)
 
   for (itterator=0; itterator<4; itterator++)
   {
-    sendstringf("%s%d: CS:RIP=%x:%x (base=%x)\n", ((itterator==previous_state)?"*":""), itterator, vmstates[itterator].cs, vmstates[itterator].rip, vmstates[itterator].cs_base);
-    sendstringf("%s%d: SS:RSP=%x:%x (base=%x)\n", ((itterator==previous_state)?"*":""), itterator, vmstates[itterator].ss, vmstates[itterator].rsp, vmstates[itterator].ss_base);
+    sendstringf("%s%d: CS:RIP=%x:%6 (base=%6)\n", ((itterator==previous_state)?"*":""), itterator, vmstates[itterator].cs, vmstates[itterator].rip, vmstates[itterator].cs_base);
+    sendstringf("%s%d: SS:RSP=%x:%6 (base=%6)\n", ((itterator==previous_state)?"*":""), itterator, vmstates[itterator].ss, vmstates[itterator].rsp, vmstates[itterator].ss_base);
     sendstringf("%s%d: RFLAGS=%x\n", ((itterator==previous_state)?"*":""), itterator, vmstates[vmstates_pos].rflags);
     sendstringf("%s%d: RAX=%x\n", ((itterator==previous_state)?"*":""), itterator, vmstates[itterator].registers.rax);
     sendstringf("%s%d: Exit reason=%8 (%d) \n\r", ((itterator==previous_state)?"*":""),itterator, vmstates[itterator].exit_reason,vmstates[itterator].exit_reason & 0x0fffffff);
@@ -321,8 +322,8 @@ void displayPreviousStates(void)
     if (itterator!=current_state)
     {
       sendstringf("%s%d:---exit---\n", ((itterator==previous_state)?"*":""), itterator);
-      sendstringf("%s%d: CS:RIP=%x:%x (base=%x)\n", ((itterator==previous_state)?"*":""), itterator, vmstates[itterator].exit_cs, vmstates[itterator].exit_rip, vmstates[itterator].exit_cs_base);
-      sendstringf("%s%d: SS:RSP=%x:%x (base=%x)\n", ((itterator==previous_state)?"*":""), itterator, vmstates[itterator].exit_ss, vmstates[itterator].exit_rsp, vmstates[itterator].exit_ss_base);
+      sendstringf("%s%d: CS:RIP=%x:%6 (base=%6)\n", ((itterator==previous_state)?"*":""), itterator, vmstates[itterator].exit_cs, vmstates[itterator].exit_rip, vmstates[itterator].exit_cs_base);
+      sendstringf("%s%d: SS:RSP=%x:%6 (base=%6)\n", ((itterator==previous_state)?"*":""), itterator, vmstates[itterator].exit_ss, vmstates[itterator].exit_rsp, vmstates[itterator].exit_ss_base);
       sendstringf("%s%d: RFLAGS=%x\n", ((itterator==previous_state)?"*":""), itterator, vmstates[vmstates_pos].exit_rflags);
 
     }
@@ -349,21 +350,16 @@ void sendvmstate(pcpuinfo currentcpuinfo, VMRegisters *registers)
 
   if (registers) 		// print registers
   {
-    sendstringf("RAX=%6 RBX=%6   R8=%6\n\rRCX=%6 RDX=%6   R9=%6\n\rRSI=%6 RDI=%6    R10=%6\n\rRBP=%6                        R11=%6\n\r",
-        registers->rax,
-        registers->rbx,
-        registers->r8,
-        registers->rcx,
-        registers->rdx,
-        registers->r9,
-        registers->rsi,
-        registers->rdi,
-        registers->r10,
-        registers->rbp,
-        registers->r11);
+    sendstringf("RAX=%6 RBX=%6   R8=%6\n\r", registers->rax, registers->rbx, registers->r8);
+    sendstringf("RCX=%6 RDX=%6   R9=%6\n\r", registers->rcx, registers->rdx, registers->r9);
+    sendstringf("RSI=%6 RDI=%6   R10=%6\n\r",registers->rsi, registers->rdi,  registers->r10);
+    sendstringf("RBP=%6                        R11=%6\n\r",registers->rbp, registers->r11);
+
+
   }
   else
     sendstring("\n...no registers...\n\n");
+
 
   sendstringf("RSP=%6                        R12=%6\n\r",vmread(vm_guest_rsp), registers?registers->r12:0);
   sendstringf("RIP=%6                        R13=%6\n\r",vmread(vm_guest_rip), registers?registers->r13:0);
@@ -422,11 +418,24 @@ criticalSection vmexitlock;
 
 
 #ifdef DEBUG
+
+QWORD lastbeat=0;
+
 int vmexit2(pcpuinfo currentcpuinfo, UINT64 *registers);
 
 int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
 {
   int result;
+
+  if (_rdtsc()>lastbeat+6000000)
+  {
+	  nosendchar[getAPICID()]=0;
+	  enableserial();
+	  sendstringf("*Alive*\n");
+	  lastbeat=_rdtsc();
+  }
+
+
 
   //debug code
   csEnter(&vmexitlock);
@@ -464,6 +473,8 @@ int vmexit2(pcpuinfo currentcpuinfo, UINT64 *registers)
 int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
 #endif
 {
+
+
   if (currentcpuinfo==NULL)
   {
     nosendchar[getAPICID()]=0;
@@ -509,6 +520,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
 #endif
 
 
+
   UINT64 initialcount;
 
   int result;
@@ -521,6 +533,10 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
 
 
   initialcount=1;
+
+
+
+
 
 
 
@@ -654,6 +670,9 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
     switch (vmread(vm_exit_reason))
     {
 
+      case vm_exit_vmcall:
+    	skip=1;
+    	break;
 
 
       case vm_exit_cpuid:
@@ -674,12 +693,12 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
 
 
 
-      case 0:
+      case vm_exit_interrupt: //interrupt
       {
         switch (vmread(vm_exit_interruptioninfo))
         {
           case 0x80000300: //div by 0
-           // skip=1;
+            skip=1;
             break;
 
           case 0x80000307: //fp exception
@@ -691,13 +710,14 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
              skip=1;
             break;
 
+          case 0x80000603:
+        	if (vmread(vmread(vm_idtvector_information))==0)
+        	  skip=1;
+
+            break;
+
           case 0x80000306:
-            /*skip=1;
-            if (ISREALMODE)
-            {
-              skip=1;
-              break;
-            }*/
+            skip=1;
 
             break;
 
@@ -708,6 +728,10 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
               int cs=vmread(vm_guest_cs);
               unsigned long long rip=vmread(vm_guest_rip);
 
+
+              if (vmread(vmread(vm_idtvector_information))==0)
+            	  skip=1; //'normal' gpf
+              else
               switch (cs)
               {
                 case 0x0:
@@ -722,6 +746,19 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
                       break;
                   }
                   break;
+
+                case 0x10:
+                  switch (rip)
+                  {
+                    case 0xfffff80002a8e8fd:
+                    case 0xfffff80002aec2bd:
+                    case 0xfffff80002b34e78:
+                    	skip=1;
+                    	break;
+
+                  }
+                  break;
+
 
 			  case 0x200:
 				switch (rip)
@@ -1100,12 +1137,6 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
     int notpaged=0;
     UINT64 ripaddress=vmread(vm_guest_cs_base)+vmread(vm_guest_rip);
     sendstringf("ripaddress=%x\n", ripaddress);
-    sendstringf("rsp=%x\n", getRSP());
-
-   // bochsbp();
-   // ripaddress=getPhysicalAddressVM(currentcpuinfo, ripaddress, &notpaged);
-    sendstringf("rsp=%x\n", getRSP());
-
 
     sendstringf("Rip=%6", vmread(vm_guest_cs_base)+vmread(vm_guest_rip));
 
@@ -1766,9 +1797,9 @@ void setupVMX(pcpuinfo currentcpuinfo)
   //32-bit control fields
   vmwrite(vm_execution_controls_pin,(ULONG)IA32_VMX_PINBASED_CTLS); //pin-based VM-execution controls
 
-  /*
-#ifdef DEBUG
 
+#ifdef DEBUG
+/*
 
   //check if the system supports preemption, and if so, enable it
   {
@@ -1781,10 +1812,10 @@ void setupVMX(pcpuinfo currentcpuinfo)
     }
 
   }
-
+*/
 
 #endif
-*/
+
 
 
 

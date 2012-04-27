@@ -112,10 +112,16 @@ int cinthandler(unsigned long long *stack, int intnr)
   sendstringfCS.lockcount=0;
   sendstringfCS.locked=0;
 
-  nosendchar[thisAPICID]=0; //override a block if there was one, this is important:
-  enableserial();
-  sendstringf("interrupt fired : %d (%x)\n\r", intnr,intnr);
-  sendstringf("Looking up cpu...");
+  if (cpuinfo[cpunr].OnInterrupt.RIP==0)
+  {
+	  //unexpected exception
+	  enableserial();
+	  nosendchar[thisAPICID]=0; //override a block if there was one, this is important:
+  }
+
+
+ // sendstringf("interrupt fired : %d (%x)\n\r", intnr,intnr);
+ // sendstringf("Looking up cpu...");
 
   //lookup the cpucore
   for (i=0; (unsigned)i<cpucount; i++)
@@ -148,7 +154,7 @@ int cinthandler(unsigned long long *stack, int intnr)
   if (errorcode)
   {
     errorcodeValue=stack[16];
-    sendstringf("Interrupt has errorcode : %x ( \n\r",errorcodeValue);
+    //sendstringf("Interrupt has errorcode : %x ( \n\r",errorcodeValue);
     if (errorcodeValue & 1)
     {
       sendstring("EXT ");
@@ -170,7 +176,7 @@ int cinthandler(unsigned long long *stack, int intnr)
   }
   else
   {
-    sendstringf("Interrupt has no errorcode\n\r");
+    //sendstringf("Interrupt has no errorcode\n\r");
   }
 
   rflags=(PRFLAGS)&stack[16+2+errorcode];

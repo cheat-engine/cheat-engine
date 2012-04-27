@@ -56,7 +56,7 @@
 #define FEATURE_CONTROL_LOCK  (1<<0)
 #define FEATURE_CONTROL_VMXON (1<<2)
 
-
+#define vm_exit_interrupt   0
 #define vm_exit_sipi        4
 #define vm_exit_taskswitch  9
 #define vm_exit_cpuid      10
