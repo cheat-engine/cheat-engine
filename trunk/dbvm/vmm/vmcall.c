@@ -333,7 +333,7 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   //enableserial();
 #endif
 
-  nosendchar[getAPICID()]=0;
+  nosendchar[getAPICID()]=1;
 
   sendstringf("Handling vmcall on cpunr:%d \n\r", currentcpuinfo->cpunr);
 
@@ -870,6 +870,7 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case VMCALL_ENABLE_DATAPAGEFAULTS:
     {
+
       currentcpuinfo->IgnorePageFaults.Active=0;
       vmregisters->rax = 0;
       break;
