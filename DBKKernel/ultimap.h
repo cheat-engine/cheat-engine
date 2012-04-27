@@ -7,6 +7,7 @@
 typedef UINT64 QWORD;
 
 #pragma pack(1)
+/*
 typedef struct
 {
   DWORD BTS_BufferBaseAddress;
@@ -21,6 +22,7 @@ typedef struct
   QWORD Reserved;
   DWORD Reserved2;
 } DS_AREA_MANAGEMENT32,*PDS_AREA_MANAGEMENT32;
+*/
 
 typedef struct
 {
@@ -41,19 +43,19 @@ typedef struct
 typedef struct
 {
 
-  UINT_PTR LastBranchFrom;
-  UINT_PTR LastBranchTo;
-  UINT_PTR Extra;
+  QWORD LastBranchFrom;
+  QWORD LastBranchTo;
+  QWORD Extra;
 } BTS,*PBTS;
 
 
-#ifdef AMD64	
-typedef DS_AREA_MANAGEMENT32 DS_AREA_MANAGEMENT;
+//#ifdef AMD64	
+typedef DS_AREA_MANAGEMENT64 DS_AREA_MANAGEMENT;
 typedef PDS_AREA_MANAGEMENT64 PDS_AREA_MANAGEMENT;
-#else
-typedef DS_AREA_MANAGEMENT32 DS_AREA_MANAGEMENT;	
-typedef PDS_AREA_MANAGEMENT32 PDS_AREA_MANAGEMENT;	
-#endif
+//#else
+//typedef DS_AREA_MANAGEMENT32 DS_AREA_MANAGEMENT;	
+//typedef PDS_AREA_MANAGEMENT32 PDS_AREA_MANAGEMENT;	
+//#endif
 
 typedef struct
 {

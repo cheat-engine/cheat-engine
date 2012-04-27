@@ -1,6 +1,8 @@
 /*
 debugger.c:
 This unit will handle all debugging related code, from hooking, to handling interrupts
+
+todo: this whole thing can be moved to a few simple lines in dbvm...
 */
 #pragma warning( disable: 4103)
 #include "ntifs.h"
@@ -470,7 +472,7 @@ NTSTATUS debugger_getDebuggerState(PDebugStackState state)
 		state->rip=DebuggerState.LastStackPointer[si_eip];
 		state->cs=DebuggerState.LastStackPointer[si_cs];
 		state->ds=DebuggerState.LastStackPointer[si_ds];
-		state->es=DebuggerState.LastStackPointer[si_ds];
+		state->es=DebuggerState.LastStackPointer[si_es];
 	#ifdef AMD64
 		state->fs=0;
 		state->gs=0;
@@ -775,6 +777,9 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 		{
 			//The debug registers are being accessed, emulate it with DebuggerState.FakedDebugRegisterState[cpunr()].DRx
 			int instructionPointer;
+#ifdef AMD64
+			int prefixpointer;
+#endif
 			int currentcpunr=cpunr();
 			int debugregister;
 			int generalpurposeregister;
@@ -801,6 +806,19 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 			//Find out which instruction it is, and which register is used
 			debugregister=(instruction[instructionPointer+2] >> 3) & 7;	
 			generalpurposeregister=instruction[instructionPointer+2] & 7;
+
+#ifdef AMD64
+			for (prefixpointer=0; prefixpointer<instructionPointer; prefixpointer++)
+			{
+				//check for a REX.B prefix  (0x40  + 0x1 : 0x41)
+				if (instruction[instructionPointer] & 0x41 == 0x41)
+				{
+					//rex.b prefix is used, r8 to r15 are being accessed
+					generalpurposeregister+=8;
+				}
+			}
+
+#endif
 
 			//DbgPrint("debugregister=%d, generalpurposeregister=%d\n",debugregister,generalpurposeregister); 
 
@@ -860,8 +878,8 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 						stackpointer[si_ebx]=drvalue;
 						break;
 
-					case 4:
-						if ((stackpointer[si_cs] & 3) == 3)
+					case 4:				
+						if ((stackpointer[si_cs] & 3) == 3)  //usermode dr access ?
 							stackpointer[si_esp]=drvalue;
 						else
 							stackpointer[si_stack_esp]=drvalue;
@@ -879,6 +897,42 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 					case 7:
 						stackpointer[si_edi]=drvalue;
 						break;
+
+#ifdef AMD64
+					case 8:
+						stackpointer[si_r8]=drvalue;
+						break;
+
+					case 9:
+						stackpointer[si_r9]=drvalue;
+						break;
+
+					case 10:
+						stackpointer[si_r10]=drvalue;
+						break;
+
+					case 11:
+						stackpointer[si_r11]=drvalue;
+						break;
+
+					case 12:
+						stackpointer[si_r12]=drvalue;
+						break;
+
+					case 13:
+						stackpointer[si_r13]=drvalue;
+						break;
+
+					case 14:
+						stackpointer[si_r14]=drvalue;
+						break;
+
+					case 15:
+						stackpointer[si_r15]=drvalue;
+						break;
+
+
+#endif
 				}
 
 			}
@@ -923,6 +977,39 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 					case 7:
 						gpvalue=stackpointer[si_edi];
 						break;
+#ifdef AMD64
+					case 8:
+						gpvalue=stackpointer[si_r8];
+						break;
+
+					case 9:
+						gpvalue=stackpointer[si_r9];
+						break;
+
+					case 10:
+						gpvalue=stackpointer[si_r10];
+						break;
+
+					case 11:
+						gpvalue=stackpointer[si_r11];
+						break;
+
+					case 12:
+						gpvalue=stackpointer[si_r12];
+						break;
+
+					case 13:
+						gpvalue=stackpointer[si_r13];
+						break;
+
+					case 14:
+						gpvalue=stackpointer[si_r14];
+						break;
+
+					case 15:
+						gpvalue=stackpointer[si_r15];
+						break;
+#endif
 				}
 
 				//gpvalue now contains the value to set the debug register

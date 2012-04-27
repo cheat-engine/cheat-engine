@@ -46,8 +46,11 @@ int perfmon_interrupt_centry(void);
 void ultimap_flushBuffers_all(UINT_PTR param)
 {
 	DbgPrint("Calling perfmon_interrupt_centry() manually\n");
-	perfmon_interrupt_centry();
-	enableInterrupts(); //the handler disables it on exit so re-enable it
+	if (DS_AREA[cpunr()]) //don't call if ultimap has been disabled
+	{
+		perfmon_interrupt_centry();
+		enableInterrupts(); //the handler disables it on exit so re-enable it
+	}
 }
 
 void ultimap_flushBuffers(void)
@@ -287,6 +290,8 @@ int perfmon_interrupt_centry(void)
 
 	}
 
+	DbgPrint("Returning from perfmon_interrupt_centry\n");
+
 	return causedbyme;
 }
 
@@ -297,6 +302,8 @@ extern void perfmon_interrupt();
 _declspec( naked ) void perfmon_interrupt( void )
 {
 	__asm{
+		cld
+
 		push ebp
 		mov ebp,esp
 
@@ -340,7 +347,7 @@ _declspec( naked ) void perfmon_interrupt( void )
 		jmp far [perfmonJumpBackLocation]
 
 skip_original_perfmon:
-		add esp,4 //undo errorcode push
+		// commented out: I don't think a APIC interrupt has an errorcode....  add esp,4 //undo errorcode push
 		iretd
 	}
 }
@@ -435,13 +442,13 @@ Call this for each processor
 
 		//Initialize the DS_AREA 
 
-		DS_AREA[cpunr()]->BTS_BufferBaseAddress=(QWORD)DS_AREA[cpunr()]+sizeof(DS_AREA_MANAGEMENT);
+		DS_AREA[cpunr()]->BTS_BufferBaseAddress=(QWORD)(UINT_PTR)DS_AREA[cpunr()]+sizeof(DS_AREA_MANAGEMENT);
         DS_AREA[cpunr()]->BTS_BufferBaseAddress+=sizeof(BTS);
 
         DS_AREA[cpunr()]->BTS_BufferBaseAddress-=DS_AREA[cpunr()]->BTS_BufferBaseAddress % sizeof(BTS);
 
         DS_AREA[cpunr()]->BTS_IndexBaseAddress=DS_AREA[cpunr()]->BTS_BufferBaseAddress;
-        DS_AREA[cpunr()]->BTS_AbsoluteMaxAddress=(QWORD)DS_AREA[cpunr()]+params->DS_AREA_SIZE-sizeof(BTS);
+        DS_AREA[cpunr()]->BTS_AbsoluteMaxAddress=(QWORD)(UINT_PTR)DS_AREA[cpunr()]+params->DS_AREA_SIZE-sizeof(BTS);
         DS_AREA[cpunr()]->BTS_AbsoluteMaxAddress-=DS_AREA[cpunr()]->BTS_AbsoluteMaxAddress % sizeof(BTS);
         DS_AREA[cpunr()]->BTS_AbsoluteMaxAddress++;
 
