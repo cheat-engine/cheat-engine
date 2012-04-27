@@ -352,8 +352,8 @@ void sendvmstate(pcpuinfo currentcpuinfo, VMRegisters *registers)
   {
     sendstringf("RAX=%6 RBX=%6   R8=%6\n\r", registers->rax, registers->rbx, registers->r8);
     sendstringf("RCX=%6 RDX=%6   R9=%6\n\r", registers->rcx, registers->rdx, registers->r9);
-    sendstringf("RSI=%6 RDI=%6   R10=%6\n\r",registers->rsi, registers->rdi,  registers->r10);
-    sendstringf("RBP=%6                        R11=%6\n\r",registers->rbp, registers->r11);
+    sendstringf("RSI=%6 RDI=%6  R10=%6\n\r",registers->rsi, registers->rdi,  registers->r10);
+    sendstringf("RBP=%6                       R11=%6\n\r",registers->rbp, registers->r11);
 
 
   }
@@ -361,10 +361,10 @@ void sendvmstate(pcpuinfo currentcpuinfo, VMRegisters *registers)
     sendstring("\n...no registers...\n\n");
 
 
-  sendstringf("RSP=%6                        R12=%6\n\r",vmread(vm_guest_rsp), registers?registers->r12:0);
-  sendstringf("RIP=%6                        R13=%6\n\r",vmread(vm_guest_rip), registers?registers->r13:0);
-  sendstringf("                                            R14=%6\n\r", registers?registers->r14:0);
-  sendstringf("                                            R15=%6\n\r", registers?registers->r15:0);
+  sendstringf("RSP=%6                       R12=%6\n\r",vmread(vm_guest_rsp), registers?registers->r12:0);
+  sendstringf("RIP=%6                       R13=%6\n\r",vmread(vm_guest_rip), registers?registers->r13:0);
+  sendstringf("                                           R14=%6\n\r", registers?registers->r14:0);
+  sendstringf("                                           R15=%6\n\r", registers?registers->r15:0);
 
   sendstringf("rflags=%6 (VM=%d RF=%d IOPL=%d NT=%d)\n\r",rflags,prflags->VM, prflags->RF, prflags->IOPL, prflags->NT);
   sendstringf("(CF=%d PF=%d AF=%d ZF=%d SF=%d TF=%d IF=%d DF=%d OF=%d)\n\r\n\r", prflags->CF, prflags->PF, prflags->AF, prflags->ZF, prflags->SF, prflags->TF, prflags->IF, prflags->DF, prflags->OF);
@@ -393,7 +393,71 @@ void sendvmstate(pcpuinfo currentcpuinfo, VMRegisters *registers)
     sendstringf("RM idt: base=%6 limit=%x\n\r",currentcpuinfo->RealMode.IDTBase, currentcpuinfo->RealMode.IDTLimit);
   }
 
-  sendstringf("dr0=%6 dr1=%6 dr2=%6 \n\rdr3=%6 dr6=%6 dr7=%6\n\r",getDR0(), getDR1(), getDR2(), getDR3(), getDR6(), vmread(0x681a));
+  regDR7 dr7;
+  dr7.DR7=vmread(vm_guest_dr7);
+  sendstringf("guest: dr0=%6 dr1=%6 dr2=%6 \n\r       dr3=%6 dr6=%6 dr7=%6\n\r",getDR0(), getDR1(), getDR2(), getDR3(), getDR6(), dr7.DR7);
+  if (dr7.DR7 != 0x400)
+  {
+	  sendstringf("dr7:");
+	  if (dr7.G0)
+		  sendstringf("G0 ");
+
+	  if (dr7.L0)
+		  sendstringf("L0 ");
+
+	  if (dr7.G1)
+		  sendstringf("G1 ");
+
+	  if (dr7.L1)
+		  sendstringf("L1 ");
+
+	  if (dr7.G2)
+		  sendstringf("G2 ");
+
+	  if (dr7.L2)
+	      sendstringf("L2 ");
+
+	  if (dr7.G3)
+		  sendstringf("G3 ");
+
+	  if (dr7.L3)
+	      sendstringf("L3 ");
+
+	  if (dr7.LE)
+		  sendstringf("LE ");
+
+	  if (dr7.GE)
+		  sendstringf("GE ");
+
+	  if (dr7.RW0)
+		  sendstringf("RW0 ");
+
+	  if (dr7.LEN0)
+		  sendstringf("LEN0 ");
+
+	  if (dr7.RW1)
+		  sendstringf("RW1 ");
+
+	  if (dr7.LEN1)
+		  sendstringf("LEN1 ");
+
+	  if (dr7.RW2)
+		  sendstringf("RW2 ");
+
+	  if (dr7.LEN2)
+		  sendstringf("LEN2 ");
+
+	  if (dr7.RW3)
+		  sendstringf("RW3 ");
+
+	  if (dr7.LEN3)
+		  sendstringf("LEN3 ");
+
+
+  }
+
+
+  sendstringf("host dr7=%6\n\r", getDR7());
   sendstringf("cr2=%6\n\r",getCR2());
 
   sendstringf("real:\n\r");
@@ -427,7 +491,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
 {
   int result;
 
-  if (_rdtsc()>lastbeat+6000000)
+  if (_rdtsc()>(lastbeat+100000000ULL))
   {
 	  nosendchar[getAPICID()]=0;
 	  enableserial();
@@ -657,10 +721,10 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
 
   }
   else
-  if ((vmread(0x4402)==0) && (vmread(0x4404)==0x80000301) && (breakpointset==1) && (vmread(0x681e)==getDR0()))
+  if ((vmread(0x4402)==0) && ((vmread(vm_exit_interruptioninfo) & 0x8000000f)==0x80000001) )
   {
-    sendstring("Breakpoint entered caused by debug breakpoint\n\r");
-
+	  //int1 bp
+	  sendstringf("Int 1 bp");
 
   }
   else

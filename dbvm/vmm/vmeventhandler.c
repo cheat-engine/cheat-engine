@@ -1089,7 +1089,7 @@ int handleTaskswitch(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   //set L flags on dr7 to 0
 
   regDR7 DR7;
-  DR7.DR7=vmread(0x681a);
+  DR7.DR7=vmread(vm_guest_dr7);
   DR7.L0=0;
   DR7.L1=0;
   DR7.L2=0;
@@ -2742,9 +2742,11 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
   */
   if (intinfo.interruptvector==1)
   {
+	//emulate the breakpoint interrupt
     regDR7 dr7;
+    int orig=nosendchar[getAPICID()];
 
-    nosendchar[getAPICID()]=0;
+    nosendchar[getAPICID()]=1;
     sendstring("Interrupt 1:");
 
     setDR6((getDR6() & 0xfff0) | vmread(vm_exit_qualification)); //set bits in dr6 (qualification tells which bits)
@@ -2760,6 +2762,7 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
     dr7.GD=0;
     vmwrite(vm_guest_dr7,dr7.DR7);
 
+    nosendchar[getAPICID()]=orig;
 
 
     //interrupt redirection for int 1
@@ -2775,9 +2778,13 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
       int r;
       //emulate the interrupt completly, bypassing the idt vector and use what's given in
       //int14redirection_idtbypass_cs and int14redirection_idtbypass_rip
+
+      nosendchar[getAPICID()]=1; //I believe this works
       r=emulateExceptionInterrupt(currentcpuinfo, vmregisters,
           int1redirection_idtbypass_cs, int1redirection_idtbypass_rip,
           intinfo.haserrorcode, vmread(vm_exit_interruptionerror));
+
+      nosendchar[getAPICID()]=orig;
 
       if (r==0)
         return 0;
@@ -2789,6 +2796,8 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
   else
   if (intinfo.interruptvector == 3)
   {
+
+	  //software bp
       if (int3redirection_idtbypass == 0)
       {
         //simple int3 redirection, or not even a different int
