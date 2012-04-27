@@ -392,12 +392,14 @@ var
   sender: TObject;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters>=3 then
+  parameters:=lua_gettop(L);;
+
+  if parameters=1 then
   begin
-    m.code:=lua_touserdata(L, 1);
-    m.data:=lua_touserdata(L, 2);
-    sender:=lua_touserdata(L, 3);
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+
+    sender:=lua_touserdata(L, 1);
     lua_pop(L, lua_gettop(L));
 
     TNotifyEvent(m)(sender);
@@ -415,11 +417,11 @@ var
 begin
   result:=0;
   parameters:=lua_gettop(L);
-  if parameters>=3 then
+  if parameters=1 then
   begin
-    m.code:=lua_touserdata(L, 1);
-    m.data:=lua_touserdata(L, 2);
-    sender:=lua_touserdata(L, 3);
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    sender:=lua_touserdata(L, 1);
     lua_pop(L, lua_gettop(L));
 
     TCloseEvent(m)(sender, closeaction);
@@ -442,15 +444,15 @@ var
 begin
   result:=0;
   parameters:=lua_gettop(L);
-  if parameters>=6 then
+  if parameters=4 then
   begin
-    m.code:=lua_touserdata(L, 1);
-    m.data:=lua_touserdata(L, 2);
-    sender:=lua_touserdata(L, 3);
-    button:=TMouseButton(lua_tointeger(L, 4));
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    sender:=lua_touserdata(L, 1);
+    button:=TMouseButton(lua_tointeger(L, 2));
 
-    x:=lua_tointeger(L, 5);
-    y:=lua_tointeger(L, 6);
+    x:=lua_tointeger(L, 3);
+    y:=lua_tointeger(L, 4);
 
     lua_pop(L, lua_gettop(L));
 
@@ -469,13 +471,13 @@ var
 begin
   result:=0;
   parameters:=lua_gettop(L);
-  if parameters>=5 then
+  if parameters=3 then
   begin
-    m.code:=lua_touserdata(L, 1);
-    m.data:=lua_touserdata(L, 2);
-    sender:=lua_touserdata(L, 3);
-    x:=lua_tointeger(L, 5);
-    y:=lua_tointeger(L, 6);
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    sender:=lua_touserdata(L, 1);
+    x:=lua_tointeger(L, 2);
+    y:=lua_tointeger(L, 3);
     lua_pop(L, lua_gettop(L));
 
     TMouseMoveEvent(m)(sender, [],x,y);
@@ -494,12 +496,12 @@ var
 begin
   result:=0;
   parameters:=lua_gettop(L);
-  if parameters>=3 then
+  if parameters=2 then
   begin
-    m.code:=lua_touserdata(L, 1);
-    m.data:=lua_touserdata(L, 2);
-    sender:=lua_touserdata(L, 3);
-    s:=Lua_ToString(L,4);
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    sender:=lua_touserdata(L, 1);
+    s:=Lua_ToString(L,2);
     if length(s)>0 then
       key:=s[1]
     else
@@ -524,11 +526,11 @@ var
 begin
   result:=0;
   parameters:=lua_gettop(L);
-  if parameters>=3 then
+  if parameters=1 then
   begin
-    m.code:=lua_touserdata(L, 1);
-    m.data:=lua_touserdata(L, 2);
-    sender:=lua_touserdata(L, 3);
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    sender:=lua_touserdata(L, 1);
     lua_pop(L, lua_gettop(L));
 
     TLVCheckedItemEvent(m)(sender,item);

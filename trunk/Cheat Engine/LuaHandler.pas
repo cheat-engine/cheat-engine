@@ -3839,37 +3839,35 @@ begin
 
         //this can (and often is) a class specific thing
 
-
+        lua_pushlightuserdata(L, m.code);
+        lua_pushlightuserdata(L, m.data);
 
         if pi.PropType.Name ='TNotifyEvent' then
-          lua_pushcfunction(L, LuaCaller_NotifyEvent)
+          lua_pushcclosure(L, LuaCaller_NotifyEvent,2)
         else
         if pi.PropType.Name ='TCloseEvent' then
-          lua_pushcfunction(L, LuaCaller_CloseEvent)
+          lua_pushcclosure(L, LuaCaller_CloseEvent,2)
         else
         if pi.PropType.Name ='TMouseEvent' then
-          lua_pushcfunction(L, LuaCaller_MouseEvent)
+          lua_pushcclosure(L, LuaCaller_MouseEvent,2)
         else
         if pi.PropType.Name ='TMouseMoveEvent' then
-          lua_pushcfunction(L, LuaCaller_MouseMoveEvent)
+          lua_pushcclosure(L, LuaCaller_MouseMoveEvent,2)
         else
         if pi.PropType.Name ='TKeyPressEvent' then
-          lua_pushcfunction(L, LuaCaller_KeyPressEvent)
+          lua_pushcclosure(L, LuaCaller_KeyPressEvent,2)
         else
         if pi.PropType.Name ='TLVCheckedItemEvent' then
-          lua_pushcfunction(L, LuaCaller_LVCheckedItemEvent)
+          lua_pushcclosure(L, LuaCaller_LVCheckedItemEvent,2)
         else
         begin
           lua_pushstring(L, 'This type of method:'+pi.PropType.Name+' is not yet supported');
           lua_error(L);
+          result:=0; //should never hit
           exit;
         end;
 
-        lua_pushlightuserdata(L, m.Code);
-        lua_pushlightuserdata(L, m.Data);
-
-
-        result:=3;
+        result:=1;
       end;
     end
     else
