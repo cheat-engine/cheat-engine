@@ -888,10 +888,13 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       QWORD rip=*(QWORD *)&vmcall_instruction[4];
       QWORD parameters=*(QWORD *)&vmcall_instruction[6];
 
+      sendstringf("VMCALL_SWITCH_TO_KERNELMODE(%x:%6 (%6)\n", cs, rip, parameters);
+
       //change CS and EIP (also setup the stack properly)
+      vmwrite(0x681e,vmread(0x681e)+vmread(0x440c));
       emulateExceptionInterrupt(currentcpuinfo, vmregisters, cs,rip,1, parameters );
       vmregisters->rax=0;
-      break;
+      return 0; //no eip change
     }
 
 

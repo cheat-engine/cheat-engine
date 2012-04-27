@@ -2201,6 +2201,7 @@ int testRMinterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     //and check the interruptability state
     if ((pguestrflags->IF) && (vmread(vm_guest_interruptability_state)==0))
     {
+
       sendstringf("testRMinterrupt: Checking for interrupts. IF==%d and interuptabilitystate=%d\n", pguestrflags->IF, vmread(vm_guest_interruptability_state));
 
 
@@ -2226,8 +2227,7 @@ InterruptFired:
 
 
         bochsbp();
-        sendstringf("testRMinterrupt:\n\rInterrupt fired\n\r");
-        sendstringf("Interruptnr=%d\n\r", currentcpuinfo->LastInterrupt);
+        sendstringf("testRMinterrupt: Interruptnr=%d\n\r", currentcpuinfo->LastInterrupt);
         if (currentcpuinfo->LastInterruptHasErrorcode)
         {
           sendstringf("Errorcode=%x\n\r", currentcpuinfo->LastInterruptErrorcode);
@@ -2473,6 +2473,7 @@ int emulateRealMode(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
           break;
 
         case '3':
+
           testRMinterrupt(currentcpuinfo,vmregisters);
           result=TRUE;
           continue;
@@ -2500,6 +2501,7 @@ int emulateRealMode(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     if (result)
     {
       //successful emulation of the last instruction, test for interrupt
+      nosendchar[getAPICID()]=1;
       testRMinterrupt(currentcpuinfo,vmregisters);
 
 
