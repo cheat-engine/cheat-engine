@@ -21,7 +21,7 @@ uses
   luafile, xmplayer_server, sharedMemory{$ifdef windows}, win32proc{$endif},
   vmxfunctions, FileUtil, networkInterfaceApi, networkconfig, d3dhookUnit, PNGcomn,
   FPimage, byteinterpreter, frmgroupscanalgoritmgeneratorunit, vartypestrings,
-  groupscancommandparser, GraphType, IntfGraphics, RemoteMemoryManager;
+  groupscancommandparser, GraphType, IntfGraphics, RemoteMemoryManager, DBK64SecondaryLoader;
 
 //the following are just for compatibility
 
@@ -7278,7 +7278,17 @@ var t: TD3DHook_Texture;
   tc: TD3Dhook_TextContainer;
 
   p2: TPicture;
+  i: integer;
 begin
+  ShowMessage('going to call dbvm_testSwitchToKernelmode');
+  i:=dbvm_testSwitchToKernelmode;
+  ShowMessage('Still alive. I='+inttostr(i));
+
+  if i=123 then
+    SecondaryDriverLoad;
+
+
+  {
   safed3dhook;
   if d3dhook=nil then raise exception.create('d3dhook failed');
   while d3dhook.getWidth=0 do CheckSynchronize;
@@ -7306,7 +7316,7 @@ begin
 
   tc:=d3dhook.createTextContainer(fm,100,100,'This is a test');
 
-
+           }
 
 //  d3dhook.createConsole(0);
 end;
