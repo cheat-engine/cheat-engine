@@ -948,6 +948,8 @@ end;
 procedure TDissectedStruct.DoElementChangeNotification(element: TStructelement);
 var i: integer;
 begin
+  mainform.editedsincelastsave:=true;
+
   if isUpdating=false then
   begin
     for i:=0 to frmStructures2.Count-1 do

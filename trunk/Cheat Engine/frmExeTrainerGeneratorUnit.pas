@@ -6,7 +6,7 @@ interface
 
 uses
   windows, Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, ExtCtrls,
-  dialogs, StdCtrls, ComCtrls, Menus, cefuncproc, IconStuff, zstream, registry;
+  dialogs, StdCtrls, ComCtrls, Menus, cefuncproc, IconStuff, zstream, registry, MainUnit2;
 
 
 type
@@ -195,7 +195,32 @@ begin
 
   CETRAINER:=ExtractFilePath(filename)+'CET_TRAINER.CETRAINER';
 
-  SaveTable(CETRAINER, true);
+  if tiny then
+  begin
+    //temporarily insert this in front of the lua script
+    MainForm.frmLuaTableScript.assemblescreen.BeginUpdate;
+    MainForm.frmLuaTableScript.assemblescreen.Lines.Insert(0, 'RequiredCEVersion='+floattostr(ceversion));
+    MainForm.frmLuaTableScript.assemblescreen.Lines.Insert(1, 'if (getCEVersion==nil) or (getCEVersion()<RequiredCEVersion) then');
+    MainForm.frmLuaTableScript.assemblescreen.Lines.Insert(2, '  messageDialog(''Please install Cheat Engine ''..RequiredCEVersion, mtError, mbOK)');
+    MainForm.frmLuaTableScript.assemblescreen.Lines.Insert(3, '  closeCE()');
+    MainForm.frmLuaTableScript.assemblescreen.Lines.Insert(4, 'end');
+  end;
+
+
+  try
+    SaveTable(CETRAINER, true);
+  finally
+    if tiny then
+    begin
+      //undo that addition
+      for i:=0 to 4 do
+        MainForm.frmLuaTableScript.assemblescreen.Lines.Delete(0);
+
+      MainForm.frmLuaTableScript.assemblescreen.EndUpdate;
+    end;
+  end;
+
+
 
   btnGenerateTrainer.caption:=rsSaving+rot;
   btnGenerateTrainer.enabled:=false;

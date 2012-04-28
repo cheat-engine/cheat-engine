@@ -144,7 +144,7 @@ type
 
 implementation
 
-uses dialogs, formAddressChangeUnit, TypePopup, PasteTableentryFRM;
+uses dialogs, formAddressChangeUnit, TypePopup, PasteTableentryFRM, mainunit;
 
 resourcestring
   rsDoYouWantToDeleteTheSelectedAddress = 'Do you want to delete the selected '
@@ -583,6 +583,8 @@ begin
   memrec.Description:=groupname;
   memrec.treenode:=Treeview.Items.AddObject(nil,'',memrec);
   memrec.treenode.DropTarget:=true;
+
+  MainForm.editedsincelastsave:=true;
 end;
 
 procedure TAddresslist.addAutoAssembleScript(script: string);
@@ -600,6 +602,7 @@ begin
 
   memrec.treenode:=Treeview.Items.AddObject(nil,'',memrec);
   memrec.treenode.DropTarget:=true;
+  MainForm.editedsincelastsave:=true;
 end;
 
 function TAddresslist.GetUniqueMemrecId: integer;
@@ -732,6 +735,8 @@ begin
 
   result:=memrec;
 
+  MainForm.editedsincelastsave:=true;
+
 end;
 
 procedure TAddresslist.setTreeNodes(t: TTreenodes);
@@ -746,7 +751,9 @@ end;
 
 procedure TAddresslist.doDescriptionChange;
 begin
-  if treeview.selected<>nil then descriptiondblclick(treeview.selected);
+  if treeview.selected<>nil then
+    descriptiondblclick(treeview.selected);
+
 end;
 
 procedure TAddresslist.doAddressChange;
@@ -773,7 +780,12 @@ begin
   description:=tmemoryrecord(node.data).description;
 
   if InputQuery(rsChangeDescription, rsWhatWillBeTheNewDescription, description) then
+  begin
+    if tmemoryrecord(node.data).description<>description then
+      MainForm.editedsincelastsave:=true;
+
     tmemoryrecord(node.data).description:=description;
+  end;
 
   node.update;
 end;
@@ -785,7 +797,9 @@ begin
   with TFormaddresschange.Create(self) do
   begin
     memoryrecord:=TMemoryRecord(node.data);
-    showmodal;
+    if showmodal=mrok then
+      MainForm.editedsincelastsave:=true;
+
     free;
 
     memoryrecord.ReinterpretAddress(true);
@@ -861,6 +875,9 @@ begin
     if (MemRecItems[i].isSelected) then
     begin
       MemRecItems[i].active:=false;
+
+      if memrecitems[i].vartype<>newtype then
+        MainForm.editedsincelastsave:=true;
 
       MemRecItems[i].VarType:=newtype;
       MemRecItems[i].Extra:=extra;
