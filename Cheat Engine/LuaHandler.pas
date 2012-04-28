@@ -7523,6 +7523,31 @@ begin
     lua_pop(L, lua_gettop(l));
 end;
 
+function createTreeView(L: Plua_State): integer; cdecl; //undocument, unsupported. Use the property functions if you HAVE to use it and look at the pascal source for the published properties
+var
+  Treeview: TCETreeView;
+  parameters: integer;
+  owner: TWincontrol;
+begin
+  result:=0;
+
+  parameters:=lua_gettop(L);
+  if parameters>=1 then
+    owner:=lua_touserdata(L, 1)
+  else
+    owner:=nil;
+
+  lua_pop(L, lua_gettop(L));
+
+
+  Treeview:=TCETreeview.Create(owner);
+  if owner<>nil then
+    Treeview.Parent:=owner;
+
+  lua_pushlightuserdata(L, Treeview);
+  result:=1;
+end;
+
 procedure InitializeLua;
 var s: tstringlist;
   k32: THandle;
@@ -7974,6 +7999,8 @@ begin
     lua_register(LuaVM, 'fullAccess', fullAccess);
     lua_register(LuaVM, 'getProcesslist', getProcessList_lua);
     lua_register(LuaVM, 'getThreadlist', getThreadlist_lua);
+
+    Lua_register(LuaVM, 'createTreeView', createTreeView);
 
 
 
