@@ -3643,16 +3643,20 @@ begin
 
     with assemblescreen.Lines do
     begin
-      Add('alloc(TypeName,256)');
-      Add('alloc(ByteSize,4)');
       Add('alloc(ConvertRoutine,1024)');
       Add('alloc(ConvertBackRoutine,1024)');
+      Add('alloc(TypeName,256)');
+      Add('alloc(ByteSize,4)');
+      Add('alloc(UsesFloat,1)');
       Add('');
       Add('TypeName:');
       Add('db ''' + n + ''',0');
       Add('');
       Add('ByteSize:');
       Add('dd 4');
+      Add('');
+      Add('UsesFloat:');
+      Add('db 0 //Change to 1 if this custom type should be treated as a float');
       Add('');
       Add('//The convert routine should hold a routine that converts the data to an integer (in eax)');
       Add('//function declared as: stdcall int ConvertRoutine(unsigned char *input);');
