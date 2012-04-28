@@ -2728,8 +2728,8 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    control:=lua_touserdata(L,-2);
-    control.visible:=lua_toboolean(L,-1);
+    control:=lua_touserdata(L,1);
+    control.visible:=lua_toboolean(L,2);
   end;
 
   lua_pop(L, parameters);

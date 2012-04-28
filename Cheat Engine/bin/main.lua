@@ -7,10 +7,10 @@ require("defines")
 
 List of CE specific functions:
 
-getCEVersion():6.2: Returns a floating point value
+getCEVersion(): Returns a floating point value specifying the version of cheat engine
 
 
-fullAccess(address,size):6.2: Changes the protection of a block of memory to writable and executable
+fullAccess(address,size): Changes the protection of a block of memory to writable and executable
 
 
 
@@ -55,6 +55,7 @@ getModuleSize(modulename): Returns the size of a given module (Use getAddress to
 reinitializeSymbolhandler(): reinitializes the symbolhandler. E.g when new modules have been loaded
 
 errorOnLookupFailure(state): If set to true (default) address lookups in stringform will raise an error if it can not be looked up. This includes symbolnames that are not defined and pointers that are bad. If set to false it will return 0 in those cases
+  (Useful for pointers that don't work 100% of the time)
 
 generateAPIHookScript(address, addresstojumpto, addresstogetnewcalladdress OPT) : Generates an auto assembler script which will hook the given address when executed
 autoAssemble(text, targetself OPTIONAL) : runs the auto assembler with the given text. Returns true on success (if targetself is set it will assemble into Cheat Engine itself)
@@ -62,8 +63,8 @@ showMessage(text) : shows a messagebox with the given text
 messageDialog(text, type, buttons...) : pops up a messagebox with a specific icon/sound with the specified buttons (mbok, mbyes, ....)
 sleep(milliseconds): pauses for the number of specified milliseconds (1000= 1 sec...)
 
-getProcesslist(Strings):6.2: Fills a Strings inherited object with the processlist of the system. Format: %x-pidname
-getThreadList(List):6.2: fills a List object with the threadlist of the currently opened process. Format: %x
+getProcesslist(Strings): Fills a Strings inherited object with the processlist of the system. Format: %x-pidname
+getThreadList(List): fills a List object with the threadlist of the currently opened process. Format: %x
 
 
 getOpenedProcessID() : Returns the currently opened process. If none is open, returns 0
@@ -85,14 +86,14 @@ doKeyPress(key) : simmulates a key press
 
 shellExecute(command, parameters OPTIONAL, folder OPTIONAL, showcommand OPTIONAL): Executes a given command
 
-getTickCount() : 6.2: Returns the current tickcount since windows was started. Each tick is one millisecond
-processMessages() : 6.2: Lets the main eventhandler process the new messages (allows for new button clicks)
-integerToUserData(int): 6.2: Converts a given integer to a userdata variable
-userDataToInteger(UserDataVar): 6.2: Converts a given userdata variable to an integer
+getTickCount() :  Returns the current tickcount since windows was started. Each tick is one millisecond
+processMessages() :  Lets the main eventhandler process the new messages (allows for new button clicks)
+integerToUserData(int):  Converts a given integer to a userdata variable
+userDataToInteger(UserDataVar):  Converts a given userdata variable to an integer
 
 
-writeToClipboard(text): 6.2: Writes the given text to the clipboard
-readFromClipboard(): 6.2: Reads the text from the clipboard
+writeToClipboard(text):  Writes the given text to the clipboard
+readFromClipboard():  Reads the text from the clipboard
 
 speedhack_setSpeed(speed)
 injectDLL(filename): Injects a dll, and returns true on success
@@ -116,17 +117,72 @@ onAutoGuess(function) :
 
 
 
+closeCE() : just closes ce
+hideAllCEWindows() : makes all normal ce windows invisible (e.g trainer table)
+unhideMainCEwindow() : shows the main cheat engine window
+
+getAutoAttachList(): returns the AutoAttach StringList object. It can be controlled with the stringlist_ routines (it's not recommended to destroy this list object)
 
 
-Cheat table functions:
+AOBScan(x,x,x,x,...):
+scans the currently opened process and returns a StringList object containing all the results. don't forget to free this list when done
+Bytevalue of higher than 255 or anything not an integer will be seen as a wildcard
+AOBScan(aobstring): see above but here you just input one string
 
-Table related routines: (deprecated, It's recommended to use the memoryrecord class event registration instead)
-If a cheat entry is about to get enabled or disabled it will check if a lua function named "_memrec_description_activating" or "_memrec_description_deactivating" is available, and if so call it.
-If a cheat entry is enabled or disabled it will check if a lua function named "_memrec_description_activated" or "_memrec_description_deactivated" is available, and if so call it.
-It passes the tableEntry pointer as parameter
-Example:
-If the cheat entry table with description "xxx" gets enabled it will call "_memrec_xxx_activating(te)" before it is activated and "_memrec_xxx_activated(te)" after it has been activated (check with isActive to see if it actually did get activated in case of errors in a script or unreadable memory)
-If the cheat entry table with description "xxx" gets disabled it will call "_memrec_xxx_deactivating(te)" before it is activated and "_memrec_xxx_deactivated(te)" after it has been deactivated
+
+
+
+Regarding eventhandlers. You can initialize them using both a string of a functionname or the function itself.
+If initialized using a function itself it won't be able to get saved in the table
+
+allocateSharedMemory(name, size):
+  Creates a shared memory object of the given size if it doesn't exist yet. If size is not given and there is no shared region with this name then the default size of 4096 is used
+  It then maps this shared memory block into the currently targeted process. It returns the address of mapped region in the target process
+
+
+getForegroundProcess() : Returns the processID of the process that is currently on top 
+ 
+cheatEngineIs64Bit(): Returns true if CE is 64-bit, false if 32-bit
+targetIs64Bit(): Returns true if the target process is 64-bit, false if 32-bit
+
+
+getCheatEngineDir(): Returns the folder Cheat Engine is located at
+
+disassemble(address): Disassembles the given address and returns a string in the format of "address - bytes - opcode : extra"
+splitDisassembledString(disassembledstring): Returns 4 strings. The address, bytes, opcode and extra field
+
+getInstructionSize(address): Returns the size of an instruction (basically it disassembles the instruction and returns the number of bytes for you)
+getPreviousOpcode(address): Returns the address of the previous opcode (this is just an estimated guess)
+
+
+beep() : Plays the fabulous beep/ping sound!
+
+
+getFormCount() : Returns the total number of forms assigned to the main CE application
+getForm(index): Returns the form at the specific index
+
+getMemoryViewForm() : Returns the main memoryview form class object which can be accessed using the Form_ class methods and the methods of the classes it inherits from. There can be multiple memory views, but this will only find the original/base
+getMainForm() : Returns the main form class object which can be accessed using the Form_ class methods and the methods of the classes it inherits from
+getAddressList() : Returns the cheat table addresslist object
+getFreezeTimer()
+getUpdateTimer()
+
+
+undefined property functions. Not all properties of all classes have been explicitly exposed to lua, but if you know the name of a property of a specific class you can still access them (assuming they are declared as published in the pascal class declaration)
+getPropertyList(class) : Returns a stringlist object containing all the published properties of the specified class (free the list when done) (Note, not all classed with properties have 'published' properties. E.g: stringlist)
+setProperty(class, propertyname, propertyvalue) : Sets the value of a published property of a class (Won't work for method properties)
+getProperty(class, propertyname) : Gets the value of a published property of a class (Won't work for method properties)
+setMethodProperty(class, propertyname, function): Sets the method property to the specific function
+getMethodProperty(Class, propertyname): Returns a function you can use to call the original function
+
+
+
+
+
+
+
+
+
 
 -debugging
 
@@ -160,91 +216,16 @@ debug_getMaxLastBranchRecord() : Returns the maximum branch record your cpu can 
 debug_getLastBranchRecord(index): Returns the value of the Last Branch Record at the given index (when handling a breakpoint)
 
 
-
-Changing registers:
-Different from ce 6.0
-When the debugger is waiting to continue you can change the register variables. When you continue those register values will be set in the thread's context
-
-
-
-gui
-closeCE() : just closes ce
-hideAllCEWindows() : makes all normal ce windows invisible (e.g trainer table)
-unhideMainCEwindow() : shows the main cheat engine window
-
-
-interval
-getAutoAttachList(): returns the AutoAttach StringList object. It can be controlled with the stringlist_ routines (it's not recommended to destroy this list object)
-
-
-AOBScan(x,x,x,x,...):
-scans the currently opened process and returns a StringList object containing all the results. don't forget to free this list when done
-Bytevalue of higher than 255 or anything not an integer will be seen as a wildcard
-AOBScan(aobstring): see above but here you just input one string
-
-
-
-
-
-function onOpenProcess(processid) : When this function is defined it will be called each time a process has been opened (note that a process can be opened multiple times in a row, e.g when attaching the debugger it might first open it and then attach the debugger which opens it again...)
-
 function debugger_onModuleLoad(modulename, baseaddress) : 
 this routine is called when a module is loaded. Only works for the windows debugger
 return 1 if you want to cause the debugger to break
 
 
-
-CE 6.1
-Regarding eventhandlers. You can initialize them using both a string of a functionname or the function itself.
-If initialized using a function itself it won't be able to get saved in the table
-
-allocateSharedMemory(name, size):
-  Creates a shared memory object of the given size if it doesn't exist yet. If size is not given and there is no shared region with this name then the default size of 4096 is used
-  It then maps this shared memory block into the currently targeted process. It returns the address of mapped region in the target process
-
-
-getForegroundProcess() : Returns the processID of the process that is currently on top 
- 
-cheatEngineIs64Bit(): Returns true if CE is 64-bit, false if 32-bit
-targetIs64Bit(): Returns true if the target process is 64-bit, false if 32-bit
-
-
-getCheatEngineDir(): Returns the folder Cheat Engine is located at
-
-disassemble(address): Disassembles the given address and returns a string in the format of "address - bytes - opcode : extra"
-splitDisassembledString(disassembledstring): Returns 4 strings. The address, bytes, opcode and extra field
-
-getInstructionSize(address): Returns the size of an instruction (basically it disassembles the instruction and returns the number of bytes for you)
-getPreviousOpcode(address): Returns the address of the previous opcode (this is just an estimated guess)
+Changing registers:
+When the debugger is waiting to continue you can change the register variables. When you continue those register values will be set in the thread's context
 
 
 
-
-undefined property functions. Not all properties of all classes have been explicitly exposed to lua, but if you know the name of a property of a specific class you can still access them (assuming they are declared as published in the pascal class declaration)
-getPropertyList(class) : Returns a stringlist object containing all the published properties of the specified class (free the list when done) (Note, not all classed with properties have 'published' properties. E.g: stringlist)
-setProperty(class, propertyname, propertyvalue) : Sets the value of a published property of a class (Won't work for method properties)
-getProperty(class, propertyname) : Gets the value of a published property of a class (Won't work for method properties)
-setMethodProperty(class, propertyname, function):6.2: Sets the method property to the specific function
-getMethodProperty(Class, propertyname): Returns a function you can use to call the original function
-
-
-
-
-getFormCount() : Returns the total number of forms assigned to the main CE application
-getForm(index): Returns the form at the specific index
-
-getMemoryViewForm() : Returns the main memoryview form class object which can be accessed using the Form_ class methods and the methods of the classes it inherits from. There can be multiple memory views, but this will only find the original/base
-getMainForm() : Returns the main form class object which can be accessed using the Form_ class methods and the methods of the classes it inherits from
-getAddressList() : Returns the cheat table addresslist object
-getFreezeTimer()
-getUpdateTimer()
-
-GenericHotkey Class : (Inheritance:  Object)
-createHotkey(function, key, ...) : returns an initialized GenericHotkey class object. Maximum of 5 keys
-generichotkey_setKeys(hotkey, key, ....)
-generichotkey_onHotkey(hotkey, function)
-
-beep() : Plays the fabulous beep/ping sound!
 
 
 class helper functions
@@ -291,13 +272,13 @@ control_getParent(control) : Returns nil or an object that inherits from the Win
 control_setParent(control, wincontrol) : Sets the parent for this control
 control_getPopupMenu(control)
 control_setPopupMenu(control)
-control_getFont(label): 6.2+: Returns the Font object of this object
+control_getFont(label):  Returns the Font object of this object
 control_onClick(control, functionnameorstring) : Sets the onclick routine
-control_doClick(control): 6.2+: Executes the current function under onClick
+control_doClick(control):  Executes the current function under onClick
 
 
 
-Region Class (6.2+): (Region->GraphicsObject->Object)
+Region Class : (Region->GraphicsObject->Object)
 createRegion(): Created an empty region
 region_addRectangle(region, x1, y1, x2, y2): Adds a rectangle to the region
 region_addPolygon(region, tablewithcoordinates): Adds an array of 2D locations. (example : {{0,0},{100,100}, {0,100}} for a triangle )
@@ -307,12 +288,12 @@ region_addPolygon(region, tablewithcoordinates): Adds an array of 2D locations. 
 WinControl Class: (Inheritance: Control->Component->Object)
 wincontrol_getControlCount(wincontrol)  Returns the number of Controls attached to this class
 wincontrol_getControl(wincontrol,index) : Returns a WinControl class object
-wincontrol_getControlAtPos(wincontrol, x,y): 6.2: Gets the control at the given x,y position relative to the wincontrol's position 
+wincontrol_getControlAtPos(wincontrol, x,y):  Gets the control at the given x,y position relative to the wincontrol's position 
 wincontrol_canFocus(wincontrol): returns true if the object can be focused
 wincontrol_focused(wincontrol): returns boolean true when focused
 wincontrol_setFocus(wincontrol): tries to set keyboard focus the object
-wincontrol_setShape(wincontrol, Region):6.2+: Sets the region object as the new shape for this wincontrol
-wincontrol_setShape(wincontrol, Bitmap):6.2+
+wincontrol_setShape(wincontrol, Region): Sets the region object as the new shape for this wincontrol
+wincontrol_setShape(wincontrol, Bitmap): 
 wincontrol_onEnter(wincontrol, function) : Sets an onEnter event. (Triggered on focus enter)
 wincontrol_onExit(wincontrol, function) : Sets an onExit event. (Triggered on lost focus)
 
@@ -382,21 +363,21 @@ form_saveToFile(form, filename): Saves a userdefined form. (DOES NOT WORK ON NOR
 form_centerScreen(form); : Places the form at the center of the screen
 form_hide(form) : Hide the form
 form_show(form) : show the form
-form_close(form): 6.2: Closes the form. Without an onClose this will be the same as hide 
+form_close(form):  Closes the form. Without an onClose this will be the same as hide 
 form_showModal(form) : show the form and wait for it to close and get the close result
 form_isForegroundWindow(form): returns true if the specified form has focus
 form_onClose(form, function)  : function (sender) : Return a CloseAction to determine how to close the window
 form_getMenu(form) : Returns the mainmenu object of this form
 form_setMenu(form, mainmenu)
 
-form_setBorderStyle(form, borderstyle): 6.2+: Sets the borderstyle of the window
+form_setBorderStyle(form, borderstyle):  Sets the borderstyle of the window
 form_getBorderStyle
 
 form_getDoNotSaveInTable(form): Returns the DoNotSaveInTable property
 form_setDoNotSaveInTable(form, boolean): Sets the DoNotSaveInTable property
 
-form_printToRasterImage(form, rasterimage):6.2+: Draws the contents of the form to a rasterimage class object
-form_dragNow(form): 6.2+: Call this on mousedown on any object if you wish that the mousemove will drag the whole form arround. Useful for borderless windows (Dragging will stop when the mouse button is released)
+form_printToRasterImage(form, rasterimage): Draws the contents of the form to a rasterimage class object
+form_dragNow(form):  Call this on mousedown on any object if you wish that the mousemove will drag the whole form arround. Useful for borderless windows (Dragging will stop when the mouse button is released)
 
 
 GraphicControl Class: (Inheritance: Control->Component->Object)
@@ -592,7 +573,7 @@ listitem_getSubItems(listitem): Returns a Strings object
 ListItems class : (Inheritance: TObject)
 listitems_clear(listitems)
 listitems_getCount(listitems)
-listitems_getItem(li, index) : 6.2:Return the listitem object at the given index
+listitems_getItem(li, index) : Return the listitem object at the given index
 listitems_add(listitems): Returns a new ListItem object
 
 
@@ -616,8 +597,6 @@ timer_setInterval(timer, interval) : Sets the speed on how often the timer shoul
 timer_onTimer(timer, function)
 timer_getEnabled(timer)
 timer_setEnabled(timer, boolean)
-
-Ce 6.1 Alpha 8+
 
 CustomControl class (CustomControl->WinControl->Control->Component->Object)
 customControl_getCanvas(customcontrol) : Returns the Canvas object for the given object that has inherited from customControl
@@ -676,13 +655,13 @@ graphic_setHeight(graphic, height)
 
 RasterImage class: (Inheritance: Graphic->Object) : Base class for some graphical controls
 rasterimage_getCanvas(RasterImage): Returns the Canvas object for this image
-rasterimage_getPixelFormat((rasterimage): 6.2: Returns the current pixelformat
-rasterimage_setPixelFormat(rasterimage, pixelformat): 6.2: Sets the pixelformat for this image. Will clear the current image if it had one. Supported pixelformats: pf1bit, pf4bit, pf8bit, pf15bit, pf16bit, pf24bit, pf32bit (recommended)
+rasterimage_getPixelFormat((rasterimage):  Returns the current pixelformat
+rasterimage_setPixelFormat(rasterimage, pixelformat):  Sets the pixelformat for this image. Will clear the current image if it had one. Supported pixelformats: pf1bit, pf4bit, pf8bit, pf15bit, pf16bit, pf24bit, pf32bit (recommended)
 
-rasterimage_setTransparent(rasterimage,state): 6.2: Will set the image to support transparency or not
-rasterimage_getTransparent(rasterimage): 6.2: Returns true if the image supports transparency
-rasterimage_setTransparentColor(rasterimage, color): 6.2:Sets the color that will be rendered as transparent when drawn
-rasterimage_getTransparentColor(rasterimage): 6.2: Returns the color set to be transparent
+rasterimage_setTransparent(rasterimage,state):  Will set the image to support transparency or not
+rasterimage_getTransparent(rasterimage):  Returns true if the image supports transparency
+rasterimage_setTransparentColor(rasterimage, color): Sets the color that will be rendered as transparent when drawn
+rasterimage_getTransparentColor(rasterimage):  Returns the color set to be transparent
 
 
 Bitmap class: (Inheritance: CustomBitmap->RasterImage->Graphic->Object) : Bitmap based Graphic object
@@ -703,6 +682,11 @@ picture_getJpeg(picture): Returns a JpegImage Class object (Picture must be init
 
 
 
+
+GenericHotkey Class : (Inheritance:  Object)
+createHotkey(function, key, ...) : returns an initialized GenericHotkey class object. Maximum of 5 keys
+generichotkey_setKeys(hotkey, key, ....)
+generichotkey_onHotkey(hotkey, function)
 
 
 OpenDialog Class: (Inheritance: FileDialog->CommonDialog->Component->Object)
@@ -790,19 +774,19 @@ memoryrecord_setColor(te, colorrgb): Sets the color of the entry
 memoryrecord_appendToEntry(te,te) : Adds the entry to another entry
 
 
-memoryrecord_string_getSize(te):(6.2+) 
-memoryrecord_string_setSize(te, integer):(6.2+) 
-memoryrecord_string_getUnicode(te):(6.2+) 
-memoryrecord_string_setUnicode(te, boolean):(6.2+) 
-memoryrecord_binary_getStartbit(te):(6.2+) 
-memoryrecord_binary_setStartbit(te, integer):(6.2+) 
-memoryrecord_binary_getSize(te):(6.2+) 
-memoryrecord_binary_setSize(te, integer):(6.2+) 
-memoryrecord_aob_getSize(te):(6.2+) 
-memoryrecord_aob_setSize(te, integer):(6.2+) 
+memoryrecord_string_getSize(te): 
+memoryrecord_string_setSize(te, integer): 
+memoryrecord_string_getUnicode(te): 
+memoryrecord_string_setUnicode(te, boolean): 
+memoryrecord_binary_getStartbit(te): 
+memoryrecord_binary_setStartbit(te, integer): 
+memoryrecord_binary_getSize(te): 
+memoryrecord_binary_setSize(te, integer): 
+memoryrecord_aob_getSize(te): 
+memoryrecord_aob_setSize(te, integer): 
 
 
-memoryrecord_isSelected(te): (6.2+) Returns true or false depending on if it's currently selected or not
+memoryrecord_isSelected(te):  Returns true or false depending on if it's currently selected or not
 memoryrecord_delete(te) : It's unknown what this function does, all that is known is that after using this command other memrec routines with this table entry value don't work anymore...
 
 
@@ -814,7 +798,7 @@ addresslist_getMemoryRecordByID(addresslist, ID)
 
 addresslist_createMemoryRecord(addresslist) : createTableEntry: creates an generic cheat table entry and add it to the list. Returns a tableentry pointer you can use with memrec routines
 
-addresslist_getSelectedRecords(Addresslist): 6.2+: Returns a table of all the selected records
+addresslist_getSelectedRecords(Addresslist):  Returns a table of all the selected records
 
 
 
@@ -936,7 +920,7 @@ memscan_waitTillDone(memscan)
 memscan_saveCurrentResults(memscan, name)
 memscan_getAttachedFoundlist(memscan) : Returns a FoundList object if one is attached to this scanresults. Returns nil otherwise
 
-6.2+:
+
 memscan_returnOnlyOneResult(memscan, state): If set to true before you start a scan, this will cause the scanner to only return one result. Note that it does not work with a foundlist
 memscan_getOnlyResult(memscan): Only works if returnOnlyOneResult is true. Returns nil if not found, else returns the address that was found (integer)
 

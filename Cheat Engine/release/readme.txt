@@ -1,16 +1,18 @@
-Cheat Engine 6.1
+Cheat Engine 6.2
 
 Fixes:
 Fixed the first plugin from not getting activated at restart
 Custom types can now do an unknown initial value scan
 Fixed the auto assembler highlighter from hiding some text while typing
+Fixed the auto assembler highlighter from not showing hexadecimal values as hex starting with a to f
+Fixed global debug from crashing in 64-bit (with dbvm)
 
 
 Additions and changes:
 Added a profiler so you can find function entry points and see how often they are called
 Deleting a plugin now calls FreeLibrary on it
 Ctrl+enter in the luaengine form now automatically executes the command
-Added direct 3d hook functions (can be used to show trainers inside games)
+Added direct 3d hook functions (can be used to show trainers and menu's inside games)
 Plugins settings between the 32 and 64-bit executable are now seperated
 Recalculate addresses with only one selection now only updates the siblings and children. Doesn't touch the parent node
 Addresslist entries can have the notation +xxx and -xxx, which will calculate the address based on the parent address (If the parent address changes, these change automatically
@@ -19,7 +21,9 @@ Added a new step to the tutorial (step9) showing how to deal with shared code
 Made the tutorial translatable as well
 Added a new trainer type which generates trainer that are a lot smaller in size
 Added a groupscan type which you can use to scan for different things in the same block
-
+If you boot up with dbvm you do not need to sign the driver in 64-bit
+Custom types now support handling as a floating point value
+Lots of new lua functions
 
 How to use:
 Theres a tutorial program included with Cheat Engine,

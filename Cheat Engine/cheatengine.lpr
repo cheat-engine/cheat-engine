@@ -93,7 +93,7 @@ begin
 end;
 
 begin
-  Application.Title:='Cheat Engine 6.2 Beta';
+  Application.Title:='Cheat Engine 6.2 RC';
   Application.Initialize;
   getcedir;
 
