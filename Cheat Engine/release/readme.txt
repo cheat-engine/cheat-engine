@@ -6,6 +6,7 @@ Custom types can now do an unknown initial value scan
 Fixed the auto assembler highlighter from hiding some text while typing
 Fixed the auto assembler highlighter from not showing hexadecimal values as hex starting with a to f
 Fixed global debug from crashing in 64-bit (with dbvm)
+Fixed notification when closing and you had some changes
 
 
 Additions and changes:

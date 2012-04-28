@@ -77,7 +77,7 @@ type
     procedure Codeinjection1Click(Sender: TObject);
     procedure Panel1Resize(Sender: TObject);
     procedure CheatTablecompliantcodee1Click(Sender: TObject);
-    procedure assemblescreenChange(Sender: TObject);
+
     procedure Assigntocurrentcheattable1Click(Sender: TObject);
     procedure APIHook1Click(Sender: TObject);
     procedure SaveAs1Click(Sender: TObject);
@@ -124,6 +124,7 @@ type
     procedure tlistOnTabChange(sender: TObject; oldselection: integer);
     procedure setCustomTypeScript(x: boolean);
     procedure gutterclick(Sender: TObject; X, Y, Line: integer; mark: TSynEditMark);
+    procedure assemblescreenchange(sender: TObject);
 
   public
     { Public declarations }
@@ -571,85 +572,10 @@ begin
 end;
 
 procedure TfrmAutoInject.assemblescreenChange(Sender: TObject);
-{$ifndef standalonetrainerwithassembler}
-{
-var
-  TempMS: TMemoryStream;
-  FSyntax: TpsvAARTF;
-  FSyntax2: TpsvCppRTF;
-  pos, top: Integer;
-  OnChange: TNotifyEvent;
-  }
-{$endif}
 begin
+  if self=mainform.frmLuaTableScript then
+    mainform.editedsincelastsave:=true;
 
-{$ifndef standalonetrainerwithassembler}
-{  undotimer.enabled:=false;
-  undotimer.enabled:=true; //if no change for 2 seconds the script gets stored
-
-  if (Length(assemblescreen.Text) <= 0) then
-    exit;
-
-
-  assemblescreen.Lines.BeginUpdate;
-  pos := assemblescreen.selstart;
-  top := SendMessage(assemblescreen.Handle, EM_GETFIRSTVISIBLELINE, 0, 0);
-  OnChange := assemblescreen.OnChange;
-  TempMS := TMemoryStream.Create;
-
-  assemblescreen.OnChange := nil;
-
-
-
-  try
-    if fcplusplus then
-      FSyntax2 := TpsvCppRTF.Create
-    else
-      FSyntax := TpsvAARTF.Create;
-      
-    try
-
-      try
-
-        if cplusplus then
-        begin
-          FSyntax2.SetText(assemblescreen.Text);
-          FSyntax2.ConvertToRTFStream(TempMS);
-        end
-        else
-        begin
-          FSyntax.SetText(assemblescreen.Text);
-          FSyntax.ConvertToRTFStream(TempMS);
-        end;
-
-        TempMS.Position := 0;
-        assemblescreen.PlainText := False;
-
-
-        assemblescreen.Lines.LoadFromStream(TempMS);
-        SendMessage(assemblescreen.Handle, EM_LINESCROLL, 0, top);
-        
-      finally
-        if fcplusplus then
-          fsyntax2.free
-        else
-          FSyntax.Free;
-      end;
-
-
-    except
-      assemblescreen.SelAttributes := assemblescreen.DefAttributes;
-    end;
-
-  finally
-    assemblescreen.PlainText := True;
-    assemblescreen.SelStart := Pos;
-
-    TempMS.Free;
-    assemblescreen.Lines.EndUpdate;
-    assemblescreen.OnChange := OnChange;
-  end;   }
-{$endif}
 
 end;
 
@@ -1224,6 +1150,8 @@ begin
   end;
 end;
 
+
+
 procedure TfrmAutoInject.FormCreate(Sender: TObject);
 var x: array of integer;
     reg: tregistry;
@@ -1276,6 +1204,8 @@ begin
 
   assemblescreen.name:='Assemblescreen';
   assemblescreen.Text:='';
+
+  assemblescreen.OnChange:=assemblescreenchange;
 
   setlength(x,0);
   loadformposition(self,x);
