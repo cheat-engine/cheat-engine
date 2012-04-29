@@ -6,7 +6,7 @@ unit StructuresFrm2;
 interface
 
 uses
-  windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls, math,
+  windows, Classes, LCLProc, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls, math,
   StdCtrls, ComCtrls, Menus, lmessages, scrolltreeview, byteinterpreter, symbolhandler, cefuncproc,
   newkernelhandler, frmSelectionlistunit, frmStructuresConfigUnit, registry, Valuechange, DOM,
   XMLRead, XMLWrite, Clipbrd, CustomTypeHandler, strutils;
@@ -220,6 +220,10 @@ type
     miToggleLock: TMenuItem;
     miChangeGroup: TMenuItem;
     miDelete: TMenuItem;
+    miCut: TMenuItem;
+    miCopy: TMenuItem;
+    miPaste: TMenuItem;
+
 
     focusedShape: TShape;
 
@@ -229,6 +233,12 @@ type
     procedure ChangeGroupClick(sender: tobject);
     procedure DeleteClick(sender: TObject);
     procedure ToggleLockClick(sender: TObject);
+
+    procedure CutClick(sender: TObject);
+    procedure CopyClick(sender: TObject);
+    procedure PasteClick(sender: TObject);
+
+    procedure MenuPopup(sender: TObject);
 
 
     procedure edtAddressChange(sender: TObject);
@@ -549,6 +559,10 @@ resourcestring
    rsLock = 'Lock';
    rsChangeGroup2 = 'Change Group';
    rsDeleteAddress = 'Delete address';
+
+   rsCut = 'Cut';
+   rsCopy = 'Copy';
+   rsPaste = 'Paste';
 
 function DisplaymethodToString(d:TdisplayMethod): string;
 begin
@@ -1913,6 +1927,28 @@ begin
   parent.parent.tvStructureView.Refresh;
 end;
 
+procedure TStructColumn.CutClick(sender: TObject);
+begin
+  edtAddress.CutToClipboard;
+end;
+
+procedure TStructColumn.CopyClick(sender: TObject);
+begin
+  edtAddress.CopyToClipboard;
+end;
+
+procedure TStructColumn.PasteClick(sender: TObject);
+begin
+  edtAddress.PasteFromClipboard;
+end;
+
+procedure TStructColumn.MenuPopup(sender: TObject);
+begin
+  miCut.enabled:=edtAddress.SelLength>0;
+  miCopy.enabled:=edtAddress.SelLength>0;
+  miPaste.enabled:=Clipboard.HasFormat(CF_TEXT);
+end;
+
 procedure TStructColumn.SetProperEditboxPosition;
 var
   i: integer;
@@ -1948,6 +1984,7 @@ end;
 
 constructor TStructColumn.create(parent: TStructGroup);
 var hsection: THeaderSection;
+  s: TMenuItem;
 begin
   if parent=nil then raise exception.create('TStructColumn.create Error');
   self.parent:=parent;
@@ -1968,6 +2005,28 @@ begin
   miDelete.caption:=rsDeleteAddress;
   miDelete.OnClick:=DeleteClick;
   columneditpopupmenu.Items.Add(miDelete);
+
+  columneditpopupmenu.Items.AddSeparator;
+
+  miCut:=TMenuItem.create(columneditpopupmenu);
+  miCut.OnClick:=CutClick;
+  miCut.caption:=rsCut;
+  miCut.ShortCut:=TextToShortCut('Ctrl+X');
+  columneditpopupmenu.Items.Add(miCut);
+
+  miCopy:=TMenuItem.create(columneditpopupmenu);
+  miCopy.OnClick:=Copyclick;
+  miCopy.caption:=rsCopy;
+  miCopy.ShortCut:=TextToShortCut('Ctrl+C');
+  columneditpopupmenu.Items.Add(miCopy);
+
+  miPaste:=TMenuItem.create(columneditpopupmenu);
+  mipaste.OnClick:=PasteClick;
+  mipaste.caption:=rsPaste;
+  miPaste.ShortCut:=TextToShortCut('Ctrl+V');
+  columneditpopupmenu.Items.Add(miPaste);
+
+  columneditpopupmenu.OnPopup:=MenuPopup;
 
 
 
