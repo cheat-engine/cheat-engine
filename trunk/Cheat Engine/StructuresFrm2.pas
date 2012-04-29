@@ -1792,6 +1792,7 @@ begin
   end;
 
   miToggleLock.Checked:=false;
+  mitoggleLock.caption:=rsLock;
 
 end;
 
@@ -1827,6 +1828,7 @@ begin
 
 
   miToggleLock.Checked:=result;
+  miToggleLock.Caption:=rsLock+' ('+inttohex(qword(fsavedstate),8)+')';
 end;
 
 function TStructColumn.saveState: boolean;
