@@ -16,7 +16,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 {
 	char tempdir[MAX_PATH];
 	char Decompressor[MAX_PATH];
-	char Archive[MAX_PATH];
+	char Archive[1024];
 	char SelfName[MAX_PATH];
 	SECURITY_ATTRIBUTES  sa;
 
@@ -67,7 +67,9 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 		if (GetTempFileNameA(tempfolder,"CET",0,tempdir)>0)
 		{
 			int i;
+#ifdef TINY
 			struct stat status;
+#endif
 
 			DeleteFile(tempdir);
 			//strcat(tempfolder
@@ -77,6 +79,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 			{
 			  HANDLE h;
 			  DWORD bw;
+		
 			  strcpy(Archive, tempdir);
 			  strcat(Archive, "\\");
 #ifdef TINY
@@ -84,6 +87,14 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 #else
 			  strcat(Archive, "CET_Archive.dat");
 #endif
+
+			  //append the selfname
+			  strcat(Archive, " -ORIGIN:\"");
+			  strcat(Archive, SelfName);
+			  strcat(Archive, "\"");
+
+
+
 			
 			  h=CreateFile(Archive, GENERIC_WRITE,FILE_SHARE_READ | FILE_SHARE_WRITE, &sa, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
 			  if (h)
@@ -101,7 +112,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 				if (i==SE_ERR_ASSOCINCOMPLETE)
 				  MessageBoxA(0,"Your system must have Cheat Engine installed to be able to use this trainer\nwww.cheatengine.org","Launch Error",MB_OK | MB_ICONERROR);
 				else
-				  MessageBoxA(0,"Failure launching this trainer. Make sure Cheat Engine is properly installed on your system","Launch Error",MB_OK | MB_ICONERROR);
+				  MessageBoxA(0,"Failure launching this trainer. Make sure Cheat Engine is properly installed on your system (www.cheatengine.org)","Launch Error",MB_OK | MB_ICONERROR);
 
 			  }
 			  

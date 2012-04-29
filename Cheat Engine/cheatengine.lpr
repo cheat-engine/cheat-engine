@@ -45,27 +45,53 @@ procedure HandleParameters;
 var i: integer;
   mainformvisible: boolean;
   p: string;
+  tabletoload: string;
+  origin: string;
 begin
+  tabletoload:='';
+  origin:='';
   mainformvisible:=true;
   try
 
-    for i:=0 to Paramcount do
+    for i:=1 to Paramcount do
     begin
       p:=paramstr(i);
-      if (pos('.CETRAINER', uppercase(p))>0) or (pos('.CT', uppercase(p))>0) then
+
+      if p<>'' then
       begin
-        //add the path of this CT to the lua lookup
-        LUA_DoScript('package.path = package.path .. ";'+ExtractFilePath(p)+'?.lua";');
+        if p[1]='-' then
+        begin
+          //could be -ORIGIN
+          if uppercase(copy(p,1,8))='-ORIGIN:' then
+            origin:=AnsiDequotedStr(copy(p,9, length(p)-8),'"');
 
-        mainformvisible:=uppercase(ExtractFileExt(p))<>'.CETRAINER';
-        LoadTable(ansitoutf8(p),false);
+        end
+        else
+        if (pos('.CETRAINER', uppercase(p))>0) or (pos('.CT', uppercase(p))>0) then
+        begin
+          //add the path of this CT to the lua lookup
+          LUA_DoScript('package.path = package.path .. ";'+ExtractFilePath(p)+'?.lua";');
 
-        if ExtractFileName(p)='CET_TRAINER.CETRAINER' then //Let's just hope no-one names their trainer exactly this...
-          DeleteFile(p);
+          mainformvisible:=uppercase(ExtractFileExt(p))<>'.CETRAINER';
 
-        break;
+          tabletoload:=p; //mark this trainer to be loaded
+        end;
       end;
 
+    end;
+
+    if tabletoload<>'' then
+    begin
+      //it needs to load a table
+      if origin='' then
+        origin:=ExtractFilePath(tabletoload);
+
+      if origin<>'' then
+        LUA_DoScript('TrainerOrigin=[['+origin+']]');
+
+      LoadTable(tabletoload,false);
+      if ExtractFileName(tabletoload)='CET_TRAINER.CETRAINER' then //Let's just hope no-one names their trainer exactly this...
+        DeleteFile(tabletoload);
     end;
   except
   end;

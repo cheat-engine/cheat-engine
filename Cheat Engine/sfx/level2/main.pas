@@ -63,6 +63,9 @@ var launchdir: string;
   ProcessInformation: TPROCESSINFORMATION;
   filename, folder: string;
   selfpath: string;
+
+  secondaryparams: string;
+  i: integer;
 begin
   selfpath:=ExtractFilePath(GetModuleName(0));
   size:=0;
@@ -75,6 +78,15 @@ begin
 
   if FileExists(archivename) then
   begin
+    if Paramcount=0 then
+      secondaryparams:=''
+    else
+    begin
+      secondaryparams:=' ';
+      for i:=1 to Paramcount do
+        secondaryparams:=secondaryparams+ParamStr(i);
+    end;
+
 
 
     s:=TFileStream.Create(archivename, fmOpenRead);
@@ -139,7 +151,7 @@ begin
       ZeroMemory(@ProcessInformation, sizeof(ProcessInformation));
       StartupInfo.cb:=sizeof(StartupInfo);
 
-      if (CreateProcess(nil, pchar(ceexe+' "'+launchdir+'CET_TRAINER.CETRAINER"'), nil, nil, FALSE, 0, nil, pchar(launchdir), StartupInfo, ProcessInformation)) then
+      if (CreateProcess(nil, pchar(ceexe+' "'+launchdir+'CET_TRAINER.CETRAINER"'+secondaryparams), nil, nil, FALSE, 0, nil, pchar(launchdir), StartupInfo, ProcessInformation)) then
       begin
         WaitForSingleObject(ProcessInformation.hProcess, INFINITE);
         sleep(2000);

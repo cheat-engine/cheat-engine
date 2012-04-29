@@ -5,10 +5,11 @@ require("defines")
 
 --[[
 
-List of CE specific functions:
+List of CE specific functions and variables:
+
+TrainerOrigin : A variable that contains the path of the trainer that launched cheat engine
 
 getCEVersion(): Returns a floating point value specifying the version of cheat engine
-
 
 fullAccess(address,size): Changes the protection of a block of memory to writable and executable
 
