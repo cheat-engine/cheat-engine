@@ -22,7 +22,7 @@
       <Item1 Name="Release" Default="True"/>
       <Item2 Name="Debug">
         <CompilerOptions>
-          <Version Value="10"/>
+          <Version Value="11"/>
           <PathDelim Value="\"/>
           <Target>
             <Filename Value="..\..\bin\standalonephase2.dat"/>
@@ -42,12 +42,6 @@
               <OptimizationLevel Value="0"/>
             </Optimizations>
           </CodeGeneration>
-          <Linking>
-            <Debugging>
-              <GenerateDebugInfo Value="True"/>
-              <DebugInfoType Value="dsAuto"/>
-            </Debugging>
-          </Linking>
           <Other>
             <CompilerMessages>
               <UseMsgFile Value="True"/>
@@ -84,10 +78,11 @@
         <Filename Value="main.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="main"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="65"/>
-        <CursorPos X="37" Y="70"/>
+        <TopLine Value="66"/>
+        <CursorPos X="61" Y="90"/>
         <UsageCount Value="35"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -153,43 +148,34 @@
       </Unit9>
       <Unit10>
         <Filename Value="C:\lazarus\fpc\2.5.1\source\rtl\objpas\sysutils\finah.inc"/>
-        <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
         <TopLine Value="8"/>
         <CursorPos X="10" Y="24"/>
         <UsageCount Value="10"/>
-        <Loaded Value="True"/>
       </Unit10>
       <Unit11>
         <Filename Value="C:\lazarus\fpc\2.5.1\source\rtl\objpas\sysutils\fina.inc"/>
-        <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
         <TopLine Value="37"/>
         <CursorPos X="3" Y="42"/>
         <UsageCount Value="10"/>
-        <Loaded Value="True"/>
       </Unit11>
       <Unit12>
         <Filename Value="C:\lazarus\fpc\2.5.1\source\rtl\objpas\sysutils\sysutilh.inc"/>
-        <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
         <TopLine Value="277"/>
         <CursorPos X="12" Y="293"/>
         <UsageCount Value="10"/>
-        <Loaded Value="True"/>
       </Unit12>
       <Unit13>
         <Filename Value="C:\lazarus\fpc\2.5.1\source\rtl\objpas\sysutils\sysutils.inc"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
         <TopLine Value="685"/>
         <CursorPos X="1" Y="706"/>
         <UsageCount Value="10"/>
-        <Loaded Value="True"/>
       </Unit13>
     </Units>
-    <JumpHistory Count="29" HistoryIndex="28">
+    <JumpHistory Count="28" HistoryIndex="27">
       <Position1>
         <Filename Value="main.pas"/>
         <Caret Line="43" Column="1" TopLine="19"/>
@@ -302,14 +288,10 @@
         <Filename Value="main.pas"/>
         <Caret Line="70" Column="37" TopLine="65"/>
       </Position28>
-      <Position29>
-        <Filename Value="C:\lazarus\fpc\2.5.1\source\rtl\objpas\sysutils\sysutilh.inc"/>
-        <Caret Line="293" Column="12" TopLine="277"/>
-      </Position29>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="10"/>
+    <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
       <Filename Value="..\..\bin\standalonephase2.dat"/>
@@ -332,7 +314,7 @@
     </CodeGeneration>
     <Linking>
       <Debugging>
-        <DebugInfoType Value="dsAuto"/>
+        <GenerateDebugInfo Value="False"/>
         <UseLineInfoUnit Value="False"/>
         <StripSymbols Value="True"/>
       </Debugging>
@@ -358,7 +340,7 @@
         <WatchScope Value="wpsGlobal"/>
         <WatchKind Value="wpkWrite"/>
         <Source Value="main.pas"/>
-        <Line Value="174"/>
+        <Line Value="176"/>
       </Item1>
     </BreakPoints>
     <Exceptions Count="3">

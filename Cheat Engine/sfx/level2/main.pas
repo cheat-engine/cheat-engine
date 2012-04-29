@@ -87,6 +87,8 @@ begin
         secondaryparams:=secondaryparams+ParamStr(i);
     end;
 
+    //MessageBox(0, pchar(secondaryparams),pchar('bla'), MB_OK);
+
 
 
     s:=TFileStream.Create(archivename, fmOpenRead);
