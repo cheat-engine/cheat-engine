@@ -34,6 +34,7 @@ type
       procedure AddressChangeEvent(sender: TObject; address: ptruint);
       function AutoGuessEvent(address: ptruint; originalVariableType: TVariableType): TVariableType;
       procedure D3DClickEvent(renderobject: TObject; x,y: integer);
+      function D3DKeyEvent(VirtualKey: dword; char: pchar): boolean;
 
 
       procedure pushFunction;
@@ -223,6 +224,28 @@ begin
       lua_pushinteger(luavm, address2);
 
       lua_pcall(Luavm, 3,0,0); //procedure(sender, address, address2)
+    end;
+  finally
+    lua_settop(Luavm, oldstack);
+    luacs.leave;
+  end;
+end;
+
+function TLuaCaller.D3DKeyEvent(VirtualKey: dword; char: pchar): boolean;
+var oldstack: integer;
+begin
+  result:=true;
+  Luacs.Enter;
+  try
+    oldstack:=lua_gettop(Luavm);
+
+    if canRun then
+    begin
+      PushFunction;
+      lua_pushinteger(luavm, VirtualKey);
+      lua_pushstring(luavm, char);
+      if lua_pcall(Luavm, 2,1,0)=0 then
+        result:=lua_toboolean(luavm,-1);
     end;
   finally
     lua_settop(Luavm, oldstack);

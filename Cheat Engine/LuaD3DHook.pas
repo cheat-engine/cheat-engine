@@ -82,6 +82,47 @@ begin
   result:=1;
 end;
 
+function d3dhook_onKey(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  f: integer;
+  routine: string;
+
+  lc: TLuaCaller;
+  m: TD3DKeyDownEvent;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    if D3DHook<>nil then
+    begin
+
+      CleanupLuaCall(TMethod(d3dhook.onKeyDown));
+      d3dhook.onKeyDown:=nil;
+
+      if lua_isfunction(L,1) then
+      begin
+        f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+        lc:=TLuaCaller.create;
+        lc.luaroutineIndex:=f;
+        d3dhook.onKeyDown:=lc.D3DKeyEvent;
+      end
+      else
+      if lua_isstring(L,1) then
+      begin
+        routine:=lua_tostring(L,1);
+        lc:=TLuaCaller.create;
+        lc.luaroutine:=routine;
+        d3dhook.onKeyDown:=lc.D3DKeyEvent;
+      end;
+
+    end;
+  end;
+
+  lua_pop(L, lua_gettop(L));
+end;
 
 function d3dhook_onClick(L: PLua_State): integer; cdecl;
 var
@@ -291,11 +332,13 @@ var
   parameters: integer;
   t: TD3DHook_Texture;
 begin
+  result:=0;
   if lua_gettop(L)=1 then
   begin
     t:=lua_touserdata(L,1);
     lua_pop(L, lua_gettop(L));
     lua_pushinteger(L, t.height);
+    result:=1;
   end
   else
     lua_pop(L, lua_gettop(L));
@@ -305,6 +348,7 @@ function d3dhook_texture_getWidth(L: PLua_State): integer; cdecl;
 var
   t: TD3DHook_Texture;
 begin
+  result:=0;
   if lua_gettop(L)=1 then
   begin
     t:=lua_touserdata(L,1);
@@ -321,6 +365,7 @@ var
   t: TD3DHook_Texture;
   p: TPicture;
 begin
+  result:=0;
   if lua_gettop(L)>=2 then
   begin
     t:=lua_touserdata(L,1);
@@ -835,6 +880,7 @@ procedure initializeLuaD3DHook;
 begin
   lua_register(LuaVM, 'd3dhook_initializeHook', d3dhook_initializeHook);
   lua_register(LuaVM, 'd3dhook_onClick', d3dhook_onClick);
+  lua_register(LuaVM, 'd3dhook_onKey', d3dhook_onKey);
   lua_register(LuaVM, 'd3dhook_beginUpdate', d3dhook_beginUpdate);
   lua_register(LuaVM, 'd3dhook_endUpdate', d3dhook_endUpdate);
   lua_register(LuaVM, 'd3dhook_getWidth', d3dhook_getWidth);

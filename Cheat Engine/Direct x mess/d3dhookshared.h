@@ -205,6 +205,7 @@ typedef volatile struct
 
 	UINT64 CommandlistLock;
 	int UseCommandlistLock; //set to 1 if you wish to make use of the command list locking feature (might slow down due to acuiring/releasing of the event)
+	int hasOnKey;
 	
 	D3DRenderCommand RenderCommands[100000];
 

@@ -142,7 +142,7 @@ end;
 
 procedure initializeLuaRasterImage;
 begin
-  lua_register(LuaVM, 'rasterImage_getCanvas', rasterImage_getCanvas);
+  lua_register(LuaVM, 'rasterimage_getCanvas', rasterImage_getCanvas);
   lua_register(LuaVM, 'rasterimage_getPixelFormat', rasterimage_getPixelFormat);
   lua_register(LuaVM, 'rasterimage_setPixelFormat', rasterimage_setPixelFormat);
   lua_register(LuaVM, 'rasterimage_getTransparent', rasterimage_getTransparent);

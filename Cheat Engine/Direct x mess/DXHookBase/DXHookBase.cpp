@@ -385,23 +385,21 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 	
 		case WM_KEYDOWN:
-			if (shared->console.hasconsole)
+			if ((shared->console.hasconsole) || (shared->hasOnKey))
 			{
-				if (!shared->console.consolevisible)
+				if ((shared->console.hasconsole) && ((!shared->console.consolevisible) && (wParam==shared->console.consolekey)))
 				{
-					//check if the console keys is pressed
-					if (wParam==shared->console.consolekey)
-					{						
-						//tell ce to create a console background sprite, a cursor, a fontmap and a textcontainer
+				
+					//tell ce to create a console background sprite, a cursor, a fontmap and a textcontainer
 
-						//make the console entries visible
+					//make the console entries visible
 
-						shared->console.lastmessage.uMsg=0xffffffff; //special identifier to show the console stuff
-						SetEvent(hasKeyboardEvent);
-						WaitForSingleObject(handledKeyboardEvent, 2000); //wait for ce finish this (so the next frame rendered has the console)
+					shared->console.lastmessage.uMsg=0xffffffff; //special identifier to show the console stuff
+					SetEvent(hasKeyboardEvent);
+					WaitForSingleObject(handledKeyboardEvent, 2000); //wait for ce finish this (so the next frame rendered has the console)
 
-						shared->console.consolevisible=1;
-					}
+					shared->console.consolevisible=1;
+				
 				}
 				else
 				{
@@ -436,9 +434,8 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 						SetEvent(hasKeyboardEvent);
 						WaitForSingleObject(handledKeyboardEvent, 10000);
 						
-
-
-						return DefWindowProcA(hwnd, uMsg, wParam, lParam); //no handling 
+						if (shared->console.lastmessage.uMsg==0)
+							return DefWindowProcA(hwnd, uMsg, wParam, lParam); //no handling, else handle it by the original handler 
 					}
 					else OutputDebugStringA("Keyboard event handler events are not present");
 				}				
@@ -511,6 +508,7 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				if ((x==-1) || (y==-1)) //the client rect is required
 					GetClientRect(hwnd, &cr);
 
+				//find the width and height (and adjust x and y accordingly)
 				switch (shared->RenderCommands[i].Command)
 				{
 					case rcDrawSprite:
@@ -534,9 +532,12 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 						if (hasTextureLock==FALSE)					
 							hasTextureLock=(WaitForSingleObject((HANDLE)(shared->TextureLock), INFINITE)==WAIT_OBJECT_0);						
 
-						PFONTMAP fm=(PFONTMAP)(tea[shared->RenderCommands[i].font.fontid].AddressOfFontmap);
+						WORD *cefontmap=(WORD *)(tea[shared->RenderCommands[i].font.fontid].AddressOfFontmap);
+						
+
+						
 							
-						height=fm->charheight;					
+						height=cefontmap[0];				
 
 						//if the clicked y position falls between y and y+height then count the full size of this string to determine the width, else skip it
 
@@ -550,7 +551,10 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 							char *text=(char *)(shared->RenderCommands[i].font.addressoftext);
 							width=0;
 							for (j=0; j<strlen(text); j++)							
-								width+=fm->charinfo[32-text[j]].charwidth;
+							{
+								if ((text[j]>=32) && (text[j]<=127))
+									width+=cefontmap[(text[j]-32)+1];
+							}
 
 							if (x==-1)
 								x=((cr.right-cr.left) / 2)-(width / 2);
