@@ -2,10 +2,10 @@ object frmStringPointerScan: TfrmStringPointerScan
   Left = 616
   Height = 544
   Top = 246
-  Width = 626
+  Width = 617
   Caption = 'Structure spider'
   ClientHeight = 524
-  ClientWidth = 626
+  ClientWidth = 617
   Menu = MainMenu1
   OnClose = FormClose
   Position = poScreenCenter
@@ -276,17 +276,17 @@ object frmStringPointerScan: TfrmStringPointerScan
     Left = 177
     Height = 504
     Top = 0
-    Width = 449
+    Width = 440
     Align = alClient
     BevelOuter = bvNone
     ClientHeight = 504
-    ClientWidth = 449
+    ClientWidth = 440
     TabOrder = 1
     object ListView1: TListView
       Left = 0
       Height = 452
       Top = 52
-      Width = 449
+      Width = 440
       Align = alClient
       Columns = <>
       OwnerData = True
@@ -303,11 +303,11 @@ object frmStringPointerScan: TfrmStringPointerScan
       Left = 0
       Height = 52
       Top = 0
-      Width = 449
+      Width = 440
       Align = alTop
       BevelOuter = bvNone
       ClientHeight = 52
-      ClientWidth = 449
+      ClientWidth = 440
       TabOrder = 1
       object edtBase: TEdit
         Left = 8
@@ -342,7 +342,7 @@ object frmStringPointerScan: TfrmStringPointerScan
         TabOrder = 1
       end
       object comboType: TComboBox
-        Left = 319
+        Left = 310
         Height = 23
         Top = 24
         Width = 124
@@ -365,10 +365,11 @@ object frmStringPointerScan: TfrmStringPointerScan
         Text = 'String'
       end
       object lblvds: TLabel
-        Left = 319
+        Left = 310
         Height = 16
         Top = 4
         Width = 109
+        Anchors = [akTop, akRight]
         Caption = 'Variable display type'
         ParentColor = False
       end
@@ -378,7 +379,7 @@ object frmStringPointerScan: TfrmStringPointerScan
     Left = 0
     Height = 20
     Top = 504
-    Width = 626
+    Width = 617
     Align = alBottom
     Max = 1000
     TabOrder = 2
