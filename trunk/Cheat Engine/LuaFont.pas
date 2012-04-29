@@ -11,11 +11,16 @@ procedure initializeLuaFont;
 
 implementation
 
+uses mainunit;
+
 function createFont(L: Plua_State): integer; cdecl;
+var f: TFont;
 begin
   result:=0;
   lua_pop(L, lua_gettop(L));
-  lua_pushlightuserdata(L, TFont.Create);
+  f:=TFont.Create;
+  f.assign(mainform.font); //initialize it with the best font there is...
+  lua_pushlightuserdata(L, f);
   result:=1;
 end;
 

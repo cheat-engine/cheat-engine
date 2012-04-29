@@ -865,6 +865,10 @@ void DXMessD3D10Handler::RenderOverlay()
 							position.y=(float)shared->RenderCommands[i].y;
 
 
+						//truncate the position to an exact pixel
+						position.x=(float)(int)position.x;
+						position.y=(float)(int)position.y;
+
 			
 						ConstantBuffer cb;					
 						cb.transparency=shared->RenderCommands[i].alphablend;
@@ -935,6 +939,10 @@ void DXMessD3D10Handler::RenderOverlay()
 							//vertical center						
 							position.y=((float)vp.Height / 2.0f) - ((float)td->DefinedFontMap->charheight / 2.0f);
 						}
+
+						//truncate the position to an exact pixel
+						position.x=(float)(int)position.x;
+						position.y=(float)(int)position.y;
 
 					
 						dev->PSSetShader( pPixelShaderNormal);
