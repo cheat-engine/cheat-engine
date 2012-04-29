@@ -84,7 +84,9 @@ begin
     begin
       secondaryparams:=' ';
       for i:=1 to Paramcount do
-        secondaryparams:=secondaryparams+ParamStr(i);
+        secondaryparams:=secondaryparams+'"'+ParamStr(i)+'"'; //quotes got removed
+
+
     end;
 
     //MessageBox(0, pchar(secondaryparams),pchar('bla'), MB_OK);
