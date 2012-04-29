@@ -37,7 +37,8 @@ constructor TfrmSelectionList.create(AOwner: TComponent; functionList: TStrings)
 begin
   inherited create(AOwner);
 
-  listbox1.Items.AddStrings(functionlist);
+  if functionList<>nil then
+    listbox1.Items.AddStrings(functionlist);
 end;
 
 function tfrmSelectionList.getSelection: string;
