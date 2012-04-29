@@ -213,7 +213,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="shlwapi.lib"
+				AdditionalDependencies="shlwapi.lib version.lib"
 				OutputFile="..\..\..\..\bin\tiny.dat"
 				LinkIncremental="2"
 				UACExecutionLevel="2"
@@ -290,7 +290,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="shlwapi.lib shell32.lib"
+				AdditionalDependencies="shlwapi.lib version.lib"
 				OutputFile="..\..\..\..\bin\tiny.dat"
 				LinkIncremental="1"
 				UACExecutionLevel="2"

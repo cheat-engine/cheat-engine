@@ -53,8 +53,8 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	HRSRC Arch=FindResource(GetModuleHandle(0), "ARCHIVE", RT_RCDATA);
 
 #ifndef TINY
-	//if ((Decomp==0) || (Archive==0))
-	//  return 0;
+	if ((Decomp==0) || (Archive==0))
+	  return 0;
 
 	int Decomp_size=SizeofResource(GetModuleHandle(0), Decomp);
 #endif
@@ -93,9 +93,12 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 			{
 			  HANDLE h;
 			  DWORD bw;
-#ifndef TINY
+			  
 			  char Commandline[MAX_PATH*2+16]; 
+#ifdef TINY
 
+			  char CEPath[MAX_PATH];
+			  DWORD size;
 #endif
 		
 			  strcpy(Archive, tempdir);
@@ -119,34 +122,77 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 			  }
 			 
 #ifdef TINY
-			  //shellexecute the .cetrainer
-			  //append the parameter to Archive
+			  			  
+			  size=MAX_PATH;
 
-			  strcat(Archive, " ");
-			  strcat(Archive, Parameter);
-			  i=(int)ShellExecute(NULL,"open",Archive,NULL,NULL, SW_SHOWNORMAL);
-			  if (i<=32)
+			  if (!FAILED(AssocQueryString(0, ASSOCSTR_EXECUTABLE, ".cetrainer", NULL, CEPath, &size)))
 			  {
-				if (i==SE_ERR_ASSOCINCOMPLETE)
-				  MessageBoxA(0,"Your system must have Cheat Engine installed to be able to use this trainer\nwww.cheatengine.org","Launch Error",MB_OK | MB_ICONERROR);
-				else
-				  MessageBoxA(0,"Failure launching this trainer. Make sure Cheat Engine is properly installed on your system (www.cheatengine.org)","Launch Error",MB_OK | MB_ICONERROR);
+				  int correctversion=0;
+				  DWORD h=0;
+				  DWORD fvis=GetFileVersionInfoSize(CEPath, &h);
+				  void *data;
+				  //check if it is the correct version
+
+				  if (fvis)
+				  {
+					  data=malloc(fvis);
+					  if (GetFileVersionInfo(CEPath, h, fvis, data))
+					  {
+						  VS_FIXEDFILEINFO *ffi;
+						  UINT s=sizeof(ffi);
+						  if (VerQueryValue(data, "\\", (LPVOID*)&ffi, &s))
+						  {
+							  correctversion=(ffi->dwFileVersionMS>=0x00060002);
+						  }
+
+					  }
+					  free(data);
+				  }	  
+				  
+
+				  if (!correctversion)
+				  {
+					  MessageBoxA(0,"Please update your Cheat Engine version to Cheat Engine 6.2 or later\n", "Launch Error",MB_OK | MB_ICONERROR);
+				  }
+				  else
+				  {
+					  //launch it
+					  
+	                  STARTUPINFOA StartupInfo;
+  					  ZeroMemory(&StartupInfo, sizeof(StartupInfo));
+
+					  PROCESS_INFORMATION ProcessInformation;
+					  ZeroMemory(&ProcessInformation, sizeof(ProcessInformation));
+
+					  StartupInfo.cb=sizeof(StartupInfo);
+
+					  sprintf_s(Commandline, MAX_PATH*2+16,"\"%s\" \"%s\" %s",CEPath, Archive, Parameter);
+
+					  if (CreateProcessA(CEPath, Commandline, NULL, NULL, FALSE, NULL, NULL, tempdir, &StartupInfo, &ProcessInformation))
+					  {
+						  //Because Cheat Engine deletes files with name CET_TRAINER.CETRAINER it can be used to determine when ce is finished with it			  
+						  //Wait 30 seconds max for ce to delete the file
+						  i=30;
+						  while (i && (stat(Archive, &status) == 0))
+						  {				  
+							  Sleep(1000);
+							  i--;
+						  }
+					  }
+				  }				  
 
 			  }
+			  else
+				  MessageBoxA(0,"Your system must have Cheat Engine installed to be able to use this trainer\nwww.cheatengine.org","Launch Error",MB_OK | MB_ICONERROR);
+
 			  
-			  //Because Cheat Engine deletes files with name CET_TRAINER.CETRAINER it can be used to determine when ce is finished with it			  
-			  //Wait 30 seconds max for ce to delete the file
-			  i=30;
-			  while (i && (stat(Archive, &status) == 0))
-			  {				  
-				  Sleep(1000);
-				  i--;
-			  }
+
+
 
 #else
 			  sprintf_s(Decompressor, MAX_PATH, "%s\\%s", tempdir, SelfName);
 
-			  sprintf_s(Commandline, MAX_PATH*2+16,"%s %s",Decompressor, Parameter);
+			  sprintf_s(Commandline, MAX_PATH*2+16,"\"%s\" %s",Decompressor, Parameter);
 			  
 			
 			  h=CreateFile(Decompressor, GENERIC_WRITE,FILE_SHARE_READ | FILE_SHARE_WRITE, &sa, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
