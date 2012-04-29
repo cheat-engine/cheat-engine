@@ -116,8 +116,11 @@ begin
   //find out which data dissect windows are open
   s:=tstringlist.create;
 
+  if frmStructures2=nil then
+    raise exception.create('The structures list is broken');
+
   for i:=0 to frmStructures2.Count-1 do
-    s.add(TfrmStructures2(frmStructures2).Caption);
+    s.add(TfrmStructures2(frmStructures2[i]).Caption);
 
   s.add('<New window>');
 
