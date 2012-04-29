@@ -14,20 +14,32 @@ int APIENTRY WinMain(HINSTANCE hInstance,
                      LPTSTR    lpCmdLine,
                      int       nCmdShow)
 {
+	char Origin[MAX_PATH];
 	char tempdir[MAX_PATH];
 	char Decompressor[MAX_PATH];
 	char Archive[1024];
+	char Parameter[MAX_PATH+16];
 	char SelfName[MAX_PATH];
+
 	SECURITY_ATTRIBUTES  sa;
 
 
+	
       
     sa.nLength = sizeof(SECURITY_ATTRIBUTES);
     sa.bInheritHandle = FALSE; 
     CreateMyDACL(&sa);
 
 	GetModuleFileNameA(NULL, SelfName, MAX_PATH);
+	strcpy(Origin, SelfName);
+
+	PathRemoveFileSpec(Origin);
+	PathAddBackslash(Origin);
+
+	sprintf_s(Parameter, MAX_PATH+16, "-ORIGIN:\"%s\"", Origin);
+
 	PathStripPath(SelfName);
+
 
 	
 
@@ -41,8 +53,8 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	HRSRC Arch=FindResource(GetModuleHandle(0), "ARCHIVE", RT_RCDATA);
 
 #ifndef TINY
-	if ((Decomp==0) || (Archive==0))
-	  return 0;
+	//if ((Decomp==0) || (Archive==0))
+	//  return 0;
 
 	int Decomp_size=SizeofResource(GetModuleHandle(0), Decomp);
 #endif
@@ -69,6 +81,8 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 			int i;
 #ifdef TINY
 			struct stat status;
+#else
+		
 #endif
 
 			DeleteFile(tempdir);
@@ -79,6 +93,10 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 			{
 			  HANDLE h;
 			  DWORD bw;
+#ifndef TINY
+			  char Commandline[MAX_PATH*2+16]; 
+
+#endif
 		
 			  strcpy(Archive, tempdir);
 			  strcat(Archive, "\\");
@@ -88,10 +106,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 			  strcat(Archive, "CET_Archive.dat");
 #endif
 
-			  //append the selfname
-			  strcat(Archive, " -ORIGIN:\"");
-			  strcat(Archive, SelfName);
-			  strcat(Archive, "\"");
+
 
 
 
@@ -102,10 +117,13 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 				  WriteFile(h, Arch_memory, Arch_size, &bw, NULL);
 				  CloseHandle(h);
 			  }
-
 			 
 #ifdef TINY
 			  //shellexecute the .cetrainer
+			  //append the parameter to Archive
+
+			  strcat(Archive, " ");
+			  strcat(Archive, Parameter);
 			  i=(int)ShellExecute(NULL,"open",Archive,NULL,NULL, SW_SHOWNORMAL);
 			  if (i<=32)
 			  {
@@ -126,9 +144,10 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 			  }
 
 #else
-			  strcpy(Decompressor, tempdir);
-			  strcat(Decompressor, "\\");
-			  strcat(Decompressor, SelfName);
+			  sprintf_s(Decompressor, MAX_PATH, "%s\\%s", tempdir, SelfName);
+
+			  sprintf_s(Commandline, MAX_PATH*2+16,"%s %s",Decompressor, Parameter);
+			  
 			
 			  h=CreateFile(Decompressor, GENERIC_WRITE,FILE_SHARE_READ | FILE_SHARE_WRITE, &sa, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
 			  if (h)
@@ -145,10 +164,9 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
 			  StartupInfo.cb=sizeof(StartupInfo);
 
-			  if (CreateProcess(Decompressor, NULL, NULL, NULL, FALSE, NULL, NULL, tempdir, &StartupInfo, &ProcessInformation))
+			  if (CreateProcessA(Decompressor, Commandline, NULL, NULL, FALSE, NULL, NULL, tempdir, &StartupInfo, &ProcessInformation))
 			  {
-				//launch and wait till the decompressor closes
-				//  printf("LIFTOFF WEEEEEEEEE!\n");
+
 				  WaitForSingleObject(ProcessInformation.hProcess, INFINITE);
 			  }
 			  else
