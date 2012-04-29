@@ -7,7 +7,7 @@ uses
   cthreads,
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  controls, sysutils, Forms, bogus, MainUnit, CEDebugger, NewKernelHandler, CEFuncProc, ProcessHandlerUnit, symbolhandler, Assemblerunit, hypermode,
+  controls, sysutils, Forms, dialogs, bogus, MainUnit, CEDebugger, NewKernelHandler, CEFuncProc, ProcessHandlerUnit, symbolhandler, Assemblerunit, hypermode,
   byteinterpreter, addressparser, autoassembler, ProcessWindowUnit, MainUnit2, Filehandler, dbvmPhysicalMemoryHandler, frameHotkeyConfigUnit, formsettingsunit,
   HotkeyHandler, formhotkeyunit, AdvancedOptionsUnit, inputboxtopunit, plugin, pluginexports, tlgUnit, aboutunit, frmProcesswatcherExtraUnit,
   frmProcessWatcherUnit, ModuleSafetyUnit, frmExcludeHideUnit, ConfigUnrandomizerFrm, HotKeys, TypePopup, CommentsUnit, FoundCodeUnit, foundlisthelper,
@@ -57,6 +57,8 @@ begin
     begin
       p:=paramstr(i);
 
+      //ShowMessage('Param '+inttostr(i)+' = '+p);
+
       if p<>'' then
       begin
         if p[1]='-' then
@@ -70,7 +72,7 @@ begin
         if (pos('.CETRAINER', uppercase(p))>0) or (pos('.CT', uppercase(p))>0) then
         begin
           //add the path of this CT to the lua lookup
-          LUA_DoScript('package.path = package.path .. ";'+ExtractFilePath(p)+'?.lua";');
+          LUA_DoScript('package.path = package.path .. [[;'+ExtractFilePath(p)+'?.lua]];');
 
           mainformvisible:=uppercase(ExtractFileExt(p))<>'.CETRAINER';
 
