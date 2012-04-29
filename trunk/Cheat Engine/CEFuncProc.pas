@@ -969,7 +969,7 @@ begin
   begin
     //first find a processid using the processwatcher
 
-    frmProcessWatcher.processesMREW.BeginRead;
+    frmProcessWatcher.processesCS.Enter;
     try
       for i:=0 to length(frmProcessWatcher.processes)-1 do
         if frmProcessWatcher.processes[i].processid=processid then
@@ -981,7 +981,7 @@ begin
           end;
         end;
     finally
-      frmProcessWatcher.processesMREW.EndRead;
+      frmProcessWatcher.processesCS.Leave;
     end;
 
   end;
