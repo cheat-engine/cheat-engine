@@ -167,6 +167,8 @@ type
     commandListLock: UINT64;  //lockinforder: FIRST commandlist, THEN texturelist.
     useCommandListLock: integer;
 
+    hasOnKey: integer;
+
 
     //followed by the rendercommands
 
@@ -179,6 +181,7 @@ type
 type
   TD3DHook_RenderObject=class;
   TD3DClickEvent=procedure(renderobject: TObject; x,y: integer) of object;
+  TD3DKeyDownEvent=function(VirtualKey: dword; char: pchar): boolean of object;
 
   TD3DHook=class;
   TD3DHook_Texture=class;
@@ -333,6 +336,7 @@ type
 
   TD3DHook=class(TObject)
   private
+    fonKeyDown: TD3DKeyDownEvent;
     sharename: string;
     shared: PD3DHookShared; //local address of the D3DHookShared structure
 
@@ -366,8 +370,10 @@ type
 
     memman: TRemoteMemoryManager;
 
+    procedure setOnKeyDown(s: TD3DKeyDownEvent);
   public
     onclick: TD3DClickEvent;
+
     procedure beginTextureUpdate;
     procedure endTextureUpdate;
 
@@ -397,6 +403,7 @@ type
     constructor create(size: integer; hookhwnd: boolean=true);
     destructor destroy; override;
     property processid: dword read fprocessid;
+    property onKeyDown: TD3DKeyDownEvent read fonKeyDown write setOnKeyDown;
   end;
 
 var D3DHook: TD3DHook;
@@ -435,6 +442,18 @@ var virtualkey: dword;
     l: string;
 begin
   //check the size of the window. If it's changed, reinitialize the consoleoverlay
+
+  owner.shared.console.lastmessage.uMsg:=0; //don't handle the keypress in the target process
+
+
+  if assigned(owner.onkeydown) then
+  begin
+    if owner.onkeydown(lastmessage.wParam, pchar(@lastmessage.character)) then
+      owner.shared.console.lastmessage.uMsg:=1; //if it returns true, let it go through
+
+  end;
+
+  if (owner.shared.console.hasconsole=0) or (owner.shared.console.consolevisible=0) then exit;
 
   //just create or show the console
   if console.background=nil then
@@ -1133,6 +1152,18 @@ end;
 
 //----------------------------------D3dhook-------------------------------------
 
+procedure TD3DHook.setOnKeyDown(s: TD3DKeyDownEvent);
+begin
+  if assigned(s) then
+  begin
+    fonKeyDown:=s;
+    shared.hasOnKey:=1;
+  end
+  else
+    shared.hasOnKey:=0;
+
+end;
+
 procedure TD3DHook.enableConsole(virtualkey: DWORD);
 begin
   shared.console.hasconsole:=1;
@@ -1189,6 +1220,9 @@ end;
 
 procedure TD3DHook.beginCommandListUpdate;
 begin
+  if self=nil then
+    raise exception.create('The d3dhook object has not been created yet');
+
   if isupdatingCL=0 then //start of an edit
     WaitForSingleObject(CommandListLock, INFINITE);  //obtain lock
 

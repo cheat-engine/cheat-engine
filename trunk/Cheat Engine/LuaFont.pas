@@ -11,6 +11,14 @@ procedure initializeLuaFont;
 
 implementation
 
+function createFont(L: Plua_State): integer; cdecl;
+begin
+  result:=0;
+  lua_pop(L, lua_gettop(L));
+  lua_pushlightuserdata(L, TFont.Create);
+  result:=1;
+end;
+
 function font_getColor(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
@@ -121,6 +129,8 @@ end;
 
 procedure initializeLuaFont;
 begin
+
+  lua_register(LuaVM, 'createFont', createFont);
   lua_register(LuaVM, 'font_getSize', font_getSize);
   lua_register(LuaVM, 'font_setSize', font_setSize);
   lua_register(LuaVM, 'font_getName', font_getName);

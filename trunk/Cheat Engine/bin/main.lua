@@ -7,7 +7,7 @@ require("defines")
 
 List of CE specific functions and variables:
 
-TrainerOrigin : A variable that contains the path of the trainer that launched cheat engine
+TrainerOrigin : A variable that contains the path of the trainer that launched cheat engine (Only set when launched as a trainer)
 
 getCEVersion(): Returns a floating point value specifying the version of cheat engine
 
@@ -636,16 +636,17 @@ pen_setWidth(pen, width)
 
 
 Brush Class : (Inheritance: CustomBrush->CanvasHelper->Object)
-brush_getColor
-brush_setColor
+brush_getColor(brush)
+brush_setColor(brush)
 
 Font Class : (Inheritance: CustomFont->CanvasHelper->Object)
-font_getName
-font_setName
-font_getSize
-font_setSize
-font_getColor
-font_setColor
+createFont(): Returns a font object
+font_getName(font): Gets the fontname of the font
+font_setName(font): Sets the fontname of the font
+font_getSize(font): Gets the size of the font
+font_setSize(font): Sets the size of the font
+font_getColor(font): Gets the color of the font
+font_setColor(font): Sets the color of the font
 
 
 Graphic Class : (Inheritance: Object) : Abstract class
@@ -1153,6 +1154,10 @@ d3dhook_onClick(function):
   
   Note: This can cause a slowdown in the game if there are a lot of sprites and you press the left button a lot
 
+d3dhook_onKey(function)
+  function(vkey, char) : boolean  . Return false if you do not wish this key event to pass down to the game
+  
+
 
 
 D3DHook_Texture Class (Inheritance: Object)
@@ -1173,7 +1178,7 @@ D3DHook_FontMap Class (Inheritance: D3DHook_Texture->Object)
 A fontmap is a texture that contains extra data regarding the characters. This class is used by the textcontainer
 Current implementation only supports 96 characters (character 32 to 127)
 
-d3dhook_createFontMap(font): Returns a d3dhook_fontmap object
+d3dhook_createFontmap(font): Returns a d3dhook_fontmap object
 d3dhook_fontmap_changeFont(d3dhook_fontmap, font): Changes the fontmap to the selected font
 d3dhook_fontmap_getTextWidth(d3dhook_fontmap, string): Returns the width of the given string in pixels
 
