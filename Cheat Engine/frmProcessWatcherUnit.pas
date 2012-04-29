@@ -7,7 +7,7 @@ interface
 uses
   jwawindows, windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs,NewKernelHandler, ExtCtrls, ComCtrls, StdCtrls,CEDebugger,kerneldebugger,
-  CEFuncProc, Menus, LResources,{tlhelp32,} symbolhandler, debugHelper;
+  CEFuncProc, Menus, LResources,{tlhelp32,} symbolhandler, debugHelper, syncobjs;
 
 type tthreaddata=record
   threadid: dword;
@@ -57,7 +57,7 @@ type
   public
     { Public declarations }
     processes: array of tprocessdata;
-    processesMREW: TMultiReadExclusiveWriteSynchronizer;
+    processesCS: TCriticalSection;
   end;
 
 var
@@ -84,7 +84,7 @@ procedure TProcesswatchthread.UpdateThreadcount(processid:dword;count:dword);
 var i,j: integer;
 begin
   //find the processd in the treeview and update the threadcount
-  frmProcessWatcher.processesMREW.BeginRead;
+  frmProcessWatcher.processesCS.enter;
   try
 
     with frmProcessWatcher do
@@ -102,7 +102,7 @@ begin
         break;
       end;
   finally
-    frmProcessWatcher.processesMREW.EndRead;
+    frmProcessWatcher.processesCS.leave;
   end;
 end;
 
@@ -124,7 +124,7 @@ begin
   //and show the threadcount to the list
 
   //find the process
-  frmProcessWatcher.processesMREW.BeginWrite;
+  frmProcessWatcher.processesCS.Enter;
   try
     for i:=0 to length(frmprocesswatcher.processes)-1 do
       if frmprocesswatcher.processes[i].processid=self.pid then
@@ -162,7 +162,7 @@ begin
         break;
       end;
    finally
-     frmProcessWatcher.processesMREW.EndWrite;
+     frmProcessWatcher.processesCS.Leave;
    end;
 end;
 
@@ -176,7 +176,7 @@ begin
   autoAttachThisProcess:=false;
 
   //first fix the processes array
-  frmProcessWatcher.processesMREW.BeginWrite;
+  frmProcessWatcher.processesCS.Enter;
   try
     with frmProcessWatcher do
     begin
@@ -238,7 +238,7 @@ begin
     end;
 
   finally
-    frmProcessWatcher.processesMREW.EndWrite;
+    frmProcessWatcher.processesCS.Leave;
   end;
 
   if autoattachthisProcess then
@@ -334,8 +334,10 @@ begin
   if StartProcessWatch then
   begin
     //start the thread that gets the data
-    processesMREW:=TMultiReadExclusiveWriteSynchronizer.create;
-    processwatchthread:=tprocesswatchthread.Create(false);
+    processesCS:=TCriticalSection.create;
+    processwatchthread:=tprocesswatchthread.Create(true);
+    processwatchthread.start;
+
 
   end else raise exception.Create(rsFailedStartingTheProcessWatcher);
 end;
