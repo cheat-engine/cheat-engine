@@ -348,6 +348,12 @@ void DXMessD3D9Handler::RenderOverlay()
 									
 								position.z=0.0f;
 
+								
+								//truncate to a pixel exact position
+								position.x=(float)(int)position.x;
+								position.y=(float)(int)position.y;
+							
+
 								RECT texturepos;
 
 								texturepos.left=0;
@@ -410,7 +416,12 @@ void DXMessD3D9Handler::RenderOverlay()
 									position.y=((float)vp.Height / 2.0f) - ((float)td->DefinedFontMap->charheight / 2.0f);
 								}
 
+								position.x=(float)(int)position.x;
+								position.y=(float)(int)position.y;
+
 								//now draw the string
+								//truncate to a pixel exact position
+
 								DrawString(position, &textures[shared->RenderCommands[i].font.fontid], s,strlen(s));
 
 							}

@@ -1,7 +1,7 @@
 object About: TAbout
-  Left = 1052
+  Left = 1152
   Height = 245
-  Top = 535
+  Top = 436
   Width = 320
   HelpContext = 2
   BorderIcons = [biSystemMenu]
@@ -21,7 +21,7 @@ object About: TAbout
     Top = 0
     Width = 320
     Align = alClient
-    Caption = 'Cheat Engine 6.0'
+    Caption = 'Cheat Engine 6.2'
     ClientHeight = 227
     ClientWidth = 316
     Font.Height = -11
@@ -498,7 +498,7 @@ object About: TAbout
       end
     end
     object Label12: TLabel
-      Left = 102
+      Left = 62
       Height = 14
       Top = 168
       Width = 20
@@ -506,7 +506,7 @@ object About: TAbout
       ParentColor = False
     end
     object Label13: TLabel
-      Left = 158
+      Left = 193
       Height = 14
       Top = 168
       Width = 48
@@ -514,7 +514,7 @@ object About: TAbout
       ParentColor = False
     end
     object Label14: TLabel
-      Left = 254
+      Left = 268
       Height = 14
       Top = 168
       Width = 44
@@ -522,11 +522,19 @@ object About: TAbout
       ParentColor = False
     end
     object Label15: TLabel
-      Left = 30
+      Left = 10
       Height = 14
       Top = 168
       Width = 40
       Caption = 'Emperor'
+      ParentColor = False
+    end
+    object Label16: TLabel
+      Left = 110
+      Height = 14
+      Top = 168
+      Width = 49
+      Caption = 'Recifense'
       ParentColor = False
     end
   end
