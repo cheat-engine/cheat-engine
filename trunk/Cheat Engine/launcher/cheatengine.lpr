@@ -9,6 +9,7 @@ uses
   Classes,
   windows,
   sysutils,
+
   ShellApi
   { you can add units after this };
 
@@ -60,12 +61,10 @@ begin
     selfpath:=''; //fuck it if it fails
 
   param:='';
-  if Paramcount>0 then
-  begin
-    param:='"'+paramstr(1)+'"';
-    for i:=2 to Paramcount do
-      param:=param+' "'+paramstr(i)+'"';
-  end;
+  for i:=1 to paramcount do
+   param:=param+'"'+paramstr(i)+'" ';
+
+  //MessageBox(0, pchar(param),'bla',0);
 
   if launch32bit then
   begin
