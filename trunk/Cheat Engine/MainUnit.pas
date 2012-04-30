@@ -7284,6 +7284,8 @@ var t: TD3DHook_Texture;
   p2: TPicture;
   i: integer;
 begin
+
+
   ShowMessage('going to call dbvm_testSwitchToKernelmode');
   i:=dbvm_testSwitchToKernelmode;
   ShowMessage('Still alive. I='+inttostr(i));

@@ -1830,14 +1830,23 @@ begin
   result:=false;
 
   fsavedstatesize:=size;
-  fsavedstate:=VirtualAllocEx(processhandle, nil, fsavedstatesize, MEM_COMMIT or MEM_RESERVE, PAGE_READWRITE);
+  fsavedstate:=VirtualAllocEx(processhandle, nil, fsavedstatesize+1, MEM_COMMIT or MEM_RESERVE, PAGE_READWRITE);
   if fsavedstate<>nil then
   begin
     //copy the original bytes to the copy
+    x:=0;
     if WriteProcessMemory(processhandle, pointer(fsavedstate), memoryblock, fsavedstatesize, x) then
       result:=true
     else
-      VirtualFreeEx(processhandle, fsavedstate, fsavedstatesize, MEM_RELEASE);   //copy failed for some unknown reason, free the allocated buffer
+    begin
+      if x=0 then
+        VirtualFreeEx(processhandle, fsavedstate, fsavedstatesize, MEM_RELEASE)   //copy failed for some unknown reason, free the allocated buffer
+      else
+      begin
+        result:=true;
+        fsavedstatesize:=x;
+      end;
+    end;
   end;
 
 

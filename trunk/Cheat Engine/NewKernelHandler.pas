@@ -856,8 +856,7 @@ begin
         result:=true;
     end;
 
-  end
-  else result:=true; //dbvm might tell the system it's not vm-x capable, getting the dbvm version will show you if that's fake or not
+  end;
 
 end;
 
