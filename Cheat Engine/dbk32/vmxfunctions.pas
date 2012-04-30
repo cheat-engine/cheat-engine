@@ -111,7 +111,7 @@ var
 
 implementation
 
-uses DBK32functions, cefuncproc, PEInfoFunctions;
+uses DBK32functions, cefuncproc, PEInfoFunctions, NewKernelHandler;
 
 var vmcall :function(vmcallinfo:pointer; level1pass: dword): PtrUInt; stdcall;
 
@@ -159,6 +159,7 @@ var vmcallinfo: record
   command: dword;
 end;
 begin
+
   if (vmx_password1=0) and (vmx_password2=0) then
   begin
     //set the password if it was not set
@@ -992,29 +993,9 @@ initialization
 {$ifdef NOVMX}
   vmcall:=vmcallUnSupported;
 {$else}
-  asm
+  if isDBVMCapable then
+    vmcall:=vmcallSupported; //intel instruction set and the VT flag in cpuid (dbvm sets the control feature msr so it's disabled in the bios)
 
-    push {$ifdef cpu64}rax{$else}eax{$endif}
-    push {$ifdef cpu64}rbx{$else}ebx{$endif}
-    push {$ifdef cpu64}rcx{$else}ecx{$endif}
-    push {$ifdef cpu64}rdx{$else}edx{$endif}
-    mov eax,0
-    cpuid
-    mov a,eax
-    mov b,ebx
-    mov c,ecx
-    mov d,edx
-    pop {$ifdef cpu64}rdx{$else}edx{$endif}
-    pop {$ifdef cpu64}rcx{$else}ecx{$endif}
-    pop {$ifdef cpu64}rbx{$else}ebx{$endif}
-    pop {$ifdef cpu64}rax{$else}eax{$endif}
-  end;
-
-  //GenuineIntel check
-  if (b=$756e6547) and (d=$49656e69) and (c=$6c65746e) then
-    vmcall:=vmcallSupported //intel instruction set
-  else
-    vmcall:=vmcallUnSupported;
 {$endif}
 
 end.
