@@ -16,9 +16,12 @@ QWORD readMSRSafe(pcpuinfo currentcpuinfo, DWORD msr)
 {
   volatile QWORD result=0;
 
+  currentcpuinfo->LastInterrupt=0;
   currentcpuinfo->OnInterrupt.RIP=(volatile void *)&&InterruptFired; //set interrupt location
   currentcpuinfo->OnInterrupt.RSP=getRSP();
   result=readMSR(msr);
+
+
 
 InterruptFired:
   currentcpuinfo->OnInterrupt.RIP=0;
