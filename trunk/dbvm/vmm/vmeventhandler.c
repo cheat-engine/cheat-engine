@@ -16,6 +16,7 @@ vmeventhandler.c: This will handle the events
 
 #include "realmodeemu.h"
 #include "msrnames.h"
+#include "vmxcontrolstructures.h"
 #include "ultimap.h"
 
 
@@ -1340,6 +1341,10 @@ int handleWRMSR(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
   switch (msr)
   {
+    case IA32_FEATURE_CONTROL_MSR:
+      return raiseGeneralProtectionFault(0); //this msr is locked
+      break;
+
     case 0x174: //sysenter_CS
       currentcpuinfo->sysenter_CS=newvalue;
       if (!currentcpuinfo->hidden_sysenter_modification)
@@ -1452,6 +1457,15 @@ int handleRDMSR(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
   switch (msr)
   {
+
+	case IA32_FEATURE_CONTROL_MSR:
+		result=readMSRSafe(currentcpuinfo, IA32_FEATURE_CONTROL_MSR);
+		result=result | FEATURE_CONTROL_LOCK; //set the LOCK bit (so the system thinks it can't be changed anymore)
+
+		result=result & ~(FEATURE_CONTROL_VMXON_SMX); //unset the VMX capability in SMX mode
+		result=result & ~(FEATURE_CONTROL_VMXON); //unset the VMX capability
+	  break;
+
     case 0x174: //sysenter_CS
       result=currentcpuinfo->sysenter_CS;
       break;
@@ -1471,6 +1485,7 @@ int handleRDMSR(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     case IA32_DS_AREA:
       result=ultimap_handleMSRRead(currentcpuinfo, msr);
       break;
+
 
 
     case 0xc0000080: //IA32_EFER_LME
@@ -1522,11 +1537,12 @@ int handleCPUID(VMRegisters *vmregisters)
   _cpuid(&(vmregisters->rax),&(vmregisters->rbx),&(vmregisters->rcx),&(vmregisters->rdx));
 
 
+  /*
   if (oldeax==1)
   {
     //remove vmx capability in ecx
     vmregisters->rcx=vmregisters->rcx & (~(1 << 5)); //set bit 5 to 0
-  }
+  }*/
 
   //if (oldeax==0x80000001)
   //{
@@ -1534,6 +1550,7 @@ int handleCPUID(VMRegisters *vmregisters)
 
   //}
 
+  /*
   if (oldeax==0x80000002)
   {
     char *x;
@@ -1577,7 +1594,7 @@ int handleCPUID(VMRegisters *vmregisters)
     x[2]='U';
     x[3]=' ';
 
-  }
+  }*/
 
   vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));   //adjust eip to go after this instruction (we handled/emulated it)
   return 0;

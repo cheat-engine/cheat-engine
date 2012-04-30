@@ -53,8 +53,9 @@
 
 
 //IA32_FEATURE_CONTROL bits
-#define FEATURE_CONTROL_LOCK  (1<<0)
-#define FEATURE_CONTROL_VMXON (1<<2)
+#define FEATURE_CONTROL_LOCK  		(1<<0)
+#define FEATURE_CONTROL_VMXON_SMX 	(1<<1)
+#define FEATURE_CONTROL_VMXON 		(1<<2)
 
 #define vm_exit_interrupt   0
 #define vm_exit_sipi        4

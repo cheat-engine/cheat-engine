@@ -1603,27 +1603,31 @@ void setupVMX(pcpuinfo currentcpuinfo)
 
 
     //set it to break on msr's handling sysenter
-    //read for low
+    //read for sysenter
     MSRBitmap[0x174/8]|=1 << (0x174 % 8);
     MSRBitmap[0x175/8]|=1 << (0x175 % 8);
     MSRBitmap[0x176/8]|=1 << (0x176 % 8);
 
 
-    //read for high
-    MSRBitmap[1048+0x80/8]=1 << (0x80 % 8);
-
-
-    //write for low
+    //write for sysenter
     MSRBitmap[2048+0x174/8]|=1 << (0x174 % 8);
     MSRBitmap[2048+0x175/8]|=1 << (0x175 % 8);
     MSRBitmap[2048+0x176/8]|=1 << (0x176 % 8);
 
-    //write high
+
+    //read for 0xc0000080  (EFER)
+    MSRBitmap[1048+0x80/8]=1 << (0x80 % 8);
+
+    //write for 0xc0000080
     MSRBitmap[3072+0x80/8]=1 << (0x80 % 8);
 
 
-    //break on EFER read/write
-    //readhigh
+    //break on IA32_FEATURE_CONTROL_MSR read and write
+    //read
+    MSRBitmap[IA32_FEATURE_CONTROL_MSR/8]|=1 << (IA32_FEATURE_CONTROL_MSR % 8);
+
+    //write
+    MSRBitmap[IA32_FEATURE_CONTROL_MSR/8]|=1 << (IA32_FEATURE_CONTROL_MSR % 8);
 
 
 
