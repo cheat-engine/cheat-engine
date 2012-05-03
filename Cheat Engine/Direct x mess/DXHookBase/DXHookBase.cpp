@@ -499,8 +499,8 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			for (i=i-1; i>=0; i--)
 			{
 				int x,y,width, height;
-				x=shared->RenderCommands[i].x;
-				y=shared->RenderCommands[i].y;
+				x=(int)shared->RenderCommands[i].x;
+				y=(int)shared->RenderCommands[i].y;
 
 				if ((x==-2) || (y==-2))
 					continue; //mouse objects are not clickable
