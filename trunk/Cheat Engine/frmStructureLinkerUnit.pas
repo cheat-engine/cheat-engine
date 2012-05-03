@@ -101,10 +101,13 @@ begin
   result:=nil;
   for i:=0 to length(struct)-1 do
   begin
-    if (struct[i].s.count>0) and (InRangeX(address, struct[i].address, struct[i].address+struct[i].s[struct[i].s.count-1].Offset)) then
+    if (struct[i].s.count>0) then
     begin
-      result:=@struct[i];
-      exit;
+      if ((cbNoExactMatches.checked=false) and (address=struct[i].address)) or (InRangeX(address, struct[i].address, struct[i].address+struct[i].s[struct[i].s.count-1].Offset)) then
+      begin
+        result:=@struct[i];
+        exit;
+      end;
     end;
   end;
 end;
@@ -114,6 +117,7 @@ var i: integer;
   newStruct: pstructinfo;
 
   temps: Tstructinfo;
+  pvalue: ptruint;
   x: dword;
 begin
   s.s.beginUpdate;
@@ -123,43 +127,48 @@ begin
     begin
       if s.s.element[i].isPointer then
       begin
-        if s.s.element[i].ChildStruct<>nil then
+        pvalue:=0;
+        if ReadProcessMemory(processhandle, pointer(s.address+s.s.element[i].Offset), @pvalue, processhandler.pointersize, x) then
         begin
-          //already filled in
-          if s.s.element[i].ChildStruct.isInGlobalStructList then continue; //it's already a pointer to a defined struct
-
-          //'Local' struct
-
-          if cbOverrideLocal.checked then
+          if s.s.element[i].ChildStruct<>nil then
           begin
+            //already filled in
+            if s.s.element[i].ChildStruct.isInGlobalStructList then continue; //it's already a pointer to a defined struct
 
-            newStruct:=FindStructWithAddress(s.address+s.s.element[i].Offset);
-            if newstruct<>nil then
+            //'Local' struct
+
+            if cbOverrideLocal.checked then
+            begin
+
+              newStruct:=FindStructWithAddress(pvalue);
+              if newstruct<>nil then
+              begin
+                s.s.element[i].ChildStruct:=newStruct.s;
+                s.s.element[i].ChildStructStart:=pvalue-newStruct.address;
+                continue;
+              end;
+            end;
+
+            //still here so not redefined
+            if cbFillLocal.checked then
+            begin
+              temps.s:=s.s.element[i].ChildStruct;
+              temps.address:=s.address+s.s.element[i].Offset;
+              if ReadProcessMemory(processhandle, pointer(temps.address), @temps.address, processhandler.pointersize,x) then
+                fillInStruct(temps);
+            end;
+          end
+          else
+          begin
+            newStruct:=FindStructWithAddress(pvalue);
+
+            if newstruct<>nil then //found a match
             begin
               s.s.element[i].ChildStruct:=newStruct.s;
-              s.s.element[i].ChildStructStart:=s.address+s.s.element[i].Offset-newStruct.address;
-              continue;
+              s.s.element[i].ChildStructStart:=pvalue-newStruct.address;
             end;
           end;
 
-          //still here so not redefined
-          if cbFillLocal.checked then
-          begin
-            temps.s:=s.s.element[i].ChildStruct;
-            temps.address:=s.address+s.s.element[i].Offset;
-            if ReadProcessMemory(processhandle, pointer(temps.address), @temps.address, processhandler.pointersize,x) then
-              fillInStruct(temps);
-          end;
-        end
-        else
-        begin
-          newStruct:=FindStructWithAddress(s.address+s.s.element[i].Offset);
-
-          if newstruct<>nil then //found a match
-          begin
-            s.s.element[i].ChildStruct:=newStruct.s;
-            s.s.element[i].ChildStructStart:=s.address+s.s.element[i].Offset-newStruct.address;
-          end;
         end;
 
       end; //else not a pointer and not interesting enough to fill in

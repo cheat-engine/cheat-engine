@@ -619,6 +619,8 @@ type
     overlayid: integer;   //debug
     lastAddedAddress: string;
 
+    saveGotCanceled: boolean; //set to true if the last save button click was canceled
+
     procedure doNewScan;
     procedure SetExpectedTableName;
 
@@ -1876,8 +1878,9 @@ begin
       mrCancel: Result := False;
       mrYes:
       begin
-        Result := True;
+
         SaveButton.click;
+        result:=not savegotcanceled;
       end;
       else
         Result := True;
@@ -6794,6 +6797,7 @@ procedure TMainForm.actSaveExecute(Sender: TObject);
 var
   protect: boolean;
 begin
+  saveGotCanceled:=true;
   protect := False;
   if (savedialog1.FileName = '') and (opendialog1.filename <> '') then
   begin
@@ -6803,6 +6807,7 @@ begin
   end;
 
 
+
   if Savedialog1.Execute then
   begin
     if uppercase(ExtractFileExt(savedialog1.FileName)) = '.CETRAINER' then
@@ -6810,6 +6815,8 @@ begin
         mtConfirmation, [mbYes, mbNo], 0) = mrYes;
 
     savetable(savedialog1.FileName, protect);
+
+    saveGotCanceled:=false;
   end;
 
   opendialog1.FileName := savedialog1.filename;

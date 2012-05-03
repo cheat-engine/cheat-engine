@@ -810,7 +810,7 @@ addresslist_getSelectedRecords(Addresslist):  Returns a table of all the selecte
 registerSymbol(symbolname, address, OPTIONAL donotsave): Registers a userdefined symbol. If donotsave is true this symbol will not get saved when the table is saved
 unregisterSymbol(symbolname)
 
-getNameFromAddress(address)
+getNameFromAddress(address): Returns the given address as a string. Registered symbolname, modulename+offset, or just a hexadecimal string depending on what address
 inModule(address) : returns true if the given address is inside a module
 inSystemModule(address) : returns true if the given address is inside a system module
 getCommonModuleList: Returns the commonModuleList stringlist. (Do not free this one)
