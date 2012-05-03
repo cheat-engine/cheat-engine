@@ -2081,7 +2081,12 @@ begin
   parent.setPositions;
 
   if parent.fcolumns.Count=0 then
-    parent.Free;
+  begin
+    //free the parent group unless it's already deleting itself
+    //if it was, it already has removed itself from the form's grouplist
+    if parent.parent.fgroups.IndexOf(parent)<>-1 then  //damn!
+      parent.Free;
+  end;
 
 end;
 
@@ -2195,6 +2200,7 @@ destructor TStructGroup.destroy;
 var i: integer;
 begin
   //delete all the columns first
+
   parent.fgroups.Remove(self);
 
   while fcolumns.count>0 do
@@ -2206,6 +2212,7 @@ begin
   if grouppopup<>nil then
     freeandnil(grouppopup);
 
+  //reposition
   setPositions;
 
   inherited destroy;
