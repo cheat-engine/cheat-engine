@@ -1709,11 +1709,13 @@ object MainForm: TMainForm
     left = 48
     top = 72
     object actSave: TAction
+      Hint = 'Save your current data. Save as .exe to create a standalone trainer'
       ImageIndex = 0
       OnExecute = actSaveExecute
       ShortCut = 16467
     end
     object actOpen: TAction
+      Hint = 'Open a cheat table or unprotected cetrainer'
       ImageIndex = 1
       OnExecute = actOpenExecute
       ShortCut = 16463
