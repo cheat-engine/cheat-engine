@@ -727,9 +727,11 @@ begin
     vtPointer:
     begin
       if processhandler.is64Bit then
-        vartype:=vtQword
+        memrec.vartype:=vtQword
       else
-        vartype:=vtDword;
+        memrec.vartype:=vtDword;
+
+      memrec.showAsHex:=true;
     end;
   end;
 
