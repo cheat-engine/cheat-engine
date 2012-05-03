@@ -100,6 +100,13 @@ var search: TCommentData;
   prev,next: TAvgLvlTreeNode;
   mi: TModuleInfo;
 begin
+  if comment='' then
+  begin
+    //it's a clear instead
+    deleteComment(address);
+    exit;
+  end;
+
   //check if this comment exists, and if not, add it
   search.address:=address;
   n:=commentstree.Find(@search);
