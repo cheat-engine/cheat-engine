@@ -1386,7 +1386,10 @@ begin
         end;
 
         if different then
+        begin
+          offscreenbitmap.canvas.Font.Color:=clYellow;
           offscreenbitmap.canvas.Brush.Color:=clBlue;
+        end;
       end;
 
 
