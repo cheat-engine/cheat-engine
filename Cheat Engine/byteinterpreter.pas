@@ -61,10 +61,13 @@ begin
     end
     else
     begin
-      if hexadecimal then
-        value:='$'+value;
+      if not (variabletype in [vtString, vtUnicodeString]) then
+      begin
+        if hexadecimal then
+          value:='$'+value;
 
-      v:=StrToQWordEx(value);
+        v:=StrToQWordEx(value);
+      end;
     end;
 
     case variabletype of
