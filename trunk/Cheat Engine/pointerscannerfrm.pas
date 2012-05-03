@@ -329,6 +329,9 @@ resourcestring
   rsPointerScan = 'Pointer scan';
   rsPointerscanResult = 'pointerscan result';
 
+  rsTerminating = 'Terminating';
+  rsStop = 'Stop';
+
 //----------------------- scanner info --------------------------
 //----------------------- staticscanner -------------------------
 
@@ -372,8 +375,7 @@ begin
 
   //update the treeview
   if message.WParam<>0 then
-    messagedlg(rsErrorDuringScan+': '+pchar(message.LParam), mtError, [mbok] , 0
-      );
+    messagedlg(rsErrorDuringScan+': '+pchar(message.LParam), mtError, [mbok] , 0);
 
   doneui;
 end;
@@ -576,11 +578,13 @@ begin
 
               createdworker:=false;
 
-              staticscanner.reverseScanCS.Enter;
+
 
               //obtained the lock, check if the terminate command has been issued
               if (not Terminated) and (not self.staticscanner.Terminated) then
               begin
+                staticscanner.reverseScanCS.Enter;
+
                 //Not terminated, so launch a new thread
                 for i:=0 to length(staticscanner.reversescanners)-1 do
                 begin
@@ -599,9 +603,10 @@ begin
                     break;
                   end;
                 end;
-              end;
-
-              staticscanner.reverseScanCS.Leave;
+                staticscanner.reverseScanCS.Leave;
+              end
+              else
+                exit;
 
 
               if not createdworker then
@@ -991,6 +996,7 @@ begin
 
         
     btnStopScan.enabled:=true;
+    btnStopScan.Caption:=rsStop;
 
     pgcPScandata.Visible:=false;
     open1.Enabled:=false;
@@ -1876,6 +1882,7 @@ procedure Tfrmpointerscanner.btnStopScanClick(Sender: TObject);
 begin
   if staticscanner<>nil then
   begin
+    btnStopScan.Caption:=rsTerminating;
     btnStopScan.enabled:=false;
     staticscanner.Terminate;
   end;
