@@ -3767,8 +3767,8 @@ begin
                       end;
 
                 $89 : begin
-                        description:='jump near if less';
-                        lastdisassembledata.opcode:='jl';
+                        description:='jump near if not sign';
+                        lastdisassembledata.opcode:='jns';
                         lastdisassembledata.isjump:=true;
                         lastdisassembledata.isconditionaljump:=true;
                         inc(offset,1+4);
