@@ -698,11 +698,17 @@ begin
   for i:=0 to offsetcount-1 do
     memrec.pointeroffsets[i]:=offsets[i];
 
-
   case vartype of
     vtString:
     begin
       memrec.extra.stringData.unicode:=unicode;
+      memrec.Extra.stringData.length:=length;
+    end;
+
+    vtUnicodeString:
+    begin
+      memrec.vartype:=vtString;
+      memrec.extra.stringData.unicode:=true;
       memrec.Extra.stringData.length:=length;
     end;
 
