@@ -1800,7 +1800,7 @@ begin
 
   if fsavedstate<>nil then
   begin
-    VirtualFreeEx(processhandle, fsavedstate, fsavedstatesize, MEM_RELEASE);
+    VirtualFreeEx(processhandle, fsavedstate, 0, MEM_RELEASE);
     fsavedstatesize:=0;
     fsavedstate:=nil;
   end;
@@ -1840,7 +1840,7 @@ begin
     else
     begin
       if x=0 then
-        VirtualFreeEx(processhandle, fsavedstate, fsavedstatesize, MEM_RELEASE)   //copy failed for some unknown reason, free the allocated buffer
+        VirtualFreeEx(processhandle, fsavedstate, 0, MEM_RELEASE)   //copy failed for some unknown reason, free the allocated buffer
       else
       begin
         result:=true;
