@@ -1658,8 +1658,7 @@ object MainForm: TMainForm
   end
   object OpenDialog1: TOpenDialog
     DefaultExt = '.CT'
-    Filter = 'Cheat Engine Tables (*.CT)|*.CT|Cheat Engine Trainer (*.CETRAINER)|*.CETRAINER|All files (*.*)|*.*|All supported cheat tables|*.CT;*.CETRAINER'
-    FilterIndex = 4
+    Filter = 'All supported cheat tables|*.CT;*.CETRAINER|Cheat Engine Trainer (*.CETRAINER)|*.CETRAINER|All files (*.*)|*.*|Cheat Engine Tables (*.CT)|*.CT'
     Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
     left = 48
     top = 104
