@@ -1557,7 +1557,13 @@ begin
             begin
               a:=length(assembled[labels[j].references[k]].bytes); //original size of the assembled code
               s1:=replacetoken(assemblerlines[labels[j].references2[k]],labels[j].labelname,IntToHex(labels[j].address,8));
+              {$ifdef cpu64}
+              if processhandler.is64Bit then
+                assemble(s1,assembled[labels[j].references[k]].address,assembled[labels[j].references[k]].bytes)
+              else
+              {$endif}
               assemble(s1,assembled[labels[j].references[k]].address,assembled[labels[j].references[k]].bytes, apLong);
+
 
               b:=length(assembled[labels[j].references[k]].bytes); //new size
 
