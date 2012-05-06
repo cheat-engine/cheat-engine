@@ -3171,7 +3171,7 @@ var tokens: ttokens;
     startoflist,endoflist: integer;
 
     tempstring: string;
-    overrideShort, overrideLong: boolean;
+    overrideShort, overrideLong, overrideFar: boolean;
 begin
 
 
@@ -3248,7 +3248,12 @@ begin
   if (nroftokens-1)>=mnemonic+3 then parameter3:=tokens[mnemonic+3] else parameter3:='';
 
   overrideShort:=Pos('SHORT ',parameter1)>0;
-  overrideLong:=(Pos('LONG ',parameter1)>0) or (Pos('FAR ',parameter1)>0);
+  overrideLong:=(Pos('LONG ',parameter1)>0);
+  if processhandler.is64Bit then
+    overrideFar:=(Pos('FAR ',parameter1)>0)
+  else
+    overrideLong:=overrideLong or (Pos('FAR ',parameter1)>0);
+
 
   if not (overrideShort or overrideLong) and (assemblerPreference<>apNone) then //no override chooce by the user and not a normal preference
   begin
@@ -3460,7 +3465,7 @@ begin
   result:=false;
 
   //to make it easier for people that don't like the relative addressing limit
-  if processhandler.is64Bit then   //if 64-bit
+  if (not overrideShort) and (not overrideLong) and (processhandler.is64Bit) then   //if 64-bit and no override is given
   begin
     //check if this is a jmp or call with relative value
     if (tokens[mnemonic]='JMP') or (tokens[mnemonic]='CALL') then
@@ -3474,7 +3479,7 @@ begin
           v2:=v-address;
 
 
-        if v2>$7fffffff then
+        if (v2>$7fffffff) or (overrideFar) then //the user WANTS it to be called as a 'far' jump even if it's not needed
         begin
           //restart
           setlength(bytes,0);

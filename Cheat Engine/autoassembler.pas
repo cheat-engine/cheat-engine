@@ -304,6 +304,7 @@ end;
 
 type tlabel=record
   defined: boolean;
+  insideAllocatedMemory: boolean;
   address:ptrUint;
   labelname: string;
   assemblerline: integer;
@@ -1508,7 +1509,10 @@ begin
             s1:=replacetoken(currentline,labels[j].labelname,IntToHex(currentaddress,8));
 
             //far and big
-            //FFFFF, goes over the $FF boundary, and $FFFF boundary, and is a big value (address)\
+
+            if (processhandler.is64Bit) then //and not in region
+              currentline:=replacetoken(currentline,labels[j].labelname,IntToHex(currentaddress+$1000FFFFF,8))
+            else
             currentline:=replacetoken(currentline,labels[j].labelname,IntToHex(currentaddress+$FFFFF,8));
 
             setlength(assembled,length(assembled)+1);
