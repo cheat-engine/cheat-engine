@@ -10,7 +10,7 @@ Special care should be taken to add multithreaded scanning routines
 
 interface
 
-uses windows, LCLIntf,sysutils, classes,ComCtrls,dialogs, NewKernelHandler,math,
+uses windows, FileUtil, LCLIntf,sysutils, classes,ComCtrls,dialogs, NewKernelHandler,math,
      SyncObjs, windows7taskbar,SaveFirstScan, savedscanhandler, autoassembler,
      symbolhandler, CEFuncProc,shellapi, customtypehandler,lua,lualib,lauxlib,
      LuaHandler, fileaccess, groupscancommandparser;
@@ -6074,17 +6074,17 @@ begin
 
   fScanResultFolder:=usedtempdir+'Cheat Engine'+pathdelim;
 
-  if not DirectoryExists(usedtempdir) then
+  if not DirectoryExistsUTF8(usedtempdir) then
     raise exception.create(Format(rsTheTemporaryScanDirectoryDoesNotExistCheckYourScan, [usedtempdir]));
 
 
-  if not DirectoryExists(fScanResultFolder) then
+  if not DirectoryExistsUTF8(fScanResultFolder) then
   begin
-    if not CreateDir(fScanResultFolder) then
+    if not CreateDirUTF8(fScanResultFolder) then
     begin
       //failure in creating the dir
       MakePathAccessible(fScanResultFolder);
-      if not CreateDir(fScanResultFolder) then
+      if not CreateDirUTF8(fScanResultFolder) then
         raise exception.create(rsFailureCreatingTheScanDirectory);
     end;
   end;
