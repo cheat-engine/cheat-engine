@@ -4726,8 +4726,7 @@ begin
   LoadCustomTypesFromRegistry;
 
 
-  memscan := tmemscan.Create(progressbar1);
-  foundlist := tfoundlist.Create(foundlist3, memscan);
+
 
 end;
 
@@ -6384,6 +6383,8 @@ begin
 
 
 
+  memscan := tmemscan.Create(progressbar1);
+  foundlist := tfoundlist.Create(foundlist3, memscan);
 
   //don't put this in oncreate, just don't
   memscan.setScanDoneCallback(mainform.handle, wm_scandone);

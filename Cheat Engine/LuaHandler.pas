@@ -3627,7 +3627,7 @@ begin
 
     lua_pop(L, lua_gettop(l));
 
-    lua_pushstring(L,symhandler.getNameFromAddress(address));
+    lua_pushstring(L,symhandler.getNameFromAddress(address, true, true));
     result:=1;
   end
   else lua_pop(L, lua_gettop(l));
