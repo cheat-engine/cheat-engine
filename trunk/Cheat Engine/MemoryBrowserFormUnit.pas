@@ -1576,9 +1576,9 @@ begin
       AdvancedOptions.Codelist2.ItemIndex:=i;
 
       if AdvancedOptions.code[i].changed then
-        AdvancedOptions.miRestoreWithOriginal.Click
+        AdvancedOptions.miRestoreWithOriginal.OnClick(AdvancedOptions.miRestoreWithOriginal)
       else
-        AdvancedOptions.miReplaceWithNops.click;
+        AdvancedOptions.miReplaceWithNops.onclick(AdvancedOptions.miReplaceWithNops);
 
       exit;
     end;
