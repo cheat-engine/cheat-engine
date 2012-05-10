@@ -538,37 +538,42 @@ var i,j,index: integer;
   multidelete: boolean;
 begin
   codelist2.Items.BeginUpdate;
-  multidelete:=codelist2.SelCount>1;
-  while codelist2.SelCount>0 do
-  begin
-    index:=codelist2.Selected.Index;
-    if (index=-1) or (codelist2.Items.Count=0) then exit;
-
-    if not multidelete then
-      if messagedlg(rsDelete+' '+codelist2.Items[index].SubItems[0]+' ?', mtConfirmation, [mbyes, mbno], 0) = mrno then exit;
-
-
-    setlength(code[index].before,0);
-    setlength(code[index].actualopcode,0);
-    setlength(code[index].after,0);
-
-    for i:=index to numberofcodes-2 do
+  try
+    multidelete:=codelist2.SelCount>1;
+    while codelist2.SelCount>0 do
     begin
-      code[i].before:=code[i+1].before;
-      code[i].actualopcode:=code[i+1].actualopcode;
-      code[i].after:=code[i+1].after;
-      code[i].Address:=code[i+1].Address;
-      code[i].changed:=code[i+1].changed;
-      code[i].modulename:=code[i+1].modulename;
-      code[i].offset:=code[i+1].offset;
+      index:=codelist2.Selected.Index;
+      if (index=-1) or (codelist2.Items.Count=0) then exit;
+
+      if not multidelete then
+        if messagedlg(rsDelete+' '+codelist2.Items[index].SubItems[0]+' ?', mtConfirmation, [mbyes, mbno], 0) = mrno then exit;
+
+
+      setlength(code[index].before,0);
+      setlength(code[index].actualopcode,0);
+      setlength(code[index].after,0);
+
+      for i:=index to numberofcodes-2 do
+      begin
+        code[i].before:=code[i+1].before;
+        code[i].actualopcode:=code[i+1].actualopcode;
+        code[i].after:=code[i+1].after;
+        code[i].Address:=code[i+1].Address;
+        code[i].changed:=code[i+1].changed;
+        code[i].modulename:=code[i+1].modulename;
+        code[i].offset:=code[i+1].offset;
+      end;
+
+      dec(numberofcodes);
+      setlength(code,numberofcodes);
+
+      codelist2.Items.Delete(index);
     end;
 
-    dec(numberofcodes);
-    setlength(code,numberofcodes);
-
-    codelist2.Items.Delete(index);
+  finally
+    codelist2.Items.endUpdate;
   end;
-  codelist2.Items.endUpdate;
+
 end;
 
 procedure TAdvancedOptions.Findoutwhatthiscodechanges1Click(
