@@ -1,11 +1,11 @@
 object FormFoundCodeListExtra: TFormFoundCodeListExtra
-  Left = 684
-  Height = 314
-  Top = 375
-  Width = 472
+  Left = 1104
+  Height = 322
+  Top = 297
+  Width = 476
   Caption = 'Extra info'
-  ClientHeight = 314
-  ClientWidth = 472
+  ClientHeight = 322
+  ClientWidth = 476
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
@@ -18,11 +18,11 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     Left = 0
     Height = 101
     Top = 0
-    Width = 472
+    Width = 476
     Align = alTop
     BevelOuter = bvNone
     ClientHeight = 101
-    ClientWidth = 472
+    ClientWidth = 476
     TabOrder = 0
     object Label10: TLabel
       Left = 0
@@ -103,7 +103,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     Left = 0
     Height = 11
     Top = 101
-    Width = 472
+    Width = 476
     Align = alTop
     BevelOuter = bvNone
     TabOrder = 1
@@ -112,28 +112,28 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
     Left = 0
     Height = 60
     Top = 112
-    Width = 472
+    Width = 476
     Align = alTop
     BevelOuter = bvNone
     ClientHeight = 60
-    ClientWidth = 472
+    ClientWidth = 476
     TabOrder = 2
     object Panel4: TPanel
       Left = 12
       Height = 70
       Top = 0
-      Width = 450
+      Width = 454
       Align = alCustom
       Anchors = [akTop, akLeft, akRight]
       BevelOuter = bvNone
       ClientHeight = 70
-      ClientWidth = 450
+      ClientWidth = 454
       TabOrder = 0
       object Label6: TLabel
         Left = 0
         Height = 16
         Top = 0
-        Width = 450
+        Width = 454
         Align = alTop
         AutoSize = False
         Caption = 'xxx'
@@ -144,7 +144,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
         Left = 0
         Height = 54
         Top = 16
-        Width = 450
+        Width = 454
         Align = alClient
         AutoSize = False
         Caption = 'yyy'
@@ -157,15 +157,15 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
   object Panel5: TPanel
     Left = 0
     Height = 42
-    Top = 272
-    Width = 472
+    Top = 280
+    Width = 476
     Align = alBottom
     BevelOuter = bvNone
     ClientHeight = 42
-    ClientWidth = 472
+    ClientWidth = 476
     TabOrder = 3
     object Button1: TButton
-      Left = 192
+      Left = 194
       Height = 32
       Top = 5
       Width = 92
@@ -180,16 +180,16 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
   end
   object Panel6: TPanel
     Left = 0
-    Height = 100
+    Height = 108
     Top = 172
-    Width = 472
+    Width = 476
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 100
-    ClientWidth = 472
+    ClientHeight = 108
+    ClientWidth = 476
     TabOrder = 4
     OnResize = Panel6Resize
-    object Label7: TLabel
+    object lblRAX: TLabel
       Left = 26
       Height = 17
       Top = 12
@@ -204,7 +204,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       OnDblClick = RegisterDblClick
       OnMouseDown = RegisterMouseDown
     end
-    object Label8: TLabel
+    object lblRBX: TLabel
       Left = 26
       Height = 17
       Top = 32
@@ -219,7 +219,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       OnDblClick = RegisterDblClick
       OnMouseDown = RegisterMouseDown
     end
-    object Label9: TLabel
+    object lblRCX: TLabel
       Left = 26
       Height = 17
       Top = 52
@@ -234,7 +234,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       OnDblClick = RegisterDblClick
       OnMouseDown = RegisterMouseDown
     end
-    object Label11: TLabel
+    object lblRDX: TLabel
       Left = 146
       Height = 17
       Top = 12
@@ -249,7 +249,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       OnDblClick = RegisterDblClick
       OnMouseDown = RegisterMouseDown
     end
-    object Label12: TLabel
+    object lblRBP: TLabel
       Left = 268
       Height = 17
       Top = 12
@@ -264,7 +264,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       OnDblClick = RegisterDblClick
       OnMouseDown = RegisterMouseDown
     end
-    object Label13: TLabel
+    object lblRSP: TLabel
       Left = 268
       Height = 17
       Top = 32
@@ -279,7 +279,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       OnDblClick = RegisterDblClick
       OnMouseDown = RegisterMouseDown
     end
-    object Label14: TLabel
+    object lblRDI: TLabel
       Left = 146
       Height = 17
       Top = 52
@@ -294,7 +294,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       OnDblClick = RegisterDblClick
       OnMouseDown = RegisterMouseDown
     end
-    object Label15: TLabel
+    object lblRIP: TLabel
       Left = 268
       Height = 17
       Top = 52
@@ -309,7 +309,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       OnDblClick = RegisterDblClick
       OnMouseDown = RegisterMouseDown
     end
-    object Label16: TLabel
+    object lblRSI: TLabel
       Left = 146
       Height = 17
       Top = 32
@@ -328,7 +328,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
       Left = 0
       Height = 20
       Top = 76
-      Width = 433
+      Width = 437
       Anchors = [akTop, akLeft, akRight]
       AutoSize = False
       Caption = 'The registers shown here are AFTER the instruction has been executed'
