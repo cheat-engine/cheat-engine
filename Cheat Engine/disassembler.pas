@@ -7530,7 +7530,7 @@ begin
               inc(lastdisassembledata.seperatorcount);
 
 
-              lastdisassembledata.parameters:='byte ptr '+getsegmentoverride(prefix2)+'['+inttohexs(dwordptr^,8)+'],al';
+              lastdisassembledata.parameters:='byte ptr '+getsegmentoverride(prefix2)+'['+inttohexs(dwordptr^,8)+'],'+colorreg+'al'+endcolor;
               inc(offset,4);
             end;
 
@@ -7546,13 +7546,13 @@ begin
 
               lastdisassembledata.parameters:=getsegmentoverride(prefix2)+'['+inttohexs(dwordptr^,8)+'],';
               if $66 in prefix2 then
-                lastdisassembledata.parameters:=lastdisassembledata.parameters+'ax'
+                lastdisassembledata.parameters:=lastdisassembledata.parameters+colorreg+'ax'+endcolor
               else
               begin
                 if rex_w then
-                  lastdisassembledata.parameters:=lastdisassembledata.parameters+'rax'
+                  lastdisassembledata.parameters:=lastdisassembledata.parameters+colorreg+'rax'+endcolor
                 else
-                  lastdisassembledata.parameters:=lastdisassembledata.parameters+'eax';
+                  lastdisassembledata.parameters:=lastdisassembledata.parameters+colorreg+'eax'+endcolor;
               end;
               inc(offset,4);
             end;
