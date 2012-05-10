@@ -96,6 +96,7 @@ begin
       r8label.height:=eaxlabel.height;
       r8label.OnDblClick:=EAXLabelDblClick;
       r8label.OnMouseDown:=RegisterMouseDown;
+      r8label.Cursor:=crHandPoint;
       r8label.tag:=9;
       r8label.parent:=panel1;
     end;
@@ -109,6 +110,7 @@ begin
       r9label.height:=eaxlabel.height;
       r9label.OnDblClick:=EAXLabelDblClick;
       r9label.OnMouseDown:=RegisterMouseDown;
+      r9label.Cursor:=crHandPoint;
       r9label.tag:=10;
       r9label.parent:=panel1;
     end;
@@ -122,6 +124,7 @@ begin
       r10label.height:=eaxlabel.height;
       r10label.OnDblClick:=EAXLabelDblClick;
       r10label.OnMouseDown:=RegisterMouseDown;
+      r10label.Cursor:=crHandPoint;
       r10label.tag:=11;
       r10label.parent:=panel1;
     end;
@@ -135,6 +138,7 @@ begin
       r11label.height:=eaxlabel.height;
       r11label.OnDblClick:=EAXLabelDblClick;
       r11label.OnMouseDown:=RegisterMouseDown;
+      r11label.Cursor:=crHandPoint;
       r11label.tag:=12;
       r11label.parent:=panel1;
     end;
@@ -148,6 +152,7 @@ begin
       r12label.height:=eaxlabel.height;
       r12label.OnDblClick:=EAXLabelDblClick;
       r12label.OnMouseDown:=RegisterMouseDown;
+      r12label.Cursor:=crHandPoint;
       r12label.tag:=13;
       r12label.parent:=panel1;
     end;
@@ -161,6 +166,7 @@ begin
       r13label.height:=eaxlabel.height;
       r13label.OnDblClick:=EAXLabelDblClick;
       r13label.OnMouseDown:=RegisterMouseDown;
+      r13label.Cursor:=crHandPoint;
       r13label.tag:=14;
       r13label.parent:=panel1;
     end;
@@ -174,6 +180,7 @@ begin
       r14label.height:=eaxlabel.height;
       r14label.OnDblClick:=EAXLabelDblClick;
       r14label.OnMouseDown:=RegisterMouseDown;
+      r14label.Cursor:=crHandPoint;
       r14label.tag:=15;
       r14label.parent:=panel1;
     end;
@@ -187,6 +194,7 @@ begin
       r15label.height:=eaxlabel.height;
       r15label.OnDblClick:=EAXLabelDblClick;
       r15label.OnMouseDown:=RegisterMouseDown;
+      r15label.Cursor:=crHandPoint;
       r15label.tag:=16;
       r15label.parent:=panel1;
     end;
