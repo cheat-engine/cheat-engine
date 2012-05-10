@@ -278,7 +278,7 @@ type
     function Func16: TtkTokenKind; //dl
     function Func18: TtkTokenKind; //edi  / bp /r8-r15
     function Func23: TtkTokenKind; //ebp
-    function Func25: TtkTokenKind; //ax / 25
+    function Func25: TtkTokenKind; //ax / 25  / dil
     function Func26: TtkTokenKind; //bx
     function Func27: TtkTokenKind; //cx  / dw
     function Func28: TtkTokenKind; //dx / si
@@ -294,6 +294,7 @@ type
     function Func44: TtkTokenKind;
     function Func45: TtkTokenKind;
     function Func46: TtkTokenKind;
+    function Func47: TtkTokenKind; //spl
     function Func52: TtkTokenKind; //dealloc / disable
     function Func53: TtkTokenKind; //rsp
     function Func54: TtkTokenKind; //kalloc
@@ -499,6 +500,7 @@ begin
   fIdentFuncTable[44] := {$IFDEF FPC}@{$ENDIF}Func44;
   fIdentFuncTable[45] := {$IFDEF FPC}@{$ENDIF}Func45;
   fIdentFuncTable[46] := {$IFDEF FPC}@{$ENDIF}Func46;
+  fIdentFuncTable[47] := {$IFDEF FPC}@{$ENDIF}Func47;
   fIdentFuncTable[52] := {$IFDEF FPC}@{$ENDIF}Func52;
   fIdentFuncTable[53] := {$IFDEF FPC}@{$ENDIF}Func53;
   fIdentFuncTable[54] := {$IFDEF FPC}@{$ENDIF}Func54;
@@ -669,7 +671,10 @@ function TSynAASyn.Func25: TtkTokenKind;
 begin
   if KeyComp('ax') then Result := tkRegister else
     if KeyComp('ip') then Result := tkRegister else
-      Result := tkIdentifier;
+      {$ifdef cpu64}
+      if KeyComp('dil') then Result := tkRegister else
+      {$endif}
+        Result := tkIdentifier;
 end;
 
 function TSynAASyn.Func26: TtkTokenKind;
@@ -727,7 +732,7 @@ end;
 
 function TSynAASyn.Func35: TtkTokenKind;
 begin
-  if KeyComp('bp') then Result := tkRegister else
+  if KeyComp('sp') then Result := tkRegister else
     Result := tkIdentifier;
 end;
 
@@ -786,6 +791,14 @@ begin
   {$ifdef cpu64}
   if KeyComp('rdx') then Result := tkRegister else
   if KeyComp('rsi') then Result := tkRegister else
+  {$endif}
+    Result := tkIdentifier;
+end;
+
+function TSynAASyn.Func47: TtkTokenKind; //spl
+begin
+  {$ifdef cpu64}
+  if KeyComp('spl') then Result := tkRegister else
   {$endif}
     Result := tkIdentifier;
 end;
