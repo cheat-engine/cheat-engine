@@ -3275,7 +3275,7 @@ begin
   if c<>nil then
     c.focus;
 
-  if (button=mbRight) then //lazarus 32774: Is rightclickselect is on it does not deselect other lines
+  if (button=mbRight) then //lazarus 32774: If rightclickselect is on it does not deselect other lines
   begin
     n:=tvStructureView.GetNodeAt(x,y);
     if n<>nil then
@@ -3681,6 +3681,7 @@ var
 
   pathtobase: array of integer; //since the parent treenode might collapse if it's a pointer to itself...
   n: TTreenode;
+  isroot: boolean;
 begin
   if (mainstruct<>nil) and (tvStructureView.Selected<>nil) then
   begin
@@ -3689,19 +3690,29 @@ begin
 
     setlength(pathtobase,0);
     n:=tvStructureView.Selected.parent;
-    while n.parent<>nil do
+    if n<>nil then
     begin
-      setlength(pathtobase, length(pathtobase)+1);
-      pathtobase[length(pathtobase)-1]:=n.Index;
-      n:=n.parent;
+      while n.parent<>nil do
+      begin
+        setlength(pathtobase, length(pathtobase)+1);
+        pathtobase[length(pathtobase)-1]:=n.Index;
+        n:=n.parent;
+      end;
+    end
+    else
+    begin
+      //root
+      isroot:=true;
     end;
 
 
 
-    if (e<>nil) and (struct<>nil) then
+    if isroot or ((e<>nil) and (struct<>nil)) then
     begin
-
-      baseoffset:=e.Offset+e.Bytesize;
+      if isroot then
+        baseoffset:=0
+      else
+        baseoffset:=e.Offset+e.Bytesize;
 
       doc:=nil;
       ss:=TStringStream.create(clipboard.AsText);
