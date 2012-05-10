@@ -64,6 +64,7 @@ type
     function Initialize: int64; overload;
     function Initialize(vartype: TVariableType; customtype: TCustomType):int64; overload;
     function Initialize(vartype: TVariableType; varlength: integer; hexadecimal,signed,binaryasdecimal,unicode: boolean; customtype: TCustomType):int64; overload;  //initialize after a scan
+    function Reinitialize: int64; //initializes it with the previous parameter
     procedure Deinitialize; //free filehandles before the scan
     function GetStartBit(i: integer):dword;
     function GetGroupAddress(i: qword): PGroupAddress;
@@ -240,7 +241,7 @@ begin
   renamefile(memscan.ScanresultFolder+'Memory.NEW',memscan.ScanresultFolder+'Memory.TMP');
   renamefile(memscan.ScanresultFolder+'Addresses.NEW',memscan.ScanresultFolder+'Addresses.TMP');
 
-  Initialize(vartype,customtype);
+  Reinitialize;
 end;
 
 procedure TFoundList.RebaseAddresslistAgain;
@@ -696,6 +697,12 @@ begin
   end;
 end;
 
+
+function TFoundList.Reinitialize: int64; //initializes it with the previous parameters
+begin
+  Deinitialize;
+  result:=initialize(fvartype, varlength, hexadecimal, signed, binaryasdecimal, unicode, customType);
+end;
 
 function TFoundList.Initialize(vartype: TVariableType; varlength: integer; hexadecimal,signed,binaryasdecimal,unicode: boolean; customtype: TCustomType=nil):int64;
 begin
