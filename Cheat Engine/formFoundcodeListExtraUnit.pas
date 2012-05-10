@@ -31,15 +31,15 @@ type
     Panel5: TPanel;
     Button1: TButton;
     Panel6: TPanel;
-    Label7: TLabel;
-    Label8: TLabel;
-    Label9: TLabel;
-    Label11: TLabel;
-    Label12: TLabel;
-    Label13: TLabel;
-    Label14: TLabel;
-    Label15: TLabel;
-    Label16: TLabel;
+    lblRAX: TLabel;
+    lblRBX: TLabel;
+    lblRCX: TLabel;
+    lblRDX: TLabel;
+    lblRBP: TLabel;
+    lblRSP: TLabel;
+    lblRDI: TLabel;
+    lblRIP: TLabel;
+    lblRSI: TLabel;
     Label18: TLabel;
     pmCopy2: TPopupMenu;
     Copyguesstoclipboard1: TMenuItem;
@@ -71,11 +71,19 @@ type
       savedsize: dword;
       stack: pbyte;
     end;
+
+    lblR8: tlabel;
+    lblR9: tlabel;
+    lblR10: tlabel;
+    lblR11: tlabel;
+    lblR12: tlabel;
+    lblR13: tlabel;
+    lblR14: tlabel;
+    lblR15: tlabel;
     property probably: ptrUint read fprobably write setprobably;
   end;
 
-var
-  FormFoundCodeListExtra: TFormFoundCodeListExtra;
+
 
 implementation
 
@@ -118,15 +126,15 @@ procedure TFormFoundCodeListExtra.Copyaddresstoclipboard1Click(
 var clip: tclipboard;
 s: string;
 begin
-  s:=label7.Caption+#13#10;
-  s:=s+label8.Caption+#13#10;
-  s:=s+label9.Caption+#13#10;
-  s:=s+label11.Caption+#13#10;
-  s:=s+label16.Caption+#13#10;
-  s:=s+label14.Caption+#13#10;
-  s:=s+label12.Caption+#13#10;
-  s:=s+label13.Caption+#13#10;
-  s:=s+label15.Caption+#13#10;
+  s:=lblRAX.Caption+#13#10;
+  s:=s+lblRBX.Caption+#13#10;
+  s:=s+lblRCX.Caption+#13#10;
+  s:=s+lblRDX.Caption+#13#10;
+  s:=s+lblRSI.Caption+#13#10;
+  s:=s+lblRDI.Caption+#13#10;
+  s:=s+lblRBP.Caption+#13#10;
+  s:=s+lblRSP.Caption+#13#10;
+  s:=s+lblRIP.Caption+#13#10;
   s:=s+#13#10;
   s:=s+Format(rsProbableBasePointer, [inttohex(probably, 8)])+#13#10#13#10;
 
@@ -177,7 +185,7 @@ begin
     begin
       s:=copy(s,i+1,length(s));
 
-      memorybrowser.hexview.address:=strtoint('$'+s);
+      memorybrowser.hexview.address:=StrToInt64('$'+s);
       memorybrowser.show;
     end;
   end;
@@ -207,23 +215,42 @@ begin
 end;
 
 procedure TFormFoundCodeListExtra.Panel6Resize(Sender: TObject);
+var maxrightwidth: integer;
 begin
-  label12.Left:=(panel6.ClientWidth-sbShowFloats.width)-label12.width-label7.Left;
-  label13.left:=label12.left;
-  label15.Left:=label12.Left;
+  maxrightwidth:=lblRBP.width;
+  maxrightwidth:=max(maxrightwidth, lblRSP.Width);
+  maxrightwidth:=max(maxrightwidth, lblRIP.Width);
+  maxrightwidth:=max(maxrightwidth, lblR10.Width);
+  maxrightwidth:=max(maxrightwidth, lblR13.Width);
 
-  label11.Left:=((panel6.ClientWidth-sbShowFloats.width) div 2)-(label11.Width div 2);
-  label16.left:=label11.left;
-  label14.Left:=label11.left;
+  lblRBP.Left:=(panel6.ClientWidth-sbShowFloats.width)-maxrightwidth-lblRAX.Left;
+  lblRSP.left:=lblRBP.left;
+  lblRIP.Left:=lblRBP.Left;
+
+  lblRDX.Left:=((panel6.ClientWidth-sbShowFloats.width) div 2)-(lblRDX.Width div 2);
+  lblRSI.left:=lblRDX.left;
+  lblRDI.Left:=lblRDX.left;
+
+  if lblR8<>nil then
+  begin
+    lblR9.left:=lblRDX.left;
+    lblR12.Left:=lblRDX.Left;
+    lblR15.Left:=lblRDX.Left;
+
+    lblR10.left:=lblRBP.left;
+    lblR13.left:=lblRBP.left;
+  end;
 
 
-  sbShowFloats.top:=label13.Top+(label13.height div 2)-(sbShowFloats.height);
+  sbShowFloats.top:=lblRSP.Top+(lblRSP.height div 2)-(sbShowFloats.height);
   sbShowFloats.Left:=panel6.ClientWidth-sbShowFloats.Width;
 
-  sbShowstack.top:=label13.Top+(label13.height div 2);
+  sbShowstack.top:=lblRSP.Top+(lblRSP.height div 2);
   sbShowstack.left:=sbShowFloats.left;
 
   label18.top:=panel6.clientheight-label18.height;
+
+
 end;
 
 procedure TFormFoundCodeListExtra.sbShowStackClick(Sender: TObject);
