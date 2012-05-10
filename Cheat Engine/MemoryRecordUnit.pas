@@ -1088,13 +1088,13 @@ begin
         mrhToggleActivationAllowDecrease:
         begin
           allowDecrease:=True;
-          active:=true;
+          active:=not active;
         end;
 
         mrhToggleActivationAllowIncrease:
         begin
           allowIncrease:=True;
-          active:=true;
+          active:=not active;
         end;
 
         mrhActivate: active:=true;

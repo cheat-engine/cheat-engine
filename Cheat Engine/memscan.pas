@@ -4239,11 +4239,9 @@ begin
         actualread:=0;
         //variablesize:=0;
         if size<toread then
-          ReadProcessMemory(phandle,pointer(currentbase),memorybuffer,size+variablesize-1,actualread)
+          ReadProcessMemory(phandle,pointer(currentbase),memorybuffer,size+variablesize-1,actualread)  //+variablesize for overlap, only when not unknown var
         else
           ReadProcessMemory(phandle,pointer(currentbase),memorybuffer,size,actualread);
-
-        //+variablesize for overlap, only when not unknown var
 
         if scanOption=soUnknownValue then
         begin
@@ -4265,6 +4263,7 @@ begin
           firstscanmem(currentbase,memorybuffer,actualread);
 
         end;
+
 
         currentbase:=currentbase+size;
         
