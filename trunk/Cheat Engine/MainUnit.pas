@@ -5830,6 +5830,8 @@ begin
 
   Removeselectedaddresses1.Visible := not (GetVarType in [vtBinary, vtByteArray, vtAll]);
 
+  miChangeValue.enabled:=Browsethismemoryarrea1.enabled;
+  miAddAddress.enabled:=Browsethismemoryarrea1.enabled;
 end;
 
 procedure TMainForm.Removeselectedaddresses1Click(Sender: TObject);
@@ -5883,8 +5885,7 @@ begin
     end;
   end;
 
-  foundlist.deinitialize;
-  foundlist.Initialize(getvartype, memscan.CustomType);
+  foundlist.Reinitialize;
 end;
 
 
