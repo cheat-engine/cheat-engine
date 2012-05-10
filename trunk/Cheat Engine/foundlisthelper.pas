@@ -75,6 +75,7 @@ type
     procedure RebaseAddresslist(i: integer);
     procedure RebaseAddresslistAgain; //calls rebaseaddresslist with the same parameter as last time
     property vartype: TVariableType read fvartype;
+    property isHexadecimal: boolean read hexadecimal;
     property isUnicode: boolean read unicode;
     property isUnknownInitialValue: boolean read fisUnknownInitialValue;
     property count: uint64 read fCount;
