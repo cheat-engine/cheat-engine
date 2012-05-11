@@ -2302,11 +2302,15 @@ begin
     m := addresslist.addaddress(strNoDescription, addressString, [], 0,
       vt, customname, l, startbit, False, node, attachmode);
 
+    m.showAsHex:=foundlist.isHexadecimal;
+
     if m.VarType = vtBinary then
       m.Extra.bitData.showasbinary := rbBit.Checked
     else
     if (m.VarType = vtString) then
       m.Extra.stringData.unicode := foundlist.isUnicode;
+
+
   end;
 
 end;
