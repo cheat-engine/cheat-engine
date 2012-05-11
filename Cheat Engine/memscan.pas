@@ -398,7 +398,7 @@ type
     totalfound: dword;
 
     OnlyOne: boolean;
-    AddressFound: dword;
+    AddressFound: PtrUInt;
     scannernr: integer;
 
     procedure execute; override;
