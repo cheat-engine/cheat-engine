@@ -67,6 +67,16 @@ type
       Checked: boolean;
     end;
 
+    cbunicode: record
+      checked: boolean;
+      visible: boolean;
+    end;
+
+    cbCaseSensitive: record
+      checked: boolean;
+      visible: boolean;
+    end;
+
     edtAlignment: record
       Text: string;
     end;
@@ -100,6 +110,7 @@ type
     cbHexadecimal: record
       Visible: boolean;
       Checked: boolean;
+      Enabled: boolean;
     end;
 
     gbScanOptionsEnabled: boolean;
@@ -3828,6 +3839,13 @@ begin
 
   scanstate.cbHexadecimal.Visible := cbHexadecimal.Visible;
   scanstate.cbHexadecimal.Checked := cbHexadecimal.Checked;
+  scanstate.cbHexadecimal.Enabled := cbHexadecimal.Enabled;
+
+  scanstate.cbunicode.Visible := cbunicode.visible;
+  scanstate.cbunicode.checked := cbunicode.checked;
+  scanstate.cbCaseSensitive.Visible := cbCaseSensitive.visible;
+  scanstate.cbCaseSensitive.checked := cbCaseSensitive.checked;
+
 
   if cbpercentage <> nil then
   begin
@@ -3945,6 +3963,10 @@ begin
     rt2.Checked := newstate.floatpanel.roundedextreme;
     rt3.Checked := newstate.floatpanel.truncated;
 
+
+
+
+
     rbbit.Visible := newstate.rbbit.Visible;
     rbbit.Enabled := newstate.rbbit.Enabled;
     rbbit.Checked := newstate.rbbit.Checked;
@@ -3955,6 +3977,7 @@ begin
 
     cbHexadecimal.Visible := newstate.cbHexadecimal.Visible;
     cbHexadecimal.Checked := newstate.cbHexadecimal.Checked;
+    cbHexadecimal.Enabled := newstate.cbHexadecimal.Enabled;
 
     if newstate.cbpercentage.exists then
     begin
@@ -3994,6 +4017,13 @@ begin
     foundcount := foundlist.Initialize(getvartype, memscan.customtype);
 
     foundlist3.endupdate;
+
+
+    cbunicode.Visible := newstate.cbunicode.visible;
+    cbunicode.checked := newstate.cbunicode.checked;
+    cbCaseSensitive.Visible := newstate.cbCaseSensitive.visible;
+    cbCaseSensitive.checked := newstate.cbCaseSensitive.checked;
+
 
 
     if newstate.foundlist3.ItemIndex < foundcount then
