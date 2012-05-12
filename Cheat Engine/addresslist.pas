@@ -77,6 +77,7 @@ type
     procedure setPopupMenu(menu: TPopupMenu);
     function getPopupMenu: TPopupMenu;
     function getSelectedRecord: TMemoryRecord;
+    procedure setSelectedRecord(memrec: TMemoryrecord);
 
     function CheatTableNodeHasOnlyAutoAssemblerScripts(CheatTable: TDOMNode): boolean; //helperfunction
 
@@ -129,17 +130,19 @@ type
     property Items: TTreeNodes read getTreeNodes write SetTreeNodes;
 
     procedure clear;
-    property Count: Integer read GetCount;
-    property SelCount: Integer read GetSelCount;
+
+
     property MemRecItems[Index: Integer]: TMemoryRecord read GetMemRecItemByIndex; default;
 
     property OnDropByListview: TDropByListviewEvent read FOnDropByListview write FOnDropByListview;
     property OnAutoAssemblerEdit: TAutoAssemblerEditEvent read fOnAutoAssemblerEdit write fOnAutoAssemblerEdit;
     property PopupMenu: TpopupMenu read getPopupMenu write setPopupMenu;
-    property selectedRecord: TMemoryRecord read getSelectedRecord;
+
     property headers: THeaderControl read header;
   published
-
+    property Count: Integer read GetCount;
+    property SelCount: Integer read GetSelCount;
+    property selectedRecord: TMemoryRecord read getSelectedRecord write setSelectedRecord;
   end;
 
 implementation
@@ -234,6 +237,19 @@ end;
 function TAddresslist.getPopupMenu: TPopupMenu;
 begin
   result:=treeview.popupmenu;
+end;
+
+procedure TAddresslist.setSelectedRecord(memrec: TMemoryrecord);
+var i: integer;
+begin
+  for i:=0 to count-1 do
+    if memrecitems[i]=memrec then
+    begin
+      treeview.Items.SelectOnlyThis(memrecitems[i].treenode);
+      memrecitems[i].isSelected:=true;
+    end
+    else
+      memrecitems[i].isSelected:=false;
 end;
 
 function TAddresslist.getSelectedRecord: TMemoryRecord;

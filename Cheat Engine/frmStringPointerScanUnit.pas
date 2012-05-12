@@ -1696,7 +1696,7 @@ begin
   //setup rescan mode
 
   btnScan.caption:='Rescan';
-  btnScan.tag:=0;
+  btnScan.tag:=1;
 end;
 
 procedure TfrmStringPointerScan.scanDone(var m: tmessage);
@@ -1713,7 +1713,7 @@ begin
   OpenPointerfile(SaveDialog1.FileName);
 
   btnScan.caption:='Rescan';
-  btnScan.tag:=0;
+  btnScan.tag:=1;
 
 
   if not rbDiffDontCare.checked then
