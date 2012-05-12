@@ -61,7 +61,8 @@ uses mainunit, mainunit2, frmluaengineunit, plugin, pluginexports, MemoryRecordU
   LuaDebug, LuaThread, LuaGraphic, LuaProgressBar, LuaD3DHook, LuaWinControl,
   LuaMemoryRecord, LuaForm, MemoryBrowserFormUnit, disassemblerviewunit, hexviewunit,
   CustomTypeHandler, LuaStructure, LuaRegion, LuaXMPlayer, LuaMemscan, LuaFoundlist,
-  LuaRadioGroup, LuaRasterImage, LuaCheatComponent, LuaAddresslist, byteinterpreter;
+  LuaRadioGroup, LuaRasterImage, LuaCheatComponent, LuaAddresslist, byteinterpreter,
+  OpenSave;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -7400,7 +7401,7 @@ begin
     lua_pop(L, lua_gettop(l));
 end;
 
-function createTreeView(L: Plua_State): integer; cdecl; //undocument, unsupported. Use the property functions if you HAVE to use it and look at the pascal source for the published properties
+function createTreeView(L: Plua_State): integer; cdecl; //undocument, unsupported, unworking
 var
   Treeview: TCETreeView;
   parameters: integer;
@@ -7423,6 +7424,52 @@ begin
 
   lua_pushlightuserdata(L, Treeview);
   result:=1;
+end;
+
+function lua_loadTable(L: Plua_State): integer; cdecl;
+var
+  filename: string;
+  parameters: integer;
+  merge: boolean;
+begin
+  result:=0;
+
+  parameters:=lua_gettop(L);
+  if parameters>=1 then
+  begin
+    filename:=Lua_ToString(L, 1);
+    if parameters>=2 then
+      merge:=lua_toboolean(L,2)
+    else
+      merge:=false;
+
+    loadtable(filename,merge);
+  end;
+
+  lua_pop(L, lua_gettop(L));
+end;
+
+function lua_saveTable(L: Plua_State): integer; cdecl;
+var
+  filename: string;
+  parameters: integer;
+  protect: boolean;
+begin
+  result:=0;
+
+  parameters:=lua_gettop(L);
+  if parameters>=1 then
+  begin
+    filename:=Lua_ToString(L, 1);
+    if parameters>=2 then
+      protect:=lua_toboolean(L,2)
+    else
+      protect:=false;
+
+    savetable(filename, protect);
+  end;
+
+  lua_pop(L, lua_gettop(L));
 end;
 
 procedure InitializeLua;
@@ -7874,6 +7921,8 @@ begin
     lua_register(LuaVM, 'getThreadlist', getThreadlist_lua);
 
     Lua_register(LuaVM, 'createTreeView', createTreeView);
+    Lua_register(LuaVM, 'loadTable', lua_loadTable);
+    Lua_register(LuaVM, 'saveTable', lua_saveTable);
 
 
 
