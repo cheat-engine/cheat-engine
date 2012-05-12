@@ -48,6 +48,10 @@ function GetLuaState: PLUA_State; stdcall;
 function lua_oldprintoutput:TStrings;
 procedure lua_setPrintOutput(output: TStrings);
 
+resourcestring
+  rsPluginAddress = 'Plugin Address';
+
+
 implementation
 
 uses mainunit, mainunit2, frmluaengineunit, plugin, pluginexports, MemoryRecordUnit,
@@ -57,14 +61,14 @@ uses mainunit, mainunit2, frmluaengineunit, plugin, pluginexports, MemoryRecordU
   LuaDebug, LuaThread, LuaGraphic, LuaProgressBar, LuaD3DHook, LuaWinControl,
   LuaMemoryRecord, LuaForm, MemoryBrowserFormUnit, disassemblerviewunit, hexviewunit,
   CustomTypeHandler, LuaStructure, LuaRegion, LuaXMPlayer, LuaMemscan, LuaFoundlist,
-  LuaRadioGroup, LuaRasterImage, LuaCheatComponent, byteinterpreter;
+  LuaRadioGroup, LuaRasterImage, LuaCheatComponent, LuaAddresslist, byteinterpreter;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
     +'from the main thread';
   rsUndefinedLuaError = 'Undefined lua error';
   rsCheatengineIsBeingAFag = 'Cheatengine is being a fag';
-  rsPluginAddress = 'Plugin Address';
+
   rsInvalidFloat = 'Invalid floating point string:%s';
   rsInvalidInt = 'Invalid integer:%s';
 
@@ -6253,133 +6257,6 @@ begin
   lua_pop(L, parameters);
 end;
 
-function addresslist_getCount(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  addresslist: TAddresslist;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    addresslist:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, addresslist.Count);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function addresslist_getSelectedRecords(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  addresslist: TAddresslist;
-  i,c: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    addresslist:=lua_touserdata(L,-1);
-
-
-    lua_newtable(L);
-    result:=1;
-
-    c:=1; //seems lua tables prefer to start at 1 instead of 0
-    for i:=0 to addresslist.Count-1 do
-    begin
-      if addresslist[i].isSelected then
-      begin
-        lua_pushinteger(L, c);
-        lua_pushlightuserdata(L, addresslist[i]);
-        lua_settable(L, -3);
-        inc(c);
-      end;
-    end;
-
-  end
-  else lua_pop(L, parameters);
-end;
-
-function addresslist_getMemoryRecord(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  addresslist: TAddresslist;
-  index: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    addresslist:=lua_touserdata(L,-2);
-    index:=lua_tointeger(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushlightuserdata(L, addresslist.MemRecItems[index]);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function addresslist_getMemoryRecordByDescription(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  addresslist: TAddresslist;
-  description: string;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    addresslist:=lua_touserdata(L,-2);
-    description:=Lua_ToString(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushlightuserdata(L, addresslist.getRecordWithDescription(description));
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function addresslist_getMemoryRecordByID(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  addresslist: TAddresslist;
-  id: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    addresslist:=lua_touserdata(L,-2);
-    id:=lua_tointeger(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushlightuserdata(L, addresslist.getRecordWithID(id));
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function addresslist_createMemoryRecord(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  addresslist: TAddresslist;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    addresslist:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushlightuserdata(L,   MainForm.addresslist.addaddress(rsPluginAddress, '0', [], 0, vtDword));
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
 
 
 function createMemScan(L: Plua_State): integer; cdecl;
@@ -7894,12 +7771,8 @@ begin
     Lua_register(LuaVM, 'memoryrecordhotkey_getOwner', memoryrecordhotkey_getOwner);
     Lua_register(LuaVM, 'memoryrecordhotkey_doHotkey', memoryrecordhotkey_doHotkey);
 
-    Lua_register(LuaVM, 'addresslist_getCount', addresslist_getCount);
-    Lua_register(LuaVM, 'addresslist_getMemoryRecord', addresslist_getMemoryRecord);
-    Lua_register(LuaVM, 'addresslist_getMemoryRecordByDescription', addresslist_getMemoryRecordByDescription);
-    Lua_register(LuaVM, 'addresslist_getMemoryRecordByID', addresslist_getMemoryRecordByID);
-    Lua_register(LuaVM, 'addresslist_createMemoryRecord', addresslist_createMemoryRecord);
-    Lua_register(LuaVM, 'addresslist_getSelectedRecords', addresslist_getSelectedRecords);
+    InitializeLuaAddresslist;
+
 
 
     Lua_register(LuaVM, 'createMemScan', createMemScan);
