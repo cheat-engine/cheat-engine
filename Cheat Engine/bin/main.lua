@@ -13,7 +13,8 @@ getCEVersion(): Returns a floating point value specifying the version of cheat e
 
 fullAccess(address,size): Changes the protection of a block of memory to writable and executable
 
-
+loadTable(filename, merge OPTIONAL): Loads a .ct or .cetrainer. If merge is provided and set to true it will not clear the old table
+saveTable(filename, protect OPTIONAL): Saves the current table. If protect is provided and set to true and the filename has the .CETRAINER extension, it will protect it from reading normally
 
 note: addresses can be strings, they will get interpreted by ce's symbolhandler
 
@@ -802,6 +803,13 @@ addresslist_createMemoryRecord(addresslist) : createTableEntry: creates an gener
 
 addresslist_getSelectedRecords(Addresslist):  Returns a table of all the selected records
 
+addresslist_doDescriptionChange(addresslist) : Will show the gui window to change the description of the selected entry
+addresslist_doAddressChange(addresslist) : Will show the gui window to change the address of the selected entry
+addresslist_doTypeChange(addresslist) : Will show the gui window to change the type of the selected entries
+addresslist_doValueChange(addresslist) : Will show the gui window to change the value of the selected entries
+
+addresslist_getSelectedRecord(addresslist) : Gets the main selected memoryrecord
+addresslist_setSelectedRecord(addresslist, memrec) : Sets the currently selected memoryrecord. This will unselect all other entries
 
 
 
@@ -1225,13 +1233,3 @@ d3dhook_textcontainer_getText(d3dhook_textcontainer)
 d3dhook_textcontainer_setText(d3dhook_textcontainer, string)
 --]]
 
---[[
-addresslist_doDescriptionChange(addresslist) : Will show the gui window to change the description of the selected entry
-addresslist_doAddressChange(addresslist) : Will show the gui window to change the address of the selected entry
-addresslist_doTypeChange(addresslist) : Will show the gui window to change the type of the selected entries
-addresslist_doValueChange(addresslist) : Will show the gui window to change the value of the selected entries
-
-addresslist_getSelectedRecord(addresslist) : Gets the main selected memoryrecord
-addresslist_setSelectedRecord(addresslist, memrec) : Sets the currently selected memoryrecord. This will unselect all other entries
-
---]]
