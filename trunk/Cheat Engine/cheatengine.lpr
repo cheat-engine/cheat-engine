@@ -31,7 +31,7 @@ uses
   frmUltimapUnit, DBK64SecondaryLoader, frmHotkeyExUnit, SymbolListHandler, networkInterface, networkInterfaceApi, networkConfig, LuaThread, LuaGraphic,
   LuaProgressBar, d3dhookUnit, LuaD3DHook, LuaWinControl, frmSetCrosshairUnit, StructuresFrm2, scrollTreeView, frmStructures2ElementInfoUnit,
   frmStructureLinkerUnit, LuaMemoryRecord, LuaStructure, LuaForm, regionex, LuaRegion, frmgroupscanalgoritmgeneratorunit, vartypestrings, LuaXMPlayer,
-  groupscancommandparser, LuaMemscan, LuaFoundlist, LuaRadioGroup, RemoteMemoryManager, LuaRasterImage, multilineinputqueryunit, LuaCheatComponent;
+  groupscancommandparser, LuaMemscan, LuaFoundlist, LuaRadioGroup, RemoteMemoryManager, LuaRasterImage, multilineinputqueryunit, LuaCheatComponent, LuaAddresslist;
 
 {$R cheatengine.res}
 {$R manifest.res}

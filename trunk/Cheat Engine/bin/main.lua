@@ -1224,3 +1224,14 @@ d3dhook_textcontainer_setFontMap(d3dhook_textcontainer, d3dhook_fontmap)
 d3dhook_textcontainer_getText(d3dhook_textcontainer)
 d3dhook_textcontainer_setText(d3dhook_textcontainer, string)
 --]]
+
+--[[
+addresslist_doDescriptionChange(addresslist) : Will show the gui window to change the description of the selected entry
+addresslist_doAddressChange(addresslist) : Will show the gui window to change the address of the selected entry
+addresslist_doTypeChange(addresslist) : Will show the gui window to change the type of the selected entries
+addresslist_doValueChange(addresslist) : Will show the gui window to change the value of the selected entries
+
+addresslist_getSelectedRecord(addresslist) : Gets the main selected memoryrecord
+addresslist_setSelectedRecord(addresslist, memrec) : Sets the currently selected memoryrecord. This will unselect all other entries
+
+--]]
