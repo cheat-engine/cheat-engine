@@ -47,8 +47,8 @@ object frmAutoInject: TfrmAutoInject
     TabOrder = 1
   end
   object MainMenu1: TMainMenu
-    left = 8
-    top = 72
+    left = 184
+    top = 120
     object File1: TMenuItem
       Caption = 'File'
       object miNewWindow: TMenuItem
@@ -103,18 +103,22 @@ object frmAutoInject: TfrmAutoInject
       Caption = 'Template'
       object Codeinjection1: TMenuItem
         Caption = 'Code injection'
+        ShortCut = 16457
         OnClick = Codeinjection1Click
       end
       object APIHook1: TMenuItem
         Caption = 'API Hook'
+        ShortCut = 49217
         OnClick = APIHook1Click
       end
       object Coderelocation1: TMenuItem
         Caption = 'Code relocation'
+        ShortCut = 16466
         OnClick = Coderelocation1Click
       end
       object CheatTablecompliantcodee1: TMenuItem
         Caption = 'Cheat Table framework code'
+        ShortCut = 49236
         OnClick = CheatTablecompliantcodee1Click
       end
     end
@@ -179,8 +183,8 @@ object frmAutoInject: TfrmAutoInject
     end
   end
   object closemenu: TPopupMenu
-    left = 40
-    top = 8
+    left = 232
+    top = 48
     object Close1: TMenuItem
       Caption = 'Close'
       OnClick = Close1Click

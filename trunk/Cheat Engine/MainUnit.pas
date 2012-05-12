@@ -6884,12 +6884,16 @@ var
 begin
   if memrec.isBeingEdited then
   begin
-    memrec.autoAssembleWindow.Visible := True;
+    if memrec.autoAssembleWindow.WindowState<>wsNormal then
+      memrec.autoAssembleWindow.WindowState:=wsNormal;
+
+    memrec.autoAssembleWindow.show;
     memrec.autoAssembleWindow.BringToFront;
   end
   else
   begin
     x := tfrmautoinject.Create(self);
+    x.memrec:=memrec;
     with x do
     begin
       //name:='AAEditScript';
@@ -6898,7 +6902,7 @@ begin
       editscript := True;
       editscript2 := True;
 
-      memrec := addresslist.selectedRecord;
+
       memrec.beginEdit;
       memrec.autoAssembleWindow := x;
       callbackroutine := changeScriptCallback;

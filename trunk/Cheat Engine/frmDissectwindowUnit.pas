@@ -6,7 +6,7 @@ interface
 
 uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, ComCtrls,StdCtrls,CEFuncProc, ExtCtrls, LResources;
+  Dialogs, ComCtrls,StdCtrls,CEFuncProc, ExtCtrls, LResources, Menus;
 
 type TCETimerhookdata=record
   processed: boolean;
@@ -18,6 +18,9 @@ type TCETimerhookdata=record
 end;
 
 type
+
+  { TfrmdissectWindow }
+
   TfrmdissectWindow = class(TForm)
     TreeView1: TTreeView;
     Button1: TButton;
@@ -357,6 +360,7 @@ begin
 
   end;
 end;
+
 
 initialization
   {$i frmDissectwindowUnit.lrs}
