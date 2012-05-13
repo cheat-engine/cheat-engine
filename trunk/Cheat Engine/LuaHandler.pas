@@ -928,6 +928,57 @@ begin
   result:=readIntegerEx(L, ProcessHandle);
 end;
 
+function readQwordEx(L: PLua_State; processhandle: thandle): integer; cdecl;
+var
+  parameters: Qword;
+  address: ptruint;
+
+  v: Qword;
+  r: dword;
+begin
+  result:=0;
+  try
+    parameters:=lua_gettop(L);
+    if parameters=1 then
+    begin
+      //ShowMessage(inttostr(lua_type(L, -1)));
+
+      if lua_isstring(L, -1) then
+      begin
+        if processhandle=GetCurrentProcess then
+          address:=selfsymhandler.getAddressFromNameL(lua_tostring(L,-1))
+        else
+          address:=symhandler.getAddressFromNameL(lua_tostring(L,-1))
+      end
+      else
+        address:=lua_tointeger(L,-1);
+
+      lua_pop(L, parameters);
+
+      v:=0;
+      if ReadProcessMemory(processhandle, pointer(address), @v, sizeof(v), r) then
+      begin
+        lua_pushinteger(L, v);
+        result:=1;
+      end;
+
+    end;
+  except
+    result:=0;
+    lua_pop(L, lua_gettop(L));
+  end;
+end;
+
+function readQwordLocal(L: PLua_State): integer; cdecl;
+begin
+  result:=readQwordEx(L, GetCurrentProcess);
+end;
+
+function readQword(L: PLua_State): integer; cdecl;
+begin
+  result:=readQwordEx(L, ProcessHandle);
+end;
+
 function readFloatEx(L: PLua_State; ProcessHandle: THandle): integer; cdecl;
 var
   parameters: integer;
@@ -1149,6 +1200,51 @@ end;
 function writeInteger(L: PLua_State): integer; cdecl;
 begin
   result:=writeIntegerEx(L, processhandle);
+end;
+
+function writeQwordEx(L: PLua_State; processhandle: THandle): integer; cdecl;
+var
+  parameters: Qword;
+  address: ptruint;
+
+  v: Qword;
+  r: dword;
+begin
+  result:=0;
+  try
+    parameters:=lua_gettop(L);
+    if parameters=2 then
+    begin
+      if lua_isstring(L, -2) then
+      begin
+        if processhandle=GetCurrentProcess then
+          address:=symhandler.getAddressFromNameL(lua_tostring(L,-2))
+        else
+          address:=symhandler.getAddressFromNameL(lua_tostring(L,-2))
+      end
+      else
+        address:=lua_tointeger(L,-2);
+
+      v:=lua_tointeger(L, -1);
+
+      lua_pop(L, parameters);
+      lua_pushboolean(L, WriteProcessMemory(processhandle, pointer(address), @v, sizeof(v), r));
+      result:=1;
+    end;
+  except
+    result:=0;
+    lua_pop(L, lua_gettop(L));
+  end;
+end;
+
+function writeQwordLocal(L: PLua_State): integer; cdecl;
+begin
+  result:=writeQwordEx(L, GetCurrentProcess);
+end;
+
+function writeQword(L: PLua_State): integer; cdecl;
+begin
+  result:=writeQwordEx(L, processhandle);
 end;
 
 function writeFloatEx(L: PLua_State; processhandle: THandle): integer; cdecl;
@@ -7491,19 +7587,23 @@ begin
     lua_register(LuaVM, 'readBytes', readbytes);
     lua_register(LuaVM, 'writeBytes', writebytes);
     lua_register(LuaVM, 'readInteger', readInteger);
+    lua_register(LuaVM, 'readQword', readQword);
     lua_register(LuaVM, 'readFloat', readFloat);
     lua_register(LuaVM, 'readDouble', readDouble);
     lua_register(LuaVM, 'readString', readString);
     lua_register(LuaVM, 'readIntegerLocal', readIntegerLocal);
+    lua_register(LuaVM, 'readQwordLocal', readQwordLocal);
     lua_register(LuaVM, 'readFloatLocal', readFloatLocal);
     lua_register(LuaVM, 'readDoubleLocal', readDoubleLocal);
     lua_register(LuaVM, 'readStringLocal', readStringLocal);
 
     lua_register(LuaVM, 'writeInteger', writeInteger);
+    lua_register(LuaVM, 'writeQword', writeQword);
     lua_register(LuaVM, 'writeFloat', writeFloat);
     lua_register(LuaVM, 'writeDouble', writeDouble);
     lua_register(LuaVM, 'writeString', writeString);
     lua_register(LuaVM, 'writeIntegerLocal', writeIntegerLocal);
+    lua_register(LuaVM, 'writeQwordLocal', writeQwordLocal);
     lua_register(LuaVM, 'writeFloatLocal', writeFloatLocal);
     lua_register(LuaVM, 'writeDoubleLocal', writeDoubleLocal);
     lua_register(LuaVM, 'writeStringLocal', writeStringLocal);
