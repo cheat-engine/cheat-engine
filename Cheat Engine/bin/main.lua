@@ -26,20 +26,24 @@ writeBytes(address, table) : Write the given bytes to the given address from a t
 
 
 readInteger(address) : Reads an integer from the specified address
+readQword(address): Reads a 64-bit integer from the specified address
 readFloat(address) : Reads a single precision floating point value from the specified address
 readDouble(address) : Reads a double precision floating point value from the specified address
 readString(address, maxlength, widechar OPTIONAL) : Reads a string till it encounters a 0-terminator. Maxlength is just so you won't freeze for too long, set to 6000 if you don't care too much. Set WideChar to true if it is encoded using a widechar formatting
 writeInteger(address,value) : Writes an integer to the specified address. Returns true on success
+writeQword(address, value): Write a 64-bit integer to the specified address
 writeFloat(address,value) : Writes a single precision floating point to the specified address. Returns true on success
 writeDouble(address,value) : Writes a double precision floating point to the specified address. Returns true on success
 writeString(address,text, widechar OPTIONAL) : Write a string to the specified address. Returns true on success
 
 readBytesLocal(address,bytecount, ReturnAsTable) : See readBytes but then it's for Cheat engine's memory
-readIntegerLocal(address) : Reads a integer from the specified address in CE's memory
+readIntegerLocal(address) : Reads an integer from the specified address in CE's memory
+readQwordLocal(address) : Reads a 64-bit integer from the specified address in CE's memory
 readFloatLocal(address) : Reads a single precision floating point value from the specified address in CE's memory
 readDoubleLocal(address) : Reads a double precision floating point value from the specified address in CE's memory
 readStringLocal(address, maxlength, widechar OPTIONAL)
 writeIntegerLocal(address,value) : Writes an integer to the specified address in CE's memory. Returns true on success
+writeQwordLocal(address,value) : Writes a 64-bit integer to the specified address in CE's memory. Returns true on success
 writeFloatLocal(address,value) : Writes a single precision floating point to the specified address in CE's memory. Returns true on success
 writeDoubleLocal(address,value) : Writes a double precision floating point to the specified address in CE's memory. Returns true on success
 writeStringLocal(address,string, widechar OPTIONAL)
