@@ -6022,7 +6022,10 @@ begin
     FreeAndNil(speedhack);
 
   if pluginhandler <> nil then
-    FreeAndNil(pluginhandler);
+  begin
+    pluginhandler.free;
+    pluginhandler:=nil;
+  end;
 
 end;
 

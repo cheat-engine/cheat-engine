@@ -1669,6 +1669,8 @@ begin
   finally
     pluginCS.Leave;
   end;
+
+  inherited destroy;
 end;
 
 constructor TPluginHandler.create;
