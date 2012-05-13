@@ -1127,7 +1127,6 @@ var modulename: string;
   dllpath: Tpathspecifier;
   pluginid: integer;
 begin
-{$ifndef net}
 
   if clbplugins.ItemIndex<>-1 then
   begin
@@ -1135,14 +1134,17 @@ begin
     modulename:=extractfilename(dllpath.path);
     deletedmodules.add(modulename);
 
-    Tpathspecifier(clbPlugins.Items.Objects[clbplugins.ItemIndex]).Free;
     clbPlugins.Items.Delete(clbplugins.ItemIndex);
+
+
 
 
     pluginid:=pluginhandler.GetPluginID(dllpath.path);
     pluginhandler.UnloadPlugin(pluginid);
+
+    dllpath.Free;
   end;
-{$endif}
+
 end;
 
 procedure TformSettings.tvMenuSelectionChange(Sender: TObject;
