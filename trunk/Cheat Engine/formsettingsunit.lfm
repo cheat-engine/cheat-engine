@@ -60,9 +60,9 @@ object formSettings: TformSettings
       Height = 468
       Top = 1
       Width = 622
-      ActivePage = Extra
+      ActivePage = Plugins
       Align = alClient
-      TabIndex = 6
+      TabIndex = 4
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -1014,53 +1014,53 @@ object formSettings: TformSettings
           TabOrder = 0
           object cbKernelQueryMemoryRegion: TCheckBox
             Left = 10
-            Height = 17
+            Height = 19
             Top = 2
-            Width = 157
+            Width = 159
             Caption = 'Query memory region routines'
             OnClick = cbKernelQueryMemoryRegionClick
             TabOrder = 0
           end
           object cbKernelReadWriteProcessMemory: TCheckBox
             Left = 10
-            Height = 17
+            Height = 19
             Top = 21
-            Width = 280
+            Width = 282
             Caption = 'Read/Write Process Memory  (Will cause slower scans)'
             OnClick = cbKernelQueryMemoryRegionClick
             TabOrder = 1
           end
           object cbKernelOpenProcess: TCheckBox
             Left = 10
-            Height = 17
+            Height = 19
             Top = 40
-            Width = 85
+            Width = 87
             Caption = 'Open Process'
             TabOrder = 2
           end
         end
         object cbProcessWatcher: TCheckBox
           Left = 1
-          Height = 17
+          Height = 19
           Top = 94
-          Width = 186
+          Width = 188
           Caption = 'Enable use of the Process Watcher'
           TabOrder = 1
         end
         object CheckBox3: TCheckBox
           Left = 7
-          Height = 17
+          Height = 19
           Top = 422
-          Width = 121
+          Width = 123
           Caption = 'Use APC to inject dll''s'
           TabOrder = 2
           Visible = False
         end
         object CheckBox4: TCheckBox
           Left = 7
-          Height = 17
+          Height = 19
           Top = 442
-          Width = 167
+          Width = 169
           Caption = 'Use APC to create new threads'
           TabOrder = 3
           Visible = False
