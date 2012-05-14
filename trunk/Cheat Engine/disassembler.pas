@@ -38,7 +38,7 @@ type
     function MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword): string; overload;
     function MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword;opperandsize:integer): string; overload;
 
-    function MODRM2(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword): string;
+    function MODRM2(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword;opperandsize:integer=0): string;
 
     function getReg(bt: byte): byte;
     function getmod(bt: byte): byte;
@@ -532,7 +532,7 @@ begin
 end;
 
 
-function TDisassembler.MODRM2(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword): string;
+function TDisassembler.MODRM2(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword;opperandsize:integer=0): string;
 var dwordptr: ^dword;
     regprefix: char;
     i: integer;
@@ -843,7 +843,7 @@ begin
       3:  begin
             case getrm(memory[modrmbyte]) of
               0:  case inst of
-                    0: if rex_w then result:='rax' else result:='eax';
+                    0: if rex_w or (opperandsize=64) then result:='rax' else result:='eax';
                     1: result:='ax';
                     2: result:='al';
                     3: result:='mm0';
@@ -851,7 +851,7 @@ begin
                   end;
 
               1:  case inst of
-                    0: if rex_w then result:='rcx' else result:='ecx';
+                    0: if rex_w or (opperandsize=64) then result:='rcx' else result:='ecx';
                     1: result:='cx';
                     2: result:='cl';
                     3: result:='mm1';
@@ -859,7 +859,7 @@ begin
                   end;
 
               2:  case inst of
-                    0: if rex_w then result:='rdx' else result:='edx';
+                    0: if rex_w or (opperandsize=64) then result:='rdx' else result:='edx';
                     1: result:='dx';
                     2: result:='dl';
                     3: result:='mm2';
@@ -867,7 +867,7 @@ begin
                   end;
 
               3:  case inst of
-                    0: if rex_w then result:='rbx' else result:='ebx';
+                    0: if rex_w or (opperandsize=64) then result:='rbx' else result:='ebx';
                     1: result:='bx';
                     2: result:='bl';
                     3: result:='mm3';
@@ -875,7 +875,7 @@ begin
                   end;
 
               4:  case inst of
-                    0: if rex_w then result:='rsp' else result:='esp';
+                    0: if rex_w or (opperandsize=64) then result:='rsp' else result:='esp';
                     1: result:='sp';
                     2: if rexprefix<>0 then result:='spl' else result:='ah';
                     3: result:='mm4';
@@ -883,7 +883,7 @@ begin
                   end;
 
               5:  case inst of
-                    0: if rex_w then result:='rbp' else result:='ebp';
+                    0: if rex_w or (opperandsize=64) then result:='rbp' else result:='ebp';
                     1: result:='bp';
                     2: if rexprefix<>0 then result:='bpl' else result:='ch';
                     3: result:='mm5';
@@ -891,7 +891,7 @@ begin
                   end;
 
               6:  case inst of
-                    0: if rex_w then result:='rsi' else result:='esi';
+                    0: if rex_w or (opperandsize=64) then result:='rsi' else result:='esi';
                     1: result:='si';
                     2: if rexprefix<>0 then result:='sil' else result:='dh';
                     3: result:='mm6';
@@ -899,7 +899,7 @@ begin
                   end;
 
               7:  case inst of
-                    0: if rex_w then result:='rdi' else result:='edi';
+                    0: if rex_w or (opperandsize=64) then result:='rdi' else result:='edi';
                     1: result:='di';
                     2: if rexprefix<>0 then result:='dil' else result:='bh';
                     3: result:='mm7';
@@ -907,7 +907,7 @@ begin
                   end;
 
               8: case inst of
-                    0: if rex_w then result:='r8' else result:='r8d';
+                    0: if rex_w or (opperandsize=64) then result:='r8' else result:='r8d';
                     1: result:='r8w';
                     2: result:='r8l';
                     3: result:='mm8';
@@ -915,7 +915,7 @@ begin
                  end;
 
               9: case inst of
-                   0: if rex_w then result:='r9' else result:='r9d';
+                   0: if rex_w or (opperandsize=64) then result:='r9' else result:='r9d';
                    1: result:='r9w';
                    2: result:='r9l';
                    3: result:='mm9';
@@ -923,7 +923,7 @@ begin
                  end;
 
              10: case inst of
-                   0: if rex_w then result:='r10' else result:='r10d';
+                   0: if rex_w or (opperandsize=64) then result:='r10' else result:='r10d';
                    1: result:='r10w';
                    2: result:='r10l';
                    3: result:='mm10';
@@ -931,7 +931,7 @@ begin
                  end;
 
              11: case inst of
-                   0: if rex_w then result:='r11' else result:='r11d';
+                   0: if rex_w or (opperandsize=64) then result:='r11' else result:='r11d';
                    1: result:='r11w';
                    2: result:='r11l';
                    3: result:='mm11';
@@ -939,7 +939,7 @@ begin
                  end;
 
              12: case inst of
-                   0: if rex_w then result:='r12' else result:='r12d';
+                   0: if rex_w or (opperandsize=64) then result:='r12' else result:='r12d';
                    1: result:='r12w';
                    2: result:='r12l';
                    3: result:='mm12';
@@ -947,7 +947,7 @@ begin
                  end;
 
              13: case inst of
-                   0: if rex_w then result:='r13' else result:='r13d';
+                   0: if rex_w or (opperandsize=64) then result:='r13' else result:='r13d';
                    1: result:='r13w';
                    2: result:='r13l';
                    3: result:='mm13';
@@ -955,7 +955,7 @@ begin
                  end;
 
              14: case inst of
-                   0: if rex_w then result:='r14' else result:='r14d';
+                   0: if rex_w or (opperandsize=64) then result:='r14' else result:='r14d';
                    1: result:='r14w';
                    2: result:='r14l';
                    3: result:='mm14';
@@ -963,7 +963,7 @@ begin
                  end;
 
              15: case inst of
-                   0: if rex_w then result:='r15' else result:='r15d';
+                   0: if rex_w or (opperandsize=64) then result:='r15' else result:='r15d';
                    1: result:='r15w';
                    2: result:='r15l';
                    3: result:='mm15';
@@ -994,7 +994,7 @@ end;
 
 function TDisassembler.MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword;opperandsize:integer): string;
 begin
-  result:=modrm2(memory,prefix,modrmbyte,inst,last);
+  result:=modrm2(memory,prefix,modrmbyte,inst,last, opperandsize);
   if (length(result)>0) and (result[1]='[') then
   begin
     case opperandsize of
@@ -10237,7 +10237,10 @@ begin
                       lastdisassembledata.isjump:=true;
                       lastdisassembledata.iscall:=true;
 
-                      lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last);
+                      if is64bit then
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,64)
+                      else
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,32);
 
                       inc(offset,last-1);
                     end;
@@ -10248,14 +10251,10 @@ begin
                       lastdisassembledata.opcode:='jmp';
                       lastdisassembledata.isjump:=true;
 
-                      if memory[1]>=$c0 then
-                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last) else
-                      begin
-                        if is64bit then
-                          lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,64)
-                        else
-                          lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,32);
-                      end;
+                      if is64bit then
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,64)
+                      else
+                        lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,32);
 
                       inc(offset,last-1);
                     end;
