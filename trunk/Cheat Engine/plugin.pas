@@ -196,7 +196,7 @@ type TExportedFunctions5 = record
   ExecuteKernelCode: pointer;
   UserdefinedInterruptHook: pointer;
   GetLuaState: pointer;
-
+  MainThreadCall: pointer;
 end;
 type PExportedFunctions5 = ^TExportedFunctions5;
 
@@ -1860,6 +1860,7 @@ begin
   exportedfunctions.ExecuteKernelCode:=@ExecuteKernelCode;
   exportedfunctions.UserdefinedInterruptHook:=@UserdefinedInterruptHook;
   exportedfunctions.GetLuaState:=@GetLuaState;
+  exportedfunctions.MainThreadCall:=@pluginsync;
 end;
 
 end.
