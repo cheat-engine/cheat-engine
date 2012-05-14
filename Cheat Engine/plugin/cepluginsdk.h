@@ -1,6 +1,6 @@
 /*
  cepluginsdk.h
- Updated December 21, 2010
+ Updated May 14, 2012
 
  v4.0.0
 */
@@ -437,10 +437,11 @@ typedef struct _ExportedFunctions
   CEP_MESSAGEDIALOG messageDialog;
   CEP_SPEEDHACK_SETSPEED speedhack_setSpeed;  
 
-//V5: Todo, implement function declaration
+//V5: Todo, implement function declarations
   VOID *ExecuteKernelCode;
   VOID *UserdefinedInterruptHook;
   VOID *GetLuaState;
+  VOID *MainThreadCall;
 
 } ExportedFunctions, *PExportedFunctions;
 
