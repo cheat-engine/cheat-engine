@@ -1,4 +1,4 @@
-unit cepluginsdk;
+unit cepluginsdk;        //more an api than sdk
 
 {$MODE Delphi}
 
@@ -171,7 +171,7 @@ type
  type TPluginFunction3=function(processid: dword; peprocess:ptruint; created: BOOL):integer; stdcall;
  type TPluginFunction4=function(section: integer):boolean; stdcall;
  type TPluginfunction5=procedure; stdcall;
- type TPluginfunction6OnPoup=function(selectedAddress: ptruint; addressofname: pointer):bool; stdcall;
+ type TPluginfunction6OnPopup=function(selectedAddress: ptruint; addressofname: pointer):bool; stdcall;
  type TPluginfunction6=function(selectedAddress: pptruint):bool; stdcall;
  type TPluginFunction7=procedure(address: ptruint; addressStringPointer: pointer; bytestringpointer: pointer; opcodestringpointer: pointer; specialstringpointer: pointer; textcolor: PColor); stdcall;
  type TPluginFunction8=procedure(line: ppchar; phase: TAutoAssemblerPhase); stdcall;
@@ -329,7 +329,10 @@ type Tspeedhack_setSpeed=function(speed: single): BOOL; stdcall;
 type TUserdefinedInterruptHook=function(interruptnr: integer; newCS: word; newEIP: system.qword; addressofjumpback: system.qword):boolean; stdcall;
 type TExecuteKernelCode=function(address: system.qword; parameters: system.qword): BOOL; stdcall;
 type TGetLoadedState=function: BOOLEAN; stdcall;
+type TGetLuaState=function: PLUA_State; stdcall;
 
+type TPluginFunc=function(parameters: pointer): pointer; //note, no stdcall. It's a "pascal" calling convention
+type TMainThreadCall=function(func: TPluginFunc; parameters: pointer): pointer; stdcall;
 
 type TPluginVersion =record
   version : integer; //write here the minimum version this dll is compatible with
@@ -517,7 +520,8 @@ type TExportedFunctions = record
   //version 5
   ExecuteKernelCode: TExecuteKernelCode;
   UserdefinedInterruptHook: TUserdefinedInterruptHook;
-  GetLuaState: pointer;
+  GetLuaState: TGetLuaState;
+  MainThreadCall: TMainThreadCall;
 
 
 end;
