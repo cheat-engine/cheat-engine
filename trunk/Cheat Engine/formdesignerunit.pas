@@ -421,7 +421,7 @@ begin
   begin
     if GlobalDesignHook.LookupRoot<>surface.Container then //deselect the components on the other surface
     begin
-      if TCEform(GlobalDesignHook.LookupRoot).designsurface<>nil then
+      if (TCEform(GlobalDesignHook.LookupRoot).designsurface<>nil) and (TCEform(GlobalDesignHook.LookupRoot).designsurface.Selector<>nil) then
         TCEform(GlobalDesignHook.LookupRoot).designsurface.Selector.ClearSelection;
     end;
 
