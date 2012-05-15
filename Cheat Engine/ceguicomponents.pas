@@ -1068,7 +1068,7 @@ begin
     if designsurface=nil then
     begin
       //still here so the surface needs to be created for this form
-      designsurface:=TJvDesignSurface.Create(self);
+      designsurface:=TJvDesignSurface.Create(nil);
 
       designsurface.Container:=self;
       designsurface.ControllerClass:=TJvDesignController;;
