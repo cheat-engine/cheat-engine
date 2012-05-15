@@ -329,7 +329,7 @@ type Tspeedhack_setSpeed=function(speed: single): BOOL; stdcall;
 type TUserdefinedInterruptHook=function(interruptnr: integer; newCS: word; newEIP: system.qword; addressofjumpback: system.qword):boolean; stdcall;
 type TExecuteKernelCode=function(address: system.qword; parameters: system.qword): BOOL; stdcall;
 type TGetLoadedState=function: BOOLEAN; stdcall;
-type TGetLuaState=function: PLUA_State; stdcall;
+type TGetLuaState=function: pointer; stdcall;
 
 type TPluginFunc=function(parameters: pointer): pointer; //note, no stdcall. It's a "pascal" calling convention
 type TMainThreadCall=function(func: TPluginFunc; parameters: pointer): pointer; stdcall;
