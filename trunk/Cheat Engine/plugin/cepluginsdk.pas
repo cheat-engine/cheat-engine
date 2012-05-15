@@ -197,7 +197,11 @@ type Tfunction6=record
 end;
 type TFunction3=TFunction2;
 type TFunction4=TFunction2;
-type TFunction5=TFunction1;
+type TFunction5=record
+  name: pchar;
+  callbackroutine: TPluginfunction5;
+  shortcut: pchar;
+end;
 type TFunction7=TFunction2;
 type TFunction8=TFunction2;
 
