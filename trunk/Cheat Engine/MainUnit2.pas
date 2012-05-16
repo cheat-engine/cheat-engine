@@ -448,16 +448,23 @@ begin
           if reg.ValueExists('Ask for replace with NOPS') then
             askforreplacewithnops.checked:=reg.readBool('Ask for replace with NOPS');
 
-          try cbFastscan.checked:=reg.ReadBool('Fastscan on by default'); except end;
-          try checkbox1.Checked:=reg.readbool('Use Anti-debugdetection'); except end;
-          try cbhandlebreakpoints.Checked:=reg.ReadBool('Handle unhandled breakpoints'); except end;
+          if reg.ValueExists('Fastscan on by default') then
+            cbFastscan.checked:=reg.ReadBool('Fastscan on by default');
+
+          if reg.ValueExists('Use Anti-debugdetection') then
+            checkbox1.Checked:=reg.readbool('Use Anti-debugdetection');
+
+          if reg.ValueExists('Handle unhandled breakpoints') then
+            cbhandlebreakpoints.Checked:=reg.ReadBool('Handle unhandled breakpoints');
 
           if cbFastscan.Checked then mainform.cbFastscan.Checked:=true else mainform.cbFastScan.Checked:=false;
 
-          try cbsimplecopypaste.checked:=reg.readbool('Simple copy/paste'); except end;
+          if reg.ValueExists('Simple copy/paste') then
+            cbsimplecopypaste.checked:=reg.readbool('Simple copy/paste');
 
+          if reg.ValueExists('Hardware breakpoints') then
+            rbDebugAsBreakpoint.Checked:=reg.readbool('Hardware breakpoints');
 
-          try rbDebugAsBreakpoint.Checked:=reg.readbool('Hardware breakpoints'); except end;
           try rbInt3AsBreakpoint.checked:=not reg.readbool('Hardware breakpoints'); except end;
 
           try cbUpdatefoundList.Checked:=reg.readbool('Update Foundaddress list'); except end;
