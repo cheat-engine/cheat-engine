@@ -11,7 +11,7 @@ interface
 
 uses
   Classes, Controls, SysUtils, ceguicomponents, forms, lua, lualib, lauxlib,
-  comctrls, CEFuncProc, typinfo;
+  comctrls, StdCtrls, CEFuncProc, typinfo;
 
 type
   TLuaCaller=class
@@ -23,6 +23,7 @@ type
       luaroutineindex: integer;
       owner: TPersistent;
       procedure NotifyEvent(sender: TObject);
+      procedure SelectionChangeEvent(Sender: TObject; User: boolean);
       procedure MouseEvent(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
       procedure MouseMoveEvent(Sender: TObject; Shift: TShiftState; X, Y: Integer);
       procedure KeyPressEvent(Sender: TObject; var Key: char);
@@ -36,7 +37,6 @@ type
       procedure D3DClickEvent(renderobject: TObject; x,y: integer);
       function D3DKeyEvent(VirtualKey: dword; char: pchar): boolean;
 
-
       procedure pushFunction;
 
 
@@ -49,6 +49,7 @@ procedure CleanupLuaCall(event: TMethod);   //cleans up a luacaller class if it 
 procedure setMethodProperty(O: TObject; propertyname: string; method: TMethod);
 
 function LuaCaller_NotifyEvent(L: PLua_state): integer; cdecl;
+function LuaCaller_SelectionChangeEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_CloseEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_MouseEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_MouseMoveEvent(L: PLua_state): integer; cdecl;
@@ -104,6 +105,27 @@ begin
     lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(luaroutine))
   else
     lua_rawgeti(Luavm, LUA_REGISTRYINDEX, luaroutineindex)
+end;
+
+procedure TLuaCaller.SelectionChangeEvent(Sender: TObject; User: boolean);
+var oldstack: integer;
+begin
+  Luacs.Enter;
+  try
+    oldstack:=lua_gettop(Luavm);
+
+    if canRun then
+    begin
+      PushFunction;
+      lua_pushlightuserdata(Luavm, sender);
+      lua_pushboolean(Luavm, User);
+
+      lua_pcall(Luavm, 2,0,0); //procedure(sender)
+    end;
+  finally
+    lua_settop(Luavm, oldstack);
+    luacs.leave;
+  end;
 end;
 
 procedure TLuaCaller.NotifyEvent(sender: TObject);
@@ -430,6 +452,33 @@ begin
   else
     lua_pop(L, lua_gettop(L));
 end;
+
+function LuaCaller_SelectionChangeEvent(L: PLua_state): integer; cdecl;
+var
+  parameters: integer;
+  m: TMethod;
+  sender: TObject;
+  user: boolean;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);;
+
+  if parameters=1 then
+  begin
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+
+    sender:=lua_touserdata(L, 1);
+    user:=lua_toboolean(L, 2);
+
+    lua_pop(L, lua_gettop(L));
+
+    TSelectionChangeEvent(m)(sender, user);
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
+
 
 function LuaCaller_CloseEvent(L: PLua_state): integer; cdecl;
 var

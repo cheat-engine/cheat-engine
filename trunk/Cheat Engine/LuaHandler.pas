@@ -3946,6 +3946,9 @@ begin
         if pi.PropType.Name ='TNotifyEvent' then
           lua_pushcclosure(L, LuaCaller_NotifyEvent,2)
         else
+        if pi.PropType.Name ='TSelectionChangeEvent' then
+          lua_pushcclosure(L, LuaCaller_SelectionChangeEvent,2)
+        else
         if pi.PropType.Name ='TCloseEvent' then
           lua_pushcclosure(L, LuaCaller_CloseEvent,2)
         else
@@ -4043,6 +4046,9 @@ begin
       //it's a valid method property
       if pi.PropType.Name ='TNotifyEvent' then
         m:=tmethod(TNotifyEvent(lc.NotifyEvent))
+      else
+      if pi.PropType.Name ='TSelectionChangeEvent' then
+        m:=tmethod(TSelectionChangeEvent(lc.SelectionChangeEvent))
       else
       if pi.PropType.Name ='TCloseEvent' then
         m:=tmethod(TCloseEvent(lc.CloseEvent))
