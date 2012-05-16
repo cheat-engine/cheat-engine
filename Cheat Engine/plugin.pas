@@ -1415,6 +1415,10 @@ begin
   result:='';
   if uppercase(extractfileext(dllname))<>'.DLL' then raise exception.Create(Format(rsErrorLoadingOnlyDLLFilesAreAllowed, [dllname]));
   hmodule:=loadlibrary(pchar(dllname));
+
+  if hmodule=0 then
+    raise exception.create('The plugin dll could not be loaded:'+inttostr(getlasterror));
+
   GetVersion:=getprocaddress(hmodule,'CEPlugin_GetVersion');
   if not assigned(GetVersion) then
     getVersion:=getprocaddress(hmodule,'GetVersion');
