@@ -355,7 +355,7 @@ type TCEListBox=class(TCustomListBox)
  //   property OnMouseWheelDown;
  //   property OnMouseWheelUp;
     property OnResize;
-  //  property OnSelectionChange;
+    property OnSelectionChange;
  //   property OnShowHint;
 //    property OnStartDrag;
 //    property OnUTF8KeyPress;
@@ -1172,6 +1172,9 @@ begin
   else
   if propinfo.PropType=TypeInfo(TKeyPressEvent) then
     SetMethodProp(instance, propinfo, TMethod(TKeyPressEvent(t.KeyPressEvent)))
+  else
+  if propinfo.PropType=TypeInfo(TSelectionChangeEvent) then
+    SetMethodProp(instance, propinfo, TMethod(TSelectionChangeEvent(t.SelectionChangeEvent)))
   else
     SetMethodProp(instance, propinfo, TMethod(TNotifyEvent(t.NotifyEvent)));
 

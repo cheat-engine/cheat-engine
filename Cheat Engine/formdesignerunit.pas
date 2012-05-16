@@ -536,6 +536,22 @@ begin
     end;
   end
   else
+  if ATypeInfo.Name ='TSelectionChangeEvent' then
+  begin
+    result:=TMethod(TSelectionChangeEvent(f.SelectionChangeEvent));
+
+    if NeedsToBeCreated then
+    begin
+      with mainform.frmLuaTableScript.assemblescreen.Lines do
+      begin
+        Add('function '+name+'(sender, user)');
+        Add('');
+        Add('end');
+        Add('');
+      end;
+    end;
+  end
+  else
   if ATypeInfo.Name ='TCloseEvent' then
   begin
     result:=TMethod(TCloseEvent(f.CloseEvent));
