@@ -854,10 +854,10 @@ type TPluginHandler=class
     procedure EnablePlugin(pluginid: integer);
     procedure DisablePlugin(pluginid: integer);
     procedure handleAutoAssemblerPlugin(line: ppchar; phase: integer);
-    procedure handledisassemblerContextPopup(address: dword); 
-    procedure handledisassemblerplugins(address: dword; addressStringPointer: pointer; bytestringpointer: pointer; opcodestringpointer: pointer; specialstringpointer: pointer; textcolor: PColor);
+    procedure handledisassemblerContextPopup(address: ptruint);
+    procedure handledisassemblerplugins(address: ptruint; addressStringPointer: pointer; bytestringpointer: pointer; opcodestringpointer: pointer; specialstringpointer: pointer; textcolor: PColor);
     function handledebuggerplugins(devent:PDebugEvent):integer;
-    function handlenewprocessplugins(processid: dword; peprocess:dword; created: boolean):boolean;
+    function handlenewprocessplugins(processid: dword; peprocess:ptruint; created: boolean):boolean;
     function handlechangedpointers(section: integer):boolean;
     function registerfunction(pluginid,functiontype:integer; init: pointer):integer;
     function unregisterfunction(pluginid,functionid: integer): boolean;
@@ -955,7 +955,7 @@ begin
 
            newmenuitem:=tmenuitem.Create(mainform);
            newmenuitem.Caption:=f0.name;
-           newmenuitem.Tag:=dword(f0);
+           newmenuitem.Tag:=ptruint(f0);
            newmenuitem.onclick:=mainform.plugintype0click;
            mainform.Plugins1.Add(newmenuitem);
 
@@ -980,7 +980,7 @@ begin
 
            newmenuitem:=tmenuitem.Create(mainform);
            newmenuitem.Caption:=f1.name;
-           newmenuitem.Tag:=dword(f1);
+           newmenuitem.Tag:=ptruint(f1);
            newmenuitem.onclick:=memorybrowser.plugintype1click;
 
            if plugins[pluginid].pluginversion>1 then
@@ -1054,7 +1054,7 @@ begin
 
            newmenuitem:=tmenuitem.Create(mainform);
            newmenuitem.Caption:=f5.name;
-           newmenuitem.Tag:=dword(f5);
+           newmenuitem.Tag:=ptruint(f5);
            newmenuitem.onclick:=mainform.plugintype5click;
 
            try
@@ -1062,6 +1062,7 @@ begin
            except
 
            end;
+
            mainform.Plugins2.Add(newmenuitem);
 
            f5.menuitem:=newmenuitem;
@@ -1070,6 +1071,9 @@ begin
            plugins[pluginid].Registeredfunctions5[length(plugins[pluginid].Registeredfunctions5)-1]:=f5;
 
            result:=plugins[pluginid].nextid;
+
+
+
 
          end;
 
@@ -1084,7 +1088,7 @@ begin
 
            newmenuitem:=tmenuitem.Create(memorybrowser);
            newmenuitem.Caption:=f6.name;
-           newmenuitem.Tag:=dword(f6);
+           newmenuitem.Tag:=ptruint(f6);
            newmenuitem.onclick:=memorybrowser.plugintype6click;
 
            memorybrowser.debuggerpopup.Items.Add(newmenuitem);
@@ -1574,7 +1578,7 @@ begin
   end;
 end;
 
-procedure TPluginHandler.handledisassemblerContextPopup(address: dword);
+procedure TPluginHandler.handledisassemblerContextPopup(address: ptruint);
 var i,j: integer;
     addressofmenuitemstring: pchar;
     s: string;
@@ -1594,7 +1598,7 @@ begin
   end;
 end;
 
-procedure TPluginHandler.handledisassemblerplugins(address: dword; addressStringPointer: pointer; bytestringpointer: pointer; opcodestringpointer: pointer; specialstringpointer: pointer; textcolor: PColor);
+procedure TPluginHandler.handledisassemblerplugins(address: ptruint; addressStringPointer: pointer; bytestringpointer: pointer; opcodestringpointer: pointer; specialstringpointer: pointer; textcolor: PColor);
 var i,j: integer;
 begin
   pluginCS.Enter;
@@ -1621,7 +1625,7 @@ begin
   end;
 end;
 
-function TPluginHandler.handlenewprocessplugins(processid: dword; peprocess:dword; created: boolean):boolean;
+function TPluginHandler.handlenewprocessplugins(processid: dword; peprocess:ptruint; created: boolean):boolean;
 var i,j: integer;
 begin
   result:=true;
