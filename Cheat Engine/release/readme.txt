@@ -6,7 +6,18 @@ Custom types can now do an unknown initial value scan
 Fixed the auto assembler highlighter from hiding some text while typing
 Fixed the auto assembler highlighter from not showing hexadecimal values as hex starting with A to F
 Fixed global debug from crashing in 64-bit (with dbvm)
+Fixed dbvm from not working on several systems (freeze)
 Fixed notification when closing and you had some changes
+Fixed the rescan of the structure spider not working at all
+Fixed several disassembler and assembler instructions
+Fixed several plugin-system related bugs
+Fixed aobscan for 64-bit
+Fixed displaying the registers in 64-bit when using "find what xxx this address"
+Fixed the stackview when single stepping through the code
+Fixed several lua function, including createhotkey
+Fixed the assembler not dealing well with names with a - in it. (like the tutorial)
+
+
 
 
 Additions and changes:
@@ -20,11 +31,15 @@ Addresslist entries can have the notation +xxx and -xxx, which will calculate th
 The structure dissect has been rewritten from scratch, and the functions have been exposed to lua as well
 Added a new step to the tutorial (step9) showing how to deal with shared code
 Made the tutorial translatable as well
-Added a new trainer type which generates trainer that are a lot smaller in size
+Added a new trainer type which generates trainer that are a lot smaller in size (tiny)
 Added a groupscan type which you can use to scan for different things in the same block
-If you boot up with dbvm you do not need to sign the driver in 64-bit
+If you boot up with dbvm you do not need to sign the driver in 64-bit to load it
 Custom types now support handling as a floating point value
+Added debug register states to the threadview and made the threadview window capable of changing registers
+Added remote scanning with ce for different systems. The server just needs to be running, and a 1GBPs network connection or faster is recommended
+Changed the add/change address window to be more compact and make dealing with offsets easier
 Lots of new lua functions
+
 
 How to use:
 Theres a tutorial program included with Cheat Engine,
