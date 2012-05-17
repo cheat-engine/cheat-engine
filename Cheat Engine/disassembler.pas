@@ -7460,7 +7460,7 @@ begin
               description:='pop stack into eflags register';
               if $66 in prefix2 then lastdisassembledata.opcode:='popf' else
               begin
-                if rex_w then
+                if is64bit then
                   lastdisassembledata.opcode:='popfq'
                 else
                   lastdisassembledata.opcode:='popfd';

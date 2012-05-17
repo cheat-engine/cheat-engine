@@ -6,7 +6,7 @@ interface
 
 uses dialogs,LCLIntf,sysutils,imagehlp;
 
-const opcodecount=1080; //I wish there was a easier way than to handcount
+const opcodecount=1081; //I wish there was a easier way than to handcount
 
 
 type TTokenType=(
@@ -93,6 +93,8 @@ type topcode=record
   bytes:byte;
   bt1,bt2,bt3: byte;
   norexw: boolean;
+  invalidin64bit: boolean;
+  invalidin32bit: boolean;
  // RexPrefixOffset: byte; //if specified specifies which byte should be used for the rexw (e.g f3 before rex )
 end;
 
@@ -1033,7 +1035,8 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'POPALL';bytes:1;bt1:$61),
 
   (mnemonic:'POPF';bytes:2;bt1:$66;bt2:$9d),
-  (mnemonic:'POPFD';bytes:1;bt1:$9d),
+  (mnemonic:'POPFD';bytes:1;bt1:$9d; invalidin64bit: true),
+  (mnemonic:'POPFQ';bytes:1;bt1:$9d; invalidin32bit: true),
 
   (mnemonic:'POR';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$eb),
   (mnemonic:'POR';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$eb),
@@ -1181,12 +1184,12 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'PUSH';paramtype1:par_fs;bytes:2;bt1:$0f;bt2:$a0),
   (mnemonic:'PUSH';paramtype1:par_gs;bytes:2;bt1:$0f;bt2:$a8),
 
-  (mnemonic:'PUSHA';bytes:2;bt1:$66;bt2:$60),
-  (mnemonic:'PUSHAD';bytes:1;bt1:$60),
-  (mnemonic:'PUSHALL';bytes:1;bt1:$60),
+  (mnemonic:'PUSHA';bytes:2;bt1:$66;bt2:$60;invalidin64bit: true),
+  (mnemonic:'PUSHAD';bytes:1;bt1:$60;invalidin64bit: true),
+  (mnemonic:'PUSHALL';bytes:1;bt1:$60;invalidin64bit: true),
   (mnemonic:'PUSHF';bytes:2;bt1:$66;bt2:$9c),
-  (mnemonic:'PUSHFD';bytes:1;bt1:$9c),
-  (mnemonic:'PUSHFQ';bytes:1;bt1:$9c),
+  (mnemonic:'PUSHFD';bytes:1;bt1:$9c;invalidin64bit: true),
+  (mnemonic:'PUSHFQ';bytes:1;bt1:$9c;invalidin32bit: true),
 
   (mnemonic:'PXOR';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$ef),
   (mnemonic:'PXOR';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$ef),
@@ -3172,7 +3175,10 @@ var tokens: ttokens;
 
     tempstring: string;
     overrideShort, overrideLong, overrideFar: boolean;
+
+    is64bit: boolean;
 begin
+  is64bit:=processhandler.is64Bit;
 
 
   {$ifdef checkassembleralphabet}
@@ -3523,6 +3529,12 @@ begin
   while j<=opcodecount do
   begin
     if opcodes[j].mnemonic<>tokens[mnemonic] then exit;
+
+    if (opcodes[j].invalidin32bit and (not is64bit)) or (opcodes[j].invalidin64bit and (is64bit)) then
+    begin
+      inc(j);
+      continue;
+    end;
 
 
     //no param
