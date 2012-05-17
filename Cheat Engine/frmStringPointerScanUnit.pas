@@ -80,7 +80,7 @@ type
   public
     vartype: TVariableType;
     procedure clearPointerCache;
-    function getPointerRecord(index: qword): PPointerRecord;
+    function getPointerRec(index: qword): PPointerRecord;
     function getAddressFromPointerRecord(p: ppointerrecord; baseaddress: ptruint): ptruint;
     function getStringFromPointerRecord(p: ppointerrecord; address: ptruint): string;
     function getStringAndAddress(index: qword; var address: ptruint; out p: PPointerRecord): string;
@@ -376,7 +376,7 @@ begin
   pointermap.Clear;
 end;
 
-function TPointerfileReader.getPointerRecord(index: qword): PPointerRecord;
+function TPointerfileReader.getPointerRec(index: qword): PPointerRecord;
 var blocksize: integer;
 begin
   result:=nil;
@@ -503,7 +503,7 @@ end;
 
 function TPointerfileReader.getStringAndAddress(index: qword; var address: ptruint; out p: PPointerRecord): string;
 begin
-  p:=getPointerRecord(index);
+  p:=getPointerRec(index);
   if p<>nil then
     result:=getStringFromPointerRecord(p, address);
 
@@ -824,7 +824,7 @@ begin
   try
     for i:=0 to pointerfilereader.count-1 do
     begin
-      p:=pointerfilereader.getPointerRecord(i);
+      p:=pointerfilereader.getPointerRec(i);
 
       case vartype of
         vtByte: passed:=checkByte(p);
@@ -972,9 +972,13 @@ begin
       self.regex:=GenerateRegExprEngine(pchar(regexstr), regflags);
     end;
   end;
+
+  deletefile(outputfilename+'.temp');
+
   outputfile:=TFileStream.Create(outputfilename+'.temp', fmCreate or fmShareDenyNone);
   outputfile.Free;     //so it can be reopened by other processes
-  outputfile:=TFileStream.create(Outputfilename+'.temp,', fmOpenWrite or fmShareDenyNone);
+  outputfile:=TFileStream.create(Outputfilename+'.temp', fmOpenWrite or fmShareDenyNone);
+
 
   lastwrite:=GetTickCount;
 
@@ -1652,7 +1656,7 @@ end;
 procedure TfrmStringPointerScan.ListView1DblClick(Sender: TObject);
 begin
   if listview1.Selected<>nil then
-    MemoryBrowser.hexview.address:=pointerfilereader.getAddressFromPointerRecord(pointerfilereader.getPointerRecord(listview1.Selected.Index), address);
+    MemoryBrowser.hexview.address:=pointerfilereader.getAddressFromPointerRecord(pointerfilereader.getPointerRec(listview1.Selected.Index), address);
 end;
 
 procedure TfrmStringPointerScan.OpenPointerfile(filename: string);
@@ -1811,8 +1815,14 @@ var baseaddress: ptruint;
 
   oldpointerfile: string;
 begin
+  vartype:=vtPointer;
   if (scanner=nil) and (rescanner=nil) then
   begin
+    if pointerfilereader<>nil then
+      oldpointerfile:=pointerfilereader.filename
+    else
+      oldpointerfile:='';
+
     cleanup;
 
     baseaddress:=StrToQWordEx('$'+edtBase.text);
@@ -1905,13 +1915,11 @@ begin
       else
       begin
         //next scan aka Rescan
+        pointerfilereader:=TPointerfileReader.create(oldpointerfile);
+        pointerfilereader.vartype:=vartype;
+
         listview1.items.count:=0;
-
-        oldpointerfile:=pointerfilereader.filename;
-        freeandnil(pointerfilereader); //free it so it can be overwritten when needed
-
-
-        rescanner:=trescan.create(false, address, address2, cbpointerinrange.checked, pointerstart, pointerstop, combotype.itemindex=0, cbCaseSensitive.checked, cbMustBeStart.checked, edtRegExp.text, diffkind, vartype, pointerfilereader.filename, savedialog1.filename , self);
+        rescanner:=trescan.create(false, address, address2, cbpointerinrange.checked, pointerstart, pointerstop, rbStringscan.checked, cbCaseSensitive.checked, cbMustBeStart.checked, edtRegExp.text, diffkind, vartype, oldpointerfile, savedialog1.filename , self);
 
       end;
       btnScan.caption:='Stop';
