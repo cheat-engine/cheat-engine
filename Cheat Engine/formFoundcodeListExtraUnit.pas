@@ -220,8 +220,11 @@ begin
   maxrightwidth:=lblRBP.width;
   maxrightwidth:=max(maxrightwidth, lblRSP.Width);
   maxrightwidth:=max(maxrightwidth, lblRIP.Width);
-  maxrightwidth:=max(maxrightwidth, lblR10.Width);
-  maxrightwidth:=max(maxrightwidth, lblR13.Width);
+  if lblR10<>nil then
+  begin
+    maxrightwidth:=max(maxrightwidth, lblR10.Width);
+    maxrightwidth:=max(maxrightwidth, lblR13.Width);
+  end;
 
   lblRBP.Left:=(panel6.ClientWidth-sbShowFloats.width)-maxrightwidth-lblRAX.Left;
   lblRSP.left:=lblRBP.left;
