@@ -471,7 +471,8 @@ begin
 
 end;
 
-resourcestring strcouldntwrite='The memory at this address couldn''t be written';
+resourcestring
+strcouldntwrite='The memory at this address couldn''t be written';
 rsDelete = 'Delete';
 rsNewName = 'New name';
 rsGiveTheNewNameOfThisEntry = 'Give the new name of this entry';
@@ -479,6 +480,9 @@ rsResumeTheGame = 'Resume the game';
 rsPaused = 'paused';
 rsPauseTheGame = 'Pause the game';
 rsTheMemoryAtThisAddressCouldnTBeWritten = 'The memory at this address couldn''t be written';
+rsAreYouSureYouWishToDeleteTheseEntries = 'Are you sure you wish to delete these entries?';
+
+
 procedure TAdvancedOptions.miReplaceWithNopsClick(Sender: TObject);
 var codelength: integer;
     written: dword;
@@ -537,9 +541,13 @@ procedure TAdvancedOptions.Remove1Click(Sender: TObject);
 var i,j,index: integer;
   multidelete: boolean;
 begin
+  multidelete:=codelist2.SelCount>1;
+  if multidelete then
+    if messagedlg(rsAreYouSureYouWishToDeleteTheseEntries, mtConfirmation, [mbyes, mbno], 0) = mrno then exit;
+
+
   codelist2.Items.BeginUpdate;
   try
-    multidelete:=codelist2.SelCount>1;
     while codelist2.SelCount>0 do
     begin
       index:=codelist2.Selected.Index;

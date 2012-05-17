@@ -56,7 +56,7 @@ begin
 end;
 
 procedure TfrmStructureLinker.FormCreate(Sender: TObject);
-var i: integer;
+var i,j: integer;
 begin
   //fill the list with structures
   setlength(struct, DissectedStructs.Count);
@@ -66,6 +66,18 @@ begin
   begin
     struct[i].s:=TDissectedStruct(DissectedStructs[i]);
     sgStructureAddress.Cells[0,i+1]:=TDissectedStruct(DissectedStructs[i]).name;
+
+    //go through the frmStructure list and see if it is already defined
+    for j:=0 to frmStructures2.count-1 do
+      if TfrmStructures2(frmStructures2[j]).mainStruct=TDissectedStruct(DissectedStructs[i]) then
+      begin
+        //get the first address
+        if TfrmStructures2(frmStructures2[j]).columnCount>0 then //should always be true, but check anyhow
+        begin
+          sgStructureAddress.Cells[1,i+1]:=IntToHex(TfrmStructures2(frmStructures2[j]).columns[0].Address,8);
+          break;
+        end;
+      end;
   end;
 
 end;
