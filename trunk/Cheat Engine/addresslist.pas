@@ -1652,7 +1652,7 @@ constructor TAddresslist.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  ShowHint:=true;
+ // ShowHint:=true;
 
   treeview:=TTreeviewWithScroll.create(self); //TTreeview.create(self);
 
@@ -1667,7 +1667,7 @@ begin
   treeview.HideSelection:=false;
 
   treeview.ShowButtons:=true;
-  treeview.ShowHint:=true;
+ // treeview.ShowHint:=true;
 
 
 
