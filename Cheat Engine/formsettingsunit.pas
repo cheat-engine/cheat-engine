@@ -617,11 +617,14 @@ begin
 
 
       {$endif}
-
-      reg.WriteBool('Don''t use tempdir',cbDontusetempdir.checked);
-      reg.WriteString('Scanfolder',edtTempScanFolder.Text);
       dontusetempdir:=cbDontusetempdir.checked;
-      tempdiralternative:=edtTempScanFolder.text;
+      tempdiralternative:=trim(edtTempScanFolder.text);
+
+      tempdiralternative:=IncludeTrailingPathDelimiter(tempdiralternative);
+
+
+      reg.WriteBool('Don''t use tempdir',dontusetempdir);
+      reg.WriteString('Scanfolder',tempdiralternative);
 
 
       reg.WriteBool('Use dbk32 QueryMemoryRegionEx',cbKernelQueryMemoryRegion.checked);
