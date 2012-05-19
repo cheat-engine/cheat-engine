@@ -37,7 +37,7 @@ implementation
 uses Unit4, Unit9;
 
 resourcestring
-  rsAwYouReDeathLetMeReviveYou = 'Aw, you''re death! Let me revive you';
+  rsAwYouReDeathLetMeReviveYou = 'Aw, you''re dead! Let me revive you';
   rsStep7CodeInjectionPW = 'Step 7: Code Injection: (PW=%s)';
   rsTryAgain8 = 'Code injections too tough? No problem, memory scanning and basic pointers should be enough to get you experienced enough and you can always '
     +'try the tutorial later. Are you sure you want to quit?';
