@@ -6060,16 +6060,12 @@ var guid: TGUID;
     usedtempdir: string;
 begin
   CreateGUID(guid);
-  if (length(tempdiralternative)>2) and dontusetempdir then
-  begin
-    usedtempdir:=tempdiralternative;
-
-    tempdiralternative:=trim(tempdiralternative);
-    if tempdiralternative[length(tempdiralternative)]<>pathdelim then
-      tempdiralternative:=tempdiralternative+pathdelim;
-  end
+  if (length(trim(tempdiralternative))>2) and dontusetempdir then
+    usedtempdir:=trim(tempdiralternative)
   else
     usedtempdir:=GetTempDir;
+
+  usedtempdir:=IncludeTrailingPathDelimiter(usedtempdir);
 
   fScanResultFolder:=usedtempdir+'Cheat Engine'+pathdelim;
 
