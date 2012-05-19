@@ -4004,41 +4004,50 @@ var baseaddress: ptruint;
   sname: string;
   n: ttreenode;
   name: string;
+
+  i: integer;
 begin
-  n:=tvStructureView.Selected;
-  if n<>nil then
+//  n:=tvStructureView.Selected;
+
+  for i:=0 to tvStructureView.SelectionCount-1 do
   begin
-    element:=getStructElementFromNode(n);
-    if element<>nil then
+    n:=tvStructureView.Selections[i];
+
+    if n<>nil then
     begin
-      baseaddress:=0;
-      getPointerFromNode(n, getFocusedColumn, baseaddress, offsetlist);
-      if baseaddress<>0 then
+      element:=getStructElementFromNode(n);
+      if element<>nil then
       begin
-        //add this baseaddress with it's offsetlist to the addresslist
-
-        sname:=element.Name;
-        while (n<>nil) and (n.level>=1) do
+        baseaddress:=0;
+        getPointerFromNode(n, getFocusedColumn, baseaddress, offsetlist);
+        if baseaddress<>0 then
         begin
-          element2:=getStructElementFromNode(n);
-          if element2<>nil then
-            sname:=element.name+'->'+sname;
+          //add this baseaddress with it's offsetlist to the addresslist
 
-          n:=n.parent;
+          sname:=element.Name;
+          while (n<>nil) and (n.level>=1) do
+          begin
+            element2:=getStructElementFromNode(n);
+            if element2<>nil then
+              sname:=element.name+'->'+sname;
+
+            n:=n.parent;
+          end;
+
+          name:=element.Name;
+          if name='' then
+            name:=VariableTypeToString(element.VarType);
+
+          mainform.addresslist.addaddress(name, inttohex(baseaddress,1), offsetlist, length(offsetlist), element.VarType,'',element.Bytesize);
         end;
 
-        name:=element.Name;
-        if name='' then
-          name:=VariableTypeToString(element.VarType);
 
-        mainform.addresslist.addaddress(name, inttohex(baseaddress,1), offsetlist, length(offsetlist), element.VarType,'',element.Bytesize);
       end;
 
 
+      //mainform.a
     end;
 
-
-    //mainform.a
   end;
 end;
 
