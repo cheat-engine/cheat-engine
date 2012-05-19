@@ -37,6 +37,7 @@ const
   VMCALL_ULTIMAP_RESUME= 35;
 
   VMCALL_ULTIMAP_DEBUGINFO = 36;
+  VMCALL_TESTPSOD = 37;
 
 type
   TOriginalState=packed record
@@ -96,6 +97,8 @@ function dbvm_executeDispatchIoctl(DispatchIoctl: pointer; DriverObject: pointer
 function dbvm_testSwitchToKernelmode: integer; //returns 123 on success
 
 function dbvm_getProcAddress(functionname: string): pointer;
+
+procedure dbvm_testPSOD;
 
 procedure configure_vmx(userpassword1,userpassword2: dword);
 procedure configure_vmx_kernel;
@@ -389,6 +392,19 @@ begin
   vmcallinfo.level2pass:=vmx_password2;
   vmcallinfo.command:=VMCALL_ULTIMAP_PAUSE;
   result:=vmcall(@vmcallinfo,vmx_password1);
+end;
+
+procedure dbvm_testPSOD;
+var vmcallinfo: packed record
+  structsize: dword;
+  level2pass: dword;
+  command: dword;
+end;
+begin
+  vmcallinfo.structsize:=sizeof(vmcallinfo);
+  vmcallinfo.level2pass:=vmx_password2;
+  vmcallinfo.command:=VMCALL_TESTPSOD;
+  vmcall(@vmcallinfo,vmx_password1);
 end;
 
 function dbvm_readMSR(msr: dword): QWORD;
