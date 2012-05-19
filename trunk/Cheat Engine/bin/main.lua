@@ -1,6 +1,5 @@
 --This lua script gets loaded when Cheat Engine loads
 --You can use this to define some often used functions and libraries you'd like to use
---Alternatively, you can use the autorun folder as well
 
 require("defines")
 
@@ -115,7 +114,7 @@ registerCustomTypeLua(typename, bytecount, bytestovaluefunction, valuetobytesfun
   The value to bytes function should be defined as "function valuetobytes (integer)" and return the bytes it should write
 
 
-registerCustomTypeAutoAssembler(typename, bytecount, script)
+registerCustomTypeAutoAssembler(script)
   Registers a custom type based on an auto assembler script. The script must allocate an "ConvertRoutine" and "ConvertBackRoutine"
 
 onAutoGuess(function) : 
