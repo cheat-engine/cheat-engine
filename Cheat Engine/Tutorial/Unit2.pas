@@ -43,7 +43,7 @@ implementation
 uses Unit3;
 
 resourcestring
-  rsAwYouReDeathLetMeReviveYou = 'Aw, you''re death! Let me revive you';
+  rsAwYouReDeathLetMeReviveYou = 'Aw, you''re dead! Let me revive you';
   rsStep2ExactValueScanningPW = 'Step 2: Exact Value scanning (PW=';
   rsQuittingOnStep2ThisIsTheEasiestStepThereIsFindHeal = 'Quitting on step2? This is the easiest step there is. Find health, change health, done.... Sure you '
     +'want to quit?';
