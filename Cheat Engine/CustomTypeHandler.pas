@@ -783,50 +783,32 @@ begin
   parameters:=lua_gettop(L);
   if parameters=3 then
   begin
-    typename:=Lua_ToString(L, -3);
-    bytecount:=lua_tointeger(L, -2);
-    script:=Lua_ToString(L, -1);
+    typename:=Lua_ToString(L, 1);
+    bytecount:=lua_tointeger(L, 2);
+    script:=Lua_ToString(L, 3);
+  end
+  else
+  if parameters=1 then
+    script:=Lua_ToString(L, 1)
+  else
+  begin
     lua_pop(L, parameters);
+    lua_pushstring(L,'Invalid number of parameters');
+    lua_error(L);
+    exit;
+  end;
 
-    ct:=GetCustomTypeFromName(typename); //see if one with this name altready exists.
-    if ct=nil then //if not, create it
-      ct:=TCustomType.Create;
+  lua_pop(L, parameters);
 
-    ct.fCustomTypeType:=cttAutoAssembler;
+  ct:=TCustomType.CreateTypeFromAutoAssemblerScript(script);
+  if parameters=3 then //old version support
+  begin
     ct.name:=typename;
     ct.bytesize:=bytecount;
+  end;
 
+  mainform.RefreshCustomTypes;
 
-
-
-    s:=tstringlist.create;
-    try
-      with ct do
-      begin
-        setlength(c,0);
-        if autoassemble(s,false, true, false, true, c) then
-        begin
-          for i:=0 to length(c)-1 do
-          begin
-            if uppercase(c[i].varname)='CONVERTROUTINE' then
-              routine:=pointer(c[i].address);
-
-            if uppercase(c[i].varname)='CONVERTBACKROUTINE' then
-              reverseroutine:=pointer(c[i].address);
-          end;
-
-
-        end;
-      end;
-    finally
-      s.free;
-    end;
-
-
-    customtypes.Add(ct);
-    mainform.RefreshCustomTypes;
-  end
-  else lua_pop(L, parameters);
 end;
 
 

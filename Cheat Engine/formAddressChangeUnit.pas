@@ -1052,7 +1052,7 @@ begin
 
   setAddress(rec.interpretableaddress, rec.pointeroffsets);
 
-  case vartype of
+  case fMemoryRecord.vartype of
     vtBinary:
     begin
       startbit:=rec.Extra.bitData.Bit;
