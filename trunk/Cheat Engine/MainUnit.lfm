@@ -359,7 +359,6 @@ object MainForm: TMainForm
       Width = 43
       Caption = 'Test cap'
       ParentColor = False
-      Visible = False
       OnClick = Label59Click
     end
     object Label61: TLabel
@@ -1609,7 +1608,7 @@ object MainForm: TMainForm
         OnClick = miRecursiveSetValueClick
       end
       object miAllowCollapse: TMenuItem
-        Caption = 'Allow left and right buttons to collapse and expand'
+        Caption = 'Allow left and right arrow keys to collapse and expand'
         Hint = 'Lets the user press the left and right buttons on the keyboard to expand the entry'
         OnClick = miAllowCollapseClick
       end
