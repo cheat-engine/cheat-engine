@@ -2965,7 +2965,7 @@ begin
 
           structelement.ChildStructStart:=childstructstart;
 
-          if structelement.VarType<>vtPointer then
+          if (structelement.VarType<>vtPointer) and (miAutoDestroyLocal.checked=false) then
           begin
             if (structelement.ChildStruct<>nil) and (not structelement.ChildStruct.isInGlobalStructList) then
               structelement.ChildStruct.free;
