@@ -1577,6 +1577,8 @@ xor esp,esp
 
 
 
+
+
 mov ax,0xb800
 mov ds,ax
 mov byte [ds:0],'5'
@@ -1624,6 +1626,9 @@ mov ax,0xb800
 mov ds,ax
 mov byte [ds:0],'7'
 mov byte [ds:1],15
+
+;call 0xc000:0000
+
 
 
 mov ah,0

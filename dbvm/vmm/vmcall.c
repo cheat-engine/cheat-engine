@@ -8,6 +8,7 @@
 #include "vmcall.h"
 #include "msrnames.h"
 #include "ultimap.h"
+#include "psod.h"
 
 
 #pragma GCC push_options
@@ -899,6 +900,12 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       emulateExceptionInterrupt(currentcpuinfo, vmregisters, cs,rip,1, parameters );
       vmregisters->rax=0;
       return 0; //no eip change
+    }
+
+    case VMCALL_PSODTEST:
+    {
+    	PSOD("VMCALL_ULTIMAP_PSODTEST");
+    	break;
     }
 
 

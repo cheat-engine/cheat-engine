@@ -44,6 +44,7 @@
 
 #define VMCALL_ULTIMAP_DEBUGINFO 36
 
+#define VMCALL_PSODTEST 37
 
 
 
