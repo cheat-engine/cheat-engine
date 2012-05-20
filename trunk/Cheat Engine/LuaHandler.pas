@@ -7574,6 +7574,12 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
+function lua_detachIfPossible(L: Plua_State): integer; cdecl;
+begin
+  DetachIfPossible;
+  lua_pop(L, lua_gettop(L));
+end;
+
 procedure InitializeLua;
 var s: tstringlist;
   k32: THandle;
@@ -8029,6 +8035,9 @@ begin
     Lua_register(LuaVM, 'createTreeView', createTreeView);
     Lua_register(LuaVM, 'loadTable', lua_loadTable);
     Lua_register(LuaVM, 'saveTable', lua_saveTable);
+    Lua_register(LuaVM, 'detachIfPossible', lua_DetachIfPossible);
+
+
 
 
 

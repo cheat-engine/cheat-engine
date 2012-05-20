@@ -231,6 +231,8 @@ Changing registers:
 When the debugger is waiting to continue you can change the register variables. When you continue those register values will be set in the thread's context
 
 
+detachIfPossible() : Detaches the debugger from the target process (if it was attached)
+
 
 
 
