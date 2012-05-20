@@ -362,16 +362,32 @@ RECT oldoverlayrect;
 int waslockedin=0;
 int appdoestranslate=0;
 
+#ifdef _DEBUG
+int called=0;
+#endif
+
+
 LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	int i;
 
+	
 	POINTS p;
 	RECT r;
 	RECT cr;	
 	LONG_PTR o=originalwndprocs[hwnd];
 	BOOL hasTextureLock=FALSE;
 	BOOL hasLock=FALSE;
+
+#ifdef _DEBUG
+	if (called==0)
+	{
+		OutputDebugStringA("windowhook got called");
+		called=1;
+	}
+#endif
+
+
 
 
 	switch(uMsg)	
@@ -635,7 +651,7 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	
 
 	
-	return CallWindowProcA((WNDPROC)o, hwnd, uMsg, wParam, lParam); //call the original window message handler
+	return CallWindowProcW((WNDPROC)o, hwnd, uMsg, wParam, lParam); //call the original window message handler
 }
 
 
@@ -646,13 +662,13 @@ void hookIfNeeded(void)
 	if (originalwndprocs[h]==NULL)
 	{
 		LONG_PTR o;
-		o=GetWindowLongPtrA(h, GWLP_WNDPROC);
+		o=GetWindowLongPtrW(h, GWLP_WNDPROC);
 
 
 		originalwndprocs[h]=o;
 
 		//now change it to point to the hook handler
-		SetWindowLongPtrA(h, GWLP_WNDPROC, (LONG_PTR)windowhook);  
+		SetWindowLongPtrW(h, GWLP_WNDPROC, (LONG_PTR)windowhook);  
 
 	}
 
