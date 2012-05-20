@@ -1006,12 +1006,10 @@ end;
 
 var a,b,c,d: dword;
 initialization
-{$ifdef NOVMX}
   vmcall:=vmcallUnSupported;
-{$else}
+
+  {$ifndef NOVMX}
   if isDBVMCapable then
     vmcall:=vmcallSupported; //intel instruction set and the VT flag in cpuid (dbvm sets the control feature msr so it's disabled in the bios)
-
-{$endif}
-
+  {$endif}
 end.
