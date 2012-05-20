@@ -4378,7 +4378,9 @@ end;
 procedure TMainForm.btnMemoryViewClick(Sender: TObject);
 begin
   memorybrowser.Show;
-  //   ExtractFilePath();
+
+  if memorybrowser.windowstate=wsMinimized then
+    memorybrowser.WindowState:=wsNormal;
 end;
 
 
