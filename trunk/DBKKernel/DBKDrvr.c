@@ -469,7 +469,8 @@ Return Value:
 		DWORD a;
 
 		__cpuid(r,0);
-		if (r[0]==0x756e6547) //Genu
+		DbgPrint("cpuid.0: r[1]=%x", r[1]);
+		if (r[1]==0x756e6547) //GenuineIntel
 		{
 
 			__cpuid(r,1);
@@ -485,7 +486,19 @@ Return Value:
 
 			cpu_model=cpu_model + (cpu_ext_modelID << 4);
 			cpu_familyID=cpu_familyID + (cpu_ext_familyID << 4);
+
+			if ((r[2]<<9) & 1)
+			{
+				DbgPrint("Intel cpu. IA32_FEATURE_CONTROL MSR=%x", readMSR(0x3a));		
+			}
+			else
+			{
+				DbgPrint("Intel cpu without IA32_FEATURE_CONTROL MSR");		
+			}
+
 		}
+		else
+			DbgPrint("Not an intel cpu");
 
 
 
