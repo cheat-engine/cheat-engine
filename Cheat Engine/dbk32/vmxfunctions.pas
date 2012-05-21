@@ -4,7 +4,7 @@ interface
 
 {$mode DELPHI}
 
-uses windows, classes, dialogs, sysutils;
+uses jwawindows, windows, classes, dialogs, sysutils;
 
 const
   VMCALL_GETVERSION=0;
@@ -123,10 +123,47 @@ begin
   result:=0;
 end;
 
+
+var AddVectoredExceptionHandler: function (FirstHandler: Cardinal; VectoredHandler: PVECTORED_EXCEPTION_HANDLER): pointer; stdcall;
+
+
+procedure invalidinstruction;
+begin
+  ShowMessage('Invalid instruction');
+  //raise exception.create('Invalid instruction');
+end;
+
+function vmcallexceptiontest(ExceptionInfo: PEXCEPTION_POINTERS): LONG; stdcall;
+begin
+  result:=EXCEPTION_CONTINUE_SEARCH;
+
+  if ExceptionInfo.ExceptionRecord.ExceptionCode=EXCEPTION_ILLEGAL_INSTRUCTION then
+  begin
+    ExceptionInfo.ContextRecord.{$ifdef cpu64}rip{$else}eip{$endif}:=ptruint(@invalidinstruction);
+    result:=EXCEPTION_CONTINUE_EXECUTION;
+  end;
+
+end;
+
+
+
 function vmcallSupported(vmcallinfo:pointer; level1pass: dword): PtrUInt; stdcall;
 var r: ptruint;
+  h: thandle;
 begin
+  if not assigned(AddVectoredExceptionHandler) then
+  begin
+    //first time setup
+    h:=GetModuleHandle('kernel32.dll');
+    AddVectoredExceptionHandler:=GetProcAddress(h, 'AddVectoredExceptionHandler');
+
+    AddVectoredExceptionHandler(1, @vmcallexceptiontest);
+  end;
+
+
   asm
+
+
     {$ifdef cpu64}
       sub rsp,32
       mov [rsp+8],rdx
@@ -139,15 +176,13 @@ begin
 
       mov r,rax
     {$else}
-      push edx
       mov eax,vmcallinfo
       mov edx,level1pass
       vmcall            //should raise an UD if the cpu does not support it  (or the password is wrong)
-      pop edx
-
       mov r,eax
     {$endif}
   end;
+
 
   result:=r;
 
