@@ -1394,7 +1394,7 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'SQRTPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$51),
   (mnemonic:'SQRTPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:2;bt1:$0f;bt2:$51),
   (mnemonic:'SQRTSD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m64;bytes:3;bt1:$f2;bt2:$0f;bt3:$51),
-  (mnemonic:'SQRTSS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m32;bytes:3;bt1:$f2;bt2:$0f;bt3:$51),
+  (mnemonic:'SQRTSS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m32;bytes:3;bt1:$f3;bt2:$0f;bt3:$51),
 
   (mnemonic:'STC';bytes:1;bt1:$f9),
   (mnemonic:'STD';bytes:1;bt1:$fd),
