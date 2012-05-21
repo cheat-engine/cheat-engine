@@ -2495,8 +2495,6 @@ end;
 
 procedure TMemoryBrowser.Heaps1Click(Sender: TObject);
 begin
-
-  {$ifndef net}
   if processid=0 then raise exception.Create(rsPleaseTargetAProcessFirst);
   if (frmMemoryAllocHandler<>nil) and (frmMemoryAllocHandler.hookedprocessid<>processid) then
     freeandnil(frmMemoryAllocHandler);
@@ -2507,8 +2505,6 @@ begin
     frmheaps:=tfrmheaps.create(self);
 
   frmheaps.show;
-  {$endif}
-
 end;
 
 procedure TMemoryBrowser.EnumeratedllsandSymbols1Click(Sender: TObject);
@@ -3215,8 +3211,9 @@ end;
 
 procedure TMemoryBrowser.Watchmemoryallocations1Click(Sender: TObject);
 begin
-
   if processid=0 then raise exception.Create(rsPleaseTargetAProcessFirst);
+
+
   if (frmMemoryAllocHandler<>nil) and (frmMemoryAllocHandler.hookedprocessid<>processid) then
     freeandnil(frmMemoryAllocHandler);
 
