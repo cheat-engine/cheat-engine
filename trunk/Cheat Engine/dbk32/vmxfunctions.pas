@@ -129,8 +129,8 @@ var AddVectoredExceptionHandler: function (FirstHandler: Cardinal; VectoredHandl
 
 procedure invalidinstruction;
 begin
-  ShowMessage('Invalid instruction');
-  //raise exception.create('Invalid instruction');
+  //ShowMessage('Invalid instruction');
+  raise exception.create('Invalid instruction');
 end;
 
 function vmcallexceptiontest(ExceptionInfo: PEXCEPTION_POINTERS): LONG; stdcall;
