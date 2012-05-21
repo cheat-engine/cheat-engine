@@ -117,6 +117,7 @@ type
     staticonly: boolean;
 
     isdone: boolean;
+    hasTerminated: boolean;
     startworking: tevent;
     stop: boolean;
 
@@ -453,6 +454,7 @@ begin
     end;
   finally
     isdone:=true;
+    hasTerminated:=true;
     OutputDebugString('Scanworker is done');
   end;
 
@@ -799,7 +801,7 @@ begin
             break;
           end;
 
-          if not reversescanners[i].isdone then
+          if not (reversescanners[i].hasTerminated or reversescanners[i].isdone) then //isdone might be enabled
           begin
             if terminated then
               OutputDebugString('Worker '+inttostr(i)+' is still active');
