@@ -5814,6 +5814,7 @@ begin
     miHideChildren.Checked := moHideChildren in selectedrecord.options;
     miBindActivation.Checked := moBindActivation in selectedrecord.options;
     miRecursiveSetValue.Checked := moRecursiveSetValue in selectedrecord.options;
+    miAllowCollapse.checked:= moAllowManualCollapseAndExpand in selectedrecord.options;
   end
   else
     miGroupconfig.Visible := False;
@@ -7248,7 +7249,7 @@ end;
 
 procedure TMainForm.miTutorialClick(Sender: TObject);
 begin
-  shellexecute(0, 'open', 'Tutorial-i386.exe', nil, nil, sw_show);
+  shellexecute(0, 'open', pchar(cheatenginedir+'Tutorial-i386.exe'), nil, nil, sw_show);
 end;
 
 procedure TMainForm.miChangeValueClick(Sender: TObject);

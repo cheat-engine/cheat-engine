@@ -130,6 +130,7 @@ begin
     f:=lua_touserdata(L, -1);
     lua_pop(L, lua_gettop(L));
     lua_pushinteger(L, f.ShowModal);
+    result:=1;
   end
   else
    lua_pop(L, lua_gettop(L));
