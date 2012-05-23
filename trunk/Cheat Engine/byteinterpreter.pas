@@ -35,6 +35,14 @@ var v: qword;
     b: tbytes;
     us: Widestring;
 begin
+  if hexadecimal and (variabletype in [vtsingle, vtDouble]) then
+  begin
+    if variabletype=vtSingle then
+      variabletype:=vtDword
+    else
+      variabletype:=vtQword;
+  end;
+
   if variabletype=vtByteArray then
   begin
     setlength(b,0);

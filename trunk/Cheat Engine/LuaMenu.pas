@@ -225,9 +225,9 @@ begin
   parameters:=lua_gettop(L);
   if parameters=3 then
   begin
-    menuitem:=lua_touserdata(L,-3);
-    index:=lua_tointeger(L, -2);
-    menuitem2:=lua_touserdata(L,-1);
+    menuitem:=lua_touserdata(L,1);
+    index:=lua_tointeger(L, 2);
+    menuitem2:=lua_touserdata(L,3);
     lua_pop(L, parameters);
 
     menuitem.Insert(index, menuitem2);
