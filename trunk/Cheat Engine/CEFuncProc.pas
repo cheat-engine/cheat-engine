@@ -657,7 +657,7 @@ var
   processhandler: TProcessHandler;
   PreventDebuggerDetection: boolean=false;
   preferHwBP: boolean=true;
-  BPOverride: boolean=false;
+  BPOverride: boolean=true;
 
 
 

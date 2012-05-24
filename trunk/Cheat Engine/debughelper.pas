@@ -57,7 +57,7 @@ type
   public
     InitialBreakpointTriggered: boolean; //set by a debugthread when the first unknown exception is dealth with causing all subsequent unexpected breakpoitns to become unhandled
 
-    procedure SetBreakpoint(breakpoint: PBreakpoint; UpdateForOneThread: TDebugThreadHandler=nil);
+    function SetBreakpoint(breakpoint: PBreakpoint; UpdateForOneThread: TDebugThreadHandler=nil): boolean;
     procedure UnsetBreakpoint(breakpoint: PBreakpoint; specificContext: PContext=nil);
 
 
@@ -439,7 +439,7 @@ begin
   end;
 end;
 
-procedure TDebuggerThread.SetBreakpoint(breakpoint: PBreakpoint; UpdateForOneThread: TDebugThreadHandler=nil);
+function TDebuggerThread.SetBreakpoint(breakpoint: PBreakpoint; UpdateForOneThread: TDebugThreadHandler=nil): boolean;
 {
 Will set the breakpoint.
 either by setting the appropriate byte in the code to $cc, or setting the appropriate debug registers the thread(s)
@@ -450,7 +450,10 @@ var
   oldprotect, bw: dword;
   currentthread: TDebugThreadHandler;
   i: integer;
+  AllThreadsAreSet: boolean;
 begin
+  AllThreadsAreSet:=true;
+
   if breakpoint^.breakpointMethod = bpmDebugRegister then
   begin
     //Debug registers
@@ -517,7 +520,11 @@ begin
           currentthread.DebugRegistersUsedByCE:=currentthread.DebugRegistersUsedByCE or (1 shl breakpoint.debugregister);
           currentthread.context.Dr7 :=(currentthread.context.Dr7 and clearmask) or Debugregistermask;
           currentthread.setContext;
-        end;
+        end
+        else
+          AllThreadsAreSet:=false;
+
+
         currentthread.resume;
       end
       else
@@ -545,7 +552,10 @@ begin
               currentthread.DebugRegistersUsedByCE:=currentthread.DebugRegistersUsedByCE or (1 shl breakpoint.debugregister);
               currentthread.context.Dr7 := (currentthread.context.Dr7 and clearmask) or Debugregistermask;
               currentthread.setContext;
-            end;
+            end
+            else
+              AllThreadsAreSet:=false;
+
             currentthread.resume;
           end;
 
@@ -566,6 +576,8 @@ begin
     WriteProcessMemory(processhandle, pointer(breakpoint.address), @int3byte, 1, bw);
     VirtualProtectEx(processhandle, pointer(breakpoint.address), 1, oldprotect, oldprotect);
   end;
+
+  result:=AllThreadsAreSet;
 
 end;
 
@@ -799,6 +811,7 @@ begin
     //add to the bp list
     BreakpointList.Add(newbp);
     //apply this breakpoint
+
     SetBreakpoint(newbp);
   finally
     breakpointcs.leave;
@@ -991,10 +1004,8 @@ begin
   //create a foundcodedialog and add the breakpoint
   foundcodedialog := Tfoundcodedialog.Create(application);
   case bpt of
-    bptAccess : foundcodedialog.Caption:=Format(rsTheFollowingOpcodesAccessed, [
-      inttohex(address, 8)]);
-    bptWrite : foundcodedialog.Caption:=Format(rsTheFollowingOpcodesWriteTo, [
-      inttohex(address, 8)]);
+    bptAccess : foundcodedialog.Caption:=Format(rsTheFollowingOpcodesAccessed, [inttohex(address, 8)]);
+    bptWrite : foundcodedialog.Caption:=Format(rsTheFollowingOpcodesWriteTo, [inttohex(address, 8)]);
   end;
   foundcodedialog.Show;
 
