@@ -27,6 +27,12 @@ begin
   filesize:=getfilesize(hprocess,@ignore);
   if ptrUint(lpbaseaddress)>filesize then exit;
 
+  if ptrUint(lpbaseaddress)+nSize>filesize then
+  begin
+    ZeroMemory(lpBuffer, nsize);
+    nsize:=filesize-ptrUint(lpbaseaddress);
+  end;
+
   SetfilePointer(hprocess,ptrUint(lpBaseAddress),nil,FILE_BEGIN);
   result:=Readfile(hprocess,lpbuffer^,nsize,lpNumberOfBytesRead,nil);
 end;

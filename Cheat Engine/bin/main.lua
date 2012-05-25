@@ -73,6 +73,10 @@ getProcesslist(Strings): Fills a Strings inherited object with the processlist o
 getThreadList(List): fills a List object with the threadlist of the currently opened process. Format: %x
 
 
+function onOpenProcess(processid):
+  If this function is defined it will be called whenever cheat engine opens a process. Note that the same process might be opened multiple times in a row
+
+
 getOpenedProcessID() : Returns the currently opened process. If none is open, returns 0
 getProcessIDFromProcessName(name) : returns a processid
 openProcess(processid) : causes cheat engine to open the given processid
