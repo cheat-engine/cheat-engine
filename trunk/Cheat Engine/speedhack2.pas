@@ -55,7 +55,10 @@ begin
        
   script:=tstringlist.Create;
   try
-    script.Add('alloc(init,512)');
+    if processhandler.is64bit then
+      script.Add('alloc(init,512, GetTickCount)')
+    else
+      script.Add('alloc(init,512)');
     //check if it already has a a speedhack script running
 
     a:=symhandler.getAddressFromName('realgettickcount') ;
@@ -83,7 +86,11 @@ begin
 
 
     except
-      raise exception.Create(rsFailureConfiguringSpeedhackPart+' 1');
+      on e:exception do
+      begin
+        clipboard.AsText:=script.text;
+        raise exception.Create(rsFailureConfiguringSpeedhackPart+' 1: '+e.message);
+      end;
     end;
 
 
