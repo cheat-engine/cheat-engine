@@ -1439,10 +1439,12 @@ begin
         if allocs[j].address=0 then
           allocs[j].address:=ptrUint(virtualallocex(processhandle,nil,x, MEM_RESERVE or MEM_COMMIT,page_execute_readwrite));
 
-        if allocs[j].address=0 then OutputDebugString(rsFailureToAllocateMemory+' 4');
+        if allocs[j].address=0 then raise exception.create(rsFailureToAllocateMemory+' 4');
 
         for i:=j+1 to length(allocs)-1 do
           allocs[i].address:=allocs[i-1].address+allocs[i-1].size;
+
+
       end;
     end;
 
@@ -1517,10 +1519,10 @@ begin
 
             setlength(assembled,length(assembled)+1);
             assembled[length(assembled)-1].address:=currentaddress;
-            assemble(currentline,currentaddress,assembled[length(assembled)-1].bytes);
+            assemble(currentline,currentaddress,assembled[length(assembled)-1].bytes, apnone, true);
             a:=length(assembled[length(assembled)-1].bytes);
 
-            assemble(s1,currentaddress,assembled[length(assembled)-1].bytes);
+            assemble(s1,currentaddress,assembled[length(assembled)-1].bytes, apnone, true);
             b:=length(assembled[length(assembled)-1].bytes);
 
             if a>b then //pick the biggest one
