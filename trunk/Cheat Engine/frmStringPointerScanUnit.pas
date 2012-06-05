@@ -275,7 +275,7 @@ type
     mappedRegions: TAvgLvlTree; //holds the map of the regions that have been mapped
 
     pointerlist: TAvgLvlTree; //holds the pointers in the app of the mapped regions
-    pointerlistMemManager: TAvgLvlTreeNodeMemManager;
+
     bma: TBigMemoryAllocHandler;
 
     scanner: TScanner;
@@ -1774,8 +1774,9 @@ begin
   if pointerlist<>nil then
     freeandnil(pointerlist);
 
+  {
   if pointerlistMemManager<>nil then
-    freeandnil(pointerlistMemManager);
+    freeandnil(pointerlistMemManager);    }
 
   if pointerlist<>nil then
     freeandnil(pointerlist);
@@ -1880,10 +1881,7 @@ begin
       begin
         mappedRegions:=TAvgLvlTree.CreateObjectCompare(mapCompare);
         pointerlist:=TAvgLvlTree.CreateObjectCompare(pointerCompare);
-        pointerlistMemManager:=TAvgLvlTreeNodeMemManager.Create;
-        pointerlist.NodeMemManager:=pointerlistMemManager;
-        pointerlistMemManager.MinimumFreeNode:=102400;
-        pointerlistMemManager.MaximumFreeNodeRatio:=32;
+
 
         bma:=TBigMemoryAllocHandler.create;
 

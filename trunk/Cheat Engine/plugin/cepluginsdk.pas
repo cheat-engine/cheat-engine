@@ -4,7 +4,11 @@ unit cepluginsdk;        //more an api than sdk
 
 interface
 
-uses windows, sysutils, graphics;
+uses windows, sysutils;
+
+type
+  TColor=dword;
+  PColor=^TColor;
 
 {$ifndef fpc}
 //if old delphi then define the ptruint type
