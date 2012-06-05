@@ -71,7 +71,8 @@ type
     { public declarations }
     scanner: TStringScan;
     stringtree: TAvgLvlTree;
-    treememorymanager: TAvgLvlTreeNodeMemManager;
+
+
     function treecompare(Tree: TAvgLvlTree; Data1, Data2: Pointer): integer;
     procedure cleanup;
     function isString(address: ptruint): boolean;
@@ -340,12 +341,6 @@ begin
     stringtree:=nil;
   end;
 
-  if treememorymanager<>nil then
-  begin
-    treememorymanager.Free;
-    treememorymanager:=nil;
-  end;
-
   if bma<>nil then
   begin
     bma.free;
@@ -386,12 +381,12 @@ begin
 
     stringtree:=TAvgLvlTree.CreateObjectCompare(treecompare);
 
-    treememorymanager:=TAvgLvlTreeNodeMemManager.Create;
+   { treememorymanager:=TAvgLvlTreeNodeMemManager.Create;
     treememorymanager.MinimumFreeNode:=102400;
     treememorymanager.MaximumFreeNodeRatio:=16;
 
 
-    stringtree.NodeMemManager:=treememorymanager;
+    stringtree.NodeMemManager:=treememorymanager;}
 
 
 

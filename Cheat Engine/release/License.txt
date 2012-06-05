@@ -16,8 +16,41 @@ A. Cheat Engine Licence
 12) You may disassemble and reverse engineer any part of this program, although just looking at the sourcecode is easier 
 13) You may not rent, lease or sell this program.
 
-B. OpenCandy End User License Agreement
-Jan 26 2010
 
+B. OpenCandy End User License Agreement (EULA)
 
-This installer uses the OpenCandy network to recommend other software you may find valuable during the installation of this software. OpenCandy collects NON-personally identifiable information about this installation and the recommendation process. Collection of this information ONLY occurs during this installation and the recommendation process; in accordance with OpenCandy's Privacy Policy, available at www.opencandy.com/privacy-policy
+Date of last revision: March 7, 2012
+
+PLEASE READ THESE TERMS BEFORE PROCEEDING WITH THE INSTALLATION OF THE SOFTWARE. BY AGREEING TO THESE TERMS YOU ARE GRANTING US PERMISSION TO PROVIDE RECOMMENDATIONS OF THIRD PARTY SOFTWARE IN ACCORDANCE WITH THE FOLLOWING TERMS AND THE TERMS OF OUR PRIVACY POLICY.
+
+1. What We Do
+
+The developer of the software ("Software") you are installing has chosen to use the OpenCandy Network ("We") to provide recommendations of other third party software. All third party software participating in the OpenCandy Network must adhere to strict policies that ensure only compliant software is recommended. In the event an OpenCandy recommendation is shown, the recommendations will only occur once during the installation of the Software.
+
+2. How Our Recommendations Work
+
+As part of the installation process, a temporary file transmits anonymous, non-personally identifiable information about your computer system in order to help us determine what third party software would be appropriate to recommend. If a recommendation is shown and you choose to install such recommended third party software, then the third party software will be downloaded and installed. If a recommendation is not shown, or you choose not to install such recommended third party software, then no third party software will be downloaded or installed.
+
+Reasonable efforts are made to ensure any temporary files created are automatically removed after the installation process is completed, regardless of whether a recommendation is made, and regardless of whether you choose to install any software. Please note, however, that some files may not be able to remove themselves until the next system restart.
+
+3. Recommended Third Party Software
+
+You are NEVER required to install any recommended third party software, and you will not be required to install any third party software as a condition to install the Software. We will never install any third party software without your express consent. Recommended third party software is also subject to its own separate license agreement(s).
+
+4. How We Use Your Data
+
+We are strong advocates for consumer privacy, and we do NOT collect or store any personally identifiable information. Any information transmitted to our servers is anonymous and may be stored in the aggregate to help us improve our services. All information is collected and used in accordance with our Privacy Policy, available at: http://www.opencandy.com/privacy-policy.
+
+5. DISCLAIMER; LIMITATION OF LIABILITY
+
+WE PROVIDE ALL RECOMMENDATIONS OR THIRD PARTY SOFTWARE "AS IS," "WITH ALL FAULTS," AND WITHOUT ANY WARRANTY WHATSOEVER, AND DISCLAIM ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING ANY IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR ANY PARTICULAR PURPOSE, TITLE OR NON-INFRINGEMENT. WE ARE NOT LIABLE TO YOU OR ANY OTHER PERSON FOR ANY INCIDENTAL, CONSEQUENTIAL, SPECIAL, DIRECT, INDIRECT, PUNITIVE OR EXEMPLARY DAMAGES IN CONNECTION WITH ANY RECOMMENDATION OR THIRD PARTY SOFTWARE.
+
+6. Miscellaneous
+
+These Terms are governed by and interpreted, construed and enforced in accordance with the laws of the State of California, United States of America, without respect to its choice of law provisions. Any action is subject to the exclusive jurisdiction of the state or federal courts in California, and you irrevocably submit to the personal jurisdiction in such courts.
+
+7. Third Party Software Uninstallation
+
+We ensure that all OpenCandy recommended third party software which may be installed allows for simple uninstallation without harming your computer, and without leaving files or applications behind.
+
+If you have any feedback or questions, please email us at: license@opencandy.com.
