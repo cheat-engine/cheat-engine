@@ -146,11 +146,55 @@ BOOL DXMessD3D9Handler::UpdateTextures()
 					ZeroMemory(&imageinfo, sizeof(imageinfo));
 					
 
-					hr=D3DXCreateTextureFromFileInMemoryEx(dev, (void *)(tea[i].AddressOfTexture), tea[i].size, D3DX_DEFAULT, D3DX_DEFAULT, 1,0,D3DFMT_A8R8G8B8, D3DPOOL_MANAGED,D3DX_FILTER_NONE,D3DX_DEFAULT, 0, &imageinfo, NULL, &textures[i].pTexture);
+					hr=D3DXCreateTextureFromFileInMemoryEx(dev, (void *)(tea[i].AddressOfTexture), tea[i].size, D3DX_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT,0,D3DFMT_UNKNOWN, D3DPOOL_MANAGED,D3DX_FILTER_NONE,D3DX_DEFAULT, 0, &imageinfo, NULL, &textures[i].pTexture);
 					if( FAILED( hr ) )
-					{
-						OutputDebugStringA("Failure creating a texture");
-						return hr;
+					{						
+						char s[255];
+
+						//OutputDebugStringA("Fail 1");
+						hr=D3DXCreateTextureFromFileInMemoryEx(dev, (void *)(tea[i].AddressOfTexture), tea[i].size, D3DX_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_FILTER_NONE, D3DX_DEFAULT, 0, NULL, NULL, &textures[i].pTexture);
+
+						if (FAILED(hr))
+						{
+							//OutputDebugStringA("Fail 2");
+
+
+							hr=D3DXCreateTextureFromFileInMemoryEx(dev, (void *)(tea[i].AddressOfTexture), tea[i].size, D3DX_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_FILTER_NONE, D3DX_DEFAULT, 0, NULL, NULL, &textures[i].pTexture);
+							if (FAILED(hr))
+							{
+								//OutputDebugStringA("Fail 3");
+
+								
+								hr=D3DXCreateTextureFromFileInMemory(dev, (void *)(tea[i].AddressOfTexture), tea[i].size, &textures[i].pTexture);
+								if (FAILED(hr))
+								{
+									//OutputDebugStringA("Fail 4");
+									textures[i].pTexture=NULL;
+									sprintf_s(s,254,"Failure creating a texture. (%x) AOT=%p size=%d", hr, (void *)(tea[i].AddressOfTexture), tea[i].size);
+
+									if (hr==D3DERR_NOTAVAILABLE)
+										sprintf_s(s,254,"%s - D3DERR_NOTAVAILABLE",s);
+									
+									if (hr==D3DERR_OUTOFVIDEOMEMORY)
+										sprintf_s(s,254,"%s - D3DERR_OUTOFVIDEOMEMORY",s);
+
+									if (hr==D3DERR_INVALIDCALL)
+										sprintf_s(s,254,"%s - D3DERR_INVALIDCALL",s);
+
+									if (hr==D3DXERR_INVALIDDATA)
+										sprintf_s(s,254,"%s - D3DXERR_INVALIDDATA",s);
+
+									if (hr==E_OUTOFMEMORY)
+										sprintf_s(s,254,"%s - D3DERR_NOTAVAILABLE",s);
+
+									OutputDebugStringA(s);
+									
+									
+									
+									return hr;
+								}
+							}
+						}
 					}
 
 					D3DSURFACE_DESC d;
