@@ -935,15 +935,22 @@ void DXMessD3D11Handler::RenderOverlay()
 						{
 							//horizontal center
 							//calculate the width
-							float width=0;
+							float maxwidth=0, width=0;
 							int slen=strlen(s);
 							int j;
 
 							for (j=0; j<slen; j++)
 							{
-								width+=td->DefinedFontMap->charinfo[32-j].charwidth;
+								if ((s[j]>=32) && (s[j]<(96+32)))
+											width+=td->DefinedFontMap->charinfo[s[j]-32].charwidth;
+								else
+								if (s[j]=='\n')
+									width=0;
+								
+								if (width>maxwidth)
+									maxwidth=width;
 							}
-							position.x=((float)vp.Width / 2.0f) - ((float)width / 2.0f);
+							position.x=((float)vp.Width / 2.0f) - ((float)maxwidth / 2.0f);
 							
 						}
 
