@@ -525,11 +525,23 @@ Return Value:
 NTSTATUS DispatchCreate(IN PDEVICE_OBJECT DeviceObject,
                        IN PIRP Irp)
 {
-    Irp->IoStatus.Status = STATUS_SUCCESS;
+	// Check for SeDebugPrivilege. (So only processes with admin rights can use it)
+
+	LUID sedebugprivUID;
+	sedebugprivUID.LowPart=SE_DEBUG_PRIVILEGE;
+	sedebugprivUID.HighPart=0;
+	if (SeSinglePrivilegeCheck(sedebugprivUID, UserMode))
+		Irp->IoStatus.Status = STATUS_SUCCESS;
+	else
+	{
+		DbgPrint("A process without SeDebugPrivilege tried to open the dbk driver");
+		Irp->IoStatus.Status = STATUS_UNSUCCESSFUL;
+	}
+
     Irp->IoStatus.Information=0;
 
     IoCompleteRequest(Irp, IO_NO_INCREMENT);
-    return(STATUS_SUCCESS);
+    return Irp->IoStatus.Status;
 }
 
 
@@ -540,7 +552,7 @@ NTSTATUS DispatchClose(IN PDEVICE_OBJECT DeviceObject,
     Irp->IoStatus.Information=0;
 
     IoCompleteRequest(Irp, IO_NO_INCREMENT);
-    return(STATUS_SUCCESS);
+    return Irp->IoStatus.Status;
 }
 
 
