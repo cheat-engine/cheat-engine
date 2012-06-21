@@ -137,7 +137,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="C:\WinDDK\7600.16385.0\inc\ddk;C:\WinDDK\7600.16385.0\inc\api;C:\WinDDK\7600.16385.0\inc\crt;C:\WinDDK\7600.16385.0\inc\api\crt\stl70"
+				AdditionalIncludeDirectories="C:\WinDDK\7600.16385.1\inc\ddk;C:\WinDDK\7600.16385.1\inc\api;C:\WinDDK\7600.16385.1\inc\crt;C:\WinDDK\7600.16385.1\inc\api\crt\stl70"
 				PreprocessorDefinitions="AMD64;_AMD64_;_M_AMD64"
 				MinimalRebuild="false"
 				ExceptionHandling="0"

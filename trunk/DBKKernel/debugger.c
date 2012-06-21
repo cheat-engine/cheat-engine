@@ -21,7 +21,6 @@ void interrupt1_asmentry( void );
 
 
 
-
 volatile struct
 {
 	BOOL		isDebugging;		//TRUE if a process is currently being debugged
@@ -811,7 +810,7 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 			for (prefixpointer=0; prefixpointer<instructionPointer; prefixpointer++)
 			{
 				//check for a REX.B prefix  (0x40  + 0x1 : 0x41)
-				if (instruction[instructionPointer] & 0x41 == 0x41)
+				if ((instruction[instructionPointer] & 0x41) == 0x41)
 				{
 					//rex.b prefix is used, r8 to r15 are being accessed
 					generalpurposeregister+=8;
