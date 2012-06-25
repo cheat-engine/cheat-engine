@@ -17,6 +17,9 @@
 #include "interruptHook.h"
 #include "ultimap.h"
 
+#if (AMD64 && TOBESIGNED)
+#include "sigcheck.h"
+#endif
 
 
 #ifdef CETC
@@ -105,6 +108,8 @@ int testfunction(int p1,int p2)
 {
 	DbgPrint("Hello\nParam1=%d\nParam2=%d\n",p1,p2);
 	
+
+
 	return 0x666;
 }
 
@@ -530,11 +535,23 @@ NTSTATUS DispatchCreate(IN PDEVICE_OBJECT DeviceObject,
 	LUID sedebugprivUID;
 	sedebugprivUID.LowPart=SE_DEBUG_PRIVILEGE;
 	sedebugprivUID.HighPart=0;
+
+	Irp->IoStatus.Status = STATUS_UNSUCCESSFUL;
+
+
+
 	if (SeSinglePrivilegeCheck(sedebugprivUID, UserMode))
+	{
+#if (AMD64 && TOBESIGNED)		
+		Irp->IoStatus.Status = SecurityCheck();			
+#else
 		Irp->IoStatus.Status = STATUS_SUCCESS;
+#endif
+
+	}
 	else
 	{
-		DbgPrint("A process without SeDebugPrivilege tried to open the dbk driver");
+		DbgPrint("A process without SeDebugPrivilege tried to open the dbk driver\n");
 		Irp->IoStatus.Status = STATUS_UNSUCCESSFUL;
 	}
 

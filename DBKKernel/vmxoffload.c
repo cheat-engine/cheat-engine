@@ -11,6 +11,10 @@ jumps into dbvm's os entry point
 #include "dbkfunc.h"
 #include "vmxoffload.h"
 
+#ifdef TOBESIGNED
+#include "sigcheck.h"
+#endif
+
 unsigned char *vmm;
 
 #pragma pack(2) 
@@ -215,12 +219,23 @@ void vmxoffload(PCWSTR dbvmimgpath)
 			//Load the .img file
 			InitializeObjectAttributes(&oa, &filename, 0, NULL, NULL);
 			OpenedFile=ZwCreateFile(&dbvmimghandle,SYNCHRONIZE|STANDARD_RIGHTS_READ , &oa, &statusblock, NULL, FILE_SYNCHRONOUS_IO_NONALERT| FILE_ATTRIBUTE_NORMAL, 0, FILE_OPEN, 0, NULL, 0);
+
+#ifdef TOBESIGNED
+			if (OpenedFile==STATUS_SUCCESS)
+				OpenedFile=CheckSignatureOfFile(&filename);
+#endif
+
 			if (OpenedFile==STATUS_SUCCESS)
 			{
 				WORD startsector;
 				LARGE_INTEGER byteoffset;
 				FILE_STANDARD_INFORMATION fsi;
 				NTSTATUS ReadFile;
+
+
+
+
+
 				
 				//Getting filesize
 				ZwQueryInformationFile(dbvmimghandle, &statusblock, &fsi, sizeof(fsi),  FileStandardInformation);
