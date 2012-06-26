@@ -17,10 +17,12 @@ type
     Label1: TLabel;
     Timer1: TTimer;
     Timer2: TTimer;
+    procedure FormShow(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
   private
     { private declarations }
+
   public
     { public declarations }
   end;
@@ -65,20 +67,30 @@ begin
     s2:=t;
   end;
 
+
   frmDriverLoaded:=TfrmDriverLoaded.Create(nil);
-  frmDriverLoaded.caption:=s;
+  if a[0] then frmDriverLoaded.caption:=s else frmDriverLoaded.caption:=s2;
+
+
 
   frmDriverLoaded.show;
-  application.ProcessMessages;
 
 
-  b[0]:=IsWindowVisible(FindWindow('Window',pchar(s)));
-  b[1]:=IsWindowVisible(FindWindow('Window',pchar(s2)));
-
- // b[1]:=b[0]; (debug)
+  b[0]:=false;
+  b[1]:=false;
+  while (b[0]=false) and (b[1]=false) do
+  begin
+    application.ProcessMessages;
+    b[0]:=IsWindowVisible(FindWindow('Window',pchar(s)));
+    b[1]:=IsWindowVisible(FindWindow('Window',pchar(s2)));
+  end;
 
   if (a[0]<>b[0]) or (a[1]<>b[1]) or (a[0]=a[1]) or (b[0]=b[1]) then
   begin
+
+    showmessage('a[0]='+BoolToStr(a[0],true)+' a[1]='+BoolToStr(a[1],true)+' b[0]='+BoolToStr(b[0],true)+' b[1]='+BoolToStr(b[1],true));
+
+
     TerminateProcess(GetCurrentProcess,0);
     ExitProcess(0);
     MainForm.free;
@@ -97,6 +109,10 @@ begin
   AlphaBlendValue:=s;
   if s<=0 then
     close;
+end;
+
+procedure TfrmDriverLoaded.FormShow(Sender: TObject);
+begin
 end;
 
 procedure TfrmDriverLoaded.Timer2Timer(Sender: TObject);
