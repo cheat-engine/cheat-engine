@@ -69,6 +69,7 @@ begin
   frmDriverLoaded.caption:=s;
 
   frmDriverLoaded.show;
+  application.ProcessMessages;
 
 
   b[0]:=IsWindowVisible(FindWindow('Window',pchar(s)));
@@ -79,6 +80,7 @@ begin
   if (a[0]<>b[0]) or (a[1]<>b[1]) or (a[0]=a[1]) or (b[0]=b[1]) then
   begin
     TerminateProcess(GetCurrentProcess,0);
+    ExitProcess(0);
     MainForm.free;
     application.Terminate;
     while true do ;
@@ -93,8 +95,8 @@ var s: integer;
 begin
   s:=AlphaBlendValue-2;
   AlphaBlendValue:=s;
- { if s<=0 then
-    close;  }
+  if s<=0 then
+    close;
 end;
 
 procedure TfrmDriverLoaded.Timer2Timer(Sender: TObject);
