@@ -146,20 +146,20 @@ BOOL DXMessD3D9Handler::UpdateTextures()
 					ZeroMemory(&imageinfo, sizeof(imageinfo));
 					
 
-					hr=D3DXCreateTextureFromFileInMemoryEx(dev, (void *)(tea[i].AddressOfTexture), tea[i].size, D3DX_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT,0,D3DFMT_UNKNOWN, D3DPOOL_MANAGED,D3DX_FILTER_NONE,D3DX_DEFAULT, 0, &imageinfo, NULL, &textures[i].pTexture);
+					hr=D3DXCreateTextureFromFileInMemoryEx(dev, (void *)(tea[i].AddressOfTexture), tea[i].size, D3DX_DEFAULT, D3DX_DEFAULT, 1,0,D3DFMT_UNKNOWN, D3DPOOL_MANAGED,D3DX_FILTER_NONE,D3DX_DEFAULT, 0, &imageinfo, NULL, &textures[i].pTexture);
 					if( FAILED( hr ) )
 					{						
 						char s[255];
 
 						//OutputDebugStringA("Fail 1");
-						hr=D3DXCreateTextureFromFileInMemoryEx(dev, (void *)(tea[i].AddressOfTexture), tea[i].size, D3DX_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_FILTER_NONE, D3DX_DEFAULT, 0, NULL, NULL, &textures[i].pTexture);
+						hr=D3DXCreateTextureFromFileInMemoryEx(dev, (void *)(tea[i].AddressOfTexture), tea[i].size, D3DX_DEFAULT, D3DX_DEFAULT, 1, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_FILTER_NONE, D3DX_DEFAULT, 0, NULL, NULL, &textures[i].pTexture);
 
 						if (FAILED(hr))
 						{
 							//OutputDebugStringA("Fail 2");
 
 
-							hr=D3DXCreateTextureFromFileInMemoryEx(dev, (void *)(tea[i].AddressOfTexture), tea[i].size, D3DX_DEFAULT, D3DX_DEFAULT, D3DX_DEFAULT, 0, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_FILTER_NONE, D3DX_DEFAULT, 0, NULL, NULL, &textures[i].pTexture);
+							hr=D3DXCreateTextureFromFileInMemoryEx(dev, (void *)(tea[i].AddressOfTexture), tea[i].size, D3DX_DEFAULT, D3DX_DEFAULT, 1, 0, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_FILTER_NONE, D3DX_DEFAULT, 0, NULL, NULL, &textures[i].pTexture);
 							if (FAILED(hr))
 							{
 								//OutputDebugStringA("Fail 3");
@@ -190,7 +190,9 @@ BOOL DXMessD3D9Handler::UpdateTextures()
 									OutputDebugStringA(s);
 									
 									
-									
+									if (shared->texturelistHasUpdate)
+										InterlockedExchange((volatile LONG *)&shared->texturelistHasUpdate,0);	
+
 									return hr;
 								}
 							}

@@ -7337,9 +7337,8 @@ var t: TD3DHook_Texture;
   p2: TPicture;
   i: integer;
 begin
-  dbvm_testPSOD;
-  showmessage('WTF?');
-  exit;
+
+
 
   {
   ShowMessage('going to call dbvm_testSwitchToKernelmode');
