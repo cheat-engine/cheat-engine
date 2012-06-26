@@ -1,5 +1,7 @@
 unit Assemblerunit;
 
+//todo: case
+
 {$MODE Delphi}
 
 interface
@@ -92,6 +94,7 @@ type topcode=record
   paramtype1,paramtype2,paramtype3: tparam;
   bytes:byte;
   bt1,bt2,bt3: byte;
+  signed: boolean;
   norexw: boolean;
   invalidin64bit: boolean;
   invalidin32bit: boolean;
@@ -112,8 +115,8 @@ const opcodes: array [1..opcodecount] of topcode =(
 {ok}  (mnemonic:'ADC';opcode1:eo_reg2;opcode2:eo_ib;paramtype1:par_rm8;paramtype2:par_imm8;bytes:1;bt1:$80),//verified
   (mnemonic:'ADC';opcode1:eo_reg2;opcode2:eo_iw;paramtype1:par_rm16;paramtype2:par_imm16;bytes:2;bt1:$66;bt2:$81),
   (mnemonic:'ADC';opcode1:eo_reg2;opcode2:eo_id;paramtype1:par_rm32;paramtype2:par_imm32;bytes:1;bt1:$81),
-  (mnemonic:'ADC';opcode1:eo_reg2;opcode2:eo_ib;paramtype1:par_rm16;paramtype2:par_imm8;bytes:2;bt1:$66;bt2:$83),
-  (mnemonic:'ADC';opcode1:eo_reg2;opcode2:eo_ib;paramtype1:par_rm32;paramtype2:par_imm8;bytes:1;bt1:$83),
+  (mnemonic:'ADC';opcode1:eo_reg2;opcode2:eo_ib;paramtype1:par_rm16;paramtype2:par_imm8;bytes:2;bt1:$66;bt2:$83; signed: true),
+  (mnemonic:'ADC';opcode1:eo_reg2;opcode2:eo_ib;paramtype1:par_rm32;paramtype2:par_imm8;bytes:1;bt1:$83; signed: true),
   (mnemonic:'ADC';opcode1:eo_reg;paramtype1:par_rm8;paramtype2:par_r8;bytes:1;bt1:$10),
   (mnemonic:'ADC';opcode1:eo_reg;paramtype1:par_rm16;paramtype2:par_r16;bytes:2;bt1:$66;bt2:$11),
   (mnemonic:'ADC';opcode1:eo_reg;paramtype1:par_rm32;paramtype2:par_r32;bytes:1;bt1:$11),
@@ -127,8 +130,8 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'ADD';opcode1:eo_reg0;opcode2:eo_ib;paramtype1:par_rm8;paramtype2:par_imm8;bytes:1;bt1:$80),
   (mnemonic:'ADD';opcode1:eo_reg0;opcode2:eo_iw;paramtype1:par_rm16;paramtype2:par_imm16;bytes:2;bt1:$66;bt2:$81),
   (mnemonic:'ADD';opcode1:eo_reg0;opcode2:eo_id;paramtype1:par_rm32;paramtype2:par_imm32;bytes:1;bt1:$81),
-  (mnemonic:'ADD';opcode1:eo_reg0;opcode2:eo_ib;paramtype1:par_rm16;paramtype2:par_imm8;bytes:2;bt1:$66;bt2:$83),
-  (mnemonic:'ADD';opcode1:eo_reg0;opcode2:eo_ib;paramtype1:par_rm32;paramtype2:par_imm8;bytes:1;bt1:$83),
+  (mnemonic:'ADD';opcode1:eo_reg0;opcode2:eo_ib;paramtype1:par_rm16;paramtype2:par_imm8;bytes:2;bt1:$66;bt2:$83; signed: true),
+  (mnemonic:'ADD';opcode1:eo_reg0;opcode2:eo_ib;paramtype1:par_rm32;paramtype2:par_imm8;bytes:1;bt1:$83; signed: true),
   (mnemonic:'ADD';opcode1:eo_reg;paramtype1:par_rm32;paramtype2:par_r32;bytes:1;bt1:$01),
   (mnemonic:'ADD';opcode1:eo_reg;paramtype1:par_rm16;paramtype2:par_r16;bytes:2;bt1:$66;bt2:$01),
   (mnemonic:'ADD';opcode1:eo_reg;paramtype1:par_rm8;paramtype2:par_r8;bytes:1;bt1:$00),
@@ -147,8 +150,8 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'AND';opcode1:eo_reg4;opcode2:eo_ib;paramtype1:par_rm8;paramtype2:par_imm8;bytes:1;bt1:$80),
   (mnemonic:'AND';opcode1:eo_reg4;opcode2:eo_iw;paramtype1:par_rm16;paramtype2:par_imm16;bytes:2;bt1:$66;bt2:$81),
   (mnemonic:'AND';opcode1:eo_reg4;opcode2:eo_id;paramtype1:par_rm32;paramtype2:par_imm32;bytes:1;bt1:$81),
-  (mnemonic:'AND';opcode1:eo_reg4;opcode2:eo_ib;paramtype1:par_rm16;paramtype2:par_imm8;bytes:2;bt1:$66;bt2:$83),
-  (mnemonic:'AND';opcode1:eo_reg4;opcode2:eo_ib;paramtype1:par_rm32;paramtype2:par_imm8;bytes:1;bt1:$83),
+  (mnemonic:'AND';opcode1:eo_reg4;opcode2:eo_ib;paramtype1:par_rm16;paramtype2:par_imm8;bytes:2;bt1:$66;bt2:$83; signed: true),
+  (mnemonic:'AND';opcode1:eo_reg4;opcode2:eo_ib;paramtype1:par_rm32;paramtype2:par_imm8;bytes:1;bt1:$83; signed: true),
   (mnemonic:'AND';opcode1:eo_reg;paramtype1:par_rm8;paramtype2:par_r8;bytes:1;bt1:$20),
   (mnemonic:'AND';opcode1:eo_reg;paramtype1:par_rm16;paramtype2:par_r16;bytes:2;bt1:$66;bt2:$21),
   (mnemonic:'AND';opcode1:eo_reg;paramtype1:par_rm32;paramtype2:par_r32;bytes:1;bt1:$21),
@@ -272,8 +275,8 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'CMP';opcode1:eo_iw;paramtype1:par_AX;paramtype2:par_imm16;bytes:2;bt1:$66;bt2:$3D), //4 bytes
   (mnemonic:'CMP';opcode1:eo_id;paramtype1:par_EAX;paramtype2:par_imm32;bytes:1;bt1:$3D), //5 bytes
   (mnemonic:'CMP';opcode1:eo_reg7;opcode2:eo_ib;paramtype1:par_rm8;paramtype2:par_imm8;bytes:1;bt1:$80),
-  (mnemonic:'CMP';opcode1:eo_reg7;opcode2:eo_ib;paramtype1:par_rm16;paramtype2:par_imm8;bytes:2;bt1:$66;bt2:$83),
-  (mnemonic:'CMP';opcode1:eo_reg7;opcode2:eo_ib;paramtype1:par_rm32;paramtype2:par_imm8;bytes:1;bt1:$83),
+  (mnemonic:'CMP';opcode1:eo_reg7;opcode2:eo_ib;paramtype1:par_rm16;paramtype2:par_imm8;bytes:2;bt1:$66;bt2:$83; signed: true),
+  (mnemonic:'CMP';opcode1:eo_reg7;opcode2:eo_ib;paramtype1:par_rm32;paramtype2:par_imm8;bytes:1;bt1:$83; signed: true),
 
 
   (mnemonic:'CMP';opcode1:eo_reg7;opcode2:eo_iw;paramtype1:par_rm16;paramtype2:par_imm16;bytes:2;bt1:$66;bt2:$81),
@@ -887,8 +890,8 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'OR';opcode1:eo_reg1;opcode2:eo_ib;paramtype1:par_rm8;paramtype2:par_imm8;bytes:1;bt1:$80),
   (mnemonic:'OR';opcode1:eo_reg1;opcode2:eo_iw;paramtype1:par_rm16;paramtype2:par_imm16;bytes:2;bt1:$66;bt2:$80),
   (mnemonic:'OR';opcode1:eo_reg1;opcode2:eo_id;paramtype1:par_rm32;paramtype2:par_imm32;bytes:1;bt1:$81),
-  (mnemonic:'OR';opcode1:eo_reg1;opcode2:eo_ib;paramtype1:par_rm16;paramtype2:par_imm8;bytes:2;bt1:$66;bt2:$83),
-  (mnemonic:'OR';opcode1:eo_reg1;opcode2:eo_ib;paramtype1:par_rm32;paramtype2:par_imm8;bytes:1;bt1:$83),
+  (mnemonic:'OR';opcode1:eo_reg1;opcode2:eo_ib;paramtype1:par_rm16;paramtype2:par_imm8;bytes:2;bt1:$66;bt2:$83; signed: true),
+  (mnemonic:'OR';opcode1:eo_reg1;opcode2:eo_ib;paramtype1:par_rm32;paramtype2:par_imm8;bytes:1;bt1:$83; signed: true),
 
   (mnemonic:'OR';opcode1:eo_reg;paramtype1:par_rm8;paramtype2:par_r8;bytes:1;bt1:$08),
   (mnemonic:'OR';opcode1:eo_reg;paramtype1:par_rm16;paramtype2:par_r16;bytes:2;bt1:$66;bt2:$09),
@@ -1296,8 +1299,8 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'SBB';opcode1:eo_reg3;opcode2:eo_ib;paramtype1:par_rm8;paramtype2:par_imm8;bytes:1;bt1:$80),
   (mnemonic:'SBB';opcode1:eo_reg3;opcode2:eo_iw;paramtype1:par_rm16;paramtype2:par_imm16;bytes:2;bt1:$66;bt2:$80),
   (mnemonic:'SBB';opcode1:eo_reg3;opcode2:eo_id;paramtype1:par_rm32;paramtype2:par_imm32;bytes:1;bt1:$81),
-  (mnemonic:'SBB';opcode1:eo_reg3;opcode2:eo_ib;paramtype1:par_rm16;paramtype2:par_imm8;bytes:2;bt1:$66;bt2:$83),
-  (mnemonic:'SBB';opcode1:eo_reg3;opcode2:eo_ib;paramtype1:par_rm32;paramtype2:par_imm8;bytes:1;bt1:$83),
+  (mnemonic:'SBB';opcode1:eo_reg3;opcode2:eo_ib;paramtype1:par_rm16;paramtype2:par_imm8;bytes:2;bt1:$66;bt2:$83; signed: true),
+  (mnemonic:'SBB';opcode1:eo_reg3;opcode2:eo_ib;paramtype1:par_rm32;paramtype2:par_imm8;bytes:1;bt1:$83; signed: true),
   (mnemonic:'SBB';opcode1:eo_reg;paramtype1:par_rm8;paramtype2:par_r8;bytes:1;bt1:$18),
   (mnemonic:'SBB';opcode1:eo_reg;paramtype1:par_rm16;paramtype2:par_r16;bytes:2;bt1:$66;bt2:$19),
   (mnemonic:'SBB';opcode1:eo_reg;paramtype1:par_rm32;paramtype2:par_r32;bytes:1;bt1:$19),
@@ -1415,8 +1418,8 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'SUB';opcode1:eo_reg5;opcode2:eo_ib;paramtype1:par_rm8;paramtype2:par_imm8;bytes:1;bt1:$80),
   (mnemonic:'SUB';opcode1:eo_reg5;opcode2:eo_iw;paramtype1:par_rm16;paramtype2:par_imm16;bytes:2;bt1:$66;bt2:$80),
   (mnemonic:'SUB';opcode1:eo_reg5;opcode2:eo_id;paramtype1:par_rm32;paramtype2:par_imm32;bytes:1;bt1:$81),
-  (mnemonic:'SUB';opcode1:eo_reg5;opcode2:eo_ib;paramtype1:par_rm16;paramtype2:par_imm8;bytes:2;bt1:$66;bt2:$83),
-  (mnemonic:'SUB';opcode1:eo_reg5;opcode2:eo_ib;paramtype1:par_rm32;paramtype2:par_imm8;bytes:1;bt1:$83),
+  (mnemonic:'SUB';opcode1:eo_reg5;opcode2:eo_ib;paramtype1:par_rm16;paramtype2:par_imm8;bytes:2;bt1:$66;bt2:$83; signed: true),
+  (mnemonic:'SUB';opcode1:eo_reg5;opcode2:eo_ib;paramtype1:par_rm32;paramtype2:par_imm8;bytes:1;bt1:$83; signed: true),
   (mnemonic:'SUB';opcode1:eo_reg;paramtype1:par_rm8;paramtype2:par_r8;bytes:1;bt1:$28),
   (mnemonic:'SUB';opcode1:eo_reg;paramtype1:par_rm16;paramtype2:par_r16;bytes:2;bt1:$66;bt2:$29),
   (mnemonic:'SUB';opcode1:eo_reg;paramtype1:par_rm32;paramtype2:par_r32;bytes:1;bt1:$29),
@@ -1508,8 +1511,8 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'XOR';opcode1:eo_reg6;opcode2:eo_ib;paramtype1:par_rm8;paramtype2:par_imm8;bytes:1;bt1:$80),
   (mnemonic:'XOR';opcode1:eo_reg6;opcode2:eo_id;paramtype1:par_rm32;paramtype2:par_imm32;bytes:1;bt1:$81),
   (mnemonic:'XOR';opcode1:eo_reg6;opcode2:eo_iw;paramtype1:par_rm16;paramtype2:par_imm16;bytes:2;bt1:$66;bt2:$81),
-  (mnemonic:'XOR';opcode1:eo_reg6;opcode2:eo_ib;paramtype1:par_rm16;paramtype2:par_imm8;bytes:2;bt1:$66;bt2:$83),
-  (mnemonic:'XOR';opcode1:eo_reg6;opcode2:eo_ib;paramtype1:par_rm32;paramtype2:par_imm8;bytes:1;bt1:$83),
+  (mnemonic:'XOR';opcode1:eo_reg6;opcode2:eo_ib;paramtype1:par_rm16;paramtype2:par_imm8;bytes:2;bt1:$66;bt2:$83; signed: true),
+  (mnemonic:'XOR';opcode1:eo_reg6;opcode2:eo_ib;paramtype1:par_rm32;paramtype2:par_imm8;bytes:1;bt1:$83; signed: true),
   (mnemonic:'XOR';opcode1:eo_reg;paramtype1:par_rm8;paramtype2:par_r8;bytes:1;bt1:$30),
   (mnemonic:'XOR';opcode1:eo_reg;paramtype1:par_rm16;paramtype2:par_r16;bytes:2;bt1:$66;bt2:$31),
   (mnemonic:'XOR';opcode1:eo_reg;paramtype1:par_rm32;paramtype2:par_r32;bytes:1;bt1:$31),
@@ -4518,6 +4521,7 @@ begin
 
       if (opcodes[j].paramtype2=par_imm32) and (paramtype2=ttValue) then
       begin
+        //r32,imm32
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
         begin
           if opcodes[j].opcode1=eo_prd then
@@ -4544,6 +4548,7 @@ begin
 
       if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
       begin
+        //r32, imm8
         addopcode(bytes,j);
 
 
@@ -4799,14 +4804,16 @@ begin
         addopcode(bytes,j);
         result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
         exit;
-      end;      
+      end;
+
 
       if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
       begin
         //rm32,imm8
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
         begin
-          if vtype>8 then
+
+          if (vtype>8) or (opcodes[j].signed and (signedvtype>8)) then
           begin
             //the user requests a bigger than 8-bit value, so see if there is also a rm32,imm32 (there are no r/m32,imm16)
             k:=startoflist;
@@ -4848,7 +4855,7 @@ begin
             while k<=endoflist do
             begin
               if opcodes[k].mnemonic<>tokens[mnemonic] then break; //nope, so continue with r/m,imm16
-              if ((opcodes[k].paramtype1=par_rm32) and (opcodes[k].paramtype2=par_imm8)) and ((opcodes[k].paramtype3=par_noparam) and (parameter3='')) then
+              if ((opcodes[k].paramtype1=par_rm32) and (opcodes[k].paramtype2=par_imm8)) and ((opcodes[k].paramtype3=par_noparam) and (parameter3='')) and ((not opcodes[k].signed) or (signedvtype=8)) then
               begin
                 //yes, there is
                 addopcode(bytes,k);
