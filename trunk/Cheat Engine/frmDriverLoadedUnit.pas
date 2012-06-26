@@ -87,10 +87,6 @@ begin
 
   if (a[0]<>b[0]) or (a[1]<>b[1]) or (a[0]=a[1]) or (b[0]=b[1]) then
   begin
-
-    showmessage('a[0]='+BoolToStr(a[0],true)+' a[1]='+BoolToStr(a[1],true)+' b[0]='+BoolToStr(b[0],true)+' b[1]='+BoolToStr(b[1],true));
-
-
     TerminateProcess(GetCurrentProcess,0);
     ExitProcess(0);
     MainForm.free;
