@@ -1,0 +1,7 @@
+TARGETNAME=dbk
+TARGETPATH=obj
+TARGETTYPE=DRIVER
+TARGETLIBS=$(DDK_LIB_PATH)\ksecdd.lib 
+C_DEFINES=/DTOBESIGNED
+AMD64_SOURCES=dbkfunca.asm vmxhelpera.asm debuggera.asm vmxoffloada.asm ultimapa.asm
+SOURCES=DBKDrvr.c DBKFunc.c IOPLDispatcher.c memscan.c threads.c processlist.c vmxhelper.c interrupthook.c debugger.c vmxoffload.c deepkernel.c ultimap.c sigcheck.c

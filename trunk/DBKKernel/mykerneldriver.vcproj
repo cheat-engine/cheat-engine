@@ -137,8 +137,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="C:\WinDDK\7600.16385.1\inc\ddk;C:\WinDDK\7600.16385.1\inc\api;C:\WinDDK\7600.16385.1\inc\crt;C:\WinDDK\7600.16385.1\inc\api\crt\stl70"
-				PreprocessorDefinitions="AMD64;_AMD64_;_M_AMD64"
+				AdditionalIncludeDirectories="C:\WinDDK\7600.16385.1\inc\ddk;C:\WinDDK\7600.16385.1\inc\api;C:\WinDDK\7600.16385.1\inc\crt;C:\WinDDK\7600.16385.1\inc\api\crt\stl70;C:\WinDDK\7600.16385.1\inc\wdf;C:\WinDDK\7600.16385.1\inc\wdf\kmdf\1.9"
+				PreprocessorDefinitions="AMD64;_AMD64_;_M_AMD64;TOBESIGNED"
 				MinimalRebuild="false"
 				ExceptionHandling="0"
 				BasicRuntimeChecks="0"
@@ -430,6 +430,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\sigcheck.c"
+				>
+			</File>
+			<File
 				RelativePath=".\threads.c"
 				>
 			</File>
@@ -521,6 +525,10 @@
 			</File>
 			<File
 				RelativePath=".\processlist.h"
+				>
+			</File>
+			<File
+				RelativePath=".\sigcheck.h"
 				>
 			</File>
 			<File
