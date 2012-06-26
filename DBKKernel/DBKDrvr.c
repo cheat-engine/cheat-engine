@@ -542,8 +542,10 @@ NTSTATUS DispatchCreate(IN PDEVICE_OBJECT DeviceObject,
 
 	if (SeSinglePrivilegeCheck(sedebugprivUID, UserMode))
 	{
-#if (AMD64 && TOBESIGNED)		
-		Irp->IoStatus.Status = SecurityCheck();			
+#ifdef TOBESIGNED
+		NTSTATUS s=SecurityCheck();	
+		Irp->IoStatus.Status = s; 		
+	//	DbgPrint("Returning %x (and %x)\n", Irp->IoStatus.Status, s);
 #else
 		Irp->IoStatus.Status = STATUS_SUCCESS;
 #endif
