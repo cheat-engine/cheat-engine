@@ -269,7 +269,7 @@ var kernel32dll: thandle;
 
 implementation
 
-uses vmxfunctions, DBK64SecondaryLoader;
+uses vmxfunctions, DBK64SecondaryLoader, NewKernelHandler, frmDriverLoadedUnit;
 
 var dataloc: string;
     applicationPath: string;
@@ -2054,6 +2054,9 @@ begin
         end
         else
         begin
+          if Is64BitOS then
+            ShowDriverLoaded;
+
 
           //Get the address of win32k.sys
           if GetDriverVersion<>currentversion then

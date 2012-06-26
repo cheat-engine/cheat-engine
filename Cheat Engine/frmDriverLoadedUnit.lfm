@@ -1,0 +1,41 @@
+object frmDriverLoaded: TfrmDriverLoaded
+  Left = 0
+  Height = 60
+  Top = 0
+  Width = 420
+  AlphaBlend = True
+  BorderStyle = bsNone
+  ClientHeight = 60
+  ClientWidth = 420
+  FormStyle = fsSystemStayOnTop
+  LCLVersion = '1.1'
+  object Label1: TLabel
+    Left = 0
+    Height = 60
+    Top = 0
+    Width = 420
+    Align = alClient
+    Alignment = taCenter
+    Caption = 'DBK64 LOADED'
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -48
+    Font.Name = 'Arial'
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
+    ParentColor = False
+    ParentFont = False
+  end
+  object Timer1: TTimer
+    Enabled = False
+    Interval = 20
+    OnTimer = Timer1Timer
+    left = 88
+    top = 91
+  end
+  object Timer2: TTimer
+    Interval = 250
+    OnTimer = Timer2Timer
+    left = 152
+    top = 45
+  end
+end

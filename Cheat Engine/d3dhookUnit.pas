@@ -1043,6 +1043,8 @@ begin
       fontmapdata:=qword(newblock);
     end;
   end;
+
+  p.SaveToFile('c:\bla.png');
 end;
 
 destructor TD3DHook_FontMap.destroy;
