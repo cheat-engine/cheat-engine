@@ -86,13 +86,13 @@ var
     begin
       //ParamStrUTF8(0) is said not to work properly in linux, but I've tested it
       Result := cheatenginedir + 'languages' + DirectorySeparator + LangID + DirectorySeparator + 'cheatengine'+LCEXT;
-      if FileExistsUTF8(Result) then exit;
+      if FileExists(Result) then exit;
 
       Result := cheatenginedir + 'languages' + DirectorySeparator + LangID + DirectorySeparator + 'cheatengine-x86_64'+LCEXT;
-      if FileExistsUTF8(Result) then exit;
+      if FileExists(Result) then exit;
 
       Result := cheatenginedir + 'languages' + DirectorySeparator + LangID + DirectorySeparator + 'cheatengine-i386'+LCEXT;
-      if FileExistsUTF8(Result) then exit;
+      if FileExists(Result) then exit;
 
     end;
 
