@@ -2427,8 +2427,17 @@ procedure TScanner.GenericSaveResult(address: ptruint; oldvalue: pointer);
 {
 Generic routine for storing results. Use as last resort. E.g custom scans
 }
+var f: single;
 begin
   //save varsize
+  if (variableType = vtCustom) and (customtype<>nil) and (customtype.scriptUsesFloat) then
+  begin
+    //check if it's a valid float result
+    f:=customType.ConvertDataToFloat(oldvalue); //get value
+    if isnan(f) or IsInfinite(f) then exit; //check if valid, if not, exit
+
+  end;
+
   PPtrUintArray(CurrentAddressBuffer)[found]:=address;
   copyMemory(pointer(ptruint(CurrentFoundBuffer)+ptruint(variablesize*found)),oldvalue,variablesize);
 
