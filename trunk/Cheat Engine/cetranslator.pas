@@ -39,7 +39,7 @@ interface
 
 uses
   Classes, SysUtils, LResources, GetText, Controls, typinfo, FileUtil, LCLProc,
-  Translations, IniFiles;
+  Translations, IniFiles, Dialogs;
 
 type
   TDefaultTranslator = class(TAbstractTranslator)
@@ -268,7 +268,7 @@ begin
   // search first po translation resources
   try
      lcfn := FindLocaleFileName('.po');
-
+     lcfn:=SysToUTF8(lcfn);
 
      if lcfn <> '' then
      begin
