@@ -2065,7 +2065,7 @@ begin
 
                           description:='convert doubleword integer to scalar doubleprecision floating-point value';
                           lastdisassembledata.opcode:='cvtsi2sd';
-                          lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,0,last);
 
                           inc(offset,last-1);
                         end
@@ -2075,7 +2075,7 @@ begin
 
                           description:='scalar signed int32 to single-fp conversion';
                           lastdisassembledata.opcode:='cvtsi2ss';
-                          lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,0,last);
 
                           inc(offset,last-1);
                         end
