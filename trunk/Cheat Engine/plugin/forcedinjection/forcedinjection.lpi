@@ -1,0 +1,547 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <ProjectOptions>
+    <Version Value="9"/>
+    <PathDelim Value="\"/>
+    <General>
+      <Flags>
+        <MainUnitHasUsesSectionForAllUnits Value="False"/>
+        <MainUnitHasCreateFormStatements Value="False"/>
+        <MainUnitHasTitleStatement Value="False"/>
+      </Flags>
+      <MainUnit Value="0"/>
+      <Title Value="forcedinjection"/>
+      <ResourceType Value="res"/>
+      <ActiveWindowIndexAtStart Value="0"/>
+    </General>
+    <i18n>
+      <EnableI18N LFM="False"/>
+    </i18n>
+    <VersionInfo>
+      <StringTable ProductVersion=""/>
+    </VersionInfo>
+    <BuildModes Count="1" Active="release">
+      <Item1 Name="release" Default="True"/>
+    </BuildModes>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
+      <ExcludeFileFilter Value="*.(bak|ppu|o|so);*~;backup"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+        <HostApplicationFilename Value="F:\svn\Cheat Engine\bin\cheatengine-x86_64.exe"/>
+      </local>
+    </RunParams>
+    <Units Count="33">
+      <Unit0>
+        <Filename Value="forcedinjection.dpr"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="forcedinjection"/>
+        <EditorIndex Value="0"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="1" Y="33"/>
+        <UsageCount Value="203"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="pluginconfig.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="pluginconfig"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="2"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="343"/>
+        <CursorPos X="32" Y="370"/>
+        <UsageCount Value="203"/>
+        <Bookmarks Count="1">
+          <Item0 X="48" Y="440" ID="8"/>
+        </Bookmarks>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="stealtheditclass.pas"/>
+        <UnitName Value="stealtheditclass"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="606"/>
+        <CursorPos X="13" Y="616"/>
+        <UsageCount Value="160"/>
+        <Bookmarks Count="3">
+          <Item0 X="3" Y="1028" ID="7"/>
+          <Item1 X="1" Y="734" ID="9"/>
+          <Item2 X="3" Y="277" ID="8"/>
+        </Bookmarks>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="C:\lazarus\fpc\2.4.4\source\rtl\win\wininc\redef.inc"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="979"/>
+        <CursorPos X="10" Y="994"/>
+        <UsageCount Value="34"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="C:\lazarus\fpc\2.4.4\source\rtl\win\wininc\func.inc"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="75"/>
+        <CursorPos X="1" Y="91"/>
+        <UsageCount Value="34"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="..\plugin\cepluginsdk.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="cepluginsdk"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="286"/>
+        <CursorPos X="141" Y="511"/>
+        <UsageCount Value="200"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="C:\lazarus\fpc\2.4.4\source\rtl\objpas\math.pp"/>
+        <UnitName Value="math"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="2023"/>
+        <CursorPos X="1" Y="2026"/>
+        <UsageCount Value="31"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="C:\lazarus\fpc\2.4.4\source\packages\winunits-jedi\src\jwatlhelp32.pas"/>
+        <UnitName Value="jwatlhelp32"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="313"/>
+        <CursorPos X="3" Y="340"/>
+        <UsageCount Value="19"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="C:\lazarus\fpc\2.4.4\source\rtl\win64\windows.pp"/>
+        <UnitName Value="windows"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="1" Y="1"/>
+        <UsageCount Value="7"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="C:\lazarus\fpc\2.4.4\source\packages\winunits-jedi\src\jwawindns.pas"/>
+        <UnitName Value="jwawindns"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="72"/>
+        <CursorPos X="3" Y="87"/>
+        <UsageCount Value="7"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="C:\lazarus\fpc\2.4.4\source\rtl\inc\systemh.inc"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="83"/>
+        <CursorPos X="3" Y="98"/>
+        <UsageCount Value="7"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="..\cepluginsdk.pas"/>
+        <UnitName Value="cepluginsdk"/>
+        <EditorIndex Value="1"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="1" Y="1"/>
+        <UsageCount Value="73"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="E:\lazarus\fpc\2.5.1\source\packages\winunits-jedi\src\jwawindows.pas"/>
+        <UnitName Value="JwaWindows"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="351"/>
+        <CursorPos X="40" Y="360"/>
+        <UsageCount Value="36"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="usermode\commands.pas"/>
+        <UnitName Value="commands"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="27" Y="11"/>
+        <UsageCount Value="77"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit13>
+      <Unit14>
+        <Filename Value="E:\lazarus\fpc\2.5.1\source\rtl\objpas\sysutils\osutilsh.inc"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="5"/>
+        <CursorPos X="10" Y="20"/>
+        <UsageCount Value="34"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit14>
+      <Unit15>
+        <Filename Value="E:\lazarus\fpc\2.5.1\source\rtl\win\sysutils.pp"/>
+        <UnitName Value="sysutils"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1038"/>
+        <CursorPos X="3" Y="1041"/>
+        <UsageCount Value="34"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit15>
+      <Unit16>
+        <Filename Value="E:\lazarus\fpc\2.5.1\source\rtl\win\wininc\redef.inc"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="905"/>
+        <CursorPos X="10" Y="922"/>
+        <UsageCount Value="31"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit16>
+      <Unit17>
+        <Filename Value="..\..\lua\lualib.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="lualib"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="16"/>
+        <CursorPos X="1" Y="1"/>
+        <UsageCount Value="90"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit17>
+      <Unit18>
+        <Filename Value="..\..\lua\lauxlib.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="lauxlib"/>
+        <EditorIndex Value="13"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="85"/>
+        <CursorPos X="151" Y="27"/>
+        <UsageCount Value="90"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit18>
+      <Unit19>
+        <Filename Value="..\..\lua\lua.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="lua"/>
+        <EditorIndex Value="12"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="271"/>
+        <CursorPos X="10" Y="287"/>
+        <UsageCount Value="90"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit19>
+      <Unit20>
+        <Filename Value="..\..\LuaForm.pas"/>
+        <UnitName Value="LuaForm"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="115"/>
+        <CursorPos X="1" Y="132"/>
+        <UsageCount Value="9"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit20>
+      <Unit21>
+        <Filename Value="E:\lazarus\lcl\include\control.inc"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="2865"/>
+        <CursorPos X="1" Y="2882"/>
+        <UsageCount Value="9"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit21>
+      <Unit22>
+        <Filename Value="E:\lazarus\lcl\include\application.inc"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1360"/>
+        <CursorPos X="1" Y="1377"/>
+        <UsageCount Value="5"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit22>
+      <Unit23>
+        <Filename Value="C:\lazarus\fpc\2.5.1\source\rtl\morphos\graphics.pas"/>
+        <UnitName Value="graphics"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="40"/>
+        <CursorPos X="1" Y="1"/>
+        <UsageCount Value="4"/>
+      </Unit23>
+      <Unit24>
+        <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\inc\systemh.inc"/>
+        <EditorIndex Value="11"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="841"/>
+        <CursorPos X="11" Y="857"/>
+        <UsageCount Value="39"/>
+        <Loaded Value="True"/>
+      </Unit24>
+      <Unit25>
+        <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\inc\wstringh.inc"/>
+        <EditorIndex Value="10"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="7"/>
+        <CursorPos X="10" Y="23"/>
+        <UsageCount Value="39"/>
+        <Loaded Value="True"/>
+      </Unit25>
+      <Unit26>
+        <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\objpas\classes\classesh.inc"/>
+        <EditorIndex Value="9"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="634"/>
+        <CursorPos X="14" Y="650"/>
+        <UsageCount Value="38"/>
+        <Loaded Value="True"/>
+      </Unit26>
+      <Unit27>
+        <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\win\wininc\struct.inc"/>
+        <EditorIndex Value="8"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="7506"/>
+        <CursorPos X="5" Y="7522"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit27>
+      <Unit28>
+        <Filename Value="..\..\debugeventhandler.pas"/>
+        <UnitName Value="debugeventhandler"/>
+        <EditorIndex Value="3"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="172"/>
+        <CursorPos X="1" Y="182"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit28>
+      <Unit29>
+        <Filename Value="..\..\plugin.pas"/>
+        <UnitName Value="plugin"/>
+        <EditorIndex Value="7"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1311"/>
+        <CursorPos X="1" Y="1327"/>
+        <UsageCount Value="12"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit29>
+      <Unit30>
+        <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\objpas\sysutils\finah.inc"/>
+        <EditorIndex Value="5"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="23" Y="23"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+      </Unit30>
+      <Unit31>
+        <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\objpas\sysutils\fina.inc"/>
+        <EditorIndex Value="6"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="93"/>
+        <CursorPos X="25" Y="93"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+      </Unit31>
+      <Unit32>
+        <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\win\wininc\redef.inc"/>
+        <EditorIndex Value="4"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="898"/>
+        <CursorPos X="10" Y="914"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+      </Unit32>
+    </Units>
+    <JumpHistory Count="30" HistoryIndex="29">
+      <Position1>
+        <Filename Value="pluginconfig.pas"/>
+        <Caret Line="362" Column="84" TopLine="346"/>
+      </Position1>
+      <Position2>
+        <Filename Value="pluginconfig.pas"/>
+        <Caret Line="366" Column="37" TopLine="350"/>
+      </Position2>
+      <Position3>
+        <Filename Value="forcedinjection.dpr"/>
+        <Caret Line="31" Column="6" TopLine="1"/>
+      </Position3>
+      <Position4>
+        <Filename Value="pluginconfig.pas"/>
+        <Caret Line="404" Column="27" TopLine="381"/>
+      </Position4>
+      <Position5>
+        <Filename Value="pluginconfig.pas"/>
+        <Caret Line="405" Column="54" TopLine="389"/>
+      </Position5>
+      <Position6>
+        <Filename Value="pluginconfig.pas"/>
+        <Caret Line="340" Column="22" TopLine="331"/>
+      </Position6>
+      <Position7>
+        <Filename Value="pluginconfig.pas"/>
+        <Caret Line="359" Column="28" TopLine="332"/>
+      </Position7>
+      <Position8>
+        <Filename Value="pluginconfig.pas"/>
+        <Caret Line="405" Column="30" TopLine="390"/>
+      </Position8>
+      <Position9>
+        <Filename Value="pluginconfig.pas"/>
+        <Caret Line="442" Column="26" TopLine="433"/>
+      </Position9>
+      <Position10>
+        <Filename Value="pluginconfig.pas"/>
+        <Caret Line="536" Column="24" TopLine="530"/>
+      </Position10>
+      <Position11>
+        <Filename Value="pluginconfig.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
+      </Position11>
+      <Position12>
+        <Filename Value="pluginconfig.pas"/>
+        <Caret Line="86" Column="24" TopLine="59"/>
+      </Position12>
+      <Position13>
+        <Filename Value="pluginconfig.pas"/>
+        <Caret Line="126" Column="28" TopLine="117"/>
+      </Position13>
+      <Position14>
+        <Filename Value="pluginconfig.pas"/>
+        <Caret Line="154" Column="35" TopLine="142"/>
+      </Position14>
+      <Position15>
+        <Filename Value="pluginconfig.pas"/>
+        <Caret Line="161" Column="34" TopLine="142"/>
+      </Position15>
+      <Position16>
+        <Filename Value="pluginconfig.pas"/>
+        <Caret Line="224" Column="30" TopLine="215"/>
+      </Position16>
+      <Position17>
+        <Filename Value="pluginconfig.pas"/>
+        <Caret Line="236" Column="28" TopLine="236"/>
+      </Position17>
+      <Position18>
+        <Filename Value="pluginconfig.pas"/>
+        <Caret Line="244" Column="30" TopLine="257"/>
+      </Position18>
+      <Position19>
+        <Filename Value="pluginconfig.pas"/>
+        <Caret Line="259" Column="24" TopLine="241"/>
+      </Position19>
+      <Position20>
+        <Filename Value="pluginconfig.pas"/>
+        <Caret Line="270" Column="24" TopLine="264"/>
+      </Position20>
+      <Position21>
+        <Filename Value="pluginconfig.pas"/>
+        <Caret Line="359" Column="28" TopLine="350"/>
+      </Position21>
+      <Position22>
+        <Filename Value="pluginconfig.pas"/>
+        <Caret Line="402" Column="40" TopLine="390"/>
+      </Position22>
+      <Position23>
+        <Filename Value="pluginconfig.pas"/>
+        <Caret Line="405" Column="11" TopLine="390"/>
+      </Position23>
+      <Position24>
+        <Filename Value="pluginconfig.pas"/>
+        <Caret Line="100" Column="38" TopLine="91"/>
+      </Position24>
+      <Position25>
+        <Filename Value="pluginconfig.pas"/>
+        <Caret Line="361" Column="96" TopLine="345"/>
+      </Position25>
+      <Position26>
+        <Filename Value="pluginconfig.pas"/>
+        <Caret Line="394" Column="30" TopLine="369"/>
+      </Position26>
+      <Position27>
+        <Filename Value="pluginconfig.pas"/>
+        <Caret Line="396" Column="32" TopLine="369"/>
+      </Position27>
+      <Position28>
+        <Filename Value="..\cepluginsdk.pas"/>
+        <Caret Line="521" Column="39" TopLine="509"/>
+      </Position28>
+      <Position29>
+        <Filename Value="pluginconfig.pas"/>
+        <Caret Line="359" Column="6" TopLine="346"/>
+      </Position29>
+      <Position30>
+        <Filename Value="..\..\debugeventhandler.pas"/>
+        <Caret Line="181" Column="8" TopLine="172"/>
+      </Position30>
+    </JumpHistory>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="11"/>
+    <PathDelim Value="\"/>
+    <Target>
+      <Filename Value="forcedinjection-$(TargetCPU)"/>
+    </Target>
+    <SearchPaths>
+      <IncludeFiles Value="$(ProjOutDir)"/>
+      <OtherUnitFiles Value="..;..\..\lua"/>
+    </SearchPaths>
+    <Parsing>
+      <Style Value="1"/>
+      <SyntaxOptions>
+        <SyntaxMode Value="Delphi"/>
+      </SyntaxOptions>
+    </Parsing>
+    <CodeGeneration>
+      <RelocatableUnit Value="True"/>
+      <Optimizations>
+        <OptimizationLevel Value="0"/>
+      </Optimizations>
+    </CodeGeneration>
+    <Linking>
+      <LinkSmart Value="True"/>
+      <Options>
+        <ExecutableType Value="Library"/>
+      </Options>
+    </Linking>
+    <Other>
+      <CompilerMessages>
+        <UseMsgFile Value="True"/>
+      </CompilerMessages>
+      <CompilerPath Value="$(CompPath)"/>
+    </Other>
+  </CompilerOptions>
+  <Debugging>
+    <Watches Count="4">
+      <Item1>
+        <Expression Value="cnt.rip"/>
+        <DisplayStyle Value="wdfHex"/>
+      </Item1>
+      <Item2>
+        <Expression Value="stackcopy"/>
+        <DisplayStyle Value="wdfHex"/>
+      </Item2>
+      <Item3>
+        <Expression Value="stacksize"/>
+      </Item3>
+      <Item4>
+        <Expression Value="relocations[0].baseaddress"/>
+        <DisplayStyle Value="wdfHex"/>
+      </Item4>
+    </Watches>
+    <Exceptions Count="6">
+      <Item1>
+        <Name Value="EAbort"/>
+      </Item1>
+      <Item2>
+        <Name Value="ECodetoolError"/>
+      </Item2>
+      <Item3>
+        <Name Value="EFOpenError"/>
+      </Item3>
+      <Item4>
+        <Name Value="ERegistryException"/>
+      </Item4>
+      <Item5>
+        <Name Value="Exception"/>
+      </Item5>
+      <Item6>
+        <Name Value="symexception"/>
+      </Item6>
+    </Exceptions>
+  </Debugging>
+</CONFIG>
