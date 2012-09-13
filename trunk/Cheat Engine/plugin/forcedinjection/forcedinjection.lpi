@@ -83,6 +83,7 @@
         <TopLine Value="979"/>
         <CursorPos X="10" Y="994"/>
         <UsageCount Value="34"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit3>
       <Unit4>
         <Filename Value="C:\lazarus\fpc\2.4.4\source\rtl\win\wininc\func.inc"/>
@@ -90,6 +91,7 @@
         <TopLine Value="75"/>
         <CursorPos X="1" Y="91"/>
         <UsageCount Value="34"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit4>
       <Unit5>
         <Filename Value="..\plugin\cepluginsdk.pas"/>
@@ -108,6 +110,7 @@
         <TopLine Value="2023"/>
         <CursorPos X="1" Y="2026"/>
         <UsageCount Value="31"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit6>
       <Unit7>
         <Filename Value="C:\lazarus\fpc\2.4.4\source\packages\winunits-jedi\src\jwatlhelp32.pas"/>
@@ -116,6 +119,7 @@
         <TopLine Value="313"/>
         <CursorPos X="3" Y="340"/>
         <UsageCount Value="19"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit7>
       <Unit8>
         <Filename Value="C:\lazarus\fpc\2.4.4\source\rtl\win64\windows.pp"/>
@@ -124,6 +128,7 @@
         <TopLine Value="1"/>
         <CursorPos X="1" Y="1"/>
         <UsageCount Value="7"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit8>
       <Unit9>
         <Filename Value="C:\lazarus\fpc\2.4.4\source\packages\winunits-jedi\src\jwawindns.pas"/>
@@ -132,6 +137,7 @@
         <TopLine Value="72"/>
         <CursorPos X="3" Y="87"/>
         <UsageCount Value="7"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit9>
       <Unit10>
         <Filename Value="C:\lazarus\fpc\2.4.4\source\rtl\inc\systemh.inc"/>
@@ -139,6 +145,7 @@
         <TopLine Value="83"/>
         <CursorPos X="3" Y="98"/>
         <UsageCount Value="7"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit10>
       <Unit11>
         <Filename Value="..\cepluginsdk.pas"/>
@@ -158,7 +165,6 @@
         <TopLine Value="351"/>
         <CursorPos X="40" Y="360"/>
         <UsageCount Value="36"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit12>
       <Unit13>
         <Filename Value="usermode\commands.pas"/>
@@ -175,7 +181,6 @@
         <TopLine Value="5"/>
         <CursorPos X="10" Y="20"/>
         <UsageCount Value="34"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit14>
       <Unit15>
         <Filename Value="E:\lazarus\fpc\2.5.1\source\rtl\win\sysutils.pp"/>
@@ -184,7 +189,6 @@
         <TopLine Value="1038"/>
         <CursorPos X="3" Y="1041"/>
         <UsageCount Value="34"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit15>
       <Unit16>
         <Filename Value="E:\lazarus\fpc\2.5.1\source\rtl\win\wininc\redef.inc"/>
@@ -192,7 +196,6 @@
         <TopLine Value="905"/>
         <CursorPos X="10" Y="922"/>
         <UsageCount Value="31"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit16>
       <Unit17>
         <Filename Value="..\..\lua\lualib.pas"/>
@@ -208,7 +211,7 @@
         <Filename Value="..\..\lua\lauxlib.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="lauxlib"/>
-        <EditorIndex Value="13"/>
+        <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
         <TopLine Value="85"/>
         <CursorPos X="151" Y="27"/>
@@ -220,7 +223,7 @@
         <Filename Value="..\..\lua\lua.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="lua"/>
-        <EditorIndex Value="12"/>
+        <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
         <TopLine Value="271"/>
         <CursorPos X="10" Y="287"/>
@@ -243,7 +246,6 @@
         <TopLine Value="2865"/>
         <CursorPos X="1" Y="2882"/>
         <UsageCount Value="9"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit21>
       <Unit22>
         <Filename Value="E:\lazarus\lcl\include\application.inc"/>
@@ -251,7 +253,6 @@
         <TopLine Value="1360"/>
         <CursorPos X="1" Y="1377"/>
         <UsageCount Value="5"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit22>
       <Unit23>
         <Filename Value="C:\lazarus\fpc\2.5.1\source\rtl\morphos\graphics.pas"/>
@@ -260,42 +261,39 @@
         <TopLine Value="40"/>
         <CursorPos X="1" Y="1"/>
         <UsageCount Value="4"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit23>
       <Unit24>
         <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\inc\systemh.inc"/>
-        <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
         <TopLine Value="841"/>
         <CursorPos X="11" Y="857"/>
         <UsageCount Value="39"/>
-        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit24>
       <Unit25>
         <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\inc\wstringh.inc"/>
-        <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
         <TopLine Value="7"/>
         <CursorPos X="10" Y="23"/>
         <UsageCount Value="39"/>
-        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit25>
       <Unit26>
         <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\objpas\classes\classesh.inc"/>
-        <EditorIndex Value="9"/>
         <WindowIndex Value="0"/>
         <TopLine Value="634"/>
         <CursorPos X="14" Y="650"/>
         <UsageCount Value="38"/>
-        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit26>
       <Unit27>
         <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\win\wininc\struct.inc"/>
-        <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
         <TopLine Value="7506"/>
         <CursorPos X="5" Y="7522"/>
         <UsageCount Value="20"/>
-        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit27>
       <Unit28>
         <Filename Value="..\..\debugeventhandler.pas"/>
@@ -311,7 +309,7 @@
       <Unit29>
         <Filename Value="..\..\plugin.pas"/>
         <UnitName Value="plugin"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1311"/>
         <CursorPos X="1" Y="1327"/>
@@ -321,33 +319,30 @@
       </Unit29>
       <Unit30>
         <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\objpas\sysutils\finah.inc"/>
-        <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="23" Y="23"/>
         <UsageCount Value="11"/>
-        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit30>
       <Unit31>
         <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\objpas\sysutils\fina.inc"/>
-        <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
         <TopLine Value="93"/>
         <CursorPos X="25" Y="93"/>
         <UsageCount Value="11"/>
-        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit31>
       <Unit32>
         <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\win\wininc\redef.inc"/>
-        <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
         <TopLine Value="898"/>
         <CursorPos X="10" Y="914"/>
         <UsageCount Value="11"/>
-        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit32>
     </Units>
-    <JumpHistory Count="30" HistoryIndex="29">
+    <JumpHistory Count="29" HistoryIndex="28">
       <Position1>
         <Filename Value="pluginconfig.pas"/>
         <Caret Line="362" Column="84" TopLine="346"/>
@@ -418,56 +413,52 @@
       </Position17>
       <Position18>
         <Filename Value="pluginconfig.pas"/>
-        <Caret Line="244" Column="30" TopLine="257"/>
+        <Caret Line="259" Column="24" TopLine="241"/>
       </Position18>
       <Position19>
         <Filename Value="pluginconfig.pas"/>
-        <Caret Line="259" Column="24" TopLine="241"/>
+        <Caret Line="270" Column="24" TopLine="264"/>
       </Position19>
       <Position20>
         <Filename Value="pluginconfig.pas"/>
-        <Caret Line="270" Column="24" TopLine="264"/>
+        <Caret Line="359" Column="28" TopLine="350"/>
       </Position20>
       <Position21>
         <Filename Value="pluginconfig.pas"/>
-        <Caret Line="359" Column="28" TopLine="350"/>
+        <Caret Line="402" Column="40" TopLine="390"/>
       </Position21>
       <Position22>
         <Filename Value="pluginconfig.pas"/>
-        <Caret Line="402" Column="40" TopLine="390"/>
+        <Caret Line="405" Column="11" TopLine="390"/>
       </Position22>
       <Position23>
         <Filename Value="pluginconfig.pas"/>
-        <Caret Line="405" Column="11" TopLine="390"/>
+        <Caret Line="100" Column="38" TopLine="91"/>
       </Position23>
       <Position24>
         <Filename Value="pluginconfig.pas"/>
-        <Caret Line="100" Column="38" TopLine="91"/>
+        <Caret Line="361" Column="96" TopLine="345"/>
       </Position24>
       <Position25>
         <Filename Value="pluginconfig.pas"/>
-        <Caret Line="361" Column="96" TopLine="345"/>
+        <Caret Line="394" Column="30" TopLine="369"/>
       </Position25>
       <Position26>
         <Filename Value="pluginconfig.pas"/>
-        <Caret Line="394" Column="30" TopLine="369"/>
+        <Caret Line="396" Column="32" TopLine="369"/>
       </Position26>
       <Position27>
-        <Filename Value="pluginconfig.pas"/>
-        <Caret Line="396" Column="32" TopLine="369"/>
-      </Position27>
-      <Position28>
         <Filename Value="..\cepluginsdk.pas"/>
         <Caret Line="521" Column="39" TopLine="509"/>
-      </Position28>
-      <Position29>
+      </Position27>
+      <Position28>
         <Filename Value="pluginconfig.pas"/>
         <Caret Line="359" Column="6" TopLine="346"/>
-      </Position29>
-      <Position30>
+      </Position28>
+      <Position29>
         <Filename Value="..\..\debugeventhandler.pas"/>
         <Caret Line="181" Column="8" TopLine="172"/>
-      </Position30>
+      </Position29>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
@@ -489,10 +480,15 @@
     <CodeGeneration>
       <RelocatableUnit Value="True"/>
       <Optimizations>
-        <OptimizationLevel Value="0"/>
+        <VariablesInRegisters Value="True"/>
+        <OptimizationLevel Value="3"/>
       </Optimizations>
     </CodeGeneration>
     <Linking>
+      <Debugging>
+        <GenerateDebugInfo Value="False"/>
+        <StripSymbols Value="True"/>
+      </Debugging>
       <LinkSmart Value="True"/>
       <Options>
         <ExecutableType Value="Library"/>
