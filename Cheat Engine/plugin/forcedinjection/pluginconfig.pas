@@ -592,7 +592,6 @@ end;
 
 function CEPlugin_DisablePlugin:BOOL; stdcall;
 begin
-  lua_dostring(luavm, 'dobitwiseAND=nil');
   result:=true;
 end;
 
