@@ -1137,7 +1137,7 @@ begin
       1: //OnNotify hotkey
       begin
         gh := TGenericHotkey(message.LParam);
-        gh.onNotify(nil);
+        gh.onNotify(gh);
       end
     end;
   end
@@ -7326,6 +7326,7 @@ begin
 end;
 
 procedure TMainForm.Label59Click(Sender: TObject);
+const TokenIntegrityLevel=25;
 var t: TD3DHook_Texture;
   s: TD3DHook_Sprite;
 
@@ -7336,9 +7337,50 @@ var t: TD3DHook_Texture;
 
   p2: TPicture;
   i: integer;
+  tokenhandle, tokenhandle2: thandle;
+  LengthNeeded, LengthNeeded2: dword;
+  buffer,buffer2: pointer;
+  exportlist: pchar;
+  max: integer;
 begin
 
+  max:=4096;
+  getmem(exportlist, 4096);
+  if ce_loadModule(pchar(CheatEngineDir+'speedhack-i386.dll'), exportlist, @max) then
+    ShowMessage(exportlist)
+  else
+    showmessage('fail');
 
+  {
+  OpenProcessToken(ownprocesshandle, TOKEN_ALL_ACCESS, tokenhandle2);
+  GetTokenInformation(tokenhandle2, TOKEN_INFORMATION_CLASS(TokenIntegrityLevel), NIL, 0, LengthNeeded2);
+  getmem(buffer2, LengthNeeded2);
+  GetTokenInformation(tokenhandle2, TOKEN_INFORMATION_CLASS(TokenIntegrityLevel), buffer2, LengthNeeded2, LengthNeeded2);
+
+
+  if OpenProcessToken(ProcessHandle, TOKEN_ALL_ACCESS, tokenhandle) then
+  begin
+    LengthNeeded:=0;
+    GetTokenInformation(tokenhandle, TOKEN_INFORMATION_CLASS(TokenIntegrityLevel), NIL, 0, LengthNeeded);
+
+    If LengthNeeded>0 then
+    begin
+      getmem(buffer, LengthNeeded);
+      if GetTokenInformation(tokenhandle, TOKEN_INFORMATION_CLASS(TokenIntegrityLevel), buffer, LengthNeeded, LengthNeeded) then
+      begin
+        if SetTokenInformation(tokenhandle, TOKEN_INFORMATION_CLASS(TokenIntegrityLevel), buffer2, lengthneeded2) then
+          showmessage('succeed')
+        else
+          showmessage('fuck');
+
+      end
+      else
+        ShowMessage('fail 2');
+    end
+    else showmessage('fail1');
+
+  end
+  else showmessage('fail');       }
 
   {
   ShowMessage('going to call dbvm_testSwitchToKernelmode');
