@@ -3921,9 +3921,7 @@ begin
 
     if (pi=nil) or (pi.proptype=nil) or (pi.PropType.Kind<>tkMethod) then
     begin
-      lua_pushstring(L, 'This is an invalid class or method property');
-      lua_error(L);
-      exit;
+      raise exception.create('This is an invalid class or method property');
     end;
 
 
@@ -3964,12 +3962,7 @@ begin
         if pi.PropType.Name ='TLVCheckedItemEvent' then
           lua_pushcclosure(L, LuaCaller_LVCheckedItemEvent,2)
         else
-        begin
-          lua_pushstring(L, 'This type of method:'+pi.PropType.Name+' is not yet supported');
-          lua_error(L);
-          result:=0; //should never hit
-          exit;
-        end;
+          raise exception.create('This type of method:'+pi.PropType.Name+' is not yet supported');
 
         result:=1;
       end;
@@ -4067,9 +4060,7 @@ begin
       else
       begin
         lc.free;
-        lua_pushstring(L, pchar('This type of method:'+pi.PropType.Name+' is not yet supported'));
-        lua_error(L);
-        exit;
+        raise exception.create('This type of method:'+pi.PropType.Name+' is not yet supported');
       end;
 
       luacaller.setMethodProperty(c,p,m);
@@ -4078,9 +4069,7 @@ begin
     else
     begin
       lc.free;
-      lua_pushstring(L, 'This is an invalid class or method property');
-      lua_error(L);
-      exit;
+      raise exception.create('This is an invalid class or method property');
     end;
 
 
