@@ -271,7 +271,7 @@ control_getCaption(control) : Returns the text of the control
 control_setPosition(control, x,y): sets the x and y position of the object base don the top left position (relative to the client array of the owner object)
 control_getPosition(contron): returns the x and y position of the object (relative to the client array of the owner object)
 control_setSize(control, width,height) : Sets the width and height of the control
-control_getSize(control) : Sets the size of the control
+control_getSize(control) : Gets the size of the control
 control_setAlign(control, alignmentoption): sets the alignment of the control
 control_getAlign(control, alignmentoption): gets the alignment of the control
 control_getEnabled(control) : gets the enabled state of the control
