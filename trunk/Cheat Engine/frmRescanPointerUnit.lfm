@@ -11,14 +11,13 @@ object frmRescanPointer: TfrmRescanPointer
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.1'
   object edtAddress: TEdit
     Left = 8
     Height = 21
     Top = 26
     Width = 111
     CharCase = ecUppercase
-    MaxLength = 8
     TabOrder = 0
   end
   object cbValueType: TComboBox

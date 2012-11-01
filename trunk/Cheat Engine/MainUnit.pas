@@ -201,6 +201,7 @@ type
     ColorDialog1: TColorDialog;
     CreateGroup: TMenuItem;
     edtAlignment: TEdit;
+    Foundlist3: TListView;
     FromAddress: TMemo;
     ImageList2: TImageList;
     Label1: TLabel;
@@ -211,6 +212,8 @@ type
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
+    miShowPreviousValue: TMenuItem;
+    MenuItem4: TMenuItem;
     miShowCustomTypeDebug: TMenuItem;
     miShowAsSigned: TMenuItem;
     miOpenFile: TMenuItem;
@@ -329,7 +332,6 @@ type
     Paste2: TMenuItem;
     Splitter1: TSplitter;
     cbCaseSensitive: TCheckBox;
-    Foundlist3: TListView;
     Findoutwhataccessesthisaddress1: TMenuItem;
     Showashexadecimal1: TMenuItem;
     Panel7: TPanel;
@@ -420,6 +422,7 @@ type
     procedure miOpenFileClick(Sender: TObject);
     procedure miShowAsSignedClick(Sender: TObject);
     procedure miShowCustomTypeDebugClick(Sender: TObject);
+    procedure miShowPreviousValueClick(Sender: TObject);
     procedure miTutorialClick(Sender: TObject);
     procedure miChangeValueClick(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
@@ -4240,7 +4243,7 @@ begin
 
   speedbutton3.top := foundlist3.top + foundlist3.Height - speedbutton3.Height;
   speedbutton3.left := foundlist3.left + foundlist3.Width + 2;
-  foundlist3.Columns[1].Width := foundlist3.ClientWidth - foundlist3.Columns[0].Width;
+
 
   ScanText.left := scanvalue.left; //lazarus rev  25348 32-bit fix
   if ScanText2 <> nil then
@@ -4289,6 +4292,26 @@ var ct: TCustomType;
 begin
   ct:=TCustomType(vartype.items.objects[vartype.ItemIndex]);
   ct.showDebugInfo;
+end;
+
+procedure TMainForm.miShowPreviousValueClick(Sender: TObject);
+begin
+  //Show/Hide the previousValue column
+  //
+
+  if miShowPreviousValue.checked then
+  begin
+    foundlist3.column[1].Width:=foundlist3.column[1].width div 2;
+    foundlist3.Column[2].visible:=true;
+  end
+  else
+  begin
+    foundlist3.Column[2].visible:=false;
+  end;
+  foundlist3.AutoWidthLastColumn:=false;
+  foundlist3.AutoWidthLastColumn:=true;
+
+  //FUUUUCK, screw this header bug. It's time to see how the updated snapshot works
 end;
 
 
