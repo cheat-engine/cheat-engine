@@ -74,6 +74,7 @@ type TSavedScanHandler = class
 
     maxnumberofregions: integer;
     scandir: string;
+    savedresultsname: string;
 
     SavedScanaddressSizeWithoutHeader: qword;
     SavedScanaddressCountAll, SavedScanaddressCountNormal: qword; //saves on a div each time
@@ -91,8 +92,10 @@ type TSavedScanHandler = class
     procedure LoadNextChunk(valuetype: TValuetype);
     procedure LoadMemoryForCurrentChunk(valuetype: TValueType);
     procedure loadCurrentRegionMemory;
-
+    procedure InitializeScanHandler;
   public
+    AllowRandomAccess: boolean; //set this if you wish to allow random access through the list. (EXTREMELY INEFFICIENT IF IT HAPPENS, addresslist purposes only)
+    AllowNotFound: boolean; //set this if you wish to return nil instead of an exception if the address can't be found in the list
     function getpointertoaddress(address:ptruint;valuetype:tvaluetype): pointer;
 
     constructor create(scandir: string; savedresultsname: string);
@@ -301,7 +304,17 @@ begin
     begin
       //addresslist is a list of pointers
 
-      if pa[0]>address then raise exception.create(rsInvalidOrderOfCallingGetpointertoaddress);
+      if pa[0]>address then  //out of order access
+      begin
+        if AllowRandomAccess then
+        begin
+          //random access allowed. Start all over
+          InitializeScanHandler;
+          result:=getpointertoaddress(address, valuetype);
+        end
+        else
+          raise exception.create(rsInvalidOrderOfCallingGetpointertoaddress);
+      end;
 
       if pa[maxaddresslistcount-1]<address then
       begin
@@ -359,7 +372,17 @@ begin
     begin
       //addresslist is a list of 2 items, address and vartype, what kind of vartype is not important because each type stores it's full max variablecount
 
-      if pab[0].address>address then raise exception.create(rsInvalidOrderOfCallingGetpointertoaddress);
+      if pab[0].address>address then
+      begin
+        if AllowRandomAccess then
+        begin
+          //random access allowed. Start all over
+          InitializeScanHandler;
+          result:=getpointertoaddress(address, valuetype);
+        end
+        else
+          raise exception.create(rsInvalidOrderOfCallingGetpointertoaddress);
+      end;
 
       if pab[maxaddresslistcount-1].address<address then
       begin
@@ -404,10 +427,12 @@ begin
 
   end;
 
-  raise exception.create(Format(rsFailureInFindingInThePreviousScanResults, [inttohex(address, 8)]));
+  if not AllowNotFound then
+    raise exception.create(Format(rsFailureInFindingInThePreviousScanResults, [inttohex(address, 8)]));
+
 end;
 
-constructor TSavedScanHandler.create(scandir: string; savedresultsname: string);
+procedure TSavedScanHandler.InitializeScanHandler;
 var datatype: string[6];
     pm: ^TArrMemoryRegion;
     i: integer;
@@ -415,7 +440,7 @@ var datatype: string[6];
 
     maxregionsize: integer;
 begin
-  self.scandir:=scandir;
+  cleanup;
   maxregionsize:=20*4096;
   try
     try
@@ -473,10 +498,16 @@ begin
     begin
       //clean up and raise the exception
       cleanup;
-
       raise exception.Create(e.Message);
     end;
-  end;
+ end;
+end;
+
+constructor TSavedScanHandler.create(scandir: string; savedresultsname: string);
+begin
+  self.scandir:=scandir;
+  self.savedresultsname:=savedresultsname;
+  InitializeScanHandler;
 end;
 
 destructor TSavedScanHandler.destroy;
