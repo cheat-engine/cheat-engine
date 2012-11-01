@@ -204,7 +204,8 @@ begin
 
   if valuetype<>vt_all then
   begin
-    maxaddresslistcount:=min(maxaddresslistcount, (savedscanaddressfs.size-7) div sizeof(ptruint)); //limit to the addresslist file size
+
+    maxaddresslistcount:=min(maxaddresslistcount, (savedscanaddressfs.size-savedscanaddressfs.Position) div sizeof(ptruint)); //limit to the addresslist file size
 
     if addresslistmemory=nil then
       getmem(addresslistmemory, maxaddresslistcount*sizeof(ptruint));
@@ -214,7 +215,7 @@ begin
   end
   else
   begin
-    maxaddresslistcount:=min(maxaddresslistcount, (savedscanaddressfs.size-7) div sizeof(TBitAddress)); //limit to the addresslist file size
+    maxaddresslistcount:=min(maxaddresslistcount, (savedscanaddressfs.size-savedscanaddressfs.Position) div sizeof(TBitAddress)); //limit to the addresslist file size
 
     getmem(addresslistmemory, maxaddresslistcount*sizeof(TBitAddress));
     savedscanaddressfs.ReadBuffer(addresslistmemory^, maxaddresslistcount*sizeof(TBitAddress));
