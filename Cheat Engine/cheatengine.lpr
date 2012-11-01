@@ -60,7 +60,7 @@ uses
   LuaStructure, LuaForm, regionex, LuaRegion, frmgroupscanalgoritmgeneratorunit,
   vartypestrings, LuaXMPlayer, groupscancommandparser, LuaMemscan, LuaFoundlist,
   LuaRadioGroup, RemoteMemoryManager, LuaRasterImage, multilineinputqueryunit,
-  LuaCheatComponent, LuaAddresslist, frmDriverLoadedUnit;
+  LuaCheatComponent, LuaAddresslist, frmDriverLoadedUnit, memdisplay;
 
 {$R cheatengine.res}
 {$R manifest.res}

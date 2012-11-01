@@ -38,14 +38,15 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="3">
+    <Units Count="4">
       <Unit0>
         <Filename Value="speedhack.lpr"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="1"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
-        <CursorPos X="18" Y="1"/>
+        <CursorPos X="18" Y="29"/>
         <UsageCount Value="21"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -55,11 +56,10 @@
         <Filename Value="speedhackmain.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="speedhackmain"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="46"/>
-        <CursorPos X="23" Y="78"/>
+        <TopLine Value="61"/>
+        <CursorPos X="26" Y="82"/>
         <UsageCount Value="21"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -71,8 +71,17 @@
         <CursorPos X="10" Y="752"/>
         <UsageCount Value="10"/>
       </Unit2>
+      <Unit3>
+        <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\win\wininc\func.inc"/>
+        <EditorIndex Value="1"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="240"/>
+        <CursorPos X="10" Y="256"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit3>
     </Units>
-    <JumpHistory Count="13" HistoryIndex="12">
+    <JumpHistory Count="22" HistoryIndex="21">
       <Position1>
         <Filename Value="speedhack.lpr"/>
         <Caret Line="10" Column="31" TopLine="4"/>
@@ -125,10 +134,46 @@
         <Filename Value="speedhack.lpr"/>
         <Caret Line="34" Column="3" TopLine="2"/>
       </Position13>
+      <Position14>
+        <Filename Value="speedhack.lpr"/>
+        <Caret Line="29" Column="11" TopLine="1"/>
+      </Position14>
+      <Position15>
+        <Filename Value="speedhackmain.pas"/>
+        <Caret Line="37" Column="56" TopLine="28"/>
+      </Position15>
+      <Position16>
+        <Filename Value="speedhackmain.pas"/>
+        <Caret Line="38" Column="20" TopLine="28"/>
+      </Position16>
+      <Position17>
+        <Filename Value="speedhackmain.pas"/>
+        <Caret Line="55" Column="48" TopLine="40"/>
+      </Position17>
+      <Position18>
+        <Filename Value="speedhackmain.pas"/>
+        <Caret Line="69" Column="45" TopLine="51"/>
+      </Position18>
+      <Position19>
+        <Filename Value="speedhack.lpr"/>
+        <Caret Line="30" Column="14" TopLine="1"/>
+      </Position19>
+      <Position20>
+        <Filename Value="speedhackmain.pas"/>
+        <Caret Line="82" Column="27" TopLine="61"/>
+      </Position20>
+      <Position21>
+        <Filename Value="speedhack.lpr"/>
+        <Caret Line="29" Column="12" TopLine="1"/>
+      </Position21>
+      <Position22>
+        <Filename Value="speedhackmain.pas"/>
+        <Caret Line="82" Column="26" TopLine="61"/>
+      </Position22>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="10"/>
+    <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
       <Filename Value="..\bin\speedhack-$(TargetCPU)"/>
@@ -150,7 +195,7 @@
     </CodeGeneration>
     <Linking>
       <Debugging>
-        <DebugInfoType Value="dsAuto"/>
+        <GenerateDebugInfo Value="False"/>
         <UseLineInfoUnit Value="False"/>
         <StripSymbols Value="True"/>
       </Debugging>
