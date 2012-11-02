@@ -1401,6 +1401,7 @@ object MainForm: TMainForm
       TabOrder = 23
       ViewStyle = vsReport
       OnCustomDrawItem = Foundlist3CustomDrawItem
+      OnCustomDrawSubItem = Foundlist3CustomDrawSubItem
       OnData = Foundlist3Data
       OnDblClick = FoundListDblClick
       OnKeyDown = Foundlist3KeyDown

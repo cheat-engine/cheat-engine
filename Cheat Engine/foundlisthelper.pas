@@ -33,7 +33,7 @@ type
     addressfile: tfilestream;
     scantype: TScanType;
     fvartype: TVariableType;
-    customType: TCustomType;
+    fcustomType: TCustomType;
     varlength: integer; //bitlength, stringlength, customscan
     hexadecimal: boolean; //show result in hexadecimal notation (when possible)
     signed: boolean;
@@ -76,7 +76,9 @@ type
     procedure RebaseAddresslist(i: integer);
     procedure RebaseAddresslistAgain; //calls rebaseaddresslist with the same parameter as last time
     property vartype: TVariableType read fvartype;
+    property CustomType: TCustomType read fcustomType;
     property isHexadecimal: boolean read hexadecimal;
+    property isSigned: boolean read signed;
     property isUnicode: boolean read unicode;
     property isUnknownInitialValue: boolean read fisUnknownInitialValue;
     property count: uint64 read fCount;
@@ -485,7 +487,7 @@ begin
       //override vtype with the type it scanned
       if extra >=$1000 then
       begin
-        customtype:=tcustomtype(customTypes[extra-$1000]);
+        fcustomtype:=tcustomtype(customTypes[extra-$1000]);
         vtype:=vtCustom;
       end
       else
@@ -580,7 +582,7 @@ begin
     end;
 
     if not (vtype in [vtBinary,vtGrouped]) then
-      valuelist[j]:=readAndParseAddress(currentaddress, vtype, customtype, hexadecimal, signed, nrofbytes);
+      valuelist[j]:=readAndParseAddress(currentaddress, vtype, fcustomtype, hexadecimal, signed, nrofbytes);
 
   end;
   value:=valuelist[j];
@@ -599,7 +601,7 @@ begin
 
 
   fvartype:=vartype;
-  self.customType:=customtype;
+  fcustomType:=customtype;
 
 
 
@@ -701,12 +703,12 @@ end;
 function TFoundList.Reinitialize: int64; //initializes it with the previous parameters
 begin
   Deinitialize;
-  result:=initialize(fvartype, varlength, hexadecimal, signed, binaryasdecimal, unicode, customType);
+  result:=initialize(fvartype, varlength, hexadecimal, signed, binaryasdecimal, unicode, fcustomType);
 end;
 
 function TFoundList.Initialize(vartype: TVariableType; varlength: integer; hexadecimal,signed,binaryasdecimal,unicode: boolean; customtype: TCustomType=nil):int64;
 begin
-  result:=Initialize(vartype,customtype);
+  result:=Initialize(vartype, fcustomtype);
 
   if scantype=fs_addresslist then
   begin
