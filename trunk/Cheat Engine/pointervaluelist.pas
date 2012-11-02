@@ -5,12 +5,14 @@ unit pointervaluelist;
 {
 The pointerlist will hold a map of all possible pointer values, and the addresses that link to them
 it also contains some extra information like if it's static just so the pointerscan can save some calls doing it itself eachtime
+
+todo: Try a tree/map thing.
 }
 
 interface
 
 uses windows, LCLIntf, dialogs, SysUtils, classes, ComCtrls, CEFuncProc, NewKernelHandler,
-     symbolhandler, math,bigmemallochandler;
+     symbolhandler, math,bigmemallochandler, maps;
 
 type
   PStaticData=^TStaticData;
@@ -26,6 +28,13 @@ type
 
   PPointerDataArray=^TPointerDataArray;
 
+
+  TMemoryRegion2 = record
+    BaseAddress: ptrUint;
+    MemorySize: dword;
+    InModule: boolean;
+    ValidPointerRange: boolean;
+  end;
 
 
   PPointerList=^TPointerList;
@@ -63,15 +72,17 @@ type
 
   TReversePointerListHandler=class
   private
-    memoryregion: array of TMemoryRegion;
+    memoryregion: array of TMemoryRegion2;
     level0list: PReversePointerListArray;
     maxlevel: ValUInt;
 
     firstPointerValue: PPointerList;
     lastPointerValue: PPointerList;
 
+
     bigalloc: TBigMemoryAllocHandler;
     function BinSearchMemRegions(address: ptrUint): integer;
+    function isModulePointer(address: ptrUint): boolean;
     function ispointer(address: ptrUint): boolean;
     procedure quicksortmemoryregions(lo,hi: integer);
 
@@ -93,7 +104,7 @@ type
     procedure saveModuleListToResults(s: TStream);
 
     function findPointerValue(startvalue: ptrUint; var stopvalue: ptrUint): PPointerList;
-    constructor create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar; noreadonly: boolean);
+    constructor create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar; noreadonly: boolean; mustbeclasspointers: boolean);
     destructor destroy; override;
   end;
 
@@ -106,11 +117,7 @@ resourcestring
   rsAllocatingBytesToBuffer = 'Allocating %s bytes to ''buffer''';
   rsNotEnoughMemoryFreeToScan = 'Not enough memory free to scan';
 
-type TMemoryRegion2 = record
-  Address: ptrUint;
-  Size: dword;
-  Protect: dword;
-end;
+
 
 
 function TReversePointerListHandler.BinSearchMemRegions(address: ptrUint): integer;
@@ -147,17 +154,26 @@ begin
   end;
 end;
 
+function TReversePointerListHandler.isModulePointer(address: ptrUint): boolean;
+var i: integer;
+begin
+  i:=BinSearchMemRegions(address);
+  result:=(i<>-1) and (memoryregion[i].InModule);
+end;
+
 function TReversePointerListHandler.ispointer(address: ptrUint): boolean;
 {
 Check the memoryregion array for this address. If it's in, return true
 }
+var i: integer;
 begin
-  result:=BinSearchMemRegions(address)<>-1;
+  i:=BinSearchMemRegions(address);
+  result:=(i<>-1) and (memoryregion[i].ValidPointerRange);
 end;
 
 procedure TReversePointerListHandler.quicksortmemoryregions(lo,hi: integer);
 var i,j: integer;
-    x,h: TMemoryRegion;
+    x,h: TMemoryRegion2;
 begin
   i:=lo;
   j:=hi;
@@ -275,6 +291,7 @@ begin
     end;
 
     plist.list[plist.pos].address:=pointerwiththisvalue;
+
     if symhandler.getmodulebyaddress(pointerwiththisvalue, mi) then
     begin
       //it's a static, so create and fill in the static data
@@ -582,10 +599,13 @@ begin
     raise exception.create(rsPointerValueSetupError);
 end;
 
-constructor TReversePointerListHandler.create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar; noreadonly: boolean);
+constructor TReversePointerListHandler.create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar; noreadonly: boolean; mustbeclasspointers: boolean);
 var bytepointer: PByte;
     dwordpointer: PDword absolute bytepointer;
     qwordpointer: PQword absolute bytepointer;
+
+    tempqword: qword;
+    tempdword: dword;
 
 
     mbi : _MEMORY_BASIC_INFORMATION;
@@ -602,9 +622,12 @@ var bytepointer: PByte;
 
     buffer: pointer;
 
-    memoryregion2: array of TMemoryRegion2;
+ //   memoryregion2: array of TMemoryRegion2;
     lastaddress: ptrUint;
 
+    inmodule: boolean;
+    valid: boolean;
+    InModulePointerMap: TMap;
 begin
   OutputDebugString('TReversePointerListHandler.create');
   try
@@ -640,34 +663,27 @@ begin
     begin
       if (not symhandler.inSystemModule(ptrUint(mbi.baseAddress))) and (not (not scan_mem_private and (mbi._type=mem_private))) and (not (not scan_mem_image and (mbi._type=mem_image))) and (not (not scan_mem_mapped and ((mbi._type and mem_mapped)>0))) and (mbi.State=mem_commit) and ((mbi.Protect and page_guard)=0) and ((mbi.protect and page_noaccess)=0) then  //look if it is commited
       begin
-        if Skip_PAGE_NOCACHE then
-          if (mbi.AllocationProtect and PAGE_NOCACHE)=PAGE_NOCACHE then
-          begin
-            address:=ptrUint(mbi.BaseAddress)+mbi.RegionSize;
-            continue;
-          end;
-
-        if noreadonly then
-        begin
-          //check if it's read only
-          if mbi.protect in [PAGE_READONLY, PAGE_EXECUTE, PAGE_EXECUTE_READ] then
-          begin
-            address:=ptrUint(mbi.BaseAddress)+mbi.RegionSize;
-            continue;
-          end;
-        end;
+        if (Skip_PAGE_NOCACHE and ((mbi.AllocationProtect and PAGE_NOCACHE)=PAGE_NOCACHE)) or
+           (noreadonly and (mbi.protect in [PAGE_READONLY, PAGE_EXECUTE, PAGE_EXECUTE_READ]))  then
+          valid:=false
+        else
+          valid:=true;
 
         setlength(memoryregion,length(memoryregion)+1);
 
         memoryregion[length(memoryregion)-1].BaseAddress:=ptrUint(mbi.baseaddress);  //just remember this location
         memoryregion[length(memoryregion)-1].MemorySize:=mbi.RegionSize;
+        memoryregion[length(memoryregion)-1].InModule:=symhandler.inModule(ptrUint(mbi.baseaddress));
+
+        memoryregion[length(memoryregion)-1].ValidPointerRange:=valid;
+
        // outputdebugstring(inttohex(ptrUint(mbi.baseaddress),8));
       end;
 
 
       address:=ptrUint(mbi.baseaddress)+mbi.RegionSize;
     end;
-
+ {
     setlength(memoryregion2,length(memoryregion));
     for i:=0 to length(memoryregion2)-1 do
     begin
@@ -679,7 +695,7 @@ begin
         memoryregion2[i].Protect:=mbi.Protect
       else
         memoryregion2[i].Protect:=page_readonly;
-    end;
+    end; }
 
 
     if length(memoryregion)=0 then
@@ -702,27 +718,36 @@ begin
     //if anything went ok memoryregions should now contain all the addresses and sizes
     //to speed it up combine the regions that are attached to eachother.
 
+
     j:=0;
     address:=memoryregion[0].BaseAddress;
     size:=memoryregion[0].MemorySize;
+    InModule:=memoryregion[0].InModule;
+    valid:=memoryregion[0].ValidPointerRange;
 
     for i:=1 to length(memoryregion)-1 do
-    begin
-      if memoryregion[i].BaseAddress=address+size then
+    begin                                                            //only concatenate if classpointers is false, or the same type of executable field is used
+      if (memoryregion[i].BaseAddress=address+size) and (memoryregion[i].ValidPointerRange=valid) and ((mustbeclasspointers=false) or (memoryregion[i].InModule=InModule)) then
         inc(size,memoryregion[i].MemorySize)
       else
       begin
         memoryregion[j].BaseAddress:=address;
         memoryregion[j].MemorySize:=size;
+        memoryregion[j].InModule:=InModule;
+        memoryregion[j].ValidPointerRange:=valid;
 
         address:=memoryregion[i].BaseAddress;
         size:=memoryregion[i].MemorySize;
+        InModule:=memoryregion[i].InModule;
+        valid:=memoryregion[i].ValidPointerRange;
         inc(j);
       end;
     end;
 
     memoryregion[j].BaseAddress:=address;
     memoryregion[j].MemorySize:=size;
+    memoryregion[j].InModule:=InModule;
+    memoryregion[j].ValidPointerRange:=valid;
     setlength(memoryregion,j+1);
 
     //split up the memory regions into small chunks of max 512KB (so don't allocate a fucking 1GB region)
@@ -736,6 +761,8 @@ begin
         setlength(memoryregion,length(memoryregion)+1);
         memoryregion[length(memoryregion)-1].BaseAddress:=memoryregion[i].BaseAddress+512*1024;
         memoryregion[length(memoryregion)-1].MemorySize:=memoryregion[i].MemorySize-512*1024;
+        memoryregion[length(memoryregion)-1].InModule:=memoryregion[i].InModule;
+        memoryregion[length(memoryregion)-1].ValidPointerRange:=memoryregion[i].ValidPointerRange;
         memoryregion[i].MemorySize:=512*1024; //set the current region to be 512KB
 
       end;
@@ -769,16 +796,28 @@ begin
       raise exception.Create(rsNotEnoughMemoryFreeToScan);
     end;
 
+    if mustbeclasspointers then
+    begin
+      if processhandler.is64bit then
+        InModulePointerMap:=TMap.Create(itu8,sizeof(valid))
+      else
+        InModulePointerMap:=TMap.Create(itu4,sizeof(valid));
+    end
+    else
+      InModulePointerMap:=nil;
+
+
     try
 
       //initial scan to fetch the counts of memory
 
       outputdebugstring('Initial scan to determine the memory needed');
 
+      valid:=true;
       for i:=0 to length(memoryregion)-1 do
       begin
         actualread:=0;
-        if readprocessmemory(processhandle,pointer(Memoryregion[i].BaseAddress),buffer,Memoryregion[i].MemorySize,actualread) then
+        if Memoryregion[i].ValidPointerRange and readprocessmemory(processhandle,pointer(Memoryregion[i].BaseAddress),buffer,Memoryregion[i].MemorySize,actualread) then
         begin
           bytepointer:=buffer;
 
@@ -795,7 +834,23 @@ begin
                  ((not alligned) and ispointer(qwordpointer^) ) then
               begin
                 //initial add
-                addpointer(qwordpointer^, Memoryregion[i].BaseAddress+(ptrUint(qwordpointer)-ptrUint(buffer)),false);
+                if mustbeclasspointers then
+                begin
+                  //check if we havn't previously marked this address as invalid
+                  if InModulePointerMap.GetData(qwordpointer^, valid)=false then //not in list yet
+                  begin
+                    //check that the memory it points to contains a pointer to executable code
+                    if ReadProcessMemory(processhandle, pointer(qwordpointer^), @tempqword, 8, actualread) then
+                      valid:=isModulePointer(tempqword)
+                    else
+                      valid:=false;
+
+                    InModulePointerMap.Add(qwordpointer^, valid);
+                  end;
+                end;
+
+                if valid then
+                  addpointer(qwordpointer^, Memoryregion[i].BaseAddress+(ptrUint(qwordpointer)-ptrUint(buffer)),false);
               end;
 
               if alligned then
@@ -813,7 +868,23 @@ begin
                  ((not alligned) and ispointer(dwordpointer^) ) then
               begin
                 //initial add
-                addpointer(dwordpointer^, Memoryregion[i].BaseAddress+(ptrUint(dwordpointer)-ptrUint(buffer)),false);
+                if mustbeclasspointers then
+                begin
+                  //check if we havn't previously marked this address as invalid
+                  if InModulePointerMap.GetData(dwordpointer^, valid)=false then //not in list yet
+                  begin
+                    //check that the memory it points to contains a pointer to executable code
+                    if ReadProcessMemory(processhandle, pointer(dwordpointer^), @tempdword, 4, actualread) then
+                      valid:=isModulePointer(tempdword)
+                    else
+                      valid:=false;
+
+                    InModulePointerMap.Add(dwordpointer^, valid);
+                  end;
+                end;
+
+                if valid then
+                  addpointer(dwordpointer^, Memoryregion[i].BaseAddress+(ptrUint(dwordpointer)-ptrUint(buffer)),false);
               end;
 
               if alligned then
@@ -848,8 +919,27 @@ begin
                  ((not alligned) and ispointer(qwordpointer^) ) then
               begin
                 //initial add
-                addpointer(qwordpointer^, Memoryregion[i].BaseAddress+(ptrUint(qwordpointer)-ptrUint(buffer)),true);
-                inc(count);
+                if mustbeclasspointers then
+                begin
+
+                  //check if we havn't previously marked this address as invalid
+                  if InModulePointerMap.GetData(qwordpointer^, valid)=false then //not in list yet
+                  begin
+                    //check that the memory it points to contains a pointer to executable code
+                    if ReadProcessMemory(processhandle, pointer(qwordpointer^), @tempqword, 8, actualread) then
+                      valid:=isModulePointer(tempqword)
+                    else
+                      valid:=false;
+
+                    InModulePointerMap.Add(qwordpointer^, valid);
+                  end;
+                end;
+
+                if valid then
+                begin
+                  addpointer(qwordpointer^, Memoryregion[i].BaseAddress+(ptrUint(qwordpointer)-ptrUint(buffer)),true);
+                  inc(count);
+                end;
               end;
 
               if alligned then
@@ -866,8 +956,26 @@ begin
                  ((not alligned) and ispointer(dwordpointer^) ) then
               begin
                 //initial add
-                addpointer(dwordpointer^, Memoryregion[i].BaseAddress+(ptrUint(dwordpointer)-ptrUint(buffer)),true);
-                inc(count);
+                if mustbeclasspointers then
+                begin
+                  //check if we havn't previously marked this address as invalid
+                  if InModulePointerMap.GetData(dwordpointer^, valid)=false then //not in list yet
+                  begin
+                    //check that the memory it points to contains a pointer to executable code
+                    if ReadProcessMemory(processhandle, pointer(dwordpointer^), @tempdword, 4, actualread) then
+                      valid:=isModulePointer(tempdword)
+                    else
+                      valid:=false;
+
+                    InModulePointerMap.Add(dwordpointer^, valid);
+                  end;
+                end;
+
+                if valid then
+                begin
+                  addpointer(dwordpointer^, Memoryregion[i].BaseAddress+(ptrUint(dwordpointer)-ptrUint(buffer)),true);
+                  inc(count);
+                end;
               end;
 
               if alligned then
@@ -892,6 +1000,13 @@ begin
       OutputDebugString('Freeing the buffer');
       if buffer<>nil then
         freemem(buffer);
+
+      if InModulePointerMap<>nil then
+      begin
+        InModulePointerMap.Clear;
+        freeandnil(InModulePointerMap);
+      end;
+
     end;
 
     OutputDebugString('TReversePointerListHandler.create: Finished without an exception');

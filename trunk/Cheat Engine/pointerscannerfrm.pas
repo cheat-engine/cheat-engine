@@ -200,6 +200,7 @@ type
     mustendwithoffsetlist: array of dword;
     onlyOneStaticInPath: boolean;
     noReadOnly: boolean;
+    mustBeClassPointers: boolean;
 
 
     threadcount: integer;
@@ -857,7 +858,7 @@ begin
       phase:=1;
       progressbar.Position:=0;
       try
-        ownerform.pointerlisthandler:=TReversePointerListHandler.Create(startaddress,stopaddress,not unalligned,progressbar, noreadonly);
+        ownerform.pointerlisthandler:=TReversePointerListHandler.Create(startaddress,stopaddress,not unalligned,progressbar, noreadonly, MustBeClassPointers);
 
         postmessage(ownerform.Handle, wm_starttimer, 0,0);
 
@@ -996,6 +997,8 @@ begin
     if (frmpointerscannersettings.cbReusePointermap.checked=false) and (pointerlisthandler<>nil) then
       freeandnil(pointerlisthandler);
 
+    frmpointerscannersettings.cbReusePointermap.enabled:=true; //if it was disabled it's safe to re-enable it now
+
         
     btnStopScan.enabled:=true;
     btnStopScan.Caption:=rsStop;
@@ -1028,6 +1031,7 @@ begin
       staticscanner.reverse:=true; //since 5.6 this is always true
 
       staticscanner.noReadOnly:=frmpointerscannersettings.cbNoReadOnly.checked;
+      staticscanner.mustBeClassPointers:=frmpointerscannersettings.cbClassPointersOnly.checked;
 
       staticscanner.startaddress:=frmpointerscannersettings.start;
       staticscanner.stopaddress:=frmpointerscannersettings.Stop;

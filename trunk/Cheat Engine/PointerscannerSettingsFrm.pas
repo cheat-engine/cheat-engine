@@ -37,6 +37,7 @@ type
 
   TfrmPointerScannerSettings = class(TForm)
     cbNoReadOnly: TCheckBox;
+    cbClassPointersOnly: TCheckBox;
     edtAddress: TEdit;
     PSSettings: TPageControl;
     PSReverse: TTabSheet;
@@ -58,7 +59,6 @@ type
     btnCancel: TButton;
     edtThreadcount: TEdit;
     ComboBox1: TComboBox;
-    cbStackAsBase: TCheckBox;
     Edit3: TEdit;
     Label14: TLabel;
     cbOnlyStackAsBase: TCheckBox;
@@ -71,6 +71,7 @@ type
     cbOnlyOneStatic: TCheckBox;
     cbReusePointermap: TCheckBox;
     procedure Button1Click(Sender: TObject);
+    procedure canNotReuse(Sender: TObject);
     procedure cbMustEndWithSpecificOffsetChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -179,6 +180,12 @@ begin
   end;
 
   modalresult:=mrok;
+end;
+
+procedure TfrmPointerScannerSettings.canNotReuse(Sender: TObject);
+begin
+  cbReusePointermap.Enabled:=false;
+  cbReusePointermap.Checked:=false;
 end;
 
 procedure TfrmPointerScannerSettings.cbMustEndWithSpecificOffsetChange(Sender: TObject);

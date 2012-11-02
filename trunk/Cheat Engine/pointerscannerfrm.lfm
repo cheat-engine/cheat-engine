@@ -1,7 +1,7 @@
 object frmPointerScanner: TfrmPointerScanner
-  Left = 1282
+  Left = 973
   Height = 517
-  Top = 443
+  Top = 275
   Width = 622
   Caption = 'Pointer scan'
   ClientHeight = 497
@@ -88,9 +88,9 @@ object frmPointerScanner: TfrmPointerScanner
         TabOrder = 1
         object Label5: TLabel
           Left = 0
-          Height = 17
+          Height = 16
           Top = 47
-          Width = 52
+          Width = 51
           Caption = 'Threads'
           ParentColor = False
         end
