@@ -7447,12 +7447,9 @@ var t: TD3DHook_Texture;
   max: integer;
 begin
 
-  max:=4096;
-  getmem(exportlist, 4096);
-  if ce_loadModule(pchar(CheatEngineDir+'speedhack-i386.dll'), exportlist, @max) then
-    ShowMessage(exportlist)
-  else
-    showmessage('fail');
+
+   MemoryBrowser.hexview.address:=ptruint(self);
+
 
   {
   OpenProcessToken(ownprocesshandle, TOKEN_ALL_ACCESS, tokenhandle2);
