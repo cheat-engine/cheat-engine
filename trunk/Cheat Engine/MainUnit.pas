@@ -21,7 +21,8 @@ uses
   luafile, xmplayer_server, sharedMemory{$ifdef windows}, win32proc{$endif},
   vmxfunctions, FileUtil, networkInterfaceApi, networkconfig, d3dhookUnit, PNGcomn,
   FPimage, byteinterpreter, frmgroupscanalgoritmgeneratorunit, vartypestrings,
-  groupscancommandparser, GraphType, IntfGraphics, RemoteMemoryManager, DBK64SecondaryLoader;
+  groupscancommandparser, GraphType, IntfGraphics, RemoteMemoryManager,
+  DBK64SecondaryLoader, savedscanhandler;
 
 //the following are just for compatibility
 
@@ -411,6 +412,9 @@ type
     procedure FormActivate(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
     procedure FormDropFiles(Sender: TObject; const FileNames: array of string);
+    procedure Foundlist3CustomDrawSubItem(Sender: TCustomListView;
+      Item: TListItem; SubItem: Integer; State: TCustomDrawState;
+      var DefaultDraw: Boolean);
     procedure Foundlist3Resize(Sender: TObject);
     procedure CreateGroupClick(Sender: TObject);
     procedure Foundlist3SelectItem(Sender: TObject; Item: TListItem;
@@ -618,6 +622,7 @@ type
     SaveFirstScanThread: TSaveFirstScanThread;
 
     foundlist: Tfoundlist;
+    PreviousResults: TSavedScanHandler;
     lastscantype: integer;
 
     oldhandle: thandle;
@@ -2650,6 +2655,22 @@ begin
       reinterpretaddresses;
     end;
   end;
+end;
+
+procedure TMainForm.Foundlist3CustomDrawSubItem(Sender: TCustomListView;
+  Item: TListItem; SubItem: Integer; State: TCustomDrawState;
+  var DefaultDraw: Boolean);
+begin
+  //check if the current value is different from the previous value. (just do a bytecompare)
+
+  if miShowPreviousValue.checked and (PreviousResults<>nil) then
+  begin
+    if (item.subItems[1]<>'<none>') and (item.subitems[0]<>item.subitems[1]) then
+      sender.Canvas.Font.color:=clred;
+  end;
+
+
+  defaultdraw:=true;
 end;
 
 procedure TMainForm.Address1Click(Sender: TObject);
@@ -5107,6 +5128,15 @@ begin
           newscan.left + ((((nextscanbutton.left + nextscanbutton.Width) - newscan.left) div 2) -
           (lblcompareToSavedScan.Width div 2));
 
+        try
+          PreviousResults:=TSavedScanHandler.create(memscan.getScanFolder, currentlySelectedSavedResultname);
+          PreviousResults.AllowNotFound:=true;
+          PreviousResults.AllowRandomAccess:=true;
+          foundlist3.Refresh;
+        except
+        end;
+
+
       end
       else
       if scantype.Items[scantype.ItemIndex] = strCompareToLastScan then
@@ -5115,6 +5145,15 @@ begin
         scantype.ItemIndex := lastscantype;
         compareToSavedScan := False;
         lblcompareToSavedScan.Visible := False;
+
+        try
+          PreviousResults:=TSavedScanHandler.create(memscan.getScanFolder, 'TMP');
+          PreviousResults.AllowNotFound:=true;
+          PreviousResults.AllowRandomAccess:=true;
+          foundlist3.Refresh;
+        except
+        end;
+
       end;
     end;
 
@@ -7199,28 +7238,37 @@ end;
 procedure TMainForm.Foundlist3Data(Sender: TObject; Item: TListItem);
 var
   extra: dword;
-  Value: string;
-  address: string;
+  Value, PreviousValue: string;
+  Address: ptruint;
+  addressString: string;
   valuetype: TVariableType;
+
+  ssVt: TValueType;
+  p: pointer;
+  invalid: boolean;
 begin
 
   //put in data
 
   try
-    address := inttohex(foundlist.GetAddress(item.Index, extra, Value), 8);
-
+    valuetype:=foundlist.vartype;
+    address := foundlist.GetAddress(item.Index, extra, Value);
+    AddressString:=IntToHex(address,8);
     Value := AnsiToUtf8(Value);
+
+    PreviousValue:='';
+
 
     if foundlist.vartype = vtBinary then //binary
     begin
-      address := address + '^' + IntToStr(extra);
+      AddressString := AddressString + '^' + IntToStr(extra);
     end
     else
     if foundlist.vartype = vtAll then //all
     begin
       if extra >= $1000 then
       begin
-        address := address + ':' + TCustomType(customTypes[extra - $1000]).Name;
+        AddressString := AddressString + ':' + TCustomType(customTypes[extra - $1000]).Name;
       end
       else
       begin
@@ -7228,18 +7276,50 @@ begin
 
         //here valuetype is stored using the new method
         case valuetype of
-          vtByte: address := address + ':1';
-          vtWord: address := address + ':2';
-          vtDword: address := address + ':4';
-          vtQword: address := address + ':8';
-          vtSingle: address := address + ':s';
-          vtDouble: address := address + ':d';
+          vtByte: AddressString := AddressString + ':1';
+          vtWord: AddressString := AddressString + ':2';
+          vtDword: AddressString := AddressString + ':4';
+          vtQword: AddressString := AddressString + ':8';
+          vtSingle: AddressString := AddressString + ':s';
+          vtDouble: AddressString := AddressString + ':d';
         end;
       end;
     end;
 
-    item.Caption := address;
+    if miShowPreviousValue.checked and (PreviousResults<>nil) then
+    begin
+      //get the previous value of this entry
+      invalid:=false;
+      case valuetype of
+        vtByte: ssVt:=vt_byte;
+        vtWord: ssVt:=vt_word;
+        vtDword: ssVt:=vt_dword;
+        vtSingle: ssVt:=vt_single;
+        vtDouble: ssVt:=vt_double;
+        vtQword: ssVt:=vt_int64;
+        vtAll: ssVt:=vt_all;
+        else
+          invalid:=true;
+
+      end;
+
+      if not invalid then
+      begin
+        p:=PreviousResults.getpointertoaddress(address, ssVt);
+        if p=nil then
+          previousvalue:='<none>'
+        else
+          previousvalue:=readAndParsePointer(p, foundlist.vartype, foundlist.CustomType, foundlist.isHexadecimal, foundlist.isSigned);
+      end;
+    end;
+
+
+
+    item.Caption := AddressString;
     item.subitems.add(Value);
+    item.subitems.add(previousvalue);
+
+
   except
     ShowMessage(IntToStr(item.index));
   end;
@@ -7577,6 +7657,8 @@ var
   percentage: boolean;
   fastscanmethod: TFastscanmethod;
 begin
+  if PreviousResults<>nil then
+    freeandnil(PreviousResults);
 
   foundlist.Deinitialize; //unlock file handles
 
@@ -7665,6 +7747,7 @@ var
   canceled: boolean;
   actuallyshown: double;
   error: boolean;
+  previous: string;
 begin
   if ScanTabList <> nil then
     ScanTabList.Enabled := True;
@@ -7705,6 +7788,21 @@ begin
     TCustomType(VarType.items.objects[vartype.ItemIndex]));
 
   foundcount := memscan.GetFoundCount;
+
+  if PreviousResults<>nil then
+    freeandnil(PreviousResults);
+
+  if not compareToSavedScan then
+    previous:='TMP'
+  else
+    previous:=currentlySelectedSavedResultname;
+
+  try
+    PreviousResults:=TSavedScanHandler.create(memscan.getScanFolder, previous);
+    PreviousResults.AllowNotFound:=true;
+    PreviousResults.AllowRandomAccess:=true;
+  except
+  end;
 
 
   if (foundlist3.items.Count <> foundcount) and (not foundlist.isUnknownInitialValue) then
@@ -7799,6 +7897,8 @@ begin
   else
     percentage := False;
 
+  if PreviousResults<>nil then
+    freeandnil(PreviousResults);
 
   foundlist.Deinitialize; //unlock file handles
 

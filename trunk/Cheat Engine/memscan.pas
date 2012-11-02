@@ -557,6 +557,7 @@ type
     function GetFoundCount: uint64;
     function Getbinarysize: int64; //returns the number of bits of the current type
     function GetOnlyOneResult(var address: ptruint):boolean;
+    function GetScanFolder: string;
     procedure TerminateScan(forceTermination: boolean);
     procedure newscan; //will clean up the memory and files
     procedure firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; hexadecimal,binaryStringAsDecimal,unicode,casesensitive: boolean; fastscanmethod: TFastScanMethod=fsmNotAligned; fastscanparameter: string=''; customtype: TCustomType=nil);
@@ -5801,6 +5802,11 @@ begin
     result:=scancontroller.FoundSomething;
     address:=scancontroller.AddressFound;
   end;
+end;
+
+function TMemscan.GetScanFolder: string;
+begin
+  result:=ScanresultFolder;
 end;
 
 function TMemscan.GetProgress(var totaladdressestoscan:qword; var currentlyscanned: qword):integer;

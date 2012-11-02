@@ -12,6 +12,7 @@ function isHumanReadableInteger(v: integer): boolean; //returns false if it's no
 
 function FindTypeOfData(address: ptrUint; buf: pbytearray; size: integer; CustomType: PCustomType=nil):TVariableType;
 function DataToString(buf: PByteArray; size: integer; vartype: TVariableType): string;
+function readAndParsePointer(buf: pbytearray; variableType: TVariableType; customtype: TCustomType=nil; showashexadecimal: Boolean=false; showAsSigned: boolean=false; bytesize:integer=1): string;
 function readAndParseAddress(address: ptrUint; variableType: TVariableType; customtype: TCustomType=nil; showashexadecimal: Boolean=false; showAsSigned: boolean=false; bytesize:integer=1): string;
 procedure ParseStringAndWriteToAddress(value: string; address: ptruint; variabletype: TVariabletype; hexadecimal: boolean=false; customtype: TCustomType=nil);
 
@@ -118,6 +119,144 @@ begin
 
 end;
 
+function readAndParsePointer(buf: pbytearray; variableType: TVariableType; customtype: TCustomType=nil; showashexadecimal: Boolean=false; showAsSigned: boolean=false; bytesize:integer=1): string;
+var
+    x: dword;
+    i: integer;
+
+    s: pchar;
+    ws: PWideChar;
+begin
+  result:='???';
+  case variableType of
+    vtByte:
+    begin
+      if showashexadecimal then
+        result:=inttohex(buf[0],2)
+      else
+      begin
+        if showAsSigned then
+          result:=inttostr(shortint(buf[0]))
+        else
+          result:=inttostr(buf[0]);
+      end;
+    end;
+
+    vtWord:
+    begin
+      if showashexadecimal then
+        result:=inttohex(pword(@buf[0])^,4)
+      else
+      begin
+        if showAsSigned then
+          result:=inttostr(pSmallInt(@buf[0])^)
+        else
+          result:=inttostr(pword(@buf[0])^);
+      end;
+    end;
+
+    vtDWord:
+    begin
+      if showashexadecimal then
+        result:=inttohex(pdword(@buf[0])^,8)
+      else
+      begin
+        if showAsSigned then
+          result:=inttostr(pinteger(@buf[0])^)
+        else
+          result:=inttostr(pdword(@buf[0])^);
+      end;
+    end;
+
+    vtQword:
+    begin
+      if showashexadecimal then
+        result:=inttohex(PQWord(@buf[0])^,8)
+      else
+      begin
+        if showAsSigned then
+          result:=inttostr(PInt64(@buf[0])^)
+        else
+          result:=inttostr(pqword(@buf[0])^);
+      end;
+    end;
+
+    vtSingle:
+    begin
+      if showashexadecimal then
+        result:=inttohex(pdword(@buf[0])^,8)
+      else
+        result:=floattostr(psingle(@buf[0])^);
+    end;
+
+    vtDouble:
+    begin
+      if showashexadecimal then
+        result:=inttohex(pqword(@buf[0])^,16)
+      else
+        result:=floattostr(pdouble(@buf[0])^);
+    end;
+
+    vtString:
+    begin
+      getmem(s, bytesize+1);
+      CopyMemory(s, buf, bytesize);
+      s[bytesize]:=#0;
+      result:=s;
+    end;
+
+    vtUnicodeString:
+    begin
+      getmem(ws, bytesize+2);
+      copymemory(ws, buf, bytesize);
+      ws:=PWideChar(buf);
+      try
+        pbytearray(ws)[bytesize+1]:=0;
+        pbytearray(ws)[bytesize]:=0;
+        result:=ws;
+      finally
+        freemem(ws);
+      end;
+    end;
+
+    vtByteArray:
+    begin
+      result:='';
+      if showashexadecimal then
+      begin
+        for i:=0 to bytesize-1 do
+          result:=result+inttohex(buf[i],2)+' ';
+      end
+      else
+      begin
+        for i:=0 to bytesize-1 do
+        begin
+          if showAsSigned then
+            result:=result+IntToStr(shortint(buf[i]))+' '
+          else
+            result:=result+IntToStr(byte(buf[i]))+' '
+        end;
+      end;
+    end;
+
+    vtCustom:
+    begin
+      if customtype<>nil then
+      begin
+        if showashexadecimal and (customtype.scriptUsesFloat=false) then
+          result:=inttohex(customtype.ConvertDataToInteger(buf),8)
+        else
+        begin
+          if customtype.scriptUsesFloat then
+            result:=FloatToStr(customtype.ConvertDataToFloat(buf))
+          else
+            result:=IntToStr(customtype.ConvertDataToInteger(buf));
+        end;
+      end;
+    end;
+  end;
+end;
+
 function readAndParseAddress(address: ptrUint; variableType: TVariableType; customtype: TCustomType=nil; showashexadecimal: Boolean=false; showAsSigned: boolean=false; bytesize:integer=1): string;
 var buf: array [0..7] of byte;
     buf2: pbytearray;
@@ -132,86 +271,46 @@ begin
     vtByte:
     begin
       if ReadProcessMemory(processhandle,pointer(address),@buf[0],1,x) then
-        if showashexadecimal then
-          result:=inttohex(buf[0],2)
-        else
-        begin
-          if showAsSigned then
-            result:=inttostr(shortint(buf[0]))
-          else
-            result:=inttostr(buf[0]);
-        end;
+        result:=readAndParsePointer(@buf[0], variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
+
     end;
 
     vtWord:
     begin
       if ReadProcessMemory(processhandle,pointer(address),@buf[0],2,x) then
-        if showashexadecimal then
-          result:=inttohex(pword(@buf[0])^,4)
-        else
-        begin
-          if showAsSigned then
-            result:=inttostr(pSmallInt(@buf[0])^)
-          else
-            result:=inttostr(pword(@buf[0])^);
-        end;
+        result:=readAndParsePointer(@buf[0], variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
     end;
 
     vtDWord:
     begin
       if ReadProcessMemory(processhandle,pointer(address),@buf[0],4,x) then
-        if showashexadecimal then
-          result:=inttohex(pdword(@buf[0])^,8)
-        else
-        begin
-          if showAsSigned then
-            result:=inttostr(pinteger(@buf[0])^)
-          else
-            result:=inttostr(pdword(@buf[0])^);
-        end;
+        result:=readAndParsePointer(@buf[0], variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
     end;
 
     vtQword:
     begin
       if ReadProcessMemory(processhandle,pointer(address),@buf[0],8,x) then
-        if showashexadecimal then
-          result:=inttohex(PQWord(@buf[0])^,8)
-        else
-        begin
-          if showAsSigned then
-            result:=inttostr(PInt64(@buf[0])^)
-          else
-            result:=inttostr(pqword(@buf[0])^);
-        end;
+        result:=readAndParsePointer(@buf[0], variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
     end;
 
     vtSingle:
     begin
       if ReadProcessMemory(processhandle,pointer(address),@buf[0],4,x) then
-        if showashexadecimal then
-          result:=inttohex(pdword(@buf[0])^,8)
-        else
-          result:=floattostr(psingle(@buf[0])^);
+        result:=readAndParsePointer(@buf[0], variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
     end;
 
     vtDouble:
     begin
       if ReadProcessMemory(processhandle,pointer(address),@buf[0],8,x) then
-        if showashexadecimal then
-          result:=inttohex(pqword(@buf[0])^,16)
-        else
-          result:=floattostr(pdouble(@buf[0])^);
+        result:=readAndParsePointer(@buf[0], variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
     end;
 
     vtString:
     begin
-      getmem(s, bytesize+1);
+      getmem(buf2, bytesize+1);
       try
-        if ReadProcessMemory(processhandle,pointer(address),s,bytesize,x) then
-        begin
-          s[bytesize]:=#0;
-          result:=s;
-        end;
+        if ReadProcessMemory(processhandle,pointer(address),buf2,bytesize,x) then
+          result:=readAndParsePointer(buf2, variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
       finally
         freemem(s);
       end;
@@ -219,17 +318,17 @@ begin
 
     vtUnicodeString:
     begin
-      getmem(ws, bytesize+2);
+      getmem(buf2, bytesize+2);
       try
-        if ReadProcessMemory(processhandle,pointer(address),ws,bytesize,x) then
-        begin
-          pbytearray(ws)[bytesize+1]:=0;
-          pbytearray(ws)[bytesize]:=0;
-          result:=ws;
-        end;
+
+        if ReadProcessMemory(processhandle,pointer(address),buf2,bytesize,x) then
+          result:=readAndParsePointer(buf2, variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
+
+
       finally
-        freemem(ws);
+        freemem(buf2)
       end;
+
     end;
 
     vtByteArray:
@@ -237,26 +336,7 @@ begin
       getmem(buf2, bytesize);
       try
         if ReadProcessMemory(processhandle,pointer(address),buf2,bytesize,x) then
-        begin
-          result:='';
-          if showashexadecimal then
-          begin
-            for i:=0 to x-1 do
-              result:=result+inttohex(buf2[i],2)+' ';
-          end
-          else
-          begin
-            for i:=0 to x-1 do
-            begin
-              if showAsSigned then
-                result:=result+IntToStr(shortint(buf2[i]))+' '
-              else
-                result:=result+IntToStr(byte(buf2[i]))+' '
-            end;
-          end;
-
-
-        end;
+          result:=readAndParsePointer(buf2, variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
       finally
         freemem(buf2);
       end;
@@ -269,21 +349,8 @@ begin
         getmem(buf2, customtype.bytesize);
         try
           if ReadProcessMemory(processhandle,pointer(address),buf2,customtype.bytesize,x) then
-          begin
-            try
-              if showashexadecimal and (customtype.scriptUsesFloat=false) then
-                result:=inttohex(customtype.ConvertDataToInteger(buf2),8)
-              else
-              begin
-                if customtype.scriptUsesFloat then
-                  result:=FloatToStr(customtype.ConvertDataToFloat(buf2))
-                else
-                  result:=IntToStr(customtype.ConvertDataToInteger(buf2));
-              end;
+            result:=readAndParsePointer(buf2, variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
 
-            except //no need to flood the user with meaningless error messages
-            end;
-          end;
         finally
           freemem(buf2);
         end;

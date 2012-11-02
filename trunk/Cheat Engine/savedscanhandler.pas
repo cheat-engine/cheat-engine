@@ -57,7 +57,7 @@ interface
 uses windows, LCLIntf,classes,sysutils,syncobjs;
 
 type TSavedScantype= (fs_advanced,fs_addresslist);
-type TValueType= (vt_byte,vt_word, vt_dword, vt_single, vt_double, vt_int64, vt_all);
+type TValueType= (vt_byte,vt_word, vt_dword, vt_single, vt_double, vt_int64, vt_all);     //todo: Make compatible wioth the rest of ce's vartype
 
 
 type TSavedScanHandler = class
@@ -246,6 +246,13 @@ var i,j: integer;
     pivot: integer;
 begin
   result:=nil;
+  if AllowRandomAccess then //no optimization if random access is used
+  begin
+    LastAddressAccessed.address:=0;
+    LastAddressAccessed.index:=0;
+  end;
+
+
 
   //6.1 Only part of the addresslist and memory results are loaded
   if SavedScantype=fs_advanced then
@@ -267,7 +274,12 @@ begin
         inc(currentRegion);
 
       if currentregion>=maxnumberofregions then
-        raise exception.create(Format(rsFailureInFindingInThePreviousScanResults, [inttohex(address, 8)]));
+      begin
+        if AllowNotFound = false then
+          raise exception.create(Format(rsFailureInFindingInThePreviousScanResults, [inttohex(address, 8)]))
+        else
+          exit;
+      end;
 
       loadCurrentRegionMemory;
     end;
@@ -330,6 +342,7 @@ begin
       //the list is sorted so do a quickscan
 
 
+
       first:=LastAddressAccessed.index;
 
       last:=j-1;
@@ -366,7 +379,8 @@ begin
 
 
       //not found
-      raise exception.create(Format(rsFailureInFindingInTheFirstScanResults, [inttohex(address, 8)]));
+      if not AllowNotFound then
+        raise exception.create(Format(rsFailureInFindingInTheFirstScanResults, [inttohex(address, 8)]));
     end
     else
     begin
