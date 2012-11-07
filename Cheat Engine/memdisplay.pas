@@ -343,7 +343,6 @@ begin
       //get the pixel at center of the screen
 
       fZoom:=fZoom * 2;
-      setupfont;
 
       fXpos:=trunc(-oldx*fZoom+(MousePos.x));
 
@@ -362,7 +361,6 @@ begin
     begin
       //zoom out
       fZoom:=fZoom / 2;
-      setupfont;
 
       fXpos:=trunc(-oldx*fZoom+(MousePos.x));
 
