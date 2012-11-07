@@ -74,6 +74,8 @@ type
     DragOrigin: TPoint;
     PosOrigin: TPoint;
 
+    fMaxCharCount: integer; //defines how big the font will be
+
     fOnData: TOnDataEvent;
     fOnRequestText: TOnRequestTextEvent;
 
@@ -83,6 +85,7 @@ type
     procedure Resize; override;
     procedure updaterevent(sender: TObject);
     procedure setupFont;
+
   protected
     mapr, mapg, mapb: array of single;
     procedure SetParent(NewParent: TWinControl); override;
@@ -93,6 +96,7 @@ type
 
     procedure LimitCoordinates;
     procedure RecenterDrag;
+    procedure setMaxCharCount(v: integer);
   public
     totaldiff: qword;
     ticks: integer;
@@ -111,6 +115,7 @@ type
 
     property onData: TOnDataEvent read fOnData write fOnData;
     property onRequestText: TOnRequestTextEvent read fOnRequestText write fOnRequestText;
+    property MaxCharCount: integer read fMaxCharCount write setMaxCharCount;
     //property getOffset: integer;
 
     constructor Create(TheOwner: TComponent); override;
@@ -349,7 +354,10 @@ begin
       //zoom in
       //get the pixel at center of the screen
 
-      fZoom:=fZoom * 2;
+      if ssShift in Shift then
+        fZoom:=fZoom * 1.2
+      else
+        fZoom:=fZoom * 2;
 
       fXpos:=trunc(-oldx*fZoom+(MousePos.x));
 
@@ -364,10 +372,13 @@ begin
   end
   else if WheelDelta<0 then
   begin
-    if fZoom>0.1 then
+    if fZoom>0.2 then
     begin
       //zoom out
-      fZoom:=fZoom / 2;
+      if ssShift in Shift then
+        fZoom:=fZoom / 1.2
+      else
+        fZoom:=fZoom / 2;
 
       fXpos:=trunc(-oldx*fZoom+(MousePos.x));
 
@@ -388,11 +399,19 @@ begin
   result:=true;
 end;
 
+procedure TMemDisplay.setMaxCharcount(v: integer);
+begin
+  fMaxCharCount:=v;
+  setupFont;
+  render;
+end;
+
 procedure TMemDisplay.setupFont;
 var z: integer;
 begin
 
-  z:=trunc(fZoom/5);
+
+  z:=floor(fZoom/((fMaxCharCount+1)/2));
   if z>0 then
   begin
     canvas.font.Height:=z;
@@ -491,7 +510,7 @@ end;
 
 procedure TMemDisplay.render;
 var
-  i,j,w,h: integer;
+  i,j,k,w,h: integer;
   maxheight: integer;
   before: TLargeInteger;
   after: TLargeInteger;
@@ -510,7 +529,7 @@ var
   f: THandle;
 
   tl,br: TPoint;
-  s: string;
+  s: tstringlist;
 
 begin
   QueryPerformanceCounter(before);
@@ -630,32 +649,37 @@ begin
 
 
     glRasterPos2f(0,0);
+    s:=tstringlist.create;
 
     for i:=tl.x to br.x do
       for j:=tl.y to br.y do
       begin
-        s:=fOnRequestText(address+(j*fpitch)+i*fPixelByteSize);
-//        s:=inttostr(i)+','+inttostr(j);
-        h:=canvas.TextHeight(s);
+        s.Text:=fOnRequestText(address+(j*fpitch)+i*fPixelByteSize);
 
-        w:=canvas.TextWidth(s);
-        x:=i*fZoom+0.5*fZoom-(w/2);
-        y:=h+j*fzoom;
+        for k:=0 to s.Count-1 do
+        begin
+          h:=canvas.TextHeight(s[k]);
 
-        if x<0 then x:=0;
-        if y<0 then y:=0;
+          w:=canvas.TextWidth(s[k]);
+          x:=i*fZoom+0.5*fZoom-(w/2);
+          y:=h*(k+1)+j*fzoom;//+0.5*fZoom-(h/2);
 
-        glViewport(trunc(fXpos+x), trunc(fYpos-y), width, height);
-        glRasterPos2f(0,0);
+          if x<0 then x:=0;
+          if y<0 then y:=0;
 
-        glCallLists(length(s), GL_UNSIGNED_BYTE, pchar(s));
+          glViewport(trunc(fXpos+x), trunc(fYpos-y), width, height);
+          glRasterPos2f(0,0);
+
+          glCallLists(length(s[k]), GL_UNSIGNED_BYTE, pchar(s[k]));
+
+        end;
 
       end;
 
 
 
 
-
+    s.free;
   end;
 
   SwapBuffers(canvas.handle);
@@ -677,6 +701,8 @@ constructor TMemDisplay.Create(TheOwner: TComponent);
 var i: integer;
 begin
   inherited create(TheOwner);
+
+  fMaxCharCount:=5;
 
   setlength(mapr,256);
   for i:=0 to 255 do
