@@ -44,8 +44,13 @@ end;
   PCurrentOverlay=^TCurrentOverlay;
 
 
-type TOnDataEvent=function(newAddress: ptruint; PreferedMinimumSize: integer; var newbase: pointer; var newsize: integer): boolean of object;
-//This event will be called when the displayed size is changed, or when the position is moved, and it won't fit in the current block anymore
+type
+  TOnDataEvent=function(newAddress: ptruint; PreferedMinimumSize: integer; var newbase: pointer; var newsize: integer): boolean of object;
+  //This event will be called when the displayed size is changed, or when the position is moved, and it won't fit in the current block anymore
+
+  TOnRequestTextEvent=function (Address: ptruint): string of object;
+
+
 
 type
   TMemDisplay=class(Tcustompanel)
@@ -70,6 +75,7 @@ type
     PosOrigin: TPoint;
 
     fOnData: TOnDataEvent;
+    fOnRequestText: TOnRequestTextEvent;
 
     hasFont: boolean;
 
@@ -104,6 +110,7 @@ type
 
 
     property onData: TOnDataEvent read fOnData write fOnData;
+    property onRequestText: TOnRequestTextEvent read fOnRequestText write fOnRequestText;
     //property getOffset: integer;
 
     constructor Create(TheOwner: TComponent); override;
@@ -385,7 +392,7 @@ procedure TMemDisplay.setupFont;
 var z: integer;
 begin
 
-  z:=trunc(fZoom/4);
+  z:=trunc(fZoom/5);
   if z>0 then
   begin
     canvas.font.Height:=z;
@@ -610,95 +617,43 @@ begin
   //glut
 
   //todo: Display the pixel values if the zoom factor is big enough
-  if hasfont and (fZoom>2) then
+  if hasfont and (fZoom>8) and (assigned(fOnRequestText)) then //at least 8 pixels...
   begin
-   { canvas.Font.Color:=clred;
-    canvas.font.name:='Comic Sans'; }
-
-  {  f:=CreateFont(
-        -12,                           // Height
-        0,                             // Width
-        0,                             // Angle of Rotation
-        0,                             // Orientation
-        FW_NORMAL,                     // Weight
-        0,                             // Italic
-        0,                             // Underline
-        0,                             // Strike Out
-        ANSI_CHARSET,                  // Char Set
-        OUT_DEFAULT_PRECIS,            // Precision
-        CLIP_DEFAULT_PRECIS,           // Clipping
-        DEFAULT_QUALITY,               // Render Quality
-        VARIABLE_PITCH or FF_SWISS,    // Pitch & Family
-        'MS Sans Serif');              // Font Name       }
-
-//    SelectObject (canvas.handle, f);
-
-   { canvas.Font.Handle:=f;     }
 
 
-    //glLoadIdentity();
-    //glPixelZoom(1, -1);
+    glListBase(1000);
 
-   // glViewport(0, 0, width, height);
-    ;
-
-
-    //glScalef(20.0, 10.0, 10.0);
-       //move this to one time init
-    //if wglUseFontOutlines(canvas.handle, 0, 255, 1000,  0.0, 0.1, WGL_FONT_POLYGONS, @agmf) then
-    begin
-
-   // glTranslatef(fxPos, fyPos,  -5.0);
-    //
-//      canvas.font.height:=-trunc(fzoom);
-
-       //go through every visible pixel and render the value
-
-     // glPixelZoom(1, -1);
-
-      glListBase(1000);
-
-      //get the top left pixel
-      tl:=GetTopLeftPixelCoordinates;
-      //get the bottom right pixel
-      br:=GetBottomRightPixelCoordinates;
+    //get the top left pixel
+    tl:=GetTopLeftPixelCoordinates;
+    //get the bottom right pixel
+    br:=GetBottomRightPixelCoordinates;
 
 
-      glRasterPos2f(0,0);
+    glRasterPos2f(0,0);
 
-      for i:=tl.x to br.x do
-        for j:=tl.y to br.y do
-        begin
+    for i:=tl.x to br.x do
+      for j:=tl.y to br.y do
+      begin
+        s:=fOnRequestText(address+(j*fpitch)+i*fPixelByteSize);
+//        s:=inttostr(i)+','+inttostr(j);
+        h:=canvas.TextHeight(s);
 
+        w:=canvas.TextWidth(s);
+        x:=i*fZoom+0.5*fZoom-(w/2);
+        y:=h+j*fzoom;
 
-          s:=inttostr(i)+','+inttostr(j);
-          h:=canvas.TextHeight(s);
+        if x<0 then x:=0;
+        if y<0 then y:=0;
 
-          w:=canvas.TextWidth(s);
-          x:=i*fZoom+0.5*fZoom-(w/2);
-          y:=h+j*fzoom;
+        glViewport(trunc(fXpos+x), trunc(fYpos-y), width, height);
+        glRasterPos2f(0,0);
 
-          if x<0 then x:=0;
-          if y<0 then y:=0;
+        glCallLists(length(s), GL_UNSIGNED_BYTE, pchar(s));
 
-          glViewport(trunc(fXpos+x), trunc(fYpos-y), width, height);
-          glRasterPos2f(0,0);
-
-          glCallLists(length(s), GL_UNSIGNED_BYTE, pchar(s));
-
-        end;
+      end;
 
 
 
-
-
-
-    end
-   { else
-    begin
-      i:=GetLastError;
-      if i=0 then beep;
-    end; }
 
 
   end;
