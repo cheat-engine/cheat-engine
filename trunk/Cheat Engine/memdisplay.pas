@@ -33,7 +33,8 @@ If onData returns false, the scroll will not succeed and be put back to the max 
 interface
 
 uses
-  windows, Classes, SysUtils, ExtCtrls, Controls, LMessages, GL, glu, math, dialogs;
+  windows, Classes, SysUtils, ExtCtrls, Controls, LMessages, Graphics, GL, glu,
+  math, dialogs;
 
 
 type TCurrentOverlay=record
@@ -70,9 +71,12 @@ type
 
     fOnData: TOnDataEvent;
 
+    hasFont: boolean;
+
     procedure wndproc(var TheMessage: TLMessage);
     procedure Resize; override;
     procedure updaterevent(sender: TObject);
+    procedure setupFont;
   protected
     mapr, mapg, mapb: array of single;
     procedure SetParent(NewParent: TWinControl); override;
@@ -96,6 +100,7 @@ type
     procedure render;
 
     function GetTopLeftPixelCoordinates: TPoint; //returns the unzoomed coordinates of the selected pixel
+    function GetBottomRightPixelCoordinates: TPoint;
 
 
     property onData: TOnDataEvent read fOnData write fOnData;
@@ -145,6 +150,12 @@ function TMemdisplay.GetTopLeftPixelCoordinates: TPoint;
 begin
   result.x:=trunc(-fxpos / fzoom);
   result.y:=trunc(fypos/fzoom);
+end;
+
+function TMemdisplay.GetBottomRightPixelCoordinates: TPoint;
+begin
+  result.x:=min((fPitch div fPixelByteSize)-1 , trunc((-fxpos+width) / fzoom) );  //trunc((-fxpos+width) / fzoom);
+  result.y:=min((size div fPitch)-1, trunc((fypos+height)/fzoom));
 end;
 
 procedure TMemdisplay.LimitCoordinates;
@@ -332,6 +343,8 @@ begin
       //get the pixel at center of the screen
 
       fZoom:=fZoom * 2;
+      setupfont;
+
       fXpos:=trunc(-oldx*fZoom+(MousePos.x));
 
       newx:=(-fXpos+(MousePos.x))/fZoom;
@@ -339,8 +352,7 @@ begin
       fypos:=trunc(oldy*fZoom-(MousePos.y));
       newy:=(fYpos+(MousePos.y))/fZoom;
 
-      LimitCoordinates;
-      render;
+
 
     end;
   end
@@ -350,6 +362,7 @@ begin
     begin
       //zoom out
       fZoom:=fZoom / 2;
+      setupfont;
 
       fXpos:=trunc(-oldx*fZoom+(MousePos.x));
 
@@ -358,19 +371,32 @@ begin
       fypos:=trunc(oldy*fZoom-(MousePos.y));
       newy:=(fYpos+(MousePos.y))/fZoom;
 
-
-
-
-    //  fYpos:=-trunc(oldy*fZoom-(height / 2));
-      LimitCoordinates;
-      render;
     end;
   end;
+
+
+  LimitCoordinates;
+  setupFont;
+  render;
 
 
   result:=true;
 end;
 
+procedure TMemDisplay.setupFont;
+var z: integer;
+begin
+
+  z:=trunc(fZoom/4);
+  if z>0 then
+  begin
+    canvas.font.Height:=z;
+    hasFont:=wglUseFontBitmaps(canvas.handle, 0, 255, 1000);
+  end
+  else
+    hasFont:=false;
+
+end;
 
 procedure TMemDisplay.SetParent(NewParent: TWinControl);
 var
@@ -426,6 +452,7 @@ begin
       raise exception.create('failure creating opengl window');
 
 
+
 //    initgl;
   //  Resize;
   end;
@@ -459,7 +486,7 @@ end;
 
 procedure TMemDisplay.render;
 var
-  i: integer;
+  i,j,w,h: integer;
   maxheight: integer;
   before: TLargeInteger;
   after: TLargeInteger;
@@ -468,10 +495,25 @@ var
   constantAlpha: float;
   row: single;
   overlay: PCurrentOverlay;
+
+
+
+  x,y: single;
+
+  r: trect;
+
+  f: THandle;
+
+  tl,br: TPoint;
+  s: string;
+
 begin
   QueryPerformanceCounter(before);
   //render the memory bitmap
   if parent=nil then exit;
+
+  if hasfont=false then
+    setupFont;
 
   wglMakeCurrent(canvas.handle, hglrc);
 
@@ -569,10 +611,102 @@ begin
 
   //glut
 
-  //todo: Display the pixel values
+  //todo: Display the pixel values if the zoom factor is big enough
+  if hasfont and (fZoom>2) then
+  begin
+   { canvas.Font.Color:=clred;
+    canvas.font.name:='Comic Sans'; }
 
+  {  f:=CreateFont(
+        -12,                           // Height
+        0,                             // Width
+        0,                             // Angle of Rotation
+        0,                             // Orientation
+        FW_NORMAL,                     // Weight
+        0,                             // Italic
+        0,                             // Underline
+        0,                             // Strike Out
+        ANSI_CHARSET,                  // Char Set
+        OUT_DEFAULT_PRECIS,            // Precision
+        CLIP_DEFAULT_PRECIS,           // Clipping
+        DEFAULT_QUALITY,               // Render Quality
+        VARIABLE_PITCH or FF_SWISS,    // Pitch & Family
+        'MS Sans Serif');              // Font Name       }
+
+//    SelectObject (canvas.handle, f);
+
+   { canvas.Font.Handle:=f;     }
+
+
+    //glLoadIdentity();
+    //glPixelZoom(1, -1);
+
+   // glViewport(0, 0, width, height);
+    ;
+
+
+    //glScalef(20.0, 10.0, 10.0);
+       //move this to one time init
+    //if wglUseFontOutlines(canvas.handle, 0, 255, 1000,  0.0, 0.1, WGL_FONT_POLYGONS, @agmf) then
+    begin
+
+   // glTranslatef(fxPos, fyPos,  -5.0);
+    //
+//      canvas.font.height:=-trunc(fzoom);
+
+       //go through every visible pixel and render the value
+
+     // glPixelZoom(1, -1);
+
+      glListBase(1000);
+
+      //get the top left pixel
+      tl:=GetTopLeftPixelCoordinates;
+      //get the bottom right pixel
+      br:=GetBottomRightPixelCoordinates;
+
+
+      glRasterPos2f(0,0);
+
+      for i:=tl.x to br.x do
+        for j:=tl.y to br.y do
+        begin
+
+
+          s:=inttostr(i)+','+inttostr(j);
+          h:=canvas.TextHeight(s);
+
+          w:=canvas.TextWidth(s);
+          x:=i*fZoom+0.5*fZoom-(w/2);
+          y:=h+j*fzoom;
+
+          if x<0 then x:=0;
+          if y<0 then y:=0;
+
+          glViewport(trunc(fXpos+x), trunc(fYpos-y), width, height);
+          glRasterPos2f(0,0);
+
+          glCallLists(length(s), GL_UNSIGNED_BYTE, pchar(s));
+
+        end;
+
+
+
+
+
+
+    end
+   { else
+    begin
+      i:=GetLastError;
+      if i=0 then beep;
+    end; }
+
+
+  end;
 
   SwapBuffers(canvas.handle);
+
 
 
 
