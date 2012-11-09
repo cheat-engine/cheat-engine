@@ -38,6 +38,7 @@ type
   TfrmPointerScannerSettings = class(TForm)
     cbNoReadOnly: TCheckBox;
     cbClassPointersOnly: TCheckBox;
+    cbNoLoop: TCheckBox;
     edtAddress: TEdit;
     PSSettings: TPageControl;
     PSReverse: TTabSheet;

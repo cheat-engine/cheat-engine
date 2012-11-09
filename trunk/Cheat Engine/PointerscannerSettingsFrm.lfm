@@ -1,12 +1,12 @@
 object frmPointerScannerSettings: TfrmPointerScannerSettings
   Left = 643
-  Height = 453
+  Height = 465
   Top = 91
-  Width = 408
+  Width = 411
   BorderStyle = bsSingle
   Caption = 'Pointerscanner scanoptions'
-  ClientHeight = 453
-  ClientWidth = 408
+  ClientHeight = 465
+  ClientWidth = 411
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
@@ -27,7 +27,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   end
   object PSSettings: TPageControl
     Left = 10
-    Height = 237
+    Height = 253
     Top = 59
     Width = 394
     ActivePage = PSReverse
@@ -38,7 +38,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     TabOrder = 1
     object PSReverse: TTabSheet
       Caption = 'Reverse'
-      ClientHeight = 211
+      ClientHeight = 227
       ClientWidth = 386
       ImageIndex = 1
       TabVisible = False
@@ -67,9 +67,9 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         ParentColor = False
       end
       object Label14: TLabel
-        Left = 0
+        Left = 2
         Height = 13
-        Top = 214
+        Top = 231
         Width = 121
         Caption = 'Maximum offset to accept'
         Enabled = False
@@ -120,9 +120,9 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         TabOrder = 3
       end
       object Edit3: TEdit
-        Left = 0
+        Left = 2
         Height = 21
-        Top = 233
+        Top = 249
         Width = 149
         Enabled = False
         TabOrder = 4
@@ -130,9 +130,9 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         Visible = False
       end
       object cbOnlyStackAsBase: TCheckBox
-        Left = 162
+        Left = 164
         Height = 19
-        Top = 236
+        Top = 252
         Width = 206
         Caption = 'Only use the maintread stack as a base'
         TabOrder = 5
@@ -188,12 +188,20 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         OnChange = canNotReuse
         TabOrder = 10
       end
+      object cbNoLoop: TCheckBox
+        Left = 0
+        Height = 19
+        Top = 207
+        Width = 111
+        Caption = 'No looping pointers'
+        TabOrder = 11
+      end
     end
   end
   object cbMustEndWithSpecificOffset: TCheckBox
-    Left = 10
+    Left = 8
     Height = 19
-    Top = 316
+    Top = 336
     Width = 199
     Caption = 'Pointers must end with specific offsets'
     Font.Height = -11
@@ -205,12 +213,12 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   object Panel1: TPanel
     Left = 0
     Height = 107
-    Top = 346
-    Width = 408
+    Top = 358
+    Width = 411
     Align = alBottom
     BevelOuter = bvNone
     ClientHeight = 107
-    ClientWidth = 408
+    ClientWidth = 411
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
     ParentFont = False
@@ -356,9 +364,9 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     end
   end
   object cbReusePointermap: TCheckBox
-    Left = 10
+    Left = 8
     Height = 19
-    Top = 296
+    Top = 312
     Width = 218
     Caption = 'Use pointermap from previous pointerscan'
     Checked = True

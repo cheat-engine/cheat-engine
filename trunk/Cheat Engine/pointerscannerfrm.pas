@@ -98,6 +98,7 @@ type
   TReverseScanWorker = class (tthread)
   private
     offsetlist: array of dword;
+
     results: tmemorystream;
     resultsfile: tfilestream;
     pointersize: integer;
@@ -115,6 +116,7 @@ type
     startlevel: integer;
     alligned: boolean;
     staticonly: boolean;
+    noLoop: boolean;
 
     isdone: boolean;
     hasTerminated: boolean;
@@ -123,6 +125,12 @@ type
 
     staticscanner: TStaticscanner;
     tempresults: array of dword; //offsetlist
+    valuelist: array of ptruint; //used by noLoop  .
+    {
+    I could have used a map, but inserting in a map takes longer than a array append
+    Also, the array is maxlevel big, and usually not that long
+    Really not sure what's the best solution in this case though
+    }
 
 
     //info:
@@ -200,7 +208,8 @@ type
     mustendwithoffsetlist: array of dword;
     onlyOneStaticInPath: boolean;
     noReadOnly: boolean;
-    mustBeClassPointers: boolean;
+    mustBeClassPointers: boolean; //when set the pointers must all point to a class object
+    noLoop: boolean; //when set a pointerpath may not have the same address multiple times
 
 
     threadcount: integer;
@@ -545,6 +554,19 @@ begin
   end;
 
 
+  if noLoop then
+  begin
+    //check if this valuetofind is already in the list
+    for i:=0 to level-1 do
+      if valuelist[i]=valuetofind then
+      begin
+        exit;
+      end;
+
+    //add this valuetofind to the list
+    valuelist[level]:=valuetofind;
+  end;
+
   //lastaddress:=maxaddress;
 
   LookingForMin:=startvalue;
@@ -598,6 +620,11 @@ begin
                     staticscanner.reversescanners[i].valuetofind:=plist.list[j].address;
 
                     CopyMemory(@staticscanner.reversescanners[i].tempresults[0], @tempresults[0], maxlevel*sizeof(dword));
+                    if noLoop then
+                      CopyMemory(@staticscanner.reversescanners[i].valuelist[0], @valuelist[0], maxlevel*sizeof(ptruint));
+
+
+
 
                     staticscanner.reversescanners[i].startlevel:=level+1;
                     staticscanner.reversescanners[i].structsize:=structsize;
@@ -896,7 +923,12 @@ begin
           reversescanners[i].staticscanner:=self;
           setlength(reversescanners[i].tempresults,maxlevel);
           setlength(reversescanners[i].offsetlist,maxlevel);
+
+          if noloop then
+            setlength(reversescanners[i].valuelist,maxlevel);
+
           reversescanners[i].staticonly:=staticonly;
+          reversescanners[i].noLoop:=noLoop;
           reversescanners[i].alligned:=not self.unalligned;
           reversescanners[i].filename:=self.filename+'.'+inttostr(i);
 
@@ -1033,6 +1065,7 @@ begin
       staticscanner.noReadOnly:=frmpointerscannersettings.cbNoReadOnly.checked;
       staticscanner.mustBeClassPointers:=frmpointerscannersettings.cbClassPointersOnly.checked;
 
+
       staticscanner.startaddress:=frmpointerscannersettings.start;
       staticscanner.stopaddress:=frmpointerscannersettings.Stop;
 
@@ -1043,6 +1076,7 @@ begin
 
       staticscanner.codescan:=frmpointerscannersettings.codescan;
       staticscanner.staticonly:=frmpointerscannersettings.cbStaticOnly.checked;
+      staticscanner.noLoop:=frmpointerscannersettings.cbNoLoop.checked;
 
       staticscanner.automatic:=true;
 
