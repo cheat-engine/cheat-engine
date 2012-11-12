@@ -262,9 +262,6 @@ var buf: array [0..7] of byte;
     buf2: pbytearray;
     x: dword;
     i: integer;
-
-    s: pchar;
-    ws: PWideChar;
 begin
   result:='???';
   case variableType of
@@ -312,7 +309,7 @@ begin
         if ReadProcessMemory(processhandle,pointer(address),buf2,bytesize,x) then
           result:=readAndParsePointer(buf2, variabletype, customtype, showashexadecimal, showAsSigned, bytesize);
       finally
-        freemem(s);
+        freemem(buf2);
       end;
     end;
 
