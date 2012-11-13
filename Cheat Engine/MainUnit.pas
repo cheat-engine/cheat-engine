@@ -1012,6 +1012,9 @@ resourcestring
     'Are you sure you want to erase the data in the current table?';
 
 
+  rsSaved = 'Saved';
+  rsPrevious = 'Previous';
+
 var
   ncol: TColor;
 
@@ -5136,6 +5139,8 @@ begin
         except
         end;
 
+        foundlist3.Column[2].Caption:=rsSaved;
+
 
       end
       else
@@ -5153,6 +5158,8 @@ begin
           foundlist3.Refresh;
         except
         end;
+
+        foundlist3.Column[2].Caption:=rsPrevious;
 
       end;
     end;
