@@ -6837,8 +6837,6 @@ begin
                         lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(dwordptr^,8);
                         inc(offset,last-1+4);
                       end;
-
-                      offset:=offset+last;
                       description:='logical exclusive or';
                     end;
 
