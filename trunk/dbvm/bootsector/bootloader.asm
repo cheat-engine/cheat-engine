@@ -98,6 +98,9 @@ mov es,ax  ;destination to 0x3000
 mov ax,cs
 mov ds,ax  ;make sure data segment points to here
 
+mov [bootdrive],dl ;tore the bootdrive register in ds:[bootdrive] (so local segment)
+
+
 xor ax,ax
 mov ss,ax  ;might as well setup a place for the stack (0:7bf0)
 mov sp,0x3ff0
@@ -116,7 +119,7 @@ sti
 push es
 push ds
 
-mov [bootdrive],dl
+
 
 ;reset disk
 mov ax,0
