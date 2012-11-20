@@ -98,7 +98,7 @@ mov es,ax  ;destination to 0x3000
 mov ax,cs
 mov ds,ax  ;make sure data segment points to here
 
-mov [bootdrive],dl ;tore the bootdrive register in ds:[bootdrive] (so local segment)
+mov [bootdrive],dl ;store the bootdrive register in ds:[bootdrive] (so local segment)
 
 
 xor ax,ax
