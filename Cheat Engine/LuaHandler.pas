@@ -1468,7 +1468,7 @@ end;
 
 function writeBytesEx(processhandle: dword; L: PLua_State): integer;
 var
-  parameters: integer;
+  parameters, parameters2: integer;
   bytes: array of byte;
   i,j: integer;
   bytecount: integer;
@@ -1495,12 +1495,12 @@ begin
   bytecount:=0;
   if lua_istable(L, 2) then
   begin
-    parameters:=lua_objlen(L, 2);
-    setlength(bytes, parameters);
+    parameters2:=lua_objlen(L, 2);
+    setlength(bytes, parameters2);
 
 
 
-    for i:=1 to parameters do
+    for i:=1 to parameters2 do
     begin
       lua_pushinteger(L,i);
       lua_gettable(L, 2);
