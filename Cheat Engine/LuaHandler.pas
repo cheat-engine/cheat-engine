@@ -1471,6 +1471,7 @@ var
   parameters: integer;
   bytes: array of byte;
   i,j: integer;
+  bytecount: integer;
   address: ptruint;
   x: dword;
   oldprotect: dword;
@@ -1491,39 +1492,48 @@ begin
   else
     address:=lua_tointeger(L,-parameters);
 
+  bytecount:=0;
   if lua_istable(L, 2) then
   begin
     parameters:=lua_objlen(L, 2);
     setlength(bytes, parameters);
+
+
 
     for i:=1 to parameters do
     begin
       lua_pushinteger(L,i);
       lua_gettable(L, 2);
 
-      j:=lua_tointeger(L,-1);
-      bytes[i-1]:=j;
+      if lua_isnumber(L,-1) then
+      begin
+        j:=lua_tointeger(L,-1);
+        bytes[bytecount]:=j;
+        inc(bytecount);
+      end;
       lua_pop(L,1);
     end;
+
+
   end
   else
   begin
     setlength(bytes,parameters-1);
 
-    j:=0;
+    bytecount:=0;
     for i:=(-parameters)+1 to -1 do
     begin
       b:=lua_tointeger(L,i);
-      bytes[j]:=b;
-      inc(j);
+      bytes[bytecount]:=b;
+      inc(bytecount);
     end;
 
   end;
 
   x:=0;
-  VirtualProtectEx(processhandle, pointer(address), parameters-1, PAGE_EXECUTE_READWRITE, oldprotect);
-  WriteProcessMemory(processhandle, pointer(address), @bytes[0], parameters-1, x);
-  VirtualProtectEx(processhandle, pointer(address), parameters-1, oldprotect, oldprotect);
+  VirtualProtectEx(processhandle, pointer(address), bytecount, PAGE_EXECUTE_READWRITE, oldprotect);
+  WriteProcessMemory(processhandle, pointer(address), @bytes[0], bytecount, x);
+  VirtualProtectEx(processhandle, pointer(address), bytecount, oldprotect, oldprotect);
 
 
   lua_pop(L, parameters);
