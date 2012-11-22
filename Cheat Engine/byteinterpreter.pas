@@ -209,7 +209,7 @@ begin
     begin
       getmem(ws, bytesize+2);
       copymemory(ws, buf, bytesize);
-      ws:=PWideChar(buf);
+
       try
         pbytearray(ws)[bytesize+1]:=0;
         pbytearray(ws)[bytesize]:=0;
