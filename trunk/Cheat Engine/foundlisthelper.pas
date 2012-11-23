@@ -708,7 +708,7 @@ end;
 
 function TFoundList.Initialize(vartype: TVariableType; varlength: integer; hexadecimal,signed,binaryasdecimal,unicode: boolean; customtype: TCustomType=nil):int64;
 begin
-  result:=Initialize(vartype, fcustomtype);
+  result:=Initialize(vartype, customtype);
 
   if scantype=fs_addresslist then
   begin
