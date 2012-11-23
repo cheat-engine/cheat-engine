@@ -7304,6 +7304,7 @@ begin
         vtSingle: ssVt:=vt_single;
         vtDouble: ssVt:=vt_double;
         vtQword: ssVt:=vt_int64;
+        vtCustom: ssVt:=vt_dword; //doesn't really matter for address only (as long as it isn't all)
         vtAll: ssVt:=vt_all;
         else
           invalid:=true;
