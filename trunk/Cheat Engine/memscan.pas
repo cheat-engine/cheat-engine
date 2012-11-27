@@ -3330,7 +3330,6 @@ var FloatSettings: TFormatSettings;
     i: integer;
     foundbuffersize: integer;
     td: double;
-
     s: string;
 begin
   OutputDebugString('configurescanroutine');
@@ -3446,7 +3445,10 @@ begin
     if percentage or (variableType in [vtsingle,vtDouble,vtAll, vtCustom]) then
     begin
       try
-        dvalue:=strtofloat(scanvalue1,FloatSettings);
+        if hexadecimal then
+          dvalue:=nan
+        else
+          dvalue:=strtofloat(scanvalue1,FloatSettings);
       except
         if FloatSettings.DecimalSeparator=',' then
           FloatSettings.DecimalSeparator:='.'
@@ -3469,7 +3471,10 @@ begin
       if percentage or (scanoption=soValueBetween) then
       begin
         try
-          dvalue2:=strtofloat(scanvalue2,FloatSettings);
+          if hexadecimal then
+            dvalue2:=nan
+          else
+            dvalue2:=strtofloat(scanvalue2,FloatSettings);
         except
           if FloatSettings.DecimalSeparator=',' then
             FloatSettings.DecimalSeparator:='.'
@@ -3507,8 +3512,10 @@ begin
 
       end;
 
+
       svalue:=dvalue;
       svalue2:=dvalue2;
+
 
       floataccuracy:=pos(FloatSettings.DecimalSeparator,scanvalue1);
       if floataccuracy>0 then
