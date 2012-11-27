@@ -290,8 +290,6 @@ begin
     code[i]:=currentline;
 
   end;
-
-  showmessage(code.text);
 end;
 
 
