@@ -235,7 +235,7 @@ begin
         setlength(labels,length(labels)+1);
         labels[length(labels)-1]:=copy(currentline,1,length(currentline)-1);
       end else
-      if currentline[length(currentline)-1]=':' then
+      if currentline[length(currentline)]=':' then
       begin
         setlength(labels,length(labels)+1);
         labels[length(labels)-1]:=copy(currentline,1,length(currentline)-1);
@@ -253,7 +253,7 @@ begin
     currentline:=code[i];
     if length(currentline)>1 then
     begin
-      if currentline[length(currentline)-1]=':' then
+      if currentline[length(currentline)]=':' then
       begin
         //find this in the array
         currentline:=copy(currentline,1,length(currentline)-1);
@@ -265,6 +265,7 @@ begin
             break;
           end;
         end;
+        currentline:=currentline+':';
         //lastseenlabel is now updated to the current pos
       end else
       if pos('@f',lowercase(currentline))>0 then  //forward
@@ -289,6 +290,8 @@ begin
     code[i]:=currentline;
 
   end;
+
+  showmessage(code.text);
 end;
 
 
