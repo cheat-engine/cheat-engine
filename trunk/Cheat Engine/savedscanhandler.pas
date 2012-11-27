@@ -220,7 +220,9 @@ begin
   begin
     maxaddresslistcount:=min(maxaddresslistcount, (savedscanaddressfs.size-savedscanaddressfs.Position) div sizeof(TBitAddress)); //limit to the addresslist file size
 
-    getmem(addresslistmemory, maxaddresslistcount*sizeof(TBitAddress));
+    if addresslistmemory=nil then
+      getmem(addresslistmemory, maxaddresslistcount*sizeof(TBitAddress));
+
     savedscanaddressfs.ReadBuffer(addresslistmemory^, maxaddresslistcount*sizeof(TBitAddress));
   end;
   if maxaddresslistcount=0 then raise exception.create(rsMaxaddresslistcountIs0MeansTheAddresslistIsBad);
