@@ -7253,9 +7253,11 @@ var
   ssVt: TValueType;
   p: pointer;
   invalid: boolean;
+  ct: TCustomType;
 begin
 
   //put in data
+  ct:=nil;
 
   try
     valuetype:=foundlist.vartype;
@@ -7275,7 +7277,9 @@ begin
     begin
       if extra >= $1000 then
       begin
-        AddressString := AddressString + ':' + TCustomType(customTypes[extra - $1000]).Name;
+        ct:=TCustomType(customTypes[extra - $1000]);
+        valuetype:=vtCustom;
+        AddressString := AddressString + ':' + ct.Name;
       end
       else
       begin
@@ -7297,7 +7301,7 @@ begin
     begin
       //get the previous value of this entry
       invalid:=false;
-      case valuetype of
+      case foundlist.vartype of
         vtByte: ssVt:=vt_byte;
         vtWord: ssVt:=vt_word;
         vtDword: ssVt:=vt_dword;
@@ -7317,7 +7321,7 @@ begin
         if p=nil then
           previousvalue:='<none>'
         else
-          previousvalue:=readAndParsePointer(p, foundlist.vartype, foundlist.CustomType, foundlist.isHexadecimal, foundlist.isSigned);
+          previousvalue:=readAndParsePointer(p, valuetype, ct, foundlist.isHexadecimal, foundlist.isSigned);
       end;
     end;
 
@@ -7807,6 +7811,7 @@ begin
     PreviousResults.AllowNotFound:=true;
     PreviousResults.AllowRandomAccess:=true;
   except
+    PreviousResults:=nil;
   end;
 
 
