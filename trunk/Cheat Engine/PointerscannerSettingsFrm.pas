@@ -39,6 +39,8 @@ type
     cbNoReadOnly: TCheckBox;
     cbClassPointersOnly: TCheckBox;
     cbNoLoop: TCheckBox;
+    cbMaxOffsetsPerNode: TCheckBox;
+    edtMaxOffsetsPerNode: TEdit;
     edtAddress: TEdit;
     PSSettings: TPageControl;
     PSReverse: TTabSheet;
@@ -60,8 +62,6 @@ type
     btnCancel: TButton;
     edtThreadcount: TEdit;
     ComboBox1: TComboBox;
-    Edit3: TEdit;
-    Label14: TLabel;
     cbOnlyStackAsBase: TCheckBox;
     cbUseHeapData: TCheckBox;
     cbHeapOnly: TCheckBox;
@@ -73,6 +73,7 @@ type
     cbReusePointermap: TCheckBox;
     procedure Button1Click(Sender: TObject);
     procedure canNotReuse(Sender: TObject);
+    procedure cbMaxOffsetsPerNodeChange(Sender: TObject);
     procedure cbMustEndWithSpecificOffsetChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -93,6 +94,7 @@ type
     unalligned: boolean;
     automaticaddress: ptrUint;
     structsize: integer;
+    maxOffsetsPerNode: integer;
     level0structsize: integer;
     maxlevel: integer;
     codescan: boolean;
@@ -127,6 +129,9 @@ resourcestring
   rsHighest = 'Highest';
   rsTimeCritical = 'TimeCritical';
 
+  strMaxOffsetsIsStupid = 'Sorry, but the max offsets should be 1 or higher, or else disable the checkbox'; //'Are you a fucking retard?';
+
+
 constructor TOffsetEntry.create(AOwner: TComponent);
 begin
   inherited create(AOwner);
@@ -156,6 +161,13 @@ end;
 
 procedure TfrmPointerScannerSettings.Button1Click(Sender: TObject);
 begin
+  if cbMaxOffsetsPerNode.checked then
+  begin
+    maxOffsetsPerNode:=strtoint(edtMaxOffsetsPerNode.text);
+    if maxOffsetsPerNode<=0 then
+      raise exception.create(strMaxOffsetsIsStupid);
+  end;
+
   start:=StrToQWordEx('$'+edtReverseStart.text);
   stop:=StrToQWordEx('$'+edtReverseStop.text);
 
@@ -187,6 +199,11 @@ procedure TfrmPointerScannerSettings.canNotReuse(Sender: TObject);
 begin
   cbReusePointermap.Enabled:=false;
   cbReusePointermap.Checked:=false;
+end;
+
+procedure TfrmPointerScannerSettings.cbMaxOffsetsPerNodeChange(Sender: TObject);
+begin
+  edtMaxOffsetsPerNode.enabled:=cbMaxOffsetsPerNode.checked;
 end;
 
 procedure TfrmPointerScannerSettings.cbMustEndWithSpecificOffsetChange(Sender: TObject);
