@@ -3320,7 +3320,7 @@ begin
   if tokens[0]='DW' then
   begin
     for i:=1 to nroftokens-1 do
-      addword(bytes,strtoint(parameter1));
+      addword(bytes,HexStrToInt(tokens[i]));
     result:=true;
     exit;
   end;
@@ -3328,7 +3328,7 @@ begin
   if tokens[0]='DD' then
   begin
     for i:=1 to nroftokens-1 do
-      adddword(bytes,strtoint(parameter1));
+      adddword(bytes,HexStrToInt(tokens[i]));
     result:=true;
     exit;
   end;
@@ -3336,7 +3336,7 @@ begin
   if tokens[0]='DQ' then
   begin
     for i:=1 to nroftokens-1 do
-      addqword(bytes,StrToQWordEx(parameter1));
+      addqword(bytes,HexStrToInt64(tokens[i]));
     result:=true;
     exit;
   end;  
