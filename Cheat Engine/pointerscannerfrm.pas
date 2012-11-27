@@ -118,6 +118,11 @@ type
     staticonly: boolean;
     noLoop: boolean;
 
+    LimitToMaxOffsetsPerNode: boolean;
+    MaxOffsetsPerNode: integer;
+
+
+
     isdone: boolean;
     hasTerminated: boolean;
     startworking: tevent;
@@ -185,6 +190,9 @@ type
     maxlevel: integer;
     unalligned: boolean;
     codescan: boolean;
+
+    LimitToMaxOffsetsPerNode: boolean;
+    MaxOffsetsPerNode: integer; //Sets how many different offsets per node should be handled at most (specifically mentioning different offsets since a pointervalue can have multiple addresses, meaning the same offset, different paths)
 
 
     fast: boolean;
@@ -519,11 +527,13 @@ var p: ^byte;
 
   nostatic: TStaticData;
   DontGoDeeper: boolean;
+  DifferentOffsetsInThisNode: integer;
 
 begin
   if (level>=maxlevel) or self.staticscanner.Terminated then exit;
 
   currentlevel:=level;
+  DifferentOffsetsInThisNode:=0;
 
 
   exactOffset:=staticscanner.mustEndWithSpecificOffset and (length(staticscanner.mustendwithoffsetlist)-1>=level);
@@ -666,6 +676,16 @@ begin
           if staticscanner.onlyOneStaticInPath then DontGoDeeper:=true;
         end;
       end;
+
+
+      if LimitToMaxOffsetsPerNode then //check if the current itteration is less than maxOffsetsPerNode
+      begin
+        inc(DifferentOffsetsInThisNode);
+
+        if (DifferentOffsetsInThisNode>=maxOffsetsPerNode) then
+          exit; //the max node has been reached
+      end;
+
 
       plist:=plist.previous;
       if plist<>nil then
@@ -929,6 +949,10 @@ begin
 
           reversescanners[i].staticonly:=staticonly;
           reversescanners[i].noLoop:=noLoop;
+
+          reversescanners[i].LimitToMaxOffsetsPerNode:=LimitToMaxOffsetsPerNode;
+          reversescanners[i].MaxOffsetsPerNode:=MaxOffsetsPerNode;
+
           reversescanners[i].alligned:=not self.unalligned;
           reversescanners[i].filename:=self.filename+'.'+inttostr(i);
 
@@ -1077,6 +1101,9 @@ begin
       staticscanner.codescan:=frmpointerscannersettings.codescan;
       staticscanner.staticonly:=frmpointerscannersettings.cbStaticOnly.checked;
       staticscanner.noLoop:=frmpointerscannersettings.cbNoLoop.checked;
+      staticscanner.LimitToMaxOffsetsPerNode:=frmpointerscannersettings.cbMaxOffsetsPerNode.Checked;
+      staticscanner.maxOffsetsPerNode:=frmpointerscannersettings.maxOffsetsPerNode;
+
 
       staticscanner.automatic:=true;
 
@@ -1084,6 +1111,7 @@ begin
       staticscanner.sz:=frmpointerscannersettings.structsize;
       staticscanner.sz0:=frmpointerscannersettings.level0structsize;
       staticscanner.maxlevel:=frmpointerscannersettings.maxlevel;
+
 
       staticscanner.progressbar:=progressbar1;
       staticscanner.threadcount:=frmpointerscannersettings.threadcount;
