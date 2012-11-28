@@ -18,8 +18,9 @@ type thotkeyitem=record
   uVirtKey:word;
   handler2:boolean;
   lastactivate: dword; //determines when the last time this hotkey was activated
-
 end;
+
+type PHotkeyItem=^THotkeyItem;
 
 type Thotkeythread=class(tthread)
   private
@@ -38,6 +39,7 @@ function UnregisterAddressHotkey(memrechotkey: pointer): boolean;
 function UnregisterGenericHotkey(generichotkey: TGenericHotkey): boolean;
 
 //function OldUnregisterHotKey(hWnd: HWND; id: Integer): BOOL; stdcall;
+function GetKeyComboLength(keycombo: TKeyCombo): integer;
 function CheckKeyCombo(keycombo: tkeycombo):boolean;
 procedure ConvertOldHotkeyToKeyCombo(fsModifiers, vk: uint; var k: tkeycombo);
 procedure ClearHotkeylist;
@@ -59,6 +61,8 @@ uses MemoryRecordUnit;
 type tkeystate=(ks_undefined=0, ks_pressed=1, ks_notpressed=2);
 
 var keystate: array [0..255] of tkeystate;  //0=undefined, 1=pressed, 2-not pressed
+
+
 
 function IsKeyPressed(key: integer):boolean;
 var ks: dword;
@@ -133,6 +137,15 @@ end;
 
 //get all keystates and store them in a buffer
 
+function GetKeyComboLength(keycombo: TKeyCombo): integer;
+var i: integer;
+begin
+  result:=0;
+  for i:=0 to length(keycombo)-1 do
+    if keycombo[i]<>0 then
+      inc(result);
+end;
+
 function CheckKeyCombo(keycombo: tkeycombo):boolean;
 var i: integer;
 begin
@@ -170,7 +183,6 @@ begin
     hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].fuModifiers:=fsmodifiers;
     hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].uVirtKey:=vk;
     hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].handler2:=false;
-
     ConvertOldHotkeyToKeyCombo(fsModifiers, vk, hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].keys);
 
     result:=true;
@@ -319,42 +331,83 @@ begin
 end;
 
 procedure THotkeyThread.execute;
+type
+  TActiveHotkeyData=record   //structure to hold hotkey and keycount
+    hotkeylistItem: PHotkeyItem;
+    keycount: integer;
+  end;
+  PActiveHotkeyData=^TActiveHotkeyData;
 var i: integer;
     a,b,c: dword;
+
+    activeHotkeyList: Tlist;
+    maxActiveKeyCount: integer;
+
+    tempHotkey: PActiveHotkeyData;
 begin
+  activeHotkeyList:=Tlist.create;
   while not terminated do
   begin
     try
       CSKeys.Enter;
       try
+        //get a list of all the activated hotkeys
+
+        maxActiveKeyCount:=0;
         for i:=0 to length(hotkeylist)-1 do
         begin
 
 
+          if
+            ((hotkeylist[i].memrechotkey<>nil) and (checkkeycombo(TMemoryrecordHotkey(hotkeylist[i].memrechotkey).keys))) or
+            ((hotkeylist[i].genericHotkey<>nil) and (checkkeycombo(TGenericHotkey(hotkeylist[i].generichotkey).keys))) or
+            (((hotkeylist[i].memrechotkey=nil) and (hotkeylist[i].generichotkey=nil)) and checkkeycombo(hotkeylist[i].keys))
 
-          if ((hotkeylist[i].lastactivate+hotkeyIdletime)<GetTickCount) then
+          then
           begin
-            if
-              ((hotkeylist[i].memrechotkey<>nil) and (checkkeycombo(TMemoryrecordHotkey(hotkeylist[i].memrechotkey).keys))) or
-              ((hotkeylist[i].genericHotkey<>nil) and (checkkeycombo(TGenericHotkey(hotkeylist[i].generichotkey).keys))) or
-              (((hotkeylist[i].memrechotkey=nil) and (hotkeylist[i].generichotkey=nil)) and checkkeycombo(hotkeylist[i].keys))
+            //the hotkey got pressed
+            //6.3: Add it to a list of hotkeys
+            tempHotkey:=getmem(sizeof(tempHotkey));
 
-            then
+            tempHotkey.hotkeylistItem:=@hotkeylist[i];
+            if (hotkeylist[i].memrechotkey<>nil) then
+              tempHotkey.keycount:=GetKeyComboLength(TMemoryrecordHotkey(hotkeylist[i].memrechotkey).keys)
+            else
+            if (hotkeylist[i].genericHotkey<>nil) then
+              tempHotkey.keycount:=GetKeyComboLength(TMemoryrecordHotkey(hotkeylist[i].memrechotkey).keys)
+            else
+              tempHotkey.keycount:=GetKeyComboLength(hotkeylist[i].keys);
+
+            maxActiveKeyCount:=max(maxActiveKeyCount, tempHotkey.keycount);
+
+
+            activeHotkeyList.Add(temphotkey);
+
+          end;
+
+        end;
+
+        //now go through the activeHotkeyList looking for a keycount of maxActiveKeyCount
+        for i:=0 to activeHotkeyList.count-1 do
+        begin
+          temphotkey:=PActiveHotkeyData(activeHotkeyList[i]);
+          if temphotkey.keycount=maxActiveKeyCount then //it belongs to the max complex hotkey count
+          begin
+            if ((tempHotkey.hotkeylistItem.lastactivate+hotkeyIdletime)<GetTickCount) then //check if it can be activated
             begin
-              //the hotkey got pressed
-              a:=hotkeylist[i].windowtonotify;
-              b:=hotkeylist[i].id;
-              c:=(hotkeylist[i].uVirtKey shl 16)+hotkeylist[i].fuModifiers;
+              a:=tempHotkey.hotkeylistItem.windowtonotify;
+              b:=tempHotkey.hotkeylistItem.id;
+              c:=(tempHotkey.hotkeylistItem.uVirtKey shl 16)+tempHotkey.hotkeylistItem.fuModifiers;
 
 
-              hotkeylist[i].lastactivate:=gettickcount;
-              if hotkeylist[i].handler2 then
+              tempHotkey.hotkeylistItem.lastactivate:=gettickcount;
+              if tempHotkey.hotkeylistItem.handler2 then
               begin
-                if hotkeylist[i].memrechotkey<>nil then
-                  sendmessage(a,integer(cefuncproc.WM_HOTKEY2),0,ptrUint(hotkeylist[i].memrechotkey))
+                if tempHotkey.hotkeylistItem.memrechotkey<>nil then
+                  sendmessage(a,integer(cefuncproc.WM_HOTKEY2),0,ptrUint(tempHotkey.hotkeylistItem.memrechotkey))
                 else
-                if hotkeylist[i].generichotkey<>nil then
-                  sendmessage(a,integer(cefuncproc.WM_HOTKEY2),1,ptrUint(hotkeylist[i].genericHotkey))
+                if tempHotkey.hotkeylistItem.generichotkey<>nil then
+                  sendmessage(a,integer(cefuncproc.WM_HOTKEY2),1,ptrUint(tempHotkey.hotkeylistItem.genericHotkey))
                 else
                   sendmessage(a,integer(cefuncproc.WM_HOTKEY2),b,0)
 
@@ -363,9 +416,13 @@ begin
               else
                 sendmessage(a,WM_HOTKEY,b,c);
             end;
-
           end;
+
+          //cleanup the memory as well while we're at it
+          freemem(temphotkey);
         end;
+        activeHotkeyList.clear;
+
       finally
         CSKeys.Leave;
       end;
