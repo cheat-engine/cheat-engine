@@ -5292,9 +5292,10 @@ begin
       if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
       begin
         //rel8
-        if parameter1[1] in ['-','+'] then
+
+        if (parameter1[1] in ['-','+']) then
         begin
-          if vtype>8 then
+          if ((not overrideShort) and (vtype>8)) or (overrideLong) then
           begin
             //see if there is a 32 bit equivalent opcode (notice I dont do rel 16 because that'll completly screw up eip)
             k:=startoflist;
@@ -5364,6 +5365,7 @@ begin
         if parameter1[1] in ['-','+'] then
         begin
           //opcode rel32
+
           addopcode(bytes,j);
           adddword(bytes,v);
           result:=true;
