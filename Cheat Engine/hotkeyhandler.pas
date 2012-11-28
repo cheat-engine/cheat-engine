@@ -374,7 +374,7 @@ begin
               tempHotkey.keycount:=GetKeyComboLength(TMemoryrecordHotkey(hotkeylist[i].memrechotkey).keys)
             else
             if (hotkeylist[i].genericHotkey<>nil) then
-              tempHotkey.keycount:=GetKeyComboLength(TMemoryrecordHotkey(hotkeylist[i].memrechotkey).keys)
+              tempHotkey.keycount:=GetKeyComboLength(TGenericHotkey(hotkeylist[i].generichotkey).keys)
             else
               tempHotkey.keycount:=GetKeyComboLength(hotkeylist[i].keys);
 
