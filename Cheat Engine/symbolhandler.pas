@@ -319,6 +319,7 @@ end;
 
 procedure TSymbolloaderthread.finishedLoadingSymbols;
 begin
+  OutputDebugString('finishedLoadingSymbols called');
   if (not targetself) and (symhandler<>nil) then symhandler.NotifyFinishedLoadingSymbols;
 end;
 
@@ -374,6 +375,8 @@ begin
       end else error:=true;
     finally
       isloading:=false;
+
+      OutputDebugString('Symbolhandler: sync: Calling finishedloadingsymbols');
       synchronize(finishedloadingsymbols);
     end;
   except
@@ -556,9 +559,9 @@ begin
     symbolloaderthread.kernelsymbols:=kernelsymbols;
     symbolloaderthread.searchpath:=searchpath;
     symbolloaderthread.symbollist:=symbollist;
-    symbolloaderthread.start;
-
     symbolloadervalid.EndWrite;
+
+    symbolloaderthread.start;
   end;
 
   ReinitializeUserdefinedSymbolList;
@@ -568,7 +571,11 @@ procedure TSymhandler.Waitforsymbolsloaded;
 begin
   symbolloadervalid.beginread;
   if symbolloaderthread<>nil then
-    symbolloaderthread.WaitFor;
+  begin
+    while symbolloaderthread.isloading do  //waitfor does not work if called from a second layer syncronize (fpc bug ?)
+      sleep(10);
+  end;
+
   symbolloadervalid.endread;
 end;
 

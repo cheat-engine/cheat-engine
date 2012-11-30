@@ -1300,17 +1300,25 @@ var code,data: ptruint;
   bp: PBreakpoint;
   oldstate: boolean;
 begin
+  OutputDebugString('SetEntryPointBreakpoint called');
   if fNeedsToSetEntryPointBreakpoint then
   begin
     fNeedsToSetEntryPointBreakpoint:=false;
 
+    OutputDebugString('Initializing symbol handler');
     symhandler.reinitialize;
+
+    OutputDebugString('Waiting for symbols loaded');
     symhandler.waitforsymbolsloaded;
+
+    OutputDebugString('Fetching entrypoint');
     memorybrowser.GetEntryPointAndDataBase(code,data);
 
     //set the breakpoint preference to int3 for this breakpoint
     oldstate:=preferHwBP;
     preferHwBP:=false;
+
+    OutputDebugString('Going to toggle bp');
 
     try
       bp:=ToggleOnExecuteBreakpoint(code);
@@ -1670,14 +1678,24 @@ begin
   else
     timeout:=10000;
 
+  OutputDebugString('WaitTillAttachedOrError');
   while (gettickcount-starttime)<timeout do
   begin
+    OutputDebugString('loop WaitTillAttachedOrError');
     currentloopstarttime:=GetTickCount;
-    while CheckSynchronize and (GetTickCount-currentloopstarttime<50) do ; //synchronize for 50 milliseconds long
+    while CheckSynchronize and ((GetTickCount-currentloopstarttime)<50) do
+    begin
+      OutputDebugString('After CheckSynchronize');
+      //synchronize for 50 milliseconds long
+    end;
 
     Result := OnAttachEvent.WaitFor(50); //wait for 50 milliseconds for the OnAttachEvent
+
+
     if result=wrSignaled then break;
   end;
+
+  OutputDebugString('WaitTillAttachedOrError exit');
 
   {//wait just a little and wait for some threads
   sleep(100);
