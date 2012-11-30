@@ -694,6 +694,8 @@ begin
       begin
         OutputDebugString('Calling SetEntryPointBreakpoint');
         TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), TDebuggerthread(debuggerthread).SetEntryPointBreakpoint);
+
+        OutputDebugString('After synchronize for SetEntryPointBreakpoint');
       end;
 
       //it's a software breakpoint, adjust eip to go back by 1
