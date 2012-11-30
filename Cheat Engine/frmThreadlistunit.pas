@@ -403,6 +403,12 @@ begin
 
 end;
 
+
+{$ifdef cpu64}
+function GetThreadSelectorEntry(hThread: THandle; dwSelector: DWORD; var lpSelectorEntry: TLDTEntry): BOOL; external 'kernel32' name 'Wow64GetThreadSelectorEntry';
+{$endif}
+
+
 procedure TfrmThreadlist.threadTreeviewExpanding(Sender: TObject;
   Node: TTreeNode; var AllowExpansion: Boolean);
 function rw2str(x: byte): string;
@@ -425,15 +431,19 @@ begin
   end;
 end;
 
-var tid: dword;
-th: thandle;
-c: TContext;
-prefix: char;
-s: string;
-rw: byte;
-len: byte;
+var
+  tid: dword;
+  th: thandle;
+  c: TContext;
+  prefix: char;
+  s: string;
+  rw: byte;
+  len: byte;
 
-drinfo: string;
+  drinfo: string;
+
+  ldtentry: TLDTEntry;
+  i: integer;
 
 begin
   if node.level=0 then
@@ -527,6 +537,14 @@ begin
           threadTreeview.items.AddChild(node,'r15='+inttohex(c.r15,8));
         end;
         {$endif}
+
+        if GetThreadSelectorEntry(th, c.segFs, ldtentry) then
+          threadTreeview.items.AddChild(node,'fsbase='+inttohex(ldtentry.BaseLow+ldtentry.HighWord.Bytes.BaseMid shl 16+ldtentry.HighWord.Bytes.BaseHi shl 24,8));
+
+        if GetThreadSelectorEntry(th, c.SegGs, ldtentry) then
+          threadTreeview.items.AddChild(node,'gsbase='+inttohex(ldtentry.BaseLow+ldtentry.HighWord.Bytes.BaseMid shl 16+ldtentry.HighWord.Bytes.BaseHi shl 24,8));
+
+
       end
       else threadTreeview.items.AddChild(node, rsCouldnTObtainContext);
       closehandle(th);
