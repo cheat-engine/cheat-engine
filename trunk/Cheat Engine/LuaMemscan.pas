@@ -11,7 +11,6 @@ procedure initializeMemscan;
 
 implementation
 
-
 //memscan_firstScan(memscan, scanOption, vartype, roundingtype, input1, input2, startAddress,
 //                  stopAddress, protectionflags, alignmenttype, "alignmentparam", isHexadecimalInput,
 //                  isNotABinaryString, isunicodescan, iscasesensitive, ispercentagescan);
@@ -35,31 +34,31 @@ begin
   parameters:=lua_gettop(L);
   if parameters=15 then
   begin
-    memscan:=lua_touserdata(L, -parameters);
-    scanOption:=TScanOption(lua_tointeger(L, -parameters+1));
-    vartype:=TVariableType(lua_tointeger(L, -parameters+2));
-    roundingtype:=TRoundingType(lua_tointeger(L, -parameters+3));
-    input1:=Lua_ToString(L, -parameters+4);
-    input2:=Lua_ToString(L, -parameters+5);
+    memscan:=lua_touserdata(L, 1);
+    scanOption:=TScanOption(lua_tointeger(L, 2));
+    vartype:=TVariableType(lua_tointeger(L, 3));
+    roundingtype:=TRoundingType(lua_tointeger(L, 4));
+    input1:=Lua_ToString(L, 5);
+    input2:=Lua_ToString(L, 6);
 
-    if lua_isstring(L, -parameters+6) then
-      startaddress:=symhandler.getAddressFromNameL(Lua_ToString(L, -parameters+6))
+    if lua_type(L,7)=LUA_TSTRING then
+      startaddress:=symhandler.getAddressFromNameL(Lua_ToString(L, 7))
     else
-      startaddress:=lua_tointeger(L, -parameters+6);
+      startaddress:=lua_tointeger(L, 7);
 
-    if lua_isstring(L, -parameters+7) then
-      stopaddress:=symhandler.getAddressFromNameL(Lua_ToString(L, -parameters+7))
+    if lua_type(L,8)=LUA_TSTRING then
+      stopaddress:=symhandler.getAddressFromNameL(Lua_ToString(L, 8))
     else
-      stopaddress:=lua_tointeger(L, -parameters+7);
+      stopaddress:=lua_tointeger(L, 8);
 
-    protectionflags:=Lua_ToString(L, -parameters+8);
-    alignmenttype:=TFastScanMethod(lua_tointeger(L, -parameters+9));
-    alignmentparam:=lua_tostring(L, -parameters+10);
+    protectionflags:=Lua_ToString(L, 9);
+    alignmenttype:=TFastScanMethod(lua_tointeger(L, 10));
+    alignmentparam:=lua_tostring(L, 11);
 
-    isHexadecimalInput:=lua_toboolean(L, -parameters+11);
-    isNotABinaryString:=lua_toboolean(L, -parameters+12);
-    isunicodescan:=lua_toboolean(L, -parameters+13);
-    iscasesensitive:=lua_toboolean(L, -parameters+14);
+    isHexadecimalInput:=lua_toboolean(L, 12);
+    isNotABinaryString:=lua_toboolean(L, 13);
+    isunicodescan:=lua_toboolean(L, 14);
+    iscasesensitive:=lua_toboolean(L, 15);
 
     lua_pop(L, lua_gettop(L));
 
