@@ -1174,9 +1174,20 @@ begin
 
       if i<>lua_gettop(luavm) then
       begin
+        j:=lua_type(LuaVM, -1);
+        if j=0 then beep;
+
+
         if lua_islightuserdata(LuaVM, -1) then
         begin
           result:=ptruint(lua_touserdata(Luavm, -1));
+          lua_settop(luavm, i);
+          exit;
+        end
+        else
+        if lua_isnumber(LuaVM, -1) then
+        begin
+          result:=lua_tointeger(LuaVM, -1);
           lua_settop(luavm, i);
           exit;
         end
@@ -1185,14 +1196,8 @@ begin
         begin
           p:=lua_tostring(LuaVM, -1);
           if (p<>nil) then name:=p;
-        end
-        else
-        if lua_isnumber(LuaVM, -1) then
-        begin
-          result:=lua_tointeger(LuaVM, -1);
-          lua_settop(luavm, i);
-          exit;
         end;
+
 
 
         lua_settop(luavm, i);
