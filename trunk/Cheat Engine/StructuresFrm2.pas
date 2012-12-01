@@ -3683,6 +3683,7 @@ var
   n: TTreenode;
   isroot: boolean;
 begin
+  isroot:=false;
   if (mainstruct<>nil) and (tvStructureView.Selected<>nil) then
   begin
     e:=getStructElementFromNode(tvStructureView.Selected);
