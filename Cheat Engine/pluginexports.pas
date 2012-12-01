@@ -2210,7 +2210,7 @@ begin
 
     if mainform.cbspeedhack.checked then
     begin
-      mainform.editsh2.Text:=format('%.2f', [speed^]);
+      mainform.editsh2.Text:=format('%f', [speed^]);
       mainform.btnSetSpeedhack2.Click;
     end;
     result:=pointer(1);
