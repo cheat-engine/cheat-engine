@@ -41,6 +41,8 @@ resourcestring
   rsSyntaxError = 'Syntax error';
   rsTheArrayOfByteCouldNotBeFound = 'The array of byte ''%s'' could not be found';
   rsWrongSyntaxAOBSCANName11223355 = 'Wrong syntax. AOBSCAN(name,11 22 33 ** 55)';
+  rsWrongSyntaxAOBSCANMODULEName11223355 = 'Wrong syntax. AOBSCANMODULE(name, module, 11 22 33 ** 55)';
+
   rsDefineAlreadyDefined = 'Define %s already defined';
   rsWrongSyntaxDEFINENameWhatever = 'Wrong syntax. DEFINE(name,whatever)';
   rsSyntaxErrorFullAccessAddressSize = 'Syntax error. FullAccess(address,size)';
@@ -885,6 +887,47 @@ begin
 
               continue;
             end else raise exception.Create(rsWrongSyntaxAOBSCANName11223355);
+          end;
+
+          if uppercase(copy(currentline,1,14))='AOBSCANMODULE(' then //AOBSCANMODULE(varname, modulename, bytestring)
+          begin
+            a:=pos('(',currentline);
+            b:=pos(',',currentline);
+            c:=PosEx(',',currentline,b+1);
+            d:=pos(')',currentline);
+
+
+
+            if (a>0) and (b>0) and (c>0) then
+            begin
+              s1:=trim(copy(currentline,a+1,b-a-1));
+              s2:=trim(copy(currentline,b+1,c-b-1));
+              s3:=trim(copy(currentline,c+1,d-c-1));
+
+              //s1=varname
+              //s2=AOBstring
+              testPtr:=0;
+              if (not syntaxcheckonly) then
+              begin
+                testPtr:=findaobinmodule(s2, s3);
+                if (testPtr=0) then
+                  raise exception.Create(Format(rsTheArrayOfByteCouldNotBeFound, [s3]));
+              end;
+
+              //currentline:='DEFINE('+s1+','+inttohex(testPtr,8)+')';
+              l:=length(labels);
+              setlength(labels, l+1);
+              labels[l].labelname:=s1;
+              labels[l].address:=testPtr;
+              labels[l].defined:=true;
+              labels[l].insideAllocatedMemory:=false;
+
+              setlength(assemblerlines,length(assemblerlines)-1);
+              setlength(labels[l].references,0);
+              setlength(labels[l].references2,0);
+
+              continue;
+            end else raise exception.Create(rsWrongSyntaxAOBSCANMODULEName11223355);
           end;
 
           //define
