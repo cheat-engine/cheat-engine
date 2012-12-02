@@ -871,8 +871,19 @@ begin
                   raise exception.Create(Format(rsTheArrayOfByteCouldNotBeFound, [s2]));
               end;
 
-              currentline:='DEFINE('+s1+','+inttohex(testPtr,8)+')';
-              //NO CONTINUE LINE HERE
+              //currentline:='DEFINE('+s1+','+inttohex(testPtr,8)+')';
+              l:=length(labels);
+              setlength(labels, l+1);
+              labels[l].labelname:=s1;
+              labels[l].address:=testPtr;
+              labels[l].defined:=true;
+              labels[l].insideAllocatedMemory:=false;
+
+              setlength(assemblerlines,length(assemblerlines)-1);
+              setlength(labels[l].references,0);
+              setlength(labels[l].references2,0);
+
+              continue;
             end else raise exception.Create(rsWrongSyntaxAOBSCANName11223355);
           end;
 
@@ -1551,9 +1562,18 @@ begin
         begin
           if i=labels[j].assemblerline then
           begin
-            labels[j].address:=currentaddress;
-            labels[j].defined:=true;
-            ok1:=true;
+            if labels[j].defined=false then
+            begin
+              labels[j].address:=currentaddress;
+              labels[j].defined:=true;
+              ok1:=true;
+            end
+            else
+            begin
+              currentaddress:=labels[j].address;
+              ok1:=true;
+            end;
+
 
             //reassemble the instructions that had no target
             for k:=0 to length(labels[j].references)-1 do
