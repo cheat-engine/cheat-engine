@@ -21,6 +21,8 @@ type
     procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
+    oldtick: dword;
+    oldperf: int64;
   public
     { Public declarations }
   end;
@@ -36,15 +38,39 @@ implementation
 
 
 procedure TForm1.Timer1Timer(Sender: TObject);
-var x,freq: int64;
+var freq: int64;
+
+
+  newtick: dword;
+  newperf: int64;
 begin
+  newtick:=gettickcount;
   label1.Caption:=inttostr(gettickcount div 1000);
   if assigned(timegettime) then
     label2.Caption:=inttostr(timegettime div 1000);
 
-  QueryPerformanceCounter(x);
+  QueryPerformanceCounter(newperf);
   QueryPerformanceFrequency(freq);
-  label3.Caption:=inttostr(x)+' = '+inttostr(x div freq);
+  label3.Caption:=inttostr(newperf)+' = '+inttostr(newperf div freq);
+
+
+  try
+    if newtick<oldtick then
+      raise exception.create('Speedhack fail. GetTickCount');
+
+    if newperf<oldperf then
+      raise exception.create('Speedhack fail. QueryPerformanceCounter');
+  except
+    on e:exception do
+    begin
+      timer1.enabled:=false;
+      raise e.create(e.Message);
+    end;
+  end;
+
+  oldperf:=newperf;
+  oldtick:=newtick;
+
 end;
 
 
