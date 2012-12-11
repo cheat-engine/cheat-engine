@@ -62,7 +62,7 @@ uses mainunit, mainunit2, frmluaengineunit, plugin, pluginexports, MemoryRecordU
   LuaMemoryRecord, LuaForm, MemoryBrowserFormUnit, disassemblerviewunit, hexviewunit,
   CustomTypeHandler, LuaStructure, LuaRegion, LuaXMPlayer, LuaMemscan, LuaFoundlist,
   LuaRadioGroup, LuaRasterImage, LuaCheatComponent, LuaAddresslist, byteinterpreter,
-  OpenSave;
+  OpenSave, cedebugger, DebugHelper;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -1927,48 +1927,53 @@ end;
 
 function debug_setBreakpoint(L: Plua_State): integer; cdecl;
 var parameters: integer;
-  i,j: integer;
-
   address: ptruint;
   size: integer;
-  trigger: integer;
-  e: boolean;
+  trigger: TBreakpointTrigger;
+  method: TBreakpointMethod;
 begin
   result:=0;
   parameters:=lua_gettop(L);
   if parameters>=1 then
   begin
-    j:=0;
-    address:=0;
-    size:=1;
-    trigger:=integer(bptexecute);
-    for i:=-parameters to -1 do
+    if parameters>=1 then
     begin
-      case j of
-        0:
-        begin
-          if lua_isstring(L, i) then
-          begin
-            e:=false;
-            address:=symhandler.getAddressFromNameL(lua_tostring(L, i));
-            if e then //unrecognizable address
-            begin
-              lua_pop(L, lua_gettop(L));
-              exit;
-            end;
-          end
-          else
-            address:=lua_tointeger(L, i);
+      if lua_isstring(L, 1) then
+        address:=symhandler.getAddressFromNameL(lua_tostring(L, 1))
+      else
+        address:=lua_tointeger(L, 1);
+    end else raise exception.create('debug_setBreakpoint needs at least an address');
 
-        end;
-        1: size:=lua_tointeger(L,i);
-        2: trigger:=lua_tointeger(L,i);
-      end;
-      inc(j);
-    end;
+    if parameters>=2 then
+      size:=lua_tointeger(L, 2)
+    else
+      size:=1;
+
+    if parameters>=3 then
+      trigger:=TBreakpointTrigger(lua_tointeger(L,3))
+    else
+      trigger:=bptExecute;
+
+    if parameters>=4 then
+      method:=TBreakpointMethod(lua_tointeger(L,4))
+    else
+      method:=bpmDebugRegister;
 
     try
-      ce_debug_setBreakpoint(address,size,TBreakpointTrigger(trigger));
+
+      if startdebuggerifneeded(false) then
+      begin
+        //debuggerthread.
+        case trigger of
+         { bptAccess: debuggerthread.SetOnAccessBreakpoint(address, size, method);  }
+          bptWrite: debuggerthread.SetOnWriteBreakpoint(address, size, method);
+         // bptExecute: debuggerthread.SetOnExecuteBreakpoint(address, method);
+        end;
+
+        MemoryBrowser.hexview.update;
+        Memorybrowser.disassemblerview.Update;
+      end;
+
     except
     end;
   end;

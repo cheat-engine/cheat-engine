@@ -9,28 +9,28 @@ object Form1: TForm1
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
-  LCLVersion = '0.9.29'
+  LCLVersion = '1.1'
   object Label1: TLabel
     Left = 0
-    Height = 14
+    Height = 13
     Top = 32
-    Width = 33
+    Width = 32
     Caption = 'Label1'
     ParentColor = False
   end
   object Label2: TLabel
     Left = 0
-    Height = 14
+    Height = 13
     Top = 48
-    Width = 33
+    Width = 32
     Caption = 'Label2'
     ParentColor = False
   end
   object Label3: TLabel
     Left = 0
-    Height = 14
+    Height = 13
     Top = 64
-    Width = 33
+    Width = 32
     Caption = 'Label3'
     ParentColor = False
   end

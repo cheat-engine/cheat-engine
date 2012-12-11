@@ -42,12 +42,11 @@
       <Unit0>
         <Filename Value="speedhack.lpr"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
+        <TopLine Value="5"/>
         <CursorPos X="18" Y="29"/>
-        <UsageCount Value="21"/>
+        <UsageCount Value="39"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -56,11 +55,12 @@
         <Filename Value="speedhackmain.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="speedhackmain"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="61"/>
-        <CursorPos X="26" Y="82"/>
-        <UsageCount Value="21"/>
+        <TopLine Value="62"/>
+        <CursorPos X="23" Y="82"/>
+        <UsageCount Value="39"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit1>
@@ -69,19 +69,19 @@
         <WindowIndex Value="0"/>
         <TopLine Value="736"/>
         <CursorPos X="10" Y="752"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="8"/>
       </Unit2>
       <Unit3>
         <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\win\wininc\func.inc"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="240"/>
-        <CursorPos X="10" Y="256"/>
-        <UsageCount Value="10"/>
+        <TopLine Value="244"/>
+        <CursorPos X="10" Y="258"/>
+        <UsageCount Value="19"/>
         <Loaded Value="True"/>
       </Unit3>
     </Units>
-    <JumpHistory Count="22" HistoryIndex="21">
+    <JumpHistory Count="23" HistoryIndex="21">
       <Position1>
         <Filename Value="speedhack.lpr"/>
         <Caret Line="10" Column="31" TopLine="4"/>
@@ -168,8 +168,12 @@
       </Position21>
       <Position22>
         <Filename Value="speedhackmain.pas"/>
-        <Caret Line="82" Column="26" TopLine="61"/>
+        <Caret Line="82" Column="23" TopLine="65"/>
       </Position22>
+      <Position23>
+        <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\win\wininc\func.inc"/>
+        <Caret Line="258" Column="10" TopLine="244"/>
+      </Position23>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
@@ -223,4 +227,5 @@
       </Item3>
     </Exceptions>
   </Debugging>
+  <EditorMacros Count="0"/>
 </CONFIG>

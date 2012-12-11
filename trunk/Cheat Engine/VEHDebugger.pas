@@ -51,7 +51,7 @@ resourcestring
 constructor TVEHDebugInterface.create;
 begin
   inherited create;
-  fDebuggerCapabilities:=[dbcSoftwareBreakpoint,dbcHardwareBreakpoint];
+  fDebuggerCapabilities:=[dbcSoftwareBreakpoint,dbcHardwareBreakpoint, dbcExceptionBreakpoint];
   name:='VEH Debugger';
 end;
 

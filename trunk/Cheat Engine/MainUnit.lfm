@@ -355,7 +355,6 @@ object MainForm: TMainForm
       Width = 42
       Caption = 'Test cap'
       ParentColor = False
-      Visible = False
       OnClick = Label59Click
     end
     object Label61: TLabel
@@ -377,6 +376,7 @@ object MainForm: TMainForm
       Anchors = [akTop, akRight]
       Caption = 'Enable Speedhack'
       Enabled = False
+      OnChange = cbSpeedhackChange
       OnClick = cbSpeedhackClick
       ParentShowHint = False
       ParentBidiMode = False

@@ -32,7 +32,7 @@ uses autoassembler, pluginexports, CEDebugger;
 constructor TWindowsDebuggerInterface.create;
 begin
   inherited create;
-  fDebuggerCapabilities:=[dbcSoftwareBreakpoint, dbcHardwareBreakpoint, dbcBreakOnEntry];
+  fDebuggerCapabilities:=[dbcSoftwareBreakpoint, dbcHardwareBreakpoint, dbcExceptionBreakpoint, dbcBreakOnEntry];
   name:='Windows Debugger';
 end;
 

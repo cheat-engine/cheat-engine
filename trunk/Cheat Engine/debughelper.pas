@@ -49,13 +49,17 @@ type
     function getCurrentThread: TDebugThreadHandler;
     procedure FindCodeByBP(address: uint_ptr; size: integer; bpt: TBreakpointTrigger);
 
-    function AddBreakpoint(owner: PBreakpoint; address: uint_ptr; bpt: TBreakpointTrigger; bpm: TBreakpointMethod; bpa: TBreakpointAction; debugregister: integer=-1; debugregistersize: integer=0; foundcodedialog: Tfoundcodedialog=nil; threadID: dword=0; frmchangedaddresses: Tfrmchangedaddresses=nil; FrmTracer: TFrmTracer=nil; tcount: integer=0; changereg: pregistermodificationBP=nil): PBreakpoint;
+    function AddBreakpoint(owner: PBreakpoint; address: uint_ptr; size: integer; bpt: TBreakpointTrigger; bpm: TBreakpointMethod; bpa: TBreakpointAction; debugregister: integer=-1; foundcodedialog: Tfoundcodedialog=nil; threadID: dword=0; frmchangedaddresses: Tfrmchangedaddresses=nil; FrmTracer: TFrmTracer=nil; tcount: integer=0; changereg: pregistermodificationBP=nil): PBreakpoint;
 
 
+    function AdjustAccessRightsWithActiveBreakpoints(ar: TAccessRights; base: ptruint; size: integer): TAccessRights;
+    function getBestProtectionForExceptionBreakpoint(breakpointtrigger: TBreakpointTrigger; base: ptruint; size: integer): TaccessRights;
+    function getOriginalProtectForExceptionBreakpoint(base: ptruint; size: integer): TaccessRights;
 
 
   public
     InitialBreakpointTriggered: boolean; //set by a debugthread when the first unknown exception is dealth with causing all subsequent unexpected breakpoitns to become unhandled
+    temporaryDisabledExceptionBreakpoints: Tlist;
 
     function SetBreakpoint(breakpoint: PBreakpoint; UpdateForOneThread: TDebugThreadHandler=nil): boolean;
     procedure UnsetBreakpoint(breakpoint: PBreakpoint; specificContext: PContext=nil);
@@ -80,7 +84,7 @@ type
     function  FindWhatCodeAccessesStop(frmchangedaddresses: Tfrmchangedaddresses): boolean;
     procedure FindWhatAccesses(address: uint_ptr; size: integer);
     procedure FindWhatWrites(address: uint_ptr; size: integer);
-    function  SetOnWriteBreakpoint(address: ptrUint; size: integer; tid: dword=0): PBreakpoint;
+    function  SetOnWriteBreakpoint(address: ptrUint; size: integer; bpm: TBreakpointMethod=bpmDebugRegister; tid: dword=0): PBreakpoint;
     function  SetOnAccessBreakpoint(address: ptrUint; size: integer; tid: dword=0): PBreakpoint;
     function  SetOnExecuteBreakpoint(address: ptrUint; askforsoftwarebp: boolean = false; tid: dword=0): PBreakpoint;
     function  ToggleOnExecuteBreakpoint(address: ptrUint; tid: dword=0): PBreakpoint;
@@ -439,6 +443,123 @@ begin
   end;
 end;
 
+function TDebuggerThread.getOriginalProtectForExceptionBreakpoint(base: ptruint; size: integer): TaccessRights;
+//gets the protection of the given page  (Range is in case of overlap and the first page is read only and second page read/write. Make it read/Write then)
+var
+  bp: PBreakpoint;
+  a: ptruint;
+
+  pbase: ptruint;
+  totalsize: integer;
+
+  pbase2: ptruint;
+  totalsize2: integer;
+  mbi: TMEMORYBASICINFORMATION;
+  i: integer;
+begin
+  pbase:=GetPageBase(base);
+  totalsize:=(GetPageBase(base+size)-pbase)+$fff;
+
+  //first get the current protection. If a breakpoint is set, it's access rights are less than what is required
+  a:=pbase;
+  result:=[];
+  while (a<pbase+totalsize) and (VirtualQueryEx(processhandle, pointer(a), mbi, sizeof(mbi))=sizeof(mbi)) do
+  begin
+    result:=result+AllocationProtectToAccessRights(mbi.Protect);
+    inc(a, mbi.RegionSize);
+  end;
+
+  //now check the breakpointlist
+  breakpointCS.enter;
+  try
+    for i:=0 to BreakpointList.Count-1 do
+    begin
+      bp:=PBreakpoint(breakpointlist[i]);
+      if (bp^.active) and (bp^.breakpointMethod=bpmException) then
+      begin
+        //check if this address falls into this breakpoint range
+        pbase2:=getPageBase(bp^.address);
+        totalsize2:=(GetPageBase(bp^.address+size)-pbase)+$fff;
+        if InRangeX(pbase, pbase2, pbase2+totalsize2) or
+           InRangeX(pbase+totalsize2, pbase2, pbase2+totalsize2) then //it's overlapping
+          result:=result+bp^.originalaccessrights;
+      end;
+
+    end;
+  finally
+    breakpointCS.leave;
+  end;
+end;
+
+function TDebuggerThread.AdjustAccessRightsWithActiveBreakpoints(ar: TAccessRights; base: ptruint; size: integer): TAccessRights;
+var
+  i: integer;
+  bp:PBreakpoint;
+  pbase: ptruint;
+  totalsize: integer;
+
+  pbase2: ptruint;
+  totalsize2: integer;
+begin
+  pbase:=GetPageBase(base);
+  totalsize:=(GetPageBase(base+size)-pbase)+$fff;
+  result:=ar;
+
+  breakpointCS.enter;
+  try
+    for i:=0 to BreakpointList.Count-1 do
+    begin
+      bp:=PBreakpoint(breakpointlist[i]);
+      if (bp^.active) and (bp^.breakpointMethod=bpmException) then
+      begin
+        //check if this address falls into this breakpoint range
+        pbase2:=getPageBase(bp^.address);
+        totalsize2:=(GetPageBase(bp^.address+size)-pbase)+$fff;
+        if InRangeX(pbase, pbase2, pbase2+totalsize2) or
+           InRangeX(pbase+totalsize2, pbase2, pbase2+totalsize2) then //it's overlapping
+        begin
+          case bp^.breakpointtrigger of
+            bptExecute: result:=result-[arExecute];
+            bptWrite: result:=result-[arWrite];
+            bptAccess:
+            begin
+              result:=[];
+              exit;
+            end;
+          end;
+        end;
+      end;
+
+    end;
+
+
+  finally
+    breakpointCS.leave;
+  end;
+end;
+
+function TDebuggerThread.getBestProtectionForExceptionBreakpoint(breakpointtrigger: TBreakpointTrigger; base: ptruint; size: integer): TaccessRights;
+//gets the protection required to cause an exception on this page for the wanted access
+begin
+  result:=[arExecute, arWrite, arRead];
+
+  case breakpointtrigger of
+    bptExecute: result:=result-[arExecute];
+    bptWrite: result:=result-[arWrite];
+    bptAccess:
+    begin
+      result:=[]; //no need to check, this means nothing can access it
+      exit;
+    end;
+  end;
+
+  //now check if other breakpoints overlap on these pages, and if so, adjust the protection to the one with the least rights (e.g one for execute and one for write leaves only read)
+  result:=AdjustAccessRightsWithActiveBreakpoints(result, base, size);
+end;
+
+
+
+
 function TDebuggerThread.SetBreakpoint(breakpoint: PBreakpoint; UpdateForOneThread: TDebugThreadHandler=nil): boolean;
 {
 Will set the breakpoint.
@@ -447,7 +568,7 @@ either by setting the appropriate byte in the code to $cc, or setting the approp
 var
   Debugregistermask: dword;
   ClearMask: dword; //mask used to whipe the original bits from DR7
-  oldprotect, bw: dword;
+  newprotect, oldprotect, bw: dword;
   currentthread: TDebugThreadHandler;
   i: integer;
   AllThreadsAreSet: boolean;
@@ -569,13 +690,38 @@ begin
 
   end
   else
+  if breakpoint^.breakpointMethod = bpmInt3 then
   begin
     //int3 bp
     breakpoint^.active := True;
     VirtualProtectEx(processhandle, pointer(breakpoint.address), 1, PAGE_EXECUTE_READWRITE, oldprotect);
     WriteProcessMemory(processhandle, pointer(breakpoint.address), @int3byte, 1, bw);
     VirtualProtectEx(processhandle, pointer(breakpoint.address), 1, oldprotect, oldprotect);
+  end
+  else
+  if breakpoint^.breakpointMethod = bpmException then
+  begin
+    //exception bp (slow)
+
+
+    if assigned(ntsuspendprocess) then
+      ntSuspendProcess(processhandle);
+
+    //Make the page(s) unreadable/unwritable based on the option and if other breakpoints are present
+
+
+    breakpoint^.originalaccessrights:=getOriginalProtectForExceptionBreakpoint(breakpoint.address, breakpoint.size);
+    newProtect:=AccessRightsToAllocationProtect(getBestProtectionForExceptionBreakpoint(breakpoint.breakpointTrigger, breakpoint.address, breakpoint.size));
+
+    breakpoint^.active:=true;
+
+    VirtualProtectEx(processhandle, pointer(breakpoint.address), breakpoint.size,newprotect, oldprotect); //throw oldprotect away
+
+    if assigned(ntResumeProcess) then //Q: omg, but what if ntResumeProcess isn't available on the os but suspendprocess is? A:Then buy a new os
+      ntResumeProcess(processhandle);
+
   end;
+
 
   result:=AllThreadsAreSet;
 
@@ -590,6 +736,8 @@ var
   i: integer;
 
   hasoldbp: boolean;
+
+  ar: TAccessRights;
 begin
   if breakpoint^.breakpointMethod = bpmDebugRegister then
   begin
@@ -708,13 +856,33 @@ begin
 
   end
   else
+  if breakpoint^.breakpointMethod=bpmInt3 then
   begin
-    VirtualProtectEx(processhandle, pointer(breakpoint.address), 1,
-      PAGE_EXECUTE_READWRITE,
-      oldprotect);
+    VirtualProtectEx(processhandle, pointer(breakpoint.address), 1, PAGE_EXECUTE_READWRITE, oldprotect);
     WriteProcessMemory(processhandle, pointer(breakpoint.address), @breakpoint.originalbyte, 1, bw);
-    VirtualProtectEx(processhandle, pointer(breakpoint.address), 1, oldprotect,
-      oldprotect);
+    VirtualProtectEx(processhandle, pointer(breakpoint.address), 1, oldprotect, oldprotect);
+  end
+  else
+  if breakpoint^.breakpointMethod=bpmException then
+  begin
+    //check if there are other exception breakpoints
+    if assigned(ntsuspendProcess) then
+      ntSuspendProcess(ProcessHandle);
+
+    breakpoint^.active := False;
+
+    ar:=[arExecute, arRead, arWrite];
+    ar:=AdjustAccessRightsWithActiveBreakpoints(ar, breakpoint^.address, breakpoint^.size);
+    if ar=[arExecute, arRead, arWrite] then
+      ar:=breakpoint^.originalaccessrights;
+
+    VirtualProtectEx(processhandle, pointer(breakpoint^.address), breakpoint^.size, AccessRightsToAllocationProtect(ar), oldprotect);
+
+
+    if assigned(ntResumeProcess) then
+      ntResumeProcess(ProcessHandle);
+
+
   end;
 
   breakpoint^.active := False;
@@ -760,7 +928,7 @@ begin
     postmessage(frmBreakpointlist.handle, WM_BPUPDATE,0,0); //tell the breakpointlist that there's been an update
 end;
 
-function TDebuggerThread.AddBreakpoint(owner: PBreakpoint; address: uint_ptr; bpt: TBreakpointTrigger; bpm: TBreakpointMethod; bpa: TBreakpointAction; debugregister: integer=-1; debugregistersize: integer=0; foundcodedialog: Tfoundcodedialog=nil; threadID: dword=0; frmchangedaddresses: Tfrmchangedaddresses=nil; FrmTracer: TFrmTracer=nil; tcount: integer=0; changereg: pregistermodificationBP=nil): PBreakpoint;
+function TDebuggerThread.AddBreakpoint(owner: PBreakpoint; address: uint_ptr; size: integer; bpt: TBreakpointTrigger; bpm: TBreakpointMethod; bpa: TBreakpointAction; debugregister: integer=-1; foundcodedialog: Tfoundcodedialog=nil; threadID: dword=0; frmchangedaddresses: Tfrmchangedaddresses=nil; FrmTracer: TFrmTracer=nil; tcount: integer=0; changereg: pregistermodificationBP=nil): PBreakpoint;
 var
   newbp: PBreakpoint;
   originalbyte: byte;
@@ -790,12 +958,13 @@ begin
   ZeroMemory(newbp, sizeof(TBreakPoint));
   newbp^.owner := owner;
   newbp^.address := address;
+  newbp^.size := size;
   newbp^.originalbyte := originalbyte;
   newbp^.breakpointTrigger := bpt;
   newbp^.breakpointMethod := bpm;
   newbp^.breakpointAction := bpa;
   newbp^.debugRegister := debugregister;
-  newbp^.size := debugregistersize;
+
   newbp^.foundcodedialog := foundcodedialog;
   newbp^.ThreadID := threadID;
   newbp^.frmchangedaddresses := frmchangedaddresses;
@@ -1009,8 +1178,8 @@ begin
   end;
   foundcodedialog.Show;
 
-  newbp := AddBreakpoint(nil, bplist[0].address, bpt, bpmDebugRegister,
-    bo_FindCode, usedDebugRegister, bplist[0].size, foundcodedialog, 0);
+  newbp := AddBreakpoint(nil, bplist[0].address, bplist[0].size, bpt, bpmDebugRegister,
+    bo_FindCode, usedDebugRegister,  foundcodedialog, 0);
 
   if length(bplist) > 1 then
   begin
@@ -1020,9 +1189,7 @@ begin
       if usedDebugRegister = -1 then
         exit; //at least one has been set, so be happy...
 
-      AddBreakpoint(newbp, bplist[i].address, bpt,
-        bpmDebugRegister, bo_FindCode, usedDebugRegister,
-        bplist[i].size, foundcodedialog, 0);
+      AddBreakpoint(newbp, bplist[i].address, bplist[i].size, bpt, bpmDebugRegister, bo_FindCode, usedDebugRegister, foundcodedialog, 0);
     end;
   end;
 
@@ -1135,7 +1302,7 @@ begin
   end;
 
   //todo: Make this breakpoint show up in the memory view
-  result:=AddBreakpoint(nil, regmod.address, bptExecute, method, bo_ChangeRegister, usedDebugRegister, 1, nil, 0, nil,nil,0, regmod);
+  result:=AddBreakpoint(nil, regmod.address, 1, bptExecute, method, bo_ChangeRegister, usedDebugRegister, nil, 0, nil,nil,0, regmod);
 
 
 end;
@@ -1172,7 +1339,7 @@ begin
 
     end;
 
-    bp:=AddBreakpoint(nil, bplist[0].address, BreakpointTrigger, method, bo_BreakAndTrace, usedDebugRegister, bplist[0].size, nil, 0, nil,frmTracer,count);
+    bp:=AddBreakpoint(nil, bplist[0].address, bplist[0].size, BreakpointTrigger, method, bo_BreakAndTrace, usedDebugRegister,  nil, 0, nil,frmTracer,count);
 
     if bp<>nil then
       bp.traceendcondition:=strnew(pchar(condition));
@@ -1183,7 +1350,7 @@ begin
       useddebugregister:=GetUsableDebugRegister;
       if useddebugregister=-1 then exit;
 
-      bpsecondary:=AddBreakpoint(bp, bplist[i].address, BreakpointTrigger, method, bo_BreakAndTrace, usedDebugregister, bplist[i].size, nil, 0, nil,frmTracer,count);
+      bpsecondary:=AddBreakpoint(bp, bplist[i].address, bplist[i].size, BreakpointTrigger, method, bo_BreakAndTrace, usedDebugregister,  nil, 0, nil,frmTracer,count);
       bpsecondary.traceendcondition:=strnew(pchar(condition));
     end;
 
@@ -1214,7 +1381,7 @@ begin
   frmchangedaddresses:=tfrmChangedAddresses.Create(application) ;
   frmchangedaddresses.show;
 
-  AddBreakpoint(nil, address, bptExecute, method, bo_FindWhatCodeAccesses, usedDebugRegister, 1, nil, 0, frmchangedaddresses);
+  AddBreakpoint(nil, address, 1, bptExecute, method, bo_FindWhatCodeAccesses, usedDebugRegister, nil, 0, frmchangedaddresses);
 end;
 
 procedure TDebuggerthread.setbreakpointcondition(bp: PBreakpoint; easymode: boolean; script: string);
@@ -1394,13 +1561,13 @@ begin
       end;
     end;
 
-    result:=AddBreakpoint(nil, address, bptExecute, method, bo_Break, usableDebugreg, 1, nil, tid);
+    result:=AddBreakpoint(nil, address, 1, bptExecute, method, bo_Break, usableDebugreg, nil, tid);
   finally
     breakpointCS.leave;
   end;
 end;
 
-function TDebuggerthread.SetOnWriteBreakpoint(address: ptrUint; size: integer; tid: dword=0): PBreakpoint;
+function TDebuggerthread.SetOnWriteBreakpoint(address: ptrUint; size: integer; bpm: TBreakpointMethod=bpmDebugRegister; tid: dword=0): PBreakpoint;
 var
   i: integer;
   found: boolean;
@@ -1416,21 +1583,32 @@ begin
   breakpointCS.enter;
   try
     //set the breakpoint
-
-    usableDebugReg := GetUsableDebugRegister;
-    if usableDebugReg = -1 then
-      raise Exception.Create(rsAllDebugRegistersAreUsedUp);
-
-    setlength(bplist,0);
-    GetBreakpointList(address, size, bplist);
-
-    result:=AddBreakpoint(nil, bplist[0].address, bptWrite, bpmDebugRegister, bo_Break, usableDebugreg, bplist[0].size, nil, tid);
-    for i:=1 to length(bplist)-1 do
+    if bpm=bpmDebugRegister then
     begin
-      usableDebugReg:=GetUsableDebugRegister;
-      if usableDebugReg=-1 then exit;
-      AddBreakpoint(result, bplist[i].address, bptWrite, bpmDebugRegister, bo_Break, usableDebugreg, bplist[i].size, nil, tid);
+      usableDebugReg := GetUsableDebugRegister;
+
+      if usableDebugReg = -1 then
+        raise Exception.Create(rsAllDebugRegistersAreUsedUp);
+
+      setlength(bplist,0);
+      GetBreakpointList(address, size, bplist);
+
+
+      result:=AddBreakpoint(nil, bplist[0].address, bplist[0].size, bptWrite, bpm, bo_Break, usableDebugreg,  nil, tid);
+      for i:=1 to length(bplist)-1 do
+      begin
+        usableDebugReg:=GetUsableDebugRegister;
+        if usableDebugReg=-1 then exit;
+        AddBreakpoint(result, bplist[i].address, bplist[i].size, bptWrite, bpm, bo_Break, usableDebugreg,  nil, tid);
+      end;
+    end
+    else
+    if bpm=bpmException then
+    begin
+      result:=AddBreakpoint(nil, address, size, bptWrite, bpm, bo_Break);
     end;
+    if bpm=bpmInt3 then
+      raise exception.create('Int3 can not be used to find what writes an address');
 
   finally
     breakpointCS.leave;
@@ -1463,12 +1641,12 @@ begin
     setlength(bplist,0);
     GetBreakpointList(address, size, bplist);
 
-    result:=AddBreakpoint(nil, bplist[0].address, bptAccess, bpmDebugRegister, bo_Break, usableDebugreg, bplist[0].size, nil, tid);
+    result:=AddBreakpoint(nil, bplist[0].address, bplist[0].size, bptAccess, bpmDebugRegister, bo_Break, usableDebugreg,  nil, tid);
     for i:=1 to length(bplist)-1 do
     begin
       usableDebugReg:=GetUsableDebugRegister;
       if usableDebugReg=-1 then exit;
-      AddBreakpoint(result, bplist[i].address, bptAccess, bpmDebugRegister, bo_Break, usableDebugreg, bplist[i].size, nil, tid);
+      AddBreakpoint(result, bplist[i].address,  bplist[i].size, bptAccess, bpmDebugRegister, bo_Break, usableDebugreg,nil, tid);
     end;
 
   finally
@@ -1543,7 +1721,7 @@ begin
         end;
       end;
 
-      result:=AddBreakpoint(nil, address, bptExecute, method, bo_Break, usableDebugreg, 1, nil, tid);
+      result:=AddBreakpoint(nil, address, 1, bptExecute, method, bo_Break, usableDebugreg, nil, tid);
     end;
 
   finally

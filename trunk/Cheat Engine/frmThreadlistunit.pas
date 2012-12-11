@@ -8,6 +8,13 @@ uses
   jwawindows, windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, ComCtrls, Menus, StdCtrls, LResources,cefuncproc, CEDebugger, debugHelper, newkernelhandler;
 
+
+{$ifdef cpu64}
+
+function GetThreadSelectorEntry(hThread: THandle; dwSelector: DWORD; var lpSelectorEntry: TLDTEntry): BOOL; external 'kernel32' name 'Wow64GetThreadSelectorEntry';
+
+{$endif}
+
 type
 
   { TfrmThreadlist }
@@ -60,6 +67,7 @@ begin
 end;
 
 procedure TFrmthreadlist.FillThreadlist;
+
 var i: integer;
     lastselected: integer;
     threadlist: tlist;
@@ -67,6 +75,10 @@ var i: integer;
 
     ths: THandle;
     te32: TThreadEntry32;
+    p: PSystemProcesses;
+    needed: dword;
+
+    pp: PSystemProcesses;
 begin
   if threadTreeview.Selected<>nil then
     lastselected:=threadTreeview.selected.index
@@ -103,6 +115,9 @@ begin
       until Thread32Next(ths, te32)=false;
       closehandle(ths);
     end;
+
+
+
   end;
 
   for i:=0 to threadTreeview.Items.Count-1 do
@@ -404,9 +419,7 @@ begin
 end;
 
 
-{$ifdef cpu64}
-function GetThreadSelectorEntry(hThread: THandle; dwSelector: DWORD; var lpSelectorEntry: TLDTEntry): BOOL; external 'kernel32' name 'Wow64GetThreadSelectorEntry';
-{$endif}
+
 
 
 procedure TfrmThreadlist.threadTreeviewExpanding(Sender: TObject;

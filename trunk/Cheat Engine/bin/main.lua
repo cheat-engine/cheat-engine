@@ -875,6 +875,7 @@ memscan_firstScan(memscan, scanoption, vartype, roundingtype, input1, input2 ,st
     vtDouble
     vtString
     vtByteArray
+    vtGrouped
     vtBinary
     vtAll
 

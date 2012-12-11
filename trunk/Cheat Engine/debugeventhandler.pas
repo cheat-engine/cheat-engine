@@ -48,9 +48,14 @@ type
 
     luaOverride: boolean; //set when the lua sript has decided not to cause a break
 
+
+    temporaryDisabledExceptionBreakpoints: Tlist;
+    breakAddress: ptruint;
+
     function CheckIfConditionIsMet(bp: PBreakpoint; script: string=''): boolean;
 
 
+    function HandleAccessViolationDebugEvent(debugEvent: TDEBUGEVENT; var dwContinueStatus: dword): boolean;
     function HandleExceptionDebugEvent(debugEvent: TDEBUGEVENT; var dwContinueStatus: dword): boolean;
     //even though it's private, it's accessible from this unit
     function CreateThreadDebugEvent(debugEvent: TDEBUGEVENT; var dwContinueStatus: dword): boolean;
@@ -563,7 +568,7 @@ begin
 
 
 
-    if (not active) or (not CheckIfConditionIsMet(bpp)) then
+    if ((bpp.breakpointMethod<>bpmException) and (not active)) or (not CheckIfConditionIsMet(bpp) or (bpp.markedfordeletion) ) then
     begin
       OutputDebugString('bp was disabled or Condition was not met');
 
@@ -671,9 +676,122 @@ begin
   Result := True;
 end;
 
+function TDebugThreadHandler.HandleAccessViolationDebugEvent(debugEvent: TDEBUGEVENT; var dwContinueStatus: dword): boolean;
+var address: ptruint;
+
+  bp: PBreakpoint;
+  i: integer;
+begin
+  //check if the address that triggered it is in one of the active exception breakpoints and if so make the protection what it should be
+
+  //thing to note:
+  //if 0x2000 and 0x3000 are set to readonly, and 0x2fff is written to using a 4 byte write  accesses, then first unrptorect 0x2000 and execute.
+  //that will cause the next exception at 0x3000 to trigger
+
+  //solution: Disable ALL protections arround the given address
+
+  //p2:
+  //t1 writes address1
+  //t1 gets an exception
+  //t1 goes in the exception handler, makes it writable and continues with a single step
+  //t2 runs and writes to the address
+  //t1 runs and triggers the single step bp
+  //s: freeze ALL other threads
+
+
+  //s2:
+  //freeze t2 and set it to continue normally, after t1 has been handled, resume t2, causing it to retrigger
+
+  result:=true;
+  dwContinueStatus:=DBG_EXCEPTION_NOT_HANDLED;
+
+  if debugevent.Exception.ExceptionRecord.NumberParameters>=2 then
+  begin
+    //get the address
+    address:=debugevent.Exception.ExceptionRecord.ExceptionInformation[1];
+
+    //check if this thread was waiting for an int1 but got a pagefault instead
+    if temporaryDisabledExceptionBreakpoints<>nil then
+    begin
+      //pagefault while waiting for single step
+      {$ifdef DEBUG}
+      Messagebox(0,'Debug HandleAccessViolationDebugEvent now','Special case',0);
+      {$endif}
+      for i:=0 to temporaryDisabledExceptionBreakpoints.Count-1 do
+      begin
+
+        bp:=PBreakpoint(temporaryDisabledExceptionBreakpoints[i]);
+        if not bp^.markedfordeletion then
+          TdebuggerThread(debuggerthread).setBreakpoint(bp);
+
+        dec(bp^.referencecount); //decrease referencecount so they can be deleted
+      end;
+
+      freeandnil(temporaryDisabledExceptionBreakpoints);
+      exit;   //raise the exception in the game and let it crash
+    end
+    else
+      temporaryDisabledExceptionBreakpoints:=Tlist.create;
+
+    //now remove the protections
+    breakpointCS.enter;
+
+    for i:=0 to breakpointlist.count-1 do
+    begin
+      bp:=breakpointList[i];
+      if bp.active and (bp.breakpointMethod=bpmException) then
+      begin
+        //check if the address is in this breakpoint range
+        if inrangex(address, GetPageBase(bp.address), GetPageBase(bp.address+bp.size)+$fff) then
+        begin
+          TdebuggerThread(debuggerthread).UnsetBreakpoint(bp);
+          inc(bp.referencecount);
+          temporaryDisabledExceptionBreakpoints.Add(bp);
+        end;
+      end;
+    end;
+
+    breakpointCS.leave;
+
+    if temporaryDisabledExceptionBreakpoints.count=0 then
+    begin
+      //not caused by my pagechanges
+      freeandnil(temporaryDisabledExceptionBreakpoints);
+      exit; //continue unhandled
+    end;
+
+
+
+    breakAddress:=address;
+
+    //freeze all threads except this one and do a single step
+
+    context.EFlags:=eflags_setTF(context.EFlags,1);
+    setContext;
+
+
+
+    NtSuspendProcess(processhandle);
+
+    ResumeThread(self.Handle);
+
+
+   // suspendthread(self.Handle);
+
+    //handled, continue till the next int1
+    dwContinueStatus:=DBG_CONTINUE;
+
+  end
+  else
+    dwContinueStatus:=DBG_EXCEPTION_NOT_HANDLED;
+end;
+
+
 function TDebugThreadHandler.HandleExceptionDebugEvent(debugEvent: TDEBUGEVENT; var dwContinueStatus: dword): boolean;
 var
   exceptionAddress: ptrUint;
+  i: integer;
+  bp: PBreakpoint;
 begin
 
 
@@ -739,6 +857,39 @@ begin
     begin
       OutputDebugString('EXCEPTION_SINGLE_STEP. Dr6='+inttohex(context.dr6,8));
 
+      if temporaryDisabledExceptionBreakpoints<>nil then
+      begin
+        OutputDebugString('After the single step of an exception caused by my page');
+
+        context.EFlags:=eflags_setTF(context.EFlags,0); //not needed in windows, but let's clear it anyhow
+        setContext;
+
+        result:=DispatchBreakpoint(breakAddress, dwContinueStatus);
+
+        //reprotect the memory
+
+        breakpointCS.enter;
+        for i:=0 to temporaryDisabledExceptionBreakpoints.Count-1 do
+        begin
+
+          bp:=PBreakpoint(temporaryDisabledExceptionBreakpoints[i]);
+          if not bp^.markedfordeletion then
+            TdebuggerThread(debuggerthread).setBreakpoint(bp);
+
+          dec(bp^.referencecount); //decrease referencecount so they can be deleted
+        end;
+        breakpointCS.leave;
+
+
+
+
+        SuspendThread(handle);
+        NtResumeProcess(processhandle);
+        dwContinueStatus:=DBG_CONTINUE;
+        freeandnil(temporaryDisabledExceptionBreakpoints);
+        exit;
+      end;
+
     //  debugEvent.Exception.ExceptionRecord.
 
       //find out what caused the breakpoint.
@@ -763,6 +914,13 @@ begin
         setContext;
       end;
     end;
+
+    EXCEPTION_ACCESS_VIOLATION:
+    begin
+      //exception
+      result:=HandleAccessViolationDebugEvent(debugEvent, dwContinueStatus);
+
+    end
 
     else
       dwContinueStatus:=DBG_EXCEPTION_NOT_HANDLED;

@@ -40,6 +40,9 @@ type TVariableType=(vtByte=0, vtWord=1, vtDword=2, vtQword=3, vtSingle=4, vtDoub
 type TCustomScanType=(cstNone, cstAutoAssembler, cstCPP, cstDLLFunction);
 type TFastScanMethod=(fsmNotAligned=0, fsmAligned=1, fsmLastDigits=2);
 
+type TaccessRight=(arExecute, arRead, arWrite);
+type TAccessRights=set of TAccessRight;
+
 
 Type TBytes = array of integer; //An array that represents a row of byte. Ints are used to be able to represent wildcards (-1)
      TWindowPosArray=TBytes;
@@ -157,7 +160,7 @@ function eflags_setVIP(flagvalue: dword; value: integer): DWORD;
 function eflags_setID(flagvalue: dword; value: integer): DWORD;
 
 
-
+function GetPageBase(address: ptruint): ptruint; inline; //return the pageboundary this address belongs to
 
 function ByteStringToText(s: string;hex: boolean):string;
 function ByteStringToDouble(s: string;hex: boolean):double;
@@ -186,7 +189,11 @@ function LoadFormPosition(form: TCustomform; var x: TWindowPosArray):boolean;
 
 function heapflagstostring(heapflags: dword): string;
 function allocationtypetostring(alloctype: dword): string;
-function allocationprotecttostring(protect: dword): string;
+function allocationProtectToString(protect: dword): string;
+
+function AllocationProtectToAccessRights(protect: dword): TAccessRights;
+function AccessRightsToAllocationProtect(ar: TAccessRights): Dword;
+
 function freetypetostring(freetype: dword):string;
 
 function getPointerAddress(address: ptruint; const offsets: array of integer; var hasError: boolean): ptruint;
@@ -1895,6 +1902,10 @@ begin
 end;
 
 
+function GetPageBase(address: ptruint): ptruint; inline; //return the pageboundary this address belongs to
+begin
+  result:=address and qword($fffffffffffff000);
+end;
 
 function AvailMem:SIZE_T;
 var x: _MEMORYSTATUS;
@@ -3335,20 +3346,46 @@ end;
 function allocationprotecttostring(protect: dword): string;
 begin
   result:='';
-  if (protect and PAGE_EXECUTE) > 0 then result:='PAGE_EXECUTE+';
-  if (protect and PAGE_EXECUTE_READ) > 0 then result:=result+'PAGE_EXECUTE_READ+';
-  if (protect and PAGE_EXECUTE_READWRITE) > 0 then result:=result+'PAGE_EXECUTE_READWRITE+';
-  if (protect and PAGE_EXECUTE_WRITECOPY) > 0 then result:=result+'PAGE_EXECUTE_WRITECOPY+';
-  if (protect and PAGE_NOACCESS) > 0 then result:=result+'PAGE_NOACCESS+';
-  if (protect and PAGE_READONLY) > 0 then result:=result+'PAGE_READONLY+';
-  if (protect and PAGE_READWRITE) > 0 then result:=result+'PAGE_READWRITE+';
-  if (protect and PAGE_WRITECOPY) > 0 then result:=result+'PAGE_WRITECOPY+';
-  if (protect and PAGE_GUARD) > 0 then result:=result+'PAGE_GUARD+';
-  if (protect and PAGE_NOCACHE) > 0 then result:=result+'PAGE_NOCACHE+';
+  if (protect and PAGE_EXECUTE) = PAGE_EXECUTE then result:='PAGE_EXECUTE+';
+  if (protect and PAGE_EXECUTE_READ) = PAGE_EXECUTE_READ then result:=result+'PAGE_EXECUTE_READ+';
+  if (protect and PAGE_EXECUTE_READWRITE) = PAGE_EXECUTE_READWRITE then result:=result+'PAGE_EXECUTE_READWRITE+';
+  if (protect and PAGE_EXECUTE_WRITECOPY) = PAGE_EXECUTE_WRITECOPY then result:=result+'PAGE_EXECUTE_WRITECOPY+';
+  if (protect and PAGE_NOACCESS) = PAGE_NOACCESS then result:=result+'PAGE_NOACCESS+';
+  if (protect and PAGE_READONLY) = PAGE_READONLY then result:=result+'PAGE_READONLY+';
+  if (protect and PAGE_READWRITE) = PAGE_READWRITE then result:=result+'PAGE_READWRITE+';
+  if (protect and PAGE_WRITECOPY) = PAGE_WRITECOPY then result:=result+'PAGE_WRITECOPY+';
+  if (protect and PAGE_GUARD) = PAGE_GUARD then result:=result+'PAGE_GUARD+';
+  if (protect and PAGE_NOCACHE) = PAGE_NOCACHE then result:=result+'PAGE_NOCACHE+';
   if (protect and $400) > 0 then result:=result+'PAGE_WRITECOMBINE+';
 
   if length(result)>0 then
     result:=Copy(result,1,length(result)-1)+'('+inttohex(protect,1)+')';
+end;
+
+function AllocationProtectToAccessRights(protect: dword): TAccessRights;
+begin
+  result:=[];
+  if (protect and PAGE_EXECUTE) = PAGE_EXECUTE then result:=result+[arExecute, arRead];
+  if (protect and PAGE_EXECUTE_READ) = PAGE_EXECUTE_READ then result:=result+[arExecute, arRead];
+  if (protect and PAGE_EXECUTE_READWRITE) = PAGE_EXECUTE_READWRITE then result:=result+[arExecute, arRead, arWrite];
+  if (protect and PAGE_EXECUTE_WRITECOPY) = PAGE_EXECUTE_WRITECOPY then result:=result+[arExecute, arRead, arWrite];
+  if (protect and PAGE_NOACCESS) = PAGE_NOACCESS then result:=[];
+  if (protect and PAGE_READONLY) = PAGE_READONLY then result:=result+[arRead];
+  if (protect and PAGE_READWRITE) = PAGE_READWRITE then result:=result+[arRead, arWrite];
+  if (protect and PAGE_WRITECOPY) = PAGE_WRITECOPY then result:=result+[arRead, arWrite];
+end;
+
+function AccessRightsToAllocationProtect(ar: TAccessRights): Dword;
+begin
+  result:=PAGE_NOACCESS;
+
+  if ar=[arExecute] then result:=PAGE_EXECUTE else
+  if ar=[arExecute, arRead] then result:=PAGE_EXECUTE_READ else
+  if ar=[arExecute, arWrite] then result:=PAGE_EXECUTE_READWRITE else
+  if ar=[arExecute, arRead, arWrite] then result:=PAGE_EXECUTE_READWRITE else
+  if ar=[arRead] then result:=PAGE_READONLY else
+  if ar=[arWrite] then result:=PAGE_READWRITE else
+  if ar=[arRead, arWrite] then result:=PAGE_READWRITE;
 end;
 
 function freetypetostring(freetype: dword):string;

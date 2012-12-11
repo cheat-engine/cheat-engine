@@ -12,7 +12,7 @@ uses
   Classes, SysUtils{$ifdef windows},windows{$endif},NewKernelHandler{$ifdef darwin}, macport{$endif};
 
 type
-  TDebuggerCapabilities=(dbcHardwareBreakpoint, dbcSoftwareBreakpoint, dbcBreakOnEntry);
+  TDebuggerCapabilities=(dbcHardwareBreakpoint, dbcSoftwareBreakpoint, dbcExceptionBreakpoint, dbcBreakOnEntry);
   TDebuggerCapabilitiesSet=set of TDebuggerCapabilities;
   TDebuggerInterface=class
   protected

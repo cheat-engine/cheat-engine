@@ -22,7 +22,7 @@ uses
   vmxfunctions, FileUtil, networkInterfaceApi, networkconfig, d3dhookUnit, PNGcomn,
   FPimage, byteinterpreter, frmgroupscanalgoritmgeneratorunit, vartypestrings,
   groupscancommandparser, GraphType, IntfGraphics, RemoteMemoryManager,
-  DBK64SecondaryLoader, savedscanhandler;
+  DBK64SecondaryLoader, savedscanhandler, debuggertypedefinitions;
 
 //the following are just for compatibility
 
@@ -407,6 +407,7 @@ type
     procedure actOpenLuaEngineExecute(Sender: TObject);
     procedure Address1Click(Sender: TObject);
     procedure cbFastScanChange(Sender: TObject);
+    procedure cbSpeedhackChange(Sender: TObject);
     procedure Description1Click(Sender: TObject);
     procedure edtAlignmentKeyPress(Sender: TObject; var Key: char);
     procedure FormActivate(Sender: TObject);
@@ -2742,6 +2743,11 @@ begin
 
   alignsizechangedbyuser := False;
   VarType.OnChange(vartype);
+end;
+
+procedure TMainForm.cbSpeedhackChange(Sender: TObject);
+begin
+
 end;
 
 
@@ -6218,7 +6224,10 @@ begin
       end;
     end;
 
-    DebuggerThread.FindWhatWrites(address, addresslist.selectedRecord.bytesize); //byte
+    DebuggerThread.FindWhatWrites(address, addresslist.selectedRecord.bytesize);
+
+    //debug
+   //debuggerthread.SetOnWriteBreakpoint(address, addresslist.selectedRecord.bytesize, bpmException);
 
   end;
 end;
@@ -7459,8 +7468,6 @@ var t: TD3DHook_Texture;
   max: integer;
 begin
 
-
-   MemoryBrowser.hexview.address:=ptruint(self);
 
 
   {

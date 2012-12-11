@@ -58,6 +58,12 @@ soUnchanged=10
 
 
 --debug variables
+--Breakpoint methods:
+bpmInt3=0
+bpmDebugRegister=1
+bpmException=2
+
+
 --Breakpoint triggers:
 bptExecute=0
 bptAccess=1
