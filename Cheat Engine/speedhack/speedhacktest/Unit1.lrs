@@ -4,11 +4,11 @@ LazarusResources.Add('TForm1','FORMDATA',[
   'TPF0'#6'TForm1'#5'Form1'#4'Left'#3'!'#1#6'Height'#3#202#0#3'Top'#3#177#0#5'W'
   +'idth'#3#219#1#7'Caption'#6#14'speedhack test'#12'ClientHeight'#3#202#0#11'C'
   +'lientWidth'#3#219#1#11'Font.Height'#2#245#9'Font.Name'#6#13'MS Sans Serif'#8
-  +'OnCreate'#7#10'FormCreate'#10'LCLVersion'#6#6'0.9.29'#0#6'TLabel'#6'Label1'
-  +#4'Left'#2#0#6'Height'#2#14#3'Top'#2' '#5'Width'#2'!'#7'Caption'#6#6'Label1'
-  +#11'ParentColor'#8#0#0#6'TLabel'#6'Label2'#4'Left'#2#0#6'Height'#2#14#3'Top'
-  +#2'0'#5'Width'#2'!'#7'Caption'#6#6'Label2'#11'ParentColor'#8#0#0#6'TLabel'#6
-  +'Label3'#4'Left'#2#0#6'Height'#2#14#3'Top'#2'@'#5'Width'#2'!'#7'Caption'#6#6
+  +'OnCreate'#7#10'FormCreate'#10'LCLVersion'#6#3'1.1'#0#6'TLabel'#6'Label1'#4
+  +'Left'#2#0#6'Height'#2#13#3'Top'#2' '#5'Width'#2' '#7'Caption'#6#6'Label1'#11
+  +'ParentColor'#8#0#0#6'TLabel'#6'Label2'#4'Left'#2#0#6'Height'#2#13#3'Top'#2
+  +'0'#5'Width'#2' '#7'Caption'#6#6'Label2'#11'ParentColor'#8#0#0#6'TLabel'#6'L'
+  +'abel3'#4'Left'#2#0#6'Height'#2#13#3'Top'#2'@'#5'Width'#2' '#7'Caption'#6#6
   +'Label3'#11'ParentColor'#8#0#0#6'TTimer'#6'Timer1'#8'Interval'#2#10#7'OnTime'
   +'r'#7#11'Timer1Timer'#0#0#0
 ]);

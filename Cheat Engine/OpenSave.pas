@@ -164,9 +164,11 @@ type
         FrozenValue : Dword;
   end;
 
+  {
 procedure LoadStructFromXMLNode(var struct: TbaseStructure; Structure: TDOMNode); //obsolete
 
 procedure SaveStructToXMLNode(struct: TbaseStructure; Structures: TDOMNode);   //obsolete
+     }
 
 {$ifdef net}
 var processhandle: thandle;
@@ -201,7 +203,7 @@ resourcestring
   rsAskIfStupid = 'Generating a trainer with the current state of the cheat '
     +'table will likely result in a completly useless trainer that does '
     +'nothing. Are you sure?';
-
+ {
 procedure LoadStructFromXMLNode(var struct: TbaseStructure; Structure: TDOMNode);
 var tempnode: TDOMNode;
     elements: TDOMNode;
@@ -268,7 +270,7 @@ begin
 
   sortStructure(struct);
 end;
-
+        }
 
 procedure LoadXML(doc: TXMLDocument; merge: boolean; isTrainer: boolean=false);
 var
@@ -556,8 +558,6 @@ begin
       end;
     end;
 
-    while length(frmStructures)>0 do
-      frmStructures[0].free;
 
     {
     if Structures<>nil then
@@ -920,7 +920,7 @@ begin
 end;
 
 
-
+     {
 procedure SaveStructToXMLNode(struct: TbaseStructure; Structures: TDOMnode);
 var structure: TDOMnode;
     elements: TDOMnode;
@@ -962,7 +962,7 @@ begin
 
   end;
 
-end;
+end;   }
 
 procedure SaveXML(Filename: string);
 var doc: TXMLDocument;

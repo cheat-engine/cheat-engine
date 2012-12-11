@@ -2665,6 +2665,7 @@ end;
 
 procedure TMemoryBrowser.miDissectDataClick(Sender: TObject);
 begin
+  {
   if length(frmStructures)>0 then
   begin
     frmStructures[0].edtAddress.Text:=inttohex(memorybrowser.memoryaddress,8);
@@ -2679,7 +2680,7 @@ begin
       applychanges(false);
       show;
     end;
-  end;
+  end; }
 end;
 
 procedure TMemoryBrowser.Symbolhandler1Click(Sender: TObject);

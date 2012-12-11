@@ -5,7 +5,8 @@ unit debuggertypedefinitions;
 interface
 
 uses
-  Classes, SysUtils, Windows, FoundCodeUnit, formchangedaddresses, frmTracerUnit, NewKernelHandler;
+  Classes, SysUtils, Windows, FoundCodeUnit, formchangedaddresses, frmTracerUnit,
+  cefuncproc, NewKernelHandler;
 
 type
   TNewProcedureData = record
@@ -23,7 +24,7 @@ type
   TContinueOption = (co_run=0, co_stepinto=1, co_stepover=2, co_runtill=3);
 
 type
-  TBreakpointMethod = (bpmInt3, bpmDebugRegister);
+  TBreakpointMethod = (bpmInt3=0, bpmDebugRegister=1, bpmException=2);
 
 type
   TBreakOption = (bo_Break = 0, bo_ChangeRegister = 1, bo_FindCode = 2, bo_FindWhatCodeAccesses = 3, bo_BreakAndTrace=4);
@@ -138,7 +139,9 @@ type
   PRegisterModificationBP = PRegisterModificationBP32;
 {$endif}
 
+
 type
+
   PBreakpoint = ^TBreakPoint;
 
   TBreakpoint = record
@@ -160,13 +163,17 @@ type
     owner: PBreakpoint;
     //in case of a multi DR/address breakpoint, removing one of these or the owner, affects the others
     address: uint_ptr;
+    size: integer; //size of this breakpoint (can be any size in case of exception bp)
     originalbyte: byte;
+
+    originalaccessrights: TAccessRights;
+
     breakpointMethod: TBreakpointMethod;
     breakpointAction: TBreakOption;
     breakpointTrigger: TBreakpointTrigger;
     debugRegister: integer;
     //if debugRegister bp this will hold which debug register is used for it
-    size: integer; //if and on access or onwrite this defines the region
+
     FoundcodeDialog: TFoundcodedialog;
     frmchangedaddresses: Tfrmchangedaddresses;
     frmTracer: TfrmTracer;

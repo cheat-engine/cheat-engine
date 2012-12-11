@@ -13,7 +13,7 @@ uses windows, dialogs,forms,classes,LCLIntf, LCLProc, sysutils,registry,ComCtrls
 const ceversion=6.2;
 
 resourcestring
-  cename = 'Cheat Engine 6.2';
+  cename = 'Cheat Engine 6.2+';
   rsPleaseWait = 'Please Wait!';
 
 procedure UpdateToolsMenu;
