@@ -742,7 +742,9 @@ begin
       if bp.active and (bp.breakpointMethod=bpmException) then
       begin
         //check if the address is in this breakpoint range
-        if inrangex(address, GetPageBase(bp.address), GetPageBase(bp.address+bp.size)+$fff) then
+        if inrangex(address, GetPageBase(bp.address), GetPageBase(bp.address+bp.size)+$fff) or
+           inrangex(address+$1000, GetPageBase(bp.address), GetPageBase(bp.address+bp.size)+$fff)
+        then
         begin
           TdebuggerThread(debuggerthread).UnsetBreakpoint(bp);
           inc(bp.referencecount);
