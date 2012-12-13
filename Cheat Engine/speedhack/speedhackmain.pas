@@ -57,16 +57,16 @@ begin
 end;
 
 function speedhackversion_QueryPerformanceCounter(var x: int64): BOOL; stdcall;
-var y: int64;
+var currentTime64: int64;
 begin
   x:=0;
   y:=0;
 
 //also used for timeGetTime
-  result:=TQueryPerformanceCounter(realQueryPerformanceCounter)(y);
+  result:=TQueryPerformanceCounter(realQueryPerformanceCounter)(currentTime64);
 
-  //time past since activation, mulitplied by speed multiplier
-  x:=trunc((y-initialtime64)*speedmultiplier)+initialoffset64;
+  //time past since activation, multiplied by speed multiplier
+  x:=trunc((currentTime64-initialtime64)*speedmultiplier)+initialoffset64;
 
 end;
 
@@ -79,8 +79,8 @@ begin
   x:=0;
 
  // messagebox(0,'called','called',mb_ok);
-  initialoffset:=gettickcount;
-  initialtime:=TGetTickCount(realgettickcount);
+  initialoffset:=gettickcount; //get the time the process currently sees (could be fake)
+  initialtime:=TGetTickCount(realgettickcount);   //get the real time
 
   QueryPerformanceCounter(x);
   initialoffset64:=x;

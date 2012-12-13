@@ -9,10 +9,15 @@ uses
   Dialogs, StdCtrls, ExtCtrls, LResources;
 
 type
+  TSpeedhackTest=class(tthread)
+  public
+    procedure execute; override;
+  end;
 
   { TForm1 }
 
   TForm1 = class(TForm)
+    lblFail: TLabel;
     Timer1: TTimer;
     Label1: TLabel;
     Label2: TLabel;
@@ -21,8 +26,6 @@ type
     procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
-    oldtick: dword;
-    oldperf: int64;
   public
     { Public declarations }
   end;
@@ -33,9 +36,41 @@ var
   Form1: TForm1;
   timeGetTime: TTimeGetTime;
 
+  fail: boolean;
+
 
 implementation
 
+procedure TSpeedhackTest.execute;
+var
+  oldtick, newtick: dword;
+  oldperf, newperf: int64;
+
+begin
+  oldtick:=gettickcount;
+  QueryPerformanceCounter(oldperf);
+
+  while (not fail) and (not terminated) do
+  begin
+    newtick:=gettickcount;
+    QueryPerformanceCounter(newperf);
+
+    if newtick<oldtick then
+      fail:=true;
+
+    if newperf<oldperf then
+      fail:=true;
+
+
+  {  if random(100000)=66 then
+      fail:=true; }
+
+
+    oldperf:=newperf;
+    oldtick:=newtick;
+  end;
+
+end;
 
 procedure TForm1.Timer1Timer(Sender: TObject);
 var freq: int64;
@@ -54,22 +89,9 @@ begin
   label3.Caption:=inttostr(newperf)+' = '+inttostr(newperf div freq);
 
 
-  try
-    if newtick<oldtick then
-      raise exception.create('Speedhack fail. GetTickCount');
+  if fail then
+      lblFail.visible:=true;
 
-    if newperf<oldperf then
-      raise exception.create('Speedhack fail. QueryPerformanceCounter');
-  except
-    on e:exception do
-    begin
-      timer1.enabled:=false;
-      raise e.create(e.Message);
-    end;
-  end;
-
-  oldperf:=newperf;
-  oldtick:=newtick;
 
 end;
 
@@ -77,9 +99,15 @@ end;
 
 procedure TForm1.FormCreate(Sender: TObject);
 var xx: HModule;
+  i: integer;
 begin
   xx:=loadlibrary('winmm.dll');
   timeGetTime:=GetProcAddress(xx,'timeGetTime');
+
+  for i:=0 to 2 do
+    TSpeedhackTest.create(false);
+
+
 end;
 
 initialization
