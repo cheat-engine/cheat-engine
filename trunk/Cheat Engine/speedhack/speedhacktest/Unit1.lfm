@@ -34,6 +34,23 @@ object Form1: TForm1
     Caption = 'Label3'
     ParentColor = False
   end
+  object lblFail: TLabel
+    Left = 8
+    Height = 24
+    Top = 112
+    Width = 44
+    Caption = 'FAIL'
+    Font.CharSet = ANSI_CHARSET
+    Font.Color = clRed
+    Font.Height = -19
+    Font.Name = 'MS Sans Serif'
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
+    Font.Style = [fsBold]
+    ParentColor = False
+    ParentFont = False
+    Visible = False
+  end
   object Timer1: TTimer
     Interval = 10
     OnTimer = Timer1Timer
