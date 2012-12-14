@@ -30,6 +30,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
+        <HostApplicationFilename Value="F:\svn\Cheat Engine\bin\speedhacktest-x86_64.exe"/>
         <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
@@ -38,15 +39,15 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="4">
+    <Units Count="6">
       <Unit0>
         <Filename Value="speedhack.lpr"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="2"/>
+        <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="5"/>
-        <CursorPos X="18" Y="29"/>
-        <UsageCount Value="39"/>
+        <TopLine Value="1"/>
+        <CursorPos X="18" Y="26"/>
+        <UsageCount Value="43"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -58,9 +59,9 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="49"/>
-        <CursorPos X="47" Y="70"/>
-        <UsageCount Value="39"/>
+        <TopLine Value="76"/>
+        <CursorPos X="36" Y="95"/>
+        <UsageCount Value="43"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit1>
@@ -73,107 +74,154 @@
       </Unit2>
       <Unit3>
         <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\win\wininc\func.inc"/>
-        <EditorIndex Value="1"/>
+        <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="244"/>
-        <CursorPos X="10" Y="258"/>
-        <UsageCount Value="19"/>
+        <TopLine Value="115"/>
+        <CursorPos X="34" Y="129"/>
+        <UsageCount Value="21"/>
         <Loaded Value="True"/>
       </Unit3>
+      <Unit4>
+        <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\win\wininc\redef.inc"/>
+        <EditorIndex Value="2"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="998"/>
+        <CursorPos X="10" Y="1012"/>
+        <UsageCount Value="12"/>
+        <Loaded Value="True"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="C:\lazarus\fpc\2.6.1\source\packages\fcl-base\src\syncobjs.pp"/>
+        <UnitName Value="syncobjs"/>
+        <EditorIndex Value="1"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="152"/>
+        <CursorPos X="1" Y="1"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+      </Unit5>
     </Units>
-    <JumpHistory Count="23" HistoryIndex="21">
+    <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="speedhack.lpr"/>
-        <Caret Line="10" Column="31" TopLine="4"/>
+        <Caret Line="16" Column="10" TopLine="8"/>
       </Position1>
       <Position2>
-        <Filename Value="speedhack.lpr"/>
-        <Caret Line="19" Column="12" TopLine="4"/>
+        <Filename Value="speedhackmain.pas"/>
+        <Caret Line="85" Column="23" TopLine="87"/>
       </Position2>
       <Position3>
         <Filename Value="speedhack.lpr"/>
-        <Caret Line="36" Column="1" TopLine="5"/>
+        <Caret Line="31" Column="14" TopLine="8"/>
       </Position3>
       <Position4>
         <Filename Value="speedhack.lpr"/>
-        <Caret Line="18" Column="11" TopLine="4"/>
+        <Caret Line="36" Column="1" TopLine="8"/>
       </Position4>
       <Position5>
-        <Filename Value="speedhack.lpr"/>
-        <Caret Line="34" Column="5" TopLine="4"/>
+        <Filename Value="speedhackmain.pas"/>
+        <Caret Line="66" Column="17" TopLine="55"/>
       </Position5>
       <Position6>
-        <Filename Value="speedhack.lpr"/>
-        <Caret Line="29" Column="21" TopLine="1"/>
+        <Filename Value="speedhackmain.pas"/>
+        <Caret Line="7" Column="42" TopLine="1"/>
       </Position6>
       <Position7>
-        <Filename Value="speedhack.lpr"/>
-        <Caret Line="35" Column="1" TopLine="4"/>
+        <Filename Value="speedhackmain.pas"/>
+        <Caret Line="155" Column="19" TopLine="126"/>
       </Position7>
       <Position8>
         <Filename Value="speedhackmain.pas"/>
-        <Caret Line="7" Column="6" TopLine="1"/>
+        <Caret Line="76" Column="10" TopLine="59"/>
       </Position8>
       <Position9>
         <Filename Value="speedhackmain.pas"/>
-        <Caret Line="63" Column="21" TopLine="47"/>
+        <Caret Line="131" Column="25" TopLine="118"/>
       </Position9>
       <Position10>
         <Filename Value="speedhackmain.pas"/>
-        <Caret Line="12" Column="43" TopLine="1"/>
+        <Caret Line="92" Column="17" TopLine="73"/>
       </Position10>
       <Position11>
         <Filename Value="speedhackmain.pas"/>
-        <Caret Line="82" Column="15" TopLine="59"/>
+        <Caret Line="155" Column="50" TopLine="139"/>
       </Position11>
       <Position12>
         <Filename Value="speedhackmain.pas"/>
-        <Caret Line="62" Column="8" TopLine="55"/>
+        <Caret Line="73" Column="19" TopLine="67"/>
       </Position12>
       <Position13>
-        <Filename Value="speedhack.lpr"/>
-        <Caret Line="34" Column="3" TopLine="2"/>
+        <Filename Value="speedhackmain.pas"/>
+        <Caret Line="86" Column="1" TopLine="72"/>
       </Position13>
       <Position14>
-        <Filename Value="speedhack.lpr"/>
-        <Caret Line="29" Column="11" TopLine="1"/>
+        <Filename Value="speedhackmain.pas"/>
+        <Caret Line="99" Column="1" TopLine="85"/>
       </Position14>
       <Position15>
         <Filename Value="speedhackmain.pas"/>
-        <Caret Line="37" Column="56" TopLine="28"/>
+        <Caret Line="122" Column="11" TopLine="117"/>
       </Position15>
       <Position16>
         <Filename Value="speedhackmain.pas"/>
-        <Caret Line="38" Column="20" TopLine="28"/>
+        <Caret Line="125" Column="140" TopLine="108"/>
       </Position16>
       <Position17>
         <Filename Value="speedhackmain.pas"/>
-        <Caret Line="55" Column="48" TopLine="40"/>
+        <Caret Line="135" Column="49" TopLine="111"/>
       </Position17>
       <Position18>
         <Filename Value="speedhackmain.pas"/>
-        <Caret Line="69" Column="45" TopLine="51"/>
+        <Caret Line="69" Column="20" TopLine="55"/>
       </Position18>
       <Position19>
-        <Filename Value="speedhack.lpr"/>
-        <Caret Line="30" Column="14" TopLine="1"/>
+        <Filename Value="speedhackmain.pas"/>
+        <Caret Line="33" Column="11" TopLine="16"/>
       </Position19>
       <Position20>
         <Filename Value="speedhackmain.pas"/>
-        <Caret Line="82" Column="27" TopLine="61"/>
+        <Caret Line="146" Column="5" TopLine="125"/>
       </Position20>
       <Position21>
         <Filename Value="speedhack.lpr"/>
-        <Caret Line="29" Column="12" TopLine="1"/>
+        <Caret Line="29" Column="12" TopLine="8"/>
       </Position21>
       <Position22>
-        <Filename Value="speedhackmain.pas"/>
-        <Caret Line="82" Column="23" TopLine="65"/>
+        <Filename Value="speedhack.lpr"/>
+        <Caret Line="34" Column="45" TopLine="8"/>
       </Position22>
       <Position23>
-        <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\win\wininc\func.inc"/>
-        <Caret Line="258" Column="10" TopLine="244"/>
+        <Filename Value="speedhackmain.pas"/>
+        <Caret Line="75" Column="10" TopLine="61"/>
       </Position23>
+      <Position24>
+        <Filename Value="speedhackmain.pas"/>
+        <Caret Line="7" Column="45" TopLine="1"/>
+      </Position24>
+      <Position25>
+        <Filename Value="speedhackmain.pas"/>
+        <Caret Line="166" Column="26" TopLine="143"/>
+      </Position25>
+      <Position26>
+        <Filename Value="speedhackmain.pas"/>
+        <Caret Line="70" Column="16" TopLine="144"/>
+      </Position26>
+      <Position27>
+        <Filename Value="speedhackmain.pas"/>
+        <Caret Line="172" Column="1" TopLine="1"/>
+      </Position27>
+      <Position28>
+        <Filename Value="speedhack.lpr"/>
+        <Caret Line="42" Column="39" TopLine="11"/>
+      </Position28>
+      <Position29>
+        <Filename Value="speedhack.lpr"/>
+        <Caret Line="43" Column="37" TopLine="18"/>
+      </Position29>
+      <Position30>
+        <Filename Value="speedhack.lpr"/>
+        <Caret Line="44" Column="4" TopLine="18"/>
+      </Position30>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
@@ -183,6 +231,7 @@
       <Filename Value="..\bin\speedhack-$(TargetCPU)"/>
     </Target>
     <SearchPaths>
+      <IncludeFiles Value="$(ProjOutDir)"/>
       <UnitOutputDirectory Value="unitbin"/>
     </SearchPaths>
     <Parsing>
@@ -211,6 +260,7 @@
       <CompilerMessages>
         <UseMsgFile Value="True"/>
       </CompilerMessages>
+      <CustomOptions Value="-dUSECS"/>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>

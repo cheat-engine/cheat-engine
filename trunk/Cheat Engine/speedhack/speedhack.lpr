@@ -16,6 +16,9 @@ uses
   windows,
   SysUtils,
   Classes,
+  {$ifdef USECS}
+  syncobjs,
+  {$endif}
   speedhackmain in 'speedhackmain.pas';
 
 exports InitializeSpeedhack;
@@ -28,6 +31,14 @@ exports speedhackversion_QueryPerformanceCounter;
 begin
   speedmultiplier:=1;
   confighaschanged:=0; //not changed, speed is 1
-  initialoffset:=0;
+  initialoffset:=gettickcount;
+  initialtime:=initialoffset;
+  QueryPerformanceCounter(initialoffset64);
+  initialtime64:=initialoffset64;
   loadlibrary('winmm.dll');
+
+  {$ifdef USECS}
+  QPCLock.cs:=TCriticalsection.create;
+  GTCLock.cs:=TCriticalSection.create;
+  {$endif}
 end.
