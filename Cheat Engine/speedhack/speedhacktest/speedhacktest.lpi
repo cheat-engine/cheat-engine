@@ -42,7 +42,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="8" Y="11"/>
-        <UsageCount Value="54"/>
+        <UsageCount Value="88"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -57,9 +57,9 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="87"/>
-        <CursorPos X="16" Y="107"/>
-        <UsageCount Value="54"/>
+        <TopLine Value="88"/>
+        <CursorPos X="39" Y="108"/>
+        <UsageCount Value="88"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -69,26 +69,26 @@
         <WindowIndex Value="0"/>
         <TopLine Value="23"/>
         <CursorPos X="17" Y="27"/>
-        <UsageCount Value="26"/>
+        <UsageCount Value="23"/>
       </Unit2>
       <Unit3>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\inc\resh.inc"/>
         <TopLine Value="40"/>
         <CursorPos X="19" Y="56"/>
-        <UsageCount Value="12"/>
+        <UsageCount Value="9"/>
       </Unit3>
       <Unit4>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\win\wininc\func.inc"/>
         <TopLine Value="45"/>
         <CursorPos X="49" Y="59"/>
-        <UsageCount Value="12"/>
+        <UsageCount Value="9"/>
       </Unit4>
       <Unit5>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\win\wininc\base.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="83"/>
         <CursorPos X="25" Y="99"/>
-        <UsageCount Value="26"/>
+        <UsageCount Value="23"/>
       </Unit5>
       <Unit6>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\win64\classes.pp"/>
@@ -96,21 +96,21 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="1" Y="1"/>
-        <UsageCount Value="22"/>
+        <UsageCount Value="19"/>
       </Unit6>
       <Unit7>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\win\sysosh.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="47"/>
         <CursorPos X="3" Y="19"/>
-        <UsageCount Value="22"/>
+        <UsageCount Value="19"/>
       </Unit7>
       <Unit8>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\win\wininc\redef.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="10" Y="752"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="7"/>
       </Unit8>
       <Unit9>
         <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\win\wininc\redef.inc"/>
@@ -118,7 +118,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="734"/>
         <CursorPos X="10" Y="748"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="27"/>
         <Loaded Value="True"/>
       </Unit9>
       <Unit10>
@@ -127,7 +127,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="2164"/>
         <CursorPos X="6" Y="2178"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="27"/>
         <Loaded Value="True"/>
       </Unit10>
     </Units>
