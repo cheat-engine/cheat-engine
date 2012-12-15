@@ -16,6 +16,7 @@ imagehlp,
 registry,
 ExtCtrls,
 
+
 {$ifdef netclient}
 netapis,
 {$else}
@@ -662,9 +663,7 @@ var
 
 
   processhandler: TProcessHandler;
-  PreventDebuggerDetection: boolean=false;
-  preferHwBP: boolean=true;
-  BPOverride: boolean=true;
+
 
 
 

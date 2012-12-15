@@ -10,7 +10,7 @@ uses
   Buttons, LResources, frameHotkeyConfigUnit,
 
   kerneldebugger,plugin,NewKernelHandler,CEDebugger,hotkeyhandler, debugHelper,
-  formhotkeyunit;
+  formhotkeyunit, debuggertypedefinitions;
 
 
 type Tpathspecifier=class(TObject)
@@ -41,6 +41,7 @@ type
     edtStacksize: TEdit;
     edtTempScanFolder: TEdit;
     GroupBox2: TGroupBox;
+    GroupBox4: TGroupBox;
     Label2: TLabel;
     Label25: TLabel;
     Label4: TLabel;
@@ -53,7 +54,10 @@ type
     RadioButton1: TRadioButton;
     RadioButton2: TRadioButton;
     RadioButton3: TRadioButton;
+    rbPageExceptions: TRadioButton;
+    rbDebugAsBreakpoint: TRadioButton;
     rbgDebuggerInterface: TRadioGroup;
+    rbInt3AsBreakpoint: TRadioButton;
     SelectDirectoryDialog1: TSelectDirectoryDialog;
     tsKernelDebugConfig: TTabSheet;
     tsVEHDebugConfig: TTabSheet;
@@ -101,8 +105,6 @@ type
     cbHandleBreakpoints: TCheckBox;
     replacewithnops: TCheckBox;
     askforreplacewithnops: TCheckBox;
-    rbDebugAsBreakpoint: TRadioButton;
-    rbInt3AsBreakpoint: TRadioButton;
     Extra: TTabSheet;
     TauntOldOsUser: TLabel;
     GroupBox3: TGroupBox;
@@ -445,7 +447,10 @@ begin
       reg.WriteBool('Handle unhandled breakpoints',cbhandlebreakpoints.Checked);
       reg.WriteBool('Fastscan on by default',cbFastscan.checked);
 
-      reg.WriteBool('Hardware breakpoints',rbDebugAsBreakpoint.checked);
+      reg.WriteBool('Hardware breakpoints', rbDebugAsBreakpoint.checked);
+      reg.WriteBool('Software breakpoints', rbInt3AsBreakpoint.checked);
+      reg.Writebool('Exception breakpoints', rbPageExceptions.checked);
+
       reg.WriteBool('Update Foundaddress list',cbUpdatefoundList.checked);
       reg.WriteInteger('Update Foundaddress list Interval',foundinterval);
 
@@ -729,6 +734,16 @@ begin
   Scan_MEM_MAPPED:=cbMemMapped.Checked;
   {$endif}
 
+
+  if rbDebugAsBreakpoint.checked then
+    preferedBreakpointMethod:=bpmDebugRegister
+  else
+  if rbInt3AsBreakpoint.checked then
+    preferedBreakpointMethod:=bpmInt3
+  else
+  if rbPageExceptions.checked then
+    preferedBreakpointMethod:=bpmException;
+
   laststatePopupHide:=tempstatepopuphide;
   lastpopupmodifier:=temppopupmodifier;
   laststatePause:=tempstatepause;
@@ -781,6 +796,9 @@ begin
   end;
 
 
+  rbPageExceptions.enabled:=not cbKDebug.checked; //currently the kerneldebugger doesn't handle pageexceptions yet (can be added, but not right now)
+  if rbPageExceptions.checked and not rbPageExceptions.enabled then
+    rbDebugAsBreakpoint.checked:=true;
 end;
 
 procedure TformSettings.cbKernelQueryMemoryRegionChange(Sender: TObject);
@@ -903,7 +921,7 @@ end;
 
 procedure TformSettings.rbInt3AsBreakpointChange(Sender: TObject);
 begin
-  preferHwBP:=rbDebugAsBreakpoint.checked;
+
 end;
 
 procedure TformSettings.replacewithnopsClick(Sender: TObject);

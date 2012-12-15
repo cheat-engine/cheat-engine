@@ -84,9 +84,12 @@ type
     function  FindWhatCodeAccessesStop(frmchangedaddresses: Tfrmchangedaddresses): boolean;
     procedure FindWhatAccesses(address: uint_ptr; size: integer);
     procedure FindWhatWrites(address: uint_ptr; size: integer);
-    function  SetOnWriteBreakpoint(address: ptrUint; size: integer; bpm: TBreakpointMethod=bpmDebugRegister; tid: dword=0): PBreakpoint;
-    function  SetOnAccessBreakpoint(address: ptrUint; size: integer; tid: dword=0): PBreakpoint;
-    function  SetOnExecuteBreakpoint(address: ptrUint; askforsoftwarebp: boolean = false; tid: dword=0): PBreakpoint;
+    function  SetOnWriteBreakpoint(address: ptrUint; size: integer; bpm: TBreakpointMethod; tid: dword=0): PBreakpoint; overload;
+    function  SetOnWriteBreakpoint(address: ptrUint; size: integer; tid: dword=0): PBreakpoint; overload;
+    function  SetOnAccessBreakpoint(address: ptrUint; size: integer; bpm: TBreakpointMethod; tid: dword=0): PBreakpoint; overload;
+    function  SetOnAccessBreakpoint(address: ptrUint; size: integer; tid: dword=0): PBreakpoint; overload;
+    function  SetOnExecuteBreakpoint(address: ptrUint; bpm: TBreakpointMethod; askforsoftwarebp: boolean = false; tid: dword=0): PBreakpoint; overload;
+    function  SetOnExecuteBreakpoint(address: ptrUint; askforsoftwarebp: boolean = false; tid: dword=0): PBreakpoint; overload;
     function  ToggleOnExecuteBreakpoint(address: ptrUint; tid: dword=0): PBreakpoint;
 
     procedure UpdateDebugRegisterBreakpointsForThread(thread: TDebugThreadHandler);
@@ -116,6 +119,10 @@ type
 
 var
   debuggerthread: TDebuggerthread = nil;
+
+  PreventDebuggerDetection: boolean=false;
+  preferedBreakpointMethod: TBreakpointMethod;
+  BPOverride: boolean=true;
 
 
 
@@ -1159,15 +1166,25 @@ var
   i: integer;
 
   foundcodedialog: TFoundcodeDialog;
+  method: TBreakpointMethod;
 begin
   //split up address and size into memory alligned sections
-  setlength(bplist, 0);
-  GetBreakpointList(address, size, bplist);
+  method:=preferedBreakpointMethod;
 
-  usedDebugRegister := GetUsableDebugRegister;
-  if usedDebugRegister = -1 then
-    raise Exception.Create(
-      rsAll4DebugRegistersAreCurrentlyUsedUpFreeOneAndTryA);
+  if method=bpmint3 then //not possible for this
+    method:=bpmDebugRegister;
+
+
+  setlength(bplist, 0);
+  if method=bpmDebugRegister then
+  begin
+    GetBreakpointList(address, size, bplist);
+
+    usedDebugRegister := GetUsableDebugRegister;
+    if usedDebugRegister = -1 then
+      raise Exception.Create(
+        rsAll4DebugRegistersAreCurrentlyUsedUpFreeOneAndTryA);
+  end;
 
   //still here
   //create a foundcodedialog and add the breakpoint
@@ -1178,8 +1195,9 @@ begin
   end;
   foundcodedialog.Show;
 
-  newbp := AddBreakpoint(nil, bplist[0].address, bplist[0].size, bpt, bpmDebugRegister,
+  newbp := AddBreakpoint(nil, bplist[0].address, bplist[0].size, bpt, method,
     bo_FindCode, usedDebugRegister,  foundcodedialog, 0);
+
 
   if length(bplist) > 1 then
   begin
@@ -1189,7 +1207,7 @@ begin
       if usedDebugRegister = -1 then
         exit; //at least one has been set, so be happy...
 
-      AddBreakpoint(newbp, bplist[i].address, bplist[i].size, bpt, bpmDebugRegister, bo_FindCode, usedDebugRegister, foundcodedialog, 0);
+      AddBreakpoint(newbp, bplist[i].address, bplist[i].size, bpt, method, bo_FindCode, usedDebugRegister, foundcodedialog, 0);
     end;
   end;
 
@@ -1288,17 +1306,20 @@ begin
     RemoveBreakpoint(bp);
 
 
-  method:=bpmDebugRegister;
-  usedDebugRegister := GetUsableDebugRegister;
-  if usedDebugRegister = -1 then
+  method:=preferedBreakpointMethod;
+  if method=bpmDebugRegister then
   begin
-    if MessageDlg(
-      rsAllDebugRegistersAreUsedUpDoYouWantToUseASoftwareBP, mtConfirmation, [
-        mbNo, mbYes], 0) = mrYes then
-      method := bpmInt3
-    else
-      exit;
+    usedDebugRegister := GetUsableDebugRegister;
+    if usedDebugRegister = -1 then
+    begin
+      if MessageDlg(
+        rsAllDebugRegistersAreUsedUpDoYouWantToUseASoftwareBP, mtConfirmation, [
+          mbNo, mbYes], 0) = mrYes then
+        method := bpmInt3
+      else
+        exit;
 
+    end;
   end;
 
   //todo: Make this breakpoint show up in the memory view
@@ -1318,25 +1339,29 @@ begin
   breakpointCS.enter;
   try
     setlength(bplist,0);
-    GetBreakpointList(address, bpsize, bplist);
 
 
-    method:=bpmDebugRegister;
-    usedDebugRegister := GetUsableDebugRegister;
-    if usedDebugRegister = -1 then
+
+    method:=preferedBreakpointMethod;
+    if method=bpmDebugRegister then
     begin
-      if (BreakpointTrigger=bptExecute) then
+      GetBreakpointList(address, bpsize, bplist);
+      usedDebugRegister := GetUsableDebugRegister;
+      if usedDebugRegister = -1 then
       begin
-        if MessageDlg(
-          rsAllDebugRegistersAreUsedUpDoYouWantToUseASoftwareBP,
-            mtConfirmation, [mbNo, mbYes], 0) = mrYes then
-          method := bpmInt3
+        if (BreakpointTrigger=bptExecute) then
+        begin
+          if MessageDlg(
+            rsAllDebugRegistersAreUsedUpDoYouWantToUseASoftwareBP,
+              mtConfirmation, [mbNo, mbYes], 0) = mrYes then
+            method := bpmInt3
+          else
+            exit;
+        end
         else
-          exit;
-      end
-      else
-        messagedlg(rsAllDebugRegistersAreUsedUp, mtError, [mbok], 0);
+          messagedlg(rsAllDebugRegistersAreUsedUp, mtError, [mbok], 0);
 
+      end;
     end;
 
     bp:=AddBreakpoint(nil, bplist[0].address, bplist[0].size, BreakpointTrigger, method, bo_BreakAndTrace, usedDebugRegister,  nil, 0, nil,frmTracer,count);
@@ -1365,17 +1390,20 @@ var method: TBreakpointMethod;
 var frmChangedAddresses: tfrmChangedAddresses;
 useddebugregister: integer;
 begin
-  method:=bpmDebugRegister;
-  usedDebugRegister := GetUsableDebugRegister;
-  if usedDebugRegister = -1 then
+  method:=preferedBreakpointMethod;
+  if method=bpmDebugRegister then
   begin
-    if MessageDlg(
-      rsAllDebugRegistersAreUsedUpDoYouWantToUseASoftwareBP, mtConfirmation, [
-        mbNo, mbYes], 0) = mrYes then
-      method := bpmInt3
-    else
-      exit;
+    usedDebugRegister := GetUsableDebugRegister;
+    if usedDebugRegister = -1 then
+    begin
+      if MessageDlg(
+        rsAllDebugRegistersAreUsedUpDoYouWantToUseASoftwareBP, mtConfirmation, [
+          mbNo, mbYes], 0) = mrYes then
+        method := bpmInt3
+      else
+        exit;
 
+    end;
   end;
 
   frmchangedaddresses:=tfrmChangedAddresses.Create(application) ;
@@ -1465,7 +1493,7 @@ procedure TDebuggerthread.SetEntryPointBreakpoint;
 {Only called from the main thread, or synchronize}
 var code,data: ptruint;
   bp: PBreakpoint;
-  oldstate: boolean;
+  oldstate: TBreakpointMethod;
 begin
   OutputDebugString('SetEntryPointBreakpoint called');
   if fNeedsToSetEntryPointBreakpoint then
@@ -1482,8 +1510,8 @@ begin
     memorybrowser.GetEntryPointAndDataBase(code,data);
 
     //set the breakpoint preference to int3 for this breakpoint
-    oldstate:=preferHwBP;
-    preferHwBP:=false;
+    oldstate:=preferedBreakpointMethod;
+    preferedBreakpointMethod:=bpmInt3;
 
     OutputDebugString('Going to toggle bp');
 
@@ -1493,13 +1521,18 @@ begin
       if bp<>nil then
         bp.OneTimeOnly:=true;
     finally
-      preferHwBP:=oldstate;
+      preferedBreakpointMethod:=oldstate;
     end;
 
   end;
 end;
 
 function TDebuggerthread.SetOnExecuteBreakpoint(address: ptrUint; askforsoftwarebp: boolean = false; tid: dword=0): PBreakpoint;
+begin
+  result:=SetOnExecuteBreakpoint(address, preferedBreakpointMethod, askforsoftwarebp, tid);
+end;
+
+function TDebuggerthread.SetOnExecuteBreakpoint(address: ptrUint; bpm: TBreakpointMethod; askforsoftwarebp: boolean = false; tid: dword=0): PBreakpoint;
 var
   i: integer;
   found: boolean;
@@ -1507,7 +1540,7 @@ var
   oldprotect, bw, br: dword;
 
   usableDebugReg: integer;
-  method: TBreakpointMethod;
+
 begin
   found := False;
 
@@ -1515,15 +1548,9 @@ begin
   breakpointCS.enter;
   try
     //set the breakpoint
-    method := bpmDebugRegister;
 
-    if (not preferHwBP) and (dbcSoftwareBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities) then //prefers int3
-    begin
-      if readProcessMemory(processhandle, pointer(address), @originalbyte, 1, br) then
-        method := bpmInt3
-    end;
 
-    if method = bpmDebugRegister then //failure, try debug registers anyhow...
+    if bpm = bpmDebugRegister then
     begin
       usableDebugReg := GetUsableDebugRegister;
 
@@ -1543,7 +1570,7 @@ begin
                 mtConfirmation, [mbNo, mbYes], 0) = mrYes then
             begin
               if readProcessMemory(processhandle, pointer(address), @originalbyte, 1, br) then
-                method := bpmInt3
+                bpm := bpmInt3
               else
                 raise Exception.Create(
                   rsUnreadableMemoryUnableToSetSoftwareBreakpoint);
@@ -1556,18 +1583,23 @@ begin
         else
         begin
           if not (dbcSoftwareBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities) then exit;
-          method := bpmInt3;
+          bpm := bpmInt3;
         end;
       end;
     end;
 
-    result:=AddBreakpoint(nil, address, 1, bptExecute, method, bo_Break, usableDebugreg, nil, tid);
+    result:=AddBreakpoint(nil, address, 1, bptExecute, bpm, bo_Break, usableDebugreg, nil, tid);
   finally
     breakpointCS.leave;
   end;
 end;
 
-function TDebuggerthread.SetOnWriteBreakpoint(address: ptrUint; size: integer; bpm: TBreakpointMethod=bpmDebugRegister; tid: dword=0): PBreakpoint;
+function TDebuggerthread.SetOnWriteBreakpoint(address: ptrUint; size: integer; tid: dword=0): PBreakpoint;
+begin
+  result:=SetOnWriteBreakpoint(address, size, preferedBreakpointMethod, tid);
+end;
+
+function TDebuggerthread.SetOnWriteBreakpoint(address: ptrUint; size: integer; bpm: TBreakpointMethod; tid: dword=0): PBreakpoint;
 var
   i: integer;
   found: boolean;
@@ -1583,6 +1615,9 @@ begin
   breakpointCS.enter;
   try
     //set the breakpoint
+    if bpm=bpmInt3 then
+      bpm:=bpmDebugRegister; //stupid
+
     if bpm=bpmDebugRegister then
     begin
       usableDebugReg := GetUsableDebugRegister;
@@ -1604,11 +1639,8 @@ begin
     end
     else
     if bpm=bpmException then
-    begin
       result:=AddBreakpoint(nil, address, size, bptWrite, bpm, bo_Break);
-    end;
-    if bpm=bpmInt3 then
-      raise exception.create('Int3 can not be used to find what writes an address');
+
 
   finally
     breakpointCS.leave;
@@ -1616,8 +1648,12 @@ begin
 
 end;
 
-
 function TDebuggerthread.SetOnAccessBreakpoint(address: ptrUint; size: integer; tid: dword=0): PBreakpoint;
+begin
+  result:=SetOnAccessBreakpoint(address, size, preferedBreakpointMethod, tid);
+end;
+
+function TDebuggerthread.SetOnAccessBreakpoint(address: ptrUint; size: integer; bpm: TBreakpointMethod; tid: dword=0): PBreakpoint;
 var
   i: integer;
   found: boolean;
@@ -1633,21 +1669,30 @@ begin
   breakpointCS.enter;
   try
     //set the breakpoint
-
-    usableDebugReg := GetUsableDebugRegister;
-    if usableDebugReg = -1 then
-      raise Exception.Create(rsAllDebugRegistersAreUsedUp);
-
     setlength(bplist,0);
-    GetBreakpointList(address, size, bplist);
+    if bpm=bpmInt3 then
+      bpm:=bpmDebugRegister; //stupid
 
-    result:=AddBreakpoint(nil, bplist[0].address, bplist[0].size, bptAccess, bpmDebugRegister, bo_Break, usableDebugreg,  nil, tid);
-    for i:=1 to length(bplist)-1 do
+
+    if bpm=bpmDebugRegister then
     begin
-      usableDebugReg:=GetUsableDebugRegister;
-      if usableDebugReg=-1 then exit;
-      AddBreakpoint(result, bplist[i].address,  bplist[i].size, bptAccess, bpmDebugRegister, bo_Break, usableDebugreg,nil, tid);
-    end;
+      usableDebugReg := GetUsableDebugRegister;
+      if usableDebugReg = -1 then
+        raise Exception.Create(rsAllDebugRegistersAreUsedUp);
+
+      GetBreakpointList(address, size, bplist);
+
+      result:=AddBreakpoint(nil, bplist[0].address, bplist[0].size, bptAccess, bpmDebugRegister, bo_Break, usableDebugreg,  nil, tid);
+      for i:=1 to length(bplist)-1 do
+      begin
+        usableDebugReg:=GetUsableDebugRegister;
+        if usableDebugReg=-1 then exit;
+        AddBreakpoint(result, bplist[i].address,  bplist[i].size, bptAccess, bpmDebugRegister, bo_Break, usableDebugreg,nil, tid);
+      end;
+    end
+    else
+    if bpm=bpmException then
+      result:=AddBreakpoint(nil, address, size, bptAccess, bpm, bo_Break);
 
   finally
     breakpointCS.leave;
@@ -1685,15 +1730,9 @@ begin
 
     if not found then
     begin
-      method := bpmDebugRegister;
+      method := preferedBreakpointMethod;
 
-      if (not preferHwBP) and (dbcSoftwareBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities) then //prefers int3
-      begin
-        if readProcessMemory(processhandle, pointer(address), @originalbyte, 1, br) then
-          method := bpmInt3
-      end;
-
-      if method = bpmDebugRegister then //failure, try debug registers anyhow...
+      if method = bpmDebugRegister then
       begin
         usableDebugReg := GetUsableDebugRegister;
 

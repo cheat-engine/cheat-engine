@@ -87,7 +87,7 @@ resourcestring
 implementation
 
 
-uses KernelDebugger,mainunit;
+uses KernelDebugger,mainunit, DebugHelper;
 
 procedure UpdateToolsMenu;
 var i: integer;
@@ -465,9 +465,16 @@ begin
           if reg.ValueExists('Hardware breakpoints') then
             rbDebugAsBreakpoint.Checked:=reg.readbool('Hardware breakpoints');
 
-          try rbInt3AsBreakpoint.checked:=not reg.readbool('Hardware breakpoints'); except end;
+          if reg.ValueExists('Software breakpoints') then
+            rbInt3AsBreakpoint.checked:=reg.readbool('Software breakpoints')
+          else
+            rbDebugAsBreakpoint.checked:=true;
 
-          try cbUpdatefoundList.Checked:=reg.readbool('Update Foundaddress list'); except end;
+          if reg.ValueExists('Exception breakpoints') then
+            rbPageExceptions.checked:=reg.ReadBool('Exception breakpoints');
+
+          if reg.ValueExists('Update Foundaddress list') then
+            cbUpdatefoundList.Checked:=reg.readbool('Update Foundaddress list');
 
           if reg.ValueExists('Update Foundaddress list Interval') then
             try mainform.UpdateFoundlisttimer.interval:=reg.readInteger('Update Foundaddress list Interval'); except end;
