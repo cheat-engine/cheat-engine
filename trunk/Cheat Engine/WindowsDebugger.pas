@@ -27,7 +27,7 @@ end;
 
 implementation
 
-uses autoassembler, pluginexports, CEDebugger;
+uses autoassembler, pluginexports, CEDebugger, DebugHelper;
 
 constructor TWindowsDebuggerInterface.create;
 begin
