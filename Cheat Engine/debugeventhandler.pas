@@ -552,9 +552,11 @@ begin
         if bpp^.OneTimeOnly then //delete it
           TdebuggerThread(debuggerthread).RemoveBreakpoint(bpp);
 
-        if active then
+        if ((bpp.breakpointMethod=bpmException) and (not bpp.markedfordeletion)) or active then
           break;
-        //else continue looking for one that IS active
+
+
+        //else continue looking for one that IS active and not deleted
       end;
     end;
   finally
@@ -587,7 +589,7 @@ begin
         for i:=0 to breakpointlist.count-1 do
         begin
           bpp2:=PBreakpoint(breakpointlist.Items[i]);
-          if (bpp2.active) and (bpp2.StepOverBp) and (bpp2.markedfordeletion=false) then
+          if (((bpp2.breakpointMethod=bpmException) and not bpp2.markedfordeletion) or bpp2.active) and (bpp2.StepOverBp) and (bpp2.markedfordeletion=false) then
             TdebuggerThread(debuggerthread).RemoveBreakpoint(bpp2);
         end;
         breakpointCS.leave;
@@ -629,7 +631,7 @@ begin
       bo_FindCode:
       begin
         outputdebugstring('Save registers and continue');
-        if bpp.active then
+        if ((bpp.breakpointMethod=bpmException) and (not bpp.markedfordeletion)) or bpp.active then
         begin
           fcd:=bpp.FoundcodeDialog;
           fcd.usesdebugregs:=bpp.breakpointMethod=bpmDebugRegister;
@@ -739,7 +741,7 @@ begin
     for i:=0 to breakpointlist.count-1 do
     begin
       bp:=breakpointList[i];
-      if bp.active and (bp.breakpointMethod=bpmException) then
+      if (bp.breakpointMethod=bpmException) then  //don't check for active, as some breakpoint events might be stacked
       begin
         //check if the address is in this breakpoint range
         if inrangex(address, GetPageBase(bp.address), GetPageBase(bp.address+bp.size)+$fff) or
@@ -765,6 +767,11 @@ begin
 
 
     breakAddress:=address;
+
+   { if (breakAddress and $fff)=$75c then
+    begin
+      beep;
+    end;  }
 
     //freeze all threads except this one and do a single step
 

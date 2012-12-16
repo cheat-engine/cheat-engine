@@ -8,7 +8,7 @@ interface
 
 uses windows, dialogs,forms,classes,LCLIntf, LCLProc, sysutils,registry,ComCtrls, menus,
      formsettingsunit, cefuncproc,AdvancedOptionsUnit, MemoryBrowserFormUnit,
-     memscan,plugin, hotkeyhandler,frmProcessWatcherunit, newkernelhandler;
+     memscan,plugin, hotkeyhandler,frmProcessWatcherunit, newkernelhandler, debuggertypedefinitions;
 
 const ceversion=6.2;
 
@@ -472,6 +472,15 @@ begin
 
           if reg.ValueExists('Exception breakpoints') then
             rbPageExceptions.checked:=reg.ReadBool('Exception breakpoints');
+
+          if rbDebugAsBreakpoint.checked then
+            preferedBreakpointMethod:=bpmDebugRegister
+          else
+          if rbInt3AsBreakpoint.checked then
+            preferedBreakpointMethod:=bpmInt3
+          else
+          if rbPageExceptions.checked then
+            preferedBreakpointMethod:=bpmException;
 
           if reg.ValueExists('Update Foundaddress list') then
             cbUpdatefoundList.Checked:=reg.readbool('Update Foundaddress list');
