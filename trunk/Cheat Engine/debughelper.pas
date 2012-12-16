@@ -1184,6 +1184,9 @@ begin
     if usedDebugRegister = -1 then
       raise Exception.Create(
         rsAll4DebugRegistersAreCurrentlyUsedUpFreeOneAndTryA);
+
+    address:=bplist[0].address;
+    size:=bplist[0].size;
   end;
 
   //still here
@@ -1195,7 +1198,7 @@ begin
   end;
   foundcodedialog.Show;
 
-  newbp := AddBreakpoint(nil, bplist[0].address, bplist[0].size, bpt, method,
+  newbp := AddBreakpoint(nil, address, size, bpt, method,
     bo_FindCode, usedDebugRegister,  foundcodedialog, 0);
 
 
@@ -1346,6 +1349,11 @@ begin
     if method=bpmDebugRegister then
     begin
       GetBreakpointList(address, bpsize, bplist);
+
+      address:=bplist[0].address;
+      bpsize:=bplist[0].size;
+
+
       usedDebugRegister := GetUsableDebugRegister;
       if usedDebugRegister = -1 then
       begin
@@ -1364,7 +1372,7 @@ begin
       end;
     end;
 
-    bp:=AddBreakpoint(nil, bplist[0].address, bplist[0].size, BreakpointTrigger, method, bo_BreakAndTrace, usedDebugRegister,  nil, 0, nil,frmTracer,count);
+    bp:=AddBreakpoint(nil, address, bpsize, BreakpointTrigger, method, bo_BreakAndTrace, usedDebugRegister,  nil, 0, nil,frmTracer,count);
 
     if bp<>nil then
       bp.traceendcondition:=strnew(pchar(condition));
