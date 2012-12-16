@@ -215,6 +215,8 @@ procedure getDriverList(list: tstrings);
 
 function EscapeStringForRegEx(const S: string): string;
 
+function GetStackStart: ptruint;
+
 procedure errorbeep;
 
 {$ifndef net}
@@ -3632,6 +3634,124 @@ begin
   result:=s1;
 end;
 
+function GetStackStart: ptruint;
+var
+  tbi: THREAD_BASIC_INFORMATION;
+  stacktop: ptruint;
+  x: dword;
+
+  h: thandle;
+
+  ths: thandle;
+  te32: TThreadEntry32;
+  i: integer;
+
+  c: tcontext;
+  ldtentry: TLDTENTRY;
+  mi: TModuleInfo;
+
+  buf: pointer;
+  buf32: PDwordArray absolute buf;
+  buf64: PQWordArray absolute buf;
+//gets the stack base of the main thread, then checks where the "exitThread" entry is located and uses that -pointersize as the stackbase
+begin
+  result:=0;
+
+  //get the first thread of this process
+  if symhandler.getmodulebyname('kernel32.dll', mi)=false then
+  begin
+    symhandler.loadmodulelist;
+    if symhandler.getmodulebyname('kernel32.dll', mi)=false then
+      exit;
+  end;
+
+
+
+
+  ths:=CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD,0);
+  if ths<>INVALID_HANDLE_VALUE then
+  begin
+    zeromemory(@te32,sizeof(te32));
+    te32.dwSize:=sizeof(te32);
+    if Thread32First(ths, te32) then
+    repeat
+      if te32.th32OwnerProcessID=processid then
+      begin
+        //found the thread
+        h:=OpenThread(THREAD_QUERY_INFORMATION or THREAD_GET_CONTEXT, false, te32.th32ThreadID);
+
+
+        if (h<>0) then
+        begin
+          stacktop:=0;
+
+          if processhandler.is64Bit then
+          begin
+            x:=0;
+            i:=NtQueryInformationThread(h, ThreadBasicInformation, @tbi, sizeof(tbi), @x);
+            if i=0 then
+              ReadProcessMemory(processhandle, pointer(ptruint(tbi.TebBaseAddress)+8), @stacktop, 8, x);
+          end
+          else
+          begin
+            zeromemory(@c,sizeof(c));
+            c.ContextFlags:=CONTEXT_SEGMENTS;
+            if GetThreadContext(h, c) then
+            begin
+              if GetThreadSelectorEntry(h, c.segFs, ldtentry) then
+                ReadProcessMemory(processhandle, pointer(ptruint(ldtentry.BaseLow+ldtentry.HighWord.Bytes.BaseMid shl 16+ldtentry.HighWord.Bytes.BaseHi shl 24)+4), @stacktop, 4, x);
+
+            end;
+
+
+          end;
+
+          closehandle(h);
+
+          if stacktop<>0 then
+          begin
+            //find the stack entry pointing to the function that calls "ExitXXXXXThread"
+            //Fun thing to note: It's the first entry that points to a address in kernel32
+
+            getmem(buf,4096);
+
+            if ReadProcessMemory(processhandle, pointer(stacktop-4096), buf, 4096, x) then
+            begin
+              if processhandler.is64Bit then
+              begin
+                for i:=(4096 div 8)-1 downto 0 do
+                  if inrangeq(buf64[i], mi.baseaddress, mi.baseaddress+mi.basesize) then
+                  begin
+                    result:=stacktop-4096+i*8;
+                    break;
+                  end;
+              end
+              else
+              begin
+                for i:=(4096 div 4)-1 downto 0 do
+                  if inrangeq(buf32[i], mi.baseaddress, mi.baseaddress+mi.basesize) then
+                  begin
+                    result:=stacktop-4096+i*4;
+                    break;
+                  end;
+
+              end;
+            end;
+
+            freemem(buf);
+
+
+          end;
+        end;
+
+        break;
+      end;
+
+    until Thread32Next(ths, te32)=false;
+    closehandle(ths);
+  end;
+
+end;
 
 initialization
   getmem(tempdir,256);

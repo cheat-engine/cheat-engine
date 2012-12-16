@@ -9,11 +9,7 @@ uses
   Dialogs, ComCtrls, Menus, StdCtrls, LResources,cefuncproc, CEDebugger, debugHelper, newkernelhandler;
 
 
-{$ifdef cpu64}
 
-function GetThreadSelectorEntry(hThread: THandle; dwSelector: DWORD; var lpSelectorEntry: TLDTEntry): BOOL; external 'kernel32' name 'Wow64GetThreadSelectorEntry';
-
-{$endif}
 
 type
 

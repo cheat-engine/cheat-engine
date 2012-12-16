@@ -7467,7 +7467,8 @@ var t: TD3DHook_Texture;
   exportlist: pchar;
   max: integer;
 begin
-
+  memorybrowser.hexview.address:=GetStackStart;
+  memorybrowser.show;
 
 
   {

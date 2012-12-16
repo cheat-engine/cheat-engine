@@ -9,6 +9,10 @@ uses jwawindows, windows,LCLIntf,sysutils, dialogs, controls, dbk32functions,
 const dbkdll='DBK32.dll';
 
 
+{$ifdef cpu64}
+function GetThreadSelectorEntry(hThread: THandle; dwSelector: DWORD; var lpSelectorEntry: TLDTEntry): BOOL; external 'kernel32' name 'Wow64GetThreadSelectorEntry';
+{$endif}
+
 type
 PPROCESSENTRY32 = ^PROCESSENTRY32;
 
