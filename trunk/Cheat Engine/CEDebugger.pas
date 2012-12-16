@@ -47,15 +47,40 @@ type TntResumeProcess=function(ProcessID:Dword):DWORD; stdcall;
 
 
 type
-TProcessBasicInformation = record
-ExitStatus : Longint;
-PebBaseAddress : Pointer;
-AffinityMask : DWORD;
-BasePriority : Longint;
-UniqueProcessId : DWORD;
-InheritedFromUniqueProcessId : DWORD
-end;
+  TProcessBasicInformation = record
+    ExitStatus : Longint;
+    PebBaseAddress : Pointer;
+    AffinityMask : DWORD;
+    BasePriority : Longint;
+    UniqueProcessId : DWORD;
+    InheritedFromUniqueProcessId : DWORD
+  end;
 
+  NTSTATUS = LONG;
+  _CLIENT_ID = record
+    UniqueProcess: HANDLE;
+    UniqueThread: HANDLE;
+  end;
+  CLIENT_ID = _CLIENT_ID;
+  PCLIENT_ID = ^CLIENT_ID;
+  TClientID = CLIENT_ID;
+  PClientID = ^TClientID;
+
+  KPRIORITY = LONG;
+  KAFFINITY = ULONG_PTR;
+
+  _THREAD_BASIC_INFORMATION = record // Information Class 0
+    ExitStatus: NTSTATUS;
+    TebBaseAddress: pointer;
+    ClientId: CLIENT_ID;
+    AffinityMask: KAFFINITY;
+    Priority: KPRIORITY;
+    BasePriority: KPRIORITY;
+  end;
+  THREAD_BASIC_INFORMATION = _THREAD_BASIC_INFORMATION;
+  PTHREAD_BASIC_INFORMATION = ^THREAD_BASIC_INFORMATION;
+  TThreadBasicInformation = THREAD_BASIC_INFORMATION;
+  PThreadBasicInformation = ^TThreadBasicInformation;
 
   TProcessInfoClass=(
   ProcessBasicInformation,ProcessQuotaLimits,ProcessIoCounters,ProcessVmCounters,ProcessTimes,
@@ -65,13 +90,38 @@ end;
   ProcessPriorityClass,ProcessWx86Information,ProcessHandleCount,ProcessAffinityMask,ProcessPriorityBoost,
   ProcessDeviceMap,ProcessSessionInformation,ProcessForegroundInformation,ProcessWow64Information,
   MaxProcessInfoClass);
-type TNtQueryInformationProcess=function(
-Handle : THandle;
-infoClass : TProcessInfoClass;
-processInformation : Pointer;
-processInformationLength : ULONG;
-returnLength : PULONG
-) : DWORD; stdcall;
+
+  _THREADINFOCLASS = (
+      ThreadBasicInformation,
+      ThreadTimes,
+      ThreadPriority,
+      ThreadBasePriority,
+      ThreadAffinityMask,
+      ThreadImpersonationToken,
+      ThreadDescriptorTableEntry,
+      ThreadEnableAlignmentFaultFixup,
+      ThreadEventPair_Reusable,
+      ThreadQuerySetWin32StartAddress,
+      ThreadZeroTlsCell,
+      ThreadPerformanceCount,
+      ThreadAmILastThread,
+      ThreadIdealProcessor,
+      ThreadPriorityBoost,
+      ThreadSetTlsArrayAddress,
+      ThreadIsIoPending,
+      ThreadHideFromDebugger,
+      ThreadBreakOnTermination, // was added in XP - used by RtlSetThreadIsCritical()
+      MaxThreadInfoClass);
+    THREADINFOCLASS = _THREADINFOCLASS;
+    {.$ENDIF JWA_INCLUDEMODE}
+    THREAD_INFORMATION_CLASS = THREADINFOCLASS;
+
+
+    TThreadInfoClass = THREADINFOCLASS;
+
+
+type TNtQueryInformationProcess=function(Handle : THandle; infoClass : TProcessInfoClass; processInformation : Pointer; processInformationLength : ULONG; returnLength : PULONG) : DWORD; stdcall;
+type TNtQueryInformationThread=function(Handle : THandle; infoClass : TThreadinfoClass; ThreadInformation: pointer; processInformationLength : ULONG; returnLength : PULONG) : DWORD; stdcall;
 
 var //DebuggerThread: TDebugger;
 
@@ -84,6 +134,7 @@ var //DebuggerThread: TDebugger;
     ntResumeProcess: tntResumeProcess;
 
     NtQueryInformationProcess: TNtQueryInformationProcess;
+    NtQueryInformationThread: TNtQueryInformationThread;
     DbgBreakPointLocation:ptrUint;
 
 
@@ -209,6 +260,9 @@ initialization
 
     NtQueryInformationProcess:=nil;
     NtQueryInformationProcess:=GetProcAddress(ntdlllib,'NtQueryInformationProcess');
+
+    NtQueryInformationThread:=nil;
+    NtQueryInformationThread:=GetProcAddress(ntdlllib,'NtQueryInformationThread');
 
     ntsuspendprocess:=nil;
     ntsuspendprocess:=GetProcAddress(ntdlllib,'NtSuspendProcess');
