@@ -564,6 +564,7 @@ begin
     symbolloaderthread.start;
   end;
 
+
   ReinitializeUserdefinedSymbolList;
 end;
 
@@ -1151,6 +1152,7 @@ var mi: tmoduleinfo;
 
     //symbol: PSYMBOL_INFO;
     s: string;
+    a: ptruint;
 begin
   name:=trim(name);
   hasPointer:=false;
@@ -1265,6 +1267,9 @@ begin
         if j>0 then
         begin
           //not a hexadecimal value
+
+
+
           if getmodulebyname(tokens[i],mi) then
           begin
             tokens[i]:=inttohex(mi.baseaddress,8);
@@ -1348,6 +1353,20 @@ begin
 
                 if si=nil then //not found
                 begin
+
+                  if uppercase(copy(tokens[i],1,11))='THREADSTACK' then
+                  begin
+                    s:=copy(tokens[i], 12, length(tokens[i])-12+1);
+                    if TryStrToInt(s, j) then
+                    begin
+                      a:=GetStackStart(j);
+                      if a<>0 then
+                      begin
+                        tokens[i]:=inttohex(a,8);
+                        continue;
+                      end;
+                    end;
+                  end;
 
                   if waitforsymbols then
                   begin

@@ -20,7 +20,7 @@
       <MajorVersionNr Value="6"/>
       <MinorVersionNr Value="2"/>
       <RevisionNr Value="1"/>
-      <BuildNr Value="2747"/>
+      <BuildNr Value="2751"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" ProductVersion="6.2" FileDescription="Cheat Engine"/>
@@ -216,10 +216,10 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="CEFuncProc"/>
         <IsVisibleTab Value="True"/>
-        <EditorIndex Value="5"/>
+        <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="3711"/>
-        <CursorPos X="47" Y="3734"/>
+        <TopLine Value="3623"/>
+        <CursorPos X="23" Y="3637"/>
         <UsageCount Value="204"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -238,11 +238,14 @@
         <Filename Value="symbolhandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="symbolhandler"/>
-        <EditorIndex Value="6"/>
+        <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="137"/>
-        <CursorPos X="14" Y="149"/>
+        <TopLine Value="1351"/>
+        <CursorPos X="1" Y="1363"/>
         <UsageCount Value="204"/>
+        <Bookmarks Count="1">
+          <Item0 X="1" Y="1270" ID="8"/>
+        </Bookmarks>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit6>
@@ -354,9 +357,6 @@
         <TopLine Value="462"/>
         <CursorPos X="12" Y="465"/>
         <UsageCount Value="203"/>
-        <Bookmarks Count="1">
-          <Item0 X="39" Y="477" ID="8"/>
-        </Bookmarks>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit16>
@@ -2814,7 +2814,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="4165"/>
         <CursorPos X="6" Y="4179"/>
-        <UsageCount Value="78"/>
+        <UsageCount Value="79"/>
         <Loaded Value="True"/>
       </Unit244>
       <Unit245>
@@ -2848,7 +2848,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1651"/>
         <CursorPos X="3" Y="1665"/>
-        <UsageCount Value="71"/>
+        <UsageCount Value="72"/>
         <Loaded Value="True"/>
       </Unit248>
       <Unit249>
@@ -2867,130 +2867,130 @@
         <WindowIndex Value="0"/>
         <TopLine Value="3025"/>
         <CursorPos X="87" Y="3018"/>
-        <UsageCount Value="11"/>
+        <UsageCount Value="12"/>
         <Loaded Value="True"/>
       </Unit250>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="C:\lazarus\fpc\2.6.1\source\packages\winunits-jedi\src\jwanative.pas"/>
-        <Caret Line="3217" Column="3" TopLine="3203"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="76" Column="55" TopLine="65"/>
       </Position1>
       <Position2>
-        <Filename Value="C:\lazarus\fpc\2.6.1\source\packages\winunits-jedi\src\jwawinnt.pas"/>
-        <Caret Line="3076" Column="3" TopLine="3062"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position2>
       <Position3>
-        <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="3700" Column="47" TopLine="3676"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="93" Column="15" TopLine="69"/>
       </Position3>
       <Position4>
-        <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="3689" Column="54" TopLine="3675"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="94" Column="15" TopLine="70"/>
       </Position4>
       <Position5>
-        <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="3684" Column="1" TopLine="3675"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="97" Column="15" TopLine="73"/>
       </Position5>
       <Position6>
-        <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="3685" Column="1" TopLine="3675"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="109" Column="21" TopLine="85"/>
       </Position6>
       <Position7>
-        <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="3686" Column="1" TopLine="3675"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="1488" Column="33" TopLine="1469"/>
       </Position7>
       <Position8>
-        <Filename Value="frmThreadlistunit.pas"/>
-        <Caret Line="554" Column="55" TopLine="548"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position8>
       <Position9>
-        <Filename Value="frmThreadlistunit.pas"/>
-        <Caret Line="458" Column="3" TopLine="444"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="143" Column="28" TopLine="120"/>
       </Position9>
       <Position10>
-        <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="3688" Column="56" TopLine="3675"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="548" Column="45" TopLine="524"/>
       </Position10>
       <Position11>
-        <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="3650" Column="3" TopLine="3635"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="1476" Column="21" TopLine="1457"/>
       </Position11>
       <Position12>
-        <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="3692" Column="60" TopLine="3678"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position12>
       <Position13>
-        <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="3688" Column="40" TopLine="3678"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="143" Column="28" TopLine="119"/>
       </Position13>
       <Position14>
-        <Filename Value="frmThreadlistunit.pas"/>
-        <Caret Line="457" Column="25" TopLine="548"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="1277" Column="45" TopLine="1271"/>
       </Position14>
       <Position15>
-        <Filename Value="frmThreadlistunit.pas"/>
-        <Caret Line="12" Column="1" TopLine="1"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="218" Column="2" TopLine="204"/>
       </Position15>
       <Position16>
-        <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="3688" Column="40" TopLine="3678"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="116" Column="44" TopLine="107"/>
       </Position16>
       <Position17>
-        <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="3684" Column="1" TopLine="3678"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="550" Column="1" TopLine="526"/>
       </Position17>
       <Position18>
-        <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="3685" Column="1" TopLine="3678"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="1356" Column="66" TopLine="1338"/>
       </Position18>
       <Position19>
-        <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="3686" Column="1" TopLine="3678"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="1358" Column="1" TopLine="1338"/>
       </Position19>
       <Position20>
-        <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="3688" Column="1" TopLine="3678"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="1359" Column="1" TopLine="1338"/>
       </Position20>
       <Position21>
-        <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="3655" Column="50" TopLine="3639"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="1358" Column="1" TopLine="1338"/>
       </Position21>
       <Position22>
-        <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="3732" Column="36" TopLine="3714"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="1359" Column="1" TopLine="1338"/>
       </Position22>
       <Position23>
-        <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="3720" Column="1" TopLine="3714"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="1361" Column="1" TopLine="1338"/>
       </Position23>
       <Position24>
-        <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="3731" Column="1" TopLine="3714"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="1362" Column="1" TopLine="1339"/>
       </Position24>
       <Position25>
-        <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="3732" Column="1" TopLine="3717"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="1358" Column="1" TopLine="1339"/>
       </Position25>
       <Position26>
-        <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="3734" Column="1" TopLine="3729"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="1359" Column="1" TopLine="1339"/>
       </Position26>
       <Position27>
-        <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="3735" Column="1" TopLine="3729"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="1361" Column="30" TopLine="1351"/>
       </Position27>
       <Position28>
-        <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="3741" Column="1" TopLine="3729"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="1359" Column="73" TopLine="1351"/>
       </Position28>
       <Position29>
-        <Filename Value="CEFuncProc.pas"/>
-        <Caret Line="3747" Column="1" TopLine="3729"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="1362" Column="1" TopLine="1351"/>
       </Position29>
       <Position30>
-        <Filename Value="MainUnit.pas"/>
-        <Caret Line="7462" Column="22" TopLine="7452"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="1363" Column="1" TopLine="1351"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>
@@ -3059,7 +3059,7 @@
         <WatchScope Value="wpsLocal"/>
         <WatchKind Value="wpkWrite"/>
         <Source Value="symbolhandler.pas"/>
-        <Line Value="1203"/>
+        <Line Value="1205"/>
       </Item2>
       <Item3>
         <Kind Value="bpkSource"/>
