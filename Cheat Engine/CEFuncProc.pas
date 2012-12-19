@@ -3636,6 +3636,7 @@ end;
 
 function GetStackStart(threadnr: integer=0): ptruint;
 var
+  c: tcontext;    //do not move, or be sure it's on a proper alignment
   tbi: THREAD_BASIC_INFORMATION;
   stacktop: ptruint;
   x: dword;
@@ -3646,7 +3647,7 @@ var
   te32: TThreadEntry32;
   i: integer;
 
-  c: tcontext;
+
   ldtentry: TLDTENTRY;
   mi: TModuleInfo;
 

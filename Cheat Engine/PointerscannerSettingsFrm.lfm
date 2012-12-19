@@ -1,11 +1,11 @@
 object frmPointerScannerSettings: TfrmPointerScannerSettings
   Left = 643
-  Height = 475
+  Height = 547
   Top = 91
   Width = 411
   BorderStyle = bsSingle
   Caption = 'Pointerscanner scanoptions'
-  ClientHeight = 475
+  ClientHeight = 547
   ClientWidth = 411
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
@@ -14,7 +14,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   Position = poScreenCenter
   LCLVersion = '1.1'
   object edtAddress: TEdit
-    Left = 10
+    Left = 8
     Height = 21
     Top = 28
     Width = 254
@@ -27,8 +27,8 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   end
   object PSSettings: TPageControl
     Left = 8
-    Height = 272
-    Top = 48
+    Height = 355
+    Top = 46
     Width = 394
     ActivePage = PSReverse
     Font.Height = -11
@@ -38,7 +38,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     TabOrder = 1
     object PSReverse: TTabSheet
       Caption = 'Reverse'
-      ClientHeight = 246
+      ClientHeight = 329
       ClientWidth = 386
       ImageIndex = 1
       TabVisible = False
@@ -109,15 +109,6 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         State = cbChecked
         TabOrder = 3
       end
-      object cbOnlyStackAsBase: TCheckBox
-        Left = 188
-        Height = 19
-        Top = 20
-        Width = 206
-        Caption = 'Only use the maintread stack as a base'
-        TabOrder = 4
-        Visible = False
-      end
       object cbUseHeapData: TCheckBox
         Left = 0
         Height = 19
@@ -125,7 +116,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         Width = 234
         Caption = 'Improve pointerscan with gathered heap data'
         OnClick = cbUseHeapDataClick
-        TabOrder = 5
+        TabOrder = 4
       end
       object cbHeapOnly: TCheckBox
         Left = 16
@@ -138,7 +129,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         OnClick = cbHeapOnlyClick
         ParentShowHint = False
         ShowHint = True
-        TabOrder = 6
+        TabOrder = 5
       end
       object cbOnlyOneStatic: TCheckBox
         Left = 0
@@ -146,7 +137,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         Top = 60
         Width = 267
         Caption = 'Stop traversing a path when a static has been found'
-        TabOrder = 7
+        TabOrder = 6
       end
       object cbNoReadOnly: TCheckBox
         Left = 0
@@ -157,7 +148,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         Checked = True
         OnChange = canNotReuse
         State = cbChecked
-        TabOrder = 8
+        TabOrder = 7
       end
       object cbClassPointersOnly: TCheckBox
         Left = 0
@@ -166,7 +157,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         Width = 308
         Caption = 'First element of pointerstruct must point to module (e.g vtable)'
         OnChange = canNotReuse
-        TabOrder = 9
+        TabOrder = 8
       end
       object cbNoLoop: TCheckBox
         Left = 0
@@ -174,7 +165,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         Top = 207
         Width = 111
         Caption = 'No looping pointers'
-        TabOrder = 10
+        TabOrder = 9
       end
       object cbMaxOffsetsPerNode: TCheckBox
         Left = 0
@@ -183,7 +174,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         Width = 163
         Caption = 'Max different offsets per node:'
         OnChange = cbMaxOffsetsPerNodeChange
-        TabOrder = 11
+        TabOrder = 10
       end
       object edtMaxOffsetsPerNode: TEdit
         Left = 164
@@ -191,15 +182,72 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         Top = 227
         Width = 40
         Enabled = False
-        TabOrder = 12
+        TabOrder = 11
         Text = '2'
+      end
+      object cbStaticStacks: TCheckBox
+        Left = 0
+        Height = 19
+        Top = 248
+        Width = 328
+        Caption = 'Allow stack addresses of the first thread(s) to be handled as static'
+        Checked = True
+        OnChange = cbStaticStacksChange
+        State = cbChecked
+        TabOrder = 12
+      end
+      object lblNumberOfStackThreads: TLabel
+        Left = 16
+        Height = 13
+        Top = 271
+        Width = 193
+        Caption = 'Number of threads from oldest to newest:'
+        ParentColor = False
+      end
+      object edtThreadStacks: TEdit
+        Left = 233
+        Height = 21
+        Hint = 'Fill in the total number of threads that should be allowed to be used as a stack lookup.'#13#10'Thread 1 is usually the main thread of the game, but if that one spawns another thread for game related events, you might want to have that secondary thread as well.'#13#10'More threads is not recommend as they may get created and destroyed on the fly, and are therefore useless as a lookup base, but it depends on the game.'
+        Top = 267
+        Width = 24
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 13
+        Text = '2'
+      end
+      object lblStackSize: TLabel
+        Left = 16
+        Height = 13
+        Top = 292
+        Width = 213
+        Caption = 'Max stackoffset to be deemed static enough:'
+        ParentColor = False
+      end
+      object edtStackSize: TEdit
+        Left = 233
+        Height = 21
+        Top = 290
+        Width = 80
+        TabOrder = 14
+        Text = '4096'
+      end
+      object cbStackOnly: TCheckBox
+        Left = 16
+        Height = 19
+        Hint = 'Enable this if you wish to only find pointer paths with a stack address.'#13#10'Combine this with "Only find paths with a static address" (default on) else this option will have no effect'
+        Top = 308
+        Width = 213
+        Caption = 'Stack addresses as ONLY static address'
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 15
       end
     end
   end
   object cbMustEndWithSpecificOffset: TCheckBox
     Left = 8
     Height = 19
-    Top = 344
+    Top = 418
     Width = 199
     Caption = 'Pointers must end with specific offsets'
     Font.Height = -11
@@ -210,12 +258,12 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   end
   object Panel1: TPanel
     Left = 0
-    Height = 107
-    Top = 368
+    Height = 104
+    Top = 443
     Width = 411
     Align = alBottom
     BevelOuter = bvNone
-    ClientHeight = 107
+    ClientHeight = 104
     ClientWidth = 411
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
@@ -364,7 +412,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   object cbReusePointermap: TCheckBox
     Left = 8
     Height = 19
-    Top = 320
+    Top = 400
     Width = 218
     Caption = 'Use pointermap from previous pointerscan'
     Checked = True

@@ -18,7 +18,7 @@ type
   PStaticData=^TStaticData;
   TStaticData=record
     moduleindex: dword; //for searching the saved modulelist
-    offset: dword; //no need to convert this to a ptrUint, max size of an executable is still 4GB in 64-bit
+    offset: integer; //no need to convert this to a ptrUint, max size of an executable is still 4GB in 64-bit
   end;
 
   TPointerDataArray=array [0..0] of record
@@ -81,9 +81,17 @@ type
 
 
     bigalloc: TBigMemoryAllocHandler;
+
+    useStacks: boolean;
+    threadStacks: integer;
+    stacksAsStaticOnly: boolean;
+    stacksize: integer;
+
+    stacklist: array of ptruint;
     function BinSearchMemRegions(address: ptrUint): integer;
     function isModulePointer(address: ptrUint): boolean;
     function ispointer(address: ptrUint): boolean;
+    function isStatic(address: ptruint; var mi: TModuleInfo; var moduleindex: integer): boolean;
     procedure quicksortmemoryregions(lo,hi: integer);
 
     procedure addpointer(pointervalue: ptrUint; pointerwiththisvalue: ptrUint; add:boolean);
@@ -104,7 +112,7 @@ type
     procedure saveModuleListToResults(s: TStream);
 
     function findPointerValue(startvalue: ptrUint; var stopvalue: ptrUint): PPointerList;
-    constructor create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar; noreadonly: boolean; mustbeclasspointers: boolean);
+    constructor create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar; noreadonly: boolean; mustbeclasspointers: boolean; useStacks: boolean; stacksAsStaticOnly: boolean; threadstacks: integer; stacksize: integer);
     destructor destroy; override;
   end;
 
@@ -199,6 +207,38 @@ begin
   if (i<hi) then quicksortmemoryregions(i,hi);
 end;
 
+function TReversePointerListHandler.isStatic(address: ptruint; var mi: TModuleInfo; var moduleindex: integer): boolean;
+var i: integer;
+begin
+  result:=false;
+  if useStacks then
+  begin
+    for i:=0 to threadStacks-1 do
+    begin
+      if InRangeQ(address, stacklist[i]-stacksize, stacklist[i]) then
+      begin
+        mi.baseaddress:=stacklist[i];
+        result:=true;
+      end;
+    end;
+  end;
+
+  if (result=false) and (stacksAsStaticOnly=false) then
+    result:=symhandler.getmodulebyaddress(address, mi);
+
+  if result then
+  begin
+    for i:=0 to modulelist.count-1 do
+    begin
+      if ptruint(modulelist.Objects[i])=mi.baseaddress then
+      begin
+        moduleindex:=i;
+        exit;
+      end;
+    end;
+  end;
+end;
+
 procedure TReversePointerListHandler.addpointer(pointervalue: ptrUint; pointerwiththisvalue: ptrUint; add: boolean);
 var
   level: integer;
@@ -209,6 +249,7 @@ var
   plist: PPointerList;
 
   size: integer;
+  moduleindex: integer;
 
 begin
   currentarray:=level0list;
@@ -292,11 +333,11 @@ begin
 
     plist.list[plist.pos].address:=pointerwiththisvalue;
 
-    if symhandler.getmodulebyaddress(pointerwiththisvalue, mi) then
+    if isStatic(pointerwiththisvalue, mi, moduleindex) then
     begin
       //it's a static, so create and fill in the static data
       plist.list[plist.pos].staticdata:=bigalloc.alloc(sizeof(TStaticData));
-      plist.list[plist.pos].staticdata.moduleindex:=modulelist.IndexOf(mi.modulename);
+      plist.list[plist.pos].staticdata.moduleindex:=moduleindex;
       plist.list[plist.pos].staticdata.offset:=pointerwiththisvalue-mi.baseaddress;
     end
     else
@@ -599,7 +640,7 @@ begin
     raise exception.create(rsPointerValueSetupError);
 end;
 
-constructor TReversePointerListHandler.create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar; noreadonly: boolean; mustbeclasspointers: boolean);
+constructor TReversePointerListHandler.create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar; noreadonly: boolean; mustbeclasspointers: boolean; useStacks: boolean; stacksAsStaticOnly: boolean; threadstacks: integer; stacksize: integer);
 var bytepointer: PByte;
     dwordpointer: PDword absolute bytepointer;
     qwordpointer: PQword absolute bytepointer;
@@ -628,6 +669,7 @@ var bytepointer: PByte;
     inmodule: boolean;
     valid: boolean;
     InModulePointerMap: TMap;
+
 begin
   OutputDebugString('TReversePointerListHandler.create');
   try
@@ -636,6 +678,29 @@ begin
 
     modulelist:=tstringlist.create;
     symhandler.getModuleList(modulelist);
+
+    self.useStacks:=useStacks;
+    self.threadStacks:=threadStacks;
+    self.stacksAsStaticOnly:=stacksAsStaticOnly;
+    self.stacksize:=stacksize;
+
+    //fill the stacklist
+    if useStacks then
+    begin
+      setlength(stacklist, threadstacks);
+      for i:=0 to threadstacks-1 do
+      begin
+        stacklist[i]:=GetStackStart(i);
+        if stacklist[i]=0 then
+        begin
+          self.threadstacks:=i;
+          break;
+        end;
+        modulelist.AddObject('THREADSTACK'+inttostr(i), pointer(stacklist[i]));
+      end;
+
+
+    end;
 
     if processhandler.is64Bit then
     begin
@@ -683,19 +748,6 @@ begin
 
       address:=ptrUint(mbi.baseaddress)+mbi.RegionSize;
     end;
- {
-    setlength(memoryregion2,length(memoryregion));
-    for i:=0 to length(memoryregion2)-1 do
-    begin
-      memoryregion2[i].Address:=memoryregion[i].BaseAddress;
-      memoryregion2[i].Size:=memoryregion[i].MemorySize;
-
-
-      if Virtualqueryex(processhandle,pointer(memoryregion2[i].Address),mbi,sizeof(mbi))<>0 then
-        memoryregion2[i].Protect:=mbi.Protect
-      else
-        memoryregion2[i].Protect:=page_readonly;
-    end; }
 
 
     if length(memoryregion)=0 then
@@ -715,7 +767,7 @@ begin
     if (memoryregion[length(memoryregion)-1].BaseAddress+memoryregion[length(memoryregion)-1].MemorySize)>stop then
       dec(memoryregion[length(memoryregion)-1].MemorySize,(memoryregion[length(memoryregion)-1].BaseAddress+memoryregion[length(memoryregion)-1].MemorySize)-stop-1);
 
-    //if anything went ok memoryregions should now contain all the addresses and sizes
+    //if everything went ok memoryregions should now contain all the addresses and sizes
     //to speed it up combine the regions that are attached to eachother.
 
 
@@ -749,6 +801,8 @@ begin
     memoryregion[j].InModule:=InModule;
     memoryregion[j].ValidPointerRange:=valid;
     setlength(memoryregion,j+1);
+
+
 
     //split up the memory regions into small chunks of max 512KB (so don't allocate a fucking 1GB region)
     i:=0;

@@ -13,7 +13,7 @@ const maxcachecount=256;
 
 type TPointerscanResult=record
   modulenr: integer;
-  moduleoffset: dword;
+  moduleoffset: integer;
   offsetcount: integer;
   offsets: array [0..1000] of dword;
 end;
@@ -174,8 +174,11 @@ begin
   if result.modulenr=-1 then
     address:=result.moduleoffset
   else
-    address:=ptruint(modulelist.objects[result.modulenr])+result.moduleoffset;
-    
+  begin
+    address:=ptruint(modulelist.objects[result.modulenr]);
+    address:=address+result.moduleoffset;
+  end;
+
   for j:=result.offsetcount-1 downto 0 do
   begin
     if readprocessmemory(processhandle, pointer(address), @address2, processhandler.pointersize, x) then
@@ -227,7 +230,7 @@ begin
     if j<>-1 then
       modulelist.Addobject(temppchar, tempmodulelist.Objects[j]) //add it and store the base address
     else
-      modulelist.Add(temppchar);
+      modulelist.Addobject(temppchar, pointer(symhandler.getAddressFromName(temppchar)));
   end;
 
   configfile.Read(maxlevel,sizeof(maxlevel));

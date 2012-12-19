@@ -40,6 +40,12 @@ type
     cbClassPointersOnly: TCheckBox;
     cbNoLoop: TCheckBox;
     cbMaxOffsetsPerNode: TCheckBox;
+    cbStackOnly: TCheckBox;
+    edtThreadStacks: TEdit;
+    edtStackSize: TEdit;
+    lblNumberOfStackThreads: TLabel;
+    lblStackSize: TLabel;
+    cbStaticStacks: TCheckBox;
     edtMaxOffsetsPerNode: TEdit;
     edtAddress: TEdit;
     PSSettings: TPageControl;
@@ -62,7 +68,6 @@ type
     btnCancel: TButton;
     edtThreadcount: TEdit;
     ComboBox1: TComboBox;
-    cbOnlyStackAsBase: TCheckBox;
     cbUseHeapData: TCheckBox;
     cbHeapOnly: TCheckBox;
     cbValueType: TComboBox;
@@ -75,6 +80,7 @@ type
     procedure canNotReuse(Sender: TObject);
     procedure cbMaxOffsetsPerNodeChange(Sender: TObject);
     procedure cbMustEndWithSpecificOffsetChange(Sender: TObject);
+    procedure cbStaticStacksChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure cbMustEndWithSpecificOffsetClick(Sender: TObject);
@@ -104,6 +110,8 @@ type
     btnAddOffset: TButton;
     btnRemoveOffset: TButton;
 
+    threadstacks: integer;
+    stacksize: integer;
     scannerpriority: TThreadPriority;
   end;
 
@@ -192,6 +200,12 @@ begin
     6: scannerpriority:=tpTimeCritical;
   end;
 
+  if cbStaticStacks.checked then
+  begin
+    threadstacks:=strtoint(edtThreadStacks.text);
+    stacksize:=strtoint(edtStackSize.text);
+  end;
+
   modalresult:=mrok;
 end;
 
@@ -208,6 +222,17 @@ end;
 
 procedure TfrmPointerScannerSettings.cbMustEndWithSpecificOffsetChange(Sender: TObject);
 begin
+
+end;
+
+procedure TfrmPointerScannerSettings.cbStaticStacksChange(Sender: TObject);
+begin
+  lblNumberOfStackThreads.enabled:=cbStaticStacks.checked;
+  edtThreadStacks.enabled:=cbStaticStacks.checked;
+
+  lblStackSize.enabled:=cbStaticStacks.checked;
+  edtStackSize.enabled:=cbStaticStacks.checked;
+  cbStackOnly.enabled:=cbStaticStacks.checked;
 
 end;
 

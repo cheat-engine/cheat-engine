@@ -1357,6 +1357,8 @@ begin
                   if uppercase(copy(tokens[i],1,11))='THREADSTACK' then
                   begin
                     s:=copy(tokens[i], 12, length(tokens[i])-12+1);
+                    if s='' then s:='0';
+
                     if TryStrToInt(s, j) then
                     begin
                       a:=GetStackStart(j);

@@ -7,7 +7,6 @@ TFRMPOINTERSCANNERSETTINGS.CBALLIGNED.CAPTION=Addresses must be 32-bit alligned
 TFRMPOINTERSCANNERSETTINGS.EDTREVERSESTOP.TEXT=7FFFFFFF
 TFRMPOINTERSCANNERSETTINGS.EDTREVERSESTART.TEXT=00000000
 TFRMPOINTERSCANNERSETTINGS.CBSTATICONLY.CAPTION=Only find paths with a static address
-TFRMPOINTERSCANNERSETTINGS.CBONLYSTACKASBASE.CAPTION=Only use the maintread stack as a base
 TFRMPOINTERSCANNERSETTINGS.CBUSEHEAPDATA.CAPTION=Improve pointerscan with gathered heap data
 TFRMPOINTERSCANNERSETTINGS.CBHEAPONLY.HINT=If the address you search for isn't a heap address, the scan will return 0 results
 TFRMPOINTERSCANNERSETTINGS.CBHEAPONLY.CAPTION=Only allow static and heap addresses in the path
@@ -17,6 +16,17 @@ TFRMPOINTERSCANNERSETTINGS.CBCLASSPOINTERSONLY.CAPTION=First element of pointers
 TFRMPOINTERSCANNERSETTINGS.CBNOLOOP.CAPTION=No looping pointers
 TFRMPOINTERSCANNERSETTINGS.CBMAXOFFSETSPERNODE.CAPTION=Max different offsets per node:
 TFRMPOINTERSCANNERSETTINGS.EDTMAXOFFSETSPERNODE.TEXT=2
+TFRMPOINTERSCANNERSETTINGS.CBSTATICSTACKS.CAPTION=Allow stack addresses of the first thread(s) to be handled as static
+TFRMPOINTERSCANNERSETTINGS.LBLNUMBEROFSTACKTHREADS.CAPTION=Number of threads from oldest to newest:
+TFRMPOINTERSCANNERSETTINGS.EDTTHREADSTACKS.HINT=Fill in the total number of threads that should be allowed to be used as a stack lookup.
+Thread 1 is usually the main thread of the game, but if that one spawns another thread for game related events, you might want to have that secondary thread as well.
+More threads is not recommend as they may get created and destroyed on the fly, and are therefore useless as a lookup base, but it depends on the game.
+TFRMPOINTERSCANNERSETTINGS.EDTTHREADSTACKS.TEXT=2
+TFRMPOINTERSCANNERSETTINGS.LBLSTACKSIZE.CAPTION=Max stackoffset to be deemed static enough:
+TFRMPOINTERSCANNERSETTINGS.EDTSTACKSIZE.TEXT=4096
+TFRMPOINTERSCANNERSETTINGS.CBSTACKONLY.HINT=Enable this if you wish to only find pointer paths with a stack address.
+Combine this with "Only find paths with a static address" (default on) else this option will have no effect
+TFRMPOINTERSCANNERSETTINGS.CBSTACKONLY.CAPTION=Stack addresses as ONLY static address
 TFRMPOINTERSCANNERSETTINGS.CBMUSTENDWITHSPECIFICOFFSET.CAPTION=Pointers must end with specific offsets
 TFRMPOINTERSCANNERSETTINGS.LABEL3.CAPTION=Maximum offset value:
 TFRMPOINTERSCANNERSETTINGS.LABEL12.CAPTION=Max level
