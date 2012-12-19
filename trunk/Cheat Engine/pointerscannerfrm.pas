@@ -219,6 +219,11 @@ type
     mustBeClassPointers: boolean; //when set the pointers must all point to a class object
     noLoop: boolean; //when set a pointerpath may not have the same address multiple times
 
+    useStacks: boolean; //when set the stack regions will be marked as static
+    stacksAsStaticOnly: boolean; //when set the only static addresses are stack addresses
+    threadstacks: integer; //the number of stacks used as a lookup. (counted from first stack to newer ones)
+    stacksize: integer; //Number of bytes in a stack
+
 
     threadcount: integer;
     scannerpriority: TThreadPriority;
@@ -905,7 +910,7 @@ begin
       phase:=1;
       progressbar.Position:=0;
       try
-        ownerform.pointerlisthandler:=TReversePointerListHandler.Create(startaddress,stopaddress,not unalligned,progressbar, noreadonly, MustBeClassPointers);
+        ownerform.pointerlisthandler:=TReversePointerListHandler.Create(startaddress,stopaddress,not unalligned,progressbar, noreadonly, MustBeClassPointers, useStacks, stacksAsStaticOnly, threadstacks, stacksize);
 
         postmessage(ownerform.Handle, wm_starttimer, 0,0);
 
@@ -1088,6 +1093,13 @@ begin
 
       staticscanner.noReadOnly:=frmpointerscannersettings.cbNoReadOnly.checked;
       staticscanner.mustBeClassPointers:=frmpointerscannersettings.cbClassPointersOnly.checked;
+
+      staticscanner.useStacks:=frmpointerscannersettings.cbStaticStacks.checked;
+      staticscanner.stacksAsStaticOnly:=frmPointerscannersettings.cbStackOnly.checked;
+      staticscanner.threadstacks:=frmPointerscannersettings.threadstacks;
+      staticscanner.stacksize:=frmPointerscannersettings.stacksize;
+
+
 
 
       staticscanner.startaddress:=frmpointerscannersettings.start;
@@ -2052,7 +2064,7 @@ var
   x: dword;
 
   address: ptrUint;
-    
+
 begin
   if Pointerscanresults<>nil then
   begin
@@ -2062,7 +2074,12 @@ begin
       if p.modulenr=-1 then
         item.Caption:=inttohex(p.moduleoffset,8)
       else
-        item.Caption:=ansitoutf8('"'+pointerscanresults.getModulename(p.modulenr)+'"'+'+'+inttohex(p.moduleoffset,8));
+      begin
+        if p.moduleoffset>=0 then
+          item.Caption:=ansitoutf8('"'+pointerscanresults.getModulename(p.modulenr)+'"+'+inttohex(p.moduleoffset,8))
+        else
+          item.Caption:=ansitoutf8('"'+pointerscanresults.getModulename(p.modulenr)+'"-'+inttohex(-p.moduleoffset,8));
+      end;
 
       for i:=p.offsetcount-1 downto 0 do
         item.SubItems.Add(inttohex(p.offsets[i],1));
