@@ -22,7 +22,7 @@
       <Item1 Name="release" Default="True"/>
       <Item2 Name="debug">
         <CompilerOptions>
-          <Version Value="10"/>
+          <Version Value="11"/>
           <PathDelim Value="\"/>
           <Target>
             <Filename Value="..\bin\vehdebug-$(TargetCPU)"/>
@@ -42,10 +42,6 @@
             </Optimizations>
           </CodeGeneration>
           <Linking>
-            <Debugging>
-              <GenerateDebugInfo Value="True"/>
-              <DebugInfoType Value="dsAuto"/>
-            </Debugging>
             <LinkSmart Value="True"/>
             <Options>
               <ExecutableType Value="Library"/>
@@ -69,11 +65,11 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <HostApplicationFilename Value="F:\svn\Cheat Engine 6\bin\tutorial-x86_64.exe"/>
+        <HostApplicationFilename Value="F:\svn\Cheat Engine\bin\tutorial-x86_64.exe"/>
         <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="23">
+    <Units Count="29">
       <Unit0>
         <Filename Value="vehdebug.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -81,8 +77,8 @@
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
-        <CursorPos X="16" Y="10"/>
-        <UsageCount Value="140"/>
+        <CursorPos X="16" Y="11"/>
+        <UsageCount Value="141"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -91,12 +87,11 @@
         <Filename Value="init.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="init"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="2"/>
-        <CursorPos X="1" Y="88"/>
-        <UsageCount Value="140"/>
+        <TopLine Value="71"/>
+        <CursorPos X="3" Y="82"/>
+        <UsageCount Value="141"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit1>
@@ -104,11 +99,11 @@
         <Filename Value="DebugHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DebugHandler"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="9"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="108"/>
-        <CursorPos X="23" Y="98"/>
-        <UsageCount Value="140"/>
+        <TopLine Value="23"/>
+        <CursorPos X="87" Y="31"/>
+        <UsageCount Value="141"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit2>
@@ -147,11 +142,11 @@
         <Filename Value="VEHDebugSharedMem.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="VEHDebugSharedMem"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
         <TopLine Value="9"/>
         <CursorPos X="3" Y="14"/>
-        <UsageCount Value="140"/>
+        <UsageCount Value="141"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit7>
@@ -181,11 +176,12 @@
         <Filename Value="threadpoll.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="threadpoll"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="29"/>
-        <CursorPos X="8" Y="35"/>
-        <UsageCount Value="100"/>
+        <TopLine Value="103"/>
+        <CursorPos X="39" Y="13"/>
+        <UsageCount Value="101"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit11>
@@ -258,11 +254,11 @@
         <Filename Value="extcont.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="extcont"/>
-        <EditorIndex Value="5"/>
+        <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
         <TopLine Value="107"/>
         <CursorPos X="12" Y="134"/>
-        <UsageCount Value="68"/>
+        <UsageCount Value="69"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit21>
@@ -275,132 +271,185 @@
         <UsageCount Value="5"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit22>
+      <Unit23>
+        <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\win\wininc\func.inc"/>
+        <EditorIndex Value="10"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="147"/>
+        <CursorPos X="10" Y="161"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+      </Unit23>
+      <Unit24>
+        <Filename Value="SimpleThread.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="SimpleThread"/>
+        <EditorIndex Value="6"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="25"/>
+        <CursorPos X="5" Y="43"/>
+        <UsageCount Value="21"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit24>
+      <Unit25>
+        <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\objpas\classes\classesh.inc"/>
+        <EditorIndex Value="3"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1540"/>
+        <CursorPos X="21" Y="1548"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit25>
+      <Unit26>
+        <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\objpas\classes\classes.inc"/>
+        <EditorIndex Value="5"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="79"/>
+        <CursorPos X="10" Y="78"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit26>
+      <Unit27>
+        <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\win\tthread.inc"/>
+        <EditorIndex Value="4"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="47" Y="11"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit27>
+      <Unit28>
+        <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\win\wininc\redef.inc"/>
+        <EditorIndex Value="7"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="343"/>
+        <CursorPos X="10" Y="357"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit28>
     </Units>
-    <JumpHistory Count="30" HistoryIndex="29">
+    <JumpHistory Count="29" HistoryIndex="28">
       <Position1>
-        <Filename Value="extcont.pas"/>
-        <Caret Line="8" Column="29" TopLine="1"/>
+        <Filename Value="DebugHandler.pas"/>
+        <Caret Line="32" Column="19" TopLine="23"/>
       </Position1>
       <Position2>
-        <Filename Value="extcont.pas"/>
-        <Caret Line="112" Column="33" TopLine="97"/>
+        <Filename Value="init.pas"/>
+        <Caret Line="103" Column="9" TopLine="86"/>
       </Position2>
       <Position3>
-        <Filename Value="init.pas"/>
-        <Caret Line="182" Column="15" TopLine="156"/>
+        <Filename Value="DebugHandler.pas"/>
+        <Caret Line="21" Column="12" TopLine="1"/>
       </Position3>
       <Position4>
         <Filename Value="DebugHandler.pas"/>
-        <Caret Line="72" Column="63" TopLine="54"/>
+        <Caret Line="133" Column="3" TopLine="113"/>
       </Position4>
       <Position5>
-        <Filename Value="vehdebug.lpr"/>
-        <Caret Line="10" Column="14" TopLine="1"/>
+        <Filename Value="init.pas"/>
+        <Caret Line="103" Column="9" TopLine="86"/>
       </Position5>
       <Position6>
-        <Filename Value="DebugHandler.pas"/>
-        <Caret Line="74" Column="37" TopLine="58"/>
+        <Filename Value="init.pas"/>
+        <Caret Line="109" Column="11" TopLine="96"/>
       </Position6>
       <Position7>
-        <Filename Value="DebugHandler.pas"/>
-        <Caret Line="83" Column="60" TopLine="58"/>
+        <Filename Value="threadpoll.pas"/>
+        <Caret Line="25" Column="5" TopLine="11"/>
       </Position7>
       <Position8>
-        <Filename Value="DebugHandler.pas"/>
-        <Caret Line="45" Column="35" TopLine="34"/>
+        <Filename Value="threadpoll.pas"/>
+        <Caret Line="13" Column="41" TopLine="1"/>
       </Position8>
       <Position9>
-        <Filename Value="DebugHandler.pas"/>
-        <Caret Line="76" Column="45" TopLine="67"/>
+        <Filename Value="SimpleThread.pas"/>
+        <Caret Line="19" Column="9" TopLine="1"/>
       </Position9>
       <Position10>
-        <Filename Value="DebugHandler.pas"/>
-        <Caret Line="83" Column="45" TopLine="67"/>
+        <Filename Value="init.pas"/>
+        <Caret Line="108" Column="18" TopLine="99"/>
       </Position10>
       <Position11>
-        <Filename Value="DebugHandler.pas"/>
-        <Caret Line="77" Column="1" TopLine="33"/>
+        <Filename Value="threadpoll.pas"/>
+        <Caret Line="32" Column="1" TopLine="21"/>
       </Position11>
       <Position12>
-        <Filename Value="DebugHandler.pas"/>
-        <Caret Line="51" Column="46" TopLine="34"/>
+        <Filename Value="init.pas"/>
+        <Caret Line="84" Column="46" TopLine="70"/>
       </Position12>
       <Position13>
-        <Filename Value="threadpoll.pas"/>
-        <Caret Line="69" Column="3" TopLine="62"/>
+        <Filename Value="SimpleThread.pas"/>
+        <Caret Line="29" Column="17" TopLine="12"/>
       </Position13>
       <Position14>
-        <Filename Value="threadpoll.pas"/>
-        <Caret Line="78" Column="18" TopLine="61"/>
+        <Filename Value="SimpleThread.pas"/>
+        <Caret Line="39" Column="21" TopLine="16"/>
       </Position14>
       <Position15>
-        <Filename Value="threadpoll.pas"/>
-        <Caret Line="100" Column="25" TopLine="83"/>
+        <Filename Value="SimpleThread.pas"/>
+        <Caret Line="19" Column="22" TopLine="4"/>
       </Position15>
       <Position16>
-        <Filename Value="init.pas"/>
-        <Caret Line="79" Column="10" TopLine="15"/>
+        <Filename Value="SimpleThread.pas"/>
+        <Caret Line="39" Column="20" TopLine="16"/>
       </Position16>
       <Position17>
-        <Filename Value="init.pas"/>
-        <Caret Line="175" Column="34" TopLine="151"/>
+        <Filename Value="SimpleThread.pas"/>
+        <Caret Line="30" Column="1" TopLine="16"/>
       </Position17>
       <Position18>
-        <Filename Value="DebugHandler.pas"/>
-        <Caret Line="41" Column="1" TopLine="24"/>
+        <Filename Value="threadpoll.pas"/>
+        <Caret Line="27" Column="10" TopLine="1"/>
       </Position18>
       <Position19>
         <Filename Value="threadpoll.pas"/>
-        <Caret Line="104" Column="26" TopLine="87"/>
+        <Caret Line="13" Column="33" TopLine="1"/>
       </Position19>
       <Position20>
-        <Filename Value="threadpoll.pas"/>
-        <Caret Line="78" Column="18" TopLine="70"/>
+        <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\win\tthread.inc"/>
+        <Caret Line="11" Column="47" TopLine="3"/>
       </Position20>
       <Position21>
-        <Filename Value="threadpoll.pas"/>
-        <Caret Line="100" Column="25" TopLine="1"/>
+        <Filename Value="SimpleThread.pas"/>
+        <Caret Line="47" Column="69" TopLine="24"/>
       </Position21>
       <Position22>
-        <Filename Value="threadpoll.pas"/>
-        <Caret Line="11" Column="48" TopLine="4"/>
+        <Filename Value="SimpleThread.pas"/>
+        <Caret Line="70" Column="44" TopLine="42"/>
       </Position22>
       <Position23>
-        <Filename Value="threadpoll.pas"/>
-        <Caret Line="35" Column="16" TopLine="10"/>
+        <Filename Value="SimpleThread.pas"/>
+        <Caret Line="44" Column="10" TopLine="22"/>
       </Position23>
       <Position24>
-        <Filename Value="init.pas"/>
-        <Caret Line="57" Column="16" TopLine="40"/>
+        <Filename Value="SimpleThread.pas"/>
+        <Caret Line="62" Column="75" TopLine="47"/>
       </Position24>
       <Position25>
-        <Filename Value="threadpoll.pas"/>
-        <Caret Line="49" Column="15" TopLine="32"/>
+        <Filename Value="SimpleThread.pas"/>
+        <Caret Line="15" Column="20" TopLine="1"/>
       </Position25>
       <Position26>
-        <Filename Value="DebugHandler.pas"/>
-        <Caret Line="50" Column="46" TopLine="48"/>
+        <Filename Value="init.pas"/>
+        <Caret Line="108" Column="18" TopLine="145"/>
       </Position26>
       <Position27>
-        <Filename Value="DebugHandler.pas"/>
-        <Caret Line="66" Column="6" TopLine="48"/>
+        <Filename Value="SimpleThread.pas"/>
+        <Caret Line="57" Column="55" TopLine="38"/>
       </Position27>
       <Position28>
-        <Filename Value="vehdebug.lpr"/>
-        <Caret Line="10" Column="16" TopLine="1"/>
+        <Filename Value="SimpleThread.pas"/>
+        <Caret Line="59" Column="44" TopLine="49"/>
       </Position28>
       <Position29>
-        <Filename Value="init.pas"/>
-        <Caret Line="99" Column="5" TopLine="89"/>
+        <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\win\tthread.inc"/>
+        <Caret Line="11" Column="47" TopLine="1"/>
       </Position29>
-      <Position30>
-        <Filename Value="DebugHandler.pas"/>
-        <Caret Line="94" Column="85" TopLine="76"/>
-      </Position30>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="10"/>
+    <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
       <Filename Value="..\bin\vehdebug-$(TargetCPU)"/>
@@ -416,13 +465,14 @@
     </Parsing>
     <CodeGeneration>
       <SmartLinkUnit Value="True"/>
+      <RelocatableUnit Value="True"/>
       <Optimizations>
         <OptimizationLevel Value="3"/>
       </Optimizations>
     </CodeGeneration>
     <Linking>
       <Debugging>
-        <DebugInfoType Value="dsAuto"/>
+        <GenerateDebugInfo Value="False"/>
         <UseLineInfoUnit Value="False"/>
         <StripSymbols Value="True"/>
       </Debugging>
@@ -451,4 +501,5 @@
       </Item3>
     </Exceptions>
   </Debugging>
+  <EditorMacros Count="0"/>
 </CONFIG>

@@ -7373,7 +7373,11 @@ end;
 
 procedure TMainForm.miTutorialClick(Sender: TObject);
 begin
+  {$ifdef TUT64}
+  shellexecute(0, 'open', pchar(cheatenginedir+'Tutorial-x86_64.exe'), nil, nil, sw_show);
+  {$else}
   shellexecute(0, 'open', pchar(cheatenginedir+'Tutorial-i386.exe'), nil, nil, sw_show);
+  {$endif}
 end;
 
 procedure TMainForm.miChangeValueClick(Sender: TObject);
