@@ -201,6 +201,8 @@ var
   temppcharmaxlength: dword;
 
   filenamecount: integer;
+  error: boolean;
+  a: ptruint;
 begin
   FFilename:=filename;
   configfile:=TFileStream.Create(filename, fmOpenRead or fmShareDenyWrite);
@@ -230,7 +232,11 @@ begin
     if j<>-1 then
       modulelist.Addobject(temppchar, tempmodulelist.Objects[j]) //add it and store the base address
     else
-      modulelist.Addobject(temppchar, pointer(symhandler.getAddressFromName(temppchar)));
+    begin
+      a:=symhandler.getAddressFromName(temppchar,false,error,nil);
+      if not error then
+        modulelist.Addobject(temppchar, pointer(a));
+    end;
   end;
 
   configfile.Read(maxlevel,sizeof(maxlevel));
