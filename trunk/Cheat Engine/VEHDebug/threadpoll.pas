@@ -8,16 +8,15 @@ Keeps a list of all the threads and notifies the debugger when a change has happ
 interface
 
 uses
-  jwawindows,windows,Classes, SysUtils,init, extcont;
+  jwawindows,windows,Classes, SysUtils,init, extcont, simpleThread;
 
-type TThreadPoller=class(tthread)
+type TThreadPoller=class(TSimpleThread)
   private
     threadlist: TList;
     procedure GetCurrentList(list: tlist);
     procedure UpdateList;
     procedure CreateThreadEvent(threadid: dword);
     procedure DestroyThreadEvent(threadid: dword);
-
   public
     procedure execute; override;
 end;
@@ -124,6 +123,9 @@ begin
     threadlist.free;
   end;
 end;
+
+
+
 
 end.
 

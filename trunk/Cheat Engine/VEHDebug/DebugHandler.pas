@@ -22,6 +22,9 @@ var HandlerCS: TCRITICALSECTION;
 
 procedure testandfixcs_start;
 begin
+  if emergency=0 then
+    OutputDebugString('emergency event not created');
+
   setevent(emergency);
 end;
 

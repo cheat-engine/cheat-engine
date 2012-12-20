@@ -105,7 +105,6 @@ begin
   OutputDebugString('VEHDebug init');
 
 
-
   if ThreadPoller<>nil then
   begin
     ThreadPoller.Terminate;
@@ -176,6 +175,7 @@ begin
 
 
   end;
+
 end;
 
 procedure UnloadVEH;
