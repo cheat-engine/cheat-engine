@@ -717,8 +717,8 @@ begin
   result:=false;
   for i:=0 to length(ts)-1 do
   begin
-    if pchar(buf)[(i-1)] in ['a'..'z'] then //change to uppercase
-      dec(pbytearray(buf)[(i-1)],$20);
+    if pchar(buf)[i] in ['a'..'z'] then //change to uppercase
+      dec(pbytearray(buf)[i],$20);
 
     if ts[i]<>(pchar(buf)[i]) then exit;
   end;
@@ -735,8 +735,8 @@ begin
 
   for i:=0 to length(ts)-1 do
   begin
-    if pchar(buf)[(i-1)*sizeof(wchar)] in ['a'..'z'] then //change to uppercase
-      dec(pbytearray(buf)[(i-1)*sizeof(wchar)],$20);
+    if pchar(buf)[i*sizeof(wchar)] in ['a'..'z'] then //change to uppercase
+      dec(pbytearray(buf)[i*sizeof(wchar)],$20);
 
     if ts[i]<>(pwidechar(buf)[i]) then exit;
   end;
