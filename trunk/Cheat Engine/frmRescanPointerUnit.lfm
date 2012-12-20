@@ -15,10 +15,10 @@ object frmRescanPointer: TfrmRescanPointer
   object edtAddress: TEdit
     Left = 8
     Height = 21
-    Top = 26
+    Top = 24
     Width = 111
     CharCase = ecUppercase
-    TabOrder = 0
+    TabOrder = 1
   end
   object cbValueType: TComboBox
     Left = 125
@@ -33,7 +33,7 @@ object frmRescanPointer: TfrmRescanPointer
       'Double'
     )
     Style = csDropDownList
-    TabOrder = 1
+    TabOrder = 2
     Text = '4 Byte'
   end
   object Panel2: TPanel
@@ -44,7 +44,7 @@ object frmRescanPointer: TfrmRescanPointer
     BevelOuter = bvNone
     ClientHeight = 25
     ClientWidth = 249
-    TabOrder = 2
+    TabOrder = 0
     object rbFindAddress: TRadioButton
       Left = 0
       Height = 19
@@ -72,21 +72,21 @@ object frmRescanPointer: TfrmRescanPointer
     Top = 73
     Width = 97
     Caption = 'Delay rescan for'
-    TabOrder = 3
+    TabOrder = 4
   end
   object edtDelay: TEdit
     Left = 112
     Height = 21
     Top = 73
     Width = 32
-    TabOrder = 4
+    TabOrder = 5
     Text = '0'
   end
   object Label1: TLabel
     Left = 146
-    Height = 14
+    Height = 13
     Top = 76
-    Width = 41
+    Width = 40
     Caption = 'seconds'
     ParentColor = False
   end
@@ -97,7 +97,7 @@ object frmRescanPointer: TfrmRescanPointer
     Width = 160
     Caption = 'Base pointer must be in range'
     OnChange = cbBasePointerMustBeInRangeChange
-    TabOrder = 5
+    TabOrder = 6
   end
   object edtBaseStart: TEdit
     Left = 8
@@ -106,7 +106,7 @@ object frmRescanPointer: TfrmRescanPointer
     Width = 112
     CharCase = ecUppercase
     Enabled = False
-    TabOrder = 6
+    TabOrder = 7
     Text = '0000000000000000'
   end
   object cbMustStartWithSpecificOffsets: TCheckBox
@@ -116,7 +116,7 @@ object frmRescanPointer: TfrmRescanPointer
     Width = 122
     Caption = 'Must start with offsets'
     OnChange = cbMustStartWithSpecificOffsetsChange
-    TabOrder = 7
+    TabOrder = 10
   end
   object pnlButtons: TPanel
     Left = 56
@@ -126,16 +126,16 @@ object frmRescanPointer: TfrmRescanPointer
     BevelOuter = bvNone
     ClientHeight = 34
     ClientWidth = 170
-    TabOrder = 8
+    TabOrder = 12
     object Button2: TButton
       Left = 85
       Height = 25
-      Top = 3
+      Top = 4
       Width = 75
       Cancel = True
       Caption = 'Cancel'
       ModalResult = 2
-      TabOrder = 0
+      TabOrder = 1
     end
     object Button1: TButton
       Left = 5
@@ -145,24 +145,24 @@ object frmRescanPointer: TfrmRescanPointer
       Caption = 'OK'
       Default = True
       OnClick = Button1Click
-      TabOrder = 1
+      TabOrder = 0
     end
   end
   object edtBaseEnd: TEdit
     Left = 146
     Height = 21
-    Top = 121
+    Top = 120
     Width = 112
     CharCase = ecUppercase
     Enabled = False
-    TabOrder = 9
+    TabOrder = 8
     Text = 'FFFFFFFFFFFFFFFF'
   end
   object lblAnd: TLabel
     Left = 123
-    Height = 14
+    Height = 13
     Top = 123
-    Width = 19
+    Width = 18
     Caption = 'and'
     Enabled = False
     ParentColor = False
@@ -174,15 +174,15 @@ object frmRescanPointer: TfrmRescanPointer
     Width = 120
     Caption = 'Must end with offsets'
     OnChange = cbMustEndWithSpecificOffsetsChange
-    TabOrder = 10
+    TabOrder = 11
   end
   object cbRepeat: TCheckBox
     Left = 8
     Height = 19
-    Top = 145
+    Top = 144
     Width = 153
     Caption = 'Repeat rescan until stopped'
-    TabOrder = 11
+    TabOrder = 9
   end
   object cbNoValueCheck: TCheckBox
     Left = 8
@@ -191,6 +191,6 @@ object frmRescanPointer: TfrmRescanPointer
     Width = 154
     Caption = 'Only filter out invalid pointers'
     OnChange = cbNoValueCheckChange
-    TabOrder = 12
+    TabOrder = 3
   end
 end
