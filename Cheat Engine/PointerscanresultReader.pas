@@ -44,6 +44,7 @@ type TPointerscanresultReader=class
     function getModuleBase(modulenr: integer): ptrUint;
     function getPointer(i: qword): PPointerscanResult; overload;
     function getPointer(i: qword; var pointsto: ptrUint): PPointerscanResult; overload;
+    procedure getFileList(list: TStrings);
     constructor create(filename: string);
     destructor destroy; override;
     property count: qword read FCount;
@@ -188,6 +189,13 @@ begin
   end;
 
   pointsto:=address;
+end;
+
+procedure TPointerscanresultReader.getFileList(list: TStrings);
+var i: integer;
+begin
+  for i:=0 to length(files)-1 do
+    list.add(files[i].f.FileName);
 end;
 
 constructor TPointerscanresultReader.create(filename: string);

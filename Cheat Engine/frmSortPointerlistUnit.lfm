@@ -1,0 +1,58 @@
+object frmSortPointerlist: TfrmSortPointerlist
+  Left = 677
+  Height = 85
+  Top = 225
+  Width = 320
+  BorderStyle = bsSingle
+  Caption = 'Sorting'
+  ClientHeight = 85
+  ClientWidth = 320
+  OnClose = FormClose
+  OnDestroy = FormDestroy
+  Position = poScreenCenter
+  LCLVersion = '1.1'
+  object Label1: TLabel
+    Left = 0
+    Height = 15
+    Top = 0
+    Width = 320
+    Align = alTop
+    Alignment = taCenter
+    Caption = 'Sorting the pointerlist. Please wait....'
+    ParentColor = False
+  end
+  object Button1: TButton
+    Left = 128
+    Height = 25
+    Top = 56
+    Width = 75
+    Caption = 'Cancel'
+    Default = True
+    ModalResult = 2
+    OnClick = Button1Click
+    TabOrder = 0
+  end
+  object lblTimeLeft: TLabel
+    Left = 0
+    Height = 15
+    Top = 15
+    Width = 320
+    Align = alTop
+    Alignment = taCenter
+    Caption = 'Estimated time left:'
+    ParentColor = False
+  end
+  object ProgressBar1: TProgressBar
+    Left = 0
+    Height = 20
+    Top = 30
+    Width = 320
+    Align = alTop
+    TabOrder = 1
+  end
+  object Timer1: TTimer
+    OnTimer = Timer1Timer
+    left = 8
+    top = 32
+  end
+end
