@@ -757,25 +757,25 @@ begin
     case groupdata[i].vartype of
       vtByte:
       begin
-        result:=groupdata[i].wildcard or (pbyte(newvalue)^=groupdata[i].valuei);
+        result:=groupdata[i].wildcard or (pbyte(newvalue)^=byte(groupdata[i].valuei));
         inc(newvalue, 1);
       end;
 
       vtWord:
       begin
-        result:=groupdata[i].wildcard or (pword(newvalue)^=groupdata[i].valuei);
+        result:=groupdata[i].wildcard or (pword(newvalue)^=word(groupdata[i].valuei));
         inc(newvalue, 2);
       end;
 
       vtDWord:
       begin
-        result:=groupdata[i].wildcard or (pdword(newvalue)^=groupdata[i].valuei);
+        result:=groupdata[i].wildcard or (pdword(newvalue)^=dword(groupdata[i].valuei));
         inc(newvalue, 4);
       end;
 
       vtQWord:
       begin
-        result:=groupdata[i].wildcard or (pqword(newvalue)^=groupdata[i].valuei);
+        result:=groupdata[i].wildcard or (pqword(newvalue)^=qword(groupdata[i].valuei));
         inc(newvalue, 8);
       end;
 
