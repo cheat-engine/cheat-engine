@@ -9,7 +9,7 @@ uses
   Dialogs, StdCtrls, ExtCtrls, ComCtrls, syncobjs,syncobjs2, Menus, math,
   frmRescanPointerUnit, pointervaluelist, rescanhelper,
   virtualmemory, symbolhandler,MainUnit,disassembler,CEFuncProc,NewKernelHandler,
-  valuefinder, PointerscanresultReader;
+  valuefinder, PointerscanresultReader, maps;
 
 
 const staticscanner_done=wm_user+1;
@@ -281,6 +281,7 @@ type
     procedure btnStopRescanLoopClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormResize(Sender: TObject);
+    procedure ListView1ColumnClick(Sender: TObject; Column: TListColumn);
     procedure ListView1Resize(Sender: TObject);
     procedure Method3Fastspeedandaveragememoryusage1Click(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
@@ -324,7 +325,7 @@ type
 implementation
 
 
-uses PointerscannerSettingsFrm, frmMemoryAllocHandlerUnit;
+uses PointerscannerSettingsFrm, frmMemoryAllocHandlerUnit, frmSortPointerlistUnit;
 
 resourcestring
   rsErrorDuringScan = 'Error during scan';
@@ -1241,6 +1242,64 @@ end;
 procedure Tfrmpointerscanner.FormResize(Sender: TObject);
 begin
   btnStopRescanLoop.Left:=(clientwidth div 2) - (btnStopRescanLoop.Width div 2);
+end;
+
+procedure Tfrmpointerscanner.ListView1ColumnClick(Sender: TObject; Column: TListColumn);
+//Using dark byte's super secret "Screw this, I'll just split it into chunks" algorithm
+var
+  c: integer;
+  frmSortPointerlist: TfrmSortPointerlist;
+  tempname: string;
+
+  oldname: string;
+  oldlist: Tstringlist;
+  tempfilelist: tstringlist;
+
+  newname: string;
+  i: integer;
+  s: string;
+begin
+  c:=column.index;
+  if c=listview1.ColumnCount-1 then exit; //raise exception.create('The result/value list is unsortable');
+
+
+  frmSortPointerlist:=TfrmSortPointerlist.Create(self);
+  oldname:=Pointerscanresults.filename;
+  oldlist:=tstringlist.create;
+  tempfilelist:=tstringlist.create;
+  Pointerscanresults.getFileList(oldlist);
+
+  if frmSortPointerlist.dowork(column.index, oldname , tempname, tempfilelist) then
+  begin
+    //sorting done
+
+    new1.Click;
+
+    //delete the old pointerfiles
+    for i:=0 to oldlist.Count-1 do
+    begin
+      s:=oldlist[i];
+      DeleteFile(s);
+    end;
+
+    deletefile(oldname);
+    renamefile(tempname, oldname);
+
+    for i:=0 to tempfilelist.count-1 do
+    begin
+      newname:=StringReplace(tempfilelist[i], tempname, oldname,[]);
+      DeleteFile(newname);
+
+      RenameFile(tempfilelist[i], newname);
+    end;
+
+
+    OpenPointerfile(oldname);
+  end;
+
+  oldlist.free;
+
+  frmSortPointerlist.free;
 end;
 
 procedure Tfrmpointerscanner.Timer2Timer(Sender: TObject);

@@ -144,7 +144,6 @@ object frmPointerScanner: TfrmPointerScanner
     Top = 0
     Width = 225
     Columns = <>
-    ColumnClick = False
     HideSelection = False
     OwnerData = True
     PopupMenu = PopupMenu1
@@ -153,6 +152,7 @@ object frmPointerScanner: TfrmPointerScanner
     TabOrder = 3
     Visible = False
     ViewStyle = vsReport
+    OnColumnClick = ListView1ColumnClick
     OnData = ListView1Data
     OnDblClick = ListView1DblClick
     OnResize = ListView1Resize
