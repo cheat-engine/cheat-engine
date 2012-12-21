@@ -256,7 +256,9 @@ begin
 
   fcount:=0;
   //open the files
-  for i:=0 to filenamecount-1 do
+  i:=0;
+  j:=0;
+  while i<filenamecount do
   begin
     configfile.Read(x,sizeof(x));
     while x>=temppcharmaxlength do
@@ -269,11 +271,18 @@ begin
     temppchar[x]:=#0;
 
 
-    files[i].f:=TFileStream.Create(ExtractFilePath(filename)+temppchar, fmOpenRead or fmShareDenyWrite);
-    files[i].startindex:=fcount;
-    fcount:=fcount+uint64(files[i].f.Size div uint64(sizeofentry));
-    files[i].lastindex:=fcount-1;
+    try
+      files[j].f:=TFileStream.Create(ExtractFilePath(filename)+temppchar, fmOpenRead or fmShareDenyWrite);
+      files[j].startindex:=fcount;
+      fcount:=fcount+uint64(files[j].f.Size div uint64(sizeofentry));
+      files[j].lastindex:=fcount-1;
+      inc(j);
+    except
+    end;
+
+    inc(i);
   end;
+  setlength(files,j);
 
   getmem(cache, sizeofEntry*maxcachecount);
   InitializeCache(0);
