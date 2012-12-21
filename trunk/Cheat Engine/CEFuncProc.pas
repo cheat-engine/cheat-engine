@@ -28,7 +28,7 @@ savedscanhandler,
 {$endif}
 {$endif}
 {$endif}
- math,syncobjs, shellapi, ProcessHandlerUnit, controls, shlobj, ActiveX;
+ math,syncobjs, shellapi, ProcessHandlerUnit, controls, shlobj, ActiveX, strutils;
 
 
 
@@ -2601,59 +2601,49 @@ Converts a given string into a array of TBytes.
 TBytes are not pure bytes, they can hold -1, which indicates a wildcard
 }
 var i,j,k: integer;
-    helpstr:string;
+    helpstr,helpstr2:string;
+    delims: TSysCharSet;
 begin
   setlength(bytes,0);
   if length(scanvalue)=0 then exit;
 
+  delims:=[' ',',','-']; //[#0..#255] - ['a'..'f','A'..'F','1'..'9','0','*']; //everything except hexadecimal and wildcard
+
   scanvalue:=trim(scanvalue);
 
- { while scanvalue[length(scanvalue)]=' ' do
-    scanvalue:=copy(scanvalue,1,length(scanvalue)-1); }
 
-  if (pos('-',scanvalue)>0) or (pos(' ',scanvalue)>0) or (pos(',',scanvalue)>0) then
+  for i:=1 to WordCount(scanvalue, delims) do
   begin
-    //syntax is xx-xx-xx or xx xx xx
-    j:=1;
-    k:=0;
-    scanvalue:=scanvalue+' ';
+    helpstr:=ExtractWord(i, scanvalue, delims);
 
-    for i:=1 to length(scanvalue) do
+    if helpstr<>'' then
     begin
-      if (scanvalue[i] in [' ', '-', ',']) then
+      if not hex then
       begin
-        helpstr:=copy(scanvalue,j,i-j);
-        j:=i+1;
-        setlength(bytes,k+1);
+        setlength(bytes,length(bytes)+1);
         try
-          if hex then bytes[k]:=strtoint('$'+helpstr)
-                 else bytes[k]:=strtoint(helpstr);
+          bytes[length(bytes)-1]:=strtoint(helpstr);
         except
-          bytes[k]:=-1;
-          //if it is not a '-' or ' ' or a valid value then I assume it is a wildcard.(I know, retarded)
+          bytes[length(bytes)-1]:=-1; //wildcard
         end;
-        inc(k);
-      end;
-    end;
-  end else
-  begin
-    //syntax is xxxxxx
-    k:=0;
-    j:=1;
-    for i:=1 to length(scanvalue) do
-    begin
-      if (i mod 2)=0 then
+      end
+      else
       begin
-        helpstr:=copy(scanvalue,j,i-j+1);
-        j:=i+1;
-        setlength(bytes,k+1);
-        try
-          bytes[k]:=strtoint('$'+helpstr);
-        except
-          bytes[k]:=-1;
+        j:=1;
+        while j<=length(helpstr) do
+        begin
+          helpstr2:=copy(helpstr, j,2);
+          setlength(bytes,length(bytes)+1);
+          try
+            bytes[length(bytes)-1]:=strtoint('$'+helpstr2);
+          except
+            bytes[length(bytes)-1]:=-1; //wildcard
+          end;
+
+          inc(j,2);
         end;
-        inc(k);
       end;
+
     end;
   end;
 end;
