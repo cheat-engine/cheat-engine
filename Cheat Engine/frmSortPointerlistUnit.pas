@@ -82,6 +82,7 @@ end;
 
 procedure TPointerListSortThread.execute;
 var i: qword;
+  j: integer;
   p: PPointerscanResult;
 
   v: qword;
@@ -181,10 +182,12 @@ begin
     temp:=tempfilelist.Count;
     f.Write(temp,sizeof(temp));
 
-    for i:=0 to tempfilelist.count-1 do
+
+
+    for j:=0 to tempfilelist.count-1 do
     begin
       //remove the ".tempsort" part (the final result will be the old scanfile)
-      tempstring:=StringReplace(tempfilelist[i], tempname, Pointerscanresults.filename, []);
+      tempstring:=StringReplace(tempfilelist[j], tempname, Pointerscanresults.filename, []);
       tempstring:=ExtractFileName(tempstring);
       temp:=length(tempstring);
       f.Write(temp,sizeof(temp));
