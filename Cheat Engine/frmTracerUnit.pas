@@ -28,6 +28,8 @@ type TTraceDebugInfo=class
     function datatype: TVariableType;
     procedure fillbytes;
     procedure savestack;
+    procedure saveToStream(s: tstream);
+    constructor createFromStream(s: tstream);
     destructor destroy; override;
 end;
 
@@ -37,17 +39,21 @@ type
 
   TfrmTracer = class(TForm)
     Button1: TButton;
-    Button2: TButton;
+    btnStopSearch: TButton;
     lblInstruction: TLabel;
     lblAddressed: TLabel;
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
+    MenuItem3: TMenuItem;
+    miSave: TMenuItem;
+    miLoad: TMenuItem;
     miSaveToDisk: TMenuItem;
     MenuItem4: TMenuItem;
     MenuItem5: TMenuItem;
     MenuItem6: TMenuItem;
     miSearchNext: TMenuItem;
+    OpenDialog1: TOpenDialog;
     Panel1: TPanel;
     EAXLabel: TLabel;
     EBXlabel: TLabel;
@@ -80,11 +86,13 @@ type
     Splitter1: TSplitter;
     dflabel: TLabel;
     sbShowFloats: TSpeedButton;
-    procedure Button2Click(Sender: TObject);
+    procedure btnStopSearchClick(Sender: TObject);
     procedure lvTracerMouseMove(Sender: TObject; Shift: TShiftState; X,
       Y: Integer);
     procedure MenuItem5Click(Sender: TObject);
     procedure MenuItem6Click(Sender: TObject);
+    procedure miLoadClick(Sender: TObject);
+    procedure miSaveClick(Sender: TObject);
     procedure miSaveToDiskClick(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
     procedure RegisterMouseDown(Sender: TObject; Button: TMouseButton;
@@ -169,6 +177,63 @@ begin
   getmem(stack.stack, savedStackSize);
   ReadProcessMemory(processhandle, pointer(c.{$ifdef cpu64}Rsp{$else}esp{$endif}), stack.stack, savedStackSize, stack.savedsize);
 end;
+
+constructor TTraceDebugInfo.createFromStream(s: tstream);
+var
+  temp: dword;
+  x: pchar;
+begin
+  s.ReadBuffer(temp, sizeof(temp));
+
+  getmem(x, temp+1);
+  s.readbuffer(x^, temp);
+  x[temp]:=#0;
+  instruction:=x;
+  freemem(x);
+
+  s.ReadBuffer(instructionsize, sizeof(instructionsize));
+  s.ReadBuffer(referencedAddress, sizeof(referencedAddress));
+  s.readBuffer(c, sizeof(c));
+  s.ReadBuffer(bytesize, sizeof(bytesize));
+  getmem(bytes, bytesize);
+  s.readbuffer(bytes[0], bytesize);
+
+  s.readbuffer(stack.savedsize, sizeof(stack.savedsize));
+  s.readbuffer(stack.stack, stack.savedsize);
+end;
+
+procedure TTraceDebugInfo.saveToStream(s: tstream);
+var temp: dword;
+begin
+  //instruction: string;
+  temp:=length(instruction);
+  s.writebuffer(temp, sizeof(temp));
+  s.WriteBuffer(instruction[1], temp);
+
+  //instructionsize: integer;
+  s.writebuffer(instructionsize, sizeof(instructionsize));
+
+  //referencedAddress: ptrUint;
+  s.WriteBuffer(referencedAddress, sizeof(referencedAddress));
+
+  //c: _CONTEXT;
+  s.WriteBuffer(c, sizeof(c));
+
+  //bytesize: dword;
+  s.WriteBuffer(bytesize, sizeof(bytesize));
+
+  //bytes: pbytearray;
+  s.writebuffer(bytes[0], bytesize);
+
+  {stack: record
+    savedsize: dword;
+    stack: pbyte;
+  end;}
+
+  s.writebuffer(stack.savedsize, sizeof(stack.savedsize));
+  s.writebuffer(stack.stack^, stack.savedsize);
+end;
+
 
 constructor TfrmTracer.create(Owner: TComponent; DataTrace: boolean=false);
 begin
@@ -451,7 +516,7 @@ begin
   end;
 end;
 
-procedure TfrmTracer.Button2Click(Sender: TObject);
+procedure TfrmTracer.btnStopSearchClick(Sender: TObject);
 begin
   stopsearch:=true;
 end;
@@ -481,6 +546,88 @@ begin
   begin
     t.Collapse(true);
     t:=t.GetNextSibling;
+  end;
+end;
+
+procedure TfrmTracer.miLoadClick(Sender: TObject);
+var
+  f: tfilestream;
+  temp: dword;
+  version: integer;
+  i: integer;
+  m: TMemoryStream;
+begin
+  if opendialog1.execute then
+  begin
+    f:=TFileStream.create(opendialog1.filename, fmOpenRead or fmShareDenyNone);
+    try
+      f.ReadBuffer(temp, sizeof(temp));
+      version:=temp;
+
+      f.readbuffer(temp, sizeof(temp));
+
+      m:=TMemoryStream.create;
+      m.CopyFrom(f, temp);
+      m.Position:=0;
+      lvTracer.LoadFromStream(m); //load the texttrace regardless of version
+      m.free;
+
+      if version<>{$ifdef cpu64}1{$else}0{$endif} then
+        raise exception.create('This trace was made with the '+{$ifdef cpu64}'32'{$else}'64'{$endif}+'-bit version of cheat engine. You need to use that version to see the register values and stacktrace');
+
+      for i:=0 to lvTracer.Items.Count-1 do
+        lvTracer.Items[i].Data:=TTraceDebugInfo.createFromStream(f);
+
+    finally
+      f.free;
+    end;
+  end;
+end;
+
+procedure TfrmTracer.miSaveClick(Sender: TObject);
+var
+  i: integer;
+  t: TTraceDebugInfo;
+  c: PContext;
+  pref: string;
+
+  f: tfilestream;
+
+  m: tmemorystream;
+  temp: dword;
+begin
+  //save the results of the trace to disk
+  if savedialog1.Execute then
+  begin
+    f:=tfilestream.create(savedialog1.filename, fmCreate);
+    try
+      //save if it's made with the 32 or 64-bit ce version (the 32-bit ce version can not load the 64-bit version and vice versa)
+      {$ifdef cpu64}
+      temp:=1;
+      {$else}
+      temp:=0;
+      {$endif}
+      f.writebuffer(temp, sizeof(temp));
+
+      m:=tmemorystream.create;
+      lvTracer.SaveToStream(m);
+
+      temp:=m.Size;
+      f.writebuffer(temp, sizeof(temp));
+      m.SaveToStream(f);
+      m.free;
+
+      for i:=0 to lvTracer.Items.Count-1 do
+      begin
+        t:=TTraceDebugInfo(lvTracer.Items[i].data);
+        if t<>nil then
+          t.saveToStream(f);
+      end;
+
+      beep;
+    finally
+      f.free;
+    end;
   end;
 end;
 
