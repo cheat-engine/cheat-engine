@@ -1261,6 +1261,7 @@ var
 begin
   c:=column.index;
   if c=listview1.ColumnCount-1 then exit; //raise exception.create('The result/value list is unsortable');
+  if Pointerscanresults.count<=1 then exit; //don't even bother
 
 
   frmSortPointerlist:=TfrmSortPointerlist.Create(self);
