@@ -31,7 +31,7 @@ end;
 implementation
 
 
-function threadstart(self: TSimpleThread): dword;
+function threadstart(self: TSimpleThread): dword; stdcall;
 begin
   //OutputDebugString('threadstart called');
   try
