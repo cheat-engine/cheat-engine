@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, lua, lualib, lauxlib;
 
-function luaclassarray_createMetaTable(L: Plua_State; o: TObject; getArrayFunction: lua_CFunction ): integer;
+function luaclassarray_createMetaTable(L: Plua_State; userdata: integer; getArrayFunction: lua_CFunction ): integer;
 
 implementation
 
@@ -36,14 +36,14 @@ begin
   result:=1;
 end;
 
-function luaclassarray_createMetaTable(L: Plua_State; o: TObject; getArrayFunction: lua_CFunction ): integer;
+function luaclassarray_createMetaTable(L: Plua_State; userdata: integer; getArrayFunction: lua_CFunction ): integer;
 begin
   lua_newtable(L);
   result:=lua_gettop(L);
 
   //set the index method
   lua_pushstring(L, '__index');
-  lua_pushlightuserdata(L, o);
+  lua_pushvalue(L, userdata);
   lua_pushcfunction(L, getArrayFunction);
   lua_pushcclosure(L, luaclassarray_index, 2);
   lua_settable(L, result);

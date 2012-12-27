@@ -249,8 +249,14 @@ inheritsFromWinControl(class): Returns true if the given object inherits from th
 
 Class definitions
 Object class: (Inheritance: )
-object_getClassName(object): Returns the classname of the given object
-object_destroy(object) : Destroys the object (basically everything inherits from this class)
+
+object class:
+Properties:
+  ClassName: String - The name of the structure (Read only)
+Methods:
+  getClassName(): Returns the classname
+  destroy(): Destroys the object
+
 
 
 Component Class: (Inheritance: Object)

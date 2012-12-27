@@ -61,7 +61,7 @@ uses
   vartypestrings, LuaXMPlayer, groupscancommandparser, LuaMemscan, LuaFoundlist,
   LuaRadioGroup, RemoteMemoryManager, LuaRasterImage, multilineinputqueryunit,
   LuaCheatComponent, LuaAddresslist, frmDriverLoadedUnit, memdisplay, 
-frmSortPointerlistUnit, LuaClassArray;
+frmSortPointerlistUnit, LuaClassArray, LuaObject;
 
 {$R cheatengine.res}
 {$R manifest.res}
