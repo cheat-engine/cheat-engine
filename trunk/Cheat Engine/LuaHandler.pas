@@ -63,7 +63,7 @@ uses mainunit, mainunit2, frmluaengineunit, plugin, pluginexports, MemoryRecordU
   LuaMemoryRecord, LuaForm, MemoryBrowserFormUnit, disassemblerviewunit, hexviewunit,
   CustomTypeHandler, LuaStructure, LuaRegion, LuaXMPlayer, LuaMemscan, LuaFoundlist,
   LuaRadioGroup, LuaRasterImage, LuaCheatComponent, LuaAddresslist, byteinterpreter,
-  OpenSave, cedebugger, DebugHelper;
+  OpenSave, cedebugger, DebugHelper, LuaObject;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -3417,23 +3417,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function object_destroy(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  component: pointer;
-  x,y: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    component:=lua_toceuserdata(L,-1);
 
-    ce_object_destroy(component);
-  end;
-
-  lua_pop(L, parameters);
-end;
 
 function messageDialog(L: PLua_State): integer; cdecl;
 var
@@ -4105,22 +4089,6 @@ begin
   end
   else
     lua_pop(L, lua_gettop(L));
-end;
-
-function object_getClassName(L: PLua_state): integer; cdecl;
-var c: TObject;
-  parameters: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    c:=lua_toceuserdata(L, -1);
-    lua_pop(L, lua_gettop(l));
-
-    lua_pushstring(L, c.ClassName);
-    result:=1;
-  end else lua_pop(L, lua_gettop(l));
 end;
 
 
@@ -7718,9 +7686,10 @@ begin
     lua_register(LuaVM, 'setMethodProperty', setMethodProperty);
     lua_register(LuaVM, 'getMethodProperty', getMethodProperty);
 
+    initializeObject;
 
-    lua_register(LuaVM, 'object_getClassName', object_getClassName);
-    lua_register(LuaVM, 'object_destroy', object_destroy);
+
+
 
     lua_register(LuaVM, 'component_getComponentCount', component_getComponentCount);
     lua_register(LuaVM, 'component_getComponent', component_getComponent);

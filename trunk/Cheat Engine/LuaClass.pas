@@ -8,23 +8,31 @@ unit LuaClass;
 interface
 
 uses
-  Classes, SysUtils, lua, lauxlib, lualib;
+  Classes, SysUtils, lua, lauxlib, lualib, math;
 
 
 function luaclass_createMetaTable(L: Plua_State): integer;
 
-procedure luaclass_addClassFunctionToTable(L: PLua_State; table: integer; o: TObject; functionname: string; f: lua_CFunction);
-procedure luaclass_addPropertyToTable(L: PLua_State; table: integer; o: TObject; propertyname: string; getfunction: lua_CFunction; setfunction: lua_CFunction);
+procedure luaclass_addClassFunctionToTable(L: PLua_State; metatable: integer; userdata: integer; functionname: string; f: lua_CFunction);
+procedure luaclass_addPropertyToTable(L: PLua_State; metatable: integer; userdata: integer; propertyname: string; getfunction: lua_CFunction; setfunction: lua_CFunction);
 
-procedure luaclass_addArrayPropertyToTable(L: PLua_State; table: integer; o: TObject; propertyname: string; f: lua_CFunction);
+procedure luaclass_addArrayPropertyToTable(L: PLua_State; metatable: integer; userdata: integer; propertyname: string; f: lua_CFunction);
 
+procedure luaclass_canAutoDestroy(L: PLua_State; metatable: integer; state: boolean);
 
+function luaclass_getClassObject(L: PLua_state): pointer; inline;
 
 implementation
 
 uses LuaClassArray;
 
-procedure luaclass_addArrayPropertyToTable(L: PLua_State; table: integer; o: TObject; propertyname: string; f: lua_CFunction);
+function luaclass_getClassObject(L: PLua_state): pointer; inline;
+//called by class functions. This is in case a 6.2 code executed the function manually
+begin
+  result:=pointer(lua_touserdata(L, ifthen(lua_type(L, lua_upvalueindex(1))=LUA_TUSERDATA, lua_upvalueindex(1), 1))^);
+end;
+
+procedure luaclass_addArrayPropertyToTable(L: PLua_State; metatable: integer; userdata: integer; propertyname: string; f: lua_CFunction);
 var t,t2: integer;
 begin
   lua_pushstring(L, propertyname);
@@ -32,13 +40,13 @@ begin
 
   t:=lua_gettop(L);
 
-  luaclassarray_createMetaTable(L, o, f);
+  luaclassarray_createMetaTable(L, userdata, f);
   lua_setmetatable(L, t);
 
-  lua_settable(L, table);
+  lua_settable(L, metatable);
 end;
 
-procedure luaclass_addPropertyToTable(L: PLua_State; table: integer; o: TObject; propertyname: string; getfunction: lua_CFunction; setfunction: lua_CFunction);
+procedure luaclass_addPropertyToTable(L: PLua_State; metatable: integer; userdata: integer; propertyname: string; getfunction: lua_CFunction; setfunction: lua_CFunction);
 var t: integer;
 begin
   lua_pushstring(L, propertyname);
@@ -48,7 +56,7 @@ begin
   if assigned(getfunction) then
   begin
     lua_pushstring(L,'__get');
-    lua_pushlightuserdata(L, o);
+    lua_pushvalue(L, userdata);
     lua_pushcclosure(L, getfunction, 1);
     lua_settable(L, t);
   end;
@@ -56,25 +64,26 @@ begin
   if assigned(setfunction) then
   begin
     lua_pushstring(L,'__set');
-    lua_pushlightuserdata(L, o);
+    lua_pushvalue(L, userdata);
     lua_pushcclosure(L, setfunction, 1);
     lua_settable(L, t);
   end;
 
-  lua_settable(L, table);
+  lua_settable(L, metatable);
 end;
 
-procedure luaclass_addClassFunctionToTable(L: PLua_State; table: integer; o: TObject; functionname: string; f: lua_CFunction);
+procedure luaclass_addClassFunctionToTable(L: PLua_State; metatable: integer; userdata: integer; functionname: string; f: lua_CFunction);
 begin
   lua_pushstring(L, functionname);
-  lua_pushlightuserdata(L, o);
+  lua_pushvalue(L, userdata);
   lua_pushcclosure(L, f, 1);
-  lua_settable(L, table);
+  lua_settable(L, metatable);
 end;
 
 function luaclass_newindex(L: PLua_State): integer; cdecl; //set
 //parameters: (self, key, newvalue)
 begin
+  result:=0;
   lua_getmetatable(L, 1); //get the metatable of self
   lua_pushvalue(L, 2); //push the key
 
@@ -134,6 +143,38 @@ begin
 
 end;
 
+function luaclass_garbagecollect(L: PLua_State): integer; cdecl; //gc
+var autodestroy: boolean;
+    o: tobject;
+    mt: integer;
+begin
+  lua_getmetatable(L, 1);
+  mt:=lua_gettop(L);
+  lua_pushstring(L, '__autodestroy');
+  lua_gettable(L, mt);
+  autodestroy:=lua_toboolean(L, -1);
+  if autodestroy then
+  begin
+    //kill it
+
+    lua_pushstring(L, 'destroy');
+    lua_gettable(L, mt);
+    if lua_isfunction(L, -1) then
+      lua_call(L, 0,0);
+
+  end;
+
+  result:=0;
+end;
+
+
+
+procedure luaclass_canAutoDestroy(L: PLua_State; metatable: integer; state: boolean);
+begin
+  lua_pushstring(L, '__autodestroy');
+  lua_pushboolean(L, state);
+  lua_settable(L, metatable);
+end;
 
 function luaclass_createMetaTable(L: Plua_State): integer;
 //creates a table to be used as a metatable
@@ -142,6 +183,8 @@ begin
   lua_newtable(L);
   result:=lua_gettop(L);
 
+  luaclass_canAutoDestroy(L, result, false); //default do not destroy when garbage collected. Let the user do it
+
   //set the index method
   lua_pushstring(L, '__index');
   lua_pushcfunction(L, luaclass_index);
@@ -149,6 +192,10 @@ begin
 
   lua_pushstring(L, '__newindex');
   lua_pushcfunction(L, luaclass_newindex);
+  lua_settable(L, result);
+
+  lua_pushstring(L, '__gc');
+  lua_pushcfunction(L, luaclass_garbagecollect);
   lua_settable(L, result);
 end;
 
