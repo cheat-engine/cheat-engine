@@ -16,7 +16,27 @@ function luaclass_createMetaTable(L: Plua_State): integer;
 procedure luaclass_addClassFunctionToTable(L: PLua_State; table: integer; o: TObject; functionname: string; f: lua_CFunction);
 procedure luaclass_addPropertyToTable(L: PLua_State; table: integer; o: TObject; propertyname: string; getfunction: lua_CFunction; setfunction: lua_CFunction);
 
+procedure luaclass_addArrayPropertyToTable(L: PLua_State; table: integer; o: TObject; propertyname: string; f: lua_CFunction);
+
+
+
 implementation
+
+uses LuaClassArray;
+
+procedure luaclass_addArrayPropertyToTable(L: PLua_State; table: integer; o: TObject; propertyname: string; f: lua_CFunction);
+var t,t2: integer;
+begin
+  lua_pushstring(L, propertyname);
+  lua_newtable(L);
+
+  t:=lua_gettop(L);
+
+  luaclassarray_createMetaTable(L, o, f);
+  lua_setmetatable(L, t);
+
+  lua_settable(L, table);
+end;
 
 procedure luaclass_addPropertyToTable(L: PLua_State; table: integer; o: TObject; propertyname: string; getfunction: lua_CFunction; setfunction: lua_CFunction);
 var t: integer;
@@ -25,15 +45,21 @@ begin
   lua_newtable(L);
   t:=lua_gettop(L);
 
-  lua_pushstring(L,'__get');
-  lua_pushlightuserdata(L, o);
-  lua_pushcclosure(L, getfunction, 1);
-  lua_settable(L, t);
+  if assigned(getfunction) then
+  begin
+    lua_pushstring(L,'__get');
+    lua_pushlightuserdata(L, o);
+    lua_pushcclosure(L, getfunction, 1);
+    lua_settable(L, t);
+  end;
 
-  lua_pushstring(L,'__set');
-  lua_pushlightuserdata(L, o);
-  lua_pushcclosure(L, setfunction, 1);
-  lua_settable(L, t);
+  if assigned(setfunction) then
+  begin
+    lua_pushstring(L,'__set');
+    lua_pushlightuserdata(L, o);
+    lua_pushcclosure(L, setfunction, 1);
+    lua_settable(L, t);
+  end;
 
   lua_settable(L, table);
 end;
@@ -125,6 +151,8 @@ begin
   lua_pushcfunction(L, luaclass_newindex);
   lua_settable(L, result);
 end;
+
+
 
 
 end.

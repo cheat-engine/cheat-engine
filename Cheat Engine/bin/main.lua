@@ -1005,13 +1005,22 @@ getStructure(index): Returns the Structure object at the given index
 
 createStructure(name): Returns an empty structure object (Not yet added to the Global list. Call structure_addToGlobalStructureList manually)
 
+
+structure class:
+Properties:
+  Name: String - The name of the structure
+  Count: Integer - Number of elements in the structure. ReadOnly
+Methods:
+  getName(): Returns the name
+  setName(name): Sets the name
+
+
+
+
 structure_getName(structure)
 structure_setName(structure,name)
-structure_getSize(structure): Calculates the size of the structure
+structure_getSize(structure): Calculates the size of the structure (
 structure_getElementCount(structure): Returns the number of elements in this structure
-
-
-
 
 
 structure_getElement(structure, index): Returns a structureElement object (Changing offsets can change the index)

@@ -78,7 +78,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="16" Y="11"/>
-        <UsageCount Value="141"/>
+        <UsageCount Value="168"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -89,9 +89,9 @@
         <UnitName Value="init"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="71"/>
-        <CursorPos X="3" Y="82"/>
-        <UsageCount Value="141"/>
+        <TopLine Value="80"/>
+        <CursorPos X="34" Y="33"/>
+        <UsageCount Value="168"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit1>
@@ -103,7 +103,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="23"/>
         <CursorPos X="87" Y="31"/>
-        <UsageCount Value="141"/>
+        <UsageCount Value="168"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit2>
@@ -113,14 +113,14 @@
         <WindowIndex Value="0"/>
         <TopLine Value="7854"/>
         <CursorPos X="33" Y="7867"/>
-        <UsageCount Value="39"/>
+        <UsageCount Value="36"/>
       </Unit3>
       <Unit4>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\win\wininc\struct.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1132"/>
         <CursorPos X="27" Y="1144"/>
-        <UsageCount Value="39"/>
+        <UsageCount Value="36"/>
       </Unit4>
       <Unit5>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\packages\winunits-jedi\src\jwawindows.pas"/>
@@ -128,7 +128,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="672"/>
         <CursorPos X="3" Y="687"/>
-        <UsageCount Value="39"/>
+        <UsageCount Value="36"/>
       </Unit5>
       <Unit6>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\packages\winunits-jedi\src\jwawinbase.pas"/>
@@ -136,7 +136,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="5705"/>
         <CursorPos X="1" Y="5718"/>
-        <UsageCount Value="39"/>
+        <UsageCount Value="36"/>
       </Unit6>
       <Unit7>
         <Filename Value="VEHDebugSharedMem.pas"/>
@@ -146,7 +146,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="9"/>
         <CursorPos X="3" Y="14"/>
-        <UsageCount Value="141"/>
+        <UsageCount Value="168"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit7>
@@ -155,7 +155,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1577"/>
         <CursorPos X="6" Y="1560"/>
-        <UsageCount Value="39"/>
+        <UsageCount Value="36"/>
       </Unit8>
       <Unit9>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\packages\winunits-jedi\src\jwatlhelp32.pas"/>
@@ -163,25 +163,24 @@
         <WindowIndex Value="0"/>
         <TopLine Value="267"/>
         <CursorPos X="1" Y="280"/>
-        <UsageCount Value="39"/>
+        <UsageCount Value="36"/>
       </Unit9>
       <Unit10>
         <Filename Value="C:\lazarus\fpc\2.4.1\source\rtl\inc\dynarrh.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="8"/>
         <CursorPos X="102" Y="32"/>
-        <UsageCount Value="5"/>
+        <UsageCount Value="2"/>
       </Unit10>
       <Unit11>
         <Filename Value="threadpoll.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="threadpoll"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="103"/>
-        <CursorPos X="39" Y="13"/>
-        <UsageCount Value="101"/>
+        <TopLine Value="31"/>
+        <CursorPos X="11" Y="110"/>
+        <UsageCount Value="128"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit11>
@@ -190,7 +189,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="843"/>
         <CursorPos X="3" Y="259"/>
-        <UsageCount Value="19"/>
+        <UsageCount Value="16"/>
       </Unit12>
       <Unit13>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\packages\winunits-jedi\src\jwawindows.pas"/>
@@ -198,21 +197,21 @@
         <WindowIndex Value="0"/>
         <TopLine Value="669"/>
         <CursorPos X="3" Y="687"/>
-        <UsageCount Value="7"/>
+        <UsageCount Value="4"/>
       </Unit13>
       <Unit14>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\win\wininc\struct.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="3559"/>
         <CursorPos X="11" Y="3576"/>
-        <UsageCount Value="6"/>
+        <UsageCount Value="3"/>
       </Unit14>
       <Unit15>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\win\wininc\func.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="143"/>
         <CursorPos X="73" Y="159"/>
-        <UsageCount Value="6"/>
+        <UsageCount Value="3"/>
       </Unit15>
       <Unit16>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\packages\fcl-base\src\syncobjs.pp"/>
@@ -220,35 +219,35 @@
         <WindowIndex Value="0"/>
         <TopLine Value="104"/>
         <CursorPos X="17" Y="106"/>
-        <UsageCount Value="6"/>
+        <UsageCount Value="3"/>
       </Unit16>
       <Unit17>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\inc\threadh.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="136"/>
         <CursorPos X="11" Y="153"/>
-        <UsageCount Value="6"/>
+        <UsageCount Value="3"/>
       </Unit17>
       <Unit18>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\objpas\classes\classesh.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1496"/>
         <CursorPos X="14" Y="1512"/>
-        <UsageCount Value="11"/>
+        <UsageCount Value="8"/>
       </Unit18>
       <Unit19>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\win\tthread.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="99"/>
         <CursorPos X="3" Y="111"/>
-        <UsageCount Value="11"/>
+        <UsageCount Value="8"/>
       </Unit19>
       <Unit20>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\win\wininc\ascdef.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="62"/>
         <CursorPos X="11" Y="78"/>
-        <UsageCount Value="11"/>
+        <UsageCount Value="8"/>
       </Unit20>
       <Unit21>
         <Filename Value="extcont.pas"/>
@@ -258,7 +257,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="107"/>
         <CursorPos X="12" Y="134"/>
-        <UsageCount Value="69"/>
+        <UsageCount Value="96"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit21>
@@ -268,7 +267,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="127"/>
         <CursorPos X="63" Y="183"/>
-        <UsageCount Value="5"/>
+        <UsageCount Value="2"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit22>
       <Unit23>
@@ -277,18 +276,19 @@
         <WindowIndex Value="0"/>
         <TopLine Value="147"/>
         <CursorPos X="10" Y="161"/>
-        <UsageCount Value="11"/>
+        <UsageCount Value="25"/>
         <Loaded Value="True"/>
       </Unit23>
       <Unit24>
         <Filename Value="SimpleThread.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="SimpleThread"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="25"/>
-        <CursorPos X="5" Y="43"/>
-        <UsageCount Value="21"/>
+        <TopLine Value="22"/>
+        <CursorPos X="31" Y="33"/>
+        <UsageCount Value="48"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit24>
@@ -298,7 +298,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1540"/>
         <CursorPos X="21" Y="1548"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="24"/>
         <Loaded Value="True"/>
       </Unit25>
       <Unit26>
@@ -307,7 +307,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="79"/>
         <CursorPos X="10" Y="78"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="24"/>
         <Loaded Value="True"/>
       </Unit26>
       <Unit27>
@@ -316,7 +316,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="47" Y="11"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="24"/>
         <Loaded Value="True"/>
       </Unit27>
       <Unit28>
@@ -325,127 +325,123 @@
         <WindowIndex Value="0"/>
         <TopLine Value="343"/>
         <CursorPos X="10" Y="357"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="24"/>
         <Loaded Value="True"/>
       </Unit28>
     </Units>
-    <JumpHistory Count="29" HistoryIndex="28">
+    <JumpHistory Count="28" HistoryIndex="27">
       <Position1>
-        <Filename Value="DebugHandler.pas"/>
-        <Caret Line="32" Column="19" TopLine="23"/>
+        <Filename Value="SimpleThread.pas"/>
+        <Caret Line="29" Column="17" TopLine="12"/>
       </Position1>
       <Position2>
-        <Filename Value="init.pas"/>
-        <Caret Line="103" Column="9" TopLine="86"/>
+        <Filename Value="SimpleThread.pas"/>
+        <Caret Line="39" Column="21" TopLine="16"/>
       </Position2>
       <Position3>
-        <Filename Value="DebugHandler.pas"/>
-        <Caret Line="21" Column="12" TopLine="1"/>
+        <Filename Value="SimpleThread.pas"/>
+        <Caret Line="19" Column="22" TopLine="4"/>
       </Position3>
       <Position4>
-        <Filename Value="DebugHandler.pas"/>
-        <Caret Line="133" Column="3" TopLine="113"/>
+        <Filename Value="SimpleThread.pas"/>
+        <Caret Line="39" Column="20" TopLine="16"/>
       </Position4>
       <Position5>
-        <Filename Value="init.pas"/>
-        <Caret Line="103" Column="9" TopLine="86"/>
+        <Filename Value="SimpleThread.pas"/>
+        <Caret Line="30" Column="1" TopLine="16"/>
       </Position5>
       <Position6>
-        <Filename Value="init.pas"/>
-        <Caret Line="109" Column="11" TopLine="96"/>
+        <Filename Value="threadpoll.pas"/>
+        <Caret Line="27" Column="10" TopLine="1"/>
       </Position6>
       <Position7>
         <Filename Value="threadpoll.pas"/>
-        <Caret Line="25" Column="5" TopLine="11"/>
+        <Caret Line="13" Column="33" TopLine="1"/>
       </Position7>
       <Position8>
-        <Filename Value="threadpoll.pas"/>
-        <Caret Line="13" Column="41" TopLine="1"/>
+        <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\win\tthread.inc"/>
+        <Caret Line="11" Column="47" TopLine="3"/>
       </Position8>
       <Position9>
         <Filename Value="SimpleThread.pas"/>
-        <Caret Line="19" Column="9" TopLine="1"/>
+        <Caret Line="47" Column="69" TopLine="24"/>
       </Position9>
       <Position10>
-        <Filename Value="init.pas"/>
-        <Caret Line="108" Column="18" TopLine="99"/>
+        <Filename Value="SimpleThread.pas"/>
+        <Caret Line="70" Column="44" TopLine="42"/>
       </Position10>
       <Position11>
-        <Filename Value="threadpoll.pas"/>
-        <Caret Line="32" Column="1" TopLine="21"/>
+        <Filename Value="SimpleThread.pas"/>
+        <Caret Line="44" Column="10" TopLine="22"/>
       </Position11>
       <Position12>
-        <Filename Value="init.pas"/>
-        <Caret Line="84" Column="46" TopLine="70"/>
+        <Filename Value="SimpleThread.pas"/>
+        <Caret Line="62" Column="75" TopLine="47"/>
       </Position12>
       <Position13>
         <Filename Value="SimpleThread.pas"/>
-        <Caret Line="29" Column="17" TopLine="12"/>
+        <Caret Line="15" Column="20" TopLine="1"/>
       </Position13>
       <Position14>
         <Filename Value="SimpleThread.pas"/>
-        <Caret Line="39" Column="21" TopLine="16"/>
+        <Caret Line="57" Column="55" TopLine="38"/>
       </Position14>
       <Position15>
         <Filename Value="SimpleThread.pas"/>
-        <Caret Line="19" Column="22" TopLine="4"/>
+        <Caret Line="59" Column="44" TopLine="49"/>
       </Position15>
       <Position16>
-        <Filename Value="SimpleThread.pas"/>
-        <Caret Line="39" Column="20" TopLine="16"/>
+        <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\win\tthread.inc"/>
+        <Caret Line="11" Column="47" TopLine="1"/>
       </Position16>
       <Position17>
-        <Filename Value="SimpleThread.pas"/>
-        <Caret Line="30" Column="1" TopLine="16"/>
+        <Filename Value="init.pas"/>
+        <Caret Line="101" Column="31" TopLine="96"/>
       </Position17>
       <Position18>
-        <Filename Value="threadpoll.pas"/>
-        <Caret Line="27" Column="10" TopLine="1"/>
+        <Filename Value="init.pas"/>
+        <Caret Line="108" Column="18" TopLine="96"/>
       </Position18>
       <Position19>
-        <Filename Value="threadpoll.pas"/>
-        <Caret Line="13" Column="33" TopLine="1"/>
+        <Filename Value="init.pas"/>
+        <Caret Line="110" Column="17" TopLine="96"/>
       </Position19>
       <Position20>
-        <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\win\tthread.inc"/>
-        <Caret Line="11" Column="47" TopLine="3"/>
+        <Filename Value="init.pas"/>
+        <Caret Line="111" Column="17" TopLine="96"/>
       </Position20>
       <Position21>
-        <Filename Value="SimpleThread.pas"/>
-        <Caret Line="47" Column="69" TopLine="24"/>
+        <Filename Value="init.pas"/>
+        <Caret Line="112" Column="17" TopLine="96"/>
       </Position21>
       <Position22>
-        <Filename Value="SimpleThread.pas"/>
-        <Caret Line="70" Column="44" TopLine="42"/>
+        <Filename Value="init.pas"/>
+        <Caret Line="31" Column="39" TopLine="24"/>
       </Position22>
       <Position23>
-        <Filename Value="SimpleThread.pas"/>
-        <Caret Line="44" Column="10" TopLine="22"/>
+        <Filename Value="init.pas"/>
+        <Caret Line="33" Column="34" TopLine="24"/>
       </Position23>
       <Position24>
-        <Filename Value="SimpleThread.pas"/>
-        <Caret Line="62" Column="75" TopLine="47"/>
+        <Filename Value="init.pas"/>
+        <Caret Line="43" Column="47" TopLine="24"/>
       </Position24>
       <Position25>
-        <Filename Value="SimpleThread.pas"/>
-        <Caret Line="15" Column="20" TopLine="1"/>
+        <Filename Value="init.pas"/>
+        <Caret Line="164" Column="17" TopLine="151"/>
       </Position25>
       <Position26>
         <Filename Value="init.pas"/>
-        <Caret Line="108" Column="18" TopLine="145"/>
+        <Caret Line="84" Column="37" TopLine="63"/>
       </Position26>
       <Position27>
         <Filename Value="SimpleThread.pas"/>
-        <Caret Line="57" Column="55" TopLine="38"/>
+        <Caret Line="76" Column="16" TopLine="55"/>
       </Position27>
       <Position28>
-        <Filename Value="SimpleThread.pas"/>
-        <Caret Line="59" Column="44" TopLine="49"/>
+        <Filename Value="init.pas"/>
+        <Caret Line="84" Column="37" TopLine="63"/>
       </Position28>
-      <Position29>
-        <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\win\tthread.inc"/>
-        <Caret Line="11" Column="47" TopLine="1"/>
-      </Position29>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

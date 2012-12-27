@@ -39,6 +39,7 @@ procedure LUA_SetCurrentContextState(context: PContext);
 function LUA_onBreakpoint(context: PContext): boolean;
 procedure LUA_onNotify(functionid: integer; sender: tobject);
 function Lua_ToString(L: Plua_State; i: Integer): string;
+function lua_ToCEUserData(L: PLua_state; i: integer): pointer;
 procedure InitializeLuaScripts;
 procedure InitializeLua;
 
@@ -171,6 +172,16 @@ begin
 
 
 //unclear should there be a result:=Utf8ToAnsi(s); ?
+end;
+
+function lua_ToCEUserData(L: PLua_state; i: integer): pointer;
+//Cheat Engine implements two types of userdata. the legacy LightUserData used in 6.2- and the Heavy UserData in 6.3+
+//Heavy UserData is a pointer with a pointer to the real object, while lightuserdata is just a pointer to the object
+begin
+  result:=lua_touserdata(L,i);
+
+  if (result<>nil) and (lua_isheavyuserdata(L, i)) then   //once the conversion is done this if check if it's userdata can go as it will always be userdata
+    result:=ppointer(result)^;
 end;
 
 procedure InitializeLuaScripts;
@@ -2058,7 +2069,8 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    c:=lua_touserdata(L,-1);
+    c:=lua_toceuserdata(L,-1);
+
     lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, c.Canvas);
@@ -2076,7 +2088,8 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    c:=lua_touserdata(L,-1);
+    c:=lua_toceuserdata(L,-1);
+
     lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, c.Canvas);
@@ -2094,7 +2107,8 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    c:=lua_touserdata(L,-1);
+    c:=lua_toceuserdata(L,-1);
+
     lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, c.Canvas);
@@ -2115,7 +2129,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    c:=lua_touserdata(L,-1);
+    c:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, c.Canvas);
@@ -2135,7 +2149,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    c:=lua_touserdata(L,-1);
+    c:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     if c.Canvas.handle=0 then
@@ -2156,7 +2170,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    f:=lua_touserdata(L, -1);
+    f:=lua_toceuserdata(L, -1);
     p:=ce_createPanel(f);
 
     lua_pop(L, lua_gettop(L));
@@ -2174,7 +2188,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    f:=lua_touserdata(L, -1);
+    f:=lua_toceuserdata(L, -1);
     p:=ce_createButton(f);
 
     lua_pop(L, lua_gettop(L));
@@ -2192,7 +2206,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    f:=lua_touserdata(L, -1);
+    f:=lua_toceuserdata(L, -1);
     p:=ce_createGroupBox(f);
 
     lua_pop(L, lua_gettop(L));
@@ -2210,7 +2224,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    f:=lua_touserdata(L, -1);
+    f:=lua_toceuserdata(L, -1);
     p:=ce_createImage(f);
 
     lua_pop(L, lua_gettop(L));
@@ -2229,7 +2243,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    i:=lua_touserdata(L, -2);
+    i:=lua_toceuserdata(L, -2);
     filename:=lua.lua_tostring(L, -1);
     ce_image_loadImageFromFile(i,filename);
   end;
@@ -2247,7 +2261,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    i:=lua_touserdata(L, -2);
+    i:=lua_toceuserdata(L, -2);
     state:=lua_toboolean(L, -1);
     ce_image_stretch(i,state);
   end;
@@ -2264,7 +2278,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    i:=lua_touserdata(L, -2);
+    i:=lua_toceuserdata(L, -2);
     state:=lua_toboolean(L, -1);
     ce_image_transparent(i,state);
   end;
@@ -2281,7 +2295,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    c:=lua_touserdata(L,-1);
+    c:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, c.Canvas);
@@ -2299,7 +2313,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    c:=lua_touserdata(L,-1);
+    c:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
 
@@ -2359,7 +2373,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters>=2 then
   begin
-    Generichotkey:=lua_touserdata(L,-parameters);
+    Generichotkey:=lua_toceuserdata(L,-parameters);
 
     zeromemory(@GenericHotkey.keys,sizeof(GenericHotkey.keys));
     for i:=-parameters+1 to -1 do
@@ -2379,7 +2393,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    Generichotkey:=lua_touserdata(L,-parameters);
+    Generichotkey:=lua_toceuserdata(L,-parameters);
     lua_pop(L, parameters);
 
     i:=0;
@@ -2407,7 +2421,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    GenericHotkey:=lua_touserdata(L,-2);
+    GenericHotkey:=lua_toceuserdata(L,-2);
 
     CleanupLuaCall(tmethod(GenericHotkey.onNotify));
     GenericHotkey.onNotify:=nil;
@@ -2444,7 +2458,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    f:=lua_touserdata(L, -1);
+    f:=lua_toceuserdata(L, -1);
     p:=ce_createLabel(f);
 
     lua_pop(L, lua_gettop(L));
@@ -2464,7 +2478,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    c:=lua_touserdata(L,-1);
+    c:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, c.Font);
@@ -2481,7 +2495,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    f:=lua_touserdata(L, -1);
+    f:=lua_toceuserdata(L, -1);
     p:=ce_createEdit(f);
 
     lua_pop(L, lua_gettop(L));
@@ -2499,7 +2513,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    f:=lua_touserdata(L, -1);
+    f:=lua_toceuserdata(L, -1);
     p:=ce_createMemo(f);
 
     lua_pop(L, lua_gettop(L));
@@ -2517,7 +2531,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters>=1 then
   begin
-    f:=lua_touserdata(L, -parameters);
+    f:=lua_toceuserdata(L, -parameters);
     p:=ce_createTimer(f);
 
     if parameters>=2 then
@@ -2540,7 +2554,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    t:=lua_touserdata(L, -2);
+    t:=lua_toceuserdata(L, -2);
     t.Interval:=lua_tointeger(L, -1);
   end;
 
@@ -2562,7 +2576,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    timer:=lua_touserdata(L,-2);
+    timer:=lua_toceuserdata(L,-2);
     oldroutine:=timer.OnTimer;
 
     CleanupLuaCall(TMethod(timer.OnTimer));
@@ -2602,7 +2616,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    Timer:=lua_touserdata(L,-2);
+    Timer:=lua_toceuserdata(L,-2);
     Timer.Enabled:=lua_toboolean(L,-1);
   end;
 
@@ -2618,7 +2632,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    Timer:=lua_touserdata(L,-1);
+    Timer:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushboolean(L, Timer.Enabled);
@@ -2637,7 +2651,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    c:=lua_touserdata(L, -2);
+    c:=lua_toceuserdata(L, -2);
     caption:=lua.lua_tostring(L, -1);
     ce_control_setCaption(c,caption);
   end;
@@ -2656,7 +2670,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    control:=lua_touserdata(L,-1);
+    control:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     getmem(d,255);
@@ -2684,7 +2698,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=3 then
   begin
-    c:=lua_touserdata(L, -3);
+    c:=lua_toceuserdata(L, -3);
     x:=lua_tointeger(L, -2);
     y:=lua_tointeger(L, -1);
 
@@ -2705,7 +2719,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    control:=lua_touserdata(L,-1);
+    control:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     x:=ce_control_getX(control);
@@ -2727,7 +2741,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=3 then
   begin
-    c:=lua_touserdata(L, -3);
+    c:=lua_toceuserdata(L, -3);
     width:=lua_tointeger(L, -2);
     height:=lua_tointeger(L, -1);
 
@@ -2747,7 +2761,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    control:=lua_touserdata(L,-1);
+    control:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     width:=ce_control_getWidth(control);
@@ -2771,7 +2785,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    control:=lua_touserdata(L,-2);
+    control:=lua_toceuserdata(L,-2);
     a:=lua_tointeger(L,-1);
     ce_control_setAlign(control,a);
   end;
@@ -2789,7 +2803,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    control:=lua_touserdata(L,-1);
+    control:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushinteger(L, integer(control.Align));
@@ -2808,7 +2822,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    control:=lua_touserdata(L,-2);
+    control:=lua_toceuserdata(L,-2);
     control.Enabled:=lua_toboolean(L,-1);
   end;
 
@@ -2824,7 +2838,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    control:=lua_touserdata(L,-1);
+    control:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushboolean(L, control.Enabled);
@@ -2844,7 +2858,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    control:=lua_touserdata(L,1);
+    control:=lua_toceuserdata(L,1);
     control.visible:=lua_toboolean(L,2);
   end;
 
@@ -2860,7 +2874,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    control:=lua_touserdata(L,-1);
+    control:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushboolean(L, control.Visible);
@@ -2879,7 +2893,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    control:=lua_touserdata(L,-2);
+    control:=lua_toceuserdata(L,-2);
     control.Color:=lua_tointeger(L,-1);
   end;
 
@@ -2895,7 +2909,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    control:=lua_touserdata(L,-1);
+    control:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushinteger(L, control.color);
@@ -2915,8 +2929,8 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    control:=lua_touserdata(L,-2);
-    control.Parent:=TWinControl(lua_touserdata(L,-1));
+    control:=lua_toceuserdata(L,-2);
+    control.Parent:=TWinControl(lua_toceuserdata(L,-1));
   end;
 
   lua_pop(L, parameters);
@@ -2931,7 +2945,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    control:=lua_touserdata(L,-1);
+    control:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, control.Parent);
@@ -2950,8 +2964,8 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    control:=lua_touserdata(L,-2);
-    control.PopupMenu:=TPopupMenu(lua_touserdata(L,-1));
+    control:=lua_toceuserdata(L,-2);
+    control.PopupMenu:=TPopupMenu(lua_toceuserdata(L,-1));
   end;
 
   lua_pop(L, parameters);
@@ -2966,7 +2980,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    control:=lua_touserdata(L,-1);
+    control:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, control.PopupMenu);
@@ -2985,7 +2999,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    control:=lua_touserdata(L,1);
+    control:=lua_toceuserdata(L,1);
     if assigned(control.onclick) then
       control.OnClick(control);
   end;
@@ -3006,7 +3020,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    strings:=lua_touserdata(L, -2);
+    strings:=lua_toceuserdata(L, -2);
     strings.Add(lua_tostring(L, -1));
   end;
 
@@ -3021,7 +3035,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    strings:=lua_touserdata(L, -1);
+    strings:=lua_toceuserdata(L, -1);
     strings.Clear;
   end;
 
@@ -3037,7 +3051,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    strings:=lua_touserdata(L, -2);
+    strings:=lua_toceuserdata(L, -2);
     s:=lua_tostring(L, -1);
     ce_stringlist_remove(strings,pchar(s));
   end;
@@ -3055,7 +3069,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    strings:=lua_touserdata(L,-2);
+    strings:=lua_toceuserdata(L,-2);
     index:=lua_toInteger(L,-1);
     lua_pop(L, parameters);
 
@@ -3076,7 +3090,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=3 then
   begin
-    strings:=lua_touserdata(L,-3);
+    strings:=lua_toceuserdata(L,-3);
     index:=lua_toInteger(L,-2);
     s:=lua_tostring(l,-1);
 
@@ -3094,7 +3108,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    strings:=lua_touserdata(L, -2);
+    strings:=lua_toceuserdata(L, -2);
     index:=lua_tointeger(L,-1);
     strings.Delete(index);
   end;
@@ -3112,7 +3126,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    strings:=lua_touserdata(L,-1);
+    strings:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushstring(L, strings.Text);
@@ -3131,7 +3145,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    strings:=lua_touserdata(L,-2);
+    strings:=lua_toceuserdata(L,-2);
     text:=Lua_ToString(L, -1);
     lua_pop(L, parameters);
 
@@ -3151,7 +3165,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    strings:=lua_touserdata(L,-2);
+    strings:=lua_toceuserdata(L,-2);
     s:=Lua_ToString(L,-1);
     lua_pop(L, parameters);
 
@@ -3172,7 +3186,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=3 then
   begin
-    strings:=lua_touserdata(L,-3);
+    strings:=lua_toceuserdata(L,-3);
     index:=lua_tointeger(L,-2);
     s:=Lua_ToString(L,-1);
 
@@ -3191,7 +3205,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    strings:=lua_touserdata(L,-1);
+    strings:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushinteger(L, strings.Count);
@@ -3208,7 +3222,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    strings:=lua_touserdata(L, -2);
+    strings:=lua_toceuserdata(L, -2);
     try
       strings.LoadFromFile(lua_tostring(L, -1));
     except
@@ -3226,7 +3240,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    strings:=lua_touserdata(L, -2);
+    strings:=lua_toceuserdata(L, -2);
     try
       strings.SaveToFile(lua_tostring(L, -1));
     except
@@ -3259,7 +3273,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    stringlist:=lua_touserdata(L,-1);
+    stringlist:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushinteger(L, integer(stringlist.Duplicates));
@@ -3278,7 +3292,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    stringlist:=lua_touserdata(L,-2);
+    stringlist:=lua_toceuserdata(L,-2);
     stringlist.Duplicates:=TDuplicates(lua_tointeger(L,-1));
   end;
 
@@ -3296,7 +3310,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    stringlist:=lua_touserdata(L,-1);
+    stringlist:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushboolean(L, stringlist.Sorted);
@@ -3315,7 +3329,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    stringlist:=lua_touserdata(L,-2);
+    stringlist:=lua_toceuserdata(L,-2);
     stringlist.Sorted:=lua_toboolean(L,-1);
   end;
 
@@ -3332,7 +3346,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    stringlist:=lua_touserdata(L,-1);
+    stringlist:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushboolean(L, stringlist.CaseSensitive);
@@ -3351,7 +3365,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    stringlist:=lua_touserdata(L,-2);
+    stringlist:=lua_toceuserdata(L,-2);
     stringlist.CaseSensitive:=lua_toboolean(L,-1);
   end;
 
@@ -3374,7 +3388,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    control:=lua_touserdata(L,-2);
+    control:=lua_toceuserdata(L,-2);
 
     CleanupLuaCall(tmethod(control.onClick));
     control.onClick:=nil;
@@ -3413,7 +3427,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    component:=lua_touserdata(L,-1);
+    component:=lua_toceuserdata(L,-1);
 
     ce_object_destroy(component);
   end;
@@ -3817,7 +3831,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    c:=lua_touserdata(L, -1);
+    c:=lua_toceuserdata(L, -1);
     lua_pop(L, lua_gettop(l));
 
     lua_pushlightuserdata(L, ce_getPropertylist(c));
@@ -3839,7 +3853,7 @@ begin
   if parameters=2 then
   begin
     if lua_isuserdata(L,1) then
-      c:=lua_touserdata(L, 1)
+      c:=lua_toceuserdata(L, 1)
     else
     if lua_isnumber(L,1) then
       c:=pointer(lua_tointeger(L,1))
@@ -3880,7 +3894,7 @@ begin
   if parameters=3 then
   begin
     if lua_isuserdata(L,1) then
-      c:=lua_touserdata(L, 1)
+      c:=lua_toceuserdata(L, 1)
     else
     if lua_isnumber(L,1) then
       c:=pointer(lua_tointeger(L,1))
@@ -3915,7 +3929,7 @@ begin
   if parameters>=2 then
   begin
     if lua_isuserdata(L,1) then
-      c:=lua_touserdata(L, 1)
+      c:=lua_toceuserdata(L, 1)
     else
     if lua_isnumber(L,1) then
       c:=pointer(lua_tointeger(L,1))
@@ -4012,7 +4026,7 @@ begin
   if parameters=3 then
   begin
     if lua_isuserdata(L,1) then
-      c:=lua_touserdata(L, 1)
+      c:=lua_toceuserdata(L, 1)
     else
     if lua_isnumber(L,1) then
       c:=pointer(lua_tointeger(L,1))
@@ -4101,7 +4115,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    c:=lua_touserdata(L, -1);
+    c:=lua_toceuserdata(L, -1);
     lua_pop(L, lua_gettop(l));
 
     lua_pushstring(L, c.ClassName);
@@ -4133,7 +4147,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    m:=lua_touserdata(L, -1);
+    m:=lua_toceuserdata(L, -1);
     lua_pop(L, lua_gettop(l));
 
     lua_pushlightuserdata(L, m.disassemblerview);
@@ -4149,7 +4163,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    m:=lua_touserdata(L, -1);
+    m:=lua_toceuserdata(L, -1);
     lua_pop(L, lua_gettop(l));
 
     lua_pushlightuserdata(L, m.hexview);
@@ -4187,7 +4201,7 @@ begin
   result:=0;
   if lua_gettop(L)>1 then
   begin
-    x:=lua_touserdata(L, -1);
+    x:=lua_toceuserdata(L, -1);
     lua_pop(L, lua_gettop(l));
 
     if x<>nil then
@@ -4205,7 +4219,7 @@ begin
   result:=0;
   if lua_gettop(L)>1 then
   begin
-    x:=lua_touserdata(L, -1);
+    x:=lua_toceuserdata(L, -1);
     lua_pop(L, lua_gettop(l));
 
     if x<>nil then
@@ -4223,7 +4237,7 @@ begin
   result:=0;
   if lua_gettop(L)>1 then
   begin
-    x:=lua_touserdata(L, -1);
+    x:=lua_toceuserdata(L, -1);
     lua_pop(L, lua_gettop(l));
 
     if x<>nil then
@@ -4241,7 +4255,7 @@ begin
   result:=0;
   if lua_gettop(L)>1 then
   begin
-    x:=lua_touserdata(L, -1);
+    x:=lua_toceuserdata(L, -1);
     lua_pop(L, lua_gettop(l));
 
     if x<>nil then
@@ -4263,7 +4277,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    c:=lua_touserdata(L, -1);
+    c:=lua_toceuserdata(L, -1);
     lua_pop(L, lua_gettop(l));
 
     lua_pushinteger(L, c.ComponentCount);
@@ -4281,7 +4295,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    c:=lua_touserdata(L, -2);
+    c:=lua_toceuserdata(L, -2);
     n:=Lua_ToString(L, -1);
     lua_pop(L, lua_gettop(l));
 
@@ -4299,7 +4313,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    c:=lua_touserdata(L, -2);
+    c:=lua_toceuserdata(L, -2);
     i:=lua_tointeger(L,-1);
     lua_pop(L, lua_gettop(l));
 
@@ -4316,7 +4330,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    c:=lua_touserdata(L, -1);
+    c:=lua_toceuserdata(L, -1);
     lua_pop(L, lua_gettop(l));
 
     lua_pushstring(L, c.Name);
@@ -4332,7 +4346,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    c:=lua_touserdata(L, -2);
+    c:=lua_toceuserdata(L, -2);
     c.Name:=lua_tostring(L,-1);
   end;
   lua_pop(L, lua_gettop(l));
@@ -4346,7 +4360,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    c:=lua_touserdata(L, -1);
+    c:=lua_toceuserdata(L, -1);
     lua_pop(L, lua_gettop(l));
 
     lua_pushinteger(L, c.Tag);
@@ -4363,7 +4377,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    c:=lua_touserdata(L, -2);
+    c:=lua_toceuserdata(L, -2);
     c.Tag:=lua_tointeger(L, -1);
   end;
   lua_pop(L, lua_gettop(l));
@@ -4378,7 +4392,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    c:=lua_touserdata(L, -1);
+    c:=lua_toceuserdata(L, -1);
     lua_pop(L, lua_gettop(l));
 
     lua_pushlightuserdata(L, c.Owner);
@@ -4395,7 +4409,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    panel:=lua_touserdata(L,-1);
+    panel:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushinteger(L, integer(panel.Alignment));
@@ -4414,7 +4428,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    panel:=lua_touserdata(L,-2);
+    panel:=lua_toceuserdata(L,-2);
     panel.Alignment:=TAlignment(lua_tointeger(L,-1));
   end;
 
@@ -4430,7 +4444,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    panel:=lua_touserdata(L,-1);
+    panel:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushinteger(L, integer(panel.BevelInner));
@@ -4449,7 +4463,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    panel:=lua_touserdata(L,-2);
+    panel:=lua_toceuserdata(L,-2);
     panel.BevelInner:=TPanelBevel(lua_tointeger(L,-1));
   end;
 
@@ -4465,7 +4479,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    panel:=lua_touserdata(L,-1);
+    panel:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushinteger(L, integer(panel.BevelOuter));
@@ -4484,7 +4498,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    panel:=lua_touserdata(L,-2);
+    panel:=lua_toceuserdata(L,-2);
     panel.BevelOuter:=TPanelBevel(lua_tointeger(L,-1));
   end;
 
@@ -4500,7 +4514,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    panel:=lua_touserdata(L,-1);
+    panel:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushinteger(L, panel.BevelWidth);
@@ -4519,7 +4533,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    panel:=lua_touserdata(L,-2);
+    panel:=lua_toceuserdata(L,-2);
     panel.BevelWidth:=lua_tointeger(L,-1);
   end;
 
@@ -4535,7 +4549,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    panel:=lua_touserdata(L,-1);
+    panel:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushboolean(L, panel.FullRepaint);
@@ -4554,7 +4568,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    panel:=lua_touserdata(L,-2);
+    panel:=lua_toceuserdata(L,-2);
     panel.FullRepaint:=lua_toboolean(L,-1);
   end;
 
@@ -4569,7 +4583,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    e:=lua_touserdata(L, -1);
+    e:=lua_toceuserdata(L, -1);
     e.clear;
   end;
   lua_pop(L, lua_gettop(L));
@@ -4583,7 +4597,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    e:=lua_touserdata(L, -1);
+    e:=lua_toceuserdata(L, -1);
     e.SelectAll;
   end;
   lua_pop(L, lua_gettop(L));
@@ -4597,7 +4611,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    e:=lua_touserdata(L, -1);
+    e:=lua_toceuserdata(L, -1);
     e.ClearSelection;
   end;
   lua_pop(L, lua_gettop(L));
@@ -4611,7 +4625,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    e:=lua_touserdata(L, -1);
+    e:=lua_toceuserdata(L, -1);
     e.CopyToClipboard;
   end;
   lua_pop(L, lua_gettop(L));
@@ -4625,7 +4639,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    e:=lua_touserdata(L, -1);
+    e:=lua_toceuserdata(L, -1);
     e.CutToClipboard;
   end;
   lua_pop(L, lua_gettop(L));
@@ -4639,7 +4653,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    e:=lua_touserdata(L, -1);
+    e:=lua_toceuserdata(L, -1);
     e.PasteFromClipboard;
   end;
   lua_pop(L, lua_gettop(L));
@@ -4658,7 +4672,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    control:=lua_touserdata(L,-2);
+    control:=lua_toceuserdata(L,-2);
 
     CleanupLuaCall(tmethod(control.onChange));
     control.onChange:=nil;
@@ -4696,7 +4710,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    memo:=lua_touserdata(L,-2);
+    memo:=lua_toceuserdata(L,-2);
     memo.Append(Lua_ToString(L,-1));
   end;
 
@@ -4712,7 +4726,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    memo:=lua_touserdata(L,-1);
+    memo:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, memo.Lines);
@@ -4730,7 +4744,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    memo:=lua_touserdata(L,-1);
+    memo:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushboolean(L, memo.WordWrap);
@@ -4749,7 +4763,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    memo:=lua_touserdata(L,-2);
+    memo:=lua_toceuserdata(L,-2);
     memo.WordWrap:=lua_toboolean(L,-1);
   end;
 
@@ -4765,7 +4779,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    memo:=lua_touserdata(L,-1);
+    memo:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushboolean(L, memo.WantTabs);
@@ -4784,7 +4798,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    memo:=lua_touserdata(L,-2);
+    memo:=lua_toceuserdata(L,-2);
     memo.WantTabs:=lua_toboolean(L,-1);
   end;
 
@@ -4800,7 +4814,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    memo:=lua_touserdata(L,-1);
+    memo:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushboolean(L, memo.WantReturns);
@@ -4819,7 +4833,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    memo:=lua_touserdata(L,-2);
+    memo:=lua_toceuserdata(L,-2);
     memo.WantReturns:=lua_toboolean(L,-1);
   end;
 
@@ -4835,7 +4849,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    memo:=lua_touserdata(L,-1);
+    memo:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushinteger(L, integer(memo.Scrollbars));
@@ -4854,7 +4868,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    memo:=lua_touserdata(L,-2);
+    memo:=lua_toceuserdata(L,-2);
     memo.Scrollbars:=TScrollStyle(lua_tointeger(L,-1));
   end;
 
@@ -4870,7 +4884,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    button:=lua_touserdata(L,-1);
+    button:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushinteger(L, integer(button.ModalResult));
@@ -4889,7 +4903,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    button:=lua_touserdata(L,-2);
+    button:=lua_toceuserdata(L,-2);
     button.ModalResult:=TModalResult(lua_tointeger(L,-1));
   end;
 
@@ -4908,7 +4922,7 @@ begin
 
   parameters:=lua_gettop(L);
   if parameters>=1 then
-    owner:=lua_touserdata(L, -parameters)
+    owner:=lua_toceuserdata(L, -parameters)
   else
     owner:=nil;
 
@@ -4933,7 +4947,7 @@ begin
 
   parameters:=lua_gettop(L);
   if parameters>=1 then
-    owner:=lua_touserdata(L, -parameters)
+    owner:=lua_toceuserdata(L, -parameters)
   else
     owner:=nil;
 
@@ -4957,7 +4971,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    checkbox:=lua_touserdata(L,-1);
+    checkbox:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushboolean(L, checkbox.AllowGrayed);
@@ -4976,7 +4990,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    checkbox:=lua_touserdata(L,-2);
+    checkbox:=lua_toceuserdata(L,-2);
     checkbox.AllowGrayed:=lua_toboolean(L,-1);
   end;
 
@@ -4992,7 +5006,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    checkbox:=lua_touserdata(L,-1);
+    checkbox:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushinteger(L, integer(checkbox.State));
@@ -5011,7 +5025,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    checkbox:=lua_touserdata(L,-2);
+    checkbox:=lua_toceuserdata(L,-2);
     checkbox.State:=TCheckBoxState(lua_tointeger(L,-1));
   end;
 
@@ -5033,7 +5047,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    control:=lua_touserdata(L,-2);
+    control:=lua_toceuserdata(L,-2);
 
     CleanupLuaCall(tmethod(control.onChange));
     control.onChange:=nil;
@@ -5072,7 +5086,7 @@ begin
 
   parameters:=lua_gettop(L);
   if parameters>=1 then
-    owner:=lua_touserdata(L, -parameters)
+    owner:=lua_toceuserdata(L, -parameters)
   else
     owner:=nil;
 
@@ -5095,7 +5109,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    listbox:=lua_touserdata(L, -1);
+    listbox:=lua_toceuserdata(L, -1);
     listbox.clear;
   end;
   lua_pop(L, lua_gettop(L));
@@ -5111,7 +5125,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    listbox:=lua_touserdata(L,-1);
+    listbox:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, listbox.items);
@@ -5129,7 +5143,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    listbox:=lua_touserdata(L,-1);
+    listbox:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushinteger(L, listbox.ItemIndex);
@@ -5148,7 +5162,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    listbox:=lua_touserdata(L,-2);
+    listbox:=lua_toceuserdata(L,-2);
     listbox.itemindex:=lua_tointeger(L,-1);
   end;
 
@@ -5166,7 +5180,7 @@ begin
 
   parameters:=lua_gettop(L);
   if parameters>=1 then
-    owner:=lua_touserdata(L, -parameters)
+    owner:=lua_toceuserdata(L, -parameters)
   else
     owner:=nil;
 
@@ -5189,7 +5203,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    combobox:=lua_touserdata(L, -1);
+    combobox:=lua_toceuserdata(L, -1);
     combobox.clear;
   end;
   lua_pop(L, lua_gettop(L));
@@ -5205,7 +5219,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    combobox:=lua_touserdata(L,-1);
+    combobox:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, combobox.items);
@@ -5223,7 +5237,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    combobox:=lua_touserdata(L,-1);
+    combobox:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushinteger(L, combobox.ItemIndex);
@@ -5242,7 +5256,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    combobox:=lua_touserdata(L,-2);
+    combobox:=lua_toceuserdata(L,-2);
     combobox.itemindex:=lua_tointeger(L,-1);
   end;
 
@@ -5262,7 +5276,7 @@ begin
 
   parameters:=lua_gettop(L);
   if parameters>=1 then
-    owner:=lua_touserdata(L, -parameters)
+    owner:=lua_toceuserdata(L, -parameters)
   else
     owner:=nil;
 
@@ -5286,7 +5300,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    trackbar:=lua_touserdata(L,-1);
+    trackbar:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushinteger(L, trackbar.max);
@@ -5305,7 +5319,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    trackbar:=lua_touserdata(L,-2);
+    trackbar:=lua_toceuserdata(L,-2);
     trackbar.max:=lua_tointeger(L,-1);
   end;
 
@@ -5321,7 +5335,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    trackbar:=lua_touserdata(L,-1);
+    trackbar:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushinteger(L, trackbar.Min);
@@ -5340,7 +5354,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    trackbar:=lua_touserdata(L,-2);
+    trackbar:=lua_toceuserdata(L,-2);
     trackbar.Min:=lua_tointeger(L,-1);
   end;
 
@@ -5357,7 +5371,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    trackbar:=lua_touserdata(L,-1);
+    trackbar:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushinteger(L, trackbar.Position);
@@ -5376,7 +5390,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    trackbar:=lua_touserdata(L,-2);
+    trackbar:=lua_toceuserdata(L,-2);
     trackbar.Position:=lua_tointeger(L,-1);
   end;
 
@@ -5396,7 +5410,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    control:=lua_touserdata(L,-2);
+    control:=lua_toceuserdata(L,-2);
 
     CleanupLuaCall(tmethod(control.onChange));
     control.onChange:=nil;
@@ -5434,7 +5448,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    listcolumns:=lua_touserdata(L,-2);
+    listcolumns:=lua_toceuserdata(L,-2);
     listcolumns.AutoSize:=lua_toboolean(L,-1);
   end;
 
@@ -5451,7 +5465,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    listcolumn:=lua_touserdata(L,-1);
+    listcolumn:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushstring(L, listcolumn.caption);
@@ -5470,7 +5484,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    listcolumn:=lua_touserdata(L,-2);
+    listcolumn:=lua_toceuserdata(L,-2);
     listcolumn.caption:=Lua_ToString(L,-1);
   end;
 
@@ -5486,7 +5500,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    listcolumn:=lua_touserdata(L,-1);
+    listcolumn:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushinteger(L, listcolumn.maxwidth);
@@ -5505,7 +5519,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    listcolumn:=lua_touserdata(L,-2);
+    listcolumn:=lua_toceuserdata(L,-2);
     listcolumn.maxwidth:=lua_tointeger(L,-1);
   end;
 
@@ -5521,7 +5535,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    listcolumn:=lua_touserdata(L,-1);
+    listcolumn:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushinteger(L, listcolumn.Minwidth);
@@ -5540,7 +5554,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    listcolumn:=lua_touserdata(L,-2);
+    listcolumn:=lua_toceuserdata(L,-2);
     listcolumn.Minwidth:=lua_tointeger(L,-1);
   end;
 
@@ -5556,7 +5570,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    listcolumn:=lua_touserdata(L,-1);
+    listcolumn:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushinteger(L, listcolumn.width);
@@ -5575,7 +5589,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    listcolumn:=lua_touserdata(L,-2);
+    listcolumn:=lua_toceuserdata(L,-2);
     listcolumn.width:=lua_tointeger(L,-1);
   end;
 
@@ -5590,7 +5604,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    collection:=lua_touserdata(L, -1);
+    collection:=lua_toceuserdata(L, -1);
     collection.clear;
   end;
   lua_pop(L, lua_gettop(L));
@@ -5605,7 +5619,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    collection:=lua_touserdata(L,-1);
+    collection:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushinteger(L, collection.Count);
@@ -5623,7 +5637,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    collection:=lua_touserdata(L, -2);
+    collection:=lua_toceuserdata(L, -2);
     index:=lua_tointeger(L,-1);
     collection.Delete(index);
   end;
@@ -5640,7 +5654,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    listcolumns:=lua_touserdata(L,-1);
+    listcolumns:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, listcolumns.Add);
@@ -5659,7 +5673,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    listcolumns:=lua_touserdata(L,-2);
+    listcolumns:=lua_toceuserdata(L,-2);
     index:=lua_toInteger(L,-1);
     lua_pop(L, parameters);
 
@@ -5677,7 +5691,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    listitem:=lua_touserdata(L, -1);
+    listitem:=lua_toceuserdata(L, -1);
     listitem.Delete;
   end;
 
@@ -5693,7 +5707,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    listitem:=lua_touserdata(L,-1);
+    listitem:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushstring(L, listitem.caption);
@@ -5712,7 +5726,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    listitem:=lua_touserdata(L,-2);
+    listitem:=lua_toceuserdata(L,-2);
     listitem.Caption:=Lua_ToString(L,-1);
   end;
 
@@ -5728,7 +5742,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    listitem:=lua_touserdata(L,-1);
+    listitem:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushboolean(L, listitem.Checked);
@@ -5747,7 +5761,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    listitem:=lua_touserdata(L,-2);
+    listitem:=lua_toceuserdata(L,-2);
     listitem.Checked:=lua_toboolean(L,-1);
   end;
 
@@ -5763,7 +5777,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    listitem:=lua_touserdata(L,-1);
+    listitem:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, listitem.SubItems);
@@ -5780,7 +5794,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    listitems:=lua_touserdata(L, -1);
+    listitems:=lua_toceuserdata(L, -1);
     listitems.clear;
   end;
   lua_pop(L, lua_gettop(L));
@@ -5796,7 +5810,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    listitems:=lua_touserdata(L,-parameters);
+    listitems:=lua_toceuserdata(L,-parameters);
     index:=lua_tointeger(L,-parameters+1);
     lua_pop(L, parameters);
 
@@ -5815,7 +5829,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    listitems:=lua_touserdata(L,-1);
+    listitems:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushinteger(L, listitems.Count);
@@ -5833,7 +5847,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    listitems:=lua_touserdata(L,-1);
+    listitems:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, listitems.Add);
@@ -5854,7 +5868,7 @@ begin
 
   parameters:=lua_gettop(L);
   if parameters>=1 then
-    owner:=lua_touserdata(L, -parameters)
+    owner:=lua_toceuserdata(L, -parameters)
   else
     owner:=nil;
 
@@ -5880,7 +5894,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    listview:=lua_touserdata(L, -1);
+    listview:=lua_toceuserdata(L, -1);
     listview.Clear;
   end;
   lua_pop(L, lua_gettop(L));
@@ -5895,7 +5909,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    listview:=lua_touserdata(L,-1);
+    listview:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, listview.Columns);
@@ -5913,7 +5927,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    listview:=lua_touserdata(L,-1);
+    listview:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, listview.Items);
@@ -5931,7 +5945,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    listview:=lua_touserdata(L,-1);
+    listview:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushinteger(L, listview.ItemIndex);
@@ -5950,7 +5964,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    listview:=lua_touserdata(L,-2);
+    listview:=lua_toceuserdata(L,-2);
     listview.itemindex:=lua_tointeger(L,-1);
   end;
 
@@ -5966,7 +5980,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    opendialog:=lua_touserdata(L, -1);
+    opendialog:=lua_toceuserdata(L, -1);
     lua_pop(L, lua_gettop(L));
 
     if opendialog.Execute then
@@ -6022,7 +6036,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    lf:=lua_touserdata(L, -2);
+    lf:=lua_toceuserdata(L, -2);
     f:=Lua_ToString(L, -1);
 
     lf.stream.Position:=0;
@@ -6040,7 +6054,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    lf:=lua_touserdata(L, -1);
+    lf:=lua_toceuserdata(L, -1);
     lua_pop(L, lua_gettop(L));
 
     lf.stream.Position:=0;
@@ -6200,7 +6214,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    memoryrecordhotkey:=lua_touserdata(L,-1);
+    memoryrecordhotkey:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushstring(L, memoryrecordhotkey.description);
@@ -6218,7 +6232,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    memoryrecordhotkey:=lua_touserdata(L,-1);
+    memoryrecordhotkey:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
 
@@ -6237,7 +6251,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    memoryrecordhotkey:=lua_touserdata(L,-1);
+    memoryrecordhotkey:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushinteger(L, memoryrecordhotkey.id);
@@ -6261,7 +6275,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    memoryrecordhotkey:=lua_touserdata(L,-2);
+    memoryrecordhotkey:=lua_toceuserdata(L,-2);
 
     CleanupLuaCall(tmethod(memoryrecordhotkey.onHotkey));
     memoryrecordhotkey.onHotkey:=nil;
@@ -6303,7 +6317,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    memoryrecordhotkey:=lua_touserdata(L,-2);
+    memoryrecordhotkey:=lua_toceuserdata(L,-2);
 
     CleanupLuaCall(tmethod(memoryrecordhotkey.onPostHotkey));
     memoryrecordhotkey.onPostHotkey:=nil;
@@ -6340,7 +6354,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    memoryrecordhotkey:=lua_touserdata(L,-1);
+    memoryrecordhotkey:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, memoryrecordhotkey.owner);
@@ -6358,7 +6372,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    memoryrecordhotkey:=lua_touserdata(L,-1);
+    memoryrecordhotkey:=lua_toceuserdata(L,-1);
     memoryrecordhotkey.doHotkey;
   end;
   lua_pop(L, parameters);
@@ -6375,7 +6389,7 @@ begin
   result:=0;
   parameters:=lua_gettop(L);
   if parameters=1 then
-    progressbar:=lua_touserdata(L, -1)
+    progressbar:=lua_toceuserdata(L, -1)
   else
     progressbar:=nil;
 
@@ -6416,7 +6430,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters>=5 then
   begin
-    attachwindow:=lua_touserdata(L, -parameters);
+    attachwindow:=lua_toceuserdata(L, -parameters);
     hasCloseButton:=lua_toboolean(L, -parameters+1);
     width:=lua_tointeger(L, -parameters+2);
     height:=lua_tointeger(L, -parameters+3);
@@ -6608,7 +6622,7 @@ begin
 
   parameters:=lua_gettop(L);
   if parameters>=1 then
-    owner:=lua_touserdata(L, -parameters)
+    owner:=lua_toceuserdata(L, -parameters)
   else
     owner:=nil;
 
@@ -6784,7 +6798,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    hv:=lua_touserdata(L, -1);
+    hv:=lua_toceuserdata(L, -1);
     lua_pop(L, parameters);
 
     result:=1;
@@ -6803,7 +6817,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    hv:=lua_touserdata(L, -2);
+    hv:=lua_toceuserdata(L, -2);
     if lua_isstring(L, -1) then
       address:=symhandler.getAddressFromNameL(Lua_ToString(L, -1))
     else
@@ -6831,7 +6845,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    hexadecimalview:=lua_touserdata(L,-2);
+    hexadecimalview:=lua_toceuserdata(L,-2);
 
     CleanupLuaCall(tmethod(hexadecimalview.onAddressChange));
     hexadecimalview.onAddressChange:=nil;
@@ -6872,7 +6886,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    hexadecimalview:=lua_touserdata(L,-2);
+    hexadecimalview:=lua_toceuserdata(L,-2);
 
     CleanupLuaCall(tmethod(hexadecimalview.onByteSelect));
     hexadecimalview.onByteSelect:=nil;
@@ -6909,7 +6923,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    dv:=lua_touserdata(L, -1);
+    dv:=lua_toceuserdata(L, -1);
     lua_pop(L, parameters);
 
     result:=2;
@@ -6929,7 +6943,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    dv:=lua_touserdata(L, -2);
+    dv:=lua_toceuserdata(L, -2);
     if lua_isstring(L, -1) then
       address:=symhandler.getAddressFromNameL(Lua_ToString(L, -1))
     else
@@ -6957,7 +6971,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    disassemblerview:=lua_touserdata(L,-2);
+    disassemblerview:=lua_toceuserdata(L,-2);
 
     CleanupLuaCall(tmethod(disassemblerview.onselectionchange));
     disassemblerview.onselectionchange:=nil;
@@ -7277,7 +7291,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    u:=lua_touserdata(L,-1);
+    u:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushinteger(L, ptruint(u));
@@ -7471,7 +7485,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters>=1 then
   begin
-    s:=lua_touserdata(L,1);
+    s:=lua_toceuserdata(L,1);
     lua_pop(L, lua_gettop(l));
     if (s<>nil) and (s is TStrings) then
       GetProcessList(s)
@@ -7493,7 +7507,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters>=1 then
   begin
-    s:=lua_touserdata(L,1);
+    s:=lua_toceuserdata(L,1);
     lua_pop(L, lua_gettop(l));
     if (s<>nil) and (s is TStrings) then
       GetThreadList(s)
@@ -7517,7 +7531,7 @@ begin
 
   parameters:=lua_gettop(L);
   if parameters>=1 then
-    owner:=lua_touserdata(L, 1)
+    owner:=lua_toceuserdata(L, 1)
   else
     owner:=nil;
 

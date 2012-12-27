@@ -197,7 +197,8 @@ procedure lua_getfield(L: Plua_state; idx: Integer; k: PChar); cdecl;
 procedure lua_rawget(L: Plua_State; idx: Integer); cdecl;
 procedure lua_rawgeti(L: Plua_State; idx, n: Integer); cdecl;
 procedure lua_createtable(L: Plua_State; narr, nrec: Integer); cdecl;
-function lua_newuserdata(L: Plua_State; sz: size_t): Pointer; cdecl;
+function lua_newuserdata(L: Plua_State; sz: size_t): Pointer; cdecl; overload;
+procedure lua_newuserdata(L: Plua_State; p: pointer); cdecl; overload;
 function lua_getmetatable(L: Plua_State; objindex: Integer): Integer; cdecl;
 procedure lua_getfenv(L: Plua_State; idx: Integer); cdecl;
 
@@ -273,6 +274,7 @@ function lua_strlen(L: Plua_state; i: Integer): size_t;
 function lua_isfunction(L: Plua_State; n: Integer): Boolean;
 function lua_istable(L: Plua_State; n: Integer): Boolean;
 function lua_islightuserdata(L: Plua_State; n: Integer): Boolean;
+function lua_isheavyuserdata(L: Plua_State; n: Integer): Boolean;
 function lua_isnil(L: Plua_State; n: Integer): Boolean;
 function lua_isboolean(L: Plua_State; n: Integer): Boolean;
 function lua_isthread(L: Plua_State; n: Integer): Boolean;
@@ -354,6 +356,14 @@ function lua_gethookcount(L: Plua_State): Integer; cdecl;
 implementation
 
 uses sysutils;
+
+
+procedure lua_newuserdata(L: Plua_State; p: pointer); cdecl;
+var r: ppointer;
+begin
+  r:=lua_newuserdata(L, sizeof(p));
+  r^:=p;
+end;
 
 function lua_upvalueindex(I: Integer): Integer;
 begin
@@ -484,6 +494,12 @@ function lua_islightuserdata(L: Plua_State; n: Integer): Boolean;
 begin
   Result := lua_type(L, n) = LUA_TLIGHTUSERDATA;
 end;
+
+function lua_isheavyuserdata(L: Plua_State; n: Integer): Boolean;
+begin
+  Result := lua_type(L, n) = LUA_TUSERDATA;
+end;
+
 
 function lua_isnil(L: Plua_State; n: Integer): Boolean;
 begin
