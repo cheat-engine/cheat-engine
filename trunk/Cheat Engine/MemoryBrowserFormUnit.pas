@@ -27,6 +27,9 @@ type
     MenuItem12: TMenuItem;
     MenuItem13: TMenuItem;
     MenuItem14: TMenuItem;
+    MenuItem15: TMenuItem;
+    MenuItem16: TMenuItem;
+    MenuItem17: TMenuItem;
     miShowIndisassembler: TMenuItem;
     miShowInHexview: TMenuItem;
     miCopyBytesOnly: TMenuItem;
@@ -224,6 +227,7 @@ type
     procedure MenuItem11Click(Sender: TObject);
     procedure MenuItem12Click(Sender: TObject);
     procedure MenuItem14Click(Sender: TObject);
+    procedure MenuItem17Click(Sender: TObject);
     procedure miShowIndisassemblerClick(Sender: TObject);
     procedure miCopyBytesOnlyClick(Sender: TObject);
     procedure miDissectData2Click(Sender: TObject);
@@ -934,6 +938,11 @@ begin
     frmUltimap:=TfrmUltimap.create(application);
 
   frmUltimap.show;
+end;
+
+procedure TMemoryBrowser.MenuItem17Click(Sender: TObject);
+begin
+  //build a structure using a registered template and the current data stream
 end;
 
 

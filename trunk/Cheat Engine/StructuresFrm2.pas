@@ -165,6 +165,8 @@ type
     property element[Index: Integer]: TStructelement read getElement; default;
   end;
 
+  PDissectedStruct=^TDissectedStruct;
+
   TfrmStructures2=class;
   TStructColumn=class;
 

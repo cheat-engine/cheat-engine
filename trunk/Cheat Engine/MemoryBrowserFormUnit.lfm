@@ -676,6 +676,19 @@ object MemoryBrowser: TMemoryBrowser
       Caption = 'Lock current rowsize'
       OnClick = miLockRowsizeClick
     end
+    object MenuItem16: TMenuItem
+      Caption = '-'
+      Visible = False
+    end
+    object MenuItem17: TMenuItem
+      Caption = 'Generate structure from datastream and template'
+      Visible = False
+      OnClick = MenuItem17Click
+    end
+    object MenuItem15: TMenuItem
+      Caption = 'Overlay with structure'
+      Visible = False
+    end
     object MenuItem3: TMenuItem
       Caption = '-'
     end
