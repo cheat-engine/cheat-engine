@@ -10,6 +10,7 @@ interface
 uses
   Classes, SysUtils, lua, lauxlib, lualib, math;
 
+type TAddMetaDataFunction=procedure(L: PLua_state; metatable: integer; userdata: integer );
 
 function luaclass_createMetaTable(L: Plua_State): integer;
 
@@ -22,9 +23,35 @@ procedure luaclass_canAutoDestroy(L: PLua_State; metatable: integer; state: bool
 
 function luaclass_getClassObject(L: PLua_state): pointer; inline;
 
+procedure luaclass_newClass(L: PLua_State; o: TObject; InitialAddMetaDataFunction: TAddMetaDataFunction); overload;
+procedure luaclass_newClass(L: PLua_State; InitialAddMetaDataFunction: TAddMetaDataFunction); overload;
+
+
 implementation
 
-uses LuaClassArray;
+uses LuaClassArray, LuaObject;
+
+procedure luaclass_newClass(L: PLua_State; InitialAddMetaDataFunction: TAddMetaDataFunction);
+//converts the item at the top of the stack to a class object
+var userdata, metatable: integer;
+begin
+  userdata:=lua_gettop(L);
+
+  metatable:=luaclass_createMetaTable(L);
+  InitialAddMetaDataFunction(L, metatable, userdata);
+  lua_setmetatable(L, userdata);
+end;
+
+procedure luaclass_newClass(L: PLua_State; o: TObject; InitialAddMetaDataFunction: TAddMetaDataFunction);
+begin
+  if o<>nil then
+  begin
+    lua_newuserdata(L, o);
+    luaclass_newClass(L, InitialAddMetaDataFunction);
+  end
+  else
+    lua_pushnil(L);
+end;
 
 function luaclass_getClassObject(L: PLua_state): pointer; inline;
 //called by class functions. This is in case a 6.2 code executed the function manually
@@ -98,6 +125,21 @@ begin
       lua_pushvalue(L, 3); //push newvalue    (so stack now holds, function, newvalue)
       lua_call(L, 1, 0);
     end;
+  end
+  else
+  begin
+    if lua_isnil(L, -1) then
+    begin
+      lua_pop(L,1);
+
+      //this entry was not in the list
+      //Let's see if this is a published property
+      lua_pushcfunction(L, lua_setProperty);
+      lua_pushvalue(L, 1); //userdata
+      lua_pushvalue(L, 2); //keyname
+      lua_pushvalue(L, 3); //value
+      lua_call(L,3,1);
+    end;
   end;
 end;
 
@@ -137,6 +179,20 @@ begin
 
       if lua_isfunction(L, -1) then
         lua_call(L, 0, 1);
+    end
+    else
+    begin
+      if lua_isnil(L, -1) then
+      begin
+        lua_pop(L,1);
+
+        //this entry was not in the list
+        //Let's see if this is a published property
+        lua_pushcfunction(L, lua_getProperty);
+        lua_pushvalue(L, 1); //userdata
+        lua_pushvalue(L, 2); //keyname
+        lua_call(L,2,1);
+      end;
     end;
     result:=1;
   end;

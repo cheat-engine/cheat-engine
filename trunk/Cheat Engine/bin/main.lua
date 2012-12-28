@@ -249,8 +249,6 @@ inheritsFromWinControl(class): Returns true if the given object inherits from th
 
 Class definitions
 Object class: (Inheritance: )
-
-object class:
 Properties:
   ClassName: String - The name of the structure (Read only)
 Methods:
@@ -1012,50 +1010,50 @@ getStructure(index): Returns the Structure object at the given index
 createStructure(name): Returns an empty structure object (Not yet added to the Global list. Call structure_addToGlobalStructureList manually)
 
 
-structure class:
+structure class: (Inheritance: Object)
 Properties:
   Name: String - The name of the structure
+  Size: Integer - The number of bytes between the last element and the start. ReadOnly
   Count: Integer - Number of elements in the structure. ReadOnly
+  Element[]: structureElement - Returns the structure element at the given index. Readonly
 Methods:
   getName(): Returns the name
   setName(name): Sets the name
+  getElement(index): Returns a structureElement object (Changing offsets can change the index)
+  getElementByOffset(offset): Returns a structureElement object where the specified offset is at least the requested offset
+  addElement(): Adds a new blank structureElement and returns it
+  autoGuess(baseaddresstoguessfrom, offset, size)
 
-
-
-
-structure_getName(structure)
-structure_setName(structure,name)
-structure_getSize(structure): Calculates the size of the structure (
-structure_getElementCount(structure): Returns the number of elements in this structure
-
-
-structure_getElement(structure, index): Returns a structureElement object (Changing offsets can change the index)
-structure_getElementByOffset(structure, offset): Returns a structureElement object where the specified offset is at least the requested offset
-
-
-structure_addElement(structure): Adds a new blank structureElement and returns it
-structure_autoGuess(structure, baseaddresstoguessfrom, offset, size)
-
-structure_beginUpdate(structure): Call this when you want to make multiple updates to a structure. It will speed up the update process
-structure_endUpdate(structure): Call this when done
-structure_addToGlobalStructureList(structure): Add this to the list of structures for the user to select from. (Global structures will get saved to the table)
-structure_removeFromGlobalStructureList(structure): Remove from the list of structures. 
+  beginUpdate(): Call this when you want to make multiple updates to a structure. It will speed up the update process
+  endUpdate(): Call this when done
+  addToGlobalStructureList(): Add this to the list of structures for the user to select from. (Global structures will get saved to the table)
+  removeFromGlobalStructureList(): Remove from the list of structures. 
 
 
 StructureElement class: (Inheritance: Object)
-structureElement_getOwnerStructure(se): Returns the structure this element belongs to
-structureElement_getOffset(se): Returns the offset of this element
-structureElement_setOffset(se, offset): Sets the offset of this element
-structureElement_getName(se): Returns the name of this element
-structureElement_setName(se, name): Sets the name of this element (tip: Leave blank if you only want to set the name of the variable)
-structureElement_getVartype(se): Returns the variable type of this element (check Variable types in defines.lua)
-structureElement_setVartype(se, vartype)
-structureElement_getChildStruct(se)
-structureElement_setChildStruct(se, structure)
-structureElement_getChildStructStart(se)
-structureElement_setChildStructStart(se, offset)
-structureElement_getBytesize(se): Gets the bytesize of the element. Usually returns the size of the type, except for string and aob
-structureElement_setBytesize(se, size): sets the bytesize for types that are affected (string, aob)
+Properties:
+  Owner: structure - The structure this element belongs to. Readonly
+  Offset: integer - The offset of this element
+  Name: string - The name of this element
+  Vartype: integer - The variable type of this element
+  ChildStruct: structure - If not nil this element if a pointer to the structure defined here
+  ChildStructStart: integer - The number of bytes inside the provided childstruct. (E.g: It might point to offset 10 of a certain structure)
+  Bytesize: integer - The number of bytes of this element. Readonly for basic types, writable for types that require a defined length like strings and array of bytes
+
+Methods:
+  getOwnerStructure(): Returns the structure this element belongs to
+  getOffset(): Returns the offset of this element
+  setOffset(offset): Sets the offset of this element
+  getName(): Returns the name of this element
+  setName(name): Sets the name of this element (tip: Leave blank if you only want to set the name of the variable)
+  getVartype(): Returns the variable type of this element (check Variable types in defines.lua)
+  setVartype(vartype)
+  getChildStruct()
+  setChildStruct(structure)
+  getChildStructStart()
+  setChildStructStart(offset)
+  getBytesize(): Gets the bytesize of the element. Usually returns the size of the type, except for string and aob
+  setBytesize(size): sets the bytesize for types that are affected (string, aob)
 
 
 

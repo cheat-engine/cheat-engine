@@ -157,12 +157,10 @@ type
     property AutoCreate: boolean read fAutoCreate write setAutoCreate;
     property AutoDestroy: boolean read fAutoDestroy write setAutoDestroy;
     property AutoFill: boolean read fAutoFill write setAutoFill;
-    property DefaultHex: boolean read fDefaultHex write setDefaultHex;
-
-
-
     property count: integer read getElementCount;
     property element[Index: Integer]: TStructelement read getElement; default;
+  published
+    property DefaultHex: boolean read fDefaultHex write setDefaultHex;
   end;
 
   PDissectedStruct=^TDissectedStruct;
