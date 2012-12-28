@@ -361,6 +361,8 @@ begin
 
   lua_register(LuaVM, 'object_getClassName', object_getClassName);
   lua_register(LuaVM, 'object_destroy', object_destroy);
+
+  luaclass_register(TObject, object_addMetaData); //so it will ALWAYS find at least one thing
 end;
 
 end.
