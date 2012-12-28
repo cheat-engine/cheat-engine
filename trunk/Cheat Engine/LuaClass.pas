@@ -8,7 +8,7 @@ unit LuaClass;
 interface
 
 uses
-  Classes, SysUtils, lua, lauxlib, lualib, math;
+  Classes, SysUtils, controls, lua, lauxlib, lualib, math;
 
 type TAddMetaDataFunction=procedure(L: PLua_state; metatable: integer; userdata: integer );
 
@@ -23,28 +23,96 @@ procedure luaclass_canAutoDestroy(L: PLua_State; metatable: integer; state: bool
 
 function luaclass_getClassObject(L: PLua_state): pointer; inline;
 
+procedure luaclass_newClass(L: PLua_State; o: TObject); overload;
 procedure luaclass_newClass(L: PLua_State; o: TObject; InitialAddMetaDataFunction: TAddMetaDataFunction); overload;
 procedure luaclass_newClass(L: PLua_State; InitialAddMetaDataFunction: TAddMetaDataFunction); overload;
 
+procedure luaclass_register(c: TClass; InitialAddMetaDataFunction: TAddMetaDataFunction);
 
 implementation
 
-uses LuaClassArray, LuaObject;
+uses LuaClassArray, LuaObject, LuaComponent;
+
+var classlist: Tlist;
+
+type
+  TClasslistentry=record
+    c: TClass;
+    depth: integer;
+    f: TAddMetaDataFunction;
+  end;
+  PClassListEntry=^TClassListEntry;
+
+
+procedure luaclass_register(c: TClass; InitialAddMetaDataFunction: TAddMetaDataFunction);
+//registers the classes that are accessible by lua. Used by findBestClassForObject
+var cle: PClasslistentry;
+    t: TClass;
+begin
+  if classlist=nil then
+    classlist:=tlist.create;
+
+  getmem(cle, sizeof(TClasslistentry));
+
+  cle.c:=c;
+  cle.depth:=0;
+  cle.f:=InitialAddMetaDataFunction;
+  t:=c;
+
+  while t<>nil do
+  begin
+    inc(cle.depth);
+    t:=t.ClassParent;
+  end;
+
+  classlist.Add(cle);
+end;
+
+function findBestClassForObject(O: TObject): TAddMetaDataFunction;
+var lowest: TClass;
+    i: integer;
+    cle: PClassListEntry;
+
+    best: TClasslistentry;
+begin
+  result:=nil;
+  if o=nil then exit;
+
+  best.depth:=0;
+  best.c:=nil;
+  best.f:=nil;
+
+  if classlist<>nil then
+  begin
+    for i:=0 to classlist.Count-1 do
+    begin
+      cle:=classlist[i];
+      if o.InheritsFrom(cle.c) and (cle.depth>best.depth) then
+        best:=cle^;
+    end;
+  end;
+
+  result:=best.f;
+end;
 
 procedure luaclass_newClass(L: PLua_State; InitialAddMetaDataFunction: TAddMetaDataFunction);
 //converts the item at the top of the stack to a class object
 var userdata, metatable: integer;
 begin
-  userdata:=lua_gettop(L);
 
-  metatable:=luaclass_createMetaTable(L);
-  InitialAddMetaDataFunction(L, metatable, userdata);
-  lua_setmetatable(L, userdata);
+  if Assigned(InitialAddMetaDataFunction) then
+  begin
+    userdata:=lua_gettop(L);
+
+    metatable:=luaclass_createMetaTable(L);
+    InitialAddMetaDataFunction(L, metatable, userdata);
+    lua_setmetatable(L, userdata);
+  end;
 end;
 
 procedure luaclass_newClass(L: PLua_State; o: TObject; InitialAddMetaDataFunction: TAddMetaDataFunction);
 begin
-  if o<>nil then
+  if (o<>nil) and (Assigned(InitialAddMetaDataFunction)) then
   begin
     lua_newuserdata(L, o);
     luaclass_newClass(L, InitialAddMetaDataFunction);
@@ -52,6 +120,20 @@ begin
   else
     lua_pushnil(L);
 end;
+
+
+procedure luaclass_newClass(L: PLua_State; o: TObject); overload;
+var InitialAddMetaDataFunction: TAddMetaDataFunction;
+begin
+  if o<>nil then
+  begin
+    InitialAddMetaDataFunction:=findBestClassForObject(o);
+    luaclass_newClass(L, o, InitialAddMetaDataFunction);
+  end
+  else
+    lua_pushnil(L);
+end;
+
 
 function luaclass_getClassObject(L: PLua_state): pointer; inline;
 //called by class functions. This is in case a 6.2 code executed the function manually
@@ -154,6 +236,7 @@ var i: integer;
     metatable: integer;
 
     s: string;
+    o: TObject;
 begin
   //return the metatable element
 
@@ -192,6 +275,19 @@ begin
         lua_pushvalue(L, 1); //userdata
         lua_pushvalue(L, 2); //keyname
         lua_call(L,2,1);
+
+        if lua_isnil(L, -1) then
+        begin
+          //not a property
+          o:=tobject(lua_touserdata(L,1)^);
+          if o is TComponent then
+          begin
+            lua_pushcfunction(L, component_findComponentByName);
+            lua_pushvalue(L, 1);
+            lua_pushvalue(L, 2);
+            lua_call(L, 2, 1);
+          end;
+        end;
       end;
     end;
     result:=1;

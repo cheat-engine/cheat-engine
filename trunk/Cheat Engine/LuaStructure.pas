@@ -505,10 +505,11 @@ begin
   lua_register(LuaVM, 'structureElement_setChildStructStart', structureElement_setChildStructStart);
   lua_register(LuaVM, 'structureElement_getBytesize', structureElement_getBytesize);
   lua_register(LuaVM, 'structureElement_setBytesize', structureElement_setBytesize);
-
-
-
 end;
+
+initialization
+  luaclass_register(TDissectedStruct, structure_addMetaData);
+  luaclass_register(TStructelement, structureElement_addMetaData);
 
 end.
 

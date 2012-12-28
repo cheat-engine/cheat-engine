@@ -62,7 +62,7 @@ uses mainunit, mainunit2, frmluaengineunit, plugin, pluginexports, MemoryRecordU
   LuaMemoryRecord, LuaForm, MemoryBrowserFormUnit, disassemblerviewunit, hexviewunit,
   CustomTypeHandler, LuaStructure, LuaRegion, LuaXMPlayer, LuaMemscan, LuaFoundlist,
   LuaRadioGroup, LuaRasterImage, LuaCheatComponent, LuaAddresslist, byteinterpreter,
-  OpenSave, cedebugger, DebugHelper, LuaObject;
+  OpenSave, cedebugger, DebugHelper, LuaObject, LuaComponent;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -3953,138 +3953,6 @@ begin
 end;
 
 
-
-function component_getComponentCount(L: PLua_state): integer; cdecl;
-var c: TComponent;
-  parameters: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    c:=lua_toceuserdata(L, -1);
-    lua_pop(L, lua_gettop(l));
-
-    lua_pushinteger(L, c.ComponentCount);
-    result:=1;
-  end else lua_pop(L, lua_gettop(l));
-
-end;
-
-function component_findComponentByName(L: PLua_state): integer; cdecl;
-var c: TComponent;
-  n: string;
-  parameters: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    c:=lua_toceuserdata(L, -2);
-    n:=Lua_ToString(L, -1);
-    lua_pop(L, lua_gettop(l));
-
-    lua_pushlightuserdata(L, c.FindComponent(n));
-    result:=1;
-  end else lua_pop(L, lua_gettop(l));
-end;
-
-function component_getComponent(L: PLua_state): integer; cdecl;
-var c: TComponent;
-  i: integer;
-  parameters: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    c:=lua_toceuserdata(L, -2);
-    i:=lua_tointeger(L,-1);
-    lua_pop(L, lua_gettop(l));
-
-    lua_pushlightuserdata(L, c.Components[i]);
-    result:=1;
-  end else lua_pop(L, lua_gettop(l));
-end;
-
-function component_getName(L: PLua_state): integer; cdecl;
-var c: TComponent;
-  parameters: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    c:=lua_toceuserdata(L, -1);
-    lua_pop(L, lua_gettop(l));
-
-    lua_pushstring(L, c.Name);
-    result:=1;
-  end else lua_pop(L, lua_gettop(l));
-end;
-
-function component_setName(L: PLua_state): integer; cdecl;
-var c: TComponent;
-  parameters: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    c:=lua_toceuserdata(L, -2);
-    c.Name:=lua_tostring(L,-1);
-  end;
-  lua_pop(L, lua_gettop(l));
-end;
-
-function component_getTag(L: PLua_state): integer; cdecl;
-var c: TComponent;
-  parameters: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    c:=lua_toceuserdata(L, -1);
-    lua_pop(L, lua_gettop(l));
-
-    lua_pushinteger(L, c.Tag);
-    result:=1;
-  end else lua_pop(L, lua_gettop(l));
-end;
-
-function component_setTag(L: PLua_state): integer; cdecl;
-var c: TComponent;
-  t: integer;
-  parameters: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    c:=lua_toceuserdata(L, -2);
-    c.Tag:=lua_tointeger(L, -1);
-  end;
-  lua_pop(L, lua_gettop(l));
-end;
-
-
-function component_getOwner(L: PLua_state): integer; cdecl;
-var c: TComponent;
-  parameters: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    c:=lua_toceuserdata(L, -1);
-    lua_pop(L, lua_gettop(l));
-
-    lua_pushlightuserdata(L, c.Owner);
-    result:=1;
-  end else lua_pop(L, lua_gettop(l));
-end;
-
 function panel_getAlignment(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
@@ -7400,18 +7268,9 @@ begin
 
 
     initializeObject;
+    InitializeComponent;
 
 
-
-
-    lua_register(LuaVM, 'component_getComponentCount', component_getComponentCount);
-    lua_register(LuaVM, 'component_getComponent', component_getComponent);
-    lua_register(LuaVM, 'component_findComponentByName', component_findComponentByName);
-    lua_register(LuaVM, 'component_getName', component_getName);
-    lua_register(LuaVM, 'component_setName', component_setName);
-    lua_register(LuaVM, 'component_getTag', component_getTag);
-    lua_register(LuaVM, 'component_setTag', component_setTag);
-    lua_register(LuaVM, 'component_getOwner', component_getOwner);
 
     lua_register(LuaVM, 'control_setCaption', control_setCaption);
     lua_register(LuaVM, 'control_getCaption', control_getCaption);
