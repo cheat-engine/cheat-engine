@@ -11,6 +11,7 @@ uses
 procedure initializeLuaStructure;
 
 procedure structure_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
+procedure structureElement_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 
 implementation
 
@@ -28,6 +29,7 @@ function getStructure(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   i: integer;
+  userdata, metatable: integer;
 begin
   result:=0;
   parameters:=lua_gettop(L);
@@ -37,6 +39,7 @@ begin
     lua_pop(L, parameters);
 
     lua_newuserdata(L, DissectedStructs[i]);
+    luaclass_newclass(L, structure_addMetaData);
 
 //    PDissectedStruct(lua_newuserdata(L, sizeof(TDissectedStruct)))^:=DissectedStructs[i];
     result:=1;
@@ -122,6 +125,7 @@ begin
     if index<struct.count then
     begin
       lua_newuserdata(L, struct.element[index]);
+      luaclass_newclass(L, structureElement_addMetaData);
       result:=1;
     end;
   end;
@@ -135,8 +139,6 @@ var
   offset: integer;
 begin
   result:=0;
-
-  result:=0;
   struct:=luaclass_getClassObject(L);
 
   parameters:=lua_gettop(L);
@@ -144,6 +146,7 @@ begin
   begin
     offset:=lua_tointeger(L,-1);
     lua_newuserdata(L, struct.element[struct.getIndexOfOffset(offset)]);
+    luaclass_newclass(L, structureElement_addMetaData);
     result:=1;
   end else lua_pop(L, parameters);
 end;
@@ -158,8 +161,8 @@ begin
 
   struct:=luaclass_getClassObject(L);
 
-
   lua_newuserdata(L, struct.addElement);
+  luaclass_newclass(L, structureElement_addMetaData);
   result:=1;
 end;
 
@@ -284,157 +287,96 @@ begin
     lua_pop(L, parameters);
 
     struct:=TDissectedStruct.create(name);
-    lua_newuserdata(L, struct);
-    userdata:=lua_gettop(L);
-
-    metatable:=luaclass_createMetaTable(L);
-    structure_addMetaData(L, metatable, userdata);
-    lua_setmetatable(L, userdata);
-
+    luaclass_newclass(L, struct, structure_addMetaData);
     result:=1;
-
   end else lua_pop(L, parameters);
 end;
 
-
 function structureElement_getOwnerStructure(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   se: TStructelement;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    se:=lua_touserdata(L,-parameters);
-    lua_pop(L, parameters);
-
-    lua_pushlightuserdata(L, se.parent);
-    result:=1;
-  end else lua_pop(L, parameters);
+  se:=luaclass_getClassObject(L);
+  luaclass_newclass(L, se.parent, structure_addMetaData);
+  result:=1;
 end;
 
 function structureElement_getOffset(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   se: TStructelement;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    se:=lua_touserdata(L,-parameters);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, se.Offset);
-    result:=1;
-  end else lua_pop(L, parameters);
+  se:=luaclass_getClassObject(L);
+  lua_pushinteger(L, se.Offset);
+  result:=1;
 end;
 
 function structureElement_setOffset(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   se: TStructelement;
   offset: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    se:=lua_touserdata(L,-parameters);
-    offset:=Lua_Tointeger(L, -parameters+1);
-    lua_pop(L, parameters);
+  se:=luaclass_getClassObject(L);
 
-    se.offset:=offset;
-  end else lua_pop(L, parameters);
+  offset:=Lua_Tointeger(L, -1);
+  se.offset:=offset;
 end;
 
 function structureElement_getName(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   se: TStructelement;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    se:=lua_touserdata(L,-parameters);
-    lua_pop(L, parameters);
-
-    lua_pushstring(L, se.name);
-    result:=1;
-  end else lua_pop(L, parameters);
+  se:=luaclass_getClassObject(L);
+  lua_pushstring(L, se.name);
+  result:=1;
 end;
 
 function structureElement_setName(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   se: TStructelement;
   Name: string;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    se:=lua_touserdata(L,-parameters);
-    name:=Lua_ToString(L, -parameters+1);
-    lua_pop(L, parameters);
+  se:=luaclass_getClassObject(L);
 
+  if lua_gettop(L)>=1 then
+  begin
+    name:=Lua_ToString(L, -1);
     se.Name:=Name;
-  end else lua_pop(L, parameters);
+  end;
 end;
 
 function structureElement_getVartype(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   se: TStructelement;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    se:=lua_touserdata(L,-parameters);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, integer(se.Vartype));
-    result:=1;
-  end else lua_pop(L, parameters);
+  se:=luaclass_getClassObject(L);
+  lua_pushinteger(L, integer(se.Vartype));
+  result:=1;
 end;
 
 function structureElement_setVartype(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   se: TStructelement;
   Vartype: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
+  se:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
   begin
-    se:=lua_touserdata(L,-parameters);
-    Vartype:=lua_tointeger(L, -parameters+1);
-    lua_pop(L, parameters);
-
+    Vartype:=lua_tointeger(L, -1);
     se.Vartype:=Tvariabletype(Vartype);
-  end else lua_pop(L, parameters);
+  end;
 end;
 
 
 function structureElement_getChildStruct(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   se: TStructelement;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    se:=lua_touserdata(L,-parameters);
-    lua_pop(L, parameters);
-
-    lua_pushlightuserdata(L, se.ChildStruct);
-    result:=1;
-  end else lua_pop(L, parameters);
+  se:=luaclass_getClassObject(L);
+  luaclass_newClass(L, se.ChildStruct, structure_addMetaData);
+  result:=1;
 end;
 
 function structureElement_setChildStruct(L: PLua_State): integer; cdecl;
@@ -444,86 +386,88 @@ var
   Childstruct: TDissectedStruct;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
+  se:=luaclass_getClassObject(L);
+
+  if lua_gettop(L)>=1 then
   begin
-    se:=lua_touserdata(L,-parameters);
-    Childstruct:=lua_touserdata(L, -parameters+1);
-    lua_pop(L, parameters);
+    if lua_isnil(L,-1) then
+      childstruct:=nil
+    else
+      Childstruct:=lua_ToCEUserData(L, -1);
 
     se.Childstruct:=Childstruct;
-  end else lua_pop(L, parameters);
+  end;
 end;
 
 function structureElement_getChildStructStart(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   se: TStructelement;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    se:=lua_touserdata(L,-parameters);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, se.ChildStructStart);
-    result:=1;
-  end else lua_pop(L, parameters);
+  se:=luaclass_getClassObject(L);
+  lua_pushinteger(L, se.ChildStructStart);
+  result:=1;
 end;
 
 function structureElement_setChildStructStart(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   se: TStructelement;
-  start: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    se:=lua_touserdata(L,-parameters);
-    start:=Lua_Tointeger(L, -parameters+1);
-    lua_pop(L, parameters);
-
-    se.ChildStructStart:=start;
-  end else lua_pop(L, parameters);
+  se:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    se.ChildStructStart:=lua_tointeger(L, -1);
 end;
 
 function structureElement_getByteSize(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   se: TStructelement;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    se:=lua_touserdata(L,-parameters);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, se.Bytesize);
-    result:=1;
-  end else lua_pop(L, parameters);
+  se:=luaclass_getClassObject(L);
+  lua_pushinteger(L, se.Bytesize);
+  result:=1;
 end;
 
 function structureElement_setByteSize(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   se: TStructelement;
-  bs: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    se:=lua_touserdata(L,-parameters);
-    bs:=Lua_Tointeger(L, -parameters+1);
-    lua_pop(L, parameters);
-
-    se.Bytesize:=bs;
-  end else lua_pop(L, parameters);
+  se:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    se.bytesize:=lua_tointeger(L, -1);
 end;
+
+procedure structureElement_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
+begin
+  object_addMetaData(L, metatable, userdata);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getOwnerStructure', structureElement_getOwnerStructure);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Owner', structureElement_getOwnerStructure, nil);
+
+
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getOffset', structureElement_getOffset);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setOffset', structureElement_setOffset);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Offset', structureElement_getOffset, structureElement_setOffset);
+
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getName', structureElement_getName);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setName', structureElement_setName);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Name', structureElement_getName, structureElement_setName);
+
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getVartype', structureElement_getVartype);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setVartype', structureElement_setVartype);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Vartype', structureElement_getVartype, structureElement_setVartype);
+
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getChildStruct', structureElement_getChildStruct);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setChildStruct', structureElement_setChildStruct);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'ChildStruct', structureElement_getChildStruct, structureElement_setChildStruct);
+
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getChildStructStart', structureElement_getChildStructStart);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setChildStructStart', structureElement_setChildStructStart);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getBytesize', structureElement_getBytesize);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setBytesize', structureElement_setBytesize);
+
+end;
+
+
 
 procedure initializeLuaStructure;
 begin

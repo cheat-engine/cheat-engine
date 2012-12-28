@@ -51,7 +51,7 @@ begin
   setIs64Bit(newkernelhandler.Is64BitProcess(fProcessHandle));
 
   if processhandle<>0 then
-    LUA_functioncall('onOpenProcess', [ptruint(processid)]);
+    LUA_functioncall('onOpenProcess', [ptruint(processid)]);   //todo: Change to a callback array/list
 
 //  if (mainform<>nil) and (mainform.addresslist<>nil) then
 //    mainform.addresslist.needsToReinterpret:=true;
