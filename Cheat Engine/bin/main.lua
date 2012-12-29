@@ -258,14 +258,23 @@ Methods:
 
 
 Component Class: (Inheritance: Object)
-component_getComponentCount(Component) : Returns the number of components attached to his component
-component_getComponent(Component, index) : Returns the specific component
-component_findComponentByName(component, name) : Returns the component with this name
-component_getName(Component) : Return the name
-component_setName(Component, newname) : Changes the name
-component_getTag(Component) : Sets an integer value. You can use this for ID's
-component_setTag(Component, tagvalue) : Get the tag value
-component_getOwner(Component) : Returns the owner of this component
+properties
+  ComponentCount: Integer - Number of child components . Readonly
+  Component[int]: Component - Array containing the child components. Starts at 0. Readonly
+  ComponentByName[string]: Component - Returns a component based on the name. Readonly
+  Name: string - The name of the component
+  Tag: integer - Free to use storage space. (Usefull for id's)
+  Owner: Component - Returns the owner of this object. Nil if it has none
+
+methods
+getComponentCount() : Returns the number of components attached to his component
+getComponent(index) : Returns the specific component
+findComponentByName(name) : Returns the component with this name
+getName() : Return the name
+setName(newname) : Changes the name
+getTag() : Sets an integer value. You can use this for ID's
+setTag(tagvalue) : Get the tag value
+getOwner() : Returns the owner of this component
 
 
 
@@ -1002,11 +1011,9 @@ thread_waitfor(thread) : Waits for the given thread to finish
 
 
 
-Structure class: (Inheritance: Object)
-
+Structure class related functions:
 getStructureCount(): Returns the number of Global structures. (Global structures are the visible structures)
 getStructure(index): Returns the Structure object at the given index
-
 createStructure(name): Returns an empty structure object (Not yet added to the Global list. Call structure_addToGlobalStructureList manually)
 
 
