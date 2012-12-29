@@ -8,7 +8,7 @@ uses
   Classes, SysUtils,lua, lualib, lauxlib, math, typinfo, Controls,
   ComCtrls, StdCtrls, Forms;
 
-procedure InitializeObject;
+procedure InitializeLuaObject;
 procedure object_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 
 function lua_getProperty(L: PLua_state): integer; cdecl;
@@ -351,7 +351,7 @@ begin
 end;
 
 
-procedure InitializeObject;
+procedure InitializeLuaObject;
 begin
   lua_register(LuaVM, 'getPropertyList', getPropertyList);
   lua_register(LuaVM, 'setProperty', lua_setProperty);

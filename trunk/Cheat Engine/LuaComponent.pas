@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, lua, lualib, lauxlib;
 
-procedure InitializeComponent;
+procedure InitializeLuaComponent;
 function component_findComponentByName(L: PLua_state): integer; cdecl;
 procedure component_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 
@@ -17,135 +17,82 @@ uses LuaHandler, LuaObject, LuaClass;
 
 function component_getComponentCount(L: PLua_state): integer; cdecl;
 var c: TComponent;
-  parameters: integer;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    c:=lua_toceuserdata(L, -1);
-    lua_pop(L, lua_gettop(l));
-
-    lua_pushinteger(L, c.ComponentCount);
-    result:=1;
-  end else lua_pop(L, lua_gettop(l));
-
+  c:=luaclass_getClassObject(L);
+  lua_pushinteger(L, c.ComponentCount);
+  result:=1;
 end;
 
 function component_findComponentByName(L: PLua_state): integer; cdecl;
 var c: TComponent;
   n: string;
-  parameters: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
+  c:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
   begin
-    c:=lua_toceuserdata(L, 1);
-    n:=Lua_ToString(L, 2);
-    lua_pop(L, lua_gettop(l));
-
+    n:=Lua_ToString(L, -1);
     luaclass_newClass(L, c.FindComponent(n));
-
-
     result:=1;
-  end else lua_pop(L, lua_gettop(l));
+  end;
 end;
 
 function component_getComponent(L: PLua_state): integer; cdecl;
 var c: TComponent;
   i: integer;
-  parameters: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
+  c:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
   begin
-    c:=lua_toceuserdata(L, -2);
     i:=lua_tointeger(L,-1);
-    lua_pop(L, lua_gettop(l));
-
-    lua_pushlightuserdata(L, c.Components[i]);
+    luaclass_newClass(L, c.Components[i]);
     result:=1;
-  end else lua_pop(L, lua_gettop(l));
+  end;
 end;
 
 function component_getName(L: PLua_state): integer; cdecl;
 var c: TComponent;
-  parameters: integer;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    c:=lua_toceuserdata(L, -1);
-    lua_pop(L, lua_gettop(l));
-
-    lua_pushstring(L, c.Name);
-    result:=1;
-  end else lua_pop(L, lua_gettop(l));
+  c:=luaclass_getClassObject(L);
+  lua_pushstring(L, c.Name);
+  result:=1;
 end;
 
 function component_setName(L: PLua_state): integer; cdecl;
 var c: TComponent;
-  parameters: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    c:=lua_toceuserdata(L, -2);
+  c:=luaclass_getClassObject(L);
+
+  if lua_gettop(L)>=1 then
     c.Name:=lua_tostring(L,-1);
-  end;
-  lua_pop(L, lua_gettop(l));
 end;
 
 function component_getTag(L: PLua_state): integer; cdecl;
 var c: TComponent;
-  parameters: integer;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    c:=lua_toceuserdata(L, -1);
-    lua_pop(L, lua_gettop(l));
-
-    lua_pushinteger(L, c.Tag);
-    result:=1;
-  end else lua_pop(L, lua_gettop(l));
+  c:=luaclass_getClassObject(L);
+  lua_pushinteger(L, c.Tag);
+  result:=1;
 end;
 
 function component_setTag(L: PLua_state): integer; cdecl;
 var c: TComponent;
-  t: integer;
-  parameters: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    c:=lua_toceuserdata(L, -2);
+  c:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
     c.Tag:=lua_tointeger(L, -1);
-  end;
-  lua_pop(L, lua_gettop(l));
 end;
 
 
 function component_getOwner(L: PLua_state): integer; cdecl;
 var c: TComponent;
-  parameters: integer;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    c:=lua_toceuserdata(L, -1);
-    lua_pop(L, lua_gettop(l));
-
-    lua_pushlightuserdata(L, c.Owner);
-    result:=1;
-  end else lua_pop(L, lua_gettop(l));
+  c:=luaclass_getClassObject(L);
+  luaclass_newClass(L, c.owner);
+  result:=1;
 end;
 
 procedure component_addMetaData(L: PLua_state; metatable: integer; userdata: integer);
@@ -171,7 +118,7 @@ begin
 
 end;
 
-procedure InitializeComponent;
+procedure InitializeLuaComponent;
 begin
   lua_register(LuaVM, 'component_getComponentCount', component_getComponentCount);
   lua_register(LuaVM, 'component_getComponent', component_getComponent);
