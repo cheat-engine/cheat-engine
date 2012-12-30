@@ -43,6 +43,9 @@ type
   end;
   PClassListEntry=^TClassListEntry;
 
+resourcestring
+  rsInvalidClassObject='Invalid class object';
+
 
 procedure luaclass_register(c: TClass; InitialAddMetaDataFunction: TAddMetaDataFunction);
 //registers the classes that are accessible by lua. Used by findBestClassForObject
@@ -139,6 +142,12 @@ function luaclass_getClassObject(L: PLua_state): pointer; inline;
 //called by class functions. This is in case a 6.2 code executed the function manually
 begin
   result:=pointer(lua_touserdata(L, ifthen(lua_type(L, lua_upvalueindex(1))=LUA_TUSERDATA, lua_upvalueindex(1), 1))^);
+
+  if result=nil then
+  begin
+    lua_pushstring(L, rsInvalidClassObject);
+    lua_error(L);
+  end;
 end;
 
 procedure luaclass_addArrayPropertyToTable(L: PLua_State; metatable: integer; userdata: integer; propertyname: string; f: lua_CFunction);
