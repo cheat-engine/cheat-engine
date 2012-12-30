@@ -199,45 +199,8 @@ begin
 
     if m.data<>nil then
     begin
-      if tobject(m.Data)is TLuaCaller then
-      begin
-        TLuaCaller(m.data).pushFunction;
-        result:=1;
-      end
-      else
-      begin
-        //not a lua function
-
-        //this can (and often is) a class specific thing
-
-        lua_pushlightuserdata(L, m.code);
-        lua_pushlightuserdata(L, m.data);
-
-        if pi.PropType.Name ='TNotifyEvent' then
-          lua_pushcclosure(L, LuaCaller_NotifyEvent,2)
-        else
-        if pi.PropType.Name ='TSelectionChangeEvent' then
-          lua_pushcclosure(L, LuaCaller_SelectionChangeEvent,2)
-        else
-        if pi.PropType.Name ='TCloseEvent' then
-          lua_pushcclosure(L, LuaCaller_CloseEvent,2)
-        else
-        if pi.PropType.Name ='TMouseEvent' then
-          lua_pushcclosure(L, LuaCaller_MouseEvent,2)
-        else
-        if pi.PropType.Name ='TMouseMoveEvent' then
-          lua_pushcclosure(L, LuaCaller_MouseMoveEvent,2)
-        else
-        if pi.PropType.Name ='TKeyPressEvent' then
-          lua_pushcclosure(L, LuaCaller_KeyPressEvent,2)
-        else
-        if pi.PropType.Name ='TLVCheckedItemEvent' then
-          lua_pushcclosure(L, LuaCaller_LVCheckedItemEvent,2)
-        else
-          raise exception.create('This type of method:'+pi.PropType.Name+' is not yet supported');
-
-        result:=1;
-      end;
+      luaCaller_pushMethodProperty(L, m, pi.PropType.Name);
+      result:=1;
     end
     else
     begin

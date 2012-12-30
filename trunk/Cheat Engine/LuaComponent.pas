@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, lua, lualib, lauxlib;
 
 procedure InitializeLuaComponent;
-function component_findComponentByName(L: PLua_state): integer; cdecl;
+function component_findComponentByName(L: PLua_state): integer; cdecl; //used by luaclass when a entry can't be resolved
 procedure component_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 
 implementation

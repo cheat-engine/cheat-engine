@@ -56,10 +56,55 @@ function LuaCaller_MouseMoveEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_KeyPressEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_LVCheckedItemEvent(L: PLua_state): integer; cdecl;
 
+procedure LuaCaller_pushMethodProperty(L: PLua_state; m: TMethod; typename: string);
 
 implementation
 
 uses luahandler, MainUnit;
+
+procedure luaCaller_pushMethodProperty(L: PLua_state; m: TMethod; typename: string);
+begin
+  if m.data=nil then
+  begin
+    lua_pushnil(L);
+    exit;
+  end;
+
+  if tobject(m.Data)is TLuaCaller then
+    TLuaCaller(m.data).pushFunction
+  else
+  begin
+    //not a lua function
+
+    //this can (and often is) a class specific thing
+
+    lua_pushlightuserdata(L, m.code);
+    lua_pushlightuserdata(L, m.data);
+
+    if typename ='TNotifyEvent' then
+      lua_pushcclosure(L, LuaCaller_NotifyEvent,2)
+    else
+    if typename ='TSelectionChangeEvent' then
+      lua_pushcclosure(L, LuaCaller_SelectionChangeEvent,2)
+    else
+    if typename ='TCloseEvent' then
+      lua_pushcclosure(L, LuaCaller_CloseEvent,2)
+    else
+    if typename ='TMouseEvent' then
+      lua_pushcclosure(L, LuaCaller_MouseEvent,2)
+    else
+    if typename ='TMouseMoveEvent' then
+      lua_pushcclosure(L, LuaCaller_MouseMoveEvent,2)
+    else
+    if typename ='TKeyPressEvent' then
+      lua_pushcclosure(L, LuaCaller_KeyPressEvent,2)
+    else
+    if typename ='TLVCheckedItemEvent' then
+      lua_pushcclosure(L, LuaCaller_LVCheckedItemEvent,2)
+    else
+      raise exception.create('This type of method:'+typename+' is not yet supported');
+  end;
+end;
 
 procedure CleanupLuaCall(event: TMethod);
 begin

@@ -267,40 +267,66 @@ properties
   Owner: Component - Returns the owner of this object. Nil if it has none
 
 methods
-getComponentCount() : Returns the number of components attached to his component
-getComponent(index) : Returns the specific component
-findComponentByName(name) : Returns the component with this name
-getName() : Return the name
-setName(newname) : Changes the name
-getTag() : Sets an integer value. You can use this for ID's
-setTag(tagvalue) : Get the tag value
-getOwner() : Returns the owner of this component
+  getComponentCount() : Returns the number of components attached to his component
+  getComponent(index) : Returns the specific component
+  findComponentByName(name) : Returns the component with this name
+  getName() : Return the name
+  setName(newname) : Changes the name
+  getTag() : Sets an integer value. You can use this for ID's
+  setTag(tagvalue) : Get the tag value
+  getOwner() : Returns the owner of this component
 
 
 
 Control Class: (Inheritance: Component->Object)
-control_setCaption(control, caption) : sets the text on a control. All the gui objects fall in this category
-control_getCaption(control) : Returns the text of the control
-control_setPosition(control, x,y): sets the x and y position of the object base don the top left position (relative to the client array of the owner object)
-control_getPosition(contron): returns the x and y position of the object (relative to the client array of the owner object)
-control_setSize(control, width,height) : Sets the width and height of the control
-control_getSize(control) : Gets the size of the control
-control_setAlign(control, alignmentoption): sets the alignment of the control
-control_getAlign(control, alignmentoption): gets the alignment of the control
-control_getEnabled(control) : gets the enabled state of the control
-control_setEnabled(control, boolean) : Sets the enabled state of the control
-control_getVisible(control) : gets the visible state of the control
-control_setVisible(control, boolean) : sets the visible state of the control
-control_getColor(control) : gets the color
-control_setColor(control, rgb) : Sets the color
-control_getParent(control) : Returns nil or an object that inherits from the Wincontrol class
-control_setParent(control, wincontrol) : Sets the parent for this control
-control_getPopupMenu(control)
-control_setPopupMenu(control)
-control_getFont(label):  Returns the Font object of this object
-control_onClick(control, functionnameorstring) : Sets the onclick routine
-control_doClick(control):  Executes the current function under onClick
+properties:
+  Caption: string - The text of a control
+  Top : integer - The x position
+  Left : integer - The y position
+  Width : integer - The width of the control
+  Height : integer - The height of the control
+  Align: AlignmentOption - Alignment of the control
+  Enabled: boolean - Determines if the object is usable or greyed out
+  Visible: boolean - Determines if the object is visible or not
+  Color: ColorDefinition/RGBInteger - The color of the object. Does not affect the caption
+  Parent: WinControl - The owner of this control
+  PopupMenu: PopupMenu - The popup menu that shows when rightclicking the control
+  Font: Font - The font class associated with the control
+  OnClick: function - The function to call when a button is pressed
+  
 
+methods:
+  getLeft()
+  setLeft(integer)
+  getTop()
+  setTop(integer)
+  getWidth()
+  setWidth(integer)
+  getHeight()
+  setHeight()
+  setCaption(caption) : sets the text on a control. All the gui objects fall in this category
+  getCaption() : Returns the text of the control
+  setPosition(x,y): sets the x and y position of the object base don the top left position (relative to the client array of the owner object)
+  getPosition(): returns the x and y position of the object (relative to the client array of the owner object)
+  setSize(width,height) : Sets the width and height of the control
+  getSize() : Gets the size of the control
+  setAlign(alignmentoption): sets the alignment of the control
+  getAlign(alignmentoption): gets the alignment of the control
+  getEnabled() : gets the enabled state of the control
+  setEnabled(boolean) : Sets the enabled state of the control
+  getVisible() : gets the visible state of the control
+  setVisible(boolean) : sets the visible state of the control
+  getColor() : gets the color
+  setColor(rgb) : Sets the color
+  getParent() : Returns nil or an object that inherits from the Wincontrol class
+  setParent(wincontrol) : Sets the parent for this control
+  getPopupMenu()
+  setPopupMenu()
+  getFont():  Returns the Font object of this object
+  setFont():  Assigns a new font object. (Not recommended to use. Change the font object that's already there if you wish to change fonts)
+  setOnClick(functionnameorstring) : Sets the onclick routine
+  getOnClick(): Gets the onclick function
+  doClick():  Executes the current function under onClick
 
 
 Region Class : (Region->GraphicsObject->Object)

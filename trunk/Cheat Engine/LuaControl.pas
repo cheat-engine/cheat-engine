@@ -5,402 +5,336 @@ unit LuaControl;
 interface
 
 uses
-  Classes, SysUtils, lua, lualib, lauxlib, Controls, Menus;
+  Classes, SysUtils, lua, lualib, lauxlib, Controls, Menus, Graphics;
 
 procedure initializeLuaControl;
+procedure control_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 
 implementation
 
-uses luahandler, pluginexports, LuaCaller;
+uses luahandler, pluginexports, LuaCaller, LuaComponent, LuaClass;
 
 function control_getFont(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   c: TControl;
-
 begin
+  c:=luaclass_getClassObject(L);
+  luaclass_newClass(L, c.font);
+  result:=1;
+end;
+
+function control_setFont(L: Plua_State): integer; cdecl;
+var
+  c: tcontrol;
+begin
+  c:=luaclass_getClassObject(L);
+  if lua_gettop(L)=1 then
+    c.Font:=lua_ToCEUserData(L, -1);
+
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    c:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushlightuserdata(L, c.Font);
-    result:=1;
-
-  end else lua_pop(L, parameters);
 end;
 
 function control_setCaption(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  c: pointer;
-  caption: pchar;
+var
+  c: tcontrol;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    c:=lua_toceuserdata(L, -2);
-    caption:=lua.lua_tostring(L, -1);
-    ce_control_setCaption(c,caption);
-  end;
+  c:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    c.Caption:=lua_tostring(L, -1);
 
-  lua_pop(L, lua_gettop(L));
+  result:=0;
 end;
 
 function control_getCaption(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
-  d: pchar;
-  control: pointer;
-
+  c: TControl;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    control:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    getmem(d,255);
-    try
-      if ce_control_getCaption(control, d, 255) then
-      begin
-        lua_pushstring(L, d);
-        result:=1;
-      end;
-
-
-    finally
-      freemem(d);
-    end;
-  end else lua_pop(L, parameters);
+  c:=luaclass_getClassObject(L);
+  lua_pushstring(L, c.caption);
+  result:=1;
 end;
 
 
+function control_setLeft(L: Plua_State): integer; cdecl;
+var
+  c: tcontrol;
+begin
+  c:=luaclass_getClassObject(L);
+  if lua_gettop(L)=1 then //6.3+, class only so no need for >= and negative indexes
+    c.left:=lua_tointeger(L, 1);
+
+  result:=0;
+end;
+
+function control_getLeft(L: Plua_State): integer; cdecl;
+var
+  c: tcontrol;
+begin
+  c:=luaclass_getClassObject(L);
+  lua_pushinteger(L, c.left);
+  result:=1;
+end;
+
+function control_setTop(L: Plua_State): integer; cdecl;
+var
+  c: tcontrol;
+begin
+  c:=luaclass_getClassObject(L);
+  if lua_gettop(L)=1 then
+    c.top:=lua_tointeger(L, 1);
+
+  result:=0;
+end;
+
+function control_getTop(L: Plua_State): integer; cdecl;
+var
+  c: tcontrol;
+begin
+  c:=luaclass_getClassObject(L);
+  lua_pushinteger(L, c.top);
+  result:=1;
+end;
+
 function control_setPosition(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  c: pointer;
-  x,y: integer;
+var
+  c: TControl;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=3 then
+  c:=luaclass_getClassObject(L);
+
+  if lua_gettop(L)>=2 then
   begin
-    c:=lua_toceuserdata(L, -3);
-    x:=lua_tointeger(L, -2);
-    y:=lua_tointeger(L, -1);
-
-    ce_control_setPosition(c,x,y);
+    c.Left:=lua_tointeger(L, -2);
+    c.Top:=lua_tointeger(L, -1);
   end;
-
-  lua_pop(L, lua_gettop(L));
 end;
 
 
 function control_getPosition(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
-  control: pointer;
+  c: TControl;
   x,y: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    control:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
+  c:=luaclass_getClassObject(L);
 
-    x:=ce_control_getX(control);
-    y:=ce_control_getY(control);
+  lua_pushinteger(L, c.left);
+  lua_pushinteger(L, c.top);
+  result:=2;
+end;
 
-    lua_pushinteger(L, x);
-    lua_pushinteger(L, y);
-    result:=2;
+function control_setWidth(L: Plua_State): integer; cdecl;
+var
+  c: tcontrol;
+begin
+  c:=luaclass_getClassObject(L);
+  if lua_gettop(L)=1 then
+    c.Width:=lua_tointeger(L, 1);
 
-  end else lua_pop(L, parameters);
+  result:=0;
+end;
+
+function control_getWidth(L: Plua_State): integer; cdecl;
+var
+  c: tcontrol;
+begin
+  c:=luaclass_getClassObject(L);
+  lua_pushinteger(L, c.Width);
+  result:=1;
+end;
+
+
+function control_setHeight(L: Plua_State): integer; cdecl;
+var
+  c: tcontrol;
+begin
+  c:=luaclass_getClassObject(L);
+  if lua_gettop(L)=1 then
+    c.Height:=lua_tointeger(L, 1);
+
+  result:=0;
+end;
+
+function control_getHeight(L: Plua_State): integer; cdecl;
+var
+  c: tcontrol;
+begin
+  c:=luaclass_getClassObject(L);
+  lua_pushinteger(L, c.Height);
+  result:=1;
 end;
 
 function control_setSize(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  c: pointer;
-  width,height: integer;
+var
+  c: TControl;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=3 then
+  c:=luaclass_getClassObject(L);
+
+
+  if lua_gettop(L)>=2 then
   begin
-    c:=lua_toceuserdata(L, -3);
-    width:=lua_tointeger(L, -2);
-    height:=lua_tointeger(L, -1);
-
-    ce_control_setSize(c,width,height);
+    c.Width:=lua_tointeger(L, -2);
+    c.height:=lua_tointeger(L, -1);
   end;
-
-  lua_pop(L, lua_gettop(L));
+  result:=0;
 end;
 
 function control_getSize(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
-  control: pointer;
-  width,height: integer;
+  c: TControl;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    control:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    width:=ce_control_getWidth(control);
-    height:=ce_control_getHeight(control);
-
-    lua_pushinteger(L, width);
-    lua_pushinteger(L, height);
-    result:=2;
-
-  end else lua_pop(L, parameters);
+  c:=luaclass_getClassObject(L);
+  lua_pushinteger(L, c.width);
+  lua_pushinteger(L, c.height);
+  result:=2;
 end;
 
 
 function control_setAlign(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
-  control: pointer;
+  c: TControl;
   a: integer;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    control:=lua_toceuserdata(L,-2);
-    a:=lua_tointeger(L,-1);
-    ce_control_setAlign(control,a);
-  end;
+  c:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    c.Align:=Talign(lua_tointeger(L,-1));
 
-  lua_pop(L, parameters);
+  result:=0;
 end;
 
 function control_getAlign(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
-  control: TControl;
-  align: integer;
+  c: TControl;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    control:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, integer(control.Align));
-    result:=1;
-
-  end else lua_pop(L, parameters);
+  c:=luaclass_getClassObject(L);
+  lua_pushinteger(L, integer(c.Align));
+  result:=1;
 end;
 
 function control_setEnabled(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
-  control: TControl;
-  Enabled: boolean;
+  c: TControl;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    control:=lua_toceuserdata(L,-2);
-    control.Enabled:=lua_toboolean(L,-1);
-  end;
+  c:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    c.Enabled:=lua_toboolean(L,-1);
 
-  lua_pop(L, parameters);
+  result:=0;
 end;
 
 function control_getEnabled(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
-  control: TControl;
+  c: TControl;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    control:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushboolean(L, control.Enabled);
-    result:=1;
-
-  end else lua_pop(L, parameters);
+  c:=luaclass_getClassObject(L);
+  lua_pushboolean(L, c.Enabled);
+  result:=1;
 end;
 
 
 function control_setVisible(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
-  control: TControl;
-  visible: boolean;
+  c: TControl;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    control:=lua_toceuserdata(L,1);
-    control.visible:=lua_toboolean(L,2);
-  end;
+  c:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    c.Visible:=lua_toboolean(L,-1);
 
-  lua_pop(L, parameters);
+  result:=0;
 end;
 
 function control_getVisible(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
-  control: TControl;
+  c: TControl;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    control:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushboolean(L, control.Visible);
-    result:=1;
-
-  end else lua_pop(L, parameters);
+  c:=luaclass_getClassObject(L);
+  lua_pushboolean(L, c.Visible);
+  result:=1;
 end;
 
 function control_setColor(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
-  control: TControl;
-  Color: integer;
+  c: TControl;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    control:=lua_toceuserdata(L,-2);
-    control.Color:=lua_tointeger(L,-1);
-  end;
+  c:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    c.Color:=Tcolor(lua_tointeger(L,-1));
 
-  lua_pop(L, parameters);
+  result:=0;
 end;
 
 function control_getColor(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
-  control: TControl;
+  c: TControl;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    control:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, control.color);
-    result:=1;
-
-  end else lua_pop(L, parameters);
+  c:=luaclass_getClassObject(L);
+  lua_pushinteger(L, integer(c.color));
+  result:=1;
 end;
 
 
 function control_setParent(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
-  control: TControl;
-  Parent: integer;
+  c: TControl;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    control:=lua_toceuserdata(L,-2);
-    control.Parent:=TWinControl(lua_toceuserdata(L,-1));
-  end;
+  c:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    c.Parent:=lua_ToCEUserData(L, -1);
 
-  lua_pop(L, parameters);
+  result:=0;
 end;
 
 function control_getParent(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
-  control: TControl;
+  c: TControl;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    control:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushlightuserdata(L, control.Parent);
-    result:=1;
-
-  end else lua_pop(L, parameters);
+  c:=luaclass_getClassObject(L);
+  luaclass_newClass(L, c.parent);
+  result:=1;
 end;
 
 function control_setPopupMenu(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
-  control: TControl;
-  PopupMenu: integer;
+  c: TControl;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    control:=lua_toceuserdata(L,-2);
-    control.PopupMenu:=TPopupMenu(lua_toceuserdata(L,-1));
-  end;
+  c:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    c.PopupMenu:=lua_ToCEUserData(L, -1);
 
-  lua_pop(L, parameters);
+  result:=0;
 end;
 
 function control_getPopupMenu(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
-  control: TControl;
+  c: TControl;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    control:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushlightuserdata(L, control.PopupMenu);
-    result:=1;
-
-  end else lua_pop(L, parameters);
+  c:=luaclass_getClassObject(L);
+  luaclass_newClass(L, c.PopupMenu);
+  result:=1;
 end;
 
 function control_doClick(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
-  control: TControl;
-  Color: integer;
+  c: TControl;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    control:=lua_toceuserdata(L,1);
-    if assigned(control.onclick) then
-      control.OnClick(control);
-  end;
-
-  lua_pop(L, parameters);
+  c:=luaclass_getClassObject(L);
+  if assigned(c.OnClick) then
+    c.OnClick(c);
 end;
 
-function control_onClick(L: PLua_State): integer; cdecl;
+function control_getOnClick(L: PLua_State): integer; cdecl;
+var
+  c: tcontrol;
+begin
+  c:=luaclass_getClassObject(L);
+  LuaCaller_pushMethodProperty(L, TMethod(c.onclick), 'TNotifyEvent');
+  result:=1;
+end;
+
+function control_setOnClick(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
-  control: TControl;
+  c: TControl;
   f: integer;
   routine: string;
 
@@ -409,15 +343,12 @@ var
 //  clickroutine: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
+  c:=luaclass_getClassObject(L);
+
+  if lua_gettop(L)>=1 then
   begin
-    control:=lua_toceuserdata(L,-2);
-
-    CleanupLuaCall(tmethod(control.onClick));
-    control.onClick:=nil;
-
-
+    CleanupLuaCall(tmethod(c.onClick));
+    c.onClick:=nil;
 
     if lua_isfunction(L,-1) then
     begin
@@ -425,7 +356,7 @@ begin
 
       lc:=TLuaCaller.create;
       lc.luaroutineIndex:=f;
-      control.OnClick:=lc.NotifyEvent;
+      c.OnClick:=lc.NotifyEvent;
     end
     else
     if lua_isstring(L,-1) then
@@ -433,12 +364,71 @@ begin
       routine:=lua_tostring(L,-1);
       lc:=TLuaCaller.create;
       lc.luaroutine:=routine;
-      control.OnClick:=lc.NotifyEvent;
+      c.OnClick:=lc.NotifyEvent;
     end;
 
   end;
+end;
 
-  lua_pop(L, parameters);
+
+procedure control_addMetaData(L: PLua_state; metatable: integer; userdata: integer);
+begin
+  component_addMetaData(L, metatable, userdata);
+
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setCaption', control_setCaption);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getCaption', control_getCaption);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setLeft', control_setLeft);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getLeft', control_getLeft);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setTop', control_setTop);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getTop', control_getTop);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setPosition', control_setPosition);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getPosition', control_getPosition);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setWidth', control_setWidth);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getWidth', control_getWidth);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setHeight', control_setHeight);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getHeight', control_getHeight);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setSize', control_setSize);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getSize', control_getSize);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setAlign', control_setAlign);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getAlign', control_getAlign);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setOnClick', control_setOnClick);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'doClick', control_doClick);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setEnabled', control_setEnabled);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getEnabled', control_getEnabled);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setVisible', control_setVisible);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getVisible', control_getVisible);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setColor', control_setColor);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getColor', control_getColor);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setParent', control_setParent);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getParent', control_getParent);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setPopupMenu', control_setPopupMenu);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getPopupMenu', control_getPopupMenu);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getFont', control_getFont);
+
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Caption', control_getCaption, control_setCaption);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Top', control_getTop, control_setTop);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Left', control_getLeft, control_setLeft);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Width', control_getWidth, control_setWidth);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Height', control_getHeight, control_setHeight);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Align', control_getAlign, control_setAlign);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Enabled', control_getEnabled, control_setEnabled);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Visible', control_getVisible, control_setVisible);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Color', control_getColor, control_setColor);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Parent', control_getParent, control_setParent);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'PopupMenu', control_getPopupMenu, control_setPopupMenu);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Font', control_getFont, control_setFont);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'OnClick', nil, control_setOnClick);
+
+  {
+
+  luaclass_addPropertyToTable(L, metatable, userdata, 'ComponentCount', component_getComponentCount, nil);
+  luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Component', component_getComponentCount);
+  luaclass_addArrayPropertyToTable(L, metatable, userdata, 'ComponentByName', component_findComponentByName);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Name', component_getName, component_setName);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Tag', component_getTag, component_setTag);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Owner', component_getOwner, nil);
+    }
+
 end;
 
 
@@ -452,7 +442,7 @@ begin
   lua_register(LuaVM, 'control_getSize', control_getSize);
   lua_register(LuaVM, 'control_setAlign', control_setAlign);
   lua_register(LuaVM, 'control_getAlign', control_getAlign);
-  lua_register(LuaVM, 'control_onClick', control_onClick);
+  lua_register(LuaVM, 'control_onClick', control_setOnClick);
   lua_register(LuaVM, 'control_doClick', control_doClick);
   lua_register(LuaVM, 'control_setEnabled', control_setEnabled);
   lua_register(LuaVM, 'control_getEnabled', control_getEnabled);
@@ -466,6 +456,9 @@ begin
   lua_register(LuaVM, 'control_getPopupMenu', control_getPopupMenu);
   lua_register(LuaVM, 'control_getFont', control_getFont);
 end;
+
+initialization
+  luaclass_register(TControl, control_addMetaData);
 
 end.
 
