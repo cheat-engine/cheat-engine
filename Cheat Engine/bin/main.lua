@@ -328,25 +328,39 @@ methods:
   getOnClick(): Gets the onclick function
   doClick():  Executes the current function under onClick
 
+GraphicsObject :
+
+
 
 Region Class : (Region->GraphicsObject->Object)
 createRegion(): Created an empty region
-region_addRectangle(region, x1, y1, x2, y2): Adds a rectangle to the region
-region_addPolygon(region, tablewithcoordinates): Adds an array of 2D locations. (example : {{0,0},{100,100}, {0,100}} for a triangle )
+
+properties
+-
+methods
+  addRectangle(x1, y1, x2, y2): Adds a rectangle to the region
+  addPolygon(tablewithcoordinates): Adds an array of 2D locations. (example : {{0,0},{100,100}, {0,100}} for a triangle )
 
 
 
 WinControl Class: (Inheritance: Control->Component->Object)
-wincontrol_getControlCount(wincontrol)  Returns the number of Controls attached to this class
-wincontrol_getControl(wincontrol,index) : Returns a WinControl class object
-wincontrol_getControlAtPos(wincontrol, x,y):  Gets the control at the given x,y position relative to the wincontrol's position 
-wincontrol_canFocus(wincontrol): returns true if the object can be focused
-wincontrol_focused(wincontrol): returns boolean true when focused
-wincontrol_setFocus(wincontrol): tries to set keyboard focus the object
-wincontrol_setShape(wincontrol, Region): Sets the region object as the new shape for this wincontrol
-wincontrol_setShape(wincontrol, Bitmap): 
-wincontrol_onEnter(wincontrol, function) : Sets an onEnter event. (Triggered on focus enter)
-wincontrol_onExit(wincontrol, function) : Sets an onExit event. (Triggered on lost focus)
+properties
+  ControlCount : integer - The number of child controls of this wincontrol
+  Control[] : Control - Array to access a child control
+  OnEnter : function - Function to be called when the WinControl gains focus
+  OnExit : function - Function to be called when the WinControl loses focus
+
+methods
+  getControlCount()  Returns the number of Controls attached to this class
+  getControl(index) : Returns a WinControl class object
+  getControlAtPos(x,y):  Gets the control at the given x,y position relative to the wincontrol's position 
+  canFocus(): returns true if the object can be focused
+  focused(): returns boolean true when focused
+  setFocus(): tries to set keyboard focus the object
+  setShape(Region): Sets the region object as the new shape for this wincontrol
+  setShape(Bitmap): 
+  onEnter(function) : Sets an onEnter event. (Triggered on focus enter)
+  onExit(function) : Sets an onExit event. (Triggered on lost focus)
 
 
 MenuItem class(Inheritance: Component->Object)

@@ -11,43 +11,35 @@ procedure initializeLuaRegion;
 
 implementation
 
-function createRegion(L: Plua_State): integer; cdecl;
-var
-  r: TRegionEx;
-  parameters: integer;
-begin
-  result:=1;
-  lua_pop(L, lua_gettop(L));
+uses luaobject, luaclass;
 
-  r:=TRegionEx.Create;
-  lua_pushlightuserdata(L, r);
+function createRegion(L: Plua_State): integer; cdecl;
+begin
+  luaclass_newClass(L, TRegionEx.Create);
   result:=1;
 end;
 
 function region_addRectangle(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   r: TRegion;
   x1,y1,x2,y2: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=5 then
-  begin
-    r:=lua_touserdata(L,-parameters);
-    x1:=lua_tointeger(L, -parameters+1);
-    y1:=lua_tointeger(L, -parameters+2);
-    x2:=lua_tointeger(L, -parameters+3);
-    y2:=lua_tointeger(L, -parameters+4);
-    lua_pop(L, parameters);
+  r:=luaclass_getClassObject(L);
 
+  if lua_gettop(L)>=4 then
+  begin
+    x1:=lua_tointeger(L, -4);
+    y1:=lua_tointeger(L, -3);
+    x2:=lua_tointeger(L, -2);
+    y2:=lua_tointeger(L, -1);
     r.AddRectangle(x1,y1,x2,y2);
-  end else lua_pop(L, parameters);
+  end;
 end;
 
 function region_addPolygon(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
+  paramstart: integer;
   r: TRegionEx;
 
   coordinatesTable: integer;
@@ -66,11 +58,11 @@ var
 begin
   setlength(c,0);
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
+  r:=luaclass_getClassObject(L);
+
+  if lua_gettop(L)>=1 then
   begin
-    r:=lua_touserdata(L,1);
-    coordinatesTable:= 2;
+    coordinatesTable:=lua_gettop(L);
 
     if lua_istable(L, coordinatesTable) then
     begin
@@ -122,6 +114,13 @@ begin
   lua_settop(L, 0);
 end;
 
+procedure region_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
+begin
+  object_addMetaData(L, metatable, userdata);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'addRectangle', region_addRectangle);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'addPolygon', region_addPolygon);
+
+end;
 
 procedure initializeLuaRegion;
 begin
@@ -129,6 +128,10 @@ begin
   lua_register(LuaVM, 'region_addRectangle', region_addRectangle);
   lua_register(LuaVM, 'region_addPolygon', region_addPolygon);
 end;
+
+initialization
+  luaclass_register(TRegion, region_addMetaData);
+
 
 end.
 
