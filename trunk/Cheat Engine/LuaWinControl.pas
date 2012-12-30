@@ -11,84 +11,72 @@ procedure initializeLuaWinControl;
 
 implementation
 
-uses LuaCaller;
+uses LuaCaller, luacontrol, luaclass;
 
 
 function wincontrol_getControlCount(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  wincontrol: TWinControl;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    wincontrol:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, wincontrol.ControlCount);
-    result:=1;
-
-  end else lua_pop(L, parameters);
+  lua_pushinteger(L, twincontrol(luaclass_getClassObject(L)).ControlCount);
+  result:=1;
 end;
 
 function wincontrol_getControl(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   wincontrol: TWinControl;
   index: integer;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
+  wincontrol:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
   begin
-    wincontrol:=lua_touserdata(L,-2);
     index:=lua_tointeger(L,-1);
-    lua_pop(L, parameters);
+    luaclass_newClass(L, wincontrol.Controls[index]);
+  end
+  else
+    lua_pushnil(L);
 
-    lua_pushlightuserdata(L, wincontrol.Controls[index]);
-    result:=1;
-
-  end else lua_pop(L, parameters);
+  result:=1;
 end;
 
 function wincontrol_getControlAtPos(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   wincontrol: TWinControl;
   x,y: integer;
 begin
+  wincontrol:=luaclass_getClassObject(L);
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=3 then
+
+  if lua_gettop(L)>=3 then
   begin
-    wincontrol:=lua_touserdata(L,-3);
     x:=lua_tointeger(L,-2);
     y:=lua_tointeger(L,-1);
-    lua_pop(L, parameters);
 
-    lua_pushlightuserdata(L, wincontrol.ControlAtPos(point(x,y),[capfOnlyClientAreas, capfAllowWinControls, capfRecursive]));
+    luaclass_newClass(L, wincontrol.ControlAtPos(point(x,y),[capfOnlyClientAreas, capfAllowWinControls, capfRecursive]));
     result:=1;
-
-  end else lua_pop(L, parameters);
+  end;
 end;
 
-
-function wincontrol_onEnter(L: PLua_State): integer; cdecl;
+function wincontrol_getOnEnter(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
+  c: twincontrol;
+begin
+  c:=luaclass_getClassObject(L);
+  LuaCaller_pushMethodProperty(L, TMethod(c.OnEnter), 'TNotifyEvent');
+  result:=1;
+end;
+
+function wincontrol_setOnEnter(L: PLua_State): integer; cdecl;
+var
   wincontrol: TWinControl;
   f: integer;
   routine: string;
 
   lc: TLuaCaller;
 begin
+  wincontrol:=luaclass_getClassObject(L);
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    wincontrol:=lua_touserdata(L,-2);
 
+  if lua_gettop(L)>=1 then
+  begin
     CleanupLuaCall(tmethod(wincontrol.OnEnter));
     wincontrol.OnEnter:=nil;
 
@@ -111,24 +99,29 @@ begin
     end;
 
   end;
-
-  lua_pop(L, parameters);
 end;
 
-function wincontrol_onExit(L: PLua_State): integer; cdecl;
+function wincontrol_getOnExit(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
+  c: twincontrol;
+begin
+  c:=luaclass_getClassObject(L);
+  LuaCaller_pushMethodProperty(L, TMethod(c.OnExit), 'TNotifyEvent');
+  result:=1;
+end;
+
+function wincontrol_setOnExit(L: PLua_State): integer; cdecl;
+var
   wincontrol: TWinControl;
   f: integer;
   routine: string;
 
   lc: TLuaCaller;
 begin
+  wincontrol:=luaclass_getClassObject(L);
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
+  if lua_gettop(L)>=1 then
   begin
-    wincontrol:=lua_touserdata(L,-2);
 
     CleanupLuaCall(tmethod(wincontrol.onExit));
     wincontrol.onExit:=nil;
@@ -152,60 +145,33 @@ begin
     end;
 
   end;
-
-  lua_pop(L, parameters);
 end;
 
 function wincontrol_canFocus(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   wincontrol: TWinControl;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    wincontrol:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushboolean(L, wincontrol.CanFocus);
-    result:=1;
-
-  end else lua_pop(L, parameters);
+  wincontrol:=luaclass_getClassObject(L);
+  lua_pushboolean(L, wincontrol.CanFocus);
+  result:=1;
 end;
 
 function wincontrol_focused(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   wincontrol: TWinControl;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    wincontrol:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushboolean(L, wincontrol.Focused);
-    result:=1;
-
-  end else lua_pop(L, parameters);
+  wincontrol:=luaclass_getClassObject(L);
+  lua_pushboolean(L, wincontrol.Focused);
+  result:=1;
 end;
 
 function wincontrol_setFocus(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   wincontrol: TWinControl;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    wincontrol:=lua_touserdata(L,-1);
-    wincontrol.SetFocus;
-  end;
-
-  lua_pop(L, parameters);
+  wincontrol:=luaclass_getClassObject(L);
+  wincontrol.SetFocus;
+  result:=0
 end;
 
 function wincontrol_setShape(L: PLua_State): integer; cdecl;
@@ -214,23 +180,39 @@ var
   wincontrol: TWinControl;
   x: TObject;
 begin
+  wincontrol:=luaclass_getClassObject(L);
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
+  if lua_gettop(L)>=1 then
   begin
-    wincontrol:=lua_touserdata(L,1);
     x:=lua_touserdata(L, 2);
 
     if (x is TBitmap) then
       wincontrol.SetShape(TBitmap(x))
     else
     if (x is TRegion) then
-      wincontrol.SetShape(TRegion(x))
-
-
+      wincontrol.SetShape(TRegion(x));
   end;
 
   lua_pop(L, parameters);
+end;
+
+procedure wincontrol_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
+begin
+  control_addMetaData(L, metatable, userdata);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getControlCount', wincontrol_getControlCount);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getControl', wincontrol_getControl);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getControlAtPos', wincontrol_getControlAtPos);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setOnEnter', wincontrol_setOnEnter);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setOnExit', wincontrol_setOnExit);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'canFocus', wincontrol_canFocus);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'focused', wincontrol_focused);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setFocus', wincontrol_setFocus);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setShape', wincontrol_setShape);
+
+  luaclass_addPropertyToTable(L, metatable, userdata, 'ControlCount', wincontrol_getControlCount, nil);
+  luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Control', wincontrol_getControl);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'OnEnter', wincontrol_setOnEnter, nil);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'OnExit', wincontrol_setOnExit, nil);
 end;
 
 procedure initializeLuaWinControl;
@@ -238,14 +220,18 @@ begin
   lua_register(LuaVM, 'wincontrol_getControlCount', wincontrol_getControlCount);
   lua_register(LuaVM, 'wincontrol_getControl', wincontrol_getControl);
   lua_register(LuaVM, 'wincontrol_getControlAtPos', wincontrol_getControlAtPos);
-  lua_register(LuaVM, 'wincontrol_onEnter', wincontrol_OnEnter);
-  lua_register(LuaVM, 'wincontrol_onExit', wincontrol_OnExit);
+  lua_register(LuaVM, 'wincontrol_onEnter', wincontrol_setOnEnter);
+  lua_register(LuaVM, 'wincontrol_onExit', wincontrol_setOnExit);
   lua_register(LuaVM, 'wincontrol_canFocus', wincontrol_canFocus);
   lua_register(LuaVM, 'wincontrol_focused', wincontrol_focused);
   lua_register(LuaVM, 'wincontrol_setFocus', wincontrol_setFocus);
   lua_register(LuaVM, 'wincontrol_setShape', wincontrol_setShape);
 
 end;
+
+initialization
+  luaclass_register(TWinControl, wincontrol_addMetaData );
+
 
 end.
 

@@ -417,7 +417,7 @@ begin
   luaclass_addPropertyToTable(L, metatable, userdata, 'Parent', control_getParent, control_setParent);
   luaclass_addPropertyToTable(L, metatable, userdata, 'PopupMenu', control_getPopupMenu, control_setPopupMenu);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Font', control_getFont, control_setFont);
-  luaclass_addPropertyToTable(L, metatable, userdata, 'OnClick', nil, control_setOnClick);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'OnClick', control_getOnClick, control_setOnClick);
 
   {
 
