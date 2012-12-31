@@ -413,6 +413,9 @@ type
     procedure FormActivate(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
     procedure FormDropFiles(Sender: TObject; const FileNames: array of string);
+    procedure Foundlist3AdvancedCustomDrawSubItem(Sender: TCustomListView;
+      Item: TListItem; SubItem: Integer; State: TCustomDrawState;
+      Stage: TCustomDrawStage; var DefaultDraw: Boolean);
     procedure Foundlist3CustomDrawSubItem(Sender: TCustomListView;
       Item: TListItem; SubItem: Integer; State: TCustomDrawState;
       var DefaultDraw: Boolean);
@@ -2661,9 +2664,19 @@ begin
   end;
 end;
 
+procedure TMainForm.Foundlist3AdvancedCustomDrawSubItem(
+  Sender: TCustomListView; Item: TListItem; SubItem: Integer;
+  State: TCustomDrawState; Stage: TCustomDrawStage; var DefaultDraw: Boolean);
+begin
+
+end;
+
 procedure TMainForm.Foundlist3CustomDrawSubItem(Sender: TCustomListView;
   Item: TListItem; SubItem: Integer; State: TCustomDrawState;
   var DefaultDraw: Boolean);
+
+var r: trect;
+  ts: TTextStyle;
 begin
   //check if the current value is different from the previous value. (just do a bytecompare)
 
