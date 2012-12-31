@@ -128,6 +128,8 @@ type
 
     fDataTrace: boolean;
 
+    stepover: boolean;
+
     procedure configuredisplay;
     procedure setSavestack(x: boolean);
     procedure updatestackview;
@@ -298,7 +300,7 @@ begin
   else
     thisnode:=lvTracer.Items.AddObject(nil,s,d);
 
-  if defaultDisassembler.LastDisassembleData.iscall then
+  if not stepover and defaultDisassembler.LastDisassembleData.iscall then
     currentAppendage:=thisnode;
 
   if defaultDisassembler.LastDisassembleData.isret then
@@ -380,6 +382,7 @@ begin
 
       tcount:=strtoint(edtMaxTrace.text);
       condition:=edtCondition.text;
+      stepover:=cbStepOver.checked;
 
       if startdebuggerifneeded then
       begin
@@ -398,14 +401,14 @@ begin
             memorybrowser.hexview.GetSelectionRange(fromaddress,toaddress);
 
           //set the breakpoint
-          debuggerthread.setBreakAndTraceBreakpoint(self, fromaddress, bpTrigger, 1+(toaddress-fromaddress), tcount, condition);
+          debuggerthread.setBreakAndTraceBreakpoint(self, fromaddress, bpTrigger, 1+(toaddress-fromaddress), tcount, condition, stepover);
         end
         else
         begin
           if (owner is TMemoryBrowser) then
-            debuggerthread.setBreakAndTraceBreakpoint(self, (owner as TMemoryBrowser).disassemblerview.SelectedAddress, bptExecute, 1, tcount, condition)
+            debuggerthread.setBreakAndTraceBreakpoint(self, (owner as TMemoryBrowser).disassemblerview.SelectedAddress, bptExecute, 1, tcount, condition, StepOver)
           else
-            debuggerthread.setBreakAndTraceBreakpoint(self, memorybrowser.disassemblerview.SelectedAddress, bptExecute,1, tcount, condition);
+            debuggerthread.setBreakAndTraceBreakpoint(self, memorybrowser.disassemblerview.SelectedAddress, bptExecute,1, tcount, condition, StepOver);
         end;
       end;
 

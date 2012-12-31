@@ -328,7 +328,7 @@ methods:
   getOnClick(): Gets the onclick function
   doClick():  Executes the current function under onClick
 
-GraphicsObject :
+GraphicsObject : (GraphicsObject->Object)
 
 
 
@@ -379,7 +379,10 @@ menuItem_doClick(menuitem): Executes the onClick method if one is assigned
 
 
 Menu Class: (Inheritance: Component->Object)
-menu_getItems(menu) : Returns the MenuItem of this Menu
+properties
+  Items : MenuItem - The base MenuItem class of this menu (readonly)
+methods
+  getItems() : Returns the main MenuItem of this Menu
 
 MainMenu Class: (Inheritance: Menu->Component->Object)
 createMainMenu(form)
@@ -387,7 +390,7 @@ createMainMenu(form)
 
 PopupMenu Class: (Inheritance: Menu->Component->Object)
 createPopupMenu(owner)
-  The popup menu is the menu that popus up when showing the (rightclick) context of an control
+  The popup menu is the menu that pops up when showing the (rightclick) context of an control
 
 
 Strings Class: (Inheritance : Object) (Mostly an abstract class)

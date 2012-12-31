@@ -8,6 +8,7 @@ uses
   Classes, SysUtils, controls, lua, lualib, lauxlib,LuaHandler, graphics;
 
 procedure initializeLuaWinControl;
+procedure wincontrol_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 
 implementation
 

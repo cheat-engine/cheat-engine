@@ -78,7 +78,7 @@ type
     function  isBreakpoint(address: uint_ptr; address2: uint_ptr=0; includeinactive: boolean=false): PBreakpoint;
     function  CodeFinderStop(codefinder: TFoundCodeDialog): boolean;
     function  setChangeRegBreakpoint(regmod: PRegisterModificationBP): PBreakpoint;
-    procedure setBreakAndTraceBreakpoint(frmTracer: TFrmTracer; address: ptrUint; BreakpointTrigger: TBreakpointTrigger; bpsize: integer; count: integer; condition:string='');
+    procedure setBreakAndTraceBreakpoint(frmTracer: TFrmTracer; address: ptrUint; BreakpointTrigger: TBreakpointTrigger; bpsize: integer; count: integer; condition:string=''; stepover: boolean=false);
     function  stopBreakAndTrace(frmTracer: TFrmTracer): boolean;
     procedure FindWhatCodeAccesses(address: uint_ptr);
     function  FindWhatCodeAccessesStop(frmchangedaddresses: Tfrmchangedaddresses): boolean;
@@ -1331,7 +1331,7 @@ begin
 
 end;
 
-procedure TDebuggerthread.setBreakAndTraceBreakpoint(frmTracer: TFrmTracer; address: ptrUint; BreakpointTrigger: TBreakpointTrigger; bpsize: integer; count: integer; condition:string='');
+procedure TDebuggerthread.setBreakAndTraceBreakpoint(frmTracer: TFrmTracer; address: ptrUint; BreakpointTrigger: TBreakpointTrigger; bpsize: integer; count: integer; condition:string=''; stepover: boolean=false);
 var
   method: TBreakpointMethod;
   useddebugregister: integer;
@@ -1375,7 +1375,10 @@ begin
     bp:=AddBreakpoint(nil, address, bpsize, BreakpointTrigger, method, bo_BreakAndTrace, usedDebugRegister,  nil, 0, nil,frmTracer,count);
 
     if bp<>nil then
+    begin
       bp.traceendcondition:=strnew(pchar(condition));
+      bp.traceStepOver:=stepover;
+    end;
 
 
     for i:=1 to length(bplist)-1 do
@@ -1385,6 +1388,7 @@ begin
 
       bpsecondary:=AddBreakpoint(bp, bplist[i].address, bplist[i].size, BreakpointTrigger, method, bo_BreakAndTrace, usedDebugregister,  nil, 0, nil,frmTracer,count);
       bpsecondary.traceendcondition:=strnew(pchar(condition));
+      bpsecondary.traceStepOver:=stepover;
     end;
 
 
