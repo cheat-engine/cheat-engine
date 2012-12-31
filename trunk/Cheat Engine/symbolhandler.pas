@@ -48,7 +48,7 @@ type TModuleInfo=record
   isSystemModule: boolean;
   baseaddress: ptrUint;
   basesize: dword;
-
+  is64bitmodule: boolean;
 end;
 
 type TUserdefinedSymbolCallback=procedure;
@@ -60,7 +60,9 @@ type
     targetself: boolean;
     thisprocesshandle: thandle;
     thisprocessid: dword;
-    currentModuleName: PSTR;
+    currentModuleName: string;
+    currentModuleIsNotStandard: boolean;
+
     procedure LoadDriverSymbols;
     procedure LoadDLLSymbols;
     procedure finishedLoadingSymbols;
@@ -260,30 +262,39 @@ var need:dword;
     i: integer;
     count: integer;
     modulename: pchar;
+    modulelisttype: integer;
 begin
   need:=0;
 
-  EnumProcessModulesEx(thisprocesshandle,nil,0,need, LIST_MODULES_ALL);
-  getmem(x,need);
-  try
-    if EnumProcessModulesEx(thisprocesshandle,@x[0],need,need, LIST_MODULES_ALL) then
-    begin
 
-      count:=need div sizeof(pointer);
-      getmem(modulename,1024);
-      try
-        for i:=0 to count-1 do
-        begin
-          GetModuleFileNameEx(thisprocesshandle,ptrUint(x[i]),modulename,200);
-          symLoadModule64(thisprocesshandle,0,pchar(modulename),nil,ptrUint(x[i]),0);
+
+    modulelisttype:=LIST_MODULES_ALL;
+
+
+
+    EnumProcessModulesEx(thisprocesshandle,nil,0,need, modulelisttype);
+    getmem(x,need);
+    try
+      if EnumProcessModulesEx(thisprocesshandle,@x[0],need,need, modulelisttype) then
+      begin
+
+        count:=need div sizeof(pointer);
+        getmem(modulename,1024);
+        try
+          for i:=0 to count-1 do
+          begin
+            GetModuleFileNameEx(thisprocesshandle,ptrUint(x[i]),modulename,200);
+            symLoadModule64(thisprocesshandle,0,pchar(modulename),nil,ptrUint(x[i]),0);
+          end;
+        finally
+          freemem(modulename);
         end;
-      finally
-        freemem(modulename);
       end;
+    finally
+      freemem(x);
     end;
-  finally
-    freemem(x);
-  end;
+
+
 
 end;
 
@@ -328,11 +339,16 @@ function ES(SymName:PSTR; SymbolAddress:dword64; SymbolSize:ULONG; UserContext:p
 var self: TSymbolloaderthread;
     sym: PCESymbolInfo;
     i: integer;
+    s: string;
 begin
+  s:=symname;
   self:=TSymbolloaderthread(UserContext);
 
-  sym:=self.symbollist.AddSymbol(self.currentModuleName, self.currentModuleName+'.'+symname, symboladdress, symbolsize);
-  sym:=self.symbollist.AddSymbol(self.currentModuleName, symname, symboladdress, symbolsize,true); //don't add it as a address->string lookup  , (this way it always shows modulename+symbol)
+  if self.currentModuleIsNotStandard then
+    s:='_'+s;
+
+  sym:=self.symbollist.AddSymbol(self.currentModuleName, self.currentModuleName+'.'+s, symboladdress, symbolsize);
+  sym:=self.symbollist.AddSymbol(self.currentModuleName, s, symboladdress, symbolsize,true); //don't add it as a address->string lookup  , (this way it always shows modulename+symbol)
 
   {$ifdef SYMPERFTEST}
   sleep(1000);
@@ -343,9 +359,15 @@ end;
 
 function EM(ModuleName:PSTR; BaseOfDll:dword64; UserContext:pointer):bool;stdcall;
 var self: TSymbolloaderthread;
+    mi: tmoduleinfo;
 begin
   self:=TSymbolloaderthread(UserContext);
   self.CurrentModulename:=ModuleName;
+
+  if symhandler.getmodulebyaddress(baseofdll, mi) then
+    self.currentModuleIsNotStandard:=ProcessHandler.is64Bit<>mi.is64bitmodule
+  else
+    self.currentModuleIsNotStandard:=false; //whatever...
 
   result:=(not self.terminated) and (SymEnumerateSymbols64(self.thisprocesshandle, BaseOfDLL, @ES, self));
 end;
@@ -1513,9 +1535,14 @@ var
 
   oldmodulelist: array of qword;
 
+  is64bitprocess: boolean;
+
+
 begin
   result:=false;
+  is64bitprocess:=processhandler.is64Bit;
 
+  ZeroMemory(@me32, sizeof(MODULEENTRY32));
 
   try
 
@@ -1536,9 +1563,12 @@ begin
 
       modulelistpos:=0;
 
-      //refresh the module list
-
+      //Note: Just TH32CS_SNAPMODULE32 will result in an empty list
+      //Just TH32CS_SNAPMODULE only returns the 64-bit modules
+      //There doesn't seem to be a way to make two lists, 32-bit, then 64-bit, and combine them afterwards
+      //So for now I just check if it's a system dll, and if so, if it's in the wow64 folder or not
       ths:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE or TH32CS_SNAPMODULE32,processid);
+
       if ths<>0 then
       begin
         me32.dwSize:=sizeof(MODULEENTRY32);
@@ -1576,8 +1606,27 @@ begin
                 if (not modulelist[modulelistpos].isSystemModule) and (commonModuleList<>nil) then //check if it's a common module (e.g nvidia physx dll's)
                   modulelist[modulelistpos].isSystemModule:=commonModuleList.IndexOf(lowercase(modulelist[modulelistpos].modulename))<>-1;
 
+
                 modulelist[modulelistpos].baseaddress:=ptrUint(me32.modBaseAddr);
                 modulelist[modulelistpos].basesize:=me32.modBaseSize;
+
+                {$ifdef cpu32}
+                modulelist[modulelistpos].is64bitmodule:=false
+                {$else}
+                if is64bitprocess then
+                  modulelist[modulelistpos].is64bitmodule:=true
+                else
+                begin
+                  if modulelist[modulelistpos].isSystemModule then
+                  begin
+                    if pos('wow64', lowercase(ExtractFilePath(x)))>0 then
+                      modulelist[modulelistpos].is64bitmodule:=false
+                    else
+                      modulelist[modulelistpos].is64bitmodule:=true;
+                  end;
+                end;
+                {$endif}
+
                 inc(modulelistpos);
               end;
 
@@ -1587,6 +1636,7 @@ begin
           end;
         end;
       end;
+
 
 
     finally
