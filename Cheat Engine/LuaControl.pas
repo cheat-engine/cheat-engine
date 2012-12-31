@@ -307,6 +307,7 @@ end;
 function control_getPopupMenu(L: PLua_State): integer; cdecl;
 var
   c: TControl;
+  i: integer;
 begin
   c:=luaclass_getClassObject(L);
   luaclass_newClass(L, c.PopupMenu);

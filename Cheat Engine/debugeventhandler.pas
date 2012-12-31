@@ -39,6 +39,7 @@ type
     tracecount: integer;
     traceWindow: TfrmTracer;
     traceQuitCondition: string;
+    traceStepOver: boolean; //perhaps also trace branches ?
     //------------------
 
     WaitingToContinue: boolean; //set to true when it's waiting for the user to continue
@@ -273,6 +274,11 @@ BP can be nil if it's a single step breakpoint
 
 }
 var oldprotect,bw: dword;
+  d: TDisassembler;
+  nexteip: ptruint;
+  t: string;
+
+  b: PBreakpoint;
 begin
   context.EFlags:=eflags_setTF(context.EFlags,0);
 
@@ -347,14 +353,37 @@ begin
 
       end;
 
-      co_stepinto:
+
+
+      co_stepinto, co_stepover:
       begin
         //single step
         singlestepping:=true;
         if (bp=nil) or (bp.breakpointMethod=bpmDebugRegister) then
           context.EFlags:=eflags_setRF(context.EFlags,1);//don't break on the current instruction
 
-        context.EFlags:=eflags_setTF(context.EFlags,1); //set the trap flag
+        if continueoption=co_stepinto then
+          context.EFlags:=eflags_setTF(context.EFlags,1) //set the trap flag
+        else
+        begin
+          //check if the current instruction is a call, if not, single step, else set a "run till" breakpoint (that doesn't cancel the stepping)
+          d:=TDisassembler.Create;
+          nexteip:=context.{$ifdef cpu64}rip{$else}eip{$endif};
+          d.disassemble(nexteip, t);
+          if d.LastDisassembleData.iscall then
+          begin
+            //set an execute breakpoint for this thread only at the next instruction and run till there
+
+
+            b:=TDebuggerthread(debuggerthread).SetOnExecuteBreakpoint(nexteip , false, ThreadId);
+            b.breakpointAction:=bo_BreakAndTrace;
+            //b.OneTimeOnly:=true;
+          end
+          else  //if not, single step
+            context.EFlags:=eflags_setTF(context.EFlags,1);
+
+
+        end;
       end;
 
       //the other event types are just setting of one time breakpoints
@@ -411,8 +440,10 @@ begin
       end;
     end;
 
-
-    ContinueFromBreakpoint(nil, co_stepinto);
+    if tracestepover then
+      ContinueFromBreakpoint(nil, co_stepover)
+    else
+      ContinueFromBreakpoint(nil, co_stepinto);
   end
   else
   begin
@@ -605,13 +636,14 @@ begin
           isTracing:=true;
           tracecount:=bpp.TraceCount;
           traceWindow:=bpp.frmTracer;
+          traceStepOver:=bpp.tracestepOver;
           if bpp.traceendcondition<>nil then
             traceQuitCondition:=bpp.traceendcondition
           else
             traceQuitCondition:='';
-
-          TdebuggerThread(debuggerthread).RemoveBreakpoint(bpp);
         end;
+
+        TdebuggerThread(debuggerthread).RemoveBreakpoint(bpp); //there can be only one
 
         handleTrace;
       end;

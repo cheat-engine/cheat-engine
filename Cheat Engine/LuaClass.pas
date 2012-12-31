@@ -21,7 +21,7 @@ procedure luaclass_addArrayPropertyToTable(L: PLua_State; metatable: integer; us
 
 procedure luaclass_canAutoDestroy(L: PLua_State; metatable: integer; state: boolean);
 
-function luaclass_getClassObject(L: PLua_state): pointer; inline;
+function luaclass_getClassObject(L: PLua_state): pointer; //inline;
 
 procedure luaclass_newClass(L: PLua_State; o: TObject); overload;
 procedure luaclass_newClass(L: PLua_State; o: TObject; InitialAddMetaDataFunction: TAddMetaDataFunction); overload;
@@ -138,10 +138,31 @@ begin
 end;
 
 
-function luaclass_getClassObject(L: PLua_state): pointer; inline;
+function luaclass_getClassObject(L: PLua_state): pointer;// inline;
 //called by class functions. This is in case a 6.2 code executed the function manually
+var t: integer;
+    u: pointer;
 begin
-  result:=pointer(lua_touserdata(L, ifthen(lua_type(L, lua_upvalueindex(1))=LUA_TUSERDATA, lua_upvalueindex(1), 1))^);
+  result:=nil;
+  if lua_type(L, lua_upvalueindex(1))=LUA_TUSERDATA then
+  begin
+    u:=lua_touserdata(L, 1);
+    result:=ppointer(u)^;
+  end
+  else
+  if lua_gettop(L)>=1 then
+  begin
+    t:=lua_type(L, 1);
+    if t in [LUA_TUSERDATA, LUA_TLIGHTUSERDATA] then
+    begin
+      u:=lua_touserdata(L, 1);
+      if t=LUA_TUSERDATA then
+        result:=ppointer(u)^
+      else
+        result:=u;
+    end;
+
+  end;
 
   if result=nil then
   begin

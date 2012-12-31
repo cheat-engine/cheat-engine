@@ -11,26 +11,19 @@ procedure initializeLuaMenu;
 
 implementation
 
-uses LuaCaller;
-
+uses LuaCaller, LuaClass, LuaComponent;
 
 function menu_getItems(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   menu: TMenu;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    menu:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushlightuserdata(L, menu.Items);
-    result:=1;
-
-  end else lua_pop(L, parameters);
+  menu:=luaclass_getClassObject(L);
+  luaclass_newClass(L, menu.Items);
+  result:=1;
 end;
+
+
+
 
 function createMainMenu(L: Plua_State): integer; cdecl;
 var parameters: integer;
@@ -38,14 +31,13 @@ var parameters: integer;
   m: TMainMenu;
 begin
   result:=0;
+
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    f:=lua_touserdata(L, -1);
-    lua_pop(L, lua_gettop(L));
-
+    f:=lua_ToCEUserData(L, 1);
     m:=TMainMenu.Create(f);
-    lua_pushlightuserdata(L, m);
+    luaclass_newClass(L, m);
     result:=1;
   end else lua_pop(L, lua_gettop(L));
 end;
@@ -59,11 +51,11 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    f:=lua_touserdata(L, -1);
+    f:=lua_ToCEUserData(L, -1);
     lua_pop(L, lua_gettop(L));
 
     m:=TPopupMenu.Create(f);
-    lua_pushlightuserdata(L, m);
+    luaclass_newClass(L, m);
     result:=1;
   end else lua_pop(L, lua_gettop(L));
 end;
@@ -77,31 +69,23 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    o:=lua_touserdata(L, -1);
+    o:=lua_ToCEUserData(L, -1);
     lua_pop(L, lua_gettop(L));
 
     mi:=TMenuItem.Create(o);
-    lua_pushlightuserdata(L, mi);
+    luaclass_newClass(L, mi);
     result:=1;
   end else lua_pop(L, lua_gettop(L));
 end;
 
+
 function menuItem_getCaption(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   menuItem: TmenuItem;
-
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    menuItem:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushstring(L, menuItem.Caption);
-    result:=1;
-  end else lua_pop(L, parameters);
+  menuitem:=luaclass_getClassObject(L);
+  lua_pushstring(L, menuItem.Caption);
+  result:=1;
 end;
 
 function menuItem_setCaption(L: PLua_State): integer; cdecl;
@@ -110,34 +94,22 @@ var
   menuItem: TmenuItem;
   Caption: string;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
+  menuitem:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
   begin
-    menuItem:=lua_touserdata(L,-parameters);
-    Caption:=Lua_ToString(L, -parameters+1);
-    lua_pop(L, parameters);
-
+    Caption:=Lua_ToString(L, -1);
     menuItem.Caption:=Caption;
-  end else lua_pop(L, parameters);
+  end;
+  result:=0;
 end;
 
 function menuItem_getShortcut(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   menuItem: TmenuItem;
-
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    menuItem:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushstring(L, ShortCutToText(menuItem.Shortcut));
-    result:=1;
-  end else lua_pop(L, parameters);
+  menuitem:=luaclass_getClassObject(L);
+  lua_pushstring(L, ShortCutToText(menuItem.Shortcut));
+  result:=1;
 end;
 
 function menuItem_setShortcut(L: PLua_State): integer; cdecl;
@@ -146,73 +118,51 @@ var
   menuItem: TmenuItem;
   Shortcut: string;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
+  menuitem:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
   begin
-    menuItem:=lua_touserdata(L,-parameters);
-    Shortcut:=Lua_ToString(L, -parameters+1);
-    lua_pop(L, parameters);
-
+    Shortcut:=Lua_ToString(L, -1);
     menuItem.Shortcut:=TextToShortCut(shortcut);
-  end else lua_pop(L, parameters);
+  end;
+  result:=0;
 end;
 
 function menuItem_getCount(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   menuItem: TmenuItem;
-
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    menuItem:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, menuItem.Count);
-    result:=1;
-
-  end else lua_pop(L, parameters);
+  menuitem:=luaclass_getClassObject(L);
+  lua_pushinteger(L, menuItem.Count);
+  result:=1;
 end;
 
 function menuItem_getItem(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   menuitem: TMenuItem;
   index: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
+  menuitem:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
   begin
-    menuitem:=lua_touserdata(L,-2);
     index:=lua_toInteger(L,-1);
-    lua_pop(L, parameters);
-
-
-    lua_pushlightuserdata(L, menuitem.Items[index]);
+    luaclass_newClass(L, menuitem.Items[index]);
     result:=1;
-
-  end else lua_pop(L, parameters);
+  end;
 end;
 
 function menuItem_add(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   menuitem, menuitem2: TMenuItem;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    menuitem:=lua_touserdata(L,-2);
-    menuitem2:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
+  menuitem:=luaclass_getClassObject(L);
 
+  if lua_gettop(L)>=1 then
+  begin
+    menuitem2:=lua_touserdata(L,-1);
     menuitem.Add(menuitem2);
-  end else lua_pop(L, parameters);
+  end;
 end;
 
 function menuItem_insert(L: PLua_State): integer; cdecl;
@@ -222,16 +172,13 @@ var
   index: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=3 then
+  menuitem:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=2 then
   begin
-    menuitem:=lua_touserdata(L,1);
-    index:=lua_tointeger(L, 2);
-    menuitem2:=lua_touserdata(L,3);
-    lua_pop(L, parameters);
-
+    index:=lua_tointeger(L, -2);
+    menuitem2:=lua_ToCEUserData(L,-1);
     menuitem.Insert(index, menuitem2);
-  end else lua_pop(L, parameters);
+  end;
 end;
 
 function menuItem_delete(L: PLua_State): integer; cdecl;
@@ -241,20 +188,25 @@ var
   index: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
+  menuitem:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
   begin
-    menuitem:=lua_touserdata(L,-2);
     index:=lua_toInteger(L,-1);
-    lua_pop(L, parameters);
-
     menuitem.Delete(index);
-  end else lua_pop(L, parameters);
+  end;
 end;
 
-function menuitem_onClick(L: PLua_State): integer; cdecl; //for some reason the menuitem has it's own fonclick variable
+function menuitem_getOnClick(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
+  c: Tmenuitem;
+begin
+  c:=luaclass_getClassObject(L);
+  LuaCaller_pushMethodProperty(L, TMethod(c.OnClick), 'TNotifyEvent');
+  result:=1;
+end;
+
+function menuitem_setOnClick(L: PLua_State): integer; cdecl; //for some reason the menuitem has it's own fonclick variable
+var
   control: Tmenuitem;
   f: integer;
   routine: string;
@@ -262,11 +214,9 @@ var
   lc: TLuaCaller;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
+  control:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
   begin
-    control:=lua_touserdata(L,-2);
-
     CleanupLuaCall(tmethod(control.onClick));
     control.onClick:=nil;
 
@@ -289,27 +239,48 @@ begin
     end;
 
   end;
-
-  lua_pop(L, parameters);
 end;
 
 function menuItem_doClick(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   mi: TMenuItem;
-  Color: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    mi:=lua_touserdata(L,1);
-    if assigned(mi.onclick) then
-      mi.OnClick(mi);
-  end;
-
-  lua_pop(L, parameters);
+  mi:=luaclass_getClassObject(L);
+  if assigned(mi.onclick) then
+    mi.OnClick(mi);
 end;
+
+procedure menu_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
+begin
+  component_addMetaData(L, metatable, userdata);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'menu_getItems', menu_getItems);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Items', menu_getItems, nil);
+end;
+
+procedure menuitem_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
+begin
+  component_addMetaData(L, metatable, userdata);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getCaption', menuItem_getCaption);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setCaption', menuItem_setCaption);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getShortcut', menuItem_getShortcut);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setShortcut', menuItem_setShortcut);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getCount', menuItem_getCount);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getItem', menuItem_getItem);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'add', menuItem_add);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'insert', menuItem_insert);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'delete', menuItem_delete);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setOnClick', menuItem_setOnClick);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getOnClick', menuItem_getOnClick);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'doClick', menuItem_doClick);
+
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Caption', menuItem_getCaption, menuItem_setCaption);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Shortcut', menuItem_getShortcut, menuItem_setShortcut);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Count', menuItem_getCount, nil);
+  luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Item', menuItem_getItem);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'OnClick', menuItem_getOnClick, menuItem_setOnClick);
+end;
+
 
 procedure initializeLuaMenu;
 begin
@@ -327,9 +298,13 @@ begin
   lua_register(LuaVM, 'menuItem_add', menuItem_add);
   lua_register(LuaVM, 'menuItem_insert', menuItem_insert);
   lua_register(LuaVM, 'menuItem_delete', menuItem_delete);
-  lua_register(LuaVM, 'menuItem_onClick', menuItem_onClick);
+  lua_register(LuaVM, 'menuItem_onClick', menuItem_setOnClick);
   lua_register(LuaVM, 'menuItem_doClick', menuItem_doClick);
 end;
+
+initialization
+  luaclass_register(TMenu, Menu_addMetaData);
+  luaclass_register(TMenuItem, MenuItem_addMetaData);
 
 end.
 

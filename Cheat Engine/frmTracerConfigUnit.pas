@@ -17,6 +17,7 @@ type
     btnCancel: TButton;
     cbDereferenceAddresses: TCheckBox;
     cbSaveStack: TCheckBox;
+    cbStepOver: TCheckBox;
     edtMaxTrace: TEdit;
     edtCondition: TEdit;
     Label1: TLabel;
