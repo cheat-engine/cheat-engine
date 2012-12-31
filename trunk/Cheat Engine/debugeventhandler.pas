@@ -373,11 +373,8 @@ begin
           if d.LastDisassembleData.iscall then
           begin
             //set an execute breakpoint for this thread only at the next instruction and run till there
-
-
             b:=TDebuggerthread(debuggerthread).SetOnExecuteBreakpoint(nexteip , false, ThreadId);
-            b.breakpointAction:=bo_BreakAndTrace;
-            //b.OneTimeOnly:=true;
+            b.OneTimeOnly:=true;
           end
           else  //if not, single step
             context.EFlags:=eflags_setTF(context.EFlags,1);
@@ -599,11 +596,21 @@ begin
     bpp:=bpp2;
     outputdebugstring('Handling breakpoint');
 
+    if isTracing then
+    begin
+      handleTrace;
+      dwContinueStatus:=DBG_CONTINUE;
+      Result:=true;
+      exit;
+    end;
 
 
-    if ((bpp.breakpointMethod<>bpmException) and (not active)) or (not CheckIfConditionIsMet(bpp) or (bpp.markedfordeletion) ) then
+
+
+    if (bpp.OneTimeOnly=false) and ((bpp.breakpointMethod<>bpmException) and (not active)) or (not CheckIfConditionIsMet(bpp) or (bpp.markedfordeletion) ) then
     begin
       OutputDebugString('bp was disabled or Condition was not met');
+
 
       continueFromBreakpoint(bpp, co_run);
       dwContinueStatus:=DBG_CONTINUE;

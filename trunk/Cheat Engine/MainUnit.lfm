@@ -1364,7 +1364,7 @@ object MainForm: TMainForm
       OnClick = Label3Click
     end
     object Foundlist3: TListView
-      Left = 0
+      Left = 1
       Height = 268
       Hint = 'This list shows all the found addresses that matched your last scan'
       Top = 48
@@ -1384,7 +1384,7 @@ object MainForm: TMainForm
         end      
         item
           Caption = 'Previous'
-          Width = 9
+          Width = 48
         end>
       DragMode = dmAutomatic
       Font.CharSet = ANSI_CHARSET
