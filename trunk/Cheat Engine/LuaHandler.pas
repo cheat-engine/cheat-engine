@@ -62,7 +62,8 @@ uses mainunit, mainunit2, frmluaengineunit, plugin, pluginexports, MemoryRecordU
   LuaMemoryRecord, LuaForm, MemoryBrowserFormUnit, disassemblerviewunit, hexviewunit,
   CustomTypeHandler, LuaStructure, LuaRegion, LuaXMPlayer, LuaMemscan, LuaFoundlist,
   LuaRadioGroup, LuaRasterImage, LuaCheatComponent, LuaAddresslist, byteinterpreter,
-  OpenSave, cedebugger, DebugHelper, LuaObject, LuaComponent, LuaControl, LuaStrings;
+  OpenSave, cedebugger, DebugHelper, LuaObject, LuaComponent, LuaControl, LuaStrings,
+  LuaStringlist;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -2623,127 +2624,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function createStringlist(L: Plua_State): integer; cdecl;
-var
-  stringlist: TStringlist;
-begin
-  result:=0;
-  lua_pop(L, lua_gettop(L));
 
-  stringlist:=TStringList.Create;
-
-  lua_pushlightuserdata(L, stringlist);
-  result:=1;
-end;
-
-function stringlist_getDuplicates(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  stringlist: TStringlist;
-  align: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    stringlist:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, integer(stringlist.Duplicates));
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function stringlist_setDuplicates(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  stringlist: TStringlist;
-  a: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    stringlist:=lua_toceuserdata(L,-2);
-    stringlist.Duplicates:=TDuplicates(lua_tointeger(L,-1));
-  end;
-
-  lua_pop(L, parameters);
-end;
-
-
-function stringlist_getSorted(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  stringlist: TStringlist;
-  align: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    stringlist:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushboolean(L, stringlist.Sorted);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function stringlist_setSorted(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  stringlist: TStringlist;
-  a: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    stringlist:=lua_toceuserdata(L,-2);
-    stringlist.Sorted:=lua_toboolean(L,-1);
-  end;
-
-  lua_pop(L, parameters);
-end;
-
-function stringlist_getCaseSensitive(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  stringlist: TStringlist;
-  align: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    stringlist:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushboolean(L, stringlist.CaseSensitive);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function stringlist_setCaseSensitive(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  stringlist: TStringlist;
-  a: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    stringlist:=lua_toceuserdata(L,-2);
-    stringlist.CaseSensitive:=lua_toboolean(L,-1);
-  end;
-
-  lua_pop(L, parameters);
-end;
 
 
 
@@ -6605,29 +6486,12 @@ begin
 
     InitializeLuaControl;
 
-
-
     initializeLuaWinControl;
 
-
-
     initializeLuaStrings;
-
-
-
-
-    lua_register(LuaVM, 'createStringlist', createStringlist);
-    lua_register(LuaVM, 'stringlist_getDuplicates', stringlist_getDuplicates);
-    lua_register(LuaVM, 'stringlist_setDuplicates', stringlist_setDuplicates);
-    lua_register(LuaVM, 'stringlist_getSorted', stringlist_getSorted);
-    lua_register(LuaVM, 'stringlist_setSorted', stringlist_setSorted);
-    lua_register(LuaVM, 'stringlist_getCaseSensitive', stringlist_getCaseSensitive);
-    lua_register(LuaVM, 'stringlist_setCaseSensitive', stringlist_setCaseSensitive);
+    initializeLuaStringlist;
 
     initializeLuaForm;
-
-
-
 
     lua_register(LuaVM, 'createPanel', createPanel);
     lua_register(LuaVM, 'panel_getAlignment', panel_getAlignment);

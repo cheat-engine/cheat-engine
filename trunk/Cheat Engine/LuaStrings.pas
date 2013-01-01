@@ -203,7 +203,6 @@ end;
 procedure strings_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
   object_addMetaData(L, metatable, userdata);
-  //luaclass_addClassFunctionToTable(L, metatable, userdata, 'menu_getItems', menu_getItems);
 
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'add', strings_add);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'clear', strings_clear);
