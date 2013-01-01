@@ -2683,7 +2683,11 @@ begin
   if miShowPreviousValue.checked and (PreviousResults<>nil) then
   begin
     if (item.subItems[1]<>'<none>') and (item.subitems[0]<>item.subitems[1]) then
+    begin
       sender.Canvas.Font.color:=clred;
+      sender.canvas.font.Style:=sender.canvas.font.Style+[fsBold];
+      sender.canvas.Refresh;
+    end;
   end;
 
 
