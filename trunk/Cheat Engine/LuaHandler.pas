@@ -54,7 +54,7 @@ resourcestring
 
 implementation
 
-uses mainunit, mainunit2, frmluaengineunit, plugin, pluginexports, MemoryRecordUnit,
+uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports, MemoryRecordUnit,
   debuggertypedefinitions, symbolhandler, frmautoinjectunit, simpleaobscanner,
   addresslist, memscan, foundlisthelper, cesupport, DBK32functions, sharedMemory,
   disassembler, LuaCanvas, LuaPen, LuaFont, LuaBrush, LuaPicture, LuaMenu,
@@ -63,7 +63,7 @@ uses mainunit, mainunit2, frmluaengineunit, plugin, pluginexports, MemoryRecordU
   CustomTypeHandler, LuaStructure, LuaRegion, LuaXMPlayer, LuaMemscan, LuaFoundlist,
   LuaRadioGroup, LuaRasterImage, LuaCheatComponent, LuaAddresslist, byteinterpreter,
   OpenSave, cedebugger, DebugHelper, LuaObject, LuaComponent, LuaControl, LuaStrings,
-  LuaStringlist, LuaCustomControl, LuaGraphicControl, luaclass;
+  LuaStringlist, LuaCustomControl, LuaGraphicControl, LuaPanel, LuaImage;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -2156,112 +2156,7 @@ begin
   end else lua_pop(L, lua_gettop(L));
 end;
 
-function createImage(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  f,p: pointer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    f:=lua_toceuserdata(L, -1);
-    p:=ce_createImage(f);
 
-    lua_pop(L, lua_gettop(L));
-
-    luaclass_newClass(L, p);
-    result:=1;
-  end else lua_pop(L, lua_gettop(L));
-end;
-
-function image_loadImageFromFile(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  i: pointer;
-  filename: pchar;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    i:=lua_toceuserdata(L, -2);
-    filename:=lua.lua_tostring(L, -1);
-    ce_image_loadImageFromFile(i,filename);
-  end;
-
-
-  lua_pop(L, lua_gettop(L));
-end;
-
-function image_stretch(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  i: pointer;
-  state: boolean;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    i:=lua_toceuserdata(L, -2);
-    state:=lua_toboolean(L, -1);
-    ce_image_stretch(i,state);
-  end;
-
-  lua_pop(L, lua_gettop(L));
-end;
-
-function image_transparent(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  i: pointer;
-  state: boolean;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    i:=lua_toceuserdata(L, -2);
-    state:=lua_toboolean(L, -1);
-    ce_image_transparent(i,state);
-  end;
-
-  lua_pop(L, lua_gettop(L));
-end;
-
-function Image_getCanvas(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  c: TImage;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    c:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    luaclass_newClass(L, c.Canvas);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function Image_getPicture(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  c: TCustomImage;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    c:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-
-    luaclass_newClass(L, c.Picture);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
 
 function createHotkey(L: Plua_State): integer; cdecl;
 var parameters: integer;
@@ -6231,12 +6126,7 @@ begin
     lua_register(LuaVM, 'inSystemModule', inSystemModule);
     lua_register(LuaVM, 'getCommonModuleList', getCommonModuleList);
 
-    lua_register(LuaVM, 'createImage', createImage);
-    lua_register(LuaVM, 'image_loadImageFromFile', image_loadImageFromFile);
-    lua_register(LuaVM, 'image_transparent', image_transparent);
-    lua_register(LuaVM, 'image_stretch', image_stretch);
-    lua_register(LuaVM, 'image_getCanvas', image_getCanvas);
-    lua_register(LuaVM, 'image_getPicture', Image_getPicture);
+    initializeLuaImage;
 
     initializeLuaRasterImage;
 
@@ -6259,6 +6149,8 @@ begin
     initializeLuaStringlist;
 
     initializeLuaForm;
+    initializeLuaPanel;
+    initializeLuaImage;
 
 
 

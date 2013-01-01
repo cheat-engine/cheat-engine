@@ -525,11 +525,22 @@ methods
 
 Image Class: (Inheritance: GraphicControl->Control->Component->Object)
 createImage(owner): Creates an Image class object which belongs to the given owner. Owner can be any object inherited from WinControl
-image_loadImageFromFile(image, filename)
-image_stretch(image, boolean)
-image_transparent(image, boolean)
-image_getCanvas(image)
-image_getPicture(image) : Returns the Picture object of this image
+
+properties
+  Canvas: Canvas - The canvas object to access the picture of the image
+  Transparent: boolean - Determines if some parts of the picture are see through (usually based on the bottomleft corner)
+  Stretch: boolean - Determines if the picture gets stretched when rendered in the image component
+  Picture: Picture - The picture to render
+
+methods
+  loadImageFromFile(filename)
+  getStretch()
+  setStretch(boolean)
+  getTransparent()
+  setTransparent(boolean)
+  getCanvas()
+  setPicture(picture)
+  getPicture() : Returns the Picture object of this image
 
 
 Edit Class: (Inheritance: WinControl->Control->Component->Object)

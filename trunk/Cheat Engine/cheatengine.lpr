@@ -62,7 +62,8 @@ uses
   LuaRadioGroup, RemoteMemoryManager, LuaRasterImage, multilineinputqueryunit,
   LuaCheatComponent, LuaAddresslist, frmDriverLoadedUnit, memdisplay,
   frmSortPointerlistUnit, LuaClassArray, LuaObject, LuaComponent, LuaControl,
-  LuaStrings, LuaStringlist, LuaCustomControl, LuaGraphicControl, LuaPanel;
+  LuaStrings, LuaStringlist, LuaCustomControl, LuaGraphicControl, LuaPanel,
+  LuaImage;
 
 {$R cheatengine.res}
 {$R manifest.res}
