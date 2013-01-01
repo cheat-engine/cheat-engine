@@ -79,6 +79,7 @@ var pc: pchar;
   i,j: integer;
 
   oldprintoutput: Tstrings;
+  c: tobject;
 begin
   luacs.Enter;
   oldprintoutput:=lua_oldprintoutput;
@@ -118,7 +119,14 @@ begin
               moutput.lines.add(':'+'function')
             else
             if lua_isuserdata(luavm,i) then
-              moutput.lines.add(':'+'class object')
+            begin
+              try
+                c:=lua_ToCEUserData(L, i);
+                moutput.lines.add(':'+'class object ('+c.ClassName+')')
+              except
+                moutput.lines.add(':'+'class object (corrupt)')
+              end;
+            end
             else
               moutput.lines.add(':'+'unknown')
 
