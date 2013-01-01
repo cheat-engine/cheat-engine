@@ -432,38 +432,59 @@ methods
 
 Stringlist Class: (Inheritance : Strings->Object)
 createStringlist() : Creates a stringlist class object (for whatever reason, lua strings are probably easier to use)
-stringlist_getDuplicates(list) : returns the duplicates property
-stringlist_setDuplicates(list, Duplicates) : Sets the duplicates property (dupIgnore, dupAccept, dupError)
-stringlist_getSorted(list) : returns true if the list has the sorted property
-stringlist_setSorted(list, boolean) : Sets the sorted property
-stringlist_getCaseSensitive(list) : Returns true if the case sensitive property is set
-stringlist_setCaseSensitive(list, boolean): Sets the case sensitive property
 
+properties
+  Duplicates : DuplicatesType - Determines how duplicates should be handled
+  Sorted : boolean - Determines if the list should be sorted
+  CaseSensitive: boolean - Determines if the list is case sensitive or not.
 
+methods
+  getDuplicates() : returns the duplicates property
+  setDuplicates(Duplicates) : Sets the duplicates property (dupIgnore, dupAccept, dupError)
+  getSorted() : returns true if the list has the sorted property
+  setSorted(boolean) : Sets the sorted property
+  getCaseSensitive() : Returns true if the case sensitive property is set
+  setCaseSensitive(boolean): Sets the case sensitive property
 
 
 Form Class: (Inheritance: ScrollingWinControl->CustomControl->WinControl->Control->Component->Object)
-createForm(visible OPT): creates a Form class object(window) and returns the pointer for it. Visible is default true but can be changed
-createFormFromFile(filename): Returns the generated form
-form_saveToFile(form, filename): Saves a userdefined form. (DOES NOT WORK ON NORMAL FORMS LIKE MAINFORM)
-form_centerScreen(form); : Places the form at the center of the screen
-form_hide(form) : Hide the form
-form_show(form) : show the form
-form_close(form):  Closes the form. Without an onClose this will be the same as hide 
-form_showModal(form) : show the form and wait for it to close and get the close result
-form_isForegroundWindow(form): returns true if the specified form has focus
-form_onClose(form, function)  : function (sender) : Return a CloseAction to determine how to close the window
-form_getMenu(form) : Returns the mainmenu object of this form
-form_setMenu(form, mainmenu)
+properties
+  OnClose: function - The function to call when the form gets closed
+  Menu: MainMenu - The main menu of the form
 
-form_setBorderStyle(form, borderstyle):  Sets the borderstyle of the window
-form_getBorderStyle
+methods
+  centerScreen(); : Places the form at the center of the screen
+  hide() : Hide the form
+  show() : show the form
+  close():  Closes the form. Without an onClose this will be the same as hide 
+  showModal() : show the form and wait for it to close and get the close result
+  isForegroundWindow(): returns true if the specified form has focus
+  setOnClose(function)  : function (sender) : Return a CloseAction to determine how to close the window
+  getOnClose() : Returns the function
+  getMenu() : Returns the mainmenu object of this form
+  setMenu(mainmenu)
 
-form_getDoNotSaveInTable(form): Returns the DoNotSaveInTable property
-form_setDoNotSaveInTable(form, boolean): Sets the DoNotSaveInTable property
+  setBorderStyle( borderstyle):  Sets the borderstyle of the window
+  getBorderStyle()
 
-form_printToRasterImage(form, rasterimage): Draws the contents of the form to a rasterimage class object
-form_dragNow(form):  Call this on mousedown on any object if you wish that the mousemove will drag the whole form arround. Useful for borderless windows (Dragging will stop when the mouse button is released)
+  printToRasterImage(rasterimage): Draws the contents of the form to a rasterimage class object
+  dragNow():  Call this on mousedown on any object if you wish that the mousemove will drag the whole form arround. Useful for borderless windows (Dragging will stop when the mouse button is released)
+
+
+
+CEForm Class: (Inheritance: Form->ScrollingWinControl->CustomControl->WinControl->Control->Component->Object)
+createForm(visible OPT): creates a CEForm class object(window) and returns the pointer for it. Visible is default true but can be changed
+createFormFromFile(filename): Returns the generated CEform
+
+properties
+  DoNotSaveInTable: boolean - Set this if you do not wish to save the forms in the table
+methods
+  saveToFile(form, filename): Saves a userdefined form
+  getDoNotSaveInTable(form): Returns the DoNotSaveInTable property
+  setDoNotSaveInTable(form, boolean): Sets the DoNotSaveInTable property
+
+
+
 
 
 GraphicControl Class: (Inheritance: Control->Component->Object)
