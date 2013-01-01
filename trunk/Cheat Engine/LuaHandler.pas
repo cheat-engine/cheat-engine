@@ -63,7 +63,7 @@ uses mainunit, mainunit2, frmluaengineunit, plugin, pluginexports, MemoryRecordU
   CustomTypeHandler, LuaStructure, LuaRegion, LuaXMPlayer, LuaMemscan, LuaFoundlist,
   LuaRadioGroup, LuaRasterImage, LuaCheatComponent, LuaAddresslist, byteinterpreter,
   OpenSave, cedebugger, DebugHelper, LuaObject, LuaComponent, LuaControl, LuaStrings,
-  LuaStringlist;
+  LuaStringlist, LuaCustomControl;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -2139,28 +2139,7 @@ begin
 end;
 
 
-function customControl_getCanvas(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  c: TCustomControl;
-  i: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    c:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
 
-    if c.Canvas.handle=0 then
-      i:=c.Canvas.Pixels[0,0];
-
-    lua_pushlightuserdata(L, c.Canvas);
-
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
 
 function createPanel(L: Plua_State): integer; cdecl;
 var parameters: integer;
@@ -6677,7 +6656,6 @@ begin
 
     Lua_register(LuaVM, 'beep', beep);
 
-
     lua_register(LuaVM, 'dbk_initialize', dbk_initialize);
     lua_register(LuaVM, 'dbk_useKernelmodeOpenProcess', dbk_useKernelmodeOpenProcess);
     lua_register(LuaVM, 'dbk_useKernelmodeProcessMemoryAccess', dbk_useKernelmodeProcessMemoryAccess);
@@ -6698,8 +6676,7 @@ begin
     lua_Register(LuaVM, 'getPreviousOpcode', getPreviousOpcode);
 
 
-    lua_register(LuaVM, 'customControl_getCanvas', customControl_getCanvas);
-    lua_register(LuaVM, 'customcontrol_getCanvas', customControl_getCanvas);
+
     lua_register(LuaVM, 'graphicControl_getCanvas', graphicControl_getCanvas);
     lua_register(LuaVM, 'graphiccontrol_getCanvas', graphicControl_getCanvas);
 
@@ -6761,6 +6738,7 @@ begin
     Lua_register(LuaVM, 'saveTable', lua_saveTable);
     Lua_register(LuaVM, 'detachIfPossible', lua_DetachIfPossible);
 
+    initializeLuaCustomControl;
 
 
 

@@ -15,7 +15,7 @@ procedure customForm_addMetaData(L: PLua_state; metatable: integer; userdata: in
 
 implementation
 
-uses luaclass;
+uses luaclass, LuaCustomControl;
 
 function createForm(L: Plua_State): integer; cdecl;
 var f: pointer;
@@ -301,7 +301,8 @@ end;
 
 procedure customform_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
-  //luaclass_addClassFunctionToTable(L, metatable, userdata, 'getCaption', menuItem_getCaption);
+  customcontrol_addMetaData(L, metatable, userdata);
+
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'centerScreen', customform_centerScreen);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setOnClose', customform_setOnClose);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getOnClose', customform_getOnClose);
@@ -321,6 +322,7 @@ end;
 
 procedure ceform_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
+  customform_addMetaData(L, metatable, userdata);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'saveToFile', ceform_saveToFile);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setDoNotSaveInTable', ceform_setDoNotSaveInTable);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getDoNotSaveInTable', ceform_getDoNotSaveInTable);
