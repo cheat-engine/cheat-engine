@@ -38,10 +38,8 @@ begin
     i:=lua_tointeger(L,-parameters);
     lua_pop(L, parameters);
 
-    lua_newuserdata(L, DissectedStructs[i]);
-    luaclass_newclass(L, structure_addMetaData);
+    luaclass_newClass(L, DissectedStructs[i]);
 
-//    PDissectedStruct(lua_newuserdata(L, sizeof(TDissectedStruct)))^:=DissectedStructs[i];
     result:=1;
   end else lua_pop(L, parameters);
 end;
@@ -124,8 +122,7 @@ begin
     index:=lua_tointeger(L,-1);
     if index<struct.count then
     begin
-      lua_newuserdata(L, struct.element[index]);
-      luaclass_newclass(L, structureElement_addMetaData);
+      luaclass_newclass(L, struct.element[index]);
       result:=1;
     end;
   end;
@@ -145,8 +142,7 @@ begin
   if parameters>=1 then
   begin
     offset:=lua_tointeger(L,-1);
-    lua_newuserdata(L, struct.element[struct.getIndexOfOffset(offset)]);
-    luaclass_newclass(L, structureElement_addMetaData);
+    luaclass_newclass(L, struct.element[struct.getIndexOfOffset(offset)]);
     result:=1;
   end else lua_pop(L, parameters);
 end;
@@ -161,8 +157,7 @@ begin
 
   struct:=luaclass_getClassObject(L);
 
-  lua_newuserdata(L, struct.addElement);
-  luaclass_newclass(L, structureElement_addMetaData);
+  luaclass_newclass(L, struct.addElement);
   result:=1;
 end;
 

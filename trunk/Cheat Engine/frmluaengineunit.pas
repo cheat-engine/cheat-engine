@@ -117,6 +117,9 @@ begin
             if lua_isfunction(luavm,i) then
               moutput.lines.add(':'+'function')
             else
+            if lua_isuserdata(luavm,i) then
+              moutput.lines.add(':'+'class object')
+            else
               moutput.lines.add(':'+'unknown')
 
           end;

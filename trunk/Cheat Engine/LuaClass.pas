@@ -27,7 +27,7 @@ function luaclass_getClassObject(L: PLua_state): pointer; //inline;
 
 procedure luaclass_newClass(L: PLua_State; o: TObject); overload;
 procedure luaclass_newClass(L: PLua_State; o: TObject; InitialAddMetaDataFunction: TAddMetaDataFunction); overload;
-procedure luaclass_newClass(L: PLua_State; InitialAddMetaDataFunction: TAddMetaDataFunction); overload;
+procedure luaclass_newClassFunction(L: PLua_State; InitialAddMetaDataFunction: TAddMetaDataFunction);
 
 procedure luaclass_register(c: TClass; InitialAddMetaDataFunction: TAddMetaDataFunction);
 
@@ -100,7 +100,7 @@ begin
   result:=best.f;
 end;
 
-procedure luaclass_newClass(L: PLua_State; InitialAddMetaDataFunction: TAddMetaDataFunction);
+procedure luaclass_newClassFunction(L: PLua_State; InitialAddMetaDataFunction: TAddMetaDataFunction);
 //converts the item at the top of the stack to a class object
 var userdata, metatable: integer;
 begin
@@ -120,7 +120,7 @@ begin
   if (o<>nil) and (Assigned(InitialAddMetaDataFunction)) then
   begin
     lua_newuserdata(L, o);
-    luaclass_newClass(L, InitialAddMetaDataFunction);
+    luaclass_newClassFunction(L, InitialAddMetaDataFunction);
   end
   else
     lua_pushnil(L);
@@ -148,7 +148,7 @@ begin
   result:=nil;
   if lua_type(L, lua_upvalueindex(1))=LUA_TUSERDATA then
   begin
-    u:=lua_touserdata(L, 1);
+    u:=lua_touserdata(L, lua_upvalueindex(1));
     result:=ppointer(u)^;
   end
   else
