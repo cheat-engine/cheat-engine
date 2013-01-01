@@ -359,23 +359,36 @@ methods
   setFocus(): tries to set keyboard focus the object
   setShape(Region): Sets the region object as the new shape for this wincontrol
   setShape(Bitmap): 
-  onEnter(function) : Sets an onEnter event. (Triggered on focus enter)
-  onExit(function) : Sets an onExit event. (Triggered on lost focus)
+  setOnEnter(function) : Sets an onEnter event. (Triggered on focus enter)
+  getOnEnter()
+  setOnExit(function) : Sets an onExit event. (Triggered on lost focus)
+  getOnExit()
 
 
 MenuItem class(Inheritance: Component->Object)
 createMenuItem(ownermenu) : Creates a menu item that gets added to the owner menu
-menuItem_getCaption(menuitem) : Gets the caption of the menu item
-menuItem_setCaption(menuitem, caption) : Sets the caption of the menu item
-menuItem_getShortcut(menuitem): Returns the shortcut for this menu item
-menuItem_setShortcut(menuitem, shortcut): Sets the shortcut for this menuitem. A shortcut is a string in the form of ("ctrl+x")
-menuItem_getCount(menuitem)
-menuItem_getItem(menuitem, index) : Returns the menuitem object at the given index
-menuItem_add(menuitem, menuitem) : Adds a menuItem as a submenu item
-menuItem_insert(menuitem, index, menuitem): Adds a menuItem as a submenu item at the given index
-menuItem_delete(menuitem, index)
-menuItem_onClick(menuitem, function) : Sets an onClick event
-menuItem_doClick(menuitem): Executes the onClick method if one is assigned
+
+properties
+  Caption : String - Text of the menu item
+  Shortcut : string - Shortcut in textform to trigger the menuitem
+  Count : integer - Number of children attached to this menuitem
+  Item[] : Array to access each child menuitem
+  OnClick: Function to call when the menu item is activated
+
+methods
+  getCaption(menuitem) : Gets the caption of the menu item
+  setCaption(menuitem, caption) : Sets the caption of the menu item
+  getShortcut(menuitem): Returns the shortcut for this menu item
+  setShortcut(menuitem, shortcut): Sets the shortcut for this menuitem. A shortcut is a string in the form of ("ctrl+x")
+  getCount(menuitem)
+  getItem(index) : Returns the menuitem object at the given index
+  add(menuitem) : Adds a menuItem as a submenu item
+  insert(index, menuitem): Adds a menuItem as a submenu item at the given index
+  delete(index)
+  setOnClick(function) : Sets an onClick event
+  getOnClick()
+  doClick(): Executes the onClick method if one is assigned
+
 
 
 Menu Class: (Inheritance: Component->Object)
@@ -394,21 +407,26 @@ createPopupMenu(owner)
 
 
 Strings Class: (Inheritance : Object) (Mostly an abstract class)
-strings_clear(list) : Deletes all strings in the list
-strings_add(list, string) : adds a string to the list
-strings_delete(list, index) : Deletes a string from the list
-strings_getText(strings) : Returns all the strings as one big string
-strings_setText(strings) : Sets the strings of the given strings object to the given text (can be multiline)
-strings_indexOf(list, string): Returns the index of the specified string. Returns -1 if not found
-strings_insert(list, index, string): Inserts a string at a specific spot moving the items after it
+properties
+  Text : String - All the strings in one string
+  String[]: String - Array to access one specific string in the list (default)
 
-strings_getCount(list): Returns the number is strings in the list
-strings_remove(list, string); Removes the given string from the list
-strings_loadFromFile(list, filename) : Load the strings from a textfile
-strings_saveToFile(list, filename) : Save the strings to a textfile
+methods
+  clear() : Deletes all strings in the list
+  add(string) : adds a string to the list
+  delete(index) : Deletes a string from the list
+  getText() : Returns all the strings as one big string
+  setText() : Sets the strings of the given strings object to the given text (can be multiline)
+  indexOf(string): Returns the index of the specified string. Returns -1 if not found
+  insert(index, string): Inserts a string at a specific spot moving the items after it
 
-strings_getString(list, index) : gets the string at the given index
-strings_setString(list, index, string) : Replaces the string at the given index
+  getCount(): Returns the number is strings in the list
+  remove(string); Removes the given string from the list
+  loadFromFile(filename) : Load the strings from a textfile
+  saveToFile(filename) : Save the strings to a textfile
+
+  getString(index) : gets the string at the given index
+  setString(index, string) : Replaces the string at the given index
 
 
 

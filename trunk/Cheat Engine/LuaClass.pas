@@ -16,10 +16,12 @@ function luaclass_createMetaTable(L: Plua_State): integer;
 
 procedure luaclass_addClassFunctionToTable(L: PLua_State; metatable: integer; userdata: integer; functionname: string; f: lua_CFunction);
 procedure luaclass_addPropertyToTable(L: PLua_State; metatable: integer; userdata: integer; propertyname: string; getfunction: lua_CFunction; setfunction: lua_CFunction);
+procedure luaclass_setDefaultArrayProperty(L: PLua_State; metatable: integer; userdata: integer; getf,setf: lua_CFunction);
 
 procedure luaclass_addArrayPropertyToTable(L: PLua_State; metatable: integer; userdata: integer; propertyname: string; f: lua_CFunction);
 
-procedure luaclass_canAutoDestroy(L: PLua_State; metatable: integer; state: boolean);
+procedure luaclass_setAutoDestroy(L: PLua_State; metatable: integer; state: boolean);
+
 
 function luaclass_getClassObject(L: PLua_state): pointer; //inline;
 
@@ -171,6 +173,33 @@ begin
   end;
 end;
 
+procedure luaclass_setDefaultArrayProperty(L: PLua_State; metatable: integer; userdata: integer; getf, setf: lua_CFunction);
+//this makes it so x[0], x[1], x[2],...,x.0 , x.1 , x.2,... will call these specific get/set handlers
+begin
+  lua_pushstring(L, '__defaultintegergetindexhandler');
+  if assigned(getf) then
+  begin
+    lua_pushvalue(L, userdata);
+    lua_pushcfunction(L, getf);
+  end
+  else
+    lua_pushnil(L);
+
+  lua_settable(L, metatable);
+
+  lua_pushstring(L, '__defaultintegersetindexhandler');
+  if assigned(setf) then
+  begin
+    lua_pushvalue(L, userdata);
+    lua_pushcfunction(L, setf);
+  end
+  else
+    lua_pushnil(L);
+
+  lua_settable(L, metatable);
+
+end;
+
 procedure luaclass_addArrayPropertyToTable(L: PLua_State; metatable: integer; userdata: integer; propertyname: string; f: lua_CFunction);
 var t,t2: integer;
 begin
@@ -221,9 +250,12 @@ end;
 
 function luaclass_newindex(L: PLua_State): integer; cdecl; //set
 //parameters: (self, key, newvalue)
+var metatable: integer;
 begin
   result:=0;
   lua_getmetatable(L, 1); //get the metatable of self
+  metatable:=lua_gettop(L); //store the metatable index
+
   lua_pushvalue(L, 2); //push the key
 
   lua_gettable(L, -2); //metatable[key]
@@ -242,7 +274,24 @@ begin
   begin
     if lua_isnil(L, -1) then
     begin
+      //not in the list
       lua_pop(L,1);
+
+      //check if key is a number
+      if lua_isnumber(L, 2) then
+      begin
+        //check if there is a __defaultintegergetindexhandler defined in the metatable
+        lua_pushstring(L, '__defaultintegersetindexhandler');
+        lua_gettable(L, metatable);
+        if lua_isfunction(L,-1) then
+        begin
+          //yes
+          lua_pushvalue(L, 2); //key
+          lua_pushvalue(L, 3); //value
+          lua_call(L, 2,0); //call __defaultintegersetindexhandler(key, value);
+        end;
+      end;
+
 
       //this entry was not in the list
       //Let's see if this is a published property
@@ -250,7 +299,7 @@ begin
       lua_pushvalue(L, 1); //userdata
       lua_pushvalue(L, 2); //keyname
       lua_pushvalue(L, 3); //value
-      lua_call(L,3,1);
+      lua_call(L,3,0);
     end;
   end;
 end;
@@ -297,9 +346,24 @@ begin
     begin
       if lua_isnil(L, -1) then
       begin
+        //this entry was not in the list
         lua_pop(L,1);
 
-        //this entry was not in the list
+        //check if the key can be a number
+        if lua_isnumber(L, 2) then
+        begin
+          //check if there is a __defaultintegergetindexhandler defined in the metatable
+          lua_pushstring(L, '__defaultintegergetindexhandler');
+          lua_gettable(L, metatable);
+          if lua_isfunction(L,-1) then
+          begin
+            lua_pushvalue(L, 2); //key
+            lua_call(L, 1, 1); //call __defaultintegergetindexhandler(key)
+            exit;
+          end;
+        end;
+
+
         //Let's see if this is a published property
         lua_pushcfunction(L, lua_getProperty);
         lua_pushvalue(L, 1); //userdata
@@ -351,7 +415,7 @@ end;
 
 
 
-procedure luaclass_canAutoDestroy(L: PLua_State; metatable: integer; state: boolean);
+procedure luaclass_setAutoDestroy(L: PLua_State; metatable: integer; state: boolean);
 begin
   lua_pushstring(L, '__autodestroy');
   lua_pushboolean(L, state);
@@ -365,7 +429,7 @@ begin
   lua_newtable(L);
   result:=lua_gettop(L);
 
-  luaclass_canAutoDestroy(L, result, false); //default do not destroy when garbage collected. Let the user do it
+  luaclass_setAutoDestroy(L, result, false); //default do not destroy when garbage collected. Let the user do it
 
   //set the index method
   lua_pushstring(L, '__index');
