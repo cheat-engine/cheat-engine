@@ -3937,7 +3937,7 @@ begin
         begin
           //eax,imm32
 
-          if vtype=8 then
+          if signedvtype=8 then
           begin
             //check if there isn't a rm32,imm8 , since that's less bytes
             k:=startoflist;
@@ -4098,6 +4098,7 @@ begin
 
       if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
       begin
+        //r8, imm8
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
         begin
           if opcodes[j].opcode1=eo_prb then
@@ -4176,6 +4177,7 @@ begin
 
       if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
       begin
+        //r16, imm8
         if (opcodes[j].opcode1=eo_reg) and (opcodes[j].opcode2=eo_ib) then
         begin
           if vtype>8 then
@@ -4549,13 +4551,20 @@ begin
       if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
       begin
         //r32, imm8
-        addopcode(bytes,j);
+        if (opcodes[j].signed) and (signedvtype>8) then
+        begin
+
+        end
+        else
+        begin
+          addopcode(bytes,j);
 
 
-        createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
-        add(bytes,[byte(v)]);
-        result:=true;
-        exit;
+          createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
+          add(bytes,[byte(v)]);
+          result:=true;
+          exit;
+        end;
       end;
 
     end;
