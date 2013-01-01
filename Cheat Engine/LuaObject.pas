@@ -76,14 +76,18 @@ end;
 
 function lua_getProperty(L: PLua_state): integer; cdecl;
 var parameters: integer;
-  c: tobject;
+  c,c2: tobject;
+  t: ptruint;
   p: string;
-  buf: pchar;
+
+
+  svalue: string;
 
   size: integer;
-begin
 
-  buf:=nil;
+  pinfo: PPropInfo;
+  m: tmethod;
+begin
   result:=0;
   parameters:=lua_gettop(L);
   if parameters=2 then
@@ -104,24 +108,38 @@ begin
 
     lua_pop(L, lua_gettop(l));
 
-    try
-      size:=ce_getProperty(c,pchar(p),buf,0);
-    except
-      size:=0;
-    end;
-
-    if size=0 then exit; //invalid property
-
-    getmem(buf,size);
-    if ce_getProperty(c,pchar(p),buf,size)<=size then
+    pinfo:=GetPropInfo(c, p);
+    if pinfo<>nil then
     begin
-      lua_pushstring(L, buf);
+      result:=1;
+      { possible types:
+      tkUnknown,tkInteger,tkChar,tkEnumeration,tkFloat,
+                         tkSet,tkMethod,tkSString,tkLString,tkAString,
+                         tkWString,tkVariant,tkArray,tkRecord,tkInterface,
+                         tkClass,tkObject,tkWChar,tkBool,tkInt64,tkQWord,
+                         tkDynArray,tkInterfaceRaw,tkProcVar,tkUString,tkUChar,
+                         tkHelper
+      }
+
+      case pinfo.PropType.Kind of
+        tkInteger,tkInt64,tkQWord: lua_pushinteger(L, GetPropValue(c, p,false));
+        tkBool: lua_pushboolean(L, GetPropValue(c, p,false));
+        tkClass, tkObject:
+        begin
+          t:=GetPropValue(c,p,false);
+          c2:=tobject(t);
+          luaclass_newClass(L, c2);
+        end;
+        tkMethod: LuaCaller_pushMethodProperty(L, GetMethodProp(c,p), pinfo.PropType.Name);
+        else lua_pushstring(L, GetPropValue(c, p,true));
+      end;
+    end
+    else
+    begin
+      lua_pushnil(L);
       result:=1;
     end;
-    freemem(buf);
-
-
-  end else lua_pop(L, lua_gettop(l));
+  end;
 end;
 
 function lua_setProperty(L: PLua_state): integer; cdecl;

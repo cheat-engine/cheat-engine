@@ -18,7 +18,7 @@ implementation
 uses luaclass, LuaCustomControl;
 
 function createForm(L: Plua_State): integer; cdecl;
-var f: pointer;
+var f: tcustomform;
   parameters: integer;
   visible: boolean;
 begin
