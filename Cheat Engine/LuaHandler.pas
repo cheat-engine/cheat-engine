@@ -63,7 +63,7 @@ uses mainunit, mainunit2, frmluaengineunit, plugin, pluginexports, MemoryRecordU
   CustomTypeHandler, LuaStructure, LuaRegion, LuaXMPlayer, LuaMemscan, LuaFoundlist,
   LuaRadioGroup, LuaRasterImage, LuaCheatComponent, LuaAddresslist, byteinterpreter,
   OpenSave, cedebugger, DebugHelper, LuaObject, LuaComponent, LuaControl, LuaStrings,
-  LuaStringlist, LuaCustomControl, LuaGraphicControl;
+  LuaStringlist, LuaCustomControl, LuaGraphicControl, luaclass;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -1679,7 +1679,7 @@ begin
   lua_pop(L, lua_gettop(L)); //clear the stack
 
   r:=ce_createTableEntry;
-  lua_pushlightuserdata(L, r);
+  luaclass_newClass(L, r);
   result:=1;
 end;
 
@@ -1699,7 +1699,7 @@ begin
     r:=ce_getTableEntry(description);
     if r<>nil then
     begin
-      lua_pushlightuserdata(L,r); //return the pointer
+      luaclass_newClass(L, r);
       result:=1;
     end;
   end else lua_pop(L, parameters);
@@ -2073,7 +2073,7 @@ begin
 
     lua_pop(L, parameters);
 
-    lua_pushlightuserdata(L, c.Canvas);
+    luaclass_newClass(L, c.Canvas);
     result:=1;
 
   end else lua_pop(L, parameters);
@@ -2092,7 +2092,7 @@ begin
 
     lua_pop(L, parameters);
 
-    lua_pushlightuserdata(L, c.Canvas);
+    luaclass_newClass(L, c.Canvas);
     result:=1;
 
   end else lua_pop(L, parameters);
@@ -2111,7 +2111,7 @@ begin
 
     lua_pop(L, parameters);
 
-    lua_pushlightuserdata(L, c.Canvas);
+    luaclass_newClass(L, c.Canvas);
     result:=1;
 
   end else lua_pop(L, parameters);
@@ -2133,7 +2133,7 @@ begin
 
     lua_pop(L, lua_gettop(L));
 
-    lua_pushlightuserdata(L, p);
+    luaclass_newClass(L, p);
     result:=1;
   end else lua_pop(L, lua_gettop(L));
 end;
@@ -2151,7 +2151,7 @@ begin
 
     lua_pop(L, lua_gettop(L));
 
-    lua_pushlightuserdata(L, p);
+    luaclass_newClass(L, p);
     result:=1;
   end else lua_pop(L, lua_gettop(L));
 end;
@@ -2169,7 +2169,7 @@ begin
 
     lua_pop(L, lua_gettop(L));
 
-    lua_pushlightuserdata(L, p);
+    luaclass_newClass(L, p);
     result:=1;
   end else lua_pop(L, lua_gettop(L));
 end;
@@ -2238,7 +2238,7 @@ begin
     c:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
-    lua_pushlightuserdata(L, c.Canvas);
+    luaclass_newClass(L, c.Canvas);
     result:=1;
 
   end else lua_pop(L, parameters);
@@ -2257,7 +2257,7 @@ begin
     lua_pop(L, parameters);
 
 
-    lua_pushlightuserdata(L, c.Picture);
+    luaclass_newClass(L, c.Picture);
     result:=1;
 
   end else lua_pop(L, parameters);
@@ -2298,7 +2298,7 @@ begin
 
     lua_pop(L, lua_gettop(L));
 
-    lua_pushlightuserdata(L, h);
+    luaclass_newClass(L, h);
     result:=1;
   end else lua_pop(L, lua_gettop(L));
 end;
@@ -2403,7 +2403,7 @@ begin
 
     lua_pop(L, lua_gettop(L));
 
-    lua_pushlightuserdata(L, p);
+    luaclass_newClass(L, p);
     result:=1;
   end else lua_pop(L, lua_gettop(L));
 end;
@@ -2423,7 +2423,7 @@ begin
 
     lua_pop(L, lua_gettop(L));
 
-    lua_pushlightuserdata(L, p);
+    luaclass_newClass(L, p);
     result:=1;
   end else lua_pop(L, lua_gettop(L));
 end;
@@ -2441,7 +2441,7 @@ begin
 
     lua_pop(L, lua_gettop(L));
 
-    lua_pushlightuserdata(L, p);
+    luaclass_newClass(L, p);
     result:=1;
   end else lua_pop(L, lua_gettop(L));
 end;
@@ -2464,7 +2464,7 @@ begin
 
     lua_pop(L, lua_gettop(L));
 
-    lua_pushlightuserdata(L, p);
+    luaclass_newClass(L, p);
     result:=1;
   end else lua_pop(L, lua_gettop(L));
 end;
@@ -2668,7 +2668,7 @@ begin
   lua_pop(L, lua_gettop(L));
 
   f:=ce_getAutoAttachList();
-  lua_pushlightuserdata(L, f);
+  luaclass_newClass(L, f);
   result:=1;
 end;
 
@@ -2803,7 +2803,7 @@ begin
   if getaoblist(scanstring, list, protectionflags, alignmenttype, alignmentparam) then
   begin
     result:=1;
-    lua_pushlightuserdata(L, list);
+    luaclass_newClass(L, list);
   end
   else
   begin
@@ -2947,7 +2947,7 @@ begin
   result:=0;
   lua_pop(L, lua_gettop(l));
 
-  lua_pushlightuserdata(L,symhandler.getCommonModuleList);
+  luaclass_newClass(L,symhandler.getCommonModuleList);
   result:=1;
 end;
 
@@ -2967,14 +2967,14 @@ function getMemoryViewForm(L: PLua_state): integer; cdecl;
 begin
   result:=1;
   lua_pop(L, lua_gettop(l));
-  lua_pushlightuserdata(l, MemoryBrowser);
+  luaclass_newClass(l, MemoryBrowser);
 end;
 
 function getMainForm(L: PLua_state): integer; cdecl;
 begin
   result:=1;
   lua_pop(L, lua_gettop(l));
-  lua_pushlightuserdata(l, mainform);
+  luaclass_newClass(l, mainform);
 end;
 
 function memoryview_getDisassemblerView(L: PLua_state): integer; cdecl;
@@ -2988,7 +2988,7 @@ begin
     m:=lua_toceuserdata(L, -1);
     lua_pop(L, lua_gettop(l));
 
-    lua_pushlightuserdata(L, m.disassemblerview);
+    luaclass_newClass(L, m.disassemblerview);
     result:=1;
   end else lua_pop(L, lua_gettop(l));
 end;
@@ -3004,7 +3004,7 @@ begin
     m:=lua_toceuserdata(L, -1);
     lua_pop(L, lua_gettop(l));
 
-    lua_pushlightuserdata(L, m.hexview);
+    luaclass_newClass(L, m.hexview);
     result:=1;
   end else lua_pop(L, lua_gettop(l));
 end;
@@ -3014,21 +3014,21 @@ function getAddressList(L: PLua_state): integer; cdecl;
 begin
   result:=1;
   lua_pop(L, lua_gettop(l));
-  lua_pushlightuserdata(l, mainform.addresslist);
+  luaclass_newClass(l, mainform.addresslist);
 end;
 
 function getFreezeTimer(L: PLua_state): integer; cdecl;
 begin
   result:=1;
   lua_pop(L, lua_gettop(l));
-  lua_pushlightuserdata(l, mainform.FreezeTimer);
+  luaclass_newClass(l, mainform.FreezeTimer);
 end;
 
 function getUpdateTimer(L: PLua_state): integer; cdecl;
 begin
   result:=1;
   lua_pop(L, lua_gettop(l));
-  lua_pushlightuserdata(l, mainform.UpdateTimer);
+  luaclass_newClass(l, mainform.UpdateTimer);
 end;
 
 
@@ -3262,7 +3262,7 @@ begin
     memo:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
-    lua_pushlightuserdata(L, memo.Lines);
+    luaclass_newClass(L, memo.Lines);
     result:=1;
 
   end else lua_pop(L, parameters);
@@ -3466,7 +3466,7 @@ begin
   if owner<>nil then
     ToggleBox.Parent:=owner;
 
-  lua_pushlightuserdata(L, ToggleBox);
+  luaclass_newClass(L, ToggleBox);
   result:=1;
 end;
 
@@ -3491,7 +3491,7 @@ begin
   if owner<>nil then
     CheckBox.Parent:=owner;
 
-  lua_pushlightuserdata(L, CheckBox);
+  luaclass_newClass(L, CheckBox);
   result:=1;
 end;
 
@@ -3630,7 +3630,7 @@ begin
   if owner<>nil then
     ListBox.Parent:=owner;
 
-  lua_pushlightuserdata(L, ListBox);
+  luaclass_newClass(L, ListBox);
   result:=1;
 end;
 
@@ -3661,7 +3661,7 @@ begin
     listbox:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
-    lua_pushlightuserdata(L, listbox.items);
+    luaclass_newClass(L, listbox.items);
     result:=1;
 
   end else lua_pop(L, parameters);
@@ -3724,7 +3724,7 @@ begin
   if owner<>nil then
     ComboBox.Parent:=owner;
 
-  lua_pushlightuserdata(L, ComboBox);
+  luaclass_newClass(L, ComboBox);
   result:=1;
 end;
 
@@ -3755,7 +3755,7 @@ begin
     combobox:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
-    lua_pushlightuserdata(L, combobox.items);
+    luaclass_newClass(L, combobox.items);
     result:=1;
 
   end else lua_pop(L, parameters);
@@ -3820,7 +3820,7 @@ begin
   if owner<>nil then
     TrackBar.Parent:=owner;
 
-  lua_pushlightuserdata(L, TrackBar);
+  luaclass_newClass(L, TrackBar);
   result:=1;
 end;
 
@@ -4190,7 +4190,7 @@ begin
     listcolumns:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
-    lua_pushlightuserdata(L, listcolumns.Add);
+    luaclass_newClass(L, listcolumns.Add);
     result:=1;
 
   end else lua_pop(L, parameters);
@@ -4210,7 +4210,7 @@ begin
     index:=lua_toInteger(L,-1);
     lua_pop(L, parameters);
 
-    lua_pushlightuserdata(L, listcolumns[index]);
+    luaclass_newClass(L, listcolumns[index]);
     result:=1;
 
   end else lua_pop(L, parameters);
@@ -4313,7 +4313,7 @@ begin
     listitem:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
-    lua_pushlightuserdata(L, listitem.SubItems);
+    luaclass_newClass(L, listitem.SubItems);
     result:=1;
 
   end else lua_pop(L, parameters);
@@ -4347,7 +4347,7 @@ begin
     index:=lua_tointeger(L,-parameters+1);
     lua_pop(L, parameters);
 
-    lua_pushlightuserdata(L, listitems.Item[index]);
+    luaclass_newClass(L, listitems.Item[index]);
     result:=1;
 
   end else lua_pop(L, parameters);
@@ -4383,7 +4383,7 @@ begin
     listitems:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
-    lua_pushlightuserdata(L, listitems.Add);
+    luaclass_newClass(L, listitems.Add);
     result:=1;
 
   end else lua_pop(L, parameters);
@@ -4415,7 +4415,7 @@ begin
 
 
 
-  lua_pushlightuserdata(L, ListView);
+  luaclass_newClass(L, ListView);
   result:=1;
 end;
 
@@ -4445,7 +4445,7 @@ begin
     listview:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
-    lua_pushlightuserdata(L, listview.Columns);
+    luaclass_newClass(L, listview.Columns);
     result:=1;
 
   end else lua_pop(L, parameters);
@@ -4463,7 +4463,7 @@ begin
     listview:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
-    lua_pushlightuserdata(L, listview.Items);
+    luaclass_newClass(L, listview.Items);
     result:=1;
 
   end else lua_pop(L, parameters);
@@ -4549,7 +4549,7 @@ begin
         s:=TLuafile(mainform.Luafiles[i]).stream;
 
         s.position:=0;
-        lua_pushlightuserdata(L, mainform.Luafiles[i]); //return the tableFile, not the stream. To get the stream, use  tablefile_getData
+        luaclass_newClass(L, mainform.Luafiles[i]); //return the tableFile, not the stream. To get the stream, use  tablefile_getData
         result:=1;
       end;
 
@@ -4591,7 +4591,7 @@ begin
     lua_pop(L, lua_gettop(L));
 
     lf.stream.Position:=0;
-    lua_pushlightuserdata(L, lf.stream);
+    luaclass_newClass(L, lf.stream);
   end
   else
     lua_pop(L, lua_gettop(L));
@@ -4890,7 +4890,7 @@ begin
     memoryrecordhotkey:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
-    lua_pushlightuserdata(L, memoryrecordhotkey.owner);
+    luaclass_newClass(L, memoryrecordhotkey.owner);
     result:=1;
 
   end else lua_pop(L, parameters);
@@ -4930,7 +4930,7 @@ begin
 
   memscan:=TMemscan.create(progressbar);
 
-  lua_pushlightuserdata(L, memscan);
+  luaclass_newClass(L, memscan);
   result:=1;
 end;
 
@@ -4938,7 +4938,7 @@ function getCurrentMemscan(L: Plua_State): integer; cdecl;
 begin
   lua_pop(L, lua_gettop(L));
 
-  lua_pushlightuserdata(L, mainform.memscan);
+  luaclass_newClass(L, mainform.memscan);
   result:=1;
 end;
 
@@ -5166,7 +5166,7 @@ begin
   if owner<>nil then
     Splitter.Parent:=owner;
 
-  lua_pushlightuserdata(L, splitter);
+  luaclass_newClass(L, splitter);
   result:=1;
 end;
 
@@ -5581,7 +5581,7 @@ begin
 
     if index<screen.formcount then
     begin
-      lua_pushlightuserdata(L, screen.Forms[index]);
+      luaclass_newClass(L, screen.Forms[index]);
       result:=1;
     end;
   end
@@ -5809,7 +5809,7 @@ begin
     i:=lua_tointeger(L,-1);
     lua_pop(L, parameters);
 
-    lua_pushlightuserdata(L, pointer(ptruint(i)));
+    luaclass_newClass(L, pointer(ptruint(i)));
     result:=1;
 
   end else lua_pop(L, parameters);
@@ -5883,7 +5883,7 @@ begin
   Bitmap:=TBitmap.Create;
 
 
-  lua_pushlightuserdata(L, Bitmap);
+  luaclass_newClass(L, Bitmap);
   result:=1;
 end;
 
@@ -6075,7 +6075,7 @@ begin
   if owner<>nil then
     Treeview.Parent:=owner;
 
-  lua_pushlightuserdata(L, Treeview);
+  luaclass_newClass(L, Treeview);
   result:=1;
 end;
 
