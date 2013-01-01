@@ -63,7 +63,7 @@ uses mainunit, mainunit2, frmluaengineunit, plugin, pluginexports, MemoryRecordU
   CustomTypeHandler, LuaStructure, LuaRegion, LuaXMPlayer, LuaMemscan, LuaFoundlist,
   LuaRadioGroup, LuaRasterImage, LuaCheatComponent, LuaAddresslist, byteinterpreter,
   OpenSave, cedebugger, DebugHelper, LuaObject, LuaComponent, LuaControl, LuaStrings,
-  LuaStringlist, LuaCustomControl;
+  LuaStringlist, LuaCustomControl, LuaGraphicControl;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -2120,45 +2120,6 @@ end;
 
 
 
-function graphicControl_getCanvas(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  c: TGraphicControl;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    c:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushlightuserdata(L, c.Canvas);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-
-
-
-function createPanel(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  f,p: pointer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    f:=lua_toceuserdata(L, -1);
-    p:=ce_createPanel(f);
-
-    lua_pop(L, lua_gettop(L));
-
-    lua_pushlightuserdata(L, p);
-    result:=1;
-  end else lua_pop(L, lua_gettop(L));
-end;
-
 function createButton(L: Plua_State): integer; cdecl;
 var parameters: integer;
   f,p: pointer;
@@ -3145,180 +3106,7 @@ begin
 end;
 
 
-function panel_getAlignment(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  panel: Tcustompanel;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    panel:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
 
-    lua_pushinteger(L, integer(panel.Alignment));
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function panel_setAlignment(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  panel: Tcustompanel;
-  a: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    panel:=lua_toceuserdata(L,-2);
-    panel.Alignment:=TAlignment(lua_tointeger(L,-1));
-  end;
-
-  lua_pop(L, parameters);
-end;
-
-function panel_getBevelInner(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  panel: Tcustompanel;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    panel:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, integer(panel.BevelInner));
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function panel_setBevelInner(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  panel: Tcustompanel;
-  a: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    panel:=lua_toceuserdata(L,-2);
-    panel.BevelInner:=TPanelBevel(lua_tointeger(L,-1));
-  end;
-
-  lua_pop(L, parameters);
-end;
-
-function panel_getBevelOuter(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  panel: Tcustompanel;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    panel:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, integer(panel.BevelOuter));
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function panel_setBevelOuter(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  panel: Tcustompanel;
-  a: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    panel:=lua_toceuserdata(L,-2);
-    panel.BevelOuter:=TPanelBevel(lua_tointeger(L,-1));
-  end;
-
-  lua_pop(L, parameters);
-end;
-
-function panel_getBevelWidth(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  panel: Tcustompanel;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    panel:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, panel.BevelWidth);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function panel_setBevelWidth(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  panel: Tcustompanel;
-  a: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    panel:=lua_toceuserdata(L,-2);
-    panel.BevelWidth:=lua_tointeger(L,-1);
-  end;
-
-  lua_pop(L, parameters);
-end;
-
-function panel_getFullRepaint(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  panel: Tcustompanel;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    panel:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushboolean(L, panel.FullRepaint);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function panel_setFullRepaint(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  panel: Tcustompanel;
-  a: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    panel:=lua_toceuserdata(L,-2);
-    panel.FullRepaint:=lua_toboolean(L,-1);
-  end;
-
-  lua_pop(L, parameters);
-end;
 
 function edit_clear(L: Plua_State): integer; cdecl;
 var parameters: integer;
@@ -6472,17 +6260,6 @@ begin
 
     initializeLuaForm;
 
-    lua_register(LuaVM, 'createPanel', createPanel);
-    lua_register(LuaVM, 'panel_getAlignment', panel_getAlignment);
-    lua_register(LuaVM, 'panel_setAlignment', panel_setAlignment);
-    lua_register(LuaVM, 'panel_getBevelInner', panel_getBevelInner);
-    lua_register(LuaVM, 'panel_setBevelInner', panel_setBevelInner);
-    lua_register(LuaVM, 'panel_getBevelOuter', panel_getBevelOuter);
-    lua_register(LuaVM, 'panel_setBevelOuter', panel_setBevelOuter);
-    lua_register(LuaVM, 'panel_getBevelWidth', panel_getBevelWidth);
-    lua_register(LuaVM, 'panel_setBevelWidth', panel_setBevelWidth);
-    lua_register(LuaVM, 'panel_getFullRepaint', panel_getFullRepaint);
-    lua_register(LuaVM, 'panel_setFullRepaint', panel_setFullRepaint);
 
 
 
@@ -6675,10 +6452,7 @@ begin
     lua_register(LuaVM, 'getInstructionSize', getInstructionSize);
     lua_Register(LuaVM, 'getPreviousOpcode', getPreviousOpcode);
 
-
-
-    lua_register(LuaVM, 'graphicControl_getCanvas', graphicControl_getCanvas);
-    lua_register(LuaVM, 'graphiccontrol_getCanvas', graphicControl_getCanvas);
+    initializegraphiccontrol;
 
     lua_register(LuaVM, 'disassemblerview_getSelectedAddress', disassemblerview_getSelectedAddress);
     lua_register(LuaVM, 'disassemblerview_setSelectedAddress', disassemblerview_setSelectedAddress);

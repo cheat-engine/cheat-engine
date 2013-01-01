@@ -484,34 +484,42 @@ methods
   setDoNotSaveInTable(form, boolean): Sets the DoNotSaveInTable property
 
 
-
-
-
 GraphicControl Class: (Inheritance: Control->Component->Object)
-graphicControl_getCanvas(graphiccontrol) : Returns the Canvas object for the given object that has inherited from customControl
+properties
+  Canvas: Canvas - The canvas for rendering this control
 
+methods
+  getCanvas() : Returns the Canvas object for the given object that has inherited from customControl
 
 
 Label Class: (Inheritance: GraphicControl->Control->Component->Object)
 createLabel(owner): Creates a Label class object which belongs to the given owner. Owner can be any object inherited from WinControl
 
 
-
 Splitter Class: (Inheritance: CustomControl->WinControl->Control->Component->Object)
 createSplitter(owner): Creates a Splitter class object which belongs to the given owner. Owner can be any object inherited from WinControl
 
+
 Panel Class: (Inheritance: CustomControl->WinControl->Control->Component->Object)
 createPanel(owner): Creates a Panel class object which belongs to the given owner. Owner can be any object inherited from WinControl
-panel_getAlignment(panel) : gets the alignment property
-panel_setAlignment(panel, alignment) : sets the alignment property
-panel_getBevelInner(panel) 
-panel_setBevelInner(panel, PanelBevel)
-panel_getBevelOuter(panel)
-panel_setBevelOuter(panel, PanelBevel) 
-panel_getBevelWidth(panel)
-panel_setBevelWidth(panel, BevelWidth)
-panel_getFullRepaint(panel)
-panel_setFullRepaint(panel, boolean)
+
+properties
+  Alignment: alignment
+  BevelInner: panelBevel
+  BevelOuter: panelBevel
+  BevelWidth: Integer
+  FullRepaint: boolean
+methods
+  getAlignment() : gets the alignment property
+  setAlignment(alignment) : sets the alignment property
+  getBevelInner() 
+  setBevelInner(PanelBevel)
+  getBevelOuter()
+  setBevelOuter(PanelBevel) 
+  getBevelWidth()
+  setBevelWidth(BevelWidth)
+  getFullRepaint()
+  setFullRepaint(boolean)
 
 
 
@@ -706,7 +714,10 @@ timer_getEnabled(timer)
 timer_setEnabled(timer, boolean)
 
 CustomControl class (CustomControl->WinControl->Control->Component->Object)
-customControl_getCanvas(customcontrol) : Returns the Canvas object for the given object that has inherited from customControl
+properties
+  Canvas : The canvas object for drawing on the control/. Readonly
+methods
+  getCanvas() : Returns the Canvas object for the given object that has inherited from customControl
 
 
 Canvas Class : (Inheritance: CustomCanvas->Object)
