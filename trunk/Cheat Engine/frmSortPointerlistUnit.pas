@@ -113,7 +113,10 @@ begin
     initialtime:=gettickcount;
 
     try
-      for i:=0 to Pointerscanresults.count-1 do
+      i:=0;
+//      for i:=0 to Pointerscanresults.count-1 do
+//pascal complaining that qword isn't a valid ordinal in 32-bit, so instead of a nicely looking for, an ugly while instead
+      while i<Pointerscanresults.count do
       begin
         if terminated then exit;
 
@@ -138,6 +141,7 @@ begin
         end;
 
         f.Write(p^, entrysize);
+        inc(i);
       end;
 
     finally
