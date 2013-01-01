@@ -4526,6 +4526,25 @@ begin
         //r32,imm32
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
         begin
+          if signedvtype=8 then
+          begin
+            //check if there isn't a rm32,imm8 , since that's less bytes
+            k:=startoflist;
+            while (k<=opcodecount) and (opcodes[k].mnemonic=tokens[mnemonic]) do
+            begin
+              if (opcodes[k].paramtype1=par_rm32) and
+                 (opcodes[k].paramtype2=par_imm8) then
+              begin
+                //yes, there is
+                addopcode(bytes,k);
+                result:=createmodrm(bytes,eotoreg(opcodes[k].opcode1),parameter1);
+                add(bytes,[v]);
+                exit;
+              end;
+              inc(k);
+            end;
+          end;
+
           if opcodes[j].opcode1=eo_prd then
           begin
             addopcode(bytes,j);
@@ -4551,12 +4570,7 @@ begin
       if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
       begin
         //r32, imm8
-        if (opcodes[j].signed) and (signedvtype>8) then
-        begin
 
-        end
-        else
-        begin
           addopcode(bytes,j);
 
 
@@ -4564,7 +4578,7 @@ begin
           add(bytes,[byte(v)]);
           result:=true;
           exit;
-        end;
+
       end;
 
     end;
@@ -4857,7 +4871,7 @@ begin
         //r/m32,imm
         if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
         begin
-          if vtype=8 then
+          if signedvtype=8 then
           begin
             //see if there is a r/m32,imm8 (or if this is the one) (optimisation)
             k:=startoflist;

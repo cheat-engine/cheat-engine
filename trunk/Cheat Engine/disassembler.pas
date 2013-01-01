@@ -71,8 +71,8 @@ type
     function getsegmentoverride(prefix: TPrefix): string;
 
 
-    function inttohexs_withoutsymbols(address:ptrUint;chars: integer; signed: boolean=false; signedsize: integer=0):string;
-    function inttohexs_withsymbols(address:ptrUint;chars: integer; signed: boolean=false; signedsize: integer=0):string;
+    function inttohexs_withoutsymbols(value:ptrUint;chars: integer; signed: boolean=false; signedsize: integer=0):string;
+    function inttohexs_withsymbols(value:ptrUint;chars: integer; signed: boolean=false; signedsize: integer=0):string;
 
     procedure setSyntaxHighlighting(state: boolean);
 
@@ -616,24 +616,24 @@ begin
               0:
               if shortint(memory[modrmbyte+1])>=0 then
                 result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'ax'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'ax'+endcolor+'-'+inttohexs(-shortint(memory[modrmbyte+1]),2)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'ax'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2)+'],';
 
               1:
               if shortint(memory[modrmbyte+1])>=0 then
                 result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'cx'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'cx'+endcolor+'-'+inttohexs(-shortint(memory[modrmbyte+1]),2)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'cx'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2)+'],';
 
 
               2:
               if shortint(memory[modrmbyte+1])>=0 then
                 result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'dx'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'dx'+endcolor+'-'+inttohexs(-shortint(memory[modrmbyte+1]),2)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'dx'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2)+'],';
 
 
               3:
               if shortint(memory[modrmbyte+1])>=0 then
                 result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bx'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bx'+endcolor+'-'+inttohexs(-shortint(memory[modrmbyte+1]),2)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bx'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2)+'],';
 
 
               4:
@@ -653,62 +653,62 @@ begin
               5:
               if shortint(memory[modrmbyte+1])>=0 then
                 result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bp'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bp'+endcolor+'-'+inttohexs(-shortint(memory[modrmbyte+1]),2)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bp'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+'],';
 
 
               6:
               if shortint(memory[modrmbyte+1])>=0 then
                 result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'si'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'si'+endcolor+'-'+inttohexs(-shortint(memory[modrmbyte+1]),2)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'si'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+'],';
 
 
               7:
               if shortint(memory[modrmbyte+1])>=0 then
                 result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'di'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'di'+endcolor+'-'+inttohexs(-shortint(memory[modrmbyte+1]),2)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'di'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+'],';
 
 
               8:
               if shortint(memory[modrmbyte+1])>=0 then
                 result:=getsegmentoverride(prefix)+'['+colorreg+'r8'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+'r8'+endcolor+'-'+inttohexs(-shortint(memory[modrmbyte+1]),2)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r8'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+'],';
 
 
               9:
               if shortint(memory[modrmbyte+1])>=0 then
                 result:=getsegmentoverride(prefix)+'['+colorreg+'r9'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+'r9'+endcolor+'-'+inttohexs(-shortint(memory[modrmbyte+1]),2)+'],';
+                result:=getsegmentoverride(prefix)+'['+colorreg+'r9'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+'],';
 
              10:
              if shortint(memory[modrmbyte+1])>=0 then
                result:=getsegmentoverride(prefix)+'['+colorreg+'r10'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-               result:=getsegmentoverride(prefix)+'['+colorreg+'r10'+endcolor+'-'+inttohexs(-shortint(memory[modrmbyte+1]),2)+'],';
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r10'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+'],';
 
 
              11:
              if shortint(memory[modrmbyte+1])>=0 then
                result:=getsegmentoverride(prefix)+'['+colorreg+'r11'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-               result:=getsegmentoverride(prefix)+'['+colorreg+'r11'+endcolor+'-'+inttohexs(-shortint(memory[modrmbyte+1]),2)+'],';
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r11'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+'],';
 
              12:
              if shortint(memory[modrmbyte+1])>=0 then
                result:=getsegmentoverride(prefix)+'['+colorreg+'r12'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-               result:=getsegmentoverride(prefix)+'['+colorreg+'r12'+endcolor+'-'+inttohexs(-shortint(memory[modrmbyte+1]),2)+'],';
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r12'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+'],';
 
              13:
              if shortint(memory[modrmbyte+1])>=0 then
                result:=getsegmentoverride(prefix)+'['+colorreg+'r13'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-               result:=getsegmentoverride(prefix)+'['+colorreg+'r13'+endcolor+'-'+inttohexs(-shortint(memory[modrmbyte+1]),2)+'],';
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r13'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+'],';
 
              14:
              if shortint(memory[modrmbyte+1])>=0 then
                result:=getsegmentoverride(prefix)+'['+colorreg+'r14'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-               result:=getsegmentoverride(prefix)+'['+colorreg+'r14'+endcolor+'-'+inttohexs(-shortint(memory[modrmbyte+1]),2)+'],';
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r14'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+'],';
 
              15:
              if shortint(memory[modrmbyte+1])>=0 then
                result:=getsegmentoverride(prefix)+'['+colorreg+'r15'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-               result:=getsegmentoverride(prefix)+'['+colorreg+'r15'+endcolor+'-'+inttohexs(-shortint(memory[modrmbyte+1]),2)+'],';
+               result:=getsegmentoverride(prefix)+'['+colorreg+'r15'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2, true, 2)+'],';
 
             end;
 
@@ -6889,7 +6889,7 @@ begin
                         lastdisassembledata.parametervaluetype:=dvtvalue;
                         lastdisassembledata.parametervalue:=memory[last];
 
-                        lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2);
+                        lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2, true);
                       end else
                       begin
                         lastdisassembledata.opcode:='add';
@@ -6899,7 +6899,7 @@ begin
                           lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,64);
                           lastdisassembledata.parametervaluetype:=dvtvalue;
                           lastdisassembledata.parametervalue:=memory[last];
-                          lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2)
+                          lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2, true)
                         end
                         else
                         begin
@@ -6907,7 +6907,7 @@ begin
                           lastdisassembledata.parametervaluetype:=dvtvalue;
                           lastdisassembledata.parametervalue:=memory[last];
 
-                          lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2);
+                          lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2, true);
                         end;
 
                       end;
@@ -10986,18 +10986,58 @@ begin
   end else special:='';
 end;
 
-function TDisAssembler.inttohexs_withoutsymbols(address:ptrUint;chars: integer; signed: boolean=false; signedsize: integer=0):string;
+function TDisAssembler.inttohexs_withoutsymbols(value:ptrUint;chars: integer; signed: boolean=false; signedsize: integer=0):string;
 begin
-  result:=colorhex+sysutils.IntToHex(address,chars)+endcolor;
+  if chars=2 then
+  begin
+    signed:=true;
+    signedsize:=2;
+  end;
+
+  if signed then
+  begin
+    case signedsize of
+      2:
+       begin
+         if Shortint(value)<0 then
+           result:=colorhex+'-'+sysutils.IntToHex(-Shortint(value),chars)+endcolor
+         else
+           result:=colorhex+sysutils.IntToHex(Shortint(value),chars)+endcolor;
+       end;
+
+      4:
+       begin
+         if Smallint(value)<0 then
+           result:=colorhex+'-'+sysutils.IntToHex(-Smallint(value),chars)+endcolor
+         else
+           result:=colorhex+sysutils.IntToHex(Smallint(value),chars)+endcolor;
+       end;
+
+      8:
+       begin
+         if Longint(value)<0 then
+           result:=colorhex+'-'+sysutils.IntToHex(-Longint(value),chars)+endcolor
+         else
+           result:=colorhex+sysutils.IntToHex(Longint(value),chars)+endcolor;
+       end;
+
+      else result:=colorhex+sysutils.IntToHex(value,chars)+endcolor;
+    end;
+  end
+  else
+  result:=colorhex+sysutils.IntToHex(value,chars)+endcolor;
 end;
 
-function TDisAssembler.inttohexs_withsymbols(address:ptrUint;chars: integer; signed: boolean=false; signedsize: integer=0):string;
+function TDisAssembler.inttohexs_withsymbols(value:ptrUint;chars: integer; signed: boolean=false; signedsize: integer=0):string;
 var found: boolean;
+    b: byte;
+    w: word;
+    d: dword;
 begin
   if (showsymbols or showmodules) and (chars>=8) then
   begin
     found:=false;
-    result:=symhandler.getNameFromAddress(address,showsymbols, showmodules, nil, @found,chars);
+    result:=symhandler.getNameFromAddress(value,showsymbols, showmodules, nil, @found,chars);
 
     if syntaxhighlighting then
     begin
@@ -11005,16 +11045,10 @@ begin
         result:=colorhex+result+endcolor
       else
         result:=colorsymbol+result+endcolor;
-
-
     end;
-
   end
   else
-  begin
-    result:=colorhex+sysutils.IntToHex(address,chars)+endcolor;
-  end;
-
+    result:=inttohexs_withoutsymbols(value, chars, signed, signedsize);
 
 end;
 
