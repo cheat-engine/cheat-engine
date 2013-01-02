@@ -121,7 +121,7 @@ begin
             if lua_isuserdata(luavm,i) then
             begin
               try
-                c:=lua_ToCEUserData(L, i);
+                c:=lua_ToCEUserData(luavm, i);
                 moutput.lines.add(':'+'class object ('+c.ClassName+')')
               except
                 moutput.lines.add(':'+'class object (corrupt)')

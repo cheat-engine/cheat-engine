@@ -57,10 +57,69 @@ function LuaCaller_KeyPressEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_LVCheckedItemEvent(L: PLua_state): integer; cdecl;
 
 procedure LuaCaller_pushMethodProperty(L: PLua_state; m: TMethod; typename: string);
+procedure LuaCaller_setMethodProperty(L: PLua_state; c: TObject; prop: string; typename: string; luafunctiononstack: integer);
 
 implementation
 
 uses luahandler, MainUnit;
+
+procedure LuaCaller_setMethodProperty(L: PLua_state; c: TObject; prop: string; typename: string; luafunctiononstack: integer);
+//note: This only works on published methods
+var m: tmethod;
+  lc: TLuaCaller;
+  f: integer;
+begin
+  m:=GetMethodProp(c, prop);
+  CleanupLuaCall(m);
+  lc:=nil;
+
+  //create a TLuacaller for the given function
+  if lua_isfunction(L, luafunctiononstack) then
+  begin
+    lua_pushvalue(L, luafunctiononstack);
+    f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+    lc:=TLuaCaller.create;
+    lc.luaroutineIndex:=f;
+  end
+  else
+  if lua_isstring(L, luafunctiononstack) then
+  begin
+    lc:=TLuaCaller.create;
+    lc.luaroutine:=Lua_ToString(L, luafunctiononstack);
+  end;
+
+  if lc<>nil then
+  begin
+
+    if typename ='TNotifyEvent' then
+      m:=tmethod(tnotifyevent(lc.NotifyEvent))
+    else
+    if typename ='TSelectionChangeEvent' then
+      m:=tmethod(TSelectionChangeEvent(lc.SelectionChangeEvent))
+    else
+    if typename ='TCloseEvent' then
+      m:=tmethod(TCloseEvent(lc.CloseEvent))
+    else
+    if typename ='TMouseEvent' then
+      m:=tmethod(TMouseEvent(lc.MouseEvent))
+    else
+    if typename ='TMouseMoveEvent' then
+      m:=tmethod(TMouseMoveEvent(lc.MouseMoveEvent))
+    else
+    if typename ='TKeyPressEvent' then
+      m:=tmethod(TKeyPressEvent(lc.KeyPressEvent))
+    else
+    if typename ='TLVCheckedItemEvent' then
+      m:=tmethod(TLVCheckedItemEvent(lc.LVCheckedItemEvent))
+    else
+      raise exception.create('This type of method:'+typename+' is not yet supported');
+
+    setMethodProperty(c, prop, m);
+  end;
+
+
+end;
 
 procedure luaCaller_pushMethodProperty(L: PLua_state; m: TMethod; typename: string);
 begin

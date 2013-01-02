@@ -123,7 +123,8 @@ begin
 
       case pinfo.PropType.Kind of
         tkInteger,tkInt64,tkQWord: lua_pushinteger(L, GetPropValue(c, p,false));
-        tkBool: lua_pushboolean(L, GetPropValue(c, p,false));
+        tkBool: lua_pushboolean(L, GetPropValue(c, p, false));
+        tkFloat: lua_pushnumber(L, GetPropValue(c, p, false));
         tkClass, tkObject:
         begin
           t:=GetPropValue(c,p,false);
@@ -144,8 +145,10 @@ end;
 
 function lua_setProperty(L: PLua_state): integer; cdecl;
 var parameters: integer;
-  c: tobject;
+  c,c2: tobject;
   p,v: string;
+  pinfo: PPropInfo;
+  f: integer;
 begin
   result:=0;
   parameters:=lua_gettop(L);
@@ -167,7 +170,25 @@ begin
     v:=Lua_ToString(L, 3);
 
     try
-      ce_setProperty(c,pchar(p),pchar(v));
+      pinfo:=GetPropInfo(c, p);
+      if pinfo<>nil then
+      begin
+        //it's a published property
+        case pinfo.PropType.Kind of
+          tkInteger,tkInt64,tkQWord: SetPropValue(c, p, lua_tointeger(L, 3));
+          tkBool: SetPropValue(c, p, lua_toboolean(L, 3));
+          tkFloat: SetPropValue(c, p, lua_tonumber(L, 3));
+          tkClass, tkObject:
+          begin
+            c2:=lua_ToCEUserData(L, 3);
+            SetPropValue(c, p, ptruint(c2));
+          end;
+          tkMethod: luacaller_setMethodProperty(L, c, p, pinfo.PropType.Name, 3);
+
+          else SetPropValue(c, p, v)
+        end;
+      end;
+
     except
     end;
   end;
