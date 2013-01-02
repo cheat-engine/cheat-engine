@@ -64,7 +64,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports, Mem
   LuaRadioGroup, LuaRasterImage, LuaCheatComponent, LuaAddresslist, byteinterpreter,
   OpenSave, cedebugger, DebugHelper, LuaObject, LuaComponent, LuaControl, LuaStrings,
   LuaStringlist, LuaCustomControl, LuaGraphicControl, LuaPanel, LuaImage, LuaButton,
-  LuaCheckbox, LuaGroupbox;
+  LuaCheckbox, LuaGroupbox, LuaListbox;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -2099,25 +2099,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function listbox_getCanvas(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  c: TListBox;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    c:=lua_toceuserdata(L,-1);
 
-    lua_pop(L, parameters);
-
-    luaclass_newClass(L, c.Canvas);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-
-end;
 
 
 
@@ -3304,98 +3286,7 @@ end;
 
 
 
-function createListBox(L: Plua_State): integer; cdecl;
-var
-  ListBox: TCEListBox;
-  parameters: integer;
-  owner: TWincontrol;
-begin
-  result:=0;
 
-  parameters:=lua_gettop(L);
-  if parameters>=1 then
-    owner:=lua_toceuserdata(L, -parameters)
-  else
-    owner:=nil;
-
-  lua_pop(L, lua_gettop(L));
-
-
-  ListBox:=TCEListBox.Create(owner);
-  if owner<>nil then
-    ListBox.Parent:=owner;
-
-  luaclass_newClass(L, ListBox);
-  result:=1;
-end;
-
-function listbox_clear(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  listbox: tcustomlistbox;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    listbox:=lua_toceuserdata(L, -1);
-    listbox.clear;
-  end;
-  lua_pop(L, lua_gettop(L));
-end;
-
-
-function listbox_getItems(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  listbox: TCustomlistbox;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    listbox:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    luaclass_newClass(L, listbox.items);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function listbox_getItemIndex(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  listbox: Tcustomlistbox;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    listbox:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, listbox.ItemIndex);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function listbox_setItemIndex(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  listbox: Tcustomlistbox;
-  a: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    listbox:=lua_toceuserdata(L,-2);
-    listbox.itemindex:=lua_tointeger(L,-1);
-  end;
-
-  lua_pop(L, parameters);
-end;
 
 //combobox
 function createComboBox(L: Plua_State): integer; cdecl;
@@ -5985,13 +5876,9 @@ begin
 
 
     initializeLuaRadioGroup;
+    initializeLuaListbox;
 
-    lua_register(LuaVM, 'createListBox', createListBox);
-    lua_register(LuaVM, 'listbox_clear', listbox_clear);
-    lua_register(LuaVM, 'listbox_getItems', listbox_getItems);
-    lua_register(LuaVM, 'listbox_getItemIndex', listbox_getItemIndex);
-    lua_register(LuaVM, 'listbox_setItemIndex', listbox_setItemIndex);
-    lua_register(LuaVM, 'listbox_getCanvas', listbox_getCanvas);
+
 
     lua_register(LuaVM, 'createComboBox', createComboBox);
     lua_register(LuaVM, 'combobox_clear', combobox_clear);

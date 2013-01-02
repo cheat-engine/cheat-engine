@@ -626,23 +626,31 @@ properties
   OnClick: Called when the control is clicked
 
 methods
-  getRows(radiogroup): Returns the number of rows
-  getItems(radiogroup): Returns a Strings object
-  getColumns(radiogroup): Returns the nuber of columns
-  setColumns(radiogroup, count)
-  getItemIndex(radiogroup)
-  setItemIndex(radiogroup)
-  setOnClick(radiogroup, function)
-  getOnClick(radiogroup, function)
+  getRows(): Returns the number of rows
+  getItems(): Returns a Strings object
+  getColumns(): Returns the nuber of columns
+  setColumns(integer)
+  getItemIndex()
+  setItemIndex(integer)
+  setOnClick(function)
+  getOnClick()
 
 
 ListBox Class: (Inheritance: WinControl->Control->Component->Object) 
 createListBox(owner): Creates a ListBox class object which belongs to the given owner. Owner can be any object inherited from WinControl
-listbox_clear(listbox)
-listbox_getItems(listbox): Returns a strings object
-listbox_getItemIndex(listbox)
-listbox_setItemIndex(listbox,index)
-listbox_getCanvas(listbox)
+
+properties
+  Items: Strings - Strings derived object containings all the items in the list
+  ItemIndex: integer - Get selected index. -1 is nothing selected
+  Canvas: Canvas - The canvas object used to render on the object
+
+methods
+  clear()
+  getItems(): Returns a strings object
+  setItems(Strings): sets a strings object to the listbox
+  getItemIndex()
+  setItemIndex(index)
+  getCanvas()
 
 
 ComboBox Class: (Inheritance: WinControl->Control->Component->Object)
