@@ -64,7 +64,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports, Mem
   LuaRadioGroup, LuaRasterImage, LuaCheatComponent, LuaAddresslist, byteinterpreter,
   OpenSave, cedebugger, DebugHelper, LuaObject, LuaComponent, LuaControl, LuaStrings,
   LuaStringlist, LuaCustomControl, LuaGraphicControl, LuaPanel, LuaImage, LuaButton,
-  LuaCheckbox, LuaGroupbox, LuaListbox;
+  LuaCheckbox, LuaGroupbox, LuaListbox, LuaCombobox;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -2080,33 +2080,6 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function comboBox_getCanvas(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  c: TcomboBox;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    c:=lua_toceuserdata(L,-1);
-
-    lua_pop(L, parameters);
-
-    luaclass_newClass(L, c.Canvas);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-
-
-
-
-
-
-
-
 
 
 function createHotkey(L: Plua_State): integer; cdecl;
@@ -3288,99 +3261,6 @@ end;
 
 
 
-//combobox
-function createComboBox(L: Plua_State): integer; cdecl;
-var
-  ComboBox: TCEComboBox;
-  parameters: integer;
-  owner: TWincontrol;
-begin
-  result:=0;
-
-  parameters:=lua_gettop(L);
-  if parameters>=1 then
-    owner:=lua_toceuserdata(L, -parameters)
-  else
-    owner:=nil;
-
-  lua_pop(L, lua_gettop(L));
-
-
-  ComboBox:=TCEComboBox.Create(owner);
-  if owner<>nil then
-    ComboBox.Parent:=owner;
-
-  luaclass_newClass(L, ComboBox);
-  result:=1;
-end;
-
-function combobox_clear(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  combobox: tcustomcombobox;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    combobox:=lua_toceuserdata(L, -1);
-    combobox.clear;
-  end;
-  lua_pop(L, lua_gettop(L));
-end;
-
-
-function combobox_getItems(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  combobox: TCustomcombobox;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    combobox:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    luaclass_newClass(L, combobox.items);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function combobox_getItemIndex(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  combobox: Tcustomcombobox;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    combobox:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, combobox.ItemIndex);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function combobox_setItemIndex(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  combobox: Tcustomcombobox;
-  a: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    combobox:=lua_toceuserdata(L,-2);
-    combobox.itemindex:=lua_tointeger(L,-1);
-  end;
-
-  lua_pop(L, parameters);
-end;
 
 
 
@@ -5878,14 +5758,10 @@ begin
     initializeLuaRadioGroup;
     initializeLuaListbox;
 
+    initializeLuaCombobox;
 
 
-    lua_register(LuaVM, 'createComboBox', createComboBox);
-    lua_register(LuaVM, 'combobox_clear', combobox_clear);
-    lua_register(LuaVM, 'combobox_getItems', combobox_getItems);
-    lua_register(LuaVM, 'combobox_getItemIndex', combobox_getItemIndex);
-    lua_register(LuaVM, 'combobox_setItemIndex', combobox_setItemIndex);
-    lua_register(LuaVM, 'combobox_getCanvas', combobox_getCanvas);
+
 
 
     initializeLuaProgressbar;

@@ -649,17 +649,25 @@ methods
   getItems(): Returns a strings object
   setItems(Strings): sets a strings object to the listbox
   getItemIndex()
-  setItemIndex(index)
+  setItemIndex(integer)
   getCanvas()
 
 
 ComboBox Class: (Inheritance: WinControl->Control->Component->Object)
 createComboBox(owner): Creates a ComboBox class object which belongs to the given owner. Owner can be any object inherited from WinControl
-combobox_clear(combobox)
-combobox_getItems(combobox)
-combobox_getItemIndex(combobox)
-combobox_setItemIndex(combobox)
-combobox_getCanvas(combobox)
+
+properties
+  Items: Strings - Strings derived object containings all the items in the list
+  ItemIndex: integer - Get selected index. -1 is nothing selected
+  Canvas: Canvas - The canvas object used to render on the object
+  
+methods
+  clear()
+  getItems()
+  setItems()
+  getItemIndex()
+  setItemIndex(integer)
+  getCanvas()
 
 
 
