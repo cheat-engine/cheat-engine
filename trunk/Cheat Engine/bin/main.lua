@@ -673,14 +673,20 @@ methods
 
 ProgressBar Class: (Inheritance: WinControl->Control->Component->Object)
 createProgressBar(owner): Creates a ProgressBar class object which belongs to the given owner. Owner can be any object inherited from WinControl
-progressbar_stepIt(progressbar)
-progressbar_stepBy(progressbar, delta)
-progressbar_getMax(progressbar)
-progressbar_setMax(progressbar, integer)
-progressbar_getMin(progressbar)
-progressbar_setMin(progressbar, integer)
-progressbar_getPosition(progressbar)
-progressbar_setPosition(progressbar, integer)
+
+properties
+  Min: integer - The minimum positionvalue the progressbar can have (default 0)
+  Max: integer - The maximum positionvalue the progressbar can have (default 100
+  Position: integer - The position of the progressbar
+methods
+  stepIt()
+  stepBy(delta)
+  getMax()
+  setMax(integer)
+  getMin()
+  setMin(integer)
+  getPosition()
+  setPosition(integer)
 
 
 
