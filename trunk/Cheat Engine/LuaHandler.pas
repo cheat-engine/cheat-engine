@@ -325,7 +325,7 @@ begin
   LuaCS.enter;
   try
     s:=lua_gettop(LuaVM);
-    lua_pushlightuserdata(LuaVM, o);
+    luaclass_newClass(LuaVM, o);
     lua_setglobal(LuaVM, pchar(name));
 
     lua_settop(LuaVM, s);
