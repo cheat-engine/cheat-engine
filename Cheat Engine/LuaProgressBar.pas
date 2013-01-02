@@ -12,10 +12,12 @@ procedure initializeLuaProgressBar;
 
 implementation
 
+uses luaclass, LuaWinControl;
+
 
 function createProgressBar(L: Plua_State): integer; cdecl;
 var
-  ProgressBar: TCEProgressBar;
+  ProgressBar: TProgressBar;
   parameters: integer;
   owner: TWincontrol;
 begin
@@ -23,156 +25,113 @@ begin
 
   parameters:=lua_gettop(L);
   if parameters>=1 then
-    owner:=lua_touserdata(L, -parameters)
+    owner:=lua_toceuserdata(L, -parameters)
   else
     owner:=nil;
 
   lua_pop(L, lua_gettop(L));
 
 
-  ProgressBar:=TCEProgressBar.Create(owner);
+  ProgressBar:=TProgressBar.Create(owner);
   if owner<>nil then
     ProgressBar.Parent:=owner;
 
-  lua_pushlightuserdata(L, ProgressBar);
+  luaclass_newClass(L, ProgressBar);
   result:=1;
 end;
 
 function progressbar_stepIt(L: Plua_State): integer; cdecl;
-var parameters: integer;
-    progressbar: TCustomProgressBar;
+var progressbar: TCustomProgressBar;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    progressbar:=lua_touserdata(L, -1);
-    progressbar.StepIt;
-  end;
-  lua_pop(L, lua_gettop(L));
+  progressbar:=luaclass_getClassObject(L);
+  progressbar.StepIt;
 end;
 
 function progressbar_stepBy(L: Plua_State): integer; cdecl;
-var parameters: integer;
-    progressbar: TCustomProgressBar;
+var
+  progressbar: TCustomProgressBar;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    progressbar:=lua_touserdata(L, -2);
+  progressbar:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
     progressbar.StepBy(lua_tointeger(L, -1));
-  end;
-  lua_pop(L, lua_gettop(L));
 end;
 
 
 function progressbar_getMax(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   progressbar: Tcustomprogressbar;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    progressbar:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, progressbar.max);
-    result:=1;
-
-  end else lua_pop(L, parameters);
+  progressbar:=luaclass_getClassObject(L);
+  lua_pushinteger(L, progressbar.Max);
+  result:=1;
 end;
 
 function progressbar_setMax(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   progressbar: Tcustomprogressbar;
-  a: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    progressbar:=lua_touserdata(L,-2);
-    progressbar.max:=lua_tointeger(L,-1);
-  end;
-
-  lua_pop(L, parameters);
+  progressbar:=luaclass_getClassObject(L);
+  if lua_gettop(l)>=1 then
+    progressbar.max:=lua_tointeger(L, -1);
 end;
 
 function progressbar_getMin(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   progressbar: Tcustomprogressbar;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    progressbar:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, progressbar.Min);
-    result:=1;
-
-  end else lua_pop(L, parameters);
+  progressbar:=luaclass_getClassObject(L);
+  lua_pushinteger(L, progressbar.Min);
+  result:=1;
 end;
 
 function progressbar_setMin(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   progressbar: Tcustomprogressbar;
-  a: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    progressbar:=lua_touserdata(L,-2);
-    progressbar.Min:=lua_tointeger(L,-1);
-  end;
-
-  lua_pop(L, parameters);
+  progressbar:=luaclass_getClassObject(L);
+  if lua_gettop(l)>=1 then
+    progressbar.Min:=lua_tointeger(L, -1);
 end;
-
 
 function progressbar_getPosition(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   progressbar: Tcustomprogressbar;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    progressbar:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, progressbar.Position);
-    result:=1;
-
-  end else lua_pop(L, parameters);
+  progressbar:=luaclass_getClassObject(L);
+  lua_pushinteger(L, progressbar.Position);
+  result:=1;
 end;
 
 function progressbar_setPosition(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   progressbar: Tcustomprogressbar;
-  a: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    progressbar:=lua_touserdata(L,-2);
-    progressbar.Position:=lua_tointeger(L,-1);
-  end;
-
-  lua_pop(L, parameters);
+  progressbar:=luaclass_getClassObject(L);
+  if lua_gettop(l)>=1 then
+    progressbar.Position:=lua_tointeger(L, -1);
 end;
 
+procedure progressbar_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
+begin
+  wincontrol_addMetaData(L, metatable, userdata);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'stepIt', progressbar_stepIt);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'stepBy', progressbar_stepBy);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getMax', progressbar_getMax);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setMax', progressbar_setMax);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getMin', progressbar_getMin);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setMin', progressbar_setMin);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getPosition', progressbar_getPosition);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setPosition', progressbar_setPosition);
+
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Min', progressbar_getMin, progressbar_setMin);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Max', progressbar_getMax, progressbar_setMax);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Position', progressbar_getPosition, progressbar_setPosition);
+end;
 
 procedure initializeLuaProgressBar;
 begin
@@ -186,6 +145,9 @@ begin
   lua_register(LuaVM, 'progressbar_getPosition', progressbar_getPosition);
   lua_register(LuaVM, 'progressbar_setPosition', progressbar_setPosition);
 end;
+
+initialization
+  luaclass_register(TCustomProgressBar, progressbar_addMetaData);
 
 end.
 
