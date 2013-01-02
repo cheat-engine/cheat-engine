@@ -63,7 +63,8 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports, Mem
   CustomTypeHandler, LuaStructure, LuaRegion, LuaXMPlayer, LuaMemscan, LuaFoundlist,
   LuaRadioGroup, LuaRasterImage, LuaCheatComponent, LuaAddresslist, byteinterpreter,
   OpenSave, cedebugger, DebugHelper, LuaObject, LuaComponent, LuaControl, LuaStrings,
-  LuaStringlist, LuaCustomControl, LuaGraphicControl, LuaPanel, LuaImage;
+  LuaStringlist, LuaCustomControl, LuaGraphicControl, LuaPanel, LuaImage, LuaButton,
+  LuaCheckbox, LuaGroupbox;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -2120,41 +2121,9 @@ end;
 
 
 
-function createButton(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  f,p: pointer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    f:=lua_toceuserdata(L, -1);
-    p:=ce_createButton(f);
 
-    lua_pop(L, lua_gettop(L));
 
-    luaclass_newClass(L, p);
-    result:=1;
-  end else lua_pop(L, lua_gettop(L));
-end;
 
-function createGroupBox(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  f,p: pointer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    f:=lua_toceuserdata(L, -1);
-    p:=ce_createGroupBox(f);
-
-    lua_pop(L, lua_gettop(L));
-
-    luaclass_newClass(L, p);
-    result:=1;
-  end else lua_pop(L, lua_gettop(L));
-end;
 
 
 
@@ -3303,40 +3272,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-function button_getModalResult(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  button: Tcustombutton;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    button:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
 
-    lua_pushinteger(L, integer(button.ModalResult));
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function button_setModalResult(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  button: Tcustombutton;
-  a: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    button:=lua_toceuserdata(L,-2);
-    button.ModalResult:=TModalResult(lua_tointeger(L,-1));
-  end;
-
-  lua_pop(L, parameters);
-end;
 
 
 
@@ -3365,143 +3301,7 @@ begin
   result:=1;
 end;
 
-function createCheckBox(L: Plua_State): integer; cdecl;
-var
-  CheckBox: TCECheckBox;
-  parameters: integer;
-  owner: TWincontrol;
-begin
-  result:=0;
 
-  parameters:=lua_gettop(L);
-  if parameters>=1 then
-    owner:=lua_toceuserdata(L, -parameters)
-  else
-    owner:=nil;
-
-  lua_pop(L, lua_gettop(L));
-
-
-  CheckBox:=TCECheckBox.Create(owner);
-  if owner<>nil then
-    CheckBox.Parent:=owner;
-
-  luaclass_newClass(L, CheckBox);
-  result:=1;
-end;
-
-function checkbox_getAllowGrayed(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  checkbox: Tcustomcheckbox;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    checkbox:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushboolean(L, checkbox.AllowGrayed);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function checkbox_setAllowGrayed(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  checkbox: Tcustomcheckbox;
-  a: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    checkbox:=lua_toceuserdata(L,-2);
-    checkbox.AllowGrayed:=lua_toboolean(L,-1);
-  end;
-
-  lua_pop(L, parameters);
-end;
-
-function checkbox_getState(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  checkbox: Tcustomcheckbox;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    checkbox:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, integer(checkbox.State));
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function checkbox_setState(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  checkbox: Tcustomcheckbox;
-  a: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    checkbox:=lua_toceuserdata(L,-2);
-    checkbox.State:=TCheckBoxState(lua_tointeger(L,-1));
-  end;
-
-  lua_pop(L, parameters);
-end;
-
-function checkbox_onChange(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  control: TCustomCheckBox;
-  f: integer;
-  routine: string;
-
-  lc: TLuaCaller;
-
-//  clickroutine: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    control:=lua_toceuserdata(L,-2);
-
-    CleanupLuaCall(tmethod(control.onChange));
-    control.onChange:=nil;
-
-    if lua_isfunction(L,-1) then
-    begin
-      routine:=Lua_ToString(L,-1);
-      f:=luaL_ref(L,LUA_REGISTRYINDEX);
-
-      lc:=TLuaCaller.create;
-      lc.luaroutineIndex:=f;
-      control.OnChange:=lc.NotifyEvent;
-    end
-    else
-    if lua_isstring(L,-1) then
-    begin
-      routine:=lua_tostring(L,-1);
-      lc:=TLuaCaller.create;
-      lc.luaroutine:=routine;
-      control.OnChange:=lc.NotifyEvent;
-    end;
-
-  end;
-
-  lua_pop(L, parameters);
-end;
 
 
 function createListBox(L: Plua_State): integer; cdecl;
@@ -6097,7 +5897,7 @@ begin
     lua_register(LuaVM, 'unhideMainCEwindow', unhideMainCEwindow);
 
 
-    lua_register(LuaVM, 'createGroupBox', createGroupBox);
+    initializeLuaGroupbox;
 
 
     lua_register(LuaVM, 'createLabel', createLabel);
@@ -6176,17 +5976,12 @@ begin
     lua_register(LuaVM, 'memo_getScrollbars', memo_getScrollbars);
     lua_register(LuaVM, 'memo_setScrollbars', memo_setScrollbars);
 
-    lua_register(LuaVM, 'createButton', createButton);
-    lua_register(LuaVM, 'button_getModalResult', button_getModalResult);
-    lua_register(LuaVM, 'button_setModalResult', button_setModalResult);
+
+    InitializeLuaButton;
 
     lua_register(LuaVM, 'createToggleBox', createToggleBox);
-    lua_register(LuaVM, 'createCheckBox', createCheckBox);
-    lua_register(LuaVM, 'checkbox_getAllowGrayed', checkbox_getAllowGrayed);
-    lua_register(LuaVM, 'checkbox_setAllowGrayed', checkbox_setAllowGrayed);
-    lua_register(LuaVM, 'checkbox_getState', checkbox_getState);
-    lua_register(LuaVM, 'checkbox_setState', checkbox_setState);
-    lua_register(LuaVM, 'checkbox_onChange', checkbox_onChange);
+
+    initializeLuaCheckbox;
 
 
     initializeLuaRadioGroup;

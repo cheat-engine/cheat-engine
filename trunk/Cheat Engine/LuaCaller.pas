@@ -87,6 +87,14 @@ begin
   begin
     lc:=TLuaCaller.create;
     lc.luaroutine:=Lua_ToString(L, luafunctiononstack);
+  end
+  else
+  if lua_isnil(L, luafunctiononstack) then
+  begin
+    m.code:=nil;
+    m.data:=nil;
+    SetPropValue(c, prop, nil);
+    //setMethodProp(c, prop, m);
   end;
 
   if lc<>nil then
@@ -115,7 +123,7 @@ begin
     else
       raise exception.create('This type of method:'+typename+' is not yet supported');
 
-    setMethodProperty(c, prop, m);
+    setMethodProp(c, prop, m);
   end;
 
 

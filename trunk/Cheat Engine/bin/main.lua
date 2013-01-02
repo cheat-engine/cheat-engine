@@ -585,16 +585,29 @@ ButtonControl Class: (Inheritance: WinControl->Control->Component->Object)
 
 Button Class: (Inheritance: ButtonControl->WinControl->Control->Component->Object)
 createButton(owner): Creates a Button class object which belongs to the given owner. Owner can be any object inherited from WinControl
-button_getModalResult(button)
-button_setModalResult(button, mr)
+
+properties
+  ModalResult: ModalResult - The result this button will give the modalform when clicked
+
+methods
+  getModalResult(button)
+  setModalResult(button, mr)
 
 CheckBox Class: (Inheritance: ButtonControl->WinControl->Control->Component->Object)
 createCheckBox(owner): Creates a CheckBox class object which belongs to the given owner. Owner can be any object inherited from WinControl
-checkbox_getAllowGrayed(CheckBox)
-checkbox_setAllowGrayed(CheckBox, boolean)
-checkbox_getState(checkbox): Returns a state for the checkbox. (cbUnchecked, cbChecked, cbGrayed)
-checkbox_setState(checkbox, boolean): Sets the state of the checkbox
-checkbox_onChange(checkbox, function)
+
+properties
+  Checked: boolean - True if checked
+  AllowGrayed: boolean - True if it can have 3 states. True/False/None
+  State: boolean - The state. (cbUnchecked=0, cbChecked=1, cbGrayed=2)
+  OnChange: function - Function to call when the state it changed
+
+methods  
+  getAllowGrayed(CheckBox)
+  setAllowGrayed(CheckBox, boolean)
+  getState(checkbox): Returns a state for the checkbox. (cbUnchecked, cbChecked, cbGrayed)
+  setState(checkbox, boolean): Sets the state of the checkbox
+  onChange(checkbox, function)
 
 ToggleBox Class: (Inheritance: CheckBox->ButtonControl->WinControl->Control->Component->Object)
 createToggleBox(owner): Creates a ToggleBox class object which belongs to the given owner. Owner can be any object inherited from WinControl
@@ -605,14 +618,22 @@ createGroupBox(owner): Creates a GroupBox class object which belongs to the give
 
 RadioGroup class: (Inheritance: GroupBox->WinControl->Control->Component->Object)
 createRadioGroup(owner): Creates a RadioGroup class object which belongs to the given owner. Owner can be any object inherited from WinControl
-radiogroup_getRows(radiogroup): Returns the number of rows
-radiogroup_getItems(radiogroup): Returns a Strings object
-radiogroup_getColumns(radiogroup): Returns the nuber of columns
-radiogroup_setColumns(radiogroup, count)
-radiogroup_getItemIndex(radiogroup)
-radiogroup_setItemIndex(radiogroup)
 
-radiogroup_onClick(radiogroup, function)
+properties
+  Items: Strings - Strings derived object containings all the items in the list
+  Columns: Integer - The number of columns to split the items into
+  ItemIndex: Integer - The currently selected item
+  OnClick: Called when the control is clicked
+
+methods
+  getRows(radiogroup): Returns the number of rows
+  getItems(radiogroup): Returns a Strings object
+  getColumns(radiogroup): Returns the nuber of columns
+  setColumns(radiogroup, count)
+  getItemIndex(radiogroup)
+  setItemIndex(radiogroup)
+  setOnClick(radiogroup, function)
+  getOnClick(radiogroup, function)
 
 
 ListBox Class: (Inheritance: WinControl->Control->Component->Object) 
