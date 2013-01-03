@@ -714,7 +714,21 @@ methods
 
 
 CollectionItem Class: (Inheritance: Object)
-usually not used by lua users but just defining it here for future usage
+Base class for some higher level classes. Often used for columns
+
+properties
+  ID: integer
+  Index: integer - The index in the array this item belong to
+  DisplayName: string
+
+methods
+  getID()
+  getIndex()
+  setIndex()
+  getDisplayName()
+  setDisplayName()
+
+
 
 
 
