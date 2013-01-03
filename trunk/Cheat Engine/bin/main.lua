@@ -733,17 +733,23 @@ methods
 
 
 ListColumn class: (Inheritance: CollectionItem->Object)
-listcolumn_setAutosize(listcolumns, boolean)
-listcolumn_getCaption(listcolumns)
-listcolumn_setCaption(listcolumns, caption)
-listcolumn_getMaxWidth(listcolumns)
-listcolumn_setMaxWidth(listcolumns, width)
-listcolumn_getMinWidth(listcolumns)
-listcolumn_setMinWidth(listcolumns, width)
-listcolumn_getWidth(listcolumns)
-listcolumn_setWidth(listcolumns, width)
-
-
+properties
+  AutoSize: boolean
+  Caption: string
+  MaxWidth: integer
+  MinWidth: integer
+  Width: integer
+methods
+  getAutosize()
+  setAutosize(boolean)
+  getCaption()
+  setCaption(caption)
+  getMaxWidth()
+  setMaxWidth(width)
+  getMinWidth()
+  setMinWidth(width)
+  getWidth()
+  setWidth(width)
 
 
 Collection Class: (Inheritance: TObject)

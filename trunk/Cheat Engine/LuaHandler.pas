@@ -64,7 +64,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports, Mem
   LuaRadioGroup, LuaRasterImage, LuaCheatComponent, LuaAddresslist, byteinterpreter,
   OpenSave, cedebugger, DebugHelper, LuaObject, LuaComponent, LuaControl, LuaStrings,
   LuaStringlist, LuaCustomControl, LuaGraphicControl, LuaPanel, LuaImage, LuaButton,
-  LuaCheckbox, LuaGroupbox, LuaListbox, LuaCombobox, LuaTrackbar;
+  LuaCheckbox, LuaGroupbox, LuaListbox, LuaCombobox, LuaTrackbar, LuaListColumn;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -3260,170 +3260,6 @@ end;
 
 
 
-
-
-
-
-
-
-function listcolumn_setAutosize(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  listcolumns: TListColumn;
-  a: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    listcolumns:=lua_toceuserdata(L,-2);
-    listcolumns.AutoSize:=lua_toboolean(L,-1);
-  end;
-
-  lua_pop(L, parameters);
-end;
-
-
-function listcolumn_getCaption(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  listcolumn: Tlistcolumn;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    listcolumn:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushstring(L, listcolumn.caption);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function listcolumn_setCaption(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  listcolumn: Tlistcolumn;
-  a: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    listcolumn:=lua_toceuserdata(L,-2);
-    listcolumn.caption:=Lua_ToString(L,-1);
-  end;
-
-  lua_pop(L, parameters);
-end;
-
-function listcolumn_getMaxWidth(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  listcolumn: Tlistcolumn;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    listcolumn:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, listcolumn.maxwidth);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function listcolumn_setMaxWidth(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  listcolumn: Tlistcolumn;
-  a: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    listcolumn:=lua_toceuserdata(L,-2);
-    listcolumn.maxwidth:=lua_tointeger(L,-1);
-  end;
-
-  lua_pop(L, parameters);
-end;
-
-function listcolumn_getMinWidth(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  listcolumn: Tlistcolumn;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    listcolumn:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, listcolumn.Minwidth);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function listcolumn_setMinWidth(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  listcolumn: Tlistcolumn;
-  a: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    listcolumn:=lua_toceuserdata(L,-2);
-    listcolumn.Minwidth:=lua_tointeger(L,-1);
-  end;
-
-  lua_pop(L, parameters);
-end;
-
-function listcolumn_getWidth(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  listcolumn: Tlistcolumn;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    listcolumn:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, listcolumn.width);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function listcolumn_setWidth(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  listcolumn: Tlistcolumn;
-  a: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    listcolumn:=lua_toceuserdata(L,-2);
-    listcolumn.width:=lua_tointeger(L,-1);
-  end;
-
-  lua_pop(L, parameters);
-end;
-
 function collection_clear(L: Plua_State): integer; cdecl;
 var parameters: integer;
   collection: TCollection;
@@ -5589,17 +5425,7 @@ begin
     initializeLuaTrackbar;
 
 
-
-    lua_register(LuaVM, 'listcolumn_setAutosize', listcolumn_setAutosize);
-    lua_register(LuaVM, 'listcolumn_getCaption', listcolumn_getCaption);
-    lua_register(LuaVM, 'listcolumn_setCaption', listcolumn_setCaption);
-    lua_register(LuaVM, 'listcolumn_getMaxWidth', listcolumn_getMaxWidth);
-    lua_register(LuaVM, 'listcolumn_setMaxWidth', listcolumn_setMaxWidth);
-    lua_register(LuaVM, 'listcolumn_getMinWidth', listcolumn_getMinWidth);
-    lua_register(LuaVM, 'listcolumn_setMinWidth', listcolumn_setMinWidth);
-    lua_register(LuaVM, 'listcolumn_getWidth', listcolumn_getWidth);
-    lua_register(LuaVM, 'listcolumn_setWidth', listcolumn_setWidth);
-
+    initializeLuaListColumn;
 
     lua_register(LuaVM, 'collection_clear', collection_clear);
     lua_register(LuaVM, 'collection_getCount', collection_getCount);
