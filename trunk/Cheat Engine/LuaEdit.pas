@@ -7,6 +7,9 @@ interface
 uses
   Classes, SysUtils, Controls, StdCtrls, Lua, Lualib, lauxlib;
 
+procedure edit_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
+procedure initializeLuaEdit;
+
 implementation
 
 uses luahandler, LuaClass, LuaCaller, LuaWinControl;
@@ -152,7 +155,7 @@ begin
   lua_register(LuaVM, 'edit_copyToClipboard', edit_copyToClipboard);
   lua_register(LuaVM, 'edit_cutToClipboard', edit_cutToClipboard);
   lua_register(LuaVM, 'edit_pasteFromClipboard', edit_pasteFromClipboard);
-  lua_register(LuaVM, 'edit_onChange', edit_onChange);
+  lua_register(LuaVM, 'edit_onChange', edit_setonChange);
 end;
 
 initialization

@@ -68,7 +68,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports, Mem
   OpenSave, cedebugger, DebugHelper, LuaObject, LuaComponent, LuaControl, LuaStrings,
   LuaStringlist, LuaCustomControl, LuaGraphicControl, LuaPanel, LuaImage, LuaButton,
   LuaCheckbox, LuaGroupbox, LuaListbox, LuaCombobox, LuaTrackbar, LuaListColumn,
-  LuaEdit;
+  LuaEdit, LuaMemo;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -2263,23 +2263,7 @@ end;
 
 
 
-function createMemo(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  f,p: pointer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    f:=lua_toceuserdata(L, -1);
-    p:=ce_createMemo(f);
 
-    lua_pop(L, lua_gettop(L));
-
-    luaclass_newClass(L, p);
-    result:=1;
-  end else lua_pop(L, lua_gettop(L));
-end;
 
 function createTimer(L: Plua_State): integer; cdecl;
 var parameters: integer;
@@ -2945,180 +2929,7 @@ end;
 
 
 
-function memo_append(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  memo: TCustomMemo;
-  a: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    memo:=lua_toceuserdata(L,-2);
-    memo.Append(Lua_ToString(L,-1));
-  end;
 
-  lua_pop(L, parameters);
-end;
-
-function memo_getLines(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  memo: TCustomMemo;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    memo:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    luaclass_newClass(L, memo.Lines);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function memo_getWordWrap(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  memo: Tcustommemo;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    memo:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushboolean(L, memo.WordWrap);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function memo_setWordWrap(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  memo: Tcustommemo;
-  a: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    memo:=lua_toceuserdata(L,-2);
-    memo.WordWrap:=lua_toboolean(L,-1);
-  end;
-
-  lua_pop(L, parameters);
-end;
-
-function memo_getWantTabs(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  memo: Tcustommemo;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    memo:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushboolean(L, memo.WantTabs);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function memo_setWantTabs(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  memo: Tcustommemo;
-  a: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    memo:=lua_toceuserdata(L,-2);
-    memo.WantTabs:=lua_toboolean(L,-1);
-  end;
-
-  lua_pop(L, parameters);
-end;
-
-function memo_getWantReturns(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  memo: Tcustommemo;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    memo:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushboolean(L, memo.WantReturns);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function memo_setWantReturns(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  memo: Tcustommemo;
-  a: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    memo:=lua_toceuserdata(L,-2);
-    memo.WantReturns:=lua_toboolean(L,-1);
-  end;
-
-  lua_pop(L, parameters);
-end;
-
-function memo_getScrollbars(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  memo: Tcustommemo;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    memo:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, integer(memo.Scrollbars));
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function memo_setScrollbars(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  memo: Tcustommemo;
-  a: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    memo:=lua_toceuserdata(L,-2);
-    memo.Scrollbars:=TScrollStyle(lua_tointeger(L,-1));
-  end;
-
-  lua_pop(L, parameters);
-end;
 
 
 
@@ -5287,17 +5098,7 @@ begin
 
 
 
-    lua_register(LuaVM, 'createMemo', createMemo);
-    lua_register(LuaVM, 'memo_append', memo_append);
-    lua_register(LuaVM, 'memo_getLines', memo_getLines);
-    lua_register(LuaVM, 'memo_getWordWrap', memo_getWordWrap);
-    lua_register(LuaVM, 'memo_setWordWrap', memo_setWordWrap);
-    lua_register(LuaVM, 'memo_getWantTabs', memo_getWantTabs);
-    lua_register(LuaVM, 'memo_setWantTabs', memo_setWantTabs);
-    lua_register(LuaVM, 'memo_getWantReturns', memo_getWantReturns);
-    lua_register(LuaVM, 'memo_setWantReturns', memo_setWantReturns);
-    lua_register(LuaVM, 'memo_getScrollbars', memo_getScrollbars);
-    lua_register(LuaVM, 'memo_setScrollbars', memo_setScrollbars);
+    initializeLuaMemo;
 
 
     InitializeLuaButton;
