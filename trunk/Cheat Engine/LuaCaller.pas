@@ -58,6 +58,7 @@ function LuaCaller_LVCheckedItemEvent(L: PLua_state): integer; cdecl;
 
 procedure LuaCaller_pushMethodProperty(L: PLua_state; m: TMethod; typename: string);
 procedure LuaCaller_setMethodProperty(L: PLua_state; c: TObject; prop: string; typename: string; luafunctiononstack: integer);
+//procedure LuaCaller_setMethodProperty(L: PLua_state; var m: TMethod; typename: string; luafunctiononstack: integer);
 
 implementation
 

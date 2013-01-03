@@ -64,7 +64,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports, Mem
   LuaRadioGroup, LuaRasterImage, LuaCheatComponent, LuaAddresslist, byteinterpreter,
   OpenSave, cedebugger, DebugHelper, LuaObject, LuaComponent, LuaControl, LuaStrings,
   LuaStringlist, LuaCustomControl, LuaGraphicControl, LuaPanel, LuaImage, LuaButton,
-  LuaCheckbox, LuaGroupbox, LuaListbox, LuaCombobox;
+  LuaCheckbox, LuaGroupbox, LuaListbox, LuaCombobox, LuaTrackbar;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -3264,178 +3264,7 @@ end;
 
 
 
-//trackbar
-function createTrackBar(L: Plua_State): integer; cdecl;
-var
-  TrackBar: TCETrackBar;
-  parameters: integer;
-  owner: TWincontrol;
-begin
-  result:=0;
 
-  parameters:=lua_gettop(L);
-  if parameters>=1 then
-    owner:=lua_toceuserdata(L, -parameters)
-  else
-    owner:=nil;
-
-  lua_pop(L, lua_gettop(L));
-
-
-  TrackBar:=TCETrackBar.Create(owner);
-  if owner<>nil then
-    TrackBar.Parent:=owner;
-
-  luaclass_newClass(L, TrackBar);
-  result:=1;
-end;
-
-function trackbar_getMax(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  trackbar: Tcustomtrackbar;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    trackbar:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, trackbar.max);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function trackbar_setMax(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  trackbar: Tcustomtrackbar;
-  a: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    trackbar:=lua_toceuserdata(L,-2);
-    trackbar.max:=lua_tointeger(L,-1);
-  end;
-
-  lua_pop(L, parameters);
-end;
-
-function trackbar_getMin(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  trackbar: Tcustomtrackbar;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    trackbar:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, trackbar.Min);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function trackbar_setMin(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  trackbar: Tcustomtrackbar;
-  a: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    trackbar:=lua_toceuserdata(L,-2);
-    trackbar.Min:=lua_tointeger(L,-1);
-  end;
-
-  lua_pop(L, parameters);
-end;
-
-
-function trackbar_getPosition(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  trackbar: Tcustomtrackbar;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    trackbar:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, trackbar.Position);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function trackbar_setPosition(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  trackbar: Tcustomtrackbar;
-  a: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    trackbar:=lua_toceuserdata(L,-2);
-    trackbar.Position:=lua_tointeger(L,-1);
-  end;
-
-  lua_pop(L, parameters);
-end;
-
-function trackbar_onChange(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  control: TCustomTrackBar;
-  f: integer;
-  routine: string;
-
-  lc: TLuaCaller;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    control:=lua_toceuserdata(L,-2);
-
-    CleanupLuaCall(tmethod(control.onChange));
-    control.onChange:=nil;
-
-    if lua_isfunction(L,-1) then
-    begin
-      routine:=Lua_ToString(L,-1);
-      f:=luaL_ref(L,LUA_REGISTRYINDEX);
-
-      lc:=TLuaCaller.create;
-      lc.luaroutineIndex:=f;
-      control.OnChange:=lc.NotifyEvent;
-    end
-    else
-    if lua_isstring(L,-1) then
-    begin
-      routine:=lua_tostring(L,-1);
-      lc:=TLuaCaller.create;
-      lc.luaroutine:=routine;
-      control.OnChange:=lc.NotifyEvent;
-    end;
-
-  end;
-
-  lua_pop(L, parameters);
-end;
 
 function listcolumn_setAutosize(L: PLua_State): integer; cdecl;
 var
@@ -5753,27 +5582,12 @@ begin
     lua_register(LuaVM, 'createToggleBox', createToggleBox);
 
     initializeLuaCheckbox;
-
-
     initializeLuaRadioGroup;
     initializeLuaListbox;
-
     initializeLuaCombobox;
-
-
-
-
-
     initializeLuaProgressbar;
+    initializeLuaTrackbar;
 
-    lua_register(LuaVM, 'createTrackBar', createTrackBar);
-    lua_register(LuaVM, 'trackbar_getMax', trackbar_getMax);
-    lua_register(LuaVM, 'trackbar_setMax', trackbar_setMax);
-    lua_register(LuaVM, 'trackbar_getMin', trackbar_getMin);
-    lua_register(LuaVM, 'trackbar_setMin', trackbar_setMin);
-    lua_register(LuaVM, 'trackbar_getPosition', trackbar_getPosition);
-    lua_register(LuaVM, 'trackbar_setPosition', trackbar_setPosition);
-    lua_register(LuaVM, 'trackbar_onChange', trackbar_onChange);
 
 
     lua_register(LuaVM, 'listcolumn_setAutosize', listcolumn_setAutosize);
