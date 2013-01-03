@@ -8,7 +8,7 @@ uses
   Classes, SysUtils,Lua, Lualib, lauxlib;
 
 procedure collection_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
-procedure initializeCollection;
+procedure initializeLuaCollection;
 
 
 implementation
@@ -46,7 +46,7 @@ end;
 
 procedure collection_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
-  object_addMetaData(L, metatable, userdata);   //inherits from customedit
+  object_addMetaData(L, metatable, userdata);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'clear', collection_clear);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getCount', collection_getCount);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'delete', collection_delete);
@@ -54,7 +54,7 @@ begin
   luaclass_addPropertyToTable(L, metatable, userdata, 'Count', collection_getCount, nil);
 end;
 
-procedure initializeCollection;
+procedure initializeLuaCollection;
 begin
   lua_register(LuaVM, 'collection_clear', collection_clear);
   lua_register(LuaVM, 'collection_getCount', collection_getCount);
