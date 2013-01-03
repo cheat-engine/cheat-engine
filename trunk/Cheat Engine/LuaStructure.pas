@@ -48,39 +48,22 @@ end;
 
 function structure_getName(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   struct: TDissectedStruct;
 begin
-  result:=0;
-
   struct:=luaclass_getClassObject(L);
-
-  if struct=nil then exit;
-
-  lua_pushstring(L, struct.name);
+  lua_pushvariant(L, struct.name);
   result:=1;
 end;
 
 function structure_setName(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   struct: TDissectedStruct;
-  Name: string;
-  i: integer;
 begin
   result:=0;
 
   struct:=luaclass_getClassObject(L);
-
-  if struct=nil then exit;
-
-  parameters:=lua_gettop(L);
-  if parameters>=1 then
-    name:=Lua_ToString(L, -1); //last parameter
-
-  struct.Name:=Name;
-
-  lua_pop(L, parameters);
+  if lua_gettop(L)>=1 then
+    struct.name:=lua_tovariant(L, -1)  //Lua_ToString(L, -1); //last parameter
 end;
 
 function structure_getSize(L: PLua_State): integer; cdecl;
