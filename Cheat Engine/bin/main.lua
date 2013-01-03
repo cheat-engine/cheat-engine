@@ -678,27 +678,39 @@ properties
   Min: integer - The minimum positionvalue the progressbar can have (default 0)
   Max: integer - The maximum positionvalue the progressbar can have (default 100
   Position: integer - The position of the progressbar
+  Step: integer- The stepsize to step by when stepIt() is called
+
 methods
-  stepIt()
-  stepBy(delta)
-  getMax()
-  setMax(integer)
-  getMin()
-  setMin(integer)
-  getPosition()
-  setPosition(integer)
+  stepIt() - Increase position with "Step" size
+  stepBy(integer) - increase the position by the given integer value
+  getMax() - returns the Max property
+  setMax(integer) - sets the max property
+  getMin() - returns the min property
+  setMin(integer)- sets the min property
+  getPosition() - returns the current position
+  setPosition(integer) - sets the current position
+
 
 
 
 TrackBar Class : (Inheritance: WinControl->Control->Component->Object)
 createTrackBar(owner): Creates a TrackBar class object which belongs to the given owner. Owner can be any object inherited from WinControl
-trackbar_getMax(trackbar)
-trackbar_setMax(trackbar, integer)
-trackbar_getMin(trackbar)
-trackbar_setMin(trackbar, integer)
-trackbar_getPosition(progressbar)
-trackbar_setPosition(progressbar, integer)
-trackbar_onChange(trackbar, function)
+
+properties
+  Min: integer - Minimal value for the trackbar
+  Max: integer - Maximum value for the trackbar
+  Position: integer - The current position
+  OnChange: function - Function to call when 
+
+methods
+  getMax()
+  setMax(integer)
+  getMin(trackbar)
+  setMin(trackbar, integer)
+  getPosition(progressbar)
+  setPosition(progressbar, integer)
+  getOnChange(function)
+  setOnChange()
 
 
 CollectionItem Class: (Inheritance: Object)
