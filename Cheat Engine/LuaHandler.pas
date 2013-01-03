@@ -67,7 +67,8 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports, Mem
   LuaRadioGroup, LuaRasterImage, LuaCheatComponent, LuaAddresslist, byteinterpreter,
   OpenSave, cedebugger, DebugHelper, LuaObject, LuaComponent, LuaControl, LuaStrings,
   LuaStringlist, LuaCustomControl, LuaGraphicControl, LuaPanel, LuaImage, LuaButton,
-  LuaCheckbox, LuaGroupbox, LuaListbox, LuaCombobox, LuaTrackbar, LuaListColumn;
+  LuaCheckbox, LuaGroupbox, LuaListbox, LuaCombobox, LuaTrackbar, LuaListColumn,
+  LuaEdit;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -2260,23 +2261,7 @@ end;
 
 
 
-function createEdit(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  f,p: pointer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    f:=lua_toceuserdata(L, -1);
-    p:=ce_createEdit(f);
 
-    lua_pop(L, lua_gettop(L));
-
-    luaclass_newClass(L, p);
-    result:=1;
-  end else lua_pop(L, lua_gettop(L));
-end;
 
 function createMemo(L: Plua_State): integer; cdecl;
 var parameters: integer;
@@ -2958,130 +2943,7 @@ end;
 
 
 
-function edit_clear(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  e: tcustomedit;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    e:=lua_toceuserdata(L, -1);
-    e.clear;
-  end;
-  lua_pop(L, lua_gettop(L));
-end;
 
-function edit_selectAll(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  e: tcustomedit;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    e:=lua_toceuserdata(L, -1);
-    e.SelectAll;
-  end;
-  lua_pop(L, lua_gettop(L));
-end;
-
-function edit_clearSelection(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  e: tcustomedit;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    e:=lua_toceuserdata(L, -1);
-    e.ClearSelection;
-  end;
-  lua_pop(L, lua_gettop(L));
-end;
-
-function edit_copyToClipboard(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  e: tcustomedit;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    e:=lua_toceuserdata(L, -1);
-    e.CopyToClipboard;
-  end;
-  lua_pop(L, lua_gettop(L));
-end;
-
-function edit_cutToClipboard(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  e: tcustomedit;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    e:=lua_toceuserdata(L, -1);
-    e.CutToClipboard;
-  end;
-  lua_pop(L, lua_gettop(L));
-end;
-
-function edit_pasteFromClipboard(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  e: tcustomedit;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    e:=lua_toceuserdata(L, -1);
-    e.PasteFromClipboard;
-  end;
-  lua_pop(L, lua_gettop(L));
-end;
-
-function edit_onChange(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  control: TCustomEdit;
-  f: integer;
-  routine: string;
-
-  lc: TLuaCaller;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    control:=lua_toceuserdata(L,-2);
-
-    CleanupLuaCall(tmethod(control.onChange));
-    control.onChange:=nil;
-
-    if lua_isfunction(L,-1) then
-    begin
-      routine:=Lua_ToString(L,-1);
-      f:=luaL_ref(L,LUA_REGISTRYINDEX);
-
-      lc:=TLuaCaller.create;
-      lc.luaroutineIndex:=f;
-      control.OnChange:=lc.NotifyEvent;
-    end
-    else
-    if lua_isstring(L,-1) then
-    begin
-      routine:=lua_tostring(L,-1);
-      lc:=TLuaCaller.create;
-      lc.luaroutine:=routine;
-      control.OnChange:=lc.NotifyEvent;
-    end;
-
-  end;
-
-  lua_pop(L, parameters);
-end;
 
 function memo_append(L: PLua_State): integer; cdecl;
 var
@@ -5419,17 +5281,11 @@ begin
     initializeLuaPanel;
     initializeLuaImage;
 
+    initializeLuaEdit;
 
 
 
-    lua_register(LuaVM, 'createEdit', createEdit);
-    lua_register(LuaVM, 'edit_clear', edit_clear);
-    lua_register(LuaVM, 'edit_selectAll', edit_selectAll);
-    lua_register(LuaVM, 'edit_clearSelection', edit_clearSelection);
-    lua_register(LuaVM, 'edit_copyToClipboard', edit_copyToClipboard);
-    lua_register(LuaVM, 'edit_cutToClipboard', edit_cutToClipboard);
-    lua_register(LuaVM, 'edit_pasteFromClipboard', edit_pasteFromClipboard);
-    lua_register(LuaVM, 'edit_onChange', edit_onChange);
+
 
     lua_register(LuaVM, 'createMemo', createMemo);
     lua_register(LuaVM, 'memo_append', memo_append);

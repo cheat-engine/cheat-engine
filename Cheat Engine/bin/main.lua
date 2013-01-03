@@ -545,13 +545,19 @@ methods
 
 Edit Class: (Inheritance: WinControl->Control->Component->Object)
 createEdit(owner): Creates an Edit class object which belongs to the given owner. Owner can be any object inherited from WinControl
-edit_clear(edit)
-edit_selectAll(edit)
-edit_clearSelection(edit)
-edit_copyToClipboard(edit)
-edit_cutToClipboard(edit)
-edit_pasteFromClipboard(edit)
-edit_onChange(edit, function)
+
+properties
+  Text: string - The current contents of the editfield
+  OnChange: function - The function to call when the editfield is changed
+
+methods
+  clear()
+  selectAll()
+  clearSelection()
+  copyToClipboard()
+  cutToClipboard()
+  pasteFromClipboard()
+  onChange(function)
 
 
 Memo Class: (Inheritance: Edit->WinControl->Control->Component->Object)
