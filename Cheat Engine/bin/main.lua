@@ -770,9 +770,14 @@ methods
 
 
 Collection Class: (Inheritance: TObject)
-collection_clear(collection)
-collection_getCount(collection)
-collection_delete(collection, index)
+
+properties
+  Count: integer
+
+methods
+  clear(collection)
+  getCount(collection)
+  delete(collection, index)
 
 
 ListColumns class : (Inheritance: Collection->Object)

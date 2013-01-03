@@ -63,8 +63,9 @@ uses
   LuaCheatComponent, LuaAddresslist, frmDriverLoadedUnit, memdisplay,
   frmSortPointerlistUnit, LuaClassArray, LuaObject, LuaComponent, LuaControl,
   LuaStrings, LuaStringlist, LuaCustomControl, LuaGraphicControl, LuaPanel,
-  LuaImage, LuaButton, LuaCheckbox, LuaClass, LuaGroupbox, LuaListbox, 
-LuaCombobox, LuaTrackbar, LuaCollectionItem, LuaListcolumn, LuaEdit, LuaMemo;
+  LuaImage, LuaButton, LuaCheckbox, LuaClass, LuaGroupbox, LuaListbox,
+  LuaCombobox, LuaTrackbar, LuaCollectionItem, LuaListcolumn, LuaEdit, LuaMemo,
+  LuaCollection;
 
 {$R cheatengine.res}
 {$R manifest.res}
