@@ -9,6 +9,8 @@ interface
 uses
   Classes, SysUtils, lua, lauxlib, lualib;
 
+procedure collectionItem_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
+
 implementation
 
 uses luahandler, LuaClass, LuaObject;

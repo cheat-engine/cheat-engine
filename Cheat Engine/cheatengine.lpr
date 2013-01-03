@@ -64,7 +64,7 @@ uses
   frmSortPointerlistUnit, LuaClassArray, LuaObject, LuaComponent, LuaControl,
   LuaStrings, LuaStringlist, LuaCustomControl, LuaGraphicControl, LuaPanel,
   LuaImage, LuaButton, LuaCheckbox, LuaClass, LuaGroupbox, LuaListbox, 
-LuaCombobox, LuaTrackbar, LuaCollectionItem;
+LuaCombobox, LuaTrackbar, LuaCollectionItem, LuaListcolumn;
 
 {$R cheatengine.res}
 {$R manifest.res}
