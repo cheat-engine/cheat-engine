@@ -180,7 +180,7 @@ begin
   if assigned(getf) then
   begin
     lua_pushvalue(L, userdata);
-    lua_pushcfunction(L, getf);
+    lua_pushcclosure(L, getf, 1);
   end
   else
     lua_pushnil(L);
@@ -191,7 +191,7 @@ begin
   if assigned(setf) then
   begin
     lua_pushvalue(L, userdata);
-    lua_pushcfunction(L, setf);
+    lua_pushcclosure(L, setf, 1);
   end
   else
     lua_pushnil(L);

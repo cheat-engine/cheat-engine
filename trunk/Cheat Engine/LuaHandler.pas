@@ -68,7 +68,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports, Mem
   OpenSave, cedebugger, DebugHelper, LuaObject, LuaComponent, LuaControl, LuaStrings,
   LuaStringlist, LuaCustomControl, LuaGraphicControl, LuaPanel, LuaImage, LuaButton,
   LuaCheckbox, LuaGroupbox, LuaListbox, LuaCombobox, LuaTrackbar, LuaListColumn,
-  LuaEdit, LuaMemo, LuaCollection;
+  LuaEdit, LuaMemo, LuaCollection, LuaListColumns;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -2966,44 +2966,7 @@ end;
 
 
 
-function listcolumns_add(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  listcolumns: TListColumns;
-begin
 
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    listcolumns:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    luaclass_newClass(L, listcolumns.Add);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function listcolumns_getColumn(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  listcolumns: TListcolumns;
-  index: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    listcolumns:=lua_toceuserdata(L,-2);
-    index:=lua_toInteger(L,-1);
-    lua_pop(L, parameters);
-
-    luaclass_newClass(L, listcolumns[index]);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
 
 function listitem_delete(L: Plua_State): integer; cdecl;
 var parameters: integer;
@@ -5068,11 +5031,12 @@ begin
 
 
     initializeLuaListColumn;
-    initializeCollection;
+    initializeLuaCollection;
+
+    initializeLuaListColumns;
 
 
-    lua_register(LuaVM, 'listcolumns_add', listcolumns_add);
-    lua_register(LuaVM, 'listcolumns_getColumn', listcolumns_getColumn);
+
 
     lua_register(LuaVM, 'listitem_delete', listitem_delete);
     lua_register(LuaVM, 'listitem_getCaption', listitem_getCaption);

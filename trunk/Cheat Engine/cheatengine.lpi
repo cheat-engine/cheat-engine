@@ -20,7 +20,7 @@
       <MajorVersionNr Value="6"/>
       <MinorVersionNr Value="2"/>
       <RevisionNr Value="1"/>
-      <BuildNr Value="2894"/>
+      <BuildNr Value="2896"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" ProductVersion="6.2" FileDescription="Cheat Engine"/>
@@ -157,7 +157,7 @@
         <PackageName Value="LCL"/>
       </Item5>
     </RequiredPackages>
-    <Units Count="288">
+    <Units Count="289">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -1782,10 +1782,11 @@
         <Filename Value="LuaHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaHandler"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="55"/>
-        <CursorPos X="34" Y="71"/>
+        <TopLine Value="58"/>
+        <CursorPos X="50" Y="71"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
           <WindowIndex Value="0"/>
@@ -1908,7 +1909,7 @@
         <Filename Value="ceguicomponents.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="ceguicomponents"/>
-        <EditorIndex Value="11"/>
+        <EditorIndex Value="14"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1260"/>
         <CursorPos X="9" Y="1279"/>
@@ -2331,7 +2332,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="StructuresFrm2"/>
-        <EditorIndex Value="15"/>
+        <EditorIndex Value="18"/>
         <WindowIndex Value="0"/>
         <TopLine Value="877"/>
         <CursorPos X="1" Y="894"/>
@@ -2388,7 +2389,7 @@
         <Filename Value="LuaStructure.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaStructure"/>
-        <EditorIndex Value="14"/>
+        <EditorIndex Value="17"/>
         <WindowIndex Value="0"/>
         <TopLine Value="47"/>
         <CursorPos X="1" Y="62"/>
@@ -2400,7 +2401,7 @@
         <Filename Value="LuaForm.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaForm"/>
-        <EditorIndex Value="10"/>
+        <EditorIndex Value="13"/>
         <WindowIndex Value="0"/>
         <TopLine Value="296"/>
         <CursorPos X="1" Y="319"/>
@@ -2599,7 +2600,7 @@
       <Unit218>
         <Filename Value="C:\lazarus\lcl\controls.pp"/>
         <UnitName Value="Controls"/>
-        <EditorIndex Value="9"/>
+        <EditorIndex Value="12"/>
         <WindowIndex Value="0"/>
         <TopLine Value="995"/>
         <CursorPos X="14" Y="1386"/>
@@ -2623,7 +2624,7 @@
       <Unit221>
         <Filename Value="C:\lazarus\lcl\stdctrls.pp"/>
         <UnitName Value="StdCtrls"/>
-        <EditorIndex Value="5"/>
+        <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
         <TopLine Value="30"/>
         <CursorPos X="22" Y="48"/>
@@ -2714,18 +2715,19 @@
       <Unit233>
         <Filename Value="C:\lazarus\lcl\comctrls.pp"/>
         <UnitName Value="ComCtrls"/>
+        <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1068"/>
-        <CursorPos X="3" Y="1083"/>
+        <TopLine Value="1131"/>
+        <CursorPos X="55" Y="1147"/>
         <UsageCount Value="114"/>
+        <Loaded Value="True"/>
       </Unit233>
       <Unit234>
         <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\objpas\classes\classesh.inc"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="496"/>
-        <CursorPos X="30" Y="518"/>
+        <TopLine Value="475"/>
+        <CursorPos X="3" Y="481"/>
         <UsageCount Value="104"/>
         <Loaded Value="True"/>
       </Unit234>
@@ -2860,21 +2862,23 @@
       </Unit250>
       <Unit251>
         <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\objpas\classes\stringl.inc"/>
-        <EditorIndex Value="8"/>
+        <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
         <TopLine Value="622"/>
         <CursorPos X="3" Y="628"/>
-        <UsageCount Value="86"/>
+        <UsageCount Value="87"/>
         <Loaded Value="True"/>
       </Unit251>
       <Unit252>
         <Filename Value="luaClass.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaClass"/>
+        <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="10"/>
-        <CursorPos X="10" Y="26"/>
-        <UsageCount Value="165"/>
+        <TopLine Value="176"/>
+        <CursorPos X="31" Y="183"/>
+        <UsageCount Value="168"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit252>
       <Unit253>
@@ -2966,7 +2970,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="202"/>
         <CursorPos X="134" Y="223"/>
-        <UsageCount Value="172"/>
+        <UsageCount Value="175"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit262>
       <Unit263>
@@ -2984,7 +2988,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="15" Y="27"/>
-        <UsageCount Value="135"/>
+        <UsageCount Value="138"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit264>
       <Unit265>
@@ -2994,7 +2998,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="2"/>
         <CursorPos X="32" Y="8"/>
-        <UsageCount Value="130"/>
+        <UsageCount Value="133"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit265>
       <Unit266>
@@ -3004,7 +3008,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="19"/>
         <CursorPos X="3" Y="33"/>
-        <UsageCount Value="129"/>
+        <UsageCount Value="132"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit266>
       <Unit267>
@@ -3014,7 +3018,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="134"/>
         <CursorPos X="29" Y="150"/>
-        <UsageCount Value="117"/>
+        <UsageCount Value="120"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit267>
       <Unit268>
@@ -3032,7 +3036,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="110"/>
         <CursorPos X="3" Y="131"/>
-        <UsageCount Value="114"/>
+        <UsageCount Value="117"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit269>
       <Unit270>
@@ -3045,11 +3049,11 @@
       <Unit271>
         <Filename Value="lua\lauxlib.pas"/>
         <UnitName Value="lauxlib"/>
-        <EditorIndex Value="12"/>
+        <EditorIndex Value="15"/>
         <WindowIndex Value="0"/>
         <TopLine Value="160"/>
         <CursorPos X="1" Y="175"/>
-        <UsageCount Value="16"/>
+        <UsageCount Value="17"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit271>
@@ -3069,7 +3073,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="126"/>
         <CursorPos X="1" Y="130"/>
-        <UsageCount Value="86"/>
+        <UsageCount Value="89"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit273>
       <Unit274>
@@ -3079,7 +3083,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="18"/>
         <CursorPos X="13" Y="36"/>
-        <UsageCount Value="85"/>
+        <UsageCount Value="88"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit274>
       <Unit275>
@@ -3089,7 +3093,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="85"/>
         <CursorPos X="1" Y="99"/>
-        <UsageCount Value="74"/>
+        <UsageCount Value="77"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit275>
       <Unit276>
@@ -3106,18 +3110,18 @@
         <WindowIndex Value="0"/>
         <TopLine Value="99"/>
         <CursorPos X="3" Y="103"/>
-        <UsageCount Value="72"/>
+        <UsageCount Value="75"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit277>
       <Unit278>
         <Filename Value="LuaTrackbar.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaTrackbar"/>
-        <EditorIndex Value="17"/>
+        <EditorIndex Value="20"/>
         <WindowIndex Value="0"/>
         <TopLine Value="142"/>
         <CursorPos X="1" Y="153"/>
-        <UsageCount Value="65"/>
+        <UsageCount Value="68"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit278>
@@ -3125,11 +3129,11 @@
         <Filename Value="LuaCollectionItem.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaCollectionItem"/>
-        <EditorIndex Value="18"/>
+        <EditorIndex Value="21"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="1" Y="1"/>
-        <UsageCount Value="35"/>
+        <UsageCount Value="38"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit279>
@@ -3137,21 +3141,21 @@
         <Filename Value="LuaListcolumn.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaListcolumn"/>
-        <EditorIndex Value="16"/>
+        <EditorIndex Value="19"/>
         <WindowIndex Value="0"/>
         <TopLine Value="104"/>
         <CursorPos X="21" Y="111"/>
-        <UsageCount Value="30"/>
+        <UsageCount Value="33"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit280>
       <Unit281>
         <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\inc\varianth.inc"/>
-        <EditorIndex Value="13"/>
+        <EditorIndex Value="16"/>
         <WindowIndex Value="0"/>
         <TopLine Value="110"/>
         <CursorPos X="13" Y="64"/>
-        <UsageCount Value="11"/>
+        <UsageCount Value="12"/>
         <Loaded Value="True"/>
       </Unit281>
       <Unit282>
@@ -3166,178 +3170,190 @@
         <Filename Value="LuaEdit.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaEdit"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="1" Y="10"/>
-        <UsageCount Value="23"/>
+        <UsageCount Value="26"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit283>
       <Unit284>
         <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\objpas\objpas.pp"/>
         <UnitName Value="objpas"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
         <TopLine Value="13"/>
         <CursorPos X="8" Y="28"/>
-        <UsageCount Value="11"/>
+        <UsageCount Value="12"/>
         <Loaded Value="True"/>
       </Unit284>
       <Unit285>
         <Filename Value="LuaMemo.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaMemo"/>
-        <EditorIndex Value="2"/>
+        <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
         <TopLine Value="131"/>
         <CursorPos X="9" Y="133"/>
-        <UsageCount Value="22"/>
+        <UsageCount Value="25"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit285>
       <Unit286>
         <Filename Value="C:\lazarus\lcl\include\custommemo.inc"/>
-        <EditorIndex Value="6"/>
+        <EditorIndex Value="9"/>
         <WindowIndex Value="0"/>
         <TopLine Value="211"/>
         <CursorPos X="3" Y="219"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="11"/>
         <Loaded Value="True"/>
       </Unit286>
       <Unit287>
         <Filename Value="LuaCollection.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaCollection"/>
-        <EditorIndex Value="1"/>
+        <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="12"/>
-        <CursorPos X="10" Y="27"/>
-        <UsageCount Value="20"/>
+        <TopLine Value="38"/>
+        <CursorPos X="24" Y="57"/>
+        <UsageCount Value="23"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit287>
+      <Unit288>
+        <Filename Value="LuaListColumns.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="LuaListColumns"/>
+        <EditorIndex Value="2"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="20" Y="1"/>
+        <UsageCount Value="22"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit288>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="LuaEdit.pas"/>
-        <Caret Line="133" Column="27" TopLine="114"/>
+        <Filename Value="LuaCollection.pas"/>
+        <Caret Line="12" Column="1" TopLine="1"/>
       </Position1>
       <Position2>
-        <Filename Value="LuaEdit.pas"/>
-        <Caret Line="10" Column="1" TopLine="1"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="2974" Column="3" TopLine="2957"/>
       </Position2>
       <Position3>
-        <Filename Value="LuaEdit.pas"/>
-        <Caret Line="151" Column="49" TopLine="134"/>
+        <Filename Value="LuaCollection.pas"/>
+        <Caret Line="67" Column="9" TopLine="49"/>
       </Position3>
       <Position4>
-        <Filename Value="LuaMemo.pas"/>
-        <Caret Line="161" Column="27" TopLine="149"/>
+        <Filename Value="LuaCollection.pas"/>
+        <Caret Line="43" Column="1" TopLine="26"/>
       </Position4>
       <Position5>
-        <Filename Value="LuaMemo.pas"/>
-        <Caret Line="10" Column="33" TopLine="1"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="5073" Column="1" TopLine="5051"/>
       </Position5>
       <Position6>
-        <Filename Value="LuaMemo.pas"/>
-        <Caret Line="127" Column="47" TopLine="118"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="5070" Column="56" TopLine="5056"/>
       </Position6>
       <Position7>
-        <Filename Value="LuaMemo.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="LuaCollection.pas"/>
+        <Caret Line="43" Column="1" TopLine="38"/>
       </Position7>
       <Position8>
-        <Filename Value="LuaMemo.pas"/>
-        <Caret Line="29" Column="13" TopLine="7"/>
+        <Filename Value="LuaCollection.pas"/>
+        <Caret Line="54" Column="70" TopLine="35"/>
       </Position8>
       <Position9>
-        <Filename Value="LuaMemo.pas"/>
-        <Caret Line="58" Column="49" TopLine="42"/>
+        <Filename Value="LuaCollection.pas"/>
+        <Caret Line="27" Column="10" TopLine="12"/>
       </Position9>
       <Position10>
-        <Filename Value="C:\lazarus\lcl\stdctrls.pp"/>
-        <Caret Line="834" Column="14" TopLine="818"/>
+        <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\objpas\classes\classesh.inc"/>
+        <Caret Line="514" Column="18" TopLine="496"/>
       </Position10>
       <Position11>
-        <Filename Value="C:\lazarus\lcl\include\custommemo.inc"/>
-        <Caret Line="219" Column="3" TopLine="211"/>
+        <Filename Value="LuaCollection.pas"/>
+        <Caret Line="23" Column="40" TopLine="12"/>
       </Position11>
       <Position12>
-        <Filename Value="LuaMemo.pas"/>
-        <Caret Line="58" Column="49" TopLine="42"/>
+        <Filename Value="LuaCollection.pas"/>
+        <Caret Line="68" Column="1" TopLine="38"/>
       </Position12>
       <Position13>
-        <Filename Value="LuaMemo.pas"/>
-        <Caret Line="135" Column="31" TopLine="120"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="64" Column="33" TopLine="55"/>
       </Position13>
       <Position14>
-        <Filename Value="LuaMemo.pas"/>
-        <Caret Line="162" Column="8" TopLine="121"/>
+        <Filename Value="LuaListColumns.pas"/>
+        <Caret Line="53" Column="1" TopLine="28"/>
       </Position14>
       <Position15>
         <Filename Value="LuaHandler.pas"/>
-        <Caret Line="5100" Column="27" TopLine="5093"/>
+        <Caret Line="2946" Column="3" TopLine="2935"/>
       </Position15>
       <Position16>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="LuaListColumns.pas"/>
+        <Caret Line="59" Column="25" TopLine="35"/>
       </Position16>
       <Position17>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="2974" Column="14" TopLine="2957"/>
+        <Filename Value="LuaListColumns.pas"/>
+        <Caret Line="60" Column="106" TopLine="35"/>
       </Position17>
       <Position18>
-        <Filename Value="LuaCollection.pas"/>
-        <Caret Line="15" Column="28" TopLine="1"/>
+        <Filename Value="LuaListColumns.pas"/>
+        <Caret Line="33" Column="10" TopLine="24"/>
       </Position18>
       <Position19>
-        <Filename Value="LuaCollection.pas"/>
-        <Caret Line="66" Column="34" TopLine="36"/>
+        <Filename Value="LuaListColumns.pas"/>
+        <Caret Line="36" Column="3" TopLine="21"/>
       </Position19>
       <Position20>
-        <Filename Value="LuaCollection.pas"/>
-        <Caret Line="10" Column="33" TopLine="1"/>
+        <Filename Value="LuaListColumns.pas"/>
+        <Caret Line="35" Column="27" TopLine="26"/>
       </Position20>
       <Position21>
-        <Filename Value="LuaCollection.pas"/>
-        <Caret Line="65" Column="1" TopLine="39"/>
+        <Filename Value="LuaListColumns.pas"/>
+        <Caret Line="25" Column="3" TopLine="9"/>
       </Position21>
       <Position22>
-        <Filename Value="LuaCollection.pas"/>
-        <Caret Line="12" Column="1" TopLine="1"/>
+        <Filename Value="LuaListColumns.pas"/>
+        <Caret Line="54" Column="27" TopLine="33"/>
       </Position22>
       <Position23>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="2974" Column="3" TopLine="2957"/>
+        <Filename Value="LuaListColumns.pas"/>
+        <Caret Line="42" Column="3" TopLine="27"/>
       </Position23>
       <Position24>
-        <Filename Value="LuaCollection.pas"/>
-        <Caret Line="67" Column="9" TopLine="49"/>
+        <Filename Value="LuaListColumns.pas"/>
+        <Caret Line="31" Column="1" TopLine="38"/>
       </Position24>
       <Position25>
-        <Filename Value="LuaCollection.pas"/>
-        <Caret Line="43" Column="1" TopLine="26"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="5034" Column="15" TopLine="5022"/>
       </Position25>
       <Position26>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="5073" Column="1" TopLine="5051"/>
+        <Filename Value="LuaCollection.pas"/>
+        <Caret Line="11" Column="24" TopLine="1"/>
       </Position26>
       <Position27>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="5070" Column="56" TopLine="5056"/>
+        <Filename Value="LuaListColumns.pas"/>
+        <Caret Line="10" Column="24" TopLine="1"/>
       </Position27>
       <Position28>
-        <Filename Value="LuaCollection.pas"/>
-        <Caret Line="43" Column="1" TopLine="38"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="5036" Column="18" TopLine="5022"/>
       </Position28>
       <Position29>
-        <Filename Value="LuaCollection.pas"/>
-        <Caret Line="54" Column="70" TopLine="35"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="5028" Column="59" TopLine="5021"/>
       </Position29>
       <Position30>
-        <Filename Value="LuaCollection.pas"/>
-        <Caret Line="27" Column="10" TopLine="12"/>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="5034" Column="30" TopLine="5021"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>
