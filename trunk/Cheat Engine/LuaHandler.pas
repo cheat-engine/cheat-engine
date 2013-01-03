@@ -39,6 +39,8 @@ function LUA_onBreakpoint(context: PContext): boolean;
 procedure LUA_onNotify(functionid: integer; sender: tobject);
 function Lua_ToString(L: Plua_State; i: Integer): string;
 function lua_ToCEUserData(L: PLua_state; i: integer): pointer;
+function lua_tovariant(L: PLua_state; i: integer): variant;
+procedure lua_pushvariant(L: PLua_state; v: variant);
 procedure InitializeLuaScripts;
 procedure InitializeLua;
 
@@ -50,6 +52,7 @@ procedure lua_setPrintOutput(output: TStrings);
 
 resourcestring
   rsPluginAddress = 'Plugin Address';
+  rsThisTypeIsNotSupportedHere='This type is not supported here';
 
 
 implementation
@@ -173,6 +176,36 @@ begin
 
 
 //unclear should there be a result:=Utf8ToAnsi(s); ?
+end;
+
+procedure lua_pushvariant(L: PLua_state; v: variant);
+begin
+  case (tvardata(v).vtype and vartypemask) of
+    varempty: lua_pushnil(L);
+    varnull: lua_pushnil(L);
+    varsmallint, varinteger, vardecimal, varshortint, varbyte, varword, varlongword, varint64, varqword: lua_pushinteger(L, v);
+    varsingle, vardouble: lua_pushnumber(L, v);
+    varboolean: lua_pushboolean(L, v);
+    varstring, varustring: lua_pushstring(L, v);
+    else
+      lua_pushstring(L, v);
+  end;
+end;
+
+function lua_tovariant(L: PLua_state; i: integer): variant;
+begin
+  case lua_type(L, i) of
+    LUA_TNONE          : result:=nil;
+    LUA_TNIL           : result:=nil;
+    LUA_TBOOLEAN       : result:=lua_toboolean(L, i);
+    LUA_TLIGHTUSERDATA : result:=lua_touserdata(L,i);
+    LUA_TNUMBER        : result:=lua_tonumber(L, i);
+    LUA_TSTRING        : result:=Lua_ToString(L, i);
+    LUA_TUSERDATA      : result:=lua_ToCEUserData(L, i);
+    else
+      raise exception.create(rsThisTypeIsNotSupportedHere);
+
+  end;
 end;
 
 function lua_ToCEUserData(L: PLua_state; i: integer): pointer;
