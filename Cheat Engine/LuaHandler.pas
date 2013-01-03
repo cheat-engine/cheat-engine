@@ -198,10 +198,8 @@ begin
     LUA_TNONE          : result:=nil;
     LUA_TNIL           : result:=nil;
     LUA_TBOOLEAN       : result:=lua_toboolean(L, i);
-    LUA_TLIGHTUSERDATA : result:=lua_touserdata(L,i);
     LUA_TNUMBER        : result:=lua_tonumber(L, i);
     LUA_TSTRING        : result:=Lua_ToString(L, i);
-    LUA_TUSERDATA      : result:=lua_ToCEUserData(L, i);
     else
       raise exception.create(rsThisTypeIsNotSupportedHere);
 
