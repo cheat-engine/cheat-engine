@@ -409,7 +409,8 @@ createPopupMenu(owner)
 Strings Class: (Inheritance : Object) (Mostly an abstract class)
 properties
   Text : String - All the strings in one string
-  String[]: String - Array to access one specific string in the list (default)
+  String[]: String - Array to access one specific string in the list
+  [] = String[]
 
 methods
   clear() : Deletes all strings in the list
@@ -781,8 +782,14 @@ methods
 
 
 ListColumns class : (Inheritance: Collection->Object)
-listcolumns_add(listcolumns): Returns a new ListColumn object
-listcolumns_getColumn(listcolumns, index): Returns a ListColum object;
+properties
+  Columns[]: Array to access a column
+  [] = Columns[]
+
+methods
+  add(): Returns a new ListColumn object
+  getColumn(index): Returns a ListColum object;
+  setColumn(index, listcolumns): Sets a ListColum object (not recomended, use add instead)
 
 ListItem Class : (Inheritance: TObject)
 listitem_delete(listitem)
