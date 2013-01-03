@@ -562,16 +562,27 @@ methods
 
 Memo Class: (Inheritance: Edit->WinControl->Control->Component->Object)
 createMemo(owner): Creates a Memo class object which belongs to the given owner. Owner can be any object inherited from WinControl
-memo_append(memo,string)
-memo_getLines(memo) : returns a Strings class
-memo_getWordWrap(memo)
-memo_setWordWrap(memo, boolean)
-memo_getWantTabs(memo)
-memo_setWantTabs(memo, boolean)
-memo_getWantReturns(memo)
-memo_setWantReturns(memo, boolean)
-memo_getScrollbars(memo)
-memo_setScrollbars(memo, scrollbarenumtype) : 
+
+properties
+  Lines: Strings - Strings object for this memo
+  WordWrap: boolean - Set if words at the end of the control should go to the next line
+  WantTabs: Boolean - Set if tabs will add a tab to the memo. False if tab will go to the next control
+  WantReturns: Boolean - Set if returns will send a event or not
+  Scrollbars: Scrollstyle - Set the type of ascrollbars to show (ssNone, ssHorizontal, ssVertical, ssBoth,
+    ssAutoHorizontal, ssAutoVertical, ssAutoBoth)
+
+
+methods
+  append(string)
+  getLines() : returns a Strings class
+  getWordWrap()
+  setWordWrap(boolean)
+  getWantTabs()
+  setWantTabs(boolean)
+  getWantReturns()
+  setWantReturns(boolean)
+  getScrollbars()
+  setScrollbars(scrollbarenumtype) : 
   Sets the scrollbars. Horizontal only takes affect when wordwrap is disabled
   valid enum types: 
     ssNone : No scrollbars
