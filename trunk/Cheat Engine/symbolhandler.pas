@@ -1610,9 +1610,9 @@ begin
                 modulelist[modulelistpos].baseaddress:=ptrUint(me32.modBaseAddr);
                 modulelist[modulelistpos].basesize:=me32.modBaseSize;
 
-                {$ifdef cpu32}
-                modulelist[modulelistpos].is64bitmodule:=false
-                {$else}
+
+                modulelist[modulelistpos].is64bitmodule:=false;
+                {$ifdef cpu64}
                 if is64bitprocess then
                   modulelist[modulelistpos].is64bitmodule:=true
                 else

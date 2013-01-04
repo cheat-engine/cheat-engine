@@ -1243,6 +1243,7 @@ var memory: TMemory;
 
     tempaddress: ptrUint;
     prefixsize: integer;
+    mi: TModuleInfo;
 begin
   if is64bitOverride then
     is64bit:=is64BitOverrideState
@@ -1253,6 +1254,10 @@ begin
     if offset>=QWORD($100000000) then
       is64bit:=true;
     {$endif}
+
+    if symhandler.getmodulebyaddress(offset, mi) then
+      is64bit:=mi.is64bitmodule;
+
   end;
 
 
