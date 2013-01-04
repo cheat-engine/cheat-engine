@@ -124,6 +124,7 @@ begin
   luaclass_addPropertyToTable(L, metatable, userdata, 'Items', listview_getItems, listview_setItems);
   luaclass_addPropertyToTable(L, metatable, userdata, 'ItemIndex', listview_getItemIndex, listview_setItemIndex);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Canvas', listview_getCanvas, nil);
+
 end;
 
 procedure initializeLuaListview;

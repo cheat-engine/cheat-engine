@@ -69,7 +69,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports, Mem
   LuaStringlist, LuaCustomControl, LuaGraphicControl, LuaPanel, LuaImage, LuaButton,
   LuaCheckbox, LuaGroupbox, LuaListbox, LuaCombobox, LuaTrackbar, LuaListColumn,
   LuaEdit, LuaMemo, LuaCollection, LuaListColumns, LuaListitem, LuaListItems,
-  LuaListview;
+  LuaTimer, LuaListview;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -2247,124 +2247,6 @@ end;
 
 
 
-
-function createTimer(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  f,p: pointer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters>=1 then
-  begin
-    f:=lua_toceuserdata(L, -parameters);
-    p:=ce_createTimer(f);
-
-    if parameters>=2 then
-      tcustomtimer(p).Enabled:=lua_toboolean(L, -parameters+1)
-    else
-      tcustomtimer(p).enabled:=true;
-
-    lua_pop(L, lua_gettop(L));
-
-    luaclass_newClass(L, p);
-    result:=1;
-  end else lua_pop(L, lua_gettop(L));
-end;
-
-function timer_setInterval(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  t: TCustomTimer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    t:=lua_toceuserdata(L, -2);
-    t.Interval:=lua_tointeger(L, -1);
-  end;
-
-  lua_pop(L, lua_gettop(L));
-end;
-
-function timer_onTimer(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  timer: TCustomTimer;
-  f: integer;
-  routine: string;
-
-  lc: TLuaCaller;
-  oldroutine: TNotifyEvent;
-begin
-
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    timer:=lua_toceuserdata(L,-2);
-    oldroutine:=timer.OnTimer;
-
-    CleanupLuaCall(TMethod(timer.OnTimer));
-    timer.ontimer:=nil;
-
-    if lua_isfunction(L,-1) then
-    begin
-      routine:=Lua_ToString(L,-1);
-      f:=luaL_ref(L,LUA_REGISTRYINDEX);
-
-      lc:=TLuaCaller.create;
-      lc.luaroutineIndex:=f;
-      timer.OnTimer:=lc.NotifyEvent;
-    end
-    else
-    if lua_isstring(L,-1) then
-    begin
-      routine:=lua_tostring(L,-1);
-      lc:=TLuaCaller.create;
-      lc.luaroutine:=routine;
-      timer.OnTimer:=lc.NotifyEvent;
-    end;
-
-
-  end;
-
-  lua_pop(L, parameters);
-end;
-
-function timer_setEnabled(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  Timer: TCustomTimer;
-  Enabled: boolean;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    Timer:=lua_toceuserdata(L,-2);
-    Timer.Enabled:=lua_toboolean(L,-1);
-  end;
-
-  lua_pop(L, parameters);
-end;
-
-function timer_getEnabled(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  Timer: TCustomTimer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    Timer:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushboolean(L, Timer.Enabled);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
 
 
 
@@ -4731,13 +4613,11 @@ begin
 
 
     initializeLuaListview;
+    initializeLuaTimer;
 
 
-    lua_register(LuaVM, 'createTimer', createTimer);
-    lua_register(LuaVM, 'timer_setInterval', timer_setInterval);
-    lua_register(LuaVM, 'timer_onTimer', timer_onTimer);
-    lua_register(LuaVM, 'timer_setEnabled', timer_setEnabled);
-    lua_register(LuaVM, 'timer_getEnabled', timer_getEnabled);
+
+
 
     lua_register(LuaVM, 'openDialog_execute', openDialog_execute);
 
