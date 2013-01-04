@@ -866,29 +866,36 @@ methods
 
 
 Canvas Class : (Inheritance: CustomCanvas->Object)
-canvas_getBrush(canvas): Returns the brush object of this canvas
-canvas_getPen(canvas): Returns the pen object of this canvas
-canvas_getFont(canvas): Returns the font object of this canvas
-canvas_getWidth(canvas)
-canvas_getHeight(canvas)
-canvas_getPenPosition(canvas)
-canvas_setPenPosition(canvas, x,y)
+properties
+  Brush: Brush - The brush object
+  Pen: Pen - The pen object
+  Font: Font - The font object
+  Width: integer - Width of the canvas
+  Height: integer - Height of the canvas  
 
 
-canvas_line(canvas, sourcex, sourcey, destinationx, destinationy)
-canvas_lineTo(canvas, destinationx, destinationy)
-canvas_rect(canvas, x1,y1,x2,y2)
-canvas_fillRect(canvas, x1,y1,x2,y2)
-canvas_textOut(canvas, x,y, text)
-canvas_getTextWidth(canvas, text)
-canvas_getTextHeight(canvas, text)
-canvas_getPixel(canvas, x,y)
-canvas_setPixel(canvas, x,y,color)
-canvas_floodFill(canvas, x,y)
-canvas_ellipse(canvas, x1,y1,x2,y2)
-canvas_gradientFill(canvas, x1,y1,x2,y2, startcolor, stopcolor, direction) : Gradient fills a rectangle. Direction can be 0 or 1. 0=Vertical 1=Horizontal
-canvas_copyRect(dest_canvas, dest_x1,dest_y1,dest_x2,dest_y2, sourceCanvas, source_x1,source_y1,source_x2,source_y2)
-canvas_draw(canvas, x,y, graphic) : Draw the image of a specific Graphic class
+methods
+  getBrush(): Returns the brush object of this canvas
+  getPen(): Returns the pen object of this canvas
+  getFont(): Returns the font object of this canvas
+  getWidth()
+  getHeight()
+  getPenPosition()
+  setPenPosition(x,y)
+  line(sourcex, sourcey, destinationx, destinationy)
+  lineTo(destinationx, destinationy)
+  rect(x1,y1,x2,y2)
+  fillRect(x1,y1,x2,y2)
+  textOut(x,y, text)
+  getTextWidth(text)
+  getTextHeight(text)
+  getPixel(x,y)
+  setPixel(x,y,color)
+  floodFill(x,y)
+  ellipse(x1,y1,x2,y2)
+  gradientFill(x1,y1,x2,y2, startcolor, stopcolor, direction) : Gradient fills a rectangle. Direction can be 0 or 1. 0=Vertical 1=Horizontal
+  copyRect(dest_x1,dest_y1,dest_x2,dest_y2, sourceCanvas, source_x1,source_y1,source_x2,source_y2)
+  draw(x,y, graphic) : Draw the image of a specific Graphic class
 
 Pen Class : (Inheritance: CustomPen->CanvasHelper->Object)
 pen_getColor(pen)
