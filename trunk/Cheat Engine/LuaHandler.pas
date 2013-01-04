@@ -68,7 +68,8 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports, Mem
   OpenSave, cedebugger, DebugHelper, LuaObject, LuaComponent, LuaControl, LuaStrings,
   LuaStringlist, LuaCustomControl, LuaGraphicControl, LuaPanel, LuaImage, LuaButton,
   LuaCheckbox, LuaGroupbox, LuaListbox, LuaCombobox, LuaTrackbar, LuaListColumn,
-  LuaEdit, LuaMemo, LuaCollection, LuaListColumns, LuaListitem;
+  LuaEdit, LuaMemo, LuaCollection, LuaListColumns, LuaListitem, LuaListItems,
+  LuaListview;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -2093,24 +2094,6 @@ end;
 
 
 
-function listView_getCanvas(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  c: TlistView;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    c:=lua_toceuserdata(L,-1);
-
-    lua_pop(L, parameters);
-
-    luaclass_newClass(L, c.Canvas);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
 
 
 
@@ -2960,125 +2943,6 @@ begin
   result:=1;
 end;
 
-
-
-
-
-
-
-//listview
-function createListView(L: Plua_State): integer; cdecl;
-var
-  ListView: TCEListView;
-  parameters: integer;
-  owner: TWincontrol;
-begin
-  result:=0;
-
-  parameters:=lua_gettop(L);
-  if parameters>=1 then
-    owner:=lua_toceuserdata(L, -parameters)
-  else
-    owner:=nil;
-
-  lua_pop(L, lua_gettop(L));
-
-
-  ListView:=TCEListView.Create(owner);
-  ListView.ViewStyle:=vsReport;
-  if owner<>nil then
-    ListView.Parent:=owner;
-
-
-
-  luaclass_newClass(L, ListView);
-  result:=1;
-end;
-
-function listview_clear(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  listview: Tcustomlistview;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    listview:=lua_toceuserdata(L, -1);
-    listview.Clear;
-  end;
-  lua_pop(L, lua_gettop(L));
-end;
-
-function listview_getColumns(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  listview: TCEListView;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    listview:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    luaclass_newClass(L, listview.Columns);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function listview_getItems(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  listview: TCustomListView;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    listview:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    luaclass_newClass(L, listview.Items);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function listview_getItemIndex(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  listview: Tcustomlistview;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    listview:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, listview.ItemIndex);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function listview_setItemIndex(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  listview: Tcustomlistview;
-  a: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    listview:=lua_toceuserdata(L,-2);
-    listview.itemindex:=lua_tointeger(L,-1);
-  end;
-
-  lua_pop(L, parameters);
-end;
 
 function opendialog_execute(L: Plua_State): integer; cdecl;
 var parameters: integer;
@@ -4863,16 +4727,10 @@ begin
     initializeLuaListItem;
 
 
+    initializeLuaListItems;
 
 
-
-    lua_register(LuaVM, 'createListView', createListView);
-    lua_register(LuaVM, 'listview_clear', listview_clear);
-    lua_register(LuaVM, 'listview_getColumns', listview_getColumns);
-    lua_register(LuaVM, 'listview_getItems', listview_getItems);
-    lua_register(LuaVM, 'listview_getItemIndex', listview_getItemIndex);
-    lua_register(LuaVM, 'listview_setItemIndex', listview_setItemIndex);
-    lua_register(LuaVM, 'listview_getCanvas', listview_getCanvas);
+    initializeLuaListview;
 
 
     lua_register(LuaVM, 'createTimer', createTimer);

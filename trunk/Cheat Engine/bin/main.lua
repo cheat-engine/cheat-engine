@@ -824,12 +824,20 @@ methods
 
 Listview Class : (Inheritance: WinControl->Control->Component->Object)
 createListView(owner): Creates a ListView class object which belongs to the given owner. Owner can be any object inherited from WinControl
-listview_clear(listview)
-listview_getColumns(listview): Returns a ListColumns object
-listview_getItems(listview) : Returns a ListItems object
-listview_getItemIndex(listview)
-listview_setItemIndex(listview, index)
-listview_getCanvas(listview)
+
+properties
+  Columns: ListColumns - The Listcolumns object of the listview (Readonly)
+  Items: ListItems - The ListItems objects of the listview
+  ItemIndex: integer - The currently selected index in the Items object 
+  Canvas: Canvas - The canvas object used to render the listview  (Readonly)
+
+methods
+  clear()
+  getColumns() : Returns a ListColumns object
+  getItems(): Returns a ListItems object
+  getItemIndex()
+  setItemIndex(index)
+  getCanvas()
 
 
 Timer Class : (Inheritance: Component->object)
