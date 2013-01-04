@@ -18,7 +18,7 @@ procedure luaclass_addClassFunctionToTable(L: PLua_State; metatable: integer; us
 procedure luaclass_addPropertyToTable(L: PLua_State; metatable: integer; userdata: integer; propertyname: string; getfunction: lua_CFunction; setfunction: lua_CFunction);
 procedure luaclass_setDefaultArrayProperty(L: PLua_State; metatable: integer; userdata: integer; getf,setf: lua_CFunction);
 
-procedure luaclass_addArrayPropertyToTable(L: PLua_State; metatable: integer; userdata: integer; propertyname: string; f: lua_CFunction);
+procedure luaclass_addArrayPropertyToTable(L: PLua_State; metatable: integer; userdata: integer; propertyname: string; getf: lua_CFunction; setf: lua_CFunction=nil);
 
 procedure luaclass_setAutoDestroy(L: PLua_State; metatable: integer; state: boolean);
 
@@ -200,7 +200,7 @@ begin
 
 end;
 
-procedure luaclass_addArrayPropertyToTable(L: PLua_State; metatable: integer; userdata: integer; propertyname: string; f: lua_CFunction);
+procedure luaclass_addArrayPropertyToTable(L: PLua_State; metatable: integer; userdata: integer; propertyname: string; getf: lua_CFunction; setf: lua_CFunction=nil);
 var t,t2: integer;
 begin
   lua_pushstring(L, propertyname);
@@ -208,7 +208,7 @@ begin
 
   t:=lua_gettop(L);
 
-  luaclassarray_createMetaTable(L, userdata, f);
+  luaclassarray_createMetaTable(L, userdata, getf, setf);
   lua_setmetatable(L, t);
 
   lua_settable(L, metatable);

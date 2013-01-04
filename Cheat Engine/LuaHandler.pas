@@ -2965,76 +2965,6 @@ end;
 
 
 
-function listitems_clear(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  listitems: Tlistitems;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    listitems:=lua_toceuserdata(L, -1);
-    listitems.clear;
-  end;
-  lua_pop(L, lua_gettop(L));
-end;
-
-function listitems_getItem(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  listitems: Tlistitems;
-  index: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    listitems:=lua_toceuserdata(L,-parameters);
-    index:=lua_tointeger(L,-parameters+1);
-    lua_pop(L, parameters);
-
-    luaclass_newClass(L, listitems.Item[index]);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function listitems_getCount(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  listitems: Tlistitems;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    listitems:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, listitems.Count);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function listitems_add(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  listitems: Tlistitems;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    listitems:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    luaclass_newClass(L, listitems.Add);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
 
 //listview
 function createListView(L: Plua_State): integer; cdecl;
@@ -4934,10 +4864,6 @@ begin
 
 
 
-    lua_register(LuaVM, 'listitems_clear', listitems_clear);
-    lua_register(LuaVM, 'listitems_getCount', listitems_getCount);
-    lua_register(LuaVM, 'listitems_getItem', listitems_getItem);
-    lua_register(LuaVM, 'listitems_add', listitems_add);
 
 
     lua_register(LuaVM, 'createListView', createListView);
