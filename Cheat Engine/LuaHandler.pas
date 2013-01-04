@@ -68,7 +68,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports, Mem
   OpenSave, cedebugger, DebugHelper, LuaObject, LuaComponent, LuaControl, LuaStrings,
   LuaStringlist, LuaCustomControl, LuaGraphicControl, LuaPanel, LuaImage, LuaButton,
   LuaCheckbox, LuaGroupbox, LuaListbox, LuaCombobox, LuaTrackbar, LuaListColumn,
-  LuaEdit, LuaMemo, LuaCollection, LuaListColumns;
+  LuaEdit, LuaMemo, LuaCollection, LuaListColumns, LuaListitem;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -2965,112 +2965,6 @@ end;
 
 
 
-
-
-
-function listitem_delete(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  listitem: Tlistitem;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    listitem:=lua_toceuserdata(L, -1);
-    listitem.Delete;
-  end;
-
-  lua_pop(L, lua_gettop(L));
-end;
-
-function listitem_getCaption(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  listitem: Tlistitem;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    listitem:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushstring(L, listitem.caption);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function listitem_setCaption(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  listitem: Tlistitem;
-  a: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    listitem:=lua_toceuserdata(L,-2);
-    listitem.Caption:=Lua_ToString(L,-1);
-  end;
-
-  lua_pop(L, parameters);
-end;
-
-function listitem_getChecked(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  listitem: Tlistitem;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    listitem:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushboolean(L, listitem.Checked);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function listitem_setChecked(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  listitem: Tlistitem;
-  a: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    listitem:=lua_toceuserdata(L,-2);
-    listitem.Checked:=lua_toboolean(L,-1);
-  end;
-
-  lua_pop(L, parameters);
-end;
-
-function listitem_getSubItems(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  listitem: Tlistitem;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    listitem:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    luaclass_newClass(L, listitem.SubItems);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
 function listitems_clear(L: Plua_State): integer; cdecl;
 var parameters: integer;
   listitems: Tlistitems;
@@ -5036,14 +4930,9 @@ begin
     initializeLuaListColumns;
 
 
+    initializeLuaListItem;
 
 
-    lua_register(LuaVM, 'listitem_delete', listitem_delete);
-    lua_register(LuaVM, 'listitem_getCaption', listitem_getCaption);
-    lua_register(LuaVM, 'listitem_setCaption', listitem_setCaption);
-    lua_register(LuaVM, 'listitem_getChecked', listitem_getChecked);
-    lua_register(LuaVM, 'listitem_setChecked', listitem_setChecked);
-    lua_register(LuaVM, 'listitem_getSubItems', listitem_getSubItems);
 
     lua_register(LuaVM, 'listitems_clear', listitems_clear);
     lua_register(LuaVM, 'listitems_getCount', listitems_getCount);
