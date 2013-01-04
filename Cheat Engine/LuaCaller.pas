@@ -57,31 +57,48 @@ function LuaCaller_KeyPressEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_LVCheckedItemEvent(L: PLua_state): integer; cdecl;
 
 procedure LuaCaller_pushMethodProperty(L: PLua_state; m: TMethod; typename: string);
-procedure LuaCaller_setMethodProperty(L: PLua_state; c: TObject; prop: string; typename: string; luafunctiononstack: integer);
-//procedure LuaCaller_setMethodProperty(L: PLua_state; var m: TMethod; typename: string; luafunctiononstack: integer);
+procedure LuaCaller_setMethodProperty(L: PLua_state; c: TObject; prop: string; typename: string; luafunctiononstack: integer);  overload;
+procedure LuaCaller_setMethodProperty(L: PLua_state; var m: TMethod; typename: string; luafunctiononstack: integer); overload;
 
 implementation
 
 uses luahandler, MainUnit;
 
-procedure LuaCaller_setMethodProperty(L: PLua_state; c: TObject; prop: string; typename: string; luafunctiononstack: integer);
-//note: This only works on published methods
-var m: tmethod;
+type
+  TLuaCallData=class(tobject)
+    GetMethodProp: lua_CFunction; //used when lua wants a function to a class method/property  (GetMethodProp)
+    SetMethodProp: pointer; //used when we want to set a method property to a lua function (SetMethodProp)
+  end;
+var LuaCallList: Tstringlist;
+
+
+procedure LuaCaller_setMethodProperty(L: PLua_state; var m: TMethod; typename: string; luafunctiononstack: integer);
+var
   lc: TLuaCaller;
-  f: integer;
+  i,r: integer;
+
+  newcode: pointer;
 begin
-  m:=GetMethodProp(c, prop);
+
+  i:=LuaCallList.IndexOf(typename);
+  if i=-1 then
+    raise exception.create('This type of method:'+typename+' is not yet supported');
+
+  newcode:=TLuaCallData(LuaCallList.Objects[i]).SetMethodProp;
+
+  //proper type, let's clean it up
   CleanupLuaCall(m);
   lc:=nil;
+
 
   //create a TLuacaller for the given function
   if lua_isfunction(L, luafunctiononstack) then
   begin
     lua_pushvalue(L, luafunctiononstack);
-    f:=luaL_ref(L,LUA_REGISTRYINDEX);
+    r:=luaL_ref(L,LUA_REGISTRYINDEX);
 
     lc:=TLuaCaller.create;
-    lc.luaroutineIndex:=f;
+    lc.luaroutineIndex:=r;
   end
   else
   if lua_isstring(L, luafunctiononstack) then
@@ -94,51 +111,44 @@ begin
   begin
     m.code:=nil;
     m.data:=nil;
-    SetPropValue(c, prop, nil);
-    //setMethodProp(c, prop, m);
+    exit;
   end;
 
   if lc<>nil then
   begin
-
-    if typename ='TNotifyEvent' then
-      m:=tmethod(tnotifyevent(lc.NotifyEvent))
-    else
-    if typename ='TSelectionChangeEvent' then
-      m:=tmethod(TSelectionChangeEvent(lc.SelectionChangeEvent))
-    else
-    if typename ='TCloseEvent' then
-      m:=tmethod(TCloseEvent(lc.CloseEvent))
-    else
-    if typename ='TMouseEvent' then
-      m:=tmethod(TMouseEvent(lc.MouseEvent))
-    else
-    if typename ='TMouseMoveEvent' then
-      m:=tmethod(TMouseMoveEvent(lc.MouseMoveEvent))
-    else
-    if typename ='TKeyPressEvent' then
-      m:=tmethod(TKeyPressEvent(lc.KeyPressEvent))
-    else
-    if typename ='TLVCheckedItemEvent' then
-      m:=tmethod(TLVCheckedItemEvent(lc.LVCheckedItemEvent))
-    else
-      raise exception.create('This type of method:'+typename+' is not yet supported');
-
-    setMethodProp(c, prop, m);
+    m.Data:=lc;
+    m.code:=newcode;
   end;
+end;
 
-
+procedure LuaCaller_setMethodProperty(L: PLua_state; c: TObject; prop: string; typename: string; luafunctiononstack: integer);
+//note: This only works on published methods
+var m: tmethod;
+begin
+  m:=GetMethodProp(c, prop);
+  LuaCaller_setMethodProperty(L, m, typename, luafunctiononstack);
+  setMethodProp(c, prop, m);
 end;
 
 procedure luaCaller_pushMethodProperty(L: PLua_state; m: TMethod; typename: string);
+var
+  f: lua_CFunction;
+  i: integer;
 begin
+  i:=LuaCallList.IndexOf(typename);
+  if i=-1 then
+    raise exception.create('This type of method:'+typename+' is not yet supported');
+
+  f:=TLuaCallData(LuaCallList.Objects[i]).GetMethodProp;
+
+
   if m.data=nil then
   begin
     lua_pushnil(L);
     exit;
   end;
 
-  if tobject(m.Data)is TLuaCaller then
+  if tobject(m.Data) is TLuaCaller then
     TLuaCaller(m.data).pushFunction
   else
   begin
@@ -148,29 +158,7 @@ begin
 
     lua_pushlightuserdata(L, m.code);
     lua_pushlightuserdata(L, m.data);
-
-    if typename ='TNotifyEvent' then
-      lua_pushcclosure(L, LuaCaller_NotifyEvent,2)
-    else
-    if typename ='TSelectionChangeEvent' then
-      lua_pushcclosure(L, LuaCaller_SelectionChangeEvent,2)
-    else
-    if typename ='TCloseEvent' then
-      lua_pushcclosure(L, LuaCaller_CloseEvent,2)
-    else
-    if typename ='TMouseEvent' then
-      lua_pushcclosure(L, LuaCaller_MouseEvent,2)
-    else
-    if typename ='TMouseMoveEvent' then
-      lua_pushcclosure(L, LuaCaller_MouseMoveEvent,2)
-    else
-    if typename ='TKeyPressEvent' then
-      lua_pushcclosure(L, LuaCaller_KeyPressEvent,2)
-    else
-    if typename ='TLVCheckedItemEvent' then
-      lua_pushcclosure(L, LuaCaller_LVCheckedItemEvent,2)
-    else
-      raise exception.create('This type of method:'+typename+' is not yet supported');
+    lua_pushcclosure(L, f,2);
   end;
 end;
 
@@ -723,6 +711,25 @@ begin
   else
     lua_pop(L, lua_gettop(L));
 end;
+
+procedure registerLuaCall(typename: string; getmethodprop: lua_CFunction; setmethodprop: pointer);
+var t: TLuaCallData;
+begin
+  t:=TLuaCallData.Create;
+  t.getmethodprop:=getmethodprop;
+  t.setmethodprop:=setmethodprop;
+  LuaCallList.AddObject(typename, t);
+end;
+
+initialization
+  LuaCallList:=TStringList.create;
+  registerLuaCall('TNotifyEvent',  LuaCaller_NotifyEvent, pointer(TLuaCaller.NotifyEvent));
+  registerLuaCall('TSelectionChangeEvent', LuaCaller_SelectionChangeEvent, pointer(TLuaCaller.SelectionChangeEvent));
+  registerLuaCall('TCloseEvent', LuaCaller_CloseEvent, pointer(TLuaCaller.CloseEvent));
+  registerLuaCall('TMouseEvent', LuaCaller_MouseEvent, pointer(TLuaCaller.MouseEvent));
+  registerLuaCall('TMouseMoveEvent', LuaCaller_MouseMoveEvent, pointer(TLuaCaller.MouseMoveEvent));
+  registerLuaCall('TKeyPressEvent', LuaCaller_KeyPressEvent, pointer(TLuaCaller.KeyPressEvent));
+  registerLuaCall('TLVCheckedItemEvent', LuaCaller_LVCheckedItemEvent, pointer(TLuaCaller.LVCheckedItemEvent));
 
 end.
 

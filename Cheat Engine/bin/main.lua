@@ -845,10 +845,18 @@ createTimer(owner, enabled OPT):
   Creates a timer object. If enabled is not given it will be enabled by default (will start as soon as an onTimer event has been assigned)
   Owner may be nil, but you will be responsible for destroying it instead of being the responsibility of the owner object)
 
-timer_setInterval(timer, interval) : Sets the speed on how often the timer should trigger. In milliseconds (1000=1 second)
-timer_onTimer(timer, function)
-timer_getEnabled(timer)
-timer_setEnabled(timer, boolean)
+properties
+  Interval: integer - The number of milliseconds (1000=1 second) between executions
+  Enabled: boolean
+  OnTimer: function - The function to call when the timer triggers
+
+methods
+  getInterval()
+  setInterval(interval) : Sets the speed on how often the timer should trigger. In milliseconds (1000=1 second)
+  getOnTimer()
+  setOnTimer(function)
+  getEnabled()
+  setEnabled()boolean)
 
 CustomControl class (CustomControl->WinControl->Control->Component->Object)
 properties
