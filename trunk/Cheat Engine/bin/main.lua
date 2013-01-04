@@ -801,19 +801,24 @@ properties
   Owner: ListItems - The ListItems object that owns this ListItem (readonly)
 
 methods
-  delete(listitem)
-  getCaption(listitem) : Returns the first columns string of the listitem
-  setCaption(listitem, string) : Sets the first column string of the listitem
-  getChecked(listitem) : Returns true if the listitem is checked
-  setChecked(listitem, state): Sets the checkbox of the listbox to the given state
-  getSubItems(listitem): Returns a Strings object
+  delete()
+  getCaption() : Returns the first columns string of the listitem
+  setCaption(string) : Sets the first column string of the listitem
+  getChecked() : Returns true if the listitem is checked
+  setChecked(boolean): Sets the checkbox of the listbox to the given state
+  getSubItems(): Returns a Strings object
 
 
 ListItems class : (Inheritance: TObject)
-listitems_clear(listitems)
-listitems_getCount(listitems)
-listitems_getItem(li, index) : Return the listitem object at the given index
-listitems_add(listitems): Returns a new ListItem object
+properties
+  Count : Integer - The number of ListItems this object holds
+  Item[]: ListItem[] - Array to access each ListItem object
+  [] = Item[]
+methods
+  clear()
+  getCount()
+  getItem(integer) : Return the listitem object at the given index
+  add(): Returns a new ListItem object
 
 
 
