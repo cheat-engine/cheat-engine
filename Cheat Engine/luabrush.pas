@@ -11,40 +11,33 @@ procedure initializeLuaBrush;
 
 implementation
 
-function brush_getColor(L: PLua_State): integer; cdecl;
+uses LuaClass, LuaObject;
+
+function Brush_getColor(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
-  brush: Tbrush;
-
+  Brush: TBrush;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    brush:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, brush.Color);
-    result:=1;
-  end else lua_pop(L, parameters);
+  Brush:=luaclass_getClassObject(L);
+  lua_pushinteger(L, Brush.Color);
+  result:=1;
 end;
 
-function brush_setColor(L: PLua_State): integer; cdecl;
+function Brush_setColor(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
-  brush: Tbrush;
-  color: TColor;
+  Brush: TBrush;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    brush:=lua_touserdata(L,-parameters);
-    color:=lua_tointeger(L, -parameters+1);
-    lua_pop(L, parameters);
+  Brush:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    Brush.color:=lua_tointeger(L, -1);
+  result:=1;
+end;
 
-    brush.Color:=color;
-  end else lua_pop(L, parameters);
+procedure brush_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
+begin
+  object_addMetaData(L, metatable, userdata);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getColor', brush_getColor);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setColor', brush_setColor);
+  Luaclass_addPropertyToTable(L, metatable, userdata, 'Color', brush_getColor, brush_setColor);
 end;
 
 procedure initializeLuaBrush;
@@ -52,6 +45,9 @@ begin
   lua_register(LuaVM, 'brush_getColor', brush_getColor);
   lua_register(LuaVM, 'brush_setColor', brush_setColor);
 end;
+
+initialization
+  luaclass_register(TBrush, brush_addMetaData);
 
 end.
 
