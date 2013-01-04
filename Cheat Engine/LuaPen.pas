@@ -11,75 +11,55 @@ procedure initializeLuaPen;
 
 implementation
 
+uses luaclass, LuaObject;
+
 function pen_getColor(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   pen: TPen;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    pen:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, pen.Color);
-    result:=1;
-  end else lua_pop(L, parameters);
+  pen:=luaclass_getClassObject(L);
+  lua_pushinteger(L, pen.Color);
+  result:=1;
 end;
 
 function pen_setColor(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   pen: TPen;
-  color: TColor;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    pen:=lua_touserdata(L,-parameters);
-    color:=lua_tointeger(L, -parameters+1);
-    lua_pop(L, parameters);
-
-    pen.Color:=color;
-  end else lua_pop(L, parameters);
+  pen:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    pen.color:=lua_tointeger(L, -1);
+  result:=1;
 end;
 
 function pen_getWidth(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   pen: TPen;
-
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    pen:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, pen.Width);
-    result:=1;
-  end else lua_pop(L, parameters);
+  pen:=luaclass_getClassObject(L);
+  lua_pushinteger(L, pen.Width);
+  result:=1;
 end;
 
 function pen_setWidth(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   pen: TPen;
-  width: integer;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    pen:=lua_touserdata(L,-parameters);
-    width:=lua_tointeger(L, -parameters+1);
-    lua_pop(L, parameters);
+  pen:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    pen.Width:=lua_tointeger(L, -1);
+  result:=1;
+end;
 
-    pen.Width:=width;
-  end else lua_pop(L, parameters);
+procedure pen_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
+begin
+  object_addMetaData(L, metatable, userdata);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getColor', pen_getColor);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setColor', pen_setColor);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getWidth', pen_getWidth);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setWidth', pen_setWidth);
+  Luaclass_addPropertyToTable(L, metatable, userdata, 'Color', pen_getColor, pen_setColor);
+  Luaclass_addPropertyToTable(L, metatable, userdata, 'Width', pen_getWidth, pen_setWidth);
 end;
 
 procedure initializeLuaPen;
@@ -90,6 +70,9 @@ begin
   lua_register(LuaVM, 'pen_setWidth', pen_setWidth);
 
 end;
+
+initialization
+  luaclass_register(TPen, pen_addMetaData);
 
 end.
 

@@ -898,10 +898,14 @@ methods
   draw(x,y, graphic) : Draw the image of a specific Graphic class
 
 Pen Class : (Inheritance: CustomPen->CanvasHelper->Object)
-pen_getColor(pen)
-pen_setColor(pen, color)
-pen_getWidth(pen)
-pen_setWidth(pen, width)
+properties
+  Color: Integer - The color of the pen
+  Width: integer - Thickness of the pen
+methods
+  getColor()
+  setColor(color)
+  getWidth()
+  setWidth(width)
 
 
 Brush Class : (Inheritance: CustomBrush->CanvasHelper->Object)
