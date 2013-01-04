@@ -792,12 +792,21 @@ methods
   setColumn(index, listcolumns): Sets a ListColum object (not recomended, use add instead)
 
 ListItem Class : (Inheritance: TObject)
-listitem_delete(listitem)
-listitem_getCaption(listitem) : Returns the first columns string of the listitem
-listitem_setCaption(listitem, string) : Sets the first column string of the listitem
-listitem_getChecked(listitem) : Returns true if the listitem is checked
-listitem_setChecked(listitem, state): Sets the checkbox of the listbox to the given state
-listitem_getSubItems(listitem): Returns a Strings object
+properties
+  Caption: boolean - The text of this listitem
+  Checked: boolean - Determines if the checkbox is checked (if it has a checkbox)
+  SubItems: Strings - The Strings object that hold the subitems
+  Selected: boolean - Returns true if selected
+  Index: integer - The index in the Items object of the owner of this listitem (readonly)
+  Owner: ListItems - The ListItems object that owns this ListItem (readonly)
+
+methods
+  delete(listitem)
+  getCaption(listitem) : Returns the first columns string of the listitem
+  setCaption(listitem, string) : Sets the first column string of the listitem
+  getChecked(listitem) : Returns true if the listitem is checked
+  setChecked(listitem, state): Sets the checkbox of the listbox to the given state
+  getSubItems(listitem): Returns a Strings object
 
 
 ListItems class : (Inheritance: TObject)
