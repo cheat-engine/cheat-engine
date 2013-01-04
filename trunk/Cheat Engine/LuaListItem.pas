@@ -134,7 +134,7 @@ begin
   luaclass_addPropertyToTable(L, metatable, userdata, 'Checked', listitem_getChecked, listitem_setChecked);
   luaclass_addPropertyToTable(L, metatable, userdata, 'SubItems', listitem_getSubItems, listitem_setSubItems);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Index', listitem_getIndex, nil);
-  Luaclass_addPropertyToTable(L, metatable, userdata, 'Index', listitem_getSelected, listitem_setSelected);
+  Luaclass_addPropertyToTable(L, metatable, userdata, 'Selected', listitem_getSelected, listitem_setSelected);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Owner', listitem_getOwner, nil);
 
 end;
