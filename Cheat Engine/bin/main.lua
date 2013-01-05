@@ -987,11 +987,9 @@ methods
 
 GenericHotkey Class : (Inheritance:  Object)
 createHotkey(function, keys, ...) : returns an initialized GenericHotkey class object. Maximum of 5 keys
-createHotkey(function, table) 
 
 properties
-  generichotkey_onHotkey(hotkey, function)
-  keys: Table
+  onHotkey: The function to call when the hotkey is pressed
 
 methods
   getKeys()
