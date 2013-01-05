@@ -11,76 +11,79 @@ procedure initializeLuaGraphic;
 
 implementation
 
+uses luaclass, LuaObject;
+
 function graphic_getWidth(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   graphic: TGraphic;
-
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    graphic:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, graphic.Width);
-    result:=1;
-  end else lua_pop(L, parameters);
+  graphic:=luaclass_getClassObject(L);
+  lua_pushinteger(L, graphic.Width);
+  result:=1;
 end;
 
 function graphic_setWidth(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   graphic: TGraphic;
-  width: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    graphic:=lua_touserdata(L,-parameters);
-    width:=lua_tointeger(L, -parameters+1);
-    lua_pop(L, parameters);
-
-    graphic.Width:=width;
-  end else lua_pop(L, parameters);
+  graphic:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    graphic.Width:=lua_tointeger(L, -1);
 end;
 
 function graphic_getHeight(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   graphic: TGraphic;
-
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    graphic:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, graphic.Height);
-    result:=1;
-  end else lua_pop(L, parameters);
+  graphic:=luaclass_getClassObject(L);
+  lua_pushinteger(L, graphic.Height);
+  result:=1;
 end;
 
 function graphic_setHeight(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   graphic: TGraphic;
-  Height: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    graphic:=lua_touserdata(L,-parameters);
-    Height:=lua_tointeger(L, -parameters+1);
-    lua_pop(L, parameters);
+  graphic:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    graphic.Height:=lua_tointeger(L, -1);
+end;
 
-    graphic.Height:=Height;
-  end else lua_pop(L, parameters);
+function graphic_getTransparent(L: PLua_State): integer; cdecl;
+var
+  graphic: TGraphic;
+begin
+  graphic:=luaclass_getClassObject(L);
+  lua_pushboolean(L, graphic.Transparent);
+  result:=1;
+end;
+
+function graphic_setTransparent(L: PLua_State): integer; cdecl;
+var
+  graphic: TGraphic;
+begin
+  result:=0;
+  graphic:=luaclass_getClassObject(L);
+  if lua_gettop(L)=1 then
+    graphic.Transparent:=lua_toboolean(L, -1);
+end;
+
+
+procedure graphic_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
+begin
+  object_addMetaData(L, metatable, userdata);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getWidth', graphic_getWidth);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setWidth', graphic_setWidth);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getHeight', graphic_getHeight);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setHeight', graphic_setHeight);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getTransparent', graphic_getTransparent);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setTransparent', graphic_setTransparent);
+
+  Luaclass_addPropertyToTable(L, metatable, userdata, 'Width', graphic_getWidth, graphic_setWidth);
+  Luaclass_addPropertyToTable(L, metatable, userdata, 'Height', graphic_getHeight, graphic_setHeight);
+  Luaclass_addPropertyToTable(L, metatable, userdata, 'Transparent', graphic_getTransparent, graphic_setTransparent);
 end;
 
 procedure initializeLuaGraphic;
@@ -91,6 +94,9 @@ begin
   lua_register(LuaVM, 'graphic_setHeight', graphic_setHeight);
 
 end;
+
+initialization
+  luaclass_register(TGraphic, graphic_addMetaData);
 
 end.
 
