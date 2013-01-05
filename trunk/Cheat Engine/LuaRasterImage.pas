@@ -11,132 +11,91 @@ procedure initializeLuaRasterImage;
 
 implementation
 
-uses LuaHandler;
+uses LuaHandler, luaclass, LuaGraphic;
 
 function rasterImage_getCanvas(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   c: TrasterImage;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    c:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushlightuserdata(L, c.Canvas);
-    result:=1;
-
-  end else lua_pop(L, parameters);
+  c:=luaclass_getClassObject(L);
+  luaclass_newClass(L, c.Canvas);
+  result:=1;
 end;
 
 function rasterimage_getPixelFormat(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   c: TrasterImage;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    c:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, integer(c.PixelFormat));
-    result:=1;
-
-  end else lua_pop(L, parameters);
+  c:=luaclass_getClassObject(L);
+  lua_pushinteger(L, integer(c.PixelFormat));
+  result:=1;
 end;
 
 
 function rasterimage_setPixelFormat(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   c: TrasterImage;
   a: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    c:=lua_touserdata(L,-2);
+  c:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
     c.PixelFormat:=TPixelFormat(lua_tointeger(L,-1));
-  end;
-
-  lua_pop(L, parameters);
 end;
 
-function rasterimage_getTransparent(L: PLua_State): integer; cdecl;
+function rasterimage_getTransparent(L: PLua_State): integer; cdecl; //obsolete
 var
-  parameters: integer;
-  c: TrasterImage;
+  rasterimage: Trasterimage;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    c:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushboolean(L, c.Transparent);
-    result:=1;
-
-  end else lua_pop(L, parameters);
+  rasterimage:=luaclass_getClassObject(L);
+  lua_pushboolean(L, rasterimage.Transparent);
+  result:=1;
 end;
-
 
 function rasterimage_setTransparent(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
+  rasterimage: Trasterimage;
+begin
+  result:=0;
+  rasterimage:=luaclass_getClassObject(L);
+  if lua_gettop(L)=1 then
+    rasterimage.Transparent:=lua_toboolean(L, -1);
+end;
+
+
+function rasterimage_gettransparentColor(L: PLua_State): integer; cdecl;
+var
+  c: TrasterImage;
+begin
+  c:=luaclass_getClassObject(L);
+  lua_pushinteger(L, c.transparentColor);
+  result:=1;
+end;
+
+
+function rasterimage_settransparentColor(L: PLua_State): integer; cdecl;
+var
   c: TrasterImage;
   a: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    c:=lua_touserdata(L,-2);
-    c.Transparent:=lua_toboolean(L,-1);
-  end;
-
-  lua_pop(L, parameters);
+  c:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    c.transparentColor:=lua_tointeger(L,-1);
 end;
 
-function rasterimage_getTransparentColor(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  c: TrasterImage;
+procedure rasterimage_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    c:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
+  graphic_addMetaData(L, metatable, userdata);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getCanvas', rasterImage_getCanvas);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getPixelFormat', rasterimage_getPixelFormat);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setPixelFormat', rasterimage_setPixelFormat);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getTransparentColor', rasterimage_getTransparentColor);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setTransparentColor', rasterimage_setTransparentColor);
 
-    lua_pushinteger(L, integer(c.TransparentColor));
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-
-function rasterimage_setTransparentColor(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  c: TrasterImage;
-  a: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    c:=lua_touserdata(L,-2);
-    c.TransparentColor:=TColor(lua_tointeger(L,-1));
-  end;
-
-  lua_pop(L, parameters);
+  Luaclass_addPropertyToTable(L, metatable, userdata, 'Canvas', rasterImage_getCanvas, nil);
+  Luaclass_addPropertyToTable(L, metatable, userdata, 'PixelFormat', rasterimage_getPixelFormat, rasterimage_setPixelFormat);
+  Luaclass_addPropertyToTable(L, metatable, userdata, 'TransparentColor', rasterimage_getTransparentColor, rasterimage_setTransparentColor);
 end;
 
 
@@ -145,11 +104,15 @@ begin
   lua_register(LuaVM, 'rasterimage_getCanvas', rasterImage_getCanvas);
   lua_register(LuaVM, 'rasterimage_getPixelFormat', rasterimage_getPixelFormat);
   lua_register(LuaVM, 'rasterimage_setPixelFormat', rasterimage_setPixelFormat);
-  lua_register(LuaVM, 'rasterimage_getTransparent', rasterimage_getTransparent);
+  lua_register(LuaVM, 'rasterimage_getTransparent', rasterimage_getTransparent);  //should be graphic_
   lua_register(LuaVM, 'rasterimage_setTransparent', rasterimage_setTransparent);
   lua_register(LuaVM, 'rasterimage_getTransparentColor', rasterimage_getTransparentColor);
   lua_register(LuaVM, 'rasterimage_setTransparentColor', rasterimage_setTransparentColor);
 end;
+
+initialization
+  luaclass_register(TrasterImage, rasterImage_addMetaData);
+
 
 
 end.

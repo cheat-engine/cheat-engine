@@ -8,6 +8,7 @@ uses
   Classes, SysUtils, Graphics,lua, lualib, lauxlib,LuaHandler;
 
 procedure initializeLuaGraphic;
+procedure graphic_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 
 implementation
 

@@ -945,19 +945,22 @@ methods
   setHeight(graphic, height)
 
 RasterImage class: (Inheritance: Graphic->Object) : Base class for some graphical controls
-rasterimage_getCanvas(RasterImage): Returns the Canvas object for this image
-rasterimage_getPixelFormat((rasterimage):  Returns the current pixelformat
-rasterimage_setPixelFormat(rasterimage, pixelformat):  Sets the pixelformat for this image. Will clear the current image if it had one. Supported pixelformats: pf1bit, pf4bit, pf8bit, pf15bit, pf16bit, pf24bit, pf32bit (recommended)
+properties
+  Canvas: Canvas
+  PixelFormat: PixelFormat - the pixelformat for this image. Will clear the current image if it had one. Supported pixelformats: pf1bit, pf4bit, pf8bit, pf15bit, pf16bit, pf24bit, pf32bit (recommended)
+  TransparentColor: integer
 
-rasterimage_setTransparent(rasterimage,state):  Will set the image to support transparency or not
-rasterimage_getTransparent(rasterimage):  Returns true if the image supports transparency
-rasterimage_setTransparentColor(rasterimage, color): Sets the color that will be rendered as transparent when drawn
-rasterimage_getTransparentColor(rasterimage):  Returns the color set to be transparent
+methods
+  getCanvas(): Returns the Canvas object for this image
+  getPixelFormat():  Returns the current pixelformat
+  getPixelFormat(pixelformat):  Sets the pixelformat for this image. Will clear the current image if it had one. Supported pixelformats: pf1bit, pf4bit, pf8bit, pf15bit, pf16bit, pf24bit, pf32bit (recommended)
+  setTransparentColor(integer): Sets the color that will be rendered as transparent when drawn
+  getTransparentColor():  Returns the color set to be transparent
 
 
 Bitmap class: (Inheritance: CustomBitmap->RasterImage->Graphic->Object) : Bitmap based Graphic object
-PortableNetworkGraphic Class: (Inheritence: TCustomBitmap->RasterImage->Graphic->Object)
-JpegImage Class: (Inheritence: TCustomBitmap->RasterImage->Graphic->Object)
+PortableNetworkGraphic Class: (Inheritence: CustomBitmap->RasterImage->Graphic->Object)
+JpegImage Class: (Inheritence: CustomBitmap->RasterImage->Graphic->Object)
  
 
 
