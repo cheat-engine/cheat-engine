@@ -986,9 +986,19 @@ methods
 
 
 GenericHotkey Class : (Inheritance:  Object)
-createHotkey(function, key, ...) : returns an initialized GenericHotkey class object. Maximum of 5 keys
-generichotkey_setKeys(hotkey, key, ....)
-generichotkey_onHotkey(hotkey, function)
+createHotkey(function, keys, ...) : returns an initialized GenericHotkey class object. Maximum of 5 keys
+createHotkey(function, table) 
+
+properties
+  generichotkey_onHotkey(hotkey, function)
+  keys: Table
+
+methods
+  getKeys()
+  setKeys(key, ....)
+  setOnHotkey(table)
+  getOnHotkey
+
 
 
 OpenDialog Class: (Inheritance: FileDialog->CommonDialog->Component->Object)

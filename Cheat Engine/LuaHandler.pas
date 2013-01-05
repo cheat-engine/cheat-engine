@@ -69,7 +69,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports, Mem
   LuaStringlist, LuaCustomControl, LuaGraphicControl, LuaPanel, LuaImage, LuaButton,
   LuaCheckbox, LuaGroupbox, LuaListbox, LuaCombobox, LuaTrackbar, LuaListColumn,
   LuaEdit, LuaMemo, LuaCollection, LuaListColumns, LuaListitem, LuaListItems,
-  LuaTimer, LuaListview;
+  LuaTimer, LuaListview, LuaGenericHotkey;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -2092,136 +2092,6 @@ begin
 end;
 
 
-
-
-
-
-
-function createHotkey(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  h: TGenericHotkey;
-  routine: string;
-
-  lc: TLuaCaller;
-
-  i: integer;
-  keys: TKeycombo;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters>=2 then //(function, key, ...)
-  begin
-    lc:=TLuaCaller.create;
-
-    if lua_isfunction(L, 1) then
-    begin
-      lua_pushvalue(L, 1);
-      lc.luaroutineindex:=luaL_ref(L,LUA_REGISTRYINDEX)
-    end
-    else
-      lc.luaroutine:=lua_tostring(L,1);
-
-    parameters:=min(parameters,5);
-
-    zeromemory(@keys,sizeof(keys));
-    for i:=2 to parameters do
-      keys[i-2]:=lua_tointeger(L, i);
-
-
-    h:=TGenericHotkey.create(lc.NotifyEvent, keys);
-
-    lua_pop(L, lua_gettop(L));
-
-    luaclass_newClass(L, h);
-    result:=1;
-  end else lua_pop(L, lua_gettop(L));
-end;
-
-function GenericHotkey_setKeys(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  GenericHotkey: TGenericHotkey;
-  i: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters>=2 then
-  begin
-    Generichotkey:=lua_toceuserdata(L,-parameters);
-
-    zeromemory(@GenericHotkey.keys,sizeof(GenericHotkey.keys));
-    for i:=-parameters+1 to -1 do
-      GenericHotkey.keys[i+parameters-1]:=lua_tointeger(L, i);
-  end;
-
-  lua_pop(L, parameters);
-end;
-
-function GenericHotkey_getKeys(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  GenericHotkey: TGenericHotkey;
-  i: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    Generichotkey:=lua_toceuserdata(L,-parameters);
-    lua_pop(L, parameters);
-
-    i:=0;
-    while (i<5) and (Generichotkey.keys[i]<>0) do
-      lua_pushinteger(L, Generichotkey.keys[i]);
-
-    result:=1;
-  end
-  else
-    lua_pop(L, parameters);
-
-
-end;
-
-function generichotkey_onHotkey(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  GenericHotkey: TGenericHotkey;
-  f: integer;
-  routine: string;
-
-  lc: TLuaCaller;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    GenericHotkey:=lua_toceuserdata(L,-2);
-
-    CleanupLuaCall(tmethod(GenericHotkey.onNotify));
-    GenericHotkey.onNotify:=nil;
-
-    if lua_isfunction(L,-1) then
-    begin
-      routine:=Lua_ToString(L,-1);
-      f:=luaL_ref(L,LUA_REGISTRYINDEX);
-
-      lc:=TLuaCaller.create;
-      lc.luaroutineIndex:=f;
-      GenericHotkey.onNotify:=lc.NotifyEvent;
-    end
-    else
-    if lua_isstring(L,-1) then
-    begin
-      routine:=lua_tostring(L,-1);
-      lc:=TLuaCaller.create;
-      lc.luaroutine:=routine;
-      GenericHotkey.onNotify:=lc.NotifyEvent;
-    end;
-
-  end;
-
-  lua_pop(L, parameters);
-end;
 
 
 function createLabel(L: Plua_State): integer; cdecl;
@@ -4557,10 +4427,7 @@ begin
 
     initializeLuaRasterImage;
 
-    lua_register(LuaVM, 'createHotkey', createHotkey);
-    lua_register(LuaVM, 'generichotkey_setKeys', generichotkey_setKeys);
-    lua_register(LuaVM, 'generichotkey_getKeys', generichotkey_getKeys);
-    lua_register(LuaVM, 'generichotkey_onHotkey', generichotkey_onHotkey);
+    initializeLuaGenericHotkey;
 
 
 
