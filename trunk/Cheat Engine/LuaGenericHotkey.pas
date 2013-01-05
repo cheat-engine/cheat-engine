@@ -124,6 +124,7 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getKeys', generichotkey_getKeys);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setOnHotkey', generichotkey_setonHotkey);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getOnHotkey', generichotkey_getonHotkey);
+  Luaclass_addPropertyToTable(L, metatable, userdata, 'OnHotkey', generichotkey_getonHotkey, generichotkey_setonHotkey);
 end;
 
 procedure initializeLuaGenericHotkey;
@@ -132,6 +133,8 @@ begin
   lua_register(LuaVM, 'generichotkey_setKeys', generichotkey_setKeys);
   lua_register(LuaVM, 'generichotkey_getKeys', generichotkey_getKeys);
   lua_register(LuaVM, 'generichotkey_onHotkey', generichotkey_setonHotkey);
+
+
 end;
 
 initialization
