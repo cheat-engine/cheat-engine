@@ -916,13 +916,20 @@ methods
   setColor()
 
 Font Class : (Inheritance: CustomFont->CanvasHelper->Object)
-createFont(): Returns a font object
-font_getName(font): Gets the fontname of the font
-font_setName(font): Sets the fontname of the font
-font_getSize(font): Gets the size of the font
-font_setSize(font): Sets the size of the font
-font_getColor(font): Gets the color of the font
-font_setColor(font): Sets the color of the font
+createFont(): Returns a font object (default initialized based on the main ce window)
+
+properties
+  Name: string
+  Size: integer
+  Color: integer
+
+methods
+  getName(): Gets the fontname of the font
+  setName(): Sets the fontname of the font
+  getSize(): Gets the size of the font
+  setSize(): Sets the size of the font
+  getColor(): Gets the color of the font
+  setColor(): Sets the color of the font
 
 
 Graphic Class : (Inheritance: Object) : Abstract class
