@@ -925,18 +925,24 @@ properties
 
 methods
   getName(): Gets the fontname of the font
-  setName(): Sets the fontname of the font
+  setName(string): Sets the fontname of the font
   getSize(): Gets the size of the font
-  setSize(): Sets the size of the font
+  setSize(integer): Sets the size of the font
   getColor(): Gets the color of the font
-  setColor(): Sets the color of the font
+  setColor(integer): Sets the color of the font
 
 
 Graphic Class : (Inheritance: Object) : Abstract class
-graphic_getWidth(graphic): Gets the current width in pixels of this graphics object
-graphic_setWidth(graphic, width): Sets thw width in pixels
-graphic_getHeight(graphic)
-graphic_setHeight(graphic, height)
+properties
+  Width: integer
+  Height: integer
+  Transparent: boolean
+  
+methods
+  getWidth(graphic): Gets the current width in pixels of this graphics object
+  setWidth(graphic, width): Sets thw width in pixels
+  getHeight(graphic)
+  setHeight(graphic, height)
 
 RasterImage class: (Inheritance: Graphic->Object) : Base class for some graphical controls
 rasterimage_getCanvas(RasterImage): Returns the Canvas object for this image
