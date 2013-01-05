@@ -966,13 +966,21 @@ JpegImage Class: (Inheritence: CustomBitmap->RasterImage->Graphic->Object)
 
 Picture Class : (Inheritance: Object) : Container for the Graphic class
 createPicture() : Returns a empty picture object
-picture_loadFromFile(picture, filename)
-picture_loadFromStream(picture, stream, originalextension OPTIONAL)
-picture_assign(picture, sourcepicture)
-picture_getGraphic(picture) : Gets the Graphic object of this picture
-picture_getPNG(picture): Returns a PortableNetworkGraphic Class object (Can be used from scratch)
-picture_getBitmap(picture): Returns a Bitmap Class object (Can be used from scratch)
-picture_getJpeg(picture): Returns a JpegImage Class object (Picture must be initialized with a jpeg file first)
+
+properties
+  Graphic
+  PNG
+  Bitmap
+  Jpeg
+
+methods
+  loadFromFile(filename)
+  loadFromStream(stream, originalextension OPTIONAL) : Loads a picture from a stream. Note that the stream position must be set to the start of the picture
+  assign(sourcepicture)
+  getGraphic() : Gets the Graphic object of this picture
+  getPNG(): Returns a PortableNetworkGraphic Class object (Can be used from scratch)
+  getBitmap(): Returns a Bitmap Class object (Can be used from scratch)
+  getJpeg(): Returns a JpegImage Class object (Picture must be initialized with a jpeg file first)
 
 
 

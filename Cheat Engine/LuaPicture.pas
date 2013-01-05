@@ -11,156 +11,120 @@ procedure initializeLuaPicture;
 
 implementation
 
+uses luaclass, LuaObject;
+
 function createPicture(L: PLua_State): integer; cdecl;
 begin
-  lua_pop(L, lua_gettop(L));
-
-  lua_pushlightuserdata(L, TPicture.Create);
+  luaclass_newClass(L, TPicture.Create);
   result:=1;
 end;
 
 function picture_loadFromFile(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   picture: Tpicture;
-  filename: string;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    picture:=lua_touserdata(L,-parameters);
-    filename:=Lua_ToString(L, -parameters+1);
-    lua_pop(L, parameters);
+  picture:=luaclass_getClassObject(L);
 
-    picture.LoadFromFile(filename);
-  end else lua_pop(L, parameters);
+  if lua_gettop(L)>=1 then
+    picture.LoadFromFile(Lua_ToString(L, -1));
 end;
 
 function picture_loadFromStream(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
+  paramstart, paramcount: integer;
   picture: Tpicture;
   stream: TStream;
   ext: string;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters>=2 then
+  picture:=luaclass_getClassObject(L, @paramstart, @paramcount);
+
+  if paramcount>=1 then
   begin
-    picture:=lua_touserdata(L,-parameters);
-    stream:=lua_touserdata(L, -parameters+1);
+    stream:=lua_ToCEUserData(L, paramstart);
 
-    stream.Position:=0;
+    if paramstart=2 then //6.2 compat, there i set the position to 0. In 6.3+ I will have the user set it to the position they want first
+      stream.Position:=0;
 
-    if parameters=3 then
-      ext:=Lua_ToString(L, -parameters+2);
-
-    lua_pop(L, parameters);
-
-    if parameters=2 then
-      picture.LoadFromStream(stream)
-    else
+    if paramcount=2 then
+    begin
+      ext:=Lua_ToString(L, paramstart+1);
       picture.LoadFromStreamWithFileExt(stream,ext);
+    end;
 
-  end else lua_pop(L, parameters);
+    if paramcount=1 then
+      picture.LoadFromStream(stream);
+
+  end;
 end;
 
 function picture_assign(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   picture, picture2: Tpicture;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    picture:=lua_touserdata(L,-parameters);
-    picture2:=lua_touserdata(L, -parameters+1);
-    lua_pop(L, parameters);
+  picture:=luaclass_getClassObject(L);
 
+  if lua_gettop(L)>=1 then
+  begin
+    picture2:=lua_ToCEUserData(L, -1);
     picture.Assign(picture2);
-  end else lua_pop(L, parameters);
+  end;
 end;
 
 function picture_getGraphic(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
-  picture, picture2: Tpicture;
-  g: TGraphic;
+  picture: Tpicture;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    picture:=lua_touserdata(L,-parameters);
-    lua_pop(L, parameters);
-
-    g:=picture.Graphic;
-
-    result:=1;
-    lua_pushlightuserdata(L, g);
-  end else lua_pop(L, parameters);
+  picture:=luaclass_getClassObject(L);
+  luaclass_newClass(L, picture.Graphic);
+  result:=1;
 end;
 
 function picture_getPNG(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
-  picture, picture2: Tpicture;
-  g: TPortableNetworkGraphic;
+  picture: Tpicture;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    picture:=lua_touserdata(L,-parameters);
-    lua_pop(L, parameters);
-
-    g:=picture.PNG;
-
-    result:=1;
-    lua_pushlightuserdata(L, g);
-  end else lua_pop(L, parameters);
+  picture:=luaclass_getClassObject(L);
+  luaclass_newClass(L, picture.PNG);
+  result:=1;
 end;
 
 function picture_getBitmap(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
-  picture, picture2: Tpicture;
-  g: TBitmap;
+  picture: Tpicture;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    picture:=lua_touserdata(L,-parameters);
-    lua_pop(L, parameters);
-
-    g:=picture.Bitmap;
-
-    result:=1;
-    lua_pushlightuserdata(L, g);
-  end else lua_pop(L, parameters);
+  picture:=luaclass_getClassObject(L);
+  luaclass_newClass(L, picture.Bitmap);
+  result:=1;
 end;
 
 function picture_getJpeg(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
-  picture, picture2: Tpicture;
-  g: TJpegImage;
+  picture: Tpicture;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    picture:=lua_touserdata(L,-parameters);
-    lua_pop(L, parameters);
+  picture:=luaclass_getClassObject(L);
+  luaclass_newClass(L, picture.Jpeg);
+  result:=1;
+end;
 
-    g:=picture.Jpeg;
+procedure picture_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
+begin
+  object_addMetaData(L, metatable, userdata);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'loadFromFile',picture_loadFromFile);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'loadFromStream',picture_loadFromStream);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'assign',picture_assign);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getGraphic',picture_getGraphic);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getPNG',picture_getPNG);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getBitmap',picture_getBitmap);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getJpeg',picture_getJpeg);
 
-    result:=1;
-    lua_pushlightuserdata(L, g);
-  end else lua_pop(L, parameters);
+  Luaclass_addPropertyToTable(L, metatable, userdata, 'Graphic', picture_getGraphic, nil);
+  Luaclass_addPropertyToTable(L, metatable, userdata, 'PNG', picture_getPNG, nil);
+  Luaclass_addPropertyToTable(L, metatable, userdata, 'Bitmap', picture_getBitmap, nil);
+  Luaclass_addPropertyToTable(L, metatable, userdata, 'Jpeg', picture_getJpeg, nil);
+
 end;
 
 procedure initializeLuaPicture;
@@ -177,6 +141,11 @@ begin
   lua_register(LuaVM, 'picture_getJpeg',picture_getJpeg);
 
 end;
+
+initialization
+  luaclass_register(TPicture, picture_addMetaData);
+
+
 
 end.
 

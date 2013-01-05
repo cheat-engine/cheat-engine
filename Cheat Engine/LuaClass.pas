@@ -23,7 +23,7 @@ procedure luaclass_addArrayPropertyToTable(L: PLua_State; metatable: integer; us
 procedure luaclass_setAutoDestroy(L: PLua_State; metatable: integer; state: boolean);
 
 
-function luaclass_getClassObject(L: PLua_state; paramstart: pinteger=nil): pointer; //inline;
+function luaclass_getClassObject(L: PLua_state; paramstart: pinteger=nil; paramcount: pinteger=nil): pointer; //inline;
 
 procedure luaclass_newClass(L: PLua_State; o: TObject); overload;
 procedure luaclass_newClass(L: PLua_State; o: TObject; InitialAddMetaDataFunction: TAddMetaDataFunction); overload;
@@ -140,8 +140,8 @@ begin
 end;
 
 
-function luaclass_getClassObject(L: PLua_state; paramstart: pinteger=nil): pointer;// inline;
-//called by class functions. This is in case a 6.2 code executed the function manually
+function luaclass_getClassObject(L: PLua_state; paramstart: pinteger=nil; paramcount: pinteger=nil): pointer;// inline;
+//called as first thing by class functions. This is in case a 6.2 code executed the function manually
 var t: integer;
     u: pointer;
 begin
@@ -152,6 +152,9 @@ begin
     result:=ppointer(u)^;
     if assigned(paramstart) then
       paramstart^:=1;
+
+    if assigned(paramcount) then
+      paramcount^:=lua_gettop(L);
   end
   else
   if lua_gettop(L)>=1 then
@@ -167,6 +170,9 @@ begin
 
       if assigned(paramstart) then
         paramstart^:=2;
+
+      if assigned(paramcount) then
+        paramcount^:=lua_gettop(L)-1;
     end;
   end;
 
