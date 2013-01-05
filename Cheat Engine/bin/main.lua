@@ -909,8 +909,11 @@ methods
 
 
 Brush Class : (Inheritance: CustomBrush->CanvasHelper->Object)
-brush_getColor(brush)
-brush_setColor(brush)
+properties
+  Color : Integer
+methods  
+  getColor()
+  setColor()
 
 Font Class : (Inheritance: CustomFont->CanvasHelper->Object)
 createFont(): Returns a font object

@@ -11,7 +11,7 @@ procedure initializeLuaFont;
 
 implementation
 
-uses mainunit;
+uses mainunit, LuaClass, LuaObject;
 
 function createFont(L: Plua_State): integer; cdecl;
 var f: TFont;
@@ -20,116 +20,80 @@ begin
   lua_pop(L, lua_gettop(L));
   f:=TFont.Create;
   f.assign(mainform.font); //initialize it with the best font there is...
-  lua_pushlightuserdata(L, f);
+  luaclass_newClass(L, f);
   result:=1;
 end;
 
-function font_getColor(L: PLua_State): integer; cdecl;
+function Font_getColor(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
-  font: Tfont;
-
+  Font: TFont;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    font:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, font.Color);
-    result:=1;
-  end else lua_pop(L, parameters);
+  Font:=luaclass_getClassObject(L);
+  lua_pushinteger(L, Font.Color);
+  result:=1;
 end;
 
-function font_setColor(L: PLua_State): integer; cdecl;
+function Font_setColor(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
-  font: Tfont;
-  Color: integer;
+  Font: TFont;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    font:=lua_touserdata(L,-parameters);
-    Color:=lua_tointeger(L, -parameters+1);
-    lua_pop(L, parameters);
-
-    font.Color:=Color;
-  end else lua_pop(L, parameters);
+  Font:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    Font.color:=lua_tointeger(L, -1);
+  result:=1;
 end;
 
-function font_getSize(L: PLua_State): integer; cdecl;
+function Font_getSize(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
-  font: Tfont;
-
+  Font: TFont;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    font:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, font.Size);
-    result:=1;
-  end else lua_pop(L, parameters);
+  Font:=luaclass_getClassObject(L);
+  lua_pushinteger(L, Font.Size);
+  result:=1;
 end;
 
-function font_setSize(L: PLua_State): integer; cdecl;
+function Font_setSize(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
-  font: Tfont;
-  Size: integer;
+  Font: TFont;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    font:=lua_touserdata(L,-parameters);
-    size:=lua_tointeger(L, -parameters+1);
-    lua_pop(L, parameters);
-
-    font.Size:=Size;
-  end else lua_pop(L, parameters);
+  Font:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    Font.Size:=lua_tointeger(L, -1);
+  result:=1;
 end;
 
-function font_getName(L: PLua_State): integer; cdecl;
+function Font_getName(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
-  font: Tfont;
-
+  Font: TFont;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    font:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushstring(L, font.Name);
-    result:=1;
-  end else lua_pop(L, parameters);
+  Font:=luaclass_getClassObject(L);
+  lua_pushstring(L, Font.Name);
+  result:=1;
 end;
 
-function font_setName(L: PLua_State): integer; cdecl;
+function Font_setName(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
-  font: Tfont;
-  Name: string;
+  Font: TFont;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    font:=lua_touserdata(L,-parameters);
-    name:=Lua_ToString(L, -parameters+1);
-    lua_pop(L, parameters);
+  Font:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    Font.Name:=Lua_ToString(L, -1);
+  result:=1;
+end;
 
-    font.Name:=Name;
-  end else lua_pop(L, parameters);
+procedure font_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
+begin
+  object_addMetaData(L, metatable, userdata);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getSize', font_getSize);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setSize', font_setSize);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getName', font_getName);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setName', font_setName);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getColor', font_getColor);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setColor', font_setColor);
+
+  Luaclass_addPropertyToTable(L, metatable, userdata, 'Size', font_getSize, font_setSize);
+  Luaclass_addPropertyToTable(L, metatable, userdata, 'Name', font_getName, font_setName);
+  Luaclass_addPropertyToTable(L, metatable, userdata, 'Color', font_getColor, font_setColor);
 end;
 
 procedure initializeLuaFont;
@@ -143,6 +107,9 @@ begin
   lua_register(LuaVM, 'font_getColor', font_getColor);
   lua_register(LuaVM, 'font_setColor', font_setColor);
 end;
+
+initialization
+  luaclass_register(TFont, font_addMetaData);
 
 end.
 
