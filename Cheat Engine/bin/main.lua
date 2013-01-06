@@ -998,11 +998,59 @@ methods
   getOnHotkey
 
 
+FileDialog Class:
+properties
+  Title: string - The caption at top of the dialog
+  DefaultExt: string - When not using filters this will be the default extention used if no extension is given
+  Files: Strings - Stringlist containing all seleced files if multiple files are selected
+  FileName: string - The filename that was selected
+  Filter: string - A filter formatted string
+  FilterIndex: integer - The index of which filter to use
+
+  InitialDir: string - Sets the folder the filedialog will show first
+methods
+  Execute() : Shows the dialog and returns true if a file/multiple files got selected
+
 
 OpenDialog Class: (Inheritance: FileDialog->CommonDialog->Component->Object)
-openDialog_execute(openDialog): Shows the dialog and returns the string to the selected file
+createOpenDialog(owner) : Creates an opendialog object
+
+properties
+  Options: String 
+    A string formatted as "[param1, param2, param3]" to set OpenDialogs options
+    Valid parameters are:
+      ofReadOnly,
+      ofOverwritePrompt  : if selected file exists shows a message, that file will be overwritten
+      ofHideReadOnly     : hide read only file
+      ofNoChangeDir      : do not change current directory
+      ofShowHelp         : show a help button
+      ofNoValidate
+      ofAllowMultiSelect : allow multiselection
+      ofExtensionDifferent
+      ofPathMustExist    : shows an error message if selected path does not exist
+      ofFileMustExist    : shows an error message if selected file does not exist
+      ofCreatePrompt
+      ofShareAware
+      ofNoReadOnlyReturn : do not return filenames that are readonly
+      ofNoTestFileCreate
+      ofNoNetworkButton
+      ofNoLongNames
+      ofOldStyleDialog
+      ofNoDereferenceLinks : do not expand filenames
+      ofEnableIncludeNotify
+      ofEnableSizing     : dialog can be resized, e.g. via the mouse
+      ofDontAddToRecent  : do not add the path to the history list
+      ofForceShowHidden  : show hidden files
+      ofViewDetail       : details are OS and interface dependent
+      ofAutoPreview      : details are OS and interface dependent     
+ 
+  
+methods
+-
+
 
 SaveDialog Class: (Inheritance: OpenDialog->FileDialog->CommonDialog->Component->Object)
+createSaveDialog(owner)
 
  
 MemoryStream Class (Inheritance: Stream->Object)

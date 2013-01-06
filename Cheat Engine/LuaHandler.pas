@@ -2696,30 +2696,45 @@ begin
 end;
 
 
-function opendialog_execute(L: Plua_State): integer; cdecl;
-var parameters: integer;
+function opendialog_execute(L: Plua_State): integer; cdecl; //6.2- version only
+var
   opendialog: TOpenDialog;
-  r: string;
+begin
+  opendialog:=luaclass_getClassObject(L);
+  if opendialog.execute then
+    lua_pushnil(L)
+  else
+    lua_pushstring(L, opendialog.FileName);
+end;
+
+function createOpenDialog(L: Plua_State): integer; cdecl;
+var
+  o: TOpenDialog;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    opendialog:=lua_toceuserdata(L, -1);
-    lua_pop(L, lua_gettop(L));
 
-    if opendialog.Execute then
-      r:=opendialog.filename
-    else
-      r:='';
-
-    lua_pushstring(L, r);
-    result:=1;
-
-  end
+  if lua_gettop(L)>=1 then
+    luaclass_newClass(L, TOpenDialog.create(lua_toceuserdata(L, 1)))
   else
-    lua_pop(L, lua_gettop(L));
+    luaclass_newClass(L, TOpenDialog.create(nil));
+
+  result:=1;
 end;
+
+function createSaveDialog(L: Plua_State): integer; cdecl;
+var
+  o: TSaveDialog;
+begin
+  result:=0;
+
+  if lua_gettop(L)>=1 then
+    luaclass_newClass(L, TSaveDialog.create(lua_toceuserdata(L, 1)))
+  else
+    luaclass_newClass(L, TSaveDialog.create(nil));
+
+  result:=1;
+end;
+
 
 
 function findTableFile(L: Plua_State): integer; cdecl;
@@ -4487,6 +4502,8 @@ begin
 
 
     lua_register(LuaVM, 'openDialog_execute', openDialog_execute);
+    lua_register(LuaVM, 'createOpenDialog', createOpenDialog);
+    lua_register(LuaVM, 'createSaveDialog', createSaveDialog);
 
     Lua_register(LuaVM, 'getMemoryViewForm', getMemoryViewForm);
     lua_register(LuaVM, 'memoryview_getDisassemblerView', memoryview_getDisassemblerView);

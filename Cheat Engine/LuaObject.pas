@@ -132,6 +132,7 @@ begin
           luaclass_newClass(L, c2);
         end;
         tkMethod: LuaCaller_pushMethodProperty(L, GetMethodProp(c,p), pinfo.PropType.Name);
+        tkSet: lua_pushstring(L, GetSetProp(c, pinfo, true));
         else lua_pushstring(L, GetPropValue(c, p,true));
       end;
     end
@@ -183,6 +184,7 @@ begin
             c2:=lua_ToCEUserData(L, 3);
             SetPropValue(c, p, ptruint(c2));
           end;
+          tkset: SetSetProp(c, pinfo, v);
           tkMethod: luacaller_setMethodProperty(L, c, p, pinfo.PropType.Name, 3);
 
           else SetPropValue(c, p, v)
@@ -197,6 +199,7 @@ begin
 end;
 
 
+//6.2 only
 function getMethodProperty(L: PLua_state): integer; cdecl;
 var parameters: integer;
   c: tobject;
@@ -255,6 +258,7 @@ begin
 
 end;
 
+//6.2- only
 function setMethodProperty(L: PLua_state): integer; cdecl;
 var parameters: integer;
   c: tobject;
