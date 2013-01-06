@@ -47,6 +47,24 @@ begin
   result:=0;
 end;
 
+function listbox_clearSelection(L: Plua_State): integer; cdecl;
+var
+  listbox: tcustomlistbox;
+begin
+  listbox:=luaclass_getClassObject(L);
+  listbox.ClearSelection;
+  result:=0;
+end;
+
+function listbox_selectAll(L: Plua_State): integer; cdecl;
+var
+  listbox: tcustomlistbox;
+begin
+  listbox:=luaclass_getClassObject(L);
+  listbox.SelectAll;
+  result:=0;
+end;
+
 
 function listbox_getItems(L: PLua_State): integer; cdecl;
 var
@@ -75,6 +93,7 @@ begin
   listbox:=luaclass_getClassObject(L);
   lua_pushinteger(L, listbox.ItemIndex);
   result:=1;
+
 end;
 
 function listbox_setItemIndex(L: PLua_State): integer; cdecl;
@@ -96,10 +115,41 @@ begin
   result:=1;
 end;
 
+function listbox_getSelected(L: PLua_State): integer; cdecl;
+var
+  listbox: Tlistbox;
+  index: integer;
+begin
+  result:=0;
+  listbox:=luaclass_getClassObject(L);
+  if lua_gettop(L)=1 then
+  begin
+    index:=lua_toInteger(L, 1);
+    lua_pushboolean(L, listbox.Selected[index]);
+    result:=1;
+  end;
+end;
+
+function listbox_setSelected(L: PLua_State): integer; cdecl;
+var
+  listbox: Tlistbox;
+  index: integer;
+begin
+  result:=0;
+  listbox:=luaclass_getClassObject(L);
+  if lua_gettop(L)=2 then
+  begin
+    index:=lua_toInteger(L, 1);
+    listbox.selected[index]:=lua_toboolean(L, 2);
+  end;
+end;
+
 procedure listbox_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
   wincontrol_addMetaData(L, metatable, userdata);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'clear', listbox_clear);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'clearSelection', listbox_clearSelection);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'selectAll', listbox_selectAll);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getItems', listbox_getItems);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getItemIndex', listbox_getItemIndex);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setItemIndex', listbox_setItemIndex);
@@ -108,6 +158,8 @@ begin
   luaclass_addPropertyToTable(L, metatable, userdata, 'Items', listbox_getItems, listbox_setItems);
   luaclass_addPropertyToTable(L, metatable, userdata, 'ItemIndex', listbox_getItemIndex, listbox_setItemIndex);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Canvas', listbox_getCanvas, nil);
+
+  luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Selected', listbox_getSelected, listbox_setSelected);
 end;
 
 procedure initializeLuaListbox;
