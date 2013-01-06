@@ -265,7 +265,7 @@ begin
     hk.keys:=keys;
     hk.action:=getHotkeyAction;
     hk.value:=edtFreezeValue.text;
-    hk.description:=edtDescription.text;
+    hk.fdescription:=edtDescription.text;
   end
   else
     hk:=memrec.Addhotkey(keys, getHotkeyAction, edtFreezeValue.text, edtDescription.text );

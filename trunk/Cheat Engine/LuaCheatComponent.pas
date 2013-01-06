@@ -12,8 +12,6 @@ procedure initializeLuaCheatComponent;
 
 implementation
 
-
-
 function cheatcomponent_getActive(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
