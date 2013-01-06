@@ -1,0 +1,167 @@
+unit LuaStream;
+
+{$mode delphi}
+
+interface
+
+uses
+  Classes, SysUtils, lua, lauxlib, lualib, math;
+
+procedure stream_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
+
+implementation
+
+uses LuaClass, LuaHandler, LuaObject;
+
+function stream_getSize(L: PLua_State): integer; cdecl;
+var
+  stream: Tstream;
+begin
+  stream:=luaclass_getClassObject(L);
+  lua_pushinteger(L, stream.Size);
+  result:=1;
+
+end;
+
+function stream_setSize(L: PLua_State): integer; cdecl;
+var
+  stream: Tstream;
+begin
+  result:=0;
+  stream:=luaclass_getClassObject(L);
+  if lua_gettop(L)=1 then
+    stream.Size:=lua_tointeger(L,-1);
+end;
+
+function stream_getPosition(L: PLua_State): integer; cdecl;
+var
+  stream: Tstream;
+begin
+  stream:=luaclass_getClassObject(L);
+  lua_pushinteger(L, stream.Position);
+  result:=1;
+
+end;
+
+function stream_setPosition(L: PLua_State): integer; cdecl;
+var
+  stream: Tstream;
+begin
+  result:=0;
+  stream:=luaclass_getClassObject(L);
+  if lua_gettop(L)=1 then
+    stream.Position:=lua_tointeger(L,-1);
+end;
+
+function stream_copyFrom(L: PLua_State): integer; cdecl;
+var
+  stream: Tstream;
+  s: tstream;
+  count: integer;
+begin
+  result:=0;
+  stream:=luaclass_getClassObject(L);
+  if lua_gettop(L)=2 then
+  begin
+    s:=lua_ToCEUserData(L, 1);
+    count:=lua_tointeger(L, 2);
+    stream.CopyFrom(s, count);
+  end;
+end;
+
+function stream_read(L: PLua_State): integer; cdecl;
+var
+  stream: Tstream;
+  count: integer;
+
+  buf: PByteArray;
+  table: integer;
+  i: integer;
+begin
+  result:=0;
+  stream:=luaclass_getClassObject(L);
+  if lua_gettop(L)=1 then
+  begin
+    if lua_isnumber(L, 1) then
+    begin
+      count:=lua_tointeger(L, 1);
+      getmem(buf, count);
+      try
+        stream.Read(buf^, count);
+
+        //everything ok, create a table
+        lua_newtable(L); //pobably 2
+        table:=lua_gettop(L);
+
+        for i:=0 to count-1 do
+        begin
+          lua_pushinteger(L, i+1);
+          lua_pushinteger(L, buf[i]);
+          lua_settable(L, table); //set table[i+1]=buf[i]
+        end;
+
+        result:=1;
+
+      except
+        freemem(buf);
+      end;
+
+
+    end;
+  end;
+end;
+
+function stream_write(L: PLua_State): integer; cdecl;
+var
+  stream: Tstream;
+  count: integer;
+
+  buf: PByteArray;
+  i: integer;
+begin
+  result:=0;
+  stream:=luaclass_getClassObject(L);
+  if lua_gettop(L)>1 then
+  begin
+    //table index is at 1
+    if lua_istable(L, 1) then
+    begin
+      if lua_gettop(L)>=2 then
+        count:=min(lua_objlen(L, 2), lua_tointeger(L, 2)) //prevent the length from exeeding the table
+      else
+        count:=lua_objlen(L, 1);
+
+      getmem(buf, count);
+      try
+        for i:=0 to count-1 do
+        begin
+          lua_pushinteger(L, i+1);
+          lua_gettable(L, 1); //get table[i+1]
+          buf[i]:=lua_tointeger(L, -1);
+          lua_pop(L, 1);
+        end;
+        stream.Write(buf^, count);
+      except
+        freemem(buf);
+      end;
+
+
+    end;
+  end;
+end;
+
+procedure stream_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
+begin
+  object_addMetaData(L, metatable, userdata);
+
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'copyFrom', stream_copyFrom);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'read', stream_read);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'write', stream_write);
+
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Size', stream_getSize, stream_setSize);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Position', stream_getPosition, stream_setPosition);
+
+end;
+
+end.
+

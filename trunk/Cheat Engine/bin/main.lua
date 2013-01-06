@@ -658,12 +658,16 @@ ListBox Class: (Inheritance: WinControl->Control->Component->Object)
 createListBox(owner): Creates a ListBox class object which belongs to the given owner. Owner can be any object inherited from WinControl
 
 properties
+  MultiSelect: boolean - When set to true you can select multiple items
   Items: Strings - Strings derived object containings all the items in the list
-  ItemIndex: integer - Get selected index. -1 is nothing selected
+  Selected[] - Returns true if the given line is selected. Use Items.Count-1 to find out the max index
+  ItemIndex: integer - Get selected index. -1 is nothing selected  
   Canvas: Canvas - The canvas object used to render on the object
 
 methods
   clear()
+  clearSelection() : Deselects all items in the list
+  selectAll(): Selects all items in the list
   getItems(): Returns a strings object
   setItems(Strings): sets a strings object to the listbox
   getItemIndex()
@@ -1051,6 +1055,18 @@ methods
 
 SaveDialog Class: (Inheritance: OpenDialog->FileDialog->CommonDialog->Component->Object)
 createSaveDialog(owner)
+
+Stream Class
+
+properties
+  Size: integer
+  Position: integer
+
+methods
+  copyFrom(stream, count)
+  read(count OPTIONAL): bytetable
+  write(bytetable, count OPTIONAL)
+
 
  
 MemoryStream Class (Inheritance: Stream->Object)
@@ -1596,3 +1612,38 @@ d3dhook_textcontainer_getText(d3dhook_textcontainer)
 d3dhook_textcontainer_setText(d3dhook_textcontainer, string)
 --]]
 
+
+
+--[[
+functions to add:
+
+WordToByteTable(number): {}
+DwordToByteTable(number): {}
+QwordToByteTable(number): {}
+FloatToByteTable(number): {}
+DoubleToByteTable(number): {}
+StringToByteTable(string): {}
+WideStringToByteTable(string): {}
+
+ByteTableToWord(table): number
+ByteTableToDword(table): number
+ByteTableToQword(table): number
+ByteTableToFloat(table): number
+ByteTableToDouble(table): number
+ByteTableToString(table): string
+ByteTableToWideString(table): string
+
+
+binaryOr(int1, int2)
+binaryXor(int1, int2)
+binaryAnd(int1, int2)
+binaryShl(int)
+binaryShr(int)
+binaryNot(int)
+
+getRunningProcesses(): stringlist
+getProcessModules(processid): 
+
+
+
+--]]

@@ -66,7 +66,7 @@ uses
   LuaImage, LuaButton, LuaCheckbox, LuaClass, LuaGroupbox, LuaListbox,
   LuaCombobox, LuaTrackbar, LuaCollectionItem, LuaListcolumn, LuaEdit, LuaMemo,
   LuaCollection, LuaListColumns, LuaListItem, LuaListItems, LuaListview, 
-LuaTimer, LuaGenericHotkey, LuaFileDialog;
+LuaTimer, LuaGenericHotkey, LuaFileDialog, LuaStream;
 
 {$R cheatengine.res}
 {$R manifest.res}
