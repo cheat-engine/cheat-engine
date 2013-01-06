@@ -69,7 +69,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports, Mem
   LuaStringlist, LuaCustomControl, LuaGraphicControl, LuaPanel, LuaImage, LuaButton,
   LuaCheckbox, LuaGroupbox, LuaListbox, LuaCombobox, LuaTrackbar, LuaListColumn,
   LuaEdit, LuaMemo, LuaCollection, LuaListColumns, LuaListitem, LuaListItems,
-  LuaTimer, LuaListview, LuaGenericHotkey;
+  LuaTimer, LuaListview, LuaGenericHotkey, LuaTableFile;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -2735,74 +2735,27 @@ begin
   result:=1;
 end;
 
-
-
-function findTableFile(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  f: string;
-  i: integer;
-
-  s: tmemorystream;
+function createMemoryStream(L: Plua_State): integer; cdecl;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    f:=Lua_ToString(L, -1);
-    lua_pop(L, lua_gettop(L));
-    for i:=0 to mainform.LuaFiles.count-1 do
-      if TLuafile(mainform.Luafiles[i]).name=f then
-      begin
-        s:=TLuafile(mainform.Luafiles[i]).stream;
-
-        s.position:=0;
-        luaclass_newClass(L, mainform.Luafiles[i]); //return the tableFile, not the stream. To get the stream, use  tablefile_getData
-        result:=1;
-      end;
-
-  end
-  else
-    lua_pop(L, lua_gettop(L));
+  luaclass_newClass(L, TMemoryStream.create);
+  result:=1;
 end;
 
-
-function tablefile_saveToFile(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  lf: TLuaFile;
-  f: string;
-  i: integer;
+function createFileStream(L: Plua_State): integer; cdecl;
+var
+  filename: string;
+  mode: word;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
+  if lua_gettop(L)=2 then
   begin
-    lf:=lua_toceuserdata(L, -2);
-    f:=Lua_ToString(L, -1);
-
-    lf.stream.Position:=0;
-    lf.stream.SaveToFile(f);
+    filename:=lua_tostring(L, 1);
+    mode:=lua_tointeger(L, 2);
+    luaclass_newClass(L, TFileStream.create(filename, mode));
+    result:=1;
   end;
-
-  lua_pop(L, lua_gettop(L));
 end;
 
-function tablefile_getData(L: Plua_State): integer; cdecl;
-var parameters: integer;
-  lf: TLuaFile;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    lf:=lua_toceuserdata(L, -1);
-    lua_pop(L, lua_gettop(L));
-
-    lf.stream.Position:=0;
-    luaclass_newClass(L, lf.stream);
-  end
-  else
-    lua_pop(L, lua_gettop(L));
-end;
 
 
 
@@ -4505,6 +4458,9 @@ begin
     lua_register(LuaVM, 'createOpenDialog', createOpenDialog);
     lua_register(LuaVM, 'createSaveDialog', createSaveDialog);
 
+    lua_register(LuaVM, 'createMemoryStream', createMemoryStream);
+    lua_register(LuaVM, 'createFileStream', createFileStream);
+
     Lua_register(LuaVM, 'getMemoryViewForm', getMemoryViewForm);
     lua_register(LuaVM, 'memoryview_getDisassemblerView', memoryview_getDisassemblerView);
     lua_register(LuaVM, 'memoryview_getHexadecimalView', memoryview_getHexadecimalView);
@@ -4515,9 +4471,7 @@ begin
     Lua_register(LuaVM, 'getFreezeTimer', getFreezeTimer);
     Lua_register(LuaVM, 'getUpdateTimer', getUpdateTimer);
 
-    Lua_register(LuaVM, 'findTableFile', findTableFile);
-    Lua_register(LuaVM, 'tablefile_saveToFile', tablefile_saveToFile);
-    Lua_register(LuaVM, 'tablefile_getData', tablefile_getData);
+    initializeLuaTableFile;
 
     InitializeLuaXMPlayer;
 
