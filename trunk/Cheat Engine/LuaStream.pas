@@ -163,5 +163,8 @@ begin
 
 end;
 
+initialization
+  luaclass_register(TStream, stream_addMetaData);
+
 end.
 
