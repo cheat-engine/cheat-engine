@@ -1,5 +1,5 @@
 unit LuaXMPlayer;
-
+//special case, the class methods don't really care if the class is provided
 {$mode delphi}
 
 interface
@@ -11,6 +11,8 @@ procedure initializeLuaXMPlayer;
 
 implementation
 
+uses luaclass, LuaObject;
+
 function xmplayer_playXM(L: Plua_State): integer; cdecl;
 var parameters: integer;
   lf: TLuaFile;
@@ -20,9 +22,6 @@ var parameters: integer;
   s: TStream;
   noloop: boolean;
 begin
-  if xmplayer=nil then
-    xmplayer:=TXMPlayer.create;
-
   result:=0;
   parameters:=lua_gettop(L);
   if (xmplayer<>nil) and (parameters>=1) then
@@ -123,14 +122,28 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
+procedure xmplayer_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
+begin
+  object_addMetaData(L, metatable, userdata);
+
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'playXM', xmplayer_playXM);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'pause', xmplayer_pause);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'resume', xmplayer_resume);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'stop', xmplayer_stop);
+end;
+
 procedure initializeLuaXMPlayer;
 begin
+  Lua_RegisterObject('xmplayer',xmplayer);
   Lua_register(LuaVM, 'xmplayer_playXM', xmplayer_playXM);
   Lua_register(LuaVM, 'xmplayer_pause', xmplayer_pause);
   Lua_register(LuaVM, 'xmplayer_resume', xmplayer_resume);
   Lua_register(LuaVM, 'xmplayer_stop', xmplayer_stop);
   Lua_register(LuaVM, 'xmplayer_isPlaying', xmplayer_isPlaying);
 end;
+
+initialization
+  luaclass_register(TXMPlayer, xmplayer_addMetaData);
 
 end.
 

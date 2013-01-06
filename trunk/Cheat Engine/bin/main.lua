@@ -51,6 +51,14 @@ writeBytesLocal(address, x,x,x,x,...) : See writeBytes but then it's for Cheat E
 writeBytesLocal(address, table, , count) : See writeBytes but then it's for Cheat Engine's memory
 
 
+
+writeRegionToFile(filename, sourceaddress,size) : Writes the given region to a file. Returns the number of bytes written
+readRegionFromFile(filename, destinationaddress)
+
+resetLuaState(): This will create a new lua state that will be used. (Does not destroy the old one, so memory leak)
+
+
+
 ansiToUtf8(string): Converts a string in Ansi encoding to UTF8
 utf8ToAnsi(string): Converts a string in UTF8 encoding to Ansi
 Note: GUI components mainly show in UTF8, some other functions use Ansi, try to find out which ones...
@@ -1087,19 +1095,20 @@ methods
   getData() : Gets a MemoryStream object 
 
 
+xmplayer class.
+The xmplayer class has already been defined as xmplayer, no need to create it manually
 
-xmplayer_playXM(filename, OPTIONAL noloop)
-xmplayer_playXM(tablefile, OPTIONAL noloop)
-xmplayer_playXM(Stream, OPTIONAL noloop)
-xmplayer_pause()
-xmplayer_resume()
-xmplayer_stop()
-xmplayer_isPlaying()
+properties
+  IsPlaying : boolean - Indicator that the xmplayer is currently playing a xm file 
+  Initialized: boolean - Indicator that the xmplayer is actually actively loaded in memory
 
-writeRegionToFile(filename, sourceaddress,size) : Writes the given region to a file. Returns the number of bytes written
-readRegionFromFile(filename, destinationaddress)
-
-resetLuaState(): This will create a new lua state that will be used. (Does not destroy the old one, so memory leak)
+methods
+  playXM(filename, OPTIONAL noloop)
+  playXM(tablefile, OPTIONAL noloop)
+  playXM(Stream, OPTIONAL noloop)
+  pause()
+  resume()
+  stop()
 
 
 CheatComponent Class: (Inheritance: WinControl->Control->Component->Object)
