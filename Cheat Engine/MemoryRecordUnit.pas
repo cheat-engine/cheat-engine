@@ -225,16 +225,20 @@ type
     fOnHotkey: TNotifyevent;
     fOnPostHotkey: TNotifyevent;
   public
-    id: integer;
-    description: string;
+    fID: integer;
+    fDescription: string;
+    fOwner: TMemoryRecord;
     keys: Tkeycombo;
     action: TMemrecHotkeyAction;
     value: string;
-    owner: TMemoryRecord;
+
     procedure doHotkey;
     constructor create(AnOwner: TMemoryRecord);
     destructor destroy; override;
   published
+    property Description: string read fDescription;
+    property Owner: TMemoryRecord read fOwner;
+    property ID: integer read fID;
     property OnHotkey: TNotifyEvent read fOnHotkey write fOnHotkey;
     property OnPostHotkey: TNotifyEvent read fOnPostHotkey write fOnPostHotkey;
   end;
@@ -251,9 +255,9 @@ uses mainunit, addresslist, formsettingsunit, LuaHandler;
 constructor TMemoryRecordHotkey.create(AnOwner: TMemoryRecord);
 begin
   //add to the hotkeylist
-  id:=-1;
-  owner:=AnOwner;
-  owner.hotkeylist.Add(self);
+  fid:=-1;
+  fowner:=AnOwner;
+  fowner.hotkeylist.Add(self);
 
   keys[0]:=0;
 
@@ -634,12 +638,12 @@ begin
 
           tempnode2:=tempnode.childnodes[i].FindNode('Description');
           if tempnode2<>nil then
-            hk.description:=tempnode2.textcontent;
+            hk.fdescription:=tempnode2.textcontent;
 
           tempnode2:=tempnode.childnodes[i].FindNode('ID');
 
           if tempnode2<>nil then
-            hk.id:=strtoint(tempnode2.textcontent);
+            hk.fid:=strtoint(tempnode2.textcontent);
 
 
           tempnode2:=tempnode.childnodes[i].FindNode('Action');
@@ -673,7 +677,7 @@ begin
       //check if a hotkey has an id, and if not create one for it
       for i:=0 to HotkeyCount-1 do
         if hotkey[i].id=-1 then
-          hotkey[i].id:=getuniquehotkeyid;
+          hotkey[i].fid:=getuniquehotkeyid;
     end;
     ReinterpretAddress;
     refresh;
@@ -996,11 +1000,11 @@ var
 begin
   hk:=TMemoryRecordHotkey.create(self);
 
-  hk.id:=getuniquehotkeyid;
+  hk.fid:=getuniquehotkeyid;
   hk.keys:=keys;
   hk.action:=action;
   hk.value:=value;
-  hk.description:=description;
+  hk.fdescription:=description;
 
   result:=hk;
 end;

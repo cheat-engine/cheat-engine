@@ -96,10 +96,10 @@ type tcheat = class (twincontrol)
     property Activated: boolean read factivated write SetActivated;
     property Activationcolor: TColor read factivationcolor write factivationcolor;
 
-    property showhotkey: boolean read fshowhotkey write SetShowHotkey;
+    property ShowHotkey: boolean read fshowhotkey write SetShowHotkey;
     property HasEditBox: boolean read EditPresent write ChangeEdit;
     property HasCheckbox: boolean read getCheckboxVisible write SetCheckbox;
-    property font;
+    property Font;
 
 end;
 

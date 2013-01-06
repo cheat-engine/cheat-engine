@@ -69,7 +69,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports, Mem
   LuaStringlist, LuaCustomControl, LuaGraphicControl, LuaPanel, LuaImage, LuaButton,
   LuaCheckbox, LuaGroupbox, LuaListbox, LuaCombobox, LuaTrackbar, LuaListColumn,
   LuaEdit, LuaMemo, LuaCollection, LuaListColumns, LuaListitem, LuaListItems,
-  LuaTimer, LuaListview, LuaGenericHotkey, LuaTableFile;
+  LuaTimer, LuaListview, LuaGenericHotkey, LuaTableFile, LuaMemoryRecordHotkey;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -2898,179 +2898,6 @@ begin
 end;
 
 
-function memoryrecordhotkey_getDescription(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  memoryrecordhotkey: TMemoryRecordHotkey;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    memoryrecordhotkey:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushstring(L, memoryrecordhotkey.description);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function memoryrecordhotkey_getHotkeyString(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  memoryrecordhotkey: TMemoryRecordHotkey;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    memoryrecordhotkey:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-
-    lua_pushstring(L, ConvertKeyComboToString(memoryrecordhotkey.keys));
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function memoryrecordhotkey_getID(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  memoryrecordhotkey: TMemoryRecordHotkey;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    memoryrecordhotkey:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, memoryrecordhotkey.id);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function memoryrecordhotkey_onHotkey(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  memoryrecordhotkey: Tmemoryrecordhotkey;
-  f: integer;
-  routine: string;
-
-  lc: TLuaCaller;
-
-//  clickroutine: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    memoryrecordhotkey:=lua_toceuserdata(L,-2);
-
-    CleanupLuaCall(tmethod(memoryrecordhotkey.onHotkey));
-    memoryrecordhotkey.onHotkey:=nil;
-
-    if lua_isfunction(L,-1) then
-    begin
-      routine:=Lua_ToString(L,-1);
-      f:=luaL_ref(L,LUA_REGISTRYINDEX);
-
-      lc:=TLuaCaller.create;
-      lc.luaroutineIndex:=f;
-      memoryrecordhotkey.onHotkey:=lc.NotifyEvent;
-    end
-    else
-    if lua_isstring(L,-1) then
-    begin
-      routine:=lua_tostring(L,-1);
-      lc:=TLuaCaller.create;
-      lc.luaroutine:=routine;
-      memoryrecordhotkey.onHotkey:=lc.NotifyEvent;
-    end;
-
-  end;
-
-  lua_pop(L, parameters);
-end;
-
-
-function memoryrecordhotkey_onPostHotkey(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  memoryrecordhotkey: Tmemoryrecordhotkey;
-  f: integer;
-  routine: string;
-
-  lc: TLuaCaller;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    memoryrecordhotkey:=lua_toceuserdata(L,-2);
-
-    CleanupLuaCall(tmethod(memoryrecordhotkey.onPostHotkey));
-    memoryrecordhotkey.onPostHotkey:=nil;
-
-    if lua_isfunction(L,-1) then
-    begin
-      routine:=Lua_ToString(L,-1);
-      f:=luaL_ref(L,LUA_REGISTRYINDEX);
-
-      lc:=TLuaCaller.create;
-      lc.luaroutineIndex:=f;
-      memoryrecordhotkey.onPostHotkey:=lc.NotifyEvent;
-    end
-    else
-    if lua_isstring(L,-1) then
-    begin
-      routine:=lua_tostring(L,-1);
-      lc:=TLuaCaller.create;
-      lc.luaroutine:=routine;
-      memoryrecordhotkey.onPostHotkey:=lc.NotifyEvent;
-    end;
-
-  end;
-
-  lua_pop(L, parameters);
-end;
-
-function memoryrecordhotkey_getOwner(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  memoryrecordhotkey: TMemoryRecordHotkey;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    memoryrecordhotkey:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    luaclass_newClass(L, memoryrecordhotkey.owner);
-    result:=1;
-
-  end else lua_pop(L, parameters);
-end;
-
-function memoryrecordhotkey_doHotkey(L: PLua_State): integer; cdecl;
-var
-  parameters: integer;
-  memoryrecordhotkey: TMemoryRecordHotkey;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    memoryrecordhotkey:=lua_toceuserdata(L,-1);
-    memoryrecordhotkey.doHotkey;
-  end;
-  lua_pop(L, parameters);
-end;
-
 
 
 function createMemScan(L: Plua_State): integer; cdecl;
@@ -4487,13 +4314,7 @@ begin
     InitializeLuaCheatComponent;
 
 
-    Lua_register(LuaVM, 'memoryrecordhotkey_getDescription', memoryrecordhotkey_getDescription);
-    Lua_register(LuaVM, 'memoryrecordhotkey_getHotkeyString', memoryrecordhotkey_getHotkeyString);
-    Lua_register(LuaVM, 'memoryrecordhotkey_getID', memoryrecordhotkey_getID);
-    Lua_register(LuaVM, 'memoryrecordhotkey_onHotkey', memoryrecordhotkey_onHotkey);
-    Lua_register(LuaVM, 'memoryrecordhotkey_onPostHotkey', memoryrecordhotkey_onPostHotkey);
-    Lua_register(LuaVM, 'memoryrecordhotkey_getOwner', memoryrecordhotkey_getOwner);
-    Lua_register(LuaVM, 'memoryrecordhotkey_doHotkey', memoryrecordhotkey_doHotkey);
+    initializeMemoryRecordHotkey;
 
     InitializeLuaAddresslist;
 
