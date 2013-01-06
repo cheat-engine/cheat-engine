@@ -13,18 +13,21 @@ resourcestring
 
 type TXMPlayer=class
   private
+    finitialized: boolean;
     fisPlaying: boolean;
     loadedevent: THandle;
     audiopipe: THandle;
   public
-    constructor create;
+    procedure initialize;
     procedure playXM(filename: string; noloop: boolean=false); overload;
     procedure playXM(stream: TStream; noloop: boolean=false); overload;
     procedure pause;
     procedure resume;
     procedure stop;
     procedure setVolume(v: integer);
-    property isPlaying: boolean read fisplaying;
+  published
+    property Initialized: boolean read finitialized;
+    property IsPlaying: boolean read fisplaying;
 end;
 
 var
@@ -33,7 +36,7 @@ var
 
 implementation
 
-constructor TXMPlayer.create; //xmplayer_initialize
+procedure TXMPlayer.initialize;
 var uid: string;
   g: TGUID;
   i: integer;
@@ -60,12 +63,17 @@ begin
   //wait for it to acquire the pipe
   WaitForSingleObject(loadedevent, infinite);
 
+  finitialized:=true;
+
 
 end;
 
 procedure TXMPlayer.playXM(filename: string; noloop: boolean);
 var f: Tfilestream;
 begin
+  if not initialized then
+    initialize;
+
   f:=TFilestream.create(filename, fmOpenRead or fmShareDenyNone);
   playXM(f, noloop);
   f.free;
@@ -78,6 +86,9 @@ var buf: TMemorystream;
   w: dword;
   extraparam: byte;
 begin
+  if not initialized then
+    initialize;
+
   stream.Position:=0;
   buf:=TMemorystream.create;
 
@@ -108,6 +119,9 @@ procedure TXMPlayer.pause;
 var command: byte;
   w: dword;
 begin
+  if not initialized then
+    initialize;
+
   command:=XMPLAYER_PAUSE;
   writefile(audiopipe, command, 1,w, nil);
 
@@ -118,6 +132,9 @@ procedure TXMPlayer.resume;
 var command: byte;
   w: dword;
 begin
+  if not initialized then
+    initialize;
+
   command:=XMPLAYER_RESUME;
   writefile(audiopipe, command, 1,w, nil);
   fisPlaying:=true;
@@ -128,6 +145,9 @@ procedure TXMPlayer.stop;
 var command: byte;
   w: dword;
 begin
+  if not initialized then
+    initialize;
+
   command:=XMPLAYER_STOP;
   writefile(audiopipe, command, 1,w, nil);
   fisPlaying:=false;
@@ -140,12 +160,18 @@ var command: packed record
 end;
   w: dword;
 begin
+  if not initialized then
+    initialize;
+
   command.command:=XMPLAYER_SETVOLUME;
   command.volume:=v;
   writefile(audiopipe, command, 2,w, nil);
 
   fisPlaying:=false;
 end;
+
+initialization
+  xmplayer:=TXMPlayer.create;
 
 end.
 
