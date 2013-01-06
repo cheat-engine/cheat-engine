@@ -3152,9 +3152,12 @@ end;
 procedure TMainForm.RenameFileClick(Sender: TObject);
 var
   lf: TLuafile;
+  newname: string;
 begin
   lf := TLuafile(LuaFiles[TMenuItem(Sender).Tag]);
-  InputQuery(rsRenameFile, rsGiveTheNewFilename, lf.Name);
+  newname:=lf.Name;
+  InputQuery(rsRenameFile, rsGiveTheNewFilename, newname);
+  lf.name:=newname;
 end;
 
 procedure TMainForm.SaveFileClick(Sender: TObject);

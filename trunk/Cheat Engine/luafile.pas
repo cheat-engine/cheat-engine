@@ -9,15 +9,18 @@ uses
 
 type TLuafile=class
   private
-
+    fname: string;
     filedata: TMemorystream;
   public
-    name: string;
+
     constructor create(name: string; stream: TStream);
     constructor createFromXML(node: TDOMNode);
     procedure saveToXML(node: TDOMNode);
     destructor destroy; override;
 
+
+  published
+    property name: string read fname write fname;
     property stream: TMemoryStream read filedata;
   end;
 

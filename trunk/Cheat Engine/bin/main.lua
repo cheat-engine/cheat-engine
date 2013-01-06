@@ -1068,17 +1068,25 @@ methods
   write(bytetable, count OPTIONAL)
 
 
- 
 MemoryStream Class (Inheritance: Stream->Object)
+createMemoryStream()
+
 FileStream Class (Inheritance: HandleStream->Stream->Object)
+createFileStream(filename, mode)
 
 
 TableFile class (Inheritance: Object)
-tablefile_saveToFile(tablefile, filename)
-tablefile_getData(tablefile, filename) : Gets a MemoryStream object 
-
-
 findTableFile(filename): Returns the TableFile class object for the saved file
+
+properties
+  Name: string
+  Stream: MemoryStream
+
+methods
+  saveToFile(filename)
+  getData() : Gets a MemoryStream object 
+
+
 
 xmplayer_playXM(filename, OPTIONAL noloop)
 xmplayer_playXM(tablefile, OPTIONAL noloop)
