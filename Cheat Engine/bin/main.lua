@@ -195,9 +195,31 @@ getMethodProperty(Class, propertyname): Returns a function you can use to call t
 
 
 
+registerSymbol(symbolname, address, OPTIONAL donotsave): Registers a userdefined symbol. If donotsave is true this symbol will not get saved when the table is saved
+unregisterSymbol(symbolname)
+
+getNameFromAddress(address): Returns the given address as a string. Registered symbolname, modulename+offset, or just a hexadecimal string depending on what address
+inModule(address) : returns true if the given address is inside a module
+inSystemModule(address) : returns true if the given address is inside a system module
+getCommonModuleList: Returns the commonModuleList stringlist. (Do not free this one)
 
 
 
+AOBScan("aobstring", protectionflags OPTIONAL, alignmenttype OPTIONAL, alignmentparam HALFOPTIONAL):
+protectionflags is a string. 
+  X=Executable W=Writable memory C=Copy On Write. Add a + to indicate that flag MUST be set and a - to indicate that that flag MUST NOT be set. (* sets it to don't care)
+  Examples: 
+    +W-C = Writable memory exluding copy on write and doesn't care about the Executable flag
+    +X-C-W = Find readonly executable memory
+    +W = Finds all writable memory and don't care about copy on write or execute
+    "" = Find everything (is the same as "*X*C*W" )
+
+
+alignmenttype is an integer: 
+  0=No alignment check
+  1=Address must be dividable by alignmentparam 
+  2=Address must end with alignmentparam
+alignmentparam is a string which either holds the value the addresses must be dividable by or what the last digits of the address must be
 
 
 
@@ -1212,53 +1234,38 @@ methods
   getHotkeyByID(integer): Returns the hotkey with the given id
 
 
-Addresslist Class:
-addresslist_getCount(addresslist)
-addresslist_getMemoryRecord(addresslist, index)
-addresslist_getMemoryRecordByDescription(addresslist, description): getTableEntry(descriptionname): returns a tableEntry pointer for use with memrec functions
-addresslist_getMemoryRecordByID(addresslist, ID)
+Addresslist Class: (Inheritance: Panel->WinControl->Control->Component->Object)
+properties
+  Count: Integer - The number of records in the table
+  SelCount: integer- The number of records that are selected
+  SelectedRecord: MemoryRecord - The main selected record
+  MemoryRecord[]: MemoryRecord - Array to access the individial memory records
+  [] = MemoryRecord - Default accessor
+  
+methods
+  getCount(addresslist)
+  getMemoryRecord(addresslist, index)
+  getMemoryRecordByDescription(addresslist, description): getTableEntry(descriptionname): returns a tableEntry pointer for use with memrec functions
+  getMemoryRecordByID(addresslist, ID)
+  createMemoryRecord(addresslist) : createTableEntry: creates an generic cheat table entry and add it to the list. Returns a tableentry pointer you can use with memrec routines
 
-addresslist_createMemoryRecord(addresslist) : createTableEntry: creates an generic cheat table entry and add it to the list. Returns a tableentry pointer you can use with memrec routines
+  getSelectedRecords(Addresslist):  Returns a table containing all the selected records
 
-addresslist_getSelectedRecords(Addresslist):  Returns a table of all the selected records
-
-addresslist_doDescriptionChange(addresslist) : Will show the gui window to change the description of the selected entry
-addresslist_doAddressChange(addresslist) : Will show the gui window to change the address of the selected entry
-addresslist_doTypeChange(addresslist) : Will show the gui window to change the type of the selected entries
-addresslist_doValueChange(addresslist) : Will show the gui window to change the value of the selected entries
-
-addresslist_getSelectedRecord(addresslist) : Gets the main selected memoryrecord
-addresslist_setSelectedRecord(addresslist, memrec) : Sets the currently selected memoryrecord. This will unselect all other entries
-
-
-
-
-
-registerSymbol(symbolname, address, OPTIONAL donotsave): Registers a userdefined symbol. If donotsave is true this symbol will not get saved when the table is saved
-unregisterSymbol(symbolname)
-
-getNameFromAddress(address): Returns the given address as a string. Registered symbolname, modulename+offset, or just a hexadecimal string depending on what address
-inModule(address) : returns true if the given address is inside a module
-inSystemModule(address) : returns true if the given address is inside a system module
-getCommonModuleList: Returns the commonModuleList stringlist. (Do not free this one)
+  doDescriptionChange(addresslist) : Will show the gui window to change the description of the selected entry
+  doAddressChange(addresslist) : Will show the gui window to change the address of the selected entry
+  doTypeChange(addresslist) : Will show the gui window to change the type of the selected entries
+  doValueChange(addresslist) : Will show the gui window to change the value of the selected entries
+  
+  getSelectedRecord(addresslist) : Gets the main selected memoryrecord
+  setSelectedRecord(addresslist, memrec) : Sets the currently selected memoryrecord. This will unselect all other entries
 
 
 
-AOBScan("aobstring", protectionflags OPTIONAL, alignmenttype OPTIONAL, alignmentparam HALFOPTIONAL):
-protectionflags is a string. 
-  X=Executable W=Writable memory C=Copy On Write. Add a + to indicate that flag MUST be set and a - to indicate that that flag MUST NOT be set. (* sets it to don't care)
-  Examples: 
-    +W-C = Writable memory exluding copy on write and doesn't care about the Executable flag
-    +X-C-W = Find readonly executable memory
-    +W = Finds all writable memory and don't care about copy on write or execute
-    "" = Find everything (is the same as "*X*C*W" )
 
 
-alignmenttype is an integer: 
-  0=No alignment check
-  1=Address must be dividable by alignmentparam 
-  2=Address must end with alignmentparam
-alignmentparam is a string which either holds the value the addresses must be dividable by or what the last digits of the address must be
+
+
+
 
 
 

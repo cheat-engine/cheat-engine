@@ -136,13 +136,14 @@ type
 
     property OnDropByListview: TDropByListviewEvent read FOnDropByListview write FOnDropByListview;
     property OnAutoAssemblerEdit: TAutoAssemblerEditEvent read fOnAutoAssemblerEdit write fOnAutoAssemblerEdit;
-    property PopupMenu: TpopupMenu read getPopupMenu write setPopupMenu;
+
 
     property headers: THeaderControl read header;
   published
     property Count: Integer read GetCount;
     property SelCount: Integer read GetSelCount;
-    property selectedRecord: TMemoryRecord read getSelectedRecord write setSelectedRecord;
+    property SelectedRecord: TMemoryRecord read getSelectedRecord write setSelectedRecord;
+    property PopupMenu: TpopupMenu read getPopupMenu write setPopupMenu;
   end;
 
 implementation

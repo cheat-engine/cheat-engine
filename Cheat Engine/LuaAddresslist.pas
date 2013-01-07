@@ -11,206 +11,169 @@ procedure initializeLuaAddresslist;
 
 implementation
 
-uses memscan, addresslist, MemoryRecordUnit;
+uses luaclass, memscan, addresslist, MemoryRecordUnit, LuaWinControl;
 
 
 function addresslist_getCount(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   addresslist: TAddresslist;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    addresslist:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, addresslist.Count);
-    result:=1;
-
-  end else lua_pop(L, parameters);
+  addresslist:=luaclass_getClassObject(L);
+  lua_pushinteger(L, addresslist);
+  result:=1;
 end;
 
 function addresslist_getSelectedRecords(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   addresslist: TAddresslist;
-  i,c: integer;
+  i: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
+  addresslist:=luaclass_getClassObject(L);
+  if addresslist.SelCount>0 then
   begin
-    addresslist:=lua_touserdata(L,-1);
-
-
     lua_newtable(L);
     result:=1;
 
-    c:=1; //seems lua tables prefer to start at 1 instead of 0
     for i:=0 to addresslist.Count-1 do
     begin
       if addresslist[i].isSelected then
       begin
-        lua_pushinteger(L, c);
-        lua_pushlightuserdata(L, addresslist[i]);
+        lua_pushinteger(L, i+1);
+        luaclass_newClass(L, addresslist[i]);
         lua_settable(L, -3);
-        inc(c);
       end;
     end;
 
-  end
-  else lua_pop(L, parameters);
+  end;
+
+
 end;
 
 function addresslist_getMemoryRecord(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   addresslist: TAddresslist;
   index: integer;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
+  addresslist:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
   begin
-    addresslist:=lua_touserdata(L,-2);
     index:=lua_tointeger(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushlightuserdata(L, addresslist.MemRecItems[index]);
+    luaclass_newClass(L, addresslist.MemRecItems[index]);
     result:=1;
-
-  end else lua_pop(L, parameters);
+  end;
 end;
 
 function addresslist_getMemoryRecordByDescription(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   addresslist: TAddresslist;
   description: string;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
+  addresslist:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
   begin
-    addresslist:=lua_touserdata(L,-2);
     description:=Lua_ToString(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushlightuserdata(L, addresslist.getRecordWithDescription(description));
+    luaclass_newClass(L, addresslist.getRecordWithDescription(description));
     result:=1;
-
-  end else lua_pop(L, parameters);
+  end;
 end;
 
 function addresslist_getMemoryRecordByID(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   addresslist: TAddresslist;
   id: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
+  addresslist:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
   begin
-    addresslist:=lua_touserdata(L,-2);
-    id:=lua_tointeger(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushlightuserdata(L, addresslist.getRecordWithID(id));
+    description:=Lua_ToString(L,-1);
+    luaclass_newClass(L, addresslist.getRecordWithID(id));
     result:=1;
-
-  end else lua_pop(L, parameters);
+  end;
 end;
 
 function addresslist_createMemoryRecord(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   addresslist: TAddresslist;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    addresslist:=lua_touserdata(L,1);
-    lua_pop(L, parameters);
-
-    lua_pushlightuserdata(L,   addresslist.addaddress(rsPluginAddress, '0', [], 0, vtDword));
-    result:=1;
-
-  end else lua_pop(L, parameters);
+  addresslist:=luaclass_getClassObject(L);
+  luaclass_newClass(L, addresslist.addaddress(rsPluginAddress, '0', [], 0, vtDword));
+  result:=1;
 end;
 
 function addresslist_doDescriptionChange(L: PLua_State): integer; cdecl;
 begin
   result:=0;
-  if lua_gettop(L)>=1 then
-    TAddresslist(lua_touserdata(L,1)).doDescriptionChange;
+  TAddresslist(luaclass_getClassObject(L)).doDescriptionChange;
 
-  lua_pop(L, lua_gettop(L));
 end;
 
 function addresslist_doAddressChange(L: PLua_State): integer; cdecl;
 begin
   result:=0;
-  if lua_gettop(L)>=1 then
-    TAddresslist(lua_touserdata(L,1)).doAddressChange;
-
-  lua_pop(L, lua_gettop(L));
+  TAddresslist(luaclass_getClassObject(L)).doAddressChange;
 end;
 
 function addresslist_doTypeChange(L: PLua_State): integer; cdecl;
 begin
   result:=0;
-  if lua_gettop(L)>=1 then
-    TAddresslist(lua_touserdata(L,1)).doTypeChange;
-
-  lua_pop(L, lua_gettop(L));
+  TAddresslist(luaclass_getClassObject(L)).doTypeChange;
 end;
 
 function addresslist_doValueChange(L: PLua_State): integer; cdecl;
 begin
   result:=0;
-  if lua_gettop(L)>=1 then
-    TAddresslist(lua_touserdata(L,1)).doValueChange;
-
-  lua_pop(L, lua_gettop(L));
+  TAddresslist(luaclass_getClassObject(L)).doValueChange;
 end;
 
 function addresslist_getSelectedRecord(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   addresslist: TAddresslist;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    addresslist:=lua_touserdata(L,1);
-    lua_pop(L, parameters);
-
-    lua_pushlightuserdata(L, addresslist.selectedRecord);
-    result:=1;
-  end else lua_pop(L, parameters);
+  addresslist:=luaclass_getClassObject(L);
+  luaclass_newClass(L, addresslist.SelectedRecord);
+  result:=1;
 end;
 
 function addresslist_setSelectedRecord(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   addresslist: TAddresslist;
   r: TMemoryRecord;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    addresslist:=lua_touserdata(L,1);
-    r:=lua_touserdata(L,2);
-    lua_pop(L, parameters);
+  addresslist:=luaclass_getClassObject(L);
 
+  if lua_gettop(L)>=1 then
+  begin
+    r:=lua_toceuserdata(L,-1);
     addresslist.selectedRecord:=r;
-  end else lua_pop(L, parameters);
+  end;
+end;
+
+procedure addresslist_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
+begin
+  wincontrol_addMetaData(L, metatable, userdata);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getCount', addresslist_getCount);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getMemoryRecord', addresslist_getMemoryRecord);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getMemoryRecordByDescription', addresslist_getMemoryRecordByDescription);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getMemoryRecordByID', addresslist_getMemoryRecordByID);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'createMemoryRecord', addresslist_createMemoryRecord);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getSelectedRecords', addresslist_getSelectedRecords);
+
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'doDescriptionChange', addresslist_doDescriptionChange);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'doAddressChange', addresslist_doAddressChange);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'doTypeChange', addresslist_doTypeChange);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'doValueChange', addresslist_doValueChange);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getSelectedRecord', addresslist_getSelectedRecord);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setSelectedRecord', addresslist_setSelectedRecord);
+
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Count', addresslist_getCount, nil);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'SelectedRecord', memoryrecord_isSelected, nil);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'MemoryRecord', addresslist_getMemoryRecord, nil);
+  luaclass_addArrayPropertyToTable(L, metatable, userdata, 'MemoryRecord', addresslist_getMemoryRecord, nil);
+  luaclass_setDefaultArrayProperty(L, metatable, userdata, addresslist_getMemoryRecord, nil);
 end;
 
 procedure initializeLuaAddresslist;
@@ -229,6 +192,9 @@ begin
   Lua_register(LuaVM, 'addresslist_getSelectedRecord', addresslist_getSelectedRecord);
   Lua_register(LuaVM, 'addresslist_setSelectedRecord', addresslist_setSelectedRecord);
 end;
+
+initialization
+  luaclass_register(TAddresslist, addresslist_addMetaData);
 
 end.
 
