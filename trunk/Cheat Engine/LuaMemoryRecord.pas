@@ -636,7 +636,7 @@ begin
 
       lc:=TLuaCaller.create;
       lc.luaroutineIndex:=f;
-      memoryrecord.onActivate:=lc.ActivateEvent;
+      memoryrecord.onActivate:=lc.MemoryRecordActivateEvent;
     end
     else
     if lua_isstring(L,-1) then
@@ -644,7 +644,7 @@ begin
       routine:=lua_tostring(L,-1);
       lc:=TLuaCaller.create;
       lc.luaroutine:=routine;
-      memoryrecord.onActivate:=lc.ActivateEvent;
+      memoryrecord.onActivate:=lc.MemoryRecordActivateEvent;
     end;
 
   end;
@@ -679,7 +679,7 @@ begin
 
       lc:=TLuaCaller.create;
       lc.luaroutineIndex:=f;
-      memoryrecord.onDeactivate:=lc.ActivateEvent;
+      memoryrecord.onDeactivate:=lc.MemoryRecordActivateEvent;
     end
     else
     if lua_isstring(L,-1) then
@@ -687,7 +687,7 @@ begin
       routine:=lua_tostring(L,-1);
       lc:=TLuaCaller.create;
       lc.luaroutine:=routine;
-      memoryrecord.onDeactivate:=lc.ActivateEvent;
+      memoryrecord.onDeactivate:=lc.MemoryRecordActivateEvent;
     end;
 
 
