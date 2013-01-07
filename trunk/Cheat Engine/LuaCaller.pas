@@ -29,7 +29,7 @@ type
       procedure KeyPressEvent(Sender: TObject; var Key: char);
       procedure LVCheckedItemEvent(Sender: TObject; Item: TListItem); //personal request to have this one added
       procedure CloseEvent(Sender: TObject; var CloseAction: TCloseAction);
-      function ActivateEvent(sender: TObject; before, currentstate: boolean): boolean;
+      function MemoryRecordActivateEvent(sender: TObject; before, currentstate: boolean): boolean;
       procedure DisassemblerSelectionChangeEvent(sender: TObject; address, address2: ptruint);
       procedure ByteSelectEvent(sender: TObject; address: ptruint; address2: ptruint);
       procedure AddressChangeEvent(sender: TObject; address: ptruint);
@@ -55,6 +55,10 @@ function LuaCaller_MouseEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_MouseMoveEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_KeyPressEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_LVCheckedItemEvent(L: PLua_state): integer; cdecl;
+function LuaCaller_MemoryRecordActivateEvent(L: PLua_state): integer; cdecl;
+
+
+
 
 procedure LuaCaller_pushMethodProperty(L: PLua_state; m: TMethod; typename: string);
 procedure LuaCaller_setMethodProperty(L: PLua_state; c: TObject; prop: string; typename: string; luafunctiononstack: integer);  overload;
@@ -307,7 +311,7 @@ begin
   end;
 end;
 
-function TLuaCaller.ActivateEvent(sender: tobject; before, currentstate: boolean): boolean;
+function TLuaCaller.MemoryRecordActivateEvent(sender: tobject; before, currentstate: boolean): boolean;
 var oldstack: integer;
 begin
   result:=true;
@@ -571,7 +575,7 @@ begin
     m.code:=lua_touserdata(L, lua_upvalueindex(1));
     m.data:=lua_touserdata(L, lua_upvalueindex(2));
 
-    sender:=lua_touserdata(L, 1);
+    sender:=lua_toceuserdata(L, 1);
     lua_pop(L, lua_gettop(L));
 
     TNotifyEvent(m)(sender);
@@ -595,7 +599,7 @@ begin
     m.code:=lua_touserdata(L, lua_upvalueindex(1));
     m.data:=lua_touserdata(L, lua_upvalueindex(2));
 
-    sender:=lua_touserdata(L, 1);
+    sender:=lua_toceuserdata(L, 1);
     user:=lua_toboolean(L, 2);
 
     lua_pop(L, lua_gettop(L));
@@ -620,7 +624,7 @@ begin
   begin
     m.code:=lua_touserdata(L, lua_upvalueindex(1));
     m.data:=lua_touserdata(L, lua_upvalueindex(2));
-    sender:=lua_touserdata(L, 1);
+    sender:=lua_toceuserdata(L, 1);
     lua_pop(L, lua_gettop(L));
 
     TCloseEvent(m)(sender, closeaction);
@@ -647,7 +651,7 @@ begin
   begin
     m.code:=lua_touserdata(L, lua_upvalueindex(1));
     m.data:=lua_touserdata(L, lua_upvalueindex(2));
-    sender:=lua_touserdata(L, 1);
+    sender:=lua_toceuserdata(L, 1);
     button:=TMouseButton(lua_tointeger(L, 2));
 
     x:=lua_tointeger(L, 3);
@@ -674,7 +678,7 @@ begin
   begin
     m.code:=lua_touserdata(L, lua_upvalueindex(1));
     m.data:=lua_touserdata(L, lua_upvalueindex(2));
-    sender:=lua_touserdata(L, 1);
+    sender:=lua_toceuserdata(L, 1);
     x:=lua_tointeger(L, 2);
     y:=lua_tointeger(L, 3);
     lua_pop(L, lua_gettop(L));
@@ -699,7 +703,7 @@ begin
   begin
     m.code:=lua_touserdata(L, lua_upvalueindex(1));
     m.data:=lua_touserdata(L, lua_upvalueindex(2));
-    sender:=lua_touserdata(L, 1);
+    sender:=lua_toceuserdata(L, 1);
     s:=Lua_ToString(L,2);
     if length(s)>0 then
       key:=s[1]
@@ -729,7 +733,7 @@ begin
   begin
     m.code:=lua_touserdata(L, lua_upvalueindex(1));
     m.data:=lua_touserdata(L, lua_upvalueindex(2));
-    sender:=lua_touserdata(L, 1);
+    sender:=lua_toceuserdata(L, 1);
     lua_pop(L, lua_gettop(L));
 
     TLVCheckedItemEvent(m)(sender,item);
@@ -737,6 +741,34 @@ begin
   else
     lua_pop(L, lua_gettop(L));
 end;
+
+function LuaCaller_MemoryRecordActivateEvent(L: PLua_state): integer; cdecl;
+var
+  m: TMethod;
+  sender: TObject;
+  before, currentstate: boolean;
+  r: boolean;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    //(sender: TObject; before, currentstate: boolean):
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    sender:=lua_toceuserdata(L, 1);
+    before:=lua_toboolean(L, 2);
+    currentstate:=lua_toboolean(L,3);
+    lua_pop(L, lua_gettop(L));
+
+    r:=TMemoryRecordActivateEvent(m)(sender,before, currentstate);
+    lua_pushboolean(L, r);
+    result:=1;
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
+
 
 procedure registerLuaCall(typename: string; getmethodprop: lua_CFunction; setmethodprop: pointer; luafunctionheader: string);
 var t: TLuaCallData;
@@ -757,7 +789,7 @@ initialization
   registerLuaCall('TMouseMoveEvent', LuaCaller_MouseMoveEvent, pointer(TLuaCaller.MouseMoveEvent),'function %s(sender, x, y)'#13#10#13#10'end'#13#10);
   registerLuaCall('TKeyPressEvent', LuaCaller_KeyPressEvent, pointer(TLuaCaller.KeyPressEvent),'function %s(sender, key)'#13#10#13#10'  return key'#1310'end'#13#10);
   registerLuaCall('TLVCheckedItemEvent', LuaCaller_LVCheckedItemEvent, pointer(TLuaCaller.LVCheckedItemEvent),'function %s(sender, listitem)'#13#10#13#10'end'#13#10);
- // registerLuaCall('TMemoryRecordActivateEvent', LuaCaller_MemoryRecordActivateEvent, pointer(TLuaCaller.MemoryRecordActivateEvent),'function %s(sender, before, current)'#13#10#13#10'end'#13#10);
+  registerLuaCall('TMemoryRecordActivateEvent', LuaCaller_MemoryRecordActivateEvent, pointer(TLuaCaller.MemoryRecordActivateEvent),'function %s(sender, before, current)'#13#10#13#10'end'#13#10);
 
 
 end.

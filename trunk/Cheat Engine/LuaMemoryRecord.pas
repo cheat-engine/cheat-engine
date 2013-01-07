@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, MemoryRecordUnit, plugin, pluginexports, lua, lualib,
-  lauxlib, LuaHandler, LuaCaller;
+  lauxlib, LuaHandler, LuaCaller, CEFuncProc, ComCtrls;
 
 procedure initializeLuaMemoryRecord;
 
@@ -14,49 +14,158 @@ implementation
 
 uses luaclass, LuaObject;
 
-function memoryrecord_setDescription(L: PLUA_State): integer; cdecl;
+function memoryrecord_getOffsetCount(L: PLUA_State): integer; cdecl;
 var
-  parameters: integer;
-  description: pchar;
-  memrec: pointer;
+  memrec: TMemoryRecord;
+begin
+  memrec:=luaclass_getClassObject(L);
+  lua_pushinteger(L, length(memrec.pointeroffsets));
+  result:=1;
+end;
+
+function memoryrecord_setOffsetCount(L: PLUA_State): integer; cdecl;
+var
+  memrec: TMemoryRecord;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
+  memrec:=luaclass_getClassObject(L);
+  if lua_gettop(L)=1 then
+    setlength(memrec.pointeroffsets, lua_tointeger(L, 1));
+end;
+
+function memoryrecord_getOffset(L: PLua_State): integer; cdecl;
+var
+  memrec: TMemoryRecord;
+  index: integer;
+begin
+  result:=0;
+  memrec:=luaclass_getClassObject(L);
+  if lua_gettop(L)=1 then
   begin
-    memrec:=lua_touserdata(L,-2); //memrec
-    description:=lua.lua_tostring(L,-1); //description
-
-    lua_pop(L, parameters);  //clear stack
-
-    ce_memrec_setDescription(memrec, description);
+    index:=lua_toInteger(L,1);
+    lua_pushinteger(L, memrec.pointeroffsets[index]);
+    result:=1;
   end;
+end;
 
-  lua_pop(L, parameters);  //clear stack
+function memoryrecord_setOffset(L: PLua_State): integer; cdecl;
+var
+  memrec: TMemoryRecord;
+  index: integer;
+begin
+  result:=0;
+  memrec:=luaclass_getClassObject(L);
+  if lua_gettop(L)=2 then
+  begin
+    index:=lua_toInteger(L,1);
+    memrec.pointeroffsets[index]:=lua_tointeger(L, 2);
+  end;
+end;
 
+function memoryrecord_getchild(L: PLUA_State): integer; cdecl;
+var
+  memrec: TMemoryRecord;
+  index: integer;
+begin
+  result:=0;
+  memrec:=luaclass_getClassObject(L);
+  if lua_gettop(L)=1 then
+  begin
+    index:=lua_toInteger(L,1);
+    luaclass_newClass(L, memrec.Child[index]);
+    result:=1;
+  end;
+end;
+
+function memoryrecord_setDescription(L: PLUA_State): integer; cdecl;
+var
+  memrec: TMemoryRecord;
+begin
+  result:=0;
+  memrec:=luaclass_getClassObject(L);
+
+  if lua_gettop(L)>=1 then
+    memrec.Description:=lua_tostring(L,-1); //description
 end;
 
 function memoryrecord_getDescription(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
-  d: pchar;
-  memrec: pointer;
+  memrec: TMemoryRecord;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    memrec:=lua_touserdata(L,-1);
-    d:=ce_memrec_getDescription(memrec);
-    if d<>nil then
-    begin
-      lua_pushstring(L, d);
-      result:=1;
-    end;
-  end else lua_pop(L, parameters);
+  memrec:=luaclass_getClassObject(L);
+  lua_pushstring(L, memrec.Description);
+  result:=1;
+end;
+
+function memoryrecord_getCurrentAddress(L: PLua_state): integer; cdecl;
+var
+  memrec: tmemoryrecord;
+begin
+  memrec:=luaclass_getClassObject(L);
+  lua_pushinteger(L, memrec.GetRealAddress);
+  result:=1;
 end;
 
 function memoryrecord_getAddress(L: PLua_state): integer; cdecl;
+var
+  memrec: tmemoryrecord;
+  i: integer;
+  tabletop: integer;
+begin
+  memrec:=luaclass_getClassObject(L);
+  lua_pushstring(L, memrec.interpretableaddress);
+  result:=1;
+  if memrec.isPointer then
+  begin
+    lua_newtable(L);
+    tabletop:=lua_gettop(L);
+
+    for i:=0 to length(memrec.pointeroffsets)-1 do
+    begin
+      lua_pushinteger(L,i+1);
+      lua_pushinteger(L, memrec.pointeroffsets[i]);
+      lua_settable(L, tabletop);
+    end;
+    result:=2;
+  end;
+end;
+
+function memoryrecord_setAddress(L: PLua_state): integer; cdecl;
+var
+  memrec: tmemoryrecord;
+  i: integer;
+  tabletop: integer;
+begin
+  result:=0;
+  memrec:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+  begin
+    //address
+    memrec.interpretableaddress:=Lua_ToString(L, 1);
+    setlength(memrec.pointeroffsets, 0);
+
+    if lua_gettop(L)>=2 then
+    begin
+      //table
+      if lua_istable(L,2) then
+      begin
+        i:=lua_objlen(L,2);
+        if i>512 then exit; //FY
+
+        setlength(memrec.pointeroffsets, i);
+        for i:=0 to length(memrec.pointeroffsets)-1 do
+        begin
+          lua_pushinteger(L, i+1); //get the offset
+          lua_gettable(L, 2); //from the table    (table[i+1])
+          memrec.pointeroffsets[i]:=lua_tointeger(L,-1);
+          lua_pop(L,1);
+        end;
+      end;
+    end;
+  end;
+end;
+
+function memoryrecord_getAddressOld(L: PLua_state): integer; cdecl;
 var
   parameters: integer;
   memrec: pointer;
@@ -67,13 +176,14 @@ var
   tabletop: integer;
 begin
   result:=0;
+
   offsetcount:=0;
   setlength(offsets,0);
 
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    memrec:=lua_touserdata(L,-1);
+    memrec:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     if ce_memrec_getAddress(memrec, @address, nil, 0, @offsetcount) then
@@ -109,7 +219,7 @@ begin
   end else lua_pop(L, parameters);
 end;
 
-function memoryrecord_setAddress(L: PLua_State): integer; cdecl;
+function memoryrecord_setAddressOld(L: PLua_State): integer; cdecl;
 var
   memrec: pointer;
   parameters: integer;
@@ -123,7 +233,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters>=2 then
   begin
-    memrec:=lua_touserdata(L, (-parameters));
+    memrec:=lua_toceuserdata(L, (-parameters));
 
     if lua_isstring(L, (-parameters)+1) then
       address:=lua.lua_tostring(L, (-parameters)+1)
@@ -150,198 +260,96 @@ end;
 
 function memoryrecord_getType(L: PLua_State): integer; cdecl;
 var
-  memrec: pointer;
-  parameters: integer;
+  memrec: TMemoryRecord;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    memrec:=lua_touserdata(L, (-parameters));
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, ce_memrec_getType(memrec));
-    result:=1;
-
-  end;
+  memrec:=luaclass_getClassObject(L);
+  lua_pushinteger(L, integer(memrec.VarType));
+  result:=1;
 end;
 
 function memoryrecord_setType(L: PLua_State): integer; cdecl;
 var
-  memrec: pointer;
-  vtype: integer;
-  parameters: integer;
+  memrec: TMemoryRecord;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    memrec:=lua_touserdata(L, -2);
-    vtype:=lua_tointeger(L, -1);
-    lua_pop(L, parameters);
-
-    ce_memrec_setType(memrec, vtype);
-  end
-  else
-    lua_pop(L, parameters);
-
+  memrec:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    memrec.VarType:=TVariableType(lua_tointeger(L, -1)) ;
 end;
 
 function memoryrecord_getValue(L: PLua_State): integer; cdecl;
 var
-  memrec: pointer;
-  parameters: integer;
-
-  v: pchar;
+  memrec: TMemoryRecord;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    memrec:=lua_touserdata(L, (-parameters));
-    lua_pop(L, parameters);
-
-
-    getmem(v,255);
-    try
-      if ce_memrec_getValue(memrec, v, 255) then
-      begin
-        lua_pushstring(L, v);
-        result:=1;
-      end;
-
-    finally
-      freemem(v);
-    end;
-  end else lua_pop(L, parameters);
+  memrec:=luaclass_getClassObject(L);
+  lua_pushstring(L, memrec.Value);
+  result:=1;
 end;
 
-
-function memoryrecord_setValue(L: PLua_State): integer; cdecl;
+function memoryrecord_setValue(L: PLUA_State): integer; cdecl;
 var
-  memrec: pointer;
-  parameters: integer;
-
-  v: pchar;
+  memrec: TMemoryRecord;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    memrec:=lua_touserdata(L, -2);
-    v:=lua.lua_tostring(L, -1);
+  memrec:=luaclass_getClassObject(L);
 
-
-    ce_memrec_setValue(memrec, v);
-  end;
-  lua_pop(L, parameters);
+  if lua_gettop(L)>=1 then
+    memrec.Value:=lua_tostring(L,-1);
 end;
 
 function memoryrecord_getScript(L: PLua_State): integer; cdecl;
 var
-  memrec: pointer;
-  parameters: integer;
-
-  v: pchar;
+  memrec: TMemoryRecord;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
+  memrec:=luaclass_getClassObject(L);
+  if memrec.AutoAssemblerData.script<>nil then
   begin
-    memrec:=lua_touserdata(L, -1);
-    v:=ce_memrec_getScript(memrec);
-    lua_pop(L, parameters);
-
-    if v<>nil then
-    begin
-      lua_pushstring(L, v);
-      result:=1;
-    end;
-
-  end else lua_pop(L, parameters);
-
-
+    lua_pushstring(L, memrec.AutoAssemblerData.script.Text);
+    result:=1;
+  end
+  else
+    result:=0;
 end;
 
 
-function memoryrecord_setScript(L: PLua_State): integer; cdecl;
+function memoryrecord_setScript(L: PLUA_State): integer; cdecl;
 var
-  memrec: pointer;
-  parameters: integer;
-
-  v: pchar;
+  memrec: TMemoryRecord;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    memrec:=lua_touserdata(L, -2);
-    v:=lua.lua_tostring(L, -1);
+  memrec:=luaclass_getClassObject(L);
 
-    ce_memrec_setScript(memrec, v);
-  end;
-
-
-  lua_pop(L, parameters);
+  if (lua_gettop(L)>=1) and (memrec.AutoAssemblerData.script<>nil) then
+    memrec.AutoAssemblerData.script.Text:=lua_tostring(L,-1);
 end;
 
 function memoryrecord_isSelected(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
-  direction: integer;
-  memrec: pointer;
+  memrec: TMemoryRecord;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    memrec:=lua_touserdata(L, -parameters);
-    lua_pop(L, parameters);
-
-
-
-    lua_pushboolean(L, ce_memrec_isSelected(memrec));
-    result:=1;
-  end
-  else lua_pop(L, parameters);
+  memrec:=luaclass_getClassObject(L);
+  lua_pushboolean(L, memrec.isSelected);
+  result:=1;
 end;
 
 function memoryrecord_setActive(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
-  direction: integer;
-  memrec: pointer;
+  memrec: TMemoryRecord;
 begin
-{  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    memrec:=lua_touserdata(L, -parameters);
-    lua_pop(L, parameters);
+  result:=0;
+  memrec:=luaclass_getClassObject(L);
 
-    lua_pushboolean(L, ce_memrec_isFrozen(memrec));
-    result:=1;
-  end
-  else lua_pop(L, parameters);   }
+  if lua_gettop(L)>=1 then
+    memrec.active:=lua_toboolean(L, 1);
 end;
 
 function memoryrecord_getActive(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
-  direction: integer;
-  memrec: pointer;
+  memrec: TMemoryRecord;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    memrec:=lua_touserdata(L, -parameters);
-    lua_pop(L, parameters);
-
-    lua_pushboolean(L, ce_memrec_isFrozen(memrec));
-    result:=1;
-  end
-  else lua_pop(L, parameters);
+  memrec:=luaclass_getClassObject(L);
+  lua_pushboolean(L, memrec.Active);
+  result:=1;
 end;
 
 function memoryrecord_freeze(L: PLua_State): integer; cdecl;
@@ -354,7 +362,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters>=1 then
   begin
-    memrec:=lua_touserdata(L, -parameters);
+    memrec:=lua_toceuserdata(L, -parameters);
 
 
     if parameters=2 then
@@ -378,7 +386,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    memrec:=lua_touserdata(L, -parameters);
+    memrec:=lua_toceuserdata(L, -parameters);
     ce_memrec_unfreeze(memrec);
   end;
 
@@ -395,7 +403,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    memrec:=lua_touserdata(L,-2);
+    memrec:=lua_toceuserdata(L,-2);
     color:=lua_tointeger(L,-1);
     ce_memrec_setColor(memrec,color);
   end;
@@ -405,16 +413,16 @@ end;
 
 function memoryrecord_appendToEntry(L: PLua_State): integer; cdecl;
 var
-  memrec1,memrec2: pointer;
+  memrec1,memrec2: TMemoryRecord;
   parameters: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
+  memrec1:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
   begin
-    memrec1:=lua_touserdata(L,-2);
-    memrec2:=lua_touserdata(L,-1);
-    ce_memrec_appendtoentry(memrec1,memrec2);
+    memrec2:=lua_toceuserdata(L,-1);
+    memrec1.treenode.MoveTo(memrec2.treenode, naAddChild);
+    memrec2.SetVisibleChildrenState;
   end;
 
   lua_pop(L, parameters);
@@ -429,7 +437,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    memrec:=lua_touserdata(L,-1);
+    memrec:=lua_toceuserdata(L,-1);
     ce_memrec_delete(memrec);
   end;
 
@@ -445,7 +453,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    memoryrecord:=lua_touserdata(L,-1);
+    memoryrecord:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushinteger(L, memoryrecord.id);
@@ -456,40 +464,26 @@ end;
 
 function memoryrecord_getHotkeyCount(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   memoryrecord: Tmemoryrecord;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    memoryrecord:=lua_touserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, memoryrecord.HotkeyCount);
-    result:=1;
-
-  end else lua_pop(L, parameters);
+  memoryrecord:=luaclass_getClassObject(L);
+  lua_pushinteger(L, memoryrecord.HotkeyCount);
+  result:=1;
 end;
 
 function memoryrecord_getHotkey(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   memoryrecord: Tmemoryrecord;
   index: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
+  memoryrecord:=luaclass_getClassObject(L);
+
+  if lua_gettop(L)>=1 then
   begin
-    memoryrecord:=lua_touserdata(L,-2);
     index:=lua_tointeger(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushlightuserdata(L, memoryrecord.Hotkey[index]);
-    result:=1;
-
-  end else lua_pop(L, parameters);
+    luaclass_newClass(L, memoryrecord.Hotkey[index]);
+  end;
 end;
 
 function memoryrecord_getHotkeyByID(L: PLua_State): integer; cdecl;
@@ -500,204 +494,118 @@ var
   i: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
+  memoryrecord:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
   begin
-    memoryrecord:=lua_touserdata(L,-2);
     id:=lua_tointeger(L,-1);
-    lua_pop(L, parameters);
 
     for i:=0 to memoryrecord.Hotkeycount-1 do
       if memoryrecord.Hotkey[i].id=id then
       begin
-        lua_pushlightuserdata(L, memoryrecord.Hotkey[i]);
+        luaclass_newClass(L, memoryrecord.Hotkey[i]);
         result:=1;
+        exit;
       end;
-
-  end else lua_pop(L, parameters);
+  end;
 end;
 
 
 function memoryrecord_string_getSize(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   memoryrecord: Tmemoryrecord;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    memoryrecord:=lua_touserdata(L,-parameters);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, memoryrecord.Extra.stringData.length);
-
-    result:=1;
-  end else lua_pop(L, parameters);
+  memoryrecord:=luaclass_getClassObject(L);
+  lua_pushinteger(L, memoryrecord.Extra.stringData.length);
+  result:=1;
 end;
 
 function memoryrecord_string_setSize(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   memoryrecord: Tmemoryrecord;
-  size: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    memoryrecord:=lua_touserdata(L,-parameters);
-    size:=lua_tointeger(L, -parameters+1);
-    lua_pop(L, parameters);
+  memoryrecord:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    memoryrecord.Extra.stringData.length:=lua_tointeger(L, -1);
 
-    memoryrecord.Extra.stringData.length:=size;
-
-  end else lua_pop(L, parameters);
 end;
 
 function memoryrecord_string_getUnicode(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   memoryrecord: Tmemoryrecord;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    memoryrecord:=lua_touserdata(L,-parameters);
-    lua_pop(L, parameters);
-
-    lua_pushboolean(L, memoryrecord.Extra.stringData.unicode);
-    result:=1;
-  end else lua_pop(L, parameters);
+  memoryrecord:=luaclass_getClassObject(L);
+  lua_pushboolean(L, memoryrecord.Extra.stringData.unicode);
+  result:=1;
 end;
 
 function memoryrecord_string_setUnicode(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   memoryrecord: Tmemoryrecord;
-  unicode: boolean;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    memoryrecord:=lua_touserdata(L,-parameters);
-    unicode:=lua_toboolean(L, -parameters+1);
-    lua_pop(L, parameters);
+  memoryrecord:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    memoryrecord.Extra.stringData.unicode:=lua_toboolean(L, -1);
 
-    memoryrecord.Extra.stringData.unicode:=unicode;
-
-  end else lua_pop(L, parameters);
 end;
 
 function memoryrecord_binary_getStartbit(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   memoryrecord: Tmemoryrecord;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    memoryrecord:=lua_touserdata(L,-parameters);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, memoryrecord.Extra.bitData.Bit);
-    result:=1;
-  end else lua_pop(L, parameters);
+  memoryrecord:=luaclass_getClassObject(L);
+  lua_pushinteger(L, memoryrecord.Extra.bitData.bit);
+  result:=1;
 end;
 
 function memoryrecord_binary_setStartbit(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   memoryrecord: Tmemoryrecord;
-  Startbit: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    memoryrecord:=lua_touserdata(L,-parameters);
-    Startbit:=lua_tointeger(L, -parameters+1);
-    lua_pop(L, parameters);
-
-    memoryrecord.Extra.bitData.Bit:=Startbit;
-
-  end else lua_pop(L, parameters);
+  memoryrecord:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    memoryrecord.Extra.bitData.bit:=lua_tointeger(L, -1);
 end;
 
 
 function memoryrecord_binary_getSize(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   memoryrecord: Tmemoryrecord;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    memoryrecord:=lua_touserdata(L,-parameters);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, memoryrecord.Extra.bitData.bitlength);
-    result:=1;
-  end else lua_pop(L, parameters);
+  memoryrecord:=luaclass_getClassObject(L);
+  lua_pushinteger(L, memoryrecord.Extra.bitData.bitlength);
+  result:=1;
 end;
 
 function memoryrecord_binary_setSize(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   memoryrecord: Tmemoryrecord;
-  size: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    memoryrecord:=lua_touserdata(L,-parameters);
-    size:=lua_tointeger(L, -parameters+1);
-    lua_pop(L, parameters);
-
-    memoryrecord.Extra.bitData.bitlength:=size;
-
-  end else lua_pop(L, parameters);
+  memoryrecord:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    memoryrecord.Extra.bitData.bitlength:=lua_tointeger(L, -1);
 end;
 
 function memoryrecord_aob_getSize(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   memoryrecord: Tmemoryrecord;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    memoryrecord:=lua_touserdata(L,-parameters);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, memoryrecord.Extra.byteData.bytelength);
-    result:=1;
-  end else lua_pop(L, parameters);
+  memoryrecord:=luaclass_getClassObject(L);
+  lua_pushinteger(L, memoryrecord.Extra.byteData.bytelength);
+  result:=1;
 end;
 
 function memoryrecord_aob_setSize(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   memoryrecord: Tmemoryrecord;
-  size: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    memoryrecord:=lua_touserdata(L,-parameters);
-    size:=lua_tointeger(L, -parameters+1);
-    lua_pop(L, parameters);
-
-    memoryrecord.Extra.byteData.bytelength:=size;
-
-  end else lua_pop(L, parameters);
+  memoryrecord:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    memoryrecord.Extra.byteData.bytelength:=lua_tointeger(L, -1);
 end;
 
 
@@ -839,20 +747,31 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getDescription', memoryrecord_getDescription);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getAddress', memoryrecord_getAddress);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setAddress', memoryrecord_setAddress);
+
+
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getOffsetCount', memoryrecord_getOffsetCount);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setOffsetCount', memoryrecord_setOffsetCount);
+
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getOffset', memoryrecord_getOffset);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setOffset', memoryrecord_setOffset);
+
+
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getCurrentAddress', memoryrecord_getCurrentAddress);
+
+
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getType', memoryrecord_getType);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setType', memoryrecord_setType);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getValue', memoryrecord_getValue);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setValue', memoryrecord_setValue);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getScript', memoryrecord_getScript);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setScript', memoryrecord_setScript);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'isActive', memoryrecord_getActive);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getActive', memoryrecord_getActive);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setActive', memoryrecord_setActive);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getChild', memoryrecord_getChild);
+
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'isSelected', memoryrecord_isSelected);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'freeze', memoryrecord_freeze);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'unfreeze', memoryrecord_unfreeze);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setColor', memoryrecord_setColor);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'appendToEntry', memoryrecord_appendToEntry);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'delete', memoryrecord_delete);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getID', memoryrecord_getID);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getHotkeyCount', memoryrecord_getHotkeyCount);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getHotkey', memoryrecord_getHotkey);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getHotkeyByID', memoryrecord_getHotkeyByID);
@@ -860,15 +779,23 @@ begin
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'Description', memoryrecord_setDescription, memoryrecord_getDescription);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Address', memoryrecord_getAddress, memoryrecord_setAddress);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'CurrentAddress', memoryrecord_getCurrentAddress, nil);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Type', memoryrecord_getType, memoryrecord_setType);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Value', memoryrecord_getValue, memoryrecord_setValue);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Script', memoryrecord_getScript, memoryrecord_setScript);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Active', memoryrecord_getActive, memoryrecord_setActive);
-//  luaclass_addPropertyToTable(L, metatable, userdata, 'Selected', memoryrecord_getSelected, memoryrecord_setSelected);
-  luaclass_addPropertyToTable(L, metatable, userdata, 'Color', memoryrecord_setColor, memoryrecord_setColor);
-  luaclass_addPropertyToTable(L, metatable, userdata, 'ID', memoryrecord_getID, nil);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Selected', memoryrecord_isSelected, nil);
   luaclass_addPropertyToTable(L, metatable, userdata, 'HotkeyCount', memoryrecord_getHotkeyCount, nil);
   luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Hotkey', memoryrecord_getHotkey, nil);
+
+
+
+  luaclass_addPropertyToTable(L, metatable, userdata, 'OffsetCount', memoryrecord_getOffsetCount, memoryrecord_setOffsetCount);
+  luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Offset', memoryrecord_getOffset, memoryrecord_setOffset);
+
+
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Active', memoryrecord_getActive, memoryrecord_setActive);
+
 
 
   recordEntries:=Trecordentries.create;
@@ -906,6 +833,9 @@ begin
   recordEntries.free;
 
 
+  luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Child', memoryrecord_getchild, nil);
+  luaclass_setDefaultArrayProperty(L, metatable, userdata, memoryrecord_getchild, nil);
+
 
 end;
 
@@ -913,8 +843,8 @@ procedure initializeLuaMemoryRecord;
 begin
   lua_register(LuaVM, 'memoryrecord_setDescription', memoryrecord_setDescription);
   lua_register(LuaVM, 'memoryrecord_getDescription', memoryrecord_getDescription);
-  lua_register(LuaVM, 'memoryrecord_getAddress', memoryrecord_getAddress);
-  lua_register(LuaVM, 'memoryrecord_setAddress', memoryrecord_setAddress);
+  lua_register(LuaVM, 'memoryrecord_getAddress', memoryrecord_getAddressOld);
+  lua_register(LuaVM, 'memoryrecord_setAddress', memoryrecord_setAddressOld);
   lua_register(LuaVM, 'memoryrecord_getType', memoryrecord_getType);
   lua_register(LuaVM, 'memoryrecord_setType', memoryrecord_setType);
   lua_register(LuaVM, 'memoryrecord_getValue', memoryrecord_getValue);
