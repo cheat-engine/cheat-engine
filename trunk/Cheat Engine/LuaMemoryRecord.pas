@@ -12,6 +12,8 @@ procedure initializeLuaMemoryRecord;
 
 implementation
 
+uses luaclass, LuaObject;
+
 function memoryrecord_setDescription(L: PLUA_State): integer; cdecl;
 var
   parameters: integer;
@@ -304,8 +306,26 @@ begin
   else lua_pop(L, parameters);
 end;
 
+function memoryrecord_setActive(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  direction: integer;
+  memrec: pointer;
+begin
+{  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    memrec:=lua_touserdata(L, -parameters);
+    lua_pop(L, parameters);
 
-function memoryrecord_isActive(L: PLua_State): integer; cdecl;
+    lua_pushboolean(L, ce_memrec_isFrozen(memrec));
+    result:=1;
+  end
+  else lua_pop(L, parameters);   }
+end;
+
+function memoryrecord_getActive(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   direction: integer;
@@ -511,6 +531,7 @@ begin
     lua_pop(L, parameters);
 
     lua_pushinteger(L, memoryrecord.Extra.stringData.length);
+
     result:=1;
   end else lua_pop(L, parameters);
 end;
@@ -809,6 +830,85 @@ begin
   lua_pop(L, parameters);
 end;
 
+procedure memoryrecord_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
+var recordEntry: TRecordEntry;
+  recordentries: TRecordEntries;
+begin
+  object_addMetaData(L, metatable, userdata);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setDescription', memoryrecord_setDescription);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getDescription', memoryrecord_getDescription);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getAddress', memoryrecord_getAddress);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setAddress', memoryrecord_setAddress);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getType', memoryrecord_getType);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setType', memoryrecord_setType);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getValue', memoryrecord_getValue);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setValue', memoryrecord_setValue);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getScript', memoryrecord_getScript);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setScript', memoryrecord_setScript);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'isActive', memoryrecord_getActive);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'isSelected', memoryrecord_isSelected);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'freeze', memoryrecord_freeze);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'unfreeze', memoryrecord_unfreeze);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setColor', memoryrecord_setColor);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'appendToEntry', memoryrecord_appendToEntry);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'delete', memoryrecord_delete);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getID', memoryrecord_getID);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getHotkeyCount', memoryrecord_getHotkeyCount);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getHotkey', memoryrecord_getHotkey);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getHotkeyByID', memoryrecord_getHotkeyByID);
+
+
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Description', memoryrecord_setDescription, memoryrecord_getDescription);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Address', memoryrecord_getAddress, memoryrecord_setAddress);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Type', memoryrecord_getType, memoryrecord_setType);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Value', memoryrecord_getValue, memoryrecord_setValue);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Script', memoryrecord_getScript, memoryrecord_setScript);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Active', memoryrecord_getActive, memoryrecord_setActive);
+//  luaclass_addPropertyToTable(L, metatable, userdata, 'Selected', memoryrecord_getSelected, memoryrecord_setSelected);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Color', memoryrecord_setColor, memoryrecord_setColor);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'ID', memoryrecord_getID, nil);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'HotkeyCount', memoryrecord_getHotkeyCount, nil);
+  luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Hotkey', memoryrecord_getHotkey, nil);
+
+
+  recordEntries:=Trecordentries.create;
+
+  recordEntry.name:='Size';
+  recordEntry.getf:=memoryrecord_string_getSize;
+  recordEntry.setf:=memoryrecord_string_setSize;
+  recordEntries.add(recordEntry);
+
+  recordEntry.name:='Unicode';
+  recordEntry.getf:=memoryrecord_string_getUnicode;
+  recordEntry.setf:=memoryrecord_string_setUnicode;
+  recordEntries.add(recordEntry);
+
+  luaclass_addRecordPropertyToTable(L, metatable, userdata, 'String', recordEntries);
+
+  recordEntries.clear;
+  recordEntry.name:='Startbit';
+  recordEntry.getf:=memoryrecord_binary_getStartbit;
+  recordEntry.setf:=memoryrecord_binary_setStartbit;
+  recordEntries.add(recordEntry);
+
+  recordEntry.name:='Size';
+  recordEntry.getf:=memoryrecord_binary_getSize;
+  recordEntry.setf:=memoryrecord_binary_setSize;
+  recordEntries.add(recordEntry);
+  luaclass_addRecordPropertyToTable(L, metatable, userdata, 'Binary', recordEntries);
+
+  recordEntries.clear;
+  recordEntry.name:='Size';
+  recordEntry.getf:=memoryrecord_aob_getSize;
+  recordEntry.setf:=memoryrecord_aob_setSize;
+  recordEntries.add(recordEntry);
+  luaclass_addRecordPropertyToTable(L, metatable, userdata, 'Aob', recordEntries);
+  recordEntries.free;
+
+
+
+end;
+
 procedure initializeLuaMemoryRecord;
 begin
   lua_register(LuaVM, 'memoryrecord_setDescription', memoryrecord_setDescription);
@@ -821,7 +921,7 @@ begin
   lua_register(LuaVM, 'memoryrecord_setValue', memoryrecord_setValue);
   lua_register(LuaVM, 'memoryrecord_getScript', memoryrecord_getScript);
   lua_register(LuaVM, 'memoryrecord_setScript', memoryrecord_setScript);
-  lua_register(LuaVM, 'memoryrecord_isActive', memoryrecord_isActive);
+  lua_register(LuaVM, 'memoryrecord_isActive', memoryrecord_getActive);
   lua_register(LuaVM, 'memoryrecord_isSelected', memoryrecord_isSelected);
   lua_register(LuaVM, 'memoryrecord_freeze', memoryrecord_freeze);
   lua_register(LuaVM, 'memoryrecord_unfreeze', memoryrecord_unfreeze);
@@ -840,8 +940,6 @@ begin
   lua_register(LuaVM, 'memoryrecord_aob_getSize', memoryrecord_aob_getSize);
   lua_register(LuaVM, 'memoryrecord_aob_setSize', memoryrecord_aob_setSize);
 
-
-
   lua_register(LuaVM, 'memoryrecord_getID', memoryrecord_getID);
   lua_register(LuaVM, 'memoryrecord_getHotkeyCount', memoryrecord_getHotkeyCount);
   lua_register(LuaVM, 'memoryrecord_getHotkey', memoryrecord_getHotkey);
@@ -851,6 +949,9 @@ begin
   lua_register(LuaVM, 'memoryrecord_onDestroy', memoryrecord_onDestroy);
 
 end;
+
+initialization
+  luaclass_register(TMemoryRecord, memoryrecord_addMetaData);
 
 end.
 

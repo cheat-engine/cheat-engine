@@ -51,7 +51,7 @@ type TMemRecExtraData=record
 
 
 type
-  TActivateEvent=function (sender: TObject; before, currentstate: boolean): boolean of object;
+  TMemoryRecordActivateEvent=function (sender: TObject; before, currentstate: boolean): boolean of object;
   TMemoryRecordHotkey=class;
   TMemoryRecord=class
   private
@@ -93,7 +93,7 @@ type
 
     Hotkeylist: tlist;
 
-    fonactivate, fondeactivate: TActivateEvent;
+    fonactivate, fondeactivate: TMemoryRecordActivateEvent;
     fOnDestroy: TNotifyEvent;
     function getByteSize: integer;
     function BinaryToString(b: pbytearray; bufsize: integer): string;
@@ -199,25 +199,28 @@ type
     property visible: boolean read fVisible write setVisible;
 
     property Child[index: integer]: TMemoryRecord read getChild; default;
-    property Parent: TMemoryRecord read getParent;
 
-    property onActivate: TActivateEvent read fOnActivate write fOnActivate;
-    property onDeactivate: TActivateEvent read fOnDeActivate write fOndeactivate;
-    property onDestroy: TNotifyEvent read fOnDestroy write fOnDestroy;
+
+
   published
     property ID: integer read fID write setID;
     property Color: TColor read fColor write setColor;
     property Count: integer read getChildCount;
-    property addressString: string read getAddressString;
-    property active: boolean read fActive write setActive;
+    property AddressString: string read getAddressString;
+    property Active: boolean read fActive write setActive;
     property VarType: TVariableType read fVarType write setVarType;
     property Value: string read GetValue write SetValue;
-    property allowDecrease: boolean read fallowDecrease write setAllowDecrease;
-    property allowIncrease: boolean read fallowIncrease write setAllowIncrease;
-    property showAsHex: boolean read fShowAsHex write setShowAsHex;
-    property showAsSigned: boolean read getShowAsSigned write setShowAsSigned;
-    property options: TMemrecOptions read fOptions write setOptions;
+    property AllowDecrease: boolean read fallowDecrease write setAllowDecrease;
+    property AllowIncrease: boolean read fallowIncrease write setAllowIncrease;
+    property ShowAsHex: boolean read fShowAsHex write setShowAsHex;
+    property ShowAsSigned: boolean read getShowAsSigned write setShowAsSigned;
+    property Options: TMemrecOptions read fOptions write setOptions;
     property CustomTypeName: string read fCustomTypeName write setCustomTypeName;
+    property Parent: TMemoryRecord read getParent;
+    property OnActivate: TMemoryRecordActivateEvent read fOnActivate write fOnActivate;
+    property OnDeactivate: TMemoryRecordActivateEvent read fOnDeActivate write fOndeactivate;
+    property OnDestroy: TNotifyEvent read fOnDestroy write fOnDestroy;
+
   end;
 
   TMemoryRecordHotkey=class
