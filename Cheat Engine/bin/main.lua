@@ -1156,45 +1156,60 @@ methods
 
 
 MemoryRecord Class:
-memoryrecord_getID(memoryrecord)
-memoryrecord_getHotkeyCount(memoryrecord)
-memoryrecord_getHotkey(memoryrecord, index): Returns a memoryrecordhotkey class
-memoryrecord_getHotkeyByID(memoryrecord, ID): Every hotkey in a memoryrecord gets an unique ID. This way you can always find the hotkey even if the order of hotkeys has changed (or deleted)
-memoryrecord_onActivate(memoryrecord, function): function (memoryrecord, before, currentstate): boolean; If before is true returning false will cause the activation to stop
-memoryrecord_onDeactivate(memoryrecord, function): function (memoryrecord, before, currentstate): boolean; If before is true returning false will cause the deactivation to stop
-memoryrecord_onDestroy(memoryrecord, function): function (memoryrecord) : Called when a memory record is destroyed
-memoryrecord_setDescription(te, description): sets the specified description for this entry
-memoryrecord_getDescription(te): gets the current description of this entry
-memoryrecord_getAddress(te): returns the address. If it is a pointer it returns a secondary return value which is a table which starts as base address followed by the offset)
-memoryrecord_setAddress(te,address,offsets OPTIONAL) : Sets the address of a entry. You can give as many offsets as you need
-memoryrecord_getType(te) : returns the Variable type. (vtByte to vtCustom)
-memoryrecord_setType(te, vartype) : sets the type of the entry
+properties
+  ID: Integer - Unique ID 
+  Description: string- The description of the memory record
+  Address: string - Get/set the interpretable address string. Usefull for simple address settings.
+  Offset[] : integer - Array to access each offset
+  OffsetCount: integer - The number of offsets. Set to 0 for a normal address
+  CurrentAddress: integer - The address the memoryrecord points to
+  Type: ValueType - The variable type of this record. See vtByte to vtCustom
+    If the type is vtString then the following properties are available:
+     String.Size: Number of characters in the string
+     String.Unicode: boolean
+    
+    If the type is vtBinary then the following properties are available
+      Binary.Startbit: First bit to start reading from
+      Binary.Size : Number of bits
 
-memoryrecord_getValue(te): returns the current value of the cheat table entry as a string
-memoryrecord_setValue(te, value): sets the value of a cheat table entry
-memoryrecord_getScript(te) : If the entry is of type vtAutoAssembler then you can get the script with this routine
-memoryrecord_setScript(te, script)
-memoryrecord_isActive(te)
-memoryrecord_freeze(te, updownfreeze OPTIONAL): sets the entry to frozen state. updownfreeze is optional. 0=freeze, 1=allow increase, 2=allow decrease
-memoryrecord_unfreeze(te) :unfreezes an entry
-memoryrecord_setColor(te, colorrgb): Sets the color of the entry
-memoryrecord_appendToEntry(te,te) : Adds the entry to another entry
+    If the type is vtByteArray then the following propertes are available
+      Aob.Size : Number of bytes
 
+  CustomTypeName: String - If the type is vtCustomType this will contain the name of the CustomType
+  Script: String - If the type is vtAutoAssembler this will contain the auto assembler script
+  Value: string - The value in stringform. 
+  Selected: boolean - Set to true if selected (ReadOnly)
+  Active: boolean - Set to true to activate/freeze, false to deactivate/unfreeze
+  Color: integer
 
-memoryrecord_string_getSize(te): 
-memoryrecord_string_setSize(te, integer): 
-memoryrecord_string_getUnicode(te): 
-memoryrecord_string_setUnicode(te, boolean): 
-memoryrecord_binary_getStartbit(te): 
-memoryrecord_binary_setStartbit(te, integer): 
-memoryrecord_binary_getSize(te): 
-memoryrecord_binary_setSize(te, integer): 
-memoryrecord_aob_getSize(te): 
-memoryrecord_aob_setSize(te, integer): 
+  Count: Number of children
+  Child[index] : Array to access the child records
+  [index] = Child[index]  
 
+  HotkeyCount: integer - Number of hotkeys attached to this memory record
+  Hotkey[] : Array to index the hotkeys
 
-memoryrecord_isSelected(te):  Returns true or false depending on if it's currently selected or not
-memoryrecord_delete(te) : It's unknown what this function does, all that is known is that after using this command other memrec routines with this table entry value don't work anymore...
+  OnActivate: function()
+  OnDeactivate: function()
+  OnDestroy: function()
+methods
+  getDescription()
+  setDescription()
+  getAddress() : Returns the interpretable addressstring of this record. If it is a pointer, it returns a second result as a table filled with the offsets
+  setAddress(string) : Sets the interpretable address string, and if offsets are provided make it a pointer
+
+  getOffsetCount(): Returns the number of offsets for this memoryrecord
+  setOffsetCount(integer): Lets you set the number of offsets
+  
+  getOffset(index) : Gets the offset at the given index
+  setOffset(index, value) : Sets the offset at the given index
+  
+  getCurrentAddress(): Returns the current address as an integer (the final result of the interpretable address and pointer offsets)
+
+  appendToEntry(memrec): Appends the current memory record to the given memory record
+
+  getHotkey(index): Returns the hotkey from the hotkey array
+  getHotkeyByID(integer): Returns the hotkey with the given id
 
 
 Addresslist Class:

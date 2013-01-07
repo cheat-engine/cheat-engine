@@ -209,6 +209,7 @@ type
     property AddressString: string read getAddressString;
     property Active: boolean read fActive write setActive;
     property VarType: TVariableType read fVarType write setVarType;
+    property CustomTypeName: string read fCustomTypeName write setCustomTypeName;
     property Value: string read GetValue write SetValue;
     property AllowDecrease: boolean read fallowDecrease write setAllowDecrease;
     property AllowIncrease: boolean read fallowIncrease write setAllowIncrease;
