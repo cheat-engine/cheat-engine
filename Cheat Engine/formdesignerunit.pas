@@ -492,6 +492,7 @@ var f: TLuaCaller;
   i: integer;
 
   NeedsToBeCreated: boolean;
+  header: tstringlist;
 begin
   f:=TLuaCaller.create;
   f.luaroutine:=name;
@@ -518,120 +519,11 @@ begin
   i:=methodlist.IndexOf(name);
   NeedsToBeCreated:=i=-1;
 
-  //Note when adding new event types: ceguicomponents.pas: SetMethodProperty: Will need to be updated as well
+  header:=tstringlist.create;
+  result:=luacaller_getFunctionHeaderAndMethodForType(ATypeInfo, f, name, header);
+  mainform.frmLuaTableScript.assemblescreen.Lines.AddStrings(header);
 
-  if ATypeInfo.Name ='TNotifyEvent' then
-  begin
-    result:=TMethod(TNotifyEvent(f.NotifyEvent));
-
-    if NeedsToBeCreated then
-    begin
-      with mainform.frmLuaTableScript.assemblescreen.Lines do
-      begin
-        Add('function '+name+'(sender)');
-        Add('');
-        Add('end');
-        Add('');
-      end;
-    end;
-  end
-  else
-  if ATypeInfo.Name ='TSelectionChangeEvent' then
-  begin
-    result:=TMethod(TSelectionChangeEvent(f.SelectionChangeEvent));
-
-    if NeedsToBeCreated then
-    begin
-      with mainform.frmLuaTableScript.assemblescreen.Lines do
-      begin
-        Add('function '+name+'(sender, user)');
-        Add('');
-        Add('end');
-        Add('');
-      end;
-    end;
-  end
-  else
-  if ATypeInfo.Name ='TCloseEvent' then
-  begin
-    result:=TMethod(TCloseEvent(f.CloseEvent));
-
-    if NeedsToBeCreated then
-    begin
-      with mainform.frmLuaTableScript.assemblescreen.Lines do
-      begin
-        Add('function '+name+'(sender)');
-        Add('');
-        Add('  return caHide --Possible options: caHide, caFree, caMinimize, caNone');
-        Add('end');
-        Add('');
-      end;
-    end;
-  end
-  else
-  if ATypeInfo.Name ='TMouseEvent' then
-  begin
-    result:=TMethod(TMouseEvent(f.MouseEvent));
-
-    if NeedsToBeCreated then
-    begin
-      with mainform.frmLuaTableScript.assemblescreen.Lines do
-      begin
-        Add('function '+name+'(sender, button, x, y)');
-        Add('');
-        Add('end');
-        Add('');
-      end;
-    end;
-  end
-  else
-  if ATypeInfo.Name ='TMouseMoveEvent' then
-  begin
-    result:=TMethod(TMouseMoveEvent(f.MouseMoveEvent));
-
-    if NeedsToBeCreated then
-    begin
-      with mainform.frmLuaTableScript.assemblescreen.Lines do
-      begin
-        Add('function '+name+'(sender, x, y)');
-        Add('');
-        Add('end');
-        Add('');
-      end;
-    end;
-  end
-  else
-  if ATypeInfo.Name ='TKeyPressEvent' then
-  begin
-    result:=TMethod(TKeyPressEvent(f.KeyPressEvent));
-
-    if NeedsToBeCreated then
-    begin
-      with mainform.frmLuaTableScript.assemblescreen.Lines do
-      begin
-        Add('function '+name+'(sender, key)');
-        Add('');
-        Add('  return key');
-        Add('end');
-        Add('');
-      end;
-    end;
-  end
-  else
-  if ATypeInfo.name = 'TLVCheckedItemEvent' then
-  begin
-    result:=TMethod(TLVCheckedItemEvent(f.LVCheckedItemEvent));
-    if NeedsToBeCreated then
-    begin
-      with mainform.frmLuaTableScript.assemblescreen.Lines do
-      begin
-        Add('function '+name+'(sender, listitem)');
-        Add('');
-        Add('end');
-        Add('');
-      end;
-    end;
-  end;
+  header.free;
 
   onShowMethod(Name);
 

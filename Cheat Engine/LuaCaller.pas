@@ -60,6 +60,8 @@ procedure LuaCaller_pushMethodProperty(L: PLua_state; m: TMethod; typename: stri
 procedure LuaCaller_setMethodProperty(L: PLua_state; c: TObject; prop: string; typename: string; luafunctiononstack: integer);  overload;
 procedure LuaCaller_setMethodProperty(L: PLua_state; var m: TMethod; typename: string; luafunctiononstack: integer); overload;
 
+function luacaller_getFunctionHeaderAndMethodForType(typeinfo: PTypeInfo; lc: pointer; name: string; header: tstrings) : Tmethod;
+
 implementation
 
 uses luahandler, MainUnit;
@@ -68,9 +70,33 @@ type
   TLuaCallData=class(tobject)
     GetMethodProp: lua_CFunction; //used when lua wants a function to a class method/property  (GetMethodProp)
     SetMethodProp: pointer; //used when we want to set a method property to a lua function (SetMethodProp)
+    luafunctionheader: string;
   end;
 var LuaCallList: Tstringlist;
 
+
+function luacaller_getFunctionHeaderAndMethodForType(typeinfo: PTypeInfo; lc: pointer; name: string; header: tstrings) : Tmethod;
+var i: integer;
+  lcd: TLuaCallData;
+
+begin
+  result.Code:=nil;
+  result.data:=nil;
+
+
+  i:=LuaCallList.IndexOf(typeinfo.Name);
+  if i<>-1 then
+  begin
+    lcd:=TLuaCallData(LuaCallList.Objects[i]);
+    result.Code:=lcd.SetMethodProp;
+    result.data:=lc;
+
+    header.Text:=format(lcd.luafunctionheader, [name]);
+  end;
+
+
+
+end;
 
 procedure LuaCaller_setMethodProperty(L: PLua_state; var m: TMethod; typename: string; luafunctiononstack: integer);
 var
@@ -712,24 +738,27 @@ begin
     lua_pop(L, lua_gettop(L));
 end;
 
-procedure registerLuaCall(typename: string; getmethodprop: lua_CFunction; setmethodprop: pointer);
+procedure registerLuaCall(typename: string; getmethodprop: lua_CFunction; setmethodprop: pointer; luafunctionheader: string);
 var t: TLuaCallData;
 begin
   t:=TLuaCallData.Create;
   t.getmethodprop:=getmethodprop;
   t.setmethodprop:=setmethodprop;
+  t.luafunctionheader:=luafunctionheader;
   LuaCallList.AddObject(typename, t);
 end;
 
 initialization
   LuaCallList:=TStringList.create;
-  registerLuaCall('TNotifyEvent',  LuaCaller_NotifyEvent, pointer(TLuaCaller.NotifyEvent));
-  registerLuaCall('TSelectionChangeEvent', LuaCaller_SelectionChangeEvent, pointer(TLuaCaller.SelectionChangeEvent));
-  registerLuaCall('TCloseEvent', LuaCaller_CloseEvent, pointer(TLuaCaller.CloseEvent));
-  registerLuaCall('TMouseEvent', LuaCaller_MouseEvent, pointer(TLuaCaller.MouseEvent));
-  registerLuaCall('TMouseMoveEvent', LuaCaller_MouseMoveEvent, pointer(TLuaCaller.MouseMoveEvent));
-  registerLuaCall('TKeyPressEvent', LuaCaller_KeyPressEvent, pointer(TLuaCaller.KeyPressEvent));
-  registerLuaCall('TLVCheckedItemEvent', LuaCaller_LVCheckedItemEvent, pointer(TLuaCaller.LVCheckedItemEvent));
+  registerLuaCall('TNotifyEvent',  LuaCaller_NotifyEvent, pointer(TLuaCaller.NotifyEvent),'function %s(sender)'#13#10#13#10'end'#13#10);
+  registerLuaCall('TSelectionChangeEvent', LuaCaller_SelectionChangeEvent, pointer(TLuaCaller.SelectionChangeEvent),'function %s(sender, user)'#13#10#13#10'end'#13#10);
+  registerLuaCall('TCloseEvent', LuaCaller_CloseEvent, pointer(TLuaCaller.CloseEvent),'function %s(sender)'#13#10#13#10'return caHide --Possible options: caHide, caFree, caMinimize, caNone'#13#10'end'#13#10);
+  registerLuaCall('TMouseEvent', LuaCaller_MouseEvent, pointer(TLuaCaller.MouseEvent),'function %s(sender, button, x, y)'#13#10#13#10'end'#13#10);
+  registerLuaCall('TMouseMoveEvent', LuaCaller_MouseMoveEvent, pointer(TLuaCaller.MouseMoveEvent),'function %s(sender, x, y)'#13#10#13#10'end'#13#10);
+  registerLuaCall('TKeyPressEvent', LuaCaller_KeyPressEvent, pointer(TLuaCaller.KeyPressEvent),'function %s(sender, key)'#13#10#13#10'  return key'#1310'end'#13#10);
+  registerLuaCall('TLVCheckedItemEvent', LuaCaller_LVCheckedItemEvent, pointer(TLuaCaller.LVCheckedItemEvent),'function %s(sender, listitem)'#13#10#13#10'end'#13#10);
+ // registerLuaCall('TMemoryRecordActivateEvent', LuaCaller_MemoryRecordActivateEvent, pointer(TLuaCaller.MemoryRecordActivateEvent),'function %s(sender, before, current)'#13#10#13#10'end'#13#10);
+
 
 end.
 

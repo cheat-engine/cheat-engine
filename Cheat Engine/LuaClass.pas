@@ -12,6 +12,26 @@ uses
 
 type TAddMetaDataFunction=procedure(L: PLua_state; metatable: integer; userdata: integer );
 
+type
+  TRecordEntry=record
+    name: string;
+    getf: lua_CFunction;
+    setf: lua_CFunction;
+  end;
+
+  TRecordEntries=class
+  private
+    list: array of TRecordEntry;
+    function getEntry(index: integer): TRecordEntry;
+    procedure setEntry(index: integer; e: TRecordEntry);
+    function getCount: integer;
+  public
+    procedure add(r: TRecordEntry);
+    procedure clear;
+    property Items[Index: Integer]: TRecordEntry read getEntry write setEntry; default;
+    property Count: integer read getCount;
+  end;
+
 function luaclass_createMetaTable(L: Plua_State): integer;
 
 procedure luaclass_addClassFunctionToTable(L: PLua_State; metatable: integer; userdata: integer; functionname: string; f: lua_CFunction);
@@ -19,6 +39,7 @@ procedure luaclass_addPropertyToTable(L: PLua_State; metatable: integer; userdat
 procedure luaclass_setDefaultArrayProperty(L: PLua_State; metatable: integer; userdata: integer; getf,setf: lua_CFunction);
 
 procedure luaclass_addArrayPropertyToTable(L: PLua_State; metatable: integer; userdata: integer; propertyname: string; getf: lua_CFunction; setf: lua_CFunction=nil);
+procedure luaclass_addRecordPropertyToTable(L: PLua_State; metatable: integer; userdata: integer; propertyname: string; RecordEntries: TRecordEntries);
 
 procedure luaclass_setAutoDestroy(L: PLua_State; metatable: integer; state: boolean);
 
@@ -48,6 +69,34 @@ type
 resourcestring
   rsInvalidClassObject='Invalid class object';
 
+
+function TRecordEntries.getEntry(index: integer): TRecordEntry;
+begin
+  if index<length(list) then
+    result:=list[index];
+end;
+
+procedure TRecordEntries.setEntry(index: integer; e: TRecordEntry);
+begin
+  if index<length(list) then
+    list[index]:=e;
+end;
+
+procedure TRecordEntries.add(r: TRecordEntry);
+begin
+  setlength(list, length(list)+1);
+  list[length(list)]:=r;
+end;
+
+procedure TRecordEntries.clear;
+begin
+  setlength(list,0);
+end;
+
+function TRecordEntries.getCount: integer;
+begin
+  result:=length(list);
+end;
 
 procedure luaclass_register(c: TClass; InitialAddMetaDataFunction: TAddMetaDataFunction);
 //registers the classes that are accessible by lua. Used by findBestClassForObject
@@ -210,8 +259,32 @@ begin
 
 end;
 
+procedure luaclass_addRecordPropertyToTable(L: PLua_State; metatable: integer; userdata: integer; propertyname: string; RecordEntries: TRecordEntries);
+var t,metatable2: integer;
+    i: integer;
+begin
+  lua_pushstring(L, propertyname);
+  lua_newtable(L);
+  t:=lua_gettop(L);
+
+  metatable2:=luaclass_createMetaTable(L); //create a luaclass metatable for this new table
+
+  lua_pushstring(L, '__norealclass');
+  lua_pushboolean(L, true);
+  lua_settable(L, metatable2); //tell this metatable that it's not a "real" class, so it won't have to get properties or component names
+
+
+  for i:=0 to RecordEntries.count-1 do
+    luaclass_addPropertyToTable(L, metatable2, userdata, RecordEntries[i].name, RecordEntries[i].getf, RecordEntries[i].setf);
+
+  lua_setmetatable(L, t);  //pop the table from the stack and set it as metatatble to table T
+
+
+  lua_settable(L, metatable); //pop the table and the string from the table and set that to the metatable
+end;
+
 procedure luaclass_addArrayPropertyToTable(L: PLua_State; metatable: integer; userdata: integer; propertyname: string; getf: lua_CFunction; setf: lua_CFunction=nil);
-var t,t2: integer;
+var t: integer;
 begin
   lua_pushstring(L, propertyname);
   lua_newtable(L);
@@ -345,12 +418,14 @@ begin
 
     if lua_istable(L ,-1) then
     begin
+      //perhaps an array
       //lua_getmetatable(L,-1);
       lua_pushstring(L, '__get');
       lua_gettable(L, -2);
 
       if lua_isfunction(L, -1) then
         lua_call(L, 0, 1);
+
     end
     else
     begin
@@ -372,6 +447,16 @@ begin
             exit;
           end;
         end;
+
+        lua_pushstring(L, '__norealclass');
+        lua_gettable(L, metatable);
+        if lua_isboolean(L, -1) and lua_toboolean(L, -1) then
+        begin
+          lua_pop(L,1);
+          lua_pushnil(L);
+          result:=1;
+        end;
+
 
 
         //Let's see if this is a published property

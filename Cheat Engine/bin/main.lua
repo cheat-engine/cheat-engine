@@ -1147,7 +1147,7 @@ properties
   Owner: MemoryRecord - The memoryrecord this hotkey belongs to (ReadOnly)
   ID: integer - Unique id of this hotkey (ReadOnly)
   Description: string - The description of this hotkey (ReadOnly)
-  HotkeyString: string - The hotkey formatted as a string
+  HotkeyString: string - The hotkey formatted as a string (ReadOnly)
   OnHotkey: function(sender) - Function to be called when a hotkey has just been pressed
   OnPostHotkey: function(sender) - Function to be called when a hotkey has been pressed and the action has been performed
   
