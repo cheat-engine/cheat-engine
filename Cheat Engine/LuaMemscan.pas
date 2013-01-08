@@ -11,12 +11,14 @@ procedure initializeMemscan;
 
 implementation
 
+uses luaclass, LuaObject;
+
 //memscan_firstScan(memscan, scanOption, vartype, roundingtype, input1, input2, startAddress,
 //                  stopAddress, protectionflags, alignmenttype, "alignmentparam", isHexadecimalInput,
 //                  isNotABinaryString, isunicodescan, iscasesensitive, ispercentagescan);
 function memscan_firstScan(L: Plua_State): integer; cdecl;
 var
-  parameters: integer;
+  paramstart, paramcount: integer;
   memscan: Tmemscan;
   scanOption: TScanOption;
   vartype: TVariableType;
@@ -31,34 +33,35 @@ var
   isHexadecimalInput, isNotABinaryString, isunicodescan, iscasesensitive, ispercentagescan: boolean;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=15 then
+  memscan:=luaclass_getClassObject(L, @paramstart, @paramcount);
+
+  if paramcount=14 then
   begin
-    memscan:=lua_touserdata(L, 1);
-    scanOption:=TScanOption(lua_tointeger(L, 2));
-    vartype:=TVariableType(lua_tointeger(L, 3));
-    roundingtype:=TRoundingType(lua_tointeger(L, 4));
-    input1:=Lua_ToString(L, 5);
-    input2:=Lua_ToString(L, 6);
+    memscan:=lua_touserdata(L, paramstart+0);
+    scanOption:=TScanOption(lua_tointeger(L, paramstart+1));
+    vartype:=TVariableType(lua_tointeger(L, paramstart+2));
+    roundingtype:=TRoundingType(lua_tointeger(L, paramstart+3));
+    input1:=Lua_ToString(L, paramstart+4);
+    input2:=Lua_ToString(L, paramstart+4);
 
-    if lua_type(L,7)=LUA_TSTRING then
-      startaddress:=symhandler.getAddressFromNameL(Lua_ToString(L, 7))
+    if lua_type(L,paramstart+6)=LUA_TSTRING then
+      startaddress:=symhandler.getAddressFromNameL(Lua_ToString(L, paramstart+6))
     else
-      startaddress:=lua_tointeger(L, 7);
+      startaddress:=lua_tointeger(L, paramstart+6);
 
-    if lua_type(L,8)=LUA_TSTRING then
-      stopaddress:=symhandler.getAddressFromNameL(Lua_ToString(L, 8))
+    if lua_type(L,paramstart+7)=LUA_TSTRING then
+      stopaddress:=symhandler.getAddressFromNameL(Lua_ToString(L, paramstart+7))
     else
-      stopaddress:=lua_tointeger(L, 8);
+      stopaddress:=lua_tointeger(L, paramstart+7);
 
-    protectionflags:=Lua_ToString(L, 9);
-    alignmenttype:=TFastScanMethod(lua_tointeger(L, 10));
-    alignmentparam:=lua_tostring(L, 11);
+    protectionflags:=Lua_ToString(L, paramstart+8);
+    alignmenttype:=TFastScanMethod(lua_tointeger(L, paramstart+9));
+    alignmentparam:=lua_tostring(L, paramstart+10);
 
-    isHexadecimalInput:=lua_toboolean(L, 12);
-    isNotABinaryString:=lua_toboolean(L, 13);
-    isunicodescan:=lua_toboolean(L, 14);
-    iscasesensitive:=lua_toboolean(L, 15);
+    isHexadecimalInput:=lua_toboolean(L, paramstart+11);
+    isNotABinaryString:=lua_toboolean(L, paramstart+12);
+    isunicodescan:=lua_toboolean(L, paramstart+13);
+    iscasesensitive:=lua_toboolean(L, paramstart+14);
 
     lua_pop(L, lua_gettop(L));
 
@@ -67,18 +70,13 @@ begin
     memscan.firstscan(scanoption, vartype, roundingtype, input1,input2, startaddress,stopaddress, isHexadecimalInput, isNotABinaryString, isunicodescan, iscasesensitive, alignmenttype, alignmentparam, nil );
   end
   else
-  begin
-    lua_pop(L, lua_gettop(L));
-    lua_pushstring(L, 'Not all parameters have been given');
-    lua_error(L);
-  end;
-
+    raise exception.create('Not all parameters have been provided');
 
 end;
 
 function memscan_nextScan(L: Plua_State): integer; cdecl;
 var
-  parameters: integer;
+  paramcount, paramstart: integer;
   memscan: Tmemscan;
   scanOption: TScanOption;
   roundingtype: TRoundingType;
@@ -88,63 +86,50 @@ var
   savedscanname: string;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters>=10 then
+  memscan:=luaclass_getClassObject(L, @paramstart, @paramcount);
+
+
+  if paramcount>=10 then
   begin
-    memscan:=lua_touserdata(L, -parameters);
-    scanOption:=TScanOption(lua_tointeger(L, -parameters+1));
-    roundingtype:=TRoundingType(lua_tointeger(L, -parameters+2));
-    input1:=Lua_ToString(L, -parameters+3);
-    input2:=Lua_ToString(L, -parameters+4);
+    scanOption:=TScanOption(lua_tointeger(L, paramstart+0));
+    roundingtype:=TRoundingType(lua_tointeger(L, paramstart+1));
+    input1:=Lua_ToString(L, paramstart+2);
+    input2:=Lua_ToString(L, paramstart+3);
 
-    isHexadecimalInput:=lua_toboolean(L, -parameters+5);
-    isNotABinaryString:=lua_toboolean(L, -parameters+6);
-    isunicodescan:=lua_toboolean(L, -parameters+7);
-    iscasesensitive:=lua_toboolean(L, -parameters+8);
-    ispercentagescan:=lua_toboolean(L, -parameters+9);
+    isHexadecimalInput:=lua_toboolean(L, paramstart+4);
+    isNotABinaryString:=lua_toboolean(L, paramstart+5);
+    isunicodescan:=lua_toboolean(L, paramstart+6);
+    iscasesensitive:=lua_toboolean(L, paramstart+7);
+    ispercentagescan:=lua_toboolean(L, paramstart+8);
 
-    if parameters=11 then
-      savedscanname:=Lua_ToString(L, -parameters+10)
+    if paramcount=10 then
+      savedscanname:=Lua_ToString(L, paramstart+9)
     else
       savedscanname:='';
 
     lua_pop(L, lua_gettop(L));
 
     memscan.nextscan(scanoption, roundingtype, input1,input2, isHexadecimalInput, isNotABinaryString, isunicodescan, iscasesensitive, ispercentagescan, savedscanname<>'', savedscanname );
-  end else lua_pop(L, lua_gettop(L));
+  end else
+    raise exception.create('Not all parameters have been provided');
 end;
 
 function memscan_waitTillDone(L: Plua_State): integer; cdecl;
 var
-  parameters: integer;
   memscan: Tmemscan;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    memscan:=lua_touserdata(L, -parameters);
-    lua_pop(L, lua_gettop(L));
-
-    memscan.waittillreallydone;
-  end else lua_pop(L, lua_gettop(L));
+  memscan:=luaclass_getClassObject(L);
+  memscan.waittillreallydone;
 end;
 
 function memscan_getAttachedFoundlist(L: Plua_State): integer; cdecl;
 var
-  parameters: integer;
   memscan: Tmemscan;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    memscan:=lua_touserdata(L, -parameters);
-    lua_pop(L, lua_gettop(L));
-
-    result:=1;
-    lua_pushlightuserdata(L,memscan.attachedFoundlist);
-  end else lua_pop(L, lua_gettop(L));
+  memscan:=luaclass_getClassObject(L);
+  luaclass_newclass(L,memscan.attachedFoundlist);
+  result:=1;
 end;
 
 
@@ -155,57 +140,66 @@ var
   name: string;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
+  memscan:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
   begin
-    memscan:=lua_touserdata(L, -parameters);
-    name:=Lua_ToString(L, -parameters+1);
-    lua_pop(L, lua_gettop(L));
-
+    name:=Lua_ToString(L, -1);
     memscan.saveresults(name);
-  end else lua_pop(L, lua_gettop(L));
+  end;
 end;
 
-function memscan_returnOnlyOneResult(L: PLua_State): integer; cdecl;
+function memscan_getreturnOnlyOneResult(L: PLua_State): integer; cdecl;
+var
+  memscan: Tmemscan;
+begin
+  memscan:=luaclass_getClassObject(L);
+  lua_pushboolean(L,memscan.OnlyOne);
+  result:=1;
+end;
+
+
+function memscan_setreturnOnlyOneResult(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
   memscan: Tmemscan;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    memscan:=lua_touserdata(L,1);
-    memscan.OnlyOne:=lua_toboolean(L,2);
-  end;
-
-  lua_pop(L, parameters);
+  memscan:=luaclass_getClassObject(L);
+  if parameters>=1 then
+    memscan.OnlyOne:=lua_toboolean(L,-1);
 end;
 
 function memscan_getOnlyResult(L: Plua_State): integer; cdecl;
 var
-  parameters: integer;
   memscan: Tmemscan;
   address: ptruint;
-
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
+  memscan:=luaclass_getClassObject(L);
+
+  if memscan.GetOnlyOneResult(address) then
   begin
-    memscan:=lua_touserdata(L, -parameters);
-    lua_pop(L, lua_gettop(L));
-
-    if memscan.GetOnlyOneResult(address) then
-    begin
-      result:=1;
-      lua_pushinteger(L,address);
-    end;
-
-
-  end else lua_pop(L, lua_gettop(L));
+    result:=1;
+    lua_pushinteger(L,address);
+  end;
 end;
 
+
+procedure memscan_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
+begin
+  object_addMetaData(L, metatable, userdata);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'firstScan', memscan_firstScan);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'nextScan', memscan_nextScan);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'waitTillDone', memscan_waitTillDone);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'saveCurrentResults', memscan_saveCurrentResults);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getAttachedFoundlist', memscan_getAttachedFoundlist);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setOnlyOneResult', memscan_setreturnOnlyOneResult);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getOnlyResult', memscan_getOnlyResult);
+
+  luaclass_addPropertyToTable(L, metatable, userdata, 'FoundList', memscan_getAttachedFoundlist, nil);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'OnlyOneResult', memscan_getreturnOnlyOneResult, memscan_setreturnOnlyOneResult);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Result', memscan_getOnlyResult, nil);
+end;
 
 procedure InitializeMemscan;
 begin
@@ -214,9 +208,12 @@ begin
   Lua_register(LuaVM, 'memscan_waitTillDone', memscan_waitTillDone);
   Lua_register(LuaVM, 'memscan_saveCurrentResults', memscan_saveCurrentResults);
   Lua_register(LuaVM, 'memscan_getAttachedFoundlist', memscan_getAttachedFoundlist);
-  Lua_register(LuaVM, 'memscan_returnOnlyOneResult', memscan_returnOnlyOneResult);
+  Lua_register(LuaVM, 'memscan_returnOnlyOneResult', memscan_getreturnOnlyOneResult);
   Lua_register(LuaVM, 'memscan_getOnlyResult', memscan_getOnlyResult);
 end;
+
+initialization
+  luaclass_register(TMemScan, memscan_addMetaData);
 
 
 end.

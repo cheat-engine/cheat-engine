@@ -576,14 +576,15 @@ type
     procedure saveresults(resultname: string);
     function getsavedresults(r: tstrings): integer;
 
-    property LastScanValue: string read fLastScanValue;
-    property LastScanType: TScanType read FLastScanType;
-    property ScanresultFolder: string read fScanResultFolder; //read only, it's configured during creation
-    property VarType: TVariableType read currentVariableType;
-    property CustomType: TCustomType read currentCustomType;
+
     property nextscanCount: integer read fnextscanCount;
   published
     property OnlyOne: boolean read fOnlyOne write fOnlyOne;
+    property VarType: TVariableType read currentVariableType;
+    property CustomType: TCustomType read currentCustomType;
+    property LastScanValue: string read fLastScanValue;
+    property LastScanType: TScanType read FLastScanType;
+    property ScanresultFolder: string read fScanResultFolder; //read only, it's configured during creation
   end;
 
 
