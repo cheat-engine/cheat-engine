@@ -17,7 +17,7 @@ function lua_setProperty(L: PLua_state): integer; cdecl;
 
 implementation
 
-uses LuaClass, LuaHandler, pluginexports, LuaCaller;
+uses LuaClass, LuaHandler, pluginexports, LuaCaller, symbolhandler;
 
 function object_destroy(L: PLua_State): integer; cdecl;
 var c: TObject;
@@ -176,7 +176,17 @@ begin
       begin
         //it's a published property
         case pinfo.PropType.Kind of
-          tkInteger,tkInt64,tkQWord: SetPropValue(c, p, lua_tointeger(L, 3));
+          tkInteger,tkInt64,tkQWord:
+          begin
+            if lua_type(L,3)=LUA_TSTRING then
+            begin
+              //expected an integer, but got a string
+              SetPropValue(c, p, symhandler.getAddressFromName(Lua_ToString(L, 3)));
+            end
+            else
+              SetPropValue(c, p, lua_tointeger(L, 3));
+          end;
+
           tkBool: SetPropValue(c, p, lua_toboolean(L, 3));
           tkFloat: SetPropValue(c, p, lua_tonumber(L, 3));
           tkClass, tkObject:

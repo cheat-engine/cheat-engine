@@ -56,6 +56,10 @@ function LuaCaller_MouseMoveEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_KeyPressEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_LVCheckedItemEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_MemoryRecordActivateEvent(L: PLua_state): integer; cdecl;
+function LuaCaller_DisassemblerSelectionChangeEvent(L: PLua_state): integer; cdecl;
+function LuaCaller_ByteSelectEvent(L: PLua_state): integer; cdecl;  //(sender: TObject; address: ptruint; address2: ptruint);
+function LuaCaller_AddressChangeEvent(L: PLua_state): integer; cdecl;  //(sender: TObject; address: ptruint);
+
 
 
 
@@ -68,7 +72,7 @@ function luacaller_getFunctionHeaderAndMethodForType(typeinfo: PTypeInfo; lc: po
 
 implementation
 
-uses luahandler, MainUnit, MemoryRecordUnit;
+uses luahandler, MainUnit, MemoryRecordUnit, disassemblerviewunit, hexviewunit;
 
 type
   TLuaCallData=class(tobject)
@@ -768,6 +772,78 @@ begin
     lua_pop(L, lua_gettop(L));
 end;
 
+function LuaCaller_DisassemblerSelectionChangeEvent(L: PLua_state): integer; cdecl;
+//function(sender, address, address2)
+var
+  m: TMethod;
+  sender: TObject;
+  a,a2: ptruint;
+  r: boolean;
+begin
+  result:=0;
+  if lua_gettop(L)=3 then
+  begin
+    //(sender: TObject; before, currentstate: boolean):
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    sender:=lua_toceuserdata(L, 1);
+    a:=lua_tointeger(L, 2);
+    a2:=lua_tointeger(L,3);
+    lua_pop(L, lua_gettop(L));
+
+    TDisassemblerSelectionChangeEvent(m)(sender,a, a2);
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
+
+//I could reuse LuaCaller_DisassemblerSelectionChangeEvent with   LuaCaller_ByteSelectEvent
+function LuaCaller_ByteSelectEvent(L: PLua_state): integer; cdecl;  //(sender: TObject; address: ptruint; address2: ptruint);
+var
+  m: TMethod;
+  sender: TObject;
+  a,a2: ptruint;
+begin
+  result:=0;
+  if lua_gettop(L)=3 then
+  begin
+    //(sender: TObject; before, currentstate: boolean):
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    sender:=lua_toceuserdata(L, 1);
+    a:=lua_tointeger(L, 2);
+    a2:=lua_tointeger(L,3);
+    lua_pop(L, lua_gettop(L));
+
+    TByteSelectEvent(m)(sender,a, a2);
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+
+end;
+
+function LuaCaller_AddressChangeEvent(L: PLua_state): integer; cdecl;  //(sender: TObject; address: ptruint);
+var
+  m: TMethod;
+  sender: TObject;
+  a: ptruint;
+begin
+  result:=0;
+  if lua_gettop(L)=3 then
+  begin
+    //(sender: TObject; before, currentstate: boolean):
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    sender:=lua_toceuserdata(L, 1);
+    a:=lua_tointeger(L, 2);
+    lua_pop(L, lua_gettop(L));
+
+    TAddressChangeEvent(m)(sender,a);
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+
+end;
 
 procedure registerLuaCall(typename: string; getmethodprop: lua_CFunction; setmethodprop: pointer; luafunctionheader: string);
 var t: TLuaCallData;
@@ -790,6 +866,8 @@ initialization
   registerLuaCall('TLVCheckedItemEvent', LuaCaller_LVCheckedItemEvent, pointer(TLuaCaller.LVCheckedItemEvent),'function %s(sender, listitem)'#13#10#13#10'end'#13#10);
   registerLuaCall('TMemoryRecordActivateEvent', LuaCaller_MemoryRecordActivateEvent, pointer(TLuaCaller.MemoryRecordActivateEvent),'function %s(sender, before, current)'#13#10#13#10'end'#13#10);
 
-
+  registerLuaCall('TDisassemblerSelectionChangeEvent', LuaCaller_DisassemblerSelectionChangeEvent, pointer(TLuaCaller.DisassemblerSelectionChangeEvent),'function %s(sender, address, address2)'#13#10#13#10'end'#13#10);
+  registerLuaCall('TByteSelectEvent', LuaCaller_ByteSelectEvent, pointer(TLuaCaller.ByteSelectEvent),'function %s(sender, address, address2)'#13#10#13#10'end'#13#10);
+  registerLuaCall('TAddressChangeEvent', LuaCaller_AddressChangeEvent, pointer(TLuaCaller.AddressChangeEvent),'function %s(sender, address)'#13#10#13#10'end'#13#10);
 end.
 

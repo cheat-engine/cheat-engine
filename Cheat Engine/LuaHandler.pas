@@ -3283,45 +3283,30 @@ begin
 end;
 
 function hexadecimalview_getTopAddress(L: PLua_State): integer; cdecl;
-var parameters: integer;
+var
   hv: THexView;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    hv:=lua_toceuserdata(L, -1);
-    lua_pop(L, parameters);
-
-    result:=1;
-    lua_pushinteger(L, hv.address);
-  end
-  else
-    lua_pop(L, parameters);
+  hv:=luaclass_getClassObject(L);
+  lua_pushinteger(L, hv.address);
+  result:=1;
 end;
 
 function hexadecimalview_setTopAddress(L: PLua_State): integer; cdecl;
-var parameters: integer;
+var
   hv: THexView;
   address: ptruint;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
+  hv:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
   begin
-    hv:=lua_toceuserdata(L, -2);
     if lua_isstring(L, -1) then
       address:=symhandler.getAddressFromNameL(Lua_ToString(L, -1))
     else
       address:=lua_tointeger(L, -1);
 
-
-    lua_pop(L, parameters);
-
     hv.address:=address;
   end
-  else
-    lua_pop(L, parameters);
 end;
 
 function hexadecimalview_onAddressChange(L: PLua_State): integer; cdecl;
@@ -3407,47 +3392,32 @@ begin
 end;
 
 
-function disassemblerview_getSelectedAddress(L: PLua_State): integer; cdecl;
-var parameters: integer;
+function disassemblerview_getSelectedAddress(L: PLua_State): integer; cdecl;    //6.2-
+var
   dv: TDisassemblerview;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    dv:=lua_toceuserdata(L, -1);
-    lua_pop(L, parameters);
-
-    result:=2;
-    lua_pushinteger(L, dv.SelectedAddress);
-    lua_pushinteger(L, dv.SelectedAddress2); //6.2: Returns both addresses
-  end
-  else
-    lua_pop(L, parameters);
+  dv:=luaclass_getClassObject(L);
+  result:=2;
+  lua_pushinteger(L, dv.SelectedAddress);
+  lua_pushinteger(L, dv.SelectedAddress2); //6.2: Returns both addresses
 end;
 
-function disassemblerview_setSelectedAddress(L: PLua_State): integer; cdecl;
-var parameters: integer;
+function disassemblerview_setSelectedAddress(L: PLua_State): integer; cdecl;  //6.2-
+var
   dv: TDisassemblerview;
   address: ptruint;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
+  dv:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
   begin
-    dv:=lua_toceuserdata(L, -2);
     if lua_isstring(L, -1) then
       address:=symhandler.getAddressFromNameL(Lua_ToString(L, -1))
     else
       address:=lua_tointeger(L, -1);
 
-
-    lua_pop(L, parameters);
-
     dv.SelectedAddress:=address;
-  end
-  else
-    lua_pop(L, parameters);
+  end;
 end;
 
 function disassemblerview_onSelectionChange(L: PLua_State): integer; cdecl;
@@ -4261,15 +4231,12 @@ begin
     lua_register(LuaVM, 'createFileStream', createFileStream);
 
     Lua_register(LuaVM, 'getMemoryViewForm', getMemoryViewForm);
-
-    initializeLuaMemoryview;
-
-
     Lua_register(LuaVM, 'getMainForm', getMainForm);
     Lua_register(LuaVM, 'getAddressList', getAddressList);
     Lua_register(LuaVM, 'getFreezeTimer', getFreezeTimer);
     Lua_register(LuaVM, 'getUpdateTimer', getUpdateTimer);
 
+    initializeLuaMemoryview;
     initializeLuaTableFile;
 
     InitializeLuaXMPlayer;
