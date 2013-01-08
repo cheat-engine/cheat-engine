@@ -1390,8 +1390,13 @@ methods
 
 
 Memoryview class: (Inheritance: Form->ScrollingWinControl->CustomControl->WinControl->Control->Component->Object)
-memoryview_getDisassemblerView(memoryView): Returns the visual disassembler object on the memoryview window
-memoryview_getHexadecimalView(memoryView): Returns the visual hexadecimal object on the memoryview window
+createMemoryView() - Creates a new memoryview window. This window will not receive debug events. Use getMemoryViewForm() function to get the main memoryview window
+properties
+  DisassemblerView: The disassemblerview class of this memoryview object
+  HexadecimalView: The hexadecimalview class of this memoryview object
+methods
+  getDisassemblerView(): Returns the visual disassembler object on the memoryview window
+  getHexadecimalView(): Returns the visual hexadecimal object on the memoryview window
 
 Disassemblerview class: (Inheritance: Panel->CustomControl->WinControl->Control->Component->Object) 
   The visual disassembler used on the memory view window

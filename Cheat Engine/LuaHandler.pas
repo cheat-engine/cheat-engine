@@ -69,7 +69,8 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports, Mem
   LuaStringlist, LuaCustomControl, LuaGraphicControl, LuaPanel, LuaImage, LuaButton,
   LuaCheckbox, LuaGroupbox, LuaListbox, LuaCombobox, LuaTrackbar, LuaListColumn,
   LuaEdit, LuaMemo, LuaCollection, LuaListColumns, LuaListitem, LuaListItems,
-  LuaTimer, LuaListview, LuaGenericHotkey, LuaTableFile, LuaMemoryRecordHotkey;
+  LuaTimer, LuaListview, LuaGenericHotkey, LuaTableFile, LuaMemoryRecordHotkey,
+  LuaMemoryView;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -2524,6 +2525,7 @@ begin
   luaclass_newClass(l, MemoryBrowser);
 end;
 
+
 function getMainForm(L: PLua_state): integer; cdecl;
 begin
   result:=1;
@@ -2531,37 +2533,7 @@ begin
   luaclass_newClass(l, mainform);
 end;
 
-function memoryview_getDisassemblerView(L: PLua_state): integer; cdecl;
-var m: TMemoryBrowser;
-  parameters: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    m:=lua_toceuserdata(L, -1);
-    lua_pop(L, lua_gettop(l));
 
-    luaclass_newClass(L, m.disassemblerview);
-    result:=1;
-  end else lua_pop(L, lua_gettop(l));
-end;
-
-function memoryview_getHexadecimalView(L: PLua_state): integer; cdecl;
-var m: TMemoryBrowser;
-  parameters: integer;
-begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    m:=lua_toceuserdata(L, -1);
-    lua_pop(L, lua_gettop(l));
-
-    luaclass_newClass(L, m.hexview);
-    result:=1;
-  end else lua_pop(L, lua_gettop(l));
-end;
 
 
 function getAddressList(L: PLua_state): integer; cdecl;
@@ -4289,8 +4261,8 @@ begin
     lua_register(LuaVM, 'createFileStream', createFileStream);
 
     Lua_register(LuaVM, 'getMemoryViewForm', getMemoryViewForm);
-    lua_register(LuaVM, 'memoryview_getDisassemblerView', memoryview_getDisassemblerView);
-    lua_register(LuaVM, 'memoryview_getHexadecimalView', memoryview_getHexadecimalView);
+
+    initializeLuaMemoryview;
 
 
     Lua_register(LuaVM, 'getMainForm', getMainForm);

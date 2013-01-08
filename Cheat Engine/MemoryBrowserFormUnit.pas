@@ -1457,6 +1457,7 @@ begin
   hexview.popupmenu:=memorypopup;
 
   hexview.OnKeyDown:=hexviewKeyDown;
+  hexview.Name:='HexadecimalView';
 
 
   memoryaddress:=$00400000;
