@@ -68,7 +68,7 @@ function luacaller_getFunctionHeaderAndMethodForType(typeinfo: PTypeInfo; lc: po
 
 implementation
 
-uses luahandler, MainUnit;
+uses luahandler, MainUnit, MemoryRecordUnit;
 
 type
   TLuaCallData=class(tobject)
@@ -750,8 +750,7 @@ var
   r: boolean;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
+  if lua_gettop(L)=3 then
   begin
     //(sender: TObject; before, currentstate: boolean):
     m.code:=lua_touserdata(L, lua_upvalueindex(1));

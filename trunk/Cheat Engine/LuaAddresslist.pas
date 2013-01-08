@@ -19,7 +19,7 @@ var
   addresslist: TAddresslist;
 begin
   addresslist:=luaclass_getClassObject(L);
-  lua_pushinteger(L, addresslist);
+  lua_pushinteger(L, addresslist.Count);
   result:=1;
 end;
 
@@ -88,7 +88,7 @@ begin
   addresslist:=luaclass_getClassObject(L);
   if lua_gettop(L)>=1 then
   begin
-    description:=Lua_ToString(L,-1);
+    id:=lua_tointeger(L,-1);
     luaclass_newClass(L, addresslist.getRecordWithID(id));
     result:=1;
   end;
@@ -170,7 +170,7 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setSelectedRecord', addresslist_setSelectedRecord);
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'Count', addresslist_getCount, nil);
-  luaclass_addPropertyToTable(L, metatable, userdata, 'SelectedRecord', memoryrecord_isSelected, nil);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'SelectedRecord', addresslist_getSelectedRecord, addresslist_setSelectedRecord);
   luaclass_addPropertyToTable(L, metatable, userdata, 'MemoryRecord', addresslist_getMemoryRecord, nil);
   luaclass_addArrayPropertyToTable(L, metatable, userdata, 'MemoryRecord', addresslist_getMemoryRecord, nil);
   luaclass_setDefaultArrayProperty(L, metatable, userdata, addresslist_getMemoryRecord, nil);
