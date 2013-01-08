@@ -7491,8 +7491,9 @@ var t: TD3DHook_Texture;
   exportlist: pchar;
   max: integer;
 begin
-  memorybrowser.hexview.address:=GetStackStart;
-  memorybrowser.show;
+   TMemoryBrowser.Create(application).show;
+{  memorybrowser.hexview.address:=GetStackStart;
+  memorybrowser.show;}
 
 
   {
