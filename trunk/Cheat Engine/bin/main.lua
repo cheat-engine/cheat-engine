@@ -1395,15 +1395,19 @@ properties
   DisassemblerView: The disassemblerview class of this memoryview object
   HexadecimalView: The hexadecimalview class of this memoryview object
 methods
-  getDisassemblerView(): Returns the visual disassembler object on the memoryview window
-  getHexadecimalView(): Returns the visual hexadecimal object on the memoryview window
+  -
 
 Disassemblerview class: (Inheritance: Panel->CustomControl->WinControl->Control->Component->Object) 
   The visual disassembler used on the memory view window
+properties
+  SelectedAddress: integer - The currently selected address in the disassemblerview
+  SelectedAddress2: integer - The secondary selected address in the disassemblerview
+  TopAddress: Integer - The first address to show
+  ShowJumplines: boolean - Determines if the jumplines should be shown
+  OnSelectionChange: function(sender, address, address2) - Function to call when the selection has changed
+methods
+  -
 
-disassemblerview_getSelectedAddress(disassemblerview)
-disassemblerview_setSelectedAddress(disassemblerview, address)
-disassemblerview_onSelectionChange(disassemblerview, function): function(disassemblerview, address, address2)
 
 Hexadecimal class: (Inheritance: Panel->CustomControl->WinControl->Control->Component->Object) 
   The visual hexadecimal object used on the memory view window

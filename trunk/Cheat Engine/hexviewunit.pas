@@ -149,16 +149,18 @@ type
 
 
 
-    property DisplayType: TDisplayType read fDisplayType write setDisplayType;
-    property bytesPerSeperator: integer read fbytesPerSeperator write setBytesPerSeperator;
     property history: TStack read backlist;
-    property onByteSelect: TByteSelectEvent read fOnByteSelect write fOnByteSelect;
-    property onAddressChange: TAddressChangeEvent read fonAddressChange write fonAddressChange;
   published
-    property address: ptrUint read fAddress write setAddress;
-    property hasSelection: boolean read gethasSelection;
-    property selectionStart: ptruint read getSelectionStart;
-    property selectionStop: ptruint read getSelectionStop;
+    property Address: ptrUint read fAddress write setAddress;
+    property TopAddress: ptrUint read fAddress write setAddress;
+    property HasSelection: boolean read gethasSelection;
+    property SelectionStart: ptruint read getSelectionStart;
+    property SelectionStop: ptruint read getSelectionStop;
+    property Osb: TBitmap read offscreenbitmap;
+    property DisplayType: TDisplayType read fDisplayType write setDisplayType;
+    property BytesPerSeperator: integer read fbytesPerSeperator write setBytesPerSeperator;
+    property OnByteSelect: TByteSelectEvent read fOnByteSelect write fOnByteSelect;
+    property OnAddressChange: TAddressChangeEvent read fonAddressChange write fonAddressChange;
 
   end;
 

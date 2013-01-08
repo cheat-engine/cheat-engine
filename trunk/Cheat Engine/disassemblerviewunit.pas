@@ -132,6 +132,7 @@ type TDisassemblerview=class(TPanel)
     property SelectedAddress: ptrUint read fSelectedAddress write setSelectedAddress;
     property SelectedAddress2: ptrUint read fSelectedAddress2 write setSelectedAddress2;
     property PopupMenu: TPopupMenu read getOriginalPopupMenu write SetOriginalPopupMenu;
+    property Osb: TBitmap read offscreenbitmap;
 end;
 
 
@@ -960,6 +961,7 @@ begin
     //header.Align:=alTop;
     header.ParentFont:=false;
     PopupMenu:=emptymenu;
+    name:='Header';
   end;
 
 
@@ -1016,6 +1018,7 @@ begin
     OnMouseDown:=DisCanvasMouseDown;
     OnMouseMove:=DisCanvasMouseMove;
     OnMouseWheel:=mousescroll;
+    name:='PaintBox';
   end;
 
   offscreenbitmap:=Tbitmap.Create;
