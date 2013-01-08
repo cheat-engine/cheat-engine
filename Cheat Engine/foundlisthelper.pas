@@ -75,6 +75,9 @@ type
     function GetModuleNamePlusOffset(i: integer):string;
     procedure RebaseAddresslist(i: integer);
     procedure RebaseAddresslistAgain; //calls rebaseaddresslist with the same parameter as last time
+    constructor create(foundlist: tlistview; memscan: TMemScan);
+    destructor destroy; override;
+  published
     property vartype: TVariableType read fvartype;
     property CustomType: TCustomType read fcustomType;
     property isHexadecimal: boolean read hexadecimal;
@@ -82,8 +85,6 @@ type
     property isUnicode: boolean read unicode;
     property isUnknownInitialValue: boolean read fisUnknownInitialValue;
     property count: uint64 read fCount;
-    constructor create(foundlist: tlistview; memscan: TMemScan);
-    destructor destroy; override;
 end;
 
 type Tscandisplayroutine=procedure(value: pointer; output: pchar);
