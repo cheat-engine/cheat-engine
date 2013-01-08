@@ -1268,98 +1268,106 @@ methods
 
 
 
-
-createMemScan(progressbar OPTIONAL) : Returns a new MemScan class object
-getCurrentMemscan() : Returns the current memory scan object. If tabs are used the current tab's memscan object
 MemScan Class (Inheritance: Object)
-memscan_firstScan(memscan, scanoption, vartype, roundingtype, input1, input2 ,startAddress ,stopAddress ,protectionflags ,alignmenttype ,"alignmentparam" ,isHexadecimalInput ,isNotABinaryString, isunicodescan, iscasesensitive);
-  Does an initial scan.
-  memscan: The MemScan object created with createMemScan
-  scanOption: Defines what type of scan is done. Valid values for firstscan are:
-    soUnknownValue: Unknown initial value scan
-    soExactValue: Exact Value scan
-    soValueBetween: Value between scan
-    soBiggerThan: Bigger than ... scan
-    soSmallerThan: smaller than ... scan
+getCurrentMemscan() : Returns the current memory scan object. If tabs are used the current tab's memscan object
+createMemScan(progressbar OPTIONAL) : Returns a new MemScan class object
 
-  vartype: Defines the variable type. Valid variable types are:
-    vtByte
-    vtWord  2 bytes
-    vtDword 4 bytes
-    vtQword 8 bytes
-    vtSingle float
-    vtDouble
-    vtString
-    vtByteArray
-    vtGrouped
-    vtBinary
-    vtAll
+properties
+  FoundList: FoundList - The foundlist currently attached to this memscan object
+  OnlyOneResult: boolean - If this is set to true memscan will stop scanning after having found the first result, and written the address to "Result"
+  Result: Integer - If OnlyOneResult is used this will contain the address after a scan has finished
+  
 
-  roundingtype: Defined the way scans for exact value floating points are handled
-    rtRounded : Normal rounded scans. If exact value = "3" then it includes 3.0 to 3.49999999. If exact value is "3.0" it includes 3.00 to 3.0499999999
-    rtTruncated: Truncated algoritm. If exact value = "3" then it includes 3.0 to 3.99999999. If exact value is "3.0" it includes 3.00 to 3.099999999
-    rtExtremerounded: Rounded Extreme. If exact value = "3" then it includes 2.0000001 to 3.99999999. If exact value is "3.0" it includes 2.900000001 to 3.099999999
+methods
 
-  input1: If required by the scanoption this is a string of the given variable type
-  input2: If requires by the scanoption this is the secondary input
+  firstScan(scanoption, vartype, roundingtype, input1, input2 ,startAddress ,stopAddress ,protectionflags ,alignmenttype ,"alignmentparam" ,isHexadecimalInput ,isNotABinaryString, isunicodescan, iscasesensitive);
+    Does an initial scan.
+    memscan: The MemScan object created with createMemScan
+    scanOption: Defines what type of scan is done. Valid values for firstscan are:
+      soUnknownValue: Unknown initial value scan
+      soExactValue: Exact Value scan
+      soValueBetween: Value between scan
+      soBiggerThan: Bigger than ... scan
+      soSmallerThan: smaller than ... scan
 
-  startAddress : The start address to scan from. You want to set this to 0
-  stopAddress  : The address the scan should stop at. (You want to set this to 0xffffffffffffffff)
+    vartype: Defines the variable type. Valid variable types are:
+      vtByte
+      vtWord  2 bytes
+      vtDword 4 bytes
+      vtQword 8 bytes
+      vtSingle float
+      vtDouble
+      vtString
+      vtByteArray
+      vtGrouped
+      vtBinary
+      vtAll
 
-  protectionflags : See aobscan about protectionflags
-  alignmenttype : Scan alignment type. Valid options are:
-    fsmNotAligned : No alignment check
-    fsmAligned    : The address must be dividable by the value in alignmentparam
-    fsmLastDigits : The last digits of the address must end with the digits provided by alignmentparam
+    roundingtype: Defined the way scans for exact value floating points are handled
+      rtRounded : Normal rounded scans. If exact value = "3" then it includes 3.0 to 3.49999999. If exact value is "3.0" it includes 3.00 to 3.0499999999
+      rtTruncated: Truncated algoritm. If exact value = "3" then it includes 3.0 to 3.99999999. If exact value is "3.0" it includes 3.00 to 3.099999999
+      rtExtremerounded: Rounded Extreme. If exact value = "3" then it includes 2.0000001 to 3.99999999. If exact value is "3.0" it includes 2.900000001 to 3.099999999
 
-  alignmentparam : String that holds the alignment parameter.
+    input1: If required by the scanoption this is a string of the given variable type
+    input2: If requires by the scanoption this is the secondary input
+
+    startAddress : The start address to scan from. You want to set this to 0
+    stopAddress  : The address the scan should stop at. (You want to set this to 0xffffffffffffffff)
+
+    protectionflags : See aobscan about protectionflags
+    alignmenttype : Scan alignment type. Valid options are:
+      fsmNotAligned : No alignment check
+      fsmAligned    : The address must be dividable by the value in alignmentparam
+      fsmLastDigits : The last digits of the address must end with the digits provided by alignmentparam
+  
+    alignmentparam : String that holds the alignment parameter.
  
-  isHexadecimalInput: When true this will handle the input field as a hexadecimal string else decimal
-  isNotABinaryString: When true and the varType is vtBinary this will handle the input field as a decimal instead of a binary string
-  isunicodescan: When true and the vartype is vtString this will do a unicode (utf16) string scan else normal utf8 string
-  iscasesensitive : When true and the vartype is vtString this check if the case matches
+    isHexadecimalInput: When true this will handle the input field as a hexadecimal string else decimal
+    isNotABinaryString: When true and the varType is vtBinary this will handle the input field as a decimal instead of a binary string
+    isunicodescan: When true and the vartype is vtString this will do a unicode (utf16) string scan else normal utf8 string
+    iscasesensitive : When true and the vartype is vtString this check if the case matches
 
     
 
 
-memscan_nextScan(memscan, scanoption, roundingtype, input1,input2, isHexadecimalInput, isNotABinaryString, isunicodescan, iscasesensitive, ispercentagescan, savedresultname OPTIONAL);
-  Does a next scan based on the current addresslist and values of the previous scan or values of a saved scan
-  memscan: The MemScan object that has previously done a first scan
-  scanoption:
-    soExactValue: Exact Value scan
-    soValueBetween: Value between scan
-    soBiggerThan: Bigger than ... scan
-    soSmallerThan: smaller than ... scan
-    soIncreasedValue: Increased value scan
-    soIncreasedValueBy: Increased value by scan
-    soDecreasedValue: Decreased value scan
-    soDecreasedValueBy: Decreased value by scan
-    soChanged: Changed value scan
-    soUnchanged: Unchanged value scan
+  nextScan(scanoption, roundingtype, input1,input2, isHexadecimalInput, isNotABinaryString, isunicodescan, iscasesensitive, ispercentagescan, savedresultname OPTIONAL);
+    Does a next scan based on the current addresslist and values of the previous scan or values of a saved scan
+    memscan: The MemScan object that has previously done a first scan
+    scanoption:
+      soExactValue: Exact Value scan
+      soValueBetween: Value between scan
+      soBiggerThan: Bigger than ... scan
+      soSmallerThan: smaller than ... scan
+      soIncreasedValue: Increased value scan
+      soIncreasedValueBy: Increased value by scan
+      soDecreasedValue: Decreased value scan
+      soDecreasedValueBy: Decreased value by scan
+      soChanged: Changed value scan
+      soUnchanged: Unchanged value scan
+    
+    roundingtype: Defined the way scans for exact value floating points are handled
+      rtRounded : Normal rounded scans. If exact value = "3" then it includes 3.0 to 3.49999999. If exact value is "3.0" it includes 3.00 to 3.0499999999
+      rtTruncated: Truncated algoritm. If exact value = "3" then it includes 3.0 to 3.99999999. If exact value is "3.0" it includes 3.00 to 3.099999999
+      rtExtremerounded: Rounded Extreme. If exact value = "3" then it includes 2.0000001 to 3.99999999. If exact value is "3.0" it includes 2.900000001 to 3.099999999
   
-  roundingtype: Defined the way scans for exact value floating points are handled
-    rtRounded : Normal rounded scans. If exact value = "3" then it includes 3.0 to 3.49999999. If exact value is "3.0" it includes 3.00 to 3.0499999999
-    rtTruncated: Truncated algoritm. If exact value = "3" then it includes 3.0 to 3.99999999. If exact value is "3.0" it includes 3.00 to 3.099999999
-    rtExtremerounded: Rounded Extreme. If exact value = "3" then it includes 2.0000001 to 3.99999999. If exact value is "3.0" it includes 2.900000001 to 3.099999999
-  
-  input1: If required by the scanoption this is a string of the given variable type
-  input2: If requires by the scanoption this is the secondary input
+    input1: If required by the scanoption this is a string of the given variable type
+    input2: If requires by the scanoption this is the secondary input
 
-  isHexadecimalInput: When true this will handle the input field as a hexadecimal string else decimal
-  isNotABinaryString: When true and the varType is vtBinary this will handle the input field as a decimal instead of a binary string
-  isunicodescan: When true and the vartype is vtString this will do a unicode (utf16) string scan else normal utf8 string
-  iscasesensitive : When true and the vartype is vtString this check if the case matches
-  ispercentage: When true and the scanoption is of type soValueBetween, soIncreasedValueBy or soDecreasedValueBy will cause CE to do a precentage scan instead of a normal value scan
-  savedResultName: String that holds the name of a saved result list that should be compared against. First scan is called "FIRST"
+    isHexadecimalInput: When true this will handle the input field as a hexadecimal string else decimal
+    isNotABinaryString: When true and the varType is vtBinary this will handle the input field as a decimal instead of a binary string
+    isunicodescan: When true and the vartype is vtString this will do a unicode (utf16) string scan else normal utf8 string
+    iscasesensitive : When true and the vartype is vtString this check if the case matches
+    ispercentage: When true and the scanoption is of type soValueBetween, soIncreasedValueBy or soDecreasedValueBy will cause CE to do a precentage scan instead of a normal value scan
+    savedResultName: String that holds the name of a saved result list that should be compared against. First scan is called "FIRST"
 
-memscan_newscan(memscan) : Clears the current results
-memscan_waitTillDone(memscan)
-memscan_saveCurrentResults(memscan, name)
-memscan_getAttachedFoundlist(memscan) : Returns a FoundList object if one is attached to this scanresults. Returns nil otherwise
+  newscan() : Clears the current results
+  waitTillDone() : Waits for the memscan thread(s) to finish scanning. Always use this
+  saveCurrentResults(name) : Save the current scanresults to a unique name for this memscan. This save can be used to compare against in a subsequent next scan
+  getAttachedFoundlist() : Returns a FoundList object if one is attached to this scanresults. Returns nil otherwise
 
 
-memscan_returnOnlyOneResult(memscan, state): If set to true before you start a scan, this will cause the scanner to only return one result. Note that it does not work with a foundlist
-memscan_getOnlyResult(memscan): Only works if returnOnlyOneResult is true. Returns nil if not found, else returns the address that was found (integer)
+  setOnlyOneResult(state): If set to true before you start a scan, this will cause the scanner to only return one result. Note that it does not work with a foundlist
+  getOnlyResult(memscan): Only works if returnOnlyOneResult is true. Returns nil if not found, else returns the address that was found (integer)
 
 
 
