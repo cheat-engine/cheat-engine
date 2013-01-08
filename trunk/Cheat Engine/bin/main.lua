@@ -1375,11 +1375,18 @@ FoundList
 The foundlist is an object that opens the current memscan's result file and provides an interface for reading out the addresses
 
 createFoundList(memscan)
-foundlist_initialize(foundlist)
-foundlist_deinitialize(foundlist)
-foundlist_getCount(foundlist)
-foundlist_getAddress(foundlist, index) : Returns the address as a string
-foundlist_getValue(foundlist, index)
+
+properties
+  Count: integer;
+  Address[index]
+  Value[index]
+
+methods
+  initialize(foundlist) : Call this when a memscan has finished scanning. This will open the results for reading
+  deinitialize(foundlist) : Release the results
+  getCount(foundlist)
+  getAddress(foundlist, index) : Returns the address as a string
+  getValue(foundlist, index)
 
 
 Memoryview class: (Inheritance: Form->ScrollingWinControl->CustomControl->WinControl->Control->Component->Object)
