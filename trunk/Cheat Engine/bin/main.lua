@@ -1411,30 +1411,34 @@ methods
 
 Hexadecimal class: (Inheritance: Panel->CustomControl->WinControl->Control->Component->Object) 
   The visual hexadecimal object used on the memory view window
-
-hexadecimalview_getTopAddress(hexadecimalview)
-hexadecimalview_setTopAddress(hexadecimalview, address)
-hexadecimalview_onAddressChange(hexadecimalview, function): function(hexadecimalview, address)
-hexadecimalview_onByteSelect(hexadecimalview, function): function(hexadecimalview, address, address2)
+properties
+  OnAddressChange(hexadecimalview, function): function(hexadecimalview, address)
+  OnByteSelect(hexadecimalview, function): function(hexadecimalview, address, address2)
+  
+methods
+  -
 
 
 Thread Class: (Inheritance: Object)
-createNativeThread(function) : 
+createNativeThread(function(Thread)) : 
   Executes the given function in another thread using the systems thread mechanism
   The function returns the Thread class object
   function declaration: function (Thread)
 
+properties
 
-thread_freeOnTerminate(thread, state) : 
-  When set to true the thread object will free itself when the function ends (default=true)
-  Note: Use this only from inside the thread function as the thread might have already terminated and freed itself when called
+methods
+  freeOnTerminate(thread, state) : 
+    When set to true the thread object will free itself when the function ends (default=true)
+    Note: Use this only from inside the thread function as the thread might have already terminated and freed itself when called
 
-thread_synchronize(thread, function) :
-  Called from inside the thread. This wil cause the tread to get the main thread to execute the given function and wait for it to finish.
-  Usually for gui access
-  function ()
+  thread_synchronize(thread, function(thread)) :
+    Called from inside the thread. This wil cause the tread to get the main thread to execute the given function and wait for it to finish.
+    Usually for gui access
+    function (Thread)
 
-thread_waitfor(thread) : Waits for the given thread to finish
+  thread_waitfor(thread) : 
+    Waits for the given thread to finish (Not recommended to call this from inside the thread itself)
 
 
 
