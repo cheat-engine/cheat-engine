@@ -15,6 +15,8 @@ procedure initializeLuaThread;
 
 implementation
 
+uses luaclass;
+
 type TCEThread=class (TThread)
   private
     functionid: integer;
@@ -31,7 +33,8 @@ procedure TCEThread.sync;
 begin
   //call the lua function
   lua_rawgeti(L, LUA_REGISTRYINDEX, syncfunction);
-  lua_pcall(L, 0,0,0);
+  luaclass_newclass(L, self);
+  lua_pcall(L, 1,0,0);
 end;
 
 procedure TCEThread.execute;
@@ -65,7 +68,6 @@ end;
 //Lua functions
 function createNativeThread(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   f: integer;
   routine: string;
 
@@ -75,18 +77,17 @@ var
   s: string;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
+  if lua_gettop(L)=1 then
   begin
-    if lua_isfunction(L,-1) then
+    if lua_isfunction(L,1) then
     begin
       f:=luaL_ref(L,LUA_REGISTRYINDEX);
 
     end
     else
-    if lua_isstring(L,-1) then
+    if lua_isstring(L,1) then
     begin
-      routine:=lua_tostring(L,-1);
+      routine:=lua_tostring(L,1);
       //get a reference to this function
 
       lua_getfield(L, LUA_GLOBALSINDEX, pchar(routine));
@@ -101,10 +102,11 @@ begin
     //clear the stack  (just in case)
     lua_pop(L, lua_gettop(L));
 
-    result:=1;
+
 
     c:=TCEThread.create(newL, f, true);
-    lua_pushlightuserdata(L, c);
+    luaclass_newClass(L, c);
+    result:=1;
 
     c.FreeOnTerminate:=true;
     c.Start;
@@ -115,25 +117,16 @@ end;
 
 function thread_freeOnTerminate(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   c: TCEThread;
-  state: boolean;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    c:=lua_touserdata(L, -parameters);
-    state:=lua_toboolean(L, -parameters+1);
-    c.FreeOnTerminate:=state;
-  end;
-
-  lua_pop(L, lua_gettop(L));
+  c:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    c.FreeOnTerminate:=lua_toboolean(L, -1);
 end;
 
 function thread_synchronize(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   f: integer;
   routine: string;
 
@@ -142,11 +135,10 @@ var
   newL: Plua_State;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    c:=lua_touserdata(L, -2);
+  c:=luaclass_getClassObject(L);
 
+  if lua_gettop(L)>=1 then
+  begin
     if lua_isfunction(L,-1) then
     begin
       f:=luaL_ref(L,LUA_REGISTRYINDEX);
@@ -169,9 +161,7 @@ begin
     c.Synchronize(c, c.sync);
 
     luaL_unref(L, LUA_REGISTRYINDEX, f);
-  end
-  else
-    lua_pop(L, lua_gettop(L));
+  end;
 end;
 
 function thread_waitfor(L: PLua_State): integer; cdecl;
@@ -180,14 +170,15 @@ var
   c: TCEThread;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    c:=lua_touserdata(L, -parameters);
-    c.WaitFor;
-  end;
+  c:=luaclass_getClassObject(L);
+  c.WaitFor;
+end;
 
-  lua_pop(L, lua_gettop(L));
+procedure thread_addMetaData(L: PLua_state; metatable: integer; userdata: integer);
+begin
+  lua_register(LuaVM, 'freeOnTerminate', thread_freeOnTerminate);
+  lua_register(LuaVM, 'synchronize', thread_synchronize);
+  lua_register(LuaVM, 'waitfor', thread_waitfor);
 end;
 
 procedure initializeLuaThread;
@@ -198,6 +189,10 @@ begin
   lua_register(LuaVM, 'thread_waitfor', thread_waitfor);
 end;
 
+initialization
+  luaclass_register(TThread, thread_addMetaData);
+
 
 end.
+
 
