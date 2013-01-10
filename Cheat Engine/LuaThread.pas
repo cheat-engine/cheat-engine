@@ -15,7 +15,7 @@ procedure initializeLuaThread;
 
 implementation
 
-uses luaclass;
+uses luaclass, LuaObject;
 
 type TCEThread=class (TThread)
   private
@@ -176,9 +176,10 @@ end;
 
 procedure thread_addMetaData(L: PLua_state; metatable: integer; userdata: integer);
 begin
-  lua_register(LuaVM, 'freeOnTerminate', thread_freeOnTerminate);
-  lua_register(LuaVM, 'synchronize', thread_synchronize);
-  lua_register(LuaVM, 'waitfor', thread_waitfor);
+  object_addMetaData(L, metatable, userdata);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'freeOnTerminate', thread_freeOnTerminate);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'synchronize', thread_synchronize);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'waitfor', thread_waitfor);
 end;
 
 procedure initializeLuaThread;
