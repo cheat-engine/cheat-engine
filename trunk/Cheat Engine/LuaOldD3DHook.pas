@@ -1,4 +1,4 @@
-unit LuaD3DHook;
+unit LuaOldD3DHook;
 
 {$mode delphi}
 

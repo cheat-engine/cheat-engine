@@ -61,7 +61,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports, Mem
   debuggertypedefinitions, symbolhandler, frmautoinjectunit, simpleaobscanner,
   addresslist, memscan, foundlisthelper, cesupport, DBK32functions, sharedMemory,
   disassembler, LuaCanvas, LuaPen, LuaFont, LuaBrush, LuaPicture, LuaMenu,
-  LuaDebug, LuaThread, LuaGraphic, LuaProgressBar, LuaD3DHook, LuaWinControl,
+  LuaDebug, LuaThread, LuaGraphic, LuaProgressBar, LuaOldD3DHook, LuaWinControl,
   LuaMemoryRecord, LuaForm, MemoryBrowserFormUnit, disassemblerviewunit, hexviewunit,
   CustomTypeHandler, LuaStructure, LuaRegion, LuaXMPlayer, LuaMemscan, LuaFoundlist,
   LuaRadioGroup, LuaRasterImage, LuaCheatComponent, LuaAddresslist, byteinterpreter,
