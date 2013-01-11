@@ -3868,32 +3868,8 @@ begin
                   begin
 
                     j:=e.Offset-(previous.Offset+previous.Bytesize);   //get the number of bytes to fill
-                    while j>0 do
-                    begin
-                      if j>=8 then
-                      begin
-                        gcf.addline(vtQword, '*');
-                        dec(j,8)
-                      end
-                      else
-                      if j>=4 then
-                      begin
-                        gcf.addline(vtDword, '*');
-                        dec(j,4)
-                      end
-                      else
-                      if j>=2 then
-                      begin
-                        gcf.addline(vtWord, '*');
-                        dec(j,2)
-                      end
-                      else
-                      begin
-                        gcf.addline(vtByte, '*');
-                        dec(j);
-                      end;
-                    end;
-
+                    if j>0 then
+                      gcf.addwildcard(j);
                   end;
 
 
