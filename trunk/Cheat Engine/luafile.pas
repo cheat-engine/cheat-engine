@@ -5,7 +5,7 @@ unit luafile;
 interface
 
 uses
-  Classes, SysUtils, DOM, zstream, math;
+  Classes, SysUtils, DOM, zstream, math, ascii85;
 
 type TLuafile=class
   private
@@ -33,19 +33,54 @@ var s: string;
   dc: Tdecompressionstream;
   maxsize, size: integer;
   read: integer;
+
+  useascii85: boolean;
+  a85: TASCII85DecoderStream;
+  a85source: Tstringstream;
+  a: TDOMNode;
 begin
   name:=node.NodeName;
   filedata:=TMemorystream.create;
 
   s:=node.TextContent;
 
-  size:=length(s) div 2;
-  maxsize:=max(65536,size); //64KB or the required size if that's bigger
+  useascii85:=false;
 
-  getmem(b, maxsize);
-  try
+  if node.HasAttributes then
+  begin
+    a:=node.Attributes.GetNamedItem('Encoding');
+    useascii85:=(a<>nil) and (a.TextContent='Ascii85');
+  end;
+
+
+  if useascii85 then
+  begin
+    a85source:=TStringStream.Create(s);
+    a85:=TASCII85DecoderStream.Create(a85source);
+
+    size:=a85source.Size*5 div 4;
+    maxsize:=max(65536,size); //64KB or the required size if that's bigger
+
+    getmem(b, size);
+    read:=a85.Read(b^, size);
+    size:=read;
+
+    a85.free;
+    a85source.free;
+  end
+  else
+  begin
+    size:=length(s) div 2;
+    maxsize:=max(65536,size); //64KB or the required size if that's bigger
+
+    getmem(b, size);
     HexToBin(pchar(s), b, size);
+  end;
 
+
+
+
+  try
     m:=tmemorystream.create;
     m.WriteBuffer(b^, size);
     m.position:=0;
@@ -69,6 +104,12 @@ var
 
   m: TMemorystream;
   c: Tcompressionstream;
+  a85: TASCII85EncoderStream;
+  a85buffer: TStringStream;
+
+  n: TDOMNode;
+  a: TDOMAttr;
+  s: string;
 begin
   outputastext:=nil;
   //compress the file
@@ -77,20 +118,40 @@ begin
   c.write(filedata.Memory^, filedata.size);
   c.free;
 
+
+  //convert the compressed file to an ascii85 sring
+  a85buffer:=TStringStream.create('');
+  a85:=TASCII85EncoderStream.Create(a85buffer);
+  a85.Write(m.memory^, m.size);
+  a85.Free;
+
+  s:=a85buffer.DataString;
+  a85buffer.free;
+
+  doc:=node.OwnerDocument;
+  n:=Node.AppendChild(doc.CreateElement(name));
+  n.TextContent:=s;
+
+
+  a:=doc.CreateAttribute('Encoding');
+  a.TextContent:='Ascii85';
+  n.Attributes.SetNamedItem(a);
+
+
+  {
   //convert the compressed file to a hexstring
   getmem(outputastext, m.size*2+1);
   try
     BinToHex(pchar(m.Memory), outputastext, m.Size);
 
     outputastext[m.size*2]:=#0; //add a 0 terminator
-    doc:=node.OwnerDocument;
-    Node.AppendChild(doc.CreateElement(name)).TextContent:=outputastext;
+
 
   finally
     freemem(outputastext);
     if m<>nil then
       m.free;
-  end;
+  end;  }
 end;
 
 constructor TLuafile.create(name: string; stream: tstream);
