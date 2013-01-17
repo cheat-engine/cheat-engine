@@ -10,7 +10,7 @@ interface
 uses
   zstream, Classes, SysUtils, Controls, forms,ComCtrls, StdCtrls, ExtCtrls, Buttons, lcltype,
   dialogs, JvDesignSurface, DOM, typinfo, LResources, JvDesignImp, JvDesignUtils,
-  graphics, math, xmlread,xmlwrite, WSStdCtrls;
+  graphics, math, xmlread,xmlwrite, WSStdCtrls, ascii85;
 
 type TCETreeview=class(TCustomTreeview)
   property Align;
@@ -1249,6 +1249,13 @@ var doc: TXMLDocument;
   c: Tcompressionstream;
 
   size: dword;
+
+  a85: TASCII85EncoderStream;
+  a85buffer: TStringStream;
+  s: string;
+
+  a: TDOMAttr;
+  formnode: TDOMNode;
 begin
   wasactive:=active;
   if active then active:=false;
@@ -1275,15 +1282,29 @@ begin
 
 
 
+    {
     getmem(outputastext, m.size*2+1);
     BinToHex(pchar(m.Memory), outputastext, m.Size);
-
     outputastext[m.size*2]:=#0; //add a 0 terminator
 
     m.free;
-
-
     Node.AppendChild(doc.CreateElement(name)).TextContent:=outputastext;
+    }
+
+
+    a85buffer:=TStringStream.create('');
+    a85:=TASCII85EncoderStream.Create(a85buffer);
+    a85.Write(m.memory^, m.size);
+    a85.Free;
+    s:=a85buffer.DataString;
+    formnode:=Node.AppendChild(doc.CreateElement(name));
+    formnode.TextContent:=s;
+    a85buffer.free;
+
+    a:=doc.CreateAttribute('Encoding');
+    a.TextContent:='Ascii85';
+    formnode.Attributes.SetNamedItem(a);
+
   finally
     if outputastext<>nil then
       freemem(outputastext);
@@ -1302,6 +1323,12 @@ var s: string;
 
   realsize: dword;
   wasActive: boolean;
+
+  a85: TASCII85DecoderStream;
+  a85source: Tstringstream;
+
+  useascii85: boolean;
+  a: TDOMNode;
 begin
   wasActive:=active;
   active:=false;
@@ -1314,10 +1341,40 @@ begin
 
   s:=node.TextContent;
 
-  size:=length(s) div 2;
-  getmem(b, size);
+  //check the "Encoding" attribute of this node
+  //If it's "Ascii85" then use ascii85, else use hextobin
+  useascii85:=false;
+
+  if node.HasAttributes then
+  begin
+    a:=node.Attributes.GetNamedItem('Encoding');
+    useascii85:=(a<>nil) and (a.TextContent='Ascii85');
+  end;
+
+
+  b:=nil;
   try
-    HexToBin(pchar(s), b, size);
+    if useascii85 then
+    begin
+      a85source:=TStringStream.Create(s);
+      a85:=TASCII85DecoderStream.Create(a85source);
+
+      size:=a85source.Size*5 div 4;
+      getmem(b, size);
+      read:=a85.Read(b^, size);
+      size:=read;
+
+      a85.free;
+      a85source.free;
+    end
+    else
+    begin
+      size:=length(s) div 2;
+      getmem(b, size);
+      HexToBin(pchar(s), b, size);
+    end;
+
+    //b now contains the data
 
     m:=tmemorystream.create;
     m.WriteBuffer(b^, size);
@@ -1332,8 +1389,11 @@ begin
     read:=dc.read(b^, realsize);
     saveddesign.WriteBuffer(b^, read);
   finally
-    freemem(b);
+    if b<>nil then
+      freemem(b);
   end;
+
+
 
   RestoreToDesignState;
 
