@@ -5,7 +5,7 @@ unit luafile;
 interface
 
 uses
-  Classes, SysUtils, DOM, zstream, math, ascii85;
+  Classes, SysUtils, DOM, zstream, math, custombase85{ascii85};
 
 type TLuafile=class
   private
@@ -35,8 +35,8 @@ var s: string;
   read: integer;
 
   useascii85: boolean;
-  a85: TASCII85DecoderStream;
-  a85source: Tstringstream;
+{  a85: TASCII85DecoderStream;
+  a85source: Tstringstream; }
   a: TDOMNode;
 begin
   name:=node.NodeName;
@@ -55,6 +55,11 @@ begin
 
   if useascii85 then
   begin
+    size:=(length(s) div 5)*4+(length(s) mod 5);
+    maxsize:=max(65536,size);
+    getmem(b, size);
+    size:=Base85ToBin(pchar(s), b);
+    {
     a85source:=TStringStream.Create(s);
     a85:=TASCII85DecoderStream.Create(a85source);
 
@@ -66,7 +71,7 @@ begin
     size:=read;
 
     a85.free;
-    a85source.free;
+    a85source.free; }
   end
   else
   begin
@@ -104,8 +109,8 @@ var
 
   m: TMemorystream;
   c: Tcompressionstream;
-  a85: TASCII85EncoderStream;
-  a85buffer: TStringStream;
+ { a85: TASCII85EncoderStream;
+  a85buffer: TStringStream;   }
 
   n: TDOMNode;
   a: TDOMAttr;
@@ -120,22 +125,29 @@ begin
 
 
   //convert the compressed file to an ascii85 sring
-  a85buffer:=TStringStream.create('');
+{  a85buffer:=TStringStream.create('');
   a85:=TASCII85EncoderStream.Create(a85buffer);
   a85.Write(m.memory^, m.size);
   a85.Free;
 
   s:=a85buffer.DataString;
-  a85buffer.free;
+  a85buffer.free;    }
+
+
+  getmem(outputastext, (m.size div 4) * 5 + 5 );
+  BinToBase85(pchar(m.memory), outputastext, m.size);
 
   doc:=node.OwnerDocument;
   n:=Node.AppendChild(doc.CreateElement(name));
-  n.TextContent:=s;
+  n.TextContent:=outputastext;
 
 
   a:=doc.CreateAttribute('Encoding');
   a.TextContent:='Ascii85';
   n.Attributes.SetNamedItem(a);
+
+  freemem(outputastext);
+  m.free;
 
 
   {

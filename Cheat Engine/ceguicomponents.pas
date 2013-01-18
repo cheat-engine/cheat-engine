@@ -10,7 +10,7 @@ interface
 uses
   zstream, Classes, SysUtils, Controls, forms,ComCtrls, StdCtrls, ExtCtrls, Buttons, lcltype,
   dialogs, JvDesignSurface, DOM, typinfo, LResources, JvDesignImp, JvDesignUtils,
-  graphics, math, xmlread,xmlwrite, WSStdCtrls, ascii85;
+  graphics, math, xmlread,xmlwrite, WSStdCtrls, custombase85{, ascii85};
 
 type TCETreeview=class(TCustomTreeview)
   property Align;
@@ -1250,9 +1250,9 @@ var doc: TXMLDocument;
 
   size: dword;
 
-  a85: TASCII85EncoderStream;
+ { a85: TASCII85EncoderStream;
   a85buffer: TStringStream;
-  s: string;
+  s: string;   }
 
   a: TDOMAttr;
   formnode: TDOMNode;
@@ -1281,6 +1281,12 @@ begin
     doc:=TXMLDocument(node.OwnerDocument);
 
 
+    getmem(outputastext, (m.size div 4) * 5 + 5 );
+    BinToBase85(pchar(m.Memory), outputastext, m.Size);
+
+
+    m.free;
+
 
     {
     getmem(outputastext, m.size*2+1);
@@ -1291,15 +1297,20 @@ begin
     Node.AppendChild(doc.CreateElement(name)).TextContent:=outputastext;
     }
 
+      {
 
     a85buffer:=TStringStream.create('');
     a85:=TASCII85EncoderStream.Create(a85buffer);
     a85.Write(m.memory^, m.size);
     a85.Free;
+    m.free;
+
     s:=a85buffer.DataString;
+    a85buffer.free;  }
+
     formnode:=Node.AppendChild(doc.CreateElement(name));
-    formnode.TextContent:=s;
-    a85buffer.free;
+    formnode.TextContent:=outputastext;
+
 
     a:=doc.CreateAttribute('Encoding');
     a.TextContent:='Ascii85';
@@ -1324,8 +1335,8 @@ var s: string;
   realsize: dword;
   wasActive: boolean;
 
-  a85: TASCII85DecoderStream;
-  a85source: Tstringstream;
+  {a85: TASCII85DecoderStream;
+  a85source: Tstringstream;    }
 
   useascii85: boolean;
   a: TDOMNode;
@@ -1356,7 +1367,11 @@ begin
   try
     if useascii85 then
     begin
-      a85source:=TStringStream.Create(s);
+      size:=(length(s) div 5)*4+(length(s) mod 5);
+      getmem(b, size);
+      size:=Base85ToBin(pchar(s), b);
+
+     { a85source:=TStringStream.Create(s);
       a85:=TASCII85DecoderStream.Create(a85source);
 
       size:=a85source.Size*5 div 4;
@@ -1365,7 +1380,7 @@ begin
       size:=read;
 
       a85.free;
-      a85source.free;
+      a85source.free; }
     end
     else
     begin
