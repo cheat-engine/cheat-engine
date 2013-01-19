@@ -1243,27 +1243,21 @@ properties
   [] = MemoryRecord - Default accessor
   
 methods
-  getCount(addresslist)
-  getMemoryRecord(addresslist, index)
-  getMemoryRecordByDescription(addresslist, description): getTableEntry(descriptionname): returns a tableEntry pointer for use with memrec functions
-  getMemoryRecordByID(addresslist, ID)
-  createMemoryRecord(addresslist) : createTableEntry: creates an generic cheat table entry and add it to the list. Returns a tableentry pointer you can use with memrec routines
+  getCount()
+  getMemoryRecord(index)
+  getMemoryRecordByDescription(description): getTableEntry(descriptionname): returns a tableEntry pointer for use with memrec functions
+  getMemoryRecordByID(ID)
+  createMemoryRecord() : createTableEntry: creates an generic cheat table entry and add it to the list. Returns a tableentry pointer you can use with memrec routines
 
-  getSelectedRecords(Addresslist):  Returns a table containing all the selected records
+  getSelectedRecords():  Returns a table containing all the selected records
 
-  doDescriptionChange(addresslist) : Will show the gui window to change the description of the selected entry
-  doAddressChange(addresslist) : Will show the gui window to change the address of the selected entry
-  doTypeChange(addresslist) : Will show the gui window to change the type of the selected entries
-  doValueChange(addresslist) : Will show the gui window to change the value of the selected entries
+  doDescriptionChange() : Will show the gui window to change the description of the selected entry
+  doAddressChange() : Will show the gui window to change the address of the selected entry
+  doTypeChange() : Will show the gui window to change the type of the selected entries
+  doValueChange() : Will show the gui window to change the value of the selected entries
   
-  getSelectedRecord(addresslist) : Gets the main selected memoryrecord
-  setSelectedRecord(addresslist, memrec) : Sets the currently selected memoryrecord. This will unselect all other entries
-
-
-
-
-
-
+  getSelectedRecord() : Gets the main selected memoryrecord
+  setSelectedRecord(memrec) : Sets the currently selected memoryrecord. This will unselect all other entries
 
 
 
@@ -1367,7 +1361,7 @@ methods
 
 
   setOnlyOneResult(state): If set to true before you start a scan, this will cause the scanner to only return one result. Note that it does not work with a foundlist
-  getOnlyResult(memscan): Only works if returnOnlyOneResult is true. Returns nil if not found, else returns the address that was found (integer)
+  getOnlyResult(): Only works if returnOnlyOneResult is true. Returns nil if not found, else returns the address that was found (integer)
 
 
 
@@ -1585,10 +1579,10 @@ dbvm_restore_interrupts: Address of function dbvm_restore_interrupts : DWORD; st
 dbvm_changeselectors   : Address of function dbvm_changeselectors(cs,ss,ds,es,fs,gs: dword): DWORD; stdcall; 
 
 
-D3DHOOK_ functions:
+D3DHOOK class:
 The d3dhook functions provide a method to render graphics and text inside the game, as long as it is running in directx9, 10 or 11
 
-d3dhook_initializeHook(textureandcommandlistsize OPTIONAL, hookmessages OPTIONAL):
+createD3DHook(textureandcommandlistsize OPTIONAL, hookmessages OPTIONAL)
   Hooks direct3d and allocates a buffer with given size for storage of for the rendercommand list
 
   hookmessages defines if you want to hook the windows message handler for the direct3d window. The d3dhook_onClick function makes use of that
@@ -1598,49 +1592,47 @@ d3dhook_initializeHook(textureandcommandlistsize OPTIONAL, hookmessages OPTIONAL
 
   Note: You can call this only once for a process
 
+  It returns a d3dhook object
 
-d3dhook_beginUpdate() : Use this function when you intent to update multiple sprites,textcontainers or textures. Otherwise artifacts may occur (sprite 1 might be drawn at the new location while sprite 2 might still be at the old location when a frame is rendered)
-
-d3dhook_endUpdate() : When done updating, call this function to apply the changes
-
-
-d3dhook_getWidth(): Returns the width of the direct3d window. Note: At least one frame must have been rendered in the game for this to return anything useful
-d3dhook_getHeight(): Returns the height of the direct3d window.  ""
-
-
-d3dhook_setDisabledZBuffer(state): When true will disable the Z-Buffer (Depth testing)
-d3dhook_setWireframeMode(state): When true will show objects in wireframe mode
-
-
-d3dhook_setMouseClip(state): Requires HookMessages to be true. When true will keep the mouse cursor inside the game. (Handy for certain strategy games, that don't support windowed mode or multiple displays )
-
-d3dhook_enableConsole(virtualkey): Adds a (lua)console to the specific game. The given key will bring it up (0xc0=tilde)
-
-
-d3dhook_onClick(function):
-  Registers a function to be called when clicked on an sprite (excluding the mouse)
-  function definition: function d3dclick(d3dhook_spite, x,y)
+properties
+  Width: Integer
+  Height: integer;
+  DisabledZBuffer: boolean
+  WireframeMode: boolean
+  MouseClip: boolean
+  OnClick: function(d3dhook_sprite, x, y)
+    A function to be called when clicked on an sprite (excluding the mouse)
     x and y are coordinates in the sprite object. If sprites overlap the highest zorder sprite will be given. It does NOT care if a transparent part is clicked or not
   
-  Note: This can cause a slowdown in the game if there are a lot of sprites and you press the left button a lot
+    Note: This can cause a slowdown in the game if there are a lot of sprites and you press the left button a lot
 
-d3dhook_onKey(function)
-  function(vkey, char) : boolean  . Return false if you do not wish this key event to pass down to the game
-  
+  OnKeyDown: function(virtualkey, char)
+    function(vkey, char) : boolean 
+      A function to be called when a key is pressed in the game window (Not compatible with DirectInput8)
+      Return false if you do not wish this key event to pass down to the game
 
+
+methods
+  beginUpdate() : Use this function when you intent to update multiple sprites,textcontainers or textures. Otherwise artifacts may occur (sprite 1 might be drawn at the new location while sprite 2 might still be at the old location when a frame is rendered)
+  endUpdate() : When done updating, call this function to apply the changes
+  enableConsole(virtualkey): Adds a (lua)console to the specific game. The given key will bring it up (0xc0=tilde)
+  createTexture(filename) : Returns a d3dhook_texture object
+  createTexture(picture, transparentColor OPTIONAL): Returns a d3dhook_texture object
+    if the picture is not a transparent image the transparentcolor parameter can be used to make one of it's colors transparent
+
+  createFontmap(font) : Returns a d3dhook_fontmap object created from the given font
+  createSprite(d3dhook_texture): returns a d3dhook_sprite object that uses the given texture for rendering
+  createTextContainer(d3dhook_fontmap, x, y, text): Returns a d3dhook_textContainer object
 
 
 D3DHook_Texture Class (Inheritance: Object)
 This class controls the texture in memory. Without a sprite to use it, it won't show
 
-
-d3dhook_createTexture(filename) : Returns a d3dhook_texture object
-d3dhook_createTexture(picture, transparentColor OPTIONAL): Returns a d3dhook_texture object
-  if the picture is not a transparent image the transparentcolor parameter can be used to make one of it's colors transparent
-
-d3dhook_texture_getHeight(d3dhook_texture)
-d3dhook_texture_getWidth(d3dhook_texture)
-d3dhook_texture_loadTextureByPicture(d3dhook_texture, picture)
+properties
+  Height: integer
+  Width: integer
+methods
+  loadTextureByPicture(picture)
 
 
 
@@ -1648,51 +1640,50 @@ D3DHook_FontMap Class (Inheritance: D3DHook_Texture->Object)
 A fontmap is a texture that contains extra data regarding the characters. This class is used by the textcontainer
 Current implementation only supports 96 characters (character 32 to 127)
 
-d3dhook_createFontmap(font): Returns a d3dhook_fontmap object
-d3dhook_fontmap_changeFont(d3dhook_fontmap, font): Changes the fontmap to the selected font
-d3dhook_fontmap_getTextWidth(d3dhook_fontmap, string): Returns the width of the given string in pixels
+properties
+  -
+methods
+  changeFont(font): Changes the fontmap to the selected font
+  getTextWidth(string): Returns the width of the given string in pixels
 
 
 D3DHook_RenderObject Class (Inheritance: Object)
 The renderobject is the abstract class used to control in what manner objects are rendered.
 The sprite and TextContainer classed inherit from this
 
+properties
+  X: Float - The x-coordinate of the object on the screen
+  Y: Float - The y-coordinate of the object on the screen
+  Alphablend: Float - Alphablend value. 1.0 is fully visible, 0.0=invisible
+  Visible: boolean - Set to false to hide the object
+  ZOrder: integer - Determines if the object will be shown in front or behind another object
+methods
+  -
 
-d3dhook_renderobject_getX(d3dhook_renderobject): Gets the x coordinate of the object. Floating point
-d3dhook_renderobject_setX(d3dhook_renderobject, x): Returns the x coordinate of the object
-d3dhook_renderobject_getY(d3dhook_renderobject): Sets the y coordinate of the object
-d3dhook_renderobject_setY(d3dhook_renderobject, y): Returns the y coordinate of the object
-
-d3dhook_renderobject_getAlphablend(d3dhook_renderobject): Returns the current alphablend value. 1.0 is fully visible and 0.0=invisible
-d3dhook_renderobject_setAlphablend(d3dhook_renderobject, x): Sets the alphablend value.
-d3dhook_renderobject_getVisible(d3dhook_renderobject)
-d3dhook_renderobject_setVisible(d3dhook_renderobject, x)
-d3dhook_renderobject_getZOrder(d3dhook_renderobject)
-d3dhook_renderobject_setZOrder(d3dhook_renderobject, x)
 
 
 D3DHook_Sprite Class (Inheritance: D3DHook_RenderObject->Object)
 A d3dhook_sprite class is a visible texture on the screen.
 
-d3dhook_createSprite(d3dhook_texture): returns a d3dhook_sprite object
-d3dhook_sprite_getWidth(d3dhook_sprite)
-d3dhook_sprite_setWidth(d3dhook_sprite, width)
-d3dhook_sprite_getHeight(d3dhook_sprite)
-d3dhook_sprite_setHeight(d3dhook_sprite, height)
-d3dhook_sprite_getTexture(d3dhook_sprite): Returns a d3dhook_texture object
-d3dhook_sprite_setTexture(d3dhook_sprite, d3dhook_texture): Sets the texture to render with this sprite (width and height will get reset)
+
+properties
+  Width: Integer - The width of the sprite in pixels. Default is the initial texture width
+  Height: Integer - The height of the sprite in pixels. Default is the initial texture height
+  Texture: d3dhook_texture - The texture to show on the screen
+methods
+  -
 
 
 D3Dhook_TextContainer Class (Inheritance: D3DHook_RenderObject->Object)
 A d3dhook_sprite class draws a piece of text on the screen based on the used fontmap.
 While you could use a texture with the text, updating a texture in memory is slow. So if you wish to do a lot of text updates, use a textcontainer
 
+properties
+  FontMap : The D3DHook_FontMap object to use for rendering text
+  Text : The text to render
+methods
+  -
 
-d3dhook_createTextContainer(d3dhook_fontmap, x, y, text): Returns a d3dhook_textContainer object
-d3dhook_textcontainer_getFontMap(d3dhook_textcontainer)
-d3dhook_textcontainer_setFontMap(d3dhook_textcontainer, d3dhook_fontmap)
-d3dhook_textcontainer_getText(d3dhook_textcontainer)
-d3dhook_textcontainer_setText(d3dhook_textcontainer, string)
 --]]
 
 
@@ -1728,5 +1719,6 @@ getRunningProcesses(): stringlist
 getProcessModules(processid): 
 
 
+Disassembler Class
 
 --]]
