@@ -68,7 +68,7 @@ LuaOldD3DHook, LuaWinControl,
   LuaCombobox, LuaTrackbar, LuaCollectionItem, LuaListcolumn, LuaEdit, LuaMemo,
   LuaCollection, LuaListColumns, LuaListItem, LuaListItems, LuaListview, 
 LuaTimer, LuaGenericHotkey, LuaFileDialog, LuaStream, LuaTableFile, 
-LuaMemoryRecordHotkey, LuaMemoryView;
+LuaMemoryRecordHotkey, LuaMemoryView, LuaD3DHook, CustomBase85;
 
 {$R cheatengine.res}
 {$R manifest.res}

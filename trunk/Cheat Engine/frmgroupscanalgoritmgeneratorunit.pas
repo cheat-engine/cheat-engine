@@ -42,6 +42,7 @@ type
     function getParameters: string;
 
 
+    procedure AddWildcard(count: integer);
     procedure AddLine(valuetype: TVariableType; customtype: TCustomtype; value: string); overload;
     procedure AddLine(valuetype: TVariableType; value: string); overload;
   end;
@@ -358,11 +359,20 @@ begin
   end;
 end;
 
+procedure TfrmGroupScanAlgoritmGenerator.AddWildcard(count: integer);
+var x: TVariableInfo;
+begin
+  x:=TVariableInfo(Varinfolist[Varinfolist.count-1]);
+  x.cbVartype.ItemIndex:=9;
+  x.vartypeselect(x.cbVartype);
+  x.edtValue.text:=inttostr(count);
+end;
 
 procedure TfrmGroupScanAlgoritmGenerator.AddLine(valuetype: TVariableType; customtype: TCustomtype; value: string);
 var x: TVariableInfo;
 begin
   x:=TVariableInfo(Varinfolist[Varinfolist.count-1]);
+
   case valuetype of
     vtByte :  x.cbVartype.itemindex:=1;
     vtWord :  x.cbVartype.itemindex:=2;

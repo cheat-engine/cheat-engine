@@ -70,7 +70,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports, Mem
   LuaCheckbox, LuaGroupbox, LuaListbox, LuaCombobox, LuaTrackbar, LuaListColumn,
   LuaEdit, LuaMemo, LuaCollection, LuaListColumns, LuaListitem, LuaListItems,
   LuaTimer, LuaListview, LuaGenericHotkey, LuaTableFile, LuaMemoryRecordHotkey,
-  LuaMemoryView;
+  LuaMemoryView, LuaD3DHook;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -4372,6 +4372,7 @@ begin
     initializeLuaDebug; //eventually I should add a LuaLuaDebug...
     initializeLuaThread;
     initializeLuaGraphic;
+    initializeLuaOldD3DHook;
     initializeLuaD3DHook;
     initializeLuaStructure;
     initializeLuaRegion;

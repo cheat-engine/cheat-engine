@@ -241,8 +241,8 @@ type
     constructor Create(owner: TD3DHook);
     destructor destroy; override;
 
-    property height: integer read fheight;
-    property width: integer read fwidth;
+    property Height: integer read fheight;
+    property Width: integer read fwidth;
   end;
 
   TD3DHook_FontMap=class(TD3DHook_Texture)
@@ -280,11 +280,11 @@ type
     constructor create(owner: TD3DHook);
 
   published
-    property zOrder: integer read getIndex write setZOrder;
-    property alphaBlend: single read falphablend write setAlphablend;
-    property x: single read fx write setX;
-    property y: single read fy write setY;
-    property visible: boolean read fVisible write setVisible;
+    property ZOrder: integer read getIndex write setZOrder;
+    property Alphablend: single read falphablend write setAlphablend;
+    property X: single read fx write setX;
+    property Y: single read fy write setY;
+    property Visible: boolean read fVisible write setVisible;
   end;
 
   TD3Dhook_TextContainer=class(TD3DHook_RenderObject)   //class for rendering text
@@ -328,15 +328,16 @@ type
 
     constructor create(owner: TD3DHook; texture: TD3DHook_Texture);
   published
-    property width: integer read fWidth write setWidth;
-    property height: integer read fHeight write setHeight;
-    property texture: TD3DHook_Texture read ftexture write setTexture;
+    property Width: integer read fWidth write setWidth;
+    property Height: integer read fHeight write setHeight;
+    property Texture: TD3DHook_Texture read ftexture write setTexture;
   end;
 
 
   TD3DHook=class(TObject)
   private
     fonKeyDown: TD3DKeyDownEvent;
+    fonclick: TD3DClickEvent;
     sharename: string;
     shared: PD3DHookShared; //local address of the D3DHookShared structure
 
@@ -372,7 +373,7 @@ type
 
     procedure setOnKeyDown(s: TD3DKeyDownEvent);
   public
-    onclick: TD3DClickEvent;
+
 
     procedure beginTextureUpdate;
     procedure endTextureUpdate;
@@ -387,9 +388,11 @@ type
     function createFontMap(f: TFont): TD3DHook_FontMap;
     function createTextContainer(fontmap: TD3DHook_FontMap; x,y: single; text: string): TD3Dhook_TextContainer;
 
-
+    function getDisabledZBuffer: boolean;
     procedure setDisabledZBuffer(state: boolean);
+    function getWireframeMode: boolean;
     procedure setWireframeMode(state: boolean);
+    function getMouseClip: boolean;
     procedure setMouseClip(state: boolean);
 
     function getWidth: integer;
@@ -402,8 +405,15 @@ type
 
     constructor create(size: integer; hookhwnd: boolean=true);
     destructor destroy; override;
-    property processid: dword read fprocessid;
-    property onKeyDown: TD3DKeyDownEvent read fonKeyDown write setOnKeyDown;
+  published
+    property Width: integer read getHeight;
+    property Height: integer read getWidth;
+    property DisabledZBuffer: boolean read GetDisabledZBuffer write setDisabledZBuffer;
+    property WireframeMode: boolean read GetWireframeMode write setWireframeMode;
+    property MouseClip: boolean read GetMouseclip write setMouseClip;
+    property Processid: dword read fprocessid;
+    property OnKeyDown: TD3DKeyDownEvent read fonKeyDown write setOnKeyDown;
+    property OnClick: TD3DClickEvent read fonclick write fonclick;
   end;
 
 var D3DHook: TD3DHook;
@@ -1172,6 +1182,11 @@ begin
   shared.console.consolekey:=virtualkey;
 end;
 
+function TD3DHook.getDisabledZBuffer: boolean;
+begin
+  result:=shared.disabledzbuffer=1;
+end;
+
 procedure TD3DHook.setDisabledZBuffer(state: boolean);
 begin
   if state then
@@ -1180,12 +1195,22 @@ begin
     shared.disabledzbuffer:=0;
 end;
 
+function TD3DHook.getWireframeMode: boolean;
+begin
+  result:=shared.wireframe=1;
+end;
+
 procedure TD3DHook.setWireframeMode(state: boolean);
 begin
   if state then
     shared.wireframe:=1
   else
     shared.wireframe:=0;
+end;
+
+function TD3DHook.getMouseClip: boolean;
+begin
+  result:=shared.clipmouseinwindow=1;
 end;
 
 procedure TD3DHook.setMouseClip(state: boolean);

@@ -35,7 +35,7 @@ type
       procedure AddressChangeEvent(sender: TObject; address: ptruint);
       function AutoGuessEvent(address: ptruint; originalVariableType: TVariableType): TVariableType;
       procedure D3DClickEvent(renderobject: TObject; x,y: integer);
-      function D3DKeyEvent(VirtualKey: dword; char: pchar): boolean;
+      function D3DKeyDownEvent(VirtualKey: dword; char: pchar): boolean;
 
       procedure pushFunction;
 
@@ -60,6 +60,8 @@ function LuaCaller_DisassemblerSelectionChangeEvent(L: PLua_state): integer; cde
 function LuaCaller_ByteSelectEvent(L: PLua_state): integer; cdecl;  //(sender: TObject; address: ptruint; address2: ptruint);
 function LuaCaller_AddressChangeEvent(L: PLua_state): integer; cdecl;  //(sender: TObject; address: ptruint);
 
+function LuaCaller_D3DClickEvent(L: PLua_state): integer; cdecl; //(renderobject: TObject; x,y: integer);
+function LuaCaller_D3DKeyDownEvent(L: PLua_state): integer; cdecl; //(VirtualKey: dword; char: pchar): boolean;
 
 
 
@@ -72,7 +74,7 @@ function luacaller_getFunctionHeaderAndMethodForType(typeinfo: PTypeInfo; lc: po
 
 implementation
 
-uses luahandler, MainUnit, MemoryRecordUnit, disassemblerviewunit, hexviewunit;
+uses luahandler, MainUnit, MemoryRecordUnit, disassemblerviewunit, hexviewunit, d3dhookUnit;
 
 type
   TLuaCallData=class(tobject)
@@ -388,7 +390,7 @@ begin
   end;
 end;
 
-function TLuaCaller.D3DKeyEvent(VirtualKey: dword; char: pchar): boolean;
+function TLuaCaller.D3DKeyDownEvent(VirtualKey: dword; char: pchar): boolean;
 var oldstack: integer;
 begin
   result:=true;
@@ -845,6 +847,58 @@ begin
 
 end;
 
+function LuaCaller_D3DClickEvent(L: PLua_state): integer; cdecl;
+var
+  m: TMethod;
+  renderobject: TObject;
+  x,y: integer;
+begin
+  result:=0;
+  if lua_gettop(L)=3 then
+  begin
+    //(renderobject: TObject; x,y: integer);
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    renderobject:=lua_toceuserdata(L, 1);
+    x:=lua_tointeger(L, 2);
+    y:=lua_tointeger(L, 3);
+    lua_pop(L, lua_gettop(L));
+
+    TD3DClickEvent(m)(renderobject,x,y);
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
+
+function LuaCaller_D3DKeyDownEvent(L: PLua_state): integer; cdecl;
+var
+  m: TMethod;
+  VirtualKey: dword;
+  c: string;
+  x,y: integer;
+  r: boolean;
+begin
+  result:=0;
+  if lua_gettop(L)=2 then
+  begin
+    //(VirtualKey: dword; char: pchar): boolean;
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    virtualkey:=lua_tointeger(L, 1);
+    c:=Lua_ToString(L,2);
+    lua_pop(L, lua_gettop(L));
+
+    if c<>'' then
+    begin
+      r:=TD3DKeyDownEvent(m)(VirtualKey,@c[1]);
+      lua_pushboolean(L, r);
+      result:=1;
+    end;
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
+
 procedure registerLuaCall(typename: string; getmethodprop: lua_CFunction; setmethodprop: pointer; luafunctionheader: string);
 var t: TLuaCallData;
 begin
@@ -869,5 +923,8 @@ initialization
   registerLuaCall('TDisassemblerSelectionChangeEvent', LuaCaller_DisassemblerSelectionChangeEvent, pointer(TLuaCaller.DisassemblerSelectionChangeEvent),'function %s(sender, address, address2)'#13#10#13#10'end'#13#10);
   registerLuaCall('TByteSelectEvent', LuaCaller_ByteSelectEvent, pointer(TLuaCaller.ByteSelectEvent),'function %s(sender, address, address2)'#13#10#13#10'end'#13#10);
   registerLuaCall('TAddressChangeEvent', LuaCaller_AddressChangeEvent, pointer(TLuaCaller.AddressChangeEvent),'function %s(sender, address)'#13#10#13#10'end'#13#10);
+
+  registerLuaCall('TD3DClickEvent', LuaCaller_D3DClickEvent, pointer(TLuaCaller.D3DClickEvent),'function %s(renderobject, x, y)'#13#10#13#10'end'#13#10);
+  registerLuaCall('TD3DKeyDownEvent', LuaCaller_D3DKeyDownEvent, pointer(TLuaCaller.D3DKeyDownEvent),'function %s(virtualkeycode, char)'#13#10#13#10'  return false'#13#10'end'#13#10);
 end.
 

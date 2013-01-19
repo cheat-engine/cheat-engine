@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, graphics, lua, lualib, lauxlib;
 
-procedure initializeLuaD3DHook;
+procedure initializeLuaOldD3DHook;
 
 implementation
 
@@ -22,7 +22,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    d:=lua_touserdata(L,-parameters);
+    d:=lua_toceuserdata(L,-parameters);
     lua_pop(L, parameters);
 
     d:=safed3dhook;
@@ -44,7 +44,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    d:=lua_touserdata(L,-parameters);
+    d:=lua_toceuserdata(L,-parameters);
     lua_pop(L, parameters);
 
     d:=safed3dhook;
@@ -107,7 +107,7 @@ begin
 
         lc:=TLuaCaller.create;
         lc.luaroutineIndex:=f;
-        d3dhook.onKeyDown:=lc.D3DKeyEvent;
+        d3dhook.onKeyDown:=lc.D3DKeyDownEvent;
       end
       else
       if lua_isstring(L,1) then
@@ -115,7 +115,7 @@ begin
         routine:=lua_tostring(L,1);
         lc:=TLuaCaller.create;
         lc.luaroutine:=routine;
-        d3dhook.onKeyDown:=lc.D3DKeyEvent;
+        d3dhook.onKeyDown:=lc.D3DKeyDownEvent;
       end;
 
     end;
@@ -296,7 +296,7 @@ begin
       if lua_isuserdata(L,1) then
       begin
         //picture
-        o:=lua_touserdata(L,1);
+        o:=lua_toceuserdata(L,1);
         lua_pop(L, parameters);
 
         if (o is TPicture) then
@@ -335,7 +335,7 @@ begin
   result:=0;
   if lua_gettop(L)=1 then
   begin
-    t:=lua_touserdata(L,1);
+    t:=lua_toceuserdata(L,1);
     lua_pop(L, lua_gettop(L));
     lua_pushinteger(L, t.height);
     result:=1;
@@ -351,7 +351,7 @@ begin
   result:=0;
   if lua_gettop(L)=1 then
   begin
-    t:=lua_touserdata(L,1);
+    t:=lua_toceuserdata(L,1);
     lua_pop(L, lua_gettop(L));
     lua_pushinteger(L, t.width);
     result:=1;
@@ -368,8 +368,8 @@ begin
   result:=0;
   if lua_gettop(L)>=2 then
   begin
-    t:=lua_touserdata(L,1);
-    p:=lua_touserdata(L,2);
+    t:=lua_toceuserdata(L,1);
+    p:=lua_toceuserdata(L,2);
     lua_pop(L, lua_gettop(L));
 
     t.LoadTextureByPicture(p);
@@ -389,7 +389,7 @@ begin
 
   if parameters>=1 then
   begin
-    f:=lua_touserdata(L,1);
+    f:=lua_toceuserdata(L,1);
     lua_pop(L, parameters);
 
     safed3dhook;
@@ -416,7 +416,7 @@ begin
 
   if parameters>=2 then
   begin
-    fm:=lua_touserdata(L,1);
+    fm:=lua_toceuserdata(L,1);
     s:=Lua_ToString(L,2);
     lua_pop(L, parameters);
 
@@ -439,8 +439,8 @@ begin
 
   if parameters>=2 then
   begin
-    fm:=lua_touserdata(L,1);
-    f:=lua_touserdata(L,2);
+    fm:=lua_toceuserdata(L,1);
+    f:=lua_toceuserdata(L,2);
     lua_pop(L, parameters);
 
     fm.ChangeFont(f);
@@ -458,7 +458,7 @@ begin
 
   if parameters>=1 then
   begin
-    r:=lua_touserdata(L,1);
+    r:=lua_toceuserdata(L,1);
     lua_pop(L, parameters);
 
     lua_pushnumber(L, r.x);
@@ -479,7 +479,7 @@ begin
 
   if parameters>=2 then
   begin
-    r:=lua_touserdata(L,1);
+    r:=lua_toceuserdata(L,1);
     v:=lua_tonumber(L,2);
     r.x:=v;
   end;
@@ -496,7 +496,7 @@ begin
 
   if parameters>=1 then
   begin
-    r:=lua_touserdata(L,1);
+    r:=lua_toceuserdata(L,1);
     lua_pop(L, parameters);
 
     lua_pushnumber(L, r.y);
@@ -517,7 +517,7 @@ begin
 
   if parameters>=2 then
   begin
-    r:=lua_touserdata(L,1);
+    r:=lua_toceuserdata(L,1);
     v:=lua_tonumber(L,2);
     r.y:=v;
   end;
@@ -534,7 +534,7 @@ begin
 
   if parameters>=1 then
   begin
-    r:=lua_touserdata(L,1);
+    r:=lua_toceuserdata(L,1);
     lua_pop(L, parameters);
 
     lua_pushnumber(L, r.Alphablend);
@@ -555,7 +555,7 @@ begin
 
   if parameters>=2 then
   begin
-    r:=lua_touserdata(L,1);
+    r:=lua_toceuserdata(L,1);
     v:=lua_tonumber(L,2);
     r.Alphablend:=v;
   end;
@@ -572,7 +572,7 @@ begin
 
   if parameters>=1 then
   begin
-    r:=lua_touserdata(L,1);
+    r:=lua_toceuserdata(L,1);
     lua_pop(L, parameters);
 
     lua_pushboolean(L, r.Visible);
@@ -593,7 +593,7 @@ begin
 
   if parameters>=2 then
   begin
-    r:=lua_touserdata(L,1);
+    r:=lua_toceuserdata(L,1);
     v:=lua_toboolean(L,2);
     r.Visible:=v;
   end;
@@ -611,7 +611,7 @@ begin
 
   if parameters>=1 then
   begin
-    r:=lua_touserdata(L,1);
+    r:=lua_toceuserdata(L,1);
     lua_pop(L, parameters);
 
     lua_pushinteger(L, r.ZOrder);
@@ -632,7 +632,7 @@ begin
 
   if parameters>=2 then
   begin
-    r:=lua_touserdata(L,1);
+    r:=lua_toceuserdata(L,1);
     v:=lua_tointeger(L,2);
     r.ZOrder:=v;
   end;
@@ -650,7 +650,7 @@ begin
 
   if parameters>=1 then
   begin
-    t:=lua_touserdata(L,1);
+    t:=lua_toceuserdata(L,1);
     lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, d3dhook.createSprite(t));
@@ -669,7 +669,7 @@ begin
 
   if parameters>=1 then
   begin
-    r:=lua_touserdata(L,1);
+    r:=lua_toceuserdata(L,1);
     lua_pop(L, parameters);
 
     lua_pushinteger(L, r.Width);
@@ -690,7 +690,7 @@ begin
 
   if parameters>=2 then
   begin
-    r:=lua_touserdata(L,1);
+    r:=lua_toceuserdata(L,1);
     v:=lua_tointeger(L,2);
     r.Width:=v;
   end;
@@ -708,7 +708,7 @@ begin
 
   if parameters>=1 then
   begin
-    r:=lua_touserdata(L,1);
+    r:=lua_toceuserdata(L,1);
     lua_pop(L, parameters);
 
     lua_pushinteger(L, r.Height);
@@ -729,7 +729,7 @@ begin
 
   if parameters>=2 then
   begin
-    r:=lua_touserdata(L,1);
+    r:=lua_toceuserdata(L,1);
     v:=lua_tointeger(L,2);
     r.Height:=v;
   end;
@@ -747,7 +747,7 @@ begin
 
   if parameters>=1 then
   begin
-    r:=lua_touserdata(L,1);
+    r:=lua_toceuserdata(L,1);
     lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, r.Texture);
@@ -768,8 +768,8 @@ begin
 
   if parameters>=2 then
   begin
-    r:=lua_touserdata(L,1);
-    v:=lua_touserdata(L,2);
+    r:=lua_toceuserdata(L,1);
+    v:=lua_toceuserdata(L,2);
     r.Texture:=v;
   end;
 
@@ -787,7 +787,7 @@ begin
 
   if parameters>=4 then
   begin
-    fm:=lua_touserdata(L,1);
+    fm:=lua_toceuserdata(L,1);
     x:=lua_tonumber(L,2);
     y:=lua_tonumber(L,3);
     text:=Lua_ToString(L,4);
@@ -809,7 +809,7 @@ begin
 
   if parameters>=1 then
   begin
-    r:=lua_touserdata(L,1);
+    r:=lua_toceuserdata(L,1);
     lua_pop(L, parameters);
 
     lua_pushlightuserdata(L, r.Fontmap);
@@ -830,8 +830,8 @@ begin
 
   if parameters>=2 then
   begin
-    r:=lua_touserdata(L,1);
-    v:=lua_touserdata(L,2);
+    r:=lua_toceuserdata(L,1);
+    v:=lua_toceuserdata(L,2);
     r.Fontmap:=v;
   end;
 
@@ -847,7 +847,7 @@ begin
 
   if parameters>=1 then
   begin
-    r:=lua_touserdata(L,1);
+    r:=lua_toceuserdata(L,1);
     lua_pop(L, parameters);
 
     lua_pushstring(L, r.Text);
@@ -868,7 +868,7 @@ begin
 
   if parameters>=2 then
   begin
-    r:=lua_touserdata(L,1);
+    r:=lua_toceuserdata(L,1);
     v:=Lua_ToString(L,2);
     r.text:=v;
   end;
@@ -876,7 +876,7 @@ begin
   lua_pop(L, parameters);
 end;
 
-procedure initializeLuaD3DHook;
+procedure initializeLuaOldD3DHook;
 begin
   lua_register(LuaVM, 'd3dhook_initializeHook', d3dhook_initializeHook);
   lua_register(LuaVM, 'd3dhook_onClick', d3dhook_onClick);
