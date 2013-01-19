@@ -409,33 +409,42 @@ begin
             begin
               lua_getglobal(luavm, 'EFLAGS');
               context.EFLAGS:=lua_tointeger(luavm, -1);
+              lua_pop(luavm,1);
 
               if not processhandler.is64bit then
               begin
                 lua_getglobal(luavm, 'EAX');
                 context.{$ifdef cpu64}rax{$else}eax{$endif}:=lua_tointeger(luavm, -1);
+                lua_pop(luavm,1);
 
                 lua_getglobal(luavm, 'EBX');
                 context.{$ifdef cpu64}rbx{$else}ebx{$endif}:=lua_tointeger(luavm, -1);
+                lua_pop(luavm,1);
 
                 lua_getglobal(luavm, 'ECX');
                 context.{$ifdef cpu64}rcx{$else}ecx{$endif}:=lua_tointeger(luavm, -1);
+                lua_pop(luavm,1);
 
                 lua_getglobal(luavm, 'EDX');
                 context.{$ifdef cpu64}rdx{$else}edx{$endif}:=lua_tointeger(luavm, -1);
+                lua_pop(luavm,1);
 
                 lua_getglobal(luavm, 'ESI');
                 context.{$ifdef cpu64}rsi{$else}esi{$endif}:=lua_tointeger(luavm, -1);
+                lua_pop(luavm,1);
 
                 lua_getglobal(luavm, 'EDI');
                 context.{$ifdef cpu64}rdi{$else}edi{$endif}:=lua_tointeger(luavm, -1);
+                lua_pop(luavm,1);
 
                 lua_getglobal(luavm, 'EBP');
                 context.{$ifdef cpu64}rbp{$else}ebp{$endif}:=lua_tointeger(luavm, -1);
+                lua_pop(luavm,1);
+
 
                 lua_getglobal(luavm, 'EIP');
                 context.{$ifdef cpu64}rip{$else}eip{$endif}:=lua_tointeger(luavm, -1);
-
+                lua_pop(luavm,1);
 
               end
               else
@@ -446,62 +455,71 @@ begin
               {$ifdef cpu64}
                 lua_getglobal(luavm, 'RAX');
                 context.RAX:=lua_tointeger(luavm, -1);
+                lua_pop(luavm,1);
 
                 lua_getglobal(luavm, 'RBX');
                 context.RBX:=lua_tointeger(luavm, -1);
+                lua_pop(luavm,1);
 
                 lua_getglobal(luavm, 'RCX');
                 context.RCX:=lua_tointeger(luavm, -1);
-
+                lua_pop(luavm,1);
 
                 lua_getglobal(luavm, 'RDX');
                 context.RDX:=lua_tointeger(luavm, -1);
+                lua_pop(luavm,1);
 
                 lua_getglobal(luavm, 'RSI');
                 context.RSI:=lua_tointeger(luavm, -1);
-
+                lua_pop(luavm,1);
 
                 lua_getglobal(luavm, 'RDI');
                 context.RDI:=lua_tointeger(luavm, -1);
+                lua_pop(luavm,1);
 
                 lua_getglobal(luavm, 'RBP');
                 context.RBP:=lua_tointeger(luavm, -1);
-
+                lua_pop(luavm,1);
 
                 lua_getglobal(luavm, 'RSP');
                 context.RSP:=lua_tointeger(luavm, -1);
+                lua_pop(luavm,1);
 
                 lua_getglobal(luavm, 'RIP');
                 context.RIP:=lua_tointeger(luavm, -1);
-
+                lua_pop(luavm,1);
 
                 lua_getglobal(luavm, 'R8');
                 context.R8:=lua_tointeger(luavm, -1);
-
+                lua_pop(luavm,1);
 
                 lua_getglobal(luavm, 'R9');
                 context.R9:=lua_tointeger(luavm, -1);
+                lua_pop(luavm,1);
 
                 lua_getglobal(luavm, 'R10');
                 context.R10:=lua_tointeger(luavm, -1);
+                lua_pop(luavm,1);
 
                 lua_getglobal(luavm, 'R11');
                 context.R11:=lua_tointeger(luavm, -1);
-
+                lua_pop(luavm,1);
 
                 lua_getglobal(luavm, 'R12');
                 context.R12:=lua_tointeger(luavm, -1);
-
+                lua_pop(luavm,1);
 
                 lua_getglobal(luavm, 'R13');
                 context.R13:=lua_tointeger(luavm, -1);
-
+                lua_pop(luavm,1);
 
                 lua_getglobal(luavm, 'R14');
                 context.R14:=lua_tointeger(luavm, -1);
+                lua_pop(luavm,1);
 
                 lua_getglobal(luavm, 'R15');
                 context.R15:=lua_tointeger(luavm, -1);
+                lua_pop(luavm,1);
               {$endif}
 
               end;
