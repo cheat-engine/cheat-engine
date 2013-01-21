@@ -76,16 +76,16 @@ begin
   result:=list.count>0;
 end;
 
-function findaobInModule(modulename: string; aobstring: string; protectionflags: string=''; alignmenttype: TFastScanMethod=fsmNotAligned; alignmentparam: string=''): ptruint;
-{scans the game's memory for aobstring and returns the pointer if found. returns 0 if not found}
+function AsyncAOBScan(modulename: string; aobstring: string; protectionflags: string=''; alignmenttype: TFastScanMethod=fsmNotAligned; alignmentparam: string=''): TMemScan;
+//starts a scan and returns a memscan object.
+//It's recommended to use finishAOBScan(ms) to get the address and free the object
 var
   ms: tmemscan;
-  x: ptruint;
   minaddress: ptruint;
   maxaddress: ptrUint;
   mi: TModuleinfo;
 begin
-  result:=0;
+  result:=nil;
   ms:=tmemscan.create(nil);
   ms.parseProtectionflags(protectionflags);
   ms.onlyone:=true;
@@ -118,7 +118,14 @@ begin
   end;
 
   ms.firstscan(soExactValue, vtByteArray, rtRounded, aobstring, '', minaddress, maxaddress, true, false, false, false, fsmNotAligned);
+  result:=ms;
+end;
 
+function FinishAOBScan(ms: TMemscan): integer;
+{scans the game's memory for aobstring and returns the pointer if found. returns 0 if not found}
+var x: ptruint;
+begin
+  result:=0;
   ms.waittilldone; //wait till it's finished scanning
   if ms.GetOnlyOneResult(x) then
     result:=x;
@@ -126,10 +133,18 @@ begin
   ms.free;
 end;
 
+function findaobInModule(modulename: string; aobstring: string; protectionflags: string=''; alignmenttype: TFastScanMethod=fsmNotAligned; alignmentparam: string=''): ptruint;
+var ms: TMemscan;
+begin
+  ms:=AsyncAOBScan(modulename, aobstring, protectionflags, alignmenttype, alignmentparam);
+  result:=finishAOBScan(ms);
+end;
 
 function findaob(aobstring: string; protectionflags: string=''; alignmenttype: TFastScanMethod=fsmNotAligned; alignmentparam: string=''): ptruint;
 begin
   result:=findaobInModule('', aobstring, protectionflags, alignmenttype, alignmentparam);
 end;
+
+
 
 end.
