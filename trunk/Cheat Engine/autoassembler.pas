@@ -294,11 +294,23 @@ begin
   end;
 end;
 
+procedure aobscans(code: tstrings);
+//Replaces all AOBSCAN lines with DEFINE(NAME,ADDRESS)
+begin
+
+end;
 
 function autoassemble2(code: tstrings;popupmessages: boolean;syntaxcheckonly:boolean; targetself: boolean ;var ceallocarray:TCEAllocArray; registeredsymbols: tstringlist=nil):boolean;
 {
 registeredsymbols is a stringlist that is initialized by the caller as case insensitive and no duplicates
 }
+      {
+type TAOBEntry = record
+  name: string;
+  aobstring: string;
+
+end;   }
+
 type tassembled=record
   address: ptrUint;
   bytes: TAssemblerbytes;
@@ -345,6 +357,8 @@ var i,j,k,l,e: integer;
     addsymbollist: array of string;
     deletesymbollist: array of string;
     createthread: array of string;
+
+//    aoblist: array of TAOBEntry;
 
     a,b,c,d: integer;
     s1,s2,s3: string;
@@ -432,15 +446,16 @@ begin
     setlength(deletesymbollist,0);
     setlength(defines,0);
     setlength(loadbinary,0);
+//    setlength(aoblist,0);
 
     tokens:=tstringlist.Create;
 
     incomment:=false;
 
-
-
     removecomments(code);
     unlabeledlabels(code);
+
+    aobscans(code);
 
 
     //first pass
@@ -873,8 +888,10 @@ begin
                   raise exception.Create(Format(rsTheArrayOfByteCouldNotBeFound, [s2]));
               end;
 
-              //currentline:='DEFINE('+s1+','+inttohex(testPtr,8)+')';
-              l:=length(labels);
+              currentline:='DEFINE('+s1+','+inttohex(testPtr,8)+')';
+             {
+             //test to see if it could be made a label. Answer: yes, but labels don't support math
+             l:=length(labels);
               setlength(labels, l+1);
               labels[l].labelname:=s1;
               labels[l].address:=testPtr;
@@ -884,8 +901,10 @@ begin
               setlength(assemblerlines,length(assemblerlines)-1);
               setlength(labels[l].references,0);
               setlength(labels[l].references2,0);
-
               continue;
+              }
+
+
             end else raise exception.Create(rsWrongSyntaxAOBSCANName11223355);
           end;
 
@@ -914,7 +933,9 @@ begin
                   raise exception.Create(Format(rsTheArrayOfByteCouldNotBeFound, [s3]));
               end;
 
-              //currentline:='DEFINE('+s1+','+inttohex(testPtr,8)+')';
+
+              currentline:='DEFINE('+s1+','+inttohex(testPtr,8)+')';
+              {
               l:=length(labels);
               setlength(labels, l+1);
               labels[l].labelname:=s1;
@@ -926,7 +947,7 @@ begin
               setlength(labels[l].references,0);
               setlength(labels[l].references2,0);
 
-              continue;
+              continue;           }
             end else raise exception.Create(rsWrongSyntaxAOBSCANMODULEName11223355);
           end;
 
@@ -1146,6 +1167,7 @@ begin
           end;
 
           {$ifndef net}
+
           //memory kalloc
           if uppercase(copy(currentline,1,7))='KALLOC(' then
           begin
@@ -1295,7 +1317,14 @@ begin
               ok1:=true;
               break;
             end;
-
+        {
+        if not ok1 then //scan defines
+          for j:=0 to length(defines)-1 do
+            if uppercase(addsymbollist[i])=uppercase(defines[j].name) then
+            begin
+              ok1:=true;
+              break;
+            end; }
 
         if not ok1 then raise exception.Create(Format(rsWasSupposedToBeAddedToTheSymbollistButItIsnTDeclar, [addsymbollist[i]]));
       end;
@@ -1605,17 +1634,9 @@ begin
         begin
           if i=labels[j].assemblerline then
           begin
-            if labels[j].defined=false then
-            begin
-              labels[j].address:=currentaddress;
-              labels[j].defined:=true;
-              ok1:=true;
-            end
-            else
-            begin
-              currentaddress:=labels[j].address;
-              ok1:=true;
-            end;
+            labels[j].address:=currentaddress;
+            labels[j].defined:=true;
+            ok1:=true;
 
 
             //reassemble the instructions that had no target
@@ -1818,6 +1839,18 @@ begin
               end;
 
             end;
+    {
+        if not ok1 then
+          for j:=0 to length(defines)-1 do
+            if uppercase(addsymbollist[i])=uppercase(defines[j].name) then
+            begin
+              try
+                symhandler.DeleteUserdefinedSymbol(addsymbollist[i]); //delete old one so you can add the new one
+                symhandler.AddUserdefinedSymbol(defines[j].whatever, addsymbollist[i]);
+                ok1:=true;
+              except
+              end;
+            end;  }
       end;
 
       //still here, so create threads if needed
