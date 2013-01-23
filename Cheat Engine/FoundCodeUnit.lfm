@@ -15,7 +15,7 @@ object FoundCodeDialog: TFoundCodeDialog
   OnDestroy = FormDestroy
   OnResize = FormResize
   Position = poOwnerFormCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.1'
   object Panel1: TPanel
     Left = 264
     Height = 445
@@ -72,7 +72,7 @@ object FoundCodeDialog: TFoundCodeDialog
       object btnExtraInfo: TButton
         Left = 7
         Height = 31
-        Hint = 'The selected addresses will be added to the code list in the advanced options window.'
+        Hint = 'Shows more information about the state of the system when that instruction got executed'
         Top = 128
         Width = 109
         Anchors = [akTop, akRight]
