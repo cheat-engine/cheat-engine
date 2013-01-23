@@ -333,19 +333,33 @@ var i,j,k, m: integer;
   //cleanup a memscan and fill in the results
   var i,j: integer;
       results: TAddresses;
+      aoblist: string;
   begin
     setlength(results,0);
     aobscanmodules[f].memscan.GetOnlyOneResults(results);
-
-    for i:=0 to length(aobscanmodules[f].entries)-1 do
+    if length(results)=length(aobscanmodules[f].entries) then
     begin
-      if results[i]=0 then
+      for i:=0 to length(aobscanmodules[f].entries)-1 do
       begin
-        error:=true;
-        errorstring:='The array of byte named '+aobscanmodules[f].entries[i].name+' could not be found';
-      end
-      else
-        code[aobscanmodules[f].entries[i].linenumber]:='DEFINE('+aobscanmodules[f].entries[i].name+', '+inttohex(results[i],8)+')';
+        if results[i]=0 then
+        begin
+          error:=true;
+          errorstring:='The array of byte named '+aobscanmodules[f].entries[i].name+' could not be found';
+        end
+        else
+          code[aobscanmodules[f].entries[i].linenumber]:='DEFINE('+aobscanmodules[f].entries[i].name+', '+inttohex(results[i],8)+')';
+
+
+      end;
+    end
+    else
+    begin
+      error:=true;
+      aoblist:='';
+      for i:=0 to length(aobscanmodules[f].entries)-1 do
+        aoblist:=aoblist+aobscanmodules[f].entries[i].name+' ';
+
+      errorstring:='Error while scanning for AOB''s : '+aoblist+#13#10#13#10+'Error: '+aobscanmodules[f].memscan.GetErrorString;
 
 
     end;
