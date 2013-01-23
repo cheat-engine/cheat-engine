@@ -160,7 +160,7 @@ begin
 
   if lua_gettop(L)>=1 then
   begin
-    menuitem2:=lua_touserdata(L,-1);
+    menuitem2:=lua_toceuserdata(L,-1);
     menuitem.Add(menuitem2);
   end;
 end;
