@@ -5,7 +5,8 @@ unit autoassembler;
 interface
 
 uses jwawindows, windows, Assemblerunit, classes,
-LCLIntf,symbolhandler,sysutils,dialogs,controls, CEFuncProc, NewKernelHandler ,plugin;
+LCLIntf,symbolhandler,sysutils,dialogs,controls, CEFuncProc, NewKernelHandler ,
+plugin;
 
 
 
@@ -15,7 +16,7 @@ function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targ
 
 implementation
 
-uses simpleaobscanner, StrUtils, LuaHandler;
+uses simpleaobscanner, StrUtils, LuaHandler, memscan;
 
 resourcestring
   rsForwardJumpWithNoLabelDefined = 'Forward jump with no label defined';
@@ -294,9 +295,248 @@ begin
   end;
 end;
 
-procedure aobscans(code: tstrings);
+procedure aobscans(code: tstrings; syntaxcheckonly: boolean);
 //Replaces all AOBSCAN lines with DEFINE(NAME,ADDRESS)
+type
+  TAOBEntry = record
+    name: string;
+    aobstring: string;
+    linenumber: integer;
+  end;
+
+  PAOBEntry=^TAOBEntry;
+
+var i,j,k, m: integer;
+
+
+    aobscanmodules: array of record
+      name: string;
+      entries: array of TAOBEntry;
+      minaddress, maxaddress: ptruint;
+      memscan: TMemScan;
+    end;
+
+    a,b,c,d: integer;
+    currentline: string;
+    s1,s2, s3: string;
+    testptr: ptruint;
+
+    cpucount: integer;
+    threads: integer;
+    mi: TModuleInfo;
+    aobstrings: string;
+
+    error: boolean;
+    errorstring: string;
+
+  procedure finished(f: integer);
+  //cleanup a memscan and fill in the results
+  var i,j: integer;
+      results: TAddresses;
+  begin
+    setlength(results,0);
+    aobscanmodules[f].memscan.GetOnlyOneResults(results);
+
+    for i:=0 to length(aobscanmodules[f].entries)-1 do
+    begin
+      if results[i]=0 then
+      begin
+        error:=true;
+        errorstring:='The array of byte named '+aobscanmodules[f].entries[i].name+' could not be found';
+      end
+      else
+        code[aobscanmodules[f].entries[i].linenumber]:='DEFINE('+aobscanmodules[f].entries[i].name+', '+inttohex(results[i],8)+')';
+
+
+    end;
+
+    aobscanmodules[f].memscan.Free;
+    aobscanmodules[f].memscan:=nil;
+
+    dec(threads);
+  end;
+
 begin
+  error:=false;
+  setlength(aobscanmodules,0);
+
+
+  cpucount:=GetCPUCount;
+  threads:=0;
+
+  for i:=0 to code.Count-1 do
+  begin
+    //AOBSCAN(variable,aobtring)  (works like define)
+    currentline:=code[i];
+
+    if uppercase(copy(currentline,1,8))='AOBSCAN(' then
+    begin
+      //convert this line from AOBSCAN(varname,bytestring) to DEFINE(varname,address)
+      a:=pos('(',currentline);
+      b:=pos(',',currentline);
+      c:=pos(')',currentline);
+
+      if (a>0) and (b>0) and (c>0) then
+      begin
+        s1:=trim(copy(currentline,a+1,b-a-1));
+        s2:=trim(copy(currentline,b+1,c-b-1));
+
+
+        //s1=varname
+        //s2=AOBstring
+        testPtr:=0;
+        if (not syntaxcheckonly) then
+        begin
+
+          //find the '' module
+          m:=-1;
+          for j:=0 to length(aobscanmodules)-1 do
+            if aobscanmodules[j].name='' then
+            begin
+              m:=j;
+              break;
+            end;
+
+          if m=-1 then
+          begin
+            setlength(aobscanmodules, length(aobscanmodules)+1);
+            m:=length(aobscanmodules)-1;
+
+            aobscanmodules[m].name:='';
+            aobscanmodules[m].minaddress:=0;
+
+            {$ifdef cpu64}
+            if processhandler.is64Bit then
+              aobscanmodules[m].maxaddress:=qword($7fffffffffffffff)
+            else
+            {$endif}
+            begin
+              if Is64bitOS then
+                aobscanmodules[m].maxaddress:=$ffffffff
+              else
+                aobscanmodules[m].maxaddress:=$7fffffff;
+            end;
+
+            aobscanmodules[m].maxaddress:=$ffffffffffffffff;
+            setlength(aobscanmodules[m].entries,0); //shouldn't be needed, but do it anyhow
+          end;
+
+          j:=length(aobscanmodules[m].entries);
+          setlength(aobscanmodules[m].entries, j+1);
+          aobscanmodules[m].entries[j].name:=s1;
+          aobscanmodules[m].entries[j].aobstring:=s2;
+          aobscanmodules[m].entries[j].linenumber:=i;
+        end;
+
+       // code[i]:='DEFINE('+s1+','+inttohex(testPtr,8)+')';
+
+
+
+      end else raise exception.Create(rsWrongSyntaxAOBSCANName11223355);
+    end;
+
+    if uppercase(copy(currentline,1,14))='AOBSCANMODULE(' then //AOBSCANMODULE(varname, modulename, bytestring)
+    begin
+      a:=pos('(',currentline);
+      b:=pos(',',currentline);
+      c:=PosEx(',',currentline,b+1);
+      d:=pos(')',currentline);
+
+
+
+      if (a>0) and (b>0) and (c>0) then
+      begin
+        s1:=trim(copy(currentline,a+1,b-a-1));
+        s2:=uppercase(trim(copy(currentline,b+1,c-b-1)));
+        s3:=trim(copy(currentline,c+1,d-c-1));
+
+        //s1=varname
+        //s2=MODULE
+        //s3=aob
+        testPtr:=0;
+        if (not syntaxcheckonly) then
+        begin
+          //find the s2 module
+          m:=-1;
+          for j:=0 to length(aobscanmodules)-1 do
+            if aobscanmodules[j].name=s2 then
+            begin
+              m:=j;
+              break;
+            end;
+
+          if m=-1 then
+          begin
+            setlength(aobscanmodules, length(aobscanmodules)+1);
+            m:=length(aobscanmodules)-1;
+
+            aobscanmodules[m].name:=s2;
+            if symhandler.getmodulebyname(s2, mi) then
+            begin
+              aobscanmodules[m].minaddress:=mi.baseaddress;
+              aobscanmodules[m].maxaddress:=mi.baseaddress+mi.basesize;
+            end
+            else
+              raise exception.create('module not found:'+s2);
+
+            setlength(aobscanmodules[m].entries,0);
+          end;
+
+          j:=length(aobscanmodules[m].entries);
+          setlength(aobscanmodules[m].entries, j+1);
+          aobscanmodules[m].entries[j].name:=s1;
+          aobscanmodules[m].entries[j].aobstring:=s3;
+          aobscanmodules[m].entries[j].linenumber:=i;
+        end;
+
+
+        //code[i]:='DEFINE('+s1+','+inttohex(testPtr,8)+')';
+
+      end else raise exception.Create(rsWrongSyntaxAOBSCANMODULEName11223355);
+    end;
+  end;
+
+  //do simultaneous scans for the selected modules
+  for i:=0 to length(aobscanmodules)-1 do
+  begin
+    {ms:=nil; }
+
+      //wait for one to finish
+    j:=0;
+    while threads>=cpucount do
+    begin
+      if (aobscanmodules[j].memscan<>nil) and (aobscanmodules[j].memscan.waittilldone(50)) then
+      begin
+        finished(j);
+        break;
+      end;
+
+      j:=(j+1) mod i;
+    end;
+
+    inc(threads);
+    aobscanmodules[i].memscan:=TMemScan.create(nil);
+    aobscanmodules[i].memscan.OnlyOne:=true;
+
+    aobstrings:='';
+    for j:=0 to length(aobscanmodules[i].entries)-1 do
+      aobstrings:=aobstrings+'('+aobscanmodules[i].entries[j].aobstring+')';
+
+    aobscanmodules[i].memscan.firstscan(soExactValue, vtByteArrays, rtRounded, aobstrings, '', aobscanmodules[i].minaddress, aobscanmodules[i].maxaddress, true, false, false, false, fsmNotAligned);
+
+  end;
+
+  //now wait till all are finished
+  for i:=0 to length(aobscanmodules)-1 do
+    if aobscanmodules[i].memscan<>nil then
+    begin
+      aobscanmodules[i].memscan.waittilldone;
+      finished(i);
+    end;
+
+
+  if error then raise exception.create(errorstring);
+
 
 end;
 
@@ -304,12 +544,7 @@ function autoassemble2(code: tstrings;popupmessages: boolean;syntaxcheckonly:boo
 {
 registeredsymbols is a stringlist that is initialized by the caller as case insensitive and no duplicates
 }
-      {
-type TAOBEntry = record
-  name: string;
-  aobstring: string;
 
-end;   }
 
 type tassembled=record
   address: ptrUint;
@@ -452,10 +687,14 @@ begin
 
     incomment:=false;
 
-    removecomments(code);
+    removecomments(code);  //also trims each line
     unlabeledlabels(code);
 
-    aobscans(code);
+    //6.3: do the aobscans first
+    //this will break scripts that use define(state,33) aobscan(name, 11 22 state 44 55), but really, live with it
+
+    aobscans(code, syntaxcheckonly);
+
 
 
     //first pass
@@ -468,13 +707,35 @@ begin
           currentline:=code[i];
           currentlinenr:=ptrUint(code.Objects[i]);
 
-          currentline:=trim(currentline);
+          //do this first. Do not touch registersymbol with any kind of define/label/whatsoever
+          if uppercase(copy(currentline,1,15))='REGISTERSYMBOL(' then
+          begin
+            //add this symbol to the register symbollist
+            a:=pos('(',currentline);
+            b:=pos(')',currentline);
 
-          for j:=0 to length(defines)-1 do
-            currentline:=replacetoken(currentline,defines[j].name,defines[j].whatever);
+            if (a>0) and (b>0) then
+            begin
+              s1:=trim(copy(currentline,a+1,b-a-1));
+
+              setlength(addsymbollist,length(addsymbollist)+1);
+              addsymbollist[length(addsymbollist)-1]:=s1;
+
+              if registeredsymbols<>nil then
+                registeredsymbols.Add(s1);
+            end
+            else raise exception.Create(rsSyntaxError);
+
+            continue;
+          end;
 
           if length(currentline)=0 then continue;
           if copy(currentline,1,2)='//' then continue; //skip
+
+          for j:=0 to length(defines)-1 do
+             currentline:=replacetoken(currentline,defines[j].name,defines[j].whatever);
+
+
 
           setlength(assemblerlines,length(assemblerlines)+1);
           assemblerlines[length(assemblerlines)-1]:=currentline;
@@ -822,27 +1083,7 @@ begin
             end else raise exception.Create(rsWrongSyntaxLoadBinaryAddressFilename);
           end;
 
-          if uppercase(copy(currentline,1,15))='REGISTERSYMBOL(' then
-          begin
-            //add this symbol to the register symbollist
-            a:=pos('(',currentline);
-            b:=pos(')',currentline);
 
-            if (a>0) and (b>0) then
-            begin
-              s1:=trim(copy(currentline,a+1,b-a-1));
-
-              setlength(addsymbollist,length(addsymbollist)+1);
-              addsymbollist[length(addsymbollist)-1]:=s1;
-
-              if registeredsymbols<>nil then
-                registeredsymbols.Add(s1);
-            end
-            else raise exception.Create(rsSyntaxError);
-
-            setlength(assemblerlines,length(assemblerlines)-1);
-            continue;
-          end;
 
           if uppercase(copy(currentline,1,17))='UNREGISTERSYMBOL(' then
           begin
@@ -863,93 +1104,7 @@ begin
             continue;
           end;
 
-          //AOBSCAN(variable,aobstring)  (works like define)
-
-          if uppercase(copy(currentline,1,8))='AOBSCAN(' then
-          begin
-            //convert this line from AOBSCAN(varname,bytestring) to DEFINE(varname,address)
-            a:=pos('(',currentline);
-            b:=pos(',',currentline);
-            c:=pos(')',currentline);
-
-            if (a>0) and (b>0) and (c>0) then
-            begin
-              s1:=trim(copy(currentline,a+1,b-a-1));
-              s2:=trim(copy(currentline,b+1,c-b-1));
-
-
-              //s1=varname
-              //s2=AOBstring
-              testPtr:=0;
-              if (not syntaxcheckonly) then
-              begin
-                testPtr:=findaob(s2);
-                if (testPtr=0) then
-                  raise exception.Create(Format(rsTheArrayOfByteCouldNotBeFound, [s2]));
-              end;
-
-              currentline:='DEFINE('+s1+','+inttohex(testPtr,8)+')';
-             {
-             //test to see if it could be made a label. Answer: yes, but labels don't support math
-             l:=length(labels);
-              setlength(labels, l+1);
-              labels[l].labelname:=s1;
-              labels[l].address:=testPtr;
-              labels[l].defined:=true;
-              labels[l].insideAllocatedMemory:=false;
-
-              setlength(assemblerlines,length(assemblerlines)-1);
-              setlength(labels[l].references,0);
-              setlength(labels[l].references2,0);
-              continue;
-              }
-
-
-            end else raise exception.Create(rsWrongSyntaxAOBSCANName11223355);
-          end;
-
-          if uppercase(copy(currentline,1,14))='AOBSCANMODULE(' then //AOBSCANMODULE(varname, modulename, bytestring)
-          begin
-            a:=pos('(',currentline);
-            b:=pos(',',currentline);
-            c:=PosEx(',',currentline,b+1);
-            d:=pos(')',currentline);
-
-
-
-            if (a>0) and (b>0) and (c>0) then
-            begin
-              s1:=trim(copy(currentline,a+1,b-a-1));
-              s2:=trim(copy(currentline,b+1,c-b-1));
-              s3:=trim(copy(currentline,c+1,d-c-1));
-
-              //s1=varname
-              //s2=AOBstring
-              testPtr:=0;
-              if (not syntaxcheckonly) then
-              begin
-                testPtr:=findaobinmodule(s2, s3);
-                if (testPtr=0) then
-                  raise exception.Create(Format(rsTheArrayOfByteCouldNotBeFound, [s3]));
-              end;
-
-
-              currentline:='DEFINE('+s1+','+inttohex(testPtr,8)+')';
-              {
-              l:=length(labels);
-              setlength(labels, l+1);
-              labels[l].labelname:=s1;
-              labels[l].address:=testPtr;
-              labels[l].defined:=true;
-              labels[l].insideAllocatedMemory:=false;
-
-              setlength(assemblerlines,length(assemblerlines)-1);
-              setlength(labels[l].references,0);
-              setlength(labels[l].references2,0);
-
-              continue;           }
-            end else raise exception.Create(rsWrongSyntaxAOBSCANMODULEName11223355);
-          end;
+          //AOBSCAN used to live here, but he moved up
 
           //define
           if uppercase(copy(currentline,1,7))='DEFINE(' then
@@ -974,7 +1129,7 @@ begin
 
               setlength(assemblerlines,length(assemblerlines)-1);   //don't bother with this in the 2nd pass
               continue;
-            end else raise exception.Create(rsWrongSyntaxDEFINENameWhatever);
+            end else raise exception.Create(rsWrongSyntaxDEFINENameWhatever+' Got '+currentline);
           end;
 
           if uppercase(copy(currentline,1,11))='FULLACCESS(' then
@@ -1317,14 +1472,14 @@ begin
               ok1:=true;
               break;
             end;
-        {
+
         if not ok1 then //scan defines
           for j:=0 to length(defines)-1 do
             if uppercase(addsymbollist[i])=uppercase(defines[j].name) then
             begin
               ok1:=true;
               break;
-            end; }
+            end;
 
         if not ok1 then raise exception.Create(Format(rsWasSupposedToBeAddedToTheSymbollistButItIsnTDeclar, [addsymbollist[i]]));
       end;
@@ -1839,7 +1994,7 @@ begin
               end;
 
             end;
-    {
+
         if not ok1 then
           for j:=0 to length(defines)-1 do
             if uppercase(addsymbollist[i])=uppercase(defines[j].name) then
@@ -1850,7 +2005,7 @@ begin
                 ok1:=true;
               except
               end;
-            end;  }
+            end;
       end;
 
       //still here, so create threads if needed

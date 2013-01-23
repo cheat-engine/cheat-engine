@@ -22,6 +22,8 @@ type TFlushRoutine=procedure of object;
 
 type Tscanregionpreference=(scanDontCare, scanExclude, scanInclude);
 
+type TAddresses=array of PtrUInt;
+
 
 type
   TMemScan=class;
@@ -153,6 +155,14 @@ type
     //array of bytes
     abs_arraylength: integer; //optimization so no need to call length()
     abs_arraytofind: TBytes;
+
+    //multi array of byte. This is for vtByteArrays. vtByteArrays can only be used together with the "OnlyOne" variable. Found in this case means all elements have been found
+    mabs: array of record
+      arraytofind: TBytes;
+      arraylength: integer;
+      foundaddress: ptruint; //0 if not found, anything else if found.
+    end;
+    mabs_arraylength: integer; //optimization
 
     //all
     typesmatch: array [vtByte..vtDouble] of boolean;  //will get set depending if that type matches the current address or not
@@ -291,6 +301,7 @@ type
     function CustomFloatUnChanged(newvalue,oldvalue: pointer): boolean;
 
 
+    function ArrayOfBytesExact(newvalue: pointer; mabsindex: integer):boolean;
 
     //following types only have exact: Array of byte, binary and string
     function ArrayOfByteExact(newvalue,oldvalue: pointer):boolean;
@@ -484,6 +495,7 @@ type
     OnlyOne: boolean;
     FoundSomething: Boolean;
     AddressFound: ptruint;
+    AddressesFound: TAddresses; //for multi aob scans
 
     procedure execute; override;
     constructor create(suspended: boolean);
@@ -557,13 +569,14 @@ type
     function GetFoundCount: uint64;
     function Getbinarysize: int64; //returns the number of bits of the current type
     function GetOnlyOneResult(var address: ptruint):boolean;
+    function GetOnlyOneResults(var addresses: Taddresses):boolean; //multi aob version
     function GetScanFolder: string;
     procedure TerminateScan(forceTermination: boolean);
     procedure newscan; //will clean up the memory and files
     procedure firstscan(scanOption: TScanOption; VariableType: TVariableType; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; startaddress,stopaddress: ptruint; hexadecimal,binaryStringAsDecimal,unicode,casesensitive: boolean; fastscanmethod: TFastScanMethod=fsmNotAligned; fastscanparameter: string=''; customtype: TCustomType=nil);
     procedure NextScan(scanOption: TScanOption; roundingtype: TRoundingType; scanvalue1, scanvalue2: string; hexadecimal,binaryStringAsDecimal, unicode, casesensitive,percentage,compareToSavedScan: boolean; savedscanname: string); //next scan, determine what kind of scan and give to firstnextscan/nextnextscan
-    procedure waittilldone;
-    procedure waittillreallydone;
+    function waittilldone(timeout: dword=INFINITE): boolean;
+    function waittillreallydone(timeout: dword=INFINITE): boolean;
 
     procedure setScanDoneCallback(notifywindow: thandle; notifymessage: integer);
 
@@ -1826,6 +1839,24 @@ begin
   result:=true; //still here, so a match
 end;
 
+function TScanner.ArrayOfBytesExact(newvalue: pointer; mabsindex: integer):boolean;
+var i: integer;
+  arraylength: integer;
+  a: PIntegerArray;
+begin
+  arraylength:=mabs[mabsindex].arraylength;
+  a:=@mabs[mabsindex].arraytofind[0];
+
+  for i:=0 to arraylength-1 do
+    if (a[i]<>-1) and (pbytearray(newvalue)[i]<>a[i]) then
+    begin
+      result:=false; //no match
+      exit;
+    end;
+
+  result:=true; //still here, so a match
+end;
+
 function TScanner.BinaryExact(newvalue,oldvalue: pointer):boolean;
 var i: integer;
 begin
@@ -2792,10 +2823,11 @@ var stepsize: integer;
     lastmem: ptruint;
     p: pbyte;
     i: TVariableType;
-    j: integer;
+    j,k: integer;
     _fastscan: boolean;
     dividableby2: boolean;
     dividableby4: boolean;
+    allfound: boolean;
 begin
   _fastscan:=fastscanmethod<>fsmNotAligned;
   p:=buffer;
@@ -2816,9 +2848,35 @@ begin
     stepsize:=1;
 
 
+  if variableType=vtByteArrays then
+  begin
+    //do a ArrayOfBytesExact scan for every aob in the list
+    while (ptruint(p)<=lastmem) do
+    begin
+      for j:=0 to mabs_arraylength-1 do
+      begin
+        if (mabs[j].foundaddress=0) and ArrayOfBytesExact(p,j) then //found one
+        begin
+          mabs[j].foundaddress:=base+ptruint(p)-ptruint(buffer);
 
+          //check if all have been found
+          allfound:=true;
+          for k:=0 to mabs_arraylength-1 do
+            if mabs[k].foundaddress=0 then
+            begin
+              allfound:=false;
+              break;
+            end;
 
+          if allfound then exit;
+        end;
 
+      end;
+
+      inc(p,stepsize);
+    end;
+  end
+  else
   if variableType=vtAll then
   begin
     //reset typesmatch array for each check
@@ -3328,7 +3386,7 @@ and fill in class variables that will be used for the scans
 }
 var FloatSettings: TFormatSettings;
     BinaryString,andmask,bitmask: string;
-    i: integer;
+    i,j: integer;
     foundbuffersize: integer;
     td: double;
     s: string;
@@ -3547,6 +3605,26 @@ begin
     begin
       ConvertStringToBytes(trim(scanvalue1),hexadecimal,abs_arraytofind);
       abs_arraylength:=length(abs_arraytofind);
+    end;
+
+    if variableType = vtByteArrays then
+    begin
+      //(bytearray1)(bytearray2)(bytearray3)(...)(...)(...)(...).....
+      i:=WordCount(scanvalue1, ['(',')']);
+      setlength(mabs, i);
+
+      for i:=0 to length(mabs)-1 do
+      begin
+        s:=ExtractWord(i+1, scanvalue1, ['(',')']);
+        ConvertStringToBytes(trim(s),hexadecimal,mabs[i].arraytofind);
+        mabs[i].arraylength:=length(mabs[i].arraytofind);
+        mabs[i].foundaddress:=0;
+      end;
+
+      mabs_arraylength:=length(mabs);
+
+
+
     end;
 
     if variableType = vtBinary then
@@ -3795,14 +3873,13 @@ begin
       end;
     end;
       
-    vtByteArray:
+    vtByteArray, vtByteArrays:
     begin
       CheckRoutine:=ArrayOfByteExact;
       flushroutine:=stringFlush;
       StoreResultRoutine:=ArrayOfByteSaveResult;
       FoundBufferSize:=0;
     end;
-
 
 
     vtBinary:
@@ -4039,7 +4116,7 @@ begin
       if oldmemory=nil then raise exception.Create(Format(rsErrorAllocatingBytesForTheOldResults, [inttostr(buffersize*variablesize), inttostr(buffersize), inttostr(variablesize)]));
 
       oldAddressFile.seek(7+sizeof(ptruint)*startentry,soFromBeginning);   //header+addresssize*startentry
-      if not (self.variableType in [vtString,vtByteArray]) then
+      if not (self.variableType in [vtString,vtByteArray, vtByteArrays]) then
         oldMemoryFile.seek(variablesize*startentry,soFromBeginning);
     end;
 
@@ -4084,7 +4161,7 @@ begin
 
             if not compareToSavedScan then
             begin
-              if not (self.variableType in [vtString,vtByteArray]) then //skip the types with no previous result stored
+              if not (self.variableType in [vtString,vtByteArray, vtByteArrays]) then //skip the types with no previous result stored
                 oldMemoryFile.ReadBuffer(oldmemory^,chunksize*variablesize);
             end;
           end;
@@ -4416,6 +4493,7 @@ end;
 
 procedure TScanController.fillVariableAndFastScanAlignSize;
 var s: string;
+    i,c: integer;
 begin
   fastscan:=fastscanmethod<>fsmNotAligned;
 
@@ -4462,6 +4540,29 @@ begin
 
       if scanoption<>soUnknownValue then
         variablesize:=getBytecountArrayOfByteString(scanvalue1)
+      else
+        variablesize:=1;
+
+      fastscanalignsize:=1;
+
+      self.OwningMemScan.arrayLength:=variablesize;
+    end;
+
+    vtByteArrays:
+    begin
+      OutputDebugString('maobscan for '+scanvalue1);
+      if scanoption<>soUnknownValue then
+      begin
+        //find the max size of the aob's
+        c:=WordCount(scanvalue1, ['(',')']);
+        variablesize:=1;
+
+        for i:=0 to c-1 do
+        begin
+          s:=ExtractWord(i+1, scanvalue1, ['(',')']);
+          variablesize:=max(variablesize, getBytecountArrayOfByteString(s));
+        end;
+      end
       else
         variablesize:=1;
 
@@ -5337,8 +5438,13 @@ begin
       begin
         FoundSomething:=true;
         AddressFound:=scanners[0].AddressFound;
-
       end;
+
+      //even fill in the data if nothing was found
+      setlength(AddressesFound, length(scanners[0].mabs));
+      for j:=0 to length(scanners[0].mabs)-1 do
+        AddressesFound[j]:=scanners[0].mabs[j].foundaddress;
+
     end;
 
     if OwningMemScan.progressbar<>nil then
@@ -5791,16 +5897,27 @@ begin
   end;
 end;
 
-procedure TMemscan.waittilldone;
+function TMemscan.waittilldone(timeout: DWORD=INFINITE): boolean;
 begin
+  result:=true;
   if scancontroller<>nil then
-    scancontroller.isdoneEvent.WaitFor(INFINITE);
+    result:=scancontroller.isdoneEvent.WaitFor(timeout)<>wrTimeout;
 end;
 
-procedure TMemscan.waittillreallydone;
+function TMemscan.waittillreallydone(timeout: DWORD=INFINITE): boolean;
 begin
+  result:=true;
   if scancontroller<>nil then
-    scancontroller.isreallydoneEvent.WaitFor(INFINITE);
+    result:=scancontroller.isreallydoneEvent.WaitFor(timeout)<>wrTimeout;
+end;
+
+function TMemscan.GetOnlyOneResults(var addresses: Taddresses):boolean;
+begin
+  if self.scanController<>nil then
+  begin
+    result:=scancontroller.FoundSomething;
+    addresses:=scancontroller.AddressesFound;
+  end;
 end;
 
 function TMemscan.GetOnlyOneResult(var address: ptruint):boolean;

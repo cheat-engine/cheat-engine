@@ -37,7 +37,7 @@ savedscanhandler,
 type TScanOption=(soUnknownValue=0,soExactValue=1,soValueBetween=2,soBiggerThan=3,soSmallerThan=4, soIncreasedValue=5, soIncreasedValueBy=6, soDecreasedValue=7, soDecreasedValueBy=8, soChanged=9, soUnchanged=10, soCustom);
 type TScanType=(stNewScan, stFirstScan, stNextScan);
 type TRoundingType=(rtRounded=0,rtExtremerounded=1,rtTruncated=2);
-type TVariableType=(vtByte=0, vtWord=1, vtDword=2, vtQword=3, vtSingle=4, vtDouble=5, vtString=6, vtUnicodeString=7, vtByteArray=8, vtBinary=9, vtAll=10, vtAutoAssembler=11, vtPointer=12, vtCustom=13, vtGrouped=14); //all and grouped are special types
+type TVariableType=(vtByte=0, vtWord=1, vtDword=2, vtQword=3, vtSingle=4, vtDouble=5, vtString=6, vtUnicodeString=7, vtByteArray=8, vtBinary=9, vtAll=10, vtAutoAssembler=11, vtPointer=12, vtCustom=13, vtGrouped=14, vtByteArrays=15); //all ,grouped and MultiByteArray are special types
 type TCustomScanType=(cstNone, cstAutoAssembler, cstCPP, cstDLLFunction);
 type TFastScanMethod=(fsmNotAligned=0, fsmAligned=1, fsmLastDigits=2);
 
@@ -47,6 +47,7 @@ type TAccessRights=set of TAccessRight;
 
 Type TBytes = array of integer; //An array that represents a row of byte. Ints are used to be able to represent wildcards (-1)
      TWindowPosArray=TBytes;
+
 type tfloatscan=(rounded,extremerounded,truncated);
 Type TMemoryRegion = record
   BaseAddress: ptrUint;
