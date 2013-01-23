@@ -426,10 +426,9 @@ begin
           aobscanmodules[m].entries[j].name:=s1;
           aobscanmodules[m].entries[j].aobstring:=s2;
           aobscanmodules[m].entries[j].linenumber:=i;
-        end;
-
-       // code[i]:='DEFINE('+s1+','+inttohex(testPtr,8)+')';
-
+        end
+        else
+          code[i]:='DEFINE('+s1+', 00000000)';
 
 
       end else raise exception.Create(rsWrongSyntaxAOBSCANName11223355);
@@ -487,10 +486,9 @@ begin
           aobscanmodules[m].entries[j].name:=s1;
           aobscanmodules[m].entries[j].aobstring:=s3;
           aobscanmodules[m].entries[j].linenumber:=i;
-        end;
-
-
-        //code[i]:='DEFINE('+s1+','+inttohex(testPtr,8)+')';
+        end
+        else
+          code[i]:='DEFINE('+s1+', 00000000)';
 
       end else raise exception.Create(rsWrongSyntaxAOBSCANMODULEName11223355);
     end;
