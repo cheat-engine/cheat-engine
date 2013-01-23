@@ -1,6 +1,6 @@
 TFOUNDCODEDIALOG.CAPTION=The following opcodes changed the selected address
 TFOUNDCODEDIALOG.BTNOK.CAPTION=OK
-TFOUNDCODEDIALOG.BTNEXTRAINFO.HINT=The selected addresses will be added to the code list in the advanced options window.
+TFOUNDCODEDIALOG.BTNEXTRAINFO.HINT=Shows more information about the state of the system when that instruction got executed
 TFOUNDCODEDIALOG.BTNEXTRAINFO.CAPTION=More information
 TFOUNDCODEDIALOG.BTNADDTOCODELIST.HINT=The selected addresses will be added to the code list in the advanced options window.
 TFOUNDCODEDIALOG.BTNADDTOCODELIST.CAPTION=Add to the codelist
