@@ -534,7 +534,6 @@ end;
 function luaclass_createMetaTable(L: Plua_State): integer;
 //creates a table to be used as a metatable
 //returns the stack index of the table
-var t,t2: integer;
 begin
   lua_newtable(L);
   result:=lua_gettop(L);
@@ -554,8 +553,6 @@ begin
   lua_pushcfunction(L, luaclass_garbagecollect);
   lua_settable(L, result);
 
-  t:=lua_gettop(L);
-
   lua_pushstring(L, '__eq');
   if objectcomparefunctionref=0 then //get it
   begin
@@ -566,9 +563,7 @@ begin
   lua_rawgeti(L, LUA_REGISTRYINDEX, objectcomparefunctionref);
   lua_settable(L, result);
 
-  t2:=lua_gettop(L);
 
-  if t<>t2 then beep;
 
 end;
 
