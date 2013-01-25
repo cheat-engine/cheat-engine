@@ -86,7 +86,7 @@ end;
 procedure TRecordEntries.add(r: TRecordEntry);
 begin
   setlength(list, length(list)+1);
-  list[length(list)]:=r;
+  list[length(list)-1]:=r;
 end;
 
 procedure TRecordEntries.clear;
