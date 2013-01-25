@@ -74,7 +74,7 @@ function luacaller_getFunctionHeaderAndMethodForType(typeinfo: PTypeInfo; lc: po
 
 implementation
 
-uses luahandler, MainUnit, MemoryRecordUnit, disassemblerviewunit, hexviewunit, d3dhookUnit;
+uses luahandler, MainUnit, MemoryRecordUnit, disassemblerviewunit, hexviewunit, d3dhookUnit, luaclass;
 
 type
   TLuaCallData=class(tobject)
@@ -254,7 +254,7 @@ begin
     if canRun then
     begin
       PushFunction;
-      lua_pushlightuserdata(Luavm, sender);
+      luaclass_newClass(Luavm, sender);
       lua_pushboolean(Luavm, User);
 
       lua_pcall(Luavm, 2,0,0); //procedure(sender)
@@ -275,7 +275,7 @@ begin
     if canRun then
     begin
       PushFunction;
-      lua_pushlightuserdata(Luavm, sender);
+      luaclass_newclass(Luavm, sender);
 
       lua_pcall(Luavm, 1,0,0); //procedure(sender)
     end;
@@ -295,7 +295,7 @@ begin
     if canRun then
     begin
       PushFunction;
-      lua_pushlightuserdata(Luavm, sender);
+      luaclass_newClass(Luavm, sender);
 
 
       if lua_pcall(Luavm, 1,1,0)=0 then //procedure(sender)  lua_pcall returns 0 if success
@@ -328,7 +328,7 @@ begin
     if canRun then
     begin
       PushFunction;
-      lua_pushlightuserdata(Luavm, sender);
+      luaclass_newClass(Luavm, sender);
       lua_pushboolean(luavm, before);
       lua_pushboolean(luavm, currentstate);
 
@@ -355,7 +355,7 @@ begin
     if canRun then
     begin
       PushFunction;
-      lua_pushlightuserdata(Luavm, sender);
+      luaclass_newClass(Luavm, sender);
       lua_pushinteger(luavm, address);
       lua_pushinteger(luavm, address2);
 
@@ -378,7 +378,7 @@ begin
     if canRun then
     begin
       PushFunction;
-      lua_pushlightuserdata(Luavm, sender);
+      luaclass_newClass(Luavm, sender);
       lua_pushinteger(luavm, address);
       lua_pushinteger(luavm, address2);
 
@@ -422,7 +422,7 @@ begin
     if canRun then
     begin
       PushFunction;
-      lua_pushlightuserdata(luavm, renderobject);
+      luaclass_newClass(luavm, renderobject);
       lua_pushinteger(luavm, x);
       lua_pushinteger(luavm, y);
       lua_pcall(Luavm, 3,0,0)
@@ -443,7 +443,7 @@ begin
     if canRun then
     begin
       PushFunction;
-      lua_pushlightuserdata(Luavm, sender);
+      luaclass_newClass(Luavm, sender);
       lua_pushinteger(luavm, address);
 
       lua_pcall(Luavm, 2,0,0); //procedure(sender, address)
@@ -487,7 +487,7 @@ begin
   try
     oldstack:=lua_gettop(Luavm);
     pushFunction;
-    lua_pushlightuserdata(luavm, sender);
+    luaclass_newClass(luavm, sender);
     lua_pushinteger(luavm, x);
     lua_pushinteger(luavm, y);
 
@@ -505,7 +505,7 @@ begin
   try
     oldstack:=lua_gettop(Luavm);
     pushFunction;
-    lua_pushlightuserdata(luavm, sender);
+    luaclass_newClass(luavm, sender);
     lua_pushinteger(luavm, integer(Button));
     lua_pushinteger(luavm, x);
     lua_pushinteger(luavm, y);
@@ -525,7 +525,7 @@ begin
   try
     oldstack:=lua_gettop(Luavm);
     pushFunction;
-    lua_pushlightuserdata(luavm, sender);
+    luaclass_newClass(luavm, sender);
     lua_pushstring(luavm, key);
     if lua_pcall(LuaVM, 2, 1, 0)=0 then  //lua_pcall returns 0 if success
     begin
@@ -556,8 +556,8 @@ begin
   try
     oldstack:=lua_gettop(Luavm);
     pushFunction;
-    lua_pushlightuserdata(luavm, sender);
-    lua_pushlightuserdata(luavm, item);
+    luaclass_newClass(luavm, sender);
+    luaclass_newClass(luavm, item);
     lua_pcall(LuaVM, 2, 0, 0);
   finally
     lua_settop(Luavm, oldstack);
