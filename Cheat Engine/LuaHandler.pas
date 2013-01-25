@@ -904,8 +904,8 @@ begin
   str:='';
   for i:=-parameters to -1 do
   begin
-    if lua_islightuserdata(L,i) then
-      s:=inttohex(ptruint(lua_touserdata(L, i)),8)
+    if lua_isuserdata(L,i) then
+      s:=inttohex(ptruint(lua_ToCEUserData(L, i)),8)
     else
       s:=lua_tostring(L, i);
 
