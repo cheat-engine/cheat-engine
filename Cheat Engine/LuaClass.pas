@@ -54,9 +54,10 @@ procedure luaclass_register(c: TClass; InitialAddMetaDataFunction: TAddMetaDataF
 
 implementation
 
-uses LuaClassArray, LuaObject, LuaComponent;
+uses LuaClassArray, LuaObject, LuaComponent, luahandler;
 
 var classlist: Tlist;
+    objectcomparefunctionref: integer=0;
 
 type
   TClasslistentry=record
@@ -331,6 +332,19 @@ begin
   lua_settable(L, metatable);
 end;
 
+function luaclass_compare(L: PLua_State): integer; cdecl; //__eq
+//parameters: (O1, O2)
+//return nil or false for false
+var o1, o2: TObject;
+begin
+
+  o1:=lua_ToCEUserData(L, 1);
+  o2:=lua_ToCEUserData(L, 2);
+
+  lua_pushboolean(L, o1=o2);
+  result:=1;
+end;
+
 function luaclass_newindex(L: PLua_State): integer; cdecl; //set
 //parameters: (self, key, newvalue)
 var metatable: integer;
@@ -520,6 +534,7 @@ end;
 function luaclass_createMetaTable(L: Plua_State): integer;
 //creates a table to be used as a metatable
 //returns the stack index of the table
+var t,t2: integer;
 begin
   lua_newtable(L);
   result:=lua_gettop(L);
@@ -538,6 +553,23 @@ begin
   lua_pushstring(L, '__gc');
   lua_pushcfunction(L, luaclass_garbagecollect);
   lua_settable(L, result);
+
+  t:=lua_gettop(L);
+
+  lua_pushstring(L, '__eq');
+  if objectcomparefunctionref=0 then //get it
+  begin
+    lua_pushcfunction(L, luaclass_compare);
+    objectcomparefunctionref := luaL_ref(L, LUA_REGISTRYINDEX);
+  end;
+
+  lua_rawgeti(L, LUA_REGISTRYINDEX, objectcomparefunctionref);
+  lua_settable(L, result);
+
+  t2:=lua_gettop(L);
+
+  if t<>t2 then beep;
+
 end;
 
 
