@@ -25,7 +25,7 @@ var c: TObject;
   i: integer;
 begin
   i:=ifthen(lua_type(L, lua_upvalueindex(1))=LUA_TUSERDATA, lua_upvalueindex(1), 1);
-  c:=pointer(lua_touserdata(L, i)^);
+  c:=lua_toceuserdata(L, i);
   lua_getmetatable(L, i);
   metatable:=lua_gettop(L);
 
