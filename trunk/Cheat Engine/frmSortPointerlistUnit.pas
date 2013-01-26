@@ -103,7 +103,7 @@ begin
     if column=0 then
       keytype:=ituPtrSize
     else
-      keytype:=itu4; //max offset size
+      keytype:=its4; //max offset size (signed 32-bit, max relative address)
 
     files:=tmap.Create(keytype, sizeof(TFilestream));
     tempname:=Pointerscanresults.filename+'.sorted';
@@ -129,7 +129,7 @@ begin
         else
         begin
           if column>p.offsetcount then
-            v:=p.offsets[0]
+            v:=-1 //p.offsets[0]
           else
             v:=p.offsets[p.offsetcount-column];
         end;
