@@ -129,7 +129,7 @@ begin
         else
         begin
           if column>p.offsetcount then
-            v:=-1 //p.offsets[0]
+            v:=p.offsetcount-column //-1 //p.offsets[0]
           else
             v:=p.offsets[p.offsetcount-column];
         end;
