@@ -6917,7 +6917,7 @@ begin
       raise Exception.Create(strUnknownExtension);
 
 
-    if ((addresslist.Count > 0) or (advancedoptions.numberofcodes > 0)) and
+    if ((addresslist.Count > 0) or (advancedoptions.numberofcodes > 0) or (DissectedStructs.count>0) ) and
       (Extension <> '.EXE') then
       app := messagedlg(rsDoYouWishToMergeTheCurrentTableWithThisTable,
         mtConfirmation, mbYesNoCancel, 0);
