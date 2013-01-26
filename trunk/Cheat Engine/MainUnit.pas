@@ -133,6 +133,7 @@ type
     memscan: TMemscan;
     foundlist: TFoundList;
 
+
     scanvalue: record
       Visible: boolean;
       Text: string;
@@ -3911,6 +3912,7 @@ begin
   scanstate.button2.tag := button2.tag;
   scanstate.foundlist3.ItemIndex := foundlist3.ItemIndex;
 
+
 {
   if foundlist3.TopItem<>nil then
     scanstate.foundlist3.topitemindex:=foundlist3.topitem.Index
@@ -3963,6 +3965,10 @@ begin
     rbbit.OnClick := nil;
     rbdec.Onclick := nil;
     cbHexadecimal.OnClick := nil;
+
+    if PreviousResults<>nil then
+      freeandnil(PreviousResults);
+
 
     scanvalue.Text := newstate.scanvalue.Text;
     scanvalue.Visible := newstate.scanvalue.Visible;
@@ -4053,6 +4059,7 @@ begin
 
     foundlist3.beginupdate;
 
+
     foundlist.Deinitialize;
 
     memscan := newstate.memscan;
@@ -4068,6 +4075,16 @@ begin
 
 
     foundcount := foundlist.Initialize(getvartype, memscan.customtype);
+
+    try
+      PreviousResults:=TSavedScanHandler.create(memscan.getScanFolder, currentlySelectedSavedResultname);
+
+      PreviousResults.AllowNotFound:=true;
+      PreviousResults.AllowRandomAccess:=true;
+    except
+      PreviousResults:=nil;
+    end;
+
 
     foundlist3.endupdate;
 
@@ -5158,6 +5175,9 @@ begin
           (lblcompareToSavedScan.Width div 2));
 
         try
+          if PreviousResults<>nil then
+            freeandnil(PreviousResults);
+
           PreviousResults:=TSavedScanHandler.create(memscan.getScanFolder, currentlySelectedSavedResultname);
           PreviousResults.AllowNotFound:=true;
           PreviousResults.AllowRandomAccess:=true;
@@ -5178,6 +5198,9 @@ begin
         lblcompareToSavedScan.Visible := False;
 
         try
+          if PreviousResults<>nil then
+            freeandnil(PreviousResults);
+
           PreviousResults:=TSavedScanHandler.create(memscan.getScanFolder, 'TMP');
           PreviousResults.AllowNotFound:=true;
           PreviousResults.AllowRandomAccess:=true;
@@ -7838,6 +7861,7 @@ begin
     previous:='TMP'
   else
     previous:=currentlySelectedSavedResultname;
+
 
   try
     PreviousResults:=TSavedScanHandler.create(memscan.getScanFolder, previous);

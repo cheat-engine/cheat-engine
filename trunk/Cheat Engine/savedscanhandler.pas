@@ -225,7 +225,10 @@ begin
 
     savedscanaddressfs.ReadBuffer(addresslistmemory^, maxaddresslistcount*sizeof(TBitAddress));
   end;
-  if maxaddresslistcount=0 then raise exception.create(rsMaxaddresslistcountIs0MeansTheAddresslistIsBad);
+  if maxaddresslistcount=0 then
+  begin
+    raise exception.create(rsMaxaddresslistcountIs0MeansTheAddresslistIsBad);
+  end;
 
   LastAddressAccessed.index:=0; //reset the index
 end;
@@ -521,6 +524,9 @@ end;
 
 constructor TSavedScanHandler.create(scandir: string; savedresultsname: string);
 begin
+  if savedresultsname='' then
+    savedresultsname:='TMP';
+
   self.scandir:=scandir;
   self.savedresultsname:=savedresultsname;
   InitializeScanHandler;
