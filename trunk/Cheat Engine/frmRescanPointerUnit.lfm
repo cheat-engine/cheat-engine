@@ -15,7 +15,7 @@ object frmRescanPointer: TfrmRescanPointer
   object edtAddress: TEdit
     Left = 8
     Height = 21
-    Top = 24
+    Top = 26
     Width = 111
     CharCase = ecUppercase
     TabOrder = 1
@@ -23,7 +23,7 @@ object frmRescanPointer: TfrmRescanPointer
   object cbValueType: TComboBox
     Left = 125
     Height = 21
-    Top = 26
+    Top = 27
     Width = 132
     ItemHeight = 13
     ItemIndex = 0
@@ -37,7 +37,7 @@ object frmRescanPointer: TfrmRescanPointer
     Text = '4 Byte'
   end
   object Panel2: TPanel
-    Left = 8
+    Left = 9
     Height = 25
     Top = 0
     Width = 249
