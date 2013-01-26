@@ -336,6 +336,14 @@ begin
         TLUAFile(mainform.Luaforms[i]).free;
 
       mainform.LuaFiles.clear;
+
+      //cleanup structures
+      while frmStructures2.Count>0 do
+        TfrmStructures2(frmStructures2[0]).Free;
+
+      while DissectedStructs.Count>0 do
+        TDissectedStruct(DissectedStructs[0]).free;
+
     end;
 
 

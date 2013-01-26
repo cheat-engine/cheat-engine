@@ -1921,9 +1921,14 @@ begin
           begin
             if rbFindAddress.Checked then
             begin
-              address:=StrToQWordEx('$'+edtAddress.Text);
+              try
+                address:=StrToQWordEx('$'+edtAddress.Text);
+
 
               //rescan the pointerlist
+              except
+                raise exception.create('Find by address requires an address. "'+edtaddress.text+'" is not a valid address');
+              end;
 
               rescan.address:=address;
               rescan.forvalue:=false;
