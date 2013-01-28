@@ -1202,9 +1202,9 @@ begin
         if j=0 then beep;
 
 
-        if lua_islightuserdata(LuaVM, -1) then
+        if lua_isuserdata(LuaVM, -1) then
         begin
-          result:=ptruint(lua_touserdata(Luavm, -1));
+          result:=ptruint(lua_toceuserdata(Luavm, -1));
           lua_settop(luavm, i);
           exit;
         end

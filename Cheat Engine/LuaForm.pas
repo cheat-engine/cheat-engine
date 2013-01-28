@@ -203,7 +203,7 @@ begin
 
   if lua_gettop(L)>=1 then
   begin
-    ri:=lua_touserdata(L, -1);
+    ri:=lua_toceuserdata(L, -1);
 
     ri.Width:=f.ClientWidth;
     ri.Height:=f.ClientHeight;

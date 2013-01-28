@@ -1689,6 +1689,9 @@ methods
 
 
 --[[
+Disassembler class
+
+
 functions to add:
 
 WordToByteTable(number): {}

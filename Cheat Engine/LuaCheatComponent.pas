@@ -21,7 +21,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    cheatcomponent:=lua_touserdata(L,-1);
+    cheatcomponent:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushboolean(L, cheatcomponent.activated);
@@ -43,7 +43,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters>=2 then
   begin
-    cheatcomponent:=lua_touserdata(L,-parameters);
+    cheatcomponent:=lua_toceuserdata(L,-parameters);
     cheatcomponent.activated:=lua_toboolean(L,-parameters+1);
 
     if parameters=3 then
@@ -68,7 +68,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    cheatcomponent:=lua_touserdata(L,-1);
+    cheatcomponent:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushstring(L, cheatcomponent.Description);
@@ -90,7 +90,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    cheatcomponent:=lua_touserdata(L,-2);
+    cheatcomponent:=lua_toceuserdata(L,-2);
     cheatcomponent.Description:=Lua_ToString(L,-1);
   end;
   lua_pop(L, parameters);
@@ -105,7 +105,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    cheatcomponent:=lua_touserdata(L,-1);
+    cheatcomponent:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushstring(L, cheatcomponent.Hotkey);
@@ -127,7 +127,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    cheatcomponent:=lua_touserdata(L,-2);
+    cheatcomponent:=lua_toceuserdata(L,-2);
     cheatcomponent.Hotkey:=Lua_ToString(L,-1);
   end;
   lua_pop(L, parameters);
@@ -142,7 +142,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    cheatcomponent:=lua_touserdata(L,-1);
+    cheatcomponent:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushinteger(L, cheatcomponent.DescriptionLeft);
@@ -164,7 +164,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    cheatcomponent:=lua_touserdata(L,-2);
+    cheatcomponent:=lua_toceuserdata(L,-2);
     cheatcomponent.DescriptionLeft:=lua_tointeger(L,-1);
   end;
   lua_pop(L, parameters);
@@ -179,7 +179,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    cheatcomponent:=lua_touserdata(L,-1);
+    cheatcomponent:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushinteger(L, cheatcomponent.HotkeyLeft);
@@ -201,7 +201,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    cheatcomponent:=lua_touserdata(L,-2);
+    cheatcomponent:=lua_toceuserdata(L,-2);
     cheatcomponent.HotkeyLeft:=lua_tointeger(L,-1);
   end;
   lua_pop(L, parameters);
@@ -216,7 +216,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=1 then
   begin
-    cheatcomponent:=lua_touserdata(L,-1);
+    cheatcomponent:=lua_toceuserdata(L,-1);
     lua_pop(L, parameters);
 
     lua_pushstring(L, cheatcomponent.EditValue);
@@ -238,7 +238,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    cheatcomponent:=lua_touserdata(L,1);
+    cheatcomponent:=lua_toceuserdata(L,1);
     if (cheatcomponent=nil) or (not (cheatcomponent is tcheat)) then
       raise exception.create('The provided cheat component is not a valid cheat component');
 
