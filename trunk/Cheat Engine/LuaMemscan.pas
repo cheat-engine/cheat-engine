@@ -37,31 +37,30 @@ begin
 
   if paramcount=14 then
   begin
-    memscan:=lua_touserdata(L, paramstart+0);
-    scanOption:=TScanOption(lua_tointeger(L, paramstart+1));
-    vartype:=TVariableType(lua_tointeger(L, paramstart+2));
-    roundingtype:=TRoundingType(lua_tointeger(L, paramstart+3));
-    input1:=Lua_ToString(L, paramstart+4);
+    scanOption:=TScanOption(lua_tointeger(L, paramstart));
+    vartype:=TVariableType(lua_tointeger(L, paramstart+1));
+    roundingtype:=TRoundingType(lua_tointeger(L, paramstart+2));
+    input1:=Lua_ToString(L, paramstart+3);
     input2:=Lua_ToString(L, paramstart+4);
 
+    if lua_type(L,paramstart+5)=LUA_TSTRING then
+      startaddress:=symhandler.getAddressFromNameL(Lua_ToString(L, paramstart+5))
+    else
+      startaddress:=lua_tointeger(L, paramstart+5);
+
     if lua_type(L,paramstart+6)=LUA_TSTRING then
-      startaddress:=symhandler.getAddressFromNameL(Lua_ToString(L, paramstart+6))
+      stopaddress:=symhandler.getAddressFromNameL(Lua_ToString(L, paramstart+6))
     else
-      startaddress:=lua_tointeger(L, paramstart+6);
+      stopaddress:=lua_tointeger(L, paramstart+6);
 
-    if lua_type(L,paramstart+7)=LUA_TSTRING then
-      stopaddress:=symhandler.getAddressFromNameL(Lua_ToString(L, paramstart+7))
-    else
-      stopaddress:=lua_tointeger(L, paramstart+7);
+    protectionflags:=Lua_ToString(L, paramstart+7);
+    alignmenttype:=TFastScanMethod(lua_tointeger(L, paramstart+8));
+    alignmentparam:=lua_tostring(L, paramstart+9);
 
-    protectionflags:=Lua_ToString(L, paramstart+8);
-    alignmenttype:=TFastScanMethod(lua_tointeger(L, paramstart+9));
-    alignmentparam:=lua_tostring(L, paramstart+10);
-
-    isHexadecimalInput:=lua_toboolean(L, paramstart+11);
-    isNotABinaryString:=lua_toboolean(L, paramstart+12);
-    isunicodescan:=lua_toboolean(L, paramstart+13);
-    iscasesensitive:=lua_toboolean(L, paramstart+14);
+    isHexadecimalInput:=lua_toboolean(L, paramstart+10);
+    isNotABinaryString:=lua_toboolean(L, paramstart+11);
+    isunicodescan:=lua_toboolean(L, paramstart+12);
+    iscasesensitive:=lua_toboolean(L, paramstart+13);
 
     lua_pop(L, lua_gettop(L));
 
