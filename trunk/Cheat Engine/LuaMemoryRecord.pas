@@ -624,7 +624,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    memoryrecord:=lua_touserdata(L,-2);
+    memoryrecord:=lua_toceuserdata(L,-2);
 
     CleanupLuaCall(tmethod(memoryrecord.onActivate));
     memoryrecord.onActivate:=nil;
@@ -667,7 +667,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    memoryrecord:=lua_touserdata(L,-2);
+    memoryrecord:=lua_toceuserdata(L,-2);
 
     CleanupLuaCall(tmethod(memoryrecord.onDeactivate));
     memoryrecord.onDeactivate:=nil;
@@ -711,7 +711,7 @@ begin
   parameters:=lua_gettop(L);
   if parameters=2 then
   begin
-    memoryrecord:=lua_touserdata(L,-2);
+    memoryrecord:=lua_toceuserdata(L,-2);
 
     CleanupLuaCall(tmethod(memoryrecord.onDestroy));
     memoryrecord.onDestroy:=nil;

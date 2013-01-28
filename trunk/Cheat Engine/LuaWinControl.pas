@@ -185,7 +185,7 @@ begin
   result:=0;
   if lua_gettop(L)>=1 then
   begin
-    x:=lua_touserdata(L, 2);
+    x:=lua_toceuserdata(L, -1);
 
     if (x is TBitmap) then
       wincontrol.SetShape(TBitmap(x))

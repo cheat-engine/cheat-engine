@@ -103,7 +103,7 @@ begin
             mOutput.lines.add(':'+pc)
           else
           begin
-            if lua_islightuserdata(luavm,i) then
+            if lua_islightuserdata(luavm,i) then //shouldn't occur anymore
               moutput.lines.add(':p->'+inttohex(ptruint(lua_touserdata(luavm,i)),1))
             else
             if lua_isboolean(luavm,i) then

@@ -33,7 +33,7 @@ begin
 
     if lua_islightuserdata(L,1) then //Object, if the given object is a LuaFile, get the stream. If it's a stream, use it as it is
     begin
-      o:=lua_touserdata(L,1);
+      o:=lua_toceuserdata(L,1);
       if o is TStream then
         s:=TStream(o)
       else

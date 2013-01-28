@@ -23,7 +23,7 @@ begin
 
   parameters:=lua_gettop(L);
   if parameters>=1 then
-    owner:=lua_touserdata(L, -parameters)
+    owner:=lua_toceuserdata(L, -parameters)
   else
     owner:=nil;
 
