@@ -3540,1686 +3540,1668 @@ begin
     end;
 
 
-    //no param
-    if (opcodes[j].paramtype1=par_noparam) and (parameter1='') then
-    begin
-      //no param
-      if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
-      begin
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          //no_param,no_param,no_param
 
-          if (opcodes[j].opcode1=eo_none) and (opcodes[j].opcode1=eo_none) then
+    case opcodes[j].paramtype1 of
+      par_noparam: if (parameter1='') then     //no param
+      begin
+        //no param
+        if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
+        begin
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
           begin
-            //eo_none,eo_none--no_param,no_param,no_param
+            //no_param,no_param,no_param
+
+            if (opcodes[j].opcode1=eo_none) and (opcodes[j].opcode1=eo_none) then
+            begin
+              //eo_none,eo_none--no_param,no_param,no_param
+              addopcode(bytes,j);
+              result:=true;
+              exit;
+            end;
+          end;
+        end;
+      end;
+
+      par_imm8: if (paramtype1=ttValue) then
+      begin
+        //imm8,
+        if (opcodes[j].paramtype2=par_al) and (parameter2='AL') then
+        begin
+          //imm8,al
+          addopcode(bytes,j);
+          add(bytes,[v]);
+          result:=true;
+          exit;
+        end;
+
+        if (opcodes[j].paramtype2=par_ax) and (parameter2='AX') then
+        begin
+          //imm8,ax /?
+          addopcode(bytes,j);
+          add(bytes,[v]);
+          result:=true;
+          exit;
+        end;
+
+        if (opcodes[j].paramtype2=par_eax) and ((parameter2='EAX') or (parameter2='RAX')) then
+        begin
+          //imm8,eax
+          addopcode(bytes,j);
+          add(bytes,[v]);
+          result:=true;
+          exit;
+        end;
+
+
+
+        if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
+        begin
+          if vtype=16 then
+          begin
+            //see if there is also a 'opcode imm16' variant
+            k:=startoflist;
+            while (k<=opcodecount) and (opcodes[k].mnemonic=tokens[mnemonic]) do
+            begin
+              if (opcodes[k].paramtype1=par_imm16) then
+              begin
+                addopcode(bytes,k);
+                addword(bytes,v);
+                result:=true;
+                exit;
+              end;
+
+              inc(k);
+            end;
+          end;
+
+
+
+          if (vtype=32) or (signedvtype>8) then
+          begin
+            //see if there is also a 'opcode imm32' variant
+            k:=startoflist;
+            while (k<=opcodecount) and (opcodes[k].mnemonic=tokens[mnemonic]) do
+            begin
+              if (opcodes[k].paramtype1=par_imm32) then
+              begin
+                addopcode(bytes,k);
+                adddword(bytes,v);
+                result:=true;
+                exit;
+              end;
+
+              inc(k);
+            end;
+          end;
+
+
+          //op imm8
+          addopcode(bytes,j);
+          add(bytes,[byte(v)]);
+          result:=true;
+          exit;
+        end;
+      end;
+
+      par_imm16: if (paramtype1=ttValue) then
+      begin
+        //imm16,
+        if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
+        begin
+          //imm16
+          addopcode(bytes,j);
+          addword(bytes,v);
+          result:=true;
+          exit;
+        end;
+
+
+        if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
+        begin
+          //imm16,imm8,
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
             addopcode(bytes,j);
+            addword(bytes,v);
+            add(bytes,[v2]);
             result:=true;
             exit;
           end;
         end;
       end;
-    end;
 
-
-    if (opcodes[j].paramtype1=par_imm8) and (paramtype1=ttValue) then
-    begin
-
-      //imm8,
-      if (opcodes[j].paramtype2=par_al) and (parameter2='AL') then
+      par_imm32: if (paramtype1=ttValue) then
       begin
-        //imm8,al
-        addopcode(bytes,j);
-        add(bytes,[v]);
-        result:=true;
-        exit;
-      end;
-
-      if (opcodes[j].paramtype2=par_ax) and (parameter2='AX') then
-      begin
-        //imm8,ax /?
-        addopcode(bytes,j);
-        add(bytes,[v]);
-        result:=true;
-        exit;
-      end;
-
-      if (opcodes[j].paramtype2=par_eax) and ((parameter2='EAX') or (parameter2='RAX')) then
-      begin
-        //imm8,eax
-        addopcode(bytes,j);
-        add(bytes,[v]);
-        result:=true;
-        exit;
-      end;
-
-
-
-      if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
-      begin
-        if vtype=16 then
+        if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
         begin
-          //see if there is also a 'opcode imm16' variant
-          k:=startoflist;
-          while (k<=opcodecount) and (opcodes[k].mnemonic=tokens[mnemonic]) do
+          //imm32
+          addopcode(bytes,j);
+          addDword(bytes,v);
+          result:=true;
+          exit;
+        end;
+      end;
+
+      par_moffs8: if ((paramtype1=ttMemorylocation8) or (ismemorylocationdefault(parameter1)  )) then
+      begin
+        if (opcodes[j].paramtype2=par_al) and (parameter2='AL') then
+        begin
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
           begin
-            if (opcodes[k].paramtype1=par_imm16) then
+            k:=pos('[',parameter1);
+            l:=pos(']',parameter1);
+            val('$'+copy(parameter1,k+1,l-k-1),v,k);
+            if k=0 then
             begin
-              addopcode(bytes,k);
-              addword(bytes,v);
+              //verified, it doesn't have a registerbase in it
+              addopcode(bytes,j);
+              adddword(bytes,v);
               result:=true;
               exit;
             end;
-
-            inc(k);
           end;
         end;
+      end;
 
-
-
-        if (vtype=32) or (signedvtype>8) then
+      par_moffs16: if ((paramtype1=ttMemorylocation16) or (ismemorylocationdefault(parameter1)  )) then
+      begin
+        if (opcodes[j].paramtype2=par_ax) and (parameter2='AX') then
         begin
-          //see if there is also a 'opcode imm32' variant
-          k:=startoflist;
-          while (k<=opcodecount) and (opcodes[k].mnemonic=tokens[mnemonic]) do
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
           begin
-            if (opcodes[k].paramtype1=par_imm32) then
+            k:=pos('[',parameter1);
+            l:=pos(']',parameter1);
+            val('$'+copy(parameter1,k+1,l-k-1),v,k);
+            if k=0 then
             begin
-              addopcode(bytes,k);
+              //verified, it doesn't have a registerbase in it
+              addopcode(bytes,j);
+              adddword(bytes,v);
+              result:=true;
+              exit;
+            end;
+          end;
+        end;
+      end;
+
+      par_moffs32: if (paramtype1=ttMemorylocation32) then
+      begin
+        if (opcodes[j].paramtype2=par_eax) and ((parameter2='EAX') or (parameter2='RAX')) then
+        begin
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            k:=pos('[',parameter1);
+            l:=pos(']',parameter1);
+            val('$'+copy(parameter1,k+l,l-k-1),v,k);
+            if k=0 then
+            begin
+              //verified, it doesn't have a registerbase in it
+              addopcode(bytes,j);
+              adddword(bytes,v);
+              result:=true;
+              exit;
+            end;
+          end;
+        end;
+      end;
+
+      par_3: if (paramtype1=ttValue) and (v=3) then
+      begin
+        //int 3
+        addopcode(bytes,j);
+        result:=true;
+        exit;
+      end;
+
+      PAR_AL: if (parameter1='AL') then
+      begin
+        //AL,
+
+        if (opcodes[j].paramtype2=par_dx) and (parameter2='DX') then
+        begin
+          //opcode al,dx
+          addopcode(bytes,j);
+          result:=true;
+          exit;
+        end;
+
+        if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
+        begin
+          //AL,imm8
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            if (opcodes[j].opcode1=eo_ib) and (opcodes[j].opcode2=eo_none) then
+            begin
+              //verified: AL,imm8
+              addopcode(bytes,j);
+              add(bytes,[byte(v)]);
+              result:=true;
+              exit;
+            end;
+          end;
+
+        end;
+
+        if (opcodes[j].paramtype2=par_moffs8) and ((paramtype2=ttMemorylocation8) or (ismemorylocationdefault(parameter2)  ))  then
+        begin
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            k:=pos('[',parameter2);
+            l:=pos(']',parameter2);
+            val('$'+copy(parameter2,k+l,l-k-1),v,k);
+            if k=0 then
+            begin
+              //verified, it doesn't have a registerbase in it
+              addopcode(bytes,j);
               adddword(bytes,v);
               result:=true;
               exit;
             end;
 
-            inc(k);
+
+          end;
+        end;
+      end;
+
+      PAR_AX: if (parameter1='AX') then
+      begin
+        //AX,
+        if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
+        begin
+          //opcode AX
+          addopcode(bytes,j);
+          result:=true;
+          exit;
+        end;
+
+        if (opcodes[j].paramtype2=par_dx) and (parameter2='DX') then
+        begin
+          //opcode ax,dx
+          addopcode(bytes,j);
+          result:=true;
+          exit;
+        end;
+
+        //r16
+        if (opcodes[j].paramtype2=par_r16) and (paramtype2=ttRegister16bit) then
+        begin
+          //eax,r32
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            //r32,eax
+            if opcodes[j].opcode1=eo_prw then
+            begin
+              //opcode+rd
+              addopcode(bytes,j);
+              inc(bytes[length(bytes)-1],getreg(parameter2));
+              result:=true;
+              exit;
+            end;
           end;
         end;
 
 
-        //op imm8
-        addopcode(bytes,j);
-        add(bytes,[byte(v)]);
-        result:=true;
-        exit;
+        if (opcodes[j].paramtype2=par_imm16) and (paramtype2=ttValue) then
+        begin
+          //AX,imm16
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            //params confirmed it is a ax,imm16
+            if (opcodes[j].opcode1=eo_iw) and (opcodes[j].opcode2=eo_none) then
+            begin
+              addopcode(bytes,j);
+              addword(bytes,word(v));
+              result:=true;
+              exit;
+            end;
+          end;
+        end;
+
+        if (opcodes[j].paramtype2=par_moffs16) and ((paramtype2=ttMemorylocation16) or (ismemorylocationdefault(parameter2)  ))  then
+        begin
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            k:=pos('[',parameter2);
+            l:=pos(']',parameter2);
+            val('$'+copy(parameter2,k+l,l-k-1),v,k);
+            if k=0 then
+            begin
+              //verified, it doesn't have a registerbase in it
+              addopcode(bytes,j);
+              adddword(bytes,v);
+              result:=true;
+              exit;
+            end;
+          end;
+        end;
+
       end;
-    end;
 
-    if (opcodes[j].paramtype1=par_imm16) and (paramtype1=ttValue) then
-    begin
-      //imm16,
-      if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
+      PAR_EAX: if ((parameter1='EAX') or (parameter1='RAX')) then
       begin
-        //imm16
-        addopcode(bytes,j);
-        addword(bytes,v);
-        result:=true;
-        exit;
+        //eAX,
+        if (opcodes[j].paramtype2=par_dx) and (parameter2='DX') then
+        begin
+          //opcode eax,dx
+          addopcode(bytes,j);
+          result:=true;
+          exit;
+        end;
+
+        //r32
+        if (opcodes[j].paramtype2=par_r32) and (paramtype2=ttRegister32bit) then
+        begin
+          //eax,r32
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            //r32,eax
+            if opcodes[j].opcode1=eo_prd then
+            begin
+              //opcode+rd
+              addopcode(bytes,j);
+              k:=getreg(parameter2);
+              if k>7 then
+              begin
+                rex_b:=true; //extention to the opcode field
+                k:=k and 7;
+              end;
+
+              inc(bytes[length(bytes)-1],k);
+              result:=true;
+              exit;
+            end;
+          end;
+        end;
+
+        if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
+        begin
+          //eax,imm8
+
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            addopcode(bytes,j);
+            add(bytes,[v]);
+            result:=true;
+            exit;
+          end;
+        end;
+
+        if (opcodes[j].paramtype2=par_imm32) and (paramtype2=ttValue) then
+        begin
+          //EAX,imm32,
+
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            //eax,imm32
+
+            if signedvtype=8 then
+            begin
+              //check if there isn't a rm32,imm8 , since that's less bytes
+              k:=startoflist;
+              while (k<=opcodecount) and (opcodes[k].mnemonic=tokens[mnemonic]) do
+              begin
+                if (opcodes[k].paramtype1=par_rm32) and
+                   (opcodes[k].paramtype2=par_imm8) then
+                begin
+                  //yes, there is
+                  addopcode(bytes,k);
+                  result:=createmodrm(bytes,eotoreg(opcodes[k].opcode1),parameter1);
+                  add(bytes,[v]);
+                  exit;
+                end;
+                inc(k);
+              end;
+            end;
+
+            if (opcodes[j].opcode1=eo_id) and (opcodes[j].opcode2=eo_none) then
+            begin
+              addopcode(bytes,j);
+              adddword(bytes,v);
+              result:=true;
+              exit;
+            end;
+          end;
+        end;
+
+        if (opcodes[j].paramtype2=par_moffs32) and ((paramtype2=ttMemorylocation32) or (ismemorylocationdefault(parameter2)  ))  then
+        begin
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            k:=pos('[',parameter2);
+            l:=pos(']',parameter2);
+            val('$'+copy(parameter2,k+1,l-k-1),v,k);
+            if k=0 then
+            begin
+              //verified, it doesn't have a registerbase in it
+              addopcode(bytes,j);
+              adddword(bytes,v);
+              result:=true;
+              exit;
+            end;
+          end;
+        end;
+
       end;
 
 
-      if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
+      par_dx: if (parameter1='DX') then
       begin
-        //imm16,imm8,
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+        if (opcodes[j].paramtype2=par_al) and (parameter2='AL') then
         begin
           addopcode(bytes,j);
-          addword(bytes,v);
-          add(bytes,[v2]);
+          result:=true;
+          exit;
+        end;
+
+        if (opcodes[j].paramtype2=par_ax) and (parameter2='AX') then
+        begin
+          addopcode(bytes,j);
+          result:=true;
+          exit;
+        end;
+
+        if (opcodes[j].paramtype2=par_eax) and ((parameter2='EAX') or (parameter2='RAX')) then
+        begin
+          addopcode(bytes,j);
           result:=true;
           exit;
         end;
       end;
-    end;
 
-    if (opcodes[j].paramtype1=par_imm32) and (paramtype1=ttValue) then
-    begin
-      if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
+      par_cs: if (parameter1='CS') then
       begin
-        //imm32
-        addopcode(bytes,j);
-        addDword(bytes,v);
-        result:=true;
-        exit;
-      end;
-    end;
-
-    if (opcodes[j].paramtype1=par_moffs8) and ((paramtype1=ttMemorylocation8) or (ismemorylocationdefault(parameter1)  ))  then
-    begin
-      if (opcodes[j].paramtype2=par_al) and (parameter2='AL') then
-      begin
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+        if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
         begin
-          k:=pos('[',parameter1);
-          l:=pos(']',parameter1);
-          val('$'+copy(parameter1,k+1,l-k-1),v,k);
-          if k=0 then
+          addopcode(bytes,j);
+          result:=true;
+          exit;
+        end;
+      end;
+
+      par_ds: if (parameter1='DS') then
+      begin
+        if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
+        begin
+          addopcode(bytes,j);
+          result:=true;
+          exit;
+        end;
+      end;
+
+      par_es: if (parameter1='ES') then
+      begin
+        if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
+        begin
+          addopcode(bytes,j);
+          result:=true;
+          exit;
+        end;
+      end;
+
+      par_ss: if (parameter1='SS') then
+      begin
+        if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
+        begin
+          addopcode(bytes,j);
+          result:=true;
+          exit;
+        end;
+      end;
+
+      par_fs: if (parameter1='FS') then
+      begin
+        if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
+        begin
+          addopcode(bytes,j);
+          result:=true;
+          exit;
+        end;
+      end;
+
+      par_gs: if (parameter1='GS') then
+      begin
+        if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
+        begin
+          addopcode(bytes,j);
+          result:=true;
+          exit;
+        end;
+      end;
+
+      par_r8: if (paramtype1=ttRegister8bit) then
+      begin
+        if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
+        begin
+          //opcode r8
+          if opcodes[j].opcode1=eo_prb then
           begin
-            //verified, it doesn't have a registerbase in it
+            //opcode+rd
             addopcode(bytes,j);
-            adddword(bytes,v);
+            k:=getreg(parameter1);
+            if k>7 then
+            begin
+              REX_B:=true;
+              k:=k and 7;
+            end;
+            inc(bytes[length(bytes)-1],k);
             result:=true;
             exit;
           end;
         end;
-      end;
-    end;
 
-    if (opcodes[j].paramtype1=par_moffs16) and ((paramtype1=ttMemorylocation16) or (ismemorylocationdefault(parameter1)  ))  then
-    begin
-      if (opcodes[j].paramtype2=par_ax) and (parameter2='AX') then
-      begin
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+        if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
         begin
-          k:=pos('[',parameter1);
-          l:=pos(']',parameter1);
-          val('$'+copy(parameter1,k+1,l-k-1),v,k);
-          if k=0 then
+          //r8, imm8
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
           begin
-            //verified, it doesn't have a registerbase in it
+            if opcodes[j].opcode1=eo_prb then
+            begin
+              addopcode(bytes,j);
+              k:=getreg(parameter1);
+              if k>7 then
+              begin
+                rex_b:=true; //extension to the opcode
+                k:=k and 7;
+              end;
+              inc(bytes[length(bytes)-1],k);
+              add(bytes,[v]);
+              result:=true;
+              exit;
+            end;
+          end;
+        end;
+
+        if (opcodes[j].paramtype2=par_rm8) and (isrm8(paramtype2)) then
+        begin
+          //r8,rm8
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
             addopcode(bytes,j);
-            adddword(bytes,v);
-            result:=true;
+            result:=createmodrm(bytes,getreg(parameter1),parameter2);
             exit;
           end;
         end;
       end;
-    end;
 
-    if (opcodes[j].paramtype1=par_moffs32) and (paramtype1=ttMemorylocation32)  then
-    begin
-      if (opcodes[j].paramtype2=par_eax) and ((parameter2='EAX') or (parameter2='RAX')) then
+      par_r16: if (paramtype1=ttRegister16bit) then
       begin
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+        if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
         begin
-          k:=pos('[',parameter1);
-          l:=pos(']',parameter1);
-          val('$'+copy(parameter1,k+l,l-k-1),v,k);
-          if k=0 then
+          //opcode r16
+          if opcodes[j].opcode1=eo_prw then
           begin
-            //verified, it doesn't have a registerbase in it
+            //opcode+rw
             addopcode(bytes,j);
-            adddword(bytes,v);
+            k:=getreg(parameter1);
+            if k>7 then
+            begin
+              rex_b:=true;
+              k:=k and 7;
+            end;
+            inc(bytes[length(bytes)-1],k);
             result:=true;
             exit;
           end;
         end;
-      end;
-    end;
 
-
-
-    if (opcodes[j].paramtype1=par_3) and (paramtype1=ttValue) and (v=3) then
-    begin
-      //int 3
-      addopcode(bytes,j);
-      result:=true;
-      exit;
-    end;
-
-    if (opcodes[j].paramtype1=PAR_AL) and (parameter1='AL') then
-    begin
-      //AL,
-
-      if (opcodes[j].paramtype2=par_dx) and (parameter2='DX') then
-      begin
-        //opcode al,dx
-        addopcode(bytes,j);
-        result:=true;
-        exit;
-      end;
-
-      if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
-      begin
-        //AL,imm8
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+        if (opcodes[j].paramtype2=par_ax) and (parameter2='AX') then
         begin
-          if (opcodes[j].opcode1=eo_ib) and (opcodes[j].opcode2=eo_none) then
+          //r16,ax,
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
           begin
-            //verified: AL,imm8
+            //r16,ax
+            if opcodes[j].opcode1=eo_prw then
+            begin
+              //opcode+rd
+              addopcode(bytes,j);
+              k:=getreg(parameter1);
+              if k>7 then
+              begin
+                rex_b:=true;
+                k:=k and 7;
+              end;
+              inc(bytes[length(bytes)-1],k);
+              result:=true;
+              exit;
+            end;
+          end;
+        end;
+
+
+        if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
+        begin
+          //r16, imm8
+          if (opcodes[j].opcode1=eo_reg) and (opcodes[j].opcode2=eo_ib) then
+          begin
+            if vtype>8 then
+            begin
+              //search for r16/imm16
+              k:=startoflist;
+              while (k<=opcodecount) and (opcodes[k].mnemonic=tokens[mnemonic]) do
+              begin
+                if (opcodes[k].paramtype1=par_r16) and
+                   (opcodes[k].paramtype2=par_imm16) then
+                begin
+                  if (opcodes[k].opcode1=eo_reg) and (opcodes[j].opcode2=eo_ib) then
+                  begin
+                    addopcode(bytes,k);
+                    result:=createmodrm(bytes,getreg(parameter1),parameter1);
+                    addword(bytes,v);
+                    exit;
+                  end;
+                end;
+                inc(k);
+              end;
+
+            end;
+
+
             addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter1),parameter2);
+            add(bytes,[v]);
+          end;
+        end;
+
+        if (opcodes[j].paramtype2=par_imm16) and (paramtype2=ttValue) then
+        begin
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            if opcodes[j].opcode1=eo_prw then
+            begin
+              addopcode(bytes,j);
+              k:=getreg(parameter1);
+              if k>7 then
+              begin
+                rex_b:=true;
+                k:=k and 7;
+              end;
+
+              inc(bytes[length(bytes)-1],k);
+              addword(bytes,v);
+              result:=true;
+              exit;
+            end;
+          end;
+        end;
+
+        if (opcodes[j].paramtype2=par_rm8) and (isrm8(paramtype2)) then
+        begin
+          //r16,r/m8 (eg: movzx)
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter1),parameter2);
+            exit;
+          end;
+
+        end;
+
+        if (opcodes[j].paramtype2=par_rm16) and (isrm16(paramtype2)) then
+        begin
+          //r16,r/m16
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter1),parameter2);
+            exit;
+          end;
+
+          if (opcodes[j].paramtype3=par_imm8) and (paramtype3=ttValue) then
+          begin
+            if (opcodes[j].opcode2=eo_ib) then
+            begin
+              //r16,r/m16,imm8
+              if vtype>8 then
+              begin
+                //see if there is a //r16,r/m16,imm16
+                k:=startoflist;
+                while (k<=opcodecount) and (opcodes[k].mnemonic=tokens[mnemonic]) do
+                begin
+                  if (opcodes[k].paramtype1=par_r16) and
+                     (opcodes[k].paramtype2=par_rm16) and
+                     (opcodes[k].paramtype3=par_imm16) then
+                  begin
+                    addopcode(bytes,k);
+                    result:=createmodrm(bytes,getreg(parameter1),parameter2);
+                    addword(bytes,v);
+                    exit;
+                  end;
+                  inc(k);
+                end;
+              end;
+
+              addopcode(bytes,j);
+              result:=createmodrm(bytes,getreg(parameter1),parameter2);
+              add(bytes,[v]);
+              exit;
+            end;
+          end;
+        end;
+      end;
+
+      par_r32: if (paramtype1=ttRegister32bit) then
+      begin
+        if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
+        begin
+          //opcode r32
+          if opcodes[j].opcode1=eo_prd then
+          begin
+            //opcode+rd
+            addopcode(bytes,j);
+            k:=getreg(parameter1);
+            if k>7 then
+            begin
+              rex_b:=true;
+              k:=k and 7;
+            end;
+            inc(bytes[length(bytes)-1],k);
+            result:=true;
+            exit;
+          end
+          else
+          begin
+            //reg0..reg7
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
+            exit;
+          end;
+        end;
+
+
+
+
+        //eax
+        if (opcodes[j].paramtype2=par_eax) and ((parameter2='EAX') or (parameter2='RAX')) then
+        begin
+          //r32,eax,
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            //r32,eax
+            if opcodes[j].opcode1=eo_prd then
+            begin
+              //opcode+rd
+              addopcode(bytes,j);
+              k:=getreg(parameter1);
+              if k>7 then
+              begin
+                rex_b:=true;
+                k:=k and 7;
+              end;
+              inc(bytes[length(bytes)-1],k);
+              result:=true;
+              exit;
+            end;
+          end;
+        end;
+
+
+        if (opcodes[j].paramtype2=par_mm) and (paramtype2=ttRegistermm) then
+        begin
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter1),parameter2);
+            exit;
+          end;
+
+          if (opcodes[j].paramtype3=par_imm8) and (parameter3='') then
+          begin
+            //32, mm,imm8
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter1),parameter2);
+            add(bytes,[v]);
+            exit;
+          end;
+
+        end;
+
+
+        if (opcodes[j].paramtype2=par_xmm) and (paramtype2=ttRegisterxmm) then
+        begin
+          //r32,xmm,
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter2),parameter1);
+            exit;
+          end;
+
+          if (opcodes[j].paramtype3=par_imm8) and (parameter3='') then
+          begin
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter2),parameter1);
+            add(bytes,[v]);
+            exit;
+          end;
+
+        end;
+
+        if (opcodes[j].paramtype2=par_cr) and (paramtype2=ttRegistercr) then
+        begin
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter2),parameter1);
+            exit;
+          end;
+        end;
+
+        if (opcodes[j].paramtype2=par_dr) and (paramtype2=ttRegisterdr) then
+        begin
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter2),parameter1);
+            exit;
+          end;
+        end;
+
+
+        if (opcodes[j].paramtype2=par_xmm_m32) and (isxmm_m32(paramtype2)) then
+        begin
+          //r32,xmm/m32
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter1),parameter2);
+            exit;
+          end;
+        end;
+
+        if (opcodes[j].paramtype2=par_mm_m64) and (ismm_m64(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='['))) then
+        begin
+          //r32,mm/m64
+          addopcode(bytes,j);
+          result:=createmodrm(bytes,getreg(parameter1),parameter2);
+          exit;
+        end;
+
+        if (opcodes[j].paramtype2=par_xmm_m64) and (isxmm_m64(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='['))) then
+        begin
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter1),parameter2);
+            exit;
+          end;
+        end;
+
+        if (opcodes[j].paramtype2=par_xmm_m128) and (isxmm_m64(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='['))) then
+        begin
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter1),parameter2);
+            exit;
+          end;
+        end;
+
+        if (opcodes[j].paramtype2=par_m32) and (paramtype2=ttMemorylocation32) then
+        begin
+          //r32,m32,
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            //r32,m32
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter1),parameter2);
+            exit;
+          end;
+        end;
+
+        if (opcodes[j].paramtype2=par_rm8) and (isrm8(paramtype2) or (ismemorylocationdefault(parameter2))) then
+        begin
+          //r32,rm8
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter1),parameter2);
+            exit;
+          end;
+        end;
+
+        if (opcodes[j].paramtype2=par_rm16) and (isrm16(paramtype2) or (ismemorylocationdefault(parameter2))) then
+        begin
+          //r32,rm16
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter1),parameter2);
+            exit;
+          end;
+        end;
+
+        if (opcodes[j].paramtype2=par_rm32) and (isrm32(paramtype2)) then
+        begin
+          //r32,r/m32
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter1),parameter2);
+            exit;
+          end;
+
+          if (opcodes[j].paramtype3=par_imm8) and (paramtype3=ttValue) then
+          begin
+            if (opcodes[j].opcode2=eo_ib) then
+            begin
+              if vtype>8 then
+              begin
+                k:=startoflist;
+                while (k<=endoflist) and (opcodes[k].mnemonic=tokens[mnemonic]) do
+                begin
+                  if (opcodes[k].paramtype1=par_r32) and
+                     (opcodes[k].paramtype2=par_rm32) and
+                     (opcodes[k].paramtype3=par_imm32) then
+                  begin
+                    addopcode(bytes,k);
+                    result:=createmodrm(bytes,getreg(parameter1),parameter2);
+                    adddword(bytes,v);
+                    exit;
+                  end;
+                  inc(k);
+                end;
+              end;
+
+
+              //r32,r/m32,imm8
+              addopcode(bytes,j);
+              result:=createmodrm(bytes,getreg(parameter1),parameter2);
+              add(bytes,[v]);
+              exit;
+            end;
+          end;
+
+        end;
+
+
+        if (opcodes[j].paramtype2=par_imm32) and (paramtype2=ttValue) then
+        begin
+          //r32,imm32
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            if signedvtype=8 then
+            begin
+              //check if there isn't a rm32,imm8 , since that's less bytes
+              k:=startoflist;
+              while (k<=opcodecount) and (opcodes[k].mnemonic=tokens[mnemonic]) do
+              begin
+                if (opcodes[k].paramtype1=par_rm32) and
+                   (opcodes[k].paramtype2=par_imm8) then
+                begin
+                  //yes, there is
+                  addopcode(bytes,k);
+                  result:=createmodrm(bytes,eotoreg(opcodes[k].opcode1),parameter1);
+                  add(bytes,[v]);
+                  exit;
+                end;
+                inc(k);
+              end;
+            end;
+
+            if opcodes[j].opcode1=eo_prd then
+            begin
+              addopcode(bytes,j);
+              k:=getreg(parameter1);
+              if k>7 then
+              begin
+                rex_b:=true;
+                k:=k and 7;
+              end;
+
+              inc(bytes[length(bytes)-1],k);
+              if self.REX_W then
+                addqword(bytes,v)
+              else
+                adddword(bytes,v);
+              result:=true;
+              exit;
+            end;
+          end;
+        end;
+
+
+        if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
+        begin
+          //r32, imm8
+
+            addopcode(bytes,j);
+
+
+            createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
+            add(bytes,[byte(v)]);
+            result:=true;
+            exit;
+
+        end;
+
+      end;
+
+      par_sreg: if (paramtype1=ttRegistersreg) then
+      begin
+        if (opcodes[j].paramtype2=par_rm16) and (isrm16(paramtype2)) then
+        begin
+          //sreg,rm16
+          addopcode(bytes,j);
+          result:=createmodrm(bytes,getreg(parameter1),parameter2);
+          exit;
+        end;
+      end;
+
+      par_cr: if (paramtype1=ttRegistercr) then
+      begin
+        if (opcodes[j].paramtype2=par_r32) and (paramtype2=ttRegister32bit) then
+        begin
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter1),parameter2);
+            exit;
+          end;
+        end;
+      end;
+
+      par_dr:  if (paramtype1=ttRegisterdr) then
+      begin
+        if (opcodes[j].paramtype2=par_r32) and (paramtype2=ttRegister32bit) then
+        begin
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter1),parameter2);
+            exit;
+          end;
+        end;
+      end;
+
+      par_rm8: if (isrm8(paramtype1)) then
+      begin
+        //r/m8,
+        if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
+        begin
+          //opcode r/m8
+          addopcode(bytes,j);
+          result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
+          exit;
+        end;
+
+        if (opcodes[j].paramtype2=par_1) and (paramtype2=ttValue) and (v=1) then
+        begin
+          addopcode(bytes,j);
+          result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
+          exit;
+        end;
+
+        if (opcodes[j].paramtype2=par_cl) and (parameter2='CL') then
+        begin
+          addopcode(bytes,j);
+          result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
+          exit;
+        end;
+
+
+        if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
+        begin
+          //r/m8,imm8,
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            //verified it IS r/m8,imm8
+            addopcode(bytes,j);
+            createmodrm(bytes,eoToReg(opcodes[j].opcode1),parameter1);
             add(bytes,[byte(v)]);
             result:=true;
             exit;
           end;
         end;
 
-      end;
-
-      if (opcodes[j].paramtype2=par_moffs8) and ((paramtype2=ttMemorylocation8) or (ismemorylocationdefault(parameter2)  ))  then
-      begin
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+        if (opcodes[j].paramtype2=par_r8) and (paramtype2=ttRegister8bit) then
         begin
-          k:=pos('[',parameter2);
-          l:=pos(']',parameter2);
-          val('$'+copy(parameter2,k+l,l-k-1),v,k);
-          if k=0 then
+          // r/m8,r8
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
           begin
-            //verified, it doesn't have a registerbase in it
             addopcode(bytes,j);
-            adddword(bytes,v);
-            result:=true;
-            exit;
-          end;
-
-
-        end;
-      end;
-    end;
-
-    if (opcodes[j].paramtype1=PAR_AX) and (parameter1='AX') then
-    begin
-      //AX,
-      if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
-      begin
-        //opcode AX
-        addopcode(bytes,j);
-        result:=true;
-        exit;
-      end;
-
-      if (opcodes[j].paramtype2=par_dx) and (parameter2='DX') then
-      begin
-        //opcode ax,dx
-        addopcode(bytes,j);
-        result:=true;
-        exit;
-      end;
-
-      //r16
-      if (opcodes[j].paramtype2=par_r16) and (paramtype2=ttRegister16bit) then
-      begin
-        //eax,r32
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          //r32,eax
-          if opcodes[j].opcode1=eo_prw then
-          begin
-            //opcode+rd
-            addopcode(bytes,j);
-            inc(bytes[length(bytes)-1],getreg(parameter2));
-            result:=true;
+            result:=createmodrm(bytes,getreg(parameter2),parameter1);
             exit;
           end;
         end;
       end;
 
-
-      if (opcodes[j].paramtype2=par_imm16) and (paramtype2=ttValue) then
+      par_rm16: if (isrm16(paramtype1)) then
       begin
-        //AX,imm16
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+        //r/m16,
+        if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
         begin
-          //params confirmed it is a ax,imm16
-          if (opcodes[j].opcode1=eo_iw) and (opcodes[j].opcode2=eo_none) then
+          //opcode r/m16
+          addopcode(bytes,j);
+          result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
+          exit;
+        end;
+
+        if (opcodes[j].paramtype2=par_1) and (paramtype2=ttValue) and (v=1) then
+        begin
+          addopcode(bytes,j);
+          result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
+          exit;
+        end;
+
+        if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
+        begin
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
           begin
+            if vtype=16 then
+            begin
+              //perhaps there is a r/m16,imm16
+              k:=startoflist;
+              while k<=endoflist do
+              begin
+                if opcodes[k].mnemonic<>tokens[mnemonic] then break; //nope, so continue with r/m,imm16
+                if ((opcodes[k].paramtype1=par_rm16) and (opcodes[k].paramtype2=par_imm16)) and ((opcodes[k].paramtype3=par_noparam) and (parameter3='')) then
+                begin
+                  //yes, there is
+                  //r/m16,imm16
+                  addopcode(bytes,k);
+                  createmodrm(bytes,eoToReg(opcodes[k].opcode1),parameter1);
+                  addword(bytes,word(v));
+                  result:=true;
+                  exit;
+                end;
+                inc(k);
+              end;
+            end;
+            //nope, so it IS r/m16,8
             addopcode(bytes,j);
+            createmodrm(bytes,eoToReg(opcodes[j].opcode1),parameter1);
+            add(bytes,[byte(v)]);
+            result:=true;
+            exit;
+          end;
+        end;
+
+        if (opcodes[j].paramtype2=par_imm16) and (paramtype2=ttValue) then
+        begin
+          //r/m16,imm
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            if vtype=8 then
+            begin
+              //see if there is a r/m16,imm8 (or if this is the one) (optimisation)
+              k:=startoflist;
+              while k<=endoflist do
+              begin
+                if opcodes[k].mnemonic<>tokens[mnemonic] then break; //nope, so continue with r/m,imm16
+                if ((opcodes[k].paramtype1=par_rm16) and (opcodes[k].paramtype2=par_imm8)) and ((opcodes[k].paramtype3=par_noparam) and (parameter3='')) then
+                begin
+                  //yes, there is
+                  //r/m16,imm8
+                  addopcode(bytes,k);
+                  createmodrm(bytes,eoToReg(opcodes[k].opcode1),parameter1);
+                  add(bytes,[byte(v)]);
+                  result:=true;
+                  exit;
+                end;
+                inc(k);
+              end;
+            end;
+
+            addopcode(bytes,j);
+            createmodrm(bytes,eoToReg(opcodes[j].opcode1),parameter1);
             addword(bytes,word(v));
             result:=true;
             exit;
           end;
         end;
-      end;
 
-      if (opcodes[j].paramtype2=par_moffs16) and ((paramtype2=ttMemorylocation16) or (ismemorylocationdefault(parameter2)  ))  then
-      begin
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+        if (opcodes[j].paramtype2=par_r16) and (paramtype2=ttRegister16bit) then
         begin
-          k:=pos('[',parameter2);
-          l:=pos(']',parameter2);
-          val('$'+copy(parameter2,k+l,l-k-1),v,k);
-          if k=0 then
+          //r/m16,r16,
+
+          if (opcodes[j].paramtype3=par_cl) and (parameter3='CL') then
           begin
-            //verified, it doesn't have a registerbase in it
             addopcode(bytes,j);
-            adddword(bytes,v);
-            result:=true;
+            result:=createmodrm(bytes,getreg(parameter2),parameter1);
             exit;
           end;
-        end;
-      end;
 
-    end;
-
-    if (opcodes[j].paramtype1=PAR_EAX) and ((parameter1='EAX') or (parameter1='RAX')) then
-    begin
-      //eAX,
-      if (opcodes[j].paramtype2=par_dx) and (parameter2='DX') then
-      begin
-        //opcode eax,dx
-        addopcode(bytes,j);
-        result:=true;
-        exit;
-      end;
-
-      //r32
-      if (opcodes[j].paramtype2=par_r32) and (paramtype2=ttRegister32bit) then
-      begin
-        //eax,r32
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          //r32,eax
-          if opcodes[j].opcode1=eo_prd then
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
           begin
-            //opcode+rd
             addopcode(bytes,j);
-            k:=getreg(parameter2);
-            if k>7 then
-            begin
-              rex_b:=true; //extention to the opcode field
-              k:=k and 7;
-            end;
-
-            inc(bytes[length(bytes)-1],k);
-            result:=true;
+            result:=createmodrm(bytes,getreg(parameter2),parameter1);
             exit;
           end;
-        end;
-      end;
 
-      if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
-      begin
-        //eax,imm8
-
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          addopcode(bytes,j);
-          add(bytes,[v]);
-          result:=true;
-          exit;
-        end;
-      end;
-
-      if (opcodes[j].paramtype2=par_imm32) and (paramtype2=ttValue) then
-      begin
-        //EAX,imm32,
-
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          //eax,imm32
-
-          if signedvtype=8 then
+          if (opcodes[j].paramtype3=par_imm8) and (paramtype3=ttValue) then
           begin
-            //check if there isn't a rm32,imm8 , since that's less bytes
-            k:=startoflist;
-            while (k<=opcodecount) and (opcodes[k].mnemonic=tokens[mnemonic]) do
-            begin
-              if (opcodes[k].paramtype1=par_rm32) and
-                 (opcodes[k].paramtype2=par_imm8) then
-              begin
-                //yes, there is
-                addopcode(bytes,k);
-                result:=createmodrm(bytes,eotoreg(opcodes[k].opcode1),parameter1);
-                add(bytes,[v]);
-                exit;
-              end;
-              inc(k);
-            end;
-          end;
-
-          if (opcodes[j].opcode1=eo_id) and (opcodes[j].opcode2=eo_none) then
-          begin
+            //rm16, r16,imm8
             addopcode(bytes,j);
-            adddword(bytes,v);
-            result:=true;
-            exit;
-          end;
-        end;
-      end;
-
-      if (opcodes[j].paramtype2=par_moffs32) and ((paramtype2=ttMemorylocation32) or (ismemorylocationdefault(parameter2)  ))  then
-      begin
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          k:=pos('[',parameter2);
-          l:=pos(']',parameter2);
-          val('$'+copy(parameter2,k+1,l-k-1),v,k);
-          if k=0 then
-          begin
-            //verified, it doesn't have a registerbase in it
-            addopcode(bytes,j);
-            adddword(bytes,v);
-            result:=true;
-            exit;
-          end;
-        end;
-      end;
-
-    end;
-
-    if (opcodes[j].paramtype1=par_dx) and (parameter1='DX') then
-    begin
-      if (opcodes[j].paramtype2=par_al) and (parameter2='AL') then
-      begin
-        addopcode(bytes,j);
-        result:=true;
-        exit;
-      end;
-
-      if (opcodes[j].paramtype2=par_ax) and (parameter2='AX') then
-      begin
-        addopcode(bytes,j);
-        result:=true;
-        exit;
-      end;
-
-      if (opcodes[j].paramtype2=par_eax) and ((parameter2='EAX') or (parameter2='RAX')) then
-      begin
-        addopcode(bytes,j);
-        result:=true;
-        exit;
-      end;
-    end;
-
-    if (opcodes[j].paramtype1=par_cs) and (parameter1='CS') then
-    begin
-      if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
-      begin
-        addopcode(bytes,j);
-        result:=true;
-        exit;
-      end;
-    end;
-
-    if (opcodes[j].paramtype1=par_ds) and (parameter1='DS') then
-    begin
-      if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
-      begin
-        addopcode(bytes,j);
-        result:=true;
-        exit;
-      end;
-    end;
-
-    if (opcodes[j].paramtype1=par_es) and (parameter1='ES') then
-    begin
-      if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
-      begin
-        addopcode(bytes,j);
-        result:=true;
-        exit;
-      end;
-    end;
-
-    if (opcodes[j].paramtype1=par_SS) and (parameter1='SS') then
-    begin
-      if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
-      begin
-        addopcode(bytes,j);
-        result:=true;
-        exit;
-      end;
-    end;
-
-    if (opcodes[j].paramtype1=par_fs) and (parameter1='FS') then
-    begin
-      if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
-      begin
-        addopcode(bytes,j);
-        result:=true;
-        exit;
-      end;
-    end;
-
-    if (opcodes[j].paramtype1=par_gs) and (parameter1='GS') then
-    begin
-      if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
-      begin
-        addopcode(bytes,j);
-        result:=true;
-        exit;
-      end;
-    end;
-
-
-
-
-
-    //r8,
-    if (opcodes[j].paramtype1=par_r8) and (paramtype1=ttRegister8bit) then
-    begin
-      if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
-      begin
-        //opcode r8
-        if opcodes[j].opcode1=eo_prb then
-        begin
-          //opcode+rd
-          addopcode(bytes,j);
-          k:=getreg(parameter1);
-          if k>7 then
-          begin
-            REX_B:=true;
-            k:=k and 7;
-          end;
-          inc(bytes[length(bytes)-1],k);
-          result:=true;
-          exit;
-        end;
-      end;
-
-      if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
-      begin
-        //r8, imm8
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          if opcodes[j].opcode1=eo_prb then
-          begin
-            addopcode(bytes,j);
-            k:=getreg(parameter1);
-            if k>7 then
-            begin
-              rex_b:=true; //extension to the opcode
-              k:=k and 7;
-            end;
-            inc(bytes[length(bytes)-1],k);
-            add(bytes,[v]);
-            result:=true;
-            exit;
-          end;
-        end;
-      end;
-
-      if (opcodes[j].paramtype2=par_rm8) and (isrm8(paramtype2)) then
-      begin
-        //r8,rm8
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter1),parameter2);
-          exit;
-        end;
-      end;
-    end;
-
-    if (opcodes[j].paramtype1=par_r16) and (paramtype1=ttRegister16bit) then
-    begin
-      if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
-      begin
-        //opcode r16
-        if opcodes[j].opcode1=eo_prw then
-        begin
-          //opcode+rw
-          addopcode(bytes,j);
-          k:=getreg(parameter1);
-          if k>7 then
-          begin
-            rex_b:=true;
-            k:=k and 7;
-          end;
-          inc(bytes[length(bytes)-1],k);
-          result:=true;
-          exit;
-        end;
-      end;
-
-      if (opcodes[j].paramtype2=par_ax) and (parameter2='AX') then
-      begin
-        //r16,ax,
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          //r16,ax
-          if opcodes[j].opcode1=eo_prw then
-          begin
-            //opcode+rd
-            addopcode(bytes,j);
-            k:=getreg(parameter1);
-            if k>7 then
-            begin
-              rex_b:=true;
-              k:=k and 7;
-            end;
-            inc(bytes[length(bytes)-1],k);
-            result:=true;
-            exit;
-          end;
-        end;
-      end;
-
-
-      if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
-      begin
-        //r16, imm8
-        if (opcodes[j].opcode1=eo_reg) and (opcodes[j].opcode2=eo_ib) then
-        begin
-          if vtype>8 then
-          begin
-            //search for r16/imm16
-            k:=startoflist;
-            while (k<=opcodecount) and (opcodes[k].mnemonic=tokens[mnemonic]) do
-            begin
-              if (opcodes[k].paramtype1=par_r16) and
-                 (opcodes[k].paramtype2=par_imm16) then
-              begin
-                if (opcodes[k].opcode1=eo_reg) and (opcodes[j].opcode2=eo_ib) then
-                begin
-                  addopcode(bytes,k);
-                  result:=createmodrm(bytes,getreg(parameter1),parameter1);
-                  addword(bytes,v);
-                  exit;
-                end;
-              end;
-              inc(k);
-            end;
-
-          end;
-
-
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter1),parameter2);
-          add(bytes,[v]);
-        end;
-      end;
-
-      if (opcodes[j].paramtype2=par_imm16) and (paramtype2=ttValue) then
-      begin
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          if opcodes[j].opcode1=eo_prw then
-          begin
-            addopcode(bytes,j);
-            k:=getreg(parameter1);
-            if k>7 then
-            begin
-              rex_b:=true;
-              k:=k and 7;
-            end;
-
-            inc(bytes[length(bytes)-1],k);
-            addword(bytes,v);
-            result:=true;
-            exit;
-          end;
-        end;
-      end;
-
-      if (opcodes[j].paramtype2=par_rm8) and (isrm8(paramtype2)) then
-      begin
-        //r16,r/m8 (eg: movzx)
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter1),parameter2);
-          exit;
-        end;
-
-      end;
-
-      if (opcodes[j].paramtype2=par_rm16) and (isrm16(paramtype2)) then
-      begin
-        //r16,r/m16
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter1),parameter2);
-          exit;
-        end;
-
-        if (opcodes[j].paramtype3=par_imm8) and (paramtype3=ttValue) then
-        begin
-          if (opcodes[j].opcode2=eo_ib) then
-          begin
-            //r16,r/m16,imm8
-            if vtype>8 then
-            begin
-              //see if there is a //r16,r/m16,imm16
-              k:=startoflist;
-              while (k<=opcodecount) and (opcodes[k].mnemonic=tokens[mnemonic]) do
-              begin
-                if (opcodes[k].paramtype1=par_r16) and
-                   (opcodes[k].paramtype2=par_rm16) and
-                   (opcodes[k].paramtype3=par_imm16) then
-                begin
-                  addopcode(bytes,k);
-                  result:=createmodrm(bytes,getreg(parameter1),parameter2);
-                  addword(bytes,v);
-                  exit;
-                end;
-                inc(k);
-              end;
-            end;
-
-            addopcode(bytes,j);
-            result:=createmodrm(bytes,getreg(parameter1),parameter2);
+            result:=createmodrm(bytes,getreg(parameter2),parameter1);
             add(bytes,[v]);
             exit;
           end;
         end;
-      end;
-    end;
 
-    if (opcodes[j].paramtype1=par_r32) and (paramtype1=ttRegister32bit) then
-    begin
-      if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
-      begin
-        //opcode r32
-        if opcodes[j].opcode1=eo_prd then
+        if (opcodes[j].paramtype2=par_sreg) and (paramtype2=ttRegistersreg) then
         begin
-          //opcode+rd
-          addopcode(bytes,j);
-          k:=getreg(parameter1);
-          if k>7 then
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
           begin
-            rex_b:=true;
-            k:=k and 7;
+            //r/m16,sreg
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter2),parameter1);
+            exit;
           end;
-          inc(bytes[length(bytes)-1],k);
-          result:=true;
-          exit;
-        end
-        else
+        end;
+
+        if (opcodes[j].paramtype2=par_cl) and (parameter2='CL') then
         begin
-          //reg0..reg7
+          //rm16,cl
           addopcode(bytes,j);
           result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
           exit;
         end;
+
       end;
 
-
-
-
-      //eax
-      if (opcodes[j].paramtype2=par_eax) and ((parameter2='EAX') or (parameter2='RAX')) then
+      par_rm32: if (isrm32(paramtype1)) then
       begin
-        //r32,eax,
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+        //r/m32,
+        if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
         begin
-          //r32,eax
-          if opcodes[j].opcode1=eo_prd then
+          //no 2nd parameter so it is 'opcode r/m32'
+          addopcode(bytes,j);
+          result:=createmodrm(bytes,eoToReg(opcodes[j].opcode1),parameter1);
+          exit;
+        end;
+
+        if (opcodes[j].paramtype2=par_1) and (paramtype2=ttValue) and (v=1) then
+        begin
+          addopcode(bytes,j);
+          result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
+          exit;
+        end;
+
+
+        if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
+        begin
+          //rm32,imm8
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
           begin
-            //opcode+rd
-            addopcode(bytes,j);
-            k:=getreg(parameter1);
-            if k>7 then
+
+            if (vtype>8) or (opcodes[j].signed and (signedvtype>8)) then
             begin
-              rex_b:=true;
-              k:=k and 7;
-            end;
-            inc(bytes[length(bytes)-1],k);
-            result:=true;
-            exit;
-          end;
-        end;
-      end;
-
-
-      if (opcodes[j].paramtype2=par_mm) and (paramtype2=ttRegistermm) then
-      begin
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter1),parameter2);
-          exit;
-        end;
-
-        if (opcodes[j].paramtype3=par_imm8) and (parameter3='') then
-        begin
-          //32, mm,imm8
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter1),parameter2);
-          add(bytes,[v]);
-          exit;
-        end;
-
-      end;
-
-
-      if (opcodes[j].paramtype2=par_xmm) and (paramtype2=ttRegisterxmm) then
-      begin
-        //r32,xmm,
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter2),parameter1);
-          exit;
-        end;
-
-        if (opcodes[j].paramtype3=par_imm8) and (parameter3='') then
-        begin
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter2),parameter1);
-          add(bytes,[v]);
-          exit;
-        end;
-
-      end;
-
-      if (opcodes[j].paramtype2=par_cr) and (paramtype2=ttRegistercr) then
-      begin
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter2),parameter1);
-          exit;
-        end;
-      end;
-
-      if (opcodes[j].paramtype2=par_dr) and (paramtype2=ttRegisterdr) then
-      begin
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter2),parameter1);
-          exit;
-        end;
-      end;
-
-
-      if (opcodes[j].paramtype2=par_xmm_m32) and (isxmm_m32(paramtype2)) then
-      begin
-        //r32,xmm/m32
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter1),parameter2);
-          exit;
-        end;
-      end;
-
-      if (opcodes[j].paramtype2=par_mm_m64) and (ismm_m64(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='['))) then
-      begin
-        //r32,mm/m64
-        addopcode(bytes,j);
-        result:=createmodrm(bytes,getreg(parameter1),parameter2);
-        exit;
-      end;
-
-      if (opcodes[j].paramtype2=par_xmm_m64) and (isxmm_m64(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='['))) then
-      begin
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter1),parameter2);
-          exit;
-        end;
-      end;
-
-      if (opcodes[j].paramtype2=par_xmm_m128) and (isxmm_m64(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='['))) then
-      begin
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter1),parameter2);
-          exit;
-        end;
-      end;
-
-      if (opcodes[j].paramtype2=par_m32) and (paramtype2=ttMemorylocation32) then
-      begin
-        //r32,m32,
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          //r32,m32
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter1),parameter2);
-          exit;
-        end;
-      end;
-
-      if (opcodes[j].paramtype2=par_rm8) and (isrm8(paramtype2) or (ismemorylocationdefault(parameter2))) then
-      begin
-        //r32,rm8
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter1),parameter2);
-          exit;
-        end;
-      end;
-
-      if (opcodes[j].paramtype2=par_rm16) and (isrm16(paramtype2) or (ismemorylocationdefault(parameter2))) then
-      begin
-        //r32,rm16
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter1),parameter2);
-          exit;
-        end;
-      end;
-
-      if (opcodes[j].paramtype2=par_rm32) and (isrm32(paramtype2)) then
-      begin
-        //r32,r/m32
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter1),parameter2);
-          exit;
-        end;
-
-        if (opcodes[j].paramtype3=par_imm8) and (paramtype3=ttValue) then
-        begin
-          if (opcodes[j].opcode2=eo_ib) then
-          begin
-            if vtype>8 then
-            begin
+              //the user requests a bigger than 8-bit value, so see if there is also a rm32,imm32 (there are no r/m32,imm16)
               k:=startoflist;
-              while (k<=endoflist) and (opcodes[k].mnemonic=tokens[mnemonic]) do
+              while k<=endoflist do
               begin
-                if (opcodes[k].paramtype1=par_r32) and
-                   (opcodes[k].paramtype2=par_rm32) and
-                   (opcodes[k].paramtype3=par_imm32) then
+                if opcodes[k].mnemonic<>tokens[mnemonic] then break;
+                if ((opcodes[k].paramtype1=par_rm32) and (opcodes[k].paramtype2=par_imm32)) and ((opcodes[k].paramtype3=par_noparam) and (parameter3='')) then
                 begin
+                  //yes, there is
                   addopcode(bytes,k);
-                  result:=createmodrm(bytes,getreg(parameter1),parameter2);
+                  createmodrm(bytes,eoToReg(opcodes[k].opcode1),parameter1);
                   adddword(bytes,v);
+                  result:=true;
                   exit;
                 end;
                 inc(k);
               end;
             end;
 
-
-            //r32,r/m32,imm8
+            //r/m32,imm8
             addopcode(bytes,j);
-            result:=createmodrm(bytes,getreg(parameter1),parameter2);
+            createmodrm(bytes,eoToReg(opcodes[j].opcode1),parameter1);
+            add(bytes,[byte(v)]);
+            result:=true;
+            exit;
+          end;
+        end;
+
+
+        if (opcodes[j].paramtype2=par_imm32) and (paramtype2=ttValue) then
+        begin
+          //r/m32,imm
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            if signedvtype=8 then
+            begin
+              //see if there is a r/m32,imm8 (or if this is the one) (optimisation)
+              k:=startoflist;
+              while k<=endoflist do
+              begin
+                if opcodes[k].mnemonic<>tokens[mnemonic] then break; //nope, so continue with r/m,imm16
+                if ((opcodes[k].paramtype1=par_rm32) and (opcodes[k].paramtype2=par_imm8)) and ((opcodes[k].paramtype3=par_noparam) and (parameter3='')) and ((not opcodes[k].signed) or (signedvtype=8)) then
+                begin
+                  //yes, there is
+                  addopcode(bytes,k);
+                  createmodrm(bytes,eoToReg(opcodes[k].opcode1),parameter1);
+                  add(bytes,[byte(v)]);
+                  result:=true;
+                  exit;
+                end;
+                inc(k);
+              end;
+            end;
+            //no there's none
+            addopcode(bytes,j);
+            createmodrm(bytes,eoToReg(opcodes[j].opcode1),parameter1);
+            adddword(bytes,v);
+            result:=true;
+            exit;
+          end;
+        end;
+
+        if (opcodes[j].paramtype2=par_cl) and (parameter2='CL') then
+        begin
+          //rm32,cl
+          addopcode(bytes,j);
+          result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
+          exit;
+        end;
+
+
+        if (opcodes[j].paramtype2=par_r32) and (paramtype2=ttRegister32bit) then
+        begin
+          //r/m32,r32
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter2),parameter1);
+            exit;
+          end;
+
+          if (opcodes[j].paramtype3=par_cl) and (parameter3='CL') then
+          begin
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter2),parameter1);
+            exit;
+          end;
+
+          if (opcodes[j].paramtype3=par_imm8) and (paramtype3=ttValue) then
+          begin
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter2),parameter1);
             add(bytes,[v]);
             exit;
           end;
         end;
 
-      end;
-
-
-      if (opcodes[j].paramtype2=par_imm32) and (paramtype2=ttValue) then
-      begin
-        //r32,imm32
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+        if (opcodes[j].paramtype2=par_mm) and (paramtype2=ttRegistermm) then
         begin
-          if signedvtype=8 then
+          //r32/m32,mm,
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
           begin
-            //check if there isn't a rm32,imm8 , since that's less bytes
-            k:=startoflist;
-            while (k<=opcodecount) and (opcodes[k].mnemonic=tokens[mnemonic]) do
-            begin
-              if (opcodes[k].paramtype1=par_rm32) and
-                 (opcodes[k].paramtype2=par_imm8) then
-              begin
-                //yes, there is
-                addopcode(bytes,k);
-                result:=createmodrm(bytes,eotoreg(opcodes[k].opcode1),parameter1);
-                add(bytes,[v]);
-                exit;
-              end;
-              inc(k);
-            end;
+            //r32/m32,mm
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter2), parameter1);
+
           end;
 
-          if opcodes[j].opcode1=eo_prd then
-          begin
-            addopcode(bytes,j);
-            k:=getreg(parameter1);
-            if k>7 then
-            begin
-              rex_b:=true;
-              k:=k and 7;
-            end;
+        end;
 
-            inc(bytes[length(bytes)-1],k);
-            if self.REX_W then
-              addqword(bytes,v)
-            else
-              adddword(bytes,v);
-            result:=true;
+        if (opcodes[j].paramtype2=par_xmm) and (paramtype2=ttRegisterxmm) then
+        begin
+          //r32/m32,xmm,  (movd for example)
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            //r32/m32,xmm
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter2), parameter1);
+
+          end;
+
+        end;
+      end;
+
+      par_mm: if (paramtype1=ttRegistermm) then
+      begin
+        //mm,xxxxx
+        if (opcodes[j].paramtype2=par_mm) and (paramtype2=ttRegistermm) then
+        begin
+          addopcode(bytes,j);
+          result:=createmodrm(bytes,getreg(parameter1),parameter2);
+          exit;
+        end;
+
+        if (opcodes[j].paramtype2=par_xmm) and (paramtype2=ttRegisterxmm) then
+        begin
+          //mm,xmm
+          addopcode(bytes,j);
+          result:=createmodrm(bytes,getreg(parameter1),parameter2);
+          exit;
+        end;
+
+        if (opcodes[j].paramtype2=par_r32_m16) and ( (paramtype1=ttRegister32bit) or (paramtype2=ttMemorylocation16) or ismemorylocationdefault(parameter2) ) then
+        begin
+          //mm,r32/m16,
+          if (opcodes[j].paramtype3=par_imm8) and (paramtype3=ttValue) then
+          begin
+            //imm8
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter1),parameter2);
             exit;
           end;
         end;
-      end;
 
-
-      if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
-      begin
-        //r32, imm8
-
-          addopcode(bytes,j);
-
-
-          createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
-          add(bytes,[byte(v)]);
-          result:=true;
-          exit;
-
-      end;
-
-    end;
-
-
-
-    if (opcodes[j].paramtype1=par_sreg) and (paramtype1=ttRegistersreg) then
-    begin
-      if (opcodes[j].paramtype2=par_rm16) and (isrm16(paramtype2)) then
-      begin
-        //sreg,rm16
-        addopcode(bytes,j);
-        result:=createmodrm(bytes,getreg(parameter1),parameter2);
-        exit;
-      end;
-    end;
-
-    if (opcodes[j].paramtype1=par_cr) and (paramtype1=ttRegistercr) then
-    begin
-      if (opcodes[j].paramtype2=par_r32) and (paramtype2=ttRegister32bit) then
-      begin
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+        if (opcodes[j].paramtype2=par_rm32) and (isrm32(paramtype2)) then
         begin
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter1),parameter2);
-          exit;
-        end;
-      end;
-    end;
-
-    if (opcodes[j].paramtype1=par_dr) and (paramtype1=ttRegisterdr) then
-    begin
-      if (opcodes[j].paramtype2=par_r32) and (paramtype2=ttRegister32bit) then
-      begin
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter1),parameter2);
-          exit;
-        end;
-      end;
-    end;
-
-
-    //rm8,
-    if (opcodes[j].paramtype1=par_rm8) and (isrm8(paramtype1) ) then
-    begin
-      //r/m8,
-      if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
-      begin
-        //opcode r/m8
-        addopcode(bytes,j);
-        result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
-        exit;
-      end;
-
-      if (opcodes[j].paramtype2=par_1) and (paramtype2=ttValue) and (v=1) then
-      begin
-        addopcode(bytes,j);
-        result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
-        exit;
-      end;
-
-      if (opcodes[j].paramtype2=par_cl) and (parameter2='CL') then
-      begin
-        addopcode(bytes,j);
-        result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
-        exit;
-      end;
-
-
-      if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
-      begin
-        //r/m8,imm8,
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          //verified it IS r/m8,imm8
-          addopcode(bytes,j);
-          createmodrm(bytes,eoToReg(opcodes[j].opcode1),parameter1);
-          add(bytes,[byte(v)]);
-          result:=true;
-          exit;
-        end;
-      end;
-
-      if (opcodes[j].paramtype2=par_r8) and (paramtype2=ttRegister8bit) then
-      begin
-        // r/m8,r8
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter2),parameter1);
-          exit;
-        end;
-      end;
-    end;
-
-
-    if (opcodes[j].paramtype1=par_rm16) and (isrm16(paramtype1)) then
-    begin
-      //r/m16,
-      if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
-      begin
-        //opcode r/m16
-        addopcode(bytes,j);
-        result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
-        exit;
-      end;
-
-      if (opcodes[j].paramtype2=par_1) and (paramtype2=ttValue) and (v=1) then
-      begin
-        addopcode(bytes,j);
-        result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
-        exit;
-      end;
-
-      if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
-      begin
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          if vtype=16 then
+          //mm,rm32
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
           begin
-            //perhaps there is a r/m16,imm16
-            k:=startoflist;
-            while k<=endoflist do
-            begin
-              if opcodes[k].mnemonic<>tokens[mnemonic] then break; //nope, so continue with r/m,imm16
-              if ((opcodes[k].paramtype1=par_rm16) and (opcodes[k].paramtype2=par_imm16)) and ((opcodes[k].paramtype3=par_noparam) and (parameter3='')) then
-              begin
-                //yes, there is
-                //r/m16,imm16
-                addopcode(bytes,k);
-                createmodrm(bytes,eoToReg(opcodes[k].opcode1),parameter1);
-                addword(bytes,word(v));
-                result:=true;
-                exit;
-              end;
-              inc(k);
-            end;
+            //xmm,rm32
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter1),parameter2);
+            exit;
           end;
-          //nope, so it IS r/m16,8
-          addopcode(bytes,j);
-          createmodrm(bytes,eoToReg(opcodes[j].opcode1),parameter1);
-          add(bytes,[byte(v)]);
-          result:=true;
-          exit;
         end;
-      end;
 
-      if (opcodes[j].paramtype2=par_imm16) and (paramtype2=ttValue) then
-      begin
-        //r/m16,imm
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+
+
+
+        if (opcodes[j].paramtype2=par_xmm_m32) and (isxmm_m32(paramtype2)) then
         begin
-          if vtype=8 then
-          begin
-            //see if there is a r/m16,imm8 (or if this is the one) (optimisation)
-            k:=startoflist;
-            while k<=endoflist do
-            begin
-              if opcodes[k].mnemonic<>tokens[mnemonic] then break; //nope, so continue with r/m,imm16
-              if ((opcodes[k].paramtype1=par_rm16) and (opcodes[k].paramtype2=par_imm8)) and ((opcodes[k].paramtype3=par_noparam) and (parameter3='')) then
-              begin
-                //yes, there is
-                //r/m16,imm8
-                addopcode(bytes,k);
-                createmodrm(bytes,eoToReg(opcodes[k].opcode1),parameter1);
-                add(bytes,[byte(v)]);
-                result:=true;
-                exit;
-              end;
-              inc(k);
-            end;
-          end;
-
+          //mm,xmm/m32
           addopcode(bytes,j);
-          createmodrm(bytes,eoToReg(opcodes[j].opcode1),parameter1);
-          addword(bytes,word(v));
-          result:=true;
-          exit;
-        end;
-      end;
-
-      if (opcodes[j].paramtype2=par_r16) and (paramtype2=ttRegister16bit) then
-      begin
-        //r/m16,r16,
-
-        if (opcodes[j].paramtype3=par_cl) and (parameter3='CL') then
-        begin
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter2),parameter1);
+          result:=createmodrm(bytes,getreg(parameter1),parameter2);
           exit;
         end;
 
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+        if (opcodes[j].paramtype2=par_mm_m64) and (ismm_m64(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='['))) then
         begin
+          //mm,mm/m64
           addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter2),parameter1);
+          result:=createmodrm(bytes,getreg(parameter1),parameter2);
           exit;
         end;
 
-        if (opcodes[j].paramtype3=par_imm8) and (paramtype3=ttValue) then
+        if (opcodes[j].paramtype2=par_xmm_m64) and (isxmm_m64(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='['))) then
         begin
-          //rm16, r16,imm8
+          //mm,xmm/m64
           addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter2),parameter1);
-          add(bytes,[v]);
-          exit;
-        end;
-      end;
-
-      if (opcodes[j].paramtype2=par_sreg) and (paramtype2=ttRegistersreg) then
-      begin
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          //r/m16,sreg
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter2),parameter1);
-          exit;
-        end;
-      end;
-
-      if (opcodes[j].paramtype2=par_cl) and (parameter2='CL') then
-      begin
-        //rm16,cl
-        addopcode(bytes,j);
-        result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
-        exit;
-      end;
-
-    end;
-
-    if (opcodes[j].paramtype1=par_rm32) and (isrm32(paramtype1)) then
-    begin
-      //r/m32,
-      if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
-      begin
-        //no 2nd parameter so it is 'opcode r/m32'
-        addopcode(bytes,j);
-        result:=createmodrm(bytes,eoToReg(opcodes[j].opcode1),parameter1);
-        exit;
-      end;
-
-      if (opcodes[j].paramtype2=par_1) and (paramtype2=ttValue) and (v=1) then
-      begin
-        addopcode(bytes,j);
-        result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
-        exit;
-      end;
-
-
-      if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
-      begin
-        //rm32,imm8
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-
-          if (vtype>8) or (opcodes[j].signed and (signedvtype>8)) then
-          begin
-            //the user requests a bigger than 8-bit value, so see if there is also a rm32,imm32 (there are no r/m32,imm16)
-            k:=startoflist;
-            while k<=endoflist do
-            begin
-              if opcodes[k].mnemonic<>tokens[mnemonic] then break;
-              if ((opcodes[k].paramtype1=par_rm32) and (opcodes[k].paramtype2=par_imm32)) and ((opcodes[k].paramtype3=par_noparam) and (parameter3='')) then
-              begin
-                //yes, there is
-                addopcode(bytes,k);
-                createmodrm(bytes,eoToReg(opcodes[k].opcode1),parameter1);
-                adddword(bytes,v);
-                result:=true;
-                exit;
-              end;
-              inc(k);
-            end;
-          end;
-
-          //r/m32,imm8
-          addopcode(bytes,j);
-          createmodrm(bytes,eoToReg(opcodes[j].opcode1),parameter1);
-          add(bytes,[byte(v)]);
-          result:=true;
-          exit;
-        end;
-      end;
-
-
-      if (opcodes[j].paramtype2=par_imm32) and (paramtype2=ttValue) then
-      begin
-        //r/m32,imm
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          if signedvtype=8 then
-          begin
-            //see if there is a r/m32,imm8 (or if this is the one) (optimisation)
-            k:=startoflist;
-            while k<=endoflist do
-            begin
-              if opcodes[k].mnemonic<>tokens[mnemonic] then break; //nope, so continue with r/m,imm16
-              if ((opcodes[k].paramtype1=par_rm32) and (opcodes[k].paramtype2=par_imm8)) and ((opcodes[k].paramtype3=par_noparam) and (parameter3='')) and ((not opcodes[k].signed) or (signedvtype=8)) then
-              begin
-                //yes, there is
-                addopcode(bytes,k);
-                createmodrm(bytes,eoToReg(opcodes[k].opcode1),parameter1);
-                add(bytes,[byte(v)]);
-                result:=true;
-                exit;
-              end;
-              inc(k);
-            end;
-          end;
-          //no there's none
-          addopcode(bytes,j);
-          createmodrm(bytes,eoToReg(opcodes[j].opcode1),parameter1);
-          adddword(bytes,v);
-          result:=true;
-          exit;
-        end;
-      end;
-
-      if (opcodes[j].paramtype2=par_cl) and (parameter2='CL') then
-      begin
-        //rm32,cl
-        addopcode(bytes,j);
-        result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
-        exit;
-      end;
-
-
-      if (opcodes[j].paramtype2=par_r32) and (paramtype2=ttRegister32bit) then
-      begin
-        //r/m32,r32
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter2),parameter1);
+          result:=createmodrm(bytes,getreg(parameter1),parameter2);
           exit;
         end;
 
-        if (opcodes[j].paramtype3=par_cl) and (parameter3='CL') then
+        if (opcodes[j].paramtype2=par_xmm_m128) and (isxmm_m128(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='['))) then
         begin
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter2),parameter1);
-          exit;
-        end;
-
-        if (opcodes[j].paramtype3=par_imm8) and (paramtype3=ttValue) then
-        begin
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter2),parameter1);
-          add(bytes,[v]);
-          exit;
-        end;
-      end;
-
-      if (opcodes[j].paramtype2=par_mm) and (paramtype2=ttRegistermm) then
-      begin
-        //r32/m32,mm,
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          //r32/m32,mm
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter2), parameter1);
-
-        end;
-
-      end;
-
-      if (opcodes[j].paramtype2=par_xmm) and (paramtype2=ttRegisterxmm) then
-      begin
-        //r32/m32,xmm,  (movd for example)
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          //r32/m32,xmm
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter2), parameter1);
-
-        end;
-
-      end;
-    end;
-
-    if (opcodes[j].paramtype1=par_mm) and (paramtype1=ttRegistermm) then
-    begin
-      //mm,xxxxx
-      if (opcodes[j].paramtype2=par_mm) and (paramtype2=ttRegistermm) then
-      begin
-        addopcode(bytes,j);
-        result:=createmodrm(bytes,getreg(parameter1),parameter2);
-        exit;
-      end;
-
-      if (opcodes[j].paramtype2=par_xmm) and (paramtype2=ttRegisterxmm) then
-      begin
-        //mm,xmm
-        addopcode(bytes,j);
-        result:=createmodrm(bytes,getreg(parameter1),parameter2);
-        exit;
-      end;
-
-      if (opcodes[j].paramtype2=par_r32_m16) and ( (paramtype1=ttRegister32bit) or (paramtype2=ttMemorylocation16) or ismemorylocationdefault(parameter2) ) then
-      begin
-        //mm,r32/m16,
-        if (opcodes[j].paramtype3=par_imm8) and (paramtype3=ttValue) then
-        begin
-          //imm8
+          //mm,xmm/m128
           addopcode(bytes,j);
           result:=createmodrm(bytes,getreg(parameter1),parameter2);
           exit;
         end;
       end;
 
-      if (opcodes[j].paramtype2=par_rm32) and (isrm32(paramtype2)) then
+      par_mm_m64: if (ismm_m64(paramtype1) or ((paramtype1=ttMemorylocation32) and (parameter1[1]='['))) then
       begin
-        //mm,rm32
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+        if (opcodes[j].paramtype2=par_mm) and (paramtype2=ttRegistermm) then
         begin
-          //xmm,rm32
+          //mm/m64, mm
+          addopcode(bytes,j);
+          result:=createmodrm(bytes,getreg(parameter2),parameter1);
+          exit;
+        end;
+      end;
+
+      par_xmm_m64: if (isxmm_m64(paramtype1) or ((paramtype1=ttMemorylocation32) and (parameter1[1]='[')))  then
+      begin
+        //xmm/m64,
+        if (opcodes[j].paramtype2=par_xmm) and (paramtype2=ttRegisterxmm) then
+        begin
+          //xmm/m64, xmm
+          addopcode(bytes,j);
+          result:=createmodrm(bytes,getreg(parameter2),parameter1);
+          exit;
+        end;
+      end;
+
+      par_xmm_m128: if (isxmm_m128(paramtype1) or ((paramtype1=ttMemorylocation32) and (parameter1[1]='[')))  then
+      begin
+        //xmm/m128,
+        if (opcodes[j].paramtype2=par_xmm) and (paramtype2=ttRegisterxmm) then
+        begin
+          //xmm/m128, xmm
+          addopcode(bytes,j);
+          result:=createmodrm(bytes,getreg(parameter2),parameter1);
+          exit;
+        end;
+      end;
+
+      par_xmm: if (paramtype1=ttRegisterxmm) then
+      begin
+        if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
+        begin
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
+            add(bytes,[v]);
+            exit;
+          end;
+        end;
+
+        if (opcodes[j].paramtype2=par_mm) and (paramtype2=ttRegistermm) then
+        begin
+          //xmm,xmm
           addopcode(bytes,j);
           result:=createmodrm(bytes,getreg(parameter1),parameter2);
           exit;
         end;
-      end;
 
 
-
-
-      if (opcodes[j].paramtype2=par_xmm_m32) and (isxmm_m32(paramtype2)) then
-      begin
-        //mm,xmm/m32
-        addopcode(bytes,j);
-        result:=createmodrm(bytes,getreg(parameter1),parameter2);
-        exit;
-      end;
-
-      if (opcodes[j].paramtype2=par_mm_m64) and (ismm_m64(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='['))) then
-      begin
-        //mm,mm/m64
-        addopcode(bytes,j);
-        result:=createmodrm(bytes,getreg(parameter1),parameter2);
-        exit;
-      end;
-
-      if (opcodes[j].paramtype2=par_xmm_m64) and (isxmm_m64(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='['))) then
-      begin
-        //mm,xmm/m64
-        addopcode(bytes,j);
-        result:=createmodrm(bytes,getreg(parameter1),parameter2);
-        exit;
-      end;
-
-      if (opcodes[j].paramtype2=par_xmm_m128) and (isxmm_m128(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='['))) then
-      begin
-        //mm,xmm/m128
-        addopcode(bytes,j);
-        result:=createmodrm(bytes,getreg(parameter1),parameter2);
-        exit;
-      end;
-    end;
-
-    if (opcodes[j].paramtype1=par_mm_m64) and (ismm_m64(paramtype1) or ((paramtype1=ttMemorylocation32) and (parameter1[1]='['))) then
-    begin
-      if (opcodes[j].paramtype2=par_mm) and (paramtype2=ttRegistermm) then
-      begin
-        //mm/m64, mm
-        addopcode(bytes,j);
-        result:=createmodrm(bytes,getreg(parameter2),parameter1);
-        exit;
-      end;
-    end;
-
-    if (opcodes[j].paramtype1=par_xmm_m64) and (isxmm_m64(paramtype1) or ((paramtype1=ttMemorylocation32) and (parameter1[1]='[')))  then
-    begin
-      //xmm/m64,
-      if (opcodes[j].paramtype2=par_xmm) and (paramtype2=ttRegisterxmm) then
-      begin
-        //xmm/m64, xmm
-        addopcode(bytes,j);
-        result:=createmodrm(bytes,getreg(parameter2),parameter1);
-        exit;
-      end;
-    end;
-
-    if (opcodes[j].paramtype1=par_xmm_m128) and (isxmm_m128(paramtype1) or ((paramtype1=ttMemorylocation32) and (parameter1[1]='[')))  then
-    begin
-      //xmm/m128,
-      if (opcodes[j].paramtype2=par_xmm) and (paramtype2=ttRegisterxmm) then
-      begin
-        //xmm/m128, xmm
-        addopcode(bytes,j);
-        result:=createmodrm(bytes,getreg(parameter2),parameter1);
-        exit;
-      end;
-    end;
-
-
-
-    if (opcodes[j].paramtype1=par_xmm) and (paramtype1=ttRegisterxmm) then
-    begin
-      //XMM,
-      if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
-      begin
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+        if (opcodes[j].paramtype2=par_xmm) and (paramtype2=ttRegisterxmm) then
         begin
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
-          add(bytes,[v]);
-          exit;
-        end;
-      end;
-
-      if (opcodes[j].paramtype2=par_mm) and (paramtype2=ttRegistermm) then
-      begin
-        //xmm,xmm
-        addopcode(bytes,j);
-        result:=createmodrm(bytes,getreg(parameter1),parameter2);
-        exit;
-      end;
-
-
-      if (opcodes[j].paramtype2=par_xmm) and (paramtype2=ttRegisterxmm) then
-      begin
-        //xmm,xmm
-        addopcode(bytes,j);
-        result:=createmodrm(bytes,getreg(parameter1),parameter2);
-        exit;
-      end;
-
-      if (opcodes[j].paramtype2=par_m64) and ((paramtype2=ttMemorylocation64) or (ismemorylocationdefault(parameter2))) then
-      begin
-        addopcode(bytes,j);
-        result:=createmodrm(bytes,getreg(parameter1),parameter2);
-        exit;
-      end;
-
-      if (opcodes[j].paramtype2=par_rm32) and (isrm32(paramtype2)) then
-      begin
-        //xmm,rm32,
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          //xmm,rm32
+          //xmm,xmm
           addopcode(bytes,j);
           result:=createmodrm(bytes,getreg(parameter1),parameter2);
           exit;
         end;
-      end;
 
-      if (opcodes[j].paramtype2=par_mm_m64) and (ismm_m64(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='['))) then
-      begin
-        //xmm,mm/m64
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+        if (opcodes[j].paramtype2=par_m64) and ((paramtype2=ttMemorylocation64) or (ismemorylocationdefault(parameter2))) then
+        begin
+          addopcode(bytes,j);
+          result:=createmodrm(bytes,getreg(parameter1),parameter2);
+          exit;
+        end;
+
+        if (opcodes[j].paramtype2=par_rm32) and (isrm32(paramtype2)) then
+        begin
+          //xmm,rm32,
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            //xmm,rm32
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter1),parameter2);
+            exit;
+          end;
+        end;
+
+        if (opcodes[j].paramtype2=par_mm_m64) and (ismm_m64(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='['))) then
         begin
           //xmm,mm/m64
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter1),parameter2);
-          exit;
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            //xmm,mm/m64
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter1),parameter2);
+            exit;
+          end;
         end;
+
+        if (opcodes[j].paramtype2=par_xmm_m32) and isxmm_m32(paramtype2) then
+        begin
+          //even if the user didn't intend for it to be xmm,m64 it will be, that'll teach the lazy user to forget opperand size
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            //xmm,xmm/m32
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter1),parameter2);
+            exit;
+          end;
+
+          if (opcodes[j].paramtype3=par_imm8) and (paramtype3=ttValue) then
+          begin
+            addopcode(bytes,j);
+            createmodrm(bytes,getreg(parameter1),parameter2);
+            add(bytes,[v]);
+            result:=true;
+            exit;
+          end;
+        end;
+
+        if (opcodes[j].paramtype2=par_xmm_m64) and (isxmm_m64(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='[')))  then
+        begin
+          //even if the user didn't intend for it to be xmm,m64 it will be, that'll teach the lazy user to forget opperand size
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            //xmm,xmm/m64
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter1),parameter2);
+            exit;
+          end;
+
+          if (opcodes[j].paramtype3=par_imm8) and (paramtype3=ttValue) then
+          begin
+            addopcode(bytes,j);
+            createmodrm(bytes,getreg(parameter1),parameter2);
+            add(bytes,[v]);
+            result:=true;
+            exit;
+          end;
+        end;
+
+        if (opcodes[j].paramtype2=par_xmm_m128) and (isxmm_m128(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='[')))  then
+        begin
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            //xmm,xmm/m128
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter1),parameter2);
+            exit;
+          end;
+
+          if (opcodes[j].paramtype3=par_imm8) and (paramtype3=ttValue) then
+          begin
+            addopcode(bytes,j);
+            createmodrm(bytes,getreg(parameter1),parameter2);
+            add(bytes,[v]);
+            result:=true;
+            exit;
+          end;
+        end;
+
       end;
 
-      if (opcodes[j].paramtype2=par_xmm_m32) and isxmm_m32(paramtype2) then
+      par_m8: if ((paramtype1=ttMemorylocation8) or ismemorylocationdefault(parameter1)) then
       begin
-        //even if the user didn't intend for it to be xmm,m64 it will be, that'll teach the lazy user to forget opperand size
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+        //m8,xxx
+        if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
         begin
-          //xmm,xmm/m32
+          //m8
+          //                                 //check if it is especially designed to be 32 bit, or if it is a default anser
+          //verified, it is a 8 bit location, and if it was detected as 8 it was due to defaulting to 32
           addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter1),parameter2);
-          exit;
-        end;
-
-        if (opcodes[j].paramtype3=par_imm8) and (paramtype3=ttValue) then
-        begin
-          addopcode(bytes,j);
-          createmodrm(bytes,getreg(parameter1),parameter2);
-          add(bytes,[v]);
-          result:=true;
+          result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
           exit;
         end;
       end;
 
-      if (opcodes[j].paramtype2=par_xmm_m64) and (isxmm_m64(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='[')))  then
-      begin
-        //even if the user didn't intend for it to be xmm,m64 it will be, that'll teach the lazy user to forget opperand size
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          //xmm,xmm/m64
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter1),parameter2);
-          exit;
-        end;
-
-        if (opcodes[j].paramtype3=par_imm8) and (paramtype3=ttValue) then
-        begin
-          addopcode(bytes,j);
-          createmodrm(bytes,getreg(parameter1),parameter2);
-          add(bytes,[v]);
-          result:=true;
-          exit;
-        end;
-      end;
-
-      if (opcodes[j].paramtype2=par_xmm_m128) and (isxmm_m128(paramtype2) or ((paramtype2=ttMemorylocation32) and (parameter2[1]='[')))  then
-      begin
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          //xmm,xmm/m128
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter1),parameter2);
-          exit;
-        end;
-
-        if (opcodes[j].paramtype3=par_imm8) and (paramtype3=ttValue) then
-        begin
-          addopcode(bytes,j);
-          createmodrm(bytes,getreg(parameter1),parameter2);
-          add(bytes,[v]);
-          result:=true;
-          exit;
-        end;
-      end;
-
-    end;
-
-    //m8
-    if (opcodes[j].paramtype1=par_m8) and ((paramtype1=ttMemorylocation8) or ismemorylocationdefault(parameter1)) then
-    begin
-      //m8,xxx
-      if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
-      begin
-        //m8
-        //                                 //check if it is especially designed to be 32 bit, or if it is a default anser
-        //verified, it is a 8 bit location, and if it was detected as 8 it was due to defaulting to 32
-        addopcode(bytes,j);
-        result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
-        exit;
-      end;
-    end;
-
-    //m16
-    if (opcodes[j].paramtype1=par_m16) and (paramtype1=ttMemorylocation16) then //no check if it is 16 if it is a [xxx], default is 32
-    begin
+      par_m16: if ((paramtype1=ttMemorylocation16) or ismemorylocationdefault(parameter1)) then
       if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
       begin
         //opcode+rd
@@ -5227,266 +5209,267 @@ begin
         result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
         exit;
       end;
-    end;
 
-    //m32
-    if (opcodes[j].paramtype1=par_m32) and (paramtype1=ttMemorylocation32) then //no check if it is 16 if it is a [xxx], default is 32
-    begin
-      if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
+      par_m32: if (paramtype1=ttMemorylocation32) then
       begin
-        addopcode(bytes,j);
-        result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
-        exit;
-      end;
-
-      if (opcodes[j].paramtype2=par_r32) then
-      begin
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+        if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
         begin
           addopcode(bytes,j);
           result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
           exit;
         end;
-      end;
 
-      if (opcodes[j].paramtype2=par_xmm) and ((paramtype2=ttRegisterxmm) or ismemorylocationdefault(parameter2)  ) then
-      begin
-        if (opcodes[j].paramtype3=par_noparam) or (parameter3='') then
+        if (opcodes[j].paramtype2=par_r32) then
         begin
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter2),parameter1);
-          exit;
-        end;
-      end;      
-    end;
-
-
-    if (opcodes[j].paramtype1=par_m64) and ((paramtype1=ttMemorylocation64) or (paramtype1=ttMemorylocation32)  ) then
-    begin
-      //m64,
-      if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
-      begin
-        //m64
-        //
-
-        if (gettokentype(parameter1,parameter2)=ttMemoryLocation64) then
-        begin
-          //verified, it is a 64 bit location, and if it was detected as 32 it was due to defaulting to 32
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
-          exit;
-        end;
-      end;
-
-      if (opcodes[j].paramtype2=par_xmm) and ((paramtype2=ttRegisterxmm) or ismemorylocationdefault(parameter2)  ) then
-      begin
-        if (opcodes[j].paramtype3=par_noparam) or (parameter3='') then
-        begin
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter2),parameter1);
-          exit;
-        end;
-      end;
-
-      if (opcodes[j].paramtype2=par_xmm) and ((paramtype2=ttRegisterxmm) or ismemorylocationdefault(parameter2)  ) then
-      begin
-        if (opcodes[j].paramtype3=par_noparam) or (parameter3='') then
-        begin
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter2),parameter1);
-          exit;
-        end;
-      end;
-
-    end;
-
-    if (opcodes[j].paramtype1=par_m80) and ((paramtype1=ttMemorylocation80) or ((paramtype1=ttMemorylocation32) and (parameter1[1]='[')))  then
-    begin
-      if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
-      begin
-        addopcode(bytes,j);
-        result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
-        exit;
-      end;
-    end;
-
-    if (opcodes[j].paramtype1=par_m128) and ((paramtype1=ttMemorylocation128) or (ismemorylocationdefault(parameter1))) then
-    begin
-      if (opcodes[j].paramtype2=par_xmm) and (paramtype2=ttRegisterxmm) then
-      begin
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          addopcode(bytes,j);
-          result:=createmodrm(bytes,getreg(parameter2),parameter1);
-          exit;
-        end;
-      end;
-    end;
-
-    if (opcodes[j].paramtype1=par_rel8) and (paramtype1=ttValue) then
-    begin
-      if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
-      begin
-        //rel8
-
-        if (parameter1[1] in ['-','+']) then
-        begin
-          if ((not overrideShort) and (vtype>8)) or (overrideLong) then
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
           begin
-            //see if there is a 32 bit equivalent opcode (notice I dont do rel 16 because that'll completly screw up eip)
-            k:=startoflist;
-            while (k<=opcodecount) and (opcodes[k].mnemonic=tokens[mnemonic]) do
-            begin
-              if (opcodes[k].paramtype1=par_rel32) and (opcodes[k].paramtype2=par_noparam) then
-              begin
-                //yes, there is a 32 bit version
-                addopcode(bytes,k);
-                adddword(bytes,v);
-                result:=true;
-                exit;
-              end;
-              inc(k);
-            end;
-
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
+            exit;
           end;
+        end;
 
-
-          addopcode(bytes,j);
-          add(bytes,[v]);
-          result:=true;
-          exit;
-        end
-        else
+        if (opcodes[j].paramtype2=par_xmm) and ((paramtype2=ttRegisterxmm) or ismemorylocationdefault(parameter2)  ) then
         begin
-          //user typed in a direct address
-
-//        if (not overrideShort) and ((OverrideLong) or (valueTotype(      v-address-       (opcodes[j].bytes+1) )>8) ) then
-          if (not overrideShort) and ((OverrideLong) or (valueToType(DWord(v-address-Integer(opcodes[j].bytes+1)))>8) ) then
+          if (opcodes[j].paramtype3=par_noparam) or (parameter3='') then
           begin
-            //the user tried to find a relative address out of it's reach
-            //see if there is a 32 bit version of the opcode
-            k:=startoflist;
-            while (k<=opcodecount) and (opcodes[k].mnemonic=tokens[mnemonic]) do
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter2),parameter1);
+            exit;
+          end;
+        end;
+      end;
+
+      par_m64: if (paramtype1=ttMemorylocation64) or (paramtype1=ttMemorylocation32)  then
+      begin
+        //m64,
+        if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
+        begin
+          //m64
+          //
+
+          if (gettokentype(parameter1,parameter2)=ttMemoryLocation64) then
+          begin
+            //verified, it is a 64 bit location, and if it was detected as 32 it was due to defaulting to 32
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
+            exit;
+          end;
+        end;
+
+        if (opcodes[j].paramtype2=par_xmm) and ((paramtype2=ttRegisterxmm) or ismemorylocationdefault(parameter2)  ) then
+        begin
+          if (opcodes[j].paramtype3=par_noparam) or (parameter3='') then
+          begin
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter2),parameter1);
+            exit;
+          end;
+        end;
+
+        if (opcodes[j].paramtype2=par_xmm) and ((paramtype2=ttRegisterxmm) or ismemorylocationdefault(parameter2)  ) then
+        begin
+          if (opcodes[j].paramtype3=par_noparam) or (parameter3='') then
+          begin
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter2),parameter1);
+            exit;
+          end;
+        end;
+
+      end;
+
+      par_m80: if ((paramtype1=ttMemorylocation80) or ((paramtype1=ttMemorylocation32) and (parameter1[1]='[')))  then
+      begin
+        if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
+        begin
+          addopcode(bytes,j);
+          result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
+          exit;
+        end;
+      end;
+
+      par_m128: if ((paramtype1=ttMemorylocation128) or (ismemorylocationdefault(parameter1))) then
+      begin
+        if (opcodes[j].paramtype2=par_xmm) and (paramtype2=ttRegisterxmm) then
+        begin
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,getreg(parameter2),parameter1);
+            exit;
+          end;
+        end;
+      end;
+
+      par_rel8: if (paramtype1=ttValue) then
+      begin
+        if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
+        begin
+          //rel8
+
+          if (parameter1[1] in ['-','+']) then
+          begin
+            if ((not overrideShort) and (vtype>8)) or (overrideLong) then
             begin
-              if (opcodes[k].paramtype1=par_rel32) and (opcodes[k].paramtype2=par_noparam) then
+              //see if there is a 32 bit equivalent opcode (notice I dont do rel 16 because that'll completly screw up eip)
+              k:=startoflist;
+              while (k<=opcodecount) and (opcodes[k].mnemonic=tokens[mnemonic]) do
               begin
-                //yes, there is a 32 bit version
-                addopcode(bytes,k);
-                adddword(bytes,v-address-(opcodes[k].bytes+4));
-                result:=true;
-                exit;
+                if (opcodes[k].paramtype1=par_rel32) and (opcodes[k].paramtype2=par_noparam) then
+                begin
+                  //yes, there is a 32 bit version
+                  addopcode(bytes,k);
+                  adddword(bytes,v);
+                  result:=true;
+                  exit;
+                end;
+                inc(k);
               end;
-              inc(k);
+
             end;
+
+
+            addopcode(bytes,j);
+            add(bytes,[v]);
+            result:=true;
+            exit;
           end
           else
           begin
-            //8 bit version
-            
+            //user typed in a direct address
+
+  //        if (not overrideShort) and ((OverrideLong) or (valueTotype(      v-address-       (opcodes[j].bytes+1) )>8) ) then
+            if (not overrideShort) and ((OverrideLong) or (valueToType(DWord(v-address-Integer(opcodes[j].bytes+1)))>8) ) then
+            begin
+              //the user tried to find a relative address out of it's reach
+              //see if there is a 32 bit version of the opcode
+              k:=startoflist;
+              while (k<=opcodecount) and (opcodes[k].mnemonic=tokens[mnemonic]) do
+              begin
+                if (opcodes[k].paramtype1=par_rel32) and (opcodes[k].paramtype2=par_noparam) then
+                begin
+                  //yes, there is a 32 bit version
+                  addopcode(bytes,k);
+                  adddword(bytes,v-address-(opcodes[k].bytes+4));
+                  result:=true;
+                  exit;
+                end;
+                inc(k);
+              end;
+            end
+            else
+            begin
+              //8 bit version
+
+              addopcode(bytes,j);
+
+              add(bytes,[v-address-(opcodes[j].bytes+1)]);
+              result:=true;
+              exit;
+            end;
+          end;
+
+        end;
+      end;
+
+      par_rel32:  if (paramtype1=ttValue) then
+      begin
+        if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
+        begin
+          if parameter1[1] in ['-','+'] then
+          begin
+            //opcode rel32
+
+            addopcode(bytes,j);
+            adddword(bytes,v);
+            result:=true;
+            exit;
+          end else
+          begin
+            //user typed in a direct address
             addopcode(bytes,j);
 
-            add(bytes,[v-address-(opcodes[j].bytes+1)]);
+            adddword(bytes,v-address-(opcodes[j].bytes+4));
             result:=true;
             exit;
           end;
         end;
-
       end;
-    end;
 
-    if (opcodes[j].paramtype1=par_rel32) and (paramtype1=ttValue) then
-    begin
-      if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
+      par_st0: if ((parameter1='ST(0)') or (parameter1='ST')) then
       begin
-        if parameter1[1] in ['-','+'] then
+        //st(0),
+        if (opcodes[j].paramtype2=par_st) and (paramtype2=ttRegisterst) then
         begin
-          //opcode rel32
+          //st(0),st(x),
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            if (opcodes[j].opcode1=eo_pi) then
+            begin
+              //opcode+i
+              addopcode(bytes,j);
+              k:=getreg(parameter2);
+              if k>7 then
+              begin
+                rex_b:=true;
+                k:=k and 7;
+              end;
+              inc(bytes[length(bytes)-1],k);
+              result:=true;
+              exit;
+            end;
 
+          end;
+        end;
+      end;
+
+      par_st:  if (paramtype1=ttRegisterst) then
+      begin
+        //st(x),
+        if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
+        begin
+          //st(x)
           addopcode(bytes,j);
-          adddword(bytes,v);
+          k:=getreg(parameter1);
+          if k>7 then
+          begin
+            rex_b:=true;
+            k:=k and 7;
+          end;
+          inc(bytes[length(bytes)-1],k);
           result:=true;
           exit;
-        end else
-        begin
-          //user typed in a direct address
-          addopcode(bytes,j);
-
-          adddword(bytes,v-address-(opcodes[j].bytes+4));
-          result:=true;
-          exit;
         end;
-      end;
-    end;
 
-
-    if (opcodes[j].paramtype1=par_st0) and ((parameter1='ST(0)') or (parameter1='ST')) then
-    begin
-      //st(0),
-      if (opcodes[j].paramtype2=par_st) and (paramtype2=ttRegisterst) then
-      begin
-        //st(0),st(x),
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+        if (opcodes[j].paramtype2=par_st0) and ((parameter2='ST(0)') or (parameter2='ST')) then
         begin
-          if (opcodes[j].opcode1=eo_pi) then
+          //st(x),st(0)
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
           begin
-            //opcode+i
-            addopcode(bytes,j);
-            k:=getreg(parameter2);
-            if k>7 then
+            if (opcodes[j].opcode1=eo_pi) then
             begin
-              rex_b:=true;
-              k:=k and 7;
+              //opcode+i
+              addopcode(bytes,j);
+              k:=getreg(parameter1);
+              if k>7 then
+              begin
+                rex_b:=true;
+                k:=k and 7;
+              end;
+              inc(bytes[length(bytes)-1],k);
+              result:=true;
+              exit;
             end;
-            inc(bytes[length(bytes)-1],k);
-            result:=true;
-            exit;
-          end;
 
+          end;
         end;
       end;
+
     end;
 
-    if (opcodes[j].paramtype1=par_st) and (paramtype1=ttRegisterst) then
-    begin
-      //st(x),
-      if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
-      begin
-        //st(x)
-        addopcode(bytes,j);
-        k:=getreg(parameter1);
-        if k>7 then
-        begin
-          rex_b:=true;
-          k:=k and 7;
-        end;
-        inc(bytes[length(bytes)-1],k);
-        result:=true;
-        exit;
-      end;
 
-      if (opcodes[j].paramtype2=par_st0) and ((parameter2='ST(0)') or (parameter2='ST')) then
-      begin
-        //st(x),st(0)
-        if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
-        begin
-          if (opcodes[j].opcode1=eo_pi) then
-          begin
-            //opcode+i
-            addopcode(bytes,j);
-            k:=getreg(parameter1);
-            if k>7 then
-            begin
-              rex_b:=true;
-              k:=k and 7;
-            end;
-            inc(bytes[length(bytes)-1],k);
-            result:=true;
-            exit;
-          end;
 
-        end;
-      end;
-    end;
 
 
 
