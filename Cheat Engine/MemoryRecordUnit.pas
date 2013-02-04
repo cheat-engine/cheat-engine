@@ -474,6 +474,11 @@ begin
       a:=tempnode.Attributes.GetNamedItem('moRecursiveSetValue');
       if (a<>nil) and (a.TextContent='1') then
         foptions:=foptions+[moRecursiveSetValue];
+
+      a:=tempnode.Attributes.GetNamedItem('moAllowManualCollapseAndExpand');
+      if (a<>nil) and (a.TextContent='1') then
+        foptions:=foptions+[moAllowManualCollapseAndExpand];
+
     end;
   end;
 
@@ -783,6 +788,15 @@ begin
       a.TextContent:='1';
       opt.Attributes.SetNamedItem(a);
     end;
+
+    if moAllowManualCollapseAndExpand in options then
+    begin
+      a:=doc.CreateAttribute('moAllowManualCollapseAndExpand');
+      a.TextContent:='1';
+      opt.Attributes.SetNamedItem(a);
+    end;
+
+
   end;
 
   if showAsHex then
