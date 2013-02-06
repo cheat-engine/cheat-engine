@@ -104,13 +104,15 @@ type
     function MoveTo(xpos, ypos: integer): boolean;
     procedure setFormat(format: integer);
     procedure setPitch(pitch: integer);
-    procedure setPointer(address: ptruint; p: pointer; size: integer);
+    procedure setPointer(address: ptruint); overload;
+    procedure setPointer(address: ptruint; p: pointer; size: integer); overload;
     procedure update; override;
     procedure repaint; override;
     procedure render;
 
     function GetTopLeftPixelCoordinates: TPoint; //returns the unzoomed coordinates of the selected pixel
     function GetBottomRightPixelCoordinates: TPoint;
+    function getTopLeftAddress: ptruint;
 
 
     property onData: TOnDataEvent read fOnData write fOnData;
@@ -123,6 +125,13 @@ type
 
 
 implementation
+
+procedure TMemDisplay.setPointer(address: ptruint);
+begin
+  self.address:=address;
+  self.p:=nil;
+  size:=-1;
+end;
 
 procedure TMemDisplay.setPointer(address: ptruint; p: pointer; size: integer);
 begin
@@ -158,6 +167,17 @@ begin
   render;
 end;
 
+function TMemdisplay.getTopLeftAddress: ptruint;
+var c: tpoint;
+begin
+  c:=GetTopLeftPixelCoordinates;
+
+  result:=self.address+c.y*fPitch+c.x*fPixelByteSize;
+
+
+//  address:=
+end;
+
 function TMemdisplay.GetTopLeftPixelCoordinates: TPoint;
 begin
   result.x:=trunc(-fxpos / fzoom);
@@ -186,6 +206,8 @@ var
 
   row: single;
 begin
+  if fPixelByteSize<=0 then exit; //not yet initialized
+
   visiblepixelwidth:=trunc(Width / fZoom);
   visiblerows:=trunc(height / fzoom);
   bytesperrow:=fPitch;
@@ -198,13 +220,21 @@ begin
   if fXpos>0 then
     fXpos:=0;
 
+
+
+  a:=address;
+
   //check if the ypos is outside the allowed region
 
   row:=fYpos / fZoom;
-  if row*bytesperrow>size-((visiblerows*bytesperrow)) then //outside
+  if (row>0) and (row*bytesperrow>size) then //-(visiblerows*bytesperrow)) then //outside
   begin
+    preferedsize:=visiblerows*bytesperrow;
+
     if assigned(fOnData) and fOnData(a,preferedsize,newp,newsize) then
     begin
+      if newsize<preferedsize then raise exception.create('OnData returned a too small memory region. It should have returned false instead');
+
       address:=a;
       p:=newp;
       size:=newsize;
@@ -215,6 +245,8 @@ begin
       f:=f*fZoom;
 
       fypos:=trunc(fzoom-f);
+      if isDragging then
+        RecenterDrag;
 
       LimitCoordinates;
     end
@@ -242,9 +274,10 @@ begin
 
   if fYpos<0 then
   begin
+    preferedsize:=bytesPerRow * height;
     a:=self.address-trunc((-fypos / fzoom)*bytesperrow);
 
-    preferedsize:=bytesPerRow * height;
+
 
     if assigned(fOnData) and fOnData(a,preferedsize,newp,newsize) then
     begin
@@ -257,6 +290,8 @@ begin
       f:=abs(f-trunc(f));
       f:=f*fZoom;
       fypos:=trunc(fZoom-f);
+      if isDragging then
+        RecenterDrag;
 
       LimitCoordinates //recheck with the new ypos. (in case of size)
     end
@@ -533,11 +568,15 @@ var
 
 begin
   QueryPerformanceCounter(before);
+
   //render the memory bitmap
   if parent=nil then exit;
 
   if hasfont=false then
     setupFont;
+
+  if (size<=0) or (p=nil) then
+    exit;
 
   wglMakeCurrent(canvas.handle, hglrc);
 
@@ -722,10 +761,10 @@ begin
   WindowProc:=wndproc;
 
 
+  //some default inits
   fZoom:=32;
-  fPixelFormat:=GL_RGBA;
-
-
+  setFormat(GL_RGBA);
+  setPitch(128);
 
 
   updater:=TIdleTimer.Create(self);
