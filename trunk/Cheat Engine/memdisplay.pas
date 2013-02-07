@@ -275,7 +275,7 @@ begin
   if fYpos<0 then
   begin
     preferedsize:=bytesPerRow * height;
-    a:=self.address-trunc(-fypos *bytesperrow);
+    a:=self.address-ceil(-(fypos/fzoom)) *bytesperrow;
 
 
 
