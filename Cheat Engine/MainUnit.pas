@@ -841,7 +841,8 @@ uses mainunit2, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup
   formProcessInfo
   , PasteTableentryFRM, pointerscannerfrm, PointerscannerSettingsFrm,
   frmFloatingPointPanelUnit,
-  pluginexports, DBK32functions, frmUltimapUnit, frmSetCrosshairUnit, StructuresFrm2;
+  pluginexports, DBK32functions, frmUltimapUnit, frmSetCrosshairUnit, StructuresFrm2,
+  frmMemoryViewExUnit;
 
 resourcestring
   rsInvalidStartAddress = 'Invalid start address: %s';
@@ -7514,7 +7515,8 @@ var t: TD3DHook_Texture;
   exportlist: pchar;
   max: integer;
 begin
-   TMemoryBrowser.Create(application).show;
+  TfrmMemoryViewEx.create(self).show;
+
 {  memorybrowser.hexview.address:=GetStackStart;
   memorybrowser.show;}
 

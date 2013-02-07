@@ -1,0 +1,76 @@
+object frmMemoryViewEx: TfrmMemoryViewEx
+  Left = 502
+  Height = 408
+  Top = 173
+  Width = 885
+  Caption = 'Graphical Memory View '
+  ClientHeight = 408
+  ClientWidth = 885
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  LCLVersion = '1.1'
+  object Panel1: TPanel
+    Left = 0
+    Height = 274
+    Top = 16
+    Width = 680
+    BevelOuter = bvNone
+    ClientHeight = 274
+    ClientWidth = 680
+    TabOrder = 0
+    object Edit2: TEdit
+      Left = 510
+      Height = 23
+      Top = 273
+      Width = 80
+      TabOrder = 0
+      Text = 'Edit2'
+    end
+  end
+  object lblAddress: TLabel
+    Left = 0
+    Height = 15
+    Top = 0
+    Width = 45
+    Caption = 'Address:'
+    ParentColor = False
+  end
+  object TrackBar1: TTrackBar
+    Left = 696
+    Height = 25
+    Top = 64
+    Width = 136
+    Position = 0
+    TabOrder = 1
+  end
+  object Edit1: TEdit
+    Left = 696
+    Height = 23
+    Hint = 'Number of bytes a row exists out'
+    Top = 40
+    Width = 80
+    TabOrder = 2
+    Text = '128'
+  end
+  object Label2: TLabel
+    Left = 696
+    Height = 15
+    Top = 24
+    Width = 27
+    Caption = 'Pitch'
+    ParentColor = False
+  end
+  object Label1: TLabel
+    Left = 210
+    Height = 15
+    Top = 0
+    Width = 34
+    Caption = 'Label1'
+    ParentColor = False
+  end
+  object Timer1: TTimer
+    OnTimer = Timer1Timer
+    left = 718
+    top = 136
+  end
+end

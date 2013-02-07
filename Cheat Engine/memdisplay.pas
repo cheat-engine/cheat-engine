@@ -223,13 +223,17 @@ begin
 
 
   a:=address;
+  preferedsize:=(visiblerows+16)*bytesperrow;
 
   //check if the ypos is outside the allowed region
 
   row:=fYpos / fZoom;
-  if (row>0) and (row*bytesperrow>size) then //-(visiblerows*bytesperrow)) then //outside
+  if (row>0) and (row*bytesperrow>(size-(visiblerows*bytesperrow))) then //-(visiblerows*bytesperrow)) then //outside
   begin
-    preferedsize:=visiblerows*bytesperrow;
+
+
+    a:=getTopLeftAddress;
+//    inc(a,row*bytesperror-(visiblerows*bytesperrow));
 
     if assigned(fOnData) and fOnData(a,preferedsize,newp,newsize) then
     begin
@@ -274,7 +278,6 @@ begin
 
   if fYpos<0 then
   begin
-    preferedsize:=bytesPerRow * height;
     a:=self.address-ceil(-(fypos/fzoom)) *bytesperrow;
 
 
@@ -648,7 +651,7 @@ begin
   begin
     maxheight:=size div fPitch;
 
-    maxheight:=min(fypos+height, maxheight); //limit by the height
+    maxheight:=min(ceil((height+fypos) / fzoom), maxheight ); //limit by the height
 
     row:=fypos / fZoom;
     i:=fpitch*trunc(row);
