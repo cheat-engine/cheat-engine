@@ -6351,9 +6351,21 @@ begin
 
   if messagedlg(strConfirmUndo, mtConfirmation, [mbYes, mbNo], 0) = mrYes then
   begin
+    if PreviousResults<>nil then
+      freeandnil(PreviousResults);
+
+
     foundlist.Deinitialize;
     memscan.undolastscan;
     foundcount := foundlist.Initialize(getvartype, memscan.CustomType);
+
+    try
+      previousresults:=TSavedScanHandler.create(memscan.GetScanFolder, currentlySelectedSavedResultname);
+      previousresults.AllowNotFound:=true;
+      PreviousResults.AllowRandomAccess:=true;
+    except
+    end;
+
     undoscan.Enabled := False;
   end;
 end;
