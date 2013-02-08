@@ -8164,7 +8164,17 @@ begin
     raise Exception.Create(Format(rsIsNotAValidSpeed, [editSH2.Text]));
 
   if speedHack <> nil then
+  begin
+
+    if speedhack.processid<>processid then
+    begin
+      //the process switched
+      FreeAndNil(speedhack);  //recreate
+      speedhack := TSpeedhack.Create;
+    end;
+
     speedhack.setSpeed(newspeed);
+  end;
 end;
 
 procedure TMainForm.cbSpeedhackClick(Sender: TObject);
