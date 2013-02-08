@@ -678,6 +678,8 @@ begin
   symhandler.waitforsymbolsloaded;
 
 {$ifndef standalonetrainer}
+  if pluginhandler=nil then exit; //Error. Cheat Engine is not properly configured
+
   pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 0); //tell the plugins that an autoassembler script is about to get executed
 {$endif}
 

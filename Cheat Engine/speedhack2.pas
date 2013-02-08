@@ -9,10 +9,11 @@ uses Classes,LCLIntf, SysUtils, NewKernelHandler,CEFuncProc, symbolhandler,
 
 type TSpeedhack=class
   private
-    processid: dword;
+    fProcessId: dword;
     initaddress: ptrUint;
   public
     procedure setSpeed(speed: single);
+    property processid: dword read fProcessId;
     constructor create;
     destructor destroy; override;
   end;
@@ -124,7 +125,7 @@ begin
   end;
 
   setspeed(1);
-  processid:=cefuncproc.processid;
+  fprocessid:=cefuncproc.processid;
 end;
 
 destructor TSpeedhack.destroy;
@@ -132,7 +133,7 @@ var script: tstringlist;
     i: integer;
     x: dword;
 begin
-  if processid=cefuncproc.ProcessID then
+  if fprocessid=cefuncproc.ProcessID then
   begin
 
     try
