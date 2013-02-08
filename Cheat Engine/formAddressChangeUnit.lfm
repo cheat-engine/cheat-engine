@@ -13,12 +13,12 @@ object formAddressChange: TformAddressChange
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.1'
   object Label1: TLabel
     Left = 8
-    Height = 14
+    Height = 13
     Top = 0
-    Width = 42
+    Width = 41
     Caption = 'Address:'
     ParentColor = False
   end
@@ -39,7 +39,7 @@ object formAddressChange: TformAddressChange
     Caption = 'OK'
     Default = True
     OnClick = btnOkClick
-    TabOrder = 1
+    TabOrder = 5
   end
   object btnCancel: TButton
     Left = 104
@@ -49,7 +49,7 @@ object formAddressChange: TformAddressChange
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
-    TabOrder = 2
+    TabOrder = 6
   end
   object cbPointer: TCheckBox
     Left = 8
@@ -58,7 +58,7 @@ object formAddressChange: TformAddressChange
     Width = 53
     Caption = 'Pointer'
     OnChange = cbPointerClick
-    TabOrder = 3
+    TabOrder = 4
   end
   object cbvarType: TComboBox
     Left = 8
@@ -80,7 +80,7 @@ object formAddressChange: TformAddressChange
     )
     OnChange = cbvarTypeChange
     Style = csDropDownList
-    TabOrder = 4
+    TabOrder = 2
     Text = '4 Bytes'
   end
   object pnlExtra: TPanel
@@ -91,7 +91,7 @@ object formAddressChange: TformAddressChange
     BevelOuter = bvNone
     ClientHeight = 95
     ClientWidth = 176
-    TabOrder = 5
+    TabOrder = 3
     Visible = False
     object cbunicode: TCheckBox
       Left = 48
@@ -111,9 +111,9 @@ object formAddressChange: TformAddressChange
     end
     object lengthlabel: TLabel
       Left = 0
-      Height = 14
+      Height = 13
       Top = 0
-      Width = 34
+      Width = 33
       Caption = 'Length'
       ParentColor = False
     end
@@ -129,73 +129,73 @@ object formAddressChange: TformAddressChange
       Visible = False
       object Label4: TLabel
         Left = 6
-        Height = 14
+        Height = 13
         Top = 20
-        Width = 7
+        Width = 6
         Caption = '0'
         ParentColor = False
       end
       object Label5: TLabel
         Left = 22
-        Height = 14
+        Height = 13
         Top = 20
-        Width = 7
+        Width = 6
         Caption = '1'
         ParentColor = False
       end
       object Label6: TLabel
         Left = 45
-        Height = 14
+        Height = 13
         Top = 20
-        Width = 7
+        Width = 6
         Caption = '2'
         ParentColor = False
       end
       object Label7: TLabel
         Left = 66
-        Height = 14
+        Height = 13
         Top = 20
-        Width = 7
+        Width = 6
         Caption = '3'
         ParentColor = False
       end
       object Label8: TLabel
         Left = 86
-        Height = 14
+        Height = 13
         Top = 20
-        Width = 7
+        Width = 6
         Caption = '4'
         ParentColor = False
       end
       object Label9: TLabel
         Left = 105
-        Height = 14
+        Height = 13
         Top = 20
-        Width = 7
+        Width = 6
         Caption = '5'
         ParentColor = False
       end
       object Label10: TLabel
         Left = 124
-        Height = 14
+        Height = 13
         Top = 20
-        Width = 7
+        Width = 6
         Caption = '6'
         ParentColor = False
       end
       object Label11: TLabel
         Left = 145
-        Height = 14
+        Height = 13
         Top = 20
-        Width = 7
+        Width = 6
         Caption = '7'
         ParentColor = False
       end
       object Label2: TLabel
         Left = 0
-        Height = 14
+        Height = 13
         Top = 0
-        Width = 37
+        Width = 36
         Caption = 'Startbit:'
         ParentColor = False
       end
@@ -261,9 +261,9 @@ object formAddressChange: TformAddressChange
   end
   object lblValue: TLabel
     Left = 120
-    Height = 14
+    Height = 13
     Top = 19
-    Width = 34
+    Width = 33
     Caption = '=Value'
     ParentColor = False
   end
@@ -272,21 +272,21 @@ object formAddressChange: TformAddressChange
     Height = 21
     Top = 56
     Width = 176
-    TabOrder = 6
+    TabOrder = 1
   end
   object Label3: TLabel
     Left = 8
-    Height = 14
+    Height = 13
     Top = 40
-    Width = 54
+    Width = 53
     Caption = 'Description'
     ParentColor = False
   end
   object Label12: TLabel
     Left = 9
-    Height = 14
+    Height = 13
     Top = 80
-    Width = 25
+    Width = 24
     Caption = 'Type'
     ParentColor = False
   end

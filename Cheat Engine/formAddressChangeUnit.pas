@@ -624,7 +624,12 @@ begin
 
   currentTop:=0;
   for i:=0 to offsets.count-1 do
+  begin
     TOffsetInfo(offsets[i]).setTop(currentTop);
+    TOffsetInfo(offsets[i]).edtOffset.TabOrder:=i;
+  end;
+
+
 
   baseAddress.top:=currentTop;
   baseValue.top:=baseAddress.Top+(baseAddress.Height div 2)-(baseValue.height div 2);
@@ -633,7 +638,7 @@ begin
   btnRemoveOffset.top:=btnAddOffset.top;
 
   ClientHeight:=btnAddOffset.Top+btnAddOffset.Height+3;
-  //Width will be set using the UpdateLabels method of individial offsets when the current offset it too small
+  //Width will be set using the UpdateLabels method of individial offsets when the current offset is too small
 
 
   //update buttons of the form
@@ -688,6 +693,8 @@ begin
   BevelOuter:=bvNone;
   left:=owner.cbPointer.Left;
   top:=owner.cbPointer.Top+owner.cbPointer.Height+3;
+
+  taborder:=owner.cbPointer.TabOrder+1;
 
   baseAddress:=tedit.create(self);
   baseAddress.parent:=self;
