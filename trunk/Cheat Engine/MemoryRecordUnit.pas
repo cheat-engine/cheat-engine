@@ -120,6 +120,7 @@ type
 
 
     procedure setID(i: integer);
+    function getIndex: integer;
     function getParent: TMemoryRecord;
   public
 
@@ -204,6 +205,7 @@ type
 
   published
     property ID: integer read fID write setID;
+    property Index: integer read getIndex;
     property Color: TColor read fColor write setColor;
     property Count: integer read getChildCount;
     property AddressString: string read getAddressString;
@@ -970,6 +972,11 @@ function TMemoryRecord.removeHotkey(hk: TMemoryRecordHotkey): boolean;
 begin
   hk.free;
   result:=true;
+end;
+
+function TMemoryRecord.getIndex: integer;
+begin
+  result:=treenode.AbsoluteIndex;
 end;
 
 procedure TMemoryRecord.setID(i: integer);

@@ -1180,6 +1180,7 @@ methods
 MemoryRecord Class:
 properties
   ID: Integer - Unique ID 
+  Index: Integer - The index ID for this record. 0 is top. (ReadOnly)
   Description: string- The description of the memory record
   Address: string - Get/set the interpretable address string. Usefull for simple address settings.
   Offset[] : integer - Array to access each offset
