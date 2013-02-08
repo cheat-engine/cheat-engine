@@ -6,7 +6,7 @@ interface
 
 uses
   windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
-  StdCtrls, ComCtrls, memdisplay, newkernelhandler, cefuncproc, syncobjs;
+  StdCtrls, ComCtrls, memdisplay, newkernelhandler, cefuncproc, syncobjs, math;
 
 type
   TMemoryDataSource=class(TThread)
@@ -27,17 +27,19 @@ type
   { TfrmMemoryViewEx }
 
   TfrmMemoryViewEx = class(TForm)
-    Edit1: TEdit;
+    edtPitch: TEdit;
     Edit2: TEdit;
     Label1: TLabel;
     lblAddress: TLabel;
     Label2: TLabel;
     Panel1: TPanel;
     Timer1: TTimer;
-    TrackBar1: TTrackBar;
+    tbPitch: TTrackBar;
+    procedure edtPitchChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
+    procedure tbPitchChange(Sender: TObject);
   private
     { private declarations }
     buf: pbytearray;
@@ -90,8 +92,8 @@ begin
       x:=0;
 
       ReadProcessMemory(processhandle, pointer(a), @buf[a-address], s, x);
-      {if x<s then //zero the unread bytes
-        zeromemory(@buf[x], s-x);   }
+      if x<s then //zero the unread bytes
+        zeromemory(@buf[a-address], s-x);
 
       a:=a+s; //next page
     end;
@@ -187,6 +189,18 @@ begin
   datasource.Start;
 end;
 
+procedure TfrmMemoryViewEx.edtPitchChange(Sender: TObject);
+var newpitch: integer;
+begin
+  try
+    newpitch:=strtoint(edtpitch.Caption);
+    md.setPitch(newpitch);
+    edtPitch.Font.Color:=clDefault;
+  except
+    edtPitch.Font.Color:=clred;
+  end;
+end;
+
 procedure TfrmMemoryViewEx.FormDestroy(Sender: TObject);
 begin
   if datasource<>nil then
@@ -200,6 +214,11 @@ end;
 procedure TfrmMemoryViewEx.Timer1Timer(Sender: TObject);
 begin
   lbladdress.caption:='Address : '+inttohex(md.getTopLeftAddress,8);
+end;
+
+procedure TfrmMemoryViewEx.tbPitchChange(Sender: TObject);
+begin
+  edtPitch.caption:=inttostr(trunc(2**tbPitch.position));
 end;
 
 end.

@@ -153,38 +153,42 @@ var i: integer;
 li: TListItem;
 hk: TMemoryRecordHotkey;
 begin
-  if x.VarType=vtAutoAssembler then
+  if x<>nil then
   begin
-    cbFreezedirection.Clear;
-    cbFreezedirection.Items.add(rsToggleScript);
-    cbFreezedirection.items.add(rsEnableScript);
-    cbFreezedirection.items.add(rsDisableScript);
-    cbFreezedirection.ItemIndex:=0;
-    edtFreezeValue.visible:=false;
-  end;
-
-  listview1.clear;
-  fmemrec:=x;
-
-
-
-  for i:=0 to memrec.HotkeyCount-1 do
-  begin
-    hk:=memrec.Hotkey[i];
-
+    if x.VarType=vtAutoAssembler then
     begin
-      li:=listview1.Items.Add;
-
-
-      li.caption:=ConvertKeyComboToString(hk.keys);
-      li.SubItems.Add(HotkeyActionToText(hk.action));
-      li.SubItems.Add(hk.value);
-      li.SubItems.Add(hk.description);
-
-      lblid.caption:=inttostr(hk.id);
-
-      li.Data:=hk;
+      cbFreezedirection.Clear;
+      cbFreezedirection.Items.add(rsToggleScript);
+      cbFreezedirection.items.add(rsEnableScript);
+      cbFreezedirection.items.add(rsDisableScript);
+      cbFreezedirection.ItemIndex:=0;
+      edtFreezeValue.visible:=false;
     end;
+
+    listview1.clear;
+    fmemrec:=x;
+
+
+
+    for i:=0 to memrec.HotkeyCount-1 do
+    begin
+      hk:=memrec.Hotkey[i];
+
+      begin
+        li:=listview1.Items.Add;
+
+
+        li.caption:=ConvertKeyComboToString(hk.keys);
+        li.SubItems.Add(HotkeyActionToText(hk.action));
+        li.SubItems.Add(hk.value);
+        li.SubItems.Add(hk.description);
+
+        lblid.caption:=inttostr(hk.id);
+
+        li.Data:=hk;
+      end;
+    end;
+
   end;
 
 

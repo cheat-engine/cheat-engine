@@ -6335,8 +6335,11 @@ begin
   with THotKeyForm.Create(self) do
   begin
     memrec := addresslist.selectedRecord;
-    memrec.beginEdit;
-    Show;
+    if memrec<>nil then
+    begin
+      memrec.beginEdit;
+      Show;
+    end;
   end;
 end;
 
