@@ -1596,16 +1596,16 @@ begin
                 if modulelistpos+1>=length(modulelist) then
                   setlength(modulelist,length(modulelist)*2);
 
+                if uppercase(modulename)='SPEEDHACK-I386.DLL' then
+                begin
+                  beep;
+                end;
 
                 modulelist[modulelistpos].modulename:=modulename;
                 modulelist[modulelistpos].modulepath:=x;
 
                 //all windows folder files are system modules, except when it is an .exe (minesweeper in xp)
                 modulelist[modulelistpos].isSystemModule:=(pos(lowercase(windowsdir),lowercase(x))>0) and (ExtractFileExt(lowercase(x))<>'.exe');
-
-                if (not modulelist[modulelistpos].isSystemModule) and (commonModuleList<>nil) then //check if it's a common module (e.g nvidia physx dll's)
-                  modulelist[modulelistpos].isSystemModule:=commonModuleList.IndexOf(lowercase(modulelist[modulelistpos].modulename))<>-1;
-
 
                 modulelist[modulelistpos].baseaddress:=ptrUint(me32.modBaseAddr);
                 modulelist[modulelistpos].basesize:=me32.modBaseSize;
@@ -1626,6 +1626,11 @@ begin
                   end;
                 end;
                 {$endif}
+
+                if (not modulelist[modulelistpos].isSystemModule) and (commonModuleList<>nil) then //check if it's a common module (e.g nvidia physx dll's)
+                  modulelist[modulelistpos].isSystemModule:=commonModuleList.IndexOf(lowercase(modulelist[modulelistpos].modulename))<>-1;
+
+
 
                 inc(modulelistpos);
               end;
