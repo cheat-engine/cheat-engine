@@ -1596,10 +1596,6 @@ begin
                 if modulelistpos+1>=length(modulelist) then
                   setlength(modulelist,length(modulelist)*2);
 
-                if uppercase(modulename)='SPEEDHACK-I386.DLL' then
-                begin
-                  beep;
-                end;
 
                 modulelist[modulelistpos].modulename:=modulename;
                 modulelist[modulelistpos].modulepath:=x;
