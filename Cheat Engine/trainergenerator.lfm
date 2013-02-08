@@ -12,7 +12,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.1'
   object Panel1: TPanel
     Left = 194
     Height = 336
@@ -33,9 +33,9 @@ object frmTrainerGenerator: TfrmTrainerGenerator
     end
     object Label2: TLabel
       Left = 8
-      Height = 16
+      Height = 15
       Top = 24
-      Width = 71
+      Width = 70
       Caption = 'Processname'
       ParentColor = False
     end
@@ -67,9 +67,9 @@ object frmTrainerGenerator: TfrmTrainerGenerator
     end
     object Label1: TLabel
       Left = 276
-      Height = 16
+      Height = 15
       Top = 184
-      Width = 166
+      Width = 165
       Caption = 'Freeze interval (in milliseconds)'
       ParentColor = False
     end
@@ -148,9 +148,9 @@ object frmTrainerGenerator: TfrmTrainerGenerator
       end
       object Label3: TLabel
         Left = 6
-        Height = 16
+        Height = 15
         Top = 40
-        Width = 59
+        Width = 58
         Caption = 'About text:'
         ParentColor = False
       end
@@ -183,9 +183,9 @@ object frmTrainerGenerator: TfrmTrainerGenerator
       end
       object Label4: TLabel
         Left = 6
-        Height = 16
+        Height = 15
         Top = 0
-        Width = 24
+        Width = 23
         Caption = 'Title'
         ParentColor = False
       end
@@ -232,7 +232,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
       FilterIndex = 0
       HideDirectories = False
       ButtonWidth = 23
-      NumGlyphs = 0
+      NumGlyphs = 1
       Enabled = False
       MaxLength = 0
       TabOrder = 12
@@ -271,9 +271,9 @@ object frmTrainerGenerator: TfrmTrainerGenerator
     end
     object Label5: TLabel
       Left = 276
-      Height = 16
+      Height = 15
       Top = 264
-      Width = 39
+      Width = 38
       Caption = 'Output'
       ParentColor = False
     end
@@ -297,8 +297,8 @@ object frmTrainerGenerator: TfrmTrainerGenerator
     end
     object Label6: TLabel
       Left = 0
-      Height = 31
-      Top = 305
+      Height = 30
+      Top = 306
       Width = 502
       Align = alBottom
       Caption = 'Tip: The trainer generator is a tool for beginners. It is recommended to learn lua and the formdesigner and save as .exe manually to experience the full power of a Cheat Engine trainer'

@@ -1,11 +1,11 @@
 object frmMemoryViewEx: TfrmMemoryViewEx
-  Left = 502
+  Left = 503
   Height = 408
   Top = 173
-  Width = 885
+  Width = 884
   Caption = 'Graphical Memory View '
   ClientHeight = 408
-  ClientWidth = 885
+  ClientWidth = 884
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   LCLVersion = '1.1'
@@ -35,20 +35,26 @@ object frmMemoryViewEx: TfrmMemoryViewEx
     Caption = 'Address:'
     ParentColor = False
   end
-  object TrackBar1: TTrackBar
+  object tbPitch: TTrackBar
     Left = 696
     Height = 25
     Top = 64
     Width = 136
-    Position = 0
+    Max = 12
+    Min = 2
+    OnChange = tbPitchChange
+    Position = 2
     TabOrder = 1
   end
-  object Edit1: TEdit
+  object edtPitch: TEdit
     Left = 696
     Height = 23
     Hint = 'Number of bytes a row exists out'
     Top = 40
     Width = 80
+    OnChange = edtPitchChange
+    ParentShowHint = False
+    ShowHint = True
     TabOrder = 2
     Text = '128'
   end

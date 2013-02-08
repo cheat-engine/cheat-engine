@@ -227,7 +227,7 @@ begin
 
   if cheatpanel<>nil then
   begin
-    //clear the old list (onloy the TCheat objects)
+    //clear the old list (only the TCheat objects)
     i:=0;
     while i<cheatpanel.ControlCount do
     begin
@@ -346,6 +346,9 @@ begin
         closebutton:=TCEButton(trainerform.FindComponent('CLOSEBUTTON'));
         seperator:=TCESplitter(trainerform.FindComponent('SEPERATOR'));
 
+        hotkeylabel:=TCELabel(trainerform.FindComponent('HOTKEYLABEL'));
+        descriptionlabel:=TCELabel(trainerform.FindComponent('DESCRIPTIONLABEL'));
+
         if seperator<>nil then
           seperator.Enabled:=true; //in case the script disabled it
 
@@ -398,7 +401,6 @@ begin
     extrapanel.bevelouter:=bvLowered;
     extrapanel.parent:=trainerform;
 
-
     cheatpanel:=Tcepanel.create(trainerform);
     cheatpanel.align:=alclient;
     cheatpanel.name:='CHEATPANEL';
@@ -408,19 +410,7 @@ begin
 
 
 
-    hotkeylabel:=Tcelabel.create(trainerform);
-    hotkeylabel.name:='HOTKEYLABEL';
-    hotkeylabel.caption:='Hotkey';
-    hotkeylabel.left:=10;
-    hotkeylabel.top:=10;
-    hotkeylabel.parent:=cheatpanel;
 
-    descriptionlabel:=Tcelabel.create(trainerform);
-    descriptionlabel.name:='DESCRIPTIONLABEL';
-    descriptionlabel.caption:='Effect';
-    descriptionlabel.left:=100;
-    descriptionlabel.top:=hotkeylabel.top;
-    descriptionlabel.parent:=cheatpanel;
 
 
     aboutbutton:=TCEButton.create(trainerform);
@@ -441,6 +431,22 @@ begin
     image.stretch:=true;
     image.parent:=extrapanel;
 
+    //these are part of the cheatpanel which has ben destroyed or just created
+    hotkeylabel:=Tcelabel.create(trainerform);
+    hotkeylabel.name:='HOTKEYLABEL';
+    hotkeylabel.caption:='Hotkey';
+    hotkeylabel.left:=10;
+    hotkeylabel.top:=10;
+    hotkeylabel.parent:=cheatpanel;
+
+    descriptionlabel:=Tcelabel.create(trainerform);
+    descriptionlabel.name:='DESCRIPTIONLABEL';
+    descriptionlabel.caption:='Effect';
+    descriptionlabel.left:=100;
+    descriptionlabel.top:=hotkeylabel.top;
+    descriptionlabel.parent:=cheatpanel;
+
+
     closebutton:=TCEButton.create(trainerform);
     closebutton.name:='CLOSEBUTTON';
     closebutton.caption:='Close';
@@ -456,9 +462,12 @@ begin
       closebutton.onclick:=NotifyEvent;
       trainerform.OnClose:=CloseEvent; //same routine
     end;
-
-
   end;
+
+
+
+
+
 
   fillHotkeyList;
   buildcheatlist;
