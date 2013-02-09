@@ -7,15 +7,20 @@ interface
 uses
   windows, Classes, SysUtils, forms, controls, StdCtrls, ExtCtrls, comctrls, graphics,
   lmessages, menus,commctrl, symbolhandler, cefuncproc, newkernelhandler, math,
-  Clipbrd,dialogs, changelist, DebugHelper, debuggertypedefinitions, maps, contnrs;
+  Clipbrd,dialogs, changelist, DebugHelper, debuggertypedefinitions, maps, contnrs,
+  strutils, byteinterpreter;
+
+type
+  TDisplayType = (dtByte, dtWord, dtDword, dtDwordDec, dtQword, dtSingle, dtDouble);
+const
+  DisplayTypeByteSize: array [dtByte..dtDouble] of integer =(1, 2, 4, 4, 8, 4, 8); //update both if adding something new
+
 
 type
   TByteSelectEvent=procedure(sender: TObject; address: ptruint; address2: ptruint) of object;
   TAddressChangeEvent=procedure(sender: TObject; address: ptruint) of object;
 
   THexRegion=(hrInvalid, hrByte, hrChar);
-  TDisplayType = (dtByte, dtWord, dtDword, dtDwordDec, dtQword, dtSingle, dtDouble);
-
   TPageinfo=record
     baseaddress: ptruint;
     readable: boolean;
@@ -24,6 +29,8 @@ type
   end;
 
   PPageinfo=^TPageInfo;
+
+
 
   THexView=class(TCustomPanel)
   private
@@ -95,9 +102,9 @@ type
     function getWord(a: ptrUint): string;
     function getDWord(a: ptrUint): string;
     function getQWord(a: ptrUint): string;
-    function getDWordDec(a: ptrUint): string;
-    function getSingle(a: ptrUint): string;
-    function getDouble(a: ptrUint): string;
+    function getDWordDec(a: ptrUint; full: boolean=false): string;
+    function getSingle(a: ptrUint; full: boolean=false): string;
+    function getDouble(a: ptrUint; full: boolean=false): string;
     function getChar(a: ptrUint): char;
     function inModule(a: ptrUint): boolean;
     procedure MouseScroll(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
@@ -332,37 +339,121 @@ var b: byte;
     unreadable: boolean;
     bw: dword;
     x: byte;
+
+    s1,s2,s: string;
+
+    vtype: TVariableType;
+    hex: boolean;
 begin
   if not isediting then exit;
 
   b:=getByte(selected,unreadable);
   if unreadable then exit; //unreadable
 
+
+
   if (editingtype=hrByte) then
   begin
-    if (not (key in ['a'..'f','A'..'F','0'..'9'])) then exit; //hex edit and not a hexadecimal value
+    if (not (key in ['a'..'f','A'..'F','0'..'9', #7, #8,'.',','])) then exit; //hex edit and not a hexadecimal value
 
-    x:=strtoint('$'+key);
+    case fDisplayType of
+      dtByte: s:=getByte(selected);
+      dtWord: s:=getWord(selected);
+      dtDword: s:=getDWord(selected);
+      dtDwordDec: s:=getDWordDec(selected, true);
+      dtSingle: s:=getSingle(selected, true);
+      dtDouble: s:=getDouble(selected, true);
+    end;
 
-    if editingCursorPos=0 then
+    if (key in [#7, #8]) then
     begin
-      x:=x shl (4);
-      b:=b and $0F;
-      b:=b or x;
+      if (fDisplayType in [dtDwordDec, dtSingle, dtDouble])  then
+      begin
+        if key=#7 then //delete
+        begin
+          if (length(s)>=editingcursorpos+1) and (s[editingcursorpos+1]=',') or (s[editingcursorpos+1]='.') then //delete from the entry after the decimal seperator
+            s:=copy(s, 1, editingCursorPos+1)+copy(s, editingcursorpos+3, length(s))
+          else
+            s:=copy(s, 1, editingCursorPos)+copy(s, editingcursorpos+2, length(s)); //just delete
+
+        end
+        else //backspace
+        begin
+          if (length(s)>=editingcursorpos) and (s[editingcursorpos]=',') or (s[editingcursorpos]='.') then
+            s:=copy(s, 1, editingCursorPos)+copy(s, editingcursorpos+2, length(s))
+          else
+            s:=copy(s, 1, editingCursorPos-1)+copy(s, editingcursorpos+1, length(s)); //just backspace
+        end;
+      end
+      else
+        exit; //the other types do not support these keys
     end
     else
     begin
-      b:=b and $F0;
-      b:=b or x;
+      //replace the key with the provided one
+      if (key in [',','.']) then
+      begin
+        if not (fDisplayType in [dtSingle, dtDouble]) then exit; //do , or . support for non float types
+        s:=copy(s, 1, editingcursorpos);
+      end
+      else
+      begin
+        s1:=copy(s, 1, editingcursorpos);
+        if (length(s)>=editingcursorpos+1) and (s[editingcursorpos+1]=',') or (s[editingcursorpos+1]='.') then //shift
+          s2:=copy(s, editingcursorpos+1, length(s))
+        else
+          s2:=copy(s, editingcursorpos+2, length(s)); //replace
+        s:=s1+ key+s2;
+      end;
+
     end;
 
-    WriteProcessMemory(processhandle, pointer(selected), @b, 1, bw);
+    hex:=true;
 
-    inc(editingCursorPos);
-    if editingCursorPos>=2 then
+    case fDisplayType of
+      dtByte: vtype:=vtByte;
+      dtWord: vtype:=vtWord;
+      dtDWord: vtype:=vtDword;
+      dtDWordDec:
+      begin
+        vtype:=vtDword;
+        hex:=false;
+      end;
+
+      dtQword: vtype:=vtQword;
+      dtSingle:
+      begin
+        vtype:=vtSingle;
+        hex:=false;
+      end;
+
+      dtDouble:
+      begin
+        vtype:=vtDouble;
+        hex:=false;
+      end;
+    end;
+
+    try
+      ParseStringAndWriteToAddress(s, selected, vtype, hex);
+      case key of
+        #8: if editingCursorPos>0 then dec(editingCursorPos); //backspace
+        #7: ; //do nothing with the cursor
+        else
+          inc(editingCursorPos);
+      end;
+
+    except
+    end;
+
+    if editingCursorPos>=length(s) then
     begin
-      selected:=selected+1;
-      editingCursorPos:=0;
+      //at the end of the line
+      if not (fDisplayType in [dtDwordDec, dtSingle, dtDouble]) then //if not a decimal type then go to the next address
+      begin
+        selected:=selected+DisplayTypeByteSize[fDisplayType];
+        editingCursorPos:=0;
+      end;
     end;
   end else
   begin
@@ -440,7 +531,8 @@ begin
       end;
 
       region:=hrByte;
-      result:=fAddress+bytesperline*row+column;
+
+      result:=fAddress+bytesperline*row+column - (column mod DisplayTypeByteSize[fDisplayType]);
     end
     else
     if InRange(x,charstart,charstart+bytesperline*charsize) then
@@ -474,9 +566,29 @@ begin
   if shift=[] then
   begin
     case key of
+      VK_DELETE:
+      begin
+        if isediting and (fDisplayType in [dtDwordDec, dtSingle, dtDouble]) then
+          HandleEditKeyPress(chr(7)); //there's no delete char and I can't be assed to change the whole function to tak a virtual key
+
+        key:=0;
+        exit;
+      end;
+
       VK_BACK:
       begin
-        if (not isEditing) and (backlist.Count>0) then
+        if isediting then
+        begin
+          if fDisplayType in [dtDwordDec, dtSingle, dtDouble] then
+          begin
+            //try to delete the selected character (note that single and double do not always co-operate)
+            HandleEditKeyPress(chr(8));
+            key:=0;
+            exit;
+          end;
+        end
+        else
+        if (backlist.Count>0) then //not editing and something in the backlist
           address:=qword(backlist.Pop);
       end;
 
@@ -487,7 +599,7 @@ begin
         begin
           start:=minx(selected,selected2);
           stop:=maxx(selected,selected2);
-          if (stop-start)+1=processhandler.pointersize then
+          if (stop-start)+DisplayTypeByteSize[fdisplaytype]=processhandler.pointersize then
           begin
             //go to this selected address
             gotoaddress:=0;
@@ -549,13 +661,21 @@ begin
             dec(editingCursorPos);
             if editingCursorPos<0 then
             begin
-              selected:=selected-1;
-              editingCursorPos:=1;
+              selected:=selected-DisplayTypeByteSize[fDisplayType];
+              case fDisplayType of
+                dtDwordDec: editingCursorPos:=length(getDWordDec(selected));
+                dtSingle: editingCursorPos:=length(getSingle(selected));
+                dtDouble: editingCursorPos:=length(getDouble(selected));
+                else
+                  editingCursorPos:=  DisplayTypeByteSize[fDisplayType]*2-1;
+              end;
+
+
             end;
           end;
         end
         else
-          address:=address-1;
+          address:=address-DisplayTypeByteSize[fDisplayType];
         update;
       end;
 
@@ -568,9 +688,19 @@ begin
           else
           begin
             inc(editingCursorPos);
-            if editingCursorPos>=2 then
+
+            //get the length
+            case fDisplayType of
+              dtDwordDec: x:=length(getDWordDec(selected))+1; //+1 because we might allow backspace/adding
+              dtSingle: x:=length(getSingle(selected))+1;
+              dtDouble: x:=length(getDouble(selected))+1;
+              else
+                x:=2*DisplayTypeByteSize[fDisplayType]
+            end;
+
+            if editingCursorPos>=x then
             begin
-              selected:=selected+1;
+              selected:=selected+DisplayTypeByteSize[fDisplayType];
               editingCursorPos:=0;
             end;
           end;
@@ -859,6 +989,15 @@ begin
         isEditing:=true;
         fhasSelection:=false;
 
+        {$ifdef EDITWHEREYOUCLICK}   //add this define if you wish to start the editor at the spot you click insetad of the start
+        byteclickpos:=(x-bytestart)-(((x-bytestart) div (byteSizeWithoutChar*DisplayTypeByteSize[fDisplayType])) * bytesizeWithoutChar*DisplayTypeByteSize[fDisplayType]);
+        editingCursorPos:=(byteclickpos div charsize);
+        if editingCursorPos>DisplayTypeByteSize[fDisplayType]*2 then
+          editingCursorPos:=DisplayTypeByteSize[fDisplayType]*2-1;
+        {$endif}
+
+
+
 
 
         editingType:=hr;
@@ -914,13 +1053,13 @@ begin
     if hr<>hrInvalid then
     begin
 
-      fhasSelection:=fDisplayType=dtByte;
-      isSelecting:=fDisplayType=dtByte; //only start selecting if the type is byte
+      fhasSelection:=true; //fDisplayType=dtByte;
+      isSelecting:=true; //fDisplayType=dtByte; //only start selecting if the type is byte
       selectionType:=hr;
 
       if isEditing then
       begin
-        if oldselected<>selected then
+        if (oldselected<>selected) then
         begin
           isEditing:=false;
           editingCursorPos:=0;
@@ -930,10 +1069,10 @@ begin
           if hr=hrByte then
           begin
             //update the cursor position
-            byteclickpos:=(x-bytestart)-(((x-bytestart) div byteSizeWithoutChar) * bytesizeWithoutChar);
+            byteclickpos:=(x-bytestart)-(((x-bytestart) div (byteSizeWithoutChar*DisplayTypeByteSize[fDisplayType])) * bytesizeWithoutChar*DisplayTypeByteSize[fDisplayType]);
             editingCursorPos:=(byteclickpos div charsize);
-            if editingCursorPos>1 then
-              editingCursorPos:=1;
+            if editingCursorPos>DisplayTypeByteSize[fDisplayType]*2 then
+              editingCursorPos:=DisplayTypeByteSize[fDisplayType]*2-1;
 
           end;
         end;
@@ -1146,7 +1285,7 @@ begin
     result:=inttohex(dw,8);
 end;
 
-function THexView.getDWordDec(a: ptrUint): string;
+function THexView.getDWordDec(a: ptrUint; full: boolean=false): string;
 var
   dw: dword;
   pdw: pbytearray;
@@ -1163,11 +1302,11 @@ begin
   else
     result:=inttostr(dw);
 
-  if length(result)>11 then
+  if (not full) and (length(result)>11) then
     result:=copy(result,1,8)+'...';
 end;
 
-function THexView.getSingle(a: ptrUint): string;
+function THexView.getSingle(a: ptrUint; full: boolean=false): string;
 var
   s: single;
   ps: pbytearray;
@@ -1184,11 +1323,12 @@ begin
   else
     result:=format('%f',[s]);
 
-  if length(result)>11 then
+
+  if (not full) and (length(result)>11) then
     result:=copy(result,1,8)+'...';
 end;
 
-function THexView.getDouble(a: ptrUint): string;
+function THexView.getDouble(a: ptrUint; full: boolean=false): string;
 var
   d: double;
   pd: pbytearray;
@@ -1210,7 +1350,7 @@ begin
   else
     result:=format('%f',[d]);
 
-  if length(result)>20 then
+  if (not full) and (length(result)>20) then
     result:=copy(result,1,18)+'...';
 end;
 
