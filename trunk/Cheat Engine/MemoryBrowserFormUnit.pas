@@ -882,7 +882,7 @@ begin
   end;
 
 
-  if (hexview.DisplayType=dtByte) and (hexview.hasSelection) then
+  if (hexview.hasSelection) then
   begin
     hexview.GetSelectionRange(a,a2);
 
