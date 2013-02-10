@@ -405,10 +405,15 @@ type TReadProcessMemory=function(hProcess: THandle; lpBaseAddress, lpBuffer: Poi
 type TReadProcessMemory64=function(hProcess: THandle; lpBaseAddress: UINT64; lpBuffer: pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL; stdcall;
 type TWriteProcessMemory=function(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: DWORD): BOOL; stdcall;
 type TWriteProcessMemory64=function(hProcess: THandle; BaseAddress: UINT64; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: DWORD): BOOL; stdcall;
+
 type TGetThreadContext=function(hThread: THandle; var lpContext: TContext): BOOL; stdcall;
-
-
 type TSetThreadContext=function(hThread: THandle; const lpContext: TContext): BOOL; stdcall;
+
+type TWow64GetThreadContext=function(hThread: THandle; var lpContext: CONTEXT32): BOOL; stdcall;
+type TWow64SetThreadContext=function(hThread: THandle; const lpContext: CONTEXT32): BOOL; stdcall;
+
+
+
 type TSuspendThread=function(hThread: THandle): DWORD; stdcall;
 type TResumeThread=function(hThread: THandle): DWORD; stdcall;
 type TOpenProcess=function(dwDesiredAccess: DWORD; bInheritHandle: BOOL; dwProcessId: DWORD): THandle; stdcall;
@@ -557,6 +562,9 @@ var
   //WriteProcessMemory64  :TWriteProcessMemory64;
   GetThreadContext      :TGetThreadContext;
   SetThreadContext      :TSetThreadContext;
+  Wow64GetThreadContext      :TWow64GetThreadContext;
+  Wow64SetThreadContext      :TWow64SetThreadContext;
+
   SuspendThread         :TSuspendThread;
   ResumeThread          :TResumeThread;
   OpenProcess           :TOpenProcess;
@@ -1247,6 +1255,11 @@ initialization
 
   GetThreadContext:=GetProcAddress(WindowsKernel,'GetThreadContext');
   SetThreadContext:=GetProcAddress(WindowsKernel,'SetThreadContext');
+
+  Wow64GetThreadContext:=GetProcAddress(WindowsKernel,'Wow64GetThreadContext');
+  Wow64SetThreadContext:=GetProcAddress(WindowsKernel,'Wow64SetThreadContext');
+
+
   SuspendThread:=GetProcAddress(WindowsKernel,'SuspendThread');
   ResumeThread:=GetProcAddress(WindowsKernel,'ResumeThread');
   WaitForDebugEvent:=GetProcAddress(WindowsKernel,'WaitForDebugEvent');
