@@ -774,9 +774,21 @@ end;
 
 
 procedure THexView.AddSelectedAddressToCheatTable;
+var Vartype: Tvariabletype;
 begin
   if fhasSelection or isediting then //selected
-    mainform.addresslist.addAddressManually(inttohex(selected,8));
+  begin
+    case fdisplaytype of
+      dtByte: VarType:=vtByte;
+      dtWord: Vartype:=vtWord;
+      dtDword, dtDwordDec: Vartype:=vtDword;
+      dtQword: vartype:=vtQword;
+      dtSingle: vartype:=vtSingle;
+      dtDouble: vartype:=vtDouble;
+    end;
+
+    mainform.addresslist.addAddressManually(inttohex(selected,8), Vartype);
+  end;
 
 end;
 
@@ -949,6 +961,15 @@ begin
     with Tvaluechangeform.Create(application) do
     begin
       address:=selected;
+
+      case fDisplayType of
+        dtByte: VarType:=vtByte;
+        dtWord: Vartype:=vtWord;
+        dtDword, dtDwordDec: Vartype:=vtDword;
+        dtQword: vartype:=vtQword;
+        dtSingle: vartype:=vtSingle;
+        dtDouble: vartype:=vtDouble;
+      end;
       ShowModal;
     end;
     update;
