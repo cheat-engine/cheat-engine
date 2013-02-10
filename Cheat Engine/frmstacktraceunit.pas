@@ -42,14 +42,19 @@ begin
 end;
 
 procedure TfrmStacktrace.stacktrace(threadhandle:thandle;context:_context);
-var stackframe: PStackframe64;
+var
+    stackframe: PStackframe64;
     cxt:_context;
+    wow64ctx: CONTEXT32;
     a,b,c,d: dword;
     sa,sb,sc,sd:string;
     machinetype: dword;
+
+    cp: pointer;
 begin
 
   cxt:=context;
+  cp:=@cxt;
 
   getmem(stackframe,sizeof(tstackframe));
   zeromemory(stackframe,sizeof(tstackframe));
@@ -66,15 +71,30 @@ begin
 
 
 //function StackWalk64(MachineType:dword; hProcess:THANDLE; hThread:THANDLE; StackFrame:LPSTACKFRAME64; ContextRecord:pointer;  ReadMemoryRoutine:TREAD_PROCESS_MEMORY_ROUTINE64; FunctionTableAccessRoutine:TFUNCTION_TABLE_ACCESS_ROUTINE64; GetModuleBaseRoutine:TGET_MODULE_BASE_ROUTINE64; TranslateAddress:TTRANSLATE_ADDRESS_ROUTINE64):bool;stdcall;external External_library name 'StackWalk64';
+{$ifdef cpu32}
+  machinetype:=IMAGE_FILE_MACHINE_I386
+{$else}
 
   if processhandler.is64Bit then
     machinetype:=IMAGE_FILE_MACHINE_AMD64
   else
+  begin
+    //   if (debuggerthread<>nil) and (debuggerthread.CurrentThread<>nil) then
+
+    ZeroMemory(@wow64ctx, sizeof (wow64ctx));
+    wow64ctx.Eip:=cxt.Rip;       //shouldn't be needed though
+    wow64ctx.Ebp:=cxt.Rbp;
+    wow64ctx.Esp:=cxt.Rsp;
     machinetype:=IMAGE_FILE_MACHINE_I386;
 
-  //because I provide a readprocessmemory the threadhandle just needs to be the unique for each thread. e.g threadid instead of threadhandle
 
-  while stackwalk64(machinetype,processhandle,threadhandle,stackframe,@cxt, rpm64 ,SymFunctionTableAccess64,SymGetModuleBase64,nil) do
+    cp:=@wow64ctx;
+
+  end;
+{$endif}
+
+  //because I provide a readprocessmemory the threadhandle just needs to be the unique for each thread. e.g threadid instead of threadhandle
+  while stackwalk64(machinetype,processhandle,threadhandle,stackframe,cp, rpm64 ,SymFunctionTableAccess64,SymGetModuleBase64,nil) do
   begin
     listview1.Items.Add.Caption:=inttohex(stackframe^.AddrPC.Offset,8);
     listview1.items[listview1.Items.Count-1].SubItems.add(inttohex(stackframe^.AddrStack.Offset,8));
