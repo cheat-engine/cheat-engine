@@ -1,10 +1,10 @@
 object frmMemoryViewEx: TfrmMemoryViewEx
-  Left = 503
-  Height = 408
-  Top = 173
+  Left = 497
+  Height = 453
+  Top = 230
   Width = 884
   Caption = 'Graphical Memory View '
-  ClientHeight = 408
+  ClientHeight = 453
   ClientWidth = 884
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -15,17 +15,7 @@ object frmMemoryViewEx: TfrmMemoryViewEx
     Top = 16
     Width = 680
     BevelOuter = bvNone
-    ClientHeight = 274
-    ClientWidth = 680
     TabOrder = 0
-    object Edit2: TEdit
-      Left = 510
-      Height = 23
-      Top = 273
-      Width = 80
-      TabOrder = 0
-      Text = 'Edit2'
-    end
   end
   object lblAddress: TLabel
     Left = 0
@@ -72,6 +62,89 @@ object frmMemoryViewEx: TfrmMemoryViewEx
     Top = 0
     Width = 34
     Caption = 'Label1'
+    ParentColor = False
+  end
+  object cbAddresslistOnly: TCheckBox
+    Left = 8
+    Height = 19
+    Top = 328
+    Width = 182
+    Caption = 'Only show addresslist memory'
+    OnChange = cbAddresslistOnlyChange
+    TabOrder = 3
+  end
+  object ComboBox1: TComboBox
+    Left = 8
+    Height = 23
+    Top = 369
+    Width = 100
+    ItemHeight = 15
+    Items.Strings = (
+      'Current Memory'
+      'Last Scan'
+      'First'
+      'Undo'
+      'Saved X'
+      'Saved Y'
+    )
+    TabOrder = 4
+    Text = 'ComboBox1'
+  end
+  object Label3: TLabel
+    Left = 8
+    Height = 15
+    Top = 352
+    Width = 49
+    Caption = 'Compare'
+    ParentColor = False
+  end
+  object RadioButton1: TRadioButton
+    Left = 104
+    Height = 19
+    Top = 392
+    Width = 33
+    Caption = 'Or'
+    TabOrder = 5
+  end
+  object RadioButton2: TRadioButton
+    Left = 104
+    Height = 19
+    Top = 410
+    Width = 42
+    Caption = 'And'
+    TabOrder = 6
+  end
+  object RadioButton3: TRadioButton
+    Left = 104
+    Height = 19
+    Top = 426
+    Width = 38
+    Caption = 'Xor'
+    TabOrder = 7
+  end
+  object ComboBox2: TComboBox
+    Left = 144
+    Height = 23
+    Top = 368
+    Width = 100
+    ItemHeight = 15
+    Items.Strings = (
+      'Current Memory'
+      'Last Scan'
+      'First'
+      'Undo'
+      'Saved X'
+      'Saved Y'
+    )
+    TabOrder = 8
+    Text = 'ComboBox2'
+  end
+  object Label4: TLabel
+    Left = 114
+    Height = 15
+    Top = 376
+    Width = 23
+    Caption = 'with'
     ParentColor = False
   end
   object Timer1: TTimer

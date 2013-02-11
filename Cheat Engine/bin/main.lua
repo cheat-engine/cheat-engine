@@ -1690,8 +1690,6 @@ methods
 
 
 --[[
-Disassembler class
-
 
 functions to add:
 
@@ -1721,6 +1719,13 @@ binaryNot(int)
 
 getRunningProcesses(): stringlist
 getProcessModules(processid): 
+
+dissectCode(modulename)
+getReferences(address)
+getReferencedStrings()
+
+getComment(address)
+setComment(address, text)
 
 
 Disassembler Class

@@ -15,26 +15,37 @@ type
     address: ptruint;
     buf: pbytearray;
     bufsize: integer;
+    faddresslistonly: boolean;
   public
     procedure lock;
     procedure unlock;
     procedure setRegion(address: ptruint; buf: pointer; size: integer);
     procedure execute; override;
     procedure fetchmem;
+    procedure setaddresslistonly(state: boolean);
     constructor create(suspended: boolean);
+    property addresslistonly: boolean read faddresslistonly write setaddresslistonly;
   end;
 
   { TfrmMemoryViewEx }
 
   TfrmMemoryViewEx = class(TForm)
+    cbAddresslistOnly: TCheckBox;
+    ComboBox1: TComboBox;
+    ComboBox2: TComboBox;
     edtPitch: TEdit;
-    Edit2: TEdit;
     Label1: TLabel;
+    Label3: TLabel;
+    Label4: TLabel;
     lblAddress: TLabel;
     Label2: TLabel;
     Panel1: TPanel;
+    RadioButton1: TRadioButton;
+    RadioButton2: TRadioButton;
+    RadioButton3: TRadioButton;
     Timer1: TTimer;
     tbPitch: TTrackBar;
+    procedure cbAddresslistOnlyChange(Sender: TObject);
     procedure edtPitchChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -45,6 +56,8 @@ type
     buf: pbytearray;
     bufsize: integer;
     datasource: TMemoryDataSource;
+
+
     function ondata(newAddress: ptruint; PreferedMinimumSize: integer; var newbase: pointer; var newsize: integer): boolean;
   public
     { public declarations }
@@ -56,7 +69,7 @@ var
 
 implementation
 
-uses MemoryBrowserFormUnit;
+uses MemoryBrowserFormUnit, MainUnit;
 
 {$R *.lfm}
 
@@ -68,6 +81,12 @@ begin
   cs:=tcriticalsection.create;
 
   inherited create(suspended);
+end;
+
+procedure TMemoryDataSource.setaddresslistonly(state: boolean);
+begin
+  faddresslistonly:=true;
+  fetchmem; //update now
 end;
 
 procedure TMemoryDataSource.fetchmem;
@@ -90,10 +109,19 @@ begin
       s:=min((address+bufsize)-a, 4096-(a mod 4096)); //the number of bytes left in this page or for this buffer
 
       x:=0;
+      if faddresslistonly then
+      begin
+        //check if this page has any addresses.
 
-      ReadProcessMemory(processhandle, pointer(a), @buf[a-address], s, x);
-      if x<s then //zero the unread bytes
-        zeromemory(@buf[a-address], s-x);
+
+
+      end
+      else
+      begin
+        ReadProcessMemory(processhandle, pointer(a), @buf[a-address], s, x);
+        if x<s then //zero the unread bytes
+          zeromemory(@buf[a-address], s-x);
+      end;
 
       a:=a+s; //next page
     end;
@@ -199,6 +227,12 @@ begin
   except
     edtPitch.Font.Color:=clred;
   end;
+end;
+
+procedure TfrmMemoryViewEx.cbAddresslistOnlyChange(Sender: TObject);
+begin
+  if datasource<>nil then
+    datasource.addresslistonly:=cbAddresslistOnly.checked;
 end;
 
 procedure TfrmMemoryViewEx.FormDestroy(Sender: TObject);
