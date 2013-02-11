@@ -4847,6 +4847,7 @@ begin
   end;
 
 
+  mainform:=self;
   pluginhandler := TPluginhandler.Create;
 
   //custom types
