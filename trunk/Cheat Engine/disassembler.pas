@@ -19,7 +19,7 @@ const BIT_REX_X=2;
 const BIT_REX_B=1;
 
 type
-  TDisAssemblerValueType=(dvtNone, dvtAddress, dvtValue);
+  TDisAssemblerValueType=(dvtNone=0, dvtAddress=1, dvtValue=2);
 
   TDisassembler=class
   private

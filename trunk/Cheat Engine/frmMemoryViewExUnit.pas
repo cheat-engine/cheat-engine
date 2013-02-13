@@ -16,6 +16,8 @@ type
     buf: pbytearray;
     bufsize: integer;
     faddresslistonly: boolean;
+
+    temppagebuf: pbytearray;
   public
     procedure lock;
     procedure unlock;
@@ -31,12 +33,11 @@ type
 
   TfrmMemoryViewEx = class(TForm)
     cbAddresslistOnly: TCheckBox;
+    CheckBox1: TCheckBox;
     ComboBox1: TComboBox;
     ComboBox2: TComboBox;
     edtPitch: TEdit;
     Label1: TLabel;
-    Label3: TLabel;
-    Label4: TLabel;
     lblAddress: TLabel;
     Label2: TLabel;
     Panel1: TPanel;
@@ -80,6 +81,8 @@ constructor TMemoryDataSource.create(suspended: boolean);
 begin
   cs:=tcriticalsection.create;
 
+  getmem(temppagebuf, 4096);  //so it doesn't need to be allocated/freed each fetchmem call
+
   inherited create(suspended);
 end;
 
@@ -112,6 +115,7 @@ begin
       if faddresslistonly then
       begin
         //check if this page has any addresses.
+        zeromemory(temppagebuf, 4096);
 
 
 

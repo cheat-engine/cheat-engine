@@ -70,7 +70,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports, Mem
   LuaCheckbox, LuaGroupbox, LuaListbox, LuaCombobox, LuaTrackbar, LuaListColumn,
   LuaEdit, LuaMemo, LuaCollection, LuaListColumns, LuaListitem, LuaListItems,
   LuaTimer, LuaListview, LuaGenericHotkey, LuaTableFile, LuaMemoryRecordHotkey,
-  LuaMemoryView, LuaD3DHook;
+  LuaMemoryView, LuaD3DHook, LuaDisassembler;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -4394,6 +4394,7 @@ begin
     initializeLuaD3DHook;
     initializeLuaStructure;
     initializeLuaRegion;
+    initializeLuaDisassembler;
 
     s:=tstringlist.create;
     try
