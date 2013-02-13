@@ -1751,7 +1751,7 @@ binaryNot(int)
 getRunningProcesses(): stringlist
 getProcessModules(processid): 
 
-dissectCode(modulename)
+dissectCode(modulename) : Dissects the specified module and waits till it's done
 addReference(fromAddress, ToAddress, type)
 deleteReference(fromAddress, ToAddress)
 getReferences(address)
