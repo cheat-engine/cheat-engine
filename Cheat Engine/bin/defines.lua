@@ -293,3 +293,8 @@ pf16bit = 5
 pf24bit = 6
 pf32bit = 7
 pfCustom = 8
+
+--Disassembler value type
+dvtNone = 0
+dvtAddress = 1
+dvtValue = 2

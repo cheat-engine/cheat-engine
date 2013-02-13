@@ -1685,6 +1685,36 @@ properties
 methods
   -
 
+
+
+
+Disassembler Class
+
+createDisassembler() - Creates a disassembler object that can be used to disassemble an instruction and at the same time get more data
+properties
+  LastDisassembleData : Table
+methods
+  disassemble(address): Disassembles the given instruction and returns the opcode. It also fills in a LastDisassembleData record
+  getLastDisassembleData() : Returns the LastDisassembleData table. 
+    The table is build-up as follow:
+      address: integer - The address that was disassembler
+      opcode: string - The opcode without parameters
+      parameters: string - The parameters
+      description: string - The description of this opcode
+      bytes: table - A table containing the bytes this instruction consists of (1.. )
+
+      modrmValueType: DisAssemblerValueType  - Defines the type of the modrmValue field (dvtNone=0, dvtAddress=1, dvtValue=2)
+      modrmValue: Integer - The value that the modrm specified. modrmValueType defines what kind of value
+
+      parameterValueType: DisAssemblerValueType
+      parameterValue: Integer - The value that the parameter part specified
+      
+      isJump: boolean - Set to true if the disassembled instruction can change the EIP/RIP (not ret)
+      isCall: boolean - Set to true if it's a Call
+      isRet: boolean - Set to true if it's a Ret
+      isConditionalJump: boolean - Set to true if it's a conditional jump
+  
+
 --]]
 
 
@@ -1728,6 +1758,5 @@ getComment(address)
 setComment(address, text)
 
 
-Disassembler Class
 
 --]]
