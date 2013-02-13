@@ -72,7 +72,7 @@ begin
 
 //function StackWalk64(MachineType:dword; hProcess:THANDLE; hThread:THANDLE; StackFrame:LPSTACKFRAME64; ContextRecord:pointer;  ReadMemoryRoutine:TREAD_PROCESS_MEMORY_ROUTINE64; FunctionTableAccessRoutine:TFUNCTION_TABLE_ACCESS_ROUTINE64; GetModuleBaseRoutine:TGET_MODULE_BASE_ROUTINE64; TranslateAddress:TTRANSLATE_ADDRESS_ROUTINE64):bool;stdcall;external External_library name 'StackWalk64';
 {$ifdef cpu32}
-  machinetype:=IMAGE_FILE_MACHINE_I386
+  machinetype:=IMAGE_FILE_MACHINE_I386;
 {$else}
 
   if processhandler.is64Bit then
