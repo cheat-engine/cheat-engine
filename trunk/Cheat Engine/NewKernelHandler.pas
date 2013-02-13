@@ -348,6 +348,7 @@ type
   PContext32 = ^TContext32;
   {$else}
   CONTEXT=_CONTEXT;
+  CONTEXT32=_CONTEXT;
   TContext=CONTEXT;
   PContext = ^TContext;
   {$endif}
