@@ -35,6 +35,14 @@ begin
 
 end;
 
+function disassembler_decodeLastParametersToString(L: PLua_State): integer; cdecl;
+var d: TDisassembler;
+begin
+  d:=luaclass_getClassObject(L);
+  lua_pushstring(L, d.DecodeLastParametersToString);
+  result:=1;
+end;
+
 function disassembler_getLastDisassembleData(L: PLua_State): integer; cdecl;
 var d: TDisassembler;
   t: integer;
@@ -121,6 +129,8 @@ procedure disassembler_addMetaData(L: PLua_state; metatable: integer; userdata: 
 begin
   object_addMetaData(L, metatable, userdata);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'disassemble', disassembler_disassemble);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'decodeLastParametersToString', disassembler_decodeLastParametersToString);
+
   luaclass_addPropertyToTable(L, metatable, userdata, 'LastDisassembleData', disassembler_getLastDisassembleData, nil);
 
 end;
