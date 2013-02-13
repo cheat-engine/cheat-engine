@@ -1695,6 +1695,7 @@ properties
   LastDisassembleData : Table
 methods
   disassemble(address): Disassembles the given instruction and returns the opcode. It also fills in a LastDisassembleData record
+  decodeLastParametersToString() : Returns the unedited "Comments" information. Does not display userdefined comments
   getLastDisassembleData() : Returns the LastDisassembleData table. 
     The table is build-up as follow:
       address: integer - The address that was disassembler
@@ -1751,6 +1752,8 @@ getRunningProcesses(): stringlist
 getProcessModules(processid): 
 
 dissectCode(modulename)
+addReference(fromAddress, ToAddress, type)
+deleteReference(fromAddress, ToAddress)
 getReferences(address)
 getReferencedStrings()
 
