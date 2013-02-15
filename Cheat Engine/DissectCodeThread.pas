@@ -1,12 +1,11 @@
 unit DissectCodeThread;
 
 {$MODE Delphi}
-//todo: Reimplement using Map or binary tree
 
 interface
 
 uses
-  windows, LCLIntf,sysutils,syncobjs,Classes,disassembler, NewKernelHandler, math, CEFuncProc;
+  windows, LCLIntf,sysutils,syncobjs,Classes,disassembler, NewKernelHandler, math, CEFuncProc, maps;
 
 
 type
@@ -17,15 +16,6 @@ type
     isstring: boolean;
   end;
   PAddresslist=^TAddresslist;
-
-
-  PDissectDataArray=^TDissectDataArray;
-  TDissectData=record
-    case integer of
-      1: (addresslist: PAddresslist); //if this is the last level (7) this is an PAddresslist
-      2: (DissectDataArray: PDissectDataArray);
-  end;
-  TDissectDataArray=array [0..15] of TDissectData;
 
 
 
@@ -61,16 +51,16 @@ type
   TDissectCodeThread = class(TThread)
   private
     { Private declarations }
-    calllist: PDissectDataArray;
-    unconditionaljumplist: PDissectDataArray;
-    conditionaljumplist: PDissectDataArray;
-    memorylist: PDissectDataArray;
+    calllist: TMap;
+    unconditionaljumplist: TMap;
+    conditionaljumplist: TMap;
+    memorylist: TMap; //e.g strings
 
 
     function isstring(address: ptrUint): boolean;
 
-    procedure addAddress(list: PDissectDataArray; address: ptrUint; referencedBy: ptruint; couldbestring: boolean=false);
-    function findaddress(list: PDissectDataArray; address: ptrUint):PAddresslist;
+
+    function findaddress(list: TMap; address: ptrUint):PAddresslist;
   public
     percentagedone: dword;
     processid: dword;
@@ -91,6 +81,9 @@ type
 
     function FindOffset(s: string):ptrUint;
     function CheckAddress(address: ptrUint; var aresult: tdissectarray):boolean;
+    procedure addAddress(list: TMap; address: ptrUint; referencedBy: ptruint; couldbestring: boolean=false);
+    procedure removeAddress(list: TMap; address: ptruint; referencedBy: ptruint);
+
     procedure getstringlist(s: tstrings);
     constructor create(suspended: boolean);
   protected
@@ -117,38 +110,15 @@ const maxdepth=7;
 {$endif}
 
 
-type TDatapath=array[0..maxdepth] of record
-  list: PDissectDataArray;
-  entrynr: integer;
-end;
 
-type PDatapath=^TDatapath;
-
-
-function TDissectCodeThread.findaddress(list: PDissectDataArray; address:ptrUint):PAddresslist;
+function TDissectCodeThread.findaddress(list: TMap; address:ptrUint):PAddresslist;
 {
 locates the given address and returns the AddressList object pointer if found.
 returns nil if not found
 }
-var
-  level: integer;
-  entrynr: integer;
-  currentArray: PDissectDataArray;
 begin
-  result:=nil;
-  level:=0;
-  currentarray:=list;
-  while level<maxdepth do
-  begin
-    entrynr:=address shr ((maxdepth-level)*4) and $f;
-    if currentarray[entrynr].DissectDataArray=nil then exit; //not in the list
-
-    currentarray:=currentarray[entrynr].DissectDataArray;
-    inc(level);
-  end;
-
-  entrynr:=address shr ((maxdepth-level)*4) and $f;
-  result:=currentarray[entrynr].addresslist;
+  if list.GetData(address, result) =false then
+    result:=nil;
 end;
 
 function TDissectCodeThread.CheckAddress(address: ptrUint; var aresult: tdissectarray):boolean;
@@ -227,146 +197,86 @@ begin
 end;
 
 
-function datapathToAddress(datapath: PDatapath): ptrUint;
-{
-for use when find the address of a map after traversing it
-}
-//var a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15: byte;
-begin
-  {$ifdef cpu64}
-  result:=
-          qword(qword(datapath[0].entrynr) shl 60)+
-          qword(qword(datapath[1].entrynr) shl 56)+
-          qword(qword(datapath[2].entrynr) shl 52)+
-          qword(qword(datapath[3].entrynr) shl 48)+
-          qword(qword(datapath[4].entrynr) shl 44)+
-          qword(qword(datapath[5].entrynr) shl 40)+
-          qword(qword(datapath[6].entrynr) shl 36)+
-          qword(qword(datapath[7].entrynr) shl 32)+
-          qword(qword(datapath[8].entrynr) shl 28)+
-          qword(qword(datapath[9].entrynr) shl 24)+
-          qword(qword(datapath[10].entrynr) shl 20)+
-          qword(qword(datapath[11].entrynr) shl 16)+
-          qword(qword(datapath[12].entrynr) shl 12)+
-          qword(qword(datapath[13].entrynr) shl 8)+
-          qword(qword(datapath[14].entrynr) shl 4)+
-          qword(datapath[15].entrynr);
-  {$else}
-
-  result:=datapath[0].entrynr shl 28+
-          datapath[1].entrynr shl 24+
-          datapath[2].entrynr shl 20+
-          datapath[3].entrynr shl 16+
-          datapath[4].entrynr shl 12+
-          datapath[5].entrynr shl 8+
-          datapath[6].entrynr shl 4+
-          datapath[7].entrynr;
-
-  {$endif}
-end;
-
-
-procedure fillstringlist(datapath: PDatapath; level: integer; s: tstrings);
-var
-  i: integer;
-  list: PDissectDataArray;
-begin
-  list:=datapath[level].list;
- 
-  if level<maxdepth then
-  begin
-    for i:=0 to 15 do
-    begin
-      if list[i].DissectDataArray<>nil then
-      begin
-        datapath[level].entrynr:=i;
-        datapath[level+1].list:=list[i].DissectDataArray;
-        fillstringlist(datapath, level+1, s);
-      end;
-    end;
-  end
-  else
-  begin
-    //final level
-    for i:=0 to 15 do
-    begin
-      if list[i].addresslist<>nil then
-      begin
-        if list[i].addresslist.isstring then
-        begin
-          datapath[level].entrynr:=i;
-
-          //evaluate datapath to find the address
-          addaddresstostringlist(list[i].addresslist, datapathToAddress(datapath), s);
-
-        end;
-      end;
-    end;
-  end;
-end;
-
 procedure TDissectCodeThread.getstringlist(s: tstrings);
-var
-  datapath: TDatapath;
+var mi: TMapIterator;
+    al: PAddresslist;
+    address: ptruint;
 begin
-  ZeroMemory(@datapath, sizeof(datapath));
+  s.clear;
 
-  datapath[0].list:=memorylist;
-  fillstringlist(@datapath, 0, s);
+  mi:=TMapIterator.Create(memorylist);
 
-
+  mi.first;
+  while not mi.EOM do
+  begin
+    mi.GetData(al);
+    if al.isstring then
+    begin
+      mi.GetID(address);
+      addaddresstostringlist(al, address, s);
+    end;
+    mi.Next;
+  end;
 end;
 
-
-procedure TDissectCodeThread.addAddress(list: PDissectDataArray; address: ptrUint; referencedBy: ptruint; couldbestring: boolean=false);
-var
-  level: integer;
-  entrynr: integer;
-  temp,currentarray: PDissectDataArray;
+procedure TDissectCodeThread.removeAddress(list: TMap; address: ptruint; referencedBy: ptruint);
+var al: PAddresslist;
+    i,j: integer;
 begin
-  currentarray:=list;
-
-  level:=0;
-  while level<maxdepth do
+  if list.GetData(address, al) then
   begin
-    //add the path if needed
-    entrynr:=address shr ((maxdepth-level)*4) and $f;
-    if currentarray[entrynr].DissectDataArray=nil then //allocate
+    //find this address in the list and remove it
+    for i:=0 to al.pos-1 do
     begin
-      getmem(temp, sizeof(TdissectDataArray));
-      ZeroMemory(temp, sizeof(TdissectDataArray));
-      currentarray[entrynr].DissectDataArray:=temp;
+      if al.a[i]=referencedBy then
+      begin
+        //found it, shift all entries after it one spot back
+        for j:=i to al.pos-2 do
+          al.a[j]:=al.a[j+1];
+
+        //and decrease the pos
+        dec(al.pos);
+
+        if al.pos<=0 then //list is empty
+          list.Delete(address);
+
+        exit;
+      end;
     end;
-
-    currentarray:=currentarray[entrynr].DissectDataArray;
-    inc(level);
   end;
+end;
 
-  //got till level maxdepth
-  entrynr:=address shr ((maxdepth-level)*4) and $f;
-  if currentarray[entrynr].addresslist=nil then //allocate
+procedure TDissectCodeThread.addAddress(list: TMap; address: ptrUint; referencedBy: ptruint; couldbestring: boolean=false);
+var
+  al: PAddresslist;
+begin
+
+  if list.GetData(address, al)=false then
   begin
-    getmem(currentarray[entrynr].addresslist,sizeof(Taddresslist));
-    ZeroMemory(currentarray[entrynr].addresslist,sizeof(Taddresslist));
-
-    if couldbestring then currentarray[entrynr].addresslist.isstring:=isString(address);
+    //not in the list yet, add it
+    getmem(al, sizeof(TAddresslist));
+    ZeroMemory(al, sizeof(TAddresslist));
+    if couldbestring then al.isstring:=isString(address);
 
     //allocate some space for it
-    currentarray[entrynr].addresslist.maxsize:=2;
-    getmem(currentarray[entrynr].addresslist.a, 2*sizeof(pointer));
+    al.maxsize:=2;
+    getmem(al.a, 2*sizeof(pointer));
+
+    list.Add(address, al);
   end;
 
-
-  if currentarray[entrynr].addresslist.pos>=currentarray[entrynr].addresslist.maxsize then //realloc
+  if al.pos>=al.maxsize then //realloc
   begin
-    ReallocMem(currentarray[entrynr].addresslist.a, currentarray[entrynr].addresslist.maxsize*2*sizeof(pointer));
-    currentarray[entrynr].addresslist.maxsize:=currentarray[entrynr].addresslist.maxsize*2;
+    ReallocMem(al.a, al.maxsize*2*sizeof(pointer));
+    al.maxsize:=al.maxsize*2;
   end;
 
-  currentarray[entrynr].addresslist.a[currentarray[entrynr].addresslist.pos]:=referencedby;
-  inc(currentarray[entrynr].addresslist.pos);
+  al.a[al.pos]:=referencedby;
+  inc(al.pos);
 
-  if couldbestring and currentarray[entrynr].addresslist.isstring then inc(nrofstring);
+  if couldbestring and al.isstring then inc(nrofstring);
+
+
 
 end;
 
@@ -544,6 +454,12 @@ end;
 
 constructor TDissectCodeThread.create(suspended: boolean);
 begin
+  calllist:=TMap.Create(ituPtrSize, sizeof(PAddresslist) );
+  unconditionaljumplist:=TMap.Create(ituPtrSize, sizeof(PAddresslist) );
+  conditionaljumplist:=TMap.Create(ituPtrSize, sizeof(PAddresslist) );
+  memorylist:=TMap.Create(ituPtrSize, sizeof(PAddresslist) );
+
+  {
   getmem(callList, sizeof(TDissectDataArray));
   ZeroMemory(calllist, sizeof(TDissectDataArray));
   getmem(unconditionaljumplist, sizeof(TDissectDataArray));
@@ -552,7 +468,7 @@ begin
   ZeroMemory(conditionaljumplist, sizeof(TDissectDataArray));
   getmem(memorylist, sizeof(TDissectDataArray));
   ZeroMemory(memorylist, sizeof(TDissectDataArray));
-
+                     }
 
   inherited create(suspended);
 end;
