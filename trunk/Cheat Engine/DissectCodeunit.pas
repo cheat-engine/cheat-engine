@@ -54,7 +54,7 @@ type
   public
     { Public declarations }
     ondone: TOnDoneDissect;
-    dissectcode: tdissectcodethread;
+
   end;
 
 var
@@ -98,14 +98,12 @@ begin
 
   if lbModuleList.SelCount=0 then raise exception.Create(rsPleaseSelectSomethingToScan);
 
-  if dissectcode<>nil then
-  begin
-    dissectcode.Terminate;
-    dissectcode.WaitFor;
-    dissectcode.Free;
-  end;
+  if dissectcode=nil then
+    dissectcode:=TDissectCodeThread.create(true);
 
-  dissectcode:=TDissectCodeThread.create(true);
+  dissectcode.clear;
+
+
   setlength(dissectcode.memoryregion,0);
 
   for i:=0 to lbModuleList.items.count-1 do
@@ -145,6 +143,7 @@ begin
 
   starttime:=gettickcount;
 
+  dissectcode.dowork;
   dissectcode.start;
 end;
 

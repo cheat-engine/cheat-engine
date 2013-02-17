@@ -146,9 +146,9 @@ begin
   result:='';
   setlength(addresses,0);
 
-  if (frmDissectCode<>nil) and (frmDissectCode.dissectcode<>nil) and (frmDissectCode.dissectcode.done) then
+  if (dissectcode<>nil) and (dissectcode.done) then
   begin
-    if frmDissectCode.dissectcode.CheckAddress(address, addresses) then
+    if dissectcode.CheckAddress(address, addresses) then
     begin
       for i:=0 to length(addresses)-1 do
       begin
@@ -215,7 +215,7 @@ begin
   refferencedbylinecount:=0;
 
 
-  if (frmDissectCode<>nil) and (frmDissectCode.dissectcode<>nil) and (frmDissectCode.dissectcode.done) then
+  if (dissectcode<>nil) and (dissectcode.done) then
   begin
     refferencedby:=buildReferencedByString;
     if refferencedby<>'' then

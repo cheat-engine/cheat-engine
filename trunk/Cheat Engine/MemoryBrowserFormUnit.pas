@@ -3402,7 +3402,7 @@ end;
 procedure TMemoryBrowser.Referencedstrings1Click(Sender: TObject);
 begin
 
-  if (frmDissectCode=nil) or (frmDissectCode.dissectcode=nil) then
+  if (dissectcode=nil) then
   begin
     if MessageDlg(rsNeedToRunDissectCode, mtConfirmation, [mbyes, mbno], 0)=mryes then
     begin
