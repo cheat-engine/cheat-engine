@@ -12,7 +12,7 @@ object frmDissectCode: TfrmDissectCode
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.1'
   object ProgressBar1: TProgressBar
     Left = 0
     Height = 21
@@ -55,17 +55,17 @@ object frmDissectCode: TfrmDissectCode
       TabOrder = 1
       object Label2: TLabel
         Left = 0
-        Height = 17
+        Height = 16
         Top = 0
-        Width = 183
+        Width = 182
         Caption = 'Select the module(s) to dissect'
         ParentColor = False
       end
       object Label3: TLabel
         Left = 0
-        Height = 17
+        Height = 16
         Top = 20
-        Width = 170
+        Width = 169
         Caption = 'Hold CTRL to select multiple'
         ParentColor = False
       end
@@ -92,9 +92,9 @@ object frmDissectCode: TfrmDissectCode
     TabOrder = 2
     object Label6: TLabel
       Left = 19
-      Height = 17
+      Height = 16
       Top = 9
-      Width = 112
+      Width = 111
       Caption = 'Estimated time left:'
       ParentColor = False
     end
@@ -110,82 +110,82 @@ object frmDissectCode: TfrmDissectCode
     end
     object Label4: TLabel
       Left = 8
-      Height = 17
+      Height = 16
       Top = 56
-      Width = 141
+      Width = 140
       Caption = 'String references found:'
       ParentColor = False
     end
     object lblStringRef: TLabel
       Left = 8
-      Height = 17
+      Height = 16
       Top = 72
-      Width = 8
+      Width = 7
       Caption = '0'
       ParentColor = False
     end
     object Label5: TLabel
       Left = 8
-      Height = 17
+      Height = 16
       Top = 96
-      Width = 114
+      Width = 113
       Caption = 'Conditional Jumps:'
       ParentColor = False
     end
     object lblConditionalJumps: TLabel
       Left = 8
-      Height = 17
+      Height = 16
       Top = 112
-      Width = 8
+      Width = 7
       Caption = '0'
       ParentColor = False
     end
     object Label9: TLabel
       Left = 8
-      Height = 17
+      Height = 16
       Top = 136
-      Width = 129
+      Width = 128
       Caption = 'Unconditional Jumps:'
       ParentColor = False
     end
     object lblUnConditionalJumps: TLabel
       Left = 8
-      Height = 17
+      Height = 16
       Top = 152
-      Width = 8
+      Width = 7
       Caption = '0'
       ParentColor = False
     end
     object Label11: TLabel
       Left = 8
-      Height = 17
+      Height = 16
       Top = 176
-      Width = 34
+      Width = 33
       Caption = 'Calls:'
       ParentColor = False
     end
     object lblCalls: TLabel
       Left = 8
-      Height = 17
+      Height = 16
       Top = 192
-      Width = 8
+      Width = 7
       Caption = '0'
       ParentColor = False
     end
     object Label1: TLabel
       Left = 8
-      Height = 17
+      Height = 16
       Top = 216
-      Width = 96
+      Width = 95
       Caption = 'Maximum offset:'
       ParentColor = False
       Visible = False
     end
     object lblMaxOffset: TLabel
       Left = 8
-      Height = 17
+      Height = 16
       Top = 232
-      Width = 8
+      Width = 7
       Caption = '0'
       ParentColor = False
       Visible = False

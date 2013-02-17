@@ -56,11 +56,14 @@ type
     conditionaljumplist: TMap;
     memorylist: TMap; //e.g strings
 
+    cs: TCriticalSection;
+
+    haswork: TEvent;
+
 
     function isstring(address: ptrUint): boolean;
-
-
     function findaddress(list: TMap; address: ptrUint):PAddresslist;
+    procedure clearList(list: Tmap);
   public
     percentagedone: dword;
     processid: dword;
@@ -83,6 +86,10 @@ type
     function CheckAddress(address: ptrUint; var aresult: tdissectarray):boolean;
     procedure addAddress(list: TMap; address: ptrUint; referencedBy: ptruint; couldbestring: boolean=false);
     procedure removeAddress(list: TMap; address: ptruint; referencedBy: ptruint);
+    procedure clear;
+
+    procedure dowork;
+
 
     procedure getstringlist(s: tstrings);
     constructor create(suspended: boolean);
@@ -90,6 +97,7 @@ type
     procedure Execute; override;
   end;
 
+var dissectcode: tdissectcodethread;
 
 
 implementation
@@ -103,13 +111,51 @@ that data will be added to a list that the disassemblerview can read out for dat
 
 }
 
-{$ifdef cpu64}
-const maxdepth=15;
-{$else}
-const maxdepth=7;
-{$endif}
+procedure TDissectCodeThread.dowork;
+begin
+  //if done=false then exit; Really, if you don't watch the done state it's your own fault
 
+  done:=false;
+  haswork.SetEvent;
+end;
 
+procedure TDissectCodeThread.clearList(list: Tmap);
+var mi: TMapIterator;
+  al: PAddresslist;
+begin
+  cs.enter;
+  mi:=TMapIterator.Create(list);
+  mi.First;
+  while not mi.EOM do
+  begin
+    mi.GetData(al);
+    freemem(al.a);
+    freemem(al);
+    mi.Next;
+  end;
+
+  list.Clear;
+  cs.leave;
+end;
+
+procedure TDissectCodeThread.clear;
+begin
+  clearList(calllist);
+  clearList(unconditionaljumplist);
+  clearList(conditionaljumplist);
+  clearList(memorylist);
+
+  totalmemory:=0;
+  totalread:=0;
+
+  nrofunconditionaljumps:=0;
+  nrofconditionaljumps:=0;
+  nrofcalls:=0;
+  nrofdata:=0;
+  nrofstring:=0;
+  maxoffset:=0;
+
+end;
 
 function TDissectCodeThread.findaddress(list: TMap; address:ptrUint):PAddresslist;
 {
@@ -117,8 +163,14 @@ locates the given address and returns the AddressList object pointer if found.
 returns nil if not found
 }
 begin
-  if list.GetData(address, result) =false then
-    result:=nil;
+  cs.enter;
+  try
+    if list.GetData(address, result) =false then
+      result:=nil;
+  finally
+    cs.leave;
+  end;
+
 end;
 
 function TDissectCodeThread.CheckAddress(address: ptrUint; var aresult: tdissectarray):boolean;
@@ -128,59 +180,66 @@ var i,j: integer;
     unclist, condlist, clist: PAddresslist;
 begin
   totalsize:=0;
-  unclist:=findaddress(unconditionaljumplist, address);
-  if unclist<>nil then //it has unconditonal jumps jumping to it
-    inc(totalsize, unclist.pos);
 
-  condlist:=findaddress(conditionaljumplist, address);
-  if condlist<>nil then
-    inc(totalsize, condlist.pos);
+  cs.Enter;
+  try
+    unclist:=findaddress(unconditionaljumplist, address);
+    if unclist<>nil then //it has unconditonal jumps jumping to it
+      inc(totalsize, unclist.pos);
 
-  clist:=findaddress(calllist, address);
-  if clist<>nil then
-    inc(totalsize, clist.pos);
-
-  if totalsize>0 then
-  begin
-    //has results
-    setlength(aresult,totalsize);
-    j:=0;
+    condlist:=findaddress(conditionaljumplist, address);
     if condlist<>nil then
-    begin
-      for i:=0 to condlist.pos-1 do
-      begin
-        aresult[j].address:=condlist.a[i];
-        aresult[j].jumptype:=jtConditional;
-        inc(j);
-      end;
+      inc(totalsize, condlist.pos);
 
-    end;
-
-    if unclist<>nil then
-    begin
-      for i:=0 to unclist.pos-1 do
-      begin
-        aresult[j].address:=unclist.a[i];
-        aresult[j].jumptype:=jtUnconditional;
-        inc(j);
-      end;
-
-    end;
-
+    clist:=findaddress(calllist, address);
     if clist<>nil then
+      inc(totalsize, clist.pos);
+
+    if totalsize>0 then
     begin
-      for i:=0 to clist.pos-1 do
+      //has results
+      setlength(aresult,totalsize);
+      j:=0;
+      if condlist<>nil then
       begin
-        aresult[j].address:=clist.a[i];
-        aresult[j].jumptype:=jtCall;
-        inc(j);
+        for i:=0 to condlist.pos-1 do
+        begin
+          aresult[j].address:=condlist.a[i];
+          aresult[j].jumptype:=jtConditional;
+          inc(j);
+        end;
+
       end;
 
-    end;
+      if unclist<>nil then
+      begin
+        for i:=0 to unclist.pos-1 do
+        begin
+          aresult[j].address:=unclist.a[i];
+          aresult[j].jumptype:=jtUnconditional;
+          inc(j);
+        end;
 
-    result:=true;
-  end
-  else result:=false;
+      end;
+
+      if clist<>nil then
+      begin
+        for i:=0 to clist.pos-1 do
+        begin
+          aresult[j].address:=clist.a[i];
+          aresult[j].jumptype:=jtCall;
+          inc(j);
+        end;
+
+      end;
+
+      result:=true;
+    end
+    else result:=false;
+
+  finally
+    cs.leave;
+  end;
 
 end;
 
@@ -204,18 +263,24 @@ var mi: TMapIterator;
 begin
   s.clear;
 
+  cs.enter;
   mi:=TMapIterator.Create(memorylist);
 
   mi.first;
-  while not mi.EOM do
-  begin
-    mi.GetData(al);
-    if al.isstring then
+  try
+    while not mi.EOM do
     begin
-      mi.GetID(address);
-      addaddresstostringlist(al, address, s);
+      mi.GetData(al);
+      if al.isstring then
+      begin
+        mi.GetID(address);
+        addaddresstostringlist(al, address, s);
+      end;
+      mi.Next;
     end;
-    mi.Next;
+
+  finally
+    cs.leave;
   end;
 end;
 
@@ -223,26 +288,32 @@ procedure TDissectCodeThread.removeAddress(list: TMap; address: ptruint; referen
 var al: PAddresslist;
     i,j: integer;
 begin
-  if list.GetData(address, al) then
-  begin
-    //find this address in the list and remove it
-    for i:=0 to al.pos-1 do
+  cs.Enter;
+  try
+    if list.GetData(address, al) then
     begin
-      if al.a[i]=referencedBy then
+      //find this address in the list and remove it
+      for i:=0 to al.pos-1 do
       begin
-        //found it, shift all entries after it one spot back
-        for j:=i to al.pos-2 do
-          al.a[j]:=al.a[j+1];
+        if al.a[i]=referencedBy then
+        begin
+          //found it, shift all entries after it one spot back
+          for j:=i to al.pos-2 do
+            al.a[j]:=al.a[j+1];
 
-        //and decrease the pos
-        dec(al.pos);
+          //and decrease the pos
+          dec(al.pos);
 
-        if al.pos<=0 then //list is empty
-          list.Delete(address);
+          if al.pos<=0 then //list is empty
+            list.Delete(address);
 
-        exit;
+          exit;
+        end;
       end;
     end;
+
+  finally
+    cs.leave;
   end;
 end;
 
@@ -251,32 +322,36 @@ var
   al: PAddresslist;
 begin
 
-  if list.GetData(address, al)=false then
-  begin
-    //not in the list yet, add it
-    getmem(al, sizeof(TAddresslist));
-    ZeroMemory(al, sizeof(TAddresslist));
-    if couldbestring then al.isstring:=isString(address);
+  cs.enter;
+  try
+    if list.GetData(address, al)=false then
+    begin
+      //not in the list yet, add it
+      getmem(al, sizeof(TAddresslist));
+      ZeroMemory(al, sizeof(TAddresslist));
+      if couldbestring then al.isstring:=isString(address);
 
-    //allocate some space for it
-    al.maxsize:=2;
-    getmem(al.a, 2*sizeof(pointer));
+      //allocate some space for it
+      al.maxsize:=2;
+      getmem(al.a, 2*sizeof(pointer));
 
-    list.Add(address, al);
+      list.Add(address, al);
+    end;
+
+    if al.pos>=al.maxsize then //realloc
+    begin
+      ReallocMem(al.a, al.maxsize*2*sizeof(pointer));
+      al.maxsize:=al.maxsize*2;
+    end;
+
+    al.a[al.pos]:=referencedby;
+    inc(al.pos);
+
+    if couldbestring and al.isstring then inc(nrofstring);
+
+  finally
+    cs.leave;
   end;
-
-  if al.pos>=al.maxsize then //realloc
-  begin
-    ReallocMem(al.a, al.maxsize*2*sizeof(pointer));
-    al.maxsize:=al.maxsize*2;
-  end;
-
-  al.a[al.pos]:=referencedby;
-  inc(al.pos);
-
-  if couldbestring and al.isstring then inc(nrofstring);
-
-
 
 end;
 
@@ -353,6 +428,7 @@ begin
       end;
     end;
   end;
+
 end;
 
 
@@ -371,85 +447,96 @@ var
 
 begin
   d:=TDisassembler.Create;
-  d.showsymbols:=false;
-  d.showmodules:=false;
+  try
+    d.showsymbols:=false;
+    d.showmodules:=false;
 
-  //find out how much memory to go through (for the progressbar)
-  totalmemory:=0;
-  for i:=0 to length(memoryregion)-1 do
-    inc(totalmemory,memoryregion[i].MemorySize);
-
-  totalread:=0;
-  for i:=0 to length(memoryregion)-1 do
-  begin
-    currentAddress:=memoryregion[i].BaseAddress;
-
-
-    while (not terminated) and (currentaddress<memoryregion[i].BaseAddress+memoryregion[i].MemorySize) do
+    while not terminated do
     begin
-      oldaddress:=currentaddress;
-      s:=d.disassemble(currentaddress, x);
-      inc(totalread,currentaddress-oldaddress);
-      percentagedone:=(totalread * 100) div totalmemory;
-
-
-      //evaluate S
-      splitDisassembledString(s, false, a,b,o,special);      
-      if hasAddress(o,tempaddress) then
+      //wait for the haswork event to be set
+      if haswork.WaitFor(INFINITE)=wrSignaled then
       begin
-        //check the kind of address (calltarget, jumptarget, memory access/indicator)
-        case o[1] of
-          'c' : //call
-          begin
-            if (o[2]='a') and (o[3]='l') then
-            begin
-              addAddress(calllist, tempaddress, oldaddress);
-              inc(nrofcalls);
-            end;
-          end;
+        //find out how much memory to go through (for the progressbar)
+        totalmemory:=0;
+        for i:=0 to length(memoryregion)-1 do
+          inc(totalmemory,memoryregion[i].MemorySize);
 
-          'j' : //jmp, conditional or not
-          begin
-            if o[2]='m' then
-            begin
-              //jmp
-              addAddress(unconditionaljumplist, tempaddress,oldaddress);
-              inc(nrofunconditionaljumps);
-            end
-            else
-            begin
-              //jx
-              addAddress(conditionaljumplist, tempaddress,oldaddress);
-              inc(nrofconditionaljumps);
-            end;
-          end;
-
-          else
-          begin
-            //memoryaccess/indicator
-            addAddress(memorylist, tempaddress, oldaddress, true);
-            inc(nrofdata);
-          end;
-
-        end;
-
-      end else
-      begin
-        //it doesn't have an address
-        j:=pos('[',o);
-        if j>0 then
+        totalread:=0;
+        for i:=0 to length(memoryregion)-1 do
         begin
-          //it has an address specifier
-          //maxoffset:=max(maxoffset, FindOffset(copy(o,j,pos(']',o)-j+1)));
+          currentAddress:=memoryregion[i].BaseAddress;
+
+
+          while (not terminated) and (currentaddress<memoryregion[i].BaseAddress+memoryregion[i].MemorySize) do
+          begin
+            oldaddress:=currentaddress;
+            s:=d.disassemble(currentaddress, x);
+            inc(totalread,currentaddress-oldaddress);
+            percentagedone:=(totalread * 100) div totalmemory;
+
+
+            //evaluate S
+            splitDisassembledString(s, false, a,b,o,special);
+            if hasAddress(o,tempaddress) then
+            begin
+              //check the kind of address (calltarget, jumptarget, memory access/indicator)
+              case o[1] of
+                'c' : //call
+                begin
+                  if (o[2]='a') and (o[3]='l') then
+                  begin
+                    addAddress(calllist, tempaddress, oldaddress);
+                    inc(nrofcalls);
+                  end;
+                end;
+
+                'j' : //jmp, conditional or not
+                begin
+                  if o[2]='m' then
+                  begin
+                    //jmp
+                    addAddress(unconditionaljumplist, tempaddress,oldaddress);
+                    inc(nrofunconditionaljumps);
+                  end
+                  else
+                  begin
+                    //jx
+                    addAddress(conditionaljumplist, tempaddress,oldaddress);
+                    inc(nrofconditionaljumps);
+                  end;
+                end;
+
+                else
+                begin
+                  //memoryaccess/indicator
+                  addAddress(memorylist, tempaddress, oldaddress, true);
+                  inc(nrofdata);
+                end;
+
+              end;
+
+            end else
+            begin
+              //it doesn't have an address
+              j:=pos('[',o);
+              if j>0 then
+              begin
+                //it has an address specifier
+                //maxoffset:=max(maxoffset, FindOffset(copy(o,j,pos(']',o)-j+1)));
+              end;
+            end;
+          end;
         end;
       end;
+
+      done:=true;
     end;
+
+
+  finally
+
+    d.free;
   end;
-
-  done:=true;
-
-
-
 end;
 
 constructor TDissectCodeThread.create(suspended: boolean);
@@ -458,18 +545,9 @@ begin
   unconditionaljumplist:=TMap.Create(ituPtrSize, sizeof(PAddresslist) );
   conditionaljumplist:=TMap.Create(ituPtrSize, sizeof(PAddresslist) );
   memorylist:=TMap.Create(ituPtrSize, sizeof(PAddresslist) );
+  cs:=TCriticalSection.Create;
 
-  {
-  getmem(callList, sizeof(TDissectDataArray));
-  ZeroMemory(calllist, sizeof(TDissectDataArray));
-  getmem(unconditionaljumplist, sizeof(TDissectDataArray));
-  ZeroMemory(unconditionaljumplist, sizeof(TDissectDataArray));
-  getmem(conditionaljumplist, sizeof(TDissectDataArray));
-  ZeroMemory(conditionaljumplist, sizeof(TDissectDataArray));
-  getmem(memorylist, sizeof(TDissectDataArray));
-  ZeroMemory(memorylist, sizeof(TDissectDataArray));
-                     }
-
+  haswork:=TEvent.Create(nil, false, false, '');
   inherited create(suspended);
 end;
 

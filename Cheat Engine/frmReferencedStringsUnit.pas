@@ -183,7 +183,7 @@ begin
   end;
 
   stringlist:=tstringlist.Create;
-  frmdissectcode.dissectcode.getstringlist(stringlist);
+  dissectcode.getstringlist(stringlist);
 
   if stringfiller<>nil then
   begin
