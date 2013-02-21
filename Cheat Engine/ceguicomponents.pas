@@ -685,8 +685,8 @@ type TCEForm=class(TCustomForm)
 
   public
     designsurface: TJvDesignSurface;
-//    procedure ResyncWithLua(Base: TComponent); overload;
-    procedure ResyncWithLua; //overload
+    procedure ResyncWithLua(Base: TComponent); overload;
+    procedure ResyncWithLua; overload;
     procedure SaveToFile(filename: string);
     procedure LoadFromFile(filename: string);
     procedure SaveToXML(Node: TDOMNode);
@@ -1459,7 +1459,7 @@ begin
       DesignPaintGrid(Canvas, ClientRect);
   end;
 end;
- {
+
 procedure TCEForm.ResyncWithLua(base: TComponent);
 var i: integer;
 begin
@@ -1472,12 +1472,12 @@ begin
     Lua_RegisterObject(name+'_'+base.Name, base)
 
 
-end;  }
+end;
 
 procedure TCEForm.ResyncWithLua;
 begin
-//  ResyncWithLua(self);
-  Lua_RegisterObject(self.name, self)
+  ResyncWithLua(self); //still needed for backwards compatibility
+ // Lua_RegisterObject(self.name, self)
 end;
 
 destructor TCEForm.destroy;
