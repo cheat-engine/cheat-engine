@@ -1698,7 +1698,7 @@ methods
   decodeLastParametersToString() : Returns the unedited "Comments" information. Does not display userdefined comments
   getLastDisassembleData() : Returns the LastDisassembleData table. 
     The table is build-up as follow:
-      address: integer - The address that was disassembler
+      address: integer - The address that was disassembled
       opcode: string - The opcode without parameters
       parameters: string - The parameters
       description: string - The description of this opcode
@@ -1751,14 +1751,28 @@ binaryNot(int)
 getRunningProcesses(): stringlist
 getProcessModules(processid): 
 
-dissectCode(modulename) : Dissects the specified module and waits till it's done
-addReference(fromAddress, ToAddress, type)
-deleteReference(fromAddress, ToAddress)
-getReferences(address)
-getReferencedStrings()
 
-getComment(address)
-setComment(address, text)
+getComment(address) : Gets the userdefined comment at the specified address
+setComment(address, text) : Sets a userdefined comment at the specifried address. %s is used to display the autoguess value if there is one
+
+DissectCode class:
+getDissectCode() : Created or returns the current code DissectCode object
+
+properties:
+methods:
+  dissect(modulename) : Dissects the memory of a module
+  dissect(base,size) : Dissect the specified memory region
+
+  addReference(fromAddress, ToAddress, type, OPTIONAL isstring):
+    Adds a reference. Type can be rtCall, rtUnconditional, rtConditional, rtMemory
+    In case of rtMemory setting isstring to true will add it to the referenced strings list
+
+  deleteReference(fromAddress, ToAddress)
+
+
+  getReferences(address) : Returns a table containing the addresses that reference this address and the type
+  getReferencedStrings() 
+
 
 
 
