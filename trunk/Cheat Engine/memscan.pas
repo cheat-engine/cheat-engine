@@ -2868,7 +2868,11 @@ begin
               break;
             end;
 
-          if allfound then exit;
+          if allfound then
+          begin
+            found:=1;
+            exit;
+          end;
         end;
 
       end;
