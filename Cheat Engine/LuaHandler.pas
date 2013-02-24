@@ -70,7 +70,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports, Mem
   LuaCheckbox, LuaGroupbox, LuaListbox, LuaCombobox, LuaTrackbar, LuaListColumn,
   LuaEdit, LuaMemo, LuaCollection, LuaListColumns, LuaListitem, LuaListItems,
   LuaTimer, LuaListview, LuaGenericHotkey, LuaTableFile, LuaMemoryRecordHotkey,
-  LuaMemoryView, LuaD3DHook, LuaDisassembler;
+  LuaMemoryView, LuaD3DHook, LuaDisassembler, LuaDissectCode;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -120,10 +120,13 @@ begin
     end;
   end;
 
-  if result=LUA_ERRRUN then //an error occured, there is currently no error handler function so use this code here to show it
+  if (result=LUA_ERRRUN) and (errf=0) then //an error occured and no error handler was specified
   begin
     if GetCurrentThreadId=MainThreadID then
     begin
+
+
+      //lua_Debug
       error:=Lua_ToString(l, -1);
       if (error<>'') then
       begin
@@ -4395,6 +4398,7 @@ begin
     initializeLuaStructure;
     initializeLuaRegion;
     initializeLuaDisassembler;
+    initializeLuaDissectCode;
 
     s:=tstringlist.create;
     try

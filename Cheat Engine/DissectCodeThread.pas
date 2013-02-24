@@ -20,7 +20,7 @@ type
 
 
 
-type tjumptype=(jtUnconditional,jtConditional,jtCall);
+type tjumptype=(jtCall=0, jtUnconditional=1, jtConditional=2, jtMemory=3);
 
 type tdissectarray= array of record
                       address: ptrUint;
@@ -59,6 +59,7 @@ type
     cs: TCriticalSection;
 
     haswork: TEvent;
+    ready: TEvent;
 
 
     function isstring(address: ptrUint): boolean;
@@ -84,11 +85,16 @@ type
 
     function FindOffset(s: string):ptrUint;
     function CheckAddress(address: ptrUint; var aresult: tdissectarray):boolean;
+    procedure addReference(FromAddress, ToAddress: ptruint; reftype: tjumptype; isstring: boolean=false);
+    procedure removeReference(FromAddress, ToAddress: ptruint);
+
     procedure addAddress(list: TMap; address: ptrUint; referencedBy: ptruint; couldbestring: boolean=false);
     procedure removeAddress(list: TMap; address: ptruint; referencedBy: ptruint);
     procedure clear;
 
     procedure dowork;
+
+    procedure waitTillDone;
 
 
     procedure getstringlist(s: tstrings);
@@ -110,6 +116,13 @@ This thread will scan the memory for jumps and conditional jumps
 that data will be added to a list that the disassemblerview can read out for data
 
 }
+
+
+procedure TDissectCodeThread.waitTillDone; //mainly for lua
+begin
+  while done=false do
+    ready.WaitFor(INFINITE);
+end;
 
 procedure TDissectCodeThread.dowork;
 begin
@@ -177,7 +190,7 @@ function TDissectCodeThread.CheckAddress(address: ptrUint; var aresult: tdissect
 var i,j: integer;
     totalsize: integer;
 
-    unclist, condlist, clist: PAddresslist;
+    unclist, condlist, clist, mlist: PAddresslist;
 begin
   totalsize:=0;
 
@@ -194,6 +207,10 @@ begin
     clist:=findaddress(calllist, address);
     if clist<>nil then
       inc(totalsize, clist.pos);
+
+    mlist:=findaddress(memorylist, address);
+    if mlist<>nil then
+      inc(totalsize, mlist.pos);
 
     if totalsize>0 then
     begin
@@ -230,8 +247,18 @@ begin
           aresult[j].jumptype:=jtCall;
           inc(j);
         end;
-
       end;
+
+      if mlist<>nil then
+      begin
+        for i:=0 to mlist.pos-1 do
+        begin
+          aresult[j].address:=clist.a[i];
+          aresult[j].jumptype:=jtMemory;
+          inc(j);
+        end;
+      end;
+
 
       result:=true;
     end
@@ -284,6 +311,25 @@ begin
   end;
 end;
 
+procedure TDissectCodeThread.addReference(FromAddress, ToAddress: ptruint; reftype: tjumptype; isstring: boolean=false);
+begin
+  case reftype of
+    jtCall: addAddress(calllist, toaddress, fromaddress, isstring);
+    jtUnconditional: addAddress(unconditionaljumplist, toaddress, fromaddress, isstring);
+    jtConditional: addAddress(conditionaljumplist, toaddress, fromaddress, isstring);
+    jtMemory: addAddress(memorylist, toaddress, fromaddress, isstring);
+  end;
+end;
+
+procedure TDissectCodeThread.removeReference(FromAddress, ToAddress: ptruint);
+begin
+  //for each list
+  removeAddress(calllist, ToAddress, FromAddress);
+  removeAddress(unconditionaljumplist, ToAddress, FromAddress);
+  removeAddress(conditionaljumplist, ToAddress, FromAddress);
+  removeAddress(memorylist, ToAddress, FromAddress);
+end;
+
 procedure TDissectCodeThread.removeAddress(list: TMap; address: ptruint; referencedBy: ptruint);
 var al: PAddresslist;
     i,j: integer;
@@ -316,6 +362,8 @@ begin
     cs.leave;
   end;
 end;
+
+
 
 procedure TDissectCodeThread.addAddress(list: TMap; address: ptrUint; referencedBy: ptruint; couldbestring: boolean=false);
 var
@@ -457,6 +505,9 @@ begin
       if haswork.WaitFor(INFINITE)=wrSignaled then
       begin
         //find out how much memory to go through (for the progressbar)
+
+        ready.ResetEvent;
+
         totalmemory:=0;
         for i:=0 to length(memoryregion)-1 do
           inc(totalmemory,memoryregion[i].MemorySize);
@@ -530,6 +581,7 @@ begin
       end;
 
       done:=true;
+      ready.SetEvent;
     end;
 
 
@@ -541,6 +593,7 @@ end;
 
 constructor TDissectCodeThread.create(suspended: boolean);
 begin
+  done:=true; //ready to do some work
   calllist:=TMap.Create(ituPtrSize, sizeof(PAddresslist) );
   unconditionaljumplist:=TMap.Create(ituPtrSize, sizeof(PAddresslist) );
   conditionaljumplist:=TMap.Create(ituPtrSize, sizeof(PAddresslist) );
@@ -548,6 +601,7 @@ begin
   cs:=TCriticalSection.Create;
 
   haswork:=TEvent.Create(nil, false, false, '');
+  ready:=TEvent.create(nil, false, true, '');
   inherited create(suspended);
 end;
 

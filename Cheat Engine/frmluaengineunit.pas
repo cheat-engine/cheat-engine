@@ -65,6 +65,8 @@ implementation
 
 { TfrmLuaEngine }
 
+uses luaclass;
+
 
 resourcestring
   rsError = 'Script Error';
@@ -74,12 +76,46 @@ begin
   btnexecute.Height:=panel2.clientheight-(2*btnexecute.top);
 end;
 
+function onerror(L: PLua_State): integer; cdecl;
+var ld: lua_Debug;
+  frm: TfrmLuaEngine;
+  r: integer;
+  t: integer;
+begin
+  //todo: Try to get this to work (might be a lua bug)
+  {
+
+  result:=0;
+  frm:=luaclass_getClassObject(L);
+
+
+  t:=lua_gettop(L);
+
+  ZeroMemory(@ld, sizeof(ld));
+
+
+  r:=lua_getstack(L, 1, @ld);
+  if r=1 then
+  begin
+    lua_getinfo(L, '>l', @ld);
+    lua_pushstring(L, 'Error in line '+inttostr(ld.currentline));
+  end
+  else
+    lua_pushstring(L, 'Undefined error');
+             }
+  result:=1;
+
+
+end;
+
 procedure TfrmLuaEngine.btnExecuteClick(Sender: TObject);
 var pc: pchar;
   i,j: integer;
 
   oldprintoutput: Tstrings;
   c: tobject;
+
+  err: integer;
 begin
   luacs.Enter;
   oldprintoutput:=lua_oldprintoutput;
@@ -89,7 +125,18 @@ begin
 
     lua_setPrintOutput(mOutput.lines);
 
-    if lua_dostring(luavm, pchar(mScript.text) )=0 then
+    i:=0;
+{    luaclass_newClass(Luavm, self);
+    lua_pushcclosure(Luavm, onerror,1);
+    err:=lua_gettop(Luavm);
+
+    if luaL_loadstring(Luavm, pchar(mScript.text))=0 then
+      i := lua_pcall(Luavm, 0, LUA_MULTRET, err);
+
+     lua_remove(luavm, err); }
+
+
+    if lua_dostring(Luavm, pchar(mScript.text))=0 then
     begin
 
 

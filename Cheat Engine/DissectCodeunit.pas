@@ -99,7 +99,7 @@ begin
   if lbModuleList.SelCount=0 then raise exception.Create(rsPleaseSelectSomethingToScan);
 
   if dissectcode=nil then
-    dissectcode:=TDissectCodeThread.create(true);
+    dissectcode:=TDissectCodeThread.create(false);
 
   dissectcode.clear;
 
@@ -144,7 +144,7 @@ begin
   starttime:=gettickcount;
 
   dissectcode.dowork;
-  dissectcode.start;
+
 end;
 
 procedure TfrmDissectCode.FormCreate(Sender: TObject);

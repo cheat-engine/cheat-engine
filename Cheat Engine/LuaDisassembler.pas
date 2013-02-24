@@ -130,7 +130,7 @@ begin
   object_addMetaData(L, metatable, userdata);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'disassemble', disassembler_disassemble);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'decodeLastParametersToString', disassembler_decodeLastParametersToString);
-
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getLastDisassembleData', disassembler_getLastDisassembleData);
   luaclass_addPropertyToTable(L, metatable, userdata, 'LastDisassembleData', disassembler_getLastDisassembleData, nil);
 
 end;
