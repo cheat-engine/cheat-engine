@@ -298,3 +298,9 @@ pfCustom = 8
 dvtNone = 0
 dvtAddress = 1
 dvtValue = 2
+
+--Dissectcode
+jtCall = 0
+jtUnconditional = 1
+jtConditional = 2
+jtMemory = 3

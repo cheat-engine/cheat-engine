@@ -1716,6 +1716,29 @@ methods
       isConditionalJump: boolean - Set to true if it's a conditional jump
   
 
+
+DissectCode class:
+getDissectCode() : Created or returns the current code DissectCode object
+
+properties:
+methods:
+  clear() : Clears all data
+  dissect(modulename) : Dissects the memory of a module
+  dissect(base,size) : Dissect the specified memory region
+
+  addReference(fromAddress, ToAddress, type, OPTIONAL isstring):
+    Adds a reference. Type can be jtCall, jtUnconditional, jtConditional, jtMemory
+    In case of rtMemory setting isstring to true will add it to the referenced strings list
+
+  deleteReference(fromAddress, ToAddress)
+
+
+  getReferences(address) : Returns a table containing the addresses that reference this address and the type
+  getReferencedStrings(): Returns a table of addresses and their strings that have been referenced. Use getReferences to find out which addresses that are
+ 
+
+
+
 --]]
 
 
@@ -1754,25 +1777,6 @@ getProcessModules(processid):
 
 getComment(address) : Gets the userdefined comment at the specified address
 setComment(address, text) : Sets a userdefined comment at the specifried address. %s is used to display the autoguess value if there is one
-
-DissectCode class:
-getDissectCode() : Created or returns the current code DissectCode object
-
-properties:
-methods:
-  dissect(modulename) : Dissects the memory of a module
-  dissect(base,size) : Dissect the specified memory region
-
-  addReference(fromAddress, ToAddress, type, OPTIONAL isstring):
-    Adds a reference. Type can be rtCall, rtUnconditional, rtConditional, rtMemory
-    In case of rtMemory setting isstring to true will add it to the referenced strings list
-
-  deleteReference(fromAddress, ToAddress)
-
-
-  getReferences(address) : Returns a table containing the addresses that reference this address and the type
-  getReferencedStrings() 
-
 
 
 

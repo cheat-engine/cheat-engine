@@ -329,6 +329,8 @@ var i,j,k, m: integer;
     error: boolean;
     errorstring: string;
 
+    aob1, aob2: dword;
+
   procedure finished(f: integer);
   //cleanup a memscan and fill in the results
   var i,j: integer;
@@ -534,8 +536,10 @@ begin
     for j:=0 to length(aobscanmodules[i].entries)-1 do
       aobstrings:=aobstrings+'('+aobscanmodules[i].entries[j].aobstring+')';
 
-    aobscanmodules[i].memscan.firstscan(soExactValue, vtByteArrays, rtRounded, aobstrings, '', aobscanmodules[i].minaddress, aobscanmodules[i].maxaddress, true, false, false, false, fsmNotAligned);
-
+    if length(aobscanmodules[i].entries)=1 then //bytearrays is slightly slower, so only use it if more than one entry is to be scanned
+      aobscanmodules[i].memscan.firstscan(soExactValue, vtByteArray, rtRounded, aobscanmodules[i].entries[0].aobstring, '', aobscanmodules[i].minaddress, aobscanmodules[i].maxaddress, true, false, false, false, fsmNotAligned)
+    else
+      aobscanmodules[i].memscan.firstscan(soExactValue, vtByteArrays, rtRounded, aobstrings, '', aobscanmodules[i].minaddress, aobscanmodules[i].maxaddress, true, false, false, false, fsmNotAligned);
   end;
 
   //now wait till all are finished
