@@ -192,7 +192,7 @@ begin
 
     for i:=0 to s.count-1 do
     begin
-      sr:=s.Objects[i];
+      sr:=TStringReference(s.Objects[i]);
       lua_pushinteger(L, sr.address);
       lua_pushstring(L, sr.s);
       lua_settable(L, t);
