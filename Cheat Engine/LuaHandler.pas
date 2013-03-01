@@ -70,7 +70,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports, Mem
   LuaCheckbox, LuaGroupbox, LuaListbox, LuaCombobox, LuaTrackbar, LuaListColumn,
   LuaEdit, LuaMemo, LuaCollection, LuaListColumns, LuaListitem, LuaListItems,
   LuaTimer, LuaListview, LuaGenericHotkey, LuaTableFile, LuaMemoryRecordHotkey,
-  LuaMemoryView, LuaD3DHook, LuaDisassembler, LuaDissectCode;
+  LuaMemoryView, LuaD3DHook, LuaDisassembler, LuaDissectCode, disassemblerComments;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -4081,6 +4081,40 @@ begin
   lua_pop(L, lua_gettop(L));
 end;
 
+function getComment(L: PLua_state): integer; cdecl;
+var address: ptruint;
+begin
+  result:=0;
+  if lua_gettop(L)=1 then
+  begin
+    if lua_type(L,1)=LUA_TSTRING then
+      address:=symhandler.getAddressFromName(Lua_ToString(L,1))
+    else
+      address:=lua_tointeger(L,1);
+
+    lua_pushstring(L, dassemblercomments.comments[address]);
+    result:=1;
+  end;
+end;
+
+function setComment(L: PLua_state): integer; cdecl;
+var address: ptruint;
+  comment: string;
+begin
+  result:=0;
+  if lua_gettop(L)=2 then
+  begin
+    if lua_type(L,1)=LUA_TSTRING then
+      address:=symhandler.getAddressFromName(Lua_ToString(L,1))
+    else
+      address:=lua_tointeger(L,1);
+
+    comment:=Lua_ToString(L, 2);
+
+    dassemblercomments.comments[address]:=comment;
+  end;
+end;
+
 procedure InitializeLua;
 var s: tstringlist;
   k32: THandle;
@@ -4377,6 +4411,9 @@ begin
     Lua_register(LuaVM, 'loadTable', lua_loadTable);
     Lua_register(LuaVM, 'saveTable', lua_saveTable);
     Lua_register(LuaVM, 'detachIfPossible', lua_DetachIfPossible);
+    Lua_register(LuaVM, 'getComment', getComment);
+    Lua_register(LuaVM, 'setComment', setComment);
+
 
     initializeLuaCustomControl;
 

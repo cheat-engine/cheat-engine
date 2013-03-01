@@ -267,6 +267,9 @@ When the debugger is waiting to continue you can change the register variables. 
 
 detachIfPossible() : Detaches the debugger from the target process (if it was attached)
 
+getComment(address) : Gets the userdefined comment at the specified address
+setComment(address, text) : Sets a userdefined comment at the specifried address. %s is used to display the autoguess value if there is one
+
 
 
 
@@ -1775,8 +1778,6 @@ getRunningProcesses(): stringlist
 getProcessModules(processid): 
 
 
-getComment(address) : Gets the userdefined comment at the specified address
-setComment(address, text) : Sets a userdefined comment at the specifried address. %s is used to display the autoguess value if there is one
 
 
 
