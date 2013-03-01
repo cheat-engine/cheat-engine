@@ -60,7 +60,7 @@ implementation
 uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports, MemoryRecordUnit,
   debuggertypedefinitions, symbolhandler, frmautoinjectunit, simpleaobscanner,
   addresslist, memscan, foundlisthelper, cesupport, DBK32functions, sharedMemory,
-  disassembler, LuaCanvas, LuaPen, LuaFont, LuaBrush, LuaPicture, LuaMenu,
+  disassemblerComments, disassembler, LuaCanvas, LuaPen, LuaFont, LuaBrush, LuaPicture, LuaMenu,
   LuaDebug, LuaThread, LuaGraphic, LuaProgressBar, LuaOldD3DHook, LuaWinControl,
   LuaMemoryRecord, LuaForm, MemoryBrowserFormUnit, disassemblerviewunit, hexviewunit,
   CustomTypeHandler, LuaStructure, LuaRegion, LuaXMPlayer, LuaMemscan, LuaFoundlist,
@@ -70,7 +70,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports, Mem
   LuaCheckbox, LuaGroupbox, LuaListbox, LuaCombobox, LuaTrackbar, LuaListColumn,
   LuaEdit, LuaMemo, LuaCollection, LuaListColumns, LuaListitem, LuaListItems,
   LuaTimer, LuaListview, LuaGenericHotkey, LuaTableFile, LuaMemoryRecordHotkey,
-  LuaMemoryView, LuaD3DHook, LuaDisassembler, LuaDissectCode, disassemblerComments;
+  LuaMemoryView, LuaD3DHook, LuaDisassembler, LuaDissectCode, LuaByteTable;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -4436,6 +4436,7 @@ begin
     initializeLuaRegion;
     initializeLuaDisassembler;
     initializeLuaDissectCode;
+    initializeLuaByteTable;
 
     s:=tstringlist.create;
     try

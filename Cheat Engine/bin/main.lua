@@ -51,6 +51,22 @@ writeBytesLocal(address, x,x,x,x,...) : See writeBytes but then it's for Cheat E
 writeBytesLocal(address, table, , count) : See writeBytes but then it's for Cheat Engine's memory
 
 
+wordToByteTable(number): {}          - Converts a word to a bytetable
+dwordToByteTable(number): {}         - Converts a dword to a bytetable
+qwordToByteTable(number): {}         - Converts a qword to a bytetable
+floatToByteTable(number): {}         - Converts a float to a bytetable
+doubleToByteTable(number): {}        - Converts a double to a bytetable
+stringToByteTable(string): {}        - Converts a string to a bytetable
+wideStringToByteTable(string): {}    - Converts a string to a widestring and converts that to a bytetable
+
+byteTableToWord(table): number       - Converts a bytetable to a word
+byteTableToDword(table): number      - Converts a bytetable to a dword
+byteTableToQword(table): number      - Converts a bytetable to a qword
+byteTableToFloat(table): number      - Converts a bytetable to a float
+byteTableToDouble(table): number     - Converts a bytetable to a double
+byteTableToString(table): string     - Converts a bytetable to a string
+byteTableToWideString(table): string - Converts a bytetable to a widestring and convets that to a string
+
 
 writeRegionToFile(filename, sourceaddress,size) : Writes the given region to a file. Returns the number of bytes written
 readRegionFromFile(filename, destinationaddress)
@@ -1750,21 +1766,7 @@ methods:
 
 functions to add:
 
-WordToByteTable(number): {}
-DwordToByteTable(number): {}
-QwordToByteTable(number): {}
-FloatToByteTable(number): {}
-DoubleToByteTable(number): {}
-StringToByteTable(string): {}
-WideStringToByteTable(string): {}
 
-ByteTableToWord(table): number
-ByteTableToDword(table): number
-ByteTableToQword(table): number
-ByteTableToFloat(table): number
-ByteTableToDouble(table): number
-ByteTableToString(table): string
-ByteTableToWideString(table): string
 
 
 binaryOr(int1, int2)
