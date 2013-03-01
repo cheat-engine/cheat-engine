@@ -1150,12 +1150,14 @@ end;
 
 procedure TDebuggerthread.FindWhatWrites(address: uint_ptr; size: integer);
 begin
-  FindCodeByBP(address, size, bptWrite);
+  if size>0 then
+    FindCodeByBP(address, size, bptWrite);
 end;
 
 procedure TDebuggerthread.FindWhatAccesses(address: uint_ptr; size: integer);
 begin
-  FindCodeByBP(address, size, bptAccess);
+  if size>0 then
+    FindCodeByBP(address, size, bptAccess);
 end;
 
 procedure TDebuggerthread.FindCodeByBP(address: uint_ptr; size: integer; bpt: TBreakpointTrigger);
@@ -1168,6 +1170,8 @@ var
   foundcodedialog: TFoundcodeDialog;
   method: TBreakpointMethod;
 begin
+  if size=0 then exit;
+
   //split up address and size into memory alligned sections
   method:=preferedBreakpointMethod;
 
