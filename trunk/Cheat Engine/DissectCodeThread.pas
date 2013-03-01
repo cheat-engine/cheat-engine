@@ -61,6 +61,8 @@ type
     haswork: TEvent;
     ready: TEvent;
 
+    canceled: boolean;
+
 
     function isstring(address: ptrUint): boolean;
     function findaddress(list: TMap; address: ptrUint):PAddresslist;
@@ -95,6 +97,7 @@ type
     procedure dowork;
 
     procedure waitTillDone;
+    procedure cancelScan;
 
 
     procedure getstringlist(s: tstrings);
@@ -117,6 +120,13 @@ that data will be added to a list that the disassemblerview can read out for dat
 
 }
 
+
+procedure TDissectCodeThread.cancelScan;
+begin
+  canceled:=true;
+  waitTillDone;
+  canceled:=false;
+end;
 
 procedure TDissectCodeThread.waitTillDone; //mainly for lua
 begin
@@ -518,7 +528,7 @@ begin
           currentAddress:=memoryregion[i].BaseAddress;
 
 
-          while (not terminated) and (currentaddress<memoryregion[i].BaseAddress+memoryregion[i].MemorySize) do
+          while (not canceled) and (currentaddress<memoryregion[i].BaseAddress+memoryregion[i].MemorySize) do
           begin
             oldaddress:=currentaddress;
             s:=d.disassemble(currentaddress, x);

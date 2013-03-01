@@ -83,9 +83,8 @@ begin
     timer1.Enabled:=false;
     if dissectcode<>nil then
     begin
-      dissectcode.terminate;
-      dissectcode.WaitFor;
-      dissectcode.done:=true;
+      dissectcode.cancelscan;
+      dissectcode.clear;
     end;
     Timer1Timer(timer1);
 

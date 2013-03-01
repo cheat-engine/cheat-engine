@@ -67,6 +67,13 @@ byteTableToDouble(table): number     - Converts a bytetable to a double
 byteTableToString(table): string     - Converts a bytetable to a string
 byteTableToWideString(table): string - Converts a bytetable to a widestring and convets that to a string
 
+bOr(int1, int2)   : Binary Or
+bXor(int1, int2)  : Binary Xor
+bAnd(int1, int2)  : Binary And
+bShl(int, int2)   : Binary shift left
+bShr(int, int2)   : Binary shift right
+bNot(int)         : Binary not
+
 
 writeRegionToFile(filename, sourceaddress,size) : Writes the given region to a file. Returns the number of bytes written
 readRegionFromFile(filename, destinationaddress)
@@ -1769,12 +1776,7 @@ functions to add:
 
 
 
-bOr(int1, int2)   : Binary Or
-bXor(int1, int2)  : Binary Xor
-bAnd(int1, int2)  : Binary And
-bShl(int, int2)   : Binary shift left
-bShr(int, int2)   : Binary shift right
-bNot(int)         : Binary not
+
 
 getRunningProcesses(): stringlist
 getProcessModules(processid): 
