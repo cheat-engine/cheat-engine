@@ -53,6 +53,7 @@ procedure lua_setPrintOutput(output: TStrings);
 resourcestring
   rsPluginAddress = 'Plugin Address';
   rsThisTypeIsNotSupportedHere='This type is not supported here';
+  rsIncorrectNumberOfParameters='Incorrect number of parameters';
 
 
 implementation
@@ -70,7 +71,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports, Mem
   LuaCheckbox, LuaGroupbox, LuaListbox, LuaCombobox, LuaTrackbar, LuaListColumn,
   LuaEdit, LuaMemo, LuaCollection, LuaListColumns, LuaListitem, LuaListItems,
   LuaTimer, LuaListview, LuaGenericHotkey, LuaTableFile, LuaMemoryRecordHotkey,
-  LuaMemoryView, LuaD3DHook, LuaDisassembler, LuaDissectCode, LuaByteTable;
+  LuaMemoryView, LuaD3DHook, LuaDisassembler, LuaDissectCode, LuaByteTable, LuaBinary;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -4437,6 +4438,7 @@ begin
     initializeLuaDisassembler;
     initializeLuaDissectCode;
     initializeLuaByteTable;
+    initializeLuaBinary;
 
     s:=tstringlist.create;
     try

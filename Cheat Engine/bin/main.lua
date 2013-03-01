@@ -1769,12 +1769,12 @@ functions to add:
 
 
 
-binaryOr(int1, int2)
-binaryXor(int1, int2)
-binaryAnd(int1, int2)
-binaryShl(int)
-binaryShr(int)
-binaryNot(int)
+bOr(int1, int2)   : Binary Or
+bXor(int1, int2)  : Binary Xor
+bAnd(int1, int2)  : Binary And
+bShl(int, int2)   : Binary shift left
+bShr(int, int2)   : Binary shift right
+bNot(int)         : Binary not
 
 getRunningProcesses(): stringlist
 getProcessModules(processid): 
