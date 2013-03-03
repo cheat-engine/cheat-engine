@@ -53,7 +53,7 @@ type
     focused: boolean;
 
     function truncatestring(s: string; maxwidth: integer): string;
-    function buildReferencedByString: string;
+    procedure buildReferencedByString(sl: tstringlist);
     procedure DrawTextRectWithColor(const ARect: TRect; X, Y: integer; const Text: string);
   public
     property address: ptrUint read faddress;
@@ -79,9 +79,11 @@ implementation
 uses MemoryBrowserFormUnit, dissectCodeThread,debuggertypedefinitions, dissectcodeunit;
 
 resourcestring
-  rsUn = '(Un)';
-  rsCon = '(Con)';
+  rsUn = '(Unconditional)';
+  rsCon = '(Conditional)';
   rsCall = '(Call)';
+  rsMemory = '(Data)';
+
   rsInvalidDisassembly = 'Invalid disassembly';
 
 procedure TDisassemblerLine.drawJumplineTo(yposition: integer; offset: integer; showendtriangle: boolean=true);
@@ -144,12 +146,10 @@ begin
 end;
 
 
-function TdisassemblerLine.buildReferencedByString: string;
+procedure TdisassemblerLine.buildReferencedByString(sl: tstringlist);
 var addresses: tdissectarray;
     i: integer;
 begin
-
-  result:='';
   setlength(addresses,0);
 
   if (dissectcode<>nil) and (dissectcode.done) then
@@ -160,13 +160,16 @@ begin
       begin
         case addresses[i].jumptype of
           jtUnconditional:
-            result:=result+' '+inttohex(addresses[i].address, 8)+rsUn;
+            sl.Add(inttohex(addresses[i].address, 8)+rsUn);
 
           jtConditional:
-            result:=result+' '+inttohex(addresses[i].address, 8)+rsCon;
+            sl.Add(inttohex(addresses[i].address, 8)+rsCon);
 
           jtCall:
-            result:=result+' '+inttohex(addresses[i].address, 8)+rsCall;
+            sl.Add(inttohex(addresses[i].address, 8)+rsCall);
+
+          jtMemory:
+            sl.Add(inttohex(addresses[i].address, 8)+rsMemory);
         end;
       end;
     end;
@@ -181,7 +184,7 @@ var
     refferencedby: string;
     refferencedbylinecount: integer;
     refferencedbyheight: integer;
-    refferencedbystrings: array of string;
+    refferencedbystrings: tstringlist;
     i,j: integer;
 
     paddressstring: pchar;
@@ -202,6 +205,7 @@ begin
   isselected:=selected;
 
 
+  refferencedbystrings:=nil;
   fheight:=0;
   baseofsymbol:=0;
   z:=address;
@@ -236,33 +240,22 @@ begin
 
   if (dissectcode<>nil) and (dissectcode.done) then
   begin
-    refferencedby:=buildReferencedByString;
-    if refferencedby<>'' then
+    refferencedbystrings:=tstringlist.create;
+    buildReferencedByString(refferencedbystrings);
+
+
+
+
+    if refferencedbystrings.count>0 then
     begin
       fcanvas.Font.Style:=[fsBold];
       if referencedbylineheight=-1 then
         referencedbylineheight:=fcanvas.textheight('xxx');
 
-      refferencedbylinecount:=1+(fcanvas.TextWidth(refferencedby) div (fbitmap.width - 10 ));
+      refferencedbylinecount:=refferencedbystrings.count;
 
-      setlength(refferencedbystrings, refferencedbylinecount);
+      refferencedbyheight:=refferencedbylinecount*referencedbylineheight;
 
-      j:=1;
-      i:=0;
-      refferencedbyheight:=0;
-      while (j<=length(refferencedby)) do
-      begin
-        refferencedbystrings[i]:='';
-        while (fcanvas.TextWidth(refferencedbystrings[i])<(fbitmap.width-10)) and (j<=length(refferencedby)) do
-        begin
-          refferencedbystrings[i]:=refferencedbystrings[i]+refferencedby[j];
-          inc(j);
-        end;
-
-        refferencedbyheight:=refferencedbyheight+referencedbylineheight;
-
-        inc(i);
-      end;
 
       fheight:=height+refferencedbyheight;
       fcanvas.Font.Style:=[];
@@ -345,6 +338,8 @@ begin
       fcanvas.Refresh
     end;
   end;
+
+  //height may not change after this
   fcanvas.FillRect(rect(0,top,fbitmap.width,top+height));
 
   if (baseofsymbol>0) and (faddress=baseofsymbol) then
@@ -357,7 +352,7 @@ begin
 
   if (refferencedbylinecount>0) then
   begin
-    fcanvas.Font.Style:=[fsBold,fsItalic];
+    fcanvas.Font.Style:=[fsBold];
     for i:=0 to refferencedbylinecount-1 do
     begin
       fcanvas.TextOut(fHeaders.Items[0].Left+5,linestart,refferencedbystrings[i]);
@@ -451,6 +446,9 @@ begin
     fCanvas.font.Color:=fcolors^[csNormal].normalcolor;
     fcanvas.Refresh;
   end;
+
+  if refferencedbystrings<>nil then
+    refferencedbystrings.free;
 end;
 
 procedure TDisassemblerLine.DrawTextRectWithColor(const ARect: TRect; X, Y: integer; const Text: string);
