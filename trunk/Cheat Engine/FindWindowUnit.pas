@@ -130,7 +130,8 @@ begin
   begin
 
 
-    editstart.Text:=Inttohex(memorybrowser.memoryaddress, processhandler.pointersize*2);
+
+    editstart.Text:=Inttohex(TMemoryBrowser(Owner).memoryaddress, processhandler.pointersize*2);
 
     if processhandler.is64bit then
       editstop.text:='7FFFFFFFFFFFFFFF';

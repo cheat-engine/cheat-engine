@@ -263,7 +263,7 @@ begin
       begin
         for i:=0 to mlist.pos-1 do
         begin
-          aresult[j].address:=clist.a[i];
+          aresult[j].address:=mlist.a[i];
           aresult[j].jumptype:=jtMemory;
           inc(j);
         end;
