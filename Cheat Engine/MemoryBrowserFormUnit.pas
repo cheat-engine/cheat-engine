@@ -1783,11 +1783,9 @@ end;
 procedure TMemoryBrowser.Search1Click(Sender: TObject);
 begin
 
-  {$ifndef net}
-  if findwindow=nil then findwindow:=TFindwindow.create(application);
+  if findwindow=nil then findwindow:=TFindwindow.create(self);
   findwindow.firstscan:=true;
   findwindow.ShowModal;
-  {$endif}
 end;
 
 procedure TMemoryBrowser.Change1Click(Sender: TObject);

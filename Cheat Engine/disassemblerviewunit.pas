@@ -55,6 +55,9 @@ type TDisassemblerview=class(TPanel)
     fSelectedAddress: ptrUint; //normal selected address
     fSelectedAddress2: ptrUint; //secondary selected address (when using shift selecting)
     fTopAddress: ptrUint; //address to start disassembling from
+
+    fTopSubline: integer; //in case of multiline lines
+
     fShowJumplines: boolean; //defines if it should draw jumplines or not
     fShowjumplineState: TShowjumplineState;
 
@@ -262,14 +265,16 @@ begin
 end;
 
 procedure TDisassemblerview.MouseScroll(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
+var pos: integer;
 begin
 //  messagebox(0,'scroll','',0);
+  pos:=0;
   if wheelDelta>0 then
-    fTopAddress:=previousopcode(fTopAddress)
+    scrollBarScroll(sender, scLineUp, pos)
   else
-    disassemble(fTopAddresS);
+    scrollBarScroll(sender, scLineDown, pos)
 
-  update;
+//  update;
 
 end;
 
@@ -606,7 +611,7 @@ begin
     offscreenbitmap.Canvas.Brush.Color:=clBtnFace;
     offscreenbitmap.Canvas.FillRect(rect(0,0,offscreenbitmap.Width, offscreenbitmap.Height));
 
-    currenttop:=0;
+    currenttop:=-fTopSubline;
     i:=0;
 
     currentAddress:=fTopAddress;
@@ -643,6 +648,7 @@ begin
 
     if not isupdating then
       disCanvas.Repaint;
+
     lastupdate:=gettickcount;
 
   end;
@@ -737,6 +743,8 @@ var x: integer;
     temp: string;
     delta: integer;
     i: integer;
+
+    dl: TDisassemblerLine;
 begin
   beginupdate;
   
@@ -758,21 +766,48 @@ begin
 
 
   case scrollcode of
-    scLineUp:   fTopAddress:=previousopcode(fTopAddress);
+    scLineUp:
+    begin
+      dl:=TDisassemblerLine(disassemblerlines[0]);
+
+      dec(fTopSubline, dl.defaultHeight);
+      if fTopSubline<0 then
+      begin
+        fTopAddress:=previousopcode(fTopAddress);
+
+        update; //this will generate the proper disassemblerline data but won't render as beginupdate was called
+
+        dl:=TDisassemblerLine(disassemblerlines[0]);
+        inc(fTopSubline, dl.height);
+      end;
+    end;
+
     scLineDown:
     begin
       found:=false;
 
-      for x:=0 to fTotalvisibledisassemblerlines-1 do
-        if fTopAddress<>TDisassemblerLine(disassemblerlines[x]).address then
-        begin
-          fTopAddress:=TDisassemblerLine(disassemblerlines[x]).address;
-          found:=true;
-          break;
-        end;
+      if fTotalvisibledisassemblerlines>0 then
+      begin
+        dl:=TDisassemblerLine(disassemblerlines[0]);
+        inc(fTopSubline, dl.defaultHeight); //go to the next line
 
-      if not found then //disassemble
-        disassemble(fTopAddress,temp);
+        //if the current position is bigger than the line, go to the next address (most of the time)
+        if fTopSubline>=dl.height then //next address
+        begin
+          for x:=0 to fTotalvisibledisassemblerlines-1 do
+            if fTopAddress<>TDisassemblerLine(disassemblerlines[x]).address then
+            begin
+              fTopAddress:=TDisassemblerLine(disassemblerlines[x]).address;
+              found:=true;
+              break;
+            end;
+
+          if not found then //disassemble
+            disassemble(fTopAddress,temp);
+
+          fTopSubline:=fTopSubline mod dl.defaultHeight;
+        end;
+      end;
     end;
 
     scPageDown:
@@ -783,12 +818,16 @@ begin
           disassemble(fTopAddress,temp);
       end
       else fTopAddress:=TDisassemblerLine(disassemblerlines[fTotalvisibledisassemblerlines-1]).address;
+
+      fTopSubline:=0;
     end;
 
     scPageUp:
     begin
       for x:=0 to fTotalvisibledisassemblerlines-2 do
         fTopAddress:=previousopcode(fTopAddress);  //go 'numberofaddresses'-1 times up
+
+      fTopSubline:=0;
     end;
 
 

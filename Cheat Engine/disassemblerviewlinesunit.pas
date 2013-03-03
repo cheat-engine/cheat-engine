@@ -25,7 +25,8 @@ type
     fCanvas: TCanvas;
     fHeaders: THeaderSections;
     top: integer;
-    height: integer; //height of the line
+    fheight: integer; //height of the line
+    fDefaultHeight: integer; //the normal height without anything extra
     fInstructionCenter: integer; //y position of the center of the disassembled line (so no header)
     isselected: boolean;
 
@@ -66,6 +67,11 @@ type
     procedure drawJumplineTo(yposition: integer; offset: integer; showendtriangle: boolean=true);
     procedure handledisassemblerplugins(addressStringPointer: pointer; bytestringpointer: pointer; opcodestringpointer: pointer; specialstringpointer: pointer; textcolor: PColor);
     constructor create(bitmap: TBitmap; headersections: THeaderSections; colors: PDisassemblerViewColors);
+
+  published
+    property height: integer read fheight;
+    property defaultHeight: integer read fDefaultHeight;
+
 end;
 
 implementation
@@ -196,9 +202,22 @@ begin
   isselected:=selected;
 
 
-  height:=0;
+  fheight:=0;
   baseofsymbol:=0;
   z:=address;
+
+
+  fdisassembled:=visibleDisassembler.disassemble(address,fdescription);
+  if boldheight=-1 then
+  begin
+    fcanvas.Font.Style:=[fsbold];
+    boldheight:=fcanvas.TextHeight(fdisassembled)+1;
+    fcanvas.Font.Style:=[];
+  end;
+
+  fheight:=boldheight+1;
+  fDefaultHeight:=fHeight;   //the height without anything special
+
 
 
   symbolname:=symhandler.getNameFromAddress(z,symhandler.showsymbols,symhandler.showmodules,@baseofsymbol);
@@ -209,7 +228,7 @@ begin
     if textheight=-1 then
       textheight:=fcanvas.TextHeight(symbolname);
 
-    height:=height+textheight+1+10;
+    fheight:=height+textheight+1+10;
   end;
 
   refferencedbylinecount:=0;
@@ -220,7 +239,7 @@ begin
     refferencedby:=buildReferencedByString;
     if refferencedby<>'' then
     begin
-      fcanvas.Font.Style:=[fsBold, fsItalic];
+      fcanvas.Font.Style:=[fsBold];
       if referencedbylineheight=-1 then
         referencedbylineheight:=fcanvas.textheight('xxx');
 
@@ -245,12 +264,12 @@ begin
         inc(i);
       end;
 
-      height:=height+refferencedbyheight;
+      fheight:=height+refferencedbyheight;
       fcanvas.Font.Style:=[];
     end;
   end;
 
-  fdisassembled:=visibleDisassembler.disassemble(address,fdescription);
+
 
   fisJump:=visibleDisassembler.LastDisassembleData.isjump;
 
@@ -270,14 +289,11 @@ begin
   end;
 
 
-  if boldheight=-1 then
-  begin
-    fcanvas.Font.Style:=[fsbold];
-    boldheight:=fcanvas.TextHeight(fdisassembled)+1;
-    fcanvas.Font.Style:=[];
-  end;
 
-  height:=height+boldheight+1;
+
+
+
+
 
   if debuggerthread<>nil then
     bp:=debuggerthread.isBreakpoint(faddress)
@@ -545,7 +561,8 @@ begin
 
   fcolors:=colors;
 
-  height:=fCanvas.TextHeight('X');
+  fheight:=fCanvas.TextHeight('X');
+  fDefaultHeight:=-1;
 end;
 
 end.
