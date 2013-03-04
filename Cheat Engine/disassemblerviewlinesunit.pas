@@ -44,6 +44,7 @@ type
     bytestring: string;
     opcodestring: string;
     specialstring: string;
+    specialstrings: tstringlist;
     parameterstring: string;
     referencedbylineheight: integer;
     boldheight: integer;
@@ -67,6 +68,7 @@ type
     procedure drawJumplineTo(yposition: integer; offset: integer; showendtriangle: boolean=true);
     procedure handledisassemblerplugins(addressStringPointer: pointer; bytestringpointer: pointer; opcodestringpointer: pointer; specialstringpointer: pointer; textcolor: PColor);
     constructor create(bitmap: TBitmap; headersections: THeaderSections; colors: PDisassemblerViewColors);
+    destructor destroy; override;
 
   published
     property height: integer read fheight;
@@ -82,7 +84,7 @@ resourcestring
   rsUn = '(Unconditional)';
   rsCon = '(Conditional)';
   rsCall = '(Call)';
-  rsMemory = '(Data)';
+  rsMemory = '(Code/Data)';
 
   rsInvalidDisassembly = 'Invalid disassembly';
 
@@ -196,7 +198,7 @@ var
 
     bp: PBreakpoint;
 
-    z: ptrUint;
+   // z: ptrUint;
 begin
   self.focused:=focused;
 
@@ -208,10 +210,44 @@ begin
   refferencedbystrings:=nil;
   fheight:=0;
   baseofsymbol:=0;
-  z:=address;
+  //z:=address;
 
 
+  symbolname:=symhandler.getNameFromAddress(address,symhandler.showsymbols,symhandler.showmodules,@baseofsymbol);
   fdisassembled:=visibleDisassembler.disassemble(address,fdescription);
+
+  addressstring:=inttohex(visibleDisassembler.LastDisassembleData.address,8);
+  bytestring:=visibleDisassembler.getLastBytestring;
+  opcodestring:=visibleDisassembler.LastDisassembleData.prefix+visibleDisassembler.LastDisassembleData.opcode;
+
+  parameterstring:=visibleDisassembler.LastDisassembleData.parameters+' ';
+  specialstring:=visibleDisassembler.DecodeLastParametersToString;
+
+
+  //userdefined comments
+  comment:=dassemblercomments.comments[visibleDisassembler.LastDisassembleData.address];
+  if comment<>'' then
+    specialstring:=format(comment,[specialstring]);
+
+  //split up into lines
+  specialstrings.text:=specialstring;
+
+
+
+
+
+
+  if symhandler.showmodules then
+    addressString:=symbolname
+  else
+    addressString:=truncatestring(addressString, fHeaders.Items[0].Width-2);
+
+  bytestring:=truncatestring(bytestring, fHeaders.Items[1].Width-2);
+  opcodestring:=truncatestring(opcodestring, fHeaders.Items[2].Width-2);
+  //specialstring:=truncatestring(specialstring, fHeaders.Items[3].Width-2);
+
+
+
   if boldheight=-1 then
   begin
     fcanvas.Font.Style:=[fsbold];
@@ -219,12 +255,14 @@ begin
     fcanvas.Font.Style:=[];
   end;
 
-  fheight:=boldheight+1;
+  fheight:=fheight+boldheight+1;
   fDefaultHeight:=fHeight;   //the height without anything special
 
 
+  //calculate how big the comments are. (beyond the default height)
+  for i:=1 to specialstrings.count-1 do
+    inc(fHeight, fcanvas.textHeight(specialstrings[i]));
 
-  symbolname:=symhandler.getNameFromAddress(z,symhandler.showsymbols,symhandler.showmodules,@baseofsymbol);
 
 
   if (baseofsymbol>0) and (faddress=baseofsymbol) then
@@ -362,29 +400,6 @@ begin
 
   end;
 
-  addressstring:=inttohex(visibleDisassembler.LastDisassembleData.address,8);
-  bytestring:=visibleDisassembler.getLastBytestring;
-  opcodestring:=visibleDisassembler.LastDisassembleData.prefix+visibleDisassembler.LastDisassembleData.opcode;
-
-  parameterstring:=visibleDisassembler.LastDisassembleData.parameters+' ';
-  specialstring:=visibleDisassembler.DecodeLastParametersToString;
-
-  //userdefined comments
-  comment:=dassemblercomments.comments[visibleDisassembler.LastDisassembleData.address];
-  if comment<>'' then
-    specialstring:=format(comment,[specialstring]);
-
-
-
- // splitDisassembledString(fdisassembled, true, addressstring, bytestring, opcodestring, specialstring, @MemoryBrowser.lastdebugcontext);
-  if symhandler.showmodules then
-    addressString:=symbolname
-  else
-    addressString:=truncatestring(addressString, fHeaders.Items[0].Width-2);
-
-  bytestring:=truncatestring(bytestring, fHeaders.Items[1].Width-2);
-  opcodestring:=truncatestring(opcodestring, fHeaders.Items[2].Width-2);
-  specialstring:=truncatestring(specialstring, fHeaders.Items[3].Width-2);
 
 
   if MemoryBrowser.lastdebugcontext.{$ifdef cpu64}rip{$else}EIP{$endif}=faddress then
@@ -433,7 +448,11 @@ begin
 
   DrawTextRectWithColor(rect(fHeaders.Items[2].Left, linestart, fHeaders.Items[2].Right, linestart+height),i,linestart, parameterstring);
 
-  fcanvas.TextRect(rect(fHeaders.Items[3].Left, linestart, fHeaders.Items[3].Right, linestart+height),fHeaders.Items[3].Left+1,linestart, pspecialstring);
+  for i:=0 to specialstrings.Count-1 do
+  begin
+    fcanvas.TextRect(rect(fHeaders.Items[3].Left, linestart, fHeaders.Items[3].Right, linestart+height),fHeaders.Items[3].Left+1,linestart, specialstrings[i]);
+    inc(linestart, fcanvas.GetTextHeight(specialstrings[i]));
+  end;
 
   fInstructionCenter:=linestart+(fcanvas.TextHeight(opcodestring) div 2);
 
@@ -534,6 +553,7 @@ end;
 
 procedure TDisassemblerLine.handledisassemblerplugins(addressStringPointer: pointer; bytestringpointer: pointer; opcodestringpointer: pointer; specialstringpointer: pointer; textcolor: PColor);
 begin
+  //obsolete
   if pluginhandler<>nil then
     pluginhandler.handledisassemblerplugins(faddress, addressStringPointer, bytestringpointer, opcodestringpointer, specialstringpointer, textcolor);
 end;
@@ -546,6 +566,12 @@ end;
 function TDisassemblerLine.getTop: integer;
 begin
   result:=top;
+end;
+
+destructor TDisassemblerLine.destroy;
+begin
+  specialstrings.free;
+  inherited destroy;
 end;
 
 constructor TDisassemblerLine.create(bitmap: TBitmap; headersections: THeaderSections; colors: PDisassemblerViewColors);
@@ -561,6 +587,8 @@ begin
 
   fheight:=fCanvas.TextHeight('X');
   fDefaultHeight:=-1;
+
+  specialstrings:=tstringlist.create;
 end;
 
 end.
