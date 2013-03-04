@@ -781,11 +781,18 @@ begin
 end;
 
 procedure TMemoryBrowser.miUserdefinedCommentClick(Sender: TObject);
-var comment: string;
+var
+  s: tstringlist;
+
 begin
-  comment:=dassemblercomments.comments[disassemblerview.SelectedAddress];
-  if InputQuery(rsComment, Format(rsCommentFor, [inttohex(disassemblerview.SelectedAddress, 8)])+' '+rsSShowsTheAutoguessValue, comment) then
-    dassemblercomments.comments[disassemblerview.SelectedAddress]:=comment;
+  s:=tstringlist.create;
+  try
+    s.text:=dassemblercomments.comments[disassemblerview.SelectedAddress];      ;
+    if multilineinputquery(rsCommentFor, Format(rsCommentFor, [inttohex(disassemblerview.SelectedAddress, 8)])+' '+rsSShowsTheAutoguessValue, s) then
+      dassemblercomments.comments[disassemblerview.SelectedAddress]:=s.text;
+  finally
+    s.free;
+  end;
 
   disassemblerview.Refresh;
 end;
@@ -1808,6 +1815,7 @@ var {start,stop: string;
     a,b: dword;
     i: integer;}
     desc: string;
+
 begin
 
   frmAddToCodeList:=TfrmAddToCodeList.create(self);
