@@ -3878,6 +3878,8 @@ begin
   lua_pop(L, parameters);
 
   Bitmap:=TBitmap.Create;
+  bitmap.Width:=width;
+  bitmap.Height:=height;
 
 
   luaclass_newClass(L, Bitmap);
@@ -3907,6 +3909,8 @@ begin
   lua_pop(L, parameters);
 
   png:=TPortableNetworkGraphic.Create;
+  png.Width:=width;
+  png.Height:=height;
 
 
   luaclass_newClass(L, Png);
@@ -3936,6 +3940,8 @@ begin
   lua_pop(L, parameters);
 
   jpeg:=TJPEGImage.Create;
+  jpeg.Width:=width;
+  jpeg.Height:=height;
 
 
   luaclass_newClass(L, jpeg);

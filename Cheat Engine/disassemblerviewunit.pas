@@ -30,6 +30,9 @@ type TShowjumplineState=(jlsAll, jlsOnlyWithinRange);
 
 type TDisassemblerSelectionChangeEvent=procedure (sender: TObject; address, address2: ptruint) of object;
 
+type TDisassemblerExtraLineRender=function(sender: TObject; Address: ptruint; AboveInstruction: boolean; selected: boolean; var x: integer; var y: integer): TRasterImage of object;
+
+
 
 type TDisassemblerview=class(TPanel)
   private
@@ -68,6 +71,7 @@ type TDisassemblerview=class(TPanel)
     destroyed: boolean;
 
     fOnSelectionChange: TDisassemblerSelectionChangeEvent;
+    fOnExtraLineRender: TDisassemblerExtraLineRender;
 
     procedure updateScrollbox;
     procedure scrollboxResize(Sender: TObject);
@@ -139,6 +143,7 @@ type TDisassemblerview=class(TPanel)
     property SelectedAddress2: ptrUint read fSelectedAddress2 write setSelectedAddress2;
     property PopupMenu: TPopupMenu read getOriginalPopupMenu write SetOriginalPopupMenu;
     property Osb: TBitmap read offscreenbitmap;
+    property OnExtraLineRender: TDisassemblerExtraLineRender read fOnExtraLineRender write fOnExtraLineRender;
 end;
 
 
@@ -673,7 +678,7 @@ begin
     while currenttop<offscreenbitmap.Height do
     begin
       while i>=disassemblerlines.Count do //add a new line
-        disassemblerlines.Add(TDisassemblerLine.Create(offscreenbitmap, header.Sections, @colors));
+        disassemblerlines.Add(TDisassemblerLine.Create(self, offscreenbitmap, header.Sections, @colors));
 
       currentline:=disassemblerlines[i];
 

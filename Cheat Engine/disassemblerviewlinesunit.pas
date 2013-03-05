@@ -21,6 +21,7 @@ type
 
   TDisassemblerLine=class
   private
+    fowner: TObject;
     fbitmap: tbitmap;
     fCanvas: TCanvas;
     fHeaders: THeaderSections;
@@ -61,7 +62,7 @@ type
   public
 
 
-    property address: ptrUint read faddress;
+
     property instructionCenter: integer read fInstructionCenter;
     function isJumpOrCall(var addressitjumpsto: ptrUint): boolean;
     function getReferencedByAddress(y: integer):ptruint;
@@ -72,19 +73,21 @@ type
     procedure renderLine(var address: ptrUint; linestart: integer; selected: boolean=false; focused: boolean=false);
     procedure drawJumplineTo(yposition: integer; offset: integer; showendtriangle: boolean=true);
     procedure handledisassemblerplugins(addressStringPointer: pointer; bytestringpointer: pointer; opcodestringpointer: pointer; specialstringpointer: pointer; textcolor: PColor);
-    constructor create(bitmap: TBitmap; headersections: THeaderSections; colors: PDisassemblerViewColors);
+    constructor create(owner: TObject; bitmap: TBitmap; headersections: THeaderSections; colors: PDisassemblerViewColors);
     destructor destroy; override;
 
   published
     property height: integer read fheight;
     property top: integer read fTop;
     property defaultHeight: integer read fDefaultHeight;
+    property Address: ptrUint read faddress;
+    property Owner: TObject;
 
 end;
 
 implementation
 
-uses MemoryBrowserFormUnit, dissectCodeThread,debuggertypedefinitions, dissectcodeunit;
+uses MemoryBrowserFormUnit, dissectCodeThread,debuggertypedefinitions, dissectcodeunit, disassemblerviewunit;
 
 resourcestring
   rsUn = '(Unconditional)';
@@ -233,12 +236,37 @@ var
 
     bp: PBreakpoint;
 
+
+    ExtraLineRenderAbove: TRasterImage;
+    AboveX, AboveY: Integer;
+
+    ExtraLineRenderBelow: TRasterImage;
+    BelowX, BelowY: Integer;
    // z: ptrUint;
 begin
+
   self.focused:=focused;
 
   ftop:=linestart;
   faddress:=address;
+
+  if assigned(TDisassemblerview(fowner).OnExtraLineRender) then
+  begin
+    AboveX:=-1000;
+    AboveY:=-1000;
+    ExtraLineRenderAbove:=TDisassemblerview(fOwner).OnExtraLineRender(self, faddress, true, selected, AboveX, AboveY);
+
+    BelowX:=-1000;
+    BelowY:=-1000;
+    ExtraLineRenderBelow:=TDisassemblerview(fOwner).OnExtraLineRender(self, faddress, false, selected, BelowX, BelowY);
+  end
+  else
+  begin
+    ExtraLineRenderAbove:=nil;
+    ExtraLineRenderBelow:=nil;
+  end;
+
+
   isselected:=selected;
 
 
@@ -297,6 +325,31 @@ begin
   //calculate how big the comments are. (beyond the default height)
   for i:=1 to specialstrings.count-1 do
     inc(fHeight, fcanvas.textHeight(specialstrings[i]));
+
+  if ExtraLineRenderAbove<>nil then
+  begin
+    if AboveY=-1000 then //y doesn't care about center...
+      AboveY:=0;
+
+    if AboveX=-1000 then //center
+      AboveX:=(fHeaders.Items[fHeaders.Count-1].Width div 2) - (ExtraLineRenderAbove.Width div 2);
+
+    inc(fheight, AboveY);
+    inc(fHeight, ExtraLineRenderAbove.Height);
+  end;
+
+  if ExtraLineRenderBelow<>nil then
+  begin
+    if BelowY=-1000 then
+      BelowY:=0;
+
+    if BelowX=-1000 then //center
+      BelowX:=(fHeaders.Items[fHeaders.Count-1].Width div 2) - (ExtraLineRenderBelow.Width div 2);
+
+    inc(fheight, BelowY);
+    inc(fHeight, ExtraLineRenderAbove.Height);
+  end;
+
 
 
 
@@ -415,6 +468,14 @@ begin
   //height may not change after this
   fcanvas.FillRect(rect(0,top,fbitmap.width,top+height));
 
+  if ExtraLineRenderAbove<>nil then
+  begin
+    //render the image above
+    linestart:=linestart+AboveY;
+    fcanvas.Draw(abovex, linestart, ExtraLineRenderAbove);
+    linestart:=linestart+ExtraLineRenderAbove.height;
+  end;
+
   if (baseofsymbol>0) and (faddress=baseofsymbol) then
   begin
     fcanvas.Font.Style:=[fsbold];
@@ -483,14 +544,29 @@ begin
 
 
   DrawTextRectWithColor(rect(fHeaders.Items[2].Left, linestart, fHeaders.Items[2].Right, linestart+height),i,linestart, parameterstring);
+  fInstructionCenter:=linestart+(fcanvas.TextHeight(opcodestring) div 2);
 
-  for i:=0 to specialstrings.Count-1 do
+  if specialstrings.Count>0 then
   begin
-    fcanvas.TextRect(rect(fHeaders.Items[3].Left, linestart, fHeaders.Items[3].Right, linestart+height),fHeaders.Items[3].Left+1,linestart, specialstrings[i]);
-    inc(linestart, fcanvas.GetTextHeight(specialstrings[i]));
+    for i:=0 to specialstrings.Count-1 do
+    begin
+      fcanvas.TextRect(rect(fHeaders.Items[3].Left, linestart, fHeaders.Items[3].Right, linestart+height),fHeaders.Items[3].Left+1,linestart, specialstrings[i]);
+      inc(linestart, fcanvas.GetTextHeight(specialstrings[i]));
+    end;
+  end
+  else
+    inc(linestart, fcanvas.GetTextHeight(parameterstring));
+
+
+
+  if ExtraLineRenderBelow<>nil then
+  begin
+    //render the image below
+    linestart:=linestart+BelowY;
+    fcanvas.Draw(belowx, linestart, ExtraLineRenderBelow);
+    linestart:=linestart+ExtraLineRenderBelow.height; //not really needed as it's the last one
   end;
 
-  fInstructionCenter:=linestart+(fcanvas.TextHeight(opcodestring) div 2);
 
   if focused then
       fcanvas.DrawFocusRect(rect(0,top,fbitmap.width,top+height));
@@ -610,8 +686,9 @@ begin
   inherited destroy;
 end;
 
-constructor TDisassemblerLine.create(bitmap: TBitmap; headersections: THeaderSections; colors: PDisassemblerViewColors);
+constructor TDisassemblerLine.create(owner: TObject; bitmap: TBitmap; headersections: THeaderSections; colors: PDisassemblerViewColors);
 begin
+  fowner:=owner;
   fCanvas:=bitmap.canvas;
   fBitmap:=bitmap;
   fheaders:=headersections;
