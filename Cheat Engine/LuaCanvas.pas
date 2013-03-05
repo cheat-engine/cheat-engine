@@ -357,6 +357,18 @@ begin
   end;
 end;
 
+function canvas_getClipRect(L: PLua_State): integer; cdecl;
+var
+  canvas: TCanvas;
+  cr: Trect;
+begin
+  canvas:=luaclass_getClassObject(L);
+  cr:=canvas.ClipRect;
+  lua_pushrect(L, cr);
+  result:=1;
+end;
+
+
 procedure canvas_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
   object_addMetaData(L, metatable, userdata);
@@ -381,12 +393,14 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'draw', canvas_draw);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getPenPosition', canvas_getPenPosition);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setPenPosition', canvas_setPenPosition);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getClipRect', canvas_getClipRect);
 
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Brush', canvas_getBrush, nil);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Pen', canvas_getPen, nil);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Font', canvas_getFont, nil);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Width', canvas_getWidth, nil);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Height', canvas_getHeight, nil);
+
 end;
 
 procedure initializeLuaCanvas;
