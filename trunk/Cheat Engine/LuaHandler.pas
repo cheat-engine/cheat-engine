@@ -3172,6 +3172,31 @@ begin
   result:=1;
 end;
 
+function createPaintBox(L: Plua_State): integer; cdecl;
+var
+  paintbox: TPaintbox;
+  parameters: integer;
+  owner: TWincontrol;
+begin
+  result:=0;
+
+  parameters:=lua_gettop(L);
+  if parameters>=1 then
+    owner:=lua_toceuserdata(L, 1)
+  else
+    owner:=nil;
+
+  lua_pop(L, lua_gettop(L));
+
+
+  paintbox:=TPaintBox.Create(owner);
+  if owner<>nil then
+    paintbox.Parent:=owner;
+
+  luaclass_newClass(L, paintbox);
+  result:=1;
+end;
+
 function allocateSharedMemory(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
@@ -4270,9 +4295,8 @@ begin
 
 
     lua_register(LuaVM, 'createLabel', createLabel);
-
-
     lua_register(LuaVM, 'createSplitter', createSplitter);
+    lua_register(LuaVM, 'createPaintBox', createPaintBox);
 
     lua_register(LuaVM, 'messageDialog', messageDialog);
     lua_register(LuaVM, 'speedhack_setSpeed', speedhack_setSpeed);
