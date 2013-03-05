@@ -24,7 +24,7 @@ begin
   if c.Canvas.handle=0 then
     i:=c.Canvas.Pixels[0,0];
 
-  luaclass_newClass(L, c);
+  luaclass_newClass(L, c.Canvas);
   result:=1;
 end;
 
