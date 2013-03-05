@@ -1430,6 +1430,14 @@ properties
 methods
   -
 
+DisassemblerviewLine class: (Inheritance: Object)
+properties
+  Address: The current address of this line
+  Owner: The Disassemblerview that owns this line
+    
+methods
+  -
+
 Disassemblerview class: (Inheritance: Panel->CustomControl->WinControl->Control->Component->Object) 
   The visual disassembler used on the memory view window
 properties
@@ -1438,6 +1446,15 @@ properties
   TopAddress: Integer - The first address to show
   ShowJumplines: boolean - Determines if the jumplines should be shown
   OnSelectionChange: function(sender, address, address2) - Function to call when the selection has changed
+  OnExtraLineRender: function(sender, Address, AboveInstruction, Selected): RasterImage OPTIONAL, x OPTIONAL, y OPTIONAL
+    Function to call when you wish to provide the disassembler view with an extra image containing data you wish to show.
+    This function is called once to get an image to show above the instruction, and once to get an image to show under the instruction and optional comments.
+    The image for both calls must be different objects as rendering will only be done when both calls have been completed
+
+    Sender is a DisassemblerviewLine object
+    If no coordinates are given the image will be centered above/below the instruction
+
+ 
 methods
   -
 

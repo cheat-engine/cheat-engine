@@ -11,7 +11,7 @@ interface
 
 uses
   Classes, Controls, SysUtils, ceguicomponents, forms, lua, lualib, lauxlib,
-  comctrls, StdCtrls, CEFuncProc, typinfo;
+  comctrls, StdCtrls, CEFuncProc, typinfo, Graphics;
 
 type
   TLuaCaller=class
@@ -31,6 +31,8 @@ type
       procedure CloseEvent(Sender: TObject; var CloseAction: TCloseAction);
       function MemoryRecordActivateEvent(sender: TObject; before, currentstate: boolean): boolean;
       procedure DisassemblerSelectionChangeEvent(sender: TObject; address, address2: ptruint);
+      function DisassemblerExtraLineRender(sender: TObject; Address: ptruint; AboveInstruction: boolean; selected: boolean; var x: integer; var y: integer): TRasterImage;
+
       procedure ByteSelectEvent(sender: TObject; address: ptruint; address2: ptruint);
       procedure AddressChangeEvent(sender: TObject; address: ptruint);
       function AutoGuessEvent(address: ptruint; originalVariableType: TVariableType): TVariableType;
@@ -337,6 +339,38 @@ begin
 
       if lua_gettop(Luavm)>0 then
         result:=lua_toboolean(LuaVM,-1);
+
+    end;
+  finally
+    lua_settop(Luavm, oldstack);
+    luacs.leave;
+  end;
+end;
+
+function TLuaCaller.DisassemblerExtraLineRender(sender: TObject; Address: ptruint; AboveInstruction: boolean; selected: boolean; var x: integer; var y: integer): TRasterImage;
+var oldstack: integer;
+begin
+  result:=nil;
+  Luacs.Enter;
+  try
+    oldstack:=lua_gettop(Luavm);
+
+    if canrun then
+    begin
+      PushFunction;
+      luaclass_newClass(Luavm, sender);
+      lua_pushinteger(luavm, address);
+      lua_pushboolean(luavm, AboveInstruction);
+      lua_pushboolean(luavm, selected);
+
+      lua_pcall(Luavm, 4,3,0); //function(sender, Address, AboveInstruction, Selected): RasterImage OPTIONAL, x OPTIONAL, y OPTIONAL
+
+      result:=lua_ToCEUserData(luavm, 1);
+      if lua_isnil(luavm, 2)=false then
+        x:=lua_tointeger(luavm, 2);
+
+      if lua_isnil(luavm, 3)=false then
+        y:=lua_tointeger(luavm, 3);
 
     end;
   finally
@@ -774,18 +808,57 @@ begin
     lua_pop(L, lua_gettop(L));
 end;
 
+function LuaCaller_DisassemblerExtraLineRender(L: PLua_state): integer; cdecl;
+//function(sender, Address, AboveInstruction, Selected): Bitmap OPTIONAL, x OPTIONAL, y OPTIONAL
+var
+  m: TMethod;
+  sender: TObject;
+  address: ptruint;
+  AboveInstruction, selected: boolean;
+  x,y: integer;
+  r: TRasterimage;
+begin
+  result:=0;
+  if lua_gettop(L)=4 then
+  begin
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    sender:=lua_toceuserdata(L, 1);
+    address:=lua_tointeger(L, 2);
+    AboveInstruction:=lua_toboolean(L, 3);
+    selected:=lua_toboolean(L, 4);
+    x:=-1000;
+    y:=-1000;
+    lua_pop(L, lua_gettop(L));
+    r:=TDisassemblerExtraLineRender(m)(sender, address, AboveInstruction, selected, x, y);
+
+    luaclass_newClass(L, r);
+    if x=-1000 then
+      lua_pushnil(L)
+    else
+      lua_pushinteger(L, x);
+
+    if y=-1000 then
+      lua_pushnil(L)
+    else
+      lua_pushinteger(L, y);
+
+    result:=3;
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
+
 function LuaCaller_DisassemblerSelectionChangeEvent(L: PLua_state): integer; cdecl;
 //function(sender, address, address2)
 var
   m: TMethod;
   sender: TObject;
   a,a2: ptruint;
-  r: boolean;
 begin
   result:=0;
   if lua_gettop(L)=3 then
   begin
-    //(sender: TObject; before, currentstate: boolean):
     m.code:=lua_touserdata(L, lua_upvalueindex(1));
     m.data:=lua_touserdata(L, lua_upvalueindex(2));
     sender:=lua_toceuserdata(L, 1);
@@ -921,6 +994,7 @@ initialization
   registerLuaCall('TMemoryRecordActivateEvent', LuaCaller_MemoryRecordActivateEvent, pointer(TLuaCaller.MemoryRecordActivateEvent),'function %s(sender, before, current)'#13#10#13#10'end'#13#10);
 
   registerLuaCall('TDisassemblerSelectionChangeEvent', LuaCaller_DisassemblerSelectionChangeEvent, pointer(TLuaCaller.DisassemblerSelectionChangeEvent),'function %s(sender, address, address2)'#13#10#13#10'end'#13#10);
+  registerLuaCall('TDisassemblerExtraLineRender', LuaCaller_DisassemblerExtraLineRender, pointer(TLuaCaller.DisassemblerExtraLineRender),'function %s(sender, Address, AboveInstruction, Selected)'#13#10#13#10'return nil,0,0'#13#10#13#10'end'#13#10);
   registerLuaCall('TByteSelectEvent', LuaCaller_ByteSelectEvent, pointer(TLuaCaller.ByteSelectEvent),'function %s(sender, address, address2)'#13#10#13#10'end'#13#10);
   registerLuaCall('TAddressChangeEvent', LuaCaller_AddressChangeEvent, pointer(TLuaCaller.AddressChangeEvent),'function %s(sender, address)'#13#10#13#10'end'#13#10);
 
