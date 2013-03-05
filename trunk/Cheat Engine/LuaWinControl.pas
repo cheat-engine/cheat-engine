@@ -14,6 +14,20 @@ implementation
 
 uses LuaCaller, luacontrol, luaclass;
 
+function wincontrol_getDoubleBuffered(L: PLua_State): integer; cdecl;
+begin
+  lua_pushboolean(L, twincontrol(luaclass_getClassObject(L)).DoubleBuffered);
+  result:=1;
+end;
+
+function wincontrol_setDoubleBuffered(L: PLua_State): integer; cdecl;
+begin
+  if lua_gettop(L)=1 then
+    twincontrol(luaclass_getClassObject(L)).DoubleBuffered:=lua_toboolean(L, 1);
+
+  result:=0;
+end;
+
 
 function wincontrol_getControlCount(L: PLua_State): integer; cdecl;
 begin
@@ -210,6 +224,7 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setFocus', wincontrol_setFocus);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setShape', wincontrol_setShape);
 
+  luaclass_addPropertyToTable(L, metatable, userdata, 'DoubleBuffered', wincontrol_getDoubleBuffered, wincontrol_setDoubleBuffered);
   luaclass_addPropertyToTable(L, metatable, userdata, 'ControlCount', wincontrol_getControlCount, nil);
   luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Control', wincontrol_getControl);
   luaclass_addPropertyToTable(L, metatable, userdata, 'OnEnter', wincontrol_setOnEnter, nil);
