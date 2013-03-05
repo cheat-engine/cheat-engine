@@ -125,6 +125,9 @@ type TDisassemblerview=class(TPanel)
 
     procedure getDefaultColors(var c: Tdisassemblerviewcolors);
 
+    function getDisassemblerLineAtPoint(p: tpoint): TDisassemblerLine;
+    function getReferencedByLineAtPos(p: tpoint): ptruint;
+    function ClientToCanvas(p: tpoint): TPoint;
 
     constructor create(AOwner: TComponent); override;
     destructor destroy; override;
@@ -255,9 +258,16 @@ begin
 
     //not in one of the current lines. Looks like the disassembler order is wrong. Fix it by setting it to the top address
     if not found then
+    begin
       fTopAddress:=address;
+      fTopSubline:=0;
+    end;
 
-  end else fTopAddress:=address;
+  end else
+  begin
+    fTopAddress:=address;
+    fTopSubline:=0;
+  end;
 
 
 
@@ -556,6 +566,46 @@ procedure TDisassemblerview.synchronizeDisassembler;
 begin
   visibleDisassembler.showmodules:=symhandler.showModules;
   visibleDisassembler.showsymbols:=symhandler.showsymbols;
+end;
+
+function TDisassemblerview.ClientToCanvas(p: tpoint): TPoint;
+begin
+
+  result:=p;
+  dec(result.y, disCanvas.top+scrollbox.top);
+end;
+
+function TDisassemblerview.getReferencedByLineAtPos(p: tpoint): ptruint;
+var cp: tpoint;
+  d: TDisassemblerLine;
+  y: integer;
+begin
+  result:=0;
+  cp:=ClientToCanvas(p);
+  d:=getDisassemblerLineAtPoint(p);
+  if d<>nil then
+    result:=d.getReferencedByAddress(cp.y-d.top);
+end;
+
+function TDisassemblerview.getDisassemblerLineAtPoint(p: tpoint): TDisassemblerLine;
+var cp: tpoint; //canvas point
+  i: integer;
+begin
+  //checks the y coordinate and returns the appropriate disassemblerline
+  //p is in disassemblerview coordinates, convert it to line coordinates
+
+  result:=nil;
+  cp:=ClientToCanvas(p);
+
+  if cp.y>=0 then
+  begin
+    for i:=0 to disassemblerlines.Count-1 do
+      if InRange(cp.y, TDisassemblerLine(disassemblerlines[i]).top, TDisassemblerLine(disassemblerlines[i]).top+TDisassemblerLine(disassemblerlines[i]).height) then
+      begin
+        result:=TDisassemblerLine(disassemblerlines[i]);
+        exit;
+      end;
+  end;
 end;
 
 procedure TDisassemblerview.update;
