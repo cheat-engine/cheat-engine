@@ -380,6 +380,7 @@ methods:
   setPopupMenu()
   getFont():  Returns the Font object of this object
   setFont():  Assigns a new font object. (Not recommended to use. Change the font object that's already there if you wish to change fonts)
+  repaint(): Invalidates the graphical area of the control and forces and update
   setOnClick(functionnameorstring) : Sets the onclick routine
   getOnClick(): Gets the onclick function
   doClick():  Executes the current function under onClick
@@ -931,7 +932,8 @@ properties
   Pen: Pen - The pen object
   Font: Font - The font object
   Width: integer - Width of the canvas
-  Height: integer - Height of the canvas  
+  Height: integer - Height of the canvas 
+  
 
 
 methods
@@ -954,8 +956,9 @@ methods
   floodFill(x,y)
   ellipse(x1,y1,x2,y2)
   gradientFill(x1,y1,x2,y2, startcolor, stopcolor, direction) : Gradient fills a rectangle. Direction can be 0 or 1. 0=Vertical 1=Horizontal
-  copyRect(dest_x1,dest_y1,dest_x2,dest_y2, sourceCanvas, source_x1,source_y1,source_x2,source_y2)
+  copyRect(dest_x1,dest_y1,dest_x2,dest_y2, sourceCanvas, source_x1,source_y1,source_x2,source_y2) : Draws an image from one source to another. Usefull in cases of doublebuffering
   draw(x,y, graphic) : Draw the image of a specific Graphic class
+  getClipRect() : Returns a table containing the fields Left, Top, Right and Bottom, which define the invalidated region of the graphical object. Use this to only render what needs to be rendered in the onPaint event of objects
 
 Pen Class : (Inheritance: CustomPen->CanvasHelper->Object)
 properties
@@ -1019,9 +1022,14 @@ methods
 
 
 Bitmap class: (Inheritance: CustomBitmap->RasterImage->Graphic->Object) : Bitmap based Graphic object
+createBitmap(width, height) - Returns a Bitmap object
+
 PortableNetworkGraphic Class: (Inheritence: CustomBitmap->RasterImage->Graphic->Object)
+createPNG(width, height) - Returns a PortableNetworkGraphic object
+
 JpegImage Class: (Inheritence: CustomBitmap->RasterImage->Graphic->Object)
- 
+createJpeg(width, height) - Returns a Jpeg object 
+
 
 
 Picture Class : (Inheritance: Object) : Container for the Graphic class

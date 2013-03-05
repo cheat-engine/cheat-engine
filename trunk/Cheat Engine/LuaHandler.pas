@@ -41,6 +41,7 @@ function Lua_ToString(L: Plua_State; i: Integer): string;
 function lua_ToCEUserData(L: PLua_state; i: integer): pointer;
 function lua_tovariant(L: PLua_state; i: integer): variant;
 procedure lua_pushvariant(L: PLua_state; v: variant);
+procedure lua_pushrect(L: PLua_state; r: TRect);
 procedure InitializeLuaScripts;
 procedure InitializeLua;
 
@@ -183,6 +184,26 @@ begin
 
 
 //unclear should there be a result:=Utf8ToAnsi(s); ?
+end;
+
+procedure lua_pushrect(L: PLua_state; r: TRect);
+begin
+  lua_newtable(L);
+  lua_pushstring(L, 'Left');
+  lua_pushinteger(L, r.left);
+  lua_settable(L, -3);
+
+  lua_pushstring(L, 'Top');
+  lua_pushinteger(L, r.top);
+  lua_settable(L, -3);
+
+  lua_pushstring(L, 'Right');
+  lua_pushinteger(L, r.right);
+  lua_settable(L, -3);
+
+  lua_pushstring(L, 'Bottom');
+  lua_pushinteger(L, r.bottom);
+  lua_settable(L, -3);
 end;
 
 procedure lua_pushvariant(L: PLua_state; v: variant);
@@ -3819,12 +3840,12 @@ begin
 
   parameters:=lua_gettop(L);
   if parameters>=1 then
-    width:=lua_tointeger(L, -parameters)
+    width:=lua_tointeger(L, 1)
   else
     width:=screen.width;
 
   if parameters>=2 then
-    height:=lua_tointeger(L, -parameters+1)
+    height:=lua_tointeger(L, 2)
   else
     height:=screen.height;
 
@@ -3835,6 +3856,64 @@ begin
 
 
   luaclass_newClass(L, Bitmap);
+  result:=1;
+end;
+
+function createPNG(L: Plua_State): integer; cdecl;
+var
+  png: TPortableNetworkGraphic;
+  parameters: integer;
+  width, height: integer;
+begin
+  result:=0;
+
+  parameters:=lua_gettop(L);
+  if parameters>=1 then
+    width:=lua_tointeger(L, 1)
+  else
+    width:=screen.width;
+
+  if parameters>=2 then
+    height:=lua_tointeger(L, 2)
+  else
+    height:=screen.height;
+
+
+  lua_pop(L, parameters);
+
+  png:=TPortableNetworkGraphic.Create;
+
+
+  luaclass_newClass(L, Png);
+  result:=1;
+end;
+
+function createJpeg(L: Plua_State): integer; cdecl;
+var
+  jpeg: TJPEGImage;
+  parameters: integer;
+  width, height: integer;
+begin
+  result:=0;
+
+  parameters:=lua_gettop(L);
+  if parameters>=1 then
+    width:=lua_tointeger(L, 1)
+  else
+    width:=screen.width;
+
+  if parameters>=2 then
+    height:=lua_tointeger(L, 2)
+  else
+    height:=screen.height;
+
+
+  lua_pop(L, parameters);
+
+  jpeg:=TJPEGImage.Create;
+
+
+  luaclass_newClass(L, jpeg);
   result:=1;
 end;
 
@@ -4395,6 +4474,8 @@ begin
     lua_register(LuaVM, 'readFromClipboard', readFromClipboard);
 
     lua_register(LuaVM, 'createBitmap', createBitmap);
+    lua_register(LuaVM, 'createPNG', createPNG);
+    lua_register(LuaVM, 'createJpeg', createJpeg);
     lua_register(LuaVM, 'errorOnLookupFailure', errorOnLookupFailure);
 
     lua_register(LuaVM, 'loadPlugin', loadPlugin);
