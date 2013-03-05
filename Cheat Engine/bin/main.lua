@@ -402,6 +402,7 @@ methods
 
 WinControl Class: (Inheritance: Control->Component->Object)
 properties
+  DoubleBuffered: boolean - Graphical updates will go to a offscreen bitmap which will then be shown on the screen instead of directly to the screen. May reduce flickering
   ControlCount : integer - The number of child controls of this wincontrol
   Control[] : Control - Array to access a child control
   OnEnter : function - Function to be called when the WinControl gains focus
