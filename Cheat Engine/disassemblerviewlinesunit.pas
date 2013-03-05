@@ -24,7 +24,7 @@ type
     fbitmap: tbitmap;
     fCanvas: TCanvas;
     fHeaders: THeaderSections;
-    top: integer;
+    ftop: integer;
     fheight: integer; //height of the line
     fDefaultHeight: integer; //the normal height without anything extra
     fInstructionCenter: integer; //y position of the center of the disassembled line (so no header)
@@ -50,6 +50,8 @@ type
     boldheight: integer;
     textheight: integer;
 
+    refferencedByStart: integer;
+
     isbp: boolean;
     focused: boolean;
 
@@ -57,9 +59,12 @@ type
     procedure buildReferencedByString(sl: tstringlist);
     procedure DrawTextRectWithColor(const ARect: TRect; X, Y: integer; const Text: string);
   public
+
+
     property address: ptrUint read faddress;
     property instructionCenter: integer read fInstructionCenter;
     function isJumpOrCall(var addressitjumpsto: ptrUint): boolean;
+    function getReferencedByAddress(y: integer):ptruint;
     function getHeight: integer;
     function getTop: integer;
     property description:string read fdescription;
@@ -72,6 +77,7 @@ type
 
   published
     property height: integer read fheight;
+    property top: integer read fTop;
     property defaultHeight: integer read fDefaultHeight;
 
 end;
@@ -126,6 +132,35 @@ begin
   if result then
     addressitjumpsto:=fJumpsTo;
 end;
+
+function TDisassemblerLine.getReferencedByAddress(y: integer):ptruint;
+//Search the referenced by strings for one with the correct start (if it has one)
+var sl: Tstringlist;
+  p: integer;
+  a: string;
+  i: integer;
+begin
+  result:=0;
+  sl:=TStringList.create;
+  buildReferencedByString(sl);
+  if sl.count>0 then
+  begin
+    //find the line that matches with this y pos
+    p:=refferencedByStart-top;
+    for i:=0 to sl.count-1 do
+    begin
+      p:=p+fcanvas.GetTextHeight(sl[i]);
+      if p>=y then //found it
+      begin
+        a:=copy(sl[i], 1, pos('(', sl[i])-1);
+        result:=StrToQWord('$'+a);
+        exit;
+      end;
+    end;
+  end;
+  sl.free;
+end;
+
 
 function TDisassemblerLine.truncatestring(s: string; maxwidth: integer): string;
 var dotsize: integer;
@@ -202,7 +237,7 @@ var
 begin
   self.focused:=focused;
 
-  top:=linestart;
+  ftop:=linestart;
   faddress:=address;
   isselected:=selected;
 
@@ -390,6 +425,7 @@ begin
 
   if (refferencedbylinecount>0) then
   begin
+    refferencedByStart:=linestart;
     fcanvas.Font.Style:=[fsBold];
     for i:=0 to refferencedbylinecount-1 do
     begin
@@ -565,7 +601,7 @@ end;
 
 function TDisassemblerLine.getTop: integer;
 begin
-  result:=top;
+  result:=ftop;
 end;
 
 destructor TDisassemblerLine.destroy;

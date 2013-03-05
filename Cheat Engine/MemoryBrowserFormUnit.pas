@@ -1405,13 +1405,25 @@ end;
 
 procedure TMemoryBrowser.disassemblerviewDblClick(Sender: TObject);
 var m: TPoint;
+  a: ptruint;
 begin
   //find what column is clicked
+
   m:=disassemblerview.ScreenToClient(mouse.cursorpos);
-  if m.x>(disassemblerview.getheaderWidth(0)+disassemblerview.getheaderWidth(1)+disassemblerview.getheaderWidth(2)) then
-    miUserdefinedComment.click //comment click
+
+  a:=disassemblerview.getReferencedByLineAtPos(m);
+  if a<>0 then
+  begin
+    backlist.Push(pointer(disassemblerview.SelectedAddress));
+    disassemblerview.SelectedAddress:=a;
+  end
   else
-    assemble1.Click;
+  begin
+    if m.x>(disassemblerview.getheaderWidth(0)+disassemblerview.getheaderWidth(1)+disassemblerview.getheaderWidth(2)) then
+      miUserdefinedComment.click //comment click
+    else
+      assemble1.Click;
+  end;
 end;
 
 procedure TMemoryBrowser.FormCreate(Sender: TObject);
