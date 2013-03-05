@@ -12,6 +12,7 @@ uses
   dialogs, JvDesignSurface, DOM, typinfo, LResources, JvDesignImp, JvDesignUtils,
   graphics, math, xmlread,xmlwrite, WSStdCtrls, custombase85{, ascii85};
 
+
 type TCETreeview=class(TCustomTreeview)
   property Align;
   property Anchors;
@@ -1515,6 +1516,7 @@ initialization
   RegisterClass(TCETrackbar);
   RegisterClass(TCEListView);
   RegisterClass(TCESplitter);
+  RegisterClass(TPaintBox);
 
   RegisterClass(TCETreeview); //todo: Make usable
 

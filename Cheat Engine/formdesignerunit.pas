@@ -52,6 +52,7 @@ type
     CETrackBar: TToolButton;
     CEListView: TToolButton;
     CESplitter: TToolButton;
+    PaintBox: TToolButton;
     ToolButton6: TToolButton;
     CEImage: TToolButton;
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -219,6 +220,7 @@ procedure TFormDesigner.NoSelectionClick(Sender: TObject);
 begin
   componentToAdd:='';
 end;
+
 
 
 function TFormDesigner.IDESelectDirectory(const Title, InitialDir: string): string;

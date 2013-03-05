@@ -550,6 +550,10 @@ methods
   getCanvas() : Returns the Canvas object for the given object that has inherited from customControl
 
 
+PaintBox class: (Inheritance: GraphicControl->Control->Component->Object)
+createPaintBox(owner): Creates a Paintbox class object
+
+
 Label Class: (Inheritance: GraphicControl->Control->Component->Object)
 createLabel(owner): Creates a Label class object which belongs to the given owner. Owner can be any object inherited from WinControl
 
