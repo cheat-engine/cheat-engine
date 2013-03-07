@@ -683,11 +683,11 @@ properties
   OnChange: function - Function to call when the state it changed
 
 methods  
-  getAllowGrayed(CheckBox)
-  setAllowGrayed(CheckBox, boolean)
-  getState(checkbox): Returns a state for the checkbox. (cbUnchecked, cbChecked, cbGrayed)
-  setState(checkbox, boolean): Sets the state of the checkbox
-  onChange(checkbox, function)
+  getAllowGrayed()
+  setAllowGrayed(boolean)
+  getState(): Returns a state for the checkbox. (cbUnchecked, cbChecked, cbGrayed)
+  setState(boolean): Sets the state of the checkbox
+  onChange(function)
 
 ToggleBox Class: (Inheritance: CheckBox->ButtonControl->WinControl->Control->Component->Object)
 createToggleBox(owner): Creates a ToggleBox class object which belongs to the given owner. Owner can be any object inherited from WinControl
