@@ -155,11 +155,31 @@ begin
 end;
 
 procedure TMemDisplay.setPitch(pitch: integer);
+var oldaddress,newaddress: ptruint;
+  diff: int64;
 begin
+  oldaddress:=getTopLeftAddress;
   fPitch:=pitch;
-
   if fPitch<=0 then
     fPitch:=1;
+
+
+  newaddress:=getTopLeftAddress;
+
+  //calculate how much to move to get to the new position
+
+  diff:=newaddress-oldaddress;
+
+  fYpos:=trunc(fYpos-(diff/fPitch)*fZoom);
+
+  fXpos:=trunc(fXpos+(diff mod fPitch)*fzoom);
+
+  LimitCoordinates;
+
+  render;
+
+
+
 end;
 
 procedure TMemDisplay.updaterevent(sender: TObject);
