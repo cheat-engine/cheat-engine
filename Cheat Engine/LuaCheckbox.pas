@@ -89,7 +89,6 @@ end;
 
 function checkbox_setonChange(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   control: TCustomCheckBox;
   f: integer;
   routine: string;
@@ -123,8 +122,6 @@ begin
     end;
 
   end;
-
-  lua_pop(L, parameters);
 end;
 
 procedure checkbox_addMetaData(L: PLua_state; metatable: integer; userdata: integer );

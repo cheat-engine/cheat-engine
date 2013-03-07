@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, MemoryRecordUnit, plugin, pluginexports, lua, lualib,
-  lauxlib, LuaHandler, LuaCaller, CEFuncProc, ComCtrls;
+  lauxlib, LuaHandler, LuaCaller, CEFuncProc, ComCtrls, Graphics;
 
 procedure initializeLuaMemoryRecord;
 
@@ -378,37 +378,27 @@ end;
 
 function memoryrecord_unfreeze(L: PLua_State): integer; cdecl;
 var
-  memrec: pointer;
-  parameters: integer;
+  memoryrecord: Tmemoryrecord;
   direction: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    memrec:=lua_toceuserdata(L, -parameters);
-    ce_memrec_unfreeze(memrec);
-  end;
-
-  lua_pop(L, parameters);
+  memoryrecord:=luaclass_getClassObject(L);
+  memoryrecord.Active:=false;
 end;
 
 function memoryrecord_setColor(L: PLua_State): integer; cdecl;
 var
-  memrec: pointer;
-  parameters: integer;
+  memoryrecord: Tmemoryrecord;
   color: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    memrec:=lua_toceuserdata(L,-2);
-    color:=lua_tointeger(L,-1);
-    ce_memrec_setColor(memrec,color);
-  end;
+  memoryrecord:=luaclass_getClassObject(L);
 
-  lua_pop(L, parameters);
+  if lua_gettop(L)>=1 then
+  begin
+    color:=lua_tointeger(L,-1);
+    memoryrecord.Color:=tcolor(color);
+  end;
 end;
 
 function memoryrecord_appendToEntry(L: PLua_State): integer; cdecl;
@@ -417,6 +407,7 @@ var
   parameters: integer;
 begin
   result:=0;
+
   memrec1:=luaclass_getClassObject(L);
   if lua_gettop(L)>=1 then
   begin
@@ -424,42 +415,23 @@ begin
     memrec1.treenode.MoveTo(memrec2.treenode, naAddChild);
     memrec2.SetVisibleChildrenState;
   end;
-
-  lua_pop(L, parameters);
 end;
 
 function memoryrecord_delete(L: PLua_State): integer; cdecl;
 var
-  memrec: pointer;
-  parameters: integer;
+  memoryrecord: Tmemoryrecord;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    memrec:=lua_toceuserdata(L,-1);
-    ce_memrec_delete(memrec);
-  end;
-
-  lua_pop(L, parameters);
+  memoryrecord:=luaclass_getClassObject(L);
+  memoryrecord.free;
 end;
 
 function memoryrecord_getID(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   memoryrecord: Tmemoryrecord;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    memoryrecord:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, memoryrecord.id);
-    result:=1;
-
-  end else lua_pop(L, parameters);
+  memoryrecord:=luaclass_getClassObject(L);
+  lua_pushinteger(L, memoryrecord.id);
+  result:=1;
 end;
 
 function memoryrecord_getHotkeyCount(L: PLua_State): integer; cdecl;
@@ -611,7 +583,6 @@ end;
 
 function memoryrecord_onActivate(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   memoryrecord: Tmemoryrecord;
   f: integer;
   routine: string;
@@ -621,10 +592,9 @@ var
 //  clickroutine: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
+  memoryrecord:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
   begin
-    memoryrecord:=lua_toceuserdata(L,-2);
 
     CleanupLuaCall(tmethod(memoryrecord.onActivate));
     memoryrecord.onActivate:=nil;
@@ -648,13 +618,10 @@ begin
     end;
 
   end;
-
-  lua_pop(L, parameters);
 end;
 
 function memoryrecord_onDeactivate(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   memoryrecord: Tmemoryrecord;
   f: integer;
   routine: string;
@@ -664,11 +631,10 @@ var
 //  clickroutine: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    memoryrecord:=lua_toceuserdata(L,-2);
+  memoryrecord:=luaclass_getClassObject(L);
 
+  if lua_gettop(L)>=1 then
+  begin
     CleanupLuaCall(tmethod(memoryrecord.onDeactivate));
     memoryrecord.onDeactivate:=nil;
 
@@ -692,13 +658,10 @@ begin
 
 
   end;
-
-  lua_pop(L, parameters);
 end;
 
 function memoryrecord_onDestroy(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   memoryrecord: Tmemoryrecord;
   f: integer;
   routine: string;
@@ -708,11 +671,10 @@ var
 //  clickroutine: integer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    memoryrecord:=lua_toceuserdata(L,-2);
+  memoryrecord:=luaclass_getClassObject(L);
 
+  if lua_gettop(L)>=1 then
+  begin
     CleanupLuaCall(tmethod(memoryrecord.onDestroy));
     memoryrecord.onDestroy:=nil;
 
@@ -734,8 +696,6 @@ begin
       memoryrecord.onDestroy:=lc.NotifyEvent;
     end;
   end;
-
-  lua_pop(L, parameters);
 end;
 
 procedure memoryrecord_addMetaData(L: PLua_state; metatable: integer; userdata: integer );

@@ -108,7 +108,6 @@ end;
 
 function radiogroup_setonClick(L: PLua_State): integer; cdecl; //for some reason the radiogroup has it's own fonclick variable
 var
-  parameters: integer;
   control: TCustomRadioGroup;
   f: integer;
   routine: string;
@@ -117,9 +116,8 @@ var
 begin
   result:=0;
   control:=luaclass_getClassObject(L);
-  if parameters>=1 then
+  if lua_gettop(L)>=1 then
   begin
-
     CleanupLuaCall(tmethod(control.onClick));
     control.onClick:=nil;
 
@@ -142,8 +140,6 @@ begin
     end;
 
   end;
-
-  lua_pop(L, parameters);
 end;
 
 procedure radiogroup_addMetaData(L: PLua_state; metatable: integer; userdata: integer );

@@ -191,7 +191,6 @@ end;
 
 function wincontrol_setShape(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   wincontrol: TWinControl;
   x: TObject;
 begin
@@ -207,8 +206,6 @@ begin
     if (x is TRegion) then
       wincontrol.SetShape(TRegion(x));
   end;
-
-  lua_pop(L, parameters);
 end;
 
 procedure wincontrol_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
