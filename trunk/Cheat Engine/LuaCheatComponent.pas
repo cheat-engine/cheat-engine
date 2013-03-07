@@ -12,51 +12,42 @@ procedure initializeLuaCheatComponent;
 
 implementation
 
+uses LuaClass;
+
 function cheatcomponent_getActive(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   cheatcomponent: TCheat;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    cheatcomponent:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushboolean(L, cheatcomponent.activated);
-    result:=1;
-
-  end else lua_pop(L, parameters);
+  cheatcomponent:=luaclass_getClassObject(L);
+  lua_pushboolean(L, cheatcomponent.activated);
+  result:=1;
 end;
 
 
 function cheatcomponent_setActive(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
+  paramstart, paramcount: integer;
   cheatcomponent: TCheat;
 
   deactivatetime: integer;
   t: TTimer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters>=2 then
-  begin
-    cheatcomponent:=lua_toceuserdata(L,-parameters);
-    cheatcomponent.activated:=lua_toboolean(L,-parameters+1);
+  cheatcomponent:=luaclass_getClassObject(L, @paramstart, @paramcount);
 
-    if parameters=3 then
+
+  if paramcount=1 then
+  begin
+    cheatcomponent.activated:=lua_toboolean(L,paramstart);
+
+    if paramcount=2 then
     begin
-      deactivatetime:=lua_tointeger(L,-parameters+2);
+      deactivatetime:=lua_tointeger(L,paramstart+1);
       if cheatcomponent.activated then
         cheatcomponent.setDeactivateTimer(deactivatetime);
 
     end;
   end;
-
-
-  lua_pop(L, parameters);
 end;
 
 function cheatcomponent_getDescription(L: PLua_State): integer; cdecl;
@@ -64,17 +55,9 @@ var
   parameters: integer;
   cheatcomponent: TCheat;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    cheatcomponent:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushstring(L, cheatcomponent.Description);
-    result:=1;
-
-  end else lua_pop(L, parameters);
+  cheatcomponent:=luaclass_getClassObject(L);
+  lua_pushstring(L, cheatcomponent.Description);
+  result:=1;
 end;
 
 
@@ -87,13 +70,10 @@ var
   t: TTimer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    cheatcomponent:=lua_toceuserdata(L,-2);
+  cheatcomponent:=luaclass_getClassObject(L);
+
+  if lua_gettop(L)>=1 then
     cheatcomponent.Description:=Lua_ToString(L,-1);
-  end;
-  lua_pop(L, parameters);
 end;
 
 function cheatcomponent_getHotkey(L: PLua_State): integer; cdecl;
@@ -102,53 +82,32 @@ var
   cheatcomponent: TCheat;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    cheatcomponent:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushstring(L, cheatcomponent.Hotkey);
-    result:=1;
-
-  end else lua_pop(L, parameters);
+  cheatcomponent:=luaclass_getClassObject(L);
+  lua_pushstring(L, cheatcomponent.Hotkey);
+  result:=1;
 end;
 
 
 function cheatcomponent_setHotkey(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   cheatcomponent: TCheat;
 
   deactivatetime: integer;
   t: TTimer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    cheatcomponent:=lua_toceuserdata(L,-2);
+  cheatcomponent:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
     cheatcomponent.Hotkey:=Lua_ToString(L,-1);
-  end;
-  lua_pop(L, parameters);
 end;
 
 function cheatcomponent_getDescriptionLeft(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   cheatcomponent: TCheat;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    cheatcomponent:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, cheatcomponent.DescriptionLeft);
-    result:=1;
-
-  end else lua_pop(L, parameters);
+  cheatcomponent:=luaclass_getClassObject(L);
+  lua_pushinteger(L, cheatcomponent.DescriptionLeft);
+  result:=1;
 end;
 
 
@@ -161,14 +120,12 @@ var
   t: TTimer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    cheatcomponent:=lua_toceuserdata(L,-2);
-    cheatcomponent.DescriptionLeft:=lua_tointeger(L,-1);
-  end;
-  lua_pop(L, parameters);
+  cheatcomponent:=luaclass_getClassObject(L);
+
+  if lua_gettop(L)>=1 then
+    cheatcomponent.Descriptionleft:=lua_tointeger(L,-1);
 end;
+
 
 function cheatcomponent_getHotkeyLeft(L: PLua_State): integer; cdecl;
 var
@@ -176,53 +133,32 @@ var
   cheatcomponent: TCheat;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    cheatcomponent:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushinteger(L, cheatcomponent.HotkeyLeft);
-    result:=1;
-
-  end else lua_pop(L, parameters);
+  cheatcomponent:=luaclass_getClassObject(L);
+  lua_pushinteger(L, cheatcomponent.Hotkeyleft);
+  result:=1;
 end;
 
 
 function cheatcomponent_setHotkeyLeft(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   cheatcomponent: TCheat;
 
   deactivatetime: integer;
   t: TTimer;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    cheatcomponent:=lua_toceuserdata(L,-2);
-    cheatcomponent.HotkeyLeft:=lua_tointeger(L,-1);
-  end;
-  lua_pop(L, parameters);
+  cheatcomponent:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    cheatcomponent.Hotkeyleft:=lua_tointeger(L,-1);
 end;
 
 function cheatcomponent_getEditValue(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   cheatcomponent: TCheat;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=1 then
-  begin
-    cheatcomponent:=lua_toceuserdata(L,-1);
-    lua_pop(L, parameters);
-
-    lua_pushstring(L, cheatcomponent.EditValue);
-    result:=1;
-
-  end else lua_pop(L, parameters);
+  cheatcomponent:=luaclass_getClassObject(L);
+  lua_pushstring(L, cheatcomponent.EditValue);
+  result:=1;
 end;
 
 
@@ -234,18 +170,9 @@ var
   deactivatetime: integer;
   t: TTimer;
 begin
-  result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
-  begin
-    cheatcomponent:=lua_toceuserdata(L,1);
-    if (cheatcomponent=nil) or (not (cheatcomponent is tcheat)) then
-      raise exception.create('The provided cheat component is not a valid cheat component');
-
-
-    cheatcomponent.EditValue:=Lua_ToString(L,2);
-  end;
-  lua_pop(L, parameters);
+  cheatcomponent:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    cheatcomponent.EditValue:=Lua_ToString(L,-1);
 end;
 
 procedure initializeLuaCheatComponent;

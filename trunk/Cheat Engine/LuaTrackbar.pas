@@ -111,19 +111,15 @@ end;
 
 function trackbar_setonChange(L: PLua_State): integer; cdecl;
 var
-  parameters: integer;
   control: TCustomTrackBar;
   f: integer;
   routine: string;
-
   lc: TLuaCaller;
 begin
   result:=0;
-  parameters:=lua_gettop(L);
-  if parameters=2 then
+  control:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
   begin
-    control:=lua_toceuserdata(L,-2);
-
     CleanupLuaCall(tmethod(control.onChange));
     control.onChange:=nil;
 
@@ -146,8 +142,6 @@ begin
     end;
 
   end;
-
-  lua_pop(L, parameters);
 end;
 
 procedure trackbar_addMetaData(L: PLua_state; metatable: integer; userdata: integer );

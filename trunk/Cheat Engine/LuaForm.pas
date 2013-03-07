@@ -84,8 +84,6 @@ begin
     end;
 
   end;
-
-  lua_pop(L, parameters);
 end;
 
 function customform_centerScreen(L: Plua_State): integer; cdecl;
