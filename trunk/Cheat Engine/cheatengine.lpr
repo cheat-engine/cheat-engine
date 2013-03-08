@@ -69,7 +69,7 @@ LuaOldD3DHook, LuaWinControl,
   LuaCollection, LuaListColumns, LuaListItem, LuaListItems, LuaListview, 
 LuaTimer, LuaGenericHotkey, LuaFileDialog, LuaStream, LuaTableFile, 
 LuaMemoryRecordHotkey, LuaMemoryView, LuaD3DHook, CustomBase85, 
-frmMemoryViewExUnit, LuaDisassembler, LuaDissectCode;
+frmMemoryViewExUnit, LuaDisassembler, LuaDissectCode, LuaByteTable, LuaBinary;
 
 {$R cheatengine.res}
 {$R manifest.res}

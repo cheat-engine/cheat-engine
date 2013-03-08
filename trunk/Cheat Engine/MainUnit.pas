@@ -7319,14 +7319,16 @@ var
   addressString: string;
   valuetype: TVariableType;
 
-  ssVt: TValueType;
+  ssVt: TVariableType;
   p: pointer;
   invalid: boolean;
   ct: TCustomType;
 begin
 
   //put in data
-  ct:=nil;
+  ct:=foundlist.CustomType;
+
+
 
   try
     valuetype:=foundlist.vartype;
@@ -7371,14 +7373,14 @@ begin
       //get the previous value of this entry
       invalid:=false;
       case foundlist.vartype of
-        vtByte: ssVt:=vt_byte;
-        vtWord: ssVt:=vt_word;
-        vtDword: ssVt:=vt_dword;
-        vtSingle: ssVt:=vt_single;
-        vtDouble: ssVt:=vt_double;
-        vtQword: ssVt:=vt_int64;
-        vtCustom: ssVt:=vt_dword; //doesn't really matter for address only (as long as it isn't all)
-        vtAll: ssVt:=vt_all;
+        vtByte: ssVt:=vtbyte;
+        vtWord: ssVt:=vtword;
+        vtDword: ssVt:=vtdword;
+        vtSingle: ssVt:=vtsingle;
+        vtDouble: ssVt:=vtdouble;
+        vtQword: ssVt:=vtQword;
+        vtCustom: ssVt:=vtdword; //doesn't really matter for address only (as long as it isn't all)
+        vtAll: ssVt:=vtall;
         else
           invalid:=true;
 

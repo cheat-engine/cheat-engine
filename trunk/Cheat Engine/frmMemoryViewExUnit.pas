@@ -6,7 +6,8 @@ interface
 
 uses
   windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
-  StdCtrls, ComCtrls, memdisplay, newkernelhandler, cefuncproc, syncobjs, math;
+  StdCtrls, ComCtrls, memdisplay, newkernelhandler, cefuncproc, syncobjs, math,
+  savedscanhandler, foundlisthelper;
 
 type
   TMemoryDataSource=class(TThread)
@@ -16,8 +17,13 @@ type
     buf: pbytearray;
     bufsize: integer;
     faddresslistonly: boolean;
+    fvartype: TVariableType;
+    fvarsize: integer;
 
     temppagebuf: pbytearray;
+
+    addresslist: TFoundList;
+    previousvaluelist: TSavedScanHandler;
   public
     procedure lock;
     procedure unlock;
@@ -88,14 +94,42 @@ end;
 
 procedure TMemoryDataSource.setaddresslistonly(state: boolean);
 begin
-  faddresslistonly:=true;
+  if state then
+  begin
+    //Open a "PreviousValue object for the current memscan results.
+
+    cs.Enter;
+
+    try
+      if addresslist<>nil then
+        freeandnil(addresslist);
+
+      addresslist:=TFoundList.create(nil, mainform.memscan);
+      addresslist.Initialize;
+      fvartype:=mainform.memscan.VarType;
+      fvarsize:=mainform.memscan.Getbinarysize div 8;
+
+    finally
+      cs.leave;
+    end;
+  end;
+
+
+  faddresslistonly:=state;
+
   fetchmem; //update now
 end;
 
 procedure TMemoryDataSource.fetchmem;
 var x: dword;
-  a: dword;
+  a,a2: ptruint;
   s: integer;
+
+  s2: integer;
+
+  p: pointer;
+  i: qword;
+
 begin
 
 
@@ -105,19 +139,58 @@ begin
   begin
 
     a:=address;
+    if faddresslistonly then
+      i:=addresslist.FindClosestAddress(address-fvarsize+1); //all following accesses will be sequential
+
+
+
+
+
 
 
     while a<address+bufsize do
     begin
-      s:=min((address+bufsize)-a, 4096-(a mod 4096)); //the number of bytes left in this page or for this buffer
+      s:=minX((address+bufsize)-a, 4096-(a mod 4096)); //the number of bytes left in this page or for this buffer
 
       x:=0;
       if faddresslistonly then
       begin
         //check if this page has any addresses.
-        zeromemory(temppagebuf, 4096);
+        zeromemory(@buf[a-address], s);
 
+        if int64(i)<>-1 then
+        begin
+          a2:=addresslist.GetAddress(i);
+          //get the first addresses that belong to this page (or has bytes in it)
+          while (i<addresslist.count-1) and (a2<a-fvarsize+1) do
+          begin
+            inc(i);
+            a2:=addresslist.GetAddress(i)
+          end;
 
+          while (i<addresslist.count-1) and (a2<a+s) do
+          begin
+            //render to the buffer
+            s2:=fvarsize;
+            if integer(a2-a)<0 then //cut off if it falls before the region
+            begin
+              dec(s2, integer(a2-a));
+              inc(a2, integer(a2-a));
+            end;
+
+            if (a2-a+s2)>s then //cut off if it falls after the region
+            begin
+              s2:=s-(a2-a);
+            end;
+
+            if s2>0 then
+            begin
+              ReadProcessMemory(processhandle, pointer(a2), @buf[a2-address], s2, x);
+              inc(i);
+              a2:=addresslist.GetAddress(i);
+            end;
+          end;
+        end;
 
       end
       else

@@ -13,6 +13,18 @@ It'll read the results of the first scan and provides an inteface for the
 scanroutines for quick lookup of the previous value of a specific address
 }
 
+{
+Current problem:
+The saved scan can be used by other threads and keep the files in use possibly making deletion impossible.
+
+solution:
+do something
+
+final result:
+All file handles released
+
+}
+
 
 {
 function BinSearchEntry(Strings: TStrings; address: dword; var Pivot: integer): integer;
@@ -54,10 +66,10 @@ end;   }
 
 interface
 
-uses windows, LCLIntf,classes,sysutils,syncobjs;
+uses windows, LCLIntf,classes,sysutils,syncobjs, CEFuncProc;
 
 type TSavedScantype= (fs_advanced,fs_addresslist);
-type TValueType= (vt_byte,vt_word, vt_dword, vt_single, vt_double, vt_int64, vt_all);     //todo: Make compatible wioth the rest of ce's vartype
+//type TValueType= (vt_byte,vt_word, vt_dword, vt_single, vt_double, vt_int64, vt_all);     //todo: Make compatible with the rest of ce's vartype
 
 
 type TSavedScanHandler = class
@@ -89,14 +101,14 @@ type TSavedScanHandler = class
     procedure cleanup;
     function loadIfNotLoadedRegion(p: pointer): pointer;
 
-    procedure LoadNextChunk(valuetype: TValuetype);
-    procedure LoadMemoryForCurrentChunk(valuetype: TValueType);
+    procedure LoadNextChunk(valuetype: TVariableType);
+    procedure LoadMemoryForCurrentChunk(valuetype: TVariableType);
     procedure loadCurrentRegionMemory;
     procedure InitializeScanHandler;
   public
     AllowRandomAccess: boolean; //set this if you wish to allow random access through the list. (EXTREMELY INEFFICIENT IF IT HAPPENS, addresslist purposes only)
     AllowNotFound: boolean; //set this if you wish to return nil instead of an exception if the address can't be found in the list
-    function getpointertoaddress(address:ptruint;valuetype:tvaluetype): pointer;
+    function getpointertoaddress(address:ptruint;valuetype:TVariableType): pointer;
 
     constructor create(scandir: string; savedresultsname: string);
     destructor destroy; override;
@@ -105,7 +117,7 @@ end;
 
 implementation
 
-uses cefuncproc, Math;
+uses Math;
 
 resourcestring
   rsMaxaddresslistcountIs0MeansTheAddresslistIsBad = 'maxaddresslistcount is 0 (Means: the addresslist is bad)';
@@ -166,7 +178,7 @@ begin
 
 end;
 
-procedure TSavedScanHandler.LoadMemoryForCurrentChunk(valuetype: TValueType);
+procedure TSavedScanHandler.LoadMemoryForCurrentChunk(valuetype: TVariableType);
 {
 Loads the savedscanmemory block for the current adddresslist block
 }
@@ -174,7 +186,7 @@ var addressliststart: qword;
     index: qword;
     varsize: integer;
 begin
-  if valuetype<>vt_all then
+  if valuetype<>vtall then
   begin
     //find the start of this region
     addressliststart:=(savedscanaddressfs.Position)-maxaddresslistcount*sizeof(ptruint);
@@ -187,10 +199,10 @@ begin
   end;
 
   case valuetype of
-    vt_byte: varsize:= 1;
-    vt_word: varsize:= 2;
-    vt_dword, vt_single: varsize:= 4;
-    vt_double, vt_int64, vt_all: varsize:= 8;
+    vtbyte: varsize:= 1;
+    vtword: varsize:= 2;
+    vtdword, vtSingle: varsize:= 4;
+    vtdouble, vtQword, vtall: varsize:= 8;
   end;
 
 
@@ -198,14 +210,14 @@ begin
   SavedScanmemoryFS.ReadBuffer(SavedScanmemory^, maxaddresslistcount*varsize);
 end;
 
-procedure TSavedScanHandler.LoadNextChunk(valuetype: TValuetype);
+procedure TSavedScanHandler.LoadNextChunk(valuetype: TVariableType);
 {
 For the addresslist specific type: Loads in the next region based on the addresslist
 }
 begin
 //savedscanaddressfs.ReadBuffer(addresslistmemory, maxaddresslistcount*sizeof(ptruint));
 
-  if valuetype<>vt_all then
+  if valuetype<>vtall then
   begin
 
     maxaddresslistcount:=min(maxaddresslistcount, (savedscanaddressfs.size-savedscanaddressfs.Position) div sizeof(ptruint)); //limit to the addresslist file size
@@ -233,7 +245,7 @@ begin
   LastAddressAccessed.index:=0; //reset the index
 end;
 
-function TSavedScanHandler.getpointertoaddress(address:ptruint;valuetype:tvaluetype): pointer;
+function TSavedScanHandler.getpointertoaddress(address:ptruint;valuetype:TVariableType): pointer;
 var i,j: integer;
     pm: ^TArrMemoryRegion;
     pa: PptruintArray;
@@ -302,10 +314,10 @@ begin
       //the memoryblock is only 20*4096=81920 bytes big set the addresslist size to be able to address that
       case valuetype of
         //(vt_byte,vt_word, vt_dword, vt_single, vt_double, vt_int64, vt_all);
-        vt_byte: maxaddresslistcount:= 20*4096 div 1;
-        vt_word: maxaddresslistcount:= 20*4096 div 2;
-        vt_dword, vt_single: maxaddresslistcount:= 20*4096 div 4;
-        vt_double, vt_int64, vt_all: maxaddresslistcount:= 20*4096 div 8;
+        vtbyte: maxaddresslistcount:= 20*4096 div 1;
+        vtword: maxaddresslistcount:= 20*4096 div 2;
+        vtdword, vtsingle: maxaddresslistcount:= 20*4096 div 4;
+        vtdouble, vtQword, vtall: maxaddresslistcount:= 20*4096 div 8;
       end;
 
       loadnextchunk(valuetype); //will load the initial addresslist
@@ -317,7 +329,7 @@ begin
     pab:=addresslistmemory;
     p1:=SavedScanmemory;
 
-    if (valuetype <> vt_all) then
+    if (valuetype <> vtall) then
     begin
       //addresslist is a list of pointers
 
@@ -326,7 +338,13 @@ begin
         if AllowRandomAccess then
         begin
           //random access allowed. Start all over
+
+          if LastAddressAccessed.index=0 then exit;
+
           InitializeScanHandler;
+
+
+
           result:=getpointertoaddress(address, valuetype);
         end
         else
@@ -362,12 +380,12 @@ begin
         begin
           //found it
           case valuetype of
-            vt_byte : result:=@p1[pivot];
-            vt_word : result:=@p2[pivot];
-            vt_dword : result:=@p3[pivot];
-            vt_single: result:=@p4[pivot];
-            vt_double: result:=@p5[pivot];
-            vt_int64: result:=@p6[pivot];
+            vtbyte : result:=@p1[pivot];
+            vtword : result:=@p2[pivot];
+            vtdword : result:=@p3[pivot];
+            vtsingle: result:=@p4[pivot];
+            vtdouble: result:=@p5[pivot];
+            vtQword: result:=@p6[pivot];
           end;
           LastAddressAccessed.address:=address;
           LastAddressAccessed.index:=pivot;
@@ -396,6 +414,8 @@ begin
         if AllowRandomAccess then
         begin
           //random access allowed. Start all over
+          if LastAddressAccessed.index=0 then exit;
+
           InitializeScanHandler;
           result:=getpointertoaddress(address, valuetype);
         end
