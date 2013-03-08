@@ -24,7 +24,6 @@ NewKernelHandler,
 {$ifndef standalonetrainer}
 {$ifndef netserver}
 hypermode,
-savedscanhandler,
 {$endif}
 {$endif}
 {$endif}
@@ -698,7 +697,7 @@ implementation
 
 
 uses disassembler,CEDebugger,debughelper, symbolhandler,frmProcessWatcherUnit,
-     kerneldebugger, formsettingsunit, MemoryBrowserFormUnit;
+     kerneldebugger, formsettingsunit, MemoryBrowserFormUnit, savedscanhandler;
 
 
 resourcestring

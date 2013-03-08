@@ -134,6 +134,7 @@ type
     scandir: string;
 
     found :dword;
+    maxfound: dword; //the number of entries before flushing is demanded
 
     value,value2: int64;
     svalue,svalue2: single;
@@ -2475,7 +2476,7 @@ begin
   copyMemory(pointer(ptruint(CurrentFoundBuffer)+ptruint(variablesize*found)),oldvalue,variablesize);
 
   inc(found);
-  if found>=buffersize then
+  if found>=maxfound then
     flushroutine;
 end;
 
@@ -2486,7 +2487,7 @@ begin
   pbytearray(CurrentFoundBuffer)[found]:=pbyte(oldvalue)^;
 
   inc(found);
-  if found>=buffersize then
+  if found>=maxfound then
     flushroutine;
 end;
 
@@ -2496,7 +2497,7 @@ begin
   pwordarray(CurrentFoundBuffer)[found]:=pword(oldvalue)^;
 
   inc(found);
-  if found>=buffersize then
+  if found>=maxfound then
     flushroutine;
 end;
 
@@ -2506,7 +2507,7 @@ begin
   pdwordarray(CurrentFoundBuffer)[found]:=pdword(oldvalue)^;
 
   inc(found);
-  if found>=buffersize then
+  if found>=maxfound then
     flushroutine;
 end;
 
@@ -2516,7 +2517,7 @@ begin
   puint64array(CurrentFoundBuffer)[found]:=PQWORD(oldvalue)^;
 
   inc(found);
-  if found>=buffersize then
+  if found>=maxfound then
     flushroutine;
 end;
 
@@ -2528,7 +2529,7 @@ begin
     psinglearray(CurrentFoundBuffer)[found]:=psingle(oldvalue)^;
 
     inc(found);
-    if found>=buffersize then
+    if found>=maxfound then
       flushroutine;
   end;
 end;
@@ -2541,7 +2542,7 @@ begin
     pdoublearray(CurrentFoundBuffer)[found]:=pdouble(oldvalue)^;
 
     inc(found);
-    if found>=buffersize then
+    if found>=maxfound then
       flushroutine;
   end;
 end;
@@ -2551,7 +2552,7 @@ procedure TScanner.arrayOfByteSaveResult(address: ptruint; oldvalue: pointer);
 begin
   PPtrUintArray(CurrentAddressBuffer)[found]:=address;
   inc(found);
-  if found>=buffersize then
+  if found>=maxfound then
     flushroutine;  
 end;
 
@@ -2565,7 +2566,7 @@ begin
       PBitAddressArray(CurrentAddressBuffer)[found].address:=address;
       PBitAddressArray(CurrentAddressBuffer)[found].bit:=i;
       inc(found);
-      if found>=buffersize then
+      if found>=maxfound then
         flushroutine;
     end;
   end;
@@ -2585,7 +2586,7 @@ begin
     entry.offsets[i]:=groupdata.groupdata[i].offset;
 
   inc(found);
-  if found>=buffersize then
+  if found>=maxfound then
       flushroutine;
 end;
 
@@ -2623,7 +2624,7 @@ begin
       copyMemory(pointer(ptruint(CurrentFoundBuffer)+ptruint(variablesize*found)),oldvalue,variablesize);
 
       inc(found);
-      if found>=buffersize then
+      if found>=maxfound then
         flushroutine;
     end;
   end;
@@ -2640,7 +2641,7 @@ begin
         copyMemory(pointer(ptruint(CurrentFoundBuffer)+ptruint(variablesize*found)),oldvalue,variablesize);
 
         inc(found);
-        if found>=buffersize then
+        if found>=maxfound then
           flushroutine;
       end;
     end;
@@ -2937,7 +2938,7 @@ Scan the given buffer
 var stepsize:  integer;
     lastmem:   ptruint;
     p,oldp:    pbyte;
-    valuetype: TValueType;
+    valuetype: TVariableType;
     _fastscan: boolean;
     dividableby2: boolean;
     dividableby4: boolean;
@@ -2970,16 +2971,16 @@ begin
   if compareToSavedScan then //stupid, but ok...
   begin
     case self.variableType of
-      vtByte:   valuetype:=vt_byte;
-      vtWord:   valuetype:=vt_word;
-      vtDWord:  valuetype:=vt_dword;
-      vtSingle: valuetype:=vt_single;
-      vtdouble: valuetype:=vt_double;
-      vtQword:  valuetype:=vt_int64;
-      vtAll:    valuetype:=vt_all;
+      vtByte:   valuetype:=vtbyte;
+      vtWord:   valuetype:=vtword;
+      vtDWord:  valuetype:=vtdword;
+      vtSingle: valuetype:=vtsingle;
+      vtdouble: valuetype:=vtdouble;
+      vtQword:  valuetype:=vtQword;
+      vtAll:    valuetype:=vtall;
     end;
 
-    if valuetype=vt_all then
+    if valuetype=vtall then
     begin
       while ptruint(p)<=lastmem do
       begin
@@ -3077,7 +3078,7 @@ var i,j,k: dword;
     actualread: dword;
 
     so: Tscanoption;
-    valuetype: TValuetype;
+    valuetype: TVariableType;
     currentaddress: ptruint;
     phandle: thandle;
 begin
@@ -3088,7 +3089,7 @@ begin
   vsize:=variablesize; //=8
   oldmem:=oldmemory;
   alist:=addresslist;
-  valuetype:=vt_all;
+  valuetype:=vtall;
 
   while i<maxindex do
   begin
@@ -3313,7 +3314,7 @@ var
     actualread: dword;
 
     so: Tscanoption;
-    valuetype: TValuetype;
+    valuetype: TVariableType;
     phandle: thandle;
 begin
   i:=0;
@@ -3325,21 +3326,21 @@ begin
   phandle:=processhandle;
 
   case variableType of
-    vtByte:   valuetype:=vt_byte;
-    vtWord:   valuetype:=vt_word;
-    vtDWord:  valuetype:=vt_dword;
-    vtsingle: valuetype:=vt_single;
-    vtdouble: valuetype:=vt_double;
-    vtQword:  valuetype:=vt_int64;
-    vtAll:    valuetype:=vt_all;
+    vtByte:   valuetype:=vtbyte;
+    vtWord:   valuetype:=vtword;
+    vtDWord:  valuetype:=vtdword;
+    vtsingle: valuetype:=vtsingle;
+    vtdouble: valuetype:=vtdouble;
+    vtQword:  valuetype:=vtQword;
+    vtAll:    valuetype:=vtall;
     vtCustom:
     begin
       case vsize of
-        1: valuetype:=vt_byte;
-        2: valuetype:=vt_word;
-        4: valuetype:=vt_dword;
-        8: valuetype:=vt_int64;
-        else valuetype:=vt_dword;
+        1: valuetype:=vtbyte;
+        2: valuetype:=vtword;
+        4: valuetype:=vtdword;
+        8: valuetype:=vtQword;
+        else valuetype:=vtdword;
       end;
 
     end;
@@ -3395,6 +3396,19 @@ var FloatSettings: TFormatSettings;
     td: double;
     s: string;
 begin
+  maxfound:=buffersize;
+  if variableType = vtCustom then
+  begin
+    //possible override
+    if customtype.bytesize>16 then
+    begin
+      maxfound:=(buffersize*16) div customtype.bytesize; //get decent max size but not a redicilous size
+      if maxfound<=0 then maxfound:=1;
+    end;
+
+
+  end;
+
   OutputDebugString('configurescanroutine');
   foundbuffersize:=0;
 
@@ -3680,8 +3694,8 @@ begin
 
   if variableType in [vtbinary,vtall] then
   begin
-    getmem(CurrentAddressBuffer,buffersize*sizeof(Tbitaddress));
-    getmem(SecondaryAddressBuffer,buffersize*sizeof(Tbitaddress));
+    getmem(CurrentAddressBuffer,maxfound*sizeof(Tbitaddress));
+    getmem(SecondaryAddressBuffer,maxfound*sizeof(Tbitaddress));
   end
   else
   if variabletype = vtGrouped then
@@ -3689,13 +3703,13 @@ begin
     //stored as:
     //Address, offset1, offset2, offset3.....
     //assuming the rare occasion of a blocksize bigger than 65535 dword offset size is chosen
-    getmem(CurrentAddressBuffer,buffersize*(sizeof(ptruint)+sizeof(dword)*groupdata.groupdatalength));
-    getmem(SecondaryAddressBuffer,buffersize*(sizeof(ptruint)+sizeof(dword)*1+groupdata.groupdatalength));
+    getmem(CurrentAddressBuffer,maxfound*(sizeof(ptruint)+sizeof(dword)*groupdata.groupdatalength));
+    getmem(SecondaryAddressBuffer,maxfound*(sizeof(ptruint)+sizeof(dword)*1+groupdata.groupdatalength));
   end
   else
   begin
-    getmem(CurrentAddressBuffer,buffersize*sizeof(ptruint));
-    getmem(SecondaryAddressBuffer,buffersize*sizeof(ptruint));
+    getmem(CurrentAddressBuffer,maxfound*sizeof(ptruint));
+    getmem(SecondaryAddressBuffer,maxfound*sizeof(ptruint));
   end;
 
   if compareToSavedScan then //create a first scan handler
@@ -3966,7 +3980,12 @@ begin
     vtCustom:
     begin
       //dword config
-      FoundBufferSize:=buffersize*customtype.bytesize;
+      FoundBufferSize:=maxfound*customtype.bytesize;
+
+      if FoundBufferSize>16*1024*1024 then
+        foundbuffersize:=16*1024*1024;
+
+
       StoreResultRoutine:=GenericSaveResult;
 
 

@@ -9,7 +9,7 @@ interface
 
 uses LCLIntf,sysutils,classes,ComCtrls,StdCtrls,symbolhandler, CEFuncProc,
      NewKernelHandler, memscan, CustomTypeHandler, byteinterpreter,
-     groupscancommandparser, math;
+     groupscancommandparser, math, AvgLvlTree;
 
 type TScanType=(fs_advanced,fs_addresslist);
 
@@ -23,6 +23,8 @@ type
     foundlistClass: TFoundList;
     procedure execute; override;
   end;
+
+
 
   TFoundList=class
   private
@@ -55,6 +57,11 @@ type
 
     gcp: Tgroupscancommandparser;
     groupElementSize: integer;
+
+
+
+    lookupTree: TAvgLvlTree;
+
   public
     function getGCP: TGroupscanCommandParser;
     function GetVarLength: integer;
@@ -71,6 +78,7 @@ type
     function GetAddressOnly(i: qword; var extra: dword; groupdata: PPGroupAddress=nil): ptruint;
     function GetAddress(i: qword;var extra: dword; var value:string): ptruint; overload; //extra for stuff like bitnr
     function GetAddress(i: qword):ptruint; overload;
+    function FindClosestAddress(address: ptruint): qword;
     function InModule(i: integer):boolean;
     function GetModuleNamePlusOffset(i: integer):string;
     procedure RebaseAddresslist(i: integer);
@@ -97,6 +105,22 @@ uses mainunit;
 resourcestring
   rsUndefinedError = 'Undefined error';
   rsError = 'Error';
+
+type
+  TLookupRecord=class(TObject) //lookup record for the tree
+                  index: integer;
+                  address: ptruint;
+                  constructor create(index: integer;  address: ptruint);
+                end;
+
+  PLookuprecord=^TlookupRecord;
+
+
+constructor TLookupRecord.create(index: integer; address: ptruint);
+begin
+  self.index:=index;
+  self.address:=address;
+end;
 
 procedure TRebaseAgain.rerebase;
 begin
@@ -385,6 +409,59 @@ begin
   ga:=nil;
   GetAddressOnly(i, extra, @ga);
   result:=ga;
+end;
+
+function AddressLookupCompare(Item1, Item2: Pointer): Integer;
+begin
+  result:=comparevalue(TLookupRecord(Item1).address, TLookupRecord(Item2).address);
+end;
+
+function TFoundList.FindClosestAddress(address: ptruint): qword;
+//searched the addresslist for the given address and returns the index for it
+//If this is the first time being called create an index of max 100 entries and binary tree to search the index
+var last: integer;
+    step: integer;
+    i: qword;
+    n: TAvgLvlTreeNode;
+    lr: TLookupRecord;
+begin
+  result:=-1;
+  if lookupTree=nil then
+  begin
+    lookuptree:=TAvgLvlTree.Create(AddressLookupCompare);
+
+    //first time init
+    //split 0 to fCount up into 100 TLookupRecord objects (if possible, else less)
+    if fcount>100 then
+      step:=fcount div 100
+    else
+      step:=1;
+
+    i:=0;
+    while i<fCount do
+    begin
+      lookuptree.Add(TLookupRecord.create(i, GetAddress(i)));
+      inc(i, step);
+    end;
+  end;
+
+  lr:=TLookupRecord.create(-1, address);
+  n:=lookuptree.FindNearest(lr);
+  lr.free;
+
+  if n<>nil then
+  begin
+    i:=TLookupRecord(n.data).index;
+    //find the best spot
+
+    //search till the address is too big
+    while (i<fcount-1) and (GetAddress(i)<address) do
+      inc(i);
+
+    //i is now at the end, or the address is too big or just correct
+
+    result:=i; //return the exact index, or higher side of the wanted address
+  end;
 end;
 
 function TFoundList.GetAddressOnly(i: qword; var extra: dword; groupdata: PPGroupAddress=nil): ptruint;
@@ -733,6 +810,9 @@ begin
   clear;
   if addressfile<>nil then
     freeandnil(addressfile);
+
+  if lookupTree<>nil then
+    lookupTree.FreeAndClear;
 end;
 
 

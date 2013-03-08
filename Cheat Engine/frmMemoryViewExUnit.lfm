@@ -78,6 +78,7 @@ object frmMemoryViewEx: TfrmMemoryViewEx
     Height = 23
     Top = 376
     Width = 128
+    Enabled = False
     ItemHeight = 15
     ItemIndex = 0
     Items.Strings = (
@@ -99,6 +100,7 @@ object frmMemoryViewEx: TfrmMemoryViewEx
     Width = 33
     Caption = 'Or'
     Checked = True
+    Enabled = False
     TabOrder = 9
     TabStop = True
   end
@@ -108,6 +110,7 @@ object frmMemoryViewEx: TfrmMemoryViewEx
     Top = 394
     Width = 42
     Caption = 'And'
+    Enabled = False
     TabOrder = 5
   end
   object RadioButton3: TRadioButton
@@ -116,6 +119,7 @@ object frmMemoryViewEx: TfrmMemoryViewEx
     Top = 410
     Width = 38
     Caption = 'Xor'
+    Enabled = False
     TabOrder = 6
   end
   object ComboBox2: TComboBox
@@ -123,6 +127,7 @@ object frmMemoryViewEx: TfrmMemoryViewEx
     Height = 23
     Top = 406
     Width = 128
+    Enabled = False
     ItemHeight = 15
     ItemIndex = 0
     Items.Strings = (
