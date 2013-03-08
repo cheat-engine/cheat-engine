@@ -164,7 +164,7 @@ resourcestring
   rsCEAFilter = 'Cheat Engine Assembly (*.CEA)|*.CEA|All Files ( *.* )|*.*';
   rsAutoAssembler = 'Auto assembler';
   rsCodeNeedsEnableAndDisable = 'The code needs an [ENABLE] and a [DISABLE] section if you want to use this script as a table entry';
-  rsNotAllCodeIsInjectable = 'Not all code is injectable. Are you sure you wan''t to edit it to this?';
+  rsNotAllCodeIsInjectable = 'Not all code is injectable.'#13#10'%s'#13#10'Are you sure you wan''t to edit it to this?';
   rsCodeInjectTemplate = 'Code inject template';
   rsOnWhatAddressDoYouWantTheJump = 'On what address do you want the jump?';
   rsFailedToAddToTableNotAllCodeIsInjectable = 'Failed to add to table. Not all code is injectable';
@@ -228,6 +228,7 @@ var
     //variables for injectintomyself:
     check: boolean;
     registeredsymbols: TStringlist;
+    errmsg: string;
 begin
 {$ifndef standalonetrainerwithassembler}
   registeredsymbols:=tstringlist.Create;
@@ -253,8 +254,19 @@ begin
         if (a=-1) and (b=-1) then raise exception.create(rsCodeNeedsEnableAndDisable);
 
 
-      check:=autoassemble(assemblescreen.lines,false,true,true,injectintomyself,aa,registeredsymbols) and
-             autoassemble(assemblescreen.lines,false,false,true,injectintomyself,aa,registeredsymbols);
+      try
+        check:=autoassemble(assemblescreen.lines,false,true,true,injectintomyself,aa,registeredsymbols) and
+               autoassemble(assemblescreen.lines,false,false,true,injectintomyself,aa,registeredsymbols);
+
+        if not check then
+          errmsg:=format(rsNotAllCodeIsInjectable,['']);
+      except
+        on e: exception do
+        begin
+          check:=false;
+          errmsg:=format(rsNotAllCodeIsInjectable,['('+e.Message+')']);
+        end;
+      end;
 
       if check then
       begin
@@ -263,7 +275,7 @@ begin
       end
       else
       begin
-        if messagedlg(rsNotAllCodeIsInjectable, mtWarning, [mbyes, mbno], 0)=mryes then
+        if messagedlg(errmsg, mtWarning, [mbyes, mbno], 0)=mryes then
         begin
           modalresult:=mrok; //not modal anymore, but can still be used to pass info
           if editscript2 or CustomTypeScript then close;
