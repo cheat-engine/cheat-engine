@@ -338,7 +338,18 @@ var i,j,k, m: integer;
       aoblist: string;
   begin
     setlength(results,0);
-    aobscanmodules[f].memscan.GetOnlyOneResults(results);
+    if length(aobscanmodules[f].entries)=1 then
+    begin
+      //if only 1 entry a normal aobscan was done, so use GetOnlyOneResult instead
+      if aobscanmodules[f].memscan.GetOnlyOneResult(testptr) then
+      begin
+        setlength(results,1);
+        results[0]:=testptr;
+      end;
+    end
+    else
+      aobscanmodules[f].memscan.GetOnlyOneResults(results);
+
     if length(results)=length(aobscanmodules[f].entries) then
     begin
       for i:=0 to length(aobscanmodules[f].entries)-1 do
