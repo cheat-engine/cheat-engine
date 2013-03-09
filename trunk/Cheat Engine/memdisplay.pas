@@ -73,6 +73,8 @@ type
     isDragging: boolean;
     DragOrigin: TPoint;
     PosOrigin: TPoint;
+    AddressOrigin: ptruint;
+    dragAddress: boolean; //Use this to change the address instead (horizontal movement only)
 
     fMaxCharCount: integer; //defines how big the font will be
 
@@ -118,6 +120,8 @@ type
     property onData: TOnDataEvent read fOnData write fOnData;
     property onRequestText: TOnRequestTextEvent read fOnRequestText write fOnRequestText;
     property MaxCharCount: integer read fMaxCharCount write setMaxCharCount;
+
+    property zoom: single read fZoom;
     //property getOffset: integer;
 
     constructor Create(TheOwner: TComponent); override;
@@ -364,14 +368,44 @@ begin
     DragOrigin.y:=y;
     PosOrigin.x:=fXpos;
     PosOrigin.y:=fYpos;
+
+    dragaddress:=ssCtrl in shift;
+    if dragAddress then
+      addressOrigin:=address;
   end;
 
 end;
 
 procedure TMemDisplay.MouseMove(Shift: TShiftState; X, Y: Integer);
+var a: ptruint;
+  newp: pointer;
+  newsize: integer;
 begin
   if isDragging then
-    MoveTo(PosOrigin.x-(DragOrigin.x-x), PosOrigin.y+(DragOrigin.y-y));
+  begin
+    if dragaddress then
+    begin
+      //move the address by the difference in X position
+
+
+      a:=addressOrigin-trunc((PosOrigin.x-(DragOrigin.x-x))/fzoom)*fPixelByteSize;
+      if assigned(fOnData) and fOnData(a,size,newp,newsize) then
+      begin
+        address:=a;
+        p:=newp;
+        size:=newsize;
+
+        LimitCoordinates //recheck with the new ypos. (in case of size change (end of buf?))
+      end;
+
+
+      render;
+
+    end
+    else
+      MoveTo(PosOrigin.x-(DragOrigin.x-x), PosOrigin.y+(DragOrigin.y-y));
+
+  end;
 end;
 
 procedure TMemDisplay.MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);

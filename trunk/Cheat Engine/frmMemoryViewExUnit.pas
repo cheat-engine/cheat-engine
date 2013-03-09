@@ -55,6 +55,7 @@ type
     RadioButton3: TRadioButton;
     Timer1: TTimer;
     tbPitch: TTrackBar;
+    procedure cbAddresslistChange(Sender: TObject);
     procedure cbAddresslistOnlyChange(Sender: TObject);
     procedure cbAddresslistDropDown(Sender: TObject);
     procedure edtPitchChange(Sender: TObject);
@@ -325,11 +326,19 @@ begin
     datasource.setaddresslist(true, 'TMP');
 end;
 
+procedure TfrmMemoryViewEx.cbAddresslistChange(Sender: TObject);
+begin
+  if cbAddresslist.ItemIndex=0 then
+    datasource.setaddresslist(true, 'TMP')
+  else
+    datasource.setaddresslist(true, cbAddresslist.text);
+end;
+
 procedure TfrmMemoryViewEx.cbAddresslistDropDown(Sender: TObject);
 begin
   cbAddresslist.Items.Clear;
   cbAddresslist.DropDownCount:=mainform.memscan.getsavedresults(cbAddresslist.Items)+1;
-  cbAddresslist.Items.Insert(0,'Current');
+  cbAddresslist.Items.Insert(0,'Current scanlist');
 end;
 
 procedure TfrmMemoryViewEx.FormDestroy(Sender: TObject);
@@ -344,7 +353,7 @@ end;
 
 procedure TfrmMemoryViewEx.Timer1Timer(Sender: TObject);
 begin
-  lbladdress.caption:='Address : '+inttohex(md.getTopLeftAddress,8);
+  lbladdress.caption:='Address : '+inttohex(md.getTopLeftAddress,8)+' zoom : '+floattostr(md.zoom);
 end;
 
 procedure TfrmMemoryViewEx.tbPitchChange(Sender: TObject);
