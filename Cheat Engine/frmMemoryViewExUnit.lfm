@@ -73,10 +73,10 @@ object frmMemoryViewEx: TfrmMemoryViewEx
     OnChange = cbAddresslistOnlyChange
     TabOrder = 3
   end
-  object ComboBox1: TComboBox
+  object cbAddresslist: TComboBox
     Left = 8
     Height = 23
-    Top = 376
+    Top = 352
     Width = 128
     Enabled = False
     ItemHeight = 15
@@ -89,6 +89,7 @@ object frmMemoryViewEx: TfrmMemoryViewEx
       'Saved X'
       'Saved Y'
     )
+    OnDropDown = cbAddresslistDropDown
     Style = csDropDownList
     TabOrder = 4
     Text = 'Current Memory'
@@ -122,10 +123,10 @@ object frmMemoryViewEx: TfrmMemoryViewEx
     Enabled = False
     TabOrder = 6
   end
-  object ComboBox2: TComboBox
+  object cbSavedList: TComboBox
     Left = 8
     Height = 23
-    Top = 406
+    Top = 400
     Width = 128
     Enabled = False
     ItemHeight = 15
@@ -145,9 +146,9 @@ object frmMemoryViewEx: TfrmMemoryViewEx
   object CheckBox1: TCheckBox
     Left = 8
     Height = 19
-    Top = 352
-    Width = 69
-    Caption = 'Compare'
+    Top = 376
+    Width = 110
+    Caption = 'Compare against'
     TabOrder = 8
   end
   object Timer1: TTimer
