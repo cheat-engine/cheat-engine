@@ -15,7 +15,7 @@ object frmAutoInject: TfrmAutoInject
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.1'
   object Panel1: TPanel
     Left = 0
     Height = 46

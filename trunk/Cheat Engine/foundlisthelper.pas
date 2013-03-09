@@ -53,6 +53,8 @@ type
     createdFoundlist: boolean;
     fisUnknownInitialValue: boolean;
 
+    fListName: string;
+
     fCount: UInt64;
 
     gcp: Tgroupscancommandparser;
@@ -83,7 +85,8 @@ type
     function GetModuleNamePlusOffset(i: integer):string;
     procedure RebaseAddresslist(i: integer);
     procedure RebaseAddresslistAgain; //calls rebaseaddresslist with the same parameter as last time
-    constructor create(foundlist: tlistview; memscan: TMemScan);
+    procedure setListName(listname: string);
+    constructor create(foundlist: tlistview; memscan: TMemScan; listname: string='');
     destructor destroy; override;
   published
     property vartype: TVariableType read fvartype;
@@ -93,6 +96,7 @@ type
     property isUnicode: boolean read unicode;
     property isUnknownInitialValue: boolean read fisUnknownInitialValue;
     property count: uint64 read fCount;
+    property listName: string read fListname write setListName;
 end;
 
 type Tscandisplayroutine=procedure(value: pointer; output: pchar);
@@ -199,7 +203,7 @@ begin
   if addressfile=nil then exit;
 
   try
-    memoryfile:=tfilestream.Create(memscan.ScanresultFolder+'Memory.TMP',fmOpenRead or fmShareDenyNone);
+    memoryfile:=tfilestream.Create(memscan.ScanresultFolder+'Memory.'+fListName,fmOpenRead or fmShareDenyNone);
     outaddress:=tfilestream.Create(memscan.ScanresultFolder+'Addresses.NEW',fmCreate or fmShareDenyNone);
     outmemory:=tfilestream.Create(memscan.ScanresultFolder+'Memory.NEW',fmCreate or fmShareDenyNone);
   except
@@ -263,10 +267,10 @@ begin
   //still here, not crashed, so out with the old, in with the new...
   deinitialize;
 
-  deletefile(memscan.ScanresultFolder+'Memory.TMP');
-  deletefile(memscan.ScanresultFolder+'Addresses.TMP');
-  renamefile(memscan.ScanresultFolder+'Memory.NEW',memscan.ScanresultFolder+'Memory.TMP');
-  renamefile(memscan.ScanresultFolder+'Addresses.NEW',memscan.ScanresultFolder+'Addresses.TMP');
+  deletefile(memscan.ScanresultFolder+'Memory.'+fListName);
+  deletefile(memscan.ScanresultFolder+'Addresses.'+fListName);
+  renamefile(memscan.ScanresultFolder+'Memory.NEW',memscan.ScanresultFolder+'Memory.'+fListName);
+  renamefile(memscan.ScanresultFolder+'Addresses.NEW',memscan.ScanresultFolder+'Addresses.'+fListName);
 
   Reinitialize;
 end;
@@ -684,10 +688,10 @@ begin
 
 
 
-  if fileexists(memscan.ScanresultFolder+'Addresses.TMP') then
+  if fileexists(memscan.ScanresultFolder+'Addresses.'+fListName) then
   begin
     try
-      self.addressfile:=tfilestream.Create(memscan.ScanresultFolder+'Addresses.TMP',fmOpenRead or fmShareDenyNone);
+      self.addressfile:=tfilestream.Create(memscan.ScanresultFolder+'Addresses.'+fListName,fmOpenRead or fmShareDenyNone);
     except
       foundlist.Items.Count:=0;
       scantype:=fs_advanced;
@@ -815,6 +819,13 @@ begin
     lookupTree.FreeAndClear;
 end;
 
+procedure  TFoundlist.setListName(listname: string);
+begin
+  flistname:=listname;
+  Deinitialize;
+  Initialize;
+end;
+
 
 destructor TFoundlist.destroy;
 begin
@@ -828,7 +839,7 @@ begin
     freemem(addresslistg);
 end;
 
-constructor TFoundlist.create(foundlist: tlistview; memscan: TMemScan);
+constructor TFoundlist.create(foundlist: tlistview; memscan: TMemScan; listname: string='');
 begin
   if foundlist=nil then
   begin
@@ -842,6 +853,10 @@ begin
   //self.foundcountlabel:=foundcountlabel;
   self.memscan:=memscan;
   memscan.attachedFoundlist:=self;
+
+  flistname:=listname;
+  if flistname='' then
+    flistname:='TMP';
 end;
 
 end.

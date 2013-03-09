@@ -17,6 +17,7 @@ type
     buf: pbytearray;
     bufsize: integer;
     faddresslistonly: boolean;
+    fcompareagainstsavedscan: boolean;
     fvartype: TVariableType;
     fvarsize: integer;
 
@@ -24,15 +25,17 @@ type
 
     addresslist: TFoundList;
     previousvaluelist: TSavedScanHandler;
+
+
+
   public
     procedure lock;
     procedure unlock;
     procedure setRegion(address: ptruint; buf: pointer; size: integer);
     procedure execute; override;
     procedure fetchmem;
-    procedure setaddresslistonly(state: boolean);
+    procedure setaddresslist(state: boolean; listname: string);
     constructor create(suspended: boolean);
-    property addresslistonly: boolean read faddresslistonly write setaddresslistonly;
   end;
 
   { TfrmMemoryViewEx }
@@ -40,8 +43,8 @@ type
   TfrmMemoryViewEx = class(TForm)
     cbAddresslistOnly: TCheckBox;
     CheckBox1: TCheckBox;
-    ComboBox1: TComboBox;
-    ComboBox2: TComboBox;
+    cbAddresslist: TComboBox;
+    cbSavedList: TComboBox;
     edtPitch: TEdit;
     Label1: TLabel;
     lblAddress: TLabel;
@@ -53,6 +56,7 @@ type
     Timer1: TTimer;
     tbPitch: TTrackBar;
     procedure cbAddresslistOnlyChange(Sender: TObject);
+    procedure cbAddresslistDropDown(Sender: TObject);
     procedure edtPitchChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -92,7 +96,7 @@ begin
   inherited create(suspended);
 end;
 
-procedure TMemoryDataSource.setaddresslistonly(state: boolean);
+procedure TMemoryDataSource.setaddresslist(state: boolean; listname: string);
 begin
   if state then
   begin
@@ -104,7 +108,7 @@ begin
       if addresslist<>nil then
         freeandnil(addresslist);
 
-      addresslist:=TFoundList.create(nil, mainform.memscan);
+      addresslist:=TFoundList.create(nil, mainform.memscan, listname);
       addresslist.Initialize;
       fvartype:=mainform.memscan.VarType;
       fvarsize:=mainform.memscan.Getbinarysize div 8;
@@ -186,6 +190,13 @@ begin
             if s2>0 then
             begin
               ReadProcessMemory(processhandle, pointer(a2), @buf[a2-address], s2, x);
+
+              if fcompareagainstsavedscan then
+              begin
+                //get the saved scan
+
+              end;
+
               inc(i);
               a2:=addresslist.GetAddress(i);
             end;
@@ -308,8 +319,17 @@ end;
 
 procedure TfrmMemoryViewEx.cbAddresslistOnlyChange(Sender: TObject);
 begin
+  cbAddresslist.enabled:=true;
+
   if datasource<>nil then
-    datasource.addresslistonly:=cbAddresslistOnly.checked;
+    datasource.setaddresslist(true, 'TMP');
+end;
+
+procedure TfrmMemoryViewEx.cbAddresslistDropDown(Sender: TObject);
+begin
+  cbAddresslist.Items.Clear;
+  cbAddresslist.DropDownCount:=mainform.memscan.getsavedresults(cbAddresslist.Items)+1;
+  cbAddresslist.Items.Insert(0,'Current');
 end;
 
 procedure TfrmMemoryViewEx.FormDestroy(Sender: TObject);
