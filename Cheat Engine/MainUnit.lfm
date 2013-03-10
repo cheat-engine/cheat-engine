@@ -560,6 +560,7 @@ object MainForm: TMainForm
         object cbFastScan: TCheckBox
           Left = 4
           Height = 19
+          Hint = 'Speeds up the scan and decreases useless reults by skipping unaligned memory, or only scans addresses ending with specific digits'
           Top = 7
           Width = 68
           Caption = 'Fast Scan'
@@ -597,6 +598,7 @@ object MainForm: TMainForm
         object rbfsmLastDigts: TRadioButton
           Left = 123
           Height = 19
+          Hint = 'When set and fastscan is enabled will only scan and return addresses that end with the given digits'
           Top = 17
           Width = 69
           Caption = 'Last Digits'
@@ -606,11 +608,14 @@ object MainForm: TMainForm
         object rbFsmAligned: TRadioButton
           Left = 123
           Height = 19
+          Hint = 'When set and fastscan is enabled will scan the memory address if it is dividable by the given value'
           Top = 0
           Width = 66
           Caption = 'Alignment'
           Checked = True
           OnChange = rbFsmAlignedChange
+          ParentShowHint = False
+          ShowHint = True
           TabOrder = 4
           TabStop = True
         end

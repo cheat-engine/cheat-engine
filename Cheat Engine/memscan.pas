@@ -520,6 +520,7 @@ type
 
     currentVariableType: TVariableType;
     currentCustomType: TCustomType;
+
     found: uint64;
 
     //first scan init variables
@@ -3003,7 +3004,7 @@ begin
           for j:=0 to customtypecount-1 do customtypesmatch[j]:=true;
 
 
-        if checkroutine(p,savedscanhandler.getpointertoaddress(base+ptruint(p)-ptruint(buffer),valuetype )) then //found one
+        if checkroutine(p,savedscanhandler.getpointertoaddress(base+ptruint(p)-ptruint(buffer),valuetype,nil )) then //found one
           StoreResultRoutine(base+ptruint(p)-ptruint(buffer),p);
 
         inc(p, stepsize);
@@ -3013,7 +3014,7 @@ begin
     begin
       while ptruint(p)<=lastmem do
       begin
-        if checkroutine(p,savedscanhandler.getpointertoaddress(base+ptrUint(p)-ptrUint(buffer),valuetype )) then //found one
+        if checkroutine(p,savedscanhandler.getpointertoaddress(base+ptrUint(p)-ptrUint(buffer),valuetype,customtype )) then //found one
           StoreResultRoutine(base+ptruint(p)-ptruint(buffer),p);
 
         inc(p, stepsize);
@@ -3137,7 +3138,7 @@ begin
           else
           begin
             //new address reached
-            if checkroutine(@newmemory[currentaddress-currentbase],savedscanhandler.getpointertoaddress(currentaddress,valuetype )) then
+            if checkroutine(@newmemory[currentaddress-currentbase],savedscanhandler.getpointertoaddress(currentaddress,valuetype, nil )) then
               StoreResultRoutine(currentaddress,@newmemory[currentaddress-currentbase]);
 
             //clear typesmatch and set current address
@@ -3157,7 +3158,7 @@ begin
 
         end;
 
-        if checkroutine(@newmemory[currentaddress-currentbase],savedscanhandler.getpointertoaddress(currentaddress,valuetype )) then
+        if checkroutine(@newmemory[currentaddress-currentbase],savedscanhandler.getpointertoaddress(currentaddress,valuetype, nil )) then
           StoreResultRoutine(currentaddress,@newmemory[currentaddress-currentbase]);
 
       end
@@ -3369,7 +3370,7 @@ begin
       if compareToSavedScan then
       begin
         for k:=i to j do
-          if checkroutine(@newmemory[alist[k]-currentbase],savedscanhandler.getpointertoaddress(alist[k],valuetype )) then
+          if checkroutine(@newmemory[alist[k]-currentbase],savedscanhandler.getpointertoaddress(alist[k],valuetype, customType )) then
             StoreResultRoutine(alist[k],@newmemory[alist[k]-currentbase])
       end
       else
@@ -3405,7 +3406,16 @@ begin
       maxfound:=(buffersize*16) div customtype.bytesize; //get decent max size but not a redicilous size
       if maxfound<=0 then maxfound:=1;
     end;
-
+  end
+  else
+  if (variableType = vtAll) and AllIncludesCustomType then
+  begin
+    i:=max(8, MaxCustomTypeSize);
+    if i>16 then
+    begin
+      maxfound:=(buffersize*16) div i;
+      if maxfound<=0 then maxfound:=1;
+    end;
 
   end;
 
@@ -3950,7 +3960,7 @@ begin
 
       fastscanalignsize:=1;
 
-      FoundBufferSize:=buffersize*variablesize;
+      FoundBufferSize:=maxfound*variablesize;
       StoreResultRoutine:=allSaveResult;
       FlushRoutine:=allFlush;
       case scanOption of
@@ -4629,7 +4639,14 @@ begin
 
     vtAll:
     begin
+
       variablesize:=8;
+      if allincludescustomtypes then  //find out the biggest customtype size
+      begin
+        for i:=0 to customTypes.count-1 do
+          variablesize:=max(variablesize, TCustomType(customtypes[i]).bytesize);
+      end;
+
       fastscanalignsize:=1;
     end;
 
@@ -5992,6 +6009,7 @@ end;
 
 
 function TMemscan.Getbinarysize: int64;
+var i: integer;
 begin
   case self.currentVariableType of
     vtByte:      result:=8;
@@ -6000,7 +6018,17 @@ begin
     vtQWord:     result:=64;
     vtSingle:    result:=32;
     vtDouble:    result:=64;
-    vtAll:       result:=64;
+    vtAll:
+    begin
+      result:=8;
+
+      if allincludescustomtype then
+        for i:=0 to customTypes.count-1 do
+          result:=max(result, TCustomType(customtypes[i]).bytesize);
+
+      result:=result*8; //get the binary size
+
+    end;
     vtString:    if stringUnicode then result:=16*stringLength else result:=8*stringLength;
     vtBinary:    result:=binaryLength;
     vtByteArray: result:=arrayLength*8;

@@ -245,17 +245,16 @@ implementation
 uses
 aboutunit,
 
-{$ifdef net}
-Unit2;
-{$else}
+
 MainUnit,
 MainUnit2,
 frmExcludeHideUnit, {
 MemoryBrowserFormUnit,}
 ModuleSafetyUnit,
 frmProcessWatcherUnit,
-ConfigUnrandomizerFrm;
-{$endif}
+ConfigUnrandomizerFrm,
+CustomTypeHandler;
+
 
 
 
@@ -426,7 +425,9 @@ begin
       else
         Application.TaskBarBehavior:=tbSingleButton;
 
+      AllIncludesCustomType:=cbAllIncludesCustomType.checked;
       reg.writebool('All includes custom types', cbAllIncludesCustomType.checked);
+
 
       reg.writebool('Can Step Kernelcode',cbCanStepKernelcode.checked);
 

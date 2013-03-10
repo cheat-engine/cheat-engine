@@ -7379,7 +7379,7 @@ begin
         vtSingle: ssVt:=vtsingle;
         vtDouble: ssVt:=vtdouble;
         vtQword: ssVt:=vtQword;
-        vtCustom: ssVt:=vtdword; //doesn't really matter for address only (as long as it isn't all)
+        vtCustom: ssVt:=vtCustom;
         vtAll: ssVt:=vtall;
         else
           invalid:=true;
@@ -7388,7 +7388,7 @@ begin
 
       if not invalid then
       begin
-        p:=PreviousResults.getpointertoaddress(address, ssVt);
+        p:=PreviousResults.getpointertoaddress(address, ssvt, ct);
         if p=nil then
           previousvalue:='<none>'
         else
