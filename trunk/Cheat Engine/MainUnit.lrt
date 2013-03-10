@@ -55,10 +55,13 @@ Don't care if it's executable or not
 TMAINFORM.CBEXECUTABLE.CAPTION=Executable
 TMAINFORM.LABEL2.CAPTION=Stop
 TMAINFORM.LABEL1.CAPTION=Start
+TMAINFORM.CBFASTSCAN.HINT=Speeds up the scan and decreases useless reults by skipping unaligned memory, or only scans addresses ending with specific digits
 TMAINFORM.CBFASTSCAN.CAPTION=Fast Scan
 TMAINFORM.EDTALIGNMENT.TEXT=4
 TMAINFORM.CBPAUSEWHILESCANNING.CAPTION=Pause the game while scanning
+TMAINFORM.RBFSMLASTDIGTS.HINT=When set and fastscan is enabled will only scan and return addresses that end with the given digits
 TMAINFORM.RBFSMLASTDIGTS.CAPTION=Last Digits
+TMAINFORM.RBFSMALIGNED.HINT=When set and fastscan is enabled will scan the memory address if it is dividable by the given value
 TMAINFORM.RBFSMALIGNED.CAPTION=Alignment
 TMAINFORM.NEXTSCANBUTTON.CAPTION=Next Scan
 TMAINFORM.BTNMEMORYVIEW.CAPTION=Memory View

@@ -95,7 +95,7 @@ object frmMemoryViewEx: TfrmMemoryViewEx
     TabOrder = 4
     Text = 'Current Memory'
   end
-  object RadioButton1: TRadioButton
+  object rbOr: TRadioButton
     Left = 148
     Height = 19
     Top = 376
@@ -106,7 +106,7 @@ object frmMemoryViewEx: TfrmMemoryViewEx
     TabOrder = 9
     TabStop = True
   end
-  object RadioButton2: TRadioButton
+  object rbAnd: TRadioButton
     Left = 148
     Height = 19
     Top = 394
@@ -115,7 +115,7 @@ object frmMemoryViewEx: TfrmMemoryViewEx
     Enabled = False
     TabOrder = 5
   end
-  object RadioButton3: TRadioButton
+  object rbXor: TRadioButton
     Left = 148
     Height = 19
     Top = 410
@@ -140,16 +140,19 @@ object frmMemoryViewEx: TfrmMemoryViewEx
       'Saved X'
       'Saved Y'
     )
+    OnChange = cbSavedListChange
+    OnDropDown = cbAddresslistDropDown
     Style = csDropDownList
     TabOrder = 7
     Text = 'Current Memory'
   end
-  object CheckBox1: TCheckBox
+  object cbCompare: TCheckBox
     Left = 8
     Height = 19
     Top = 376
     Width = 110
     Caption = 'Compare against'
+    OnChange = cbCompareChange
     TabOrder = 8
   end
   object Timer1: TTimer

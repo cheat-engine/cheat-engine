@@ -87,7 +87,7 @@ resourcestring
 implementation
 
 
-uses KernelDebugger,mainunit, DebugHelper;
+uses KernelDebugger,mainunit, DebugHelper, CustomTypeHandler;
 
 procedure UpdateToolsMenu;
 var i: integer;
@@ -154,7 +154,10 @@ begin
             cbAlwaysRunScript.Checked:=reg.ReadBool('Always run script');
 
           if reg.ValueExists('All includes custom types') then
-            cbAllIncludesCustomType.checked:=reg.readbool('All includes custom types');
+          begin
+            AllIncludesCustomType:=reg.readbool('All includes custom types');
+            cbAllIncludesCustomType.checked:=AllIncludesCustomType;
+          end;
 
 
           if reg.ValueExists('Show all windows on taskbar') then

@@ -66,7 +66,7 @@ end;   }
 
 interface
 
-uses windows, LCLIntf,classes,sysutils,syncobjs, CEFuncProc;
+uses windows, LCLIntf,classes,sysutils,syncobjs, CEFuncProc, CustomTypeHandler;
 
 type TSavedScantype= (fs_advanced,fs_addresslist);
 //type TValueType= (vt_byte,vt_word, vt_dword, vt_single, vt_double, vt_int64, vt_all);     //todo: Make compatible with the rest of ce's vartype
@@ -102,13 +102,13 @@ type TSavedScanHandler = class
     function loadIfNotLoadedRegion(p: pointer): pointer;
 
     procedure LoadNextChunk(valuetype: TVariableType);
-    procedure LoadMemoryForCurrentChunk(valuetype: TVariableType);
+    procedure LoadMemoryForCurrentChunk(valuetype: TVariableType; ct: TCustomType);
     procedure loadCurrentRegionMemory;
     procedure InitializeScanHandler;
   public
     AllowRandomAccess: boolean; //set this if you wish to allow random access through the list. (EXTREMELY INEFFICIENT IF IT HAPPENS, addresslist purposes only)
     AllowNotFound: boolean; //set this if you wish to return nil instead of an exception if the address can't be found in the list
-    function getpointertoaddress(address:ptruint;valuetype:TVariableType): pointer;
+    function getpointertoaddress(address:ptruint;valuetype:TVariableType; ct: TCustomType; recallifneeded: boolean=true): pointer;
 
     constructor create(scandir: string; savedresultsname: string);
     destructor destroy; override;
@@ -178,12 +178,13 @@ begin
 
 end;
 
-procedure TSavedScanHandler.LoadMemoryForCurrentChunk(valuetype: TVariableType);
+procedure TSavedScanHandler.LoadMemoryForCurrentChunk(valuetype: TVariableType; ct: TCustomType);
 {
 Loads the savedscanmemory block for the current adddresslist block
 }
 var addressliststart: qword;
     index: qword;
+    i: integer;
     varsize: integer;
 begin
   if valuetype<>vtall then
@@ -198,12 +199,22 @@ begin
     index:=(addressliststart-7) div sizeof(TBitAddress);
   end;
 
+
   case valuetype of
     vtbyte: varsize:= 1;
     vtword: varsize:= 2;
     vtdword, vtSingle: varsize:= 4;
-    vtdouble, vtQword, vtall: varsize:= 8;
+    vtdouble, vtQword: varsize:= 8;
+    vtall:
+    begin
+      varsize:=8;
+      if AllIncludesCustomType then
+        varsize:=max(varsize, MaxCustomTypeSize);
+    end;
+
+    vtcustom: varsize:= ct.bytesize;
   end;
+
 
 
   SavedScanmemoryFS.Position:=index * varsize;
@@ -237,6 +248,7 @@ begin
 
     savedscanaddressfs.ReadBuffer(addresslistmemory^, maxaddresslistcount*sizeof(TBitAddress));
   end;
+
   if maxaddresslistcount=0 then
   begin
     raise exception.create(rsMaxaddresslistcountIs0MeansTheAddresslistIsBad);
@@ -245,7 +257,7 @@ begin
   LastAddressAccessed.index:=0; //reset the index
 end;
 
-function TSavedScanHandler.getpointertoaddress(address:ptruint;valuetype:TVariableType): pointer;
+function TSavedScanHandler.getpointertoaddress(address:ptruint;valuetype:TVariableType; ct: Tcustomtype; recallifneeded: boolean=true): pointer;
 var i,j: integer;
     pm: ^TArrMemoryRegion;
     pa: PptruintArray;
@@ -311,17 +323,54 @@ begin
 
     if addresslistmemory=nil then
     begin
-      //the memoryblock is only 20*4096=81920 bytes big set the addresslist size to be able to address that
+
+      //the memoryblock should be only 20*4096=81920 bytes big set the addresslist size to be able to address that (it can do more if needed)
       case valuetype of
         //(vt_byte,vt_word, vt_dword, vt_single, vt_double, vt_int64, vt_all);
         vtbyte: maxaddresslistcount:= 20*4096 div 1;
         vtword: maxaddresslistcount:= 20*4096 div 2;
         vtdword, vtsingle: maxaddresslistcount:= 20*4096 div 4;
-        vtdouble, vtQword, vtall: maxaddresslistcount:= 20*4096 div 8;
+        vtdouble, vtQword: maxaddresslistcount:= 20*4096 div 8;
+
+        vtall:
+        begin
+          maxaddresslistcount:=8;
+          if AllIncludesCustomType then
+            maxaddresslistcount:=max(maxaddresslistcount, MaxCustomTypeSize);
+
+          if maxaddresslistcount>20*4096 then
+          begin
+            ReAllocMem(SavedScanmemory, maxaddresslistcount);
+            maxaddresslistcount:=1
+          end
+          else
+            maxaddresslistcount:=20*4096 div maxaddresslistcount;
+
+        end;
+
+        vtCustom:
+        begin
+          maxaddresslistcount:=ct.bytesize;
+          if maxaddresslistcount>20*4096 then
+          begin
+            ReAllocMem(SavedScanmemory, maxaddresslistcount);
+            maxaddresslistcount:=1
+          end
+          else
+            maxaddresslistcount:=20*4096 div maxaddresslistcount;
+
+        end
+
+        else
+          maxaddresslistcount:=1;
       end;
 
+
+
+
+
       loadnextchunk(valuetype); //will load the initial addresslist
-      LoadMemoryForCurrentChunk(valuetype);
+      LoadMemoryForCurrentChunk(valuetype, ct);
     end;
 
 
@@ -338,14 +387,10 @@ begin
         if AllowRandomAccess then
         begin
           //random access allowed. Start all over
-
-          if LastAddressAccessed.index=0 then exit;
+          if recallifneeded=false then exit; //already recalled once and it seems to have failed
 
           InitializeScanHandler;
-
-
-
-          result:=getpointertoaddress(address, valuetype);
+          result:=getpointertoaddress(address, valuetype, ct, false);
         end
         else
           raise exception.create(rsInvalidOrderOfCallingGetpointertoaddress);
@@ -356,7 +401,7 @@ begin
         while pa[maxaddresslistcount-1]<address do //load in the next chunk
           LoadNextChunk(valuetype);
 
-        LoadMemoryForCurrentChunk(valuetype);
+        LoadMemoryForCurrentChunk(valuetype, ct);
       end;
 
       //we now have an addresslist and memory region and we know that the address we need is in here
@@ -375,7 +420,7 @@ begin
 
         //Gets the middle of the selected range
         Pivot := (First + Last) div 2;
-        //Compares the String in the middle with the searched one
+        //Compares the data in the middle with the searched one
         if address=pa[pivot] then
         begin
           //found it
@@ -386,6 +431,8 @@ begin
             vtsingle: result:=@p4[pivot];
             vtdouble: result:=@p5[pivot];
             vtQword: result:=@p6[pivot];
+            vtCustom: result:=@p1[pivot*ct.bytesize]
+
           end;
           LastAddressAccessed.address:=address;
           LastAddressAccessed.index:=pivot;
@@ -414,10 +461,10 @@ begin
         if AllowRandomAccess then
         begin
           //random access allowed. Start all over
-          if LastAddressAccessed.index=0 then exit;
+          if recallifneeded=false then exit; //already recalled once and it seems to have failed
 
           InitializeScanHandler;
-          result:=getpointertoaddress(address, valuetype);
+          result:=getpointertoaddress(address, valuetype, ct, false);
         end
         else
           raise exception.create(rsInvalidOrderOfCallingGetpointertoaddress);
@@ -428,7 +475,7 @@ begin
         while pab[maxaddresslistcount-1].address<address do //load in the next chunk
           LoadNextChunk(valuetype);
 
-        LoadMemoryForCurrentChunk(valuetype);
+        LoadMemoryForCurrentChunk(valuetype, ct);
       end;
 
       //we now have an addresslist and memory region and we know that the address we need is in here
@@ -448,7 +495,11 @@ begin
         if address=pab[pivot].address then
         begin
           //found it
-          result:=@p6[pivot]; //8 byte entries, doesnt have to match the same type, since it is the same 8 byte value that's stored
+          if AllIncludesCustomType then
+            result:=@p1[pivot*MaxCustomTypeSize]
+          else
+            result:=@p6[pivot]; //8 byte entries, doesnt have to match the same type, since it is the same 8 byte value that's stored
+
           LastAddressAccessed.address:=address;
           LastAddressAccessed.index:=pivot;
           exit;
@@ -470,6 +521,7 @@ begin
     raise exception.create(Format(rsFailureInFindingInThePreviousScanResults, [inttohex(address, 8)]));
 
 end;
+
 
 procedure TSavedScanHandler.InitializeScanHandler;
 var datatype: string[6];

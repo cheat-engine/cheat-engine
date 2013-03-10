@@ -8,7 +8,8 @@ This class is used as a wrapper for different kinds of custom types
 interface
 
 uses
-  {windows, }dialogs, Classes, SysUtils,cefuncproc, autoassembler, lua, lauxlib, lualib, luahandler;
+  {windows, }dialogs, Classes, SysUtils,cefuncproc, autoassembler, lua, lauxlib,
+  lualib, luahandler, math;
 
 type TConversionRoutine=function(data: pointer):integer; stdcall;
 type TReverseConversionRoutine=procedure(i: integer; output: pointer); stdcall;
@@ -86,6 +87,8 @@ function registerCustomTypeLua(L: PLua_State): integer; cdecl;
 function registerCustomTypeAutoAssembler(L: PLua_State): integer; cdecl;
 
 var customTypes: TList; //list holding all the custom types
+    AllIncludesCustomType: boolean;
+    MaxCustomTypeSize: integer;
 
 implementation
 
@@ -646,6 +649,7 @@ begin
 
   //still here so everything ok
   customtypes.Add(self);
+  MaxCustomTypeSize:=max(MaxCustomTypeSize, bytesize);
 end;
 
 
@@ -659,6 +663,8 @@ begin
 
   //still here so everything ok
   customtypes.Add(self);
+
+  MaxCustomTypeSize:=max(MaxCustomTypeSize, bytesize);
 end;
 
 procedure TCustomType.remove;
@@ -671,6 +677,12 @@ begin
   if i<>-1 then
     customTypes.Delete(i);
 
+
+
+  //get a new max
+  MaxCustomTypeSize:=0;
+  for i:=0 to customTypes.count-1 do
+    MaxCustomTypeSize:=max(MaxCustomTypeSize, TCustomType(customTypes[i]).bytesize);
 end;
 
 procedure TCustomType.showDebugInfo;

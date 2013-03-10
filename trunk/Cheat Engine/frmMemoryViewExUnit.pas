@@ -7,7 +7,7 @@ interface
 uses
   windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
   StdCtrls, ComCtrls, memdisplay, newkernelhandler, cefuncproc, syncobjs, math,
-  savedscanhandler, foundlisthelper;
+  savedscanhandler, foundlisthelper, CustomTypeHandler;
 
 type
   TMemoryDataSource=class(TThread)
@@ -25,6 +25,7 @@ type
 
     addresslist: TFoundList;
     previousvaluelist: TSavedScanHandler;
+    ct: TCustomtype;
 
 
 
@@ -35,6 +36,7 @@ type
     procedure execute; override;
     procedure fetchmem;
     procedure setaddresslist(state: boolean; listname: string);
+    procedure setcompare(state: boolean; listname: string);
     constructor create(suspended: boolean);
   end;
 
@@ -42,7 +44,7 @@ type
 
   TfrmMemoryViewEx = class(TForm)
     cbAddresslistOnly: TCheckBox;
-    CheckBox1: TCheckBox;
+    cbCompare: TCheckBox;
     cbAddresslist: TComboBox;
     cbSavedList: TComboBox;
     edtPitch: TEdit;
@@ -50,14 +52,17 @@ type
     lblAddress: TLabel;
     Label2: TLabel;
     Panel1: TPanel;
-    RadioButton1: TRadioButton;
-    RadioButton2: TRadioButton;
-    RadioButton3: TRadioButton;
+    rbOr: TRadioButton;
+    rbAnd: TRadioButton;
+    rbXor: TRadioButton;
     Timer1: TTimer;
     tbPitch: TTrackBar;
     procedure cbAddresslistChange(Sender: TObject);
     procedure cbAddresslistOnlyChange(Sender: TObject);
     procedure cbAddresslistDropDown(Sender: TObject);
+    procedure cbCompareChange(Sender: TObject);
+    procedure cbSavedListChange(Sender: TObject);
+
     procedure edtPitchChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -95,6 +100,29 @@ begin
   getmem(temppagebuf, 4096);  //so it doesn't need to be allocated/freed each fetchmem call
 
   inherited create(suspended);
+end;
+
+procedure TMemoryDataSource.setcompare(state: boolean; listname: string);
+begin
+  if state then
+  begin
+
+    cs.Enter;
+    try
+      if previousvaluelist<>nil then
+        freeandnil(previousvaluelist);
+
+      previousvaluelist:=TSavedScanHandler.create(mainform.memscan.GetScanFolder, listname);
+      previousvaluelist.AllowNotFound:=true;
+      previousvaluelist.AllowRandomAccess:=true;
+
+    finally
+      cs.Leave;
+    end;
+
+  end;
+
+  fcompareagainstsavedscan:=state;
 end;
 
 procedure TMemoryDataSource.setaddresslist(state: boolean; listname: string);
@@ -136,8 +164,6 @@ var x: dword;
   i: qword;
 
 begin
-
-
   lock;
 
   if buf<>nil then  //not yet initialized
@@ -145,7 +171,10 @@ begin
 
     a:=address;
     if faddresslistonly then
+    begin
       i:=addresslist.FindClosestAddress(address-fvarsize+1); //all following accesses will be sequential
+
+    end;
 
 
 
@@ -192,9 +221,16 @@ begin
             begin
               ReadProcessMemory(processhandle, pointer(a2), @buf[a2-address], s2, x);
 
-              if fcompareagainstsavedscan then
+              if fcompareagainstsavedscan and (previousvaluelist<>nil) then
               begin
                 //get the saved scan
+                if previousvaluelist.getpointertoaddress(a2, fvartype, ct)<>nil then
+                begin
+                  buf[a2-address]:=$ff;
+                  buf[a2-address+1]:=$ff;
+                  buf[a2-address+2]:=$ff;
+                  buf[a2-address+3]:=$7f;
+                end;
 
               end;
 
@@ -320,25 +356,45 @@ end;
 
 procedure TfrmMemoryViewEx.cbAddresslistOnlyChange(Sender: TObject);
 begin
-  cbAddresslist.enabled:=true;
+  cbAddresslist.enabled:=cbAddresslistOnly.checked;
+  cbCompare.Enabled:=cbAddresslistOnly.checked;
+  cbSavedList.enabled:=cbAddresslistOnly.checked;
 
   if datasource<>nil then
-    datasource.setaddresslist(true, 'TMP');
+    datasource.setaddresslist(cbAddresslistOnly.checked, 'TMP');
 end;
 
 procedure TfrmMemoryViewEx.cbAddresslistChange(Sender: TObject);
 begin
   if cbAddresslist.ItemIndex=0 then
-    datasource.setaddresslist(true, 'TMP')
+    datasource.setaddresslist(cbAddresslistOnly.checked, 'TMP')
   else
-    datasource.setaddresslist(true, cbAddresslist.text);
+    datasource.setaddresslist(cbAddresslistOnly.checked, cbAddresslist.text);
 end;
 
 procedure TfrmMemoryViewEx.cbAddresslistDropDown(Sender: TObject);
 begin
-  cbAddresslist.Items.Clear;
-  cbAddresslist.DropDownCount:=mainform.memscan.getsavedresults(cbAddresslist.Items)+1;
-  cbAddresslist.Items.Insert(0,'Current scanlist');
+  TComboBox(sender).Items.Clear;
+  TComboBox(sender).DropDownCount:=mainform.memscan.getsavedresults(TComboBox(sender).Items)+1;
+  TComboBox(sender).Items.Insert(0,'Current scanlist');
+end;
+
+procedure TfrmMemoryViewEx.cbCompareChange(Sender: TObject);
+begin
+  cbSavedList.enabled:=cbCompare.checked;
+  rbOr.enabled:=cbCompare.checked;
+  rbAnd.enabled:=cbCompare.checked;
+  rbXor.enabled:=cbCompare.checked;
+
+  datasource.setcompare(cbCompare.checked, 'TMP');
+end;
+
+procedure TfrmMemoryViewEx.cbSavedListChange(Sender: TObject);
+begin
+  if cbSavedList.ItemIndex=0 then
+    datasource.setcompare(cbCompare.checked, 'TMP')
+  else
+    datasource.setcompare(cbCompare.checked, cbSavedList.text);
 end;
 
 procedure TfrmMemoryViewEx.FormDestroy(Sender: TObject);
