@@ -6,9 +6,15 @@ interface
 
 uses
   jwawindows, Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, syncobjs, {psapi,} imagehlp;
+  Dialogs, StdCtrls, ExtCtrls, syncobjs, {psapi,} imagehlp;
 
-type TChangeHealthThread=class(tthread)
+type
+  TChangeHealthLikeAMofo=class(tthread)
+  public
+    procedure execute; override;
+  end;
+
+  TChangeHealthThread=class(tthread)
   public
     healthaddress: PDWORD;
     changehealthevent: TEvent;
@@ -25,6 +31,7 @@ type
   TForm1 = class(TForm)
     Button1: TButton;
     Button10: TButton;
+    Button11: TButton;
     Button2: TButton;
     Label1: TLabel;
     Button3: TButton;
@@ -42,7 +49,9 @@ type
     Button7: TButton;
     Button8: TButton;
     Button9: TButton;
+    Timer1: TTimer;
     procedure Button10Click(Sender: TObject);
+    procedure Button11Click(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -54,6 +63,7 @@ type
     procedure Button7Click(Sender: TObject);
     procedure Button8Click(Sender: TObject);
     procedure Button9Click(Sender: TObject);
+    procedure Timer1Timer(Sender: TObject);
   private
     { Private declarations }
     originalIntegrityValue: dword;
@@ -88,6 +98,17 @@ function GetModuleInformation(hProcess: HANDLE; hModule: HMODULE; var lpmodinfo:
 implementation
 
 {$R *.lfm}
+
+procedure TChangeHealthLikeAMofo.execute;
+var a,b: integer;
+begin
+  while not terminated do
+  begin
+    a:=health;
+    b:=a+random(65536);
+    health:=b;
+  end;
+end;
 
 procedure exc(E: Exception);
 var
@@ -347,6 +368,12 @@ except
 end;
 end;
 
+procedure TForm1.Button11Click(Sender: TObject);
+begin
+  TChangeHealthLikeAMofo.create(false);
+  timer1.enabled:=true;
+end;
+
 procedure TForm1.Button2Click(Sender: TObject);
 begin
   health:=random(1000);
@@ -458,6 +485,11 @@ end;
 procedure TForm1.Button9Click(Sender: TObject);
 begin
   TLongThread.create(false);
+end;
+
+procedure TForm1.Timer1Timer(Sender: TObject);
+begin
+  label1.caption:=inttostr(health);
 end;
 
 end.
