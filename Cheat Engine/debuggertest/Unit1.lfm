@@ -12,76 +12,76 @@ object Form1: TForm1
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.1'
   object Label1: TLabel
-    Left = 118
-    Height = 17
-    Top = 75
-    Width = 42
+    Left = 120
+    Height = 16
+    Top = 59
+    Width = 41
     Caption = 'Label1'
     ParentColor = False
   end
   object Label2: TLabel
     Left = 119
-    Height = 17
+    Height = 16
     Top = 144
-    Width = 42
+    Width = 41
     Caption = 'Label2'
     ParentColor = False
   end
   object Label3: TLabel
     Left = 246
-    Height = 17
+    Height = 16
     Top = 49
-    Width = 42
+    Width = 41
     Caption = 'Label3'
     ParentColor = False
   end
   object Label4: TLabel
     Left = 246
-    Height = 17
+    Height = 16
     Top = 69
-    Width = 42
+    Width = 41
     Caption = 'Label4'
     ParentColor = False
   end
   object Label5: TLabel
     Left = 246
-    Height = 17
+    Height = 16
     Top = 89
-    Width = 42
+    Width = 41
     Caption = 'Label5'
     ParentColor = False
   end
   object Label6: TLabel
     Left = 246
-    Height = 17
+    Height = 16
     Top = 108
-    Width = 42
+    Width = 41
     Caption = 'Label6'
     ParentColor = False
   end
   object Label7: TLabel
     Left = 246
-    Height = 17
+    Height = 16
     Top = 128
-    Width = 42
+    Width = 41
     Caption = 'Label7'
     ParentColor = False
   end
   object Label8: TLabel
     Left = 246
-    Height = 17
+    Height = 16
     Top = 148
-    Width = 42
+    Width = 41
     Caption = 'Label8'
     ParentColor = False
   end
   object Label9: TLabel
     Left = 10
-    Height = 17
+    Height = 16
     Top = 187
-    Width = 42
+    Width = 41
     Caption = 'Label9'
     ParentColor = False
   end
@@ -142,7 +142,7 @@ object Form1: TForm1
   object Button7: TButton
     Left = 10
     Height = 21
-    Top = 89
+    Top = 88
     Width = 100
     Caption = 'With Thread'
     OnClick = Button7Click
@@ -174,5 +174,19 @@ object Form1: TForm1
     Caption = 'Button10'
     OnClick = Button10Click
     TabOrder = 9
+  end
+  object Button11: TButton
+    Left = 112
+    Height = 21
+    Top = 89
+    Width = 100
+    Caption = 'Like a mofo'
+    OnClick = Button11Click
+    TabOrder = 10
+  end
+  object Timer1: TTimer
+    OnTimer = Timer1Timer
+    left = 184
+    top = 128
   end
 end
