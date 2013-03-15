@@ -81,6 +81,7 @@ type
     procedure AddDebugEventString;
   public
     isHandled: boolean; //set to true if this thread is the current debug target
+    needstocleanup: boolean;
     ProcessId: dword;
     ThreadId:  dword;
     handle: THandle;
@@ -611,7 +612,6 @@ begin
     begin
       OutputDebugString('bp was disabled or Condition was not met');
 
-
       continueFromBreakpoint(bpp, co_run);
       dwContinueStatus:=DBG_CONTINUE;
       Result:=true;
@@ -942,6 +942,9 @@ begin
 
       //find out what caused the breakpoint.
       //inspect DR6
+      //Problem: if the last breakpoint was unset dr7 is 0. Meaning that DR6 will read out 0 as well...
+      //Solution: DeleteBreakpoint must NOT call unsetBreakpoint. Only call it from the breakpoint handler and the breakpoint cleanup
+
       if (context.Dr6 and 1) = 1 then
         Result := DispatchBreakpoint(context.dr0, dwContinueStatus)
       else
@@ -1271,7 +1274,17 @@ begin
   end;
 
   if currentthread<>nil then //if it wasn't a thread destruction tell this thread it isn't being handled anymore
+  begin
     currentthread.isHandled:=false;
+    //if this was a thread that caused a breakpoint unset problem last time call the breakpoint cleanup routine now
+    if currentthread.needstocleanup then
+    begin
+      currentthread.needstocleanup:=false;
+      TDebuggerthread(debuggerthread).cleanupDeletedBreakpoints(false);
+    end;
+  end;
+
+
 
   OutputDebugString('Returned from HandleDebugEvent');
 
