@@ -420,7 +420,7 @@ begin
     bp:=nil;
 
 
-  isbp:=(bp<>nil) and (bp.breakpointTrigger=bptExecute);
+  isbp:=(bp<>nil) and (bp.breakpointTrigger=bptExecute) and (bp.active) and (bp.markedfordeletion=false);
   
   if selected then
   begin

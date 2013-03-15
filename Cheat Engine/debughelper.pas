@@ -38,7 +38,10 @@ type
     globalDebug: boolean; //kernelmode debugger only
 
     fRunning: boolean;
-    procedure cleanupDeletedBreakpoints;
+
+    ResumeProcessWhenIdleCounter: dword; //suspend counter to tell the cleanup handler to resume the process
+
+
     function getDebugThreadHanderFromThreadID(tid: dword): TDebugThreadHandler;
 
     procedure GetBreakpointList(address: uint_ptr; size: integer; var bplist: TBreakpointSplitArray);
@@ -60,6 +63,8 @@ type
   public
     InitialBreakpointTriggered: boolean; //set by a debugthread when the first unknown exception is dealth with causing all subsequent unexpected breakpoitns to become unhandled
     temporaryDisabledExceptionBreakpoints: Tlist;
+
+    procedure cleanupDeletedBreakpoints(Idle: boolean=true);
 
     function SetBreakpoint(breakpoint: PBreakpoint; UpdateForOneThread: TDebugThreadHandler=nil): boolean;
     procedure UnsetBreakpoint(breakpoint: PBreakpoint; specificContext: PContext=nil);
@@ -263,6 +268,7 @@ begin
           }
           //remove the breakpoints that have been unset and are marked for deletion
           cleanupDeletedBreakpoints;
+
         end;
       end;
 
@@ -308,24 +314,29 @@ begin
 
 end;
 
-procedure TDebuggerThread.cleanupDeletedBreakpoints;
+procedure TDebuggerThread.cleanupDeletedBreakpoints(Idle: boolean=true);
 {
 remove the breakpoints that have been unset and are marked for deletion
 that can be done safely since this routine is only called when no debug event has
 happened, and the breakpoints have already been disabled
+
+idle can be false if called from a thread that needed to clear it's breakpoint from an deleted breakpoint
 }
 var
   i: integer;
   bp: PBreakpoint;
   deleted: boolean;
+  updated: boolean;
 begin
-  deleted:=false;
-  i:=0;
 
+  i:=0;
+  updated:=false;
   breakpointCS.enter;
   try
-    while i < Breakpointlist.Count do
+    while i<Breakpointlist.Count do
     begin
+      deleted:=false;
+
       bp:=PBreakpoint(breakpointlist[i]);
       if bp.markedfordeletion then
       begin
@@ -347,26 +358,29 @@ begin
               freemem(bp);
 
               deleted:=true;
-            end else dec(bp.deletecountdown);
+              updated:=true;
+            end else if idle then dec(bp.deletecountdown);
           end
           else
           begin
-            //Some douche forgot to disable it first, waste of processing cycle
+            //Some douche forgot to disable it first, waste of processing cycle  (or windows 7+ default windows debugger)
             UnsetBreakpoint(bp);
+
             bp.deletecountdown:=10;
 
-            Inc(i);
+
           end;
         end;
-      end
-      else
-        Inc(i);
+      end;
+
+      if not deleted then inc(i);
+
     end;
   finally
     breakpointCS.leave;
   end;
 
-  if deleted and (frmBreakpointlist<>nil) then
+  if idle and updated and (frmBreakpointlist<>nil) then
     postmessage(frmBreakpointlist.handle, WM_BPUPDATE,0,0); //tell the breakpointlist that there's been an update
 end;
 
@@ -745,7 +759,10 @@ var
   hasoldbp: boolean;
 
   ar: TAccessRights;
+  activestatewhendone: boolean;
 begin
+  activestatewhendone:=false; //by default the active state will be false
+
   if breakpoint^.breakpointMethod = bpmDebugRegister then
   begin
     //debug registers
@@ -782,6 +799,20 @@ begin
         currentthread.suspend;
         currentthread.fillContext;
 
+        if CurrentDebuggerInterface is TWindowsDebuggerInterface then
+        begin
+          if (currentthread.context.Dr6<>0) and (currentthread.context.dr6<>$ffff0ff0) then
+          begin
+            //the breakpoint in this thread can not be deactivated yet. Leave it activated
+            //(touching the DR registers with setthreadcontext clears DR6 in win7 )
+            ntSuspendProcess(processhandle);
+            inc(ResumeProcessWhenIdleCounter);
+            currentthread.resume;
+            currentthread.needstocleanup:=true;
+            exit;
+          end;
+        end;
+
         //check if this breakpoint was set in this thread
         if (BPOverride) or ((currentthread.DebugRegistersUsedByCE and (1 shl breakpoint.debugregister))>0) then
         begin
@@ -808,6 +839,21 @@ begin
             currentthread := threadlist.items[i];
             currentthread.suspend;
             currentthread.fillContext;
+
+            if CurrentDebuggerInterface is TWindowsDebuggerInterface then
+            begin
+              if (currentthread.context.Dr6<>0) and (currentthread.context.dr6<>$ffff0ff0) then
+              begin
+                //the breakpoint in this thread can not be deactivated yet. Leave it activated
+                //(touching the DR registers with setthreadcontext clears DR6 in win7 )
+                activestatewhendone:=true;
+                currentthread.resume;
+                currentthread.needstocleanup:=true;
+                continue;
+
+              end;
+            end;
+
 
             hasoldbp:=false; //now check if this thread actually has the breakpoint set (and not replaced or never even set)
 
@@ -892,7 +938,7 @@ begin
 
   end;
 
-  breakpoint^.active := False;
+  breakpoint^.active := activestatewhendone;
 end;
 
 procedure TDebuggerThread.RemoveBreakpoint(breakpoint: PBreakpoint);
@@ -909,6 +955,7 @@ begin
       breakpoint := breakpoint.owner;
 
 
+
     //clean up all it's children
     for j:=0 to breakpointlist.Count-1 do
     begin
@@ -918,13 +965,20 @@ begin
         UnsetBreakpoint(bp);
         bp.deletecountdown:=10; //10*100=1000=1 second
         bp.markedfordeletion := True; //set this flag so it gets deleted on next no-event
+
       end
     end;
 
     //and finally itself
-    UnsetBreakpoint(breakpoint);
-    breakpoint.markedfordeletion := True;
     //set this flag so it gets deleted on next no-event
+    UnsetBreakpoint(breakpoint);
+
+
+    breakpoint.deletecountdown:=10;
+    breakpoint.markedfordeletion := True;
+
+
+
 
     OutputDebugString('Disabled the breakpoint');
   finally
