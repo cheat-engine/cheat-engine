@@ -13,10 +13,10 @@ object frmChangedAddresses: TfrmChangedAddresses
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.1'
   object lblInfo: TLabel
     Left = 0
-    Height = 33
+    Height = 32
     Top = 0
     Width = 381
     Align = alTop
@@ -66,8 +66,8 @@ object frmChangedAddresses: TfrmChangedAddresses
   end
   object Changedlist: TListView
     Left = 0
-    Height = 214
-    Top = 33
+    Height = 215
+    Top = 32
     Width = 381
     Align = alClient
     Columns = <    
@@ -117,6 +117,11 @@ object frmChangedAddresses: TfrmChangedAddresses
       GroupIndex = 1
       ShortCut = 16456
       OnClick = micbShowAsHexadecimalClick
+    end
+    object MenuItem1: TMenuItem
+      Caption = 'Copy address to clipboard'
+      ShortCut = 16451
+      OnClick = MenuItem1Click
     end
   end
 end
