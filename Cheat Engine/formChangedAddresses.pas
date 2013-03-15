@@ -7,7 +7,7 @@ interface
 uses
   windows, LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls,CEFuncProc, ExtCtrls, ComCtrls, Menus, NewKernelHandler, LResources,
-  disassembler, symbolhandler, byteinterpreter, CustomTypeHandler, maps, math;
+  disassembler, symbolhandler, byteinterpreter, CustomTypeHandler, maps, math, Clipbrd;
 
 type
   TAddressEntry=class
@@ -29,6 +29,7 @@ type
 
   TfrmChangedAddresses = class(TForm)
     lblInfo: TLabel;
+    MenuItem1: TMenuItem;
     micbShowAsHexadecimal: TMenuItem;
     Panel1: TPanel;
     OKButton: TButton;
@@ -41,6 +42,7 @@ type
     procedure ChangedlistColumnClick(Sender: TObject; Column: TListColumn);
     procedure ChangedlistCompare(Sender: TObject; Item1, Item2: TListItem;
       Data: Integer; var Compare: Integer);
+    procedure MenuItem1Click(Sender: TObject);
     procedure micbShowAsHexadecimalClick(Sender: TObject);
     procedure OKButtonClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -256,6 +258,12 @@ begin
       compare:=CompareValue(i1.count, i2.count);
     end;
   end;
+end;
+
+procedure TfrmChangedAddresses.MenuItem1Click(Sender: TObject);
+begin
+  if changedlist.Selected<>nil then
+    clipboard.AsText:=changedlist.Selected.Caption;
 end;
 
 procedure TfrmChangedAddresses.FormClose(Sender: TObject;
