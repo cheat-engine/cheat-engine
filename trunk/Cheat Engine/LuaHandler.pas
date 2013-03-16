@@ -2052,11 +2052,10 @@ begin
 
       if startdebuggerifneeded(false) then
       begin
-        //debuggerthread.
         case trigger of
-         { bptAccess: debuggerthread.SetOnAccessBreakpoint(address, size, method);  }
+          bptAccess: debuggerthread.SetOnAccessBreakpoint(address, size, method);
           bptWrite: debuggerthread.SetOnWriteBreakpoint(address, size, method);
-         // bptExecute: debuggerthread.SetOnExecuteBreakpoint(address, method);
+          bptExecute: debuggerthread.SetOnExecuteBreakpoint(address, method);
         end;
 
         MemoryBrowser.hexview.update;
