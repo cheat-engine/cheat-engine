@@ -340,6 +340,9 @@ begin
       if pi.PropType.Name ='TMouseMoveEvent' then
         m:=tmethod(TMouseMoveEvent(lc.MouseMoveEvent))
       else
+      if pi.PropType.Name ='TMouseWheelUpDownEvent' then
+        m:=tmethod(TMouseWheelUpDownEvent(lc.MouseWheelUpDownEvent))
+      else
       if pi.PropType.Name ='TKeyPressEvent' then
         m:=tmethod(TKeyPressEvent(lc.KeyPressEvent))
       else
