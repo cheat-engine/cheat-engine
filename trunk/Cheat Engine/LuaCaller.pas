@@ -26,6 +26,7 @@ type
       procedure SelectionChangeEvent(Sender: TObject; User: boolean);
       procedure MouseEvent(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
       procedure MouseMoveEvent(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+      procedure MouseWheelUpDownEvent(Sender: TObject; Shift: TShiftState; MousePos: TPoint; var h: Boolean);
       procedure KeyPressEvent(Sender: TObject; var Key: char);
       procedure LVCheckedItemEvent(Sender: TObject; Item: TListItem); //personal request to have this one added
       procedure CloseEvent(Sender: TObject; var CloseAction: TCloseAction);
@@ -55,6 +56,7 @@ function LuaCaller_SelectionChangeEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_CloseEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_MouseEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_MouseMoveEvent(L: PLua_state): integer; cdecl;
+function LuaCaller_MouseWheelUpDownEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_KeyPressEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_LVCheckedItemEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_MemoryRecordActivateEvent(L: PLua_state): integer; cdecl;
@@ -514,6 +516,24 @@ begin
   end;
 end;
 
+procedure TLuaCaller.MouseWheelUpDownEvent(Sender: TObject; Shift: TShiftState; MousePos: TPoint; var h: Boolean);
+var oldstack: integer;
+begin
+  Luacs.enter;
+  try
+    oldstack:=lua_gettop(Luavm);
+    pushFunction;
+    luaclass_newClass(luavm, sender);
+    lua_pushinteger(luavm, MousePos.x);
+    lua_pushinteger(luavm, MousePos.y);
+
+    lua_pcall(LuaVM, 3, 0, 0);
+  finally
+    lua_settop(Luavm, oldstack);
+    luacs.leave;
+  end;
+end;
+
 procedure TLuaCaller.MouseMoveEvent(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 var oldstack: integer;
 begin
@@ -724,6 +744,30 @@ begin
     lua_pop(L, lua_gettop(L));
 
     TMouseMoveEvent(m)(sender, [],x,y);
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
+
+function LuaCaller_MouseWheelUpDownEvent(L: PLua_state): integer; cdecl;
+var
+  parameters: integer;
+  m: TMethod;
+  sender: TObject;
+  p: TPoint;
+  b: Boolean;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=3 then
+  begin
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    sender:=lua_toceuserdata(L, 1);
+    p.x:=lua_tointeger(L, 2);
+    p.y:=lua_tointeger(L, 3);
+    lua_pop(L, lua_gettop(L));
+    TMouseWheelUpDownEvent(m)(sender, [], p, b);
   end
   else
     lua_pop(L, lua_gettop(L));
@@ -989,7 +1033,8 @@ initialization
   registerLuaCall('TCloseEvent', LuaCaller_CloseEvent, pointer(TLuaCaller.CloseEvent),'function %s(sender)'#13#10#13#10'return caHide --Possible options: caHide, caFree, caMinimize, caNone'#13#10'end'#13#10);
   registerLuaCall('TMouseEvent', LuaCaller_MouseEvent, pointer(TLuaCaller.MouseEvent),'function %s(sender, button, x, y)'#13#10#13#10'end'#13#10);
   registerLuaCall('TMouseMoveEvent', LuaCaller_MouseMoveEvent, pointer(TLuaCaller.MouseMoveEvent),'function %s(sender, x, y)'#13#10#13#10'end'#13#10);
-  registerLuaCall('TKeyPressEvent', LuaCaller_KeyPressEvent, pointer(TLuaCaller.KeyPressEvent),'function %s(sender, key)'#13#10#13#10'  return key'#1310'end'#13#10);
+  registerLuaCall('TMouseWheelUpDownEvent', LuaCaller_MouseWheelUpDownEvent, pointer(TLuaCaller.MouseWheelUpDownEvent),'function %s(sender, x, y)'#13#10#13#10'end'#13#10);
+  registerLuaCall('TKeyPressEvent', LuaCaller_KeyPressEvent, pointer(TLuaCaller.KeyPressEvent),'function %s(sender, key)'#13#10#13#10'  return key'#13#10'end'#13#10);
   registerLuaCall('TLVCheckedItemEvent', LuaCaller_LVCheckedItemEvent, pointer(TLuaCaller.LVCheckedItemEvent),'function %s(sender, listitem)'#13#10#13#10'end'#13#10);
   registerLuaCall('TMemoryRecordActivateEvent', LuaCaller_MemoryRecordActivateEvent, pointer(TLuaCaller.MemoryRecordActivateEvent),'function %s(sender, before, current)'#13#10#13#10'end'#13#10);
 

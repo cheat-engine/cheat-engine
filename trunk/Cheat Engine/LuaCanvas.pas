@@ -8,7 +8,7 @@ This unit will be used to register TCanvas class methods to lua
 interface
 
 uses
-  Classes, SysUtils, Graphics,lua, lualib, lauxlib, LuaHandler, fpcanvas;
+  Classes, SysUtils, Graphics,lua, lualib, lauxlib, LuaHandler, fpcanvas, LCLType, LCLIntf;
 
 procedure initializeLuaCanvas;
 
@@ -283,6 +283,56 @@ begin
   end;
 end;
 
+procedure drawWithMask(DestCanvas:TCanvas; Dx,Dy,Dw,Dh:integer; graph:TRasterImage; Sx,Sy,Sw,Sh:integer);
+var
+  UseMaskHandle: HBitmap;
+  SrcDC: hDC;
+  DestDC: hDC;
+begin
+  if (graph.Width=0) or (graph.Height=0)
+  then Exit;
+
+  if graph.Masked then
+    UseMaskHandle:=graph.MaskHandle
+  else
+    UseMaskHandle:=0;
+
+  SrcDC := graph.Canvas.GetUpdatedHandle([csHandleValid]);
+  DestCanvas.Changing;
+  DestDC := DestCanvas.GetUpdatedHandle([csHandleValid]);
+  StretchMaskBlt(DestDC, Dx,Dy,Dw,Dh,
+                 SrcDC , Sx,Sy,Sw,Sh, UseMaskHandle,Sx,Sy,DestCanvas.CopyMode);
+  DestCanvas.Changed;
+end;
+
+function canvas_drawWithMask(L: PLua_State): integer; cdecl;
+var
+  graphic: TGraphic;
+  d_canvas: TCanvas;
+  d_x1,d_y1: integer;
+  d_x2,d_y2: integer;
+  s_x1,s_y1: integer;
+  s_x2,s_y2: integer;
+begin
+  result:=0;
+  d_canvas:=luaclass_getClassObject(L);
+
+  if lua_gettop(L)>=9 then
+  begin
+    d_x1:=lua_tointeger(L,-9);
+    d_y1:=lua_tointeger(L,-8);
+    d_x2:=lua_tointeger(L,-7);
+    d_y2:=lua_tointeger(L,-6);
+
+    graphic:=lua_toceuserdata(L,-5);
+    s_x1:=lua_tointeger(L,-4);
+    s_y1:=lua_tointeger(L,-3);
+    s_x2:=lua_tointeger(L,-2);
+    s_y2:=lua_tointeger(L,-1);
+    drawWithMask(d_canvas, d_x1, d_y1, d_x2-d_x1, d_y2-d_y1, TRasterImage(graphic), s_x1, s_y1, s_x2-s_x1,s_y2-s_y1);
+  end;
+end;
+
 function canvas_copyRect(L: PLua_State): integer; cdecl;
 var
   s_canvas: TCanvas;
@@ -391,6 +441,7 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'gradientFill', canvas_gradientFill);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'copyRect', canvas_copyRect);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'draw', canvas_draw);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'drawWithMask', canvas_drawWithMask);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getPenPosition', canvas_getPenPosition);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setPenPosition', canvas_setPenPosition);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getClipRect', canvas_getClipRect);
