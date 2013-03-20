@@ -160,6 +160,7 @@ type
     foundlist3: record
       ItemIndex: integer;
     end;
+    foundlistDisplayOverride: integer;
 
   end;
   PScanState = ^TScanState;
@@ -214,6 +215,14 @@ type
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
+    miDisplayDefault: TMenuItem;
+    miDisplayByte: TMenuItem;
+    miDisplay2Byte: TMenuItem;
+    miDisplay4Byte: TMenuItem;
+    miDisplayFloat: TMenuItem;
+    miDisplayDouble: TMenuItem;
+    miDisplay8Byte: TMenuItem;
+    MenuItem19: TMenuItem;
     miShowPreviousValue: TMenuItem;
     MenuItem4: TMenuItem;
     miShowCustomTypeDebug: TMenuItem;
@@ -428,6 +437,7 @@ type
     procedure Label57Click(Sender: TObject);
     procedure lblcompareToSavedScanClick(Sender: TObject);
     procedure mi3dClick(Sender: TObject);
+    procedure miChangeDisplayTypeClick(Sender: TObject);
     procedure miOpenFileClick(Sender: TObject);
     procedure miShowAsSignedClick(Sender: TObject);
     procedure miShowCustomTypeDebugClick(Sender: TObject);
@@ -623,6 +633,7 @@ type
     reinterpretcheck: integer;
 
     ffoundcount: int64;
+    foundlistDisplayOverride: integer; //a number specifying what type to display (0=default)
 
     SaveFirstScanThread: TSaveFirstScanThread;
 
@@ -2921,6 +2932,13 @@ begin
 
 end;
 
+procedure TMainForm.miChangeDisplayTypeClick(Sender: TObject);
+begin
+  //set the display type to override the default with
+  foundlistDisplayOverride:=TMenuItem(sender).Tag;
+  foundlist3.Refresh;
+end;
+
 procedure TMainForm.miOpenFileClick(Sender: TObject);
 var
   oldprocess: Dword;
@@ -3913,6 +3931,8 @@ begin
   scanstate.button2.tag := button2.tag;
   scanstate.foundlist3.ItemIndex := foundlist3.ItemIndex;
 
+  scanstate.foundlistDisplayOverride:=foundlistDisplayOverride;
+
 
 {
   if foundlist3.TopItem<>nil then
@@ -3960,6 +3980,8 @@ begin
   begin
     //load
     mainform.BeginFormUpdate;
+
+    foundlistDisplayOverride:=0;
 
     scantype.OnChange := nil;
     vartype.onchange := nil;
@@ -4104,6 +4126,8 @@ begin
       foundlist3.Items[newstate.foundlist3.ItemIndex].MakeVisible(False);
       foundlist3.Items[newstate.foundlist3.ItemIndex].Top := 0;
     end;
+
+    foundlistDisplayOverride:=newstate.foundlistDisplayOverride;
     //    foundlist3.TopItem:=foundlist3.items[newstate.foundlist.itemindex];
   end;
   //else leave empty
@@ -5951,6 +5975,9 @@ begin
 end;
 
 procedure TMainForm.foundlistpopupPopup(Sender: TObject);
+var bytesize: integer;
+  i, last: integer;
+  mi: TMenuItem;
 begin
 
   Browsethismemoryregioninthedisassembler1.Enabled := Foundlist3.SelCount >= 1;
@@ -5989,6 +6016,47 @@ begin
 
   miChangeValue.enabled:=Browsethismemoryarrea1.enabled;
   miAddAddress.enabled:=Browsethismemoryarrea1.enabled;
+
+  //updatwe the display override
+  if memscan<>nil then
+    bytesize:=memscan.Getbinarysize div 8;
+
+  MenuItem19.visible:=(foundlist3.Items.Count>0) and (memscan<>nil);
+
+  miDisplayDefault.visible:=(foundlist3.Items.Count>0) and (memscan<>nil);
+
+  miDisplayByte.visible:=(foundlist3.Items.Count>0) and (memscan<>nil) and (bytesize>=1);
+  miDisplay2Byte.visible:=(foundlist3.Items.Count>0) and (memscan<>nil) and (bytesize>=2);
+  miDisplay4Byte.visible:=(foundlist3.Items.Count>0) and (memscan<>nil) and (bytesize>=4);
+  miDisplay8Byte.visible:=(foundlist3.Items.Count>0) and (memscan<>nil) and (bytesize>=8);
+  miDisplayFloat.visible:=(foundlist3.Items.Count>0) and (memscan<>nil) and (bytesize>=4);
+  miDisplayDouble.visible:=(foundlist3.Items.Count>0) and (memscan<>nil) and (bytesize>=8);
+
+
+
+  if (foundlist3.Items.Count>0) and (memscan<>nil) then
+  begin
+    //populate the list with custom types
+    last:=foundlistpopup.Items.IndexOf(miDisplayDouble)+1;
+    //first delete the current list (new one could have been added)
+
+    while foundlistpopup.Items.Count>last do
+      foundlistpopup.Items.Delete(last);
+
+    for i:=0 to customTypes.Count-1 do
+    begin
+      if TCustomType(customTypes[i]).bytesize<=bytesize then
+      begin
+        mi:=TMenuItem.Create(foundlistpopup);
+        mi.Caption:=TCustomType(customTypes[i]).name;
+        mi.RadioItem:=miDisplayDouble.RadioItem;
+        mi.AutoCheck:=miDisplayDouble.AutoCheck;
+        mi.OnClick:=miChangeDisplayTypeClick;
+        mi.tag:=1000+i;
+        foundlistpopup.Items.Add(mi);
+      end;
+    end;
+  end;
 end;
 
 procedure TMainForm.Removeselectedaddresses1Click(Sender: TObject);
@@ -7335,6 +7403,34 @@ begin
     address := foundlist.GetAddress(item.Index, extra, Value);
     AddressString:=IntToHex(address,8);
     Value := AnsiToUtf8(Value);
+
+    if foundlistDisplayOverride<>0 then
+    begin
+      case foundlistDisplayOverride of
+        1: valuetype:=vtByte;
+        2: valuetype:=vtWord;
+        3: valuetype:=vtDword;
+        4: valuetype:=vtQword;
+        5: valuetype:=vtSingle;
+        6: valuetype:=vtDouble;
+      end;
+
+      if foundlistDisplayOverride>=1000 then
+      begin
+        if (foundlistDisplayOverride-1000)<customTypes.count then
+        begin
+
+          if TCustomType(customTypes[foundlistDisplayOverride-1000]).bytesize<=memscan.Getbinarysize then
+          begin
+            valuetype:=vtCustom;
+            ct:=TCustomType(customTypes[foundlistDisplayOverride-1000]);
+          end;
+        end;
+      end;
+
+      value:=readAndParseAddress(address, valuetype, ct);
+    end;
+
 
     PreviousValue:='';
 
