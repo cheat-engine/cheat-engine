@@ -1671,6 +1671,65 @@ object MainForm: TMainForm
       Checked = True
       OnClick = miShowPreviousValueClick
     end
+    object MenuItem19: TMenuItem
+      Caption = '-'
+    end
+    object miDisplayDefault: TMenuItem
+      AutoCheck = True
+      Caption = 'Default'
+      Checked = True
+      GroupIndex = 1
+      RadioItem = True
+      OnClick = miChangeDisplayTypeClick
+    end
+    object miDisplayByte: TMenuItem
+      Tag = 1
+      AutoCheck = True
+      Caption = 'Byte'
+      GroupIndex = 1
+      RadioItem = True
+      OnClick = miChangeDisplayTypeClick
+    end
+    object miDisplay2Byte: TMenuItem
+      Tag = 2
+      AutoCheck = True
+      Caption = '2 Bytes'
+      GroupIndex = 1
+      RadioItem = True
+      OnClick = miChangeDisplayTypeClick
+    end
+    object miDisplay4Byte: TMenuItem
+      Tag = 3
+      AutoCheck = True
+      Caption = '4 Bytes'
+      GroupIndex = 1
+      RadioItem = True
+      OnClick = miChangeDisplayTypeClick
+    end
+    object miDisplay8Byte: TMenuItem
+      Tag = 4
+      AutoCheck = True
+      Caption = '8 Bytes'
+      GroupIndex = 1
+      RadioItem = True
+      OnClick = miChangeDisplayTypeClick
+    end
+    object miDisplayFloat: TMenuItem
+      Tag = 5
+      AutoCheck = True
+      Caption = 'Float'
+      GroupIndex = 1
+      RadioItem = True
+      OnClick = miChangeDisplayTypeClick
+    end
+    object miDisplayDouble: TMenuItem
+      Tag = 6
+      AutoCheck = True
+      Caption = 'Double'
+      GroupIndex = 1
+      RadioItem = True
+      OnClick = miChangeDisplayTypeClick
+    end
   end
   object OpenDialog1: TOpenDialog
     DefaultExt = '.CT'
