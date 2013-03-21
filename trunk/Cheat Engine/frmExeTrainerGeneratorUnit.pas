@@ -71,6 +71,7 @@ type
     _archive: TMemoryStream;
 
     updatehandle: thandle;
+    filecount: integer;
     procedure addFile(filename: string; folder: string='');
   public
     { public declarations }
@@ -166,6 +167,7 @@ begin
       btnGenerateTrainer.caption:=rsSaving+rot;
       application.ProcessMessages;
     end;
+    inc(filecount);
   finally
     f.free;
     btnGenerateTrainer.caption:=rsGenerate;
@@ -189,6 +191,7 @@ var DECOMPRESSOR: TMemorystream;
   tiny: boolean;
 
   basefile: string;
+
 begin
 
   tiny:=cbTiny.Checked;
@@ -240,6 +243,9 @@ begin
         if not tiny then
         begin
           //all files go into a compressed archive
+
+          filecount:=0;
+          _archive.WriteBuffer(filecount, sizeof(filecount)); //allocate space for the filecount  (omg trainers will be thirtytwo bits longer!)
 
           case comboCompression.itemindex of
             0: compression:=clnone;
@@ -297,12 +303,17 @@ begin
           if cbXMPlayer.checked then
             addfile(cheatenginedir+'xmplayer.exe');
 
-
           archive.free;
+
+          pinteger(_archive.Memory)^:=filecount;  //fill in the count (uncompressed)
+
+
         end
         else
           _archive.LoadFromFile(CETRAINER); //tiny version has the .cetrainer only
 
+
+        {_Archive.SaveToFile('c:\bla.dat');}
 
         if not UpdateResourceA(updatehandle, RT_RCDATA, 'ARCHIVE', 0, _archive.memory, _archive.size) then
           raise exception.create(rsFailureOnWriting+' ARCHIVE:'+inttostr(

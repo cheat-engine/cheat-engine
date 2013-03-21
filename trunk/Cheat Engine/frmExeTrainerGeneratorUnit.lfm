@@ -13,7 +13,7 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.1'
   object Panel1: TPanel
     Left = 0
     Height = 220
@@ -124,9 +124,9 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
     end
     object Label1: TLabel
       Left = 160
-      Height = 16
+      Height = 15
       Top = 187
-      Width = 71
+      Width = 70
       Caption = 'Compression'
       ParentColor = False
     end

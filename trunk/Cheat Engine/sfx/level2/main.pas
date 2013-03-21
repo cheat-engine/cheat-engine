@@ -55,6 +55,7 @@ var launchdir: string;
   temp: pchar;
   outfile: Tfilestream;
 
+
   filelist: TStringList;
 
   ceexe: string;
@@ -66,9 +67,15 @@ var launchdir: string;
 
   secondaryparams: string;
   i: integer;
+
+  filenumber: integer;
+  filecount: integer;
 begin
   selfpath:=ExtractFilePath(GetModuleName(0));
   size:=0;
+  filecount:=0;
+  filenumber:=0;
+
   launchdir:=selfpath+'extracted\';
   CreateDir(launchdir);
   archivename:=selfpath+'CET_Archive.dat';
@@ -89,16 +96,15 @@ begin
 
     end;
 
-    //MessageBox(0, pchar(secondaryparams),pchar('bla'), MB_OK);
-
-
-
     s:=TFileStream.Create(archivename, fmOpenRead);
+    s.ReadBuffer(filecount, sizeof(filecount));
+
     z:=Tdecompressionstream.create(s, true);
 
-    while z.read(size, sizeof(size))>0 do //still has a file
+    while filenumber<filecount do //still has a file
     begin
       //get the filename
+      z.read(size, sizeof(size));
       getmem(temp, size+1);
       z.read(temp^, size);
       temp[size]:=#0;
@@ -140,6 +146,8 @@ begin
 
       outfile.CopyFrom(z, size);
       outfile.free;
+
+      inc(filenumber);
     end;
 
     z.free;
