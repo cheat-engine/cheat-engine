@@ -98,6 +98,7 @@ type TSavedScanHandler = class
     end;
 
     currentRegion: integer;
+    Deinitialized: boolean; //if set do not lookup pointers
     procedure cleanup;
     function loadIfNotLoadedRegion(p: pointer): pointer;
 
@@ -109,6 +110,10 @@ type TSavedScanHandler = class
     AllowRandomAccess: boolean; //set this if you wish to allow random access through the list. (EXTREMELY INEFFICIENT IF IT HAPPENS, addresslist purposes only)
     AllowNotFound: boolean; //set this if you wish to return nil instead of an exception if the address can't be found in the list
     function getpointertoaddress(address:ptruint;valuetype:TVariableType; ct: TCustomType; recallifneeded: boolean=true): pointer;
+
+    procedure deinitialize;
+    procedure reinitialize;
+
 
     constructor create(scandir: string; savedresultsname: string);
     destructor destroy; override;
@@ -275,6 +280,9 @@ var i,j: integer;
     pivot: integer;
 begin
   result:=nil;
+
+  if Deinitialized then exit;
+
   if AllowRandomAccess then //no optimization if random access is used
   begin
     LastAddressAccessed.address:=0;
@@ -523,6 +531,8 @@ begin
 end;
 
 
+
+
 procedure TSavedScanHandler.InitializeScanHandler;
 var datatype: string[6];
     pm: ^TArrMemoryRegion;
@@ -627,6 +637,18 @@ begin
 
   freeandnil(SavedScanaddressFS);
   freeandnil(SavedScanmemoryFS);
+end;
+
+procedure TSavedScanHandler.deinitialize;
+begin
+  cleanup;
+  Deinitialized:=true;
+end;
+
+procedure TSavedScanHandler.reinitialize;
+begin
+  InitializeScanHandler;
+  deinitialized:=false;
 end;
 
 end.
