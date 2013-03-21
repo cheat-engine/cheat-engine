@@ -3959,8 +3959,8 @@ begin
                       end;
 
                 $95 : begin
-                        description:='set byte if not carry(not equal)';
-                        lastdisassembledata.opcode:='setnc';
+                        description:='set byte if not equal';
+                        lastdisassembledata.opcode:='setne';
                         lastdisassembledata.parameters:=modrm(memory,prefix2,2,2,last);
 
                         inc(offset,last-1);
