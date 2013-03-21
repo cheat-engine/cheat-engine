@@ -6072,6 +6072,9 @@ begin
     FreeAndNil(SaveFirstScanThread);
   end;
 
+  if PreviousResults<>nil then
+    PreviousResults.deinitialize;
+
   if foundlist3.selcount = 1 then //use itemindex (faster)
   begin
     foundlist.deleteaddress(foundlist3.ItemIndex);
@@ -6111,6 +6114,10 @@ begin
   end;
 
   foundlist.Reinitialize;
+
+  if PreviousResults<>nil then
+    PreviousResults.reinitialize;
+
 end;
 
 

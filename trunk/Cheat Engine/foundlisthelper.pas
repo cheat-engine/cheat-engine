@@ -28,7 +28,7 @@ type
 
   TFoundList=class
   private
-    memscan: TMemscan;
+    fmemscan: TMemscan;
     foundlist: TListView;
     //foundcountlabel: tlabel;
 
@@ -89,6 +89,7 @@ type
     constructor create(foundlist: tlistview; memscan: TMemScan; listname: string='');
     destructor destroy; override;
   published
+    property memscan: TMemScan read fmemscan;
     property vartype: TVariableType read fvartype;
     property CustomType: TCustomType read fcustomType;
     property isHexadecimal: boolean read hexadecimal;
@@ -203,9 +204,9 @@ begin
   if addressfile=nil then exit;
 
   try
-    memoryfile:=tfilestream.Create(memscan.ScanresultFolder+'Memory.'+fListName,fmOpenRead or fmShareDenyNone);
-    outaddress:=tfilestream.Create(memscan.ScanresultFolder+'Addresses.NEW',fmCreate or fmShareDenyNone);
-    outmemory:=tfilestream.Create(memscan.ScanresultFolder+'Memory.NEW',fmCreate or fmShareDenyNone);
+    memoryfile:=tfilestream.Create(fmemscan.ScanresultFolder+'Memory.'+fListName,fmOpenRead or fmShareDenyNone);
+    outaddress:=tfilestream.Create(fmemscan.ScanresultFolder+'Addresses.NEW',fmCreate or fmShareDenyNone);
+    outmemory:=tfilestream.Create(fmemscan.ScanresultFolder+'Memory.NEW',fmCreate or fmShareDenyNone);
   except
     exit;
   end;
@@ -267,10 +268,10 @@ begin
   //still here, not crashed, so out with the old, in with the new...
   deinitialize;
 
-  deletefile(memscan.ScanresultFolder+'Memory.'+fListName);
-  deletefile(memscan.ScanresultFolder+'Addresses.'+fListName);
-  renamefile(memscan.ScanresultFolder+'Memory.NEW',memscan.ScanresultFolder+'Memory.'+fListName);
-  renamefile(memscan.ScanresultFolder+'Addresses.NEW',memscan.ScanresultFolder+'Addresses.'+fListName);
+  deletefile(fmemscan.ScanresultFolder+'Memory.'+fListName);
+  deletefile(fmemscan.ScanresultFolder+'Addresses.'+fListName);
+  renamefile(fmemscan.ScanresultFolder+'Memory.NEW',memscan.ScanresultFolder+'Memory.'+fListName);
+  renamefile(fmemscan.ScanresultFolder+'Addresses.NEW',memscan.ScanresultFolder+'Addresses.'+fListName);
 
   Reinitialize;
 end;
@@ -688,10 +689,10 @@ begin
 
 
 
-  if fileexists(memscan.ScanresultFolder+'Addresses.'+fListName) then
+  if fileexists(fmemscan.ScanresultFolder+'Addresses.'+fListName) then
   begin
     try
-      self.addressfile:=tfilestream.Create(memscan.ScanresultFolder+'Addresses.'+fListName,fmOpenRead or fmShareDenyNone);
+      self.addressfile:=tfilestream.Create(fmemscan.ScanresultFolder+'Addresses.'+fListName,fmOpenRead or fmShareDenyNone);
     except
       foundlist.Items.Count:=0;
       scantype:=fs_advanced;
@@ -723,7 +724,7 @@ begin
         else
         if vartype=vtGrouped then
         begin //group
-          gcp:=TGroupscanCommandParser.Create(memscan.LastScanValue);
+          gcp:=TGroupscanCommandParser.Create(fmemscan.LastScanValue);
 
           groupElementSize:=sizeof(ptruint)+sizeof(dword)*length(gcp.elements);
 
@@ -772,7 +773,7 @@ begin
 
   fCount:=result;
 
-  if memscan<>nil then
+  if fmemscan<>nil then
   begin
     //guess the default display types
     //can later be overriden
@@ -806,7 +807,7 @@ end;
 function TFoundList.Initialize: int64;
 begin
 
-  result:=Initialize(memscan.vartype,memscan.CustomType);
+  result:=Initialize(fmemscan.vartype,fmemscan.CustomType);
 end;
 
 procedure TFoundlist.Deinitialize;
@@ -851,8 +852,8 @@ begin
     self.foundlist:=foundlist;
 
   //self.foundcountlabel:=foundcountlabel;
-  self.memscan:=memscan;
-  memscan.attachedFoundlist:=self;
+  fmemscan:=memscan;
+  fmemscan.attachedFoundlist:=self;
 
   flistname:=listname;
   if flistname='' then
