@@ -57,7 +57,7 @@ begin
   begin
     size:=(length(s) div 5)*4+(length(s) mod 5);
     maxsize:=max(65536,size);
-    getmem(b, size);
+    getmem(b, maxsize);
     size:=Base85ToBin(pchar(s), b);
     {
     a85source:=TStringStream.Create(s);
@@ -78,7 +78,7 @@ begin
     size:=length(s) div 2;
     maxsize:=max(65536,size); //64KB or the required size if that's bigger
 
-    getmem(b, size);
+    getmem(b, maxsize);
     HexToBin(pchar(s), b, size);
   end;
 
