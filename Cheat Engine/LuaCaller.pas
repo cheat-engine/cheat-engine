@@ -11,7 +11,7 @@ interface
 
 uses
   Classes, Controls, SysUtils, ceguicomponents, forms, lua, lualib, lauxlib,
-  comctrls, StdCtrls, CEFuncProc, typinfo, Graphics;
+  comctrls, StdCtrls, CEFuncProc, typinfo, Graphics, disassembler, LuaDisassembler;
 
 type
   TLuaCaller=class
@@ -40,6 +40,7 @@ type
       function AutoGuessEvent(address: ptruint; originalVariableType: TVariableType): TVariableType;
       procedure D3DClickEvent(renderobject: TObject; x,y: integer);
       function D3DKeyDownEvent(VirtualKey: dword; char: pchar): boolean;
+      function DisassembleEvent(sender: TObject; address: ptruint; var ldd: TLastDisassembleData; var output: string; var description: string): boolean;
 
       procedure pushFunction;
 
@@ -644,6 +645,47 @@ begin
   end
 end;
 
+function TLuaCaller.DisassembleEvent(sender: TObject; address: ptruint; var ldd: TLastDisassembleData; var output: string; var description: string): boolean;
+var oldstack: integer;
+  lddentry: integer;
+begin
+  result:=false;
+  Luacs.enter;
+  try
+    oldstack:=lua_gettop(Luavm);
+
+    lua_newtable(Luavm);
+    lddentry:=lua_gettop(Luavm);
+    LastDisassemblerDataToTable(luavm, lddentry, ldd); //initialize it
+
+    pushFunction;
+    luaclass_newClass(luavm, sender);
+    lua_pushinteger(luavm, address);
+    lua_pushvalue(luavm, lddentry);
+
+    if lua_pcall(LuaVM, 3, 2, 0)=0 then
+    begin
+      if not lua_isnil(Luavm, -2) then
+      begin
+        result:=true;
+        output:=Lua_ToString(Luavm, -2);
+
+        if not lua_isnil(Luavm, -1) then
+          description:=Lua_ToString(Luavm, -1)
+        else
+          description:='';
+
+        LastDisassemblerDataFromTable(luavm, lddentry, ldd);
+      end;
+    end;
+
+
+  finally
+    lua_settop(Luavm, oldstack);
+    luacs.leave;
+  end
+end;
+
 
 //----------------------------Lua implementation-----------------------------
 function LuaCaller_NotifyEvent(L: PLua_state): integer; cdecl;
@@ -1069,6 +1111,45 @@ begin
     lua_pop(L, lua_gettop(L));
 end;
 
+function LuaCaller_DisassembleEvent(L: PLua_state): integer; cdecl;
+//function(sender: Disassembler, address: integer, LastDisassembleData: Table): boolean
+var
+  m: TMethod;
+  sender: TObject;
+  address: ptruint;
+  r,d: string;
+  ldd: TLastDisassembleData;
+  b: boolean;
+begin
+  result:=0;
+  if lua_gettop(L)=3 then
+  begin
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    sender:=lua_toceuserdata(L, 1);
+    address:=lua_tointeger(L, 2);
+    LastDisassemblerDataFromTable(L, 3, ldd); //initialize it
+
+    b:=TDisassembleEvent(m)(sender, address, ldd, r, d);
+    if b then //returned true
+    begin
+      lua_pushstring(L, r);
+      lua_pushstring(L, d);
+      LastDisassemblerDataToTable(L, 3, ldd); //fill in the result
+    end
+    else
+    begin
+      lua_pushnil(L);
+      lua_pushnil(L);
+    end;
+
+    result:=2;
+
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
+
 procedure registerLuaCall(typename: string; getmethodprop: lua_CFunction; setmethodprop: pointer; luafunctionheader: string);
 var t: TLuaCallData;
 begin
@@ -1099,5 +1180,8 @@ initialization
 
   registerLuaCall('TD3DClickEvent', LuaCaller_D3DClickEvent, pointer(TLuaCaller.D3DClickEvent),'function %s(renderobject, x, y)'#13#10#13#10'end'#13#10);
   registerLuaCall('TD3DKeyDownEvent', LuaCaller_D3DKeyDownEvent, pointer(TLuaCaller.D3DKeyDownEvent),'function %s(virtualkeycode, char)'#13#10#13#10'  return false'#13#10'end'#13#10);
+
+  registerLuaCall('TDisassembleEvent', LuaCaller_DisassembleEvent, pointer(TLuaCaller.DisassembleEvent),'function %s(sender, address, ldd)'#13#10#13#10'  return disassembledstring, description'#13#10'end'#13#10);
+
 end.
 

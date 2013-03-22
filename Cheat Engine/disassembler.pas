@@ -13,6 +13,7 @@ type Tprefix = set of byte;
 type TMemory = array [0..23] of byte;
 type TIntToHexS=function(address:ptrUInt;chars: integer; signed: boolean=false; signedsize: integer=0):string of object;
 
+
 const BIT_REX_W=8; //1000
 const BIT_REX_R=4;
 const BIT_REX_X=2;
@@ -20,6 +21,34 @@ const BIT_REX_B=1;
 
 type
   TDisAssemblerValueType=(dvtNone=0, dvtAddress=1, dvtValue=2);
+
+
+
+  TLastDisassembleData=record
+    address: PtrUint;
+    prefix: string;
+    prefixsize: integer;
+    opcode: string; //and sadly undone because I want to allow the user to change the string... pchar; //replaced string with pchar so it now only contains a pointer. Faster. string; //the result without bytes
+    parameters: string;
+    description: string;
+    Bytes: array of byte;
+    SeperatorCount: integer;
+    Seperators: Array [0..5] of integer; //an index in the byte array describing the seperators (prefix/instruction/modrm/sib/extra)
+    modrmValueType: TDisAssemblerValueType;
+    modrmValue: ptrUint;
+    parameterValueType: TDisAssemblerValueType;
+    parameterValue: ptrUint;
+  //  ValueType: TValueType; //if it's not unknown the value type will say what type of value it is (e.g for the FP types)
+
+    isjump: boolean; //set for anything that can change eip/rip
+    iscall: boolean; //set if it's a call
+    isret: boolean; //set if it's a ret
+    isconditionaljump: boolean; //set if it's only effective when an conditon is met
+  end;
+
+  TDisassembleEvent=function(sender: TObject; address: ptruint; var ldd: TLastDisassembleData; var output: string; var description: string): boolean of object;
+
+
 
   TDisassembler=class
   private
@@ -33,6 +62,7 @@ type
     endcolor: string;
 
     fsyntaxhighlighting: boolean;
+    fOnDisassembleOverride: TDisassembleEvent;
 
     function SIB(memory:TMemory; sibbyte: integer; var last: dword): string;
     function MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword): string; overload;
@@ -86,28 +116,7 @@ type
     is64bitOverride: boolean;
     is64BitOverrideState: boolean;
 
-    LastDisassembleData: record
-      address: PtrUint;
-      prefix: string;
-      prefixsize: integer;
-      opcode: pchar; //replaced string with pchar so it now only contains a pointer. Faster. string; //the result without bytes
-      parameters: string;
-      description: string;
-      Bytes: array of byte;
-      SeperatorCount: integer;
-      Seperators: Array [0..5] of integer; //an index in the byte array describing the seperators (prefix/instruction/modrm/sib/extra)
-      modrmValueType: TDisAssemblerValueType;
-      modrmValue: ptrUint;
-      parameterValueType: TDisAssemblerValueType;
-      parameterValue: ptrUint;
-    //  ValueType: TValueType; //if it's not unknown the value type will say what type of value it is (e.g for the FP types)
-
-      isjump: boolean; //set for anything that can change eip/rip
-      iscall: boolean; //set if it's a call
-      isret: boolean; //set if it's a ret
-      isconditionaljump: boolean; //set if it's only effective when an conditon is met
-
-    end;
+    LastDisassembleData: TLastDisassembleData;
 
 
 
@@ -119,7 +128,10 @@ type
 
     function getLastBytestring: string;
 
+
+  published
     property syntaxhighlighting: boolean read fsyntaxhighlighting write setSyntaxHighlighting;
+    property OnDisassembleOverride: TDisassembleEvent read fOnDisassembleOverride write fOnDisassembleOverride;
 end;
 
 
@@ -1277,6 +1289,21 @@ begin
   lastdisassembledata.isconditionaljump:=false;
   lastdisassembledata.modrmValueType:=dvtNone;
   lastdisassembledata.parameterValueType:=dvtNone;
+
+
+  if assigned(OnDisassembleOverride) then //check if the user has defined it's own disassembler
+  begin
+    //if so, call the OnDisassemble propery, and if it returns true don't handle the original
+    if OnDisassembleOverride(self, offset, LastDisassembleData, result, description) then
+    begin
+      if length(lastdisassembledata.Bytes)=0 then //BAD!
+        setlength(lastdisassembledata.Bytes,1);
+
+      inc(offset, length(lastdisassembledata.Bytes));
+      exit;
+    end;
+
+  end;
 
 
   if isdefault then
