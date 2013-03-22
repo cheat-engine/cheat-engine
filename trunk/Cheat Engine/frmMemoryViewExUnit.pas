@@ -9,6 +9,9 @@ uses
   StdCtrls, ComCtrls, memdisplay, newkernelhandler, cefuncproc, syncobjs, math,
   savedscanhandler, foundlisthelper, CustomTypeHandler;
 
+
+type TMVCompareMethod=(cmOr, cmXor, cmAnd);
+
 type
   TMemoryDataSource=class(TThread)
   private
@@ -20,6 +23,8 @@ type
     fcompareagainstsavedscan: boolean;
     fvartype: TVariableType;
     fvarsize: integer;
+
+    comparemethod: TMVCompareMethod;
 
     temppagebuf: pbytearray;
 
@@ -36,7 +41,7 @@ type
     procedure execute; override;
     procedure fetchmem;
     procedure setaddresslist(state: boolean; listname: string);
-    procedure setcompare(state: boolean; listname: string);
+    procedure setcompare(state: boolean; compareMethod: TMVCompareMethod; listname: string);
     constructor create(suspended: boolean);
   end;
 
@@ -74,7 +79,7 @@ type
     bufsize: integer;
     datasource: TMemoryDataSource;
 
-
+    function getCompareMethod: TMVCompareMethod;
     function ondata(newAddress: ptruint; PreferedMinimumSize: integer; var newbase: pointer; var newsize: integer): boolean;
   public
     { public declarations }
@@ -102,7 +107,7 @@ begin
   inherited create(suspended);
 end;
 
-procedure TMemoryDataSource.setcompare(state: boolean; listname: string);
+procedure TMemoryDataSource.setcompare(state: boolean; compareMethod: TMVCompareMethod; listname: string);
 begin
   if state then
   begin
@@ -115,6 +120,8 @@ begin
       previousvaluelist:=TSavedScanHandler.create(mainform.memscan.GetScanFolder, listname);
       previousvaluelist.AllowNotFound:=true;
       previousvaluelist.AllowRandomAccess:=true;
+
+      self.compareMethod:=comparemethod;
 
     finally
       cs.Leave;
@@ -140,6 +147,7 @@ begin
       addresslist:=TFoundList.create(nil, mainform.memscan, listname);
       addresslist.Initialize;
       fvartype:=mainform.memscan.VarType;
+      ct:=mainform.memscan.CustomType;
       fvarsize:=mainform.memscan.Getbinarysize div 8;
 
     finally
@@ -160,8 +168,9 @@ var x: dword;
 
   s2: integer;
 
-  p: pointer;
+  p: PByteArray;
   i: qword;
+  j: integer;
 
 begin
   lock;
@@ -219,17 +228,23 @@ begin
 
             if s2>0 then
             begin
+              x:=0;
               ReadProcessMemory(processhandle, pointer(a2), @buf[a2-address], s2, x);
 
               if fcompareagainstsavedscan and (previousvaluelist<>nil) then
               begin
                 //get the saved scan
-                if previousvaluelist.getpointertoaddress(a2, fvartype, ct)<>nil then
+                p:=previousvaluelist.getpointertoaddress(a2, fvartype, ct);
+                if p<>nil then
                 begin
-                  buf[a2-address]:=$ff;
-                  buf[a2-address+1]:=$ff;
-                  buf[a2-address+2]:=$ff;
-                  buf[a2-address+3]:=$7f;
+                  case comparemethod of
+                    cmor: for j:=0 to x-1 do buf[a2-address+j]:=buf[a2-address+j] or p[j];
+                    cmxor: for j:=0 to x-1 do buf[a2-address+j]:=buf[a2-address+j] xor p[j];
+                    cmand: for j:=0 to x-1 do buf[a2-address+j]:=buf[a2-address+j] and p[j];
+
+                  end;
+
+
                 end;
 
               end;
@@ -379,6 +394,18 @@ begin
   TComboBox(sender).Items.Insert(0,'Current scanlist');
 end;
 
+function TfrmMemoryViewEx.getCompareMethod: TMVCompareMethod;
+//returns the compare method currently selected
+begin
+  result:=cmOr;
+  if rbxor.checked then
+    result:=cmxOr
+  else
+  if rbAnd.checked then
+    result:=cmAnd;
+
+end;
+
 procedure TfrmMemoryViewEx.cbCompareChange(Sender: TObject);
 begin
   cbSavedList.enabled:=cbCompare.checked;
@@ -386,15 +413,15 @@ begin
   rbAnd.enabled:=cbCompare.checked;
   rbXor.enabled:=cbCompare.checked;
 
-  datasource.setcompare(cbCompare.checked, 'TMP');
+  datasource.setcompare(cbCompare.checked, getCompareMethod,  'TMP');
 end;
 
 procedure TfrmMemoryViewEx.cbSavedListChange(Sender: TObject);
 begin
   if cbSavedList.ItemIndex=0 then
-    datasource.setcompare(cbCompare.checked, 'TMP')
+    datasource.setcompare(cbCompare.checked, getCompareMethod, 'TMP')
   else
-    datasource.setcompare(cbCompare.checked, cbSavedList.text);
+    datasource.setcompare(cbCompare.checked, getCompareMethod, cbSavedList.text);
 end;
 
 procedure TfrmMemoryViewEx.FormDestroy(Sender: TObject);

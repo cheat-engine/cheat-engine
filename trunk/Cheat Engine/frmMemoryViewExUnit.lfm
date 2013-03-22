@@ -103,6 +103,7 @@ object frmMemoryViewEx: TfrmMemoryViewEx
     Caption = 'Or'
     Checked = True
     Enabled = False
+    OnChange = cbSavedListChange
     TabOrder = 9
     TabStop = True
   end
@@ -113,6 +114,7 @@ object frmMemoryViewEx: TfrmMemoryViewEx
     Width = 42
     Caption = 'And'
     Enabled = False
+    OnChange = cbSavedListChange
     TabOrder = 5
   end
   object rbXor: TRadioButton
@@ -122,6 +124,7 @@ object frmMemoryViewEx: TfrmMemoryViewEx
     Width = 38
     Caption = 'Xor'
     Enabled = False
+    OnChange = cbSavedListChange
     TabOrder = 6
   end
   object cbSavedList: TComboBox

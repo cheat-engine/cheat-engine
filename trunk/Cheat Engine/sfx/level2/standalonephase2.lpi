@@ -18,7 +18,7 @@
     <VersionInfo>
       <StringTable ProductVersion=""/>
     </VersionInfo>
-    <BuildModes Count="2" Active="Release">
+    <BuildModes Count="2" Active="Debug">
       <Item1 Name="Release" Default="True"/>
       <Item2 Name="Debug">
         <CompilerOptions>
@@ -61,7 +61,7 @@
         <FormatVersion Value="1"/>
       </local>
     </RunParams>
-    <Units Count="14">
+    <Units Count="16">
       <Unit0>
         <Filename Value="standalonephase2.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -69,8 +69,8 @@
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
-        <CursorPos X="9" Y="4"/>
-        <UsageCount Value="35"/>
+        <CursorPos X="6" Y="14"/>
+        <UsageCount Value="37"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit0>
@@ -81,9 +81,9 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="66"/>
-        <CursorPos X="61" Y="90"/>
-        <UsageCount Value="35"/>
+        <TopLine Value="91"/>
+        <CursorPos X="1" Y="98"/>
+        <UsageCount Value="37"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit1>
@@ -174,120 +174,147 @@
         <CursorPos X="1" Y="706"/>
         <UsageCount Value="10"/>
       </Unit13>
+      <Unit14>
+        <Filename Value="C:\lazarus\fpc\2.6.1\source\packages\paszlib\src\zstream.pp"/>
+        <UnitName Value="zstream"/>
+        <EditorIndex Value="3"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="275"/>
+        <CursorPos X="3" Y="281"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit14>
+      <Unit15>
+        <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\objpas\classes\classesh.inc"/>
+        <EditorIndex Value="2"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="790"/>
+        <CursorPos X="15" Y="804"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit15>
     </Units>
-    <JumpHistory Count="28" HistoryIndex="27">
+    <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="main.pas"/>
-        <Caret Line="43" Column="1" TopLine="19"/>
+        <Caret Line="148" Column="1" TopLine="133"/>
       </Position1>
       <Position2>
         <Filename Value="main.pas"/>
-        <Caret Line="44" Column="1" TopLine="20"/>
+        <Caret Line="151" Column="1" TopLine="133"/>
       </Position2>
       <Position3>
         <Filename Value="main.pas"/>
-        <Caret Line="38" Column="1" TopLine="20"/>
+        <Caret Line="154" Column="1" TopLine="133"/>
       </Position3>
       <Position4>
         <Filename Value="main.pas"/>
-        <Caret Line="40" Column="1" TopLine="20"/>
+        <Caret Line="156" Column="1" TopLine="133"/>
       </Position4>
       <Position5>
         <Filename Value="main.pas"/>
-        <Caret Line="42" Column="1" TopLine="20"/>
+        <Caret Line="148" Column="44" TopLine="134"/>
       </Position5>
       <Position6>
         <Filename Value="main.pas"/>
-        <Caret Line="43" Column="1" TopLine="20"/>
+        <Caret Line="118" Column="1" TopLine="103"/>
       </Position6>
       <Position7>
         <Filename Value="main.pas"/>
-        <Caret Line="44" Column="1" TopLine="20"/>
+        <Caret Line="120" Column="1" TopLine="103"/>
       </Position7>
       <Position8>
         <Filename Value="main.pas"/>
-        <Caret Line="38" Column="1" TopLine="20"/>
+        <Caret Line="123" Column="1" TopLine="103"/>
       </Position8>
       <Position9>
         <Filename Value="main.pas"/>
-        <Caret Line="40" Column="1" TopLine="20"/>
+        <Caret Line="124" Column="1" TopLine="103"/>
       </Position9>
       <Position10>
         <Filename Value="main.pas"/>
-        <Caret Line="42" Column="1" TopLine="20"/>
+        <Caret Line="125" Column="1" TopLine="103"/>
       </Position10>
       <Position11>
         <Filename Value="main.pas"/>
-        <Caret Line="43" Column="1" TopLine="20"/>
+        <Caret Line="126" Column="1" TopLine="103"/>
       </Position11>
       <Position12>
         <Filename Value="main.pas"/>
-        <Caret Line="44" Column="1" TopLine="20"/>
+        <Caret Line="128" Column="1" TopLine="104"/>
       </Position12>
       <Position13>
         <Filename Value="main.pas"/>
-        <Caret Line="38" Column="1" TopLine="20"/>
+        <Caret Line="129" Column="1" TopLine="105"/>
       </Position13>
       <Position14>
         <Filename Value="main.pas"/>
-        <Caret Line="28" Column="1" TopLine="20"/>
+        <Caret Line="132" Column="1" TopLine="108"/>
       </Position14>
       <Position15>
         <Filename Value="main.pas"/>
-        <Caret Line="30" Column="1" TopLine="20"/>
+        <Caret Line="133" Column="1" TopLine="109"/>
       </Position15>
       <Position16>
         <Filename Value="main.pas"/>
-        <Caret Line="31" Column="1" TopLine="20"/>
+        <Caret Line="134" Column="1" TopLine="110"/>
       </Position16>
       <Position17>
         <Filename Value="main.pas"/>
-        <Caret Line="38" Column="1" TopLine="20"/>
+        <Caret Line="135" Column="1" TopLine="111"/>
       </Position17>
       <Position18>
         <Filename Value="main.pas"/>
-        <Caret Line="40" Column="1" TopLine="20"/>
+        <Caret Line="137" Column="1" TopLine="113"/>
       </Position18>
       <Position19>
         <Filename Value="main.pas"/>
-        <Caret Line="42" Column="1" TopLine="20"/>
+        <Caret Line="138" Column="1" TopLine="114"/>
       </Position19>
       <Position20>
         <Filename Value="main.pas"/>
-        <Caret Line="43" Column="1" TopLine="20"/>
+        <Caret Line="140" Column="1" TopLine="116"/>
       </Position20>
       <Position21>
         <Filename Value="main.pas"/>
-        <Caret Line="44" Column="1" TopLine="20"/>
+        <Caret Line="148" Column="1" TopLine="133"/>
       </Position21>
       <Position22>
         <Filename Value="main.pas"/>
-        <Caret Line="154" Column="1" TopLine="130"/>
+        <Caret Line="151" Column="1" TopLine="133"/>
       </Position22>
       <Position23>
         <Filename Value="main.pas"/>
-        <Caret Line="152" Column="9" TopLine="125"/>
+        <Caret Line="154" Column="1" TopLine="133"/>
       </Position23>
       <Position24>
         <Filename Value="main.pas"/>
-        <Caret Line="19" Column="5" TopLine="1"/>
+        <Caret Line="156" Column="1" TopLine="133"/>
       </Position24>
       <Position25>
         <Filename Value="main.pas"/>
-        <Caret Line="152" Column="19" TopLine="134"/>
+        <Caret Line="158" Column="1" TopLine="134"/>
       </Position25>
       <Position26>
-        <Filename Value="standalonephase2.lpr"/>
-        <Caret Line="13" Column="20" TopLine="1"/>
+        <Filename Value="main.pas"/>
+        <Caret Line="160" Column="1" TopLine="136"/>
       </Position26>
       <Position27>
-        <Filename Value="standalonephase2.lpr"/>
-        <Caret Line="14" Column="6" TopLine="1"/>
+        <Filename Value="main.pas"/>
+        <Caret Line="161" Column="1" TopLine="137"/>
       </Position27>
       <Position28>
         <Filename Value="main.pas"/>
-        <Caret Line="70" Column="37" TopLine="65"/>
+        <Caret Line="163" Column="1" TopLine="139"/>
       </Position28>
+      <Position29>
+        <Filename Value="main.pas"/>
+        <Caret Line="164" Column="1" TopLine="140"/>
+      </Position29>
+      <Position30>
+        <Filename Value="main.pas"/>
+        <Caret Line="166" Column="1" TopLine="106"/>
+      </Position30>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
@@ -340,9 +367,23 @@
         <WatchScope Value="wpsGlobal"/>
         <WatchKind Value="wpkWrite"/>
         <Source Value="main.pas"/>
-        <Line Value="176"/>
+        <Line Value="184"/>
       </Item1>
     </BreakPoints>
+    <Watches Count="4">
+      <Item1>
+        <Expression Value="pint(ms.fmemory)^"/>
+      </Item1>
+      <Item2>
+        <Expression Value="pinteger(ms2.fmemory)^"/>
+      </Item2>
+      <Item3>
+        <Expression Value="ms.fmemory"/>
+      </Item3>
+      <Item4>
+        <Expression Value="ms2.fmemory"/>
+      </Item4>
+    </Watches>
     <Exceptions Count="3">
       <Item1>
         <Name Value="EAbort"/>
@@ -355,4 +396,5 @@
       </Item3>
     </Exceptions>
   </Debugging>
+  <EditorMacros Count="0"/>
 </CONFIG>

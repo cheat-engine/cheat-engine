@@ -1745,10 +1745,13 @@ methods
 
 
 Disassembler Class
-
 createDisassembler() - Creates a disassembler object that can be used to disassemble an instruction and at the same time get more data
+getDefaultDisassembler() - Returns the default disassembler object used by a lot of ce's disassembler routines
+getVisibleDisassembler() - Returns the disassembler used by the disassemblerview. Special codes are: {H}=Hex value {R}=Register {S}=Symbol {N}=Nothing special
+
 properties
   LastDisassembleData : Table
+  OnDisassembleOverride: function(sender: Disassembler, address: integer, LastDisassembleData: Table): opcode, description
 methods
   disassemble(address): Disassembles the given instruction and returns the opcode. It also fills in a LastDisassembleData record
   decodeLastParametersToString() : Returns the unedited "Comments" information. Does not display userdefined comments
@@ -1810,8 +1813,6 @@ functions to add:
 
 getRunningProcesses(): stringlist
 getProcessModules(processid): 
-
-
 
 
 

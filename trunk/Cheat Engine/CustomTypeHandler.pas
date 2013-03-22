@@ -9,7 +9,7 @@ interface
 
 uses
   {windows, }dialogs, Classes, SysUtils,cefuncproc, autoassembler, lua, lauxlib,
-  lualib, luahandler, math;
+  lualib, math;
 
 type TConversionRoutine=function(data: pointer):integer; stdcall;
 type TReverseConversionRoutine=procedure(i: integer; output: pointer); stdcall;
@@ -92,7 +92,7 @@ var customTypes: TList; //list holding all the custom types
 
 implementation
 
-uses mainunit;
+uses mainunit, LuaHandler;
 
 resourcestring
   rsACustomTypeWithNameAlreadyExists = 'A custom type with name %s already '

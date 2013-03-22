@@ -111,7 +111,7 @@ begin
 
   cle.c:=c;
   cle.depth:=0;
-  cle.f:=InitialAddMetaDataFunction;
+  cle.f:=InitialAddMetaDataFunction;       //todo: change to a map
   t:=c;
 
   while t<>nil do
