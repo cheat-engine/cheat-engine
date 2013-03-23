@@ -177,7 +177,11 @@ end;
 procedure TTraceDebugInfo.SaveStack;
 begin
   getmem(stack.stack, savedStackSize);
-  ReadProcessMemory(processhandle, pointer(c.{$ifdef cpu64}Rsp{$else}esp{$endif}), stack.stack, savedStackSize, stack.savedsize);
+  if ReadProcessMemory(processhandle, pointer(c.{$ifdef cpu64}Rsp{$else}esp{$endif}), stack.stack, savedStackSize, stack.savedsize)=false then
+  begin
+    stack.savedsize:=4096-(c.{$ifdef cpu64}Rsp{$else}esp{$endif} mod 4096);
+    ReadProcessMemory(processhandle, pointer(c.{$ifdef cpu64}Rsp{$else}esp{$endif}), stack.stack, stack.savedsize, stack.savedsize);
+  end;
 end;
 
 constructor TTraceDebugInfo.createFromStream(s: tstream);

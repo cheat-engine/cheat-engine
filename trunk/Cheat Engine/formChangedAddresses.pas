@@ -85,7 +85,12 @@ end;
 procedure TAddressEntry.savestack;
 begin
   getmem(stack.stack, savedStackSize);
-  ReadProcessMemory(processhandle, pointer(context.{$ifdef cpu64}Rsp{$else}esp{$endif}), stack.stack, savedStackSize, stack.savedsize);
+  if ReadProcessMemory(processhandle, pointer(context.{$ifdef cpu64}Rsp{$else}esp{$endif}), stack.stack, savedStackSize, stack.savedsize)=false then
+  begin
+    //for some reason this sometimes returns 0 bytes read even if some of the bytes are readable.
+    stack.savedsize:=4096-(context.{$ifdef cpu64}Rsp{$else}esp{$endif} mod 4096);
+    ReadProcessMemory(processhandle, pointer(context.{$ifdef cpu64}Rsp{$else}esp{$endif}), stack.stack, stack.savedsize, stack.savedsize);
+  end;
 end;
 
 
