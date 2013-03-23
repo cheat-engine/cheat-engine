@@ -298,11 +298,32 @@ end;
 procedure TfrmChangedAddresses.ChangedlistDblClick(Sender: TObject);
 var i: integer;
     ad: dword;
+    vartype: TVariableType;
+    ct: TCustomType;
 begin
+  vartype:=vtDword;
+  ct:=nil;
+
   if changedlist.Selected<>nil then
+  begin
+    ct:=TCustomType(cbDisplayType.Items.Objects[cbDisplayType.ItemIndex]);
+    if ct=nil then
+    begin
+      case cbDisplayType.ItemIndex of
+        0: vartype:=vtByte;
+        1: vartype:=vtWord;
+        3: vartype:=vtSingle;
+        4: vartype:=vtDouble;
+        else
+
+      end;
+    end
+    else
+      vartype:=vtCustom;
+
     mainform.addresslist.addaddress(rsNoDescription,
-      changedlist.selected.caption, [], 0, OldVarTypeToNewVarType(
-      cbDisplayType.itemindex));
+      changedlist.selected.caption, [], 0, vartype, cbDisplayType.Text );
+  end;
 end;
 
 procedure TfrmChangedAddresses.PopupMenu1Popup(Sender: TObject);
