@@ -215,6 +215,7 @@ type
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
+    miSetupSnapshotKeys: TMenuItem;
     miDisplayDefault: TMenuItem;
     miDisplayByte: TMenuItem;
     miDisplay2Byte: TMenuItem;
@@ -439,6 +440,7 @@ type
     procedure mi3dClick(Sender: TObject);
     procedure miChangeDisplayTypeClick(Sender: TObject);
     procedure miOpenFileClick(Sender: TObject);
+    procedure miSetupSnapshotKeysClick(Sender: TObject);
     procedure miShowAsSignedClick(Sender: TObject);
     procedure miShowCustomTypeDebugClick(Sender: TObject);
     procedure miShowPreviousValueClick(Sender: TObject);
@@ -2964,6 +2966,7 @@ begin
     openProcessEpilogue(oldprocessname, oldprocess, oldprocesshandle);
 end;
 
+
 procedure TMainForm.miShowAsSignedClick(Sender: TObject);
 var
   i: integer;
@@ -3025,6 +3028,19 @@ begin
 
   updated3dgui;
 end;
+
+procedure TMainForm.miSetupSnapshotKeysClick(Sender: TObject);
+begin
+  safed3dhook;
+  updated3dgui;
+
+  if d3dhook<>nil then
+  begin
+    d3dhook.setSnaphotFolder('e:\snapshot\');
+    d3dhook.setupSnapshotKeys(VK_1, VK_2);
+  end;
+end;
+
 
 procedure TMainForm.miLockMouseInGameClick(Sender: TObject);
 begin

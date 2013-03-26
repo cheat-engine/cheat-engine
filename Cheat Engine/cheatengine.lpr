@@ -54,9 +54,8 @@ uses
   frmFilePatcherUnit, LuaCanvas, LuaPen, LuaFont, LuaBrush, LuaPicture, LuaMenu,
   LuaDebug, frmUltimapUnit, DBK64SecondaryLoader, frmHotkeyExUnit,
   SymbolListHandler, networkInterface, networkInterfaceApi, networkConfig,
-  LuaThread, LuaGraphic, LuaProgressBar, d3dhookUnit, 
-LuaOldD3DHook, LuaWinControl,
-  frmSetCrosshairUnit, StructuresFrm2, scrollTreeView,
+  LuaThread, LuaGraphic, LuaProgressBar, d3dhookUnit, LuaOldD3DHook,
+  LuaWinControl, frmSetCrosshairUnit, StructuresFrm2, scrollTreeView,
   frmStructures2ElementInfoUnit, frmStructureLinkerUnit, LuaMemoryRecord,
   LuaStructure, LuaForm, regionex, LuaRegion, frmgroupscanalgoritmgeneratorunit,
   vartypestrings, LuaXMPlayer, groupscancommandparser, LuaMemscan, LuaFoundlist,
@@ -66,10 +65,11 @@ LuaOldD3DHook, LuaWinControl,
   LuaStrings, LuaStringlist, LuaCustomControl, LuaGraphicControl, LuaPanel,
   LuaImage, LuaButton, LuaCheckbox, LuaClass, LuaGroupbox, LuaListbox,
   LuaCombobox, LuaTrackbar, LuaCollectionItem, LuaListcolumn, LuaEdit, LuaMemo,
-  LuaCollection, LuaListColumns, LuaListItem, LuaListItems, LuaListview, 
-LuaTimer, LuaGenericHotkey, LuaFileDialog, LuaStream, LuaTableFile, 
-LuaMemoryRecordHotkey, LuaMemoryView, LuaD3DHook, CustomBase85, 
-frmMemoryViewExUnit, LuaDisassembler, LuaDissectCode, LuaByteTable, LuaBinary;
+  LuaCollection, LuaListColumns, LuaListItem, LuaListItems, LuaListview,
+  LuaTimer, LuaGenericHotkey, LuaFileDialog, LuaStream, LuaTableFile,
+  LuaMemoryRecordHotkey, LuaMemoryView, LuaD3DHook, CustomBase85,
+  frmMemoryViewExUnit, LuaDisassembler, LuaDissectCode, LuaByteTable, LuaBinary,
+  frmD3DHookSnapshotConfigUnit;
 
 {$R cheatengine.res}
 {$R manifest.res}
@@ -178,6 +178,7 @@ begin
   InitializeLuaScripts;
 
   handleparameters;
+  Application.CreateForm(TfrmD3DHookSnapshotConfig, frmD3DHookSnapshotConfig);
   Application.Run;
 end.
 

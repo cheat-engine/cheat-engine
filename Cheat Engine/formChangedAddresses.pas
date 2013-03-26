@@ -314,8 +314,6 @@ begin
         1: vartype:=vtWord;
         3: vartype:=vtSingle;
         4: vartype:=vtDouble;
-        else
-
       end;
     end
     else

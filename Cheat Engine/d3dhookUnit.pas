@@ -64,6 +64,7 @@ type
 
   TD3DHookShared=packed record
     cheatenginedir: array [0..255] of char;
+    snapshotdir: array [0..255] of char;
     dxgi_present: UINT64;
     dxgi_resizebuffers: UINT64;
     d3d9_present: UINT64;
@@ -168,6 +169,13 @@ type
     useCommandListLock: integer;
 
     hasOnKey: integer;
+
+    snapshotKey: DWORD;
+    smallSnapshotKey: DWORD;
+    progressiveSnapshot: integer; //set to 1 if you do not wish the snapshot to clear the screen before each draw. (This makes it easier to see how a scene was build up)
+    alsoClearDepthBuffer: integer; //set to 1 if you also want the depth buffer to be cleared before each draw
+
+
 
 
     //followed by the rendercommands
@@ -402,6 +410,10 @@ type
 
 
     procedure enableConsole(virtualkey: DWORD);
+
+    procedure setupSnapshotKeys(full, small: dword);
+    procedure setSnaphotFolder(path: string);
+
 
     constructor create(size: integer; hookhwnd: boolean=true);
     destructor destroy; override;
@@ -1164,6 +1176,19 @@ end;
 
 //----------------------------------D3dhook-------------------------------------
 
+procedure TD3DHook.setSnaphotFolder(path: string);
+begin
+
+  StrCopy(shared.snapshotdir, pchar(path));
+end;
+
+procedure TD3DHook.setupSnapshotKeys(full, small: dword);
+//sets a snapshot key. Set to 0 to disable
+begin
+  shared.snapshotKey:=full;
+  shared.smallSnapshotKey:=small;
+end;
+
 procedure TD3DHook.setOnKeyDown(s: TD3DKeyDownEvent);
 begin
   if assigned(s) then
@@ -1237,7 +1262,6 @@ begin
     result:=x.bottom-x.top
   else
     result:=0;
-
 end;
 
 procedure TD3DHook.setCommandListLockFeature(state: boolean);

@@ -94,6 +94,7 @@ typedef volatile struct
 typedef volatile struct 
 {
 	char CheatEngineDir[256];
+	char SnapShotDir[256];
 	UINT64 dxgi_present;
 	UINT64 dxgi_resizebuffers;
 	UINT64 d3d9_present;
@@ -206,6 +207,11 @@ typedef volatile struct
 	UINT64 CommandlistLock;
 	int UseCommandlistLock; //set to 1 if you wish to make use of the command list locking feature (might slow down due to acuiring/releasing of the event)
 	int hasOnKey;
+
+    DWORD snapshotKey;
+	DWORD smallSnapshotKey;
+	int progressiveSnapshot; //set to 1 if you do not wish the snapshot to clear the screen before each draw. (This makes it easier to see how a scene was build up)
+	int alsoClearDepthBuffer; //set to 1 if you also want the depth buffer to be cleared before each draw
 	
 	D3DRenderCommand RenderCommands[100000];
 

@@ -11,6 +11,8 @@ int insidehook=0;
 
 DXMessD3D10Handler *lastdevice;
 
+BOOL makeSnapshot=FALSE; //duplicate variable to be used as a hint that one of the devices is making a snapshot. (in case of multiple devices)
+
 
 //definitions
 struct SpriteVertex{
@@ -28,6 +30,146 @@ struct ConstantBuffer
 	FLOAT garbage3;
 };
 
+void DXMessD3D10Handler::PrepareForSnapshot() //just clears the screen
+{
+	if (!shared->progressiveSnapshot) //if this is true no erasing will be done
+	{
+		ID3D10RenderTargetView *currentrt=NULL;
+		ID3D10DepthStencilView* currentds=NULL;
+		FLOAT f[]={1.0f,0.0f,1.0f,1.0f};
+		
+		if (!shared->alsoClearDepthBuffer)
+			dev->OMGetRenderTargets(1, &currentrt, NULL);
+		else
+			dev->OMGetRenderTargets(1, &currentrt, &currentds);
+
+		if (currentrt)
+		{				
+			dev->ClearRenderTargetView(currentrt, f);		
+			currentrt->Release();
+		}
+
+		if (currentds)
+		{
+			dev->ClearDepthStencilView(currentds, D3D10_CLEAR_DEPTH, 1.0, 0);
+			currentds->Release();
+		}
+	}
+}
+
+
+void DXMessD3D10Handler::TakeSnapshot()
+{
+	//alternate if only the backbuffer is requested : ID3D10Texture2D *backbuffer=NULL;   if (SUCCEEDED(swapchain->GetBuffer(0, __uuidof(backbuffer), (void **)&backbuffer)))
+	//problem is that that won't capture renders to textures. 
+	//Problem with capturing texture renders is that mouse coordinates are useless then
+	ID3D10RenderTargetView *currentrt=NULL ;
+
+	if (makeSnapshot)
+	{
+		
+
+
+		dev->OMGetRenderTargets(1, &currentrt, NULL);
+		
+
+		if (currentrt)
+		{
+			ID3D10Texture2D *backbuffer=NULL;
+			
+			D3D10_TEXTURE2D_DESC texDesc;
+			D3D10_RENDER_TARGET_VIEW_DESC backbufferdesc;
+			ID3D10Resource *r;
+
+			currentrt->GetDesc(&backbufferdesc);
+
+			texDesc.Format=backbufferdesc.Format;
+			
+
+			currentrt->GetResource(&r);
+			
+			if (SUCCEEDED(r->QueryInterface(__uuidof(ID3D10Texture2D), (void **)&backbuffer)))
+			{
+				backbuffer->GetDesc(&texDesc);
+
+				if (smallSnapshot)
+				{
+					texDesc.BindFlags = 0;
+					texDesc.CPUAccessFlags = D3D10_CPU_ACCESS_READ;
+					texDesc.Usage = D3D10_USAGE_STAGING;
+				}
+				else
+				{
+					texDesc.CPUAccessFlags = 0;
+					texDesc.Usage = D3D10_USAGE_DEFAULT;
+				}
+
+
+				texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+				
+				
+				ID3D10Texture2D *texture;
+				if (SUCCEEDED(dev->CreateTexture2D(&texDesc, 0, &texture)))
+				{
+					BOOL savethis=FALSE;
+					dev->CopyResource(texture, r);
+
+
+					snapshotCounter++;
+
+					if (smallSnapshot)
+					{
+						D3D10_MAPPED_TEXTURE2D mappedtexture;
+						if (SUCCEEDED(texture->Map(0, D3D10_MAP_READ, 0, &mappedtexture)))
+						{	
+							
+							DWORD *color;
+							
+							int xpos, ypos;
+							
+							xpos=(int)floor(texDesc.Width * smallSnapshotPointRelative.x);
+							ypos=(int)floor(texDesc.Height * smallSnapshotPointRelative.y);
+
+							//check if the pixel at xpos,ypos is not 0xffff00ff
+
+							color=(DWORD *)((UINT_PTR)mappedtexture.pData+mappedtexture.RowPitch*ypos+xpos*4);
+
+							if (*color!=0xffff00ff)	//pixels got changed
+								savethis=TRUE;
+
+							texture->Unmap(0);				
+						}								
+
+					}
+					else
+						savethis=TRUE;
+
+					if (savethis)				
+					{
+						char s[MAX_PATH];
+						
+						sprintf_s(s, MAX_PATH, "%ssnapshot%d.png", shared->SnapShotDir, snapshotCounter);
+						
+						D3DX10SaveTextureToFileA(texture, D3DX10_IFF_PNG, s);
+					}
+
+
+					texture->Release();
+				}
+				backbuffer->Release();
+
+			}
+
+			currentrt->Release();
+
+		}
+		
+	
+
+
+
+	}
+}
 
 void DXMessD3D10Handler::SetupFontVertexBuffer(int count)
 {
@@ -363,6 +505,8 @@ DXMessD3D10Handler::~DXMessD3D10Handler()
 	if (swapchain)
 	  swapchain->Release();
 
+
+
 	
 }
 
@@ -371,6 +515,10 @@ DXMessD3D10Handler::DXMessD3D10Handler(ID3D10Device *dev, IDXGISwapChain *sc, PD
 	HRESULT hr;
 	int i;
 
+
+	lastSnapshot=0;
+	makeSnapshot=FALSE;
+	smallSnapshot=FALSE;
 
 	pPixelShaderNormal=NULL;
 	pVertexShader=NULL;
@@ -1063,6 +1211,7 @@ void __stdcall D3D10Hook_SwapChain_ResizeBuffers_imp(IDXGISwapChain *swapchain, 
 	if (currentDevice)
 	{
 		D3D10devices[device]=NULL;
+		lastdevice=NULL;
 
 		device->ClearState();
 		delete(currentDevice);
@@ -1093,26 +1242,82 @@ void __stdcall D3D10Hook_SwapChain_Present_imp(IDXGISwapChain *swapchain, ID3D10
 	currentDevice->RenderOverlay();	
 	insidehook=0;
 
+	//check if a snapshot key is down
+	currentDevice->makeSnapshot=FALSE;
+	if ((shared->snapshotKey) && (GetTickCount()>currentDevice->lastSnapshot+250))
+	{
+		SHORT ks=GetAsyncKeyState(shared->snapshotKey);
+		currentDevice->makeSnapshot=((ks & 1) || (ks & (1 << 15)));
+		currentDevice->smallSnapshot=FALSE;
+
+		if (currentDevice->makeSnapshot)
+			currentDevice->lastSnapshot=GetTickCount();
+		
+	}
+
+	if ((currentDevice->makeSnapshot==FALSE) && (shared->smallSnapshotKey) && (GetTickCount()>currentDevice->lastSnapshot+250) && (shared->lastHwnd))
+	{
+		SHORT ks=GetAsyncKeyState(shared->smallSnapshotKey);
+		currentDevice->makeSnapshot=((ks & 1) || (ks & (1 << 15)));
+
+		if (currentDevice->makeSnapshot)
+		{
+			POINT p;
+			currentDevice->smallSnapshot=TRUE;
+			currentDevice->lastSnapshot=GetTickCount();
+
+			//get the pixel the mouse is hovering over
+			GetCursorPos(&p);
+			ScreenToClient((HWND)shared->lastHwnd, &p);
+			currentDevice->smallSnapshotPoint=p;
+
+			GetClientRect((HWND)shared->lastHwnd, &currentDevice->smallSnapshotClientRect);
+
+
+			//get the relative position (0.00 - 1.00) this position is in for the clientrect
+			currentDevice->smallSnapshotPointRelative.x=(float)currentDevice->smallSnapshotPoint.x/(float)(currentDevice->smallSnapshotClientRect.right-currentDevice->smallSnapshotClientRect.left);
+			currentDevice->smallSnapshotPointRelative.y=(float)currentDevice->smallSnapshotPoint.y/(float)(currentDevice->smallSnapshotClientRect.bottom-currentDevice->smallSnapshotClientRect.top);
+		}
+		
+	}
+
+	if (currentDevice->makeSnapshot)
+	{
+		makeSnapshot=TRUE; //once true, always true
+		
+		//clear the render target with a specific color
+		FLOAT f[]={1.0f,0.0f,1.0f,1.0f};
+		currentDevice->dev->ClearRenderTargetView(currentDevice->pRenderTargetView, f);	
+
+		currentDevice->snapshotCounter=0;
+		//currentDevice->dev->OMGetRenderTargets(
+	}
+	
+
 }
 
 
 
 HRESULT __stdcall D3D10Hook_DrawIndexed_imp(D3D10_DRAWINDEXED_ORIGINAL originalfunction, ID3D10Device *device, UINT IndexCount, UINT StartIndexLocation, INT BaseVertexLocation)	
 {	
-	if ((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0) )
+	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0)) || makeSnapshot)
 	{
 		//setup for wireframe and/or zbuffer
 		HRESULT hr;
 		DXMessD3D10Handler *currentDevice=D3D10devices[device];
 
 		if (currentDevice==NULL) //this can happen in some situations when there is a layer inbetween
+		{
 			currentDevice=lastdevice;			
+		}
 	
+		
 
 		if (currentDevice)
 		{
 			ID3D10DepthStencilState *oldDepthStencilState;
-			ID3D10RasterizerState *oldRasterizerState;
+			ID3D10RasterizerState *oldRasterizerState;			
+
 
 			currentDevice->dev->OMGetDepthStencilState(&oldDepthStencilState,0);
 			currentDevice->dev->RSGetState(&oldRasterizerState);
@@ -1124,10 +1329,20 @@ HRESULT __stdcall D3D10Hook_DrawIndexed_imp(D3D10_DRAWINDEXED_ORIGINAL originalf
 				currentDevice->dev->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
 
 
+			if (currentDevice->makeSnapshot)
+				currentDevice->PrepareForSnapshot();
+			
+
 			hr=originalfunction(device, IndexCount, StartIndexLocation, BaseVertexLocation);
 			
 			currentDevice->dev->RSSetState(oldRasterizerState);
 			currentDevice->dev->OMSetDepthStencilState(oldDepthStencilState, 0);
+
+			if (currentDevice->makeSnapshot)
+				currentDevice->TakeSnapshot();
+			
+			
+
 
 			return hr;
 		}		
@@ -1138,14 +1353,16 @@ HRESULT __stdcall D3D10Hook_DrawIndexed_imp(D3D10_DRAWINDEXED_ORIGINAL originalf
 
 HRESULT __stdcall D3D10Hook_Draw_imp(D3D10_DRAW_ORIGINAL originalfunction, ID3D10Device *device, UINT VertexCount, UINT StartVertexLocation)
 {	
-	if ((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0) )
+	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0)) || makeSnapshot)
 	{
 		//setup for wireframe and/or zbuffer
 		HRESULT hr;
 		DXMessD3D10Handler *currentDevice=D3D10devices[device];
 
 		if (currentDevice==NULL) //this can happen in some situations when there is a layer inbetween
+		{
 			currentDevice=lastdevice;			
+		}
 
 
 		if (currentDevice)
@@ -1162,11 +1379,17 @@ HRESULT __stdcall D3D10Hook_Draw_imp(D3D10_DRAW_ORIGINAL originalfunction, ID3D1
 			if (shared->disabledzbuffer)
 				currentDevice->dev->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
 
+			if (currentDevice->makeSnapshot)
+				currentDevice->PrepareForSnapshot();
 
 			hr=originalfunction(device, VertexCount, StartVertexLocation);
 			
 			currentDevice->dev->RSSetState(oldRasterizerState);
 			currentDevice->dev->OMSetDepthStencilState(oldDepthStencilState, 0);
+
+			if (currentDevice->makeSnapshot)
+				currentDevice->TakeSnapshot();
+
 
 			return hr;
 		}		
@@ -1176,14 +1399,16 @@ HRESULT __stdcall D3D10Hook_Draw_imp(D3D10_DRAW_ORIGINAL originalfunction, ID3D1
 
 HRESULT __stdcall D3D10Hook_DrawIndexedInstanced_imp(D3D10_DRAWINDEXEDINSTANCED_ORIGINAL originalfunction, ID3D10Device *device, UINT IndexCountPerInstance, UINT InstanceCount, UINT StartIndexLocation, INT BaseVertexLocation, UINT StartInstanceLocation)
 {	
-	if ((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0) )
+	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0)) || makeSnapshot)
 	{
 		//setup for wireframe and/or zbuffer
 		HRESULT hr;
 		DXMessD3D10Handler *currentDevice=D3D10devices[device];
 
 		if (currentDevice==NULL) //this can happen in some situations when there is a layer inbetween
+		{
 			currentDevice=lastdevice;	
+		}
 
 		if (currentDevice)
 		{
@@ -1199,12 +1424,17 @@ HRESULT __stdcall D3D10Hook_DrawIndexedInstanced_imp(D3D10_DRAWINDEXEDINSTANCED_
 			if (shared->disabledzbuffer)
 				currentDevice->dev->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
 
+			if (currentDevice->makeSnapshot)
+				currentDevice->PrepareForSnapshot();
 
 			hr=originalfunction(device, IndexCountPerInstance, InstanceCount, StartIndexLocation, BaseVertexLocation, StartInstanceLocation);
 			
 			currentDevice->dev->RSSetState(oldRasterizerState);
 			currentDevice->dev->OMSetDepthStencilState(oldDepthStencilState, 0);
 
+			if (currentDevice->makeSnapshot)
+				currentDevice->PrepareForSnapshot();
+			
 			return hr;
 		}		
 	}
@@ -1213,14 +1443,16 @@ HRESULT __stdcall D3D10Hook_DrawIndexedInstanced_imp(D3D10_DRAWINDEXEDINSTANCED_
 
 HRESULT __stdcall D3D10Hook_DrawInstanced_imp(D3D10_DRAWINSTANCED_ORIGINAL originalfunction, ID3D10Device *device, UINT VertexCountPerInstance, UINT InstanceCount, UINT StartVertexLocation, UINT StartInstanceLocation)
 {	
-	if ((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0) )
+	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0)) || makeSnapshot)
 	{
 		//setup for wireframe and/or zbuffer
 		HRESULT hr;
 		DXMessD3D10Handler *currentDevice=D3D10devices[device];
 
 		if (currentDevice==NULL) //this can happen in some situations when there is a layer inbetween
+		{
 			currentDevice=lastdevice;	
+		}
 
 		if (currentDevice)
 		{
@@ -1237,10 +1469,16 @@ HRESULT __stdcall D3D10Hook_DrawInstanced_imp(D3D10_DRAWINSTANCED_ORIGINAL origi
 				currentDevice->dev->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
 
 
+			if (currentDevice->makeSnapshot)
+				currentDevice->PrepareForSnapshot();
+
 			hr=originalfunction(device, VertexCountPerInstance, InstanceCount, StartVertexLocation, StartInstanceLocation);
 			
 			currentDevice->dev->RSSetState(oldRasterizerState);
 			currentDevice->dev->OMSetDepthStencilState(oldDepthStencilState, 0);
+
+			if (currentDevice->makeSnapshot)
+				currentDevice->TakeSnapshot();
 
 			return hr;
 		}		
@@ -1250,14 +1488,16 @@ HRESULT __stdcall D3D10Hook_DrawInstanced_imp(D3D10_DRAWINSTANCED_ORIGINAL origi
 
 HRESULT __stdcall D3D10Hook_DrawAuto_imp(D3D10_DRAWAUTO_ORIGINAL originalfunction, ID3D10Device *device)
 {	
-	if ((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0) )
+	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0)) || makeSnapshot)
 	{
 		//setup for wireframe and/or zbuffer
 		HRESULT hr;
 		DXMessD3D10Handler *currentDevice=D3D10devices[device];
 
 		if (currentDevice==NULL) //this can happen in some situations when there is a layer inbetween
+		{
 			currentDevice=lastdevice;	
+		}
 
 		if (currentDevice)
 		{
@@ -1273,11 +1513,17 @@ HRESULT __stdcall D3D10Hook_DrawAuto_imp(D3D10_DRAWAUTO_ORIGINAL originalfunctio
 			if (shared->disabledzbuffer)
 				currentDevice->dev->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
 
+			if (currentDevice->makeSnapshot)
+				currentDevice->PrepareForSnapshot();
 
 			hr=originalfunction(device);
 			
 			currentDevice->dev->RSSetState(oldRasterizerState);
 			currentDevice->dev->OMSetDepthStencilState(oldDepthStencilState, 0);
+
+			if (currentDevice->makeSnapshot)
+				currentDevice->PrepareForSnapshot();
+			
 
 			return hr;
 		}		
