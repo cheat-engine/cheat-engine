@@ -208,8 +208,12 @@ typedef volatile struct
 	int UseCommandlistLock; //set to 1 if you wish to make use of the command list locking feature (might slow down due to acuiring/releasing of the event)
 	int hasOnKey;
 
+
     DWORD snapshotKey;
 	DWORD smallSnapshotKey;
+
+	UINT64 snapshotDone; //Event to signal that a snapshot is done
+	int snapshotcount;
 	int progressiveSnapshot; //set to 1 if you do not wish the snapshot to clear the screen before each draw. (This makes it easier to see how a scene was build up)
 	int alsoClearDepthBuffer; //set to 1 if you also want the depth buffer to be cleared before each draw
 	

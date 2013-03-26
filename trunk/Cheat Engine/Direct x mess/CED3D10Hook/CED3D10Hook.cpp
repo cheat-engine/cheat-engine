@@ -79,85 +79,188 @@ void DXMessD3D10Handler::TakeSnapshot()
 			
 			D3D10_TEXTURE2D_DESC texDesc;
 			D3D10_RENDER_TARGET_VIEW_DESC backbufferdesc;
-			ID3D10Resource *r;
+			ID3D10Resource *r=NULL;
 
 			currentrt->GetDesc(&backbufferdesc);
 
 			texDesc.Format=backbufferdesc.Format;
 			
 
+
 			currentrt->GetResource(&r);
-			
-			if (SUCCEEDED(r->QueryInterface(__uuidof(ID3D10Texture2D), (void **)&backbuffer)))
+			if (r)
 			{
-				backbuffer->GetDesc(&texDesc);
-
-				if (smallSnapshot)
+				if (SUCCEEDED(r->QueryInterface(__uuidof(ID3D10Texture2D), (void **)&backbuffer)))
 				{
-					texDesc.BindFlags = 0;
-					texDesc.CPUAccessFlags = D3D10_CPU_ACCESS_READ;
-					texDesc.Usage = D3D10_USAGE_STAGING;
-				}
-				else
-				{
-					texDesc.CPUAccessFlags = 0;
-					texDesc.Usage = D3D10_USAGE_DEFAULT;
-				}
-
-
-				texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-				
-				
-				ID3D10Texture2D *texture;
-				if (SUCCEEDED(dev->CreateTexture2D(&texDesc, 0, &texture)))
-				{
-					BOOL savethis=FALSE;
-					dev->CopyResource(texture, r);
-
-
-					snapshotCounter++;
+					backbuffer->GetDesc(&texDesc);
 
 					if (smallSnapshot)
 					{
-						D3D10_MAPPED_TEXTURE2D mappedtexture;
-						if (SUCCEEDED(texture->Map(0, D3D10_MAP_READ, 0, &mappedtexture)))
-						{	
-							
-							DWORD *color;
-							
-							int xpos, ypos;
-							
-							xpos=(int)floor(texDesc.Width * smallSnapshotPointRelative.x);
-							ypos=(int)floor(texDesc.Height * smallSnapshotPointRelative.y);
-
-							//check if the pixel at xpos,ypos is not 0xffff00ff
-
-							color=(DWORD *)((UINT_PTR)mappedtexture.pData+mappedtexture.RowPitch*ypos+xpos*4);
-
-							if (*color!=0xffff00ff)	//pixels got changed
-								savethis=TRUE;
-
-							texture->Unmap(0);				
-						}								
-
+						texDesc.BindFlags = 0;
+						texDesc.CPUAccessFlags = D3D10_CPU_ACCESS_READ;
+						texDesc.Usage = D3D10_USAGE_STAGING;
 					}
 					else
-						savethis=TRUE;
-
-					if (savethis)				
 					{
-						char s[MAX_PATH];
-						
-						sprintf_s(s, MAX_PATH, "%ssnapshot%d.png", shared->SnapShotDir, snapshotCounter);
-						
-						D3DX10SaveTextureToFileA(texture, D3DX10_IFF_PNG, s);
+						texDesc.CPUAccessFlags = 0;
+						texDesc.Usage = D3D10_USAGE_DEFAULT;
 					}
 
 
-					texture->Release();
-				}
-				backbuffer->Release();
+					texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+					
+					
+					ID3D10Texture2D *texture;
+					if (SUCCEEDED(dev->CreateTexture2D(&texDesc, 0, &texture)))
+					{
+						BOOL savethis=FALSE;
+						dev->CopyResource(texture, r);
 
+
+						
+
+						if (smallSnapshot)
+						{
+							D3D10_MAPPED_TEXTURE2D mappedtexture;
+							if (SUCCEEDED(texture->Map(0, D3D10_MAP_READ, 0, &mappedtexture)))
+							{	
+								
+								DWORD *color;
+								
+								int xpos, ypos;
+								
+								xpos=(int)floor(texDesc.Width * smallSnapshotPointRelative.x);
+								ypos=(int)floor(texDesc.Height * smallSnapshotPointRelative.y);
+
+								//check if the pixel at xpos,ypos is not 0xffff00ff
+
+								color=(DWORD *)((UINT_PTR)mappedtexture.pData+mappedtexture.RowPitch*ypos+xpos*4);
+
+								if (*color!=0xffff00ff)	//pixels got changed
+									savethis=TRUE;
+
+								texture->Unmap(0);				
+							}								
+
+						}
+						else
+							savethis=TRUE;
+
+						if (savethis)				
+						{
+							char s[MAX_PATH];
+							HANDLE h;
+							DWORD bw;
+							int x;
+							uintptr_t stackbase;
+
+							__asm
+							{
+								mov stackbase, ebp   //sure, it's a bit too far, but close enough
+							}
+							
+							snapshotCounter++;
+							
+							sprintf_s(s, MAX_PATH, "%ssnapshot%d.dat", shared->SnapShotDir, snapshotCounter);						
+							
+							LPD3D10BLOB dest;
+
+							
+
+							h=CreateFileA(s, GENERIC_WRITE,  0, NULL, CREATE_ALWAYS, 0, NULL);
+
+							x=10; //dx10
+							WriteFile(h, &x, sizeof(x), &bw, NULL); 
+
+
+							D3DX10SaveTextureToMemory(texture, D3DX10_IFF_PNG, &dest, 0); 
+							x=dest->GetBufferSize();
+							WriteFile(h, &x, sizeof(x), &bw, NULL); 													
+							WriteFile(h, dest->GetBufferPointer(), x, &bw, NULL); 
+
+							dest->Release();
+
+
+							WriteFile(h, &stackbase, sizeof(stackbase), &bw, NULL);
+
+							MEMORY_BASIC_INFORMATION mbi;
+							int stacksize;
+
+							if (VirtualQuery((void *)stackbase, &mbi, sizeof(mbi))==sizeof(mbi))
+							{								
+								stacksize=min(mbi.RegionSize- (stackbase-(uintptr_t)mbi.BaseAddress), 8192);
+								WriteFile(h, &stacksize, sizeof(stacksize), &bw, NULL);
+								WriteFile(h, (void *)stackbase, stacksize, &bw, NULL); 
+							}
+							else
+							{
+								stacksize=0;
+								WriteFile(h, &stacksize, sizeof(stacksize), &bw, NULL);
+							}
+
+							ID3D10Buffer* c=NULL;	
+
+							//save the VS Constant buffers
+
+							dev->VSGetConstantBuffers(0, 1, &c);
+
+							int nocb=1; //if getting the constantbuffers fail this notifies that it has a length of 0
+
+							
+							if (c)
+							{
+								ID3D10Buffer* c2=NULL;
+								D3D10_BUFFER_DESC desc;
+
+								c->GetDesc(&desc);
+								desc.CPUAccessFlags=D3D10_CPU_ACCESS_READ;
+								desc.BindFlags=0;
+								desc.Usage=D3D10_USAGE_STAGING;
+
+								dev->CreateBuffer(&desc, NULL, &c2);
+
+								if (c2)
+								{
+									unsigned char *buf;
+									dev->CopyResource(c2, c);
+
+									if (SUCCEEDED(c2->Map(D3D10_MAP_READ, 0, (void **)&buf)))
+									{				
+										int i=desc.ByteWidth;
+										WriteFile(h, &i, sizeof(i), &bw, NULL);
+										WriteFile(h, buf, desc.ByteWidth, &bw, NULL);
+
+										nocb=0;
+
+
+										c2->Unmap();
+									}
+									
+
+									c2->Release();
+								}
+								c->Release();								
+
+							}
+
+							if (nocb)
+							{
+								int i=0;
+								WriteFile(h, &i, sizeof(i), &bw, NULL);								
+							}
+
+							CloseHandle(h);
+							
+						}
+
+
+						texture->Release();
+					}
+					backbuffer->Release();
+
+				}
+
+				r->Release();
 			}
 
 			currentrt->Release();
@@ -1243,7 +1346,15 @@ void __stdcall D3D10Hook_SwapChain_Present_imp(IDXGISwapChain *swapchain, ID3D10
 	insidehook=0;
 
 	//check if a snapshot key is down
-	currentDevice->makeSnapshot=FALSE;
+
+	if (currentDevice->makeSnapshot)
+	{
+		//notify CE that all render operations have completed
+		shared->snapshotcount=currentDevice->snapshotCounter;
+		SetEvent((HANDLE)shared->snapshotDone);
+		currentDevice->makeSnapshot=FALSE;
+	}
+
 	if ((shared->snapshotKey) && (GetTickCount()>currentDevice->lastSnapshot+250))
 	{
 		SHORT ks=GetAsyncKeyState(shared->snapshotKey);

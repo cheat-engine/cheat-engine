@@ -855,7 +855,7 @@ uses mainunit2, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup
   , PasteTableentryFRM, pointerscannerfrm, PointerscannerSettingsFrm,
   frmFloatingPointPanelUnit,
   pluginexports, DBK32functions, frmUltimapUnit, frmSetCrosshairUnit, StructuresFrm2,
-  frmMemoryViewExUnit;
+  frmMemoryViewExUnit, frmD3DHookSnapshotConfigUnit;
 
 resourcestring
   rsInvalidStartAddress = 'Invalid start address: %s';
@@ -3030,14 +3030,23 @@ begin
 end;
 
 procedure TMainForm.miSetupSnapshotKeysClick(Sender: TObject);
+var frmD3DHookSnapshotConfig: TfrmD3DHookSnapshotConfig;
 begin
-  safed3dhook;
-  updated3dgui;
+  frmd3dhooksnapshotconfig:=TfrmD3DHookSnapshotConfig.create(self);
+  try
+    if frmd3dhooksnapshotconfig.showmodal=mrok then
+    begin
 
-  if d3dhook<>nil then
-  begin
-    d3dhook.setSnaphotFolder('e:\snapshot\');
-    d3dhook.setupSnapshotKeys(VK_1, VK_2);
+      safed3dhook;
+      updated3dgui;
+
+      if d3dhook<>nil then
+        d3dhook.setSnapshotOptions(frmd3dhooksnapshotconfig.dirSnapshot.Text, frmd3dhooksnapshotconfig.fullsnapshotkey, frmd3dhooksnapshotconfig.smallsnapshotkey, frmd3dhooksnapshotconfig.cbProgressive.checked, frmd3dhooksnapshotconfig.cbClearDepth.checked);
+
+    end;
+
+  finally
+    frmd3dhooksnapshotconfig.free;
   end;
 end;
 

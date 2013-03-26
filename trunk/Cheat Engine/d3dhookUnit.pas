@@ -172,6 +172,8 @@ type
 
     snapshotKey: DWORD;
     smallSnapshotKey: DWORD;
+    snapshotDone: UINT64; //Event to signal that a snapshot is done
+    snapshotcount: integer;
     progressiveSnapshot: integer; //set to 1 if you do not wish the snapshot to clear the screen before each draw. (This makes it easier to see how a scene was build up)
     alsoClearDepthBuffer: integer; //set to 1 if you also want the depth buffer to be cleared before each draw
 
@@ -224,6 +226,7 @@ type
 
     procedure doclick;
     procedure dokeyboard;
+    procedure handleSnapshot;
   public
     procedure execute; override;
   end;
@@ -370,6 +373,7 @@ type
     haskeyboardevent: THandle;        //todo: combine into one "HasMessage" event, but for now, to make sure I don't break anything, this method...
     hashandledkeyboardevent: THandle;
 
+    SnapshotDone: THandle;
     texturelock: THandle;
     CommandListLock: THandle;
 
@@ -411,8 +415,8 @@ type
 
     procedure enableConsole(virtualkey: DWORD);
 
-    procedure setupSnapshotKeys(full, small: dword);
-    procedure setSnaphotFolder(path: string);
+    procedure setSnapshotOptions(path: string; full, small: dword; Progressive: boolean; cleardepthbuffer: boolean);
+
 
 
     constructor create(size: integer; hookhwnd: boolean=true);
@@ -435,6 +439,12 @@ function safed3dhook(size: integer=16*1024*1024; hookwindow: boolean=true): TD3D
 implementation
 
 uses frmautoinjectunit, autoassembler, MainUnit;
+
+procedure TD3DMessageHandler.handleSnapshot;
+begin
+  MessageBox(0,'bla','bla',0);
+
+end;
 
 procedure TD3DMessageHandler.setConsoleCursorPos;
 var s: string;
@@ -673,13 +683,14 @@ begin
   console.log:=tstringlist.create;
   console.cursorpos:=0;
 
-  setlength(eventlist,2);
+  setlength(eventlist,3);
   eventlist[0]:=owner.hasclickevent;
   eventlist[1]:=owner.haskeyboardevent;
+  eventlist[2]:=owner.SnapshotDone;
 
   while (not terminated) do
   begin
-    r:=WaitForMultipleObjects(2, @eventlist[0], false, 100);
+    r:=WaitForMultipleObjects(3, @eventlist[0], false, 100);
     case r of
       WAIT_OBJECT_0:
       begin
@@ -699,6 +710,12 @@ begin
         Synchronize(dokeyboard);
         SetEvent(owner.hashandledkeyboardevent);
         cursorstart:=GetTickCount;
+      end;
+
+      WAIT_OBJECT_0+2:
+      begin
+        //snapshot event
+        synchronize(handlesnapshot);
       end;
     end;
 
@@ -1176,17 +1193,30 @@ end;
 
 //----------------------------------D3dhook-------------------------------------
 
-procedure TD3DHook.setSnaphotFolder(path: string);
+procedure TD3DHook.setSnapshotOptions(path: string; full, small: dword; Progressive: boolean; cleardepthbuffer: boolean);
 begin
 
-  StrCopy(shared.snapshotdir, pchar(path));
-end;
 
-procedure TD3DHook.setupSnapshotKeys(full, small: dword);
-//sets a snapshot key. Set to 0 to disable
-begin
+
+  shared.snapshotdir:=IncludeTrailingPathDelimiter(path);
   shared.snapshotKey:=full;
-  shared.smallSnapshotKey:=small;
+
+
+  if Progressive then
+  begin
+    shared.progressiveSnapshot:=1;
+    shared.smallSnapshotKey:=0;
+  end
+  else
+  begin
+    shared.progressiveSnapshot:=0;
+    shared.smallSnapshotKey:=small;
+  end;
+
+
+  if cleardepthbuffer then shared.alsoClearDepthBuffer:=1 else shared.alsoClearDepthBuffer:=0;
+
+
 end;
 
 procedure TD3DHook.setOnKeyDown(s: TD3DKeyDownEvent);
@@ -1456,6 +1486,10 @@ begin
 
     CommandListLock:=CreateEventA(nil, false, true, nil);
     DuplicateHandle(GetCurrentProcess, CommandListLock, processhandle, @shared.CommandListLock,0, false,DUPLICATE_SAME_ACCESS);
+
+    SnapshotDone:=CreateEventA(nil, false, false, nil);
+    DuplicateHandle(GetCurrentProcess, SnapshotDone, processhandle, @shared.SnapshotDone,0, false,DUPLICATE_SAME_ACCESS);
+
 
 
     //now inject the dll

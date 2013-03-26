@@ -2063,7 +2063,7 @@ object MainForm: TMainForm
         OnClick = miLockMouseInGameClick
       end
       object miSetupSnapshotKeys: TMenuItem
-        Caption = 'Snapshot config'
+        Caption = 'Start and configure snapshot recording'
         OnClick = miSetupSnapshotKeysClick
       end
     end

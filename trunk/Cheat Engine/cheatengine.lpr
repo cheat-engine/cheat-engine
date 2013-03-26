@@ -178,7 +178,6 @@ begin
   InitializeLuaScripts;
 
   handleparameters;
-  Application.CreateForm(TfrmD3DHookSnapshotConfig, frmD3DHookSnapshotConfig);
   Application.Run;
 end.
 
