@@ -14,7 +14,7 @@ class DXMessD3D10Handler
 {
 private:
 	volatile PD3DHookShared shared;	
-	IDXGISwapChain *swapchain;
+	
 	ID3D10Buffer *pSpriteVB;
 
 	int currentMaxCharacterCount; //holds the number of vertices in pSpriteVB divided by 6
@@ -37,7 +37,7 @@ private:
 	ID3D10BlendState *pTransparency;
 
 	ID3D10Texture2D *pDepthStencil;
-	ID3D10RenderTargetView *pRenderTargetView;
+	
 	ID3D10DepthStencilView *pDepthStencilView;
 	ID3D10Buffer *pConstantBuffer;
 
@@ -47,14 +47,27 @@ private:
 	void SetupFontVertexBuffer(int count);
 	void DrawString(D3D10_VIEWPORT vp, PTextureData10 pFontTexture, char *s, int strlen);
 
+	
+	
 public:
+	int snapshotCounter;
+	DWORD lastSnapshot; //tickcount when the last snapshot was made (so there's at least 250 ms between snapshots)	
+	BOOL makeSnapshot;
+	BOOL smallSnapshot;
+	POINT smallSnapshotPoint;
+	POINTF smallSnapshotPointRelative;
+	RECT smallSnapshotClientRect; //in case the render target has a different size than the clientrect (e.g in games that fake a high fps by actually lowering the resolution without the user seeing the res change)
+	ID3D10RenderTargetView *pRenderTargetView;
 	ID3D10Device *dev;
+	IDXGISwapChain *swapchain;
 	ID3D10RasterizerState *pWireframeRasterizer;
 	ID3D10DepthStencilState *pDisabledDepthStencilState;
 
 	DXMessD3D10Handler(ID3D10Device *dev, IDXGISwapChain *sc, PD3DHookShared s);
 	~DXMessD3D10Handler();
 	void RenderOverlay();
+	void TakeSnapshot();
+	void PrepareForSnapshot();
 	
 };
 

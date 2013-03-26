@@ -2062,6 +2062,10 @@ object MainForm: TMainForm
         Enabled = False
         OnClick = miLockMouseInGameClick
       end
+      object miSetupSnapshotKeys: TMenuItem
+        Caption = 'Snapshot config'
+        OnClick = miSetupSnapshotKeysClick
+      end
     end
     object ools1: TMenuItem
       Caption = '&Tools'

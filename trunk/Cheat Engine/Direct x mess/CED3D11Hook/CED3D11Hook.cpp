@@ -1099,6 +1099,7 @@ void __stdcall D3D11Hook_SwapChain_ResizeBuffers_imp(IDXGISwapChain *swapchain, 
 	if (currentDevice)
 	{
 		D3D11devices[device]=NULL;
+		lastdevice=NULL;
 
 		//currentDevice->dc->ClearState();
 		delete(currentDevice);

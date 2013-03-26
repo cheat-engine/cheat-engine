@@ -248,7 +248,7 @@ void GetAddresses(void)
 		if (d3d10dll)
 		{
 			d3d10create=(D3D10CREATEDEVICEANDSWAPCHAIN)GetProcAddress(d3d10dll, "D3D10CreateDeviceAndSwapChain");
-			hr=d3d10create( NULL, D3D10_DRIVER_TYPE_HARDWARE, NULL, 0, D3D10_SDK_VERSION, &sd, &pSwapChain, &pd3dDevice );
+			hr=d3d10create( NULL, D3D10_DRIVER_TYPE_HARDWARE, NULL, 2, D3D10_SDK_VERSION, &sd, &pSwapChain, &pd3dDevice );
 
 			if (SUCCEEDED(hr))
 			{	
@@ -266,8 +266,7 @@ void GetAddresses(void)
 				shared->d3d10_drawindexedinstanced=a[14];
 				shared->d3d10_drawinstanced=a[15];
 				shared->d3d10_drawauto=a[28];   //v
-				
-				//pd3dDevice->DrawIndexedInstanced(0,0,0,0,0);
+	
 
 
 				//now cleanup
