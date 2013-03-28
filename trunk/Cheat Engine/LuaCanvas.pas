@@ -11,10 +11,22 @@ uses
   Classes, SysUtils, Graphics,lua, lualib, lauxlib, LuaHandler, fpcanvas, LCLType, LCLIntf;
 
 procedure initializeLuaCanvas;
+procedure drawWithMask(DestCanvas:TCanvas; Dx,Dy,Dw,Dh:integer; graph:TRasterImage; Sx,Sy,Sw,Sh:integer);
 
 implementation
 
 uses luaclass, luaobject;
+
+
+
+function canvas_clear(L: PLua_State): integer; cdecl;
+var
+  canvas: TCanvas;
+begin
+  canvas:=luaclass_getClassObject(L);
+  canvas.clear;
+  result:=0;
+end;
 
 function canvas_getPen(L: PLua_State): integer; cdecl;
 var
@@ -422,6 +434,7 @@ end;
 procedure canvas_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
   object_addMetaData(L, metatable, userdata);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'clear', canvas_clear);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getBrush', canvas_getBrush);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getPen', canvas_getPen);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getFont', canvas_getFont);

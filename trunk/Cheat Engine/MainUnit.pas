@@ -855,7 +855,7 @@ uses mainunit2, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup
   , PasteTableentryFRM, pointerscannerfrm, PointerscannerSettingsFrm,
   frmFloatingPointPanelUnit,
   pluginexports, DBK32functions, frmUltimapUnit, frmSetCrosshairUnit, StructuresFrm2,
-  frmMemoryViewExUnit, frmD3DHookSnapshotConfigUnit;
+  frmMemoryViewExUnit, frmD3DHookSnapshotConfigUnit, frmSaveSnapshotsUnit, frmsnapshothandlerUnit;
 
 resourcestring
   rsInvalidStartAddress = 'Invalid start address: %s';
@@ -2821,30 +2821,22 @@ var x: TPortableNetworkGraphic;
   m: array [0..8] of ptruint;
 
 begin
-  if t=nil then
-    t:=tremotememorymanager.create;
 
-  m[0]:=t.alloc(64);
-  m[1]:=t.alloc(128);
-  m[2]:=t.alloc(16);
-  m[3]:=t.alloc(256);
-  m[4]:=t.alloc(32);
-  m[5]:=t.alloc(32);
-  m[6]:=t.alloc(32);
-  m[7]:=t.alloc(32);
-  m[8]:=t.alloc(32);
+  frmSaveSnapshots:=tfrmSaveSnapshots.create(application);
+  frmSaveSnapshots.initialize('E:\snapshot\', 15);
+  frmSaveSnapshots.showmodal;
 
-  t.dealloc(m[0]);
-  m[0]:=t.alloc(32);
-  t.dealloc(m[2]);
-  m[2]:=t.alloc(512);
-  t.dealloc(m[5]);
-  m[5]:=t.alloc(16);
+  if frmSaveSnapshots.saved.Count>0 then
+  begin
+    if frmsnapshothandler=nil then
+      frmsnapshothandler:=TfrmSnapshotHandler.create(application);
+
+    frmsnapshothandler.show;
+    frmsnapshothandler.loadsnapshots(frmSaveSnapshots.saved);
+  end;
 
 
-
-
-
+  frmSaveSnapshots.free;
 
 
  {

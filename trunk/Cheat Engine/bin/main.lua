@@ -949,6 +949,7 @@ methods
   getHeight()
   getPenPosition()
   setPenPosition(x,y)
+  clear() - Clears the canvas
   line(sourcex, sourcey, destinationx, destinationy)
   lineTo(destinationx, destinationy)
   rect(x1,y1,x2,y2)

@@ -176,6 +176,7 @@ type
     snapshotcount: integer;
     progressiveSnapshot: integer; //set to 1 if you do not wish the snapshot to clear the screen before each draw. (This makes it easier to see how a scene was build up)
     alsoClearDepthBuffer: integer; //set to 1 if you also want the depth buffer to be cleared before each draw
+    canDoSnapshot: integer;
 
 
 
@@ -438,12 +439,29 @@ function safed3dhook(size: integer=16*1024*1024; hookwindow: boolean=true): TD3D
 
 implementation
 
-uses frmautoinjectunit, autoassembler, MainUnit;
+uses frmautoinjectunit, autoassembler, MainUnit, frmSaveSnapshotsUnit, frmsnapshothandlerUnit;
 
 procedure TD3DMessageHandler.handleSnapshot;
 begin
-  MessageBox(0,'bla','bla',0);
+  if frmSaveSnapshots=nil then
+    frmSaveSnapshots:=TfrmSaveSnapshots.create(application);
 
+  frmSaveSnapshots.initialize(owner.shared.snapshotdir, owner.shared.snapshotcount);
+
+  frmSaveSnapshots.showmodal;
+  owner.shared.canDoSnapshot:=1;
+
+
+  if frmSaveSnapshots.saved.Count>0 then
+  begin
+    if frmsnapshothandler=nil then
+      frmsnapshothandler:=TfrmSnapshotHandler.create(application);
+
+    frmsnapshothandler.show;
+    frmsnapshothandler.loadsnapshots(frmSaveSnapshots.saved);
+  end;
+
+  //exit the function and wait for a new event
 end;
 
 procedure TD3DMessageHandler.setConsoleCursorPos;
@@ -1489,6 +1507,8 @@ begin
 
     SnapshotDone:=CreateEventA(nil, false, false, nil);
     DuplicateHandle(GetCurrentProcess, SnapshotDone, processhandle, @shared.SnapshotDone,0, false,DUPLICATE_SAME_ACCESS);
+
+    shared.canDoSnapshot:=1;
 
 
 

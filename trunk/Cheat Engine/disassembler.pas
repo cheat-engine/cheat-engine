@@ -585,7 +585,7 @@ begin
             4:
             begin
               //has an sib
-              result:='['+sib(memory,modrmbyte+1,last)+'],';
+              result:=getsegmentoverride(prefix)+'['+sib(memory,modrmbyte+1,last)+'],';
             end;
 
             5:

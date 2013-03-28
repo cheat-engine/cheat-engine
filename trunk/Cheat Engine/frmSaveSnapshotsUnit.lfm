@@ -1,0 +1,116 @@
+object frmSaveSnapshots: TfrmSaveSnapshots
+  Left = 302
+  Height = 251
+  Top = 164
+  Width = 594
+  Caption = 'Save snapshots'
+  ClientHeight = 251
+  ClientWidth = 594
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  Position = poScreenCenter
+  LCLVersion = '1.1'
+  object Label1: TLabel
+    Left = 0
+    Height = 15
+    Top = 0
+    Width = 594
+    Align = alTop
+    Caption = 'Select the snapshot(s) you wish to save'
+    ParentColor = False
+  end
+  object Panel1: TPanel
+    Left = 0
+    Height = 162
+    Top = 15
+    Width = 594
+    Align = alClient
+    ClientHeight = 162
+    ClientWidth = 594
+    TabOrder = 0
+    object ScrollBar1: TScrollBar
+      Left = 1
+      Height = 17
+      Top = 144
+      Width = 592
+      Align = alBottom
+      PageSize = 0
+      TabOrder = 0
+      OnChange = ScrollBar1Change
+    end
+    object PaintBox1: TPaintBox
+      Left = 1
+      Height = 143
+      Top = 1
+      Width = 592
+      Align = alClient
+      OnMouseDown = PaintBox1MouseDown
+      OnPaint = PaintBox1Paint
+      OnResize = PaintBox1Resize
+    end
+  end
+  object Panel2: TPanel
+    Left = 0
+    Height = 74
+    Top = 177
+    Width = 594
+    Align = alBottom
+    ClientHeight = 74
+    ClientWidth = 594
+    TabOrder = 1
+    OnResize = Panel2Resize
+    object btnSave: TButton
+      Left = 216
+      Height = 25
+      Top = 7
+      Width = 160
+      Caption = 'Save selected snapshots'
+      OnClick = btnSaveClick
+      TabOrder = 0
+    end
+    object lblSelectAll: TLabel
+      Cursor = crHandPoint
+      Left = 1
+      Height = 15
+      Top = 3
+      Width = 50
+      Caption = 'Select all'
+      Font.Color = clBlue
+      Font.Style = [fsBold, fsUnderline]
+      ParentColor = False
+      ParentFont = False
+      OnClick = lblSelectAllClick
+    end
+    object btnDone: TButton
+      Left = 256
+      Height = 25
+      Top = 39
+      Width = 75
+      Caption = 'Done'
+      OnClick = btnDoneClick
+      TabOrder = 1
+    end
+    object Label2: TLabel
+      Cursor = crHandPoint
+      Left = 1
+      Height = 15
+      Top = 23
+      Width = 64
+      Caption = 'Deselect all'
+      Font.Color = clBlue
+      Font.Style = [fsBold, fsUnderline]
+      ParentColor = False
+      ParentFont = False
+      OnClick = Label2Click
+    end
+  end
+  object SaveDialog1: TSaveDialog
+    Title = 'Give a base path and filename'
+    DefaultExt = '.ce3dsnapshot'
+    Filter = 'ce3dsnapshot|*.ce3dsnapshot'
+    Options = [ofPathMustExist, ofEnableSizing, ofViewDetail]
+    left = 120
+    top = 48
+  end
+end
