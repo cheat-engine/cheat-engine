@@ -72,7 +72,6 @@ void DXMessD3D10Handler::TakeSnapshot()
 
 		dev->OMGetRenderTargets(1, &currentrt, NULL);
 		
-
 		if (currentrt)
 		{
 			ID3D10Texture2D *backbuffer=NULL;
@@ -82,6 +81,7 @@ void DXMessD3D10Handler::TakeSnapshot()
 			ID3D10Resource *r=NULL;
 
 			currentrt->GetDesc(&backbufferdesc);
+
 
 			texDesc.Format=backbufferdesc.Format;
 			
@@ -161,7 +161,7 @@ void DXMessD3D10Handler::TakeSnapshot()
 							
 							snapshotCounter++;
 							
-							sprintf_s(s, MAX_PATH, "%ssnapshot%d.dat", shared->SnapShotDir, snapshotCounter);						
+							sprintf_s(s, MAX_PATH, "%ssnapshot%d.ce3dsnapshot", shared->SnapShotDir, snapshotCounter);						
 							
 							LPD3D10BLOB dest;
 
@@ -172,8 +172,22 @@ void DXMessD3D10Handler::TakeSnapshot()
 							x=10; //dx10
 							WriteFile(h, &x, sizeof(x), &bw, NULL); 
 
+							//
+							//strcat(s, ".bmp");
+							/*
+							{
+								ID3D10Texture2D *backbuffer=NULL;   
+								if (SUCCEEDED(swapchain->GetBuffer(0, __uuidof(backbuffer), (void **)&backbuffer)))
+								{
 
-							D3DX10SaveTextureToMemory(texture, D3DX10_IFF_PNG, &dest, 0); 
+									
+									dev->CopyResource(texture, backbuffer);
+									D3DX10SaveTextureToFileA(texture, D3DX10_IFF_PNG, s);
+								}
+							}*/
+
+							//D3DX10SaveTextureToFileA(texture, D3DX10_IFF_BMP, s);
+							D3DX10SaveTextureToMemory(texture, D3DX10_IFF_PNG, &dest, 0); //weird. PNG has some information loss on cerain things like text
 							x=dest->GetBufferSize();
 							WriteFile(h, &x, sizeof(x), &bw, NULL); 													
 							WriteFile(h, dest->GetBufferPointer(), x, &bw, NULL); 
@@ -844,7 +858,8 @@ DXMessD3D10Handler::DXMessD3D10Handler(ID3D10Device *dev, IDXGISwapChain *sc, PD
         return;
 
 
-	//create a rendertarget
+	//create a rendertarget (I doubt this is needed)
+
     ID3D10Texture2D* pBackBuffer = NULL;
 	hr = sc->GetBuffer( 0, __uuidof( ID3D10Texture2D ), ( LPVOID* )&pBackBuffer );
     if( FAILED( hr ) )
@@ -1347,61 +1362,74 @@ void __stdcall D3D10Hook_SwapChain_Present_imp(IDXGISwapChain *swapchain, ID3D10
 
 	//check if a snapshot key is down
 
-	if (currentDevice->makeSnapshot)
+	if (currentDevice->makeSnapshot) //possible threading issue if more than one render device
 	{
 		//notify CE that all render operations have completed
 		shared->snapshotcount=currentDevice->snapshotCounter;
-		SetEvent((HANDLE)shared->snapshotDone);
+		shared->canDoSnapshot=0;
+		SetEvent((HANDLE)shared->snapshotDone);		
 		currentDevice->makeSnapshot=FALSE;
 	}
 
-	if ((shared->snapshotKey) && (GetTickCount()>currentDevice->lastSnapshot+250))
+	if (shared->canDoSnapshot)
 	{
-		SHORT ks=GetAsyncKeyState(shared->snapshotKey);
-		currentDevice->makeSnapshot=((ks & 1) || (ks & (1 << 15)));
-		currentDevice->smallSnapshot=FALSE;
+		if ((shared->snapshotKey) && (GetTickCount()>currentDevice->lastSnapshot+250))
+		{
+			SHORT ks=GetAsyncKeyState(shared->snapshotKey);
+			currentDevice->makeSnapshot=((ks & 1) || (ks & (1 << 15)));
+			currentDevice->smallSnapshot=FALSE;
 
-		if (currentDevice->makeSnapshot)
-			currentDevice->lastSnapshot=GetTickCount();
-		
-	}
+			if (currentDevice->makeSnapshot)
+				currentDevice->lastSnapshot=GetTickCount();
+			
+		}
 
-	if ((currentDevice->makeSnapshot==FALSE) && (shared->smallSnapshotKey) && (GetTickCount()>currentDevice->lastSnapshot+250) && (shared->lastHwnd))
-	{
-		SHORT ks=GetAsyncKeyState(shared->smallSnapshotKey);
-		currentDevice->makeSnapshot=((ks & 1) || (ks & (1 << 15)));
+		if ((currentDevice->makeSnapshot==FALSE) && (shared->smallSnapshotKey) && (GetTickCount()>currentDevice->lastSnapshot+250) && (shared->lastHwnd))
+		{
+			SHORT ks=GetAsyncKeyState(shared->smallSnapshotKey);
+			currentDevice->makeSnapshot=((ks & 1) || (ks & (1 << 15)));
+
+			if (currentDevice->makeSnapshot)
+			{
+				POINT p;
+				currentDevice->smallSnapshot=TRUE;
+				currentDevice->lastSnapshot=GetTickCount();
+
+				//get the pixel the mouse is hovering over
+				GetCursorPos(&p);
+				ScreenToClient((HWND)shared->lastHwnd, &p);
+				currentDevice->smallSnapshotPoint=p;
+
+				GetClientRect((HWND)shared->lastHwnd, &currentDevice->smallSnapshotClientRect);
+
+
+				//get the relative position (0.00 - 1.00) this position is in for the clientrect
+				currentDevice->smallSnapshotPointRelative.x=(float)currentDevice->smallSnapshotPoint.x/(float)(currentDevice->smallSnapshotClientRect.right-currentDevice->smallSnapshotClientRect.left);
+				currentDevice->smallSnapshotPointRelative.y=(float)currentDevice->smallSnapshotPoint.y/(float)(currentDevice->smallSnapshotClientRect.bottom-currentDevice->smallSnapshotClientRect.top);
+			}
+			
+		}
 
 		if (currentDevice->makeSnapshot)
 		{
-			POINT p;
-			currentDevice->smallSnapshot=TRUE;
-			currentDevice->lastSnapshot=GetTickCount();
+			ID3D10RenderTargetView *rt=NULL;
+			makeSnapshot=TRUE; //once true, always true
 
-			//get the pixel the mouse is hovering over
-			GetCursorPos(&p);
-			ScreenToClient((HWND)shared->lastHwnd, &p);
-			currentDevice->smallSnapshotPoint=p;
+			
+			currentDevice->dev->OMGetRenderTargets(1, &rt, NULL);
 
-			GetClientRect((HWND)shared->lastHwnd, &currentDevice->smallSnapshotClientRect);
+			//clear the render target with a specific color
+			if (rt)
+			{
+				FLOAT f[]={1.0f,0.0f,1.0f,1.0f};
+				currentDevice->dev->ClearRenderTargetView(rt, f);	
+				rt->Release();
+			}
 
+			currentDevice->snapshotCounter=0;
+			
 
-			//get the relative position (0.00 - 1.00) this position is in for the clientrect
-			currentDevice->smallSnapshotPointRelative.x=(float)currentDevice->smallSnapshotPoint.x/(float)(currentDevice->smallSnapshotClientRect.right-currentDevice->smallSnapshotClientRect.left);
-			currentDevice->smallSnapshotPointRelative.y=(float)currentDevice->smallSnapshotPoint.y/(float)(currentDevice->smallSnapshotClientRect.bottom-currentDevice->smallSnapshotClientRect.top);
 		}
-		
-	}
-
-	if (currentDevice->makeSnapshot)
-	{
-		makeSnapshot=TRUE; //once true, always true
-		
-		//clear the render target with a specific color
-		FLOAT f[]={1.0f,0.0f,1.0f,1.0f};
-		currentDevice->dev->ClearRenderTargetView(currentDevice->pRenderTargetView, f);	
-
-		currentDevice->snapshotCounter=0;
-		//currentDevice->dev->OMGetRenderTargets(
 	}
 	
 
