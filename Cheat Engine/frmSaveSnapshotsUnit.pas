@@ -16,7 +16,7 @@ type
     btnSave: TButton;
     btnDone: TButton;
     Label1: TLabel;
-    Label2: TLabel;
+    lblDeselectAll: TLabel;
     lblSelectAll: TLabel;
     PaintBox1: TPaintBox;
     Panel1: TPanel;
@@ -29,7 +29,7 @@ type
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure Label2Click(Sender: TObject);
+    procedure lblDeselectAllClick(Sender: TObject);
     procedure lblSelectAllClick(Sender: TObject);
     procedure PaintBox1MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
@@ -144,7 +144,7 @@ begin
   end;
 end;
 
-procedure TfrmSaveSnapshots.Label2Click(Sender: TObject);
+procedure TfrmSaveSnapshots.lblDeselectAllClick(Sender: TObject);
 var i: integer;
 begin
   for i:=0 to length(snapshots)-1 do
@@ -170,10 +170,6 @@ var i: integer;
   fn: string;
 begin
 
-  j:=0;
-  for i:=0 to length(snapshots)-1 do
-    if snapshots[i].selected then
-      inc(j);
 
 
   if savedialog1.execute then
@@ -196,13 +192,26 @@ begin
 
         CopyFile(snapshots[i].filename, fn, true);
         fsaved.Add(fn);
+
       end;
 
+    lblDeselectAll.OnClick(lblSelectAll);
+
   end;
+
 end;
 
 procedure TfrmSaveSnapshots.btnDoneClick(Sender: TObject);
+var i,j: integer;
 begin
+  j:=0;
+  for i:=0 to length(snapshots)-1 do
+    if snapshots[i].selected then
+      inc(j);
+
+  if j>0 then //something is selected
+    btnSave.click;
+
   close;
 end;
 
