@@ -91,7 +91,7 @@ object frmSaveSnapshots: TfrmSaveSnapshots
       OnClick = btnDoneClick
       TabOrder = 1
     end
-    object Label2: TLabel
+    object lblDeselectAll: TLabel
       Cursor = crHandPoint
       Left = 1
       Height = 15
@@ -102,7 +102,7 @@ object frmSaveSnapshots: TfrmSaveSnapshots
       Font.Style = [fsBold, fsUnderline]
       ParentColor = False
       ParentFont = False
-      OnClick = Label2Click
+      OnClick = lblDeselectAllClick
     end
   end
   object SaveDialog1: TSaveDialog
