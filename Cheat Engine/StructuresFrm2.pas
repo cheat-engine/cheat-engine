@@ -2425,10 +2425,12 @@ begin
       displayaddress:=getAddressFromNode(node, columns[i], error);  //get the address to show the user
 
       savedstate:=ptruint(c.getSavedState);
-      if (savedstate<>0) and (node.level=1) then //locked and it's the first level (main), set the address to actually read from
-        address:=savedstate+element.Offset
-      else
-        address:=displayaddress;
+      address:=displayaddress;
+
+      if (savedstate<>0) and (InRangeX(address, c.Address, c.address+ c.getSavedStateSize)) then
+        address:=address+(savedstate-c.address);
+
+
 
 
       if not error then
@@ -4380,6 +4382,7 @@ var a: PtrUInt;
   node: TTreeNode;
   i: integer;
   s: string;
+  savedstate: PtrUInt;
 begin
   node:=tvStructureView.Selected;
   if node=nil then exit;
@@ -4400,8 +4403,28 @@ begin
         begin
           se:=getStructElementFromNode(tvStructureView.Selections[i]);
           a:=getAddressFromNode(tvStructureView.Selections[i], c, error);
+
+
+{
+displayaddress:=getAddressFromNode(node, columns[i], error);  //get the address to show the user
+
+savedstate:=ptruint(c.getSavedState);
+address:=displayaddress;
+
+if (savedstate<>0) and (InRangeX(address, c.Address, c.address+ c.getSavedStateSize)) then
+  address:=address+(savedstate-c.address);
+
+}
+
+
           if not error then
+          begin
+            savedstate:=ptruint(c.getSavedState);
+            if (savedstate<>0) and (InRangeX(a, c.Address, c.address+ c.getSavedStateSize)) then
+              a:=a+(savedstate-c.address);
+
             se.setvalue(a, s); //I knew there was a reason I implemented this
+          end;
         end;
       end;
     end;
