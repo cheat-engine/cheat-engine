@@ -92,6 +92,8 @@ type
     hknameindex: integer;
 
     Hotkeylist: tlist;
+    fisGroupHeader: Boolean; //set if it's a groupheader, only the description matters then
+
 
     fonactivate, fondeactivate: TMemoryRecordActivateEvent;
     fOnDestroy: TNotifyEvent;
@@ -125,7 +127,6 @@ type
   public
 
 
-    isGroupHeader: Boolean; //set if it's a groupheader, only the description matters then
 
 
     Description : string;
@@ -204,6 +205,7 @@ type
 
 
   published
+    property IsGroupHeader: boolean read fisGroupHeader write fisGroupHeader;
     property ID: integer read fID write setID;
     property Index: integer read getIndex;
     property Color: TColor read fColor write setColor;
@@ -509,7 +511,7 @@ begin
   tempnode:=CheatEntry.FindNode('GroupHeader');
   if tempnode<>nil then
   begin
-    isGroupHeader:=tempnode.TextContent='1';
+    fisGroupHeader:=tempnode.TextContent='1';
   end;
 
 
@@ -815,7 +817,7 @@ begin
 
   cheatEntry.AppendChild(doc.CreateElement('Color')).TextContent:=inttohex(fcolor,6);
 
-  if isGroupHeader then
+  if fisGroupHeader then
   begin
     cheatEntry.AppendChild(doc.CreateElement('GroupHeader')).TextContent:='1';
   end
@@ -1187,7 +1189,7 @@ begin
   end;
 
 
-  if not isGroupHeader then
+  if not fisGroupHeader then
   begin
     if self.VarType = vtAutoAssembler then
     begin
@@ -1355,7 +1357,7 @@ var oldvalue, newvalue: string;
   olddecimalvalue, newdecimalvalue: qword;
   oldfloatvalue, newfloatvalue: double;
 begin
-  if (not isgroupheader) and active and (VarType<>vtAutoAssembler) then
+  if (not fisgroupheader) and active and (VarType<>vtAutoAssembler) then
   begin
     try
 
@@ -1475,7 +1477,7 @@ var
   i: integer;
 begin
   result:='';
-  if isGroupHeader then exit;
+  if fisGroupHeader then exit;
 
   bufsize:=getbytesize;
   if bufsize=0 then exit;
