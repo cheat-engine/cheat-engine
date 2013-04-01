@@ -131,6 +131,8 @@ begin
 
   if f.showmodal=mrok then
   begin
+    if f.itemindex=-1 then f.itemindex:=0;
+
     if f.itemindex>=frmStructures2.Count then       //new window
     begin
       structurefrm:=tfrmstructures2.create(application);
@@ -146,7 +148,7 @@ begin
     structurefrm.show;
 
     if structurefrm.mainStruct=nil then //if no structure is selected define it then
-      structurefrm.Definenewstructure1.click;
+      structurefrm.DefineNewStructure(size);
 
   end;
 

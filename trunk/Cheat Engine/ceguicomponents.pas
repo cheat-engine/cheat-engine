@@ -122,7 +122,7 @@ type TCESplitter=class(TCustomSplitter)
   property OnMoved;
   property ParentColor;
   property ParentShowHint;
- // property PopupMenu;
+  property PopupMenu;
   property ResizeAnchor;
   property ResizeStyle;
   property ShowHint;
@@ -164,7 +164,7 @@ published
   property ParentColor default False;
   property ParentFont;
   property ParentShowHint;
-//  property PopupMenu;
+  property PopupMenu;
   property ReadOnly;
   property RowSelect;
   property ScrollBars;
@@ -245,7 +245,7 @@ published
 //  property OnStartDrag;
   property Orientation;
   property ParentShowHint;
- // property PopupMenu;
+  property PopupMenu;
 
   property ShowHint;
   property Smooth;
@@ -297,7 +297,7 @@ type TCETrackBar=class(TCustomTrackBar)
     property Orientation;
     property PageSize;
     property ParentShowHint;
- //   property PopupMenu;
+    property PopupMenu;
     property Position;
     property Reversed;
     property ScalePos;
@@ -364,7 +364,7 @@ type TCEListBox=class(TCustomListBox)
     property ParentColor;
     property ParentShowHint;
     property ParentFont;
-  //  property PopupMenu;
+    property PopupMenu;
     property ShowHint;
     property Sorted;
     property Style;
@@ -431,7 +431,7 @@ published
   property ParentColor;
   property ParentFont;
   property ParentShowHint;
-//  property PopupMenu;
+  property PopupMenu;
   property ReadOnly;
   property ShowHint;
   property Sorted;
@@ -466,7 +466,7 @@ published
   property ParentColor;
   property ParentFont;
   property ParentShowHint;
-//  property PopupMenu;
+  property PopupMenu;
   property ShowHint;
   property TabOrder;
   property TabStop;
@@ -547,7 +547,7 @@ published
     property ParentFont;
     property ParentColor;
     property ParentShowHint;
-//   property PopupMenu;
+   property PopupMenu;
     property ShowHint;
     property TabOrder;
     property TabStop;
@@ -600,7 +600,7 @@ type TCECheckBox=class(TCustomCheckBox)
     property ParentFont;
     property ParentShowHint;
     property ParentBidiMode;
-  //  property PopupMenu;
+    property PopupMenu;
     property ShowHint;
     property State;
     property TabOrder;
@@ -663,7 +663,7 @@ type TCEEdit=class(TCustomEdit)
     property ParentFont;
     property ParentShowHint;
     property PasswordChar;
-   // property PopupMenu;
+    property PopupMenu;
     property ReadOnly;
     property ShowHint;
     property TabStop;
@@ -769,7 +769,7 @@ type TCEForm=class(TCustomForm)
     property ParentBiDiMode;
     property ParentFont;
     property PixelsPerInch;
-//    property PopupMenu;
+    property PopupMenu;
  //   property PopupMode;
   //  property PopupParent;
     property Position;
@@ -830,7 +830,7 @@ type TCEMemo=class(TCustomMemo)
     property ParentBidiMode;
     property ParentColor;
     property ParentFont;
- //   property PopupMenu;
+    property PopupMenu;
     property ParentShowHint;
     property ReadOnly;
     property ScrollBars;
@@ -875,7 +875,7 @@ type TCEImage=class(TCustomImage)
     //property OnStartDrag;
     property ParentShowHint;
     property Picture;
-   // property PopupMenu;
+    property PopupMenu;
     property Proportional;
     property ShowHint;
     property Stretch;
@@ -913,7 +913,7 @@ published
     property ParentColor;
     property ParentFont;
     property ParentShowHint;
-    //property PopupMenu;
+    property PopupMenu;
     property ShowHint;
     property TabOrder;
     property TabStop;
@@ -965,7 +965,7 @@ published
   property ParentColor;
   property ParentFont;
   property ParentShowHint;
- // property PopupMenu;
+  property PopupMenu;
   property ShowAccelChar;
   property ShowHint;
   property Transparent;
@@ -1030,7 +1030,7 @@ type TCEButton=class(TCustomButton)
    // property OnUTF8KeyPress;
     property ParentFont;
     property ParentShowHint;
-    //property PopupMenu;
+    property PopupMenu;
     property ShowHint;
     property TabOrder;
     property TabStop;

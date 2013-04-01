@@ -459,6 +459,7 @@ type
     { public declarations }
     initialaddress: PtrUInt;
 
+    function DefineNewStructure(recommendedSize: integer=4096): TDissectedStruct;
     procedure addLockedAddress(shownaddress: ptruint; memoryblock: pointer; size: integer); //call this to add a locked address, and copy the memoryblock to the target process)
 
     function addColumn: TStructColumn;
@@ -1829,6 +1830,8 @@ var
 begin
   result:=false;
 
+  address:=shownaddress;
+
   fsavedstatesize:=size;
   fsavedstate:=VirtualAllocEx(processhandle, nil, fsavedstatesize+1, MEM_COMMIT or MEM_RESERVE, PAGE_READWRITE);
   if fsavedstate<>nil then
@@ -1850,8 +1853,9 @@ begin
   end;
 
 
+
   miToggleLock.Checked:=result;
-  miToggleLock.Caption:=rsLock+' ('+inttohex(qword(fsavedstate),8)+')';
+  miToggleLock.Caption:=rsLock+' ( Shadowcopy at '+inttohex(qword(fsavedstate),8)+')';
 end;
 
 function TStructColumn.saveState: boolean;
@@ -2382,6 +2386,43 @@ begin
   inc(baseaddress, getStructElementFromNode(node).Offset);
 end;
 
+
+
+function getPointerAddressOverride(c: TStructColumn; address: ptruint; const offsets: array of integer; var hasError: boolean): ptruint;
+//special version of the normal getPointerAddress with support for locked addresses
+var realaddress, realaddress2: PtrUInt;
+    count: dword;
+    check: boolean;
+    i: integer;
+
+    savedstate: ptruint;
+begin
+  savedstate:=ptruint(c.getSavedState);
+
+
+  realaddress2:=address;
+  for i:=length(offsets)-1 downto 0 do
+  begin
+    realaddress:=0;
+    if (savedstate<>0) and (InRangeX(realaddress2, c.Address, c.address+ c.getSavedStateSize)) then
+       realaddress2:=realaddress2+(savedstate-c.address);
+
+
+    check:=readprocessmemory(processhandle,pointer(realaddress2),@realaddress,processhandler.pointersize,count);
+    if check and (count=processhandler.pointersize) then
+      realaddress2:=realaddress+offsets[i]
+    else
+    begin
+      result:=0;
+
+      exit;
+    end;
+  end;
+
+  result:=realAddress2;
+  hasError:=false;
+end;
+
 function TfrmStructures2.getAddressFromNode(node: TTreenode; column: TStructColumn; var hasError: boolean): ptruint;
 //Find out the address of this node
 var
@@ -2389,7 +2430,7 @@ var
   offsets: array of integer;
 begin
   getPointerFromNode(node,column, baseaddress, offsets);
-  result:=getPointerAddress(baseaddress,  offsets, hasError);
+  result:=getPointerAddressOverride(column, baseaddress,  offsets, hasError);
 end;
 
 
@@ -2661,6 +2702,7 @@ var n: TStructelement;
   address: ptruint;
   c: TStructColumn;
   x: dword;
+  savedstate: PtrUInt;
 begin
   AllowExpansion:=true;
   n:=getStructElementFromNode(node);
@@ -2676,11 +2718,19 @@ begin
 
       address:=getAddressFromNode(node, c, error);
 
+      savedstate:=ptruint(c.getSavedState);
+      if (savedstate<>0) and (InRangeX(address, c.Address, c.address+ c.getSavedStateSize)) then
+        address:=address+(savedstate-c.address);
+
       if not error then
       begin
         //dereference the pointer and fill it in if possible
         if ReadProcessMemory(processhandle, pointer(address), @address, processhandler.pointersize, x) then
         begin
+          //adjust the address again if it's inside the savedstate
+          if (savedstate<>0) and (InRangeX(address, c.Address, c.address+ c.getSavedStateSize)) then
+            address:=address+(savedstate-c.address);
+
           //check if the address pointed to is readable
           if ReadProcessMemory(processhandle, pointer(address), @x, 1, x) then
             n.AutoCreateChildStruct('Autocreated from '+inttohex(address,8), address)
@@ -2811,42 +2861,55 @@ begin
 
 end;
 
-procedure TfrmStructures2.Definenewstructure1Click(Sender: TObject);
+function TfrmStructures2.DefineNewStructure(recommendedSize: integer=4096): TDissectedStruct;
 var
   structName: string;
   autoFillIn: integer;
   sstructsize: string;
   structsize: integer;
 begin
-  structname:=rsUnnamedStructure;
-
-  //get the name
-  if not inputquery(rsStructureDefine, rsGiveTheNameForThisStructure, structName) then exit;
-
-  //ask if it should be filled in automatically
-  autoFillIn:=messagedlg(rsDoYouWantCheatEngineToTryAndFillInTheMostBasicType, mtconfirmation, [mbyes, mbno, mbcancel], 0);
-  if autoFillIn=mrcancel then exit;
-
-  mainStruct:=nil;
-  tvStructureView.items.clear;
-
-
-  mainStruct:=TDissectedStruct.create(structname);
-
-  if autofillin=mryes then
+  result:=nil;
+  if columnCount>0 then
   begin
-    sstructsize:='4096';
-    if not inputquery(rsStructureDefine, rsPleaseGiveAStartingSizeOfTheStructYouCanChangeThis, Sstructsize) then exit;
-    structsize:=strtoint(sstructsize);
+    structname:=rsUnnamedStructure;
 
-    if TStructColumn(columns[0]).getSavedState=nil then
-      mainStruct.autoGuessStruct(TStructColumn(columns[0]).getAddress, 0, structsize )
-    else
-      mainStruct.autoGuessStruct(ptruint(TStructColumn(columns[0]).getSavedState), 0, min(structsize, TStructColumn(columns[0]).getSavedStateSize)); //fill base don the saved state
+    //get the name
+    if not inputquery(rsStructureDefine, rsGiveTheNameForThisStructure, structName) then exit;
+
+    //ask if it should be filled in automatically
+    autoFillIn:=messagedlg(rsDoYouWantCheatEngineToTryAndFillInTheMostBasicType, mtconfirmation, [mbyes, mbno, mbcancel], 0);
+    if autoFillIn=mrcancel then exit;
+
+    mainStruct:=nil;
+    tvStructureView.items.clear;
+
+
+    mainStruct:=TDissectedStruct.create(structname);
+
+    if autofillin=mryes then
+    begin
+      sstructsize:=inttostr(recommendedSize);
+      if not inputquery(rsStructureDefine, rsPleaseGiveAStartingSizeOfTheStructYouCanChangeThis, Sstructsize) then exit;
+      structsize:=strtoint(sstructsize);
+
+      if TStructColumn(columns[0]).getSavedState=nil then
+        mainStruct.autoGuessStruct(TStructColumn(columns[0]).getAddress, 0, structsize )
+      else
+        mainStruct.autoGuessStruct(ptruint(TStructColumn(columns[0]).getSavedState), 0, min(structsize, TStructColumn(columns[0]).getSavedStateSize)); //fill base don the saved state
+    end;
+
+    mainStruct.addToGlobalStructList;
+    UpdateCurrentStructOptions;
+
+    result:=mainStruct;
+
   end;
 
-  mainStruct.addToGlobalStructList;
-  UpdateCurrentStructOptions;
+end;
+
+procedure TfrmStructures2.Definenewstructure1Click(Sender: TObject);
+begin
+  DefineNewStructure(4096);
 end;
 
 
@@ -4462,7 +4525,13 @@ end;
 procedure TfrmStructures2.addLockedAddress(shownaddress: ptruint; memoryblock: pointer; size: integer);
 begin
   //add a column and lock it with the given state
+
+
   addColumn.LockAddress(shownaddress, memoryblock, size);
+
+
+
+
 end;
 
 
