@@ -3574,6 +3574,7 @@ begin
   end;
 end;
 
+
 function getPointerAddress(address: ptruint; const offsets: array of integer; var hasError: boolean): ptruint;
 var realaddress, realaddress2: PtrUInt;
     count: dword;

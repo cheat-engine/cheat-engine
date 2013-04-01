@@ -11,7 +11,7 @@ object frmStackView: TfrmStackView
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.1'
   object lvStack: TListView
     Left = 0
     Height = 240

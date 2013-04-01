@@ -15,6 +15,7 @@ type
   TfrmSaveSnapshots = class(TForm)
     btnSave: TButton;
     btnDone: TButton;
+    Button1: TButton;
     Label1: TLabel;
     lblDeselectAll: TLabel;
     lblSelectAll: TLabel;
@@ -26,6 +27,7 @@ type
     procedure btnCancelClick(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
     procedure btnDoneClick(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -48,6 +50,8 @@ type
     end;
     fsaved: tstringlist;
 
+    loaded: integer;
+    procedure combinedselect(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: integer);
     procedure loadSnapshot(index: integer);
   public
     { public declarations }
@@ -69,21 +73,43 @@ var
   s: Tfilestream;
   pngsize: integer;
   error: string;
+  i: integer;
 begin
   try
-    if snapshots[index].pic<>nil then
-      FreeAndNil(snapshots[index].pic);
 
-    s:=tfilestream.Create(snapshots[index].filename, fmOpenRead);
-    try
-      s.position:=4; //to the png size
-      s.ReadBuffer(pngsize, sizeof(pngsize));
+    if loaded>64 then //time to cleanup
+    begin
+      for i:=index-16 downto 0 do  //allow a few in front
+        if snapshots[i].pic=nil then
+        begin
+          freeandnil(snapshots[i].pic);
+          dec(loaded);
+        end;
+
+      for i:=index+48 to length(snapshots)-1 do
+        if snapshots[i].pic=nil then
+        begin
+          freeandnil(snapshots[i].pic);
+          dec(loaded);
+        end;
+
+    end;
+
+    if snapshots[index].pic=nil then
+    begin
+      s:=tfilestream.Create(snapshots[index].filename, fmOpenRead);
+      try
+        s.position:=4; //to the png size
+        s.ReadBuffer(pngsize, sizeof(pngsize));
 
 
-      snapshots[index].pic:=TPortableNetworkGraphic.Create;
-      snapshots[index].pic.LoadFromStream(s, pngsize);
-    finally
-      s.free;
+        snapshots[index].pic:=TPortableNetworkGraphic.Create;
+        snapshots[index].pic.LoadFromStream(s, pngsize);
+      finally
+        s.free;
+      end;
+
+      inc(loaded);
     end;
 
   except
@@ -192,6 +218,7 @@ begin
 
         CopyFile(snapshots[i].filename, fn, true);
         fsaved.Add(fn);
+        inc(j);
 
       end;
 
@@ -213,6 +240,89 @@ begin
     btnSave.click;
 
   close;
+end;
+
+
+procedure TfrmSaveSnapshots.combinedselect(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: integer);
+var img: timage;
+  sx, sy: integer;
+  i: integer;
+begin
+  img:=TImage(sender);
+  sx:=trunc((img.Picture.Width/img.Width)*x);
+  sy:=trunc((img.Picture.Height/img.Height)*y);
+
+  //find snapshots that have a pixel not $ff00ff at sx,sy
+
+  for i:=0 to length(snapshots)-1 do
+  begin
+    loadSnapshot(i);
+    if snapshots[i].pic.canvas.Pixels[sx,sy]<>$ff00ff then
+      snapshots[i].selected:=true;
+  end;
+
+
+  TCustomForm(img.Parent).close;
+
+  PaintBox1.repaint;
+end;
+
+procedure TfrmSaveSnapshots.Button1Click(Sender: TObject);
+var
+  i: integer;
+  b: TBitmap;
+
+  b2: tbitmap;
+  f: TCustomForm;
+
+  img: timage;
+begin
+  //create a "combined" view the user can use to select which pixels to pick
+  loadSnapshot(0);
+
+  b:=tbitmap.create;
+  b.Width:=snapshots[0].pic.Width;
+  b.Height:=snapshots[0].pic.Height;
+
+
+
+
+  for i:=0 to length(snapshots)-1 do
+  begin
+    loadSnapshot(i);
+    //for some reason I first need to convert it to a BMP before transparancy take an effect
+
+    b2:=tbitmap.create;
+    b2.width:=snapshots[i].pic.width;
+    b2.Height:=snapshots[i].pic.Height;
+    b2.Canvas.Draw(0,0,snapshots[i].pic);
+
+    b2.TransparentColor:=$ff00ff;
+    b2.Transparent:=true;
+
+    b.Canvas.Draw(0,0,b2);
+
+    b2.free;
+  end;
+
+  f:=TCustomForm.create(self);
+  img:=TImage.create(f);
+  img.Picture.Bitmap:=b;
+  img.parent:=f;
+  img.align:=alClient;
+  img.Stretch:=true;
+  img.OnMouseDown:=combinedselect;
+
+  f.ClientWidth:=b.width;
+  f.ClientHeight:=b.Height;
+  f.BorderIcons:=[biSystemMenu];
+  f.position:=poScreenCenter;
+  f.showmodal;
+
+  img.free;
+  f.free;
+  b.free;
+
 end;
 
 procedure TfrmSaveSnapshots.FormCloseQuery(Sender: TObject;
@@ -267,22 +377,21 @@ begin
     loadSnapshot(startpos);
 
 
-  aspectratio:=snapshots[startpos].pic.Width/snapshots[startpos].pic.Height;
+
 
   h:=paintbox1.Height;
 
 
   paintbox1.Canvas.Clear;
 
-  for i:=0 to startpos-1 do //cleanup
-    if snapshots[i].pic<>nil then
-      FreeAndNil(snapshots[i].pic);
-
-
   for i:=startpos to length(snapshots)-1 do
   begin
     if snapshots[i].pic=nil then
       loadSnapshot(i);
+
+    aspectratio:=snapshots[i].pic.Width/snapshots[i].pic.Height;
+
+
 
     currentw:=ceil(h*aspectratio);
 
@@ -300,17 +409,9 @@ begin
 
     end;
 
-
     inc(xpos, currentw+1);
     if xpos>paintbox1.Width then
-    begin
-      for j:=i+1 to length(snapshots)-1 do
-        if snapshots[j].pic<>nil then
-          FreeAndNil(snapshots[j].pic);
-
-      scrollbar1.LargeChange:=min(1, i);
       exit; //done
-    end;
   end;
 
 end;

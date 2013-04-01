@@ -152,11 +152,11 @@ void DXMessD3D10Handler::TakeSnapshot()
 							HANDLE h;
 							DWORD bw;
 							int x;
-							uintptr_t stackbase;
+							UINT64 stackbase=0;
 
 							__asm
 							{
-								mov stackbase, ebp   //sure, it's a bit too far, but close enough
+								mov dword ptr [stackbase], ebp   //sure, it's a bit too far, but close enough
 							}
 							
 							snapshotCounter++;
@@ -202,14 +202,15 @@ void DXMessD3D10Handler::TakeSnapshot()
 
 							if (VirtualQuery((void *)stackbase, &mbi, sizeof(mbi))==sizeof(mbi))
 							{								
-								stacksize=min(mbi.RegionSize- (stackbase-(uintptr_t)mbi.BaseAddress), 8192);
+								stacksize=min(mbi.RegionSize- ((uintptr_t)stackbase-(uintptr_t)mbi.BaseAddress), 8192);
 								WriteFile(h, &stacksize, sizeof(stacksize), &bw, NULL);
 								WriteFile(h, (void *)stackbase, stacksize, &bw, NULL); 
 							}
 							else
 							{
 								stacksize=0;
-								WriteFile(h, &stacksize, sizeof(stacksize), &bw, NULL);
+								stackbase=0;
+								WriteFile(h, &stacksize, sizeof(stacksize), &bw, NULL);								
 							}
 
 							ID3D10Buffer* c=NULL;	

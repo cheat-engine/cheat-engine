@@ -2063,7 +2063,12 @@ object MainForm: TMainForm
       end
       object miSetupSnapshotKeys: TMenuItem
         Caption = 'Start and configure snapshot recording'
+        Visible = False
         OnClick = miSetupSnapshotKeysClick
+      end
+      object miSnapshothandler: TMenuItem
+        Caption = 'Snapshot handler'
+        OnClick = miSnapshothandlerClick
       end
     end
     object ools1: TMenuItem

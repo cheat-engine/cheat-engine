@@ -1,11 +1,11 @@
 object frmSaveSnapshots: TfrmSaveSnapshots
   Left = 302
-  Height = 251
+  Height = 250
   Top = 164
-  Width = 594
+  Width = 576
   Caption = 'Save snapshots'
-  ClientHeight = 251
-  ClientWidth = 594
+  ClientHeight = 250
+  ClientWidth = 576
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -15,25 +15,25 @@ object frmSaveSnapshots: TfrmSaveSnapshots
     Left = 0
     Height = 15
     Top = 0
-    Width = 594
+    Width = 576
     Align = alTop
     Caption = 'Select the snapshot(s) you wish to save'
     ParentColor = False
   end
   object Panel1: TPanel
     Left = 0
-    Height = 162
+    Height = 161
     Top = 15
-    Width = 594
+    Width = 576
     Align = alClient
-    ClientHeight = 162
-    ClientWidth = 594
+    ClientHeight = 161
+    ClientWidth = 576
     TabOrder = 0
     object ScrollBar1: TScrollBar
       Left = 1
       Height = 17
-      Top = 144
-      Width = 592
+      Top = 143
+      Width = 574
       Align = alBottom
       PageSize = 0
       TabOrder = 0
@@ -41,9 +41,9 @@ object frmSaveSnapshots: TfrmSaveSnapshots
     end
     object PaintBox1: TPaintBox
       Left = 1
-      Height = 143
+      Height = 142
       Top = 1
-      Width = 592
+      Width = 574
       Align = alClient
       OnMouseDown = PaintBox1MouseDown
       OnPaint = PaintBox1Paint
@@ -53,11 +53,11 @@ object frmSaveSnapshots: TfrmSaveSnapshots
   object Panel2: TPanel
     Left = 0
     Height = 74
-    Top = 177
-    Width = 594
+    Top = 176
+    Width = 576
     Align = alBottom
     ClientHeight = 74
-    ClientWidth = 594
+    ClientWidth = 576
     TabOrder = 1
     OnResize = Panel2Resize
     object btnSave: TButton
@@ -103,6 +103,16 @@ object frmSaveSnapshots: TfrmSaveSnapshots
       ParentColor = False
       ParentFont = False
       OnClick = lblDeselectAllClick
+    end
+    object Button1: TButton
+      Left = 468
+      Height = 25
+      Top = 7
+      Width = 107
+      Anchors = [akTop, akRight]
+      Caption = 'Combined select'
+      OnClick = Button1Click
+      TabOrder = 2
     end
   end
   object SaveDialog1: TSaveDialog

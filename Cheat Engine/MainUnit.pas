@@ -215,6 +215,7 @@ type
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
+    miSnapshothandler: TMenuItem;
     miSetupSnapshotKeys: TMenuItem;
     miDisplayDefault: TMenuItem;
     miDisplayByte: TMenuItem;
@@ -444,6 +445,7 @@ type
     procedure miShowAsSignedClick(Sender: TObject);
     procedure miShowCustomTypeDebugClick(Sender: TObject);
     procedure miShowPreviousValueClick(Sender: TObject);
+    procedure miSnapshothandlerClick(Sender: TObject);
     procedure miTutorialClick(Sender: TObject);
     procedure miChangeValueClick(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
@@ -738,7 +740,7 @@ type
     procedure setIsProtected(p: boolean);
 
     procedure d3dclicktest(overlayid: integer; x, y: integer);
-    procedure updated3dgui;
+
 
     procedure createGroupConfigButton;
     procedure destroyGroupConfigButton;
@@ -780,6 +782,7 @@ type
     mustClose: boolean;
 
 
+    procedure updated3dgui;
     procedure RefreshCustomTypes;
 
     procedure autoattachcheck;
@@ -3021,25 +3024,21 @@ begin
   updated3dgui;
 end;
 
-procedure TMainForm.miSetupSnapshotKeysClick(Sender: TObject);
-var frmD3DHookSnapshotConfig: TfrmD3DHookSnapshotConfig;
+procedure TMainForm.miSnapshothandlerClick(Sender: TObject);
 begin
-  frmd3dhooksnapshotconfig:=TfrmD3DHookSnapshotConfig.create(self);
-  try
-    if frmd3dhooksnapshotconfig.showmodal=mrok then
-    begin
+  if frmSnapshotHandler=nil then
+  begin
+    frmSnapshotHandler:=tfrmSnapshotHandler.Create(application);
+    frmSnapshotHandler.show;
+    if D3DHook<>nil then
+      frmSnapshotHandler.miConfig.click; //configure it if needed
+  end
+  else
+    frmSnapshotHandler.show;
+end;
 
-      safed3dhook;
-      updated3dgui;
-
-      if d3dhook<>nil then
-        d3dhook.setSnapshotOptions(frmd3dhooksnapshotconfig.dirSnapshot.Text, frmd3dhooksnapshotconfig.fullsnapshotkey, frmd3dhooksnapshotconfig.smallsnapshotkey, frmd3dhooksnapshotconfig.cbProgressive.checked, frmd3dhooksnapshotconfig.cbClearDepth.checked);
-
-    end;
-
-  finally
-    frmd3dhooksnapshotconfig.free;
-  end;
+procedure TMainForm.miSetupSnapshotKeysClick(Sender: TObject);
+begin
 end;
 
 
@@ -4422,6 +4421,8 @@ begin
 
   //FUUUUCK, screw this header bug. It's time to see how the updated snapshot works
 end;
+
+
 
 
 procedure TMainForm.aprilfoolsscan;
