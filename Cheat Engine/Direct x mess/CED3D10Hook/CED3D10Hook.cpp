@@ -136,7 +136,7 @@ void DXMessD3D10Handler::TakeSnapshot()
 
 								color=(DWORD *)((UINT_PTR)mappedtexture.pData+mappedtexture.RowPitch*ypos+xpos*4);
 
-								if (*color!=0xffff00ff)	//pixels got changed
+								if ((*color & 0xffffff)!=0xff00ff)		//pixels got changed
 									savethis=TRUE;
 
 								texture->Unmap(0);				
@@ -634,9 +634,11 @@ DXMessD3D10Handler::DXMessD3D10Handler(ID3D10Device *dev, IDXGISwapChain *sc, PD
 	int i;
 
 
+	snapshotCounter=0;
 	lastSnapshot=0;
 	makeSnapshot=FALSE;
 	smallSnapshot=FALSE;
+
 
 	pPixelShaderNormal=NULL;
 	pVertexShader=NULL;

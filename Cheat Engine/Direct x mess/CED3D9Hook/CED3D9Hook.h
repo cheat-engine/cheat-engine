@@ -3,6 +3,8 @@
 
 #include "stdafx.h"
 
+#include <ocidl.h>
+
 
 
 
@@ -19,7 +21,7 @@ class DXMessD3D9Handler
 private:
 	PD3DHookShared shared;
 
-	IDirect3DDevice9 *dev;
+	
 
 	TextureData9 *textures;
 	int TextureCount;
@@ -32,11 +34,27 @@ private:
 	BOOL UpdateTextures();
 	void DrawString(D3DXVECTOR3 position, PTextureData9 pFontTexture, char *s, int strlen);
 public:
-	DXMessD3D9Handler(IDirect3DDevice9 *dev, PD3DHookShared shared);
-	~DXMessD3D9Handler();
+	
+	int snapshotCounter;
+	DWORD lastSnapshot; //tickcount when the last snapshot was made (so there's at least 250 ms between snapshots)	
+	BOOL makeSnapshot;
+	BOOL smallSnapshot;
+	POINT smallSnapshotPoint;
+	POINTF smallSnapshotPointRelative;
+	RECT smallSnapshotClientRect; //in case the render target has a different size than the clientrect (e.g in games that fake a high fps by actually lowering the resolution without the user seeing the res change)
+
+	IDirect3DDevice9 *dev;
+
+	void TakeSnapshot();
+	void PrepareForSnapshot();
 	void RenderOverlay();
 	void BeforeReset();
 	void AfterReset();
+
+	DXMessD3D9Handler(IDirect3DDevice9 *dev, PD3DHookShared shared);
+	~DXMessD3D9Handler();
+
+
 };
 
 typedef HRESULT     (__stdcall *D3D9_RESET_ORIGINAL)(IDirect3DDevice9 *Device, D3DPRESENT_PARAMETERS *pPresentationParameters);
