@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
-  StdCtrls, Menus, fgl, math;
+  StdCtrls, Menus, fgl, math, NewKernelHandler;
 
 type
 
@@ -81,7 +81,7 @@ implementation
 {$R *.lfm}
 
 uses mainunit, frmSaveSnapshotsUnit, d3dhookUnit, frmD3DHookSnapshotConfigUnit,
-  StructuresFrm2, frmSelectionlistunit;
+  StructuresFrm2, frmSelectionlistunit, frmStackViewUnit;
 
 procedure TfrmSnapshotHandler.loadsnapshots(list: TStrings);
 var
@@ -163,13 +163,15 @@ begin
 
   for i:=scrollbar1.Position to snapshots.count-1 do
     if InRange(x, snapshots[i].xpos, snapshots[i].xpos+snapshots[i].width) then
-    begin
       snapshots[i].selected:=not snapshots[i].selected;
 
-      if snapshots[i].selected then
-        inc(selcount);
 
-    end;
+  for i:=0 to snapshots.count-1 do
+  begin
+    if snapshots[i].selected then
+      inc(selcount);
+  end;
+
 
   PaintBox1.repaint;
 
@@ -326,6 +328,8 @@ begin
 
   end;
 end;
+
+
 
 procedure TfrmSnapshotHandler.miConfigClick(Sender: TObject);
 var frmD3DHookSnapshotConfig: TfrmD3DHookSnapshotConfig;

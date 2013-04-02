@@ -47,6 +47,14 @@ private:
 	void DrawString(D3D11_VIEWPORT vp, PTextureData11 pFontTexture, char *s, int strlen);
 
 public:	
+	int snapshotCounter;
+	DWORD lastSnapshot; //tickcount when the last snapshot was made (so there's at least 250 ms between snapshots)	
+	BOOL makeSnapshot;
+	BOOL smallSnapshot;
+	POINT smallSnapshotPoint;
+	POINTF smallSnapshotPointRelative;
+	RECT smallSnapshotClientRect; //in case the render target has a different size than the clientrect (e.g in games that fake a high fps by actually lowering the resolution without the user seeing the res change)
+
 	ID3D11Device *dev;
 	ID3D11DeviceContext *dc;
 	ID3D11RasterizerState *pWireframeRasterizer;
@@ -55,6 +63,8 @@ public:
 	DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD3DHookShared s);
 	~DXMessD3D11Handler();
 	void RenderOverlay();
+	void TakeSnapshot();
+	void PrepareForSnapshot();
 
 };
 
