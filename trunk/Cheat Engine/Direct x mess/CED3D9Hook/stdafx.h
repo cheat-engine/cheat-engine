@@ -15,5 +15,6 @@
 #include <d3dx9.h>
 #include "..\d3dhookshared.h"
 #include "CED3D9Hook.h"
+
 #include <map>
 

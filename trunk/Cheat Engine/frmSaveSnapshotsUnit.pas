@@ -114,26 +114,30 @@ begin
 
   except
     //this is called from onpaint. Exceptions in onpaint crash apps
-    on e: exception do
+{    on e: exception do
     begin
       error:=e.Message;
       ShowMessage(error);
-    end;
+    end;}
   end;
 end;
 
 procedure TfrmSaveSnapshots.initialize(path: string; max: integer);
 var i: integer;
 begin
-  scrollbar1.position:=0;
-  scrollbar1.Max:=max-1;
-  setlength(snapshots, max);
+  try
+    scrollbar1.position:=0;
+    scrollbar1.Max:=max-1;
+    setlength(snapshots, max);
 
-  for i:=0 to max-1 do
-  begin
-    snapshots[i].filename:=path+'snapshot'+inttostr(i+1)+'.ce3dsnapshot';
-    snapshots[i].pic:=nil;
-    snapshots[i].selected:=false;
+    for i:=0 to max-1 do
+    begin
+      snapshots[i].filename:=path+'snapshot'+inttostr(i+1)+'.ce3dsnapshot';
+      snapshots[i].pic:=nil;
+      snapshots[i].selected:=false;
+    end;
+  except
+    setlength(snapshots, 0);
   end;
 end;
 
@@ -388,6 +392,8 @@ begin
   begin
     if snapshots[i].pic=nil then
       loadSnapshot(i);
+
+    if snapshots[i].pic=nil then continue;
 
     aspectratio:=snapshots[i].pic.Width/snapshots[i].pic.Height;
 

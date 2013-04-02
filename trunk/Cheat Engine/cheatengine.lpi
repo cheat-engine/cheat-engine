@@ -157,7 +157,7 @@
         <PackageName Value="LCL"/>
       </Item5>
     </RequiredPackages>
-    <Units Count="272">
+    <Units Count="273">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -200,7 +200,7 @@
         <Filename Value="NewKernelHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="NewKernelHandler"/>
-        <EditorIndex Value="9"/>
+        <EditorIndex Value="12"/>
         <WindowIndex Value="0"/>
         <TopLine Value="388"/>
         <CursorPos X="1" Y="407"/>
@@ -212,10 +212,10 @@
         <Filename Value="CEFuncProc.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="CEFuncProc"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="3571"/>
-        <CursorPos X="1" Y="3578"/>
+        <TopLine Value="746"/>
+        <CursorPos X="1" Y="764"/>
         <UsageCount Value="204"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -277,7 +277,7 @@
         <Filename Value="byteinterpreter.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="byteinterpreter"/>
-        <EditorIndex Value="8"/>
+        <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
         <TopLine Value="241"/>
         <CursorPos X="3" Y="266"/>
@@ -779,7 +779,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmautoinjectunit"/>
-        <EditorIndex Value="2"/>
+        <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
         <TopLine Value="253"/>
         <CursorPos X="69" Y="267"/>
@@ -1171,7 +1171,7 @@
         <ComponentName Value="frmSelectionList"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmSelectionlistunit"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="3" Y="12"/>
@@ -1309,7 +1309,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Structuresfrm"/>
-        <EditorIndex Value="10"/>
+        <EditorIndex Value="13"/>
         <WindowIndex Value="0"/>
         <TopLine Value="37"/>
         <CursorPos X="45" Y="54"/>
@@ -1813,7 +1813,7 @@
         <Filename Value="LuaHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaHandler"/>
-        <EditorIndex Value="11"/>
+        <EditorIndex Value="14"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1168"/>
         <CursorPos X="1" Y="1198"/>
@@ -1884,7 +1884,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmStackViewUnit"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
         <TopLine Value="127"/>
         <CursorPos X="44" Y="151"/>
@@ -1940,7 +1940,7 @@
         <Filename Value="ceguicomponents.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="ceguicomponents"/>
-        <EditorIndex Value="14"/>
+        <EditorIndex Value="17"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1007"/>
         <CursorPos X="28" Y="1020"/>
@@ -1952,7 +1952,7 @@
         <Filename Value="LuaCaller.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaCaller"/>
-        <EditorIndex Value="13"/>
+        <EditorIndex Value="16"/>
         <WindowIndex Value="0"/>
         <TopLine Value="20"/>
         <CursorPos X="46" Y="20"/>
@@ -2158,7 +2158,7 @@
         <Filename Value="LuaCanvas.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaCanvas"/>
-        <EditorIndex Value="17"/>
+        <EditorIndex Value="20"/>
         <WindowIndex Value="0"/>
         <TopLine Value="298"/>
         <CursorPos X="3" Y="304"/>
@@ -2325,10 +2325,12 @@
         <Filename Value="d3dhookUnit.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="d3dhookUnit"/>
+        <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="419"/>
-        <CursorPos X="94" Y="442"/>
+        <TopLine Value="435"/>
+        <CursorPos X="49" Y="451"/>
         <UsageCount Value="249"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit188>
       <Unit189>
@@ -2370,11 +2372,10 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="StructuresFrm2"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="6"/>
+        <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="2395"/>
-        <CursorPos X="34" Y="2408"/>
+        <TopLine Value="2721"/>
+        <CursorPos X="1" Y="2696"/>
         <UsageCount Value="201"/>
         <Bookmarks Count="2">
           <Item0 X="11" Y="2724" ID="8"/>
@@ -2612,7 +2613,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1915"/>
         <CursorPos X="10" Y="1931"/>
-        <UsageCount Value="84"/>
+        <UsageCount Value="83"/>
       </Unit214>
       <Unit215>
         <Filename Value="memdisplay.pas"/>
@@ -3002,7 +3003,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="513"/>
         <CursorPos X="10" Y="528"/>
-        <UsageCount Value="42"/>
+        <UsageCount Value="41"/>
       </Unit252>
       <Unit253>
         <Filename Value="LuaDisassembler.pas"/>
@@ -3053,26 +3054,28 @@
         <WindowIndex Value="0"/>
         <TopLine Value="120"/>
         <CursorPos X="14" Y="133"/>
-        <UsageCount Value="17"/>
+        <UsageCount Value="16"/>
       </Unit257>
       <Unit258>
         <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\inc\currh.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="14" Y="18"/>
-        <UsageCount Value="40"/>
+        <UsageCount Value="39"/>
       </Unit258>
       <Unit259>
         <Filename Value="C:\lazarus\lcl\include\control.inc"/>
+        <EditorIndex Value="9"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="2704"/>
-        <CursorPos X="24" Y="2712"/>
-        <UsageCount Value="63"/>
+        <TopLine Value="2348"/>
+        <CursorPos X="1" Y="2365"/>
+        <UsageCount Value="68"/>
+        <Loaded Value="True"/>
       </Unit259>
       <Unit260>
         <Filename Value="C:\lazarus\lcl\controls.pp"/>
         <UnitName Value="Controls"/>
-        <EditorIndex Value="15"/>
+        <EditorIndex Value="18"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1576"/>
         <CursorPos X="14" Y="1592"/>
@@ -3082,7 +3085,7 @@
       <Unit261>
         <Filename Value="C:\lazarus\lcl\menus.pp"/>
         <UnitName Value="Menus"/>
-        <EditorIndex Value="16"/>
+        <EditorIndex Value="19"/>
         <WindowIndex Value="0"/>
         <TopLine Value="370"/>
         <CursorPos X="3" Y="387"/>
@@ -3094,7 +3097,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="636"/>
         <CursorPos X="3" Y="644"/>
-        <UsageCount Value="75"/>
+        <UsageCount Value="74"/>
       </Unit262>
       <Unit263>
         <Filename Value="C:\lazarus\fpc\2.6.1\source\packages\paszlib\src\zstream.pp"/>
@@ -3102,7 +3105,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="281"/>
         <CursorPos X="3" Y="281"/>
-        <UsageCount Value="66"/>
+        <UsageCount Value="65"/>
       </Unit263>
       <Unit264>
         <Filename Value="frmD3DHookSnapshotConfigUnit.pas"/>
@@ -3126,8 +3129,8 @@
         <UnitName Value="frmsnapshothandlerUnit"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="70"/>
-        <CursorPos X="19" Y="74"/>
+        <TopLine Value="325"/>
+        <CursorPos X="28" Y="342"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -3140,10 +3143,11 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmSaveSnapshotsUnit"/>
-        <EditorIndex Value="5"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="196"/>
-        <CursorPos X="68" Y="204"/>
+        <TopLine Value="98"/>
+        <CursorPos X="10" Y="121"/>
         <UsageCount Value="215"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -3155,19 +3159,19 @@
         <WindowIndex Value="0"/>
         <TopLine Value="121"/>
         <CursorPos X="27" Y="140"/>
-        <UsageCount Value="14"/>
+        <UsageCount Value="13"/>
       </Unit267>
       <Unit268>
         <Filename Value="C:\lazarus\fpc\2.6.1\source\packages\fcl-image\src\fpcanvas.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="487"/>
         <CursorPos X="28" Y="490"/>
-        <UsageCount Value="14"/>
+        <UsageCount Value="13"/>
       </Unit268>
       <Unit269>
         <Filename Value="C:\lazarus\lcl\graphics.pp"/>
         <UnitName Value="Graphics"/>
-        <EditorIndex Value="18"/>
+        <EditorIndex Value="21"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1309"/>
         <CursorPos X="20" Y="1341"/>
@@ -3180,139 +3184,148 @@
         <WindowIndex Value="0"/>
         <TopLine Value="503"/>
         <CursorPos X="10" Y="520"/>
-        <UsageCount Value="11"/>
+        <UsageCount Value="10"/>
       </Unit270>
       <Unit271>
         <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\objpas\fgl.pp"/>
         <UnitName Value="fgl"/>
-        <EditorIndex Value="12"/>
+        <EditorIndex Value="15"/>
         <WindowIndex Value="0"/>
         <TopLine Value="127"/>
         <CursorPos X="17" Y="127"/>
         <UsageCount Value="102"/>
         <Loaded Value="True"/>
       </Unit271>
+      <Unit272>
+        <Filename Value="C:\lazarus\lcl\include\treeview.inc"/>
+        <EditorIndex Value="8"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="5125"/>
+        <CursorPos X="1" Y="5141"/>
+        <UsageCount Value="15"/>
+        <Loaded Value="True"/>
+      </Unit272>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="frmsnapshothandlerUnit.pas"/>
-        <Caret Line="261" Column="71" TopLine="254"/>
+        <Filename Value="StructuresFrm2.pas"/>
+        <Caret Line="2694" Column="3" TopLine="2690"/>
       </Position1>
       <Position2>
-        <Filename Value="frmsnapshothandlerUnit.pas"/>
-        <Caret Line="307" Column="1" TopLine="291"/>
+        <Filename Value="StructuresFrm2.pas"/>
+        <Caret Line="2707" Column="1" TopLine="2690"/>
       </Position2>
       <Position3>
-        <Filename Value="frmsnapshothandlerUnit.pas"/>
-        <Caret Line="309" Column="1" TopLine="291"/>
+        <Filename Value="StructuresFrm2.pas"/>
+        <Caret Line="2694" Column="1" TopLine="2688"/>
       </Position3>
       <Position4>
         <Filename Value="frmsnapshothandlerUnit.pas"/>
-        <Caret Line="310" Column="1" TopLine="291"/>
+        <Caret Line="74" Column="19" TopLine="70"/>
       </Position4>
       <Position5>
-        <Filename Value="StructuresFrm2.pas"/>
-        <Caret Line="2680" Column="49" TopLine="2670"/>
+        <Filename Value="frmsnapshothandlerUnit.pas"/>
+        <Caret Line="342" Column="28" TopLine="325"/>
       </Position5>
       <Position6>
-        <Filename Value="StructuresFrm2.pas"/>
-        <Caret Line="1" Column="1" TopLine="163"/>
+        <Filename Value="d3dhookUnit.pas"/>
+        <Caret Line="1229" Column="32" TopLine="1212"/>
       </Position6>
       <Position7>
-        <Filename Value="StructuresFrm2.pas"/>
-        <Caret Line="547" Column="24" TopLine="519"/>
+        <Filename Value="d3dhookUnit.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position7>
       <Position8>
-        <Filename Value="StructuresFrm2.pas"/>
-        <Caret Line="549" Column="87" TopLine="532"/>
+        <Filename Value="d3dhookUnit.pas"/>
+        <Caret Line="179" Column="14" TopLine="151"/>
       </Position8>
       <Position9>
-        <Filename Value="StructuresFrm2.pas"/>
-        <Caret Line="560" Column="10" TopLine="532"/>
+        <Filename Value="d3dhookUnit.pas"/>
+        <Caret Line="452" Column="25" TopLine="424"/>
       </Position9>
       <Position10>
-        <Filename Value="StructuresFrm2.pas"/>
-        <Caret Line="1810" Column="31" TopLine="1782"/>
+        <Filename Value="d3dhookUnit.pas"/>
+        <Caret Line="1511" Column="1" TopLine="1502"/>
       </Position10>
       <Position11>
-        <Filename Value="StructuresFrm2.pas"/>
-        <Caret Line="2682" Column="23" TopLine="2658"/>
+        <Filename Value="frmsnapshothandlerUnit.pas"/>
+        <Caret Line="342" Column="28" TopLine="325"/>
       </Position11>
       <Position12>
-        <Filename Value="StructuresFrm2.pas"/>
-        <Caret Line="2683" Column="23" TopLine="2658"/>
+        <Filename Value="d3dhookUnit.pas"/>
+        <Caret Line="1216" Column="3" TopLine="1216"/>
       </Position12>
       <Position13>
-        <Filename Value="StructuresFrm2.pas"/>
-        <Caret Line="2396" Column="20" TopLine="2387"/>
+        <Filename Value="d3dhookUnit.pas"/>
+        <Caret Line="1519" Column="1" TopLine="1503"/>
       </Position13>
       <Position14>
-        <Filename Value="StructuresFrm2.pas"/>
-        <Caret Line="2395" Column="58" TopLine="2387"/>
+        <Filename Value="d3dhookUnit.pas"/>
+        <Caret Line="1520" Column="1" TopLine="1503"/>
       </Position14>
       <Position15>
-        <Filename Value="StructuresFrm2.pas"/>
-        <Caret Line="2682" Column="22" TopLine="2671"/>
+        <Filename Value="d3dhookUnit.pas"/>
+        <Caret Line="1524" Column="1" TopLine="1503"/>
       </Position15>
       <Position16>
-        <Filename Value="StructuresFrm2.pas"/>
-        <Caret Line="2396" Column="20" TopLine="2384"/>
+        <Filename Value="d3dhookUnit.pas"/>
+        <Caret Line="1589" Column="1" TopLine="1578"/>
       </Position16>
       <Position17>
-        <Filename Value="StructuresFrm2.pas"/>
-        <Caret Line="2691" Column="19" TopLine="2671"/>
+        <Filename Value="d3dhookUnit.pas"/>
+        <Caret Line="1592" Column="1" TopLine="1578"/>
       </Position17>
       <Position18>
-        <Filename Value="StructuresFrm2.pas"/>
-        <Caret Line="2693" Column="11" TopLine="2671"/>
+        <Filename Value="d3dhookUnit.pas"/>
+        <Caret Line="1585" Column="33" TopLine="1578"/>
       </Position18>
       <Position19>
-        <Filename Value="StructuresFrm2.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="d3dhookUnit.pas"/>
+        <Caret Line="1" Column="1" TopLine="517"/>
       </Position19>
       <Position20>
-        <Filename Value="NewKernelHandler.pas"/>
-        <Caret Line="560" Column="35" TopLine="544"/>
+        <Filename Value="d3dhookUnit.pas"/>
+        <Caret Line="446" Column="1" TopLine="429"/>
       </Position20>
       <Position21>
-        <Filename Value="StructuresFrm2.pas"/>
-        <Caret Line="2682" Column="27" TopLine="2672"/>
+        <Filename Value="d3dhookUnit.pas"/>
+        <Caret Line="499" Column="41" TopLine="484"/>
       </Position21>
       <Position22>
-        <Filename Value="StructuresFrm2.pas"/>
-        <Caret Line="2396" Column="28" TopLine="2387"/>
+        <Filename Value="d3dhookUnit.pas"/>
+        <Caret Line="1538" Column="26" TopLine="1520"/>
       </Position22>
       <Position23>
-        <Filename Value="StructuresFrm2.pas"/>
-        <Caret Line="2398" Column="1" TopLine="2384"/>
+        <Filename Value="d3dhookUnit.pas"/>
+        <Caret Line="445" Column="24" TopLine="429"/>
       </Position23>
       <Position24>
-        <Filename Value="StructuresFrm2.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="d3dhookUnit.pas"/>
+        <Caret Line="447" Column="1" TopLine="429"/>
       </Position24>
       <Position25>
-        <Filename Value="frmsnapshothandlerUnit.pas"/>
-        <Caret Line="320" Column="1" TopLine="293"/>
+        <Filename Value="d3dhookUnit.pas"/>
+        <Caret Line="449" Column="1" TopLine="435"/>
       </Position25>
       <Position26>
-        <Filename Value="frmsnapshothandlerUnit.pas"/>
-        <Caret Line="85" Column="39" TopLine="70"/>
+        <Filename Value="d3dhookUnit.pas"/>
+        <Caret Line="456" Column="15" TopLine="435"/>
       </Position26>
       <Position27>
-        <Filename Value="frmsnapshothandlerUnit.pas"/>
-        <Caret Line="84" Column="39" TopLine="69"/>
+        <Filename Value="d3dhookUnit.pas"/>
+        <Caret Line="451" Column="49" TopLine="435"/>
       </Position27>
       <Position28>
-        <Filename Value="StructuresFrm2.pas"/>
-        <Caret Line="2398" Column="23" TopLine="2402"/>
+        <Filename Value="frmSaveSnapshotsUnit.pas"/>
+        <Caret Line="383" Column="32" TopLine="370"/>
       </Position28>
       <Position29>
-        <Filename Value="StructuresFrm2.pas"/>
-        <Caret Line="2406" Column="1" TopLine="2401"/>
+        <Filename Value="frmSaveSnapshotsUnit.pas"/>
+        <Caret Line="137" Column="30" TopLine="124"/>
       </Position29>
       <Position30>
-        <Filename Value="StructuresFrm2.pas"/>
-        <Caret Line="2407" Column="1" TopLine="2401"/>
+        <Filename Value="frmSaveSnapshotsUnit.pas"/>
+        <Caret Line="396" Column="43" TopLine="380"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>
@@ -3440,7 +3453,7 @@
         <Line Value="1124"/>
       </Item10>
     </BreakPoints>
-    <Watches Count="6">
+    <Watches Count="7">
       <Item1>
         <Expression Value="pinteger(_archive.fMemory)^"/>
       </Item1>
@@ -3459,9 +3472,13 @@
         <DisplayStyle Value="wdfHex"/>
       </Item5>
       <Item6>
-        <Expression Value="address"/>
+        <Expression Value="savedstate"/>
         <DisplayStyle Value="wdfHex"/>
       </Item6>
+      <Item7>
+        <Expression Value="c.fAddress"/>
+        <DisplayStyle Value="wdfHex"/>
+      </Item7>
     </Watches>
     <Exceptions Count="8" IgnoreAll="True">
       <Item1>

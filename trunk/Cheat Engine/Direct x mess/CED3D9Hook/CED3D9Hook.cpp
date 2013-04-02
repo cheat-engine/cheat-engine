@@ -10,6 +10,163 @@ map<IDirect3DDevice9 *, DXMessD3D9Handler *> D3D9devices;
 PD3DHookShared shared=NULL; //set at first present
 int insidehook;
 
+BOOL makeSnapshot=FALSE; //duplicate variable to be used as a hint that one of the devices is making a snapshot. (in case of multiple devices)
+
+
+
+void DXMessD3D9Handler::PrepareForSnapshot() //just clears the screen
+{
+	if (!shared->progressiveSnapshot) //if this is true no erasing will be done
+	{
+		if (!shared->alsoClearDepthBuffer)
+			dev->Clear(0, NULL, D3DCLEAR_TARGET, 0xFFFF00FF, 0.0f, 0);
+		else
+			dev->Clear(0, NULL, D3DCLEAR_TARGET, 0xFFFF00FF, 1.0f, 0);
+	}
+}
+
+void DXMessD3D9Handler::TakeSnapshot()
+{
+	IDirect3DDevice9 *d=dev;
+	IDirect3DSurface9 *backbuffer;
+	dev->EndScene();
+
+
+	if (SUCCEEDED(d->GetRenderTarget(0, &backbuffer)))	
+	{
+		BOOL savethis=FALSE;
+		D3DSURFACE_DESC desc;
+
+
+		if (smallSnapshot)
+		{
+			if (SUCCEEDED(backbuffer->GetDesc( &desc)))
+			{	
+				IDirect3DSurface9 *backbuffer2=NULL;
+				if (SUCCEEDED(d->CreateOffscreenPlainSurface(desc.Width, desc.Height, desc.Format, D3DPOOL_SYSTEMMEM, &backbuffer2, NULL)))
+				{
+					if (SUCCEEDED(d->GetRenderTargetData(backbuffer, backbuffer2)))
+					{
+						D3DLOCKED_RECT r;
+						if (SUCCEEDED(backbuffer2->LockRect(&r, NULL, D3DLOCK_READONLY)))
+						{
+							DWORD *color;
+							
+							int xpos, ypos;
+							
+							xpos=(int)floor(desc.Width * smallSnapshotPointRelative.x);
+							ypos=(int)floor(desc.Height * smallSnapshotPointRelative.y);
+
+							
+						    color=(DWORD *)((UINT_PTR)r.pBits+r.Pitch*ypos+xpos*4);
+							if ((*color & 0xffffff)!=0xff00ff)	//pixels got changed
+								savethis=TRUE;
+						}
+
+						backbuffer2->UnlockRect();
+					}
+					backbuffer2->Release();
+				}
+
+
+				
+			}
+		}
+		else
+			savethis=TRUE;
+			
+
+		
+
+		if (savethis)
+		{
+			char s[MAX_PATH];
+			UINT64 stackbase=0;
+			HANDLE h;
+			int x;
+			DWORD bw;
+			LPD3DXBUFFER dest=NULL;
+		
+
+			__asm
+			{
+				mov dword ptr [stackbase], ebp   //sure, it's a bit too far, but close enough
+			}
+
+			snapshotCounter++;
+
+			
+			sprintf_s(s, MAX_PATH, "%ssnapshot%d.ce3dsnapshot", shared->SnapShotDir, snapshotCounter);
+
+			h=CreateFileA(s, GENERIC_WRITE,  0, NULL, CREATE_ALWAYS, 0, NULL);
+			x=9; //dx9
+			WriteFile(h, &x, sizeof(x), &bw, NULL); 
+
+			D3DXSaveSurfaceToFileInMemory(&dest, D3DXIFF_PNG, backbuffer, NULL, NULL);
+
+			x=dest->GetBufferSize();
+			WriteFile(h, &x, sizeof(x), &bw, NULL); 													
+			WriteFile(h, dest->GetBufferPointer(), x, &bw, NULL); 
+
+			dest->Release();
+
+			WriteFile(h, &stackbase, sizeof(stackbase), &bw, NULL);
+			
+			MEMORY_BASIC_INFORMATION mbi;
+			int stacksize;
+
+			if (VirtualQuery((void *)stackbase, &mbi, sizeof(mbi))==sizeof(mbi))
+			{								
+				stacksize=min(mbi.RegionSize- ((uintptr_t)stackbase-(uintptr_t)mbi.BaseAddress), 8192);
+				WriteFile(h, &stacksize, sizeof(stacksize), &bw, NULL);
+				WriteFile(h, (void *)stackbase, stacksize, &bw, NULL); 
+			}
+			else
+			{
+				stacksize=0;
+				stackbase=0;
+				WriteFile(h, &stacksize, sizeof(stacksize), &bw, NULL);								
+			}
+
+			//no constant buffer	
+			{
+
+				//d->GetVertexDeclaration
+				/* perhaps something could be done with this, but no idea right now
+				IDirect3DVertexShader9 *vs;
+				
+				if (SUCCEEDED(d->GetVertexShader(&vs)))
+				{
+					vs->QueryInterface(
+				
+					vs->Release();
+				}*/
+
+				x=0;	
+				WriteFile(h, &x, sizeof(x), &bw, NULL);	
+			}
+
+
+			CloseHandle(h);
+			
+
+		}
+		
+
+		
+		backbuffer->Release();
+
+
+		
+	}
+
+	dev->BeginScene();
+	
+	
+}
+
+
+
 void DXMessD3D9Handler::DrawString(D3DXVECTOR3 position, PTextureData9 pFontTexture, char *s, int strlen)
 /*
 Render the text using the sprite object (select a texture region and draw that specific character) .Coordinates are in normal x,y coordinates
@@ -553,6 +710,11 @@ DXMessD3D9Handler::DXMessD3D9Handler(IDirect3DDevice9 *dev, PD3DHookShared share
 	HRESULT hr;
 	sprite=NULL;
 
+	snapshotCounter=0;
+	lastSnapshot=0;
+	makeSnapshot=FALSE;
+	smallSnapshot=FALSE;
+
 	
 	//Failed experiment. For some reason a[1] and a[2] get restored to their original address (which is the main reason why I use the deep hook method)
 	//If it is important, I can add Release and AddRef to the hooklist at a later date
@@ -610,6 +772,76 @@ void __stdcall D3D9Hook_Present_imp(IDirect3DDevice9 *device, PD3DHookShared s)
 	
 	currenthandler->RenderOverlay();	
 	insidehook=0;
+
+	//check if a snapshot key is down
+	if (currenthandler->makeSnapshot) //possible threading issue if more than one render device
+	{
+		//notify CE that all render operations have completed
+		shared->snapshotcount=currenthandler->snapshotCounter;
+		shared->canDoSnapshot=0;
+		SetEvent((HANDLE)shared->snapshotDone);		
+		currenthandler->makeSnapshot=FALSE;
+	}
+
+	
+	if (shared->canDoSnapshot)
+	{
+		
+		if ((shared->snapshotKey) && (GetTickCount()>currenthandler->lastSnapshot+250))
+		{
+			SHORT ks=GetAsyncKeyState(shared->snapshotKey);
+			currenthandler->makeSnapshot=((ks & 1) || (ks & (1 << 15)));
+			currenthandler->smallSnapshot=FALSE;
+
+			if (currenthandler->makeSnapshot)
+				currenthandler->lastSnapshot=GetTickCount();
+			
+		}
+
+		if ((currenthandler->makeSnapshot==FALSE) && (shared->smallSnapshotKey) && (GetTickCount()>currenthandler->lastSnapshot+250) && (shared->lastHwnd))
+		{
+			SHORT ks=GetAsyncKeyState(shared->smallSnapshotKey);
+			currenthandler->makeSnapshot=((ks & 1) || (ks & (1 << 15)));
+
+			if (currenthandler->makeSnapshot)
+			{
+				POINT p;
+				currenthandler->smallSnapshot=TRUE;
+				currenthandler->lastSnapshot=GetTickCount();
+
+				//get the pixel the mouse is hovering over
+				GetCursorPos(&p);
+				ScreenToClient((HWND)shared->lastHwnd, &p);
+				currenthandler->smallSnapshotPoint=p;
+
+				GetClientRect((HWND)shared->lastHwnd, &currenthandler->smallSnapshotClientRect);
+
+
+				//get the relative position (0.00 - 1.00) this position is in for the clientrect
+				currenthandler->smallSnapshotPointRelative.x=(float)currenthandler->smallSnapshotPoint.x/(float)(currenthandler->smallSnapshotClientRect.right-currenthandler->smallSnapshotClientRect.left);
+				currenthandler->smallSnapshotPointRelative.y=(float)currenthandler->smallSnapshotPoint.y/(float)(currenthandler->smallSnapshotClientRect.bottom-currenthandler->smallSnapshotClientRect.top);
+			}
+			
+		}
+
+
+		
+
+		if (currenthandler->makeSnapshot)
+		{
+
+			makeSnapshot=TRUE; //once true, always true
+
+			
+			//clear the render target with a specific color
+			currenthandler->dev->Clear(0, NULL, D3DCLEAR_TARGET, 0xFFFF00FF, 1.0f, 0);
+			
+			currenthandler->snapshotCounter=0;
+			
+
+		}
+	}
+	
 }
 
 HRESULT __stdcall D3D9Hook_Reset_imp(D3D9_RESET_ORIGINAL originalfunction, IDirect3DDevice9 *device, D3DPRESENT_PARAMETERS *pPresentationParameters)
@@ -630,7 +862,7 @@ HRESULT __stdcall D3D9Hook_Reset_imp(D3D9_RESET_ORIGINAL originalfunction, IDire
 HRESULT __stdcall D3D9Hook_DrawPrimitive_imp(D3D9_DRAWPRIMITIVE_ORIGINAL originalfunction, IDirect3DDevice9 *device, D3DPRIMITIVETYPE PrimitiveType,UINT StartVertex,UINT PrimitiveCount)
 {
 	
-	if ((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0) )
+	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0)) || makeSnapshot)
 	{
 		//setup for wireframe	
 
@@ -642,21 +874,36 @@ HRESULT __stdcall D3D9Hook_DrawPrimitive_imp(D3D9_DRAWPRIMITIVE_ORIGINAL origina
 		hr2=device->GetRenderState(D3DRS_ZENABLE, &oldzenable);
 
 
+		DXMessD3D9Handler *currentDevice=D3D9devices[device];
+
+		if ((currentDevice) && (currentDevice->makeSnapshot))
+			currentDevice->PrepareForSnapshot();
+
 		if (SUCCEEDED(hr) && SUCCEEDED(hr2))
 		{			
 			device->SetRenderState(D3DRS_FILLMODE,D3DFILL_WIREFRAME);
 			hr=originalfunction(device, PrimitiveType, StartVertex, PrimitiveCount);
 			device->SetRenderState(D3DRS_FILLMODE,oldfillmode);
 			device->SetRenderState(D3DRS_ZENABLE,oldzenable);
-			return hr;
+			
 		}
+		else
+			hr=originalfunction(device, PrimitiveType, StartVertex, PrimitiveCount);
+
+
+		if ((currentDevice) && (currentDevice->makeSnapshot))
+			currentDevice->TakeSnapshot();
+
+		return hr;
+
 	}
 	return originalfunction(device, PrimitiveType, StartVertex, PrimitiveCount);	
 }
 
 HRESULT __stdcall D3D9Hook_DrawIndexedPrimitive_imp(D3D9_DRAWINDEXEDPRIMITIVE_ORIGINAL originalfunction, IDirect3DDevice9 *device, D3DPRIMITIVETYPE PrimitiveType,INT BaseVertexIndex,UINT MinVertexIndex,UINT NumVertices,UINT startIndex,UINT primCount)
 {	
-	if ((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0) )
+
+	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0)) || makeSnapshot)
 	{
 		//setup for wireframe and/or zbuffer	
 
@@ -667,6 +914,11 @@ HRESULT __stdcall D3D9Hook_DrawIndexedPrimitive_imp(D3D9_DRAWINDEXEDPRIMITIVE_OR
 		hr=device->GetRenderState(D3DRS_FILLMODE, &oldfillmode);
 		hr2=device->GetRenderState(D3DRS_ZENABLE, &oldzenable);
 
+		DXMessD3D9Handler *currentDevice=D3D9devices[device];		
+
+
+		if ((currentDevice) && (currentDevice->makeSnapshot))
+			currentDevice->PrepareForSnapshot();
 
 		if (SUCCEEDED(hr) && SUCCEEDED(hr2))
 		{			
@@ -676,18 +928,29 @@ HRESULT __stdcall D3D9Hook_DrawIndexedPrimitive_imp(D3D9_DRAWINDEXEDPRIMITIVE_OR
 			if (shared->disabledzbuffer)
 				device->SetRenderState(D3DRS_ZENABLE,FALSE);
 
+
+
+
 			hr=originalfunction(device, PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount);
 			device->SetRenderState(D3DRS_FILLMODE,oldfillmode);
 			device->SetRenderState(D3DRS_ZENABLE,oldzenable);
-			return hr;
+			
 		}
+		else 
+			hr=originalfunction(device, PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount);
+
+		if ((currentDevice) && (currentDevice->makeSnapshot))
+			currentDevice->TakeSnapshot();
+
+		return hr;
+
 	}
 	return originalfunction(device, PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount);
 }
 
 HRESULT __stdcall D3D9Hook_DrawPrimitiveUP_imp(D3D9_DRAWPRIMITIVEUP_ORIGINAL originalfunction, IDirect3DDevice9 *device, D3DPRIMITIVETYPE PrimitiveType,UINT PrimitiveCount,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride)
 {	
-	if ((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0) )
+	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0)) || makeSnapshot)
 	{
 		//setup for wireframe and/or zbuffer	
 
@@ -698,6 +961,10 @@ HRESULT __stdcall D3D9Hook_DrawPrimitiveUP_imp(D3D9_DRAWPRIMITIVEUP_ORIGINAL ori
 		hr=device->GetRenderState(D3DRS_FILLMODE, &oldfillmode);
 		hr2=device->GetRenderState(D3DRS_ZENABLE, &oldzenable);
 
+
+		DXMessD3D9Handler *currentDevice=D3D9devices[device];
+		if ((currentDevice) && (currentDevice->makeSnapshot))
+			currentDevice->PrepareForSnapshot();
 
 		if (SUCCEEDED(hr) && SUCCEEDED(hr2))
 		{			
@@ -705,13 +972,26 @@ HRESULT __stdcall D3D9Hook_DrawPrimitiveUP_imp(D3D9_DRAWPRIMITIVEUP_ORIGINAL ori
 				device->SetRenderState(D3DRS_FILLMODE,D3DFILL_WIREFRAME);
 
 			if (shared->disabledzbuffer)
-				device->SetRenderState(D3DRS_ZENABLE,FALSE);			
+				device->SetRenderState(D3DRS_ZENABLE,FALSE);	
+
+
+			
 	
 			hr=originalfunction(device, PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride);
+
+
+
 			device->SetRenderState(D3DRS_FILLMODE,oldfillmode);
 			device->SetRenderState(D3DRS_ZENABLE,oldzenable);
-			return hr;
+			
 		}
+		else
+			hr=originalfunction(device, PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride);
+
+		if ((currentDevice) && (currentDevice->makeSnapshot))
+			currentDevice->TakeSnapshot();
+
+		return hr;
 	}
 
 	return originalfunction(device, PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride);
@@ -719,7 +999,7 @@ HRESULT __stdcall D3D9Hook_DrawPrimitiveUP_imp(D3D9_DRAWPRIMITIVEUP_ORIGINAL ori
 
 HRESULT __stdcall D3D9Hook_DrawIndexedPrimitiveUP_imp(D3D9_DRAWINDEXEDPRIMITIVEUP_ORIGINAL originalfunction, IDirect3DDevice9 *device, D3DPRIMITIVETYPE PrimitiveType,UINT MinVertexIndex,UINT NumVertices,UINT PrimitiveCount,CONST void* pIndexData,D3DFORMAT IndexDataFormat,CONST void* pVertexStreamZeroData,UINT VertexStreamZeroStride)
 {	
-	if ((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0) )
+	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0)) || makeSnapshot)
 	{
 		//setup for wireframe and/or zbuffer	
 
@@ -730,6 +1010,10 @@ HRESULT __stdcall D3D9Hook_DrawIndexedPrimitiveUP_imp(D3D9_DRAWINDEXEDPRIMITIVEU
 		hr=device->GetRenderState(D3DRS_FILLMODE, &oldfillmode);
 		hr2=device->GetRenderState(D3DRS_ZENABLE, &oldzenable);
 
+
+		DXMessD3D9Handler *currentDevice=D3D9devices[device];
+		if ((currentDevice) && (currentDevice->makeSnapshot))
+			currentDevice->PrepareForSnapshot();
 
 		if (SUCCEEDED(hr) && SUCCEEDED(hr2))
 		{			
@@ -743,8 +1027,16 @@ HRESULT __stdcall D3D9Hook_DrawIndexedPrimitiveUP_imp(D3D9_DRAWINDEXEDPRIMITIVEU
 			hr=originalfunction(device, PrimitiveType, MinVertexIndex, NumVertices, PrimitiveCount, pIndexData, IndexDataFormat, pVertexStreamZeroData, VertexStreamZeroStride);
 			device->SetRenderState(D3DRS_FILLMODE,oldfillmode);
 			device->SetRenderState(D3DRS_ZENABLE,oldzenable);
-			return hr;
+			
 		}
+		else
+			hr=originalfunction(device, PrimitiveType, MinVertexIndex, NumVertices, PrimitiveCount, pIndexData, IndexDataFormat, pVertexStreamZeroData, VertexStreamZeroStride);
+
+
+		if ((currentDevice) && (currentDevice->makeSnapshot))
+			currentDevice->TakeSnapshot();
+
+		return hr;
 	}
 	return originalfunction(device, PrimitiveType, MinVertexIndex, NumVertices, PrimitiveCount, pIndexData, IndexDataFormat, pVertexStreamZeroData, VertexStreamZeroStride);
 }
@@ -752,7 +1044,7 @@ HRESULT __stdcall D3D9Hook_DrawIndexedPrimitiveUP_imp(D3D9_DRAWINDEXEDPRIMITIVEU
 HRESULT __stdcall D3D9Hook_DrawRectPatch_imp(D3D9_DRAWRECTPATCH_ORIGINAL originalfunction, IDirect3DDevice9 *device, UINT Handle,CONST float* pNumSegs,CONST D3DRECTPATCH_INFO* pRectPatchInfo)
 {	
 	
-	if ((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0) )
+	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0)) || makeSnapshot)
 	{
 		//setup for wireframe and/or zbuffer	
 
@@ -762,6 +1054,10 @@ HRESULT __stdcall D3D9Hook_DrawRectPatch_imp(D3D9_DRAWRECTPATCH_ORIGINAL origina
 		
 		hr=device->GetRenderState(D3DRS_FILLMODE, &oldfillmode);
 		hr2=device->GetRenderState(D3DRS_ZENABLE, &oldzenable);
+
+		DXMessD3D9Handler *currentDevice=D3D9devices[device];
+		if ((currentDevice) && (currentDevice->makeSnapshot))
+			currentDevice->PrepareForSnapshot();
 
 
 		if (SUCCEEDED(hr) && SUCCEEDED(hr2))
@@ -775,8 +1071,15 @@ HRESULT __stdcall D3D9Hook_DrawRectPatch_imp(D3D9_DRAWRECTPATCH_ORIGINAL origina
 			hr=originalfunction(device, Handle, pNumSegs, pRectPatchInfo);
 			device->SetRenderState(D3DRS_FILLMODE,oldfillmode);
 			device->SetRenderState(D3DRS_ZENABLE,oldzenable);
-			return hr;
+			
 		}
+		else
+			hr=originalfunction(device, Handle, pNumSegs, pRectPatchInfo);
+
+		if ((currentDevice) && (currentDevice->makeSnapshot))
+			currentDevice->TakeSnapshot();
+
+		return hr;
 	}
 	return originalfunction(device, Handle, pNumSegs, pRectPatchInfo);
 }
@@ -794,6 +1097,9 @@ HRESULT __stdcall D3D9Hook_DrawTriPatch_imp(D3D9_DRAWTRIPATCH_ORIGINAL originalf
 		hr=device->GetRenderState(D3DRS_FILLMODE, &oldfillmode);
 		hr2=device->GetRenderState(D3DRS_ZENABLE, &oldzenable);
 
+		DXMessD3D9Handler *currentDevice=D3D9devices[device];
+		if ((currentDevice) && (currentDevice->makeSnapshot))
+			currentDevice->PrepareForSnapshot();
 
 		if (SUCCEEDED(hr) && SUCCEEDED(hr2))
 		{			
@@ -807,8 +1113,16 @@ HRESULT __stdcall D3D9Hook_DrawTriPatch_imp(D3D9_DRAWTRIPATCH_ORIGINAL originalf
 			hr=originalfunction(device, Handle, pNumSegs, pTriPatchInfo);
 			device->SetRenderState(D3DRS_FILLMODE,oldfillmode);
 			device->SetRenderState(D3DRS_ZENABLE,oldzenable);
-			return hr;
+	
 		}
+		else
+			hr=originalfunction(device, Handle, pNumSegs, pTriPatchInfo);
+
+		if ((currentDevice) && (currentDevice->makeSnapshot))
+			currentDevice->TakeSnapshot();
+
+		return hr;
+
 	}
 	return originalfunction(device, Handle, pNumSegs, pTriPatchInfo);
 }
