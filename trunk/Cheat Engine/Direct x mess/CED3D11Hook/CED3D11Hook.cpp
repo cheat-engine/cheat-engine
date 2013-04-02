@@ -11,6 +11,7 @@ map<ID3D11Device *, DXMessD3D11Handler *> D3D11devices;
 DXMessD3D11Handler *lastdevice=NULL;
 int insidehook=0;
 PD3DHookShared shared;
+BOOL makeSnapshot;
 
 //definitions
 struct SpriteVertex{
@@ -28,6 +29,262 @@ struct ConstantBuffer
 	FLOAT garbage3;
 };
 
+
+void DXMessD3D11Handler::PrepareForSnapshot() //just clears the screen
+{
+	if (!shared->progressiveSnapshot) //if this is true no erasing will be done
+	{
+		ID3D11RenderTargetView *currentrt=NULL;
+		ID3D11DepthStencilView* currentds=NULL;
+		FLOAT f[]={1.0f,0.0f,1.0f,1.0f};
+		
+		if (!shared->alsoClearDepthBuffer)
+			dc->OMGetRenderTargets(1, &currentrt, NULL);
+		else
+			dc->OMGetRenderTargets(1, &currentrt, &currentds);
+
+		if (currentrt)
+		{				
+			dc->ClearRenderTargetView(currentrt, f);		
+			currentrt->Release();
+		}
+
+		if (currentds)
+		{
+			dc->ClearDepthStencilView(currentds, D3D11_CLEAR_DEPTH, 1.0, 0);
+			currentds->Release();
+		}
+	}
+}
+
+void DXMessD3D11Handler::TakeSnapshot()
+{
+	
+	ID3D11RenderTargetView *currentrt=NULL ;
+
+	if (makeSnapshot)
+	{		
+		dc->OMGetRenderTargets(1, &currentrt, NULL);
+		
+		if (currentrt)
+		{
+			ID3D11Texture2D *backbuffer=NULL;
+			
+			D3D11_TEXTURE2D_DESC texDesc;
+			D3D11_RENDER_TARGET_VIEW_DESC backbufferdesc;
+			ID3D11Resource *r=NULL;
+
+			currentrt->GetDesc(&backbufferdesc);
+
+
+			texDesc.Format=backbufferdesc.Format;
+			
+
+
+			currentrt->GetResource(&r);
+			if (r)
+			{
+				if (SUCCEEDED(r->QueryInterface(__uuidof(ID3D11Texture2D), (void **)&backbuffer)))
+				{
+					backbuffer->GetDesc(&texDesc);
+
+					if (smallSnapshot)
+					{
+						texDesc.BindFlags = 0;
+						texDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+						texDesc.Usage = D3D11_USAGE_STAGING;
+					}
+					else
+					{
+						texDesc.CPUAccessFlags = 0;
+						texDesc.Usage = D3D11_USAGE_DEFAULT;
+					}
+
+
+					texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+					
+					
+					ID3D11Texture2D *texture;
+					
+					if (SUCCEEDED(dev->CreateTexture2D(&texDesc, 0, &texture)))
+					{
+						BOOL savethis=FALSE;
+						
+						dc->CopyResource(texture, r);
+
+
+						
+
+						if (smallSnapshot)
+						{
+							D3D11_MAPPED_SUBRESOURCE mappedtexture;							 
+
+							if (SUCCEEDED(dc->Map(texture, 0, D3D11_MAP_READ, 0, &mappedtexture)))
+							{	
+								
+								DWORD *color;
+								
+								int xpos, ypos;
+								
+								xpos=(int)floor(texDesc.Width * smallSnapshotPointRelative.x);
+								ypos=(int)floor(texDesc.Height * smallSnapshotPointRelative.y);
+
+								//check if the pixel at xpos,ypos is not 0xffff00ff								
+								
+
+								color=(DWORD *)((UINT_PTR)mappedtexture.pData+mappedtexture.RowPitch*ypos+xpos*4);
+
+								if ((*color & 0xffffff)!=0xff00ff)		//pixels got changed
+									savethis=TRUE;
+
+								dc->Unmap(texture, 0);											
+							}								
+
+						}
+						else
+							savethis=TRUE;
+
+						if (savethis)				
+						{
+							char s[MAX_PATH];
+							HANDLE h;
+							DWORD bw;
+							int x;
+							UINT64 stackbase=0;
+
+							__asm
+							{
+								mov dword ptr [stackbase], ebp   //sure, it's a bit too far, but close enough
+							}
+							
+							snapshotCounter++;
+							
+							sprintf_s(s, MAX_PATH, "%ssnapshot%d.ce3dsnapshot", shared->SnapShotDir, snapshotCounter);						
+							
+							
+
+							
+
+							h=CreateFileA(s, GENERIC_WRITE,  0, NULL, CREATE_ALWAYS, 0, NULL);
+
+							x=11; //dx11
+							WriteFile(h, &x, sizeof(x), &bw, NULL); 
+
+							ID3D10Blob *dest=NULL;
+				
+							//D3DX11SaveTextureToMemory(texture, D3DX11_IFF_BMP, &dest, 0););
+							if (SUCCEEDED(D3DX11SaveTextureToMemory(dc, texture, D3DX11_IFF_PNG, &dest, 0))) //weird. PNG has some information loss on certain things like text
+							{
+								x=dest->GetBufferSize();
+								WriteFile(h, &x, sizeof(x), &bw, NULL); 													
+								WriteFile(h, dest->GetBufferPointer(), x, &bw, NULL); 
+
+								dest->Release();
+							}
+							else
+							{
+								x=0;
+								WriteFile(h, &x, sizeof(x), &bw, NULL); 
+							}
+
+
+							WriteFile(h, &stackbase, sizeof(stackbase), &bw, NULL);
+
+							MEMORY_BASIC_INFORMATION mbi;
+							int stacksize;
+
+							if (VirtualQuery((void *)stackbase, &mbi, sizeof(mbi))==sizeof(mbi))
+							{								
+								stacksize=min(mbi.RegionSize- ((uintptr_t)stackbase-(uintptr_t)mbi.BaseAddress), 8192);
+								WriteFile(h, &stacksize, sizeof(stacksize), &bw, NULL);
+								WriteFile(h, (void *)stackbase, stacksize, &bw, NULL); 
+							}
+							else
+							{
+								stacksize=0;
+								stackbase=0;
+								WriteFile(h, &stacksize, sizeof(stacksize), &bw, NULL);								
+							}
+
+							ID3D11Buffer* c=NULL;	
+
+							//save the VS Constant buffers
+
+							
+							dc->VSGetConstantBuffers(0, 1, &c);
+
+							int nocb=1; //if getting the constantbuffers fail this notifies that it has a length of 0
+
+							
+							if (c)
+							{
+								ID3D11Buffer* c2=NULL;
+								D3D11_BUFFER_DESC desc;
+
+								c->GetDesc(&desc);
+								desc.CPUAccessFlags=D3D11_CPU_ACCESS_READ;
+								desc.BindFlags=0;
+								desc.Usage=D3D11_USAGE_STAGING;
+
+								dev->CreateBuffer(&desc, NULL, &c2);
+
+								if (c2)
+								{
+									D3D11_MAPPED_SUBRESOURCE buf;
+									
+									dc->CopyResource(c2, c);
+
+									if (SUCCEEDED(dc->Map(c2, 0, D3D11_MAP_READ, 0, &buf)))
+									{				
+										int i=desc.ByteWidth;
+										WriteFile(h, &i, sizeof(i), &bw, NULL);
+
+										
+										WriteFile(h, buf.pData, desc.ByteWidth, &bw, NULL);
+
+										nocb=0;
+
+
+										dc->Unmap(c2,0);
+									}
+									
+
+									c2->Release();
+								}
+								c->Release();								
+
+							}
+
+							if (nocb)
+							{
+								int i=0;
+								WriteFile(h, &i, sizeof(i), &bw, NULL);								
+							}
+
+							CloseHandle(h);
+							
+						}
+
+
+						texture->Release();
+					}
+					backbuffer->Release();
+
+				}
+
+				r->Release();
+			}
+
+			currentrt->Release();
+
+		}
+		
+	
+
+
+
+	}
+}
 
 void DXMessD3D11Handler::SetupFontVertexBuffer(int count)
 {
@@ -368,6 +625,11 @@ DXMessD3D11Handler::~DXMessD3D11Handler()
 DXMessD3D11Handler::DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD3DHookShared shared)
 {
 	HRESULT hr;
+	snapshotCounter=0;
+	lastSnapshot=0;
+	makeSnapshot=FALSE;
+	smallSnapshot=FALSE;
+
     pPixelShaderNormal=NULL;
 	pVertexShader=NULL;
 	pVertexLayout=NULL;
@@ -1134,12 +1396,85 @@ void __stdcall D3D11Hook_SwapChain_Present_imp(IDXGISwapChain *swapchain, ID3D11
 
 	lastdevice=currenthandler;
 
+	//check if a snapshot key is down
+
+	if (currenthandler->makeSnapshot) //possible threading issue if more than one render device
+	{
+		//notify CE that all render operations have completed
+		shared->snapshotcount=currenthandler->snapshotCounter;
+		shared->canDoSnapshot=0;
+		SetEvent((HANDLE)shared->snapshotDone);		
+		currenthandler->makeSnapshot=FALSE;
+	}
+
+	if (shared->canDoSnapshot)
+	{
+		if ((shared->snapshotKey) && (GetTickCount()>currenthandler->lastSnapshot+250))
+		{
+			SHORT ks=GetAsyncKeyState(shared->snapshotKey);
+			currenthandler->makeSnapshot=((ks & 1) || (ks & (1 << 15)));
+			currenthandler->smallSnapshot=FALSE;
+
+			if (currenthandler->makeSnapshot)
+				currenthandler->lastSnapshot=GetTickCount();
+			
+		}
+
+		if ((currenthandler->makeSnapshot==FALSE) && (shared->smallSnapshotKey) && (GetTickCount()>currenthandler->lastSnapshot+250) && (shared->lastHwnd))
+		{
+			SHORT ks=GetAsyncKeyState(shared->smallSnapshotKey);
+			currenthandler->makeSnapshot=((ks & 1) || (ks & (1 << 15)));
+
+			if (currenthandler->makeSnapshot)
+			{
+				POINT p;
+				currenthandler->smallSnapshot=TRUE;
+				currenthandler->lastSnapshot=GetTickCount();
+
+				//get the pixel the mouse is hovering over
+				GetCursorPos(&p);
+				ScreenToClient((HWND)shared->lastHwnd, &p);
+				currenthandler->smallSnapshotPoint=p;
+
+				GetClientRect((HWND)shared->lastHwnd, &currenthandler->smallSnapshotClientRect);
+
+
+				//get the relative position (0.00 - 1.00) this position is in for the clientrect
+				currenthandler->smallSnapshotPointRelative.x=(float)currenthandler->smallSnapshotPoint.x/(float)(currenthandler->smallSnapshotClientRect.right-currenthandler->smallSnapshotClientRect.left);
+				currenthandler->smallSnapshotPointRelative.y=(float)currenthandler->smallSnapshotPoint.y/(float)(currenthandler->smallSnapshotClientRect.bottom-currenthandler->smallSnapshotClientRect.top);
+			}
+			
+		}
+
+		if (currenthandler->makeSnapshot)
+		{
+			ID3D11RenderTargetView *rt=NULL;
+			makeSnapshot=TRUE; //once true, always true
+
+			
+			currenthandler->dc->OMGetRenderTargets(1, &rt, NULL);
+
+			//clear the render target with a specific color
+			if (rt)
+			{
+				FLOAT f[]={1.0f,0.0f,1.0f,1.0f};
+				currenthandler->dc->ClearRenderTargetView(rt, f);	
+				
+				rt->Release();
+			}
+
+			currenthandler->snapshotCounter=0;
+			
+
+		}
+	}
+
 }
 
 
 HRESULT __stdcall D3D11Hook_DrawIndexed_imp(D3D11_DRAWINDEXED_ORIGINAL originalfunction, ID3D11DeviceContext *dc, UINT IndexCount, UINT StartIndexLocation, INT BaseVertexLocation)	
 {	
-	if ((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0) )
+	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) || (makeSnapshot) ) && (insidehook==0)))
 	{
 		//setup for wireframe and/or zbuffer
 		HRESULT hr;
@@ -1166,14 +1501,23 @@ HRESULT __stdcall D3D11Hook_DrawIndexed_imp(D3D11_DRAWINDEXED_ORIGINAL originalf
 			if (shared->disabledzbuffer)
 				currentDevice->dc->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
 
+			if (currentDevice->makeSnapshot)
+				currentDevice->PrepareForSnapshot();
 
 			hr=originalfunction(dc, IndexCount, StartIndexLocation, BaseVertexLocation);
+
+			if (currentDevice->makeSnapshot)
+				currentDevice->TakeSnapshot();
+
 			
 			currentDevice->dc->RSSetState(oldRasterizerState);
 			currentDevice->dc->OMSetDepthStencilState(oldDepthStencilState, 0);
 
 			return hr;
-		}		
+			
+		}
+		
+
 	}
 	return originalfunction(dc, IndexCount, StartIndexLocation, BaseVertexLocation);
 }
@@ -1181,7 +1525,7 @@ HRESULT __stdcall D3D11Hook_DrawIndexed_imp(D3D11_DRAWINDEXED_ORIGINAL originalf
 
 HRESULT __stdcall D3D11Hook_Draw_imp(D3D11_DRAW_ORIGINAL originalfunction, ID3D11DeviceContext *dc, UINT VertexCount, UINT StartVertexLocation)
 {	
-	if ((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0) )
+	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) || (makeSnapshot) ) && (insidehook==0)))
 	{
 		//setup for wireframe and/or zbuffer
 		HRESULT hr;
@@ -1213,7 +1557,13 @@ HRESULT __stdcall D3D11Hook_Draw_imp(D3D11_DRAW_ORIGINAL originalfunction, ID3D1
 				currentDevice->dc->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
 
 
+			if (currentDevice->makeSnapshot)
+				currentDevice->PrepareForSnapshot();
+
 			hr=originalfunction(dc, VertexCount, StartVertexLocation);
+
+			if (currentDevice->makeSnapshot)
+				currentDevice->TakeSnapshot();
 			
 			currentDevice->dc->RSSetState(oldRasterizerState);
 			currentDevice->dc->OMSetDepthStencilState(oldDepthStencilState, 0);
@@ -1226,7 +1576,7 @@ HRESULT __stdcall D3D11Hook_Draw_imp(D3D11_DRAW_ORIGINAL originalfunction, ID3D1
 
 HRESULT __stdcall D3D11Hook_DrawIndexedInstanced_imp(D3D11_DRAWINDEXEDINSTANCED_ORIGINAL originalfunction, ID3D11DeviceContext *dc, UINT IndexCountPerInstance, UINT InstanceCount, UINT StartIndexLocation, INT BaseVertexLocation, UINT StartInstanceLocation)
 {	
-	if ((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0) )
+	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) || (makeSnapshot) ) && (insidehook==0)))
 	{
 		//setup for wireframe and/or zbuffer
 		HRESULT hr;
@@ -1254,7 +1604,13 @@ HRESULT __stdcall D3D11Hook_DrawIndexedInstanced_imp(D3D11_DRAWINDEXEDINSTANCED_
 				currentDevice->dc->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
 
 
+			if (currentDevice->makeSnapshot)
+				currentDevice->PrepareForSnapshot();
+
 			hr=originalfunction(dc, IndexCountPerInstance, InstanceCount, StartIndexLocation, BaseVertexLocation, StartInstanceLocation);
+
+			if (currentDevice->makeSnapshot)
+				currentDevice->TakeSnapshot();
 			
 			currentDevice->dc->RSSetState(oldRasterizerState);
 			currentDevice->dc->OMSetDepthStencilState(oldDepthStencilState, 0);
@@ -1267,7 +1623,7 @@ HRESULT __stdcall D3D11Hook_DrawIndexedInstanced_imp(D3D11_DRAWINDEXEDINSTANCED_
 
 HRESULT __stdcall D3D11Hook_DrawInstanced_imp(D3D11_DRAWINSTANCED_ORIGINAL originalfunction, ID3D11DeviceContext *dc, UINT VertexCountPerInstance, UINT InstanceCount, UINT StartVertexLocation, UINT StartInstanceLocation)
 {	
-	if ((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0) )
+	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) || (makeSnapshot) ) && (insidehook==0)))
 	{
 		//setup for wireframe and/or zbuffer
 		HRESULT hr;
@@ -1295,7 +1651,13 @@ HRESULT __stdcall D3D11Hook_DrawInstanced_imp(D3D11_DRAWINSTANCED_ORIGINAL origi
 				currentDevice->dc->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
 
 
+			if (currentDevice->makeSnapshot)
+				currentDevice->PrepareForSnapshot();
+
 			hr=originalfunction(dc, VertexCountPerInstance, InstanceCount, StartVertexLocation, StartInstanceLocation);
+
+			if (currentDevice->makeSnapshot)
+				currentDevice->TakeSnapshot();
 			
 			currentDevice->dc->RSSetState(oldRasterizerState);
 			currentDevice->dc->OMSetDepthStencilState(oldDepthStencilState, 0);
@@ -1308,7 +1670,7 @@ HRESULT __stdcall D3D11Hook_DrawInstanced_imp(D3D11_DRAWINSTANCED_ORIGINAL origi
 
 HRESULT __stdcall D3D11Hook_DrawAuto_imp(D3D11_DRAWAUTO_ORIGINAL originalfunction, ID3D11DeviceContext *dc)
 {	
-	if ((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0) )
+	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) || (makeSnapshot) ) && (insidehook==0)))
 	{
 		//setup for wireframe and/or zbuffer
 		HRESULT hr;
@@ -1335,8 +1697,15 @@ HRESULT __stdcall D3D11Hook_DrawAuto_imp(D3D11_DRAWAUTO_ORIGINAL originalfunctio
 			if (shared->disabledzbuffer)
 				currentDevice->dc->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
 
+			if (currentDevice->makeSnapshot)
+				currentDevice->PrepareForSnapshot();
 
 			hr=originalfunction(dc);
+
+			if (currentDevice->makeSnapshot)
+				currentDevice->TakeSnapshot();
+
+
 			
 			currentDevice->dc->RSSetState(oldRasterizerState);
 			currentDevice->dc->OMSetDepthStencilState(oldDepthStencilState, 0);

@@ -172,27 +172,21 @@ void DXMessD3D10Handler::TakeSnapshot()
 							x=10; //dx10
 							WriteFile(h, &x, sizeof(x), &bw, NULL); 
 
-							//
-							//strcat(s, ".bmp");
-							/*
+				
+							//D3DX10SaveTextureToMemory(texture, D3DX10_IFF_BMP, &dest, 0););
+							if (SUCCEEDED(D3DX10SaveTextureToMemory(texture, D3DX10_IFF_PNG, &dest, 0))) //weird. PNG has some information loss on certain things like text
 							{
-								ID3D10Texture2D *backbuffer=NULL;   
-								if (SUCCEEDED(swapchain->GetBuffer(0, __uuidof(backbuffer), (void **)&backbuffer)))
-								{
+								x=dest->GetBufferSize();
+								WriteFile(h, &x, sizeof(x), &bw, NULL); 													
+								WriteFile(h, dest->GetBufferPointer(), x, &bw, NULL); 
 
-									
-									dev->CopyResource(texture, backbuffer);
-									D3DX10SaveTextureToFileA(texture, D3DX10_IFF_PNG, s);
-								}
-							}*/
-
-							//D3DX10SaveTextureToFileA(texture, D3DX10_IFF_BMP, s);
-							D3DX10SaveTextureToMemory(texture, D3DX10_IFF_PNG, &dest, 0); //weird. PNG has some information loss on cerain things like text
-							x=dest->GetBufferSize();
-							WriteFile(h, &x, sizeof(x), &bw, NULL); 													
-							WriteFile(h, dest->GetBufferPointer(), x, &bw, NULL); 
-
-							dest->Release();
+								dest->Release();
+							}
+							else
+							{
+								x=0;
+								WriteFile(h, &x, sizeof(x), &bw, NULL); 
+							}
 
 
 							WriteFile(h, &stackbase, sizeof(stackbase), &bw, NULL);
@@ -1442,7 +1436,7 @@ void __stdcall D3D10Hook_SwapChain_Present_imp(IDXGISwapChain *swapchain, ID3D10
 
 HRESULT __stdcall D3D10Hook_DrawIndexed_imp(D3D10_DRAWINDEXED_ORIGINAL originalfunction, ID3D10Device *device, UINT IndexCount, UINT StartIndexLocation, INT BaseVertexLocation)	
 {	
-	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0)) || makeSnapshot)
+	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) || (makeSnapshot) ) && (insidehook==0)))
 	{
 		//setup for wireframe and/or zbuffer
 		HRESULT hr;
@@ -1495,7 +1489,7 @@ HRESULT __stdcall D3D10Hook_DrawIndexed_imp(D3D10_DRAWINDEXED_ORIGINAL originalf
 
 HRESULT __stdcall D3D10Hook_Draw_imp(D3D10_DRAW_ORIGINAL originalfunction, ID3D10Device *device, UINT VertexCount, UINT StartVertexLocation)
 {	
-	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0)) || makeSnapshot)
+	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) || (makeSnapshot) ) && (insidehook==0)))
 	{
 		//setup for wireframe and/or zbuffer
 		HRESULT hr;
@@ -1541,7 +1535,7 @@ HRESULT __stdcall D3D10Hook_Draw_imp(D3D10_DRAW_ORIGINAL originalfunction, ID3D1
 
 HRESULT __stdcall D3D10Hook_DrawIndexedInstanced_imp(D3D10_DRAWINDEXEDINSTANCED_ORIGINAL originalfunction, ID3D10Device *device, UINT IndexCountPerInstance, UINT InstanceCount, UINT StartIndexLocation, INT BaseVertexLocation, UINT StartInstanceLocation)
 {	
-	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0)) || makeSnapshot)
+	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) || (makeSnapshot) ) && (insidehook==0)))
 	{
 		//setup for wireframe and/or zbuffer
 		HRESULT hr;
@@ -1585,7 +1579,7 @@ HRESULT __stdcall D3D10Hook_DrawIndexedInstanced_imp(D3D10_DRAWINDEXEDINSTANCED_
 
 HRESULT __stdcall D3D10Hook_DrawInstanced_imp(D3D10_DRAWINSTANCED_ORIGINAL originalfunction, ID3D10Device *device, UINT VertexCountPerInstance, UINT InstanceCount, UINT StartVertexLocation, UINT StartInstanceLocation)
 {	
-	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0)) || makeSnapshot)
+	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) || (makeSnapshot) ) && (insidehook==0)))
 	{
 		//setup for wireframe and/or zbuffer
 		HRESULT hr;
@@ -1630,7 +1624,7 @@ HRESULT __stdcall D3D10Hook_DrawInstanced_imp(D3D10_DRAWINSTANCED_ORIGINAL origi
 
 HRESULT __stdcall D3D10Hook_DrawAuto_imp(D3D10_DRAWAUTO_ORIGINAL originalfunction, ID3D10Device *device)
 {	
-	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) ) && (insidehook==0)) || makeSnapshot)
+	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) || (makeSnapshot) ) && (insidehook==0)))
 	{
 		//setup for wireframe and/or zbuffer
 		HRESULT hr;
