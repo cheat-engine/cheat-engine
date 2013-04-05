@@ -30,40 +30,418 @@ struct ConstantBuffer
 };
 
 
-void DXMessD3D11Handler::PrepareForSnapshot() //just clears the screen
+ID3D11DeviceContext *DXMessD3D11Handler::PrepareForSnapshot(ID3D11DeviceContext *dc) //just clears the screen
 {
+	UINT i;
+
+	ID3D11DeviceContext *drawdc=dc;
+	EnterCriticalSection(&cs);
+
+	
+
 	if (!shared->progressiveSnapshot) //if this is true no erasing will be done
 	{
+		if (dc->GetType()!=D3D11_DEVICE_CONTEXT_IMMEDIATE)
+		{
+			//If necesary create my own immeadiate context
+
+			if (RenderContext==NULL)
+				dev->GetImmediateContext(&RenderContext);
+
+			//get all the data from all the stages (this will be SLOOOOW)
+
+		
+		
+			drawdc=RenderContext;
+			
+		
+
+			//get IA
+			{
+				ID3D11Buffer *IndexBuffer;
+				ID3D11InputLayout *InputLayout;
+				D3D11_PRIMITIVE_TOPOLOGY Topology;
+				DXGI_FORMAT format;
+				UINT offset;
+				ID3D11Buffer *vertexBuffers[D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT];
+				UINT strides[D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT];
+				UINT offsets[D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT];
+
+
+				dc->IAGetIndexBuffer(&IndexBuffer, &format, &offset);
+				dc->IAGetInputLayout(&InputLayout);
+				dc->IAGetPrimitiveTopology(&Topology);
+				dc->IAGetVertexBuffers(0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT, vertexBuffers, strides, offsets);  
+
+				drawdc->IASetIndexBuffer(IndexBuffer, format, offset);
+				drawdc->IASetInputLayout(InputLayout);
+				drawdc->IASetPrimitiveTopology(Topology);
+				drawdc->IASetVertexBuffers(0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT, vertexBuffers, strides, offsets);
+
+				if (IndexBuffer)
+					IndexBuffer->Release();
+
+				if (InputLayout)
+					InputLayout->Release();
+
+				for (i=0; i<D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT; i++)
+					if (vertexBuffers[i])
+						vertexBuffers[i]->Release();
+
+			}			
+
+		
+			//get VS
+			{
+				ID3D11Buffer *ConstantBuffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
+				ID3D11SamplerState *Samplers[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
+				ID3D11VertexShader *VertexShader=NULL;
+				ID3D11ClassInstance **ClassInstances=NULL;
+				ID3D11ShaderResourceView *ShaderResourceViews[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
+				
+				UINT NumClassInstances=0;
+
+				dc->VSGetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ConstantBuffers); 
+				dc->VSGetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, Samplers);
+				dc->VSGetShader(&VertexShader, NULL, &NumClassInstances);
+				if (VertexShader)
+					VertexShader->Release();
+
+				if (NumClassInstances)
+				{
+					ClassInstances=(ID3D11ClassInstance **)malloc(NumClassInstances*sizeof(ID3D11ClassInstance *));
+				
+					dc->VSGetShader(&VertexShader, ClassInstances, &NumClassInstances);					
+				}
+
+				dc->VSGetShaderResources(0,D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, ShaderResourceViews);
+
+				drawdc->VSSetShader(VertexShader, ClassInstances, NumClassInstances);
+				drawdc->VSSetConstantBuffers(0,D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ConstantBuffers);
+				drawdc->VSSetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, Samplers);
+				
+				drawdc->VSSetShaderResources(0,D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, ShaderResourceViews);
+				
+
+				/*
+				for (i=0; i<D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; i++)
+					if (ConstantBuffers[i])
+						ConstantBuffers[i]->Release();
+
+				for (i=0; i<D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT; i++)
+					if (Samplers[i])
+						Samplers[i]->Release();
+				
+				if (VertexShader)  //for some reason the game tends to crash if I release the vertex shader here. Seems like refcount is 0 (I thought VSSetShader would increase it with 1)
+					VertexShader->Release();
+*/
+				if (ClassInstances)
+				{
+					/*
+					for (i=0; i<NumClassInstances; i++)
+						if (ClassInstances[i])
+							ClassInstances[i]->Release();
+							*/
+					
+					free(ClassInstances);
+				}
+
+				/*
+				for (i=0; i<D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT; i++)
+				{
+					if (ShaderResourceViews[i])
+						ShaderResourceViews[i]->Release();
+				}
+				*/
+
+				
+			}
+
+		
+			//get GS
+			{
+				ID3D11Buffer *ConstantBuffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
+				ID3D11SamplerState *Samplers[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
+				UINT NumClassInstances=0;
+				ID3D11GeometryShader *GeometryShader=NULL;
+				ID3D11ClassInstance **ClassInstances=NULL;
+				ID3D11ShaderResourceView *ShaderResourceViews[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
+
+
+				dc->GSGetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ConstantBuffers);
+				dc->GSGetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, Samplers);
+				dc->GSGetShader(&GeometryShader, NULL, &NumClassInstances);
+				if (GeometryShader)
+					GeometryShader->Release();
+
+
+				if (NumClassInstances)
+				{
+					ClassInstances=(ID3D11ClassInstance **)malloc(NumClassInstances*sizeof(ID3D11ClassInstance *));
+				
+					dc->GSGetShader(&GeometryShader, ClassInstances, &NumClassInstances);					
+				}
+
+				
+				dc->GSGetShaderResources(0,D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, ShaderResourceViews);
+
+				drawdc->GSSetShader(GeometryShader, ClassInstances, NumClassInstances);
+				drawdc->GSSetConstantBuffers(0,D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ConstantBuffers);
+				drawdc->GSSetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, Samplers);
+				
+				drawdc->GSSetShaderResources(0,D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, ShaderResourceViews);
+				
+
+			/*
+				for (i=0; i<D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; i++)
+					if (ConstantBuffers[i])
+						ConstantBuffers[i]->Release();
+
+				for (i=0; i<D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT; i++)
+					if (Samplers[i])
+						Samplers[i]->Release();
+
+				if (GeometryShader)
+					GeometryShader->Release();
+
+					*/
+				if (ClassInstances)
+				{
+					/*
+					for (i=0; i<NumClassInstances; i++)
+						if (ClassInstances[i])
+							ClassInstances[i]->Release();
+							*/
+
+					free(ClassInstances);
+				}
+
+				/*
+				for (i=0; i<D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT; i++)
+				{
+					if (ShaderResourceViews[i])
+						ShaderResourceViews[i]->Release();
+				}
+				*/
+				
+
+
+
+			}
+
+			//get SO
+			{
+				ID3D11Buffer *SOTarget[D3D11_SO_BUFFER_SLOT_COUNT];
+				UINT offsets[D3D11_SO_BUFFER_SLOT_COUNT];
+				for (i=0; i<D3D11_SO_BUFFER_SLOT_COUNT; i++)
+					offsets[i]=-1;
+
+				dc->SOGetTargets(D3D11_SO_BUFFER_SLOT_COUNT, SOTarget);
+				drawdc->SOSetTargets(D3D11_SO_BUFFER_SLOT_COUNT, SOTarget, offsets);
+
+			/*
+			
+				for (i=0; i<D3D11_SO_BUFFER_SLOT_COUNT; i++)
+					if (SOTarget[i])
+						SOTarget[i]->Release();
+						*/
+						
+
+			}
+
+			//get RS
+			{
+				D3D11_RECT rects[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
+				UINT rectcount=D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
+				D3D11_VIEWPORT viewports[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
+				UINT viewportcount= D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
+				
+
+				ID3D11RasterizerState *RasterizerState;
+
+				dc->RSGetScissorRects(&rectcount, NULL);
+				dc->RSGetScissorRects(&rectcount, rects);
+				dc->RSGetState(&RasterizerState);
+				dc->RSGetViewports(&viewportcount, NULL);
+				dc->RSGetViewports(&viewportcount,  viewports);			
+				
+
+				drawdc->RSSetScissorRects(rectcount, rects);
+				drawdc->RSSetState(RasterizerState);
+				drawdc->RSSetViewports(viewportcount, viewports);				
+
+				RasterizerState->Release();
+			}
+
+
+
+			//get PS
+			{
+				ID3D11Buffer *ConstantBuffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
+				ID3D11SamplerState *Samplers[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
+				UINT NumClassInstances=0;
+				ID3D11PixelShader *PixelShader=NULL;
+				ID3D11ClassInstance **ClassInstances=NULL;
+				ID3D11ShaderResourceView *ShaderResourceViews[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
+
+
+				dc->PSGetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ConstantBuffers);
+				dc->PSGetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, Samplers);
+				dc->PSGetShader(&PixelShader, NULL, &NumClassInstances);
+				/*
+				if (PixelShader)
+					PixelShader->Release();
+
+
+				if (NumClassInstances)
+				{
+					ClassInstances=(ID3D11ClassInstance **)malloc(NumClassInstances*sizeof(ID3D11ClassInstance *));
+				
+					dc->PSGetShader(&PixelShader, ClassInstances, &NumClassInstances);					
+				}
+				*/
+
+				
+				dc->PSGetShaderResources(0,D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, ShaderResourceViews);
+
+
+				drawdc->PSSetShader(NULL, NULL, 0);
+				drawdc->PSSetShader(PixelShader, ClassInstances, NumClassInstances);
+				drawdc->PSSetConstantBuffers(0,D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ConstantBuffers);
+				drawdc->PSSetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, Samplers);				
+				drawdc->PSSetShaderResources(0,D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, ShaderResourceViews);
+				
+
+			/*
+				for (i=0; i<D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; i++)
+					if (ConstantBuffers[i])
+						ConstantBuffers[i]->Release();
+
+				for (i=0; i<D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT; i++)
+					if (Samplers[i])
+						Samplers[i]->Release();
+
+				if (PixelShader)
+					PixelShader->Release();
+					*/
+
+				if (ClassInstances)
+				{
+					/*
+					for (i=0; i<NumClassInstances; i++)
+						if (ClassInstances[i])
+							ClassInstances[i]->Release();
+							*/
+
+					free(ClassInstances);
+				}
+				/*
+
+				for (i=0; i<D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT; i++)
+				{
+					if (ShaderResourceViews[i])
+						ShaderResourceViews[i]->Release();
+				}
+				*/
+
+
+
+			}
+
+			//get OM
+			{
+				ID3D11BlendState* BlendState;
+				ID3D11DepthStencilState *DepthStencilState;
+				ID3D11RenderTargetView *RenderTargets[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT];
+				ID3D11DepthStencilView *DepthStencilView;
+				FLOAT BlendFactor[4];
+				UINT SampleMask;
+				UINT StencilRef;
+				dc->OMGetBlendState( &BlendState, BlendFactor, &SampleMask);
+				dc->OMGetDepthStencilState(&DepthStencilState, &StencilRef);
+				dc->OMGetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, RenderTargets, &DepthStencilView);
+			
+
+				drawdc->OMSetBlendState(BlendState, BlendFactor, SampleMask);
+				/*
+				if (BlendState)
+					BlendState->Release();
+					*/
+
+				drawdc->OMSetDepthStencilState(DepthStencilState, StencilRef);
+
+				/*
+				if (DepthStencilState)
+					DepthStencilState->Release();
+					*/
+
+				drawdc->OMSetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, RenderTargets, DepthStencilView);
+				/*
+				for (i=0; i<D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; i++)
+					if (RenderTargets[i])
+						RenderTargets[i]->Release();
+
+				
+				if (DepthStencilView)
+					DepthStencilView->Release();
+					*/
+
+			
+
+			}
+
+			
+			
+			
+			//OutputDebugStringA("Defered");
+		}
+
+
 		ID3D11RenderTargetView *currentrt=NULL;
 		ID3D11DepthStencilView* currentds=NULL;
 		FLOAT f[]={1.0f,0.0f,1.0f,1.0f};
+
+		//dc->OMSetRenderTargets(1, &ExtraRenderTarget, NULL);
+
+		
 		
 		if (!shared->alsoClearDepthBuffer)
-			dc->OMGetRenderTargets(1, &currentrt, NULL);
+			drawdc->OMGetRenderTargets(1, &currentrt, NULL);
 		else
-			dc->OMGetRenderTargets(1, &currentrt, &currentds);
+			drawdc->OMGetRenderTargets(1, &currentrt, &currentds);
 
 		if (currentrt)
 		{				
-			dc->ClearRenderTargetView(currentrt, f);		
+			drawdc->ClearRenderTargetView(currentrt, f);		
 			currentrt->Release();
 		}
 
 		if (currentds)
 		{
-			dc->ClearDepthStencilView(currentds, D3D11_CLEAR_DEPTH, 1.0, 0);
+			drawdc->ClearDepthStencilView(currentds, D3D11_CLEAR_DEPTH, 1.0, 0);
 			currentds->Release();
 		}
+		
 	}
+
+	return drawdc;
 }
 
-void DXMessD3D11Handler::TakeSnapshot()
+void DXMessD3D11Handler::TakeSnapshot(ID3D11DeviceContext *dc)
 {
 	
 	ID3D11RenderTargetView *currentrt=NULL ;
 
+	
+
+	
+
+
 	if (makeSnapshot)
 	{		
+		
+
+		
 		dc->OMGetRenderTargets(1, &currentrt, NULL);
 		
 		if (currentrt)
@@ -108,16 +486,21 @@ void DXMessD3D11Handler::TakeSnapshot()
 					
 					if (SUCCEEDED(dev->CreateTexture2D(&texDesc, 0, &texture)))
 					{
+			
 						BOOL savethis=FALSE;
+
 						
 						dc->CopyResource(texture, r);
+						
+						
 
 
 						
 
 						if (smallSnapshot)
 						{
-							D3D11_MAPPED_SUBRESOURCE mappedtexture;							 
+							D3D11_MAPPED_SUBRESOURCE mappedtexture;	
+
 
 							if (SUCCEEDED(dc->Map(texture, 0, D3D11_MAP_READ, 0, &mappedtexture)))
 							{	
@@ -173,6 +556,10 @@ void DXMessD3D11Handler::TakeSnapshot()
 							ID3D10Blob *dest=NULL;
 				
 							//D3DX11SaveTextureToMemory(texture, D3DX11_IFF_BMP, &dest, 0););
+							
+							strcat_s(s,MAX_PATH, ".BMP");
+							D3DX11SaveTextureToFileA(dc, texture, D3DX11_IFF_BMP, s);
+
 							if (SUCCEEDED(D3DX11SaveTextureToMemory(dc, texture, D3DX11_IFF_PNG, &dest, 0))) //weird. PNG has some information loss on certain things like text
 							{
 								x=dest->GetBufferSize();
@@ -280,10 +667,10 @@ void DXMessD3D11Handler::TakeSnapshot()
 		}
 		
 	
-
-
-
 	}
+
+	LeaveCriticalSection(&cs);
+	
 }
 
 void DXMessD3D11Handler::SetupFontVertexBuffer(int count)
@@ -320,6 +707,8 @@ void DXMessD3D11Handler::DrawString(D3D11_VIEWPORT vp, PTextureData11 pFontTextu
 {
 	if (pFontTexture)
 	{
+		ID3D11DeviceContext *dc;
+		dev->GetImmediateContext(&dc);
 		SetupFontVertexBuffer(strlen);
 
 		if (currentMaxCharacterCount<strlen) return; //error
@@ -408,6 +797,8 @@ void DXMessD3D11Handler::DrawString(D3D11_VIEWPORT vp, PTextureData11 pFontTextu
 		dc->PSSetShaderResources( 0, 1, &pFontTexture->pTexture );
 
 		dc->Draw(6*strlen,0);
+
+		dc->Release();
 	}
 }
 
@@ -609,8 +1000,8 @@ DXMessD3D11Handler::~DXMessD3D11Handler()
 	if (pDisabledDepthStencilState)
 		pDisabledDepthStencilState->Release();
 
-	if (dc)
-		dc->Release();
+	/*if (dc)
+		dc->Release();*/
 
 	if (dev)
 	  dev->Release();
@@ -625,6 +1016,10 @@ DXMessD3D11Handler::~DXMessD3D11Handler()
 DXMessD3D11Handler::DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD3DHookShared shared)
 {
 	HRESULT hr;
+	InitializeCriticalSection(&cs); //initialize the critical section used for snapshots
+			
+	RenderContext=NULL;
+
 	snapshotCounter=0;
 	lastSnapshot=0;
 	makeSnapshot=FALSE;
@@ -665,8 +1060,8 @@ DXMessD3D11Handler::DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD
 	dev->AddRef();
 	sc->AddRef();
 
-	dc=NULL;
-	dev->GetImmediateContext(&dc); //increases the reference count
+//	dc=NULL;
+//	dev->GetImmediateContext(&dc); //increases the reference count
 
 	D3D11_BUFFER_DESC bd2d;
 	D3D11_SUBRESOURCE_DATA InitData2d;
@@ -856,6 +1251,33 @@ DXMessD3D11Handler::DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD
     hr = dev->CreateRenderTargetView( pBackBuffer, NULL, &pRenderTargetView );
     pBackBuffer->Release();
 
+	DXGI_SWAP_CHAIN_DESC scd;
+	if (SUCCEEDED(sc->GetDesc(&scd)))
+	{
+		D3D11_TEXTURE2D_DESC texdesc;
+		texdesc.ArraySize=1;
+		texdesc.BindFlags=D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+		texdesc.CPUAccessFlags=0;
+		texdesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM;
+		texdesc.Height=scd.BufferDesc.Height;
+		texdesc.Width=scd.BufferDesc.Width;
+		texdesc.MipLevels=1;
+		texdesc.MiscFlags=0;
+		texdesc.SampleDesc.Count=1;
+		texdesc.SampleDesc.Quality=0;
+		texdesc.Usage=D3D11_USAGE_DEFAULT;
+		
+		if (SUCCEEDED(dev->CreateTexture2D(&texdesc, NULL, &ExtraRenderTargetTexture)))
+		{
+			ExtraRenderTarget=NULL;
+			dev->CreateRenderTargetView(ExtraRenderTargetTexture, NULL,  &ExtraRenderTarget);
+
+		}		
+		
+	}
+
+
+
     if( FAILED( hr ) )
         return;
 
@@ -928,6 +1350,12 @@ void DXMessD3D11Handler::RenderOverlay()
 		//render the overlay
 		BOOL hasLock=FALSE;
 		POINT clientMousepos;
+
+
+		ID3D11DeviceContext *dc;
+
+		dev->GetImmediateContext(&dc);
+
 		clientMousepos.x=-1;
 		clientMousepos.y=-1;
 
@@ -1448,17 +1876,24 @@ void __stdcall D3D11Hook_SwapChain_Present_imp(IDXGISwapChain *swapchain, ID3D11
 
 		if (currenthandler->makeSnapshot)
 		{
+			ID3D11DeviceContext *dc;
 			ID3D11RenderTargetView *rt=NULL;
+			device->GetImmediateContext(&dc);
 			makeSnapshot=TRUE; //once true, always true
 
 			
-			currenthandler->dc->OMGetRenderTargets(1, &rt, NULL);
+			dc->OMGetRenderTargets(1, &rt, NULL);
+
+
+			//currenthandler->dc->OMSetRenderTargets(1, &currenthandler->ExtraRenderTarget, NULL);
+
+
 
 			//clear the render target with a specific color
 			if (rt)
 			{
 				FLOAT f[]={1.0f,0.0f,1.0f,1.0f};
-				currenthandler->dc->ClearRenderTargetView(rt, f);	
+				dc->ClearRenderTargetView(currenthandler->ExtraRenderTarget, f);	
 				
 				rt->Release();
 			}
@@ -1474,7 +1909,7 @@ void __stdcall D3D11Hook_SwapChain_Present_imp(IDXGISwapChain *swapchain, ID3D11
 
 HRESULT __stdcall D3D11Hook_DrawIndexed_imp(D3D11_DRAWINDEXED_ORIGINAL originalfunction, ID3D11DeviceContext *dc, UINT IndexCount, UINT StartIndexLocation, INT BaseVertexLocation)	
 {	
-	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) || (makeSnapshot) ) && (insidehook==0)))
+	//if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) || (makeSnapshot) ) && (insidehook==0)))
 	{
 		//setup for wireframe and/or zbuffer
 		HRESULT hr;
@@ -1489,29 +1924,40 @@ HRESULT __stdcall D3D11Hook_DrawIndexed_imp(D3D11_DRAWINDEXED_ORIGINAL originalf
 
 		if (currentDevice)
 		{
+			ID3D11DeviceContext *drawdc;
 			ID3D11DepthStencilState *oldDepthStencilState;
 			ID3D11RasterizerState *oldRasterizerState;
+			UINT stencilref=0;
 
-			currentDevice->dc->OMGetDepthStencilState(&oldDepthStencilState,0);
-			currentDevice->dc->RSGetState(&oldRasterizerState);
+
+			dc->OMGetDepthStencilState(&oldDepthStencilState,&stencilref);
+			dc->RSGetState(&oldRasterizerState);
 
 			if (shared->wireframe)
-				currentDevice->dc->RSSetState(currentDevice->pWireframeRasterizer);
+				dc->RSSetState(currentDevice->pWireframeRasterizer);
 
 			if (shared->disabledzbuffer)
-				currentDevice->dc->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
+				dc->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);
 
 			if (currentDevice->makeSnapshot)
-				currentDevice->PrepareForSnapshot();
+				drawdc=currentDevice->PrepareForSnapshot(dc);
+			else
+				drawdc=dc;
 
-			hr=originalfunction(dc, IndexCount, StartIndexLocation, BaseVertexLocation);
-
+			hr=originalfunction(drawdc, IndexCount, StartIndexLocation, BaseVertexLocation);
 			if (currentDevice->makeSnapshot)
-				currentDevice->TakeSnapshot();
-
+				currentDevice->TakeSnapshot(drawdc);
 			
-			currentDevice->dc->RSSetState(oldRasterizerState);
-			currentDevice->dc->OMSetDepthStencilState(oldDepthStencilState, 0);
+			dc->RSSetState(oldRasterizerState);
+			dc->OMSetDepthStencilState(oldDepthStencilState, stencilref);
+
+			if (oldRasterizerState)
+				oldRasterizerState->Release();
+
+			if (oldDepthStencilState)
+				oldDepthStencilState->Release();
+
+
 
 			return hr;
 			
@@ -1525,7 +1971,7 @@ HRESULT __stdcall D3D11Hook_DrawIndexed_imp(D3D11_DRAWINDEXED_ORIGINAL originalf
 
 HRESULT __stdcall D3D11Hook_Draw_imp(D3D11_DRAW_ORIGINAL originalfunction, ID3D11DeviceContext *dc, UINT VertexCount, UINT StartVertexLocation)
 {	
-	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) || (makeSnapshot) ) && (insidehook==0)))
+	//if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) || (makeSnapshot) ) && (insidehook==0)))
 	{
 		//setup for wireframe and/or zbuffer
 		HRESULT hr;
@@ -1544,29 +1990,41 @@ HRESULT __stdcall D3D11Hook_Draw_imp(D3D11_DRAW_ORIGINAL originalfunction, ID3D1
 
 		if (currentDevice)
 		{
+			ID3D11DeviceContext *drawdc;
 			ID3D11DepthStencilState *oldDepthStencilState;
 			ID3D11RasterizerState *oldRasterizerState;
+			UINT stencilref=0;
 
-			currentDevice->dc->OMGetDepthStencilState(&oldDepthStencilState,0);
-			currentDevice->dc->RSGetState(&oldRasterizerState);
+
+			dc->OMGetDepthStencilState(&oldDepthStencilState,&stencilref);
+			dc->RSGetState(&oldRasterizerState);
 
 			if (shared->wireframe)
-				currentDevice->dc->RSSetState(currentDevice->pWireframeRasterizer);
+				dc->RSSetState(currentDevice->pWireframeRasterizer);
 
 			if (shared->disabledzbuffer)
-				currentDevice->dc->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
+				dc->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
 
 
 			if (currentDevice->makeSnapshot)
-				currentDevice->PrepareForSnapshot();
+				drawdc=currentDevice->PrepareForSnapshot(dc);
+			else
+				drawdc=dc;
 
-			hr=originalfunction(dc, VertexCount, StartVertexLocation);
+			hr=originalfunction(drawdc, VertexCount, StartVertexLocation);
 
 			if (currentDevice->makeSnapshot)
-				currentDevice->TakeSnapshot();
+				currentDevice->TakeSnapshot(drawdc);
 			
-			currentDevice->dc->RSSetState(oldRasterizerState);
-			currentDevice->dc->OMSetDepthStencilState(oldDepthStencilState, 0);
+			dc->RSSetState(oldRasterizerState);
+			dc->OMSetDepthStencilState(oldDepthStencilState, stencilref);
+
+			if (oldRasterizerState)
+				oldRasterizerState->Release();
+
+			if (oldDepthStencilState)
+				oldDepthStencilState->Release();
+
 
 			return hr;
 		}		
@@ -1576,10 +2034,11 @@ HRESULT __stdcall D3D11Hook_Draw_imp(D3D11_DRAW_ORIGINAL originalfunction, ID3D1
 
 HRESULT __stdcall D3D11Hook_DrawIndexedInstanced_imp(D3D11_DRAWINDEXEDINSTANCED_ORIGINAL originalfunction, ID3D11DeviceContext *dc, UINT IndexCountPerInstance, UINT InstanceCount, UINT StartIndexLocation, INT BaseVertexLocation, UINT StartInstanceLocation)
 {	
-	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) || (makeSnapshot) ) && (insidehook==0)))
+	//if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) || (makeSnapshot) ) && (insidehook==0)))
 	{
 		//setup for wireframe and/or zbuffer
 		HRESULT hr;
+		ID3D11DeviceContext *drawdc;
 		ID3D11Device *device=NULL;
 		dc->GetDevice(&device);		
 		
@@ -1593,27 +2052,39 @@ HRESULT __stdcall D3D11Hook_DrawIndexedInstanced_imp(D3D11_DRAWINDEXEDINSTANCED_
 		{
 			ID3D11DepthStencilState *oldDepthStencilState;
 			ID3D11RasterizerState *oldRasterizerState;
+			UINT stencilref=0;
 
-			currentDevice->dc->OMGetDepthStencilState(&oldDepthStencilState,0);
-			currentDevice->dc->RSGetState(&oldRasterizerState);
+
+			dc->OMGetDepthStencilState(&oldDepthStencilState,&stencilref);
+			dc->RSGetState(&oldRasterizerState);
 
 			if (shared->wireframe)
-				currentDevice->dc->RSSetState(currentDevice->pWireframeRasterizer);
+				dc->RSSetState(currentDevice->pWireframeRasterizer);
 
 			if (shared->disabledzbuffer)
-				currentDevice->dc->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
+				dc->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
 
 
 			if (currentDevice->makeSnapshot)
-				currentDevice->PrepareForSnapshot();
+				drawdc=currentDevice->PrepareForSnapshot(dc);
+			else
+				drawdc=dc;
 
-			hr=originalfunction(dc, IndexCountPerInstance, InstanceCount, StartIndexLocation, BaseVertexLocation, StartInstanceLocation);
+			hr=originalfunction(drawdc, IndexCountPerInstance, InstanceCount, StartIndexLocation, BaseVertexLocation, StartInstanceLocation);
 
 			if (currentDevice->makeSnapshot)
-				currentDevice->TakeSnapshot();
+				currentDevice->TakeSnapshot(drawdc);
 			
-			currentDevice->dc->RSSetState(oldRasterizerState);
-			currentDevice->dc->OMSetDepthStencilState(oldDepthStencilState, 0);
+			dc->RSSetState(oldRasterizerState);
+			dc->OMSetDepthStencilState(oldDepthStencilState, stencilref);
+
+
+			if (oldRasterizerState)
+				oldRasterizerState->Release();
+
+			if (oldDepthStencilState)
+				oldDepthStencilState->Release();
+
 
 			return hr;
 		}		
@@ -1623,10 +2094,11 @@ HRESULT __stdcall D3D11Hook_DrawIndexedInstanced_imp(D3D11_DRAWINDEXEDINSTANCED_
 
 HRESULT __stdcall D3D11Hook_DrawInstanced_imp(D3D11_DRAWINSTANCED_ORIGINAL originalfunction, ID3D11DeviceContext *dc, UINT VertexCountPerInstance, UINT InstanceCount, UINT StartVertexLocation, UINT StartInstanceLocation)
 {	
-	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) || (makeSnapshot) ) && (insidehook==0)))
+	//if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) || (makeSnapshot) ) && (insidehook==0)))
 	{
 		//setup for wireframe and/or zbuffer
 		HRESULT hr;
+		ID3D11DeviceContext *drawdc;
 		ID3D11Device *device=NULL;
 		dc->GetDevice(&device);		
 		
@@ -1640,27 +2112,38 @@ HRESULT __stdcall D3D11Hook_DrawInstanced_imp(D3D11_DRAWINSTANCED_ORIGINAL origi
 		{
 			ID3D11DepthStencilState *oldDepthStencilState;
 			ID3D11RasterizerState *oldRasterizerState;
+			UINT stencilref=0;
 
-			currentDevice->dc->OMGetDepthStencilState(&oldDepthStencilState,0);
-			currentDevice->dc->RSGetState(&oldRasterizerState);
+			dc->OMGetDepthStencilState(&oldDepthStencilState, &stencilref);
+			dc->RSGetState(&oldRasterizerState);
 
 			if (shared->wireframe)
-				currentDevice->dc->RSSetState(currentDevice->pWireframeRasterizer);
+				dc->RSSetState(currentDevice->pWireframeRasterizer);
 
 			if (shared->disabledzbuffer)
-				currentDevice->dc->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
+				dc->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
 
 
 			if (currentDevice->makeSnapshot)
-				currentDevice->PrepareForSnapshot();
+				drawdc=currentDevice->PrepareForSnapshot(dc);
+			else
+				drawdc=dc;
 
-			hr=originalfunction(dc, VertexCountPerInstance, InstanceCount, StartVertexLocation, StartInstanceLocation);
+			hr=originalfunction(drawdc, VertexCountPerInstance, InstanceCount, StartVertexLocation, StartInstanceLocation);
 
 			if (currentDevice->makeSnapshot)
-				currentDevice->TakeSnapshot();
+				currentDevice->TakeSnapshot(drawdc);
 			
-			currentDevice->dc->RSSetState(oldRasterizerState);
-			currentDevice->dc->OMSetDepthStencilState(oldDepthStencilState, 0);
+			dc->RSSetState(oldRasterizerState);
+			dc->OMSetDepthStencilState(oldDepthStencilState, stencilref);
+
+			if (oldRasterizerState)
+				oldRasterizerState->Release();
+
+			if (oldDepthStencilState)
+				oldDepthStencilState->Release();
+
+
 
 			return hr;
 		}		
@@ -1670,10 +2153,11 @@ HRESULT __stdcall D3D11Hook_DrawInstanced_imp(D3D11_DRAWINSTANCED_ORIGINAL origi
 
 HRESULT __stdcall D3D11Hook_DrawAuto_imp(D3D11_DRAWAUTO_ORIGINAL originalfunction, ID3D11DeviceContext *dc)
 {	
-	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) || (makeSnapshot) ) && (insidehook==0)))
+	//if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) || (makeSnapshot) ) && (insidehook==0)))
 	{
 		//setup for wireframe and/or zbuffer
 		HRESULT hr;
+		ID3D11DeviceContext *drawdc;
 		ID3D11Device *device=NULL;
 		dc->GetDevice(&device);		
 		
@@ -1687,28 +2171,39 @@ HRESULT __stdcall D3D11Hook_DrawAuto_imp(D3D11_DRAWAUTO_ORIGINAL originalfunctio
 		{
 			ID3D11DepthStencilState *oldDepthStencilState;
 			ID3D11RasterizerState *oldRasterizerState;
+			UINT stencilref=0;
 
-			currentDevice->dc->OMGetDepthStencilState(&oldDepthStencilState,0);
-			currentDevice->dc->RSGetState(&oldRasterizerState);
+			dc->OMGetDepthStencilState(&oldDepthStencilState, &stencilref);
+			dc->RSGetState(&oldRasterizerState);
 
 			if (shared->wireframe)
-				currentDevice->dc->RSSetState(currentDevice->pWireframeRasterizer);
+				dc->RSSetState(currentDevice->pWireframeRasterizer);
 
 			if (shared->disabledzbuffer)
-				currentDevice->dc->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
+				dc->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
 
 			if (currentDevice->makeSnapshot)
-				currentDevice->PrepareForSnapshot();
+				drawdc=currentDevice->PrepareForSnapshot(dc);
+			else
+				drawdc=dc;
 
-			hr=originalfunction(dc);
+			hr=originalfunction(drawdc);
 
 			if (currentDevice->makeSnapshot)
-				currentDevice->TakeSnapshot();
+				currentDevice->TakeSnapshot(drawdc);
 
 
 			
-			currentDevice->dc->RSSetState(oldRasterizerState);
-			currentDevice->dc->OMSetDepthStencilState(oldDepthStencilState, 0);
+			dc->RSSetState(oldRasterizerState);
+			dc->OMSetDepthStencilState(oldDepthStencilState, stencilref);
+
+			if (oldRasterizerState)
+				oldRasterizerState->Release();
+
+			if (oldDepthStencilState)
+				oldDepthStencilState->Release();
+
+
 
 			return hr;
 		}		
