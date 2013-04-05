@@ -1453,9 +1453,10 @@ HRESULT __stdcall D3D10Hook_DrawIndexed_imp(D3D10_DRAWINDEXED_ORIGINAL originalf
 		{
 			ID3D10DepthStencilState *oldDepthStencilState;
 			ID3D10RasterizerState *oldRasterizerState;			
+			UINT stencilref;
 
 
-			currentDevice->dev->OMGetDepthStencilState(&oldDepthStencilState,0);
+			currentDevice->dev->OMGetDepthStencilState(&oldDepthStencilState, &stencilref);
 			currentDevice->dev->RSGetState(&oldRasterizerState);
 
 			if (shared->wireframe)
@@ -1472,7 +1473,7 @@ HRESULT __stdcall D3D10Hook_DrawIndexed_imp(D3D10_DRAWINDEXED_ORIGINAL originalf
 			hr=originalfunction(device, IndexCount, StartIndexLocation, BaseVertexLocation);
 			
 			currentDevice->dev->RSSetState(oldRasterizerState);
-			currentDevice->dev->OMSetDepthStencilState(oldDepthStencilState, 0);
+			currentDevice->dev->OMSetDepthStencilState(oldDepthStencilState, stencilref);
 
 			if (currentDevice->makeSnapshot)
 				currentDevice->TakeSnapshot();
@@ -1505,8 +1506,9 @@ HRESULT __stdcall D3D10Hook_Draw_imp(D3D10_DRAW_ORIGINAL originalfunction, ID3D1
 		{
 			ID3D10DepthStencilState *oldDepthStencilState;
 			ID3D10RasterizerState *oldRasterizerState;
+			UINT stencilref;
 
-			currentDevice->dev->OMGetDepthStencilState(&oldDepthStencilState,0);
+			currentDevice->dev->OMGetDepthStencilState(&oldDepthStencilState,&stencilref);
 			currentDevice->dev->RSGetState(&oldRasterizerState);
 
 			if (shared->wireframe)
@@ -1521,7 +1523,7 @@ HRESULT __stdcall D3D10Hook_Draw_imp(D3D10_DRAW_ORIGINAL originalfunction, ID3D1
 			hr=originalfunction(device, VertexCount, StartVertexLocation);
 			
 			currentDevice->dev->RSSetState(oldRasterizerState);
-			currentDevice->dev->OMSetDepthStencilState(oldDepthStencilState, 0);
+			currentDevice->dev->OMSetDepthStencilState(oldDepthStencilState, stencilref);
 
 			if (currentDevice->makeSnapshot)
 				currentDevice->TakeSnapshot();
@@ -1550,8 +1552,9 @@ HRESULT __stdcall D3D10Hook_DrawIndexedInstanced_imp(D3D10_DRAWINDEXEDINSTANCED_
 		{
 			ID3D10DepthStencilState *oldDepthStencilState;
 			ID3D10RasterizerState *oldRasterizerState;
+			UINT stencilref=0;
 
-			currentDevice->dev->OMGetDepthStencilState(&oldDepthStencilState,0);
+			currentDevice->dev->OMGetDepthStencilState(&oldDepthStencilState, &stencilref);
 			currentDevice->dev->RSGetState(&oldRasterizerState);
 
 			if (shared->wireframe)
@@ -1566,7 +1569,7 @@ HRESULT __stdcall D3D10Hook_DrawIndexedInstanced_imp(D3D10_DRAWINDEXEDINSTANCED_
 			hr=originalfunction(device, IndexCountPerInstance, InstanceCount, StartIndexLocation, BaseVertexLocation, StartInstanceLocation);
 			
 			currentDevice->dev->RSSetState(oldRasterizerState);
-			currentDevice->dev->OMSetDepthStencilState(oldDepthStencilState, 0);
+			currentDevice->dev->OMSetDepthStencilState(oldDepthStencilState, stencilref);
 
 			if (currentDevice->makeSnapshot)
 				currentDevice->PrepareForSnapshot();
@@ -1594,8 +1597,9 @@ HRESULT __stdcall D3D10Hook_DrawInstanced_imp(D3D10_DRAWINSTANCED_ORIGINAL origi
 		{
 			ID3D10DepthStencilState *oldDepthStencilState;
 			ID3D10RasterizerState *oldRasterizerState;
+			UINT stencilref=0;
 
-			currentDevice->dev->OMGetDepthStencilState(&oldDepthStencilState,0);
+			currentDevice->dev->OMGetDepthStencilState(&oldDepthStencilState,&stencilref);
 			currentDevice->dev->RSGetState(&oldRasterizerState);
 
 			if (shared->wireframe)
@@ -1611,7 +1615,7 @@ HRESULT __stdcall D3D10Hook_DrawInstanced_imp(D3D10_DRAWINSTANCED_ORIGINAL origi
 			hr=originalfunction(device, VertexCountPerInstance, InstanceCount, StartVertexLocation, StartInstanceLocation);
 			
 			currentDevice->dev->RSSetState(oldRasterizerState);
-			currentDevice->dev->OMSetDepthStencilState(oldDepthStencilState, 0);
+			currentDevice->dev->OMSetDepthStencilState(oldDepthStencilState, stencilref);
 
 			if (currentDevice->makeSnapshot)
 				currentDevice->TakeSnapshot();
@@ -1639,8 +1643,9 @@ HRESULT __stdcall D3D10Hook_DrawAuto_imp(D3D10_DRAWAUTO_ORIGINAL originalfunctio
 		{
 			ID3D10DepthStencilState *oldDepthStencilState;
 			ID3D10RasterizerState *oldRasterizerState;
+			UINT stencilref=0;
 
-			currentDevice->dev->OMGetDepthStencilState(&oldDepthStencilState,0);
+			currentDevice->dev->OMGetDepthStencilState(&oldDepthStencilState,&stencilref);
 			currentDevice->dev->RSGetState(&oldRasterizerState);
 
 			if (shared->wireframe)
@@ -1655,7 +1660,7 @@ HRESULT __stdcall D3D10Hook_DrawAuto_imp(D3D10_DRAWAUTO_ORIGINAL originalfunctio
 			hr=originalfunction(device);
 			
 			currentDevice->dev->RSSetState(oldRasterizerState);
-			currentDevice->dev->OMSetDepthStencilState(oldDepthStencilState, 0);
+			currentDevice->dev->OMSetDepthStencilState(oldDepthStencilState, stencilref);
 
 			if (currentDevice->makeSnapshot)
 				currentDevice->PrepareForSnapshot();

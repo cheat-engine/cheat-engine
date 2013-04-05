@@ -372,7 +372,12 @@ var i,j: integer;
   h: integer;
 begin
   //load and draw the pictures
+  paintbox1.Canvas.Clear;
+
   startpos:=scrollbar1.Position;
+
+  if startpos>=length(snapshots) then
+    exit;
 
   xpos:=0;
 
@@ -386,7 +391,7 @@ begin
   h:=paintbox1.Height;
 
 
-  paintbox1.Canvas.Clear;
+
 
   for i:=startpos to length(snapshots)-1 do
   begin

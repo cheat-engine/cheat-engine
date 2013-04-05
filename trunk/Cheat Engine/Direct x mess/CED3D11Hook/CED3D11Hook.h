@@ -13,6 +13,9 @@ class DXMessD3D11Handler
 {
 private:
 	volatile PD3DHookShared shared;
+
+	CRITICAL_SECTION cs;
+
 	IDXGISwapChain *swapchain;	
 	ID3D11Buffer *pSpriteVB;
 
@@ -40,6 +43,11 @@ private:
 	ID3D11DepthStencilView *pDepthStencilView;
 	ID3D11Buffer *pConstantBuffer;
 
+	ID3D11DeviceContext *RenderContext;
+
+
+
+
 	BOOL Valid;
 	BOOL UpdateTextures();
 
@@ -56,15 +64,18 @@ public:
 	RECT smallSnapshotClientRect; //in case the render target has a different size than the clientrect (e.g in games that fake a high fps by actually lowering the resolution without the user seeing the res change)
 
 	ID3D11Device *dev;
-	ID3D11DeviceContext *dc;
+	//ID3D11DeviceContext *dc;
 	ID3D11RasterizerState *pWireframeRasterizer;
 	ID3D11DepthStencilState *pDisabledDepthStencilState;
+
+	ID3D11Texture2D *ExtraRenderTargetTexture;
+	ID3D11RenderTargetView *ExtraRenderTarget;
 
 	DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD3DHookShared s);
 	~DXMessD3D11Handler();
 	void RenderOverlay();
-	void TakeSnapshot();
-	void PrepareForSnapshot();
+	void TakeSnapshot(ID3D11DeviceContext *dc);
+    ID3D11DeviceContext *PrepareForSnapshot(ID3D11DeviceContext *dc) ;
 
 };
 
