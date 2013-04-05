@@ -29,7 +29,7 @@ struct ConstantBuffer
 	FLOAT garbage3;
 };
 
-
+BOOL test=TRUE;
 ID3D11DeviceContext *DXMessD3D11Handler::PrepareForSnapshot(ID3D11DeviceContext *dc) //just clears the screen
 {
 	UINT i;
@@ -37,391 +37,487 @@ ID3D11DeviceContext *DXMessD3D11Handler::PrepareForSnapshot(ID3D11DeviceContext 
 	ID3D11DeviceContext *drawdc=dc;
 	EnterCriticalSection(&cs);
 
+	if ((test) && (dc->GetType()!=D3D11_DEVICE_CONTEXT_IMMEDIATE))
+	{
+		//If necesary create my own immeadiate context
+
+		if (RenderContext==NULL)
+			dev->GetImmediateContext(&RenderContext);
+
+		//get all the data from all the stages (this will be SLOOOOW)
+
+		/*
+
+		drawdc=RenderContext;
+
+
+
+
+		
 	
 
-	if (!shared->progressiveSnapshot) //if this is true no erasing will be done
-	{
-		if (dc->GetType()!=D3D11_DEVICE_CONTEXT_IMMEDIATE)
+		//get IA
 		{
-			//If necesary create my own immeadiate context
-
-			if (RenderContext==NULL)
-				dev->GetImmediateContext(&RenderContext);
-
-			//get all the data from all the stages (this will be SLOOOOW)
-
-		
-		
-			drawdc=RenderContext;
-			
-		
-
-			//get IA
-			{
-				ID3D11Buffer *IndexBuffer;
-				ID3D11InputLayout *InputLayout;
-				D3D11_PRIMITIVE_TOPOLOGY Topology;
-				DXGI_FORMAT format;
-				UINT offset;
-				ID3D11Buffer *vertexBuffers[D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT];
-				UINT strides[D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT];
-				UINT offsets[D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT];
+			ID3D11Buffer *IndexBuffer;
+			ID3D11InputLayout *InputLayout;
+			D3D11_PRIMITIVE_TOPOLOGY Topology;
+			DXGI_FORMAT format;
+			UINT offset;
+			ID3D11Buffer *vertexBuffers[D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT];
+			UINT strides[D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT];
+			UINT offsets[D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT];
 
 
-				dc->IAGetIndexBuffer(&IndexBuffer, &format, &offset);
-				dc->IAGetInputLayout(&InputLayout);
-				dc->IAGetPrimitiveTopology(&Topology);
-				dc->IAGetVertexBuffers(0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT, vertexBuffers, strides, offsets);  
+			dc->IAGetIndexBuffer(&IndexBuffer, &format, &offset);
+			dc->IAGetInputLayout(&InputLayout);
+			dc->IAGetPrimitiveTopology(&Topology);
+			dc->IAGetVertexBuffers(0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT, vertexBuffers, strides, offsets);  
 
-				drawdc->IASetIndexBuffer(IndexBuffer, format, offset);
-				drawdc->IASetInputLayout(InputLayout);
-				drawdc->IASetPrimitiveTopology(Topology);
-				drawdc->IASetVertexBuffers(0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT, vertexBuffers, strides, offsets);
-
-				if (IndexBuffer)
-					IndexBuffer->Release();
-
-				if (InputLayout)
-					InputLayout->Release();
-
-				for (i=0; i<D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT; i++)
-					if (vertexBuffers[i])
-						vertexBuffers[i]->Release();
-
-			}			
+			drawdc->IASetIndexBuffer(IndexBuffer, format, offset);
+			drawdc->IASetInputLayout(InputLayout);
+			drawdc->IASetPrimitiveTopology(Topology);
+			drawdc->IASetVertexBuffers(0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT, vertexBuffers, strides, offsets);
 
 		
-			//get VS
-			{
-				ID3D11Buffer *ConstantBuffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
-				ID3D11SamplerState *Samplers[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
-				ID3D11VertexShader *VertexShader=NULL;
-				ID3D11ClassInstance **ClassInstances=NULL;
-				ID3D11ShaderResourceView *ShaderResourceViews[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
+			if (IndexBuffer)
+				IndexBuffer->Release();
+
+			if (InputLayout)
+				InputLayout->Release();
+
+			for (i=0; i<D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT; i++)
+				if (vertexBuffers[i])
+					vertexBuffers[i]->Release();
 				
-				UINT NumClassInstances=0;
+		}			
 
-				dc->VSGetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ConstantBuffers); 
-				dc->VSGetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, Samplers);
-				dc->VSGetShader(&VertexShader, NULL, &NumClassInstances);
+	
+		//get VS
+		{
+			ID3D11Buffer *ConstantBuffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
+			ID3D11SamplerState *Samplers[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
+			ID3D11VertexShader *VertexShader=NULL;
+			ID3D11ClassInstance **ClassInstances=NULL;
+			ID3D11ClassInstance *Bla[10];
+			ID3D11ShaderResourceView *ShaderResourceViews[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
+			
+			UINT NumClassInstances=0;
+
+			dc->VSGetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ConstantBuffers); 
+			dc->VSGetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, Samplers);
+			NumClassInstances=10;
+			dc->VSGetShader(&VertexShader, Bla, &NumClassInstances);
+			
+
+			if (NumClassInstances)
+			{
 				if (VertexShader)
 					VertexShader->Release();
 
-				if (NumClassInstances)
-				{
-					ClassInstances=(ID3D11ClassInstance **)malloc(NumClassInstances*sizeof(ID3D11ClassInstance *));
-				
-					dc->VSGetShader(&VertexShader, ClassInstances, &NumClassInstances);					
-				}
-
-				dc->VSGetShaderResources(0,D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, ShaderResourceViews);
-
-				drawdc->VSSetShader(VertexShader, ClassInstances, NumClassInstances);
-				drawdc->VSSetConstantBuffers(0,D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ConstantBuffers);
-				drawdc->VSSetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, Samplers);
-				
-				drawdc->VSSetShaderResources(0,D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, ShaderResourceViews);
-				
-
-				/*
-				for (i=0; i<D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; i++)
-					if (ConstantBuffers[i])
-						ConstantBuffers[i]->Release();
-
-				for (i=0; i<D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT; i++)
-					if (Samplers[i])
-						Samplers[i]->Release();
-				
-				if (VertexShader)  //for some reason the game tends to crash if I release the vertex shader here. Seems like refcount is 0 (I thought VSSetShader would increase it with 1)
-					VertexShader->Release();
-*/
-				if (ClassInstances)
-				{
-					/*
-					for (i=0; i<NumClassInstances; i++)
-						if (ClassInstances[i])
-							ClassInstances[i]->Release();
-							*/
-					
-					free(ClassInstances);
-				}
-
-				/*
-				for (i=0; i<D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT; i++)
-				{
-					if (ShaderResourceViews[i])
-						ShaderResourceViews[i]->Release();
-				}
-				*/
-
-				
+				ClassInstances=(ID3D11ClassInstance **)malloc(NumClassInstances*sizeof(ID3D11ClassInstance *));
+			
+				dc->VSGetShader(&VertexShader, ClassInstances, &NumClassInstances);					
 			}
+
+			dc->VSGetShaderResources(0,D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, ShaderResourceViews);
+
+			drawdc->VSSetShader(VertexShader, ClassInstances, NumClassInstances);
+			drawdc->VSSetConstantBuffers(0,D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ConstantBuffers);
+			drawdc->VSSetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, Samplers);
+			
+			drawdc->VSSetShaderResources(0,D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, ShaderResourceViews);
+			
 
 		
-			//get GS
-			{
-				ID3D11Buffer *ConstantBuffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
-				ID3D11SamplerState *Samplers[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
-				UINT NumClassInstances=0;
-				ID3D11GeometryShader *GeometryShader=NULL;
-				ID3D11ClassInstance **ClassInstances=NULL;
-				ID3D11ShaderResourceView *ShaderResourceViews[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
+			for (i=0; i<D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; i++)
+				if (ConstantBuffers[i])
+					ConstantBuffers[i]->Release();
 
-
-				dc->GSGetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ConstantBuffers);
-				dc->GSGetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, Samplers);
-				dc->GSGetShader(&GeometryShader, NULL, &NumClassInstances);
-				if (GeometryShader)
-					GeometryShader->Release();
-
-
-				if (NumClassInstances)
-				{
-					ClassInstances=(ID3D11ClassInstance **)malloc(NumClassInstances*sizeof(ID3D11ClassInstance *));
-				
-					dc->GSGetShader(&GeometryShader, ClassInstances, &NumClassInstances);					
-				}
-
-				
-				dc->GSGetShaderResources(0,D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, ShaderResourceViews);
-
-				drawdc->GSSetShader(GeometryShader, ClassInstances, NumClassInstances);
-				drawdc->GSSetConstantBuffers(0,D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ConstantBuffers);
-				drawdc->GSSetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, Samplers);
-				
-				drawdc->GSSetShaderResources(0,D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, ShaderResourceViews);
-				
-
-			/*
-				for (i=0; i<D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; i++)
-					if (ConstantBuffers[i])
-						ConstantBuffers[i]->Release();
-
-				for (i=0; i<D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT; i++)
-					if (Samplers[i])
-						Samplers[i]->Release();
-
-				if (GeometryShader)
-					GeometryShader->Release();
-
-					*/
-				if (ClassInstances)
-				{
-					/*
-					for (i=0; i<NumClassInstances; i++)
-						if (ClassInstances[i])
-							ClassInstances[i]->Release();
-							*/
-
-					free(ClassInstances);
-				}
-
-				/*
-				for (i=0; i<D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT; i++)
-				{
-					if (ShaderResourceViews[i])
-						ShaderResourceViews[i]->Release();
-				}
-				*/
-				
-
-
-
-			}
-
-			//get SO
-			{
-				ID3D11Buffer *SOTarget[D3D11_SO_BUFFER_SLOT_COUNT];
-				UINT offsets[D3D11_SO_BUFFER_SLOT_COUNT];
-				for (i=0; i<D3D11_SO_BUFFER_SLOT_COUNT; i++)
-					offsets[i]=-1;
-
-				dc->SOGetTargets(D3D11_SO_BUFFER_SLOT_COUNT, SOTarget);
-				drawdc->SOSetTargets(D3D11_SO_BUFFER_SLOT_COUNT, SOTarget, offsets);
-
-			/*
+			for (i=0; i<D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT; i++)
+				if (Samplers[i])
+					Samplers[i]->Release();
 			
-				for (i=0; i<D3D11_SO_BUFFER_SLOT_COUNT; i++)
-					if (SOTarget[i])
-						SOTarget[i]->Release();
-						*/
+			if (VertexShader)  //for some reason the game tends to crash if I release the vertex shader here. Seems like refcount is 0 (I thought VSSetShader would increase it with 1)
+				VertexShader->Release();
+
+			if (ClassInstances)
+			{
+			
+				for (i=0; i<NumClassInstances; i++)
+					if (ClassInstances[i])
+						ClassInstances[i]->Release();
 						
-
+				
+				free(ClassInstances);
 			}
 
-			//get RS
+		
+			for (i=0; i<D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT; i++)
 			{
-				D3D11_RECT rects[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
-				UINT rectcount=D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
-				D3D11_VIEWPORT viewports[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
-				UINT viewportcount= D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
-				
-
-				ID3D11RasterizerState *RasterizerState;
-
-				dc->RSGetScissorRects(&rectcount, NULL);
-				dc->RSGetScissorRects(&rectcount, rects);
-				dc->RSGetState(&RasterizerState);
-				dc->RSGetViewports(&viewportcount, NULL);
-				dc->RSGetViewports(&viewportcount,  viewports);			
-				
-
-				drawdc->RSSetScissorRects(rectcount, rects);
-				drawdc->RSSetState(RasterizerState);
-				drawdc->RSSetViewports(viewportcount, viewports);				
-
-				RasterizerState->Release();
+				if (ShaderResourceViews[i])
+					ShaderResourceViews[i]->Release();
 			}
-
-
-
-			//get PS
-			{
-				ID3D11Buffer *ConstantBuffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
-				ID3D11SamplerState *Samplers[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
-				UINT NumClassInstances=0;
-				ID3D11PixelShader *PixelShader=NULL;
-				ID3D11ClassInstance **ClassInstances=NULL;
-				ID3D11ShaderResourceView *ShaderResourceViews[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
-
-
-				dc->PSGetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ConstantBuffers);
-				dc->PSGetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, Samplers);
-				dc->PSGetShader(&PixelShader, NULL, &NumClassInstances);
-				/*
-				if (PixelShader)
-					PixelShader->Release();
-
-
-				if (NumClassInstances)
-				{
-					ClassInstances=(ID3D11ClassInstance **)malloc(NumClassInstances*sizeof(ID3D11ClassInstance *));
-				
-					dc->PSGetShader(&PixelShader, ClassInstances, &NumClassInstances);					
-				}
-				*/
-
-				
-				dc->PSGetShaderResources(0,D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, ShaderResourceViews);
-
-
-				drawdc->PSSetShader(NULL, NULL, 0);
-				drawdc->PSSetShader(PixelShader, ClassInstances, NumClassInstances);
-				drawdc->PSSetConstantBuffers(0,D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ConstantBuffers);
-				drawdc->PSSetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, Samplers);				
-				drawdc->PSSetShaderResources(0,D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, ShaderResourceViews);
-				
-
-			/*
-				for (i=0; i<D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; i++)
-					if (ConstantBuffers[i])
-						ConstantBuffers[i]->Release();
-
-				for (i=0; i<D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT; i++)
-					if (Samplers[i])
-						Samplers[i]->Release();
-
-				if (PixelShader)
-					PixelShader->Release();
-					*/
-
-				if (ClassInstances)
-				{
-					/*
-					for (i=0; i<NumClassInstances; i++)
-						if (ClassInstances[i])
-							ClassInstances[i]->Release();
-							*/
-
-					free(ClassInstances);
-				}
-				/*
-
-				for (i=0; i<D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT; i++)
-				{
-					if (ShaderResourceViews[i])
-						ShaderResourceViews[i]->Release();
-				}
-				*/
-
-
-
-			}
-
-			//get OM
-			{
-				ID3D11BlendState* BlendState;
-				ID3D11DepthStencilState *DepthStencilState;
-				ID3D11RenderTargetView *RenderTargets[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT];
-				ID3D11DepthStencilView *DepthStencilView;
-				FLOAT BlendFactor[4];
-				UINT SampleMask;
-				UINT StencilRef;
-				dc->OMGetBlendState( &BlendState, BlendFactor, &SampleMask);
-				dc->OMGetDepthStencilState(&DepthStencilState, &StencilRef);
-				dc->OMGetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, RenderTargets, &DepthStencilView);
-			
-
-				drawdc->OMSetBlendState(BlendState, BlendFactor, SampleMask);
-				/*
-				if (BlendState)
-					BlendState->Release();
-					*/
-
-				drawdc->OMSetDepthStencilState(DepthStencilState, StencilRef);
-
-				/*
-				if (DepthStencilState)
-					DepthStencilState->Release();
-					*/
-
-				drawdc->OMSetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, RenderTargets, DepthStencilView);
-				/*
-				for (i=0; i<D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; i++)
-					if (RenderTargets[i])
-						RenderTargets[i]->Release();
-
-				
-				if (DepthStencilView)
-					DepthStencilView->Release();
-					*/
+		
 
 			
-
-			}
-
-			
-			
-			
-			//OutputDebugStringA("Defered");
 		}
 
 
-		ID3D11RenderTargetView *currentrt=NULL;
-		ID3D11DepthStencilView* currentds=NULL;
-		FLOAT f[]={1.0f,0.0f,1.0f,1.0f};
-
-		//dc->OMSetRenderTargets(1, &ExtraRenderTarget, NULL);
-
-		
-		
-		if (!shared->alsoClearDepthBuffer)
-			drawdc->OMGetRenderTargets(1, &currentrt, NULL);
-		else
-			drawdc->OMGetRenderTargets(1, &currentrt, &currentds);
-
-		if (currentrt)
-		{				
-			drawdc->ClearRenderTargetView(currentrt, f);		
-			currentrt->Release();
-		}
-
-		if (currentds)
+		//get HS (Hull shader)
 		{
-			drawdc->ClearDepthStencilView(currentds, D3D11_CLEAR_DEPTH, 1.0, 0);
-			currentds->Release();
-		}
+			ID3D11Buffer *ConstantBuffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
+			ID3D11SamplerState *Samplers[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
+			ID3D11HullShader *HullShader=NULL;
+			ID3D11ClassInstance **ClassInstances=NULL;
+			ID3D11ShaderResourceView *ShaderResourceViews[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
+			
+			UINT NumClassInstances=0;
+
+			dc->HSGetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ConstantBuffers); 
+			dc->HSGetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, Samplers);
+			dc->HSGetShader(&HullShader, NULL, &NumClassInstances);
+			
+
+			if (NumClassInstances)
+			{
+				if (HullShader)
+					HullShader->Release();
+
+				ClassInstances=(ID3D11ClassInstance **)malloc(NumClassInstances*sizeof(ID3D11ClassInstance *));
+			
+				dc->HSGetShader(&HullShader, ClassInstances, &NumClassInstances);					
+			}
+
+			dc->HSGetShaderResources(0,D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, ShaderResourceViews);
+
+			drawdc->HSSetShader(HullShader, ClassInstances, NumClassInstances);
+			drawdc->HSSetConstantBuffers(0,D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ConstantBuffers);
+			drawdc->HSSetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, Samplers);
+			
+			drawdc->HSSetShaderResources(0,D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, ShaderResourceViews);
+	
+			if (ClassInstances)
+			{	
+				free(ClassInstances);
+			}
+
 		
+
+		}
+
+		//get DS (Domain shader)
+		{
+			ID3D11Buffer *ConstantBuffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
+			ID3D11SamplerState *Samplers[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
+			ID3D11DomainShader *DomainShader=NULL;
+			ID3D11ClassInstance **ClassInstances=NULL;
+			ID3D11ShaderResourceView *ShaderResourceViews[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
+			
+			UINT NumClassInstances=0;
+
+			dc->DSGetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ConstantBuffers); 
+			dc->DSGetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, Samplers);
+			dc->DSGetShader(&DomainShader, NULL, &NumClassInstances);
+
+
+			if (NumClassInstances)
+			{
+				if (DomainShader)
+					DomainShader->Release();
+
+				ClassInstances=(ID3D11ClassInstance **)malloc(NumClassInstances*sizeof(ID3D11ClassInstance *));
+			
+				dc->DSGetShader(&DomainShader, ClassInstances, &NumClassInstances);					
+			}
+
+			dc->DSGetShaderResources(0,D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, ShaderResourceViews);
+
+			drawdc->DSSetShader(DomainShader, ClassInstances, NumClassInstances);
+			drawdc->DSSetConstantBuffers(0,D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ConstantBuffers);
+			drawdc->DSSetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, Samplers);
+			
+			drawdc->DSSetShaderResources(0,D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, ShaderResourceViews);
+	
+			if (ClassInstances)
+			{	
+				free(ClassInstances);
+			}
+
+		}
+
+
+
+	
+		//get GS
+		{
+			ID3D11Buffer *ConstantBuffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
+			ID3D11SamplerState *Samplers[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
+			UINT NumClassInstances=0;
+			ID3D11GeometryShader *GeometryShader=NULL;
+			ID3D11ClassInstance **ClassInstances=NULL;
+			ID3D11ShaderResourceView *ShaderResourceViews[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
+
+
+			dc->GSGetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ConstantBuffers);
+			dc->GSGetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, Samplers);
+			dc->GSGetShader(&GeometryShader, NULL, &NumClassInstances);
+
+
+
+			if (NumClassInstances)
+			{
+				if (GeometryShader)
+					GeometryShader->Release();
+
+				ClassInstances=(ID3D11ClassInstance **)malloc(NumClassInstances*sizeof(ID3D11ClassInstance *));
+			
+				dc->GSGetShader(&GeometryShader, ClassInstances, &NumClassInstances);					
+			}
+
+			
+			dc->GSGetShaderResources(0,D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, ShaderResourceViews);
+
+			drawdc->GSSetShader(GeometryShader, ClassInstances, NumClassInstances);
+			drawdc->GSSetConstantBuffers(0,D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ConstantBuffers);
+			drawdc->GSSetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, Samplers);
+			
+			drawdc->GSSetShaderResources(0,D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, ShaderResourceViews);
+			
+			for (i=0; i<D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; i++)
+				if (ConstantBuffers[i])
+					ConstantBuffers[i]->Release();
+
+			for (i=0; i<D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT; i++)
+				if (Samplers[i])
+					Samplers[i]->Release();
+
+			if (GeometryShader)
+				GeometryShader->Release();
+
+				
+			if (ClassInstances)
+			{
+			
+				for (i=0; i<NumClassInstances; i++)
+					if (ClassInstances[i])
+						ClassInstances[i]->Release();
+					
+
+				free(ClassInstances);
+			}
+
+	
+			for (i=0; i<D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT; i++)
+			{
+				if (ShaderResourceViews[i])
+					ShaderResourceViews[i]->Release();
+			}
+		
+			
+
+
+
+		}
+
+		//get SO
+		{
+			ID3D11Buffer *SOTarget[D3D11_SO_BUFFER_SLOT_COUNT];
+			UINT offsets[D3D11_SO_BUFFER_SLOT_COUNT];
+			for (i=0; i<D3D11_SO_BUFFER_SLOT_COUNT; i++)
+				offsets[i]=-1;
+
+			dc->SOGetTargets(D3D11_SO_BUFFER_SLOT_COUNT, SOTarget);
+			drawdc->SOSetTargets(D3D11_SO_BUFFER_SLOT_COUNT, SOTarget, offsets);
+
+	
+		
+			for (i=0; i<D3D11_SO_BUFFER_SLOT_COUNT; i++)
+				if (SOTarget[i])
+					SOTarget[i]->Release();
+				
+					
+
+		}
+
+		//get RS
+		{
+			D3D11_RECT rects[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
+			UINT rectcount=D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
+			D3D11_VIEWPORT viewports[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
+			UINT viewportcount= D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
+			
+
+			ID3D11RasterizerState *RasterizerState;
+
+			dc->RSGetScissorRects(&rectcount, NULL);
+			dc->RSGetScissorRects(&rectcount, rects);
+			dc->RSGetState(&RasterizerState);
+			dc->RSGetViewports(&viewportcount, NULL);
+			dc->RSGetViewports(&viewportcount,  viewports);			
+			
+
+			drawdc->RSSetScissorRects(rectcount, rects);
+			drawdc->RSSetState(RasterizerState);
+			drawdc->RSSetViewports(viewportcount, viewports);				
+
+			if (RasterizerState)
+				RasterizerState->Release();
+		}
+
+
+
+		//get PS
+		{
+			ID3D11Buffer *ConstantBuffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
+			ID3D11SamplerState *Samplers[D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT];
+			UINT NumClassInstances=0;
+			ID3D11PixelShader *PixelShader=NULL;
+			ID3D11ClassInstance **ClassInstances=NULL;
+			ID3D11ShaderResourceView *ShaderResourceViews[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT];
+
+
+			dc->PSGetConstantBuffers(0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ConstantBuffers);
+			dc->PSGetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, Samplers);
+			dc->PSGetShader(&PixelShader, NULL, &NumClassInstances);
+	
+			if (NumClassInstances)
+			{
+				if (PixelShader)
+					PixelShader->Release();
+
+				ClassInstances=(ID3D11ClassInstance **)malloc(NumClassInstances*sizeof(ID3D11ClassInstance *));
+			
+				dc->PSGetShader(&PixelShader, ClassInstances, &NumClassInstances);					
+			}
+			
+
+			
+			dc->PSGetShaderResources(0,D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, ShaderResourceViews);
+
+
+			drawdc->PSSetShader(NULL, NULL, 0);
+			drawdc->PSSetShader(PixelShader, ClassInstances, NumClassInstances);
+			drawdc->PSSetConstantBuffers(0,D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, ConstantBuffers);
+			drawdc->PSSetSamplers(0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT, Samplers);				
+			drawdc->PSSetShaderResources(0,D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, ShaderResourceViews);
+			
+
+	
+			for (i=0; i<D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT; i++)
+				if (ConstantBuffers[i])
+					ConstantBuffers[i]->Release();
+
+			for (i=0; i<D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT; i++)
+				if (Samplers[i])
+					Samplers[i]->Release();
+
+			if (PixelShader)
+				PixelShader->Release();
+			
+
+			if (ClassInstances)
+			{
+			
+				for (i=0; i<NumClassInstances; i++)
+					if (ClassInstances[i])
+						ClassInstances[i]->Release();
+					
+
+				free(ClassInstances);
+			}
+		
+			for (i=0; i<D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT; i++)
+			{
+				if (ShaderResourceViews[i])
+					ShaderResourceViews[i]->Release();
+			}
+			
+
+
+
+		}
+
+		//get OM
+		{
+			ID3D11BlendState* BlendState;
+			ID3D11DepthStencilState *DepthStencilState;
+			ID3D11RenderTargetView *RenderTargets[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT];
+			ID3D11DepthStencilView *DepthStencilView;
+			FLOAT BlendFactor[4];
+			UINT SampleMask;
+			UINT StencilRef;
+			dc->OMGetBlendState( &BlendState, BlendFactor, &SampleMask);
+			dc->OMGetDepthStencilState(&DepthStencilState, &StencilRef);
+			dc->OMGetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, RenderTargets, &DepthStencilView);
+		
+			//drawdc->OMGetRenderTargetsAndUnorderedAccessViews
+
+			drawdc->OMSetBlendState(BlendState, BlendFactor, SampleMask);
+			drawdc->OMSetDepthStencilState(DepthStencilState, StencilRef);
+			drawdc->OMSetRenderTargets(D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, RenderTargets, DepthStencilView);
+		
+			for (i=0; i<D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; i++)
+				if (RenderTargets[i])
+					RenderTargets[i]->Release();
+
+			
+			if (DepthStencilView)
+				DepthStencilView->Release();
+			
+
+	
+			if (BlendState)
+				BlendState->Release();
+				
+
+		
+			if (DepthStencilState)
+				DepthStencilState->Release();
+				
+
+
+		
+
+		}
+
+		*/
+		
+		//OutputDebugStringA("Defered");
+	}
+
+	if (makeSnapshot)
+	{
+
+		if (!shared->progressiveSnapshot) //if this is true no erasing will be done
+		{
+			
+
+			ID3D11RenderTargetView *currentrt=NULL;
+			ID3D11DepthStencilView* currentds=NULL;
+			FLOAT f[]={1.0f,0.0f,1.0f,1.0f};
+
+			//dc->OMSetRenderTargets(1, &ExtraRenderTarget, NULL);
+
+			
+			
+			if (!shared->alsoClearDepthBuffer)
+				drawdc->OMGetRenderTargets(1, &currentrt, NULL);
+			else
+				drawdc->OMGetRenderTargets(1, &currentrt, &currentds);
+
+			if (currentrt)
+			{				
+				drawdc->ClearRenderTargetView(currentrt, f);		
+				currentrt->Release();
+			}
+
+			if (currentds)
+			{
+				drawdc->ClearDepthStencilView(currentds, D3D11_CLEAR_DEPTH, 1.0, 0);
+				currentds->Release();
+			}
+			
+		}
 	}
 
 	return drawdc;
@@ -432,17 +528,37 @@ void DXMessD3D11Handler::TakeSnapshot(ID3D11DeviceContext *dc)
 	
 	ID3D11RenderTargetView *currentrt=NULL ;
 
-	
+
 
 	
 
 
 	if (makeSnapshot)
 	{		
-		
+		dc->OMGetRenderTargets(1, &currentrt, NULL);
+		if (dc->GetType()!=D3D11_DEVICE_CONTEXT_IMMEDIATE)
+		{
+			ID3D11CommandList *cl;
+			if (SUCCEEDED(dc->FinishCommandList(TRUE, &cl)))
+			{
+				
+				dev->GetImmediateContext(&dc);
+				dc->ExecuteCommandList(cl, TRUE);
+			}
+			else
+				dev->GetImmediateContext(&dc);
+
+			
+		}
 
 		
-		dc->OMGetRenderTargets(1, &currentrt, NULL);
+
+
+
+
+
+
+
 		
 		if (currentrt)
 		{
@@ -662,7 +778,7 @@ void DXMessD3D11Handler::TakeSnapshot(ID3D11DeviceContext *dc)
 							strcat_s(s,MAX_PATH, ".BMP");
 							D3DX11SaveTextureToFileA(dc, texture, D3DX11_IFF_BMP, s);
 
-							if (SUCCEEDED(D3DX11SaveTextureToMemory(dc, texture, D3DX11_IFF_PNG, &dest, 0))) //weird. PNG has some information loss on certain things like text
+						/*	if (SUCCEEDED(D3DX11SaveTextureToMemory(dc, texture, D3DX11_IFF_PNG, &dest, 0))) //weird. PNG has some information loss on certain things like text
 							{
 								x=dest->GetBufferSize();
 								WriteFile(h, &x, sizeof(x), &bw, NULL); 													
@@ -670,7 +786,7 @@ void DXMessD3D11Handler::TakeSnapshot(ID3D11DeviceContext *dc)
 
 								dest->Release();
 							}
-							else
+							else*/
 							{
 								x=0;
 								WriteFile(h, &x, sizeof(x), &bw, NULL); 
@@ -2041,13 +2157,14 @@ HRESULT __stdcall D3D11Hook_DrawIndexed_imp(D3D11_DRAWINDEXED_ORIGINAL originalf
 			if (shared->disabledzbuffer)
 				dc->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);
 
-			if (currentDevice->makeSnapshot)
+			//if (currentDevice->makeSnapshot)
 				drawdc=currentDevice->PrepareForSnapshot(dc);
-			else
-				drawdc=dc;
+			//else
+			//	drawdc=dc;
 
 			hr=originalfunction(drawdc, IndexCount, StartIndexLocation, BaseVertexLocation);
-			if (currentDevice->makeSnapshot)
+						
+			//if (currentDevice->makeSnapshot)
 				currentDevice->TakeSnapshot(drawdc);
 			
 			dc->RSSetState(oldRasterizerState);
@@ -2108,14 +2225,14 @@ HRESULT __stdcall D3D11Hook_Draw_imp(D3D11_DRAW_ORIGINAL originalfunction, ID3D1
 				dc->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
 
 
-			if (currentDevice->makeSnapshot)
+			//if (currentDevice->makeSnapshot)
 				drawdc=currentDevice->PrepareForSnapshot(dc);
-			else
-				drawdc=dc;
+			//else
+			//	drawdc=dc;
 
 			hr=originalfunction(drawdc, VertexCount, StartVertexLocation);
 
-			if (currentDevice->makeSnapshot)
+			//if (currentDevice->makeSnapshot)
 				currentDevice->TakeSnapshot(drawdc);
 			
 			dc->RSSetState(oldRasterizerState);
@@ -2167,14 +2284,14 @@ HRESULT __stdcall D3D11Hook_DrawIndexedInstanced_imp(D3D11_DRAWINDEXEDINSTANCED_
 				dc->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
 
 
-			if (currentDevice->makeSnapshot)
+			//if (currentDevice->makeSnapshot)
 				drawdc=currentDevice->PrepareForSnapshot(dc);
-			else
-				drawdc=dc;
+			//else
+			//	drawdc=dc;
 
 			hr=originalfunction(drawdc, IndexCountPerInstance, InstanceCount, StartIndexLocation, BaseVertexLocation, StartInstanceLocation);
 
-			if (currentDevice->makeSnapshot)
+			//if (currentDevice->makeSnapshot)
 				currentDevice->TakeSnapshot(drawdc);
 			
 			dc->RSSetState(oldRasterizerState);
@@ -2226,14 +2343,14 @@ HRESULT __stdcall D3D11Hook_DrawInstanced_imp(D3D11_DRAWINSTANCED_ORIGINAL origi
 				dc->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
 
 
-			if (currentDevice->makeSnapshot)
+			//if (currentDevice->makeSnapshot)
 				drawdc=currentDevice->PrepareForSnapshot(dc);
-			else
-				drawdc=dc;
+			//else
+			//	drawdc=dc;
 
 			hr=originalfunction(drawdc, VertexCountPerInstance, InstanceCount, StartVertexLocation, StartInstanceLocation);
 
-			if (currentDevice->makeSnapshot)
+			//if (currentDevice->makeSnapshot)
 				currentDevice->TakeSnapshot(drawdc);
 			
 			dc->RSSetState(oldRasterizerState);
@@ -2284,14 +2401,14 @@ HRESULT __stdcall D3D11Hook_DrawAuto_imp(D3D11_DRAWAUTO_ORIGINAL originalfunctio
 			if (shared->disabledzbuffer)
 				dc->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
 
-			if (currentDevice->makeSnapshot)
+			//if (currentDevice->makeSnapshot)
 				drawdc=currentDevice->PrepareForSnapshot(dc);
-			else
-				drawdc=dc;
+			//else
+			//	drawdc=dc;
 
 			hr=originalfunction(drawdc);
 
-			if (currentDevice->makeSnapshot)
+			//if (currentDevice->makeSnapshot)
 				currentDevice->TakeSnapshot(drawdc);
 
 
