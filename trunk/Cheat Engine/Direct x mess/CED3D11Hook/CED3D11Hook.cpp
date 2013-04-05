@@ -462,14 +462,21 @@ void DXMessD3D11Handler::TakeSnapshot(ID3D11DeviceContext *dc)
 			currentrt->GetResource(&r);
 			if (r)
 			{
+				BOOL isMultiSampled=FALSE;
 				if (SUCCEEDED(r->QueryInterface(__uuidof(ID3D11Texture2D), (void **)&backbuffer)))
 				{
 					backbuffer->GetDesc(&texDesc);
 
-					if (smallSnapshot)
+					isMultiSampled=texDesc.SampleDesc.Count>1;
+					
+					texDesc.SampleDesc.Count=1;
+					texDesc.SampleDesc.Quality=0;
+
+					if (smallSnapshot && (isMultiSampled==FALSE))
 					{
-						texDesc.BindFlags = 0;
-						texDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+						
+						texDesc.BindFlags = 0; //D3D11_BIND_UNORDERED_ACCESS;//0;
+						texDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;					
 						texDesc.Usage = D3D11_USAGE_STAGING;
 					}
 					else
@@ -478,19 +485,44 @@ void DXMessD3D11Handler::TakeSnapshot(ID3D11DeviceContext *dc)
 						texDesc.Usage = D3D11_USAGE_DEFAULT;
 					}
 
+					//figure out a good format
 
-					texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+					//texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 					
 					
 					ID3D11Texture2D *texture;
+					
 					
 					if (SUCCEEDED(dev->CreateTexture2D(&texDesc, 0, &texture)))
 					{
 			
 						BOOL savethis=FALSE;
 
-						
-						dc->CopyResource(texture, r);
+					
+						if (isMultiSampled)
+						{							
+							dc->ResolveSubresource(texture, 0, r, 0, texDesc.Format);
+
+							if (smallSnapshot)
+							{
+								ID3D11Texture2D *texture2; //temp storage for the new texture
+								
+								texDesc.BindFlags = 0; 
+								texDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;					
+								texDesc.Usage = D3D11_USAGE_STAGING;
+
+								if (SUCCEEDED(dev->CreateTexture2D(&texDesc, 0, &texture2)))
+								{
+									dc->CopyResource(texture2, texture);
+									texture->Release(); //release the old one
+									texture=texture2;
+								}
+
+							}
+						}
+						else												
+							dc->CopyResource(texture, r);
 						
 						
 
@@ -505,20 +537,90 @@ void DXMessD3D11Handler::TakeSnapshot(ID3D11DeviceContext *dc)
 							if (SUCCEEDED(dc->Map(texture, 0, D3D11_MAP_READ, 0, &mappedtexture)))
 							{	
 								
-								DWORD *color;
+								PVOID color;
 								
 								int xpos, ypos;
+								int pixelsize=4;
 								
 								xpos=(int)floor(texDesc.Width * smallSnapshotPointRelative.x);
 								ypos=(int)floor(texDesc.Height * smallSnapshotPointRelative.y);
 
 								//check if the pixel at xpos,ypos is not 0xffff00ff								
 								
+								//use texDesc.Format to figure out where the pixel is located (size) and what format is equivalent to 1,0,1
 
-								color=(DWORD *)((UINT_PTR)mappedtexture.pData+mappedtexture.RowPitch*ypos+xpos*4);
+								if ((texDesc.Format>=DXGI_FORMAT_R32G32B32A32_TYPELESS) && (texDesc.Format<=DXGI_FORMAT_R32G32B32_SINT))
+									pixelsize=16;
+								else
+								if ((texDesc.Format>=DXGI_FORMAT_R16G16B16A16_TYPELESS) && (texDesc.Format<=DXGI_FORMAT_X32_TYPELESS_G8X24_UINT ))
+									pixelsize=8;
+								else
+								if ((texDesc.Format>=DXGI_FORMAT_R10G10B10A2_TYPELESS ) && (texDesc.Format<=DXGI_FORMAT_X24_TYPELESS_G8_UINT ))
+									pixelsize=4;
+								else
+								if ((texDesc.Format>=DXGI_FORMAT_R8G8_TYPELESS) && (texDesc.Format<=DXGI_FORMAT_R16_SINT))
+									pixelsize=2;
+								else
+								if ((texDesc.Format>=DXGI_FORMAT_R8_TYPELESS ) && (texDesc.Format<=DXGI_FORMAT_A8_UNORM ))
+									pixelsize=1;
 
-								if ((*color & 0xffffff)!=0xff00ff)		//pixels got changed
-									savethis=TRUE;
+
+								color=(PVOID)((UINT_PTR)mappedtexture.pData+mappedtexture.RowPitch*ypos+xpos*pixelsize);
+								switch (pixelsize)
+								{
+									case 16:
+									{
+										typedef struct
+										{
+											DWORD c1;
+											DWORD c2;
+											DWORD c3;
+											DWORD c4;
+										} *PC128;
+
+										PC128 c=(PC128)color;
+										
+										savethis=((c->c1!=0xffffffff) || (c->c2!=0x00000000) || (c->c3!=0xffffffff));										
+										break;
+									}
+
+									case 8:
+									{
+										typedef struct
+										{
+											WORD c1;
+											WORD c2;
+											WORD c3;
+											WORD c4;
+										} *PC64;
+
+										PC64 c=(PC64)color;
+										
+										savethis=((c->c1!=0xffff) || (c->c2!=0x0000) || (c->c3!=0xffff));										
+										break;
+									}
+
+									case 4:
+									{
+										typedef struct
+										{
+											BYTE c1;
+											BYTE c2;
+											BYTE c3;
+											BYTE c4;
+										} *PC32;
+
+										PC32 c=(PC32)color;
+										
+										savethis=((c->c1!=0xff) || (c->c2!=0x00) || (c->c3!=0xff));										
+										break;
+									}
+
+									default:
+										savethis=FALSE;
+
+
+								}
 
 								dc->Unmap(texture, 0);											
 							}								
