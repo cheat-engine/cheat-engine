@@ -217,7 +217,7 @@ void GetAddresses(void)
 		if (d3d11dll)
 		{
 			d3d11create=(D3D11CREATEDEVICEANDSWAPCHAIN)GetProcAddress(d3d11dll, "D3D11CreateDeviceAndSwapChain");
-			hr=d3d11create( NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 2, NULL, 0, D3D11_SDK_VERSION, &sd, &pSwapChain, &pd3dDevice11, &fl, &pd3dDevice11Context);
+			hr=d3d11create( NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, NULL, 0, D3D11_SDK_VERSION, &sd, &pSwapChain, &pd3dDevice11, &fl, &pd3dDevice11Context);
 
 			if (SUCCEEDED(hr))
 			{	
