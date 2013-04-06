@@ -80,14 +80,14 @@ begin
     if loaded>64 then //time to cleanup
     begin
       for i:=index-16 downto 0 do  //allow a few in front
-        if snapshots[i].pic=nil then
+        if snapshots[i].pic<>nil then
         begin
           freeandnil(snapshots[i].pic);
           dec(loaded);
         end;
 
       for i:=index+48 to length(snapshots)-1 do
-        if snapshots[i].pic=nil then
+        if snapshots[i].pic<>nil then
         begin
           freeandnil(snapshots[i].pic);
           dec(loaded);
