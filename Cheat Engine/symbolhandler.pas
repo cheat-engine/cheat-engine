@@ -399,7 +399,9 @@ begin
       isloading:=false;
 
       OutputDebugString('Symbolhandler: sync: Calling finishedloadingsymbols');
-      synchronize(finishedloadingsymbols);
+      if not terminated then
+        synchronize(finishedloadingsymbols);
+
     end;
   except
     outputdebugstring(rsSymbolloaderthreadHasCrashed);
@@ -596,7 +598,12 @@ begin
   if symbolloaderthread<>nil then
   begin
     while symbolloaderthread.isloading do  //waitfor does not work if called from a second layer syncronize (fpc bug ?)
+    begin
       sleep(10);
+      if GetCurrentThreadID = MainThreadID then
+        CheckSynchronize(0);
+    end;
+
   end;
 
   symbolloadervalid.endread;
