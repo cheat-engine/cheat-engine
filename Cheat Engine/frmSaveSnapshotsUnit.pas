@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, math, LuaCanvas;
+  ExtCtrls, math, LuaCanvas, FPImage, FPCanvas, FPImgCanv, FPReadPNG, FPWritePNG;
 
 type
 
@@ -43,7 +43,7 @@ type
     { private declarations }
     snapshots: array of record
       filename: string;
-      pic: TPortableNetworkGraphic;
+      pic: TBitmap;
       selected: boolean;
       xpos: integer;
       width: integer;
@@ -74,8 +74,18 @@ var
   pngsize: integer;
   error: string;
   i: integer;
+  fpi: TFPMemoryImage;
+  fpr: TFPReaderPNG;
+  fpw: TFPWriterPNG;
+
+
+  c: TFPCustomCanvas;
+
+
 begin
   try
+
+
 
     if loaded>64 then //time to cleanup
     begin
@@ -103,8 +113,25 @@ begin
         s.ReadBuffer(pngsize, sizeof(pngsize));
 
 
-        snapshots[index].pic:=TPortableNetworkGraphic.Create;
-        snapshots[index].pic.LoadFromStream(s, pngsize);
+
+        fpi:=TFPMemoryImage.Create(0,0);
+        fpr:=TFPReaderPNG.create;
+        fpi.LoadFromStream(s, fpr);
+
+
+        c:=TFPImageCanvas.create(fpi);
+
+        snapshots[index].pic:=tbitmap.Create;
+        snapshots[index].pic.Width:=fpi.Width;
+        snapshots[index].pic.Height:=fpi.Height;
+        TFPCustomCanvas(snapshots[index].pic.Canvas).CopyRect(0,0, c, rect(0,0,fpi.width, fpi.height));
+
+        c.free;
+        fpi.free;
+        fpr.free;
+        fpi.free;
+
+
       finally
         s.free;
       end;
@@ -251,6 +278,8 @@ procedure TfrmSaveSnapshots.combinedselect(Sender: TObject; Button: TMouseButton
 var img: timage;
   sx, sy: integer;
   i: integer;
+
+
 begin
   img:=TImage(sender);
   sx:=trunc((img.Picture.Width/img.Width)*x);
@@ -261,6 +290,7 @@ begin
   for i:=0 to length(snapshots)-1 do
   begin
     loadSnapshot(i);
+
     if snapshots[i].pic.canvas.Pixels[sx,sy]<>$ff00ff then
       snapshots[i].selected:=true;
   end;
@@ -282,6 +312,7 @@ var
   img: timage;
 begin
   //create a "combined" view the user can use to select which pixels to pick
+
   loadSnapshot(0);
 
   b:=tbitmap.create;
@@ -299,7 +330,9 @@ begin
     b2:=tbitmap.create;
     b2.width:=snapshots[i].pic.width;
     b2.Height:=snapshots[i].pic.Height;
+
     b2.Canvas.Draw(0,0,snapshots[i].pic);
+
 
     b2.TransparentColor:=$ff00ff;
     b2.Transparent:=true;
@@ -308,6 +341,7 @@ begin
 
     b2.free;
   end;
+
 
   f:=TCustomForm.create(self);
   img:=TImage.create(f);
@@ -326,6 +360,7 @@ begin
   img.free;
   f.free;
   b.free;
+
 
 end;
 
@@ -406,7 +441,10 @@ begin
 
     currentw:=ceil(h*aspectratio);
 
+
+
     paintbox1.Canvas.CopyRect(rect(xpos, 0, xpos+currentw, h), snapshots[i].pic.Canvas, rect(0,0,snapshots[i].pic.width, snapshots[i].pic.height));
+
     snapshots[i].xpos:=xpos;
     snapshots[i].width:=currentw;
 
