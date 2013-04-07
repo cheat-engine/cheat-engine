@@ -121,7 +121,7 @@ begin
       if reg.ValueExists('Small Snapshot Key') then
         smallsnapshotkey:=reg.ReadInteger('Small Snapshot Key');
 
-      if reg.ValueExists('Also save PNG')
+      if reg.ValueExists('Also save PNG') then
         cbAlsoOutputPng.Checked:=reg.readBool('Also save PNG');
 
       k[1]:=0;
