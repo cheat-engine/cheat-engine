@@ -127,7 +127,6 @@ begin
         TFPCustomCanvas(snapshots[index].pic.Canvas).CopyRect(0,0, c, rect(0,0,fpi.width, fpi.height));
 
         c.free;
-        fpi.free;
         fpr.free;
         fpi.free;
 
