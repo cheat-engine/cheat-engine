@@ -216,6 +216,7 @@ typedef volatile struct
 	int snapshotcount;
 	int progressiveSnapshot; //set to 1 if you do not wish the snapshot to clear the screen before each draw. (This makes it easier to see how a scene was build up)
 	int alsoClearDepthBuffer; //set to 1 if you also want the depth buffer to be cleared before each draw
+	int savePNGSeperateAsWell;
 	int canDoSnapshot; //set to 0 after making a snapshot. CE will set it to 1 when ready
 	
 	D3DRenderCommand RenderCommands[100000];

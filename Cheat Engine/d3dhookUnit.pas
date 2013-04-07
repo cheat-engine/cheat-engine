@@ -176,6 +176,7 @@ type
     snapshotcount: integer;
     progressiveSnapshot: integer; //set to 1 if you do not wish the snapshot to clear the screen before each draw. (This makes it easier to see how a scene was build up)
     alsoClearDepthBuffer: integer; //set to 1 if you also want the depth buffer to be cleared before each draw
+    savePNGSeperateAsWell: integer;
     canDoSnapshot: integer;
 
 
@@ -445,6 +446,8 @@ procedure TD3DMessageHandler.handleSnapshot;
 begin
   if frmSaveSnapshots=nil then
     frmSaveSnapshots:=TfrmSaveSnapshots.create(application);
+
+  frmSaveSnapshots.btnCombinedSelect.visible:=not owner.shared.progressiveSnapshot;
 
   frmSaveSnapshots.initialize(owner.shared.snapshotdir, owner.shared.snapshotcount);
 

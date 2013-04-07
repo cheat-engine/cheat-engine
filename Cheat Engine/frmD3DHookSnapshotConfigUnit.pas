@@ -13,6 +13,7 @@ type
   { TfrmD3DHookSnapshotConfig }
 
   TfrmD3DHookSnapshotConfig = class(TForm)
+    cbAlsoOutputPng: TCheckBox;
     mbOk: TButton;
     mbCancel: TButton;
     btnClearFullSnapshot: TButton;
@@ -120,6 +121,9 @@ begin
       if reg.ValueExists('Small Snapshot Key') then
         smallsnapshotkey:=reg.ReadInteger('Small Snapshot Key');
 
+      if reg.ValueExists('Also save PNG')
+        cbAlsoOutputPng.Checked:=reg.readBool('Also save PNG');
+
       k[1]:=0;
       k[0]:=fullsnapshotkey;
       edtFullSnapshot.text:=ConvertKeyComboToString(k);
@@ -152,6 +156,7 @@ begin
       reg.WriteBool('Snapshot ClearDepth', cbClearDepth.checked);
       reg.WriteInteger('Full Snapshot Key', fullsnapshotkey);
       reg.WriteInteger('Small Snapshot Key', smallsnapshotkey);
+      reg.writeBool('Also save PNG', cbAlsoOutputPng.Checked);
     end;
 
   finally

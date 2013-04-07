@@ -15,7 +15,7 @@ type
   TfrmSaveSnapshots = class(TForm)
     btnSave: TButton;
     btnDone: TButton;
-    Button1: TButton;
+    btnCombinedSelect: TButton;
     Label1: TLabel;
     lblDeselectAll: TLabel;
     lblSelectAll: TLabel;
@@ -27,7 +27,7 @@ type
     procedure btnCancelClick(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
     procedure btnDoneClick(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
+    procedure btnCombinedSelectClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -300,7 +300,7 @@ begin
   PaintBox1.repaint;
 end;
 
-procedure TfrmSaveSnapshots.Button1Click(Sender: TObject);
+procedure TfrmSaveSnapshots.btnCombinedSelectClick(Sender: TObject);
 var
   i: integer;
   b: TBitmap;

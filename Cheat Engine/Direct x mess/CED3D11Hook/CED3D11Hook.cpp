@@ -773,12 +773,13 @@ void DXMessD3D11Handler::TakeSnapshot(ID3D11DeviceContext *dc)
 
 							ID3D10Blob *dest=NULL;
 				
-							//D3DX11SaveTextureToMemory(texture, D3DX11_IFF_BMP, &dest, 0););
-							
-							strcat_s(s,MAX_PATH, ".BMP");
-							D3DX11SaveTextureToFileA(dc, texture, D3DX11_IFF_BMP, s);
+							if (shared->savePNGSeperateAsWell)
+							{
+								strcat_s(s,MAX_PATH, ".PNG");
+								D3DX11SaveTextureToFileA(dc, texture, D3DX11_IFF_PNG, s);
+							}
 
-						/*	if (SUCCEEDED(D3DX11SaveTextureToMemory(dc, texture, D3DX11_IFF_PNG, &dest, 0))) //weird. PNG has some information loss on certain things like text
+							if (SUCCEEDED(D3DX11SaveTextureToMemory(dc, texture, D3DX11_IFF_PNG, &dest, 0))) //weird. PNG has some information loss on certain things like text
 							{
 								x=dest->GetBufferSize();
 								WriteFile(h, &x, sizeof(x), &bw, NULL); 													
@@ -786,7 +787,7 @@ void DXMessD3D11Handler::TakeSnapshot(ID3D11DeviceContext *dc)
 
 								dest->Release();
 							}
-							else*/
+							else
 							{
 								x=0;
 								WriteFile(h, &x, sizeof(x), &bw, NULL); 
