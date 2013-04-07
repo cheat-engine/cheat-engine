@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
-  StdCtrls, Menus, fgl, math, NewKernelHandler;
+  StdCtrls, Menus, fgl, math, NewKernelHandler, FPImage, FPCanvas, FPImgCanv, FPReadPNG, FPWritePNG;
 
 type
 
@@ -20,7 +20,7 @@ type
 
     dxversion: integer;
     pngsize: integer;
-    pic: TPortableNetworkGraphic;
+    pic: TBitmap;
 
     stackbase: qword;
     stacksize: integer;
@@ -89,22 +89,48 @@ var
   i: integer;
 
   f: TFileStream;
+  posAfterPng: integer;
+  fpi: TFPMemoryImage;
+  fpr: TFPReaderPNG;
+  fpw: TFPWriterPNG;
+
+
+  c: TFPCustomCanvas;
 begin
   for i:=0 to list.count-1 do
   begin
     s:=TSnapshot.create;
     s.filename:=list[i];
 
-    s.pic:=TPortableNetworkGraphic.Create;
-
     f:=tfilestream.Create(s.filename, fmOpenRead);
     try
       f.readbuffer(s.dxversion, sizeof(s.dxversion));
       f.ReadBuffer(s.pngsize, sizeof(s.pngsize));
+      posAfterPng:=f.position+s.pngsize;
 
 
-      s.pic:=TPortableNetworkGraphic.Create;
-      s.pic.LoadFromStream(f, s.pngsize);
+
+
+      s.pic:=tbitmap.create;
+
+      fpi:=TFPMemoryImage.Create(0,0);
+      fpr:=TFPReaderPNG.create;
+      fpi.LoadFromStream(f, fpr);
+
+
+      c:=TFPImageCanvas.create(fpi);
+
+      s.pic.Width:=fpi.Width;
+      s.pic.Height:=fpi.Height;
+      TFPCustomCanvas(s.pic.Canvas).CopyRect(0,0, c, rect(0,0,fpi.width, fpi.height));
+
+      c.free;
+      fpr.free;
+      fpi.free;
+
+
+      f.position:=posAfterPng;
+
 
       f.readbuffer(s.stackbase, sizeof(s.stackbase));
       f.readbuffer(s.stacksize, sizeof(s.stacksize));
