@@ -447,7 +447,7 @@ begin
   if frmSaveSnapshots=nil then
     frmSaveSnapshots:=TfrmSaveSnapshots.create(application);
 
-  frmSaveSnapshots.btnCombinedSelect.visible:=not owner.shared.progressiveSnapshot;
+  frmSaveSnapshots.btnCombinedSelect.visible:=owner.shared.progressiveSnapshot=0;
 
   frmSaveSnapshots.initialize(owner.shared.snapshotdir, owner.shared.snapshotcount);
 
