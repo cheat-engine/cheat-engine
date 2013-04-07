@@ -102,6 +102,13 @@ void DXMessD3D9Handler::TakeSnapshot()
 			x=9; //dx9
 			WriteFile(h, &x, sizeof(x), &bw, NULL); 
 
+			if (shared->savePNGSeperateAsWell)
+			{			
+				strcat_s(s,MAX_PATH, ".PNG");
+				D3DXSaveSurfaceToFileA(s, D3DXIFF_PNG, backbuffer, NULL, NULL);
+			}
+
+
 			D3DXSaveSurfaceToFileInMemory(&dest, D3DXIFF_PNG, backbuffer, NULL, NULL);
 
 			x=dest->GetBufferSize();

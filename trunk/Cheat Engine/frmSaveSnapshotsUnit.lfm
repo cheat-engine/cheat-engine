@@ -104,14 +104,14 @@ object frmSaveSnapshots: TfrmSaveSnapshots
       ParentFont = False
       OnClick = lblDeselectAllClick
     end
-    object Button1: TButton
+    object btnCombinedSelect: TButton
       Left = 468
       Height = 25
       Top = 7
       Width = 107
       Anchors = [akTop, akRight]
       Caption = 'Combined select'
-      OnClick = Button1Click
+      OnClick = btnCombinedSelectClick
       TabOrder = 2
     end
   end

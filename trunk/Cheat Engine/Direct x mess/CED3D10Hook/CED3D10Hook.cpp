@@ -173,7 +173,14 @@ void DXMessD3D10Handler::TakeSnapshot()
 							WriteFile(h, &x, sizeof(x), &bw, NULL); 
 
 				
-							//D3DX10SaveTextureToMemory(texture, D3DX10_IFF_BMP, &dest, 0););
+							
+							if (shared->savePNGSeperateAsWell)
+							{
+								strcat_s(s,MAX_PATH, ".PNG");
+								D3DX10SaveTextureToFileA(texture, D3DX10_IFF_PNG, s);
+							}
+
+
 							if (SUCCEEDED(D3DX10SaveTextureToMemory(texture, D3DX10_IFF_PNG, &dest, 0))) //weird. PNG has some information loss on certain things like text
 							{
 								x=dest->GetBufferSize();
