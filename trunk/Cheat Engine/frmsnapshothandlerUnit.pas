@@ -57,6 +57,7 @@ type
     ScrollBar1: TScrollBar;
     procedure btnCompareClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure MenuItem8Click(Sender: TObject);
     procedure miConfigClick(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
     procedure PaintBox1MouseDown(Sender: TObject; Button: TMouseButton;
@@ -70,7 +71,7 @@ type
   public
     { public declarations }
     procedure loadsnapshots(list: TStrings);
-//    procedure initialize(path: string; count: integer);
+    procedure clearlist;
   end;
 
 var
@@ -82,6 +83,27 @@ implementation
 
 uses mainunit, frmSaveSnapshotsUnit, d3dhookUnit, frmD3DHookSnapshotConfigUnit,
   StructuresFrm2, frmSelectionlistunit, frmStackViewUnit;
+
+procedure TfrmSnapshotHandler.clearlist;
+var i: integer;
+begin
+  for i:=0 to snapshots.count-1 do
+  begin
+    if snapshots[i].pic<>nil then
+      freeandnil(snapshots[i].pic);
+
+    if snapshots[i].constantbuffer<>nil then
+      Freemem(snapshots[i].constantbuffer);
+
+    if snapshots[i].stack<>nil then
+      freemem(snapshots[i].stack);
+  end;
+
+  snapshots.Clear;
+
+  paintbox1.Repaint;
+
+end;
 
 procedure TfrmSnapshotHandler.loadsnapshots(list: TStrings);
 var
@@ -281,6 +303,11 @@ begin
   snapshots:=TSnapshotList.create;
   panel2.DoubleBuffered:=true;
   DoubleBuffered:=true;
+end;
+
+procedure TfrmSnapshotHandler.MenuItem8Click(Sender: TObject);
+begin
+  clearList;
 end;
 
 procedure TfrmSnapshotHandler.btnCompareClick(Sender: TObject);
