@@ -213,6 +213,7 @@ typedef volatile struct
 	DWORD smallSnapshotKey;
 
 	UINT64 snapshotDone; //Event to signal that a snapshot is done
+	int snapshotImageFormat;
 	int snapshotcount;
 	int progressiveSnapshot; //set to 1 if you do not wish the snapshot to clear the screen before each draw. (This makes it easier to see how a scene was build up)
 	int alsoClearDepthBuffer; //set to 1 if you also want the depth buffer to be cleared before each draw

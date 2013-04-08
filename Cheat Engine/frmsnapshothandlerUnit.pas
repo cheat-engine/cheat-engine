@@ -19,7 +19,7 @@ type
     filename: string;
 
     dxversion: integer;
-    pngsize: integer;
+    picturesize: integer;
     pic: TBitmap;
 
     stackbase: qword;
@@ -89,13 +89,14 @@ var
   i: integer;
 
   f: TFileStream;
-  posAfterPng: integer;
+  posAfterpicture: integer;
   fpi: TFPMemoryImage;
   fpr: TFPReaderPNG;
   fpw: TFPWriterPNG;
 
 
   c: TFPCustomCanvas;
+  pictureformat: integer;
 begin
   for i:=0 to list.count-1 do
   begin
@@ -105,31 +106,39 @@ begin
     f:=tfilestream.Create(s.filename, fmOpenRead);
     try
       f.readbuffer(s.dxversion, sizeof(s.dxversion));
-      f.ReadBuffer(s.pngsize, sizeof(s.pngsize));
-      posAfterPng:=f.position+s.pngsize;
-
-
-
+      f.readbuffer(pictureformat, sizeof(pictureformat));
+      f.ReadBuffer(s.picturesize, sizeof(s.picturesize));
+      posAfterpicture:=f.position+s.picturesize;
 
       s.pic:=tbitmap.create;
 
-      fpi:=TFPMemoryImage.Create(0,0);
-      fpr:=TFPReaderPNG.create;
-      fpi.LoadFromStream(f, fpr);
+      if pictureformat=0 then
+      begin
+        s.pic.LoadFromStream(f, s.picturesize);
+      end
+      else
+      if pictureformat=3 then
+      begin
+
+        fpi:=TFPMemoryImage.Create(0,0);
+        fpr:=TFPReaderPNG.create;
+        fpi.LoadFromStream(f, fpr);
 
 
-      c:=TFPImageCanvas.create(fpi);
+        c:=TFPImageCanvas.create(fpi);
 
-      s.pic.Width:=fpi.Width;
-      s.pic.Height:=fpi.Height;
-      TFPCustomCanvas(s.pic.Canvas).CopyRect(0,0, c, rect(0,0,fpi.width, fpi.height));
+        s.pic.Width:=fpi.Width;
+        s.pic.Height:=fpi.Height;
+        TFPCustomCanvas(s.pic.Canvas).CopyRect(0,0, c, rect(0,0,fpi.width, fpi.height));
 
-      c.free;
-      fpr.free;
-      fpi.free;
+        c.free;
+        fpr.free;
+        fpi.free;
+
+      end;
 
 
-      f.position:=posAfterPng;
+      f.position:=posAfterpicture;
 
 
       f.readbuffer(s.stackbase, sizeof(s.stackbase));
@@ -359,6 +368,7 @@ end;
 
 procedure TfrmSnapshotHandler.miConfigClick(Sender: TObject);
 var frmD3DHookSnapshotConfig: TfrmD3DHookSnapshotConfig;
+    pf: integer;
 begin
   frmd3dhooksnapshotconfig:=TfrmD3DHookSnapshotConfig.create(self);
   try
@@ -368,8 +378,16 @@ begin
       safed3dhook;
       mainform.updated3dgui;
 
+
+      case frmd3dhooksnapshotconfig.rgPictureFormat.itemindex of
+        0: pf:=3;
+        1: pf:=0;
+      end;
+
+
+
       if d3dhook<>nil then
-        d3dhook.setSnapshotOptions(frmd3dhooksnapshotconfig.dirSnapshot.Text, frmd3dhooksnapshotconfig.fullsnapshotkey, frmd3dhooksnapshotconfig.smallsnapshotkey, frmd3dhooksnapshotconfig.cbProgressive.checked, frmd3dhooksnapshotconfig.cbClearDepth.checked);
+        d3dhook.setSnapshotOptions(frmd3dhooksnapshotconfig.dirSnapshot.Text, frmd3dhooksnapshotconfig.fullsnapshotkey, frmd3dhooksnapshotconfig.smallsnapshotkey, frmd3dhooksnapshotconfig.cbProgressive.checked, frmd3dhooksnapshotconfig.cbClearDepth.checked, frmd3dhooksnapshotconfig.cbAlsoOutputPng.checked, pf);
 
     end;
 

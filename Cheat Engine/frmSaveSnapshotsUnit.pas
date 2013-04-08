@@ -71,7 +71,7 @@ implementation
 procedure TfrmSaveSnapshots.loadSnapshot(index: integer);
 var
   s: Tfilestream;
-  pngsize: integer;
+  picturesize: integer;
   error: string;
   i: integer;
   fpi: TFPMemoryImage;
@@ -80,6 +80,8 @@ var
 
 
   c: TFPCustomCanvas;
+
+  format: integer;
 
 
 begin
@@ -109,27 +111,36 @@ begin
     begin
       s:=tfilestream.Create(snapshots[index].filename, fmOpenRead);
       try
-        s.position:=4; //to the png size
-        s.ReadBuffer(pngsize, sizeof(pngsize));
+        s.position:=4; //to the format type
+        s.readbuffer(format, sizeof(format));
+        s.ReadBuffer(picturesize, sizeof(picturesize));
+
+        if format=0 then
+        begin
+          //bmp
+          snapshots[index].pic:=tbitmap.Create;
+          snapshots[index].pic.LoadFromStream(s, picturesize);
+        end
+        else
+        if format=3 then //png
+        begin
+
+          fpi:=TFPMemoryImage.Create(0,0);
+          fpr:=TFPReaderPNG.create;
+          fpi.LoadFromStream(s, fpr);
 
 
+          c:=TFPImageCanvas.create(fpi);
 
-        fpi:=TFPMemoryImage.Create(0,0);
-        fpr:=TFPReaderPNG.create;
-        fpi.LoadFromStream(s, fpr);
+          snapshots[index].pic:=tbitmap.Create;
+          snapshots[index].pic.Width:=fpi.Width;
+          snapshots[index].pic.Height:=fpi.Height;
+          TFPCustomCanvas(snapshots[index].pic.Canvas).CopyRect(0,0, c, rect(0,0,fpi.width, fpi.height));
 
-
-        c:=TFPImageCanvas.create(fpi);
-
-        snapshots[index].pic:=tbitmap.Create;
-        snapshots[index].pic.Width:=fpi.Width;
-        snapshots[index].pic.Height:=fpi.Height;
-        TFPCustomCanvas(snapshots[index].pic.Canvas).CopyRect(0,0, c, rect(0,0,fpi.width, fpi.height));
-
-        c.free;
-        fpr.free;
-        fpi.free;
-
+          c.free;
+          fpr.free;
+          fpi.free;
+        end;
 
       finally
         s.free;

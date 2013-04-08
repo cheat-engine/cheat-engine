@@ -1,18 +1,20 @@
 object frmD3DHookSnapshotConfig: TfrmD3DHookSnapshotConfig
-  Left = 314
-  Height = 181
-  Top = 120
-  Width = 293
+  Left = 568
+  Height = 246
+  Top = 211
+  Width = 299
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsSingle
   Caption = 'D3DHook: Configure snapshot'
-  ClientHeight = 181
-  ClientWidth = 293
+  ClientHeight = 246
+  ClientWidth = 299
   OnCreate = FormCreate
   Position = poScreenCenter
   LCLVersion = '1.1'
   object dirSnapshot: TDirectoryEdit
     Left = 8
     Height = 23
-    Top = 119
+    Top = 184
     Width = 248
     ShowHidden = False
     ButtonWidth = 23
@@ -23,7 +25,7 @@ object frmD3DHookSnapshotConfig: TfrmD3DHookSnapshotConfig
   object Label1: TLabel
     Left = 8
     Height = 15
-    Top = 103
+    Top = 168
     Width = 83
     Caption = 'Snapshot folder'
     ParentColor = False
@@ -71,7 +73,7 @@ object frmD3DHookSnapshotConfig: TfrmD3DHookSnapshotConfig
   object mbOk: TButton
     Left = 64
     Height = 25
-    Top = 151
+    Top = 216
     Width = 75
     Caption = 'OK'
     Default = True
@@ -82,7 +84,7 @@ object frmD3DHookSnapshotConfig: TfrmD3DHookSnapshotConfig
   object mbCancel: TButton
     Left = 152
     Height = 25
-    Top = 151
+    Top = 216
     Width = 75
     Cancel = True
     Caption = 'Cancel'
@@ -126,14 +128,38 @@ object frmD3DHookSnapshotConfig: TfrmD3DHookSnapshotConfig
     TabOrder = 3
   end
   object cbAlsoOutputPng: TCheckBox
-    Left = 8
+    Left = 9
     Height = 19
     Hint = 'Use this if you have a more efficient way of rendering .PNG''s to select the snapshot you wish'
-    Top = 80
-    Width = 208
-    Caption = 'Also save .PNG next to snapshot file'
+    Top = 144
+    Width = 218
+    Caption = 'Also save picture next to snapshot file'
     ParentShowHint = False
     ShowHint = True
     TabOrder = 9
+  end
+  object rgPictureFormat: TRadioGroup
+    Left = 8
+    Height = 64
+    Top = 80
+    Width = 283
+    AutoFill = True
+    Caption = 'Picture format'
+    ChildSizing.LeftRightSpacing = 6
+    ChildSizing.TopBottomSpacing = 6
+    ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+    ChildSizing.EnlargeVertical = crsHomogenousChildResize
+    ChildSizing.ShrinkHorizontal = crsScaleChilds
+    ChildSizing.ShrinkVertical = crsScaleChilds
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 1
+    ClientHeight = 46
+    ClientWidth = 279
+    ItemIndex = 0
+    Items.Strings = (
+      'PNG (Slow, small files)'
+      'BMP (Fast, but requires a gigantic harddisk)'
+    )
+    TabOrder = 10
   end
 end
