@@ -99,6 +99,7 @@ object frmSnapshotHandler: TfrmSnapshotHandler
       object MenuItem8: TMenuItem
         Caption = 'Clear List'
         ShortCut = 16451
+        OnClick = MenuItem8Click
       end
       object MenuItem4: TMenuItem
         Caption = 'Open snapshot(s)'

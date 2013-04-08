@@ -601,52 +601,9 @@ void DXMessD3D11Handler::TakeSnapshot(ID3D11DeviceContext *dc)
 						texDesc.Usage = D3D11_USAGE_DEFAULT;
 					}
 
-					//figure out a good format
-
-
-					//texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-
-					/*
-					switch (texDesc.Format)
-					{
-						case DXGI_FORMAT_R32G32B32A32_TYPELESS       :
-						case DXGI_FORMAT_R32G32B32A32_FLOAT			 :
-						case DXGI_FORMAT_R32G32B32A32_UINT			 :
-						case DXGI_FORMAT_R32G32B32A32_SINT			 :
-							texDesc.Format=DXGI_FORMAT_R32G32B32A32_UINT;
-							break;
-
-						case DXGI_FORMAT_R32G32B32_TYPELESS          :
-						case DXGI_FORMAT_R32G32B32_FLOAT             :
-						case DXGI_FORMAT_R32G32B32_UINT              :
-						case DXGI_FORMAT_R32G32B32_SINT				 :
-							texDesc.Format=DXGI_FORMAT_R32G32B32_UINT;
-							break;
-
-						case DXGI_FORMAT_R16G16B16A16_TYPELESS       :
-						case DXGI_FORMAT_R16G16B16A16_FLOAT          :
-						case DXGI_FORMAT_R16G16B16A16_UNORM          :
-						case DXGI_FORMAT_R16G16B16A16_UINT           :
-						case DXGI_FORMAT_R16G16B16A16_SNORM          :
-						case DXGI_FORMAT_R16G16B16A16_SINT           :
-							texDesc.Format=DXGI_FORMAT_R16G16B16A16_UINT;
-							break;
-
-						case DXGI_FORMAT_R8G8B8A8_TYPELESS           :
-						case DXGI_FORMAT_R8G8B8A8_UNORM              :
-						case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB         :
-						case DXGI_FORMAT_R8G8B8A8_UINT               :
-						case DXGI_FORMAT_R8G8B8A8_SNORM              :
-						case DXGI_FORMAT_R8G8B8A8_SINT               :
-							texDesc.Format=DXGI_FORMAT_R8G8B8A8_UINT;
-							break;
-					}
-					*/
+					//figure out a good format				
 					
-					
-					ID3D11Texture2D *texture;
-					
-					
+					ID3D11Texture2D *texture;					
 					if (SUCCEEDED(dev->CreateTexture2D(&texDesc, 0, &texture)))
 					{
 			
