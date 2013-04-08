@@ -173,6 +173,7 @@ type
     snapshotKey: DWORD;
     smallSnapshotKey: DWORD;
     snapshotDone: UINT64; //Event to signal that a snapshot is done
+    snapshotImageFormat: integer;
     snapshotcount: integer;
     progressiveSnapshot: integer; //set to 1 if you do not wish the snapshot to clear the screen before each draw. (This makes it easier to see how a scene was build up)
     alsoClearDepthBuffer: integer; //set to 1 if you also want the depth buffer to be cleared before each draw
@@ -417,7 +418,7 @@ type
 
     procedure enableConsole(virtualkey: DWORD);
 
-    procedure setSnapshotOptions(path: string; full, small: dword; Progressive: boolean; cleardepthbuffer: boolean);
+    procedure setSnapshotOptions(path: string; full, small: dword; Progressive: boolean; cleardepthbuffer: boolean; savepng: boolean; pictureFormat: integer);
 
 
 
@@ -1214,7 +1215,7 @@ end;
 
 //----------------------------------D3dhook-------------------------------------
 
-procedure TD3DHook.setSnapshotOptions(path: string; full, small: dword; Progressive: boolean; cleardepthbuffer: boolean);
+procedure TD3DHook.setSnapshotOptions(path: string; full, small: dword; Progressive: boolean; cleardepthbuffer: boolean; savepng: boolean; pictureFormat: integer);
 begin
 
 
@@ -1235,7 +1236,10 @@ begin
   end;
 
 
+  shared.snapshotImageFormat:=pictureFormat;
+
   if cleardepthbuffer then shared.alsoClearDepthBuffer:=1 else shared.alsoClearDepthBuffer:=0;
+  if savepng then shared.savePNGSeperateAsWell:=1 else shared.savePNGSeperateAsWell:=0;
 
 
 end;

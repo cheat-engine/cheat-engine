@@ -605,6 +605,43 @@ void DXMessD3D11Handler::TakeSnapshot(ID3D11DeviceContext *dc)
 
 
 					//texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+					/*
+					switch (texDesc.Format)
+					{
+						case DXGI_FORMAT_R32G32B32A32_TYPELESS       :
+						case DXGI_FORMAT_R32G32B32A32_FLOAT			 :
+						case DXGI_FORMAT_R32G32B32A32_UINT			 :
+						case DXGI_FORMAT_R32G32B32A32_SINT			 :
+							texDesc.Format=DXGI_FORMAT_R32G32B32A32_UINT;
+							break;
+
+						case DXGI_FORMAT_R32G32B32_TYPELESS          :
+						case DXGI_FORMAT_R32G32B32_FLOAT             :
+						case DXGI_FORMAT_R32G32B32_UINT              :
+						case DXGI_FORMAT_R32G32B32_SINT				 :
+							texDesc.Format=DXGI_FORMAT_R32G32B32_UINT;
+							break;
+
+						case DXGI_FORMAT_R16G16B16A16_TYPELESS       :
+						case DXGI_FORMAT_R16G16B16A16_FLOAT          :
+						case DXGI_FORMAT_R16G16B16A16_UNORM          :
+						case DXGI_FORMAT_R16G16B16A16_UINT           :
+						case DXGI_FORMAT_R16G16B16A16_SNORM          :
+						case DXGI_FORMAT_R16G16B16A16_SINT           :
+							texDesc.Format=DXGI_FORMAT_R16G16B16A16_UINT;
+							break;
+
+						case DXGI_FORMAT_R8G8B8A8_TYPELESS           :
+						case DXGI_FORMAT_R8G8B8A8_UNORM              :
+						case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB         :
+						case DXGI_FORMAT_R8G8B8A8_UINT               :
+						case DXGI_FORMAT_R8G8B8A8_SNORM              :
+						case DXGI_FORMAT_R8G8B8A8_SINT               :
+							texDesc.Format=DXGI_FORMAT_R8G8B8A8_UINT;
+							break;
+					}
+					*/
 					
 					
 					ID3D11Texture2D *texture;
@@ -661,8 +698,8 @@ void DXMessD3D11Handler::TakeSnapshot(ID3D11DeviceContext *dc)
 								xpos=(int)floor(texDesc.Width * smallSnapshotPointRelative.x);
 								ypos=(int)floor(texDesc.Height * smallSnapshotPointRelative.y);
 
-								//check if the pixel at xpos,ypos is not 0xffff00ff								
-								
+								//check if the pixel at xpos,ypos is not 0xffff00ff		
+
 								//use texDesc.Format to figure out where the pixel is located (size) and what format is equivalent to 1,0,1
 
 								if ((texDesc.Format>=DXGI_FORMAT_R32G32B32A32_TYPELESS) && (texDesc.Format<=DXGI_FORMAT_R32G32B32_SINT))
@@ -672,70 +709,105 @@ void DXMessD3D11Handler::TakeSnapshot(ID3D11DeviceContext *dc)
 									pixelsize=8;
 								else
 								if ((texDesc.Format>=DXGI_FORMAT_R10G10B10A2_TYPELESS ) && (texDesc.Format<=DXGI_FORMAT_X24_TYPELESS_G8_UINT ))
-									pixelsize=4;
+									pixelsize=4;								
 								else
-								if ((texDesc.Format>=DXGI_FORMAT_R8G8_TYPELESS) && (texDesc.Format<=DXGI_FORMAT_R16_SINT))
-									pixelsize=2;
-								else
-								if ((texDesc.Format>=DXGI_FORMAT_R8_TYPELESS ) && (texDesc.Format<=DXGI_FORMAT_A8_UNORM ))
-									pixelsize=1;
+									pixelsize=-1; //too small, compressed or unknown. Either way, don't use it
 
 
-								color=(PVOID)((UINT_PTR)mappedtexture.pData+mappedtexture.RowPitch*ypos+xpos*pixelsize);
-								switch (pixelsize)
+								if (pixelsize!=-1)
 								{
-									case 16:
+									color=(PVOID)((UINT_PTR)mappedtexture.pData+mappedtexture.RowPitch*ypos+xpos*pixelsize);
+									switch (pixelsize)
 									{
-										typedef struct
+										case 16:
 										{
-											DWORD c1;
-											DWORD c2;
-											DWORD c3;
-											DWORD c4;
-										} *PC128;
+											if (texDesc.Format==DXGI_FORMAT_R32G32B32A32_FLOAT)
+											{
+												typedef struct
+												{
+													FLOAT c1;
+													FLOAT c2;
+													FLOAT c3;
+													FLOAT c4;
+												} *PC128;
 
-										PC128 c=(PC128)color;
+												PC128 c=(PC128)color;
+												
+												savethis=((c->c1!=1.0f) || (c->c2!=0.0f) || (c->c3!=1.0f)); 
+											}
+											else
+											{
+												typedef struct
+												{
+													DWORD c1;
+													DWORD c2;
+													DWORD c3;
+													DWORD c4;
+												} *PC128;
+
+												PC128 c=(PC128)color;
+												
+												savethis=((c->c1!=0xffffffff) || (c->c2!=0x00000000) || (c->c3!=0xffffffff)); 
 										
-										savethis=((c->c1!=0xffffffff) || (c->c2!=0x00000000) || (c->c3!=0xffffffff));										
-										break;
-									}
+											}
+											break;
+										}
 
-									case 8:
-									{
-										typedef struct
+										case 8:
 										{
-											WORD c1;
-											WORD c2;
-											WORD c3;
-											WORD c4;
-										} *PC64;
+											if (texDesc.Format==DXGI_FORMAT_R16G16B16A16_FLOAT)
+											{
+												typedef struct
+												{
+													WORD c1;
+													WORD c2;
+													WORD c3;
+													WORD c4;
+												} *PC64;
 
-										PC64 c=(PC64)color;
-										
-										savethis=((c->c1!=0xffff) || (c->c2!=0x0000) || (c->c3!=0xffff));										
-										break;
-									}
+												PC64 c=(PC64)color;
+												
+												savethis=((c->c1!=0x3c00) || (c->c2!=0x0000) || (c->c3!=0x3c00));	
 
-									case 4:
-									{
-										typedef struct
+											}
+											else
+											{
+												typedef struct
+												{
+													WORD c1;
+													WORD c2;
+													WORD c3;
+													WORD c4;
+												} *PC64;
+
+												PC64 c=(PC64)color;
+												
+												savethis=((c->c1!=0xffff) || (c->c2!=0x0000) || (c->c3!=0xffff));										
+											}
+											break;
+										}
+
+										case 4:
 										{
-											BYTE c1;
-											BYTE c2;
-											BYTE c3;
-											BYTE c4;
-										} *PC32;
+											typedef struct
+											{
+												BYTE c1;
+												BYTE c2;
+												BYTE c3;
+												BYTE c4;
+											} *PC32;
 
-										PC32 c=(PC32)color;
-										
-										savethis=((c->c1!=0xff) || (c->c2!=0x00) || (c->c3!=0xff));										
-										break;
+											PC32 c=(PC32)color;
+											
+											savethis=((c->c1!=0xff) || (c->c2!=0x00) || (c->c3!=0xff));										
+											break;
+										}
+
+										default:
+											savethis=FALSE;
+
+
 									}
-
-									default:
-										savethis=FALSE;
-
-
 								}
 
 								dc->Unmap(texture, 0);											
@@ -775,12 +847,32 @@ void DXMessD3D11Handler::TakeSnapshot(ID3D11DeviceContext *dc)
 				
 							if (shared->savePNGSeperateAsWell)
 							{
-								strcat_s(s,MAX_PATH, ".PNG");
-								D3DX11SaveTextureToFileA(dc, texture, D3DX11_IFF_PNG, s);
+								switch (shared->snapshotImageFormat)
+								{
+									case 0: 
+										strcat_s(s,MAX_PATH, ".BMP");
+										break;
+
+									case 1:
+										strcat_s(s,MAX_PATH, ".JPG");
+										break;
+
+									case 3:
+										strcat_s(s,MAX_PATH, ".PNG");
+										break;
+
+									default:
+										strcat_s(s,MAX_PATH, ".WTF");
+										break;
+								}
+								D3DX11SaveTextureToFileA(dc, texture, (D3DX11_IMAGE_FILE_FORMAT)shared->snapshotImageFormat, s);
 							}
 
-							if (SUCCEEDED(D3DX11SaveTextureToMemory(dc, texture, D3DX11_IFF_PNG, &dest, 0))) //weird. PNG has some information loss on certain things like text
+							if (SUCCEEDED(D3DX11SaveTextureToMemory(dc, texture, (D3DX11_IMAGE_FILE_FORMAT)shared->snapshotImageFormat, &dest, 0))) //weird. PNG has some information loss on certain things like text
 							{
+								x=shared->snapshotImageFormat;
+								WriteFile(h, &x, sizeof(x), &bw, NULL);
+								
 								x=dest->GetBufferSize();
 								WriteFile(h, &x, sizeof(x), &bw, NULL); 													
 								WriteFile(h, dest->GetBufferPointer(), x, &bw, NULL); 
@@ -790,6 +882,7 @@ void DXMessD3D11Handler::TakeSnapshot(ID3D11DeviceContext *dc)
 							else
 							{
 								x=0;
+								WriteFile(h, &x, sizeof(x), &bw, NULL);
 								WriteFile(h, &x, sizeof(x), &bw, NULL); 
 							}
 

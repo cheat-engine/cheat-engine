@@ -176,13 +176,32 @@ void DXMessD3D10Handler::TakeSnapshot()
 							
 							if (shared->savePNGSeperateAsWell)
 							{
-								strcat_s(s,MAX_PATH, ".PNG");
-								D3DX10SaveTextureToFileA(texture, D3DX10_IFF_PNG, s);
+								switch (shared->snapshotImageFormat)
+								{
+									case 0: 
+										strcat_s(s,MAX_PATH, ".BMP");
+										break;
+
+									case 1:
+										strcat_s(s,MAX_PATH, ".JPG");
+										break;
+
+									case 3:
+										strcat_s(s,MAX_PATH, ".PNG");
+										break;
+
+									default:
+										strcat_s(s,MAX_PATH, ".WTF");
+										break;
+								}
+								D3DX10SaveTextureToFileA(texture, (D3DX10_IMAGE_FILE_FORMAT)shared->snapshotImageFormat, s);
 							}
 
 
-							if (SUCCEEDED(D3DX10SaveTextureToMemory(texture, D3DX10_IFF_PNG, &dest, 0))) //weird. PNG has some information loss on certain things like text
+							if (SUCCEEDED(D3DX10SaveTextureToMemory(texture, (D3DX10_IMAGE_FILE_FORMAT)shared->snapshotImageFormat, &dest, 0))) //weird. PNG has some information loss on certain things like text
 							{
+								x=shared->snapshotImageFormat;
+								WriteFile(h, &x, sizeof(x), &bw, NULL);
 								x=dest->GetBufferSize();
 								WriteFile(h, &x, sizeof(x), &bw, NULL); 													
 								WriteFile(h, dest->GetBufferPointer(), x, &bw, NULL); 
@@ -192,6 +211,7 @@ void DXMessD3D10Handler::TakeSnapshot()
 							else
 							{
 								x=0;
+								WriteFile(h, &x, sizeof(x), &bw, NULL);
 								WriteFile(h, &x, sizeof(x), &bw, NULL); 
 							}
 

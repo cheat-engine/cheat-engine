@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, EditBtn,
-  StdCtrls, CEFuncProc, registry;
+  StdCtrls, ExtCtrls, CEFuncProc, registry;
 
 type
 
@@ -26,6 +26,7 @@ type
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
+    rgPictureFormat: TRadioGroup;
     procedure btnClearFullSnapshotClick(Sender: TObject);
     procedure btnClearSmallSnapshotClick(Sender: TObject);
     procedure cbClearDepthChange(Sender: TObject);
@@ -124,6 +125,9 @@ begin
       if reg.ValueExists('Also save PNG') then
         cbAlsoOutputPng.Checked:=reg.readBool('Also save PNG');
 
+      if reg.ValueExists('Snapshot picture format') then
+        rgPictureFormat.ItemIndex:=reg.ReadInteger('Snapshot picture format');
+
       k[1]:=0;
       k[0]:=fullsnapshotkey;
       edtFullSnapshot.text:=ConvertKeyComboToString(k);
@@ -157,6 +161,8 @@ begin
       reg.WriteInteger('Full Snapshot Key', fullsnapshotkey);
       reg.WriteInteger('Small Snapshot Key', smallsnapshotkey);
       reg.writeBool('Also save PNG', cbAlsoOutputPng.Checked);
+
+      reg.WriteInteger('Snapshot picture format', rgPictureFormat.ItemIndex);
     end;
 
   finally

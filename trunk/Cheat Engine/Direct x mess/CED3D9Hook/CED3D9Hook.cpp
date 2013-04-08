@@ -104,16 +104,43 @@ void DXMessD3D9Handler::TakeSnapshot()
 
 			if (shared->savePNGSeperateAsWell)
 			{			
-				strcat_s(s,MAX_PATH, ".PNG");
-				D3DXSaveSurfaceToFileA(s, D3DXIFF_PNG, backbuffer, NULL, NULL);
+				switch (shared->snapshotImageFormat)
+				{
+					case 0: 
+						strcat_s(s,MAX_PATH, ".BMP");
+						break;
+
+					case 1:
+						strcat_s(s,MAX_PATH, ".JPG");
+						break;
+
+					case 3:
+						strcat_s(s,MAX_PATH, ".PNG");
+						break;
+
+					default:
+						strcat_s(s,MAX_PATH, ".WTF");
+						break;
+				}
+				
+				D3DXSaveSurfaceToFileA(s, (D3DXIMAGE_FILEFORMAT)shared->snapshotImageFormat, backbuffer, NULL, NULL);
 			}
 
 
-			D3DXSaveSurfaceToFileInMemory(&dest, D3DXIFF_PNG, backbuffer, NULL, NULL);
-
-			x=dest->GetBufferSize();
-			WriteFile(h, &x, sizeof(x), &bw, NULL); 													
-			WriteFile(h, dest->GetBufferPointer(), x, &bw, NULL); 
+			if (SUCCEEDED(D3DXSaveSurfaceToFileInMemory(&dest, (D3DXIMAGE_FILEFORMAT)shared->snapshotImageFormat, backbuffer, NULL, NULL)))
+			{
+				x=shared->snapshotImageFormat;
+				WriteFile(h, &x, sizeof(x), &bw, NULL);
+				x=dest->GetBufferSize();
+				WriteFile(h, &x, sizeof(x), &bw, NULL); 													
+				WriteFile(h, dest->GetBufferPointer(), x, &bw, NULL); 
+			}
+			else
+			{
+				x=0;
+				WriteFile(h, &x, sizeof(x), &bw, NULL);
+				WriteFile(h, &x, sizeof(x), &bw, NULL); 
+			}
 
 			dest->Release();
 
