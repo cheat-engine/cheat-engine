@@ -207,7 +207,7 @@ begin
   Lua_register(LuaVM, 'memscan_waitTillDone', memscan_waitTillDone);
   Lua_register(LuaVM, 'memscan_saveCurrentResults', memscan_saveCurrentResults);
   Lua_register(LuaVM, 'memscan_getAttachedFoundlist', memscan_getAttachedFoundlist);
-  Lua_register(LuaVM, 'memscan_returnOnlyOneResult', memscan_getreturnOnlyOneResult);
+  Lua_register(LuaVM, 'memscan_returnOnlyOneResult', memscan_setreturnOnlyOneResult);
   Lua_register(LuaVM, 'memscan_getOnlyResult', memscan_getOnlyResult);
 end;
 
