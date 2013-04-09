@@ -223,6 +223,7 @@ type
     miCut: TMenuItem;
     miCopy: TMenuItem;
     miPaste: TMenuItem;
+    miSpider: TMenuItem;
 
 
     focusedShape: TShape;
@@ -237,6 +238,7 @@ type
     procedure CutClick(sender: TObject);
     procedure CopyClick(sender: TObject);
     procedure PasteClick(sender: TObject);
+    procedure SpiderClick(sender: TObject);
 
     procedure MenuPopup(sender: TObject);
 
@@ -505,7 +507,7 @@ implementation
 {$R *.lfm}
 
 uses MainUnit, mainunit2, frmStructures2ElementInfoUnit, MemoryBrowserFormUnit,
-  frmStructureLinkerUnit, frmgroupscanalgoritmgeneratorunit;
+  frmStructureLinkerUnit, frmgroupscanalgoritmgeneratorunit, frmStringPointerScanUnit;
 
 resourcestring
   rsAddressValue = 'Address: Value';
@@ -564,6 +566,7 @@ resourcestring
    rsCut = 'Cut';
    rsCopy = 'Copy';
    rsPaste = 'Paste';
+   rsSpider = 'Spider';
 
 function DisplaymethodToString(d:TdisplayMethod): string;
 begin
@@ -1132,6 +1135,8 @@ begin
 
   try
     beginUpdate;
+
+
 
 
 
@@ -1955,6 +1960,29 @@ begin
   edtAddress.PasteFromClipboard;
 end;
 
+procedure TStructColumn.SpiderClick(sender: TObject);
+//Opens the structure spider on the current address
+var f: Tfrmstringpointerscan;
+  ss: ptruint;
+begin
+  f:=Tfrmstringpointerscan.create(application);
+
+  f.rbDatascan.Checked:=true;
+  f.edtBase.text:=edtAddress.Text;
+  ss:=ptruint(getSavedState);
+
+  f.cbHasShadow.checked:=ss<>0;
+
+  if ss<>0 then
+  begin
+    f.edtShadowAddress.Text:=inttohex(ss,8);
+    f.edtShadowSize.text:=inttostr(getSavedStateSize);
+  end;
+
+
+  f.show;
+end;
+
 procedure TStructColumn.MenuPopup(sender: TObject);
 begin
   miCut.enabled:=edtAddress.SelLength>0;
@@ -2038,6 +2066,15 @@ begin
   mipaste.caption:=rsPaste;
   miPaste.ShortCut:=TextToShortCut('Ctrl+V');
   columneditpopupmenu.Items.Add(miPaste);
+
+
+  miSpider:=TMenuItem.create(columneditpopupmenu);
+  miSpider.OnClick:=SpiderClick;
+  miSpider.caption:=rsSpider;
+  miSpider.ShortCut:=TextToShortCut('Ctrl+Alt+S');
+  columneditpopupmenu.Items.Add(miSpider);
+
+
 
   columneditpopupmenu.OnPopup:=MenuPopup;
 

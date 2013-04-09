@@ -525,6 +525,7 @@ ID3D11DeviceContext *DXMessD3D11Handler::PrepareForSnapshot(ID3D11DeviceContext 
 
 void DXMessD3D11Handler::TakeSnapshot(ID3D11DeviceContext *dc)
 {
+	ID3D11DeviceContext *drawdc=dc;
 	
 	ID3D11RenderTargetView *currentrt=NULL ;
 
@@ -867,7 +868,7 @@ void DXMessD3D11Handler::TakeSnapshot(ID3D11DeviceContext *dc)
 							//save the VS Constant buffers
 
 							
-							dc->VSGetConstantBuffers(0, 1, &c);
+							drawdc->VSGetConstantBuffers(0, 1, &c);
 
 							int nocb=1; //if getting the constantbuffers fail this notifies that it has a length of 0
 
@@ -916,6 +917,9 @@ void DXMessD3D11Handler::TakeSnapshot(ID3D11DeviceContext *dc)
 								int i=0;
 								WriteFile(h, &i, sizeof(i), &bw, NULL);								
 							}
+
+
+							//perhaps also save the vertex buffers
 
 							CloseHandle(h);
 							

@@ -9,7 +9,7 @@ object frmStringPointerScan: TfrmStringPointerScan
   Menu = MainMenu1
   OnClose = FormClose
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.1'
   object Panel1: TPanel
     Left = 0
     Height = 504
@@ -30,9 +30,9 @@ object frmStringPointerScan: TfrmStringPointerScan
     end
     object lblStructsize: TLabel
       Left = 87
-      Height = 16
+      Height = 15
       Top = 8
-      Width = 51
+      Width = 50
       Caption = 'Structsize'
       ParentColor = False
     end
@@ -47,8 +47,8 @@ object frmStringPointerScan: TfrmStringPointerScan
     end
     object lblInfo: TLabel
       Left = 0
-      Height = 16
-      Top = 488
+      Height = 15
+      Top = 489
       Width = 177
       Align = alBottom
       Caption = 'Info'
@@ -56,9 +56,9 @@ object frmStringPointerScan: TfrmStringPointerScan
     end
     object lblMaxLevel: TLabel
       Left = 4
-      Height = 16
+      Height = 15
       Top = 8
-      Width = 53
+      Width = 52
       Caption = 'Max Level'
       ParentColor = False
     end
@@ -134,9 +134,9 @@ object frmStringPointerScan: TfrmStringPointerScan
     end
     object lblAlign: TLabel
       Left = 12
-      Height = 16
+      Height = 15
       Top = 418
-      Width = 48
+      Width = 47
       Caption = 'Alignsize'
       Enabled = False
       ParentColor = False
@@ -160,9 +160,9 @@ object frmStringPointerScan: TfrmStringPointerScan
     end
     object lblAnd: TLabel
       Left = 4
-      Height = 16
+      Height = 15
       Top = 96
-      Width = 21
+      Width = 20
       Caption = 'and'
       Enabled = False
       ParentColor = False
@@ -177,9 +177,9 @@ object frmStringPointerScan: TfrmStringPointerScan
     end
     object lblString: TLabel
       Left = 13
-      Height = 16
+      Height = 15
       Top = 352
-      Width = 35
+      Width = 34
       Caption = 'String:'
       Enabled = False
       ParentColor = False
@@ -250,9 +250,9 @@ object frmStringPointerScan: TfrmStringPointerScan
       end
       object lblCompare: TLabel
         Left = 5
-        Height = 16
+        Height = 15
         Top = 64
-        Width = 76
+        Width = 75
         Caption = 'Compare type'
         Enabled = False
         ParentColor = False
@@ -284,8 +284,8 @@ object frmStringPointerScan: TfrmStringPointerScan
     TabOrder = 1
     object ListView1: TListView
       Left = 0
-      Height = 452
-      Top = 52
+      Height = 360
+      Top = 144
       Width = 440
       Align = alClient
       Columns = <>
@@ -301,12 +301,12 @@ object frmStringPointerScan: TfrmStringPointerScan
     end
     object Panel3: TPanel
       Left = 0
-      Height = 52
+      Height = 144
       Top = 0
       Width = 440
       Align = alTop
       BevelOuter = bvNone
-      ClientHeight = 52
+      ClientHeight = 144
       ClientWidth = 440
       TabOrder = 1
       object edtBase: TEdit
@@ -319,17 +319,17 @@ object frmStringPointerScan: TfrmStringPointerScan
       end
       object lblBaseRegion: TLabel
         Left = 8
-        Height = 16
+        Height = 15
         Top = 4
-        Width = 62
+        Width = 61
         Caption = 'Base region'
         ParentColor = False
       end
       object lblExtra: TLabel
         Left = 142
-        Height = 16
+        Height = 15
         Top = 4
-        Width = 91
+        Width = 90
         Caption = 'Compare against'
         ParentColor = False
       end
@@ -365,13 +365,81 @@ object frmStringPointerScan: TfrmStringPointerScan
         Text = 'String'
       end
       object lblvds: TLabel
-        Left = 310
-        Height = 16
+        Left = 311
+        Height = 15
         Top = 4
-        Width = 109
+        Width = 108
         Anchors = [akTop, akRight]
         Caption = 'Variable display type'
         ParentColor = False
+      end
+      object cbHasShadow: TCheckBox
+        Left = 8
+        Height = 19
+        Hint = 'Use this if you''re spidering a previously saved memory region that currently resides in a different location.'#13#10'Most commonly used for stacks where stack pointers point to it''s own structure'
+        Top = 48
+        Width = 85
+        Caption = 'Has Shadow'
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 3
+      end
+      object edtShadowAddress: TEdit
+        Left = 8
+        Height = 23
+        Top = 72
+        Width = 127
+        OnChange = edtBaseChange
+        TabOrder = 4
+      end
+      object edtShadowSize: TEdit
+        Left = 8
+        Height = 23
+        Top = 112
+        Width = 80
+        OnChange = edtBaseChange
+        TabOrder = 5
+      end
+      object Label1: TLabel
+        Left = 8
+        Height = 15
+        Top = 96
+        Width = 20
+        Caption = 'Size'
+        ParentColor = False
+      end
+      object cbHasShadow2: TCheckBox
+        Left = 142
+        Height = 19
+        Hint = 'Use this if you''re spidering a previously saved memory region that currently resides in a different location.'#13#10'Most commonly used for stacks where stack pointers point to it''s own structure'
+        Top = 48
+        Width = 85
+        Caption = 'Has Shadow'
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 6
+      end
+      object edtShadowAddress2: TEdit
+        Left = 142
+        Height = 23
+        Top = 72
+        Width = 127
+        TabOrder = 7
+      end
+      object Label2: TLabel
+        Left = 142
+        Height = 15
+        Top = 96
+        Width = 20
+        Caption = 'Size'
+        ParentColor = False
+      end
+      object edtShadowSize2: TEdit
+        Left = 142
+        Height = 23
+        Top = 112
+        Width = 80
+        TabOrder = 8
       end
     end
   end
