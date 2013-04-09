@@ -90,11 +90,17 @@ void DXMessD3D10Handler::TakeSnapshot()
 			currentrt->GetResource(&r);
 			if (r)
 			{
+				BOOL isMultiSampled=FALSE;
 				if (SUCCEEDED(r->QueryInterface(__uuidof(ID3D10Texture2D), (void **)&backbuffer)))
 				{
 					backbuffer->GetDesc(&texDesc);
 
-					if (smallSnapshot)
+					isMultiSampled=texDesc.SampleDesc.Count>1;
+					
+					texDesc.SampleDesc.Count=1;
+					texDesc.SampleDesc.Quality=0;
+
+					if (smallSnapshot && (isMultiSampled==FALSE))
 					{
 						texDesc.BindFlags = 0;
 						texDesc.CPUAccessFlags = D3D10_CPU_ACCESS_READ;
@@ -106,15 +112,35 @@ void DXMessD3D10Handler::TakeSnapshot()
 						texDesc.Usage = D3D10_USAGE_DEFAULT;
 					}
 
-
-					texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 					
 					
 					ID3D10Texture2D *texture;
 					if (SUCCEEDED(dev->CreateTexture2D(&texDesc, 0, &texture)))
 					{
 						BOOL savethis=FALSE;
-						dev->CopyResource(texture, r);
+						if (isMultiSampled)
+						{							
+							dev->ResolveSubresource(texture, 0, r, 0, texDesc.Format);
+
+							if (smallSnapshot)
+							{
+								ID3D10Texture2D *texture2; //temp storage for the new texture
+								
+								texDesc.BindFlags = 0; 
+								texDesc.CPUAccessFlags = D3D10_CPU_ACCESS_READ;					
+								texDesc.Usage = D3D10_USAGE_STAGING;
+
+								if (SUCCEEDED(dev->CreateTexture2D(&texDesc, 0, &texture2)))
+								{
+									dev->CopyResource(texture2, texture);
+									texture->Release(); //release the old one
+									texture=texture2;
+								}
+
+							}
+						}
+						else												
+							dev->CopyResource(texture, r);
 
 
 						
@@ -237,6 +263,8 @@ void DXMessD3D10Handler::TakeSnapshot()
 							ID3D10Buffer* c=NULL;	
 
 							//save the VS Constant buffers
+
+					
 
 							dev->VSGetConstantBuffers(0, 1, &c);
 

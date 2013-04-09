@@ -11,7 +11,8 @@ interface
 
 uses
   windows, Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
-  cefuncproc, newkernelhandler, frmStringMapUnit, MemFuncs, AvgLvlTree, Menus, bigmemallochandler, math, maps, oldRegExpr;
+  cefuncproc, newkernelhandler, frmStringMapUnit, MemFuncs, AvgLvlTree, Menus,
+  bigmemallochandler, math, maps, oldRegExpr, symbolhandler;
 
 const
   wm_sps_done=wm_user+1;
@@ -81,9 +82,9 @@ type
     vartype: TVariableType;
     procedure clearPointerCache;
     function getPointerRec(index: qword): PPointerRecord;
-    function getAddressFromPointerRecord(p: ppointerrecord; baseaddress: ptruint): ptruint;
-    function getStringFromPointerRecord(p: ppointerrecord; address: ptruint): string;
-    function getStringAndAddress(index: qword; var address: ptruint; out p: PPointerRecord): string;
+    function getAddressFromPointerRecord(p: ppointerrecord; baseaddress: ptruint; shadow: ptruint; shadowsize: integer): ptruint;
+    function getStringFromPointerRecord(p: ppointerrecord; address: ptruint; shadow: ptruint; shadowsize: integer): string;
+    function getStringAndAddress(index: qword; var address: ptruint; out p: PPointerRecord; shadow: ptruint; shadowsize: integer): string;
 
     constructor create(filename: string);
     destructor destroy; override;
@@ -104,6 +105,8 @@ type
     pointerfilereader: TPointerfileReader;
 
     address, address2: ptruint;
+    shadow, shadow2: ptruint;
+    shadowsize, shadowsize2: integer;
 
     mustbeinregion: boolean;
     pointerstart, pointerend: ptruint;
@@ -142,7 +145,12 @@ type
   TScanner=class(tthread)
   private
     baseaddress: ptruint;
+    shadow: ptruint;
+    shadowsize: ptruint;
     baseaddress2: ptruint;
+    shadow2: ptruint;
+    shadowsize2: ptruint;
+
     diffkind: Tdiffkind;
     vartype: TVariableType;
     structsize: ptruint;
@@ -182,13 +190,13 @@ type
     function addStringPath(level: integer; path: tpointerpath; stringsize: integer; unicode: bool): boolean;
     function comparePath(level: integer; path: tpointerpath; stringsize: integer): boolean;
 
-    function getAddressFromPath(base :ptruint; level: integer; const path: TPointerPath): ptruint;
+    function getAddressFromPath(base :ptruint; column: integer; level: integer; const path: TPointerPath): ptruint;
 
     procedure mapRegionIfNeeded(blockaddress: ptruint; size: integer);
     procedure fillPointers(base: ptruint; size: integer);
     function getFirstPointerEntry(base: ptruint): PPointerListEntry;
 
-    function getPointerValue(address: ptruint): ptruint;
+    function getPointerValue(address: ptruint; column: integer): ptruint;
 
     procedure flushResults;
 
@@ -196,19 +204,24 @@ type
     progress: TPointerpath;
 
     procedure execute; override;
-    constructor create(isDataScan, mustbeinregion: boolean; alignment: integer; pointerstart, pointerstop: ptruint; baseaddress, baseaddress2: ptruint; diffkind: TDiffkind; vartype: TVariableType; mapvalues: boolean; structsize: integer; maxlevel: integer; mappedregions,pointerlist: TAvgLvlTree; bma: TBigMemoryAllocHandler; filename: string; ownerFrmStringPointerScan: TCustomForm);
+    constructor create(isDataScan, mustbeinregion: boolean; alignment: integer; pointerstart, pointerstop: ptruint; baseaddress: ptruint; shadow: ptruint; shadowsize: ptruint; baseaddress2: ptruint; shadow2: ptruint; shadowsize2: integer; diffkind: TDiffkind; vartype: TVariableType; mapvalues: boolean; structsize: integer; maxlevel: integer; mappedregions,pointerlist: TAvgLvlTree; bma: TBigMemoryAllocHandler; filename: string; ownerFrmStringPointerScan: TCustomForm);
     destructor destroy; override;
   end;
 
   TfrmStringPointerScan = class(TForm)
     btnScan: TButton;
     cbCaseSensitive: TCheckBox;
+    cbHasShadow2: TCheckBox;
     cbMustBeStart: TCheckBox;
     cbRegExp: TCheckBox;
     cbPointerInRange: TCheckBox;
     cbMapPointerValues: TCheckBox;
+    cbHasShadow: TCheckBox;
     comboType: TComboBox;
     comboCompareType: TComboBox;
+    edtShadowAddress: TEdit;
+    edtShadowAddress2: TEdit;
+    edtShadowSize: TEdit;
     edtPointerStart: TEdit;
     edtPointerStop: TEdit;
     edtAlignsize: TEdit;
@@ -216,7 +229,10 @@ type
     edtBase: TEdit;
     edtMaxLevel: TEdit;
     edtRegExp: TEdit;
+    edtShadowSize2: TEdit;
     edtStructsize: TEdit;
+    Label1: TLabel;
+    Label2: TLabel;
     lblvds: TLabel;
     lblBaseRegion: TLabel;
     lblStructsize: TLabel;
@@ -283,6 +299,8 @@ type
     pointerfilereader: TPointerfilereader;
 
     address, address2: ptruint;
+    shadow, shadow2: ptruint;
+    shadowsize, shadowsize2: integer;
     hasAddress2: boolean;
 
 
@@ -398,7 +416,7 @@ begin
 
 end;
 
-function TPointerfilereader.getAddressFromPointerRecord(p: ppointerrecord; baseaddress: ptruint): ptruint;
+function TPointerfilereader.getAddressFromPointerRecord(p: ppointerrecord; baseaddress: ptruint; shadow: ptruint; shadowsize: integer): ptruint;
 var address: ptruint;
   a: ptruint;
   i: integer;
@@ -408,6 +426,12 @@ begin
   result:=0;
 
   address:=baseaddress+p.offset[0];
+
+  if inrangeq(address, baseaddress, baseaddress+shadowsize) then
+    address:=address+(shadow-baseaddress);
+
+
+
   for i:=1 to p.level do
   begin
     dp:=pointermap.GetDataPtr(address);
@@ -423,6 +447,9 @@ begin
       if not readprocessmemory(processhandle, pointer(address), @a, processhandler.pointersize, x) then
         a:=0;
 
+      if inrangeq(a, baseaddress, baseaddress+shadowsize) then
+        a:=a+(shadow-baseaddress);
+
       pointermap.Add(address, a);
       address:=a;
 
@@ -437,13 +464,13 @@ begin
   result:=address;
 end;
 
-function TPointerfileReader.getStringFromPointerRecord(p: ppointerrecord; address: ptruint): string;
+function TPointerfileReader.getStringFromPointerRecord(p: ppointerrecord; address: ptruint; shadow: ptruint; shadowsize: integer): string;
 var i,j: integer;
   x: dword;
   e: boolean;
 begin
   result:='';
-  address:=getAddressFromPointerRecord(p, address);
+  address:=getAddressFromPointerRecord(p, address, shadow, shadowsize);
   if address>0 then
   begin
     case vartype of
@@ -501,13 +528,13 @@ begin
 
 end;
 
-function TPointerfileReader.getStringAndAddress(index: qword; var address: ptruint; out p: PPointerRecord): string;
+function TPointerfileReader.getStringAndAddress(index: qword; var address: ptruint; out p: PPointerRecord; shadow: ptruint; shadowsize: integer): string;
 begin
   p:=getPointerRec(index);
   if p<>nil then
-    result:=getStringFromPointerRecord(p, address);
+    result:=getStringFromPointerRecord(p, address, shadow, shadowsize);
 
-  address:=getAddressFromPointerRecord(p, address);
+  address:=getAddressFromPointerRecord(p, address, shadow, shadowsize);
 end;
 
 constructor TPointerfileReader.create(filename: string);
@@ -571,7 +598,7 @@ var error: boolean;
   v,v2: byte;
 begin
   result:=false;
-  a:=pointerfilereader.getAddressFromPointerRecord(p, address);
+  a:=pointerfilereader.getAddressFromPointerRecord(p, address, shadow, shadowsize);
   if (a<>0) and ((not mustbeinregion) or (InRangeX(a, pointerstart, pointerend)))  then
   begin
     v:=pointerfilereader.getByteFromAddress(a, error);
@@ -579,7 +606,7 @@ begin
 
     if result and (diffkind<>dkDontCare) then
     begin
-      a:=pointerfilereader.getAddressFromPointerRecord(p, address2);
+      a:=pointerfilereader.getAddressFromPointerRecord(p, address2, shadow2, shadowsize2);
       if a<>0 then
       begin
         v2:=pointerfilereader.getByteFromAddress(a, error);
@@ -606,7 +633,7 @@ var error: boolean;
   v,v2: word;
 begin
   result:=false;
-  a:=pointerfilereader.getAddressFromPointerRecord(p, address);
+  a:=pointerfilereader.getAddressFromPointerRecord(p, address, shadow, shadowsize);
   if (a<>0) and ((not mustbeinregion) or (InRangeX(a, pointerstart, pointerend)))  then
   begin
     v:=pointerfilereader.getWordFromAddress(a, error);
@@ -614,7 +641,7 @@ begin
 
     if result and (diffkind<>dkDontCare) then
     begin
-      a:=pointerfilereader.getAddressFromPointerRecord(p, address2);
+      a:=pointerfilereader.getAddressFromPointerRecord(p, address2, shadow2, shadowsize2);
       if a<>0 then
       begin
         v2:=pointerfilereader.getWordFromAddress(a, error);
@@ -641,7 +668,7 @@ var error: boolean;
   v,v2: Dword;
 begin
   result:=false;
-  a:=pointerfilereader.getAddressFromPointerRecord(p, address);
+  a:=pointerfilereader.getAddressFromPointerRecord(p, address, shadow, shadowsize);
   if (a<>0) and ((not mustbeinregion) or (InRangeX(a, pointerstart, pointerend)))  then
   begin
     v:=pointerfilereader.getDwordFromAddress(a, error);
@@ -649,7 +676,7 @@ begin
 
     if result and (diffkind<>dkDontCare) then
     begin
-      a:=pointerfilereader.getAddressFromPointerRecord(p, address2);
+      a:=pointerfilereader.getAddressFromPointerRecord(p, address2, shadow2, shadowsize2);
       if a<>0 then
       begin
         v2:=pointerfilereader.getDwordFromAddress(a, error);
@@ -676,7 +703,7 @@ var error: boolean;
   v,v2: Qword;
 begin
   result:=false;
-  a:=pointerfilereader.getAddressFromPointerRecord(p, address);
+  a:=pointerfilereader.getAddressFromPointerRecord(p, address, shadow, shadowsize);
   if (a<>0) and ((not mustbeinregion) or (InRangeX(a, pointerstart, pointerend)))  then
   begin
     v:=pointerfilereader.getQwordFromAddress(a, error);
@@ -684,7 +711,7 @@ begin
 
     if result and (diffkind<>dkDontCare) then
     begin
-      a:=pointerfilereader.getAddressFromPointerRecord(p, address2);
+      a:=pointerfilereader.getAddressFromPointerRecord(p, address2, shadow2, shadowsize2);
       if a<>0 then
       begin
         v2:=pointerfilereader.getQwordFromAddress(a, error);
@@ -711,7 +738,7 @@ var error: boolean;
   v,v2: Single;
 begin
   result:=false;
-  a:=pointerfilereader.getAddressFromPointerRecord(p, address);
+  a:=pointerfilereader.getAddressFromPointerRecord(p, address, shadow, shadowsize);
   if (a<>0) and ((not mustbeinregion) or (InRangeX(a, pointerstart, pointerend)))  then
   begin
     v:=pointerfilereader.getSingleFromAddress(a, error);
@@ -719,7 +746,7 @@ begin
 
     if result and (diffkind<>dkDontCare) then
     begin
-      a:=pointerfilereader.getAddressFromPointerRecord(p, address2);
+      a:=pointerfilereader.getAddressFromPointerRecord(p, address2, shadow2, shadowsize2);
       if a<>0 then
       begin
         v2:=pointerfilereader.getSingleFromAddress(a, error);
@@ -746,7 +773,7 @@ var error: boolean;
   v,v2: Double;
 begin
   result:=false;
-  a:=pointerfilereader.getAddressFromPointerRecord(p, address);
+  a:=pointerfilereader.getAddressFromPointerRecord(p, address, shadow, shadowsize);
   if (a<>0) and ((not mustbeinregion) or (InRangeX(a, pointerstart, pointerend)))  then
   begin
     v:=pointerfilereader.getDoubleFromAddress(a, error);
@@ -754,7 +781,7 @@ begin
 
     if result and (diffkind<>dkDontCare) then
     begin
-      a:=pointerfilereader.getAddressFromPointerRecord(p, address2);
+      a:=pointerfilereader.getAddressFromPointerRecord(p, address2, shadow2, shadowsize2);
       if a<>0 then
       begin
         v2:=pointerfilereader.getDoubleFromAddress(a, error);
@@ -781,7 +808,7 @@ var error: boolean;
   v,v2: PtrUint;
 begin
   result:=false;
-  a:=pointerfilereader.getAddressFromPointerRecord(p, address);
+  a:=pointerfilereader.getAddressFromPointerRecord(p, address, shadow, shadowsize);
   if (a<>0) and ((not mustbeinregion) or (InRangeX(a, pointerstart, pointerend)))  then
   begin
     v:=pointerfilereader.getPointerFromAddress(a, error);
@@ -789,7 +816,7 @@ begin
 
     if result and (diffkind<>dkDontCare) then
     begin
-      a:=pointerfilereader.getAddressFromPointerRecord(p, address2);
+      a:=pointerfilereader.getAddressFromPointerRecord(p, address2, shadow2, shadowsize2);
       if a<>0 then
       begin
         v2:=pointerfilereader.getPointerFromAddress(a, error);
@@ -838,7 +865,7 @@ begin
 
         vtString:   //todo, move to checkString
         begin
-          s:=pointerfilereader.getStringFromPointerRecord(p,address);
+          s:=pointerfilereader.getStringFromPointerRecord(p,address, shadow, shadowsize);
 
           if (address<>0) and ((not mustbeinregion) or (InRangeX(address, pointerstart, pointerend))) then
           begin
@@ -877,7 +904,7 @@ begin
 
             if passed and (diffkind<>dkDontCare) then
             begin
-              s2:=pointerfilereader.getStringFromPointerRecord(p,address2);
+              s2:=pointerfilereader.getStringFromPointerRecord(p, address2, shadow2, shadowsize2);
 
               if diffkind=dkMustBeDifferent then
                 passed:=s<>s2
@@ -1009,7 +1036,7 @@ begin
 end;
 
 //--------------TScanner---------------
-function TScanner.getPointerValue(address: ptruint): ptruint;
+function TScanner.getPointerValue(address: ptruint; column: integer): ptruint;
 {
 returns 0 if not found
 }
@@ -1018,6 +1045,26 @@ var
   pe: TAvgLvlTreeNode;
   r: PPointerListEntry;
 begin
+  if column=1 then
+  begin
+    if shadow<>0 then
+    begin
+      if InRangeQ(address, baseaddress, baseaddress+shadowsize) then
+        address:=address+(shadow-baseaddress);
+    end
+
+
+  end
+  else
+  begin
+    if shadow2<>0 then
+    begin
+      if InRangeQ(address, baseaddress, baseaddress+shadowsize2) then
+        address:=address+(shadow2-baseaddress2);
+    end;
+
+  end;
+
   result:=0;
   mapRegionIfNeeded(address,4096);    //block of 4KB (not structsize)
   search.address:=address;
@@ -1056,13 +1103,24 @@ var x: dword;
   i: integer;
   p: PPointerListEntry;
   pe, prev, next: TAvgLvlTreeNode;
+  a: ptruint;
 begin
   if readprocessmemory(processhandle, pointer(base), fillpointerblock, size, x) then
   begin
     //walk through the array of dwords
     for i:=0 to (x div 4)-1 do
     begin
-      if (fillpointerblock[i]>$10000) and ((fillpointerblock[i] mod 4)=0) and (isreadable(fillpointerblock[i])) then
+      a:=fillpointerblock[i];
+
+      if shadow<>0 then
+      begin
+        if InRangeQ(a, baseaddress, baseaddress+shadowsize) then
+          a:=a+(shadow-baseaddress);
+
+        fillpointerblock[i]:=a;
+      end;
+
+      if (a>$10000) and ((a mod 4)=0) and (isreadable(a)) then
       begin
         p:=bma.alloc(sizeof(TPointerListEntry));
 
@@ -1227,14 +1285,14 @@ begin
   results.position:=0;
 end;
 
-function TScanner.getAddressFromPath(base :ptruint; level: integer; const path: TPointerPath): ptruint;
+function TScanner.getAddressFromPath(base :ptruint; column: integer; level: integer; const path: TPointerPath): ptruint;
 var x: ptruint;
   i: integer;
 begin
   result:=base+path[0];
   for i:=1 to level do
   begin
-    result:=getPointerValue(result);
+    result:=getPointerValue(result, column);
     if result=0 then exit;
 
     result:=result+path[i];
@@ -1252,10 +1310,10 @@ var i: integer;
 begin
   result:=false;
 
-  address2:=getAddressFromPath(baseaddress2, level, path);
+  address2:=getAddressFromPath(baseaddress2, 2, level, path);
   if address2=0 then exit;
 
-  address:=getAddressFromPath(baseaddress, level, path);
+  address:=getAddressFromPath(baseaddress, 1, level, path);
   if address=0 then exit; //weird
 
 
@@ -1375,10 +1433,13 @@ var
 begin
   if terminated then exit;
 
+  if inrangeq(blockaddress, baseaddress, baseaddress+shadowsize) then
+    blockaddress:=blockaddress+(shadow-baseaddress);
+
   if level>0 then
   begin
     progress[level-1]:=path[level-1];
-    if (diffkind<>dkDontCare) and (getAddressFromPath(baseaddress2, level-1, path)=0) then exit; //nothing to be found in this block
+    if (diffkind<>dkDontCare) and (getAddressFromPath(baseaddress2, 2, level-1, path)=0) then exit; //nothing to be found in this block
   end;
 
   if isDataScan then
@@ -1480,10 +1541,14 @@ begin
   end;
 end;
 
-constructor TScanner.create(isDataScan, mustbeinregion: boolean; alignment: integer; pointerstart, pointerstop: ptruint; baseaddress, baseaddress2: ptruint; diffkind: TDiffkind; vartype: TVariableType; mapvalues: boolean; structsize: integer; maxlevel: integer; mappedregions,pointerlist: TAvgLvlTree; bma: TBigMemoryAllocHandler; filename: string; ownerFrmStringPointerScan: TCustomForm);
+constructor TScanner.create(isDataScan, mustbeinregion: boolean; alignment: integer; pointerstart, pointerstop: ptruint; baseaddress: ptruint; shadow: ptruint; shadowsize: ptruint; baseaddress2: ptruint; shadow2: ptruint; shadowsize2: integer; diffkind: TDiffkind; vartype: TVariableType; mapvalues: boolean; structsize: integer; maxlevel: integer; mappedregions,pointerlist: TAvgLvlTree; bma: TBigMemoryAllocHandler; filename: string; ownerFrmStringPointerScan: TCustomForm);
 begin
   self.baseaddress:=baseaddress;
+  self.shadow:=shadow;
+  self.shadowsize:=shadowsize;
   self.baseaddress2:=baseaddress2;
+  self.shadow2:=shadow2;
+  self.shadowsize2:=shadowsize2;
   self.diffkind:=diffkind;
   self.vartype:=vartype;
   self.structsize:=structsize;
@@ -1612,6 +1677,8 @@ var
   s,s2: string;
   a: ptruint;
 
+  a2: ptruint;
+
 
   p: PPointerRecord;
 begin
@@ -1620,7 +1687,11 @@ begin
     item.data:=nil;
 
     a:=address;
-    s:=pointerfilereader.getStringAndAddress(item.index, a, p);
+
+    s:=pointerfilereader.getStringAndAddress(item.index, a, p, shadow, shadowsize);
+
+    if inrangeq(a, address, address+shadowsize) then
+      a:=a+(shadow-address);
 
     if p<>nil then
     begin
@@ -1641,7 +1712,7 @@ begin
     if hasAddress2 then
     begin
       a:=address2;
-      s2:=pointerfilereader.getStringAndAddress(item.index, a, p);
+      s2:=pointerfilereader.getStringAndAddress(item.index, a, p, shadow2, shadowsize2);
       if a>0 then
         item.SubItems.Add(inttohex(a,8)+' : '+s2)
       else
@@ -1656,7 +1727,7 @@ end;
 procedure TfrmStringPointerScan.ListView1DblClick(Sender: TObject);
 begin
   if listview1.Selected<>nil then
-    MemoryBrowser.hexview.address:=pointerfilereader.getAddressFromPointerRecord(pointerfilereader.getPointerRec(listview1.Selected.Index), address);
+    MemoryBrowser.hexview.address:=pointerfilereader.getAddressFromPointerRecord(pointerfilereader.getPointerRec(listview1.Selected.Index), address, shadow, shadowsize2);
 end;
 
 procedure TfrmStringPointerScan.OpenPointerfile(filename: string);
@@ -1814,6 +1885,9 @@ var baseaddress: ptruint;
   diffkind: TDiffkind;
   vartype: TVariableType;
 
+  shadow, shadow2: ptruint;
+  shadowsize, shadowsize2: ptruint;
+
   oldpointerfile: string;
 begin
   vartype:=vtPointer;
@@ -1826,8 +1900,24 @@ begin
 
     cleanup;
 
-    baseaddress:=StrToQWordEx('$'+edtBase.text);
-    if not isreadable(baseaddress) then
+
+    baseaddress:=symhandler.getAddressFromName(edtBase.text);
+
+
+
+    if cbHasShadow.checked then
+    begin
+      shadow:=symhandler.getAddressFromName(edtShadowAddress.text);
+      shadowsize:=strtoint(edtShadowSize.text);
+    end
+    else
+    begin
+      shadow:=0;
+      shadowsize:=0;
+    end;
+
+    if ((shadow<>0) and (not isreadable(shadow))) or
+       ((shadow=0) and (not isreadable(baseaddress))) then
       raise exception.create(rsThisAddressIsNotAccessible);
 
     structsize:=strtoint(edtStructsize.text);
@@ -1836,7 +1926,21 @@ begin
     if edtExtra.text='' then
       rbDiffDontCare.Checked:=true
     else
-      baseaddress2:=StrToQwordEx('$'+edtextra.text);
+    begin
+      baseaddress2:=symhandler.getAddressFromName(edtExtra.text);
+      if cbHasShadow2.checked then
+      begin
+        shadow:=symhandler.getAddressFromName(edtShadowAddress2.text);
+        shadowsize:=strtoint(edtShadowSize2.text);
+      end
+      else
+      begin
+        shadow2:=0;
+        shadowsize2:=0;
+      end;
+
+
+    end;
 
     if rbDatascan.checked then
     begin
@@ -1907,7 +2011,7 @@ begin
 
 
 
-        scanner:=Tscanner.create(rbDatascan.checked, cbPointerInRange.checked, alignsize, pointerstart, pointerstop, baseAddress, baseaddress2, diffkind, vartype, cbMapPointerValues.checked, structsize, maxlevel, mappedRegions, pointerlist, bma, savedialog1.filename, self);
+        scanner:=Tscanner.create(rbDatascan.checked, cbPointerInRange.checked, alignsize, pointerstart, pointerstop, baseAddress, shadow, shadowsize, baseaddress2, shadow2, shadowsize2, diffkind, vartype, cbMapPointerValues.checked, structsize, maxlevel, mappedRegions, pointerlist, bma, savedialog1.filename, self);
 
       end
       else
@@ -1977,9 +2081,20 @@ begin
 end;
 
 procedure TfrmStringPointerScan.edtBaseChange(Sender: TObject);
+var
+  err: boolean;
 begin
   try
-    address:=StrToQword('$'+edtBase.text);
+    address:=symhandler.getAddressFromName(edtBase.text);
+    shadow:=symhandler.getAddressFromName(edtShadowAddress.text, false, err);
+    if err then
+      shadow:=0;
+
+    try
+      shadowsize:=strtoint(edtShadowSize.text);
+    except
+    end;
+
     listview1.Refresh;
   except
   end;

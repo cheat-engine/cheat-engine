@@ -1,18 +1,18 @@
 object frmD3DHookSnapshotConfig: TfrmD3DHookSnapshotConfig
   Left = 568
-  Height = 246
+  Height = 249
   Top = 211
   Width = 299
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'D3DHook: Configure snapshot'
-  ClientHeight = 246
+  ClientHeight = 249
   ClientWidth = 299
   OnCreate = FormCreate
   Position = poScreenCenter
   LCLVersion = '1.1'
   object dirSnapshot: TDirectoryEdit
-    Left = 8
+    Left = 9
     Height = 23
     Top = 184
     Width = 248
@@ -23,7 +23,7 @@ object frmD3DHookSnapshotConfig: TfrmD3DHookSnapshotConfig
     TabOrder = 4
   end
   object Label1: TLabel
-    Left = 8
+    Left = 9
     Height = 15
     Top = 168
     Width = 83
@@ -71,7 +71,7 @@ object frmD3DHookSnapshotConfig: TfrmD3DHookSnapshotConfig
     ParentColor = False
   end
   object mbOk: TButton
-    Left = 64
+    Left = 65
     Height = 25
     Top = 216
     Width = 75
@@ -82,7 +82,7 @@ object frmD3DHookSnapshotConfig: TfrmD3DHookSnapshotConfig
     TabOrder = 5
   end
   object mbCancel: TButton
-    Left = 152
+    Left = 153
     Height = 25
     Top = 216
     Width = 75
