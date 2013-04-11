@@ -1,13 +1,14 @@
 object frmStringPointerScan: TfrmStringPointerScan
-  Left = 616
+  Left = 461
   Height = 544
-  Top = 246
+  Top = 259
   Width = 617
   Caption = 'Structure spider'
   ClientHeight = 524
   ClientWidth = 617
   Menu = MainMenu1
   OnClose = FormClose
+  OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '1.1'
   object Panel1: TPanel
@@ -37,7 +38,7 @@ object frmStringPointerScan: TfrmStringPointerScan
       ParentColor = False
     end
     object btnScan: TButton
-      Left = 41
+      Left = 48
       Height = 25
       Top = 464
       Width = 80
@@ -271,6 +272,16 @@ object frmStringPointerScan: TfrmStringPointerScan
         TabOrder = 4
       end
     end
+    object btnNewScan: TButton
+      Left = 6
+      Height = 25
+      Top = 464
+      Width = 75
+      Caption = 'New Scan'
+      OnClick = miNewScanClick
+      TabOrder = 14
+      Visible = False
+    end
   end
   object Panel2: TPanel
     Left = 177
@@ -380,6 +391,7 @@ object frmStringPointerScan: TfrmStringPointerScan
         Top = 48
         Width = 85
         Caption = 'Has Shadow'
+        OnChange = cbHasShadowChange
         ParentShowHint = False
         ShowHint = True
         TabOrder = 3
@@ -391,6 +403,7 @@ object frmStringPointerScan: TfrmStringPointerScan
         Width = 127
         OnChange = edtBaseChange
         TabOrder = 4
+        Visible = False
       end
       object edtShadowSize: TEdit
         Left = 8
@@ -399,14 +412,16 @@ object frmStringPointerScan: TfrmStringPointerScan
         Width = 80
         OnChange = edtBaseChange
         TabOrder = 5
+        Visible = False
       end
-      object Label1: TLabel
+      object lblSize: TLabel
         Left = 8
         Height = 15
         Top = 96
         Width = 20
         Caption = 'Size'
         ParentColor = False
+        Visible = False
       end
       object cbHasShadow2: TCheckBox
         Left = 142
@@ -415,6 +430,7 @@ object frmStringPointerScan: TfrmStringPointerScan
         Top = 48
         Width = 85
         Caption = 'Has Shadow'
+        OnChange = cbHasShadowChange
         ParentShowHint = False
         ShowHint = True
         TabOrder = 6
@@ -425,14 +441,16 @@ object frmStringPointerScan: TfrmStringPointerScan
         Top = 72
         Width = 127
         TabOrder = 7
+        Visible = False
       end
-      object Label2: TLabel
+      object lblsize2: TLabel
         Left = 142
         Height = 15
         Top = 96
         Width = 20
         Caption = 'Size'
         ParentColor = False
+        Visible = False
       end
       object edtShadowSize2: TEdit
         Left = 142
@@ -440,6 +458,7 @@ object frmStringPointerScan: TfrmStringPointerScan
         Top = 112
         Width = 80
         TabOrder = 8
+        Visible = False
       end
     end
   end
@@ -472,9 +491,9 @@ object frmStringPointerScan: TfrmStringPointerScan
       object MenuItem4: TMenuItem
         Caption = '-'
       end
-      object MenuItem2: TMenuItem
+      object miNewScan: TMenuItem
         Caption = 'New scan'
-        OnClick = MenuItem2Click
+        OnClick = miNewScanClick
       end
       object MenuItem3: TMenuItem
         Caption = 'Open'
