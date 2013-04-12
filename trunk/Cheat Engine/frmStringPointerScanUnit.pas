@@ -2064,6 +2064,7 @@ begin
     lblSize.visible:=true;
     edtShadowSize.visible:=true;
     edtShadowSize2.visible:=true;
+    edtBaseChange(edtBase);
   end
   else
   begin
@@ -2073,7 +2074,10 @@ begin
     lblSize.visible:=false;
     edtShadowSize.visible:=false;
     edtShadowSize2.visible:=false;
+    shadow:=0;
   end;
+
+
 
 
 end;
@@ -2127,6 +2131,21 @@ begin
       shadowsize:=strtoint(edtShadowSize.text);
     except
     end;
+
+
+    address2:=symhandler.getAddressFromName(edtBase.text, false, err);
+    if err then
+      address2:=0;
+
+    shadow2:=symhandler.getAddressFromName(edtShadowAddress2.text, false, err);
+    if err then
+      shadow2:=0;
+
+    try
+      shadowsize2:=strtoint(edtShadowSize.text);
+    except
+    end;
+
 
     listview1.Refresh;
   except

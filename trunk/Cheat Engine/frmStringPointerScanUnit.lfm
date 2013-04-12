@@ -436,10 +436,11 @@ object frmStringPointerScan: TfrmStringPointerScan
         TabOrder = 6
       end
       object edtShadowAddress2: TEdit
-        Left = 142
+        Left = 143
         Height = 23
         Top = 72
         Width = 127
+        OnChange = edtBaseChange
         TabOrder = 7
         Visible = False
       end
@@ -457,6 +458,7 @@ object frmStringPointerScan: TfrmStringPointerScan
         Height = 23
         Top = 112
         Width = 80
+        OnChange = edtBaseChange
         TabOrder = 8
         Visible = False
       end
