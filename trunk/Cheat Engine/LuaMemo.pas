@@ -24,6 +24,8 @@ begin
     o:=lua_toceuserdata(L, -1);
     m:=tmemo.create(o);
     m.parent:=o;
+
+    luaclass_newClass(L, m);
     result:=1;
   end;
 end;
