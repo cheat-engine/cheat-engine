@@ -31,6 +31,7 @@ type
     sgStructureAddress: TStringGrid;
     procedure btnLinkClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure Panel1Resize(Sender: TObject);
   private
     { private declarations }
@@ -54,6 +55,7 @@ begin
   btnLink.left:=(panel1.ClientWidth div 2) - (btnLink.Width - 2);
   btnCancel.left:=(panel1.ClientWidth div 2) + 2;
 end;
+
 
 procedure TfrmStructureLinker.FormCreate(Sender: TObject);
 var i,j: integer;
@@ -80,6 +82,12 @@ begin
       end;
   end;
 
+end;
+
+
+procedure TfrmStructureLinker.FormShow(Sender: TObject);
+begin
+  sgStructureAddress.Update; //fix graphical bug
 end;
 
 procedure TfrmStructureLinker.btnLinkClick(Sender: TObject);

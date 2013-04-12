@@ -2,30 +2,29 @@ object frmStructureLinker: TfrmStructureLinker
   Left = 468
   Height = 244
   Top = 270
-  Width = 454
+  Width = 457
   BorderStyle = bsSingle
   Caption = 'Structure linker'
   ClientHeight = 244
-  ClientWidth = 454
+  ClientWidth = 457
   OnCreate = FormCreate
-  LCLVersion = '0.9.31'
+  OnShow = FormShow
+  LCLVersion = '1.1'
   object sgStructureAddress: TStringGrid
     Left = 0
     Height = 156
     Top = 50
-    Width = 454
+    Width = 457
     Align = alClient
     ColCount = 2
     Columns = <    
       item
         ReadOnly = True
         Title.Caption = 'Structure'
-        Title.PrefixOption = poNone
         Width = 300
       end    
       item
         Title.Caption = 'Address'
-        Title.PrefixOption = poNone
         Width = 150
       end>
     FixedCols = 0
@@ -37,11 +36,11 @@ object frmStructureLinker: TfrmStructureLinker
     Left = 0
     Height = 38
     Top = 206
-    Width = 454
+    Width = 457
     Align = alBottom
     BevelOuter = bvNone
     ClientHeight = 38
-    ClientWidth = 454
+    ClientWidth = 457
     TabOrder = 1
     OnResize = Panel1Resize
     object btnLink: TButton
@@ -69,17 +68,17 @@ object frmStructureLinker: TfrmStructureLinker
     Left = 0
     Height = 50
     Top = 0
-    Width = 454
+    Width = 457
     Align = alTop
     BevelOuter = bvNone
     ClientHeight = 50
-    ClientWidth = 454
+    ClientWidth = 457
     TabOrder = 2
     object Label1: TLabel
       Left = 2
-      Height = 16
+      Height = 15
       Top = 0
-      Width = 452
+      Width = 451
       Caption = 'Fill in the known addresses of these structures (Can be blank if unknown or unrelated)'
       ParentColor = False
     end
