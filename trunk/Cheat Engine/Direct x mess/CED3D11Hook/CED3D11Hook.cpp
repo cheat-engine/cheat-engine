@@ -523,7 +523,7 @@ ID3D11DeviceContext *DXMessD3D11Handler::PrepareForSnapshot(ID3D11DeviceContext 
 	return drawdc;
 }
 
-void DXMessD3D11Handler::TakeSnapshot(ID3D11DeviceContext *dc)
+void DXMessD3D11Handler::TakeSnapshot(ID3D11DeviceContext *dc, char* functionname)
 {
 	ID3D11DeviceContext *drawdc=dc;
 	
@@ -659,6 +659,7 @@ void DXMessD3D11Handler::TakeSnapshot(ID3D11DeviceContext *dc)
 								//check if the pixel at xpos,ypos is not 0xffff00ff		
 
 								//use texDesc.Format to figure out where the pixel is located (size) and what format is equivalent to 1,0,1
+								
 
 								if ((texDesc.Format>=DXGI_FORMAT_R32G32B32A32_TYPELESS) && (texDesc.Format<=DXGI_FORMAT_R32G32B32_SINT))
 									pixelsize=16;
@@ -918,8 +919,15 @@ void DXMessD3D11Handler::TakeSnapshot(ID3D11DeviceContext *dc)
 								WriteFile(h, &i, sizeof(i), &bw, NULL);								
 							}
 
+							if (functionname)
+							{
+								int i=strlen(functionname);
+								WriteFile(h, &i, sizeof(i), &bw, NULL);	
+								WriteFile(h, functionname, i, &bw, NULL);	
+							}
 
-							//perhaps also save the vertex buffers
+
+							//perhaps also save the vertex buffers?
 
 							CloseHandle(h);
 							
@@ -2182,7 +2190,7 @@ void __stdcall D3D11Hook_SwapChain_Present_imp(IDXGISwapChain *swapchain, ID3D11
 
 HRESULT __stdcall D3D11Hook_DrawIndexed_imp(D3D11_DRAWINDEXED_ORIGINAL originalfunction, ID3D11DeviceContext *dc, UINT IndexCount, UINT StartIndexLocation, INT BaseVertexLocation)	
 {	
-	//if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) || (makeSnapshot) ) && (insidehook==0)))
+	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) || (makeSnapshot) ) && (insidehook==0)))
 	{
 		//setup for wireframe and/or zbuffer
 		HRESULT hr;
@@ -2212,15 +2220,15 @@ HRESULT __stdcall D3D11Hook_DrawIndexed_imp(D3D11_DRAWINDEXED_ORIGINAL originalf
 			if (shared->disabledzbuffer)
 				dc->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);
 
-			//if (currentDevice->makeSnapshot)
+			if (currentDevice->makeSnapshot)
 				drawdc=currentDevice->PrepareForSnapshot(dc);
-			//else
-			//	drawdc=dc;
+			else
+				drawdc=dc;
 
 			hr=originalfunction(drawdc, IndexCount, StartIndexLocation, BaseVertexLocation);
 						
-			//if (currentDevice->makeSnapshot)
-				currentDevice->TakeSnapshot(drawdc);
+			if (currentDevice->makeSnapshot)
+				currentDevice->TakeSnapshot(drawdc, "D3D11Hook_DrawIndexed_imp");
 			
 			dc->RSSetState(oldRasterizerState);
 			dc->OMSetDepthStencilState(oldDepthStencilState, stencilref);
@@ -2245,7 +2253,7 @@ HRESULT __stdcall D3D11Hook_DrawIndexed_imp(D3D11_DRAWINDEXED_ORIGINAL originalf
 
 HRESULT __stdcall D3D11Hook_Draw_imp(D3D11_DRAW_ORIGINAL originalfunction, ID3D11DeviceContext *dc, UINT VertexCount, UINT StartVertexLocation)
 {	
-	//if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) || (makeSnapshot) ) && (insidehook==0)))
+	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) || (makeSnapshot) ) && (insidehook==0)))
 	{
 		//setup for wireframe and/or zbuffer
 		HRESULT hr;
@@ -2280,15 +2288,15 @@ HRESULT __stdcall D3D11Hook_Draw_imp(D3D11_DRAW_ORIGINAL originalfunction, ID3D1
 				dc->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
 
 
-			//if (currentDevice->makeSnapshot)
+			if (currentDevice->makeSnapshot)
 				drawdc=currentDevice->PrepareForSnapshot(dc);
-			//else
-			//	drawdc=dc;
+			else
+				drawdc=dc;
 
 			hr=originalfunction(drawdc, VertexCount, StartVertexLocation);
 
-			//if (currentDevice->makeSnapshot)
-				currentDevice->TakeSnapshot(drawdc);
+			if (currentDevice->makeSnapshot)
+				currentDevice->TakeSnapshot(drawdc, "D3D11Hook_Draw_imp");
 			
 			dc->RSSetState(oldRasterizerState);
 			dc->OMSetDepthStencilState(oldDepthStencilState, stencilref);
@@ -2308,7 +2316,7 @@ HRESULT __stdcall D3D11Hook_Draw_imp(D3D11_DRAW_ORIGINAL originalfunction, ID3D1
 
 HRESULT __stdcall D3D11Hook_DrawIndexedInstanced_imp(D3D11_DRAWINDEXEDINSTANCED_ORIGINAL originalfunction, ID3D11DeviceContext *dc, UINT IndexCountPerInstance, UINT InstanceCount, UINT StartIndexLocation, INT BaseVertexLocation, UINT StartInstanceLocation)
 {	
-	//if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) || (makeSnapshot) ) && (insidehook==0)))
+	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) || (makeSnapshot) ) && (insidehook==0)))
 	{
 		//setup for wireframe and/or zbuffer
 		HRESULT hr;
@@ -2339,15 +2347,15 @@ HRESULT __stdcall D3D11Hook_DrawIndexedInstanced_imp(D3D11_DRAWINDEXEDINSTANCED_
 				dc->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
 
 
-			//if (currentDevice->makeSnapshot)
+			if (currentDevice->makeSnapshot)
 				drawdc=currentDevice->PrepareForSnapshot(dc);
-			//else
-			//	drawdc=dc;
+			else
+				drawdc=dc;
 
 			hr=originalfunction(drawdc, IndexCountPerInstance, InstanceCount, StartIndexLocation, BaseVertexLocation, StartInstanceLocation);
 
-			//if (currentDevice->makeSnapshot)
-				currentDevice->TakeSnapshot(drawdc);
+			if (currentDevice->makeSnapshot)
+				currentDevice->TakeSnapshot(drawdc, "D3D11Hook_DrawIndexedInstanced_imp");
 			
 			dc->RSSetState(oldRasterizerState);
 			dc->OMSetDepthStencilState(oldDepthStencilState, stencilref);
@@ -2368,7 +2376,7 @@ HRESULT __stdcall D3D11Hook_DrawIndexedInstanced_imp(D3D11_DRAWINDEXEDINSTANCED_
 
 HRESULT __stdcall D3D11Hook_DrawInstanced_imp(D3D11_DRAWINSTANCED_ORIGINAL originalfunction, ID3D11DeviceContext *dc, UINT VertexCountPerInstance, UINT InstanceCount, UINT StartVertexLocation, UINT StartInstanceLocation)
 {	
-	//if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) || (makeSnapshot) ) && (insidehook==0)))
+	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) || (makeSnapshot) ) && (insidehook==0)))
 	{
 		//setup for wireframe and/or zbuffer
 		HRESULT hr;
@@ -2398,15 +2406,15 @@ HRESULT __stdcall D3D11Hook_DrawInstanced_imp(D3D11_DRAWINSTANCED_ORIGINAL origi
 				dc->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
 
 
-			//if (currentDevice->makeSnapshot)
+			if (currentDevice->makeSnapshot)
 				drawdc=currentDevice->PrepareForSnapshot(dc);
-			//else
-			//	drawdc=dc;
+			else
+				drawdc=dc;
 
 			hr=originalfunction(drawdc, VertexCountPerInstance, InstanceCount, StartVertexLocation, StartInstanceLocation);
 
-			//if (currentDevice->makeSnapshot)
-				currentDevice->TakeSnapshot(drawdc);
+			if (currentDevice->makeSnapshot)
+				currentDevice->TakeSnapshot(drawdc, "D3D11Hook_DrawInstanced_imp");
 			
 			dc->RSSetState(oldRasterizerState);
 			dc->OMSetDepthStencilState(oldDepthStencilState, stencilref);
@@ -2427,7 +2435,7 @@ HRESULT __stdcall D3D11Hook_DrawInstanced_imp(D3D11_DRAWINSTANCED_ORIGINAL origi
 
 HRESULT __stdcall D3D11Hook_DrawAuto_imp(D3D11_DRAWAUTO_ORIGINAL originalfunction, ID3D11DeviceContext *dc)
 {	
-	//if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) || (makeSnapshot) ) && (insidehook==0)))
+	if (((shared) && ((shared->wireframe) || (shared->disabledzbuffer) || (makeSnapshot) ) && (insidehook==0)))
 	{
 		//setup for wireframe and/or zbuffer
 		HRESULT hr;
@@ -2456,15 +2464,15 @@ HRESULT __stdcall D3D11Hook_DrawAuto_imp(D3D11_DRAWAUTO_ORIGINAL originalfunctio
 			if (shared->disabledzbuffer)
 				dc->OMSetDepthStencilState(currentDevice->pDisabledDepthStencilState, 0);;
 
-			//if (currentDevice->makeSnapshot)
+			if (currentDevice->makeSnapshot)
 				drawdc=currentDevice->PrepareForSnapshot(dc);
-			//else
-			//	drawdc=dc;
+			else
+				drawdc=dc;
 
 			hr=originalfunction(drawdc);
 
-			//if (currentDevice->makeSnapshot)
-				currentDevice->TakeSnapshot(drawdc);
+			if (currentDevice->makeSnapshot)
+				currentDevice->TakeSnapshot(drawdc, "D3D11Hook_DrawAuto_imp");
 
 
 			
