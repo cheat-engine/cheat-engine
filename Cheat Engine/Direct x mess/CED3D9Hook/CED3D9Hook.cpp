@@ -25,7 +25,7 @@ void DXMessD3D9Handler::PrepareForSnapshot() //just clears the screen
 	}
 }
 
-void DXMessD3D9Handler::TakeSnapshot()
+void DXMessD3D9Handler::TakeSnapshot(char *functionname)
 {
 	IDirect3DDevice9 *d=dev;
 	IDirect3DSurface9 *backbuffer;
@@ -178,6 +178,13 @@ void DXMessD3D9Handler::TakeSnapshot()
 
 				x=0;	
 				WriteFile(h, &x, sizeof(x), &bw, NULL);	
+			}
+
+			if (functionname)
+			{
+				int i=strlen(functionname);
+				WriteFile(h, &i, sizeof(i), &bw, NULL);	
+				WriteFile(h, functionname, i, &bw, NULL);	
 			}
 
 
@@ -926,7 +933,7 @@ HRESULT __stdcall D3D9Hook_DrawPrimitive_imp(D3D9_DRAWPRIMITIVE_ORIGINAL origina
 
 
 		if ((currentDevice) && (currentDevice->makeSnapshot))
-			currentDevice->TakeSnapshot();
+			currentDevice->TakeSnapshot("D3D9Hook_DrawPrimitive_imp");
 
 		return hr;
 
@@ -974,7 +981,7 @@ HRESULT __stdcall D3D9Hook_DrawIndexedPrimitive_imp(D3D9_DRAWINDEXEDPRIMITIVE_OR
 			hr=originalfunction(device, PrimitiveType, BaseVertexIndex, MinVertexIndex, NumVertices, startIndex, primCount);
 
 		if ((currentDevice) && (currentDevice->makeSnapshot))
-			currentDevice->TakeSnapshot();
+			currentDevice->TakeSnapshot("D3D9Hook_DrawIndexedPrimitive_imp");
 
 		return hr;
 
@@ -1023,7 +1030,7 @@ HRESULT __stdcall D3D9Hook_DrawPrimitiveUP_imp(D3D9_DRAWPRIMITIVEUP_ORIGINAL ori
 			hr=originalfunction(device, PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride);
 
 		if ((currentDevice) && (currentDevice->makeSnapshot))
-			currentDevice->TakeSnapshot();
+			currentDevice->TakeSnapshot("D3D9Hook_DrawPrimitiveUP_imp");
 
 		return hr;
 	}
@@ -1068,7 +1075,7 @@ HRESULT __stdcall D3D9Hook_DrawIndexedPrimitiveUP_imp(D3D9_DRAWINDEXEDPRIMITIVEU
 
 
 		if ((currentDevice) && (currentDevice->makeSnapshot))
-			currentDevice->TakeSnapshot();
+			currentDevice->TakeSnapshot("D3D9Hook_DrawIndexedPrimitiveUP_imp");
 
 		return hr;
 	}
@@ -1111,7 +1118,7 @@ HRESULT __stdcall D3D9Hook_DrawRectPatch_imp(D3D9_DRAWRECTPATCH_ORIGINAL origina
 			hr=originalfunction(device, Handle, pNumSegs, pRectPatchInfo);
 
 		if ((currentDevice) && (currentDevice->makeSnapshot))
-			currentDevice->TakeSnapshot();
+			currentDevice->TakeSnapshot("D3D9Hook_DrawRectPatch_imp");
 
 		return hr;
 	}
@@ -1153,7 +1160,7 @@ HRESULT __stdcall D3D9Hook_DrawTriPatch_imp(D3D9_DRAWTRIPATCH_ORIGINAL originalf
 			hr=originalfunction(device, Handle, pNumSegs, pTriPatchInfo);
 
 		if ((currentDevice) && (currentDevice->makeSnapshot))
-			currentDevice->TakeSnapshot();
+			currentDevice->TakeSnapshot("D3D9Hook_DrawTriPatch_imp");
 
 		return hr;
 

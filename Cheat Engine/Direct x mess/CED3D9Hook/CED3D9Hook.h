@@ -45,7 +45,7 @@ public:
 
 	IDirect3DDevice9 *dev;
 
-	void TakeSnapshot();
+	void TakeSnapshot(char *functionname);
 	void PrepareForSnapshot();
 	void RenderOverlay();
 	void BeforeReset();

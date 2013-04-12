@@ -66,7 +66,7 @@ public:
 	DXMessD3D10Handler(ID3D10Device *dev, IDXGISwapChain *sc, PD3DHookShared s);
 	~DXMessD3D10Handler();
 	void RenderOverlay();
-	void TakeSnapshot();
+	void TakeSnapshot(char *functionname);
 	void PrepareForSnapshot();
 	
 };

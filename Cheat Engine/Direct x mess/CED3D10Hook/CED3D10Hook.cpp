@@ -58,7 +58,7 @@ void DXMessD3D10Handler::PrepareForSnapshot() //just clears the screen
 }
 
 
-void DXMessD3D10Handler::TakeSnapshot()
+void DXMessD3D10Handler::TakeSnapshot(char *functionname)
 {
 	//alternate if only the backbuffer is requested : ID3D10Texture2D *backbuffer=NULL;   if (SUCCEEDED(swapchain->GetBuffer(0, __uuidof(backbuffer), (void **)&backbuffer)))
 	//problem is that that won't capture renders to textures. 
@@ -311,6 +311,13 @@ void DXMessD3D10Handler::TakeSnapshot()
 							{
 								int i=0;
 								WriteFile(h, &i, sizeof(i), &bw, NULL);								
+							}
+
+							if (functionname)
+							{
+								int i=strlen(functionname);
+								WriteFile(h, &i, sizeof(i), &bw, NULL);	
+								WriteFile(h, functionname, i, &bw, NULL);	
 							}
 
 							CloseHandle(h);
@@ -1531,7 +1538,7 @@ HRESULT __stdcall D3D10Hook_DrawIndexed_imp(D3D10_DRAWINDEXED_ORIGINAL originalf
 			currentDevice->dev->OMSetDepthStencilState(oldDepthStencilState, stencilref);
 
 			if (currentDevice->makeSnapshot)
-				currentDevice->TakeSnapshot();
+				currentDevice->TakeSnapshot("D3D10Hook_DrawIndexed_imp");
 			
 			
 
@@ -1581,7 +1588,7 @@ HRESULT __stdcall D3D10Hook_Draw_imp(D3D10_DRAW_ORIGINAL originalfunction, ID3D1
 			currentDevice->dev->OMSetDepthStencilState(oldDepthStencilState, stencilref);
 
 			if (currentDevice->makeSnapshot)
-				currentDevice->TakeSnapshot();
+				currentDevice->TakeSnapshot("D3D10Hook_Draw_imp");
 
 
 			return hr;
@@ -1627,7 +1634,7 @@ HRESULT __stdcall D3D10Hook_DrawIndexedInstanced_imp(D3D10_DRAWINDEXEDINSTANCED_
 			currentDevice->dev->OMSetDepthStencilState(oldDepthStencilState, stencilref);
 
 			if (currentDevice->makeSnapshot)
-				currentDevice->PrepareForSnapshot();
+				currentDevice->TakeSnapshot("D3D10Hook_DrawIndexedInstanced_imp");
 			
 			return hr;
 		}		
@@ -1673,7 +1680,7 @@ HRESULT __stdcall D3D10Hook_DrawInstanced_imp(D3D10_DRAWINSTANCED_ORIGINAL origi
 			currentDevice->dev->OMSetDepthStencilState(oldDepthStencilState, stencilref);
 
 			if (currentDevice->makeSnapshot)
-				currentDevice->TakeSnapshot();
+				currentDevice->TakeSnapshot("D3D10Hook_DrawInstanced_imp");
 
 			return hr;
 		}		
@@ -1718,7 +1725,7 @@ HRESULT __stdcall D3D10Hook_DrawAuto_imp(D3D10_DRAWAUTO_ORIGINAL originalfunctio
 			currentDevice->dev->OMSetDepthStencilState(oldDepthStencilState, stencilref);
 
 			if (currentDevice->makeSnapshot)
-				currentDevice->PrepareForSnapshot();
+				currentDevice->TakeSnapshot("D3D10Hook_DrawAuto_imp");
 			
 
 			return hr;

@@ -74,7 +74,7 @@ public:
 	DXMessD3D11Handler(ID3D11Device *dev, IDXGISwapChain *sc, PD3DHookShared s);
 	~DXMessD3D11Handler();
 	void RenderOverlay();
-	void TakeSnapshot(ID3D11DeviceContext *dc);
+	void TakeSnapshot(ID3D11DeviceContext *dc, char *functionname);
     ID3D11DeviceContext *PrepareForSnapshot(ID3D11DeviceContext *dc) ;
 
 };
