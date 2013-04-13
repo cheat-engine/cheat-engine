@@ -69,6 +69,7 @@ object frmStructures2: TfrmStructures2
         Width = 160
         Visible = True
       end>
+    OnSectionResize = HeaderControl1SectionResize
     OnSectionTrack = HeaderControl1SectionTrack
     Anchors = [akTop, akLeft, akRight]
   end
