@@ -178,13 +178,13 @@ begin
         case pinfo.PropType.Kind of
           tkInteger,tkInt64,tkQWord:
           begin
-            if lua_type(L,3)=LUA_TSTRING then
-            begin
+            //if lua_type(L,3)=LUA_TSTRING then
+            //begin
               //expected an integer, but got a string
-              SetPropValue(c, p, symhandler.getAddressFromName(Lua_ToString(L, 3)));
-            end
-            else
-              SetPropValue(c, p, lua_tointeger(L, 3));
+              //SetPropValue(c, p, symhandler.getAddressFromName(Lua_ToString(L, 3)));
+           // end
+            //else
+              SetPropValue(c, p, v);
           end;
 
           tkBool: SetPropValue(c, p, lua_toboolean(L, 3));

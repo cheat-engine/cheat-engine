@@ -350,6 +350,8 @@ type
     tvStructureView: TTreeView;
     procedure Addextraaddress1Click(Sender: TObject);
     procedure FindDialog1Find(Sender: TObject);
+    procedure HeaderControl1SectionResize(HeaderControl: TCustomHeaderControl;
+      Section: THeaderSection);
     procedure MenuItem3Click(Sender: TObject);
     procedure MenuItem5Click(Sender: TObject);
     procedure MenuItem6Click(Sender: TObject);
@@ -462,6 +464,7 @@ type
   public
     { public declarations }
     initialaddress: PtrUInt;
+    lastresizecheck: dword;
 
     function DefineNewStructure(recommendedSize: integer=4096): TDissectedStruct;
     procedure addLockedAddress(shownaddress: ptruint; memoryblock: pointer; size: integer); //call this to add a locked address, and copy the memoryblock to the target process)
@@ -2349,6 +2352,16 @@ begin
   end;
 end;
 
+
+procedure TfrmStructures2.HeaderControl1SectionResize(
+  HeaderControl: TCustomHeaderControl; Section: THeaderSection);
+begin
+  SetupFirstNodeLength;
+  tvStructureView.ReAlign;
+
+  HeaderControl.Left:=-tvStructureView.scrolledleft;
+end;
+
 procedure TfrmStructures2.HeaderControl1SectionTrack(
   HeaderControl: TCustomHeaderControl; Section: THeaderSection; Width: Integer;
   State: TSectionTrackState);
@@ -2356,11 +2369,16 @@ var x: integer;
     s: string;
 
 begin
+  if gettickcount>lastresizecheck+50 then
+  begin
+    lastresizecheck:=GetTickCount;
+    SetupFirstNodeLength;
+    tvStructureView.ReAlign;
 
-  SetupFirstNodeLength;
-  tvStructureView.ReAlign;
+    HeaderControl.Left:=-tvStructureView.scrolledleft;
+  end;
 
-  HeaderControl.Left:=-tvStructureView.scrolledleft;
+  tvStructureView.Repaint;
 end;
 
 procedure TfrmStructures2.RefreshVisibleNodes;
@@ -3569,6 +3587,8 @@ begin
     n.MakeVisible;
   end;
 end;
+
+
 
 function TfrmStructures2.searchString(search: string; findoptions: TFindOptions): integer;
 {
