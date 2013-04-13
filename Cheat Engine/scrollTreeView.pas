@@ -23,12 +23,13 @@ type
   public
     procedure WMHScroll(var Msg: TLMScroll); message LM_HSCROLL;
     procedure WMVScroll(var Msg: TLMScroll); message LM_VSCROLL;
-
+    procedure ForceScrollbarChange;
 
 
 
    // procedure resize;
   published
+    property ScrolledLeft;
     property onHScroll: THScrollEvent read fOnHScroll write fOnHScroll;
     property onVScroll: TNotifyEvent read fOnVScroll write fOnVScroll;
     property Align;
@@ -124,6 +125,11 @@ type
   end;
 
 implementation
+
+procedure TTreeview.ForceScrollbarChange;
+begin
+  GetMaxScrollLeft;
+end;
 
 procedure TTreeview.WMVScroll(var Msg: TLMScroll);
 begin

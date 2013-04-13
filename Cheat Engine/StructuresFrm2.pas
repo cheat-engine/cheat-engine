@@ -434,6 +434,8 @@ type
     procedure setupColors;
 
     procedure miSelectStructureClick(Sender: tobject);
+    function getHorizontalScrollbarString: String; //returns a string out of spaces that fills up the length of all the columns combined
+    procedure SetupFirstNodeLength;
     procedure InitializeFirstNode;
     procedure RefreshStructureList;
     procedure TreeViewHScroll(sender: TObject; scrolledleft, maxscrolledleft: integer);
@@ -2268,6 +2270,8 @@ end;
 
 procedure TfrmStructures2.TreeViewHScroll(sender: TObject; scrolledleft, maxscrolledleft: integer);
 begin
+
+
   HeaderControl1.Left:=-scrolledleft;
   HeaderControl1.Width:=tvStructureView.clientwidth  +maxscrolledleft+100;
 end;
@@ -2353,27 +2357,10 @@ var x: integer;
 
 begin
 
-  x:=(HeaderControl1.Sections[HeaderControl1.Sections.Count-1].Left+HeaderControl1.Sections[HeaderControl1.Sections.Count-1].Width);
-  tvStructureView.ClientWidth:=x;
+  SetupFirstNodeLength;
+  tvStructureView.ReAlign;
 
-
-  if tvStructureView.Items.Count>0 then
-  begin
-    //make the first line (structname) as long as x
-    if mainStruct<>nil then
-    begin
-      s:='                                         ';
-
-      while tvStructureView.Canvas.TextWidth(s)<x do
-        s:=s+'        ';
-
-      tvStructureView.items[0].Text:=s;
-    end;
-
-  end;
-
-  tvStructureView.Refresh;
-
+  HeaderControl.Left:=-tvStructureView.scrolledleft;
 end;
 
 procedure TfrmStructures2.RefreshVisibleNodes;
@@ -2791,6 +2778,33 @@ begin
   result:=mainStruct;
 end;
 
+function TfrmStructures2.getHorizontalScrollbarString: String; //returns a string out of spaces that fills up the length of all the columns combined
+var
+  i: integer;
+  s: THeaderSection;
+  totalwidth: integer;
+  currentwidth: integer;
+begin
+  currentwidth:=0;
+  result:='';
+  s:=HeaderControl1.Sections[HeaderControl1.Sections.Count-1];
+  totalwidth:=s.Left+s.Width;
+
+  while currentwidth<totalwidth do
+  begin
+    result:=result+'    ';
+    currentwidth:=tvStructureView.Canvas.GetTextWidth(result);
+  end;
+
+
+end;
+
+procedure TfrmStructures2.SetupFirstNodeLength;
+begin
+  if tvStructureView.items.count>0 then
+    tvStructureView.Items[0].Text:=getHorizontalScrollbarString;
+end;
+
 procedure TfrmStructures2.InitializeFirstNode;
 //Clear the screen and setup the first node
 var tn: TTreenode;
@@ -2802,6 +2816,9 @@ begin
     tn.Data:=mainStruct;
     tn.HasChildren:=true;
     tn.Expand(false);
+
+    SetupFirstNodeLength;
+
   end;
 end;
 
@@ -3524,12 +3541,14 @@ begin
   else
     result:=TStructColumn.create(c.parent);
 
+  SetupFirstNodeLength;
   RefreshVisibleNodes;
 end;
 
 procedure TfrmStructures2.removeColumn(columnid: integer);
 begin
   columns[columnid].free;
+  SetupFirstNodeLength;
   RefreshVisibleNodes;
 end;
 
