@@ -1927,6 +1927,7 @@ begin
   begin
     selfsymhandler:=Tsymhandler.create;
     selfsymhandler.targetself:=true;
+    selfsymhandler.reinitialize;
   end;
 
 {$ifdef cpu32}
