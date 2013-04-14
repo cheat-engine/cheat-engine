@@ -498,9 +498,13 @@ var
   oldaddress: ptrUint;
   x: string;
   s: string;
-  tempaddress: ptrUint;
+  tempaddress, tempaddress2: ptrUint;
+
+  value: ptruint;
 
   a, b, o,special: string;
+
+  br: dword;
 
 
 begin
@@ -540,6 +544,36 @@ begin
             splitDisassembledString(s, false, a,b,o,special);
             if hasAddress(o,tempaddress) then
             begin
+
+              //check if it's an indirect jump
+
+              tempaddress2:=0;
+              if readprocessmemory(processhandle, pointer(tempaddress), @tempaddress2, processhandler.pointersize, br) then
+              begin
+                if ((tempaddress2 and $ffff)=$25ff) then //it's pointing to a jmp [xxxxxxxx] evaluate that as well
+                begin
+                  value:=0;
+                  if readprocessmemory(processhandle,pointer(tempaddress2+2),@value,4,br) then
+                  begin
+                    if processhandler.is64bit then
+                      value:=tempaddress2+6+value; //in 64-bit ff 25 is relative encoded
+
+                    if readprocessmemory(processhandle,pointer(value),@value,processhandler.Pointersize,br) then
+                      tempaddress:=value; //get the address it actually points to
+                  end;
+
+
+                end
+                else
+                begin
+                  //use the address it points to
+                  if (d.LastDisassembleData.isjump or d.LastDisassembleData.isret) and (d.LastDisassembleData.modrmValueType=dvtAddress) then
+                    tempaddress:=tempaddress2;
+                end;
+
+              end;
+
+
               //check the kind of address (calltarget, jumptarget, memory access/indicator)
               case o[1] of
                 'c' : //call
@@ -553,6 +587,9 @@ begin
 
                 'j' : //jmp, conditional or not
                 begin
+
+
+
                   if o[2]='m' then
                   begin
                     //jmp
