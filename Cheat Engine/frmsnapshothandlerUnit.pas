@@ -29,11 +29,16 @@ type
     constantbuffersize: integer;
     constantbuffer: PByteArray;
 
+    functionnamesize: integer;
+    functionname: pchar;
+
     //graphical:
     selected: boolean;
 
     xpos: integer;
     width: integer;
+
+    destructor destroy; override;
   end;
 
   TSnapshotList =  TFPGList<TSnapshot>;     //eew, <  and > and not used for bigger/than smaller than compares. It's unnatural
@@ -84,20 +89,29 @@ implementation
 uses mainunit, frmSaveSnapshotsUnit, d3dhookUnit, frmD3DHookSnapshotConfigUnit,
   StructuresFrm2, frmSelectionlistunit, frmStackViewUnit;
 
+destructor TSnapshot.destroy;
+begin
+  if pic<>nil then
+    freeandnil(pic);
+
+  if constantbuffer<>nil then
+    Freemem(constantbuffer);
+
+  if stack<>nil then
+    freemem(stack);
+
+
+  if functionname<>nil then
+    freemem(functionname);
+
+  inherited destroy;
+end;
+
 procedure TfrmSnapshotHandler.clearlist;
 var i: integer;
 begin
   for i:=0 to snapshots.count-1 do
-  begin
-    if snapshots[i].pic<>nil then
-      freeandnil(snapshots[i].pic);
-
-    if snapshots[i].constantbuffer<>nil then
-      Freemem(snapshots[i].constantbuffer);
-
-    if snapshots[i].stack<>nil then
-      freemem(snapshots[i].stack);
-  end;
+    snapshots[i].free;
 
   snapshots.Clear;
 
@@ -184,6 +198,16 @@ begin
       else
         s.constantbuffer:=nil;
 
+      f.readbuffer(s.functionnamesize, sizeof(s.functionnamesize));
+      if s.functionnamesize>0 then
+      begin
+        getmem(s.functionname, s.functionnamesize+1);
+        f.ReadBuffer(s.functionname^, s.functionnamesize);
+        s.functionname[s.functionnamesize]:=#0;
+      end
+      else
+        s.functionname:=nil;
+
 
 
 
@@ -215,8 +239,13 @@ procedure TfrmSnapshotHandler.PaintBox1MouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var i: integer;
   selcount: integer;
+  functionnames: tstringlist;
+  fn: string;
 begin
   selcount:=0;
+
+  functionnames:=tstringlist.create;
+  functionnames.Duplicates:=dupIgnore;
 
   for i:=scrollbar1.Position to snapshots.count-1 do
     if InRange(x, snapshots[i].xpos, snapshots[i].xpos+snapshots[i].width) then
@@ -226,7 +255,15 @@ begin
   for i:=0 to snapshots.count-1 do
   begin
     if snapshots[i].selected then
+    begin
+      if snapshots[i].functionname<>nil then
+      begin
+        if functionnames.IndexOf(snapshots[i].functionname)=-1 then //for some reason dupIgnore isn't used
+          functionnames.Add(snapshots[i].functionname);
+      end;
+
       inc(selcount);
+    end;
   end;
 
 
@@ -237,7 +274,12 @@ begin
   rbCB.enabled:=selcount>0;
   btnCompare.enabled:=selcount>0;
 
-
+  if selcount=0 then
+  begin
+    lblCompare.caption:='';
+    btnCompare.caption:='View';
+  end
+  else
   if selcount=1 then
   begin
     lblCompare.caption:='Dissect memory of selected snapshot';
@@ -251,7 +293,15 @@ begin
 
   end;
 
+  fn:='';
+  for i:=0 to functionnames.count-1 do
+    fn :=fn+functionnames[i]+' ';
 
+
+  lblCompare.caption:=lblCompare.Caption+' Function(s): '+fn;
+
+
+  functionnames.free;
 end;
 
 procedure TfrmSnapshotHandler.PaintBox1Paint(Sender: TObject);

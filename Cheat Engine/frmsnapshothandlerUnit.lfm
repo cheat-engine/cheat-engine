@@ -1,27 +1,27 @@
 object frmSnapshotHandler: TfrmSnapshotHandler
   Left = 844
-  Height = 265
+  Height = 264
   Top = 359
   Width = 674
   Caption = 'Snapshot handler'
-  ClientHeight = 245
+  ClientHeight = 244
   ClientWidth = 674
   Menu = MainMenu1
   OnCreate = FormCreate
   LCLVersion = '1.1'
   object Panel2: TPanel
     Left = 0
-    Height = 160
+    Height = 159
     Top = 0
     Width = 674
     Align = alClient
-    ClientHeight = 160
+    ClientHeight = 159
     ClientWidth = 674
     TabOrder = 0
     object ScrollBar1: TScrollBar
       Left = 1
       Height = 17
-      Top = 142
+      Top = 141
       Width = 672
       Align = alBottom
       PageSize = 0
@@ -30,7 +30,7 @@ object frmSnapshotHandler: TfrmSnapshotHandler
     end
     object PaintBox1: TPaintBox
       Left = 1
-      Height = 141
+      Height = 140
       Top = 1
       Width = 672
       Align = alClient
@@ -41,7 +41,7 @@ object frmSnapshotHandler: TfrmSnapshotHandler
   object Panel1: TPanel
     Left = 0
     Height = 85
-    Top = 160
+    Top = 159
     Width = 674
     Align = alBottom
     ClientHeight = 85
