@@ -4081,7 +4081,7 @@ begin
     s:=lua_toceuserdata(L,1);
     lua_pop(L, lua_gettop(l));
     if (s<>nil) and (s is TStrings) then
-      GetProcessList(s)
+      GetProcessList(s, false, true)
     else
     begin
       lua_pushstring(L,'getProcessList: the provided List object is not valid');

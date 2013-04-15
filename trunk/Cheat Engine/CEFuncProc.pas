@@ -116,7 +116,7 @@ function rewritecode(processhandle: thandle; address:ptrUint; buffer: pointer; v
 function rewritedata(processhandle: thandle; address:ptrUint; buffer: pointer; var size:dword): boolean;
 
 procedure GetProcessList(ProcessList: TListBox; NoPID: boolean=false); overload;
-procedure GetProcessList(ProcessList: TStrings; NoPID: boolean=false); overload;
+procedure GetProcessList(ProcessList: TStrings; NoPID: boolean=false; noProcessInfo: boolean=false);  overload;
 procedure GetThreadList(threadlist: TStrings);
 procedure cleanProcessList(processlist: TStrings);
 procedure GetWindowList(ProcessList: TListBox; showInvisible: boolean=true);
@@ -2385,7 +2385,7 @@ begin
   closehandle(ths);
 end;
 
-procedure GetProcessList(ProcessList: TStrings; NoPID: boolean=false);
+procedure GetProcessList(ProcessList: TStrings; NoPID: boolean=false; noProcessInfo: boolean=false);
 var SNAPHandle: THandle;
     ProcessEntry: PROCESSENTRY32;
     Check: Boolean;
@@ -2411,7 +2411,7 @@ begin
     Check:=Process32First(SnapHandle,ProcessEntry);
     while check do
     begin
-      if getprocessicons then
+      if (noprocessinfo=false) and getprocessicons then
       begin
         s:='';
 
@@ -2432,24 +2432,33 @@ begin
 
       end;
 
-      if not (ProcessesWithIconsOnly and (hi=0)) then
+      if (noprocessinfo) or (not (ProcessesWithIconsOnly and (hi=0))) then
       begin
         if processentry.th32ProcessID<>0 then
         begin
-         // processinfo
-          getmem(ProcessListInfo,sizeof(TProcessListInfo));
-          ProcessListInfo.processID:=processentry.th32ProcessID;
-          ProcessListInfo.processIcon:=HI;
+
+          if noprocessinfo=false then
+          begin
+            // processinfo
+            getmem(ProcessListInfo,sizeof(TProcessListInfo));
+            ProcessListInfo.processID:=processentry.th32ProcessID;
+            ProcessListInfo.processIcon:=HI;
+          end;
 
           if noPID then
             s:=''
           else
             s:=IntTohex(processentry.th32ProcessID,8)+'-';
+
           s:=s+ExtractFilename(processentry.szExeFile);
 
-          ProcessList.AddObject(AnsiToUtf8(s), TObject(ProcessListInfo));
+          if noprocessinfo then
+            ProcessList.Add(AnsiToUtf8(s))
+          else
+            ProcessList.AddObject(AnsiToUtf8(s), TObject(ProcessListInfo));
         end;
       end;
+
 
       check:=Process32Next(SnapHandle,ProcessEntry);
     end;
