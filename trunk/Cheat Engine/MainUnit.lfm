@@ -603,6 +603,8 @@ object MainForm: TMainForm
           Width = 69
           Caption = 'Last Digits'
           OnChange = rbFsmAlignedChange
+          ParentShowHint = False
+          ShowHint = True
           TabOrder = 3
         end
         object rbFsmAligned: TRadioButton
