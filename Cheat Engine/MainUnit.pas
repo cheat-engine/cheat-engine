@@ -215,6 +215,7 @@ type
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
+    miSave: TMenuItem;
     miSnapshothandler: TMenuItem;
     miSetupSnapshotKeys: TMenuItem;
     miDisplayDefault: TMenuItem;
@@ -438,6 +439,7 @@ type
     procedure Label3Click(Sender: TObject);
     procedure Label57Click(Sender: TObject);
     procedure lblcompareToSavedScanClick(Sender: TObject);
+    procedure miSaveClick(Sender: TObject);
     procedure mi3dClick(Sender: TObject);
     procedure miChangeDisplayTypeClick(Sender: TObject);
     procedure miOpenFileClick(Sender: TObject);
@@ -2917,6 +2919,14 @@ begin
 
 end;
 
+procedure TMainForm.miSaveClick(Sender: TObject);
+begin
+  if fileexists(savedialog1.FileName) then
+    savetable(savedialog1.FileName, false)
+  else
+    actSave.Execute;
+end;
+
 procedure TMainForm.mi3dClick(Sender: TObject);
 begin
   miHookD3D.checked:=(D3DHook<>nil) and (D3DHook.processid=processid);
@@ -4617,7 +4627,8 @@ begin
 
   frmLuaTableScript.Caption := rsLuaScriptCheatTable;
   frmLuaTableScript.New1.Visible := False;
-  frmLuaTableScript.save1.OnClick := savebutton.onclick;
+  frmLuaTableScript.Save1.OnClick := miSave.onclick;
+  frmLuaTableScript.SaveAs1.OnClick:= SaveButton.OnClick;
 
 
   hotkeypressed := -1;
