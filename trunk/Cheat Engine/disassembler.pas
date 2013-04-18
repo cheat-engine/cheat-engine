@@ -3337,14 +3337,16 @@ begin
                                 begin
                                   description:='packed shift right logical';
                                   lastdisassembledata.opcode:='psrld';
-                                  lastdisassembledata.parameters:=xmm(memory[2])+','+inttohexs(memory[3],2);
+                                  lastdisassembledata.parameters:= modrm(memory,prefix2,2,4,last);
+                                  lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2);
                                   inc(offset,3);
                                 end
                                 else
                                 begin
                                   description:='packed shift right logical';
                                   lastdisassembledata.opcode:='psrld';
-                                  lastdisassembledata.parameters:=mm(memory[2])+','+inttohexs(memory[3],2);
+                                  lastdisassembledata.parameters:= modrm(memory,prefix2,2,3,last);
+                                  lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2);
                                   inc(offset,3);
                                 end;
                               end;
@@ -3354,14 +3356,18 @@ begin
                                 begin
                                   description:='packed shift right arithmetic';
                                   lastdisassembledata.opcode:='psrad';
-                                  lastdisassembledata.parameters:=xmm(memory[2])+','+inttohexs(memory[3],2);
+                                  lastdisassembledata.parameters:= modrm(memory,prefix2,2,4,last);
+                                  lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2);
+
                                   inc(offset,3);
                                 end
                                 else
                                 begin
                                   description:='packed shift right arithmetic';
                                   lastdisassembledata.opcode:='psrad';
-                                  lastdisassembledata.parameters:=mm(memory[2])+','+inttohexs(memory[3],2);
+                                  lastdisassembledata.parameters:= modrm(memory,prefix2,2,3,last);
+                                  lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2);
+
                                   inc(offset,3);
                                 end;
                               end;
@@ -3371,14 +3377,16 @@ begin
                                 begin
                                   description:='packed shift left logical';
                                   lastdisassembledata.opcode:='pslld';
-                                  lastdisassembledata.parameters:=xmm(memory[2])+','+inttohexs(memory[3],2);
+                                  lastdisassembledata.parameters:= modrm(memory,prefix2,2,4,last);
+                                  lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2);
                                   inc(offset,3);
                                 end
                                 else
                                 begin
                                   description:='packed shift left logical';
                                   lastdisassembledata.opcode:='pslld';
-                                  lastdisassembledata.parameters:=mm(memory[2])+','+inttohexs(memory[3],2);
+                                  lastdisassembledata.parameters:= modrm(memory,prefix2,2,3,last);
+                                  lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2);
                                   inc(offset,3);
                                 end;
                               end;
@@ -3397,14 +3405,16 @@ begin
                                 begin
                                   description:='packed shift right logical';
                                   lastdisassembledata.opcode:='psrlq';
-                                  lastdisassembledata.parameters:=xmm(memory[2])+','+inttohexs(memory[3],2);
+                                  lastdisassembledata.parameters:= modrm(memory,prefix2,2,4,last);
+                                  lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2);
                                   inc(offset,3);
                                 end
                                 else
                                 begin
                                   description:='packed shift right logical';
                                   lastdisassembledata.opcode:='psrlq';
-                                  lastdisassembledata.parameters:=mm(memory[2])+','+inttohexs(memory[3],2);
+                                  lastdisassembledata.parameters:= modrm(memory,prefix2,2,3,last);
+                                  lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2);
                                   inc(offset,3);
                                 end;
                               end;
@@ -3414,7 +3424,8 @@ begin
                                 begin
                                   description:='shift double quadword right lopgical';
                                   lastdisassembledata.opcode:='psrldq';
-                                  lastdisassembledata.parameters:=xmm(memory[2])+','+inttohexs(memory[3],2);
+                                  lastdisassembledata.parameters:= modrm(memory,prefix2,2,4,last);
+                                  lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2);
                                   inc(offset,3);
                                 end;
                               end;
@@ -3424,14 +3435,16 @@ begin
                                 begin
                                   description:='packed shift left logical';
                                   lastdisassembledata.opcode:='psllq';
-                                  lastdisassembledata.parameters:=xmm(memory[2])+','+inttohexs(memory[3],2);
+                                  lastdisassembledata.parameters:= modrm(memory,prefix2,2,4,last);
+                                  lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2);
                                   inc(offset,3);
                                 end
                                 else
                                 begin
                                   description:='packed shift left logical';
                                   lastdisassembledata.opcode:='psllq';
-                                  lastdisassembledata.parameters:=mm(memory[2])+','+inttohexs(memory[3],2);
+                                  lastdisassembledata.parameters:= modrm(memory,prefix2,2,3,last);
+                                  lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2);
                                   inc(offset,3);
                                 end;
                               end;
@@ -3441,7 +3454,8 @@ begin
                                 begin
                                   description:='shift double quadword left logical';
                                   lastdisassembledata.opcode:='pslldq';
-                                  lastdisassembledata.parameters:=xmm(memory[2])+','+inttohexs(memory[3],2);
+                                  lastdisassembledata.parameters:= modrm(memory,prefix2,2,4,last);
+                                  lastdisassembledata.parameters:=lastdisassembledata.parameters+inttohexs(memory[last],2);
                                   inc(offset,3);
                                 end;
                               end;
