@@ -87,7 +87,7 @@ var
 begin
   Font:=luaclass_getClassObject(L);
   if lua_gettop(L)>=1 then
-    Font.Name:=lua_ToCEUserData(L, 1);
+    Font.Assign(lua_ToCEUserData(L, 1));
 
   result:=0;
 end;
