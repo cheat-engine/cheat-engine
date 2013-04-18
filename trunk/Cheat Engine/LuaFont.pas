@@ -40,7 +40,7 @@ begin
   Font:=luaclass_getClassObject(L);
   if lua_gettop(L)>=1 then
     Font.color:=lua_tointeger(L, -1);
-  result:=1;
+  result:=0;
 end;
 
 function Font_getSize(L: PLua_State): integer; cdecl;
@@ -59,7 +59,7 @@ begin
   Font:=luaclass_getClassObject(L);
   if lua_gettop(L)>=1 then
     Font.Size:=lua_tointeger(L, -1);
-  result:=1;
+  result:=0;
 end;
 
 function Font_getName(L: PLua_State): integer; cdecl;
@@ -78,7 +78,18 @@ begin
   Font:=luaclass_getClassObject(L);
   if lua_gettop(L)>=1 then
     Font.Name:=Lua_ToString(L, -1);
-  result:=1;
+  result:=0;
+end;
+
+function Font_assign(L: PLua_State): integer; cdecl;
+var
+  Font: TFont;
+begin
+  Font:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    Font.Name:=lua_ToCEUserData(L, 1);
+
+  result:=0;
 end;
 
 procedure font_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
@@ -90,6 +101,7 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setName', font_setName);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getColor', font_getColor);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setColor', font_setColor);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'assign', font_assign);
 
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Size', font_getSize, font_setSize);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Name', font_getName, font_setName);
