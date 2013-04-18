@@ -548,35 +548,38 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 							hasTextureLock=(WaitForSingleObject((HANDLE)(shared->TextureLock), INFINITE)==WAIT_OBJECT_0);						
 
 						WORD *cefontmap=(WORD *)(tea[shared->RenderCommands[i].font.fontid].AddressOfFontmap);
-						
 
-						
-							
-						height=cefontmap[0];				
-
-						//if the clicked y position falls between y and y+height then count the full size of this string to determine the width, else skip it
-
-					    if (y==-1)					
-							y=((cr.bottom-cr.top) / 2)-(height / 2);						
-
-						if ((p.y>=y) && (p.y<y+height))
+						if (cefontmap)
 						{
-							//clicked inside the range, find out the width
-							unsigned int j;
-							char *text=(char *)(shared->RenderCommands[i].font.addressoftext);
-							width=0;
-							for (j=0; j<strlen(text); j++)							
-							{
-								if ((text[j]>=32) && (text[j]<=127))
-									width+=cefontmap[(text[j]-32)+1];
-							}
 
-							if (x==-1)
-								x=((cr.right-cr.left) / 2)-(width / 2);
-							
+						
+								
+							height=cefontmap[0];				
+
+							//if the clicked y position falls between y and y+height then count the full size of this string to determine the width, else skip it
+
+							if (y==-1)					
+								y=((cr.bottom-cr.top) / 2)-(height / 2);						
+
+							if ((p.y>=y) && (p.y<y+height))
+							{
+								//clicked inside the range, find out the width
+								unsigned int j;
+								char *text=(char *)(shared->RenderCommands[i].font.addressoftext);
+								width=0;
+								for (j=0; j<strlen(text); j++)							
+								{
+									if ((text[j]>=32) && (text[j]<=127))
+										width+=cefontmap[(text[j]-32)+1];
+								}
+
+								if (x==-1)
+									x=((cr.right-cr.left) / 2)-(width / 2);
+								
+							}
+							else						
+								continue; //not inside the range
 						}
-						else						
-							continue; //not inside the range
 						
 
 						break;
@@ -645,6 +648,10 @@ LRESULT CALLBACK windowhook(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			}
 			
 			break;
+
+		//case WM_MOUSEMOVE:
+			//break;
+		
 	}
 
 	

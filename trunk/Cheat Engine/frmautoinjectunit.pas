@@ -316,8 +316,6 @@ procedure TfrmAutoInject.Save1Click(Sender: TObject);
 var f: tfilestream;
     s: string;
 begin
-{$ifndef standalonetrainerwithassembler}
-
   if (savedialog1.filename='') and (not savedialog1.Execute) then exit;   //filename was empty and the user clicked cancel
 
   f:=tfilestream.Create(savedialog1.filename,fmcreate);
@@ -330,7 +328,6 @@ begin
   finally
     f.Free;
   end;
-{$endif}
 end;
 
 procedure TfrmAutoInject.Exit1Click(Sender: TObject);
@@ -474,9 +471,9 @@ begin
       with enablecode do
       begin
         if processhandler.is64bit then
-          add('alloc(newmem'+inttostr(injectnr)+',2048,'+address+') //2kb should be enough')
+          add('alloc(newmem'+inttostr(injectnr)+',2048,'+address+') ')
         else
-          add('alloc(newmem'+inttostr(injectnr)+',2048) //2kb should be enough');
+          add('alloc(newmem'+inttostr(injectnr)+',2048)');
         add('label(returnhere'+inttostr(injectnr)+')');
         add('label(originalcode'+inttostr(injectnr)+')');
         add('label(exit'+inttostr(injectnr)+')');

@@ -333,7 +333,7 @@ begin
       end;
 
       for i:=0 to mainform.LuaFiles.count-1 do
-        TLUAFile(mainform.Luaforms[i]).free;
+        mainform.LuaFiles[i].free;
 
       mainform.LuaFiles.clear;
 
@@ -1002,7 +1002,7 @@ begin
   begin
     Files:=CheatTable.AppendChild(doc.CreateElement('Files'));
     for i:=0 to mainform.Luafiles.count-1 do
-      TLuaFile(mainform.LuaFiles[i]).savetoxml(files);
+      mainform.LuaFiles[i].savetoxml(files);
   end;
 
   entries:=CheatTable.AppendChild(doc.CreateElement('CheatEntries'));

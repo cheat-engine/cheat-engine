@@ -254,7 +254,7 @@ type
     constructor Create(owner: TD3DHook; picture: TPicture);
     constructor Create(owner: TD3DHook);
     destructor destroy; override;
-
+  published
     property Height: integer read fheight;
     property Width: integer read fwidth;
   end;

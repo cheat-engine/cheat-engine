@@ -5,7 +5,7 @@ unit luafile;
 interface
 
 uses
-  Classes, SysUtils, DOM, zstream, math, custombase85{ascii85};
+  Classes, SysUtils, DOM, zstream, math, custombase85, fgl;
 
 type TLuafile=class
   private
@@ -23,6 +23,8 @@ type TLuafile=class
     property name: string read fname write fname;
     property stream: TMemoryStream read filedata;
   end;
+
+  TLuaFileList =  TFPGList<TLuafile>;
 
 implementation
 

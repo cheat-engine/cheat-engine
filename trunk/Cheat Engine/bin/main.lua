@@ -999,6 +999,7 @@ methods
   setSize(integer): Sets the size of the font
   getColor(): Gets the color of the font
   setColor(integer): Sets the color of the font
+  assign(font): Copies the contents of the font given as parameter to this font
 
 
 Graphic Class : (Inheritance: Object) : Abstract class
@@ -1214,7 +1215,7 @@ properties
   OnPostHotkey: function(sender) - Function to be called when a hotkey has been pressed and the action has been performed
   
 methods
-  doHotkey(hotkey): Executes the hotkey as if it got triggered by the keyboard
+  doHotkey: Executes the hotkey as if it got triggered by the keyboard
 
 
 MemoryRecord Class:
@@ -1687,8 +1688,8 @@ D3DHook_Texture Class (Inheritance: Object)
 This class controls the texture in memory. Without a sprite to use it, it won't show
 
 properties
-  Height: integer
-  Width: integer
+  Height: integer (ReadOnly)
+  Width: integer (ReadOnly)
 methods
   loadTextureByPicture(picture)
 
