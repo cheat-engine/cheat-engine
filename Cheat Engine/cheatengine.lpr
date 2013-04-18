@@ -69,7 +69,8 @@ uses
   LuaTimer, LuaGenericHotkey, LuaFileDialog, LuaStream, LuaTableFile,
   LuaMemoryRecordHotkey, LuaMemoryView, LuaD3DHook, CustomBase85,
   frmMemoryViewExUnit, LuaDisassembler, LuaDissectCode, LuaByteTable, LuaBinary,
-  frmD3DHookSnapshotConfigUnit, frmsnapshothandlerUnit, frmSaveSnapshotsUnit;
+  frmD3DHookSnapshotConfigUnit, frmsnapshothandlerUnit, frmSaveSnapshotsUnit,
+  frmD3DTrainerGeneratorOptionsUnit;
 
 {$R cheatengine.res}
 {$R manifest.res}

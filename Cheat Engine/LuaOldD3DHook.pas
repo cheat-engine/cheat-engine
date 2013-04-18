@@ -352,6 +352,7 @@ begin
   if lua_gettop(L)=1 then
   begin
     t:=lua_toceuserdata(L,1);
+
     lua_pop(L, lua_gettop(L));
     lua_pushinteger(L, t.width);
     result:=1;

@@ -28,9 +28,9 @@ begin
     f:=Lua_ToString(L, -1);
     lua_pop(L, lua_gettop(L));
     for i:=0 to mainform.LuaFiles.count-1 do
-      if TLuafile(mainform.Luafiles[i]).name=f then
+      if mainform.Luafiles[i].name=f then
       begin
-        s:=TLuafile(mainform.Luafiles[i]).stream;
+        s:=mainform.Luafiles[i].stream;
 
         s.position:=0;
         luaclass_newClass(L, mainform.Luafiles[i]); //return the tableFile, not the stream. To get the stream, use  tablefile_getData

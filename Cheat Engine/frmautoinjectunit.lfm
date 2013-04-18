@@ -1,7 +1,7 @@
 object frmAutoInject: TfrmAutoInject
-  Left = 1262
+  Left = 1280
   Height = 331
-  Top = 546
+  Top = 391
   Width = 431
   HelpContext = 1089
   Caption = 'Auto assemble'

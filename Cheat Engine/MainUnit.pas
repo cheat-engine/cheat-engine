@@ -778,7 +778,7 @@ type
 
     memscan: tmemscan;
     LuaForms: TList;
-    LuaFiles: TList;
+    LuaFiles: TLuaFileList;
     frmLuaTableScript: Tfrmautoinject;
 
     mustClose: boolean;
@@ -3200,7 +3200,7 @@ var
   lf: TLuafile;
   newname: string;
 begin
-  lf := TLuafile(LuaFiles[TMenuItem(Sender).Tag]);
+  lf := LuaFiles[TMenuItem(Sender).Tag];
   newname:=lf.Name;
   InputQuery(rsRenameFile, rsGiveTheNewFilename, newname);
   lf.name:=newname;
@@ -3211,7 +3211,7 @@ var
   lf: TLuafile;
   f: TSavedialog;
 begin
-  lf := TLuafile(LuaFiles[TMenuItem(Sender).Tag]);
+  lf := LuaFiles[TMenuItem(Sender).Tag];
 
   f := tsavedialog.Create(self);
   try
@@ -3316,7 +3316,7 @@ begin
   for i := 0 to luafiles.Count - 1 do
   begin
     mi := tmenuitem.Create(miTable);
-    lf := TLuafile(luafiles[i]);
+    lf := luafiles[i];
     mi.Caption := lf.Name;
 
     miTable.add(mi);
@@ -4583,7 +4583,7 @@ begin
   SetSSECSR($1f80);
 
 
-  LuaFiles := TList.Create;
+  LuaFiles := TLuaFileList.Create;
   LuaForms := TList.Create;
   try
     LUA_DoScript('package.path = package.path .. [[;' + tablesdir + '\?.lua]]');

@@ -24,7 +24,7 @@ type
     Button1: TButton;
     Button2: TButton;
     Button3: TButton;
-    Button4: TButton;
+    cbConfigD3DHook: TButton;
     Button5: TButton;
     btnDelete: TButton;
     btnAddHotkey: TButton;
@@ -35,6 +35,7 @@ type
     cbProtect: TCheckBox;
     cbStopPlaying: TCheckBox;
     cbSupportCheatEngine: TCheckBox;
+    cbUseD3DHook: TCheckBox;
     CTSaveDialog: TSaveDialog;
     cbOutput: TComboBox;
     comboProcesslist: TComboBox;
@@ -73,7 +74,7 @@ type
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
-    procedure Button4Click(Sender: TObject);
+    procedure cbConfigD3DHookClick(Sender: TObject);
     procedure Button5Click(Sender: TObject);
     procedure btnDesignFormClick(Sender: TObject);
     procedure btnAddHotkeyClick(Sender: TObject);
@@ -84,6 +85,7 @@ type
     procedure cbPlayXMChange(Sender: TObject);
     procedure cbStopPlayingChange(Sender: TObject);
     procedure cbSupportCheatEngineChange(Sender: TObject);
+    procedure cbUseD3DHookChange(Sender: TObject);
     procedure edtCaptionChange(Sender: TObject);
     procedure edtPopupHotkeyKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
@@ -135,7 +137,7 @@ var
 
 implementation
 
-uses mainunit;
+uses mainunit, frmD3DTrainerGeneratorOptionsunit;
 
 { TfrmTrainerGenerator }
 resourcestring
@@ -625,12 +627,9 @@ begin
     trainerform.hide;
 end;
 
-procedure TfrmTrainerGenerator.Button4Click(Sender: TObject);
+procedure TfrmTrainerGenerator.cbConfigD3DHookClick(Sender: TObject);
 begin
-
-
-
-
+  frmD3DTrainerGeneratorOptions.show;
 end;
 
 procedure TfrmTrainerGenerator.Button3Click(Sender: TObject);
@@ -720,8 +719,11 @@ var generated: tstringlist;
 
   memrecname,hotkeyname: string;
   screwit: tstringlist;
-begin
 
+  checked, unchecked: tbitmap;
+  CHECKBOXIMAGE_UNCHECKED: integer;
+  CHECKBOXIMAGE_CHECKED: integer;
+begin
 
   trainerform.active:=false;
   trainerform.SaveCurrentStateasDesign;
@@ -760,6 +762,12 @@ begin
   l.add('end');
 
   try
+
+
+    if cbUseD3DHook.checked then
+      l.add('d3dcheats={}  --table containing the information to build the cheat lines for d3d');
+
+
     cheatpanel:=TCEPanel(trainerform.FindComponent('CHEATPANEL'));
     if cheatpanel<>nil then
     begin
@@ -789,6 +797,8 @@ begin
       l.add('');
 
       //now go through the actual cheatlist on the form itself and give it it's functions
+
+
       for i:=0 to cheatpanel.ControlCount-1 do
       begin
 
@@ -796,8 +806,22 @@ begin
         begin
           currentcheat:=TCheat(cheatpanel.Controls[i]);
 
+
           currenthk:=TMemoryRecordHotkey(lvcheats.Items[currentcheat.cheatnr].Data);
           currentmr:=currenthk.owner;
+
+          if cbUseD3DHook.checked then
+          begin
+            l.add('d3dcheats['+inttostr(currentcheat.cheatnr)+']={}');
+            l.add('d3dcheats['+inttostr(currentcheat.cheatnr)+'].description=[['+currentcheat.Description+']]');
+            l.add('d3dcheats['+inttostr(currentcheat.cheatnr)+'].hotkeys=[['+currentcheat.Hotkey+']]');
+            l.add('d3dcheats['+inttostr(currentcheat.cheatnr)+'].top='+inttostr(currentcheat.Top));
+            l.add('d3dcheats['+inttostr(currentcheat.cheatnr)+'].left='+inttostr(currentcheat.Left));
+            l.add('d3dcheats['+inttostr(currentcheat.cheatnr)+'].memrecid='+inttostr(currentmr.id));
+            l.add('d3dcheats['+inttostr(currentcheat.cheatnr)+'].hotkeyid='+inttostr(currenthk.id));
+
+          end;
+
 
           //get the memrecname
           memrecname:='memrec'+inttostr(currentmr.id);
@@ -851,7 +875,6 @@ begin
 
               l.add('memoryrecordhotkey_onHotkey('+hotkeyname+','+fname+')');
             end;
-
 
 
           end;
@@ -943,9 +966,9 @@ begin
       //if so, delete
 
       for i:=0 to mainform.LuaFiles.count-1 do
-        if TLuafile(mainform.LuaFiles[i]).name='TRAINERXM' then
+        if mainform.LuaFiles[i].name='TRAINERXM' then
         begin
-          TLuafile(mainform.LuaFiles[i]).free;
+          mainform.LuaFiles[i].free;
           mainform.LuaFiles.Delete(i);
           break;
         end;
@@ -998,6 +1021,239 @@ begin
         l.add('--Thank you from Dark Byte--');
       end;
     end;
+
+
+    if cbUseD3DHook.checked then
+    begin
+      l.add('');
+      l.add('--    Direct 3D Hook Function   --');
+      l.add('');
+
+      if frmD3DTrainerGeneratorOptions<>nil then
+      begin
+        l.add('D3DHook={} --config options');
+        l.add('D3DHook.oldOnOpenProcess=onOpenProcess  --easy and compatible way for different scripts to make use of onOpenProcess');
+        l.add('D3DHook.transparency='+inttostr(frmD3DTrainerGeneratorOptions.TrackBar1.Position));
+        l.add('D3DHook.textColor=0x'+inttohex(frmD3DTrainerGeneratorOptions.lblTextColor.font.color,8));
+        //l.add('D3DHook.allowDrag='+BoolToStr(frmD3DTrainerGeneratorOptions.cbAllowDrag.checked, 'true','false'));
+        l.add('D3DHook.showHotkeys='+BoolToStr(frmD3DTrainerGeneratorOptions.cbShowHotkeys.checked, 'true', 'false'));
+        l.add('D3DHook.hasCheckbox='+BoolToStr(frmD3DTrainerGeneratorOptions.cbHasCheckbox.checked, 'true', 'false'));
+        l.add('D3DHook.stretch='+BoolToStr(frmD3DTrainerGeneratorOptions.cbStretch.checked, 'true',' false'));
+
+        if frmD3DTrainerGeneratorOptions.rbTopLeft.checked then
+          l.add('D3DHook.position=1')
+        else
+        if frmD3DTrainerGeneratorOptions.rbTopRight.checked then
+          l.add('D3DHook.position=2')
+        else
+        if frmD3DTrainerGeneratorOptions.rbBottomLeft.checked then
+          l.add('D3DHook.position=3')
+        else
+        if frmD3DTrainerGeneratorOptions.rbBottomRight.checked then
+          l.add('D3DHook.position=4')
+        else
+        if frmD3DTrainerGeneratorOptions.rbTopRight.checked then
+          l.add('D3DHook.position=5');
+
+
+
+        l.add('function onOpenProcess');
+        l.add('  if (D3DHook.oldOnOpenProcess~=nil) then');
+        l.add('    D3DHook.oldOnOenProcess() --call the original onOpenProcess if needed');
+        l.add('  end');
+        l.add('  h=createD3DHook()');
+        l.add('  if (h~=nil) then');
+
+        if frmD3DTrainerGeneratorOptions.cbHasCheckbox.checked then
+        begin
+          //create a checkbox luafile resource if it doesn't exist yet
+
+          //check if there is already a CHECKBOXIMAGE_CHECKED/UNCHECKED
+
+          CHECKBOXIMAGE_UNCHECKED:=-1;
+          CHECKBOXIMAGE_CHECKED:=-1;
+
+          for i:=0 to mainform.LuaFiles.count-1 do
+          begin
+            if mainform.LuaFiles[i].name='CHECKBOXIMAGE_UNCHECKED' then
+              CHECKBOXIMAGE_UNCHECKED:=i;
+
+            if mainform.LuaFiles[i].name='CHECKBOXIMAGE_CHECKED' then
+              CHECKBOXIMAGE_CHECKED:=i;
+          end;
+
+          if (CHECKBOXIMAGE_UNCHECKED=-1) or (CHECKBOXIMAGE_CHECKED=-1) then
+          begin
+            //if none, or only one is defined create new checkbox images
+
+            //first cleanup. At max only one gets deleted so no need to worry about the index changing
+
+            if CHECKBOXIMAGE_UNCHECKED<>-1 then //destroy the old one
+            begin
+              MainForm.LuaFiles[CHECKBOXIMAGE_UNCHECKED].Free;
+              MainForm.LuaFiles.Delete(CHECKBOXIMAGE_UNCHECKED);
+            end;
+
+            if CHECKBOXIMAGE_CHECKED<>-1 then //destroy the old one
+            begin
+              MainForm.LuaFiles[CHECKBOXIMAGE_CHECKED].Free;
+              MainForm.LuaFiles.Delete(CHECKBOXIMAGE_CHECKED);
+            end;
+
+            checked:=tbitmap.create;
+            unchecked:=tbitmap.create;
+            frmD3DTrainerGeneratorOptions.ImageList1.GetBitmap(0, checked);
+            frmD3DTrainerGeneratorOptions.ImageList1.GetBitmap(1, unchecked);
+
+            f:=TMemoryStream.create;
+            checked.SaveToStream(f);
+
+            mainform.LuaFiles.Add(TLuafile.create('CHECKBOXIMAGE_CHECKED', f));
+            f.free;
+
+            f:=TMemoryStream.create;
+            checked.SaveToStream(f);
+            mainform.LuaFiles.Add(TLuafile.create('CHECKBOXIMAGE_UNCHECKED', f));
+            f.free;
+          end;
+
+
+          l.add('    --First get a "Picture" object to the checkbox images');
+          l.add('    CheckedPicture=createPicture()');
+          l.add('    UncheckedPicture=createPicture()');
+
+          l.add('    CheckedPicture.loadFromStream(findTableFile("CHECKBOXIMAGE_CHECKED").Stream)');
+          l.add('    UncheckedPicture.loadFromStream(findTableFile("CHECKBOXIMAGE_UNCHECKED").Stream)');
+
+          l.add('    --create the textures for the the checked and unchecked checkbox with these pictures');
+          l.add('    CheckedTexture=h.createTexture(CheckedPicture)');
+          l.add('    UncheckedTexture=h.createTexture(UncheckedPicture)');
+          l.add('    CheckedPicture.Destroy() --Not needed anymore');
+          l.add('    CheckedPicture=nil');
+          l.add('    UncheckedPicture.Destroy() ');
+          l.add('    UncheckedPicture=nil');
+        end;
+
+
+        //save the background image as a luafile
+        f:=TMemoryStream.create;
+        frmD3DTrainerGeneratorOptions.imgPreview.Picture.SaveToStream(f);
+        mainform.LuaFiles.Add(TLuafile.create('D3DTRAINERBACKGROUND', f));
+        f.free;
+
+
+
+        l.add('    --create the texture for the background');
+        l.add('    BackgroundPicture=createPicture()');
+        l.add('    BackgroundPicture.loadFromStream(findTableFile("D3DTRAINERBACKGROUND").Stream)');
+        l.add('    BackgroundTexture=h.createTexture(BackgroundPicture)');
+        l.add('    BackgroundPicture.Destroy() --Not needed anymore (The texture has everything we need)');
+        l.add('    BackgroundPicture=nil');
+        l.add('');
+        l.add('    BackgroundSprite=h.createSprite(BackgroundTexture)');
+        l.add('    BackgroundSprite.Alphablend=D3DHook.transparency / 100  --alphablend takes a value between 0.0 and 1.0, and transparency is a percentage from 0 to 100');
+        l.add('');
+        l.add('    --create a custom font you can mess with');
+        l.add('    f=createFont()');
+        l.add('    f.assign('+trainerform.Name+'.Font) --copy the same fontstyle from the trainerform');
+        l.add('    f.Color=D3DHook.textColor');
+        l.add('    --We make use of textures instead of fontmaps here because they look better, are faster, and don''t need to be updated often');
+        l.add('');
+        l.add('    --create the cheat entry lines');
+        l.add('    for i,info in pairs(d3dcheats) do');
+        l.add('      local pic=createPicture()');
+        l.add('      local text=info.description');
+        l.add('      if D3DHook.showHotkeys then --add the hotkey as well');
+        l.add('        text=text.." ("..info.hotkeys..")"');
+        l.add('      end');
+        l.add('      pic.Bitmap.Canvas.Font.Assign(f)');
+        l.add('      local width=pic.Bitmap.Canvas.getTextWidth(text)');
+        l.add('      local height=pic.Bitmap.Canvas.getTextHeight(text)');
+        l.add('      pic.Bitmap.Canvas.Brush.Color=0x010101');
+        l.add('      pic.Bitmap.Width=width');
+        l.add('      pic.Bitmap.Height=height');
+        l.add('      pic.Bitmap.Canvas.textOut(0,0,text)');
+        l.add('      info.TextTexture=h.createTexture(pic, 0x010101)');
+        l.add('      pic.Destroy()');
+        l.add('');
+        l.add('      info.TextSprite=h.createSprite(info.TextTexture)');
+        l.add('      info.TextSprite.Alphablend=D3DHook.transparency / 100');
+        l.add('      if D3DHook.hasCheckbox then');
+        l.add('        info.CheckboxSprite=h.createSprite(UncheckedTexture)');
+        l.add('        info.CheckboxSprite.Alphablend=D3DHook.transparency / 100');
+        l.add('      end');
+        l.add('');
+
+
+        l.add('    end');  //end of for loop
+        l.add('    SetD3DMenuPosition(0,0) --initialize the background sprite (Top Right)');
+
+        l.add('    if D3DHook.position==2 then --Top Right');
+        l.add('      SetD3DMenuPosition(h.Width-BackgroundSprite.Width, 0)');
+        l.add('    elseif D3DHook.position==3 then --Bottom Left');
+        l.add('      SetD3DMenuPosition(0, h.Height-BackgroundSprite.Height)');
+        l.add('    elseif D3DHook.position==4 then --Bottom Right');
+        l.add('      SetD3DMenuPosition(h.Width-BackgroundSprite.Width, h.Height-BackgroundSprite.Height)');
+        l.add('    elseif D3DHook.position==5 then --Center');
+        l.add('      SetD3DMenuPosition((h.Width / 2)-(BackgroundSprite.Width / 2), (h.Height / 2)-(BackgroundSprite.Height/2))');
+        l.add('    end');
+
+        l.add('');
+        l.add('    if D3DHook.hasCheckbox then');
+        l.add('      h.OnClick=D3DHookSpriteClick');
+        l.add('    end');
+        l.add('  end'); //end of h~=nil
+        l.add('end');
+        l.add('');
+        l.add('function D3DHookSpriteClick(d3dhook_sprite, x, y)');
+        l.add('  for i,info in pairs(d3dcheats) do');
+        l.add('    if (d3dhook_sprite==info.CheckboxSprite) or (d3dhook_sprite==info.TextSprite) then');
+        l.add('      --clicked on a cheat entry. Execute the hotkey event');
+        l.add('      local mr=getAddressList().getMemoryRecordByID(info.memrecid)');
+        l.add('      mr.getHotkeyByID(info.hotkeyid).doHotkey()');
+        l.add('      break');
+        l.add('    end');
+        l.add('  end');
+        l.add('end');
+        l.add('');
+        l.add('function SetD3DMenuPosition(x,y)');
+        l.add('  --set the background position and go through the d3dcheats. Optionally also stretching the background sprite');
+        l.add('  local maxX=0');
+        l.add('  local startY=y');
+        l.add('');
+        l.add('  BackgroundSprite.X=x');
+        l.add('  BackgroundSprite.Y=y');
+        l.add('  for i,info in pairs(d3dcheats) do');
+        l.add('    local _x=x+4');
+        l.add('    local _y=y');
+        l.add('    if D3DHook.hasCheckbox then');
+        l.add('      info.CheckboxSprite.X=_x');
+        l.add('      _x=_x+info.CheckboxSprite.Width+2');
+        l.add('      info.CheckboxSprite.Y=_y');
+        l.add('      _y=info.CheckboxSprite.Y+(info.CheckboxSprite.Height / 2)-(info.TextSprite.Height / 2) --center the text on the checkbox');
+        l.add('    end');
+        l.add('    info.TextSprite.X=_x');
+        l.add('    info.TextSprite.Y=_y');
+        l.add('');
+        l.add('    if maxX<info.TextSprite.X+info.TextSprite.Width+4 then');
+        l.add('      maxX=info.TextSprite.X+info.TextSprite.Width+4');
+        l.add('    end');
+        l.add('    y=info.TextSprite.Y+info.TextSprite.Height+3');
+        l.add('  end'); //end of for loop
+        l.add('');
+        l.add('  if D3DHook.stretch then');
+        l.add('    BackgroundSprite.Width=maxX-x');
+        l.add('    BackgroundSprite.Height=y-startY');
+        l.add('  end');
+        l.add('end'); //end of SetD3DMenuPosition
+      end
+      else
+        l.add('--WTF?--');
+
+
+
+    end;
+
 
   finally
     l.add('--TRAINERGENERATORSTOP--');
@@ -1305,6 +1561,18 @@ begin
   end;
 
   restoretimer.enabled:=true;
+end;
+
+procedure TfrmTrainerGenerator.cbUseD3DHookChange(Sender: TObject);
+begin
+  cbConfigD3DHook.enabled:=cbUseD3DHook.checked;
+
+  if cbConfigD3DHook.enabled and (frmD3DTrainerGeneratorOptions=nil) then
+    frmD3DTrainerGeneratorOptions:=tfrmD3DTrainerGeneratorOptions.create(application);
+
+  if (cbConfigD3DHook.enabled=false) and frmD3DTrainerGeneratorOptions.visible then
+    frmD3DTrainerGeneratorOptions.hide;
+
 end;
 
 procedure TfrmTrainerGenerator.edtCaptionChange(Sender: TObject);
