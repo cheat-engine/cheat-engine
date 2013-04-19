@@ -1057,9 +1057,9 @@ begin
 
 
 
-        l.add('function onOpenProcess');
+        l.add('function onOpenProcess()');
         l.add('  if (D3DHook.oldOnOpenProcess~=nil) then');
-        l.add('    D3DHook.oldOnOenProcess() --call the original onOpenProcess if needed');
+        l.add('    D3DHook.oldOnOpenProcess() --call the original onOpenProcess if needed');
         l.add('  end');
         l.add('  h=createD3DHook()');
         l.add('  if (h~=nil) then');
@@ -1128,9 +1128,9 @@ begin
           l.add('    --create the textures for the the checked and unchecked checkbox with these pictures');
           l.add('    CheckedTexture=h.createTexture(CheckedPicture)');
           l.add('    UncheckedTexture=h.createTexture(UncheckedPicture)');
-          l.add('    CheckedPicture.Destroy() --Not needed anymore');
+          l.add('    CheckedPicture.destroy() --Not needed anymore');
           l.add('    CheckedPicture=nil');
-          l.add('    UncheckedPicture.Destroy() ');
+          l.add('    UncheckedPicture.destroy() ');
           l.add('    UncheckedPicture=nil');
         end;
 
@@ -1138,6 +1138,13 @@ begin
         //save the background image as a luafile
         f:=TMemoryStream.create;
         frmD3DTrainerGeneratorOptions.imgPreview.Picture.SaveToStream(f);
+        for i:=0 to mainform.LuaFiles.count-1 do
+          if MainForm.LuaFiles[i].name='D3DTRAINERBACKGROUND' then
+          begin
+            mainform.LuaFiles[i].Free;
+            mainform.LuaFiles.delete(i);
+            break;
+          end;
         mainform.LuaFiles.Add(TLuafile.create('D3DTRAINERBACKGROUND', f));
         f.free;
 

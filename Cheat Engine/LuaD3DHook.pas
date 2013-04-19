@@ -168,6 +168,9 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'createTexture', d3dhook_createTexture);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'createFontmap', d3dhook_createFontmap);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'createTextContainer', d3dhook_createTextContainer);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'createSprite', d3dhook_createSprite);
+
+
 end;
 
 function d3dhook_texture_loadTextureByPicture(L: PLua_State): integer; cdecl;
