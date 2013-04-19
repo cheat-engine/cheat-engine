@@ -1112,7 +1112,7 @@ begin
             f.free;
 
             f:=TMemoryStream.create;
-            checked.SaveToStream(f);
+            unchecked.SaveToStream(f);
             mainform.LuaFiles.Add(TLuafile.create('CHECKBOXIMAGE_UNCHECKED', f));
             f.free;
           end;
@@ -1154,11 +1154,11 @@ begin
         l.add('    BackgroundPicture=createPicture()');
         l.add('    BackgroundPicture.loadFromStream(findTableFile("D3DTRAINERBACKGROUND").Stream)');
         l.add('    BackgroundTexture=h.createTexture(BackgroundPicture)');
-        l.add('    BackgroundPicture.Destroy() --Not needed anymore (The texture has everything we need)');
+        l.add('    BackgroundPicture.destroy() --Not needed anymore (The texture has everything we need)');
         l.add('    BackgroundPicture=nil');
         l.add('');
         l.add('    BackgroundSprite=h.createSprite(BackgroundTexture)');
-        l.add('    BackgroundSprite.Alphablend=D3DHook.transparency / 100  --alphablend takes a value between 0.0 and 1.0, and transparency is a percentage from 0 to 100');
+        l.add('    BackgroundSprite.Alphablend=1.0-D3DHook.transparency / 100  --alphablend takes a value between 0.0 and 1.0 where 1.0 is fully visible, and transparency is a percentage from 0 to 100 where 100 is invisible');
         l.add('');
         l.add('    --create a custom font you can mess with');
         l.add('    f=createFont()');
@@ -1173,7 +1173,7 @@ begin
         l.add('      if D3DHook.showHotkeys then --add the hotkey as well');
         l.add('        text=text.." ("..info.hotkeys..")"');
         l.add('      end');
-        l.add('      pic.Bitmap.Canvas.Font.Assign(f)');
+        l.add('      pic.Bitmap.Canvas.Font.assign(f)');
         l.add('      local width=pic.Bitmap.Canvas.getTextWidth(text)');
         l.add('      local height=pic.Bitmap.Canvas.getTextHeight(text)');
         l.add('      pic.Bitmap.Canvas.Brush.Color=0x010101');
@@ -1181,7 +1181,7 @@ begin
         l.add('      pic.Bitmap.Height=height');
         l.add('      pic.Bitmap.Canvas.textOut(0,0,text)');
         l.add('      info.TextTexture=h.createTexture(pic, 0x010101)');
-        l.add('      pic.Destroy()');
+        l.add('      pic.destroy()');
         l.add('');
         l.add('      info.TextSprite=h.createSprite(info.TextTexture)');
         l.add('      info.TextSprite.Alphablend=D3DHook.transparency / 100');

@@ -72,10 +72,12 @@ var
   d: TD3DHook;
   o: TObject;
   s: string;
+
+  p: TPicture;
 begin
   d:=luaclass_getClassObject(L);
   result:=0;
-  if lua_gettop(L)=1 then
+  if lua_gettop(L)>=1 then
   begin
 
     if lua_isuserdata(L,1) then
@@ -84,7 +86,23 @@ begin
       o:=lua_toceuserdata(L,1);
       if (o is TPicture) then
       begin
-        luaclass_newClass(L, d.createTexture(tpicture(o)));
+        if lua_gettop(L)=2 then //transparency color given
+        begin
+          //create a new picture with 32-bit color and change the transparent color
+          p:=tpicture.create;
+          p.png.PixelFormat:=pf32bit;
+          p.png.Transparent:=true;
+          p.png.TransparentColor:=lua_tointeger(L, 2);
+          p.png.width:=tpicture(o).Width;
+          p.png.Height:=tpicture(o).height;
+
+
+          p.png.canvas.CopyRect(rect(0,0,tpicture(o).Width,tpicture(o).Height), tpicture(o).bitmap.canvas, rect(0,0,tpicture(o).Width,tpicture(o).Height));
+          luaclass_newClass(L, d.createTexture(p));
+          p.free;
+        end
+        else
+          luaclass_newClass(L, d.createTexture(tpicture(o)));
         result:=1;
       end;
     end
