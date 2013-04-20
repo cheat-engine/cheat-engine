@@ -4225,6 +4225,18 @@ begin
   end;
 end;
 
+function lua_createClass(L: PLua_State): integer; cdecl;
+var classname: string;
+begin
+  result:=0;
+  if lua_gettop(L)=1 then
+  begin
+    classname:=Lua_ToString(L,1);
+    luaclass_newClass(L, GetClass(classname).Create);
+    result:=1;
+  end;
+end;
+
 procedure InitializeLua;
 var s: tstringlist;
   k32: THandle;
@@ -4524,6 +4536,8 @@ begin
     Lua_register(LuaVM, 'detachIfPossible', lua_DetachIfPossible);
     Lua_register(LuaVM, 'getComment', getComment);
     Lua_register(LuaVM, 'setComment', setComment);
+
+    lua_register(LuaVM, 'createClass', lua_createClass);
 
 
     initializeLuaCustomControl;
