@@ -180,7 +180,8 @@ resourcestring
 
 implementation
 
-uses MainUnit, mainunit2, symbolhandler, LuaHandler, formsettingsunit, frmExeTrainerGeneratorUnit;
+uses MainUnit, mainunit2, symbolhandler, LuaHandler, formsettingsunit,
+     frmExeTrainerGeneratorUnit, trainergenerator;
 
 
 
@@ -401,7 +402,12 @@ begin
       for i:=0 to forms.ChildNodes.Count-1 do
       begin
         form:=forms.ChildNodes.Item[i];
-        f:=TCEform.create(nil);
+
+        if (form.Attributes<>nil) and (form.Attributes.GetNamedItem('Class')<>nil) and (uppercase(form.Attributes.GetNamedItem('Class').TextContent)='TTRAINERFORM') then
+          f:=TTrainerForm.CreateNew(nil)
+        else
+          f:=TCEform.createnew(nil);
+
         f.LoadFromXML(form);
 
         mainform.LuaForms.Add(f);

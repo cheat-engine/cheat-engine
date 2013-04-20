@@ -3227,10 +3227,12 @@ procedure TMainForm.DeleteFileClick(Sender: TObject);
 var
   lf: TLuafile;
 begin
-  lf := TLuafile(TMenuItem(Sender).Tag);
+  lf := LuaFiles[TMenuItem(Sender).Tag];
   lf.Free;
 
   LuaFiles.Delete(TMenuItem(Sender).Tag);
+  UpdateMenu;
+
 end;
 
 procedure TMainForm.UpdateMenu;

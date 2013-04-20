@@ -297,10 +297,12 @@ setComment(address, text) : Sets a userdefined comment at the specifried address
 
 
 class helper functions
-inheritsFromObject(class): Returns true if given any class
-inheritsFromComponent(class): Returns true if the given object inherits from the Component class
-inheritsFromControl(class): Returns true if the given object inherits from the Control class
-inheritsFromWinControl(class): Returns true if the given object inherits from the WinControl class
+inheritsFromObject(object): Returns true if given any class
+inheritsFromComponent(object): Returns true if the given object inherits from the Component class
+inheritsFromControl(object): Returns true if the given object inherits from the Control class
+inheritsFromWinControl(object): Returns true if the given object inherits from the WinControl class
+
+createClass(classname): Creates an object of the specified class (Assuming it's a registered class and has a default constructor)
 
 
 Class definitions
@@ -1050,6 +1052,7 @@ properties
 
 methods
   loadFromFile(filename)
+  saveToFile(filename)
   loadFromStream(stream, originalextension OPTIONAL) : Loads a picture from a stream. Note that the stream position must be set to the start of the picture
   assign(sourcepicture)
   getGraphic() : Gets the Graphic object of this picture

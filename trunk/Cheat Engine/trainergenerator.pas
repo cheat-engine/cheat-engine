@@ -304,6 +304,7 @@ procedure TfrmTrainerGenerator.FormCreate(Sender: TObject);
 var i,j: integer;
   f: TCEForm;
 
+  temp: TObject;
   mr: Tmemoryrecord;
 
   cheatnr: integer;
@@ -333,7 +334,8 @@ begin
   reusedWindow:=false;
   for i:=0 to mainform.LuaForms.count-1 do
   begin
-    if (TObject(mainform.luaforms[i]) is TTrainerform) then
+    temp:=TObject(mainform.luaforms[i]) ;
+    if (temp is TTrainerform) then
     begin
       r:=messagedlg(rsAlreadyATrainerFormDefined, mtConfirmation, [mbok, mbcancel], 0);
 
@@ -723,6 +725,7 @@ var generated: tstringlist;
   checked, unchecked: tbitmap;
   CHECKBOXIMAGE_UNCHECKED: integer;
   CHECKBOXIMAGE_CHECKED: integer;
+  d3dfontlabel: tcelabel;
 begin
 
   trainerform.active:=false;
@@ -1025,16 +1028,34 @@ begin
 
     if cbUseD3DHook.checked then
     begin
+      //create a label with the specified font in the trainer form
+
       l.add('');
       l.add('--    Direct 3D Hook Function   --');
       l.add('');
 
       if frmD3DTrainerGeneratorOptions<>nil then
       begin
+
+        d3dfontlabel:=TCELabel(trainerform.FindComponent('D3DFONTLABEL'));
+        if d3dfontlabel=nil then
+        begin
+          d3dfontlabel:=tcelabel.create(trainerform);
+          d3dfontlabel.parent:=trainerform;
+          d3dfontlabel.name:='D3DFONTLABEL';
+        end;
+
+        d3dfontlabel.Font.assign(frmD3DTrainerGeneratorOptions.lblTextColor.Font);
+        d3dfontlabel.Visible:=false;
+
+        trainerform.SaveCurrentStateasDesign;
+
+
         l.add('D3DHook={} --config options');
         l.add('D3DHook.oldOnOpenProcess=onOpenProcess  --easy and compatible way for different scripts to make use of onOpenProcess');
         l.add('D3DHook.transparency='+inttostr(frmD3DTrainerGeneratorOptions.TrackBar1.Position));
-        l.add('D3DHook.textColor=0x'+inttohex(frmD3DTrainerGeneratorOptions.lblTextColor.font.color,8));
+        l.add('D3DHook.textFont='+trainerform.name+'.D3DFONTLABEL.font');
+
         //l.add('D3DHook.allowDrag='+BoolToStr(frmD3DTrainerGeneratorOptions.cbAllowDrag.checked, 'true','false'));
         l.add('D3DHook.showHotkeys='+BoolToStr(frmD3DTrainerGeneratorOptions.cbShowHotkeys.checked, 'true', 'false'));
         l.add('D3DHook.hasCheckbox='+BoolToStr(frmD3DTrainerGeneratorOptions.cbHasCheckbox.checked, 'true', 'false'));
@@ -1100,10 +1121,9 @@ begin
               MainForm.LuaFiles.Delete(CHECKBOXIMAGE_CHECKED);
             end;
 
-            checked:=tbitmap.create;
-            unchecked:=tbitmap.create;
-            frmD3DTrainerGeneratorOptions.ImageList1.GetBitmap(0, checked);
-            frmD3DTrainerGeneratorOptions.ImageList1.GetBitmap(1, unchecked);
+            checked:=frmD3DTrainerGeneratorOptions.imgChecked.Picture.Bitmap;
+            unchecked:=frmD3DTrainerGeneratorOptions.imgUnchecked.Picture.Bitmap;
+
 
             f:=TMemoryStream.create;
             checked.SaveToStream(f);
@@ -1160,12 +1180,6 @@ begin
         l.add('    BackgroundSprite=h.createSprite(BackgroundTexture)');
         l.add('    BackgroundSprite.Alphablend=1.0-D3DHook.transparency / 100  --alphablend takes a value between 0.0 and 1.0 where 1.0 is fully visible, and transparency is a percentage from 0 to 100 where 100 is invisible');
         l.add('');
-        l.add('    --create a custom font you can mess with');
-        l.add('    f=createFont()');
-        l.add('    f.assign('+trainerform.Name+'.Font) --copy the same fontstyle from the trainerform');
-        l.add('    f.Color=D3DHook.textColor');
-        l.add('    --We make use of textures instead of fontmaps here because they look better, are faster, and don''t need to be updated often');
-        l.add('');
         l.add('    --create the cheat entry lines');
         l.add('    for i,info in pairs(d3dcheats) do');
         l.add('      local pic=createPicture()');
@@ -1173,9 +1187,10 @@ begin
         l.add('      if D3DHook.showHotkeys then --add the hotkey as well');
         l.add('        text=text.." ("..info.hotkeys..")"');
         l.add('      end');
-        l.add('      pic.Bitmap.Canvas.Font.assign(f)');
+        l.add('      pic.Bitmap.Canvas.Font.assign(D3DHook.textFont)');
         l.add('      local width=pic.Bitmap.Canvas.getTextWidth(text)');
         l.add('      local height=pic.Bitmap.Canvas.getTextHeight(text)');
+
         l.add('      pic.Bitmap.Canvas.Brush.Color=0x010101');
         l.add('      pic.Bitmap.Width=width');
         l.add('      pic.Bitmap.Height=height');
@@ -1184,13 +1199,12 @@ begin
         l.add('      pic.destroy()');
         l.add('');
         l.add('      info.TextSprite=h.createSprite(info.TextTexture)');
-        l.add('      info.TextSprite.Alphablend=D3DHook.transparency / 100');
+        l.add('      info.TextSprite.Alphablend=1.0-D3DHook.transparency / 100');
         l.add('      if D3DHook.hasCheckbox then');
         l.add('        info.CheckboxSprite=h.createSprite(UncheckedTexture)');
-        l.add('        info.CheckboxSprite.Alphablend=D3DHook.transparency / 100');
+        l.add('        info.CheckboxSprite.Alphablend=1.0-D3DHook.transparency / 100');
         l.add('      end');
         l.add('');
-
 
         l.add('    end');  //end of for loop
         l.add('    SetD3DMenuPosition(0,0) --initialize the background sprite (Top Right)');
