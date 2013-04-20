@@ -125,12 +125,7 @@ begin
         tkInteger,tkInt64,tkQWord: lua_pushinteger(L, GetPropValue(c, p,false));
         tkBool: lua_pushboolean(L, GetPropValue(c, p, false));
         tkFloat: lua_pushnumber(L, GetPropValue(c, p, false));
-        tkClass, tkObject:
-        begin
-          t:=GetPropValue(c,p,false);
-          c2:=tobject(t);
-          luaclass_newClass(L, c2);
-        end;
+        tkClass, tkObject: luaclass_newClass(L, GetObjectProp(c, p));
         tkMethod: LuaCaller_pushMethodProperty(L, GetMethodProp(c,p), pinfo.PropType.Name);
         tkSet: lua_pushstring(L, GetSetProp(c, pinfo, true));
         else lua_pushstring(L, GetPropValue(c, p,true));
@@ -192,7 +187,7 @@ begin
           tkClass, tkObject:
           begin
             c2:=lua_ToCEUserData(L, 3);
-            SetPropValue(c, p, ptruint(c2));
+            SetObjectProp(c, p, c2);
           end;
           tkset: SetSetProp(c, pinfo, v);
           tkMethod: luacaller_setMethodProperty(L, c, p, pinfo.PropType.Name, 3);
