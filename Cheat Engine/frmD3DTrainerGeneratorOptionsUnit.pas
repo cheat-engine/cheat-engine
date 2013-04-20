@@ -24,7 +24,9 @@ type
     cbAllowDrag: TCheckBox;
     ColorDialog1: TColorDialog;
     edtd3dkeys: TEdit;
-    ImageList1: TImageList;
+    FontDialog1: TFontDialog;
+    imgChecked: TImage;
+    imgUnchecked: TImage;
     imgPreview: TImage;
     Label1: TLabel;
     Label2: TLabel;
@@ -116,8 +118,12 @@ end;
 
 procedure TfrmD3DTrainerGeneratorOptions.Button3Click(Sender: TObject);
 begin
-  if colordialog1.execute then
-    lblTextColor.font.color:=ColorDialog1.Color;
+  fontdialog1.font.assign(lblTextColor.Font);
+  if fontdialog1.execute then
+  begin
+    lblTextColor.font.assign(fontdialog1.font);
+    lblTextColor.font.Quality:=fqNonAntialiased;
+  end;
 
 end;
 

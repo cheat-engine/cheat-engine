@@ -30,6 +30,17 @@ begin
     picture.LoadFromFile(Lua_ToString(L, -1));
 end;
 
+function picture_saveToFile(L: PLua_State): integer; cdecl;
+var
+  picture: Tpicture;
+begin
+  result:=0;
+  picture:=luaclass_getClassObject(L);
+
+  if lua_gettop(L)>=1 then
+    picture.SaveToFile(Lua_ToString(L, 1));
+end;
+
 function picture_loadFromStream(L: PLua_State): integer; cdecl;
 var
   paramstart, paramcount: integer;
@@ -113,6 +124,8 @@ procedure picture_addMetaData(L: PLua_state; metatable: integer; userdata: integ
 begin
   object_addMetaData(L, metatable, userdata);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'loadFromFile',picture_loadFromFile);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'saveToFile',picture_loadFromFile);
+
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'loadFromStream',picture_loadFromStream);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'assign',picture_assign);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getGraphic',picture_getGraphic);

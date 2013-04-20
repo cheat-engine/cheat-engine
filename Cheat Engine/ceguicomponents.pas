@@ -1317,6 +1317,12 @@ begin
     a.TextContent:='Ascii85';
     formnode.Attributes.SetNamedItem(a);
 
+    a:=doc.CreateAttribute('Class');
+    a.TextContent:=ClassName;
+    formnode.Attributes.SetNamedItem(a);
+
+
+
   finally
     if outputastext<>nil then
       freemem(outputastext);
