@@ -849,6 +849,17 @@ begin
               l.add('  if gBeepOnAction then');
               l.add('    beep()');
               l.add('  end');
+              if cbUseD3DHook.checked and (frmD3DTrainerGeneratorOptions<>nil) and (frmD3DTrainerGeneratorOptions.cbHasCheckbox.checked) then
+              begin
+                l.add('  ');
+                l.add('  local newcbtexture=nil');
+                l.add('  if isActive then');
+                l.add('    newcbtexture=CheckedTexture');
+                l.add('  else');
+                l.add('    newcbtexture=UncheckedTexture');
+                l.add('  end');
+                l.add('  d3dcheats['+inttostr(currentcheat.cheatnr)+'].CheckboxSprite.Texture=newcbtexture');
+              end;
               l.add('end');
               l.add('');
 
@@ -1231,12 +1242,14 @@ begin
         l.add('    if (d3dhook_sprite==info.CheckboxSprite) or (d3dhook_sprite==info.TextSprite) then');
         l.add('      --clicked on a cheat entry. Execute the hotkey event');
         l.add('      local mr=getAddressList().getMemoryRecordByID(info.memrecid)');
-        l.add('      mr.getHotkeyByID(info.hotkeyid).doHotkey()');
+        l.add('      mr.getHotkeyByID(info.hotkeyid).doHotkey() --execute the hotkey event');
         l.add('      break');
         l.add('    end');
         l.add('  end');
         l.add('end');
         l.add('');
+
+
         l.add('function SetD3DMenuPosition(x,y)');
         l.add('  --set the background position and go through the d3dcheats. Optionally also stretching the background sprite');
         l.add('  local maxX=0');
@@ -1246,27 +1259,31 @@ begin
         l.add('  BackgroundSprite.Y=y');
         l.add('  for i,info in pairs(d3dcheats) do');
         l.add('    local _x=x+4');
-        l.add('    local _y=y');
+        l.add('    local lineheight=info.TextSprite.Height');
+        l.add('');
         l.add('    if D3DHook.hasCheckbox then');
+        l.add('      if info.CheckboxSprite.Height>lineheight then');
+        l.add('        lineheight=info.CheckboxSprite.Height');
+        l.add('      end');
         l.add('      info.CheckboxSprite.X=_x');
         l.add('      _x=_x+info.CheckboxSprite.Width+2');
-        l.add('      info.CheckboxSprite.Y=_y');
-        l.add('      _y=info.CheckboxSprite.Y+(info.CheckboxSprite.Height / 2)-(info.TextSprite.Height / 2) --center the text on the checkbox');
+        l.add('      info.CheckboxSprite.Y=y+ (lineheight / 2) - (info.CheckboxSprite.Height /2)');
         l.add('    end');
         l.add('    info.TextSprite.X=_x');
-        l.add('    info.TextSprite.Y=_y');
+        l.add('    info.TextSprite.Y=y+ (lineheight / 2) - (info.TextSprite.Height /2)');
         l.add('');
         l.add('    if maxX<info.TextSprite.X+info.TextSprite.Width+4 then');
         l.add('      maxX=info.TextSprite.X+info.TextSprite.Width+4');
         l.add('    end');
-        l.add('    y=info.TextSprite.Y+info.TextSprite.Height+3');
-        l.add('  end'); //end of for loop
+        l.add('    y=y+lineheight+3');
+        l.add('  end');
         l.add('');
         l.add('  if D3DHook.stretch then');
         l.add('    BackgroundSprite.Width=maxX-x');
         l.add('    BackgroundSprite.Height=y-startY');
         l.add('  end');
-        l.add('end'); //end of SetD3DMenuPosition
+        l.add('end');
+
       end
       else
         l.add('--WTF?--');
