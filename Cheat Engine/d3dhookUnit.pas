@@ -425,8 +425,8 @@ type
     constructor create(size: integer; hookhwnd: boolean=true);
     destructor destroy; override;
   published
-    property Width: integer read getHeight;
-    property Height: integer read getWidth;
+    property Width: integer read getWidth;
+    property Height: integer read getHeight;
     property DisabledZBuffer: boolean read GetDisabledZBuffer write setDisabledZBuffer;
     property WireframeMode: boolean read GetWireframeMode write setWireframeMode;
     property MouseClip: boolean read GetMouseclip write setMouseClip;
