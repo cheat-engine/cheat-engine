@@ -23,13 +23,21 @@ type
     cbHasCheckbox: TCheckBox;
     cbAllowDrag: TCheckBox;
     ColorDialog1: TColorDialog;
+    edtDistanceBetweenLines: TEdit;
+    edtDistanceFromTop: TEdit;
+    edtDistanceFromBorder: TEdit;
     edtd3dkeys: TEdit;
     FontDialog1: TFontDialog;
+    Label4: TLabel;
+    Label5: TLabel;
+    Label6: TLabel;
+    TextOverlayImage: TImage;
     imgChecked: TImage;
     imgUnchecked: TImage;
     imgPreview: TImage;
     Label1: TLabel;
     Label2: TLabel;
+    Label3: TLabel;
     lblTextColor: TLabel;
     OpenPictureDialog1: TOpenPictureDialog;
     rbTopLeft: TRadioButton;
@@ -42,6 +50,7 @@ type
     procedure Button2Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
     procedure Button4Click(Sender: TObject);
+    procedure cbStretchChange(Sender: TObject);
     procedure cbUseD3DKeysChange(Sender: TObject);
     procedure edtd3dkeysKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
@@ -74,6 +83,11 @@ end;
 procedure TfrmD3DTrainerGeneratorOptions.Button4Click(Sender: TObject);
 begin
   close;
+end;
+
+procedure TfrmD3DTrainerGeneratorOptions.cbStretchChange(Sender: TObject);
+begin
+  imgPreview.stretch:=cbStretch.checked;
 end;
 
 procedure TfrmD3DTrainerGeneratorOptions.cbUseD3DKeysChange(Sender: TObject);
@@ -124,6 +138,24 @@ begin
     lblTextColor.font.assign(fontdialog1.font);
     lblTextColor.font.Quality:=fqNonAntialiased;
   end;
+
+  //reset
+  TextOverlayImage.Picture.Bitmap.Width:=0;
+  TextOverlayImage.Picture.Bitmap.Height:=0;
+
+  TextOverlayImage.Picture.Bitmap.TransparentColor:=$010101;
+  TextOverlayImage.Picture.Bitmap.Transparent:=true;
+  TextOverlayImage.Picture.Bitmap.Canvas.Brush.Color:=TextOverlayImage.Picture.Bitmap.TransparentColor;
+  TextOverlayImage.Picture.Bitmap.Width:=TextOverlayImage.Width;
+  TextOverlayImage.Picture.Bitmap.Height:=TextOverlayImage.Height;
+  TextOverlayImage.Picture.Bitmap.Canvas.FillRect(0,0,TextOverlayImage.Picture.Bitmap.Width, TextOverlayImage.Picture.Bitmap.Height);
+  TextOverlayImage.Picture.Bitmap.Canvas.font:=lblTextColor.font;
+  TextOverlayImage.Picture.Bitmap.Canvas.font.Quality:=fqNonAntialiased;
+
+  TextOverlayImage.picture.Bitmap.Canvas.TextOut(0,0,'Example text');
+
+
+
 
 end;
 

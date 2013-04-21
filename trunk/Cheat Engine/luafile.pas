@@ -37,8 +37,6 @@ var s: string;
   read: integer;
 
   useascii85: boolean;
-{  a85: TASCII85DecoderStream;
-  a85source: Tstringstream; }
   a: TDOMNode;
 begin
   name:=node.NodeName;
@@ -61,19 +59,6 @@ begin
     maxsize:=max(65536,size);
     getmem(b, maxsize);
     size:=Base85ToBin(pchar(s), b);
-    {
-    a85source:=TStringStream.Create(s);
-    a85:=TASCII85DecoderStream.Create(a85source);
-
-    size:=a85source.Size*5 div 4;
-    maxsize:=max(65536,size); //64KB or the required size if that's bigger
-
-    getmem(b, size);
-    read:=a85.Read(b^, size);
-    size:=read;
-
-    a85.free;
-    a85source.free; }
   end
   else
   begin
@@ -93,11 +78,22 @@ begin
     m.position:=0;
     dc:=Tdecompressionstream.create(m, true);
 
-    //reuse the b buffer
-    repeat
-      read:=dc.read(b^, maxsize);
+    if useascii85 then //this ce version also added a filesize (This is why I usually don't recommend using svn builds for production work. Of coure, not many people using the svn made use of the file stuff)
+    begin
+      size:=dc.ReadDWord;
+      freemem(b);
+      getmem(b, size);
+      read:=dc.read(b^, size);
       filedata.WriteBuffer(b^, read);
-    until read=0;
+    end
+    else
+    begin
+      //reuse the b buffer
+      repeat
+        read:=dc.read(b^, maxsize);
+        filedata.WriteBuffer(b^, read);
+      until read=0;
+    end;
 
   finally
     freemem(b);
@@ -111,8 +107,6 @@ var
 
   m: TMemorystream;
   c: Tcompressionstream;
- { a85: TASCII85EncoderStream;
-  a85buffer: TStringStream;   }
 
   n: TDOMNode;
   a: TDOMAttr;
@@ -122,20 +116,13 @@ begin
   //compress the file
   m:=tmemorystream.create;
   c:=Tcompressionstream.create(clmax, m, true);
+
+  c.WriteDWord(filedata.size);
   c.write(filedata.Memory^, filedata.size);
   c.free;
 
 
   //convert the compressed file to an ascii85 sring
-{  a85buffer:=TStringStream.create('');
-  a85:=TASCII85EncoderStream.Create(a85buffer);
-  a85.Write(m.memory^, m.size);
-  a85.Free;
-
-  s:=a85buffer.DataString;
-  a85buffer.free;    }
-
-
   getmem(outputastext, (m.size div 4) * 5 + 5 );
   BinToBase85(pchar(m.memory), outputastext, m.size);
 
@@ -150,22 +137,6 @@ begin
 
   freemem(outputastext);
   m.free;
-
-
-  {
-  //convert the compressed file to a hexstring
-  getmem(outputastext, m.size*2+1);
-  try
-    BinToHex(pchar(m.Memory), outputastext, m.Size);
-
-    outputastext[m.size*2]:=#0; //add a 0 terminator
-
-
-  finally
-    freemem(outputastext);
-    if m<>nil then
-      m.free;
-  end;  }
 end;
 
 constructor TLuafile.create(name: string; stream: tstream);

@@ -1,12 +1,15 @@
 object frmD3DTrainerGeneratorOptions: TfrmD3DTrainerGeneratorOptions
   Left = 1065
-  Height = 256
+  Height = 365
   Top = 140
-  Width = 422
+  Width = 418
+  BorderIcons = [biSystemMenu, biMinimize]
+  BorderStyle = bsSingle
   Caption = 'Direct3D Hook Options'
-  ClientHeight = 256
-  ClientWidth = 422
+  ClientHeight = 365
+  ClientWidth = 418
   OnCreate = FormCreate
+  Position = poScreenCenter
   LCLVersion = '1.1'
   object cbUseD3DKeys: TCheckBox
     Left = 8
@@ -44,7 +47,6 @@ object frmD3DTrainerGeneratorOptions: TfrmD3DTrainerGeneratorOptions
     Height = 23
     Top = 32
     Width = 112
-    Enabled = False
     OnKeyDown = edtd3dkeysKeyDown
     ReadOnly = True
     TabOrder = 2
@@ -55,41 +57,40 @@ object frmD3DTrainerGeneratorOptions: TfrmD3DTrainerGeneratorOptions
     Top = 32
     Width = 75
     Caption = 'Clear'
-    Enabled = False
     OnClick = btnClearClick
     TabOrder = 3
   end
   object Button2: TButton
-    Left = 8
+    Left = 208
     Height = 25
-    Top = 176
+    Top = 240
     Width = 139
     Caption = 'Set background picture'
     OnClick = Button2Click
     TabOrder = 4
   end
   object imgPreview: TImage
-    Left = 216
-    Height = 153
-    Top = 96
+    Left = 208
+    Height = 121
+    Top = 112
     Width = 192
-    Stretch = True
   end
   object cbStretch: TCheckBox
-    Left = 8
+    Left = 208
     Height = 19
     Hint = 'If selected the background image will get resized so that cheat entries will fit inside it'#13#10'This is useful if you pick a 1x1 pixel size bitmap that you wish to stretch'
-    Top = 200
+    Top = 264
     Width = 170
     Caption = 'Scale the background image'
+    OnChange = cbStretchChange
     ParentShowHint = False
     ShowHint = True
     TabOrder = 5
   end
   object Button3: TButton
-    Left = 8
+    Left = 208
     Height = 25
-    Top = 144
+    Top = 288
     Width = 139
     Caption = 'Set Font'
     OnClick = Button3Click
@@ -163,23 +164,24 @@ object frmD3DTrainerGeneratorOptions: TfrmD3DTrainerGeneratorOptions
     Visible = False
   end
   object Button4: TButton
-    Left = 72
+    Left = 176
     Height = 25
-    Top = 224
+    Top = 336
     Width = 75
     Caption = 'Close'
     OnClick = Button4Click
     TabOrder = 13
   end
   object lblTextColor: TLabel
-    Left = 152
+    Left = 352
     Height = 15
-    Top = 144
+    Top = 336
     Width = 46
     Caption = 'Font text'
     Font.Quality = fqNonAntialiased
     ParentColor = False
     ParentFont = False
+    Visible = False
   end
   object cbShowHotkeys: TCheckBox
     Left = 8
@@ -192,9 +194,9 @@ object frmD3DTrainerGeneratorOptions: TfrmD3DTrainerGeneratorOptions
     TabOrder = 15
   end
   object imgChecked: TImage
-    Left = 0
+    Left = 312
     Height = 13
-    Top = 240
+    Top = 336
     Width = 13
     Picture.Data = {
       1754506F727461626C654E6574776F726B47726170686963DB00000089504E47
@@ -209,9 +211,9 @@ object frmD3DTrainerGeneratorOptions: TfrmD3DTrainerGeneratorOptions
     Visible = False
   end
   object imgUnchecked: TImage
-    Left = 16
+    Left = 328
     Height = 13
-    Top = 240
+    Top = 336
     Width = 13
     Picture.Data = {
       1754506F727461626C654E6574776F726B47726170686963AB00000089504E47
@@ -223,6 +225,69 @@ object frmD3DTrainerGeneratorOptions: TfrmD3DTrainerGeneratorOptions
       454E44AE426082
     }
     Visible = False
+  end
+  object Label3: TLabel
+    Left = 208
+    Height = 15
+    Top = 96
+    Width = 107
+    Caption = 'Background picture:'
+    ParentColor = False
+  end
+  object TextOverlayImage: TImage
+    Left = 208
+    Height = 121
+    Top = 112
+    Width = 192
+    Transparent = True
+  end
+  object edtDistanceBetweenLines: TEdit
+    Left = 9
+    Height = 23
+    Top = 168
+    Width = 176
+    TabOrder = 16
+    Text = '4'
+  end
+  object Label4: TLabel
+    Left = 9
+    Height = 15
+    Top = 152
+    Width = 165
+    Caption = 'Distance between lines in pixels'
+    ParentColor = False
+  end
+  object Label5: TLabel
+    Left = 9
+    Height = 15
+    Top = 196
+    Width = 119
+    Caption = 'Text distance from top'
+    ParentColor = False
+  end
+  object edtDistanceFromTop: TEdit
+    Left = 9
+    Height = 23
+    Top = 210
+    Width = 176
+    TabOrder = 17
+    Text = '8'
+  end
+  object edtDistanceFromBorder: TEdit
+    Left = 9
+    Height = 23
+    Top = 256
+    Width = 176
+    TabOrder = 18
+    Text = '8'
+  end
+  object Label6: TLabel
+    Left = 9
+    Height = 15
+    Top = 240
+    Width = 136
+    Caption = 'Text distance from border'
+    ParentColor = False
   end
   object ColorDialog1: TColorDialog
     Color = clBlack
@@ -248,19 +313,19 @@ object frmD3DTrainerGeneratorOptions: TfrmD3DTrainerGeneratorOptions
       'ColorS=F0FBFF'
       'ColorT=A4A0A0'
     )
-    left = 176
-    top = 88
+    left = 112
+    top = 320
   end
   object OpenPictureDialog1: TOpenPictureDialog
-    left = 176
-    top = 176
+    left = 72
+    top = 320
   end
   object FontDialog1: TFontDialog
     Font.Quality = fqNonAntialiased
     MinFontSize = 0
     MaxFontSize = 0
     PreviewText = 'Example'
-    left = 64
-    top = 136
+    left = 24
+    top = 320
   end
 end

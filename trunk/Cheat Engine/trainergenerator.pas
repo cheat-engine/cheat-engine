@@ -1071,6 +1071,9 @@ begin
         l.add('D3DHook.showHotkeys='+BoolToStr(frmD3DTrainerGeneratorOptions.cbShowHotkeys.checked, 'true', 'false'));
         l.add('D3DHook.hasCheckbox='+BoolToStr(frmD3DTrainerGeneratorOptions.cbHasCheckbox.checked, 'true', 'false'));
         l.add('D3DHook.stretch='+BoolToStr(frmD3DTrainerGeneratorOptions.cbStretch.checked, 'true',' false'));
+        l.add('D3DHook.distanceBetweenLines='+frmD3DTrainerGeneratorOptions.edtDistanceBetweenLines.text);
+        l.add('D3DHook.distanceFromTop='+frmD3DTrainerGeneratorOptions.edtDistanceFromTop.text);
+        l.add('D3DHook.distanceFromBorder='+frmD3DTrainerGeneratorOptions.edtDistanceFromBorder.text);
 
         if frmD3DTrainerGeneratorOptions.rbTopLeft.checked then
           l.add('D3DHook.position=1')
@@ -1251,36 +1254,40 @@ begin
 
 
         l.add('function SetD3DMenuPosition(x,y)');
+        l.add('  --Sets up the trainer window and position');
         l.add('  --set the background position and go through the d3dcheats. Optionally also stretching the background sprite');
         l.add('  local maxX=0');
         l.add('  local startY=y');
         l.add('');
-        l.add('  BackgroundSprite.X=x');
-        l.add('  BackgroundSprite.Y=y');
+        l.add('  BackgroundSprite.X=math.floor(x)');
+        l.add('  BackgroundSprite.Y=math.floor(y)');
+        l.add('');
+        l.add('  x=x+D3DHook.distanceFromBorder');
+        l.add('  y=y+D3DHook.distanceFromTop');
         l.add('  for i,info in pairs(d3dcheats) do');
-        l.add('    local _x=x+4');
+        l.add('    local _x=x');
         l.add('    local lineheight=info.TextSprite.Height');
         l.add('');
         l.add('    if D3DHook.hasCheckbox then');
         l.add('      if info.CheckboxSprite.Height>lineheight then');
         l.add('        lineheight=info.CheckboxSprite.Height');
         l.add('      end');
-        l.add('      info.CheckboxSprite.X=_x');
+        l.add('      info.CheckboxSprite.X=math.floor(_x)');
         l.add('      _x=_x+info.CheckboxSprite.Width+2');
-        l.add('      info.CheckboxSprite.Y=y+ (lineheight / 2) - (info.CheckboxSprite.Height /2)');
+        l.add('      info.CheckboxSprite.Y=math.floor(y+ (lineheight / 2) - (info.CheckboxSprite.Height /2))');
         l.add('    end');
-        l.add('    info.TextSprite.X=_x');
-        l.add('    info.TextSprite.Y=y+ (lineheight / 2) - (info.TextSprite.Height /2)');
+        l.add('    info.TextSprite.X=math.floor(_x)');
+        l.add('    info.TextSprite.Y=math.floor(y+ (lineheight / 2) - (info.TextSprite.Height /2))');
         l.add('');
         l.add('    if maxX<info.TextSprite.X+info.TextSprite.Width+4 then');
         l.add('      maxX=info.TextSprite.X+info.TextSprite.Width+4');
         l.add('    end');
-        l.add('    y=y+lineheight+3');
+        l.add('    y=y+lineheight+D3DHook.distanceBetweenLines');
         l.add('  end');
         l.add('');
         l.add('  if D3DHook.stretch then');
-        l.add('    BackgroundSprite.Width=maxX-x');
-        l.add('    BackgroundSprite.Height=y-startY');
+        l.add('    BackgroundSprite.Width=maxX-x+D3DHook.distanceFromBorder');
+        l.add('    BackgroundSprite.Height=y-startY+D3DHook.distanceFromBorder');
         l.add('  end');
         l.add('end');
 
