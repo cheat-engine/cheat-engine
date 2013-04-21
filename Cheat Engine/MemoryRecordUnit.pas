@@ -871,34 +871,36 @@ begin
       end;
     end;
 
-    //hotkeys
 
-    if HotkeyCount>0 then
+  end;
+
+  //hotkeys
+
+  if HotkeyCount>0 then
+  begin
+    hks:=cheatentry.AppendChild(doc.CreateElement('Hotkeys'));
+    for i:=0 to HotkeyCount-1 do
     begin
-      hks:=cheatentry.AppendChild(doc.CreateElement('Hotkeys'));
-      for i:=0 to HotkeyCount-1 do
+      hk:=hks.AppendChild(doc.CreateElement('Hotkey'));
+      hk.AppendChild(doc.CreateElement('Action')).TextContent:=MemRecHotkeyActionToText(hotkey[i].action);
+      hkkc:=hk.AppendChild(doc.createElement('Keys'));
+      j:=0;
+      while (j<5) and (hotkey[i].keys[j]<>0) do
       begin
-        hk:=hks.AppendChild(doc.CreateElement('Hotkey'));
-        hk.AppendChild(doc.CreateElement('Action')).TextContent:=MemRecHotkeyActionToText(hotkey[i].action);
-        hkkc:=hk.AppendChild(doc.createElement('Keys'));
-        j:=0;
-        while (j<5) and (hotkey[i].keys[j]<>0) do
-        begin
-          hkkc.appendchild(doc.createElement('Key')).TextContent:=inttostr(hotkey[i].keys[j]);
-          inc(j);
-        end;
-
-        if hotkey[i].value<>'' then
-          hk.AppendChild(doc.CreateElement('Value')).TextContent:=hotkey[i].value;
-
-        if hotkey[i].description<>'' then
-          hk.AppendChild(doc.CreateElement('Description')).TextContent:=hotkey[i].description;
-
-        if hotkey[i].id>=0 then
-          hk.AppendChild(doc.CreateElement('ID')).TextContent:=inttostr(hotkey[i].id);
+        hkkc.appendchild(doc.createElement('Key')).TextContent:=inttostr(hotkey[i].keys[j]);
+        inc(j);
       end;
 
+      if hotkey[i].value<>'' then
+        hk.AppendChild(doc.CreateElement('Value')).TextContent:=hotkey[i].value;
+
+      if hotkey[i].description<>'' then
+        hk.AppendChild(doc.CreateElement('Description')).TextContent:=hotkey[i].description;
+
+      if hotkey[i].id>=0 then
+        hk.AppendChild(doc.CreateElement('ID')).TextContent:=inttostr(hotkey[i].id);
     end;
+
   end;
 
   //append the children if it has any
