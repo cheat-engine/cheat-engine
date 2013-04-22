@@ -20,7 +20,7 @@
       <MajorVersionNr Value="6"/>
       <MinorVersionNr Value="2"/>
       <RevisionNr Value="1"/>
-      <BuildNr Value="3182"/>
+      <BuildNr Value="3184"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" ProductVersion="6.2" FileDescription="Cheat Engine"/>
@@ -207,13 +207,17 @@
         <Filename Value="CEFuncProc.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="CEFuncProc"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="9"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="2406"/>
-        <CursorPos X="49" Y="2417"/>
+        <TopLine Value="2482"/>
+        <CursorPos X="156" Y="2494"/>
         <UsageCount Value="204"/>
-        <Bookmarks Count="1">
-          <Item0 X="3" Y="2250" ID="7"/>
+        <Bookmarks Count="2">
+          <Item0 X="3" Y="2309" ID="7"/>
+          <Item1 X="1" Y="2506" ID="8"/>
         </Bookmarks>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit4>
       <Unit5>
@@ -326,10 +330,13 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="ProcessWindowUnit"/>
+        <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="509"/>
-        <CursorPos X="39" Y="520"/>
+        <TopLine Value="522"/>
+        <CursorPos X="8" Y="534"/>
         <UsageCount Value="203"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit15>
       <Unit16>
@@ -741,7 +748,7 @@
         <Filename Value="OpenSave.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="OpenSave"/>
-        <EditorIndex Value="10"/>
+        <EditorIndex Value="12"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="34" Y="17"/>
@@ -2322,15 +2329,11 @@
         <Filename Value="d3dhookUnit.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="d3dhookUnit"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1014"/>
-        <CursorPos X="1" Y="1026"/>
+        <CursorPos X="19" Y="1022"/>
         <UsageCount Value="249"/>
-        <Bookmarks Count="1">
-          <Item0 X="47" Y="1025" ID="8"/>
-        </Bookmarks>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit188>
@@ -2605,7 +2608,7 @@
       </Unit213>
       <Unit214>
         <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\objpas\classes\classesh.inc"/>
-        <EditorIndex Value="9"/>
+        <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
         <TopLine Value="808"/>
         <CursorPos X="14" Y="818"/>
@@ -3053,7 +3056,7 @@
       <Unit257>
         <Filename Value="C:\lazarus\lcl\controls.pp"/>
         <UnitName Value="Controls"/>
-        <EditorIndex Value="14"/>
+        <EditorIndex Value="16"/>
         <WindowIndex Value="0"/>
         <TopLine Value="306"/>
         <CursorPos X="3" Y="319"/>
@@ -3113,7 +3116,7 @@
       <Unit262>
         <Filename Value="C:\lazarus\lcl\graphics.pp"/>
         <UnitName Value="Graphics"/>
-        <EditorIndex Value="12"/>
+        <EditorIndex Value="14"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1155"/>
         <CursorPos X="15" Y="1166"/>
@@ -3204,7 +3207,7 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmD3DTrainerGeneratorOptionsUnit"/>
-        <EditorIndex Value="11"/>
+        <EditorIndex Value="13"/>
         <WindowIndex Value="0"/>
         <TopLine Value="45"/>
         <CursorPos X="25" Y="84"/>
@@ -3231,11 +3234,11 @@
       <Unit276>
         <Filename Value="C:\lazarus\lcl\dialogs.pp"/>
         <UnitName Value="Dialogs"/>
-        <EditorIndex Value="13"/>
+        <EditorIndex Value="15"/>
         <WindowIndex Value="0"/>
         <TopLine Value="347"/>
         <CursorPos X="14" Y="358"/>
-        <UsageCount Value="65"/>
+        <UsageCount Value="67"/>
         <Loaded Value="True"/>
       </Unit276>
       <Unit277>
@@ -3272,124 +3275,124 @@
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="frmD3DTrainerGeneratorOptionsUnit.pas"/>
-        <Caret Line="144" Column="29" TopLine="129"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="2272" Column="1" TopLine="2258"/>
       </Position1>
       <Position2>
-        <Filename Value="frmD3DTrainerGeneratorOptionsUnit.pas"/>
-        <Caret Line="145" Column="29" TopLine="130"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="2274" Column="1" TopLine="2258"/>
       </Position2>
       <Position3>
-        <Filename Value="frmD3DTrainerGeneratorOptionsUnit.pas"/>
-        <Caret Line="146" Column="29" TopLine="131"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="2275" Column="1" TopLine="2258"/>
       </Position3>
       <Position4>
-        <Filename Value="trainergenerator.pas"/>
-        <Caret Line="1289" Column="41" TopLine="1274"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="2277" Column="1" TopLine="2261"/>
       </Position4>
       <Position5>
-        <Filename Value="OpenSave.pas"/>
-        <Caret Line="999" Column="36" TopLine="993"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="2278" Column="1" TopLine="2261"/>
       </Position5>
       <Position6>
-        <Filename Value="luafile.pas"/>
-        <Caret Line="31" Column="70" TopLine="24"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="2280" Column="1" TopLine="2267"/>
       </Position6>
       <Position7>
-        <Filename Value="luafile.pas"/>
-        <Caret Line="81" Column="139" TopLine="118"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="2281" Column="1" TopLine="2267"/>
       </Position7>
       <Position8>
-        <Filename Value="luafile.pas"/>
-        <Caret Line="83" Column="13" TopLine="64"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="2283" Column="1" TopLine="2267"/>
       </Position8>
       <Position9>
-        <Filename Value="LuaD3DHook.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="2284" Column="1" TopLine="2267"/>
       </Position9>
       <Position10>
-        <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="44" Column="82" TopLine="40"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="2285" Column="1" TopLine="2267"/>
       </Position10>
       <Position11>
-        <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="212" Column="56" TopLine="202"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="2286" Column="1" TopLine="2267"/>
       </Position11>
       <Position12>
-        <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="772" Column="12" TopLine="758"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="2288" Column="1" TopLine="2268"/>
       </Position12>
       <Position13>
-        <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="852" Column="3" TopLine="846"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="2289" Column="1" TopLine="2275"/>
       </Position13>
       <Position14>
-        <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="931" Column="1" TopLine="918"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="2291" Column="1" TopLine="2275"/>
       </Position14>
       <Position15>
-        <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="769" Column="12" TopLine="754"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="2295" Column="1" TopLine="2281"/>
       </Position15>
       <Position16>
-        <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="1022" Column="51" TopLine="1008"/>
+        <Filename Value="ProcessWindowUnit.pas"/>
+        <Caret Line="520" Column="39" TopLine="509"/>
       </Position16>
       <Position17>
-        <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="1023" Column="66" TopLine="1008"/>
+        <Filename Value="ProcessWindowUnit.pas"/>
+        <Caret Line="527" Column="39" TopLine="516"/>
       </Position17>
       <Position18>
-        <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="946" Column="54" TopLine="930"/>
+        <Filename Value="ProcessWindowUnit.pas"/>
+        <Caret Line="195" Column="21" TopLine="193"/>
       </Position18>
       <Position19>
-        <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="769" Column="3" TopLine="773"/>
+        <Filename Value="ProcessWindowUnit.pas"/>
+        <Caret Line="465" Column="8" TopLine="461"/>
       </Position19>
       <Position20>
-        <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="778" Column="1" TopLine="773"/>
+        <Filename Value="ProcessWindowUnit.pas"/>
+        <Caret Line="75" Column="14" TopLine="64"/>
       </Position20>
       <Position21>
-        <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="780" Column="1" TopLine="773"/>
+        <Filename Value="ProcessWindowUnit.pas"/>
+        <Caret Line="542" Column="3" TopLine="528"/>
       </Position21>
       <Position22>
-        <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="781" Column="1" TopLine="773"/>
+        <Filename Value="ProcessWindowUnit.pas"/>
+        <Caret Line="73" Column="26" TopLine="64"/>
       </Position22>
       <Position23>
-        <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="782" Column="1" TopLine="773"/>
+        <Filename Value="ProcessWindowUnit.pas"/>
+        <Caret Line="194" Column="43" TopLine="186"/>
       </Position23>
       <Position24>
-        <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="1014" Column="3" TopLine="1011"/>
+        <Filename Value="ProcessWindowUnit.pas"/>
+        <Caret Line="302" Column="3" TopLine="313"/>
       </Position24>
       <Position25>
-        <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="1026" Column="1" TopLine="1011"/>
+        <Filename Value="ProcessWindowUnit.pas"/>
+        <Caret Line="352" Column="3" TopLine="350"/>
       </Position25>
       <Position26>
-        <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="1024" Column="50" TopLine="1011"/>
+        <Filename Value="ProcessWindowUnit.pas"/>
+        <Caret Line="348" Column="12" TopLine="341"/>
       </Position26>
       <Position27>
-        <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="1029" Column="1" TopLine="1011"/>
+        <Filename Value="ProcessWindowUnit.pas"/>
+        <Caret Line="201" Column="21" TopLine="194"/>
       </Position27>
       <Position28>
-        <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="1026" Column="1" TopLine="1011"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="572" Column="27" TopLine="554"/>
       </Position28>
       <Position29>
-        <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="1027" Column="48" TopLine="1011"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="2572" Column="1" TopLine="2564"/>
       </Position29>
       <Position30>
-        <Filename Value="d3dhookUnit.pas"/>
-        <Caret Line="314" Column="15" TopLine="302"/>
+        <Filename Value="CEFuncProc.pas"/>
+        <Caret Line="2574" Column="89" TopLine="2565"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>
@@ -3445,7 +3448,7 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <BreakPoints Count="11">
+    <BreakPoints Count="12">
       <Item1>
         <Kind Value="bpkSource"/>
         <WatchScope Value="wpsLocal"/>
@@ -3523,6 +3526,13 @@
         <Source Value="trainergenerator.pas"/>
         <Line Value="342"/>
       </Item11>
+      <Item12>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="CEFuncProc.pas"/>
+        <Line Value="3842"/>
+      </Item12>
     </BreakPoints>
     <Watches Count="2">
       <Item1>

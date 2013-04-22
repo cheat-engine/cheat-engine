@@ -115,6 +115,7 @@ procedure quicksortmemoryregions(lo,hi: integer);     //obsolete
 function rewritecode(processhandle: thandle; address:ptrUint; buffer: pointer; var size:dword; force: boolean=false): boolean;
 function rewritedata(processhandle: thandle; address:ptrUint; buffer: pointer; var size:dword): boolean;
 
+function GetUserNameFromPID(ProcessId: DWORD): string;
 procedure GetProcessList(ProcessList: TListBox; NoPID: boolean=false); overload;
 procedure GetProcessList(ProcessList: TStrings; NoPID: boolean=false; noProcessInfo: boolean=false);  overload;
 procedure GetThreadList(threadlist: TStrings);
@@ -556,6 +557,8 @@ var
   //ProcessID: Dword; //deperecated
   //ProcessHandle: Thandle;
 
+
+
   Skip_PAGE_NOCACHE: boolean=false;
   Scan_MEM_PRIVATE: boolean=true;
   Scan_MEM_IMAGE: boolean=true;
@@ -566,6 +569,8 @@ var
   WindowsDir: string;
   GetProcessIcons: Boolean;
   ProcessesWithIconsOnly: boolean;
+  ProcessesCurrentUserOnly: boolean;
+  username: string;
 
 //scanhelpers
   nrofbits: integer;
@@ -2242,6 +2247,60 @@ begin
 end;   }
 
 
+function GetUserNameFromPID(ProcessId: DWORD): string;
+//credits to Alice0725
+//http://forum.cheatengine.org/viewtopic.php?t=564382
+type
+  PTOKEN_USER = ^TOKEN_USER;
+var
+  hToken: THandle;
+  cbBuf: cardinal;
+  pUser: PTOKEN_USER=nil;
+  snu: SID_NAME_USE;
+  ProcessHandle: THandle;
+  UserSize: DWORD=0;
+  DomainSize: DWORD=0;
+  bSuccess: boolean;
+
+  user, domain: string;
+begin
+  Result := '';
+  ProcessHandle := OpenProcess(PROCESS_QUERY_INFORMATION, False, ProcessId);
+  if ProcessHandle <> 0 then
+  begin
+    if OpenProcessToken(ProcessHandle, TOKEN_QUERY, hToken) then
+    begin
+      bSuccess := GetTokenInformation(hToken, TokenUser, nil, 0, cbBuf);
+      while (not bSuccess) and (GetLastError = ERROR_INSUFFICIENT_BUFFER) do
+      begin
+        ReallocMem(pUser, cbBuf);
+        bSuccess := GetTokenInformation(hToken, TokenUser, pUser, cbBuf, cbBuf);
+      end;
+      CloseHandle(hToken);
+      if not bSuccess then Exit;
+
+      LookupAccountSid(nil, pUser^.User.Sid, nil, UserSize, nil, DomainSize, snu);
+      if (UserSize <> 0) and (DomainSize <> 0) then
+      begin
+        SetLength(User, UserSize);
+        SetLength(Domain, DomainSize);
+        if LookupAccountSid(nil, pUser^.User.Sid, PChar(User), UserSize,
+          PChar(Domain), DomainSize, snu) then
+        begin
+          User := StrPas(PChar(User));
+          Domain := StrPas(PChar(Domain));
+
+          result:=user;
+        end;
+      end;
+
+      if bSuccess then FreeMem(pUser);
+
+    end;
+    CloseHandle(ProcessHandle);
+  end;
+end;
+
 procedure GetProcessList(ProcessList: TListBox; NoPID: boolean=false);
 var sl: tstringlist;
     i: integer;
@@ -2432,17 +2491,19 @@ begin
 
       end;
 
-      if (noprocessinfo) or (not (ProcessesWithIconsOnly and (hi=0))) then
+      if (noprocessinfo) or (not (ProcessesWithIconsOnly and (hi=0))) and ((not ProcessesCurrentUserOnly) or (GetUserNameFromPID(processentry.th32ProcessID)=username)) then
       begin
         if processentry.th32ProcessID<>0 then
         begin
 
           if noprocessinfo=false then
           begin
-            // processinfo
+            // get some processinfo
             getmem(ProcessListInfo,sizeof(TProcessListInfo));
             ProcessListInfo.processID:=processentry.th32ProcessID;
             ProcessListInfo.processIcon:=HI;
+
+
           end;
 
           if noPID then
@@ -2499,6 +2560,8 @@ begin
     i:=0;
     while (winhandle<>0) and (i<10000) do
     begin
+
+
       if showInvisible or IsWindowVisible(winhandle) then
       begin
         GetWindowThreadProcessId(winhandle,addr(winprocess));
@@ -2508,8 +2571,7 @@ begin
         wintitle:=temp;
 
 
-
-        if length(wintitle)>0 then
+        if ((not ProcessesCurrentUserOnly) or (GetUserNameFromPID(winprocess)=username)) and (length(wintitle)>0) then
         begin
           getmem(ProcessListInfo,sizeof(TProcessListInfo));
           ProcessListInfo.processID:=winprocess;
@@ -3776,6 +3838,8 @@ initialization
 
   processhandler:=TProcessHandler.create;
   GetSystemInfo(@systeminfo);
+
+  username:=GetUserNameFromPID(GetCurrentProcessId);
 
 
 finalization
