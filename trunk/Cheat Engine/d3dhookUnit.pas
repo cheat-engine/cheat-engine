@@ -11,7 +11,8 @@ interface
 
 uses
   windows, Classes, SysUtils, sharedMemory, forms, graphics, cefuncproc,
-  newkernelhandler, controls, Clipbrd, strutils, LuaHandler, RemoteMemoryManager;
+  newkernelhandler, controls, Clipbrd, strutils, LuaHandler, RemoteMemoryManager,
+  math;
 
 type
   TCEMessage=packed record
@@ -52,6 +53,11 @@ type
     x: single;
     y: single;
     alphablend: single;
+
+    centerX: single;
+    centerY: single;
+    rotation: single;
+
     case TRenderCommandEnum of
       rcDrawSprite: (Sprite: TSpriteCommand);
       rcDrawFont: (Font: TFontCommand);
@@ -274,8 +280,14 @@ type
   private
     fx: single;
     fy: single;
+    fcenterX: single;
+    fcenterY: single;
+    fRotation: single; //stored as deg here, internally uses rad
     falphablend: single;
     fvisible: boolean;
+    procedure setRotation(v: single);
+    procedure setCenterX(v: single);
+    procedure setCenterY(v: single);
     procedure setX(v: single);
     procedure setY(v: single);
     procedure setAlphaBlend(v: single);
@@ -298,6 +310,9 @@ type
     property Alphablend: single read falphablend write setAlphablend;
     property X: single read fx write setX;
     property Y: single read fy write setY;
+    property CenterX: single read fcenterx write setCenterX;
+    property CenterY: single read fcentery write setCenterY;
+    property Rotation: single read frotation write setRotation;
     property Visible: boolean read fVisible write setVisible;
   end;
 
@@ -749,6 +764,32 @@ begin
 end;
 
 //----------------------------D3DHook_RenderObject------------------------------
+procedure TD3DHook_RenderObject.setRotation(v: single);
+begin
+  if fRotation=v then exit;
+
+  beginUpdate;
+  fRotation:=v;
+  endUpdate;
+end;
+
+procedure TD3DHook_RenderObject.setCenterX(v: single);
+begin
+  if fcenterX=v then exit;
+
+  beginUpdate;
+  fcenterX:=v;
+  endUpdate;
+end;
+
+procedure TD3DHook_RenderObject.setCenterY(v: single);
+begin
+  if fcenterY=v then exit;
+
+  beginUpdate;
+  fcenterY:=v;
+  endUpdate;
+end;
 
 procedure TD3DHook_RenderObject.setAlphaBlend(v: single);
 begin
@@ -901,6 +942,9 @@ begin
 
     owner.renderCommandList^[index].x:=x;
     owner.renderCommandList^[index].y:=y;
+    owner.renderCommandList^[index].rotation:=degtorad(Rotation);
+    owner.renderCommandList^[index].centerx:=centerx;
+    owner.renderCommandList^[index].centery:=centery;
     owner.renderCommandList^[index].alphablend:=alphablend;
     owner.renderCommandList^[index].Font.fontid:=fFontmap.getID;
     owner.renderCommandList^[index].Font.addressoftext:=AddressOfText;
@@ -978,6 +1022,10 @@ begin
 
     owner.renderCommandList^[index].x:=x;
     owner.renderCommandList^[index].y:=y;
+    owner.renderCommandList^[index].rotation:=degtorad(rotation);
+    owner.renderCommandList^[index].centerX:=centerx;
+    owner.renderCommandList^[index].centerY:=centery;
+
     owner.renderCommandList^[index].alphablend:=alphablend;
     owner.renderCommandList^[index].Sprite.width:=width;
     owner.renderCommandList^[index].Sprite.height:=height;

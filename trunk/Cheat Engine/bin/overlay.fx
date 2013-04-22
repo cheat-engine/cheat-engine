@@ -5,10 +5,12 @@ SamplerState samLinear : register( s0 );
 
 cbuffer ConstantBuffer : register( b0 )
 {	
+	float4x4 rotation;
+        float2 originpoint;
 	float2 translation;
 	float2 scaling;
 	float transparency;	
-	float garbage;
+	float garbage;	
 }
 
 
@@ -33,11 +35,24 @@ struct PS_INPUT
 //--------------------------------------------------------------------------------------
 PS_INPUT VS( VS_INPUT input )
 {
-    PS_INPUT r=input;
 
-    //scale to the required size (calculated by the renderer)
+    PS_INPUT r=input;
+    float4 rp;
+
+
+
+    r.Pos[0]-=originpoint[0];
+    r.Pos[1]+=originpoint[1];
+    r.Pos=mul(r.Pos, rotation);
+
+    r.Pos[0]+=originpoint[0];
+    r.Pos[1]-=originpoint[1];
+
+    //scale to the required size (calculated by the renderer)   
     r.Pos[0]=r.Pos[0]*scaling[0];
     r.Pos[1]=r.Pos[1]*scaling[1];
+
+
 
     //position the sprite so the origin is at the top left
     r.Pos[0]+=1.0f*scaling[0];
@@ -46,6 +61,10 @@ PS_INPUT VS( VS_INPUT input )
     //now translate to the proper position (0,0=center)
     r.Pos[0]+=translation[0];
     r.Pos[1]-=translation[1];
+
+  
+
+    r.Pos[2]=0.0f;
    
     return r;
 }
