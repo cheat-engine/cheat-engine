@@ -1718,7 +1718,7 @@ properties
   Y: Float - The y-coordinate of the object on the screen
   CenterX: Float - X coordinate inside the object. It defines the rotation spot and affects the X position
   CenterY: Float - Y " "
-  Rotation: Floar - Rotation value in degrees (0 and 360 are the same)
+  Rotation: Float - Rotation value in degrees (0 and 360 are the same)
   Alphablend: Float - Alphablend value. 1.0 is fully visible, 0.0=invisible
   Visible: boolean - Set to false to hide the object
   ZOrder: integer - Determines if the object will be shown in front or behind another object
