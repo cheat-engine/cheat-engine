@@ -1716,6 +1716,9 @@ The sprite and TextContainer classed inherit from this
 properties
   X: Float - The x-coordinate of the object on the screen
   Y: Float - The y-coordinate of the object on the screen
+  CenterX: Float - X coordinate inside the object. It defines the rotation spot and affects the X position
+  CenterY: Float - Y " "
+  Rotation: Floar - Rotation value in degrees (0 and 360 are the same)
   Alphablend: Float - Alphablend value. 1.0 is fully visible, 0.0=invisible
   Visible: boolean - Set to false to hide the object
   ZOrder: integer - Determines if the object will be shown in front or behind another object
@@ -1732,6 +1735,7 @@ properties
   Width: Integer - The width of the sprite in pixels. Default is the initial texture width
   Height: Integer - The height of the sprite in pixels. Default is the initial texture height
   Texture: d3dhook_texture - The texture to show on the screen
+
 methods
   -
 

@@ -73,6 +73,10 @@ typedef volatile struct
 	float y;
 	float alphablend;
 
+	float centerX; //
+	float centerY;
+	float rotation;
+
 	union
 	{
 		struct

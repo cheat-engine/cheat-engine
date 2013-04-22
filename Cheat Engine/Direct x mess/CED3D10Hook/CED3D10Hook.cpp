@@ -22,12 +22,13 @@ struct SpriteVertex{
 
 struct ConstantBuffer
 {	
+	D3DXMATRIX rotation;
+	XMFLOAT2 originpoint;
+
 	XMFLOAT2 translation;	
 	XMFLOAT2 scaling;
 	FLOAT transparency;		
 	FLOAT garbage; //16 byte alignment crap
-	FLOAT garbage2;
-	FLOAT garbage3;
 };
 
 void DXMessD3D10Handler::PrepareForSnapshot() //just clears the screen
@@ -1205,8 +1206,15 @@ void DXMessD3D10Handler::RenderOverlay()
 
 						cb.scaling.y=(float)shared->RenderCommands[i].sprite.height/(float)vp.Height;
 	
-						cb.translation.x=-1.0f+((float)((float)position.x * 2)/(float)vp.Width);
-						cb.translation.y=-1.0f+((float)((float)position.y * 2)/(float)vp.Height);
+
+						cb.originpoint.x=-1.0f+((float)shared->RenderCommands[i].centerX * 2)/(float)shared->RenderCommands[i].sprite.width;
+						cb.originpoint.y=-1.0f+((float)shared->RenderCommands[i].centerY * 2)/(float)shared->RenderCommands[i].sprite.height;
+
+						D3DXMatrixRotationZ(&cb.rotation, shared->RenderCommands[i].rotation);
+	
+						cb.translation.x=-1.0f+((float)(((float)position.x-(float)shared->RenderCommands[i].centerX) * 2)/(float)vp.Width);
+						cb.translation.y=-1.0f+((float)(((float)position.y-(float)shared->RenderCommands[i].centerY) * 2)/(float)vp.Height);
+
 
 						dev->UpdateSubresource( pConstantBuffer, 0, NULL, &cb, 0, 0 );
 

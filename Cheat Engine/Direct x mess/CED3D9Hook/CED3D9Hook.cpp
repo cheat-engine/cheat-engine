@@ -458,6 +458,8 @@ BOOL DXMessD3D9Handler::UpdateTextures()
 	return TRUE;	
 }
 
+float tmp=0.01f;
+
 void DXMessD3D9Handler::RenderOverlay()
 {	
 	int i;
@@ -513,7 +515,7 @@ void DXMessD3D9Handler::RenderOverlay()
 					{
 						case rcDrawSprite:
 						{
-							D3DXVECTOR3 scale,position;
+							D3DXVECTOR2 scale,position, rotation;							
 							D3DXMATRIX m;
 							int tid=shared->RenderCommands[i].sprite.textureid;
 
@@ -534,7 +536,7 @@ void DXMessD3D9Handler::RenderOverlay()
 									scale.x=(float)shared->RenderCommands[i].sprite.width / (float)textures[tid].width;
 
 								scale.y=(float)shared->RenderCommands[i].sprite.height / (float)textures[tid].height;
-								scale.z=1.0f;
+						
 								
 
 								//set the position
@@ -590,7 +592,7 @@ void DXMessD3D9Handler::RenderOverlay()
 								else
 									position.y=(float)shared->RenderCommands[i].y;	
 									
-								position.z=0.0f;
+		
 
 								
 								//truncate to a pixel exact position
@@ -605,10 +607,16 @@ void DXMessD3D9Handler::RenderOverlay()
 								texturepos.bottom=(LONG)textures[tid].height;  //shared->RenderCommands[i].sprite.height;
 								texturepos.right=(LONG)textures[tid].width; //shared->RenderCommands[i].sprite.width;
 
+								rotation.x=shared->RenderCommands[i].centerX;
+								rotation.y=shared->RenderCommands[i].centerY;
 
-								D3DXMatrixTransformation(&m, NULL, NULL, &scale, NULL, NULL, &position);						
-								sprite->SetTransform(&m);					
-
+								position.x-=shared->RenderCommands[i].centerX;
+								position.y-=shared->RenderCommands[i].centerY;							
+				
+			
+								D3DXMatrixTransformation2D(&m, NULL, NULL, &scale, &rotation, shared->RenderCommands[i].rotation, &position);						
+								sprite->SetTransform(&m);	
+						
 								hr=sprite->Draw(textures[tid].pTexture, &texturepos, NULL, NULL, D3DCOLOR_ARGB((int)(shared->RenderCommands[i].alphablend*255),255,255,255));						
 							}
 							break;

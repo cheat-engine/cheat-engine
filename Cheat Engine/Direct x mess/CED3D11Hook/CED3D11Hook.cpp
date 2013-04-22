@@ -21,19 +21,17 @@ struct SpriteVertex{
 
 struct ConstantBuffer
 {	
+	XMMATRIX rotation;
+	XMFLOAT2 originpoint;
 	XMFLOAT2 translation;	
 	XMFLOAT2 scaling;
 	FLOAT transparency;		
 	FLOAT garbage; //16 byte alignment crap
-	FLOAT garbage2;
-	FLOAT garbage3;
 };
 
 BOOL test=TRUE;
 ID3D11DeviceContext *DXMessD3D11Handler::PrepareForSnapshot(ID3D11DeviceContext *dc) //just clears the screen
 {
-	UINT i;
-
 	ID3D11DeviceContext *drawdc=dc;
 	EnterCriticalSection(&cs);
 
@@ -1864,10 +1862,22 @@ void DXMessD3D11Handler::RenderOverlay()
 						else
 							cb.scaling.x=(float)shared->RenderCommands[i].sprite.width/(float)vp.Width;
 						cb.scaling.y=(float)shared->RenderCommands[i].sprite.height/(float)vp.Height;
-	
-						cb.translation.x=-1.0f+((float)((float)position.x * 2)/(float)vp.Width);
-						cb.translation.y=-1.0f+((float)((float)position.y * 2)/(float)vp.Height);
 
+				
+
+						cb.originpoint.x=-1.0f+((float)shared->RenderCommands[i].centerX * 2)/(float)shared->RenderCommands[i].sprite.width;
+						cb.originpoint.y=-1.0f+((float)shared->RenderCommands[i].centerY * 2)/(float)shared->RenderCommands[i].sprite.height;
+
+						cb.rotation=XMMatrixRotationZ(shared->RenderCommands[i].rotation);
+
+
+						
+	
+						cb.translation.x=-1.0f+((float)(((float)position.x-(float)shared->RenderCommands[i].centerX) * 2)/(float)vp.Width);
+						cb.translation.y=-1.0f+((float)(((float)position.y-(float)shared->RenderCommands[i].centerY) * 2)/(float)vp.Height);
+
+												
+						
 						dc->UpdateSubresource( pConstantBuffer, 0, NULL, &cb, 0, 0 );
 
 						dc->VSSetConstantBuffers(0,1, &pConstantBuffer);
