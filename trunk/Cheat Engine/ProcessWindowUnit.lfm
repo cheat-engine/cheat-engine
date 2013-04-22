@@ -14,7 +14,7 @@ object ProcessWindow: TProcessWindow
   OnResize = FormResize
   OnShow = FormShow
   Position = poMainFormCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.1'
   object ProcessList: TListBox
     Left = 0
     Height = 167
@@ -152,6 +152,7 @@ object ProcessWindow: TProcessWindow
     left = 224
   end
   object PopupMenu1: TPopupMenu
+    OnPopup = PopupMenu1Popup
     left = 112
     top = 48
     object InputPIDmanually1: TMenuItem
@@ -168,6 +169,11 @@ object ProcessWindow: TProcessWindow
       Caption = 'Show invisible windows'
       ShortCut = 16457
       OnClick = Showinvisiblewindows1Click
+    end
+    object miOwnProcessesOnly: TMenuItem
+      AutoCheck = True
+      Caption = 'Only show processes of the current user'
+      OnClick = miOwnProcessesOnlyClick
     end
   end
 end

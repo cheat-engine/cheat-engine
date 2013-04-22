@@ -25,6 +25,7 @@ type
 
   TProcessWindow = class(TForm)
     btnNetwork: TButton;
+    miOwnProcessesOnly: TMenuItem;
     ProcessList: TListBox;
     Panel1: TPanel;
     OpenDialog1: TOpenDialog;
@@ -45,6 +46,7 @@ type
     Showinvisiblewindows1: TMenuItem;
     procedure btnNetworkClick(Sender: TObject);
     procedure CancelButtonClick(Sender: TObject);
+    procedure miOwnProcessesOnlyClick(Sender: TObject);
     procedure OKButtonClick(Sender: TObject);
     procedure btnProcesslistClick(Sender: TObject);
     procedure btnWindowListClick(Sender: TObject);
@@ -57,6 +59,7 @@ type
     procedure FormResize(Sender: TObject);
     procedure btnProcessListLongClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure PopupMenu1Popup(Sender: TObject);
     procedure ProcessListDrawItem(Control: TWinControl; Index: Integer;
       Rect: TRect; State: TOwnerDrawState);
     procedure FormShow(Sender: TObject);
@@ -186,6 +189,16 @@ begin
 
   //ProcessWindow.close;
   ModalResult:=mrCancel;
+end;
+
+procedure TProcessWindow.miOwnProcessesOnlyClick(Sender: TObject);
+begin
+  ProcessesCurrentUserOnly:=miOwnProcessesOnly.checked;
+
+  if currentlist=1 then
+    btnWindowList.click
+  else
+    btnProcesslist.click;
 end;
 
 procedure TProcessWindow.btnNetworkClick(Sender: TObject);
@@ -504,6 +517,11 @@ begin
     processlistlong:=nil;
     btnprocesslistlong.Caption:=rsProcessListLong;
   end;
+end;
+
+procedure TProcessWindow.PopupMenu1Popup(Sender: TObject);
+begin
+  miOwnProcessesOnly.checked:=ProcessesCurrentUserOnly;
 end;
 
 procedure TProcessWindow.ProcessListDrawItem(Control: TWinControl;
