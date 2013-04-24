@@ -87,6 +87,8 @@ type
 
     lastaddress: ptruint;
     lastselection1, lastselection2: ptruint;
+
+    scrolltimer: TTimer;
     procedure LoadMemoryRegion;
     function GetPageInfo(a: ptruint): PPageInfo;
 
@@ -124,7 +126,10 @@ type
 
     function getSelectionStart: ptruint;
     function getSelectionStop: ptruint;
+    procedure updateScroller(speed: integer);
 
+    procedure lineUp(sender: tobject);
+    procedure lineDown(sender: TObject);
   protected
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
     procedure KeyPress(var Key: char); override;
@@ -1109,6 +1114,45 @@ begin
   update;
 end;
 
+procedure THexView.lineUp(sender: tobject);
+begin
+  address:=address-bytesPerLine*floor(power(abs(verticalscrollbar.Position-50),1.01));
+end;
+
+procedure THexView.lineDown(sender: TObject);
+begin
+  address:=address+bytesPerLine*floor(power(abs(verticalscrollbar.Position-50),1.01));
+end;
+
+procedure THexview.updateScroller(speed: integer);
+begin
+  if (speed<>0) then
+  begin
+    if scrolltimer=nil then
+      scrolltimer:=ttimer.create(self);
+
+    //max speed is 50 (50 and -50)
+    scrolltimer.Interval:=10+100-(abs(speed)*(100 div 50));
+
+    if speed<0 then
+      scrolltimer.OnTimer:=lineUp
+    else
+      scrolltimer.OnTimer:=lineDown;
+
+    scrolltimer.enabled:=true;
+    OutputDebugString('Scrollspeed '+inttostr(speed));
+
+  //showmessage(inttostr(speed))
+  end
+  else
+  begin
+    if scrolltimer<>nil then
+      scrolltimer.enabled:=false;
+
+  end;
+
+end;
+
 procedure THexView.ScrollBarScroll(Sender: TObject; ScrollCode: TScrollCode; var ScrollPos: Integer);
 var delta: integer;
 begin
@@ -1121,9 +1165,20 @@ begin
     sctrack:
     begin
       delta:=scrollpos-50;
-      address:=address+bytesPerLine*delta;
+      updatescroller(delta);
+      exit;
+//      address:=address+bytesPerLine*delta;
+    end;
+
+    scEndScroll:
+    begin
+      scrollpos:=50;
+      updatescroller(0);
     end;
   end;
+
+
+
 
   update;
   scrollpos:=50;
