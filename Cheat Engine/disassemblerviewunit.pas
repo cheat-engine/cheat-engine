@@ -73,10 +73,14 @@ type TDisassemblerview=class(TPanel)
     fOnSelectionChange: TDisassemblerSelectionChangeEvent;
     fOnExtraLineRender: TDisassemblerExtraLineRender;
 
+    scrolltimer: ttimer;
     procedure updateScrollbox;
     procedure scrollboxResize(Sender: TObject);
 
     //-scrollbar-
+    procedure scrollUp(sender: TObject);
+    procedure scrollDown(sender: TObject);
+    procedure updateScroller(speed: integer);
     procedure scrollbarChange(Sender: TObject);
     procedure scrollbarKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure scrollBarScroll(Sender: TObject; ScrollCode: TScrollCode; var ScrollPos: Integer);
@@ -792,6 +796,68 @@ begin
   GetFocus;
 end;
 
+procedure TDisassemblerView.scrollUp(sender: tobject);
+var
+  i: integer;
+  pos: integer;
+
+begin
+  beginupdate;
+
+  pos:=verticalscrollbar.Position;
+  for i:=0 to floor(power(abs(pos-50),0.5)) do
+  begin
+    scrollBarScroll(nil,scLineUp, pos);
+    update;
+  end;
+
+  EndUpdate;
+end;
+
+procedure TDisassemblerView.scrollDown(sender: TObject);
+var
+  i: integer;
+  pos: integer;
+
+begin
+  beginupdate;
+
+  pos:=verticalscrollbar.Position;
+  for i:=0 to floor(power(abs(pos-50),0.5)) do
+  begin
+    scrollBarScroll(nil,scLineDown, pos);
+    update;
+  end;
+
+  EndUpdate;
+end;
+
+procedure TDisassemblerView.updateScroller(speed: integer);
+begin
+  if (speed<>0) then
+  begin
+    if scrolltimer=nil then
+      scrolltimer:=ttimer.create(self);
+
+    //max speed is 50 (50 and -50)
+    scrolltimer.Interval:=10+100-(abs(speed)*(100 div 50));
+
+    if speed<0 then
+      scrolltimer.OnTimer:=scrollUp
+    else
+      scrolltimer.OnTimer:=scrollDown;
+
+    scrolltimer.enabled:=true;
+  end
+  else
+  begin
+    if scrolltimer<>nil then
+      scrolltimer.enabled:=false;
+
+  end;
+
+end;
+
 procedure TDisassemblerView.scrollBarScroll(Sender: TObject; ScrollCode: TScrollCode; var ScrollPos: Integer);
 var x: integer;
     found: boolean;
@@ -801,12 +867,14 @@ var x: integer;
 
     dl: TDisassemblerLine;
 begin
-  beginupdate;
+  if sender<>nil then
+    beginupdate;
   
   if scrollcode=sctrack then
   begin
     delta:=scrollpos-50;
-
+    updatescroller(delta);
+     {
     if delta>0 then
     begin
       for i:=0 to delta do
@@ -817,6 +885,9 @@ begin
       for i:=delta to 0 do
         scrollBarScroll(Sender,scLineUp, scrollpos);
     end;
+    }
+    endupdate;
+    exit;
   end;
 
 
@@ -830,7 +901,7 @@ begin
       begin
         fTopAddress:=previousopcode(fTopAddress);
 
-        update; //this will generate the proper disassemblerline data but won't render as beginupdate was called
+        update; //this will generate the proper disassemblerline data but won't render as beginupdate was called (if called from the scroll updater beginupdate was called there)
 
         dl:=TDisassemblerLine(disassemblerlines[0]);
         inc(fTopSubline, dl.height);
@@ -885,13 +956,22 @@ begin
       fTopSubline:=0;
     end;
 
+    scEndScroll:
+    begin
+      scrollpos:=50;
+      updatescroller(0);
+    end;
+
 
   end;
 
-  scrollpos:=50;      //i dont want the slider to work 100%
+  if sender<>nil then //not sent from the component
+  begin
+    scrollpos:=50;      //i dont want the slider to work 100%
 
-  endupdate;
-  SetFocus;
+    endupdate;
+    SetFocus;
+  end;
 end;
 
 //header
