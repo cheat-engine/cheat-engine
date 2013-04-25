@@ -8,7 +8,8 @@ object frmMemoryViewEx: TfrmMemoryViewEx
   ClientWidth = 884
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  LCLVersion = '1.1'
+  Position = poScreenCenter
+  LCLVersion = '1.0.8.0'
   object Panel1: TPanel
     Left = 0
     Height = 274
@@ -16,12 +17,13 @@ object frmMemoryViewEx: TfrmMemoryViewEx
     Width = 680
     BevelOuter = bvNone
     TabOrder = 0
+    OnDblClick = Panel1DblClick
   end
   object lblAddress: TLabel
     Left = 0
-    Height = 15
+    Height = 16
     Top = 0
-    Width = 45
+    Width = 46
     Caption = 'Address:'
     ParentColor = False
   end
@@ -30,38 +32,30 @@ object frmMemoryViewEx: TfrmMemoryViewEx
     Height = 25
     Top = 64
     Width = 136
-    Max = 12
-    Min = 2
+    Max = 2048
+    Min = 4
     OnChange = tbPitchChange
-    Position = 2
+    Position = 32
     TabOrder = 1
   end
   object edtPitch: TEdit
     Left = 696
     Height = 23
     Hint = 'Number of bytes a row exists out'
-    Top = 40
+    Top = 32
     Width = 80
     OnChange = edtPitchChange
     ParentShowHint = False
     ShowHint = True
     TabOrder = 2
-    Text = '128'
+    Text = '32'
   end
   object Label2: TLabel
     Left = 696
-    Height = 15
-    Top = 24
-    Width = 27
-    Caption = 'Pitch'
-    ParentColor = False
-  end
-  object Label1: TLabel
-    Left = 210
-    Height = 15
-    Top = 0
-    Width = 34
-    Caption = 'Label1'
+    Height = 16
+    Top = 16
+    Width = 72
+    Caption = 'Pixels per line'
     ParentColor = False
   end
   object cbAddresslistOnly: TCheckBox
@@ -158,9 +152,43 @@ object frmMemoryViewEx: TfrmMemoryViewEx
     OnChange = cbCompareChange
     TabOrder = 8
   end
+  object cbColor: TComboBox
+    Left = 696
+    Height = 23
+    Top = 120
+    Width = 136
+    ItemHeight = 15
+    ItemIndex = 2
+    Items.Strings = (
+      'Dithered (1 Byte/pixel)'
+      'RGA (3 Bytes/Pixel)'
+      'RGBA (4 Bytes/Pixel)'
+    )
+    OnChange = cbColorChange
+    Style = csDropDownList
+    TabOrder = 10
+    Text = 'RGBA (4 Bytes/Pixel)'
+  end
+  object Label3: TLabel
+    Left = 696
+    Height = 16
+    Top = 104
+    Width = 30
+    Caption = 'Color'
+    ParentColor = False
+  end
   object Timer1: TTimer
     OnTimer = Timer1Timer
-    left = 718
-    top = 136
+    left = 464
+    top = 344
+  end
+  object pmMemview: TPopupMenu
+    left = 72
+    top = 48
+    object MenuItem1: TMenuItem
+      Caption = 'Change address'
+      ShortCut = 16455
+      OnClick = MenuItem1Click
+    end
   end
 end

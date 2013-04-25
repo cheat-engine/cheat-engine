@@ -66,6 +66,7 @@ type
 
     fZoom: single;
     fXpos, fYpos: integer;
+    fwantedPixelsPerLine: integer; //when the format changes, use this as lead for the new pitch
     fPitch: integer;
     fPixelFormat: integer;
     fPixelByteSize: integer; //the number of bytes one pixel exists of (I do not support monochrome...)
@@ -106,11 +107,14 @@ type
     function MoveTo(xpos, ypos: integer): boolean;
     procedure setFormat(format: integer);
     procedure setPitch(pitch: integer);
+    procedure setPixelsPerLine(ppl: integer);
     procedure setPointer(address: ptruint); overload;
     procedure setPointer(address: ptruint; p: pointer; size: integer); overload;
     procedure update; override;
     procedure repaint; override;
     procedure render;
+
+    function getAddressFromScreenPosition(x: integer; y: integer): ptruint;
 
     function GetTopLeftPixelCoordinates: TPoint; //returns the unzoomed coordinates of the selected pixel
     function GetBottomRightPixelCoordinates: TPoint;
@@ -125,27 +129,63 @@ type
     //property getOffset: integer;
 
     constructor Create(TheOwner: TComponent); override;
+  published
+    property OnDblClick;
   end;
 
 
 implementation
 
 procedure TMemDisplay.setPointer(address: ptruint);
+var newp: pointer;
+    newsize: integer;
 begin
   self.address:=address;
-  self.p:=nil;
-  size:=-1;
+
+  if assigned(fOnData) and fOnData(address,size,newp,newsize) then
+  begin
+    p:=newp;
+    size:=newsize;
+
+    LimitCoordinates; //recheck with the new ypos. (in case of size change (end of buf?))
+
+    render;
+  end
+  else
+  begin
+    self.p:=nil;
+    size:=-1;
+  end;
+
+
+
+
 end;
 
 procedure TMemDisplay.setPointer(address: ptruint; p: pointer; size: integer);
+var newp: pointer;
+    newsize: integer;
 begin
   self.address:=address;
   self.p:=p;
   self.size:=size;
+
+  if assigned(fOnData) and fOnData(address,size,newp,newsize) then
+  begin
+    p:=newp;
+    size:=newsize;
+
+    LimitCoordinates; //recheck with the new ypos. (in case of size change (end of buf?))
+
+    render;
+  end
+
 end;
 
 procedure TMemDisplay.setFormat(format: integer);
+var oldaddress: integer;
 begin
+  oldaddress:=getTopLeftAddress;
   fPixelFormat:=format;
 
 
@@ -156,6 +196,23 @@ begin
     else
       fPixelByteSize:=1;
   end;
+
+
+  setPixelsPerLine(fwantedPixelsPerLine);
+
+  fxpos:=0;
+  fypos:=0;
+  setPointer(oldaddress);
+  LimitCoordinates;
+  render;
+end;
+
+procedure TMemDisplay.setPixelsPerLine(ppl: integer);
+begin
+  fwantedPixelsPerLine:=ppl;
+  if ppl<>0 then
+    setPitch(fPixelByteSize*ppl);
+
 end;
 
 procedure TMemDisplay.setPitch(pitch: integer);
@@ -190,6 +247,20 @@ procedure TMemDisplay.updaterevent(sender: TObject);
 begin
   render;
 end;
+
+
+function TMemDisplay.getAddressFromScreenPosition(x: integer; y: integer): ptruint;
+var c: tpoint;
+begin
+
+
+  c.x:=trunc((-fxpos+x) / fzoom);
+  c.y:=trunc((fypos+y)/fzoom);
+
+  result:=self.address+c.y*fPitch+c.x*fPixelByteSize;
+
+end;
+
 
 function TMemdisplay.getTopLeftAddress: ptruint;
 var c: tpoint;
@@ -335,6 +406,7 @@ begin
   //if so, ask an external event for new data. If it returns false, set to max allowed
 
 end;
+
 
 function TMemDisplay.MoveTo(Xpos, Ypos: integer): boolean;
 begin
@@ -647,7 +719,7 @@ begin
 
   if (fpixelformat=GL_COLOR_INDEX) then
   begin
-     {
+
     glPixelTransferi(GL_MAP_COLOR, GL_TRUE);
 
     glPixelTransferi(GL_INDEX_OFFSET, 1);
@@ -663,8 +735,12 @@ begin
 
     glPixelTransferi(GL_INDEX_SHIFT, 0);
     glPixelTransferi(GL_INDEX_OFFSET, 0);
-    glPixelTransferi(GL_MAP_COLOR, GL_TRUE);    }
+    glPixelTransferi(GL_MAP_COLOR, GL_TRUE);
 
+  end
+  else
+  begin
+    glPixelTransferi(GL_MAP_COLOR, GL_FALSE);
   end;
   glDisable(GL_DITHER);
 

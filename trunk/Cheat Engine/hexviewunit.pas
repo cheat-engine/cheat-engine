@@ -1140,7 +1140,7 @@ begin
       scrolltimer.OnTimer:=lineDown;
 
     scrolltimer.enabled:=true;
-    OutputDebugString('Scrollspeed '+inttostr(speed));
+
 
   //showmessage(inttostr(speed))
   end

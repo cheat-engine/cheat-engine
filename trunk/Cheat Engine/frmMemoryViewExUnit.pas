@@ -5,9 +5,10 @@ unit frmMemoryViewExUnit;
 interface
 
 uses
-  windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
-  StdCtrls, ComCtrls, memdisplay, newkernelhandler, cefuncproc, syncobjs, math,
-  savedscanhandler, foundlisthelper, CustomTypeHandler;
+  windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
+  ExtCtrls, StdCtrls, ComCtrls, Menus, memdisplay, newkernelhandler, cefuncproc,
+  syncobjs, math, savedscanhandler, foundlisthelper, CustomTypeHandler,
+  symbolhandler, inputboxtopunit;
 
 
 type TMVCompareMethod=(cmOr, cmXor, cmAnd);
@@ -52,11 +53,14 @@ type
     cbCompare: TCheckBox;
     cbAddresslist: TComboBox;
     cbSavedList: TComboBox;
+    cbColor: TComboBox;
     edtPitch: TEdit;
-    Label1: TLabel;
+    Label3: TLabel;
     lblAddress: TLabel;
     Label2: TLabel;
+    MenuItem1: TMenuItem;
     Panel1: TPanel;
+    pmMemview: TPopupMenu;
     rbOr: TRadioButton;
     rbAnd: TRadioButton;
     rbXor: TRadioButton;
@@ -67,10 +71,13 @@ type
     procedure cbAddresslistDropDown(Sender: TObject);
     procedure cbCompareChange(Sender: TObject);
     procedure cbSavedListChange(Sender: TObject);
+    procedure cbColorChange(Sender: TObject);
 
     procedure edtPitchChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure MenuItem1Click(Sender: TObject);
+    procedure Panel1DblClick(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure tbPitchChange(Sender: TObject);
   private
@@ -78,6 +85,7 @@ type
     buf: pbytearray;
     bufsize: integer;
     datasource: TMemoryDataSource;
+    history: TStringList;
 
     function getCompareMethod: TMVCompareMethod;
     function ondata(newAddress: ptruint; PreferedMinimumSize: integer; var newbase: pointer; var newsize: integer): boolean;
@@ -94,6 +102,10 @@ implementation
 uses MemoryBrowserFormUnit, MainUnit;
 
 {$R *.lfm}
+
+resourcestring
+  rsGotoAddress = 'Goto Address';
+  rsFillInTheAddressYouWantToGoTo = 'Fill in the address you want to go to';
 
 
 { TMemoryDataSource }
@@ -310,7 +322,7 @@ begin
 
   //todo: Pre-buffer when going up. (allocate 4096 bytes in front, and give a pointer to 4096 bytes after. Only when the newaddress becomes smaller than the base realloc
 
-  label1.caption:=inttohex(newaddress,8);
+//  label1.caption:=inttohex(newaddress,8);
 
   datasource.lock;
   if bufsize<PreferedMinimumSize then
@@ -339,6 +351,8 @@ end;
 procedure TfrmMemoryViewEx.FormCreate(Sender: TObject);
 begin
   //create a datasource thread
+  history:=tstringlist.create;
+
   datasource:=TMemoryDataSource.create(true); //possible to add multiple readers in the future
 
   md:=TMemDisplay.Create(self);
@@ -351,6 +365,9 @@ begin
   md.setPointer(MemoryBrowser.hexview.Address and ptruint(not $FFF), buf, bufsize);
   md.Align:=alClient;
   md.parent:=panel1;
+  md.PopupMenu:=pmMemview;
+
+  md.OnDblClick:=Panel1DblClick;
 
 
 
@@ -362,7 +379,7 @@ var newpitch: integer;
 begin
   try
     newpitch:=strtoint(edtpitch.Caption);
-    md.setPitch(newpitch);
+    md.setPixelsPerLine(newpitch);
     edtPitch.Font.Color:=clDefault;
   except
     edtPitch.Font.Color:=clred;
@@ -424,6 +441,18 @@ begin
     datasource.setcompare(cbCompare.checked, getCompareMethod, cbSavedList.text);
 end;
 
+procedure TfrmMemoryViewEx.cbColorChange(Sender: TObject);
+var i: integer;
+begin
+  case cbcolor.itemindex of
+    0: md.setFormat($1900);
+    1: md.setFormat($1907);
+    2: md.setFormat($1908);
+  end;
+
+
+end;
+
 procedure TfrmMemoryViewEx.FormDestroy(Sender: TObject);
 begin
   if datasource<>nil then
@@ -434,6 +463,31 @@ begin
   end;
 end;
 
+procedure TfrmMemoryViewEx.MenuItem1Click(Sender: TObject);
+var newaddress: string;
+    canceled: boolean;
+begin
+  newaddress:=inputboxtop(rsGotoAddress, rsFillInTheAddressYouWantToGoTo, IntTohex(md.getTopLeftAddress, 8), true, canceled, History);
+
+  if not canceled then
+  begin
+    md.MoveTo(0,0);
+    md.setPointer(symhandler.getAddressFromName(newaddress));
+  end;
+end;
+
+procedure TfrmMemoryViewEx.Panel1DblClick(Sender: TObject);
+var c: tpoint;
+    address: ptruint;
+begin
+  c:=md.ScreenToClient(mouse.cursorpos);
+
+  address:=md.getAddressFromScreenPosition(c.x, c.y);
+
+  MemoryBrowser.hexview.Address:=address;
+  MemoryBrowser.show;
+end;
+
 procedure TfrmMemoryViewEx.Timer1Timer(Sender: TObject);
 begin
   lbladdress.caption:='Address : '+inttohex(md.getTopLeftAddress,8)+' zoom : '+floattostr(md.zoom);
@@ -441,7 +495,7 @@ end;
 
 procedure TfrmMemoryViewEx.tbPitchChange(Sender: TObject);
 begin
-  edtPitch.caption:=inttostr(trunc(2**tbPitch.position));
+  edtPitch.caption:=inttostr(tbPitch.position);//inttostr(trunc(2**tbPitch.position));
 end;
 
 end.
