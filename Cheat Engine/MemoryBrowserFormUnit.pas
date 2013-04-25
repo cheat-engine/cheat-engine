@@ -12,7 +12,7 @@ uses
   disassemblerviewunit, peinfofunctions ,dissectcodethread,stacktrace2,
   NewKernelHandler, ComCtrls, LResources, byteinterpreter, StrUtils, hexviewunit,
   debughelper, debuggertypedefinitions,frmMemviewPreferencesUnit, registry,
-  scrollboxex, disassemblercomments, multilineinputqueryunit;
+  scrollboxex, disassemblercomments, multilineinputqueryunit, frmMemoryViewExUnit;
 
 
 type
@@ -30,6 +30,7 @@ type
     MenuItem15: TMenuItem;
     MenuItem16: TMenuItem;
     MenuItem17: TMenuItem;
+    MenuItem18: TMenuItem;
     miShowIndisassembler: TMenuItem;
     miShowInHexview: TMenuItem;
     miCopyBytesOnly: TMenuItem;
@@ -228,6 +229,7 @@ type
     procedure MenuItem12Click(Sender: TObject);
     procedure MenuItem14Click(Sender: TObject);
     procedure MenuItem17Click(Sender: TObject);
+    procedure MenuItem18Click(Sender: TObject);
     procedure miShowIndisassemblerClick(Sender: TObject);
     procedure miCopyBytesOnlyClick(Sender: TObject);
     procedure miDissectData2Click(Sender: TObject);
@@ -950,6 +952,11 @@ end;
 procedure TMemoryBrowser.MenuItem17Click(Sender: TObject);
 begin
   //build a structure using a registered template and the current data stream
+end;
+
+procedure TMemoryBrowser.MenuItem18Click(Sender: TObject);
+begin
+  TfrmMemoryViewEx.create(self).show;
 end;
 
 
