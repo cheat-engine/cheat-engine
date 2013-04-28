@@ -4,14 +4,14 @@ object MainForm: TMainForm
   Height = 570
   Hint = ' '
   Top = 132
-  Width = 545
+  Width = 537
   HelpContext = 3
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AllowDropFiles = True
   Caption = 'Cheat Engine 6.2'
   ClientHeight = 550
-  ClientWidth = 545
+  ClientWidth = 537
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Menu = MainMenu1
@@ -22,13 +22,13 @@ object MainForm: TMainForm
   OnDropFiles = FormDropFiles
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.1'
+  LCLVersion = '1.0.8.0'
   object Splitter1: TSplitter
     Cursor = crVSplit
     Left = 0
     Height = 7
     Top = 345
-    Width = 545
+    Width = 537
     Align = alTop
     AutoSnap = False
     Beveled = True
@@ -42,7 +42,7 @@ object MainForm: TMainForm
     Left = 0
     Height = 181
     Top = 352
-    Width = 545
+    Width = 537
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
@@ -55,17 +55,17 @@ object MainForm: TMainForm
     Left = 0
     Height = 17
     Top = 533
-    Width = 545
+    Width = 537
     Align = alBottom
     ClientHeight = 17
-    ClientWidth = 545
+    ClientWidth = 537
     TabOrder = 1
     object Label7: TLabel
-      Left = 165
-      Height = 13
+      Left = 160
+      Height = 14
       Hint = 'Click here to change the hotkey'
-      Top = 3
-      Width = 229
+      Top = 2
+      Width = 230
       Alignment = taCenter
       Anchors = [akBottom]
       Caption = 'Ctrl+Alt+Page Down brings Cheat Engine to front'
@@ -83,12 +83,13 @@ object MainForm: TMainForm
       Width = 96
       Caption = 'Advanced Options'
       Flat = True
+      NumGlyphs = 0
       OnClick = advancedbuttonClick
       ShowHint = True
       ParentShowHint = False
     end
     object CommentButton: TSpeedButton
-      Left = 448
+      Left = 440
       Height = 15
       Top = 1
       Width = 96
@@ -97,6 +98,7 @@ object MainForm: TMainForm
       Flat = True
       Font.Height = -12
       Font.Name = 'MS Sans Serif'
+      NumGlyphs = 0
       OnClick = CommentButtonClick
       ParentFont = False
       ParentShowHint = False
@@ -106,18 +108,18 @@ object MainForm: TMainForm
     Left = 0
     Height = 345
     Top = 0
-    Width = 545
+    Width = 537
     Align = alTop
     BevelOuter = bvNone
     ClientHeight = 345
-    ClientWidth = 545
+    ClientWidth = 537
     TabOrder = 2
     OnResize = Panel5Resize
     object ProcessLabel: TLabel
       Left = -24
       Height = 17
       Top = 0
-      Width = 602
+      Width = 594
       Alignment = taCenter
       Anchors = [akTop, akLeft, akRight]
       AutoSize = False
@@ -133,10 +135,10 @@ object MainForm: TMainForm
     end
     object foundcountlabel: TLabel
       Left = 35
-      Height = 13
+      Height = 14
       Hint = 'This shows the ammount of addresses found'
       Top = 32
-      Width = 6
+      Width = 7
       Caption = '0'
       ParentColor = False
       ParentShowHint = False
@@ -144,29 +146,29 @@ object MainForm: TMainForm
     end
     object ScanText: TLabel
       Left = 253
-      Height = 13
+      Height = 14
       Top = 80
-      Width = 55
+      Width = 56
       Caption = 'Scan Value'
       Enabled = False
       ParentBidiMode = False
       ParentColor = False
     end
     object lblScanType: TLabel
-      Left = 207
-      Height = 13
+      Left = 198
+      Height = 14
       Top = 124
-      Width = 52
+      Width = 53
       Anchors = [akTop, akRight]
       Caption = 'Scan Type'
       Enabled = False
       ParentColor = False
     end
     object Label8: TLabel
-      Left = 205
-      Height = 13
+      Left = 196
+      Height = 14
       Top = 148
-      Width = 54
+      Width = 55
       Anchors = [akTop, akRight]
       Caption = 'Value Type'
       Enabled = False
@@ -203,6 +205,7 @@ object MainForm: TMainForm
         00C0C0C0000000C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0
         C0C0C0C0C0000000000000000000C0C0C0C0C0C0C0C0C0C0C0C0
       }
+      NumGlyphs = 0
       ShowHint = True
       ParentShowHint = False
     end
@@ -237,19 +240,20 @@ object MainForm: TMainForm
         0000000000000000000000000000000000000000000000000000000000000000
         0000000000000000000000000000
       }
+      NumGlyphs = 0
       ShowHint = True
       ParentShowHint = False
     end
     object Label6: TLabel
       Left = 0
-      Height = 13
+      Height = 14
       Top = 32
-      Width = 33
+      Width = 34
       Caption = 'Found:'
       ParentColor = False
     end
     object SpeedButton2: TSpeedButton
-      Left = 263
+      Left = 259
       Height = 22
       Hint = 'Delete all addresses from the list'
       Top = 320
@@ -301,9 +305,9 @@ object MainForm: TMainForm
     end
     object Label5: TLabel
       Left = 296
-      Height = 13
+      Height = 14
       Top = 320
-      Width = 32
+      Width = 33
       Caption = 'Label5'
       ParentColor = False
       Visible = False
@@ -312,18 +316,18 @@ object MainForm: TMainForm
     object Label38: TLabel
       Tag = 1
       Left = 328
-      Height = 13
+      Height = 14
       Top = 304
-      Width = 68
+      Width = 69
       Caption = 'stealthedit test'
       ParentColor = False
       Visible = False
     end
     object Label53: TLabel
       Left = 207
-      Height = 13
+      Height = 14
       Top = 325
-      Width = 43
+      Width = 44
       Caption = 'crash me'
       ParentColor = False
       Visible = False
@@ -331,18 +335,18 @@ object MainForm: TMainForm
     end
     object Label55: TLabel
       Left = 272
-      Height = 13
+      Height = 14
       Top = 304
-      Width = 38
+      Width = 39
       Caption = 'Label55'
       ParentColor = False
       Visible = False
     end
     object Label57: TLabel
       Left = 433
-      Height = 13
+      Height = 14
       Top = 306
-      Width = 81
+      Width = 82
       Caption = 'get dbvm version'
       ParentColor = False
       Visible = False
@@ -350,25 +354,25 @@ object MainForm: TMainForm
     end
     object Label59: TLabel
       Left = 376
-      Height = 13
+      Height = 14
       Top = 59
-      Width = 42
+      Width = 43
       Caption = 'Test cap'
       ParentColor = False
       OnClick = Label59Click
     end
     object Label61: TLabel
       Left = 368
-      Height = 13
+      Height = 14
       Top = 320
-      Width = 38
+      Width = 39
       Caption = 'Label61'
       ParentColor = False
       Visible = False
       OnClick = Label61Click
     end
     object cbSpeedhack: TCheckBox
-      Left = 437
+      Left = 429
       Height = 19
       Hint = 'Enable speedhack'
       Top = 194
@@ -384,7 +388,7 @@ object MainForm: TMainForm
       TabOrder = 22
     end
     object NewScan: TButton
-      Left = 222
+      Left = 214
       Height = 25
       Top = 48
       Width = 65
@@ -396,7 +400,7 @@ object MainForm: TMainForm
       TabOrder = 1
     end
     object cbUnicode: TCheckBox
-      Left = 440
+      Left = 432
       Height = 19
       Top = 128
       Width = 60
@@ -406,7 +410,7 @@ object MainForm: TMainForm
       Visible = False
     end
     object gbScanOptions: TGroupBox
-      Left = 230
+      Left = 222
       Height = 148
       Top = 168
       Width = 202
@@ -528,9 +532,9 @@ object MainForm: TMainForm
         end
         object Label2: TLabel
           Left = 6
-          Height = 13
+          Height = 14
           Top = 27
-          Width = 22
+          Width = 23
           Caption = 'Stop'
           Enabled = False
           ParentColor = False
@@ -538,9 +542,9 @@ object MainForm: TMainForm
         end
         object Label1: TLabel
           Left = 6
-          Height = 13
+          Height = 14
           Top = 3
-          Width = 22
+          Width = 23
           Caption = 'Start'
           Enabled = False
           ParentColor = False
@@ -624,7 +628,7 @@ object MainForm: TMainForm
       end
     end
     object NextScanButton: TButton
-      Left = 294
+      Left = 286
       Height = 25
       Top = 48
       Width = 65
@@ -638,7 +642,7 @@ object MainForm: TMainForm
       TabOrder = 2
     end
     object ScanType: TComboBox
-      Left = 262
+      Left = 254
       Height = 21
       Top = 120
       Width = 170
@@ -664,7 +668,7 @@ object MainForm: TMainForm
       TabOrder = 5
     end
     object VarType: TComboBox
-      Left = 262
+      Left = 254
       Height = 21
       Top = 144
       Width = 170
@@ -703,7 +707,7 @@ object MainForm: TMainForm
       TabOrder = 7
     end
     object Button1: TButton
-      Left = 437
+      Left = 429
       Height = 17
       Top = 322
       Width = 113
@@ -717,7 +721,7 @@ object MainForm: TMainForm
       Height = 16
       Hint = 'This shows how far Cheat Engine is with searching'
       Top = 14
-      Width = 406
+      Width = 398
       Anchors = [akTop, akLeft, akRight]
       ParentShowHint = False
       ShowHint = True
@@ -725,7 +729,7 @@ object MainForm: TMainForm
       TabOrder = 9
     end
     object cbHexadecimal: TCheckBox
-      Left = 220
+      Left = 212
       Height = 19
       Hint = 'When checked the value you type in is hexadecimal'
       Top = 96
@@ -740,7 +744,7 @@ object MainForm: TMainForm
       TabOrder = 10
     end
     object UndoScan: TButton
-      Left = 433
+      Left = 425
       Height = 25
       Top = 48
       Width = 65
@@ -751,7 +755,7 @@ object MainForm: TMainForm
       TabOrder = 3
     end
     object rbBit: TRadioButton
-      Left = 198
+      Left = 190
       Height = 19
       Top = 88
       Width = 41
@@ -764,7 +768,7 @@ object MainForm: TMainForm
       Visible = False
     end
     object rbDec: TRadioButton
-      Left = 198
+      Left = 190
       Height = 19
       Top = 105
       Width = 62
@@ -777,7 +781,7 @@ object MainForm: TMainForm
       Visible = False
     end
     object scanvalue: TEdit
-      Left = 262
+      Left = 254
       Height = 21
       Top = 96
       Width = 280
@@ -788,7 +792,7 @@ object MainForm: TMainForm
       TabOrder = 4
     end
     object cbCaseSensitive: TCheckBox
-      Left = 440
+      Left = 432
       Height = 19
       Top = 146
       Width = 88
@@ -865,13 +869,14 @@ object MainForm: TMainForm
           585858585858EA081C0707070807070707070707070707081C07070707080808
           08080808080808080707
         }
+        NumGlyphs = 0
         OnClick = ShowProcessListButtonClick
         ShowHint = True
         ParentShowHint = False
       end
     end
     object pnlFloat: TPanel
-      Left = 433
+      Left = 425
       Height = 53
       Top = 120
       Width = 121
@@ -911,7 +916,7 @@ object MainForm: TMainForm
       end
     end
     object cbUnrandomizer: TCheckBox
-      Left = 437
+      Left = 429
       Height = 19
       Top = 174
       Width = 85
@@ -943,7 +948,7 @@ object MainForm: TMainForm
       Visible = False
     end
     object LogoPanel: TPanel
-      Left = 499
+      Left = 491
       Height = 84
       Top = 0
       Width = 50
@@ -1284,11 +1289,12 @@ object MainForm: TMainForm
         Anchors = [akTop, akRight]
         Caption = 'Settings'
         Flat = True
+        NumGlyphs = 0
         OnClick = SettingsClick
       end
     end
     object Panel14: TPanel
-      Left = 430
+      Left = 422
       Height = 94
       Top = 216
       Width = 119
@@ -1300,25 +1306,25 @@ object MainForm: TMainForm
       Visible = False
       object Label54: TLabel
         Left = 13
-        Height = 13
+        Height = 14
         Top = 4
-        Width = 31
+        Width = 32
         Caption = 'Speed'
         ParentColor = False
       end
       object Label56: TLabel
         Left = 8
-        Height = 13
+        Height = 14
         Top = 56
-        Width = 6
+        Width = 7
         Caption = '0'
         ParentColor = False
       end
       object Label60: TLabel
         Left = 98
-        Height = 13
+        Height = 14
         Top = 56
-        Width = 12
+        Width = 13
         Caption = '20'
         ParentColor = False
       end
@@ -1352,9 +1358,9 @@ object MainForm: TMainForm
     end
     object lblcompareToSavedScan: TLabel
       Left = 224
-      Height = 13
+      Height = 14
       Top = 32
-      Width = 200
+      Width = 201
       Caption = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
       ParentColor = False
       Visible = False
@@ -1362,9 +1368,9 @@ object MainForm: TMainForm
     end
     object Label3: TLabel
       Left = 376
-      Height = 13
+      Height = 14
       Top = 72
-      Width = 32
+      Width = 33
       Caption = 'Label3'
       ParentColor = False
       OnClick = Label3Click
@@ -1374,7 +1380,7 @@ object MainForm: TMainForm
       Height = 268
       Hint = 'This list shows all the found addresses that matched your last scan'
       Top = 48
-      Width = 197
+      Width = 189
       Anchors = [akTop, akLeft, akRight, akBottom]
       AutoWidthLastColumn = True
       Color = clBtnFace
@@ -1390,7 +1396,7 @@ object MainForm: TMainForm
         end      
         item
           Caption = 'Previous'
-          Width = 48
+          Width = 3
         end>
       DragMode = dmAutomatic
       Font.CharSet = ANSI_CHARSET

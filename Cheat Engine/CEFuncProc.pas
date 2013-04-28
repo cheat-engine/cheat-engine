@@ -212,6 +212,7 @@ function InRangeQ(const AValue, AMin, AMax: qword): Boolean;inline;
 function FindFreeBlockForRegion(base: ptrUint; size: dword): pointer;
 
 function getProcessnameFromProcessID(pid: dword): string;
+function getProcessPathFromProcessID(pid: dword): string;
 procedure getDriverList(list: tstrings);
 
 function EscapeStringForRegEx(const S: string): string;
@@ -3595,6 +3596,22 @@ begin
     b:=ptrUint(mbi.BaseAddress)+mbi.RegionSize;
   end;
 
+end;
+
+function getProcessPathFromProcessID(pid: dword): string;
+var ths: thandle;
+    me32:MODULEENTRY32;
+begin
+  result:='';
+  me32.dwSize:=sizeof(MODULEENTRY32);
+  ths:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE or TH32CS_SNAPMODULE32,pid);
+  if ths<>0 then
+  begin
+    if Module32First(ths,me32) then
+      result:=me32.szExePath;
+
+    closehandle(ths);
+  end;
 end;
 
 function getProcessnameFromProcessID(pid: dword): string;

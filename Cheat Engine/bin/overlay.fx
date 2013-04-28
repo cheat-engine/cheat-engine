@@ -54,14 +54,15 @@ PS_INPUT VS( VS_INPUT input )
 
 
 
+
     //position the sprite so the origin is at the top left
     r.Pos[0]+=1.0f*scaling[0];
     r.Pos[1]-=1.0f*scaling[1];
 
+
     //now translate to the proper position (0,0=center)
     r.Pos[0]+=translation[0];
     r.Pos[1]-=translation[1];
-
   
 
     r.Pos[2]=0.0f;

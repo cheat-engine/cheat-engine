@@ -141,7 +141,7 @@ type
     property isloaded: boolean read getisloaded;
     property hasError: boolean read geterror;
     procedure waitforsymbolsloaded;
-    procedure reinitialize;
+    procedure reinitialize(force: boolean=false);
     function loadmodulelist: boolean; //returns true if a change was detected from the previous list
     procedure ReinitializeUserdefinedSymbolList;
     procedure fillMemoryRegionsWithModuleData(var mr: TMemoryregions; startaddress: ptruint; size: dword);
@@ -373,13 +373,40 @@ begin
 end;
 
 procedure TSymbolloaderthread.execute;
+var sp: pchar;
+    s: string;
+
+    temp: string;
 begin
   try
     try
       SymbolsLoaded:=false;
       symbollist.clear;
 
-      SymbolsLoaded:=SymInitialize(thisprocesshandle,nil,true);
+      if trim(searchpath)='' then
+      begin
+        s:='';
+        temp:=GetEnvironmentVariable('_NT_SYMBOL_PATH' );
+        if temp<>'' then
+          s:=temp+';';
+
+        temp:=GetEnvironmentVariable('_NT_ALTERNATE_SYMBOL_PATH' );
+        if temp<>'' then
+          s:=s+temp+';';
+
+        temp:=getProcessPathFromProcessID(thisprocessid);
+        if temp<>'' then
+          s:=s+ExtractFilePath(temp);
+
+      end
+      else
+        s:=searchpath;
+
+
+      sp:=pchar(s);
+
+
+      SymbolsLoaded:=SymInitialize(thisprocesshandle, sp, true);
 
       if symbolsloaded then
       begin
@@ -567,9 +594,9 @@ begin
   symbolloadervalid.endread;
 end;
 
-procedure TSymhandler.reinitialize;
+procedure TSymhandler.reinitialize(force: boolean=false);
 begin
-  if loadmodulelist then //if loadmodulelist returns true it has detected a change in the previous modulelist (baseaddresschange or new/deleted module)
+  if loadmodulelist or force then //if loadmodulelist returns true it has detected a change in the previous modulelist (baseaddresschange or new/deleted module)
   begin
     symbolloadervalid.BeginWrite;
     if symbolloaderthread<>nil then
@@ -979,24 +1006,12 @@ begin
 end;
 
 function TSymHandler.getsearchpath:string;
-var sp: pchar;
 begin
-  getmem(sp,4096);
-  if isloaded then
-  begin
-    if SymGetSearchPath(processhandle,sp,4096) then
-    begin
-      result:=sp;
-    end
-    else result:='';
-  end;
+  result:=searchpath;
 end;
 
 procedure TSymHandler.setsearchpath(path:string);
 begin
-  if isloaded then
-    symsetsearchpath(processhandle,pchar(path));
-
   searchpath:=path;
 end;
 
