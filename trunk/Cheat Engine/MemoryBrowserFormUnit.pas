@@ -2872,21 +2872,12 @@ end;
 procedure TMemoryBrowser.Setsymbolsearchpath1Click(Sender: TObject);
 var searchpath: string;
 begin
-{$ifndef net}
-  if symhandler.isloaded then
+  if inputquery(rsSymbolHandler, rsPleaseSpecifyTheNewSymbolSearchpathSeperatesPaths, searchpath) then
   begin
-    searchpath:=symhandler.getsearchpath;
-    if inputquery(rsSymbolHandler, rsPleaseSpecifyTheNewSymbolSearchpathSeperatesPaths, searchpath) then
-    begin
-      symhandler.setsearchpath(searchpath);
+    symhandler.setsearchpath(searchpath);
 
-      symhandler.reinitialize;
-
-      symhandler.waitforsymbolsloaded;
-
-    end;
+    symhandler.reinitialize(true);
   end;
-{$endif}
 end;
 
 procedure TMemoryBrowser.Kernelmodesymbols1Click(Sender: TObject);

@@ -13,7 +13,7 @@ object frmPEInfo: TfrmPEInfo
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.0.8.0'
   object GroupBox2: TGroupBox
     Left = 177
     Height = 318

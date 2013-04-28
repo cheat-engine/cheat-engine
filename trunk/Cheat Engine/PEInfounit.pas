@@ -171,6 +171,9 @@ var MZheader: ttreenode;
     ImageExportDirectory: PImageExportDirectory;
     ImageImportDirectory: PImageImportDirectory;
 
+    ImageDebugDirectory: PImageDebugDirectory;
+
+
     sFileType,sCharacteristics, sType: string;
     i, j, k: integer;
     maxaddress: ptrUint;
@@ -191,6 +194,8 @@ var MZheader: ttreenode;
     is64bit: boolean;
 
     tempaddress,tempaddress2: ptrUint;
+
+    tempstring: pchar;
 begin
 
   PEItv.Items.BeginUpdate;
@@ -562,6 +567,7 @@ begin
                 tempaddress:=ptrUint(loadedmodule)+pdwordarray(ptrUint(loadedmodule)+ImageImportDirectory.FirstThunk)[k]+2;
                 if loaded then
                 begin
+                  //lookup
                   tempaddress2:=pdwordarray(ptrUint(loadedmodule)+ImageImportDirectory.FirstThunk)[k];
                   importfunctionname:=symhandler.getNameFromAddress(tempaddress2);
 
@@ -572,7 +578,19 @@ begin
                     continue;
                   end;
                 end
-                else importfunctionname:=pchar(tempaddress);
+                else
+                begin
+                  //get the name from the file
+                  if InRangeX(tempaddress, ptruint(loadedmodule), ptruint(loadedmodule)+memorycopysize-100) then
+                  begin
+                    setlength(importfunctionname, 100);
+                    CopyMemory(@importfunctionname[1], pointer(tempaddress), 99);
+                    importfunctionname[99]:=#0;
+                  end
+                  else
+                    importfunctionname:='err';
+
+                end;
 
                 PEItv.Items.addchild(tempnode3, format('%x (%x) - %s',[pdwordarray(ptrUint(loadedmodule)+ImageImportDirectory.FirstThunk)[k], importaddress, importfunctionname]));
                 lbImports.Items.Add( format('%x (%x) - %s',[pdwordarray(ptrUint(loadedmodule)+ImageImportDirectory.FirstThunk)[k], importaddress-ptrUint(loadedmodule), importfunctionname]));
@@ -601,41 +619,92 @@ begin
       if i=5 then
       begin
         // IMAGE_BASE_RELOCATION stuff
-          if is64bit then
+        if is64bit then
+        begin
+          ImageBaseRelocation:=PIMAGE_BASE_RELOCATION(ptrUint(loadedmodule)+PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.DataDirectory[i].VirtualAddress);
+          maxaddress:=ptrUint(loadedmodule)+PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.DataDirectory[i].VirtualAddress+PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.DataDirectory[i].Size;
+        end
+        else
+        begin
+          ImageBaseRelocation:=PIMAGE_BASE_RELOCATION(ptrUint(loadedmodule)+ImageNTHeader^.OptionalHeader.DataDirectory[i].VirtualAddress);
+          maxaddress:=ptrUint(loadedmodule)+ImageNTHeader^.OptionalHeader.DataDirectory[i].VirtualAddress+ImageNTHeader^.OptionalHeader.DataDirectory[i].Size;
+        end;
+
+        while ptrUint(ImageBaseRelocation)<maxaddress do
+        begin
+          if ImageBaseRelocation.SizeOfBlock=0 then break;
+
+          VA:=PEItv.Items.addchild(tempnode,format('Virtual address base: %.8x (size=%x (%d))', [ImageBaseRelocation.virtualaddress, ImageBaseRelocation.SizeOfBlock, ImageBaseRelocation.SizeOfBlock]));
+
+          for j:=0 to ((ImageBaseRelocation.SizeOfBlock-8) div 2)-1 do
           begin
-            ImageBaseRelocation:=PIMAGE_BASE_RELOCATION(ptrUint(loadedmodule)+PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.DataDirectory[i].VirtualAddress);
-            maxaddress:=ptrUint(loadedmodule)+PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.DataDirectory[i].VirtualAddress+PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.DataDirectory[i].Size;
+            PEItv.Items.addchild(va, format('%.3x : %d',[(ImageBaseRelocation.rel[j] and $fff), (ImageBaseRelocation.rel[j] shr 12) ]));
+            lbBaseReloc.Items.Add(format('%.3x : %d',[ImageBaseRelocation.virtualaddress+(ImageBaseRelocation.rel[j] and $fff), (ImageBaseRelocation.rel[j] shr 12) ]));
+
+            if not loaded then
+            begin
+              if (ImageBaseRelocation.rel[j] shr 12)=3 then            //replace the address at this address with a relocated one (dword)
+                pdword(ptrUint(loadedmodule)+ImageBaseRelocation.virtualaddress+(ImageBaseRelocation.rel[j] and $fff))^:=pdword(ptrUint(loadedmodule)+ImageBaseRelocation.virtualaddress+(ImageBaseRelocation.rel[j] and $fff))^+basedifference;
+
+              if (ImageBaseRelocation.rel[j] shr 12)=10 then            //replace the address at this address with a relocated one (dword)
+                PUINT64(ptrUint(loadedmodule)+ImageBaseRelocation.virtualaddress+(ImageBaseRelocation.rel[j] and $fff))^:=PUINT64(ptrUint(loadedmodule)+ImageBaseRelocation.virtualaddress+(ImageBaseRelocation.rel[j] and $fff))^+basedifference64;
+            end;
+          end;
+
+
+          ImageBaseRelocation:=PIMAGE_BASE_RELOCATION(ptrUint(ImageBaseRelocation)+ImageBaseRelocation.SizeOfBlock);
+        end;
+      end
+      else
+      if i=6 then
+      begin
+        //DEBUG INFO
+        if is64bit then
+          ImageDebugDirectory:=PImageDebugDirectory(ptrUint(loadedmodule)+PImageOptionalHeader64(@ImageNTHeader^.OptionalHeader)^.DataDirectory[i].VirtualAddress)
+        else
+          ImageDebugDirectory:=PImageDebugDirectory(ptrUint(loadedmodule)+ImageNTHeader^.OptionalHeader.DataDirectory[i].VirtualAddress);
+
+
+        if InRangeX(ptruint(ImageDebugDirectory), ptrUint(loadedmodule),  ptruint(loadedmodule)+memorycopysize-sizeof(TImageDebugDirectory)) then
+        begin
+          PEItv.Items.addchild(tempnode, format('Type = %d', [ImageDebugDirectory.Type_]));
+
+          if loaded then
+          begin
+            PEItv.Items.addchild(tempnode, format('Address of raw data = %x', [ptrUint(loadedmodule)+ImageDebugDirectory.AddressOfRawData]));
+
           end
           else
+            PEItv.Items.addchild(tempnode, format('Address of raw data = %x', [ImageDebugDirectory.AddressOfRawData]));
+
+           // PEItv.Items.addchild(tempnode, format('Pointer to raw data = %x', [ImageDebugDirectory.PointerToRawData]));
+
+          if ImageDebugDirectory.Type_=IMAGE_DEBUG_TYPE_CODEVIEW then
           begin
-            ImageBaseRelocation:=PIMAGE_BASE_RELOCATION(ptrUint(loadedmodule)+ImageNTHeader^.OptionalHeader.DataDirectory[i].VirtualAddress);
-            maxaddress:=ptrUint(loadedmodule)+ImageNTHeader^.OptionalHeader.DataDirectory[i].VirtualAddress+ImageNTHeader^.OptionalHeader.DataDirectory[i].Size;
-          end;
+            tempnode2:=PEItv.Items.addchild(tempnode, 'Codeview');
 
-          while ptrUint(ImageBaseRelocation)<maxaddress do
-          begin
-            if ImageBaseRelocation.SizeOfBlock=0 then break;
+            getmem(tempstring, 5);
+            CopyMemory(tempstring, pointer(ptrUint(loadedmodule)+ImageDebugDirectory.AddressOfRawData),4);
+            tempstring[4]:=#0;
+            PEItv.Items.addchild(tempnode2, format('Signature=%x (%s)',[PDWORD(ptrUint(loadedmodule)+ImageDebugDirectory.AddressOfRawData)^, tempstring]));
 
-            VA:=PEItv.Items.addchild(tempnode,format('Virtual address base: %.8x (size=%x (%d))', [ImageBaseRelocation.virtualaddress, ImageBaseRelocation.SizeOfBlock, ImageBaseRelocation.SizeOfBlock]));
-
-            for j:=0 to ((ImageBaseRelocation.SizeOfBlock-8) div 2)-1 do
+            if PDWORD(ptrUint(loadedmodule)+ImageDebugDirectory.AddressOfRawData)^=$53445352 then  //RSDS
             begin
-              PEItv.Items.addchild(va, format('%.3x : %d',[(ImageBaseRelocation.rel[j] and $fff), (ImageBaseRelocation.rel[j] shr 12) ]));
-              lbBaseReloc.Items.Add(format('%.3x : %d',[ImageBaseRelocation.virtualaddress+(ImageBaseRelocation.rel[j] and $fff), (ImageBaseRelocation.rel[j] shr 12) ]));
+              PEItv.Items.addchild(tempnode2, format('Debugfile =%s',[pchar(ptrUint(loadedmodule)+ImageDebugDirectory.AddressOfRawData+$18)]));
 
-              if not loaded then
-              begin
-                if (ImageBaseRelocation.rel[j] shr 12)=3 then            //replace the address at this address with a relocated one (dword)
-                  pdword(ptrUint(loadedmodule)+ImageBaseRelocation.virtualaddress+(ImageBaseRelocation.rel[j] and $fff))^:=pdword(ptrUint(loadedmodule)+ImageBaseRelocation.virtualaddress+(ImageBaseRelocation.rel[j] and $fff))^+basedifference;
-
-                if (ImageBaseRelocation.rel[j] shr 12)=10 then            //replace the address at this address with a relocated one (dword)
-                  PUINT64(ptrUint(loadedmodule)+ImageBaseRelocation.virtualaddress+(ImageBaseRelocation.rel[j] and $fff))^:=PUINT64(ptrUint(loadedmodule)+ImageBaseRelocation.virtualaddress+(ImageBaseRelocation.rel[j] and $fff))^+basedifference64;
-              end;
             end;
 
+            freemem(tempstring);
 
-            ImageBaseRelocation:=PIMAGE_BASE_RELOCATION(ptrUint(ImageBaseRelocation)+ImageBaseRelocation.SizeOfBlock);
+
+
+
+
+
+
           end;
+        end;
+
       end;
 
     end;
