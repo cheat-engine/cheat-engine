@@ -1251,7 +1251,7 @@ begin
           cbspeedhack.Checked := True;
           if cbspeedhack.Checked then
           begin
-            editsh2.Text := format('%.2f', [speedhackspeed1.speed]);
+            editsh2.Text := format('%.2f', [speedhackspeed1.speed]);  //Just rebuild. I wish this would get fixed in fpc someday...
             btnSetSpeedhack2.Click;
           end;
         end;
@@ -5832,12 +5832,16 @@ procedure TMainForm.AddresslistDropByListview(Sender: TObject;
 var
   i: integer;
 begin
+
   for i := 0 to foundlist3.Items.Count - 1 do
-    try
-      if foundlist3.Items[i].Selected then
+    if foundlist3.Items[i].Selected then
+    begin
+      try
         AddToRecord(i, node, attachmode);
-    except
+      except
+      end;
     end;
+
 end;
 
 procedure TMainForm.SpeedButton3Click(Sender: TObject);
