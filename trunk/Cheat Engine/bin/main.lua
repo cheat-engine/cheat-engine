@@ -1657,16 +1657,16 @@ createD3DHook(textureandcommandlistsize OPTIONAL, hookmessages OPTIONAL)
   It returns a d3dhook object
 
 properties
-  Width: Integer
-  Height: integer;
-  DisabledZBuffer: boolean
-  WireframeMode: boolean
-  MouseClip: boolean
+  Width: Integer : The width of the screen (readonly)
+  Height: integer: The height of the screen (readonly)
+  DisabledZBuffer: boolean : Set this to true if you don't want previously rendered walls to overlap a newly rendered object (e.g map is rendered first, then the players are rendered)
+  WireframeMode: boolean : Set this to true if you don't want the faces of 3d objects to be filled
+  MouseClip: boolean : Set this if to true if you have one of those games where your mouse can go outside of the gamewindow and you don't want that.
   OnClick: function(d3dhook_sprite, x, y)
     A function to be called when clicked on an sprite (excluding the mouse)
     x and y are coordinates in the sprite object. If sprites overlap the highest zorder sprite will be given. It does NOT care if a transparent part is clicked or not
   
-    Note: This can cause a slowdown in the game if there are a lot of sprites and you press the left button a lot
+    Note: If you set this it can cause a slowdown in the game if there are a lot of sprites and you press the left button a lot
 
   OnKeyDown: function(virtualkey, char)
     function(vkey, char) : boolean 

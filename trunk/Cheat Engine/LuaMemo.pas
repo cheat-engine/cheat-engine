@@ -142,17 +142,17 @@ procedure memo_addMetaData(L: PLua_state; metatable: integer; userdata: integer 
 begin
   edit_addMetaData(L, metatable, userdata);   //inherits from customedit
 
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'memo_append', memo_append);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'memo_getLines', memo_getLines);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'memo_setLines', memo_setLines);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'memo_getWordWrap', memo_getWordWrap);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'memo_setWordWrap', memo_setWordWrap);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'memo_getWantTabs', memo_getWantTabs);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'memo_setWantTabs', memo_setWantTabs);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'memo_getWantReturns', memo_getWantReturns);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'memo_setWantReturns', memo_setWantReturns);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'memo_getScrollbars', memo_getScrollbars);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'memo_setScrollbars', memo_setScrollbars);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'append', memo_append);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getLines', memo_getLines);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setLines', memo_setLines);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getWordWrap', memo_getWordWrap);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setWordWrap', memo_setWordWrap);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getWantTabs', memo_getWantTabs);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setWantTabs', memo_setWantTabs);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getWantReturns', memo_getWantReturns);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setWantReturns', memo_setWantReturns);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getScrollbars', memo_getScrollbars);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setScrollbars', memo_setScrollbars);
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'Lines', memo_getLines, memo_setLines);
   luaclass_addPropertyToTable(L, metatable, userdata, 'WordWrap', memo_getWordWrap, memo_setWordWrap);
