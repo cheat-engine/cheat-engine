@@ -184,6 +184,8 @@ var x: dword;
   i: qword;
   j: integer;
 
+
+  toread: integer;
 begin
   lock;
 
@@ -198,12 +200,12 @@ begin
     end;
 
 
+    toread:=bufsize;
 
 
+    //while a<address+bufsize do
 
-
-
-    while a<address+bufsize do
+    while toread>0 do
     begin
       s:=minX((address+bufsize)-a, 4096-(a mod 4096)); //the number of bytes left in this page or for this buffer
 
@@ -274,6 +276,8 @@ begin
         if x<s then //zero the unread bytes
           zeromemory(@buf[a-address], s-x);
       end;
+
+      dec(toread,s);
 
       a:=a+s; //next page
     end;
