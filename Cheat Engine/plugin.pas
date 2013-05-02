@@ -1445,18 +1445,23 @@ var dname: string;
     i: integer;
 begin
   result:=-1;
+
   dname:=uppercase(extractfilename(dllname));
   pluginCS.Enter;
-  for i:=0 to length(plugins)-1 do
-  begin
-    if uppercase(plugins[i].dllname)=dname then
+  try
+    for i:=0 to length(plugins)-1 do
     begin
-      result:=i;
-      exit;
+      if uppercase(plugins[i].dllname)=dname then
+      begin
+        result:=i;
+        exit;
+      end;
     end;
+  finally
+    pluginCS.Leave;
   end;
 
-  pluginCS.Leave;
+
 end;
 
 
