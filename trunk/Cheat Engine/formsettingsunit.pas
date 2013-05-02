@@ -369,6 +369,7 @@ begin
 
 
 
+
   val(editUpdatefoundInterval.Text,foundinterval,error);
   if (error<>0) or (foundinterval<=0) then raise exception.Create(Format(rsIsNotAValidInterval, [editUpdatefoundInterval.Text]));
 
@@ -390,6 +391,7 @@ begin
   {$endif}
 
   mainform.UndoScan.visible:={$ifdef net}false{$else}cbshowundo.checked{$endif};
+
 
 
   //save to the registry
@@ -417,6 +419,10 @@ begin
         6: scanpriority:=tpHighest;
         7: scanpriority:=tpTimeCritical;
       end;
+
+
+
+
 
 
       reg.WriteBool('Show all windows on taskbar',cbShowallWindows.checked);
@@ -464,6 +470,8 @@ begin
 
 
 
+
+
       {$ifndef net}
       mainform.UpdateFoundlisttimer.Interval:=foundinterval;
       {$endif}
@@ -499,6 +507,9 @@ begin
       reg.WriteBool('MEM_MAPPED',cbMemMapped.Checked);
       onlyfront:=not temphideall;
 
+
+
+
       //check the module list
 
       if frmModuleSafety<>nil then //modified
@@ -530,6 +541,7 @@ begin
       except
         raise exception.Create(Format(rsTheValueForTheWaitBetweenHotkeyPressesIsInvalid, [frameHotkeyConfig.edtHotkeyDelay.text]));
       end;
+
 
 
 
@@ -619,7 +631,9 @@ begin
 
           checkkeycombo(frameHotkeyConfig.newhotkeys[i]);
         end;
- 
+
+
+
 
 
       {$endif}
@@ -653,6 +667,9 @@ begin
       mainform.ools1.Visible:=cbShowTools.checked;
 
     end;
+
+
+
 
 {$ifndef net}
     //save the tools hotkeys
@@ -688,22 +705,28 @@ begin
       end;
     end;
 
+
+
     for i:=0 to clbplugins.Count-1 do
     begin
       dllpath:=Tpathspecifier(clbplugins.Items.Objects[i]);
-      j:=pluginhandler.GetPluginID(dllpath.path);
-
-      if j=-1 then //not loaded yet
-        j:=pluginhandler.LoadPlugin(dllpath.path);
-
-      if clbplugins.Checked[i] then
+      if dllpath<>nil then
       begin
-        //at least load it if it is loadable
 
-        pluginhandler.EnablePlugin(j);
-      end
-      else
-        pluginhandler.DisablePlugin(j);
+        j:=pluginhandler.GetPluginID(dllpath.path);
+
+        if j=-1 then //not loaded yet
+          j:=pluginhandler.LoadPlugin(dllpath.path);
+
+        if clbplugins.Checked[i] then
+        begin
+          //at least load it if it is loadable
+
+          pluginhandler.EnablePlugin(j);
+        end
+        else
+          pluginhandler.DisablePlugin(j);
+      end;
     end;
 {$endif}
 
@@ -713,6 +736,8 @@ begin
     reg.CloseKey;
     reg.free;
   end;
+
+
 
   SetAssociations;
 
