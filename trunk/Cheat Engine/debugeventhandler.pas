@@ -675,6 +675,7 @@ begin
         begin
           fcd:=bpp.FoundcodeDialog;
           fcd.usesdebugregs:=bpp.breakpointMethod=bpmDebugRegister;
+          fcd.useexceptions:=bpp.breakpointMethod=bpmException;
 
           TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), fcd.AddRecord);
         end;
