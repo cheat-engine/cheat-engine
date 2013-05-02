@@ -11,7 +11,7 @@ object frmBreakpointlist: TfrmBreakpointlist
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.0.8.0'
   object ListView1: TListView
     Left = 0
     Height = 292
@@ -79,6 +79,11 @@ object frmBreakpointlist: TfrmBreakpointlist
     object miSetCondition: TMenuItem
       Caption = 'Set/change condition'
       OnClick = miSetConditionClick
+    end
+    object miPageWide: TMenuItem
+      Caption = 'Change to pagewide breakpoint'
+      Visible = False
+      OnClick = miPageWideClick
     end
     object MenuItem1: TMenuItem
       Caption = '-'
