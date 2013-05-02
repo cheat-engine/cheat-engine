@@ -19,6 +19,7 @@ type
     ListView1: TListView;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
+    miPageWide: TMenuItem;
     miShowShadow: TMenuItem;
     miDelBreakpoint: TMenuItem;
     miSetCondition: TMenuItem;
@@ -29,6 +30,7 @@ type
     procedure ListBox1DblClick(Sender: TObject);
     procedure ListView1DblClick(Sender: TObject);
     procedure MenuItem2Click(Sender: TObject);
+    procedure miPageWideClick(Sender: TObject);
     procedure miShowShadowClick(Sender: TObject);
     procedure miDelBreakpointClick(Sender: TObject);
     procedure miSetConditionClick(Sender: TObject);
@@ -152,6 +154,30 @@ begin
   end;
 end;
 
+procedure TfrmBreakpointlist.miPageWideClick(Sender: TObject);
+var bp: PBreakpoint;
+begin
+
+  if (listview1.selected<>nil) and (MessageDlg('Are you sure you wish to change this to a pagewide breakpoint?', mtConfirmation, [mbyes, mbno], 0)=mryes) then
+  begin
+    debuggerthread.lockbplist;
+    try
+      bp:=listview1.selected.Data;
+      if bp.breakpointMethod=bpmException then
+      begin
+        bp.size:=bp.size+(bp.address and $fff);
+        bp.address:=bp.address-(bp.address and $fff);
+      end;
+
+    finally
+      debuggerthread.unlockbplist;
+    end;
+
+
+    updatebplist;
+  end;
+end;
+
 procedure TfrmBreakpointlist.miShowShadowClick(Sender: TObject);
 var i: integer;
 begin
@@ -239,9 +265,33 @@ begin
 end;
 
 procedure TfrmBreakpointlist.pmBreakpointPopup(Sender: TObject);
+var bp: Pbreakpoint;
 begin
-  miDelBreakpoint.enabled:=listview1.Selected<>nil;
-  miSetCondition.enabled:=listview1.Selected<>nil;
+
+  if listview1.selected<>nil then
+  begin
+
+    miDelBreakpoint.enabled:=true;
+    miSetCondition.enabled:=true;
+
+    bp:=listview1.selected.Data;
+    debuggerthread.lockbplist;
+    try
+      if bp.breakpointMethod=bpmException then
+        miPageWide.visible:=true;
+
+    finally
+      debuggerthread.unlockbplist;
+    end;
+
+
+  end
+  else
+  begin
+    miDelBreakpoint.enabled:=false;
+    miSetCondition.enabled:=false;
+    miPageWide.visible:=false;
+  end;
 end;
 
 procedure TfrmBreakpointlist.Timer1Timer(Sender: TObject);

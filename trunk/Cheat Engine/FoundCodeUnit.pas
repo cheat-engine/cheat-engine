@@ -138,7 +138,8 @@ begin
   if currentthread<>nil then
   begin
     address:=currentThread.context.{$ifdef cpu64}Rip{$else}eip{$endif};
-    if usesdebugregs then //find out the previous opcode
+
+    if usesdebugregs or useexceptions then //find out the previous opcode
       address:=previousopcode(address);
 
     //disassemble to get the opcode and size

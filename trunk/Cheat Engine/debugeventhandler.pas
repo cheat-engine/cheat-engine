@@ -572,7 +572,8 @@ begin
     for i := 0 to breakpointlist.Count - 1 do
     begin
       bpp:=PBreakpoint(breakpointlist.Items[i]);
-      if (bpp.address = address) then
+
+      if InRangeX(address, bpp.address, bpp.address+bpp.size) then
       begin
         found:=true;
         bpp2:=bpp;
