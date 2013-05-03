@@ -1050,7 +1050,7 @@ begin
   _rm:=getrm(memory[sibbyte-1]);
 
   base:=memory[sibbyte] and 7;
-  if Rex_B and (_mod<>0) then base:=base or 8;
+  if Rex_B {and (_mod<>0)} then base:=base or 8;
 
 
 
