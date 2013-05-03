@@ -1807,6 +1807,24 @@ methods:
 
 
 
+openLuaServer(Name): 
+  Opens a pipe with the given name. The LuaClient dll needs this name to connect to ce
+
+
+  LuaClient.dll functions:
+    BOOL CELUA_Initialize(char *name) : Initializes 
+    UINT_PTR CELUA_ExecuteFunction(char *luacode, UINT_PTR parameter)
+      This function executes a lua function with parameters (parameter) and with the luacode as body Parameter will be treated as an integer
+      In short:
+        function(parameter)
+          <luacode>
+        end 
+
+
+    the return value of this function is the return value of this function (integer)
+  
+
+
 --]]
 
 
@@ -1822,23 +1840,6 @@ functions to add:
 
 getRunningProcesses(): stringlist
 getProcessModules(processid): 
-
-openLuaServer(Name): 
-  Opens a pipe with the given name. The LuaClient dll needs this name to connect to ce
-
-
-  LuaClient.dll functions:
-    BOOL CELUA_Initialize(char *name) : Initializes 
-    unsigned int CELUA_ExecuteFunction(char *luacode, UINT_PTR parameter)
-      This function executes a lua function with parameters (parameter) and with the luacode as body Parameter will be treated as an integer
-      In short:
-        function(parameter)
-          <luacode>
-        end 
-
-
-    the return value of this function is the return value of this function (integer)
-  
 
  
 

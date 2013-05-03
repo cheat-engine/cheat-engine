@@ -8,7 +8,7 @@ uses
   windows, Classes, SysUtils, syncobjs;
 
 function CELUA_Initialize(pipename: pchar): BOOL; stdcall;
-function CELUA_ExecuteFunction(script: pchar; parameters: UINT_PTR): integer; stdcall;
+function CELUA_ExecuteFunction(script: pchar; parameters: UINT_PTR): UINT_PTR; stdcall;
 
 implementation
 
@@ -22,7 +22,7 @@ begin
   pipe:=INVALID_HANDLE_VALUE;
 end;
 
-function CELUA_ExecuteFunction(script: pchar; parameters: UINT_PTR): integer; stdcall;
+function CELUA_ExecuteFunction(script: pchar; parameters: UINT_PTR): UINT_PTR; stdcall;
 var
   command: byte;
   bw: dword;
