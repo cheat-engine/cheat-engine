@@ -1,0 +1,30 @@
+object Form1: TForm1
+  Left = 238
+  Height = 240
+  Top = 151
+  Width = 320
+  Caption = 'Form1'
+  ClientHeight = 240
+  ClientWidth = 320
+  OnCreate = FormCreate
+  LCLVersion = '1.0.8.0'
+  object Memo1: TMemo
+    Left = 8
+    Height = 90
+    Top = 0
+    Width = 302
+    Lines.Strings = (
+      'print("I am alive!!!!")'
+    )
+    TabOrder = 0
+  end
+  object Button1: TButton
+    Left = 96
+    Height = 25
+    Top = 104
+    Width = 75
+    Caption = 'Execute'
+    OnClick = Button1Click
+    TabOrder = 1
+  end
+end

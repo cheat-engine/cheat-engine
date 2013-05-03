@@ -72,7 +72,8 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports, Mem
   LuaCheckbox, LuaGroupbox, LuaListbox, LuaCombobox, LuaTrackbar, LuaListColumn,
   LuaEdit, LuaMemo, LuaCollection, LuaListColumns, LuaListitem, LuaListItems,
   LuaTimer, LuaListview, LuaGenericHotkey, LuaTableFile, LuaMemoryRecordHotkey,
-  LuaMemoryView, LuaD3DHook, LuaDisassembler, LuaDissectCode, LuaByteTable, LuaBinary;
+  LuaMemoryView, LuaD3DHook, LuaDisassembler, LuaDissectCode, LuaByteTable, LuaBinary,
+  lua_server;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -4237,6 +4238,20 @@ begin
   end;
 end;
 
+function openLuaServer(L: PLua_State): integer; cdecl;
+var name: string;
+begin
+  if lua_gettop(L)=1 then
+    name:=Lua_ToString(L, 1)
+  else
+    name:='cheatenginebla';
+
+  if luaserverExists(name)=false then
+    tluaserver.create(name);
+
+
+end;
+
 procedure InitializeLua;
 var s: tstringlist;
   k32: THandle;
@@ -4538,6 +4553,9 @@ begin
     Lua_register(LuaVM, 'setComment', setComment);
 
     lua_register(LuaVM, 'createClass', lua_createClass);
+    lua_register(LuaVM, 'openLuaServer', openLuaServer);
+
+
 
 
     initializeLuaCustomControl;
