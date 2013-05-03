@@ -108,6 +108,9 @@ type
     UserdefinedSymbolCallback: TUserdefinedSymbolCallback;
     searchpath: string;
 
+    globalalloc: pointer; //if set it hold a pointer to the last free memory that was allocated.
+    globalallocsizeleft: integer; //defines how much memory was left
+
     commonModuleList: tstringlist;
     symbollist: TSymbolListHandler;
 
@@ -691,7 +694,6 @@ This function will find the userdefined symbol, and when found checks if it alre
 allocated memory. If not allocate memory, else check if the size matches
 }
 var i:integer;
-    p: pointer;
 begin
   result:=false;
   if size=0 then raise exception.Create(rsPleaseProvideABiggerSize);
@@ -701,13 +703,28 @@ begin
     i:=GetUserdefinedSymbolByNameIndex(symbolname);
     if i=-1 then
     begin
-      p:=virtualallocex(processhandle,nil,size,MEM_COMMIT , PAGE_EXECUTE_READWRITE);
-      if p=nil then
+
+      {userdefinedalloc: pointer; //if set it hold a pointer to the last free memory that was allocated.
+      userdefinedallocsizeleft: integer; //defines how much memory was left
+      }
+      if (globalalloc=nil) or (globalallocsizeleft<size) then //new alloc
+      begin
+        globalalloc:=virtualallocex(processhandle,nil,65536,MEM_COMMIT , PAGE_EXECUTE_READWRITE);
+        globalallocsizeleft:=65536;
+      end;
+
+      if globalalloc=nil then
         raise exception.Create(rsErrorAllocatingMemory);
-      AddUserdefinedSymbol(inttohex(ptrUint(p),8),symbolname);
+      AddUserdefinedSymbol(inttohex(ptrUint(globalalloc),8),symbolname);
       i:=GetUserdefinedSymbolByNameIndex(symbolname);
       userdefinedsymbols[i].allocsize:=size;
       userdefinedsymbols[i].processid:=processid;
+
+
+      size:=(size+15) and not $f;
+      dec(globalallocsizeleft, size );
+      inc(pbyte(globalalloc), size);
+
     end
     else
     begin
@@ -721,14 +738,23 @@ begin
 
       if userdefinedsymbols[i].processid<>processid then
       begin
-        p:=virtualallocex(processhandle,nil,size,MEM_COMMIT , PAGE_EXECUTE_READWRITE);
-        if p=nil then
+        if (globalalloc=nil) or (globalallocsizeleft<size) then //new alloc
+        begin
+          globalalloc:=virtualallocex(processhandle,nil,size,MEM_COMMIT , PAGE_EXECUTE_READWRITE);
+          globalallocsizeleft:=65536;
+        end;
+
+        if globalalloc=nil then
           raise exception.Create(rsErrorAllocatingMemory);
 
-        userdefinedsymbols[i].address:=ptrUint(p);
-        userdefinedsymbols[i].addressstring:=inttohex(ptrUint(p),8);
+        userdefinedsymbols[i].address:=ptrUint(globalalloc);
+        userdefinedsymbols[i].addressstring:=inttohex(ptrUint(globalalloc),8);
         userdefinedsymbols[i].allocsize:=size;
         userdefinedsymbols[i].processid:=processid;
+
+        size:=(size+15) and not $f;
+        dec(globalallocsizeleft, size );
+        inc(ptrUint(globalalloc), size);
       end;
     end;
   finally
