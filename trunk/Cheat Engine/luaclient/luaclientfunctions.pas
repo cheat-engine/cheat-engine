@@ -75,7 +75,6 @@ end;
 
 
 function CELUA_Initialize(pipename: pchar): BOOL; stdcall;
-var e: integer;
 begin
   if cs=nil then
     cs:=TCriticalSection.create;
