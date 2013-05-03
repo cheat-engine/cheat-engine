@@ -15,7 +15,7 @@ object frmAutoInject: TfrmAutoInject
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.1'
+  LCLVersion = '1.0.8.0'
   object Panel1: TPanel
     Left = 0
     Height = 46
@@ -115,6 +115,11 @@ object frmAutoInject: TfrmAutoInject
         Caption = 'Code relocation'
         ShortCut = 16466
         OnClick = Coderelocation1Click
+      end
+      object miCallLua: TMenuItem
+        Caption = 'Call ce lua function'
+        ShortCut = 16460
+        OnClick = miCallLuaClick
       end
       object CheatTablecompliantcodee1: TMenuItem
         Caption = 'Cheat Table framework code'
