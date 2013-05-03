@@ -1114,7 +1114,7 @@ begin
   if indexstring<>'' then
     indexstring:=colorreg+indexstring+endcolor;
 
-  if (is64bit) and (base=5) and (index=4) and (_mod=0) then //disp32
+  if (is64bit) and ((base and 7)=5) and (index=4) and (_mod=0) then //disp32
   begin
     //special case for 64-bit
     //sib has a 32-bit displacement value (starting at 0000000000000000)
