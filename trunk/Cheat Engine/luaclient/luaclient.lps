@@ -13,7 +13,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="8" Y="11"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="22"/>
         <Loaded Value="True"/>
       </Unit0>
       <Unit1>
@@ -23,15 +23,20 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="16" Y="21"/>
-        <UsageCount Value="20"/>
+        <TopLine Value="5"/>
+        <CursorPos X="31" Y="25"/>
+        <UsageCount Value="22"/>
         <Loaded Value="True"/>
       </Unit1>
     </Units>
     <General>
       <ActiveWindowIndexAtStart Value="0"/>
     </General>
-    <JumpHistory Count="0" HistoryIndex="-1"/>
+    <JumpHistory Count="1" HistoryIndex="0">
+      <Position1>
+        <Filename Value="luaclientfunctions.pas"/>
+        <Caret Line="21" Column="16" TopLine="1"/>
+      </Position1>
+    </JumpHistory>
   </ProjectSession>
 </CONFIG>

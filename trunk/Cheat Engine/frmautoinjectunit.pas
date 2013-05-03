@@ -33,6 +33,7 @@ type
   TfrmAutoInject = class(TForm)
     MainMenu1: TMainMenu;
     File1: TMenuItem;
+    miCallLua: TMenuItem;
     miNewWindow: TMenuItem;
     Panel1: TPanel;
     Button1: TButton;
@@ -70,6 +71,7 @@ type
     AAPref1: TMenuItem;
     procedure Button1Click(Sender: TObject);
     procedure Load1Click(Sender: TObject);
+    procedure miCallLuaClick(Sender: TObject);
     procedure miNewWindowClick(Sender: TObject);
     procedure Save1Click(Sender: TObject);
     procedure Exit1Click(Sender: TObject);
@@ -302,6 +304,8 @@ begin
   end;
 {$endif}
 end;
+
+
 
 procedure TfrmAutoInject.miNewWindowClick(Sender: TObject);
 var f: TfrmAutoInject;
@@ -984,6 +988,130 @@ begin
      TMemo(Sender).SelectAll;
      Key := 0;
    end; }
+end;
+
+procedure TfrmAutoInject.miCallLuaClick(Sender: TObject);
+var
+  luaserverinit: tstringlist;
+  i: integer;
+
+  needsinit1: boolean;
+begin
+  needsinit1:=true;
+
+  for i:=0 to assemblescreen.Lines.Count-1 do
+    if trim(assemblescreen.lines[i])='luacall(openLuaServer(''CELUASERVER''))' then
+      needsinit1:=false;
+
+  if needsinit1 then
+  begin
+    luaserverinit:=tstringlist.create;
+    if processhandler.is64bit then
+      luaserverinit.add('injectdll(luaclient-x86_64.dll')
+    else
+      luaserverinit.add('injectdll(luaclient-i386.dll');
+
+    luaserverinit.add('luacall(openLuaServer(''CELUASERVER''))');
+    luaserverinit.add('globalalloc(luainit, 128)');
+    luaserverinit.add('globalalloc(luacall, 128)');
+    luaserverinit.add('label(luainit_exit)');
+    if processhandler.is64bit then
+      luaserverinit.add('globalalloc(luaserverinitialized, 8)')
+    else
+      luaserverinit.add('globalalloc(luaserverinitialized, 4)');
+
+    luaserverinit.add('globalalloc(luaservername, 12)');
+    luaserverinit.add('');
+    luaserverinit.add('luaservername:');
+    luaserverinit.add('db ''CELUASERVER'',0');
+    luaserverinit.add('');
+    luaserverinit.add('luainit:');
+    luaserverinit.add('cmp [luaserverinitialized],0');
+    luaserverinit.add('jne luainit_exit');
+
+
+    if processhandler.is64Bit then
+    begin
+      luaserverinit.add('sub rsp,20');
+      luaserverinit.add('mov rcx,luaservername');
+    end
+    else
+      luaserverinit.add('push luaservername');
+
+    luaserverinit.add('call CELUA_Initialize');
+    if processhandler.is64Bit then
+      luaserverinit.add('add rsp,20');
+
+    luaserverinit.add('mov [luaserverinitialized],eax');
+    luaserverinit.add('luainit_exit:');
+    luaserverinit.add('ret');
+    luaserverinit.add('');
+
+    luaserverinit.add('luacall:');
+    if processhandler.is64bit then
+    begin
+      luaserverinit.add('mov [rsp+4],rcx');
+      luaserverinit.add('mov [rsp+8],rdx');
+      luaserverinit.add('sub rsp,20');
+    end
+    else
+    begin
+      luaserverinit.add('push ebp');
+      luaserverinit.add('mov ebp,esp');
+    end;
+    luaserverinit.add('call luainit');
+
+    if processhandler.is64bit then
+    begin
+      luaserverinit.add('add rsp,20');
+      luaserverinit.add('mov rcx,[esp+4]');
+      luaserverinit.add('mov rdx,[esp+8]');
+    end;
+    luaserverinit.add('');
+
+    if processhandler.is64Bit then
+    begin
+      luaserverinit.add('sub rsp,20');
+      luaserverinit.add('call CELUA_ExecuteFunction');
+      luaserverinit.add('add rsp,20');
+    end
+    else
+    begin
+      luaserverinit.add('push [ebp+c]');
+      luaserverinit.add('push [ebp+8]');
+      luaserverinit.add('call CELUA_ExecuteFunction');
+      luaserverinit.add('ret 8');
+    end;
+
+    luaserverinit.add('//luacall call example:');
+    if processhandler.is64bit then
+    begin
+      luaserverinit.add('//mov rcx, addresstostringwithfunction');
+      luaserverinit.add('//mov rdx, integervariableyouwishtopasstolua');
+      luaserverinit.add('//sub rsp,20');
+      luaserverinit.add('//call luacall');
+      luaserverinit.add('//add rsp,20');
+      luaserverinit.add('//When done RAX will contain the result of the lua function');
+    end
+    else
+    begin
+      luaserverinit.add('//push integervariableyouwishtopasstolua');
+      luaserverinit.add('//push addresstostringwithfunction');
+      luaserverinit.add('//call luacall');
+      luaserverinit.add('//When done EAX will contain the result of the lua function');
+    end;
+
+
+    for i:=0 to luaserverinit.count-1 do
+      assemblescreen.Lines.Insert(0+i, luaserverinit[i]);
+
+    luaserverinit.free;
+  end;
+
+
+
+
+
 end;
 
 procedure TfrmAutoInject.Coderelocation1Click(Sender: TObject);
