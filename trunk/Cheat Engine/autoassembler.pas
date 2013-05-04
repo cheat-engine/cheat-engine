@@ -610,6 +610,11 @@ var i,j,k,l,e: integer;
       filename: string;
     end;
 
+    readmems: array of record
+      bytelength: integer;
+      bytes: PByteArray;
+    end;
+
 
     globalallocs, allocs, kallocs, sallocs: array of tcealloc;
     labels: array of tlabel;
@@ -650,6 +655,7 @@ var i,j,k,l,e: integer;
 
     oldhandle: thandle;
 begin
+  setlength(readmems,0);
   setlength(allocs,0);
   setlength(kallocs,0);
   setlength(globalallocs,0);
@@ -1055,33 +1061,25 @@ begin
               try
                 if (not ReadProcessMemory(processhandle, pointer(testptr),bytebuf,a,x)) or (x<a) then
                   raise exception.Create(Format(rsTheMemoryAtCouldNotBeFullyRead, [s1]));
-
-                //still here so everything ok
-                setlength(assemblerlines,length(assemblerlines)-1);
-
-                s1:='db';
-
-                for j:=0 to a-1 do
+              except
+                on e:exception do
                 begin
-                  s1:=s1+' '+inttohex(bytebuf[j],2);
-                  if (j mod 16)=15 then
-                  begin
-                    setlength(assemblerlines,length(assemblerlines)+1);
-                    assemblerlines[length(assemblerlines)-1]:=s1;
+                  if bytebuf<>nil then
+                    freemem(bytebuf);
 
-                    s1:='db';
-                  end;
+                  raise exception.create(e.Message);
                 end;
-
-                if length(s1)>2 then
-                begin
-                  setlength(assemblerlines,length(assemblerlines)+1);
-                  assemblerlines[length(assemblerlines)-1]:=s1;
-                end;
-
-              finally
-                freemem(bytebuf);
               end;
+
+
+              //still here so everything ok
+              assemblerlines[length(assemblerlines)-1]:='<READMEM'+IntToStr(length(readmems))+'>';
+              setlength(readmems, length(readmems)+1);
+              readmems[length(readmems)-1].bytelength:=a;
+              readmems[length(readmems)-1].bytes:=bytebuf;
+              bytebuf:=nil;
+
+              continue;
 
 
 
@@ -1739,7 +1737,7 @@ begin
     begin
       currentline:=assemblerlines[i];
 
-{$ifndef standalonetrainer}
+
       //plugin
       if length(currentline)>0 then
       begin
@@ -1750,7 +1748,6 @@ begin
         //note that this can be called in a multithreaded situation, so the plugin must hld storage containers on a threadid base and handle the locking itself
       end;
       //plugin
-{$endif}
 
 
       tokenize(currentline,tokens);
@@ -1764,6 +1761,7 @@ begin
 
       for j:=0 to length(defines)-1 do
         currentline:=replacetoken(currentline,defines[j].name,defines[j].whatever);
+
 
       ok1:=false;
       if currentline[length(currentline)]<>':' then //if it's not a definition then
@@ -1861,12 +1859,21 @@ begin
 
       setlength(assembled,length(assembled)+1);
       assembled[length(assembled)-1].address:=currentaddress;
-      assemble(currentline,currentaddress,assembled[length(assembled)-1].bytes);
+
+      if copy(currentline,1,8)='<READMEM' then   //special assembler instruction
+      begin
+        //lets try this for once
+        sscanf(currentline, '<READMEM%d>', [@l]);
+        setlength(assembled[length(assembled)-1].bytes, readmems[l].bytelength);
+        CopyMemory(@assembled[length(assembled)-1].bytes[0], readmems[l].bytes, readmems[l].bytelength);
+      end
+      else
+        assemble(currentline,currentaddress,assembled[length(assembled)-1].bytes);
 
       inc(currentaddress,length(assembled[length(assembled)-1].bytes));
     end;
     //end of loop
-    
+
     ok2:=true;
 
     //unprotectmemory
@@ -2125,11 +2132,18 @@ begin
       setlength(assembled[i].bytes,0);
 
     setlength(assembled,0);
+
+    for i:=0 to length(readmems)-1 do
+      if readmems[i].bytes<>nil then
+        freemem(readmems[i].bytes);
+
+    setlength(readmems,0);
+
+
+
     tokens.free;
 
-{$ifndef standalonetrainer}
     pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 3); //tell the plugins to free their data
-{$endif}
 
     if targetself then
       processhandler.processhandle:=oldhandle;
