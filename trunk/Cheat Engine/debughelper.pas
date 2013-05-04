@@ -8,16 +8,20 @@ uses
   Windows, Classes, SysUtils, Controls, forms, syncobjs, guisafecriticalsection, Dialogs,
   foundcodeunit, debugeventhandler, cefuncproc, newkernelhandler, comctrls,
   debuggertypedefinitions, formChangedAddresses, frmTracerUnit, KernelDebuggerInterface, VEHDebugger,
-  WindowsDebugger, debuggerinterfaceAPIWrapper, debuggerinterface,symbolhandler;
+  WindowsDebugger, debuggerinterfaceAPIWrapper, debuggerinterface,symbolhandler, fgl;
+
 
 
 
 type
+
+
   TDebuggerthread = class(TThread)
   private
     eventhandler: TDebugEventHandler;
     ThreadList: TList; //only the debugger thread can add or remove from this list
-    BreakpointList: TList; //only the main thread can add or remove from this list
+    BreakpointList: TBreakpointList;  //only the main thread can add or remove from this list
+
     breakpointCS: TGuiSafeCriticalSection;
     ThreadListCS: TGuiSafeCriticalSection; //must never be locked before breakpointCS
     OnAttachEvent: Tevent; //event that gets set when a process has been created
@@ -80,6 +84,7 @@ type
     procedure setbreakpointcondition(bp: PBreakpoint; easymode: boolean; script: string);
     function getbreakpointcondition(bp: PBreakpoint; var easymode: boolean):pchar;
 
+    procedure getBreakpointAddresses(AddressList: TAddressArray);
     function  isBreakpoint(address: uint_ptr; address2: uint_ptr=0; includeinactive: boolean=false): PBreakpoint;
     function  CodeFinderStop(codefinder: TFoundCodeDialog): boolean;
     function  setChangeRegBreakpoint(regmod: PRegisterModificationBP): PBreakpoint;
@@ -137,6 +142,7 @@ uses cedebugger, kerneldebugger, formsettingsunit, FormDebugStringsUnit,
      frmBreakpointlistunit, plugin, memorybrowserformunit, autoassembler, pluginexports;
 
 //-----------Inside thread code---------
+
 
 resourcestring
   rsDebuggerCrash = 'Debugger Crash';
@@ -1058,6 +1064,7 @@ end;
 procedure TDebuggerThread.GetBreakpointList(address: uint_ptr; size: integer; var bplist: TBreakpointSplitArray);
 {
 splits up the given address and size into a list of debug register safe breakpoints (alligned)
+Do not confuse this with a function that returns all breakpoints urrently set
 }
 var
   i: integer;
@@ -1499,6 +1506,20 @@ begin
   breakpointCS.enter;
   result:=bp.conditonalbreakpoint.script;
   easymode:=bp.conditonalbreakpoint.easymode;
+  breakpointCS.leave;
+end;
+
+
+
+procedure TDebuggerThread.getBreakpointAddresses(AddressList: TAddressArray);
+var i: integer;
+begin
+  setlength(AddressList,0);
+  breakpointCS.enter;
+  setlength(addresslist, BreakpointList.count);
+  for i:=0 to BreakpointList.count-1 do
+    addresslist[i]:=BreakpointList[i].address;
+
   breakpointCS.leave;
 end;
 
@@ -2023,7 +2044,7 @@ begin
   OnAttachEvent := TEvent.Create(nil, True, False, '');
   OnContinueEvent := Tevent.Create(nil, true, False, '');
   threadlist := TList.Create;
-  BreakpointList := TList.Create;
+  BreakpointList := TBreakpointList.Create;
   eventhandler := TDebugEventHandler.Create(self, OnAttachEvent, OnContinueEvent, breakpointlist, threadlist, breakpointCS, threadlistCS);
 
 

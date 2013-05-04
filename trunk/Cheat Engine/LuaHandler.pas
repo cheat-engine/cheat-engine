@@ -2015,6 +2015,32 @@ begin
   ce_debugProcess(debuggerinterface);
 end;
 
+function debug_getBreakpointList(L: Plua_State): integer; cdecl;
+var
+  al: TAddressArray;
+  t: integer;
+  i: integer;
+begin
+  result:=0;
+  if debuggerthread<>nil then
+  begin
+    debuggerthread.getBreakpointAddresses(al);
+    lua_newtable(L);
+    t:=lua_gettop(L);
+
+
+    for i:=0 to length(al)-1 do
+    begin
+      lua_pushinteger(L, i+1);
+      lua_pushinteger(L, al[i]);
+      lua_settable(L, t);
+    end;
+
+    result:=1;
+  end;
+
+end;
+
 function debug_setBreakpoint(L: Plua_State): integer; cdecl;
 var parameters: integer;
   address: ptruint;

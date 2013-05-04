@@ -21,7 +21,7 @@ type
     onContinueEvent: TEvent;
     realcontextpointer: pointer;
     threadlist: TList;
-    breakpointList: TList;
+    breakpointList: TBreakpointList;
     continueOption: TContinueOption;
 
     setInt3Back: boolean;
@@ -97,7 +97,7 @@ type
     procedure breakThread;
     procedure clearDebugRegisters;
     procedure continueDebugging(continueOption: TContinueOption);
-    constructor Create(debuggerthread: TObject; attachEvent: Tevent; continueEvent: Tevent; breakpointlist: Tlist; threadlist: Tlist; breakpointCS: TGuiSafeCriticalSection);
+    constructor Create(debuggerthread: TObject; attachEvent: Tevent; continueEvent: Tevent; breakpointlist: TBreakpointlist; threadlist: Tlist; breakpointCS: TGuiSafeCriticalSection);
     destructor destroy; override;
 
     property isSingleStepping: boolean read singlestepping;
@@ -111,7 +111,7 @@ type
     threadlistCS: TGuiSafeCriticalSection;
     fOnAttachEvent: TEvent;
     fOnContinueEvent: TEvent;
-    breakpointlist: TList;
+    breakpointlist: TBreakpointlist;
     threadlist: TList;
 
     currentdebugEvent: TDEBUGEVENT;
@@ -119,7 +119,7 @@ type
     procedure UpdateDebugEventWindow;
   public
     function HandleDebugEvent(debugEvent: TDEBUGEVENT; var dwContinueStatus: dword): boolean;
-    constructor Create(debuggerthread: TObject; OnAttachEvent: TEvent; OnContinueEvent: Tevent; breakpointlist: Tlist; threadlist: Tlist; breakpointCS: TGuiSafeCriticalSection; threadlistCS: TGuiSafeCriticalSection);
+    constructor Create(debuggerthread: TObject; OnAttachEvent: TEvent; OnContinueEvent: Tevent; breakpointlist: TBreakpointList; threadlist: Tlist; breakpointCS: TGuiSafeCriticalSection; threadlistCS: TGuiSafeCriticalSection);
   end;
 
 implementation
@@ -1174,7 +1174,7 @@ begin
   inherited destroy;
 end;
 
-constructor TDebugThreadHandler.Create(debuggerthread: TObject; attachEvent: Tevent; continueEvent: TEvent; breakpointlist: Tlist; threadlist: Tlist; breakpointCS: TGuiSafeCriticalSection);
+constructor TDebugThreadHandler.Create(debuggerthread: TObject; attachEvent: Tevent; continueEvent: TEvent; breakpointlist: TBreakpointList; threadlist: Tlist; breakpointCS: TGuiSafeCriticalSection);
 begin
   //because fpc's structure is not alligned on a 16 byte base I have to allocate more memory and byteshift the structure if needed
   getmem(realcontextpointer,sizeof(TCONTEXT)+15);
@@ -1334,7 +1334,7 @@ begin
 
 end;
 
-constructor TDebugEventHandler.Create(debuggerthread: TObject; OnAttachEvent: TEvent; OnContinueEvent: TEvent; breakpointlist: Tlist; threadlist: Tlist; breakpointCS: TGuiSafeCriticalSection; threadlistCS: TGuiSafeCriticalSection);
+constructor TDebugEventHandler.Create(debuggerthread: TObject; OnAttachEvent: TEvent; OnContinueEvent: TEvent; breakpointlist: TBreakpointList; threadlist: Tlist; breakpointCS: TGuiSafeCriticalSection; threadlistCS: TGuiSafeCriticalSection);
 begin
   self.debuggerthread := debuggerthread;
   fOnAttachEvent      := OnAttachEvent;

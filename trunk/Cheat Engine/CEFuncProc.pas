@@ -43,6 +43,7 @@ type TFastScanMethod=(fsmNotAligned=0, fsmAligned=1, fsmLastDigits=2);
 type TaccessRight=(arExecute, arRead, arWrite);
 type TAccessRights=set of TAccessRight;
 
+type TAddressArray=array of ptruint;
 
 Type TBytes = array of integer; //An array that represents a row of byte. Ints are used to be able to represent wildcards (-1)
      TWindowPosArray=TBytes;
