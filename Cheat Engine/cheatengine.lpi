@@ -20,7 +20,7 @@
       <MajorVersionNr Value="6"/>
       <MinorVersionNr Value="2"/>
       <RevisionNr Value="1"/>
-      <BuildNr Value="3201"/>
+      <BuildNr Value="3203"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" ProductVersion="6.2" FileDescription="Cheat Engine"/>
@@ -207,10 +207,12 @@
         <Filename Value="CEFuncProc.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="CEFuncProc"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="197"/>
-        <CursorPos X="58" Y="215"/>
+        <EditorIndex Value="8"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="37"/>
+        <CursorPos X="19" Y="46"/>
         <UsageCount Value="204"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit4>
       <Unit5>
@@ -306,7 +308,7 @@
         <Filename Value="autoassembler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="autoassembler"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
         <TopLine Value="858"/>
         <CursorPos X="45" Y="884"/>
@@ -778,11 +780,10 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmautoinjectunit"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="997"/>
-        <CursorPos X="5" Y="1013"/>
+        <TopLine Value="667"/>
+        <CursorPos X="79" Y="674"/>
         <UsageCount Value="221"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -1505,10 +1506,12 @@
         <Filename Value="debugeventhandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="debugeventhandler"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="571"/>
-        <CursorPos X="59" Y="583"/>
+        <EditorIndex Value="7"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="9"/>
+        <CursorPos X="36" Y="24"/>
         <UsageCount Value="209"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit114>
       <Unit115>
@@ -1525,13 +1528,16 @@
         <Filename Value="debughelper.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DebugHelper"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="714"/>
-        <CursorPos X="3" Y="597"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="6"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1512"/>
+        <CursorPos X="76" Y="1514"/>
         <UsageCount Value="209"/>
         <Bookmarks Count="1">
-          <Item0 X="1" Y="317" ID="6"/>
+          <Item0 X="1" Y="323" ID="6"/>
         </Bookmarks>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit116>
       <Unit117>
@@ -1551,10 +1557,12 @@
         <Filename Value="debuggertypedefinitions.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="debuggertypedefinitions"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="148"/>
-        <CursorPos X="9" Y="166"/>
+        <EditorIndex Value="10"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="36" Y="9"/>
         <UsageCount Value="200"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit118>
       <Unit119>
@@ -1571,10 +1579,12 @@
         <Filename Value="addresslist.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="addresslist"/>
+        <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="646"/>
-        <CursorPos X="62" Y="650"/>
+        <TopLine Value="14"/>
+        <CursorPos X="3" Y="29"/>
         <UsageCount Value="203"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit120>
       <Unit121>
@@ -1813,9 +1823,10 @@
         <Filename Value="LuaHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaHandler"/>
+        <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="4218"/>
-        <CursorPos X="10" Y="4228"/>
+        <TopLine Value="2012"/>
+        <CursorPos X="20" Y="2020"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
           <IsVisibleTab Value="True"/>
@@ -1824,6 +1835,7 @@
           <CursorPos X="25" Y="4253"/>
         </ExtraEditor1>
         <UsageCount Value="200"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit142>
       <Unit143>
@@ -2603,7 +2615,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="808"/>
         <CursorPos X="14" Y="818"/>
-        <UsageCount Value="62"/>
+        <UsageCount Value="57"/>
       </Unit214>
       <Unit215>
         <Filename Value="memdisplay.pas"/>
@@ -3045,7 +3057,7 @@
         <WindowIndex Value="1"/>
         <TopLine Value="1498"/>
         <CursorPos X="15" Y="1519"/>
-        <UsageCount Value="100"/>
+        <UsageCount Value="95"/>
       </Unit257>
       <Unit258>
         <Filename Value="frmD3DHookSnapshotConfigUnit.pas"/>
@@ -3095,7 +3107,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1155"/>
         <CursorPos X="15" Y="1166"/>
-        <UsageCount Value="58"/>
+        <UsageCount Value="53"/>
       </Unit261>
       <Unit262>
         <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\objpas\fgl.pp"/>
@@ -3103,28 +3115,28 @@
         <WindowIndex Value="0"/>
         <TopLine Value="57"/>
         <CursorPos X="15" Y="69"/>
-        <UsageCount Value="48"/>
+        <UsageCount Value="43"/>
       </Unit262>
       <Unit263>
         <Filename Value="C:\lazarus\lcl\include\customform.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="2169"/>
         <CursorPos X="1" Y="2186"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="15"/>
       </Unit263>
       <Unit264>
         <Filename Value="C:\lazarus\lcl\include\wincontrol.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="4358"/>
         <CursorPos X="3" Y="4361"/>
-        <UsageCount Value="19"/>
+        <UsageCount Value="14"/>
       </Unit264>
       <Unit265>
         <Filename Value="C:\lazarus\lcl\include\customcheckbox.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="106"/>
         <CursorPos X="1" Y="123"/>
-        <UsageCount Value="14"/>
+        <UsageCount Value="9"/>
       </Unit265>
       <Unit266>
         <Filename Value="C:\lazarus\lcl\comctrls.pp"/>
@@ -3132,7 +3144,7 @@
         <WindowIndex Value="1"/>
         <TopLine Value="1390"/>
         <CursorPos X="14" Y="1486"/>
-        <UsageCount Value="31"/>
+        <UsageCount Value="26"/>
       </Unit266>
       <Unit267>
         <Filename Value="C:\lazarus\lcl\include\buttoncontrol.inc"/>
@@ -3148,7 +3160,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="335"/>
         <CursorPos X="1" Y="356"/>
-        <UsageCount Value="47"/>
+        <UsageCount Value="42"/>
       </Unit268>
       <Unit269>
         <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\objpas\types.pp"/>
@@ -3156,7 +3168,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="111"/>
         <CursorPos X="18" Y="124"/>
-        <UsageCount Value="43"/>
+        <UsageCount Value="38"/>
       </Unit269>
       <Unit270>
         <Filename Value="frmD3DTrainerGeneratorOptionsUnit.pas"/>
@@ -3177,14 +3189,14 @@
         <WindowIndex Value="0"/>
         <TopLine Value="174"/>
         <CursorPos X="15" Y="190"/>
-        <UsageCount Value="15"/>
+        <UsageCount Value="10"/>
       </Unit271>
       <Unit272>
         <Filename Value="C:\lazarus\lcl\include\font.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="713"/>
         <CursorPos X="3" Y="695"/>
-        <UsageCount Value="13"/>
+        <UsageCount Value="8"/>
       </Unit272>
       <Unit273>
         <Filename Value="C:\lazarus\lcl\dialogs.pp"/>
@@ -3192,126 +3204,168 @@
         <WindowIndex Value="0"/>
         <TopLine Value="347"/>
         <CursorPos X="14" Y="358"/>
-        <UsageCount Value="60"/>
+        <UsageCount Value="55"/>
       </Unit273>
       <Unit274>
-        <Filename Value="C:\lazarus\lcl\stdctrls.pp"/>
-        <UnitName Value="StdCtrls"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="128"/>
-        <CursorPos X="14" Y="141"/>
-        <UsageCount Value="5"/>
-      </Unit274>
-      <Unit275>
         <Filename Value="lua_server.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="lua_server"/>
         <WindowIndex Value="1"/>
         <TopLine Value="75"/>
         <CursorPos X="1" Y="89"/>
-        <UsageCount Value="25"/>
+        <UsageCount Value="72"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit275>
-      <Unit276>
+      </Unit274>
+      <Unit275>
         <Filename Value="lua\lauxlib.pas"/>
         <UnitName Value="lauxlib"/>
         <WindowIndex Value="1"/>
         <TopLine Value="227"/>
         <CursorPos X="3" Y="244"/>
-        <UsageCount Value="12"/>
+        <UsageCount Value="7"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit276>
-      <Unit277>
+      </Unit275>
+      <Unit276>
         <Filename Value="lua\lua.pas"/>
         <UnitName Value="lua"/>
         <WindowIndex Value="1"/>
         <TopLine Value="69"/>
         <CursorPos X="3" Y="85"/>
-        <UsageCount Value="12"/>
+        <UsageCount Value="7"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit276>
+      <Unit277>
+        <Filename Value="C:\lazarus\fpc\2.6.2\source\rtl\objpas\fgl.pp"/>
+        <UnitName Value="fgl"/>
+        <EditorIndex Value="9"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="10"/>
+        <CursorPos X="1" Y="1"/>
+        <UsageCount Value="34"/>
+        <Loaded Value="True"/>
       </Unit277>
     </Units>
-    <JumpHistory Count="20" HistoryIndex="19">
+    <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="autoassembler.pas"/>
-        <Caret Line="29" Column="64" TopLine="4"/>
+        <Filename Value="debughelper.pas"/>
+        <Caret Line="20" Column="19" TopLine="1"/>
       </Position1>
       <Position2>
-        <Filename Value="autoassembler.pas"/>
-        <Caret Line="614" Column="16" TopLine="605"/>
+        <Filename Value="debughelper.pas"/>
+        <Caret Line="47" Column="32" TopLine="23"/>
       </Position2>
       <Position3>
-        <Filename Value="autoassembler.pas"/>
-        <Caret Line="655" Column="24" TopLine="646"/>
+        <Filename Value="frmautoinjectunit.pas"/>
+        <Caret Line="1013" Column="5" TopLine="997"/>
       </Position3>
       <Position4>
-        <Filename Value="autoassembler.pas"/>
-        <Caret Line="1055" Column="42" TopLine="1047"/>
+        <Filename Value="frmautoinjectunit.pas"/>
+        <Caret Line="664" Column="22" TopLine="648"/>
       </Position4>
       <Position5>
-        <Filename Value="autoassembler.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="debughelper.pas"/>
+        <Caret Line="1511" Column="18" TopLine="1491"/>
       </Position5>
       <Position6>
-        <Filename Value="autoassembler.pas"/>
-        <Caret Line="29" Column="64" TopLine="4"/>
+        <Filename Value="debughelper.pas"/>
+        <Caret Line="142" Column="8" TopLine="127"/>
       </Position6>
       <Position7>
-        <Filename Value="autoassembler.pas"/>
-        <Caret Line="614" Column="16" TopLine="590"/>
+        <Filename Value="debughelper.pas"/>
+        <Caret Line="11" Column="85" TopLine="1"/>
       </Position7>
       <Position8>
-        <Filename Value="autoassembler.pas"/>
-        <Caret Line="655" Column="24" TopLine="631"/>
+        <Filename Value="debughelper.pas"/>
+        <Caret Line="21" Column="41" TopLine="1"/>
       </Position8>
       <Position9>
-        <Filename Value="autoassembler.pas"/>
-        <Caret Line="867" Column="60" TopLine="872"/>
+        <Filename Value="debughelper.pas"/>
+        <Caret Line="1513" Column="31" TopLine="1496"/>
       </Position9>
       <Position10>
-        <Filename Value="autoassembler.pas"/>
-        <Caret Line="886" Column="56" TopLine="873"/>
+        <Filename Value="debughelper.pas"/>
+        <Caret Line="85" Column="15" TopLine="63"/>
       </Position10>
       <Position11>
-        <Filename Value="autoassembler.pas"/>
-        <Caret Line="887" Column="46" TopLine="873"/>
+        <Filename Value="debughelper.pas"/>
+        <Caret Line="17" Column="1" TopLine="3"/>
       </Position11>
       <Position12>
-        <Filename Value="autoassembler.pas"/>
-        <Caret Line="888" Column="46" TopLine="873"/>
+        <Filename Value="debughelper.pas"/>
+        <Caret Line="1516" Column="28" TopLine="1501"/>
       </Position12>
       <Position13>
-        <Filename Value="autoassembler.pas"/>
-        <Caret Line="889" Column="46" TopLine="873"/>
+        <Filename Value="debughelper.pas"/>
+        <Caret Line="2039" Column="44" TopLine="2031"/>
       </Position13>
       <Position14>
-        <Filename Value="autoassembler.pas"/>
-        <Caret Line="895" Column="65" TopLine="873"/>
+        <Filename Value="debughelper.pas"/>
+        <Caret Line="17" Column="18" TopLine="1"/>
       </Position14>
       <Position15>
-        <Filename Value="autoassembler.pas"/>
-        <Caret Line="2103" Column="39" TopLine="2085"/>
+        <Filename Value="debughelper.pas"/>
+        <Caret Line="2047" Column="36" TopLine="2032"/>
       </Position15>
       <Position16>
-        <Filename Value="autoassembler.pas"/>
-        <Caret Line="119" Column="61" TopLine="115"/>
+        <Filename Value="debughelper.pas"/>
+        <Caret Line="2048" Column="97" TopLine="2033"/>
       </Position16>
       <Position17>
-        <Filename Value="autoassembler.pas"/>
-        <Caret Line="614" Column="16" TopLine="590"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="122" Column="128" TopLine="106"/>
       </Position17>
       <Position18>
-        <Filename Value="autoassembler.pas"/>
-        <Caret Line="655" Column="24" TopLine="631"/>
+        <Filename Value="debughelper.pas"/>
+        <Caret Line="2046" Column="30" TopLine="2033"/>
       </Position18>
       <Position19>
-        <Filename Value="autoassembler.pas"/>
-        <Caret Line="884" Column="45" TopLine="858"/>
+        <Filename Value="debuggertypedefinitions.pas"/>
+        <Caret Line="206" Column="1" TopLine="187"/>
       </Position19>
       <Position20>
-        <Filename Value="frmautoinjectunit.pas"/>
-        <Caret Line="1088" Column="31" TopLine="1078"/>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="122" Column="17" TopLine="25"/>
       </Position20>
+      <Position21>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="1342" Column="15" TopLine="1321"/>
+      </Position21>
+      <Position22>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="114" Column="36" TopLine="99"/>
+      </Position22>
+      <Position23>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="1221" Column="113" TopLine="1208"/>
+      </Position23>
+      <Position24>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="100" Column="124" TopLine="1"/>
+      </Position24>
+      <Position25>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="1177" Column="140" TopLine="1162"/>
+      </Position25>
+      <Position26>
+        <Filename Value="debugeventhandler.pas"/>
+        <Caret Line="1186" Column="20" TopLine="1171"/>
+      </Position26>
+      <Position27>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="2028" Column="24" TopLine="2018"/>
+      </Position27>
+      <Position28>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="2026" Column="14" TopLine="2012"/>
+      </Position28>
+      <Position29>
+        <Filename Value="LuaHandler.pas"/>
+        <Caret Line="2020" Column="20" TopLine="2012"/>
+      </Position29>
+      <Position30>
+        <Filename Value="debughelper.pas"/>
+        <Caret Line="87" Column="64" TopLine="74"/>
+      </Position30>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
