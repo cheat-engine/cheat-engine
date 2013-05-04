@@ -32,12 +32,16 @@ type
 
   TFoundCodeDialog = class(TForm)
     FoundCodeList: TListView;
+    MenuItem1: TMenuItem;
+    MenuItem2: TMenuItem;
+    miSaveTofile: TMenuItem;
     mInfo: TMemo;
     Panel1: TPanel;
     Description: TLabel;
     Panel4: TPanel;
     pmOptions: TPopupMenu;
     ReplacewithcodethatdoesnothingNOP1: TMenuItem;
+    SaveDialog1: TSaveDialog;
     Showthisaddressinthedisassembler1: TMenuItem;
     Addtothecodelist1: TMenuItem;
     MoreInfo1: TMenuItem;
@@ -68,12 +72,15 @@ type
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FoundCodeListSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
+    procedure MenuItem1Click(Sender: TObject);
+    procedure miSaveTofileClick(Sender: TObject);
     procedure pmOptionsPopup(Sender: TObject);
     procedure Copyselectiontoclipboard1Click(Sender: TObject);
   private
     { Private declarations }
     procedure addInfo(Coderecord: TCoderecord);
     procedure moreinfo;
+    function getSelection: string;
   public
     { Public declarations }
     useexceptions: boolean;
@@ -720,6 +727,37 @@ begin
   end;
 end;
 
+procedure TFoundCodeDialog.MenuItem1Click(Sender: TObject);
+var i: integer;
+begin
+  for i:=0 to foundcodelist.items.count-1 do
+    FoundCodeList.Items[i].Selected:=true;
+end;
+
+function TFoundCodeDialog.getSelection:string;
+var
+  i: integer;
+begin
+  result:='';
+  for i:=0 to FoundcodeList.Items.count-1 do
+    if FoundcodeList.items[i].selected then
+      result:=result+FoundcodeList.Items[i].subitems[0]+#13#10;
+end;
+
+procedure TFoundCodeDialog.miSaveTofileClick(Sender: TObject);
+var
+  s: TStringList;
+
+begin
+  if savedialog1.execute then
+  begin
+    s:=tstringlist.create;
+    s.text:=getSelection;
+    s.SaveToFile(savedialog1.filename);
+    s.free;
+  end;
+end;
+
 procedure TFoundCodeDialog.pmOptionsPopup(Sender: TObject);
 begin
   ReplacewithcodethatdoesnothingNOP1.Enabled:=foundcodelist.selcount>0;
@@ -731,16 +769,8 @@ begin
 end;
 
 procedure TFoundCodeDialog.Copyselectiontoclipboard1Click(Sender: TObject);
-var
-  i: integer;
-  s: string;
 begin
-  s:='';
-  for i:=0 to FoundcodeList.Items.count-1 do
-    if FoundcodeList.items[i].selected then
-      s:=s+FoundcodeList.Items[i].subitems[0]+#13#10;
-
-  clipboard.AsText:=s;
+  clipboard.AsText:=getSelection;
 end;
 
 initialization
