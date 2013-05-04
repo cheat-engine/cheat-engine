@@ -15,7 +15,7 @@ object FoundCodeDialog: TFoundCodeDialog
   OnDestroy = FormDestroy
   OnResize = FormResize
   Position = poOwnerFormCenter
-  LCLVersion = '1.1'
+  LCLVersion = '1.0.8.0'
   object Panel1: TPanel
     Left = 264
     Height = 445
@@ -207,10 +207,27 @@ object FoundCodeDialog: TFoundCodeDialog
     object N1: TMenuItem
       Caption = '-'
     end
+    object MenuItem1: TMenuItem
+      Caption = 'Select all'
+      ShortCut = 16449
+      OnClick = MenuItem1Click
+    end
+    object MenuItem2: TMenuItem
+      Caption = '-'
+    end
+    object miSaveTofile: TMenuItem
+      Caption = 'Save selection to file'
+      OnClick = miSaveTofileClick
+    end
     object Copyselectiontoclipboard1: TMenuItem
       Caption = 'Copy selection to clipboard'
       ShortCut = 16451
       OnClick = Copyselectiontoclipboard1Click
     end
+  end
+  object SaveDialog1: TSaveDialog
+    Filter = 'Text files (*.txt)|*.txt'
+    left = 72
+    top = 152
   end
 end
