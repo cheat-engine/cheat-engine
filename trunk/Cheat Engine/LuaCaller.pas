@@ -30,6 +30,8 @@ type
       procedure KeyPressEvent(Sender: TObject; var Key: char);
       procedure KeyEvent(Sender: TObject; var Key: Word; Shift: TShiftState);
       procedure LVCheckedItemEvent(Sender: TObject; Item: TListItem); //personal request to have this one added
+      procedure LVSelectItemEvent(Sender: TObject; Item: TListItem; Selected: Boolean);
+
       procedure CloseEvent(Sender: TObject; var CloseAction: TCloseAction);
       function MemoryRecordActivateEvent(sender: TObject; before, currentstate: boolean): boolean;
       procedure DisassemblerSelectionChangeEvent(sender: TObject; address, address2: ptruint);
@@ -62,6 +64,7 @@ function LuaCaller_MouseWheelUpDownEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_KeyPressEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_KeyEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_LVCheckedItemEvent(L: PLua_state): integer; cdecl;
+function LuaCaller_LVSelectItemEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_MemoryRecordActivateEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_DisassemblerSelectionChangeEvent(L: PLua_state): integer; cdecl;
 function LuaCaller_ByteSelectEvent(L: PLua_state): integer; cdecl;  //(sender: TObject; address: ptruint; address2: ptruint);
@@ -645,6 +648,23 @@ begin
   end
 end;
 
+procedure TLuaCaller.LVSelectItemEvent(Sender: TObject; Item: TListItem; selected: boolean);
+var oldstack: integer;
+begin
+  Luacs.enter;
+  try
+    oldstack:=lua_gettop(Luavm);
+    pushFunction;
+    luaclass_newClass(luavm, sender);
+    luaclass_newClass(luavm, item);
+    lua_pushboolean(luavm, selected);
+    lua_pcall(LuaVM, 3, 0, 0);
+  finally
+    lua_settop(Luavm, oldstack);
+    luacs.leave;
+  end
+end;
+
 function TLuaCaller.DisassembleEvent(sender: TObject; address: ptruint; var ldd: TLastDisassembleData; var output: string; var description: string): boolean;
 var oldstack: integer;
   lddentry: integer;
@@ -908,14 +928,40 @@ var
 begin
   result:=0;
   parameters:=lua_gettop(L);
-  if parameters=1 then
+  if parameters=2 then
   begin
     m.code:=lua_touserdata(L, lua_upvalueindex(1));
     m.data:=lua_touserdata(L, lua_upvalueindex(2));
     sender:=lua_toceuserdata(L, 1);
+    item:=lua_ToCEUserData(L, 2);
     lua_pop(L, lua_gettop(L));
 
     TLVCheckedItemEvent(m)(sender,item);
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
+
+function LuaCaller_LVSelectItemEvent(L: PLua_state): integer; cdecl;
+var
+  parameters: integer;
+  m: TMethod;
+  sender: TObject;
+  item: TListItem;
+  selected: boolean;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=3 then
+  begin
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    sender:=lua_toceuserdata(L, 1);
+    item:=lua_ToCEUserData(L, 2);
+    selected:=lua_toboolean(L, 3);
+    lua_pop(L, lua_gettop(L));
+
+    TLVSelectItemEvent(m)(sender,item, selected);
   end
   else
     lua_pop(L, lua_gettop(L));
@@ -1171,6 +1217,7 @@ initialization
   registerLuaCall('TKeyPressEvent', LuaCaller_KeyPressEvent, pointer(TLuaCaller.KeyPressEvent),'function %s(sender, key)'#13#10#13#10'  return key'#13#10'end'#13#10);
   registerLuaCall('TKeyEvent', LuaCaller_KeyEvent, pointer(TLuaCaller.KeyEvent),'function %s(sender, key)'#13#10#13#10'  return key'#13#10'end'#13#10);
   registerLuaCall('TLVCheckedItemEvent', LuaCaller_LVCheckedItemEvent, pointer(TLuaCaller.LVCheckedItemEvent),'function %s(sender, listitem)'#13#10#13#10'end'#13#10);
+  registerLuaCall('TLVSelectItemEvent', LuaCaller_LVSelectItemEvent, pointer(TLuaCaller.LVSelectItemEvent),'function %s(sender, listitem, selected)'#13#10#13#10'end'#13#10);
   registerLuaCall('TMemoryRecordActivateEvent', LuaCaller_MemoryRecordActivateEvent, pointer(TLuaCaller.MemoryRecordActivateEvent),'function %s(sender, before, current)'#13#10#13#10'end'#13#10);
 
   registerLuaCall('TDisassemblerSelectionChangeEvent', LuaCaller_DisassemblerSelectionChangeEvent, pointer(TLuaCaller.DisassemblerSelectionChangeEvent),'function %s(sender, address, address2)'#13#10#13#10'end'#13#10);
