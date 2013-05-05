@@ -699,6 +699,9 @@ begin
     coderecord:=TCodeRecord(foundcodelist.Selected.data);
     description.Caption:=coderecord.description;
 
+    addinfo(coderecord);
+
+    {
     for i:=0 to FoundCodeList.Items.Count-1 do
     begin
       if foundcodelist.items[i].Selected then
@@ -706,7 +709,7 @@ begin
         coderecord:=TCodeRecord(foundcodelist.items[i].data);
         addinfo(coderecord);
       end;
-    end;
+    end;   }
 
     //minfo.VertScrollBar.Position:=0;
     minfo.SelStart:=0;
@@ -730,8 +733,11 @@ end;
 procedure TFoundCodeDialog.MenuItem1Click(Sender: TObject);
 var i: integer;
 begin
+  FoundCodeList.OnSelectItem:=nil;
   for i:=0 to foundcodelist.items.count-1 do
     FoundCodeList.Items[i].Selected:=true;
+
+  FoundCodeList.OnSelectItem:=FoundCodeListSelectItem;
 end;
 
 function TFoundCodeDialog.getSelection:string;
