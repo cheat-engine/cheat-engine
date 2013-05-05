@@ -630,11 +630,29 @@ end;
 
 procedure TMemoryBrowser.setShowDebugPanels(state: boolean);
 begin
+  if state then
+  begin
+    //resizing should change the stack, not the hexview
+    panel3.Align:=alLeft;
+    splitter3.Align:=alLeft;
+    pnlStacktrace.align:=alclient;
+    splitter3.ResizeControl:=pnlStacktrace;
+  end
+  else
+  begin
+    splitter3.ResizeControl:=panel3;
+    pnlStacktrace.align:=alRight;
+    splitter3.Align:=alRight;
+    panel3.Align:=alclient;
+  end;
+
   FShowDebugPanels:=state;
   registerview.Visible:=state;
   pnlStacktrace.Visible:=state;
   splitter2.Visible:=state;
   splitter3.Visible:=state;
+
+
 end;
 
 procedure TMemoryBrowser.SetStacktraceSize(size: integer);
@@ -3004,7 +3022,6 @@ end;
 
 procedure TMemoryBrowser.Newwindow1Click(Sender: TObject);
 begin
-
   with tmemorybrowser.create(application) do
   begin
     inc(mbchildcount);
