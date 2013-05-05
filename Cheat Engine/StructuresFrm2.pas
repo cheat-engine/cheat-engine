@@ -189,6 +189,7 @@ type
     procedure DeleteClick(sender: Tobject);
     procedure setGroupName(newname: string);
   public
+    function AColumnHasSetCaption: boolean;
     procedure setPositions;
     constructor create(parent: TfrmStructures2; GroupName: string);
     destructor destroy; override;
@@ -224,9 +225,11 @@ type
     miCopy: TMenuItem;
     miPaste: TMenuItem;
     miSpider: TMenuItem;
+    miSetCaption: TMenuItem;
 
 
     focusedShape: TShape;
+    lblName: TLabel;
 
 
     fcompareValue: string;
@@ -239,6 +242,7 @@ type
     procedure CopyClick(sender: TObject);
     procedure PasteClick(sender: TObject);
     procedure SpiderClick(sender: TObject);
+    procedure SetCaptionClick(sender: TObject);
 
     procedure MenuPopup(sender: TObject);
 
@@ -1988,6 +1992,16 @@ begin
   f.show;
 end;
 
+procedure TStructColumn.SetCaptionClick(sender: TObject);
+var newname: string;
+begin
+  newname:=lblname.caption;
+  if InputQuery('New column name', 'What name should this column have?', newname) then
+    lblname.caption:=newname;
+
+  parent.setPositions;
+end;
+
 procedure TStructColumn.MenuPopup(sender: TObject);
 begin
   miCut.enabled:=edtAddress.SelLength>0;
@@ -2019,13 +2033,20 @@ begin
   edtAddress.ClientWidth:=edtWidth;
 
 
-  edtAddress.top:=(parent.box.clientHeight div 2)-(edtAddress.height div 2);
+
+  if parent.AColumnHasSetCaption then
+    edtAddress.top:=((parent.box.clientHeight div 2)-((edtAddress.height+lblname.height) div 2))
+  else
+    edtAddress.top:=(parent.box.clientHeight div 2)-(edtAddress.height div 2);
 
   focusedShape.Left:=edtAddress.left-1;
   focusedShape.Width:=edtAddress.width+2;
   focusedShape.Top:=edtAddress.top-1;
   focusedShape.Height:=edtAddress.Height+2;
 
+  lblname.left:=edtAddress.left;
+  lblname.width:=edtAddress.width;
+  lblname.Top:=edtAddress.top+edtAddress.height+2;
 end;
 
 constructor TStructColumn.create(parent: TStructGroup);
@@ -2080,6 +2101,17 @@ begin
   columneditpopupmenu.Items.Add(miSpider);
 
 
+  s:=TMenuItem.create(columneditpopupmenu);
+  s.caption:='-';
+  columneditpopupmenu.Items.Add(s);
+
+  miSetCaption:=TMenuItem.create(columneditpopupmenu);
+  miSetCaption.OnClick:=SetCaptionClick;
+  miSetCaption.caption:='Set name/Rename';
+  miSetCaption.ShortCut:=TextToShortCut('Ctrl+R');
+  columneditpopupmenu.Items.Add(miSetCaption);
+
+
 
   columneditpopupmenu.OnPopup:=MenuPopup;
 
@@ -2105,6 +2137,11 @@ begin
   hsection.Text:=rsAddressValue;
   hsection.Width:=parent.parent.headercontrol1.Sections[parent.parent.headercontrol1.Sections.Count-2].width;
   hsection.MinWidth:=20;
+
+  lblName:=tlabel.create(parent.parent);
+  lblName.AutoSize:=false;
+  lblName.parent:=edtAddress.Parent;
+  lblName.Alignment:=taCenter;
 
   parent.setPositions;
   Address:=MemoryBrowser.hexview.address;
@@ -2186,9 +2223,53 @@ begin
   result:=fcolumns[i];
 end;
 
+function TStructGroup.AColumnHasSetCaption: boolean;
+var i: integer;
+begin
+  result:=false;
+  for i:=0 to columnCount-1 do
+  begin
+    if columns[i].lblName.caption<>'' then
+    begin
+      result:=true;
+      exit;
+    end;
+  end;
+end;
+
 procedure TStructGroup.setPositions;
 var i,j: integer;
+  maxh: integer;
+  h: integer;
 begin
+  maxh:=0;
+
+  //first get the height needed
+  for i:=0 to parent.groupcount-1 do
+  begin
+    for j:=0 to parent.group[i].columnCount-1 do
+    begin
+      h:=parent.group[i].columns[j].edtAddress.height;
+      if parent.group[i].columns[j].lblName.caption<>'' then
+        inc(h, parent.group[i].columns[j].lblName.height);
+
+      maxh:=max(maxh, h);
+    end;
+  end;
+
+  inc(maxh, 3);
+
+  //now set the height
+  for i:=0 to parent.groupcount-1 do
+    parent.group[i].GroupBox.ClientHeight:=maxh;
+
+
+  parent.pnlGroups.ClientHeight:=parent.group[0].GroupBox.top+parent.group[0].GroupBox.Height+2;
+  parent.HeaderControl1.Top:=parent.pnlgroups.Top+parent.pnlGroups.Height;
+  parent.tvStructureView.top:=parent.HeaderControl1.Top+parent.HeaderControl1.Height;
+
+
+
 
   for i:=0 to parent.groupcount-1 do
   begin
