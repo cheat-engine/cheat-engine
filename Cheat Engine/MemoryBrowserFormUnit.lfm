@@ -513,6 +513,7 @@ object MemoryBrowser: TMemoryBrowser
         Top = 2
         Width = 206
         Align = alClient
+        AutoWidthLastColumn = True
         Columns = <        
           item
             Caption = 'Address'
@@ -523,7 +524,6 @@ object MemoryBrowser: TMemoryBrowser
             Width = 80
           end        
           item
-            AutoSize = True
             Caption = 'Value'
             Width = 42
           end>

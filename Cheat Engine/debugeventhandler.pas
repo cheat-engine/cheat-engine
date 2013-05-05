@@ -609,7 +609,7 @@ begin
 
 
 
-    if (bpp.OneTimeOnly=false) and ((bpp.breakpointMethod<>bpmException) and (not active)) or (not CheckIfConditionIsMet(bpp) or (bpp.markedfordeletion) ) then
+    if (bpp.OneTimeOnly=false) and (((bpp.breakpointMethod<>bpmException) and (not active)) or (not CheckIfConditionIsMet(bpp) or (bpp.markedfordeletion) )) then
     begin
       OutputDebugString('bp was disabled or Condition was not met');
 
