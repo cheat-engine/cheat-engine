@@ -2807,7 +2807,7 @@ begin
   if processhandler.is64Bit then
     f.edtTo.text:='FFFFFFFFFFFFFFFF'
   else
-    f.edtTo.text:='FFFFFFFF'
+    f.edtTo.text:='FFFFFFFF';
 
 
   if f.ShowModal=mrok then
