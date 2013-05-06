@@ -12,7 +12,7 @@ object frmDisassemblyscan: TfrmDisassemblyscan
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.0.8.0'
   object Label1: TLabel
     Left = 0
     Height = 14

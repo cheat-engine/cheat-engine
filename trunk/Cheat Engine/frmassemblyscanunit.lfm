@@ -1,0 +1,105 @@
+object frmAssemblyScan: TfrmAssemblyScan
+  Left = 662
+  Height = 185
+  Top = 422
+  Width = 444
+  BorderIcons = [biSystemMenu]
+  Caption = 'Assembly scan'
+  ClientHeight = 185
+  ClientWidth = 444
+  Constraints.MinHeight = 120
+  Constraints.MinWidth = 430
+  Position = poScreenCenter
+  LCLVersion = '1.0.8.0'
+  object Panel1: TPanel
+    Left = 0
+    Height = 185
+    Top = 0
+    Width = 321
+    Align = alClient
+    ClientHeight = 185
+    ClientWidth = 321
+    TabOrder = 0
+    object lblInputAssemblyCode: TLabel
+      Left = 1
+      Height = 16
+      Top = 1
+      Width = 319
+      Align = alTop
+      Caption = 'Input the assembly code to find. Wildcards( * ) supported.'
+      ParentColor = False
+    end
+    object mAssemblerSearch: TMemo
+      Left = 1
+      Height = 167
+      Top = 17
+      Width = 319
+      Align = alClient
+      TabOrder = 0
+    end
+  end
+  object Panel2: TPanel
+    Left = 326
+    Height = 185
+    Top = 0
+    Width = 118
+    Align = alRight
+    ClientHeight = 185
+    ClientWidth = 118
+    Constraints.MinHeight = 9
+    TabOrder = 1
+    object btnOk: TButton
+      Left = 20
+      Height = 25
+      Top = 88
+      Width = 75
+      Caption = 'Scan'
+      OnClick = btnOkClick
+      TabOrder = 0
+    end
+    object edtFrom: TEdit
+      Left = 1
+      Height = 23
+      Top = 17
+      Width = 116
+      Align = alTop
+      TabOrder = 1
+      Text = '0000000000000000'
+    end
+    object lblFrom: TLabel
+      Left = 1
+      Height = 16
+      Top = 1
+      Width = 116
+      Align = alTop
+      Caption = 'From'
+      ParentColor = False
+    end
+    object lblTo: TLabel
+      Left = 1
+      Height = 16
+      Top = 40
+      Width = 116
+      Align = alTop
+      Caption = 'To'
+      ParentColor = False
+    end
+    object edtTo: TEdit
+      Left = 1
+      Height = 23
+      Top = 56
+      Width = 116
+      Align = alTop
+      TabOrder = 2
+      Text = 'FFFFFFFFFFFFFFFF'
+    end
+  end
+  object Splitter1: TSplitter
+    Left = 321
+    Height = 185
+    Top = 0
+    Width = 5
+    Align = alRight
+    ResizeAnchor = akRight
+  end
+end

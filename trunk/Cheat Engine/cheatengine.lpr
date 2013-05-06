@@ -70,7 +70,7 @@ uses
   LuaMemoryRecordHotkey, LuaMemoryView, LuaD3DHook, CustomBase85,
   frmMemoryViewExUnit, LuaDisassembler, LuaDissectCode, LuaByteTable, LuaBinary,
   frmD3DHookSnapshotConfigUnit, frmsnapshothandlerUnit, frmSaveSnapshotsUnit,
-  frmD3DTrainerGeneratorOptionsUnit, lua_server;
+  frmD3DTrainerGeneratorOptionsUnit, lua_server, frmAssemblyScanUnit;
 
 {$R cheatengine.res}
 {$R manifest.res}
