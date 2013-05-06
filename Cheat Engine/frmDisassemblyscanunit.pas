@@ -20,6 +20,7 @@ type
   public
     currentaddress:ptrUint;
     startaddress: ptrUint;
+    stopaddress: ptruint;
     regexpressions: array of TRegExpr;
     ownerform: TfrmDisassemblyscan;
     procedure execute; override;
@@ -53,10 +54,13 @@ type
   private
     { Private declarations }
     Disassemblerthread: TDisassemblerthread;
+    fStringsToFind: Tstrings; //actually a tstringlist
+    procedure setStringsToFind(s: tstrings);
   public
     { Public declarations }
     startaddress: ptrUint;
-    stringstofind: tstrings;  //externally allocated stringlist object (should be set as a property in the future)
+    stopaddress: ptruint;
+    property stringstofind: tstrings read fStringsToFind write setStringsToFind;
   end;
 
 
@@ -141,30 +145,30 @@ var x: ptrUint;
 
 begin
   try
-  x:=startaddress;
-  currentaddress:=x;
-  maxaddress:=currentaddress;
-
-  while not terminated and (maxaddress<=x) do
-  begin
+    x:=startaddress;
+    currentaddress:=x;
     maxaddress:=currentaddress;
 
-    currentaddress:=x;
-    if (x mod 4096) = 0 then
+    while not terminated and (maxaddress<=x) and (currentaddress<stopaddress) do
     begin
-      i:=0;
-      if not readprocessmemory(processhandle,pointer(x),@i,processhandler.pointersize,br) then
+      maxaddress:=currentaddress;
+
+      currentaddress:=x;
+      if (x mod 4096) = 0 then
       begin
-        inc(x,4096);
-        continue;
+        i:=0;
+        if not readprocessmemory(processhandle,pointer(x),@i,processhandler.pointersize,br) then
+        begin
+          inc(x,4096);
+          continue;
+        end;
       end;
+
+      x:=checkAddress(x);
+
+
+
     end;
-
-    x:=checkAddress(x);
-
-
-
-  end;
   except
     on e:exception do
       messagebox(0,pchar(e.message),pchar('scan error'), 0);
@@ -216,6 +220,7 @@ begin
 
   i:=0;
   while i<stringstofind.count do //cleanup the userinput
+  begin
     if trim(stringstofind[i])='' then
       stringstofind.Delete(i)
     else
@@ -225,6 +230,7 @@ begin
 
       inc(i);
     end;
+  end;
 
   setlength(disassemblerthread.regexpressions,stringstofind.count);
   for i:=0 to length(Disassemblerthread.regexpressions)-1 do
@@ -247,41 +253,11 @@ begin
     end;
   end;
 
+  disassemblerthread.startaddress:=startaddress;
+  disassemblerthread.stopaddress:=stopaddress;
 
-  {
-  setlength(disassemblerthread.strings,1);
-  for i:=1 to length(stringtofind) do
-  begin
-    if stringtofind[i]<>'*' then
-      disassemblerthread.strings[length(disassemblerthread.strings)-1]:=disassemblerthread.strings[length(disassemblerthread.strings)-1]+stringtofind[i]
-    else
-      setlength(disassemblerthread.strings,length(disassemblerthread.strings)+1);
-  end;
-
-  c:=0;
-  for i:=0 to length(disassemblerthread.strings)-1 do
-  begin
-    if disassemblerthread.strings[i]='' then
-    begin
-      for j:=i to length(disassemblerthread.strings)-2 do
-        disassemblerthread.strings[j]:=disassemblerthread.strings[j+1];
-    end else inc(c);
-  end;
-
-
-  if c=0 then
-  begin
-    disassemblerthread.Free;
-    disassemblerthread:=nil;
-    close;
-  end
-  else  }
-  begin
-   // disassemblerthread.strings:=stringstofind;
-    disassemblerthread.startaddress:=memorybrowser.disassemblerview.TopAddress;
-    disassemblerthread.ownerform:=self;
-    disassemblerthread.start;
-  end;
+  disassemblerthread.ownerform:=self;
+  disassemblerthread.start;
 end;
 
 procedure TfrmDisassemblyscan.FormDestroy(Sender: TObject);
@@ -293,6 +269,9 @@ begin
     disassemblerthread.Free;
     disassemblerthread:=nil;
   end;
+
+  if fStringsToFind<>nil then
+    freeandnil(fStringsToFind);
 end;
 
 procedure TfrmDisassemblyscan.FormClose(Sender: TObject;
@@ -327,6 +306,14 @@ begin
     val('$'+s,x,err);
     memorybrowser.disassemblerview.SelectedAddress:=x;
   end;
+end;
+
+procedure TfrmDisassemblyscan.setStringsToFind(s: tstrings);
+begin
+  if fStringsToFind=nil then
+    fStringsToFind:=tstringlist.create;
+
+  fStringsToFind.Assign(s);
 end;
 
 initialization

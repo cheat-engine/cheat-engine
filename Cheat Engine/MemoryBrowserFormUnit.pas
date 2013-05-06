@@ -551,7 +551,8 @@ uses Valuechange,
   frmStringMapUnit,
   frmStringpointerscanUnit,
   frmFilePatcherUnit,
-  frmUltimapUnit;
+  frmUltimapUnit,
+  frmAssemblyScanUnit;
 
 
 resourcestring
@@ -2794,27 +2795,35 @@ begin
 end;
 
 procedure TMemoryBrowser.Assemblycode1Click(Sender: TObject);
-var s:tstringlist;
+var
+  fromaddress: ptruint;
+  toaddress: ptruint;
 
+  f: TfrmAssemblyScan;
 begin
-  s:=tstringlist.create;
-  try
+  f:=tfrmassemblyscan.create(self);
 
-    if multilineinputquery(rsAssemblyScan, rsInputTheAssemblyCodeToFindWilcardsSupported, s) then
+  f.edtFrom.text:=inttohex(disassemblerview.TopAddress,8);
+  if processhandler.is64Bit then
+    f.edtTo.text:='FFFFFFFFFFFFFFFF'
+  else
+    f.edtTo.text:='FFFFFFFF'
+
+
+  if f.ShowModal=mrok then
+  begin
+    if f.mAssemblerSearch.lines.Count=0 then exit;
+    with TfrmDisassemblyscan.create(self) do
     begin
-      if s.Count=0 then exit;
-      with TfrmDisassemblyscan.create(self) do
-      begin
-        startaddress:=disassemblerview.SelectedAddress;
-        stringstofind:=s;
-        show;
-      end;
-
+      startaddress:=f.startaddress;
+      stopaddress:=f.stopaddress;
+      stringstofind:=f.mAssemblerSearch.lines;
+      show;
     end;
 
-  finally
-    s.free;
   end;
+
+  f.free;
 end;
 
 procedure TMemoryBrowser.Driverlist1Click(Sender: TObject);
