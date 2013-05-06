@@ -257,7 +257,7 @@ function TextToMemRecHotkeyAction(text: string): TMemrecHotkeyAction;
 
 implementation
 
-uses mainunit, addresslist, formsettingsunit, LuaHandler;
+uses mainunit, addresslist, formsettingsunit, LuaHandler, lua, lauxlib, lualib;
 
 {-----------------------------TMemoryRecordHotkey------------------------------}
 constructor TMemoryRecordHotkey.create(AnOwner: TMemoryRecord);
@@ -1612,6 +1612,8 @@ var
   unparsedvalue: string;
   check: boolean;
   fs: TFormatSettings;
+
+  oldluatop: integer;
 begin
   //check if it is a '(description)' notation
 
@@ -1687,6 +1689,25 @@ begin
     if vartype in [vtBinary, vtByteArray] then //fill the buffer with the original byte
       if not check then exit;
 
+    if (Vartype in [vtByte..vtDouble, vtCustom]) then
+    begin
+      //check if it's a bracket enclosed value [    ]
+      CurrentValue:=trim(CurrentValue);
+      if (length(CurrentValue)>2) and (CurrentValue[1]='[') and (currentValue[length(CurrentValue)]=']') then
+      begin
+        LuaCS.enter;
+        try
+          oldluatop:=lua_gettop(luavm);
+          if lua_dostring(luavm, pchar('return '+copy(CurrentValue,2, length(CurrentValue)-2)))=0 then
+            currentValue:=lua_tostring(luavm, -1);
+
+          lua_settop(luavm, oldluatop);
+        finally
+          luacs.Leave;
+        end;
+      end;
+    end;
+
     case VarType of
       vtCustom:
       begin
@@ -1699,6 +1720,8 @@ begin
 
         end;
       end;
+
+
       vtByte: pb^:=StrToQWordEx(currentValue);
       vtWord: pw^:=StrToQWordEx(currentValue);
       vtDword: pdw^:=StrToQWordEx(currentValue);
