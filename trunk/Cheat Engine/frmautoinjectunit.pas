@@ -33,6 +33,7 @@ type
   TfrmAutoInject = class(TForm)
     MainMenu1: TMainMenu;
     File1: TMenuItem;
+    mifindNext: TMenuItem;
     miCallLua: TMenuItem;
     miNewWindow: TMenuItem;
     Panel1: TPanel;
@@ -71,6 +72,7 @@ type
     AAPref1: TMenuItem;
     procedure Button1Click(Sender: TObject);
     procedure Load1Click(Sender: TObject);
+    procedure mifindNextClick(Sender: TObject);
     procedure miCallLuaClick(Sender: TObject);
     procedure miNewWindowClick(Sender: TObject);
     procedure Save1Click(Sender: TObject);
@@ -303,6 +305,11 @@ begin
 
   end;
 {$endif}
+end;
+
+procedure TfrmAutoInject.mifindNextClick(Sender: TObject);
+begin
+  finddialog1.OnFind(finddialog1);
 end;
 
 
@@ -1622,7 +1629,8 @@ end;
 
 procedure TfrmAutoInject.Find1Click(Sender: TObject);
 begin
-  finddialog1.Execute;
+  if finddialog1.Execute then
+    mifindNext.visible:=true;
 
 end;
 

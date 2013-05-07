@@ -186,6 +186,12 @@ object frmAutoInject: TfrmAutoInject
       ShortCut = 16454
       OnClick = Find1Click
     end
+    object mifindNext: TMenuItem
+      Caption = 'Find Next'
+      ShortCut = 114
+      Visible = False
+      OnClick = mifindNextClick
+    end
   end
   object closemenu: TPopupMenu
     left = 232
