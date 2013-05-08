@@ -24,7 +24,7 @@
 
 #include "test.h"
 #include "vmcall.h"
-#include "psod.h" //for pink screen of death support
+//#include "psod.h" //for pink screen of death support
 
 /*
 //#include "logo.c"
@@ -1526,7 +1526,7 @@ void menu2(void)
 
           case '7':
           {
-            PSOD("FUUUUUUU");
+            //PSOD("FUUUUUUU");
             break;
           }
 
