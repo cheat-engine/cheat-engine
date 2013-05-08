@@ -121,7 +121,6 @@ int cinthandler(unsigned long long *stack, int intnr)
 
 
  // sendstringf("interrupt fired : %d (%x)\n\r", intnr,intnr);
- // sendstringf("Looking up cpu...");
 
   //lookup the cpucore
   for (i=0; (unsigned)i<cpucount; i++)

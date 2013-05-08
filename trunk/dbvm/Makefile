@@ -2,7 +2,7 @@
 SERIALPORT=0x3f8
 #SERIALPORT=0xbf00
 #SERIALPORT=0xec00
-
+#svn test
 
 all:
 	make -C vmm	all SERIALPORT=${SERIALPORT}
