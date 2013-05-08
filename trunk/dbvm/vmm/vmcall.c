@@ -8,7 +8,6 @@
 #include "vmcall.h"
 #include "msrnames.h"
 #include "ultimap.h"
-#include "psod.h"
 
 
 #pragma GCC push_options
@@ -562,6 +561,7 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       *sysenter_EIP=currentcpuinfo->actual_sysenter_EIP;
 
       vmregisters->rax = 0;
+      break;
     }
 
     case 7: //set real sysenter msr (not the guest's state, but what the user wants it to be)
@@ -582,12 +582,14 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       vmwrite(0x6824,currentcpuinfo->actual_sysenter_ESP);
       vmwrite(0x482a,currentcpuinfo->actual_sysenter_CS);
       vmregisters->rax = 0;
+      break;
     }
 
     case 8: //choose os
     {
       sendstring("Not yet implemented\n\r");
       vmregisters->rax = 0xcedead;
+      break;
     }
 
     case VMCALL_REDIRECTINT1: //redirect int1
@@ -904,7 +906,7 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case VMCALL_PSODTEST:
     {
-    	PSOD("VMCALL_ULTIMAP_PSODTEST");
+    	//PSOD("VMCALL_ULTIMAP_PSODTEST");
     	break;
     }
 
