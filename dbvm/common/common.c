@@ -15,9 +15,7 @@ int vbuildstring(char *str, int size, char *string, __builtin_va_list arglist)
   char temps[100];
   char workstring[strlen(string)];
   int i,_i,l,strpos,vlc;
-  int count;
 
-  int debug=0;
   l=strlen(string);
   vlc=0;
 
@@ -379,7 +377,7 @@ void copymem(void *dest, void *src,int size)
     d[i]=s[i];
 }
 
-int strlen(char *string)
+unsigned int strlen(char *string)
 {
   int length=0;
 
@@ -387,16 +385,18 @@ int strlen(char *string)
   return length;
 }
 
-int strcat(char *dest, char *src)
+char* strcat(char *dest, char *src)
 {
   int i,j=strlen(dest);
   for (i=0; src[i] ; i++,j++)
     dest[j]=src[i];
 
   dest[j]=0;
+
+  return dest;
 }
 
-int strcpy(char *dest, char *src)
+char* strcpy(char *dest, char *src)
 {
   int i=strlen(src);
   int j;
@@ -404,6 +404,7 @@ int strcpy(char *dest, char *src)
     dest[j]=src[j];
 
   dest[i]=0;
+  return dest;
 }
 
 void appendzero(char *string, int wantedsize,int maxstringsize)
@@ -614,7 +615,9 @@ char waitforchar(void)
 {
   char c=0;
 	while (c==0)
-    c=getchar();
+	  c=getchar();
+
+  return c;
 }
 
 
