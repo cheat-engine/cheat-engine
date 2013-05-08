@@ -14,7 +14,6 @@ enable paging, and jump to the vmm entry (which has it's base at virtual address
 
 extern int reservedmem_listcount;
 extern int pagedirptrbase;
-extern int pagetablebase;
 extern void gotoVMM(void) __attribute__((stdcall));
 extern int readsectorasm(void) __attribute__((stdcall));
 extern void halt(void) __attribute__((stdcall));
@@ -78,7 +77,6 @@ int readsector(int sectornr, void *destination)
 
 int _vmloader_main(void)
 {
-	char temp[100];
 	PARD p;
 
 
@@ -87,7 +85,6 @@ int _vmloader_main(void)
 	unsigned long long maxAvailableAddress=0;
 	unsigned long long tempbase,templength;
 	int chosenregion=-1;
-	int oldnosendchar=nosendchar[getAPICID()];
 	nosendchar[getAPICID()]=0;
 
 

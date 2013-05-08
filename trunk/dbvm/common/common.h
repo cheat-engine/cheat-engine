@@ -1,6 +1,10 @@
 #ifndef COMMON_H_
 #define COMMON_H_
 
+#ifndef SERIALPORT
+  #define SERIALPORT 0
+#endif
+
 #define BYTE unsigned char
 #define WORD unsigned short int
 #define ULONG unsigned int
@@ -33,9 +37,9 @@ void sendstring(char *s);
 char getchar(void);
 char waitforchar(void);
 int readstring(char *s, int minlength, int maxlength);
-int strlen(char *string);
-int strcat(char *dest, char *src);
-int strcpy(char *dest, char *src);
+unsigned int strlen(char *string);
+char* strcat(char *dest, char *src);
+char* strcpy(char *dest, char *src);
 void copymem(void *dest, void *src,int size);
 int getAPICID(void);
 int generateCRC(unsigned char *ptr, int size);

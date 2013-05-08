@@ -1321,6 +1321,7 @@ int handleIOAccess(VMRegisters *vmregisters)
         return 0;
       }
 
+      break;
 
     }
 

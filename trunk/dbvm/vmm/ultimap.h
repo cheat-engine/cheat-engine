@@ -16,6 +16,7 @@ void ultimap_setup(pcpuinfo currentcpuinfo, QWORD CR3, QWORD DEBUGCTL, QWORD DS_
 void ultimap_handleCR3Change(pcpuinfo currentcpuinfo, QWORD oldcr3, QWORD newcr3);
 void ultimap_handleDB(pcpuinfo currentcpuinfo);
 void ultimap_handleMSRWrite(pcpuinfo currentcpuinfo, DWORD msr, QWORD value);
+QWORD ultimap_handleMSRRead(pcpuinfo currentcpuinfo, DWORD msr);
 
 void ultimap_pause(pcpuinfo currentcpuinfo);
 void ultimap_resume(pcpuinfo currentcpuinfo);

@@ -80,8 +80,6 @@ int opcode_HLTF4(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, PINSTRUCTION
 
 int opcode_JMPE9(pcpuinfo currentcpuinfo, PINSTRUCTIONDATA id)
 {
-  int error;
-
   if (!id->opperandsize)
   {
 
@@ -102,7 +100,7 @@ int opcode_JMPE9(pcpuinfo currentcpuinfo, PINSTRUCTIONDATA id)
     return 2; //handled, but don't change eip, I already did it
   }
   else
-    return 1; //opperandsize of 32-bit is not supported yet
+    return 1; //operand size of 32-bit is not supported yet
 
 }
 
