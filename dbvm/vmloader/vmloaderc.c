@@ -7,6 +7,11 @@ Then setup the pagetables to point to the vmm (identify pagemapping btw...)
 enable paging, and jump to the vmm entry (which has it's base at virtual address 0x0)
 */
 #include "common.h"
+
+#ifndef VMMSIZE
+  #define VMMSIZE 0
+#endif
+
 extern int reservedmem_listcount;
 extern int pagedirptrbase;
 extern int pagetablebase;
