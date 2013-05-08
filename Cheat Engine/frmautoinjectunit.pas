@@ -1638,6 +1638,8 @@ procedure TfrmAutoInject.FindDialog1Find(Sender: TObject);
 begin
   //scan the text for the given text
   assemblescreen.SearchReplace(finddialog1.FindText,'',[]);
+
+  FindDialog1.close;
 end;
 
 //follow is just a emergency fix since undo is messed up. At least it's better than nothing

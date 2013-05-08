@@ -1,17 +1,17 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 972
+  Left = 773
   Height = 570
   Hint = ' '
-  Top = 132
-  Width = 537
+  Top = 205
+  Width = 580
   HelpContext = 3
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AllowDropFiles = True
   Caption = 'Cheat Engine 6.2'
   ClientHeight = 550
-  ClientWidth = 537
+  ClientWidth = 580
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Menu = MainMenu1
@@ -28,7 +28,7 @@ object MainForm: TMainForm
     Left = 0
     Height = 7
     Top = 345
-    Width = 537
+    Width = 580
     Align = alTop
     AutoSnap = False
     Beveled = True
@@ -42,7 +42,7 @@ object MainForm: TMainForm
     Left = 0
     Height = 181
     Top = 352
-    Width = 537
+    Width = 580
     Align = alClient
     BevelOuter = bvNone
     BorderWidth = 1
@@ -55,13 +55,13 @@ object MainForm: TMainForm
     Left = 0
     Height = 17
     Top = 533
-    Width = 537
+    Width = 580
     Align = alBottom
     ClientHeight = 17
-    ClientWidth = 537
+    ClientWidth = 580
     TabOrder = 1
     object Label7: TLabel
-      Left = 160
+      Left = 182
       Height = 14
       Hint = 'Click here to change the hotkey'
       Top = 2
@@ -89,7 +89,7 @@ object MainForm: TMainForm
       ParentShowHint = False
     end
     object CommentButton: TSpeedButton
-      Left = 440
+      Left = 483
       Height = 15
       Top = 1
       Width = 96
@@ -108,18 +108,18 @@ object MainForm: TMainForm
     Left = 0
     Height = 345
     Top = 0
-    Width = 537
+    Width = 580
     Align = alTop
     BevelOuter = bvNone
     ClientHeight = 345
-    ClientWidth = 537
+    ClientWidth = 580
     TabOrder = 2
     OnResize = Panel5Resize
     object ProcessLabel: TLabel
       Left = -24
       Height = 17
       Top = 0
-      Width = 594
+      Width = 637
       Alignment = taCenter
       Anchors = [akTop, akLeft, akRight]
       AutoSize = False
@@ -155,7 +155,7 @@ object MainForm: TMainForm
       ParentColor = False
     end
     object lblScanType: TLabel
-      Left = 198
+      Left = 241
       Height = 14
       Top = 124
       Width = 53
@@ -165,7 +165,7 @@ object MainForm: TMainForm
       ParentColor = False
     end
     object Label8: TLabel
-      Left = 196
+      Left = 239
       Height = 14
       Top = 148
       Width = 55
@@ -253,7 +253,7 @@ object MainForm: TMainForm
       ParentColor = False
     end
     object SpeedButton2: TSpeedButton
-      Left = 259
+      Left = 281
       Height = 22
       Hint = 'Delete all addresses from the list'
       Top = 320
@@ -279,11 +279,12 @@ object MainForm: TMainForm
       ParentShowHint = False
     end
     object SpeedButton3: TSpeedButton
-      Left = 191
+      Left = 232
       Height = 22
       Hint = 'Copy all selected items to the address list'
       Top = 294
       Width = 23
+      Anchors = [akTop, akRight]
       Glyph.Data = {
         76010000424D7601000000000000760000002800000020000000100000000100
         04000000000000010000120B0000120B00001000000000000000000000000000
@@ -333,19 +334,10 @@ object MainForm: TMainForm
       Visible = False
       OnClick = Label53Click
     end
-    object Label55: TLabel
-      Left = 272
-      Height = 14
-      Top = 304
-      Width = 39
-      Caption = 'Label55'
-      ParentColor = False
-      Visible = False
-    end
     object Label57: TLabel
-      Left = 433
+      Left = 416
       Height = 14
-      Top = 306
+      Top = 320
       Width = 82
       Caption = 'get dbvm version'
       ParentColor = False
@@ -372,7 +364,7 @@ object MainForm: TMainForm
       OnClick = Label61Click
     end
     object cbSpeedhack: TCheckBox
-      Left = 429
+      Left = 472
       Height = 19
       Hint = 'Enable speedhack'
       Top = 194
@@ -388,7 +380,7 @@ object MainForm: TMainForm
       TabOrder = 22
     end
     object NewScan: TButton
-      Left = 214
+      Left = 257
       Height = 25
       Top = 48
       Width = 65
@@ -400,7 +392,7 @@ object MainForm: TMainForm
       TabOrder = 1
     end
     object cbUnicode: TCheckBox
-      Left = 432
+      Left = 475
       Height = 19
       Top = 128
       Width = 60
@@ -410,7 +402,7 @@ object MainForm: TMainForm
       Visible = False
     end
     object gbScanOptions: TGroupBox
-      Left = 222
+      Left = 265
       Height = 148
       Top = 168
       Width = 202
@@ -628,7 +620,7 @@ object MainForm: TMainForm
       end
     end
     object NextScanButton: TButton
-      Left = 286
+      Left = 329
       Height = 25
       Top = 48
       Width = 65
@@ -642,7 +634,7 @@ object MainForm: TMainForm
       TabOrder = 2
     end
     object ScanType: TComboBox
-      Left = 254
+      Left = 297
       Height = 21
       Top = 120
       Width = 170
@@ -668,7 +660,7 @@ object MainForm: TMainForm
       TabOrder = 5
     end
     object VarType: TComboBox
-      Left = 254
+      Left = 297
       Height = 21
       Top = 144
       Width = 170
@@ -707,7 +699,7 @@ object MainForm: TMainForm
       TabOrder = 7
     end
     object Button1: TButton
-      Left = 429
+      Left = 472
       Height = 17
       Top = 322
       Width = 113
@@ -721,7 +713,7 @@ object MainForm: TMainForm
       Height = 16
       Hint = 'This shows how far Cheat Engine is with searching'
       Top = 14
-      Width = 398
+      Width = 441
       Anchors = [akTop, akLeft, akRight]
       ParentShowHint = False
       ShowHint = True
@@ -729,7 +721,7 @@ object MainForm: TMainForm
       TabOrder = 9
     end
     object cbHexadecimal: TCheckBox
-      Left = 212
+      Left = 255
       Height = 19
       Hint = 'When checked the value you type in is hexadecimal'
       Top = 96
@@ -744,7 +736,7 @@ object MainForm: TMainForm
       TabOrder = 10
     end
     object UndoScan: TButton
-      Left = 425
+      Left = 468
       Height = 25
       Top = 48
       Width = 65
@@ -755,7 +747,7 @@ object MainForm: TMainForm
       TabOrder = 3
     end
     object rbBit: TRadioButton
-      Left = 190
+      Left = 233
       Height = 19
       Top = 88
       Width = 41
@@ -768,7 +760,7 @@ object MainForm: TMainForm
       Visible = False
     end
     object rbDec: TRadioButton
-      Left = 190
+      Left = 233
       Height = 19
       Top = 105
       Width = 62
@@ -781,7 +773,7 @@ object MainForm: TMainForm
       Visible = False
     end
     object scanvalue: TEdit
-      Left = 254
+      Left = 297
       Height = 21
       Top = 96
       Width = 280
@@ -792,7 +784,7 @@ object MainForm: TMainForm
       TabOrder = 4
     end
     object cbCaseSensitive: TCheckBox
-      Left = 432
+      Left = 475
       Height = 19
       Top = 146
       Width = 88
@@ -876,7 +868,7 @@ object MainForm: TMainForm
       end
     end
     object pnlFloat: TPanel
-      Left = 425
+      Left = 468
       Height = 53
       Top = 120
       Width = 121
@@ -916,7 +908,7 @@ object MainForm: TMainForm
       end
     end
     object cbUnrandomizer: TCheckBox
-      Left = 429
+      Left = 472
       Height = 19
       Top = 174
       Width = 85
@@ -948,7 +940,7 @@ object MainForm: TMainForm
       Visible = False
     end
     object LogoPanel: TPanel
-      Left = 491
+      Left = 534
       Height = 84
       Top = 0
       Width = 50
@@ -1294,7 +1286,7 @@ object MainForm: TMainForm
       end
     end
     object Panel14: TPanel
-      Left = 422
+      Left = 465
       Height = 94
       Top = 216
       Width = 119
@@ -1357,7 +1349,7 @@ object MainForm: TMainForm
       end
     end
     object lblcompareToSavedScan: TLabel
-      Left = 224
+      Left = 210
       Height = 14
       Top = 32
       Width = 201
@@ -1380,9 +1372,8 @@ object MainForm: TMainForm
       Height = 268
       Hint = 'This list shows all the found addresses that matched your last scan'
       Top = 48
-      Width = 189
+      Width = 232
       Anchors = [akTop, akLeft, akRight, akBottom]
-      AutoWidthLastColumn = True
       Color = clBtnFace
       Columns = <      
         item
@@ -1390,9 +1381,8 @@ object MainForm: TMainForm
           Width = 93
         end      
         item
-          AutoSize = True
           Caption = 'Value'
-          Width = 100
+          Width = 92
         end      
         item
           Caption = 'Previous'

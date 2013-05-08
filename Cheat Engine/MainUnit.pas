@@ -371,7 +371,6 @@ type
     Label38: TLabel;
     Smarteditaddresses1: TMenuItem;
     Pointerscanforthisaddress1: TMenuItem;
-    Label55: TLabel;
     Label57: TLabel;
     Plugins1: TMenuItem;
     Label59: TLabel;
@@ -2647,8 +2646,19 @@ begin
 end;
 
 procedure TMainForm.Foundlist3Resize(Sender: TObject);
+var widthleft: integer;
 begin
+  widthleft:=foundlist3.clientwidth-foundlist3.Columns[0].Width;
 
+  if miShowPreviousValue.checked then
+  begin
+    foundlist3.columns[1].width:=widthleft div 2;
+    foundlist3.columns[2].width:=foundlist3.columns[1].width;
+  end
+  else
+  begin
+    foundlist3.columns[1].width:=widthleft;
+  end;
 end;
 
 procedure TMainForm.Description1Click(Sender: TObject);
@@ -4428,10 +4438,10 @@ begin
   begin
     foundlist3.Column[2].visible:=false;
   end;
-  foundlist3.AutoWidthLastColumn:=false;
-  foundlist3.AutoWidthLastColumn:=true;
+  //foundlist3.AutoWidthLastColumn:=false;
+  //foundlist3.AutoWidthLastColumn:=true;
 
-  //FUUUUCK, screw this header bug. It's time to see how the updated snapshot works
+  Foundlist3Resize(Foundlist3);
 end;
 
 
