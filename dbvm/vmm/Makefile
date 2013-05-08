@@ -34,9 +34,6 @@ all:
 	@${CC} ${CFLAGS} psod.c -c -o psod.o
 	@make -C distorm64 all
 	
-
-
-#	@${LD} ${LDFLAGS} vmma.o main.o neward.o apica.o vmmhelper.o vmmemu.o mm.o vmpaging.o vmcall.o vmeventhandler.o ../common/common.o ../common/commona.o -o ../vmm.bin -Map ../vmm.map
 	@${LD} ${LDFLAGS} vmma.o main.o psod.o neward.o common.o commona.o apica.o vmmhelper.o multicore.o mm.o vmpaging.o vmevent_invalidstate.o vmeventhandler.o realmodeemu.o pmodeemu.o vmcall.o keyboard.o osspecific.o offloados.o ultimap.o pci.o apic.o test.o testa.o ./distorm64/wstring.o ./distorm64/x86defs.o ./distorm64/textdefs.o ./distorm64/insts.o ./distorm64/prefix.o ./distorm64/instructions.o ./distorm64/decoder.o ./distorm64/operands.o ./distorm64/distorm.o -o ../vmm.bin -Map ../vmm.map 
 	@echo "vmm done"
 	
