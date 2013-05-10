@@ -13,6 +13,8 @@ This library is licensed under the BSD license. See the file COPYING.
 #define DISTORM_VER 0x01071e
 #define SUPPORT_64BIT_OFFSET 1
 
+#define DARKBYTESFUCKEDUPCROSSCOMPILER 1
+
 #ifdef DARKBYTESFUCKEDUPCROSSCOMPILER
 typedef signed char int8_t;
 typedef short int int16_t;

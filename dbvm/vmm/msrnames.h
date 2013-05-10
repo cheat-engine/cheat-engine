@@ -24,6 +24,7 @@
 #define IA32_VMX_CR4_FIXED1_MSR   0x489
 
 #define IA32_DS_AREA              0x600
+#define EFER_MSR				  0xc0000080
 
 #define IA32_FS_BASE_MSR          0xc0000100
 #define IA32_GS_BASE_MSR          0xc0000101
