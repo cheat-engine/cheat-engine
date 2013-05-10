@@ -1106,8 +1106,9 @@ begin
 
     if processhandler.is64bit then
     begin
+      //at entry stack is unaligned (has an 8 byte return value, so sub rsp,8 to set alignment. After that, just the usual)
       //loadlibrary(cehook);
-      assemble('SUB RSP,#32',position,outp);
+      assemble('SUB RSP,#40',position,outp);
       copymemory(@inject[position2],outp,length(outp));
       inc(position,length(outp));
       inc(position2,length(outp));
@@ -1134,7 +1135,7 @@ begin
 
     if processhandler.is64bit then
     begin
-      assemble('ADD RSP,#32',position,outp);
+      assemble('ADD RSP,#40',position,outp);
       copymemory(@inject[position2],outp,length(outp));
       inc(position,length(outp));
       inc(position2,length(outp));
@@ -1171,7 +1172,7 @@ begin
       if processhandler.is64bit then
       begin
         //loadlibrary(cehook);
-        assemble('SUB RSP,#32',position,outp);
+        assemble('SUB RSP,#40',position,outp);
         copymemory(@inject[position2],outp,length(outp));
         inc(position,length(outp));
         inc(position2,length(outp));
@@ -1201,7 +1202,7 @@ begin
 
       if processhandler.is64bit then
       begin
-        assemble('ADD RSP,#32',position,outp);
+        assemble('ADD RSP,#40',position,outp);
         copymemory(@inject[position2],outp,length(outp));
         inc(position,length(outp));
         inc(position2,length(outp));
@@ -1235,7 +1236,7 @@ begin
       if processhandler.is64bit then
       begin
         //setup stack
-        assemble('SUB RSP,#32',position,outp);
+        assemble('SUB RSP,#40',position,outp);
         copymemory(@inject[position2],outp,length(outp));
         inc(position,length(outp));
         inc(position2,length(outp));
@@ -1250,7 +1251,7 @@ begin
       if processhandler.is64bit then
       begin
         //setup stack
-        assemble('ADD RSP,#32',position,outp);
+        assemble('ADD RSP,#40',position,outp);
         copymemory(@inject[position2],outp,length(outp));
         inc(position,length(outp));
         inc(position2,length(outp));
@@ -1271,6 +1272,8 @@ begin
     copymemory(@inject[position2],outp,length(outp));
     inc(position,length(outp));
     inc(position2,length(outp));
+
+
 
 
     //call the routine
