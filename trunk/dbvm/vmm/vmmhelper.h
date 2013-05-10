@@ -173,16 +173,16 @@ typedef volatile struct _vmcb
 	  };
 	};
 
-	DWORD reserved1[10];
-	WORD  PauseFilterThreshold;
+	BYTE reserved1[40];
+	WORD  PauseFilterThreshold; //3c = correct
 	WORD  PauseFilterCount;
 	QWORD IOPM_BASE_PA; //physical base address of IOPM
 	QWORD MSRPM_BASE_PA;
 	QWORD TSC_OFFSET;
-	DWORD GuestASID;
+	DWORD GuestASID; //58=correct
 	BYTE  TLB_CONTROL;
 	BYTE  reserved2[3];
-	BYTE  V_TPR;
+	BYTE  V_TPR;  //60=correct
 	unsigned V_IRQ : 1;
 	unsigned reserved4: 7;
 	unsigned V_INTR_PRIO: 4;
@@ -190,7 +190,8 @@ typedef volatile struct _vmcb
 	unsigned reserved5: 3;
 	unsigned V_INTR_MASKING : 1;
 	unsigned reserved6: 7;
-	BYTE  V_INTR_VECTOR;
+	BYTE  V_INTR_VECTOR; //64=correct
+	unsigned reserved6_1: 24;
 
 
 	union{
@@ -200,19 +201,19 @@ typedef volatile struct _vmcb
 	  };
 	};
 
-	QWORD EXITCODE;
+	QWORD EXITCODE; //70 correct
 	QWORD EXITINFO1;
 	QWORD EXITINFO2;
 	QWORD EXITINTINFO;
 
 	union{
-	  QWORD Enable_Nested_Paging;
+	  QWORD Enable_Nested_Paging;  //90 correct
 	  struct {
 	    unsigned NP_ENABLE :1;
 	  };
 	};
 
-	BYTE reserved7[0x20];
+	BYTE reserved7[16];
 
 	//a8
 	QWORD EVENTINJ;
@@ -227,7 +228,7 @@ typedef volatile struct _vmcb
 	DWORD VMCB_CLEAN_BITS;
 	DWORD reserved8;
 
-	QWORD nRIP;
+	QWORD nRIP;  //c8
 	BYTE NumberOfBytesFetched;
 	BYTE GuestInstructionBytes[15];
 	//E0
@@ -320,7 +321,7 @@ typedef volatile struct _vmcb
     QWORD BR_FROM;
     QWORD BR_TO;
     QWORD LASTEXCPFROM;
-    QWORD LASTEXCPTO; //290
+    QWORD LASTEXCPTO; //690
 
 
 } __attribute__((__packed__)) vmcb, *pvmcb;
