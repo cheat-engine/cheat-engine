@@ -811,8 +811,6 @@ begin
           begin
             //the breakpoint in this thread can not be deactivated yet. Leave it activated
             //(touching the DR registers with setthreadcontext clears DR6 in win7 )
-            ntSuspendProcess(processhandle);
-            inc(ResumeProcessWhenIdleCounter);
             currentthread.resume;
             currentthread.needstocleanup:=true;
             exit;
@@ -1925,7 +1923,7 @@ begin
       fcurrentThread:=nil;
 
       case continueOption of
-        co_run, co_stepinto: ct.continueDebugging(continueOption);
+        co_run, co_stepinto, co_stepover: ct.continueDebugging(continueOption);
         co_runtill:
         begin
           //set a 1 time breakpoint for this thread at the runtilladdress

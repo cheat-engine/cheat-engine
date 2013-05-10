@@ -119,11 +119,13 @@ begin
         if bp.breakpointTrigger=bptExecute then
         begin
           //show in disassembler
+          memorybrowser.AddToDisassemblerBackList(pointer(memorybrowser.disassemblerview.SelectedAddress));
           memorybrowser.disassemblerview.SelectedAddress:=address;
         end
         else
         begin
           //show in hexview
+          memorybrowser.hexview.history.Push(pointer(memorybrowser.hexview.address));
           memorybrowser.hexview.address:=address;
         end;
 
