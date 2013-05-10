@@ -159,9 +159,8 @@ begin
     script.add(inttohex(initaddress,8)+':');
     if processhandler.is64Bit then
     begin
-      script.add('sub rsp,#32');
+      script.add('sub rsp,#40');
       script.add('movss xmm0,[newspeed]');
-      script.add('push rcx');
     end
     else
       script.add('push [newspeed]');
