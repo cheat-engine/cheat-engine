@@ -488,6 +488,7 @@ type
     procedure miDifferenceClick(Sender: TObject);
     procedure miStopDifferenceClick(Sender: TObject);
     procedure Scrollboxscroll(sender: TObject);
+    procedure AddToDisassemblerBackList(address: pointer);
   end;
 
 var
@@ -1944,36 +1945,9 @@ var x: ptrUint;
     int3: byte;
     original,a,written:dword;
 begin
-  begin
-
-    int3:=$cc;
-    //place a invisble for the user breakpoint on the following upcode
-
-    x:=lastdebugcontext.{$ifdef cpu64}Rip{$else}Eip{$endif};
-    s:=disassemble(x,temp);
-    i:=posex('-',s);
-    i:=posex('-',s,i+1);
-    s:=copy(s,i+2,length(s));
-
-    i:=pos(' ',s);
-    s1:=copy(s,1,i-1);
-    s2:=copy(s,i+1,length(s));
-
-    if not ((s1='call') or (s1='loop')) then //not a call or loop
-    begin
-      //then do a step
-      Step1Click(step1);
-      exit;
-    end
-    else
-    begin
-      if debuggerthread<>nil then
-        debuggerthread.continueDebugging(co_runtill, x);
-
-      reloadstacktrace;
-    end;
-    caption:=rsMemoryViewerRunning;
-  end;
+  debuggerthread.continueDebugging(co_stepover);
+  reloadstacktrace;
+  caption:=rsMemoryViewerRunning;
 end;
 
 procedure TMemoryBrowser.Runtill1Click(Sender: TObject);
@@ -3177,6 +3151,11 @@ begin
 
 end;
 
+procedure TMemoryBrowser.AddToDisassemblerBackList(address: pointer);
+begin
+  backlist.Push(address);
+end;
+
 procedure TMemoryBrowser.Back1Click(Sender: TObject);
 begin
   if backlist.Count>0 then
@@ -4103,13 +4082,15 @@ begin
 
   if not registerview.visible then
   begin
-    registerview.visible:=true;
+    setShowDebugPanels(true);
+
+    {registerview.visible:=true;
     splitter2.visible:=true;
 
     pnlStacktrace.Visible:=true;
     splitter3.Visible:=true;
 
-    //first time show
+    //first time show  }
 
     registerview.ClientWidth:=label15.left+label15.width+16+scrollbox1.VertScrollBar.Size;
 
