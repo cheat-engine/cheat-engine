@@ -238,8 +238,8 @@ end;
 
 destructor TADWindow.destroy;
 begin
- // browser.Quit();
-  browser:=Unassigned;
+  browser.Quit();
+  browser:=NULL; //Unassigned;
 
 
   if attachedform<>nil then
