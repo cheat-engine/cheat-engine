@@ -2157,8 +2157,76 @@ void startvmx(pcpuinfo currentcpuinfo)
     {
       sendstring("AMD virtualization handling\n\r");
 
-      sendstring("Not handled yet...\n\r");
-      displayline("AMD system detected. Can not continue\n");
+
+
+      UINT64 a=0x80000001;
+      UINT64 b,c,d;
+
+      _cpuid(&a,&b,&c,&d);
+
+      if (c & (1<<2)) //SVM bit in cpuid
+      {
+    	  sendstring("SVM supported\n");
+
+    	  a=0x8000000a;
+    	  _cpuid(&a,&b,&c,&d);
+
+    	  sendstringf("cpuid: 0x8000000a:\n");
+    	  sendstringf("EAX=%8\n", a);
+    	  sendstringf("EBX=%8\n", b);
+    	  sendstringf("ECX=%8\n", c);
+    	  sendstringf("EDX=%8\n", d);
+
+    	  UINT64 VM_CR=readMSR(0xc0010114); //VM_CR MSR
+    	  sendstringf("VM_CR=%6\n", VM_CR);
+
+    	  if ((VM_CR & (1<<4))==0)
+    	  {
+    		  UINT64 efer;
+    		  sendstring("SVM is available\n");
+
+    		  sendstring("Setting SVME bit in EFER\n");
+
+    		  efer=readMSR(EFER_MSR);
+
+    		  sendstringf("EFER was %6\n", efer);
+    		  efer=efer | (1 << 12);
+    		  sendstringf("EFER will become %6\n", efer);
+
+
+    		  writeMSR(EFER_MSR, efer);
+
+
+    		  currentcpuinfo->vmcb=malloc(4096);
+    		  zeromemory(currentcpuinfo->vmcb, 4096);
+
+
+    		  //setupVMX(currentcpuinfo);
+
+
+              if (!isAP)
+                clearScreen();
+
+    	  }
+    	  else
+    	  {
+    		  sendstring("SVM has been disabled\n");
+    	  }
+
+
+      }
+      else
+      {
+    	  sendstring("This cpu does not support SVM\n");
+    	  sendstringf("cpuid: 0x80000001:\n");
+    	  sendstringf("EAX=%8\n", a);
+    	  sendstringf("EBX=%8\n", b);
+    	  sendstringf("ECX=%8\n", c);
+    	  sendstringf("EDX=%8\n", d);
+
+      }
+
+
 
     }
     else
@@ -2247,9 +2315,9 @@ void startvmx(pcpuinfo currentcpuinfo)
 
         displayline("%d:Checks successfull. Going to call vmxon\n",currentcpuinfo->cpunr);
 
-  			if (vmxon(VirtualToPhysical((UINT64)currentcpuinfo->vmxon_region))==0)
-  			{
-  				sendstring("vmxon success\n\r");
+  		if (vmxon(VirtualToPhysical((UINT64)currentcpuinfo->vmxon_region))==0)
+  		{
+  		  sendstring("vmxon success\n\r");
           displayline("%d: vmxon success\n",currentcpuinfo->cpunr);
 
           displayline("%d: calling vmclear\n",currentcpuinfo->cpunr);

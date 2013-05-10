@@ -106,6 +106,225 @@ int vmstates_pos;
 
 #endif
 
+typedef volatile struct _vmcb
+{
+	WORD InterceptCR0_15Read;
+	WORD InterceptCR0_15Write;
+	WORD InterceptDR0_15Read;
+	WORD InterceptDR0_15Write;
+	DWORD InterceptExceptions;
+	union{
+	  DWORD InstructionIntercept1;
+	  struct {
+	    unsigned InterceptINTR       :1;
+		unsigned InterceptNMI        :1;
+		unsigned InterceptSMI        :1;
+		unsigned InterceptINIT       :1;
+		unsigned InterceptVINTR      :1;
+		unsigned InterceptCR0WritesThatChangeTSorMP        :1;
+		unsigned InterceptIDTRRead       :1;
+		unsigned InterceptGDTRRead       :1;
+		unsigned InterceptLDTRRead       :1;
+		unsigned InterceptTRRead         :1;
+		unsigned InterceptIDTRWrite       :1;
+		unsigned InterceptGDTRWrite       :1;
+		unsigned InterceptLDTRWrite       :1;
+		unsigned InterceptTRWrite       :1;
+		unsigned InterceptRDTSC       :1;
+		unsigned InterceptRDPMC       :1;
+
+		unsigned InterceptPUSHF       :1;
+		unsigned InterceptPOPF       :1;
+		unsigned InterceptCPUID       :1;
+		unsigned InterceptRSM       :1;
+		unsigned InterceptIRET       :1;
+		unsigned InterceptINT       :1;
+		unsigned InterceptINVD       :1;
+		unsigned InterceptPAUSE       :1;
+		unsigned InterceptHLT       :1;
+		unsigned InterceptINVLPG       :1;
+		unsigned InterceptINVLPGA       :1;
+		unsigned IOIO_PROT      :1;
+		unsigned MSR_PROT       :1;
+		unsigned InterceptTaskSwitches       :1;
+		unsigned FERR_FREEZE       :1;
+		unsigned InterceptShutdown       :1;
+
+	  };
+	};
+
+	union{
+	  DWORD InstructionIntercept2;
+	  struct {
+	    unsigned InterceptVMRUN      :1;
+		unsigned InterceptVMMCAL        :1;
+		unsigned InterceptVMLOAD        :1;
+		unsigned InterceptVMSAVE      :1;
+		unsigned InterceptSTGI      :1;
+		unsigned InterceptCLGI       :1;
+		unsigned InterceptSKINIT       :1;
+		unsigned InterceptRDTSCP       :1;
+		unsigned InterceptICEBP       :1;
+		unsigned InterceptWBINVD         :1;
+		unsigned InterceptMONITOR       :1;
+		unsigned InterceptMWAIT       :1;
+		unsigned InterceptMWAIT_IfArmed      :1;
+		unsigned InterceptXSETBV       :1;
+	  };
+	};
+
+	DWORD reserved1[10];
+	WORD  PauseFilterThreshold;
+	WORD  PauseFilterCount;
+	QWORD IOPM_BASE_PA; //physical base address of IOPM
+	QWORD MSRPM_BASE_PA;
+	QWORD TSC_OFFSET;
+	DWORD GuestASID;
+	BYTE  TLB_CONTROL;
+	BYTE  reserved2[3];
+	BYTE  V_TPR;
+	unsigned V_IRQ : 1;
+	unsigned reserved4: 7;
+	unsigned V_INTR_PRIO: 4;
+	unsigned V_IGN_TPR: 1;
+	unsigned reserved5: 3;
+	unsigned V_INTR_MASKING : 1;
+	unsigned reserved6: 7;
+	BYTE  V_INTR_VECTOR;
+
+
+	union{
+	  QWORD InterruptShadow;
+	  struct {
+	    unsigned INTERRUPT_SHADOW :1;
+	  };
+	};
+
+	QWORD EXITCODE;
+	QWORD EXITINFO1;
+	QWORD EXITINFO2;
+	QWORD EXITINTINFO;
+
+	union{
+	  QWORD Enable_Nested_Paging;
+	  struct {
+	    unsigned NP_ENABLE :1;
+	  };
+	};
+
+	BYTE reserved7[0x20];
+
+	//a8
+	QWORD EVENTINJ;
+	QWORD N_CR3;
+
+	union{
+	  QWORD Enable_LBR_Virtualization;
+	  struct {
+	    unsigned LBR_VIRTUALIZATION_ENABLE: 1;
+	  };
+	};
+	DWORD VMCB_CLEAN_BITS;
+	DWORD reserved8;
+
+	QWORD nRIP;
+	BYTE NumberOfBytesFetched;
+	BYTE GuestInstructionBytes[15];
+	//E0
+	BYTE reserved9[800];
+
+	//400:
+    //State Save Area
+    WORD  es_selector;
+    WORD  es_attrib;
+    DWORD es_limit;
+    QWORD es_base;
+
+    WORD  cs_selector;
+    WORD  cs_attrib;
+    DWORD cs_limit;
+    QWORD cs_base;
+
+    WORD  ss_selector;
+    WORD  ss_attrib;
+    DWORD ss_limit;
+    QWORD ss_base;
+
+    WORD  ds_selector;
+    WORD  ds_attrib;
+    DWORD ds_limit;
+    QWORD ds_base;
+
+    WORD  fs_selector;
+    WORD  fs_attrib;
+    DWORD fs_limit;
+    QWORD fs_base;
+
+    WORD  gs_selector;
+    WORD  gs_attrib;
+    DWORD gs_limit;
+    QWORD gs_base;
+
+    WORD  gdtr_selector;
+    WORD  gdtr_attrib;
+    DWORD gdtr_limit;
+    QWORD gdtr_base;
+
+    WORD  ldtr_selector;
+    WORD  ldtr_attrib;
+    DWORD ldtr_limit;
+    QWORD ldtr_base;
+
+    WORD  idtr_selector;
+    WORD  idtr_attrib;
+    DWORD idtr_limit;
+    QWORD idtr_base;
+
+    WORD  tr_selector;
+    WORD  tr_attrib;
+    DWORD tr_limit;
+    QWORD tr_base;
+
+    BYTE  reserved10[43];
+    BYTE  CPL;
+    DWORD reserved11;
+    QWORD EFER;
+
+    BYTE reserved12[112];
+    QWORD CR4;
+    QWORD CR3;
+    QWORD CR0;
+    QWORD DR7;
+    QWORD DR6;
+    QWORD RFLAGS;
+    QWORD RIP; //0x578
+
+    BYTE reserved13[88];
+    QWORD RSP;
+
+    BYTE reserved14[24];
+    QWORD RAX;
+    QWORD STAR;
+    QWORD LSTAR;
+    QWORD CSTAR;
+    QWORD SFMASK;
+    QWORD KernelGsBase;
+    QWORD SYSENTER_CS;
+    QWORD SYSENTER_ESP;
+    QWORD SYSENTER_EIP;
+    QWORD CR2;
+
+    BYTE reserved15[32];
+    QWORD G_PAT;
+    QWORD DBGCTL;
+    QWORD BR_FROM;
+    QWORD BR_TO;
+    QWORD LASTEXCPFROM;
+    QWORD LASTEXCPTO; //290
+
+
+} __attribute__((__packed__)) vmcb, *pvmcb;
+
 typedef volatile struct _cpuinfo
 {
   DWORD active;
@@ -142,6 +361,8 @@ typedef volatile struct _cpuinfo
   unsigned long long actual_sysenter_ESP;
   unsigned long long efer;
 
+
+  void* vmcb; //AMD's virtual machine control_block. Give the physical address of this to VMRUN
 
   void* vmxon_region;
   void* vmcs_region;
