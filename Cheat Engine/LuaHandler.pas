@@ -2991,24 +2991,24 @@ begin
   parameters:=lua_gettop(L);
   if parameters>=5 then
   begin
-    attachwindow:=lua_toceuserdata(L, -parameters);
-    hasCloseButton:=lua_toboolean(L, -parameters+1);
-    width:=lua_tointeger(L, -parameters+2);
-    height:=lua_tointeger(L, -parameters+3);
-    position:=lua_tointeger(L, -parameters+4);
+    attachwindow:=lua_toceuserdata(L, 1);
+    hasCloseButton:=lua_toboolean(L, 2);
+    width:=lua_tointeger(L, 3);
+    height:=lua_tointeger(L, 4);
+    position:=lua_tointeger(L, 5);
 
     if parameters>=6 then
-      yoururl:=Lua_ToString(L, -parameters+5)
+      yoururl:=Lua_ToString(L, 6)
     else
       yoururl:='';
 
     if parameters>=7 then
-      extraparameters:=Lua_ToString(L, -parameters+6)
+      extraparameters:=Lua_ToString(L, 7)
     else
       extraparameters:='';
 
     if parameters>=8 then
-      percentageshown:=lua_tointeger(L, -parameters+7)
+      percentageshown:=lua_tointeger(L, 8)
     else
       percentageshown:=0;
 
@@ -3032,7 +3032,7 @@ begin
     adwindow.setUserPercentage(percentageshown);
     adwindow.optional:=extraparameters;
 
-    adwindow.LoadAd;
+    adwindow.LoadAdNow;
 
 
   end else lua_pop(L, lua_gettop(L));

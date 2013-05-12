@@ -6,7 +6,7 @@ interface
 
 uses
   lclintf, Classes, SysUtils,forms, controls, windows, activex, comobj, LMessages,
-  ExtCtrls, Graphics, FileUtil;
+  ExtCtrls, Graphics, FileUtil, Dialogs;
 
 type TADWindow=class(TCustomForm)
   private
@@ -37,6 +37,7 @@ type TADWindow=class(TCustomForm)
     procedure setUserUrl(url: string);
     procedure setUserPercentage(percentage: integer);
     procedure LoadAd;
+    procedure LoadAdNow;
     constructor Create2(AOwner: TComponent;canclose: boolean);
     destructor destroy; override;
 end;
@@ -54,12 +55,14 @@ end;
 
 procedure TADWindow.setUserPercentage(percentage: integer);
 begin
-  userpercentage:=min(75, percentage);
+  userpercentage:=min(85, percentage);
 end;
 
 procedure TADWindow.checkAdTimer(sender: TObject);
 begin
   inc(secondsSinceLastShowAd);
+
+  LoadAd;
 
 
 end;
@@ -162,6 +165,12 @@ begin
 
 end;
 
+procedure TADWindow.LoadAdNow;
+begin
+  secondsSinceLastShowAd:=121;
+  LoadAd;
+end;
+
 procedure TADWindow.LoadAd;
 var url: widestring;
   pid: dword;
@@ -178,11 +187,15 @@ begin
         inc(counter);
 
 
+
         url:=getbase+'?cewidth='+inttostr(clientwidth)+'&ceheight='+inttostr(clientheight)+'&fn='+extractfilename(ExtractFileNameWithoutExt(application.ExeName))+'&counter='+inttostr(counter)+getoptionalstring;
         browser.Navigate(url);
+
       end;
 
       secondsSinceLastShowAd:=0;
+
+      showmessage(inttostr(browser.width));
     end;
   end;
 
@@ -215,6 +228,7 @@ begin
   {$ifdef windows}
   try
     browser := CreateOleObject('InternetExplorer.Application');
+
     windows.setparent(browser.hwnd, handle); // you can use panel1.handle, etc..
     browser.toolbar:=false;
     browser.fullscreen:=true;
@@ -222,6 +236,7 @@ begin
     browser.visible:=true;
     browserisvalid:=true; //we got to this point without a horrible crash, so I guess it's ok
     browserisvalid2:=true;
+
   except
 
   end;
