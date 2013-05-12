@@ -3,11 +3,10 @@ object frmMultilineInputQuery: TfrmMultilineInputQuery
   Height = 113
   Top = 172
   Width = 273
-  BorderStyle = bsSingle
   ClientHeight = 113
   ClientWidth = 273
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.0.8.0'
   object lblPrompt: TLabel
     Left = 0
     Height = 16

@@ -55,6 +55,10 @@ type
     rescanhelper: TRescanhelper;
 
     evaluated: qword;
+
+    useluafilter: boolean; //when set to true each pointer will be passed on to the luafilter function
+    luafilter: string; //function name of the luafilter
+
     procedure execute; override;
     destructor destroy; override;
   end;
@@ -62,6 +66,7 @@ type
 
   Trescanpointers=class(tthread)
   private
+
     procedure closeOldFile;
   public
     ownerform: TFrmPointerScanner;
@@ -86,6 +91,8 @@ type
     endoffsetvalues: array of dword;
 
     novaluecheck: boolean; //when set to true the value and final address are not compared, just check that he final address is in fact readable
+    useluafilter: boolean; //when set to true each pointer will be passed on to the luafilter function
+    luafilter: string; //function name of the luafilter
     procedure execute; override;
   end;
 
@@ -325,7 +332,8 @@ type
 implementation
 
 
-uses PointerscannerSettingsFrm, frmMemoryAllocHandlerUnit, frmSortPointerlistUnit;
+uses PointerscannerSettingsFrm, frmMemoryAllocHandlerUnit, frmSortPointerlistUnit,
+  LuaHandler, lauxlib, lua;
 
 resourcestring
   rsErrorDuringScan = 'Error during scan';
@@ -1497,7 +1505,7 @@ var
     currentEntry: qword;
     i,j: integer;
 
-    address,address2: ptrUint;
+    baseaddress, address,address2: ptrUint;
     pa: PPointerAddress;
     x: dword;
     valid: boolean;
@@ -1508,7 +1516,35 @@ var
 
     p: ppointerscanresult;
     pointersize: integer;
+
+    L: Plua_State;
+    lref: integer;
+    lfun: integer;
+    ltable: integer;
+
 begin
+  l:=nil;
+  if useluafilter then
+  begin
+    //create a new lua thread
+    luacs.enter;
+    try
+      l:=lua_newthread(luavm); //pushes the thread on the luavm stack.
+      lref:=luaL_ref(luavm,LUA_REGISTRYINDEX); //add a reference so the garbage collector wont destroy the thread (pops the thread off the stack)
+    finally
+      luacs.leave;
+    end;
+
+
+    lua_getglobal(L, pchar(luafilter));
+    lfun:=lua_gettop(L);
+
+    //create a table for the offset
+    lua_createtable(L, Pointerscanresults.offsetCount+1,0);   //+1 for a nil
+    ltable:=lua_gettop(L);
+  end;
+
+
   tempfile:=nil;
   tempbuffer:=nil;
   address:=0;
@@ -1538,10 +1574,16 @@ begin
         else
           address:=Pointerscanresults.getModuleBase(p.modulenr)+p.moduleoffset;
 
+        baseaddress:=address;
+
         if address>0 then
         begin
+          //if the base must be in a range then check if the base address is in the given range
           if (not mustbeinrange) or (inrangex(address, baseStart, baseEnd)) then
           begin
+            //don't care or in range.
+
+            //check if start offet values are given
             if length(startOffsetValues)>0 then
             begin
               //check the offsets
@@ -1625,6 +1667,30 @@ begin
               end;
             end;
 
+            if valid and useluafilter then
+            begin
+              //check the lua function
+              //first set the offsets
+              for i:=0 to p.offsetcount-1 do
+              begin
+                lua_pushinteger(L, p.offsets[i]);
+                lua_rawseti(L, ltable, i+1);
+              end;
+
+              //end the table with a nil marker
+              lua_pushnil(L);
+              lua_rawseti(L, ltable, p.offsetcount+1);
+
+              //setup the function call
+              lua_pushvalue(L, lfun);           //function
+              lua_pushinteger(L, baseaddress);  //base
+              lua_pushvalue(L, ltable);         //offsets
+              lua_pushinteger(L, address);      //address
+              lua_call(L, 3,1);                 //call and don't expect any errors
+              valid:=lua_toboolean(L, -1);
+              lua_pop(L, 1);
+            end;
+
             if valid then
             begin
               //checks passed, it's valid
@@ -1651,6 +1717,20 @@ begin
     if tempbuffer<>nil then
       freeandnil(tempbuffer);
 
+    if l<>nil then
+    begin
+      lua_settop(L, 0);
+
+      //remove the reference to the thread
+      luacs.enter;
+      try
+        luaL_unref(LuaVM, LUA_REGISTRYINDEX, lref);
+      finally
+        luacs.leave;
+      end;
+
+    end;
+
   end;
 end;
 
@@ -1676,7 +1756,10 @@ var
 
   rescanhelper: TRescanHelper;
   temp: dword;
+
+
 begin
+
   progressbar.Min:=0;
   progressbar.Max:=100;
   progressbar.Position:=0;
@@ -1755,6 +1838,8 @@ begin
         rescanworkers[i].EndOffsetValues[j]:=EndOffsetValues[j];
 
 
+      rescanworkers[i].useluafilter:=useluafilter;
+      rescanworkers[i].luafilter:=luafilter;
 
 
       threadhandles[i]:=rescanworkers[i].Handle;
@@ -1832,6 +1917,8 @@ begin
 
     progressbar.Position:=0;
     postmessage(ownerform.Handle,rescan_done,0,0);
+
+
   end;
 
 end;
@@ -1975,6 +2062,12 @@ begin
 
 
           end;
+
+          rescan.useLuaFilter:=cbLuaFilter.checked;
+          rescan.LuaFilter:=edtRescanFunction.text;
+
+
+
           rescan.start;
         end;
       end;
@@ -2133,6 +2226,7 @@ var
 begin
   if Pointerscanresults<>nil then
   begin
+
     p:=Pointerscanresults.getPointer(item.index, address);
     if p<>nil then //just to be safe
     begin
