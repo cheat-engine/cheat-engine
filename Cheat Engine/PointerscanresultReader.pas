@@ -123,7 +123,10 @@ end;
 function TPointerscanresultReader.getModuleBase(modulenr: integer): ptrUint;
 {pre: modulenr must be valid, so not -1 }
 begin
-  result:=ptrUint(modulelist.Objects[modulenr]);
+  if modulenr<modulelist.Count then
+    result:=ptrUint(modulelist.Objects[modulenr])
+  else
+    result:=$12345678;
 end;
 
 function TPointerscanresultReader.getModulename(modulenr: integer): string;
@@ -131,7 +134,7 @@ begin
   if modulenr<modulelist.Count then
     result:=modulelist[modulenr]
   else
-    result:='';
+    result:='BuggedList';
 end;
 
 function TPointerscanresultReader.getPointer(i: uint64): PPointerscanResult;
@@ -176,8 +179,17 @@ begin
     address:=result.moduleoffset
   else
   begin
-    address:=ptruint(modulelist.objects[result.modulenr]);
-    address:=address+result.moduleoffset;
+    if result.modulenr<modulelist.count then
+    begin
+      address:=ptruint(modulelist.objects[result.modulenr]);
+      address:=address+result.moduleoffset;
+    end
+    else
+    begin
+      //error. Should never happen
+      address:=$12345678;
+    end;
+
   end;
 
   for j:=result.offsetcount-1 downto 0 do
@@ -243,7 +255,10 @@ begin
     begin
       a:=symhandler.getAddressFromName(temppchar,false,error,nil);
       if not error then
-        modulelist.Addobject(temppchar, pointer(a));
+        modulelist.Addobject(temppchar, pointer(a))
+      else
+        modulelist.Add(temppchar);
+
     end;
   end;
 
