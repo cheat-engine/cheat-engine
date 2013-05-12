@@ -15,3 +15,10 @@ TFRMRESCANPOINTER.LBLAND.CAPTION=and
 TFRMRESCANPOINTER.CBMUSTENDWITHSPECIFICOFFSETS.CAPTION=Must end with offsets
 TFRMRESCANPOINTER.CBREPEAT.CAPTION=Repeat rescan until stopped
 TFRMRESCANPOINTER.CBNOVALUECHECK.CAPTION=Only filter out invalid pointers
+TFRMRESCANPOINTER.CBLUAFILTER.HINT=When checked this will call the given function for every pointer being evaluated. Return true if it'svalid, false if not
+base is the base address (integer)
+offset is a table with offsets
+target is the address the pointer points to. Can be nil
+TFRMRESCANPOINTER.CBLUAFILTER.CAPTION=Lua filter. function
+TFRMRESCANPOINTER.EDTRESCANFUNCTION.TEXT=RescanFilter
+TFRMRESCANPOINTER.LABEL2.CAPTION=(base, offsets, target):bool

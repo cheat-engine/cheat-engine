@@ -7,6 +7,17 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls;
 
+
+
+function MultilineInputQuery(const ACaption, APrompt : String; Values : TStrings) : Boolean;
+
+implementation
+
+{$R *.lfm}
+
+{ TfrmMultilineInputQuery }
+
+
 type
 
   { TfrmMultilineInputQuery }
@@ -22,15 +33,6 @@ type
   public
     { public declarations }
   end;
-
-
-function MultilineInputQuery(const ACaption, APrompt : String; Values : TStrings) : Boolean;
-
-implementation
-
-{$R *.lfm}
-
-{ TfrmMultilineInputQuery }
 
 
 

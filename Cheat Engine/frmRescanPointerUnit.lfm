@@ -1,12 +1,12 @@
 object frmRescanPointer: TfrmRescanPointer
   Left = 931
-  Height = 263
+  Height = 273
   Top = 112
-  Width = 267
+  Width = 330
   BorderStyle = bsDialog
   Caption = 'Rescan pointerlist'
-  ClientHeight = 263
-  ClientWidth = 267
+  ClientHeight = 273
+  ClientWidth = 330
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
@@ -16,12 +16,12 @@ object frmRescanPointer: TfrmRescanPointer
     Left = 8
     Height = 21
     Top = 26
-    Width = 111
+    Width = 176
     CharCase = ecUppercase
     TabOrder = 1
   end
   object cbValueType: TComboBox
-    Left = 125
+    Left = 192
     Height = 21
     Top = 27
     Width = 132
@@ -40,10 +40,10 @@ object frmRescanPointer: TfrmRescanPointer
     Left = 9
     Height = 25
     Top = 0
-    Width = 249
+    Width = 317
     BevelOuter = bvNone
     ClientHeight = 25
-    ClientWidth = 249
+    ClientWidth = 317
     TabOrder = 0
     object rbFindAddress: TRadioButton
       Left = 0
@@ -57,7 +57,7 @@ object frmRescanPointer: TfrmRescanPointer
       TabStop = True
     end
     object rbFindValue: TRadioButton
-      Left = 120
+      Left = 95
       Height = 19
       Top = 4
       Width = 82
@@ -93,42 +93,42 @@ object frmRescanPointer: TfrmRescanPointer
   object cbBasePointerMustBeInRange: TCheckBox
     Left = 8
     Height = 19
-    Top = 120
+    Top = 144
     Width = 160
     Caption = 'Base pointer must be in range'
     OnChange = cbBasePointerMustBeInRangeChange
-    TabOrder = 7
+    TabOrder = 9
   end
   object edtBaseStart: TEdit
     Left = 8
     Height = 21
-    Top = 144
+    Top = 168
     Width = 112
     CharCase = ecUppercase
     Enabled = False
-    TabOrder = 8
+    TabOrder = 10
     Text = '0000000000000000'
   end
   object cbMustStartWithSpecificOffsets: TCheckBox
     Left = 8
     Height = 19
-    Top = 169
+    Top = 193
     Width = 122
     Caption = 'Must start with offsets'
     OnChange = cbMustStartWithSpecificOffsetsChange
-    TabOrder = 10
+    TabOrder = 12
   end
   object pnlButtons: TPanel
-    Left = 56
+    Left = 88
     Height = 34
-    Top = 224
+    Top = 240
     Width = 170
     BevelOuter = bvNone
     ClientHeight = 34
     ClientWidth = 170
-    TabOrder = 12
+    TabOrder = 14
     object Button2: TButton
-      Left = 88
+      Left = 96
       Height = 25
       Top = 4
       Width = 75
@@ -138,7 +138,7 @@ object frmRescanPointer: TfrmRescanPointer
       TabOrder = 1
     end
     object Button1: TButton
-      Left = 5
+      Left = 8
       Height = 25
       Top = 4
       Width = 75
@@ -151,17 +151,17 @@ object frmRescanPointer: TfrmRescanPointer
   object edtBaseEnd: TEdit
     Left = 146
     Height = 21
-    Top = 143
+    Top = 167
     Width = 112
     CharCase = ecUppercase
     Enabled = False
-    TabOrder = 9
+    TabOrder = 11
     Text = 'FFFFFFFFFFFFFFFF'
   end
   object lblAnd: TLabel
     Left = 123
     Height = 14
-    Top = 146
+    Top = 170
     Width = 19
     Caption = 'and'
     Enabled = False
@@ -170,11 +170,11 @@ object frmRescanPointer: TfrmRescanPointer
   object cbMustEndWithSpecificOffsets: TCheckBox
     Left = 8
     Height = 19
-    Top = 193
+    Top = 216
     Width = 120
     Caption = 'Must end with offsets'
     OnChange = cbMustEndWithSpecificOffsetsChange
-    TabOrder = 11
+    TabOrder = 13
   end
   object cbRepeat: TCheckBox
     Left = 8
@@ -192,5 +192,34 @@ object frmRescanPointer: TfrmRescanPointer
     Caption = 'Only filter out invalid pointers'
     OnChange = cbNoValueCheckChange
     TabOrder = 3
+  end
+  object cbLuaFilter: TCheckBox
+    Left = 8
+    Height = 19
+    Hint = 'When checked this will call the given function for every pointer being evaluated. Return true if it''svalid, false if not'#13#10'base is the base address (integer)'#13#10'offset is a table with offsets'#13#10'target is the address the pointer points to. Can be nil'
+    Top = 120
+    Width = 104
+    Caption = 'Lua filter. function'
+    OnChange = cbLuaFilterChange
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 7
+  end
+  object edtRescanFunction: TEdit
+    Left = 112
+    Height = 21
+    Top = 120
+    Width = 72
+    Enabled = False
+    TabOrder = 8
+    Text = 'RescanFilter'
+  end
+  object Label2: TLabel
+    Left = 185
+    Height = 14
+    Top = 123
+    Width = 123
+    Caption = '(base, offsets, target):bool'
+    ParentColor = False
   end
 end

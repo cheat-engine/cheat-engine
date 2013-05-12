@@ -6,7 +6,8 @@ interface
 
 uses
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, LResources, contnrs, cefuncproc, symbolhandler;
+  Dialogs, StdCtrls, ExtCtrls, LResources, contnrs, cefuncproc, symbolhandler,
+  multilineinputqueryunit, lua, lualib, lauxlib;
 
 type
 
@@ -21,6 +22,9 @@ type
     cbMustEndWithSpecificOffsets: TCheckBox;
     cbRepeat: TCheckBox;
     cbNoValueCheck: TCheckBox;
+    cbLuaFilter: TCheckBox;
+    Label2: TLabel;
+    edtRescanFunction: TEdit;
     edtBaseStart: TEdit;
     edtBaseEnd: TEdit;
     edtDelay: TEdit;
@@ -34,6 +38,7 @@ type
     rbFindValue: TRadioButton;
     procedure Button1Click(Sender: TObject);
     procedure cbBasePointerMustBeInRangeChange(Sender: TObject);
+    procedure cbLuaFilterChange(Sender: TObject);
     procedure cbMustEndWithSpecificOffsetsChange(Sender: TObject);
     procedure cbMustStartWithSpecificOffsetsChange(Sender: TObject);
     procedure cbNoValueCheckChange(Sender: TObject);
@@ -61,6 +66,7 @@ type
     procedure btnRemoveEndOffsetClick(sender: TObject);
   public
     { Public declarations }
+
     startOffsetValues, endoffsetvalues: Array of dword;
     property Delay: integer read fdelay;
     property BaseStart: ptruint read fBaseStart;
@@ -68,6 +74,8 @@ type
   end;
 
 implementation
+
+uses LuaHandler;
 
 resourcestring
   rsNotAllTheStartOffsetsHaveBeenFilledIn = 'Not all the start offsets have '
@@ -87,7 +95,7 @@ begin
   end
   else
   begin
-    edtAddress.Width:=rbFindAddress.Width;
+    edtAddress.Width:=panel2.Width;
     cbValueType.Visible:=true;
   end;
 end;
@@ -97,6 +105,11 @@ begin
   edtBaseStart.enabled:=cbBasePointerMustBeInRange.checked;
   lblAnd.enabled:=cbBasePointerMustBeInRange.checked;
   edtBaseEnd.enabled:=cbBasePointerMustBeInRange.checked;
+end;
+
+procedure TfrmRescanPointer.cbLuaFilterChange(Sender: TObject);
+begin
+  edtRescanFunction.enabled:=cbLuaFilter.checked;
 end;
 
 procedure TfrmRescanPointer.Button1Click(Sender: TObject);
@@ -148,6 +161,20 @@ begin
   end
   else
     setlength(endoffsetvalues,0);
+
+  if cbLuaFilter.checked then
+  begin
+    //check that the filter function is defined
+    lua_getglobal(LuaVM, pchar(edtRescanFunction.Text));
+    try
+      if not lua_isfunction(Luavm,-1) then
+        raise exception.create('The function '+edtRescanFunction.Text+'(base, offsets, target) has not yet been defined. Please define it first');
+    finally
+      lua_pop(Luavm,1);
+    end;
+
+
+  end;
 
   modalresult:=mrok;
 end;
