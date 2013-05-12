@@ -5,7 +5,8 @@ unit symbolhandler;
 interface
 
 
-uses jwawindows, windows, classes,LCLIntf,imagehlp,{psapi,}sysutils,{tlhelp32,}cefuncproc,newkernelhandler,syncobjs, SymbolListHandler;
+uses jwawindows, windows, classes,LCLIntf,imagehlp,{psapi,}sysutils, cefuncproc,
+  newkernelhandler,syncobjs, SymbolListHandler, fgl;
 
 {$ifdef autoassemblerdll}
 var
@@ -178,6 +179,8 @@ type
     function ParseAsPointer(s: string; list:tstrings): boolean;
     function GetAddressFromPointer(s: string; var error: boolean):ptrUint;
 
+    function LookupStructureOffset(s: string; out offset: integer): boolean;
+
     procedure loadCommonModuleList;
     function getCommonModuleList: Tstringlist;
     procedure RegisterUserdefinedSymbolCallback(callback: TUserdefinedSymbolCallback);
@@ -225,7 +228,8 @@ procedure symhandlerInitialize;
 
 implementation
 
-uses assemblerunit, driverlist, LuaHandler, lualib, lua, lauxlib, disassemblerComments;
+uses assemblerunit, driverlist, LuaHandler, lualib, lua, lauxlib,
+  disassemblerComments, StructuresFrm2;
 
 resourcestring
   rsSymbolloaderthreadHasCrashed = 'Symbolloaderthread has crashed';
@@ -1448,6 +1452,16 @@ begin
                     si:=symbollist.FindSymbol(tokens[i]);
                   end;
 
+                  if si=nil then //STILL not found. Check if it's a structure.element notation
+                  begin
+
+                    if LookupStructureOffset(tokens[i], offset) then
+                    begin
+                      tokens[i]:=inttohex(offset,8);
+                      continue;
+                    end;
+
+                  end;
                 end;
 
                 if si<>nil then
@@ -1500,18 +1514,8 @@ begin
 
   if haspointer then
   begin
-    result:=GetAddressFromPointer(mathstring,error);
-    if not error then
-    begin
-      result:=result+offset;
-      exit;
-    end
-    else
-    begin
-      //it has a pointer notation but the pointer didn't get handled... ERROR!
-      haserror:=true;
-      exit;
-    end;
+    result:=GetAddressFromPointer(mathstring,haserror);
+    exit;
   end;
 
 
@@ -1718,6 +1722,48 @@ begin
 end;
 
 
+function TSymhandler.LookupStructureOffset(s: string; out offset: integer): boolean;
+//will search all defines structures and when found return the offset in "offset"
+//if found, return true, else false
+var
+  i,j: integer;
+  structurename: string;
+  elementname: string;
+begin
+  result:=false;
+  i:=pos('.', s); //check for the .
+  if i>0 then
+  begin
+    //it has one
+    structurename:=copy(s, 1, i-1);
+    elementname:=copy(s, i+1, length(s)); //just the rest
+
+    if (trim(structurename)<>'') and (trim(elementname)<>'') then
+    begin
+      structurename:=uppercase(structurename);
+      elementname:=uppercase(elementname);
+
+      for i:=0 to DissectedStructs.count-1 do
+      begin
+        if uppercase(DissectedStructs[i].name)=structurename then
+        begin
+          //found the structure
+          for j:=0 to DissectedStructs[i].count-1 do
+          begin
+            if uppercase(DissectedStructs[i].element[j].Name)=elementname then
+            begin
+              //found the element
+              offset:=DissectedStructs[i].element[j].Offset;
+              result:=true;
+              break;
+            end;
+          end;
+          break;
+        end;
+      end;
+    end;
+  end;
+end;
 
 function TSymhandler.GetAddressFromPointer(s: string; var error: boolean):ptrUint;
 {
