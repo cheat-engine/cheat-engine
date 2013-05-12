@@ -11,7 +11,7 @@ object frmRescanPointer: TfrmRescanPointer
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '1.1'
+  LCLVersion = '1.0.8.0'
   object edtAddress: TEdit
     Left = 8
     Height = 21
@@ -69,7 +69,7 @@ object frmRescanPointer: TfrmRescanPointer
   object cbDelay: TCheckBox
     Left = 8
     Height = 19
-    Top = 73
+    Top = 72
     Width = 97
     Caption = 'Delay rescan for'
     TabOrder = 4
@@ -77,36 +77,36 @@ object frmRescanPointer: TfrmRescanPointer
   object edtDelay: TEdit
     Left = 112
     Height = 21
-    Top = 73
+    Top = 71
     Width = 32
     TabOrder = 5
     Text = '0'
   end
   object Label1: TLabel
     Left = 146
-    Height = 13
-    Top = 76
-    Width = 40
+    Height = 14
+    Top = 74
+    Width = 41
     Caption = 'seconds'
     ParentColor = False
   end
   object cbBasePointerMustBeInRange: TCheckBox
     Left = 8
     Height = 19
-    Top = 97
+    Top = 120
     Width = 160
     Caption = 'Base pointer must be in range'
     OnChange = cbBasePointerMustBeInRangeChange
-    TabOrder = 6
+    TabOrder = 7
   end
   object edtBaseStart: TEdit
     Left = 8
     Height = 21
-    Top = 121
+    Top = 144
     Width = 112
     CharCase = ecUppercase
     Enabled = False
-    TabOrder = 7
+    TabOrder = 8
     Text = '0000000000000000'
   end
   object cbMustStartWithSpecificOffsets: TCheckBox
@@ -128,7 +128,7 @@ object frmRescanPointer: TfrmRescanPointer
     ClientWidth = 170
     TabOrder = 12
     object Button2: TButton
-      Left = 85
+      Left = 88
       Height = 25
       Top = 4
       Width = 75
@@ -151,18 +151,18 @@ object frmRescanPointer: TfrmRescanPointer
   object edtBaseEnd: TEdit
     Left = 146
     Height = 21
-    Top = 120
+    Top = 143
     Width = 112
     CharCase = ecUppercase
     Enabled = False
-    TabOrder = 8
+    TabOrder = 9
     Text = 'FFFFFFFFFFFFFFFF'
   end
   object lblAnd: TLabel
     Left = 123
-    Height = 13
-    Top = 123
-    Width = 18
+    Height = 14
+    Top = 146
+    Width = 19
     Caption = 'and'
     Enabled = False
     ParentColor = False
@@ -179,10 +179,10 @@ object frmRescanPointer: TfrmRescanPointer
   object cbRepeat: TCheckBox
     Left = 8
     Height = 19
-    Top = 144
+    Top = 96
     Width = 153
     Caption = 'Repeat rescan until stopped'
-    TabOrder = 9
+    TabOrder = 6
   end
   object cbNoValueCheck: TCheckBox
     Left = 8
