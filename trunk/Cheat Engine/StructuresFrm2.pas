@@ -9,7 +9,7 @@ uses
   windows, Classes, LCLProc, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls, math,
   StdCtrls, ComCtrls, Menus, lmessages, scrolltreeview, byteinterpreter, symbolhandler, cefuncproc,
   newkernelhandler, frmSelectionlistunit, frmStructuresConfigUnit, registry, Valuechange, DOM,
-  XMLRead, XMLWrite, Clipbrd, CustomTypeHandler, strutils;
+  XMLRead, XMLWrite, Clipbrd, CustomTypeHandler, strutils, fgl;
 
 
 
@@ -164,6 +164,8 @@ type
   end;
 
   PDissectedStruct=^TDissectedStruct;
+
+  TDissectedStructs=TFPGList<TDissectedStruct>;
 
   TfrmStructures2=class;
   TStructColumn=class;
@@ -508,7 +510,9 @@ type
 
 var
   frmStructures2: TList;
-  DissectedStructs: Tlist;   //these get saved to the table and show up in the structure list
+  DissectedStructs: TDissectedStructs;
+
+
 
 
 implementation
@@ -4693,7 +4697,7 @@ end;
 
 
 initialization
-  DissectedStructs:=TList.create;
+  DissectedStructs:=TDissectedStructs.create;
   frmStructures2:=tlist.Create;
 
 end.
