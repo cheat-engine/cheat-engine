@@ -27,9 +27,8 @@ int emulateProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
   address=(vmread(vm_guest_cs_base))+vmread(vm_guest_rip);
 
-
   //to emulate:
-  //20839: xchg bx,bx
+  //20262: xchg bx,bx
 
   //ea ea4c 2000 - JMP FAR 0x20:0x4cea
 

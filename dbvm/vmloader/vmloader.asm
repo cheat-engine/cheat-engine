@@ -126,6 +126,8 @@ push ax
 push dx
 
 waitforready:
+%ifdef SERIALPORT
+%if SERIALPORT != 0
 mov dx,SERIALPORT+5 ;3fdh
 in al,dx
 and al,0x20
@@ -135,6 +137,10 @@ jne waitforready
 mov dx,SERIALPORT ;0x3f8
 mov al,cl
 out dx,al
+%endif
+%endif
+
+
 
 pop dx
 pop ax
@@ -350,6 +356,8 @@ checka20_noa20:
 retry: db 'retry reading disk',13
 
 waitforkeypress:
+%ifdef SERIALPORT
+%if SERIALPORT != 0
 mov dx,SERIALPORT+5 ;0x3fd
 waitforkeypress2:
 in al,dx
@@ -358,6 +366,8 @@ cmp al,1
 jne waitforkeypress2
 mov dx,SERIALPORT ;0x3f8
 in al,dx
+%endif
+%endif
 ret
 
 
@@ -402,6 +412,8 @@ mov [ds:bp+bootdisk-begin],dl ;save bootdisk
 cmp byte [bp+reservedmem_listcount-begin],0
 jne gdtsetup ;skip setting up hardware and enumerating memory, it's already done
 
+%ifdef SERIALPORT
+%if SERIALPORT !=0
 ;jmp serialsetupdone
 mov dx,SERIALPORT+1 ;3f9h
 mov al,0h
@@ -422,6 +434,8 @@ out dx,al ;
 mov dx,SERIALPORT+3; 3fbh
 mov al,3h
 out dx,al ;8 bits, no parity, one stop
+%endif
+%endif
 
 serialsetupdone:
 
@@ -647,6 +661,8 @@ ret
 
 
 sendchar32:
+%ifdef SERIALPORT
+%if SERIALPORT != 0
 mov edx,SERIALPORT+5 ;3fdh
 in al,dx
 and al,0x20
@@ -657,6 +673,8 @@ jne sendchar32
 mov edx,SERIALPORT; 0x3f8
 mov al,cl
 out dx,al
+%endif
+%endif
 ret
 
 

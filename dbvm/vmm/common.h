@@ -10,8 +10,10 @@
   #define VMMSIZE 0
 #endif
 
-#define DEBUG //comment for release
-#define DEBUGINTHANDLER //comment for release
+#if (defined SERIALPORT) && (SERIALPORT != 0)
+//  #define DEBUG //comment for release
+//  #define DEBUGINTHANDLER //comment for release
+#endif
 
 // #define DISPLAYDEBUG //send serialport debug output to the display
 #define ULTIMAPDEBUG //for debugging ultimap (I seem to have misplaced my serial port...)

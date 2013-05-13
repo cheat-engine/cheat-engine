@@ -1393,6 +1393,18 @@ void menu2(void)
     clearScreen();
     currentdisplayline=0;
 
+    {
+    	vmcb x;
+    	int offset;
+
+    	offset=(QWORD)&x.DR6-(QWORD)&x;
+
+
+        	displayline("DR6=%x\n", offset);
+
+
+    }
+
     displayline("Welcome to the DBVM interactive menu\n\n");
     displayline("These are your options:\n");
     displayline("0: Start virtualization\n");

@@ -161,13 +161,21 @@ mov rsi,[rsi+0x20]
 jmp aftersetup
 
 notloadedOS:
-xor eax,eax
-mov ebx,eax
-mov ecx,eax
-mov edx,eax
-mov edi,eax
-mov esi,eax
-mov ebp,eax
+xor rax,rax
+mov rbx,rax
+mov rcx,rax
+mov rdx,rax
+mov rdi,rax
+mov rsi,rax
+mov rbp,rax
+mov r8, rax
+mov r9, rax
+mov r10,rax
+mov r11,rax
+mov r12,rax
+mov r13,rax
+mov r14,rax
+mov r15,rax
 
 aftersetup:
 vmlaunch
