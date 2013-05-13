@@ -1,5 +1,5 @@
 /*
-common.c: 32-bit version Contains several functions that might be usefull and can be shared by
+common.c: 32-bit version Contains several functions that might be useful and can be shared by
 multiple sources. (e.g vmm and vmloader)
 
 */
@@ -578,6 +578,11 @@ void sendchar(char c)
 {
 	char x;
 
+#if (!defined SERIALPORT) || (SERIALPORT == 0)
+	return;
+#endif
+
+
   if (nosendchar[getAPICID()])
     return;
 
@@ -604,11 +609,16 @@ char getchar(void)
 {
 /* returns 0 when no char is pressed
 	 use readstring to wait for keypresses */
-
+#if (!defined SERIALPORT) || (SERIALPORT == 0)
+	return 0;
+#else
 	if (inportb(SERIALPORT+5) & 0x1)
     return inportb(SERIALPORT);
 	else
 		return 0;
+#endif
+
+
 }
 
 char waitforchar(void)

@@ -824,15 +824,29 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
                   break;
 
 
-			  case 0x200:
-				switch (rip)
-				{
-				  case 0x64f:
-				  case 0x65f:
-					skip=1;
-					break;
-				}
-				break;
+                  case 0x200:
+                  switch (rip)
+                  {
+                    case 0x64f:
+                    case 0x65f:
+                    skip=1;
+                    break;
+                  }
+                  break;
+
+                  case 0x1000:
+                  switch (rip)
+                  {
+                    case 0x11b:
+                    case 0x16d:
+                    case 0x1ad:
+                    case 0x282c:
+                    case 0x6e0b:
+
+                    skip=1;
+                    break;
+                  }
+                  break;
 
                 case 0x2000:
                   //nosendchar[getAPICID()]=0;
@@ -842,10 +856,13 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
 
                     case 0xcc:
                     case 0x125:
+                    case 0x190: //must execute gpf
                     case 0x826:
                     case 0x836:
                     case 0x8cf:
                     case 0xa23:
+                    case 0x507:
+                    case 0xd79:
 
 
 
@@ -856,36 +873,34 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
                   }
                   break;
 
-                case 0xeaec:
+                case 0xc000:
                   switch (rip)
                   {
-    				case 0xb57:
+                    case 0xafe:
 
+                      skip=1;
+                      break;
+                  }
+                  break;
 
-
-    				skip=1;
-    				break;
+                case 0xea0e:
+                  switch (rip)
+                  {
+                    case 0x0d35:
+                    case 0x0d6c:
+                    case 0x1944:
+                    case 0x2216:
+                    case 0x2e60:
+                    case 0x300d:
+                      skip=1;
+                      break;
 
                   }
 
 
                   break;
 
-                case 0xec93:
-                  switch (rip)
-                  {
-					  case 0x386:
-					  case 0xa08:
 
-
-
-						skip=1;
-						break;
-
-                  }
-
-
-                  break;
 
                 case 0xf000:
                   switch (rip)
@@ -964,11 +979,11 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
               break;
             }
 
-            case 0x50:
+            case 0x58:
             {
               switch (rip)
               {
-               case 0x00000:
+               case 0x3b9:
                {
                   skip=1;
                   break;
@@ -1090,15 +1105,14 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
             break;
           }
 
-          case 0x50:
+          case 0x58:
           {
 
             switch (rip)
             {
 
-              case 0x8a0: //jmp 0x208a5 (after switch from protected to realmode)
-              case 0x8a5:
-              case 0x8af:
+              case 0x3bc:
+
                 skip=1;
                 break;
             }
@@ -1111,10 +1125,42 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
 
             switch (rip)
             {
-              case 0x1db:
+              case 0x255:
+              case 0x262:
+              case 0x5a6:
+              case 0x95a:
+              case 0xb2e:
+              case 0xc16:
+              case 0xd4e:
+              case 0xebe:
+                skip=1;
+                break;
+            }
 
-              case 0x839:
-              case 0x8af:
+            break;
+          }
+
+          case 0xea0e:
+          {
+
+            switch (rip)
+            {
+              case 0x1836:
+              case 0x226a:
+                skip=1;
+                break;
+            }
+
+            break;
+          }
+
+          case 0xf000:
+          {
+
+            switch (rip)
+            {
+              case 0x4e35:
+              case 0x9ea7:
                 skip=1;
                 break;
             }
