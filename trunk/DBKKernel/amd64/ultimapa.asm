@@ -10,10 +10,10 @@ CALLBACK        ends
 
 
 ASMENTRY_STACK	struct ;keep this 16 byte aligned
-	Scratchspace	qword ?
-	Scratchspace2	qword ? 
-	Scratchspace3	qword ?
-	Scratchspace4	qword ? 	
+	Scratchspace	qword ?   ;0
+	Scratchspace2	qword ?   ;8
+	Scratchspace3	qword ?   ;0
+	Scratchspace4	qword ?   ;8
 	Originalmxcsr	qword ?	
 	OriginalRAX		qword ?
 	OriginalRBX		qword ?

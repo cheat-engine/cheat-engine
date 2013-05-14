@@ -15,25 +15,33 @@ ASMENTRY_STACK	struct ;keep this 16 byte aligned
 	Scratchspace3	qword ?
 	Scratchspace4	qword ? 	
 	Originalmxcsr	qword ?	
-	OriginalRAX		qword ?
-	OriginalRBX		qword ?
-	OriginalRCX		qword ?
-	OriginalRDX		qword ?
-	OriginalRSI		qword ?
-	OriginalRDI		qword ?
-	OriginalRBP		qword ?
-	OriginalRSP		qword ? ;not really 'original'
-	OriginalR8		qword ?
-	OriginalR9		qword ?
-	OriginalR10		qword ?
-	OriginalR11		qword ?
-	OriginalR12		qword ?
-	OriginalR13		qword ?
-	OriginalR14		qword ?
-	OriginalR15		qword ?
-	OriginalES		qword ?
-	OriginalDS		qword ?		
-	OriginalSS		qword ?	
+	OriginalRAX		qword ?  ;0
+	OriginalRBX		qword ?  ;1
+	OriginalRCX		qword ?  ;2
+	OriginalRDX		qword ?  ;3
+	OriginalRSI		qword ?  ;4
+	OriginalRDI		qword ?  ;5
+	OriginalRBP		qword ?  ;6
+	OriginalRSP		qword ?  ;7 not really 'original'
+	OriginalR8		qword ?  ;8
+	OriginalR9		qword ?  ;9
+	OriginalR10		qword ?  ;10
+	OriginalR11		qword ?  ;11
+	OriginalR12		qword ?  ;12
+	OriginalR13		qword ?  ;13
+	OriginalR14		qword ?  ;14
+	OriginalR15		qword ?  ;15
+	OriginalES		qword ?  ;16
+	OriginalDS		qword ?	 ;17
+	OriginalSS		qword ?	 ;18
+	
+	;errorcode   ;19
+	;4096 bytes 
+	;eip     ;20
+	;cs      ;21
+	;eflags
+	;esp
+	;ss
 	
 ASMENTRY_STACK	ends
 
@@ -46,7 +54,7 @@ EXTERN Int1JumpBackLocation : CALLBACK
 PUBLIC interrupt1_asmentry
 interrupt1_asmentry:
 		;save stack position
-		sub rsp,4096
+		sub rsp,4096  ;functions like setThreadContext adjust the stackframe entry directly. I can't have that messing up my own stack
 
 		cld			
 		push 0 ;push an errorcode on the stack so the stackindex enum type can stay the same relative to interrupts that do have an errorcode (int 14)
@@ -98,10 +106,12 @@ interrupt1_asmentry:
 		mov ss,ax
 		
 		
+		; rbp= pointer to OriginalRAX
+		
 		cmp qword ptr [rbp+8*21+4096],010h ;check if origin is in kernelmode (check ss)
 		je skipswap1 ;if so, skip the swapgs
 		
-		swapgs ;swap gs with the kernel version (note to self fix when called from inside kernel)
+		swapgs ;swap gs with the kernel version
 		
 skipswap1:
 		
@@ -158,9 +168,9 @@ skipswap2:
 		
 		;stack unwind
 		mov rbp,(ASMENTRY_STACK PTR [rsp]).OriginalRBP
-		add rsp,SIZEOF ASMENTRY_STACK  ;+8 for the push 0
+		add rsp,SIZEOF ASMENTRY_STACK  
 		add rsp,4096
-		add rsp,8
+		add rsp,8 ;+8 for the push 0
 		
 		jmp [Int1JumpBackLocation.A] ;<-works fine	
 
