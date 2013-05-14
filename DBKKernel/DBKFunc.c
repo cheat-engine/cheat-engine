@@ -10,7 +10,7 @@
 
 void forEachCpuPassive(PF f, UINT_PTR param)
 /*
-calls a sepcific function for each cpu that runs in passive mode
+calls a specific function for each cpu that runs in passive mode
 */
 {
 	CCHAR cpunr;

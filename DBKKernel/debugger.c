@@ -24,6 +24,7 @@ void interrupt1_asmentry( void );
 volatile struct
 {
 	BOOL		isDebugging;		//TRUE if a process is currently being debugged
+	BOOL		stoppingTheDebugger;
 	DWORD		debuggedProcessID;	//The processID that is currently debugger
 	struct {
 		BOOL		active;
@@ -165,7 +166,7 @@ DebugReg6 debugger_dr6_getValue(void)
 
 
 
-void debugger_touchDebugRegister(void)
+void debugger_touchDebugRegister(UINT_PTR param)
 {
 	DbgPrint("Touching debug register. inepilogue=\n", DebuggerState.FakedDebugRegisterState[cpunr()].inEpilogue);
 
@@ -200,11 +201,13 @@ void debugger_setInitialFakeState(void)
 VOID debugger_initHookForCurrentCPU_DPC(IN struct _KDPC *Dpc, IN PVOID  DeferredContext, IN PVOID  SystemArgument1, IN PVOID  SystemArgument2)
 {
 	debugger_initHookForCurrentCPU();
-	
-
 }
 
-
+int debugger_removeHookForCurrentCPU(UINT_PTR params)
+{
+	DbgPrint("Unhooking int1 for this cpu\n");
+    return inthook_UnhookInterrupt(1);	
+}
 
 int debugger_initHookForCurrentCPU(void)
 /*
@@ -312,15 +315,7 @@ int debugger_setGlobalDebugState(BOOL state)
 	return TRUE;
 }
 
-int debugger_removeHookForCurrentCPU(void)
-{
-	DbgPrint("Dehooking int1 for this cpu\n");
 
-	if (DebuggerState.globalDebug)
-		return FALSE;
-	else
-		return inthook_UnhookInterrupt(1);	
-}
 
 int debugger_startDebugging(DWORD debuggedProcessID)
 /*
@@ -347,11 +342,27 @@ int debugger_stopDebugging(void)
 
 	DbgPrint("Stopping the debugger if it is running\n");
 
-	DebuggerState.isDebugging=FALSE;
-	//DebuggerState.globalDebug=FALSE; //stop when possible, saves speed
+	DebuggerState.stoppingTheDebugger=TRUE;	
+
+	if (DebuggerState.globalDebug)
+	{
+		//touch the global debug for each debug processor
+		DbgPrint("Touching the debug registers\n");
+        forEachCpuPassive(debugger_touchDebugRegister, NULL);
+	}
+
+	
+
+    DebuggerState.globalDebug=FALSE; //stop when possible, saves speed
+	DebuggerState.isDebugging=FALSE;	
 
 	for (i=0; i<4; i++)
 		DebuggerState.breakpoint[i].active=FALSE;
+
+	//unhook all processors
+
+	forEachCpuPassive(debugger_removeHookForCurrentCPU, NULL);
+
 
 	return TRUE;
 }
@@ -1154,7 +1165,9 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 			{
 				//enable the GD flag for taskswitches that will occur as soon as interrupts are enabled
 				//this also means: DO NOT EDIT THE DEBUG REGISTERS IN GLOBAL DEBUG MODE at this point. Only in the epilogue
-				debugger_dr7_setGD(DebuggerState.globalDebug); 
+
+				if (!DebuggerState.stoppingTheDebugger) //This is set when the driver is unloading. So do NOT set it back then
+					debugger_dr7_setGD(DebuggerState.globalDebug); 
 			}	
 			else
 			{
@@ -1509,7 +1522,9 @@ int interrupt1_centry(UINT_PTR *stackpointer) //code segment 8 has a 32-bit stac
 		if (DebuggerState.globalDebug)
 		{
 			DebuggerState.FakedDebugRegisterState[cpunr()].inEpilogue=0;
-			debugger_dr7_setGD(DebuggerState.globalDebug); //set it back to 1		
+
+			if (!DebuggerState.stoppingTheDebugger)
+				debugger_dr7_setGD(DebuggerState.globalDebug); //set it back to 1, if not unloading
 		}
 	}
 	//after=getRSP();
