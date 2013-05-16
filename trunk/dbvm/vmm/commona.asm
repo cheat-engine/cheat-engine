@@ -102,8 +102,8 @@ ret
 
 global enableserial
 enableserial:
-ret
-
+%ifdef SERIALPORT
+%if SERIALPORT != 0
 pushaq
 pushfq
 mov dx,SERIALPORT+1 ;3f9h
@@ -127,4 +127,7 @@ mov al,3h
 out dx,al ;8 bits, no parity, one stop
 popfq
 popaq
+%endif
+%endif
 ret
+

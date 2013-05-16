@@ -1623,7 +1623,11 @@ void menu2(void)
 
 void menu(void)
 {
+  displayline("menu\n\r"); //debug to find out why the vm completely freezes when SERIALPORT==0
+
   sendstring("menu\n\r");
+
+  displayline("After sendstring\n");
 
   int i,j;
 
@@ -1655,6 +1659,7 @@ void menu(void)
     else
 #endif
     {
+      displayline("Waiting for serial port command:\n");
       sendstring("waiting for command:");
 
       if (loadedOS)
@@ -1663,15 +1668,27 @@ void menu(void)
 
       }
       else
+      {
+#if (defined SERIALPORT) && (SERIALPORT != 0)
         command=waitforchar();
+#else
+        command='0';
+#endif
+
+      }
     }
 
 
 
+    displayline("Checking command");
+
 
     sendchar(command);
+
+    displayline("After sendchar\n");
     sendstring("\n\r");
 
+    displayline("...");
 
     switch (command)
     {
