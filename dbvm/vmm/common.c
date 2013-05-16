@@ -651,6 +651,7 @@ int itoa(unsigned int value,int base, char *output,int maxsize)
 
 void sendchar(char c)
 {
+#if (defined SERIALPORT) && (SERIALPORT != 0)
 	unsigned char x;
 
   x=c;
@@ -682,10 +683,13 @@ void sendchar(char c)
 	    outportb(SERIALPORT,'\r');
 	  }
 	}
+#endif
+
 }
 
 char getchar(void)
 {
+#if (defined SERIALPORT) && (SERIALPORT != 0)
 /* returns 0 when no char is pressed
 	 use readstring to wait for keypresses */
 
@@ -695,6 +699,7 @@ char getchar(void)
     return inportb(SERIALPORT);
   }
 	else
+#endif
 		return 0;
 }
 
@@ -702,12 +707,13 @@ char inputa=0,inputb=0;
 char waitforchar(void)
 {
   char c=0;
+#if (defined SERIALPORT) && (SERIALPORT != 0)
 	while (c==0)
   {
     c=getchar();
-    //sendstringf("c=%d\n\r",c);
   }
   return c;
+#endif
 
 
 /*  while (inputa==0) ;//memedit at this address

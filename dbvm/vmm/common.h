@@ -2,14 +2,6 @@
 #define COMMON_H_
 
 
-#ifndef SERIALPORT
-  #define SERIALPORT 0
-#endif
-
-#ifndef VMMSIZE
-  #define VMMSIZE 0
-#endif
-
 #if (defined SERIALPORT) && (SERIALPORT != 0)
 //  #define DEBUG //comment for release
 //  #define DEBUGINTHANDLER //comment for release

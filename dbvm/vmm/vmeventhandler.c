@@ -1107,6 +1107,7 @@ int handleTaskswitch(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
 int handleIOAccess(VMRegisters *vmregisters)
 {
+#if (defined SERIALPORT) && (SERIALPORT != 0)
   //nosendchar[getAPICID()]=0;
   //sendstringf("Handling IO access\n\r");
 
@@ -1326,9 +1327,12 @@ int handleIOAccess(VMRegisters *vmregisters)
     }
 
   }
-
   sendstring("Not supported port break\n\r");
   return 1; //not yet handled
+#else
+  return 0; //just let it slip...
+#endif
+
 }
 
 int handleWRMSR(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
@@ -3432,7 +3436,7 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 		case 20 ... 27 : //VMX instruction called
 		{
 			sendstring("VMX instruction called...\n\r");
-			return 1;
+			return raiseInvalidOpcodeException();
 		}
 
 
@@ -3449,6 +3453,7 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 		case 29: //Debug register access
 		{
 			sendstring("The debug registers got accesses\n\r");
+			//interesting
 			return 1;
 		}
 
@@ -3476,10 +3481,10 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       return result;
     }
 
-    case 33: //inv. guest
+  case 33: //inv. guest
     {
-	sendstringf("VM-Entry failure due to invalid guest\n\r");
-        result=handleInvalidEntryState(currentcpuinfo, vmregisters);
+      sendstringf("VM-Entry failure due to invalid guest\n\r");
+      result=handleInvalidEntryState(currentcpuinfo, vmregisters);
 
       if (result)
       {
@@ -3540,7 +3545,7 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
 		default:
 		{
-			sendstring("The OMGWTF event happened. Please burry your head in the sand to avoid the nuclear blast\n\r");
+			sendstring("The OMGWTF event happened. Please bury your head in the sand to avoid the nuclear blast\n\r");
 		  return 1;
 		}
 

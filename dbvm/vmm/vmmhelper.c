@@ -1008,7 +1008,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
             switch (rip)
             {
               case 0x2fe:
-                skip=1;
+                //skip=1;
                 break;
 
             }
@@ -1040,13 +1040,13 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
       case vm_exit_wrmsr:
       {
       	VMRegisters* r=(VMRegisters*)registers;
-		switch (r->rcx)
-		{
-		  case 0xc0000080:
-		    skip=1;
-			break;
+        switch (r->rcx)
+        {
+          case 0xc0000080:
+            skip=1;
+          break;
 
-		}
+        }
 
         break;
       }
@@ -1062,33 +1062,33 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
 
         switch (cs)
         {
-			case 0x0:
-			{
+          case 0x0:
+          {
 
-			  switch (rip)
-			  {
+            switch (rip)
+            {
 
-				case 0xc060:
-				  skip=1;
-				  break;
-			  }
+            case 0xc060:
+              skip=1;
+              break;
+            }
 
-			  break;
-			}
+            break;
+          }
 
-			case 0x18:
-			{
+          case 0x18:
+          {
 
-			  switch (rip)
-			  {
-			    case 0xba:
-				case 0xc04e:
-				  skip=1;
-				  break;
-			  }
+            switch (rip)
+            {
+              case 0xba:
+            case 0xc04e:
+              skip=1;
+              break;
+            }
 
-			  break;
-			}
+            break;
+          }
 
           case 0x20:
           {
@@ -1176,6 +1176,13 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
 
 
     }
+
+    if (currentcpuinfo->cpunr != 0)
+    {
+      skip=0;
+    }
+    else
+      skip=1;
 
 
 
@@ -1312,6 +1319,15 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
         //setResumeFlag();
         sendstringf("Returned from handleVMEvent. result=%d (CR0=%x)\n\r",result,vmread(vm_guest_cr0));
 
+        if (currentcpuinfo->cpunr==1)
+          sendvmstate(currentcpuinfo, (VMRegisters*)registers);
+
+
+        if (result!=0)
+        {
+          sendstring("EVENT DID NOT GET HANDLED\n");
+
+        }
 
         return result;
 
@@ -1707,6 +1723,7 @@ void setupVMX(pcpuinfo currentcpuinfo)
     zeromemory(IOBitmap,4096*2);
 
     #ifdef DEBUG
+      #if (defined SERIALPORT) && (SERIALPORT != 0)
 
     //IOBitmap[0x7f]=0xff;
     //IOBitmap[22]=0xff;
@@ -1719,6 +1736,7 @@ void setupVMX(pcpuinfo currentcpuinfo)
     IOBitmap[(SERIALPORT+5) / 8]|= 1 << ((SERIALPORT+5) % 8);
     IOBitmap[(SERIALPORT+6) / 8]|= 1 << ((SERIALPORT+6) % 8);
     IOBitmap[(SERIALPORT+7) / 8]|= 1 << ((SERIALPORT+7) % 8);
+      #endif
     #endif
   }
 

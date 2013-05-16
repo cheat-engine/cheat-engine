@@ -2563,6 +2563,8 @@ int emulateRealMode(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
 #ifdef DEBUG
 
+
+
     switch (address)
     {
 
@@ -2666,6 +2668,15 @@ int emulateRealMode(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       case 0x20ebc:
       case 0x20ebe:
 
+      case 0x3062c:
+      case 0x3062f:
+      case 0x30631:
+      case 0x30637:
+
+      case 0x30682:
+      case 0x30685:
+      case 0x30689:
+
       case 0xeb90d:
       case 0xeb90e:
       case 0xeb90f:
@@ -2700,6 +2711,9 @@ int emulateRealMode(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
         skip=1;
         break;
     }
+
+    if (currentcpuinfo->cpunr==0)
+      skip=1;
 #endif
 
 
