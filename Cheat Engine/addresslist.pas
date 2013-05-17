@@ -1425,10 +1425,13 @@ begin
       for i:=0 to Count-1 do
         MemRecItems[i].isSelected:=false;
 
-      //select verything inbetween
+      //select verything inbetween (assuming it's visible)
 
       for i:=min(lastselected,treeview.selected.absoluteIndex) to max(lastselected,treeview.selected.absoluteIndex) do
-        MemRecItems[i].isSelected:=true;
+      begin
+        if (MemRecItems[i].treenode.parent=nil) or (MemRecItems[i].treenode.parent.expanded=true) then
+          MemRecItems[i].isSelected:=true;
+      end;
     end
     else
     if (ssCtrl in shift)  then //ctrl only works when used with left mouse
