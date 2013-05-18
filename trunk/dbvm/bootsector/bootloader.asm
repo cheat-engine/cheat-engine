@@ -59,8 +59,6 @@ loader:
 ;push 0x7c00
 ;db 0x66,0x66,0xc3
 
-cli
-
 mov [0x7000],eax
 mov [0x7004],ebx
 mov [0x7008],ecx
@@ -81,9 +79,14 @@ mov [0x7028],ax
 mov ax,gs
 mov [0x702a],ax
 
-;pushf
-;pop ax
-;mov [0x702c],ax
+pushf
+pop ax
+mov [0x702c],ax
+
+cli
+
+sgdt [0x7030]
+
 
 mov eax,cr0
 mov [start_CR0],eax
@@ -236,8 +239,8 @@ mov dl,[bootdrive] ;just to be sure
 mov dword [0x7c00],0 ;location of lock (0=free)
 
 inc byte [currentline]
-mov si,msg_done
-call writeline
+
+;done
 
 jmp 3000h:0000h  ;0x30000
 
@@ -343,10 +346,6 @@ ret
 
 msg:
 db 'DBVM BS',0
-
-msg_done:
-db 'Done',0
-
 
 
 times 506-($-$$) db 0   ; Pad to 509 bytes

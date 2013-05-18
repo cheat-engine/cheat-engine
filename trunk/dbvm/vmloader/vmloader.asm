@@ -702,6 +702,12 @@ mov esp,0x003ffffc ;4mb , the user should have that at least, else i will crash 
 mov [readerror],ebx
 mov [sectorsread],ecx
 
+;zero the stack
+xor eax,eax
+mov edi,0x003f0000
+mov ecx,0xffff
+rep stosb
+
 ;0018:0303de
 call _vmloader_main  ; 0x30452
 

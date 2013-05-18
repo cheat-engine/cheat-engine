@@ -1363,6 +1363,30 @@ int testexception(void)
 #pragma GCC pop_options
 
 
+void reboot(void)
+{
+  int i;
+  for (i=1; i<cpucount; i++) //disable all AP cpu's first (in vmm mode this will put the AP cpu's into wait-for-sipi mode)
+  {
+    cpuinfo[i].hastoterminate=1;
+    while (cpuinfo[i].active) ;
+  }
+
+  ULONG gdtaddress=getGDTbase();  //0x40002 contains the address of the GDT table
+
+  sendstring("Copying gdt to low memory\n\r");
+  copymem((void *)0x50000,(void *)(UINT64)gdtaddress,0x50); //copy gdt to 0x50000
+
+  sendstring("copying movetoreal to 0x2000\n\r");
+  copymem((void *)0x20000,(void *)(UINT64)&movetoreal,(UINT64)&vmxstartup_end-(UINT64)&movetoreal);
+
+
+  sendstring("Calling quickboot\n\r");
+  quickboot();
+  sendstring("WTF?\n\r");
+}
+
+
 void menu2(void)
 {
   unsigned char key;
@@ -1418,6 +1442,7 @@ void menu2(void)
     displayline("8: PCI enum test (finds db's serial port)\n");
     displayline("9: test input\n");
     displayline("a: test branch profiling\n");
+    displayline("b: boot without vm (test state vm would set)\n");
 
 
     key=0;
@@ -1598,7 +1623,13 @@ void menu2(void)
           {
             testBranchPrediction();
             break;
+          }
 
+          case 'b':
+          {
+            reboot();
+            displayline("WTF?\n");
+            break;
           }
 
           default:
@@ -2053,23 +2084,13 @@ void menu(void)
           sendstringf("3=%s\n\r",(char *)0x3000);
 
 
-	break;
-	}
+          break;
+        }
 
-	case	'9':
-	{
-					ULONG gdtaddress=getGDTbase();  //0x40002 contains the address of the GDT table
+        case	'9':
+        {
+          reboot();
 
-          sendstring("Copying gdt to low memory\n\r");
-  				copymem((void *)0x50000,(void *)(UINT64)gdtaddress,0x50); //copy gdt to 0x50000
-
-          sendstring("copying movetoreal to 0x2000\n\r");
-          copymem((void *)0x20000,(void *)(UINT64)&movetoreal,(UINT64)&vmxstartup_end-(UINT64)&movetoreal);
-
-
-	        sendstring("Calling quickboot\n\r");
-					quickboot();
-  	      sendstring("WTF?\n\r");
 				}
 
 				break;

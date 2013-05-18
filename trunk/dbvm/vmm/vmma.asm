@@ -1735,7 +1735,7 @@ quickboot:
 ;quickboot is called by the virtual machine as initial boot startup
 call clearScreen
 
-;xchg bx,bx
+xchg bx,bx
 
 nop
 nop
@@ -1751,6 +1751,16 @@ and rax,0xFFDFF32A
 or rax,0x80
 push rax
 popfq
+
+;clean some unused 64-bit registers
+xor r8,r8
+xor r9,r9
+xor r10,r10
+xor r11,r11
+xor r12,r12
+xor r13,r13
+xor r14,r14
+xor r15,r15
 
 mov word [0x40000],0x3f
 mov dword [0x40002],0x50000
@@ -1795,7 +1805,7 @@ rdmsr
 and eax,0xFFFFFEFF
 wrmsr
 nop
-mov byte [0x1dead],2
+;mov byte [0x1dead],2
 nop
 nop
 
@@ -1907,7 +1917,7 @@ mov bx,0x2345
 mov ebx,CR0
 
 vm_basicinit:
-cli
+cli  ;not be needed, but it's a way to break the vm
 xchg bx,bx
 
 xor ax,ax
@@ -1926,6 +1936,7 @@ mov cr0,eax
 vm_readagain:
 nop
 nop
+cld
 
 sti
 
@@ -2131,19 +2142,21 @@ mov edi,[0x7014]
 mov ebp,[0x7018]
 mov esp,[0x701c]
 
-push word [0x702c]
+mov eax,[0x7000]
+
+lgdt [0x7030] ;restore gdt
+
+push word [0x702c] ;restore eflags
 popf
-
-mov eax,0xffffffff
-xor ax,ax
-
-
 
 beforeboot:
 nop
 nop
 nop
+
+
 ;jmp beforeboot
+;int 19h
 
 jmp 0x0000:0x7c00
 
