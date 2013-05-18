@@ -93,6 +93,7 @@ int _vmloader_main(void)
 	sendstringf("Welcome to Dark Byte\'s vmloader\n\r");
 	sendstringf("--------------------------------\n\r");
 
+
 	sendstringf("a=%8\n\r",readerror);
 	sendstringf("b=%8\n\r",sectorsread);
 
@@ -106,6 +107,10 @@ int _vmloader_main(void)
 
 
 	sendstringf("isAP value=%2  (address=%8)\n\r",isAP,(ULONG)&isAP);
+
+
+
+
 
 	if (!isAP)
 	{
@@ -127,23 +132,40 @@ int _vmloader_main(void)
 		displayline("NumberOfHeads=%d\n",NumberOfHeads);
 		displayline("NumberOfCylinders=%d\n",NumberOfCylinders);
 
+		displayline("&bootsector=%p\n", &bootsector);
 
-		displayline("Testing diskread ability...");
+		displayline("Testing diskread ability....");
+
+
+  //  waitforkeypress();
+ //   waitforkeypress();
 
 
 		if (!readsector(0, bootsector))
 		{
 			displayline("Error loading the bootsector.\n");
+			while (1) ;
 
 			readsector(-1, bootsector);
 			readsector(0, bootsector);
 			readsector(1, bootsector);
 			readsector(2, bootsector);
 
-			halt();
-		} else displayline("Successfully loaded the bootsector\n");
 
-		//while (1);
+			halt();
+		}
+		else
+		{
+		  displayline("Successfully loaded the bootsector\n");
+
+		  /*
+		  for (i=0; i<512; i++)
+		    displayline("%2 ", bootsector[i]);
+*/
+	  //  waitforkeypress();
+	  //  waitforkeypress();
+		}
+
 
 		VMMlocation=*(unsigned short int *)&bootsector[0x8];
 		LOGOlocation=*(unsigned short int *)&bootsector[0x10];
@@ -151,7 +173,6 @@ int _vmloader_main(void)
 		sendstringf("LOGO starts at sector %d\n\r",LOGOlocation);
 
 		displayline("VMM starts at sector %d\n",VMMlocation);
-
 
 
 		isAP=1;
@@ -170,6 +191,10 @@ int _vmloader_main(void)
 			sendstringf("i=%d : BaseAddress=%6, Length=%6, Type=%d \n\r",i, tempbase, templength, p[i].Type);
 			displayline("i=%d : BaseAddress=%6, Length=%6, Type=%d \n\r",i, tempbase, templength, p[i].Type);
 		}
+
+
+    //waitforkeypress();
+    //waitforkeypress();
 
 		if (chosenregion==-1)
 		{
@@ -244,8 +269,8 @@ int _vmloader_main(void)
 				displayline("inserted new region\n\r");
 			}
 
-			//displayline("Press any key to continue\n");
-			//waitforkeypress();
+    //  waitforkeypress();
+    //  waitforkeypress();
 
 			displayline("newmap=\n\r");
 			for (i=0; i<reservedmem_listcount;i++)
@@ -254,6 +279,11 @@ int _vmloader_main(void)
 				templength=((unsigned long long)p[i].LengthHigh << 32)+p[i].LengthLow;
 				displayline("i=%d : BaseAddress=%6, Length=%6, Type=%d \n\r",i, tempbase, templength, p[i].Type);
 			}
+
+			displayline("reservedmem_listcount=%d\n", reservedmem_listcount);
+
+		//	waitforkeypress();
+		//	waitforkeypress();
 
 
 			p[reservedmem_listcount].BaseAddrHigh=0;
@@ -264,26 +294,55 @@ int _vmloader_main(void)
 
 		//	*(int *)0x88000=reservedmem_listcount;
 
+			displayline("Going to zero 0x00400000 bytes at %p\n", start);
+      //waitforkeypress();
+      //waitforkeypress();
 
-			zeromemory((void *)start, 0x00400000 /*VMMSIZE*/);
+			zeromemory((void *)start, 0x00400000 /*VMMSIZE*/); //I wondered why this was crashing on a normal reboot. That is because the AP cpu's are in an infinite loop in this code. So,. first disable the AP cpu's before calling qucikboot
+
+//		  waitforkeypress();
+		  //waitforkeypress();
 
 			/* read the vmm into the end of memory */
 			displayline("Reading %d bytes from disk into %8 ...",VMMSIZE, (unsigned int)start);
+
+			displayline("VMMlocation=%8\n",VMMlocation);
+			displayline("start=%8\n",start);
+			displayline("VMMSIZE=%8\n",VMMSIZE);
+
+
+	    //waitforkeypress();
+	    //waitforkeypress();
+
 			int bytesread=0;
 			while (bytesread<VMMSIZE)
 			{
 				if (readsector(VMMlocation+(bytesread / 512),(void*)((ULONG)start+bytesread)))
 				{
-					//displayline("+");
+					displayline("+");
+		      //waitforkeypress();
+		      //waitforkeypress();
 					bytesread+=512;
 				}
 				else
 				{
 					displayline("Read error after %d bytes\n",bytesread);
-					halt();
+					while (1)
+					{
+					  displayline("ERROR!\n");
+					}
+
+//					halt();
 				}
 			}
 			displayline("\n");
+
+
+      displayline("Read successful\n");
+
+      //waitforkeypress();
+      //waitforkeypress();
+
 
 
       /* place gdt */
