@@ -1,44 +1,66 @@
-Cheat Engine 6.2
+Cheat Engine 6.4
 
 Fixes:
-Fixed the first plugin from not getting activated at restart
-Custom types can now do an unknown initial value scan
-Fixed the auto assembler highlighter from hiding some text while typing
-Fixed the auto assembler highlighter from not showing hexadecimal values as hex starting with A to F
-Fixed global debug from crashing in 64-bit (with dbvm)
-Fixed dbvm from not working on several systems (freeze)
-Fixed notification when closing and you had some changes
-Fixed the rescan of the structure spider not working at all
-Fixed several disassembler and assembler instructions
-Fixed several plugin-system related bugs
-Fixed aobscan for 64-bit
-Fixed displaying the registers in 64-bit when using "find what xxx this address"
-Fixed the stackview when single stepping through the code
-Fixed several lua function, including createhotkey
-Fixed the assembler not dealing well with names with a - in it. (like the tutorial)
-
-
+Fixed dll injection for 64-bit targets (also fixes speedhack for 64-bit)
+Fixed speedhack thread safety so changing speed in a program that constantly checks speed won't cause a crash/weird behaviour
+Fixed Lua speedhack_setSpeed being limited to 2 digit accuracy
+Customtypes can now deal with huge size types (4096 bytes and bigger)
+Some table merging bugs
+Fixed negative values in groupscans
+Fixed a lot of assembler and disassembler instructions
+Fixed GenericHotkey in lua
+Fixed the table version of writeBytes in lua
+Fixed the bug where if you opened the settings window and click ok you wouldn't be able to debug anymore
+Fixed unlabed labels
+Fixed crash when clicking stop when using the debugger to find something
+Fixed where CE would select invisible entries when multiselecting and press space
+Loading a table now deleted tables you might have previously defined
+The autoassembler can now handle $luavar when it's an integer instead of string
+Fixed break on entry when creating a process
+Fixed the stackview in 64-bit ce when targeting a 32-bit program
+Fixed unloading the driver when global debug was used before
+Fixed the symbolpath not changing to what you wish, and add the game's exe to the symbol path search by default
 
 
 Additions and changes:
-Added a profiler so you can find function entry points and see how often they are called
-Deleting a plugin now calls FreeLibrary on it
-Ctrl+enter in the luaengine form now automatically executes the command
-Added direct 3d hook functions (can be used to show trainers and menu's inside games)
-Plugins settings between the 32 and 64-bit executable are now seperated
-Recalculate addresses with only one selection now only updates the siblings and children. Doesn't touch the parent node
-Addresslist entries can have the notation +xxx and -xxx, which will calculate the address based on the parent address (If the parent address changes, these change automatically
-The structure dissect has been rewritten from scratch, and the functions have been exposed to lua as well
-Added a new step to the tutorial (step9) showing how to deal with shared code
-Made the tutorial translatable as well
-Added a new trainer type which generates trainer that are a lot smaller in size (tiny)
-Added a groupscan type which you can use to scan for different things in the same block
-If you boot up with dbvm you do not need to sign the driver in 64-bit to load it
-Custom types now support handling as a floating point value
-Added debug register states to the threadview and made the threadview window capable of changing registers
-Added remote scanning with ce for different systems. The server just needs to be running, and a 1GBPs network connection or faster is recommended
-Changed the add/change address window to be more compact and make dealing with offsets easier
-Lots of new lua functions
+Redesigned the lua class system
+Added mouse4 and mouse5 to the lua defines
+Added the THREADSTACK# symbol which points to the stack start of the specific thread number (pointerscan can use it)
+The pointerscan has several new features to decrease time and increase useful results
+Added sorting the pointerscan by column (Tip: After a sort close the pointerscan and delete .ptr files you do not wish)
+Changed hotkey handling internally
+The different display types in the hexadecimal view of memoryview now support direct editing as well
+The foundlist can now display using a different display type, on the condition that the type has a compatibly bytesize
+The foundlist now shows a "previous value" column and marks differences red
+Registersymbol now works with aobscan results
+The symbolhandler now has a better distinction between 32 and 64-bit modules. Non-compatible modules (64-bit in 32-bit programs) will get an underscore in front of their symbolnames
+Added a graphical memory view
+Added a new breakpoint type :Exceptions (not dependant on size and no debug registers, but extremely slow to unplayable)
+Added a luaserver to ce that you can use to let a different/target process execute lua commands and pass data
+The userdefined comments can now show handle multiple lines
+Dissect code now lets you jump to a referal if you click the line
+Added a few new methods to the disassembler so you can render your own data in front and after a disassembler line
+Assembler: Added override support to relative jumps
+Auto Assembler: AA command ReadMem can now work on large sets of data without being too slow
+Auto Assembler: Scripts with multiple AOBScan commands will go faster now (grouped into one)
+Auto Assembler: Added a new "AOBSCANMODULE" auto assemble command . Usage: AOBSCANMODULE(modulename, aob)
+Auto Assembler: GlobalAlloc now doesn't allocate 4KB (64KB in reality) for each symbol but now groups them
+Tracer: You can now ave and load a trace
+Addresslist: Changing a records' value (lua setValue) now supports lua statements if the new value is enclosed by brackets [  ]  (Example: [12-2] becomes 10, and [readInteger(0x00400500)+10] returns the value at 00400500 with 10 added to it)
+D3D: Added the ability to dissect a whole d3d scene and get the stack at the moment a specific object is being rendered
+Symbolhandler: It now interprets "structurename.variablename" and returns the offset of variablename in the structure. This includes auto assembler
+Binary files inside cheat tables are now stored using ascii85 instead of hexadecimal
+Added a more complex disassembler class that gives more information about what it disassembled
+Dissect data now also shows the effect of a locked column on childnodes
+Dissect data can now have custom name under each address besides a groupname
+The structure spider can now also work with locked memory (shadow memory)
+Changed the way the vertical scrollbars of the disassembler and hexview panels work
+The "find what acceses this address" window no longr prints out ALL results in the info box when multiselecting.
+Changed the stackview panel so when it's visible and you resize the window it's on, it resizes instead of the hexview
+The assembly scan can now have a custom range
+Added an option to the trainerscript generator to generate a D3DTrainer (if the game supports it)
+
+
 
 
 How to use:
