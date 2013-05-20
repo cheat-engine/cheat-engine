@@ -111,6 +111,7 @@ type
 
     globalalloc: pointer; //if set it hold a pointer to the last free memory that was allocated.
     globalallocsizeleft: integer; //defines how much memory was left
+    globalallocpid: integer; //the processid this alloc belongs to
 
     commonModuleList: tstringlist;
     symbollist: TSymbolListHandler;
@@ -672,9 +673,11 @@ begin
       if uppercase(userdefinedsymbols[i].symbolname)=uppercase(symbolname) then
       begin
         //found it
+
+        {       NO, not anymore
         //check if it had a alloc, if so, free it
         if (userdefinedsymbols[i].allocsize>0) and (userdefinedsymbols[i].processid=processid) then
-          VirtualFreeEx(processhandle,pointer(userdefinedsymbols[i].address),0,MEM_RELEASE);
+          VirtualFreeEx(processhandle,pointer(userdefinedsymbols[i].address),0,MEM_RELEASE);}
 
         //now move up all the others and decrease the list
         for j:=i to userdefinedsymbolspos-2 do
@@ -711,10 +714,11 @@ begin
       {userdefinedalloc: pointer; //if set it hold a pointer to the last free memory that was allocated.
       userdefinedallocsizeleft: integer; //defines how much memory was left
       }
-      if (globalalloc=nil) or (globalallocsizeleft<size) then //new alloc
+      if (globalallocpid<>processid) or (globalalloc=nil) or (globalallocsizeleft<size) then //new alloc
       begin
-        globalalloc:=virtualallocex(processhandle,nil,65536,MEM_COMMIT , PAGE_EXECUTE_READWRITE);
-        globalallocsizeleft:=65536;
+        globalalloc:=virtualallocex(processhandle,nil,max(65536,size),MEM_COMMIT , PAGE_EXECUTE_READWRITE);
+        globalallocpid:=processid;
+        globalallocsizeleft:=max(65536,size);
       end;
 
       if globalalloc=nil then
@@ -742,10 +746,11 @@ begin
 
       if userdefinedsymbols[i].processid<>processid then
       begin
-        if (globalalloc=nil) or (globalallocsizeleft<size) then //new alloc
+        if (globalallocpid<>processid) or (globalalloc=nil) or (globalallocsizeleft<size) then //new alloc
         begin
-          globalalloc:=virtualallocex(processhandle,nil,size,MEM_COMMIT , PAGE_EXECUTE_READWRITE);
-          globalallocsizeleft:=65536;
+          globalallocpid:=processid;
+          globalalloc:=virtualallocex(processhandle,nil,max(65536,size),MEM_COMMIT , PAGE_EXECUTE_READWRITE);
+          globalallocsizeleft:=max(65536,size);
         end;
 
         if globalalloc=nil then

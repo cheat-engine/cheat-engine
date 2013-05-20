@@ -5,7 +5,7 @@ program ceregreset;
 {$ENDIF}
 
 {$ifdef cpu64}
-{$error only 32-bit may compile this}
+//{$error only 32-bit may compile this}
 {$endif}
 
 //{$APPTYPE CONSOLE}

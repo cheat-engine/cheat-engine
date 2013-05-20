@@ -1105,7 +1105,7 @@ begin
     if processhandler.is64bit then
     begin
       luaserverinit.add('//Make sure rsp is aligned on a 16-byte boundary when calling this function');
-      luaserverinit.add('//mov rcx, addresstostringwithfunction');
+      luaserverinit.add('//mov rcx, addresstostringwithfunction //(The lua function will have access to the variable passed by name "parameter")');
       luaserverinit.add('//mov rdx, integervariableyouwishtopasstolua');
       luaserverinit.add('//sub rsp,20');
       luaserverinit.add('//call LuaFunctionCall');
@@ -1115,10 +1115,12 @@ begin
     else
     begin
       luaserverinit.add('//push integervariableyouwishtopasstolua');
-      luaserverinit.add('//push addresstostringwithfunction');
+      luaserverinit.add('//push addresstostringwithfunction  //(The lua function will have access to the variable passed by name "parameter")');
       luaserverinit.add('//call LuaFunctionCall');
       luaserverinit.add('//When done EAX will contain the result of the lua function');
     end;
+
+
 
 
     for i:=0 to luaserverinit.count-1 do
