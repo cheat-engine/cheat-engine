@@ -1410,7 +1410,6 @@ object MainForm: TMainForm
       OnData = Foundlist3Data
       OnDblClick = FoundListDblClick
       OnKeyDown = Foundlist3KeyDown
-      OnResize = Foundlist3Resize
     end
   end
   object UpdateTimer: TTimer

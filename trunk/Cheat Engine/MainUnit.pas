@@ -2646,19 +2646,8 @@ begin
 end;
 
 procedure TMainForm.Foundlist3Resize(Sender: TObject);
-var widthleft: integer;
 begin
-  widthleft:=foundlist3.clientwidth-foundlist3.Columns[0].Width;
 
-  if miShowPreviousValue.checked then
-  begin
-    foundlist3.columns[1].width:=widthleft div 2;
-    foundlist3.columns[2].width:=foundlist3.columns[1].width;
-  end
-  else
-  begin
-    foundlist3.columns[1].width:=widthleft;
-  end;
 end;
 
 procedure TMainForm.Description1Click(Sender: TObject);
@@ -4366,6 +4355,7 @@ begin
 end;
 
 procedure TMainForm.Panel5Resize(Sender: TObject);
+var widthleft: integer;
 begin
   cbSpeedhack.left := panel5.clientwidth - cbspeedhack.Width;
   cbUnrandomizer.left := cbspeedhack.left;
@@ -4389,6 +4379,22 @@ begin
 
   if cbpercentage <> nil then
     cbpercentage.left := scantype.left + scantype.Width + 5;
+
+
+
+  //resize the foundlist columns. Do NOT do this in the onresize of the foundlist
+  widthleft:=foundlist3.clientwidth-foundlist3.Columns[0].Width;
+
+  if miShowPreviousValue.checked then
+  begin
+    foundlist3.columns[1].width:=widthleft div 2;
+    foundlist3.columns[2].width:=foundlist3.columns[1].width;
+  end
+  else
+  begin
+    foundlist3.columns[1].width:=widthleft;
+  end;
+
 
 end;
 
@@ -8199,6 +8205,7 @@ begin
   else
     foundlist.Initialize(vtype, memscan.CustomType);
   //failed scan, just reopen the addressfile
+
 
 
 
