@@ -1277,7 +1277,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 
 		case IOCTL_CE_TOUCHDEBUGREGISTER: //used after setting a global debug breakpoint
 			{
-				debugger_touchDebugRegister(NULL);
+				debugger_touchDebugRegister(0);
 				ntStatus=STATUS_SUCCESS;
 				break;
 			}

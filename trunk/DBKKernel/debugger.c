@@ -348,7 +348,7 @@ int debugger_stopDebugging(void)
 	{
 		//touch the global debug for each debug processor
 		DbgPrint("Touching the debug registers\n");
-        forEachCpuPassive(debugger_touchDebugRegister, NULL);
+        forEachCpuPassive(debugger_touchDebugRegister, 0);
 	}
 
 	
@@ -361,7 +361,7 @@ int debugger_stopDebugging(void)
 
 	//unhook all processors
 
-	forEachCpuPassive(debugger_removeHookForCurrentCPU, NULL);
+	forEachCpuPassive(debugger_removeHookForCurrentCPU, 0);
 
 
 	return TRUE;
