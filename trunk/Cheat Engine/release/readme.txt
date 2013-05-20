@@ -1,4 +1,4 @@
-Cheat Engine 6.4
+Cheat Engine 6.3
 
 Fixes:
 Fixed dll injection for 64-bit targets (also fixes speedhack for 64-bit)
@@ -14,7 +14,7 @@ Fixed the bug where if you opened the settings window and click ok you wouldn't 
 Fixed unlabed labels
 Fixed crash when clicking stop when using the debugger to find something
 Fixed where CE would select invisible entries when multiselecting and press space
-Loading a table now deleted tables you might have previously defined
+Loading a table now deletes tables you might have previously defined
 The autoassembler can now handle $luavar when it's an integer instead of string
 Fixed break on entry when creating a process
 Fixed the stackview in 64-bit ce when targeting a 32-bit program
