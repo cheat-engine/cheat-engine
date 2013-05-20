@@ -1014,13 +1014,13 @@ begin
   begin
     luaserverinit:=tstringlist.create;
     if processhandler.is64bit then
-      luaserverinit.add('injectdll(luaclient-x86_64.dll')
+      luaserverinit.add('loadlibrary(luaclient-x86_64.dll)')
     else
-      luaserverinit.add('injectdll(luaclient-i386.dll');
+      luaserverinit.add('loadlibrary(luaclient-i386.dll)');
 
     luaserverinit.add('luacall(openLuaServer(''CELUASERVER''))');
     luaserverinit.add('globalalloc(luainit, 128)');
-    luaserverinit.add('globalalloc(luacall, 128)');
+    luaserverinit.add('globalalloc(LuaFunctionCall, 128)');
     luaserverinit.add('label(luainit_exit)');
     if processhandler.is64bit then
       luaserverinit.add('globalalloc(luaserverinitialized, 8)')
@@ -1061,7 +1061,7 @@ begin
     luaserverinit.add('ret');
     luaserverinit.add('');
 
-    luaserverinit.add('luacall:');
+    luaserverinit.add('LuaFunctionCall:');
     if processhandler.is64bit then
     begin
       luaserverinit.add('sub rsp,8 //private scratchspace for this function');
@@ -1089,12 +1089,15 @@ begin
       luaserverinit.add('sub rsp,20');
       luaserverinit.add('call CELUA_ExecuteFunction //this function is defined in the luaclient dll');
       luaserverinit.add('add rsp,20');
+      luaserverinit.add('add rsp,8 //undo scratchpace (alignment fix) you can also combine it into add rsp,28');
+      luaserverinit.add('ret');
     end
     else
     begin
       luaserverinit.add('push [ebp+c]');
       luaserverinit.add('push [ebp+8]');
       luaserverinit.add('call CELUA_ExecuteFunction');
+      luaserverinit.add('pop ebp');
       luaserverinit.add('ret 8');
     end;
 
@@ -1105,7 +1108,7 @@ begin
       luaserverinit.add('//mov rcx, addresstostringwithfunction');
       luaserverinit.add('//mov rdx, integervariableyouwishtopasstolua');
       luaserverinit.add('//sub rsp,20');
-      luaserverinit.add('//call luacall');
+      luaserverinit.add('//call LuaFunctionCall');
       luaserverinit.add('//add rsp,20');
       luaserverinit.add('//When done RAX will contain the result of the lua function');
     end
@@ -1113,7 +1116,7 @@ begin
     begin
       luaserverinit.add('//push integervariableyouwishtopasstolua');
       luaserverinit.add('//push addresstostringwithfunction');
-      luaserverinit.add('//call luacall');
+      luaserverinit.add('//call LuaFunctionCall');
       luaserverinit.add('//When done EAX will contain the result of the lua function');
     end;
 
