@@ -167,8 +167,8 @@ begin
       bp:=listview1.selected.Data;
       if bp.breakpointMethod=bpmException then
       begin
-        bp.size:=bp.size+(bp.address and $fff);
-        bp.address:=bp.address-(bp.address and $fff);
+        bp.address:=bp.address or (not $fff);
+        bp.size:=4096;
       end;
 
     finally

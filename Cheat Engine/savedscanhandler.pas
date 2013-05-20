@@ -301,6 +301,9 @@ begin
 
     pm:=addresslistmemory;
 
+    if AllowRandomAccess and (currentregion>=0) and (address<pm[currentregion].baseaddress) then //out of order access. Start from scratch
+      currentRegion:=-1;
+
 
     //if no region is set or the current region does not fall in the current list
     if (currentRegion=-1) or (address>pm[currentregion].baseaddress+pm[currentregion].memorysize) then
@@ -320,6 +323,8 @@ begin
 
       loadCurrentRegionMemory;
     end;
+
+
 
 
     result:=pointer(ptruint(savedscanmemory)+(address-pm[currentregion].baseaddress));
