@@ -1824,7 +1824,7 @@ openLuaServer(Name):
         end 
 
 
-    the return value of this function is the return value of this function (integer)
+    the return value of this function is the return value of the lua function (integer)
   
 
 

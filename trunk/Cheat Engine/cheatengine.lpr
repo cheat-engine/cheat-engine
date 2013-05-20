@@ -73,7 +73,7 @@ uses
   frmD3DTrainerGeneratorOptionsUnit, lua_server, frmAssemblyScanUnit;
 
 {$R cheatengine.res}
-{$R manifest.res}
+//{$R manifest.res}  //lazarus now has this build in
 
 {$ifdef cpu32}
 {$SetPEFlags $20}
@@ -160,7 +160,7 @@ begin
 end;
 
 begin
-  Application.Title:='Cheat Engine 6.2';
+  Application.Title:='Cheat Engine 6.3';
   Application.Initialize;
   getcedir;
 

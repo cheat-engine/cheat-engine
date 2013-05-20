@@ -1415,7 +1415,6 @@ begin
   if (GetKeyState(VK_RBUTTON) and $8000)<>0 then
     Include(shift,ssRight);
 
-
   if Treeview.Selected<>nil then
   begin
     if ssShift in shift then
