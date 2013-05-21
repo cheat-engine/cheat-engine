@@ -33,15 +33,6 @@ const structureversion=2;
 
 
 
-type TStructElement=record
-                    {  offset: dword;
-                      description:string;
-                      pointerto: boolean;  //determines if it's a pointer to a structure, or the structure itself
-                      pointertosize: dword;
-                      structurenr: integer; //-1 and lower=base element   (they can't be both -1)
-                      bytesize: dword; //size in bytes of how big this element is. (also for base elements)     }
-                    end;
-
 type TAddressData=record
  { address: ptrUint;
   lockedMemory: pbytearray;
@@ -482,10 +473,6 @@ begin
 end;
 
 procedure sortStructure(struct: TbaseStructure);
-var
-  i,j: integer;
-  l: integer;
-  temp: TStructElement;
 begin
 
 

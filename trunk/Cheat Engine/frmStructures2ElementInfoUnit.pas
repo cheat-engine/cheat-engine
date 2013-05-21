@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  cefuncproc, StructuresFrm2, vartypestrings, math, CustomTypeHandler;
+  ExtCtrls, cefuncproc, StructuresFrm2, vartypestrings, math, CustomTypeHandler;
 
 type
 
@@ -19,6 +19,7 @@ type
     cbType: TComboBox;
     cbHexadecimal: TCheckBox;
     cbSigned: TCheckBox;
+    ColorDialog1: TColorDialog;
     edtByteSize: TEdit;
     edtChildstart: TEdit;
     edtDescription: TEdit;
@@ -28,7 +29,9 @@ type
     Label3: TLabel;
     Label4: TLabel;
     Label5: TLabel;
+    Label6: TLabel;
     lblOffsetInto: TLabel;
+    pnlBackground: TPanel;
     procedure Button1Click(Sender: TObject);
     procedure cbHexadecimalChange(Sender: TObject);
     procedure cbSignedChange(Sender: TObject);
@@ -37,6 +40,7 @@ type
     procedure edtChildstartChange(Sender: TObject);
     procedure edtOffsetChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure pnlBackgroundClick(Sender: TObject);
   private
     { private declarations }
     fOffset: integer;
@@ -57,6 +61,8 @@ type
     function getCustomType: TCustomType;
     procedure setBytesize(i: integer);
     function getBytesize: integer;
+    procedure setBackgroundColor(c: TColor);
+    function getBackgroundColor: TColor;
     procedure setChildStruct(s: TDissectedStruct);
     function getChildStruct: TDissectedStruct;
     procedure setChildStructStart(o: integer);
@@ -70,6 +76,7 @@ type
     property vartype: TVariableType read getVariableType write setVariableType;
     property customtype: TCustomtype read getCustomType write setCustomtype;
     property bytesize: integer read getBytesize write setBytesize;
+    property backgroundColor: TColor read getBackgroundColor write setBackgroundColor;
     property childstruct: TDissectedStruct read getChildStruct write setChildStruct;
     property childstructstart: integer read getchildstructstart write setChildStructStart;
   end; 
@@ -144,6 +151,16 @@ begin
       result:=fbytesize;
   end;
 
+end;
+
+procedure TfrmStructures2ElementInfo.setBackgroundColor(c: TColor);
+begin
+  pnlBackground.Color:=c;
+end;
+
+function TfrmStructures2ElementInfo.getBackgroundColor: TColor;
+begin
+  result:=pnlBackground.color;
 end;
 
 procedure TfrmStructures2ElementInfo.setVariableType(vt: TVariableType);
@@ -289,6 +306,12 @@ begin
 
 
   cbType.dropdowncount:=min(16, cbType.items.count);
+end;
+
+procedure TfrmStructures2ElementInfo.pnlBackgroundClick(Sender: TObject);
+begin
+  if colordialog1.execute then
+    pnlbackground.color:=colordialog1.color;
 end;
 
 procedure TfrmStructures2ElementInfo.cbTypeChange(Sender: TObject);

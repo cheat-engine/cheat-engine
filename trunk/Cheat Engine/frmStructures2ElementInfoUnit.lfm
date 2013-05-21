@@ -1,15 +1,15 @@
 object frmStructures2ElementInfo: TfrmStructures2ElementInfo
   Left = 982
-  Height = 219
+  Height = 262
   Top = 96
-  Width = 313
+  Width = 302
   BorderStyle = bsSingle
   Caption = 'Structure Info'
-  ClientHeight = 219
-  ClientWidth = 313
+  ClientHeight = 262
+  ClientWidth = 302
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.0.8.0'
   object Label1: TLabel
     Left = 20
     Height = 14
@@ -47,7 +47,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
   object cbStructType: TComboBox
     Left = 20
     Height = 21
-    Top = 160
+    Top = 206
     Width = 208
     Enabled = False
     Font.Height = -11
@@ -65,7 +65,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
   object Button1: TButton
     Left = 20
     Height = 24
-    Top = 192
+    Top = 238
     Width = 76
     Caption = 'OK'
     Default = True
@@ -78,7 +78,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
   object Button2: TButton
     Left = 112
     Height = 24
-    Top = 192
+    Top = 238
     Width = 76
     Cancel = True
     Caption = 'Cancel'
@@ -161,7 +161,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
   object Label5: TLabel
     Left = 20
     Height = 16
-    Top = 144
+    Top = 190
     Width = 107
     Caption = 'Structure pointed to'
     Enabled = False
@@ -188,7 +188,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
   object lblOffsetInto: TLabel
     Left = 240
     Height = 14
-    Top = 144
+    Top = 190
     Width = 49
     Caption = 'Offset into'
     Enabled = False
@@ -200,7 +200,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
   object edtChildstart: TEdit
     Left = 240
     Height = 21
-    Top = 160
+    Top = 206
     Width = 54
     Enabled = False
     Font.Height = -11
@@ -209,5 +209,52 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
     ParentFont = False
     TabOrder = 6
     Text = '0'
+  end
+  object Label6: TLabel
+    Left = 20
+    Height = 16
+    Top = 144
+    Width = 97
+    Caption = 'Background Color'
+    ParentColor = False
+  end
+  object pnlBackground: TPanel
+    Cursor = crHandPoint
+    Left = 20
+    Height = 29
+    Top = 160
+    Width = 276
+    BevelOuter = bvNone
+    Color = clWindow
+    ParentColor = False
+    TabOrder = 10
+    OnClick = pnlBackgroundClick
+  end
+  object ColorDialog1: TColorDialog
+    Color = clBlack
+    CustomColors.Strings = (
+      'ColorA=000000'
+      'ColorB=000080'
+      'ColorC=008000'
+      'ColorD=008080'
+      'ColorE=800000'
+      'ColorF=800080'
+      'ColorG=808000'
+      'ColorH=808080'
+      'ColorI=C0C0C0'
+      'ColorJ=0000FF'
+      'ColorK=00FF00'
+      'ColorL=00FFFF'
+      'ColorM=FF0000'
+      'ColorN=FF00FF'
+      'ColorO=FFFF00'
+      'ColorP=FFFFFF'
+      'ColorQ=C0DCC0'
+      'ColorR=F0CAA6'
+      'ColorS=F0FBFF'
+      'ColorT=A4A0A0'
+    )
+    left = 180
+    top = 133
   end
 end
