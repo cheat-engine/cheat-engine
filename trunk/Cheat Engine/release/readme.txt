@@ -53,6 +53,7 @@ Binary files inside cheat tables are now stored using ascii85 instead of hexadec
 Added a more complex disassembler class that gives more information about what it disassembled
 Dissect data now also shows the effect of a locked column on childnodes
 Dissect data can now have custom name under each address besides a groupname
+Dissect data elements can now have a custom background color
 The structure spider can now also work with locked memory (shadow memory)
 Changed the way the vertical scrollbars of the disassembler and hexview panels work
 The "find what acceses this address" window no longr prints out ALL results in the info box when multiselecting.
