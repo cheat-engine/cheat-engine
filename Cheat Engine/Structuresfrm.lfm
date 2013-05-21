@@ -13,7 +13,7 @@ object frmStructures: TfrmStructures
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poScreenCenter
-  LCLVersion = '1.1'
+  LCLVersion = '1.0.8.0'
   object Panel1: TPanel
     Left = 0
     Height = 41

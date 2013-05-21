@@ -27,6 +27,7 @@ type
     fbytesize: integer;
     fname: string;
     fvartype: TVariableType;
+    fbackgroundcolor: TColor;
     fCustomType: TCustomtype;
     fdisplayMethod: TdisplayMethod;
     fchildstruct: TDissectedStruct;
@@ -49,6 +50,8 @@ type
     procedure setDisplayMethod(newDisplayMethod: TdisplayMethod);
     function getBytesize: integer;
     procedure setBytesize(newByteSize: integer);
+    function getBackgroundColor: integer;
+    procedure setBackgroundColor(c: TColor);
     function getValue(address: ptruint; hashexprefix: boolean=false; showAsHexOverride: boolean=false): string;
     procedure setvalue(address: ptruint; value: string);
     function getValueFromBase(baseaddress: ptruint): string;
@@ -64,12 +67,14 @@ type
 
     procedure WriteToXMLNode(elementnodes: TDOMNode);
 
+  published
     property Name: string read getName write setName; //stored as utf8
     property VarType: TVariableType read getVarType write setVarType;
     property CustomType: TCustomType read getCustomType write setCustomType;
     property Offset: integer read getOffset write setOffset;
     property DisplayMethod: TdisplayMethod read getDisplayMethod write setDisplayMethod;
     property Bytesize: integer read getByteSize write setByteSize;
+    property BackgroundColor: TColor read getBackgroundColor write setBackgroundColor;
     property ChildStruct: TDissectedStruct read getChildStruct write setChildStruct;
     property ChildStructStart: integer read fchildstructstart write setChildStructStart;
     property index: integer read getIndex;
@@ -624,6 +629,8 @@ begin
   if self.ChildStructStart<>0 then
     elementnode.SetAttribute('ChildStructStart', IntToStr(self.ChildStructStart));
 
+  elementnode.SetAttribute('BackgroundColor', IntToHex(backgroundcolor, 6));
+
   if (self.isPointer) and (self.ChildStruct<>nil) then
   begin
     if (self.ChildStruct.isInGlobalStructList) then
@@ -742,6 +749,17 @@ begin
     fbytesize:=max(1,newByteSize); //at least 1 byte
     parent.DoElementChangeNotification(self);
   end;
+end;
+
+function TStructelement.getBackgroundColor: integer;
+begin
+  result:=fBackgroundColor;
+end;
+
+procedure TStructelement.setBackgroundColor(c: TColor);
+begin
+  fBackgroundColor:=c;
+  parent.DoElementChangeNotification(self);
 end;
 
 function TStructelement.getValue(address: ptruint; hashexprefix: boolean=false; showAsHexOverride: boolean=false): string;
@@ -867,20 +885,28 @@ constructor TStructelement.create(parent:TDissectedStruct);
 begin
   fparent:=parent;
   fbytesize:=1;
+  fbackgroundcolor:=clWindow;
 end;
 
 constructor TStructelement.createFromXMLElement(parent:TDissectedStruct; element: tdomelement);
 var ChildStructStartS: string;
   childnode: TDOMElement;
   childname: string;
+
+  s: string;
 begin
   fparent:=parent;
+  fbackgroundcolor:=clWindow;
   self.foffset:=strtoint(element.GetAttribute('Offset'));
   self.fname:=AnsiToUtf8(element.GetAttribute('Description'));
   self.fvartype:=StringToVariableType(element.GetAttribute('Vartype'));
   self.fCustomType:=GetCustomTypeFromName(element.GetAttribute('Customtype'));
   self.fdisplayMethod:=StringToDisplayMethod(element.GetAttribute('DisplayMethod'));
   self.fbytesize:=strtoint(element.GetAttribute('Bytesize'));
+  s:=element.GetAttribute('BackgroundColor');
+  if s<>'' then
+    self.fbackgroundcolor:=HexStrToInt(s);
+
 
   ChildStructStartS:=element.GetAttribute('ChildStructStart');
   if ChildStructStartS<>'' then
@@ -3140,11 +3166,13 @@ begin
     offset:=structelement.offset;
     vartype:=structelement.vartype;
     customtype:=structelement.CustomType;
+    backgroundcolor:=structelement.BackgroundColor;
 
     bytesize:=structelement.bytesize;
     childstruct:=structelement.childstruct;
     hexadecimal:=structelement.displayMethod=dtHexadecimal;
     signed:=structelement.displaymethod=dtSignedInteger;
+
 
     if tvStructureView.SelectionCount>1 then
       edtOffset.Enabled:=false;
@@ -3176,6 +3204,7 @@ begin
           structElement.vartype:=vartype;
           structElement.CustomType:=customtype;
           structElement.bytesize:=bytesize;
+          structElement.BackgroundColor:=backgroundColor;
           structElement.childstruct:=childstruct;
           if hexadecimal then
             structelement.displayMethod:=dtHexadecimal
@@ -4521,8 +4550,21 @@ var
 begin
   if mainstruct=nil then exit; //no rendering
 
+
+  if stage=cdPrePaint then
+  begin
+    se:=getStructElementFromNode(node);
+    if se<>nil then
+      sender.BackgroundColor:=se.backgroundColor;
+  end;
+
+
+
+
   if stage=cdPostPaint then
   begin
+
+
     textrect:=node.DisplayRect(true);
     linerect:=node.DisplayRect(false);
 
@@ -4595,6 +4637,8 @@ begin
       s:=s+c.currentNodeValue;
       sender.Canvas.TextRect(clip,clip.left,textrect.Top,s);
     end;
+
+    sender.BackgroundColor:=clWindow;
   end;
   DefaultDraw:=true;
 end;
