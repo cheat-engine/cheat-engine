@@ -1621,6 +1621,94 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
 
 
 criticalSection setupVMX_lock;
+
+void setupVMX_AMD(pcpuinfo currentcpuinfo)
+{
+  //setup the vmcb
+  Segment_Attribs reg_csaccessrights;
+  Segment_Attribs reg_traccessrights;
+
+
+  currentcpuinfo->vmcb->InterceptVMRUN=1;
+  currentcpuinfo->vmcb->GuestASID=1;
+  currentcpuinfo->vmcb->EFER=0x1500 | (1<<8) | (1<<10);
+
+  reg_traccessrights.SegmentAttrib=0;
+  reg_traccessrights.Segment_type=11; //11=32-bit 3=16-bit
+  reg_traccessrights.S=0;
+  reg_traccessrights.DPL=0;
+  reg_traccessrights.P=1;
+  reg_traccessrights.G=0;
+  reg_traccessrights.D_B=1;
+
+  reg_csaccessrights.SegmentAttrib=0;
+  reg_csaccessrights.Segment_type=11;
+  reg_csaccessrights.S=1;
+  reg_csaccessrights.DPL=0;
+  reg_csaccessrights.P=1;
+  reg_csaccessrights.L=1;
+  reg_csaccessrights.G=0;
+  reg_csaccessrights.D_B=0;
+
+  currentcpuinfo->vmcb->CR4=getCR4();
+  currentcpuinfo->vmcb->CR3=getCR3();
+  currentcpuinfo->vmcb->CR0=getCR0();
+
+
+  currentcpuinfo->guestCR3=getCR3();
+  currentcpuinfo->guestCR0=getCR0();
+  currentcpuinfo->hasIF=0;
+
+  currentcpuinfo->vmcb->gdtr_base=getGDTbase();
+  currentcpuinfo->vmcb->idtr_base=getIDTbase();
+
+  currentcpuinfo->vmcb->gdtr_limit, 0x50;
+  currentcpuinfo->vmcb->idtr_limit, 8*256;
+
+  currentcpuinfo->vmcb->cs_selector=80;
+  //currentcpuinfo->vmcb->cs_limit=0;//0xffffffff;
+  //currentcpuinfo->vmcb->ss_limit=0;//0xffffffff;
+  currentcpuinfo->vmcb->cs_attrib=(WORD)reg_csaccessrights.SegmentAttrib;
+
+  currentcpuinfo->vmcb->ds_selector=8;
+  currentcpuinfo->vmcb->es_selector=8;
+  currentcpuinfo->vmcb->ss_selector=8;
+  currentcpuinfo->vmcb->fs_selector=8;
+  currentcpuinfo->vmcb->gs_selector=8;
+
+  sendstringf("cs_attrib(%x)  set to %x\n", ((UINT64)&currentcpuinfo->vmcb->cs_attrib-(UINT64)currentcpuinfo->vmcb), currentcpuinfo->vmcb->cs_attrib);
+  sendstringf("gdtr_limit(%x)  set to %x\n", ((UINT64)&currentcpuinfo->vmcb->gdtr_limit-(UINT64)currentcpuinfo->vmcb), currentcpuinfo->vmcb->gdtr_limit);
+
+
+
+
+  currentcpuinfo->vmcb->tr_limit=(UINT64)sizeof(TSS)+32+8192+1;
+  currentcpuinfo->vmcb->tr_base=(UINT64)mainTSS;
+  currentcpuinfo->vmcb->tr_attrib=(WORD)reg_traccessrights.SegmentAttrib;
+
+  currentcpuinfo->vmcb->DR7=0x400;
+
+  currentcpuinfo->vmcb->RSP=0x8fffc;
+  currentcpuinfo->vmcb->RIP=(UINT64)quickboot;
+  currentcpuinfo->vmcb->RFLAGS=getRFLAGS();
+
+
+
+
+
+
+
+
+
+
+  globals_have_been_configured=1;
+  currentcpuinfo->vmxsetup=1;
+
+  csLeave(&setupVMX_lock);
+
+
+}
+
 void setupVMX(pcpuinfo currentcpuinfo)
 {
 
@@ -1648,6 +1736,9 @@ void setupVMX(pcpuinfo currentcpuinfo)
       copymem((void *)0x20000,(void *)(UINT64)&movetoreal,(UINT64)&vmxstartup_end-(UINT64)&movetoreal);
     }
   }
+
+  if (isAMD)
+    return setupVMX_AMD(currentcpuinfo);
 
 
   if (MSRBitmap==NULL)
@@ -2434,11 +2525,27 @@ void setupVMX(pcpuinfo currentcpuinfo)
   csLeave(&setupVMX_lock);
 }
 
+void launchVMX_AMD(pcpuinfo currentcpuinfo)
+{
+  int result;
 
+
+
+
+  displayline("Calling vmxloop_amd with currentcpuinfo=%6\n\r",(UINT64)currentcpuinfo);
+  result=vmxloop_amd(currentcpuinfo, currentcpuinfo->vmcb_PA);
+
+  displayline("Returned from vmxloop_amd\n\r");
+
+}
 
 void launchVMX(pcpuinfo currentcpuinfo)
 {
+  if (isAMD)
+    return launchVMX_AMD(currentcpuinfo);
+
   int result;
+
   POriginalState originalstate=NULL;
   if (loadedOS)
     originalstate=(POriginalState)MapPhysicalMemory(loadedOS,currentcpuinfo->AvailableVirtualAddress);

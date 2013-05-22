@@ -3,8 +3,8 @@
 
 
 #if (defined SERIALPORT) && (SERIALPORT != 0)
-//  #define DEBUG //comment for release
-//  #define DEBUGINTHANDLER //comment for release
+  #define DEBUG //comment for release
+  #define DEBUGINTHANDLER //comment for release
 #endif
 
 // #define DISPLAYDEBUG //send serialport debug output to the display
@@ -342,6 +342,23 @@ typedef struct _TSS64
         unsigned reserved4: 16;
         unsigned IOBASE   : 16;
 } __attribute__((__packed__)) TSS64 ,*PTSS64;
+
+typedef struct //for AMD Bits 55:52 and 47:40 of the GDT
+{
+  union {
+    WORD SegmentAttrib;
+    struct {
+      ULONG Segment_type : 4; //0-3
+      ULONG S            : 1; //4
+      ULONG DPL          : 2; //5-6
+      ULONG P            : 1; //7
+      ULONG AVL          : 1; //12
+      ULONG L            : 1; //13 //reserved for anything except CS
+      ULONG D_B          : 1; //14
+      ULONG G            : 1; //15
+    };
+  };
+} Segment_Attribs, *PSegment_Attribs;
 
 typedef struct
 {

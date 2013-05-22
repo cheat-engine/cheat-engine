@@ -53,4 +53,6 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters);
 void returnFromCR3Callback(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, unsigned long long newcr3);
 QWORD readMSRSafe(pcpuinfo currentcpuinfo, DWORD msr);
 
+int raiseInvalidOpcodeException(void);
+
 #endif /*VMCALL_H_*/

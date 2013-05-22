@@ -78,6 +78,8 @@ typedef struct
   DWORD VMCSData[(4096 - 8) / 4];
 }__attribute__((__packed__)) VMCSRegion, *PVMCSRegion;
 
+
+
 typedef struct
 {
   union {

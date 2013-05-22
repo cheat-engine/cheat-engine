@@ -1,6 +1,6 @@
 BITS 64
 
-;param passing in 64-bit
+;param passing in 64-bit (linux ABI, NOT windows)
 ;1=rdi
 ;2=rsi
 ;3=rdx
@@ -97,9 +97,38 @@ isAP:              	dd 0
 bootdisk:           dd 0
 nextstack:		  	dq 0x00000000007FFFF8 ;start of stack for the next cpu
 
+global vmxloop_amd
+vmxloop_amd:
+sub rsp,8
 
-amd_vmxloop:
-vmrun
+
+xchg bx,bx ;break by bochs
+
+;init to startup state
+xor rax,rax
+mov rbx,rax
+mov rcx,rax
+mov rdx,rax
+mov rdi,rax
+mov rbp,rax
+mov r8, rax
+mov r9, rax
+mov r10,rax
+mov r11,rax
+mov r12,rax
+mov r13,rax
+mov r14,rax
+mov r15,rax
+
+mov rax,rsi
+xor rsi,rsi
+
+clgi
+
+vmrun ;rax
+
+add rsp,8
+ret
 
 
 global vmxloop

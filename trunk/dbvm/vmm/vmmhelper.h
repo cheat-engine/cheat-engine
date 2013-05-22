@@ -117,38 +117,38 @@ typedef volatile struct _vmcb
 	  DWORD InstructionIntercept1;
 	  struct {
 	    unsigned InterceptINTR       :1;
-		unsigned InterceptNMI        :1;
-		unsigned InterceptSMI        :1;
-		unsigned InterceptINIT       :1;
-		unsigned InterceptVINTR      :1;
-		unsigned InterceptCR0WritesThatChangeTSorMP        :1;
-		unsigned InterceptIDTRRead       :1;
-		unsigned InterceptGDTRRead       :1;
-		unsigned InterceptLDTRRead       :1;
-		unsigned InterceptTRRead         :1;
-		unsigned InterceptIDTRWrite       :1;
-		unsigned InterceptGDTRWrite       :1;
-		unsigned InterceptLDTRWrite       :1;
-		unsigned InterceptTRWrite       :1;
-		unsigned InterceptRDTSC       :1;
-		unsigned InterceptRDPMC       :1;
+      unsigned InterceptNMI        :1;
+      unsigned InterceptSMI        :1;
+      unsigned InterceptINIT       :1;
+      unsigned InterceptVINTR      :1;
+      unsigned InterceptCR0WritesThatChangeTSorMP        :1;
+      unsigned InterceptIDTRRead       :1;
+      unsigned InterceptGDTRRead       :1;
+      unsigned InterceptLDTRRead       :1;
+      unsigned InterceptTRRead         :1;
+      unsigned InterceptIDTRWrite       :1;
+      unsigned InterceptGDTRWrite       :1;
+      unsigned InterceptLDTRWrite       :1;
+      unsigned InterceptTRWrite       :1;
+      unsigned InterceptRDTSC       :1;
+      unsigned InterceptRDPMC       :1;
 
-		unsigned InterceptPUSHF       :1;
-		unsigned InterceptPOPF       :1;
-		unsigned InterceptCPUID       :1;
-		unsigned InterceptRSM       :1;
-		unsigned InterceptIRET       :1;
-		unsigned InterceptINT       :1;
-		unsigned InterceptINVD       :1;
-		unsigned InterceptPAUSE       :1;
-		unsigned InterceptHLT       :1;
-		unsigned InterceptINVLPG       :1;
-		unsigned InterceptINVLPGA       :1;
-		unsigned IOIO_PROT      :1;
-		unsigned MSR_PROT       :1;
-		unsigned InterceptTaskSwitches       :1;
-		unsigned FERR_FREEZE       :1;
-		unsigned InterceptShutdown       :1;
+      unsigned InterceptPUSHF       :1;
+      unsigned InterceptPOPF       :1;
+      unsigned InterceptCPUID       :1;
+      unsigned InterceptRSM       :1;
+      unsigned InterceptIRET       :1;
+      unsigned InterceptINT       :1;
+      unsigned InterceptINVD       :1;
+      unsigned InterceptPAUSE       :1;
+      unsigned InterceptHLT       :1;
+      unsigned InterceptINVLPG       :1;
+      unsigned InterceptINVLPGA       :1;
+      unsigned IOIO_PROT      :1;
+      unsigned MSR_PROT       :1;
+      unsigned InterceptTaskSwitches       :1;
+      unsigned FERR_FREEZE       :1;
+      unsigned InterceptShutdown       :1;
 
 	  };
 	};
@@ -157,19 +157,19 @@ typedef volatile struct _vmcb
 	  DWORD InstructionIntercept2;
 	  struct {
 	    unsigned InterceptVMRUN      :1;
-		unsigned InterceptVMMCAL        :1;
-		unsigned InterceptVMLOAD        :1;
-		unsigned InterceptVMSAVE      :1;
-		unsigned InterceptSTGI      :1;
-		unsigned InterceptCLGI       :1;
-		unsigned InterceptSKINIT       :1;
-		unsigned InterceptRDTSCP       :1;
-		unsigned InterceptICEBP       :1;
-		unsigned InterceptWBINVD         :1;
-		unsigned InterceptMONITOR       :1;
-		unsigned InterceptMWAIT       :1;
-		unsigned InterceptMWAIT_IfArmed      :1;
-		unsigned InterceptXSETBV       :1;
+      unsigned InterceptVMMCAL        :1;
+      unsigned InterceptVMLOAD        :1;
+      unsigned InterceptVMSAVE      :1;
+      unsigned InterceptSTGI      :1;
+      unsigned InterceptCLGI       :1;
+      unsigned InterceptSKINIT       :1;
+      unsigned InterceptRDTSCP       :1;
+      unsigned InterceptICEBP       :1;
+      unsigned InterceptWBINVD         :1;
+      unsigned InterceptMONITOR       :1;
+      unsigned InterceptMWAIT       :1;
+      unsigned InterceptMWAIT_IfArmed      :1;
+      unsigned InterceptXSETBV       :1;
 	  };
 	};
 
@@ -363,7 +363,8 @@ typedef volatile struct _cpuinfo
   unsigned long long efer;
 
 
-  void* vmcb; //AMD's virtual machine control_block. Give the physical address of this to VMRUN
+  pvmcb vmcb; //AMD's virtual machine control_block. Give the physical address of this to VMRUN
+  UINT64 vmcb_PA;
 
   void* vmxon_region;
   void* vmcs_region;
