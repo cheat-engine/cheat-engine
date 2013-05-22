@@ -435,8 +435,8 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'FIDIVR';opcode1:eo_reg7;paramtype1:par_m16;bytes:1;bt1:$de),
 
 
-  (mnemonic:'FILD';opcode1:eo_reg0;paramtype1:par_m16;bytes:1;bt1:$df), //(I would have chosen to put 32 first, but I gues delphi used the same documentation as I did, cause it choose 16 as default)
-  (mnemonic:'FILD';opcode1:eo_reg0;paramtype1:par_m32;bytes:1;bt1:$db),
+  (mnemonic:'FILD';opcode1:eo_reg0;paramtype1:par_m32;bytes:1;bt1:$db), //screw this, going for a default of m32
+  (mnemonic:'FILD';opcode1:eo_reg0;paramtype1:par_m16;bytes:1;bt1:$df),
   (mnemonic:'FILD';opcode1:eo_reg5;paramtype1:par_m64;bytes:1;bt1:$df),
 
   (mnemonic:'FIMUL';opcode1:eo_reg1;paramtype1:par_m32;bytes:1;bt1:$da),
@@ -447,8 +447,9 @@ const opcodes: array [1..opcodecount] of topcode =(
 
   (mnemonic:'FIST';opcode1:eo_reg2;paramtype1:par_m32;bytes:1;bt1:$db),
   (mnemonic:'FIST';opcode1:eo_reg2;paramtype1:par_m16;bytes:1;bt1:$df),
-  (mnemonic:'FISTP';opcode1:eo_reg3;paramtype1:par_m16;bytes:1;bt1:$df),
+
   (mnemonic:'FISTP';opcode1:eo_reg3;paramtype1:par_m32;bytes:1;bt1:$db),
+  (mnemonic:'FISTP';opcode1:eo_reg3;paramtype1:par_m16;bytes:1;bt1:$df),
   (mnemonic:'FISTP';opcode1:eo_reg7;paramtype1:par_m64;bytes:1;bt1:$df),
 
   (mnemonic:'FISUB';opcode1:eo_reg4;paramtype1:par_m32;bytes:1;bt1:$da),
@@ -456,8 +457,8 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'FISUBR';opcode1:eo_reg5;paramtype1:par_m32;bytes:1;bt1:$da),
   (mnemonic:'FISUBR';opcode1:eo_reg5;paramtype1:par_m16;bytes:1;bt1:$de),
 
-  (mnemonic:'FLD';opcode1:eo_reg0;paramtype1:par_m64;bytes:1;bt1:$dd),
   (mnemonic:'FLD';opcode1:eo_reg0;paramtype1:par_m32;bytes:1;bt1:$d9),
+  (mnemonic:'FLD';opcode1:eo_reg0;paramtype1:par_m64;bytes:1;bt1:$dd),
   (mnemonic:'FLD';opcode1:eo_reg5;paramtype1:par_m80;bytes:1;bt1:$db),
   (mnemonic:'FLD';opcode1:eo_pi;paramtype1:par_st;bytes:2;bt1:$d9;bt2:$c0),
 
@@ -710,11 +711,13 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'LGDT';opcode1:eo_reg2;paramtype1:par_m16;bytes:2;bt1:$0f;bt2:$01),
   (mnemonic:'LGDT';opcode1:eo_reg2;paramtype1:par_m32;bytes:2;bt1:$0f;bt2:$01),
 
+
   (mnemonic:'LGS';opcode1:eo_reg;paramtype1:par_r16;paramtype2:par_m16;bytes:3;bt1:$66;bt2:$0f;bt3:$b5),
   (mnemonic:'LGS';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_m32;bytes:2;bt1:$0f;bt2:$b5),
 
   (mnemonic:'LIDT';opcode1:eo_reg3;paramtype1:par_m16;bytes:2;bt1:$0f;bt2:$01),
   (mnemonic:'LIDT';opcode1:eo_reg3;paramtype1:par_m32;bytes:2;bt1:$0f;bt2:$01),
+
 
   (mnemonic:'LLDT';opcode1:eo_reg2;paramtype1:par_rm16;bytes:2;bt1:$0f;bt2:$00),
   (mnemonic:'LMSW';opcode1:eo_reg6;paramtype1:par_rm16;bytes:2;bt1:$0f;bt2:$01),
@@ -3649,6 +3652,25 @@ begin
         if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
         begin
           //imm16
+
+          if (vtype=32) or (signedvtype>8) then
+          begin
+            //see if there is also a 'opcode imm32' variant
+            k:=startoflist;
+            while (k<=opcodecount) and (opcodes[k].mnemonic=tokens[mnemonic]) do
+            begin
+              if (opcodes[k].paramtype1=par_imm32) then
+              begin
+                addopcode(bytes,k);
+                adddword(bytes,v);
+                result:=true;
+                exit;
+              end;
+
+              inc(k);
+            end;
+          end;
+
           addopcode(bytes,j);
           addword(bytes,v);
           result:=true;
@@ -5201,13 +5223,19 @@ begin
         end;
       end;
 
-      par_m16: if ((paramtype1=ttMemorylocation16) or ismemorylocationdefault(parameter1)) then
-      if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
+      par_m16:
       begin
-        //opcode+rd
-        addopcode(bytes,j);
-        result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
-        exit;
+        if ((paramtype1=ttMemorylocation16) or ismemorylocationdefault(parameter1)) then
+        begin
+          if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
+          begin
+            //opcode+rd
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
+            exit;
+          end;
+        end;
+
       end;
 
       par_m32: if (paramtype1=ttMemorylocation32) then
