@@ -18,6 +18,8 @@
 #include "multicore.h"
 #include "offloados.h"
 
+#include "vmeventhandler_amd.h"
+
 #ifndef DEBUG
 #define sendstringf(s,x...)
 #define sendstring(s)
@@ -36,7 +38,42 @@ volatile unsigned char *IOBitmap;
 extern int vmxstartup;
 extern int vmxstartup_end;
 
+int ISREALMODE(pcpuinfo currentcpuinfo)
+{
+  if (isAMD)
+  {
+    regCR0 cr0;
+    cr0.CR0=currentcpuinfo->vmcb->CR0;
+    return cr0.PE==0;
+  }
+  else
+  {
+    return (vmread(vm_cr0_fakeread) & 1)==0;
+  }
+}
 
+
+int IS64BITPAGING(pcpuinfo currentcpuinfo)
+{
+  if (isAMD)
+  {
+    return (currentcpuinfo->vmcb->EFER & (1<<10))==(1<<10);
+  }
+  else
+    return ((vmread(vm_entry_controls) & IA32E_MODE_GUEST) != 0);
+}
+
+int IS64BITCODE(pcpuinfo currentcpuinfo)
+{
+  if (isAMD)
+  {
+    Segment_Attribs cs;
+    cs.SegmentAttrib=currentcpuinfo->vmcb->cs_attrib;
+    return cs.L;
+  }
+  else
+    return IS64BITPAGING(currentcpuinfo) && ((vmread(vm_guest_cs_access_rights) >> 13) & 1);
+}
 
 
 char * getVMExitReassonString(void)
@@ -341,7 +378,7 @@ void sendvmstate(pcpuinfo currentcpuinfo, VMRegisters *registers)
   sendstringf("getTaskRegister()=%x\n",getTaskRegister());
 
   sendstringf("Activity state : %d      interruptibility state : %d \n\r",vmread(vm_guest_activity_state), vmread(vm_guest_interruptability_state));
-  sendstringf("IS64BITPAGING=%d IS64BITCODE=%d ISREALMODE=%d\n\r", IS64BITPAGING, IS64BITCODE, ISREALMODE);
+  sendstringf("IS64BITPAGING=%d IS64BITCODE=%d ISREALMODE=%d\n\r", IS64BITPAGING(currentcpuinfo), IS64BITCODE(currentcpuinfo), ISREALMODE(currentcpuinfo));
   sendstringf("efer=%x\n\r",currentcpuinfo->efer);
   sendstringf("ia32e mode guest=%d\n",((vmread(vm_entry_controls) & IA32E_MODE_GUEST) != 0) );
 
@@ -387,7 +424,7 @@ void sendvmstate(pcpuinfo currentcpuinfo, VMRegisters *registers)
   sendstringf("gdt: base=%6 limit=%x\n\r",vmread(vm_guest_gdtr_base), vmread(vm_guest_gdt_limit));
   sendstringf("idt: base=%6 limit=%x\n\r",vmread(vm_guest_idtr_base), vmread(vm_guest_idt_limit));
 
-  if (ISREALMODE)
+  if (ISREALMODE(currentcpuinfo))
   {
     sendstringf("RM gdt: base=%6 limit=%x\n\r",currentcpuinfo->RealMode.GDTBase, currentcpuinfo->RealMode.GDTLimit);
     sendstringf("RM idt: base=%6 limit=%x\n\r",currentcpuinfo->RealMode.IDTBase, currentcpuinfo->RealMode.IDTLimit);
@@ -483,12 +520,10 @@ criticalSection vmexitlock;
 
 int vmexit_amd(pcpuinfo currentcpuinfo, UINT64 *registers)
 {
-  sendstringf("vmexit_amd called. currentcpuinfo=%p\n", currentcpuinfo);
-  sendstringf("cpunr=%d\n", currentcpuinfo->cpunr);
+  displayline("vmexit_amd called. currentcpuinfo=%p\n", currentcpuinfo);
+  displayline("cpunr=%d\n", currentcpuinfo->cpunr);
 
-
-  return 1; //unhandled
-
+  return handleVMEvent_amd(currentcpuinfo, (VMRegisters*)registers);
 }
 
 #ifdef DEBUG
@@ -1277,7 +1312,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
 
   sendstringf("guest cs=%8\n\r",vmread(vm_guest_cs));
 
-  if (IS64BITCODE)
+  if (IS64BITCODE(currentcpuinfo))
   {
 	  sendstringf("guest rip=%6\n\r",vmread(vm_guest_rip));
   }
@@ -1458,13 +1493,13 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
         else
           dt=Decode32Bits;
 
-        if (IS64BITPAGING)
+        if (IS64BITPAGING(currentcpuinfo))
           dt=Decode32Bits;
 
-        if (IS64BITCODE)
+        if (IS64BITCODE(currentcpuinfo))
           dt=Decode64Bits;
 
-        if (ISREALMODE)
+        if (ISREALMODE(currentcpuinfo))
           dt=Decode16Bits;
 
         sendstring("Bitmode(");
@@ -1692,9 +1727,10 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
 
 
 
+/*
   currentcpuinfo->vmcb->tr_limit=(UINT64)sizeof(TSS)+32+8192+1;
   currentcpuinfo->vmcb->tr_base=(UINT64)mainTSS;
-  currentcpuinfo->vmcb->tr_attrib=(WORD)reg_traccessrights.SegmentAttrib;
+  currentcpuinfo->vmcb->tr_attrib=(WORD)reg_traccessrights.SegmentAttrib;*/
 
   currentcpuinfo->vmcb->DR7=0x400;
 
@@ -1705,6 +1741,7 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
 
 
   currentcpuinfo->vmcb->InterceptINT=1; //break on software interrupts (int 0x15 in realmode)
+ // currentcpuinfo->vmcb->InterceptShutdown=1; //in case of a severe error
 
 
 
@@ -1843,7 +1880,7 @@ void setupVMX(pcpuinfo currentcpuinfo)
   }
 
   sendstring("Setting up realmode paging\n"); //also for loadedOS in case of some weird event
-  setupRealModePaging();  //no more mallocs after this
+  setupRealModePaging(currentcpuinfo);  //no more mallocs after this
 
 
   if (globals_have_been_configured==0)
@@ -2544,9 +2581,10 @@ void launchVMX_AMD(pcpuinfo currentcpuinfo)
 
 
   displayline("Calling vmxloop_amd with currentcpuinfo=%6\n\r",(UINT64)currentcpuinfo);
+
   result=vmxloop_amd(currentcpuinfo, currentcpuinfo->vmcb_PA);
 
-  displayline("Returned from vmxloop_amd\n\r");
+  displayline("Returned from vmxloop_amd. Result=%d\n\r", result);
 
 }
 
@@ -2995,7 +3033,7 @@ void displayVMmemory(pcpuinfo currentcpuinfo)
 void ShowCurrentInstruction(pcpuinfo currentcpuinfo)
 {
   unsigned char buf[60];
-  QWORD address=(IS64BITCODE?(0):(vmread(vm_guest_cs_base)))+vmread(vm_guest_rip);
+  QWORD address=(IS64BITCODE(currentcpuinfo)?(0):(vmread(vm_guest_cs_base)))+vmread(vm_guest_rip);
 
 
   //sendstringf("ShowCurrentInstruction for %6\n", address);
@@ -3019,13 +3057,13 @@ void ShowCurrentInstruction(pcpuinfo currentcpuinfo)
     else
       dt=Decode32Bits;
 
-    if (IS64BITPAGING)
+    if (IS64BITPAGING(currentcpuinfo))
       dt=Decode32Bits;
 
-    if (IS64BITCODE)
+    if (IS64BITCODE(currentcpuinfo))
       dt=Decode64Bits;
 
-    if (ISREALMODE)
+    if (ISREALMODE(currentcpuinfo))
       dt=Decode16Bits;
 
 
@@ -3049,7 +3087,7 @@ void ShowCurrentInstructions(pcpuinfo currentcpuinfo)
 {
   unsigned char buf[60];
   int     readable;
-  int     is64bit=IS64BITCODE;
+  int     is64bit=IS64BITCODE(currentcpuinfo);
   UINT64 address=(is64bit?(0):(vmread(vm_guest_cs_base)))+vmread(vm_guest_rip);
   int bytesinfront=30;
   UINT64 startaddress=address-bytesinfront;
@@ -3088,13 +3126,13 @@ void ShowCurrentInstructions(pcpuinfo currentcpuinfo)
     else
       dt=Decode32Bits;
 
-    if (IS64BITPAGING)
+    if (IS64BITPAGING(currentcpuinfo))
       dt=Decode32Bits;
 
-    if (IS64BITCODE)
+    if (IS64BITCODE(currentcpuinfo))
       dt=Decode64Bits;
 
-    if (ISREALMODE)
+    if (ISREALMODE(currentcpuinfo))
       dt=Decode16Bits;
 
 
