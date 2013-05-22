@@ -159,8 +159,10 @@ clgi ;no more interrupts from this point on. (Not even some special interrupts)
 
 vmrun_loop:
 mov rax,[rsp+vmcb_PA]
-
 vmrun ;rax
+
+clgi
+cli
 
 ;on return RAX and RSP are unchanged, but ALL other registers are changed and MUST be saved first
 xchg bx,bx
@@ -184,6 +186,8 @@ mov [rsp+saved_rax],rax
 
 mov rdi,[rsp+currentcpuinfo]
 lea rsi,[rsp+saved_rax] ;vmregisters
+
+xchg bx,bx
 call vmexit_amd
 
 xchg bx,bx
@@ -369,7 +373,7 @@ mov rsi,rbp ; param2: pointer to the guest registers (stored on stack)
 cmp rdi,0
 jne notfucker
 
-xchg bx,bx
+;xchg bx,bx
 wbinvd
 
 mov rbx,0x681e
@@ -1564,7 +1568,7 @@ mov byte [0xb8000],'3';
 mov byte [0xb8001],15;
 
 
-xchg bx,bx
+;xchg bx,bx
 mov word [0x40000],0x4f
 mov eax,[0x3004]
 mov dword [0x40002],eax
@@ -1852,7 +1856,7 @@ quickboot:
 ;quickboot is called by the virtual machine as initial boot startup
 call clearScreen
 
-xchg bx,bx
+;xchg bx,bx
 
 nop
 nop
@@ -2035,7 +2039,7 @@ mov ebx,CR0
 
 vm_basicinit:
 cli  ;not be needed, but it's a way to break the vm
-xchg bx,bx
+;xchg bx,bx
 
 xor ax,ax
 mov ds,ax
@@ -2058,6 +2062,9 @@ cld
 sti
 
 mov byte [0x7c00],1
+
+;loopy:
+;jmp loopy
 
 hwtest:
 nop

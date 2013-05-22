@@ -2439,7 +2439,7 @@ int testRMinterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 {
   volatile int result=2;
 
-  if (ISREALMODE)
+  if (ISREALMODE(currentcpuinfo))
   {
     UINT64 guestrflags=vmread(vm_guest_rflags);
     PRFLAGS pguestrflags=(PRFLAGS)&guestrflags;
@@ -2540,7 +2540,7 @@ int emulateRealMode(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   int i;
   for (i=0; i<=0; i++)
 #else
-  while ((ISREALMODE) && (result) ) //test: only one at a time
+  while ((ISREALMODE(currentcpuinfo)) && (result) ) //test: only one at a time
 #endif
   {
     #ifdef DEBUG
@@ -2799,7 +2799,7 @@ int emulateRealMode(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   }
 
   sendstring("Ending realmode emulation\n\r");
-  if (!(ISREALMODE))
+  if (!(ISREALMODE(currentcpuinfo)))
   {
     sendstringf("because in protected mode \n\r");
   }

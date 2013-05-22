@@ -50,7 +50,7 @@ int handleInvalidEntryState(pcpuinfo currentcpuinfo,VMRegisters *vmregisters)
 
 
 
-  if (ISREALMODE)
+  if (ISREALMODE(currentcpuinfo))
   {
     int result;
     sendstring("Inside realmode. Trying to emulate instructions\n\r");
@@ -70,7 +70,7 @@ int handleInvalidEntryState(pcpuinfo currentcpuinfo,VMRegisters *vmregisters)
 
 
     //emulateRealMode failed
-    if (ISREALMODE) //still realmode ? (most likely, but possible it isn't anymore once enough has been emulated)
+    if (ISREALMODE(currentcpuinfo)) //still realmode ? (most likely, but possible it isn't anymore once enough has been emulated)
     {
       Access_Rights reg_rmaccessrights,reg_traccessrights;
       RFLAGS guestrflags;

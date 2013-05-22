@@ -2,7 +2,7 @@
 #define KEYBOARD_H_
 
 //keyboard
-void waitforkeypress(void);
+//void waitforkeypress(void);
 unsigned char kbd_getstatus(void);
 unsigned char kdb_getoutputport(void);
 unsigned char kdb_getinputport(void);

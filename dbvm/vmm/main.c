@@ -714,7 +714,12 @@ void vmm_entry2(void)
   csLeave(&CScpu);
 
   setints();
+
+  if (isAMD)
+    while (1);
+
   startvmx(&(cpuinfo[cpunr]));
+
 
 
 
@@ -1149,6 +1154,7 @@ void vmm_entry(void)
     if ((b==0x68747541) && (d==0x69746e65) && (c==0x444d4163))
     {
       isAMD=1;
+      AMD_hasDecodeAssists=0;
       sendstring("This is an AMD system. going to use the AMD virtualization tech\n\r");
     }
     else
@@ -1733,10 +1739,12 @@ void menu(void)
         if (!loadedOS)
         {
 
-          if (cpucount>0)
+          if ((!isAMD) && (cpucount>0)) //!isAMD for now during tests
           {
             displayline("Sending other CPU cores into VMX wait mode\n");
             sendstring("BootCPU: Sending all AP's the command to start the VMX code\n\r");
+
+
 
             for (i=1; (unsigned)i<cpucount; i++)
             {
@@ -1780,6 +1788,7 @@ void menu(void)
 
           displayline("Calling startvmx for main core\n");
         }
+
 
         startvmx(&(cpuinfo[0]));
         sendstring("BootCPU: Back from startvmx\n\r");
@@ -2150,6 +2159,8 @@ void startvmx(pcpuinfo currentcpuinfo)
 #endif
 
 
+
+
   // setup the vmx environment and run it
   if (hascpuid())
   {
@@ -2221,11 +2232,16 @@ void startvmx(pcpuinfo currentcpuinfo)
     	  a=0x8000000a;
     	  _cpuid(&a,&b,&c,&d);
 
-    	  sendstringf("cpuid: 0x8000000a:\n");
-    	  sendstringf("EAX=%8\n", a);
-    	  sendstringf("EBX=%8\n", b);
-    	  sendstringf("ECX=%8\n", c);
-    	  sendstringf("EDX=%8\n", d);
+    	  displayline("cpuid: 0x8000000a:\n");
+    	  displayline("EAX=%8\n", a);
+    	  displayline("EBX=%8\n", b);
+    	  displayline("ECX=%8\n", c);
+    	  displayline("EDX=%8\n", d);
+
+
+    	 // AMD_hasDecodeAssists=(d & (1<<7))>0;
+    	 // AMD_hasNRIPS=(d & (1<<3))>0;
+    	  sendstringf("AMD_hasDecodeAssists=%d\n", AMD_hasDecodeAssists);
 
     	  UINT64 VM_CR=readMSR(0xc0010114); //VM_CR MSR
     	  sendstringf("VM_CR=%6\n", VM_CR);
@@ -2250,14 +2266,24 @@ void startvmx(pcpuinfo currentcpuinfo)
     		  currentcpuinfo->vmcb=malloc(4096);
     		  zeromemory(currentcpuinfo->vmcb, 4096);
 
-    		  currentcpuinfo->vmcb_PA=(ULONG)VirtualToPhysical((UINT64)currentcpuinfo->vmcb);
+    		  currentcpuinfo->vmcb_PA=(UINT64)VirtualToPhysical((UINT64)currentcpuinfo->vmcb);
+
+          UINT64 VM_HSAVE_PA_MSR=readMSR(0xc0010117); //VM_HSAVE_PA MSR
+          sendstringf("VM_HSAVE_PA_MSR was %6\n", VM_HSAVE_PA_MSR);
+
+          currentcpuinfo->vmcb_host=malloc(4096);
+          writeMSR(0xc0010117, (UINT64)VirtualToPhysical((UINT64)currentcpuinfo->vmcb_host));
+
 
 
     		  setupVMX(currentcpuinfo);
 
 
-          if (!isAP)
-            clearScreen();
+          /*if (!isAP)
+            clearScreen();*/
+
+
+
 
           launchVMX(currentcpuinfo);
 

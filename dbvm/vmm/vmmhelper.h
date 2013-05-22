@@ -157,7 +157,7 @@ typedef volatile struct _vmcb
 	  DWORD InstructionIntercept2;
 	  struct {
 	    unsigned InterceptVMRUN      :1;
-      unsigned InterceptVMMCAL        :1;
+      unsigned InterceptVMMCALL        :1;
       unsigned InterceptVMLOAD        :1;
       unsigned InterceptVMSAVE      :1;
       unsigned InterceptSTGI      :1;
@@ -216,7 +216,17 @@ typedef volatile struct _vmcb
 	BYTE reserved7[16];
 
 	//a8
-	QWORD EVENTINJ;
+	union {
+	  QWORD EVENTINJ;
+	  struct {
+	    unsigned inject_Vector : 8;
+	    unsigned inject_Type : 3;
+	    unsigned inject_EV : 1;
+	    unsigned reserved: 19;
+	    unsigned inject_Valid: 1;
+	    DWORD    inject_ERRORCODE;
+	  };
+	};
 	QWORD N_CR3;
 
 	union{
@@ -363,6 +373,7 @@ typedef volatile struct _cpuinfo
   unsigned long long efer;
 
 
+  void *vmcb_host;
   pvmcb vmcb; //AMD's virtual machine control_block. Give the physical address of this to VMRUN
   UINT64 vmcb_PA;
 
@@ -651,10 +662,8 @@ void ShowCurrentInstruction(pcpuinfo currentcpuinfo);
 void ShowCurrentInstructions(pcpuinfo currentcpuinfo);
 void displayPreviousStates(void);
 
-#define ISREALMODE ((vmread(vm_cr0_fakeread) & 1)==0)
-
-//check if ia32e mode is active for the guest(bit 9)
-#define IS64BITPAGING ((vmread(vm_entry_controls) & IA32E_MODE_GUEST) != 0)
-#define IS64BITCODE (IS64BITPAGING && ((vmread(vm_guest_cs_access_rights) >> 13) & 1))
+int ISREALMODE(pcpuinfo currentcpuinfo);
+int IS64BITPAGING(pcpuinfo currentcpuinfo);
+int IS64BITCODE(pcpuinfo currentcpuinfo);
 
 #endif /*VMMHELPER_H_*/

@@ -124,7 +124,7 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
     sendstringf("ldt=%8\n\r",(UINT64)ldt);
   }
 
-  if (IS64BITPAGING) //then also 64-bit interrupt handling
+  if (IS64BITPAGING(currentcpuinfo)) //then also 64-bit interrupt handling
   {
     sendstring("IS64BITPAGING=1\n");
 
@@ -169,7 +169,7 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
 
   if (privilege_level_changed)
   {
-    if (IS64BITPAGING) //cs has been changed already, so this macro returns the target code type
+    if (IS64BITPAGING(currentcpuinfo)) //cs has been changed already, so this macro returns the target code type
     {
 
       PTSS64 TSS=_TSS;
@@ -226,7 +226,7 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
 
   prflags->RF=1; //Set RF to 1 (so it's pushed in the stack)
 
-  if (IS64BITPAGING)
+  if (IS64BITPAGING(currentcpuinfo))
   {
     //64 bit pushes
     UINT64 rsp=newRSP;
@@ -381,7 +381,7 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
 
   if (privilege_level_changed)
   {
-    if (IS64BITPAGING)
+    if (IS64BITPAGING(currentcpuinfo))
     {
       //int64 int's set SS to NULL
 
@@ -434,7 +434,7 @@ void returnToRealmode(pcpuinfo currentcpuinfo) //obsolete with rm emu
   Access_Rights reg_csaccessrights;
   RFLAGS guestrflags=(RFLAGS)vmread(vm_guest_rflags);
 
-  if (ISREALMODE)
+  if (ISREALMODE(currentcpuinfo))
   {
     reg_csaccessrights.AccessRights=0;
     reg_csaccessrights.Segment_type=3;
@@ -726,7 +726,7 @@ int handleHLT(pcpuinfo currentcpuinfo)
   nosendchar[getAPICID()]=0;
   sendstringf("Handling HLT instruction\n\r");
 
-  if (ISREALMODE)
+  if (ISREALMODE(currentcpuinfo))
   {
     ULONG guestrflags=0;
     PRFLAGS pguestrflags=(PRFLAGS)&guestrflags;
@@ -1606,9 +1606,9 @@ int handleCPUID(VMRegisters *vmregisters)
 
 }
 
-void setRegister(VMRegisters *vmregisters, int general_purpose_register, UINT64 value)
+void setRegister(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, int general_purpose_register, UINT64 value)
 {
-  if (!IS64BITCODE)
+  if (!IS64BITCODE(currentcpuinfo))
     value=value & 0xffffffff;
 
 	switch (general_purpose_register)
@@ -1902,7 +1902,7 @@ int setVM_CR0(pcpuinfo currentcpuinfo, UINT64 newcr0)
             }
             else
             {
-              setupNonPagedPaging();
+              setupNonPagedPaging(currentcpuinfo);
               vmwrite(vm_guest_cr4,vmread(0x6006) | readMSR(0x488) | (1 << 4) | ( 1 << 5)); //guest's cr4, with fixed CR4 and PAE and PSE
             }
 
@@ -1998,7 +1998,7 @@ int setVM_CR0(pcpuinfo currentcpuinfo, UINT64 newcr0)
 
             }
             else*/
-              setupRealModePaging(); //normal realmode
+              setupRealModePaging(currentcpuinfo); //normal realmode
 
             return 0;
 
@@ -2032,7 +2032,7 @@ int setVM_CR0(pcpuinfo currentcpuinfo, UINT64 newcr0)
               sendstring("In protected mode so disable paging\n\r");
               //switch from paged to nonpaged
 
-              setupNonPagedPaging();
+              setupNonPagedPaging(currentcpuinfo);
               vmwrite(vm_guest_cr4,vmread(vm_guest_cr4) | (1 << 4) | ( 1 << 5)); //PAE and PSE enabled
 
               //needs a valid SS, so make sure SS is now valid
@@ -2119,7 +2119,7 @@ int setVM_CR3(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, UINT64 newcr3)
 
 
   currentcpuinfo->guestCR3=newcr3;
-  if (!IS64BITPAGING)
+  if (!IS64BITPAGING(currentcpuinfo))
     currentcpuinfo->guestCR3=currentcpuinfo->guestCR3 & 0xffffffff;
 
   //if paging is enabled then set the pagetable to this else just do it and ignore till it is enabled
@@ -2152,7 +2152,7 @@ int setVM_CR4(pcpuinfo currentcpuinfo, UINT64 newcr4)
           UINT64 IA32_VMX_CR4_FIXED0=readMSR(0x488);
           UINT64 IA32_VMX_CR4_FIXED1=readMSR(0x489);
 
-          if (!IS64BITCODE)
+          if (!IS64BITCODE(currentcpuinfo))
             newCR4=newCR4 & 0xffffffff;
 
           sendstring("setVM_CR4(...)\n\r");
@@ -2197,7 +2197,7 @@ int setVM_CR4(pcpuinfo currentcpuinfo, UINT64 newcr4)
           if ((vmread(vm_cr0_fakeread) & 1)==0) //not in protected mode, so emulate paging. We use PAE to identity map
             newCR4=newCR4 | (1<<4) | (1<<5);
 
-          if (ISREALMODE)
+          if (ISREALMODE(currentcpuinfo))
           {
             sendstringf("Inside realmode, so set VME\n\r");
             newCR4=newCR4 | 1; //enable VME
@@ -2288,7 +2288,7 @@ int handleCRaccess(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
           {
             sendstringf("0:PUTTING THE VALUE OF REGISTER %d INTO CR0\n\r", general_purpose_register);
 					  newcr0=getRegister(vmregisters,general_purpose_register);
-            if (!IS64BITCODE)
+            if (!IS64BITCODE(currentcpuinfo))
               newcr0=newcr0 & 0xffffffff; //32-bit mask
           }
 
@@ -2306,7 +2306,7 @@ int handleCRaccess(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
         {
           sendstringf("THE OS REQUESTED CR0 INTO REGISTER %d \n\r",general_purpose_register);
 
-					setRegister(vmregisters,general_purpose_register,vmread(0x6004));
+					setRegister(currentcpuinfo, vmregisters,general_purpose_register,vmread(0x6004));
 
           vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));   //adjust eip to go after this instruction (we handled/emulated it)
           return 0;
@@ -2338,7 +2338,7 @@ int handleCRaccess(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
 
 					currentcpuinfo->guestCR3=getRegister(vmregisters,general_purpose_register);
-          if (!IS64BITPAGING)
+          if (!IS64BITPAGING(currentcpuinfo))
             currentcpuinfo->guestCR3=currentcpuinfo->guestCR3 & 0xffffffff;
 
 					//if paging is enabled then set the pagetable to this else just do it and ignore till it is enabled
@@ -2369,7 +2369,7 @@ int handleCRaccess(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
         case 1: //move from CR3
         {
           sendstringf("THE OS REQUESTED CR3 INTO REGISTER %d \n\r",general_purpose_register);
-					setRegister(vmregisters,general_purpose_register,currentcpuinfo->guestCR3);
+					setRegister(currentcpuinfo, vmregisters,general_purpose_register,currentcpuinfo->guestCR3);
           vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));   //adjust eip to go after this instruction (we handled/emulated it)
           return 0;
         }
@@ -2413,7 +2413,7 @@ int handleCRaccess(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
         case 1: //move from CR4
         {
           sendstringf("THE OS REQUESTED CR4 INTO REGISTER %d \n\r",general_purpose_register);
-					setRegister(vmregisters,general_purpose_register,vmread(0x6004));
+					setRegister(currentcpuinfo, vmregisters,general_purpose_register,vmread(0x6004));
           vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));   //adjust eip to go after this instruction (we handled/emulated it)
           return 0;
         }
@@ -3309,7 +3309,7 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
         vmwrite(0x4826,(ULONG)0); //HLT mode off
 
-        if (ISREALMODE)
+        if (ISREALMODE(currentcpuinfo))
         {
           sendstring("Guest is in realmode so go back to realmode\n\r");
           returnToRealmode(currentcpuinfo);

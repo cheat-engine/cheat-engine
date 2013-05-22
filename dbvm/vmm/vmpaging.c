@@ -298,6 +298,9 @@ UINT64 mapVMmemory(pcpuinfo currentcpuinfo, UINT64 address, int size,  UINT64 Vi
    * note: maxsize=0x001ffff
    */
   //allocate a pagedir (use the virtual tlb space)
+  if (currentcpuinfo->virtualTLB == NULL)
+    allocateVirtualTLB();
+
   unsigned int  availablememory = currentcpuinfo->virtualTLB_Max-(currentcpuinfo->virtualTLB_FreeSpot-currentcpuinfo->virtualTLB);
   int           Dirptr          = (UINT64)VirtualAddress >> 30;
   int           Dir             = (UINT64)(VirtualAddress >> 21) & 0x1ff;
@@ -316,8 +319,7 @@ UINT64 mapVMmemory(pcpuinfo currentcpuinfo, UINT64 address, int size,  UINT64 Vi
   //sendstringf("Dirptr=%d Dir=%d \n\r",Dirptr,Dir);
 
   //check if there is already a tlb, if not, allocate it. (it's needed for temp mem)
-  if (currentcpuinfo->virtualTLB == NULL)
-    allocateVirtualTLB();
+
 
   if (size >= 0x00200000)
   {
@@ -388,27 +390,58 @@ UINT64 mapVMmemory(pcpuinfo currentcpuinfo, UINT64 address, int size,  UINT64 Vi
 UINT64 getPhysicalAddressVM(pcpuinfo currentcpuinfo, UINT64 address, int *notpaged)
 {
   regCR4 usedCR4;
-  usedCR4.CR4=vmread(vm_guest_cr4);
+  DWORD cr0;
+  if (isAMD)
+  {
+    usedCR4.CR4=currentcpuinfo->vmcb->CR4;
+    cr0=currentcpuinfo->vmcb->CR0;
+  }
+  else
+  {
+    usedCR4.CR4=vmread(vm_guest_cr4);
+    cr0=vmread(vm_cr0_fakeread);
+  }
+
   UINT64  pagebase;
 
 
   sendstringf("inside getPhysicalAddressVM , for address %6\n\r",address);
   *notpaged=0;
 
-  if ((vmread(vm_cr0_fakeread) & 0x80000001) == 0x80000001)
+  if (isAMD)
   {
-    //sendstring("protectedmode and paging, so use guest's pagetable\n\r");
-    pagebase=currentcpuinfo->guestCR3; //protected mode with paging on, so use the guest's pagetable
-    //sendstringf("pagebase=%x\n\r",pagebase);
+    regCR0 usedCR0;
+    usedCR0.CR0=cr0;
+
+    if (usedCR0.PG)
+    {
+      //paging, so look up the paging table
+      pagebase=currentcpuinfo->vmcb->CR3;
+    }
+    else
+    {
+      //not paged, return the given address
+      pagebase=0;
+      return address;
+    }
   }
   else
   {
-    //sendstring("realmode or nonpaged, use emulated pagetable\n\r");
-    pagebase=vmread(vm_guest_cr3); //realmode or nonpaged, so use the emulated nonpaged pagetable
+    if ((cr0 & 0x80000001) == 0x80000001)
+    {
+      //sendstring("protectedmode and paging, so use guest's pagetable\n\r");
+      pagebase=currentcpuinfo->guestCR3; //protected mode with paging on, so use the guest's pagetable
+      //sendstringf("pagebase=%x\n\r",pagebase);
+    }
+    else
+    {
+      //sendstring("realmode or nonpaged, use emulated pagetable\n\r");
+      pagebase=vmread(vm_guest_cr3); //realmode or nonpaged, so use the emulated nonpaged pagetable
+    }
   }
 
   //sendstringf("pagebase=%8\n\r",pagebase);
-  if (IS64BITPAGING)
+  if (IS64BITPAGING(currentcpuinfo))
   {
     UINT64       pml4entry=(UINT64)address >> 39 & 0x1ff;
     PPDE_PAE    realpml4table=(PPDE_PAE)MapPhysicalMemory((UINT64)pagebase,currentcpuinfo->AvailableVirtualAddress+0x0f000000);
@@ -603,7 +636,7 @@ int handleINVLPG(pcpuinfo currentcpuinfo)
   if (fakeCR0.PE==0 || fakeCR0.PG==0) //if protectedmode or paging is off then do nothing
     return 0;
 
-  if (IS64BITPAGING)
+  if (IS64BITPAGING(currentcpuinfo))
   {
     ULONG       pml4entry=address >> 39 & 0x1ff;
     PPDE_PAE    realpml4table=(PPDE_PAE)currentcpuinfo->virtualTLB;
@@ -770,7 +803,7 @@ int handleVMPageException(pcpuinfo currentcpuinfo)
 	//get the vmm's CR3 used for the guests (not hard, it's VirtualMachinePagingspace)
 	//returns 0 if handled, 1 if it needs to be handled by guest , 2 if it's a huge bug
 
-  if (IS64BITPAGING)
+  if (IS64BITPAGING(currentcpuinfo))
   {
     sendstring("64-bit paging system\n\r");
     //normal
@@ -2276,7 +2309,7 @@ int setupA20maskedPaging(void)
 }
 */
 
-int setupRealModePaging(void)
+int setupRealModePaging(pcpuinfo currentcpuinfo)
 /* called on switch to realmode and when the a20 line is modified
  * This is always 32-bit */
 {
@@ -2286,7 +2319,7 @@ int setupRealModePaging(void)
 
 
   //check if the A20 line is enabled, if so
-  return setupNonPagedPaging();
+  return setupNonPagedPaging(currentcpuinfo);
 
   //else
   //setupA20maskedPaging();
@@ -2306,7 +2339,7 @@ int setupRealModePaging(void)
 
 }
 
-int setupNonPagedPaging(void)
+int setupNonPagedPaging(pcpuinfo currentcpuinfo)
 {
 //sets up a identify mapped memory (faking the vmm memory as ffpages)
 //uses PAE so set CR4 to pae mode
@@ -2314,7 +2347,7 @@ int setupNonPagedPaging(void)
   PPDE_PAE   VirtualMachinePageDir;
   //UINT64     pfn_vmmstart=vmmstart >> 12;
   //UINT64     pfn_vmmstop=(vmmstart+0x00400000) >> 12;
-  int        is64bitpaging=IS64BITPAGING;
+  int        is64bitpaging=IS64BITPAGING(currentcpuinfo);
 
 	unsigned int i;
 
@@ -2407,8 +2440,7 @@ int setupNonPagedPaging(void)
   return 0;
 }
 
-
-int setupNonPagedPaging_invalidstate_c0000(UINT64 cs_base)
+int setupNonPagedPaging_invalidstate_c0000(pcpuinfo currentcpuinfo, UINT64 cs_base)
 {
 //sets up a page where the cs_base will be mapped at c0000
 //uses PAE so set CR4 to pae mode
@@ -2417,7 +2449,7 @@ int setupNonPagedPaging_invalidstate_c0000(UINT64 cs_base)
   volatile PPTE_PAE   VirtualMachinePageTable;
   //DWORD      pfn_vmmstart=vmmstart >> 12;
   //DWORD      pfn_vmmstop=(vmmstart+0x00400000) >> 12;
-  int        is64bitpaging=IS64BITPAGING;
+  int        is64bitpaging=IS64BITPAGING(currentcpuinfo);
   int        orig=nosendchar[getAPICID()];
 
   //unsigned int i;
