@@ -481,6 +481,16 @@ int vmeventcount=0;
 criticalSection vmexitlock;
 
 
+int vmexit_amd(pcpuinfo currentcpuinfo, UINT64 *registers)
+{
+  sendstringf("vmexit_amd called. currentcpuinfo=%p\n", currentcpuinfo);
+  sendstringf("cpunr=%d\n", currentcpuinfo->cpunr);
+
+
+  return 1; //unhandled
+
+}
+
 #ifdef DEBUG
 
 QWORD lastbeat=0;
@@ -1694,6 +1704,7 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
 
 
 
+  currentcpuinfo->vmcb->InterceptINT=1; //break on software interrupts (int 0x15 in realmode)
 
 
 

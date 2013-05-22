@@ -97,14 +97,48 @@ isAP:              	dd 0
 bootdisk:           dd 0
 nextstack:		  	dq 0x00000000007FFFF8 ;start of stack for the next cpu
 
+struc vmxloop_amd_stackframe
+  saved_rax:      resq 1  ;0
+  saved_rbx:      resq 1  ;8
+  saved_rcx:      resq 1  ;10
+  saved_rdx:      resq 1  ;18
+  saved_rdi:      resq 1  ;20
+  saved_rsi:      resq 1  ;28
+  saved_rbp:      resq 1  ;30
+  saved_r8:       resq 1  ;38
+  saved_r9:       resq 1  ;40
+  saved_r10:      resq 1  ;48
+  saved_r11:      resq 1  ;50
+  saved_r12:      resq 1  ;58
+  saved_r13:      resq 1  ;60
+  saved_r14:      resq 1  ;68
+  saved_r15:      resq 1  ;70
+                  resq 1  ;alignment (78)
+  fxsavespace:    resb 512 ;fxsavespace must be aligned
+  vmcb_PA:        resq 1 ;saved param2
+  currentcpuinfo: resq 1 ;saved param1
+                  resq 1 ;alignment
+  ;At entry RSP points here
+  returnaddress:  resq 1
+
+
+endstruc
+extern vmexit_amd
+
 global vmxloop_amd
 vmxloop_amd:
-sub rsp,8
+;xchg bx,bx ;break by bochs
+
+sub rsp, vmxloop_amd_stackframe_size-8 ;-8 because the structure assumes returnaddress is in
+
+mov [rsp+currentcpuinfo],rdi
+mov [rsp+vmcb_PA], rsi
+
+mov rax,[rsp+returnaddress]
 
 
-xchg bx,bx ;break by bochs
 
-;init to startup state
+;init to startup state (or offloados state)
 xor rax,rax
 mov rbx,rax
 mov rcx,rax
@@ -119,15 +153,69 @@ mov r12,rax
 mov r13,rax
 mov r14,rax
 mov r15,rax
+mov rsi,rax
 
-mov rax,rsi
-xor rsi,rsi
+clgi ;no more interrupts from this point on. (Not even some special interrupts)
 
-clgi
+vmrun_loop:
+mov rax,[rsp+vmcb_PA]
 
 vmrun ;rax
 
-add rsp,8
+;on return RAX and RSP are unchanged, but ALL other registers are changed and MUST be saved first
+xchg bx,bx
+
+fxsave [rsp+fxsavespace]
+mov [rsp+saved_r15],r15
+mov [rsp+saved_r14],r14
+mov [rsp+saved_r13],r13
+mov [rsp+saved_r12],r12
+mov [rsp+saved_r11],r11
+mov [rsp+saved_r10],r10
+mov [rsp+saved_r9],r9
+mov [rsp+saved_r8],r8
+mov [rsp+saved_rbp],rbp
+mov [rsp+saved_rsi],rsi
+mov [rsp+saved_rdi],rdi
+mov [rsp+saved_rdx],rdx
+mov [rsp+saved_rcx],rcx
+mov [rsp+saved_rbx],rbx
+mov [rsp+saved_rax],rax
+
+mov rdi,[rsp+currentcpuinfo]
+lea rsi,[rsp+saved_rax] ;vmregisters
+call vmexit_amd
+
+xchg bx,bx
+
+;check return. If everything ok restore and jump to vmrun_loop
+cmp eax,1
+je vmrun_exit
+
+;restore
+fxrstor [rsp+fxsavespace]
+mov r15,[rsp+saved_r15]
+mov r14,[rsp+saved_r14]
+mov r13,[rsp+saved_r13]
+mov r12,[rsp+saved_r12]
+mov r11,[rsp+saved_r11]
+mov r10,[rsp+saved_r10]
+mov r9,[rsp+saved_r9]
+mov r8,[rsp+saved_r8]
+mov rbp,[rsp+saved_rbp]
+mov rsi,[rsp+saved_rsi]
+mov rdi,[rsp+saved_rdi]
+mov rdx,[rsp+saved_rdx]
+mov rcx,[rsp+saved_rcx]
+mov rbx,[rsp+saved_rbx]
+
+
+jmp vmrun_loop
+
+
+
+vmrun_exit:
+add rsp,vmxloop_amd_stackframe_size-8
 ret
 
 
