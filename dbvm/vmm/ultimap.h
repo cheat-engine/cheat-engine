@@ -34,7 +34,7 @@ typedef struct
   QWORD CR3_switchcount2;
   QWORD LastOldCR3;
   QWORD LastNewCR3;
-  QWORD CpuNr
+  QWORD CpuNr;
 } *PULTIMAPDEBUGINFO;
 
 void ultimap_debugoutput(pcpuinfo currentcpuinfo, PULTIMAPDEBUGINFO UltimapDebugInfo);

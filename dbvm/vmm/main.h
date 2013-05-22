@@ -73,6 +73,7 @@ extern UINT64 loadedOS;
 PTSS mainTSS;
 
 int vmxloop(pcpuinfo currentcpuinfo, UINT64 *eaxbase);
+int vmxloop_amd(pcpuinfo currentcpuinfo, pvmcb vmcb);
 
 extern int vmxstartup_end;
 
@@ -114,6 +115,8 @@ ULONG      dbvmversion;
 unsigned int originalIDTcrc;
 unsigned int originalVMMcrc;
 
+
+int isAMD;
 
 
 #define vmclear _vmclear

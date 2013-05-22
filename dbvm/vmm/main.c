@@ -72,8 +72,6 @@ extern unsigned int isAP;
 
 
 
-int isAMD;
-
 
 #define SETINT(INTNR) intvector[INTNR].wLowOffset=(WORD)(UINT64)inthandler##INTNR; \
                       intvector[INTNR].wHighOffset=(WORD)((UINT64)inthandler##INTNR >> 16);
@@ -1153,6 +1151,8 @@ void vmm_entry(void)
       isAMD=1;
       sendstring("This is an AMD system. going to use the AMD virtualization tech\n\r");
     }
+    else
+      isAMD=0;
 
 
     //a=0x80000000; _cpuid(&a,&b,&c,&d);
@@ -2250,12 +2250,23 @@ void startvmx(pcpuinfo currentcpuinfo)
     		  currentcpuinfo->vmcb=malloc(4096);
     		  zeromemory(currentcpuinfo->vmcb, 4096);
 
+    		  currentcpuinfo->vmcb_PA=(ULONG)VirtualToPhysical((UINT64)currentcpuinfo->vmcb);
 
-    		  //setupVMX(currentcpuinfo);
+
+    		  setupVMX(currentcpuinfo);
 
 
-              if (!isAP)
-                clearScreen();
+          if (!isAP)
+            clearScreen();
+
+          launchVMX(currentcpuinfo);
+
+          sendstring("launchVMX returned\n");
+          while (1)
+          {
+
+          }
+
 
     	  }
     	  else
