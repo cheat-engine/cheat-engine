@@ -54,7 +54,7 @@ typedef struct _vmregisters /* DO NOT CHANGE THIS ORDER */
   UINT64         rdx;
   UINT64         rcx;
   UINT64         rbx;
-  UINT64         rax;
+  UINT64         rax; //not valid in AMD
 } VMRegisters;
 
 #ifdef DEBUG
@@ -642,6 +642,7 @@ void setupTSS8086(void);
 void setupVMX(pcpuinfo currentcpuinfo);
 void launchVMX(pcpuinfo currentcpuinfo);
 int vmexit(tcpuinfo *cpu, UINT64 *registers);
+int vmexit_amd(pcpuinfo currentcpuinfo, UINT64 *registers);
 
 void sendvmstate(pcpuinfo currentcpuinfo, VMRegisters *registers);
 char *getVMInstructionErrorString(void);
