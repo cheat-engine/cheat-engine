@@ -472,13 +472,15 @@ mov ebx,0
 
 
 
-
+xchg bx,bx
 enummem:
 ;mov byte [es:0xdead],2
-
+;enumerate the memory regions available to the operating system and save them
 mov eax,0e820h
 mov ecx,20
 mov edx,0534D4150h
+
+
 int 15h
 
 jc endofenummem

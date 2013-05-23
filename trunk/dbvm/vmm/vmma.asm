@@ -98,22 +98,22 @@ bootdisk:           dd 0
 nextstack:		  	dq 0x00000000007FFFF8 ;start of stack for the next cpu
 
 struc vmxloop_amd_stackframe
-  saved_rax:      resq 1  ;0
-  saved_rbx:      resq 1  ;8
-  saved_rcx:      resq 1  ;10
-  saved_rdx:      resq 1  ;18
-  saved_rdi:      resq 1  ;20
-  saved_rsi:      resq 1  ;28
-  saved_rbp:      resq 1  ;30
-  saved_r8:       resq 1  ;38
-  saved_r9:       resq 1  ;40
-  saved_r10:      resq 1  ;48
-  saved_r11:      resq 1  ;50
-  saved_r12:      resq 1  ;58
-  saved_r13:      resq 1  ;60
-  saved_r14:      resq 1  ;68
-  saved_r15:      resq 1  ;70
-                  resq 1  ;alignment (78)
+  saved_r15:      resq 1
+  saved_r14:      resq 1
+  saved_r13:      resq 1
+  saved_r12:      resq 1
+  saved_r11:      resq 1
+  saved_r10:      resq 1
+  saved_r9:       resq 1
+  saved_r8:       resq 1
+  saved_rbp:      resq 1
+  saved_rsi:      resq 1
+  saved_rdi:      resq 1
+  saved_rdx:      resq 1
+  saved_rcx:      resq 1
+  saved_rbx:      resq 1
+  saved_rax:      resq 1
+                  resq 1  ;alignment
   fxsavespace:    resb 512 ;fxsavespace must be aligned
   vmcb_PA:        resq 1 ;saved param2
   currentcpuinfo: resq 1 ;saved param1
@@ -161,11 +161,8 @@ vmrun_loop:
 mov rax,[rsp+vmcb_PA]
 vmrun ;rax
 
-clgi
-cli
-
 ;on return RAX and RSP are unchanged, but ALL other registers are changed and MUST be saved first
-xchg bx,bx
+;xchg bx,bx
 
 fxsave [rsp+fxsavespace]
 mov [rsp+saved_r15],r15
@@ -185,12 +182,9 @@ mov [rsp+saved_rbx],rbx
 mov [rsp+saved_rax],rax
 
 mov rdi,[rsp+currentcpuinfo]
-lea rsi,[rsp+saved_rax] ;vmregisters
+lea rsi,[rsp+saved_r15] ;vmregisters
 
-xchg bx,bx
 call vmexit_amd
-
-xchg bx,bx
 
 ;check return. If everything ok restore and jump to vmrun_loop
 cmp eax,1
