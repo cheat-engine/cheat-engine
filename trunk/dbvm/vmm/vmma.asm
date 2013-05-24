@@ -2013,6 +2013,21 @@ mov dword [2],0
 lgdt [0x0]
 
 
+xchg bx,bx
+nop
+mov ecx,0xc0000080 ;test to see how it handles an efer write
+xor eax,eax
+xor edx,edx
+wrmsr
+
+nop
+xchg bx,bx
+nop
+
+mov ecx,0xc0010117 ;cause an exit
+rdmsr
+
+
 xor eax,eax
 xor ebx,ebx
 xor ecx,ecx

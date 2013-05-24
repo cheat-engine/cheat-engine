@@ -1745,6 +1745,8 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
   currentcpuinfo->vmcb->MSR_PROT=1;
 
 
+
+
   if (MSRBitmap==NULL)
   {
     int i;
@@ -1756,8 +1758,11 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
     for (i=0; i<4096*2; i++)
       MSRBitmap[i]=0;
 
-    //Must protect 0xc0010117
+    //Must protect 0xc0010117 (MSRPM_BASE_PA)
     MSRBitmap[0x1000+(0x0117*2)/8]|=3 << ((0x0117*2) % 8);
+
+    //also 0xc0000080 (EFER)
+    MSRBitmap[0x800+(0x80*2)/8]|=3 << ((0x80*2) % 8);
   }
   currentcpuinfo->vmcb->MSRPM_BASE_PA=VirtualToPhysical((UINT64)MSRBitmap);
 
