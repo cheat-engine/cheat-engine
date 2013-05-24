@@ -1251,10 +1251,6 @@ var doc: TXMLDocument;
 
   size: dword;
 
- { a85: TASCII85EncoderStream;
-  a85buffer: TStringStream;
-  s: string;   }
-
   a: TDOMAttr;
   formnode: TDOMNode;
 begin
@@ -1289,26 +1285,6 @@ begin
     m.free;
 
 
-    {
-    getmem(outputastext, m.size*2+1);
-    BinToHex(pchar(m.Memory), outputastext, m.Size);
-    outputastext[m.size*2]:=#0; //add a 0 terminator
-
-    m.free;
-    Node.AppendChild(doc.CreateElement(name)).TextContent:=outputastext;
-    }
-
-      {
-
-    a85buffer:=TStringStream.create('');
-    a85:=TASCII85EncoderStream.Create(a85buffer);
-    a85.Write(m.memory^, m.size);
-    a85.Free;
-    m.free;
-
-    s:=a85buffer.DataString;
-    a85buffer.free;  }
-
     formnode:=Node.AppendChild(doc.CreateElement(name));
     formnode.TextContent:=outputastext;
 
@@ -1342,9 +1318,6 @@ var s: string;
   realsize: dword;
   wasActive: boolean;
 
-  {a85: TASCII85DecoderStream;
-  a85source: Tstringstream;    }
-
   useascii85: boolean;
   a: TDOMNode;
 begin
@@ -1377,17 +1350,6 @@ begin
       size:=(length(s) div 5)*4+(length(s) mod 5);
       getmem(b, size);
       size:=Base85ToBin(pchar(s), b);
-
-     { a85source:=TStringStream.Create(s);
-      a85:=TASCII85DecoderStream.Create(a85source);
-
-      size:=a85source.Size*5 div 4;
-      getmem(b, size);
-      read:=a85.Read(b^, size);
-      size:=read;
-
-      a85.free;
-      a85source.free; }
     end
     else
     begin
@@ -1449,8 +1411,13 @@ begin
   begin
     formnode:=xmldoc.FindNode('FormData');
 
-    LoadFromXML(formnode);
-    ResyncWithLua;
+    if formnode.ChildNodes.Count>0 then
+    begin
+      LoadFromXML(formnode.ChildNodes.item[0]);
+      ResyncWithLua;
+    end
+    else
+      raise exception.create('Invalid formdata');
   end;
 end;
 
