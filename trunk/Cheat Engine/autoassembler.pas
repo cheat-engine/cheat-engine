@@ -4,9 +4,8 @@ unit autoassembler;
 
 interface
 
-uses jwawindows, windows, Assemblerunit, classes,
-LCLIntf,symbolhandler,sysutils,dialogs,controls, CEFuncProc, NewKernelHandler ,
-plugin;
+uses jwawindows, windows, Assemblerunit, classes, LCLIntf,symbolhandler,
+     sysutils,dialogs,controls, CEFuncProc, NewKernelHandler ,plugin;
 
 
 
@@ -73,6 +72,8 @@ resourcestring
   rsYouHavnTSpecifiedADisableSection = 'You havn''t specified a disable section';
   rsWrongSyntaxSHAREDALLOCNameSize = 'Wrong syntax. SHAREDALLOC(name,size)';
 
+
+
 procedure tokenize(input: string; tokens: tstringlist);
 var i: integer;
     a: integer;
@@ -83,7 +84,7 @@ begin
   for i:=1 to length(input) do
   begin
     case input[i] of
-      'a'..'z','A'..'Z','0'..'9','_','#','@': if a=-1 then a:=i;
+      'a'..'z','A'..'Z','0'..'9','.', '_','#','@': if a=-1 then a:=i;
       else
       begin
         if a<>-1 then
@@ -135,6 +136,218 @@ begin
   finally
     tokens.free;
   end;
+end;
+
+procedure tokenizeStruct(input: string; tokens: tstringlist);
+//a version of tokenize using strutils to split up the strings. (I don't want to replace it yet since it is slightly different, probably better, but let's be safe for now till it's fully tested)
+var delims: TSysCharSet;
+    i: integer;
+begin
+  delims:=[' '];
+
+  tokens.clear;
+  for i:=1 to WordCount(input, delims) do
+    tokens.add(ExtractWord(i, input, delims));
+
+end;
+
+procedure replaceStructWithDefines(code: Tstrings; linenr: integer);
+{
+parses the structure starting at the given line number.
+removes the structure definition from the code
+writes a define(xxxx,xxxxx) inplace starting from the linenumber
+
+precondition: linenr is valid and code[linenr] is indeed a STRUCT name line
+
+Structure format:
+struct name
+  db ?  db ? db ? db ?
+  db ? ? ?
+  dw ?
+  dd ?
+  dq ?
+  resb 4 resb 4
+  resw 4
+  resd 2
+  resq 1
+elementname1:
+  db ?
+  resw 1
+  dw ?
+elementname2: dw ?
+
+endstruct
+
+Res is an alternate to the usual "d* ?" but is specifically for no fill  (Res stands for reserve)
+Usage res* #  where # is the number of copies.  This is better suited for strings which can not be defined with db ?
+
+when done the name.elementname1 and just elementname1 will be defined at the spot the structure was placed. Subsequent structure definitions can override these defines. Elements may NOT have reserved words as they will get replaced. (like assembler commands)
+}
+
+
+var
+  currentOffset: integer;
+  structname: string;
+  elementname: string;
+  i,j,k: integer;
+  tokens: Tstringlist;
+
+  elements: tstringlist;
+  starttoken: integer;
+
+  bytesize: integer;
+  endfound: boolean;
+  lastlinenr: integer;
+  procedure structError(reason: string='');
+  var error: string;
+  begin
+    error:='Error in the structure definition of '+structname+' at line '+inttostr(lastlinenr+1);
+    if reason<>'' then
+      error:=error+' :'+reason
+    else
+      error:=error+'.';
+
+    raise exception.create(error);
+  end;
+
+begin
+  lastlinenr:=linenr;
+  endfound:=false;
+  structname:=trim(copy(code[linenr], 7, length(code[linenr])));
+
+  currentOffset:=0;
+  tokens:=tstringlist.create;
+  elements:=tstringlist.create;
+
+  for i:=linenr+1 to code.count-1 do
+  begin
+    lastlinenr:=i;
+    tokenizeStruct(code[i], tokens);
+
+    j:=0;
+
+    if tokens.count>0 then
+    begin
+      //first check if it's a label definition
+      if tokens[0][length(tokens[0])]=':' then
+      begin
+        elementname:=copy(tokens[0], 1, Length(tokens[0])-1);
+        if GetOpcodesIndex(elementname)<>-1 then
+          structError(elementname+' is a reserved word');
+
+        elements.AddObject(elementname, tobject(currentOffset));
+
+        j:=1;
+      end;
+
+
+
+      //then check if it's the end of the struct
+      if (uppercase(tokens[0])='ENDSTRUCT') or (uppercase(tokens[0])='ENDS') then
+      begin
+        endfound:=true;
+        break; //all done
+      end;
+    end;
+
+
+    //if it's neither a label or structure end then it's a size defining token
+
+    while j < tokens.count do
+    begin
+      tokens[j]:=uppercase(tokens[j]);
+
+      case tokens[j][1] of
+        'R':
+        begin
+          //could be res*
+          if (length(tokens[j])=4) and (copy(tokens[j],1,3)='RES') then
+          begin
+            case tokens[j][4] of
+              'B': bytesize:=1;
+              'W': bytesize:=2;
+              'D': bytesize:=4;
+              'Q': bytesize:=8;
+              else
+                StructError;
+            end;
+            //now get the count
+            inc(j);
+            if j>=tokens.count then
+              structError;
+
+            try
+              inc(currentOffset, bytesize*StrToInt(tokens[j]));
+            except
+              structerror;
+            end;
+          end else structerror;
+        end;
+
+        'D':
+        begin
+          //could be d* ?
+          if length(tokens[j])=2 then
+          begin
+            case tokens[j][2] of
+              'B': bytesize:=1;
+              'W': bytesize:=2;
+              'D': bytesize:=4;
+              'Q': bytesize:=8;
+              else
+                StructError;
+            end;
+
+            inc(j);
+            if j>=tokens.count then
+              structError;
+
+            inc(currentOffset, bytesize);
+
+            //check if there are more ?'s after this (in case of dw ? ? ?)
+            while j<tokens.count-1 do
+            begin
+              if tokens[j+1]='?' then  //check from the spot in front
+              begin
+                inc(currentOffset, bytesize);
+                inc(j);
+              end
+              else
+                break; //nope
+            end;
+
+          end else structerror;
+        end;
+
+        else
+          structError('No idea what '+tokens[j]+' is'); //we already dealth with labels, so this is wrong
+      end;
+
+
+      inc(j); //next token
+    end;
+
+
+  end;
+
+  if endfound=false then
+    structerror('No end found');
+
+  //the elements have been filled in, delete the structure (between linenr and lastlinenr) and inject define(element,offset) and define(structname.element,offset)
+  for i:=lastlinenr downto linenr do
+    code.Delete(i);
+
+  for i:=0 to elements.count-1 do
+  begin
+    code.Insert(linenr,'define('+elements[i]+','+inttohex(ptruint(elements.objects[i]),1)+')');
+    code.Insert(linenr,'define('+structname+'.'+elements[i]+','+inttohex(ptruint(elements.objects[i]),1)+')');
+  end;
+
+
+  code.insert(linenr, 'define('+structname+'_size,'+inttohex(currentOffset,1)+')');
+
+  showmessage(code.text);
+
 end;
 
 
@@ -742,6 +955,10 @@ begin
           currentline:=code[i];
           currentlinenr:=ptrUint(code.Objects[i]);
 
+          //check if useless
+          if length(currentline)=0 then continue;
+          if copy(currentline,1,2)='//' then continue; //skip
+
           //do this first. Do not touch registersymbol with any kind of define/label/whatsoever
           if uppercase(copy(currentline,1,15))='REGISTERSYMBOL(' then
           begin
@@ -764,9 +981,42 @@ begin
             continue;
           end;
 
-          if length(currentline)=0 then continue;
-          if copy(currentline,1,2)='//' then continue; //skip
+          //also, do not touch define with any previous define
+          if uppercase(copy(currentline,1,7))='DEFINE(' then
+          begin
+            //syntax: alloc(x,size)    x=variable name size=bytes
+            //allocate memory
+            a:=pos('(',currentline);
+            b:=pos(',',currentline);
+            c:=pos(')',currentline);
+            if (a>0) and (b>0) and (c>0) then
+            begin
+              s1:=trim(copy(currentline,a+1,b-a-1));
+              s2:=copy(currentline,b+1,c-b-1);
 
+              ok1:=true;
+              for j:=0 to length(defines)-1 do
+                if uppercase(defines[j].name)=uppercase(s1) then
+                begin
+                  //redefined from here on
+                  ok1:=false;
+                  defines[length(defines)-1].whatever:=s2
+                end;
+
+              if ok1 then //not duplicate, create it
+              begin
+                setlength(defines,length(defines)+1);
+                defines[length(defines)-1].name:=s1;
+                defines[length(defines)-1].whatever:=s2;
+              end;
+
+              continue;
+            end else raise exception.Create(rsWrongSyntaxDEFINENameWhatever+' Got '+currentline);
+          end;
+
+
+
+          //apply defines
           for j:=0 to length(defines)-1 do
              currentline:=replacetoken(currentline,defines[j].name,defines[j].whatever);
 
@@ -1134,30 +1384,15 @@ begin
           //AOBSCAN used to live here, but he moved up
 
           //define
-          if uppercase(copy(currentline,1,7))='DEFINE(' then
+          if uppercase(copy(currentline,1,7))='STRUCT ' then
           begin
-            //syntax: alloc(x,size)    x=variable name size=bytes
-            //allocate memory
-            a:=pos('(',currentline);
-            b:=pos(',',currentline);
-            c:=pos(')',currentline);
-            if (a>0) and (b>0) and (c>0) then
-            begin
-              s1:=trim(copy(currentline,a+1,b-a-1));
-              s2:=copy(currentline,b+1,c-b-1);
-
-              for j:=0 to length(defines)-1 do
-                if uppercase(defines[j].name)=uppercase(s1) then
-                  raise exception.Create(Format(rsDefineAlreadyDefined, [s1]));
-
-              setlength(defines,length(defines)+1);
-              defines[length(defines)-1].name:=s1;
-              defines[length(defines)-1].whatever:=s2;
-
-              setlength(assemblerlines,length(assemblerlines)-1);   //don't bother with this in the 2nd pass
-              continue;
-            end else raise exception.Create(rsWrongSyntaxDEFINENameWhatever+' Got '+currentline);
+            replaceStructWithDefines(code, i);
+            setlength(assemblerlines,length(assemblerlines)-1);
+            dec(i); //repeat from this line
+            continue;
           end;
+
+
 
           if uppercase(copy(currentline,1,11))='FULLACCESS(' then
           begin
