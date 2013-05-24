@@ -2545,7 +2545,7 @@ int handleInterruptRealMode(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       // Check if it is one of the functions needed to hook, if not, emulate and continue
       if (((WORD)(vmregisters->rax) & 0xff00)==0x8800)
       {
-        nosendchar[getAPICID()]=0;
+      //  nosendchar[getAPICID()]=0;
         sendstringf("Handling int 15h, AH=88 . issoftware=%d\n\r", issoftware);
 
 
@@ -2666,7 +2666,7 @@ int handleInterruptRealMode(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
             vmregisters->rbx=(vmregisters->rbx & 0xffffffff00000000ULL) + i;
           }
 
-          vmregisters->rcx=(vmregisters->rcx & 0xffffffff00000000) + (o*20);
+          vmregisters->rcx=(vmregisters->rcx & 0xffffffff00000000ULL) + (o*20);
           vmwrite(vm_guest_rip,vmread(vm_guest_rip)+issoftware); //eip to next
           vmwrite(vm_guest_rflags,vmread(vm_guest_rflags) & 0xFFFFFFFFFFFFFFFEULL); //clear carry flag
 

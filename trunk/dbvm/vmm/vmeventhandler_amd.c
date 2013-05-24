@@ -197,7 +197,7 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
             vmregisters->rbx=(vmregisters->rbx & 0xffffffff00000000ULL) + i;
           }
 
-          vmregisters->rcx=(vmregisters->rcx & 0xffffffff00000000) + (o*20);
+          vmregisters->rcx=(vmregisters->rcx & 0xffffffff00000000ULL) + (o*20);
           ((PRFLAGS)(&currentcpuinfo->vmcb->RFLAGS))->CF=0; //clear carry
 
           sendstringf("Handled int15h ax=e820. ECX=%8 \n\r",(ULONG)vmregisters->rcx);

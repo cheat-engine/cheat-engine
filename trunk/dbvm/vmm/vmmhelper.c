@@ -520,8 +520,8 @@ criticalSection vmexitlock;
 
 int vmexit_amd(pcpuinfo currentcpuinfo, UINT64 *registers)
 {
-  displayline("vmexit_amd called. currentcpuinfo=%p\n", currentcpuinfo);
-  displayline("cpunr=%d\n", currentcpuinfo->cpunr);
+ // displayline("vmexit_amd called. currentcpuinfo=%p\n", currentcpuinfo);
+ // displayline("cpunr=%d\n", currentcpuinfo->cpunr);
 
   return handleVMEvent_amd(currentcpuinfo, (VMRegisters*)registers);
 }
