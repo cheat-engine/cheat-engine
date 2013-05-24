@@ -12,8 +12,10 @@
 #include "keyboard.h"
 #include "neward.h"
 
+
 int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 {
+  int i;
 
 
 
@@ -26,7 +28,7 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   {
 
 
-    case 0x75: //software interrupts (INTn)
+    case VMEXIT_SWINT: //software interrupts (INTn)
     {
       int handled=0;
       int intnr;
@@ -87,7 +89,7 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
         if ((currentcpuinfo->vmcb->RAX & 0xffff)==0xe801)
         {
-          int i;
+
 
           DWORD between1and16MB=0; //in KB, max 3c00  (between 0x100000 and 0x1000000)
           DWORD above16MB=0;
@@ -238,12 +240,106 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       return 0;
     }
 
+    case VMEXIT_MSR:
+    {
+      nosendchar[getAPICID()]=0;
+      sendstring("VMEXIT_MSR\n");
+      sendstringf("EXITINFO1=%d\n", currentcpuinfo->vmcb->EXITINFO1);
+      sendstringf("EXITINFO2=%d\n", currentcpuinfo->vmcb->EXITINFO2);
 
-    case 0x7F: //shutdown
+      if (currentcpuinfo->vmcb->EXITINFO1)
+      {
+        sendstringf("WRITE %x\n", vmregisters->rcx);
+
+        if (vmregisters->rcx==0xc0010117)
+        {
+          currentcpuinfo->guest_VM_HSAVE_PA=((vmregisters->rdx & 0xffffffff) << 32) + (currentcpuinfo->vmcb->RAX & 0xffffffff);
+          sendstringf("setting guest_VM_HSAVE_PA to %6\n", currentcpuinfo->guest_VM_HSAVE_PA);
+
+          sendstringf("vmregisters->rdx was %6\n", vmregisters->rdx);
+          sendstringf("currentcpuinfo->vmcb->RAX was%6\n", currentcpuinfo->vmcb->RAX);
+        }
+      }
+      else
+      {
+        sendstringf("READ %x\n", vmregisters->rcx);
+        sendstringf("vmregisters->rdx was %6\n", vmregisters->rdx);
+        sendstringf("currentcpuinfo->vmcb->RAX was%6\n", currentcpuinfo->vmcb->RAX);
+
+        vmregisters->rdx=(currentcpuinfo->guest_VM_HSAVE_PA >> 32);
+        currentcpuinfo->vmcb->RAX=(currentcpuinfo->vmcb->RAX & 0xffffffff00000000ULL)+(currentcpuinfo->guest_VM_HSAVE_PA & 0xffffffff);
+        vmregisters->rdx=(vmregisters->rdx & 0xffffffff00000000ULL)+(currentcpuinfo->guest_VM_HSAVE_PA >> 32);
+
+
+        sendstringf("currentcpuinfo->guest_VM_HSAVE_PA is %6\n", currentcpuinfo->guest_VM_HSAVE_PA);
+        sendstringf("vmregisters->rdx has been set to %6\n", vmregisters->rdx);
+        sendstringf("currentcpuinfo->vmcb->RAX has been set to %6\n", currentcpuinfo->vmcb->RAX);
+
+
+
+
+      }
+      sendstringf("RIP=%6\n",currentcpuinfo->vmcb->RIP);
+      sendstringf("nRIP=%6\n", currentcpuinfo->vmcb->nRIP);
+
+      if (AMD_hasNRIPS)
+      {
+        currentcpuinfo->vmcb->RIP=currentcpuinfo->vmcb->nRIP;
+      }
+      else
+      {
+        //FFS (I don't think i'm going to support cpu's without this)
+        int error;
+        UINT64 pagefaultaddress;
+        unsigned char *bytes=(unsigned char *)mapVMmemory(currentcpuinfo, currentcpuinfo->vmcb->cs_base+currentcpuinfo->vmcb->RIP, 15, currentcpuinfo->AvailableVirtualAddress, &error, &pagefaultaddress);
+
+        for (i=0; i<15; i++)
+        {
+          sendstringf("%x ", bytes[i]);
+          if (bytes[i]==0x0f)
+          {
+            sendstringf("%x ", bytes[i+1]);
+            sendstringf("%x ", bytes[i+2]);
+            sendstringf("%x ", bytes[i+3]);
+            currentcpuinfo->vmcb->RIP+=i+2;
+            break;
+          }
+        }
+
+      }
+
+      return 0;
+
+
+      break;
+    }
+
+    case VMEXIT_VMRUN:
+    {
+      nosendchar[getAPICID()]=0;
+      sendstring("VMEXIT_VMRUN\n");
+      //handle the vmrun (UD exception, or pass it off)
+      break;
+    }
+
+    case VMEXIT_VMMCALL:
+    {
+      //dbvm callback for amd
+      break;
+    }
+
+
+    case VMEXIT_SHUTDOWN: //shutdown
     {
       displayline("FUUUUCK!\n");
       while(1);
 
+      break;
+    }
+
+    case VMEXIT_INVALID:
+    {
+      displayline("VMEXIT_INVALID\n");
       break;
     }
 
