@@ -377,6 +377,10 @@ typedef volatile struct _cpuinfo
   pvmcb vmcb; //AMD's virtual machine control_block. Give the physical address of this to VMRUN
   UINT64 vmcb_PA;
 
+  UINT64 guest_VM_HSAVE_PA; //the current VM_HSAVE_PA according to the guest
+
+
+
   void* vmxon_region;
   void* vmcs_region;
 

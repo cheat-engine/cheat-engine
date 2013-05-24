@@ -2268,10 +2268,12 @@ void startvmx(pcpuinfo currentcpuinfo)
 
     		  currentcpuinfo->vmcb_PA=(UINT64)VirtualToPhysical((UINT64)currentcpuinfo->vmcb);
 
+    		  bochsbp();
           UINT64 VM_HSAVE_PA_MSR=readMSR(0xc0010117); //VM_HSAVE_PA MSR
           sendstringf("VM_HSAVE_PA_MSR was %6\n", VM_HSAVE_PA_MSR);
 
           currentcpuinfo->vmcb_host=malloc(4096);
+        //  bochsbp();
           writeMSR(0xc0010117, (UINT64)VirtualToPhysical((UINT64)currentcpuinfo->vmcb_host));
 
 

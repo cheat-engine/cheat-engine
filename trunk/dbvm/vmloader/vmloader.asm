@@ -470,9 +470,6 @@ mov es,ax
 mov di,0
 mov ebx,0
 
-
-
-xchg bx,bx
 enummem:
 ;mov byte [es:0xdead],2
 ;enumerate the memory regions available to the operating system and save them

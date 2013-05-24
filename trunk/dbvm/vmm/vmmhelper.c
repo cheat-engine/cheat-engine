@@ -1741,12 +1741,27 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
 
 
   currentcpuinfo->vmcb->InterceptINT=1; //break on software interrupts (int 0x15 in realmode)
- // currentcpuinfo->vmcb->InterceptShutdown=1; //in case of a severe error
+  currentcpuinfo->vmcb->InterceptShutdown=1; //in case of a severe error
+  currentcpuinfo->vmcb->MSR_PROT=1;
 
 
+  if (MSRBitmap==NULL)
+  {
+    int i;
+    //allocate and MSR bitmap
+    MSRBitmap=malloc(2*4096);
+    //fill with 1's (the msr's that have a 1 do not cause an intercept)
 
+    //bochsbp();
+    for (i=0; i<4096*2; i++)
+      MSRBitmap[i]=0;
 
+    //Must protect 0xc0010117
+    MSRBitmap[0x1000+(0x0117*2)/8]|=3 << ((0x0117*2) % 8);
+  }
+  currentcpuinfo->vmcb->MSRPM_BASE_PA=VirtualToPhysical((UINT64)MSRBitmap);
 
+  currentcpuinfo->guest_VM_HSAVE_PA=0;
 
 
   globals_have_been_configured=1;
@@ -1819,7 +1834,7 @@ void setupVMX(pcpuinfo currentcpuinfo)
 
 
     //read for 0xc0000080  (EFER)
-    MSRBitmap[1048+0x80/8]=1 << (0x80 % 8);
+    MSRBitmap[1024+0x80/8]=1 << (0x80 % 8);
 
     //write for 0xc0000080
     MSRBitmap[3072+0x80/8]=1 << (0x80 % 8);
