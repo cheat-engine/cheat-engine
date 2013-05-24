@@ -251,13 +251,25 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       {
         sendstringf("WRITE %x\n", vmregisters->rcx);
 
-        if (vmregisters->rcx==0xc0010117)
+        switch (vmregisters->rcx & 0xffffffff)
         {
-          currentcpuinfo->guest_VM_HSAVE_PA=((vmregisters->rdx & 0xffffffff) << 32) + (currentcpuinfo->vmcb->RAX & 0xffffffff);
-          sendstringf("setting guest_VM_HSAVE_PA to %6\n", currentcpuinfo->guest_VM_HSAVE_PA);
+          case 0xc0000080://efer
+            //store the efer the guest wants it to be
+            currentcpuinfo->efer=((vmregisters->rdx & 0xffffffff) << 32) + (currentcpuinfo->vmcb->RAX & 0xffffffff);
 
-          sendstringf("vmregisters->rdx was %6\n", vmregisters->rdx);
-          sendstringf("currentcpuinfo->vmcb->RAX was%6\n", currentcpuinfo->vmcb->RAX);
+            //and set the actual efer  (make sure SVME is set)
+            currentcpuinfo->vmcb->EFER=currentcpuinfo->efer | (1 << 12);
+
+            sendstringf("Wants to set efer to %x\nActually set efer to %x\n",currentcpuinfo->efer, currentcpuinfo->vmcb->EFER);
+
+            break;
+
+          case 0xc0010117:
+            currentcpuinfo->guest_VM_HSAVE_PA=((vmregisters->rdx & 0xffffffff) << 32) + (currentcpuinfo->vmcb->RAX & 0xffffffff);
+            break;
+
+
+
         }
       }
       else
@@ -266,16 +278,21 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
         sendstringf("vmregisters->rdx was %6\n", vmregisters->rdx);
         sendstringf("currentcpuinfo->vmcb->RAX was%6\n", currentcpuinfo->vmcb->RAX);
 
-        vmregisters->rdx=(currentcpuinfo->guest_VM_HSAVE_PA >> 32);
-        currentcpuinfo->vmcb->RAX=(currentcpuinfo->vmcb->RAX & 0xffffffff00000000ULL)+(currentcpuinfo->guest_VM_HSAVE_PA & 0xffffffff);
-        vmregisters->rdx=(vmregisters->rdx & 0xffffffff00000000ULL)+(currentcpuinfo->guest_VM_HSAVE_PA >> 32);
+        switch (vmregisters->rcx & 0xffffffff)
+        {
+          case 0xc0000080://efer
+            currentcpuinfo->vmcb->RAX=(currentcpuinfo->vmcb->RAX & 0xffffffff00000000ULL)+(currentcpuinfo->efer & 0xffffffff);
+            vmregisters->rdx=(vmregisters->rdx & 0xffffffff00000000ULL)+(currentcpuinfo->efer >> 32);
 
+            break;
 
-        sendstringf("currentcpuinfo->guest_VM_HSAVE_PA is %6\n", currentcpuinfo->guest_VM_HSAVE_PA);
-        sendstringf("vmregisters->rdx has been set to %6\n", vmregisters->rdx);
-        sendstringf("currentcpuinfo->vmcb->RAX has been set to %6\n", currentcpuinfo->vmcb->RAX);
+          case 0xc0010117:
+            currentcpuinfo->vmcb->RAX=(currentcpuinfo->vmcb->RAX & 0xffffffff00000000ULL)+(currentcpuinfo->guest_VM_HSAVE_PA & 0xffffffff);
+            vmregisters->rdx=(vmregisters->rdx & 0xffffffff00000000ULL)+(currentcpuinfo->guest_VM_HSAVE_PA >> 32);
 
+            break;
 
+        }
 
 
       }
@@ -339,7 +356,9 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case VMEXIT_INVALID:
     {
-      displayline("VMEXIT_INVALID\n");
+      sendstring("VMEXIT_INVALID\n");
+      sendstringf("EFER=%x\n", currentcpuinfo->vmcb->EFER);
+
       break;
     }
 
