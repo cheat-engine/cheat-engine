@@ -1850,7 +1850,6 @@ quickboot:
 ;quickboot is called by the virtual machine as initial boot startup
 call clearScreen
 
-;xchg bx,bx
 
 nop
 nop
@@ -2018,7 +2017,7 @@ nop
 mov ecx,0xc0000080 ;test to see how it handles an efer write
 xor eax,eax
 xor edx,edx
-wrmsr
+;wrmsr
 
 nop
 xchg bx,bx

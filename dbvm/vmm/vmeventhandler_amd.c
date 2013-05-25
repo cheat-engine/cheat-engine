@@ -70,8 +70,8 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
         //todo: Split this up into a function used by both intel and amd. Right now it's basically just a copy/paste with minor changes
 
         //realmode of Virtual 8086 mode and the interrupt matches
-        sendstringf("INT 0x15\n");
-        sendstringf("RAX=%6\n", currentcpuinfo->vmcb->RAX);
+        //sendstringf("INT 0x15\n");
+        //sendstringf("RAX=%6\n", currentcpuinfo->vmcb->RAX);
 
         if ((currentcpuinfo->vmcb->RAX & 0xff00)==0x8800)
         {
@@ -217,7 +217,7 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       }
       else
       {
-        sendstringf("INT 0x%x .  Not INT 0x15 or not in realmode so handle it normally (inject this interrupt)\n", intnr);
+       // sendstringf("INT 0x%x .  Not INT 0x15 or not in realmode so handle it normally (inject this interrupt)\n", intnr);
       }
 
       //adjust RIP
@@ -229,7 +229,7 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       if (!handled)
       {
         {
-          sendstringf("Injecting interrupt\n");
+         // sendstringf("Injecting interrupt\n");
           currentcpuinfo->vmcb->inject_Type=4; //software int
           currentcpuinfo->vmcb->inject_Vector=intnr;
           currentcpuinfo->vmcb->inject_Valid=1;
@@ -274,25 +274,37 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       }
       else
       {
+        QWORD value;
         sendstringf("READ %x\n", vmregisters->rcx);
         sendstringf("vmregisters->rdx was %6\n", vmregisters->rdx);
-        sendstringf("currentcpuinfo->vmcb->RAX was%6\n", currentcpuinfo->vmcb->RAX);
+        sendstringf("currentcpuinfo->vmcb->RAX was %6\n", currentcpuinfo->vmcb->RAX);
 
         switch (vmregisters->rcx & 0xffffffff)
         {
           case 0xc0000080://efer
-            currentcpuinfo->vmcb->RAX=(currentcpuinfo->vmcb->RAX & 0xffffffff00000000ULL)+(currentcpuinfo->efer & 0xffffffff);
-            vmregisters->rdx=(vmregisters->rdx & 0xffffffff00000000ULL)+(currentcpuinfo->efer >> 32);
+            //update LMA
 
+            if ((currentcpuinfo->efer >> 12) & 1) //just give it the full EFER if it has enabled svmx as well
+              currentcpuinfo->efer=currentcpuinfo->vmcb->EFER;
+            else
+            {
+              currentcpuinfo->efer=currentcpuinfo->vmcb->EFER & ~(1<<12); //everything except this bit
+            }
+
+            value=currentcpuinfo->efer;
             break;
 
           case 0xc0010117:
-            currentcpuinfo->vmcb->RAX=(currentcpuinfo->vmcb->RAX & 0xffffffff00000000ULL)+(currentcpuinfo->guest_VM_HSAVE_PA & 0xffffffff);
-            vmregisters->rdx=(vmregisters->rdx & 0xffffffff00000000ULL)+(currentcpuinfo->guest_VM_HSAVE_PA >> 32);
-
+            value=currentcpuinfo->guest_VM_HSAVE_PA;
             break;
-
         }
+
+        currentcpuinfo->vmcb->RAX=(DWORD)value;
+        vmregisters->rdx=(DWORD)(currentcpuinfo->efer >> 32);
+
+        sendstringf("vmregisters->rdx is %6\n", vmregisters->rdx);
+        sendstringf("currentcpuinfo->vmcb->RAX is %6\n", currentcpuinfo->vmcb->RAX);
+
 
 
       }
@@ -366,7 +378,7 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   }
 
 
-  displayline("Unhandled event\n");
+  displayline("Unhandled event %x\n", currentcpuinfo->vmcb->EXITCODE);
   while (1) ;
   //still here
   return 1;
