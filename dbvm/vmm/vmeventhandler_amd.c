@@ -19,10 +19,13 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
 
 
-  nosendchar[getAPICID()]=1;
+  nosendchar[getAPICID()]=0;
   sendstringf("currentcpuinfo->vmcb->EXITCODE=%d\n", currentcpuinfo->vmcb->EXITCODE);
   sendstringf("EXITINTINFO=%x\nEXITINFO1=%x\nEXITINFO2=%x\n", currentcpuinfo->vmcb->EXITINTINFO, currentcpuinfo->vmcb->EXITINFO1, currentcpuinfo->vmcb->EXITINFO2);
 
+  sendstringf("currentcpuinfo->vmcb->VMCB_CLEAN_BITS = %8\n", currentcpuinfo->vmcb->VMCB_CLEAN_BITS);
+
+  currentcpuinfo->vmcb->VMCB_CLEAN_BITS=0xffffffff; //nothing cached changed
 
   switch (currentcpuinfo->vmcb->EXITCODE)
   {
@@ -262,6 +265,12 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
             sendstringf("Wants to set efer to %x\nActually set efer to %x\n",currentcpuinfo->efer, currentcpuinfo->vmcb->EFER);
 
+            currentcpuinfo->vmcb->VMCB_CLEAN_BITS&=~(1 << 5); //the efer got changed
+
+            sendstringf("currentcpuinfo->vmcb->VMCB_CLEAN_BITS = %8\n", currentcpuinfo->vmcb->VMCB_CLEAN_BITS);
+
+
+
             break;
 
           case 0xc0010117:
@@ -305,6 +314,9 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
         sendstringf("vmregisters->rdx is %6\n", vmregisters->rdx);
         sendstringf("currentcpuinfo->vmcb->RAX is %6\n", currentcpuinfo->vmcb->RAX);
 
+        //tell the cpu that ONLY the EFER and RIP got changed and nothing else
+
+
 
 
       }
@@ -336,6 +348,8 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
         }
 
       }
+
+
 
       return 0;
 
