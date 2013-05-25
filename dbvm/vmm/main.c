@@ -715,9 +715,6 @@ void vmm_entry2(void)
 
   setints();
 
-  if (isAMD)
-    while (1);
-
   startvmx(&(cpuinfo[cpunr]));
 
 
@@ -1739,7 +1736,7 @@ void menu(void)
         if (!loadedOS)
         {
 
-          if ((!isAMD) && (cpucount>0)) //!isAMD for now during tests
+          if (cpucount>0) //!isAMD for now during tests
           {
             displayline("Sending other CPU cores into VMX wait mode\n");
             sendstring("BootCPU: Sending all AP's the command to start the VMX code\n\r");
@@ -2151,7 +2148,7 @@ void startvmx(pcpuinfo currentcpuinfo)
 
 
 
-  displayline("%d: startvmx:\n",currentcpuinfo->cpunr);
+  displayline("cpu %d: startvmx:\n",currentcpuinfo->cpunr);
 #ifdef DEBUG
   sendstringf("currentcpuinfo=%6  (cpunr=%d)\n\r",(UINT64)currentcpuinfo, currentcpuinfo->cpunr);
   sendstringf("ESP=%6\n\r",entryrsp);

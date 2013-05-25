@@ -1835,12 +1835,15 @@ global infloop
 infloop:
 nop
 nop
+xchg bx,bx
 nop
 hlt
 nop
 nop
+xchg bx,bx ;should never happen
 nop
 jmp infloop
+
 
 ;--------------------;
 ;void quickboot(void);
