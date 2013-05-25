@@ -1674,6 +1674,12 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
   Segment_Attribs reg_traccessrights;
 
 
+  if (currentcpuinfo->cpunr!=0)
+  {
+    sendstringf("setupVMX_AMD for AP cpu\n");
+  }
+
+
   currentcpuinfo->vmcb->InterceptVMRUN=1;
   currentcpuinfo->vmcb->GuestASID=1;
   currentcpuinfo->vmcb->EFER=0x1500 | (1<<8) | (1<<10);
@@ -1735,8 +1741,14 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
   currentcpuinfo->vmcb->DR7=0x400;
 
   currentcpuinfo->vmcb->RSP=0x8fffc;
-  currentcpuinfo->vmcb->RIP=(UINT64)quickboot;
   currentcpuinfo->vmcb->RFLAGS=getRFLAGS();
+
+  if (currentcpuinfo->cpunr==0)
+    currentcpuinfo->vmcb->RIP=(UINT64)quickboot;
+  else
+    currentcpuinfo->vmcb->RIP=(UINT64)infloop;
+
+
 
 
 
