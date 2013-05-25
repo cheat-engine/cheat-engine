@@ -1762,6 +1762,7 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
     MSRBitmap[0x1000+(0x0117*2)/8]|=3 << ((0x0117*2) % 8);
 
     //also 0xc0000080 (EFER)
+    //if (hideEFER)
     MSRBitmap[0x800+(0x80*2)/8]|=3 << ((0x80*2) % 8);
   }
   currentcpuinfo->vmcb->MSRPM_BASE_PA=VirtualToPhysical((UINT64)MSRBitmap);

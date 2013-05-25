@@ -1,8 +1,8 @@
 #SERIALPORT is the port to communicate with the debugger, usually 0x3f8, on db's system it's 0xef00
-SERIALPORT=0x3f8 #bochs
+#SERIALPORT=0x3f8 #bochs
 #SERIALPORT=0xbf00 #intel
 #SERIALPORT=0xec00 #amd
-#SERIALPORT=0
+SERIALPORT=0
 
 
 all:
@@ -18,7 +18,9 @@ all:
 
 install: all
 	imagemaker/imagemaker
-	sync
+	chmod 777 vmdisk.img
+	chmod 777 vmdisk144.img
+	sync	
 
 usb: install
 	dd if=vmdisk.img of=/dev/sdb

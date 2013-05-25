@@ -2239,8 +2239,8 @@ void startvmx(pcpuinfo currentcpuinfo)
     	  displayline("EDX=%8\n", d);
 
 
-    	 // AMD_hasDecodeAssists=(d & (1<<7))>0;
-    	 // AMD_hasNRIPS=(d & (1<<3))>0;
+    	  AMD_hasDecodeAssists=(d & (1<<7))>0;
+    	  AMD_hasNRIPS=(d & (1<<3))>0;
     	  sendstringf("AMD_hasDecodeAssists=%d\n", AMD_hasDecodeAssists);
 
     	  UINT64 VM_CR=readMSR(0xc0010114); //VM_CR MSR
