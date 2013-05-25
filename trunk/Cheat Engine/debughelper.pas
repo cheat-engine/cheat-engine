@@ -8,7 +8,7 @@ uses
   Windows, Classes, SysUtils, Controls, forms, syncobjs, guisafecriticalsection, Dialogs,
   foundcodeunit, debugeventhandler, cefuncproc, newkernelhandler, comctrls,
   debuggertypedefinitions, formChangedAddresses, frmTracerUnit, KernelDebuggerInterface, VEHDebugger,
-  WindowsDebugger, debuggerinterfaceAPIWrapper, debuggerinterface,symbolhandler, fgl;
+  WindowsDebugger, debuggerinterfaceAPIWrapper, debuggerinterface,symbolhandler, fgl, disassembler;
 
 
 
@@ -1461,9 +1461,13 @@ begin
 end;
 
 procedure TDebuggerthread.FindWhatCodeAccesses(address: uint_ptr);
-var method: TBreakpointMethod;
-var frmChangedAddresses: tfrmChangedAddresses;
-useddebugregister: integer;
+var
+  method: TBreakpointMethod;
+  frmChangedAddresses: tfrmChangedAddresses;
+  useddebugregister: integer;
+  i: integer;
+  s: string;
+  tempaddress: ptruint;
 begin
   method:=preferedBreakpointMethod;
   if method=bpmDebugRegister then
@@ -1482,6 +1486,12 @@ begin
   end;
 
   frmchangedaddresses:=tfrmChangedAddresses.Create(application) ;
+  tempaddress:=address;
+  s:=disassemble(tempaddress); //tempaddress gets changed by this, so don't use the real one
+  i:=pos('[',s)+1;
+  s:=copy(s,i,pos(']',s)-i);
+  frmchangedaddresses.equation:=s; //so no need to disassemble every single time...
+
   frmchangedaddresses.show;
 
   AddBreakpoint(nil, address, 1, bptExecute, method, bo_FindWhatCodeAccesses, usedDebugRegister, nil, 0, frmchangedaddresses);

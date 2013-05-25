@@ -60,6 +60,7 @@ type
     procedure refetchValues(specificaddress: ptruint=0);
   public
     { Public declarations }
+    equation: string;
     procedure AddRecord;
   end;
 
@@ -67,7 +68,8 @@ type
 implementation
 
 
-uses CEDebugger, MainUnit, frmRegistersunit, MemoryBrowserFormUnit, debughelper, debugeventhandler;
+uses CEDebugger, MainUnit, frmRegistersunit, MemoryBrowserFormUnit, debughelper,
+  debugeventhandler, debuggertypedefinitions;
 
 resourcestring
   rsStop='Stop';
@@ -95,26 +97,22 @@ end;
 
 
 procedure TfrmChangedAddresses.AddRecord;
-var s: string;
-haserror: boolean;
-address: ptrUint;
- i: integer;
- li: tlistitem;
- currentthread: TDebugThreadHandler;
+var
+  haserror: boolean;
+  address: ptrUint;
+  i: integer;
+  li: tlistitem;
+  currentthread: TDebugThreadHandler;
 
- x: TaddressEntry;
+  x: TaddressEntry;
+  s: string;
 begin
   //the debuggerthread is idle at this point
   currentThread:=debuggerthread.CurrentThread;
   if currentthread<>nil then
   begin
     //get the instruction address
-    address:=currentThread.context.{$ifdef cpu64}Rip{$else}eip{$endif};
-    s:=disassemble(address);
-    i:=pos('[',s)+1;
-    s:=copy(s,i,pos(']',s)-i);
-
-    address:=symhandler.getAddressFromName(s, false, haserror, currentthread.context);
+    address:=symhandler.getAddressFromName(equation, false, haserror, currentthread.context);
 
     if not hasError then
     begin
