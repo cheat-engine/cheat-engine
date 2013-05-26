@@ -32,20 +32,21 @@ Changed hotkey handling internally
 The different display types in the hexadecimal view of memoryview now support direct editing as well
 The foundlist can now display using a different display type, on the condition that the type has a compatibly bytesize
 The foundlist now shows a "previous value" column and marks differences red
-Registersymbol now works with aobscan results
 The symbolhandler now has a better distinction between 32 and 64-bit modules. Non-compatible modules (64-bit in 32-bit programs) will get an underscore in front of their symbolnames
 Added a graphical memory view
 Added a new breakpoint type :Exceptions (not dependant on size and no debug registers, but extremely slow to unplayable)
 Added a luaserver to ce that you can use to let a different/target process execute lua commands and pass data
 The userdefined comments can now show handle multiple lines
 Dissect code now lets you jump to a referal if you click the line
-Added a few new methods to the disassembler so you can render your own data in front and after a disassembler line
+Added a few new lua methods to the disassembler so you can render your own data in front and after a disassembler line
 Assembler: Added override support to relative jumps
 Auto Assembler: AA command ReadMem can now work on large sets of data without being too slow
 Auto Assembler: Scripts with multiple AOBScan commands will go faster now (grouped into one)
 Auto Assembler: Added a new "AOBSCANMODULE" auto assemble command . Usage: AOBSCANMODULE(modulename, aob)
 Auto Assembler: GlobalAlloc now doesn't allocate 4KB (64KB in reality) for each symbol but now groups them
-Tracer: You can now ave and load a trace
+Auto Assembler: Registersymbol now works with aobscan results
+Auto Assembler: Add support for inscript structure definitions
+Tracer: You can now save and load a trace
 Addresslist: Changing a records' value (lua setValue) now supports lua statements if the new value is enclosed by brackets [  ]  (Example: [12-2] becomes 10, and [readInteger(0x00400500)+10] returns the value at 00400500 with 10 added to it)
 D3D: Added the ability to dissect a whole d3d scene and get the stack at the moment a specific object is being rendered
 Symbolhandler: It now interprets "structurename.variablename" and returns the offset of variablename in the structure. This includes auto assembler
