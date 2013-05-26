@@ -125,7 +125,8 @@ type
 implementation
 
 uses foundcodeunit, DebugHelper, MemoryBrowserFormUnit, frmThreadlistunit,
-     KernelDebuggerInterface, frmDebugEventsUnit, formdebugstringsunit, symbolhandler;
+     WindowsDebugger, VEHDebugger, KernelDebuggerInterface, frmDebugEventsUnit,
+     formdebugstringsunit, symbolhandler;
 
 procedure TDebugThreadHandler.AddDebugEventString;
 begin
@@ -696,7 +697,7 @@ begin
   end else
   begin
     OutputDebugString('Unexpected breakpoint');
-    if (CurrentDebuggerInterface.name='Windows Debugger') then
+    if not (CurrentDebuggerInterface is TKernelDebugInterface) then
     begin
       onAttachEvent.SetEvent;
 
@@ -856,7 +857,7 @@ begin
       OutputDebugString('EXCEPTION_BREAKPOINT:'+inttohex(context.{$ifdef cpu64}rip{$else}eip{$endif},8));
 
 
-      //if this is the first breakpoint exception check if it needs to tset the entry point bp
+      //if this is the first breakpoint exception check if it needs to set the entry point bp
 
       if TDebuggerThread(debuggerthread).NeedsToSetEntryPointBreakpoint then
       begin
@@ -1025,7 +1026,8 @@ begin
       symhandler.reinitialize;
     end;
 
-    if (CurrentDebuggerInterface.name<>'Windows Debugger') then
+
+    if CurrentDebuggerInterface is TKernelDebugInterface then //only the kerneldebuginterface doesn't give a breakpoint as init so use create as attachevent
       onAttachEvent.SetEvent;
 
     secondcreateprocessdebugevent:=true;
