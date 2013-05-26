@@ -42,6 +42,10 @@ var ep: TEXCEPTIONPOINTERS;
 begin
   //OutputDebugString('EmulateInitializeEvents');
   cpid:=GetCurrentProcessId;
+  ep.ContextRecord:=nil;
+  ep.ExceptionRecord:=@er;
+  er.NumberParameters:=0;
+
 
   ths:=CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD,0);
   if ths<>INVALID_HANDLE_VALUE then
@@ -55,9 +59,7 @@ begin
     begin
       if lpte.th32OwnerProcessID=cpid then
       begin
-        ep.ContextRecord:=nil; //@c;
-        ep.ExceptionRecord:=@er;
-        er.NumberParameters:=0;
+
 
         if isfirst then
         begin
@@ -82,6 +84,14 @@ begin
 
   if VEHSharedMem.ThreadWatchMethod=0 then
     ThreadPoller:=TThreadPoller.create(false);
+
+  //tell ce that the debugger has been attached
+  ep.ContextRecord:=@VEHSharedMem.CurrentContext[0]; //just some memory properly aligned that can be used as scratchspace
+  GetThreadContext(GetCurrentThread, ep.ContextRecord);
+
+  er.ExceptionCode:=EXCEPTION_BREAKPOINT;
+  Handler(@ep); //don't really cause a breakpoint (while I could just do a int3 myself I think it's safer to just emulate the event)
+
 end;
 
 procedure InitializeVEH;
@@ -160,13 +170,15 @@ begin
     OutputDebugString('2');
     OutputDebugString('3');
 
+    OutputDebugString('Registering exception handler');
+    oldExceptionHandler:=AddVectoredExceptionHandler(1,@Handler);
+
     OutputDebugString('Calling EmulateInitializeEvents');
     EmulateInitializeEvents;
 
     OutputDebugString('returned from EmulateInitializeEvents');
 
-    OutputDebugString('Registering exception handler');
-    oldExceptionHandler:=AddVectoredExceptionHandler(1,@Handler);
+
 
     if oldExceptionHandler<>nil then
       OutPutDebugString(pchar('Created exception handler:'+inttohex(ptrUint(oldExceptionHandler),8)))
