@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="luac5.1_exe"
 	ProjectGUID="{0ADD7334-1F44-6344-8FD2-90199339BDCA}"
 	RootNamespace="luac5.1_exe"
@@ -128,7 +128,7 @@
 				AdditionalIncludeDirectories="../include;../src"
 				PreprocessorDefinitions="_CRT_SECURE_NO_DEPRECATE"
 				StringPooling="true"
-				RuntimeLibrary="2"
+				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -151,7 +151,7 @@
 				AdditionalDependencies="lua5.1.lib"
 				OutputFile="$(OutDir)/luac5.1.exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="../lib/static"
+				AdditionalLibraryDirectories="../lib/static;../lib/"
 				GenerateManifest="false"
 				GenerateDebugInformation="false"
 				SubSystem="1"

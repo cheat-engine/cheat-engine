@@ -212,7 +212,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="3"
 				AdditionalIncludeDirectories="../include"
-				PreprocessorDefinitions="_CRT_SECURE_NO_DEPRECATE;DEBUG;MSVC9;LUA_USER_H=&quot;&quot;&quot;lua_user.h&quot;&quot;&quot;"
+				PreprocessorDefinitions="_CRT_SECURE_NO_DEPRECATE;MSVC9;LUA_USER_H=&quot;&quot;&quot;lua_user.h&quot;&quot;&quot;"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -294,7 +294,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="0"
+				Optimization="3"
 				AdditionalIncludeDirectories="../include"
 				PreprocessorDefinitions="_CRT_SECURE_NO_DEPRECATE;LUA_USER_H=&quot;&quot;&quot;lua_user.h&quot;&quot;&quot;"
 				StringPooling="true"
