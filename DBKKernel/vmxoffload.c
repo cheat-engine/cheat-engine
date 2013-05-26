@@ -175,6 +175,12 @@ weee2:
 }
 #endif
 
+VOID vmxoffload_passive (UINT_PTR param)
+{
+	vmxoffload((PCWSTR)param);
+}
+
+
 void vmxoffload(PCWSTR dbvmimgpath)
 {
 	//save entry state for easy exit in ReturnFromvmxoffload

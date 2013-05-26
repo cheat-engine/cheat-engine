@@ -768,9 +768,13 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				pinp=Irp->AssociatedIrp.SystemBuffer;
 				DbgPrint("IOCTL_CE_LAUNCHDBVM\n");
 
-				vmxoffload((PCWSTR)pinp->dbvmimgpath);
+				forEachCpuPassive(vmxoffload_passive, pinp->dbvmimgpath);
 
-				DbgPrint("Returned from vmxofload()\n");
+				
+
+				//vmxoffload((PCWSTR)pinp->dbvmimgpath);
+
+				DbgPrint("Returned from vmxoffload()\n");
 				break;
 			}
 			

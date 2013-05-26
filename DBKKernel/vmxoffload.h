@@ -2,6 +2,7 @@
 #define VMXOFFLOAD_H
 
 void vmxoffload(PCWSTR dbvmimgpath);
+VOID vmxoffload_passive (UINT_PTR param);
 
 #pragma pack (1)
 typedef struct _PTE
