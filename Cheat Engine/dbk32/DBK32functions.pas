@@ -1579,10 +1579,11 @@ end;
 
 
 function internal_LaunchDBVM(parameters: pointer): BOOL; stdcall;
-var cc: dword;
-var Input: record
-  dbvmimgpath: qword;
-end;
+var
+  cc: dword;
+  Input: record
+    dbvmimgpath: qword;
+  end;
 
   temp: widestring;
 begin
@@ -1614,7 +1615,9 @@ begin
         raise exception.create('Could not launch DBVM: The Intel-VT feature has been disabled in your BIOS');
     end;
 
-    foreachcpu(internal_LaunchDBVM,nil);
+    internal_LaunchDBVM(nil);
+
+//    foreachcpu(internal_LaunchDBVM,nil);
 
     configure_vmx(vmx_password1, vmx_password2);
     configure_vmx_kernel;
