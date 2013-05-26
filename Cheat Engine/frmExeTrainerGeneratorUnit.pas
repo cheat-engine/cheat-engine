@@ -30,6 +30,7 @@ type
     cbSpeedhack: TCheckBox;
     cbVEHDebug: TCheckBox;
     cbXMPlayer: TCheckBox;
+    cbD3DHook: TCheckBox;
     comboCompression: TComboBox;
     GroupBox1: TGroupBox;
     GroupBox2: TGroupBox;
@@ -303,6 +304,14 @@ begin
           if cbXMPlayer.checked then
             addfile(cheatenginedir+'xmplayer.exe');
 
+          if cbD3DHook.checked then
+          begin
+            addfile(cheatenginedir+'d3dhook.dll');
+            addfile(cheatenginedir+'ced3d9hook.dll');
+            addfile(cheatenginedir+'ced3d10hook.dll');
+            addfile(cheatenginedir+'ced3d11hook.dll');
+          end;
+
           archive.free;
 
           pinteger(_archive.Memory)^:=filecount;  //fill in the count (uncompressed)
@@ -533,6 +542,7 @@ begin
   cbSpeedhack.checked:=pos('speedhack_',s)>0;
   cbXMPlayer.checked:=pos('xmplayer_',s)>0;
   cbKernelDebug.checked:=pos('dbk_',s)>0;
+  cbD3DHook.checked:=pos('createD3DHook',s)>0;
 
 
   if mainform.LuaForms.count=1 then  //if there is only one form use that icon as default
