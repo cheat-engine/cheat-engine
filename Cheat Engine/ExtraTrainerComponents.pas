@@ -62,6 +62,8 @@ type tcheat = class (twincontrol)
     procedure SetCheckbox(x: boolean);
     procedure setshowHotkey(x: boolean);
 
+    procedure resizeControl(sender: TObject);
+
     procedure md(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 
     function getCheckboxVisible: boolean;
@@ -163,6 +165,8 @@ resourcestring
   rsUndefinedHotkey = 'undefined hotkey';
   rsUndefinedDescription = 'undefined description';
 
+
+
 procedure TCheat.md(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
   if assigned(self.OnMouseDown) then
@@ -173,6 +177,13 @@ procedure TCheat.SetShowHotkey(x: boolean);
 begin
   fshowhotkey:=x;
   hotkeylabel.Visible:=x;
+end;
+
+procedure tcheat.resizeControl(sender: TObject);
+begin
+  if checkbox<>nil then
+    checkbox.top:=(clientheight div 2)-(checkbox.Height div 2);
+
 end;
 
 procedure tcheat.SetCheckbox(x:boolean);
@@ -427,6 +438,8 @@ begin
   descriptionlabel.OnMouseDown:=md;
   hotkeylabel.OnMouseDown:=md;
 
+
+  OnResize:=resizeControl;
 
 
   beeponactivate:=true; //default
