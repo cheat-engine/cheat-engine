@@ -13,7 +13,7 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '1.1'
+  LCLVersion = '1.0.8.0'
   object Panel1: TPanel
     Left = 0
     Height = 220
@@ -95,6 +95,14 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
         Caption = 'Speedhack'
         TabOrder = 3
       end
+      object cbD3DHook: TCheckBox
+        Left = 254
+        Height = 19
+        Top = 2
+        Width = 71
+        Caption = 'D3DHook'
+        TabOrder = 4
+      end
     end
     object Button1: TButton
       Left = 56
@@ -124,9 +132,9 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
     end
     object Label1: TLabel
       Left = 160
-      Height = 15
+      Height = 16
       Top = 187
-      Width = 70
+      Width = 71
       Caption = 'Compression'
       ParentColor = False
     end
