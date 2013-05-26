@@ -51,6 +51,7 @@
             <CompilerMessages>
               <MsgFileName Value=""/>
             </CompilerMessages>
+            <CustomOptions Value="-dDEBUG"/>
             <CompilerPath Value="$(CompPath)"/>
           </Other>
         </CompilerOptions>

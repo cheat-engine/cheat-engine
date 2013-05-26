@@ -4,8 +4,10 @@ program ceregreset;
   {$MODE Delphi}
 {$ENDIF}
 
-{$ifdef cpu64}
-//{$error only 32-bit may compile this}
+{$ifndef DEBUG}
+  {$ifdef cpu64}
+    {$error only 32-bit may compile this}
+  {$endif}
 {$endif}
 
 //{$APPTYPE CONSOLE}
