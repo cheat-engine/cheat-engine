@@ -81,7 +81,7 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="151"/>
+        <TopLine Value="82"/>
         <CursorPos X="85" Y="112"/>
         <UsageCount Value="62"/>
         <Loaded Value="True"/>
@@ -177,21 +177,17 @@
       <Unit14>
         <Filename Value="C:\lazarus\fpc\2.6.1\source\packages\paszlib\src\zstream.pp"/>
         <UnitName Value="zstream"/>
-        <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
         <TopLine Value="275"/>
         <CursorPos X="3" Y="281"/>
         <UsageCount Value="22"/>
-        <Loaded Value="True"/>
       </Unit14>
       <Unit15>
         <Filename Value="C:\lazarus\fpc\2.6.1\source\rtl\objpas\classes\classesh.inc"/>
-        <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
         <TopLine Value="790"/>
         <CursorPos X="15" Y="804"/>
         <UsageCount Value="22"/>
-        <Loaded Value="True"/>
       </Unit15>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
@@ -321,7 +317,7 @@
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="..\..\bin\standalonephase2.dat"/>
+      <Filename Value="..\..\bin\standalonephase2.dat" ApplyConventions="False"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
@@ -396,5 +392,4 @@
       </Item3>
     </Exceptions>
   </Debugging>
-  <EditorMacros Count="0"/>
 </CONFIG>
