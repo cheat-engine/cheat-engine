@@ -521,15 +521,16 @@ begin
   i:=methodlist.IndexOf(name);
   NeedsToBeCreated:=i=-1;
 
+  header:=tstringlist.create;
+  result:=luacaller_getFunctionHeaderAndMethodForType(ATypeInfo, f, name, header);
+
   if NeedsToBeCreated then
   begin
-    header:=tstringlist.create;
-    result:=luacaller_getFunctionHeaderAndMethodForType(ATypeInfo, f, name, header);
     mainform.frmLuaTableScript.assemblescreen.Lines.AddStrings(header);
     header.add('');
-
-    header.free;
   end;
+
+  header.free;
 
   onShowMethod(Name);
 
