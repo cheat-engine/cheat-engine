@@ -111,7 +111,8 @@ begin
     result.Code:=lcd.SetMethodProp;
     result.data:=lc;
 
-    header.Text:=format(lcd.luafunctionheader, [name]);
+    if header<>nil then
+      header.Text:=format(lcd.luafunctionheader, [name]);
   end;
 
 
