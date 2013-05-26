@@ -170,11 +170,17 @@ begin
     OutputDebugString('2');
     OutputDebugString('3');
 
+    OutputDebugString('Calling EmulateInitializeEvents');
+
+    HandlerCS.enter; //do not handle any external exception while the threadlist is sent to ce
+
     OutputDebugString('Registering exception handler');
     oldExceptionHandler:=AddVectoredExceptionHandler(1,@Handler);
 
-    OutputDebugString('Calling EmulateInitializeEvents');
     EmulateInitializeEvents;
+
+    HandlerCS.leave;
+
 
     OutputDebugString('returned from EmulateInitializeEvents');
 

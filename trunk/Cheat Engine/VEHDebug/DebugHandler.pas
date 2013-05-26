@@ -13,11 +13,13 @@ function InternalHandler(ExceptionInfo: PEXCEPTION_POINTERS; threadid: dword): L
 procedure testandfixcs_start;
 procedure testandfixcs_final;
 
+var HandlerCS: TCRITICALSECTION;
+
 implementation
 
 uses init;
 
-var HandlerCS: TCRITICALSECTION;
+var
   emergency: THandle; //event that is set when
 
 procedure testandfixcs_start;
