@@ -1156,28 +1156,8 @@ begin
   t.luaroutine:=TheMethodName;
   t.owner:=Instance;
 
-
-  //I wonder if I could use a case here...
-  //Note: If changed here, also change in formDesigner.pas at method TFormDesigner.onCreateMethod
-  if propinfo.PropType=TypeInfo(TLVCheckedItemEvent) then
-    SetMethodProp(instance, propinfo, TMethod(TLVCheckedItemEvent(t.LVCheckedItemEvent)))
-  else
-  if propinfo.PropType=TypeInfo(TCloseEvent) then
-    SetMethodProp(instance, propinfo, TMethod(TCloseEvent(t.CloseEvent)))
-  else
-  if propinfo.PropType=TypeInfo(TMouseEvent) then
-    SetMethodProp(instance, propinfo, TMethod(TMouseEvent(t.MouseEvent)))
-  else
-  if propinfo.PropType=TypeInfo(TMouseMoveEvent) then
-    SetMethodProp(instance, propinfo, TMethod(TMouseMoveEvent(t.MouseMoveEvent)))
-  else
-  if propinfo.PropType=TypeInfo(TKeyPressEvent) then
-    SetMethodProp(instance, propinfo, TMethod(TKeyPressEvent(t.KeyPressEvent)))
-  else
-  if propinfo.PropType=TypeInfo(TSelectionChangeEvent) then
-    SetMethodProp(instance, propinfo, TMethod(TSelectionChangeEvent(t.SelectionChangeEvent)))
-  else
-    SetMethodProp(instance, propinfo, TMethod(TNotifyEvent(t.NotifyEvent)));
+  m:=luacaller_getFunctionHeaderAndMethodForType(propinfo.PropType, t, '',nil);
+  SetMethodProp(instance, propinfo, m);
 
   handled:=true;
 end;
