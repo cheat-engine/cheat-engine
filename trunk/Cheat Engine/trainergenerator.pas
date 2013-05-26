@@ -1091,7 +1091,7 @@ begin
           l.add('D3DHook.position=5');
 
 
-
+        l.add('');
         l.add('function onOpenProcess()');
         l.add('  if (D3DHook.oldOnOpenProcess~=nil) then');
         l.add('    D3DHook.oldOnOpenProcess() --call the original onOpenProcess if needed');
@@ -1233,6 +1233,7 @@ begin
         l.add('      SetD3DMenuPosition((h.Width / 2)-(BackgroundSprite.Width / 2), (h.Height / 2)-(BackgroundSprite.Height/2))');
         l.add('    end');
 
+
         l.add('');
         l.add('    if D3DHook.hasCheckbox then');
         l.add('      h.OnClick=D3DHookSpriteClick');
@@ -1290,6 +1291,34 @@ begin
         l.add('    BackgroundSprite.Height=y-startY+D3DHook.distanceFromBorder');
         l.add('  end');
         l.add('end');
+
+
+        if frmD3DTrainerGeneratorOptions.cbUseD3DKeys.checked then
+        begin
+          l.add('');
+          l.add('D3DHook.visible=true');
+          l.add('function D3DToggleMenuVisible()');
+          l.add('  D3DHook.visible=not D3DHook.visible');
+          l.add('');
+          l.add('  BackgroundSprite.visible=D3DHook.visible');
+          l.add('  for i,info in pairs(d3dcheats) do');
+          l.add('    if D3DHook.hasCheckbox then');
+          l.add('      info.CheckboxSprite.visible=D3DHook.visible');
+          l.add('    end');
+          l.add('    info.TextSprite.visible=D3DHook.visible');
+          l.add('  end');
+          l.add('end');
+          s:='';
+          //build a key list
+          for i:=0 to length(frmD3DTrainerGeneratorOptions.d3dkeys)-1 do
+          begin
+            if frmD3DTrainerGeneratorOptions.d3dkeys[i]=0 then break;
+            s:=s+', '+inttostr(frmD3DTrainerGeneratorOptions.d3dkeys[i]);
+          end;
+
+          l.add('createHotkey(D3DToggleMenuVisible'+s+')');
+
+        end;
 
       end
       else
