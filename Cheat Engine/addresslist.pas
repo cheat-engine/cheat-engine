@@ -79,6 +79,8 @@ type
     function getSelectedRecord: TMemoryRecord;
     procedure setSelectedRecord(memrec: TMemoryrecord);
 
+    function hasSelectedParent(memrec: TMemoryRecord): boolean;
+
     function CheatTableNodeHasOnlyAutoAssemblerScripts(CheatTable: TDOMNode): boolean; //helperfunction
 
     function activecompare(a: tmemoryrecord; b: tmemoryrecord): integer;
@@ -238,6 +240,19 @@ end;
 function TAddresslist.getPopupMenu: TPopupMenu;
 begin
   result:=treeview.popupmenu;
+end;
+
+function TAddresslist.hasSelectedParent(memrec: TMemoryRecord): boolean;
+begin
+  if memrec.parent=nil then
+    result:=false
+  else
+  begin
+    if memrec.parent.isSelected then
+      result:=true
+    else
+      result:=hasSelectedParent(memrec.parent);
+  end;
 end;
 
 procedure TAddresslist.setSelectedRecord(memrec: TMemoryrecord);
@@ -1325,8 +1340,12 @@ begin
   for i:=0 to treeview.items.count-1 do
     if TMemoryRecord(treeview.items[i].data).isSelected then
     begin
-      setlength(selectednodelist,length(selectednodelist)+1);
-      selectednodelist[length(selectednodelist)-1]:=treeview.items[i];
+      //only move it if it has no parent that is selected
+      if hasSelectedParent(TMemoryRecord(treeview.items[i].data))=false then
+      begin
+        setlength(selectednodelist,length(selectednodelist)+1);
+        selectednodelist[length(selectednodelist)-1]:=treeview.items[i];
+      end;
     end;
 
   node:=TreeView.GetNodeAt(x,y);
