@@ -835,6 +835,7 @@ void setDescriptorAccessedFlag(PGDT_ENTRY gdt, PGDT_ENTRY ldt, ULONG selector)
   usedtable[index].Type=usedtable[index].Type | 1; //set accessed bit to 1
 }
 
+
 ULONG getSegmentAccessRights(PGDT_ENTRY gdt, PGDT_ENTRY ldt, ULONG selector)
 {
   //unsigned int RPLrpl=selector & 3;
@@ -846,6 +847,28 @@ ULONG getSegmentAccessRights(PGDT_ENTRY gdt, PGDT_ENTRY ldt, ULONG selector)
     return 0x10000; //bit 16 set, unusable
 
   return (ULONG)((*(unsigned long long *)(&usedtable[index]) >> 40) & 0xf0ff);
+}
+
+ULONG getSegmentAttrib(PGDT_ENTRY gdt, PGDT_ENTRY ldt, ULONG selector) //for AMD's
+{
+  Access_Rights ar;
+  Segment_Attribs sa;
+  ar.AccessRights=getSegmentAccessRights(gdt, ldt, selector);
+
+  if (ar.unusable)
+    return 0;
+
+
+  sa.Segment_type=ar.Segment_type;
+  sa.S=ar.S;
+  sa.DPL=ar.DPL;
+  sa.P=ar.P;
+  sa.AVL=ar.AVL;
+  sa.L=ar.L;
+  sa.D_B=ar.D_B;
+  sa.G=ar.G;
+
+  return sa.SegmentAttrib;
 }
 
 
@@ -3436,7 +3459,7 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 		case 20 ... 27 : //VMX instruction called
 		{
 			sendstring("VMX instruction called...\n\r");
-			return raiseInvalidOpcodeException();
+			return raiseInvalidOpcodeException(currentcpuinfo);
 		}
 
 

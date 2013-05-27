@@ -11,21 +11,22 @@
 #include "vmpaging.h"
 #include "keyboard.h"
 #include "neward.h"
+#include "vmcall.h"
 
-
+criticalSection debugoutput;
 int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 {
   int i;
 
-
-
-  nosendchar[getAPICID()]=0;
   sendstringf("currentcpuinfo->vmcb->EXITCODE=%d\n", currentcpuinfo->vmcb->EXITCODE);
   sendstringf("EXITINTINFO=%x\nEXITINFO1=%x\nEXITINFO2=%x\n", currentcpuinfo->vmcb->EXITINTINFO, currentcpuinfo->vmcb->EXITINFO1, currentcpuinfo->vmcb->EXITINFO2);
 
   sendstringf("currentcpuinfo->vmcb->VMCB_CLEAN_BITS = %8\n", currentcpuinfo->vmcb->VMCB_CLEAN_BITS);
 
   currentcpuinfo->vmcb->VMCB_CLEAN_BITS=0xffffffff; //nothing cached changed
+
+
+
 
   switch (currentcpuinfo->vmcb->EXITCODE)
   {
@@ -69,7 +70,7 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       if ((ISREALMODE(currentcpuinfo)/* || ((currentcpuinfo->vmcb->RFLAGS >> 17) & 1) */) && (intnr==0x15))
       {
 
-        nosendchar[getAPICID()]=0;
+
         //todo: Split this up into a function used by both intel and amd. Right now it's basically just a copy/paste with minor changes
 
         //realmode of Virtual 8086 mode and the interrupt matches
@@ -100,7 +101,7 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
 
 
-          nosendchar[getAPICID()]=0;
+
           sendstringf("Handling int 15h, AH=e801. ARDcount=%d \n\r",ARDcount);
 
 
@@ -161,7 +162,7 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
         int startindex=(ULONG)vmregisters->rbx;
 
         //return 1;
-        nosendchar[getAPICID()]=0;
+
 
         sendstringf("Handling int 15h, ax=E820 (maxindex=%d)\n\r",ARDcount-1);
         sendstringf("startindex=%d vmregisters->rcx=%d\n\r",startindex,vmregisters->rcx);
@@ -245,7 +246,7 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case VMEXIT_MSR:
     {
-      nosendchar[getAPICID()]=0;
+
       sendstring("VMEXIT_MSR\n");
       sendstringf("EXITINFO1=%d\n", currentcpuinfo->vmcb->EXITINFO1);
       sendstringf("EXITINFO2=%d\n", currentcpuinfo->vmcb->EXITINFO2);
@@ -357,23 +358,57 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       break;
     }
 
+
     case VMEXIT_VMRUN:
     {
-      nosendchar[getAPICID()]=0;
+
       sendstring("VMEXIT_VMRUN\n");
-      //handle the vmrun (UD exception, or pass it off)
+      raiseInvalidOpcodeException(currentcpuinfo);
+      return 0;
+
+      //alternatively, handle the vmrun (everything changed)
+      //execute vmexit in the host, and when it exits pass on everything to the guest.
+      //if needed, add an extra intercept
       break;
     }
 
     case VMEXIT_VMMCALL:
     {
       //dbvm callback for amd
+      return handleVMCall(currentcpuinfo, vmregisters);
+      break;
+    }
+
+    case VMEXIT_INIT:
+    {
+
+      //idle a bit until the virtual APIC sends a sipi message to this cpu
+
+      csEnter(&debugoutput);
+      if (currentcpuinfo->cpunr==1)
+      {
+        nosendchar[getAPICID()]=0;
+        sendstringf("INIT cpu %d!\n", currentcpuinfo->cpunr);
+        sendstringf("RIP=%x\n",currentcpuinfo->vmcb->RIP);
+        sendstringf("nRIP=%x\n",currentcpuinfo->vmcb->nRIP);
+        sendstringf("CS=%x\n",currentcpuinfo->vmcb->cs_selector);
+        sendstringf("EFER=%x\n",currentcpuinfo->vmcb->EFER);
+        sendstringf("V_TPR=%x\n", currentcpuinfo->vmcb->V_TPR);
+        sendstringf("V_INTR_VECTOR=%x\n", currentcpuinfo->vmcb->V_INTR_VECTOR);
+
+      }
+      //currentcpuinfo->vmcb
+
+      csLeave(&debugoutput);
+      while (1);
+
       break;
     }
 
 
     case VMEXIT_SHUTDOWN: //shutdown
     {
+      sendvmstate(currentcpuinfo, vmregisters);
       displayline("FUUUUCK!\n");
       while(1);
 
@@ -384,6 +419,8 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     {
       sendstring("VMEXIT_INVALID\n");
       sendstringf("EFER=%x\n", currentcpuinfo->vmcb->EFER);
+
+      sendvmstate(currentcpuinfo, vmregisters);
 
       break;
     }

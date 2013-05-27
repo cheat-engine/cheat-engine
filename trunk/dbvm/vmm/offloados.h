@@ -11,6 +11,7 @@
 typedef struct
 {
   UINT64    cpucount;
+  UINT64    originalEFER;
   UINT64    originalLME;
   UINT64    idtbase;
   UINT64    idtlimit;
@@ -52,6 +53,6 @@ typedef struct
 
   UINT64    fsbase;
   UINT64    gsbase;
-} OriginalState, *POriginalState;
+} __attribute__((__packed__)) OriginalState, *POriginalState;
 
 #endif /* OFFLOADOS_H_ */

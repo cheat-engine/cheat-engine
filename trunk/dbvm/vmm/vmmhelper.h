@@ -649,6 +649,7 @@ UINT64 IA32_VMX_EXIT_CTLS;
 UINT64 IA32_VMX_ENTRY_CTLS;
 TIA32_VMX_MISC IA32_VMX_MISC;
 
+extern void SaveExtraHostState(UINT64 VMCB_PA);
 
 void CheckGuest(void);
 void displayVMmemory(pcpuinfo currentcpuinfo);

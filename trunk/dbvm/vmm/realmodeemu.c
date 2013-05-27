@@ -1797,6 +1797,7 @@ UINT64 getOpperandValue(VMRegisters *vmregisters, int opperand, _registerType re
 
     default:
       sendstring("Not handled yet \n\r");
+      break;
 
   }
 
@@ -1834,6 +1835,7 @@ ULONG getSIBBase(VMRegisters *vmregisters, PINSTRUCTIONDATA id, int MOD, int SIB
           id->address=(vmregisters->rbp & 0xffffffff);
           return id->address;
       }
+      break;
 
     case 6: return vmregisters->rsi & 0xffffffff;
     case 7: return vmregisters->rdi & 0xffffffff;
