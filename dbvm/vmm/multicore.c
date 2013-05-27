@@ -159,15 +159,28 @@ unsigned int initAPcpus(void)
 	int found=0;
 	int hasHT;
 
+	int isAMD;
+
 	{
 	  UINT64 a,b,c,d;
-	  a=1;
-	  _cpuid(&a,&b,&c,&d);
+    a=0;
+    _cpuid(&a,&b,&c,&d);
+    isAMD=((b==0x68747541) && (d==0x69746e65) && (c==0x444d4163));
 
-	  displayline("Feature flag=%x\n",d);
-	  hasHT=(d >> 28) & 1;
-	  if (hasHT)
-	    displayline("hasHT==1\n");
+
+
+	  if (!isAMD)
+	  {
+	    a=1;
+	    _cpuid(&a,&b,&c,&d);
+
+      displayline("Feature flag=%x\n",d);
+      hasHT=(d >> 28) & 1;
+      if (hasHT)
+        displayline("hasHT==1\n");
+	  }
+	  else
+	    hasHT=0;
 	}
 
 	displayline("Find EBDA:");

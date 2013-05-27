@@ -712,8 +712,9 @@ char waitforchar(void)
   {
     c=getchar();
   }
-  return c;
 #endif
+  return c;
+
 
 
 /*  while (inputa==0) ;//memedit at this address

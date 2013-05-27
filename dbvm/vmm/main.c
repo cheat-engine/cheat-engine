@@ -745,7 +745,7 @@ void vmm_entry(void)
   memorycloak=0;
   Password1=0x76543210; //later to be filled in by user, sector on disk, or at compile time
   Password2=0xfedcba98;
-  dbvmversion=7; //version 1 was the 32-bit only version, 2 added 32-bit, 3 had a revised int1 redirect option, 4 has major bugfixes, 5=more fixes and some basic device recog, 6=Even more compatibility fixes, rm emu, and new vmcalls, 7=driver loading
+  dbvmversion=8; //version 1 was the 32-bit only version, 2 added 32-bit, 3 had a revised int1 redirect option, 4 has major bugfixes, 5=more fixes and some basic device recog, 6=Even more compatibility fixes, rm emu, and new vmcalls, 7=driver loading , 8=amd support
   int1redirection=1; //redirect to int vector 1 , ooh, what a weird redirection....
   int3redirection=3;
   int14redirection=14;
@@ -1363,7 +1363,42 @@ int testexception(void)
 
   return result;
 }
+
+void vmcalltest(void)
+{
+  pcpuinfo currentcpuinfo=&cpuinfo[0];
+  int dbvmversion;
+  dbvmversion=0;
+
+  currentcpuinfo->LastInterrupt=0;
+  currentcpuinfo->OnInterrupt.RIP=(volatile void *)&&InterruptFired; //set interrupt location
+  currentcpuinfo->OnInterrupt.RSP=getRSP();
+
+  if (isAMD)
+    vmcall_instr=vmcall_amd;
+  else
+    vmcall_instr=vmcall_intel;
+
+  dbvmversion=vmcalltest_asm();
+
+
+InterruptFired:
+  currentcpuinfo->OnInterrupt.RIP=0;
+
+
+  if (dbvmversion==0)
+    displayline("DBVM is not loaded (Exception %d)\n", currentcpuinfo->LastInterrupt);
+  else
+    displayline("DBVM version = %x\n", dbvmversion);
+
+
+
+
+}
+
+
 #pragma GCC pop_options
+
 
 
 void reboot(void)
@@ -1446,6 +1481,7 @@ void menu2(void)
     displayline("9: test input\n");
     displayline("a: test branch profiling\n");
     displayline("b: boot without vm (test state vm would set)\n");
+    displayline("v: vm(m)call test (test state vm would set)\n");
 
 
     key=0;
@@ -1632,6 +1668,12 @@ void menu2(void)
           {
             reboot();
             displayline("WTF?\n");
+            break;
+          }
+
+          case 'v':
+          {
+            vmcalltest();
             break;
           }
 

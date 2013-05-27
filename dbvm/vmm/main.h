@@ -8,6 +8,12 @@
 void startvmx(pcpuinfo currentcpuinfo);
 void CheckCRCValues(void);
 
+extern void vmcall_amd(void);
+extern void vmcall_intel(void);
+
+extern void *vmcall_instr; //holds a pointer to either vmcall_amd or vmcall_intel
+extern int vmcalltest_asm(void);
+
 extern void _pause(void);
 extern UINT64 _vmread(ULONG index);
 extern void _vmwrite(ULONG index,UINT64 value);
@@ -73,7 +79,7 @@ extern UINT64 loadedOS;
 PTSS mainTSS;
 
 int vmxloop(pcpuinfo currentcpuinfo, UINT64 *eaxbase);
-int vmxloop_amd(pcpuinfo currentcpuinfo, UINT64 vmcb_pa);
+int vmxloop_amd(pcpuinfo currentcpuinfo, UINT64 vmcb_pa, UINT64 *eaxbase);
 
 extern int vmxstartup_end;
 

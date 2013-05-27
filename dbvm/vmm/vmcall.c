@@ -32,57 +32,96 @@ InterruptFired:
 #pragma GCC pop_options
 
 
-int raisePagefault(UINT64 address)
+int raisePagefault(pcpuinfo currentcpuinfo, UINT64 address)
 {
   /*this will raise a non-present pagefault to the guest for the specified address
    *and set the usermode bit accordingly (not sure if needed, but better do it)
    */
   PFerrorcode errorcode;
-  VMEntry_interruption_information newintinfo;
-  Access_Rights ssaccessrights;
+  errorcode.errorcode=0;
+
+  //get DPL of SS (or CS?), if 3, set US to 1, if anything else, 0
+  if (isAMD)
+  {
+    if (((PSegment_Attribs)(&currentcpuinfo->vmcb->cs_attrib))->DPL==3)
+      errorcode.US=1;
+    else
+      errorcode.US=0;
+  }
+  else
+  {
+    Access_Rights ssaccessrights;
+    ssaccessrights.AccessRights=vmread(vm_guest_cs_access_rights);
+
+    if (ssaccessrights.DPL==3)
+      errorcode.US=1;
+    else
+      errorcode.US=0;
+  }
 
   sendstring("Raising pagefault exception\n\r");
+  if (isAMD)
+  {
+    currentcpuinfo->vmcb->CR2=address;
+    currentcpuinfo->vmcb->inject_Type=3; //excption fault/trap
+    currentcpuinfo->vmcb->inject_Vector=14; //#PF
+    currentcpuinfo->vmcb->inject_Valid=1;
 
-  errorcode.errorcode=0;
-  ssaccessrights.AccessRights=vmread(0x4816);
+    currentcpuinfo->vmcb->inject_ERRORCODE=errorcode.errorcode;
+    currentcpuinfo->vmcb->inject_EV=1;
 
-  //get DPL of SS, if 3, set US to 1, if anything else, 0
-  if (ssaccessrights.DPL==3)
-    errorcode.US=1;
+    currentcpuinfo->vmcb->VMCB_CLEAN_BITS&=~(1 << 9); //cr2 got changed
+  }
   else
-    errorcode.US=0;
+  {
 
-  sendstringf("errorcode.errorcode=%d\n\r",errorcode.errorcode);
+    VMEntry_interruption_information newintinfo;
 
-  newintinfo.interruption_information=0;
-  newintinfo.interruptvector=14;
-  newintinfo.type=3; //hardware
-  newintinfo.haserrorcode=1;
-  newintinfo.valid=1;
 
-  vmwrite(0x4016, newintinfo.interruption_information); //entry info field
-  vmwrite(0x4018, errorcode.errorcode); //entry errorcode
-  vmwrite(0x401a, vmread(0x440c)); //entry instruction length
+    sendstringf("errorcode.errorcode=%d\n\r",errorcode.errorcode);
 
-  //set CR2 to address
-  setCR2(address);
+    newintinfo.interruption_information=0;
+    newintinfo.interruptvector=14;
+    newintinfo.type=3; //hardware
+    newintinfo.haserrorcode=1;
+    newintinfo.valid=1;
+
+    vmwrite(0x4016, newintinfo.interruption_information); //entry info field
+    vmwrite(0x4018, errorcode.errorcode); //entry errorcode
+    vmwrite(0x401a, vmread(0x440c)); //entry instruction length
+
+    //set CR2 to address
+    setCR2(address);
+  }
 
   return 0;
 }
 
-int raiseInvalidOpcodeException(void)
+int raiseInvalidOpcodeException(pcpuinfo currentcpuinfo)
 {
-  VMEntry_interruption_information newintinfo;
   sendstring("Raising Invalid opcode exception\n\r");
-  newintinfo.interruption_information=0;
-  newintinfo.interruptvector=6;
-  newintinfo.type=3; //hardware
-  newintinfo.haserrorcode=0; //no errorcode
-  newintinfo.valid=1;
+  if (isAMD)
+  {
+    currentcpuinfo->vmcb->inject_Type=3; //excption fault/trap
+    currentcpuinfo->vmcb->inject_Vector=6; //#UD
+    currentcpuinfo->vmcb->inject_Valid=1;
+    currentcpuinfo->vmcb->inject_EV=0;
 
-  vmwrite(0x4016, (ULONG)newintinfo.interruption_information); //entry info field
-  vmwrite(0x4018, 0); //entry errorcode
-  vmwrite(0x401a, vmread(0x440c)); //entry instruction length
+  }
+  else
+  {
+    VMEntry_interruption_information newintinfo;
+
+    newintinfo.interruption_information=0;
+    newintinfo.interruptvector=6;
+    newintinfo.type=3; //hardware
+    newintinfo.haserrorcode=0; //no errorcode
+    newintinfo.valid=1;
+
+    vmwrite(0x4016, (ULONG)newintinfo.interruption_information); //entry info field
+    vmwrite(0x4018, 0); //entry errorcode
+    vmwrite(0x401a, vmread(0x440c)); //entry instruction length (not sure about this)
+  }
 
 
   return 0;
@@ -336,21 +375,26 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   //enableserial();
 #endif
 
-  nosendchar[getAPICID()]=1;
+  nosendchar[getAPICID()]=!isAMD;
 
-  sendstringf("Handling vmcall on cpunr:%d \n\r", currentcpuinfo->cpunr);
+  sendstringf("Handling vm(m)call on cpunr:%d \n\r", currentcpuinfo->cpunr);
+
+  if (isAMD)
+    vmregisters->rax=currentcpuinfo->vmcb->RAX; //fill it in, it may get used here
+
 
   //check password, if false, raise unknown opcode exception
   if ((ULONG)vmregisters->rdx != Password1)
   {
     int x;
     sendstringf("Invalid Password1. Given=%8 should be %8\n\r",(ULONG)vmregisters->rdx, Password1);
-    x = raiseInvalidOpcodeException();
+    x = raiseInvalidOpcodeException(currentcpuinfo);
     sendstringf("return = %d\n\r",x);
     return x;
   }
 
   sendstringf("Password1 is valid\n\r");
+
 
   //check if there is already a tlb, if not, allocate it. (it's needed for temp mem)
   if (currentcpuinfo->virtualTLB == NULL)
@@ -361,6 +405,7 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   //still here, so password1 is valid
   //map the memory of the information structure
 
+
   vmcall_instruction=(ULONG *)mapVMmemory(currentcpuinfo, vmregisters->rax, 12, currentcpuinfo->AvailableVirtualAddress, &error, &pagefaultaddress);
 
   if (error)
@@ -368,9 +413,9 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     sendstringf("1: Error. error=%d pagefaultaddress=%8\n\r",error,pagefaultaddress);
 
     if (error==2) //caused by pagefault, raise pagefault
-      return raisePagefault(pagefaultaddress);
+      return raisePagefault(currentcpuinfo, pagefaultaddress);
 
-    return raiseInvalidOpcodeException();
+    return raiseInvalidOpcodeException(currentcpuinfo);
   }
 
   sendstringf("Mapped vmcall instruction structure (vmcall_instruction=%x)\n\r",(UINT64)vmcall_instruction);
@@ -383,7 +428,7 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   if ((vmcall_instruction[0]<12) || (vmcall_instruction[1]!=Password2))
   {
     sendstringf("Invalid password2 or structuresize. Given=%8 should be %8\n\r",vmcall_instruction[1], Password2);
-    return raiseInvalidOpcodeException();
+    return raiseInvalidOpcodeException(currentcpuinfo);
   }
 
 
@@ -409,9 +454,9 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     sendstringf("2: Error. error=%d pagefaultaddress=%8\n\r",error,pagefaultaddress);
 
     if (error==2) //caused by pagefault, raise pagefault
-      return raisePagefault(pagefaultaddress);
+      return raisePagefault(currentcpuinfo, pagefaultaddress);
 
-    return raiseInvalidOpcodeException();
+    return raiseInvalidOpcodeException(currentcpuinfo);
   }
 
 
@@ -436,15 +481,22 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       break;
 
     case 2: //toggle memory cloak
-      if (memorycloak)
+      if(isAMD)
       {
-        //disable it, safely, take care of multiple cpu's
-
-        break; //todo: Add disable memorycloak
+        vmregisters->rax = 0xcedead;
       }
+      else
+      {
+        if (memorycloak)
+        {
+          //disable it, safely, take care of multiple cpu's
 
-      memorycloak = !memorycloak;
-      vmregisters->rax = memorycloak; //note that memorycloak will be activated after a CR3 change (taskswitch)
+          break; //todo: Add disable memorycloak
+        }
+
+        memorycloak = !memorycloak;
+        vmregisters->rax = memorycloak; //note that memorycloak will be activated after a CR3 change (taskswitch)
+      }
       break;
 
     case VMCALL_READ_PHYSICAL_MEMORY: //read physical memory
@@ -465,14 +517,14 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       Destination=(unsigned char *)mapVMmemory(currentcpuinfo, VirtualAddressToWriteTo, size, currentcpuinfo->AvailableVirtualAddress+0x00400000, &error, &pagefaultaddress);
       if (error)
       {
-    	sendstringf("An error occurred while mapping %6 and size %d\n\r",VirtualAddressToWriteTo, size);
+    	  sendstringf("An error occurred while mapping %6 and size %d\n\r",VirtualAddressToWriteTo, size);
 
         if (error==2)
         {
           if (noPageFault)
             size=pagefaultaddress-VirtualAddressToWriteTo;
           else
-            return raisePagefault(pagefaultaddress); //raise pagefault
+            return raisePagefault(currentcpuinfo, pagefaultaddress); //raise pagefault
         }
         else
           size=0;
@@ -507,7 +559,7 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
           if (noPageFault)
             size=pagefaultaddress-VirtualAddressToReadFrom;
           else
-            return raisePagefault(pagefaultaddress); //raise pagefault
+            return raisePagefault(currentcpuinfo, pagefaultaddress); //raise pagefault
         }
         else
           size=0;
@@ -522,7 +574,12 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case 5: //Set fake sysentermsr state
     {
-      currentcpuinfo->hidden_sysenter_modification=vmcall_instruction[3];
+      if (isAMD)
+      {
+        vmregisters->rax = 0xcedead;
+        break;
+      }
+
       if (currentcpuinfo->hidden_sysenter_modification==0) //disabled, or was already disabled
       {
         //set the actual values to the guest os's state for compatibility when next time it gets started
@@ -531,6 +588,7 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
         currentcpuinfo->actual_sysenter_EIP=currentcpuinfo->sysenter_EIP;
       }
       vmregisters->rax = 0;
+
       break;
     }
 
@@ -540,20 +598,27 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       ULONG *sysenter_ESP;
       ULONG *sysenter_EIP;
 
+      if (isAMD)
+      {
+        vmregisters->rax = 0xcedead;
+        break;
+      }
+
+
       if (currentcpuinfo->hidden_sysenter_modification==0)
-        return raiseInvalidOpcodeException();
+        return raiseInvalidOpcodeException(currentcpuinfo);
 
       sysenter_CS=(ULONG *)mapVMmemory(currentcpuinfo, vmcall_instruction[3], 4, currentcpuinfo->AvailableVirtualAddress+0x00400000, &error, &pagefaultaddress);
       if (error==2)
-        return raisePagefault(pagefaultaddress); //raise pagefault
+        return raisePagefault(currentcpuinfo, pagefaultaddress); //raise pagefault
 
       sysenter_EIP=(ULONG *)mapVMmemory(currentcpuinfo, vmcall_instruction[4], 4, currentcpuinfo->AvailableVirtualAddress+0x00600000, &error, &pagefaultaddress);
       if (error==2)
-        return raisePagefault(pagefaultaddress); //raise pagefault
+        return raisePagefault(currentcpuinfo, pagefaultaddress); //raise pagefault
 
       sysenter_ESP=(ULONG *)mapVMmemory(currentcpuinfo, vmcall_instruction[5], 4, currentcpuinfo->AvailableVirtualAddress+0x00800000, &error, &pagefaultaddress);
       if (error==2)
-        return raisePagefault(pagefaultaddress); //raise pagefault
+        return raisePagefault(currentcpuinfo, pagefaultaddress); //raise pagefault
 
       //still here, so all memory is paged in.
       *sysenter_CS=currentcpuinfo->actual_sysenter_CS;
@@ -566,12 +631,18 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case 7: //set real sysenter msr (not the guest's state, but what the user wants it to be)
     {
+      if (isAMD)
+      {
+        vmregisters->rax = 0xcedead;
+        break;
+      }
+
       ULONG sysenter_CS=vmcall_instruction[3];
       ULONG sysenter_ESP=vmcall_instruction[4];
       ULONG sysenter_EIP=vmcall_instruction[5];
 
       if (currentcpuinfo->hidden_sysenter_modification==0)
-        return raiseInvalidOpcodeException();
+        return raiseInvalidOpcodeException(currentcpuinfo);
 
       currentcpuinfo->actual_sysenter_CS=sysenter_CS;
       currentcpuinfo->actual_sysenter_ESP=sysenter_ESP;
@@ -594,6 +665,12 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case VMCALL_REDIRECTINT1: //redirect int1
     {
+      if (isAMD)
+      {
+        vmregisters->rax = 0xcedead;
+        break;
+      }
+
       sendstring("VMCALL_REDIRECTINT1\n\r");
       if (vmcall_instruction[3] == 0)
       {
@@ -617,6 +694,11 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case VMCALL_CHANGESELECTORS: //Change selectors
     {
+      if (isAMD)
+      {
+        vmregisters->rax = 0xcedead;
+        break;
+      }
       ULONG cs=vmcall_instruction[3];
       ULONG ss=vmcall_instruction[4];
       ULONG ds=vmcall_instruction[5];
@@ -637,6 +719,12 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case VMCALL_BLOCK_INTERRUPTS:
     {
+      if (isAMD)
+      {
+        vmregisters->rax = 0xcedead;
+        break;
+      }
+
       sendstringf("VMCALL_BLOCK_INTERRUPTS\n");
       currentcpuinfo->Previous_Interuptability_State=vmread(0x4824);
       vmwrite(0x4824, (1<<3)); //block by NMI, so even a nmi based taskswitch won't interrupt
@@ -651,6 +739,12 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case VMCALL_RESTORE_INTERRUPTS:
     {
+      if (isAMD)
+      {
+        vmregisters->rax = 0xcedead;
+        break;
+      }
+
       sendstringf("VMCALL_RESTORE_INTERRUPTS\n");
       vmwrite(0x4824,currentcpuinfo->Previous_Interuptability_State);
 
@@ -663,6 +757,12 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case 15: //get pid
     {
+      if (isAMD)
+      {
+        vmregisters->rax = 0xcedead;
+        break;
+      }
+
       vmregisters->rax = getpid(currentcpuinfo);
       break;
 
@@ -677,6 +777,11 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case VMCALL_REGISTER_CR3_EDIT_CALLBACK:
     {
+      if (isAMD)
+      {
+        vmregisters->rax = 0xcedead;
+        break;
+      }
 
       sendstring("VMCALL_REGISTER_CR3_EDIT_CALLBACK\n\r");
 
@@ -700,6 +805,11 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     case VMCALL_RETURN_FROM_CR3_EDIT_CALLBACK:
     {
       UINT64 newcr3=*(UINT64 *)&vmcall_instruction[3];
+      if (isAMD)
+      {
+        vmregisters->rax = 0xcedead;
+        break;
+      }
 
       //sendstring("VMCALL_RETURN_FROM_CR3_EDIT_CALLBACK:\n\r");
 
@@ -709,24 +819,45 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case VMCALL_GETCR0:
     {
+      if (isAMD)
+      {
+        vmregisters->rax = 0xcedead;
+        break;
+      }
       vmregisters->rax = vmread(0x6800);
       break;
     }
 
     case VMCALL_GETCR3:
     {
+      if (isAMD)
+      {
+        vmregisters->rax = 0xcedead;
+        break;
+      }
+
       vmregisters->rax = vmread(0x6802);
       break;
     }
 
     case VMCALL_GETCR4:
     {
+      if (isAMD)
+      {
+        vmregisters->rax = 0xcedead;
+        break;
+      }
       vmregisters->rax = vmread(vm_guest_cr4);
       break;
     }
 
     case VMCALL_RAISEPRIVILEGE:
     {
+      if (isAMD)
+      {
+        vmregisters->rax = 0xcedead;
+        break;
+      }
       vmregisters->rax = raisePrivilege(currentcpuinfo);
 
       break;
@@ -734,6 +865,12 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case VMCALL_REDIRECTINT14: //redirect int1
     {
+      if (isAMD)
+      {
+        vmregisters->rax = 0xcedead;
+        break;
+      }
+
       sendstring("VMCALL_REDIRECTINT14\n\r");
       if (vmcall_instruction[3] == 0)
       {
@@ -757,6 +894,12 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case VMCALL_INT14REDIRECTED:
     {
+      if (isAMD)
+      {
+        vmregisters->rax = 0xcedead;
+        break;
+      }
+
       vmregisters->rax = currentcpuinfo->int14happened;
       currentcpuinfo->int14happened=0;
       break;
@@ -764,6 +907,12 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case VMCALL_REDIRECTINT3: //redirect int3
     {
+      if (isAMD)
+      {
+        vmregisters->rax = 0xcedead;
+        break;
+      }
+
       sendstring("VMCALL_REDIRECTINT3\n\r");
       if (vmcall_instruction[3] == 0)
       {
@@ -787,6 +936,12 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case VMCALL_INT3REDIRECTED:
     {
+      if (isAMD)
+      {
+        vmregisters->rax = 0xcedead;
+        break;
+      }
+
       vmregisters->rax = currentcpuinfo->int3happened;
       currentcpuinfo->int3happened=0;
       vmregisters->rax = 0;
@@ -813,6 +968,12 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case VMCALL_ULTIMAP:
     {
+      if (isAMD)
+      {
+        vmregisters->rax = 0xcedead;
+        break;
+      }
+
       //Ultimap will place a read/write watch on the IA32_DEBUGCTL msr, the IA32_DS_AREA and writes to CR3
       //When a taskswitch is done to the target CR3 the msr value will be set to the given value
 
@@ -833,6 +994,12 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case VMCALL_ULTIMAP_DISABLE:
     {
+      if (isAMD)
+      {
+        vmregisters->rax = 0xcedead;
+        break;
+      }
+
       ultimap_disable(currentcpuinfo);
       vmregisters->rax = 0;
       break;
@@ -840,6 +1007,12 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case VMCALL_ULTIMAP_PAUSE:
     {
+      if (isAMD)
+      {
+        vmregisters->rax = 0xcedead;
+        break;
+      }
+
       ultimap_pause(currentcpuinfo);
       vmregisters->rax = 0;
       break;
@@ -847,6 +1020,12 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case VMCALL_ULTIMAP_RESUME:
     {
+      if (isAMD)
+      {
+        vmregisters->rax = 0xcedead;
+        break;
+      }
+
       ultimap_resume(currentcpuinfo);
       vmregisters->rax = 0;
       break;
@@ -854,6 +1033,11 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case VMCALL_ULTIMAP_DEBUGINFO:
     {
+      if (isAMD)
+      {
+        vmregisters->rax = 0xcedead;
+        break;
+      }
 
 
 #ifdef ULTIMAPDEBUG
@@ -867,6 +1051,12 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case VMCALL_DISABLE_DATAPAGEFAULTS:
     {
+      if (isAMD)
+      {
+        vmregisters->rax = 0xcedead;
+        break;
+      }
+
       currentcpuinfo->IgnorePageFaults.Active=1;
       currentcpuinfo->IgnorePageFaults.LastIgnoredPageFault=0;
       vmregisters->rax = 0;
@@ -876,6 +1066,11 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case VMCALL_ENABLE_DATAPAGEFAULTS:
     {
+      if (isAMD)
+      {
+        vmregisters->rax = 0xcedead;
+        break;
+      }
 
       currentcpuinfo->IgnorePageFaults.Active=0;
       vmregisters->rax = 0;
@@ -884,6 +1079,12 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case VMCALL_GETLASTSKIPPEDPAGEFAULT:
     {
+      if (isAMD)
+      {
+        vmregisters->rax = 0xcedead;
+        break;
+      }
+
       vmregisters->rax = currentcpuinfo->IgnorePageFaults.LastIgnoredPageFault;
       currentcpuinfo->IgnorePageFaults.LastIgnoredPageFault=0;
       break;
@@ -891,6 +1092,12 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case VMCALL_SWITCH_TO_KERNELMODE:
     {
+      if (isAMD)
+      {
+        vmregisters->rax = 0xcedead;
+        break;
+      }
+
       DWORD cs=*(DWORD *)&vmcall_instruction[3];
       QWORD rip=*(QWORD *)&vmcall_instruction[4];
       QWORD parameters=*(QWORD *)&vmcall_instruction[6];
@@ -906,6 +1113,11 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case VMCALL_PSODTEST:
     {
+      if (isAMD)
+      {
+        vmregisters->rax = 0xcedead;
+        break;
+      }
     	//PSOD("VMCALL_ULTIMAP_PSODTEST");
     	break;
     }
@@ -920,8 +1132,16 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
   }
 
+  if (isAMD)
+  {
+    currentcpuinfo->vmcb->RAX=vmregisters->rax;
+    currentcpuinfo->vmcb->RIP+=3; //screw you if you used prefixes
+  }
+  else
+  {
+    //handled, so increase eip to the next instruction and continue
+    vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength));
+  }
 
-  //handled, so increase eip to the next instruction and continue
-  vmwrite(0x681e,vmread(0x681e)+vmread(0x440c));
   return 0;
 }

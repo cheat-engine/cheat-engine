@@ -371,138 +371,187 @@ void displayPreviousStates(void)
 void sendvmstate(pcpuinfo currentcpuinfo, VMRegisters *registers)
 {
 #ifdef DEBUG
-  UINT64 rflags=vmread(vm_guest_rflags);
-  PRFLAGS prflags=(PRFLAGS)&rflags;
-
-  sendstringf("cpunr=%d\n\r", currentcpuinfo->cpunr);
-  sendstringf("getTaskRegister()=%x\n",getTaskRegister());
-
-  sendstringf("Activity state : %d      interruptibility state : %d \n\r",vmread(vm_guest_activity_state), vmread(vm_guest_interruptability_state));
-  sendstringf("IS64BITPAGING=%d IS64BITCODE=%d ISREALMODE=%d\n\r", IS64BITPAGING(currentcpuinfo), IS64BITCODE(currentcpuinfo), ISREALMODE(currentcpuinfo));
-  sendstringf("efer=%x\n\r",currentcpuinfo->efer);
-  sendstringf("ia32e mode guest=%d\n",((vmread(vm_entry_controls) & IA32E_MODE_GUEST) != 0) );
-
-  sendstringf("IA32_SYSENTER_CS=%x IA32_SYSENTER_EIP=%x IA32_SYSENTER_ESP=%x\n",vmread(vm_guest_IA32_SYSENTER_CS), vmread(vm_guest_IA32_SYSENTER_EIP), vmread(vm_guest_IA32_SYSENTER_ESP) );
-
-
-  if (registers) 		// print registers
+  if (isAMD)
   {
-    sendstringf("RAX=%6 RBX=%6   R8=%6\n\r", registers->rax, registers->rbx, registers->r8);
-    sendstringf("RCX=%6 RDX=%6   R9=%6\n\r", registers->rcx, registers->rdx, registers->r9);
-    sendstringf("RSI=%6 RDI=%6  R10=%6\n\r",registers->rsi, registers->rdi,  registers->r10);
-    sendstringf("RBP=%6                       R11=%6\n\r",registers->rbp, registers->r11);
+    UINT64 rflags=currentcpuinfo->vmcb->RFLAGS;
+
+    PRFLAGS prflags=(PRFLAGS)&rflags;
+
+
+    if (registers)    // print registers
+    {
+      sendstringf("RAX=%6 RBX=%6   R8=%6\n\r", currentcpuinfo->vmcb->RAX, registers->rbx, registers->r8);
+      sendstringf("RCX=%6 RDX=%6   R9=%6\n\r", registers->rcx, registers->rdx, registers->r9);
+      sendstringf("RSI=%6 RDI=%6  R10=%6\n\r",registers->rsi, registers->rdi,  registers->r10);
+      sendstringf("RBP=%6                       R11=%6\n\r",registers->rbp, registers->r11);
+
+
+    }
+    else
+      sendstring("\n...no registers...\n\n");
+
+
+    sendstringf("RSP=%6                       R12=%6\n\r",currentcpuinfo->vmcb->RSP, registers?registers->r12:0);
+    sendstringf("RIP=%6                       R13=%6\n\r",currentcpuinfo->vmcb->RIP, registers?registers->r13:0);
+    sendstringf("                                           R14=%6\n\r", registers?registers->r14:0);
+    sendstringf("                                           R15=%6\n\r", registers?registers->r15:0);
+
+    sendstringf("rflags=%6 (VM=%d RF=%d IOPL=%d NT=%d)\n\r",rflags,prflags->VM, prflags->RF, prflags->IOPL, prflags->NT);
+    sendstringf("(CF=%d PF=%d AF=%d ZF=%d SF=%d TF=%d IF=%d DF=%d OF=%d)\n\r\n\r", prflags->CF, prflags->PF, prflags->AF, prflags->ZF, prflags->SF, prflags->TF, prflags->IF, prflags->DF, prflags->OF);
+
+
+    sendstringf("cs=%8  (base=%6 , limit=%8, AT=%8)\n\r",currentcpuinfo->vmcb->cs_selector, currentcpuinfo->vmcb->cs_base, currentcpuinfo->vmcb->cs_limit, currentcpuinfo->vmcb->cs_attrib);
+    sendstringf("ss=%8  (base=%6 , limit=%8, AT=%8)\n\r",currentcpuinfo->vmcb->ss_selector, currentcpuinfo->vmcb->ss_base, currentcpuinfo->vmcb->ss_limit, currentcpuinfo->vmcb->ss_attrib);
+    sendstringf("ds=%8  (base=%6 , limit=%8, AT=%8)\n\r",currentcpuinfo->vmcb->ds_selector, currentcpuinfo->vmcb->ds_base, currentcpuinfo->vmcb->ds_limit, currentcpuinfo->vmcb->ds_attrib);
+    sendstringf("es=%8  (base=%6 , limit=%8, AT=%8)\n\r",currentcpuinfo->vmcb->es_selector, currentcpuinfo->vmcb->es_base, currentcpuinfo->vmcb->es_limit, currentcpuinfo->vmcb->es_attrib);
+    sendstringf("fs=%8  (base=%6 , limit=%8, AT=%8)\n\r",currentcpuinfo->vmcb->fs_selector, currentcpuinfo->vmcb->fs_base, currentcpuinfo->vmcb->fs_limit, currentcpuinfo->vmcb->fs_attrib);
+    sendstringf("gs=%8  (base=%6 , limit=%8, AT=%8)\n\r",currentcpuinfo->vmcb->gs_selector, currentcpuinfo->vmcb->gs_base, currentcpuinfo->vmcb->gs_limit, currentcpuinfo->vmcb->gs_attrib);
+    sendstringf("ldt=%8 (base=%6 , limit=%8, AT=%8)\n\r",currentcpuinfo->vmcb->ldtr_selector, currentcpuinfo->vmcb->ldtr_base, currentcpuinfo->vmcb->ldtr_limit, currentcpuinfo->vmcb->ldtr_attrib);
+    sendstringf("tr=%8  (base=%6 , limit=%8, AT=%8)\n\r",currentcpuinfo->vmcb->tr_selector, currentcpuinfo->vmcb->tr_base, currentcpuinfo->vmcb->tr_limit, currentcpuinfo->vmcb->tr_attrib);
+    sendstringf("\n\r");
+    sendstringf("gdt: base=%6 limit=%x\n\r",currentcpuinfo->vmcb->gdtr_base, currentcpuinfo->vmcb->gdtr_limit);
+    sendstringf("idt: base=%6 limit=%x\n\r",currentcpuinfo->vmcb->idtr_base, currentcpuinfo->vmcb->idtr_limit);
+
+    sendstringf("cr0=%6 cr3=%6 cr4=%6\n\r",currentcpuinfo->vmcb->CR0, currentcpuinfo->vmcb->CR3, currentcpuinfo->vmcb->CR4);
 
 
   }
   else
-    sendstring("\n...no registers...\n\n");
-
-
-  sendstringf("RSP=%6                       R12=%6\n\r",vmread(vm_guest_rsp), registers?registers->r12:0);
-  sendstringf("RIP=%6                       R13=%6\n\r",vmread(vm_guest_rip), registers?registers->r13:0);
-  sendstringf("                                           R14=%6\n\r", registers?registers->r14:0);
-  sendstringf("                                           R15=%6\n\r", registers?registers->r15:0);
-
-  sendstringf("rflags=%6 (VM=%d RF=%d IOPL=%d NT=%d)\n\r",rflags,prflags->VM, prflags->RF, prflags->IOPL, prflags->NT);
-  sendstringf("(CF=%d PF=%d AF=%d ZF=%d SF=%d TF=%d IF=%d DF=%d OF=%d)\n\r\n\r", prflags->CF, prflags->PF, prflags->AF, prflags->ZF, prflags->SF, prflags->TF, prflags->IF, prflags->DF, prflags->OF);
-
-  if (currentcpuinfo->invalidcs)
   {
-    sendstring("Invalid cs...\n\r");
+    UINT64 rflags=vmread(vm_guest_rflags);
+    PRFLAGS prflags=(PRFLAGS)&rflags;
+
+    sendstringf("cpunr=%d\n\r", currentcpuinfo->cpunr);
+    sendstringf("getTaskRegister()=%x\n",getTaskRegister());
+
+    sendstringf("Activity state : %d      interruptibility state : %d \n\r",vmread(vm_guest_activity_state), vmread(vm_guest_interruptability_state));
+
+    sendstringf("IS64BITPAGING=%d IS64BITCODE=%d ISREALMODE=%d\n\r", IS64BITPAGING(currentcpuinfo), IS64BITCODE(currentcpuinfo), ISREALMODE(currentcpuinfo));
+    sendstringf("efer=%x\n\r",currentcpuinfo->efer);
+
+    sendstringf("ia32e mode guest=%d\n",((vmread(vm_entry_controls) & IA32E_MODE_GUEST) != 0) );
+
+    sendstringf("IA32_SYSENTER_CS=%x IA32_SYSENTER_EIP=%x IA32_SYSENTER_ESP=%x\n",vmread(vm_guest_IA32_SYSENTER_CS), vmread(vm_guest_IA32_SYSENTER_EIP), vmread(vm_guest_IA32_SYSENTER_ESP) );
+
+
+    if (registers) 		// print registers
+    {
+      sendstringf("RAX=%6 RBX=%6   R8=%6\n\r", registers->rax, registers->rbx, registers->r8);
+      sendstringf("RCX=%6 RDX=%6   R9=%6\n\r", registers->rcx, registers->rdx, registers->r9);
+      sendstringf("RSI=%6 RDI=%6  R10=%6\n\r",registers->rsi, registers->rdi,  registers->r10);
+      sendstringf("RBP=%6                       R11=%6\n\r",registers->rbp, registers->r11);
+
+
+    }
+    else
+      sendstring("\n...no registers...\n\n");
+
+
+    sendstringf("RSP=%6                       R12=%6\n\r",vmread(vm_guest_rsp), registers?registers->r12:0);
+    sendstringf("RIP=%6                       R13=%6\n\r",vmread(vm_guest_rip), registers?registers->r13:0);
+    sendstringf("                                           R14=%6\n\r", registers?registers->r14:0);
+    sendstringf("                                           R15=%6\n\r", registers?registers->r15:0);
+
+    sendstringf("rflags=%6 (VM=%d RF=%d IOPL=%d NT=%d)\n\r",rflags,prflags->VM, prflags->RF, prflags->IOPL, prflags->NT);
+    sendstringf("(CF=%d PF=%d AF=%d ZF=%d SF=%d TF=%d IF=%d DF=%d OF=%d)\n\r\n\r", prflags->CF, prflags->PF, prflags->AF, prflags->ZF, prflags->SF, prflags->TF, prflags->IF, prflags->DF, prflags->OF);
+
+    if (currentcpuinfo->invalidcs)
+    {
+      sendstring("Invalid cs...\n\r");
+    }
+
+    sendstringf("cs=%8  (base=%6 , limit=%8, AR=%8)\n\r",vmread(0x802),vmread(vm_guest_cs_base),vmread(vm_guest_cs_limit), vmread(0x4816));
+    sendstringf("ss=%8  (base=%6 , limit=%8, AR=%8)\n\r",vmread(0x804),vmread(vm_guest_ss_base),vmread(vm_guest_ss_limit), vmread(0x4818));
+    sendstringf("ds=%8  (base=%6 , limit=%8, AR=%8)\n\r",vmread(0x806),vmread(0x680c),vmread(0x4806), vmread(0x481a));
+    sendstringf("es=%8  (base=%6 , limit=%8, AR=%8)\n\r",vmread(0x800),vmread(0x6806),vmread(0x4800), vmread(0x4814));
+    sendstringf("fs=%8  (base=%6 , limit=%8, AR=%8)\n\r",vmread(0x808),vmread(0x680e),vmread(0x4808), vmread(0x481c));
+    sendstringf("gs=%8  (base=%6 , limit=%8, AR=%8)\n\r",vmread(0x80a),vmread(0x6810),vmread(0x480a), vmread(0x481e));
+    sendstringf("ldt=%8 (base=%6 , limit=%8, AR=%8)\n\r",vmread(0x80c),vmread(0x6812),vmread(0x480c), vmread(0x4820));
+    sendstringf("tr=%8  (base=%6 , limit=%8, AR=%8)\n\r",vmread(0x80e),vmread(0x6814),vmread(0x480e), vmread(0x4822));
+
+    sendstringf("\n\r");
+    sendstringf("gdt: base=%6 limit=%x\n\r",vmread(vm_guest_gdtr_base), vmread(vm_guest_gdt_limit));
+    sendstringf("idt: base=%6 limit=%x\n\r",vmread(vm_guest_idtr_base), vmread(vm_guest_idt_limit));
+
+    if (ISREALMODE(currentcpuinfo))
+    {
+      sendstringf("RM gdt: base=%6 limit=%x\n\r",currentcpuinfo->RealMode.GDTBase, currentcpuinfo->RealMode.GDTLimit);
+      sendstringf("RM idt: base=%6 limit=%x\n\r",currentcpuinfo->RealMode.IDTBase, currentcpuinfo->RealMode.IDTLimit);
+    }
+
+    regDR7 dr7;
+    dr7.DR7=vmread(vm_guest_dr7);
+    sendstringf("guest: dr0=%6 dr1=%6 dr2=%6 \n\r       dr3=%6 dr6=%6 dr7=%6\n\r",getDR0(), getDR1(), getDR2(), getDR3(), getDR6(), dr7.DR7);
+    if (dr7.DR7 != 0x400)
+    {
+      sendstringf("dr7:");
+      if (dr7.G0)
+        sendstringf("G0 ");
+
+      if (dr7.L0)
+        sendstringf("L0 ");
+
+      if (dr7.G1)
+        sendstringf("G1 ");
+
+      if (dr7.L1)
+        sendstringf("L1 ");
+
+      if (dr7.G2)
+        sendstringf("G2 ");
+
+      if (dr7.L2)
+          sendstringf("L2 ");
+
+      if (dr7.G3)
+        sendstringf("G3 ");
+
+      if (dr7.L3)
+          sendstringf("L3 ");
+
+      if (dr7.LE)
+        sendstringf("LE ");
+
+      if (dr7.GE)
+        sendstringf("GE ");
+
+      if (dr7.RW0)
+        sendstringf("RW0 ");
+
+      if (dr7.LEN0)
+        sendstringf("LEN0 ");
+
+      if (dr7.RW1)
+        sendstringf("RW1 ");
+
+      if (dr7.LEN1)
+        sendstringf("LEN1 ");
+
+      if (dr7.RW2)
+        sendstringf("RW2 ");
+
+      if (dr7.LEN2)
+        sendstringf("LEN2 ");
+
+      if (dr7.RW3)
+        sendstringf("RW3 ");
+
+      if (dr7.LEN3)
+        sendstringf("LEN3 ");
+
+
+    }
+
+
+    sendstringf("host dr7=%6\n\r", getDR7());
+    sendstringf("cr2=%6\n\r",getCR2());
+
+    sendstringf("real:\n\r");
+    sendstringf("cr0=%6 cr3=%6 cr4=%6\n\r",vmread(vm_guest_cr0), vmread(vm_guest_cr3), vmread(vm_guest_cr4));
+
+    sendstringf("fake (what vm sees):\n\r");
+    sendstringf("cr0=%6 cr3=%6 cr4=%6\n\r",vmread(vm_cr0_fakeread), currentcpuinfo->guestCR3, vmread(vm_cr4_fakeread));
   }
-
-  sendstringf("cs=%8  (base=%6 , limit=%8, AR=%8)\n\r",vmread(0x802),vmread(vm_guest_cs_base),vmread(vm_guest_cs_limit), vmread(0x4816));
-  sendstringf("ss=%8  (base=%6 , limit=%8, AR=%8)\n\r",vmread(0x804),vmread(vm_guest_ss_base),vmread(vm_guest_ss_limit), vmread(0x4818));
-  sendstringf("ds=%8  (base=%6 , limit=%8, AR=%8)\n\r",vmread(0x806),vmread(0x680c),vmread(0x4806), vmread(0x481a));
-  sendstringf("es=%8  (base=%6 , limit=%8, AR=%8)\n\r",vmread(0x800),vmread(0x6806),vmread(0x4800), vmread(0x4814));
-  sendstringf("fs=%8  (base=%6 , limit=%8, AR=%8)\n\r",vmread(0x808),vmread(0x680e),vmread(0x4808), vmread(0x481c));
-  sendstringf("gs=%8  (base=%6 , limit=%8, AR=%8)\n\r",vmread(0x80a),vmread(0x6810),vmread(0x480a), vmread(0x481e));
-  sendstringf("ldt=%8 (base=%6 , limit=%8, AR=%8)\n\r",vmread(0x80c),vmread(0x6812),vmread(0x480c), vmread(0x4820));
-  sendstringf("ts=%8  (base=%6 , limit=%8, AR=%8)\n\r",vmread(0x80e),vmread(0x6814),vmread(0x480e), vmread(0x4822));
-
-  sendstringf("\n\r");
-  sendstringf("gdt: base=%6 limit=%x\n\r",vmread(vm_guest_gdtr_base), vmread(vm_guest_gdt_limit));
-  sendstringf("idt: base=%6 limit=%x\n\r",vmread(vm_guest_idtr_base), vmread(vm_guest_idt_limit));
-
-  if (ISREALMODE(currentcpuinfo))
-  {
-    sendstringf("RM gdt: base=%6 limit=%x\n\r",currentcpuinfo->RealMode.GDTBase, currentcpuinfo->RealMode.GDTLimit);
-    sendstringf("RM idt: base=%6 limit=%x\n\r",currentcpuinfo->RealMode.IDTBase, currentcpuinfo->RealMode.IDTLimit);
-  }
-
-  regDR7 dr7;
-  dr7.DR7=vmread(vm_guest_dr7);
-  sendstringf("guest: dr0=%6 dr1=%6 dr2=%6 \n\r       dr3=%6 dr6=%6 dr7=%6\n\r",getDR0(), getDR1(), getDR2(), getDR3(), getDR6(), dr7.DR7);
-  if (dr7.DR7 != 0x400)
-  {
-	  sendstringf("dr7:");
-	  if (dr7.G0)
-		  sendstringf("G0 ");
-
-	  if (dr7.L0)
-		  sendstringf("L0 ");
-
-	  if (dr7.G1)
-		  sendstringf("G1 ");
-
-	  if (dr7.L1)
-		  sendstringf("L1 ");
-
-	  if (dr7.G2)
-		  sendstringf("G2 ");
-
-	  if (dr7.L2)
-	      sendstringf("L2 ");
-
-	  if (dr7.G3)
-		  sendstringf("G3 ");
-
-	  if (dr7.L3)
-	      sendstringf("L3 ");
-
-	  if (dr7.LE)
-		  sendstringf("LE ");
-
-	  if (dr7.GE)
-		  sendstringf("GE ");
-
-	  if (dr7.RW0)
-		  sendstringf("RW0 ");
-
-	  if (dr7.LEN0)
-		  sendstringf("LEN0 ");
-
-	  if (dr7.RW1)
-		  sendstringf("RW1 ");
-
-	  if (dr7.LEN1)
-		  sendstringf("LEN1 ");
-
-	  if (dr7.RW2)
-		  sendstringf("RW2 ");
-
-	  if (dr7.LEN2)
-		  sendstringf("LEN2 ");
-
-	  if (dr7.RW3)
-		  sendstringf("RW3 ");
-
-	  if (dr7.LEN3)
-		  sendstringf("LEN3 ");
-
-
-  }
-
-
-  sendstringf("host dr7=%6\n\r", getDR7());
-  sendstringf("cr2=%6\n\r",getCR2());
-
-  sendstringf("real:\n\r");
-  sendstringf("cr0=%6 cr3=%6 cr4=%6\n\r",vmread(vm_guest_cr0), vmread(vm_guest_cr3), vmread(vm_guest_cr4));
-
-  sendstringf("fake (what vm sees):\n\r");
-  sendstringf("cr0=%6 cr3=%6 cr4=%6\n\r",vmread(vm_cr0_fakeread), currentcpuinfo->guestCR3, vmread(vm_cr4_fakeread));
-
 #endif
 
 }
@@ -522,6 +571,10 @@ int vmexit_amd(pcpuinfo currentcpuinfo, UINT64 *registers)
 {
  // displayline("vmexit_amd called. currentcpuinfo=%p\n", currentcpuinfo);
  // displayline("cpunr=%d\n", currentcpuinfo->cpunr);
+
+  nosendchar[getAPICID()]=0;
+  sendstring("vmexit_amd\n");
+
 
   return handleVMEvent_amd(currentcpuinfo, (VMRegisters*)registers);
 }
@@ -1754,7 +1807,10 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
 
   currentcpuinfo->vmcb->InterceptINT=1; //break on software interrupts (int 0x15 in realmode)
   currentcpuinfo->vmcb->InterceptShutdown=1; //in case of a severe error
+  currentcpuinfo->vmcb->InterceptVMMCALL=1;
   currentcpuinfo->vmcb->MSR_PROT=1;
+
+  currentcpuinfo->vmcb->InterceptINIT=1;
 
 
 
@@ -1783,6 +1839,178 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
 
 
   globals_have_been_configured=1;
+
+  SaveExtraHostState(currentcpuinfo->vmcb_PA); //save some of MSR's that are needed (init did touch the segment registers so those need to be overridden if loadedOS)
+
+
+
+  if (loadedOS)
+  {
+    POriginalState originalstate=NULL;
+    PGDT_ENTRY gdt=NULL,ldt=NULL;
+    ULONG ldtselector=originalstate->ldt;
+    int notpaged;
+    RFLAGS rflags;
+
+
+    sendstringf("Setting up guest based on loadedOS settings\n");
+    originalstate=(POriginalState)MapPhysicalMemory(loadedOS,currentcpuinfo->AvailableVirtualAddress);
+
+
+    sendstringf("originalstate=%6\n", originalstate);
+    sendstringf("originalstate->cpucount(%x)=%d\n",&originalstate->cpucount, originalstate->cpucount);
+    sendstringf("originalstate->cr0=%6\n",originalstate->cr0);
+    sendstringf("originalstate->cr2=%6\n",originalstate->cr2);
+    sendstringf("originalstate->cr3=%6\n",originalstate->cr3);
+    sendstringf("originalstate->cr4=%6\n",originalstate->cr4);
+    sendstringf("originalstate->rip(%x)=%6\n",&originalstate->rip, originalstate->rip);
+    sendstringf("originalstate->cs=%x\n",originalstate->cs);
+    sendstringf("originalstate->ss=%x\n",originalstate->ss);
+    sendstringf("originalstate->ds=%x\n",originalstate->ds);
+    sendstringf("originalstate->es=%x\n",originalstate->es);
+    sendstringf("originalstate->fs=%x\n",originalstate->fs);
+    sendstringf("originalstate->gs=%x\n",originalstate->gs);
+    sendstringf("originalstate->ldt=%x\n",originalstate->ldt);
+    sendstringf("originalstate->tr=%x\n",originalstate->tr);
+
+    sendstringf("originalstate->dr7(%x)=%6\n",&originalstate->dr7, originalstate->dr7);
+    sendstringf("originalstate->gdtbase=%6\n",originalstate->gdtbase);
+    sendstringf("originalstate->gdtlimit=%x\n",originalstate->gdtlimit);
+    sendstringf("originalstate->idtbase=%6\n",originalstate->idtbase);
+    sendstringf("originalstate->idtlimit=%x\n",originalstate->idtlimit);
+    sendstringf("originalstate->originalLME=%x\n",originalstate->originalLME);
+    sendstringf("originalstate->rflags=%6\n",originalstate->rflags);
+
+    sendstringf("originalstate->rax=%6\n",originalstate->rax);
+    sendstringf("originalstate->rbx=%6\n",originalstate->rbx);
+    sendstringf("originalstate->rcx=%6\n",originalstate->rcx);
+    sendstringf("originalstate->rdx=%6\n",originalstate->rdx);
+    sendstringf("originalstate->rsi=%6\n",originalstate->rsi);
+    sendstringf("originalstate->rdi=%6\n",originalstate->rdi);
+    sendstringf("originalstate->rbp=%6\n",originalstate->rbp);
+    sendstringf("originalstate->rsp=%6\n",originalstate->rsp);
+    sendstringf("originalstate->r8=%6\n",originalstate->r8);
+    sendstringf("originalstate->r9=%6\n",originalstate->r9);
+    sendstringf("originalstate->r10=%6\n",originalstate->r10);
+    sendstringf("originalstate->r11=%6\n",originalstate->r11);
+    sendstringf("originalstate->r12=%6\n",originalstate->r12);
+    sendstringf("originalstate->r13=%6\n",originalstate->r13);
+    sendstringf("originalstate->r14=%6\n",originalstate->r14);
+    sendstringf("originalstate->r15=%6\n",originalstate->r15);
+
+
+
+    currentcpuinfo->vmcb->CR4=originalstate->cr4;
+    currentcpuinfo->vmcb->CR3=originalstate->cr3;
+    currentcpuinfo->vmcb->CR0=originalstate->cr0;
+    currentcpuinfo->vmcb->RFLAGS=originalstate->rflags;
+
+    currentcpuinfo->efer=originalstate->originalEFER;
+    currentcpuinfo->vmcb->EFER=currentcpuinfo->efer | (1<<12);
+
+
+    currentcpuinfo->vmcb->gdtr_base=(UINT64)originalstate->gdtbase;
+    currentcpuinfo->vmcb->gdtr_limit=(UINT64)originalstate->gdtlimit;
+
+    currentcpuinfo->vmcb->idtr_base=(UINT64)originalstate->idtbase;
+    currentcpuinfo->vmcb->idtr_limit=(UINT64)originalstate->idtlimit;
+
+
+    //gdt MUST be paged in
+    gdt=(PGDT_ENTRY)(UINT64)MapPhysicalMemory(
+          getPhysicalAddressVM(currentcpuinfo, originalstate->gdtbase, &notpaged)
+          ,currentcpuinfo->AvailableVirtualAddress+0x00200000
+        );
+
+    if ((UINT64)originalstate->ldt)
+    {
+      UINT64 ldtbase; //should be 0 in 64bit
+      ULONG ldtlimit;
+
+      sendstring("ldt is valid, so getting the information\n\r");
+
+      ldtbase=(gdt[(ldtselector >> 3)].Base24_31 << 24) + gdt[(ldtselector >> 3)].Base0_23;
+      ldtlimit=(gdt[(ldtselector >> 3)].Limit16_19 << 16) + gdt[(ldtselector >> 3)].Limit0_15;
+      ldt=(PGDT_ENTRY)(UINT64)MapPhysicalMemory(getPhysicalAddressVM(currentcpuinfo, ldtbase, &notpaged), currentcpuinfo->AvailableVirtualAddress+0x00400000);
+    }
+
+    currentcpuinfo->vmcb->es_selector=originalstate->es;
+    currentcpuinfo->vmcb->cs_selector=originalstate->cs;
+    currentcpuinfo->vmcb->ss_selector=originalstate->ss;
+    currentcpuinfo->vmcb->ds_selector=originalstate->ds;
+    currentcpuinfo->vmcb->fs_selector=originalstate->fs;
+    currentcpuinfo->vmcb->gs_selector=originalstate->gs;
+    currentcpuinfo->vmcb->ldtr_selector=originalstate->ldt;
+    currentcpuinfo->vmcb->tr_selector=originalstate->tr;
+
+    currentcpuinfo->vmcb->es_limit=getSegmentLimit(gdt, ldt, originalstate->es);
+    currentcpuinfo->vmcb->cs_limit=getSegmentLimit(gdt, ldt, originalstate->cs);
+    currentcpuinfo->vmcb->ss_limit=getSegmentLimit(gdt, ldt, originalstate->ss);
+    currentcpuinfo->vmcb->ds_limit=getSegmentLimit(gdt, ldt, originalstate->ds);
+    currentcpuinfo->vmcb->fs_limit=getSegmentLimit(gdt, ldt, originalstate->fs);
+    currentcpuinfo->vmcb->gs_limit=getSegmentLimit(gdt, ldt, originalstate->gs);
+    currentcpuinfo->vmcb->ldtr_limit=getSegmentLimit(gdt, ldt, originalstate->ldt);
+    currentcpuinfo->vmcb->tr_limit=getSegmentLimit(gdt, ldt, originalstate->tr);
+
+    currentcpuinfo->vmcb->es_base=getSegmentBase(gdt, ldt, originalstate->es);
+    currentcpuinfo->vmcb->cs_base=getSegmentBase(gdt, ldt, originalstate->cs);
+    currentcpuinfo->vmcb->ss_base=getSegmentBase(gdt, ldt, originalstate->ss);
+    currentcpuinfo->vmcb->ds_base=getSegmentBase(gdt, ldt, originalstate->ds);
+    if (originalstate->originalLME)
+    {
+      //64-bit
+      currentcpuinfo->vmcb->fs_base=originalstate->fsbase;
+      currentcpuinfo->vmcb->gs_base=originalstate->gsbase;
+      currentcpuinfo->vmcb->tr_base=getSegmentBaseEx(gdt,ldt,originalstate->tr, 1);
+    }
+    else
+    {
+      //32-bit
+      currentcpuinfo->vmcb->fs_base=getSegmentBase(gdt, ldt, originalstate->fs);
+      currentcpuinfo->vmcb->gs_base=getSegmentBase(gdt, ldt, originalstate->gs);
+      currentcpuinfo->vmcb->tr_base=getSegmentBase(gdt,ldt,originalstate->tr);
+    }
+    currentcpuinfo->vmcb->ldtr_base=getSegmentBase(gdt, ldt, originalstate->ldt);
+
+
+    currentcpuinfo->vmcb->es_attrib=getSegmentAttrib(gdt,ldt,originalstate->es);
+    currentcpuinfo->vmcb->cs_attrib=getSegmentAttrib(gdt,ldt,originalstate->cs);
+    currentcpuinfo->vmcb->ss_attrib=getSegmentAttrib(gdt,ldt,originalstate->ss);
+    currentcpuinfo->vmcb->ds_attrib=getSegmentAttrib(gdt,ldt,originalstate->ds);
+    currentcpuinfo->vmcb->fs_attrib=getSegmentAttrib(gdt,ldt,originalstate->fs);
+    currentcpuinfo->vmcb->gs_attrib=getSegmentAttrib(gdt,ldt,originalstate->gs);
+    currentcpuinfo->vmcb->ldtr_attrib=getSegmentAttrib(gdt,ldt,originalstate->ldt);
+    currentcpuinfo->vmcb->tr_attrib=getSegmentAttrib(gdt,ldt,originalstate->tr);
+
+    currentcpuinfo->vmcb->SYSENTER_CS=(UINT64)readMSR(IA32_SYSENTER_CS_MSR); //current msr
+    currentcpuinfo->vmcb->SYSENTER_ESP=(UINT64)readMSR(IA32_SYSENTER_ESP_MSR);
+    currentcpuinfo->vmcb->SYSENTER_EIP=(UINT64)readMSR(IA32_SYSENTER_EIP_MSR);
+
+    currentcpuinfo->actual_sysenter_CS=currentcpuinfo->vmcb->SYSENTER_CS;
+    currentcpuinfo->actual_sysenter_ESP=currentcpuinfo->vmcb->SYSENTER_ESP;
+    currentcpuinfo->actual_sysenter_EIP=currentcpuinfo->vmcb->SYSENTER_EIP;
+
+
+
+    currentcpuinfo->vmcb->DR7=originalstate->dr7;
+
+    if (originalstate->originalLME)
+    {
+      //64-bit
+      currentcpuinfo->vmcb->RSP=originalstate->rsp;
+      currentcpuinfo->vmcb->RAX=originalstate->rax;
+      currentcpuinfo->vmcb->RIP=originalstate->rip;
+
+    }
+    else
+    {
+      //32-bit (make sure unused bits are 0)
+      currentcpuinfo->vmcb->RSP=(ULONG)originalstate->rsp;
+      currentcpuinfo->vmcb->RAX=(ULONG)originalstate->rax;
+      currentcpuinfo->vmcb->RIP=(ULONG)originalstate->rip;
+    }
+  }
+
   currentcpuinfo->vmxsetup=1;
 
   csLeave(&setupVMX_lock);
@@ -2606,7 +2834,7 @@ void setupVMX(pcpuinfo currentcpuinfo)
   csLeave(&setupVMX_lock);
 }
 
-void launchVMX_AMD(pcpuinfo currentcpuinfo)
+void launchVMX_AMD(pcpuinfo currentcpuinfo, POriginalState originalstate)
 {
   int result;
 
@@ -2615,7 +2843,10 @@ void launchVMX_AMD(pcpuinfo currentcpuinfo)
 
   displayline("Calling vmxloop_amd with currentcpuinfo=%6\n\r",(UINT64)currentcpuinfo);
 
-  result=vmxloop_amd(currentcpuinfo, currentcpuinfo->vmcb_PA);
+  if (originalstate)
+    result=vmxloop_amd(currentcpuinfo, currentcpuinfo->vmcb_PA, &originalstate->rax);
+  else
+    result=vmxloop_amd(currentcpuinfo, currentcpuinfo->vmcb_PA, NULL);
 
   displayline("Returned from vmxloop_amd. Result=%d\n\r", result);
 
@@ -2623,14 +2854,16 @@ void launchVMX_AMD(pcpuinfo currentcpuinfo)
 
 void launchVMX(pcpuinfo currentcpuinfo)
 {
-  if (isAMD)
-    return launchVMX_AMD(currentcpuinfo);
+
 
   int result;
 
   POriginalState originalstate=NULL;
   if (loadedOS)
     originalstate=(POriginalState)MapPhysicalMemory(loadedOS,currentcpuinfo->AvailableVirtualAddress);
+
+  if (isAMD)
+    return launchVMX_AMD(currentcpuinfo, originalstate);
 
 
   displayline("Calling vmxloop with currentcpuinfo=%6\n\r",(UINT64)currentcpuinfo);

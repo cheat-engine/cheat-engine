@@ -97,6 +97,48 @@ isAP:              	dd 0
 bootdisk:           dd 0
 nextstack:		  	dq 0x00000000007FFFF8 ;start of stack for the next cpu
 
+
+
+global vmcall_amd
+vmcall_amd:
+  vmmcall
+  ret
+
+global vmcall_intel
+vmcall_intel:
+  vmcall
+  ret
+
+global vmcall_instr
+vmcall_instr: dq vmcall_intel
+
+global vmcalltest_asm
+vmcalltest_asm:
+  sub rsp,8
+  sub rsp,12
+
+  mov dword [rsp],12
+  mov dword [rsp+4],0xfedcba98
+  mov dword [rsp+8],0
+
+  xchg bx,bx
+  mov rax,rsp
+  mov rdx,0x76543210
+  call [vmcall_instr]
+
+  add rsp,8+12
+  ret
+
+
+global SaveExtraHostState
+;void SaveExtraHostState(VMCB_PA)
+SaveExtraHostState:
+  xchg bx,bx
+  xchg rax,rdi
+  vmsave
+  xchg rax,rdi
+  ret
+
 struc vmxloop_amd_stackframe
   saved_r15:      resq 1
   saved_r14:      resq 1
@@ -115,9 +157,9 @@ struc vmxloop_amd_stackframe
   saved_rax:      resq 1
                   resq 1  ;alignment
   fxsavespace:    resb 512 ;fxsavespace must be aligned
+  psavedstate:    resq 1 ;saved param3
   vmcb_PA:        resq 1 ;saved param2
   currentcpuinfo: resq 1 ;saved param1
-                  resq 1 ;alignment
   ;At entry RSP points here
   returnaddress:  resq 1
 
@@ -133,12 +175,37 @@ sub rsp, vmxloop_amd_stackframe_size-8 ;-8 because the structure assumes returna
 
 mov [rsp+currentcpuinfo],rdi
 mov [rsp+vmcb_PA], rsi
+mov [rsp+psavedstate], rdx
 
-mov rax,[rsp+returnaddress]
+clgi ;no more interrupts from this point on. (Not even some special interrupts)
 
 
+mov rax,rdx
+cmp rax,0
+je notloadedos_amd
 
+;setup the initial state
+mov rbx,[rax+0x08]
+mov rcx,[rax+0x10]
+mov rdx,[rax+0x18]
+mov rsi,[rax+0x20]
+mov rdi,[rax+0x28]
+mov rbp,[rax+0x30]
+mov r8,[rax+0x40]
+mov r9,[rax+0x48]
+mov r10,[rax+0x50]
+mov r11,[rax+0x58]
+mov r12,[rax+0x60]
+mov r13,[rax+0x68]
+mov r14,[rax+0x70]
+mov r15,[rax+0x78]
+
+jmp vmrun_loop
+
+
+notloadedos_amd:
 ;init to startup state (or offloados state)
+
 xor rax,rax
 mov rbx,rax
 mov rcx,rax
@@ -155,11 +222,13 @@ mov r14,rax
 mov r15,rax
 mov rsi,rax
 
-clgi ;no more interrupts from this point on. (Not even some special interrupts)
 
 vmrun_loop:
-mov rax,[rsp+vmcb_PA]
+xchg bx,bx
+mov rax,[rsp+vmcb_PA]  ;for those wondering, RAX is stored in the vmcb->RAX field, not here
+vmload
 vmrun ;rax
+vmsave
 
 ;on return RAX and RSP are unchanged, but ALL other registers are changed and MUST be saved first
 ;xchg bx,bx
