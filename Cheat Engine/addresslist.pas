@@ -1447,7 +1447,8 @@ begin
 
       for i:=min(lastselected,treeview.selected.absoluteIndex) to max(lastselected,treeview.selected.absoluteIndex) do
       begin
-        if (MemRecItems[i].treenode.parent=nil) or (MemRecItems[i].treenode.parent.expanded=true) then
+
+        if MemRecItems[i].treenode.IsVisible then
           MemRecItems[i].isSelected:=true;
       end;
     end
