@@ -13,6 +13,7 @@
 #include "multicore.h"
 #include "inthandlers.h"
 #include "vmmhelper.h"
+#include "vmeventhandler.h"
 
 #include "distorm.h"
 #include "keyboard.h"
@@ -664,15 +665,18 @@ void vmm_entry2(void)
   unsigned int cpunr;
 
 
-  sendstringf("Welcome to a extra cpu (cpunr=%d)\n",cpucount);
+  //sendstringf("Welcome to a extra cpu (cpunr=%d)\n",cpucount);
 
   csEnter(&CScpu);
 
   cpunr=initializedCPUCount;
   sendstringf("Setting up cpunr=%d\n",cpunr);
 
+
   initializedCPUCount++;
-  cpucount++;
+
+  if (!loadedOS)
+    cpucount++; //cpucount is known, don't increase it
 
   cpuinfo[cpunr].active=1;
   cpuinfo[cpunr].cpunr=cpunr;
@@ -1293,27 +1297,97 @@ void vmm_entry(void)
   currentgdt[4].Base0_23=0x20000;
 
 
-  sendstringf("Setting up 64-bit TS and TSS\n\r");
+  if (!loadedOS)
+  {
+    sendstringf("Setting up 64-bit TS and TSS\n\r");
 
-  TSS *temp=malloc(4096);
-  ownTSS=temp;
-  zeromemory(temp,4096);
-  currentgdt=(PGDT_ENTRY)(getGDTbase()+96);
+    TSS *temp=malloc(4096);
+    ownTSS=temp;
+    zeromemory(temp,4096);
+    currentgdt=(PGDT_ENTRY)(getGDTbase()+96);
 
 
-  currentgdt->Limit0_15=sizeof(TSS);
-  currentgdt->Base0_23=(UINT64)temp;
-  currentgdt->Type=0x9;
-  currentgdt->System=0;
-  currentgdt->DPL=3;
-  currentgdt->P=1;
-  currentgdt->Limit16_19=sizeof(TSS) >> 16;
-  currentgdt->AVL=1;
-  currentgdt->Reserved=0;
-  currentgdt->B_D=0;
-  currentgdt->G=0;
-  currentgdt->Base24_31=((UINT64)temp) >> 24;
-  loadTaskRegister(96);
+    currentgdt->Limit0_15=sizeof(TSS);
+    currentgdt->Base0_23=(UINT64)temp;
+    currentgdt->Type=0x9;
+    currentgdt->System=0;
+    currentgdt->DPL=3;
+    currentgdt->P=1;
+    currentgdt->Limit16_19=sizeof(TSS) >> 16;
+    currentgdt->AVL=1;
+    currentgdt->Reserved=0;
+    currentgdt->B_D=0;
+    currentgdt->G=0;
+    currentgdt->Base24_31=((UINT64)temp) >> 24;
+    loadTaskRegister(96);
+
+    {
+      //debugging a nasty bug that is probably the cause of the 75% chance crash
+      unsigned char testgdt[0x80]={0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, \
+          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, \
+          0x00, 0x00, 0x00, 0x00, 0x00, 0x9b, 0x20, 0x00, \
+          0xff, 0xff, 0x00, 0x00, 0x00, 0x93, 0xcf, 0x00, \
+          0xff, 0xff, 0x00, 0x00, 0x00, 0xfb, 0xcf, 0x00, \
+          0xff, 0xff, 0x00, 0x00, 0x00, 0xf3, 0xcf, 0x00, \
+          0x00, 0x00, 0x00, 0x00, 0x00, 0xfb, 0x20, 0x00, \
+          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, \
+  /*TSS*/ 0x67, 0x00, 0x80, 0x20, 0x3f, 0x8b, 0x00, 0xe8, \
+          0x01, 0xf8, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, \
+          0x00, 0x3c, 0x00, 0xe0, 0xfd, 0xf3, 0x40, 0xff, \
+          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, \
+          0xff, 0xff, 0x00, 0x00, 0x00, 0x9b, 0xcf, 0x00, \
+          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, \
+          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, \
+          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+      PGDT_ENTRY tgdt=&testgdt[0x40];
+
+/*
+     TSS=
+     0x67, 0x00, 0x80, 0x20, 0x3f, 0x8b, 0x00, 0xe8
+     0x01, 0xf8, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00
+
+     00000000
+     fffff801
+     e8008b3f
+     20800067
+
+     base:
+     15:00=2080
+     23:16=3f
+     31:24=e8
+     63:32=fffff801
+
+     fffff801e83f2080   good
+
+     fffff800e83f2080   bad
+ */
+
+      QWORD testbase;
+
+      sendstringf("tgdt->Base0_23=%x\n", tgdt->Base0_23);  //3f2080
+      sendstringf("tgdt->Base24_31=%x\n", tgdt->Base24_31); //e8
+      sendstringf("*(ULONG *)(&tgdt[1])=%x\n", *(ULONG *)(&tgdt[1])); //fffff801
+
+
+      testbase=tgdt->Base24_31 << 24;
+
+      sendstringf("Shift test:%x\n", testbase);
+
+
+      testbase=getSegmentBaseEx(testgdt, 0, 0x40, 1);
+
+
+
+      sendstringf("testbase is %6\n", testbase);
+      if (testbase!=0xfffff801e83f2080ULL)
+        sendstringf("FAIL!\n");
+
+    }
+
+
+
+  }
 
   displayline("Generating debug information\n\r");
   originalIDTcrc=generateCRC(NULL, 0x400);
