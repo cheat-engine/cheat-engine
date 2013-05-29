@@ -321,6 +321,7 @@ void InitializeMM(UINT64 BaseVirtualAddress)
   memorylist->previous=NULL;
   memorylist->next=NULL;
 
+  sendstringf("Available memory ranges from %6 to %6", memorylist->base, memorylist->base+memorylist->size);
   //sendstringf("memorylist->size=%d\n",memorylist->size);
 
   firstfreeregion=memorylist;

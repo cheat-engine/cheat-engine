@@ -224,11 +224,12 @@ mov rsi,rax
 
 
 vmrun_loop:
-xchg bx,bx
+;xchg bx,bx
 mov rax,[rsp+vmcb_PA]  ;for those wondering, RAX is stored in the vmcb->RAX field, not here
 vmload
 vmrun ;rax
 vmsave
+
 
 ;on return RAX and RSP are unchanged, but ALL other registers are changed and MUST be saved first
 ;xchg bx,bx

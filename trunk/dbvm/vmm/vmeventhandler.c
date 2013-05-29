@@ -117,8 +117,8 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
 
     sendstring("ldt is valid, so getting the information\n\r");
 
-    ldtbase=(gdt[(ldtselector >> 3)].Base24_31 << 24) + gdt[(ldtselector >> 3)].Base0_23;
-    ldtlimit=(gdt[(ldtselector >> 3)].Limit16_19 << 16) + gdt[(ldtselector >> 3)].Limit0_15;
+    ldtbase=(gdt[(ldtselector >> 3)].Base24_31 << 24) | gdt[(ldtselector >> 3)].Base0_23;
+    ldtlimit=(gdt[(ldtselector >> 3)].Limit16_19 << 16) | gdt[(ldtselector >> 3)].Limit0_15;
     ldt=(PGDT_ENTRY)(UINT64)MapPhysicalMemory(getPhysicalAddressVM(currentcpuinfo, ldtbase, &notpaged), currentcpuinfo->AvailableVirtualAddress+0x00200000);
 
     sendstringf("ldt=%8\n\r",(UINT64)ldt);
@@ -486,7 +486,7 @@ int handleSIPI(void)
   sendstringf("Handling SIPI\n\r");
 
   //the exit qualification contains the address of the route
-  newcs=vmread(vm_exit_qualification) << 8;
+  newcs=(QWORD)(vmread(vm_exit_qualification)) << 8;
   newcsbase=newcs << 4;
   newip=0;
 
@@ -804,10 +804,12 @@ UINT64 getSegmentBaseEx(PGDT_ENTRY gdt, PGDT_ENTRY ldt, ULONG selector, int expa
   {
     //it now consists out of 3 dwords
     UINT64 temp;
+
+    UINT64 temp2;
+
     ULONG *upperbase=(ULONG *)&usedtable[index];
     temp=upperbase[2];
-    temp=temp << 32;
-    temp+=(usedtable[index].Base24_31 << 24) + usedtable[index].Base0_23;
+    temp=((QWORD)temp << 32) | ((QWORD)usedtable[index].Base24_31 << 24) | ((QWORD)usedtable[index].Base0_23);
     return temp;
   }
   else

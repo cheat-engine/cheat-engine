@@ -400,6 +400,8 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   if (currentcpuinfo->virtualTLB == NULL)
     allocateVirtualTLB();
 
+  sendstringf("currentcpuinfo->AvailableVirtualAddress=%6\n", currentcpuinfo->AvailableVirtualAddress);
+
   sendstringf("vmregisters->rax=%8\n\r", vmregisters->rax);
 
   //still here, so password1 is valid

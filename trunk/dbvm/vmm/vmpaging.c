@@ -33,6 +33,8 @@ int allocateVirtualTLB(void)
   AvailableForPaging -= 4096; //keep some memory for some thing extra
   AvailableForPaging -= AvailableForPaging % 4096;
 
+  sendstringf("AvailableForPaging=%x\n", AvailableForPaging);
+
   for (i=0; i<16; i++)
     if (cpuinfo[i].active)
     {

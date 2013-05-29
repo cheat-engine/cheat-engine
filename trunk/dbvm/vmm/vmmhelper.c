@@ -368,6 +368,7 @@ void displayPreviousStates(void)
 #endif
 }
 
+
 void sendvmstate(pcpuinfo currentcpuinfo, VMRegisters *registers)
 {
 #ifdef DEBUG
@@ -552,6 +553,7 @@ void sendvmstate(pcpuinfo currentcpuinfo, VMRegisters *registers)
     sendstringf("fake (what vm sees):\n\r");
     sendstringf("cr0=%6 cr3=%6 cr4=%6\n\r",vmread(vm_cr0_fakeread), currentcpuinfo->guestCR3, vmread(vm_cr4_fakeread));
   }
+
 #endif
 
 }
@@ -567,16 +569,29 @@ int vmeventcount=0;
 criticalSection vmexitlock;
 
 
+
+
 int vmexit_amd(pcpuinfo currentcpuinfo, UINT64 *registers)
 {
  // displayline("vmexit_amd called. currentcpuinfo=%p\n", currentcpuinfo);
  // displayline("cpunr=%d\n", currentcpuinfo->cpunr);
+  int result=0;
 
   nosendchar[getAPICID()]=0;
-  sendstring("vmexit_amd\n");
+#ifdef DEBUG
 
 
-  return handleVMEvent_amd(currentcpuinfo, (VMRegisters*)registers);
+  csEnter(&vmexitlock);
+  sendstringf("vmexit_amd for cpu %d\n", currentcpuinfo->cpunr);
+
+#endif
+  result=handleVMEvent_amd(currentcpuinfo, (VMRegisters*)registers);
+
+#ifdef DEBUG
+  csLeave(&vmexitlock);
+#endif
+
+  return result;
 }
 
 #ifdef DEBUG
@@ -1805,12 +1820,14 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
 
 
 
-  currentcpuinfo->vmcb->InterceptINT=1; //break on software interrupts (int 0x15 in realmode)
+  if (!loadedOS)
+    currentcpuinfo->vmcb->InterceptINT=1; //break on software interrupts (int 0x15 in realmode to tell the os not to mess with stuff)
+
   currentcpuinfo->vmcb->InterceptShutdown=1; //in case of a severe error
   currentcpuinfo->vmcb->InterceptVMMCALL=1;
   currentcpuinfo->vmcb->MSR_PROT=1;
 
-  currentcpuinfo->vmcb->InterceptINIT=1;
+ // currentcpuinfo->vmcb->InterceptINIT=1; //cpu init (init-sipi-sipi. I need to implement a virtual apic to suppot boot
 
 
 
@@ -1843,14 +1860,16 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
   SaveExtraHostState(currentcpuinfo->vmcb_PA); //save some of MSR's that are needed (init did touch the segment registers so those need to be overridden if loadedOS)
 
 
-
   if (loadedOS)
   {
     POriginalState originalstate=NULL;
     PGDT_ENTRY gdt=NULL,ldt=NULL;
     ULONG ldtselector=originalstate->ldt;
     int notpaged;
+
     RFLAGS rflags;
+
+
 
 
     sendstringf("Setting up guest based on loadedOS settings\n");
@@ -1922,6 +1941,26 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
           ,currentcpuinfo->AvailableVirtualAddress+0x00200000
         );
 
+#ifdef DEBUG
+    {
+      int i,j;
+      sendstring("GDT=\n");
+      i=0;
+      j=0;
+      while (i<=originalstate->gdtlimit)
+      {
+        for (j=0; (j<8 && (i<=originalstate->gdtlimit)); j++)
+        {
+          sendstringf("%2", ((unsigned char *)gdt)[i]);
+          i++;
+        }
+
+        sendstring("\n");
+
+      }
+    }
+#endif
+
     if ((UINT64)originalstate->ldt)
     {
       UINT64 ldtbase; //should be 0 in 64bit
@@ -1941,7 +1980,7 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
     currentcpuinfo->vmcb->fs_selector=originalstate->fs;
     currentcpuinfo->vmcb->gs_selector=originalstate->gs;
     currentcpuinfo->vmcb->ldtr_selector=originalstate->ldt;
-    currentcpuinfo->vmcb->tr_selector=originalstate->tr;
+  //  currentcpuinfo->vmcb->tr_selector=originalstate->tr;
 
     currentcpuinfo->vmcb->es_limit=getSegmentLimit(gdt, ldt, originalstate->es);
     currentcpuinfo->vmcb->cs_limit=getSegmentLimit(gdt, ldt, originalstate->cs);
@@ -1950,7 +1989,7 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
     currentcpuinfo->vmcb->fs_limit=getSegmentLimit(gdt, ldt, originalstate->fs);
     currentcpuinfo->vmcb->gs_limit=getSegmentLimit(gdt, ldt, originalstate->gs);
     currentcpuinfo->vmcb->ldtr_limit=getSegmentLimit(gdt, ldt, originalstate->ldt);
-    currentcpuinfo->vmcb->tr_limit=getSegmentLimit(gdt, ldt, originalstate->tr);
+  //  currentcpuinfo->vmcb->tr_limit=getSegmentLimit(gdt, ldt, originalstate->tr);
 
     currentcpuinfo->vmcb->es_base=getSegmentBase(gdt, ldt, originalstate->es);
     currentcpuinfo->vmcb->cs_base=getSegmentBase(gdt, ldt, originalstate->cs);
@@ -1961,14 +2000,16 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
       //64-bit
       currentcpuinfo->vmcb->fs_base=originalstate->fsbase;
       currentcpuinfo->vmcb->gs_base=originalstate->gsbase;
-      currentcpuinfo->vmcb->tr_base=getSegmentBaseEx(gdt,ldt,originalstate->tr, 1);
+    //  currentcpuinfo->vmcb->tr_base=getSegmentBaseEx(gdt,ldt,originalstate->tr, 1);
+
+      sendstringf("Getting base of RT. getSegmentBaseEx(gdt,ldt,originalstate->tr, 1); would say: %6\n", getSegmentBaseEx(gdt,ldt,originalstate->tr, 1));
     }
     else
     {
       //32-bit
       currentcpuinfo->vmcb->fs_base=getSegmentBase(gdt, ldt, originalstate->fs);
       currentcpuinfo->vmcb->gs_base=getSegmentBase(gdt, ldt, originalstate->gs);
-      currentcpuinfo->vmcb->tr_base=getSegmentBase(gdt,ldt,originalstate->tr);
+     // currentcpuinfo->vmcb->tr_base=getSegmentBase(gdt,ldt,originalstate->tr);
     }
     currentcpuinfo->vmcb->ldtr_base=getSegmentBase(gdt, ldt, originalstate->ldt);
 
@@ -1980,7 +2021,11 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
     currentcpuinfo->vmcb->fs_attrib=getSegmentAttrib(gdt,ldt,originalstate->fs);
     currentcpuinfo->vmcb->gs_attrib=getSegmentAttrib(gdt,ldt,originalstate->gs);
     currentcpuinfo->vmcb->ldtr_attrib=getSegmentAttrib(gdt,ldt,originalstate->ldt);
-    currentcpuinfo->vmcb->tr_attrib=getSegmentAttrib(gdt,ldt,originalstate->tr);
+
+   // currentcpuinfo->vmcb->tr_attrib=getSegmentAttrib(gdt,ldt,originalstate->tr);
+
+    sendstringf("Getting attibs of RT. getSegmentAttrib(gdt,ldt,originalstate->tr) would say: %x\n", getSegmentAttrib(gdt,ldt,originalstate->tr));
+
 
     currentcpuinfo->vmcb->SYSENTER_CS=(UINT64)readMSR(IA32_SYSENTER_CS_MSR); //current msr
     currentcpuinfo->vmcb->SYSENTER_ESP=(UINT64)readMSR(IA32_SYSENTER_ESP_MSR);
@@ -1993,6 +2038,8 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
 
 
     currentcpuinfo->vmcb->DR7=originalstate->dr7;
+
+
 
     if (originalstate->originalLME)
     {
@@ -2843,6 +2890,8 @@ void launchVMX_AMD(pcpuinfo currentcpuinfo, POriginalState originalstate)
 
   displayline("Calling vmxloop_amd with currentcpuinfo=%6\n\r",(UINT64)currentcpuinfo);
 
+  sendvmstate(currentcpuinfo, NULL);
+
   if (originalstate)
     result=vmxloop_amd(currentcpuinfo, currentcpuinfo->vmcb_PA, &originalstate->rax);
   else
@@ -3354,7 +3403,23 @@ void ShowCurrentInstructions(pcpuinfo currentcpuinfo)
   unsigned char buf[60];
   int     readable;
   int     is64bit=IS64BITCODE(currentcpuinfo);
-  UINT64 address=(is64bit?(0):(vmread(vm_guest_cs_base)))+vmread(vm_guest_rip);
+  UINT64 address;
+
+  if (isAMD)
+  {
+    if (is64bit)
+      address=currentcpuinfo->vmcb->RIP;
+    else
+      address=currentcpuinfo->vmcb->cs_base+currentcpuinfo->vmcb->RIP;
+  }
+  else
+  {
+    if (is64bit)
+      address=vmread(vm_guest_rip);
+    else
+      address=vmread(vm_guest_cs_base)+vmread(vm_guest_rip);
+  }
+
   int bytesinfront=30;
   UINT64 startaddress=address-bytesinfront;
 
