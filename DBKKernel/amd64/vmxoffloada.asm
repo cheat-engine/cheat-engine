@@ -10,6 +10,7 @@ GDTDesc	ENDS
 
 S_ORIGINALSTATE STRUCT
 _cpucount		QWORD ?
+_originalEFER   QWORD ?
 _originalLME	QWORD ?
 _idtbase		QWORD ?
 _idtlimit		QWORD ?
@@ -105,13 +106,13 @@ secondentry:
 	
 ;----------TEST----------
 ;	waitforready:
-;	mov dx,0ef05h
+;	mov dx,0ec05h
 ;	in al,dx
 ;	and al,20h
 ;	cmp al,20h
 ;	jne waitforready
 ;	
-;	mov dx,0ef00h
+;	mov dx,0ec00h
 ;	mov al,'1'
 ;	out dx,al
 ;^^^^^^^^TEST^^^^^^^^
@@ -233,7 +234,14 @@ enterVMMEpilogue:
 	nop	
 	nop	
 	
+	
+	
+
+	
 	mov r8,originalstate	
+	
+	;mov rbx,(S_ORIGINALSTATE PTR [r8])._tr
+	;ltr bx
 
 	mov rbx,(S_ORIGINALSTATE PTR [r8])._ss
 	mov ss,bx	
@@ -245,6 +253,8 @@ enterVMMEpilogue:
 	mov fs,bx
 	mov rbx,(S_ORIGINALSTATE PTR [r8])._gs
 	mov gs,bx
+	
+	
 	
 	mov rcx,0c0000100h
 	mov rax,(S_ORIGINALSTATE PTR [r8])._fsbase
@@ -284,7 +294,7 @@ enterVMMEpilogue:
 	;mov rax,0deadh
 	;mov [rax],rax
 	
-	sti
+	;sti
 	ret
 	nop
 	nop
