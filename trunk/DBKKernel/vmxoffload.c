@@ -29,6 +29,7 @@ struct
 typedef struct
 { //ok, everything uint64, I hate these incompatibilities with alignment between gcc and ms c
 	UINT64		cpucount;
+	UINT64		originalEFER;
 	UINT64		originalLME;
 	UINT64		idtbase;
 	UINT64		idtlimit;
@@ -192,10 +193,10 @@ void vmxoffload(PCWSTR dbvmimgpath)
 	IDT idt;
 	
 	
-	//allocate 4MB of contigues physical memory
+	//allocate 8MB of contigues physical memory
 	minPA.QuadPart=0;
 	maxPA.QuadPart=0xffffffffff000000ULL;
-	boundary.QuadPart=0x00400000ULL; //4 mb boundaries
+	boundary.QuadPart=0x00800000ULL; //8 mb boundaries
 
 
 	DbgPrint("vmxoffload\n");
@@ -541,16 +542,11 @@ void vmxoffload(PCWSTR dbvmimgpath)
 						minPA.QuadPart=0;
 						maxPA.QuadPart=0xfffffffffffff000;
 						boundary.QuadPart=0;
-						if (sizeof(OriginalState)>4096)
-						{
-							//too big for one page
+						if (sizeof(OriginalState)<4096)							
+							originalstate=MmAllocateContiguousMemory(4096, maxPA);
+						else						
 							originalstate=MmAllocateContiguousMemory(sizeof(OriginalState), maxPA);
-						}
-						else
-						{
-							originalstate=ExAllocatePool(NonPagedPool,sizeof(OriginalState));
-						}
-						
+											
 						RtlZeroMemory(originalstate, sizeof(OriginalState));
 
 						originalstatePA=(UINT_PTR)MmGetPhysicalAddress(originalstate).QuadPart;
@@ -599,9 +595,13 @@ void vmxoffload(PCWSTR dbvmimgpath)
 		originalstate->cpucount=getCpuCount();
 		DbgPrint("originalstate->cpucount=%d",originalstate->cpucount);
 
-		originalstate->originalLME=(int)(((DWORD)(readMSR(0xc0000080)) >> 8) & 1);
+
+		originalstate->originalEFER=readMSR(0xc0000080); //amd prefers this over an LME
+
+		originalstate->originalLME=(int)(((DWORD)(readMSR(0xc0000080)) >> 8) & 1);		
 		DbgPrint("originalstate->originalLME=%d",originalstate->originalLME);
 
+		
 		originalstate->cr0=(UINT_PTR)getCR0();
 		
 
@@ -682,13 +682,20 @@ void vmxoffload(PCWSTR dbvmimgpath)
 		
 		
 		eflags=getEflags();		
-		eflags.IF=0;
-
+	
 		originalstate->rflags=*(PUINT_PTR)&eflags;
 
 
 
-		DbgPrint("originalstate->rflags=%I64x",originalstate->rflags);
+		DbgPrint("originalstate->rflags was %I64x",originalstate->rflags);	
+
+		eflags.IF=0;
+		originalstate->rflags=*(PUINT_PTR)&eflags;
+
+		DbgPrint("originalstate->rflags is %I64x",originalstate->rflags);
+
+		originalstate->rflags=*(PUINT_PTR)&eflags;
+
 
 
 		originalstate->rsp=getRSP();
@@ -737,10 +744,10 @@ void vmxoffload(PCWSTR dbvmimgpath)
 
 		DbgPrint("Calling entervmm2. (Originalstate=%p (%llx))\n",originalstate,originalstatePA);
 		{//debug code
-		//	LARGE_INTEGER wait;
-		//	wait.QuadPart=-10000LL * 1000; //5 seconds should be enough time
+		/*	LARGE_INTEGER wait;
+			wait.QuadPart=-10000LL * 1000; //5 seconds should be enough time
 			
-		//	KeDelayExecutionThread(KernelMode, TRUE, &wait);
+			KeDelayExecutionThread(KernelMode, TRUE, &wait);*/
 		}
 		
 
@@ -764,12 +771,20 @@ void vmxoffload(PCWSTR dbvmimgpath)
 		disableInterrupts();
 		disableInterrupts();
 		
-		
-		DbgPrint("Returned from enterVMMPrologue\n");
 		enableInterrupts();
 
+		DbgPrint("Returned from enterVMMPrologue\n");
+
 		DbgPrint("cpunr=%d\n",cpunr());
+
+	
+		
+
+	
+		
+
 		KeLowerIrql(oldirql);
+
 
 		
 		DbgPrint("cpunr=%d\n",cpunr());

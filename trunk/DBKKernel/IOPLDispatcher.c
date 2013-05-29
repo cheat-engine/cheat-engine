@@ -769,6 +769,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				DbgPrint("IOCTL_CE_LAUNCHDBVM\n");
 
 				forEachCpuPassive(vmxoffload_passive, pinp->dbvmimgpath);
+				//vmxoffload_passive((UINT_PTR)pinp->dbvmimgpath);
 
 				
 
