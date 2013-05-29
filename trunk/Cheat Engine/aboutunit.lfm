@@ -14,7 +14,7 @@ object About: TAbout
   OnClose = FormClose
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.0.8.0'
   object GroupBox1: TGroupBox
     Left = 0
     Height = 245

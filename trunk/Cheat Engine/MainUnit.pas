@@ -7691,7 +7691,10 @@ var t: TD3DHook_Texture;
   exportlist: pchar;
   max: integer;
 begin
-  TfrmMemoryViewEx.create(self).show;
+  if isRunningDBVM then
+    showmessage('yes')
+  else
+    showmessage('no');
 
 {  memorybrowser.hexview.address:=GetStackStart;
   memorybrowser.show;}

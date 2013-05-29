@@ -145,7 +145,17 @@ begin
 
 end;
 
+procedure vmcallinstruction_amd; nostackframe;
+asm
+  vmmcall
+end;
 
+procedure vmcallinstruction_intel; nostackframe;
+asm
+  vmcall
+end;
+
+var vmcallinstruction: pointer;
 
 function vmcallSupported(vmcallinfo:pointer; level1pass: dword): PtrUInt; stdcall;
 var r: ptruint;
@@ -164,23 +174,24 @@ begin
   asm
 
 
-    {$ifdef cpu64}
-      sub rsp,32
-      mov [rsp+8],rdx
-      mov rax,vmcallinfo
-      mov edx,level1pass
-      vmcall
+{$ifdef cpu64}
+    sub rsp,32
+    mov [rsp+8],rdx
+    mov rax,vmcallinfo
+    mov edx,level1pass
 
-      mov rdx,[rsp+8]
-      add rsp,32
+    call [vmcallinstruction]
 
-      mov r,rax
-    {$else}
-      mov eax,vmcallinfo
-      mov edx,level1pass
-      vmcall            //should raise an UD if the cpu does not support it  (or the password is wrong)
-      mov r,eax
-    {$endif}
+    mov rdx,[rsp+8]
+    add rsp,32
+
+    mov r,rax
+{$else}
+    mov eax,vmcallinfo
+    mov edx,level1pass
+    call [vmcallinstruction]     //should raise an UD if the cpu does not support it  (or the password is wrong)
+    mov r,eax
+{$endif}
   end;
 
 
@@ -1045,6 +1056,13 @@ initialization
 
   {$ifndef NOVMX}
   if isDBVMCapable then
+  begin
     vmcall:=vmcallSupported; //intel instruction set and the VT flag in cpuid (dbvm sets the control feature msr so it's disabled in the bios)
+
+    if isamd then
+      vmcallinstruction:=@vmcallinstruction_amd
+    else
+      vmcallinstruction:=@vmcallinstruction_intel;
+  end;
   {$endif}
 end.

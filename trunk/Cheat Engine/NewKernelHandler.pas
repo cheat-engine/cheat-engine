@@ -546,6 +546,9 @@ function loaddbvmifneeded: BOOL; stdcall;
 function isRunningDBVM: boolean;
 function isDBVMCapable: boolean;
 
+function isIntel: boolean;
+function isAMD: boolean;
+
 function Is64bitOS: boolean;
 function Is64BitProcess(processhandle: THandle): boolean;
 
@@ -820,34 +823,63 @@ begin
   result:=dbvm_version>0;
 end;
 
+function isIntel: boolean;
+var a,b,c,d: dword;
+begin
+  asm
+
+    push {$ifdef cpu64}rax{$else}eax{$endif}
+    push {$ifdef cpu64}rbx{$else}ebx{$endif}
+    push {$ifdef cpu64}rcx{$else}ecx{$endif}
+    push {$ifdef cpu64}rdx{$else}edx{$endif}
+    mov eax,0
+    cpuid
+    mov a,eax
+    mov b,ebx
+    mov c,ecx
+    mov d,edx
+    pop {$ifdef cpu64}rdx{$else}edx{$endif}
+    pop {$ifdef cpu64}rcx{$else}ecx{$endif}
+    pop {$ifdef cpu64}rbx{$else}ebx{$endif}
+    pop {$ifdef cpu64}rax{$else}eax{$endif}
+  end;
+
+  //GenuineIntel check
+  result:=(b=$756e6547) and (d=$49656e69) and (c=$6c65746e);
+end;
+
+function isAMD: boolean;
+var a,b,c,d: dword;
+begin
+  asm
+
+    push {$ifdef cpu64}rax{$else}eax{$endif}
+    push {$ifdef cpu64}rbx{$else}ebx{$endif}
+    push {$ifdef cpu64}rcx{$else}ecx{$endif}
+    push {$ifdef cpu64}rdx{$else}edx{$endif}
+    mov eax,0
+    cpuid
+    mov a,eax
+    mov b,ebx
+    mov c,ecx
+    mov d,edx
+    pop {$ifdef cpu64}rdx{$else}edx{$endif}
+    pop {$ifdef cpu64}rcx{$else}ecx{$endif}
+    pop {$ifdef cpu64}rbx{$else}ebx{$endif}
+    pop {$ifdef cpu64}rax{$else}eax{$endif}
+  end;
+
+  result:=(b=$68747541) and (d=$69746e65) and (c=$444d4163);
+end;
+
 function isDBVMCapable: boolean;
 var a,b,c,d: dword;
 begin
   result:=false;
   if not isRunningDBVM then
   begin
-    asm
-
-      push {$ifdef cpu64}rax{$else}eax{$endif}
-      push {$ifdef cpu64}rbx{$else}ebx{$endif}
-      push {$ifdef cpu64}rcx{$else}ecx{$endif}
-      push {$ifdef cpu64}rdx{$else}edx{$endif}
-      mov eax,0
-      cpuid
-      mov a,eax
-      mov b,ebx
-      mov c,ecx
-      mov d,edx
-      pop {$ifdef cpu64}rdx{$else}edx{$endif}
-      pop {$ifdef cpu64}rcx{$else}ecx{$endif}
-      pop {$ifdef cpu64}rbx{$else}ebx{$endif}
-      pop {$ifdef cpu64}rax{$else}eax{$endif}
-    end;
-
-    //GenuineIntel check
-    if (b=$756e6547) and (d=$49656e69) and (c=$6c65746e) then
+    if isIntel then
     begin
-      //it's an intel
       asm
         push {$ifdef cpu64}rax{$else}eax{$endif}
         push {$ifdef cpu64}rbx{$else}ebx{$endif}
@@ -867,6 +899,30 @@ begin
 
       if ((c shr 5) and 1)=1 then //check for the intel-vt flag
         result:=true;
+    end
+    else
+    if isAMD then
+    begin
+      //check if it supports SVM
+      asm
+        push {$ifdef cpu64}rax{$else}eax{$endif}
+        push {$ifdef cpu64}rbx{$else}ebx{$endif}
+        push {$ifdef cpu64}rcx{$else}ecx{$endif}
+        push {$ifdef cpu64}rdx{$else}edx{$endif}
+        mov eax,$80000001
+        cpuid
+        mov a,eax
+        mov b,ebx
+        mov c,ecx
+        mov d,edx
+        pop {$ifdef cpu64}rdx{$else}edx{$endif}
+        pop {$ifdef cpu64}rcx{$else}ecx{$endif}
+        pop {$ifdef cpu64}rbx{$else}ebx{$endif}
+        pop {$ifdef cpu64}rax{$else}eax{$endif}
+      end;
+
+      if ((c shr 2) and 1)=1 then
+        result:=true; //SVM is possible
     end;
 
   end;

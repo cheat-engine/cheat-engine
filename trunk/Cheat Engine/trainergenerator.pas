@@ -815,13 +815,13 @@ begin
 
           if cbUseD3DHook.checked then
           begin
-            l.add('d3dcheats['+inttostr(currentcheat.cheatnr)+']={}');
-            l.add('d3dcheats['+inttostr(currentcheat.cheatnr)+'].description=[['+currentcheat.Description+']]');
-            l.add('d3dcheats['+inttostr(currentcheat.cheatnr)+'].hotkeys=[['+currentcheat.Hotkey+']]');
-            l.add('d3dcheats['+inttostr(currentcheat.cheatnr)+'].top='+inttostr(currentcheat.Top));
-            l.add('d3dcheats['+inttostr(currentcheat.cheatnr)+'].left='+inttostr(currentcheat.Left));
-            l.add('d3dcheats['+inttostr(currentcheat.cheatnr)+'].memrecid='+inttostr(currentmr.id));
-            l.add('d3dcheats['+inttostr(currentcheat.cheatnr)+'].hotkeyid='+inttostr(currenthk.id));
+            l.add('d3dcheats['+inttostr(currentcheat.cheatnr+1)+']={}');
+            l.add('d3dcheats['+inttostr(currentcheat.cheatnr+1)+'].description=[['+currentcheat.Description+']]');
+            l.add('d3dcheats['+inttostr(currentcheat.cheatnr+1)+'].hotkeys=[['+currentcheat.Hotkey+']]');
+            l.add('d3dcheats['+inttostr(currentcheat.cheatnr+1)+'].top='+inttostr(currentcheat.Top));
+            l.add('d3dcheats['+inttostr(currentcheat.cheatnr+1)+'].left='+inttostr(currentcheat.Left));
+            l.add('d3dcheats['+inttostr(currentcheat.cheatnr+1)+'].memrecid='+inttostr(currentmr.id));
+            l.add('d3dcheats['+inttostr(currentcheat.cheatnr+1)+'].hotkeyid='+inttostr(currenthk.id));
 
           end;
 
@@ -858,7 +858,7 @@ begin
                 l.add('  else');
                 l.add('    newcbtexture=UncheckedTexture');
                 l.add('  end');
-                l.add('  d3dcheats['+inttostr(currentcheat.cheatnr)+'].CheckboxSprite.Texture=newcbtexture');
+                l.add('  d3dcheats['+inttostr(currentcheat.cheatnr+1)+'].CheckboxSprite.Texture=newcbtexture');
               end;
               l.add('end');
               l.add('');
@@ -1195,7 +1195,7 @@ begin
         l.add('    BackgroundSprite.Alphablend=1.0-D3DHook.transparency / 100  --alphablend takes a value between 0.0 and 1.0 where 1.0 is fully visible, and transparency is a percentage from 0 to 100 where 100 is invisible');
         l.add('');
         l.add('    --create the cheat entry lines');
-        l.add('    for i,info in pairs(d3dcheats) do');
+        l.add('    for i,info in ipairs(d3dcheats) do');
         l.add('      local pic=createPicture()');
         l.add('      local text=info.description');
         l.add('      if D3DHook.showHotkeys then --add the hotkey as well');
@@ -1242,7 +1242,7 @@ begin
         l.add('end');
         l.add('');
         l.add('function D3DHookSpriteClick(d3dhook_sprite, x, y)');
-        l.add('  for i,info in pairs(d3dcheats) do');
+        l.add('  for i,info in ipairs(d3dcheats) do');
         l.add('    if (d3dhook_sprite==info.CheckboxSprite) or (d3dhook_sprite==info.TextSprite) then');
         l.add('      --clicked on a cheat entry. Execute the hotkey event');
         l.add('      local mr=getAddressList().getMemoryRecordByID(info.memrecid)');
@@ -1265,7 +1265,7 @@ begin
         l.add('');
         l.add('  x=x+D3DHook.distanceFromBorder');
         l.add('  y=y+D3DHook.distanceFromTop');
-        l.add('  for i,info in pairs(d3dcheats) do');
+        l.add('  for i,info in ipairs(d3dcheats) do');
         l.add('    local _x=x');
         l.add('    local lineheight=info.TextSprite.Height');
         l.add('');
@@ -1301,7 +1301,7 @@ begin
           l.add('  D3DHook.visible=not D3DHook.visible');
           l.add('');
           l.add('  BackgroundSprite.visible=D3DHook.visible');
-          l.add('  for i,info in pairs(d3dcheats) do');
+          l.add('  for i,info in ipairs(d3dcheats) do');
           l.add('    if D3DHook.hasCheckbox then');
           l.add('      info.CheckboxSprite.visible=D3DHook.visible');
           l.add('    end');

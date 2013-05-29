@@ -345,13 +345,12 @@ object MainForm: TMainForm
       OnClick = Label57Click
     end
     object Label59: TLabel
-      Left = 376
+      Left = 424
       Height = 14
-      Top = 59
+      Top = 56
       Width = 43
       Caption = 'Test cap'
       ParentColor = False
-      Visible = False
       OnClick = Label59Click
     end
     object Label61: TLabel
@@ -1360,9 +1359,9 @@ object MainForm: TMainForm
       OnClick = lblcompareToSavedScanClick
     end
     object Label3: TLabel
-      Left = 376
+      Left = 424
       Height = 14
-      Top = 72
+      Top = 70
       Width = 33
       Caption = 'Label3'
       ParentColor = False
