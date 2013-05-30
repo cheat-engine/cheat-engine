@@ -88,5 +88,6 @@ UINT_PTR vmx_getLastSkippedPageFault();
 unsigned int vmx_enable_dataPageFaults();
 unsigned int vmx_disable_dataPageFaults();
 
+void vmx_init_dovmcall(int isIntel);
 
 #endif
