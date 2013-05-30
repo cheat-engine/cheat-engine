@@ -72,8 +72,6 @@ criticalSection CScpu;
 extern unsigned int isAP;
 
 
-
-
 #define SETINT(INTNR) intvector[INTNR].wLowOffset=(WORD)(UINT64)inthandler##INTNR; \
                       intvector[INTNR].wHighOffset=(WORD)((UINT64)inthandler##INTNR >> 16);
 
@@ -1448,10 +1446,7 @@ void vmcalltest(void)
   currentcpuinfo->OnInterrupt.RIP=(volatile void *)&&InterruptFired; //set interrupt location
   currentcpuinfo->OnInterrupt.RSP=getRSP();
 
-  if (isAMD)
-    vmcall_instr=vmcall_amd;
-  else
-    vmcall_instr=vmcall_intel;
+
 
   dbvmversion=vmcalltest_asm();
 
@@ -1503,10 +1498,15 @@ void menu2(void)
 {
   unsigned char key;
 
-
+  if (isAMD)
+    vmcall_instr=vmcall_amd;
+  else
+    vmcall_instr=vmcall_intel;
 
   if (!loadedOS)
   {
+
+
     if (*(BYTE *)0x7c10==1) //if override by setup then
     {
       *(BYTE *)0x7c0e=*(BYTE *)0x7c0f; //set to bootdrive2
@@ -1549,7 +1549,7 @@ void menu2(void)
     displayline("3: Disassembler test\n");
     displayline("4: Interrupt test\n");
     displayline("5: Breakpoint test\n");
-    displayline("6: Math test\n");
+    displayline("6: Set Int1 Redirect with dbvm (only if dbvm is already loaded)\n");
     displayline("7: Test PSOD\n");
     displayline("8: PCI enum test (finds db's serial port)\n");
     displayline("9: test input\n");
@@ -1645,30 +1645,47 @@ void menu2(void)
 
           case '5':
           {
-            displayline("Setting a RW breakpoint at address 00000004\n\r");
-            sendstring("Setting a RW breakpoint at address 00000004\n");
-            setDR0(4);
-            setDR7(getDR7() | (1<<19) | (1<<18) | (1<<17) | (1<<16) | (1<<1) | (1<<0));
-            displayline("Going to write 12345678 to 0x00000004\n");
-            sendstring("Going to write 12345678 to 0x00000004\n\r");
-            *(DWORD *)4=0x12345678;
+            UINT64 rflags;
+
+            displayline("Setting the GD flag");
+            setDR6(0xfffffff0);
+            setDR7(getDR7() | (1<<13));
+            setDR6(0xffff0ff0);
+            //RF
+
+
+            displayline("Setting the single step flag\n\r");
+            rflags=getRFLAGS(); //NO RF
+            setRFLAGS(rflags | (1<<8));
+
+            setRFLAGS(rflags & (~(1<<8))); //unset
+
+            displayline("Setting an execute breakpoint\n\r");
+            setDR0(getCR0);
+            setDR6(0xffff0ff0);
+            setDR7(getDR7() | (1<<0));
+            displayline("Going to execute it\n");  //NO RF
+
+            getCR0();
+
+            displayline("Setting a RW breakpoint\n\r");
+            setDR0(&isAP);
+            setDR6(0xffff0ff0);
+            setDR7(getDR7() | (3<<18) | (3<<16) | (1<<0));
+            displayline("Goint to write to that breakpoint\n"); //NO RF
+
+           // bochsbp();
+            isAP++;
+            //*(DWORD *)4=0x12345678;
             displayline("done writing\n");
-            sendstring("done writing\n\r");
+
             break;
           }
 
           case '6':
           {
-            DWORD x;
-            signed char z;
-            x=0xffffffe8;
-            z=-8;
-            displayline("(DWORD)x=%x z=-8\n",x);
-
-            x=x+z;
-
-
-            displayline("after x=x+z; x=%x (should be ffffffe0)\n",x);
+            displayline("Setting the int1 redirect. #UD Interrupt will fire if dbvm is not loaded (and crash)");
+            vmcall_setint1redirect();
 
             break;
 

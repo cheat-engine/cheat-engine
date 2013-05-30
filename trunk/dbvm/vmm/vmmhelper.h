@@ -591,6 +591,23 @@ typedef struct _regCR4
 #define CR4_OSXMMEXCPT  (1<<10)
 #define CR4_VMXE        (1<<13)
 
+typedef struct _regDR6
+{
+  union{
+    unsigned long long DR6;
+    struct {
+      unsigned B0        :1;
+      unsigned B1        :1;
+      unsigned B2        :1;
+      unsigned B3        :1;
+      unsigned Reserved  :9;
+      unsigned BD        :1;
+      unsigned BS        :1;
+      unsigned BT        :1;
+    };
+  };
+} __attribute__((__packed__)) regDR6,*PregDR6;
+
 typedef struct _regDR7
 {
   union{
@@ -666,6 +683,9 @@ char *getVMInstructionErrorString(void);
 void ShowCurrentInstruction(pcpuinfo currentcpuinfo);
 void ShowCurrentInstructions(pcpuinfo currentcpuinfo);
 void displayPreviousStates(void);
+
+int isDebugFault(QWORD dr6, QWORD dr7);
+
 
 int ISREALMODE(pcpuinfo currentcpuinfo);
 int IS64BITPAGING(pcpuinfo currentcpuinfo);

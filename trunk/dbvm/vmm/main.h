@@ -13,6 +13,7 @@ extern void vmcall_intel(void);
 
 extern void *vmcall_instr; //holds a pointer to either vmcall_amd or vmcall_intel
 extern int vmcalltest_asm(void);
+extern int vmcall_setint1redirect(void);
 
 extern void _pause(void);
 extern UINT64 _vmread(ULONG index);
@@ -52,6 +53,7 @@ extern WORD getGDTsize(void);
 #define getGDTlimit getGDTsize
 
 extern UINT64 getRFLAGS(void);
+extern void setRFLAGS(UINT64 rflags);
 extern void loadTaskRegister(ULONG selector);
 extern WORD getTaskRegister(void);
 extern ULONG setCR0(UINT64 newcr0);

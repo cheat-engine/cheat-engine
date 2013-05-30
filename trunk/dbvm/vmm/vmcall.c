@@ -351,7 +351,8 @@ void returnFromCR3Callback(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, un
 }
 
 
-int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
+
+int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 /*
  * vmcall:
  * eax=pointer to information structure
@@ -374,6 +375,7 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 #ifdef DEBUG
   //enableserial();
 #endif
+
 
   nosendchar[getAPICID()]=!isAMD;
 
@@ -667,12 +669,6 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case VMCALL_REDIRECTINT1: //redirect int1
     {
-      if (isAMD)
-      {
-        vmregisters->rax = 0xcedead;
-        break;
-      }
-
       sendstring("VMCALL_REDIRECTINT1\n\r");
       if (vmcall_instruction[3] == 0)
       {
@@ -1108,7 +1104,7 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
       //change CS and EIP (also setup the stack properly)
       vmwrite(0x681e,vmread(0x681e)+vmread(0x440c));
-      emulateExceptionInterrupt(currentcpuinfo, vmregisters, cs,rip,1, parameters );
+      emulateExceptionInterrupt(currentcpuinfo, vmregisters, cs,rip,1, parameters, 1);
       vmregisters->rax=0;
       return 0; //no eip change
     }
@@ -1147,3 +1143,17 @@ int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
   return 0;
 }
+
+//serialize these calls in case one makes an internal change that affects global (e.g alloc)
+criticalSection vmcallCS;
+int handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
+{
+  int result;
+  csEnter(&vmcallCS);
+  result=_handleVMCall(currentcpuinfo, vmregisters);
+
+  csLeave(&vmcallCS);
+
+  return result;
+}
+
