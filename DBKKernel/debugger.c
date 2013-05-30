@@ -667,7 +667,7 @@ int breakpointHandler_kernel(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs,
  
 
 
-		//notify usermore app that this thread has halted due to a debug event
+		//notify usermode app that this thread has halted due to a debug event
 		
 		KeSetEvent(&debugger_event_WaitForDebugEvent,0,FALSE);
 
@@ -821,7 +821,7 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 			for (prefixpointer=0; prefixpointer<instructionPointer; prefixpointer++)
 			{
 				//check for a REX.B prefix  (0x40  + 0x1 : 0x41)
-				if ((instruction[instructionPointer] & 0x41) == 0x41)
+				if ((instruction[prefixpointer] & 0x41) == 0x41)
 				{
 					//rex.b prefix is used, r8 to r15 are being accessed
 					generalpurposeregister+=8;
@@ -1055,17 +1055,21 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 
 					case 5: 
 					case 7:
-						//make sure it doesn't set the GD flag nowgpvalue
+						//make sure it doesn't set the GD flag here
 						
 						if (DebuggerState.FakedDebugRegisterState[cpunr()].inEpilogue)
 						{
 						//	DbgPrint("Was in epilogue\n");
 						}
 
-						gpvalue=gpvalue | 0x400;
-						((DebugReg7 *)&gpvalue)->GD=0;						
+						//check for invalid bits and raise a GPF if invalid
 
-						debugger_dr7_setValue(*((DebugReg7 *)&gpvalue));
+
+						gpvalue=(gpvalue | 0x400) & (~(1<<13)); //unset the GD value
+
+						gpvalue=0xf0401;
+						debugger_dr7_setValueDword(gpvalue);
+
 						DebuggerState.FakedDebugRegisterState[cpunr()].DR7=debugger_dr7_getValueDword();
 						
 						break;
@@ -1116,7 +1120,7 @@ int interrupt1_handler(UINT_PTR *stackpointer, UINT_PTR *currentdebugregs)
 						return 1;
 					}
 
-					if (((PEFLAGS)&stackpointer[si_eflags])->IF==0) //no kernelcode stepping, but continue until IF == 1
+					if (((PEFLAGS)&stackpointer[si_eflags])->IF==0) //no kernelcode stepping, but continue stepping until IF == 1
 					{
 						((PEFLAGS)&stackpointer[si_eflags])->TF=1;
 						((PEFLAGS)&stackpointer[si_eflags])->RF=1;
