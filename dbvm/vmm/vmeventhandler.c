@@ -53,8 +53,8 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
   PGDT_ENTRY gdt=NULL,ldt=NULL;
   UINT64 gdtbase=isAMD?currentcpuinfo->vmcb->gdtr_base:vmread(vm_guest_gdtr_base);
   ULONG ldtselector=isAMD?currentcpuinfo->vmcb->ldtr_selector:vmread(vm_guest_ldtr);
-  Access_Rights old_ssaccessrights, new_csaccessrights; //intel
-  Segment_Attribs old_ssattribs, new_csattribs; //amd
+  Access_Rights old_csaccessrights, new_csaccessrights; //intel
+  Segment_Attribs old_csattribs, new_csattribs; //amd
   int privilege_level_changed=0;
   void *_TSS;
 
@@ -132,29 +132,26 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
 
   //priv change check
 
-  //let's see if we should do anyhow, check if the current privilege has changed
-  //new cs.dpl!=old ss.dpl  (ss.dpl determines the real priv level according to the docs)
-
   sendstringf("old cs=%x\n",original_cs);
   sendstringf("new cs=%x\n",cs);
   sendstringf("old ss=%x\n",original_ss);
 
   if (!isAMD)
   {
-    old_ssaccessrights.AccessRights=vmread(vm_guest_ss_access_rights); //current ss access_rights
+    old_csaccessrights.AccessRights=vmread(vm_guest_cs_access_rights); //current ss access_rights
     new_csaccessrights.AccessRights=getSegmentAccessRights(gdt,ldt,cs); //new cs_accessrights
 
-    sendstringf("old_ss accessrights=%x\n",old_ssaccessrights.AccessRights);
+    sendstringf("old_cs accessrights=%x\n",old_csaccessrights.AccessRights);
     sendstringf("new_cs accessrights=%x\n",new_csaccessrights.AccessRights);
-    privilege_level_changed=(old_ssaccessrights.DPL != new_csaccessrights.DPL);
+    privilege_level_changed=(old_csaccessrights.DPL != new_csaccessrights.DPL);
   }
   else
   {
-    old_ssattribs.SegmentAttrib=currentcpuinfo->vmcb->ss_attrib;
+    old_csattribs.SegmentAttrib=currentcpuinfo->vmcb->cs_attrib;
     new_csattribs.SegmentAttrib=getSegmentAttrib(gdt, ldt, cs);
-    sendstringf("old_ss attribs=%x\n",old_ssattribs.SegmentAttrib);
+    sendstringf("old_cs attribs=%x\n",old_csattribs.SegmentAttrib);
     sendstringf("new_cs attribs=%x\n",new_csattribs.SegmentAttrib);
-    privilege_level_changed=(old_ssattribs.DPL != new_csattribs.DPL);
+    privilege_level_changed=(currentcpuinfo->vmcb->CPL != new_csattribs.DPL);
   }
 
 
