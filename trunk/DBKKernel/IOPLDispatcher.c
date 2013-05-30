@@ -1227,7 +1227,15 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 		case IOCTL_CE_GETDEBUGGERSTATE:
 			{	
 				DbgPrint("IOCTL_CE_GETDEBUGGERSTATE\n");
-				ntStatus=debugger_getDebuggerState((PDebugStackState)(Irp->AssociatedIrp.SystemBuffer));
+				__try
+				{
+					ntStatus=debugger_getDebuggerState((PDebugStackState)(Irp->AssociatedIrp.SystemBuffer));					
+				}
+				__except(1)
+				{
+					DbgPrint("Exception happened\n");
+					ntStatus=STATUS_UNSUCCESSFUL;
+				}
 				
 				DbgPrint("ntStatus=%x rax=%x\n",ntStatus, ((PDebugStackState)(Irp->AssociatedIrp.SystemBuffer))->rax);
 				break;
@@ -1236,7 +1244,15 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 		case IOCTL_CE_SETDEBUGGERSTATE:
 			{	
 				DbgPrint("IOCTL_CE_SETDEBUGGERSTATE: state->rax=%x\n", ((PDebugStackState)(Irp->AssociatedIrp.SystemBuffer))->rax);
-				ntStatus=debugger_setDebuggerState((PDebugStackState)Irp->AssociatedIrp.SystemBuffer);
+				__try
+				{
+					ntStatus=debugger_setDebuggerState((PDebugStackState)Irp->AssociatedIrp.SystemBuffer);
+				}
+				__except(1)
+				{
+					DbgPrint("Exception happened\n");
+					ntStatus=STATUS_UNSUCCESSFUL;
+				}
 				break;
 			}
 
