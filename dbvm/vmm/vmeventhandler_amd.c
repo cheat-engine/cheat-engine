@@ -50,6 +50,15 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       sendstringf("isFault=%d\n", isFault);
 
 
+      if (((PregDR7)(&currentcpuinfo->vmcb->DR7))->GD)
+      {
+        //GD is set, unset it
+        ((PregDR7)(&currentcpuinfo->vmcb->DR7))->GD=0;
+        currentcpuinfo->vmcb->VMCB_CLEAN_BITS&=~(1 << 6); //tell the cpu it got changed
+      }
+
+
+
       if ((int1redirection_idtbypass==0) || (ISREALMODE(currentcpuinfo)))
       {
         sendstring("Realmode bp or No idtbypass\n");
