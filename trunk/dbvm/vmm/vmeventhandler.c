@@ -58,7 +58,7 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
   int privilege_level_changed=0;
   void *_TSS;
 
-  nosendchar[getAPICID()]=0;
+  //nosendchar[getAPICID()]=1;
 
 
   sendstring("Emulation\n");
@@ -114,6 +114,7 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
     ULONG ldtbase;
     ULONG ldtlimit;
 
+    nosendchar[getAPICID()]=0;
     sendstring("ldt is valid, so getting the information\n\r");
 
     ldtbase=(gdt[(ldtselector >> 3)].Base24_31 << 24) | gdt[(ldtselector >> 3)].Base0_23;
@@ -177,8 +178,10 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
 
   if (isAMD)
   {
-    currentcpuinfo->vmcb->CPL=new_csattribs.DPL;
+    currentcpuinfo->vmcb->CPL=new_csattribs.DPL; //in windows this should always be 0, but you CAN make it
     currentcpuinfo->vmcb->VMCB_CLEAN_BITS&=~(1 << 8); //CPL change (also segments)
+
+    new_csaccessrights.DPL=currentcpuinfo->vmcb->CPL; //init
   }
 
   if (privilege_level_changed)

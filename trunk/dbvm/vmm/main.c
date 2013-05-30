@@ -2416,22 +2416,28 @@ void startvmx(pcpuinfo currentcpuinfo)
     		  UINT64 efer;
     		  sendstring("SVM is available\n");
 
-    		  sendstring("Setting SVME bit in EFER\n");
-
-    		  efer=readMSR(EFER_MSR);
-
-    		  sendstringf("EFER was %6\n", efer);
-    		  efer=efer | (1 << 12);
-    		  sendstringf("EFER will become %6\n", efer);
-
-
-    		  writeMSR(EFER_MSR, efer);
 
 
     		  currentcpuinfo->vmcb=malloc(4096);
+    		  //SetPageToWriteThrough((UINT64)currentcpuinfo->vmcb); //test. I doubt it's needed since no cpu touches another's vmcb
+
+    		  sendstringf("Have set vmcb at %x to WriteThrough caching protection\n", currentcpuinfo->vmcb);
+
     		  zeromemory(currentcpuinfo->vmcb, 4096);
 
     		  currentcpuinfo->vmcb_PA=(UINT64)VirtualToPhysical((UINT64)currentcpuinfo->vmcb);
+
+          sendstring("Setting SVME bit in EFER\n");
+          efer=readMSR(EFER_MSR);
+
+          sendstringf("EFER was %6\n", efer);
+          efer=efer | (1 << 12);
+          sendstringf("EFER will become %6\n", efer);
+
+
+          writeMSR(EFER_MSR, efer);
+
+
 
     		  bochsbp();
           UINT64 VM_HSAVE_PA_MSR=readMSR(0xc0010117); //VM_HSAVE_PA MSR

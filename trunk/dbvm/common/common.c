@@ -610,7 +610,7 @@ char getchar(void)
 /* returns 0 when no char is pressed
 	 use readstring to wait for keypresses */
 #if (!defined SERIALPORT) || (SERIALPORT == 0)
-	return 0;
+	return 1;
 #else
 	if (inportb(SERIALPORT+5) & 0x1)
     return inportb(SERIALPORT);
