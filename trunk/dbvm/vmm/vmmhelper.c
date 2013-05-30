@@ -395,6 +395,7 @@ void sendvmstate(pcpuinfo currentcpuinfo, VMRegisters *registers)
 
     PRFLAGS prflags=(PRFLAGS)&rflags;
 
+    sendstringf("CPL=%d\n", currentcpuinfo->vmcb->CPL);
 
     if (registers)    // print registers
     {
