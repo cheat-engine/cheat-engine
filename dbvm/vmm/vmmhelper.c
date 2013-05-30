@@ -595,11 +595,13 @@ int vmexit_amd(pcpuinfo currentcpuinfo, UINT64 *registers)
  // displayline("cpunr=%d\n", currentcpuinfo->cpunr);
   int result=0;
 
-  nosendchar[getAPICID()]=0;
+  nosendchar[getAPICID()]=1;
+
+
 #ifdef DEBUG
-
-
   csEnter(&vmexitlock);
+
+
   sendstringf("vmexit_amd for cpu %d\n", currentcpuinfo->cpunr);
 
 #endif
@@ -608,6 +610,8 @@ int vmexit_amd(pcpuinfo currentcpuinfo, UINT64 *registers)
 #ifdef DEBUG
   csLeave(&vmexitlock);
 #endif
+
+
 
   return result;
 }
@@ -3374,8 +3378,23 @@ void displayVMmemory(pcpuinfo currentcpuinfo)
 void ShowCurrentInstruction(pcpuinfo currentcpuinfo)
 {
   unsigned char buf[60];
-  QWORD address=(IS64BITCODE(currentcpuinfo)?(0):(vmread(vm_guest_cs_base)))+vmread(vm_guest_rip);
+  int is64bit=IS64BITCODE(currentcpuinfo);
+  QWORD address;
 
+  if (isAMD)
+  {
+    if (is64bit)
+      address=currentcpuinfo->vmcb->RIP;
+    else
+      address=currentcpuinfo->vmcb->cs_base+currentcpuinfo->vmcb->RIP;
+  }
+  else
+  {
+    if (is64bit)
+      address=vmread(vm_guest_rip);
+    else
+      address=vmread(vm_guest_cs_base)+vmread(vm_guest_rip);
+  }
 
   //sendstringf("ShowCurrentInstruction for %6\n", address);
 
@@ -3392,7 +3411,15 @@ void ShowCurrentInstruction(pcpuinfo currentcpuinfo)
     unsigned int used=0;
 
     //find out in which context the system is operating
-    cs_accessright.AccessRights=vmread(vm_guest_cs_access_rights);
+    if (isAMD)
+    {
+      Segment_Attribs csa;
+      csa.SegmentAttrib=currentcpuinfo->vmcb->cs_attrib;
+      cs_accessright.D_B=csa.D_B;
+    }
+    else
+      cs_accessright.AccessRights=vmread(vm_guest_cs_access_rights);
+
     if (cs_accessright.D_B==0)
       dt=Decode16Bits;
     else
@@ -3477,7 +3504,16 @@ void ShowCurrentInstructions(pcpuinfo currentcpuinfo)
     unsigned int used=0;
 
     //find out in which context the system is operating
-    cs_accessright.AccessRights=vmread(vm_guest_cs_access_rights);
+
+    if (isAMD)
+    {
+      Segment_Attribs csa;
+      csa.SegmentAttrib=currentcpuinfo->vmcb->cs_attrib;
+      cs_accessright.D_B=csa.D_B;
+    }
+    else
+      cs_accessright.AccessRights=vmread(vm_guest_cs_access_rights);
+
     if (cs_accessright.D_B==0)
       dt=Decode16Bits;
     else

@@ -377,8 +377,6 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 #endif
 
 
-  nosendchar[getAPICID()]=!isAMD;
-
   sendstringf("Handling vm(m)call on cpunr:%d \n\r", currentcpuinfo->cpunr);
 
   if (isAMD)

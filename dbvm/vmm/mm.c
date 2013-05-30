@@ -394,6 +394,67 @@ void printMMregions()
 
 }
 
+void SetPageToWriteThrough(UINT64 address)
+{
+  /* pagedirvirtual contains the virtual address where the pagetable is stored */
+  PPDE2MB_PAE usedpagedir;
+  UINT64 Dirptr=(UINT64)(address >> 30) & 0x1ff;
+  UINT64 Dir=(UINT64)(address >> 21) & 0x1ff;
+  UINT64 Offset=address & 0x1fffff;
+  UINT64 result=0xffffffffffffffffULL;
+
+  sendstringf("Marking %6 as WriteThrough\n", address);
+
+  usedpagedir=(PPDE2MB_PAE)((UINT64)pagedirvirtual+(UINT64)Dirptr*0x1000);
+
+  //this design doesn't use more than 4GB VIRTUAL ram addressing, even though it is 64, bit, so only the level0 pagedirptr is enough
+
+  if (usedpagedir[Dir].P)
+  {
+    if (usedpagedir[Dir].PS==1)
+    {
+      sendstring("This pagedir is a BIG page (bad idea)\n");
+      usedpagedir[Dir].PWT=1;
+      _invlpg(address);
+
+    }
+    else
+    {
+      //this is a pagedir without PS bit, pfn is 12 bits shifted now (or just clear first 12 bits)
+      PPDE_PAE usedpagedirNOPS=(PPDE_PAE)((UINT64)pagedirvirtual+(UINT64)Dirptr*0x1000);
+
+      //it has a pagetable (loadedOS?)
+      UINT64 Offset2=address & 0xfff;
+      UINT64 Table=(address >> 12) & 0x1ff;
+
+      PPTE_PAE usedpagetable=(PPTE_PAE)MapPhysicalMemory((UINT64)(usedpagedirNOPS[Dir].PFN) << 12, 0x0fc00000);
+
+      if (usedpagetable[Table].P)
+      {
+        sendstring("Marking the pagetable entry (good)\n");
+        usedpagedir[Dir].PWT=1;
+        _invlpg(address);
+      }
+      else
+      {
+        sendstring("Not present pagetable entry\n");
+      }
+
+    }
+  }
+  else
+  {
+    sendstring("pagedir is NOT present\n");
+    //sendstringf("Dirptr=%d Dir=%d Offset=%x\n\r", Dirptr, Dir, Offset);
+    //sendstringf("pagedirvirtual=%6\n\r",(UINT64)pagedirvirtual);
+    //sendstringf("usedpagedir=%6\n\r",(UINT64)usedpagedir);
+    //sendstringf("usedpagedir[Dir].P==0\n\r");
+    //sendstringf("&usedpagedir[Dir]==%6\n\r",(UINT64)&usedpagedir[Dir]);
+
+
+  }
+}
+
 
 
 UINT64 VirtualToPhysical(UINT64 address)

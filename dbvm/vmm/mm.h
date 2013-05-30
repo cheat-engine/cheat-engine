@@ -14,6 +14,7 @@ void free(void* pointer);
 unsigned int maxAllocatableMemory(void);
 void printMMregions();
 UINT64 VirtualToPhysical(UINT64 address);
+void SetPageToWriteThrough(UINT64 address);
 
 
 #endif //MM_H_

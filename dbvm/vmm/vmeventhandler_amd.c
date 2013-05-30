@@ -6,12 +6,14 @@
  */
 
 #include "vmeventhandler_amd.h"
+#include "vmeventhandler.h"
 #include "main.h"
 #include "common.h"
 #include "vmpaging.h"
 #include "keyboard.h"
 #include "neward.h"
 #include "vmcall.h"
+#include "vmmhelper.h"
 
 criticalSection debugoutput;
 int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
@@ -36,6 +38,9 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       int isFault=0; //on amd it seems it ever ever set RF. isDebugFault(currentcpuinfo->vmcb->DR6, currentcpuinfo->vmcb->DR7);
 
       //int1 breakpoint
+
+     // nosendchar[getAPICID()]=currentcpuinfo->vmcb->CPL!=3;
+
       sendstringf("INT1 breakpoint\n");
       sendstringf("dr0=%x\n", getDR0());
       sendstringf("dr1=%x\n", getDR1());
@@ -52,7 +57,7 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
       if (((PregDR7)(&currentcpuinfo->vmcb->DR7))->GD)
       {
-        //GD is set, unset it
+        //GD is set, unset it (should already be unset)
         ((PregDR7)(&currentcpuinfo->vmcb->DR7))->GD=0;
         currentcpuinfo->vmcb->VMCB_CLEAN_BITS&=~(1 << 6); //tell the cpu it got changed
       }
@@ -468,7 +473,9 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case VMEXIT_SHUTDOWN: //shutdown
     {
+      nosendchar[getAPICID()]=0;
       sendvmstate(currentcpuinfo, vmregisters);
+      ShowCurrentInstructions(currentcpuinfo);
       displayline("FUUUUCK!\n");
       while(1);
 
@@ -477,6 +484,7 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case VMEXIT_INVALID:
     {
+      nosendchar[getAPICID()]=0;
       sendstring("VMEXIT_INVALID\n");
       sendstringf("EFER=%x\n", currentcpuinfo->vmcb->EFER);
 
