@@ -76,6 +76,23 @@ int IS64BITCODE(pcpuinfo currentcpuinfo)
 }
 
 
+int isDebugFault(QWORD dr6, QWORD dr7)
+//returns 1 if this results in a Fault
+{
+  regDR6 d6;
+  regDR7 d7;
+  RFLAGS rf;
+
+  d6.DR6=dr6;
+  d7.DR7=dr7;
+
+  if ((d6.BD) && (d7.GD))
+    return 1; //general detect is a fault
+  else
+    return 0; //everything else is a trap
+
+}
+
 char * getVMExitReassonString(void)
 {
   int i=vmread(vm_exit_reason) & 0x7fffffff;
@@ -1741,6 +1758,9 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
   Segment_Attribs reg_csaccessrights;
   Segment_Attribs reg_traccessrights;
 
+  if (currentcpuinfo->virtualTLB == NULL) //just always do it
+    allocateVirtualTLB();
+
 
   if (currentcpuinfo->cpunr!=0)
   {
@@ -1825,7 +1845,12 @@ void setupVMX_AMD(pcpuinfo currentcpuinfo)
 
   currentcpuinfo->vmcb->InterceptShutdown=1; //in case of a severe error
   currentcpuinfo->vmcb->InterceptVMMCALL=1;
-  currentcpuinfo->vmcb->MSR_PROT=1;
+  currentcpuinfo->vmcb->MSR_PROT=1; //some msr's need to be protected
+
+  currentcpuinfo->vmcb->InterceptExceptions=(1<<1);// | (1<<3) | (1<<14); //intercept int1, 3 and 14
+ // currentcpuinfo->vmcb->InterceptDR0_15Write=(1<<6); //dr6 so I can see what changed
+
+
 
  // currentcpuinfo->vmcb->InterceptINIT=1; //cpu init (init-sipi-sipi. I need to implement a virtual apic to suppot boot
 

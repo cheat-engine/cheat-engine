@@ -45,23 +45,20 @@ int raiseGeneralProtectionFault(UINT64 errorcode)
 }
 
 
-int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, unsigned int cs, UINT64 rip, int haserrorcode, UINT64 errorcode)
+int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters, unsigned int cs, UINT64 rip, int haserrorcode, UINT64 errorcode, int isFault)
 {
   //this routine will let you call a routine as if it was called by a interrupt caused by a exception.
-  //usefull for idt1 bypass and can be used for other 'extra' interrupt types
+  //useful for idt1 bypass and can be used for other 'extra' interrupt types
 
   PGDT_ENTRY gdt=NULL,ldt=NULL;
-  UINT64 gdtbase=vmread(vm_guest_gdtr_base);
-  ULONG ldtselector=vmread(0x80c);
-  Access_Rights old_ssaccessrights, new_csaccessrights;
+  UINT64 gdtbase=isAMD?currentcpuinfo->vmcb->gdtr_base:vmread(vm_guest_gdtr_base);
+  ULONG ldtselector=isAMD?currentcpuinfo->vmcb->ldtr_selector:vmread(vm_guest_ldtr);
+  Access_Rights old_ssaccessrights, new_csaccessrights; //intel
+  Segment_Attribs old_ssattribs, new_csattribs; //amd
   int privilege_level_changed=0;
   void *_TSS;
 
-
-  if ((vmread(vm_guest_cs) != 0x10) && (vmread(vm_guest_cs) != 0x23) && (vmread(vm_guest_cs) != 0x33))
-  {
-    nosendchar[getAPICID()]=0;
-  }
+  nosendchar[getAPICID()]=0;
 
 
   sendstring("Emulation\n");
@@ -70,21 +67,24 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
     sendstring("!!!!!FROM KERNELMODE (assuming it\'s windows 64!!!!!\n");
   }
 
-  sendstringf("cs:rip=%x:%6\n", vmread(vm_guest_cs),vmread(vm_guest_rip));
-  sendstringf("ss:rsp=%x:%6\n", vmread(vm_guest_ss),vmread(vm_guest_rsp));
+  ULONG original_ss=isAMD?currentcpuinfo->vmcb->ss_selector:vmread(vm_guest_ss);
+  UINT64 original_rsp=isAMD?currentcpuinfo->vmcb->RSP:vmread(vm_guest_rsp);
+  ULONG original_cs=isAMD?currentcpuinfo->vmcb->cs_selector:vmread(vm_guest_cs);
+  UINT64 original_rip=isAMD?currentcpuinfo->vmcb->RIP:vmread(vm_guest_rip);
+  ULONG newSS=0;
+  UINT64 newRSP=original_rsp;
+  UINT64 rflags=isAMD?currentcpuinfo->vmcb->RFLAGS:vmread(vm_guest_rflags);
+  PRFLAGS prflags=(PRFLAGS)&rflags;
+
+  sendstringf("cs:rip=%x:%6\n", original_cs,original_rip);
+  sendstringf("ss:rsp=%x:%6\n", original_ss,original_rsp);
 
 
   sendstringf("cpunr=%d\n",currentcpuinfo->cpunr);
 
-  UINT64 rflags=vmread(vm_guest_rflags);
-  PRFLAGS prflags=(PRFLAGS)&rflags;
 
-  ULONG original_ss=vmread(vm_guest_ss);
-  UINT64 original_rsp=vmread(vm_guest_rsp);
-  ULONG original_cs=vmread(vm_guest_cs);
-  UINT64 original_rip=vmread(vm_guest_rip);
-  ULONG newSS=0;
-  UINT64 newRSP=original_rsp;
+
+
 
 
 
@@ -94,7 +94,6 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
   sendstring("Mapping the gdt\n");
   sendstringf("gdtbase=%6\n",gdtbase);
   UINT64 PAGDT=getPhysicalAddressVM(currentcpuinfo, gdtbase, &notpaged);
-
 
 
   if (notpaged)
@@ -135,27 +134,37 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
 
   //let's see if we should do anyhow, check if the current privilege has changed
   //new cs.dpl!=old ss.dpl  (ss.dpl determines the real priv level according to the docs)
-  old_ssaccessrights.AccessRights=vmread(vm_guest_ss_access_rights); //current ss access_rights
-  new_csaccessrights.AccessRights=getSegmentAccessRights(gdt,ldt,cs); //new cs_accessrights
 
   sendstringf("old cs=%x\n",original_cs);
   sendstringf("new cs=%x\n",cs);
   sendstringf("old ss=%x\n",original_ss);
 
+  if (!isAMD)
+  {
+    old_ssaccessrights.AccessRights=vmread(vm_guest_ss_access_rights); //current ss access_rights
+    new_csaccessrights.AccessRights=getSegmentAccessRights(gdt,ldt,cs); //new cs_accessrights
 
-  sendstringf("old_ss accessrights=%x\n",old_ssaccessrights.AccessRights);
-  sendstringf("new_cs accessrights=%x\n",new_csaccessrights.AccessRights);
+    sendstringf("old_ss accessrights=%x\n",old_ssaccessrights.AccessRights);
+    sendstringf("new_cs accessrights=%x\n",new_csaccessrights.AccessRights);
+    privilege_level_changed=(old_ssaccessrights.DPL != new_csaccessrights.DPL);
+  }
+  else
+  {
+    old_ssattribs.SegmentAttrib=currentcpuinfo->vmcb->ss_attrib;
+    new_csattribs.SegmentAttrib=getSegmentAttrib(gdt, ldt, cs);
+    sendstringf("old_ss attribs=%x\n",old_ssattribs.SegmentAttrib);
+    sendstringf("new_cs attribs=%x\n",new_csattribs.SegmentAttrib);
+    privilege_level_changed=(old_ssattribs.DPL != new_csattribs.DPL);
+  }
 
-
-
-  privilege_level_changed=(old_ssaccessrights.DPL != new_csaccessrights.DPL);
 
   sendstringf("privilege_level_changed=%d\n",privilege_level_changed);
 
   //look at the TSS to find out the new ss/rsp
   //map tss (tss base is can be found with vmread(0x6814))
+  QWORD TSSBase=isAMD?currentcpuinfo->vmcb->tr_base:vmread(vm_guest_tr_base);
 
-  _TSS=(void *)(UINT64)MapPhysicalMemory(getPhysicalAddressVM(currentcpuinfo, vmread(0x6814), &notpaged), currentcpuinfo->AvailableVirtualAddress+0x00400000);
+  _TSS=(void *)(UINT64)MapPhysicalMemory(getPhysicalAddressVM(currentcpuinfo, TSSBase, &notpaged), currentcpuinfo->AvailableVirtualAddress+0x00400000);
   if (notpaged)
   {
     nosendchar[getAPICID()]=0;
@@ -165,7 +174,13 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
     return 1;
 
   }
-  sendstringf("Mapped TSS(vma=%6) at vmma=%6\n\r",vmread(vm_guest_tr_base), (UINT64)_TSS);
+  sendstringf("Mapped TSS(vma=%6) at vmma=%6\n\r",TSSBase, (UINT64)_TSS);
+
+  if (isAMD)
+  {
+    currentcpuinfo->vmcb->CPL=new_csaccessrights.DPL;
+    currentcpuinfo->vmcb->VMCB_CLEAN_BITS&=~(1 << 8); //CPL change (also segments)
+  }
 
   if (privilege_level_changed)
   {
@@ -180,6 +195,7 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
       {
         sendstringf("New DPL is 0. Setting RSP to RSP0 = %6\n", TSS->RSP0);
         newRSP=TSS->RSP0;
+
       }
 
       if (new_csaccessrights.DPL==1)
@@ -224,7 +240,10 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
   sendstringf("newRSP=%6\n", newRSP);
 
 
-  prflags->RF=1; //Set RF to 1 (so it's pushed in the stack)
+  if (isFault)
+    prflags->RF=1; //Set RF to 1 so it gets pushed in the stack's rflags
+
+  //this is now up to the caller to se
 
   if (IS64BITPAGING(currentcpuinfo))
   {
@@ -271,11 +290,12 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
       sendstring("STACK FAILURE\n");
       sendstring("STACK FAILURE\n");
 
-      sendstringf("SF-cs:rip=%x:%6\n", vmread(vm_guest_cs),vmread(vm_guest_rip));
-      sendstringf("SF-ss:rsp=%x:%6\n", vmread(vm_guest_ss),vmread(vm_guest_rsp));
+
+      sendstringf("SF-cs:rip=%x:%6\n", original_cs,original_rip);
+      sendstringf("SF-ss:rsp=%x:%6\n", original_ss,original_rsp);
       sendstringf("SF-cr2=%6\n", getCR2());
       sendstringf("Errorcode=%6\n", errorcode);
-      sendstringf("Mapped TSS(vma=%6) at vmma=%6\n\r",vmread(vm_guest_tr_base), (UINT64)_TSS);
+      sendstringf("Mapped TSS(vma=%6) at vmma=%6\n\r",TSSBase, (UINT64)_TSS);
 
       sendvmstate(currentcpuinfo, vmregisters);
 
@@ -294,7 +314,10 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
     stack[stackpos++]=original_rsp;
     stack[stackpos++]=original_ss;
 
-    vmwrite(vm_guest_rsp,rsp);
+    if (isAMD)
+      currentcpuinfo->vmcb->RSP=rsp;
+    else
+      vmwrite(vm_guest_rsp,rsp);
 
     sendstringf("[%6]=%6\n", rsp,stack[0]);
     sendstringf("[%6]=%6\n", rsp+8,stack[1]);
@@ -336,11 +359,11 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
       sendstring("STACK FAILURE\n");
       sendstring("STACK FAILURE\n");
 
-      sendstringf("SF-cs:rip=%x:%6\n", vmread(vm_guest_cs),vmread(vm_guest_rip));
-      sendstringf("SF-ss:rsp=%x:%6\n", vmread(vm_guest_ss),vmread(vm_guest_rsp));
+      sendstringf("SF-cs:rip=%x:%6\n", original_cs,original_rip);
+      sendstringf("SF-ss:rsp=%x:%6\n", original_ss,original_rsp);
       sendstringf("SF-cr2=%6\n", getCR2());
-      sendstringf("Errorcode=%x", errorcode);
-      sendstringf("Mapped TSS(vma=%6) at vmma=%6\n\r",vmread(vm_guest_tr_base), (UINT64)_TSS);
+      sendstringf("Errorcode=%6\n", errorcode);
+      sendstringf("Mapped TSS(vma=%6) at vmma=%6\n\r",TSSBase, (UINT64)_TSS);
 
       sendvmstate(currentcpuinfo, vmregisters);
 
@@ -363,7 +386,11 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
       stack[stackpos++]=original_ss;
     }
 
-    vmwrite(vm_guest_rsp,esp);
+    if (isAMD)
+      currentcpuinfo->vmcb->RSP=esp;
+    else
+      vmwrite(vm_guest_rsp,esp);
+
   }
 
 
@@ -377,27 +404,50 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
   prflags->RF=0;
   prflags->NT=0;
 
-  vmwrite(vm_guest_rflags,2/*rflags*/);
+  if (isAMD)
+    currentcpuinfo->vmcb->RFLAGS=2;
+  else
+    vmwrite(vm_guest_rflags,2/*rflags*/);
 
   if (privilege_level_changed)
   {
     if (IS64BITPAGING(currentcpuinfo))
     {
       //int64 int's set SS to NULL
-
-      vmwrite(vm_guest_ss,0);
-      vmwrite(vm_guest_ss_base,getSegmentBase(gdt,ldt,0));
-      vmwrite(vm_guest_ss_limit,getSegmentLimit(gdt,ldt,0));
-      vmwrite(vm_guest_ss_access_rights,getSegmentAccessRights(gdt,ldt,0));
+      if (isAMD)
+      {
+        currentcpuinfo->vmcb->ss_selector=0;
+        currentcpuinfo->vmcb->ss_base=0;
+        currentcpuinfo->vmcb->ss_limit=0;
+        currentcpuinfo->vmcb->ss_attrib=0;
+      }
+      else
+      {
+        vmwrite(vm_guest_ss,0);
+        vmwrite(vm_guest_ss_base,getSegmentBase(gdt,ldt,0));
+        vmwrite(vm_guest_ss_limit,getSegmentLimit(gdt,ldt,0));
+        vmwrite(vm_guest_ss_access_rights,getSegmentAccessRights(gdt,ldt,0));
+      }
     }
     else
     {
       //set new ss
-      vmwrite(vm_guest_ss,newSS);
-      vmwrite(vm_guest_ss_base,getSegmentBase(gdt,ldt,newSS));
-      vmwrite(vm_guest_ss_limit,getSegmentLimit(gdt,ldt,newSS));
-      setDescriptorAccessedFlag(gdt,ldt,newSS);
-      vmwrite(vm_guest_ss_access_rights,getSegmentAccessRights(gdt,ldt,newSS));
+      if (isAMD)
+      {
+        currentcpuinfo->vmcb->ss_selector=newSS;
+        currentcpuinfo->vmcb->ss_base=getSegmentBase(gdt,ldt,newSS);
+        currentcpuinfo->vmcb->ss_limit=getSegmentLimit(gdt,ldt,newSS);
+        currentcpuinfo->vmcb->ss_attrib=getSegmentAttrib(gdt,ldt,newSS);
+        setDescriptorAccessedFlag(gdt,ldt,newSS);
+      }
+      else
+      {
+        vmwrite(vm_guest_ss,newSS);
+        vmwrite(vm_guest_ss_base,getSegmentBase(gdt,ldt,newSS));
+        vmwrite(vm_guest_ss_limit,getSegmentLimit(gdt,ldt,newSS));
+        setDescriptorAccessedFlag(gdt,ldt,newSS);
+        vmwrite(vm_guest_ss_access_rights,getSegmentAccessRights(gdt,ldt,newSS));
+      }
     }
 
 
@@ -406,15 +456,37 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
 
   //set cs
   sendstringf("Setting cs to %x\n\r", cs);
-  vmwrite(vm_guest_cs, cs);
-  vmwrite(vm_guest_cs_limit, getSegmentLimit(gdt, ldt, cs));
-  vmwrite(vm_guest_cs_base, getSegmentBase(gdt, ldt, cs));
-  setDescriptorAccessedFlag(gdt, ldt, cs);
-  vmwrite(vm_guest_cs_access_rights, getSegmentAccessRights(gdt, ldt, cs));
+  if (isAMD)
+  {
+    currentcpuinfo->vmcb->cs_selector=cs;
+    currentcpuinfo->vmcb->cs_base=getSegmentBase(gdt,ldt,cs);
+    currentcpuinfo->vmcb->cs_limit=getSegmentLimit(gdt,ldt,cs);
+    currentcpuinfo->vmcb->cs_attrib=getSegmentAttrib(gdt,ldt,cs);
+
+    sendstringf("currentcpuinfo->vmcb->cs_selector=%x\n", currentcpuinfo->vmcb->cs_selector);
+    sendstringf("currentcpuinfo->vmcb->cs_base=%x\n", currentcpuinfo->vmcb->cs_base);
+    sendstringf("currentcpuinfo->vmcb->cs_limit=%x\n", currentcpuinfo->vmcb->cs_limit);
+    sendstringf("currentcpuinfo->vmcb->cs_attrib=%x\n", currentcpuinfo->vmcb->cs_attrib);
+
+
+    setDescriptorAccessedFlag(gdt,ldt,cs);
+
+  }
+  else
+  {
+    vmwrite(vm_guest_cs, cs);
+    vmwrite(vm_guest_cs_limit, getSegmentLimit(gdt, ldt, cs));
+    vmwrite(vm_guest_cs_base, getSegmentBase(gdt, ldt, cs));
+    setDescriptorAccessedFlag(gdt, ldt, cs);
+    vmwrite(vm_guest_cs_access_rights, getSegmentAccessRights(gdt, ldt, cs));
+  }
 
   sendstringf("Setting rip to %6\n\r", rip);
   //rip
-  vmwrite(vm_guest_rip,rip);
+  if (isAMD)
+    currentcpuinfo->vmcb->RIP=rip;
+  else
+    vmwrite(vm_guest_rip,rip);
 
   sendstringf("Returning\n\r");
 
@@ -780,9 +852,10 @@ ULONG getSegmentLimit(PGDT_ENTRY gdt, PGDT_ENTRY ldt, ULONG selector)
   if (usedtable==NULL || selector==0)
     return 0;
 
-  limit=(usedtable[index].Limit16_19 << 16) + usedtable[index].Limit0_15;
+  limit=((QWORD)usedtable[index].Limit16_19 << 16) | usedtable[index].Limit0_15;
   if (usedtable[index].G)
-    limit=(limit << 12)+0xfff;
+    limit=limit*4096-1;
+
 
   return limit;
 }
@@ -2751,6 +2824,7 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
   VMExit_idt_vector_information idtvectorinfo;
   //VMEntry_interruption_information entry_intinfo;
   int doublefault=0;
+  int isFault=1;
 
   intinfo.interruption_information=vmread(vm_exit_interruptioninfo);
   interrorcode=vmread(vm_exit_interruptionerror);
@@ -2793,6 +2867,9 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
     regDR7 dr7;
     int orig=nosendchar[getAPICID()];
 
+
+    isFault=0; //isDebugFault(vmread(vm_exit_qualification), dr7.DR7);
+
     nosendchar[getAPICID()]=1;
     sendstring("Interrupt 1:");
 
@@ -2826,10 +2903,13 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
       //emulate the interrupt completly, bypassing the idt vector and use what's given in
       //int14redirection_idtbypass_cs and int14redirection_idtbypass_rip
 
+
+
+
       nosendchar[getAPICID()]=1; //I believe this works
       r=emulateExceptionInterrupt(currentcpuinfo, vmregisters,
           int1redirection_idtbypass_cs, int1redirection_idtbypass_rip,
-          intinfo.haserrorcode, vmread(vm_exit_interruptionerror));
+          intinfo.haserrorcode, vmread(vm_exit_interruptionerror), isFault);
 
       nosendchar[getAPICID()]=orig;
 
@@ -2845,6 +2925,7 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
   {
 
 	  //software bp
+      isFault=0;
       if (int3redirection_idtbypass == 0)
       {
         //simple int3 redirection, or not even a different int
@@ -2861,7 +2942,7 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
 
         int r=emulateExceptionInterrupt(currentcpuinfo, vmregisters,
             int3redirection_idtbypass_cs, int3redirection_idtbypass_rip,
-            intinfo.haserrorcode, vmread(vm_exit_interruptionerror));
+            intinfo.haserrorcode, vmread(vm_exit_interruptionerror), 0);
 
         if (r==0)
           return 0;
@@ -2928,7 +3009,7 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
 
             r=emulateExceptionInterrupt(currentcpuinfo, vmregisters,
                 int14redirection_idtbypass_cs, int14redirection_idtbypass_rip,
-                intinfo.haserrorcode, errorcode);
+                intinfo.haserrorcode, errorcode, 1);
           }
 
 
@@ -3261,6 +3342,7 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
   vmwrite(0x4016, newintinfo.interruption_information); //entry info field
   vmwrite(0x401a, vmread(vm_exit_instructionlength)); //entry instruction length
 
+  if (isFault)
   {
     //set RF flag
     UINT64 rflags=vmread(vm_guest_rflags);

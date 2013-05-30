@@ -130,6 +130,31 @@ vmcalltest_asm:
   ret
 
 
+
+global vmcall_setint1redirect
+vmcall_setint1redirect:
+  sub rsp,8
+  sub rsp,0x20
+
+  mov dword [rsp],0x1c ;size of struct
+  mov dword [rsp+4],0xfedcba98 ;p2
+  mov dword [rsp+8],9 ;VMCALL_REDIRECTINT1
+
+  mov dword [rsp+0xc],1 ;idt redirect instead of intredirect
+  mov qword [rsp+0x14], inthandler1
+  xor eax,eax
+  mov ax,cs
+  mov dword [rsp+0x1c], eax
+
+
+  xchg bx,bx
+  mov rax,rsp
+  mov rdx,0x76543210 ;p1
+  call [vmcall_instr]
+
+  add rsp,8+0x20
+  ret
+
 global SaveExtraHostState
 ;void SaveExtraHostState(VMCB_PA)
 SaveExtraHostState:
@@ -534,6 +559,14 @@ db 0xcc
 db 0xcc
 db 0xcc
 
+;---------------------;
+;void setRFLAGS(void);
+;---------------------;
+global setRFLAGS
+setRFLAGS:
+push rdi
+popfq
+ret
 ;---------------------;
 ;ULONG getRFLAGS(void);
 ;---------------------;

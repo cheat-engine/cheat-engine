@@ -23,7 +23,7 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
   sendstringf("currentcpuinfo->vmcb->VMCB_CLEAN_BITS = %8\n", currentcpuinfo->vmcb->VMCB_CLEAN_BITS);
 
-  currentcpuinfo->vmcb->VMCB_CLEAN_BITS=0xffffffff; //nothing cached changed
+  currentcpuinfo->vmcb->VMCB_CLEAN_BITS=0xffffffff; //nothing cached changed (yet)
 
 
 
@@ -31,12 +31,63 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   switch (currentcpuinfo->vmcb->EXITCODE)
   {
 
+    case VMEXIT_EXCP1:
+    {
+      int isFault=0; //on amd it seems it ever ever set RF. isDebugFault(currentcpuinfo->vmcb->DR6, currentcpuinfo->vmcb->DR7);
+
+      //int1 breakpoint
+      sendstringf("INT1 breakpoint\n");
+      sendstringf("dr0=%x\n", getDR0());
+      sendstringf("dr1=%x\n", getDR1());
+      sendstringf("dr2=%x\n", getDR2());
+      sendstringf("dr3=%x\n", getDR3());
+
+
+      sendstringf("dr6=%x\n", currentcpuinfo->vmcb->DR6);
+      sendstringf("dr7=%x\n", currentcpuinfo->vmcb->DR7);
+      sendstringf("rflags=%x\n", currentcpuinfo->vmcb->RFLAGS);
+
+      sendstringf("isFault=%d\n", isFault);
+
+
+      if ((int1redirection_idtbypass==0) || (ISREALMODE(currentcpuinfo)))
+      {
+        sendstring("Realmode bp or No idtbypass\n");
+        currentcpuinfo->vmcb->inject_Type=3; //exception
+        currentcpuinfo->vmcb->inject_Vector=int1redirection;
+        currentcpuinfo->vmcb->inject_Valid=1;
+        currentcpuinfo->vmcb->inject_EV=0;
+
+        if (isFault) //set the RF flag in rflags
+          ((PRFLAGS)(&currentcpuinfo->vmcb->RFLAGS))->RF=1;
+
+        return 0;
+      }
+      else
+      {
+        //idt bypass method
+        int result;
+
+        sendstringf("before:\n");
+        sendvmstate(currentcpuinfo, vmregisters);
+        result=emulateExceptionInterrupt(currentcpuinfo, vmregisters, int1redirection_idtbypass_cs, int1redirection_idtbypass_rip, 0, 0, isFault);
+        sendstringf("after:\n");
+        sendvmstate(currentcpuinfo, vmregisters);
+
+        return result;
+      }
+
+      break;
+    }
+
 
     case VMEXIT_SWINT: //software interrupts (INTn)
     {
       int handled=0;
       int intnr;
       int instructionlength=0;
+
+      nosendchar[getAPICID()]=1; //this seems to work well enough
       sendstringf("Software interrupt\n");
 
       if (AMD_hasDecodeAssists)

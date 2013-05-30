@@ -352,10 +352,10 @@ typedef struct //for AMD Bits 55:52 and 47:40 of the GDT
       ULONG S            : 1; //4
       ULONG DPL          : 2; //5-6
       ULONG P            : 1; //7
-      ULONG AVL          : 1; //12
-      ULONG L            : 1; //13 //reserved for anything except CS
-      ULONG D_B          : 1; //14
-      ULONG G            : 1; //15
+      ULONG AVL          : 1; //
+      ULONG L            : 1; //
+      ULONG D_B          : 1; //
+      ULONG G            : 1; //
     };
   };
 } Segment_Attribs, *PSegment_Attribs;
