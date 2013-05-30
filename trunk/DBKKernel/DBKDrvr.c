@@ -501,9 +501,19 @@ Return Value:
 				DbgPrint("Intel cpu without IA32_FEATURE_CONTROL MSR");		
 			}
 
+			vmx_init_dovmcall(1);
+
 		}
 		else
+		{
 			DbgPrint("Not an intel cpu");
+			if (r[1]==0x68747541)
+			{
+				DbgPrint("This is an AMD\n");
+				vmx_init_dovmcall(0);
+			}
+
+		}
 
 
 

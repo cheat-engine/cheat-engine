@@ -4,12 +4,17 @@
 ;R9: 4th integer argument
 
 _TEXT SEGMENT 'CODE'
-PUBLIC dovmcall
-dovmcall:
+PUBLIC dovmcall_intel
+dovmcall_intel:
 	mov rax,rcx
-	;mov rdx,rdx ;hey, guess what, it's already set properly!
 	vmcall
 	ret
+	
+PUBLIC dovmcall_amd
+dovmcall_amd:
+	mov rax,rcx
+	vmmcall
+	ret	
 	
 _TEXT   ENDS
         END	

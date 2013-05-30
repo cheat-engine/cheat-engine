@@ -4,10 +4,11 @@
 #include "vmxhelper.h"
 
 #ifdef AMD64
-extern UINT_PTR dovmcall(void *vmcallinfo, unsigned int level1pass);
+extern UINT_PTR dovmcall_intel(void *vmcallinfo, unsigned int level1pass);
+extern UINT_PTR dovmcall_amd(void *vmcallinfo, unsigned int level1pass);
 //dovmcall is defined in vmxhelpera.asm
 #else
-_declspec( naked ) UINT_PTR dovmcall(void *vmcallinfo, unsigned int level1pass)
+_declspec( naked ) UINT_PTR dovmcall_intel(void *vmcallinfo, unsigned int level1pass)
 {
 	__asm
 	{
@@ -21,7 +22,26 @@ _declspec( naked ) UINT_PTR dovmcall(void *vmcallinfo, unsigned int level1pass)
 		ret 8
 	}
 }
+
+_declspec( naked ) UINT_PTR dovmcall_amd(void *vmcallinfo, unsigned int level1pass)
+{
+	__asm
+	{
+		push edx
+		mov eax,[esp+8]  //not +4 because of that push, retard
+		mov edx,[esp+12]
+		__emit 0x0f
+		__emit 0x01
+	    __emit 0xd9 //vmmcall, eax will be edited, or a UD exception will be raised
+		pop edx
+		ret 8
+	}
+}
 #endif
+
+typedef UINT_PTR (DOVMCALL) (void *vmcallinfo, unsigned int level1pass);
+DOVMCALL *dovmcall;
+
 
 int vmx_hasredirectedint1()
 {
@@ -360,4 +380,13 @@ UINT_PTR vmx_getLastSkippedPageFault()
 	vmcallinfo.command=VMCALL_GETLASTSKIPPEDPAGEFAULT;
 
 	return (UINT_PTR)dovmcall(&vmcallinfo, vmx_password1);
+}
+
+void vmx_init_dovmcall(int isIntel)
+{
+	if (isIntel)
+		(void *)dovmcall=(void *)dovmcall_intel;
+	else
+		(void *)dovmcall=(void *)dovmcall_amd;
+
 }
