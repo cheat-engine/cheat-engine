@@ -152,6 +152,8 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
     sendstringf("old_cs attribs=%x\n",old_csattribs.SegmentAttrib);
     sendstringf("new_cs attribs=%x\n",new_csattribs.SegmentAttrib);
     privilege_level_changed=(currentcpuinfo->vmcb->CPL != new_csattribs.DPL);
+
+    sendstringf("new_csattribs.DPL=%d\n", new_csattribs.DPL);
   }
 
 
@@ -175,7 +177,7 @@ int emulateExceptionInterrupt(pcpuinfo currentcpuinfo, VMRegisters *vmregisters,
 
   if (isAMD)
   {
-    currentcpuinfo->vmcb->CPL=new_csaccessrights.DPL;
+    currentcpuinfo->vmcb->CPL=new_csattribs.DPL;
     currentcpuinfo->vmcb->VMCB_CLEAN_BITS&=~(1 << 8); //CPL change (also segments)
   }
 
