@@ -153,10 +153,17 @@ vmcall_setintredirects:
   mov rdx,0x76543210 ;p1
   call [vmcall_instr]
 
+  mov rax,rsp
   mov dword [rsp+8],24 ;VMCALL_REDIRECTINT3
-
   mov dword [rsp+0xc],1 ;idt redirect instead of intredirect
   mov qword [rsp+0x14], inthandler3
+  call [vmcall_instr]
+
+  mov rax,rsp
+  mov dword [rsp+8],22 ;VMCALL_REDIRECTINT14
+  mov dword [rsp+0xc],1 ;idt redirect instead of intredirect
+  mov qword [rsp+0x14], inthandler14
+  call [vmcall_instr]
 
 
   add rsp,8+0x20

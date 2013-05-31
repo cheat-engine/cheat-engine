@@ -96,7 +96,7 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case VMEXIT_EXCP3:
     {
-      nosendchar[getAPICID()]=0;
+
       sendstringf("Int3 BP\n");
       sendstringf("EXITINTINFO=%x\nEXITINFO1=%x\nEXITINFO2=%x\n", currentcpuinfo->vmcb->EXITINTINFO, currentcpuinfo->vmcb->EXITINFO1, currentcpuinfo->vmcb->EXITINFO2);
       sendstringf("RIP=%6\n", currentcpuinfo->vmcb->RIP);
@@ -155,6 +155,66 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
 
       return 1;
+    }
+
+    case VMEXIT_EXCP14:
+    {
+      DWORD errorcode=currentcpuinfo->vmcb->EXITINFO1;
+      QWORD cr2=currentcpuinfo->vmcb->EXITINFO2;
+
+      nosendchar[getAPICID()]=0;
+
+      sendstringf("INT14 breakpoint\n");
+      sendstringf("RFLAGS=%x", currentcpuinfo->vmcb->RFLAGS);
+      sendstringf("errorcode=%x\n", errorcode);
+      sendstringf("cr2=%x\n", cr2);
+      sendstringf("EXITINTINFO=%x\n", currentcpuinfo->vmcb->EXITINTINFO);
+
+
+      setCR2(cr2); //<---bochs bug? My real hardware does not use this CR2 value but the one in the vmcb. (no matter)
+      currentcpuinfo->vmcb->CR2=cr2;
+      currentcpuinfo->vmcb->VMCB_CLEAN_BITS&=~(1 << 9); //cr2 got changed
+
+
+      ((PRFLAGS)(&currentcpuinfo->vmcb->RFLAGS))->RF=1;
+
+
+
+      if ((int14redirection_idtbypass==0) || (ISREALMODE(currentcpuinfo)))
+      {
+        sendstring("Realmode bp? or No idtbypass\n");
+
+        if (ISREALMODE(currentcpuinfo))
+        {
+          //todo: setup a realmode paging setup and set cr3 to that and intercept cr3 read/write and cr0 read/write
+
+        }
+
+
+
+        currentcpuinfo->vmcb->inject_Type=3; //exception
+        currentcpuinfo->vmcb->inject_Vector=int14redirection;
+        currentcpuinfo->vmcb->inject_Valid=1;
+        currentcpuinfo->vmcb->inject_EV=1;
+        currentcpuinfo->vmcb->inject_ERRORCODE=errorcode;
+
+        return 0;
+      }
+      else
+      {
+        //idt bypass method
+        int result;
+
+        sendstringf("before:\n");
+        sendvmstate(currentcpuinfo, vmregisters);
+        result=emulateExceptionInterrupt(currentcpuinfo, vmregisters, int14redirection_idtbypass_cs, int14redirection_idtbypass_rip, 1, errorcode, 1);
+        sendstringf("after:\n");
+        sendvmstate(currentcpuinfo, vmregisters);
+
+        return result;
+      }
+
+      break;
     }
 
 

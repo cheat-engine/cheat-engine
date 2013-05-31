@@ -872,11 +872,6 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case VMCALL_REDIRECTINT14: //redirect int1
     {
-      if (isAMD)
-      {
-        vmregisters->rax = 0xcedead;
-        break;
-      }
 
       sendstring("VMCALL_REDIRECTINT14\n\r");
       if (vmcall_instruction[3] == 0)
@@ -895,18 +890,23 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
         sendstringf("IDT14 bypass to %x:%6\n\r",int14redirection_idtbypass_cs, int14redirection_idtbypass_rip);
       }
 
+      if (isAMD)
+      {
+        //start intercepting
+        if (vmcall_instruction[3] == 2) //2 is disable redirect alltogether
+          currentcpuinfo->vmcb->InterceptExceptions&=~(1<<14); //unset bit 1 (int1 exception)
+        else
+          currentcpuinfo->vmcb->InterceptExceptions|=(1<<14); //set bit 1 (int1 exception)
+
+        currentcpuinfo->vmcb->VMCB_CLEAN_BITS&=~(1 << 0); //the intercepts got changed
+      }
+
       vmregisters->rax = 0;
       break;
     }
 
     case VMCALL_INT14REDIRECTED:
     {
-      if (isAMD)
-      {
-        vmregisters->rax = 0xcedead;
-        break;
-      }
-
       vmregisters->rax = currentcpuinfo->int14happened;
       currentcpuinfo->int14happened=0;
       break;
@@ -949,12 +949,6 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case VMCALL_INT3REDIRECTED:
     {
-      if (isAMD)
-      {
-        vmregisters->rax = 0xcedead;
-        break;
-      }
-
       vmregisters->rax = currentcpuinfo->int3happened;
       currentcpuinfo->int3happened=0;
       vmregisters->rax = 0;
