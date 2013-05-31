@@ -130,6 +130,7 @@ int cinthandler(unsigned long long *stack, int intnr)
   sendstringf("cpunr=%d\n\r",cpunr);
   sendstringf("intnr=%d\n\r",intnr);
   sendstringf("rsp=%x\n\r",getRSP());
+  sendstringf("cr2=%6\n\r",getCR2());
 
   if ((stack[17]==80) && (stack[18]==80))
   {
@@ -151,8 +152,9 @@ int cinthandler(unsigned long long *stack, int intnr)
 
   if (errorcode)
   {
+
     errorcodeValue=stack[16];
-    //sendstringf("Interrupt has errorcode : %x ( \n\r",errorcodeValue);
+    sendstringf("Interrupt has errorcode : %x (",errorcodeValue);
     if (errorcodeValue & 1)
     {
       sendstring("EXT ");
@@ -1587,7 +1589,7 @@ void menu2(void)
     displayline("4: Interrupt test\n");
     displayline("5: Breakpoint test\n");
     displayline("6: Set Redirects with dbvm (only if dbvm is already loaded)\n");
-    displayline("7: Test PSOD\n");
+    displayline("7: Pagefault test\n");
     displayline("8: PCI enum test (finds db's serial port)\n");
     displayline("9: test input\n");
     displayline("a: test branch profiling\n");
@@ -1735,6 +1737,9 @@ void menu2(void)
           case '7':
           {
             //PSOD("FUUUUUUU");
+            int v=*(int *)0xcececece;
+            sendstringf("Value = %x\n", v);
+
             break;
           }
 

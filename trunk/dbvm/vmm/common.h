@@ -3,8 +3,8 @@
 
 
 #if (defined SERIALPORT) && (SERIALPORT != 0)
-  //#define DEBUG //comment for release
-  //#define DEBUGINTHANDLER //comment for release
+  #define DEBUG //comment for release
+  #define DEBUGINTHANDLER //comment for release
 #endif
 
 // #define DISPLAYDEBUG //send serialport debug output to the display
