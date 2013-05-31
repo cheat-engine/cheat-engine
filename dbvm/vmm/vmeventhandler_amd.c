@@ -94,6 +94,69 @@ int handleVMEvent_amd(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
       break;
     }
 
+    case VMEXIT_EXCP3:
+    {
+      nosendchar[getAPICID()]=0;
+      sendstringf("Int3 BP\n");
+      sendstringf("EXITINTINFO=%x\nEXITINFO1=%x\nEXITINFO2=%x\n", currentcpuinfo->vmcb->EXITINTINFO, currentcpuinfo->vmcb->EXITINFO1, currentcpuinfo->vmcb->EXITINFO2);
+      sendstringf("RIP=%6\n", currentcpuinfo->vmcb->RIP);
+      sendstringf("nRIP=%6\n", currentcpuinfo->vmcb->nRIP);
+
+      ShowCurrentInstructions(currentcpuinfo);
+
+      //set RIP to after the instruction
+      if (AMD_hasNRIPS)
+      {
+        currentcpuinfo->vmcb->RIP=currentcpuinfo->vmcb->nRIP;
+      }
+      else
+      {
+        //scan where the 0xcc is...
+        int error;
+        UINT64 pagefaultaddress;
+        unsigned char *bytes=(unsigned char *)mapVMmemory(currentcpuinfo, currentcpuinfo->vmcb->cs_base+currentcpuinfo->vmcb->RIP, 15, currentcpuinfo->AvailableVirtualAddress, &error, &pagefaultaddress);
+
+        int i;
+        for (i=0; i<15; i++)
+        {
+          if (bytes[i]==0xcc)
+          {
+            currentcpuinfo->vmcb->RIP+=i+1;
+            break;
+          }
+        }
+      }
+      sendstringf("new RIP=%6\n", currentcpuinfo->vmcb->RIP);
+
+      //and raise the interrupt
+      if ((int3redirection_idtbypass==0) || (ISREALMODE(currentcpuinfo)))
+      {
+        sendstring("Realmode bp or No idtbypass\n");
+        currentcpuinfo->vmcb->inject_Type=3; //exception
+        currentcpuinfo->vmcb->inject_Vector=int3redirection;
+        currentcpuinfo->vmcb->inject_Valid=1;
+        currentcpuinfo->vmcb->inject_EV=0;
+        return 0;
+       }
+       else
+       {
+         //idt bypass method
+         int result;
+
+         sendstringf("before:\n");
+         sendvmstate(currentcpuinfo, vmregisters);
+         result=emulateExceptionInterrupt(currentcpuinfo, vmregisters, int3redirection_idtbypass_cs, int3redirection_idtbypass_rip, 0, 0, 0); //it' a trap!
+         sendstringf("after:\n");
+         sendvmstate(currentcpuinfo, vmregisters);
+
+         return result;
+       }
+
+
+
+      return 1;
+    }
+
 
     case VMEXIT_SWINT: //software interrupts (INTn)
     {

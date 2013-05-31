@@ -13,7 +13,7 @@ extern void vmcall_intel(void);
 
 extern void *vmcall_instr; //holds a pointer to either vmcall_amd or vmcall_intel
 extern int vmcalltest_asm(void);
-extern int vmcall_setint1redirect(void);
+extern int vmcall_setintredirects(void);
 
 extern void _pause(void);
 extern UINT64 _vmread(ULONG index);
@@ -100,6 +100,7 @@ extern int testcode(int i,int i2, int i3, int i4);
 
 extern void changetask(void);
 extern void tasktest(void);
+extern void int3bptest(void);
 
 
 volatile void       *RealmodeRing0Stack;
