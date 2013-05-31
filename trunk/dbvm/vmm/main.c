@@ -128,6 +128,8 @@ int cinthandler(unsigned long long *stack, int intnr)
     }
 
   sendstringf("cpunr=%d\n\r",cpunr);
+  sendstringf("intnr=%d\n\r",intnr);
+  sendstringf("rsp=%x\n\r",getRSP());
 
   if ((stack[17]==80) && (stack[18]==80))
   {
@@ -1584,7 +1586,7 @@ void menu2(void)
     displayline("3: Disassembler test\n");
     displayline("4: Interrupt test\n");
     displayline("5: Breakpoint test\n");
-    displayline("6: Set Int1 Redirect with dbvm (only if dbvm is already loaded)\n");
+    displayline("6: Set Redirects with dbvm (only if dbvm is already loaded)\n");
     displayline("7: Test PSOD\n");
     displayline("8: PCI enum test (finds db's serial port)\n");
     displayline("9: test input\n");
@@ -1682,6 +1684,10 @@ void menu2(void)
           {
             UINT64 rflags;
 
+            displayline("Doing an int3 bp\n");
+            int3bptest();
+
+
             displayline("Setting the GD flag");
             setDR6(0xfffffff0);
             setDR7(getDR7() | (1<<13));
@@ -1719,8 +1725,8 @@ void menu2(void)
 
           case '6':
           {
-            displayline("Setting the int1 redirect. #UD Interrupt will fire if dbvm is not loaded (and crash)");
-            vmcall_setint1redirect();
+            displayline("Setting the redirects. #UD Interrupt will fire if dbvm is not loaded (and crash)");
+            vmcall_setintredirects();
 
             break;
 
@@ -2439,7 +2445,7 @@ void startvmx(pcpuinfo currentcpuinfo)
 
 
 
-    		  bochsbp();
+
           UINT64 VM_HSAVE_PA_MSR=readMSR(0xc0010117); //VM_HSAVE_PA MSR
           sendstringf("VM_HSAVE_PA_MSR was %6\n", VM_HSAVE_PA_MSR);
 

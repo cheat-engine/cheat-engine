@@ -121,7 +121,7 @@ vmcalltest_asm:
   mov dword [rsp+4],0xfedcba98
   mov dword [rsp+8],0
 
-  xchg bx,bx
+  ;xchg bx,bx
   mov rax,rsp
   mov rdx,0x76543210
   call [vmcall_instr]
@@ -131,8 +131,9 @@ vmcalltest_asm:
 
 
 
-global vmcall_setint1redirect
-vmcall_setint1redirect:
+global vmcall_setintredirects
+vmcall_setintredirects:
+;also int3 and int14
   sub rsp,8
   sub rsp,0x20
 
@@ -147,10 +148,16 @@ vmcall_setint1redirect:
   mov dword [rsp+0x1c], eax
 
 
-  xchg bx,bx
+   ;int3
   mov rax,rsp
   mov rdx,0x76543210 ;p1
   call [vmcall_instr]
+
+  mov dword [rsp+8],24 ;VMCALL_REDIRECTINT3
+
+  mov dword [rsp+0xc],1 ;idt redirect instead of intredirect
+  mov qword [rsp+0x14], inthandler3
+
 
   add rsp,8+0x20
   ret
@@ -158,7 +165,7 @@ vmcall_setint1redirect:
 global SaveExtraHostState
 ;void SaveExtraHostState(VMCB_PA)
 SaveExtraHostState:
-  xchg bx,bx
+  ;xchg bx,bx
   xchg rax,rdi
   vmsave
   xchg rax,rdi
@@ -877,6 +884,20 @@ ret
 db 0xcc
 db 0xcc
 db 0xcc
+
+;----------------;
+;int3bptest(void);
+;----------------;
+global int3bptest
+int3bptest:
+nop
+nop
+db 0x66
+db 0x67
+db 0xcc
+nop
+nop
+ret
 
 ;-------------------;
 ;void testcode(int x);
@@ -2118,7 +2139,7 @@ mov dword [2],0
 lgdt [0x0]
 
 
-xchg bx,bx
+;xchg bx,bx
 nop
 mov ecx,0xc0000080 ;test to see how it handles an efer write
 xor eax,eax
@@ -2126,7 +2147,7 @@ xor edx,edx
 ;wrmsr
 
 nop
-xchg bx,bx
+;xchg bx,bx
 nop
 
 mov ecx,0xc0010117 ;cause an exit
