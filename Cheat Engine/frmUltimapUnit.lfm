@@ -10,7 +10,7 @@ object frmUltimap: TfrmUltimap
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.0.8.0'
   object Panel1: TPanel
     Left = 0
     Height = 451
