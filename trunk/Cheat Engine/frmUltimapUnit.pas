@@ -383,6 +383,8 @@ var
   i: integer;
   //eprocess: qword;
 begin
+  if isAMD then
+    raise exception.create('Sorry, but this feature is only available on intel cpu''s');
 
   {$ifdef cpu32}
   if Is64bitOS then raise exception.create('Please run the 64-bit version of Cheat Engine to make use of this feature');
