@@ -2157,8 +2157,8 @@ nop
 ;xchg bx,bx
 nop
 
-mov ecx,0xc0010117 ;cause an exit
-rdmsr
+;mov ecx,0xc0010117 ;cause an exit
+;rdmsr
 
 
 xor eax,eax
