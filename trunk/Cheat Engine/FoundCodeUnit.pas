@@ -216,43 +216,49 @@ begin
     disassembled[5]:=disassemble(address,temp);
   end;
 
-  minfo.Lines.Add(disassembled[1]);
-  minfo.Lines.Add(disassembled[2]);
-  minfo.Lines.Add(disassembled[3]+' <<');
-  minfo.Lines.Add(disassembled[4]);
-  minfo.Lines.Add(disassembled[5]);
-  minfo.Lines.Add('');
+  minfo.Lines.BeginUpdate;
+  try
+    minfo.Lines.Add(disassembled[1]);
+    minfo.Lines.Add(disassembled[2]);
+    minfo.Lines.Add(disassembled[3]+' <<');
+    minfo.Lines.Add(disassembled[4]);
+    minfo.Lines.Add(disassembled[5]);
+    minfo.Lines.Add('');
 
-  if processhandler.is64bit then
-    firstchar:='R' else firstchar:='E';
+    if processhandler.is64bit then
+      firstchar:='R' else firstchar:='E';
 
-  minfo.Lines.Add(firstchar+'AX='+IntToHex(coderecord.context.{$ifdef cpu64}Rax{$else}Eax{$endif},hexcount));
-  minfo.Lines.Add(firstchar+'BX='+IntToHex(coderecord.context.{$ifdef cpu64}Rbx{$else}Ebx{$endif},hexcount));
-  minfo.Lines.Add(firstchar+'CX='+IntToHex(coderecord.context.{$ifdef cpu64}Rcx{$else}Ecx{$endif},hexcount));
-  minfo.Lines.Add(firstchar+'DX='+IntToHex(coderecord.context.{$ifdef cpu64}Rdx{$else}Edx{$endif},hexcount));
-  minfo.Lines.Add(firstchar+'SI='+IntToHex(coderecord.context.{$ifdef cpu64}Rsi{$else}Esi{$endif},hexcount));
-  minfo.Lines.Add(firstchar+'DI='+IntToHex(coderecord.context.{$ifdef cpu64}Rdi{$else}Edi{$endif},hexcount));
-  minfo.Lines.Add(firstchar+'SP='+IntToHex(coderecord.context.{$ifdef cpu64}Rsp{$else}Esp{$endif},hexcount));
-  minfo.Lines.Add(firstchar+'BP='+IntToHex(coderecord.context.{$ifdef cpu64}Rbp{$else}Ebp{$endif},hexcount));
-  minfo.Lines.Add(firstchar+'IP='+IntToHex(coderecord.context.{$ifdef cpu64}Rip{$else}Eip{$endif},hexcount));
+    minfo.Lines.Add(firstchar+'AX='+IntToHex(coderecord.context.{$ifdef cpu64}Rax{$else}Eax{$endif},hexcount));
+    minfo.Lines.Add(firstchar+'BX='+IntToHex(coderecord.context.{$ifdef cpu64}Rbx{$else}Ebx{$endif},hexcount));
+    minfo.Lines.Add(firstchar+'CX='+IntToHex(coderecord.context.{$ifdef cpu64}Rcx{$else}Ecx{$endif},hexcount));
+    minfo.Lines.Add(firstchar+'DX='+IntToHex(coderecord.context.{$ifdef cpu64}Rdx{$else}Edx{$endif},hexcount));
+    minfo.Lines.Add(firstchar+'SI='+IntToHex(coderecord.context.{$ifdef cpu64}Rsi{$else}Esi{$endif},hexcount));
+    minfo.Lines.Add(firstchar+'DI='+IntToHex(coderecord.context.{$ifdef cpu64}Rdi{$else}Edi{$endif},hexcount));
+    minfo.Lines.Add(firstchar+'SP='+IntToHex(coderecord.context.{$ifdef cpu64}Rsp{$else}Esp{$endif},hexcount));
+    minfo.Lines.Add(firstchar+'BP='+IntToHex(coderecord.context.{$ifdef cpu64}Rbp{$else}Ebp{$endif},hexcount));
+    minfo.Lines.Add(firstchar+'IP='+IntToHex(coderecord.context.{$ifdef cpu64}Rip{$else}Eip{$endif},hexcount));
 
-  {$ifdef cpu64}
-  if processhandler.is64bit then
-  begin
-    minfo.Lines.Add('R8='+IntToHex(coderecord.context.r8,16));
-    minfo.Lines.Add('R9='+IntToHex(coderecord.context.r9,16));
-    minfo.Lines.Add('R10='+IntToHex(coderecord.context.r10,16));
-    minfo.Lines.Add('R11='+IntToHex(coderecord.context.r11,16));
-    minfo.Lines.Add('R12='+IntToHex(coderecord.context.r12,16));
-    minfo.Lines.Add('R13='+IntToHex(coderecord.context.r13,16));
-    minfo.Lines.Add('R14='+IntToHex(coderecord.context.r14,16));
-    minfo.Lines.Add('R15='+IntToHex(coderecord.context.r15,16));
+    {$ifdef cpu64}
+    if processhandler.is64bit then
+    begin
+      minfo.Lines.Add('R8='+IntToHex(coderecord.context.r8,16));
+      minfo.Lines.Add('R9='+IntToHex(coderecord.context.r9,16));
+      minfo.Lines.Add('R10='+IntToHex(coderecord.context.r10,16));
+      minfo.Lines.Add('R11='+IntToHex(coderecord.context.r11,16));
+      minfo.Lines.Add('R12='+IntToHex(coderecord.context.r12,16));
+      minfo.Lines.Add('R13='+IntToHex(coderecord.context.r13,16));
+      minfo.Lines.Add('R14='+IntToHex(coderecord.context.r14,16));
+      minfo.Lines.Add('R15='+IntToHex(coderecord.context.r15,16));
+    end;
+    {$endif}
+
+    minfo.lines.add('');
+    minfo.lines.add('');
+
+
+  finally
+    minfo.lines.EndUpdate;
   end;
-  {$endif}
-
-  minfo.lines.add('');
-  minfo.lines.add('');
-
 end;
 
 procedure TFoundCodedialog.moreinfo;
