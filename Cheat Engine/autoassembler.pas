@@ -346,7 +346,12 @@ begin
 
   code.insert(linenr, 'define('+structname+'_size,'+inttohex(currentOffset,1)+')');
 
-  showmessage(code.text);
+
+
+  tokens.Free;
+  elements.free;
+
+
 
 end;
 
