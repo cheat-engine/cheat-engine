@@ -870,7 +870,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
     {
 
       case vm_exit_vmcall:
-    	skip=1;
+    	skip=0;
     	break;
 
 
@@ -1240,6 +1240,21 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
             break;
           }
 
+          case 0x30:
+          {
+
+            switch (rip)
+            {
+
+              case 0x63a:
+              case 0x645:
+                skip=1;
+                break;
+            }
+
+            break;
+          }
+
           case 0x58:
           {
 
@@ -1311,14 +1326,6 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
 
 
     }
-
-    if (currentcpuinfo->cpunr != 0)
-    {
-      skip=0;
-    }
-    else
-      skip=1;
-
 
 
     if (skip)

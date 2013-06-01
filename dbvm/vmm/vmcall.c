@@ -376,6 +376,8 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
   //enableserial();
 #endif
 
+  nosendchar[getAPICID()]=0;
+
 
   sendstringf("Handling vm(m)call on cpunr:%d \n\r", currentcpuinfo->cpunr);
 
@@ -578,6 +580,8 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
     {
       if (isAMD)
       {
+        //intercept these msr's as well
+
         vmregisters->rax = 0xcedead;
         break;
       }
@@ -590,6 +594,8 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
         currentcpuinfo->actual_sysenter_EIP=currentcpuinfo->sysenter_EIP;
       }
       vmregisters->rax = 0;
+
+
 
       break;
     }
@@ -826,35 +832,20 @@ int _handleVMCall(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
     case VMCALL_GETCR0:
     {
-      if (isAMD)
-      {
-        vmregisters->rax = 0xcedead;
-        break;
-      }
-      vmregisters->rax = vmread(0x6800);
+
+      vmregisters->rax = isAMD?currentcpuinfo->vmcb->CR0:vmread(0x6800);
       break;
     }
 
     case VMCALL_GETCR3:
     {
-      if (isAMD)
-      {
-        vmregisters->rax = 0xcedead;
-        break;
-      }
-
-      vmregisters->rax = vmread(0x6802);
+      vmregisters->rax = isAMD?currentcpuinfo->vmcb->CR3:vmread(0x6802);
       break;
     }
 
     case VMCALL_GETCR4:
     {
-      if (isAMD)
-      {
-        vmregisters->rax = 0xcedead;
-        break;
-      }
-      vmregisters->rax = vmread(vm_guest_cr4);
+      vmregisters->rax = isAMD?currentcpuinfo->vmcb->CR4:vmread(vm_guest_cr4);
       break;
     }
 
