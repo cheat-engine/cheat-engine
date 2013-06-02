@@ -20,7 +20,8 @@ Fixed break on entry when creating a process
 Fixed the stackview in 64-bit ce when targeting a 32-bit program
 Fixed unloading the driver when global debug was used before
 Fixed the symbolpath not changing to what you wish, and add the game's exe to the symbol path search by default
-Fixed runtime offloading bug where the wrong TSS base got set
+Fixed dbvm stability
+Fixed global debug not handling 64-bit mov dr* instructions properly
 
 Additions and changes:
 Redesigned the lua class system

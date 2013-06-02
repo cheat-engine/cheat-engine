@@ -8372,8 +8372,9 @@ begin
 end;
 
 {--------Processlist menuitem--------}
-var
-  il: TImageList;
+//var
+//  il: TImageList;
+
 
 procedure TMainForm.Process1Click(Sender: TObject);
 
@@ -8384,16 +8385,15 @@ var
   i, j: integer;
 
   tempicon: Graphics.TIcon;
+  tempp: tpicture;
 
 begin
   //fill with processlist
-  if il = nil then
-    il := TImageList.Create(self);
+ // if il = nil then
+ //   il := TImageList.Create(self);
 
+ // il.clear;
 
-  il.Clear;
-
-  Menu.Images := il;
 
   sl := TStringList.Create;
 
@@ -8412,14 +8412,18 @@ begin
       currentmi.Data := pointer(ptrUint(PProcessListInfo(sl.Objects[i])^.processid));
       currentmi.OnClick := ProcessItemClick;
 
+
       if PProcessListInfo(sl.Objects[i])^.processIcon > 0 then
       begin
         tempicon := Graphics.TIcon.Create;
         tempicon.handle := PProcessListInfo(sl.Objects[i])^.processIcon;
-        il.AddIcon(tempicon);
-        tempicon.Free;
 
-        currentmi.ImageIndex := il.Count - 1;
+        tempp:=TPicture.create;
+        tempp.Icon:=tempicon;
+        currentmi.Bitmap:=tempp.bitmap;
+
+        tempp.free;
+        tempicon.free;
       end
       else
         currentmi.ImageIndex := -1;
@@ -8428,13 +8432,14 @@ begin
       process1.Add(currentmi);
     end;
 
-
   finally
-    for i := 0 to sl.Count - 1 do
-      if sl.Objects[i] <> nil then
-        freemem(pointer(sl.Objects[i]));
+    cleanProcessList(sl);
     sl.Free;
   end;
+
+
+
+
 end;
 
 procedure TMainForm.ProcessItemClick(Sender: TObject);
