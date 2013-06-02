@@ -393,11 +393,14 @@ object MainForm: TMainForm
       TabOrder = 1
     end
     object cbUnicode: TCheckBox
+      AnchorSideLeft.Control = ScanType
+      AnchorSideLeft.Side = asrBottom
       Left = 495
       Height = 19
       Top = 128
       Width = 60
-      Anchors = [akTop, akRight]
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Left = 8
       Caption = 'Unicode'
       TabOrder = 16
       Visible = False
@@ -785,11 +788,12 @@ object MainForm: TMainForm
       TabOrder = 4
     end
     object cbCaseSensitive: TCheckBox
+      AnchorSideLeft.Control = cbUnicode
       Left = 495
       Height = 19
       Top = 146
       Width = 88
-      Anchors = [akTop, akRight]
+      Anchors = [akTop, akLeft, akRight]
       Caption = 'Case sensitive'
       Checked = True
       Enabled = False
