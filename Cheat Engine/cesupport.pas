@@ -195,7 +195,7 @@ begin
 
       secondsSinceLastShowAd:=0;
 
-      showmessage(inttostr(browser.width));
+      //showmessage(inttostr(browser.width));
     end;
   end;
 
