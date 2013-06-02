@@ -2422,13 +2422,13 @@ var
   ProcessListInfo: PProcessListInfo;
 begin
   for i:=0 to processlist.count-1 do
-  if processlist.Objects[i]<>nil then
-  begin
-    ProcessListInfo:= pointer( processlist.Objects[i]);
-    if ProcessListInfo.processIcon>0 then
-      DestroyIcon(ProcessListInfo.processIcon);
-    freemem(ProcessListInfo);
-  end;
+    if processlist.Objects[i]<>nil then
+    begin
+      ProcessListInfo:= pointer( processlist.Objects[i]);
+      if ProcessListInfo.processIcon>0 then
+        DestroyIcon(ProcessListInfo.processIcon);
+      freemem(ProcessListInfo);
+    end;
 
   processlist.clear;
 end;
