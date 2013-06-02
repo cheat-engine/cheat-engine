@@ -2927,20 +2927,25 @@ int handleInterruptProtectedMode(pcpuinfo currentcpuinfo, VMRegisters *vmregiste
   {
 
 	  //software bp
+      nosendchar[getAPICID()]=0;
+      sendstring("Int3 bp\n");
+
+      sendvmstate(currentcpuinfo, vmregisters);
+
       isFault=0;
       if (int3redirection_idtbypass == 0)
       {
         //simple int3 redirection, or not even a different int
         sendstring("Normal\n\r");
         intinfo.interruptvector=int3redirection;
-        currentcpuinfo->int14happened=(int3redirection!=3); //only set if redirection to something else than 3
+        currentcpuinfo->int3happened=(int3redirection!=3); //only set if redirection to something else than 3
       }
       else
       {
         nosendchar[getAPICID()]=0;
         sendstring("int 3\n");
 
-        vmwrite(vm_guest_rip,vmread(vm_guest_rip)+1); //adjust this automatically
+        vmwrite(vm_guest_rip,vmread(vm_guest_rip)+vmread(vm_exit_instructionlength)); //adjust this automatically
 
         int r=emulateExceptionInterrupt(currentcpuinfo, vmregisters,
             int3redirection_idtbypass_cs, int3redirection_idtbypass_rip,
