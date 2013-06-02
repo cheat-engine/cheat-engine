@@ -4395,7 +4395,6 @@ begin
     foundlist3.columns[1].width:=widthleft;
   end;
 
-
 end;
 
 procedure TMainForm.pmTablistPopup(Sender: TObject);
@@ -7558,7 +7557,13 @@ begin
 
 
   except
-    ShowMessage(IntToStr(item.index));
+    on e: exception do
+    begin
+    //ShowMessage(IntToStr(item.index));
+      item.Caption := 'CE Error:'+inttostr(item.index);
+      item.subitems.add(e.Message);
+      item.subitems.add('');
+    end;
   end;
 end;
 

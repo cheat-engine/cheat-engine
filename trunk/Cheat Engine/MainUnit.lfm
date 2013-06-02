@@ -145,7 +145,8 @@ object MainForm: TMainForm
       ShowHint = True
     end
     object ScanText: TLabel
-      Left = 253
+      AnchorSideLeft.Control = scanvalue
+      Left = 317
       Height = 14
       Top = 80
       Width = 56
@@ -747,26 +748,26 @@ object MainForm: TMainForm
       TabOrder = 3
     end
     object rbBit: TRadioButton
-      Left = 253
+      AnchorSideLeft.Control = rbDec
+      Left = 259
       Height = 19
       Top = 88
-      Width = 41
+      Width = 40
       HelpContext = 7
-      Anchors = [akTop, akRight]
-      AutoSize = False
+      Anchors = [akTop, akLeft, akRight]
       Caption = 'Bits'
       OnClick = rbBitClick
       TabOrder = 11
       Visible = False
     end
     object rbDec: TRadioButton
-      Left = 253
+      AnchorSideRight.Control = scanvalue
+      Left = 259
       Height = 19
       Top = 105
-      Width = 62
+      Width = 58
       HelpContext = 7
       Anchors = [akTop, akRight]
-      AutoSize = False
       Caption = 'Decimal'
       OnClick = rbDecClick
       TabOrder = 12
@@ -868,14 +869,16 @@ object MainForm: TMainForm
       end
     end
     object pnlFloat: TPanel
-      Left = 488
+      AnchorSideRight.Control = Panel5
+      AnchorSideRight.Side = asrBottom
+      Left = 489
       Height = 53
       Top = 120
-      Width = 121
+      Width = 111
       Anchors = [akTop, akRight]
       BevelOuter = bvNone
       ClientHeight = 53
-      ClientWidth = 121
+      ClientWidth = 111
       TabOrder = 15
       object rt3: TRadioButton
         Left = 4
