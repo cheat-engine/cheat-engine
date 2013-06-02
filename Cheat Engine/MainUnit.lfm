@@ -352,6 +352,7 @@ object MainForm: TMainForm
       Width = 43
       Caption = 'Test cap'
       ParentColor = False
+      Visible = False
       OnClick = Label59Click
     end
     object Label61: TLabel
@@ -703,7 +704,9 @@ object MainForm: TMainForm
       TabOrder = 7
     end
     object Button1: TButton
-      Left = 492
+      AnchorSideRight.Control = Panel5
+      AnchorSideRight.Side = asrBottom
+      Left = 487
       Height = 17
       Top = 322
       Width = 113
@@ -740,11 +743,13 @@ object MainForm: TMainForm
       TabOrder = 10
     end
     object UndoScan: TButton
-      Left = 488
+      AnchorSideRight.Control = LogoPanel
+      Left = 486
       Height = 25
       Top = 48
       Width = 65
       Anchors = [akTop, akRight]
+      BorderSpacing.Right = 3
       Caption = 'Undo Scan'
       Enabled = False
       OnClick = UndoScanClick
@@ -1293,14 +1298,16 @@ object MainForm: TMainForm
       end
     end
     object Panel14: TPanel
-      Left = 485
+      AnchorSideLeft.Control = gbScanOptions
+      AnchorSideLeft.Side = asrBottom
+      Left = 487
       Height = 94
       Top = 216
-      Width = 119
-      Anchors = [akTop, akRight]
+      Width = 117
+      Anchors = [akTop, akLeft, akRight]
       BevelOuter = bvNone
       ClientHeight = 94
-      ClientWidth = 119
+      ClientWidth = 117
       TabOrder = 21
       Visible = False
       object Label54: TLabel
@@ -1328,7 +1335,7 @@ object MainForm: TMainForm
         ParentColor = False
       end
       object btnSetSpeedhack2: TButton
-        Left = 6
+        Left = 4
         Height = 20
         Top = 69
         Width = 106
