@@ -3423,7 +3423,6 @@ begin
 
     if lua_isfunction(L,-1) then
     begin
-      routine:=Lua_ToString(L,-1);
       f:=luaL_ref(L,LUA_REGISTRYINDEX);
 
       lc:=TLuaCaller.create;
@@ -3580,6 +3579,51 @@ begin
   lua_pop(L, lua_gettop(L));
   lua_pushboolean(L, processhandler.is64Bit);
   result:=1;
+end;
+
+function unregisterFormAddNotification(L: PLua_State): integer; cdecl;
+var lc: TLuacaller;
+begin
+  result:=0;
+  if lua_gettop(L)=1 then
+  begin
+    lc:=lua_ToCEUserData(L, -1);
+    if lc<>nil then
+      screen.RemoveHandlerFormAdded(lc.ScreenFormEvent);
+  end;
+end;
+
+function registerFormAddNotification(L: PLua_State): integer; cdecl;
+var lc: TLuaCaller;
+  f: integer;
+  routine: string;
+begin
+  result:=0;
+  if lua_gettop(L)=1 then
+  begin
+    lc:=nil;
+
+    if lua_isfunction(L,-1) then
+    begin
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+      screen.AddHandlerFormAdded(lc.ScreenFormEvent);
+    end
+    else
+    if lua_isstring(L,-1) then
+    begin
+      routine:=lua_tostring(L,-1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+      screen.AddHandlerFormAdded(lc.ScreenFormEvent);
+    end;
+
+
+    luaclass_newClass(L, lc);
+    result:=1;
+  end;
 end;
 
 function getFormCount(L: PLua_State): integer; cdecl;
@@ -4535,6 +4579,8 @@ begin
 
     lua_register(LuaVM, 'getFormCount', getFormCount);
     lua_register(LuaVM, 'getForm', getForm);
+    lua_register(LuaVM, 'registerFormAddNotification', registerFormAddNotification);
+
 
     lua_register(LuaVM, 'onAutoGuess', onAutoGuess);
     lua_register(LuaVM, 'onAPIPointerChange', onAPIPointerChange);
