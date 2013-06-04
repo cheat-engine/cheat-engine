@@ -49,6 +49,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure ColorClick(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure FormDestroy(Sender: TObject);
+    procedure Color2Click(Sender: TObject);
   private
     { private declarations }
     fbackgroundcolor: TColor;
@@ -373,17 +374,24 @@ begin
 end;
 
 procedure TfrmStructuresConfig.ColorClick(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+end;
+
+procedure TfrmStructuresConfig.FormDestroy(Sender: TObject);
+begin
+ // showmessage('this should never happen');
+end;
+
+procedure TfrmStructuresConfig.Color2Click(Sender: TObject);
 var i: integer;
 begin
   i:=comboBackground.itemindex*5;
   ColorDialog1.Color:=Get_Color(TControl(sender).tag+i);
   if ColorDialog1.Execute then
     Set_Color(TControl(sender).tag+i,ColorDialog1.Color);
-end;
 
-procedure TfrmStructuresConfig.FormDestroy(Sender: TObject);
-begin
- // showmessage('this should never happen');
+  GroupBox1.ReAlign;
+  groupbox1.Refresh;
 end;
 
 initialization
