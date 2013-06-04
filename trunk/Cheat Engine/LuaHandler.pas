@@ -4580,6 +4580,7 @@ begin
     lua_register(LuaVM, 'getFormCount', getFormCount);
     lua_register(LuaVM, 'getForm', getForm);
     lua_register(LuaVM, 'registerFormAddNotification', registerFormAddNotification);
+    Lua_Register(LuaVM, 'unregisterFormAddNotification', unregisterFormAddNotification);
 
 
     lua_register(LuaVM, 'onAutoGuess', onAutoGuess);
