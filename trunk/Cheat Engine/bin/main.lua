@@ -202,6 +202,11 @@ beep() : Plays the fabulous beep/ping sound!
 getFormCount() : Returns the total number of forms assigned to the main CE application
 getForm(index): Returns the form at the specific index
 
+registerFormAddNotification(function(form)): Registers a function to be called when a form is attached to ce's form list. This is useful for extentions that add new functionality to certain existing forms. It returns an object you can use with unregisterFormAddNotification
+unregisterFormAddNotification(Object)
+
+
+
 getMemoryViewForm() : Returns the main memoryview form class object which can be accessed using the Form_ class methods and the methods of the classes it inherits from. There can be multiple memory views, but this will only find the original/base
 getMainForm() : Returns the main form class object which can be accessed using the Form_ class methods and the methods of the classes it inherits from
 getAddressList() : Returns the cheat table addresslist object
@@ -1826,26 +1831,6 @@ openLuaServer(Name):
 
     the return value of this function is the return value of the lua function (integer)
   
-
-
---]]
-
-
-
---[[
-
-functions to add:
-
-
-
-
-
-
-getRunningProcesses(): stringlist
-getProcessModules(processid): 
-
- 
-
 
 
 --]]

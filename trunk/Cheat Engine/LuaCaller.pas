@@ -44,6 +44,7 @@ type
       function D3DKeyDownEvent(VirtualKey: dword; char: pchar): boolean;
       function DisassembleEvent(sender: TObject; address: ptruint; var ldd: TLastDisassembleData; var output: string; var description: string): boolean;
 
+      procedure ScreenFormEvent(Sender: TObject; Form: TCustomForm);
       procedure pushFunction;
 
 
@@ -73,6 +74,8 @@ function LuaCaller_AddressChangeEvent(L: PLua_state): integer; cdecl;  //(sender
 function LuaCaller_D3DClickEvent(L: PLua_state): integer; cdecl; //(renderobject: TObject; x,y: integer);
 function LuaCaller_D3DKeyDownEvent(L: PLua_state): integer; cdecl; //(VirtualKey: dword; char: pchar): boolean;
 
+
+function LuaCaller_ScreenFormEvent(L: PLua_state): integer; cdecl; //(Form)
 
 
 
@@ -707,6 +710,25 @@ begin
   end
 end;
 
+procedure TLuaCaller.ScreenFormEvent(Sender: TObject; Form: TCustomForm);
+var oldstack: integer;
+begin
+  Luacs.Enter;
+  try
+    oldstack:=lua_gettop(Luavm);
+
+    if canRun then
+    begin
+      PushFunction;
+      luaclass_newClass(luavm, form);
+      lua_pcall(Luavm, 1,0,0)
+    end;
+  finally
+    lua_settop(Luavm, oldstack);
+    luacs.leave;
+  end;
+end;
+
 
 //----------------------------Lua implementation-----------------------------
 function LuaCaller_NotifyEvent(L: PLua_state): integer; cdecl;
@@ -1196,6 +1218,30 @@ begin
   else
     lua_pop(L, lua_gettop(L));
 end;
+
+function LuaCaller_ScreenFormEvent(L: PLua_state): integer; cdecl;  //(form: TCustomForm);
+var
+  m: TMethod;
+  sender: TObject;
+  form: TCustomForm;
+  a: ptruint;
+begin
+  result:=0;
+  if lua_gettop(L)=1 then
+  begin
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    sender:=screen;
+    form:=lua_ToCEUserData(L, 1);
+    lua_pop(L, lua_gettop(L));
+
+    TScreenFormEvent(m)(sender, form);
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+
+end;
+
 
 procedure registerLuaCall(typename: string; getmethodprop: lua_CFunction; setmethodprop: pointer; luafunctionheader: string);
 var t: TLuaCallData;
