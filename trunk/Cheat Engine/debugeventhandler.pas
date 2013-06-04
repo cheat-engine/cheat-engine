@@ -315,6 +315,7 @@ begin
 
             if (bp.breakpointTrigger=bptExecute) and (not bp.markedfordeletion) then //if windows xp, and it is a hw bp, and it's an execute hw bp, and it's not marked for deletion, only THEN set the bp back
             begin
+              context.Dr6:=0;  //unset breakpoint relies on this being 0 of ffff0ff0
               setContext; //apply changes made by the user
               TdebuggerThread(debuggerthread).UnsetBreakpoint(bp);
 
@@ -405,6 +406,8 @@ begin
       //disable the breakpoint in the current context (in case it got disabled while the breakpoint was being handled)
       if bp.breakpointMethod=bpmDebugRegister then
       begin
+        context.Dr6:=0;  //unset breakpoint relies on this being 0 of ffff0ff0 is handled
+        setContext;
         TdebuggerThread(debuggerthread).UnsetBreakpoint(bp, context);
       end;
     end;
