@@ -11,7 +11,7 @@ object frmStructuresConfig: TfrmStructuresConfig
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.0.8.0'
   object Panel1: TPanel
     Left = 0
     Height = 221
@@ -46,6 +46,7 @@ object frmStructuresConfig: TfrmStructuresConfig
         ParentColor = False
         ParentShowHint = False
         ShowHint = True
+        OnClick = Color2Click
         OnMouseDown = ColorClick
       end
       object Label1: TLabel
@@ -60,6 +61,7 @@ object frmStructuresConfig: TfrmStructuresConfig
         ParentColor = False
         ParentShowHint = False
         ShowHint = True
+        OnClick = Color2Click
         OnMouseDown = ColorClick
       end
       object Label2: TLabel
@@ -74,6 +76,7 @@ object frmStructuresConfig: TfrmStructuresConfig
         ParentColor = False
         ParentShowHint = False
         ShowHint = True
+        OnClick = Color2Click
         OnMouseDown = ColorClick
       end
       object Label3: TLabel
@@ -88,6 +91,7 @@ object frmStructuresConfig: TfrmStructuresConfig
         ParentColor = False
         ParentShowHint = False
         ShowHint = True
+        OnClick = Color2Click
         OnMouseDown = ColorClick
       end
       object Label9: TLabel
@@ -102,6 +106,7 @@ object frmStructuresConfig: TfrmStructuresConfig
         ParentColor = False
         ParentShowHint = False
         ShowHint = True
+        OnClick = Color2Click
         OnMouseDown = ColorClick
       end
       object comboBackground: TComboBox
@@ -117,7 +122,6 @@ object frmStructuresConfig: TfrmStructuresConfig
           'Highlighted'
         )
         OnChange = comboBackgroundChange
-        ParentBidiMode = False
         Style = csDropDownList
         TabOrder = 0
         Text = 'Normal'
