@@ -2075,11 +2075,11 @@ begin
 
     ScanText.Caption := strScantextcaptiontoValue;
 
-    if (varType.ItemIndex in [1, 2, 3, 4, 5, 6, 9]) or (vartype.ItemIndex >= 11) then
+    if (varType.ItemIndex in [1, 2, 3, 4, 5, 6, 9,10]) or (vartype.ItemIndex >= 11) then
       //byte-word-dword--8bytes-float-double-all   - custom
     begin
 
-      if (vartype.ItemIndex in [5, 6, 9]) or (vartype.ItemIndex >= 11) then //float/all, custom
+      if (vartype.ItemIndex in [5, 6, 9, 10]) or (vartype.ItemIndex >= 11) then //float/all/grouped, custom
       begin
         ct:=TCustomtype(vartype.Items.Objects[vartype.itemindex]);
         if (ct=nil) or (ct.scriptUsesFloat) then
@@ -2211,6 +2211,9 @@ begin
         (scantype.items[scantype.ItemIndex] = strCompareToLastScan)) then
         lastscantype := scantype.ItemIndex;
     end;
+
+    if cbHexadecimal.Visible=false then
+      cbHexadecimal.checked:=false; //uncheck hex if it isn't visible
 
   finally
     scantype.OnChange := old;
