@@ -61,6 +61,7 @@ type
   public
     { Public declarations }
     equation: string;
+    foundcodedialog: pointer;
     procedure AddRecord;
   end;
 
@@ -69,7 +70,7 @@ implementation
 
 
 uses CEDebugger, MainUnit, frmRegistersunit, MemoryBrowserFormUnit, debughelper,
-  debugeventhandler, debuggertypedefinitions;
+  debugeventhandler, debuggertypedefinitions, FoundCodeUnit;
 
 resourcestring
   rsStop='Stop';
@@ -128,27 +129,33 @@ begin
 
       //and if not, add it
 
-
-      li:=changedlist.Items.add;
-      li.caption:=s;
-      li.SubItems.Add('');
-      li.subitems.add('1');
-
-
-      x:=TAddressEntry.create;
-      x.context:=currentthread.context^;
-      x.address:=address;
-      x.count:=1;
-      x.savestack;
+      if (foundcodedialog=nil) or (changedlist.Items.Count<8) then
+      begin
+        li:=changedlist.Items.add;
+        li.caption:=s;
+        li.SubItems.Add('');
+        li.subitems.add('1');
 
 
-      li.Data:=x;
+        x:=TAddressEntry.create;
+        x.context:=currentthread.context^;
+        x.address:=address;
+        x.count:=1;
+        x.savestack;
 
-      addresslist.Add(address, x);
-      refetchValues(x.address);
+
+        li.Data:=x;
+
+        addresslist.Add(address, x);
+        refetchValues(x.address);
+
+        if foundcodedialog<>nil then
+          TFoundCodeDialog(foundcodedialog).setChangedAddressCount(currentthread.context.{$ifdef cpu64}Rip{$else}eip{$endif});
+      end;
     end;
   end;
 end;
+
 
 procedure TfrmChangedAddresses.OKButtonClick(Sender: TObject);
 var temp: dword;
@@ -275,7 +282,10 @@ var temp:dword;
     i: integer;
     ae: TAddressEntry;
 begin
-  action:=caFree;
+  if foundcodedialog=nil then
+    action:=caFree
+  else
+    action:=caHide; //let the foundcodedialog free it
 
 
   for i:=0 to changedlist.Items.Count-1 do

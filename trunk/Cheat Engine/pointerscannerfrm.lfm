@@ -141,7 +141,7 @@ object frmPointerScanner: TfrmPointerScanner
   object ListView1: TListView
     Left = 384
     Height = 329
-    Top = 0
+    Top = -1
     Width = 225
     Columns = <>
     HideSelection = False

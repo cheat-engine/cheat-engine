@@ -563,6 +563,8 @@ var
   bpp,bpp2: PBreakpoint;
 
   active: boolean;
+  oldprotect: dword;
+  bw: dword;
 begin
   outputdebugstring(format('DispatchBreakpoint(%x)',[address]));
   found := False;
@@ -601,6 +603,17 @@ begin
   begin
     bpp:=bpp2;
     outputdebugstring('Handling breakpoint');
+
+    //to handle a debug register being handled before the single step (since xp sucks and doesn't do rf)
+    if setInt3Back then //on a failt this will set the state to as it was expected, on a trap this will set the breakpoint back. Both valid
+    begin
+      VirtualProtectEx(Processhandle, pointer(Int3setbackAddress), 1, PAGE_EXECUTE_READWRITE, oldprotect);
+      WriteProcessMemory(processhandle, pointer(Int3setbackAddress), @int3byte, 1, bw);
+      VirtualProtectEx(Processhandle, pointer(Int3setbackAddress), 1, oldprotect, oldprotect);
+
+      setInt3Back:=false;
+    end;
+
 
     if isTracing then
     begin
