@@ -404,7 +404,7 @@ begin
 
   if (buffersize=0) or (not InRangeQ(index, bufferindex, bufferindex+buffersize-1)) then
   begin
-    blocksize:=count-index-1;
+    blocksize:=count-index;
     blocksize:=min(blocksize, 4096);
 
     pointerfile.Position:=sizeof(pointerfileLevelwidth)+index*entrysize;
@@ -1693,6 +1693,8 @@ begin
 
     s:=pointerfilereader.getStringAndAddress(item.index, a, p, shadow, shadowsize);
 
+
+
     if (shadow<>0) and (inrangeq(a, address, address+shadowsize)) then
       a:=a+(shadow-address);
 
@@ -1769,7 +1771,7 @@ begin
   edtExtraChange(edtExtra);
 
 
-  listview1.items.count:=min(10000000, pointerfilereader.count);
+  listview1.items.count:=min(1000000, pointerfilereader.count);
 
   //setup rescan mode
 
