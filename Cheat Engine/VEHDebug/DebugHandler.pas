@@ -15,9 +15,6 @@ procedure testandfixcs_final;
 
 var HandlerCS: TCRITICALSECTION;
 
-  debugstuff: boolean=false;
-
-
 implementation
 
 uses init;

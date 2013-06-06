@@ -42,9 +42,7 @@ begin
 
 
 
-  debugstuff:=true;
   InternalHandler(@ep,threadid);
-  debugstuff:=false;
 
   OutputDebugString('After Emulating CreateThreadEvent');
 end;
