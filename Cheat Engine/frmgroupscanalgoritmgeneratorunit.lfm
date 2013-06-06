@@ -2,16 +2,16 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
   Left = 995
   Height = 306
   Top = 176
-  Width = 309
+  Width = 305
   BorderStyle = bsSingle
   Caption = 'Generate groupscan command'
   ClientHeight = 306
-  ClientWidth = 309
+  ClientWidth = 305
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.0.8.0'
   object edtBlocksize: TEdit
     Left = 14
     Height = 23
@@ -32,8 +32,8 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
     Left = 14
     Height = 120
     Top = 16
-    Width = 281
-    HorzScrollBar.Page = 277
+    Width = 282
+    HorzScrollBar.Page = 278
     VertScrollBar.Increment = 11
     VertScrollBar.Page = 116
     VertScrollBar.Smooth = True
