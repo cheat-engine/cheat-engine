@@ -34,6 +34,7 @@ The different display types in the hexadecimal view of memoryview now support di
 The foundlist can now display using a different display type, on the condition that the type has a compatibly bytesize
 The foundlist now shows a "previous value" column and marks differences red
 The symbolhandler now has a better distinction between 32 and 64-bit modules. Non-compatible modules (64-bit in 32-bit programs) will get an underscore in front of their symbolnames
+Groupscans can now let you choose which elements to add to the addresslist when doubleclicked
 Added a graphical memory view
 Added a new breakpoint type :Exceptions (not dependant on size and no debug registers, but extremely slow to unplayable)
 Added a luaserver to ce that you can use to let a different/target process execute lua commands and pass data

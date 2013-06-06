@@ -29,6 +29,7 @@ type
       customtype: TCustomType;
       bytesize: integer;
       command: string;
+      picked: boolean;
     end;
 
     blocksize: integer;
@@ -48,6 +49,9 @@ var i,j,k: integer;
   command,value: string;
   ctn: string;
   bracketcount: integer;
+
+
+  nextchar: integer;
 begin
 
   //deal with custom types with a ':' and don't mess up strings
@@ -88,6 +92,9 @@ begin
     elements[j].offset:=calculatedBlocksize;
     elements[j].command:=command;
 
+    elements[j].picked:=false;
+
+    nextchar:=2;
 
     case command[1] of
       '1':
@@ -143,6 +150,8 @@ begin
           elements[j].bytesize:=elements[j].customtype.bytesize
         else
           raise exception.create('Custom type not recognized: '+ctn);
+
+        nextchar:=k+1;
       end;
 
       'S':
@@ -151,6 +160,7 @@ begin
         begin
           elements[j].vartype:=vtUnicodeString;
           elements[j].bytesize:=length(value)*2;
+          nextchar:=3;
         end
         else
         begin
@@ -175,7 +185,21 @@ begin
         elements[j].bytesize:=strtoint(value);
         value:=''; //set as a wildcard
       end;
+
+      else
+        raise exception.create('Invalid groupscan command');
     end;
+
+    if length(command)>=nextchar then
+    begin
+      case command[nextchar] of
+        'P': elements[j].picked:=true; //elements marked picked will be added when doubleclicked in the addresslist
+        else
+          raise exception.create('Invalid groupscan command');
+      end;
+    end;
+
+
     elements[j].uservalue:=value;
 
     inc(calculatedBlocksize, elements[j].bytesize);
@@ -210,6 +234,7 @@ var start, i: integer;
   s: string;
   inquote: boolean;
   inbraces: boolean;
+  haspick: boolean;
 begin
   //reset/init
   blockalignment:=4; //default
@@ -265,6 +290,21 @@ begin
       if elements[i].wildcard then
         raise exception.create('Wildcards/Empty are not allowed for Out of Order scans');
 
+
+  haspick:=false;
+  for i:=0 to length(elements)-1 do
+    if elements[i].picked then
+    begin
+      haspick:=true;
+      break;
+    end;
+
+  if haspick=false then
+  begin
+    //mark ALL elements as picked
+    for i:=0 to length(elements)-1 do
+      elements[i].picked:=true;
+  end;
 end;
 
 constructor TGroupscanCommandParser.create(command: string='');

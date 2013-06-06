@@ -53,9 +53,10 @@ type
     frm: TfrmGroupScanAlgoritmGenerator;
     cbVartype: TCombobox;
     edtValue: Tedit;
+    cbPicked: Tcheckbox;
     procedure vartypeselect(Sender: TObject);
   public
-    function getParameterPart: string;
+    function getParameterPart(skipPicked: boolean=true): string;
     function bytesize: integer;
     procedure setPosition;
     constructor Create(frm: TfrmGroupScanAlgoritmGenerator);
@@ -109,29 +110,35 @@ begin
   end;
 end;
 
-function TVariableInfo.getParameterPart: string;
+function TVariableInfo.getParameterPart(skipPicked: boolean=true): string;
 var ct: TCustomType;
+  p: string;
 begin
   result:='';
   if edtValue.text='' then exit;
 
+  p:='';
+  if (not skipPicked) and cbPicked.checked then
+    p:='p';
+
+
   case cbVartype.itemindex of
     0: exit;
-    1: result:='1:';
-    2: result:='2:';
-    3: result:='4:';
-    4: result:='8:';
-    5: result:='f:';
-    6: result:='d:';
-    7: result:='s:''';
-    8: result:='su:''';
-    9: result:='w:';
+    1: result:='1'+p+':';
+    2: result:='2'+p+':';
+    3: result:='4'+p+':';
+    4: result:='8'+p+':';
+    5: result:='f'+p+':';
+    6: result:='d'+p+':';
+    7: result:='s'+p+':''';
+    8: result:='su'+p+':''';
+    9: result:='w'+p+':';
     else
     begin
       //custom
       ct:=Tcustomtype(cbVartype.Items.Objects[cbVartype.itemindex]);
       if ct<>nil then
-        result:='c('+ct.name+'):'
+        result:='c('+ct.name+')'+p+':'
       else
         exit;
     end;
@@ -155,6 +162,7 @@ begin
   end;
 
   edtValue.visible:=cbVartype.ItemIndex<>0;
+  cbPicked.visible:=edtValue.visible;
 
   frm.sizechange;
 
@@ -231,23 +239,42 @@ begin
   cbvartype.Style:=csDropDownList;
   cbVartype.DropDownCount:=min(16,cbVartype.items.count);
 
-  cbVartype.width:=(clientwidth div 2)-3;
-  edtValue.width:=(clientwidth div 2)-5;
+  cbPicked:=TCheckBox.create(self);
+  cbPicked.Caption:='Add';
+  cbPicked.checked:=true; //default action is yes
+  cbPicked.visible:=false;
+  cbPicked.parent:=self;
+  cbPicked.hint:='When checked this element will get added to the addresslist. Note: If all checkboxes are disabled, ALL elements will be added';
+  cbPicked.ParentShowHint:=false;
+  cbPicked.ShowHint:=true;
+
+
+
+
+  cbVartype.width:=((clientwidth) div 2)-3-(cbPicked.width div 3);    //...
+  edtValue.width:=(clientwidth- cbVartype.width)-(cbPicked.width div 2);
 
   cbVartype.left:=0;
-  edtValue.Left:=(clientwidth div 2)+3;
+  edtValue.Left:=cbVartype.width+3;
+
+  cbpicked.top:=edtValue.top+(edtValue.height div 2)-(edtValue.Height div 2);
+  cbPicked.left:=edtValue.left+edtValue.Width+3;
 
 
   clientheight:=max(cbVartype.height, edtValue.height)+2;
 
 
+
+
   cbvartype.parent:=self;
   edtValue.parent:=self;
+  cbpicked.parent:=self;
 
   cbvartype.itemindex:=0;
   cbvartype.OnChange:=vartypeselect;
 
   edtValue.visible:=false;
+
 
   setPosition;
 end;
@@ -433,6 +460,8 @@ begin
 
     x.vartypeselect(x.cbVartype);
     x.edtValue.text:=gcp.elements[i].uservalue;
+
+    x.cbPicked.checked:=gcp.elements[i].picked;
   end;
 
 
@@ -452,6 +481,8 @@ var
   vi: TVariableInfo;
   s: string;
   ba: integer;
+
+  allpicked: boolean;
 begin
   result:='';
   try
@@ -473,10 +504,17 @@ begin
         result:=result+'U ';
     end;
 
+    allpicked:=true;
+    for i:=0 to varinfolist.count-1 do
+    begin
+      vi:=TVariableInfo(varinfolist[i]);
+      if (vi.cbVartype.itemindex in [-1,0]=false) and (vi.cbPicked.checked=false) then allpicked:=false;
+    end;
+
     for i:=0 to Varinfolist.count-1 do
     begin
       vi:=TVariableInfo(varinfolist[i]);
-      s:=vi.getParameterPart;
+      s:=vi.getParameterPart(allpicked); //if all are checked you can ignore the p part
       if s<>'' then
         result:=result+s+' ';
     end;

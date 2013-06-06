@@ -2323,7 +2323,7 @@ begin
 
     for i:=0 to length(gcp.elements)-1 do
     begin
-      if not gcp.elements[i].wildcard then
+      if gcp.elements[i].picked then
       begin
         if gcp.elements[i].customtype<>nil then
           customname:=gcp.elements[i].customtype.name
