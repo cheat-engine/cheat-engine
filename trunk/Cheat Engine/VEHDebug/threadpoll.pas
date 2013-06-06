@@ -31,23 +31,30 @@ procedure TThreadPoller.CreateThreadEvent(threadid: dword);
 var
   ep: TEXCEPTIONPOINTERS;
   er: TEXCEPTIONRECORD;
-  c:  TEContext;
 begin
-  ep.ContextRecord:=@c;
+  ep.ContextRecord:=nil;
   ep.ExceptionRecord:=@er;
   er.NumberParameters:=0;
 
   er.ExceptionCode:=$ce000001;
+  er.ExceptionRecord:=nil;
+  OutputDebugString('Emulating CreateThreadEvent');
+
+
+
+  debugstuff:=true;
   InternalHandler(@ep,threadid);
+  debugstuff:=false;
+
+  OutputDebugString('After Emulating CreateThreadEvent');
 end;
 
 procedure TThreadPoller.DestroyThreadEvent(threadid: dword);
 var
   ep: TEXCEPTIONPOINTERS;
   er: TEXCEPTIONRECORD;
-  c: TEContext;
 begin
-  ep.ContextRecord:=@c;
+  ep.ContextRecord:=nil;
   ep.ExceptionRecord:=@er;
   er.NumberParameters:=0;
 
@@ -92,6 +99,7 @@ begin
   GetCurrentList(newlist);
 
   //now try to find the differences
+
 
   //is there a threadid that's not in the current threadlist?
   for i:=0 to newlist.Count-1 do

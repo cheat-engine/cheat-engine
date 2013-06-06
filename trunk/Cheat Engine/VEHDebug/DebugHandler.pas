@@ -15,6 +15,9 @@ procedure testandfixcs_final;
 
 var HandlerCS: TCRITICALSECTION;
 
+  debugstuff: boolean=false;
+
+
 implementation
 
 uses init;
@@ -48,22 +51,24 @@ begin
 
 
 
+
    //fill in the exception and context structures
    {$ifdef cpu64}
    VEHSharedMem.Exception64.ExceptionCode:=ExceptionInfo.ExceptionRecord.ExceptionCode;
    VEHSharedMem.Exception64.ExceptionFlags:=ExceptionInfo.ExceptionRecord.ExceptionFlags;
    VEHSharedMem.Exception64.ExceptionRecord:=DWORD64(ExceptionInfo.ExceptionRecord.ExceptionRecord);
    VEHSharedMem.Exception64.NumberParameters:=ExceptionInfo.ExceptionRecord.NumberParameters;
-   for i:=0 to ExceptionInfo.ExceptionRecord.NumberParameters do
+   for i:=0 to ExceptionInfo.ExceptionRecord.NumberParameters-1 do
      VEHSharedMem.Exception64.ExceptionInformation[i]:=ExceptionInfo.ExceptionRecord.ExceptionInformation[i];
    {$else}
    VEHSharedMem.Exception32.ExceptionCode:=ExceptionInfo.ExceptionRecord.ExceptionCode;
    VEHSharedMem.Exception32.ExceptionFlags:=ExceptionInfo.ExceptionRecord.ExceptionFlags;
    VEHSharedMem.Exception32.ExceptionRecord:=DWORD(ExceptionInfo.ExceptionRecord.ExceptionRecord);
    VEHSharedMem.Exception32.NumberParameters:=ExceptionInfo.ExceptionRecord.NumberParameters;
-   for i:=0 to ExceptionInfo.ExceptionRecord.NumberParameters do
+   for i:=0 to ExceptionInfo.ExceptionRecord.NumberParameters-1 do
      VEHSharedMem.Exception32.ExceptionInformation[i]:=ExceptionInfo.ExceptionRecord.ExceptionInformation[i];
    {$endif}
+
 
    //setup the context
    if ExceptionInfo.ContextRecord<>nil then
@@ -82,6 +87,8 @@ begin
    else
      zeromemory(@VEHSharedMem.CurrentContext[0], sizeof(TEContext));
 
+
+
    VEHSharedMem.ProcessID:=GetCurrentProcessId;
    VEHSharedMem.ThreadID:=threadid;
 
@@ -99,9 +106,11 @@ begin
        begin
          CopyMemory(ExceptionInfo.ContextRecord,@VEHSharedMem.CurrentContext[0],contextsize);
 
-         //set the debug registers
-         PContext(@VEHSharedMem.CurrentContext[0])^.ContextFlags:=CONTEXT_DEBUG_REGISTERS;
-         SetThreadContext(GetCurrentThread, PContext(@VEHSharedMem.CurrentContext[0])^);
+         if VEHSharedMem.ContinueMethod=DBG_CONTINUE then  //it got handled, set the debug registers (else don't touch them. DR6 might be needed)
+         begin
+           PContext(@VEHSharedMem.CurrentContext[0])^.ContextFlags:=CONTEXT_DEBUG_REGISTERS;  //only debug regs
+           SetThreadContext(GetCurrentThread, PContext(@VEHSharedMem.CurrentContext[0])^);
+         end;
 
        end;
      end
@@ -123,6 +132,7 @@ begin
    end;
    //else
     // MessageBox(0,'SetEvent failed', 'VEH Debug Error', MB_OK);
+
 
    HandlerCS.Leave;
 
