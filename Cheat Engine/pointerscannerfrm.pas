@@ -2328,6 +2328,7 @@ end;
 procedure Tfrmpointerscanner.cbTypeChange(Sender: TObject);
 begin
   listview1.Refresh;
+
 end;
 
 initialization

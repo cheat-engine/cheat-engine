@@ -7,9 +7,10 @@ interface
 uses
   windows, LCLIntf, LResources, Messages, SysUtils, Variants, Classes, Graphics,
   Controls, Forms, Dialogs, StdCtrls, disassembler, ExtCtrls, Menus,
-  NewKernelHandler, clipbrd, ComCtrls;
+  NewKernelHandler, clipbrd, ComCtrls, fgl, formChangedAddresses;
 
-type Tcoderecord = class
+type
+  Tcoderecord = class
   public
     address: ptrUint;
     size: integer;
@@ -22,6 +23,9 @@ type Tcoderecord = class
       stack: pbyte;
     end;
     hitcount: integer;
+    diffcount: integer;
+
+    formChangedAddresses: TfrmChangedAddresses;
     procedure savestack;
     destructor destroy; override;
 end;
@@ -30,10 +34,12 @@ type
 
   { TFoundCodeDialog }
 
+
   TFoundCodeDialog = class(TForm)
     FoundCodeList: TListView;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
+    miFindWhatAccesses: TMenuItem;
     miSaveTofile: TMenuItem;
     mInfo: TMemo;
     Panel1: TPanel;
@@ -73,6 +79,7 @@ type
     procedure FoundCodeListSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
     procedure MenuItem1Click(Sender: TObject);
+    procedure miFindWhatAccessesClick(Sender: TObject);
     procedure miSaveTofileClick(Sender: TObject);
     procedure pmOptionsPopup(Sender: TObject);
     procedure Copyselectiontoclipboard1Click(Sender: TObject);
@@ -83,9 +90,12 @@ type
     function getSelection: string;
   public
     { Public declarations }
+
+    addresswatched: ptruint;
     useexceptions: boolean;
     usesdebugregs: boolean;
     procedure AddRecord;
+    procedure setChangedAddressCount(address :ptruint);
 
   end;
 
@@ -139,6 +149,7 @@ var currentthread: TDebugThreadHandler;
   i: integer;
 
   li: tlistitem;
+  f: TfrmChangedAddresses;
 begin
   //the debuggerthread is idle at this point
   currentThread:=debuggerthread.CurrentThread;
@@ -159,7 +170,11 @@ begin
       begin
         //it's already in the list
         inc(TCodeRecord(foundcodelist.Items[i].data).hitcount);
-        FoundcodeList.items[i].caption:=inttostr(TCodeRecord(foundcodelist.Items[i].data).hitcount);
+        if miFindWhatAccesses.checked then
+          FoundcodeList.items[i].caption:=inttostr(TCodeRecord(foundcodelist.Items[i].data).hitcount)+' ('+inttostr(TCodeRecord(foundcodelist.Items[i].data).diffcount)+')'
+        else
+          FoundcodeList.items[i].caption:=inttostr(TCodeRecord(foundcodelist.Items[i].data).hitcount);
+
         exit;
       end;
 
@@ -178,7 +193,24 @@ begin
     li.caption:='1';
     li.SubItems.add(opcode);
     li.data:=coderecord;
+
+    if miFindWhatAccesses.Checked then //add it
+      coderecord.formChangedAddresses:=debuggerthread.FindWhatCodeAccesses(address, self);
   end;
+end;
+
+
+procedure TFoundCodedialog.setChangedAddressCount(address :ptruint);
+var i: integer;
+begin
+  for i:=0 to foundcodelist.Items.Count-1 do
+    if TCodeRecord(foundcodelist.Items[i].data).address=address then
+    begin
+      //increase the counter
+      inc(TCodeRecord(foundcodelist.Items[i].data).diffcount);
+      FoundcodeList.items[i].caption:=inttostr(TCodeRecord(foundcodelist.Items[i].data).hitcount)+' ('+inttostr(TCodeRecord(foundcodelist.Items[i].data).diffcount)+')';
+      exit;
+    end;
 end;
 
 procedure TFoundCodedialog.addInfo(Coderecord: TCoderecord);
@@ -288,6 +320,8 @@ begin
       FormFoundCodeListExtra.Label18.Visible:=true;
 
     coderecord:=TCodeRecord(foundcodelist.items[itemindex].data);
+    if coderecord.formChangedAddresses<>nil then
+      coderecord.formChangedAddresses.show;
 
     address:=coderecord.address;
     address:=previousopcode(address);
@@ -310,6 +344,9 @@ begin
       disassembled[4]:=disassemble(address,temp);
       disassembled[5]:=disassemble(address,temp);
     end;
+
+
+
 
     //convert disassembled strings to address+opcode only (no bytes)
     //xxxxxxxx - xx xx xx - opcode
@@ -553,6 +590,14 @@ begin
   for i:=0 to FoundCodeList.Items.count-1 do
   begin
     cr:=Tcoderecord(FoundCodeList.Items[i].data);
+
+    if cr.formChangedAddresses<>nil then
+    begin
+      cr.formChangedAddresses.Close;
+      cr.formChangedAddresses.Free;
+      cr.formChangedAddresses:=nil;
+    end;
+
     cr.free;
   end;
 
@@ -744,6 +789,44 @@ begin
     FoundCodeList.Items[i].Selected:=true;
 
   FoundCodeList.OnSelectItem:=FoundCodeListSelectItem;
+end;
+
+procedure TFoundCodeDialog.miFindWhatAccessesClick(Sender: TObject);
+var i: integer;
+  coderecord: Tcoderecord;
+  f: TfrmChangedAddresses;
+
+begin
+  if miFindWhatAccesses.checked then
+  begin
+    if MessageDlg('This will set a Software Breakpoint (int3) on every single opcode that will be reported here. Are you sure ?',mtWarning, [mbyes,mbno],0)=mryes then
+    begin
+      //go through all existing entries and set a FindWhatCodeAccesses bp
+      for i:=0 to FoundCodeList.Items.Count-1 do
+      begin
+        coderecord:=TCodeRecord(foundcodelist.items[i].data);
+        coderecord.formChangedAddresses:=debuggerthread.FindWhatCodeAccesses(coderecord.address, self);
+      end;
+    end
+    else
+      miFindWhatAccesses.checked:=false;
+  end
+  else
+  begin
+    //deactivate all bp's
+    //go through bplist and remove all bp's
+    for i:=0 to FoundCodeList.Items.Count-1 do
+    begin
+      coderecord:=TCodeRecord(foundcodelist.items[i].data);
+      if coderecord.formChangedAddresses<>nil then
+      begin
+        coderecord.formChangedAddresses.close;
+        coderecord.formChangedAddresses.free;
+        coderecord.formChangedAddresses:=nil;
+      end;
+    end;
+
+  end;
 end;
 
 function TFoundCodeDialog.getSelection:string;

@@ -1,7 +1,7 @@
 object frmStringPointerScan: TfrmStringPointerScan
-  Left = 461
+  Left = 856
   Height = 544
-  Top = 259
+  Top = 277
   Width = 617
   Caption = 'Structure spider'
   ClientHeight = 524
@@ -10,7 +10,7 @@ object frmStringPointerScan: TfrmStringPointerScan
   OnClose = FormClose
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.1'
+  LCLVersion = '1.0.8.0'
   object Panel1: TPanel
     Left = 0
     Height = 504
@@ -31,9 +31,9 @@ object frmStringPointerScan: TfrmStringPointerScan
     end
     object lblStructsize: TLabel
       Left = 87
-      Height = 15
+      Height = 16
       Top = 8
-      Width = 50
+      Width = 51
       Caption = 'Structsize'
       ParentColor = False
     end
@@ -48,8 +48,8 @@ object frmStringPointerScan: TfrmStringPointerScan
     end
     object lblInfo: TLabel
       Left = 0
-      Height = 15
-      Top = 489
+      Height = 16
+      Top = 488
       Width = 177
       Align = alBottom
       Caption = 'Info'
@@ -57,9 +57,9 @@ object frmStringPointerScan: TfrmStringPointerScan
     end
     object lblMaxLevel: TLabel
       Left = 4
-      Height = 15
+      Height = 16
       Top = 8
-      Width = 52
+      Width = 53
       Caption = 'Max Level'
       ParentColor = False
     end
@@ -135,9 +135,9 @@ object frmStringPointerScan: TfrmStringPointerScan
     end
     object lblAlign: TLabel
       Left = 12
-      Height = 15
+      Height = 16
       Top = 418
-      Width = 47
+      Width = 48
       Caption = 'Alignsize'
       Enabled = False
       ParentColor = False
@@ -161,9 +161,9 @@ object frmStringPointerScan: TfrmStringPointerScan
     end
     object lblAnd: TLabel
       Left = 4
-      Height = 15
+      Height = 16
       Top = 96
-      Width = 20
+      Width = 21
       Caption = 'and'
       Enabled = False
       ParentColor = False
@@ -178,9 +178,9 @@ object frmStringPointerScan: TfrmStringPointerScan
     end
     object lblString: TLabel
       Left = 13
-      Height = 15
+      Height = 16
       Top = 352
-      Width = 34
+      Width = 35
       Caption = 'String:'
       Enabled = False
       ParentColor = False
@@ -251,9 +251,9 @@ object frmStringPointerScan: TfrmStringPointerScan
       end
       object lblCompare: TLabel
         Left = 5
-        Height = 15
+        Height = 16
         Top = 64
-        Width = 75
+        Width = 76
         Caption = 'Compare type'
         Enabled = False
         ParentColor = False
@@ -330,17 +330,17 @@ object frmStringPointerScan: TfrmStringPointerScan
       end
       object lblBaseRegion: TLabel
         Left = 8
-        Height = 15
+        Height = 16
         Top = 4
-        Width = 61
+        Width = 62
         Caption = 'Base region'
         ParentColor = False
       end
       object lblExtra: TLabel
         Left = 142
-        Height = 15
+        Height = 16
         Top = 4
-        Width = 90
+        Width = 91
         Caption = 'Compare against'
         ParentColor = False
       end
@@ -376,10 +376,10 @@ object frmStringPointerScan: TfrmStringPointerScan
         Text = 'String'
       end
       object lblvds: TLabel
-        Left = 311
-        Height = 15
+        Left = 310
+        Height = 16
         Top = 4
-        Width = 108
+        Width = 109
         Anchors = [akTop, akRight]
         Caption = 'Variable display type'
         ParentColor = False
@@ -416,9 +416,9 @@ object frmStringPointerScan: TfrmStringPointerScan
       end
       object lblSize: TLabel
         Left = 8
-        Height = 15
+        Height = 16
         Top = 96
-        Width = 20
+        Width = 21
         Caption = 'Size'
         ParentColor = False
         Visible = False
@@ -446,9 +446,9 @@ object frmStringPointerScan: TfrmStringPointerScan
       end
       object lblsize2: TLabel
         Left = 142
-        Height = 15
+        Height = 16
         Top = 96
-        Width = 20
+        Width = 21
         Caption = 'Size'
         ParentColor = False
         Visible = False

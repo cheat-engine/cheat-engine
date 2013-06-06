@@ -1,12 +1,12 @@
 object FoundCodeDialog: TFoundCodeDialog
   Left = 838
-  Height = 445
+  Height = 399
   Top = 235
-  Width = 386
+  Width = 398
   BorderIcons = [biSystemMenu]
   Caption = 'The following opcodes changed the selected address'
-  ClientHeight = 445
-  ClientWidth = 386
+  ClientHeight = 399
+  ClientWidth = 398
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
@@ -17,19 +17,19 @@ object FoundCodeDialog: TFoundCodeDialog
   Position = poOwnerFormCenter
   LCLVersion = '1.0.8.0'
   object Panel1: TPanel
-    Left = 264
-    Height = 445
+    Left = 276
+    Height = 399
     Top = 0
     Width = 122
     Align = alRight
     BevelOuter = bvNone
-    ClientHeight = 445
+    ClientHeight = 399
     ClientWidth = 122
     TabOrder = 0
     object Description: TLabel
       Left = 0
-      Height = 235
-      Top = 169
+      Height = 193
+      Top = 165
       Width = 122
       Align = alClient
       Alignment = taCenter
@@ -40,7 +40,7 @@ object FoundCodeDialog: TFoundCodeDialog
     object Panel2: TPanel
       Left = 0
       Height = 41
-      Top = 404
+      Top = 358
       Width = 122
       Align = alBottom
       BevelOuter = bvNone
@@ -61,12 +61,12 @@ object FoundCodeDialog: TFoundCodeDialog
     end
     object Panel3: TPanel
       Left = 0
-      Height = 169
+      Height = 165
       Top = 0
       Width = 122
       Align = alTop
       BevelOuter = bvNone
-      ClientHeight = 169
+      ClientHeight = 165
       ClientWidth = 122
       TabOrder = 1
       object btnExtraInfo: TButton
@@ -126,19 +126,19 @@ object FoundCodeDialog: TFoundCodeDialog
   end
   object Panel4: TPanel
     Left = 0
-    Height = 445
+    Height = 399
     Top = 0
-    Width = 264
+    Width = 276
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 445
-    ClientWidth = 264
+    ClientHeight = 399
+    ClientWidth = 276
     TabOrder = 1
     object FoundCodeList: TListView
       Left = 0
-      Height = 283
+      Height = 237
       Top = 0
-      Width = 264
+      Width = 276
       Align = alClient
       Columns = <      
         item
@@ -165,8 +165,8 @@ object FoundCodeDialog: TFoundCodeDialog
     object mInfo: TMemo
       Left = 0
       Height = 157
-      Top = 288
-      Width = 264
+      Top = 242
+      Width = 276
       Align = alBottom
       ReadOnly = True
       ScrollBars = ssBoth
@@ -177,8 +177,8 @@ object FoundCodeDialog: TFoundCodeDialog
       Cursor = crVSplit
       Left = 0
       Height = 5
-      Top = 283
-      Width = 264
+      Top = 237
+      Width = 276
       Align = alBottom
       ResizeAnchor = akBottom
     end
@@ -203,6 +203,12 @@ object FoundCodeDialog: TFoundCodeDialog
       Caption = 'More Info'
       Default = True
       OnClick = btnExtraInfoClick
+    end
+    object miFindWhatAccesses: TMenuItem
+      AutoCheck = True
+      Caption = 'Check if found opcodes also access other addresses (max 8)'
+      ShowAlwaysCheckable = True
+      OnClick = miFindWhatAccessesClick
     end
     object N1: TMenuItem
       Caption = '-'

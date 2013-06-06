@@ -90,7 +90,7 @@ type
     function  setChangeRegBreakpoint(regmod: PRegisterModificationBP): PBreakpoint;
     procedure setBreakAndTraceBreakpoint(frmTracer: TFrmTracer; address: ptrUint; BreakpointTrigger: TBreakpointTrigger; bpsize: integer; count: integer; condition:string=''; stepover: boolean=false);
     function  stopBreakAndTrace(frmTracer: TFrmTracer): boolean;
-    procedure FindWhatCodeAccesses(address: uint_ptr);
+    function FindWhatCodeAccesses(address: uint_ptr; FoundCodeDialog:TFoundCodeDialog=nil): tfrmChangedAddresses;
     function  FindWhatCodeAccessesStop(frmchangedaddresses: Tfrmchangedaddresses): boolean;
     procedure FindWhatAccesses(address: uint_ptr; size: integer);
     procedure FindWhatWrites(address: uint_ptr; size: integer);
@@ -1259,6 +1259,7 @@ begin
     bptAccess : foundcodedialog.Caption:=Format(rsTheFollowingOpcodesAccessed, [inttohex(address, 8)]);
     bptWrite : foundcodedialog.Caption:=Format(rsTheFollowingOpcodesWriteTo, [inttohex(address, 8)]);
   end;
+  foundcodedialog.addresswatched:=address;
   foundcodedialog.Show;
 
   newbp := AddBreakpoint(nil, address, size, bpt, method,
@@ -1460,7 +1461,7 @@ begin
   end;
 end;
 
-procedure TDebuggerthread.FindWhatCodeAccesses(address: uint_ptr);
+function TDebuggerthread.FindWhatCodeAccesses(address: uint_ptr; foundCodeDialog:TFoundCodeDialog=nil): tfrmChangedAddresses;
 var
   method: TBreakpointMethod;
   frmChangedAddresses: tfrmChangedAddresses;
@@ -1469,7 +1470,11 @@ var
   s: string;
   tempaddress: ptruint;
 begin
-  method:=preferedBreakpointMethod;
+  if foundCodeDialog<>nil then  //this is linked to a foundcode dialog
+    method:=bpmInt3
+  else
+    method:=preferedBreakpointMethod;
+
   if method=bpmDebugRegister then
   begin
     usedDebugRegister := GetUsableDebugRegister;
@@ -1489,12 +1494,28 @@ begin
   tempaddress:=address;
   s:=disassemble(tempaddress); //tempaddress gets changed by this, so don't use the real one
   i:=pos('[',s)+1;
-  s:=copy(s,i,pos(']',s)-i);
-  frmchangedaddresses.equation:=s; //so no need to disassemble every single time...
+  if i<>0 then
+    s:=copy(s,i,pos(']',s)-i)
+  else
+  begin
+    //no [   ] part
+    if processhandler.is64Bit then
+      s:='RDI'
+    else
+      s:='EDI';
+  end;
 
-  frmchangedaddresses.show;
+
+  frmchangedaddresses.equation:=s; //so no need to disassemble every single time...
+  frmchangedaddresses.FoundCodeDialog:=foundCodeDialog;
+
+  if foundcodedialog<>nil then
+    frmchangedaddresses.show;
 
   AddBreakpoint(nil, address, 1, bptExecute, method, bo_FindWhatCodeAccesses, usedDebugRegister, nil, 0, frmchangedaddresses);
+
+
+  result:=frmChangedAddresses;
 end;
 
 procedure TDebuggerthread.setbreakpointcondition(bp: PBreakpoint; easymode: boolean; script: string);
