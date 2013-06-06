@@ -86,8 +86,8 @@ begin
     ThreadPoller:=TThreadPoller.create(false);
 
   //tell ce that the debugger has been attached
-  ep.ContextRecord:=@VEHSharedMem.CurrentContext[0]; //just some memory properly aligned that can be used as scratchspace
-  GetThreadContext(GetCurrentThread, ep.ContextRecord);
+//  ep.ContextRecord:=@VEHSharedMem.CurrentContext[0]; //just some memory properly aligned that can be used as scratchspace
+//  GetThreadContext(GetCurrentThread, ep.ContextRecord);
 
   er.ExceptionCode:=EXCEPTION_BREAKPOINT;
   Handler(@ep); //don't really cause a breakpoint (while I could just do a int3 myself I think it's safer to just emulate the event)
