@@ -805,8 +805,12 @@ begin
       for i:=0 to FoundCodeList.Items.Count-1 do
       begin
         coderecord:=TCodeRecord(foundcodelist.items[i].data);
+        coderecord.diffcount:=0;
         coderecord.formChangedAddresses:=debuggerthread.FindWhatCodeAccesses(coderecord.address, self);
       end;
+
+      if FoundCodeList.Column[0].Width<FoundCodeList.Canvas.TextWidth('9999 (8)') then //make sure it's displayed
+        FoundCodeList.Column[0].Width:=FoundCodeList.Canvas.TextWidth('9999 (8)');
     end
     else
       miFindWhatAccesses.checked:=false;

@@ -12,7 +12,7 @@ object frmStacktrace: TfrmStacktrace
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poOwnerFormCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.0.8.0'
   object ListView1: TListView
     Left = 0
     Height = 274
@@ -53,6 +53,10 @@ object frmStacktrace: TfrmStacktrace
     object Refresh1: TMenuItem
       Caption = 'Refresh'
       OnClick = Refresh1Click
+    end
+    object miManualStackwalk: TMenuItem
+      Caption = 'Manual input'
+      OnClick = miManualStackwalkClick
     end
   end
 end
