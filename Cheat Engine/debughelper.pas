@@ -1509,7 +1509,7 @@ begin
   frmchangedaddresses.equation:=s; //so no need to disassemble every single time...
   frmchangedaddresses.FoundCodeDialog:=foundCodeDialog;
 
-  if foundcodedialog<>nil then
+  if foundcodedialog=nil then
     frmchangedaddresses.show;
 
   AddBreakpoint(nil, address, 1, bptExecute, method, bo_FindWhatCodeAccesses, usedDebugRegister, nil, 0, frmchangedaddresses);
