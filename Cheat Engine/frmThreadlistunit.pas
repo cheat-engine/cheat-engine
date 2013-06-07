@@ -16,6 +16,8 @@ type
   { TfrmThreadlist }
 
   TfrmThreadlist = class(TForm)
+    lblIsWOW64: TLabel;
+    MenuItem1: TMenuItem;
     miClearDebugRegisters: TMenuItem;
     miFreezeThread: TMenuItem;
     miResumeThread: TMenuItem;
@@ -24,6 +26,8 @@ type
     threadTreeview: TTreeView;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure MenuItem1Click(Sender: TObject);
     procedure miBreakClick(Sender: TObject);
     procedure miClearDebugRegistersClick(Sender: TObject);
     procedure miFreezeThreadClick(Sender: TObject);
@@ -43,7 +47,7 @@ var
 
 implementation
 
-uses debugeventhandler;
+uses debugeventhandler, frmstacktraceunit;
 
 resourcestring
   rsPleaseFirstAttachTheDebuggerToThisProcess = 'Please first attach the debugger to this process';
@@ -60,6 +64,102 @@ end;
 procedure TfrmThreadlist.FormCreate(Sender: TObject);
 begin
   fillthreadlist;
+end;
+
+procedure TfrmThreadlist.FormShow(Sender: TObject);
+begin
+  lblIsWOW64.visible:={$ifdef cpu64}processhandler.is64Bit=false{$else}false{$endif};
+end;
+
+procedure TfrmThreadlist.MenuItem1Click(Sender: TObject);
+var
+  c: TCONTEXT;
+  c32: TContext32;
+  i: integer;
+  s: TTreeNode;
+  threadlist: tlist;
+
+  tid: dword;
+  th: THandle;
+begin
+
+  zeromemory(@c, sizeof(c));
+  c.ContextFlags:=CONTEXT_FULL;
+  s:=threadTreeview.Selected;
+  if s<>nil then
+  begin
+
+
+    while s.level>0 do
+      s:=s.Parent;
+
+    tid:=strtoint('$'+s.Text);
+
+    if frmstacktrace=nil then
+      frmstacktrace:=tfrmstacktrace.create(application);
+
+
+    if debuggerthread<>nil then
+    begin
+      threadlist:=debuggerthread.lockThreadlist;
+      try
+        for i:=0 to threadlist.Count-1 do
+        begin
+          if TDebugThreadHandler(threadlist[i]).ThreadId=tid then
+          begin
+            {$ifdef cpu64}
+            if processhandler.is64Bit=false then
+            begin
+              ZeroMemory(@c32, sizeof(c32));
+              c32.ContextFlags:=CONTEXT_FULL;
+              Wow64GetThreadContext(TDebugThreadHandler(threadlist[i]).handle, c32);
+              c.Rip:=c32.Eip;
+              c.Rsp:=c32.esp;
+              c.Rbp:=c32.ebp;
+            end
+            else
+            {$endif}
+            GetThreadContext(TDebugThreadHandler(threadlist[i]).handle, c);
+            break;
+          end;
+        end;
+      finally
+        debuggerthread.unlockThreadlist;
+      end;
+    end
+    else
+    begin
+      th:=OpenThread(THREAD_GET_CONTEXT, false, tid);
+
+      if th<>0 then
+      begin
+        {$ifdef cpu64}
+        if processhandler.is64Bit=false then
+        begin
+          ZeroMemory(@c32, sizeof(c32));
+          c32.ContextFlags:=CONTEXT_FULL; ;
+          Wow64GetThreadContext(th, c32);
+          c.Rip:=c32.Eip;
+          c.Rsp:=c32.esp;
+          c.Rbp:=c32.ebp;
+        end
+        else
+        {$endif}
+        GetThreadContext(th, c);
+
+        closehandle(th);
+      end;
+    end;
+
+
+    frmstacktrace.stacktrace(th, c);
+
+    frmstacktrace.Show;
+  end;
+
+
+
+
 end;
 
 procedure TFrmthreadlist.FillThreadlist;
@@ -296,6 +396,7 @@ var s: TTreeNode;
   th: thandle;
   c: tcontext;
 
+
   regnr: integer;
 
   regaddress: PPtrUInt;
@@ -307,6 +408,10 @@ var s: TTreeNode;
 
   ai: integer;
   x: boolean;
+  {$ifdef cpu64}
+  use32bitcontext: boolean;
+  c32: TContext32;
+  {$endif}
 begin
   //change the selected register
 
@@ -331,9 +436,50 @@ begin
     begin
       suspendthread(th);
 
+      x:=false;
       ZeroMemory(@c, sizeof(c));
-      c.ContextFlags:=CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS;
-      if GetThreadContext(th, c) then
+
+      {$ifdef cpu64}
+      use32bitcontext:=(not processhandler.is64Bit) and (ssctrl in GetKeyShiftState);
+
+      if use32bitcontext then
+      begin
+        //override, the user wants the 32-bit context
+
+        ZeroMemory(@c32, sizeof(c32));
+        c32.ContextFlags:=CONTEXT_ALL;
+        x:=WOW64GetThreadContext(th, c32);
+        if x then
+        begin
+          //convert
+          c.Dr0:=c32.Dr0;
+          c.Dr1:=c32.Dr1;
+          c.Dr2:=c32.Dr2;
+          c.Dr3:=c32.Dr3;
+          c.Dr6:=c32.Dr6;
+          c.Dr7:=c32.Dr7;
+          c.Rax:=c32.eax;
+          c.Rbx:=c32.ebx;
+          c.Rcx:=c32.ecx;
+          c.Rdx:=c32.edx;
+          c.Rsi:=c32.esi;
+          c.Rdi:=c32.edi;
+          c.Rbp:=c32.ebp;
+          c.Rsp:=c32.esp;
+          c.Rip:=c32.eip;
+
+
+        end;
+      end
+      else
+      {$endif}
+      begin
+
+        c.ContextFlags:=CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS;
+        x:=GetThreadContext(th, c);
+      end;
+
+      if x then
       begin
         case regnr of
           0: regaddress:=@c.Dr0;
@@ -380,9 +526,36 @@ begin
         else
           pdword(regaddress)^:=v;
 
-        c.ContextFlags:=CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS;
-        if SetThreadContext(th, c)=false then
-          showmessage('failed. Errorcode='+inttostr(GetLastError));
+        {$ifdef cpu64}
+        if use32bitcontext then
+        begin
+          c32.ContextFlags:=CONTEXT_ALL;
+          c32.Dr0:=c.Dr0;
+          c32.Dr1:=c.Dr1;
+          c32.Dr2:=c.Dr2;
+          c32.Dr3:=c.Dr3;
+          c32.Dr6:=c.Dr6;
+          c32.Dr7:=c.Dr7;
+          c32.eax:=c.Rax;
+          c32.ebx:=c.rbx;
+          c32.ecx:=c.rcx;
+          c32.edx:=c.rdx;
+          c32.esi:=c.rsi;
+          c32.edi:=c.rdi;
+          c32.ebp:=c.rbp;
+          c32.esp:=c.rsp;
+          c32.eip:=c.rip;
+
+          if WOW64SetThreadContext(th, c32)=false then
+            showmessage('failed. Errorcode='+inttostr(GetLastError));
+        end
+        else
+        {$endif}
+        begin
+          c.ContextFlags:=CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS;
+          if SetThreadContext(th, c)=false then
+            showmessage('failed. Errorcode='+inttostr(GetLastError));
+        end;
       end;
 
       resumethread(th);
@@ -441,9 +614,10 @@ begin
 end;
 
 var
+  c: TContext;
   tid: dword;
   th: thandle;
-  c: TContext;
+
   prefix: char;
   s: string;
   rw: byte;
@@ -453,6 +627,12 @@ var
 
   ldtentry: TLDTEntry;
   i: integer;
+  x: boolean;
+
+  {$ifdef cpu64}
+  use32bitcontext: boolean;
+  c32: TContext32;
+  {$endif}
 
 begin
   if node.level=0 then
@@ -467,7 +647,45 @@ begin
     begin
       zeromemory(@c,SizeOf(c));
       c.ContextFlags:=CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS;
-      if GetThreadContext(th, c) then
+
+      {$ifdef cpu64}
+      use32bitcontext:=(not processhandler.is64Bit) and (ssctrl in GetKeyShiftState);
+
+      if use32bitcontext then
+      begin
+        //override, the user wants the 32-bit context
+
+        ZeroMemory(@c32, sizeof(c32));
+        c32.ContextFlags:=CONTEXT_ALL;
+        x:=WOW64GetThreadContext(th, c32);
+        if x then
+        begin
+          //convert
+          c.Dr0:=c32.Dr0;
+          c.Dr1:=c32.Dr1;
+          c.Dr2:=c32.Dr2;
+          c.Dr3:=c32.Dr3;
+          c.Dr6:=c32.Dr6;
+          c.Dr7:=c32.Dr7;
+          c.Rax:=c32.eax;
+          c.Rbx:=c32.ebx;
+          c.Rcx:=c32.ecx;
+          c.Rdx:=c32.edx;
+          c.Rsi:=c32.esi;
+          c.Rdi:=c32.edi;
+          c.Rbp:=c32.ebp;
+          c.Rsp:=c32.esp;
+          c.Rip:=c32.eip;
+          c.SegCs:=c32.SegCs;
+          c.SegGs:=c32.seggs;
+          c.segfs:=c32.SegFs;
+        end;
+      end
+      else
+      {$endif}
+      x:=getThreadContext(th, c);
+
+      if x then
       begin
         threadTreeview.items.AddChild(node,'dr0='+inttohex(c.Dr0,{$ifdef cpu64}16{$else}8{$endif}));
         threadTreeview.items.AddChild(node,'dr1='+inttohex(c.Dr1,{$ifdef cpu64}16{$else}8{$endif}));
@@ -546,6 +764,8 @@ begin
           threadTreeview.items.AddChild(node,'r15='+inttohex(c.r15,8));
         end;
         {$endif}
+
+        threadTreeview.items.AddChild(node,'cs='+inttohex(c.SegCs,8));
 
         if GetThreadSelectorEntry(th, c.segFs, ldtentry) then
           threadTreeview.items.AddChild(node,'fsbase='+inttohex(ldtentry.BaseLow+ldtentry.HighWord.Bytes.BaseMid shl 16+ldtentry.HighWord.Bytes.BaseHi shl 24,8));

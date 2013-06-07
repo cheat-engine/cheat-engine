@@ -11,11 +11,12 @@ object frmThreadlist: TfrmThreadlist
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
   OnCreate = FormCreate
+  OnShow = FormShow
   Position = poOwnerFormCenter
-  LCLVersion = '1.1'
+  LCLVersion = '1.0.8.0'
   object threadTreeview: TTreeView
     Left = 0
-    Height = 187
+    Height = 173
     Top = 0
     Width = 313
     Align = alClient
@@ -29,6 +30,16 @@ object frmThreadlist: TfrmThreadlist
     OnDblClick = threadTreeviewDblClick
     OnExpanding = threadTreeviewExpanding
     Options = [tvoAllowMultiselect, tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
+  end
+  object lblIsWOW64: TLabel
+    Left = 0
+    Height = 14
+    Top = 173
+    Width = 313
+    Align = alBottom
+    Caption = 'Hold ctrl when expanding to see the 32-bit context of a thread'
+    ParentColor = False
+    Visible = False
   end
   object PopupMenu1: TPopupMenu
     left = 80
@@ -48,6 +59,10 @@ object frmThreadlist: TfrmThreadlist
     object miResumeThread: TMenuItem
       Caption = 'Resume thread'
       OnClick = miResumeThreadClick
+    end
+    object MenuItem1: TMenuItem
+      Caption = 'Stackview'
+      OnClick = MenuItem1Click
     end
   end
 end

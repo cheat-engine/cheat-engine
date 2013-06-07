@@ -37,6 +37,7 @@ The symbolhandler now has a better distinction between 32 and 64-bit modules. No
 Groupscans can now let you choose which elements to add to the addresslist when doubleclicked
 Added a graphical memory view
 Added a new breakpoint type :Exceptions (not dependant on size and no debug registers, but extremely slow to unplayable)
+The "Find out what *** this address" function now has the ability to show if the given opcode is used for other data as well
 Added a luaserver to ce that you can use to let a different/target process execute lua commands and pass data
 The userdefined comments can now show handle multiple lines
 Dissect code now lets you jump to a referal if you click the line

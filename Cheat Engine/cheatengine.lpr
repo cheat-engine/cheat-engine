@@ -70,7 +70,8 @@ uses
   LuaMemoryRecordHotkey, LuaMemoryView, LuaD3DHook, CustomBase85,
   frmMemoryViewExUnit, LuaDisassembler, LuaDissectCode, LuaByteTable, LuaBinary,
   frmD3DHookSnapshotConfigUnit, frmsnapshothandlerUnit, frmSaveSnapshotsUnit,
-  frmD3DTrainerGeneratorOptionsUnit, lua_server, frmAssemblyScanUnit;
+  frmD3DTrainerGeneratorOptionsUnit, lua_server, frmAssemblyScanUnit, 
+frmManualStacktraceConfigUnit;
 
 {$R cheatengine.res}
 //{$R manifest.res}  //lazarus now has this build in

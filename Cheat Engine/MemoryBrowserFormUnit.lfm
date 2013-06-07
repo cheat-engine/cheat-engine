@@ -902,7 +902,6 @@ object MemoryBrowser: TMemoryBrowser
       Caption = 'View'
       object Stacktrace1: TMenuItem
         Caption = 'Stacktrace'
-        Enabled = False
         OnClick = Stacktrace1Click
       end
       object Breakpointlist1: TMenuItem

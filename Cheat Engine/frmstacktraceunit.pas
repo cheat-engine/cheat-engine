@@ -10,12 +10,17 @@ uses
   Menus, LResources, debughelper;
 
 type
+
+  { TfrmStacktrace }
+
   TfrmStacktrace = class(TForm)
     ListView1: TListView;
+    miManualStackwalk: TMenuItem;
     PopupMenu1: TPopupMenu;
     Refresh1: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure miManualStackwalkClick(Sender: TObject);
     procedure Refresh1Click(Sender: TObject);
   private
     { Private declarations }
@@ -30,7 +35,14 @@ var
 
 implementation
 
-uses MemoryBrowserFormUnit;
+uses MemoryBrowserFormUnit, frmManualStacktraceConfigUnit;
+
+var
+  useShadow: boolean;
+  shadowOrig: ptruint;
+  shadowNew: ptruint;
+  shadowSize: integer;
+
 
 function rpm64(hProcess:THANDLE; qwBaseAddress:dword64; lpBuffer:pointer; nSize:dword; lpNumberOfBytesRead:lpdword):bool;stdcall;
 begin
@@ -38,6 +50,10 @@ begin
   {$ifndef cpu64}
   if qwBaseAddress>$FFFFFFFF then exit;
   {$endif}
+
+  if useShadow and InRangeQ(qwBaseAddress, shadowOrig, shadoworig+shadowSize) then
+    qwBaseAddress:=shadowNew+(qwBaseAddress-shadowOrig); //adjust the base address to the copy location
+
   result:=newkernelhandler.readprocessmemory(hProcess, pointer(ptrUint(qwBaseAddress)), lpBuffer, nSize, lpNumberOfBytesRead^);
 end;
 
@@ -106,10 +122,10 @@ begin
     c:=stackframe^.Params[2];
     d:=stackframe^.Params[3];
 
-    if integer(a)>$400000 then sa:='0x'+inttohex(a,8) else sa:=inttostr(integer(a));
-    if integer(b)>$400000 then sb:='0x'+inttohex(b,8) else sb:=inttostr(integer(b));
-    if integer(c)>$400000 then sc:='0x'+inttohex(c,8) else sc:=inttostr(integer(c));
-    if integer(d)>$400000 then sd:='0x'+inttohex(d,8) else sd:=inttostr(integer(d));
+    sa:='0x'+inttohex(a,8);
+    sb:='0x'+inttohex(b,8);
+    sc:='0x'+inttohex(c,8);
+    sd:='0x'+inttohex(d,8);
 
     listview1.items[listview1.Items.Count-1].SubItems.add(sa+','+sb+','+sc+','+sd+',...');
   end;
@@ -138,6 +154,35 @@ procedure TfrmStacktrace.FormClose(Sender: TObject;
 begin
   frmstacktrace:=nil;
   action:=cafree;
+end;
+
+procedure TfrmStacktrace.miManualStackwalkClick(Sender: TObject);
+var c: _CONTEXT;
+    frmManualStacktraceConfig: TfrmManualStacktraceConfig;
+begin
+  zeromemory(@c, sizeof(_CONTEXT));
+
+  frmManualStacktraceConfig:=tfrmManualStacktraceConfig.create(self);
+  if frmManualStacktraceConfig.showmodal=mrok then
+  begin
+    c.{$ifdef cpu64}Rip{$else}eip{$endif}:=frmManualStacktraceConfig.eip;
+    c.{$ifdef cpu64}Rbp{$else}ebp{$endif}:=frmManualStacktraceConfig.ebp;
+    c.{$ifdef cpu64}Rsp{$else}esp{$endif}:=frmManualStacktraceConfig.esp;
+
+    if frmManualStacktraceConfig.useshadow then
+    begin
+      useshadow:=true;
+      shadowOrig:=frmManualStacktraceConfig.shadoworig;
+      shadowNew:=frmManualStacktraceConfig.shadownew;
+      shadowSize:=frmManualStacktraceConfig.shadowsize;
+    end;
+    stacktrace(GetCurrentThreadId, c);
+
+    useShadow:=false;
+  end;
+  frmManualStacktraceConfig.free;
+
+
 end;
 
 procedure TfrmStacktrace.Refresh1Click(Sender: TObject);
