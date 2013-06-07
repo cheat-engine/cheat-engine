@@ -602,10 +602,12 @@ var
 
   m: tmemorystream;
   temp: dword;
+  emptytracedebug: TTraceDebugInfo;
 begin
   //save the results of the trace to disk
   if savedialog1.Execute then
   begin
+    emptytracedebug:=TTraceDebugInfo.Create;
     f:=tfilestream.create(savedialog1.filename, fmCreate);
     try
       //save if it's made with the 32 or 64-bit ce version (the 32-bit ce version can not load the 64-bit version and vice versa)
@@ -624,16 +626,21 @@ begin
       m.SaveToStream(f);
       m.free;
 
+
+
       for i:=0 to lvTracer.Items.Count-1 do
       begin
         t:=TTraceDebugInfo(lvTracer.Items[i].data);
         if t<>nil then
-          t.saveToStream(f);
+          t.saveToStream(f)
+        else
+          emptytracedebug.saveToStream(f);
       end;
 
       beep;
     finally
       f.free;
+      emptytracedebug.free;
     end;
   end;
 end;
