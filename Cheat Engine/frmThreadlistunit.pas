@@ -74,7 +74,9 @@ end;
 procedure TfrmThreadlist.MenuItem1Click(Sender: TObject);
 var
   c: TCONTEXT;
+{$ifdef cpu64}
   c32: TContext32;
+{$endif}
   i: integer;
   s: TTreeNode;
   threadlist: tlist;
