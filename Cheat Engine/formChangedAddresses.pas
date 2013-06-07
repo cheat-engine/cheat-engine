@@ -288,14 +288,7 @@ begin
     action:=caHide; //let the foundcodedialog free it
 
 
-  for i:=0 to changedlist.Items.Count-1 do
-  begin
-    ae:=TAddressEntry(changedlist.Items[i].Data);
-    ae.free;
-  end;
 
-  if OKButton.caption=rsStop then
-    OKButton.Click;
 end;
 
 procedure TfrmChangedAddresses.FormShow(Sender: TObject);
@@ -422,7 +415,20 @@ begin
 end;
 
 procedure TfrmChangedAddresses.FormDestroy(Sender: TObject);
+var
+  i: integer;
+  ae: TAddressEntry;
 begin
+  for i:=0 to changedlist.Items.Count-1 do
+  begin
+    ae:=TAddressEntry(changedlist.Items[i].Data);
+    ae.free;
+  end;
+
+  if OKButton.caption=rsStop then
+    debuggerthread.FindWhatCodeAccessesStop(self);
+
+
   saveformposition(self,[]);
   if addresslist<>nil then
     addresslist.Free;

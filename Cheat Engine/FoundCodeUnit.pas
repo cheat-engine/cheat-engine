@@ -321,7 +321,12 @@ begin
 
     coderecord:=TCodeRecord(foundcodelist.items[itemindex].data);
     if coderecord.formChangedAddresses<>nil then
+    begin
+      if not coderecord.formChangedAddresses.visible then //override userdefined positioning
+        coderecord.formChangedAddresses.Position:=poScreenCenter;
+
       coderecord.formChangedAddresses.show;
+    end;
 
     address:=coderecord.address;
     address:=previousopcode(address);
@@ -824,7 +829,7 @@ begin
       coderecord:=TCodeRecord(foundcodelist.items[i].data);
       if coderecord.formChangedAddresses<>nil then
       begin
-        coderecord.formChangedAddresses.close;
+
         coderecord.formChangedAddresses.free;
         coderecord.formChangedAddresses:=nil;
       end;
