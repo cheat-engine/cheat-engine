@@ -150,7 +150,11 @@ begin
         refetchValues(x.address);
 
         if foundcodedialog<>nil then
+        begin
           TFoundCodeDialog(foundcodedialog).setChangedAddressCount(currentthread.context.{$ifdef cpu64}Rip{$else}eip{$endif});
+          if (changedlist.Items.Count>=8) then //remove this breakpoint
+            debuggerthread.FindWhatCodeAccessesStop(self);
+        end;
       end;
     end;
   end;
