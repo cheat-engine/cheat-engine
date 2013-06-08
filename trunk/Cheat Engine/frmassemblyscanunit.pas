@@ -32,6 +32,8 @@ type
     stopaddress: ptruint;
   end;
 
+var frmAssemblyScan: TfrmAssemblyScan;
+
 implementation
 
 {$R *.lfm}
