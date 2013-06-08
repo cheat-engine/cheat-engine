@@ -193,7 +193,7 @@ end;
 
 procedure TfrmStructuresConfig.setselectedGroupDifferentText(x: TColor);
 begin
-  fselectedGroupEqualText:=x;
+  fselectedGroupDifferentText:=x;
   if comboBackground.itemindex=1 then
     label9.font.color:=x;
 end;
