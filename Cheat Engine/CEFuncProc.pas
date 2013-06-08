@@ -800,9 +800,10 @@ end;
 
 function isreadable(address:ptrUint):boolean;
 var mbi: _MEMORY_BASIC_INFORMATION;
+  i: integer;
 begin
-  VirtualQueryEx(processhandle,pointer(address),mbi,sizeof(mbi));
-  result:=mbi.State=mem_commit;
+  i:=VirtualQueryEx(processhandle,pointer(address),mbi,sizeof(mbi));
+  result:=(i=sizeof(mbi)) and (mbi.State=mem_commit);
 end;
 
 function RawToString(const buf: array of byte; vartype: integer;showashex: boolean; bufsize: integer):string;

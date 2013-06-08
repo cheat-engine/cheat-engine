@@ -166,8 +166,9 @@ type
 
     count: integer;
 
-    levelblock: array of pdwordarray;
-    fillpointerblock: pdwordarray; //memory block allocated for the fuillpointers function
+    //levelblock: array of Puint64Array;  //I think this is obsolete
+    fillpointerblock: pointer; //memory block allocated for the fuillpointers function
+
    // block64: array of Pint64Array;
 
     results: TMemorystream;
@@ -182,6 +183,8 @@ type
     pointerstart: ptruint;
     pointerstop: ptruint;
     ownerFrmStringPointerScan: TCustomForm;
+
+    is64bittarget: boolean;
 
 
 
@@ -1066,7 +1069,7 @@ begin
   end;
 
   result:=0;
-  mapRegionIfNeeded(address,4096);    //block of 4KB (not structsize)
+  mapRegionIfNeeded(address,structsize);
   search.address:=address;
   pe:=pointerlist.Find(@search);
   if pe<>nil then
@@ -1090,6 +1093,7 @@ begin
   if pe<>nil then
   begin
     r:=pe.data;
+
     while (r<>nil) and (r.address<base) do
       r:=r.next;
 
@@ -1108,56 +1112,105 @@ begin
   if readprocessmemory(processhandle, pointer(base), fillpointerblock, size, x) then
   begin
     //walk through the array of dwords
-    for i:=0 to (x div 4)-1 do
+    if is64bittarget then
     begin
-      a:=fillpointerblock[i];
-
-      if shadow<>0 then
+      for i:=0 to (x div 8)-1 do
       begin
-        if InRangeQ(a, baseaddress, baseaddress+shadowsize) then
-          a:=a+(shadow-baseaddress);
+        a:=PPtrUintArray(fillpointerblock)[i];
 
-        fillpointerblock[i]:=a;
+        if shadow<>0 then
+        begin
+          if InRangeQ(a, baseaddress, baseaddress+shadowsize) then
+            a:=a+(shadow-baseaddress);
+
+          PPtrUintArray(fillpointerblock)[i]:=a;
+        end;
+
+        if (a>$10000) and ((a mod 8)=0) and (isreadable(a)) then    //<-- isReadable can be sped up by caching in a tree
+        begin
+          p:=bma.alloc(sizeof(TPointerListEntry));
+
+          p.address:=base+(i*8);
+          p.pointsto:=PPtrUintArray(fillpointerblock)[i];
+
+          pe:=pointerlist.Add(p);
+          prev:=pointerlist.FindPrecessor(pe);
+          next:=pointerlist.FindSuccessor(pe);
+
+          if prev=nil then
+            p.previous:=nil
+          else
+          begin
+            p.previous:=prev.Data;
+            PPointerListEntry(prev.data).next:=p;
+          end;
+
+          if next=nil then
+            p.next:=nil
+          else
+          begin
+            p.next:=next.Data;
+            PPointerListEntry(next.data).previous:=p;
+          end;
+
+
+        end;
       end;
-
-      if (a>$10000) and ((a mod 4)=0) and (isreadable(a)) then
+    end
+    else
+    begin
+      for i:=0 to (x div 4)-1 do
       begin
-        p:=bma.alloc(sizeof(TPointerListEntry));
+        a:=PDwordArray(fillpointerblock)[i];
 
-        p.address:=base+(i*4);
-        p.pointsto:=fillpointerblock[i];
-
-         //   debug code
-       { if pointerlist.Find(p)<>nil then
+        if shadow<>0 then
         begin
-       //   freemem(p);
-          messagebox(0,'FUUUU','FUUUUU',0);
-          continue;
-        end;   }
+          if InRangeQ(a, baseaddress, baseaddress+shadowsize) then
+            a:=a+(shadow-baseaddress);
 
-        pe:=pointerlist.Add(p);
-        prev:=pointerlist.FindPrecessor(pe);
-        next:=pointerlist.FindSuccessor(pe);
-
-        if prev=nil then
-          p.previous:=nil
-        else
-        begin
-          p.previous:=prev.Data;
-          PPointerListEntry(prev.data).next:=p;
+          PDwordArray(fillpointerblock)[i]:=a;
         end;
 
-        if next=nil then
-          p.next:=nil
-        else
+        if (a>$10000) and ((a mod 4)=0) and (isreadable(a)) then
         begin
-          p.next:=next.Data;
-          PPointerListEntry(next.data).previous:=p;
+          p:=bma.alloc(sizeof(TPointerListEntry));
+
+          p.address:=base+(i*4);
+          p.pointsto:=PDwordArray(fillpointerblock)[i];
+
+           //   debug code
+         { if pointerlist.Find(p)<>nil then
+          begin
+         //   freemem(p);
+            messagebox(0,'FUUUU','FUUUUU',0);
+            continue;
+          end;   }
+
+          pe:=pointerlist.Add(p);
+          prev:=pointerlist.FindPrecessor(pe);
+          next:=pointerlist.FindSuccessor(pe);
+
+          if prev=nil then
+            p.previous:=nil
+          else
+          begin
+            p.previous:=prev.Data;
+            PPointerListEntry(prev.data).next:=p;
+          end;
+
+          if next=nil then
+            p.next:=nil
+          else
+          begin
+            p.next:=next.Data;
+            PPointerListEntry(next.data).previous:=p;
+          end;
+
+
         end;
-
-
       end;
     end;
+
   end;
 end;
 
@@ -1427,7 +1480,7 @@ var
 
   p: Pstringdata;
 
-  block: pdwordarray;
+ // block: pdwordarray;
 
   pe: PPointerListEntry;
 begin
@@ -1517,11 +1570,12 @@ begin
 
 
       setlength(pointerpath, maxlevel+1); //maxlevel=0 means 1 offset
-      setlength(levelblock, maxlevel+1);
+     { setlength(levelblock, maxlevel+1);
       for i:=0 to length(levelblock)-1 do
         getmem(levelblock[i], structsize); //one time alloc for each level so it can be reused without having to reallocate each recursion
+     }
 
-      getmem(fillpointerblock, 4096); //filling goes in chunks of 4096 bytes
+      getmem(fillpointerblock, max(4096, structsize));
 
       results:=TMemoryStream.Create;
       results.Size:=16*1024*1024;
@@ -1546,6 +1600,7 @@ end;
 
 constructor TScanner.create(isDataScan, mustbeinregion: boolean; alignment: integer; pointerstart, pointerstop: ptruint; baseaddress: ptruint; shadow: ptruint; shadowsize: ptruint; baseaddress2: ptruint; shadow2: ptruint; shadowsize2: integer; diffkind: TDiffkind; vartype: TVariableType; mapvalues: boolean; structsize: integer; maxlevel: integer; mappedregions,pointerlist: TAvgLvlTree; bma: TBigMemoryAllocHandler; filename: string; ownerFrmStringPointerScan: TCustomForm);
 begin
+  self.is64bittarget:=processhandler.is64Bit;
   self.baseaddress:=baseaddress;
   self.shadow:=shadow;
   self.shadowsize:=shadowsize;
@@ -1603,8 +1658,8 @@ end;
 destructor TScanner.destroy;
 var i: integer;
 begin
-  for i:=0 to length(levelblock)-1 do
-    freemem(levelblock[i]);
+ { for i:=0 to length(levelblock)-1 do
+    freemem(levelblock[i]); }
 
 
   if fillpointerblock<>nil then

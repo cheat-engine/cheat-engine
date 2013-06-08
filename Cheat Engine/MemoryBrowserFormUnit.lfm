@@ -1,7 +1,7 @@
 object MemoryBrowser: TMemoryBrowser
-  Left = 863
+  Left = 866
   Height = 587
-  Top = 186
+  Top = 246
   Width = 716
   HelpContext = 12
   Caption = 'Memory Viewer'
@@ -1132,7 +1132,7 @@ object MemoryBrowser: TMemoryBrowser
       end
       object DissectPEheaders1: TMenuItem
         Caption = 'Dissect PE headers'
-        ShortCut = 49232
+        ShortCut = 16456
         OnClick = DissectPEheaders1Click
       end
       object N12: TMenuItem
