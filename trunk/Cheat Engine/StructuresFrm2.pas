@@ -3308,6 +3308,10 @@ begin
             n:=n.parent;
         end;
 
+        structElement.BackgroundColor:=backgroundColor;
+
+
+
         tvStructureView.Items.SelectOnlyThis(n.Items[structElement.Index]);
       end;
 
