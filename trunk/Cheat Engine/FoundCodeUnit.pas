@@ -309,6 +309,9 @@ var disassembled: array[1..5] of string;
     w: integer;
 
     FormFoundCodeListExtra: TFormFoundCodeListExtra;
+
+    ew: trect; //extra window rect
+    cw: trect; //changed address window rect
 begin
   itemindex:=foundcodelist.ItemIndex;
   if itemindex<>-1 then
@@ -323,7 +326,14 @@ begin
     if coderecord.formChangedAddresses<>nil then
     begin
       if not coderecord.formChangedAddresses.visible then //override userdefined positioning
-        coderecord.formChangedAddresses.Position:=poScreenCenter;
+      begin
+        LCLIntf.GetWindowRect(coderecord.formChangedAddresses.handle, cw);
+        LCLIntf.GetWindowRect(FormFoundCodeListExtra.handle, ew);
+
+        coderecord.formChangedAddresses.left:=(ew.Left-(cw.Right-cw.left));
+        coderecord.formChangedAddresses.top:=FormFoundCodeListExtra.top;
+
+      end;
 
       coderecord.formChangedAddresses.show;
     end;
