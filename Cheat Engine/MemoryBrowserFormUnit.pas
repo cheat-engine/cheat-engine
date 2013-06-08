@@ -2773,31 +2773,31 @@ var
   fromaddress: ptruint;
   toaddress: ptruint;
 
-  f: TfrmAssemblyScan;
+
 begin
-  f:=tfrmassemblyscan.create(self);
+  if frmAssemblyScan=nil then
+    frmAssemblyScan:=tfrmassemblyscan.create(self);
 
-  f.edtFrom.text:=inttohex(disassemblerview.TopAddress,8);
+  frmAssemblyScan.edtFrom.text:=inttohex(disassemblerview.TopAddress,8);
+
   if processhandler.is64Bit then
-    f.edtTo.text:='FFFFFFFFFFFFFFFF'
+    frmAssemblyScan.edtTo.text:='FFFFFFFFFFFFFFFF'
   else
-    f.edtTo.text:='FFFFFFFF';
+    frmAssemblyScan.edtTo.text:='FFFFFFFF';
 
 
-  if f.ShowModal=mrok then
+  if frmAssemblyScan.ShowModal=mrok then
   begin
-    if f.mAssemblerSearch.lines.Count=0 then exit;
+    if frmAssemblyScan.mAssemblerSearch.lines.Count=0 then exit;
     with TfrmDisassemblyscan.create(self) do
     begin
-      startaddress:=f.startaddress;
-      stopaddress:=f.stopaddress;
-      stringstofind:=f.mAssemblerSearch.lines;
+      startaddress:=frmAssemblyScan.startaddress;
+      stopaddress:=frmAssemblyScan.stopaddress;
+      stringstofind:=frmAssemblyScan.mAssemblerSearch.lines;
       show;
     end;
 
   end;
-
-  f.free;
 end;
 
 procedure TMemoryBrowser.Driverlist1Click(Sender: TObject);
