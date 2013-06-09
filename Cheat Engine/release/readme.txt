@@ -52,6 +52,7 @@ Auto Assembler: Add support for inscript structure definitions
 Tracer: You can now save and load a trace
 Addresslist: Changing a records' value (lua setValue) now supports lua statements if the new value is enclosed by brackets [  ]  (Example: [12-2] becomes 10, and [readInteger(0x00400500)+10] returns the value at 00400500 with 10 added to it)
 D3D: Added the ability to dissect a whole d3d scene and get the stack at the moment a specific object is being rendered
+D3D: Also works on 64-bit targets now
 Symbolhandler: It now interprets "structurename.variablename" and returns the offset of variablename in the structure. This includes auto assembler
 Binary files inside cheat tables are now stored using ascii85 instead of hexadecimal
 Added a more complex disassembler class that gives more information about what it disassembled
