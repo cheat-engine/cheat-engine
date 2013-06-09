@@ -542,7 +542,7 @@ begin
   cbSpeedhack.checked:=pos('speedhack_',s)>0;
   cbXMPlayer.checked:=pos('xmplayer_',s)>0;
   cbKernelDebug.checked:=pos('dbk_',s)>0;
-  cbD3DHook.checked:=pos('d3dhook_initializeHook',s)>0;
+  cbD3DHook.checked:=pos('created3dhook',s)>0;
 
 
   if mainform.LuaForms.count=1 then  //if there is only one form use that icon as default

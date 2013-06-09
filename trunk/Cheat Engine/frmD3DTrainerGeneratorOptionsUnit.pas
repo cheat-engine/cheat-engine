@@ -57,6 +57,7 @@ type
     procedure FormCreate(Sender: TObject);
   private
     { private declarations }
+    procedure updatefontexample;
   public
     { public declarations }
     d3dkeys: TKeycombo;
@@ -78,6 +79,8 @@ begin
   imgPreview.Picture.Bitmap.width:=imgPreview.width;
   imgPreview.Picture.Bitmap.Height:=imgPreview.height;
   imgPreview.Picture.Bitmap.Canvas.Pixels[0,0]:=imgPreview.Picture.Bitmap.Canvas.Pixels[0,0];
+
+  updatefontexample;
 end;
 
 procedure TfrmD3DTrainerGeneratorOptions.Button4Click(Sender: TObject);
@@ -130,16 +133,8 @@ begin
     imgPreview.Picture.LoadFromFile(OpenPictureDialog1.FileName);
 end;
 
-procedure TfrmD3DTrainerGeneratorOptions.Button3Click(Sender: TObject);
+procedure TfrmD3DTrainerGeneratorOptions.updatefontexample;
 begin
-  fontdialog1.font.assign(lblTextColor.Font);
-  if fontdialog1.execute then
-  begin
-    lblTextColor.font.assign(fontdialog1.font);
-    lblTextColor.font.Quality:=fqNonAntialiased;
-  end;
-
-  //reset
   TextOverlayImage.Picture.Bitmap.Width:=0;
   TextOverlayImage.Picture.Bitmap.Height:=0;
 
@@ -153,9 +148,19 @@ begin
   TextOverlayImage.Picture.Bitmap.Canvas.font.Quality:=fqNonAntialiased;
 
   TextOverlayImage.picture.Bitmap.Canvas.TextOut(0,0,'Example text');
+end;
+
+procedure TfrmD3DTrainerGeneratorOptions.Button3Click(Sender: TObject);
+begin
+  fontdialog1.font.assign(lblTextColor.Font);
+  if fontdialog1.execute then
+  begin
+    lblTextColor.font.assign(fontdialog1.font);
+    lblTextColor.font.Quality:=fqNonAntialiased;
+  end;
 
 
-
+  updatefontexample;
 
 end;
 
