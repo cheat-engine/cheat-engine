@@ -181,10 +181,14 @@ void DXMessD3D10Handler::TakeSnapshot(char *functionname)
 							int x;
 							UINT64 stackbase=0;
 
+#ifdef _AMD64_
+							stackbase=(UINT64)&functionname;
+#else
 							__asm
 							{
 								mov dword ptr [stackbase], ebp   //sure, it's a bit too far, but close enough
 							}
+#endif
 							
 							snapshotCounter++;
 							
