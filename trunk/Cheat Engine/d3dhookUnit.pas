@@ -1644,7 +1644,7 @@ begin
         generateAPIHookScript(s, inttohex(shared.dxgi_resizebuffers,8), inttohex(shared.dxgi_newresizebuffers,8),  inttohex(shared.dxgi_originalresizebuffers,8), '19');
 
 
-      clipboard.AsText:=s.text;
+     // clipboard.AsText:=s.text;
 
       //if there is a script execute it.
       if (s.count>0) and (autoassemble(s,false)=false) then

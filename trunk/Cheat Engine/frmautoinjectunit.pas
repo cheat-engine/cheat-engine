@@ -773,10 +773,10 @@ begin
   with enablescript do
   begin
     if not processhandler.is64bit then
-      add('alloc(originalcall'+nameextension+',2048) //2kb should be enough')
+      add('alloc(originalcall'+nameextension+',2048)')
     else
     begin
-      add('alloc(originalcall'+nameextension+',2048,'+address+') //2kb should be enough');
+      add('alloc(originalcall'+nameextension+',2048,'+address+')');
       add('alloc(jumptrampoline'+nameextension+',64,'+address+') //special jump trampoline in the current region (64-bit)');
       add('label(jumptrampoline'+nameextension+'address)');
     end;
