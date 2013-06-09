@@ -189,7 +189,7 @@ begin
   hk:=TMemoryrecordhotkey(li.data);
   mr:=hk.owner;
   li.caption:=ConvertKeyComboToString(hk.keys);
-
+  li.SubItems.clear;
 
   if hk.description='' then
   begin
@@ -538,6 +538,7 @@ begin
     mr:=mh.owner;
     editHotkey(mr,mh);
 
+    RefreshHotkeyItem(lvcheats.selected);
   end;
 end;
 
