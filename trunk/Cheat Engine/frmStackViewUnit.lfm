@@ -8,10 +8,11 @@ object frmStackView: TfrmStackView
   ClientHeight = 240
   ClientWidth = 320
   OnClose = FormClose
+  OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  LCLVersion = '1.1'
+  LCLVersion = '1.0.8.0'
   object lvStack: TListView
     Left = 0
     Height = 240
@@ -84,6 +85,10 @@ object frmStackView: TfrmStackView
     object MenuItem3: TMenuItem
       Caption = 'Lock and add this view to a structure dissect window'
       OnClick = MenuItem3Click
+    end
+    object miLockAndTrace: TMenuItem
+      Caption = 'Lock and do manual stacktrace'
+      OnClick = miLockAndTraceClick
     end
   end
 end

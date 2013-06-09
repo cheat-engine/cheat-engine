@@ -18,6 +18,7 @@ type
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
+    miLockAndTrace: TMenuItem;
     miCopyValue: TMenuItem;
     miCopySecondary: TMenuItem;
     miCopyAddress: TMenuItem;
@@ -25,11 +26,13 @@ type
     miAddEBP: TMenuItem;
     PopupMenu1: TPopupMenu;
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure lvStackDblClick(Sender: TObject);
     procedure MenuItem3Click(Sender: TObject);
+    procedure miLockAndTraceClick(Sender: TObject);
     procedure miAddESPClick(Sender: TObject);
     procedure miCopyAddressClick(Sender: TObject);
   private
@@ -37,6 +40,8 @@ type
     c: PContext;
     stack: pbyte;
     size: integer;
+
+    allocs: tlist;
   public
     { public declarations }
     procedure SetContextPointer(c: PContext; stack: pbyte; size: integer);
@@ -47,7 +52,7 @@ var
 
 implementation
 
-uses MemoryBrowserFormUnit, StructuresFrm2;
+uses MemoryBrowserFormUnit, StructuresFrm2, frmstacktraceunit;
 
 procedure TfrmStackView.miAddESPClick(Sender: TObject);
 begin
@@ -154,6 +159,32 @@ begin
 
 end;
 
+procedure TfrmStackView.miLockAndTraceClick(Sender: TObject);
+var
+  x: dword;
+  alloc: pointer;
+
+  f: TfrmStacktrace;
+begin
+
+  alloc:=VirtualAllocEx(processhandle, nil, size+1, MEM_COMMIT or MEM_RESERVE, PAGE_READWRITE);
+  if alloc<>nil then
+  begin
+    if allocs=nil then
+      allocs:=tlist.create;
+
+    //copy the original bytes to the copy
+    WriteProcessMemory(processhandle, pointer(alloc), stack, size, x);
+
+    allocs.Add(alloc);
+
+    f:=TfrmStacktrace.create(application);
+    f.shadowstacktrace(c^, alloc, size);
+    f.show;
+  end;
+
+end;
+
 procedure TfrmStackView.FormDestroy(Sender: TObject);
 begin
 
@@ -184,6 +215,37 @@ begin
   SaveFormPosition(self, [lvstack.Column[0].Width, lvstack.Column[1].Width, lvstack.Column[2].Width ]);
 end;
 
+procedure TfrmStackView.FormCloseQuery(Sender: TObject; var CanClose: boolean);
+var r: TModalResult;
+  i: integer;
+begin
+  canclose:=true;
+
+  if allocs<>nil then
+  begin
+    r:=messagedlg('This stackview window has allocated stack snapshots in the target process. Do you wish to free them?', mtconfirmation, [mbyes, mbno, mbCancel], 0);
+
+    if not (r in [mryes, mrno]) then
+    begin
+      canclose:=false; //something else besides yes or no was clicked
+      exit;
+    end;
+
+
+    if r=mryes then
+    begin
+      //free the allocated memory in the target process
+      for i:=0 to allocs.count-1 do
+        VirtualFreeEx(processhandle, allocs[i], 0, MEM_RELEASE);
+    end;
+
+
+    allocs.free;
+    allocs:=nil;
+
+  end;
+end;
+
 procedure TfrmStackView.SetContextPointer(c: PContext; stack: pbyte; size: integer);
 var tempstringlist: tstringlist;
   p1, p2: integer;
@@ -201,6 +263,8 @@ begin
   self.size:=size;
 
   tempstringlist:=tstringlist.create;
+  lvStack.BeginUpdate;
+  lvStack.Items.BeginUpdate;
   try
     ce_stacktrace(c.{$ifdef cpu64}rsp{$else}esp{$endif}, c.{$ifdef cpu64}rbp{$else}ebp{$endif}, c.{$ifdef cpu64}rip{$else}eip{$endif}, pbytearray(stack), size, tempstringlist, true,false,false,0,miAddEBP.checked);
     //now fill the listview with this information
@@ -229,6 +293,8 @@ begin
 
   finally
     tempstringlist.Free;
+    lvStack.items.EndUpdate;
+    lvStack.EndUpdate;
   end;
 end;
 

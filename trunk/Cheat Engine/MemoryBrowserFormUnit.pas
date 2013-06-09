@@ -31,6 +31,8 @@ type
     MenuItem16: TMenuItem;
     MenuItem17: TMenuItem;
     MenuItem18: TMenuItem;
+    MenuItem19: TMenuItem;
+    MenuItem20: TMenuItem;
     miShowIndisassembler: TMenuItem;
     miShowInHexview: TMenuItem;
     miCopyBytesOnly: TMenuItem;
@@ -230,6 +232,7 @@ type
     procedure MenuItem14Click(Sender: TObject);
     procedure MenuItem17Click(Sender: TObject);
     procedure MenuItem18Click(Sender: TObject);
+    procedure MenuItem20Click(Sender: TObject);
     procedure miShowIndisassemblerClick(Sender: TObject);
     procedure miCopyBytesOnlyClick(Sender: TObject);
     procedure miDissectData2Click(Sender: TObject);
@@ -977,6 +980,25 @@ end;
 procedure TMemoryBrowser.MenuItem18Click(Sender: TObject);
 begin
   TfrmMemoryViewEx.create(self).show;
+end;
+
+procedure TMemoryBrowser.MenuItem20Click(Sender: TObject);
+var t: Tfrmtracer;
+begin
+  t:=TFrmTracer.create(self,false,true);
+
+  try
+    t.miLoad.Click;
+  except
+    on e: exception do
+    begin
+      t.free; //not needed anymore
+      raise exception.create(e.Message);
+    end;
+  end;
+
+  t.show;
+
 end;
 
 

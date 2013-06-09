@@ -127,6 +127,7 @@ type
 
 
     fDataTrace: boolean;
+    fSkipconfig: boolean;
 
     stepover: boolean;
 
@@ -139,7 +140,7 @@ type
     procedure addRecord;
     procedure finish;
     property savestack: boolean read fsavestack write setSavestack;
-    constructor create(Owner: TComponent; DataTrace: boolean=false); overload;
+    constructor create(Owner: TComponent; DataTrace: boolean=false; skipconfig: boolean=false); overload;
   end;
 
 implementation
@@ -205,7 +206,8 @@ begin
   s.readbuffer(bytes[0], bytesize);
 
   s.readbuffer(stack.savedsize, sizeof(stack.savedsize));
-  s.readbuffer(stack.stack, stack.savedsize);
+  getmem(stack.stack, stack.savedsize);
+  s.readbuffer(stack.stack^, stack.savedsize);
 end;
 
 procedure TTraceDebugInfo.saveToStream(s: tstream);
@@ -241,10 +243,11 @@ begin
 end;
 
 
-constructor TfrmTracer.create(Owner: TComponent; DataTrace: boolean=false);
+constructor TfrmTracer.create(Owner: TComponent; DataTrace: boolean=false; skipconfig: boolean=false);
 begin
   inherited create(owner);
   fDataTrace:=Datatrace;
+  fSkipConfig:=skipconfig;
 end;
 
 procedure TfrmTracer.finish;
@@ -376,49 +379,53 @@ var tcount: integer;
     bpTrigger: TBreakpointTrigger;
 begin
   //set a breakpoint and when that breakpoint gets hit trace a number of instructions
-  with TfrmTracerConfig.create(self) do
+  if fskipconfig=false then
   begin
-    DataTrace:=fDataTrace;
-    if showmodal=mrok then
+    with TfrmTracerConfig.create(self) do
     begin
-      dereference:= cbDereferenceAddresses.checked;
-      savestack:= cbSaveStack.checked;
-
-      tcount:=strtoint(edtMaxTrace.text);
-      condition:=edtCondition.text;
-      stepover:=cbStepOver.checked;
-
-      if startdebuggerifneeded then
+      DataTrace:=fDataTrace;
+      if showmodal=mrok then
       begin
-        if fDataTrace then
-        begin
-          //get breakpoint trigger
-          if rbBreakOnAccess.checked then
-            bpTrigger:=bptAccess
-          else
-            bpTrigger:=bptWrite;
+        dereference:= cbDereferenceAddresses.checked;
+        savestack:= cbSaveStack.checked;
 
-          //get address to break on
-          if (owner is TMemoryBrowser) then
-            (owner as TMemoryBrowser).hexview.GetSelectionRange(fromaddress,toaddress)
-          else
-            memorybrowser.hexview.GetSelectionRange(fromaddress,toaddress);
+        tcount:=strtoint(edtMaxTrace.text);
+        condition:=edtCondition.text;
+        stepover:=cbStepOver.checked;
 
-          //set the breakpoint
-          debuggerthread.setBreakAndTraceBreakpoint(self, fromaddress, bpTrigger, 1+(toaddress-fromaddress), tcount, condition, stepover);
-        end
-        else
+        if startdebuggerifneeded then
         begin
-          if (owner is TMemoryBrowser) then
-            debuggerthread.setBreakAndTraceBreakpoint(self, (owner as TMemoryBrowser).disassemblerview.SelectedAddress, bptExecute, 1, tcount, condition, StepOver)
+          if fDataTrace then
+          begin
+            //get breakpoint trigger
+            if rbBreakOnAccess.checked then
+              bpTrigger:=bptAccess
+            else
+              bpTrigger:=bptWrite;
+
+            //get address to break on
+            if (owner is TMemoryBrowser) then
+              (owner as TMemoryBrowser).hexview.GetSelectionRange(fromaddress,toaddress)
+            else
+              memorybrowser.hexview.GetSelectionRange(fromaddress,toaddress);
+
+            //set the breakpoint
+            debuggerthread.setBreakAndTraceBreakpoint(self, fromaddress, bpTrigger, 1+(toaddress-fromaddress), tcount, condition, stepover);
+          end
           else
-            debuggerthread.setBreakAndTraceBreakpoint(self, memorybrowser.disassemblerview.SelectedAddress, bptExecute,1, tcount, condition, StepOver);
+          begin
+            if (owner is TMemoryBrowser) then
+              debuggerthread.setBreakAndTraceBreakpoint(self, (owner as TMemoryBrowser).disassemblerview.SelectedAddress, bptExecute, 1, tcount, condition, StepOver)
+            else
+              debuggerthread.setBreakAndTraceBreakpoint(self, memorybrowser.disassemblerview.SelectedAddress, bptExecute,1, tcount, condition, StepOver);
+          end;
         end;
+
+
       end;
-
-
+      free;
     end;
-    free;
+
   end;
 
 
@@ -566,6 +573,8 @@ var
 begin
   if opendialog1.execute then
   begin
+    savestack:=true;
+
     f:=TFileStream.create(opendialog1.filename, fmOpenRead or fmShareDenyNone);
     try
       f.ReadBuffer(temp, sizeof(temp));
@@ -1049,11 +1058,11 @@ end;
 procedure TfrmTracer.updatestackview;
 var di: TTraceDebugInfo;
 begin
-  if (Stackview<>nil) and (lvTracer.selected<>nil) then
+  if (Stackview<>nil) and (lvTracer.selected<>nil) and (Stackview.Visible) then
   begin
     //get stack
     di:=TTraceDebugInfo(lvTracer.selected.data);
-    if di<>nil then
+    if (di<>nil) and (di.stack.stack<>nil) then
       StackView.SetContextPointer(@di.c, di.stack.stack, di.stack.savedsize);
   end;
 end;
