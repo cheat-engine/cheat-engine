@@ -3320,29 +3320,57 @@ begin
     end;
   end;
 
-  if tokens[0]='DW' then
+  if tokens[0][1]='D' then  //D*
   begin
-    for i:=1 to nroftokens-1 do
-      addword(bytes,HexStrToInt(tokens[i]));
-    result:=true;
-    exit;
+    if tokens[0]='DW' then
+    begin
+      for i:=1 to nroftokens-1 do
+        addword(bytes,HexStrToInt(tokens[i]));
+      result:=true;
+      exit;
+    end;
+
+    if tokens[0]='DD' then
+    begin
+      for i:=1 to nroftokens-1 do
+        adddword(bytes,HexStrToInt(tokens[i]));
+      result:=true;
+      exit;
+    end;
+
+    if tokens[0]='DQ' then
+    begin
+      for i:=1 to nroftokens-1 do
+        addqword(bytes,HexStrToInt64(tokens[i]));
+      result:=true;
+      exit;
+    end;
+
   end;
 
-  if tokens[0]='DD' then
+  if tokens[0][1]='R' then //R*
   begin
-    for i:=1 to nroftokens-1 do
-      adddword(bytes,HexStrToInt(tokens[i]));
-    result:=true;
-    exit;
-  end;
+    if (length(tokens)=2) and (length(tokens[0])=4) and (copy(tokens[0],1,3)='RES') then //only 2 tokens, the first token is 4 chars and it starts with RES
+    begin
+      //RES* X
 
-  if tokens[0]='DQ' then
-  begin
-    for i:=1 to nroftokens-1 do
-      addqword(bytes,HexStrToInt64(tokens[i]));
-    result:=true;
-    exit;
-  end;  
+      case tokens[0][4] of
+        'B' : i:=1; //1 byte long entries
+        'W' : i:=2; //2 byte long entries
+        'D' : i:=4; //4 byte long entries
+        'Q' : i:=8; //8 byte long entries
+        else raise exception.create('Invalid');
+      end;
+
+      i:=i*strtoint(tokens[1]);
+      setlength(bytes, i);
+      for j:=0 to i-1 do
+        bytes[j]:=0; //init the bytes to 0 (actually it should be uninitialized, but really... (Use structs for that)
+
+      result:=true;
+      exit;
+    end;
+  end;
 
   if (paramtype1>=ttMemorylocation) and (paramtype1<=ttMemorylocation128) then
   begin

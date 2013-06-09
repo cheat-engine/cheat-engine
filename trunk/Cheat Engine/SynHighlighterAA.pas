@@ -277,6 +277,7 @@ type
     function Func15: TtkTokenKind; //cl
     function Func16: TtkTokenKind; //dl
     function Func18: TtkTokenKind; //edi  / bp /r8-r15
+    function Func21: TtkTokenKind; //dq
     function Func23: TtkTokenKind; //ebp
     function Func25: TtkTokenKind; //ax / 25  / dil
     function Func26: TtkTokenKind; //bx
@@ -290,23 +291,26 @@ type
     function Func36: TtkTokenKind; //rbp
     function Func39: TtkTokenKind; //enable
     function Func40: TtkTokenKind; //esp
+    function Func42: TtkTokenKind; //ends
     function Func43: TtkTokenKind; //alloc /define //rax   /rip
-    function Func44: TtkTokenKind;
+    function Func44: TtkTokenKind; //resb
     function Func45: TtkTokenKind;
-    function Func46: TtkTokenKind;
+    function Func46: TtkTokenKind; //resd
     function Func47: TtkTokenKind; //spl
     function Func52: TtkTokenKind; //dealloc / disable
     function Func53: TtkTokenKind; //rsp
     function Func54: TtkTokenKind; //kalloc
     function Func55: TtkTokenKind; //aobscan
-    function Func59: TtkTokenKind; //readmem
+    function Func59: TtkTokenKind; //readmem/resq
     function Func62: TtkTokenKind; //luacall
+    function Func65: TtkTokenKind; //resw
     function Func68: TtkTokenKind; //include
     function Func82: TtkTokenKind; //assert
     function Func92: TtkTokenKind; //globalalloc
-    function Func101: TtkTokenKind; //fullaccess/loadbinary
+    function Func101: TtkTokenKind; //fullaccess/loadbinary/struct
     function Func108: TtkTokenKind; //CreateThread
     function Func117: TtkTokenKind; //loadlibrary
+    function Func124: TtkTokenKind; //endstruct
     function Func187: TtkTokenKind; //registersymbol
     function Func222: TtkTokenKind; //unregistersymbol
 
@@ -483,6 +487,7 @@ begin
   fIdentFuncTable[15] := {$IFDEF FPC}@{$ENDIF}Func15;
   fIdentFuncTable[16] := {$IFDEF FPC}@{$ENDIF}Func16;
   fIdentFuncTable[18] := {$IFDEF FPC}@{$ENDIF}Func18;
+  fIdentFuncTable[23] := {$IFDEF FPC}@{$ENDIF}Func21;
   fIdentFuncTable[23] := {$IFDEF FPC}@{$ENDIF}Func23;
   fIdentFuncTable[25] := {$IFDEF FPC}@{$ENDIF}Func25;
   fIdentFuncTable[26] := {$IFDEF FPC}@{$ENDIF}Func26;
@@ -496,6 +501,7 @@ begin
   fIdentFuncTable[36] := {$IFDEF FPC}@{$ENDIF}Func36;
   fIdentFuncTable[39] := {$IFDEF FPC}@{$ENDIF}Func39;
   fIdentFuncTable[40] := {$IFDEF FPC}@{$ENDIF}Func40;
+  fIdentFuncTable[42] := {$IFDEF FPC}@{$ENDIF}Func42;
   fIdentFuncTable[43] := {$IFDEF FPC}@{$ENDIF}Func43;
   fIdentFuncTable[44] := {$IFDEF FPC}@{$ENDIF}Func44;
   fIdentFuncTable[45] := {$IFDEF FPC}@{$ENDIF}Func45;
@@ -507,12 +513,14 @@ begin
   fIdentFuncTable[55] := {$IFDEF FPC}@{$ENDIF}Func55;
   fIdentFuncTable[59] := {$IFDEF FPC}@{$ENDIF}Func59;
   fIdentFuncTable[62] := {$IFDEF FPC}@{$ENDIF}Func62;
+  fIdentFuncTable[65] := {$IFDEF FPC}@{$ENDIF}Func65;
   fIdentFuncTable[68] := {$IFDEF FPC}@{$ENDIF}Func68;
   fIdentFuncTable[82] := {$IFDEF FPC}@{$ENDIF}Func82;
   fIdentFuncTable[92] := {$IFDEF FPC}@{$ENDIF}Func92;
   fIdentFuncTable[101] := {$IFDEF FPC}@{$ENDIF}Func101;
   fIdentFuncTable[108] := {$IFDEF FPC}@{$ENDIF}Func108;
   fIdentFuncTable[117] := {$IFDEF FPC}@{$ENDIF}Func117;
+  fIdentFuncTable[124] := {$IFDEF FPC}@{$ENDIF}Func124;
   fIdentFuncTable[187] := {$IFDEF FPC}@{$ENDIF}Func187;
   fIdentFuncTable[222] := {$IFDEF FPC}@{$ENDIF}Func222;
 end;
@@ -661,6 +669,12 @@ begin
       Result := tkIdentifier;
 end;
 
+function TSynAASyn.Func21: TtkTokenKind;
+begin
+  if KeyComp('dq') then Result := tkKey else
+    Result := tkIdentifier;
+end;
+
 function TSynAASyn.Func23: TtkTokenKind;
 begin
   if KeyComp('ebp') then Result := tkRegister else
@@ -750,13 +764,19 @@ begin
     Result := tkIdentifier;
 end;
 
-function TSynAASyn.Func40: TtkTokenKind; //enable
+function TSynAASyn.Func40: TtkTokenKind; //esp/sil
 begin
   if KeyComp('esp') then Result := tkRegister else
   {$ifdef cpu64}
     if KeyComp('sil') then Result := tkRegister else
   {$endif}
       Result := tkIdentifier;
+end;
+
+function TSynAASyn.Func42: TtkTokenKind; //ends
+begin
+  if KeyComp('ends') then Result := tkKey else
+    Result := tkIdentifier;
 end;
 
 function TSynAASyn.Func43: TtkTokenKind; //alloc /define
@@ -775,6 +795,7 @@ begin
   {$ifdef cpu64}
   if KeyComp('rbx') then Result := tkRegister else
   {$endif}
+  if KeyComp('resb') then Result := tkKey else
     Result := tkIdentifier;
 end;
 
@@ -792,6 +813,7 @@ begin
   if KeyComp('rdx') then Result := tkRegister else
   if KeyComp('rsi') then Result := tkRegister else
   {$endif}
+  if KeyComp('resd') then Result := tkKey else
     Result := tkIdentifier;
 end;
 
@@ -831,15 +853,22 @@ begin
 end;
 
 
-function TSynAASyn.Func59: TtkTokenKind; //readmem
+function TSynAASyn.Func59: TtkTokenKind; //readmem /resq
 begin
   if KeyComp('readmem') then Result := tkKey else
+  if KeyComp('resq') then Result := tkKey else
     Result := tkIdentifier;
 end;
 
 function TSynAASyn.Func62: TtkTokenKind; //include
 begin
   if KeyComp('luacall') then Result := tkKey else
+    Result := tkIdentifier;
+end;
+
+function TSynAASyn.Func65: TtkTokenKind; //resw
+begin
+  if KeyComp('resw') then Result := tkKey else
     Result := tkIdentifier;
 end;
 
@@ -863,9 +892,10 @@ end;
 
 function TSynAASyn.Func101: TtkTokenKind;
 begin
-  if KeyComp('LoadBinary') then Result := tkKey else
+  if KeyComp('loadbinary') then Result := tkKey else
     if KeyComp('fullaccess') then Result := tkKey else
-      Result := tkIdentifier;
+      if KeyComp('struct') then Result := tkKey else
+        Result := tkIdentifier;
 end;
 
 function TSynAASyn.Func108: TtkTokenKind; //CreateThread
@@ -877,6 +907,12 @@ end;
 function TSynAASyn.Func117: TtkTokenKind; //loadlibrary
 begin
   if KeyComp('loadlibrary') then Result := tkKey else
+    Result := tkIdentifier;
+end;
+
+function TSynAASyn.Func124: TtkTokenKind; //endstruct
+begin
+  if KeyComp('endstruct') then Result := tkKey else
     Result := tkIdentifier;
 end;
 
