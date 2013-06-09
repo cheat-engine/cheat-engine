@@ -7,7 +7,7 @@ interface
 uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs,NewKernelHandler, CEFuncProc, ComCtrls,imagehlp,CEDebugger, KernelDebugger,
-  Menus, LResources, debughelper;
+  Menus, LResources, debughelper, symbolhandler;
 
 type
 
@@ -20,6 +20,7 @@ type
     Refresh1: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure ListView1DblClick(Sender: TObject);
     procedure miManualStackwalkClick(Sender: TObject);
     procedure Refresh1Click(Sender: TObject);
   private
@@ -69,6 +70,8 @@ var
     machinetype: dword;
 
     cp: pointer;
+
+    found: boolean;
 begin
 
   cxt:=context;
@@ -114,7 +117,9 @@ begin
   //because I provide a readprocessmemory the threadhandle just needs to be the unique for each thread. e.g threadid instead of threadhandle
   while stackwalk64(machinetype,processhandle,threadhandle,stackframe,cp, rpm64 ,SymFunctionTableAccess64,SymGetModuleBase64,nil) do
   begin
-    listview1.Items.Add.Caption:=inttohex(stackframe^.AddrPC.Offset,8);
+
+
+    listview1.Items.Add.Caption:=symhandler.getNameFromAddress(stackframe^.AddrPC.Offset, true, true);
     listview1.items[listview1.Items.Count-1].SubItems.add(inttohex(stackframe^.AddrStack.Offset,8));
     listview1.items[listview1.Items.Count-1].SubItems.add(inttohex(stackframe^.AddrFrame.Offset,8));
     listview1.items[listview1.Items.Count-1].SubItems.add(inttohex(stackframe^.AddrReturn.Offset,8));
@@ -124,10 +129,10 @@ begin
     c:=stackframe^.Params[2];
     d:=stackframe^.Params[3];
 
-    sa:='0x'+inttohex(a,8);
-    sb:='0x'+inttohex(b,8);
-    sc:='0x'+inttohex(c,8);
-    sd:='0x'+inttohex(d,8);
+    sa:=symhandler.getNameFromAddress(a, found);
+    sb:=symhandler.getNameFromAddress(a, found);
+    sc:=symhandler.getNameFromAddress(a, found);
+    sd:=symhandler.getNameFromAddress(a, found);
 
     listview1.items[listview1.Items.Count-1].SubItems.add(sa+','+sb+','+sc+','+sd+',...');
   end;
@@ -158,6 +163,12 @@ begin
     frmstacktrace:=nil;
 
   action:=cafree;
+end;
+
+procedure TfrmStacktrace.ListView1DblClick(Sender: TObject);
+begin
+  if listview1.Selected<>nil then
+    memorybrowser.disassemblerview.TopAddress:=symhandler.getAddressFromName(listview1.Selected.Caption);
 end;
 
 procedure TfrmStacktrace.shadowstacktrace(context: _context; stackcopy: pointer; stackcopysize: integer);
