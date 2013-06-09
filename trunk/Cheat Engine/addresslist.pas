@@ -1422,6 +1422,18 @@ begin
   treeview.refresh;
 end;
 
+function hasNonExpandedParent(parent: ttreenode): boolean;
+begin
+  if parent=nil then
+    result:=false
+  else
+  begin
+    result:=parent.Expanded=false; //becomes true if not expanded
+    if not result then
+      result:=hasNonExpandedParent(parent.parent);
+  end;
+end;
+
 procedure TAddresslist.SelectionUpdate(sender: TObject);
 var shift:TShiftState;
     i: integer;
@@ -1447,9 +1459,8 @@ begin
 
       for i:=min(lastselected,treeview.selected.absoluteIndex) to max(lastselected,treeview.selected.absoluteIndex) do
       begin
-
-        if MemRecItems[i].treenode.IsVisible then
-          MemRecItems[i].isSelected:=true;
+        //check if any parent is not expanded, if so, isselected should be false
+        MemRecItems[i].isSelected:=not hasNonExpandedParent(memrecitems[i].treenode.parent);
       end;
     end
     else
