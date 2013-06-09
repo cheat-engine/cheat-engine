@@ -886,6 +886,13 @@ object MemoryBrowser: TMemoryBrowser
         ShortCut = 16463
         OnClick = Loadmemolryregion1Click
       end
+      object MenuItem19: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem20: TMenuItem
+        Caption = 'Load trace'
+        OnClick = MenuItem20Click
+      end
     end
     object Search2: TMenuItem
       Caption = 'Search'

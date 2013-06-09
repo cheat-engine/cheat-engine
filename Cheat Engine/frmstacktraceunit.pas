@@ -27,6 +27,7 @@ type
     procedure refreshtrace;
   public
     { Public declarations }
+    procedure shadowstacktrace(context: _context; stackcopy: pointer; stackcopysize: integer);
     procedure stacktrace(threadhandle:thandle;context:_context);
   end;
 
@@ -56,6 +57,7 @@ begin
 
   result:=newkernelhandler.readprocessmemory(hProcess, pointer(ptrUint(qwBaseAddress)), lpBuffer, nSize, lpNumberOfBytesRead^);
 end;
+
 
 procedure TfrmStacktrace.stacktrace(threadhandle:thandle;context:_context);
 var
@@ -152,9 +154,21 @@ end;
 procedure TfrmStacktrace.FormClose(Sender: TObject;
   var Action: TCloseAction);
 begin
-  frmstacktrace:=nil;
+  if frmstacktrace=self then  //it can be something else as well
+    frmstacktrace:=nil;
+
   action:=cafree;
 end;
+
+procedure TfrmStacktrace.shadowstacktrace(context: _context; stackcopy: pointer; stackcopysize: integer);
+begin
+  useshadow:=true;
+  shadowOrig:=context.{$ifdef cpu64}rsp{$else}esp{$endif};
+  shadowNew:=ptruint(stackcopy);
+  shadowSize:=stackcopysize;
+  stacktrace(GetCurrentThread, context);
+end;
+
 
 procedure TfrmStacktrace.miManualStackwalkClick(Sender: TObject);
 var c: _CONTEXT;
