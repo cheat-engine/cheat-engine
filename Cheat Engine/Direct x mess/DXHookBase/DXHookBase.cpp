@@ -686,7 +686,7 @@ void InitializeD3D9Api()
 {
 	char dllpath[MAX_PATH];				
 	strcpy_s(dllpath, MAX_PATH, (char *)shared->CheatEngineDir);
-#ifdef AMD64
+#ifdef _AMD64_
 	strcat_s(dllpath, MAX_PATH, "CED3D9Hook64.dll");
 #else
 	strcat_s(dllpath, MAX_PATH, "CED3D9Hook.dll");
@@ -840,7 +840,7 @@ void InitializeD3D10Api()
 {
 	char dllpath[MAX_PATH];				
 	strcpy_s(dllpath, MAX_PATH, (char *)shared->CheatEngineDir);
-#ifdef AMD64
+#ifdef _AMD64_
 	strcat_s(dllpath, MAX_PATH, "CED3D10Hook64.dll");
 #else
 	strcat_s(dllpath, MAX_PATH, "CED3D10Hook.dll");
@@ -926,7 +926,7 @@ void InitializeD3D11Api()
 {
 	char dllpath[MAX_PATH];				
 	strcpy_s(dllpath, MAX_PATH, (char *)shared->CheatEngineDir);
-#ifdef AMD64
+#ifdef _AMD64_
 	strcat_s(dllpath, MAX_PATH, "CED3D11Hook64.dll");
 #else
 	strcat_s(dllpath, MAX_PATH, "CED3D11Hook.dll");
