@@ -46,6 +46,7 @@ object frmStacktrace: TfrmStacktrace
     RowSelect = True
     TabOrder = 0
     ViewStyle = vsReport
+    OnDblClick = ListView1DblClick
   end
   object PopupMenu1: TPopupMenu
     left = 88
