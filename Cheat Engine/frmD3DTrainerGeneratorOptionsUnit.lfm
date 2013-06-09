@@ -10,7 +10,7 @@ object frmD3DTrainerGeneratorOptions: TfrmD3DTrainerGeneratorOptions
   ClientWidth = 418
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '1.1'
+  LCLVersion = '1.0.8.0'
   object cbUseD3DKeys: TCheckBox
     Left = 8
     Height = 19
@@ -25,9 +25,9 @@ object frmD3DTrainerGeneratorOptions: TfrmD3DTrainerGeneratorOptions
   end
   object Label1: TLabel
     Left = 8
-    Height = 15
+    Height = 16
     Top = 56
-    Width = 71
+    Width = 72
     Caption = 'Transparency'
     ParentColor = False
   end
@@ -116,9 +116,9 @@ object frmD3DTrainerGeneratorOptions: TfrmD3DTrainerGeneratorOptions
   end
   object Label2: TLabel
     Left = 216
-    Height = 15
+    Height = 16
     Top = 4
-    Width = 43
+    Width = 44
     Caption = 'Position'
     ParentColor = False
   end
@@ -174,10 +174,11 @@ object frmD3DTrainerGeneratorOptions: TfrmD3DTrainerGeneratorOptions
   end
   object lblTextColor: TLabel
     Left = 352
-    Height = 15
+    Height = 16
     Top = 336
-    Width = 46
+    Width = 47
     Caption = 'Font text'
+    Font.Color = clWhite
     Font.Quality = fqNonAntialiased
     ParentColor = False
     ParentFont = False
@@ -228,9 +229,9 @@ object frmD3DTrainerGeneratorOptions: TfrmD3DTrainerGeneratorOptions
   end
   object Label3: TLabel
     Left = 208
-    Height = 15
+    Height = 16
     Top = 96
-    Width = 107
+    Width = 108
     Caption = 'Background picture:'
     ParentColor = False
   end
@@ -251,17 +252,17 @@ object frmD3DTrainerGeneratorOptions: TfrmD3DTrainerGeneratorOptions
   end
   object Label4: TLabel
     Left = 9
-    Height = 15
+    Height = 16
     Top = 152
-    Width = 165
+    Width = 166
     Caption = 'Distance between lines in pixels'
     ParentColor = False
   end
   object Label5: TLabel
     Left = 9
-    Height = 15
+    Height = 16
     Top = 196
-    Width = 119
+    Width = 120
     Caption = 'Text distance from top'
     ParentColor = False
   end
@@ -283,9 +284,9 @@ object frmD3DTrainerGeneratorOptions: TfrmD3DTrainerGeneratorOptions
   end
   object Label6: TLabel
     Left = 9
-    Height = 15
+    Height = 16
     Top = 240
-    Width = 136
+    Width = 137
     Caption = 'Text distance from border'
     ParentColor = False
   end
