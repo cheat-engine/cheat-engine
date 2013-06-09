@@ -88,12 +88,17 @@ void DXMessD3D9Handler::TakeSnapshot(char *functionname)
 			LPD3DXBUFFER dest=NULL;
 		
 
+#ifdef _AMD64_
+			stackbase=(UINT64)&functionname;
+#else
+			
 			__asm
 			{
 				mov dword ptr [stackbase], ebp   //sure, it's a bit too far, but close enough
 			}
 
 			snapshotCounter++;
+#endif
 
 			
 			sprintf_s(s, MAX_PATH, "%ssnapshot%d.ce3dsnapshot", shared->SnapShotDir, snapshotCounter);
