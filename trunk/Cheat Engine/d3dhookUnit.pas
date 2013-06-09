@@ -1568,7 +1568,10 @@ begin
 
 
     //now inject the dll
-    injectdll(cheatenginedir+'d3dhook.dll');
+    if processhandler.is64Bit then
+      injectdll(cheatenginedir+'d3dhook64.dll')
+    else
+      injectdll(cheatenginedir+'d3dhook.dll');
 
     //wait till the injection is done
     WaitForSingleObject(h, INFINITE);
