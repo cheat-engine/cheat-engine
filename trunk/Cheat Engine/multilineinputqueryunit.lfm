@@ -26,6 +26,7 @@ object frmMultilineInputQuery: TfrmMultilineInputQuery
     Lines.Strings = (
       'Memo1'
     )
+    OnKeyDown = Memo1KeyDown
     ScrollBars = ssVertical
     TabOrder = 0
   end

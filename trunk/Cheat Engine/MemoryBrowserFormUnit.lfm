@@ -796,6 +796,7 @@ object MemoryBrowser: TMemoryBrowser
       object miCopyBytesOnly: TMenuItem
         Tag = 3
         Caption = 'Bytes only (no address)'
+        ShortCut = 49219
         OnClick = miCopyBytesOnlyClick
       end
     end
@@ -831,6 +832,7 @@ object MemoryBrowser: TMemoryBrowser
     end
     object miUserdefinedComment: TMenuItem
       Caption = 'Set/Change comment'
+      ShortCut = 16397
       OnClick = miUserdefinedCommentClick
     end
   end

@@ -5,7 +5,8 @@ unit multilineinputqueryunit;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls;
+  windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls;
+
 
 
 
@@ -17,25 +18,15 @@ implementation
 
 { TfrmMultilineInputQuery }
 
-
 type
-
-  { TfrmMultilineInputQuery }
-
   TfrmMultilineInputQuery = class(TForm)
     Panel1: TPanel;
     Button1: TButton;
     Button2: TButton;
     lblPrompt: TLabel;
     Memo1: TMemo;
-  private
-    { private declarations }
-  public
-    { public declarations }
+    procedure Memo1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   end;
-
-
-
 
 function MultilineInputQuery(const ACaption, APrompt : String; Values : TStrings) : Boolean;
 var f: TfrmMultilineInputQuery;
@@ -59,6 +50,13 @@ begin
   end;
 
   f.free;
+end;
+
+procedure TfrmMultilineInputQuery.Memo1KeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if key=VK_ESCAPE then
+    modalresult:=mrcancel;
 end;
 
 end.
