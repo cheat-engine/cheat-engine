@@ -1757,7 +1757,8 @@ begin
     vk_return:
     begin
       //assembler input
-      assemble1.Click;
+      if shift = [] then
+        assemble1.Click;
     end;
 
     vk_space:
