@@ -509,7 +509,7 @@ begin
         begin
           //found it
           if AllIncludesCustomType then
-            result:=@p1[pivot*MaxCustomTypeSize]
+            result:=@p1[pivot*max(8, MaxCustomTypeSize)]
           else
             result:=@p6[pivot]; //8 byte entries, doesnt have to match the same type, since it is the same 8 byte value that's stored
 
