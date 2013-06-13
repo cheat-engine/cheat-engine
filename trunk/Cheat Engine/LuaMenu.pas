@@ -278,6 +278,7 @@ begin
   luaclass_addPropertyToTable(L, metatable, userdata, 'Shortcut', menuItem_getShortcut, menuItem_setShortcut);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Count', menuItem_getCount, nil);
   luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Item', menuItem_getItem);
+  luaclass_setDefaultArrayProperty(L, metatable, userdata, menuItem_getItem, nil);
   luaclass_addPropertyToTable(L, metatable, userdata, 'OnClick', menuItem_getOnClick, menuItem_setOnClick);
 end;
 

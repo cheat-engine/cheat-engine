@@ -458,6 +458,7 @@ begin
           begin
             lua_pushvalue(L, 2); //key
             lua_call(L, 1, 1); //call __defaultintegergetindexhandler(key)
+            result:=1;
             exit;
           end;
         end;
