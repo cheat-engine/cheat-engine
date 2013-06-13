@@ -46,7 +46,7 @@ begin
       exit;
     end;
 
-    p[i-1]:=lua_tointeger(L, i);
+    p[i-1]:=lua_tointeger(L, -1);
     lua_pop(L,1);
   end;
 end;
