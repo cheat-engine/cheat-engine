@@ -1145,13 +1145,17 @@ properties
   Position: integer
 
 methods
-  copyFrom(stream, count)
-  read(count OPTIONAL): bytetable
-  write(bytetable, count OPTIONAL)
+  copyFrom(stream, count) - Copies count bytes from the given stream to this stream
+  read(count): bytetable - Returns a bytetable containing the bytes of the stream. This increases the posion
+  write(bytetable, count OPTIONAL)- Writes the given bytetable to the stream
 
 
 MemoryStream Class (Inheritance: Stream->Object)
 createMemoryStream()
+
+properties
+  Memory: Integer - The address in Cheat Engine's memory this stream is loaded (READONLY, tends to change)
+
 
 FileStream Class (Inheritance: HandleStream->Stream->Object)
 createFileStream(filename, mode)
