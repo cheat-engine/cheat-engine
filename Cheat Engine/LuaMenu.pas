@@ -254,7 +254,7 @@ end;
 procedure menu_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
   component_addMetaData(L, metatable, userdata);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'menu_getItems', menu_getItems);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getItems', menu_getItems);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Items', menu_getItems, nil);
 end;
 
