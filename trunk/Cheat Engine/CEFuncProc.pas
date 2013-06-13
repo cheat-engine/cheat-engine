@@ -3096,6 +3096,7 @@ var ishex: string;
 
     bytes: string;
     t: string;
+    q: qword;
     f: single;
     d: double;
 begin
@@ -3146,18 +3147,11 @@ begin
         if copy(s,1,5)='(INT)' then
         begin
           t:=copy(s,6,length(s));
-          val(t, k,j);
-          if j=0 then
-          begin
-            result:='$'+inttohex(k,8);
-
-            if s[1]='-' then
-              result:='-'+result;
-
-            if s[1]='+' then
-              result:='+'+result;
-              
+          try
+            q:=StrToQWordEx(t);
+            result:='$'+inttohex(q,8);
             exit;
+          except
           end;
         end;
 
