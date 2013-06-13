@@ -470,6 +470,7 @@ begin
           lua_pop(L,1);
           lua_pushnil(L);
           result:=1;
+          exit;
         end;
 
 
@@ -479,6 +480,7 @@ begin
         lua_pushvalue(L, 1); //userdata
         lua_pushvalue(L, 2); //keyname
         lua_call(L,2,1);
+        result:=1;
 
         if lua_isnil(L, -1) then
         begin
@@ -490,6 +492,7 @@ begin
             lua_pushvalue(L, 1);
             lua_pushvalue(L, 2);
             lua_call(L, 2, 1);
+            result:=1;
           end;
         end;
       end;

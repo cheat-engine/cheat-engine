@@ -65,7 +65,7 @@ The "find what acceses this address" window no longr prints out ALL results in t
 Changed the stackview panel so when it's visible and you resize the window it's on, it resizes instead of the hexview
 The assembly scan can now have a custom range
 Added an option to the trainerscript generator to generate a D3DTrainer (if the game supports it)
-DBVM now works on AMD systems. Some featues like Ultimap are still Intel only, but int hooks work
+DBVM now works on AMD systems. Some features like Ultimap are still Intel only, but int hooks work
 
 
 
