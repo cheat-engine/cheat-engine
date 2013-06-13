@@ -757,7 +757,7 @@ begin
       lua_getfield(luavm, LUA_GLOBALSINDEX, pchar(routinetocall));
 
       p:=lua_gettop(luavm);
-      if p<>0 then
+      if p<>oldstack then
       begin
         if lua_isfunction(luavm, -1) then
         begin
@@ -811,7 +811,7 @@ begin
 
 
     finally
-      lua_pop(luavm,oldstack-lua_gettop(luavm));
+      lua_settop(luavm, oldstack);
  //     luacs.leave;
     end;
 
@@ -1660,8 +1660,13 @@ var
   targetself: boolean;
   CEAllocArray: TCEAllocArray;
 begin
+  result:=0;
   parameters:=lua_gettop(L);
-  if parameters=0 then exit;
+  if parameters=0 then
+  begin
+    lua_pushboolean(L, false);
+    exit;
+  end;
 
   code:=tstringlist.create;
   try

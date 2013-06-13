@@ -7699,6 +7699,7 @@ var t: TD3DHook_Texture;
   exportlist: pchar;
   max: integer;
 begin
+
   if isRunningDBVM then
     showmessage('yes')
   else
