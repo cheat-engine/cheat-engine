@@ -3745,7 +3745,12 @@ begin
             begin
               //verified, it doesn't have a registerbase in it
               addopcode(bytes,j);
-              adddword(bytes,v);
+
+              if processhandler.is64Bit then
+                addQword(bytes,v)
+              else
+                addDword(bytes,v);
+
               result:=true;
               exit;
             end;
@@ -3766,7 +3771,11 @@ begin
             begin
               //verified, it doesn't have a registerbase in it
               addopcode(bytes,j);
-              adddword(bytes,v);
+              if processhandler.is64Bit then
+                addqword(bytes,v)
+              else
+                adddword(bytes,v);
+
               result:=true;
               exit;
             end;
@@ -3787,7 +3796,11 @@ begin
             begin
               //verified, it doesn't have a registerbase in it
               addopcode(bytes,j);
-              adddword(bytes,v);
+              if processhandler.is64Bit then
+                addqword(bytes,v)
+              else
+                adddword(bytes,v);
+
               result:=true;
               exit;
             end;
@@ -3843,7 +3856,11 @@ begin
             begin
               //verified, it doesn't have a registerbase in it
               addopcode(bytes,j);
-              adddword(bytes,v);
+              if processhandler.is64Bit then
+                addqword(bytes,v)
+              else
+                adddword(bytes,v);
+
               result:=true;
               exit;
             end;
@@ -3918,7 +3935,11 @@ begin
             begin
               //verified, it doesn't have a registerbase in it
               addopcode(bytes,j);
-              adddword(bytes,v);
+              if processhandler.is64bit then
+                addqword(bytes,v)
+              else
+                adddword(bytes,v);
+
               result:=true;
               exit;
             end;
@@ -4024,7 +4045,12 @@ begin
             begin
               //verified, it doesn't have a registerbase in it
               addopcode(bytes,j);
-              adddword(bytes,v);
+
+              if processhandler.is64Bit then
+                addqword(bytes,v)
+              else
+                adddword(bytes,v);
+
               result:=true;
               exit;
             end;

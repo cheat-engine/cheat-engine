@@ -7536,8 +7536,18 @@ begin
               inc(lastdisassembledata.seperatorcount);
 
 
-              lastdisassembledata.parameters:=colorreg+'ax'+endcolor+','+getsegmentoverride(prefix2)+'['+inttohexs(dwordptr^,8)+']';
-              inc(offset,4);
+              if processhandler.is64bit then
+              begin
+                lastdisassembledata.parameters:=colorreg+'ax'+endcolor+','+getsegmentoverride(prefix2)+'['+inttohexs(pqword(dwordptr)^,8)+']';
+                inc(offset,8);
+              end
+              else
+              begin
+                lastdisassembledata.parameters:=colorreg+'ax'+endcolor+','+getsegmentoverride(prefix2)+'['+inttohexs(dwordptr^,8)+']';
+                inc(offset,4);
+              end;
+
+
             end;
 
       $a1 : begin
@@ -7562,10 +7572,19 @@ begin
                 else
                   lastdisassembledata.parameters:=colorreg+'eax'+endcolor+',';
 
-                lastdisassembledata.parameters:=lastdisassembledata.parameters+getsegmentoverride(prefix2)+'['+inttohexs(dwordptr^,8)+']';
+
+                if processhandler.is64bit then
+                  lastdisassembledata.parameters:=lastdisassembledata.parameters+getsegmentoverride(prefix2)+'['+inttohexs(pqword(dwordptr)^,8)+']'
+                else
+                  lastdisassembledata.parameters:=lastdisassembledata.parameters+getsegmentoverride(prefix2)+'['+inttohexs(dwordptr^,8)+']';
 
               end;
-              inc(offset,4);
+
+              if processhandler.is64bit then
+                inc(offset, 8)
+              else
+                inc(offset, 4);
+
             end;
 
       $a2 : begin
@@ -7578,9 +7597,15 @@ begin
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
               inc(lastdisassembledata.seperatorcount);
 
+              if processhandler.is64bit then
+                lastdisassembledata.parameters:='byte ptr '+getsegmentoverride(prefix2)+'['+inttohexs(pqword(dwordptr)^,8)+'],'+colorreg+'al'+endcolor
+              else
+                lastdisassembledata.parameters:='byte ptr '+getsegmentoverride(prefix2)+'['+inttohexs(dwordptr^,8)+'],'+colorreg+'al'+endcolor;
 
-              lastdisassembledata.parameters:='byte ptr '+getsegmentoverride(prefix2)+'['+inttohexs(dwordptr^,8)+'],'+colorreg+'al'+endcolor;
-              inc(offset,4);
+              if processhandler.is64bit then
+                inc(offset, 8)
+              else
+                inc(offset, 4);
             end;
 
       $a3 : begin
@@ -7593,7 +7618,11 @@ begin
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
               inc(lastdisassembledata.seperatorcount);
 
-              lastdisassembledata.parameters:=getsegmentoverride(prefix2)+'['+inttohexs(dwordptr^,8)+'],';
+              if processhandler.is64bit then
+                lastdisassembledata.parameters:=getsegmentoverride(prefix2)+'['+inttohexs(pqword(dwordptr)^,8)+'],'
+              else
+                lastdisassembledata.parameters:=getsegmentoverride(prefix2)+'['+inttohexs(dwordptr^,8)+'],';
+
               if $66 in prefix2 then
                 lastdisassembledata.parameters:=lastdisassembledata.parameters+colorreg+'ax'+endcolor
               else
@@ -7603,7 +7632,11 @@ begin
                 else
                   lastdisassembledata.parameters:=lastdisassembledata.parameters+colorreg+'eax'+endcolor;
               end;
-              inc(offset,4);
+
+              if processhandler.is64bit then
+                inc(offset, 8)
+              else
+                inc(offset, 4);
             end;
 
       $a4 : begin
