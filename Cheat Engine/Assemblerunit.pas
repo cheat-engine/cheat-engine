@@ -3219,7 +3219,7 @@ begin
         else addstring(bytes,tokens[i]); //lets try to save face...
       end
       else
-        add(bytes,[strtoint('$'+tokens[i])]);
+        add(bytes,[HexStrToInt(tokens[i])]);
     end;
 
     result:=true;
