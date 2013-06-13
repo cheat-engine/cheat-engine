@@ -441,6 +441,7 @@ properties
   Shortcut : string - Shortcut in textform to trigger the menuitem
   Count : integer - Number of children attached to this menuitem
   Item[] : Array to access each child menuitem
+  [] : Item[]
   OnClick: Function to call when the menu item is activated
 
 methods
@@ -548,9 +549,9 @@ createFormFromFile(filename): Returns the generated CEform
 properties
   DoNotSaveInTable: boolean - Set this if you do not wish to save the forms in the table
 methods
-  saveToFile(form, filename): Saves a userdefined form
-  getDoNotSaveInTable(form): Returns the DoNotSaveInTable property
-  setDoNotSaveInTable(form, boolean): Sets the DoNotSaveInTable property
+  saveToFile(filename): Saves a userdefined form
+  getDoNotSaveInTable(): Returns the DoNotSaveInTable property
+  setDoNotSaveInTable(boolean): Sets the DoNotSaveInTable property
 
 
 GraphicControl Class: (Inheritance: Control->Component->Object)
