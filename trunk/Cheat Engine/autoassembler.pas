@@ -867,11 +867,11 @@ var i,j,k,l,e: integer;
     ProcessID: DWORD;
 
     bytes: tbytes;
-
-    symhandler: TSymhandler;
     prefered: ptrUint;
 
     oldhandle: thandle;
+    oldsymhandler: TSymHandler;
+
 begin
   setlength(readmems,0);
   setlength(allocs,0);
@@ -904,14 +904,14 @@ begin
     oldhandle:=cefuncproc.ProcessHandle;
     processhandle:=getcurrentprocess;
     processid:=getcurrentprocessid;
-    symhandler:=symbolhandler.selfsymhandler;
+    oldsymhandler:=symhandler;
+    symhandler:=selfsymhandler;
     processhandler.processhandle:=processhandle;
   end
   else
   begin
     processhandle:=cefuncproc.ProcessHandle;
     processid:=cefuncproc.ProcessID;
-    symhandler:=symbolhandler.symhandler;
   end;
 
   symhandler.waitforsymbolsloaded;
@@ -2386,7 +2386,10 @@ begin
     pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 3); //tell the plugins to free their data
 
     if targetself then
+    begin
       processhandler.processhandle:=oldhandle;
+      symhandler:=oldsymhandler;
+    end;
   end;
 end;
 
