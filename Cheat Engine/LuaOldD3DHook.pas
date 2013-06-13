@@ -11,7 +11,7 @@ procedure initializeLuaOldD3DHook;
 
 implementation
 
-uses d3dhookUnit, LuaCaller, LuaHandler;
+uses d3dhookUnit, LuaCaller, LuaHandler, LuaClass;
 
 function d3dhook_getWidth(L: PLua_State): integer; cdecl;
 var
@@ -293,6 +293,7 @@ begin
 
     if D3DHook<>nil then
     begin
+
       if lua_isuserdata(L,1) then
       begin
         //picture
@@ -301,7 +302,7 @@ begin
 
         if (o is TPicture) then
         begin
-          lua_pushlightuserdata(L, d3dhook.createTexture(tpicture(o)));
+          luaclass_newClass(L, d3dhook.createTexture(tpicture(o)));
           result:=1;
         end;
       end
@@ -313,7 +314,7 @@ begin
           s:=Lua_ToString(L,1);
           lua_pop(L, parameters);
 
-          lua_pushlightuserdata(L, d3dhook.createTexture(s));
+          luaclass_newClass(L, d3dhook.createTexture(s));
           result:=1;
         except
         end;
@@ -397,7 +398,7 @@ begin
 
     if D3DHook<>nil then
     begin
-      lua_pushlightuserdata(L, d3dhook.createFontMap(f));
+      luaclass_newClass(L, d3dhook.createFontMap(f));
       result:=1;
     end;
   end
@@ -654,7 +655,7 @@ begin
     t:=lua_toceuserdata(L,1);
     lua_pop(L, parameters);
 
-    lua_pushlightuserdata(L, d3dhook.createSprite(t));
+    luaclass_newClass(L, d3dhook.createSprite(t));
     result:=1;
   end
   else
@@ -751,7 +752,7 @@ begin
     r:=lua_toceuserdata(L,1);
     lua_pop(L, parameters);
 
-    lua_pushlightuserdata(L, r.Texture);
+    luaclass_newClass(L, r.Texture);
     result:=1;
   end
   else
@@ -794,7 +795,7 @@ begin
     text:=Lua_ToString(L,4);
     lua_pop(L, parameters);
 
-    lua_pushlightuserdata(L, d3dhook.createTextContainer(fm,x,y,text));
+    luaclass_newClass(L, d3dhook.createTextContainer(fm,x,y,text));
     result:=1;
   end
   else
@@ -813,7 +814,7 @@ begin
     r:=lua_toceuserdata(L,1);
     lua_pop(L, parameters);
 
-    lua_pushlightuserdata(L, r.Fontmap);
+    luaclass_newClass(L, r.Fontmap);
     result:=1;
   end
   else
