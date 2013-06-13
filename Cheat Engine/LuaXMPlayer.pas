@@ -31,7 +31,7 @@ begin
     else
       noloop:=false;
 
-    if lua_islightuserdata(L,1) then //Object, if the given object is a LuaFile, get the stream. If it's a stream, use it as it is
+    if lua_isuserdata(L,1) then //Object, if the given object is a LuaFile, get the stream. If it's a stream, use it as it is
     begin
       o:=lua_toceuserdata(L,1);
       if o is TStream then
