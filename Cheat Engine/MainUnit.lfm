@@ -9,7 +9,7 @@ object MainForm: TMainForm
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AllowDropFiles = True
-  Caption = 'Cheat Engine 6.2'
+  Caption = 'Cheat Engine 6.3'
   ClientHeight = 550
   ClientWidth = 600
   Font.Height = -11
