@@ -206,7 +206,7 @@ begin
 end;
 
 procedure TfrmLoadMemory.Button3Click(Sender: TObject);
-var delta: dword;
+var delta: ptruint;
 begin
   if listbox1.ItemIndex<>-1 then
   begin
