@@ -7,7 +7,7 @@ interface
 uses
   windows, LCLProc, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls,registry, Menus,ComCtrls,CEFuncProc,ExtCtrls,{tlhelp32,}CheckLst,
-  Buttons, LResources, frameHotkeyConfigUnit,
+  Buttons, LResources, frameHotkeyConfigUnit, math,
 
   kerneldebugger,plugin,NewKernelHandler,CEDebugger,hotkeyhandler, debugHelper,
   formhotkeyunit, debuggertypedefinitions;
@@ -909,7 +909,7 @@ begin
 
   //fill hotkey list
   for i:=0 to length(hotkeythread.hotkeylist)-1 do
-    if hotkeythread.hotkeylist[i].handler2 then
+    if hotkeythread.hotkeylist[i].handler2 and inrange(hotkeythread.hotkeylist[i].id, 0, 30) then
       framehotkeyconfig.newhotkeys[hotkeythread.hotkeylist[i].id]:=hotkeythread.hotkeylist[i].keys;
 
   framehotkeyconfig.newspeedhackspeed1:=speedhackspeed1;

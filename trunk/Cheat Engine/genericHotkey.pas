@@ -25,7 +25,7 @@ begin
   //register hotkey
   onNotify:=routine;
   self.keys:=keys;
-  RegisterHotKey2(mainform.handle, 0, keys, nil,self);
+  RegisterHotKey2(mainform.handle, -1, keys, nil,self);
 end;
 
 destructor TGenericHotkey.destroy;
