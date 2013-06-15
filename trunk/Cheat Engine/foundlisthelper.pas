@@ -200,6 +200,8 @@ var memoryfile: tfilestream;
     j,k: integer;
     buf: pointer;
 
+    entrysize: integer=0;
+
 begin
   if addressfile=nil then exit;
 
@@ -215,6 +217,7 @@ begin
   try
     //memoryfile is initialized
 
+
     if vartype in [vtBinary,vtAll] then
       addresspos:=7+sizeof(sizeof(TBitAddress))*i
     else
@@ -224,17 +227,22 @@ begin
       addresspos:=7+sizeof(sizeof(ptruint))*i;
 
     case vartype of
-      vtByte: memorypos:=sizeof(byte)*i;
-      vtWord: memorypos:=sizeof(word)*i;
-      vtDword: memorypos:=sizeof(dword)*i;
-      vtSingle: memorypos:=sizeof(single)*i;
-      vtDouble: memorypos:=sizeof(double)*i;
-      vtQword: memorypos:=sizeof(int64)*i;
+      vtByte: entrysize:=sizeof(byte);
+      vtWord: entrysize:=sizeof(word);
+      vtDword: entrysize:=sizeof(dword);
+      vtSingle: entrysize:=sizeof(single);
+      vtDouble: entrysize:=sizeof(double);
+      vtQword: entrysize:=sizeof(int64);
     end; //no binary , string,aob or group since they have no values stored
+
+
+    memorypos:=entrysize*i;
 
     addressfile.Position:=0;
     memoryfile.Position:=0;
 
+    //address
+    //copy all address from 0 to addresspos
     outaddress.CopyFrom(addressfile,addresspos);
     if vartype in [vtBinary,vtAll] then
       addressfile.Position:=addresspos+sizeof(TBitAddress)
@@ -244,16 +252,19 @@ begin
     else
       addressfile.Position:=addresspos+sizeof(ptruint);
 
-    if addressfile.Size-addressfile.Position>0 then
+    if addressfile.Size-addressfile.Position>0 then //if there are stil addresses left, copy them as well
       outaddress.CopyFrom(addressfile,addressfile.Size-addressfile.Position);
 
     //memory
     if not (vartype in [vtBinary,vtAll, vtGrouped]) then
     begin
-      outmemory.CopyFrom(memoryfile,memorypos);
-      memoryfile.Position:=memorypos+sizeof(dword);
+      //copy the memory from 0 to memorypos
+      if memorypos>0 then
+        outmemory.CopyFrom(memoryfile,memorypos);
 
-      if memoryfile.Size-memoryfile.Position>0 then
+      memoryfile.Position:=memorypos+entrysize;
+
+      if memoryfile.Size-memoryfile.Position>0 then //and copy what's left
         outmemory.CopyFrom(memoryfile,memoryfile.Size-memoryfile.Position);
     end;
     
