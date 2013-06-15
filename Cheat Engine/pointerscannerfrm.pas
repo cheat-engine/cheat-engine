@@ -513,7 +513,7 @@ begin
   results.WriteBuffer(staticdata.offset,sizeof(staticdata.offset));
   i:=level+1; //store how many offsets are actually used (since all are saved)
   results.WriteBuffer(i,sizeof(i));
-  results.WriteBuffer(tempresults[0], maxlevel*sizeof(tempresults[0]) );
+  results.WriteBuffer(tempresults[0], maxlevel*sizeof(tempresults[0]) ); //todo for 6.3+: Change sizeof(tempresult[0]) with the max size the structsize can generate./ (e.g 4096 is  only 2 bytes, 65536 =3)
 
   if results.position>15*1024*1024 then //bigger than 15mb
     flushresults;
