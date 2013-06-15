@@ -2212,8 +2212,10 @@ begin
         lastscantype := scantype.ItemIndex;
     end;
 
-    if cbHexadecimal.Visible=false then
-      cbHexadecimal.checked:=false; //uncheck hex if it isn't visible
+    if (not cbHexadecimal.Visible) and (cbHexadecimal.checked) then //not visible but checked
+    begin
+      cbHexadecimal.checked:=hexvis;
+    end;
 
   finally
     scantype.OnChange := old;
