@@ -130,9 +130,9 @@ begin
     d:=stackframe^.Params[3];
 
     sa:=symhandler.getNameFromAddress(a, found);
-    sb:=symhandler.getNameFromAddress(a, found);
-    sc:=symhandler.getNameFromAddress(a, found);
-    sd:=symhandler.getNameFromAddress(a, found);
+    sb:=symhandler.getNameFromAddress(b, found);
+    sc:=symhandler.getNameFromAddress(c, found);
+    sd:=symhandler.getNameFromAddress(d, found);
 
     listview1.items[listview1.Items.Count-1].SubItems.add(sa+','+sb+','+sc+','+sd+',...');
   end;
