@@ -583,7 +583,9 @@ begin
       f.readbuffer(temp, sizeof(temp));
 
       m:=TMemoryStream.create;
-      m.CopyFrom(f, temp);
+      if temp>0 then
+        m.CopyFrom(f, temp);
+
       m.Position:=0;
       lvTracer.LoadFromStream(m); //load the texttrace regardless of version
       m.free;
