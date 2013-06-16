@@ -5246,6 +5246,19 @@ begin
                         end;
                       end;
 
+                $f0 : begin
+                        if $f2 in prefix2 then
+                        begin
+                          description:='load unaligned integer 128 bits';
+                          lastdisassembledata.opcode:='lddqu';
+                          lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          inc(offset,last-1);
+                        end
+                        else
+                          inc(offset);
+                      end;
+
+
                 $f1 : begin
                         if $66 in prefix2 then
                         begin

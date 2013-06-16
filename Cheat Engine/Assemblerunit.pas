@@ -8,7 +8,7 @@ interface
 
 uses dialogs,LCLIntf,sysutils,imagehlp;
 
-const opcodecount=1081; //I wish there was a easier way than to handcount
+const opcodecount=1082; //I wish there was a easier way than to handcount
 
 
 type TTokenType=(
@@ -693,6 +693,7 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'LAR';opcode1:eo_reg;paramtype1:par_r16;paramtype2:par_rm16;bytes:3;bt1:$66;bt2:$0f;bt3:$02),
   (mnemonic:'LAR';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_rm32;bytes:2;bt1:$0f;bt2:$02),
 
+  (mnemonic:'LDDQU';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_m128;bytes:3;bt1:$f2;bt2:$0f;bt3:$f0),
   (mnemonic:'LDMXCSR';opcode1:eo_reg2;paramtype1:par_m32;bytes:2;bt1:$0f;bt2:$ae),
   (mnemonic:'LDS';opcode1:eo_reg;paramtype1:par_r16;paramtype2:par_m16;bytes:2;bt1:$66;bt2:$c5),
   (mnemonic:'LDS';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_m32;bytes:1;bt1:$c5),
@@ -5169,6 +5170,13 @@ begin
         end;
 
         if (opcodes[j].paramtype2=par_m64) and ((paramtype2=ttMemorylocation64) or (ismemorylocationdefault(parameter2))) then
+        begin
+          addopcode(bytes,j);
+          result:=createmodrm(bytes,getreg(parameter1),parameter2);
+          exit;
+        end;
+
+        if (opcodes[j].paramtype2=par_m128) and ((paramtype2=ttMemoryLocation128) or (ismemorylocationdefault(parameter2))) then
         begin
           addopcode(bytes,j);
           result:=createmodrm(bytes,getreg(parameter1),parameter2);
