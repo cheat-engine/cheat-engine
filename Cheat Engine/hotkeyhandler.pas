@@ -4,7 +4,7 @@ unit HotkeyHandler;
 
 interface
 
-uses windows, LCLIntf,classes,SyncObjs,CEFuncProc,messages,genericHotkey;
+uses windows, LCLIntf,classes,SyncObjs,CEFuncProc,messages,genericHotkey, math;
 
 type thotkeyitem=record
   keys: TKeyCombo;
@@ -18,6 +18,7 @@ type thotkeyitem=record
   uVirtKey:word;
   handler2:boolean;
   lastactivate: dword; //determines when the last time this hotkey was activated
+  delayBetweenActivate: integer; //If not 0 this is a userdefined delay for a hotkey, so you have have fast responding and slow responding hotkeys at the same time
 end;
 
 type PHotkeyItem=^THotkeyItem;
@@ -37,6 +38,7 @@ function RegisterHotKey2(hWnd: HWND; id: Integer; keys: TKeyCombo; memrechotkey:
 function UnregisterHotKey(hWnd: HWND; id: Integer): BOOL; stdcall;
 function UnregisterAddressHotkey(memrechotkey: pointer): boolean;
 function UnregisterGenericHotkey(generichotkey: TGenericHotkey): boolean;
+function GetGenericHotkeyKeyItem(generichotkey: TGenericHotkey): PHotkeyItem;
 
 //function OldUnregisterHotKey(hWnd: HWND; id: Integer): BOOL; stdcall;
 function GetKeyComboLength(keycombo: TKeyCombo): integer;
@@ -183,6 +185,10 @@ begin
     hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].fuModifiers:=fsmodifiers;
     hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].uVirtKey:=vk;
     hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].handler2:=false;
+    hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].delayBetweenActivate:=0;
+    hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].memrechotkey:=nil;
+    hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].generichotkey:=nil;
+
     ConvertOldHotkeyToKeyCombo(fsModifiers, vk, hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].keys);
 
     result:=true;
@@ -202,7 +208,10 @@ begin
     hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].windowtonotify:=hWnd;
     hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].keys:=keys;
     hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].id:=id;
+    hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].fuModifiers:=0;
+    hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].uVirtKey:=0;
     hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].handler2:=true;
+    hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].delayBetweenActivate:=0;
     hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].memrechotkey:=memrechotkey;
     hotkeythread.hotkeylist[length(hotkeythread.hotkeylist)-1].generichotkey:=genericHotkey;
 
@@ -241,6 +250,21 @@ begin
   end;
 
   k[i]:=0;
+end;
+
+function getGenericHotkeyKeyItem(generichotkey: TGenericHotkey): PHotkeyItem;
+//pre: ONLY call this when the CSKeys critical section has been acquired
+var i: integer;
+begin
+  for i:=0 to length(hotkeythread.hotkeylist)-1 do
+  begin
+    if hotkeythread.hotkeylist[i].genericHotkey=genericHotkey then
+    begin
+      //found, so delete it
+      result:=@hotkeythread.hotkeylist[i];
+      exit;
+    end;
+  end;
 end;
 
 function UnregisterGenericHotkey(generichotkey: TGenericHotkey): boolean;
@@ -393,7 +417,8 @@ begin
           temphotkey:=PActiveHotkeyData(activeHotkeyList[i]);
           if temphotkey.keycount=maxActiveKeyCount then //it belongs to the max complex hotkey count
           begin
-            if ((tempHotkey.hotkeylistItem.lastactivate+hotkeyIdletime)<GetTickCount) then //check if it can be activated
+
+            if ((tempHotkey.hotkeylistItem.lastactivate+ifthen(tempHotkey.hotkeylistItem.delaybetweenActivate>0, tempHotkey.hotkeylistItem.delaybetweenActivate, hotkeyIdletime))<GetTickCount) then //check if it can be activated
             begin
               a:=tempHotkey.hotkeylistItem.windowtonotify;
               b:=tempHotkey.hotkeylistItem.id;

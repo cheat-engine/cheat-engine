@@ -73,7 +73,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports, Mem
   LuaEdit, LuaMemo, LuaCollection, LuaListColumns, LuaListitem, LuaListItems,
   LuaTimer, LuaListview, LuaGenericHotkey, LuaTableFile, LuaMemoryRecordHotkey,
   LuaMemoryView, LuaD3DHook, LuaDisassembler, LuaDissectCode, LuaByteTable, LuaBinary,
-  lua_server;
+  lua_server, HotkeyHandler;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -2631,6 +2631,22 @@ begin
   luaclass_newClass(l, mainform.UpdateTimer);
 end;
 
+function setGlobalKeyPollInterval(L: PLua_state): integer; cdecl;
+begin
+  if lua_gettop(L)=1 then
+    hotkeyPollInterval:=lua_tointeger(L, -1);
+
+  result:=0;
+end;
+
+function setGlobalDelayBetweenHotkeyActivation(L: PLua_state): integer; cdecl;
+begin
+  if lua_gettop(L)=1 then
+    hotkeyIdletime:=lua_tointeger(L, -1);
+
+  result:=0;
+end;
+
 
 
 function inheritsFromObject(L: PLua_state): integer; cdecl;
@@ -4501,6 +4517,9 @@ begin
     Lua_register(LuaVM, 'getAddressList', getAddressList);
     Lua_register(LuaVM, 'getFreezeTimer', getFreezeTimer);
     Lua_register(LuaVM, 'getUpdateTimer', getUpdateTimer);
+
+    lua_register(luavm, 'setGlobalKeyPollInterval', setGlobalKeyPollInterval);
+    lua_register(luavm, 'setGlobalDelayBetweenHotkeyActivation', setGlobalDelayBetweenHotkeyActivation);
 
     initializeLuaMemoryview;
     initializeLuaTableFile;

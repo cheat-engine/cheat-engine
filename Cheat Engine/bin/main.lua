@@ -210,8 +210,11 @@ unregisterFormAddNotification(Object)
 getMemoryViewForm() : Returns the main memoryview form class object which can be accessed using the Form_ class methods and the methods of the classes it inherits from. There can be multiple memory views, but this will only find the original/base
 getMainForm() : Returns the main form class object which can be accessed using the Form_ class methods and the methods of the classes it inherits from
 getAddressList() : Returns the cheat table addresslist object
-getFreezeTimer()
-getUpdateTimer()
+getFreezeTimer() : Returns the freeze timer object
+getUpdateTimer() : Returns the update timer object
+setGlobalKeyPollInterval(integer): Sets the global keypoll interval. The interval determines the speed of how often CE checks if a key has been pressed or not. Lower is more accurate, but eats more cpu power
+setGlobalDelayBetweenHotkeyActivation(integer): Sets the minimum delay between the activation of the same hotey in milliseconds. Affects all hotkeys that do not set their own minimum delay
+
 
 
 undefined property functions. Not all properties of all classes have been explicitly exposed to lua, but if you know the name of a property of a specific class you can still access them (assuming they are declared as published in the pascal class declaration)
@@ -1076,6 +1079,7 @@ GenericHotkey Class : (Inheritance:  Object)
 createHotkey(function, keys, ...) : returns an initialized GenericHotkey class object. Maximum of 5 keys
 
 properties
+  DelayBetweenActivate: integer - Interval in milliseconds that determines the minimum time between hotkey activations. If 0, the global delay is used
   onHotkey: The function to call when the hotkey is pressed
 
 methods
