@@ -156,6 +156,10 @@ begin
 
       'S':
       begin
+        //remove quote part from value
+        if (value<>'') and (value[1]='''') and (value[length(value)]='''') then
+          value:=copy(value, 2, length(value)-2);
+
         if (length(command)>=2) and (command[2]='U') then
         begin
           elements[j].vartype:=vtUnicodeString;
@@ -166,14 +170,6 @@ begin
         begin
           elements[j].vartype:=vtString;
           elements[j].bytesize:=length(value);
-        end;
-
-        //remove quote part from value
-        if (value<>'') and (value[1]='''') and (value[length(value)]='''') then
-        begin
-          value[1]:=' ';
-          value[length(value)]:=' ';
-          value:=trim(value);
         end;
 
 
@@ -255,7 +251,9 @@ begin
       if command[i]='''' then
       begin
         inquote:=not inquote;
-        continue;
+
+        if i<length(command) then //there's more, first check that (it's wrong, whatever comes after here if it's not a space though)
+          continue;
       end;
 
       if inquote then continue;
@@ -277,6 +275,7 @@ begin
       //not inside braces or a quote, handle the token
 
       s:=trim(copy(command, start, i+1-start));
+
       start:=i;
 
       parseToken(s);
