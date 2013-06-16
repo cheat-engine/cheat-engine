@@ -448,11 +448,11 @@ properties
   OnClick: Function to call when the menu item is activated
 
 methods
-  getCaption(menuitem) : Gets the caption of the menu item
-  setCaption(menuitem, caption) : Sets the caption of the menu item
-  getShortcut(menuitem): Returns the shortcut for this menu item
-  setShortcut(menuitem, shortcut): Sets the shortcut for this menuitem. A shortcut is a string in the form of ("ctrl+x")
-  getCount(menuitem)
+  getCaption() : Gets the caption of the menu item
+  setCaption(caption) : Sets the caption of the menu item
+  getShortcut(): Returns the shortcut for this menu item
+  setShortcut(shortcut): Sets the shortcut for this menuitem. A shortcut is a string in the form of ("ctrl+x")
+  getCount()
   getItem(index) : Returns the menuitem object at the given index
   add(menuitem) : Adds a menuItem as a submenu item
   insert(index, menuitem): Adds a menuItem as a submenu item at the given index
