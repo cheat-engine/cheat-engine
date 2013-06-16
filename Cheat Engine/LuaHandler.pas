@@ -1263,7 +1263,7 @@ begin
       if lua_isstring(L, -2) then
       begin
         if processhandle=GetCurrentProcess then
-          address:=symhandler.getAddressFromNameL(lua_tostring(L,-2))
+          address:=selfsymhandler.getAddressFromNameL(lua_tostring(L,-2))
         else
           address:=symhandler.getAddressFromNameL(lua_tostring(L,-2))
       end
@@ -1308,7 +1308,7 @@ begin
       if lua_isstring(L, -2) then
       begin
         if processhandle=GetCurrentProcess then
-          address:=symhandler.getAddressFromNameL(lua_tostring(L,-2))
+          address:=selfsymhandler.getAddressFromNameL(lua_tostring(L,-2))
         else
           address:=symhandler.getAddressFromNameL(lua_tostring(L,-2))
       end
@@ -1353,7 +1353,7 @@ begin
       if lua_isstring(L, -2) then
       begin
         if processhandle=GetCurrentProcess then
-          address:=symhandler.getAddressFromNameL(lua_tostring(L,-2))
+          address:=selfsymhandler.getAddressFromNameL(lua_tostring(L,-2))
         else
           address:=symhandler.getAddressFromNameL(lua_tostring(L,-2))
       end
@@ -1401,7 +1401,7 @@ begin
       if lua_isstring(L, -2) then
       begin
         if processhandle=GetCurrentProcess then
-          address:=symhandler.getAddressFromNameL(lua_tostring(L,-2))
+          address:=selfsymhandler.getAddressFromNameL(lua_tostring(L,-2))
         else
           address:=symhandler.getAddressFromNameL(lua_tostring(L,-2))
       end
