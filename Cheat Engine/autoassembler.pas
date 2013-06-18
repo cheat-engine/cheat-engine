@@ -986,6 +986,11 @@ begin
             continue;
           end;
 
+
+
+          //apply defines (before DEFINE since define(bla, 123) and define(xxx, bla+123) should work
+
+
           //also, do not touch define with any previous define
           if uppercase(copy(currentline,1,7))='DEFINE(' then
           begin
@@ -998,6 +1003,13 @@ begin
             begin
               s1:=trim(copy(currentline,a+1,b-a-1));
               s2:=copy(currentline,b+1,c-b-1);
+
+
+              //apply earlier defines to the second part
+              for j:=0 to length(defines)-1 do
+                 s2:=replacetoken(s2,defines[j].name,defines[j].whatever);
+
+
 
               ok1:=true;
               for j:=0 to length(defines)-1 do
@@ -1020,8 +1032,6 @@ begin
           end;
 
 
-
-          //apply defines
           for j:=0 to length(defines)-1 do
              currentline:=replacetoken(currentline,defines[j].name,defines[j].whatever);
 
