@@ -522,10 +522,11 @@ var n: TAvgLvlTreeNode;
   count: integer;
 begin
   flush;
-  branchtreecs.Enter;
-  try
-    if (branchtree<>nil) and (messagedlg('This will reset the callcount of functions back to 0. This can not be undone. Continue?', mtConfirmation, [mbyes, mbno], 0)=mryes) then
-    begin
+
+  if (branchtree<>nil) and (messagedlg('This will reset the callcount of functions back to 0. This can not be undone. Continue?', mtConfirmation, [mbyes, mbno], 0)=mryes) then
+  begin
+    branchtreecs.Enter;
+    try
       n:=branchtree.FindLowest;
 
       if n=nil then exit;
@@ -536,10 +537,12 @@ begin
         d.count:=0;
         d:=d.Next;
       end;
+
+    finally
+      branchtreecs.leave;
     end;
-  finally
-    branchtreecs.leave;
   end;
+
 
   listview1.Refresh;
 end;
