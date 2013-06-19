@@ -3779,7 +3779,7 @@ begin
               c.ContextFlags:=CONTEXT_SEGMENTS;
               if GetThreadContext(h, c) then
               begin
-                if GetThreadSelectorEntry(h, c.segFs, ldtentry) then
+                if assigned(GetThreadSelectorEntry) and GetThreadSelectorEntry(h, c.segFs, ldtentry) then
                   ReadProcessMemory(processhandle, pointer(ptruint(ldtentry.BaseLow+ldtentry.HighWord.Bytes.BaseMid shl 16+ldtentry.HighWord.Bytes.BaseHi shl 24)+4), @stacktop, 4, x);
 
               end;

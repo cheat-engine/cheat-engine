@@ -5811,7 +5811,7 @@ procedure TMainForm.LogoClick(Sender: TObject);
 begin
   if messagedlg(rsDoYouWantToGoToTheCheatEngineWebsite, mtConfirmation,
     [mbYes, mbNo], 0) = mrYes then
-    ShellExecute(0, PChar('open'), PChar('http://www.cheatengine.org/?referredby=CE62'),
+    ShellExecute(0, PChar('open'), PChar('http://www.cheatengine.org/?referredby=CE63'),
       PChar(''), PChar(''), SW_MAXIMIZE);
 
 end;

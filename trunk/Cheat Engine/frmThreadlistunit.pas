@@ -769,10 +769,10 @@ begin
 
         threadTreeview.items.AddChild(node,'cs='+inttohex(c.SegCs,8));
 
-        if GetThreadSelectorEntry(th, c.segFs, ldtentry) then
+        if assigned(GetThreadSelectorEntry) and GetThreadSelectorEntry(th, c.segFs, ldtentry) then
           threadTreeview.items.AddChild(node,'fsbase='+inttohex(ldtentry.BaseLow+ldtentry.HighWord.Bytes.BaseMid shl 16+ldtentry.HighWord.Bytes.BaseHi shl 24,8));
 
-        if GetThreadSelectorEntry(th, c.SegGs, ldtentry) then
+        if assigned(GetThreadSelectorEntry) and GetThreadSelectorEntry(th, c.SegGs, ldtentry) then
           threadTreeview.items.AddChild(node,'gsbase='+inttohex(ldtentry.BaseLow+ldtentry.HighWord.Bytes.BaseMid shl 16+ldtentry.HighWord.Bytes.BaseHi shl 24,8));
 
 

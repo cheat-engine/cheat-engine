@@ -9,9 +9,7 @@ uses jwawindows, windows,LCLIntf,sysutils, dialogs, controls, dbk32functions,
 const dbkdll='DBK32.dll';
 
 
-{$ifdef cpu64}
-function GetThreadSelectorEntry(hThread: THandle; dwSelector: DWORD; var lpSelectorEntry: TLDTEntry): BOOL; external 'kernel32' name 'Wow64GetThreadSelectorEntry';
-{$endif}
+
 
 type
 PPROCESSENTRY32 = ^PROCESSENTRY32;
@@ -407,11 +405,16 @@ type TReadProcessMemory64=function(hProcess: THandle; lpBaseAddress: UINT64; lpB
 type TWriteProcessMemory=function(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: DWORD): BOOL; stdcall;
 type TWriteProcessMemory64=function(hProcess: THandle; BaseAddress: UINT64; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: DWORD): BOOL; stdcall;
 
+
 type TGetThreadContext=function(hThread: THandle; var lpContext: TContext): BOOL; stdcall;
 type TSetThreadContext=function(hThread: THandle; const lpContext: TContext): BOOL; stdcall;
 
 type TWow64GetThreadContext=function(hThread: THandle; var lpContext: CONTEXT32): BOOL; stdcall;
 type TWow64SetThreadContext=function(hThread: THandle; const lpContext: CONTEXT32): BOOL; stdcall;
+
+{$ifdef cpu64}
+type TGetThreadSelectorEntry=function(hThread: THandle; dwSelector: DWORD; var lpSelectorEntry: TLDTEntry): BOOL; stdcall;
+{$endif}
 
 
 
@@ -568,6 +571,10 @@ var
   SetThreadContext      :TSetThreadContext;
   Wow64GetThreadContext      :TWow64GetThreadContext;
   Wow64SetThreadContext      :TWow64SetThreadContext;
+
+  {$ifdef cpu64}
+  GetThreadSelectorEntry: TGetThreadSelectorEntry;
+  {$endif}
 
   SuspendThread         :TSuspendThread;
   ResumeThread          :TResumeThread;
@@ -1315,6 +1322,10 @@ initialization
 
   Wow64GetThreadContext:=GetProcAddress(WindowsKernel,'Wow64GetThreadContext');
   Wow64SetThreadContext:=GetProcAddress(WindowsKernel,'Wow64SetThreadContext');
+
+  {$ifdef cpu64}
+  GetThreadSelectorEntry:=GetProcAddress(WindowsKernel,'Wow64GetThreadSelectorEntry');
+  {$endif}
 
 
   SuspendThread:=GetProcAddress(WindowsKernel,'SuspendThread');
