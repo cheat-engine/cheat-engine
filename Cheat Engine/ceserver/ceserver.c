@@ -30,13 +30,13 @@ ssize_t sendall (int s, void *buf, size_t size, int flags)
 
   while (sizeleft>0)
   {
-	ssize_t i=send(s, &buffer[totalsent], sizeleft, flags);
+    ssize_t i=send(s, &buffer[totalsent], sizeleft, flags);
 
-	if ((i==-1) || (i==0))
-	{
-	  printf("Error during sendall: %d\n",i);
-      return i; //read error, or disconnected
-	}
+    if ((i==-1) || (i==0))
+    {
+      printf("Error during sendall: %d. errno=%d\n",i, errno);
+        return i; //read error, or disconnected
+    }
 
     totalsent+=i;
     sizeleft-=i;
@@ -45,17 +45,23 @@ ssize_t sendall (int s, void *buf, size_t size, int flags)
   return totalsent;
 }
 
+
 void *newconnection(void *arg)
 {
-  int s=*(int *)arg;
+  int s=(int)arg;
   unsigned char command;
+
+  //printf("new connection. Using socket %d\n", s);
+
 
   while (done==0)
   {
 
+
     int r=recv(s, &command, 1, MSG_WAITALL);
 
-  //  printf("r=%d  command=%d\n", r, command);
+    //printf("s=%d  r=%d  command=%d\n", s, r, command);
+    //fflush(stdout);
 
     if (r>0)
     {
@@ -81,12 +87,17 @@ void *newconnection(void *arg)
 
         case CMD_CLOSECONNECTION:
         {
+          printf("Connection %d closed properly\n", s);
+          fflush(stdout);
           close(s);
+
           return NULL;
         }
 
         case CMD_TERMINATESERVER:
         {
+          printf("Command to terminate the server received\n");
+          fflush(stdout);
           close(s);
           exit(0);
         }
@@ -101,7 +112,9 @@ void *newconnection(void *arg)
           }
           else
           {
+            printf("Error during read for CMD_CLOSEHANDLE\n");
             close(s);
+            fflush(stdout);
             return 0;
           }
           break;
@@ -120,6 +133,8 @@ void *newconnection(void *arg)
           }
           else
           {
+            printf("Error during read for CMD_CREATETOOLHELP32SNAPSHOT\n");
+            fflush(stdout);
             close(s);
             return 0;
           }
@@ -179,36 +194,46 @@ void *newconnection(void *arg)
           r=recv(s, &c, sizeof(c), MSG_WAITALL);
           if (r>0)
           {
-            PCeReadProcessMemoryOutput o;
+            PCeReadProcessMemoryOutput o=NULL;
 
-          //  printf("ReadProcessMemory. Address: %llx - Size=%d", c.address, c.size);
+            //if (c.size>200000)
+            //printf("ReadProcessMemory. Address: %llx - Size=%d\n", c.address, c.size);
+
             o=malloc(sizeof(CeReadProcessMemoryOutput)+c.size);
+
+            if (o==NULL)
+            {
+              printf("Failure allocating memory\n");
+              while (1);
+            }
 
 
             o->read=ReadProcessMemory(c.handle, (void *)(uintptr_t)c.address, &o[1], c.size);
+
          //   printf("ReadProcessMemory returned %d\n", o->read);
 
 
-         /*   if (o->read > 500000)
+            if (o->read > 500000)
             {
-            	printf("going to send %u bytes\n", sizeof(CeReadProcessMemoryOutput)+o->read);
-            }*/
+            	//printf("going to send %u bytes\n", sizeof(CeReadProcessMemoryOutput)+o->read);
+            }
 
             int i=sendall(s, o, sizeof(CeReadProcessMemoryOutput)+o->read, 0);
 
-           // if (o->read > 500000)
-           // 	printf("sent %d bytes. Wanted to send %u\n", i, sizeof(c.size)+o->read);
+            //if (o->read > 500000)
+            //	printf("sent %d bytes. Wanted to send %u\n", i, sizeof(c.size)+o->read);
 
 
-            if (i<o->read)
+            if (i!=sizeof(CeReadProcessMemoryOutput)+o->read)
             {
-            	//printf("READ INTERUPTION: %d out of %d\n",i,sizeof(CeReadProcessMemoryOutput)+o->read);
+            	printf("READ INTERUPTION: %d out of %d\n",i,sizeof(CeReadProcessMemoryOutput)+o->read);
 
             	if (i==-1)
             	{
             		int e=errno;
             		char *error=strerror(e);
             		printf("Error: %d: %s\n", e, error);
+            		fflush(stdout);
 
             		while (1) sleep(10);
 
@@ -218,7 +243,11 @@ void *newconnection(void *arg)
 
           //  printf("send %d bytes. Wanted to send %lu\n", i, sizeof(c.size)+o->read);
 
-            free(o);
+            if (o)
+              free(o);
+
+           // printf("+");
+           // fflush(stdout);
 
           }
 
@@ -313,6 +342,7 @@ void *newconnection(void *arg)
           else
           {
                   printf("Error\n");
+                  fflush(stdout);
                   close(s);
                   return NULL;
           }
@@ -333,14 +363,18 @@ void *newconnection(void *arg)
     else
     if (r==-1)
     {
-      printf("read error\n");
-      break;
+      printf("read error on socket %d (%d)\n", s, errno);
+      fflush(stdout);
+      close(s);
+      return NULL;
     }
     else
     if (r==0)
     {
       printf("Peer has disconnected\n");
-      break;
+      fflush(stdout);
+      close(s);
+      return NULL;
     }
   }
 
@@ -462,7 +496,7 @@ int main(void)
         if (b!=-1)
         {
 
-                l=listen(s, 5);
+                l=listen(s, 32);
 
                 printf("listen=%d\n", l);
 
@@ -477,7 +511,7 @@ int main(void)
 
                         if (a != -1)
                         {
-                          pthread_create(&pth, NULL, newconnection, (void *)&a);
+                          pthread_create(&pth, NULL, newconnection, (void *)a);
 
                         }
                 }
