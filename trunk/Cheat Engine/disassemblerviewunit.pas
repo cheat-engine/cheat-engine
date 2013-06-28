@@ -656,7 +656,7 @@ begin
       else
         statusinfolabel.Font.Color:=clWindowText;
 
-      statusinfolabel.Caption:=symhandler.getnamefromaddress(TopAddress);
+      statusinfolabel.Caption:=AnsiToUtf8(symhandler.getnamefromaddress(TopAddress));
     end;
 
     //initialize bitmap dimensions
