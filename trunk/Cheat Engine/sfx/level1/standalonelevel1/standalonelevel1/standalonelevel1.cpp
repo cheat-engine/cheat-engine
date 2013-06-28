@@ -125,9 +125,9 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 			  			  
 			  size=MAX_PATH;
 			  HRESULT STATUS;
-			  STATUS=AssocQueryString(0, ASSOCSTR_EXECUTABLE, ".CETRAINER", NULL, CEPath, &size);
+			  STATUS=AssocQueryString(0, ASSOCSTR_EXECUTABLE, ".cetrainer", NULL, CEPath, &size);
 
-			  STATUS=0x80070002;
+			 // STATUS=0x80070002;
 			  if (!FAILED(STATUS))
 			  {
 				  int correctversion=0;
