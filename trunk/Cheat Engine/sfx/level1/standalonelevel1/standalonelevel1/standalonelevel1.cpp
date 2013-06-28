@@ -124,8 +124,11 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 #ifdef TINY
 			  			  
 			  size=MAX_PATH;
+			  HRESULT STATUS;
+			  STATUS=AssocQueryString(0, ASSOCSTR_EXECUTABLE, ".CETRAINER", NULL, CEPath, &size);
 
-			  if (!FAILED(AssocQueryString(0, ASSOCSTR_EXECUTABLE, ".cetrainer", NULL, CEPath, &size)))
+			  STATUS=0x80070002;
+			  if (!FAILED(STATUS))
 			  {
 				  int correctversion=0;
 				  DWORD h=0;
@@ -142,7 +145,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 						  UINT s=sizeof(ffi);
 						  if (VerQueryValue(data, "\\", (LPVOID*)&ffi, &s))
 						  {
-							  correctversion=(ffi->dwFileVersionMS>=0x00060002);
+							  correctversion=(ffi->dwFileVersionMS>=0x00060003);
 						  }
 
 					  }
@@ -152,7 +155,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
 				  if (!correctversion)
 				  {
-					  MessageBoxA(0,"Please update your Cheat Engine version to Cheat Engine 6.2 or later\n", "Launch Error",MB_OK | MB_ICONERROR);
+					  MessageBoxA(0,"Please update your Cheat Engine version to Cheat Engine 6.3 or later\n", "Launch Error",MB_OK | MB_ICONERROR);
 				  }
 				  else
 				  {
@@ -169,7 +172,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 					  sprintf_s(Commandline, MAX_PATH*2+16,"\"%s\" \"%s\" %s",CEPath, Archive, Parameter);
 
 					  if (CreateProcessA(CEPath, Commandline, NULL, NULL, FALSE, NULL, NULL, tempdir, &StartupInfo, &ProcessInformation))
-					  {
+					  {						  
 						  //Because Cheat Engine deletes files with name CET_TRAINER.CETRAINER it can be used to determine when ce is finished with it			  
 						  //Wait 30 seconds max for ce to delete the file
 						  i=30;
@@ -183,7 +186,35 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
 			  }
 			  else
-				  MessageBoxA(0,"Your system must have Cheat Engine installed to be able to use this trainer\nwww.cheatengine.org","Launch Error",MB_OK | MB_ICONERROR);
+			  {
+				  //AssocQueryString failed. This is either because 1: The file assoc is not there, so not installed, or 2: Crappy XP system
+
+				  //fall back to shellExecute
+				  //SHELLEXECUTEINFO sexi;
+				 
+
+				  if ((int)ShellExecuteA(0, "open", Archive, Parameter, NULL, SW_SHOW)>32)
+				  {
+		  
+					  //because cheat engine deletes files with name cet_trainer.cetrainer it can be used to determine when ce is finished with it			  
+					  //wait 30 seconds max for ce to delete the file (if ce takes long to even start opening the file, get a faster system)
+					  i=30;
+					  while (i && (stat(Archive, &status) == 0))
+					  {				  
+						  Sleep(1000);
+						  i--;
+					  }
+
+
+				  }
+				  else
+				  {
+					  
+					  char errorstring[255];
+					  sprintf_s(errorstring, 254,"Your system must have Cheat Engine installed to be able to use this trainer\nwww.cheatengine.org\n(%x)", STATUS);
+					  MessageBoxA(0,errorstring,"Launch Error",MB_OK | MB_ICONERROR);
+				  }
+			  }
 
 			  
 
@@ -229,10 +260,18 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 			  RemoveDirectoryA(tempdir);
 
 			}
+			else
+				MessageBoxA(0,"Failure creating a temporary folder","Launch Error",MB_OK | MB_ICONERROR);
+
 
 		}
+		else
+			MessageBoxA(0,"Failure assigning a temporary name","Launch Error",MB_OK | MB_ICONERROR);
 
 	}
+	else
+		MessageBoxA(0,"Failure getting the temp folder","Launch Error",MB_OK | MB_ICONERROR);
+
   return 0;
 }
 
