@@ -745,13 +745,13 @@ begin
   begin
     //no pointer
     cbPointer.Checked:=false;
-    editAddress.Text:=address;
+    editAddress.Text:=ansitoutf8(address);
   end
   else
   begin
     //pointer
     cbPointer.Checked:=true;
-    pointerinfo.baseAddress.Text:=address;
+    pointerinfo.baseAddress.Text:=ansitoutf8(address);
 
     //create offsets
     for i:=pointerinfo.offsetcount to system.length(offsets)-1 do
@@ -775,14 +775,14 @@ begin
   if pointerinfo=nil then
   begin
     setlength(offsets,0);
-    address:=editAddress.Text;
+    address:=utf8toansi(editAddress.Text);
     result:=true;
   end
   else
   begin
     if not pointerinfo.invalidBaseAddress then
     begin
-      address:=pointerinfo.baseAddress.text;
+      address:=utf8toansi(pointerinfo.baseAddress.text);
       setlength(offsets, pointerinfo.offsetcount);
 
       for i:=pointerinfo.offsetcount-1 downto 0 do //fill the array inverse

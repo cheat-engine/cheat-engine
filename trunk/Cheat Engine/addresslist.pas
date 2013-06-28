@@ -1618,7 +1618,7 @@ begin
       if not ((node=CurrentlyDraggedOverNode) and (not (CurrentlyDraggedOverBefore or CurrentlyDraggedOverAfter))) then //don't draw the rest on insert drag/drop
       begin
         //address
-        sender.Canvas.TextRect(rect(header.Sections[2].left, textrect.Top, header.Sections[2].right, textrect.bottom),header.Sections[2].Left, textrect.Top, memrec.addressString);
+        sender.Canvas.TextRect(rect(header.Sections[2].left, textrect.Top, header.Sections[2].right, textrect.bottom),header.Sections[2].Left, textrect.Top, ansitoutf8(memrec.addressString));
 
         //type
         case memrec.vartype of
