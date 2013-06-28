@@ -5029,6 +5029,18 @@ begin
       par_mm: if (paramtype1=ttRegistermm) then
       begin
         //mm,xxxxx
+        if (opcodes[j].paramtype2=par_imm8) and (paramtype2=ttValue) then
+        begin
+          //mm,imm8
+          if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
+          begin
+            addopcode(bytes,j);
+            result:=createmodrm(bytes,eotoreg(opcodes[j].opcode1),parameter1);
+            add(bytes,[v]);
+            exit;
+          end;
+        end;
+
         if (opcodes[j].paramtype2=par_mm) and (paramtype2=ttRegistermm) then
         begin
           addopcode(bytes,j);
