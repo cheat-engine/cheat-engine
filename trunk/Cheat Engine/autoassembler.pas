@@ -1324,8 +1324,11 @@ begin
 
               getmem(bytebuf,a);
               try
-                if (not ReadProcessMemory(processhandle, pointer(testptr),bytebuf,a,x)) or (x<a) then
-                  raise exception.Create(Format(rsTheMemoryAtCouldNotBeFullyRead, [s1]));
+                if not syntaxcheckonly then
+                begin
+                  if (not ReadProcessMemory(processhandle, pointer(testptr),bytebuf,a,x)) or (x<a) then
+                    raise exception.Create(Format(rsTheMemoryAtCouldNotBeFullyRead, [s1]));
+                end;
               except
                 on e:exception do
                 begin
@@ -1683,6 +1686,15 @@ begin
                 end;
 
               if ok1 then continue; //no check
+
+
+              //still here, so more complex
+              if syntaxcheckonly and (registeredsymbols<>nil) then
+              begin
+                //replace tokens with registered symbols from the enable part
+                for j:=0 to registeredsymbols.count-1 do
+                  currentline:=replacetoken(currentline, registeredsymbols[j], '00000000');
+              end;
 
               try
                 j:=symhandler.getAddressFromName(copy(currentline,1,length(currentline)-1));
