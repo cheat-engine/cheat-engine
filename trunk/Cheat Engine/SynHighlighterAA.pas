@@ -311,6 +311,7 @@ type
     function Func108: TtkTokenKind; //CreateThread
     function Func117: TtkTokenKind; //loadlibrary
     function Func124: TtkTokenKind; //endstruct
+    function Func125: TtkTokenKind; //aobscanmodule
     function Func187: TtkTokenKind; //registersymbol
     function Func222: TtkTokenKind; //unregistersymbol
 
@@ -521,6 +522,7 @@ begin
   fIdentFuncTable[108] := {$IFDEF FPC}@{$ENDIF}Func108;
   fIdentFuncTable[117] := {$IFDEF FPC}@{$ENDIF}Func117;
   fIdentFuncTable[124] := {$IFDEF FPC}@{$ENDIF}Func124;
+  fIdentFuncTable[125] := {$IFDEF FPC}@{$ENDIF}Func125;
   fIdentFuncTable[187] := {$IFDEF FPC}@{$ENDIF}Func187;
   fIdentFuncTable[222] := {$IFDEF FPC}@{$ENDIF}Func222;
 end;
@@ -913,6 +915,12 @@ end;
 function TSynAASyn.Func124: TtkTokenKind; //endstruct
 begin
   if KeyComp('endstruct') then Result := tkKey else
+    Result := tkIdentifier;
+end;
+
+function TSynAASyn.Func125: TtkTokenKind; //aobscanmodule
+begin
+  if KeyComp('aobscanmodule') then Result := tkKey else
     Result := tkIdentifier;
 end;
 
