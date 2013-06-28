@@ -481,6 +481,7 @@ createPopupMenu(owner)
 Strings Class: (Inheritance : Object) (Mostly an abstract class)
 properties
   Text : String - All the strings in one string
+  Count: Integer - The number of strings in this list
   String[]: String - Array to access one specific string in the list
   [] = String[]
 

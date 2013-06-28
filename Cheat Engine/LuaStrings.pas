@@ -218,6 +218,7 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'loadFromFile', strings_loadFromFile);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'saveToFile', strings_saveToFile);
 
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Count', strings_getCount, nil);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Text', strings_getText, strings_setText);
   luaclass_addArrayPropertyToTable(L, metatable, userdata, 'String', strings_getString, strings_setString);
   luaclass_setDefaultArrayProperty(L, metatable, userdata, strings_getString, strings_setString); //so strings[12] will call strings.getString(12)
