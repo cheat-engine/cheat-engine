@@ -392,7 +392,7 @@ end;
 procedure TOffsetInfo.offsetchange(sender: TObject);
 begin
   try
-    offset:=StrToQWordEx(ConvertHexStrToRealStr(tedit(sender).Text));
+    offset:=StrToQWordEx(ConvertHexStrToRealStr(utf8toansi(tedit(sender).Text)));
     edtOffset.Font.Color:=clDefault;
     finvalidOffset:=false;
   except
@@ -573,7 +573,7 @@ end;
 procedure TPointerInfo.basechange(sender: Tobject);
 var e: boolean;
 begin
-  fBaseAddress:=symhandler.getAddressFromName(baseAddress.text, false, e);
+  fBaseAddress:=symhandler.getAddressFromName(utf8toansi(baseAddress.text), false, e);
   fInvalidBaseAddress:=e;
 
   if fInvalidBaseAddress then
@@ -922,7 +922,7 @@ var a: PtrUInt;
 begin
   //read the address and display the value it points to
 
-  a:=symhandler.getAddressFromName(editAddress.Text,false,e);
+  a:=symhandler.getAddressFromName(utf8toansi(editAddress.Text),false,e);
   if not e then
   begin
     //get the vartype and parse it
