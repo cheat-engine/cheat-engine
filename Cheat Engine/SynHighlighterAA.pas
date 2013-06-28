@@ -487,7 +487,7 @@ begin
   fIdentFuncTable[15] := {$IFDEF FPC}@{$ENDIF}Func15;
   fIdentFuncTable[16] := {$IFDEF FPC}@{$ENDIF}Func16;
   fIdentFuncTable[18] := {$IFDEF FPC}@{$ENDIF}Func18;
-  fIdentFuncTable[23] := {$IFDEF FPC}@{$ENDIF}Func21;
+  fIdentFuncTable[21] := {$IFDEF FPC}@{$ENDIF}Func21;
   fIdentFuncTable[23] := {$IFDEF FPC}@{$ENDIF}Func23;
   fIdentFuncTable[25] := {$IFDEF FPC}@{$ENDIF}Func25;
   fIdentFuncTable[26] := {$IFDEF FPC}@{$ENDIF}Func26;
