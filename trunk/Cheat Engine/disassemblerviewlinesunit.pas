@@ -479,7 +479,7 @@ begin
   if (baseofsymbol>0) and (faddress=baseofsymbol) then
   begin
     fcanvas.Font.Style:=[fsbold];
-    fcanvas.TextOut(fHeaders.Items[0].Left+5,linestart+5,symbolname);
+    fcanvas.TextOut(fHeaders.Items[0].Left+5,linestart+5,AnsiToUtf8(symbolname));
     linestart:=linestart+fcanvas.TextHeight(symbolname)+1+10;
     fcanvas.Font.Style:=[];
   end;
@@ -490,7 +490,7 @@ begin
     fcanvas.Font.Style:=[fsBold];
     for i:=0 to refferencedbylinecount-1 do
     begin
-      fcanvas.TextOut(fHeaders.Items[0].Left+5,linestart,refferencedbystrings[i]);
+      fcanvas.TextOut(fHeaders.Items[0].Left+5,linestart,AnsiToUtf8(refferencedbystrings[i]));
       linestart:=linestart+fcanvas.TextHeight(refferencedbystrings[i]);
     end;
     fcanvas.Font.Style:=[];
@@ -527,11 +527,11 @@ begin
   fcanvas.font.color:=textcolor;
 
 
-  fcanvas.TextRect(rect(fHeaders.Items[0].Left, linestart, fHeaders.Items[0].Right, linestart+height), fHeaders.Items[0].Left+1,linestart, paddressString);
-  fcanvas.TextRect(rect(fHeaders.Items[1].Left, linestart, fHeaders.Items[1].Right, linestart+height),fHeaders.Items[1].Left+1,linestart, pbytestring);
+  fcanvas.TextRect(rect(fHeaders.Items[0].Left, linestart, fHeaders.Items[0].Right, linestart+height), fHeaders.Items[0].Left+1,linestart, AnsiToUtf8(paddressString));
+  fcanvas.TextRect(rect(fHeaders.Items[1].Left, linestart, fHeaders.Items[1].Right, linestart+height),fHeaders.Items[1].Left+1,linestart, AnsiToUtf8(pbytestring));
 
   fcanvas.font.Style:=fcanvas.font.Style+[fsBold];
-  fcanvas.TextRect(rect(fHeaders.Items[2].Left, linestart, fHeaders.Items[2].Right, linestart+height),fHeaders.Items[2].Left+1,linestart, popcodestring);
+  fcanvas.TextRect(rect(fHeaders.Items[2].Left, linestart, fHeaders.Items[2].Right, linestart+height),fHeaders.Items[2].Left+1,linestart, AnsiToUtf8(popcodestring));
   fcanvas.font.Style:=fcanvas.font.Style-[fsBold];
 
   i:=fcanvas.TextWidth(popcodestring+'  ');
@@ -624,7 +624,7 @@ begin
         setcolor;
 
         s:=copy(text, start,i-start);
-        fcanvas.TextRect(ARect,x,y,s);
+        fcanvas.TextRect(ARect,x,y,AnsiToUtf8(s));
         x:=x+fcanvas.TextWidth(s);
 
         inc(i);
@@ -658,7 +658,7 @@ begin
   setcolor;
 
   s:=copy(text, start,i-start);
-  fcanvas.TextRect(ARect,x,y,s);
+  fcanvas.TextRect(ARect,x,y,AnsiToUtf8(s));
 
   fcanvas.Font.color:=defaultfontcolor;
 end;
