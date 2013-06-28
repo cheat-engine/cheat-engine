@@ -131,9 +131,20 @@ begin
       if origin<>'' then
         LUA_DoScript('TrainerOrigin=[['+origin+']]');
 
-      LoadTable(tabletoload,false);
-      if ExtractFileName(tabletoload)='CET_TRAINER.CETRAINER' then //Let's just hope no-one names their trainer exactly this...
-        DeleteFile(tabletoload);
+      try
+        try
+          LoadTable(tabletoload,false);
+        finally
+          if ExtractFileName(tabletoload)='CET_TRAINER.CETRAINER' then //Let's just hope no-one names their trainer exactly this...
+            DeleteFile(tabletoload);
+        end;
+      except
+        on e: exception do
+        begin
+          MessageDlg('Failure loading the trainer. Reason :'+e.message, mterror, [mbok], 0);
+          application.Terminate;
+        end;
+      end;
     end;
   except
   end;
