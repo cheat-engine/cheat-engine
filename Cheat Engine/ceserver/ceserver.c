@@ -485,7 +485,7 @@ int main(int argc, char *argv[])
 
                   while (1)
                   {
-                    if (WaitForDebugEvent(h))
+                    if (WaitForDebugEvent(h, 500))
                     {
                       printf("Got a debug event\n");
                       if (ContinueFromDebugEvent(h, 0)==FALSE)

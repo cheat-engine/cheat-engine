@@ -23,6 +23,7 @@
 #include <dirent.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <fcntl.h>
 #include <unistd.h>
 
@@ -34,6 +35,7 @@
 
 #include <sys/eventfd.h>
 
+#include <errno.h>
 
 #include "api.h"
 #include "porthelp.h"
@@ -111,7 +113,9 @@ void mychildhandler(int signal, struct siginfo *info, void *context)
 {
   printf("Child event: %d\n", info->si_pid);
 
+  pthread_mutex_lock(&hasChildSignalMutex);
   pthread_cond_signal(&hasChildSignal);  //set event
+  pthread_mutex_unlock(&hasChildSignalMutex);
 }
 
 int StartDebug(HANDLE hProcess)
@@ -200,7 +204,10 @@ int StartDebug(HANDLE hProcess)
 
 }
 
-int WaitForDebugEvent(HANDLE hProcess) //waitfortid is -1 when waiting for any thread
+int WaitForDebugEvent(HANDLE hProcess, int timeout)
+/*
+ * Waits for the specified timeout in milliseconds
+ */
 {
   if (GetHandleType(hProcess) == htProcesHandle )
   {
@@ -213,25 +220,58 @@ int WaitForDebugEvent(HANDLE hProcess) //waitfortid is -1 when waiting for any t
 
 
       //check if there was a thread waiting since last time
-      tid=waitpid(-1, &status, WNOHANG| __WALL);
-
-      while (tid<=0)
+      if (timeout!=-1)
       {
-       // printf("No child waiting. Going to wait\n");
-       // pthread_cond_wait(&hasChildSignal, &hasChildSignalMutex);
-       // printf("after wait\n");
+        tid=waitpid(-1, &status, WNOHANG| __WALL);
 
-        tid=waitpid(-1, &status, __WALL);
+        while (tid<=0)
+        {
+          //wait failed, wait for the child signal for at most "timeout" millisecond.
+
+          struct timespec abstime;
+          struct timeval current,wanted, diff;
+          int timedwait;
+
+          memset(&abstime, 0, sizeof(abstime));
+          gettimeofday(&current,NULL);
+
+          diff.tv_sec=(timeout / 1000);
+          diff.tv_usec=(timeout % 1000)*1000;
+
+
+          timeradd(&current, &diff, &wanted);
+
+          abstime.tv_sec=wanted.tv_sec;
+          abstime.tv_nsec=wanted.tv_usec*1000;
+
+          printf("No child waiting. Going to wait\n");
+          pthread_mutex_lock(&hasChildSignalMutex);
+
+
+          timedwait=pthread_cond_timedwait(&hasChildSignal, &hasChildSignalMutex, &abstime);
+          pthread_mutex_unlock(&hasChildSignalMutex);
+          printf("after wait: %d\n", timedwait);
+
+          if (timedwait==0)
+            tid=waitpid(-1, &status, WNOHANG | __WALL);
+          else
+          if (timedwait==ETIMEDOUT)
+          {
+            return FALSE; //no debug message
+          }
+
+
+        }
       }
-
-
-
+      else
+        tid=waitpid(-1, &status, __WALL); //wait with no timeout
 
 
       p->debuggedThread=tid;
 
       if (WIFEXITED(status))
       {
+        RemoveThreadFromProcess(p, tid);
         p->debuggedThreadSignal=-1;
         printf("EXIT\n");
       }
@@ -256,7 +296,7 @@ int WaitForDebugEvent(HANDLE hProcess) //waitfortid is -1 when waiting for any t
       if (!WIFEXITED(status))
         printf("%d: Break due to signal %d (status=%x)\n", tid, p->debuggedThreadSignal, status);
       else
-        printf("%d terminated");
+        printf("%x terminated\n", tid);
 
 
       return 1;
@@ -294,6 +334,7 @@ int ContinueFromDebugEvent(HANDLE hProcess, int ignoresignal)
       if (result<0)
       {
         printf("Failure to continue thread %d with signal %d\n", p->debuggedThread, signal);
+        RemoveThreadFromProcess(p, p->debuggedThread);
         p->debuggedThread=0;
         return 0;
       }
