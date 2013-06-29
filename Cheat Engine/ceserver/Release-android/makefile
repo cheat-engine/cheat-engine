@@ -28,7 +28,7 @@ all: ceserver
 ceserver: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: Cross GCC Linker'
-	/tmp/android9/bin/arm-linux-androideabi-gcc  -o"ceserver" $(OBJS) $(USER_OBJS) $(LIBS)
+	/tmp/android9/bin/arm-linux-androideabi-gcc  -o "ceserver" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 	$(MAKE) --no-print-directory post-build
@@ -40,7 +40,7 @@ clean:
 
 post-build:
 	-@echo 'copy file to android device'
-	-/home/erich/Downloads/android/android-sdk-linux_x86/platform-tools/adb push ceserver /data/test
+	-adb push ceserver /data/test
 	-@echo ' '
 
 .PHONY: all clean dependents

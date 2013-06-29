@@ -32,11 +32,13 @@
 #include <sys/ptrace.h>
 #include <sys/wait.h>
 
-
+#include <sys/eventfd.h>
 
 
 #include "api.h"
 #include "porthelp.h"
+
+//#include <vector>
 
 
 pthread_mutex_t memorymutex;
@@ -50,14 +52,260 @@ typedef struct
 } ProcessList, *PProcessList;
 
 
+void InitializeProcessThreadlist(PProcessData p)
+{
+  if (p->threadlist==NULL) //new list
+  {
+    p->threadlist=malloc(sizeof(int)*64); //preallocate room for 64
+    p->threadlistmax=64;
+  }
+
+  p->threadlistpos=0;
+}
+
+void AddThreadToProcess(PProcessData p, int tid)
+{
+  if (p->threadlist==NULL)
+    InitializeProcessThreadlist(p);
+
+  if (p->threadlistpos==p->threadlistmax)
+  {
+    //realloc
+    p->threadlist=realloc(p->threadlist, sizeof(int)*p->threadlistmax*2);
+    if (p->threadlist==NULL)
+    {
+      printf("REALLOC FAILED!\n");
+      exit(2);
+    }
+    p->threadlistmax=p->threadlistmax*2;
+
+  }
+
+  p->threadlist[p->threadlistpos]=tid;
+  p->threadlistpos++;
+}
+
+int RemoveThreadFromProcess(PProcessData p, int tid)
+{
+  int i;
+  for (i=0; i<p->threadlistpos; i++)
+    if (p->threadlist[i]==tid)
+    {
+      //found it
+      int j;
+      for (j=i; j<p->threadlistpos-1; j++)
+        p->threadlist[j]=p->threadlist[j+1];
+
+      p->threadlistpos--;
+      return 1;
+    }
+
+  return 0;
+
+}
+
+pthread_cond_t hasChildSignal;
+pthread_mutex_t hasChildSignalMutex;
+
+void mychildhandler(int signal, struct siginfo *info, void *context)
+{
+  printf("Child event: %d\n", info->si_pid);
+
+  pthread_cond_signal(&hasChildSignal);  //set event
+}
+
+int StartDebug(HANDLE hProcess)
+{
+  if (GetHandleType(hProcess) == htProcesHandle )
+  {
+    PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
+    struct sigaction oldhandler;
+    struct sigaction childactionhandler;
+    if (p->isDebugged)
+    {
+      printf("Trying to start debugging a process that is already debugged\n");
+      return FALSE;
+    }
+
+    //attach to each task
+    //first get a threadlist
+    InitializeProcessThreadlist(p);
+
+    //setup an event
+    pthread_cond_init(&hasChildSignal, NULL);
+    pthread_mutex_init(&hasChildSignalMutex, NULL);
+
+
+
+
+    memset(&childactionhandler, 0, sizeof(childactionhandler));
+    childactionhandler.sa_handler=mychildhandler;
+    childactionhandler.sa_flags=SA_SIGINFO;
+
+
+
+    sigaction(SIGCHLD, &childactionhandler, 0);
+
+
+
+
+    //read the taskid's from /proc/pid/task
+    char _taskdir[255];
+    DIR *taskdir;
+
+    sprintf(_taskdir, "/proc/%d/task", p->pid);
+
+    taskdir=opendir(_taskdir);
+
+    if (taskdir)
+    {
+      struct dirent *d;
+
+      d=readdir(taskdir);
+      while (d)
+      {
+        int tid=atoi(d->d_name);
+
+        if (tid)
+        {
+          AddThreadToProcess(p, tid);
+
+          if (ptrace(PTRACE_ATTACH, tid,0,0)<0)
+            printf("Failed to attach to thread %d\n", tid);
+          else
+            p->isDebugged=1; //at least one made it...
+        }
+
+        d=readdir(taskdir);
+      }
+
+      closedir(taskdir);
+
+    }
+    else
+    {
+      printf("Failure opening %s",_taskdir);
+    }
+
+
+    return p->isDebugged;
+
+  }
+  else
+  {
+    printf("Invalid handle\n");
+    return FALSE;
+  }
+
+}
+
+int WaitForDebugEvent(HANDLE hProcess, int waitfortid) //waitfortid is -1 when waiting for any thread
+{
+  if (GetHandleType(hProcess) == htProcesHandle )
+  {
+    PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
+
+    if (p->debuggedThread==0)
+    {
+      int status;
+      int tid;
+
+
+      //check if there was a thread waiting since last time
+      tid=waitpid(-1, &status, WNOHANG);
+
+      while (tid<=0)
+      {
+        printf("No child waiting. Going to wait\n");
+        pthread_cond_wait(&hasChildSignal, &hasChildSignalMutex);
+        printf("after wait\n");
+
+        tid=waitpid(-1, &status, WNOHANG);
+      }
+
+
+
+
+
+      p->debuggedThread=tid;
+
+      if (WIFSIGNALED(status))
+        p->debuggedThreadSignal=WTERMSIG(status);
+      else
+      if (WIFSTOPPED(status))
+        p->debuggedThreadSignal=WSTOPSIG(status);
+      else
+        p->debuggedThreadSignal=0;
+
+      printf("%d: Break due to signal %d (status=%x)\n", tid, p->debuggedThreadSignal, status);
+
+
+      return 1;
+    }
+    else
+      printf("Can not wait for a debug event when a thread is still paused\n");
+
+  }
+  return 0;
+}
+
+int ContinueFromDebugEvent(HANDLE hProcess, int ignoresignal)
+{
+  if (GetHandleType(hProcess) == htProcesHandle )
+  {
+    PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
+
+    if (p->debuggedThread)
+    {
+      int signal=ignoresignal?0:p->debuggedThreadSignal;
+
+      if ((signal==19) || (signal==21)) //STOPPED
+      {
+        signal=0;
+      }
+
+      int result=ptrace(PTRACE_CONT, p->debuggedThread,0,signal);
+      p->debuggedThread=0;
+
+      if (result<0)
+      {
+        printf("Failure to continue thread %d with signal %d\n", p->debuggedThread, signal);
+        return 0;
+      }
+      else
+        return 1;
+    }
+    else
+      printf("No debugged thread to continue\n");
+  }
+  else
+    printf("Invalid handle\n");
+
+  return 0;
+}
+
+int StopDebug(HANDLE hProcess)
+{
+  if (GetHandleType(hProcess) == htProcesHandle )
+  {
+    PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
+    int i;
+    for (i=0; i<p->threadlistpos;i++)
+      if (ptrace(PTRACE_DETACH, p->threadlist[i],0,0)<0)
+        printf("Failed to detach from %d\n", p->threadlist[i]);
+  }
+
+  return 1;
+
+}
+
 int WriteProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 {
   int written=0;
 
   if (GetHandleType(hProcess) == htProcesHandle )
   {
-    PProcessData p=GetPointerFromHandle(hProcess);
-
+    PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
 
     if (pthread_mutex_lock(&memorymutex) == 0)
     {
@@ -68,7 +316,7 @@ int WriteProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
         int offset=0;
         int max=size-sizeof(long int);
 
-        long int *address=buffer;
+        long int *address=(long int *)buffer;
 
 
         while (offset<max)
@@ -111,6 +359,8 @@ int WriteProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
         ptrace(PTRACE_DETACH, pid,0,0);
       }
+      else
+        printf("PTRACE ATTACH FAILED\n");
 
       pthread_mutex_unlock(&memorymutex);
     }
@@ -131,8 +381,8 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
   int read=0;
   if (GetHandleType(hProcess) == htProcesHandle )
-  {
-    PProcessData p=GetPointerFromHandle(hProcess);
+  { //valid handle
+    PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
 
     //printf("hProcess=%d, lpAddress=%p, buffer=%p, size=%d\n", hProcess, lpAddress, buffer, size);
 
@@ -177,7 +427,7 @@ int VirtualQueryEx(HANDLE hProcess, void *lpAddress, PRegionInfo rinfo)
 
   if (GetHandleType(hProcess) == htProcesHandle )
   {
-    PProcessData p=GetPointerFromHandle(hProcess);
+    PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
     FILE *maps=fopen(p->maps, "r");
     if (maps)
     {
@@ -284,7 +534,7 @@ HANDLE OpenProcess(DWORD pid)
     //success
 
     //create a process info structure and return a handle to it
-    PProcessData p=malloc(sizeof(ProcessData));
+    PProcessData p=(PProcessData)malloc(sizeof(ProcessData));
 
     p->pid=pid;
     p->path=strdup(processpath);
@@ -295,6 +545,14 @@ HANDLE OpenProcess(DWORD pid)
     sprintf(processpath,"/proc/%d/mem", pid);
     p->mem=open(processpath, O_RDONLY);
 
+
+    p->isDebugged=0;
+
+    p->threadlistmax=0;
+    p->threadlistpos=0;
+    p->threadlist=NULL;
+
+    p->debuggedThread=0;
 
 
     return CreateHandleFromPointer(p, htProcesHandle);
@@ -314,7 +572,7 @@ BOOL Process32Next(HANDLE hSnapshot, PProcessListEntry processentry)
 
   if (GetHandleType(hSnapshot) == htTHSProcess)
   {
-    PProcessList pl=GetPointerFromHandle(hSnapshot);
+    PProcessList pl=(PProcessList)GetPointerFromHandle(hSnapshot);
 
     if (pl->processListIterator<pl->processCount)
     {
@@ -339,7 +597,7 @@ BOOL Process32First(HANDLE hSnapshot, PProcessListEntry processentry)
  // printf("Process32First\n");
   if (GetHandleType(hSnapshot) == htTHSProcess)
   {
-    PProcessList pl=GetPointerFromHandle(hSnapshot);
+    PProcessList pl=(PProcessList)GetPointerFromHandle(hSnapshot);
     pl->processListIterator=0;
     return Process32Next(hSnapshot, processentry);
   }
@@ -356,12 +614,12 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
   {
     //create a processlist which process32first/process32next will make use of. Not often called so you may make it as slow as you wish
     int max=2048;
-    PProcessList pl=malloc(sizeof(ProcessList));
+    PProcessList pl=(PProcessList)malloc(sizeof(ProcessList));
 
     //printf("Creating processlist\n");
 
     pl->processCount=0;
-    pl->processList=malloc(sizeof(ProcessListEntry)* max);
+    pl->processList=(PProcessListEntry)malloc(sizeof(ProcessListEntry)* max);
 
     DIR *procfolder=opendir("/proc/");
 
@@ -414,7 +672,7 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
           if (pl->processCount>=max)
           {
             max=max*2;
-            pl->processList=realloc(pl->processList, max);
+            pl->processList=(PProcessListEntry)realloc(pl->processList, max);
           }
         }
 
@@ -444,7 +702,7 @@ void CloseHandle(HANDLE h)
  // printf("CloseHandle(%d)\n", h);
   if (ht==htTHSProcess)
   {
-    ProcessList *pl=GetPointerFromHandle(h);
+    ProcessList *pl=(PProcessList)GetPointerFromHandle(h);
     int i;
     //free all the processnames in the list
 
@@ -457,7 +715,7 @@ void CloseHandle(HANDLE h)
   else
   if (ht==htProcesHandle)
   {
-    PProcessData pd=GetPointerFromHandle(h);
+    PProcessData pd=(PProcessData)GetPointerFromHandle(h);
     free(pd->maps);
     free(pd->path);
     close(pd->mem);

@@ -24,6 +24,16 @@ typedef struct {
   char *path;
   char *maps;
   int mem;
+  int isDebugged; //if this is true no need to attach/detach constantly, BUT make sure the debugger thread does do it's job
+
+  int *threadlist;
+  int threadlistmax;
+  int threadlistpos;
+
+  int debuggedThread;
+  int debuggedThreadSignal;
+
+
 } ProcessData, *PProcessData;
 
 #pragma pack(1)
@@ -43,6 +53,12 @@ HANDLE OpenProcess(DWORD pid);
 int VirtualQueryEx(HANDLE hProcess, void *lpAddress, PRegionInfo rinfo);
 int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size);
 int WriteProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size);
+
+int StartDebug(HANDLE hProcess);
+int StopDebug(HANDLE hProcess);
+
+int WaitForDebugEvent(HANDLE hProcess, int waitfortid);
+int ContinueFromDebugEvent(HANDLE hProcess, int ignoresignal);
 
 void initAPI();
 
