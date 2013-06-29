@@ -71,7 +71,7 @@ void *newconnection(void *arg)
         {
           PCeVersion v;
           int versionsize=strlen(versionstring);
-          v=malloc(sizeof(CeVersion)+versionsize);
+          v=(PCeVersion)malloc(sizeof(CeVersion)+versionsize);
           v->stringsize=versionsize;
           v->version=1;
 
@@ -164,7 +164,7 @@ void *newconnection(void *arg)
             if (result)
             {
               size=sizeof(CeProcessEntry)+ strlen(pe.ProcessName);
-              r=malloc(size);
+              r=(PCeProcessEntry)malloc(size);
               r->processnamesize=strlen(pe.ProcessName);
               r->pid=pe.PID;
               memcpy((char *)r+sizeof(CeProcessEntry), pe.ProcessName, r->processnamesize);
@@ -172,7 +172,7 @@ void *newconnection(void *arg)
             else
             {
               size=sizeof(CeProcessEntry);
-              r=malloc(size);
+              r=(PCeProcessEntry)malloc(size);
               r->processnamesize=0;
               r->pid=0;
             }
@@ -199,7 +199,7 @@ void *newconnection(void *arg)
             //if (c.size>200000)
             //printf("ReadProcessMemory. Address: %llx - Size=%d\n", c.address, c.size);
 
-            o=malloc(sizeof(CeReadProcessMemoryOutput)+c.size);
+            o=(PCeReadProcessMemoryOutput)malloc(sizeof(CeReadProcessMemoryOutput)+c.size);
 
             if (o==NULL)
             {
@@ -224,7 +224,7 @@ void *newconnection(void *arg)
             //	printf("sent %d bytes. Wanted to send %u\n", i, sizeof(c.size)+o->read);
 
 
-            if (i!=sizeof(CeReadProcessMemoryOutput)+o->read)
+            if ((signed int)i!=sizeof(CeReadProcessMemoryOutput)+o->read)
             {
             	printf("READ INTERUPTION: %d out of %d\n",i,sizeof(CeReadProcessMemoryOutput)+o->read);
 
@@ -271,7 +271,7 @@ void *newconnection(void *arg)
             printf("recv returned %d bytes\n", r);
             printf("c.size=%d\n", c.size);
 
-            buf=malloc(c.size);
+            buf=(unsigned char *)malloc(c.size);
 
             r=recv(s, buf, c.size, MSG_WAITALL);
             if (r>0)
@@ -455,12 +455,61 @@ void *IdentifierThread(void *arg)
   return 0;
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
         int s;
         int b;
         int l;
         int a;
+
+
+        if (argc>1)
+        {
+          if (strcmp(argv[1], "TEST")==0)
+          {
+            printf("Test mode\n");
+            if (argc>2)
+            {
+              int pid;
+              HANDLE h;
+              pid=atoi(argv[2]);
+
+
+              h=OpenProcess(pid);
+              if (h)
+              {
+                printf("Opened the process\n");
+                if (StartDebug(h))
+                {
+                  printf("Debugging the process\n");
+
+                  while (1)
+                  {
+                    if (WaitForDebugEvent(h, -1))
+                    {
+                      printf("Got a debug event\n");
+                      if (ContinueFromDebugEvent(h, 0)==FALSE)
+                      {
+                        printf("Could not continue...\n");
+                        StopDebug(h);
+                        break;
+                      }
+                    }
+
+                  }
+                }
+                else
+                  printf("Debug failed\n");
+              }
+              else
+                printf("Failed opening the process\n");
+
+
+              exit(1);
+            }
+
+          }
+        }
 
         socklen_t clisize;
         struct sockaddr_in addr, addr_client;
