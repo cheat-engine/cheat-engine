@@ -57,7 +57,7 @@ int WriteProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 int StartDebug(HANDLE hProcess);
 int StopDebug(HANDLE hProcess);
 
-int WaitForDebugEvent(HANDLE hProcess, int waitfortid);
+int WaitForDebugEvent(HANDLE hProcess);
 int ContinueFromDebugEvent(HANDLE hProcess, int ignoresignal);
 
 void initAPI();

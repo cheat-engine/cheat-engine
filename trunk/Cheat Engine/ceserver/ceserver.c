@@ -485,14 +485,14 @@ int main(int argc, char *argv[])
 
                   while (1)
                   {
-                    if (WaitForDebugEvent(h, -1))
+                    if (WaitForDebugEvent(h))
                     {
                       printf("Got a debug event\n");
                       if (ContinueFromDebugEvent(h, 0)==FALSE)
                       {
                         printf("Could not continue...\n");
-                        StopDebug(h);
-                        break;
+                        //StopDebug(h);
+                        //break;
                       }
                     }
 

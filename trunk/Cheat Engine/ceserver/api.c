@@ -174,6 +174,7 @@ int StartDebug(HANDLE hProcess)
             printf("Failed to attach to thread %d\n", tid);
           else
             p->isDebugged=1; //at least one made it...
+
         }
 
         d=readdir(taskdir);
@@ -199,7 +200,7 @@ int StartDebug(HANDLE hProcess)
 
 }
 
-int WaitForDebugEvent(HANDLE hProcess, int waitfortid) //waitfortid is -1 when waiting for any thread
+int WaitForDebugEvent(HANDLE hProcess) //waitfortid is -1 when waiting for any thread
 {
   if (GetHandleType(hProcess) == htProcesHandle )
   {
@@ -212,15 +213,15 @@ int WaitForDebugEvent(HANDLE hProcess, int waitfortid) //waitfortid is -1 when w
 
 
       //check if there was a thread waiting since last time
-      tid=waitpid(-1, &status, WNOHANG);
+      tid=waitpid(-1, &status, WNOHANG| __WALL);
 
       while (tid<=0)
       {
-        printf("No child waiting. Going to wait\n");
-        pthread_cond_wait(&hasChildSignal, &hasChildSignalMutex);
-        printf("after wait\n");
+       // printf("No child waiting. Going to wait\n");
+       // pthread_cond_wait(&hasChildSignal, &hasChildSignalMutex);
+       // printf("after wait\n");
 
-        tid=waitpid(-1, &status, WNOHANG);
+        tid=waitpid(-1, &status, __WALL);
       }
 
 
@@ -229,15 +230,33 @@ int WaitForDebugEvent(HANDLE hProcess, int waitfortid) //waitfortid is -1 when w
 
       p->debuggedThread=tid;
 
+      if (WIFEXITED(status))
+      {
+        p->debuggedThreadSignal=-1;
+        printf("EXIT\n");
+      }
+      else
       if (WIFSIGNALED(status))
+      {
         p->debuggedThreadSignal=WTERMSIG(status);
+        printf("SIGNAL\n");
+      }
       else
       if (WIFSTOPPED(status))
+      {
         p->debuggedThreadSignal=WSTOPSIG(status);
+        printf("STOP\n");
+      }
       else
+      {
         p->debuggedThreadSignal=0;
+        printf("WTF!\n");
+      }
 
-      printf("%d: Break due to signal %d (status=%x)\n", tid, p->debuggedThreadSignal, status);
+      if (!WIFEXITED(status))
+        printf("%d: Break due to signal %d (status=%x)\n", tid, p->debuggedThreadSignal, status);
+      else
+        printf("%d terminated");
 
 
       return 1;
@@ -251,6 +270,7 @@ int WaitForDebugEvent(HANDLE hProcess, int waitfortid) //waitfortid is -1 when w
 
 int ContinueFromDebugEvent(HANDLE hProcess, int ignoresignal)
 {
+  printf("ContinueFromDebugEvent called\n");
   if (GetHandleType(hProcess) == htProcesHandle )
   {
     PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
@@ -264,16 +284,24 @@ int ContinueFromDebugEvent(HANDLE hProcess, int ignoresignal)
         signal=0;
       }
 
+      printf("Continue %d with signal %d\n", p->debuggedThread, signal);
+
       int result=ptrace(PTRACE_CONT, p->debuggedThread,0,signal);
-      p->debuggedThread=0;
+
+
+      printf("Continue result=%d\n", result);
 
       if (result<0)
       {
         printf("Failure to continue thread %d with signal %d\n", p->debuggedThread, signal);
+        p->debuggedThread=0;
         return 0;
       }
       else
+      {
+        p->debuggedThread=0;
         return 1;
+      }
     }
     else
       printf("No debugged thread to continue\n");
