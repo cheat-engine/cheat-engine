@@ -461,7 +461,7 @@ void testread(int h)
 {
   int hp=0;
 
-  ReadProcessMemory(h, 0xa000, &hp, 4 );
+  ReadProcessMemory(h, 0x601048, &hp, 4 );
   printf("hp=%d\n",hp);
 
 
@@ -481,10 +481,11 @@ void *TEST(void *arg)
 
 int main(int argc, char *argv[])
 {
-        int s;
-        int b;
-        int l;
-        int a;
+  int s;
+  int b;
+  int l;
+  int a;
+  initAPI();
 
 
         if (argc>1)
@@ -509,7 +510,7 @@ int main(int argc, char *argv[])
 
                   while (1)
                   {
-                    if (WaitForDebugEvent(h, 500))
+                    if (WaitForDebugEvent(h, 5000))
                     {
                       printf("Got a debug event\n");
 
