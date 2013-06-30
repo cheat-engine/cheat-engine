@@ -1789,7 +1789,6 @@ begin
   result:=false;
   for i:=1 to length(scanvalue1) do
   begin
-    pbytearray(newvalue)[(i-1)]:=pbytearray(newvalue)[(i-1)] and $df;
     if pchar(newvalue)[(i-1)] in ['a'..'z'] then //change to uppercase
       dec(pbytearray(newvalue)[(i-1)],$20);
 
