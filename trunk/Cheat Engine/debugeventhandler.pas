@@ -584,7 +584,7 @@ begin
     begin
       bpp:=PBreakpoint(breakpointlist.Items[i]);
 
-      if InRangeX(address, bpp.address, bpp.address+bpp.size) then
+      if InRangeX(address, bpp.address, bpp.address+bpp.size-1) then
       begin
         found:=true;
         bpp2:=bpp;
