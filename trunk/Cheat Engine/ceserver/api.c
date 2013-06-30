@@ -252,28 +252,6 @@ int WaitForDebugEvent(HANDLE hProcess, int timeout)
 
          // printf("after wait: %d\n", timedwait);
 
-          if (p->rpmAddress)
-          {
-            //cause a STOP
-#define PTRACE_INTERRUPT 0x4206
-            int res;
-            //res=ptrace(PTRACE_INTERRUPT, p->pid,0,0);
-            //printf("PTRACE_INTERRUPT for pid %d : %d %x\n", p->pid, res, errno);
-            res=kill(p->pid, SIGSTOP);
-            printf("kill returned %d\n", res);
-
-            tid=waitpid(p->pid,  &status, __WALL);
-            printf("tid=%d\n",tid);
-
-
-            printf("Trying to read memory %p size %d\n", p->rpmAddress, p->rpmSize);
-            p->rpmSize=pread(p->mem, p->rpmTarget, p->rpmSize, (uintptr_t)p->rpmAddress);
-            printf("p->rpmSize=%d\n",p->rpmSize);
-            p->rpmAddress=0;
-
-            ptrace(PTRACE_CONT, tid,0,signal);
-          }
-
           pthread_mutex_unlock(&hasDebugSignalMutex);
 
 
@@ -293,6 +271,16 @@ int WaitForDebugEvent(HANDLE hProcess, int timeout)
 
 
       p->debuggedThread=tid;
+
+      if (p->rpmAddress)
+      {
+        printf("Trying to read memory %p size %d\n", p->rpmAddress, p->rpmSize);
+        p->rpmSize=pread(p->mem, p->rpmTarget, p->rpmSize, (uintptr_t)p->rpmAddress);
+        printf("p->rpmSize=%d\n",p->rpmSize);
+        p->rpmAddress=0;
+      }
+
+
 
       if (WIFEXITED(status))
       {
@@ -484,9 +472,11 @@ int ReadProcessMemoryDebug(PProcessData p, void *lpAddress, void *buffer, int si
   p->rpmTarget=buffer;
   p->rpmSize=size;
 
-  //wake the thread
-  pthread_cond_signal(&hasDebugSignal);  //set event
+
   pthread_mutex_unlock(&hasDebugSignalMutex);
+
+  //wake the thread
+  kill(p->pid, SIGSTOP);
 
   //todo: go to sleep till an event is set
   while ((volatile)(p->rpmAddress)!=NULL)
