@@ -26,6 +26,7 @@ type
 
     setInt3Back: boolean;
     Int3setbackAddress: ptrUint;
+    Int3SetBackBP: PBreakpoint;
 
     {$ifdef cpu32}
     setInt1Back: boolean;
@@ -271,7 +272,7 @@ end;
 
 procedure TDebugThreadHandler.ContinueFromBreakpoint(bp: PBreakpoint; continueoption: TContinueOption);
 {
-Continues the current thread from a debug event. Handles int3 breakpioints as well
+Continues the current thread from a debug event. Handles int3 breakpoints as well
 BP can be nil if it's a single step breakpoint
 
 }
@@ -287,18 +288,19 @@ begin
   try
     if (bp<>nil) then
     begin
-      if (bp.breakpointMethod=bpmInt3) and (not bp.markedfordeletion) then
+      if (bp.breakpointMethod=bpmInt3) then
       begin
         //bp is set and it's an int3 breakpoint
         VirtualProtectEx(Processhandle, pointer(bp.address), 1, PAGE_EXECUTE_READWRITE, oldprotect);
         WriteProcessMemory(processhandle, pointer(bp.address), @bp.originalbyte, 1, bw);
         VirtualProtectEx(Processhandle, pointer(bp.address), 1, oldprotect, oldprotect);
 
-        if not bp.OneTimeOnly then //if it's not a one time only breakpoint then set it back on next instruction
+        if (not bp.markedfordeletion) and (not bp.OneTimeOnly) then //if it's not a one time only breakpoint then set it back on next instruction
         begin
           context.EFlags:=eflags_setTF(context.EFlags,1); //set the trap flag so it'll break on next instruction
           setInt3Back:=true;
           Int3setbackAddress:=bp.address;
+          Int3setBackbp:=bp;
 
         end;
       end
@@ -510,9 +512,12 @@ begin
 
   if setInt3Back then
   begin
-    VirtualProtectEx(Processhandle, pointer(Int3setbackAddress), 1, PAGE_EXECUTE_READWRITE, oldprotect);
-    WriteProcessMemory(processhandle, pointer(Int3setbackAddress), @int3byte, 1, bw);
-    VirtualProtectEx(Processhandle, pointer(Int3setbackAddress), 1, oldprotect, oldprotect);
+    if Int3setBackbp.markedfordeletion=false then
+    begin
+      VirtualProtectEx(Processhandle, pointer(Int3setbackAddress), 1, PAGE_EXECUTE_READWRITE, oldprotect);
+      WriteProcessMemory(processhandle, pointer(Int3setbackAddress), @int3byte, 1, bw);
+      VirtualProtectEx(Processhandle, pointer(Int3setbackAddress), 1, oldprotect, oldprotect);
+    end;
 
     setInt3Back:=false;
     hasSetInt3Back:=true;
