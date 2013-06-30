@@ -37,13 +37,18 @@
 
 #include <errno.h>
 
+#include <semaphore.h>
+
 #include "api.h"
 #include "porthelp.h"
 
 //#include <vector>
-
+sem_t sem_RPMDone;
+sem_t sem_ChildEvent;
 
 pthread_mutex_t memorymutex;
+pthread_mutex_t mut_RPM;
+
 
 
 typedef struct
@@ -106,16 +111,12 @@ int RemoveThreadFromProcess(PProcessData p, int tid)
 
 }
 
-pthread_cond_t hasDebugSignal;
-pthread_mutex_t hasDebugSignalMutex;
 
 void mychildhandler(int signal, struct siginfo *info, void *context)
 {
   printf("Child event: %d\n", info->si_pid);
 
-  pthread_mutex_lock(&hasDebugSignalMutex);
-  pthread_cond_signal(&hasDebugSignal);  //set event
-  pthread_mutex_unlock(&hasDebugSignalMutex);
+  sem_post(&sem_ChildEvent);
 }
 
 int StartDebug(HANDLE hProcess)
@@ -136,12 +137,6 @@ int StartDebug(HANDLE hProcess)
     InitializeProcessThreadlist(p);
 
     //setup an event
-    pthread_cond_init(&hasDebugSignal, NULL);
-    pthread_mutex_init(&hasDebugSignalMutex, NULL);
-
-
-
-
     memset(&childactionhandler, 0, sizeof(childactionhandler));
     childactionhandler.sa_handler=mychildhandler;
     childactionhandler.sa_flags=SA_SIGINFO;
@@ -224,7 +219,7 @@ int WaitForDebugEvent(HANDLE hProcess, int timeout)
       {
         tid=waitpid(-1, &status, WNOHANG| __WALL);
 
-        while (tid<=0)
+        if (tid<=0)
         {
           //wait failed, wait for the child signal for at most "timeout" millisecond.
 
@@ -245,22 +240,44 @@ int WaitForDebugEvent(HANDLE hProcess, int timeout)
           abstime.tv_nsec=wanted.tv_usec*1000;
 
         //  printf("No child waiting. Going to wait\n");
-          pthread_mutex_lock(&hasDebugSignalMutex);
+         // pthread_mutex_lock(&hasDebugSignalMutex);
 
-
-          timedwait=pthread_cond_timedwait(&hasDebugSignal, &hasDebugSignalMutex, &abstime);
-
-         // printf("after wait: %d\n", timedwait);
-
-          pthread_mutex_unlock(&hasDebugSignalMutex);
-
-
-          if (timedwait==0)
-            tid=waitpid(-1, &status, WNOHANG | __WALL);
-          else
-          if (timedwait==ETIMEDOUT)
+          while (tid<=0)
           {
-            return FALSE; //no debug message
+
+            timedwait=sem_timedwait(&sem_ChildEvent, &abstime);
+           // timedwait=pthread_cond_timedwait(&hasDebugSignal, &hasDebugSignalMutex, &abstime);
+
+            printf("after wait: %d\n", timedwait);
+
+           // pthread_mutex_unlock(&hasDebugSignalMutex);
+
+
+            if (timedwait==0)
+              tid=waitpid(-1, &status, WNOHANG | __WALL);
+            else
+            {
+              int e=errno;
+              printf("errno=%d", errno);
+              if (e==ETIMEDOUT)
+              {
+                printf("=Timeout\n");
+                return FALSE; //no debug message
+              }
+              else
+              if (e==EINTR)
+              {
+                printf("=Interrupted by signal\n");
+              }
+              else
+              if (e==EINVAL)
+              {
+                printf("=Invalid time\n");
+              }
+              else
+                printf("=WTF?\n");
+
+            }
           }
 
 
@@ -271,16 +288,6 @@ int WaitForDebugEvent(HANDLE hProcess, int timeout)
 
 
       p->debuggedThread=tid;
-
-      if (p->rpmAddress)
-      {
-        printf("Trying to read memory %p size %d\n", p->rpmAddress, p->rpmSize);
-        p->rpmSize=pread(p->mem, p->rpmTarget, p->rpmSize, (uintptr_t)p->rpmAddress);
-        printf("p->rpmSize=%d\n",p->rpmSize);
-        p->rpmAddress=0;
-      }
-
-
 
       if (WIFEXITED(status))
       {
@@ -299,6 +306,24 @@ int WaitForDebugEvent(HANDLE hProcess, int timeout)
       {
         p->debuggedThreadSignal=WSTOPSIG(status);
         printf("STOP\n");
+
+
+        pthread_mutex_lock(&mut_RPM);
+        if (p->rpmAddress)
+        {
+          //printf("Trying to read memory %p size %d\n", p->rpmAddress, p->rpmSize);
+          p->rpmSize=pread(p->mem, p->rpmTarget, p->rpmSize, (uintptr_t)p->rpmAddress);
+          //printf("p->rpmSize=%d\n",p->rpmSize);
+
+
+          //signal the sleeping thread that it can continue
+          sem_post(&sem_RPMDone);
+
+        }
+        pthread_mutex_unlock(&mut_RPM);
+
+        printf("After lock unlock\n");
+
       }
       else
       {
@@ -466,31 +491,25 @@ int ReadProcessMemoryDebug(PProcessData p, void *lpAddress, void *buffer, int si
 
   printf("ReadProcessMemoryDebug\n");
 
-  pthread_mutex_lock(&hasDebugSignalMutex);
+  pthread_mutex_lock(&mut_RPM);
 
   p->rpmAddress=lpAddress;
   p->rpmTarget=buffer;
   p->rpmSize=size;
 
 
-  pthread_mutex_unlock(&hasDebugSignalMutex);
+  pthread_mutex_unlock(&mut_RPM);
 
   //wake the thread
   kill(p->pid, SIGSTOP);
 
-  //todo: go to sleep till an event is set
-  while ((volatile)(p->rpmAddress)!=NULL)
-    {
-      printf("p->rpmAddress=%p\n", p->rpmAddress);
-     sleep(1);
-
-    }
-
-  printf("p->rpmAddress is not 0 anymore");
+  //go to sleep till an event is set
 
 
+  while (sem_wait(&sem_RPMDone)) ; //interrupts can continue it
   //wait for results
 
+  return p->rpmSize;
 }
 
 int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
@@ -824,6 +843,10 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
 void initAPI()
 {
   pthread_mutex_init(&memorymutex, NULL);
+  pthread_mutex_init(&mut_RPM, NULL);
+
+  sem_init(&sem_RPMDone, 0, 0); //locked by default
+  sem_init(&sem_ChildEvent, 0, 0); //locked by default
 
 }
 
