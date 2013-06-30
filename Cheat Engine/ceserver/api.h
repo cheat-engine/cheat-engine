@@ -33,6 +33,9 @@ typedef struct {
   int debuggedThread;
   int debuggedThreadSignal;
 
+  void *rpmAddress;
+  void *rpmTarget;
+  int rpmSize;
 
 } ProcessData, *PProcessData;
 

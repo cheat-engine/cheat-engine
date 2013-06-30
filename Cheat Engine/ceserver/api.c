@@ -106,16 +106,16 @@ int RemoveThreadFromProcess(PProcessData p, int tid)
 
 }
 
-pthread_cond_t hasChildSignal;
-pthread_mutex_t hasChildSignalMutex;
+pthread_cond_t hasDebugSignal;
+pthread_mutex_t hasDebugSignalMutex;
 
 void mychildhandler(int signal, struct siginfo *info, void *context)
 {
   printf("Child event: %d\n", info->si_pid);
 
-  pthread_mutex_lock(&hasChildSignalMutex);
-  pthread_cond_signal(&hasChildSignal);  //set event
-  pthread_mutex_unlock(&hasChildSignalMutex);
+  pthread_mutex_lock(&hasDebugSignalMutex);
+  pthread_cond_signal(&hasDebugSignal);  //set event
+  pthread_mutex_unlock(&hasDebugSignalMutex);
 }
 
 int StartDebug(HANDLE hProcess)
@@ -136,8 +136,8 @@ int StartDebug(HANDLE hProcess)
     InitializeProcessThreadlist(p);
 
     //setup an event
-    pthread_cond_init(&hasChildSignal, NULL);
-    pthread_mutex_init(&hasChildSignalMutex, NULL);
+    pthread_cond_init(&hasDebugSignal, NULL);
+    pthread_mutex_init(&hasDebugSignalMutex, NULL);
 
 
 
@@ -244,13 +244,38 @@ int WaitForDebugEvent(HANDLE hProcess, int timeout)
           abstime.tv_sec=wanted.tv_sec;
           abstime.tv_nsec=wanted.tv_usec*1000;
 
-          printf("No child waiting. Going to wait\n");
-          pthread_mutex_lock(&hasChildSignalMutex);
+        //  printf("No child waiting. Going to wait\n");
+          pthread_mutex_lock(&hasDebugSignalMutex);
 
 
-          timedwait=pthread_cond_timedwait(&hasChildSignal, &hasChildSignalMutex, &abstime);
-          pthread_mutex_unlock(&hasChildSignalMutex);
-          printf("after wait: %d\n", timedwait);
+          timedwait=pthread_cond_timedwait(&hasDebugSignal, &hasDebugSignalMutex, &abstime);
+
+         // printf("after wait: %d\n", timedwait);
+
+          if (p->rpmAddress)
+          {
+            //cause a STOP
+#define PTRACE_INTERRUPT 0x4206
+            int res;
+            //res=ptrace(PTRACE_INTERRUPT, p->pid,0,0);
+            //printf("PTRACE_INTERRUPT for pid %d : %d %x\n", p->pid, res, errno);
+            res=kill(p->pid, SIGSTOP);
+            printf("kill returned %d\n", res);
+
+            tid=waitpid(p->pid,  &status, __WALL);
+            printf("tid=%d\n",tid);
+
+
+            printf("Trying to read memory %p size %d\n", p->rpmAddress, p->rpmSize);
+            p->rpmSize=pread(p->mem, p->rpmTarget, p->rpmSize, (uintptr_t)p->rpmAddress);
+            printf("p->rpmSize=%d\n",p->rpmSize);
+            p->rpmAddress=0;
+
+            ptrace(PTRACE_CONT, tid,0,signal);
+          }
+
+          pthread_mutex_unlock(&hasDebugSignalMutex);
+
 
           if (timedwait==0)
             tid=waitpid(-1, &status, WNOHANG | __WALL);
@@ -441,6 +466,43 @@ int WriteProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
   return written;
 }
 
+int ReadProcessMemoryDebug(PProcessData p, void *lpAddress, void *buffer, int size)
+{
+  //problem: Only the thread that is currently debugging a stopped thread has read access
+  //work around: add a que to the debugger thread that fills in this
+  //que a ReadProcessMemory command with the debugger
+
+
+  //setup a que command
+  //insert it
+
+  printf("ReadProcessMemoryDebug\n");
+
+  pthread_mutex_lock(&hasDebugSignalMutex);
+
+  p->rpmAddress=lpAddress;
+  p->rpmTarget=buffer;
+  p->rpmSize=size;
+
+  //wake the thread
+  pthread_cond_signal(&hasDebugSignal);  //set event
+  pthread_mutex_unlock(&hasDebugSignalMutex);
+
+  //todo: go to sleep till an event is set
+  while ((volatile)(p->rpmAddress)!=NULL)
+    {
+      printf("p->rpmAddress=%p\n", p->rpmAddress);
+     sleep(1);
+
+    }
+
+  printf("p->rpmAddress is not 0 anymore");
+
+
+  //wait for results
+
+}
+
 int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 {
   //idea in case this is too slow. always read a full page and keep the last 16 accessed pages.
@@ -455,27 +517,38 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
     //printf("hProcess=%d, lpAddress=%p, buffer=%p, size=%d\n", hProcess, lpAddress, buffer, size);
 
+
     if (pthread_mutex_lock(&memorymutex) == 0)
     {
-      if (ptrace(PTRACE_ATTACH, p->pid,0,0)==0)
+      if (p->isDebugged) //&& cannotdealwithotherthreads
       {
-        int status;
-        pid_t pid=wait(&status);
+        //use the debugger specific readProcessMemory implementation
+        read=ReadProcessMemoryDebug(p, lpAddress, buffer, size);
 
-        //printf("wait returned %d with status %d\n", pid, status);
-        //printf("p->mem=%d\n", p->mem);
-
-        read=pread(p->mem, buffer, size, (uintptr_t)lpAddress);
-        if (read==-1)
-        {
-          read=0;
-         // printf("pread error\n");
-        }
-
-        ptrace(PTRACE_DETACH, pid,0,0);
       }
       else
-        printf("ptrace attach failed\n");
+      {
+
+        if (ptrace(PTRACE_ATTACH, p->pid,0,0)==0)
+        {
+          int status;
+          pid_t pid=wait(&status);
+
+          //printf("wait returned %d with status %d\n", pid, status);
+          //printf("p->mem=%d\n", p->mem);
+
+          read=pread(p->mem, buffer, size, (uintptr_t)lpAddress);
+          if (read==-1)
+          {
+            read=0;
+            printf("pread error\n");
+          }
+
+          ptrace(PTRACE_DETACH, pid,0,0);
+        }
+        //else
+        //  printf("ptrace attach failed\n");
+      }
 
       pthread_mutex_unlock(&memorymutex);
     }
