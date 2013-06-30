@@ -34,7 +34,7 @@ ssize_t sendall (int s, void *buf, size_t size, int flags)
 
     if ((i==-1) || (i==0))
     {
-      printf("Error during sendall: %d. errno=%d\n",i, errno);
+      printf("Error during sendall: %d. errno=%d\n",(int)i, errno);
         return i; //read error, or disconnected
     }
 
@@ -455,6 +455,30 @@ void *IdentifierThread(void *arg)
   return 0;
 }
 
+int testh=0;
+
+void testread(int h)
+{
+  int hp=0;
+
+  ReadProcessMemory(h, 0xa000, &hp, 4 );
+  printf("hp=%d\n",hp);
+
+
+
+}
+
+void *TEST(void *arg)
+{
+  while (1)
+  {
+    sleep(1);
+    testread(testh);
+  }
+
+  return NULL;
+}
+
 int main(int argc, char *argv[])
 {
         int s;
@@ -488,12 +512,28 @@ int main(int argc, char *argv[])
                     if (WaitForDebugEvent(h, 500))
                     {
                       printf("Got a debug event\n");
+
+                      if (testh==0)
+                      {
+                        testh=h;
+                        pthread_create(&pth, NULL, TEST, NULL);
+                      }
+
+
                       if (ContinueFromDebugEvent(h, 0)==FALSE)
                       {
                         printf("Could not continue...\n");
+
                         //StopDebug(h);
                         //break;
                       }
+                    }
+                    else
+                    {
+
+
+
+
                     }
 
                   }
