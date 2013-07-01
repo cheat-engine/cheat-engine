@@ -114,7 +114,7 @@ int RemoveThreadFromProcess(PProcessData p, int tid)
 
 void mychildhandler(int signal, struct siginfo *info, void *context)
 {
-  printf("Child event: %d\n", info->si_pid);
+  //printf("Child event: %d\n", info->si_pid);
 
   sem_post(&sem_ChildEvent);
 }
@@ -308,28 +308,28 @@ int WaitForDebugEvent(HANDLE hProcess, int timeout)
         printf("STOP\n");
 
 
-        pthread_mutex_lock(&mut_RPM);
-        if (p->rpmAddress)
-        {
-          //printf("Trying to read memory %p size %d\n", p->rpmAddress, p->rpmSize);
-          p->rpmSize=pread(p->mem, p->rpmTarget, p->rpmSize, (uintptr_t)p->rpmAddress);
-          //printf("p->rpmSize=%d\n",p->rpmSize);
-
-
-          //signal the sleeping thread that it can continue
-          sem_post(&sem_RPMDone);
-
-        }
-        pthread_mutex_unlock(&mut_RPM);
-
-        printf("After lock unlock\n");
-
       }
       else
       {
         p->debuggedThreadSignal=0;
         printf("WTF!\n");
       }
+
+      pthread_mutex_lock(&mut_RPM);
+      if (p->rpmAddress)
+      {
+        //printf("Trying to read memory %p size %d\n", p->rpmAddress, p->rpmSize);
+        p->rpmSize=pread(p->mem, p->rpmTarget, p->rpmSize, (uintptr_t)p->rpmAddress);
+        //printf("p->rpmSize=%d\n",p->rpmSize);
+
+
+        //signal the sleeping thread that it can continue
+        p->rpmAddress=0;
+        sem_post(&sem_RPMDone);
+
+      }
+      pthread_mutex_unlock(&mut_RPM);
+
 
       if (!WIFEXITED(status))
         printf("%d: Break due to signal %d (status=%x)\n", tid, p->debuggedThreadSignal, status);
@@ -498,9 +498,12 @@ int ReadProcessMemoryDebug(PProcessData p, void *lpAddress, void *buffer, int si
   p->rpmSize=size;
 
 
+  //wake the thread
+
   pthread_mutex_unlock(&mut_RPM);
 
-  //wake the thread
+//  while (p->debuggedThread) ; //wait till continued
+
   kill(p->pid, SIGSTOP);
 
   //go to sleep till an event is set
