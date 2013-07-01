@@ -472,7 +472,7 @@ void *TEST(void *arg)
 {
   while (1)
   {
-    sleep(1);
+   // usleep(100000); //sleep(1);
     testread(testh);
   }
 
