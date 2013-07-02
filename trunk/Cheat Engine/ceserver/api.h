@@ -25,6 +25,7 @@ typedef struct {
   char *maps;
   int mem;
   int isDebugged; //if this is true no need to attach/detach constantly, BUT make sure the debugger thread does do it's job
+  pthread_t debuggerThreadID;
 
   int *threadlist;
   int threadlistmax;
@@ -33,9 +34,9 @@ typedef struct {
   int debuggedThread;
   int debuggedThreadSignal;
 
-  void *rpmAddress;
-  void *rpmTarget;
-  int rpmSize;
+  int debuggerServer; //sockets for communicating with the debugger thread by local threads
+  int debuggerClient;
+
 
 } ProcessData, *PProcessData;
 

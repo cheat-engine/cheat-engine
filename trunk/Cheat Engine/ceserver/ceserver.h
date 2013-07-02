@@ -21,6 +21,12 @@
 #define CMD_VIRTUALQUERYEX 8
 #define CMD_READPROCESSMEMORY 9
 #define CMD_WRITEPROCESSMEMORY 10
+#define CMD_STARTDEBUG 11
+#define CMD_STOPDEBUG 12
+#define CMD_WAITFORDEBUGEVENT 13
+#define CMD_CONTINUEFROMDEBUGEVENT 14
+
+
 
 
 //extern char *versionstring;
@@ -79,6 +85,8 @@ typedef struct {
 
 
 #pragma pack()
+
+ssize_t sendall (int s, void *buf, size_t size, int flags);
 
 
 #endif /* CESERVER_H_ */
