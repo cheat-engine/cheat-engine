@@ -149,7 +149,7 @@ int StartDebug(HANDLE hProcess)
   if (GetHandleType(hProcess) == htProcesHandle )
   {
     PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
-    struct sigaction oldhandler;
+
     struct sigaction childactionhandler;
     if (p->isDebugged)
     {
@@ -163,12 +163,12 @@ int StartDebug(HANDLE hProcess)
 
     //setup an event
     memset(&childactionhandler, 0, sizeof(childactionhandler));
-    childactionhandler.sa_handler=mychildhandler;
+    childactionhandler.sa_handler=(void *)mychildhandler;
     childactionhandler.sa_flags=SA_SIGINFO;
 
 
 
-    sigaction(SIGCHLD, &childactionhandler, 0);
+    sigaction(SIGCHLD, &childactionhandler, NULL);
 
 
 
@@ -231,7 +231,7 @@ int StartDebug(HANDLE hProcess)
 
 }
 
-int WaitForDebugEvent(HANDLE hProcess, int timeout)
+int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
 /*
  * Waits for the specified timeout in milliseconds
  */
@@ -524,8 +524,10 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
 
     if (!isdebugged)
     {
+      DebugEvent event;
+
       kill(p->pid, SIGSTOP);
-      WaitForDebugEvent(hProcess, -1);
+      WaitForDebugEvent(hProcess, &event, -1); //wait for it myself
     }
 
     bytesread=pread(p->mem, buffer, size, (uintptr_t)lpAddress);
@@ -552,14 +554,14 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
       char command;
       int pHandle;
       unsigned long long address;
-      int size
+      int size;
     } rpm;
 #pragma pack()
 
 
     rpm.command=CMD_READPROCESSMEMORY;
     rpm.pHandle=hProcess;
-    rpm.address=lpAddress;
+    rpm.address=(uintptr_t)lpAddress;
     rpm.size=size;
 
     //and write it to the p->debuggerthreadfd and read out the data
@@ -677,17 +679,12 @@ int VirtualQueryEx(HANDLE hProcess, void *lpAddress, PRegionInfo rinfo)
           {
             //it's inside the region, so useable
 
-            int r,w,x;
+            int w,x;
 
             if (index(protectionstring, 'x'))
               x=1;
             else
               x=0;
-
-            if (index(protectionstring, 'r'))
-              r=1;
-            else
-              r=0;
 
             if (index(protectionstring, 'w'))
               w=1;

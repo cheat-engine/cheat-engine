@@ -50,7 +50,8 @@ ssize_t sendall (int s, void *buf, size_t size, int flags)
 
 void *newconnection(void *arg)
 {
-  int s=(int)arg;
+
+  int s=(uintptr_t)arg;
   unsigned char command;
   int isDebuggerThread=0;
   int debugfd=-1;
@@ -65,7 +66,7 @@ void *newconnection(void *arg)
     int r;
 
 
-    if (debugfd!=-1)
+    if (isDebuggerThread && (debugfd!=-1))
     {
       //wait for s and debugfd
       fd_set readfds;
@@ -119,6 +120,8 @@ void *newconnection(void *arg)
       else //none readable (shouldn't really happen, but whatever...), wait again
         continue;
     }
+    else
+      currentsocket=s;
 
     r=recv(currentsocket, &command, 1, MSG_WAITALL);
 
@@ -194,9 +197,16 @@ void *newconnection(void *arg)
           if (recv(currentsocket, &wfd, sizeof(wfd), MSG_WAITALL)>0)
           {
             int r;
+            DebugEvent event;
             printf("Calling WaitForDebugEvent(%d, %d)\n", wfd.pHandle, wfd.timeout);
-            r=WaitForDebugEvent(wfd.pHandle, wfd.timeout);
+            r=WaitForDebugEvent(wfd.pHandle, &event, wfd.timeout);
             sendall(currentsocket, &r, sizeof(r), 0);
+
+            if (r)
+            {
+              sendall(currentsocket, &event, sizeof(event),0);
+            }
+
           }
           break;
         }
@@ -344,7 +354,7 @@ void *newconnection(void *arg)
 
             if ((signed int)i!=sizeof(CeReadProcessMemoryOutput)+o->read)
             {
-            	printf("READ INTERUPTION: %d out of %d\n",i,sizeof(CeReadProcessMemoryOutput)+o->read);
+            	printf("READ INTERUPTION: %d out of %ld\n",i,sizeof(CeReadProcessMemoryOutput)+o->read);
 
             	if (i==-1)
             	{
@@ -548,7 +558,7 @@ void *IdentifierThread(void *arg)
       {
 
         printf("Identifier thread received a message :%d\n",v);
-        printf("sizeof(packet)=%d\n", sizeof(packet));
+        printf("sizeof(packet)=%ld\n", sizeof(packet));
 
         printf("packet.checksum=%x\n", packet.checksum);
         packet.checksum*=0xce;
@@ -636,7 +646,7 @@ int main(int argc, char *argv[])
     if (argc>2)
     {
       if (strcmp(argv[1], "TEST")==0)
-        pthread_create(&pth, NULL, CESERVERTEST, argv);
+        pthread_create(&pth, NULL, (void *)CESERVERTEST, argv);
     }
 
     while (done==0)
@@ -647,7 +657,7 @@ int main(int argc, char *argv[])
 
       if (a != -1)
       {
-        pthread_create(&pth, NULL, newconnection, (void *)a);
+        pthread_create(&pth, NULL, (void *)newconnection, (void *)(uintptr_t)a);
 
       }
     }
