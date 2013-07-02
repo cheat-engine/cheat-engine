@@ -63,6 +63,7 @@ int StopDebug(HANDLE hProcess);
 
 int WaitForDebugEvent(HANDLE hProcess, int timeout);
 int ContinueFromDebugEvent(HANDLE hProcess, int ignoresignal);
+int GetDebugPort(HANDLE hProcess);
 
 void initAPI();
 

@@ -6,16 +6,19 @@
 C_SRCS += \
 ../api.c \
 ../ceserver.c \
+../ceservertest.c \
 ../porthelp.c 
 
 OBJS += \
 ./api.o \
 ./ceserver.o \
+./ceservertest.o \
 ./porthelp.o 
 
 C_DEPS += \
 ./api.d \
 ./ceserver.d \
+./ceservertest.d \
 ./porthelp.d 
 
 

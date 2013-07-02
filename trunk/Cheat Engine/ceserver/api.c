@@ -49,6 +49,7 @@
 
 #include "api.h"
 #include "porthelp.h"
+#include "ceserver.h"
 
 //#include <vector>
 sem_t sem_ChildEvent;
@@ -122,8 +123,25 @@ int RemoveThreadFromProcess(PProcessData p, int tid)
 void mychildhandler(int signal, struct siginfo *info, void *context)
 {
   //printf("Child event: %d\n", info->si_pid);
-
+  int orig_errno = errno;
   sem_post(&sem_ChildEvent);
+  errno = orig_errno;
+}
+
+int GetDebugPort(HANDLE hProcess)
+//return the debugserver fd
+{
+  if (GetHandleType(hProcess) == htProcesHandle )
+  {
+    PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
+    if (p->isDebugged)
+    {
+      return p->debuggerServer;
+    }
+  }
+
+  return -1;
+
 }
 
 int StartDebug(HANDLE hProcess)
@@ -528,7 +546,36 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
     kill(p->pid, SIGSTOP); //this will wake the debuggerthread if it was sleeping
 
     //setup a rpm command
+#pragma pack(1)
+    struct
+    {
+      char command;
+      int pHandle;
+      unsigned long long address;
+      int size
+    } rpm;
+#pragma pack()
+
+
+    rpm.command=CMD_READPROCESSMEMORY;
+    rpm.pHandle=hProcess;
+    rpm.address=lpAddress;
+    rpm.size=size;
+
     //and write it to the p->debuggerthreadfd and read out the data
+    //aquire lock (I don't want other threads messing with the client socket)
+    if (pthread_mutex_lock(&memorymutex) == 0)
+    {
+      printf("Sending message to the debuggerthread\n");
+
+      sendall(p->debuggerClient, &rpm, sizeof(rpm), 0);
+      recv(p->debuggerClient, &bytesread, sizeof(bytesread), MSG_WAITALL);
+      printf("bytesread=%d\n", bytesread);
+      recv(p->debuggerClient, buffer, bytesread, MSG_WAITALL);
+
+
+      pthread_mutex_unlock(&memorymutex);
+    }
 
     //bytesread=read...
   }

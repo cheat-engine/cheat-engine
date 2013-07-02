@@ -106,12 +106,16 @@ int cenet_waitForDebugEvent(int fd, int pHandle, int timeout)
   int result;
 
 
+
+
   wfd.command=CMD_WAITFORDEBUGEVENT;
   wfd.pHandle=pHandle;
   wfd.timeout=timeout;
 
   sendall(fd, &wfd, sizeof(wfd), 0);
   recv(fd, &result, sizeof(result), MSG_WAITALL);
+
+  printf(">>>>>>>>>>>>>>>>>>cenet_waitForDebugEvent returned<<<<<<<<<<<<<<<<\n");
 
   return result;
 
@@ -187,11 +191,7 @@ void *CESERVERTEST_DEBUGGERTHREAD(void *arg)
       int hp=0;
 
 
-      i=cenet_readProcessMemory(fd, pHandle, 0x601048, &hp, 4);
-      printf("CESERVERTEST_DEBUGGERTHREAD:");
 
-      printf("i=%d\n", i);
-      printf("hp=%d\n", hp);
 
 
       i=cenet_waitForDebugEvent(fd, pHandle, 5000);
@@ -209,11 +209,17 @@ void *CESERVERTEST_DEBUGGERTHREAD(void *arg)
 void *CESERVERTEST_RPMTHREAD(void *arg)
 {
   int fd=cenet_connect();
+  int i;
+int hp;
 
   while (1)
   {
     //cenet_readProcessMemory(fd, 0x601048, &hp, 4)
+    i=cenet_readProcessMemory(fd, pHandle, 0x601048, &hp, 4);
+    printf("CESERVERTEST_RPMTHREAD:");
 
+    printf("i=%d\n", i);
+    printf("hp=%d\n", hp);
     sleep(1);
   }
 }
@@ -241,7 +247,8 @@ void *CESERVERTEST(void *argv[])
   pthread_create(&pth, NULL, CESERVERTEST_DEBUGGERTHREAD, NULL);
 
   //launch the rpmthread
-  //pthread_create(&pth, NULL, CESERVERTEST_RPMTHREAD, NULL);
+  sleep(1);
+  pthread_create(&pth, NULL, CESERVERTEST_RPMTHREAD, NULL);
 
  // while (1);
 

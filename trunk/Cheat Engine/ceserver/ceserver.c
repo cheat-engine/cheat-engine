@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <string.h>
@@ -51,15 +52,75 @@ void *newconnection(void *arg)
 {
   int s=(int)arg;
   unsigned char command;
+  int isDebuggerThread=0;
+  int debugfd=-1;
+
+  int currentsocket=s;
 
   //printf("new connection. Using socket %d\n", s);
 
 
   while (done==0)
   {
+    int r;
 
 
-    int r=recv(s, &command, 1, MSG_WAITALL);
+    if (debugfd!=-1)
+    {
+      //wait for s and debugfd
+      fd_set readfds;
+      int maxfd=s;
+      int sret;
+
+      FD_ZERO(&readfds);
+      FD_SET(s, &readfds);
+      FD_SET(debugfd, &readfds);
+
+      if (debugfd>maxfd)
+        maxfd=debugfd;
+
+      printf("Waiting for multiple sockets\n");
+
+      sret=select(maxfd+1, &readfds, NULL, NULL,NULL );
+
+      printf("Wait done\n");
+
+      printf("sret=%d\n", sret);
+      if (sret==-1)
+      {
+        if (errno==EINTR)
+        {
+          printf("Interrupted by signal. Checking again\n");
+          continue;
+        }
+        else
+        {
+          printf("WTF?: %d\n", errno);
+          while (1) sleep(60);
+
+        }
+      }
+
+
+      if (FD_ISSET(debugfd, &readfds) && FD_ISSET(s, &readfds))
+      {
+        //alternate between s and debugfd if both are constantly readable
+        if (currentsocket==debugfd)
+          currentsocket=s;
+        else
+          currentsocket=debugfd;
+      }
+      else //not both readable
+      if (FD_ISSET(debugfd, &readfds))
+        currentsocket=debugfd;
+      else
+      if (FD_ISSET(s, &readfds))
+        currentsocket=s;
+      else //none readable (shouldn't really happen, but whatever...), wait again
+        continue;
+    }
+
+    r=recv(currentsocket, &command, 1, MSG_WAITALL);
 
     //printf("s=%d  r=%d  command=%d\n", s, r, command);
     //fflush(stdout);
@@ -79,7 +140,7 @@ void *newconnection(void *arg)
           memcpy((char *)v+sizeof(CeVersion), versionstring, versionsize);
 
           //version request
-          sendall(s, v, sizeof(CeVersion)+versionsize, 0);
+          sendall(currentsocket, v, sizeof(CeVersion)+versionsize, 0);
 
           free(v);
 
@@ -90,7 +151,7 @@ void *newconnection(void *arg)
         {
           printf("Connection %d closed properly\n", s);
           fflush(stdout);
-          close(s);
+          close(currentsocket);
 
           return NULL;
         }
@@ -99,19 +160,25 @@ void *newconnection(void *arg)
         {
           printf("Command to terminate the server received\n");
           fflush(stdout);
-          close(s);
+          close(currentsocket);
           exit(0);
         }
 
         case CMD_STARTDEBUG:
         {
           HANDLE h;
-          if (recv(s, &h, sizeof(h), MSG_WAITALL)>0)
+          if (recv(currentsocket, &h, sizeof(h), MSG_WAITALL)>0)
           {
             int r;
             printf("Calling StartDebug(%d)\n", h);
             r=StartDebug(h);
-            sendall(s, &r, sizeof(r), 0);
+            sendall(currentsocket, &r, sizeof(r), 0);
+
+            if (r)
+            {
+              debugfd=GetDebugPort(h);
+              isDebuggerThread=r;
+            }
           }
           break;
         }
@@ -124,12 +191,12 @@ void *newconnection(void *arg)
             int timeout;
           } wfd;
 
-          if (recv(s, &wfd, sizeof(wfd), MSG_WAITALL)>0)
+          if (recv(currentsocket, &wfd, sizeof(wfd), MSG_WAITALL)>0)
           {
             int r;
             printf("Calling WaitForDebugEvent(%d, %d)\n", wfd.pHandle, wfd.timeout);
             r=WaitForDebugEvent(wfd.pHandle, wfd.timeout);
-            sendall(s, &r, sizeof(r), 0);
+            sendall(currentsocket, &r, sizeof(r), 0);
           }
           break;
         }
@@ -142,12 +209,12 @@ void *newconnection(void *arg)
             int ignore;
           } cfd;
 
-          if (recv(s, &cfd, sizeof(cfd), MSG_WAITALL)>0)
+          if (recv(currentsocket, &cfd, sizeof(cfd), MSG_WAITALL)>0)
           {
             int r;
             printf("Calling ContinueFromDebugEvent(%d, %d)\n", cfd.pHandle, cfd.ignore);
             r=ContinueFromDebugEvent(cfd.pHandle, cfd.ignore);
-            sendall(s, &r, sizeof(r), 0);
+            sendall(currentsocket, &r, sizeof(r), 0);
           }
           break;
         }
@@ -157,14 +224,14 @@ void *newconnection(void *arg)
         {
           HANDLE h;
 
-          if (recv(s, &h, sizeof(h), MSG_WAITALL)>0)
+          if (recv(currentsocket, &h, sizeof(h), MSG_WAITALL)>0)
           {
             CloseHandle(h);
           }
           else
           {
             printf("Error during read for CMD_CLOSEHANDLE\n");
-            close(s);
+            close(currentsocket);
             fflush(stdout);
             return 0;
           }
@@ -176,17 +243,17 @@ void *newconnection(void *arg)
           CeCreateToolhelp32Snapshot params;
           HANDLE result;
 
-          if (recv(s, &params, sizeof(CeCreateToolhelp32Snapshot), MSG_WAITALL) > 0)
+          if (recv(currentsocket, &params, sizeof(CeCreateToolhelp32Snapshot), MSG_WAITALL) > 0)
           {
             result=CreateToolhelp32Snapshot(params.dwFlags, params.th32ProcessID);
             //printf("result of CreateToolhelp32Snapshot=%d\n", result);
-            sendall(s, &result, sizeof(HANDLE), 0);
+            sendall(currentsocket, &result, sizeof(HANDLE), 0);
           }
           else
           {
             printf("Error during read for CMD_CREATETOOLHELP32SNAPSHOT\n");
             fflush(stdout);
-            close(s);
+            close(currentsocket);
             return 0;
           }
 
@@ -197,7 +264,7 @@ void *newconnection(void *arg)
         case CMD_PROCESS32NEXT:
         {
           HANDLE toolhelpsnapshot;
-          if (recv(s, &toolhelpsnapshot, sizeof(toolhelpsnapshot), MSG_WAITALL) >0)
+          if (recv(currentsocket, &toolhelpsnapshot, sizeof(toolhelpsnapshot), MSG_WAITALL) >0)
           {
             ProcessListEntry pe;
             BOOL result;
@@ -230,7 +297,7 @@ void *newconnection(void *arg)
 
             r->result=result;
 
-            sendall(s, r, size, 0);
+            sendall(currentsocket, r, size, 0);
 
             free(r);
 
@@ -242,7 +309,7 @@ void *newconnection(void *arg)
         {
           CeReadProcessMemoryInput c;
 
-          r=recv(s, &c, sizeof(c), MSG_WAITALL);
+          r=recv(currentsocket, &c, sizeof(c), MSG_WAITALL);
           if (r>0)
           {
             PCeReadProcessMemoryOutput o=NULL;
@@ -269,7 +336,7 @@ void *newconnection(void *arg)
             	//printf("going to send %u bytes\n", sizeof(CeReadProcessMemoryOutput)+o->read);
             }
 
-            int i=sendall(s, o, sizeof(CeReadProcessMemoryOutput)+o->read, 0);
+            int i=sendall(currentsocket, o, sizeof(CeReadProcessMemoryOutput)+o->read, 0);
 
             //if (o->read > 500000)
             //	printf("sent %d bytes. Wanted to send %u\n", i, sizeof(c.size)+o->read);
@@ -312,7 +379,7 @@ void *newconnection(void *arg)
           printf("CMD_WRITEPROCESSMEMORY:\n");
 
 
-          r=recv(s, &c, sizeof(c), MSG_WAITALL);
+          r=recv(currentsocket, &c, sizeof(c), MSG_WAITALL);
           if (r>0)
           {
 
@@ -324,13 +391,13 @@ void *newconnection(void *arg)
 
             buf=(unsigned char *)malloc(c.size);
 
-            r=recv(s, buf, c.size, MSG_WAITALL);
+            r=recv(currentsocket, buf, c.size, MSG_WAITALL);
             if (r>0)
             {
               printf("received %d bytes for the buffer. Wanted %d\n", r, c.size);
               o.written=WriteProcessMemory(c.handle, (void *)(uintptr_t)c.address, buf, c.size);
 
-              r=sendall(s, &o, sizeof(CeWriteProcessMemoryOutput), 0);
+              r=sendall(currentsocket, &o, sizeof(CeWriteProcessMemoryOutput), 0);
               printf("wpm: returned %d bytes to caller\n", r);
 
             }
@@ -354,7 +421,7 @@ void *newconnection(void *arg)
           CeVirtualQueryExInput c;
 
 
-          r=recv(s, &c, sizeof(c), MSG_WAITALL);
+          r=recv(currentsocket, &c, sizeof(c), MSG_WAITALL);
           if (r>0)
           {
             RegionInfo rinfo;
@@ -367,7 +434,7 @@ void *newconnection(void *arg)
             o.baseaddress=rinfo.baseaddress;
             o.size=rinfo.size;
 
-            sendall(s, &o, sizeof(o), 0);
+            sendall(currentsocket, &o, sizeof(o), 0);
 
 
           }
@@ -381,7 +448,7 @@ void *newconnection(void *arg)
         {
           int pid=0;
 
-          r=recv(s, &pid, sizeof(int), MSG_WAITALL);
+          r=recv(currentsocket, &pid, sizeof(int), MSG_WAITALL);
           if (r>0)
           {
             int processhandle;
@@ -390,13 +457,13 @@ void *newconnection(void *arg)
             processhandle=OpenProcess(pid);
 
             printf("processhandle=%d\n", processhandle);
-            sendall(s, &processhandle, sizeof(int), 0);
+            sendall(currentsocket, &processhandle, sizeof(int), 0);
           }
           else
           {
             printf("Error\n");
             fflush(stdout);
-            close(s);
+            close(currentsocket);
             return NULL;
           }
 
@@ -418,7 +485,7 @@ void *newconnection(void *arg)
     {
       printf("read error on socket %d (%d)\n", s, errno);
       fflush(stdout);
-      close(s);
+      close(currentsocket);
       return NULL;
     }
     else
@@ -426,7 +493,7 @@ void *newconnection(void *arg)
     {
       printf("Peer has disconnected\n");
       fflush(stdout);
-      close(s);
+      close(currentsocket);
       return NULL;
     }
   }
