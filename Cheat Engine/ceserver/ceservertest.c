@@ -8,11 +8,15 @@
  */
 
 #include <stdio.h>
+#include <string.h>
+#include <unistd.h>
 #include <pthread.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include "ceserver.h"
+#include "api.h" //for debugevent
 
 int pHandle;
 
@@ -33,7 +37,7 @@ int cenet_connect(void)
   addr.sin_addr.s_addr=htonl(INADDR_LOOPBACK); //0x1600a8c0; //INADDR_LOOPBACK;
 
   printf("calling connect...\n");
-  i=connect(fd, &addr, sizeof(addr));
+  i=connect(fd, (struct sockaddr *)&addr, sizeof(addr));
 
   printf("after connect. %d\n", i);
 
@@ -103,6 +107,10 @@ int cenet_waitForDebugEvent(int fd, int pHandle, int timeout)
   } wfd;
 #pragma pack()
 
+  DebugEvent event;
+
+
+
   int result;
 
 
@@ -114,6 +122,8 @@ int cenet_waitForDebugEvent(int fd, int pHandle, int timeout)
 
   sendall(fd, &wfd, sizeof(wfd), 0);
   recv(fd, &result, sizeof(result), MSG_WAITALL);
+  if (result)
+    recv(fd, &event, sizeof(event), MSG_WAITALL);
 
   printf(">>>>>>>>>>>>>>>>>>cenet_waitForDebugEvent returned<<<<<<<<<<<<<<<<\n");
 
@@ -153,7 +163,7 @@ int cenet_readProcessMemory(int fd, int pHandle, unsigned long long address, voi
     char command;
     int pHandle;
     unsigned long long address;
-    int size
+    int size;
   } rpm;
 #pragma pack()
 
@@ -188,21 +198,16 @@ void *CESERVERTEST_DEBUGGERTHREAD(void *arg)
 
     while (1)
     {
-      int hp=0;
-
-
-
-
-
       i=cenet_waitForDebugEvent(fd, pHandle, 5000);
       if (i)
       {
-
         cenet_continueFromDebugEvent(fd, pHandle, 0);
       }
     }
 
   }
+
+  return NULL;
 
 }
 
@@ -255,5 +260,6 @@ void *CESERVERTEST(void *argv[])
 
   fflush(stdout);
 
+  return NULL;
 
 }

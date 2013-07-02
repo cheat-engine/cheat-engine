@@ -48,6 +48,14 @@ typedef struct {
 } RegionInfo, *PRegionInfo;
 #pragma pack()
 
+#pragma pack(1)
+typedef struct {
+  unsigned int debugevent;
+//other data
+} DebugEvent, *PDebugEvent;
+#pragma pack()
+
+
 
 void CloseHandle(HANDLE h);
 BOOL Process32Next(HANDLE hSnapshot, PProcessListEntry processentry);
@@ -61,7 +69,7 @@ int WriteProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 int StartDebug(HANDLE hProcess);
 int StopDebug(HANDLE hProcess);
 
-int WaitForDebugEvent(HANDLE hProcess, int timeout);
+int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout);
 int ContinueFromDebugEvent(HANDLE hProcess, int ignoresignal);
 int GetDebugPort(HANDLE hProcess);
 
