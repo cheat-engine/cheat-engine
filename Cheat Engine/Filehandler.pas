@@ -9,7 +9,7 @@ reads/writes to the file instead
 
 interface
 
-uses windows, LCLIntf;
+uses windows, LCLIntf, syncobjs;
 
 function ReadProcessMemoryFile(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer;  nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL; stdcall;
 function WriteProcessMemoryFile(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: DWORD): BOOL; stdcall;
@@ -19,6 +19,7 @@ var filehandle: thandle;
 
 implementation
 
+var filecs: tcriticalsection; //only 1 filehandle, so make sure rpm does not change the filepointer while another is still reading it
 function ReadProcessMemoryFile(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer;  nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL; stdcall;
 var filesize,ignore:dword;
 begin
@@ -33,14 +34,18 @@ begin
     nsize:=filesize-ptrUint(lpbaseaddress);
   end;
 
+  filecs.enter;
   SetfilePointer(hprocess,ptrUint(lpBaseAddress),nil,FILE_BEGIN);
   result:=Readfile(hprocess,lpbuffer^,nsize,lpNumberOfBytesRead,nil);
+  filecs.leave;
 end;
 
 function WriteProcessMemoryFile(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: DWORD): BOOL; stdcall;
 begin
+  filecs.enter;
   SetfilePointer(hprocess,ptrUint(lpBaseAddress),nil,FILE_BEGIN);
   result:=Writefile(hprocess,lpbuffer^,nsize,lpNumberOfBytesWritten,nil);
+  filecs.leave;
 end;
 
 function VirtualQueryExFile(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; stdcall;
@@ -69,6 +74,13 @@ begin
     result:=dwlength;
 
 end;
+
+initialization
+  filecs:=tcriticalsection.create;
+
+finalization
+  filecs.free;
+
 
 end.
 
