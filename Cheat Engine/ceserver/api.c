@@ -15,6 +15,8 @@
 #include <stdio.h>
 #include <pthread.h>
 
+
+
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
@@ -22,6 +24,7 @@
 #include <stdint.h>
 #include <dirent.h>
 #include <sys/types.h>
+#include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <fcntl.h>
@@ -32,6 +35,8 @@
 #include <sys/mman.h>
 #include <sys/ptrace.h>
 #include <sys/wait.h>
+#include <sys/syscall.h>
+
 
 #include <sys/eventfd.h>
 
@@ -39,15 +44,17 @@
 
 #include <semaphore.h>
 
+
+
+
 #include "api.h"
 #include "porthelp.h"
 
 //#include <vector>
-sem_t sem_RPMDone;
 sem_t sem_ChildEvent;
 
 pthread_mutex_t memorymutex;
-pthread_mutex_t mut_RPM;
+//pthread_mutex_t mut_RPM;
 
 
 
@@ -172,7 +179,14 @@ int StartDebug(HANDLE hProcess)
           if (ptrace(PTRACE_ATTACH, tid,0,0)<0)
             printf("Failed to attach to thread %d\n", tid);
           else
+          {
             p->isDebugged=1; //at least one made it...
+            p->debuggerThreadID=pthread_self();
+
+
+            socketpair(PF_LOCAL, SOCK_STREAM, 0, &p->debuggerServer);
+           // p->debuggerThreadID=syscall(SYS_gettid);
+          }
 
         }
 
@@ -315,21 +329,6 @@ int WaitForDebugEvent(HANDLE hProcess, int timeout)
         printf("WTF!\n");
       }
 
-      pthread_mutex_lock(&mut_RPM);
-      if (p->rpmAddress)
-      {
-        //printf("Trying to read memory %p size %d\n", p->rpmAddress, p->rpmSize);
-        p->rpmSize=pread(p->mem, p->rpmTarget, p->rpmSize, (uintptr_t)p->rpmAddress);
-        //printf("p->rpmSize=%d\n",p->rpmSize);
-
-
-        //signal the sleeping thread that it can continue
-        p->rpmAddress=0;
-        sem_post(&sem_RPMDone);
-
-      }
-      pthread_mutex_unlock(&mut_RPM);
-
 
       if (!WIFEXITED(status))
         printf("%d: Break due to signal %d (status=%x)\n", tid, p->debuggedThreadSignal, status);
@@ -340,7 +339,10 @@ int WaitForDebugEvent(HANDLE hProcess, int timeout)
       return 1;
     }
     else
+    {
       printf("Can not wait for a debug event when a thread is still paused\n");
+      return 1; //success and just handle this event
+    }
 
   }
   return 0;
@@ -479,40 +481,60 @@ int WriteProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
   return written;
 }
 
-int ReadProcessMemoryDebug(PProcessData p, void *lpAddress, void *buffer, int size)
+int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, void *buffer, int size)
 {
   //problem: Only the thread that is currently debugging a stopped thread has read access
   //work around: add a que to the debugger thread that fills in this
   //que a ReadProcessMemory command with the debugger
 
-
-  //setup a que command
-  //insert it
-
-  printf("ReadProcessMemoryDebug\n");
-
-  pthread_mutex_lock(&mut_RPM);
-
-  p->rpmAddress=lpAddress;
-  p->rpmTarget=buffer;
-  p->rpmSize=size;
+  //problem 2: If the debugger thread has broken on a breakpoint and another thread wants to read memory it can't
+  //e.g: t1:WaitForDebugEvent  t1:Returned. T1: recv  t2: ReadProcessMemory...
+  //solution, let the debuggerthread wait for a socket event with select on 2 fd's. One from the connected socket, and one from the que.
+  //the que will contain normal rpm command
 
 
-  //wake the thread
-
-  pthread_mutex_unlock(&mut_RPM);
-
-//  while (p->debuggedThread) ; //wait till continued
-
-  kill(p->pid, SIGSTOP);
-
-  //go to sleep till an event is set
+  int bytesread=0;
 
 
-  while (sem_wait(&sem_RPMDone)) ; //interrupts can continue it
-  //wait for results
 
-  return p->rpmSize;
+
+  if (p->debuggerThreadID==pthread_self()) //this is the debugger thread
+  {
+    int isdebugged=p->debuggedThread;
+
+    printf("ReadProcessMemoryDebug inside debuggerthread\n");
+
+    if (!isdebugged)
+    {
+      kill(p->pid, SIGSTOP);
+      WaitForDebugEvent(hProcess, -1);
+    }
+
+    bytesread=pread(p->mem, buffer, size, (uintptr_t)lpAddress);
+
+    if ((!isdebugged) && (p->debuggedThread) && (p->debuggedThreadSignal==SIGSTOP))
+    {
+      //if a SIGSTOP happened just continue it, else the next time WaitForDebugEvent() will get this event
+      ContinueFromDebugEvent(hProcess, 0);
+    }
+
+
+  }
+  else
+  {
+
+    printf("ReadProcessMemoryDebug from outside the debuggerthread. Waking debuggerthread\n");
+
+    kill(p->pid, SIGSTOP); //this will wake the debuggerthread if it was sleeping
+
+    //setup a rpm command
+    //and write it to the p->debuggerthreadfd and read out the data
+
+    //bytesread=read...
+  }
+
+
+  return bytesread;
 }
 
 int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
@@ -529,16 +551,15 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
     //printf("hProcess=%d, lpAddress=%p, buffer=%p, size=%d\n", hProcess, lpAddress, buffer, size);
 
+    if (p->isDebugged) //&& cannotdealwithotherthreads
+    {
+      //use the debugger specific readProcessMemory implementation
+      return ReadProcessMemoryDebug(hProcess, p, lpAddress, buffer, size);
+    }
+
 
     if (pthread_mutex_lock(&memorymutex) == 0)
     {
-      if (p->isDebugged) //&& cannotdealwithotherthreads
-      {
-        //use the debugger specific readProcessMemory implementation
-        read=ReadProcessMemoryDebug(p, lpAddress, buffer, size);
-
-      }
-      else
       {
 
         if (ptrace(PTRACE_ATTACH, p->pid,0,0)==0)
@@ -846,9 +867,9 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
 void initAPI()
 {
   pthread_mutex_init(&memorymutex, NULL);
-  pthread_mutex_init(&mut_RPM, NULL);
+ // pthread_mutex_init(&mut_RPM, NULL);
 
-  sem_init(&sem_RPMDone, 0, 0); //locked by default
+ // sem_init(&sem_RPMDone, 0, 0); //locked by default
   sem_init(&sem_ChildEvent, 0, 0); //locked by default
 
 }

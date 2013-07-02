@@ -14,6 +14,7 @@
 #include "ceserver.h"
 #include "porthelp.h"
 #include "api.h"
+#include "ceservertest.h"
 
 pthread_t pth;
 pthread_t identifierthread;
@@ -101,6 +102,56 @@ void *newconnection(void *arg)
           close(s);
           exit(0);
         }
+
+        case CMD_STARTDEBUG:
+        {
+          HANDLE h;
+          if (recv(s, &h, sizeof(h), MSG_WAITALL)>0)
+          {
+            int r;
+            printf("Calling StartDebug(%d)\n", h);
+            r=StartDebug(h);
+            sendall(s, &r, sizeof(r), 0);
+          }
+          break;
+        }
+
+        case CMD_WAITFORDEBUGEVENT:
+        {
+          struct
+          {
+            HANDLE pHandle;
+            int timeout;
+          } wfd;
+
+          if (recv(s, &wfd, sizeof(wfd), MSG_WAITALL)>0)
+          {
+            int r;
+            printf("Calling WaitForDebugEvent(%d, %d)\n", wfd.pHandle, wfd.timeout);
+            r=WaitForDebugEvent(wfd.pHandle, wfd.timeout);
+            sendall(s, &r, sizeof(r), 0);
+          }
+          break;
+        }
+
+        case CMD_CONTINUEFROMDEBUGEVENT:
+        {
+          struct
+          {
+            HANDLE pHandle;
+            int ignore;
+          } cfd;
+
+          if (recv(s, &cfd, sizeof(cfd), MSG_WAITALL)>0)
+          {
+            int r;
+            printf("Calling ContinueFromDebugEvent(%d, %d)\n", cfd.pHandle, cfd.ignore);
+            r=ContinueFromDebugEvent(cfd.pHandle, cfd.ignore);
+            sendall(s, &r, sizeof(r), 0);
+          }
+          break;
+        }
+
 
         case CMD_CLOSEHANDLE:
         {
@@ -328,23 +379,25 @@ void *newconnection(void *arg)
 
         case CMD_OPENPROCESS:
         {
-          int pid;
-
-         // printf("OpenProcess:");
-
+          int pid=0;
 
           r=recv(s, &pid, sizeof(int), MSG_WAITALL);
           if (r>0)
           {
-            int processhandle=OpenProcess(pid);
+            int processhandle;
+
+            printf("OpenProcess(%d)\n", pid);
+            processhandle=OpenProcess(pid);
+
+            printf("processhandle=%d\n", processhandle);
             sendall(s, &processhandle, sizeof(int), 0);
           }
           else
           {
-                  printf("Error\n");
-                  fflush(stdout);
-                  close(s);
-                  return NULL;
+            printf("Error\n");
+            fflush(stdout);
+            close(s);
+            return NULL;
           }
 
           break;
@@ -455,29 +508,8 @@ void *IdentifierThread(void *arg)
   return 0;
 }
 
-int testh=0;
-
-void testread(int h)
-{
-  int hp=0;
-
-  ReadProcessMemory(h, 0x601048, &hp, 4 );
-  printf("hp=%d\n",hp);
 
 
-
-}
-
-void *TEST(void *arg)
-{
-  while (1)
-  {
-   // usleep(100000); //sleep(1);
-    testread(testh);
-  }
-
-  return NULL;
-}
 
 int main(int argc, char *argv[])
 {
@@ -485,135 +517,82 @@ int main(int argc, char *argv[])
   int b;
   int l;
   int a;
+
+
   initAPI();
 
 
-        if (argc>1)
-        {
-          if (strcmp(argv[1], "TEST")==0)
-          {
-            printf("Test mode\n");
-            if (argc>2)
-            {
-              int pid;
-              HANDLE h;
-              pid=atoi(argv[2]);
-
-
-              h=OpenProcess(pid);
-              if (h)
-              {
-                printf("Opened the process\n");
-                if (StartDebug(h))
-                {
-                  printf("Debugging the process\n");
-
-                  while (1)
-                  {
-                    if (WaitForDebugEvent(h, 5000))
-                    {
-                      printf("Got a debug event\n");
-
-                      if (testh==0)
-                      {
-                        testh=h;
-                        pthread_create(&pth, NULL, TEST, NULL);
-                      }
-
-
-                      if (ContinueFromDebugEvent(h, 0)==FALSE)
-                      {
-                        printf("Could not continue...\n");
-
-                        //StopDebug(h);
-                        //break;
-                      }
-                    }
-                    else
-                    {
 
 
 
+  socklen_t clisize;
+  struct sockaddr_in addr, addr_client;
 
-                    }
+  PORT=52736;
 
-                  }
-                }
-                else
-                  printf("Debug failed\n");
-              }
-              else
-                printf("Failed opening the process\n");
+  done=0;
+  //printf("WEEEEE\n");
 
+  printf("&s=%p\n", &s);
+  printf("main=%p\n", main);
 
-              exit(1);
-            }
+  printf("CEServer. Waiting for client connection\n");
 
-          }
-        }
-
-        socklen_t clisize;
-        struct sockaddr_in addr, addr_client;
-
-        PORT=52736;
-
-        done=0;
-        //printf("WEEEEE\n");
-
-        printf("&s=%p\n", &s);
-        printf("main=%p\n", main);
-
-        printf("CEServer. Waiting for client connection\n");
-
-        //if (broadcast)
-        pthread_create(&identifierthread, NULL, IdentifierThread, NULL);
+  //if (broadcast)
+  pthread_create(&identifierthread, NULL, IdentifierThread, NULL);
 
 
 
-        s=socket(AF_INET, SOCK_STREAM, 0);
-        printf("socket=%d\n", s);
+  s=socket(AF_INET, SOCK_STREAM, 0);
+  printf("socket=%d\n", s);
 
 
 
-        memset(&addr, sizeof(addr), 0);
-        addr.sin_family=AF_INET;
-        addr.sin_port=htons(PORT);
-        addr.sin_addr.s_addr=INADDR_ANY;
+  memset(&addr, sizeof(addr), 0);
+  addr.sin_family=AF_INET;
+  addr.sin_port=htons(PORT);
+  addr.sin_addr.s_addr=INADDR_ANY;
 
-        b=bind(s, (struct sockaddr *)&addr, sizeof(addr));
-        printf("bind=%d\n", b);
+  b=bind(s, (struct sockaddr *)&addr, sizeof(addr));
+  printf("bind=%d\n", b);
 
-        if (b!=-1)
-        {
+  if (b!=-1)
+  {
 
-                l=listen(s, 32);
+    l=listen(s, 32);
 
-                printf("listen=%d\n", l);
+    printf("listen=%d\n", l);
 
-                clisize=sizeof(addr_client);
-                memset(&addr_client, sizeof(addr_client), 0);
+    clisize=sizeof(addr_client);
+    memset(&addr_client, sizeof(addr_client), 0);
 
-                while (done==0)
-                {
-                        a=accept(s, (struct sockaddr *)&addr_client, &clisize);
+    if (argc>2)
+    {
+      if (strcmp(argv[1], "TEST")==0)
+        pthread_create(&pth, NULL, CESERVERTEST, argv);
+    }
 
-                        printf("accept=%d\n", a);
+    while (done==0)
+    {
+      a=accept(s, (struct sockaddr *)&addr_client, &clisize);
 
-                        if (a != -1)
-                        {
-                          pthread_create(&pth, NULL, newconnection, (void *)a);
+      printf("accept=%d\n", a);
 
-                        }
-                }
+      if (a != -1)
+      {
+        pthread_create(&pth, NULL, newconnection, (void *)a);
 
-
-        }
-
-        printf("Terminate server\n");
-
+      }
+    }
 
 
-        close(s);
+  }
 
-        return 0;
+  printf("Terminate server\n");
+
+
+
+  close(s);
+
+  return 0;
 }
