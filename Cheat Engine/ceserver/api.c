@@ -36,6 +36,8 @@
 #include <sys/ptrace.h>
 #include <sys/wait.h>
 #include <sys/syscall.h>
+//#include <sys/user.h>
+#include <signal.h>
 
 
 #include <sys/eventfd.h>
@@ -55,6 +57,7 @@
 sem_t sem_ChildEvent;
 
 pthread_mutex_t memorymutex;
+pthread_mutex_t debugsocketmutex;
 //pthread_mutex_t mut_RPM;
 
 
@@ -119,13 +122,15 @@ int RemoveThreadFromProcess(PProcessData p, int tid)
 
 }
 
-
+volatile int test=0;
 void mychildhandler(int signal, struct siginfo *info, void *context)
 {
   //printf("Child event: %d\n", info->si_pid);
   int orig_errno = errno;
   sem_post(&sem_ChildEvent);
   errno = orig_errno;
+
+  test++;
 }
 
 int GetDebugPort(HANDLE hProcess)
@@ -231,6 +236,164 @@ int StartDebug(HANDLE hProcess)
 
 }
 
+int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsize)
+/*
+ * Sets a breakpoint of the specifed type at the given address
+ * tid of -1 means ALL breakpoints
+ *
+ * returns TRUE if the breakpoint was set *
+ */
+{
+  printf("SetBreakpoint(%d)\n", tid);
+  if (GetHandleType(hProcess) == htProcesHandle )
+  {
+    PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
+
+
+
+      //thread specific breakpoint (or recursive call)
+
+
+    if (p->debuggerThreadID==pthread_self())
+    {
+      int isdebugged=p->debuggedThread;
+      int wtid;
+
+      printf("SetBreakpoint from debuggerthread\n");
+
+      if (tid==-1)
+      {
+        int i;
+        printf("Calling SetBreakpoint for all threads\n");
+        for (i=0; i<p->threadlistpos; i++)
+          SetBreakpoint(hProcess, p->threadlist[i], Address, bptype, bpsize);
+      }
+      else
+      {
+        printf("Calling setbreakpoint for thread :%d\n", tid);
+
+        printf("isdebugged=%d\n", isdebugged);
+
+        if (isdebugged!=tid)
+        {
+          //manual
+          int status;
+
+          printf("Different thread or no thread was broken\n");
+          printf("Going to kill and wait for this thread\n");
+
+          int k;
+          test=0;
+          //k=pthread_kill(tid, SIGSTOP);
+
+          //tkill(tid, SIGSTOP); //ok, this doesn't work...
+
+          //syscall(SYS_tkill, tid, SIGSTOP); //this also doesn't work everywhere
+
+          syscall(__NR_tkill, tid, SIGSTOP); //this does :)
+
+         // printf("SYS_tkill=%d\n",SYS_tkill);
+         // printf("__NR_tkill=%d\n",__NR_tkill);
+
+
+          while ((wtid=waitpid(tid, &status, __WALL))<=0) ;
+
+
+          printf("----AFTER WAIT----\n");
+
+          printf("after wtid=%d\n", wtid);
+          printf("^^^^AFTER WAIT^^^^\n");
+        }
+        else
+          printf("The thread I wanted to break was already broken. Yeeeh\n");
+
+        //debugging the given tid
+        printf("Setting breakpoint in thread %d\n", wtid);
+
+        if (isdebugged!=tid)
+        {
+          int r;
+          printf("Continue self broken thread\n");
+          r=ptrace(PTRACE_CONT, wtid, 0,0);
+          printf("PTRACE_CONT=%d\n", r);
+        }
+      }
+
+    //
+
+
+#ifdef __arm__
+    //hwbps
+#endif
+
+#if defined __i386__ || defined __x86_64__
+    //debug regs
+    //PTRACE_SETREGS
+
+      /*
+      unsigned char *data=malloc(8192*4);
+
+      int i,j;
+      for (i=0; i<p->threadlistpos; i++)
+      {
+
+        j=ptrace(PTRACE_GETREGS, p->threadlist[i], 0, data);
+        printf("PTRACE_GETREGS(%d)=%d\n", p->threadlist[i], j);
+      }
+*/
+
+
+#endif
+    }
+    else
+    {
+      //not the debugger thread. Send a message to the debuggerthread to execute this command
+      printf("SetBreakpoint from outside the debuggerthread. Waking debuggerthread\n");
+      //setup a sb command
+  #pragma pack(1)
+      struct
+      {
+        char command;
+        HANDLE hProcess;
+        int tid;
+        unsigned long long Address;
+        int bptype;
+        int bpsize;
+      } sb;
+  #pragma pack()
+
+      sb.command=CMD_SETBREAKPOINT;
+      sb.hProcess=hProcess;
+      sb.tid=tid;
+      sb.Address=(uintptr_t)Address;
+      sb.bptype=bptype;
+      sb.bpsize=bpsize;
+
+      if (pthread_mutex_lock(&debugsocketmutex) == 0)
+      {
+        int result;
+        printf("Sending message to the debuggerthread\n");
+
+        sendall(p->debuggerClient, &sb, sizeof(sb), 0);
+
+        kill(tid, SIGSTOP); //this will wake the debuggerthread if it was sleeping
+
+        recv(p->debuggerClient, &result, sizeof(result), MSG_WAITALL);
+
+
+        pthread_mutex_unlock(&debugsocketmutex);
+      }
+
+    }
+
+  }
+  else
+  {
+    printf("Invalid handle\n");
+  }
+
+}
+
 int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
 /*
  * Waits for the specified timeout in milliseconds
@@ -250,6 +413,7 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
       if (timeout!=-1)
       {
         tid=waitpid(-1, &status, WNOHANG| __WALL);
+
 
         if (tid<=0)
         {
@@ -316,7 +480,18 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
         }
       }
       else
-        tid=waitpid(-1, &status, __WALL); //wait with no timeout
+      {
+        tid=-1;
+        while ((tid=waitpid(-1, &status, __WALL))==-1)
+        {
+          if (errno!=EINTR)
+          {
+            printf("Unknown error during waitpid :%d\n", errno);
+            break;
+          }
+        }
+
+      }
 
 
       p->debuggedThread=tid;
@@ -347,6 +522,8 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
         printf("WTF!\n");
       }
 
+      devent->debugevent=p->debuggedThreadSignal;
+      devent->threadid=tid;
 
       if (!WIFEXITED(status))
         printf("%d: Break due to signal %d (status=%x)\n", tid, p->debuggedThreadSignal, status);
@@ -366,33 +543,38 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
   return 0;
 }
 
-int ContinueFromDebugEvent(HANDLE hProcess, int ignoresignal)
+int ContinueFromDebugEvent(HANDLE hProcess, int tid, int ignoresignal)
 {
   printf("ContinueFromDebugEvent called\n");
   if (GetHandleType(hProcess) == htProcesHandle )
   {
     PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
+    siginfo_t si;
 
-    if (p->debuggedThread)
+    if (ptrace(PTRACE_GETSIGINFO, tid, NULL, &si)==0)
     {
-      int signal=ignoresignal?0:p->debuggedThreadSignal;
+      int signal=ignoresignal?0:si.si_signo;
+
+      printf("si.si_signo=%d\n", si.si_signo);
+
+
 
       if ((signal==19) || (signal==21)) //STOPPED
       {
         signal=0;
       }
 
-      printf("Continue %d with signal %d\n", p->debuggedThread, signal);
+      printf("Continue %d with signal %d\n", tid, signal);
 
-      int result=ptrace(PTRACE_CONT, p->debuggedThread,0,signal);
+      int result=ptrace(PTRACE_CONT, tid, 0,signal);
 
 
       printf("Continue result=%d\n", result);
 
       if (result<0)
       {
-        printf("Failure to continue thread %d with signal %d\n", p->debuggedThread, signal);
-        RemoveThreadFromProcess(p, p->debuggedThread);
+        printf("Failure to continue thread %d with signal %d\n", tid, signal);
+        RemoveThreadFromProcess(p, tid);
         p->debuggedThread=0;
         return 0;
       }
@@ -403,7 +585,8 @@ int ContinueFromDebugEvent(HANDLE hProcess, int ignoresignal)
       }
     }
     else
-      printf("No debugged thread to continue\n");
+      printf("Failure getting sig info\n");
+
   }
   else
     printf("Invalid handle\n");
@@ -519,13 +702,12 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
   if (p->debuggerThreadID==pthread_self()) //this is the debugger thread
   {
     int isdebugged=p->debuggedThread;
+    DebugEvent event;
 
-    printf("ReadProcessMemoryDebug inside debuggerthread\n");
+    printf("ReadProcessMemoryDebug inside debuggerthread (isdebugged=%d)\n", isdebugged);
 
     if (!isdebugged)
     {
-      DebugEvent event;
-
       kill(p->pid, SIGSTOP);
       WaitForDebugEvent(hProcess, &event, -1); //wait for it myself
     }
@@ -534,8 +716,8 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
 
     if ((!isdebugged) && (p->debuggedThread) && (p->debuggedThreadSignal==SIGSTOP))
     {
-      //if a SIGSTOP happened just continue it, else the next time WaitForDebugEvent() will get this event
-      ContinueFromDebugEvent(hProcess, 0);
+      //if a SIGSTOP happened just continue it, else the next time WaitForDebugEvent() runs it will get this event
+      ContinueFromDebugEvent(hProcess, event.threadid ,0);
     }
 
 
@@ -543,9 +725,8 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
   else
   {
 
+    int tid=p->pid; //p->threadlist[p->threadlistpos-1];
     printf("ReadProcessMemoryDebug from outside the debuggerthread. Waking debuggerthread\n");
-
-    kill(p->pid, SIGSTOP); //this will wake the debuggerthread if it was sleeping
 
     //setup a rpm command
 #pragma pack(1)
@@ -566,17 +747,20 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
 
     //and write it to the p->debuggerthreadfd and read out the data
     //aquire lock (I don't want other threads messing with the client socket)
-    if (pthread_mutex_lock(&memorymutex) == 0)
+    if (pthread_mutex_lock(&debugsocketmutex) == 0)
     {
       printf("Sending message to the debuggerthread\n");
 
       sendall(p->debuggerClient, &rpm, sizeof(rpm), 0);
+
+      kill(tid, SIGSTOP); //this will wake the debuggerthread if it was sleeping
+
       recv(p->debuggerClient, &bytesread, sizeof(bytesread), MSG_WAITALL);
       printf("bytesread=%d\n", bytesread);
       recv(p->debuggerClient, buffer, bytesread, MSG_WAITALL);
 
 
-      pthread_mutex_unlock(&memorymutex);
+      pthread_mutex_unlock(&debugsocketmutex);
     }
 
     //bytesread=read...
@@ -911,7 +1095,7 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
 void initAPI()
 {
   pthread_mutex_init(&memorymutex, NULL);
- // pthread_mutex_init(&mut_RPM, NULL);
+  pthread_mutex_init(&debugsocketmutex, NULL);
 
  // sem_init(&sem_RPMDone, 0, 0); //locked by default
   sem_init(&sem_ChildEvent, 0, 0); //locked by default

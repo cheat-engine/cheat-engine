@@ -25,6 +25,7 @@
 #define CMD_STOPDEBUG 12
 #define CMD_WAITFORDEBUGEVENT 13
 #define CMD_CONTINUEFROMDEBUGEVENT 14
+#define CMD_SETBREAKPOINT 15
 
 
 
@@ -83,6 +84,19 @@ typedef struct {
   int32_t written;
 } CeWriteProcessMemoryOutput, *PCeWriteProcessMemoryOutput;
 
+
+typedef struct {
+  HANDLE hProcess;
+  int tid;
+  unsigned long long Address;
+  int bptype;
+  int bpsize;
+} CeSetBreapointInput, *PCeSetBreakpointInput;
+
+
+typedef struct {
+  int result;
+} CeSetBreapointOutput, *PCeSetBreakpointOutput;
 
 #pragma pack()
 

@@ -199,6 +199,8 @@ void *newconnection(void *arg)
             int r;
             DebugEvent event;
             printf("Calling WaitForDebugEvent(%d, %d)\n", wfd.pHandle, wfd.timeout);
+
+
             r=WaitForDebugEvent(wfd.pHandle, &event, wfd.timeout);
             sendall(currentsocket, &r, sizeof(r), 0);
 
@@ -216,6 +218,7 @@ void *newconnection(void *arg)
           struct
           {
             HANDLE pHandle;
+            int tid;
             int ignore;
           } cfd;
 
@@ -223,7 +226,23 @@ void *newconnection(void *arg)
           {
             int r;
             printf("Calling ContinueFromDebugEvent(%d, %d)\n", cfd.pHandle, cfd.ignore);
-            r=ContinueFromDebugEvent(cfd.pHandle, cfd.ignore);
+            r=ContinueFromDebugEvent(cfd.pHandle, cfd.tid, cfd.ignore);
+            sendall(currentsocket, &r, sizeof(r), 0);
+          }
+          break;
+        }
+
+        case CMD_SETBREAKPOINT:
+        {
+          CeSetBreapointInput sb;
+
+          if (recv(currentsocket, &sb, sizeof(sb), MSG_WAITALL)>0)
+          {
+            int r;
+
+            printf("Calling SetBreakpoint\n");
+            r=SetBreakpoint(sb.hProcess, sb.tid, (void *)sb.Address, sb.bptype, sb.bpsize);
+            printf("SetBreakpoint returned\n");
             sendall(currentsocket, &r, sizeof(r), 0);
           }
           break;
@@ -629,6 +648,10 @@ int main(int argc, char *argv[])
   addr.sin_family=AF_INET;
   addr.sin_port=htons(PORT);
   addr.sin_addr.s_addr=INADDR_ANY;
+
+  int optval = 1;
+  setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval);
+
 
   b=bind(s, (struct sockaddr *)&addr, sizeof(addr));
   printf("bind=%d\n", b);
