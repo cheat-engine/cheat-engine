@@ -8,6 +8,7 @@
 #ifndef API_H_
 #define API_H_
 
+#include <pthread.h>
 #include "porthelp.h"
 
 
@@ -51,6 +52,7 @@ typedef struct {
 #pragma pack(1)
 typedef struct {
   unsigned int debugevent;
+  pthread_t threadid;
 //other data
 } DebugEvent, *PDebugEvent;
 #pragma pack()
@@ -70,8 +72,11 @@ int StartDebug(HANDLE hProcess);
 int StopDebug(HANDLE hProcess);
 
 int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout);
-int ContinueFromDebugEvent(HANDLE hProcess, int ignoresignal);
+int ContinueFromDebugEvent(HANDLE hProcess, int tid, int ignoresignal);
 int GetDebugPort(HANDLE hProcess);
+
+int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsize);
+
 
 void initAPI();
 
