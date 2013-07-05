@@ -484,6 +484,82 @@ begin
 
 end;
 
+function RegToString(reg: integer): string;
+begin
+  result:='';
+  if processhandler.is64bit then
+  begin
+    case reg of
+      CV_REG_NONE: result:='';
+      CV_AMD64_RAX : result:='RAX';
+      CV_AMD64_RCX : result:='RCX';
+      CV_AMD64_RDX : result:='RDX';
+      CV_AMD64_RBX : result:='RBX';
+      CV_AMD64_RSP : result:='RSP';
+      CV_AMD64_RBP : result:='RBP';
+      CV_AMD64_RSI : result:='RSI';
+      CV_AMD64_RDI : result:='RDI';
+      CV_AMD64_R8 : result:='R8';
+      CV_AMD64_R9 : result:='R9';
+      CV_AMD64_R10: result:='R10';
+      CV_AMD64_R11: result:='R11';
+      CV_AMD64_R12: result:='R12';
+      CV_AMD64_R13: result:='R13';
+      CV_AMD64_R14: result:='R14';
+      CV_AMD64_R15: result:='R15';
+      else
+        result:='?';
+    end;
+  end
+  else
+  begin
+    case reg of
+      CV_REG_NONE: result:='';
+      CV_REG_EAX : result:='EAX';
+      CV_REG_ECX : result:='ECX';
+      CV_REG_EDX : result:='EDX';
+      CV_REG_EBX : result:='EBX';
+      CV_REG_ESP : result:='ESP';
+      CV_REG_EBP : result:='EBP';
+      CV_REG_ESI : result:='ESI';
+      CV_REG_EDI : result:='EDI';
+      else
+        result:='?';
+    end;
+  end;
+
+
+
+end;
+
+function getPositionFromSymInfo(pSymInfo:PSYMBOL_INFO): string;
+var addressString: string;
+begin
+  result:='';
+
+  //try to figure out whee it is stored (register/ offset, etc...)
+  result:=RegToString(pSymInfo.Register);
+  if (pSymInfo.Address<>0) then
+  begin
+    addressString:=IntToHexSigned(LONG64(pSymInfo.Address),1);
+
+    if (result<>'') then
+    begin
+      //it's a reg+address notation
+      if LONG64(pSymInfo.Address)>0 then
+        result:=result+'+'+addressString
+      else
+        result:=result+addressString; //already has a - sign
+
+
+    end
+    else
+      result:=addressString;
+
+
+  end;
+end;
+
 function ES2(pSymInfo:PSYMBOL_INFO; SymbolSize:ULONG; UserContext:pointer):BOOL;stdcall;
 var
   s: string;
@@ -511,7 +587,8 @@ begin
   esde:=TExtraSymbolDataEntry.create;
   esde.name:=pchar(@pSymInfo.Name);
   esde.vtype:=s;
-  esde.position:='Somewhere';
+
+  esde.position:=getPositionFromSymInfo(pSymInfo);
   esde.syminfo:=pSymInfo^; //the name is known, so no need to do any fancy allocating
 
   if isparam then

@@ -221,7 +221,7 @@ procedure TDisassemblerLine.renderLine(var address: ptrUint; linestart: integer;
 var
     baseofsymbol: qword;
     symbolname: string;
-    parameters: string;
+    parameters, locations: string;
     comment: string;
     refferencedby: string;
     refferencedbylinecount: integer;
@@ -375,13 +375,8 @@ begin
 
     fheight:=height+textheight+1+10;
 
-    if extrasymboldata<>nil then
-    begin
-      //more space needed for the local vars
-
-    end;
-
-
+    if extrasymboldata<>nil then //more space needed for the local vars
+      fHeight:=fHeight+textheight*extrasymboldata.locals.count;
 
   end;
 
@@ -507,6 +502,7 @@ begin
     parameters:='';
     if extrasymboldata<>nil then
     begin
+      locations:='';
       parameters:='(';
       for i:=0 to extrasymboldata.parameters.count-1 do
       begin
@@ -514,14 +510,40 @@ begin
           parameters:=parameters+extrasymboldata.parameters[i].vtype+' '+extrasymboldata.parameters[i].name
         else
           parameters:=parameters+', '+extrasymboldata.parameters[i].vtype+' '+extrasymboldata.parameters[i].name;
+
+        if i=0 then
+          locations:=' : '+extrasymboldata.parameters[i].name+'='+extrasymboldata.parameters[i].position
+        else
+          locations:=locations+' - '+extrasymboldata.parameters[i].name+'='+extrasymboldata.parameters[i].position;
+
       end;
 
-      parameters:=parameters+')';
+      parameters:=parameters+')'+locations;
+
+
     end;
 
     fcanvas.TextOut(fHeaders.Items[0].Left+5,linestart+5,AnsiToUtf8(symbolname+parameters));
     linestart:=linestart+fcanvas.TextHeight(symbolname)+1+10;
+
     fcanvas.Font.Style:=[];
+
+    //render the local vars
+    if extrasymboldata<>nil then
+    begin
+      linestart:=linestart-5; //go back a bit
+      for i:=0 to extrasymboldata.locals.count-1 do
+      begin
+        parameters:=extrasymboldata.locals[i].vtype+' '+extrasymboldata.locals[i].name;
+        if extrasymboldata.locals[i].position<>'' then
+          parameters:=parameters+'('+extrasymboldata.locals[i].position+')';
+
+        fcanvas.TextOut(fHeaders.Items[0].Left+5,linestart,AnsiToUtf8(parameters));
+        linestart:=linestart+textheight;
+      end;
+      linestart:=linestart+5;
+    end;
+
   end;
 
   if (refferencedbylinecount>0) then

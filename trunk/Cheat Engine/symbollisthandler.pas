@@ -21,7 +21,7 @@ type
           ModBase : ULONG64;
           Flags : ULONG;
           Value : ULONG64;
-          Address : ULONG64;
+          Address : ULONG64; //it's more a signed address
           Register : ULONG;
           Scope : ULONG;
           Tag : ULONG;
