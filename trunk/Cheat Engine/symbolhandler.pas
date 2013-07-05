@@ -6,7 +6,10 @@ interface
 
 
 uses jwawindows, windows, classes,LCLIntf,imagehlp,{psapi,}sysutils, cefuncproc,
-  newkernelhandler,syncobjs, SymbolListHandler, fgl;
+  newkernelhandler,syncobjs, SymbolListHandler, fgl, typinfo;
+
+
+Procedure Free (P : pointer); cdecl; external 'msvcrt' name 'free';
 
 {$ifdef autoassemblerdll}
 var
@@ -77,6 +80,10 @@ type
     searchpath: string;
 
     symbollist: TSymbolListHandler;
+
+    paramstring: string;
+    localstring: string;
+    tempstring: string; //test
 
     procedure execute; override;
     constructor create(targetself, CreateSuspended: boolean);
@@ -196,6 +203,41 @@ end;
 
 var symhandler: TSymhandler=nil;
     selfsymhandler: TSymhandler=nil;  //symhandler object for CE itself
+
+
+type TSymTagEnum=(
+   SymTagNull=0,
+   SymTagExe,
+   SymTagCompiland,
+   SymTagCompilandDetails,
+   SymTagCompilandEnv,
+   SymTagFunction,
+   SymTagBlock,
+   SymTagData,
+   SymTagAnnotation,
+   SymTagLabel,
+   SymTagPublicSymbol,
+   SymTagUDT,
+   SymTagEnum,
+   SymTagFunctionType,
+   SymTagPointerType,
+   SymTagArrayType,
+   SymTagBaseType,
+   SymTagTypedef,
+   SymTagBaseClass,
+   SymTagFriend,
+   SymTagFunctionArgType,
+   SymTagFuncDebugStart,
+   SymTagFuncDebugEnd,
+   SymTagUsingNamespace,
+   SymTagVTableShape,
+   SymTagVTable,
+   SymTagCustom,
+   SymTagThunk,
+   SymTagCustomType,
+   SymTagManagedType,
+   SymTagDimension);
+
 
 type
     PSYMBOL_INFO = ^TSYMBOL_INFO;
@@ -342,27 +384,255 @@ begin
   if (not targetself) and (symhandler<>nil) then symhandler.NotifyFinishedLoadingSymbols;
 end;
 
+type
+PIMAGEHLP_STACK_FRAME = ^TIMAGEHLP_STACK_FRAME;
+TIMAGEHLP_STACK_FRAME = record
+        InstructionOffset : ULONG64;
+        ReturnOffset : ULONG64;
+        FrameOffset : ULONG64;
+        StackOffset : ULONG64;
+        BackingStoreOffset : ULONG64;
+        FuncTableEntry : ULONG64;
+        Params : array[0..3] of ULONG64;
+        Reserved : array[0..4] of ULONG64;
+        Virtual : BOOL;
+        Reserved2 : ULONG;
+     end;
+IMAGEHLP_STACK_FRAME = TIMAGEHLP_STACK_FRAME;
+LPIMAGEHLP_STACK_FRAME = PIMAGEHLP_STACK_FRAME;
 
-function ES(SymName:PSTR; SymbolAddress:dword64; SymbolSize:ULONG; UserContext:pointer):bool;stdcall;
-var self: TSymbolloaderthread;
-    sym: PCESymbolInfo;
-    i: integer;
-    s: string;
+type TBasicType=(btNoType = 0, btVoid = 1, btChar = 2, btWChar = 3, btInt = 6, btUInt = 7, btFloat = 8, btBCD = 9, btBool = 10, btLong = 13, btULong = 14, btInt2=16, btCurrency = 25, btDate = 26, btVariant = 27, btComplex = 28, btBit = 29, btBSTR = 30, btHresult = 31);
+
+
+function symflagsToString(symflags: dword): string;
+var s: string;
 begin
-  s:=symname;
+  s:='';
+  if (symFlags and SYMFLAG_VALUEPRESENT)>0 then
+    s:=s+'VALUEPRESENT ';
+  if (symFlags and SYMFLAG_REGISTER)>0 then
+    s:=s+'REGISTER ';
+  if (symflags and SYMFLAG_REGREL)>0 then
+    s:=s+'REGREL ';
+  if (symflags and SYMFLAG_FRAMEREL)>0 then
+    s:=s+'FRAMEREL ';
+  if (symflags and SYMFLAG_PARAMETER)>0 then
+    s:=s+'PARAMETER ';
+  if (symflags and SYMFLAG_LOCAL)>0 then
+    s:=s+'LOCAL ';
+  if (symflags and SYMFLAG_CONSTANT)>0 then
+    s:=s+'CONSTANT ';
+  if (symflags and SYMFLAG_EXPORT)>0 then
+    s:=s+'EXPORTED ';
+  if (symflags and SYMFLAG_FORWARDER)>0 then
+    s:=s+'FORWARDER ';
+  if (symflags and SYMFLAG_FUNCTION)>0 then
+    s:=s+'FUNCTION ';
+  if (symflags and SYMFLAG_VIRTUAL)>0 then
+    s:=s+'VIRTUAL ';
+  if (symflags and SYMFLAG_THUNK)>0 then
+    s:=s+'THUNK ';
+  if (symflags and SYMFLAG_TLSREL)>0 then
+    s:=s+'TLSREL ';
+end;
+
+function GetTypeName(h: HANDLE; modbase: UINT64; index: integer; infinitycheck: integer=50): string;
+var x: dword;
+    type_symtag: TSymTagEnum;
+    name: PWCHAR;
+begin
+  result:='.';
+  if infinitycheck<0 then exit;
+
+  if SymGetTypeInfo(h, modbase, index, TI_GET_SYMTAG, @type_symtag) then
+  begin
+    case type_symtag of
+      SymTagBaseType:
+      begin
+        x:=0;
+        if SymGetTypeInfo(h, ModBase, index, TI_GET_BASETYPE, @x) then
+        begin
+          case TBasicType(x) of
+            btNoType: result:='NoType';
+            btVoid: result:='VOID';
+            btChar: result:='CHAR';
+            btWChar: result:='WCHAR';
+            btInt: result:='INT';
+            btUInt: result:='UINT';
+            btFloat: result:='FLOAT';
+            btBCD: result:='BCD';
+            btBool: result:='BOOL';
+            btLong: result:='LONG';
+            btULong: result:='ULONG';
+            btCurrency: result:='CURRENCY';
+            btDate: result:='DATE';
+            btVariant: result:='VARIANT';
+            btComplex: result:='COMPLEX';
+            btBit: result:='BIT';
+            btBSTR:result:='BTSTR';
+            btHresult: result:= 'HRESULT';
+            else
+              result:='BasicType'+inttostr(x);
+          end;
+
+
+
+        end;
+      end;
+
+      SymTagPointerType:
+      begin
+        if SymGetTypeInfo(h, ModBase, index, TI_GET_TYPEID, @x) then
+          result:=GetTypeName(h, modbase, x, infinitycheck-1)
+      end;
+
+      SymTagUDT:
+      begin
+        name:=nil;
+        if SymGetTypeInfo(h, ModBase, index, TI_GET_SYMNAME, @name) then
+        begin
+          result:=name;
+          LocalFree(PTRUINT(name));
+        end;
+      end;
+
+      SymTagArrayType:
+      begin
+        if SymGetTypeInfo(h, ModBase, index, TI_GET_ARRAYINDEXTYPEID, @x) then
+          result:=GetTypeName(h, modbase, x, infinitycheck-1)+'[]'
+        else
+          result:='[]';
+      end;
+
+      SymTagEnum:
+      begin
+        name:=nil;
+        if SymGetTypeInfo(h, ModBase, index, TI_GET_SYMNAME, @name) then
+        begin
+          result:='enum '+name;
+          LocalFree(PTRUINT(name));
+        end;
+      end;
+
+      SymTagFunctionType:
+      begin
+        result:='(function)';
+      end;
+
+      SymTagVTableShape:
+      begin
+        result:='<vtable>';
+      end;
+
+
+      else
+      begin
+        //something else
+        result:='?';
+
+      end;
+
+    end;
+
+
+  end;
+
+end;
+
+function ES2(pSymInfo:PSYMBOL_INFO; SymbolSize:ULONG; UserContext:pointer):BOOL;stdcall;
+var
+  s: string;
+  self: TSymbolloaderthread;
+
+  x: DWORD;
+  type_symtag: Tsymtagenum;
+
+  isparam: boolean;
+begin
+  if pSymInfo.NameLen=0 then
+    exit;
+
+  self:=TSymbolloaderthread(UserContext);
+
+  if (pchar(@pSymInfo.Name)='nCmdShow') then
+  asm
+    nop
+    nop
+  end;
+
+  s:='';
+
+  isparam:=(pSymInfo.Flags and SYMFLAG_PARAMETER)>0;
+
+  s:=GetTypeName(self.thisprocesshandle, pSymInfo.ModBase, pSymInfo.TypeIndex);
+
+
+  if isparam then
+    self.paramstring:=self.paramstring+s+' '+pchar(@pSymInfo.Name)+', '
+  else
+    self.localstring:=self.localstring+s+' '+pchar(@pSymInfo.Name)+', ';
+
+  result:=true;
+end;
+
+
+function ES(pSymInfo:PSYMBOL_INFO; SymbolSize:ULONG; UserContext:pointer):BOOL;stdcall;
+var
+  self: TSymbolloaderthread;
+  s: string;
+  sym: PCESymbolInfo;
+  c: IMAGEHLP_STACK_FRAME;
+begin
+  result:=true;
+  if pSymInfo.NameLen=0 then
+    exit;
+
+
+  s:=pchar(@pSymInfo.Name);
+
   self:=TSymbolloaderthread(UserContext);
 
   if self.currentModuleIsNotStandard then
     s:='_'+s;
 
-  sym:=self.symbollist.AddSymbol(self.currentModuleName, self.currentModuleName+'.'+s, symboladdress, symbolsize);
-  sym:=self.symbollist.AddSymbol(self.currentModuleName, s, symboladdress, symbolsize,true); //don't add it as a address->string lookup  , (this way it always shows modulename+symbol)
+  {
+  s:=s+'('+inttohex(pSymInfo.Flags,1)+'-'+inttostr(pSymInfo.Tag)+':';
 
-  {$ifdef SYMPERFTEST}
-  sleep(1000);
-  {$endif}
+
+
+
+
+
+  s:=s+' - '+GetEnumName(TypeInfo(TSymTagEnum), pSymInfo.Tag);
+     }
+
+  if TSymTagEnum(pSymInfo.Tag)=SymTagFunction then
+  begin
+    self.paramstring:='';
+    self.localstring:='';
+
+    ZeroMemory(@c, sizeof(c));
+    c.InstructionOffset:=pSymInfo.Address;
+    SymSetContext(self.thisprocesshandle, @c, NULL);
+
+    if SymEnumSymbols(self.thisprocesshandle, 0, NULL, @ES2, self) then
+    begin
+      s:=s+'('+copy(self.paramstring,1,length(self.paramstring)-2)+')';
+    end;
+
+  end;
+
+  sym:=self.symbollist.AddSymbol(self.currentModuleName, self.currentModuleName+'.'+s, pSymInfo.Address, symbolsize);
+  sym:=self.symbollist.AddSymbol(self.currentModuleName, s, pSymInfo.Address, symbolsize,true); //don't add it as a address->string lookup  , (this way it always shows modulename+symbol)
 
   result:=not self.terminated;
+
+
+end;
+
+function ET(pSymInfo:PSYMBOL_INFO; SymbolSize:ULONG; UserContext:pointer):BOOL;stdcall;
+begin
+  result:=true;
 end;
 
 function EM(ModuleName:PSTR; BaseOfDll:dword64; UserContext:pointer):bool;stdcall;
@@ -377,7 +647,9 @@ begin
   else
     self.currentModuleIsNotStandard:=false; //whatever...
 
-  result:=(not self.terminated) and (SymEnumerateSymbols64(self.thisprocesshandle, BaseOfDLL, @ES, self));
+ // result:=SymEnumTypes(self.thisprocesshandle, baseofdll, @ET, self);
+
+  result:=SymEnumSymbols(self.thisprocesshandle, baseofdll, NULL, @ES, self);
 end;
 
 procedure TSymbolloaderthread.execute;
@@ -425,6 +697,8 @@ begin
         LoadDLLSymbols;
 
         //enumerate all the data from the symbols , store it, and then uninitialize it freeing the files
+
+
 
         SymEnumerateModules64(thisprocesshandle, @EM, self );
 
