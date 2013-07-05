@@ -7,6 +7,8 @@ interface
 uses
   Classes, SysUtils;
 
+
+
 type
   TBasicType=(
      btNoType = 0,
