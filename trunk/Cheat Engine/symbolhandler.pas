@@ -58,10 +58,13 @@ end;
 type TUserdefinedSymbolCallback=procedure;
 
 type
+  TSymHandler=class;
+
   TSymbolloaderthread=class(tthread)
   private
 
     targetself: boolean;
+    owner: Tsymhandler;
     thisprocesshandle: thandle;
     thisprocessid: dword;
     currentModuleName: string;
@@ -85,7 +88,7 @@ type
 
 
     procedure execute; override;
-    constructor create(targetself, CreateSuspended: boolean);
+    constructor create(owner: TSymhandler; targetself, CreateSuspended: boolean);
     destructor destroy; override;
   end;
 
@@ -606,6 +609,11 @@ var
   s: string;
   sym: PCESymbolInfo;
   c: IMAGEHLP_STACK_FRAME;
+  tempstring: pchar;
+  x: dword;
+  i: integer;
+
+  pSymInfo2:PSYMBOL_INFO;
 begin
   result:=true;
   if pSymInfo.NameLen=0 then
@@ -645,10 +653,57 @@ begin
 
   end;
 
-  //todo: don't add if it's a forwarder, but register a userdefined symbol
+  //don't add if it's a forwarder, but register a userdefined symbol
 
-  sym:=self.symbollist.AddSymbol(self.currentModuleName, self.currentModuleName+'.'+s, pSymInfo.Address, symbolsize,false, self.extraSymbolData);
-  sym:=self.symbollist.AddSymbol(self.currentModuleName, s, pSymInfo.Address, symbolsize,true, self.extraSymbolData); //don't add it as a address->string lookup  , (this way it always shows modulename+symbol)
+  if (pSymInfo.Flags and SYMFLAG_FORWARDER=0) then
+  begin
+    sym:=self.symbollist.AddSymbol(self.currentModuleName, self.currentModuleName+'.'+s, pSymInfo.Address, symbolsize,false, self.extraSymbolData);
+    sym:=self.symbollist.AddSymbol(self.currentModuleName, s, pSymInfo.Address, symbolsize,true, self.extraSymbolData); //don't add it as a address->string lookup  , (this way it always shows modulename+symbol)
+  end
+  else
+  begin
+    //forwarded
+    getmem(tempstring, 128);
+    if ReadProcessMemory(self.thisprocesshandle, pointer(pSymInfo.Address), tempstring, 128, x) then
+    begin
+      tempstring[x-1]:=#0;
+      //add a registered symbol for this (raw add)
+
+      with self.owner do
+      begin
+        userdefinedsymbolsCS.enter;
+        try
+          if userdefinedsymbolspos+1>=length(userdefinedsymbols) then
+            setlength(userdefinedsymbols,length(userdefinedsymbols)*2);
+
+          userdefinedsymbols[userdefinedsymbolspos].address:=0;
+          userdefinedsymbols[userdefinedsymbolspos].addressstring:=tempstring;
+          userdefinedsymbols[userdefinedsymbolspos].symbolname:=s;
+          userdefinedsymbols[userdefinedsymbolspos].allocsize:=0;
+          userdefinedsymbols[userdefinedsymbolspos].processid:=0;
+          userdefinedsymbols[userdefinedsymbolspos].doNotSave:=true;
+          inc(userdefinedsymbolspos);
+
+          if userdefinedsymbolspos+1>=length(userdefinedsymbols) then
+            setlength(userdefinedsymbols,length(userdefinedsymbols)*2);
+
+          userdefinedsymbols[userdefinedsymbolspos].address:=0;
+          userdefinedsymbols[userdefinedsymbolspos].addressstring:=tempstring;
+          userdefinedsymbols[userdefinedsymbolspos].symbolname:=self.currentModuleName+'.'+s;
+          userdefinedsymbols[userdefinedsymbolspos].allocsize:=0;
+          userdefinedsymbols[userdefinedsymbolspos].processid:=0;
+          userdefinedsymbols[userdefinedsymbolspos].doNotSave:=true;
+          inc(userdefinedsymbolspos);
+        finally
+          userdefinedsymbolsCS.leave;
+        end;
+
+      end;
+    end;
+
+    freemem(tempstring);
+  end;
+
 
   result:=not self.terminated;
 
@@ -734,6 +789,11 @@ begin
       isloading:=false;
 
       OutputDebugString('Symbolhandler: sync: Calling finishedloadingsymbols');
+
+      owner.ReinitializeUserdefinedSymbolList;
+
+
+
       if not terminated then
         synchronize(finishedloadingsymbols);
 
@@ -750,11 +810,12 @@ begin
   inherited destroy;
 end;
 
-constructor TSymbolloaderthread.create(targetself, CreateSuspended: boolean);
+constructor TSymbolloaderthread.create(owner: TSymhandler; targetself, CreateSuspended: boolean);
 var
   _processid: dword;
   _processhandle: thandle;
 begin
+  self.owner:=owner;
   self.targetself:=targetself;
   
 {$ifdef autoassemblerdll}
@@ -914,7 +975,7 @@ begin
       freeandnil(symbolloaderthread);
     end;
 
-    symbolloaderthread:=tsymbolloaderthread.Create(targetself,true);
+    symbolloaderthread:=tsymbolloaderthread.Create(self, targetself,true);
     symbolloaderthread.kernelsymbols:=kernelsymbols;
     symbolloaderthread.searchpath:=searchpath;
     symbolloaderthread.symbollist:=symbollist;
