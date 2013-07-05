@@ -72,9 +72,13 @@ begin
       li:=listview1.Items.Add;
       li.Caption:=sl[i];
       extradata:=pointer(sl.objects[i]);
-      li.SubItems.Add(extradata^.addressstring);
-      if extradata^.allocsize>0 then
-        li.SubItems.Add(inttohex(dword(extradata^.allocsize),8));
+
+      if extradata^.doNotSave=false then
+      begin
+        li.SubItems.Add(extradata^.addressstring);
+        if extradata^.allocsize>0 then
+          li.SubItems.Add(inttohex(dword(extradata^.allocsize),8));
+      end;
 
       freemem(extradata);
     end;
