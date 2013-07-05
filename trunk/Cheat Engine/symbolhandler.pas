@@ -67,6 +67,8 @@ type
     currentModuleName: string;
     currentModuleIsNotStandard: boolean;
 
+    extraSymbolData: TExtraSymbolData;
+
     procedure LoadDriverSymbols;
     procedure LoadDLLSymbols;
     procedure finishedLoadingSymbols;
@@ -81,9 +83,6 @@ type
 
     symbollist: TSymbolListHandler;
 
-    paramstring: string;
-    localstring: string;
-    tempstring: string; //test
 
     procedure execute; override;
     constructor create(targetself, CreateSuspended: boolean);
@@ -205,39 +204,6 @@ var symhandler: TSymhandler=nil;
     selfsymhandler: TSymhandler=nil;  //symhandler object for CE itself
 
 
-type TSymTagEnum=(
-   SymTagNull=0,
-   SymTagExe,
-   SymTagCompiland,
-   SymTagCompilandDetails,
-   SymTagCompilandEnv,
-   SymTagFunction,
-   SymTagBlock,
-   SymTagData,
-   SymTagAnnotation,
-   SymTagLabel,
-   SymTagPublicSymbol,
-   SymTagUDT,
-   SymTagEnum,
-   SymTagFunctionType,
-   SymTagPointerType,
-   SymTagArrayType,
-   SymTagBaseType,
-   SymTagTypedef,
-   SymTagBaseClass,
-   SymTagFriend,
-   SymTagFunctionArgType,
-   SymTagFuncDebugStart,
-   SymTagFuncDebugEnd,
-   SymTagUsingNamespace,
-   SymTagVTableShape,
-   SymTagVTable,
-   SymTagCustom,
-   SymTagThunk,
-   SymTagCustomType,
-   SymTagManagedType,
-   SymTagDimension);
-
 
 type
     PSYMBOL_INFO = ^TSYMBOL_INFO;
@@ -272,7 +238,7 @@ procedure symhandlerInitialize;
 implementation
 
 uses assemblerunit, driverlist, LuaHandler, lualib, lua, lauxlib,
-  disassemblerComments, StructuresFrm2;
+  disassemblerComments, StructuresFrm2, cvconst;
 
 resourcestring
   rsSymbolloaderthreadHasCrashed = 'Symbolloaderthread has crashed';
@@ -401,7 +367,6 @@ TIMAGEHLP_STACK_FRAME = record
 IMAGEHLP_STACK_FRAME = TIMAGEHLP_STACK_FRAME;
 LPIMAGEHLP_STACK_FRAME = PIMAGEHLP_STACK_FRAME;
 
-type TBasicType=(btNoType = 0, btVoid = 1, btChar = 2, btWChar = 3, btInt = 6, btUInt = 7, btFloat = 8, btBCD = 9, btBool = 10, btLong = 13, btULong = 14, btInt2=16, btCurrency = 25, btDate = 26, btVariant = 27, btComplex = 28, btBit = 29, btBSTR = 30, btHresult = 31);
 
 
 function symflagsToString(symflags: dword): string;
@@ -441,7 +406,7 @@ var x: dword;
     type_symtag: TSymTagEnum;
     name: PWCHAR;
 begin
-  result:='.';
+  result:='';
   if infinitycheck<0 then exit;
 
   if SymGetTypeInfo(h, modbase, index, TI_GET_SYMTAG, @type_symtag) then
@@ -528,7 +493,6 @@ begin
       else
       begin
         //something else
-        result:='?';
 
       end;
 
@@ -548,29 +512,30 @@ var
   type_symtag: Tsymtagenum;
 
   isparam: boolean;
+
+  esde: TExtraSymbolDataEntry;
 begin
   if pSymInfo.NameLen=0 then
     exit;
 
   self:=TSymbolloaderthread(UserContext);
 
-  if (pchar(@pSymInfo.Name)='nCmdShow') then
-  asm
-    nop
-    nop
-  end;
-
-  s:='';
 
   isparam:=(pSymInfo.Flags and SYMFLAG_PARAMETER)>0;
 
   s:=GetTypeName(self.thisprocesshandle, pSymInfo.ModBase, pSymInfo.TypeIndex);
 
 
+  //add an extra symboldataentry
+  esde:=TExtraSymbolDataEntry.create;
+  esde.name:=pchar(@pSymInfo.Name);
+  esde.vtype:=s;
+  esde.position:='Somewhere';
+
   if isparam then
-    self.paramstring:=self.paramstring+s+' '+pchar(@pSymInfo.Name)+', '
+    self.extraSymbolData.parameters.Add(esde)
   else
-    self.localstring:=self.localstring+s+' '+pchar(@pSymInfo.Name)+', ';
+    self.extraSymbolData.locals.Add(esde);
 
   result:=true;
 end;
@@ -606,24 +571,25 @@ begin
   s:=s+' - '+GetEnumName(TypeInfo(TSymTagEnum), pSymInfo.Tag);
      }
 
+
   if TSymTagEnum(pSymInfo.Tag)=SymTagFunction then
   begin
-    self.paramstring:='';
-    self.localstring:='';
+    self.extraSymbolData:=TExtraSymbolData.create;
+    self.symbollist.AddExtraSymbolData(self.extraSymbolData);
+
 
     ZeroMemory(@c, sizeof(c));
     c.InstructionOffset:=pSymInfo.Address;
     SymSetContext(self.thisprocesshandle, @c, NULL);
 
-    if SymEnumSymbols(self.thisprocesshandle, 0, NULL, @ES2, self) then
-    begin
-      s:=s+'('+copy(self.paramstring,1,length(self.paramstring)-2)+')';
-    end;
+    SymEnumSymbols(self.thisprocesshandle, 0, NULL, @ES2, self);
 
   end;
 
-  sym:=self.symbollist.AddSymbol(self.currentModuleName, self.currentModuleName+'.'+s, pSymInfo.Address, symbolsize);
-  sym:=self.symbollist.AddSymbol(self.currentModuleName, s, pSymInfo.Address, symbolsize,true); //don't add it as a address->string lookup  , (this way it always shows modulename+symbol)
+  //todo: don't add if it's a forwarder, but register a userdefined symbol
+
+  sym:=self.symbollist.AddSymbol(self.currentModuleName, self.currentModuleName+'.'+s, pSymInfo.Address, symbolsize,false, self.extraSymbolData);
+  sym:=self.symbollist.AddSymbol(self.currentModuleName, s, pSymInfo.Address, symbolsize,true, self.extraSymbolData); //don't add it as a address->string lookup  , (this way it always shows modulename+symbol)
 
   result:=not self.terminated;
 
@@ -632,6 +598,7 @@ end;
 
 function ET(pSymInfo:PSYMBOL_INFO; SymbolSize:ULONG; UserContext:pointer):BOOL;stdcall;
 begin
+  //todo: Add to structure dissect
   result:=true;
 end;
 
@@ -1243,6 +1210,9 @@ end;
 procedure TSymhandler.GetSymbolList(address: ptruint; list: tstrings);
 var si: PCESymbolInfo;
     mi: TModuleInfo;
+    symbolname: string;
+    i: integer;
+    params: string;
 begin
   list.clear;
   if getmodulebyaddress(address, mi) then
@@ -1251,7 +1221,22 @@ begin
 
     while (si<>nil) and inrangeq(si.address, mi.baseaddress, mi.baseaddress+mi.basesize) do
     begin
-      list.AddObject(si.originalstring, pointer(si.address));
+      symbolname:=si.originalstring;
+      if si.extra<>nil then
+      begin
+        //add the parameters if there are any
+        params:='';
+        for i:=0 to si.extra.parameters.Count-1 do
+        begin
+          if i>0 then
+            params:=params+', '+ si.extra.parameters[i].vtype+' '+si.extra.parameters[i].name
+          else
+            params:=params+si.extra.parameters[i].vtype+' '+si.extra.parameters[i].name;
+        end;
+        symbolname:=symbolname+'('+params+')';
+      end;
+
+      list.AddObject(symbolname, pointer(si.address));
       si:=si.next;
     end;
 
