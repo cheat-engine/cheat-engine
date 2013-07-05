@@ -5,7 +5,8 @@ unit disassemblerviewlinesunit;
 interface
 
 uses LCLIntf,sysutils, classes,ComCtrls, graphics, CEFuncProc, disassembler,
-     CEDebugger, debughelper, KernelDebugger, symbolhandler, plugin, disassemblerComments;
+     CEDebugger, debughelper, KernelDebugger, symbolhandler, plugin,
+     disassemblerComments, SymbolListHandler;
 
 type
   TDisassemblerViewColorsState=(csUndefined=-1, csNormal=0, csHighlighted=1, csSecondaryHighlighted=2, csBreakpoint=3, csHighlightedbreakpoint=4, csSecondaryHighlightedbreakpoint=5);
@@ -220,6 +221,7 @@ procedure TDisassemblerLine.renderLine(var address: ptrUint; linestart: integer;
 var
     baseofsymbol: qword;
     symbolname: string;
+    parameters: string;
     comment: string;
     refferencedby: string;
     refferencedbylinecount: integer;
@@ -243,6 +245,9 @@ var
     ExtraLineRenderBelow: TRasterImage;
     BelowX, BelowY: Integer;
    // z: ptrUint;
+
+    found :boolean;
+    extrasymboldata: TExtraSymbolData;
 begin
 
   self.focused:=focused;
@@ -276,7 +281,16 @@ begin
   //z:=address;
 
 
-  symbolname:=symhandler.getNameFromAddress(address,symhandler.showsymbols,symhandler.showmodules,@baseofsymbol);
+  symbolname:=symhandler.getNameFromAddress(address,symhandler.showsymbols,symhandler.showmodules,@baseofsymbol, @found);
+  if (faddress=baseofsymbol) and found then
+  begin
+    extrasymboldata:=symhandler.getExtraDataFromSymbolAtAddress(address);
+  end
+  else
+    extrasymboldata:=nil;
+
+
+
   fdisassembled:=visibleDisassembler.disassemble(address,fdescription);
 
   addressstring:=inttohex(visibleDisassembler.LastDisassembleData.address,8);
@@ -355,10 +369,20 @@ begin
 
   if (baseofsymbol>0) and (faddress=baseofsymbol) then
   begin
+    parameters:='';
     if textheight=-1 then
       textheight:=fcanvas.TextHeight(symbolname);
 
     fheight:=height+textheight+1+10;
+
+    if extrasymboldata<>nil then
+    begin
+      //more space needed for the local vars
+
+    end;
+
+
+
   end;
 
   refferencedbylinecount:=0;
@@ -479,7 +503,23 @@ begin
   if (baseofsymbol>0) and (faddress=baseofsymbol) then
   begin
     fcanvas.Font.Style:=[fsbold];
-    fcanvas.TextOut(fHeaders.Items[0].Left+5,linestart+5,AnsiToUtf8(symbolname));
+
+    parameters:='';
+    if extrasymboldata<>nil then
+    begin
+      parameters:='(';
+      for i:=0 to extrasymboldata.parameters.count-1 do
+      begin
+        if i=0 then
+          parameters:=parameters+extrasymboldata.parameters[i].vtype+' '+extrasymboldata.parameters[i].name
+        else
+          parameters:=parameters+', '+extrasymboldata.parameters[i].vtype+' '+extrasymboldata.parameters[i].name;
+      end;
+
+      parameters:=parameters+')';
+    end;
+
+    fcanvas.TextOut(fHeaders.Items[0].Left+5,linestart+5,AnsiToUtf8(symbolname+parameters));
     linestart:=linestart+fcanvas.TextHeight(symbolname)+1+10;
     fcanvas.Font.Style:=[];
   end;

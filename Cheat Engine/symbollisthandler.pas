@@ -8,13 +8,36 @@ This unit will keep two trees that link to a list of string to address informati
 interface
 
 uses
-  Classes, SysUtils, AvgLvlTree, math, fgl;
+  windows, Classes, SysUtils, AvgLvlTree, math, fgl, cvconst;
+
+type
+  PSYMBOL_INFO = ^TSYMBOL_INFO;
+  TSYMBOL_INFO = {packed} record
+          SizeOfStruct : ULONG;
+          TypeIndex : ULONG;
+          Reserved : array[0..1] of ULONG64;
+          info : ULONG;
+          Size : ULONG;
+          ModBase : ULONG64;
+          Flags : ULONG;
+          Value : ULONG64;
+          Address : ULONG64;
+          Register : ULONG;
+          Scope : ULONG;
+          Tag : ULONG;
+          NameLen : ULONG;
+          MaxNameLen : ULONG;
+          Name : array[0..0] of TCHAR;
+       end;
+  SYMBOL_INFO = TSYMBOL_INFO;
+  LPSYMBOL_INFO = PSYMBOL_INFO;
 
 type
   TExtraSymbolDataEntry=class
     name: string;
     vtype: string;
     position: string;
+    syminfo: TSYMBOL_INFO; //just in case it might be useful
   end;
 
   TExtraSymbolDataEntryList=TFPGList<TExtraSymbolDataEntry>;

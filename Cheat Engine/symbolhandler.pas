@@ -6,7 +6,7 @@ interface
 
 
 uses jwawindows, windows, classes,LCLIntf,imagehlp,{psapi,}sysutils, cefuncproc,
-  newkernelhandler,syncobjs, SymbolListHandler, fgl, typinfo;
+  newkernelhandler,syncobjs, SymbolListHandler, fgl, typinfo, cvconst;
 
 
 Procedure Free (P : pointer); cdecl; external 'msvcrt' name 'free';
@@ -165,6 +165,7 @@ type
     function getNameFromAddress(address:ptrUint):string; overload;
     function getNameFromAddress(address:ptrUint; var found: boolean; hexcharsize: integer=8):string; overload;
     function getNameFromAddress(address:ptrUint;symbols:boolean; modules: boolean; baseaddress: PUINT64=nil; found: PBoolean=nil; hexcharsize: integer=8):string; overload;
+    function getExtraDataFromSymbolAtAddress(address: ptruint): TExtraSymbolData;
 
     function getAddressFromNameL(name: string):ptrUint; //Called by lua. Looks at ExceptionOnLookup
     function getAddressFromName(name: string):ptrUint; overload;
@@ -205,27 +206,7 @@ var symhandler: TSymhandler=nil;
 
 
 
-type
-    PSYMBOL_INFO = ^TSYMBOL_INFO;
-    TSYMBOL_INFO = {packed} record
-            SizeOfStruct : ULONG;
-            TypeIndex : ULONG;
-            Reserved : array[0..1] of ULONG64;
-            info : ULONG;
-            Size : ULONG;
-            ModBase : ULONG64;
-            Flags : ULONG;
-            Value : ULONG64;
-            Address : ULONG64;
-            Register : ULONG;
-            Scope : ULONG;
-            Tag : ULONG;
-            NameLen : ULONG;
-            MaxNameLen : ULONG;
-            Name : array[0..0] of TCHAR;
-         end;
-    SYMBOL_INFO = TSYMBOL_INFO;
-    LPSYMBOL_INFO = PSYMBOL_INFO;
+
 
 type TSymFromName=function(hProcess: HANDLE; Name: LPSTR; Symbol: PSYMBOL_INFO): BOOL; stdcall;
 type TSymFromAddr=function(hProcess:THANDLE; Address:dword64; Displacement:PDWORD64; Symbol:PSYMBOL_INFO):BOOL;stdcall;
@@ -238,7 +219,7 @@ procedure symhandlerInitialize;
 implementation
 
 uses assemblerunit, driverlist, LuaHandler, lualib, lua, lauxlib,
-  disassemblerComments, StructuresFrm2, cvconst;
+  disassemblerComments, StructuresFrm2;
 
 resourcestring
   rsSymbolloaderthreadHasCrashed = 'Symbolloaderthread has crashed';
@@ -531,6 +512,7 @@ begin
   esde.name:=pchar(@pSymInfo.Name);
   esde.vtype:=s;
   esde.position:='Somewhere';
+  esde.syminfo:=pSymInfo^; //the name is known, so no need to do any fancy allocating
 
   if isparam then
     self.extraSymbolData.parameters.Add(esde)
@@ -1309,6 +1291,18 @@ begin
   searchpath:=path;
 end;
 
+function TSymhandler.getExtraDataFromSymbolAtAddress(address: ptruint): TExtraSymbolData;
+//returns the extra data for a symbol (can be nil)
+var si: PCESymbolInfo;
+begin
+  result:=nil;
+
+  symbolloadervalid.beginread;
+  si:=symbollist.FindAddress(address);
+  if si<>nil then
+    result:=si.extra;
+  symbolloadervalid.Endread;
+end;
 
 function TSymhandler.getNameFromAddress(address:ptrUint;symbols:boolean; modules: boolean; baseaddress: PUINT64=nil; found: PBoolean=nil; hexcharsize: integer=8):string;
 var //symbol :PSYMBOL_INFO;
