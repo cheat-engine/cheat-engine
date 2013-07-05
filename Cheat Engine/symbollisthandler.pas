@@ -8,9 +8,27 @@ This unit will keep two trees that link to a list of string to address informati
 interface
 
 uses
-  Classes, SysUtils, AvgLvlTree, math;
+  Classes, SysUtils, AvgLvlTree, math, fgl;
 
 type
+  TExtraSymbolDataEntry=class
+    name: string;
+    vtype: string;
+    position: string;
+  end;
+
+  TExtraSymbolDataEntryList=TFPGList<TExtraSymbolDataEntry>;
+
+  TExtraSymbolData=class
+  private
+  public
+    parameters: TExtraSymbolDataEntryList;
+    locals: TExtraSymbolDataEntryList;
+    constructor create;
+    destructor destroy; override;
+  end;
+
+
   PCESymbolInfo=^TCESymbolInfo;
   TCESymbolInfo=record
     s: pchar; //lowercase string for searching
@@ -18,9 +36,14 @@ type
     module: pchar;
     address: qword;
     size: integer;
+    extra:TExtraSymbolData;
+
     previous: PCESymbolInfo;
     next: PCESymbolInfo;
   end;
+
+  TExtraSymbolDataList=TFPGList<TExtraSymbolData>;
+
 
 
 
@@ -29,12 +52,15 @@ type
     cs: TMultiReadExclusiveWriteSynchronizer;
     AddressToString: TAvgLvlTree;
     StringToAddress: TAvgLvlTree;
+
+    ExtraSymbolDataList: TExtraSymbolDataList;
     function A2SCheck(Tree: TAvgLvlTree; Data1, Data2: pointer): integer;
     function S2ACheck(Tree: TAvgLvlTree; Data1, Data2: pointer): integer;
   public
     constructor create;
     destructor destroy; override;
-    function AddSymbol(module: string; searchkey: string; address: qword; size: integer; skipaddresstostringlookup: boolean=false): PCESymbolInfo;
+    procedure AddExtraSymbolData(d: TExtraSymbolData);
+    function AddSymbol(module: string; searchkey: string; address: qword; size: integer; skipaddresstostringlookup: boolean=false; extraData: TExtraSymbolData=nil): PCESymbolInfo;
     function FindAddress(address: qword): PCESymbolInfo;
     function FindSymbol(s: string): PCESymbolInfo;
     function FindFirstSymbolFromBase(baseaddress: qword): PCESymbolInfo;
@@ -45,6 +71,32 @@ type
 implementation
 
 uses CEFuncProc;
+
+constructor TExtraSymbolData.create;
+begin
+  parameters:=TExtraSymbolDataEntryList.create;
+  locals:=TExtraSymbolDataEntryList.create;
+end;
+
+destructor TExtraSymbolData.destroy;
+var i: integer;
+begin
+  for i:=0 to parameters.count-1 do
+    parameters[i].free;
+
+  if parameters<>nil then
+    parameters.free;
+
+  for i:=0 to locals.count-1 do
+    locals[i].free;
+
+  if locals<>nil then
+    locals.free;
+
+  inherited destroy;
+end;
+
+//-------------
 
 function TSymbolListHandler.FindFirstSymbolFromBase(baseaddress: qword): PCESymbolInfo;
 var search: TCESymbolInfo;
@@ -158,7 +210,7 @@ begin
   end;
 end;
 
-function TSymbolListHandler.AddSymbol(module: string; searchkey: string; address: qword; size: integer; skipaddresstostringlookup: boolean=false): PCESymbolInfo;
+function TSymbolListHandler.AddSymbol(module: string; searchkey: string; address: qword; size: integer; skipaddresstostringlookup: boolean=false; extradata: TExtraSymbolData=nil): PCESymbolInfo;
 var new: PCESymbolInfo;
   n: TAvgLvlTreeNode;
   prev, next: TAvgLvlTreeNode;
@@ -169,6 +221,7 @@ begin
   new.s:=strnew(pchar(lowercase(searchkey)));
   new.address:=address;
   new.size:=size;
+  new.extra:=extradata;
 
   cs.Beginwrite;
 //  sleep(1);
@@ -251,15 +304,24 @@ begin
   end;
 end;
 
+procedure TSymbolListHandler.AddExtraSymbolData(d: TExtraSymbolData);
+begin //add here instead of AddSymbol, since AddSymbol can add the same object multiple times
+  ExtraSymbolDataList.add(d);
+end;
+
 constructor TSymbolListHandler.create;
 begin
   inherited create;
   AddressToString:=TAvgLvlTree.CreateObjectCompare(A2SCheck);
   StringToAddress:=TAvgLvlTree.CreateObjectCompare(S2ACheck);
+  ExtraSymbolDataList:=TExtraSymbolDataList.create;
   cs:=TMultiReadExclusiveWriteSynchronizer.create;
+
+
 end;
 
 destructor TSymbolListHandler.destroy;
+var i: integer;
 begin
   clear;
   if AddressToString<>nil then
@@ -270,6 +332,11 @@ begin
 
   if cs<>nil then
     freeandnil(cs);
+
+  for i:=0 to ExtraSymbolDataList.count-1 do
+    ExtraSymbolDataList[i].free;
+
+  ExtraSymbolDataList.Free;
 
   inherited destroy;
 end;
