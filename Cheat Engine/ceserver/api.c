@@ -36,7 +36,6 @@
 #include <sys/ptrace.h>
 #include <sys/wait.h>
 #include <sys/syscall.h>
-//#include <sys/user.h>
 #include <signal.h>
 
 
@@ -45,6 +44,14 @@
 #include <errno.h>
 
 #include <semaphore.h>
+
+#ifdef __arm__
+#include <linux/user.h>
+#endif
+
+#if defined(__i386__) || defined(__x86_64__)
+#include <sys/user.h>
+#endif
 
 
 
@@ -122,15 +129,12 @@ int RemoveThreadFromProcess(PProcessData p, int tid)
 
 }
 
-volatile int test=0;
 void mychildhandler(int signal, struct siginfo *info, void *context)
 {
   //printf("Child event: %d\n", info->si_pid);
   int orig_errno = errno;
   sem_post(&sem_ChildEvent);
   errno = orig_errno;
-
-  test++;
 }
 
 int GetDebugPort(HANDLE hProcess)
@@ -240,6 +244,10 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsiz
 /*
  * Sets a breakpoint of the specifed type at the given address
  * tid of -1 means ALL breakpoints
+ * bptype: 0 = Execute
+ * bptype: 1 = write
+ * bptype: 2 = read (only)
+ * bptype: 3 = Read/Write
  *
  * returns TRUE if the breakpoint was set *
  */
@@ -283,7 +291,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsiz
           printf("Going to kill and wait for this thread\n");
 
           int k;
-          test=0;
+
           //k=pthread_kill(tid, SIGSTOP);
 
           //tkill(tid, SIGSTOP); //ok, this doesn't work...
@@ -310,10 +318,55 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsiz
         //debugging the given tid
         printf("Setting breakpoint in thread %d\n", wtid);
 
+#ifdef __arm__
+    //hwbps
+#endif
+
+#if defined __i386__ || defined __x86_64__
+        //debug regs
+        //PTRACE_SETREGS
+
+        struct user u;
+        int r,r2;
+
+        DWORD newdr7;
+
+
+        newdr7=1; //currently implement only 1 bp
+
+        if (bptype==2) //x86 does not support read onlyhw bps
+          bptype=3;
+
+        newdr7=newdr7 | (bptype << 16); //bptype
+
+        if (bpsize<=1)
+          newdr7=newdr7 | (0 << 18);
+        else
+        if (bpsize<=2)
+          newdr7=newdr7 | (1 << 18);
+        else
+          newdr7=newdr7 | (3 << 18);
+
+
+        r=ptrace(PTRACE_POKEUSER, wtid, offsetof(struct user, u_debugreg[0]), Address);
+        r2=ptrace(PTRACE_POKEUSER, wtid, offsetof(struct user, u_debugreg[7]), newdr7);
+
+        if ((r!=0) || (r2!=0))
+        {
+          printf("Failure setting breakpoint\n");
+
+        }
+
+
+#endif
+
+
         if (isdebugged!=tid)
         {
           int r;
           printf("Continue self broken thread\n");
+
+          //todo:if it's stopped because of SIGSTOP just continue, else add this to a que for WaitForDebugEvent
           r=ptrace(PTRACE_CONT, wtid, 0,0);
           printf("PTRACE_CONT=%d\n", r);
         }
@@ -322,28 +375,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsiz
     //
 
 
-#ifdef __arm__
-    //hwbps
-#endif
 
-#if defined __i386__ || defined __x86_64__
-    //debug regs
-    //PTRACE_SETREGS
-
-      /*
-      unsigned char *data=malloc(8192*4);
-
-      int i,j;
-      for (i=0; i<p->threadlistpos; i++)
-      {
-
-        j=ptrace(PTRACE_GETREGS, p->threadlist[i], 0, data);
-        printf("PTRACE_GETREGS(%d)=%d\n", p->threadlist[i], j);
-      }
-*/
-
-
-#endif
     }
     else
     {
