@@ -109,7 +109,7 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getOwner', component_getOwner);
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'ComponentCount', component_getComponentCount, nil);
-  luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Component', component_getComponentCount);
+  luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Component', component_getComponent);
   luaclass_addArrayPropertyToTable(L, metatable, userdata, 'ComponentByName', component_findComponentByName);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Name', component_getName, component_setName);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Tag', component_getTag, component_setTag);
