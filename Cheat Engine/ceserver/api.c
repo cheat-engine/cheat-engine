@@ -313,7 +313,10 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsiz
           printf("^^^^AFTER WAIT^^^^\n");
         }
         else
+        {
           printf("The thread I wanted to break was already broken. Yeeeh\n");
+          wtid=isdebugged;
+        }
 
         //debugging the given tid
         printf("Setting breakpoint in thread %d\n", wtid);
@@ -424,6 +427,122 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsiz
     printf("Invalid handle\n");
   }
 
+}
+
+int RemoveBreakpoint(HANDLE hProcess, int tid)
+/*
+ * Removes the breakpoint (only 1 for now)
+ */
+{
+
+  printf("RemoveBreakpoint(%d)\n", tid);
+  if (GetHandleType(hProcess) == htProcesHandle )
+  {
+    PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
+
+    if (p->debuggerThreadID==pthread_self())
+    {
+      int isdebugged=p->debuggedThread;
+      int wtid;
+
+      printf("Called from the debuggerthread itself\n");
+
+      if (tid==-1)
+      {
+        int i;
+        printf("Calling RemoveBreakpoint for all threads\n");
+        for (i=0; i<p->threadlistpos; i++)
+          RemoveBreakpoint(hProcess, p->threadlist[i]);
+      }
+      else
+      {
+        printf("specific thread\n");
+
+        if (isdebugged!=tid)
+        {
+          //manual
+          int status;
+
+          printf("Different thread or no thread was broken\n");
+          printf("Going to kill and wait for this thread\n");
+
+          int k;
+
+          syscall(__NR_tkill, tid, SIGSTOP);
+          while ((wtid=waitpid(tid, &status, __WALL))<=0) ; //can be interrupted by a signal
+
+
+          printf("----AFTER WAIT----\n");
+
+          printf("after wtid=%d\n", wtid);
+          printf("^^^^AFTER WAIT^^^^\n");
+        }
+        else
+        {
+          printf("The thread I wanted to break was already broken. Yeeeh\n");
+          wtid=isdebugged;
+        }
+
+        //debugging the given tid
+        printf("Removing breakpoint from thread %d\n", wtid);
+
+
+#ifdef __arm__
+        printf("arm\n");
+#endif
+
+#if defined(__i386__) || defined (__x86_64__)
+        int r;
+        printf("x86\n");
+
+        r=ptrace(PTRACE_POKEUSER, wtid, offsetof(struct user, u_debugreg[7]), 0);
+        if (r!=0)
+          printf("Failure removing breakpoint from thread %d\n", wtid);
+
+#endif
+
+      }
+
+    }
+    else
+    {
+      printf("Called from a secondary thread\n");
+#pragma pack(1)
+      struct
+      {
+        char command;
+        HANDLE hProcess;
+        int tid;
+      } rb;
+#pragma pack()
+
+      rb.command=CMD_REMOVEBREAKPOINT;
+      rb.hProcess=hProcess;
+      rb.tid=tid;
+
+
+      if (pthread_mutex_lock(&debugsocketmutex) == 0)
+      {
+        int result;
+        printf("Sending message to the debuggerthread\n");
+
+        sendall(p->debuggerClient, &rb, sizeof(rb), 0);
+
+        kill(tid, SIGSTOP); //this will wake the debuggerthread if it was sleeping
+
+        recv(p->debuggerClient, &result, sizeof(result), MSG_WAITALL);
+
+
+        pthread_mutex_unlock(&debugsocketmutex);
+      }
+
+    }
+
+  }
+  else
+    printf("Invalid handle\n");
+
+  return 0;
 }
 
 int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
@@ -598,7 +717,14 @@ int ContinueFromDebugEvent(HANDLE hProcess, int tid, int ignoresignal)
 
       printf("Continue %d with signal %d\n", tid, signal);
 
-      int result=ptrace(PTRACE_CONT, tid, 0,signal);
+      int result;
+      if (ignoresignal==2)
+      {
+        printf("Single step\n");
+        result=ptrace(PTRACE_SINGLESTEP, tid, 0,0);
+      }
+      else
+        result=ptrace(PTRACE_CONT, tid, 0,signal);
 
 
       printf("Continue result=%d\n", result);

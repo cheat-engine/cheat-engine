@@ -215,6 +215,29 @@ int cenet_setBreakpoint(int fd, int pHandle, int tid, void *Address, int bptype,
   return result;
 }
 
+int cenet_removeBreakpoint(int fd, int pHandle, int tid)
+{
+#pragma pack(1)
+    struct
+    {
+      char command;
+      HANDLE hProcess;
+      int tid;
+    } rb;
+#pragma pack()
+    int result;
+
+  printf("cenet_removeBreakpoint\n");
+  rb.command=CMD_REMOVEBREAKPOINT;
+  rb.hProcess=pHandle;
+  rb.tid=tid;
+
+  sendall(fd, &rb, sizeof(rb), 0);
+  recv(fd, &result, sizeof(result), MSG_WAITALL);
+
+  return result;
+}
+
 void *CESERVERTEST_DEBUGGERTHREAD(void *arg)
 {
   int count=0;
@@ -244,11 +267,17 @@ void *CESERVERTEST_DEBUGGERTHREAD(void *arg)
       if (i)
       {
 
+        if (devent.debugevent==5)
+        {
+          printf("TRAP (thread %d)\n", devent.threadid);
+          printf("Going to remove breakpoint\n");
+          cenet_removeBreakpoint(fd, pHandle, devent.threadid);
 
-
-
-
-        cenet_continueFromDebugEvent(fd, pHandle, devent.threadid, 0);
+          printf("cenet_removeBreakpoint returned\n");
+          cenet_continueFromDebugEvent(fd, pHandle, devent.threadid, 2); //continue unhandled
+        }
+        else
+          cenet_continueFromDebugEvent(fd, pHandle, devent.threadid, 0);
       }
     }
 
