@@ -26,6 +26,7 @@
 #define CMD_WAITFORDEBUGEVENT 13
 #define CMD_CONTINUEFROMDEBUGEVENT 14
 #define CMD_SETBREAKPOINT 15
+#define CMD_REMOVEBREAKPOINT 16
 
 
 
@@ -97,6 +98,16 @@ typedef struct {
 typedef struct {
   int result;
 } CeSetBreapointOutput, *PCeSetBreakpointOutput;
+
+typedef struct {
+  HANDLE hProcess;
+  int tid;
+} CeRemoveBreapointInput, *PCeRemoveBreakpointInput;
+
+
+typedef struct {
+  int result;
+} CeRemoveBreapointOutput, *PCeRemoveBreakpointOutput;
 
 #pragma pack()
 

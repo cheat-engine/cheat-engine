@@ -248,6 +248,22 @@ void *newconnection(void *arg)
           break;
         }
 
+        case CMD_REMOVEBREAKPOINT:
+        {
+          CeRemoveBreapointInput rb;
+
+          if (recv(currentsocket, &rb, sizeof(rb), MSG_WAITALL)>0)
+          {
+            int r;
+
+            printf("Calling RemoveBreakpoint\n");
+            r=RemoveBreakpoint(rb.hProcess, rb.tid);
+            printf("RemoveBreakpoint returned\n");
+            sendall(currentsocket, &r, sizeof(r), 0);
+          }
+          break;
+        }
+
 
         case CMD_CLOSEHANDLE:
         {
