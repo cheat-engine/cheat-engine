@@ -47,6 +47,34 @@
 
 #ifdef __arm__
 #include <linux/user.h>
+
+//blatantly stolen from the kernel source
+#define PTRACE_GETHBPREGS 29
+#define PTRACE_SETHBPREGS 30
+
+/* Breakpoint */
+#define ARM_BREAKPOINT_EXECUTE  0
+
+/* Watchpoints */
+#define ARM_BREAKPOINT_LOAD     1
+#define ARM_BREAKPOINT_STORE    2
+
+/* Privilege Levels */
+#define ARM_BREAKPOINT_PRIV     1
+#define ARM_BREAKPOINT_USER     2
+
+/* Lengths */
+#define ARM_BREAKPOINT_LEN_1    0x1
+#define ARM_BREAKPOINT_LEN_2    0x3
+#define ARM_BREAKPOINT_LEN_4    0xf
+#define ARM_BREAKPOINT_LEN_8    0xff
+
+static inline unsigned int encode_ctrl_reg(int mismatch, int len, int type, int privilege, int enabled)
+{
+        return (mismatch << 22) | (len << 5) | (type << 3) | (privilege << 1) | enabled;
+}
+
+
 #endif
 
 #if defined(__i386__) || defined(__x86_64__)
@@ -323,6 +351,57 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsiz
 
 #ifdef __arm__
     //hwbps
+        int val;
+
+        if (ptrace(PTRACE_GETHBPREGS, wtid, 0, &val)==0)
+        {
+          int i;
+          unsigned int hwbpreg;
+          printf("BPREG0 (Info)=%x\n", val);
+
+          printf("Setting bp address\n");
+
+
+
+          if (bptype==0)
+          {
+            //execute
+            i=ptrace(PTRACE_SETHBPREGS, wtid, 1, Address);
+            printf("i1=%d\n", i, hwbpreg);
+
+            hwbpreg=encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_4, ARM_BREAKPOINT_EXECUTE, 0, 1);
+            i=ptrace(PTRACE_SETHBPREGS, wtid, 2, hwbpreg);
+
+            printf("i2=%d  (hwbpreg=%x)\n", i, hwbpreg);
+          }
+          else
+          {
+            //watchpoint
+            //(negative)
+            int btype;
+            i=ptrace(PTRACE_SETHBPREGS, wtid, -2, Address);
+            printf("i1=%d\n", i, hwbpreg);
+
+            btype=0;
+            if (bptype==1)
+              btype=ARM_BREAKPOINT_STORE;
+            else
+            if (bptype==2)
+              btype=ARM_BREAKPOINT_LOAD;
+            else
+            if (bptype==3)
+              btype=ARM_BREAKPOINT_STORE | ARM_BREAKPOINT_LOAD;
+
+            hwbpreg=encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_4, btype, 0, 1);
+            i=ptrace(PTRACE_SETHBPREGS, wtid, -1, hwbpreg);
+
+            printf("i=%d  (hwbpreg=%x)\n", i, hwbpreg);
+
+          }
+
+        }
+
+
 #endif
 
 #if defined __i386__ || defined __x86_64__
@@ -489,6 +568,9 @@ int RemoveBreakpoint(HANDLE hProcess, int tid)
 
 #ifdef __arm__
         printf("arm\n");
+
+        ptrace(PTRACE_SETHBPREGS, wtid, -1, 0);
+        ptrace(PTRACE_SETHBPREGS, wtid, 2, 0);
 #endif
 
 #if defined(__i386__) || defined (__x86_64__)
