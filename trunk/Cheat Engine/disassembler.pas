@@ -11125,11 +11125,29 @@ var found: boolean;
     b: byte;
     w: word;
     d: dword;
+    i: integer;
 begin
   if (showsymbols or showmodules) and (chars>=8) then
   begin
     found:=false;
     result:=symhandler.getNameFromAddress(value,showsymbols, showmodules, nil, @found,chars);
+
+    //when found, and the symbol contains a space or comma, put the symbolname in quotes
+
+    if found and ((pos(' ', result)>0) or (pos(',', result)>0)) then
+    begin
+      for i:=length(result) downto 1 do
+      begin
+        if (result[i] in ['-','+']) or (i=1) then
+        begin
+          if i>1 then
+            result:='"'+copy(result, 1, i-1)+'"'+copy(result, i, length(result))
+          else
+            result:='"'+result+'"';
+          break;
+        end;
+      end;
+    end;
 
     if syntaxhighlighting then
     begin
