@@ -255,10 +255,14 @@ void *CESERVERTEST_DEBUGGERTHREAD(void *arg)
       count++;
       printf("count=%d\n", count);
 
-      if (count==5)
+      if (count==4)
       {
         printf("going to set breakpoint\n");
+#ifdef __arm__
+        cenet_setBreakpoint(fd, pHandle, -1, 0x8374, 0, 1);
+#else
         cenet_setBreakpoint(fd, pHandle, -1, 0x4007ad, 0, 1);
+#endif
 
         printf("cenet_setBreakpoint returned\n");
       }
@@ -274,7 +278,7 @@ void *CESERVERTEST_DEBUGGERTHREAD(void *arg)
           cenet_removeBreakpoint(fd, pHandle, devent.threadid);
 
           printf("cenet_removeBreakpoint returned\n");
-          cenet_continueFromDebugEvent(fd, pHandle, devent.threadid, 2); //continue unhandled
+          cenet_continueFromDebugEvent(fd, pHandle, devent.threadid, 1); //continue unhandled/single step
         }
         else
           cenet_continueFromDebugEvent(fd, pHandle, devent.threadid, 0);
@@ -296,7 +300,11 @@ int hp;
   while (1)
   {
     //cenet_readProcessMemory(fd, 0x601048, &hp, 4)
+#ifdef __arm__
+    i=cenet_readProcessMemory(fd, pHandle, 0xa000, &hp, 4);
+#else
     i=cenet_readProcessMemory(fd, pHandle, 0x601068, &hp, 4);
+#endif
     printf("CESERVERTEST_RPMTHREAD:");
 
     printf("i=%d\n", i);
