@@ -271,7 +271,7 @@ int StartDebug(HANDLE hProcess)
 int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsize)
 /*
  * Sets a breakpoint of the specifed type at the given address
- * tid of -1 means ALL breakpoints
+ * tid of -1 means ALL threads
  * bptype: 0 = Execute
  * bptype: 1 = write
  * bptype: 2 = read (only)
@@ -280,7 +280,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsiz
  * returns TRUE if the breakpoint was set *
  */
 {
-  printf("SetBreakpoint(%d)\n", tid);
+  printf("SetBreakpoint(%d, %p, %d, %d)\n", tid, Address, bptype, bpsize);
   if (GetHandleType(hProcess) == htProcesHandle )
   {
     PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
@@ -366,11 +366,16 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsiz
           if (bptype==0)
           {
             //execute
-            i=ptrace(PTRACE_SETHBPREGS, wtid, 1, Address);
+
+
+            i=ptrace(PTRACE_SETHBPREGS, wtid, 1, &Address);
             printf("i1=%d\n", i, hwbpreg);
 
             hwbpreg=encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_4, ARM_BREAKPOINT_EXECUTE, 0, 1);
-            i=ptrace(PTRACE_SETHBPREGS, wtid, 2, hwbpreg);
+
+            hwbpreg=0x61;
+
+            i=ptrace(PTRACE_SETHBPREGS, wtid, 2, &hwbpreg);
 
             printf("i2=%d  (hwbpreg=%x)\n", i, hwbpreg);
           }
@@ -567,10 +572,18 @@ int RemoveBreakpoint(HANDLE hProcess, int tid)
 
 
 #ifdef __arm__
+        int bpreg=0;
+        int i;
+        void *a=NULL;
+
         printf("arm\n");
 
-        ptrace(PTRACE_SETHBPREGS, wtid, -1, 0);
-        ptrace(PTRACE_SETHBPREGS, wtid, 2, 0);
+        i=ptrace(PTRACE_SETHBPREGS, wtid, -1, &bpreg);
+        printf("i1=%d\n", i);
+        ptrace(PTRACE_SETHBPREGS, wtid, 2, &bpreg);
+        printf("i2=%d\n", i);
+
+        ptrace(PTRACE_SETHBPREGS, wtid, 1, &a);
 #endif
 
 #if defined(__i386__) || defined (__x86_64__)
@@ -759,7 +772,31 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
       devent->threadid=tid;
 
       if (!WIFEXITED(status))
+      {
         printf("%d: Break due to signal %d (status=%x)\n", tid, p->debuggedThreadSignal, status);
+
+#ifdef __arm__
+        //debug: Test some stats
+        struct user u;
+        int i;
+
+        memset(&u, 0, sizeof(u));
+        i=ptrace(PTRACE_GETREGS, tid, 0, &u);
+        printf("PTRACE_GETREGS returned %d\n", i);
+
+        if (i==0)
+        {
+          for (i=0; i<18; i++)
+          {
+
+            printf("uregs[%d]=%x\n", i, u.regs.uregs[i]);
+
+          }
+
+        }
+
+#endif
+      }
       else
         printf("%x terminated\n", tid);
 
@@ -789,6 +826,7 @@ int ContinueFromDebugEvent(HANDLE hProcess, int tid, int ignoresignal)
       int signal=ignoresignal?0:si.si_signo;
 
       printf("si.si_signo=%d\n", si.si_signo);
+      printf("si.si_code=%d\n", si.si_code);
 
 
 
@@ -803,7 +841,16 @@ int ContinueFromDebugEvent(HANDLE hProcess, int tid, int ignoresignal)
       if (ignoresignal==2)
       {
         printf("Single step\n");
+
         result=ptrace(PTRACE_SINGLESTEP, tid, 0,0);
+        if (result!=0)
+        {
+          printf("FAIL: %d!\n", errno);
+          printf("tid=%d\n", tid);
+
+
+          while (1);
+        }
       }
       else
         result=ptrace(PTRACE_CONT, tid, 0,signal);
