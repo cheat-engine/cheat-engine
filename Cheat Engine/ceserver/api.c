@@ -371,20 +371,36 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsiz
             i=ptrace(PTRACE_SETHBPREGS, wtid, 1, &Address);
             printf("i1=%d\n", i, hwbpreg);
 
+            //right now i'm not really sure how the breakpoint len is set and why it works in some cases and why not in other cases
             hwbpreg=encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_4, ARM_BREAKPOINT_EXECUTE, 0, 1);
+            if (ptrace(PTRACE_SETHBPREGS, wtid, 2, &hwbpreg)<0) //according to my guess, this should usually work, but just in case...
+            {
+              hwbpreg=encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_2, ARM_BREAKPOINT_EXECUTE, 0, 1);
+              if (ptrace(PTRACE_SETHBPREGS, wtid, 2, &hwbpreg)<0)
+              {
+                hwbpreg=encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_1, ARM_BREAKPOINT_EXECUTE, 0, 1);
+                if (ptrace(PTRACE_SETHBPREGS, wtid, 2, &hwbpreg)<0)
+                {
+                  //last try, 8 ?
+                  hwbpreg=encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_8, ARM_BREAKPOINT_EXECUTE, 0, 1);
+                  if (ptrace(PTRACE_SETHBPREGS, wtid, 2, &hwbpreg)<0)
+                    printf("Failure to set breakpoint\n");
+                }
 
-            hwbpreg=0x61;
+              }
+            }
 
-            i=ptrace(PTRACE_SETHBPREGS, wtid, 2, &hwbpreg);
-
-            printf("i2=%d  (hwbpreg=%x)\n", i, hwbpreg);
+            printf("hwbpreg=%x\n", hwbpreg);
           }
           else
           {
             //watchpoint
             //(negative)
             int btype;
-            i=ptrace(PTRACE_SETHBPREGS, wtid, -2, Address);
+
+            printf("watchpoint\n");
+
+            i=ptrace(PTRACE_SETHBPREGS, wtid, -1, &Address);
             printf("i1=%d\n", i, hwbpreg);
 
             btype=0;
@@ -398,7 +414,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsiz
               btype=ARM_BREAKPOINT_STORE | ARM_BREAKPOINT_LOAD;
 
             hwbpreg=encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_4, btype, 0, 1);
-            i=ptrace(PTRACE_SETHBPREGS, wtid, -1, hwbpreg);
+            i=ptrace(PTRACE_SETHBPREGS, wtid, -2, &hwbpreg);
 
             printf("i=%d  (hwbpreg=%x)\n", i, hwbpreg);
 
@@ -788,10 +804,9 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
         {
           for (i=0; i<18; i++)
           {
-
             printf("uregs[%d]=%x\n", i, u.regs.uregs[i]);
-
           }
+          printf("instruction pointer (15) = %x\n", instruction_pointer(&u.regs));
 
         }
 
