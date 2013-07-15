@@ -111,6 +111,26 @@ typedef struct {
   int result;
 } CeRemoveBreapointOutput, *PCeRemoveBreakpointOutput;
 
+typedef struct {
+  HANDLE hProcess;
+  int tid;
+} CeSuspendThreadInput, *PCeSuspendThreadInput;
+
+
+typedef struct {
+  int result;
+} CeSuspendThreadOutput, *PCeSuspendThreadOutput;
+
+typedef struct {
+  HANDLE hProcess;
+  int tid;
+} CeResumeThreadInput, *PCeResumeThreadInput;
+
+
+typedef struct {
+  int result;
+} CeResumeThreadOutput, *PCeResumeThreadOutput;
+
 #pragma pack()
 
 ssize_t sendall (int s, void *buf, size_t size, int flags);
