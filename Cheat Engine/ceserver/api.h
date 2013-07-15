@@ -42,7 +42,7 @@ typedef struct {
   int tid;
   int isPaused;
   int suspendCount;
-  PDebugEvent *suspendedDevent; //debug event to be injected when resumed
+  DebugEvent suspendedDevent; //debug event to be injected when resumed
 } ThreadData, *PThreadData;
 
 typedef struct {
@@ -58,8 +58,7 @@ typedef struct {
   int threadlistmax;
   int threadlistpos;
 
-  int debuggedThread;
-  int debuggedThreadSignal;
+  DebugEvent debuggedThreadEvent;
 
   int debuggerServer; //sockets for communicating with the debugger thread by local threads
   int debuggerClient;
@@ -103,9 +102,12 @@ int GetDebugPort(HANDLE hProcess);
 
 int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsize);
 
+int SuspendThread(HANDLE hProcess, int tid);
+int ResumeThread(HANDLE hProcess, int tid);
 
 PDebugEvent FindThreadDebugEventInQueue(PProcessData p, int tid);
 void AddDebugEventToQueue(PProcessData p, PDebugEvent devent);
+int RemoveThreadDebugEventFromQueue(PProcessData p, int tid);
 
 void initAPI();
 

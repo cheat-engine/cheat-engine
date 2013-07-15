@@ -244,6 +244,38 @@ int DispatchCommand(int currentsocket, unsigned char command)
       break;
     }
 
+    case CMD_SUSPENDTHREAD:
+    {
+      CeSuspendThreadInput st;
+
+      if (recvall(currentsocket, &st, sizeof(st), MSG_WAITALL)>0)
+      {
+        int r;
+
+        printf("Calling SuspendThread\n");
+        r=SuspendThread(st.hProcess, st.tid);
+        printf("SuspendThread returned\n");
+        sendall(currentsocket, &r, sizeof(r), 0);
+      }
+      break;
+    }
+
+    case CMD_RESUMETHREAD:
+    {
+      CeResumeThreadInput rt;
+
+      if (recvall(currentsocket, &rt, sizeof(rt), MSG_WAITALL)>0)
+      {
+        int r;
+
+        printf("Calling ResumeThread\n");
+        r=ResumeThread(rt.hProcess, rt.tid);
+        printf("ResumeThread returned\n");
+        sendall(currentsocket, &r, sizeof(r), 0);
+      }
+      break;
+    }
+
 
     case CMD_CLOSEHANDLE:
     {
@@ -517,7 +549,7 @@ void CheckForAndDispatchCommand(int currentsocket)
   timeout.tv_nsec=0;
   timeout.tv_sec=0;
 
-  printf("CheckForAndDispatchCommand");
+  printf("CheckForAndDispatchCommand:");
 
   FD_ZERO(&readfds);
   FD_SET(currentsocket, &readfds);
@@ -528,7 +560,7 @@ void CheckForAndDispatchCommand(int currentsocket)
     printf("sret==0\n");
     if (FD_ISSET(currentsocket, &readfds))
     {
-      printf("Data waiting\n");
+      printf("  Data waiting\n");
       r=recv(currentsocket, &command, 1, 0);
       if (r==1)
       {
@@ -538,7 +570,7 @@ void CheckForAndDispatchCommand(int currentsocket)
     }
   }
   else
-    printf("select returned -1: %d", errno);
+    printf("select returned -1: %d\n", errno);
 
 }
 

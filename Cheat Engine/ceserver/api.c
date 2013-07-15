@@ -251,7 +251,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsiz
 
     if (p->debuggerThreadID==pthread_self())
     {
-      int isdebugged=p->debuggedThread;
+      int isdebugged=p->debuggedThreadEvent.threadid;
       int wtid;
       DebugEvent de;
 
@@ -517,7 +517,7 @@ int RemoveBreakpoint(HANDLE hProcess, int tid)
 
     if (p->debuggerThreadID==pthread_self())
     {
-      int isdebugged=p->debuggedThread;
+      int isdebugged=p->debuggedThreadEvent.threadid;
       int wtid;
       DebugEvent de;
 
@@ -679,20 +679,71 @@ int SuspendThread(HANDLE hProcess, int tid)
 /*
  * Increase the suspendcount. If it was 0, stop the given thread if it isn't stopped yet
  * If the thread was already stopped, look up this event in the queue and remove it
+ * if it's the currently debugged thread it will not be in the queue, but continueFromDebugEvent
+ * will see it is suspended, and as a result, NOT continue it, but store the debug event into the thread
  * If it wasn't stopped, stop it, and fetch the debug event
  */
 {
-  int result;
+  int result=-1;
 
   printf("SuspendThread(%d)\n", tid);
   if (GetHandleType(hProcess) == htProcesHandle )
   {
     PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
+    PThreadData t=GetThreadData(p, tid);
+
+    if (t==NULL)
+    {
+      printf("Invalid thread\n");
+      return -1;
+    }
 
     if (p->debuggerThreadID==pthread_self())
     {
       //inside the debuggerthrad
       printf("Inside the debugger thread.\n");
+
+      if (t->isPaused)
+      {
+        printf("Already paused\n");
+
+        if (t->suspendCount==0)
+        {
+          //first time suspend. Gather the debug event and remove it from the queue (hardly ever, most of the time it's just the currently broken thread)
+
+          if (p->debuggedThreadEvent.threadid==tid) //it's the currently suspended thread
+            t->suspendedDevent=p->debuggedThreadEvent;
+          else
+          {
+            //go through the queuelist to find the debug event and remove it
+            t->suspendedDevent=*FindThreadDebugEventInQueue(p,tid);
+            RemoveThreadDebugEventFromQueue(p, tid);
+          }
+        }
+
+        t->suspendCount++;
+
+
+      }
+      else
+      {
+        DebugEvent de;
+        printf("Not yet paused\n");
+
+        while (t->isPaused==0)
+        {
+          syscall(__NR_tkill, tid, SIGSTOP);
+          if (WaitForDebugEventNative(p, &t->suspendedDevent, tid, 100))
+            break;
+
+        }
+
+        t->suspendCount++;
+
+      }
+
+      return t->suspendCount;
+
 
       //PThreadData t=GetThreadData(tid);
     }
@@ -719,31 +770,109 @@ int SuspendThread(HANDLE hProcess, int tid)
         recv(p->debuggerClient, &result, sizeof(result), MSG_WAITALL);
 
         pthread_mutex_unlock(&debugsocketmutex);
+
+
       }
-
-
-
     }
-
-
-
-
-
   }
   else
   {
     printf("invalid handle\n");
-    return FALSE;
+    result=-1;
   }
+
+  return result;
 
 }
 
-int ResumeThread(HANDLE p, int tid)
+int ResumeThread(HANDLE hProcess, int tid)
 /*
- * Decrease suspendcount. If 0, resume the thread.
+ * Decrease suspendcount. If 0, resume the thread by adding the stored debug event back to the queue
  */
 {
+  int result;
 
+  printf("ResumeThread(%d)\n", tid);
+  if (GetHandleType(hProcess) == htProcesHandle )
+  {
+    PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
+    PThreadData t=GetThreadData(p, tid);
+
+    if (t==NULL)
+    {
+      printf("Invalid thread\n");
+      return -1;
+    }
+
+    if (p->debuggerThreadID==pthread_self())
+    {
+      //inside the debuggerthrad
+      printf("Inside the debugger thread.\n");
+
+      if ((t->isPaused) && (t->suspendCount>0))
+      {
+
+        t->suspendCount--;
+
+        result=t->suspendCount;
+
+
+        if (t->suspendCount==0)
+        {
+          //reached 0, continue process if sigstop, else add to queue
+          if (t->suspendedDevent.debugevent==SIGSTOP)
+          {
+            ptrace(PTRACE_CONT, t->suspendedDevent.threadid, 0,0);
+          }
+          else
+          {
+            AddDebugEventToQueue(p, &t->suspendedDevent);
+            WakeDebuggerThread();
+          }
+        }
+      }
+      else
+      {
+        printf("Failure resuming this thread\n");
+
+      }
+
+
+      //PThreadData t=GetThreadData(tid);
+    }
+    else
+    {
+      printf("Not from the debugger thread. Switching...\n");
+#pragma pack(1)
+      struct
+      {
+        char command;
+        HANDLE hProcess;
+        int tid;
+      } rt;
+#pragma pack()
+
+      rt.command=CMD_RESUMETHREAD;
+      rt.hProcess=hProcess;
+      rt.tid=tid;
+
+      if (pthread_mutex_lock(&debugsocketmutex) == 0)
+      {
+        sendall(p->debuggerClient, &rt, sizeof(rt), 0);
+        WakeDebuggerThread();
+        recv(p->debuggerClient, &result, sizeof(result), MSG_WAITALL);
+
+        pthread_mutex_unlock(&debugsocketmutex);
+      }
+    }
+  }
+  else
+  {
+    printf("invalid handle\n");
+    result=-1;
+  }
+
+  return result;
 }
 
 int RemoveThreadDebugEventFromQueue(PProcessData p, int tid)
@@ -1014,7 +1143,7 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
   {
     PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
 
-    if (p->debuggedThread==0)
+    if (p->debuggedThreadEvent.threadid==0)
     {
       int r;
 
@@ -1034,6 +1163,7 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
       if (de) //there was a queued event, return it
       {
         *devent=de->de;
+        p->debuggedThreadEvent=*devent;
         free(de);
         return 1;
       }
@@ -1043,10 +1173,7 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
       r=WaitForDebugEventNative(p, devent, -1, timeout);
 
       if (r)
-      {
-        p->debuggedThread=devent->threadid;
-        p->debuggedThreadSignal=devent->debugevent;
-      }
+        p->debuggedThreadEvent=*devent;
 
       return r;
     }
@@ -1066,7 +1193,17 @@ int ContinueFromDebugEvent(HANDLE hProcess, int tid, int ignoresignal)
   if (GetHandleType(hProcess) == htProcesHandle )
   {
     PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
+    PThreadData td=GetThreadData(p, tid);
     siginfo_t si;
+
+    if (td==NULL)
+      return 0; //invalid thread
+
+    if (td->suspendCount>0)
+    {
+      return 1; //keep it suspended
+    }
+
 
     if (ptrace(PTRACE_GETSIGINFO, tid, NULL, &si)==0)
     {
@@ -1107,7 +1244,7 @@ int ContinueFromDebugEvent(HANDLE hProcess, int tid, int ignoresignal)
 
 
       printf("Continue result=%d\n", result);
-      PThreadData td=GetThreadData(p, tid);
+
       if (td)
         td->isPaused=0;
 
@@ -1116,12 +1253,12 @@ int ContinueFromDebugEvent(HANDLE hProcess, int tid, int ignoresignal)
       {
         printf("Failure to continue thread %d with signal %d\n", tid, signal);
         RemoveThreadFromProcess(p, tid);
-        p->debuggedThread=0;
+        p->debuggedThreadEvent.threadid=0;
         return 0;
       }
       else
       {
-        p->debuggedThread=0;
+        p->debuggedThreadEvent.threadid=0;
         return 1;
       }
     }
@@ -1242,7 +1379,7 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
 
   if (p->debuggerThreadID==pthread_self()) //this is the debugger thread
   {
-    int isdebugged=p->debuggedThread;
+    int isdebugged=p->debuggedThreadEvent.threadid;
     DebugEvent event;
 
     printf("ReadProcessMemoryDebug inside debuggerthread (isdebugged=%d)\n", isdebugged);
@@ -1501,7 +1638,7 @@ HANDLE OpenProcess(DWORD pid)
     p->threadlistpos=0;
     p->threadlist=NULL;
 
-    p->debuggedThread=0;
+    p->debuggedThreadEvent.threadid=0;
 
     pthread_mutex_init(&p->debugEventQueueMutex, NULL);
 
