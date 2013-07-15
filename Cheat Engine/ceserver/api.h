@@ -9,6 +9,8 @@
 #define API_H_
 
 #include <pthread.h>
+#include <sys/queue.h>
+
 #include "porthelp.h"
 
 
@@ -19,6 +21,30 @@ typedef struct
 
 } ProcessListEntry, *PProcessListEntry;
 
+#pragma pack(1)
+typedef struct {
+  unsigned int debugevent;
+  pthread_t threadid;
+//other data
+} DebugEvent, *PDebugEvent;
+
+struct DebugEventQueueElement {
+  TAILQ_ENTRY(DebugEventQueueElement) entries;
+  DebugEvent de;
+};
+
+#pragma pack()
+
+TAILQ_HEAD(debugEventQueueHead, DebugEventQueueElement);
+
+
+typedef struct {
+  int tid;
+  int isPaused;
+  int suspendCount;
+  PDebugEvent *suspendedDevent; //debug event to be injected when resumed
+} ThreadData, *PThreadData;
+
 typedef struct {
   int pid;
   int mapfd; //file descriptor for /proc/pid/maps
@@ -28,7 +54,7 @@ typedef struct {
   int isDebugged; //if this is true no need to attach/detach constantly, BUT make sure the debugger thread does do it's job
   pthread_t debuggerThreadID;
 
-  int *threadlist;
+  PThreadData threadlist;
   int threadlistmax;
   int threadlistpos;
 
@@ -39,7 +65,12 @@ typedef struct {
   int debuggerClient;
 
 
+  pthread_mutex_t debugEventQueueMutex; //probably not necessary as all queue operations are all done in the debuggerthread of the process
+
+  struct debugEventQueueHead debugEventQueue;
 } ProcessData, *PProcessData;
+
+
 
 #pragma pack(1)
 typedef struct {
@@ -49,13 +80,7 @@ typedef struct {
 } RegionInfo, *PRegionInfo;
 #pragma pack()
 
-#pragma pack(1)
-typedef struct {
-  unsigned int debugevent;
-  pthread_t threadid;
-//other data
-} DebugEvent, *PDebugEvent;
-#pragma pack()
+
 
 
 
@@ -71,12 +96,16 @@ int WriteProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 int StartDebug(HANDLE hProcess);
 int StopDebug(HANDLE hProcess);
 
+int WaitForDebugEventNative(PProcessData p, PDebugEvent devent, int tid, int timeout);
 int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout);
 int ContinueFromDebugEvent(HANDLE hProcess, int tid, int ignoresignal);
 int GetDebugPort(HANDLE hProcess);
 
 int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsize);
 
+
+PDebugEvent FindThreadDebugEventInQueue(PProcessData p, int tid);
+void AddDebugEventToQueue(PProcessData p, PDebugEvent devent);
 
 void initAPI();
 

@@ -27,6 +27,8 @@
 #define CMD_CONTINUEFROMDEBUGEVENT 14
 #define CMD_SETBREAKPOINT 15
 #define CMD_REMOVEBREAKPOINT 16
+#define CMD_SUSPENDTHREAD 17
+#define CMD_RESUMETHREAD 18
 
 
 
@@ -112,6 +114,8 @@ typedef struct {
 #pragma pack()
 
 ssize_t sendall (int s, void *buf, size_t size, int flags);
-
+ssize_t recvall (int s, void *buf, size_t size, int flags);
+int DispatchCommand(int currentsocket, unsigned char command);
+void CheckForAndDispatchCommand(int currentsocket);
 
 #endif /* CESERVER_H_ */
