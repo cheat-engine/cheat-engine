@@ -7,19 +7,22 @@ C_SRCS += \
 ../api.c \
 ../ceserver.c \
 ../ceservertest.c \
-../porthelp.c 
+../porthelp.c \
+../threads.c 
 
 OBJS += \
 ./api.o \
 ./ceserver.o \
 ./ceservertest.o \
-./porthelp.o 
+./porthelp.o \
+./threads.o 
 
 C_DEPS += \
 ./api.d \
 ./ceserver.d \
 ./ceservertest.d \
-./porthelp.d 
+./porthelp.d \
+./threads.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
