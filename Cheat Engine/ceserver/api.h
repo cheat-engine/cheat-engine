@@ -10,8 +10,12 @@
 
 #include <pthread.h>
 #include <sys/queue.h>
+#include <asm/ptrace.h>
 
 #include "porthelp.h"
+
+
+
 
 
 typedef struct
@@ -22,6 +26,16 @@ typedef struct
 } ProcessListEntry, *PProcessListEntry;
 
 #pragma pack(1)
+
+typedef struct
+{
+  int structsize;
+  //arm/x86 stuff
+  struct pt_regs regs;
+
+
+} CONTEXT, *PCONTEXT;
+
 typedef struct {
   unsigned int debugevent;
   pthread_t threadid;

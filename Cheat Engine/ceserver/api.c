@@ -10,6 +10,7 @@
 
 //#define _XOPEN_SOURCE 500
 
+//todo for in the far future: Hook syscalls
 
 
 #include <stdio.h>
@@ -488,7 +489,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsiz
 
         sendall(p->debuggerClient, &sb, sizeof(sb), 0);
         WakeDebuggerThread();
-        recv(p->debuggerClient, &result, sizeof(result), MSG_WAITALL);
+        recvall(p->debuggerClient, &result, sizeof(result), MSG_WAITALL);
 
 
         pthread_mutex_unlock(&debugsocketmutex);
@@ -544,7 +545,7 @@ int RemoveBreakpoint(HANDLE hProcess, int tid)
 
           PThreadData td=GetThreadData(p, tid);
           k=0;
-          while ((td) && (td->isPaused) && (k<10))
+          while ((td) && (td->isPaused==0) && (k<10))
           {
             syscall(__NR_tkill, tid, SIGSTOP);
             if (WaitForDebugEventNative(p, &de, tid, 100))
@@ -642,7 +643,7 @@ int RemoveBreakpoint(HANDLE hProcess, int tid)
 
         sendall(p->debuggerClient, &rb, sizeof(rb), 0);
         WakeDebuggerThread();
-        recv(p->debuggerClient, &result, sizeof(result), MSG_WAITALL);
+        recvall(p->debuggerClient, &result, sizeof(result), MSG_WAITALL);
 
 
         pthread_mutex_unlock(&debugsocketmutex);
@@ -657,13 +658,115 @@ int RemoveBreakpoint(HANDLE hProcess, int tid)
   return 0;
 }
 
-int GetThreadContext(HANDLE hProcess, int tid, void *Context, int type)
+int GetThreadContext(HANDLE hProcess, int tid, PCONTEXT Context, int type)
 /*
  * Gets the context of the given thread
  * Freezes/Resumes the thread for you if it isn't suspended yet
+ * type is the data to be gathered
  */
 {
+  int r=FALSE;
+  printf("GetThreadContext(%d)\n", tid);
+  if (GetHandleType(hProcess) == htProcesHandle )
+  {
+    PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
 
+    if (p->debuggerThreadID==pthread_self())
+    {
+      PThreadData td=GetThreadData(p, tid);
+      if (td)
+      {
+        DebugEvent de;
+        int wasPaused=td->isPaused;
+        int k=0;
+
+
+        while ((td->isPaused==0) && (k<10))
+        {
+          syscall(__NR_tkill, tid, SIGSTOP);
+          if (WaitForDebugEventNative(p, &de, tid, 100))
+            break;
+
+          k++;
+        }
+
+        //the thread is paused, so fetch the data
+        k=ptrace(PTRACE_GETREGS, tid, 0, &Context->regs);
+        printf("ptrace returned %d\n", k);
+
+        if (k==0)
+          r=TRUE;
+        else
+          r=FALSE;
+
+
+        if (!wasPaused)
+        {
+          //continue if sigstop
+          if (de.debugevent!=SIGSTOP) //in case a breakpoint or something else happened before sigstop happened
+          {
+            printf("Not a SIGSTOP. Adding to queue and leave suspended\n");
+            AddDebugEventToQueue(p, &de);
+          }
+          else
+          {
+            r=(r && ptrace(PTRACE_CONT, de.threadid, 0,0));
+            printf("PTRACE_CONT=%d\n", r);
+          }
+        }
+
+
+      }
+      else
+        printf("Invalid tid\n");
+
+    }
+    else
+    {
+      printf("Not the debugger thread. Pass to serverthread");
+#pragma pack(1)
+      struct
+      {
+        char command;
+        HANDLE hProcess;
+        int tid;
+        int type;
+      } gtc;
+#pragma pack()
+
+      gtc.command=CMD_GETTHREADCONTEXT;
+      gtc.hProcess=hProcess;
+      gtc.tid=tid;
+      gtc.type=type;
+
+
+      if (pthread_mutex_lock(&debugsocketmutex) == 0)
+      {
+        int result;
+        printf("Sending message to the debuggerthread\n");
+
+        sendall(p->debuggerClient, &gtc, sizeof(gtc), 0);
+        WakeDebuggerThread();
+        recvall(p->debuggerClient, &result, sizeof(result), MSG_WAITALL);
+
+        if (result)
+        {
+          //followed by the contextsize
+          recvall(p->debuggerClient, &Context->structsize, sizeof(int), MSG_WAITALL);
+          recvall(p->debuggerClient, &Context->regs, Context->structsize-sizeof(int), MSG_WAITALL); //and context
+        }
+
+
+        pthread_mutex_unlock(&debugsocketmutex);
+      }
+
+    }
+  }
+  else
+    printf("invalid handle\n");
+
+
+  return r;
 }
 
 int SetThreadContext(HANDLE hProcess, int tid, void *Context, int type)
@@ -767,7 +870,7 @@ int SuspendThread(HANDLE hProcess, int tid)
       {
         sendall(p->debuggerClient, &st, sizeof(st), 0);
         WakeDebuggerThread();
-        recv(p->debuggerClient, &result, sizeof(result), MSG_WAITALL);
+        recvall(p->debuggerClient, &result, sizeof(result), MSG_WAITALL);
 
         pthread_mutex_unlock(&debugsocketmutex);
 
@@ -860,7 +963,7 @@ int ResumeThread(HANDLE hProcess, int tid)
       {
         sendall(p->debuggerClient, &rt, sizeof(rt), 0);
         WakeDebuggerThread();
-        recv(p->debuggerClient, &result, sizeof(result), MSG_WAITALL);
+        recvall(p->debuggerClient, &result, sizeof(result), MSG_WAITALL);
 
         pthread_mutex_unlock(&debugsocketmutex);
       }
@@ -1436,11 +1539,11 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
 
       sendall(p->debuggerClient, &rpm, sizeof(rpm), 0);
 
-      kill(tid, SIGSTOP); //this will wake the debuggerthread if it was sleeping
+      WakeDebuggerThread();
 
-      recv(p->debuggerClient, &bytesread, sizeof(bytesread), MSG_WAITALL);
+      recvall(p->debuggerClient, &bytesread, sizeof(bytesread), MSG_WAITALL);
       printf("bytesread=%d\n", bytesread);
-      recv(p->debuggerClient, buffer, bytesread, MSG_WAITALL);
+      recvall(p->debuggerClient, buffer, bytesread, MSG_WAITALL);
 
 
       pthread_mutex_unlock(&debugsocketmutex);

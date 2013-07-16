@@ -244,6 +244,38 @@ int DispatchCommand(int currentsocket, unsigned char command)
       break;
     }
 
+    case CMD_GETTHREADCONTEXT:
+    {
+#pragma pack(1)
+      struct
+      {
+        HANDLE hProcess;
+        int tid;
+        int type;
+      } gtc;
+#pragma pack()
+
+      CONTEXT Context;
+
+
+      int result;
+      printf("Sending message to the debuggerthread\n");
+
+      recvall(currentsocket, &gtc, sizeof(gtc), MSG_WAITALL);
+      result=GetThreadContext(gtc.hProcess, gtc.tid, &Context, gtc.type);
+      sendall(currentsocket, &result, sizeof(result), 0);
+
+      if (result)
+      {
+        //followed by the contextsize
+        sendall(currentsocket, &Context.structsize, sizeof(int), 0);
+        sendall(currentsocket, &Context.regs, Context.structsize-sizeof(int), 0); //and context
+      }
+
+
+    }
+
+
     case CMD_SUSPENDTHREAD:
     {
       CeSuspendThreadInput st;
