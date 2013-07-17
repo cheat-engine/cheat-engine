@@ -1005,7 +1005,7 @@ begin
       else
       begin
         l.add('function focusCheck(sender)');
-        l.add('  if (form_isForegrounwindow('+trainerform.Name+')) then');
+        l.add('  if (form_isForegroundWindow('+trainerform.Name+')) then');
         l.add('    if (xmplayer_isPlaying()==false) then');
         l.add('      xmplayer_resume()');
         l.add('    end');
@@ -1017,10 +1017,10 @@ begin
         l.add('end');
 
         l.add('');
-        l.add('focusTimer=createTimer()');
-        l.add('timer_onTimer(focuscheck)');
-        l.add('timer_setInterval(focustimer, 250)');
-        l.add('control_setEnabled(focustimer, true)');
+        l.add('focusTimer=createTimer(nil)');
+        l.add('timer_onTimer(focusTimer, focuscheck)');
+        l.add('timer_setInterval(focusTimer, 250)');
+        l.add('timer_setEnabled(focusTimer, true)');
         l.add('');
       end;
 
