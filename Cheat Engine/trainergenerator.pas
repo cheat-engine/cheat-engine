@@ -1018,7 +1018,7 @@ begin
 
         l.add('');
         l.add('focusTimer=createTimer(nil)');
-        l.add('timer_onTimer(focusTimer, focuscheck)');
+        l.add('timer_onTimer(focusTimer, focusCheck)');
         l.add('timer_setInterval(focusTimer, 250)');
         l.add('timer_setEnabled(focusTimer, true)');
         l.add('');
