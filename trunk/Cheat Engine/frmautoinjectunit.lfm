@@ -117,9 +117,17 @@ object frmAutoInject: TfrmAutoInject
         OnClick = Coderelocation1Click
       end
       object miCallLua: TMenuItem
-        Caption = 'Call ce lua function'
+        Caption = 'Call CE lua function'
         ShortCut = 16460
         OnClick = miCallLuaClick
+      end
+      object menuAOBInjection: TMenuItem
+        Caption = 'AOB Injection'
+        OnClick = menuAOBInjectionClick
+      end
+      object menuFullInjection: TMenuItem
+        Caption = 'Full Injection'
+        OnClick = menuFullInjectionClick
       end
       object CheatTablecompliantcodee1: TMenuItem
         Caption = 'Cheat Table framework code'
