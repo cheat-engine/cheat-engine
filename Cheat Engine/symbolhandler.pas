@@ -581,6 +581,8 @@ begin
   self:=TSymbolloaderthread(UserContext);
 
 
+
+
   isparam:=(pSymInfo.Flags and SYMFLAG_PARAMETER)>0;
 
   s:=GetTypeName(self.thisprocesshandle, pSymInfo.ModBase, pSymInfo.TypeIndex);
@@ -599,7 +601,7 @@ begin
   else
     self.extraSymbolData.locals.Add(esde);
 
-  result:=true;
+  result:=(self.terminated=false);
 end;
 
 
@@ -660,7 +662,7 @@ begin
     sym:=self.symbollist.AddSymbol(self.currentModuleName, self.currentModuleName+'.'+s, pSymInfo.Address, symbolsize,false, self.extraSymbolData);
     sym:=self.symbollist.AddSymbol(self.currentModuleName, s, pSymInfo.Address, symbolsize,true, self.extraSymbolData); //don't add it as a address->string lookup  , (this way it always shows modulename+symbol)
   end
-  else
+ { else
   begin
     //forwarded
     getmem(tempstring, 128);
@@ -702,7 +704,7 @@ begin
     end;
 
     freemem(tempstring);
-  end;
+  end};
 
 
   result:=not self.terminated;
@@ -730,7 +732,7 @@ begin
 
  // result:=SymEnumTypes(self.thisprocesshandle, baseofdll, @ET, self);
 
-  result:=SymEnumSymbols(self.thisprocesshandle, baseofdll, NULL, @ES, self);
+  result:=(self.terminated=false) and (SymEnumSymbols(self.thisprocesshandle, baseofdll, NULL, @ES, self));
 end;
 
 procedure TSymbolloaderthread.execute;
@@ -2043,6 +2045,7 @@ begin
               begin
                 if modulelistpos+1>=length(modulelist) then
                   setlength(modulelist,length(modulelist)*2);
+
 
 
                 modulelist[modulelistpos].modulename:=modulename;

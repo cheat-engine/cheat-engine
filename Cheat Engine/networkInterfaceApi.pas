@@ -182,6 +182,8 @@ begin
   newkernelhandler.Process32First:=@NetworkProcess32First;
   newkernelhandler.Process32Next:=@NetworkProcess32Next;
   newkernelhandler.closehandle:=@networkclosehandle;
+
+
 end;
 
 end.

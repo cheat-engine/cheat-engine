@@ -1439,11 +1439,11 @@ properties
   Value[index]
 
 methods
-  initialize(foundlist) : Call this when a memscan has finished scanning. This will open the results for reading
-  deinitialize(foundlist) : Release the results
-  getCount(foundlist)
-  getAddress(foundlist, index) : Returns the address as a string
-  getValue(foundlist, index)
+  initialize() : Call this when a memscan has finished scanning. This will open the results for reading
+  deinitialize() : Release the results
+  getCount()
+  getAddress(index) : Returns the address as a string
+  getValue(index) : Returs the value as a string
 
 
 Memoryview class: (Inheritance: Form->ScrollingWinControl->CustomControl->WinControl->Control->Component->Object)
