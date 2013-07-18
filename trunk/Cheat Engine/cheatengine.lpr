@@ -71,7 +71,7 @@ uses
   frmMemoryViewExUnit, LuaDisassembler, LuaDissectCode, LuaByteTable, LuaBinary,
   frmD3DHookSnapshotConfigUnit, frmsnapshothandlerUnit, frmSaveSnapshotsUnit,
   frmD3DTrainerGeneratorOptionsUnit, lua_server, frmAssemblyScanUnit, 
-frmManualStacktraceConfigUnit, cvconst;
+frmManualStacktraceConfigUnit, cvconst, NetworkDebuggerInterface;
 
 {$R cheatengine.res}
 //{$R manifest.res}  //lazarus now has this build in

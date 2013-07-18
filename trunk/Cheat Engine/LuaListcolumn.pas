@@ -114,16 +114,16 @@ end;
 procedure listcolumn_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
   collectionItem_addMetaData(L, metatable, userdata);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'listcolumn_getAutosize', listcolumn_getAutosize);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'listcolumn_setAutosize', listcolumn_setAutosize);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'listcolumn_getCaption', listcolumn_getCaption);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'listcolumn_setCaption', listcolumn_setCaption);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'listcolumn_getMaxWidth', listcolumn_getMaxWidth);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'listcolumn_setMaxWidth', listcolumn_setMaxWidth);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'listcolumn_getMinWidth', listcolumn_getMinWidth);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'listcolumn_setMinWidth', listcolumn_setMinWidth);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'listcolumn_getWidth', listcolumn_getWidth);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'listcolumn_setWidth', listcolumn_setWidth);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getAutosize', listcolumn_getAutosize);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setAutosize', listcolumn_setAutosize);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getCaption', listcolumn_getCaption);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setCaption', listcolumn_setCaption);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getMaxWidth', listcolumn_getMaxWidth);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setMaxWidth', listcolumn_setMaxWidth);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getMinWidth', listcolumn_getMinWidth);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setMinWidth', listcolumn_setMinWidth);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getWidth', listcolumn_getWidth);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setWidth', listcolumn_setWidth);
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'Autosize', listcolumn_getAutosize, listcolumn_setAutosize);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Caption', listcolumn_getCaption, listcolumn_setCaption);

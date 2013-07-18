@@ -2364,7 +2364,7 @@ begin
 
 
       isPartial:=false;
-      if length(t)>=3 then //3 characters is good enough to get the general idea, then do a string compare to verify
+      if length(t)>=3 then //3 characters are good enough to get the general idea, then do a string compare to verify
       begin
         case t[1] of
           'B' : //Byte, BYTE PTR
@@ -2460,6 +2460,7 @@ begin
 
   end;
 
+  //remove useless tokens
   i:=0;
   while i<length(tokens) do
   begin
