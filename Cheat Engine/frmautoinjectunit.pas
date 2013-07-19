@@ -2494,7 +2494,7 @@ begin
 
   Size := _address - Address;
   OriginalHexBytes := disassembler.getLastBytestring;
-  Code:=disassembler.LastDisassembleData.prefix+Disassembler.LastDisassembleData.opcode+' '+disassembler.LastDisassembleData.parameters;
+  Code:=disassembler.LastDisassembleData.prefix+' '+Disassembler.LastDisassembleData.opcode+' '+disassembler.LastDisassembleData.parameters;
 
   if (_mi.basesize = 0) or (_address < _mi.baseaddress) or (_address > (_mi.baseaddress + _mi.basesize)) then
     AddressString := inttohex(Address, 8)
