@@ -1313,7 +1313,10 @@ begin
               try
                 testptr:=symhandler.getAddressFromName(s1);
               except
-                raise exception.Create(rsInvalidAddressForReadMem);
+                if not syntaxcheckonly then
+                  raise exception.Create(rsInvalidAddressForReadMem)
+                else
+                  testptr:=0;
               end;
 
               try
@@ -1379,7 +1382,9 @@ begin
               disassembler.dataOnly:=true;
               disassembler.disassemble(testptr, s1);
 
-              currentline:=disassembler.LastDisassembleData.prefix+' '+Disassembler.LastDisassembleData.opcode+' '+disassembler.LastDisassembleData.parameters;;
+              if syntaxcheckonly then currentline:='nop' else
+                currentline:=disassembler.LastDisassembleData.prefix+' '+Disassembler.LastDisassembleData.opcode+' '+disassembler.LastDisassembleData.parameters;;
+
               assemblerlines[length(assemblerlines)-1]:=currentline;
               disassembler.free;
             end else raise exception.Create(rsWrongSyntaxReAssemble);
