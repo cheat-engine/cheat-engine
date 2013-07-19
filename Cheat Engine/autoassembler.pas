@@ -38,6 +38,7 @@ resourcestring
   rsWrongSyntaxReadMemAddressSize = 'Wrong syntax. ReadMem(address,size)';
   rsTheFileDoesNotExist = 'The file %s does not exist';
   rsWrongSyntaxLoadBinaryAddressFilename = 'Wrong syntax. LoadBinary(address,filename)';
+  rsWrongSyntaxReAssemble = 'Wrong syntax. Reassemble(address)';
   rsSyntaxError = 'Syntax error';
   rsTheArrayOfByteCouldNotBeFound = 'The array of byte ''%s'' could not be found';
   rsWrongSyntaxAOBSCANName11223355 = 'Wrong syntax. AOBSCAN(name,11 22 33 ** 55)';
@@ -1381,7 +1382,7 @@ begin
               currentline:=disassembler.LastDisassembleData.prefix+' '+Disassembler.LastDisassembleData.opcode+' '+disassembler.LastDisassembleData.parameters;;
               assemblerlines[length(assemblerlines)-1]:=currentline;
               disassembler.free;
-            end;
+            end else raise exception.Create(rsWrongSyntaxReAssemble);
 
           end;
 
