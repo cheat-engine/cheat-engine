@@ -307,6 +307,7 @@ type
     function Func68: TtkTokenKind; //include
     function Func82: TtkTokenKind; //assert
     function Func92: TtkTokenKind; //globalalloc
+    function Func99: TtkTokenKind; //reassemble
     function Func101: TtkTokenKind; //fullaccess/loadbinary/struct
     function Func108: TtkTokenKind; //CreateThread
     function Func117: TtkTokenKind; //loadlibrary
@@ -518,6 +519,7 @@ begin
   fIdentFuncTable[68] := {$IFDEF FPC}@{$ENDIF}Func68;
   fIdentFuncTable[82] := {$IFDEF FPC}@{$ENDIF}Func82;
   fIdentFuncTable[92] := {$IFDEF FPC}@{$ENDIF}Func92;
+  fIdentFuncTable[99] := {$IFDEF FPC}@{$ENDIF}Func99;
   fIdentFuncTable[101] := {$IFDEF FPC}@{$ENDIF}Func101;
   fIdentFuncTable[108] := {$IFDEF FPC}@{$ENDIF}Func108;
   fIdentFuncTable[117] := {$IFDEF FPC}@{$ENDIF}Func117;
@@ -889,6 +891,12 @@ end;
 function TSynAASyn.Func92: TtkTokenKind; //globalalloc
 begin
   if KeyComp('globalalloc') then Result := tkKey else
+    Result := tkIdentifier;
+end;
+
+function TSynAASyn.Func99: TtkTokenKind; //reassemble
+begin
+  if KeyComp('reassemble') then Result := tkKey else
     Result := tkIdentifier;
 end;
 
