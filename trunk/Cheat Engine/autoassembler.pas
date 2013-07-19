@@ -15,7 +15,7 @@ function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targ
 
 implementation
 
-uses simpleaobscanner, StrUtils, LuaHandler, memscan;
+uses simpleaobscanner, StrUtils, LuaHandler, memscan, disassembler;
 
 resourcestring
   rsForwardJumpWithNoLabelDefined = 'Forward jump with no label defined';
@@ -742,7 +742,6 @@ begin
   //do simultaneous scans for the selected modules
   for i:=0 to length(aobscanmodules)-1 do
   begin
-    {ms:=nil; }
 
       //wait for one to finish
     j:=0;
@@ -872,6 +871,8 @@ var i,j,k,l,e: integer;
     oldhandle: thandle;
     oldsymhandler: TSymHandler;
 
+
+    disassembler: TDisassembler;
 begin
   setlength(readmems,0);
   setlength(allocs,0);
@@ -1031,6 +1032,8 @@ begin
             end else raise exception.Create(rsWrongSyntaxDEFINENameWhatever+' Got '+currentline);
           end;
 
+
+          //normal loop code
 
           for j:=0 to length(defines)-1 do
              currentline:=replacetoken(currentline,defines[j].name,defines[j].whatever);
@@ -1354,6 +1357,32 @@ begin
             end else raise exception.Create(rsWrongSyntaxReadMemAddressSize);
 
             continue;
+          end;
+
+          if uppercase(copy(currentline,1,11))='REASSEMBLE(' then
+          begin
+            a:=pos('(',currentline);
+            b:=pos(')',currentline);
+
+            if (a>0) and (b>0) then
+            begin
+              s1:=trim(copy(currentline,a+1,b-a-1));
+
+              try
+                testptr:=symhandler.getAddressFromName(s1);
+              except
+                raise exception.Create(s1+' could not be found');
+              end;
+
+              disassembler:=TDisassembler.create;
+              disassembler.dataOnly:=true;
+              disassembler.disassemble(testptr, s1);
+
+              currentline:=disassembler.LastDisassembleData.prefix+' '+Disassembler.LastDisassembleData.opcode+' '+disassembler.LastDisassembleData.parameters;;
+              assemblerlines[length(assemblerlines)-1]:=currentline;
+              disassembler.free;
+            end;
+
           end;
 
           if uppercase(copy(currentline,1,11))='LOADBINARY(' then
@@ -2122,12 +2151,18 @@ begin
       setlength(assembled,length(assembled)+1);
       assembled[length(assembled)-1].address:=currentaddress;
 
-      if copy(currentline,1,8)='<READMEM' then   //special assembler instruction
+      if (currentline<>'') and (currentline[1]='<') then //special assembler instruction
       begin
-        //lets try this for once
-        sscanf(currentline, '<READMEM%d>', [@l]);
-        setlength(assembled[length(assembled)-1].bytes, readmems[l].bytelength);
-        CopyMemory(@assembled[length(assembled)-1].bytes[0], readmems[l].bytes, readmems[l].bytelength);
+
+        if copy(currentline,1,8)='<READMEM' then
+        begin
+          //lets try this for once
+          sscanf(currentline, '<READMEM%d>', [@l]);
+          setlength(assembled[length(assembled)-1].bytes, readmems[l].bytelength);
+          CopyMemory(@assembled[length(assembled)-1].bytes[0], readmems[l].bytes, readmems[l].bytelength);
+        end
+        else
+          assemble(currentline,currentaddress,assembled[length(assembled)-1].bytes);
       end
       else
         assemble(currentline,currentaddress,assembled[length(assembled)-1].bytes);
