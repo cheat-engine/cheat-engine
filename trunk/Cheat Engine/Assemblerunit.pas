@@ -8,7 +8,7 @@ interface
 
 uses dialogs,LCLIntf,sysutils,imagehlp;
 
-const opcodecount=1082; //I wish there was a easier way than to handcount
+const opcodecount=1084; //I wish there was a easier way than to handcount
 
 
 type TTokenType=(
@@ -1354,6 +1354,7 @@ const opcodes: array [1..opcodecount] of topcode =(
 
   (mnemonic:'SGDT';opcode1:eo_reg0;paramtype1:par_m32;bytes:2;bt1:$0f;bt2:$01),
 
+  (mnemonic:'SHL';opcode1:eo_reg4;paramtype1:par_rm32;bytes:1;bt1:$d1),
   (mnemonic:'SHL';opcode1:eo_reg4;paramtype1:par_rm32;paramtype2:par_1;bytes:1;bt1:$d1),
   (mnemonic:'SHL';opcode1:eo_reg4;paramtype1:par_rm16;paramtype2:par_1;bytes:2;bt1:$66;bt2:$d1),
   (mnemonic:'SHL';opcode1:eo_reg4;paramtype1:par_rm8;paramtype2:par_1;bytes:1;bt1:$d0),
@@ -1383,6 +1384,7 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'SHR';opcode1:eo_reg5;paramtype1:par_rm16;paramtype2:par_cl;bytes:2;bt1:$66;bt2:$d3),
   (mnemonic:'SHR';opcode1:eo_reg5;opcode2:eo_ib;paramtype1:par_rm16;paramtype2:par_imm8;bytes:2;bt1:$66;bt2:$c1),
 
+  (mnemonic:'SHR';opcode1:eo_reg5;paramtype1:par_rm32;bytes:1;bt1:$d1),
   (mnemonic:'SHR';opcode1:eo_reg5;paramtype1:par_rm32;paramtype2:par_1;bytes:1;bt1:$d1),
   (mnemonic:'SHR';opcode1:eo_reg5;paramtype1:par_rm32;paramtype2:par_cl;bytes:1;bt1:$d3),
   (mnemonic:'SHR';opcode1:eo_reg5;opcode2:eo_ib;paramtype1:par_rm32;paramtype2:par_imm8;bytes:1;bt1:$c1),
