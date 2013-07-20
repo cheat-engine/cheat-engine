@@ -874,6 +874,8 @@ var i,j,k,l,e: integer;
 
 
     disassembler: TDisassembler;
+
+    threadhandle: THandle;
 begin
   setlength(readmems,0);
   setlength(allocs,0);
@@ -2401,7 +2403,11 @@ begin
           if ok1 then //address found
           begin
             try
-              ok2:=createremotethread(processhandle,nil,0,pointer(testptr),nil,0,bw)>0;
+              threadhandle:=createremotethread(processhandle,nil,0,pointer(testptr),nil,0,bw);
+              ok2:=threadhandle>0;
+
+              if ok2 then
+                closehandle(threadhandle);
             finally
             end;
           end;

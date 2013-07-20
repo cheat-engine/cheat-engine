@@ -1319,6 +1319,8 @@ begin
         dec(counter);
       end;
 
+      closehandle(threadhandle);
+
       if (counter=0) then
         raise exception.Create(rsTheInjectionThreadTookLongerThan10SecondsToExecute);
 
