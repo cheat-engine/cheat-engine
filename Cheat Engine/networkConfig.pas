@@ -223,6 +223,7 @@ begin
   if getConnection=nil then
     raise exception.create('Failed connecting to the server');
 
+
   InitializeNetworkInterface;
 end;
 

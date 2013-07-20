@@ -10,7 +10,13 @@ uses
   jwawindows, windows, Classes, SysUtils, Sockets, resolve, ctypes, networkconfig,
   cefuncproc, newkernelhandler, math;
 
-type TCEConnection=class
+type
+  TNetworkDebugEvent=packed record
+    signal: integer;
+    threadid: qword;
+  end;
+
+  TCEConnection=class
   private
     socket: cint;
     fConnected: boolean;
@@ -28,6 +34,7 @@ type TCEConnection=class
     function NReadProcessMemory(hProcess: THandle; lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL;
 
   public
+
     function Process32Next(hSnapshot: HANDLE; var lppe: PROCESSENTRY32; isfirst: boolean=false): BOOL;
     function Process32First(hSnapshot: HANDLE; var lppe: PROCESSENTRY32): BOOL;
     function CreateToolhelp32Snapshot(dwFlags, th32ProcessID: DWORD): HANDLE;
@@ -36,6 +43,9 @@ type TCEConnection=class
     function VirtualQueryEx(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD;
     function ReadProcessMemory(hProcess: THandle; lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL;
     function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: DWORD): BOOL;
+    function StartDebug(hProcess: THandle): BOOL;
+    function WaitForDebugEvent(hProcess: THandle; timeout: integer; var devent: TNetworkDebugEvent):BOOL;
+    function ContinueDebugEvent(hProcess: THandle; threadid: dword; continuemethod: integer): BOOL;
     function getVersion(var name: string): integer;
     property connected: boolean read fConnected;
 
@@ -46,17 +56,29 @@ type TCEConnection=class
 
 implementation
 
-const CMD_GETVERSION =0;
-const CMD_CLOSECONNECTION= 1;
-const CMD_TERMINATESERVER= 2;
-const CMD_OPENPROCESS= 3;
-const CMD_CREATETOOLHELP32SNAPSHOT =4;
-const CMD_PROCESS32FIRST= 5;
-const CMD_PROCESS32NEXT= 6;
-const CMD_CLOSEHANDLE=7;
-const CMD_VIRTUALQUERYEX=8;
-const CMD_READPROCESSMEMORY=9;
-const CMD_WRITEPROCESSMEMORY=10;
+const
+  CMD_GETVERSION =0;
+  CMD_CLOSECONNECTION= 1;
+  CMD_TERMINATESERVER= 2;
+  CMD_OPENPROCESS= 3;
+  CMD_CREATETOOLHELP32SNAPSHOT =4;
+  CMD_PROCESS32FIRST= 5;
+  CMD_PROCESS32NEXT= 6;
+  CMD_CLOSEHANDLE=7;
+  CMD_VIRTUALQUERYEX=8;
+  CMD_READPROCESSMEMORY=9;
+  CMD_WRITEPROCESSMEMORY=10;
+  CMD_STARTDEBUG=11;
+  CMD_STOPDEBUG=12;
+  CMD_WAITFORDEBUGEVENT=13;
+  CMD_CONTINUEFROMDEBUGEVENT=14;
+  CMD_SETBREAKPOINT=15;
+  CMD_REMOVEBREAKPOINT=16;
+  CMD_SUSPENDTHREAD=17;
+  CMD_RESUMETHREAD=18;
+  CMD_GETTHREADCONTEXT=19;
+  CMD_SETTHREADCONTEXT=20;
+
 
 function TCEConnection.CloseHandle(handle: THandle):WINBOOL;
 var CloseHandleCommand: packed record
@@ -469,10 +491,98 @@ begin
         h:=h or $ce000000;
       result:=h;
     end;
+end;
+
+function TCEConnection.StartDebug(hProcess: THandle): BOOL;
+var Input: packed record
+    command: byte;
+    handle: integer;
+  end;
+
+var Output: packed record
+    result: integer;
+  end;
+begin
+  result:=false;
+  if ((hProcess shr 24) and $ff)= $ce then
+  begin
+    input.command:=CMD_STARTDEBUG;
+    input.handle:=hProcess and $ffffff;
+    if send(@input, sizeof(input))>0 then
+    begin
+      if receive(@output, sizeof(output))>0 then
+      begin
+        result:=output.result<>0;
+      end;
+    end;
+  end;
 
 end;
 
+function TCEConnection.ContinueDebugEvent(hProcess: THandle; threadid: dword; continuemethod: integer): BOOL;
+var
+  input: packed record
+    command: byte;
+    handle: integer;
+    threadid: dword;
+    continuemethod: integer;
+  end;
+  r: integer;
+begin
 
+  result:=false;
+
+  if ((hProcess shr 24) and $ff)= $ce then
+  begin
+    input.command:=CMD_CONTINUEFROMDEBUGEVENT;
+    input.handle:=hProcess and $ffffff;
+    input.threadid:=threadid;
+    input.continuemethod:=continuemethod;
+    if send(@input, sizeof(input))>0 then
+    begin
+      if receive(@r, sizeof(r))>0 then
+        result:=r<>0;
+    end;
+
+  end;
+
+
+
+end;
+
+function TCEConnection.WaitForDebugEvent(hProcess: THandle; timeout: integer; var devent: TNetworkDebugEvent):BOOL;
+var
+  Input: packed record
+    command: byte;
+    handle: integer;
+    timeout: integer;
+  end;
+
+  r: integer;
+
+begin
+  result:=false;
+
+  if ((hProcess shr 24) and $ff)= $ce then
+  begin
+    input.command:=CMD_WAITFORDEBUGEVENT;
+    input.handle:=hProcess and $ffffff;
+    if send(@input, sizeof(input))>0 then
+    begin
+      if receive(@r, sizeof(r))>0 then
+      begin
+        result:=r<>0;
+        if result then
+          result:=receive(@devent, sizeof(TNetworkDebugEvent))>0;
+
+      end;
+    end;
+  end;
+
+
+
+
+end;
 
 function TCEConnection.getVersion(var name: string): integer;
 var CeVersion: packed record
