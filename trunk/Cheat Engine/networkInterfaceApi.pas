@@ -27,6 +27,7 @@ function NetworkCloseHandle(handle: THandle):WINBOOL; stdcall;
 
 implementation
 
+
 threadvar connection: TCEConnection;
 
 
@@ -137,8 +138,6 @@ begin
     result:=0;
 end;
 
-
-
 function NetworkVersion(var name: string): integer;
 begin
   if getConnection<>nil then
@@ -182,7 +181,6 @@ begin
   newkernelhandler.Process32First:=@NetworkProcess32First;
   newkernelhandler.Process32Next:=@NetworkProcess32Next;
   newkernelhandler.closehandle:=@networkclosehandle;
-
 
 end;
 

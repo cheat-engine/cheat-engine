@@ -8,7 +8,8 @@ uses
   Windows, Classes, SysUtils, Controls, forms, syncobjs, guisafecriticalsection, Dialogs,
   foundcodeunit, debugeventhandler, cefuncproc, newkernelhandler, comctrls,
   debuggertypedefinitions, formChangedAddresses, frmTracerUnit, KernelDebuggerInterface, VEHDebugger,
-  WindowsDebugger, debuggerinterfaceAPIWrapper, debuggerinterface,symbolhandler, fgl, disassembler;
+  WindowsDebugger, debuggerinterfaceAPIWrapper, debuggerinterface,symbolhandler,
+  fgl, disassembler, NetworkDebuggerInterface;
 
 
 
@@ -139,7 +140,8 @@ var
 implementation
 
 uses cedebugger, kerneldebugger, formsettingsunit, FormDebugStringsUnit,
-     frmBreakpointlistunit, plugin, memorybrowserformunit, autoassembler, pluginexports;
+     frmBreakpointlistunit, plugin, memorybrowserformunit, autoassembler,
+     pluginexports, networkInterfaceApi;
 
 //-----------Inside thread code---------
 
@@ -2083,17 +2085,20 @@ begin
   canusedebugregs := formsettings.rbDebugAsBreakpoint.Checked;
 
   //setup the used debugger
-  if formsettings.cbUseWindowsDebugger.checked then
-    CurrentDebuggerInterface:=TWindowsDebuggerInterface.create
-  else if formsettings.cbUseVEHDebugger.checked then
-    CurrentDebuggerInterface:=TVEHDebugInterface.create
-  else if formsettings.cbKDebug.checked then
+  if getconnection<>nil then
+    CurrentDebuggerInterface:=TNetworkDebuggerInterface.create
+  else
   begin
-    globalDebug:=formsettings.cbGlobalDebug.checked;
-    CurrentDebuggerInterface:=TKernelDebugInterface.create(globalDebug, formsettings.cbCanStepKernelcode.checked);
+    if formsettings.cbUseWindowsDebugger.checked then
+      CurrentDebuggerInterface:=TWindowsDebuggerInterface.create
+    else if formsettings.cbUseVEHDebugger.checked then
+      CurrentDebuggerInterface:=TVEHDebugInterface.create
+    else if formsettings.cbKDebug.checked then
+    begin
+      globalDebug:=formsettings.cbGlobalDebug.checked;
+      CurrentDebuggerInterface:=TKernelDebugInterface.create(globalDebug, formsettings.cbCanStepKernelcode.checked);
+    end;
   end;
-
-
 
 
   //clean up some debug views
