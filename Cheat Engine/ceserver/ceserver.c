@@ -25,7 +25,7 @@ int PORT;
 __thread int isDebuggerThread;
 __thread int debugfd;
 
-char versionstring[]="CHEATENGINE Network 1.0";
+char versionstring[]="CHEATENGINE Network 2.0";
 
 ssize_t recvall (int s, void *buf, size_t size, int flags)
 {

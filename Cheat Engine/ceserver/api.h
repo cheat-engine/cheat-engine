@@ -8,6 +8,7 @@
 #ifndef API_H_
 #define API_H_
 
+#include <stdint.h>
 #include <pthread.h>
 #include <sys/queue.h>
 #include <asm/ptrace.h>
@@ -38,7 +39,7 @@ typedef struct
 
 typedef struct {
   unsigned int debugevent;
-  pthread_t threadid;
+  int64_t threadid;
 //other data
 } DebugEvent, *PDebugEvent;
 

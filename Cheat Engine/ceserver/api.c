@@ -196,11 +196,18 @@ int StartDebug(HANDLE hProcess)
             printf("Failed to attach to thread %d\n", tid);
           else
           {
-            p->isDebugged=1; //at least one made it...
-            p->debuggerThreadID=pthread_self();
+            DebugEvent createThreadEvent;
+            if (p->isDebugged==0)
+            {
+              p->isDebugged=1; //at least one made it...
+              p->debuggerThreadID=pthread_self();
 
+              socketpair(PF_LOCAL, SOCK_STREAM, 0, &p->debuggerServer);
+            }
 
-            socketpair(PF_LOCAL, SOCK_STREAM, 0, &p->debuggerServer);
+            createThreadEvent.debugevent=-1; //create thread event (virtual event)
+            createThreadEvent.threadid=tid;
+            AddDebugEventToQueue(p, &createThreadEvent);
            // p->debuggerThreadID=syscall(SYS_gettid);
           }
 
@@ -210,6 +217,13 @@ int StartDebug(HANDLE hProcess)
       }
 
       closedir(taskdir);
+
+      //and finally add the createProcess event to mark success
+      DebugEvent createProcessEvent;
+      createProcessEvent.debugevent=-2; //create process
+      createProcessEvent.threadid=p->pid;
+      AddDebugEventToQueue(p, &createProcessEvent);
+
 
     }
     else
@@ -1303,9 +1317,10 @@ int ContinueFromDebugEvent(HANDLE hProcess, int tid, int ignoresignal)
       return 0; //invalid thread
 
     if (td->suspendCount>0)
-    {
       return 1; //keep it suspended
-    }
+
+    if (p->debuggedThreadEvent.debugevent<0) //virtual debug event. Just ignore
+      return 1; //ignore it
 
 
     if (ptrace(PTRACE_GETSIGINFO, tid, NULL, &si)==0)
@@ -1563,6 +1578,7 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
   //keep in mind that this routine can get called by multiple threads at the same time
 
 
+  //printf("ReadProcessMemory\n");
   int read=0;
   if (GetHandleType(hProcess) == htProcesHandle )
   { //valid handle
@@ -1572,10 +1588,12 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
     if (p->isDebugged) //&& cannotdealwithotherthreads
     {
+      //printf("This process is being debugged\n");
       //use the debugger specific readProcessMemory implementation
       return ReadProcessMemoryDebug(hProcess, p, lpAddress, buffer, size);
     }
 
+    //printf("Read without debug\n");
 
     if (pthread_mutex_lock(&memorymutex) == 0)
     {
@@ -1614,6 +1632,10 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
 int VirtualQueryEx(HANDLE hProcess, void *lpAddress, PRegionInfo rinfo)
 {
+  /*
+   * Alternate method: read pagemaps and look up the pfn in /proc/kpageflags (needs to 2 files open and random seeks through both files, so not sure if slow or painfully slow...)
+   */
+
   //VirtualQueryEx stub port. Not a real port, and returns true if successful and false on error
   int found=0;
 
