@@ -103,6 +103,7 @@ pthread_mutex_t debugsocketmutex;
 
 typedef struct
 {
+  int ReferenceCount;
   int processListIterator;
   int processCount;
   PProcessListEntry processList;
@@ -203,6 +204,13 @@ int StartDebug(HANDLE hProcess)
               p->debuggerThreadID=pthread_self();
 
               socketpair(PF_LOCAL, SOCK_STREAM, 0, &p->debuggerServer);
+
+              //first event, create process
+              DebugEvent createProcessEvent;
+              createProcessEvent.debugevent=-2; //create process
+              createProcessEvent.threadid=p->pid;
+              AddDebugEventToQueue(p, &createProcessEvent);
+
             }
 
             createThreadEvent.debugevent=-1; //create thread event (virtual event)
@@ -217,13 +225,6 @@ int StartDebug(HANDLE hProcess)
       }
 
       closedir(taskdir);
-
-      //and finally add the createProcess event to mark success
-      DebugEvent createProcessEvent;
-      createProcessEvent.debugevent=-2; //create process
-      createProcessEvent.threadid=p->pid;
-      AddDebugEventToQueue(p, &createProcessEvent);
-
 
     }
     else
@@ -1084,7 +1085,9 @@ int WaitForDebugEventNative(PProcessData p, PDebugEvent devent, int tid, int tim
 
 
 
-  printf("WaitForDebugEventNative (tid=%d timeout=%d)\n", tid, timeout);
+
+
+  printf("WaitForDebugEventNative (p=%p, devent=%p, tid=%d timeout=%d)\n", p, devent, tid, timeout);
 
 
   //first check if there is already a thread waiting
@@ -1118,6 +1121,9 @@ int WaitForDebugEventNative(PProcessData p, PDebugEvent devent, int tid, int tim
 
   printf("Checking for debug server command\n");
 
+  fflush(stdout);
+
+  printf("Checking for debug server command - 2\n");
   fflush(stdout);
 
   //still here
@@ -1279,6 +1285,7 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
 
       if (de) //there was a queued event, return it
       {
+        printf("Returning queued event (sig=%d,  thread=%d)\n", de->de.debugevent, de->de.threadid);
         *devent=de->de;
         p->debuggedThreadEvent=*devent;
         free(de);
@@ -1297,6 +1304,7 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
     else
     {
       printf("Can not wait for a debug event when a thread is still paused\n");
+      *devent=p->debuggedThreadEvent;
       return 1; //success and just handle this event
     }
 
@@ -1313,14 +1321,27 @@ int ContinueFromDebugEvent(HANDLE hProcess, int tid, int ignoresignal)
     PThreadData td=GetThreadData(p, tid);
     siginfo_t si;
 
+    printf("td==%p\n", td);
+
     if (td==NULL)
       return 0; //invalid thread
+
+    printf("td->suspendcount=%d\n", td->suspendCount);
 
     if (td->suspendCount>0)
       return 1; //keep it suspended
 
+    printf("p->debuggedThreadEvent.debugevent=%d\n", p->debuggedThreadEvent.debugevent);
+
+    if (p->debuggedThreadEvent.threadid!=tid)
+      printf("Unexpected thread continue. Expected %d got %d\n", p->debuggedThreadEvent.threadid, tid);
+
     if (p->debuggedThreadEvent.debugevent<0) //virtual debug event. Just ignore
+    {
+      printf("Virtual event. Ignore\n");
+      p->debuggedThreadEvent.threadid=0;
       return 1; //ignore it
+    }
 
 
     if (ptrace(PTRACE_GETSIGINFO, tid, NULL, &si)==0)
@@ -1500,25 +1521,46 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
     int isdebugged=p->debuggedThreadEvent.threadid;
     DebugEvent event;
 
-    printf("ReadProcessMemoryDebug inside debuggerthread (isdebugged=%d)\n", isdebugged);
+    printf("ReadProcessMemoryDebug inside debuggerthread (thread debbugged=%d)\n", isdebugged);
 
     if (!isdebugged)
     {
+      printf("Not currently debugging a thread. Suspending a random thread\n");
       kill(p->pid, SIGSTOP);
-      WaitForDebugEventNative(hProcess, &event, -1, -1); //wait for it myself
+
+      printf("Going to wait for debug event\n");
+      WaitForDebugEventNative(p, &event, -1, -1); //wait for it myself
+
+      printf("After WaitForDebugEventNative\n");
     }
 
-    bytesread=pread(p->mem, buffer, size, (uintptr_t)lpAddress);
+    bytesread=-1;
+    while (bytesread==-1)
+    {
+      bytesread=pread(p->mem, buffer, size, (uintptr_t)lpAddress);
+
+      if ((bytesread<0) && (errno!=EINTR))
+      {
+        printf("pread failed and not due to a signal\n");
+        bytesread=0;
+        break;
+      }
+    }
 
     if (!isdebugged)
     {
       //if a SIGSTOP happened just continue it, else the next time WaitForDebugEvent() runs it will get this event from the queue
       if (event.debugevent==SIGSTOP)
       {
+        printf("Continue from sigstop\n");
         ptrace(PTRACE_CONT, event.threadid, 0,0);
       }
       else
+      {
+        printf("Adding unexpected signal to eventqueue\n");
+
         AddDebugEventToQueue(p, &event);
+      }
     }
 
 
@@ -1554,11 +1596,14 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
 
       sendall(p->debuggerClient, &rpm, sizeof(rpm), 0);
 
+      printf("Waking debugger thread and waiting for result\n");
       WakeDebuggerThread();
 
       recvall(p->debuggerClient, &bytesread, sizeof(bytesread), MSG_WAITALL);
-      printf("bytesread=%d\n", bytesread);
-      recvall(p->debuggerClient, buffer, bytesread, MSG_WAITALL);
+      printf("After waiting for debugger thread: bytesread=%d\n", bytesread);
+
+      if (bytesread>0)
+        recvall(p->debuggerClient, buffer, bytesread, MSG_WAITALL);
 
 
       pthread_mutex_unlock(&debugsocketmutex);
@@ -1733,12 +1778,35 @@ int VirtualQueryEx(HANDLE hProcess, void *lpAddress, PRegionInfo rinfo)
   return 0;
 }
 
+int SearchHandleListProcessCallback(PProcessData data, int *pid)
+/*
+ * Callback. Called during the call to SearchHandleList
+ * Searchdata is a pointer to the processid to be looked for
+ */
+{
+  return (data->pid==*pid);
+}
 
 HANDLE OpenProcess(DWORD pid)
 {
   //check if the process exists
   char processpath[100];
+  int handle;
   sprintf(processpath, "/proc/%d/", pid);
+
+
+  //check if this process has already been opened
+  handle=SearchHandleList(htProcesHandle, SearchHandleListProcessCallback, &pid);
+  if (handle)
+  {
+    printf("Already opened. Returning same handle\n");
+    PProcessData p=(PProcessData)GetPointerFromHandle(handle);
+    p->ReferenceCount++;
+    return handle;
+  }
+
+  //still here, so not opened yet
+
 
   if (chdir(processpath)==0)
   {
@@ -1747,6 +1815,7 @@ HANDLE OpenProcess(DWORD pid)
     //create a process info structure and return a handle to it
     PProcessData p=(PProcessData)malloc(sizeof(ProcessData));
 
+    p->ReferenceCount=1;
     p->pid=pid;
     p->path=strdup(processpath);
 
@@ -1843,6 +1912,7 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
 
     //printf("Creating processlist\n");
 
+    pl->ReferenceCount=1;
     pl->processCount=0;
     pl->processList=(PProcessListEntry)malloc(sizeof(ProcessListEntry)* max);
 
@@ -1914,15 +1984,6 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
   return 0;
 }
 
-void initAPI()
-{
-  pthread_mutex_init(&memorymutex, NULL);
-  pthread_mutex_init(&debugsocketmutex, NULL);
-
-  sem_init(&sem_DebugThreadEvent, 0, 0); //locked by default
-
-}
-
 void CloseHandle(HANDLE h)
 {
   handleType ht=GetHandleType(h);
@@ -1932,27 +1993,44 @@ void CloseHandle(HANDLE h)
   {
     ProcessList *pl=(PProcessList)GetPointerFromHandle(h);
     int i;
-    //free all the processnames in the list
 
-    for (i=0; i<pl->processCount; i++)
-      free(pl->processList[i].ProcessName);
+    pl->ReferenceCount--;
 
-    free(pl->processList); //free the list
-    free(pl); //free the descriptor
+    if (pl->ReferenceCount<=0)
+    {
+      //free all the processnames in the list
+      for (i=0; i<pl->processCount; i++)
+        free(pl->processList[i].ProcessName);
+
+      free(pl->processList); //free the list
+      free(pl); //free the descriptor
+    }
   }
   else
   if (ht==htProcesHandle)
   {
     PProcessData pd=(PProcessData)GetPointerFromHandle(h);
-    free(pd->maps);
-    free(pd->path);
-    close(pd->mem);
-    free(pd);
+
+    pd->ReferenceCount--;
+    if (pd->ReferenceCount<=0)
+    {
+      free(pd->maps);
+      free(pd->path);
+      close(pd->mem);
+      free(pd);
+    }
   }
 
   RemoveHandle(h);
 }
 
+void initAPI()
+{
+  pthread_mutex_init(&memorymutex, NULL);
+  pthread_mutex_init(&debugsocketmutex, NULL);
 
+  sem_init(&sem_DebugThreadEvent, 0, 0); //locked by default
+
+}
 
 

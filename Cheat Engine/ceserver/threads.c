@@ -66,4 +66,6 @@ PThreadData GetThreadData(PProcessData p, int tid)
   for (i=0; i<p->threadlistpos; i++)
     if (p->threadlist[i].tid==tid)
       return &p->threadlist[i];
+
+  return NULL;
 }

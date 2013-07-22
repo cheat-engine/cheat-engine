@@ -78,5 +78,24 @@ void RemoveHandle(int handle)
 {
   if ((handle>0) && (handle<HandleList_max) && (HandleList[handle].type != htEmpty))
     HandleList[handle].type=htEmpty;
+}
 
+int SearchHandleList(int type, HANDLESEARCHCALLBACK cb, void *searchdata)
+/*
+ * go through the handle list and call cb(data, searchdata) for each handle of the specified type
+ * if cb(data,searchdata) returns true then return that handle, else return 0
+ */
+{
+  int i;
+
+  for (i=1; i<HandleList_max; i++)
+  {
+    if (HandleList[i].type==type)
+    {
+      if (cb(HandleList[i].pointer, searchdata))
+        return i;
+    }
+  }
+
+  return 0;
 }
