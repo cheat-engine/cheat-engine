@@ -126,8 +126,8 @@ type
 implementation
 
 uses foundcodeunit, DebugHelper, MemoryBrowserFormUnit, frmThreadlistunit,
-     WindowsDebugger, VEHDebugger, KernelDebuggerInterface, frmDebugEventsUnit,
-     formdebugstringsunit, symbolhandler;
+     WindowsDebugger, VEHDebugger, KernelDebuggerInterface, NetworkDebuggerInterface,
+     frmDebugEventsUnit, formdebugstringsunit, symbolhandler;
 
 procedure TDebugThreadHandler.AddDebugEventString;
 begin
@@ -1048,7 +1048,8 @@ begin
     end;
 
 
-    if CurrentDebuggerInterface is TKernelDebugInterface then //only the kerneldebuginterface doesn't give a breakpoint as init so use create as attachevent
+    if (CurrentDebuggerInterface is TKernelDebugInterface) or
+       (CurrentDebuggerInterface is TNetworkDebuggerInterface) then //the kerneldebuginterface and networkdebuginterface do not give a breakpoint as init so use create as attachevent
       onAttachEvent.SetEvent;
 
     secondcreateprocessdebugevent:=true;

@@ -1,13 +1,13 @@
 object About: TAbout
   Left = 1152
-  Height = 245
+  Height = 259
   Top = 436
   Width = 320
   HelpContext = 2
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'About Cheat Engine'
-  ClientHeight = 245
+  ClientHeight = 259
   ClientWidth = 320
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
@@ -17,12 +17,12 @@ object About: TAbout
   LCLVersion = '1.0.8.0'
   object GroupBox1: TGroupBox
     Left = 0
-    Height = 245
+    Height = 259
     Top = 0
     Width = 320
     Align = alClient
-    Caption = 'Cheat Engine 6.2'
-    ClientHeight = 227
+    Caption = 'Cheat Engine 6.3'
+    ClientHeight = 241
     ClientWidth = 316
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
@@ -63,7 +63,7 @@ object About: TAbout
     object Label5: TLabel
       Left = 10
       Height = 14
-      Top = 192
+      Top = 207
       Width = 204
       Caption = 'And all the other people that helped me out'
       ParentColor = False
@@ -461,7 +461,7 @@ object About: TAbout
     object Button1: TButton
       Left = 276
       Height = 21
-      Top = 207
+      Top = 216
       Width = 40
       Caption = 'OK'
       OnClick = Button1Click
@@ -535,6 +535,22 @@ object About: TAbout
       Top = 168
       Width = 49
       Caption = 'Recifense'
+      ParentColor = False
+    end
+    object Label17: TLabel
+      Left = 11
+      Height = 14
+      Top = 183
+      Width = 41
+      Caption = 'Jgoemat'
+      ParentColor = False
+    end
+    object Label18: TLabel
+      Left = 61
+      Height = 14
+      Top = 184
+      Width = 66
+      Caption = 'mgr.inz.Player'
       ParentColor = False
     end
   end

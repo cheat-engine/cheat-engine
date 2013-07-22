@@ -299,6 +299,15 @@ begin
   result:=false;
   lpNumberOfBytesRead:=0;
 
+  {
+  if ptruint(lpBaseAddress)<$00400000 then
+  asm
+  nop
+  nop
+  nop
+  end;
+  }
+
   //still here so not everything was cached
   input.command:=CMD_READPROCESSMEMORY;
   input.handle:=hProcess;
@@ -567,6 +576,7 @@ begin
   begin
     input.command:=CMD_WAITFORDEBUGEVENT;
     input.handle:=hProcess and $ffffff;
+    input.timeout:=timeout;
     if send(@input, sizeof(input))>0 then
     begin
       if receive(@r, sizeof(r))>0 then
@@ -576,6 +586,9 @@ begin
           result:=receive(@devent, sizeof(TNetworkDebugEvent))>0;
 
       end;
+
+
+
     end;
   end;
 
