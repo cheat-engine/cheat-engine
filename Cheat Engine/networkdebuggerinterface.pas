@@ -42,30 +42,40 @@ begin
   begin
     lastevent.signal:=5;
 
-    result:=c.WaitForDebugEvent(handle, dwMilliseconds, lastevent);
+    result:=c.WaitForDebugEvent(handle, dwMilliseconds*5, lastevent);
 
     if result then
     begin
       //convert it to 'something' useful
+      lpDebugEvent.dwThreadId:=lastevent.threadid;
+      lpDebugEvent.dwProcessId:=processid;
+
       case lastevent.signal of
         -1 : //create thread
         begin
           lpDebugEvent.dwDebugEventCode:=CREATE_THREAD_DEBUG_EVENT;
-          lpDebugEvent.CreateThread.hThread:=OpenThread(THREAD_ALL_ACCESS,false, lastevent.threadid);
+          lpDebugEvent.CreateThread.hThread:=lastevent.threadid;
         end;
 
         -2 : //create process
         begin
           lpDebugEvent.dwDebugEventCode:=CREATE_PROCESS_DEBUG_EVENT;
-          lpDebugEvent.CreateProcessInfo.hProcess:=processhandle;
-          lpDebugEvent.CreateProcessInfo.hThread:=OpenThread(THREAD_ALL_ACCESS,false, lastevent.threadid);
+          lpDebugEvent.CreateProcessInfo.hProcess:=handle;
+          lpDebugEvent.CreateProcessInfo.hThread:=lastevent.threadid;
 
         end;
 
-        5: //SIGSTOP
+        19: //sigstop
         begin
           //just ignore. continue and return that no stop happened (timeout)
           ContinueDebugEvent(handle, lastevent.threadid, DBG_CONTINUE);
+          result:=false;
+        end
+
+        else //e.g: SIGSTOP
+        begin
+
+          ContinueDebugEvent(handle, lastevent.threadid, DBG_EXCEPTION_NOT_HANDLED);
           result:=false;
         end;
       end;
@@ -111,7 +121,10 @@ function TNetworkDebuggerInterface.DebugActiveProcess(dwProcessId: DWORD): WINBO
 var c: TCEConnection;
 begin
   result:=false;
-  handle:=NetworkOpenProcess(0, false, dwProcessId);
+  processhandler.processid:=dwProcessID;
+  Open_Process;
+
+  handle:=ProcessHandle;
 
   if (handle<>0) then
   begin

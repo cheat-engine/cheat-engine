@@ -89,7 +89,7 @@
         <UnitName Value="init"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="44"/>
+        <TopLine Value="41"/>
         <CursorPos X="1" Y="45"/>
         <UsageCount Value="188"/>
         <Loaded Value="True"/>
@@ -102,7 +102,7 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
+        <TopLine Value="106"/>
         <CursorPos X="1" Y="17"/>
         <UsageCount Value="188"/>
         <Loaded Value="True"/>
@@ -179,7 +179,7 @@
         <UnitName Value="threadpoll"/>
         <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="40"/>
+        <TopLine Value="66"/>
         <CursorPos X="1" Y="46"/>
         <UsageCount Value="148"/>
         <Loaded Value="True"/>
