@@ -24,6 +24,8 @@ typedef unsigned int DWORD;
 typedef enum {htEmpty=0, htProcesHandle, htThreadHandle, htTHSProcess, htTHSModule} handleType;
 typedef int BOOL;
 
+typedef int (*HANDLESEARCHCALLBACK) (void *data, void *searchdata);
+
 #define TRUE 1
 #define FALSE 0
 
@@ -32,5 +34,6 @@ int CreateHandleFromPointer(void *p, handleType type);
 void *GetPointerFromHandle(int handle);
 handleType GetHandleType(int handle);
 void RemoveHandle(int handle);
+int SearchHandleList(int type, HANDLESEARCHCALLBACK cb, void *searchdata);
 
 #endif /* PORTHELP_H_ */

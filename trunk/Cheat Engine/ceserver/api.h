@@ -38,7 +38,7 @@ typedef struct
 } CONTEXT, *PCONTEXT;
 
 typedef struct {
-  unsigned int debugevent;
+  int debugevent;
   int64_t threadid;
 //other data
 } DebugEvent, *PDebugEvent;
@@ -61,6 +61,7 @@ typedef struct {
 } ThreadData, *PThreadData;
 
 typedef struct {
+  int ReferenceCount;
   int pid;
   int mapfd; //file descriptor for /proc/pid/maps
   char *path;

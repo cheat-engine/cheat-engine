@@ -205,8 +205,10 @@ int DispatchCommand(int currentsocket, unsigned char command)
       if (recvall(currentsocket, &cfd, sizeof(cfd), MSG_WAITALL)>0)
       {
         int r;
-        printf("Calling ContinueFromDebugEvent(%d, %d)\n", cfd.pHandle, cfd.ignore);
+        printf("Calling ContinueFromDebugEvent(%d, %d, %d)\n", cfd.pHandle, cfd.tid, cfd.ignore);
         r=ContinueFromDebugEvent(cfd.pHandle, cfd.tid, cfd.ignore);
+
+        printf("Returned from ContinueFromDebugEvent with %d\n", r);
         sendall(currentsocket, &r, sizeof(r), 0);
       }
       break;
@@ -417,6 +419,9 @@ int DispatchCommand(int currentsocket, unsigned char command)
 
         o->read=ReadProcessMemory(c.handle, (void *)(uintptr_t)c.address, &o[1], c.size);
 
+        if (o->read==0)
+          printf("read 0 bytes\n");
+
      //   printf("ReadProcessMemory returned %d\n", o->read);
 
 
@@ -443,8 +448,6 @@ int DispatchCommand(int currentsocket, unsigned char command)
             fflush(stdout);
 
             while (1) sleep(10);
-
-
           }
         }
 
@@ -581,7 +584,9 @@ void CheckForAndDispatchCommand(int currentsocket)
   timeout.tv_nsec=0;
   timeout.tv_sec=0;
 
-  printf("CheckForAndDispatchCommand:");
+  printf("CheckForAndDispatchCommand:\n");
+
+  fflush(stdout);
 
   FD_ZERO(&readfds);
   FD_SET(currentsocket, &readfds);
@@ -603,6 +608,8 @@ void CheckForAndDispatchCommand(int currentsocket)
   }
   else
     printf("select returned -1: %d\n", errno);
+
+
 
 }
 
