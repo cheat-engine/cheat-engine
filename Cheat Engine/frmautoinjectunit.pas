@@ -2508,7 +2508,7 @@ begin
   result:='';
 
   for i:=0 to size-1 do
-    result:=inttohex(Disassembler.LastDisassembleData.Bytes[i],2)+' ';
+    result:=result+inttohex(Disassembler.LastDisassembleData.Bytes[i],2)+' ';
 end;
 
 // true if it is an instruction that probably starts a procedure so we can
