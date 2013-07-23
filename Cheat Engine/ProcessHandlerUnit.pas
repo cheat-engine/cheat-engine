@@ -12,11 +12,15 @@ interface
 
 uses LCLIntf, newkernelhandler;
 
+type
+  TSystemArchitecture=(archX86=0, archArm=1);
+
 type TProcessHandler=class
   private
     fis64bit: boolean;
     fprocesshandle: THandle;
     fpointersize: integer;
+    fSystemArchitecture: TSystemArchitecture;
     procedure setIs64bit(state: boolean);
     procedure setProcessHandle(processhandle: THandle);
   public
@@ -26,11 +30,12 @@ type TProcessHandler=class
     property is64Bit: boolean read fIs64Bit;
     property pointersize: integer read fPointersize;
     property processhandle: THandle read fProcessHandle write setProcessHandle;
+    property SystemArchitecture: TSystemArchitecture read fSystemArchitecture;
 end;
 
 implementation
 
-uses LuaHandler, mainunit;
+uses LuaHandler, mainunit, networkinterface, networkInterfaceApi;
 
 procedure TProcessHandler.setIs64bit(state: boolean);
 begin
@@ -46,9 +51,47 @@ begin
 end;
 
 procedure TProcessHandler.setProcessHandle(processhandle: THandle);
+var c: TCEConnection;
+  arch: integer;
 begin
   fprocesshandle:=processhandle;
-  setIs64Bit(newkernelhandler.Is64BitProcess(fProcessHandle));
+
+  c:=getConnection;
+  if c<>nil then
+  begin
+    arch:=c.getArchitecture;
+    case arch of
+      0:   //i386
+      begin
+        fSystemArchitecture:=archX86;
+        fis64bit:=false;
+      end;
+
+      1: //x86_64
+      begin
+        fSystemArchitecture:=archX86;
+        fis64bit:=true;
+      end;
+
+      2: //arm
+      begin
+        fSystemArchitecture:=archArm;
+        fis64bit:=false;
+      end;
+
+      3: //arm64 (untested, not seen yet)
+      begin
+        fSystemArchitecture:=archArm;
+        fis64bit:=true;
+      end;
+    end;
+
+  end
+  else
+  begin
+    fSystemArchitecture:=archX86;
+    setIs64Bit(newkernelhandler.Is64BitProcess(fProcessHandle));
+  end;
 
   if processhandle<>0 then
     LUA_functioncall('onOpenProcess', [ptruint(processid)]);   //todo: Change to a callback array/list

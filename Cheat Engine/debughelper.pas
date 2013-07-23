@@ -601,12 +601,34 @@ var
   currentthread: TDebugThreadHandler;
   i: integer;
   AllThreadsAreSet: boolean;
+
+  tid, bptype: integer;
 begin
   AllThreadsAreSet:=true;
 
   if breakpoint^.breakpointMethod = bpmDebugRegister then
   begin
     //Debug registers
+
+    if CurrentDebuggerInterface is TNetworkDebuggerInterface then
+    begin
+      //network
+      if UpdateForOneThread=nil then
+        tid:=-1
+      else
+        tid:=UpdateForOneThread.ThreadId;
+
+      case breakpoint.breakpointTrigger of
+        bptExecute: bptype:=0;
+        bptWrite: bptype:=1;
+        bptAccess: bptype:=3;
+      end;
+
+      result:=networkSetBreakpoint(processhandle, tid, breakpoint.address, bptype, breakpoint.size );
+      exit;
+    end;
+
+
     Debugregistermask := 0;
     outputdebugstring(PChar('1:Debugregistermask=' + inttohex(Debugregistermask, 8)));
 

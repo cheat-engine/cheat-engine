@@ -445,7 +445,7 @@ object About: TAbout
     object lblDBVM: TLabel
       Left = 10
       Height = 1
-      Top = 207
+      Top = 224
       Width = 1
       ParentColor = False
       OnClick = lblDBVMClick
