@@ -24,8 +24,12 @@ function NetworkProcess32First(hSnapshot: HANDLE; var lppe: PROCESSENTRY32): BOO
 function NetworkProcess32Next(hSnapshot: HANDLE; var lppe: PROCESSENTRY32): BOOL; stdcall;
 
 function NetworkCloseHandle(handle: THandle):WINBOOL; stdcall;
+function NetworkSetBreakpoint(handle: THandle; threadid: integer; address: PtrUInt; bptype: integer; bpsize: integer): boolean;
+
 
 implementation
+
+uses networkConfig;
 
 
 threadvar connection: TCEConnection;
@@ -37,16 +41,21 @@ var threadManagerIsHooked: boolean=false;
 function getConnection: TCEConnection;
 begin
   result:=nil;
-  if (connection=nil) or (not connection.connected) then
+  if networkconfig.host.s_addr<>0 then
   begin
-    disconnect;
 
-    connection:=TCEConnection.create;
-    if connection.connected then
+    if (connection=nil) or (not connection.connected) then
+    begin
+      disconnect;
+
+      connection:=TCEConnection.create;
+      if connection.connected then
+        result:=connection;
+    end
+    else
       result:=connection;
-  end
-  else
-    result:=connection;
+
+  end;
 end;
 
 procedure disconnect;
@@ -85,6 +94,14 @@ begin
     result:=connection.CreateToolhelp32Snapshot(dwflags, th32ProcessId)
   else
     result:=INVALID_HANDLE_VALUE;
+end;
+
+function NetworkSetBreakpoint(handle: THandle; threadid: integer; address: PtrUInt; bptype: integer; bpsize: integer): boolean;
+begin
+  if getConnection<>nil then
+    result:=connection.SetBreakpoint(handle, threadid, address, bptype, bpsize)
+  else
+    result:=FALSE;
 end;
 
 function NetworkReadProcessMemory(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL; stdcall;

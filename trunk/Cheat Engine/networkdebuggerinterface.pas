@@ -31,6 +31,8 @@ type
 
 implementation
 
+uses debuggertypedefinitions;
+
 function TNetworkDebuggerInterface.WaitForDebugEvent(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL;
 var
   c: TCEConnection;
@@ -65,12 +67,24 @@ begin
 
         end;
 
+        5: //SIGTRAP
+        begin
+          lpDebugEvent.dwDebugEventCode:=EXCEPTION_DEBUG_EVENT;
+          lpDebugEvent.Exception.dwFirstChance:=1;
+          lpDebugEvent.Exception.ExceptionRecord.NumberParameters:=0;
+
+          lpDebugEvent.Exception.ExceptionRecord.ExceptionCode:=EXCEPTION_SINGLE_STEP;
+
+        end;
+
         19: //sigstop
         begin
           //just ignore. continue and return that no stop happened (timeout)
           ContinueDebugEvent(handle, lastevent.threadid, DBG_CONTINUE);
           result:=false;
-        end
+        end;
+
+
 
         else //e.g: SIGSTOP
         begin

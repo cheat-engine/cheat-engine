@@ -20,6 +20,10 @@ type
   end;
 
 
+
+type
+  TDebugRegisterType = (drtAny, drtExecute, drtWatch);
+
 type
   TContinueOption = (co_run=0, co_stepinto=1, co_stepover=2, co_runtill=3);
 

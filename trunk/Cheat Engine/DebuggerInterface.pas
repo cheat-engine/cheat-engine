@@ -9,7 +9,7 @@ The other debugger interfaces are inherited from this
 interface
 
 uses
-  Classes, SysUtils{$ifdef windows},windows{$endif},NewKernelHandler{$ifdef darwin}, macport{$endif};
+  Classes, SysUtils{$ifdef windows},windows{$endif},NewKernelHandler, debuggertypedefinitions{$ifdef darwin}, macport{$endif};
 
 type
   TDebuggerCapabilities=(dbcHardwareBreakpoint, dbcSoftwareBreakpoint, dbcExceptionBreakpoint, dbcBreakOnEntry);

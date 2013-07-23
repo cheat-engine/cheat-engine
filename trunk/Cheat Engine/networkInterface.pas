@@ -46,7 +46,9 @@ type
     function StartDebug(hProcess: THandle): BOOL;
     function WaitForDebugEvent(hProcess: THandle; timeout: integer; var devent: TNetworkDebugEvent):BOOL;
     function ContinueDebugEvent(hProcess: THandle; threadid: dword; continuemethod: integer): BOOL;
+    function SetBreakpoint(hProcess: THandle; threadid: integer; address: PtrUInt; bptype: integer; bpsize: integer): boolean;
     function getVersion(var name: string): integer;
+    function getArchitecture: integer;
     property connected: boolean read fConnected;
 
     constructor create;
@@ -78,6 +80,7 @@ const
   CMD_RESUMETHREAD=18;
   CMD_GETTHREADCONTEXT=19;
   CMD_SETTHREADCONTEXT=20;
+  CMD_GETARCHITECTURE=21;
 
 
 function TCEConnection.CloseHandle(handle: THandle):WINBOOL;
@@ -597,6 +600,41 @@ begin
 
 end;
 
+
+function TCEConnection.SetBreakpoint(hProcess: THandle; threadid: integer; address: PtrUInt; bptype: integer; bpsize: integer): boolean;
+var
+  input: packed record
+    command: byte;
+    handle: integer;
+    tid: integer;
+    address: qword;
+    bptype: integer;
+    bpsize: integer;
+  end;
+
+  r: integer;
+
+begin
+  result:=false;
+
+  if ((hProcess shr 24) and $ff)= $ce then
+  begin
+    input.command:=CMD_SETBREAKPOINT;
+    input.handle:=hProcess and $ffffff;
+    input.tid:=threadid;
+    input.address:=address;
+    input.bptype:=bptype;
+    input.bpsize:=bpsize;
+
+    if send(@input, sizeof(input))>0 then
+    begin
+      if receive(@r, sizeof(r))>0 then
+        result:=r<>0;
+    end;
+  end;
+
+end;
+
 function TCEConnection.getVersion(var name: string): integer;
 var CeVersion: packed record
   version: integer;
@@ -608,7 +646,7 @@ end;
 begin
   result:=0;
   command:=CMD_GETVERSION;
-  if fpsend(socket, @command, 1,0)>0 then
+  if send(@command, 1)>0 then
   begin
     if receive(@CeVersion, sizeof(CeVersion))>0 then
     begin
@@ -621,6 +659,17 @@ begin
       result:=length(name);
     end;
   end;
+end;
+
+function TCEConnection.getArchitecture: integer;
+var command: byte;
+  r: byte;
+begin
+  result:=0;
+  command:=CMD_GETARCHITECTURE;
+  if send(@command, 1)>0 then
+    if receive(@r, 1)>0 then
+      result:=r;
 end;
 
 function TCEConnection.send(buffer: pointer; size: integer): integer;

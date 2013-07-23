@@ -931,7 +931,7 @@ begin
 
       if temporaryDisabledExceptionBreakpoints<>nil then
       begin
-        OutputDebugString('After the single step of an exception caused by my page');
+        //OutputDebugString('After the single step of an exception caused by my page');
 
         context.EFlags:=eflags_setTF(context.EFlags,0); //not needed in windows, but let's clear it anyhow
         setContext;
@@ -962,31 +962,39 @@ begin
         exit;
       end;
 
-    //  debugEvent.Exception.ExceptionRecord.
-
       //find out what caused the breakpoint.
       //inspect DR6
       //Problem: if the last breakpoint was unset dr7 is 0. Meaning that DR6 will read out 0 as well...
       //Solution: DeleteBreakpoint must NOT call unsetBreakpoint. Only call it from the breakpoint handler and the breakpoint cleanup
 
-      if (context.Dr6 and 1) = 1 then
-        Result := DispatchBreakpoint(context.dr0, dwContinueStatus)
-      else
-      if ((context.Dr6 shr 1) and 1) = 1 then
-        Result := DispatchBreakpoint(context.dr1, dwContinueStatus)
-      else
-      if ((context.Dr6 shr 2) and 1) = 1 then
-        Result := DispatchBreakpoint(context.dr2, dwContinueStatus)
-      else
-      if ((context.Dr6 shr 3) and 1) = 1 then
-        Result := DispatchBreakpoint(context.dr3, dwContinueStatus)
-      else
-        Result := SingleStep(dwContinueStatus);
-
-      if dwContinueStatus=DBG_CONTINUE then
+      if (CurrentDebuggerInterface is TNetworkDebuggerInterface) then
       begin
-        context.dr6:=0; //handled
-        setContext;
+        //Only one breakpoint at a time (for now)
+
+        result:=SingleStep(dwContinueStatus);
+
+      end
+      else
+      begin
+        if (context.Dr6 and 1) = 1 then
+          Result := DispatchBreakpoint(context.dr0, dwContinueStatus)
+        else
+        if ((context.Dr6 shr 1) and 1) = 1 then
+          Result := DispatchBreakpoint(context.dr1, dwContinueStatus)
+        else
+        if ((context.Dr6 shr 2) and 1) = 1 then
+          Result := DispatchBreakpoint(context.dr2, dwContinueStatus)
+        else
+        if ((context.Dr6 shr 3) and 1) = 1 then
+          Result := DispatchBreakpoint(context.dr3, dwContinueStatus)
+        else
+          Result := SingleStep(dwContinueStatus);
+
+        if dwContinueStatus=DBG_CONTINUE then
+        begin
+          context.dr6:=0; //handled
+          setContext;
+        end;
       end;
     end;
 
