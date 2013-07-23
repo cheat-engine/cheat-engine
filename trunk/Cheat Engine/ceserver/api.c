@@ -1146,13 +1146,15 @@ int WaitForDebugEventNative(PProcessData p, PDebugEvent devent, int tid, int tim
         td->isPaused=1;
 
 
-      if ((tid==-1) || (currentTID!=tid))
+      if ((tid==-1) || (currentTID==tid))
         return TRUE;
 
       //still here, this wasn't what I was looking for...
       //add it to the queue
 
       printf("Unexpected event from thread %d while waiting for %d\n", currentTID, tid);
+
+
 
       AddDebugEventToQueue(p, devent);
     }

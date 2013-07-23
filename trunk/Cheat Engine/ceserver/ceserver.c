@@ -129,6 +129,24 @@ int DispatchCommand(int currentsocket, unsigned char command)
       break;
     }
 
+    case CMD_GETARCHITECTURE:
+    {
+#ifdef __i386__
+      unsigned char arch=0;
+#endif
+#ifdef __x86_64__
+      unsigned char arch=1;
+#endif
+#ifdef __arm__
+      unsigned char arch=2;
+#endif
+#ifdef __aarch64__
+      unsigned char arch=3;
+#endif
+      sendall(currentsocket, &arch, sizeof(arch), 0);
+      break;
+    }
+
     case CMD_CLOSECONNECTION:
     {
       printf("Connection %d closed properly\n", currentsocket);
