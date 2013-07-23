@@ -1961,6 +1961,8 @@ begin
 
           end;
 
+          nextoperation:=calcAddition;
+
         end;
       end;
 
