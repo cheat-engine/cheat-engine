@@ -2767,6 +2767,8 @@ begin
     lua_pushnil(L)
   else
     lua_pushstring(L, opendialog.FileName);
+
+  result:=1;
 end;
 
 function createOpenDialog(L: Plua_State): integer; cdecl;
