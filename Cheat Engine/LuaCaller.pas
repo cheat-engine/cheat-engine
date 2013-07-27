@@ -130,6 +130,13 @@ var
   newcode: pointer;
 begin
 
+  if lua_isnil(L, luafunctiononstack) then //nil, special case, always succeed
+  begin
+    m.code:=nil;
+    m.data:=nil;
+    exit;
+  end;
+
   i:=LuaCallList.IndexOf(typename);
   if i=-1 then
     raise exception.create('This type of method:'+typename+' is not yet supported');
@@ -155,13 +162,6 @@ begin
   begin
     lc:=TLuaCaller.create;
     lc.luaroutine:=Lua_ToString(L, luafunctiononstack);
-  end
-  else
-  if lua_isnil(L, luafunctiononstack) then
-  begin
-    m.code:=nil;
-    m.data:=nil;
-    exit;
   end;
 
   if lc<>nil then
