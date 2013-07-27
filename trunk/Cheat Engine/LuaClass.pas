@@ -409,7 +409,7 @@ function luaclass_index(L: PLua_State): integer; cdecl; //get
 //wants to get the value of table[key] , but table isn'ty really a table
 var i: integer;
 
-    metatable: integer;
+    metatable, metatable2: integer;
 
     s: string;
     o: TObject;
@@ -427,6 +427,8 @@ begin
     metatable:=lua_gettop(L);
 
     lua_pushvalue(L, 2); //push the key on the stack
+
+
     //lua_rawget(L, metatable);
     lua_gettable(L, metatable); //get metatable[key]
 
@@ -439,7 +441,8 @@ begin
 
       if lua_isfunction(L, -1) then
         lua_call(L, 0, 1);
-
+      else //return the table that was stored in the metatable (so undo the result of getting __get)
+        lua_pop(L,1);
     end
     else
     begin
