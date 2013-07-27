@@ -69,7 +69,7 @@ begin
     c:=lua_toceuserdata(L, -1);
     lua_pop(L, lua_gettop(l));
 
-    lua_pushlightuserdata(L, ce_getPropertylist(c));
+    luaclass_newClass(L, ce_getPropertylist(c));
     result:=1;
   end else lua_pop(L, lua_gettop(l));
 end;
