@@ -440,7 +440,7 @@ begin
       lua_gettable(L, -2);
 
       if lua_isfunction(L, -1) then
-        lua_call(L, 0, 1);
+        lua_call(L, 0, 1)
       else //return the table that was stored in the metatable (so undo the result of getting __get)
         lua_pop(L,1);
     end

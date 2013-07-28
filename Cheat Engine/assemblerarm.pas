@@ -269,8 +269,47 @@ begin
 end;
 
 function BranchParser(address: int32; instruction:string):int32;
+var
+  _param: string;
+  parserpos: integer;
+  destinationaddress: uint32;
+  offset: int32;
 begin
-  result:=$ffffffff;
+  //B{L}{cond} <expression>
+  result:=5 shl 25;
+  if length(instruction)<3 then exit; //invalid, there's just not enough space for this to be valid  (B 0)
+
+  parserpos:=2;
+  if instruction[2]='L' then
+  begin
+    //might be branch if Less than (BLT) wich is NOT a BL
+    if instruction[3]<>'T' then //Not BLT  , so BLxx X
+    begin
+      parserpos:=3;
+      result:=result or (1 shl 24); //set the L flag
+    end;
+  end;
+
+  result:=result or (getCondition(instruction, parserpos) shl 28);  //set the condition bits
+
+  //and set the offset
+  _param:=getParam(instruction, parserpos);
+
+
+  destinationaddress:=strtoint('$'+_param);
+
+  if destinationaddress mod 4<>0 then raise exception.create('The destination address must be dividable by 4');
+
+  offset:=destinationaddress-(address+8);
+  offset:=offset shr 2;
+
+  offset:=signextend(offset, 29);
+
+  if abs(offset)>16777215 then raise exception.create('Distance is too big');
+
+  result:=result or (offset and $ffffff);
+
+
 end;
 
 function CMPParser(address: int32; instruction:string):int32;
