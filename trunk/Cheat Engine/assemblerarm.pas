@@ -494,12 +494,84 @@ begin
 end;
 
 function MRSParser(address: int32; instruction:string): int32;
-begin
+//MRS{cond} Rd,<psr>
+//<psr> is CPSR, CPSR_all, SPSR or SPSR_all.
+var
+  parserpos: integer;
 
+  _psr: string;
+begin
+  result:=($f shl 16) or (2 shl 23);
+
+  parserpos:=4;
+  //cond
+  result:=result or (getCondition(instruction, parserpos) shl 28);
+
+  //rd
+  result:=result or (getRegNumber(getParam(instruction, parserpos)) shl 12);
+
+  _psr:=getParam(instruction, parserpos);
+
+  if _psr='CPSR' then
+    exit; //done
+
+  if copy(_psr, 1, 4)='SPSR' then
+    result:=result or (1 shl 22);
 end;
 
 function MSRParser(address: int32; instruction:string): int32;
+//MSR{cond} <psr>,Rm
+//MSR{cond} <psrf>,Rm
+//MSR{cond} <psrf>,<#expression>
+{
+<psr> is CPSR, CPSR_all, SPSR or SPSR_all. (CPSR and CPSR_all are synonyms as are SPSR and SPSR_all)
+<psrf> is CPSR_flg or SPSR_flg
+}
+var
+  p1, p2: string;
+  parserpos: integer;
+  rm: integer;
+
+  v: integer;
+  rotate: integer;
+  imm: integer;
 begin
+  result:=(2 shl 23);
+
+
+  parserpos:=4;
+  result:=result or (getCondition(instruction, parserpos) shl 28);
+
+  p1:=uppercase(getParam(instruction, parserpos));
+  p2:=getParam(instruction, parserpos);
+
+  if copy(p1, 1, 4)='SPSR' then
+    result:=result or (1 shl 22);
+
+  if copy(p1, 5, 4)='_FLG' then
+    result:=result or ($28F shl 12)
+  else
+    result:=result or ($29F shl 12);
+
+  rm:=getRegNumber(p2);
+
+
+  if (rm<>-1) then
+  begin
+    //register
+    result:=result or Rm;
+  end
+  else
+  begin
+    //expression
+    result:=result or (1 shl 25);
+
+    v:=strtoint('$'+p2);
+    generateRotateAndImm(v, rotate, imm);
+
+    result:=(result or (rotate shl 8)) or imm;
+  end;
+
 
 end;
 
