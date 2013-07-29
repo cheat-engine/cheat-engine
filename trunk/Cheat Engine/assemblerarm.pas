@@ -135,7 +135,7 @@ begin
     result:=-1;
 end;
 
-function ParseShift(instruction: string; var parserpos: integer; var _result: int32): boolean;
+function ParseShift(instruction: string; var parserpos: integer; var _result: int32; noregisterbasedshift: boolean=false): boolean;
 var
   shiftnumber: integer;
   _param: string;
@@ -168,6 +168,9 @@ begin
     if _param[1]='R' then
     begin
       //shift with register
+      if noregisterbasedshift then
+        raise exception.create('This instruction class does not allow a register based shift');
+
       _result:=_result or (1 shl 4);
       _Rs:=_param;
       Rs:=GetRegNumber(_rs);
@@ -214,7 +217,7 @@ begin
   //find the start of the next param
   for i:=parserpos to length(instruction) do
   begin
-    if not (instruction[i] in [' ',',']) then
+    if not (instruction[i] in [' ',',','[',']','!']) then
     begin
       startpos:=i;
       break;
@@ -227,10 +230,7 @@ begin
     insideblock:=false;
     for i:=startpos to length(instruction) do
     begin
-      if instruction[i] in ['{','['] then
-        insideBlock:=not insideBlock;
-
-      if (insideblock) or (not (instruction[i] in [' ',','])) then
+      if not (instruction[i] in [' ',',','[',']','!']) then
         result:=result+instruction[i]
       else
       begin
@@ -322,8 +322,184 @@ begin
 
 end;
 
-function SingleDataParser(address: int32; instruction: string): int32;
+
+procedure SingleDataParser_AddressRegister(address: int32; instruction: string; var parserpos: integer; var result: int32);
+//either twe preindexed:        (p=1)
+//  [Rn]
+//  [Rn, offset] {!}
+//  [Rn,{+/-}Rm{,<shift>}]{!}
+
+//or postindexed          (p=0)
+//[Rn],<#expression>
+//[Rn],{+/-}Rm{,<shift>}
+var _Rn, _Rm: string;
+
+  Rn, Rm: integer;
+  _param: string;
+
+  offset: int32;
 begin
+  if instruction[length(instruction)]='!' then
+    result:=result or (1 shl 21);
+
+
+  inc(parserpos);
+  _Rn:=getParam(instruction, parserpos);
+
+  rn:=getRegNumber(_rn);
+  if rn=-1 then
+  begin
+    //if hexadecimal value then convert to a pc,offset
+
+    offset:=StrToInt('$'+_rn);
+    //convert this to a pc relative address
+    offset:=offset-(address+8);
+
+    instruction:=StringReplace(instruction,'['+_rn+']', '[PC,'+inttohex(offset,1)+']', [rfIgnoreCase]);
+    dec(parserpos, length(_rn));
+    inc(parserpos, 2);
+
+    rn:=15;
+  end;
+
+  result:=result or (rn shl 16);
+
+  if not ((instruction[parserpos]=']') and (length(instruction)<>parserpos)) then
+  begin
+    //not postindexed, (so preindexed)
+    //set P=1
+    result:=result or (1 shl 24);
+  end;
+
+
+  _param:=getParam(instruction, parserpos);
+  if _param<>'' then
+  begin
+    if (length(_param)>=2) and ((_param[1]='R') or (_param[2]='R')) then
+    begin
+      //  [Rn,{+/-}Rm{,<shift>}]{!}
+      result:=result or (1 shl 25); //set I to 1 to mark it's a register
+
+      if _param[1]<>'-' then
+      begin
+        //+ or R, add to base
+        result:=result or (1 shl 23);
+
+
+        if _param[1]='+' then
+          _param:=copy(_param, 2, length(_param)-1); //strip the plus from the register
+      end;
+
+
+      _rm:=_param;
+      rm:=GetRegNumber(_rm);
+      if rm=-1 then
+        raise exception.create('Invalid register');
+
+      if ParseShift(instruction, parserpos, result)=false then
+        raise exception.create('Invalid shift'); //ParseShift returns false if there IS a parameter, but it's not a shift
+
+
+    end
+    else
+    begin
+      //  [Rn, offset] {!}
+      offset:=strtoint('$'+_param);
+      result:=result or (offset and $fff);
+    end;
+
+
+  end;
+
+end;
+
+procedure SingleDataParser_AddressExpression(address: int32; instruction: string; var parserpos: integer; var result: int32);
+//  <expression>
+var
+  _destination: string;
+  destination: uint32;
+  offset: int32;
+begin
+
+  _destination:=getParam(instruction, parserpos);
+  destination:=strtoint('$'+_destination);
+
+
+  offset:=destination-(address+8);
+
+  if abs(offset)>$fff then raise exception.create('The distance is too big');
+
+  result:=result or $fff;
+end;
+
+function SingleDataParser(address: int32; instruction: string): int32;
+//<LDR|STR>{cond}{B}{T} Rd,<Address>
+
+//<Address>:
+//  <expression>
+//  [Rn]
+//  [Rn, offset] {!}
+//  [Rn,{+/-}Rm{,<shift>}]{!}
+
+var
+  parserpos: integer;
+  T: boolean;
+
+  rd: integer;
+  i: integer;
+begin
+  result:=1 shl 26;
+  if instruction[1]='L' then
+    result:=result or (1 shl 20);
+
+  parserpos:=4;
+  result:=result or (getCondition(instruction, parserpos) shl 28);
+
+  if instruction[parserpos]='B' then
+  begin
+    result:=result+(1 shl 22);
+    inc(parserpos);
+  end;
+
+  if instruction[parserpos]='T' then
+  begin
+    T:=true;
+    inc(parserpos);
+  end
+  else
+    T:=false;
+
+  //rd
+
+  rd:=getRegNumber(getParam(instruction, parserpos));
+  if rd=-1 then
+    raise exception.create('Invalid parameter 1');
+
+  result:=result or (rd shl 12);
+
+
+  //parse <Address>
+  {
+  //  <expression>
+  //  [Rn]
+  //  [Rn, offset] {!}
+  //  [Rn,{+/-}Rm{,<shift>}]{!}
+  }
+
+  while parserpos<length(instruction) do
+  begin
+    if not (instruction[parserpos] in [',', ' ']) then
+    begin
+      if instruction[parserpos]='[' then
+        SingleDataParser_AddressRegister(address, instruction, parserpos, result)
+      else
+        SingleDataParser_AddressExpression(address, instruction, parserpos, result);
+
+      exit;
+    end;
+
+    inc(parserpos);
+  end;
 
 end;
 

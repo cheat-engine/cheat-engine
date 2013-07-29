@@ -302,6 +302,7 @@ var
   _Rn: string;
   _Rm: string;
   _shift: string;
+  _U: string;
 
   I: integer;
   P: integer;
@@ -392,7 +393,12 @@ begin
     if shiftAmount>0 then
     begin
       _shiftAmount:=inttohex(shiftamount,1);
-      _shift:=', '+_Rm+' '+_shiftname+' '+_shiftamount;
+      if U=0 then
+        _U:='-'
+      else
+        _U:='';
+
+      _shift:=', '+_U+_Rm+' '+_shiftname+' '+_shiftamount;
     end
     else
     begin
@@ -400,7 +406,10 @@ begin
       _shift:=', '+_Rm;
     end;
 
-    _address:='['+_Rn+_shift+']';
+    if p=1 then
+      _address:='['+_Rn+']'+_shift
+    else
+      _address:='['+_Rn+_shift+']';
   end;
 
   if (w=1) and (p=1) then
