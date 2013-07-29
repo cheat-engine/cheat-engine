@@ -576,7 +576,59 @@ begin
 end;
 
 function MULParser(address: int32; instruction:string): int32;
+//MUL/MLA
+//MUL{cond}{S} Rd,Rm,Rs
+//MLA{cond}{S} Rd,Rm,Rs,Rn
+
+var _opcode: string;
+  parserpos: integer;
+  Rd, Rm, Rs, Rn: integer;
 begin
+  result:=9 shl 4;
+  _opcode:=copy(instruction,1,3);
+
+  //fill in condition
+  parserpos:=4;
+  result:=result or (getCondition(instruction, parserpos) shl 28);
+
+  if instruction[parserpos]='S' then
+  begin
+    result:=result or (1 shl 21);
+    inc(parserpos);
+  end;
+
+  rd:=getRegNumber(getParam(instruction, parserpos));
+  if rd=-1 then
+    raise exception.create('Invalid parameter 1');
+
+  result:=result or (rd shl 16);
+
+
+  rm:=getRegNumber(getParam(instruction, parserpos));
+  if rm=-1 then
+    raise exception.create('Invalid parameter 2');
+
+  result:=result or rm;
+
+  rs:=getRegNumber(getParam(instruction, parserpos));
+  if rs=-1 then
+    raise exception.create('Invalid parameter 3');
+
+  result:=result or (rs shl 8);
+
+  //finally check which opcode it is
+  if _opcode='MLA' then
+  begin
+    //fill in Rn and set bit 21
+    result:=result or (1 shl 21);
+
+    rn:=getRegNumber(getParam(instruction, parserpos));
+    if rn=-1 then
+      raise exception.create('Invalid parameter 4');
+
+    result:=result or (rn shl 12);
+
+  end;
 
 end;
 
