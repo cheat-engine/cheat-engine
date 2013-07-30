@@ -217,7 +217,7 @@ begin
   //find the start of the next param
   for i:=parserpos to length(instruction) do
   begin
-    if not (instruction[i] in [' ',',','[',']','!']) then
+    if not (instruction[i] in [' ',',','[',']','{', '}', '!','^']) then
     begin
       startpos:=i;
       break;
@@ -230,7 +230,7 @@ begin
     insideblock:=false;
     for i:=startpos to length(instruction) do
     begin
-      if not (instruction[i] in [' ',',','[',']','!']) then
+      if not (instruction[i] in [' ',',','[',']','{','}','!','^']) then
         result:=result+instruction[i]
       else
       begin
@@ -665,7 +665,104 @@ begin
 end;
 
 function MultiDataParser(address: int32; instruction:string):int32;
+//<LDM|STM>{cond}<FD|ED|FA|EA|IA|IB|DA|DB> Rn{!},<Rlist>{^}
+const
+  bP=1 shl 24;
+  bU=1 shl 23;
+
+var
+  LDM: boolean;
+  _modename: string;
+  parserpos: integer;
+
+  rn: integer;
+  _param: string;
+
+  reg: integer;
 begin
+  result:=4 shl 25;
+
+  //<LDM|STM>
+  if instruction[1]='L' then //LDM
+  begin
+    ldm:=true;
+    result:=result or (1 shl 20);      //set bit L
+  end;
+
+  parserpos:=4;
+
+
+  //<cond>
+  result:=result or (getCondition(instruction, parserpos) shl 28);
+
+  //<FD|ED|FA|EA|IA|IB|DA|DB>
+  _modename:=copy(instruction, parserpos, 2);
+  inc(parserpos,2);
+
+  case _modename[1] of
+    'D':
+      case _modename[2] of
+        'A': ;
+        'B': result:=result or bP;
+        else raise exception.create('Invalid opcode');
+      end;
+    'E':
+      case _modename[2] of
+        'A': result:=result or bP;
+        'D': ;
+        else raise exception.create('Invalid opcode');
+      end;
+
+    'F':
+      case _modename[2] of
+        'A' : ;
+        'D' : result:=result or bU;
+        else raise exception.create('Invalid opcode');
+      end;
+
+    'I':
+      case _modename[2] of
+        'A': result:=result or bU;
+        'B': result:=result or bU or bP;
+        else raise exception.create('Invalid opcode');
+      end;
+
+    else raise exception.create('Invalid opcode');
+  end;
+
+  rn:=getRegNumber(getParam(instruction, parserpos));
+  if rn=-1 then
+    raise exception.create('Invalid register');
+
+  result:=result or (rn shl 16);
+
+  if instruction[parserpos]='!' then //set Write back
+  begin
+    result:=result or (1 shl 21);
+    inc(parserpos);
+  end;
+
+  //todo, add some checks to see that brackets {} are used
+  _param:=getParam(instruction, parserpos);
+  while (_param<>'') do
+  begin
+    if _param='^' then //set S
+    begin
+      result:=result or (1 shl 22)
+    end
+    else
+    begin
+      reg:=getRegNumber(_param);
+      if reg=-1 then
+        raise exception.create('Invalid register:'+_param);
+
+      result:=result or (1 shl reg);
+    end;
+    _param:=getParam(instruction, parserpos);
+  end;
+
+
+
 
 end;
 
