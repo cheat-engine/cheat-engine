@@ -678,7 +678,8 @@ var
   rn: integer;
   _param: string;
 
-  reg: integer;
+  reg, reg2: integer;
+  i: integer;
 begin
   result:=4 shl 25;
 
@@ -744,6 +745,7 @@ begin
 
   //todo, add some checks to see that brackets {} are used
   _param:=getParam(instruction, parserpos);
+  reg:=-1;
   while (_param<>'') do
   begin
     if _param='^' then //set S
@@ -752,11 +754,31 @@ begin
     end
     else
     begin
-      reg:=getRegNumber(_param);
-      if reg=-1 then
-        raise exception.create('Invalid register:'+_param);
+      i:=pos('-',_param);
 
-      result:=result or (1 shl reg);
+      if i>0 then //register range
+      begin
+        //get the first regisster
+
+        reg:=getRegNumber(trim(copy(_param,1,i-1)));
+        reg2:=getRegNumber(trim(copy(_param,i+1,length(_param))));
+
+        if (reg=-1) or (reg2=-1) then raise exception.create('Invalid register list');
+
+        for i:=reg to reg2 do
+          result:=result or (1 shl i);
+
+        reg:=-1;
+
+      end
+      else
+      begin
+        reg:=getRegNumber(_param);
+        if reg=-1 then
+          raise exception.create('Invalid register in register list:'+_param);
+
+        result:=result or (1 shl reg);
+      end;
     end;
     _param:=getParam(instruction, parserpos);
   end;
@@ -906,8 +928,32 @@ begin
 end;
 
 function SWPParser(address: int32; instruction:string): int32;
+//<SWP>{cond}{B} Rd,Rm,[Rn]
+var
+  rd, rm, rn: integer;
+  parserpos: integer;
 begin
+  result:=$1000090;
 
+  parserpos:=4;
+  result:=result or (getCondition(instruction, parserpos) shl 28);
+
+  if instruction[parserpos]='B' then
+  begin
+    result:=result or (1 shl 22);
+    inc(parserpos);
+  end;
+
+  rd:=getRegNumber(getParam(instruction, parserpos));
+  rm:=getRegNumber(getParam(instruction, parserpos));
+  rn:=getRegNumber(getParam(instruction, parserpos));
+
+  if (rd=-1) or (rm=-1) or (rn=-1) then
+    raise exception.create('Invalid register');
+
+  result:=result or (rd shl 12);
+  result:=result or rm;
+  result:=result or (rn shl 16);
 end;
 
 function SWIParser(address: int32; instruction:string): int32;
