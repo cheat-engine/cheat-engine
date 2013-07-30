@@ -957,7 +957,18 @@ begin
 end;
 
 function SWIParser(address: int32; instruction:string): int32;
+//SWI{cond} <expression>
+var
+  parserpos: integer;
+  v: integer;
 begin
+  result:=$f shl 24;
+  parserpos:=4;
+  result:=result or (getCondition(instruction, parserpos) shl 28);
+
+  v:=strtoint('$'+getParam(instruction, parserpos));
+  result:=result or (v and $FFFFFF);
+
 
 end;
 
