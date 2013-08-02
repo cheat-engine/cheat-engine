@@ -1997,7 +1997,7 @@ BOOL Module32First(HANDLE hSnapshot, PModuleListEntry moduleentry)
   {
     PModuleList ml=(PModuleList)GetPointerFromHandle(hSnapshot);
     ml->moduleListIterator=0;
-    return Module32First(hSnapshot, moduleentry);
+    return Module32Next(hSnapshot, moduleentry);
   }
   else
     return FALSE;
@@ -2095,7 +2095,7 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
 
     PModuleList ml=(PModuleList)malloc(sizeof(ModuleList));
 
-    //printf("Creating processlist\n");
+    printf("Creating module list\n");
 
     ml->ReferenceCount=1;
     ml->moduleCount=0;
@@ -2130,6 +2130,8 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
           }
 
           //new module, or not linkable
+
+          printf("%llx : %s\n", start, modulepath[0]);
 
 
           mle=&ml->moduleList[ml->moduleCount];
