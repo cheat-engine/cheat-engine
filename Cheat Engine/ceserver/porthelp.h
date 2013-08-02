@@ -12,6 +12,7 @@ typedef unsigned int HANDLE; //just an int, in case of a 32-bit ce version and a
 typedef unsigned int DWORD;
 
 #define TH32CS_SNAPPROCESS  0x2
+#define TH32CS_SNAPMODULE   0x8
 
 #define PAGE_NOACCESS 1
 #define PAGE_READONLY 2

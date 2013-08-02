@@ -32,6 +32,8 @@
 #define CMD_GETTHREADCONTEXT 19
 #define CMD_SETTHREADCONTEXT 20
 #define CMD_GETARCHITECTURE 21
+#define CMD_MODULE32FIRST 22
+#define CMD_MODULE32NEXT 23
 
 
 
@@ -56,6 +58,15 @@ typedef struct {
     int processnamesize;
     //processname
 } CeProcessEntry, *PCeProcessEntry;
+
+typedef struct {
+    int result;
+    int64_t modulebase;
+    int modulesize;
+    int modulenamesize;
+    //modulename
+
+} CeModuleEntry, *PCeModuleEntry;
 
 typedef struct {
   int handle;

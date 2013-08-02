@@ -109,6 +109,15 @@ typedef struct
   PProcessListEntry processList;
 } ProcessList, *PProcessList;
 
+typedef struct
+{
+  int ReferenceCount;
+  int moduleListIterator;
+  int moduleCount;
+  PModuleListEntry moduleList;
+} ModuleList, *PModuleList;
+
+
 
 
 int WakeDebuggerThread()
@@ -1935,6 +1944,8 @@ BOOL Process32Next(HANDLE hSnapshot, PProcessListEntry processentry)
 }
 
 
+
+
 BOOL Process32First(HANDLE hSnapshot, PProcessListEntry processentry)
 {
   //Get a processentry from the processlist snapshot. fill the given processentry with the data.
@@ -1950,6 +1961,47 @@ BOOL Process32First(HANDLE hSnapshot, PProcessListEntry processentry)
     return FALSE;
 }
 
+
+BOOL Module32Next(HANDLE hSnapshot, PModuleListEntry moduleentry)
+{
+  //get the current iterator of the list and increase it. If the max has been reached, return false
+  printf("Process32Next\n");
+
+  if (GetHandleType(hSnapshot) == htTHSProcess)
+  {
+    PModuleList ml=(PModuleList)GetPointerFromHandle(hSnapshot);
+
+    if (ml->moduleListIterator<ml->moduleCount)
+    {
+      moduleentry->baseAddress=ml->moduleList[ml->moduleListIterator].baseAddress;
+      moduleentry->moduleName=ml->moduleList[ml->moduleListIterator].moduleName;
+      moduleentry->moduleSize=ml->moduleList[ml->moduleListIterator].moduleSize;
+
+      ml->moduleListIterator++;
+
+      return TRUE;
+    }
+    else
+      return FALSE;
+  }
+  else
+    return FALSE;
+}
+
+
+BOOL Module32First(HANDLE hSnapshot, PModuleListEntry moduleentry)
+{
+
+  printf("Module32First\n");
+  if (GetHandleType(hSnapshot) == htTHSModule)
+  {
+    PModuleList ml=(PModuleList)GetPointerFromHandle(hSnapshot);
+    ml->moduleListIterator=0;
+    return Module32First(hSnapshot, moduleentry);
+  }
+  else
+    return FALSE;
+}
 
 
 HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
@@ -2031,19 +2083,123 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
 
     return CreateHandleFromPointer(pl, htTHSProcess);
   }
+  else
+  if (dwFlags & TH32CS_SNAPMODULE)
+  {
+    //make a list of all the modules loaded by processid th32ProcessID
+    //the module list
+    int max=64;
+    char mapfile[255];
+    FILE *f=NULL;
+    snprintf(mapfile, 255, "/proc/%d/maps", th32ProcessID);
+
+    PModuleList ml=(PModuleList)malloc(sizeof(ModuleList));
+
+    //printf("Creating processlist\n");
+
+    ml->ReferenceCount=1;
+    ml->moduleCount=0;
+    ml->moduleList=(PModuleListEntry)malloc(sizeof(ModuleListEntry)*max);
+
+
+    f=fopen(mapfile, "r");
+
+
+    if (f)
+    {
+      char s[255];
+
+      PModuleListEntry mle=NULL;
+
+
+
+      while (fgets(s, 255, f)) //read a line into s
+      {
+        unsigned long long start, stop;
+        char memoryrange[64],modulepath[255];
+
+        sscanf(s, "%llx-%llx %*s %*s %*s %*s %s\n", &start, &stop, modulepath);
+
+        if (modulepath[0]) //it's a module
+        {
+          if ((mle) && (start==mle->baseAddress+mle->moduleSize) && (strcmp(modulepath, mle->moduleName)==0))
+          {
+            //same module, append it
+            mle->moduleSize+=(stop-start);
+            continue;
+          }
+
+          //new module, or not linkable
+
+
+          mle=&ml->moduleList[ml->moduleCount];
+          mle->moduleName=strdup(modulepath);
+          mle->baseAddress=start;
+          mle->moduleSize=stop-start;
+
+          ml->moduleCount++;
+
+          if (ml->moduleCount>=max)
+          {
+            //reallocate
+            max=max*2;
+            ml->moduleList=(PProcessListEntry)realloc(ml->moduleList, max);
+          }
+
+
+        }
+        else
+          mle=NULL;
+
+
+
+      }
+
+      fclose(f);
+
+      return CreateHandleFromPointer(ml, htTHSModule);
+    }
+    else
+    {
+      printf("Failed opening %s\n", mapfile);
+      return 0;
+    }
+
+
+
+  }
+
 
   return 0;
 }
 
 void CloseHandle(HANDLE h)
 {
+  int i;
   handleType ht=GetHandleType(h);
 
  // printf("CloseHandle(%d)\n", h);
+  if (ht==htTHSModule)
+  {
+    ModuleList *ml=(PModuleList)GetPointerFromHandle(h);
+    ml->ReferenceCount--;
+    if (ml->ReferenceCount<=0)
+    {
+      //free all the processnames in the list
+      for (i=0; i<ml->moduleCount; i++)
+        free(ml->moduleList[i].moduleName);
+
+      free(ml->moduleList); //free the list
+      free(ml); //free the descriptor
+
+      RemoveHandle(h);
+    }
+
+  }
   if (ht==htTHSProcess)
   {
     ProcessList *pl=(PProcessList)GetPointerFromHandle(h);
-    int i;
+
 
     pl->ReferenceCount--;
 
@@ -2055,6 +2211,8 @@ void CloseHandle(HANDLE h)
 
       free(pl->processList); //free the list
       free(pl); //free the descriptor
+
+      RemoveHandle(h);
     }
   }
   else
@@ -2069,10 +2227,14 @@ void CloseHandle(HANDLE h)
       free(pd->path);
       close(pd->mem);
       free(pd);
+
+      RemoveHandle(h);
     }
   }
+  else
+    RemoveHandle(h); //no idea what it is...
 
-  RemoveHandle(h);
+
 }
 
 void initAPI()
