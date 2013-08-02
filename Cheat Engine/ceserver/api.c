@@ -2131,7 +2131,7 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
 
           //new module, or not linkable
 
-          printf("%llx : %s\n", start, modulepath[0]);
+          printf("%llx : %s\n", start, modulepath);
 
 
           mle=&ml->moduleList[ml->moduleCount];
