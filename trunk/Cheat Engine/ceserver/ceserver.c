@@ -369,6 +369,52 @@ int DispatchCommand(int currentsocket, unsigned char command)
       break;
     }
 
+    case CMD_MODULE32FIRST:
+    case CMD_MODULE32NEXT:
+    {
+      HANDLE toolhelpsnapshot;
+      if (recvall(currentsocket, &toolhelpsnapshot, sizeof(toolhelpsnapshot), MSG_WAITALL) >0)
+      {
+        BOOL result;
+        ModuleListEntry me;
+        CeModuleEntry *r;
+        int size;
+
+        if (command==CMD_MODULE32FIRST)
+          result=Module32First(toolhelpsnapshot, &me);
+        else
+          result=Module32Next(toolhelpsnapshot, &me);
+
+        if (result)
+        {
+          size=sizeof(CeModuleEntry)+ strlen(me.moduleName);
+          r=(PCeModuleEntry)malloc(size);
+          r->modulebase=me.baseAddress;
+          r->modulesize=me.moduleSize;
+          r->modulenamesize=strlen(me.moduleName);
+
+          memcpy((char *)r+sizeof(CeModuleEntry), me.moduleName, r->modulenamesize);
+        }
+        else
+        {
+          size=sizeof(CeModuleEntry);
+          r=(PCeModuleEntry)malloc(size);
+          r->modulebase=0;
+          r->modulesize=0;
+          r->modulenamesize=0;
+        }
+
+        r->result=result;
+
+        sendall(currentsocket, r, size, 0);
+
+        free(r);
+
+
+      }
+      break;
+    }
+
     case CMD_PROCESS32FIRST:
     case CMD_PROCESS32NEXT:
     {

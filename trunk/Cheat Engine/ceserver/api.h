@@ -17,7 +17,13 @@
 
 
 
+typedef struct
+{
+  unsigned long long baseAddress;
+  int moduleSize;
+  char *moduleName;
 
+} ModuleListEntry, *PModuleListEntry;
 
 typedef struct
 {
