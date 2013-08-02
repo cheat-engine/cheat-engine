@@ -1983,7 +1983,7 @@ BOOL Module32Next(HANDLE hSnapshot, PModuleListEntry moduleentry)
     }
     else
     {
-      printf("Returning false because ml->moduleListIterator=%d and ml->moduleCount=%d\n", ml->moduleListIterator, ml->moduleCount);
+     // printf("Returning false because ml->moduleListIterator=%d and ml->moduleCount=%d\n", ml->moduleListIterator, ml->moduleCount);
       return FALSE;
     }
   }
@@ -2073,7 +2073,7 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
           if (pl->processCount>=max)
           {
             max=max*2;
-            pl->processList=(PProcessListEntry)realloc(pl->processList, max);
+            pl->processList=(PProcessListEntry)realloc(pl->processList, max*sizeof(ProcessListEntry));
           }
         }
 
@@ -2098,7 +2098,7 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
 
     PModuleList ml=(PModuleList)malloc(sizeof(ModuleList));
 
-    printf("Creating module list\n");
+    printf("Creating module list for process %d\n", th32ProcessID);
 
     ml->ReferenceCount=1;
     ml->moduleCount=0;
@@ -2110,7 +2110,7 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
 
     if (f)
     {
-      char s[255];
+      char s[256];
 
       PModuleListEntry mle=NULL;
 
@@ -2146,9 +2146,9 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
 
           if (ml->moduleCount>=max)
           {
-            //reallocate
+            //printf("reallocate modulelist\n");
             max=max*2;
-            ml->moduleList=(PProcessListEntry)realloc(ml->moduleList, max);
+            ml->moduleList=(PModuleListEntry)realloc(ml->moduleList, max* sizeof(ModuleListEntry));
           }
 
 
