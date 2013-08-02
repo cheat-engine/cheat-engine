@@ -1965,9 +1965,9 @@ BOOL Process32First(HANDLE hSnapshot, PProcessListEntry processentry)
 BOOL Module32Next(HANDLE hSnapshot, PModuleListEntry moduleentry)
 {
   //get the current iterator of the list and increase it. If the max has been reached, return false
-  printf("Process32Next\n");
+  printf("Module32Next\n");
 
-  if (GetHandleType(hSnapshot) == htTHSProcess)
+  if (GetHandleType(hSnapshot) == htTHSModule)
   {
     PModuleList ml=(PModuleList)GetPointerFromHandle(hSnapshot);
 
@@ -1982,7 +1982,10 @@ BOOL Module32Next(HANDLE hSnapshot, PModuleListEntry moduleentry)
       return TRUE;
     }
     else
+    {
+      printf("Returning false because ml->moduleListIterator=%d and ml->moduleCount=%d\n", ml->moduleListIterator, ml->moduleCount);
       return FALSE;
+    }
   }
   else
     return FALSE;
