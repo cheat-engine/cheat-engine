@@ -1965,7 +1965,7 @@ BOOL Process32First(HANDLE hSnapshot, PProcessListEntry processentry)
 BOOL Module32Next(HANDLE hSnapshot, PModuleListEntry moduleentry)
 {
   //get the current iterator of the list and increase it. If the max has been reached, return false
-  printf("Module32Next\n");
+ // printf("Module32Next\n");
 
   if (GetHandleType(hSnapshot) == htTHSModule)
   {
@@ -1995,7 +1995,7 @@ BOOL Module32Next(HANDLE hSnapshot, PModuleListEntry moduleentry)
 BOOL Module32First(HANDLE hSnapshot, PModuleListEntry moduleentry)
 {
 
-  printf("Module32First\n");
+  //printf("Module32First\n");
   if (GetHandleType(hSnapshot) == htTHSModule)
   {
     PModuleList ml=(PModuleList)GetPointerFromHandle(hSnapshot);
@@ -2098,7 +2098,7 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
 
     PModuleList ml=(PModuleList)malloc(sizeof(ModuleList));
 
-    printf("Creating module list for process %d\n", th32ProcessID);
+    //printf("Creating module list for process %d\n", th32ProcessID);
 
     ml->ReferenceCount=1;
     ml->moduleCount=0;
@@ -2134,7 +2134,7 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
 
           //new module, or not linkable
 
-          printf("%llx : %s\n", start, modulepath);
+         // printf("%llx : %s\n", start, modulepath);
 
 
           mle=&ml->moduleList[ml->moduleCount];
@@ -2166,7 +2166,7 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
     }
     else
     {
-      printf("Failed opening %s\n", mapfile);
+      //printf("Failed opening %s\n", mapfile);
       return 0;
     }
 

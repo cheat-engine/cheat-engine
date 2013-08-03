@@ -336,6 +336,9 @@ int DispatchCommand(int currentsocket, unsigned char command)
       if (recvall(currentsocket, &h, sizeof(h), MSG_WAITALL)>0)
       {
         CloseHandle(h);
+        int r=1;
+        sendall(currentsocket, &r, sizeof(r), 0); //stupid naggle
+
       }
       else
       {
@@ -384,6 +387,7 @@ int DispatchCommand(int currentsocket, unsigned char command)
           result=Module32First(toolhelpsnapshot, &me);
         else
           result=Module32Next(toolhelpsnapshot, &me);
+
 
         if (result)
         {
