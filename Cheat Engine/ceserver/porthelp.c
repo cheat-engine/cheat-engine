@@ -49,7 +49,7 @@ int CreateHandleFromPointer(void *p, handleType type)
 
   HandleList_max=HandleList_max * 2;
 
-  HandleList=(PHandleListEntry)realloc((void *)HandleList, HandleList_max);
+  HandleList=(PHandleListEntry)realloc((void *)HandleList, HandleList_max * sizeof(HandleListEntry));
   memset((void *)&HandleList[i], 0, i); //zero the new block (i contains the old size which is the appended new size)
 
   HandleList[i].pointer=p;
