@@ -34,6 +34,8 @@ type
     function NReadProcessMemory(hProcess: THandle; lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL;
 
   public
+    function Module32Next(hSnapshot: HANDLE; var lpme: MODULEENTRY32; isfirst: boolean=false): BOOL;
+    function Module32First(hSnapshot: HANDLE; var lpme: MODULEENTRY32): BOOL;
 
     function Process32Next(hSnapshot: HANDLE; var lppe: PROCESSENTRY32; isfirst: boolean=false): BOOL;
     function Process32First(hSnapshot: HANDLE; var lppe: PROCESSENTRY32): BOOL;
@@ -81,6 +83,8 @@ const
   CMD_GETTHREADCONTEXT=19;
   CMD_SETTHREADCONTEXT=20;
   CMD_GETARCHITECTURE=21;
+  CMD_MODULE32FIRST=22;
+  CMD_MODULE32NEXT=23;
 
 
 function TCEConnection.CloseHandle(handle: THandle):WINBOOL;
@@ -88,16 +92,81 @@ var CloseHandleCommand: packed record
     command: byte;
     handle: dword;
   end;
+
+  r: integer;
 begin
+
+
   if ((handle shr 24) and $ff)= $ce then
   begin
     CloseHandleCommand.command:=CMD_CLOSEHANDLE;
     CloseHandleCommand.handle:=handle and $ffffff;
     send(@CloseHandleCommand, sizeof(CloseHandleCommand));
+
+    receive(@r,sizeof(r));
     result:=true;
   end
   else //not a network handle
     result:=windows.CloseHandle(handle);
+end;
+
+function TCEConnection.Module32Next(hSnapshot: HANDLE; var lpme: MODULEENTRY32; isfirst: boolean=false): BOOL;
+var ModulelistCommand: packed record
+    command: byte;
+    handle: dword;
+  end;
+
+  r: packed record
+    result: integer;
+    modulebase: qword;
+    modulesize: dword;
+    stringlength: dword;
+  end;
+
+  mname: pchar;
+
+begin
+
+  if ((hSnapshot shr 24) and $ff)= $ce then
+  begin
+    if isfirst then
+      ModulelistCommand.command:=CMD_MODULE32FIRST
+    else
+      ModulelistCommand.command:=CMD_MODULE32NEXT;
+
+    ModulelistCommand.handle:=hSnapshot and $ffffff;
+    if send(@ModulelistCommand, sizeof(ModulelistCommand)) > 0 then
+    begin
+      if receive(@r, sizeof(r))>0 then
+      begin
+        result:=r.result<>0;
+
+        if result then
+        begin //it has a string
+          getmem(mname, r.stringlength+1);
+          receive(mname, r.stringlength);
+          mname[r.stringlength]:=#0;
+
+          ZeroMemory(@lpme, sizeof(lpme));
+          lpme.hModule:=r.modulebase;
+          lpme.modBaseAddr:=pointer(r.modulebase);
+          lpme.modBaseSize:=r.modulesize;
+          strcopy(@lpme.szExePath, mname);
+          strcopy(@lpme.szModule, mname);
+          freemem(mname);
+
+        end;
+
+      end;
+    end;
+  end
+  else
+    result:=false;
+end;
+
+function TCEConnection.Module32First(hSnapshot: HANDLE; var lpme: MODULEENTRY32): BOOL;
+begin
+  result:=module32next(hSnapshot, lpme, true);
 end;
 
 function TCEConnection.Process32Next(hSnapshot: HANDLE; var lppe: PROCESSENTRY32; isfirst: boolean=false): BOOL;
