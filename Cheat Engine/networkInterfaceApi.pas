@@ -23,6 +23,9 @@ function NetworkCreateToolhelp32Snapshot(dwFlags, th32ProcessID: DWORD): HANDLE;
 function NetworkProcess32First(hSnapshot: HANDLE; var lppe: PROCESSENTRY32): BOOL; stdcall;
 function NetworkProcess32Next(hSnapshot: HANDLE; var lppe: PROCESSENTRY32): BOOL; stdcall;
 
+function NetworkModule32First(hSnapshot: HANDLE; var lpme: MODULEENTRY32): BOOL; stdcall;
+function NetworkModule32Next(hSnapshot: HANDLE; var lpme: MODULEENTRY32): BOOL; stdcall;
+
 function NetworkCloseHandle(handle: THandle):WINBOOL; stdcall;
 function NetworkSetBreakpoint(handle: THandle; threadid: integer; address: PtrUInt; bptype: integer; bpsize: integer): boolean;
 
@@ -84,6 +87,22 @@ function NetworkProcess32First(hSnapshot: HANDLE; var lppe: PROCESSENTRY32): BOO
 begin
   if getConnection<>nil then
     result:=connection.Process32First(hSnapshot, lppe)
+  else
+    result:=FALSE;
+end;
+
+function NetworkModule32Next(hSnapshot: HANDLE; var lpme: MODULEENTRY32): BOOL; stdcall;
+begin
+  if getConnection<>nil then
+    result:=connection.Module32Next(hSnapshot, lpme)
+  else
+    result:=FALSE;
+end;
+
+function NetworkModule32First(hSnapshot: HANDLE; var lpme: MODULEENTRY32): BOOL; stdcall;
+begin
+  if getConnection<>nil then
+    result:=connection.Module32First(hSnapshot, lpme)
   else
     result:=FALSE;
 end;
@@ -197,7 +216,11 @@ begin
   newkernelhandler.CreateToolhelp32Snapshot:=@NetworkCreateToolhelp32Snapshot;
   newkernelhandler.Process32First:=@NetworkProcess32First;
   newkernelhandler.Process32Next:=@NetworkProcess32Next;
+  newkernelhandler.Module32First:=@NetworkModule32First;
+  newkernelhandler.Module32Next:=@NetworkModule32Next;
   newkernelhandler.closehandle:=@networkclosehandle;
+
+
 
 end;
 
