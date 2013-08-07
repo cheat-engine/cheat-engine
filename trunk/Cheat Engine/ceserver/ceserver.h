@@ -146,6 +146,7 @@ typedef struct {
   int result;
 } CeResumeThreadOutput, *PCeResumeThreadOutput;
 
+
 #pragma pack()
 
 ssize_t sendall (int s, void *buf, size_t size, int flags);

@@ -8,7 +8,7 @@
 #ifndef SYMBOLS_H_
 #define SYMBOLS_H_
 
-int GetSymbolListFromFile(char *filename, unsigned char **output, int *outputsize);
+int GetSymbolListFromFile(char *filename, unsigned char **output);
 
 
 #endif /* SYMBOLS_H_ */

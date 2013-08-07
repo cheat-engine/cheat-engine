@@ -642,19 +642,56 @@ int DispatchCommand(int currentsocket, unsigned char command)
     {
       //get the list and send it to the client
       //zip it first
-      z_stream strm;
+      uint32_t symbolpathsize;
+
+      printf("CMD_GETSYMBOLLISTFROMFILE\n");
+
+      if (recvall(currentsocket, &symbolpathsize, sizeof(symbolpathsize), MSG_WAITALL)>0)
+      {
+        char *symbolpath=(char *)malloc(symbolpathsize+1);
+        symbolpath[symbolpathsize]='\0';
 
 
+        if (recvall(currentsocket, symbolpath, symbolpathsize, MSG_WAITALL)>0)
+        {
+          unsigned char *output=NULL;
+
+          printf("symbolpath=%s\n", symbolpath);
+
+          GetSymbolListFromFile(symbolpath, &output);
+
+
+          if (output)
+          {
+            printf("output is not NULL (%p)\n", output);
+
+            fflush(stdout);
+
+            printf("Sending %d bytes\n", *(uint32_t *)&output[0]);
+            sendall(currentsocket, output, *(uint32_t *)&output[0], 0); //the output buffer contains the size itself
+            free(output);
+          }
+          else
+          {
+            printf("Sending 4 bytes (fail)\n");
+            sendall(currentsocket, &output, 4, 0); //just write 0
+          }
+
+
+
+        }
+        else
+        {
+          printf("Failure getting symbol path\n");
+          close(currentsocket);
+        }
+
+        free(symbolpath);
+
+      }
 
       break;
     }
-
-    /*readprocessmemory:
-     * Note: Preferably used with a modified kernel that allows direct access to /proc/pid/mem
-     * Alternatively, preferred to use a kernel with CONFIG_STRICT_DEVMEM OFF,
-     * If neither situations are available, PTRACE will be used to read, and that is sloooooooooooow
-     *
-     */
 
 
   }

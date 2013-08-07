@@ -62,7 +62,7 @@ void loadStringTable32(int f, Elf32_Shdr *sectionHeaders, unsigned char **string
     printf("Not a string table\n");
 }
 
-int ELF32(int f, Elf32_Ehdr *b, unsigned char **output, int *outputsize)
+int ELF32(int f, Elf32_Ehdr *b, unsigned char **output)
 /*
 Caller must free output manually
 */
@@ -82,10 +82,9 @@ Caller must free output manually
   deflateInit(&strm, 9);
 
   *output=malloc(maxoutputsize); //allocate 256KB. This "should" be enough, but reallocate if more is needed
-  *outputsize=sizeof(uint32_t); //the first 4 bytes will contain the uncompressed size
 
-  strm.avail_out=maxoutputsize-sizeof(uint32_t);
-  strm.next_out=(unsigned char *)&(*output)[sizeof(uint32_t)];
+  strm.avail_out=maxoutputsize-2*sizeof(uint32_t); //the first 8 bytes will contain the compressed and uncompressed size
+  strm.next_out=(unsigned char *)&(*output)[sizeof(uint32_t)*2];
 
 /*
 
@@ -259,14 +258,15 @@ Caller must free output manually
 
 
   //update the size
-  *(uint32_t *)(*output)=strm.total_in;
+  *(uint32_t *)(&(*output)[0])=strm.total_out+2*sizeof(uint32_t);
+  *(uint32_t *)(&(*output)[4])=strm.total_in;
 
   free(tempbuffer);
 
   return 0;
 }
 
-int ELF64(int f, Elf64_Ehdr *b, unsigned char **output, int *outputsize)
+int ELF64(int f, Elf64_Ehdr *b, unsigned char **output)
 /*
 Caller must free output manually
 */
@@ -287,10 +287,9 @@ Caller must free output manually
   deflateInit(&strm, 9);
 
   *output=malloc(maxoutputsize); //allocate 256KB. This "should" be enough, but reallocate if more is needed
-  *outputsize=sizeof(uint32_t); //the first 4 bytes will contain the uncompressed size
 
-  strm.avail_out=maxoutputsize-sizeof(uint32_t);
-  strm.next_out=(unsigned char *)&(*output)[sizeof(uint32_t)];
+  strm.avail_out=maxoutputsize-2*sizeof(uint32_t); //the first 8 bytes will contain the compressed and uncompressed size
+  strm.next_out=(unsigned char *)&(*output)[sizeof(uint32_t)*2];
 
 /*
 
@@ -464,8 +463,9 @@ Caller must free output manually
   deflateEnd(&strm);
 
 
+  *(uint32_t *)(&(*output)[0])=strm.total_out+2*sizeof(uint32_t);
+  *(uint32_t *)(&(*output)[4])=strm.total_in;
 
-  *(uint32_t *)(*output)=strm.total_in;
 
   free(tempbuffer);
 
@@ -493,9 +493,9 @@ int GetSymbolListFromFile(char *filename, unsigned char **output, int *outputsiz
     return -1; //not an ELF file
 
   if (b[EI_CLASS]==ELFCLASS32)
-    i=ELF32(f, (Elf32_Ehdr *)b, output, outputsize);
+    i=ELF32(f, (Elf32_Ehdr *)b, output);
   else
-    i=ELF64(f, (Elf64_Ehdr *)b, output, outputsize);
+    i=ELF64(f, (Elf64_Ehdr *)b, output);
 
   free(b);
 
