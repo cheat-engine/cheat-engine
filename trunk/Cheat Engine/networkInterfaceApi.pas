@@ -54,6 +54,7 @@ begin
       connection:=TCEConnection.create;
       if connection.connected then
         result:=connection;
+
     end
     else
       result:=connection;

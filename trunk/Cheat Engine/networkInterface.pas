@@ -8,13 +8,17 @@ interface
 
 uses
   jwawindows, windows, Classes, SysUtils, Sockets, resolve, ctypes, networkconfig,
-  cefuncproc, newkernelhandler, math;
+  cefuncproc, newkernelhandler, math, zstream;
+
+
 
 type
   TNetworkDebugEvent=packed record
     signal: integer;
     threadid: qword;
   end;
+
+  TNetworkEnumSymCallback=function(modulename: string; symbolname: string; address: ptruint; size: integer ): boolean of object;
 
   TCEConnection=class
   private
@@ -51,6 +55,7 @@ type
     function SetBreakpoint(hProcess: THandle; threadid: integer; address: PtrUInt; bptype: integer; bpsize: integer): boolean;
     function getVersion(var name: string): integer;
     function getArchitecture: integer;
+    function enumSymbolsFromFile(modulepath: string; modulebase: ptruint; callback: TNetworkEnumSymCallback): boolean;
     property connected: boolean read fConnected;
 
     constructor create;
@@ -85,6 +90,8 @@ const
   CMD_GETARCHITECTURE=21;
   CMD_MODULE32FIRST=22;
   CMD_MODULE32NEXT=23;
+
+  CMD_GETSYMBOLLISTFROMFILE=24;
 
 
 function TCEConnection.CloseHandle(handle: THandle):WINBOOL;
@@ -741,6 +748,133 @@ begin
       result:=r;
 end;
 
+
+
+function TCEConnection.enumSymbolsFromFile(modulepath: string; modulebase: ptruint; callback: TNetworkEnumSymCallback): boolean;
+type
+  TCeGetSymbolList=packed record
+    command: byte;
+    symbolpathsize: uint32;
+    path: array [0..0] of char;
+  end;
+
+  PCeGetSymbolList=^TCeGetSymbolList;
+
+  TNetworkSymbolInfo=packed record
+    address: uint64;
+    size: int32;
+    _type: int32;
+    namelength: uint8;
+  end;
+
+  PNetworkSymbolInfo=^TNetworkSymbolInfo;
+
+
+
+var
+  msg: PCeGetSymbolList;
+  msgsize: integer;
+
+  compressedsize: uint32;
+  decompressedsize: uint32;
+
+  d: Tdecompressionstream;
+  compressedbuffer: TMemorystream;
+
+  decompressed: PByte;
+
+  currentsymbol: PNetworkSymbolInfo;
+
+
+  modulename: string;
+  pos: integer;
+
+  symname: pchar;
+  maxsymname: integer;
+begin
+  result:=true;
+
+  msgsize:=5+length(modulepath);
+  getmem(msg, msgsize);
+
+  msg^.command:=CMD_GETSYMBOLLISTFROMFILE;
+  msg^.symbolpathsize:=length(modulepath);
+  CopyMemory(@msg^.path, @modulepath[1], length(modulepath));
+
+  if send(msg,  msgsize)>0 then
+  begin
+    if receive(@compressedsize, sizeof(compressedsize))>0 then
+    begin
+      if compressedsize>0 then
+      begin
+        if receive(@decompressedsize, sizeof(decompressedsize))>0 then
+        begin
+          compressedbuffer:=tmemorystream.create;
+          compressedbuffer.Size:=compressedsize-2*sizeof(uint32);
+
+          if receive(compressedbuffer.Memory, compressedbuffer.size)>0 then
+          begin
+            //decompress it
+            d:=Tdecompressionstream.Create(compressedbuffer, false);
+            getmem(decompressed, decompressedsize);
+            d.ReadBuffer(decompressed^, decompressedsize);
+            d.free;
+
+            //parse through the decompressed block and fill in the results
+
+            if copy(modulepath,1,1)<>'[' then
+              modulename:=extractfilename(modulepath)
+            else
+              modulename:=modulepath;
+
+            pos:=0;
+
+            maxsymname:=256;
+            getmem(symname, maxsymname);
+
+
+            while pos<decompressedsize do
+            begin
+              currentsymbol:=@decompressed[pos];
+              inc(pos, sizeof(TNetworkSymbolInfo));
+
+              if currentsymbol^.namelength>=maxsymname then
+              begin
+                //need more memory
+                maxsymname:=currentsymbol^.namelength+1;
+
+                freemem(symname);
+                getmem(symname, maxsymname);
+              end;
+
+              CopyMemory(symname, @decompressed[pos], currentsymbol^.namelength);
+              symname[currentsymbol^.namelength]:=#0;
+
+              inc(pos, currentsymbol^.namelength);
+
+
+              if currentsymbol^.namelength>0 then
+              begin
+                if callback(modulename, symname, modulebase+currentsymbol^.address, currentsymbol^.size)=false then
+                  break;
+              end;
+            end;
+
+
+            freemem(symname);
+
+            freemem(decompressed);
+
+          end;
+
+          compressedbuffer.free;
+        end;
+      end;
+    end;
+  end;
+
+end;
+
 function TCEConnection.send(buffer: pointer; size: integer): integer;
 var i: integer;
 begin
@@ -797,6 +931,7 @@ end;
 constructor TCEConnection.create;
 var SockAddr: TInetSockAddr;
   retry: integer;
+  B: BOOL;
 begin
 
   socket:=cint(INVALID_SOCKET);
@@ -809,6 +944,10 @@ begin
   SockAddr.Family := AF_INET;
   SockAddr.Port := port;
   SockAddr.Addr := host.s_addr;
+
+  B:=TRUE;
+
+  fpsetsockopt(socket, IPPROTO_TCP, TCP_NODELAY, @B, sizeof(B));
 
   retry:=0;
   while not (fConnected) and (retry<5) do
