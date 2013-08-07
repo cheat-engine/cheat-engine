@@ -75,6 +75,7 @@ type
     procedure LoadDriverSymbols;
     procedure LoadDLLSymbols;
     procedure finishedLoadingSymbols;
+    function NetworkES(modulename: string; symbolname: string; address: ptruint; size: integer): boolean;
   public
     isloading: boolean;
     error: boolean;
@@ -222,7 +223,7 @@ procedure symhandlerInitialize;
 implementation
 
 uses assemblerunit, driverlist, LuaHandler, lualib, lua, lauxlib,
-  disassemblerComments, StructuresFrm2;
+  disassemblerComments, StructuresFrm2, networkInterface, networkInterfaceApi;
 
 resourcestring
   rsSymbolloaderthreadHasCrashed = 'Symbolloaderthread has crashed';
@@ -263,37 +264,34 @@ var need:dword;
     count: integer;
     modulename: pchar;
     modulelisttype: integer;
+
 begin
   need:=0;
 
 
+  modulelisttype:=LIST_MODULES_ALL;
 
-    modulelisttype:=LIST_MODULES_ALL;
+  EnumProcessModulesEx(thisprocesshandle,nil,0,need, modulelisttype);
+  getmem(x,need);
+  try
+    if EnumProcessModulesEx(thisprocesshandle,@x[0],need,need, modulelisttype) then
+    begin
 
-
-
-    EnumProcessModulesEx(thisprocesshandle,nil,0,need, modulelisttype);
-    getmem(x,need);
-    try
-      if EnumProcessModulesEx(thisprocesshandle,@x[0],need,need, modulelisttype) then
-      begin
-
-        count:=need div sizeof(pointer);
-        getmem(modulename,1024);
-        try
-          for i:=0 to count-1 do
-          begin
-            GetModuleFileNameEx(thisprocesshandle,ptrUint(x[i]),modulename,200);
-            symLoadModule64(thisprocesshandle,0,pchar(modulename),nil,ptrUint(x[i]),0);
-          end;
-        finally
-          freemem(modulename);
+      count:=need div sizeof(pointer);
+      getmem(modulename,1024);
+      try
+        for i:=0 to count-1 do
+        begin
+          GetModuleFileNameEx(thisprocesshandle,ptrUint(x[i]),modulename,200);
+          symLoadModule64(thisprocesshandle,0,pchar(modulename),nil,ptrUint(x[i]),0);
         end;
+      finally
+        freemem(modulename);
       end;
-    finally
-      freemem(x);
     end;
-
+  finally
+    freemem(x);
+  end;
 
 
 end;
@@ -735,14 +733,30 @@ begin
   result:=(self.terminated=false) and (SymEnumSymbols(self.thisprocesshandle, baseofdll, NULL, @ES, self));
 end;
 
+
+function TSymbolloaderthread.NetworkES(modulename: string; symbolname: string; address: ptruint; size: integer): boolean;
+begin
+  symbollist.AddSymbol(modulename, modulename+'.'+symbolname, Address, size);
+  symbollist.AddSymbol(modulename, symbolname, Address, size,true);
+  result:=not terminated;
+end;
+
 procedure TSymbolloaderthread.execute;
 var sp: pchar;
     s: string;
 
     temp: string;
+
+    c: TCEConnection;
+
+    mpl: Tstringlist;
+    i: integer;
 begin
+
   try
     try
+      c:=getConnection;
+
       SymbolsLoaded:=false;
       symbollist.clear;
 
@@ -768,25 +782,43 @@ begin
 
       sp:=pchar(s);
 
-
-      SymbolsLoaded:=SymInitialize(thisprocesshandle, sp, true);
-
-      if symbolsloaded then
+      if c=nil then //local
       begin
-        symsetoptions(symgetoptions or SYMOPT_CASE_INSENSITIVE);
-        symsetsearchpath(processhandle,pchar(searchpath));
+        SymbolsLoaded:=SymInitialize(thisprocesshandle, sp, true);
 
-        if kernelsymbols then LoadDriverSymbols;
-        LoadDLLSymbols;
+        if symbolsloaded then
+        begin
+          symsetoptions(symgetoptions or SYMOPT_CASE_INSENSITIVE);
+          symsetsearchpath(processhandle,pchar(searchpath));
 
-        //enumerate all the data from the symbols , store it, and then uninitialize it freeing the files
+          if kernelsymbols then LoadDriverSymbols;
+          LoadDLLSymbols;
 
+          //enumerate all the data from the symbols , store it, and then uninitialize it freeing the files
+          SymEnumerateModules64(thisprocesshandle, @EM, self );
 
+          Symcleanup(thisprocesshandle);
+        end else error:=true;
+      end
+      else
+      begin
+        //networked
+        //get a list of module paths ,fetch the symbols from those modules (if they are indeed modules) and then store them
 
-        SymEnumerateModules64(thisprocesshandle, @EM, self );
+        mpl:=tstringlist.create;
+        self.owner.modulelistMREW.Beginread;
+        try
+          for i:=0 to self.owner.modulelistpos-1 do
+            mpl.AddObject(self.owner.modulelist[i].modulepath, pointer(self.owner.modulelist[i].baseaddress));
+        finally
+          self.owner.modulelistMREW.Endread;
+        end;
 
-        Symcleanup(thisprocesshandle);
-      end else error:=true;
+        for i:=0 to mpl.Count-1 do
+          c.enumSymbolsFromFile(self.owner.modulelist[i].modulepath, ptruint(mpl.Objects[i]), NetworkES);
+
+        mpl.free;
+      end;
     finally
       isloading:=false;
 
@@ -1989,8 +2021,9 @@ var
 
   is64bitprocess: boolean;
 
-
 begin
+
+
   result:=false;
   is64bitprocess:=processhandler.is64Bit;
 
@@ -2030,7 +2063,11 @@ begin
             if module32first(ths,me32) then
             repeat
               x:=me32.szExePath;
-              modulename:=extractfilename(x);
+              if (x[0]<>'[') then //do not extract the filename if it's a 'special' marker
+                modulename:=extractfilename(x)
+              else
+                modulename:=x;
+
 
               alreadyInTheList:=false;
               //check if this modulename is already in the list, and if so check if it's the same base, else add it
@@ -2041,6 +2078,7 @@ begin
                   alreadyInTheList:=true;
                   break; //it's in the list, no need to continue looking, break out of the for loop
                 end;
+
               end;
 
               if not alreadyInTheList then
@@ -2068,7 +2106,7 @@ begin
                 begin
                   if modulelist[modulelistpos].isSystemModule then
                   begin
-                    if pos('wow64', lowercase(ExtractFilePath(x)))>0 then
+                    if pos('wow64', lowercase(ExtractFilePath(x)))>0 then  //todo: Open the file and check if it's 64-bit or not
                       modulelist[modulelistpos].is64bitmodule:=false
                     else
                       modulelist[modulelistpos].is64bitmodule:=true;
