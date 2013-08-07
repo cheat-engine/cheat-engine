@@ -8,6 +8,7 @@ C_SRCS += \
 ../ceserver.c \
 ../ceservertest.c \
 ../porthelp.c \
+../symbols.c \
 ../threads.c 
 
 OBJS += \
@@ -15,6 +16,7 @@ OBJS += \
 ./ceserver.o \
 ./ceservertest.o \
 ./porthelp.o \
+./symbols.o \
 ./threads.o 
 
 C_DEPS += \
@@ -22,6 +24,7 @@ C_DEPS += \
 ./ceserver.d \
 ./ceservertest.d \
 ./porthelp.d \
+./symbols.d \
 ./threads.d 
 
 

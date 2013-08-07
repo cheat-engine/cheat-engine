@@ -6,16 +6,21 @@
 #include <sys/types.h>
 #include <string.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <unistd.h>
 #include <sys/select.h>
 
+#include <zlib.h>
+
 #include <errno.h>
+#include <elf.h>
 
 
 #include "ceserver.h"
 #include "porthelp.h"
 #include "api.h"
 #include "ceservertest.h"
+#include "symbols.h"
 
 pthread_t pth;
 pthread_t identifierthread;
@@ -292,6 +297,7 @@ int DispatchCommand(int currentsocket, unsigned char command)
         sendall(currentsocket, &Context.regs, Context.structsize-sizeof(int), 0); //and context
       }
 
+      break;
 
     }
 
@@ -498,6 +504,8 @@ int DispatchCommand(int currentsocket, unsigned char command)
           //printf("going to send %u bytes\n", sizeof(CeReadProcessMemoryOutput)+o->read);
         }
 
+        //todo: zlib compress it if remote network
+
         int i=sendall(currentsocket, o, sizeof(CeReadProcessMemoryOutput)+o->read, 0);
 
         //if (o->read > 500000)
@@ -626,6 +634,17 @@ int DispatchCommand(int currentsocket, unsigned char command)
         close(currentsocket);
         return NULL;
       }
+
+      break;
+    }
+
+    case CMD_GETSYMBOLLISTFROMFILE:
+    {
+      //get the list and send it to the client
+      //zip it first
+      z_stream strm;
+
+
 
       break;
     }
@@ -937,9 +956,13 @@ int main(int argc, char *argv[])
 
     while (done==0)
     {
+      int b=1;
       a=accept(s, (struct sockaddr *)&addr_client, &clisize);
 
       printf("accept=%d\n", a);
+
+
+      setsockopt(a, IPPROTO_TCP, TCP_NODELAY, &b, sizeof(b));
 
       if (a != -1)
       {
