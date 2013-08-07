@@ -1702,7 +1702,7 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
     if (pthread_mutex_lock(&memorymutex) == 0)
     {
-      {
+
 
         if (ptrace(PTRACE_ATTACH, p->pid,0,0)==0)
         {
@@ -1721,12 +1721,14 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
           ptrace(PTRACE_DETACH, pid,0,0);
         }
-        //else
-        //  printf("ptrace attach failed\n");
-      }
+        else
+          printf("ptrace attach failed (pid=%d)\n", p->pid);
+
 
       pthread_mutex_unlock(&memorymutex);
     }
+    else
+      printf("For some reason I failed to obtain a lock\n");
   }
   else
     printf("RPM: invalid handle\n");
