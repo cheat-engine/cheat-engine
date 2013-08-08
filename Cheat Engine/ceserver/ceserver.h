@@ -153,6 +153,6 @@ typedef struct {
 ssize_t sendall (int s, void *buf, size_t size, int flags);
 ssize_t recvall (int s, void *buf, size_t size, int flags);
 int DispatchCommand(int currentsocket, unsigned char command);
-void CheckForAndDispatchCommand(int currentsocket);
+int CheckForAndDispatchCommand(int currentsocket);
 
 #endif /* CESERVER_H_ */
