@@ -365,47 +365,83 @@ function TCEConnection.NReadProcessMemory(hProcess: THandle; lpBaseAddress: Poin
 var
   input: packed record
     command: byte;
-    handle: integer;
-    baseaddress: qword;
-    size: integer;
+    handle: UINT32;
+    baseaddress: UINT64;
+    size: UINT32;
+    compressed: UINT8;
   end;
 
   output: packed record
     bytesread: integer;
     //followed by the bytes
   end;
+
+  compressedresult: packed record
+    uncompressedsize: uint32;
+    compressedsize: uint32;
+  end;
+
+  compressedbuffer: tmemorystream;
+  d: Tdecompressionstream;
 begin
   result:=false;
   lpNumberOfBytesRead:=0;
-
-  {
-  if ptruint(lpBaseAddress)<$00400000 then
-  asm
-  nop
-  nop
-  nop
-  end;
-  }
 
   //still here so not everything was cached
   input.command:=CMD_READPROCESSMEMORY;
   input.handle:=hProcess;
   input.baseaddress:=ptruint(lpBaseAddress);
   input.size:=nSize;
+  if nsize>128 then
+    input.compressed:=2
+  else
+    input.compressed:=0;
+
   if send(@input, sizeof(input))>0 then
   begin
-    if receive(@output, sizeof(output))>0 then
+    if input.compressed<>0 then
     begin
-      if output.bytesread>0 then
+      if receive(@compressedresult, sizeof(compressedresult))>0 then
       begin
-        if receive(lpBuffer, output.bytesread)>0 then
-        begin
-          result:=true;
-          lpNumberOfBytesRead:=output.bytesread;
-        end;
+        compressedbuffer:=tmemorystream.create;
+        try
+          compressedbuffer.Size:=compressedresult.compressedsize;
+          if receive(compressedbuffer.Memory, compressedresult.compressedsize)>0 then
+          begin
+            //decompress this
+            d:=Tdecompressionstream.create(compressedbuffer, false);
+            try
+              d.ReadBuffer(lpbuffer^, compressedresult.uncompressedsize);
+              result:=compressedresult.uncompressedsize>0;
+              lpNumberOfBytesRead:=compressedresult.uncompressedsize;
+            finally
+              d.free;
+            end;
 
+          end;
+
+
+        finally
+          compressedbuffer.free;
+        end;
       end;
-    end;//else connection error
+    end
+    else
+    begin
+      //not compressed
+      if receive(@output, sizeof(output))>0 then
+      begin
+        if output.bytesread>0 then
+        begin
+          if receive(lpBuffer, output.bytesread)>0 then
+          begin
+            result:=true;
+            lpNumberOfBytesRead:=output.bytesread;
+          end;
+
+        end;
+      end;//else connection error
+    end;
   end;
 end;
 
