@@ -1635,10 +1635,11 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
 #pragma pack(1)
     struct
     {
-      char command;
-      int pHandle;
-      unsigned long long address;
-      int size;
+      uint8_t command;
+      uint32_t pHandle;
+      uint64_t address;
+      uint32_t size;
+      uint8_t compressed;
     } rpm;
 #pragma pack()
 
@@ -1647,6 +1648,7 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
     rpm.pHandle=hProcess;
     rpm.address=(uintptr_t)lpAddress;
     rpm.size=size;
+    rpm.compressed=0;
 
     //and write it to the p->debuggerthreadfd and read out the data
     //aquire lock (I don't want other threads messing with the client socket)
@@ -2100,7 +2102,7 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
 
     PModuleList ml=(PModuleList)malloc(sizeof(ModuleList));
 
-    //printf("Creating module list for process %d\n", th32ProcessID);
+    printf("Creating module list for process %d\n", th32ProcessID);
 
     ml->ReferenceCount=1;
     ml->moduleCount=0;
@@ -2123,20 +2125,22 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
         unsigned long long start, stop;
         char memoryrange[64],modulepath[255];
 
+        modulepath[0]='\0';
+
         sscanf(s, "%llx-%llx %*s %*s %*s %*s %s\n", &start, &stop, modulepath);
 
-        if (modulepath[0]) //it's a module
+        if (modulepath[0]) //it's something
         {
-          if ((mle) && (start==mle->baseAddress+mle->moduleSize) && (strcmp(modulepath, mle->moduleName)==0))
+          if ((mle) && (strcmp(modulepath, mle->moduleName)==0))
           {
-            //same module, append it
-            mle->moduleSize+=(stop-start);
+            //same module as the last entry, adjust the size to encapsule this (may mark non module memory as module memory)
+            mle->moduleSize=stop-(mle->baseAddress);
             continue;
           }
 
           //new module, or not linkable
 
-         // printf("%llx : %s\n", start, modulepath);
+//          printf("%llx : %s\n", start, modulepath);
 
 
           mle=&ml->moduleList[ml->moduleCount];

@@ -478,63 +478,141 @@ int DispatchCommand(int currentsocket, unsigned char command)
       if (r>0)
       {
         PCeReadProcessMemoryOutput o=NULL;
-
-        //if (c.size>200000)
-        //printf("ReadProcessMemory. Address: %llx - Size=%d\n", c.address, c.size);
-
         o=(PCeReadProcessMemoryOutput)malloc(sizeof(CeReadProcessMemoryOutput)+c.size);
-
-        if (o==NULL)
-        {
-          printf("Failure allocating memory\n");
-          while (1);
-        }
-
 
         o->read=ReadProcessMemory(c.handle, (void *)(uintptr_t)c.address, &o[1], c.size);
 
-        if (o->read==0)
-          printf("read 0 bytes\n");
-
-     //   printf("ReadProcessMemory returned %d\n", o->read);
 
 
-        if (o->read > 500000)
+        if (c.compress)
         {
-          //printf("going to send %u bytes\n", sizeof(CeReadProcessMemoryOutput)+o->read);
-        }
+          //compress the output
+         // printf("Compressing output\n");
 
-        //todo: zlib compress it if remote network
+#define COMPRESS_BLOCKSIZE (64*1024)
+          int i;
+          unsigned char *uncompressed=&o[1];
+          uint32_t uncompressedSize=o->read;
+          uint32_t compressedSize=0;
+          int maxBlocks=1+(c.size / COMPRESS_BLOCKSIZE);
 
-        int i=sendall(currentsocket, o, sizeof(CeReadProcessMemoryOutput)+o->read, 0);
+          unsigned char **compressedBlocks=malloc(maxBlocks*sizeof(unsigned char *) ); //send in blocks of 64kb and reallocate the pointerblock if there's not enough space
+          int currentBlock=0;
 
-        //if (o->read > 500000)
-        //  printf("sent %d bytes. Wanted to send %u\n", i, sizeof(c.size)+o->read);
+          z_stream strm;
+          strm.zalloc = Z_NULL;
+          strm.zfree = Z_NULL;
+          strm.opaque = Z_NULL;
+          deflateInit(&strm, c.compress);
 
+          compressedBlocks[currentBlock]=malloc(COMPRESS_BLOCKSIZE);
+          strm.avail_out=COMPRESS_BLOCKSIZE;
+          strm.next_out=compressedBlocks[currentBlock];
 
-        if ((signed int)i!=sizeof(CeReadProcessMemoryOutput)+o->read)
-        {
-          printf("READ INTERUPTION: %d out of %ld\n",i,sizeof(CeReadProcessMemoryOutput)+o->read);
+          strm.next_in=uncompressed;
+          strm.avail_in=uncompressedSize;
 
-          if (i==-1)
+          while (strm.avail_in)
           {
-            int e=errno;
-            char *error=strerror(e);
-            printf("Error: %d: %s\n", e, error);
-            fflush(stdout);
+            r=deflate(&strm, Z_NO_FLUSH);
+            if (r!=Z_OK)
+            {
+              if (r==Z_STREAM_END)
+                break;
+              else
+              {
+                printf("Error while compressing\n");
+                break;
+              }
+            }
 
-            while (1) sleep(10);
+            if (strm.avail_out==0)
+            {
+
+              //new output block
+              currentBlock++;
+              if (currentBlock>=maxBlocks)
+              {
+                //list was too short, reallocate
+                printf("Need to realloc the pointerlist (p1)\n");
+
+                maxBlocks*=2;
+                compressedBlocks=realloc(compressedBlocks, maxBlocks*sizeof(unsigned char*));
+              }
+              compressedBlocks[currentBlock]=malloc(COMPRESS_BLOCKSIZE);
+              strm.avail_out=COMPRESS_BLOCKSIZE;
+              strm.next_out=compressedBlocks[currentBlock];
+            }
           }
-        }
 
-      //  printf("send %d bytes. Wanted to send %lu\n", i, sizeof(c.size)+o->read);
+         // printf("finishing compressiong\n");
+          while (1)
+          {
+
+            r=deflate(&strm, Z_FINISH);
+
+            if (r==Z_STREAM_END)
+              break; //done
+
+            if (r!=Z_OK)
+            {
+              printf("Failure while finishing compression:%d\n", r);
+              break;
+            }
+
+            if (strm.avail_out==0)
+            {
+              //new output block
+
+
+              currentBlock++;
+              if (currentBlock>=maxBlocks)
+              {
+                //list was too short, reallocate
+                printf("Need to realloc the pointerlist (p2)\n");
+                maxBlocks*=2;
+                compressedBlocks=realloc(compressedBlocks, maxBlocks*sizeof(unsigned char*));
+              }
+              compressedBlocks[currentBlock]=malloc(COMPRESS_BLOCKSIZE);
+              strm.avail_out=COMPRESS_BLOCKSIZE;
+              strm.next_out=compressedBlocks[currentBlock];
+            }
+          }
+          deflateEnd(&strm);
+
+          compressedSize=strm.total_out;
+/*
+          printf("Sending compressed data\n");
+
+          printf("uncompressedSize=%d\n", uncompressedSize);
+          printf("compressedSize=%d\n", compressedSize);
+          printf("currentBlock=%d\n", currentBlock);
+
+          printf("strm.avail_out=%d\n", strm.avail_out);*/
+
+          sendall(currentsocket, &uncompressedSize, sizeof(uncompressedSize), MSG_MORE); //followed by the compressed size
+          sendall(currentsocket, &compressedSize, sizeof(compressedSize), MSG_MORE); //the compressed data follows
+          for (i=0; i<=currentBlock; i++)
+          {
+            if (i!=currentBlock)
+              sendall(currentsocket, compressedBlocks[i], COMPRESS_BLOCKSIZE, MSG_MORE);
+            else
+              sendall(currentsocket, compressedBlocks[i], COMPRESS_BLOCKSIZE-strm.avail_out, 0); //last one, flush
+
+            free(compressedBlocks[i]);
+          }
+
+
+          free(compressedBlocks);
+
+
+
+        }
+        else
+          sendall(currentsocket, o, sizeof(CeReadProcessMemoryOutput)+o->read, 0);
 
         if (o)
           free(o);
-
-       // printf("+");
-       // fflush(stdout);
-
       }
 
       break;

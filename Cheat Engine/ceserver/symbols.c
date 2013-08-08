@@ -16,6 +16,7 @@
 #include <string.h>
 #include <zlib.h>
 
+#pragma pack(1)
 typedef struct
 {
   uint64_t address;
@@ -24,6 +25,7 @@ typedef struct
   unsigned char namelength;
   char name[0];
 } symbolinfo, *psymbolinfo;
+#pragma pack()
 
 #define TEMPBUFSIZE 64*1024
 
