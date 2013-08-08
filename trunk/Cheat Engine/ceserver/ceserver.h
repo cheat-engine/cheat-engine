@@ -82,9 +82,10 @@ typedef struct {
 } CeVirtualQueryExOutput, *PCeVirtualQueryExOutput;
 
 typedef struct {
-  int handle;
-  unsigned long long address;
-  int size;
+  uint32_t handle;
+  uint64_t address;
+  uint32_t size;
+  uint8_t  compress;
 } CeReadProcessMemoryInput, *PCeReadProcessMemoryInput;
 
 typedef struct {
