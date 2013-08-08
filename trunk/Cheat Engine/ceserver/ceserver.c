@@ -201,7 +201,7 @@ int DispatchCommand(int currentsocket, unsigned char command)
       {
         int r;
         DebugEvent event;
-        printf("Calling WaitForDebugEvent(%d, %d)\n", wfd.pHandle, wfd.timeout);
+        //printf("Calling WaitForDebugEvent(%d, %d)\n", wfd.pHandle, wfd.timeout);
 
 
         r=WaitForDebugEvent(wfd.pHandle, &event, wfd.timeout);
@@ -228,10 +228,10 @@ int DispatchCommand(int currentsocket, unsigned char command)
       if (recvall(currentsocket, &cfd, sizeof(cfd), MSG_WAITALL)>0)
       {
         int r;
-        printf("Calling ContinueFromDebugEvent(%d, %d, %d)\n", cfd.pHandle, cfd.tid, cfd.ignore);
+       // printf("Calling ContinueFromDebugEvent(%d, %d, %d)\n", cfd.pHandle, cfd.tid, cfd.ignore);
         r=ContinueFromDebugEvent(cfd.pHandle, cfd.tid, cfd.ignore);
 
-        printf("Returned from ContinueFromDebugEvent with %d\n", r);
+       // printf("Returned from ContinueFromDebugEvent with %d\n", r);
         sendall(currentsocket, &r, sizeof(r), 0);
       }
       break;
@@ -775,42 +775,19 @@ int DispatchCommand(int currentsocket, unsigned char command)
   }
 }
 
-void CheckForAndDispatchCommand(int currentsocket)
+int CheckForAndDispatchCommand(int currentsocket)
 {
   int r;
   unsigned char command;
-  fd_set readfds;
-  int sret;
-  struct timespec timeout;
 
-  timeout.tv_nsec=0;
-  timeout.tv_sec=0;
-
-  printf("CheckForAndDispatchCommand:\n");
-
-  fflush(stdout);
-
-  FD_ZERO(&readfds);
-  FD_SET(currentsocket, &readfds);
-
-  sret=select(currentsocket+1, &readfds, NULL, NULL,&timeout );
-  if (sret==0)
+  r=recv(currentsocket, &command, 1, MSG_DONTWAIT);
+  if (r==1)
   {
-    printf("sret==0\n");
-    if (FD_ISSET(currentsocket, &readfds))
-    {
-      printf("  Data waiting\n");
-      r=recv(currentsocket, &command, 1, 0);
-      if (r==1)
-      {
-        //if so, handle that first
-        DispatchCommand(currentsocket, command);
-      }
-    }
+    DispatchCommand(currentsocket, command);
+    return 1;
   }
-  else
-    printf("select returned -1: %d\n", errno);
 
+  return 0;
 
 
 }

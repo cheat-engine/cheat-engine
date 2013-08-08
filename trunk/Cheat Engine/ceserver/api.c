@@ -99,7 +99,7 @@ pthread_mutex_t memorymutex;
 pthread_mutex_t debugsocketmutex;
 //pthread_mutex_t mut_RPM;
 
-
+int log=0;
 
 typedef struct
 {
@@ -1134,7 +1134,7 @@ int WaitForDebugEventNative(PProcessData p, PDebugEvent devent, int tid, int tim
 
 
 
-  printf("WaitForDebugEventNative (p=%p, devent=%p, tid=%d timeout=%d)\n", p, devent, tid, timeout);
+  //printf("WaitForDebugEventNative (p=%p, devent=%p, tid=%d timeout=%d)\n", p, devent, tid, timeout);
 
 
   //first check if there is already a thread waiting
@@ -1143,7 +1143,7 @@ int WaitForDebugEventNative(PProcessData p, PDebugEvent devent, int tid, int tim
   {
     currentTID=waitpid(tid, &status, __WALL | WNOHANG);
 
-    printf("First waitid=%d\n", currentTID);
+    //printf("First waitid=%d\n", currentTID);
 
     if (currentTID>0)
     {
@@ -1161,7 +1161,7 @@ int WaitForDebugEventNative(PProcessData p, PDebugEvent devent, int tid, int tim
       //still here, this wasn't what I was looking for...
       //add it to the queue
 
-      printf("Unexpected event from thread %d while waiting for %d\n", currentTID, tid);
+      //printf("Unexpected event from thread %d while waiting for %d\n", currentTID, tid);
 
 
 
@@ -1170,16 +1170,16 @@ int WaitForDebugEventNative(PProcessData p, PDebugEvent devent, int tid, int tim
     //try again, perhaps there is another one available right now
   }
 
-  printf("Checking for debug server command\n");
+ // printf("Checking for debug server command\n");
 
-  fflush(stdout);
+//  fflush(stdout);
 
   //still here
   CheckForAndDispatchCommand(p->debuggerServer);
 
 
-  printf("After check and dispatch\n");
-  fflush(stdout);
+ // printf("After check and dispatch\n");
+ // fflush(stdout);
 
 
   if (timeout>=0)
@@ -1192,7 +1192,7 @@ int WaitForDebugEventNative(PProcessData p, PDebugEvent devent, int tid, int tim
       struct timeval current,wanted, diff;
       int timedwait;
 
-      printf("timed wait\n");
+     // printf("timed wait\n");
 
       memset(&abstime, 0, sizeof(abstime));
       gettimeofday(&current,NULL);
@@ -1209,19 +1209,25 @@ int WaitForDebugEventNative(PProcessData p, PDebugEvent devent, int tid, int tim
       while (currentTID<=0)
       {
         timedwait=sem_timedwait(&sem_DebugThreadEvent, &abstime);
-        printf("sem_timedwait=%d\n", timedwait);
+        if (log==1)
+          printf("log=1: sem_timedwait=%d\n", timedwait);
 
         if (timedwait==0)
         {
           //it got signaled
           //check if there is a debugger thread message waiting
-          CheckForAndDispatchCommand(p->debuggerServer);
+          if (log==1)
+            printf("Checking for dispatch command\n");
+
+          i=CheckForAndDispatchCommand(p->debuggerServer);
+          if (log==1)
+            printf("CheckForAndDispatchCommand returned %d\n", i);
 
 
-          printf("Calling waitpid(%d, %p, %x)\n", tid, &status, WNOHANG| __WALL);
+         // printf("Calling waitpid(%d, %p, %x)\n", tid, &status, WNOHANG| __WALL);
           currentTID=waitpid(tid, &status, __WALL | WNOHANG);
 
-          printf("currentTID = %d\n", currentTID);
+         // printf("currentTID = %d\n", currentTID);
 
           if (currentTID>0)
           {
@@ -1236,7 +1242,7 @@ int WaitForDebugEventNative(PProcessData p, PDebugEvent devent, int tid, int tim
               return TRUE;
 
             //still here
-            printf("Still here so currentTID(%d) is not the same as tid (%d)\n", currentTID, tid);
+           // printf("Still here so currentTID(%d) is not the same as tid (%d)\n", currentTID, tid);
             AddDebugEventToQueue(p, devent);
           }
           currentTID=-1; //retry
@@ -1246,18 +1252,18 @@ int WaitForDebugEventNative(PProcessData p, PDebugEvent devent, int tid, int tim
         {
           if (errno==ETIMEDOUT)
           {
-            printf("timeout\n");
+            //printf("timeout\n");
             return FALSE;
           }
-          else
-            printf("Not a timeout. Retry\n");
+          //else
+          //  printf("Not a timeout. Retry\n");
         }
       }
     }
     else
     {
       //no wait
-      printf("no wait\n");
+      //printf("no wait\n");
 
 
     }
@@ -1265,7 +1271,7 @@ int WaitForDebugEventNative(PProcessData p, PDebugEvent devent, int tid, int tim
   }
   else
   {
-    printf("Infinite wait\n");
+    //printf("Infinite wait\n");
     currentTID=-1;
     while (currentTID<0)
     {
@@ -1297,7 +1303,7 @@ int WaitForDebugEventNative(PProcessData p, PDebugEvent devent, int tid, int tim
 
   }
 
-  printf("Returning false\n");
+  //printf("Returning false\n");
 
 
   return FALSE;
@@ -1334,7 +1340,7 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
 
       if (de) //there was a queued event, return it
       {
-        printf("Returning queued event (sig=%d,  thread=%d)\n", de->de.debugevent, de->de.threadid);
+        //printf("Returning queued event (sig=%d,  thread=%d)\n", de->de.debugevent, de->de.threadid);
         *devent=de->de;
         p->debuggedThreadEvent=*devent;
         free(de);
@@ -1363,27 +1369,27 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
 
 int ContinueFromDebugEvent(HANDLE hProcess, int tid, int ignoresignal)
 {
-  printf("ContinueFromDebugEvent called\n");
+  //printf("ContinueFromDebugEvent called\n");
   if (GetHandleType(hProcess) == htProcesHandle )
   {
     PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
     PThreadData td=GetThreadData(p, tid);
     siginfo_t si;
 
-    printf("td==%p\n", td);
+   //printf("td==%p\n", td);
 
     if (td==NULL)
       return 0; //invalid thread
 
-    printf("td->suspendcount=%d\n", td->suspendCount);
+   // printf("td->suspendcount=%d\n", td->suspendCount);
 
     if (td->suspendCount>0)
       return 1; //keep it suspended
 
-    printf("p->debuggedThreadEvent.debugevent=%d\n", p->debuggedThreadEvent.debugevent);
+   // printf("p->debuggedThreadEvent.debugevent=%d\n", p->debuggedThreadEvent.debugevent);
 
-    if (p->debuggedThreadEvent.threadid!=tid)
-      printf("Unexpected thread continue. Expected %d got %d\n", p->debuggedThreadEvent.threadid, tid);
+    //if (p->debuggedThreadEvent.threadid!=tid)
+    //  printf("Unexpected thread continue. Expected %d got %d\n", p->debuggedThreadEvent.threadid, tid);
 
     if (p->debuggedThreadEvent.debugevent<0) //virtual debug event. Just ignore
     {
@@ -1397,8 +1403,8 @@ int ContinueFromDebugEvent(HANDLE hProcess, int tid, int ignoresignal)
     {
       int signal=ignoresignal?0:si.si_signo;
 
-      printf("si.si_signo=%d\n", si.si_signo);
-      printf("si.si_code=%d\n", si.si_code);
+     // printf("si.si_signo=%d\n", si.si_signo);
+     // printf("si.si_code=%d\n", si.si_code);
 
 
 
@@ -1407,7 +1413,7 @@ int ContinueFromDebugEvent(HANDLE hProcess, int tid, int ignoresignal)
         signal=0;
       }
 
-      printf("Continue %d with signal %d\n", tid, signal);
+      //printf("Continue %d with signal %d\n", tid, signal);
 
       int result;
       if (ignoresignal==2)
@@ -1431,7 +1437,7 @@ int ContinueFromDebugEvent(HANDLE hProcess, int tid, int ignoresignal)
 
 
 
-      printf("Continue result=%d\n", result);
+     // printf("Continue result=%d\n", result);
 
       if (td)
         td->isPaused=0;
@@ -1570,17 +1576,17 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
     int isdebugged=p->debuggedThreadEvent.threadid;
     DebugEvent event;
 
-    printf("ReadProcessMemoryDebug inside debuggerthread (thread debbugged=%d)\n", isdebugged);
+    //printf("ReadProcessMemoryDebug inside debuggerthread (thread debbugged=%d)\n", isdebugged);
 
     if (!isdebugged)
     {
-      printf("Not currently debugging a thread. Suspending a random thread\n");
+     // printf("Not currently debugging a thread. Suspending a random thread\n");
       kill(p->pid, SIGSTOP);
 
-      printf("Going to wait for debug event\n");
+      //printf("Going to wait for debug event\n");
       WaitForDebugEventNative(p, &event, -1, -1); //wait for it myself
 
-      printf("After WaitForDebugEventNative (tid=%d)\n", event.threadid);
+     // printf("After WaitForDebugEventNative (tid=%d)\n", event.threadid);
     }
 
     bytesread=-1;
@@ -1604,7 +1610,7 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
       if (event.debugevent==SIGSTOP)
       {
 
-        printf("Continue from sigstop\n");
+      //  printf("Continue from sigstop\n");
 
         ptrace(PTRACE_CONT, event.threadid, 0,0);
 
@@ -1629,7 +1635,7 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
   {
 
     int tid=p->pid; //p->threadlist[p->threadlistpos-1];
-    printf("ReadProcessMemoryDebug from outside the debuggerthread. Waking debuggerthread\n");
+   // printf("ReadProcessMemoryDebug from outside the debuggerthread. Waking debuggerthread\n");
 
     //setup a rpm command
 #pragma pack(1)
@@ -1654,15 +1660,24 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
     //aquire lock (I don't want other threads messing with the client socket)
     if (pthread_mutex_lock(&debugsocketmutex) == 0)
     {
-      printf("Sending message to the debuggerthread\n");
+    //  printf("Sending message to the debuggerthread\n");
 
       sendall(p->debuggerClient, &rpm, sizeof(rpm), 0);
 
+
+      log=1;
       printf("Waking debugger thread and waiting for result\n");
       WakeDebuggerThread();
 
+      clock_t t1=clock();
+
       recvall(p->debuggerClient, &bytesread, sizeof(bytesread), MSG_WAITALL);
-      printf("After waiting for debugger thread: bytesread=%d\n", bytesread);
+
+      clock_t t2=clock();
+
+      printf("received result after %d\n", t2-t1);
+      log=0;
+    //  printf("After waiting for debugger thread: bytesread=%d\n", bytesread);
 
       if (bytesread>0)
         recvall(p->debuggerClient, buffer, bytesread, MSG_WAITALL);
