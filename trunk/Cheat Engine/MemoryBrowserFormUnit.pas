@@ -2580,7 +2580,7 @@ begin
 
   if opendlldialog.Execute then
   begin
-    dll:=opendlldialog.Filename;
+    dll:=utf8toansi(opendlldialog.Filename);
     if MessageDlg(rsDoYouWantToExecuteAFunctionOfTheDll, mtConfirmation	, [mbyes, mbno], 0)=mryes then
     begin
       dllList:=tstringlist.Create;

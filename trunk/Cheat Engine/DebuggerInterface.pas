@@ -22,18 +22,41 @@ type
     name: string;
     function WaitForDebugEvent(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL; virtual; abstract;
     function ContinueDebugEvent(dwProcessId: DWORD; dwThreadId: DWORD; dwContinueStatus: DWORD): BOOL; virtual; abstract;
-    function SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL; virtual; abstract;
-    function GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false): BOOL; virtual; abstract;
+    function SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL; virtual;
+    function SetThreadContextArm(hThread: THandle; const lpContext: TARMCONTEXT; isFrozenThread: Boolean=false): BOOL; virtual;
+    function GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false): BOOL; virtual;
+    function GetThreadContextArm(hThread: THandle; var lpContext: TARMCONTEXT; isFrozenThread: Boolean=false): BOOL; virtual;
     function DebugActiveProcess(dwProcessId: DWORD): BOOL; virtual; abstract;
     function DebugActiveProcessStop(dwProcessID: DWORD): BOOL; virtual;
     function GetLastBranchRecords(lbr: pointer): integer; virtual;
 
     property DebuggerCapabilities: TDebuggerCapabilitiesSet read fDebuggerCapabilities;
     property errorstring: string read ferrorstring;
-
 end;
 
 implementation
+
+function TDebuggerInterface. SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL;
+begin
+  result:=false;
+end;
+
+function TDebuggerInterface.SetThreadContextArm(hThread: THandle; const lpContext: TARMCONTEXT; isFrozenThread: Boolean=false): BOOL;
+begin
+  result:=false;
+end;
+
+function TDebuggerInterface.GetThreadContextArm(hThread: THandle; var lpContext: TARMCONTEXT; isFrozenThread: Boolean=false): BOOL;
+begin
+  result:=false;
+end;
+
+function TDebuggerInterface.GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false): BOOL;
+begin
+  result:=false;
+end;
+
+
 
 function TDebuggerInterface.DebugActiveProcessStop(dwProcessID: DWORD): BOOL;
 begin
