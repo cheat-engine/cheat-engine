@@ -89,6 +89,7 @@ type
 
     DebugRegistersUsedByCE: byte; //mask containing the bits for each DR used
     context: PContext;  //PContext but it does belong to this thread. It's due to alignment issues
+    armcontext: TArmContext;
 
     procedure TracerQuit;
     procedure suspend;
@@ -127,7 +128,8 @@ implementation
 
 uses foundcodeunit, DebugHelper, MemoryBrowserFormUnit, frmThreadlistunit,
      WindowsDebugger, VEHDebugger, KernelDebuggerInterface, NetworkDebuggerInterface,
-     frmDebugEventsUnit, formdebugstringsunit, symbolhandler;
+     frmDebugEventsUnit, formdebugstringsunit, symbolhandler,
+     networkInterface, networkInterfaceApi, ProcessHandlerUnit;
 
 procedure TDebugThreadHandler.AddDebugEventString;
 begin
@@ -150,18 +152,24 @@ end;
 procedure TDebugThreadHandler.fillContext;
 var
   i: integer;
+  c: pointer;
 begin
   if handle<>0 then
   begin
-    context.ContextFlags := CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS;
-    outputdebugstring(pchar(format('GetThreadContext(%x, %x, %p)',[threadid, handle,@context])));
-
-
-    if not getthreadcontext(handle, context^,  isHandled) then
+    if processhandler.SystemArchitecture=archArm then
     begin
-      i := getlasterror;
-      outputdebugstring(PChar('getthreadcontext error:' + IntToStr(getlasterror)));
+      GetThreadContextArm(handle, armcontext, ishandled);
+    end
+    else
+    begin
+      context.ContextFlags := CONTEXT_ALL or CONTEXT_EXTENDED_REGISTERS;
+      if not getthreadcontext(handle, context^,  isHandled) then
+      begin
+        i := getlasterror;
+        outputdebugstring(PChar('getthreadcontext error:' + IntToStr(getlasterror)));
+      end;
     end;
+
   end else outputdebugstring('fillContext: handle=0');
 end;
 
@@ -971,7 +979,7 @@ begin
       begin
         //Only one breakpoint at a time (for now)
 
-        result:=SingleStep(dwContinueStatus);
+//        result:=SingleStep(dwContinueStatus);
 
       end
       else
@@ -1019,7 +1027,11 @@ begin
   OutputDebugString('CreateThreadDebugEvent');
   processid := debugevent.dwProcessId;
   threadid  := debugevent.dwThreadId;
-  handle    := OpenThread(THREAD_ALL_ACCESS, false, threadid ); //debugevent.CreateThread.hThread;
+
+  if currentdebuggerinterface is TNetworkDebuggerInterface then
+    handle  := debugevent.CreateThread.hThread
+  else
+    handle  := OpenThread(THREAD_ALL_ACCESS, false, threadid );
 
   Result    := true;
 

@@ -213,6 +213,29 @@ type
   _CONTEXT=CONTEXT;
 
 {$endif}
+type
+  TARMCONTEXT=packed record
+     R0: DWORD;
+     R1: DWORD;
+     R2: DWORD;
+     R3: DWORD;
+     R4: DWORD;
+     R5: DWORD;
+     R6: DWORD;
+     R7: DWORD;
+     R8: DWORD;
+     R9: DWORD;
+     R10: DWORD;
+     FP: DWORD;
+     IP: DWORD;
+     SP: DWORD;
+     LR: DWORD;
+     PC: DWORD;
+     CPSR: DWORD;
+     ORIG_R0: DWORD;
+  end;
+
+  PARMCONTEXT=^TARMCONTEXT;
 
 
 //credits to jedi code library for filling in the "extended registers"

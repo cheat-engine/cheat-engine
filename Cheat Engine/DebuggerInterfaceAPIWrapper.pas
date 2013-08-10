@@ -14,6 +14,8 @@ function WaitForDebugEvent(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD)
 function ContinueDebugEvent(dwProcessId: DWORD; dwThreadId: DWORD; dwContinueStatus: DWORD): BOOL;
 function SetThreadContext(hThread: THandle; const lpContext: TContext; isFrozenThread: Boolean=false): BOOL;
 function GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThread: Boolean=false): BOOL;
+function GetThreadContextArm(hThread: THandle; var lpContext: TARMCONTEXT; isFrozenThread: Boolean=false): BOOL;
+
 function DebugActiveProcess(dwProcessId: DWORD): WINBOOL;
 function DebugActiveProcessStop(dwProcessID: DWORD): WINBOOL;
 
@@ -51,6 +53,14 @@ function GetThreadContext(hThread: THandle; var lpContext: TContext; isFrozenThr
 begin
   if CurrentDebuggerInterface<>nil then
     result:=CurrentDebuggerInterface.GetThreadContext(hThread, lpContext, isFrozenThread)
+  else
+    result:=false;
+end;
+
+function GetThreadContextArm(hThread: THandle; var lpContext: TARMCONTEXT; isFrozenThread: Boolean=false): BOOL;
+begin
+  if CurrentDebuggerInterface<>nil then
+    result:=CurrentDebuggerInterface.GetThreadContextArm(hThread, lpContext, isFrozenThread)
   else
     result:=false;
 end;
