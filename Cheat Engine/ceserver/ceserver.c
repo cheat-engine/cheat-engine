@@ -284,7 +284,6 @@ int DispatchCommand(int currentsocket, unsigned char command)
 
 
       int result;
-      printf("Sending message to the debuggerthread\n");
 
       recvall(currentsocket, &gtc, sizeof(gtc), MSG_WAITALL);
       result=GetThreadContext(gtc.hProcess, gtc.tid, &Context, gtc.type);
@@ -293,8 +292,9 @@ int DispatchCommand(int currentsocket, unsigned char command)
       if (result)
       {
         //followed by the contextsize
-        sendall(currentsocket, &Context.structsize, sizeof(int), 0);
-        sendall(currentsocket, &Context.regs, Context.structsize-sizeof(int), 0); //and context
+        uint32_t structsize=sizeof(Context);
+        sendall(currentsocket, &structsize, sizeof(structsize), 0);
+        sendall(currentsocket, &Context, structsize, 0); //and context
       }
 
       break;

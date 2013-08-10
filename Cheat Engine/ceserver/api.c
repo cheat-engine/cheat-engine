@@ -710,7 +710,7 @@ int GetThreadContext(HANDLE hProcess, int tid, PCONTEXT Context, int type)
 /*
  * Gets the context of the given thread
  * Freezes/Resumes the thread for you if it isn't suspended yet
- * type is the data to be gathered
+ * type is the data to be gathered (currently ignored but may be used in the future for specific data)
  */
 {
   int r=FALSE;
@@ -739,6 +739,9 @@ int GetThreadContext(HANDLE hProcess, int tid, PCONTEXT Context, int type)
         }
 
         //the thread is paused, so fetch the data
+
+
+
         k=ptrace(PTRACE_GETREGS, tid, 0, &Context->regs);
         printf("ptrace returned %d\n", k);
 
@@ -805,8 +808,10 @@ int GetThreadContext(HANDLE hProcess, int tid, PCONTEXT Context, int type)
         if (result)
         {
           //followed by the contextsize
-          recvall(p->debuggerClient, &Context->structsize, sizeof(int), MSG_WAITALL);
-          recvall(p->debuggerClient, &Context->regs, Context->structsize-sizeof(int), MSG_WAITALL); //and context
+          uint32_t structsize;
+
+          recvall(p->debuggerClient, &structsize, sizeof(structsize), MSG_WAITALL);
+          recvall(p->debuggerClient, &Context->regs, structsize, MSG_WAITALL); //and context
         }
 
 
