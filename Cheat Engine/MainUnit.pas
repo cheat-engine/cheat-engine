@@ -22,7 +22,7 @@ uses
   vmxfunctions, FileUtil, networkInterfaceApi, networkconfig, d3dhookUnit, PNGcomn,
   FPimage, byteinterpreter, frmgroupscanalgoritmgeneratorunit, vartypestrings,
   groupscancommandparser, GraphType, IntfGraphics, RemoteMemoryManager,
-  DBK64SecondaryLoader, savedscanhandler, debuggertypedefinitions;
+  DBK64SecondaryLoader, savedscanhandler, debuggertypedefinitions, networkInterface;
 
 //the following are just for compatibility
 
@@ -4150,8 +4150,10 @@ begin
     cbCaseSensitive.checked := newstate.cbCaseSensitive.checked;
 
 
+    if newstate.foundlist3.ItemIndex=-1 then
+      newstate.foundlist3.ItemIndex:=0;
 
-    if newstate.foundlist3.ItemIndex < foundcount then
+    if (newstate.foundlist3.ItemIndex < foundcount) then
     begin
       foundlist3.ItemIndex := newstate.foundlist3.ItemIndex;
       foundlist3.Items[newstate.foundlist3.ItemIndex].Selected := True;
@@ -4948,9 +4950,31 @@ begin
 end;
 
 procedure TMainForm.FoundListDblClick(Sender: TObject);
+var i: integer;
 begin
   if foundList3.SelCount > 0 then
-    AddToRecord(FoundList3.ItemIndex);
+  begin
+    if FoundList3.itemindex<>-1 then
+      AddToRecord(FoundList3.ItemIndex)
+    else
+    begin
+      if foundlist3.selected<>nil then
+        AddToRecord(FoundList3.selected.Index)
+      else
+      begin
+        if foundList3.Items.Count<100 then
+        begin
+          for i:=0 to foundList3.items.count-1 do
+            if foundlist3.Items[i].Selected then
+              AddToRecord(i);
+        end
+        else
+          if foundList3.Items.Count>0 then
+            AddToRecord(0);
+      end;
+    end;
+
+  end;
 end;
 
 procedure TMainForm.Browsethismemoryarrea1Click(Sender: TObject);
@@ -7700,12 +7724,9 @@ var t: TD3DHook_Texture;
   buffer,buffer2: pointer;
   exportlist: pchar;
   max: integer;
-begin
 
-  if isRunningDBVM then
-    showmessage('yes')
-  else
-    showmessage('no');
+  c: TCEConnection;
+begin
 
 {  memorybrowser.hexview.address:=GetStackStart;
   memorybrowser.show;}
