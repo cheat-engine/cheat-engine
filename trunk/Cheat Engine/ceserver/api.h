@@ -11,11 +11,14 @@
 #include <stdint.h>
 #include <pthread.h>
 #include <sys/queue.h>
-#include <asm/ptrace.h>
 
 #include "porthelp.h"
 
-
+#ifdef __arm__
+#include <linux/user.h>
+#else
+#include <sys/user.h>
+#endif
 
 typedef struct
 {
@@ -36,11 +39,11 @@ typedef struct
 
 typedef struct
 {
-  int structsize;
-  //arm/x86 stuff
+#ifdef __arm__
   struct pt_regs regs;
-
-
+#else
+  struct user_regs_struct regs;
+#endif
 } CONTEXT, *PCONTEXT;
 
 typedef struct {
@@ -126,6 +129,9 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsiz
 
 int SuspendThread(HANDLE hProcess, int tid);
 int ResumeThread(HANDLE hProcess, int tid);
+
+int GetThreadContext(HANDLE hProcess, int tid, PCONTEXT Context, int type);
+
 
 PDebugEvent FindThreadDebugEventInQueue(PProcessData p, int tid);
 void AddDebugEventToQueue(PProcessData p, PDebugEvent devent);
