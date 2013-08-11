@@ -737,7 +737,7 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getHotkeyByID', memoryrecord_getHotkeyByID);
 
 
-  luaclass_addPropertyToTable(L, metatable, userdata, 'Description', memoryrecord_setDescription, memoryrecord_getDescription);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Description', memoryrecord_getDescription, memoryrecord_setDescription);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Address', memoryrecord_getAddress, memoryrecord_setAddress);
   luaclass_addPropertyToTable(L, metatable, userdata, 'CurrentAddress', memoryrecord_getCurrentAddress, nil);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Type', memoryrecord_getType, memoryrecord_setType);
