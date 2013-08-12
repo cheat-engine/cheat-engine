@@ -46,6 +46,14 @@ begin
   if CurrentDebuggerInterface<>nil then
     result:=CurrentDebuggerInterface.SetThreadContext(hThread, lpContext, isFrozenThread)
   else
+    result:=NewKernelHandler.SetThreadContext(hThread, lpcontext);
+end;
+
+function SetThreadContextArm(hThread: THandle; const lpContext: TArmContext; isFrozenThread: Boolean=false): BOOL;
+begin
+  if CurrentDebuggerInterface<>nil then
+    result:=CurrentDebuggerInterface.SetThreadContextArm(hThread, lpContext, isFrozenThread)
+  else
     result:=false;
 end;
 
@@ -54,7 +62,7 @@ begin
   if CurrentDebuggerInterface<>nil then
     result:=CurrentDebuggerInterface.GetThreadContext(hThread, lpContext, isFrozenThread)
   else
-    result:=false;
+    result:=NewKernelHandler.GetThreadContext(hThread, lpContext);
 end;
 
 function GetThreadContextArm(hThread: THandle; var lpContext: TARMCONTEXT; isFrozenThread: Boolean=false): BOOL;

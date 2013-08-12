@@ -72,7 +72,7 @@ type
     procedure cleanupDeletedBreakpoints(Idle: boolean=true);
 
     function SetBreakpoint(breakpoint: PBreakpoint; UpdateForOneThread: TDebugThreadHandler=nil): boolean;
-    procedure UnsetBreakpoint(breakpoint: PBreakpoint; specificContext: PContext=nil);
+    procedure UnsetBreakpoint(breakpoint: PBreakpoint; specificContext: PContext=nil; threadid:integer=-1);
 
 
     function lockThreadlist: TList;
@@ -625,6 +625,8 @@ begin
       end;
 
       result:=networkSetBreakpoint(processhandle, tid, breakpoint.address, bptype, breakpoint.size );
+      if result then
+        breakpoint^.active := True;
       exit;
     end;
 
@@ -778,7 +780,7 @@ begin
 
 end;
 
-procedure TDebuggerThread.UnsetBreakpoint(breakpoint: PBreakpoint; specificContext: PContext=nil);
+procedure TDebuggerThread.UnsetBreakpoint(breakpoint: PBreakpoint; specificContext: PContext=nil; threadid: integer=-1);
 var
   Debugregistermask: dword;
   oldprotect, bw: dword;
@@ -790,12 +792,24 @@ var
 
   ar: TAccessRights;
   activestatewhendone: boolean;
+
+  tid: integer;
 begin
   activestatewhendone:=false; //by default the active state will be false
 
   if breakpoint^.breakpointMethod = bpmDebugRegister then
   begin
     //debug registers
+    if CurrentDebuggerInterface is TNetworkDebuggerInterface then
+    begin
+      //network
+      NetworkRemoveBreakpoint(processhandle, threadid);
+      breakpoint.active:=false;
+      exit;
+    end;
+
+
+
     Debugregistermask := $F shl (16 + 4 * breakpoint.debugRegister) + (3 shl (breakpoint.debugregister * 2));
     Debugregistermask := not Debugregistermask; //inverse the bits
 
@@ -1023,6 +1037,17 @@ var
   originalbyte: byte;
   x: dword;
 begin
+  if CurrentDebuggerInterface is TNetworkDebuggerInterface then
+  begin
+    breakpointcs.enter;
+    try
+      if (threadid=0) and (BreakpointList.Count>0) then
+        raise exception.create('The network debugger only supports 1 breakpoint at a time');
+    finally
+      breakpointcs.leave;
+    end;
+  end;
+
   if bpm=bpmInt3 then
   begin
     if dbcSoftwareBreakpoint in CurrentDebuggerInterface.DebuggerCapabilities then

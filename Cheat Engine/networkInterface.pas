@@ -53,7 +53,8 @@ type
     function WaitForDebugEvent(hProcess: THandle; timeout: integer; var devent: TNetworkDebugEvent):BOOL;
     function ContinueDebugEvent(hProcess: THandle; threadid: dword; continuemethod: integer): BOOL;
     function SetBreakpoint(hProcess: THandle; threadid: integer; address: PtrUInt; bptype: integer; bpsize: integer): boolean;
-    function AllocateAndGetContext(threadid: integer): pointer;
+    function RemoveBreakpoint(hProcess: THandle; threadid: integer): boolean;
+    function AllocateAndGetContext(hProcess: Thandle; threadid: integer): pointer;
     function getVersion(var name: string): integer;
     function getArchitecture: integer;
     function enumSymbolsFromFile(modulepath: string; modulebase: ptruint; callback: TNetworkEnumSymCallback): boolean;
@@ -748,32 +749,68 @@ begin
 
 end;
 
-function TCEConnection.AllocateAndGetContext(threadid: integer): pointer;
+function TCEConnection.RemoveBreakpoint(hProcess: THandle; threadid: integer): boolean;
+var
+  input: packed record
+    command: byte;
+    handle: integer;
+    tid: integer;
+  end;
+
+  r: integer;
+
+begin
+  result:=false;
+
+  if ((hProcess shr 24) and $ff)= $ce then
+  begin
+    input.command:=CMD_REMOVEBREAKPOINT;
+    input.handle:=hProcess and $ffffff;
+    input.tid:=threadid;
+
+    if send(@input, sizeof(input))>0 then
+    begin
+      if receive(@r, sizeof(r))>0 then
+        result:=r<>0;
+    end;
+  end;
+
+end;
+
+function TCEConnection.AllocateAndGetContext(hProcess: Thandle; threadid: integer): pointer;
 //get he context and save it in an allocated memory block of variable size. The caller is responsible for freeing this block
 var
   Input: packed record
     command: UINT8;
+    hprocess: uint32;
     threadid: uint32;
     ctype: uint32;  //ignored for now
   end;
 
   contextsize: UINT32;
+  r: integer;
 begin
   result:=nil;
   input.command:=CMD_GETTHREADCONTEXT;
+  input.hprocess:=hProcess and $ffffff;
   input.threadid:=threadid;
   input.ctype:=0;
 
   if send(@input, sizeof(input))>0 then
   begin
-    if receive(@contextsize, sizeof(contextsize))>0 then
+    if receive(@r, sizeof(r))>0 then
     begin
-      getmem(result,  contextsize);
-      if receive(result, contextsize)=0 then
+
+      if (r<>0) and (receive(@contextsize, sizeof(contextsize))>0) then
       begin
-        freemem(result);
-        result:=nil;
+        getmem(result,  contextsize);
+        if receive(result, contextsize)=0 then
+        begin
+          freemem(result);
+          result:=nil;
+        end;
       end;
+
     end;
   end;
 

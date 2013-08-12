@@ -418,7 +418,7 @@ begin
       begin
         context.Dr6:=0;  //unset breakpoint relies on this being 0 of ffff0ff0 is handled
         setContext;
-        TdebuggerThread(debuggerthread).UnsetBreakpoint(bp, context);
+        TdebuggerThread(debuggerthread).UnsetBreakpoint(bp, context, threadid);
       end;
     end;
   end;
@@ -592,7 +592,7 @@ begin
     begin
       bpp:=PBreakpoint(breakpointlist.Items[i]);
 
-      if InRangeX(address, bpp.address, bpp.address+bpp.size-1) then
+      if InRangeX(address, bpp.address, bpp.address+bpp.size-1) or (CurrentDebuggerInterface is TNetworkDebuggerInterface) then
       begin
         found:=true;
         bpp2:=bpp;
@@ -978,8 +978,7 @@ begin
       if (CurrentDebuggerInterface is TNetworkDebuggerInterface) then
       begin
         //Only one breakpoint at a time (for now)
-
-//        result:=SingleStep(dwContinueStatus);
+        DispatchBreakpoint(0, dwContinueStatus);
 
       end
       else

@@ -333,7 +333,7 @@ begin
     lpContext.ContextFlags:=0;
   end else
   begin
-    outputdebugstring('Use the default method');
+   // outputdebugstring('Use the default method');
     result:=newkernelhandler.GetThreadContext(hthread, lpContext);
   end;
 end;

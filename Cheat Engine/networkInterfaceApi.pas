@@ -28,6 +28,7 @@ function NetworkModule32Next(hSnapshot: HANDLE; var lpme: MODULEENTRY32): BOOL; 
 
 function NetworkCloseHandle(handle: THandle):WINBOOL; stdcall;
 function NetworkSetBreakpoint(handle: THandle; threadid: integer; address: PtrUInt; bptype: integer; bpsize: integer): boolean;
+function NetworkRemoveBreakpoint(handle: THandle; threadid: integer): boolean;
 
 
 implementation
@@ -120,6 +121,14 @@ function NetworkSetBreakpoint(handle: THandle; threadid: integer; address: PtrUI
 begin
   if getConnection<>nil then
     result:=connection.SetBreakpoint(handle, threadid, address, bptype, bpsize)
+  else
+    result:=FALSE;
+end;
+
+function NetworkRemoveBreakpoint(handle: THandle; threadid: integer): boolean;
+begin
+  if getConnection<>nil then
+    result:=connection.RemoveBreakpoint(handle, threadid)
   else
     result:=FALSE;
 end;
