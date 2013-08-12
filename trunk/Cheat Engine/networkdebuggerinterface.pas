@@ -214,7 +214,7 @@ begin
   c:=getConnection;
   if c<>nil then
   begin
-    carm:=c.AllocateAndGetContext(hThread);
+    carm:=c.AllocateAndGetContext(handle, hThread);
 
 
     if (carm<>nil) and (processhandler.SystemArchitecture=archARM) then
@@ -260,10 +260,13 @@ var
   c: TCEConnection=nil;
 begin
   result:=false;
+
+  zeromemory(@lpContext, sizeof(TContext));
+
   c:=getConnection;
   if c<>nil then
   begin
-    c32:=c.AllocateAndGetContext(hThread);
+    c32:=c.AllocateAndGetContext(handle, hThread);
 
 
     if (c32<>nil) and (processhandler.SystemArchitecture=archX86) then
@@ -326,6 +329,8 @@ begin
     if c32<>nil then
       freemem(c32);
   end;
+
+  result:=lpContext.{$ifdef cpu64}rip{$else}eip{$endif}<>0;
 end;
 
 
