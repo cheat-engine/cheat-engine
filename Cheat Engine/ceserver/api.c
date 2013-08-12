@@ -265,6 +265,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsiz
  * returns TRUE if the breakpoint was set *
  */
 {
+  int result=FALSE;
 
 
   printf("SetBreakpoint(%d, %p, %d, %d)\n", tid, Address, bptype, bpsize);
@@ -287,10 +288,16 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsiz
 
       if (tid==-1)
       {
-        int i;
+        int i,r;
         printf("Calling SetBreakpoint for all threads\n");
+        result=TRUE;
         for (i=0; i<p->threadlistpos; i++)
-          SetBreakpoint(hProcess, p->threadlist[i].tid, Address, bptype, bpsize);
+        {
+          r=SetBreakpoint(hProcess, p->threadlist[i].tid, Address, bptype, bpsize);
+          if (!r)
+            result=FALSE;
+        }
+
       }
       else
       {
@@ -379,6 +386,8 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsiz
             printf("i1=%d\n", i, hwbpreg);
 
             //right now i'm not really sure how the breakpoint len is set and why it works in some cases and why not in other cases
+            result=i==0;
+
             hwbpreg=encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_4, ARM_BREAKPOINT_EXECUTE, 0, 1);
             if (ptrace(PTRACE_SETHBPREGS, wtid, 2, &hwbpreg)<0) //according to my guess, this should usually work, but just in case...
             {
@@ -391,7 +400,10 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsiz
                   //last try, 8 ?
                   hwbpreg=encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_8, ARM_BREAKPOINT_EXECUTE, 0, 1);
                   if (ptrace(PTRACE_SETHBPREGS, wtid, 2, &hwbpreg)<0)
+                  {
                     printf("Failure to set breakpoint\n");
+                    result=FALSE;
+                  }
                 }
 
               }
@@ -424,6 +436,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsiz
             i=ptrace(PTRACE_SETHBPREGS, wtid, -2, &hwbpreg);
 
             printf("i=%d  (hwbpreg=%x)\n", i, hwbpreg);
+            result=i==0;
 
           }
 
@@ -459,11 +472,13 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsiz
         r=ptrace(PTRACE_POKEUSER, wtid, offsetof(struct user, u_debugreg[0]), Address);
         r2=ptrace(PTRACE_POKEUSER, wtid, offsetof(struct user, u_debugreg[7]), newdr7);
 
-        if ((r!=0) || (r2!=0))
+        result=(r==0) && (r2==0);
+        if (!result)
         {
           printf("Failure setting breakpoint\n");
-
         }
+
+        printf("result=%d  (r=%d r2=%d)\n", result, r, r2);
 
 
 #endif
@@ -496,6 +511,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsiz
 
     //
 
+      printf("end of SetBreakpoint reached. result=%d\n", result);
 
 
     }
@@ -525,12 +541,13 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsiz
 
       if (pthread_mutex_lock(&debugsocketmutex) == 0)
       {
-        int result;
         printf("Sending message to the debuggerthread\n");
 
         sendall(p->debuggerClient, &sb, sizeof(sb), 0);
         WakeDebuggerThread();
         recvall(p->debuggerClient, &result, sizeof(result), MSG_WAITALL);
+
+        printf("Received reply from debugger thread: %d\n", result);
 
 
         pthread_mutex_unlock(&debugsocketmutex);
@@ -544,6 +561,8 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsiz
     printf("Invalid handle\n");
   }
 
+  return result;
+
 }
 
 int RemoveBreakpoint(HANDLE hProcess, int tid)
@@ -551,6 +570,7 @@ int RemoveBreakpoint(HANDLE hProcess, int tid)
  * Removes the breakpoint (only 1 for now)
  */
 {
+  int result=FALSE;
 
   printf("RemoveBreakpoint(%d)\n", tid);
   if (GetHandleType(hProcess) == htProcesHandle )
@@ -594,9 +614,10 @@ int RemoveBreakpoint(HANDLE hProcess, int tid)
             syscall(__NR_tkill, tid, SIGSTOP);
             if (WaitForDebugEventNative(p, &de, tid, 100))
               break;
-
             k++;
           }
+
+          wtid=de.threadid;
 
 
           printf("----AFTER WAIT----\n");
@@ -616,17 +637,21 @@ int RemoveBreakpoint(HANDLE hProcess, int tid)
 
 #ifdef __arm__
         int bpreg=0;
-        int i;
+        int i,i2,i3;
         void *a=NULL;
 
         printf("arm\n");
 
         i=ptrace(PTRACE_SETHBPREGS, wtid, -1, &bpreg);
         printf("i1=%d\n", i);
-        ptrace(PTRACE_SETHBPREGS, wtid, 2, &bpreg);
-        printf("i2=%d\n", i);
+        i2=ptrace(PTRACE_SETHBPREGS, wtid, 2, &bpreg);
+        printf("i2=%d\n", i2);
 
-        ptrace(PTRACE_SETHBPREGS, wtid, 1, &a);
+
+
+        i3=ptrace(PTRACE_SETHBPREGS, wtid, 1, &a);
+
+        result=(i==0) && (i2==0) && (i3==0);
 #endif
 
 #if defined(__i386__) || defined (__x86_64__)
@@ -634,8 +659,11 @@ int RemoveBreakpoint(HANDLE hProcess, int tid)
         printf("x86\n");
 
         r=ptrace(PTRACE_POKEUSER, wtid, offsetof(struct user, u_debugreg[7]), 0);
-        if (r!=0)
+        if (r==0)
+          result=TRUE;
+        else
           printf("Failure removing breakpoint from thread %d\n", wtid);
+
 
 #endif
 
@@ -686,7 +714,7 @@ int RemoveBreakpoint(HANDLE hProcess, int tid)
 
       if (pthread_mutex_lock(&debugsocketmutex) == 0)
       {
-        int result;
+
         printf("Sending message to the debuggerthread\n");
 
         sendall(p->debuggerClient, &rb, sizeof(rb), 0);
@@ -703,7 +731,7 @@ int RemoveBreakpoint(HANDLE hProcess, int tid)
   else
     printf("Invalid handle\n");
 
-  return 0;
+  return result;
 }
 
 int GetThreadContext(HANDLE hProcess, int tid, PCONTEXT Context, int type)
@@ -731,6 +759,7 @@ int GetThreadContext(HANDLE hProcess, int tid, PCONTEXT Context, int type)
 
         while ((td->isPaused==0) && (k<10))
         {
+          printf("This thread was not paused. Pausing it\n");
           syscall(__NR_tkill, tid, SIGSTOP);
           if (WaitForDebugEventNative(p, &de, tid, 100))
             break;
@@ -756,6 +785,8 @@ int GetThreadContext(HANDLE hProcess, int tid, PCONTEXT Context, int type)
           //continue if sigstop
           PThreadData td=GetThreadData(p, tid);
 
+          printf("The thread was not paused, so resuming it now\n");
+
           if (de.debugevent!=SIGSTOP) //in case a breakpoint or something else happened before sigstop happened
           {
             printf("Not a SIGSTOP. Adding to queue and leave suspended\n");
@@ -764,10 +795,11 @@ int GetThreadContext(HANDLE hProcess, int tid, PCONTEXT Context, int type)
           }
           else
           {
-            r=(r && ptrace(PTRACE_CONT, de.threadid, 0,0));
-            printf("PTRACE_CONT=%d\n", r);
+            r=(r && (ptrace(PTRACE_CONT, de.threadid, 0,0)==0));
+
 
             td->isPaused=0;
+            printf("r=%d\n", r);
           }
         }
 
@@ -798,14 +830,13 @@ int GetThreadContext(HANDLE hProcess, int tid, PCONTEXT Context, int type)
 
       if (pthread_mutex_lock(&debugsocketmutex) == 0)
       {
-        int result;
         printf("Sending message to the debuggerthread\n");
 
         sendall(p->debuggerClient, &gtc, sizeof(gtc), 0);
         WakeDebuggerThread();
-        recvall(p->debuggerClient, &result, sizeof(result), MSG_WAITALL);
+        recvall(p->debuggerClient, &r, sizeof(r), MSG_WAITALL);
 
-        if (result)
+        if (r)
         {
           //followed by the contextsize
           uint32_t structsize;
@@ -982,14 +1013,17 @@ int ResumeThread(HANDLE hProcess, int tid)
         {
           //reached 0, continue process if sigstop, else add to queue
           PThreadData td=GetThreadData(p, tid);
+          printf("suspeneCount==0\n");
 
           if (t->suspendedDevent.debugevent==SIGSTOP)
           {
+            printf("SIGSTOP: Continue thread without queing\n");
             ptrace(PTRACE_CONT, t->suspendedDevent.threadid, 0,0);
             td->isPaused=0;
           }
           else
           {
+            printf("Not a SIGSTOP Add to the event queue\n");
             td->isPaused=1;
             AddDebugEventToQueue(p, &t->suspendedDevent);
             WakeDebuggerThread();
@@ -1180,7 +1214,7 @@ int WaitForDebugEventNative(PProcessData p, PDebugEvent devent, int tid, int tim
 //  fflush(stdout);
 
   //still here
-  CheckForAndDispatchCommand(p->debuggerServer);
+  //CheckForAndDispatchCommand(p->debuggerServer);
 
 
  // printf("After check and dispatch\n");
@@ -1214,19 +1248,19 @@ int WaitForDebugEventNative(PProcessData p, PDebugEvent devent, int tid, int tim
       while (currentTID<=0)
       {
         timedwait=sem_timedwait(&sem_DebugThreadEvent, &abstime);
-        if (log==1)
-          printf("log=1: sem_timedwait=%d\n", timedwait);
+       // if (log==1)
+      //    printf("log=1: sem_timedwait=%d\n", timedwait);
 
         if (timedwait==0)
         {
           //it got signaled
           //check if there is a debugger thread message waiting
-          if (log==1)
-            printf("Checking for dispatch command\n");
+         // if (log==1)
+         //   printf("Checking for dispatch command\n");
 
           i=CheckForAndDispatchCommand(p->debuggerServer);
-          if (log==1)
-            printf("CheckForAndDispatchCommand returned %d\n", i);
+          //if (log==1)
+          //  printf("CheckForAndDispatchCommand returned %d\n", i);
 
 
          // printf("Calling waitpid(%d, %p, %x)\n", tid, &status, WNOHANG| __WALL);
@@ -1363,8 +1397,9 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
     }
     else
     {
-      printf("Can not wait for a debug event when a thread is still paused\n");
       *devent=p->debuggedThreadEvent;
+      printf("Can not wait for a debug event when a thread is still paused\n");
+      printf("tid=%d  debugevent=%d/n", devent->threadid, devent->debugevent);
       return 1; //success and just handle this event
     }
 
@@ -1384,12 +1419,20 @@ int ContinueFromDebugEvent(HANDLE hProcess, int tid, int ignoresignal)
    //printf("td==%p\n", td);
 
     if (td==NULL)
+    {
+      printf("Invalid thread\n");
+      p->debuggedThreadEvent.threadid=0;
+
       return 0; //invalid thread
+    }
 
    // printf("td->suspendcount=%d\n", td->suspendCount);
 
     if (td->suspendCount>0)
+    {
+      printf("Tried to continue a suspended thread\n");
       return 1; //keep it suspended
+    }
 
    // printf("p->debuggedThreadEvent.debugevent=%d\n", p->debuggedThreadEvent.debugevent);
 
@@ -1670,8 +1713,8 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
       sendall(p->debuggerClient, &rpm, sizeof(rpm), 0);
 
 
-      log=1;
-      printf("Waking debugger thread and waiting for result\n");
+      //log=1;
+      //printf("Waking debugger thread and waiting for result\n");
       WakeDebuggerThread();
 
       clock_t t1=clock();
@@ -1680,7 +1723,7 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
 
       clock_t t2=clock();
 
-      printf("received result after %d\n", t2-t1);
+      //printf("received result after %d\n", t2-t1);
       log=0;
     //  printf("After waiting for debugger thread: bytesread=%d\n", bytesread);
 
@@ -1704,6 +1747,8 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
   //only on cache miss, or if the cache is older than 1000 milliseconds fetch the page.
   //keep in mind that this routine can get called by multiple threads at the same time
 
+
+  //todo: Try process_vm_readv
 
   //printf("ReadProcessMemory\n");
   int read=0;

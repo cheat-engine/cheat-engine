@@ -14,6 +14,7 @@
 
 #include <errno.h>
 #include <elf.h>
+#include <signal.h>
 
 
 #include "ceserver.h"
@@ -207,6 +208,9 @@ int DispatchCommand(int currentsocket, unsigned char command)
         r=WaitForDebugEvent(wfd.pHandle, &event, wfd.timeout);
         sendall(currentsocket, &r, sizeof(r), 0);
 
+        if (event.debugevent==SIGTRAP)
+          printf("!!!SIGTRAP!!!\n");
+
         if (r)
         {
           sendall(currentsocket, &event, sizeof(event),0);
@@ -247,7 +251,7 @@ int DispatchCommand(int currentsocket, unsigned char command)
 
         printf("Calling SetBreakpoint\n");
         r=SetBreakpoint(sb.hProcess, sb.tid, (void *)sb.Address, sb.bptype, sb.bpsize);
-        printf("SetBreakpoint returned\n");
+        printf("SetBreakpoint returned %d\n",r);
         sendall(currentsocket, &r, sizeof(r), 0);
       }
       break;
@@ -263,7 +267,7 @@ int DispatchCommand(int currentsocket, unsigned char command)
 
         printf("Calling RemoveBreakpoint\n");
         r=RemoveBreakpoint(rb.hProcess, rb.tid);
-        printf("RemoveBreakpoint returned\n");
+        printf("RemoveBreakpoint returned: %d\n", r);
         sendall(currentsocket, &r, sizeof(r), 0);
       }
       break;
@@ -281,21 +285,27 @@ int DispatchCommand(int currentsocket, unsigned char command)
 #pragma pack()
 
       CONTEXT Context;
-
-
       int result;
 
+      printf("CMD_GETTHREADCONTEXT:\n");
+
       recvall(currentsocket, &gtc, sizeof(gtc), MSG_WAITALL);
+
+      printf("Going to call GetThreadContext(%d, %d, %p, %d)\n", gtc.hProcess, gtc.tid, &Context, gtc.type);
+      memset(&Context, 0, sizeof(Context));
+
       result=GetThreadContext(gtc.hProcess, gtc.tid, &Context, gtc.type);
-      sendall(currentsocket, &result, sizeof(result), 0);
+
 
       if (result)
       {
-        //followed by the contextsize
         uint32_t structsize=sizeof(Context);
-        sendall(currentsocket, &structsize, sizeof(structsize), 0);
+        sendall(currentsocket, &result, sizeof(result), MSG_MORE);
+        sendall(currentsocket, &structsize, sizeof(structsize), MSG_MORE);
         sendall(currentsocket, &Context, structsize, 0); //and context
       }
+      else
+        sendall(currentsocket, &result, sizeof(result), 0);
 
       break;
 
@@ -828,13 +838,13 @@ void *newconnection(void *arg)
       if (debugfd>maxfd)
         maxfd=debugfd;
 
-      printf("Waiting for multiple sockets\n");
+    //  printf("Waiting for multiple sockets\n");
 
       sret=select(maxfd+1, &readfds, NULL, NULL,NULL );
 
-      printf("Wait done\n");
+    //  printf("Wait done\n");
 
-      printf("sret=%d\n", sret);
+     // printf("sret=%d\n", sret);
       if (sret==-1)
       {
         if (errno==EINTR)
