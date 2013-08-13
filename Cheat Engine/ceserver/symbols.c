@@ -373,7 +373,7 @@ Caller must free output manually
              {
                if (deflate(&strm, Z_NO_FLUSH)!=Z_OK)
                {
-                // printf("FAILURE TO COMPRESS!\n");
+                 printf("FAILURE TO COMPRESS!\n");
                  return -1;
                }
                //printf("strm.avail_out=%d\n", strm.avail_out);
@@ -381,14 +381,12 @@ Caller must free output manually
                if (strm.avail_out==0)
                {
 
-
-                // printf("Out buffer full. Reallocating\n");
+                  // printf("Out buffer full. Reallocating\n");
                  *output=realloc(*output, maxoutputsize*2);
 
                  strm.next_out=(unsigned char *)&(*output)[maxoutputsize];
+                 strm.avail_out=maxoutputsize;
                  maxoutputsize=maxoutputsize*2;
-
-
                }
 
              }
@@ -440,7 +438,7 @@ Caller must free output manually
     if (i!=Z_OK)
     {
       printf("Failure to compress: %i\n", i);
-      exit(1);
+      return -1;
     }
 
     if (strm.avail_out==0)
@@ -449,8 +447,8 @@ Caller must free output manually
       *output=realloc(*output, maxoutputsize*2);
 
       strm.next_out=(unsigned char *)&(*output)[maxoutputsize];
+      strm.avail_out=maxoutputsize;
       maxoutputsize=maxoutputsize*2;
-      strm.avail_out=maxoutputsize/2;
     }
     else
       break;
