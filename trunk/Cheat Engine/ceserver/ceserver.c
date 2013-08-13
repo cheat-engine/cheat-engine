@@ -208,11 +208,13 @@ int DispatchCommand(int currentsocket, unsigned char command)
         r=WaitForDebugEvent(wfd.pHandle, &event, wfd.timeout);
         sendall(currentsocket, &r, sizeof(r), 0);
 
-        if (event.debugevent==SIGTRAP)
-          printf("!!!SIGTRAP!!!\n");
+
 
         if (r)
         {
+          if (event.debugevent==SIGTRAP)
+            printf("!!!SIGTRAP!!!\n");
+
           sendall(currentsocket, &event, sizeof(event),0);
         }
 
@@ -746,8 +748,8 @@ int DispatchCommand(int currentsocket, unsigned char command)
 
           printf("symbolpath=%s\n", symbolpath);
 
-          GetSymbolListFromFile(symbolpath, &output);
-
+          if (memcmp("/dev/", symbolpath, 5)!=0) //don't even bother if it's a /dev/ file
+            GetSymbolListFromFile(symbolpath, &output);
 
           if (output)
           {
