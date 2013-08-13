@@ -18,6 +18,7 @@ type
     description: string;
    // eax,ebx,ecx,edx,esi,edi,ebp,esp,eip: dword;
     context: TContext;
+    armcontext: TARMCONTEXT;
     stack: record
       savedsize: dword;
       stack: pbyte;
@@ -111,7 +112,7 @@ implementation
 uses CEFuncProc, CEDebugger,debughelper, debugeventhandler,
      MemoryBrowserFormUnit,
      {$ifdef net}unit2,ceclient,{$else}MainUnit,kerneldebugger,{$endif}
-     AdvancedOptionsUnit ,formFoundcodeListExtraUnit,MainUnit2;
+     AdvancedOptionsUnit ,formFoundcodeListExtraUnit,MainUnit2, ProcessHandlerUnit;
 
 destructor TCodeRecord.Destroy;
 begin
@@ -155,10 +156,18 @@ begin
   currentThread:=debuggerthread.CurrentThread;
   if currentthread<>nil then
   begin
-    address:=currentThread.context.{$ifdef cpu64}Rip{$else}eip{$endif};
+    if processhandler.SystemArchitecture=archARM then
+    begin
+      address:=currentthread.armcontext.PC;
+    end
+    else
+    begin
+      address:=currentThread.context.{$ifdef cpu64}Rip{$else}eip{$endif};
+      if usesdebugregs or useexceptions then //find out the previous opcode
+        address:=previousopcode(address);
+    end;
 
-    if usesdebugregs or useexceptions then //find out the previous opcode
-      address:=previousopcode(address);
+
 
     //disassemble to get the opcode and size
     address2:=address;
@@ -186,6 +195,7 @@ begin
     coderecord.opcode:=opcode;
     coderecord.description:=desc;
     coderecord.context:=currentthread.context^;
+    coderecord.armcontext:=currentthread.armcontext;
     coderecord.savestack;
     coderecord.hitcount:=1;
 

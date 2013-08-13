@@ -4,7 +4,8 @@ unit disassembler;
 
 interface
 
-uses windows, imagehlp,sysutils,LCLIntf,byteinterpreter, symbolhandler,CEFuncProc,NewKernelHandler;
+uses windows, imagehlp,sysutils,LCLIntf,byteinterpreter, symbolhandler,CEFuncProc,
+  NewKernelHandler, ProcessHandlerUnit, LastDisassembleData, disassemblerarm;
 
 //translation: There is no fucking way I change the descriptions to resource strings
 //if you're bored, go do this
@@ -20,31 +21,6 @@ const BIT_REX_X=2;
 const BIT_REX_B=1;
 
 type
-  TDisAssemblerValueType=(dvtNone=0, dvtAddress=1, dvtValue=2);
-
-
-
-  TLastDisassembleData=record
-    address: PtrUint;
-    prefix: string;
-    prefixsize: integer;
-    opcode: string; //and sadly undone because I want to allow the user to change the string... pchar; //replaced string with pchar so it now only contains a pointer. Faster. string; //the result without bytes
-    parameters: string;
-    description: string;
-    Bytes: array of byte;
-    SeperatorCount: integer;
-    Seperators: Array [0..5] of integer; //an index in the byte array describing the seperators (prefix/instruction/modrm/sib/extra)
-    modrmValueType: TDisAssemblerValueType;
-    modrmValue: ptrUint;
-    parameterValueType: TDisAssemblerValueType;
-    parameterValue: ptrUint;
-  //  ValueType: TValueType; //if it's not unknown the value type will say what type of value it is (e.g for the FP types)
-
-    isjump: boolean; //set for anything that can change eip/rip
-    iscall: boolean; //set if it's a call
-    isret: boolean; //set if it's a ret
-    isconditionaljump: boolean; //set if it's only effective when an conditon is met
-  end;
 
   TDisassembleEvent=function(sender: TObject; address: ptruint; var ldd: TLastDisassembleData; var output: string; var description: string): boolean of object;
 
@@ -63,6 +39,8 @@ type
 
     fsyntaxhighlighting: boolean;
     fOnDisassembleOverride: TDisassembleEvent;
+
+    ArmDisassembler: TArmDisassembler;
 
     function SIB(memory:TMemory; sibbyte: integer; var last: dword): string;
     function MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword): string; overload;
@@ -1273,6 +1251,14 @@ begin
   end;
 
 
+  if processhandler.SystemArchitecture=archarm then
+  begin
+    result:=ArmDisassembler.disassemble(offset);
+    LastDisassembleData:=armdisassembler.LastDisassembleData;
+    exit;
+  end;
+
+
 
   last:=0;
   tempresult:='';
@@ -1325,6 +1311,7 @@ begin
     result:=inttohex(offset,8)+' - ';
 
   isprefix:=true;
+
 
   prefix:=[$f0,$f2,$f3,$2e,$36,$3e,$26,$64,$65,$66,$67];
   prefix2:=[];

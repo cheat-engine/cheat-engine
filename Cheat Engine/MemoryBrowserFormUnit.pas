@@ -12,7 +12,8 @@ uses
   disassemblerviewunit, peinfofunctions ,dissectcodethread,stacktrace2,
   NewKernelHandler, ComCtrls, LResources, byteinterpreter, StrUtils, hexviewunit,
   debughelper, debuggertypedefinitions,frmMemviewPreferencesUnit, registry,
-  scrollboxex, disassemblercomments, multilineinputqueryunit, frmMemoryViewExUnit;
+  scrollboxex, disassemblercomments, multilineinputqueryunit, frmMemoryViewExUnit,
+  LastDisassembleData;
 
 
 type

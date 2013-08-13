@@ -5,7 +5,8 @@ unit DissectCodeThread;
 interface
 
 uses
-  windows, LCLIntf,sysutils,syncobjs,Classes,disassembler, NewKernelHandler, math, CEFuncProc, maps;
+  windows, LCLIntf,sysutils,syncobjs,Classes,disassembler, NewKernelHandler, math,
+  CEFuncProc, maps, LastDisassembleData;
 
 
 type

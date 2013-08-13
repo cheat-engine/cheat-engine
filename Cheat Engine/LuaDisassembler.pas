@@ -5,7 +5,7 @@ unit LuaDisassembler;
 interface
 
 uses
-  Classes, SysUtils, disassembler, lua, lauxlib, lualib, symbolhandler;
+  Classes, SysUtils, disassembler, lua, lauxlib, lualib, symbolhandler, LastDisassembleData;
 
 procedure initializeLuaDisassembler;
 

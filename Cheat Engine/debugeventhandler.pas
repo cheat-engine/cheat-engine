@@ -296,6 +296,19 @@ begin
   try
     if (bp<>nil) then
     begin
+
+
+      if (CurrentDebuggerInterface is TNetworkDebuggerInterface) then
+      begin
+        //if it is a network breakpoint delete it first. Not needed for x86 but arm will break if the breakpoint doesn't get removed (at least my transformer tablet does)
+        singlestepping:=false;
+        TdebuggerThread(debuggerthread).UnsetBreakpoint(bp, nil, ThreadId);
+
+        //perhaps in the future: Set a breakpoint at the next instruction and run till there and then set the breakpoint back
+        exit;
+      end;
+
+
       if (bp.breakpointMethod=bpmInt3) then
       begin
         //bp is set and it's an int3 breakpoint
@@ -316,7 +329,7 @@ begin
       begin
 
 
-  {$ifdef cpu32}
+{$ifdef cpu32}
         //----XP HACK----
         if (WindowsVersion=wvXP) then
         begin
@@ -335,7 +348,7 @@ begin
             end;
           end;
         end;
-       {$endif}
+{$endif}
       end;
 
 
@@ -700,7 +713,7 @@ begin
 
       bo_FindCode:
       begin
-        outputdebugstring('Save registers and continue');
+        //outputdebugstring('Save registers and continue');
         if ((bpp.breakpointMethod=bpmException) and (not bpp.markedfordeletion)) or bpp.active then
         begin
           fcd:=bpp.FoundcodeDialog;
