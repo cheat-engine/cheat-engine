@@ -15,7 +15,7 @@ assemblerunit,
 imagehlp,
 registry,
 ExtCtrls,
-
+LastDisassembleData,
 
 {$ifdef netclient}
 netapis,

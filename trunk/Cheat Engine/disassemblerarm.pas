@@ -5,15 +5,39 @@ unit DisassemblerArm;
 interface
 
 uses
-  Classes, SysUtils;
+  windows, Classes, SysUtils, newkernelhandler, cefuncproc, LastDisassembleData;
 
 const ArmConditions: array [0..15] of string=('EQ','NE','CS', 'CC', 'MI', 'PL', 'VS', 'VC', 'HI', 'LS', 'GE', 'LT', 'GT', 'LE', '','NV');
 const DataProcessingOpcodes: array [0..15] of string=('AND','EOR','SUB', 'RSB', 'ADD', 'ADC', 'SBC', 'RSC', 'TST', 'TEQ', 'CMP', 'CMN', 'ORR', 'MOV', 'BIC','MVN');
-const ArmRegisters : array [0..15] of string=('R0','R1','R2','R3','R4','R5','R6','R7','R8','R9','SL','FP','R12','SP','LR','PC');
+const ArmRegisters : array [0..15] of string=('R0','R1','R2','R3','R4','R5','R6','R7','R8','R9','R10','FP','IP','SP','LR','PC');
 const ArmRegistersNoName : array [0..15] of string=('R0','R1','R2','R3','R4','R5','R6','R7','R8','R9','R10','R11','R12','R13','R14','R15');
 function SignExtend(value: int32; mostSignificantBit: integer): int32;
 
-function DArm(address: int32; opcode: Int32): string;
+type
+  TArmDisassembler=object
+
+  private
+    opcode: uint32;
+    function Condition: string;
+    procedure Branch;
+    procedure DataProcessing;
+    procedure MRS;
+    procedure MSR;
+    procedure MSR_flg;
+    procedure Mul;
+    procedure SingleDataTransfer;
+    procedure LDM_STM;
+    procedure SWP;
+    procedure SWI;
+    procedure CDP;
+
+  public
+    LastDisassembleData: TLastDisassembleData;
+    function disassemble(var address: ptrUint): string;
+  end;
+
+
+
 
 implementation
 
@@ -36,25 +60,25 @@ begin
 
 end;
 
-function Condition(opcode: int32): string;
+function TArmDisassembler.Condition: string;
 begin
   result:=ArmConditions[opcode shr 28];
 end;
 
-function Branch(address: int32; opcode: int32): string;
+procedure TArmDisassembler.Branch;
 var offset: int32;
 begin
-  result:='B';
-
   if (opcode shr 24) and 1=1 then //Link bit set
-    result:=result+'L';
+    LastDisassembleData.opcode:='BL'+Condition
+  else
+    LastDisassembleData.opcode:='B'+Condition;
 
   offset:=signextend(opcode and $FFFFFF, 23) shl 2;
 
-  result:=result+Condition(opcode)+' '+inttohex(dword(address+8+offset),8);
+  LastDisassembleData.parameters:=inttohex(dword(LastDisassembleData.address+8+offset),8);
 end;
 
-function DataProcessing(address: int32; opcode: int32): string;
+procedure TArmDisassembler.DataProcessing;
 var
   ImmediateOperand: integer;
   OpcodeIndex: integer;
@@ -102,7 +126,7 @@ begin
   Operand2:=opcode and $fff;
 
   _opcode:=DataProcessingOpcodes[OpcodeIndex];
-  _cond:=Condition(opcode);
+  _cond:=Condition;
   if SetCondition=1 then
     _s:='S';
 
@@ -169,15 +193,28 @@ begin
     _op2:=','+_op2;
 
   case OpcodeIndex of
-    13,15:     result:=_opcode+_cond+_S+' '+_Rd+_op2; //MOV,MOVN
-    8,9,10,11: result:=_opcode+_cond+' '+_Rn+_op2; //CMP,CMN,TEQ,TST
+    13,15:
+    begin
+      LastDisassembleData.opcode:=_opcode+_cond+_S;
+      LastDisassembleData.parameters:=_Rd+_op2;
+    end;
+
+
+    8,9,10,11:
+    begin
+      LastDisassembleData.opcode:=_opcode+_cond;
+      LastDisassembleData.parameters:=_Rn+_op2;
+    end
     else
-      result:=_opcode+_cond+_S+' '+_Rd+','+_Rn+_op2;
+    begin
+      LastDisassembleData.opcode:=_opcode+_cond+_S;
+      LastDisassembleData.parameters:=_Rd+','+_Rn+_op2;
+    end;
 
   end;
 end;
 
-function MRS(address: int32; opcode: int32): string;
+procedure TArmDisassembler.MRS;
 var
   _cond: string;
   _rd: string;
@@ -186,7 +223,7 @@ var
   Ps: integer;
   Rd: integer;
 begin
-  _cond:=Condition(opcode);
+  _cond:=Condition;
 
   Ps:=(opcode shr 22) and 1;
   if (Ps=0) then
@@ -197,10 +234,11 @@ begin
   Rd:=(opcode shr 12) and $F;
   _rd:=ArmRegisters[rd];
 
-  result:='MRS'+_cond+' '+_Rd+','+_psr;
+  LastDisassembleData.opcode:='MRS'+_cond;
+  LastDisassembleData.parameters:=_Rd+','+_psr;
 end;
 
-function MSR(address: int32; opcode: int32): string;
+procedure TArmDisassembler.MSR;
 var
   _cond: string;
   _psr: string;
@@ -212,7 +250,7 @@ var
   I: integer;
   imm, rotate: integer;
 begin
-  _cond:=Condition(opcode);
+  _cond:=Condition;
 
   Pd:=(opcode shr 22) and 1;
   if (Pd=0) then
@@ -223,11 +261,11 @@ begin
   Rm:=opcode and $F;
   _rm:=ArmRegisters[rm];
 
-  result:='MSR'+_cond+' '+_psr+'_all,'+_Rm;
-
+  LastDisassembleData.opcode:='MSR'+_cond;
+  LastDisassembleData.parameters:=_psr+'_all,'+_Rm;
 end;
 
-function MSR_flg(address: int32; opcode: int32): string;
+procedure TArmDisassembler.MSR_flg;
 var
   _cond: string;
   _psr: string;
@@ -239,7 +277,7 @@ var
   I: integer;
   imm, rotate: integer;
 begin
-  _cond:=Condition(opcode);
+  _cond:=Condition;
 
   Pd:=(opcode shr 22) and 1;
   if (Pd=0) then
@@ -253,18 +291,20 @@ begin
     Rm:=opcode and $F;
     _rm:=ArmRegisters[rm];
 
-    result:='MSR'+_cond+' '+_psr+'_flg,'+_Rm;
+    LastDisassembleData.opcode:='MSR'+_cond;
+    LastDisassembleData.parameters:=_psr+'_flg,'+_Rm;
   end
   else
   begin
     rotate:=(opcode and $fff) shr 8;
     imm:=(opcode and $fff) and $ff;
 
-    result:='MSR'+_cond+' '+_psr+'_flg,'+inttohex(RorDWord(imm, rotate*2),1);
+    LastDisassembleData.opcode:='MSR'+_cond;
+    LastDisassembleData.parameters:=_psr+'_flg,'+inttohex(RorDWord(imm, rotate*2),1);
   end;
 end;
 
-function Mul(address: int32; opcode: Int32): string;
+procedure TArmDisassembler.Mul;
 var
   _cond: string;
   _S: string;
@@ -278,7 +318,7 @@ begin
   else
     _S:='';
 
-  _cond:=Condition(opcode);
+  _cond:=Condition;
 
   _rd:=ArmRegisters[opcode shl 16 and $f];
   _rn:=ArmRegisters[opcode shl 12 and $f];
@@ -287,12 +327,18 @@ begin
 
 
   if (opcode shl 21) and 1=1 then
-    result:='MLA'+_cond+_S+' '+_Rd+','+_Rm+','+_Rs+','+_Rn
+  begin
+    LastDisassembleData.opcode:='MLA'+_cond+_S;
+    LastDisassembleData.parameters:=_Rd+','+_Rm+','+_Rs+','+_Rn
+  end
   else
-    result:='MUL'+_cond+_S+' '+_Rd+','+_Rm+','+_Rs;
+  begin
+    LastDisassembleData.opcode:='MUL'+_cond+_S;
+    LastDisassembleData.parameters:=_Rd+','+_Rm+','+_Rs;
+  end;
 end;
 
-function SingleDataTransfer(address: int32; opcode: int32): string;
+procedure TArmDisassembler.SingleDataTransfer;
 var
   _cond: string;
   _opcode: string;
@@ -341,7 +387,7 @@ begin
   else
     _opcode:='STR';
 
-  _cond:=Condition(opcode);
+  _cond:=Condition;
 
   if b=1 then
     _B:='B'
@@ -361,7 +407,7 @@ begin
   begin
     //offset is an immediate value
     if Rn=15 then //pc
-      _address:='['+inttohex(dword(address+offset+8),8)+']'
+      _address:='['+inttohex(dword(LastDisassembleData.address+offset+8),8)+']'
     else
     begin
       if offset=0 then
@@ -416,10 +462,11 @@ begin
     _address:=_address+'!';
 
 
-  result:=_opcode+_cond+_B+_T+' '+_Rd+','+_Address;
+  LastDisassembleData.opcode:=_opcode+_cond+_B+_T;
+  LastDisassembleData.parameters:=_Rd+','+_Address;
 end;
 
-function LDM_STM(addres: int32; opcode: int32): string;
+procedure TArmDisassembler.LDM_STM;
 var
   P: integer;
   U: integer;
@@ -445,7 +492,7 @@ var
 
 begin
 
-  _cond:=Condition(opcode);
+  _cond:=Condition;
   p:=(opcode shr 24) and 1;
   u:=(opcode shr 23) and 1;
   s:=(opcode shr 22) and 1;
@@ -557,10 +604,11 @@ begin
       _addressingmode:='DA';
   end;
 
-  result:=_opcode+_cond+' '+_rn+_ex+','+_rlist+_exp;
+  LastDisassembleData.opcode:=_opcode+_cond;
+  LastDisassembleData.parameters:=_rn+_ex+','+_rlist+_exp;
 end;
 
-function SWP(address: int32; opcode: Int32): string;
+procedure TArmDisassembler.SWP;
 var
   _cond: string;
   _B: string;
@@ -568,7 +616,7 @@ var
   _rm: string;
   _rn: string;
 begin
-  _cond:=Condition(opcode);
+  _cond:=Condition;
   if (opcode shr 22) and 1=1 then
     _B:='1'
   else
@@ -578,15 +626,17 @@ begin
   _rm:=ArmRegisters[opcode and $f];
   _rn:=ArmRegisters[(opcode shr 16) and $f];
 
-  result:='SWP'+_cond+_B+' '+_rd+','+_rm+',['+_rn+']';
+  LastDisassembleData.opcode:='SWP'+_cond+_B;
+  LastDisassembleData.parameters:=_rd+','+_rm+',['+_rn+']';
 end;
 
-function SWI(address: int32; opcode: Int32): string;
+procedure TArmDisassembler.SWI;
 begin
-  result:='SWI'+Condition(opcode)+' '+inttohex(opcode and $FFFFFF,1);
+  LastDisassembleData.opcode:='SWI'+Condition;
+  LastDisassembleData.parameters:=inttohex(opcode and $FFFFFF,1);
 end;
 
-function CDP(address: int32; opcode: Int32): string;
+procedure TArmDisassembler.CDP;
 var
   CP_Opc: integer;
   CRn: integer;
@@ -626,81 +676,85 @@ begin
 
   //CDP{cond} p#,<expression1>,cd,cn,cm{,<expression2>}
 
-  result:='CDP'+Condition(opcode)+' '+_pn+','+_expression1+','+_cd+','+_cn+','+_cm+_expression2;
+  LastDisassembleData.opcode:='CDP'+Condition;
+  LastDisassembleData.parameters:=_pn+','+_expression1+','+_cd+','+_cn+','+_cm+_expression2;
 end;
 
-function DArm(address: int32; opcode: Int32): string;
+function TArmDisassembler.Disassemble(var address: ptrUint): string;
+var
+  x: dword;
 begin
   result:='';
+  setlength(LastDisassembleData.bytes,0);
+  LastDisassembleData.address:=address;
+  LastDisassembleData.SeperatorCount:=0;
+  LastDisassembleData.prefix:='';
+  LastDisassembleData.PrefixSize:=0;
+  LastDisassembleData.opcode:='';
+  LastDisassembleData.parameters:='';
+  lastdisassembledata.isjump:=false;
+  lastdisassembledata.iscall:=false;
+  lastdisassembledata.isret:=false;
+  lastdisassembledata.isconditionaljump:=false;
+  lastdisassembledata.modrmValueType:=dvtNone;
+  lastdisassembledata.parameterValueType:=dvtNone;
 
-  if (((opcode shr 2) and $3f)=0) and (((opcode shr 4) and  $f)=$9) then
+  x:=0;
+  if readprocessmemory(processhandle, pointer(address), @opcode, sizeof(opcode), x) then
   begin
-    result:=MUL(address, opcode);
-    exit;
+    setlength(LastDisassembleData.Bytes,4);
+    pdword(@LastDisassembleData.Bytes[0])^:=opcode;
   end;
 
-  if (((opcode shr 23) and $1f)=2) and (((opcode shr 16) and  $3f)=$f) and ((opcode and $FFF)=0) then
+  if (x=sizeof(opcode)) then
   begin
-    result:=MRS(address, opcode);
-    exit;
-  end;
+    if (((opcode shr 2) and $3f)=0) and (((opcode shr 4) and  $f)=$9) then
+      MUL
+    else
+    if (((opcode shr 23) and $1f)=2) and (((opcode shr 16) and  $3f)=$f) and ((opcode and $FFF)=0) then
+      MRS
+    else
+    if (((opcode shr 23) and $1f)=2) and (((opcode shr 4) and $3FFFF)=$29F00) then
+      MSR
+    else
+    if (((opcode shr 23) and $3)=2) and (((opcode shr 26) and $3)=2)  and (((opcode shr 12) and $3ff)=$28f) then
+      MSR_flg
+    else
+    if ((opcode shr 25) and 7)=5 then
+      Branch
+    else
+    if (((opcode shr 26) and 3)=0) and (((opcode shr 4) and $f)<>9) then
+      DataProcessing
+    else
+    if (opcode shr 26) and 3=1 then
+      SingleDataTransfer
+    else
+    if (opcode shr 25) and 7=4 then
+      LDM_STM
+    else
+    if ((opcode shr 23) and $1f=2) and ((opcode shr 20) and $3=0) and ((opcode shr 4) and $ff=9) then
+      SWP
+    else
+    if (opcode shr 24) and $F=$F then
+      SWI
+    else
+    if (((opcode shr 24) and $F)=$E) and (((opcode shr 4) and 1)=1) then
+      CDP;
 
-  if (((opcode shr 23) and $1f)=2) and (((opcode shr 4) and $3FFFF)=$29F00) then
-  begin
-    result:=MSR(address, opcode);
-    exit;
-  end;
-
-  if (((opcode shr 23) and $3)=2) and (((opcode shr 26) and $3)=2)  and (((opcode shr 12) and $3ff)=$28f) then
-  begin
-    result:=MSR_flg(address, opcode);
-    exit;
-  end;
+  end
+  else
+    LastDisassembleData.opcode:='??';
 
 
-  if ((opcode shr 25) and 7)=5 then
-  begin
-    //Branch and Branch with link
-    result:=Branch(address, opcode);
-    exit;
-  end;
+  result:=inttohex(LastDisassembleData.address,8);
+  result:=result+' - ';
+  if x=sizeof(opcode) then result:=result+inttohex(LastDisassembleData.Bytes[0],2)+' '+inttohex(LastDisassembleData.Bytes[1],2)+' '+inttohex(LastDisassembleData.Bytes[2],2)+' '+inttohex(LastDisassembleData.Bytes[3],2);
+  result:=result+' - ';
+  result:=result+LastDisassembleData.opcode;
+  result:=result+' ';
+  result:=result+LastDisassembleData.parameters;
 
-  if (((opcode shr 26) and 3)=0) and (((opcode shr 4) and $f)<>9) then
-  begin
-    result:=DataProcessing(address, opcode);
-    exit;
-  end;
-
-  if (opcode shr 26) and 3=1 then
-  begin
-    result:=SingleDataTransfer(address, opcode);
-    exit;
-  end;
-
-  if (opcode shr 25) and 7=4 then
-  begin
-    result:=LDM_STM(address, opcode);
-    exit;
-  end;
-
-  if ((opcode shr 23) and $1f=2) and ((opcode shr 20) and $3=0) and ((opcode shr 4) and $ff=9) then
-  begin
-    result:=SWP(address, opcode);
-    exit;
-  end;
-
-  if (opcode shr 24) and $F=$F then
-  begin
-    result:=SWI(address, opcode);
-    exit;
-  end;
-
-  if (((opcode shr 24) and $F)=$E) and (((opcode shr 4) and 1)=1) then
-  begin
-    result:=CDP(address, opcode);
-    exit;
-  end;
-
+  inc(address,4);
 
 end;
 

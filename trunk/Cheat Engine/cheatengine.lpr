@@ -72,7 +72,7 @@ uses
   frmD3DHookSnapshotConfigUnit, frmsnapshothandlerUnit, frmSaveSnapshotsUnit,
   frmD3DTrainerGeneratorOptionsUnit, lua_server, frmAssemblyScanUnit, 
 frmManualStacktraceConfigUnit, cvconst, NetworkDebuggerInterface, 
-DisassemblerArm;
+DisassemblerArm, LastDisassembleData;
 
 {$R cheatengine.res}
 //{$R manifest.res}  //lazarus now has this build in
