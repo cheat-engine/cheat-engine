@@ -1,10 +1,10 @@
 object FormFoundCodeListExtra: TFormFoundCodeListExtra
-  Left = 1104
-  Height = 322
-  Top = 297
+  Left = 1299
+  Height = 333
+  Top = 623
   Width = 476
   Caption = 'Extra info'
-  ClientHeight = 322
+  ClientHeight = 333
   ClientWidth = 476
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
@@ -13,7 +13,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
   OnDestroy = FormDestroy
   PopupMenu = pmCopy
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.0.8.0'
   object Panel1: TPanel
     Left = 0
     Height = 101
@@ -157,7 +157,7 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
   object Panel5: TPanel
     Left = 0
     Height = 42
-    Top = 280
+    Top = 291
     Width = 476
     Align = alBottom
     BevelOuter = bvNone
@@ -180,12 +180,12 @@ object FormFoundCodeListExtra: TFormFoundCodeListExtra
   end
   object Panel6: TPanel
     Left = 0
-    Height = 108
+    Height = 119
     Top = 172
     Width = 476
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 108
+    ClientHeight = 119
     ClientWidth = 476
     TabOrder = 4
     OnResize = Panel6Resize

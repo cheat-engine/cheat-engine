@@ -267,32 +267,57 @@ begin
     minfo.Lines.Add(disassembled[5]);
     minfo.Lines.Add('');
 
-    if processhandler.is64bit then
-      firstchar:='R' else firstchar:='E';
-
-    minfo.Lines.Add(firstchar+'AX='+IntToHex(coderecord.context.{$ifdef cpu64}Rax{$else}Eax{$endif},hexcount));
-    minfo.Lines.Add(firstchar+'BX='+IntToHex(coderecord.context.{$ifdef cpu64}Rbx{$else}Ebx{$endif},hexcount));
-    minfo.Lines.Add(firstchar+'CX='+IntToHex(coderecord.context.{$ifdef cpu64}Rcx{$else}Ecx{$endif},hexcount));
-    minfo.Lines.Add(firstchar+'DX='+IntToHex(coderecord.context.{$ifdef cpu64}Rdx{$else}Edx{$endif},hexcount));
-    minfo.Lines.Add(firstchar+'SI='+IntToHex(coderecord.context.{$ifdef cpu64}Rsi{$else}Esi{$endif},hexcount));
-    minfo.Lines.Add(firstchar+'DI='+IntToHex(coderecord.context.{$ifdef cpu64}Rdi{$else}Edi{$endif},hexcount));
-    minfo.Lines.Add(firstchar+'SP='+IntToHex(coderecord.context.{$ifdef cpu64}Rsp{$else}Esp{$endif},hexcount));
-    minfo.Lines.Add(firstchar+'BP='+IntToHex(coderecord.context.{$ifdef cpu64}Rbp{$else}Ebp{$endif},hexcount));
-    minfo.Lines.Add(firstchar+'IP='+IntToHex(coderecord.context.{$ifdef cpu64}Rip{$else}Eip{$endif},hexcount));
-
-    {$ifdef cpu64}
-    if processhandler.is64bit then
+    if processhandler.SystemArchitecture=archarm then
     begin
-      minfo.Lines.Add('R8='+IntToHex(coderecord.context.r8,16));
-      minfo.Lines.Add('R9='+IntToHex(coderecord.context.r9,16));
-      minfo.Lines.Add('R10='+IntToHex(coderecord.context.r10,16));
-      minfo.Lines.Add('R11='+IntToHex(coderecord.context.r11,16));
-      minfo.Lines.Add('R12='+IntToHex(coderecord.context.r12,16));
-      minfo.Lines.Add('R13='+IntToHex(coderecord.context.r13,16));
-      minfo.Lines.Add('R14='+IntToHex(coderecord.context.r14,16));
-      minfo.Lines.Add('R15='+IntToHex(coderecord.context.r15,16));
+      minfo.Lines.Add('R10='+inttohex(coderecord.armcontext.R0,8));
+      minfo.Lines.Add('R11='+inttohex(coderecord.armcontext.R1,8));
+      minfo.Lines.Add('R12='+inttohex(coderecord.armcontext.R2,8));
+      minfo.Lines.Add('R13='+inttohex(coderecord.armcontext.R3,8));
+      minfo.Lines.Add('R14='+inttohex(coderecord.armcontext.R4,8));
+      minfo.Lines.Add('R15='+inttohex(coderecord.armcontext.R5,8));
+      minfo.Lines.Add('R16='+inttohex(coderecord.armcontext.R6,8));
+      minfo.Lines.Add('R17='+inttohex(coderecord.armcontext.R7,8));
+      minfo.Lines.Add('R18='+inttohex(coderecord.armcontext.R8,8));
+      minfo.Lines.Add('R19='+inttohex(coderecord.armcontext.R9,8));
+      minfo.Lines.Add('R10='+inttohex(coderecord.armcontext.R10,8));
+      minfo.Lines.Add('FP='+inttohex(coderecord.armcontext.FP,8));
+      minfo.Lines.Add('IP='+inttohex(coderecord.armcontext.IP,8));
+      minfo.Lines.Add('SP='+inttohex(coderecord.armcontext.SP,8));
+      minfo.Lines.Add('LR='+inttohex(coderecord.armcontext.LR,8));
+      minfo.Lines.Add('PC='+inttohex(coderecord.armcontext.PC,8));
+      minfo.Lines.Add('CPSR='+inttohex(coderecord.armcontext.CPSR,8));
+      minfo.Lines.Add('ORIG_R0='+inttohex(coderecord.armcontext.ORIG_R0,8));
+    end
+    else
+    begin
+      if processhandler.is64bit then
+        firstchar:='R' else firstchar:='E';
+
+      minfo.Lines.Add(firstchar+'AX='+IntToHex(coderecord.context.{$ifdef cpu64}Rax{$else}Eax{$endif},hexcount));
+      minfo.Lines.Add(firstchar+'BX='+IntToHex(coderecord.context.{$ifdef cpu64}Rbx{$else}Ebx{$endif},hexcount));
+      minfo.Lines.Add(firstchar+'CX='+IntToHex(coderecord.context.{$ifdef cpu64}Rcx{$else}Ecx{$endif},hexcount));
+      minfo.Lines.Add(firstchar+'DX='+IntToHex(coderecord.context.{$ifdef cpu64}Rdx{$else}Edx{$endif},hexcount));
+      minfo.Lines.Add(firstchar+'SI='+IntToHex(coderecord.context.{$ifdef cpu64}Rsi{$else}Esi{$endif},hexcount));
+      minfo.Lines.Add(firstchar+'DI='+IntToHex(coderecord.context.{$ifdef cpu64}Rdi{$else}Edi{$endif},hexcount));
+      minfo.Lines.Add(firstchar+'SP='+IntToHex(coderecord.context.{$ifdef cpu64}Rsp{$else}Esp{$endif},hexcount));
+      minfo.Lines.Add(firstchar+'BP='+IntToHex(coderecord.context.{$ifdef cpu64}Rbp{$else}Ebp{$endif},hexcount));
+      minfo.Lines.Add(firstchar+'IP='+IntToHex(coderecord.context.{$ifdef cpu64}Rip{$else}Eip{$endif},hexcount));
+
+      {$ifdef cpu64}
+      if processhandler.is64bit then
+      begin
+        minfo.Lines.Add('R8='+IntToHex(coderecord.context.r8,16));
+        minfo.Lines.Add('R9='+IntToHex(coderecord.context.r9,16));
+        minfo.Lines.Add('R10='+IntToHex(coderecord.context.r10,16));
+        minfo.Lines.Add('R11='+IntToHex(coderecord.context.r11,16));
+        minfo.Lines.Add('R12='+IntToHex(coderecord.context.r12,16));
+        minfo.Lines.Add('R13='+IntToHex(coderecord.context.r13,16));
+        minfo.Lines.Add('R14='+IntToHex(coderecord.context.r14,16));
+        minfo.Lines.Add('R15='+IntToHex(coderecord.context.r15,16));
+      end;
+      {$endif}
+
     end;
-    {$endif}
 
     minfo.lines.add('');
     minfo.lines.add('');
@@ -406,38 +431,24 @@ begin
       Label5.Caption:=disassembled[5];
 
 
-      if processhandler.is64bit then
-        firstchar:='R' else firstchar:='E';
-
-      lblRAX.caption:=firstchar+'AX='+IntToHex(coderecord.context.{$ifdef cpu64}Rax{$else}Eax{$endif},8);
-      lblRBX.caption:=firstchar+'BX='+IntToHex(coderecord.context.{$ifdef cpu64}Rbx{$else}Ebx{$endif},8);
-      lblRCX.caption:=firstchar+'CX='+IntToHex(coderecord.context.{$ifdef cpu64}Rcx{$else}Ecx{$endif},8);
-      lblRDX.caption:=firstchar+'DX='+IntToHex(coderecord.context.{$ifdef cpu64}Rdx{$else}Edx{$endif},8);
-      lblRSI.caption:=firstchar+'SI='+IntToHex(coderecord.context.{$ifdef cpu64}Rsi{$else}Esi{$endif},8);
-      lblRDI.caption:=firstchar+'DI='+IntToHex(coderecord.context.{$ifdef cpu64}Rdi{$else}Edi{$endif},8);
-      lblRSP.caption:=firstchar+'SP='+IntToHex(coderecord.context.{$ifdef cpu64}Rsp{$else}Esp{$endif},8);
-      lblRBP.caption:=firstchar+'BP='+IntToHex(coderecord.context.{$ifdef cpu64}Rbp{$else}Ebp{$endif},8);
-      lblRIP.caption:=firstchar+'IP='+IntToHex(coderecord.context.{$ifdef cpu64}Rip{$else}Eip{$endif},8);
-
-      {$ifdef cpu64}
-      if processhandler.is64bit then
+      if processhandler.SystemArchitecture=archarm then
       begin
-        lblR8:=tlabel.Create(FormFoundCodeListExtra);
-        lblR8.font:=lblRCX.font;
-        lblR8.Top:=lblRCX.top+(lblRCX.top-lblRBX.top);
-        lblR8.left:=lblRCX.left;
-        lblR8.caption:=' R8='+IntToHex(coderecord.context.r8,8);
-        lblR8.parent:=FormFoundCodeListExtra.panel6;
-        lblR8.OnMouseDown:=registerMouseDown;
-        lblR8.OnDblClick:=RegisterDblClick;
-        lblR8.Align:=lblrcx.Align;
-
+        //repurpose the x86 32-bit labels
+        lblRAX.caption:=' R0='+IntToHex(coderecord.armcontext.R0,8);
+        lblRDX.caption:=' R1='+IntToHex(coderecord.armcontext.R1,8);
+        lblRBP.caption:=' R2='+IntToHex(coderecord.armcontext.R2,8);
+        lblRBX.caption:=' R3='+IntToHex(coderecord.armcontext.R3,8);
+        lblRSI.caption:=' R4='+IntToHex(coderecord.armcontext.R4,8);
+        lblRSP.caption:=' R5='+IntToHex(coderecord.armcontext.R5,8);
+        lblRCX.caption:=' R6='+IntToHex(coderecord.armcontext.R6,8);
+        lblRDI.caption:=' R7='+IntToHex(coderecord.armcontext.R7,8);
+        lblRIP.caption:=' R8='+IntToHex(coderecord.armcontext.R8,8);
 
         lblR9:=tlabel.Create(FormFoundCodeListExtra);
         lblR9.font:=lblRCX.font;
         lblR9.Top:=lblRCX.top+(lblRCX.top-lblRBX.top);
-        lblR9.left:=lblRDI.left;
-        lblR9.caption:=' R9='+IntToHex(coderecord.context.r9,8);
+        lblR9.left:=lblRCX.left;
+        lblR9.caption:=' R9='+IntToHex(coderecord.armcontext.R9,8);
         lblR9.parent:=FormFoundCodeListExtra.panel6;
         lblR9.OnMouseDown:=registerMouseDown;
         lblR9.OnDblClick:=RegisterDblClick;
@@ -446,8 +457,8 @@ begin
         lblR10:=tlabel.Create(FormFoundCodeListExtra);
         lblR10.font:=lblRCX.font;
         lblR10.Top:=lblRCX.top+(lblRCX.top-lblRBX.top);
-        lblR10.left:=lblRIP.left;
-        lblR10.caption:='R10='+IntToHex(coderecord.context.r10,8);
+        lblR10.left:=lblRDI.left;
+        lblR10.caption:='R10='+IntToHex(coderecord.armcontext.R10,8);
         lblR10.parent:=FormFoundCodeListExtra.panel6;
         lblR10.OnMouseDown:=registerMouseDown;
         lblR10.OnDblClick:=RegisterDblClick;
@@ -455,19 +466,19 @@ begin
 
         lblR11:=tlabel.Create(FormFoundCodeListExtra);
         lblR11.font:=lblRCX.font;
-        lblR11.Top:=lblR8.top+(lblR8.top-lblRCX.top);
-        lblR11.left:=lblRCX.left;
-        lblR11.caption:='R11='+IntToHex(coderecord.context.r11,8);
+        lblR11.Top:=lblRCX.top+(lblRCX.top-lblRBX.top);
+        lblR11.left:=lblRIP.left;
+        lblR11.caption:=' FP='+IntToHex(coderecord.armcontext.FP,8);
         lblR11.parent:=FormFoundCodeListExtra.panel6;
         lblR11.OnMouseDown:=registerMouseDown;
         lblR11.OnDblClick:=RegisterDblClick;
         lblR11.Align:=lblrcx.Align;
-
+                //new row
         lblR12:=tlabel.Create(FormFoundCodeListExtra);
         lblR12.font:=lblRCX.font;
-        lblR12.Top:=lblR8.top+(lblR8.top-lblRCX.top);
-        lblR12.left:=lblRDI.left;
-        lblR12.caption:='R12='+IntToHex(coderecord.context.r12,8);
+        lblR12.Top:=lblR9.top+(lblRCX.top-lblRBX.top);
+        lblR12.left:=lblRCX.left;
+        lblR12.caption:=' IP='+IntToHex(coderecord.armcontext.IP,8);
         lblR12.parent:=FormFoundCodeListExtra.panel6;
         lblR12.OnMouseDown:=registerMouseDown;
         lblR12.OnDblClick:=RegisterDblClick;
@@ -475,9 +486,9 @@ begin
 
         lblR13:=tlabel.Create(FormFoundCodeListExtra);
         lblR13.font:=lblRCX.font;
-        lblR13.Top:=lblR8.top+(lblR8.top-lblRCX.top);
-        lblR13.left:=lblRIP.left;
-        lblR13.caption:='R13='+IntToHex(coderecord.context.r13,8);
+        lblR13.Top:=lblR9.top+(lblRCX.top-lblRBX.top);
+        lblR13.left:=lblRDI.left;
+        lblR13.caption:=' SP='+IntToHex(coderecord.armcontext.SP,8);
         lblR13.parent:=FormFoundCodeListExtra.panel6;
         lblR13.OnMouseDown:=registerMouseDown;
         lblR13.OnDblClick:=RegisterDblClick;
@@ -485,32 +496,158 @@ begin
 
         lblR14:=tlabel.Create(FormFoundCodeListExtra);
         lblR14.font:=lblRCX.font;
-        lblR14.Top:=lblR11.top+(lblR11.top-lblR8.top);
-        lblR14.left:=lblRCX.left;
-        lblR14.caption:='R14='+IntToHex(coderecord.context.r14,8);
+        lblR14.Top:=lblR9.top+(lblRCX.top-lblRBX.top);
+        lblR14.left:=lblRIP.left;
+        lblR14.caption:=' LR='+IntToHex(coderecord.armcontext.LR,8);
         lblR14.parent:=FormFoundCodeListExtra.panel6;
         lblR14.OnMouseDown:=registerMouseDown;
         lblR14.OnDblClick:=RegisterDblClick;
         lblR14.Align:=lblrcx.Align;
+        //new line
 
         lblR15:=tlabel.Create(FormFoundCodeListExtra);
         lblR15.font:=lblRCX.font;
-        lblR15.Top:=lblR11.top+(lblR11.top-lblR8.top);
-        lblR15.left:=lblRDI.left;
-        lblR15.caption:='R15='+IntToHex(coderecord.context.r15,8);
+        lblR15.Top:=lblR12.top+(lblRCX.top-lblRBX.top);
+        lblR15.left:=lblRCX.left;
+        lblR15.caption:=' PC='+IntToHex(coderecord.armcontext.PC,8);
         lblR15.parent:=FormFoundCodeListExtra.panel6;
         lblR15.OnMouseDown:=registerMouseDown;
         lblR15.OnDblClick:=RegisterDblClick;
         lblR15.Align:=lblrcx.Align;
 
+        lblR16:=tlabel.Create(FormFoundCodeListExtra);
+        lblR16.font:=lblRCX.font;
+        lblR16.Top:=lblR12.top+(lblRCX.top-lblRBX.top);
+        lblR16.left:=lblRDI.left;
+        lblR16.caption:=' CPSR='+IntToHex(coderecord.armcontext.CPSR,8);
+        lblR16.parent:=FormFoundCodeListExtra.panel6;
+        lblR16.OnMouseDown:=registerMouseDown;
+        lblR16.OnDblClick:=RegisterDblClick;
+        lblR16.Align:=lblrcx.Align;
 
-        Constraints.MinHeight:=panel6.top+(lblR15.top+lblR15.height)+16+panel5.height;
+        lblR17:=tlabel.Create(FormFoundCodeListExtra);
+        lblR17.font:=lblRCX.font;
+        lblR17.Top:=lblR12.top+(lblRCX.top-lblRBX.top);
+        lblR17.left:=lblRIP.left;
+        lblR17.caption:=' ORIG_R0='+IntToHex(coderecord.armcontext.ORIG_R0,8);
+        lblR17.parent:=FormFoundCodeListExtra.panel6;
+        lblR17.OnMouseDown:=registerMouseDown;
+        lblR17.OnDblClick:=RegisterDblClick;
+        lblR17.Align:=lblrcx.Align;
+
+        Constraints.MinHeight:=panel6.top+(lblR17.top+lblR17.height)+16+panel5.height;
         if height<Constraints.MinHeight then
           height:=Constraints.MinHeight;
-//        if panel6.clientheight<lblR15.top+lblR15.height then //make room
-//          height:=height+(lblR15.top+lblR15.height)-(lblRDI.top+lblRDI.height);
+      end
+      else
+      begin
+
+        if processhandler.is64bit then
+          firstchar:='R' else firstchar:='E';
+
+        lblRAX.caption:=firstchar+'AX='+IntToHex(coderecord.context.{$ifdef cpu64}Rax{$else}Eax{$endif},8);
+        lblRBX.caption:=firstchar+'BX='+IntToHex(coderecord.context.{$ifdef cpu64}Rbx{$else}Ebx{$endif},8);
+        lblRCX.caption:=firstchar+'CX='+IntToHex(coderecord.context.{$ifdef cpu64}Rcx{$else}Ecx{$endif},8);
+        lblRDX.caption:=firstchar+'DX='+IntToHex(coderecord.context.{$ifdef cpu64}Rdx{$else}Edx{$endif},8);
+        lblRSI.caption:=firstchar+'SI='+IntToHex(coderecord.context.{$ifdef cpu64}Rsi{$else}Esi{$endif},8);
+        lblRDI.caption:=firstchar+'DI='+IntToHex(coderecord.context.{$ifdef cpu64}Rdi{$else}Edi{$endif},8);
+        lblRSP.caption:=firstchar+'SP='+IntToHex(coderecord.context.{$ifdef cpu64}Rsp{$else}Esp{$endif},8);
+        lblRBP.caption:=firstchar+'BP='+IntToHex(coderecord.context.{$ifdef cpu64}Rbp{$else}Ebp{$endif},8);
+        lblRIP.caption:=firstchar+'IP='+IntToHex(coderecord.context.{$ifdef cpu64}Rip{$else}Eip{$endif},8);
+
+        {$ifdef cpu64}
+        if processhandler.is64bit then
+        begin
+          lblR8:=tlabel.Create(FormFoundCodeListExtra);
+          lblR8.font:=lblRCX.font;
+          lblR8.Top:=lblRCX.top+(lblRCX.top-lblRBX.top);
+          lblR8.left:=lblRCX.left;
+          lblR8.caption:=' R8='+IntToHex(coderecord.context.r8,8);
+          lblR8.parent:=FormFoundCodeListExtra.panel6;
+          lblR8.OnMouseDown:=registerMouseDown;
+          lblR8.OnDblClick:=RegisterDblClick;
+          lblR8.Align:=lblrcx.Align;
+
+
+          lblR9:=tlabel.Create(FormFoundCodeListExtra);
+          lblR9.font:=lblRCX.font;
+          lblR9.Top:=lblRCX.top+(lblRCX.top-lblRBX.top);
+          lblR9.left:=lblRDI.left;
+          lblR9.caption:=' R9='+IntToHex(coderecord.context.r9,8);
+          lblR9.parent:=FormFoundCodeListExtra.panel6;
+          lblR9.OnMouseDown:=registerMouseDown;
+          lblR9.OnDblClick:=RegisterDblClick;
+          lblR9.Align:=lblrcx.Align;
+
+          lblR10:=tlabel.Create(FormFoundCodeListExtra);
+          lblR10.font:=lblRCX.font;
+          lblR10.Top:=lblRCX.top+(lblRCX.top-lblRBX.top);
+          lblR10.left:=lblRIP.left;
+          lblR10.caption:='R10='+IntToHex(coderecord.context.r10,8);
+          lblR10.parent:=FormFoundCodeListExtra.panel6;
+          lblR10.OnMouseDown:=registerMouseDown;
+          lblR10.OnDblClick:=RegisterDblClick;
+          lblR10.Align:=lblrcx.Align;
+
+          lblR11:=tlabel.Create(FormFoundCodeListExtra);
+          lblR11.font:=lblRCX.font;
+          lblR11.Top:=lblR8.top+(lblR8.top-lblRCX.top);
+          lblR11.left:=lblRCX.left;
+          lblR11.caption:='R11='+IntToHex(coderecord.context.r11,8);
+          lblR11.parent:=FormFoundCodeListExtra.panel6;
+          lblR11.OnMouseDown:=registerMouseDown;
+          lblR11.OnDblClick:=RegisterDblClick;
+          lblR11.Align:=lblrcx.Align;
+
+          lblR12:=tlabel.Create(FormFoundCodeListExtra);
+          lblR12.font:=lblRCX.font;
+          lblR12.Top:=lblR8.top+(lblR8.top-lblRCX.top);
+          lblR12.left:=lblRDI.left;
+          lblR12.caption:='R12='+IntToHex(coderecord.context.r12,8);
+          lblR12.parent:=FormFoundCodeListExtra.panel6;
+          lblR12.OnMouseDown:=registerMouseDown;
+          lblR12.OnDblClick:=RegisterDblClick;
+          lblR12.Align:=lblrcx.Align;
+
+          lblR13:=tlabel.Create(FormFoundCodeListExtra);
+          lblR13.font:=lblRCX.font;
+          lblR13.Top:=lblR8.top+(lblR8.top-lblRCX.top);
+          lblR13.left:=lblRIP.left;
+          lblR13.caption:='R13='+IntToHex(coderecord.context.r13,8);
+          lblR13.parent:=FormFoundCodeListExtra.panel6;
+          lblR13.OnMouseDown:=registerMouseDown;
+          lblR13.OnDblClick:=RegisterDblClick;
+          lblR13.Align:=lblrcx.Align;
+
+          lblR14:=tlabel.Create(FormFoundCodeListExtra);
+          lblR14.font:=lblRCX.font;
+          lblR14.Top:=lblR11.top+(lblR11.top-lblR8.top);
+          lblR14.left:=lblRCX.left;
+          lblR14.caption:='R14='+IntToHex(coderecord.context.r14,8);
+          lblR14.parent:=FormFoundCodeListExtra.panel6;
+          lblR14.OnMouseDown:=registerMouseDown;
+          lblR14.OnDblClick:=RegisterDblClick;
+          lblR14.Align:=lblrcx.Align;
+
+          lblR15:=tlabel.Create(FormFoundCodeListExtra);
+          lblR15.font:=lblRCX.font;
+          lblR15.Top:=lblR11.top+(lblR11.top-lblR8.top);
+          lblR15.left:=lblRDI.left;
+          lblR15.caption:='R15='+IntToHex(coderecord.context.r15,8);
+          lblR15.parent:=FormFoundCodeListExtra.panel6;
+          lblR15.OnMouseDown:=registerMouseDown;
+          lblR15.OnDblClick:=RegisterDblClick;
+          lblR15.Align:=lblrcx.Align;
+
+
+          Constraints.MinHeight:=panel6.top+(lblR15.top+lblR15.height)+16+panel5.height;
+          if height<Constraints.MinHeight then
+            height:=Constraints.MinHeight;
+  //        if panel6.clientheight<lblR15.top+lblR15.height then //make room
+  //          height:=height+(lblR15.top+lblR15.height)-(lblRDI.top+lblRDI.height);
+        end;
+        {$endif}
       end;
-      {$endif}
       label6.Caption:=coderecord.description;
     end;
 

@@ -80,6 +80,8 @@ type
     lblR13: tlabel;
     lblR14: tlabel;
     lblR15: tlabel;
+    lblR16: tlabel;
+    lblR17: tlabel;
     property probably: ptrUint read fprobably write setprobably;
   end;
 

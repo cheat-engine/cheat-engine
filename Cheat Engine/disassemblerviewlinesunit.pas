@@ -6,7 +6,7 @@ interface
 
 uses LCLIntf,sysutils, classes,ComCtrls, graphics, CEFuncProc, disassembler,
      CEDebugger, debughelper, KernelDebugger, symbolhandler, plugin,
-     disassemblerComments, SymbolListHandler;
+     disassemblerComments, SymbolListHandler, ProcessHandlerUnit;
 
 type
   TDisassemblerViewColorsState=(csUndefined=-1, csNormal=0, csHighlighted=1, csSecondaryHighlighted=2, csBreakpoint=3, csHighlightedbreakpoint=4, csSecondaryHighlightedbreakpoint=5);
@@ -678,44 +678,49 @@ begin
   i:=1;
   colorcode:=0;
 
-  while i<length(text) do
+  if processhandler.SystemArchitecture=archx86 then
   begin
-    case text[i] of
-      '{':
-      begin
-        setcolor;
-
-        s:=copy(text, start,i-start);
-        fcanvas.TextRect(ARect,x,y,AnsiToUtf8(s));
-        x:=x+fcanvas.TextWidth(s);
-
-        inc(i);
-        while i<length(text) do
+    while i<length(text) do
+    begin
+      case text[i] of
+        '{':
         begin
-          case text[i] of
-            'N': colorcode:=0;
-            'H': colorcode:=1;
-            'R': colorcode:=2;
-            'S': colorcode:=3;
-            '}':
-            begin
-              inc(i);
-              break;
-            end;
+          setcolor;
 
-            //else raise exception.create(rsInvalidDisassembly);
-          end;
+          s:=copy(text, start,i-start);
+          fcanvas.TextRect(ARect,x,y,AnsiToUtf8(s));
+          x:=x+fcanvas.TextWidth(s);
+
           inc(i);
+          while i<length(text) do
+          begin
+            case text[i] of
+              'N': colorcode:=0;
+              'H': colorcode:=1;
+              'R': colorcode:=2;
+              'S': colorcode:=3;
+              '}':
+              begin
+                inc(i);
+                break;
+              end;
+
+              //else raise exception.create(rsInvalidDisassembly);
+            end;
+            inc(i);
+          end;
+
+          start:=i;
         end;
 
-        start:=i;
+        else inc(i);
       end;
 
-      else inc(i);
+
     end;
-
-
-  end;
+  end
+  else
+    i:=length(text);
 
   setcolor;
 

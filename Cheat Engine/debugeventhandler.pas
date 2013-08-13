@@ -721,6 +721,9 @@ begin
           fcd.useexceptions:=bpp.breakpointMethod=bpmException;
 
           TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), fcd.AddRecord);
+
+          if CurrentDebuggerInterface is TNetworkDebuggerInterface then
+            continueFromBreakpoint(bpp, co_run);  //explicitly continue from this breakpoint
         end;
 
         //nothing special is needed to continue
