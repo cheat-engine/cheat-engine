@@ -34,6 +34,8 @@ begin
   inherited create;
   fDebuggerCapabilities:=[dbcSoftwareBreakpoint, dbcHardwareBreakpoint, dbcExceptionBreakpoint, dbcBreakOnEntry];
   name:='Windows Debugger';
+
+  fmaxSharedBreakpointCount:=4;
 end;
 
 function TWindowsDebuggerInterface.WaitForDebugEvent(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL;

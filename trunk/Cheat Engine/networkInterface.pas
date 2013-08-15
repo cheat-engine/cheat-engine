@@ -16,6 +16,14 @@ type
   TNetworkDebugEvent=packed record
     signal: integer;
     threadid: qword;
+    case integer of
+      -2: (//create process
+      createProcess: packed record
+        maxBreakpointCount: uint8;
+        maxWatchpointCount: uint8;
+        maxSharedBreakpoints: uint8;
+      end; );
+      5: (address: qword;  );
   end;
 
   TNetworkEnumSymCallback=function(modulename: string; symbolname: string; address: ptruint; size: integer ): boolean of object;
@@ -53,7 +61,7 @@ type
     function WaitForDebugEvent(hProcess: THandle; timeout: integer; var devent: TNetworkDebugEvent):BOOL;
     function ContinueDebugEvent(hProcess: THandle; threadid: dword; continuemethod: integer): BOOL;
     function SetBreakpoint(hProcess: THandle; threadid: integer; address: PtrUInt; bptype: integer; bpsize: integer): boolean;
-    function RemoveBreakpoint(hProcess: THandle; threadid: integer): boolean;
+    function RemoveBreakpoint(hProcess: THandle; threadid: integer; address: uint64): boolean;
     function AllocateAndGetContext(hProcess: Thandle; threadid: integer): pointer;
     function getVersion(var name: string): integer;
     function getArchitecture: integer;
@@ -749,12 +757,13 @@ begin
 
 end;
 
-function TCEConnection.RemoveBreakpoint(hProcess: THandle; threadid: integer): boolean;
+function TCEConnection.RemoveBreakpoint(hProcess: THandle; threadid: integer; address: uint64): boolean;
 var
   input: packed record
     command: byte;
     handle: integer;
     tid: integer;
+    address: uint64;
   end;
 
   r: integer;
@@ -767,6 +776,7 @@ begin
     input.command:=CMD_REMOVEBREAKPOINT;
     input.handle:=hProcess and $ffffff;
     input.tid:=threadid;
+    input.address:=address;
 
     if send(@input, sizeof(input))>0 then
     begin

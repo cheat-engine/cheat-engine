@@ -16,6 +16,10 @@ type
   TDebuggerCapabilitiesSet=set of TDebuggerCapabilities;
   TDebuggerInterface=class
   protected
+    fmaxInstructionBreakpointCount: integer;
+    fmaxWatchpointBreakpointCount: integer;
+    fmaxSharedBreakpointCount: integer;
+
     fDebuggerCapabilities: TDebuggerCapabilitiesSet;
     fErrorString: string;
   public
@@ -32,6 +36,10 @@ type
 
     property DebuggerCapabilities: TDebuggerCapabilitiesSet read fDebuggerCapabilities;
     property errorstring: string read ferrorstring;
+
+    property maxInstructionBreakpointCount: integer read fmaxSharedBreakpointCount;
+    property maxWatchpointBreakpointCount: integer read fmaxWatchpointBreakpointCount;
+    property maxSharedBreakpointCount: integer read fmaxSharedBreakpointCount;
 end;
 
 implementation

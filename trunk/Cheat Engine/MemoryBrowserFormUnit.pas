@@ -13,7 +13,7 @@ uses
   NewKernelHandler, ComCtrls, LResources, byteinterpreter, StrUtils, hexviewunit,
   debughelper, debuggertypedefinitions,frmMemviewPreferencesUnit, registry,
   scrollboxex, disassemblercomments, multilineinputqueryunit, frmMemoryViewExUnit,
-  LastDisassembleData;
+  LastDisassembleData, ProcessHandlerUnit;
 
 
 type
@@ -461,6 +461,7 @@ type
     disassemblerview: TDisassemblerview;
     hexview: THexview;
 
+    lastdebugcontextarm: TARMCONTEXT;
     lastdebugcontext: _Context;
     laststack: pbytearray;
 
@@ -3698,18 +3699,22 @@ begin
 end;
 
 procedure TMemoryBrowser.UpdateDebugContext(threadhandle: THandle; threadid: dword);
-var temp: string;
-    Regstart: string;
-    charcount: integer;
+var temp: string='';
+    Regstart: string='';
+    charcount: integer=8;
     x,bs: dword;
     stackaddress: PtrUInt;
-    i: integer;
+    i: integer=0;
 
 begin
-  if processhandler.is64Bit then
+  if processhandler.is64Bit or (processhandler.SystemArchitecture=archArm) then
   begin
     regstart:='R';
-    charcount:=16;
+
+    if processhandler.is64Bit then
+      charcount:=16
+    else
+      charcount:=8;
 
     if r8label=nil then
     begin
@@ -3823,7 +3828,11 @@ begin
       r15label.OnMouseDown:=RegisterMouseDown;
     end;
 
-    eiplabel.top:=r15label.top+(ebxlabel.top-eaxlabel.top);
+    if processhandler.SystemArchitecture=archX86 then
+      eiplabel.top:=r15label.top+(ebxlabel.top-eaxlabel.top)
+    else
+      eiplabel.top:=r14label.top+(ebxlabel.top-eaxlabel.top);
+
     label16.top:=eiplabel.top+(ebxlabel.top-eaxlabel.top);
     Shape3.top:=label16.top+(ebxlabel.top-eaxlabel.top);
     CSLabel.top:=shape3.top+shape3.height+2;
@@ -3850,13 +3859,13 @@ begin
 
   end;
 
-  if r8label<>nil then r8label.visible:=processhandler.is64Bit;
-  if r9label<>nil then r9label.visible:=processhandler.is64Bit;
-  if r10label<>nil then r10label.visible:=processhandler.is64Bit;
-  if r11label<>nil then r11label.visible:=processhandler.is64Bit;
-  if r12label<>nil then r12label.visible:=processhandler.is64Bit;
-  if r13label<>nil then r13label.visible:=processhandler.is64Bit;
-  if r14label<>nil then r14label.visible:=processhandler.is64Bit;
+  if r8label<>nil then r8label.visible:=processhandler.is64Bit or (processhandler.SystemArchitecture=archArm);
+  if r9label<>nil then r9label.visible:=processhandler.is64Bit or (processhandler.SystemArchitecture=archArm);
+  if r10label<>nil then r10label.visible:=processhandler.is64Bit or (processhandler.SystemArchitecture=archArm);
+  if r11label<>nil then r11label.visible:=processhandler.is64Bit or (processhandler.SystemArchitecture=archArm);
+  if r12label<>nil then r12label.visible:=processhandler.is64Bit or (processhandler.SystemArchitecture=archArm);
+  if r13label<>nil then r13label.visible:=processhandler.is64Bit or (processhandler.SystemArchitecture=archArm);
+  if r14label<>nil then r14label.visible:=processhandler.is64Bit or (processhandler.SystemArchitecture=archArm);
   if r15label<>nil then r15label.visible:=processhandler.is64Bit;
 
   scrollbox1.OnResize(scrollbox1);
@@ -3873,65 +3882,99 @@ begin
   if frmstacktrace<>nil then
     frmstacktrace.stacktrace(threadhandle, lastdebugcontext);
 
-  disassemblerview.SelectedAddress:=lastdebugcontext.{$ifdef CPU64}rip{$else}eip{$endif};
+  if processhandler.SystemArchitecture=archX86 then
+    disassemblerview.SelectedAddress:=lastdebugcontext.{$ifdef CPU64}rip{$else}eip{$endif}
+  else
+  if processhandler.SystemArchitecture=archArm then
+    disassemblerview.SelectedAddress:=lastdebugcontextarm.PC;
 
-  temp:=regstart+'AX '+IntToHex(lastdebugcontext.{$ifdef CPU64}rax{$else}eax{$endif},charcount);
+
+
+  if processhandler.SystemArchitecture=archX86 then
+    temp:=regstart+'AX '+IntToHex(lastdebugcontext.{$ifdef CPU64}rax{$else}eax{$endif},charcount)
+  else
+    temp:=' R0 '+IntToHex(lastdebugcontextarm.R0,charcount);
   if temp<>eaxlabel.Caption then
   begin
     eaxlabel.Font.Color:=clred;
     eaxlabel.Caption:=temp;
   end else eaxlabel.Font.Color:=clWindowText;
 
-  temp:=regstart+'BX '+IntToHex(lastdebugcontext.{$ifdef CPU64}rbx{$else}ebx{$endif},charcount);
+
+  if processhandler.SystemArchitecture=archX86 then
+    temp:=regstart+'BX '+IntToHex(lastdebugcontext.{$ifdef CPU64}rbx{$else}ebx{$endif},charcount)
+  else
+    temp:=' R1 '+IntToHex(lastdebugcontextarm.R1, charcount);
   if temp<>ebxlabel.Caption then
   begin
     ebxlabel.Font.Color:=clred;
     ebxlabel.Caption:=temp;
   end else ebxlabel.Font.Color:=clWindowText;
 
-  temp:=regstart+'CX '+IntToHex(lastdebugcontext.{$ifdef CPU64}rcx{$else}ecx{$endif},charcount);
+  if processhandler.SystemArchitecture=archX86 then
+    temp:=regstart+'CX '+IntToHex(lastdebugcontext.{$ifdef CPU64}rcx{$else}ecx{$endif},charcount)
+  else
+    temp:=' R2 '+IntToHex(lastdebugcontextarm.R2, charcount);
   if temp<>eCxlabel.Caption then
   begin
     eCXlabel.Font.Color:=clred;
     eCXlabel.Caption:=temp;
   end else eCXlabel.Font.Color:=clWindowText;
 
-  temp:=regstart+'DX '+IntToHex(lastdebugcontext.{$ifdef CPU64}rdx{$else}edx{$endif},charcount);
+  if processhandler.SystemArchitecture=archX86 then
+    temp:=regstart+'DX '+IntToHex(lastdebugcontext.{$ifdef CPU64}rdx{$else}edx{$endif},charcount)
+  else
+    temp:=' R3 '+IntToHex(lastdebugcontextarm.R3, charcount);
   if temp<>eDxlabel.Caption then
   begin
     eDxlabel.Font.Color:=clred;
     eDxlabel.Caption:=temp;
   end else eDxlabel.Font.Color:=clWindowText;
 
-  temp:=regstart+'SI '+IntToHex(lastdebugcontext.{$ifdef CPU64}rsi{$else}esi{$endif},charcount);
+  if processhandler.SystemArchitecture=archX86 then
+    temp:=regstart+'SI '+IntToHex(lastdebugcontext.{$ifdef CPU64}rsi{$else}esi{$endif},charcount)
+  else
+    temp:=' R4 '+IntToHex(lastdebugcontextarm.R4, charcount);
   if temp<>eSIlabel.Caption then
   begin
     eSIlabel.Font.Color:=clred;
     eSIlabel.Caption:=temp;
   end else eSIlabel.Font.Color:=clWindowText;
 
-  temp:=regstart+'DI '+IntToHex(lastdebugcontext.{$ifdef CPU64}rdi{$else}edi{$endif},charcount);
+  if processhandler.SystemArchitecture=archX86 then
+    temp:=regstart+'DI '+IntToHex(lastdebugcontext.{$ifdef CPU64}rdi{$else}edi{$endif},charcount)
+  else
+    temp:=' R5 '+IntToHex(lastdebugcontextarm.R5, charcount);
   if temp<>eDIlabel.Caption then
   begin
     eDIlabel.Font.Color:=clred;
     eDIlabel.Caption:=temp;
   end else eDIlabel.Font.Color:=clWindowText;
 
-  temp:=regstart+'BP '+IntToHex(lastdebugcontext.{$ifdef CPU64}rbp{$else}ebp{$endif},charcount);
+  if processhandler.SystemArchitecture=archX86 then
+    temp:=regstart+'BP '+IntToHex(lastdebugcontext.{$ifdef CPU64}rbp{$else}ebp{$endif},charcount)
+  else
+    temp:=' R6 '+IntToHex(lastdebugcontextarm.R6, charcount);
   if temp<>eBPlabel.Caption then
   begin
     eBPlabel.Font.Color:=clred;
     eBPlabel.Caption:=temp;
   end else eBPlabel.Font.Color:=clWindowText;
 
-  temp:=regstart+'SP '+IntToHex(lastdebugcontext.{$ifdef CPU64}rsp{$else}esp{$endif},charcount);
+  if processhandler.SystemArchitecture=archX86 then
+    temp:=regstart+'SP '+IntToHex(lastdebugcontext.{$ifdef CPU64}rsp{$else}esp{$endif},charcount)
+  else
+    temp:=' R7 '+IntToHex(lastdebugcontextarm.R3, charcount);
   if temp<>eSPlabel.Caption then
   begin
     eSPlabel.Font.Color:=clred;
     eSPlabel.Caption:=temp;
   end else eSPlabel.Font.Color:=clWindowText;
 
-  temp:=regstart+'IP '+IntToHex(lastdebugcontext.{$ifdef CPU64}rip{$else}eip{$endif},charcount);
+  if processhandler.SystemArchitecture=archX86 then
+    temp:=regstart+'IP '+IntToHex(lastdebugcontext.{$ifdef CPU64}rip{$else}eip{$endif},charcount)
+  else
+    temp:='PC '+IntToHex(lastdebugcontextarm.PC, charcount);
   if temp<>eIPlabel.Caption then
   begin
     eIPlabel.Font.Color:=clred;
@@ -3939,167 +3982,220 @@ begin
   end else eIPlabel.Font.Color:=clWindowText;
 
   {$ifdef CPU64}
-  if processhandler.is64Bit then
+  if processhandler.is64Bit or (processhandler.SystemArchitecture=archX86)  then
   begin
-    temp:=' R8 '+IntToHex(lastdebugcontext.r8,16);
+    if processhandler.SystemArchitecture=archX86 then
+      temp:=' R8 '+IntToHex(lastdebugcontext.r8,16)
+    else
+      temp:=' R8 '+IntToHex(lastdebugcontextarm.r8,8);
     if temp<>r8label.Caption then
     begin
       r8label.Font.Color:=clred;
       r8label.Caption:=temp;
     end else r8label.Font.Color:=clWindowText;
 
-    temp:=' R9 '+IntToHex(lastdebugcontext.r9,16);
+    if processhandler.SystemArchitecture=archX86 then
+      temp:=' R9 '+IntToHex(lastdebugcontext.r9,16)
+    else
+      temp:=' R9 '+IntToHex(lastdebugcontextarm.r9,8);
     if temp<>r9label.Caption then
     begin
       r9label.Font.Color:=clred;
       r9label.Caption:=temp;
     end else r9label.Font.Color:=clWindowText;
 
-    temp:='R10 '+IntToHex(lastdebugcontext.r10,16);
+    if processhandler.SystemArchitecture=archX86 then
+      temp:='R10 '+IntToHex(lastdebugcontext.r10,16)
+    else
+      temp:='R10 '+IntToHex(lastdebugcontextarm.r10,8);
     if temp<>r10label.Caption then
     begin
       r10label.Font.Color:=clred;
       r10label.Caption:=temp;
     end else r10label.Font.Color:=clWindowText;
 
-    temp:='R11 '+IntToHex(lastdebugcontext.r11,16);
+    if processhandler.SystemArchitecture=archX86 then
+      temp:='R11 '+IntToHex(lastdebugcontext.r11,16)
+    else
+      temp:=' FP '+IntToHex(lastdebugcontextarm.FP,8);
     if temp<>r11label.Caption then
     begin
       r11label.Font.Color:=clred;
       r11label.Caption:=temp;
     end else r11label.Font.Color:=clWindowText;
 
-    temp:='R12 '+IntToHex(lastdebugcontext.r12,16);
+    if processhandler.SystemArchitecture=archX86 then
+      temp:='R12 '+IntToHex(lastdebugcontext.r12,16)
+    else
+      temp:=' IP '+IntToHex(lastdebugcontextarm.IP,8);
     if temp<>r12label.Caption then
     begin
       r12label.Font.Color:=clred;
       r12label.Caption:=temp;
     end else r12label.Font.Color:=clWindowText;
 
-    temp:='R13 '+IntToHex(lastdebugcontext.r13,16);
+    if processhandler.SystemArchitecture=archX86 then
+      temp:='R13 '+IntToHex(lastdebugcontext.r13,16)
+    else
+      temp:=' SP '+IntToHex(lastdebugcontextarm.SP,8);
     if temp<>r13label.Caption then
     begin
       r13label.Font.Color:=clred;
       r13label.Caption:=temp;
     end else r13label.Font.Color:=clWindowText;
 
-    temp:='R14 '+IntToHex(lastdebugcontext.r14,16);
+    if processhandler.SystemArchitecture=archX86 then
+      temp:='R14 '+IntToHex(lastdebugcontext.r14,16)
+    else
+      temp:=' LR '+IntToHex(lastdebugcontextarm.LR,8);
     if temp<>r14label.Caption then
     begin
       r14label.Font.Color:=clred;
       r14label.Caption:=temp;
     end else r14label.Font.Color:=clWindowText;
 
-    temp:='R15 '+IntToHex(lastdebugcontext.r15,16);
-    if temp<>r15label.Caption then
+    if processhandler.SystemArchitecture=archX86 then
     begin
-      r15label.Font.Color:=clred;
-      r15label.Caption:=temp;
-    end else r15label.Font.Color:=clWindowText;
+      temp:='R15 '+IntToHex(lastdebugcontext.r15,16);
+      if temp<>r15label.Caption then
+      begin
+        r15label.Font.Color:=clred;
+        r15label.Caption:=temp;
+      end else r15label.Font.Color:=clWindowText;
+    end;
   end;
   {$endif}
 
-  temp:='CS '+IntToHex(lastdebugcontext.SEGCS,4);
-  if temp<>CSlabel.Caption then
+  if processhandler.SystemArchitecture=archX86 then
   begin
-    CSlabel.Font.Color:=clred;
-    CSlabel.Caption:=temp;
-  end else CSlabel.Font.Color:=clWindowText;
 
-  temp:='DS '+IntToHex(lastdebugcontext.SEGDS,4);
-  if temp<>DSlabel.Caption then
+    temp:='CS '+IntToHex(lastdebugcontext.SEGCS,4);
+    if temp<>CSlabel.Caption then
+    begin
+      CSlabel.Font.Color:=clred;
+      CSlabel.Caption:=temp;
+    end else CSlabel.Font.Color:=clWindowText;
+
+    temp:='DS '+IntToHex(lastdebugcontext.SEGDS,4);
+    if temp<>DSlabel.Caption then
+    begin
+      DSlabel.Font.Color:=clred;
+      DSlabel.Caption:=temp;
+    end else DSLabel.Font.Color:=clWindowText;
+
+    temp:='SS '+IntToHex(lastdebugcontext.SEGSS,4);
+    if temp<>SSlabel.Caption then
+    begin
+      SSlabel.Font.Color:=clred;
+      SSlabel.Caption:=temp;
+    end else SSlabel.Font.Color:=clWindowText;
+
+    temp:='ES '+IntToHex(lastdebugcontext.SEGES,4);
+    if temp<>ESlabel.Caption then
+    begin
+      ESlabel.Font.Color:=clred;
+      ESlabel.Caption:=temp;
+    end else ESlabel.Font.Color:=clWindowText;
+
+    temp:='FS '+IntToHex(lastdebugcontext.SEGFS,4);
+    if temp<>FSlabel.Caption then
+    begin
+      FSlabel.Font.Color:=clred;
+      FSlabel.Caption:=temp;
+    end else FSlabel.Font.Color:=clWindowText;
+
+    temp:='GS '+IntToHex(lastdebugcontext.SEGGS,4);
+    if temp<>GSlabel.Caption then
+    begin
+      GSlabel.Font.Color:=clred;
+      GSlabel.Caption:=temp;
+    end else GSlabel.Font.Color:=clWindowText;
+
+    temp:='CF '+IntToStr(GetBit(2,lastdebugcontext.EFLAgs));
+    if temp<>cflabel.Caption then
+    begin
+      CFlabel.Font.Color:=clred;
+      CFlabel.caption:=temp;
+    end else cflabel.Font.Color:=clWindowText;
+
+    temp:='PF '+IntToStr(GetBit(2,lastdebugcontext.EFlags));
+    if temp<>Pflabel.Caption then
+    begin
+      Pflabel.Font.Color:=clred;
+      Pflabel.caption:=temp;
+    end else Pflabel.Font.Color:=clWindowText;
+
+    temp:='AF '+IntToStr(GetBit(4,lastdebugcontext.EFlags));
+    if temp<>Aflabel.Caption then
+    begin
+      Aflabel.Font.Color:=clred;
+      Aflabel.caption:=temp;
+    end else Aflabel.Font.Color:=clWindowText;
+
+    temp:='ZF '+IntToStr(GetBit(6,lastdebugcontext.EFlags));
+    if temp<>Zflabel.Caption then
+    begin
+      Zflabel.Font.Color:=clred;
+      Zflabel.caption:=temp;
+    end else Zflabel.Font.Color:=clWindowText;
+
+    temp:='SF '+IntToStr(GetBit(7,lastdebugcontext.EFlags));
+    if temp<>Sflabel.Caption then
+    begin
+      Sflabel.Font.Color:=clred;
+      Sflabel.caption:=temp;
+    end else Sflabel.Font.Color:=clWindowText;
+
+    temp:='DF '+IntToStr(GetBit(10,lastdebugcontext.EFlags));
+    if temp<>Dflabel.Caption then
+    begin
+      Dflabel.Font.Color:=clred;
+      Dflabel.caption:=temp;
+    end else Dflabel.Font.Color:=clWindowText;
+
+    temp:='OF '+IntToStr(GetBit(11,lastdebugcontext.EFlags));
+    if temp<>Oflabel.Caption then
+    begin
+      Oflabel.Font.Color:=clred;
+      Oflabel.caption:=temp;
+    end else Oflabel.Font.Color:=clWindowText;
+
+    Label15.left:=eaxlabel.left+eaxlabel.Canvas.TextWidth(eaxlabel.caption)+16;
+    shape2.left:=Label15.left;
+    cflabel.left:=label15.left;
+    pflabel.left:=label15.left;
+    aflabel.left:=label15.left;
+    zflabel.left:=label15.left;
+    sflabel.left:=label15.left;
+    dflabel.left:=label15.left;
+    oflabel.left:=label15.left;
+  end
+  else
   begin
-    DSlabel.Font.Color:=clred;
-    DSlabel.Caption:=temp;
-  end else DSLabel.Font.Color:=clWindowText;
+    //arm
+    Label15.visible:=false;
+    shape2.visible:=false;
+    cflabel.visible:=false;
+    pflabel.visible:=false;
+    aflabel.visible:=false;
+    zflabel.visible:=false;
+    sflabel.visible:=false;
+    dflabel.visible:=false;
+    oflabel.visible:=false;
 
-  temp:='SS '+IntToHex(lastdebugcontext.SEGSS,4);
-  if temp<>SSlabel.Caption then
-  begin
-    SSlabel.Font.Color:=clred;
-    SSlabel.Caption:=temp;
-  end else SSlabel.Font.Color:=clWindowText;
+    Label16.visible:=false;
+    shape3.visible:=false;
 
-  temp:='ES '+IntToHex(lastdebugcontext.SEGES,4);
-  if temp<>ESlabel.Caption then
-  begin
-    ESlabel.Font.Color:=clred;
-    ESlabel.Caption:=temp;
-  end else ESlabel.Font.Color:=clWindowText;
-
-  temp:='FS '+IntToHex(lastdebugcontext.SEGFS,4);
-  if temp<>FSlabel.Caption then
-  begin
-    FSlabel.Font.Color:=clred;
-    FSlabel.Caption:=temp;
-  end else FSlabel.Font.Color:=clWindowText;
-
-  temp:='GS '+IntToHex(lastdebugcontext.SEGGS,4);
-  if temp<>GSlabel.Caption then
-  begin
-    GSlabel.Font.Color:=clred;
-    GSlabel.Caption:=temp;
-  end else GSlabel.Font.Color:=clWindowText;
-
-  temp:='CF '+IntToStr(GetBit(2,lastdebugcontext.EFLAgs));
-  if temp<>cflabel.Caption then
-  begin
-    CFlabel.Font.Color:=clred;
-    CFlabel.caption:=temp;
-  end else cflabel.Font.Color:=clWindowText;
-
-  temp:='PF '+IntToStr(GetBit(2,lastdebugcontext.EFlags));
-  if temp<>Pflabel.Caption then
-  begin
-    Pflabel.Font.Color:=clred;
-    Pflabel.caption:=temp;
-  end else Pflabel.Font.Color:=clWindowText;
-
-  temp:='AF '+IntToStr(GetBit(4,lastdebugcontext.EFlags));
-  if temp<>Aflabel.Caption then
-  begin
-    Aflabel.Font.Color:=clred;
-    Aflabel.caption:=temp;
-  end else Aflabel.Font.Color:=clWindowText;
-
-  temp:='ZF '+IntToStr(GetBit(6,lastdebugcontext.EFlags));
-  if temp<>Zflabel.Caption then
-  begin
-    Zflabel.Font.Color:=clred;
-    Zflabel.caption:=temp;
-  end else Zflabel.Font.Color:=clWindowText;
-
-  temp:='SF '+IntToStr(GetBit(7,lastdebugcontext.EFlags));
-  if temp<>Sflabel.Caption then
-  begin
-    Sflabel.Font.Color:=clred;
-    Sflabel.caption:=temp;
-  end else Sflabel.Font.Color:=clWindowText;
-
-  temp:='DF '+IntToStr(GetBit(10,lastdebugcontext.EFlags));
-  if temp<>Dflabel.Caption then
-  begin
-    Dflabel.Font.Color:=clred;
-    Dflabel.caption:=temp;
-  end else Dflabel.Font.Color:=clWindowText;
-
-  temp:='OF '+IntToStr(GetBit(11,lastdebugcontext.EFlags));
-  if temp<>Oflabel.Caption then
-  begin
-    Oflabel.Font.Color:=clred;
-    Oflabel.caption:=temp;
-  end else Oflabel.Font.Color:=clWindowText;
+    cslabel.caption:='CSPR='+inttohex(lastdebugcontextarm.CPSR,8);
+    sslabel.visible:=false;
+    dslabel.visible:=false;
+    eslabel.visible:=false;
+    fslabel.visible:=false;
+    gslabel.visible:=false;
+  end;
 
 
-  Label15.left:=eaxlabel.left+eaxlabel.Canvas.TextWidth(eaxlabel.caption)+16;
-  shape2.left:=Label15.left;
-  cflabel.left:=label15.left;
-  pflabel.left:=label15.left;
-  aflabel.left:=label15.left;
-  zflabel.left:=label15.left;
-  sflabel.left:=label15.left;
-  dflabel.left:=label15.left;
-  oflabel.left:=label15.left;
+
 
   sbShowFloats.BringToFront;
   //sbShowFloats.visible:=true;

@@ -28,10 +28,9 @@ type
     Int3setbackAddress: ptrUint;
     Int3SetBackBP: PBreakpoint;
 
-    {$ifdef cpu32}
+
     setInt1Back: boolean;
     Int1SetBackBP: PBreakpoint;
-    {$endif}
 
     singlestepping: boolean;
 
@@ -77,6 +76,8 @@ type
     procedure handleTrace;
     procedure HandleBreak(bp: PBreakpoint);
     procedure ContinueFromBreakpoint(bp: PBreakpoint; continueoption: TContinueOption);
+    function EnableOriginalBreakpointAfterThisBreakpointForThisThread(bp: Pbreakpoint; OriginalBreakpoint: PBreakpoint): boolean;
+
     //sync functions
     procedure visualizeBreak;
     procedure AddDebugEventString;
@@ -139,7 +140,10 @@ end;
 
 procedure TDebugThreadHandler.VisualizeBreak;
 begin
-  MemoryBrowser.lastdebugcontext:=context^;
+  if processhandler.SystemArchitecture=archx86 then
+    MemoryBrowser.lastdebugcontext:=context^
+  else
+    MemoryBrowser.lastdebugcontextarm:=armcontext;
 
   WaitingToContinue:=true;
   luaOverride:=lua_onBreakpoint(context);
@@ -278,6 +282,12 @@ begin
 
 end;
 
+function TDebugThreadHandler.EnableOriginalBreakpointAfterThisBreakpointForThisThread(bp: Pbreakpoint; OriginalBreakpoint: PBreakpoint): boolean;
+begin
+  dec(OriginalBreakpoint.referencecount);
+  TdebuggerThread(debuggerthread).SetBreakpoint(Originalbreakpoint, self);
+end;
+
 procedure TDebugThreadHandler.ContinueFromBreakpoint(bp: PBreakpoint; continueoption: TContinueOption);
 {
 Continues the current thread from a debug event. Handles int3 breakpoints as well
@@ -289,24 +299,13 @@ var oldprotect,bw: dword;
   nexteip: ptruint;
   t: string;
 
-  b: PBreakpoint;
+  b: PBreakpoint=nil;
 begin
   context.EFlags:=eflags_setTF(context.EFlags,0);
 
   try
     if (bp<>nil) then
     begin
-
-
-      if (CurrentDebuggerInterface is TNetworkDebuggerInterface) then
-      begin
-        //if it is a network breakpoint delete it first. Not needed for x86 but arm will break if the breakpoint doesn't get removed (at least my transformer tablet does)
-        singlestepping:=false;
-        TdebuggerThread(debuggerthread).UnsetBreakpoint(bp, nil, ThreadId);
-
-        //perhaps in the future: Set a breakpoint at the next instruction and run till there and then set the breakpoint back
-        exit;
-      end;
 
 
       if (bp.breakpointMethod=bpmInt3) then
@@ -327,6 +326,30 @@ begin
       end
       else
       begin
+
+        if (CurrentDebuggerInterface is TNetworkDebuggerInterface) and (processhandler.SystemArchitecture=archarm) then
+        begin
+          //if it is a network breakpoint delete it first. Not needed for x86 but arm can't continue if the breakpoint doesn't get removed (at least my transformer tablet does)
+          //it's like windows XP where the RF flag is borked, and the added fun that is also affects read/write watchpoints and arm doesn't do single stepping
+
+          TdebuggerThread(debuggerthread).UnsetBreakpoint(bp, nil, ThreadId); //remove the breakpoint just for this thread
+         {
+          if (bp.OneTimeOnly=false) and (bp.breakpointAction<>bo_OnBreakpoint) then
+          begin
+
+            //add a one time breakpoint for this thread on the next instruction that when executed, reenables the current breakpoint
+            b:=TdebuggerThread(debuggerthread).SetOnExecuteBreakpoint(armcontext.PC+8, false, ThreadID);
+
+
+            inc(bp.referencecount); //prevent it from getting deleted
+
+            b.breakpointAction:=bo_OnBreakpoint;
+            b.OnBreakpointContext:=bp;
+            b.OnBreakpoint:=EnableOriginalBreakpointAfterThisBreakpointForThisThread; //hopefully this name is descriptive enough...
+          end;   }
+
+          exit;
+        end;
 
 
 {$ifdef cpu32}
@@ -605,7 +628,7 @@ begin
     begin
       bpp:=PBreakpoint(breakpointlist.Items[i]);
 
-      if InRangeX(address, bpp.address, bpp.address+bpp.size-1) or (CurrentDebuggerInterface is TNetworkDebuggerInterface) then
+      if InRangeX(address, bpp.address, bpp.address+bpp.size-1) then
       begin
         found:=true;
         bpp2:=bpp;
@@ -986,19 +1009,23 @@ begin
         exit;
       end;
 
-      //find out what caused the breakpoint.
-      //inspect DR6
-      //Problem: if the last breakpoint was unset dr7 is 0. Meaning that DR6 will read out 0 as well...
-      //Solution: DeleteBreakpoint must NOT call unsetBreakpoint. Only call it from the breakpoint handler and the breakpoint cleanup
 
       if (CurrentDebuggerInterface is TNetworkDebuggerInterface) then
       begin
-        //Only one breakpoint at a time (for now)
-        DispatchBreakpoint(0, dwContinueStatus);
-
+        //the address that caused the break is stored in ExceptionRecord.exceptionaddress
+        if uint_ptr(debugEvent.Exception.ExceptionRecord.ExceptionAddress)=1 then
+          Result := SingleStep(dwContinueStatus) //only x86 returns this (on a rare occasion)
+        else
+          DispatchBreakpoint(uint_ptr(debugEvent.Exception.ExceptionRecord.ExceptionAddress), dwContinueStatus);
       end
       else
       begin
+        //find out what caused the breakpoint.
+        //inspect DR6
+        //Problem: if the last breakpoint was unset dr7 is 0. Meaning that DR6 will read out 0 as well...
+        //Solution: DeleteBreakpoint must NOT call unsetBreakpoint. Only call it from the breakpoint handler and the breakpoint cleanup
+
+
         if (context.Dr6 and 1) = 1 then
           Result := DispatchBreakpoint(context.dr0, dwContinueStatus)
         else

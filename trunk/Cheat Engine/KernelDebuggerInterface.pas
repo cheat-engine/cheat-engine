@@ -464,6 +464,8 @@ begin
 
   fDebuggerCapabilities:=[dbcHardwareBreakpoint];
   name:='Kernelmode Debugger';
+
+  fmaxSharedBreakpointCount:=4;
 end;
 
 

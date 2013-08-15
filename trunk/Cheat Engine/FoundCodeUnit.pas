@@ -126,7 +126,10 @@ procedure TCodeRecord.savestack;
 var base: qword;
 begin
   getmem(stack.stack, savedStackSize);
-  base:=qword(context.{$ifdef cpu64}Rsp{$else}esp{$endif});
+  if processhandler.SystemArchitecture=archarm then
+    base:=armcontext.SP
+  else
+    base:=qword(context.{$ifdef cpu64}Rsp{$else}esp{$endif});
 
   if ReadProcessMemory(processhandle, pointer(base), stack.stack, savedStackSize, stack.savedsize)=false then
   begin

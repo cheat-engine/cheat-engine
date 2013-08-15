@@ -53,6 +53,8 @@ begin
   inherited create;
   fDebuggerCapabilities:=[dbcSoftwareBreakpoint,dbcHardwareBreakpoint, dbcExceptionBreakpoint];
   name:='VEH Debugger';
+
+  fmaxSharedBreakpointCount:=4;
 end;
 
 
