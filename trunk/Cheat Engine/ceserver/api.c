@@ -263,7 +263,7 @@ int StartDebug(HANDLE hProcess)
 
 }
 
-int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsize)
+int SetBreakpoint(HANDLE hProcess, int tid, void *address, int bptype, int bpsize)
 /*
  * Sets a breakpoint of the specifed type at the given address
  * tid of -1 means ALL threads
@@ -278,7 +278,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsiz
   int result=FALSE;
 
 
-  printf("SetBreakpoint(%d, %p, %d, %d)\n", tid, Address, bptype, bpsize);
+  printf("SetBreakpoint(%d, %p, %d, %d)\n", tid, address, bptype, bpsize);
   if (GetHandleType(hProcess) == htProcesHandle )
   {
     PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
@@ -303,7 +303,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsiz
 
         for (i=0; i<p->threadlistpos; i++)
         {
-          r=SetBreakpoint(hProcess, p->threadlist[i].tid, Address, bptype, bpsize);
+          r=SetBreakpoint(hProcess, p->threadlist[i].tid, address, bptype, bpsize);
           if (r)
             result=TRUE; //at least one thread succeeded
         }
@@ -392,7 +392,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsiz
             //execute
 
 
-            i=ptrace(PTRACE_SETHBPREGS, wtid, 1, &Address);
+            i=ptrace(PTRACE_SETHBPREGS, wtid, 1, &address);
             printf("i1=%d\n", i, hwbpreg);
 
             //right now i'm not really sure how the breakpoint len is set and why it works in some cases and why not in other cases
@@ -429,7 +429,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsiz
 
             printf("watchpoint\n");
 
-            i=ptrace(PTRACE_SETHBPREGS, wtid, -1, &Address);
+            i=ptrace(PTRACE_SETHBPREGS, wtid, -1, &address);
             printf("i1=%d\n", i, hwbpreg);
 
             btype=0;
@@ -479,7 +479,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsiz
           newdr7=newdr7 | (3 << 18);
 
 
-        r=ptrace(PTRACE_POKEUSER, wtid, offsetof(struct user, u_debugreg[0]), Address);
+        r=ptrace(PTRACE_POKEUSER, wtid, offsetof(struct user, u_debugreg[0]), address);
         r2=ptrace(PTRACE_POKEUSER, wtid, offsetof(struct user, u_debugreg[7]), newdr7);
 
         result=(r==0) && (r2==0);
@@ -536,7 +536,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsiz
         char command;
         HANDLE hProcess;
         int tid;
-        unsigned long long Address;
+        uint64_t address;
         int bptype;
         int bpsize;
       } sb;
@@ -545,7 +545,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsiz
       sb.command=CMD_SETBREAKPOINT;
       sb.hProcess=hProcess;
       sb.tid=tid;
-      sb.Address=(uintptr_t)Address;
+      sb.address=(uintptr_t)address;
       sb.bptype=bptype;
       sb.bpsize=bpsize;
 
@@ -575,9 +575,9 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsiz
 
 }
 
-int RemoveBreakpoint(HANDLE hProcess, int tid)
+int RemoveBreakpoint(HANDLE hProcess, int tid, void *address)
 /*
- * Removes the breakpoint (only 1 for now)
+ * Removes the breakpoint with the provided address
  */
 {
   int result=FALSE;
@@ -600,7 +600,7 @@ int RemoveBreakpoint(HANDLE hProcess, int tid)
         int i;
         printf("Calling RemoveBreakpoint for all threads\n");
         for (i=0; i<p->threadlistpos; i++)
-          RemoveBreakpoint(hProcess, p->threadlist[i].tid);
+          RemoveBreakpoint(hProcess, p->threadlist[i].tid, address);
       }
       else
       {
@@ -650,6 +650,8 @@ int RemoveBreakpoint(HANDLE hProcess, int tid)
         int i,i2,i3;
         void *a=NULL;
 
+        //figure out which breakpoint this is
+
         printf("arm\n");
 
         i=ptrace(PTRACE_SETHBPREGS, wtid, -1, &bpreg);
@@ -667,6 +669,8 @@ int RemoveBreakpoint(HANDLE hProcess, int tid)
 #if defined(__i386__) || defined (__x86_64__)
         int r;
         printf("x86\n");
+
+        //figure out which breakpoint this is
 
         r=ptrace(PTRACE_POKEUSER, wtid, offsetof(struct user, u_debugreg[7]), 0);
         if (r==0)
@@ -714,12 +718,14 @@ int RemoveBreakpoint(HANDLE hProcess, int tid)
         char command;
         HANDLE hProcess;
         int tid;
+        uint64_t address;
       } rb;
 #pragma pack()
 
       rb.command=CMD_REMOVEBREAKPOINT;
       rb.hProcess=hProcess;
       rb.tid=tid;
+      rb.address=(uint64_t)address;
 
 
       if (pthread_mutex_lock(&debugsocketmutex) == 0)
@@ -1421,16 +1427,75 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
       {
         p->debuggedThreadEvent=*devent;
 
+
         if (p->debuggedThreadEvent.debugevent==SIGTRAP)
         {
           siginfo_t si;
           printf("SIGTRAP\n");
 
+          //fill in the address
+
+
+#ifdef __arm__
+          //return si_addr of siginfo
           if (ptrace(PTRACE_GETSIGINFO, p->debuggedThreadEvent.threadid, NULL, &si)==0)
           {
-            p->debuggedThreadEvent.address=si.si_addr;
-          }
 
+            p->debuggedThreadEvent.address=si.si_addr;
+            printf("si.si_addr=%p\n", si.si_addr);
+          }
+          else
+            printf("Failure getting siginfo for this trap\n");
+#endif
+
+#if defined __i386__ || defined __x86_64__
+          //use DR6 to determine which bp (if possible)
+          uintptr_t DR0,DR1,DR2,DR3,DR7, IP;
+          regDR6 DR6;
+#if defined __i386__
+          IP=ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, regs.eip), 0);
+#else
+          IP=ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, regs.rip), 0);
+#endif
+          DR0=ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[0]), 0);
+          DR1=ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[1]), 0);
+          DR2=ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[2]), 0);
+          DR3=ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[3]), 0);
+
+          DR6.value=ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[6]), 0);
+          DR7=ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[7]), 0);
+
+          printf("DR0=%x\n",DR0);
+          printf("DR1=%x\n",DR1);
+          printf("DR2=%x\n",DR2);
+          printf("DR3=%x\n",DR3);
+          printf("DR6=%x\n",DR6.value);
+          printf("DR7=%x\n",DR7);
+          printf("IP=%x\n",IP);
+
+          p->debuggedThreadEvent.address=0; //something unexpected
+          if (DR6.B0)
+            p->debuggedThreadEvent.address=DR0;
+          else
+          if (DR6.B1)
+            p->debuggedThreadEvent.address=DR1;
+          else
+          if (DR6.B2)
+            p->debuggedThreadEvent.address=DR2;
+          else
+          if (DR6.B3)
+            p->debuggedThreadEvent.address=DR3;
+          else
+          if (DR6.BS) //single step
+            p->debuggedThreadEvent.address=1;
+
+          DR6.value=0; //not sure if needed, or if this should be moved to continuefromdebugevent
+          ptrace(PTRACE_POKEUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[6]), &DR6);
+
+#endif
+          printf("p->debuggedThreadEvent.address=%llx\n", p->debuggedThreadEvent.address);
+
+          devent->address=p->debuggedThreadEvent.address;
         }
       }
 
