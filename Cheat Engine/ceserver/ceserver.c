@@ -202,18 +202,18 @@ int DispatchCommand(int currentsocket, unsigned char command)
       {
         int r;
         DebugEvent event;
-        //printf("Calling WaitForDebugEvent(%d, %d)\n", wfd.pHandle, wfd.timeout);
-
+        memset(&event, 0, sizeof(event));
 
         r=WaitForDebugEvent(wfd.pHandle, &event, wfd.timeout);
-        sendall(currentsocket, &r, sizeof(r), 0);
-
-
+        sendall(currentsocket, &r, sizeof(r), r?MSG_MORE:0);
 
         if (r)
         {
           if (event.debugevent==SIGTRAP)
+          {
             printf("!!!SIGTRAP!!!\n");
+            printf("event.address=%llx\n", event.address);
+          }
 
           sendall(currentsocket, &event, sizeof(event),0);
         }
@@ -268,7 +268,7 @@ int DispatchCommand(int currentsocket, unsigned char command)
         int r;
 
         printf("Calling RemoveBreakpoint\n");
-        r=RemoveBreakpoint(rb.hProcess, rb.tid);
+        r=RemoveBreakpoint(rb.hProcess, rb.tid, rb.address);
         printf("RemoveBreakpoint returned: %d\n", r);
         sendall(currentsocket, &r, sizeof(r), 0);
       }

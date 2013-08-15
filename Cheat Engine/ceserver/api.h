@@ -105,6 +105,25 @@ typedef struct {
 } RegionInfo, *PRegionInfo;
 #pragma pack()
 
+#if defined __i386__ || defined __x86_64__
+typedef struct _regDR6
+{
+  union{
+    uintptr_t value;
+    struct {
+      unsigned B0        :1;
+      unsigned B1        :1;
+      unsigned B2        :1;
+      unsigned B3        :1;
+      unsigned Reserved  :9;
+      unsigned BD        :1;
+      unsigned BS        :1;
+      unsigned BT        :1;
+    };
+  };
+} __attribute__((__packed__)) regDR6,*PregDR6;
+#endif
+
 
 
 
@@ -126,7 +145,8 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout);
 int ContinueFromDebugEvent(HANDLE hProcess, int tid, int ignoresignal);
 int GetDebugPort(HANDLE hProcess);
 
-int SetBreakpoint(HANDLE hProcess, int tid, void *Address, int bptype, int bpsize);
+int SetBreakpoint(HANDLE hProcess, int tid, void *address, int bptype, int bpsize);
+int RemoveBreakpoint(HANDLE hProcess, int tid, void *address);
 
 int SuspendThread(HANDLE hProcess, int tid);
 int ResumeThread(HANDLE hProcess, int tid);
