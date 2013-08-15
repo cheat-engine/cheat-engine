@@ -148,6 +148,10 @@ begin
           lpDebugEvent.CreateProcessInfo.hProcess:=handle;
           lpDebugEvent.CreateProcessInfo.hThread:=lastevent.threadid;
 
+          //set the breakpoint capability
+          fmaxInstructionBreakpointCount:=lastevent.createProcess.maxBreakpointCount;
+          fmaxWatchpointBreakpointCount:=lastevent.createProcess.maxWatchpointCount;
+          fmaxSharedBreakpointCount:=lastevent.createProcess.maxSharedBreakpoints;
         end;
 
         5: //SIGTRAP
@@ -157,6 +161,7 @@ begin
           lpDebugEvent.Exception.ExceptionRecord.NumberParameters:=0;
 
           lpDebugEvent.Exception.ExceptionRecord.ExceptionCode:=EXCEPTION_SINGLE_STEP;
+          lpDebugEvent.Exception.ExceptionRecord.ExceptionAddress:=pointer(lastevent.address);
 
         end;
 
@@ -169,8 +174,9 @@ begin
 
 
 
-        else //e.g: SIGSTOP
+        else
         begin
+          //no idea
 
           ContinueDebugEvent(handle, lastevent.threadid, DBG_EXCEPTION_NOT_HANDLED);
           result:=false;

@@ -105,7 +105,9 @@ type
 
     procedure UpdateDebugRegisterBreakpointsForThread(thread: TDebugThreadHandler);
     procedure RemoveBreakpoint(breakpoint: PBreakpoint);
-    function GetUsableDebugRegister: integer;
+    function GetUsableDebugRegister(breakpointTrigger: TBreakpointTrigger): integer;
+    function GetMaxBreakpointCountForThisType(breakpointTrigger: TBreakpointTrigger): integer;
+    function DoBreakpointTriggersUseSameDebugRegisterKind(bpt1: TBreakpointTrigger; bpt2: TBreakpointTrigger): boolean;
 
     procedure ContinueDebugging(continueOption: TContinueOption; runtillAddress: ptrUint=0);
 
@@ -157,7 +159,7 @@ resourcestring
     +'s does not support software breakpoints';
   rsAddBreakpointAnInvalidDebugRegisterIsUsed = 'AddBreakpoint: An invalid '
     +'debug register is used';
-  rsAll4DebugRegistersAreCurrentlyUsedUpFreeOneAndTryA = 'All 4 debug '
+  rsAll4DebugRegistersAreCurrentlyUsedUpFreeOneAndTryA = 'All debug '
     +'registers are currently used up. Free one and try again';
   rsTheFollowingOpcodesAccessed = 'The following opcodes accessed %s';
   rsTheFollowingOpcodesWriteTo = 'The following opcodes write to %s';
@@ -803,8 +805,10 @@ begin
     if CurrentDebuggerInterface is TNetworkDebuggerInterface then
     begin
       //network
-      NetworkRemoveBreakpoint(processhandle, threadid);
-      breakpoint.active:=false;
+      NetworkRemoveBreakpoint(processhandle, threadid, breakpoint.address);
+      if threadid=-1 then
+        breakpoint.active:=false;
+
       exit;
     end;
 
@@ -1036,17 +1040,10 @@ var
   newbp: PBreakpoint;
   originalbyte: byte;
   x: dword;
+  i: integer;
+  count: integer;
 begin
-  if CurrentDebuggerInterface is TNetworkDebuggerInterface then
-  begin
-    breakpointcs.enter;
-    try
-      if (threadid=0) and (BreakpointList.Count>0) then
-        raise exception.create('The network debugger only supports 1 breakpoint at a time');
-    finally
-      breakpointcs.leave;
-    end;
-  end;
+
 
   if bpm=bpmInt3 then
   begin
@@ -1062,8 +1059,25 @@ begin
   else
   if bpm=bpmDebugRegister then
   begin
-    if (debugregister<0) or (debugregister>3) then raise exception.create(
-      rsAddBreakpointAnInvalidDebugRegisterIsUsed);
+    if CurrentDebuggerInterface.maxSharedBreakpointCount>0 then
+    begin
+      if (debugregister<0) or (debugregister>CurrentDebuggerInterface.maxSharedBreakpointCount) then raise exception.create(
+        rsAddBreakpointAnInvalidDebugRegisterIsUsed);
+    end
+    else
+    begin
+      if bpt=bptExecute then
+      begin
+//        CurrentDebuggerInterface.maxInstructionBreakpointCount;
+        //make sure that the number of bptExecute breakpoints do not exceed this
+      end
+      else
+      begin
+//        CurrentDebuggerInterface.maxWatchpointBreakpointCount;
+
+      end;
+
+    end;
   end;
 
 
@@ -1219,31 +1233,68 @@ begin
   end;
 end;
 
-function TDebuggerThread.GetUsableDebugRegister: integer;
+function TDebuggerThread.DoBreakpointTriggersUseSameDebugRegisterKind(bpt1: TBreakpointTrigger; bpt2: TBreakpointTrigger): boolean;
+{
+Check if the two breakpoint triggers would make use of the same kind of debug register
+}
+begin
+  if CurrentDebuggerInterface.maxSharedBreakpointCount>0 then //breakpoint resources are shared, so yes
+    result:=true
+  else //not shared but split. Check if it's a watchpoint or instruction
+    result:=BreakPointTriggerIsWatchpoint(bpt1)=BreakPointTriggerIsWatchpoint(bpt2);  //false=false returs true:true=true returns true:true=false returns false:false=true resturns false
+end;
+
+function TDebuggerThread.GetMaxBreakpointCountForThisType(breakpointTrigger: TBreakpointTrigger): integer;
+{
+Returns the number of breakpoints the current debuiggerinterface can handle for the given breakpoint trigger
+}
+begin
+  if CurrentDebuggerInterface.maxSharedBreakpointCount>0 then
+    result:=CurrentDebuggerInterface.maxSharedBreakpointCount
+  else
+  begin
+    if breakpointTrigger=bptExecute then
+      result:=CurrentDebuggerInterface.maxInstructionBreakpointCount
+    else
+      result:=CurrentDebuggerInterface.maxWatchpointBreakpointCount;
+  end;
+end;
+
+function TDebuggerThread.GetUsableDebugRegister(breakpointTrigger: TBreakpointTrigger): integer;
 {
 will scan the current breakpoint list and see which debug register is unused.
 if all are used up, return -1
 }
 var
   i: integer;
-  available: array [0..3] of boolean;
+  available: array of boolean;
+
+  maxBreakpointCountForThisType: integer;
 begin
+  Result := -1;
+  maxBreakpointCountForThisType:=GetMaxBreakpointCountForThisType(breakpointtrigger);
+  if maxBreakpointCountForThisType<=0 then
+    exit;
+
+  setlength(available, maxBreakpointCountForThisType);
+  for i := 0 to maxBreakpointCountForThisType-1 do
+    available[i] := True;
+
 
   breakpointcs.enter;
   try
-    Result := -1;
-
-    for i := 0 to 3 do
-      available[i] := True;
-
     for i := 0 to breakpointlist.Count - 1 do
     begin
-      if (pbreakpoint(breakpointlist.Items[i])^.breakpointMethod = bpmDebugRegister) and
-        (pbreakpoint(breakpointlist.Items[i])^.active) then
+      if (pbreakpoint(breakpointlist.Items[i])^.breakpointMethod = bpmDebugRegister) and //debug register bp
+        (pbreakpoint(breakpointlist.Items[i])^.active) and //active
+        (pbreakpoint(breakpointlist.Items[i])^.ThreadID<>0) and //not a thread specific bp
+        (DoBreakpointTriggersUseSameDebugRegisterKind(pbreakpoint(breakpointlist.Items[i])^.breakpointTrigger, breakpointtrigger)) //same breakpoint pool as used here
+      then
         available[pbreakpoint(breakpointlist.Items[i])^.debugRegister] := False;
+
     end;
 
-    for i := 0 to 3 do
+    for i := 0 to maxBreakpointCountForThisType-1 do
       if available[i] then
       begin
         Result := i;
@@ -1292,7 +1343,7 @@ begin
   begin
     GetBreakpointList(address, size, bplist);
 
-    usedDebugRegister := GetUsableDebugRegister;
+    usedDebugRegister := GetUsableDebugRegister(bpt);
     if usedDebugRegister = -1 then
       raise Exception.Create(
         rsAll4DebugRegistersAreCurrentlyUsedUpFreeOneAndTryA);
@@ -1319,7 +1370,7 @@ begin
   begin
     for i := 1 to length(bplist) - 1 do
     begin
-      usedDebugRegister := GetUsableDebugRegister;
+      usedDebugRegister := GetUsableDebugRegister(bpt);
       if usedDebugRegister = -1 then
         exit; //at least one has been set, so be happy...
 
@@ -1425,7 +1476,7 @@ begin
   method:=preferedBreakpointMethod;
   if method=bpmDebugRegister then
   begin
-    usedDebugRegister := GetUsableDebugRegister;
+    usedDebugRegister := GetUsableDebugRegister(bptExecute);
     if usedDebugRegister = -1 then
     begin
       if MessageDlg(
@@ -1467,7 +1518,7 @@ begin
       bpsize:=bplist[0].size;
 
 
-      usedDebugRegister := GetUsableDebugRegister;
+      usedDebugRegister := GetUsableDebugRegister(breakpointtrigger);
       if usedDebugRegister = -1 then
       begin
         if (BreakpointTrigger=bptExecute) then
@@ -1496,7 +1547,7 @@ begin
 
     for i:=1 to length(bplist)-1 do
     begin
-      useddebugregister:=GetUsableDebugRegister;
+      useddebugregister:=GetUsableDebugRegister(breakpointtrigger);
       if useddebugregister=-1 then exit;
 
       bpsecondary:=AddBreakpoint(bp, bplist[i].address, bplist[i].size, BreakpointTrigger, method, bo_BreakAndTrace, usedDebugregister,  nil, 0, nil,frmTracer,count);
@@ -1526,7 +1577,7 @@ begin
 
   if method=bpmDebugRegister then
   begin
-    usedDebugRegister := GetUsableDebugRegister;
+    usedDebugRegister := GetUsableDebugRegister(bptExecute);
     if usedDebugRegister = -1 then
     begin
       if MessageDlg(
@@ -1721,7 +1772,7 @@ begin
 
     if bpm = bpmDebugRegister then
     begin
-      usableDebugReg := GetUsableDebugRegister;
+      usableDebugReg := GetUsableDebugRegister(bptExecute);
 
       if usableDebugReg = -1 then
       begin
@@ -1789,7 +1840,7 @@ begin
 
     if bpm=bpmDebugRegister then
     begin
-      usableDebugReg := GetUsableDebugRegister;
+      usableDebugReg := GetUsableDebugRegister(bptWrite);
 
       if usableDebugReg = -1 then
         raise Exception.Create(rsAllDebugRegistersAreUsedUp);
@@ -1801,7 +1852,7 @@ begin
       result:=AddBreakpoint(nil, bplist[0].address, bplist[0].size, bptWrite, bpm, bo_Break, usableDebugreg,  nil, tid);
       for i:=1 to length(bplist)-1 do
       begin
-        usableDebugReg:=GetUsableDebugRegister;
+        usableDebugReg:=GetUsableDebugRegister(bptwrite);
         if usableDebugReg=-1 then exit;
         AddBreakpoint(result, bplist[i].address, bplist[i].size, bptWrite, bpm, bo_Break, usableDebugreg,  nil, tid);
       end;
@@ -1845,7 +1896,7 @@ begin
 
     if bpm=bpmDebugRegister then
     begin
-      usableDebugReg := GetUsableDebugRegister;
+      usableDebugReg := GetUsableDebugRegister(bptAccess);
       if usableDebugReg = -1 then
         raise Exception.Create(rsAllDebugRegistersAreUsedUp);
 
@@ -1854,7 +1905,7 @@ begin
       result:=AddBreakpoint(nil, bplist[0].address, bplist[0].size, bptAccess, bpmDebugRegister, bo_Break, usableDebugreg,  nil, tid);
       for i:=1 to length(bplist)-1 do
       begin
-        usableDebugReg:=GetUsableDebugRegister;
+        usableDebugReg:=GetUsableDebugRegister(bptAccess);
         if usableDebugReg=-1 then exit;
         AddBreakpoint(result, bplist[i].address,  bplist[i].size, bptAccess, bpmDebugRegister, bo_Break, usableDebugreg,nil, tid);
       end;
@@ -1868,6 +1919,9 @@ begin
   end;
 
 end;
+
+
+
 
 function TDebuggerthread.ToggleOnExecuteBreakpoint(address: ptrUint; tid: dword=0): PBreakpoint;
 {Only called from the main thread}
@@ -1903,7 +1957,7 @@ begin
 
       if method = bpmDebugRegister then
       begin
-        usableDebugReg := GetUsableDebugRegister;
+        usableDebugReg := GetUsableDebugRegister(bptExecute);
 
         if usableDebugReg = -1 then
         begin

@@ -31,7 +31,7 @@ type
   TBreakpointMethod = (bpmInt3=0, bpmDebugRegister=1, bpmException=2);
 
 type
-  TBreakOption = (bo_Break = 0, bo_ChangeRegister = 1, bo_FindCode = 2, bo_FindWhatCodeAccesses = 3, bo_BreakAndTrace=4);
+  TBreakOption = (bo_Break = 0, bo_ChangeRegister = 1, bo_FindCode = 2, bo_FindWhatCodeAccesses = 3, bo_BreakAndTrace=4, bo_OnBreakpoint=5);
   TBreakPointAction = TBreakOption;
 
 type
@@ -148,6 +148,8 @@ type
 
   PBreakpoint = ^TBreakPoint;
 
+  TOnBreakpointEvent=function(bp: PBreakpoint; OnBreakpointContext: pointer):boolean of object;
+
   TBreakpoint = record
     {
     the following 2 items: active and markedfordeletion handle the case when a
@@ -199,6 +201,9 @@ type
       script: pchar;
       easymode: boolean;
     end;
+
+    OnBreakpoint: TOnBreakpointEvent; //method to be called by the debuggerthread when this breakpoint triggers
+    OnBreakpointContext: pointer;
   end;
 
 
@@ -209,6 +214,7 @@ type
   TBreakpointSplitArray = array of TBreakpointSplit;
   TBreakpointList=TFPGList<PBreakpoint>;
 
+function BreakPointTriggerIsWatchpoint(bpt: TBreakpointTrigger): boolean; inline;
 
 function breakpointTriggerToString(bpt: TBreakpointTrigger): string;
 function breakpointMethodToString(bpm: TBreakpointMethod): string;
@@ -217,6 +223,7 @@ function breakpointActionToString(bpa: TBreakpointAction): string;
 //kernel debug
 function SizeToBreakLength(size: integer): TBreakLength;
 function BreakPointTriggerToBreakType(bpt: TBreakpointTrigger): TBreakType;
+
 
 
 var int3byte: byte = $cc;
@@ -245,6 +252,11 @@ begin
     else
        result:=bl_1byte;
   end;
+end;
+
+function BreakPointTriggerIsWatchpoint(bpt: TBreakpointTrigger): boolean; inline;
+begin
+  result:=bpt in [bptAccess, bptWrite];
 end;
 
 function BreakPointTriggerToBreakType(bpt: TBreakpointTrigger): TBreakType;

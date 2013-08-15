@@ -67,11 +67,20 @@ end;
 
 procedure TArmDisassembler.Branch;
 var offset: int32;
+    _condition: string;
 begin
+  _condition:=condition;
   if (opcode shr 24) and 1=1 then //Link bit set
-    LastDisassembleData.opcode:='BL'+Condition
+  begin
+    LastDisassembleData.opcode:='BL'+Condition;
+    LastDisassembleData.iscall:=true;
+  end
   else
+  begin
     LastDisassembleData.opcode:='B'+Condition;
+    LastDisassembleData.isjump:=true;
+    LastDisassembleData.isconditionaljump:=_condition<>'';
+  end;
 
   offset:=signextend(opcode and $FFFFFF, 23) shl 2;
 
@@ -387,6 +396,11 @@ begin
   else
     _opcode:='STR';
 
+  if u=0 then
+    _U:='-'
+  else
+    _U:='';
+
   _cond:=Condition;
 
   if b=1 then
@@ -394,7 +408,7 @@ begin
   else
     _B:='';
 
-  if (W=1) and (p=1) then
+  if (W=1) and (p=0) then //w is set and p=0 (post indexed)
     _T:='T'
   else
     _T:='';
@@ -413,7 +427,7 @@ begin
       if offset=0 then
         _address:='['+_Rn+']'
       else
-        _address:='['+_Rn+','+inttohex(dword(offset),8)+']';
+        _address:='['+_Rn+','+_U+inttohex(dword(offset),8)+']';
     end;
 
   end
@@ -439,10 +453,6 @@ begin
     if shiftAmount>0 then
     begin
       _shiftAmount:=inttohex(shiftamount,1);
-      if U=0 then
-        _U:='-'
-      else
-        _U:='';
 
       _shift:=', '+_U+_Rm+' '+_shiftname+' '+_shiftamount;
     end
@@ -452,9 +462,9 @@ begin
       _shift:=', '+_Rm;
     end;
 
-    if p=1 then
+    if p=0 then //post index
       _address:='['+_Rn+']'+_shift
-    else
+    else //preindexed
       _address:='['+_Rn+_shift+']';
   end;
 
@@ -510,9 +520,9 @@ begin
     if (RegisterList shr i) and 1=1 then
     begin
       if rcount=0 then
-        _rlist:=_rlist+'R'+inttostr(i)
+        _rlist:=_rlist+ArmRegisters[i]
       else
-        _rlist:=_rlist+', R'+inttostr(i);
+        _rlist:=_rlist+', '+ArmRegisters[i];
 
       inc(rcount);
     end;
@@ -604,7 +614,7 @@ begin
       _addressingmode:='DA';
   end;
 
-  LastDisassembleData.opcode:=_opcode+_cond;
+  LastDisassembleData.opcode:=_opcode+_cond+_addressingmode;
   LastDisassembleData.parameters:=_rn+_ex+','+_rlist+_exp;
 end;
 
