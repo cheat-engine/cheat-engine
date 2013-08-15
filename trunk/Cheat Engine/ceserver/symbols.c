@@ -180,6 +180,7 @@ Caller must free output manually
                  *output=realloc(*output, maxoutputsize*2);
 
                  strm.next_out=(unsigned char *)&(*output)[maxoutputsize];
+                 strm.avail_out=maxoutputsize;
                  maxoutputsize=maxoutputsize*2;
 
 
@@ -243,8 +244,9 @@ Caller must free output manually
       *output=realloc(*output, maxoutputsize*2);
 
       strm.next_out=(unsigned char *)&(*output)[maxoutputsize];
+      strm.avail_out=maxoutputsize;
       maxoutputsize=maxoutputsize*2;
-      strm.avail_out=maxoutputsize/2;
+
     }
     else
       break;

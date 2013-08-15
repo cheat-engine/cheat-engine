@@ -49,6 +49,7 @@ typedef struct
 typedef struct {
   int debugevent;
   int64_t threadid;
+  uint64_t address;
 //other data
 } DebugEvent, *PDebugEvent;
 
