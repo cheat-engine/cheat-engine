@@ -216,14 +216,54 @@ int StartDebug(HANDLE hProcess)
             if (p->isDebugged==0)
             {
               p->isDebugged=1; //at least one made it...
+              p->debuggedThreadEvent.threadid=0; //none yet
               p->debuggerThreadID=pthread_self();
 
               socketpair(PF_LOCAL, SOCK_STREAM, 0, &p->debuggerServer);
 
               //first event, create process
               DebugEvent createProcessEvent;
+
+#ifdef __arm__
+              if (WaitForDebugEventNative(p, &createProcessEvent, tid, -1))
+              {
+                //get the debug capabilities
+                HBP_RESOURCE_INFO hwbpcap;
+                if (ptrace(PTRACE_GETHBPREGS, createProcessEvent.threadid, 0, &hwbpcap)==0)
+                {
+                  printf("hwbpcap:\n");
+                  printf("debug architecture:                %d\n", hwbpcap.debug_arch);
+                  printf("number of instruction breakpoints: %d\n", hwbpcap.num_brps);
+                  printf("number of data breakpoints:        %d\n", hwbpcap.num_wrps);
+                  printf("max length of a data breakpoint:   %d\n", hwbpcap.wp_len);
+
+                  createProcessEvent.maxBreakpointCount=hwbpcap.num_brps;
+                  createProcessEvent.maxWatchpointCount=hwbpcap.num_wrps;
+                  createProcessEvent.maxSharedBreakpoints=0;
+                }
+
+                ptrace(PTRACE_CONT, createProcessEvent.threadid, 0,0);
+              }
+              else
+              {
+                printf("Failure waiting for create event");
+                createProcessEvent.maxBreakpointCount=0;
+                createProcessEvent.maxWatchpointCount=0;
+                createProcessEvent.maxSharedBreakpoints=4;
+              }
+#endif
+
+#if defined(__i386__) || defined(__x86_64__)
+              //4 breakpoints, hybrid
+              createProcessEvent.maxBreakpointCount=0;
+              createProcessEvent.maxWatchpointCount=0;
+              createProcessEvent.maxSharedBreakpoints=4;
+#endif
+
+
               createProcessEvent.debugevent=-2; //create process
               createProcessEvent.threadid=p->pid;
+
               AddDebugEventToQueue(p, &createProcessEvent);
 
             }
@@ -1352,7 +1392,7 @@ int WaitForDebugEventNative(PProcessData p, PDebugEvent devent, int tid, int tim
         if (td)
           td->isPaused=1;
 
-        if ((tid==-1) || (currentTID!=tid))
+        if ((tid==-1) || (currentTID==tid))
           return TRUE;
 
         //still here
