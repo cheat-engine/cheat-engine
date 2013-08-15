@@ -39,6 +39,16 @@ typedef struct
 
 typedef struct
 {
+  uint8_t num_brps;   //number of instruction breakpoints
+  uint8_t num_wrps;   //number of data breakpoints
+  uint8_t wp_len;     //max length of a data breakpoint
+  uint8_t debug_arch; //debug architecture
+
+} HBP_RESOURCE_INFO, *PHBP_RESOURCE_INFO;
+
+
+typedef struct
+{
 #ifdef __arm__
   struct pt_regs regs;
 #else
@@ -49,7 +59,15 @@ typedef struct
 typedef struct {
   int debugevent;
   int64_t threadid;
-  uint64_t address;
+  union
+  {
+    uint64_t address; //TRAP: Address that caused trap
+    struct {
+      uint8_t maxBreakpointCount; //Number of execute breakpoints this system supports at most
+      uint8_t maxWatchpointCount;
+      uint8_t maxSharedBreakpoints; //If the system uses the same kind of breakpoints for execute and watchpoints. 0 otherwise
+    }; //CreateProcess
+  };
 //other data
 } DebugEvent, *PDebugEvent;
 
