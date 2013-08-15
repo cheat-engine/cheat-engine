@@ -1418,7 +1418,21 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
       r=WaitForDebugEventNative(p, devent, -1, timeout);
 
       if (r)
+      {
         p->debuggedThreadEvent=*devent;
+
+        if (p->debuggedThreadEvent.debugevent==SIGTRAP)
+        {
+          siginfo_t si;
+          printf("SIGTRAP\n");
+
+          if (ptrace(PTRACE_GETSIGINFO, p->debuggedThreadEvent.threadid, NULL, &si)==0)
+          {
+            p->debuggedThreadEvent.address=si.si_addr;
+          }
+
+        }
+      }
 
       return r;
     }
@@ -1580,8 +1594,6 @@ int WriteProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, vo
   {
     int isdebugged=p->debuggedThreadEvent.threadid;
     DebugEvent event;
-
-    //printf("ReadProcessMemoryDebug inside debuggerthread (thread debbugged=%d)\n", isdebugged);
 
     if (!isdebugged)
     {
@@ -1818,10 +1830,13 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
 
   if (p->debuggerThreadID==pthread_self()) //this is the debugger thread
   {
-    int isdebugged=p->debuggedThreadEvent.threadid;
-    DebugEvent event;
+    int isdebugged=p->debuggedThreadEvent.threadid>0;
+    DebugEvent event=p->debuggedThreadEvent;
 
     //printf("ReadProcessMemoryDebug inside debuggerthread (thread debbugged=%d)\n", isdebugged);
+
+    if (p->debuggedThreadEvent.threadid<0)
+      printf("RPM with a fake debug event active\n");
 
     if (!isdebugged)
     {
@@ -1831,18 +1846,57 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
       //printf("Going to wait for debug event\n");
       WaitForDebugEventNative(p, &event, -1, -1); //wait for it myself
 
+      if (p->debuggedThreadEvent.threadid<0)
+        printf("Received tid : %d (sig:%d)\n", (int)event.threadid, event.debugevent);
+
      // printf("After WaitForDebugEventNative (tid=%d)\n", event.threadid);
     }
+    int inflooptest=0;
 
     bytesread=-1;
     while (bytesread==-1)
     {
+      inflooptest++;
+
+      if (inflooptest>10)
+        printf("FUUU");
+
       bytesread=pread(p->mem, buffer, size, (uintptr_t)lpAddress);
 
       if ((bytesread<0) && (errno!=EINTR))
       {
-        printf("pread failed and not due to a signal\n");
+        printf("pread failed and not due to a signal: %d  (isdebugged=%d)\n", errno, isdebugged);
+        printf("event.threadid=%d devent=%d\n", (int)event.threadid, event.debugevent);
+        printf("lpAddress=%p\n", lpAddress);
+        printf("size=%d\n", size);
+
         bytesread=0;
+
+        if (isdebugged)
+        {
+          printf("trying to read from specific task\n");
+
+          int f;
+          char mempath[255];
+
+          sprintf(mempath,"/proc/%d/task/%d/mem", p->pid, (int)event.threadid);
+          printf("Opening %s\n", mempath);
+          f=open(mempath, O_RDONLY);
+          printf("f=%d\n", f);
+          if (f>=0)
+          {
+            bytesread=pread(f, buffer, size, (uintptr_t)lpAddress);
+
+            if ((bytesread<0) && (errno!=EINTR))
+            {
+              printf("Also failed on second try\n");
+              bytesread=0;
+            }
+            close(f);
+          }
+        }
+
+
         break;
       }
     }
