@@ -252,7 +252,7 @@ int DispatchCommand(int currentsocket, unsigned char command)
         int r;
 
         printf("Calling SetBreakpoint\n");
-        r=SetBreakpoint(sb.hProcess, sb.tid, (void *)sb.Address, sb.bptype, sb.bpsize);
+        r=SetBreakpoint(sb.hProcess, sb.tid, sb.debugreg, (void *)sb.Address, sb.bptype, sb.bpsize);
         printf("SetBreakpoint returned %d\n",r);
         sendall(currentsocket, &r, sizeof(r), 0);
       }
@@ -268,7 +268,7 @@ int DispatchCommand(int currentsocket, unsigned char command)
         int r;
 
         printf("Calling RemoveBreakpoint\n");
-        r=RemoveBreakpoint(rb.hProcess, rb.tid, rb.address);
+        r=RemoveBreakpoint(rb.hProcess, rb.tid, rb.debugreg, rb.wasWatchpoint);
         printf("RemoveBreakpoint returned: %d\n", r);
         sendall(currentsocket, &r, sizeof(r), 0);
       }
