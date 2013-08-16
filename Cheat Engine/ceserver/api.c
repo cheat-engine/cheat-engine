@@ -703,7 +703,7 @@ int RemoveBreakpoint(HANDLE hProcess, int tid, int debugreg,int wasWatchpoint)
         int i,i2,i3;
         void *a=NULL;
 
-        int bpindex=1+(2*debugreg);
+        int bpIndex=1+(2*debugreg);
 
         printf("arm\n");
 
