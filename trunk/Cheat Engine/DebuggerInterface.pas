@@ -37,7 +37,7 @@ type
     property DebuggerCapabilities: TDebuggerCapabilitiesSet read fDebuggerCapabilities;
     property errorstring: string read ferrorstring;
 
-    property maxInstructionBreakpointCount: integer read fmaxSharedBreakpointCount;
+    property maxInstructionBreakpointCount: integer read fmaxInstructionBreakpointCount;
     property maxWatchpointBreakpointCount: integer read fmaxWatchpointBreakpointCount;
     property maxSharedBreakpointCount: integer read fmaxSharedBreakpointCount;
 end;

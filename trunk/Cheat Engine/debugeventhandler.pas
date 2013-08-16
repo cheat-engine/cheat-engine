@@ -29,6 +29,7 @@ type
     Int3SetBackBP: PBreakpoint;
 
 
+    expectedUndefinedBreakpoint: ptruint; //ARM: When a breakpoint happens with this address handle it instead of ignoring it
     setInt1Back: boolean;
     Int1SetBackBP: PBreakpoint;
 
@@ -295,11 +296,15 @@ BP can be nil if it's a single step breakpoint
 
 }
 var oldprotect,bw: dword;
-  d: TDisassembler;
+  d: TDisassembler=nil;
   nexteip: ptruint;
   t: string;
 
   b: PBreakpoint=nil;
+
+  pc: ptruint;
+  c: TCEConnection;
+
 begin
   context.EFlags:=eflags_setTF(context.EFlags,0);
 
@@ -333,6 +338,31 @@ begin
           //it's like windows XP where the RF flag is borked, and the added fun that is also affects read/write watchpoints and arm doesn't do single stepping
 
           TdebuggerThread(debuggerthread).UnsetBreakpoint(bp, nil, ThreadId); //remove the breakpoint just for this thread
+
+          //add a non persistent breakpoint using the last available debug register
+
+          {
+          //perhaps try to predict PC based on the instruction itself (e.g loading of R15 or a B/BL)
+          d:=TDisassembler.create;
+          pc:=armcontext.PC;
+          d.disassemble(pc, t);
+          }
+
+          pc:=armcontext.PC+4;
+
+
+          c:=getConnection;
+
+          if c.SetBreakpoint(processhandle, ThreadId, CurrentDebuggerInterface.maxInstructionBreakpointCount-1, pc,0, 1) then
+            expectedUndefinedBreakpoint:=pc;
+
+
+          setInt1Back:=true;
+          Int1SetBackBP:=bp;
+
+
+          d.free;
+
          {
           if (bp.OneTimeOnly=false) and (bp.breakpointAction<>bo_OnBreakpoint) then
           begin
@@ -614,6 +644,8 @@ var
   active: boolean;
   oldprotect: dword;
   bw: dword;
+
+  connection: TCEConnection;
 begin
   outputdebugstring(format('DispatchBreakpoint(%x)',[address]));
   found := False;
@@ -764,6 +796,25 @@ begin
     dwContinueStatus:=DBG_CONTINUE;
   end else
   begin
+    if (expectedUndefinedBreakpoint<>0) and (address=expectedUndefinedBreakpoint) then
+    begin
+      connection:=getConnection;
+      if connection<>nil then
+      begin
+        expectedUndefinedBreakpoint:=0;
+        connection.RemoveBreakpoint(processhandle, threadid, CurrentDebuggerInterface.maxInstructionBreakpointCount-1, false);
+
+        if setInt1Back then
+          TdebuggerThread(debuggerthread).setBreakpoint(Int1SetBackBP, self);
+
+
+        dwContinueStatus:=DBG_CONTINUE;
+        result:=true;
+        exit;
+      end;
+    end;
+
+
     OutputDebugString('Unexpected breakpoint');
     if not (CurrentDebuggerInterface is TKernelDebugInterface) then
     begin
