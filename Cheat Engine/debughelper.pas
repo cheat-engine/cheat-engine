@@ -1271,7 +1271,7 @@ begin
     begin
       if (pbreakpoint(breakpointlist.Items[i])^.breakpointMethod = bpmDebugRegister) and //debug register bp
         (pbreakpoint(breakpointlist.Items[i])^.active) and //active
-        (pbreakpoint(breakpointlist.Items[i])^.ThreadID<>0) and //not a thread specific bp
+        (pbreakpoint(breakpointlist.Items[i])^.ThreadID=0) and //not a thread specific bp
         (DoBreakpointTriggersUseSameDebugRegisterKind(pbreakpoint(breakpointlist.Items[i])^.breakpointTrigger, breakpointtrigger)) //same breakpoint pool as used here
       then
         available[pbreakpoint(breakpointlist.Items[i])^.debugRegister] := False;
