@@ -60,8 +60,8 @@ type
     function StartDebug(hProcess: THandle): BOOL;
     function WaitForDebugEvent(hProcess: THandle; timeout: integer; var devent: TNetworkDebugEvent):BOOL;
     function ContinueDebugEvent(hProcess: THandle; threadid: dword; continuemethod: integer): BOOL;
-    function SetBreakpoint(hProcess: THandle; threadid: integer; address: PtrUInt; bptype: integer; bpsize: integer): boolean;
-    function RemoveBreakpoint(hProcess: THandle; threadid: integer; address: uint64): boolean;
+    function SetBreakpoint(hProcess: THandle; threadid: integer; debugregister: integer; address: PtrUInt; bptype: integer; bpsize: integer): boolean;
+    function RemoveBreakpoint(hProcess: THandle; threadid: integer; debugregister: integer; wasWatchpoint: boolean): boolean;
     function AllocateAndGetContext(hProcess: Thandle; threadid: integer): pointer;
     function getVersion(var name: string): integer;
     function getArchitecture: integer;
@@ -723,12 +723,13 @@ begin
 end;
 
 
-function TCEConnection.SetBreakpoint(hProcess: THandle; threadid: integer; address: PtrUInt; bptype: integer; bpsize: integer): boolean;
+function TCEConnection.SetBreakpoint(hProcess: THandle; threadid: integer; debugregister: integer; address: PtrUInt; bptype: integer; bpsize: integer): boolean;
 var
   input: packed record
     command: byte;
     handle: integer;
     tid: integer;
+    debugregister: integer;
     address: qword;
     bptype: integer;
     bpsize: integer;
@@ -744,6 +745,7 @@ begin
     input.command:=CMD_SETBREAKPOINT;
     input.handle:=hProcess and $ffffff;
     input.tid:=threadid;
+    input.debugregister:=debugregister;
     input.address:=address;
     input.bptype:=bptype;
     input.bpsize:=bpsize;
@@ -757,13 +759,14 @@ begin
 
 end;
 
-function TCEConnection.RemoveBreakpoint(hProcess: THandle; threadid: integer; address: uint64): boolean;
+function TCEConnection.RemoveBreakpoint(hProcess: THandle; threadid: integer; debugregister: integer; wasWatchpoint: boolean): boolean;
 var
   input: packed record
     command: byte;
     handle: integer;
     tid: integer;
-    address: uint64;
+    debugregister: integer;
+    wasWatchpoint: integer;
   end;
 
   r: integer;
@@ -776,7 +779,12 @@ begin
     input.command:=CMD_REMOVEBREAKPOINT;
     input.handle:=hProcess and $ffffff;
     input.tid:=threadid;
-    input.address:=address;
+    input.debugregister:=debugregister;
+    if wasWatchpoint then
+      input.wasWatchpoint:=1
+    else
+      input.wasWatchpoint:=0;
+
 
     if send(@input, sizeof(input))>0 then
     begin

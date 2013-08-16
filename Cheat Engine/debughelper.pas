@@ -626,7 +626,7 @@ begin
         bptAccess: bptype:=3;
       end;
 
-      result:=networkSetBreakpoint(processhandle, tid, breakpoint.address, bptype, breakpoint.size );
+      result:=networkSetBreakpoint(processhandle, tid, breakpoint.debugRegister, breakpoint.address, bptype, breakpoint.size );
       if result then
         breakpoint^.active := True;
       exit;
@@ -805,7 +805,7 @@ begin
     if CurrentDebuggerInterface is TNetworkDebuggerInterface then
     begin
       //network
-      NetworkRemoveBreakpoint(processhandle, threadid, breakpoint.address);
+      NetworkRemoveBreakpoint(processhandle, threadid, breakpoint.debugRegister, BreakPointTriggerIsWatchpoint(breakpoint.breakpointTrigger));
       if threadid=-1 then
         breakpoint.active:=false;
 
@@ -1059,25 +1059,9 @@ begin
   else
   if bpm=bpmDebugRegister then
   begin
-    if CurrentDebuggerInterface.maxSharedBreakpointCount>0 then
-    begin
-      if (debugregister<0) or (debugregister>CurrentDebuggerInterface.maxSharedBreakpointCount) then raise exception.create(
-        rsAddBreakpointAnInvalidDebugRegisterIsUsed);
-    end
-    else
-    begin
-      if bpt=bptExecute then
-      begin
-//        CurrentDebuggerInterface.maxInstructionBreakpointCount;
-        //make sure that the number of bptExecute breakpoints do not exceed this
-      end
-      else
-      begin
-//        CurrentDebuggerInterface.maxWatchpointBreakpointCount;
 
-      end;
-
-    end;
+    if (debugregister<0) or (debugregister>=GetMaxBreakpointCountForThisType(bpt)) then raise exception.create(
+      rsAddBreakpointAnInvalidDebugRegisterIsUsed);
   end;
 
 

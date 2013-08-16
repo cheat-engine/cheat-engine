@@ -27,8 +27,8 @@ function NetworkModule32First(hSnapshot: HANDLE; var lpme: MODULEENTRY32): BOOL;
 function NetworkModule32Next(hSnapshot: HANDLE; var lpme: MODULEENTRY32): BOOL; stdcall;
 
 function NetworkCloseHandle(handle: THandle):WINBOOL; stdcall;
-function NetworkSetBreakpoint(handle: THandle; threadid: integer; address: PtrUInt; bptype: integer; bpsize: integer): boolean;
-function NetworkRemoveBreakpoint(handle: THandle; threadid: integer; address: uint64): boolean;
+function NetworkSetBreakpoint(handle: THandle; threadid: integer; debugregister: integer; address: PtrUInt; bptype: integer; bpsize: integer): boolean;
+function NetworkRemoveBreakpoint(handle: THandle; threadid: integer; debugregister: integer; wasWatchpoint: boolean): boolean;
 
 
 implementation
@@ -117,18 +117,18 @@ begin
     result:=INVALID_HANDLE_VALUE;
 end;
 
-function NetworkSetBreakpoint(handle: THandle; threadid: integer; address: PtrUInt; bptype: integer; bpsize: integer): boolean;
+function NetworkSetBreakpoint(handle: THandle; threadid: integer; debugregister: integer; address: PtrUInt; bptype: integer; bpsize: integer): boolean;
 begin
   if getConnection<>nil then
-    result:=connection.SetBreakpoint(handle, threadid, address, bptype, bpsize)
+    result:=connection.SetBreakpoint(handle, threadid, debugregister, address, bptype, bpsize)
   else
     result:=FALSE;
 end;
 
-function NetworkRemoveBreakpoint(handle: THandle; threadid: integer; address: uint64): boolean;
+function NetworkRemoveBreakpoint(handle: THandle; threadid: integer; debugregister: integer; wasWatchpoint: boolean): boolean;
 begin
   if getConnection<>nil then
-    result:=connection.RemoveBreakpoint(handle, threadid, address)
+    result:=connection.RemoveBreakpoint(handle, threadid, debugregister, wasWatchpoint)
   else
     result:=FALSE;
 end;
