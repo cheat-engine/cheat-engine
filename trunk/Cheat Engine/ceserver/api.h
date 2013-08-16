@@ -163,8 +163,8 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout);
 int ContinueFromDebugEvent(HANDLE hProcess, int tid, int ignoresignal);
 int GetDebugPort(HANDLE hProcess);
 
-int SetBreakpoint(HANDLE hProcess, int tid, void *address, int bptype, int bpsize);
-int RemoveBreakpoint(HANDLE hProcess, int tid, void *address);
+int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bptype, int bpsize);
+int RemoveBreakpoint(HANDLE hProcess, int tid, int debugreg, int wasWatchpoint);
 
 int SuspendThread(HANDLE hProcess, int tid);
 int ResumeThread(HANDLE hProcess, int tid);

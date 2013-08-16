@@ -107,6 +107,7 @@ typedef struct {
 typedef struct {
   HANDLE hProcess;
   int tid;
+  int debugreg;
   uint64_t Address;
   int bptype;
   int bpsize;
@@ -120,7 +121,8 @@ typedef struct {
 typedef struct {
   HANDLE hProcess;
   int tid;
-  uint64_t address;
+  int debugreg;
+  int wasWatchpoint;
 } CeRemoveBreapointInput, *PCeRemoveBreakpointInput;
 
 

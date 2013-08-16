@@ -303,7 +303,7 @@ int StartDebug(HANDLE hProcess)
 
 }
 
-int SetBreakpoint(HANDLE hProcess, int tid, void *address, int bptype, int bpsize)
+int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bptype, int bpsize)
 /*
  * Sets a breakpoint of the specifed type at the given address
  * tid of -1 means ALL threads
@@ -318,7 +318,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *address, int bptype, int bpsiz
   int result=FALSE;
 
 
-  printf("SetBreakpoint(%d, %p, %d, %d)\n", tid, address, bptype, bpsize);
+  printf("SetBreakpoint(%d, %d, %d, %p, %d, %d)\n", hProcess, tid, debugreg, address, bptype, bpsize);
   if (GetHandleType(hProcess) == htProcesHandle )
   {
     PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
@@ -343,7 +343,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *address, int bptype, int bpsiz
 
         for (i=0; i<p->threadlistpos; i++)
         {
-          r=SetBreakpoint(hProcess, p->threadlist[i].tid, address, bptype, bpsize);
+          r=SetBreakpoint(hProcess, p->threadlist[i].tid, debugreg, address, bptype, bpsize);
           if (r)
             result=TRUE; //at least one thread succeeded
         }
@@ -416,6 +416,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *address, int bptype, int bpsiz
 #ifdef __arm__
     //hwbps
         int val;
+        int bpindex=1+(2*debugreg);
 
         if (ptrace(PTRACE_GETHBPREGS, wtid, 0, &val)==0)
         {
@@ -432,24 +433,24 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *address, int bptype, int bpsiz
             //execute
 
 
-            i=ptrace(PTRACE_SETHBPREGS, wtid, 1, &address);
+            i=ptrace(PTRACE_SETHBPREGS, wtid, bpindex, &address);
             printf("i1=%d\n", i, hwbpreg);
 
             //right now i'm not really sure how the breakpoint len is set and why it works in some cases and why not in other cases
             result=i==0;
 
             hwbpreg=encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_4, ARM_BREAKPOINT_EXECUTE, 0, 1);
-            if (ptrace(PTRACE_SETHBPREGS, wtid, 2, &hwbpreg)<0) //according to my guess, this should usually work, but just in case...
+            if (ptrace(PTRACE_SETHBPREGS, wtid, bpindex+1, &hwbpreg)<0) //according to my guess, this should usually work, but just in case...
             {
               hwbpreg=encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_2, ARM_BREAKPOINT_EXECUTE, 0, 1);
-              if (ptrace(PTRACE_SETHBPREGS, wtid, 2, &hwbpreg)<0)
+              if (ptrace(PTRACE_SETHBPREGS, wtid, bpindex+1, &hwbpreg)<0)
               {
                 hwbpreg=encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_1, ARM_BREAKPOINT_EXECUTE, 0, 1);
-                if (ptrace(PTRACE_SETHBPREGS, wtid, 2, &hwbpreg)<0)
+                if (ptrace(PTRACE_SETHBPREGS, wtid, bpindex+1, &hwbpreg)<0)
                 {
                   //last try, 8 ?
                   hwbpreg=encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_8, ARM_BREAKPOINT_EXECUTE, 0, 1);
-                  if (ptrace(PTRACE_SETHBPREGS, wtid, 2, &hwbpreg)<0)
+                  if (ptrace(PTRACE_SETHBPREGS, wtid, bpindex+1, &hwbpreg)<0)
                   {
                     printf("Failure to set breakpoint\n");
                     result=FALSE;
@@ -459,6 +460,8 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *address, int bptype, int bpsiz
               }
             }
 
+            printf("bpindex=%d bpindex+1=%d", bpindex, bpindex);
+
             printf("hwbpreg=%x\n", hwbpreg);
           }
           else
@@ -467,9 +470,10 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *address, int bptype, int bpsiz
             //(negative)
             int btype;
 
+
             printf("watchpoint\n");
 
-            i=ptrace(PTRACE_SETHBPREGS, wtid, -1, &address);
+            i=ptrace(PTRACE_SETHBPREGS, wtid, -bpindex, &address);
             printf("i1=%d\n", i, hwbpreg);
 
             btype=0;
@@ -483,8 +487,9 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *address, int bptype, int bpsiz
               btype=ARM_BREAKPOINT_STORE | ARM_BREAKPOINT_LOAD;
 
             hwbpreg=encode_ctrl_reg(0, ARM_BREAKPOINT_LEN_4, btype, 0, 1);
-            i=ptrace(PTRACE_SETHBPREGS, wtid, -2, &hwbpreg);
+            i=ptrace(PTRACE_SETHBPREGS, wtid, -(bpindex+1), &hwbpreg);
 
+            printf("-bpindex=%d -(bpindex+1)=%d", -bpindex, -(bpindex+1));
             printf("i=%d  (hwbpreg=%x)\n", i, hwbpreg);
             result=i==0;
 
@@ -500,26 +505,27 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *address, int bptype, int bpsiz
         //PTRACE_SETREGS
         int r,r2;
 
-        DWORD newdr7;
+        uintptr_t newdr7;
 
 
-        newdr7=1; //currently implement only 1 bp
+        newdr7=(1<<debugreg*2);
 
         if (bptype==2) //x86 does not support read onlyhw bps
           bptype=3;
 
-        newdr7=newdr7 | (bptype << 16); //bptype
+        newdr7=newdr7 | (bptype << 16+(debugreg*4)); //bptype
 
+        //bplen
         if (bpsize<=1)
-          newdr7=newdr7 | (0 << 18);
+          newdr7=newdr7 | (0 << (18+(debugreg*4)));
         else
         if (bpsize<=2)
-          newdr7=newdr7 | (1 << 18);
+          newdr7=newdr7 | (1 << (18+(debugreg*4)));
         else
-          newdr7=newdr7 | (3 << 18);
+          newdr7=newdr7 | (3 << (18+(debugreg*4)));
 
 
-        r=ptrace(PTRACE_POKEUSER, wtid, offsetof(struct user, u_debugreg[0]), address);
+        r=ptrace(PTRACE_POKEUSER, wtid, offsetof(struct user, u_debugreg[debugreg]), address);
         r2=ptrace(PTRACE_POKEUSER, wtid, offsetof(struct user, u_debugreg[7]), newdr7);
 
         result=(r==0) && (r2==0);
@@ -532,6 +538,8 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *address, int bptype, int bpsiz
 
 
 #endif
+
+        //store this breakpoint in the list
 
 
         if (wasPaused==0)
@@ -576,6 +584,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *address, int bptype, int bpsiz
         char command;
         HANDLE hProcess;
         int tid;
+        int debugreg;
         uint64_t address;
         int bptype;
         int bpsize;
@@ -585,6 +594,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *address, int bptype, int bpsiz
       sb.command=CMD_SETBREAKPOINT;
       sb.hProcess=hProcess;
       sb.tid=tid;
+      sb.debugreg=debugreg;
       sb.address=(uintptr_t)address;
       sb.bptype=bptype;
       sb.bpsize=bpsize;
@@ -615,14 +625,14 @@ int SetBreakpoint(HANDLE hProcess, int tid, void *address, int bptype, int bpsiz
 
 }
 
-int RemoveBreakpoint(HANDLE hProcess, int tid, void *address)
+int RemoveBreakpoint(HANDLE hProcess, int tid, int debugreg,int wasWatchpoint)
 /*
  * Removes the breakpoint with the provided address
  */
 {
   int result=FALSE;
 
-  printf("RemoveBreakpoint(%d)\n", tid);
+  printf("RemoveBreakpoint(%d, %d, %d, %d)\n", hProcess, tid, debugreg, wasWatchpoint);
   if (GetHandleType(hProcess) == htProcesHandle )
   {
     PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
@@ -640,7 +650,10 @@ int RemoveBreakpoint(HANDLE hProcess, int tid, void *address)
         int i;
         printf("Calling RemoveBreakpoint for all threads\n");
         for (i=0; i<p->threadlistpos; i++)
-          RemoveBreakpoint(hProcess, p->threadlist[i].tid, address);
+        {
+          if (RemoveBreakpoint(hProcess, p->threadlist[i].tid, debugreg, wasWatchpoint)==TRUE)
+            result=TRUE;
+        }
       }
       else
       {
@@ -690,13 +703,25 @@ int RemoveBreakpoint(HANDLE hProcess, int tid, void *address)
         int i,i2,i3;
         void *a=NULL;
 
-        //figure out which breakpoint this is
+        int bpindex=1+(2*debugreg);
 
         printf("arm\n");
 
-        i=ptrace(PTRACE_SETHBPREGS, wtid, -1, &bpreg);
+        if (wasWatchpoint)
+        {
+          i=ptrace(PTRACE_SETHBPREGS, wtid, -bpIndex, &bpreg);
+          i2=ptrace(PTRACE_SETHBPREGS, wtid, -(bpIndex+1), &bpreg);
+        }
+        else
+        {
+          i=ptrace(PTRACE_SETHBPREGS, wtid, bpIndex, &bpreg);
+          i2=ptrace(PTRACE_SETHBPREGS, wtid, bpIndex+1, &bpreg);
+        }
+
+
+
         printf("i1=%d\n", i);
-        i2=ptrace(PTRACE_SETHBPREGS, wtid, 2, &bpreg);
+
         printf("i2=%d\n", i2);
 
 
@@ -708,11 +733,23 @@ int RemoveBreakpoint(HANDLE hProcess, int tid, void *address)
 
 #if defined(__i386__) || defined (__x86_64__)
         int r;
+        uintptr_t dr7;
         printf("x86\n");
 
-        //figure out which breakpoint this is
+        r=ptrace(PTRACE_PEEKUSER, wtid, offsetof(struct user, u_debugreg[7]), &dr7);
+        if (r!=0)
+          printf("Failure fetching dr7\n");
+        else
+          printf("dr7=%x\n", (int)dr7);
 
-        r=ptrace(PTRACE_POKEUSER, wtid, offsetof(struct user, u_debugreg[7]), 0);
+        dr7&=~(3 << (debugreg*2)); //disable G# and L#
+        dr7&=~(15 << (16+debugreg*4)); //set len and type for this debugreg to 0
+
+
+        r=ptrace(PTRACE_POKEUSER, wtid, offsetof(struct user, u_debugreg[debugreg]), 0);
+
+
+        r=ptrace(PTRACE_POKEUSER, wtid, offsetof(struct user, u_debugreg[7]), dr7);
         if (r==0)
           result=TRUE;
         else
@@ -758,14 +795,16 @@ int RemoveBreakpoint(HANDLE hProcess, int tid, void *address)
         char command;
         HANDLE hProcess;
         int tid;
-        uint64_t address;
+        int debugreg;
+        int wasWatchpoint;
       } rb;
 #pragma pack()
 
       rb.command=CMD_REMOVEBREAKPOINT;
       rb.hProcess=hProcess;
       rb.tid=tid;
-      rb.address=(uint64_t)address;
+      rb.debugreg=debugreg;
+      rb.wasWatchpoint=wasWatchpoint;
 
 
       if (pthread_mutex_lock(&debugsocketmutex) == 0)
