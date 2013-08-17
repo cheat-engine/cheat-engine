@@ -914,6 +914,8 @@ var
 
   symname: pchar;
   maxsymname: integer;
+
+  isexe: uint32;
 begin
   result:=true;
 
@@ -926,73 +928,85 @@ begin
 
   if send(msg,  msgsize)>0 then
   begin
-    if receive(@compressedsize, sizeof(compressedsize))>0 then
+    if receive(@isexe, sizeof(isexe))>0 then
     begin
-      if compressedsize>0 then
+      if receive(@compressedsize, sizeof(compressedsize))>0 then
       begin
-        if receive(@decompressedsize, sizeof(decompressedsize))>0 then
+        if compressedsize>0 then
         begin
-          compressedbuffer:=tmemorystream.create;
-          compressedbuffer.Size:=compressedsize-2*sizeof(uint32);
-
-          if receive(compressedbuffer.Memory, compressedbuffer.size)>0 then
+          if receive(@decompressedsize, sizeof(decompressedsize))>0 then
           begin
-            //decompress it
-            d:=Tdecompressionstream.Create(compressedbuffer, false);
-            getmem(decompressed, decompressedsize);
-            d.ReadBuffer(decompressed^, decompressedsize);
-            d.free;
+            compressedbuffer:=tmemorystream.create;
+            compressedbuffer.Size:=compressedsize-3*sizeof(uint32);
 
-            //parse through the decompressed block and fill in the results
-
-            if copy(modulepath,1,1)<>'[' then
-              modulename:=extractfilename(modulepath)
-            else
-              modulename:=modulepath;
-
-            pos:=0;
-
-            maxsymname:=256;
-            getmem(symname, maxsymname);
-
-
-            while pos<decompressedsize do
+            if receive(compressedbuffer.Memory, compressedbuffer.size)>0 then
             begin
-              currentsymbol:=@decompressed[pos];
-              inc(pos, sizeof(TNetworkSymbolInfo));
+              //decompress it
+              d:=Tdecompressionstream.Create(compressedbuffer, false);
+              getmem(decompressed, decompressedsize);
+              d.ReadBuffer(decompressed^, decompressedsize);
+              d.free;
 
-              if currentsymbol^.namelength>=maxsymname then
+              //parse through the decompressed block and fill in the results
+
+              if copy(modulepath,1,1)<>'[' then
+                modulename:=extractfilename(modulepath)
+              else
+                modulename:=modulepath;
+
+              pos:=0;
+
+              maxsymname:=256;
+              getmem(symname, maxsymname);
+
+
+              while pos<decompressedsize do
               begin
-                //need more memory
-                maxsymname:=currentsymbol^.namelength+1;
+                currentsymbol:=@decompressed[pos];
+                inc(pos, sizeof(TNetworkSymbolInfo));
 
-                freemem(symname);
-                getmem(symname, maxsymname);
+                if currentsymbol^.namelength>=maxsymname then
+                begin
+                  //need more memory
+                  maxsymname:=currentsymbol^.namelength+1;
+
+                  freemem(symname);
+                  getmem(symname, maxsymname);
+                end;
+
+                CopyMemory(symname, @decompressed[pos], currentsymbol^.namelength);
+                symname[currentsymbol^.namelength]:=#0;
+
+                inc(pos, currentsymbol^.namelength);
+
+
+                if currentsymbol^.namelength>0 then
+                begin
+                  if isexe<>0 then
+                  begin
+                    if callback(modulename, symname, currentsymbol^.address, currentsymbol^.size)=false then
+                      break;
+                  end
+                  else
+                  begin
+                    if callback(modulename, symname, modulebase+currentsymbol^.address, currentsymbol^.size)=false then
+                      break;
+                  end;
+                end;
               end;
 
-              CopyMemory(symname, @decompressed[pos], currentsymbol^.namelength);
-              symname[currentsymbol^.namelength]:=#0;
 
-              inc(pos, currentsymbol^.namelength);
+              freemem(symname);
 
+              freemem(decompressed);
 
-              if currentsymbol^.namelength>0 then
-              begin
-                if callback(modulename, symname, modulebase+currentsymbol^.address, currentsymbol^.size)=false then
-                  break;
-              end;
             end;
 
-
-            freemem(symname);
-
-            freemem(decompressed);
-
+            compressedbuffer.free;
           end;
-
-          compressedbuffer.free;
         end;
       end;
+
     end;
   end;
 
