@@ -85,8 +85,10 @@ Caller must free output manually
 
   *output=malloc(maxoutputsize); //allocate 256KB. This "should" be enough, but reallocate if more is needed
 
-  strm.avail_out=maxoutputsize-2*sizeof(uint32_t); //the first 8 bytes will contain the compressed and uncompressed size
-  strm.next_out=(unsigned char *)&(*output)[sizeof(uint32_t)*2];
+  strm.avail_out=maxoutputsize-3*sizeof(uint32_t); //first if it's an exe, followed by the compressed size, followed by the decompressed size
+  strm.next_out=(unsigned char *)&(*output)[sizeof(uint32_t)*3];
+
+  *(uint32_t *)(&(*output)[0])=(b->e_type==ET_EXEC);
 
 /*
 
@@ -262,8 +264,8 @@ Caller must free output manually
 
 
   //update the size
-  *(uint32_t *)(&(*output)[0])=strm.total_out+2*sizeof(uint32_t);
-  *(uint32_t *)(&(*output)[4])=strm.total_in;
+  *(uint32_t *)(&(*output)[4])=strm.total_out+3*sizeof(uint32_t);
+  *(uint32_t *)(&(*output)[8])=strm.total_in;
 
   free(tempbuffer);
 
@@ -292,9 +294,10 @@ Caller must free output manually
 
   *output=malloc(maxoutputsize); //allocate 256KB. This "should" be enough, but reallocate if more is needed
 
-  strm.avail_out=maxoutputsize-2*sizeof(uint32_t); //the first 8 bytes will contain the compressed and uncompressed size
-  strm.next_out=(unsigned char *)&(*output)[sizeof(uint32_t)*2];
+  strm.avail_out=maxoutputsize-3*sizeof(uint32_t); //the first 8 bytes will contain the compressed and uncompressed size
+  strm.next_out=(unsigned char *)&(*output)[sizeof(uint32_t)*3];
 
+  *(uint32_t *)(&(*output)[0])=(b->e_type==ET_EXEC);
 /*
 
   printf("e_shoff=%lx\n", b->e_shoff);
@@ -465,8 +468,8 @@ Caller must free output manually
   deflateEnd(&strm);
 
 
-  *(uint32_t *)(&(*output)[0])=strm.total_out+2*sizeof(uint32_t);
-  *(uint32_t *)(&(*output)[4])=strm.total_in;
+  *(uint32_t *)(&(*output)[4])=strm.total_out+3*sizeof(uint32_t);
+  *(uint32_t *)(&(*output)[8])=strm.total_in;
 
 
   free(tempbuffer);

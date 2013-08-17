@@ -757,14 +757,15 @@ int DispatchCommand(int currentsocket, unsigned char command)
 
             fflush(stdout);
 
-            printf("Sending %d bytes\n", *(uint32_t *)&output[0]);
-            sendall(currentsocket, output, *(uint32_t *)&output[0], 0); //the output buffer contains the size itself
+            printf("Sending %d bytes\n", *(uint32_t *)&output[4]);
+            sendall(currentsocket, output, *(uint32_t *)&output[4], 0); //the output buffer contains the size itself
             free(output);
           }
           else
           {
-            printf("Sending 4 bytes (fail)\n");
-            sendall(currentsocket, &output, 4, 0); //just write 0
+            printf("Sending 8 bytes (fail)\n");
+            uint64_t fail=0;
+            sendall(currentsocket, &fail, sizeof(fail), 0); //just write 0
           }
 
 
