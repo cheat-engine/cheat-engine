@@ -2169,7 +2169,56 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
         if (ptrace(PTRACE_ATTACH, p->pid,0,0)==0)
         {
           int status;
+
           pid_t pid=wait(&status);
+
+          /*
+          printf("SYSCALL TEST\n");
+
+          struct user_regs_struct regs;
+          printf("before:\n");
+          ptrace(PTRACE_GETREGS, pid, 0, &regs);
+
+          printf("rax=%lx\n", regs.rax);
+          printf("orig_rax=%lx\n", regs.rax);
+          printf("rip=%lx\n", regs.rip);
+
+          int pr=ptrace(PTRACE_SYSCALL,pid,0,0);
+
+          printf("pr=%d\n", pr);
+
+          pid=wait(&status);
+
+
+          printf("after:\n");
+          ptrace(PTRACE_GETREGS, pid, 0, &regs);
+
+          printf("rax=%lx\n", regs.rax);
+          printf("orig_rax=%lx\n", regs.rax);
+          printf("rip=%lx\n", regs.rip);
+
+
+          printf("AFTER SYSCALL TEST\n");
+
+          *Result of the test:
+          *Normal programs will instantly get to a working state. But a program in a while (1) ; will NOT break after ptrace_getregs (obviously)
+          *It will stop at a normal "STOP" state though, but you can't be sure at what point it executes
+          *
+          *Info: Bit J and T in CPSR define the current execution state
+          *J T
+          *0 0 = ARM
+          *0 1 = Thumb
+          *1 0 = Jazelle (java...)
+          *1 1 = ThumbEE
+          *
+
+
+
+
+          */
+
+
+
 
           //printf("wait returned %d with status %d\n", pid, status);
           //printf("p->mem=%d\n", p->mem);

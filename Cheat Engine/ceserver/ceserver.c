@@ -1006,8 +1006,6 @@ int main(int argc, char *argv[])
 
 
 
-
-
   socklen_t clisize;
   struct sockaddr_in addr, addr_client;
 
