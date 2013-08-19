@@ -75,7 +75,7 @@ type
     procedure LoadDriverSymbols;
     procedure LoadDLLSymbols;
     procedure finishedLoadingSymbols;
-    function NetworkES(modulename: string; symbolname: string; address: ptruint; size: integer): boolean;
+    function NetworkES(modulename: string; symbolname: string; address: ptruint; size: integer; secondary: boolean): boolean;
   public
     isloading: boolean;
     error: boolean;
@@ -734,9 +734,9 @@ begin
 end;
 
 
-function TSymbolloaderthread.NetworkES(modulename: string; symbolname: string; address: ptruint; size: integer): boolean;
+function TSymbolloaderthread.NetworkES(modulename: string; symbolname: string; address: ptruint; size: integer; secondary: boolean): boolean;
 begin
-  symbollist.AddSymbol(modulename, modulename+'.'+symbolname, Address, size);
+  symbollist.AddSymbol(modulename, modulename+'.'+symbolname, Address, size, secondary);
   symbollist.AddSymbol(modulename, symbolname, Address, size,true);
   result:=not terminated;
 end;

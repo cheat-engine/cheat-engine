@@ -26,7 +26,7 @@ type
       5: (address: qword;  );
   end;
 
-  TNetworkEnumSymCallback=function(modulename: string; symbolname: string; address: ptruint; size: integer ): boolean of object;
+  TNetworkEnumSymCallback=function(modulename: string; symbolname: string; address: ptruint; size: integer; secondary: boolean ): boolean of object;
 
   TCEConnection=class
   private
@@ -872,6 +872,48 @@ begin
 end;
 
 
+function ShortenLinuxModuleName(modulename: string): string;
+var i: integer;
+begin
+  //build the shortenedmodulename
+  //parse the modulepath and strip the version and .so part and everything after it
+  //formats: libxxx-#.#.so.#.#.#
+  //keep in mind names like :libdbusmenu-gtk.so.4.0.12 and libdbusmenu-glib.so.4.0.12 should become libdbusmenu-gtk and libdbusmenu-glib respectively
+
+
+
+  for i:=1 to length(modulename)-1 do
+  begin
+    case modulename[i] of
+      '-':
+      begin
+        //check if modulename[i+1] is a number, if so, cut from here
+        if (length(modulename)>=i+1) and (modulename[i+1] in ['0'..'9']) then
+        begin
+          result:=copy(modulename, 1, i-1);
+          exit;
+        end;
+
+
+      end;
+
+      '.':
+      begin
+        //check if it is .so
+        if (length(modulename)>=i+2) and (uppercase(modulename[i+1])='S') and (uppercase(modulename[i+2])='O') then
+        begin
+          result:=copy(modulename, 1, i-1);
+          exit;
+        end;
+      end;
+    end;
+  end;
+
+  //still here
+  result:=modulename;
+
+
+end;
 
 function TCEConnection.enumSymbolsFromFile(modulepath: string; modulebase: ptruint; callback: TNetworkEnumSymCallback): boolean;
 type
@@ -916,8 +958,12 @@ var
   maxsymname: integer;
 
   isexe: uint32;
+  shortenedmodulename: string; //the name of the module with nothing after .so
+  i: integer;
 begin
   result:=true;
+
+
 
   msgsize:=5+length(modulepath);
   getmem(msg, msgsize);
@@ -950,7 +996,12 @@ begin
               //parse through the decompressed block and fill in the results
 
               if copy(modulepath,1,1)<>'[' then
-                modulename:=extractfilename(modulepath)
+              begin
+                modulename:=extractfilename(modulepath);
+
+                shortenedmodulename:=ShortenLinuxModuleName(modulename);
+
+              end
               else
                 modulename:=modulepath;
 
@@ -984,12 +1035,13 @@ begin
                 begin
                   if isexe<>0 then
                   begin
-                    if callback(modulename, symname, currentsymbol^.address, currentsymbol^.size)=false then
+                    if callback(modulename, symname, currentsymbol^.address, currentsymbol^.size,false)=false then
                       break;
                   end
                   else
                   begin
-                    if callback(modulename, symname, modulebase+currentsymbol^.address, currentsymbol^.size)=false then
+                    if (callback(shortenedmodulename, symname, modulebase+currentsymbol^.address, currentsymbol^.size, false) and
+                        callback(modulename, symname, modulebase+currentsymbol^.address, currentsymbol^.size, true))=false then
                       break;
                   end;
                 end;
