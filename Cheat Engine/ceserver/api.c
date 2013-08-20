@@ -2227,7 +2227,18 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
           if (read==-1)
           {
             read=0;
-            printf("pread error for address %p\n", lpAddress);
+            printf("pread error for address %p (errno=%d)\n", lpAddress, errno);
+
+            if (lpAddress>=0x80000000)
+            {
+              //for some reason PEEKDATA does work when above 0x80000000
+              while (read<size)
+              {
+                *(uintptr_t *)((uintptr_t)buffer+read)=ptrace(PTRACE_PEEKDATA, pid, (uintptr_t)lpAddress+read, 0);
+                read+=sizeof(uintptr_t);
+              }
+            }
+
           }
 
           ptrace(PTRACE_DETACH, pid,0,0);
