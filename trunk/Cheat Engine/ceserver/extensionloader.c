@@ -28,6 +28,8 @@
  *
  *
  *  Problem: It doesn't return properly when the registers are changed when it's waiting in a syscall, so only change it when outside of a syscall
+ *  Better solution: It seems it failed because the stop was at a syscall, so the program counter was decremented tithe the size of the syscall
+ *  To prevent this RESTART change EAX to 0 so it won't do the restart.  Untested on ARM
  *
  *  Problem2: In android dlopen is in /system/bin/linker but not using a symbol (so ce's symbollist can't be used to find the address)
  *
