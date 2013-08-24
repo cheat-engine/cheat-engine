@@ -24,7 +24,9 @@
  *  1 0 = Jazelle (java...)
  *  1 1 = ThumbEE*
  *
- *  So set to 0 0 and restore that as well
+ *  If ARM so set to 0 0 and restore that as well
+ *  Note that The least significant bit in an address specifier also determines if it's THUMB or ARM
+ *  It doesn't seem to matter if you set the least significant bit in the PC register. It will ignore that but on execute. (probably a good idea to clear that bit anyhow)
  *
  *
  *  Problem: It doesn't return properly when the registers are changed when it's waiting in a syscall, so only change it when outside of a syscall
@@ -221,9 +223,12 @@ void writeString(int pid, uintptr_t address, char *string)
   }
 }
 
-int loadExtension(int pid)
+
+int loadExtension(int pid, char *path)
 {
     uintptr_t dlopen;
+    uintptr_t str;
+    int pathlen=strlen(path)+1; //0-terminater
 
     printf("Phase 1: Find dlopen in target\n");
 
@@ -286,13 +291,47 @@ printf("After wait 2. PID=%d\n", pid);
 
 
 #ifdef __arm__
+      //allocate space in the stack
+
+      newregs.ARM_sp-=8+4*(pathlen/ 4);
+
+      //not sur eif [sp] is written to with a push or if it's [sp-4] and then sp decreased, so start at sp+4 instead
+      str=newregs.ARM_sp+4;
+      writeString(pid, str, path);
+
+
+
+
       newregs.ARM_lr=returnaddress;
-      newregs.ARM_pc=0x84c0;
-      newregs.ARM_r0=0;
+      newregs.ARM_pc=dlopen;
+      newregs.ARM_r0=str;
+      newregs.ARM_r1=RTLD_NOW;
+
+      if (newregs.ARM_pc & 1)
+      {
+         //THUMB Address link
+         printf("THUMB destination\n");
+         newregs.ARM_cpsr=newregs.ARM_cpsr | (1 << 5);
+
+         //not sure how to set the J bit (thumbee uses it...)
+         //for now disable it until a bug happens
+         newregs.ARM_cpsr=newregs.ARM_cpsr & (~(1<<25)); //unset J
+
+
+      }
+      else
+      {
+        printf("ARM destination\n");
+        printf("newregs.ARM_cpsr was %x\n", newregs.ARM_cpsr);
+        newregs.ARM_cpsr=newregs.ARM_cpsr & (~(1<<5)); //unset T
+        newregs.ARM_cpsr=newregs.ARM_cpsr & (~(1<<25)); //unset J
+        printf("newregs.ARM_cpsr is %x\n", newregs.ARM_cpsr);
+      }
 
       printf("r0=%lx\n", origregs.ARM_r0);
       printf("orig_r0=%lx\n", origregs.ARM_ORIG_r0);
       printf("pc=%lx\n", origregs.ARM_pc);
+      printf("cpsr=%lx\n", origregs.ARM_cpsr);
 
 #else
       printf("rax=%lx\n", origregs.rax);
@@ -328,7 +367,9 @@ printf("After wait 2. PID=%d\n", pid);
 
 
      //write the path at rsp+10
-     writeString(pid, newregs.rsp+0x18, "/root/bla.so");
+
+     str=newregs.rsp+0x18;
+     writeString(pid, str, path);
 
 
 
@@ -338,7 +379,7 @@ printf("After wait 2. PID=%d\n", pid);
 
       newregs.rip=dlopen; //+2 //(test)
       newregs.rax=0;
-      newregs.rdi=newregs.rsp+0x18;
+      newregs.rdi=str;
       newregs.rsi=RTLD_NOW;
       newregs.orig_rax=0;
 
@@ -362,9 +403,10 @@ printf("After wait 2. PID=%d\n", pid);
      printf("after setregs:\n");
 
 #ifdef __arm__
-     printf("r0=%lx\n", origregs.ARM_r0);
-     printf("orig_r0=%lx\n", origregs.ARM_ORIG_r0);
-     printf("pc=%lx\n", origregs.ARM_pc);
+     printf("r0=%lx\n", newregs.ARM_r0);
+     printf("orig_r0=%lx\n", newregs.ARM_ORIG_r0);
+     printf("pc=%lx\n", newregs.ARM_pc);
+     printf("cpsr=%lx\n", newregs.ARM_cpsr);
 #else
      printf("rax=%lx\n", newregs.rax);
      printf("rdi=%lx\n", newregs.rdi);
@@ -381,7 +423,7 @@ printf("After wait 2. PID=%d\n", pid);
    getchar();
 
 int ptr;
-    ptr=ptrace(PTRACE_CONT,pid,0,SIGCONT);
+    ptr=ptrace(PTRACE_CONT,pid,(void *)0,(void *)SIGCONT);
 
     printf("PRACE_CONT=%d\n", ptr);
     if (ptr!=0)
@@ -431,6 +473,7 @@ int ptr;
     printf("r0=%lx\n", newregs.ARM_r0);
     printf("orig_r0=%lx\n", newregs.ARM_ORIG_r0);
     printf("pc=%lx\n", newregs.ARM_pc);
+    printf("cpsr=%lx\n", newregs.ARM_cpsr);
 #else
 
      printf("rax=%lx\n", newregs.rax);
