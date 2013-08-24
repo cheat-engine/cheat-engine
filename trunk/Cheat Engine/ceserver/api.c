@@ -12,6 +12,8 @@
 
 //todo for in the far future: Hook syscalls
 
+#define _FILE_OFFSET_BITS 64
+#define _LARGEFILE64_SOURCE
 
 #include <stdio.h>
 #include <pthread.h>
@@ -2029,7 +2031,9 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
           printf("f=%d\n", f);
           if (f>=0)
           {
-            bytesread=pread(f, buffer, size, (uintptr_t)lpAddress);
+            //bytesread=pread(f, buffer, size, (uintptr_t)lpAddress);
+            lseek64(p->mem, (uint64_t)lpAddress, SEEK_SET);
+            bytesread=read(p->mem, buffer, size);
 
             if ((bytesread<0) && (errno!=EINTR))
             {
@@ -2146,7 +2150,7 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
   //todo: Try process_vm_readv
 
   //printf("ReadProcessMemory\n");
-  int read=0;
+  int bread=0;
   if (GetHandleType(hProcess) == htProcesHandle )
   { //valid handle
     PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
@@ -2223,10 +2227,19 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
           //printf("wait returned %d with status %d\n", pid, status);
           //printf("p->mem=%d\n", p->mem);
 
-          read=pread(p->mem, buffer, size, (uintptr_t)lpAddress);
-          if (read==-1)
+//          bread=pread(p->mem, buffer, size, (uint64_t)lpAddress);
+
+          lseek64(p->mem, (uint64_t)lpAddress, SEEK_SET);
+          bread=read(p->mem, buffer, size);
+
+
+
+
+
+        //  read=syscall(__NR_pread64, p->mem, buffer, size, (uint64_t)lpAddress);
+          if (bread==-1)
           {
-            read=0;
+            bread=0;
             printf("pread error for address %p (errno=%d)\n", lpAddress, errno);
 
             if (lpAddress>=0x80000000)
@@ -2234,8 +2247,8 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
               //for some reason PEEKDATA does work when above 0x80000000
               while (read<size)
               {
-                *(uintptr_t *)((uintptr_t)buffer+read)=ptrace(PTRACE_PEEKDATA, pid, (uintptr_t)lpAddress+read, 0);
-                read+=sizeof(uintptr_t);
+                *(uintptr_t *)((uintptr_t)buffer+read)=ptrace(PTRACE_PEEKDATA, pid, (uintptr_t)lpAddress+bread, 0);
+                bread+=sizeof(uintptr_t);
               }
             }
 
@@ -2255,7 +2268,7 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
   else
     printf("RPM: invalid handle\n");
 
-  return read;
+  return bread;
 }
 
 
