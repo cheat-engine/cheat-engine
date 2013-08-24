@@ -14,7 +14,7 @@ object ProcessWindow: TProcessWindow
   OnResize = FormResize
   OnShow = FormShow
   Position = poMainFormCenter
-  LCLVersion = '1.1'
+  LCLVersion = '1.0.8.0'
   object ProcessList: TListBox
     Left = 0
     Height = 167
@@ -24,6 +24,7 @@ object ProcessWindow: TProcessWindow
     ItemHeight = 16
     OnDblClick = OKButtonClick
     OnDrawItem = ProcessListDrawItem
+    OnKeyPress = ProcessListKeyPress
     PopupMenu = PopupMenu1
     Style = lbOwnerDrawFixed
     TabOrder = 0
