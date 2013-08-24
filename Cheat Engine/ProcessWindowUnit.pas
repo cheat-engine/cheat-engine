@@ -63,6 +63,7 @@ type
     procedure ProcessListDrawItem(Control: TWinControl; Index: Integer;
       Rect: TRect; State: TOwnerDrawState);
     procedure FormShow(Sender: TObject);
+    procedure ProcessListKeyPress(Sender: TObject; var Key: char);
     procedure Showinvisiblewindows1Click(Sender: TObject);
   private
     { Private declarations }
@@ -546,6 +547,15 @@ begin
 
   setbuttons;
 
+end;
+
+procedure TProcessWindow.ProcessListKeyPress(Sender: TObject; var Key: char);
+begin
+  if key=#8 then
+    filter:=copy(filter, 1, length(filter)-1)
+  else
+  if key in [chr(20)..chr(128)] then
+    filter:=filter+key;
 end;
 
 procedure TProcessWindow.Showinvisiblewindows1Click(Sender: TObject);
