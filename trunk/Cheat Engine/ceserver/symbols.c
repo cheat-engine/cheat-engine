@@ -486,6 +486,8 @@ int GetSymbolListFromFile(char *filename, unsigned char **output, int *outputsiz
   int i, f;
   unsigned char *b=NULL;
 
+  printf("GetSymbolListFromFile(%s)\n", filename);
+
   *output=NULL;
   f=open(filename, O_RDONLY);
   if (f==-1)

@@ -7,6 +7,7 @@ C_SRCS += \
 ../api.c \
 ../ceserver.c \
 ../ceservertest.c \
+../extensionloader.c \
 ../porthelp.c \
 ../symbols.c \
 ../threads.c 
@@ -15,6 +16,7 @@ OBJS += \
 ./api.o \
 ./ceserver.o \
 ./ceservertest.o \
+./extensionloader.o \
 ./porthelp.o \
 ./symbols.o \
 ./threads.o 
@@ -23,6 +25,7 @@ C_DEPS += \
 ./api.d \
 ./ceserver.d \
 ./ceservertest.d \
+./extensionloader.d \
 ./porthelp.d \
 ./symbols.d \
 ./threads.d 
@@ -32,7 +35,7 @@ C_DEPS += \
 %.o: ../%.c
 	@echo 'Building file: $<'
 	@echo 'Invoking: Cross GCC Compiler'
-	/tmp/android9/bin/arm-linux-androideabi-gcc -O3 -Wall -c -fmessage-length=0 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
+	/android-build/bin/arm-linux-androideabi-gcc -O3 -Wall -c -fmessage-length=0 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 

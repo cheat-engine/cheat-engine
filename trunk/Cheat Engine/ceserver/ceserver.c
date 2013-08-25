@@ -784,6 +784,13 @@ int DispatchCommand(int currentsocket, unsigned char command)
       break;
     }
 
+    case CMD_LOADEXTENSION:
+    {
+      //Load the extension if it isn't loaded yet
+
+      break;
+    }
+
 
   }
 }

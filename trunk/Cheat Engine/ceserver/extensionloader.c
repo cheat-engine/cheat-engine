@@ -47,6 +47,7 @@
 #include <stdio.h>
 #include <sys/wait.h>
 #include <sys/ptrace.h>
+
 #include <errno.h>
 #include <stdint.h>
 #include <string.h>
@@ -58,6 +59,19 @@
 #endif
 
 #include <dlfcn.h>
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+
+#ifndef SUN_LEN //missing in android (copy from linux sys/un.h)
+
+/* Evaluate to actual length of the `sockaddr_un' structure.  */
+# define SUN_LEN(ptr) ((size_t) (((struct sockaddr_un *) 0)->sun_path)        \
+          + strlen ((ptr)->sun_path))
+#endif
+
+
 
 int WaitForPid()
 {
@@ -223,12 +237,51 @@ void writeString(int pid, uintptr_t address, char *string)
   }
 }
 
+int isExtensionLoaded(int pid)
+{
+  int i;
+  int s;
+  int al;
+  char name[256];
+  s=socket(AF_UNIX, SOCK_STREAM, 0);
+  printf("s=%d\n", s);
+
+  sprintf(name, " ceserver_extension%d", pid);
+
+  struct sockaddr_un address;
+  address.sun_family=AF_UNIX;
+  strcpy(address.sun_path, name);
+
+  al=SUN_LEN(&address);
+
+  address.sun_path[0]=0;
+  i=connect(s, (struct sockaddr *)&address, al);
+
+  if (i==0)
+  {
+    printf("Successfull connection\n");
+    close(s);
+    return 1;
+  }
+  else
+    return 0;
+}
 
 int loadExtension(int pid, char *path)
 {
     uintptr_t dlopen;
     uintptr_t str;
     int pathlen=strlen(path)+1; //0-terminater
+
+    printf("Phase 0: Check if it's already open\n");
+    if (isExtensionLoaded(pid))
+    {
+      printf("Already loaded\n");
+      return 1;
+    }
+    else
+      printf("Not yet loaded\n");
+
 
     printf("Phase 1: Find dlopen in target\n");
 
@@ -419,8 +472,6 @@ printf("After wait 2. PID=%d\n", pid);
 
     printf("\n\nContinuing thread\n");
 
-  printf("press enter\n");
-   getchar();
 
 int ptr;
     ptr=ptrace(PTRACE_CONT,pid,(void *)0,(void *)SIGCONT);

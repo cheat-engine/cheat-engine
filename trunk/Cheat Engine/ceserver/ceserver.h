@@ -36,6 +36,15 @@
 #define CMD_MODULE32NEXT 23
 
 #define CMD_GETSYMBOLLISTFROMFILE 24
+#define CMD_LOADEXTENSION         25
+
+//--Extension related commands
+#define CMD_ALLOC                   255
+#define CMD_FREE                    254
+#define CMD_CREATETHREAD            253
+#define CMD_SPEEDHACK_SETSPEED      252
+#define CMD_CHANGEMEMORYPROTECTION  251
+
 
 
 
