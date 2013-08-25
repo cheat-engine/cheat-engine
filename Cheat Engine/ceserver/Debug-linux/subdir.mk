@@ -7,7 +7,7 @@ C_SRCS += \
 ../api.c \
 ../ceserver.c \
 ../ceservertest.c \
-../extentionloader.c \
+../extensionloader.c \
 ../porthelp.c \
 ../symbols.c \
 ../threads.c 
@@ -16,7 +16,7 @@ OBJS += \
 ./api.o \
 ./ceserver.o \
 ./ceservertest.o \
-./extentionloader.o \
+./extensionloader.o \
 ./porthelp.o \
 ./symbols.o \
 ./threads.o 
@@ -25,7 +25,7 @@ C_DEPS += \
 ./api.d \
 ./ceserver.d \
 ./ceservertest.d \
-./extentionloader.d \
+./extensionloader.d \
 ./porthelp.d \
 ./symbols.d \
 ./threads.d 
