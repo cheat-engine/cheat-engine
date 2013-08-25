@@ -7,7 +7,7 @@
 
 #include <stdio.h>
 
-void bla(void)
+__attribute__((constructor)) void bla(void)
 {
   printf("weee\n");
 }
