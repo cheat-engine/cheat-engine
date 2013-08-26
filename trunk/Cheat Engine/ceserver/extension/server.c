@@ -126,21 +126,26 @@ void *newconnection(void *arg)
 
   //wait for a command and dispatch it
 
-  r=recvall(sockethandle, &command, 1, MSG_WAITALL);
-  if (r==1)
-    DispatchCommand(sockethandle, command);
-  else
+  r=1;
+  while (r>=0)
   {
-    printf("Peer has disconnected");
-    if (r==-1)
-      printf(" due to an error");
+    r=recvall(sockethandle, &command, 1, MSG_WAITALL);
+    if (r==1)
+      DispatchCommand(sockethandle, command);
+    else
+    {
+      printf("Peer has disconnected");
+      if (r==-1)
+        printf(" due to an error");
 
-    printf("\n");
+      printf("\n");
 
-    fflush(stdout);
-    close(sockethandle);
+      fflush(stdout);
+      close(sockethandle);
+    }
   }
 
+  printf("Bye\n");
   return NULL;
 }
 
@@ -151,7 +156,7 @@ void *ServerThread(void *arg)
   while (!done)
   {
     struct sockaddr_un addr_client;
-    int clisize;
+    socklen_t clisize;
     int a;
     a=accept(s, (struct sockaddr *)&addr_client, &clisize);
 
