@@ -15,11 +15,14 @@
 #include <pthread.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <sys/mman.h>
 
+#include "server.h"
 
 int done=0;
 
@@ -30,6 +33,73 @@ int done=0;
 # define SUN_LEN(ptr) ((size_t) (((struct sockaddr_un *) 0)->sun_path)        \
           + strlen ((ptr)->sun_path))
 #endif
+
+
+typedef struct
+{
+  uint64_t address;
+  uint32_t size;
+} AllocEntry, *PAllocEntry;
+
+PAllocEntry allocList;
+int allocList_Max;
+int allocList_Pos;
+
+void allocListAdd(uint64_t address, uint32_t size)
+{
+  if (allocList==NULL)
+  {
+    allocList=calloc(16, sizeof(AllocEntry));
+    allocList_Max=16;
+  }
+
+  allocList[allocList_Pos].address=address;
+  allocList[allocList_Pos].size=size;
+
+  allocList_Pos++;
+  if (allocList_Pos==allocList_Max)
+  {
+    allocList_Max*=2;
+    allocList=realloc(allocList, allocList_Max*sizeof(AllocEntry));
+  }
+}
+
+void allocListRemove(uint64_t address)
+{
+  int i;
+  for (i=0; i<allocList_Pos; i++)
+  {
+    if (allocList[i].address==address)
+    {
+      int j;
+      for (j=i; j<allocList_Pos-1; j++)
+        allocList[j]=allocList[j+1];
+
+      allocList_Pos--;
+      break;
+    }
+  }
+
+}
+
+int allocListFind(uint64_t address)
+/*
+ * Return the size. (0 if not found)
+ */
+{
+  int i;
+  for (i=0; i<allocList_Pos; i++)
+  {
+    if (allocList[i].address==address)
+    {
+      return allocList[i].size;
+    }
+  }
+
+  return 0;
+
+}
+
 
 
 ssize_t recvall (int s, void *buf, size_t size, int flags)
@@ -113,6 +183,82 @@ int DispatchCommand(int currentsocket, unsigned char command)
 {
   printf("Handling command %d\n", command);
 
+  switch (command)
+  {
+    case EXTCMD_ALLOC:
+    {
+#pragma pack(1)
+      struct {
+        uint64_t preferedAddress;
+        uint32_t size;
+      } params;
+#pragma pack()
+
+      if (recvall(currentsocket, &params, sizeof(params), 0)>0)
+      {
+        printf("EXTCMD_ALLOC\n");
+        printf("params.preferedAddress=%lx\n", params.preferedAddress);
+        printf("params.size=%d\n", params.size);
+
+        uint64_t address=(uint64_t)mmap((void *)params.preferedAddress, params.size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+
+        if (address)
+          allocListAdd(address, params.size);
+
+        sendall(currentsocket, &address, sizeof(address), 0);
+
+
+      }
+
+
+      break;
+    }
+
+    case EXTCMD_FREE:
+    {
+#pragma pack(1)
+      struct {
+        uint64_t address;
+        uint32_t size;
+      } params;
+#pragma pack()
+
+      uint32_t result;
+
+      if (recvall(currentsocket, &params, sizeof(params), 0)>0)
+      {
+        printf("EXTCMD_FREE\n");
+        printf("params.address=%lx\n", params.address);
+        printf("1: params.size=%d\n", params.size);
+
+        if (params.size==0)
+          params.size=allocListFind(params.address);
+
+        printf("2: params.size=%d\n", params.size);
+
+        if (params.size)
+        {
+          result=munmap((void *)params.address, params.size);
+          if (result==-1)
+            result=0;
+          else
+            result=1;
+        }
+        else
+          result=0;
+
+        allocListRemove(params.address);
+
+        sendall(currentsocket, &result, sizeof(result), 0);
+
+
+      }
+
+
+      break;
+    }
+
+  }
   return 1;
 
 }
