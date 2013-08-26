@@ -176,6 +176,14 @@ begin
     result:=0;
 end;
 
+function NetworkVirtualAllocEx(hProcess: THandle; lpAddress: Pointer; dwSize, flAllocationType: DWORD; flProtect: DWORD): Pointer; stdcall;
+begin
+  if getconnection<>nil then
+    result:=connection.VirtualAllocEx(hProcess, lpAddress, dwSize, flAllocationType, flProtect)
+  else
+    result:=nil;
+end;
+
 function NetworkOpenProcess(dwDesiredAccess:DWORD; bInheritHandle:WINBOOL; dwProcessId:DWORD):HANDLE; stdcall;
 begin
   if getConnection<>nil then
@@ -230,6 +238,7 @@ begin
   newkernelhandler.Module32Next:=@NetworkModule32Next;
   newkernelhandler.closehandle:=@networkclosehandle;
 
+  newkernelhandler.VirtualAllocEx:=@networkVirtualAllocEx;
 
 
 end;
