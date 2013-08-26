@@ -8,8 +8,10 @@
 #ifndef PORTHELP_H_
 #define PORTHELP_H_
 
-typedef unsigned int HANDLE; //just an int, in case of a 32-bit ce version and a 64-bit linux version I can not give pointers, so use ID's for handles
-typedef unsigned int DWORD;
+#include <stdint.h>
+
+typedef uint32_t HANDLE; //just an int, in case of a 32-bit ce version and a 64-bit linux version I can not give pointers, so use ID's for handles
+typedef uint32_t DWORD;
 
 #define TH32CS_SNAPPROCESS  0x2
 #define TH32CS_SNAPMODULE   0x8

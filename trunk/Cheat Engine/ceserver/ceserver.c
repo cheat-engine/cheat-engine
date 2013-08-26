@@ -787,6 +787,29 @@ int DispatchCommand(int currentsocket, unsigned char command)
     case CMD_LOADEXTENSION:
     {
       //Load the extension if it isn't loaded yet
+      //LOADEXTENSION(handle)
+      uint32_t handle;
+      if (recvall(currentsocket, &handle, sizeof(handle),0)>0)
+      {
+        int result=loadCEServerExtension(handle);
+
+        sendall(currentsocket, &result, sizeof(result),0);
+      }
+
+      break;
+    }
+
+    case CMD_ALLOC:
+    {
+      //ALLOC(processhandle, preferedbase, size)
+      CeAllocInput c;
+      printf("CESERVER: CMD_ALLOC\n");
+      if (recvall(currentsocket, &c, sizeof(c),0)>0)
+      {
+        uint64_t address=ext_alloc(c.hProcess, c.preferedBase, c.size);
+
+        sendall(currentsocket, &address, sizeof(address),0);
+      }
 
       break;
     }
