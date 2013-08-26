@@ -3520,6 +3520,9 @@ var
 
   minAddress,maxAddress: ptrUint;
 begin
+
+  //todo: Do some network specific stuff
+
   result:=nil;
  // if not processhandler.is64Bit then exit; //don't bother
 
@@ -3530,12 +3533,19 @@ begin
   minAddress:=base-$70000000; //let's add in some extra overhead to skip the last fffffff
   maxAddress:=base+$70000000;
 
+  if processhandler.is64Bit then
+  begin
+    if (minAddress>ptrUint(systeminfo.lpMaximumApplicationAddress)) or (minAddress<ptrUint(systeminfo.lpMinimumApplicationAddress)) then
+      minAddress:=ptrUint(systeminfo.lpMinimumApplicationAddress);
 
-  if (minAddress>ptrUint(systeminfo.lpMaximumApplicationAddress)) or (minAddress<ptrUint(systeminfo.lpMinimumApplicationAddress)) then
-    minAddress:=ptrUint(systeminfo.lpMinimumApplicationAddress);
-
-  if (maxAddress<ptrUint(systeminfo.lpMinimumApplicationAddress)) or (maxAddress>ptrUint(systeminfo.lpMaximumApplicationAddress)) then
-    maxAddress:=ptrUint(systeminfo.lpMaximumApplicationAddress);
+    if (maxAddress<ptrUint(systeminfo.lpMinimumApplicationAddress)) or (maxAddress>ptrUint(systeminfo.lpMaximumApplicationAddress)) then
+      maxAddress:=ptrUint(systeminfo.lpMaximumApplicationAddress);
+  end
+  else
+  begin
+    minaddress:=0;
+    maxaddress:=$fffffffff;
+  end;
 
 
   b:=minAddress;

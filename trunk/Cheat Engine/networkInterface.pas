@@ -58,6 +58,7 @@ type
     function CloseHandle(handle: THandle):WINBOOL;
     function OpenProcess(dwDesiredAccess:DWORD; bInheritHandle:WINBOOL; dwProcessId:DWORD):HANDLE;
     function VirtualAllocEx(hProcess: THandle; lpAddress: Pointer; dwSize, flAllocationType: DWORD; flProtect: DWORD): Pointer;
+    function VirtualFreeEx(hProcess: HANDLE; lpAddress: LPVOID; dwSize: SIZE_T; dwFreeType: DWORD): BOOL;
     function VirtualQueryEx(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD;
     function ReadProcessMemory(hProcess: THandle; lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL;
     function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: DWORD): BOOL;
@@ -112,6 +113,7 @@ const
 
   CMD_LOADEXTENSION=25;
   CMD_ALLOC=26;
+  CMD_FREE=27;
 
 
 function TCEConnection.CloseHandle(handle: THandle):WINBOOL;
@@ -586,6 +588,38 @@ begin
   end
   else
     result:=windows.VirtualAllocEx(hProcess, lpAddress, dwSize, flAllocationType, flProtect);
+end;
+
+function TCEConnection.VirtualFreeEx(hProcess: HANDLE; lpAddress: LPVOID; dwSize: SIZE_T; dwFreeType: DWORD): BOOL;
+var
+  input: packed record
+    command: byte;
+    hProcess: integer;
+    address: qword;
+    size: integer;
+  end;
+
+  r: UINT32;
+begin
+  r:=0;
+
+  if isNetworkHandle(hProcess) then
+  begin
+    input.command:=CMD_FREE;
+    input.hProcess:=hProcess and $ffffff;
+    input.address:=ptruint(lpAddress);
+    input.size:=dwsize;
+
+    if send(@input, sizeof(input))>0 then
+    begin
+      r:=0;
+      receive(@r, sizeof(r));
+      result:=r<>0;
+    end;
+
+  end
+  else
+    result:=windows.VirtualFreeEx(hProcess, lpAddress, dwSize, dwFreeType);
 end;
 
 function TCEConnection.VirtualQueryEx(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD;
