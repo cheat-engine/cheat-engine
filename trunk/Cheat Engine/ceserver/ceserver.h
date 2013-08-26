@@ -177,6 +177,17 @@ typedef struct {
   uint64_t address; //0=fail
 } CeAllocOutput, *PCeAllocOutput;
 
+typedef struct {
+  HANDLE hProcess;
+  uint64_t address;
+  uint32_t size;
+} CeFreeInput, *PCeFreeInput;
+
+
+typedef struct {
+  uint32_t result;
+} CeFreeOutput, *PCeFreeOutput;
+
 
 
 

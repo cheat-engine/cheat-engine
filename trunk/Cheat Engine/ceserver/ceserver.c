@@ -22,6 +22,7 @@
 #include "api.h"
 #include "ceservertest.h"
 #include "symbols.h"
+#include "extensionfunctions.h"
 
 pthread_t pth;
 pthread_t identifierthread;
@@ -809,6 +810,22 @@ int DispatchCommand(int currentsocket, unsigned char command)
         uint64_t address=ext_alloc(c.hProcess, c.preferedBase, c.size);
 
         sendall(currentsocket, &address, sizeof(address),0);
+      }
+
+      break;
+    }
+
+    case CMD_FREE:
+    {
+
+      CeFreeInput c;
+      printf("CESERVER: CMD_FREE\n");
+      if (recvall(currentsocket, &c, sizeof(c),0)>0)
+      {
+        uint32_t r;
+        r=ext_free(c.hProcess, c.address, c.size);
+
+        sendall(currentsocket, &r, sizeof(r),0);
       }
 
       break;

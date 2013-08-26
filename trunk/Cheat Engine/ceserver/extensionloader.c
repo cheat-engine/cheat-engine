@@ -292,6 +292,8 @@ int loadExtension(int pid, char *path)
     uintptr_t str;
     int pathlen=strlen(path)+1; //0-terminater
 
+    printf("loadExtension(%d, %s)\n", pid, path);
+
     printf("Phase 0: Check if it's already open\n");
     if (isExtensionLoaded(pid))
     {
@@ -300,6 +302,7 @@ int loadExtension(int pid, char *path)
     }
     else
       printf("Not yet loaded\n");
+
 
 
     printf("Phase 1: Find dlopen in target\n");
@@ -369,7 +372,7 @@ printf("After wait 2. PID=%d\n", pid);
 #ifdef __arm__
       //allocate space in the stack
 
-      newregs.ARM_sp-=8+4*(pathlen/ 4);
+      newregs.ARM_sp-=8+4*((pathlen+3)/ 4);
 
       //not sur eif [sp] is written to with a push or if it's [sp-4] and then sp decreased, so start at sp+4 instead
       str=newregs.ARM_sp+4;
@@ -419,7 +422,19 @@ printf("After wait 2. PID=%d\n", pid);
 
 
       //allocate stackspace
-      newregs.rsp=newregs.rsp-0x28-16;
+      newregs.rsp=newregs.rsp-0x28-(8*((pathlen+7) / 8));
+
+      //check that the first 4 bits of rsp are 1000 (8) (aligned with the function return push)
+      if ((newregs.rsp & 0xf)!=8)
+      {
+        printf("Aligning stack.  Was %llx", newregs.rsp);
+        newregs.rsp-=8;
+        newregs.rsp&=~(0xf); //clear the first 4 bits
+
+        newregs.rsp=newregs.rsp | 8; //set to 8
+
+        printf(" is now %llx\n", newregs.rsp);
+      }
       //set the return address
 
       printf("Writing 0x0ce0 to %lx\n", newregs.rsp);
@@ -452,6 +467,8 @@ printf("After wait 2. PID=%d\n", pid);
 
      str=newregs.rsp+0x18;
      writeString(pid, str, path);
+
+     printf("str=%p\n", (void *)str);
 
 
 
@@ -598,10 +615,10 @@ int loadCEServerExtension(HANDLE hProcess)
 
     if (p->hasLoadedExtension==0)
     {
-      char modulepath[256];
-      if (readlink("/proc/self/exe", modulepath, 256)!=-1)
+      char modulepath[256], modulepath2[256];
+      if (readlink("/proc/self/exe", modulepath2, 256)!=-1)
       {
-        sprintf(modulepath, "%s/libceserver-extension.so", dirname(modulepath));
+        sprintf(modulepath, "%s/libceserver-extension.so", dirname(modulepath2));
       }
       else
       {
