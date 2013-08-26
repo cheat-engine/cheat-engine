@@ -184,6 +184,14 @@ begin
     result:=nil;
 end;
 
+function NetworkVirtualFreeEx(hProcess: HANDLE; lpAddress: LPVOID; dwSize: SIZE_T; dwFreeType: DWORD): BOOL; stdcall;
+begin
+  if getconnection<>nil then
+    result:=connection.VirtualFreeEx(hProcess, lpAddress, dwSize, dwFreeType)
+  else
+    result:=FALSE;
+end;
+
 function NetworkOpenProcess(dwDesiredAccess:DWORD; bInheritHandle:WINBOOL; dwProcessId:DWORD):HANDLE; stdcall;
 begin
   if getConnection<>nil then
@@ -239,6 +247,7 @@ begin
   newkernelhandler.closehandle:=@networkclosehandle;
 
   newkernelhandler.VirtualAllocEx:=@networkVirtualAllocEx;
+  newkernelhandler.VirtualFreeEx:=@networkVirtualFreeEx;
 
 
 end;
