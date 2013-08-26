@@ -2414,6 +2414,8 @@ HANDLE OpenProcess(DWORD pid)
     //create a process info structure and return a handle to it
     PProcessData p=(PProcessData)malloc(sizeof(ProcessData));
 
+    memset(p, 0, sizeof(ProcessData));
+
     p->ReferenceCount=1;
     p->pid=pid;
     p->path=strdup(processpath);
@@ -2423,6 +2425,11 @@ HANDLE OpenProcess(DWORD pid)
 
     sprintf(processpath,"/proc/%d/mem", pid);
     p->mem=open(processpath, O_RDONLY);
+
+
+    pthread_mutex_init(&p->extensionMutex, NULL);
+    p->hasLoadedExtension=0;
+    p->extensionFD=0;
 
 
     p->isDebugged=0;

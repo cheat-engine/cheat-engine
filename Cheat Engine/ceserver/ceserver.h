@@ -8,6 +8,8 @@
 #ifndef CESERVER_H_
 #define CESERVER_H_
 
+#include <stdint.h>
+#include <sys/types.h>
 #include "porthelp.h"
 
 #define CMD_GETVERSION 0
@@ -38,12 +40,17 @@
 #define CMD_GETSYMBOLLISTFROMFILE 24
 #define CMD_LOADEXTENSION         25
 
-//--Extension related commands
-#define CMD_ALLOC                   255
-#define CMD_FREE                    254
-#define CMD_CREATETHREAD            253
-#define CMD_SPEEDHACK_SETSPEED      252
-#define CMD_CHANGEMEMORYPROTECTION  251
+#define CMD_ALLOC                   26
+#define CMD_FREE                    27
+#define CMD_CREATETHREAD            28
+#define CMD_SPEEDHACK_SETSPEED      29
+#define CMD_CHANGEMEMORYPROTECTION  30
+
+
+
+//just in case I ever get over 255 commands this value will be reserved for a secondary command list (FF 00 -  FF 01 - ... - FF FE - FF FF 01 - FF FF 02 - .....
+#define CMD_COMMANDLIST2            255
+
 
 
 
@@ -158,6 +165,19 @@ typedef struct {
 typedef struct {
   int result;
 } CeResumeThreadOutput, *PCeResumeThreadOutput;
+
+typedef struct {
+  HANDLE hProcess;
+  uint64_t preferedBase;
+  uint32_t size;
+} CeAllocInput, *PCeAllocInput;
+
+
+typedef struct {
+  uint64_t address; //0=fail
+} CeAllocOutput, *PCeAllocOutput;
+
+
 
 
 #pragma pack()

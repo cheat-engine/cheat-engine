@@ -63,6 +63,11 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <unistd.h>
+#include <libgen.h>
+
+#include "porthelp.h"
+#include "api.h"
 
 #ifndef SUN_LEN //missing in android (copy from linux sys/un.h)
 
@@ -237,7 +242,7 @@ void writeString(int pid, uintptr_t address, char *string)
   }
 }
 
-int isExtensionLoaded(int pid)
+int openExtension(int pid, int *openedSocket)
 {
   int i;
   int s;
@@ -259,12 +264,26 @@ int isExtensionLoaded(int pid)
 
   if (i==0)
   {
-    printf("Successfull connection\n");
-    close(s);
+    printf("Successful connection\n");
+    *openedSocket=s;
     return 1;
   }
   else
+  {
+    close(s);
     return 0;
+  }
+}
+
+int isExtensionLoaded(int pid)
+{
+  int s;
+  int result=openExtension(pid, &s);
+
+  if (result)
+    close(s);
+
+  return result;
 }
 
 int loadExtension(int pid, char *path)
@@ -277,7 +296,7 @@ int loadExtension(int pid, char *path)
     if (isExtensionLoaded(pid))
     {
       printf("Already loaded\n");
-      return 1;
+      return TRUE;
     }
     else
       printf("Not yet loaded\n");
@@ -329,13 +348,17 @@ printf("After wait 2. PID=%d\n", pid);
       if (ptrace(PTRACE_GETREGS, pid, 0, &newregs)!=0)
       {
         printf("PTRACE_GETREGS FAILED\n");
-        return 0;
+        ptrace(PTRACE_DETACH, pid,0,0);
+
+        return FALSE;
       }
 
       if (ptrace(PTRACE_GETREGS, pid, 0, &origregs)!=0)
       {
         printf("PTRACE_GETREGS FAILED 2\n");
-        return 0;
+        ptrace(PTRACE_DETACH, pid,0,0);
+
+        return FALSE;
       }
 
 
@@ -403,19 +426,25 @@ printf("After wait 2. PID=%d\n", pid);
       if (ptrace(PTRACE_POKEDATA, pid, newregs.rsp, returnaddress)!=0)
       {
         printf("Failed to write return address\n");
-        return 0;
+        ptrace(PTRACE_DETACH, pid,0,0);
+
+        return FALSE;
       }
 
       if (ptrace(PTRACE_POKEDATA, pid, newregs.rsp-8, returnaddress)!=0)
       {
         printf("Fuck\n");
-        return 0;
+        ptrace(PTRACE_DETACH, pid,0,0);
+
+        return FALSE;
       }
 
-    if (ptrace(PTRACE_POKEDATA, pid, newregs.rsp+8, returnaddress)!=0)
+      if (ptrace(PTRACE_POKEDATA, pid, newregs.rsp+8, returnaddress)!=0)
       {
         printf("Fuck\n");
-        return 0;
+        ptrace(PTRACE_DETACH, pid,0,0);
+
+        return FALSE;
       }
 
 
@@ -444,13 +473,17 @@ printf("After wait 2. PID=%d\n", pid);
       if (ptrace(PTRACE_SETREGS, pid, 0, &newregs)!=0)
       {
         printf("PTRACE_SETREGS FAILED\n");
-        return 0;
+        ptrace(PTRACE_DETACH, pid,0,0);
+
+        return FALSE;
       }
 
       if (ptrace(PTRACE_GETREGS, pid, 0, &newregs)!=0)
       {
         printf("PTRACE_GETREGS FAILED 4\n");
-        return 0;
+        ptrace(PTRACE_DETACH, pid,0,0);
+
+        return FALSE;
       }
 
      printf("after setregs:\n");
@@ -493,7 +526,8 @@ int ptr;
         if ((pid==-1) && (errno!=EINTR))
         {
           printf("LoadExtension wait fail. :%d\n", errno);
-          return; //something bad happened
+
+          return FALSE;
         }
 
         if (pid==0)
@@ -507,7 +541,9 @@ int ptr;
      if (ptrace(PTRACE_GETSIGINFO, pid, NULL, &si)!=0)
      {
        printf("GETSIGINFO FAILED\n");
-       return;
+       ptrace(PTRACE_DETACH, pid,0,0);
+
+       return FALSE;
      }
 
      printf("si.si_signo=%d\n", si.si_signo);
@@ -517,7 +553,9 @@ int ptr;
      if (ptrace(PTRACE_GETREGS, pid, 0, &newregs)!=0)
      {
        printf("PTRACE_GETREGS FAILED (2)\n");
-       return;
+       ptrace(PTRACE_DETACH, pid,0,0);
+
+       return FALSE;
      }
 
 #ifdef __arm__
@@ -540,7 +578,6 @@ int ptr;
      if (ptrace(PTRACE_SETREGS, pid, 0, &origregs)!=0)
      {
        printf("PTRACE_SETREGS FAILED (20\n");
-       return;
      }
 
      printf("Detaching\n");
@@ -548,4 +585,67 @@ int ptr;
        printf("PTRACE_DETACH FAILED\n");
 
      printf("End...\n");
+}
+
+int loadCEServerExtension(HANDLE hProcess)
+{
+  printf("loadCEServerExtension\n");
+  if (GetHandleType(hProcess) == htProcesHandle )
+  {
+    PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
+
+
+
+    if (p->hasLoadedExtension==0)
+    {
+      char modulepath[256];
+      if (readlink("/proc/self/exe", modulepath, 256)!=-1)
+      {
+        sprintf(modulepath, "%s/libceserver-extension.so", dirname(modulepath));
+      }
+      else
+      {
+        strcpy(modulepath, "libceserver-extension.so");
+      }
+
+
+
+
+      if (p->isDebugged)
+      {
+        printf("This process is being debugged. Checking if it's already loaded\n");
+
+        pthread_mutex_lock(&p->extensionMutex);
+        p->hasLoadedExtension=openExtension(p->pid, &p->extensionFD);
+        pthread_mutex_unlock(&p->extensionMutex);
+      }
+      else
+      {
+        pthread_mutex_lock(&p->extensionMutex);
+        if (p->hasLoadedExtension==0) //still 0
+        {
+
+          if (p->neverForceLoadExtension==0)
+          {
+            printf("Calling loadExtension\n");
+            p->hasLoadedExtension=loadExtension(p->pid, modulepath);
+          }
+
+          if (p->hasLoadedExtension)
+            p->hasLoadedExtension=openExtension(p->pid, &p->extensionFD);
+        }
+
+        pthread_mutex_unlock(&p->extensionMutex);
+      }
+
+
+    }
+
+    return p->hasLoadedExtension;
+  }
+  else
+  {
+    printf("Invalid handle type");
+    return 0;
+  }
 }

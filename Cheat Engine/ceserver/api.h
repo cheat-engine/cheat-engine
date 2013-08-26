@@ -95,6 +95,11 @@ typedef struct {
   char *path;
   char *maps;
   int mem;
+  int hasLoadedExtension; //set to true if the ceserver extension has been loaded in this process
+  int neverForceLoadExtension; //set to true if you don't want to force load the module (if it's loaded, use it, but don't use the injection method)
+  pthread_mutex_t extensionMutex;
+  int extensionFD; //socket to communicate with the target
+
   int isDebugged; //if this is true no need to attach/detach constantly, BUT make sure the debugger thread does do it's job
   pthread_t debuggerThreadID;
 
@@ -106,6 +111,8 @@ typedef struct {
 
   int debuggerServer; //sockets for communicating with the debugger thread by local threads
   int debuggerClient;
+
+
 
 
   pthread_mutex_t debugEventQueueMutex; //probably not necessary as all queue operations are all done in the debuggerthread of the process
