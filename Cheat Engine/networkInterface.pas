@@ -39,6 +39,8 @@ type
         memory: array [0..4095] of byte;
       end;
 
+    function isNetworkHandle(handle: THandle): boolean;
+
     function receive(buffer: pointer; size: integer): integer;
     function send(buffer: pointer; size: integer): integer;
 
@@ -46,6 +48,7 @@ type
     function NReadProcessMemory(hProcess: THandle; lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL;
 
   public
+
     function Module32Next(hSnapshot: HANDLE; var lpme: MODULEENTRY32; isfirst: boolean=false): BOOL;
     function Module32First(hSnapshot: HANDLE; var lpme: MODULEENTRY32): BOOL;
 
@@ -54,6 +57,7 @@ type
     function CreateToolhelp32Snapshot(dwFlags, th32ProcessID: DWORD): HANDLE;
     function CloseHandle(handle: THandle):WINBOOL;
     function OpenProcess(dwDesiredAccess:DWORD; bInheritHandle:WINBOOL; dwProcessId:DWORD):HANDLE;
+    function VirtualAllocEx(hProcess: THandle; lpAddress: Pointer; dwSize, flAllocationType: DWORD; flProtect: DWORD): Pointer;
     function VirtualQueryEx(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD;
     function ReadProcessMemory(hProcess: THandle; lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL;
     function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: DWORD): BOOL;
@@ -66,6 +70,7 @@ type
     function getVersion(var name: string): integer;
     function getArchitecture: integer;
     function enumSymbolsFromFile(modulepath: string; modulebase: ptruint; callback: TNetworkEnumSymCallback): boolean;
+    function loadExtension(hProcess: Thandle): boolean;
     property connected: boolean read fConnected;
 
     constructor create;
@@ -74,6 +79,8 @@ type
 
 
 implementation
+
+uses elfsymbols;
 
 const
   CMD_GETVERSION =0;
@@ -102,6 +109,9 @@ const
   CMD_MODULE32NEXT=23;
 
   CMD_GETSYMBOLLISTFROMFILE=24;
+
+  CMD_LOADEXTENSION=25;
+  CMD_ALLOC=26;
 
 
 function TCEConnection.CloseHandle(handle: THandle):WINBOOL;
@@ -546,6 +556,38 @@ begin
     result:=windows.WriteProcessMemory(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesWritten);
 end;
 
+function TCEConnection.VirtualAllocEx(hProcess: THandle; lpAddress: Pointer; dwSize, flAllocationType: DWORD; flProtect: DWORD): pointer;
+var
+  input: packed record
+    command: byte;
+    hProcess: integer;
+    preferedBase: qword;
+    size: integer;
+  end;
+
+  output: UINT64;
+begin
+  result:=nil;
+
+  if isNetworkHandle(hProcess) then
+  begin
+    input.command:=CMD_ALLOC;
+    input.hProcess:=hProcess and $ffffff;
+    input.preferedBase:=ptruint(lpAddress);
+    input.size:=dwsize;
+
+    if send(@input, sizeof(input))>0 then
+    begin
+      output:=0;
+      receive(@output, sizeof(output));
+      result:=pointer(output);
+    end;
+
+  end
+  else
+    result:=windows.VirtualAllocEx(hProcess, lpAddress, dwSize, flAllocationType, flProtect);
+end;
+
 function TCEConnection.VirtualQueryEx(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD;
 var
   input: packed record
@@ -963,6 +1005,13 @@ var
 begin
   result:=true;
 
+  if modulepath='[vdso]' then
+  begin
+    //special module with no clear filepath
+    result:=EnumElfSymbols('vdso', modulebase, callback);
+    exit;
+  end;
+
 
 
   msgsize:=5+length(modulepath);
@@ -971,6 +1020,7 @@ begin
   msg^.command:=CMD_GETSYMBOLLISTFROMFILE;
   msg^.symbolpathsize:=length(modulepath);
   CopyMemory(@msg^.path, @modulepath[1], length(modulepath));
+
 
   if send(msg,  msgsize)>0 then
   begin
@@ -1062,6 +1112,36 @@ begin
     end;
   end;
 
+end;
+
+function TCEConnection.loadExtension(hProcess: THandle): boolean;
+var
+  loadExtensionCommand: packed record
+    command: byte;
+    handle: uint32;
+  end;
+
+  r:uint32;
+begin
+  result:=false;
+
+  if isNetworkHandle(hProcess) then
+  begin
+    loadExtensionCommand.command:=CMD_LOADEXTENSION;
+    loadExtensionCommand.handle:=hProcess and $ffffff;
+
+    if send(@loadExtensionCommand,  sizeof(loadExtensionCommand))>0 then
+    begin
+      receive(@r, sizeof(r));
+      result:=r<>0;
+    end;
+  end;
+
+end;
+
+function TCEConnection.isNetworkHandle(handle: THandle): boolean;
+begin
+  result:=((handle shr 24) and $ff)= $ce;
 end;
 
 function TCEConnection.send(buffer: pointer; size: integer): integer;
