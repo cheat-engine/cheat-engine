@@ -43,8 +43,9 @@
 #define CMD_ALLOC                   26
 #define CMD_FREE                    27
 #define CMD_CREATETHREAD            28
-#define CMD_SPEEDHACK_SETSPEED      29
-#define CMD_CHANGEMEMORYPROTECTION  30
+#define CMD_LOADMODULE              29
+//#define CMD_SPEEDHACK_SETSPEED      29
+//#define CMD_CHANGEMEMORYPROTECTION  30
 
 
 
@@ -198,6 +199,18 @@ typedef struct {
 typedef struct {
   HANDLE threadhandle;
 } CeCreateThreadOutput, *PCeCreateThreadOutput;
+
+typedef struct {
+  HANDLE hProcess;
+  uint32_t modulepathlength;
+  //modulepath
+} CeLoadModuleInput, *PCeLoadModuleInput;
+
+
+typedef struct {
+  uint32_t result;
+} CeLoadModuleOutput, *PCeLoadModuleOutput;
+
 
 
 
