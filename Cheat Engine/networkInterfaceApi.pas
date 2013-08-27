@@ -192,6 +192,14 @@ begin
     result:=FALSE;
 end;
 
+function NetworkCreateRemoteThread(hProcess: THandle; lpThreadAttributes: Pointer; dwStackSize: DWORD; lpStartAddress: TFNThreadStartRoutine; lpParameter: Pointer;  dwCreationFlags: DWORD; var lpThreadId: DWORD): THandle; stdcall;
+begin
+  if getconnection<>nil then
+    result:=connection.CreateRemoteThread(hProcess, lpThreadAttributes, dwStackSize, lpStartAddress, lpParameter, dwCreationFlags, lpThreadId)
+  else
+    result:=0;
+end;
+
 function NetworkOpenProcess(dwDesiredAccess:DWORD; bInheritHandle:WINBOOL; dwProcessId:DWORD):HANDLE; stdcall;
 begin
   if getConnection<>nil then
@@ -248,6 +256,7 @@ begin
 
   newkernelhandler.VirtualAllocEx:=@networkVirtualAllocEx;
   newkernelhandler.VirtualFreeEx:=@networkVirtualFreeEx;
+  newkernelhandler.CreateRemoteThread:=@networkCreateRemoteThread;
 
 
 end;

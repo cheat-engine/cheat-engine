@@ -57,6 +57,7 @@ type
     function CreateToolhelp32Snapshot(dwFlags, th32ProcessID: DWORD): HANDLE;
     function CloseHandle(handle: THandle):WINBOOL;
     function OpenProcess(dwDesiredAccess:DWORD; bInheritHandle:WINBOOL; dwProcessId:DWORD):HANDLE;
+    function CreateRemoteThread(hProcess: THandle; lpThreadAttributes: Pointer; dwStackSize: DWORD; lpStartAddress: TFNThreadStartRoutine; lpParameter: Pointer;  dwCreationFlags: DWORD; var lpThreadId: DWORD): THandle;
     function VirtualAllocEx(hProcess: THandle; lpAddress: Pointer; dwSize, flAllocationType: DWORD; flProtect: DWORD): Pointer;
     function VirtualFreeEx(hProcess: HANDLE; lpAddress: LPVOID; dwSize: SIZE_T; dwFreeType: DWORD): BOOL;
     function VirtualQueryEx(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD;
@@ -114,6 +115,7 @@ const
   CMD_LOADEXTENSION=25;
   CMD_ALLOC=26;
   CMD_FREE=27;
+  CMD_CREATETHREAD=28;
 
 
 function TCEConnection.CloseHandle(handle: THandle):WINBOOL;
@@ -556,6 +558,41 @@ begin
   end
   else
     result:=windows.WriteProcessMemory(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesWritten);
+end;
+
+function TCEConnection.CreateRemoteThread(hProcess: THandle; lpThreadAttributes: Pointer; dwStackSize: DWORD; lpStartAddress: TFNThreadStartRoutine; lpParameter: Pointer;  dwCreationFlags: DWORD; var lpThreadId: DWORD): THandle;
+var
+  input: packed record
+    command: byte;
+    hProcess: integer;
+    startaddress: qword;
+    parameter: qword;
+  end;
+  output: integer;
+begin
+  if isNetworkHandle(hProcess) then
+  begin
+    input.command:=CMD_CREATETHREAD;
+    input.hProcess:=hProcess and $ffffff;
+    input.startaddress:=ptruint(lpStartAddress);
+    input.parameter:=ptruint(lpParameter);
+
+    if send(@input, sizeof(input))>0 then
+    begin
+      output:=0;
+      receive(@output, sizeof(output));
+      result:=output;
+
+      if (result>0) then //mark it as a network handle
+        result:=result or $ce000000;
+
+      lpThreadId:=result; //for now
+    end;
+
+  end
+  else
+    result:=windows.CreateRemoteThread(hProcess, lpThreadAttributes, dwStackSize, lpStartAddress, lpParameter, dwCreationFlags, lpThreadId);
+
 end;
 
 function TCEConnection.VirtualAllocEx(hProcess: THandle; lpAddress: Pointer; dwSize, flAllocationType: DWORD; flProtect: DWORD): pointer;
