@@ -39,7 +39,7 @@ type
         memory: array [0..4095] of byte;
       end;
 
-    function isNetworkHandle(handle: THandle): boolean;
+
 
     function receive(buffer: pointer; size: integer): integer;
     function send(buffer: pointer; size: integer): integer;
@@ -48,6 +48,7 @@ type
     function NReadProcessMemory(hProcess: THandle; lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL;
 
   public
+    function isNetworkHandle(handle: THandle): boolean;
 
     function Module32Next(hSnapshot: HANDLE; var lpme: MODULEENTRY32; isfirst: boolean=false): BOOL;
     function Module32First(hSnapshot: HANDLE; var lpme: MODULEENTRY32): BOOL;
@@ -72,6 +73,7 @@ type
     function getVersion(var name: string): integer;
     function getArchitecture: integer;
     function enumSymbolsFromFile(modulepath: string; modulebase: ptruint; callback: TNetworkEnumSymCallback): boolean;
+    function loadModule(hProcess: THandle; modulepath: string): boolean;
     function loadExtension(hProcess: Thandle): boolean;
     property connected: boolean read fConnected;
 
@@ -116,6 +118,7 @@ const
   CMD_ALLOC=26;
   CMD_FREE=27;
   CMD_CREATETHREAD=28;
+  CMD_LOADMODULE=29;
 
 
 function TCEConnection.CloseHandle(handle: THandle):WINBOOL;
@@ -1183,6 +1186,40 @@ begin
     end;
   end;
 
+end;
+
+function TCEConnection.loadModule(hProcess: THandle; modulepath: string): boolean;
+type
+  TInput=packed record
+    command: uint8;
+    handle: uint32;
+    modulepathlength: uint32;
+    modulename: packed record end;
+  end;
+  PInput=^TInput;
+
+var
+  input: Pinput;
+  r:uint32;
+begin
+  if isNetworkHandle(hProcess) then
+  begin
+    getmem(input, sizeof(TInput)+length(modulepath));
+
+    input^.command:=CMD_LOADMODULE;
+    input^.handle:=hProcess and $ffffff;
+    input^.modulepathlength:=Length(modulepath);
+    CopyMemory(@input^.modulename, @modulepath[1], length(modulepath));
+
+    if send(@input,  sizeof(TInput)+length(modulepath))>0 then
+    begin
+      receive(@r, sizeof(r));
+      result:=r<>0;
+    end;
+
+    freemem(input);
+
+  end;
 end;
 
 function TCEConnection.loadExtension(hProcess: THandle): boolean;
