@@ -8,12 +8,64 @@
 
 #include <stdio.h>
 #include <pthread.h>
+#include <string.h>
+
+#include <sys/types.h>
+#include <sys/socket.h>
 
 #include "extensionloader.h"
 #include "extensionfunctions.h"
 #include "api.h"
 
 //todo: Make all of these fail if the debugger is waiting to continue from a debug event
+
+uint64_t ext_loadModule(HANDLE hProcess, char *modulepath)
+{
+  uint64_t result=0;
+  printf("ext_loadModule(%d, \"%s\"\n", hProcess, modulepath);
+
+  if (GetHandleType(hProcess) == htProcesHandle )
+  {
+    PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
+
+#pragma pack(1)
+    struct {
+      uint8_t command;
+      uint32_t modulepathlength;
+    } loadModuleCommand;
+#pragma pack()
+
+    if (p->hasLoadedExtension==FALSE)
+    {
+      printf("hasLoadedExtension == FALSE");
+      if (loadCEServerExtension(hProcess)==FALSE)
+      {
+        printf("Failure to load the extension\n");
+        return 0;
+      }
+    }
+
+    loadModuleCommand.command=EXTCMD_LOADMODULE;
+    loadModuleCommand.modulepathlength=strlen(modulepath);
+
+    pthread_mutex_lock(&p->extensionMutex);
+
+    if (sendall(p->extensionFD, &loadModuleCommand, sizeof(loadModuleCommand), MSG_MORE)>0)
+    {
+      if (sendall(p->extensionFD, modulepath, loadModuleCommand.modulepathlength, 0)>0)
+      {
+        recvall(p->extensionFD, &result, sizeof(result), 0);
+      }
+    }
+
+    pthread_mutex_unlock(&p->extensionMutex);
+
+  }
+
+
+  return result;
+}
+
 
 uint64_t ext_createThread(HANDLE hProcess, uint64_t startaddress, uint64_t parameter)
 {
@@ -63,7 +115,7 @@ int ext_free(HANDLE hProcess, uint64_t address, int size)
 {
   uint32_t result=0;
 
-  printf("ext_free(%d, %llx, %d)\n", hProcess, address, size);
+  printf("ext_free(%d, %lx, %d)\n", hProcess, address, size);
 
   if (GetHandleType(hProcess) == htProcesHandle )
   {
@@ -107,7 +159,7 @@ int ext_free(HANDLE hProcess, uint64_t address, int size)
 uint64_t ext_alloc(HANDLE hProcess, uint64_t preferedBase, int size)
 {
   uint64_t result=0;
-  printf("ext_alloc(%d, %llx, %d\n", hProcess, preferedBase, size);
+  printf("ext_alloc(%d, %lx, %d\n", hProcess, preferedBase, size);
 
   if (GetHandleType(hProcess) == htProcesHandle )
   {

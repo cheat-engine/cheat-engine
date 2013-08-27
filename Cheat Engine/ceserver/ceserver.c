@@ -859,6 +859,29 @@ int DispatchCommand(int currentsocket, unsigned char command)
       break;
     }
 
+    case CMD_LOADMODULE:
+    {
+      CeLoadModuleInput c;
+
+      printf("CESERVER: CMD_LOADMODULE\n");
+      if (recvall(currentsocket, &c, sizeof(c),0)>0)
+      {
+        char modulepath[c.modulepathlength+1];
+
+        if (recvall(currentsocket, &modulepath, sizeof(c.modulepathlength),0)>0)
+        {
+          uint32_t result;
+          modulepath[c.modulepathlength]=0;
+
+          result=ext_loadModule(c.hProcess, modulepath);
+
+          sendall(currentsocket, &result, sizeof(result),0);
+        }
+      }
+
+      break;
+    }
+
   }
 }
 
