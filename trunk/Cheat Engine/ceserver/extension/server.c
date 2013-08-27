@@ -253,6 +253,30 @@ int DispatchCommand(int currentsocket, unsigned char command)
 
 
       }
+      break;
+    }
+
+    case EXTCMD_CREATETHREAD:
+    {
+#pragma pack(1)
+      struct {
+        uint64_t startaddress;
+        uint64_t parameter;
+      } params;
+#pragma pack()
+
+      if (recvall(currentsocket, &params, sizeof(params), 0)>0)
+      {
+        printf("EXTCMD_CREATETHREAD\n");
+        printf("params.startaddress=%lx\n", params.startaddress);
+        printf("params.parameter=%d\n", params.parameter);
+
+        uint64_t threadhandle=0;
+
+        pthread_create((pthread_t)&threadhandle, NULL, (void *)params.startaddress, (void *)params.parameter);
+
+        sendall(currentsocket, &threadhandle, sizeof(threadhandle), 0);
+      }
 
 
       break;
