@@ -2785,6 +2785,15 @@ void CloseHandle(HANDLE h)
     }
   }
   else
+  if (ht==htNativeThreadHandle)
+  {
+    uint64_t *th=GetPointerFromHandle(h);
+    printf("Closing thread handle\n");
+
+    free(th);
+    RemoveHandle(h);
+  }
+  else
     RemoveHandle(h); //no idea what it is...
 
 

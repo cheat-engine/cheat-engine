@@ -831,6 +831,33 @@ int DispatchCommand(int currentsocket, unsigned char command)
       break;
     }
 
+    case CMD_CREATETHREAD:
+    {
+      CeCreateThreadInput c;
+      printf("CESERVER: CMD_CREATETHREAD\n");
+      if (recvall(currentsocket, &c, sizeof(c),0)>0)
+      {
+        uint64_t th;
+        HANDLE h;
+        th=ext_createThread(c.hProcess, c.startaddress, c.startaddress);
+
+        printf("returned from ext_createthread\n");
+
+        if (th) //create a handle for this object
+        {
+          uint64_t *threadobject=(uint64_t *)malloc(sizeof(uint64_t));
+
+          *threadobject=th;
+          h=CreateHandleFromPointer(threadobject, htNativeThreadHandle);
+        }
+        else
+          h=0;
+
+        sendall(currentsocket, &h, sizeof(h),0);
+      }
+
+      break;
+    }
 
   }
 }
