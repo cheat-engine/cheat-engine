@@ -3529,6 +3529,8 @@ var
   b: ptrUint;
 
   minAddress,maxAddress: ptrUint;
+
+  c: TCEConnection;
 begin
 
   //todo: Do some network specific stuff
@@ -3545,11 +3547,19 @@ begin
 
   if processhandler.is64Bit then
   begin
-    if (minAddress>ptrUint(systeminfo.lpMaximumApplicationAddress)) or (minAddress<ptrUint(systeminfo.lpMinimumApplicationAddress)) then
-      minAddress:=ptrUint(systeminfo.lpMinimumApplicationAddress);
+    if getConnection<>nil then
+    begin
+      minAddress:=$8000;
+      maxAddress:=$7fffffffffffffff;
+    end
+    else
+    begin
+      if (minAddress>ptrUint(systeminfo.lpMaximumApplicationAddress)) or (minAddress<ptrUint(systeminfo.lpMinimumApplicationAddress)) then
+        minAddress:=ptrUint(systeminfo.lpMinimumApplicationAddress);
 
-    if (maxAddress<ptrUint(systeminfo.lpMinimumApplicationAddress)) or (maxAddress>ptrUint(systeminfo.lpMaximumApplicationAddress)) then
-      maxAddress:=ptrUint(systeminfo.lpMaximumApplicationAddress);
+      if (maxAddress<ptrUint(systeminfo.lpMinimumApplicationAddress)) or (maxAddress>ptrUint(systeminfo.lpMaximumApplicationAddress)) then
+        maxAddress:=ptrUint(systeminfo.lpMaximumApplicationAddress);
+    end;
   end
   else
   begin
