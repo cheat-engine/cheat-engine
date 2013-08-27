@@ -616,9 +616,21 @@ int loadCEServerExtension(HANDLE hProcess)
     if (p->hasLoadedExtension==0)
     {
       char modulepath[256], modulepath2[256];
+
+      memset(modulepath, 0, 256);
+      memset(modulepath2, 0, 256);
+
       if (readlink("/proc/self/exe", modulepath2, 256)!=-1)
       {
-        sprintf(modulepath, "%s/libceserver-extension.so", dirname(modulepath2));
+        printf("before dirname modulepath2 = %s\n", modulepath2);
+        dirname(modulepath2);
+        printf("after  dirname modulepath2 = %s\n", modulepath2);
+
+        strcpy(modulepath, modulepath2);
+        strcat(modulepath, "/libceserver-extension.so");
+
+        printf("modulepath = %s\n", modulepath);
+
       }
       else
       {

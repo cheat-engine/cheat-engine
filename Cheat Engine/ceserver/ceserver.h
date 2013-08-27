@@ -188,6 +188,17 @@ typedef struct {
   uint32_t result;
 } CeFreeOutput, *PCeFreeOutput;
 
+typedef struct {
+  HANDLE hProcess;
+  uint64_t startaddress;
+  uint64_t parameter;
+} CeCreateThreadInput, *PCeCreateThreadInput;
+
+
+typedef struct {
+  HANDLE threadhandle;
+} CeCreateThreadOutput, *PCeCreateThreadOutput;
+
 
 
 
