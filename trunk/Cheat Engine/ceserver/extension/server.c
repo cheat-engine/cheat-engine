@@ -16,11 +16,14 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <dlfcn.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <sys/mman.h>
+
+
 
 #include "server.h"
 
@@ -269,15 +272,37 @@ int DispatchCommand(int currentsocket, unsigned char command)
       {
         printf("EXTCMD_CREATETHREAD\n");
         printf("params.startaddress=%lx\n", params.startaddress);
-        printf("params.parameter=%d\n", params.parameter);
+        printf("params.parameter=%ld\n", params.parameter);
 
         uint64_t threadhandle=0;
 
-        pthread_create((pthread_t)&threadhandle, NULL, (void *)params.startaddress, (void *)params.parameter);
+        pthread_create((pthread_t *)&threadhandle, NULL, (void *)params.startaddress, (void *)params.parameter);
 
         sendall(currentsocket, &threadhandle, sizeof(threadhandle), 0);
       }
 
+
+      break;
+    }
+
+    case EXTCMD_LOADMODULE:
+    {
+      uint32_t modulepathlength;
+      if (recvall(currentsocket, &modulepathlength, sizeof(modulepathlength), 0)>0)
+      {
+        char *modulepath[modulepathlength+1];
+        if (recvall(currentsocket, modulepath, modulepathlength, 0)>0)
+        {
+          modulepath[modulepathlength]=0;
+          uint32_t result;
+          result=(dlopen((const char *)modulepath, RTLD_NOW)!=NULL);
+
+          sendall(currentsocket, &result, sizeof(result), 0);
+
+        }
+
+
+      }
 
       break;
     }
