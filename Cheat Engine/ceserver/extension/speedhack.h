@@ -8,6 +8,6 @@
 #ifndef SPEEDHACK_H_
 #define SPEEDHACK_H_
 
-void speedhack_initializeSpeed(float speed);
+int speedhack_initializeSpeed(float speed);
 
 #endif /* SPEEDHACK_H_ */

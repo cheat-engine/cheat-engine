@@ -314,6 +314,26 @@ int DispatchCommand(int currentsocket, unsigned char command)
       break;
     }
 
+    case EXTCMD_SPEEDHACK_SETSPEED:
+    {
+#pragma pack(1)
+      struct {
+        float speed;
+      } params;
+#pragma pack()
+
+      uint32_t result;
+
+      if (recvall(currentsocket, &params, sizeof(params), 0)>0)
+      {
+        printf("EXTCMD_SPEEDHACK_SETSPEED(%d)\n", params.speed);
+
+        result=speedhack_initializeSpeed(params.speed);
+        sendall(currentsocket, &result, sizeof(result), 0);
+      }
+      break;
+    }
+
   }
   return 1;
 

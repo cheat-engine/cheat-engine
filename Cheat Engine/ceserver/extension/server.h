@@ -12,7 +12,7 @@
 #define EXTCMD_FREE                    1
 #define EXTCMD_CREATETHREAD            2
 #define EXTCMD_LOADMODULE              3
-//#define EXTCMD_SPEEDHACK_SETSPEED      4
+#define EXTCMD_SPEEDHACK_SETSPEED      4
 //#define EXTCMD_CHANGEMEMORYPROTECTION  5
 
 
