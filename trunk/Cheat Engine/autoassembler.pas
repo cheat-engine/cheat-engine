@@ -15,7 +15,7 @@ function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targ
 
 implementation
 
-uses simpleaobscanner, StrUtils, LuaHandler, memscan, disassembler;
+uses simpleaobscanner, StrUtils, LuaHandler, memscan, disassembler, networkInterface, networkInterfaceApi;
 
 resourcestring
   rsForwardJumpWithNoLabelDefined = 'Forward jump with no label defined';
@@ -1261,9 +1261,12 @@ begin
               begin
                 s2:=extractfilename(s1);
 
-                if fileexists(cheatenginedir+s2) then s1:=cheatenginedir+s2 else
-                  if fileexists(getcurrentdir+'\'+s2) then s1:=getcurrentdir+'\'+s2 else
-                    if fileexists(cheatenginedir+s1) then s1:=cheatenginedir+s1;
+                if getConnection=nil then //no connection, so local. Check if the file can be found locally and if so, set the specific path
+                begin
+                  if fileexists(cheatenginedir+s2) then s1:=cheatenginedir+s2 else
+                    if fileexists(getcurrentdir+'\'+s2) then s1:=getcurrentdir+'\'+s2 else
+                      if fileexists(cheatenginedir+s1) then s1:=cheatenginedir+s1;
+                end;
 
                 //else just hope it's in the dll searchpath
               end; //else direct file path
@@ -1954,7 +1957,7 @@ begin
               allocs[j].address:=0;
               while (k>0) and (allocs[j].address=0) do
               begin
-                //try allocating untill a memory region has been found (e.g due to quick allocating by the game)
+                //try allocating until a memory region has been found (e.g due to quick allocating by the game)
                 allocs[j].address:=ptrUint(virtualallocex(processhandle,FindFreeBlockForRegion(prefered,x),x, MEM_RESERVE or MEM_COMMIT,page_execute_readwrite));
                 if allocs[j].address=0 then OutputDebugString(rsFailureToAllocateMemory+' 1');
 
@@ -2273,7 +2276,7 @@ begin
       //if ceallocarray<>nil then
       begin
         //see if all allocs are deallocated
-        if length(dealloc)=length(ceallocarray) then //free everything
+        if (length(dealloc)>0) and (length(dealloc)=length(ceallocarray)) then //free everything
         begin
           {$ifdef cpu64}
           baseaddress:=ptrUint($FFFFFFFFFFFFFFFF);
@@ -2286,6 +2289,7 @@ begin
             if ceallocarray[i].address<baseaddress then
               baseaddress:=ceallocarray[i].address;
           end;
+
           virtualfreeex(processhandle,pointer(baseaddress),0,MEM_RELEASE);
         end;
 

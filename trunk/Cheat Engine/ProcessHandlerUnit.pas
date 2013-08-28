@@ -26,7 +26,9 @@ type TProcessHandler=class
   public
     processid: dword;
 
+
     procedure Open;
+    function isNetwork: boolean;  //perhaps name it isLinux ?
     property is64Bit: boolean read fIs64Bit;
     property pointersize: integer read fPointersize;
     property processhandle: THandle read fProcessHandle write setProcessHandle;
@@ -36,6 +38,11 @@ end;
 implementation
 
 uses LuaHandler, mainunit, networkinterface, networkInterfaceApi;
+
+function TProcessHandler.isNetwork: boolean;
+begin
+  result:=(((processhandle shr 24) and $ff)=$ce) and (getConnection<>nil);
+end;
 
 procedure TProcessHandler.setIs64bit(state: boolean);
 begin
