@@ -26,6 +26,7 @@
 
 
 #include "server.h"
+#include "speedhack.h"
 
 int done=0;
 
@@ -205,6 +206,7 @@ int DispatchCommand(int currentsocket, unsigned char command)
 
         uint64_t address=(uint64_t)mmap((void *)params.preferedAddress, params.size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
+        printf("Actually allocated at %lx\n", address);
         if (address)
           allocListAdd(address, params.size);
 
@@ -237,10 +239,13 @@ int DispatchCommand(int currentsocket, unsigned char command)
         if (params.size==0)
           params.size=allocListFind(params.address);
 
+
+
         printf("2: params.size=%d\n", params.size);
 
         if (params.size)
         {
+          printf("Calling munmap\n");
           result=munmap((void *)params.address, params.size);
           if (result==-1)
             result=0;
@@ -250,8 +255,10 @@ int DispatchCommand(int currentsocket, unsigned char command)
         else
           result=0;
 
+        printf("Removing alloc from list\n");
         allocListRemove(params.address);
 
+        printf("Returning result\n");
         sendall(currentsocket, &result, sizeof(result), 0);
 
 
@@ -387,6 +394,8 @@ __attribute__((constructor)) void moduleinit(void)
 
   int i;
   printf("\nServerthread active\n");
+
+  speedhack_initializeSpeed(1.0f);
 
   s=socket(AF_UNIX, SOCK_STREAM, 0);
 
