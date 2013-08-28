@@ -75,7 +75,7 @@ begin
 
 
       //gettimeofday
-      {
+
       if symhandler.getAddressFromName('vdso.gettimeofday')>0 then //prefered
         fname:='vdso.gettimeofday'
       else
@@ -105,7 +105,7 @@ begin
           end;
         end;
       end;
-            }
+
       script.clear;
       //clock_gettime
       if symhandler.getAddressFromName('vdso.clock_gettime')>0 then //prefered
