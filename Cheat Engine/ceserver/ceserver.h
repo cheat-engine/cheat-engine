@@ -44,8 +44,8 @@
 #define CMD_FREE                    27
 #define CMD_CREATETHREAD            28
 #define CMD_LOADMODULE              29
-//#define CMD_SPEEDHACK_SETSPEED      29
-//#define CMD_CHANGEMEMORYPROTECTION  30
+#define CMD_SPEEDHACK_SETSPEED      30
+//#define CMD_CHANGEMEMORYPROTECTION  31
 
 
 
@@ -212,6 +212,15 @@ typedef struct {
 } CeLoadModuleOutput, *PCeLoadModuleOutput;
 
 
+typedef struct {
+  HANDLE hProcess;
+  float speed;
+} CeSpeedhackSetSpeedInput, *PCeSpeedhackSetSpeedInput;
+
+
+typedef struct {
+  uint32_t result;
+} CeSpeedhackSetSpeedOutput, *PCeSpeedhackSetSpeedOutput;
 
 
 
