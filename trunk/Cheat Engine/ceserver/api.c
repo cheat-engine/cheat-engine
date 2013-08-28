@@ -101,8 +101,6 @@ pthread_mutex_t memorymutex;
 pthread_mutex_t debugsocketmutex;
 //pthread_mutex_t mut_RPM;
 
-int log=0;
-
 typedef struct
 {
   int ReferenceCount;
@@ -515,7 +513,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bpt
         if (bptype==2) //x86 does not support read onlyhw bps
           bptype=3;
 
-        newdr7=newdr7 | (bptype << 16+(debugreg*4)); //bptype
+        newdr7=newdr7 | (bptype << (16+(debugreg*4))); //bptype
 
         //bplen
         if (bpsize<=1)
@@ -1028,7 +1026,6 @@ int SuspendThread(HANDLE hProcess, int tid)
       }
       else
       {
-        DebugEvent de;
         printf("Not yet paused\n");
 
         while (t->isPaused==0)
@@ -1204,7 +1201,7 @@ int RemoveThreadDebugEventFromQueue(PProcessData p, int tid)
       break;
     }
 
-    deqe->entries.tqe_next;
+    deqe=deqe->entries.tqe_next;
   }
 
 
@@ -1231,7 +1228,7 @@ PDebugEvent FindThreadDebugEventInQueue(PProcessData p, int tid)
       break;
     }
 
-    deqe->entries.tqe_next;
+    deqe=deqe->entries.tqe_next;
   }
 
 
@@ -1276,7 +1273,6 @@ int WaitForDebugEventNative(PProcessData p, PDebugEvent devent, int tid, int tim
   int currentTID;
   int status;
   int r;
-  int i;
 
 
 
@@ -1367,7 +1363,7 @@ int WaitForDebugEventNative(PProcessData p, PDebugEvent devent, int tid, int tim
          // if (log==1)
          //   printf("Checking for dispatch command\n");
 
-          i=CheckForAndDispatchCommand(p->debuggerServer);
+          CheckForAndDispatchCommand(p->debuggerServer);
           //if (log==1)
           //  printf("CheckForAndDispatchCommand returned %d\n", i);
 
@@ -1879,6 +1875,8 @@ int WriteProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 {
   int written=0;
 
+  printf("WriteProcessMemory(%d, %p, %p, %d\n", hProcess, lpAddress, buffer, size);
+
   if (GetHandleType(hProcess) == htProcesHandle )
   {
     PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
@@ -1944,8 +1942,8 @@ int WriteProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
         ptrace(PTRACE_DETACH, pid,0,0);
       }
-      else
-        printf("PTRACE ATTACH FAILED\n");
+      //else
+      //  printf("PTRACE ATTACH FAILED\n");
 
       pthread_mutex_unlock(&memorymutex);
     }
@@ -2007,7 +2005,10 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
       if (inflooptest>10)
         printf("FUUU");
 
-      bytesread=pread(p->mem, buffer, size, (uintptr_t)lpAddress);
+      //bytesread=pread(p->mem, buffer, size, (uintptr_t)lpAddress);
+      lseek64(p->mem, (uint64_t)lpAddress, SEEK_SET);
+      bytesread=read(p->mem, buffer, size);
+
 
       if ((bytesread<0) && (errno!=EINTR))
       {
@@ -2125,7 +2126,7 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
       clock_t t2=clock();
 
       //printf("received result after %d\n", t2-t1);
-      log=0;
+
     //  printf("After waiting for debugger thread: bytesread=%d\n", bytesread);
 
       if (bytesread>0)
@@ -2178,67 +2179,10 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
           pid_t pid=wait(&status);
 
-          /*
-          printf("SYSCALL TEST\n");
-
-          struct user_regs_struct regs;
-          printf("before:\n");
-          ptrace(PTRACE_GETREGS, pid, 0, &regs);
-
-          printf("rax=%lx\n", regs.rax);
-          printf("orig_rax=%lx\n", regs.rax);
-          printf("rip=%lx\n", regs.rip);
-
-          int pr=ptrace(PTRACE_SYSCALL,pid,0,0);
-
-          printf("pr=%d\n", pr);
-
-          pid=wait(&status);
-
-
-          printf("after:\n");
-          ptrace(PTRACE_GETREGS, pid, 0, &regs);
-
-          printf("rax=%lx\n", regs.rax);
-          printf("orig_rax=%lx\n", regs.rax);
-          printf("rip=%lx\n", regs.rip);
-
-
-          printf("AFTER SYSCALL TEST\n");
-
-          *Result of the test:
-          *Normal programs will instantly get to a working state. But a program in a while (1) ; will NOT break after ptrace_getregs (obviously)
-          *It will stop at a normal "STOP" state though, but you can't be sure at what point it executes
-          *
-          *Info: Bit J and T in CPSR define the current execution state
-          *J T
-          *0 0 = ARM
-          *0 1 = Thumb
-          *1 0 = Jazelle (java...)
-          *1 1 = ThumbEE
-          *
-
-
-
-
-          */
-
-
-
-
-          //printf("wait returned %d with status %d\n", pid, status);
-          //printf("p->mem=%d\n", p->mem);
-
-//          bread=pread(p->mem, buffer, size, (uint64_t)lpAddress);
 
           lseek64(p->mem, (uint64_t)lpAddress, SEEK_SET);
           bread=read(p->mem, buffer, size);
 
-
-
-
-
-        //  read=syscall(__NR_pread64, p->mem, buffer, size, (uint64_t)lpAddress);
           if (bread==-1)
           {
             bread=0;
@@ -2258,8 +2202,8 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
           ptrace(PTRACE_DETACH, pid,0,0);
         }
-        else
-          printf("ptrace attach failed (pid=%d)\n", p->pid);
+        //else
+        //  printf("ptrace attach failed (pid=%d)\n", p->pid);
 
 
       pthread_mutex_unlock(&memorymutex);

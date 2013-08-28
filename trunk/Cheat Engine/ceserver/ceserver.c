@@ -882,6 +882,21 @@ int DispatchCommand(int currentsocket, unsigned char command)
       break;
     }
 
+    case CMD_SPEEDHACK_SETSPEED:
+    {
+      CeSpeedhackSetSpeedInput c;
+      printf("CESERVER: CMD_SPEEDHACK_SETSPEED\n");
+      if (recvall(currentsocket, &c, sizeof(c),0)>0)
+      {
+        uint32_t r;
+        r=ext_speedhack_setSpeed(c.hProcess, c.speed);
+
+        sendall(currentsocket, &r, sizeof(r),0);
+      }
+
+      break;
+    }
+
   }
 }
 

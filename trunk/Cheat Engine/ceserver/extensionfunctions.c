@@ -19,6 +19,49 @@
 
 //todo: Make all of these fail if the debugger is waiting to continue from a debug event
 
+int ext_speedhack_setSpeed(HANDLE hProcess, float speed)
+{
+  uint32_t result=0;
+
+  printf("ext_speedhack_setSpeed(%d, %f)\n", hProcess, speed);
+
+  if (GetHandleType(hProcess) == htProcesHandle )
+  {
+    PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
+
+#pragma pack(1)
+    struct {
+      uint8_t command;
+      float speed;
+    } speedhackSetSpeedCommand;
+#pragma pack()
+
+    if (p->hasLoadedExtension==FALSE)
+    {
+      printf("hasLoadedExtension == FALSE");
+      if (loadCEServerExtension(hProcess)==FALSE)
+      {
+        printf("Failure to load the extension\n");
+        return 0;
+      }
+    }
+
+
+    speedhackSetSpeedCommand.command=EXTCMD_SPEEDHACK_SETSPEED;
+    speedhackSetSpeedCommand.speed=speed;
+
+    pthread_mutex_lock(&p->extensionMutex);
+
+    if (sendall(p->extensionFD, &speedhackSetSpeedCommand, sizeof(speedhackSetSpeedCommand), 0)>0)
+      recvall(p->extensionFD, &result, sizeof(result), 0);
+
+    pthread_mutex_unlock(&p->extensionMutex);
+
+  }
+
+  return result;
+}
+
 uint64_t ext_loadModule(HANDLE hProcess, char *modulepath)
 {
   uint64_t result=0;
