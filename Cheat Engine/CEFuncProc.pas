@@ -2478,6 +2478,9 @@ begin
 
   cleanProcessList(ProcessList);
 
+  if processhandler.isNetwork then
+    noProcessInfo:=true;
+
 
   SNAPHandle:=CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS,0);
   If SnapHandle>0 then

@@ -75,6 +75,7 @@ type
     function enumSymbolsFromFile(modulepath: string; modulebase: ptruint; callback: TNetworkEnumSymCallback): boolean;
     function loadModule(hProcess: THandle; modulepath: string): boolean;
     function loadExtension(hProcess: Thandle): boolean;
+    function speedhack_setSpeed(hProcess: THandle; speed: single): boolean;
     property connected: boolean read fConnected;
 
     constructor create;
@@ -119,6 +120,7 @@ const
   CMD_FREE=27;
   CMD_CREATETHREAD=28;
   CMD_LOADMODULE=29;
+  CMD_SPEEDHACK_SETSPEED=30;
 
 
 function TCEConnection.CloseHandle(handle: THandle):WINBOOL;
@@ -1245,6 +1247,32 @@ begin
     end;
   end;
 
+end;
+
+function TCEConnection.speedhack_setSpeed(hProcess: THandle; speed: single): boolean;
+var
+  speedhackSetSpeedCommand: packed record
+    command: byte;
+    handle: uint32;
+    speed: single;
+  end;
+
+  r:uint32;
+begin
+  result:=false;
+
+  if isNetworkHandle(hProcess) then
+  begin
+    speedhackSetSpeedCommand.command:=CMD_SPEEDHACK_SETSPEED;
+    speedhackSetSpeedCommand.handle:=hProcess and $ffffff;
+    speedhackSetSpeedCommand.speed:=speed;
+
+    if send(@speedhackSetSpeedCommand,  sizeof(speedhackSetSpeedCommand))>0 then
+    begin
+      receive(@r, sizeof(r));
+      result:=r<>0;
+    end;
+  end;
 end;
 
 function TCEConnection.isNetworkHandle(handle: THandle): boolean;
