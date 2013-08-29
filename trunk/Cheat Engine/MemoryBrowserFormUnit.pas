@@ -3982,7 +3982,7 @@ begin
   end else eIPlabel.Font.Color:=clWindowText;
 
   {$ifdef CPU64}
-  if processhandler.is64Bit or (processhandler.SystemArchitecture=archX86)  then
+  if processhandler.is64Bit or (processhandler.SystemArchitecture=archArm)  then
   begin
     if processhandler.SystemArchitecture=archX86 then
       temp:=' R8 '+IntToHex(lastdebugcontext.r8,16)
