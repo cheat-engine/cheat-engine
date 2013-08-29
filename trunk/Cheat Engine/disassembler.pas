@@ -4404,7 +4404,7 @@ begin
                         lastdisassembledata.opcode:='bsr';
                         if $66 in prefix2 then
                           lastdisassembledata.parameters:=r16(memory[2])+','+modrm(memory,prefix2,2,1,last) else
-                          lastdisassembledata.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,1,last);
+                          lastdisassembledata.parameters:=r32(memory[2])+','+modrm(memory,prefix2,2,0,last);
 
 
                         inc(offset,last-1);
