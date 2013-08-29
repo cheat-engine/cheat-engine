@@ -8,7 +8,7 @@ interface
 
 uses dialogs,LCLIntf,sysutils,imagehlp;
 
-const opcodecount=1086; //I wish there was a easier way than to handcount
+const opcodecount=1088; //I wish there was a easier way than to handcount
 
 
 type TTokenType=(
@@ -1212,6 +1212,9 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'RCL';opcode1:eo_reg2;paramtype1:par_rm32;paramtype2:par_1;bytes:1;bt1:$d1),
   (mnemonic:'RCL';opcode1:eo_reg2;paramtype1:par_rm32;paramtype2:par_cl;bytes:1;bt1:$d3),
   (mnemonic:'RCL';opcode1:eo_reg2;opcode2:eo_ib;paramtype1:par_rm32;paramtype2:par_imm8;bytes:1;bt1:$c1),
+
+  (mnemonic:'RCPSS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m32;bytes:3;bt1:$f3;bt2:$0f;bt3:$53),
+  (mnemonic:'RCPPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:2;bt1:$0f;bt2:$53),
 
 
   (mnemonic:'RCR';opcode1:eo_reg3;paramtype1:par_rm32;paramtype2:par_1;bytes:1;bt1:$d1),
