@@ -483,7 +483,7 @@ const opcodes: array [1..opcodecount] of topcode =(
 
 
   (mnemonic:'FNINIT';bytes:2;bt1:$db;bt2:$e3),
-  (mnemonic:'FNLEX';bytes:2;bt1:$Db;bt2:$e2),
+  (mnemonic:'FNCLEX';bytes:2;bt1:$Db;bt2:$e2),
   (mnemonic:'FNOP';bytes:2;bt1:$d9;bt2:$d0),
   (mnemonic:'FNSAVE';opcode1:eo_reg6;paramtype1:par_m32;bytes:1;bt1:$dd),
 
