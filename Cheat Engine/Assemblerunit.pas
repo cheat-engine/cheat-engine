@@ -1633,10 +1633,11 @@ begin
     if (assemblerindex[index1].SubIndex<>nil) and (length(opcode)>1) then
     begin
       index2:=ord(opcode[2])-ord('A');
-      if (index2<0) or (index2>25) then exit; //not alphabetical
-
-      bestindex:=@assemblerindex[index1].SubIndex[index2];
-      if bestindex[0].startentry=-1 then exit; //no subitem2
+      if (index2>=0) and (index2<=25) then
+      begin
+        bestindex:=@assemblerindex[index1].SubIndex[index2];
+        if bestindex[0].startentry=-1 then exit; //no subitem2
+      end;  //else not alphabetical
 
     end;
 
