@@ -560,7 +560,7 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'FXSAVE';opcode1:eo_reg0;paramtype1:par_m32;bytes:2;bt1:$0f;bt2:$ae),
   (mnemonic:'FXTRACT';bytes:2;bt1:$d9;bt2:$f4),
   (mnemonic:'FYL2X';bytes:2;bt1:$d9;bt2:$f1),
-  (mnemonic:'FYL2XPI';bytes:2;bt1:$d9;bt2:$f9),
+  (mnemonic:'FYL2XP1';bytes:2;bt1:$d9;bt2:$f9),
 
   (mnemonic:'HLT';bytes:1;bt1:$f4),
 
