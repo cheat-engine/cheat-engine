@@ -8922,43 +8922,43 @@ begin
 
 
               $e8 : begin
-                      description:='load constant';
+                      description:='Push +1.0 onto the FPU register stack';
                       lastdisassembledata.opcode:='fld1';
                       inc(offset);
                     end;
 
               $e9 : begin
-                      description:='load constant';
+                      description:='Push log2(10) onto the FPU register stack';
                       lastdisassembledata.opcode:='fldl2t';
                       inc(offset);
                     end;
 
               $ea : begin
-                      description:='load constant';
-                      lastdisassembledata.opcode:='fld2e';
+                      description:='Push log2(e) onto the FPU register stack';
+                      lastdisassembledata.opcode:='fldl2e';
                       inc(offset);
                     end;
 
               $eb : begin
-                      description:='load constant';
+                      description:='Push "pi" onto the FPU register stackload constant';
                       lastdisassembledata.opcode:='fldpi';
                       inc(offset);
                     end;
 
               $ec : begin
-                      description:='load constant';
+                      description:='Push log10(2) onto the FPU register stack';
                       lastdisassembledata.opcode:='fldlg2';
                       inc(offset);
                     end;
 
               $ed : begin
-                      description:='load constant';
+                      description:='Push log e(2) onto the FPU register stack';
                       lastdisassembledata.opcode:='fldln2';
                       inc(offset);
                     end;
 
               $ee : begin
-                      description:='load constant';
+                      description:='Push +0.0 onto the FPU register stack';
                       lastdisassembledata.opcode:='fldz';
                       inc(offset);
                     end;
