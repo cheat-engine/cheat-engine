@@ -1880,15 +1880,12 @@ begin
                           description:='high to low packed single-fp';
 
                           if getmod(memory[2])=3 then
-                          begin
-                            lastdisassembledata.opcode:='movhlps';
-                            lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          end
+                            lastdisassembledata.opcode:='movhlps'
                           else
-                          begin
                             lastdisassembledata.opcode:='movlps';
-                            lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
-                          end;
+
+                          lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+
                           inc(offset,last-1);
                         end;
                       end;
