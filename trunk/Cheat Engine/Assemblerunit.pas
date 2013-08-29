@@ -8,7 +8,7 @@ interface
 
 uses dialogs,LCLIntf,sysutils,imagehlp;
 
-const opcodecount=1088; //I wish there was a easier way than to handcount
+const opcodecount=1089; //I wish there was a easier way than to handcount
 
 
 type TTokenType=(
@@ -93,7 +93,7 @@ type topcode=record
   opcode1,opcode2: textraopcode;
   paramtype1,paramtype2,paramtype3: tparam;
   bytes:byte;
-  bt1,bt2,bt3: byte;
+  bt1,bt2,bt3,bt4: byte;
   signed: boolean;
   norexw: boolean;
   invalidin64bit: boolean;
@@ -1018,6 +1018,8 @@ const opcodes: array [1..opcodecount] of topcode =(
 
   (mnemonic:'PMULHW';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$e5),
   (mnemonic:'PMULHW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$e5),
+
+  (mnemonic:'PMULLD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:4;bt1:$66;bt2:$0f;bt3:$38;bt4:$40),
 
   (mnemonic:'PMULLW';opcode1:eo_reg;paramtype1:par_mm;paramtype2:par_mm_m64;bytes:2;bt1:$0f;bt2:$d5),
   (mnemonic:'PMULLW';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$d5),
@@ -3084,6 +3086,7 @@ begin
   add(bytes,[opcodes[i].bt1]);
   if opcodes[i].bytes>1 then add(bytes,[opcodes[i].bt2]);
   if opcodes[i].bytes>2 then add(bytes,[opcodes[i].bt3]);
+  if opcodes[i].bytes>3 then add(bytes,[opcodes[i].bt4]);
 end;
 
 function eoToReg(eo:TExtraOpcode):integer;
