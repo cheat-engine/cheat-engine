@@ -4123,8 +4123,8 @@ begin
                         description:='double precision shift left';
                         lastdisassembledata.opcode:='shld';
                         if $66 in prefix2 then
-                          lastdisassembledata.parameters:=modrm(memory,prefix2,2,1,last)+colorreg+'cl'+endcolor else
-                          lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last)+colorreg+'cl'+endcolor;
+                          lastdisassembledata.parameters:=modrm(memory,prefix2,2,1,last)+r16(memory[2])+','+colorreg+'cl'+endcolor else
+                          lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last)+r32(memory[2])+','+colorreg+'cl'+endcolor;
                         inc(offset,last-1);
 
                       end;
