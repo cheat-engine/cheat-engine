@@ -4436,6 +4436,7 @@ begin
 
         if (opcodes[j].paramtype2=par_mm) and (paramtype2=ttRegistermm) then
         begin
+          //r32, mm,
           if (opcodes[j].paramtype3=par_noparam) and (parameter3='') then
           begin
             addopcode(bytes,j);
@@ -4443,9 +4444,9 @@ begin
             exit;
           end;
 
-          if (opcodes[j].paramtype3=par_imm8) and (parameter3='') then
+          if (opcodes[j].paramtype3=par_imm8) and (paramtype3=ttValue) then
           begin
-            //32, mm,imm8
+            //r32, mm,imm8
             addopcode(bytes,j);
             result:=createmodrm(bytes,getreg(parameter1),parameter2);
             add(bytes,[v]);
@@ -4465,7 +4466,7 @@ begin
             exit;
           end;
 
-          if (opcodes[j].paramtype3=par_imm8) and (parameter3='') then
+          if (opcodes[j].paramtype3=par_imm8) and (paramtype3=ttValue) then
           begin
             addopcode(bytes,j);
             result:=createmodrm(bytes,getreg(parameter2),parameter1);
