@@ -1952,7 +1952,12 @@ begin
                         else
                         begin
                           description:='high to low packed single-fp';
-                          lastdisassembledata.opcode:='movhps';
+
+                          if getmod(memory[2])=3 then
+                            lastdisassembledata.opcode:='movlhps'
+                          else
+                            lastdisassembledata.opcode:='movhps';
+
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end;
