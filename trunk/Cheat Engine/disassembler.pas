@@ -1895,14 +1895,14 @@ begin
                         begin
                           description:='move low packed double-fp';
                           lastdisassembledata.opcode:='movlpd';
-                          lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          lastdisassembledata.parameters:=modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='move low packed single-fp';
                           lastdisassembledata.opcode:='movlps';
-                          lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          lastdisassembledata.parameters:=modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
                           inc(offset,last-1);
                         end;
                       end;
