@@ -1872,14 +1872,23 @@ begin
                         begin
                           description:='move low packed double-precision floating-point value';
                           lastdisassembledata.opcode:='movlpd';
-                          lastdisassembledata.parameters:=modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
+                          lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
                           inc(offset,last-1);
                         end
                         else
                         begin
                           description:='high to low packed single-fp';
-                          lastdisassembledata.opcode:='movlps';
-                          lastdisassembledata.parameters:=modrm(memory,prefix2,2,4,last)+xmm(memory[2]);
+
+                          if getmod(memory[2])=3 then
+                          begin
+                            lastdisassembledata.opcode:='movhlps';
+                            lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          end
+                          else
+                          begin
+                            lastdisassembledata.opcode:='movlps';
+                            lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
+                          end;
                           inc(offset,last-1);
                         end;
                       end;
