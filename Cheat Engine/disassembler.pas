@@ -2289,6 +2289,20 @@ begin
                         inc(offset);
                       end;
 
+                $38:  begin
+                        case memory[2] of
+                          $40: begin
+                                 if $66 in prefix2 then
+                                 begin
+                                   description:='Multiply Packed Signed Dword Integers and Store Low Result';
+                                   LastDisassembleData.opcode:='pmulld';
+                                   lastdisassembledata.parameters:=xmm(memory[3])+','+modrm(memory,prefix2,3,4,last);
+                                   inc(offset,last-1);
+                                 end;
+                               end;
+                        end;
+                      end;
+
                 $40 : begin
                         description:='move if overflow';
                         lastdisassembledata.opcode:='cmovo';
