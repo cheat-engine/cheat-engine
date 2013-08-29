@@ -8754,7 +8754,7 @@ begin
                       if (memory[1]>=$e8) then
                       begin
                         lastdisassembledata.opcode:='fsubr';
-                        lastdisassembledata.parameters:='st(0),st('+inttostr(memory[1]-$e0)+')';
+                        lastdisassembledata.parameters:='st(0),st('+inttostr(memory[1]-$e8)+')';
                       end
                       else
                       begin
@@ -8771,7 +8771,7 @@ begin
                       if memory[1]>=$f0 then
                       begin
                         lastdisassembledata.opcode:='fdiv';
-                        lastdisassembledata.parameters:='st(0),st('+inttostr(memory[1]-$d8)+')';
+                        lastdisassembledata.parameters:='st(0),st('+inttostr(memory[1]-$f0)+')';
                       end
                       else
                       begin
@@ -8788,7 +8788,7 @@ begin
                       if memory[1]>=$f8 then
                       begin
                         lastdisassembledata.opcode:='fdivr';
-                        lastdisassembledata.parameters:='st(0),st('+inttostr(memory[1]-$d8)+')';
+                        lastdisassembledata.parameters:='st(0),st('+inttostr(memory[1]-$f8)+')';
                       end
                       else
                       begin
