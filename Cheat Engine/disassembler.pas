@@ -2494,7 +2494,7 @@ begin
                 $52 : begin
                         if $f3 in prefix2 then
                         begin
-                          lastdisassembledata.opcode:='rsqrss';
+                          lastdisassembledata.opcode:='rsqrtss';
                           lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
 
                           description:='packed single-fp square root reciprocal';
