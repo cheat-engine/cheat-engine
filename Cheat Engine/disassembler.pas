@@ -9517,7 +9517,7 @@ begin
                       last:=2;
                       if (memory[1]=$c1) then lastdisassembledata.opcode:='faddp'
                       else
-                      if memory[1]>$c0 then
+                      if memory[1]>=$c0 then
                       begin
                         lastdisassembledata.opcode:='faddp';
                         lastdisassembledata.parameters:='st('+inttostr(memory[1]-$c0)+'),st(0)';
