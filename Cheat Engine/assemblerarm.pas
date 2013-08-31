@@ -5,24 +5,30 @@ unit assemblerArm;
 interface
 
 uses
-  Classes, SysUtils, strutils;
+  Classes, SysUtils, strutils{$ifndef ARMDEV}, assemblerunit{$endif};
 
-function BranchParser(address: int32; instruction:string):int32;
-function CMPParser(address: int32; instruction:string):int32;
-function CDPPArser(address: int32; instruction:string): int32;
-function SingleDataParser(address: int32; instruction: string): int32;
-function DataProcessingParser(address: int32; instruction:string):int32;
-function MultiDataParser(address: int32; instruction:string):int32;
-function MRSParser(address: int32; instruction:string): int32;
-function MSRParser(address: int32; instruction:string): int32;
-function MULParser(address: int32; instruction:string): int32;
-function SWPParser(address: int32; instruction:string): int32;
-function SWIParser(address: int32; instruction:string): int32;
+{$ifdef ARMDEV}
+type TAssemblerBytes=array of byte;
+{$endif}
 
-function getParam(instruction: string; var parserpos: integer): string;
-function getRegNumber(regstring: string): integer;
+  function BranchParser(address: int32; instruction:string):int32;
+  function BranchExchangeParser(address: int32; instruction:string):int32;
+  function CMPParser(address: int32; instruction:string):int32;
+  function CDPPArser(address: int32; instruction:string): int32;
+  function SingleDataParser(address: int32; instruction: string): int32;
+  function DataProcessingParser(address: int32; instruction:string):int32;
+  function MultiDataParser(address: int32; instruction:string):int32;
+  function MRSParser(address: int32; instruction:string): int32;
+  function MSRParser(address: int32; instruction:string): int32;
+  function MULParser(address: int32; instruction:string): int32;
+  function SWPParser(address: int32; instruction:string): int32;
+  function SWIParser(address: int32; instruction:string): int32;
 
-function Assemble(address: int32; instruction: string): Int32;
+  function getParam(instruction: string; var parserpos: integer): string;
+  function getRegNumber(regstring: string): integer;
+
+
+  function ArmAssemble(address: int32; instruction: string; var bytes: TAssemblerBytes): boolean;
 
 implementation
 
@@ -41,7 +47,7 @@ type
 
 
 
-const OpcodeCount=28;
+const OpcodeCount=29;
 
 const OpcodeList : array [0..OpcodeCount-1] of TOpcodeData= (
   (opcode: 'ADC'; parser:@DataProcessingParser),
@@ -50,6 +56,7 @@ const OpcodeList : array [0..OpcodeCount-1] of TOpcodeData= (
   (opcode: 'B'; parser:@BranchParser),
   (opcode: 'BIC'; parser:@DataProcessingParser),
   (opcode: 'BL'; parser:@BranchParser),
+  (opcode: 'BX'; parser:@BranchExchangeParser),
 
   (opcode: 'CDP'; parser:@CDPPArser),
   (opcode: 'CMP'; parser:@DataProcessingParser),
@@ -268,6 +275,32 @@ begin
   end;
 end;
 
+function BranchExchangeParser(address: int32; instruction:string):int32;
+var
+  _param: string;
+  rn: integer;
+  parserpos: integer;
+begin
+  //BX{cond} <Rn>
+  result:=5 shl 25;
+  if length(instruction)<3 then exit; //invalid, there's just not enough space for this to be valid  (B 0)
+
+  parserpos:=3;
+  result:=result or (getCondition(instruction, parserpos) shl 28);  //set the condition bits
+
+  //and set the register
+  _param:=getParam(instruction, parserpos);
+  rn:=getRegNumber(_param);
+
+  if rn=-1 then
+    raise exception.create('Invalid register');
+
+  result:=result or rn; //set the register bits
+
+
+
+end;
+
 function BranchParser(address: int32; instruction:string):int32;
 var
   _param: string;
@@ -355,6 +388,11 @@ begin
     //convert this to a pc relative address
     offset:=offset-(address+8);
 
+    if abs(offset)>$fff then
+    begin
+      raise exception.create('Todo: Change this to a 12 byte instruction: LDR/STR [PC,#16] - B PC - DD offset');
+    end;
+
     instruction:=StringReplace(instruction,'['+_rn+']', '[PC,'+inttohex(offset,1)+']', [rfIgnoreCase]);
     dec(parserpos, length(_rn));
     inc(parserpos, 2);
@@ -404,7 +442,22 @@ begin
     else
     begin
       //  [Rn, offset] {!}
-      offset:=strtoint('$'+_param);
+
+      if _param='' then offset:=0
+      else
+      begin
+        if _param[1]='-' then
+          offset:=-strtoint('$'+copy(_param, 2, length(_param)-1))
+        else
+          offset:=strtoint('$'+_param);
+      end;
+
+      if offset>0 then //set the U bit
+        result:=result or (1<<23)
+      else
+        offset:=abs(offset);
+
+
       result:=result or (offset and $fff);
     end;
 
@@ -973,24 +1026,30 @@ begin
 end;
 
 
-function Assemble(address: int32; instruction: string): Int32;
+function ArmAssemble(address: int32; instruction: string; var bytes: TAssemblerBytes): boolean;
 var
   opcode: string;
   i: integer;
   searchstart,searchstop: integer;
+
+  r: uint32;
 begin
-  result:=$ffffffff;
+  result:=false;
+  r:=$ffffffff;
 
   instruction:=uppercase(trim(instruction));
   if instruction='' then exit;
 
   if instruction[1]='B' then
   begin
-    //B/BL/BIC
+    //B/BL/BIC/BX
     if copy(instruction,1,3)='BIC' then
-      result:=DataProcessingParser(address, instruction)
+      r:=DataProcessingParser(address, instruction)
     else
-      result:=BranchParser(address, instruction);
+    if copy(instruction,1,3)='BX' then
+      r:=BranchExchangeParser(address, instruction)
+    else
+      r:=BranchParser(address, instruction);
   end
   else
   begin
@@ -1010,15 +1069,19 @@ begin
 
       if OpcodeList[i].opcode=opcode then
       begin
-        result:=opcodelist[i].parser(address, instruction);
-        exit;
+        r:=opcodelist[i].parser(address, instruction);
+        break;
       end;
     end;
 
   end;
 
 
+  if r=$ffffffff then exit;
 
+  setlength(bytes, 4);
+  pdword(@bytes[0])^:=r;
+  result:=true;
 end;
 
 procedure InitLookupIndex;
