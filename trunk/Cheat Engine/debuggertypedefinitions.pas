@@ -230,6 +230,7 @@ var int3byte: byte = $cc;
 
 implementation
 
+//this is a new one... (rebuild as usual)
 resourcestring
   rsOnExecute = 'On Execute';
   rsOnWrite = 'On Write';

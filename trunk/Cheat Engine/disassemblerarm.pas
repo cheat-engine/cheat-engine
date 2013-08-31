@@ -5,7 +5,7 @@ unit DisassemblerArm;
 interface
 
 uses
-  windows, Classes, SysUtils, newkernelhandler, cefuncproc, LastDisassembleData;
+  windows, Classes, SysUtils{$ifndef ARMDEV}, newkernelhandler, cefuncproc{$endif}, LastDisassembleData;
 
 const ArmConditions: array [0..15] of string=('EQ','NE','CS', 'CC', 'MI', 'PL', 'VS', 'VC', 'HI', 'LS', 'GE', 'LT', 'GT', 'LE', '','NV');
 const DataProcessingOpcodes: array [0..15] of string=('AND','EOR','SUB', 'RSB', 'ADD', 'ADC', 'SBC', 'RSC', 'TST', 'TEQ', 'CMP', 'CMN', 'ORR', 'MOV', 'BIC','MVN');
@@ -20,6 +20,7 @@ type
     opcode: uint32;
     function Condition: string;
     procedure Branch;
+    procedure BX;
     procedure DataProcessing;
     procedure MRS;
     procedure MSR;
@@ -40,6 +41,8 @@ type
 
 
 implementation
+
+
 
 
 
@@ -85,6 +88,23 @@ begin
   offset:=signextend(opcode and $FFFFFF, 23) shl 2;
 
   LastDisassembleData.parameters:=inttohex(dword(LastDisassembleData.address+8+offset),8);
+end;
+
+procedure TArmDisassembler.BX;
+var
+  Rn: integer;
+  _Rn: string;
+  _condition: string;
+begin
+  _condition:=condition;
+  LastDisassembleData.opcode:='BX'+Condition;
+  LastDisassembleData.isjump:=true;
+  LastDisassembleData.isconditionaljump:=_condition<>'';
+
+  Rn:=opcode and $F;
+  _Rn:=ArmRegisters[Rn];
+
+  LastDisassembleData.parameters:=_Rn;
 end;
 
 procedure TArmDisassembler.DataProcessing;
@@ -421,7 +441,12 @@ begin
   begin
     //offset is an immediate value
     if Rn=15 then //pc
-      _address:='['+inttohex(dword(LastDisassembleData.address+offset+8),8)+']'
+    begin
+      if u=0 then //decrease
+        _address:='['+inttohex(dword(LastDisassembleData.address-offset+8),8)+']'
+      else
+        _address:='['+inttohex(dword(LastDisassembleData.address+offset+8),8)+']'
+    end
     else
     begin
       if offset=0 then
@@ -696,6 +721,23 @@ var
 begin
   result:='';
   setlength(LastDisassembleData.bytes,0);
+
+  {$ifdef ARMDEV}
+  opcode:=pdword(address)^;
+  setlength(LastDisassembleData.Bytes,4);
+  pdword(@LastDisassembleData.Bytes[0])^:=opcode;
+
+  address:=0;
+  x:=sizeof(opcode);
+  {$else}
+  x:=0;
+  if readprocessmemory(processhandle, pointer(address), @opcode, sizeof(opcode), x) then
+  begin
+    setlength(LastDisassembleData.Bytes,4);
+    pdword(@LastDisassembleData.Bytes[0])^:=opcode;
+  end;
+  {$endif}
+
   LastDisassembleData.address:=address;
   LastDisassembleData.SeperatorCount:=0;
   LastDisassembleData.prefix:='';
@@ -709,15 +751,13 @@ begin
   lastdisassembledata.modrmValueType:=dvtNone;
   lastdisassembledata.parameterValueType:=dvtNone;
 
-  x:=0;
-  if readprocessmemory(processhandle, pointer(address), @opcode, sizeof(opcode), x) then
-  begin
-    setlength(LastDisassembleData.Bytes,4);
-    pdword(@LastDisassembleData.Bytes[0])^:=opcode;
-  end;
+
 
   if (x=sizeof(opcode)) then
   begin
+    if ((opcode shr 4) and $ffffff)=$12FFF1 then
+      BX
+    else
     if (((opcode shr 2) and $3f)=0) and (((opcode shr 4) and  $f)=$9) then
       MUL
     else

@@ -6,7 +6,7 @@ unit Assemblerunit;
 
 interface
 
-uses dialogs,LCLIntf,sysutils,imagehlp;
+uses dialogs,LCLIntf,sysutils,imagehlp, ProcessHandlerUnit;
 
 const opcodecount=1093; //I wish there was a easier way than to handcount
 
@@ -1623,7 +1623,8 @@ var parameter1,parameter2,parameter3: integer;
 
 implementation
 
-uses {$ifndef autoassemblerdll}CEFuncProc,{$endif}symbolhandler, lua, luahandler, lualib;
+uses {$ifndef autoassemblerdll}CEFuncProc,{$endif}symbolhandler, lua, luahandler,
+  lualib, assemblerArm;
 
 
 
@@ -3214,6 +3215,7 @@ begin
   for i:=2 to opcodecount do
     if opcodes[i].mnemonic<opcodes[i-1].mnemonic then raise exception.Create('FUCK YOU! THE PROGRAMMER WAS STUPID ENOUGH TO MESS THIS PART UP IN PART '+IntToStr(i)+' '+opcodes[i-1].mnemonic+'<'+opcodes[i].mnemonic);
   {$endif}
+
   relativeAddressLocation:=-1;
   rexprefix:=0;
   result:=false;
@@ -3225,27 +3227,65 @@ begin
 
   if nroftokens=0 then exit;
 
-  if tokens[0]='DB' then
+  if tokens[0][1]='D' then  //D*
   begin
-    for i:=1 to nroftokens-1 do
+    if tokens[0]='DB' then
     begin
-      if tokens[i][1]='''' then //string
+      for i:=1 to nroftokens-1 do
       begin
-        //find the original non uppercase stringpos in the opcode
-        j:=pos(tokens[i],uppercase(opcode));
-
-        if j>0 then
+        if tokens[i][1]='''' then //string
         begin
-          tempstring:=copy(opcode,j,length(tokens[i]));
-          addstring(bytes,tempstring);
+          //find the original non uppercase stringpos in the opcode
+          j:=pos(tokens[i],uppercase(opcode));
+
+          if j>0 then
+          begin
+            tempstring:=copy(opcode,j,length(tokens[i]));
+            addstring(bytes,tempstring);
+          end
+          else addstring(bytes,tokens[i]); //lets try to save face...
         end
-        else addstring(bytes,tokens[i]); //lets try to save face...
-      end
-      else
-        add(bytes,[HexStrToInt(tokens[i])]);
+        else
+          add(bytes,[HexStrToInt(tokens[i])]);
+      end;
+
+      result:=true;
+      exit;
     end;
 
-    result:=true;
+    if tokens[0]='DW' then
+    begin
+      for i:=1 to nroftokens-1 do
+        addword(bytes,HexStrToInt(tokens[i]));
+
+      result:=true;
+      exit;
+    end;
+
+    if tokens[0]='DD' then
+    begin
+      for i:=1 to nroftokens-1 do
+        adddword(bytes,HexStrToInt(tokens[i]));
+
+      result:=true;
+      exit;
+    end;
+
+    if tokens[0]='DQ' then
+    begin
+      for i:=1 to nroftokens-1 do
+        addqword(bytes,HexStrToInt64(tokens[i]));
+
+      result:=true;
+      exit;
+    end;
+
+  end;
+
+  if processhandler.SystemArchitecture=archarm then
+  begin
+    //handle it by the arm assembler
+    result:=ArmAssemble(address, opcode, bytes);
     exit;
   end;
 
@@ -3343,33 +3383,7 @@ begin
     end;
   end;
 
-  if tokens[0][1]='D' then  //D*
-  begin
-    if tokens[0]='DW' then
-    begin
-      for i:=1 to nroftokens-1 do
-        addword(bytes,HexStrToInt(tokens[i]));
-      result:=true;
-      exit;
-    end;
 
-    if tokens[0]='DD' then
-    begin
-      for i:=1 to nroftokens-1 do
-        adddword(bytes,HexStrToInt(tokens[i]));
-      result:=true;
-      exit;
-    end;
-
-    if tokens[0]='DQ' then
-    begin
-      for i:=1 to nroftokens-1 do
-        addqword(bytes,HexStrToInt64(tokens[i]));
-      result:=true;
-      exit;
-    end;
-
-  end;
 
   if tokens[0][1]='R' then //R*
   begin
