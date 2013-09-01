@@ -5,11 +5,18 @@ unit assemblerArm;
 interface
 
 uses
-  Classes, SysUtils, strutils{$ifndef ARMDEV}, assemblerunit{$endif};
+  Classes, SysUtils, strutils{$ifndef ARMDEV}, assemblerunit{$endif}, dialogs;
 
 {$ifdef ARMDEV}
 type TAssemblerBytes=array of byte;
 {$endif}
+
+type ENeedRewrite=class(exception)
+  public
+    useinstead: Tstringlist;
+    constructor Create(const msg: String);
+    destructor Destroy; override;
+end;
 
   function BranchParser(address: int32; instruction:string):int32;
   function BranchExchangeParser(address: int32; instruction:string):int32;
@@ -87,6 +94,19 @@ const OpcodeList : array [0..OpcodeCount-1] of TOpcodeData= (
 
 var lookupindex: array ['A'..'Z'] of integer;
 
+constructor ENeedRewrite.Create(const msg: string);
+begin
+  useinstead:=TStringList.create;
+
+  inherited Create(msg);
+end;
+
+destructor ENeedRewrite.Destroy;
+begin
+  useinstead.free;
+  inherited destroy;
+end;
+
 procedure generateRotateAndImm(value: integer; var rotate: integer; var imm: integer);
 var
   tempv: uint32;
@@ -118,7 +138,7 @@ begin
       end;
     end;
 
-    if smallest.value>255 then raise exception.create('The value '+inttohex(value,1)+' can not be encoded using 8 bits and double rotate');
+    if smallest.value>255 then raise ENeedRewrite.create('The value '+inttohex(value,1)+' can not be encoded using 8 bits and double rotate');
 
     rotate:=smallest.rolcount;
     imm:=smallest.value;
@@ -338,7 +358,7 @@ begin
 
   offset:=signextend(offset, 29);
 
-  if abs(offset)>16777215 then raise exception.create('Distance is too big');
+  if abs(offset)>16777215 then raise ENeedRewrite.create('Distance is too big');
 
   result:=result or (offset and $ffffff);
 
@@ -370,13 +390,19 @@ var _Rn, _Rm: string;
   Rn, Rm: integer;
   _param: string;
 
-  offset: int32;
+  offset_, offset: int32;
+  e: ENeedRewrite;
+
+  oldparserpos: integer;
+
 begin
   if instruction[length(instruction)]='!' then
     result:=result or (1 shl 21);
 
-
+  oldparserpos:=parserpos;
   inc(parserpos);
+
+
   _Rn:=getParam(instruction, parserpos);
 
   rn:=getRegNumber(_rn);
@@ -384,13 +410,23 @@ begin
   begin
     //if hexadecimal value then convert to a pc,offset
 
-    offset:=StrToInt('$'+_rn);
+    offset_:=StrToInt('$'+_rn);
     //convert this to a pc relative address
-    offset:=offset-(address+8);
+    offset:=offset_-(address+8);
 
     if abs(offset)>$fff then
     begin
-      raise exception.create('Todo: Change this to a 12 byte instruction: LDR/STR [PC,#16] - B PC - DD offset');
+      e:=ENeedRewrite.create('Todo: Change this to a 12 byte instruction: LDR/STR [PC,#16] - B PC - DD offset');
+      e.useinstead.add(copy(instruction, 1, oldparserpos)+'PC,4]');
+
+      if instruction[length(instruction)]='!' then
+        e.useinstead.add(copy(instruction, 1, oldparserpos)+'R'+inttostr((result shr 12) and $f)+',0]!')
+      else
+        e.useinstead.add(copy(instruction, 1, oldparserpos)+'R'+inttostr((result shr 12) and $f)+',0]');
+
+      e.useinstead.add('B '+inttohex(address+16,8));
+      e.useinstead.add('DD '+inttohex(offset_,8));
+      raise e;
     end;
 
     instruction:=StringReplace(instruction,'['+_rn+']', '[PC,'+inttohex(offset,1)+']', [rfIgnoreCase]);
@@ -480,7 +516,7 @@ begin
 
   offset:=destination-(address+8);
 
-  if abs(offset)>$fff then raise exception.create('The distance is too big');
+  if abs(offset)>$fff then raise ENeedRewrite.create('The distance is too big');
 
   result:=result or $fff;
 end;
@@ -1040,6 +1076,7 @@ begin
   instruction:=uppercase(trim(instruction));
   if instruction='' then exit;
 
+  try
   if instruction[1]='B' then
   begin
     //B/BL/BIC/BX
@@ -1074,6 +1111,24 @@ begin
       end;
     end;
 
+  end;
+
+
+  except
+    on e: ENeedRewrite do
+    begin
+      //reformat this instruction
+      //The ENeedRewrite contains a list of instructions that should be used instead
+
+      if e.useinstead.count>0 then
+      begin
+        //reassemble with this
+        showmessage('actually going to assemble:'#13#10+e.useinstead.Text);
+      end
+      else
+        raise exception.Create(e.Message);
+
+    end;
   end;
 
 
