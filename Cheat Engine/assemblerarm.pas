@@ -31,6 +31,8 @@ end;
   function SWPParser(address: int32; instruction:string): int32;
   function SWIParser(address: int32; instruction:string): int32;
 
+  function DefineDwordParser(address: int32; instruction:string):int32;
+
   function getParam(instruction: string; var parserpos: integer): string;
   function getRegNumber(regstring: string): integer;
 
@@ -54,7 +56,7 @@ type
 
 
 
-const OpcodeCount=29;
+const OpcodeCount=30;
 
 const OpcodeList : array [0..OpcodeCount-1] of TOpcodeData= (
   (opcode: 'ADC'; parser:@DataProcessingParser),
@@ -68,6 +70,7 @@ const OpcodeList : array [0..OpcodeCount-1] of TOpcodeData= (
   (opcode: 'CDP'; parser:@CDPPArser),
   (opcode: 'CMP'; parser:@DataProcessingParser),
   (opcode: 'CMN'; parser:@DataProcessingParser),
+  (opcode: 'DD'; parser:@DefineDwordParser),
 
   (opcode: 'EOR'; parser:@DataProcessingParser),
 
@@ -295,6 +298,18 @@ begin
   end;
 end;
 
+function DefineDwordParser(address: int32; instruction:string):int32;
+var
+  _param: string;
+  parserpos: integer;
+begin
+  result:=0;
+  parserpos:=3;
+
+  _param:=getParam(instruction, parserpos);
+  result:=strtoint('$'+_param);
+end;
+
 function BranchExchangeParser(address: int32; instruction:string):int32;
 var
   _param: string;
@@ -302,7 +317,7 @@ var
   parserpos: integer;
 begin
   //BX{cond} <Rn>
-  result:=5 shl 25;
+  result:=$12FFF10;
   if length(instruction)<3 then exit; //invalid, there's just not enough space for this to be valid  (B 0)
 
   parserpos:=3;
@@ -327,6 +342,10 @@ var
   parserpos: integer;
   destinationaddress: uint32;
   offset: int32;
+
+  e: ENeedRewrite;
+
+  islink: boolean;
 begin
   //B{L}{cond} <expression>
   result:=5 shl 25;
@@ -335,6 +354,8 @@ begin
   parserpos:=2;
   if instruction[2]='L' then
   begin
+    islink:=true;
+
     //might be branch if Less than (BLT) wich is NOT a BL
     if instruction[3]<>'T' then //Not BLT  , so BLxx X
     begin
@@ -358,7 +379,18 @@ begin
 
   offset:=signextend(offset, 29);
 
-  if abs(offset)>16777215 then raise ENeedRewrite.create('Distance is too big');
+  if abs(offset)>16777215 then
+  begin
+    e:=ENeedRewrite.create('Distance is too big');
+    //push the destination into the stack and pop it out into pc
+    if islink then
+      e.useinstead.add('ADD LR, PC, 4'); //LR=PC+4
+
+    e.useinstead.add('LDR PC, [PC, -4]');
+    e.useinstead.add('DD '+inttohex(destinationaddress,8));
+    raise e;
+
+  end;
 
   result:=result or (offset and $ffffff);
 
@@ -609,14 +641,10 @@ begin
   _param:=GetParam(instruction, parserpos);
   if _param='' then raise exception.create('invalid parameters');
 
-  if _param[1]='R' then
+  rm:=getRegNumber(_param);
+  if rm<>-1 then
   begin
     //register  (Rm,{<shift>}
-    _rm:=_param;
-    rm:=GetRegNumber(_rm);
-    if rm=-1 then
-      raise exception.create('Invalid second operand register');
-
     result:=result or rm;
 
     if ParseShift(instruction, parserpos, result)=false then
@@ -733,7 +761,7 @@ begin
       inc(parserpos);
       result:=result or (s shl 20);
     end;
-
+    //destination
     _Rd:=GetParam(instruction, parserpos);
     rd:=GetRegNumber(_Rd);
     if rd=-1 then
@@ -741,12 +769,13 @@ begin
 
     result:=result or (rd shl 12);
 
+    //1st op reg
     _Rn:=GetParam(instruction, parserpos);
     rn:=GetRegNumber(_Rn);
-    if rd=-1 then
+    if rn=-1 then
       raise exception.create('Invalid first operand register');
 
-    result:=result or (rd shl 12);
+    result:=result or (rn shl 16);
 
     DataProcessingParser_OP2(address, instruction, parserpos, result);
 
@@ -792,21 +821,51 @@ begin
   case _modename[1] of
     'D':
       case _modename[2] of
-        'A': ;
+        'A': ;   // 0 - 0
         'B': result:=result or bP;
         else raise exception.create('Invalid opcode');
       end;
+
     'E':
       case _modename[2] of
-        'A': result:=result or bP;
-        'D': ;
+        'A':
+        begin
+          if instruction[1]='S' then
+            result:=result or bU
+          else
+            result:=result or bP;
+        end;
+
+        'D':
+        begin
+          if instruction[1]='L' then
+          begin
+            result:=result or bU;
+            result:=result or bP;
+          end;
+        end
+
         else raise exception.create('Invalid opcode');
       end;
 
     'F':
       case _modename[2] of
-        'A' : ;
-        'D' : result:=result or bU;
+        'A' :
+        begin
+          if instruction[1]='S' then
+          begin
+            result:=result or bU;
+            result:=result or bP;
+          end;
+        end;
+        'D' :
+        begin
+          if instruction[1]='L' then
+            result:=result or bU
+          else
+            result:=result or bP;
+        end;
+
         else raise exception.create('Invalid opcode');
       end;
 
@@ -1065,13 +1124,17 @@ end;
 function ArmAssemble(address: int32; instruction: string; var bytes: TAssemblerBytes): boolean;
 var
   opcode: string;
-  i: integer;
+  i,j: integer;
   searchstart,searchstop: integer;
 
   r: uint32;
+  b: Tassemblerbytes;
+
+  oldlength: integer;
 begin
   result:=false;
   r:=$ffffffff;
+  setlength(bytes,0);
 
   instruction:=uppercase(trim(instruction));
   if instruction='' then exit;
@@ -1083,14 +1146,21 @@ begin
     if copy(instruction,1,3)='BIC' then
       r:=DataProcessingParser(address, instruction)
     else
-    if copy(instruction,1,3)='BX' then
+    if copy(instruction,1,2)='BX' then
       r:=BranchExchangeParser(address, instruction)
     else
       r:=BranchParser(address, instruction);
   end
   else
+  if instruction[1]='D' then
+  begin
+    if copy(instruction,1,2)='DD' then
+      r:=DefineDwordParser(address, instruction);
+  end
+  else
   begin
     opcode:=copy(instruction,1,3);
+
 
     //find the opcode in the array and call the specific parser
     if length(opcode)<3 then exit;
@@ -1122,8 +1192,26 @@ begin
 
       if e.useinstead.count>0 then
       begin
-        //reassemble with this
-        showmessage('actually going to assemble:'#13#10+e.useinstead.Text);
+        //assemble with this instead
+        for i:=0 to e.useinstead.count-1 do
+        begin
+          setlength(b,0);
+          //the useinstead code should be a program counter independant code so no need to watch it
+          if armassemble(address+i*4, e.useinstead[i], b) then
+          begin
+            oldlength:=length(bytes);
+            setlength(bytes, oldlength+length(b));
+            for j:=oldlength to oldlength+length(b)-1 do
+              bytes[j]:=b[j-oldlength];
+          end
+          else
+            raise ENeedRewrite.create(e.message);
+
+        end;
+
+        //still here
+        result:=true;
+        exit;
       end
       else
         raise exception.Create(e.Message);
