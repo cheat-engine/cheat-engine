@@ -5,7 +5,8 @@ unit autoassembler;
 interface
 
 uses jwawindows, windows, Assemblerunit, classes, LCLIntf,symbolhandler,
-     sysutils,dialogs,controls, CEFuncProc, NewKernelHandler ,plugin;
+     sysutils,dialogs,controls, CEFuncProc, NewKernelHandler ,plugin,
+     ProcessHandlerUnit;
 
 
 
@@ -2067,47 +2068,60 @@ begin
 
       ok1:=false;
       if currentline[length(currentline)]<>':' then //if it's not a definition then
-      for j:=0 to length(labels)-1 do
-        if tokencheck(currentline,labels[j].labelname) then
+      begin
+        for j:=0 to length(labels)-1 do
         begin
-          if not labels[j].defined then
+          if tokencheck(currentline,labels[j].labelname) then
           begin
-            //the address hasn't been found yet
-            //this is the part that causes those nops after a short jump below the current instruction
+            if not labels[j].defined then
+            begin
+              //the address hasn't been found yet
+              //this is the part that causes those nops after a short jump below the current instruction
 
-            //close
-            s1:=replacetoken(currentline,labels[j].labelname,IntToHex(currentaddress,8));
+              //problem: The size of these instructions determine where this label will be defined
 
-            //far and big
+              //close
+              s1:=replacetoken(currentline,labels[j].labelname,IntToHex(currentaddress,8));
 
-            if (processhandler.is64Bit) then //and not in region
-              currentline:=replacetoken(currentline,labels[j].labelname,IntToHex(currentaddress+$1000FFFFF,8))
-            else
-            currentline:=replacetoken(currentline,labels[j].labelname,IntToHex(currentaddress+$FFFFF,8));
+              //far and big
 
-            setlength(assembled,length(assembled)+1);
-            assembled[length(assembled)-1].address:=currentaddress;
-            assemble(currentline,currentaddress,assembled[length(assembled)-1].bytes, apnone, true);
-            a:=length(assembled[length(assembled)-1].bytes);
+              if processhandler.SystemArchitecture=archarm then
+              begin
+                currentline:=replacetoken(currentline,labels[j].labelname,IntToHex(currentaddress+$4FFFFF8,8));
+              end
+              else
+              begin
+                if (processhandler.is64Bit) then //and not in region
+                  currentline:=replacetoken(currentline,labels[j].labelname,IntToHex(currentaddress+$1000FFFFF,8))
+                else
+                  currentline:=replacetoken(currentline,labels[j].labelname,IntToHex(currentaddress+$FFFFF,8));
+              end;
 
-            assemble(s1,currentaddress,assembled[length(assembled)-1].bytes, apnone, true);
-            b:=length(assembled[length(assembled)-1].bytes);
+              setlength(assembled,length(assembled)+1);
+              assembled[length(assembled)-1].address:=currentaddress;
+              assemble(currentline,currentaddress,assembled[length(assembled)-1].bytes, apnone, true);
+              a:=length(assembled[length(assembled)-1].bytes);
 
-            if a>b then //pick the biggest one
-              assemble(currentline,currentaddress,assembled[length(assembled)-1].bytes);
+              assemble(s1,currentaddress,assembled[length(assembled)-1].bytes, apnone, true);
+              b:=length(assembled[length(assembled)-1].bytes);
 
-            setlength(labels[j].references,length(labels[j].references)+1);
-            labels[j].references[length(labels[j].references)-1]:=length(assembled)-1;
+              if a>b then //pick the biggest one
+                assemble(currentline,currentaddress,assembled[length(assembled)-1].bytes);
 
-            setlength(labels[j].references2,length(labels[j].references2)+1);
-            labels[j].references2[length(labels[j].references2)-1]:=i;
+              setlength(labels[j].references,length(labels[j].references)+1);
+              labels[j].references[length(labels[j].references)-1]:=length(assembled)-1;
 
-            inc(currentaddress,length(assembled[length(assembled)-1].bytes));
-            ok1:=true;
-          end else currentline:=replacetoken(currentline,labels[j].labelname,IntToHex(labels[j].address,8));
+              setlength(labels[j].references2,length(labels[j].references2)+1);
+              labels[j].references2[length(labels[j].references2)-1]:=i;
 
-          break;
+              inc(currentaddress,length(assembled[length(assembled)-1].bytes));
+              ok1:=true;
+            end else currentline:=replacetoken(currentline,labels[j].labelname,IntToHex(labels[j].address,8));
+
+            break;
+          end;
         end;
+      end;
 
       if ok1 then continue;
 
@@ -2140,8 +2154,16 @@ begin
 
               setlength(assembled[labels[j].references[k]].bytes,a); //original size (original size is always bigger or equal than newsize)
               //fill the difference with nops (not the most efficient approach, but it should work)
-              for l:=b to a-1 do
-                assembled[labels[j].references[k]].bytes[l]:=$90;
+              if processhandler.SystemArchitecture=archarm then
+              begin
+                for l:=0 to ((a-b+3) div 4)-1 do
+                  pdword(@assembled[labels[j].references[k]].bytes[b+l*4])^:=$e1a00000;
+              end
+              else
+              begin
+                for l:=b to a-1 do
+                  assembled[labels[j].references[k]].bytes[l]:=$90;
+              end;
             end;
 
 

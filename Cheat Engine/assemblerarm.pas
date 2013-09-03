@@ -1139,49 +1139,52 @@ begin
   instruction:=uppercase(trim(instruction));
   if instruction='' then exit;
 
+  if instruction='NOP' then
+    instruction:='MOV R0,R0';
+
   try
-  if instruction[1]='B' then
-  begin
-    //B/BL/BIC/BX
-    if copy(instruction,1,3)='BIC' then
-      r:=DataProcessingParser(address, instruction)
-    else
-    if copy(instruction,1,2)='BX' then
-      r:=BranchExchangeParser(address, instruction)
-    else
-      r:=BranchParser(address, instruction);
-  end
-  else
-  if instruction[1]='D' then
-  begin
-    if copy(instruction,1,2)='DD' then
-      r:=DefineDwordParser(address, instruction);
-  end
-  else
-  begin
-    opcode:=copy(instruction,1,3);
-
-
-    //find the opcode in the array and call the specific parser
-    if length(opcode)<3 then exit;
-
-    searchstart:=lookupindex[instruction[1]];
-    if searchstart=-1 then
-      exit;
-
-
-    for i:=searchstart to OpcodeCount-1 do
+    if instruction[1]='B' then
     begin
-      if OpcodeList[i].opcode[1]>opcode[1] then exit; //too far
+      //B/BL/BIC/BX
+      if copy(instruction,1,3)='BIC' then
+        r:=DataProcessingParser(address, instruction)
+      else
+      if copy(instruction,1,2)='BX' then
+        r:=BranchExchangeParser(address, instruction)
+      else
+        r:=BranchParser(address, instruction);
+    end
+    else
+    if instruction[1]='D' then
+    begin
+      if copy(instruction,1,2)='DD' then
+        r:=DefineDwordParser(address, instruction);
+    end
+    else
+    begin
+      opcode:=copy(instruction,1,3);
 
-      if OpcodeList[i].opcode=opcode then
+
+      //find the opcode in the array and call the specific parser
+      if length(opcode)<3 then exit;
+
+      searchstart:=lookupindex[instruction[1]];
+      if searchstart=-1 then
+        exit;
+
+
+      for i:=searchstart to OpcodeCount-1 do
       begin
-        r:=opcodelist[i].parser(address, instruction);
-        break;
-      end;
-    end;
+        if OpcodeList[i].opcode[1]>opcode[1] then exit; //too far
 
-  end;
+        if OpcodeList[i].opcode=opcode then
+        begin
+          r:=opcodelist[i].parser(address, instruction);
+          break;
+        end;
+      end;
+
+    end;
 
 
   except
