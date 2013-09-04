@@ -3207,6 +3207,8 @@ var tokens: ttokens;
     overrideShort, overrideLong, overrideFar: boolean;
 
     is64bit: boolean;
+
+
 begin
   is64bit:=processhandler.is64Bit;
 
@@ -3285,6 +3287,9 @@ begin
   if processhandler.SystemArchitecture=archarm then
   begin
     //handle it by the arm assembler
+   // for i:=0 to nroftokens do
+   //   tempstring:=tempstring+tokens[i]+' ';   //seperators like "," are gone, but the armassembler doesn't really care about that  (only tokens matter)
+
     result:=ArmAssemble(address, opcode, bytes);
     exit;
   end;
