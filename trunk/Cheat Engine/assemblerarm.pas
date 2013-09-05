@@ -367,7 +367,9 @@ begin
       parserpos:=3;
       result:=result or (1 shl 24); //set the L flag
     end;
-  end;
+  end
+  else
+    islink:=false;
 
   condition:=getCondition(instruction, parserpos);
   result:=result or (condition shl 28);  //set the condition bits
