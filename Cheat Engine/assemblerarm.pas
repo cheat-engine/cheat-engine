@@ -5,7 +5,8 @@ unit assemblerArm;
 interface
 
 uses
-  Classes, SysUtils, strutils{$ifndef ARMDEV}, assemblerunit{$endif}, dialogs;
+  Classes, SysUtils, strutils{$ifndef ARMDEV}, assemblerunit{$endif}, dialogs,
+  symbolhandler;
 
 {$ifdef ARMDEV}
 type TAssemblerBytes=array of byte;
@@ -307,7 +308,8 @@ begin
   parserpos:=3;
 
   _param:=getParam(instruction, parserpos);
-  result:=strtoint('$'+_param);
+
+  result:=symhandler.getAddressFromName(_param);
 end;
 
 function BranchExchangeParser(address: int32; instruction:string):int32;
@@ -346,6 +348,9 @@ var
   e: ENeedRewrite;
 
   islink: boolean;
+  condition: integer;
+
+  _cond: string;
 begin
   //B{L}{cond} <expression>
   result:=5 shl 25;
@@ -364,13 +369,14 @@ begin
     end;
   end;
 
-  result:=result or (getCondition(instruction, parserpos) shl 28);  //set the condition bits
+  condition:=getCondition(instruction, parserpos);
+  result:=result or (condition shl 28);  //set the condition bits
 
   //and set the offset
   _param:=getParam(instruction, parserpos);
 
 
-  destinationaddress:=strtoint('$'+_param);
+  destinationaddress:=symhandler.getAddressFromName(_param);
 
   if destinationaddress mod 4<>0 then raise exception.create('The destination address must be dividable by 4');
 
@@ -383,11 +389,29 @@ begin
   begin
     e:=ENeedRewrite.create('Distance is too big');
     //push the destination into the stack and pop it out into pc
-    if islink then
-      e.useinstead.add('ADD LR, PC, 4'); //LR=PC+4
 
-    e.useinstead.add('LDR PC, [PC, -4]');
-    e.useinstead.add('DD '+inttohex(destinationaddress,8));
+
+
+    if condition<>14 then
+    begin
+      //not always
+      //reminder: ADD<cond> and not ADDS<cond> (or ADD<cond>S): The S would mean the flags get updated after execution
+
+      if islink then
+        e.useinstead.add('ADD'+ArmConditions[condition]+' LR, PC, 8'); //LR=PC+8 :  PC is at +8  (B XXXXXXXX) so +8 to get over those B and DD instructions
+
+      e.useinstead.add('LDR'+ArmConditions[condition]+' PC, [PC, -4]');
+      e.useinstead.add('B '+inttohex(address+12,8));
+      e.useinstead.add('DD '+inttohex(destinationaddress,8));
+    end
+    else
+    begin
+      if islink then
+        e.useinstead.add('ADD LR, PC, 4'); //LR=PC+4 : PC is at +8 (DD xxxxxxxx) so +4 to get over that
+
+      e.useinstead.add('LDR PC, [PC, -4]');
+      e.useinstead.add('DD '+inttohex(destinationaddress,8));
+    end;
     raise e;
 
   end;
@@ -442,7 +466,7 @@ begin
   begin
     //if hexadecimal value then convert to a pc,offset
 
-    offset_:=StrToInt('$'+_rn);
+    offset_:=symhandler.getAddressFromName(_rn);
     //convert this to a pc relative address
     offset:=offset_-(address+8);
 
@@ -543,7 +567,7 @@ var
 begin
 
   _destination:=getParam(instruction, parserpos);
-  destination:=strtoint('$'+_destination);
+  destination:=symhandler.getAddressFromName(_destination);
 
 
   offset:=destination-(address+8);
@@ -659,7 +683,7 @@ begin
     ImmediateOperand:=1;
     result:=result or (ImmediateOperand shl 25);
 
-    v:=strtoint('$'+_param);
+    v:=symhandler.getAddressFromName(_param);
     //calculate an value that gets to here
     generateRotateAndImm(v, Rotate, Imm);
 
@@ -1009,7 +1033,7 @@ begin
     //expression
     result:=result or (1 shl 25);
 
-    v:=strtoint('$'+p2);
+    v:=symhandler.getAddressFromName(p2);
     generateRotateAndImm(v, rotate, imm);
 
     result:=(result or (rotate shl 8)) or imm;
@@ -1114,7 +1138,7 @@ begin
   parserpos:=4;
   result:=result or (getCondition(instruction, parserpos) shl 28);
 
-  v:=strtoint('$'+getParam(instruction, parserpos));
+  v:=symhandler.getAddressFromName(getParam(instruction, parserpos));
   result:=result or (v and $FFFFFF);
 
 
