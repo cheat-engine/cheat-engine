@@ -71,25 +71,25 @@ begin
       0:   //i386
       begin
         fSystemArchitecture:=archX86;
-        fis64bit:=false;
+        setIs64Bit(false);
       end;
 
       1: //x86_64
       begin
         fSystemArchitecture:=archX86;
-        fis64bit:=true;
+        setIs64Bit(true);
       end;
 
       2: //arm
       begin
         fSystemArchitecture:=archArm;
-        fis64bit:=false;
+        setIs64Bit(false);
       end;
 
       3: //arm64 (untested, not seen yet)
       begin
         fSystemArchitecture:=archArm;
-        fis64bit:=true;
+        setIs64Bit(true);
       end;
     end;
 
@@ -99,6 +99,11 @@ begin
     fSystemArchitecture:=archX86;
     setIs64Bit(newkernelhandler.Is64BitProcess(fProcessHandle));
   end;
+
+  {$ifdef ARMTEST}
+  fSystemArchitecture:=archArm;
+  setIs64Bit(false);
+  {$endif}
 
   if processhandle<>0 then
     LUA_functioncall('onOpenProcess', [ptruint(processid)]);   //todo: Change to a callback array/list

@@ -3529,7 +3529,7 @@ var
   x: ptrUint;
   offset: ptrUint;
 
-  b: ptrUint;
+  b,oldb: ptrUint;
 
   minAddress,maxAddress: ptrUint;
 
@@ -3571,6 +3571,9 @@ begin
   end;
 
 
+  if processhandler.isNetwork then
+    systeminfo.dwAllocationGranularity:=4096;
+
   b:=minAddress;
 
 
@@ -3588,7 +3591,7 @@ begin
         offset:=systeminfo.dwAllocationGranularity - (x mod systeminfo.dwAllocationGranularity);
 
         //check if there's enough left
-        if (mbi.regionsize-offset)>size then
+        if (mbi.regionsize-offset)>=size then
         begin
           //yes
           x:=x+offset;
@@ -3627,7 +3630,16 @@ begin
       end;
 
     end;
+
+    if (mbi.regionsize mod systeminfo.dwAllocationGranularity)>0 then
+      mbi.RegionSize:=mbi.regionsize+(systeminfo.dwAllocationGranularity-(mbi.regionsize mod systeminfo.dwAllocationGranularity));
+
+
+    oldb:=b;
     b:=ptrUint(mbi.BaseAddress)+mbi.RegionSize;
+
+    if b>maxAddress then exit;
+    if oldb>b then exit; //overflow
   end;
 
 end;
