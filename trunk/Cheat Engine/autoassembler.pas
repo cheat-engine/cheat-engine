@@ -376,7 +376,7 @@ begin
       if incomment then
       begin
         //inside a comment, remove everything till a } is encountered
-        if (currentline[j]='}') or
+        if ((currentline[j]='}') and (processhandler.SystemArchitecture<>archArm)) or
            ((currentline[j]='*') and (j<length(currentline)) and (currentline[j+1]='/')) then
         begin
           incomment:=false; //and continue parsing the code...
@@ -402,7 +402,7 @@ begin
             break;
           end;
 
-          if (currentline[j]='{') or
+          if ((currentline[j]='{') and (processhandler.SystemArchitecture<>archArm)) or
              ((currentline[j]='/') and (j<length(currentline)) and (currentline[j+1]='*')) then
           begin
             incomment:=true;
@@ -2157,12 +2157,12 @@ begin
               if processhandler.SystemArchitecture=archarm then
               begin
                 for l:=0 to ((a-b+3) div 4)-1 do
-                  pdword(@assembled[labels[j].references[k]].bytes[b+l*4])^:=$e1a00000;
+                  pdword(@assembled[labels[j].references[k]].bytes[b+l*4])^:=$e1a00000;      //<mov r0,r0: (nop equivalent)
               end
               else
               begin
                 for l:=b to a-1 do
-                  assembled[labels[j].references[k]].bytes[l]:=$90;
+                  assembled[labels[j].references[k]].bytes[l]:=$90; //nop
               end;
             end;
 
