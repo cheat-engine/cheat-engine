@@ -149,6 +149,19 @@ int GetDebugPort(HANDLE hProcess)
 
 }
 
+int FindPausedThread(PProcessData p)
+/*
+ * Scan the threadlist and return the threadid of the thread that is paused. Return 0 if no thread is paused
+ */
+{
+  int i;
+  for (i=0; i<p->threadlistpos; i++)
+    if (p->threadlist[i].isPaused)
+      return p->threadlist[i].tid;
+
+  return 0;
+}
+
 int StartDebug(HANDLE hProcess)
 {
   if (GetHandleType(hProcess) == htProcesHandle )
@@ -336,7 +349,7 @@ int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bpt
     if (p->debuggerThreadID==pthread_self())
     {
 
-      int isdebugged=p->debuggedThreadEvent.threadid;
+      int isdebugged=FindPausedThread(p);
       int wtid;
       DebugEvent de;
 
@@ -1195,22 +1208,28 @@ int RemoveThreadDebugEventFromQueue(PProcessData p, int tid)
  * removes the debug event from the queue
  */
 {
-  int result;
+  int result=FALSE;
   struct DebugEventQueueElement *deqe;
 
   pthread_mutex_lock(&p->debugEventQueueMutex);
 
+ // printf("RemoveThreadDebugEventFromQueue(%d)\n", tid);
+
   deqe=p->debugEventQueue.tqh_first;
   while (deqe)
   {
+   // printf("deqe->de.threadid=%d  (looking for %d)\n", deqe->de.threadid, tid);
     if (deqe->de.threadid==tid)
     {
+      //printf("Found. Removing it\n");
       TAILQ_REMOVE(&p->debugEventQueue, deqe, entries);
 
       free(deqe);
+      result=TRUE;
       break;
     }
 
+   // printf("Not what I wanted. Check next\n");
     deqe=deqe->entries.tqe_next;
   }
 
@@ -1232,7 +1251,7 @@ PDebugEvent FindThreadDebugEventInQueue(PProcessData p, int tid)
   deqe=p->debugEventQueue.tqh_first;
   while (deqe)
   {
-    if (deqe->de.threadid==tid)
+    if ((tid==-1) || (deqe->de.threadid==tid))
     {
       result=&deqe->de;
       break;
@@ -1374,14 +1393,24 @@ int WaitForDebugEventNative(PProcessData p, PDebugEvent devent, int tid, int tim
          //   printf("Checking for dispatch command\n");
 
           CheckForAndDispatchCommand(p->debuggerServer);
-          //if (log==1)
-          //  printf("CheckForAndDispatchCommand returned %d\n", i);
+          if (VerboseLevel>10)
+            printf("CheckForAndDispatchCommand returned\n");
 
+          //check if an event got queued for this thread by the dispatcher
+          PDebugEvent e=FindThreadDebugEventInQueue(p, tid);
+          if (e)
+          {
+            printf("There was a queued event after CheckForAndDispatchCommand. TID=%d (wanted %d)\n", e->threadid, tid);
+            currentTID=e->threadid;
 
-         // printf("Calling waitpid(%d, %p, %x)\n", tid, &status, WNOHANG| __WALL);
-          currentTID=waitpid(tid, &status, __WALL | WNOHANG);
+            r=RemoveThreadDebugEventFromQueue(p, currentTID);
+            printf("RemoveThreadDebugEventFromQueue returned %d\n", r);
+          }
+          else
+            currentTID=waitpid(tid, &status, __WALL | WNOHANG);
 
-         // printf("currentTID = %d\n", currentTID);
+          if (VerboseLevel>10)
+            printf("currentTID = %d\n", currentTID);
 
           if (currentTID>0)
           {
@@ -1396,7 +1425,7 @@ int WaitForDebugEventNative(PProcessData p, PDebugEvent devent, int tid, int tim
               return TRUE;
 
             //still here
-           // printf("Still here so currentTID(%d) is not the same as tid (%d)\n", currentTID, tid);
+            printf("Still here so currentTID(%d) is not the same as tid (%d)\n", currentTID, tid);
             AddDebugEventToQueue(p, devent);
           }
           currentTID=-1; //retry
@@ -1505,12 +1534,6 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
         p->debuggedThreadEvent=*devent;
         free(de);
 
-        if (de->de.threadid==0)
-        {
-          printf("Invalid debug event got queued de->de.threadid=%d\n", de->de.threadid);
-          while (1) sleep(100000);
-        }
-
         r=1; //mark that a queued event happened
       }
 
@@ -1560,13 +1583,13 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
           DR6.value=ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[6]), 0);
           DR7=ptrace(PTRACE_PEEKUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[7]), 0);
 
-          printf("DR0=%x\n",DR0);
-          printf("DR1=%x\n",DR1);
-          printf("DR2=%x\n",DR2);
-          printf("DR3=%x\n",DR3);
-          printf("DR6=%x\n",DR6.value);
-          printf("DR7=%x\n",DR7);
-          printf("IP=%x\n",IP);
+          printf("DR0=%lx\n",DR0);
+          printf("DR1=%lx\n",DR1);
+          printf("DR2=%lx\n",DR2);
+          printf("DR3=%lx\n",DR3);
+          printf("DR6=%lx\n",DR6.value);
+          printf("DR7=%lx\n",DR7);
+          printf("IP=%lx\n",IP);
 
           p->debuggedThreadEvent.address=0; //something unexpected
           if (DR6.B0)
@@ -1584,8 +1607,8 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
           if (DR6.BS) //single step
             p->debuggedThreadEvent.address=1;
 
-          DR6.value=0; //not sure if needed, or if this should be moved to continuefromdebugevent
-          ptrace(PTRACE_POKEUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[6]), &DR6);
+
+          ptrace(PTRACE_POKEUSER, p->debuggedThreadEvent.threadid, offsetof(struct user, u_debugreg[6]), 0); //not sure if needed, or if this should be moved to continuefromdebugevent
 
 #endif
           printf("p->debuggedThreadEvent.address=%llx\n", p->debuggedThreadEvent.address);
@@ -1752,8 +1775,10 @@ int WriteProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, vo
 
   if (p->debuggerThreadID==pthread_self()) //this is the debugger thread
   {
-    int isdebugged=p->debuggedThreadEvent.threadid;
+    int isdebugged=FindPausedThread(p); //find a paused thread if there is one
     DebugEvent event;
+
+    event.threadid=isdebugged;
 
     if (!isdebugged)
     {
@@ -1992,17 +2017,17 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
 
   if (p->debuggerThreadID==pthread_self()) //this is the debugger thread
   {
-    int isdebugged=p->debuggedThreadEvent.threadid>0;
-    DebugEvent event=p->debuggedThreadEvent;
+    int isdebugged=FindPausedThread(p); //find a paused thread if there is one
+    DebugEvent event;
+
+    event.threadid=isdebugged;
+
 
     //printf("ReadProcessMemoryDebug inside debuggerthread (thread debbugged=%d)\n", isdebugged);
 
-    if (p->debuggedThreadEvent.threadid<0)
-      printf("RPM with a fake debug event active\n");
-
     if (!isdebugged)
     {
-     // printf("Not currently debugging a thread. Suspending a random thread\n");
+      // printf("Not currently debugging a thread. Suspending a random thread\n");
       kill(p->pid, SIGSTOP);
 
       //printf("Going to wait for debug event\n");
@@ -2011,9 +2036,6 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
         printf("WaitForDebugEventNative returned FALSE for a wait without timeout\n");
         return 0;
       }
-
-      if (p->debuggedThreadEvent.threadid<0)
-        printf("Received tid : %d (sig:%d)\n", (int)event.threadid, event.debugevent);
 
      // printf("After WaitForDebugEventNative (tid=%d)\n", event.threadid);
     }
@@ -2034,6 +2056,7 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
 
       if ((bytesread<0) && (errno!=EINTR))
       {
+        /*
         printf("pread failed and not due to a signal: %d  (isdebugged=%d)\n", errno, isdebugged);
         if (isdebugged)
         {
@@ -2041,18 +2064,19 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
         }
         printf("lpAddress=%p\n", lpAddress);
         printf("size=%d\n", size);
+        */
 
         bytesread=0;
 
         if (isdebugged)
         {
-          printf("trying to read from specific task\n");
+         // printf("trying to read from specific task\n");
 
           int f;
           char mempath[255];
 
           sprintf(mempath,"/proc/%d/task/%d/mem", p->pid, (int)event.threadid);
-          printf("Opening %s\n", mempath);
+         // printf("Opening %s\n", mempath);
           f=open(mempath, O_RDONLY);
           printf("f=%d\n", f);
           if (f>=0)
@@ -2063,7 +2087,7 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
 
             if ((bytesread<0) && (errno!=EINTR))
             {
-              printf("Also failed on second try\n");
+            //  printf("Also failed on second try\n");
               bytesread=0;
             }
             close(f);
