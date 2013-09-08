@@ -45,9 +45,6 @@
 #define CMD_CREATETHREAD            28
 #define CMD_LOADMODULE              29
 #define CMD_SPEEDHACK_SETSPEED      30
-//#define CMD_CHANGEMEMORYPROTECTION  31
-
-
 
 //just in case I ever get over 255 commands this value will be reserved for a secondary command list (FF 00 -  FF 01 - ... - FF FE - FF FF 01 - FF FF 02 - .....
 #define CMD_COMMANDLIST2            255

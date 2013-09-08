@@ -117,7 +117,7 @@ typedef struct
   PModuleListEntry moduleList;
 } ModuleList, *PModuleList;
 
-
+int VerboseLevel=0;
 
 
 int WakeDebuggerThread()
@@ -228,6 +228,7 @@ int StartDebug(HANDLE hProcess)
               if (WaitForDebugEventNative(p, &createProcessEvent, tid, -1))
               {
                 //get the debug capabilities
+
                 HBP_RESOURCE_INFO hwbpcap;
                 if (ptrace(PTRACE_GETHBPREGS, createProcessEvent.threadid, 0, &hwbpcap)==0)
                 {
@@ -243,6 +244,13 @@ int StartDebug(HANDLE hProcess)
                 }
 
                 ptrace(PTRACE_CONT, createProcessEvent.threadid, 0,0);
+
+                PThreadData _td=GetThreadData(p, createProcessEvent.threadid);
+
+                if (_td)
+                  _td->isPaused=0;
+                else
+                  printf("Invalid first debug thread\n");
               }
               else
               {
@@ -496,6 +504,8 @@ int SetBreakpoint(HANDLE hProcess, int tid, int debugreg, void *address, int bpt
           }
 
         }
+        else
+          printf("Failure getting the debug capability register for thread %d\n", wtid);
 
 
 #endif
@@ -1182,7 +1192,7 @@ int ResumeThread(HANDLE hProcess, int tid)
 
 int RemoveThreadDebugEventFromQueue(PProcessData p, int tid)
 /*
- * removes the queue for the debug event
+ * removes the debug event from the queue
  */
 {
   int result;
@@ -1267,7 +1277,7 @@ int GetStopSignalFromThread(int tid)
 int WaitForDebugEventNative(PProcessData p, PDebugEvent devent, int tid, int timeout)
 /*
  * Waits for a debug event for a specific thread, queues the devent if not the expected tid
- * Only call this from a debugger thread
+ * Only call this from a(the) debugger thread (NO OTHER THREAD MAY CALL THIS)
  */
 {
   int currentTID;
@@ -1467,7 +1477,7 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
 
     if (p->debuggedThreadEvent.threadid==0)
     {
-      int r;
+      int r=0;
 
       int status;
       int tid;
@@ -1479,6 +1489,7 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
 
       if (de)
         TAILQ_REMOVE(&p->debugEventQueue, de, entries);
+
 
       pthread_mutex_unlock(&p->debugEventQueueMutex);
 
@@ -1493,12 +1504,19 @@ int WaitForDebugEvent(HANDLE hProcess, PDebugEvent devent, int timeout)
         *devent=de->de;
         p->debuggedThreadEvent=*devent;
         free(de);
-        return 1;
+
+        if (de->de.threadid==0)
+        {
+          printf("Invalid debug event got queued de->de.threadid=%d\n", de->de.threadid);
+          while (1) sleep(100000);
+        }
+
+        r=1; //mark that a queued event happened
       }
 
-      //still here, so no queued event yet
+      if (!r) //not a queued event
+        r=WaitForDebugEventNative(p, devent, -1, timeout);
 
-      r=WaitForDebugEventNative(p, devent, -1, timeout);
 
       if (r)
       {
@@ -1988,7 +2006,11 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
       kill(p->pid, SIGSTOP);
 
       //printf("Going to wait for debug event\n");
-      WaitForDebugEventNative(p, &event, -1, -1); //wait for it myself
+      if (WaitForDebugEventNative(p, &event, -1, -1)==FALSE) //wait for it myself
+      {
+        printf("WaitForDebugEventNative returned FALSE for a wait without timeout\n");
+        return 0;
+      }
 
       if (p->debuggedThreadEvent.threadid<0)
         printf("Received tid : %d (sig:%d)\n", (int)event.threadid, event.debugevent);
@@ -2013,7 +2035,10 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
       if ((bytesread<0) && (errno!=EINTR))
       {
         printf("pread failed and not due to a signal: %d  (isdebugged=%d)\n", errno, isdebugged);
-        printf("event.threadid=%d devent=%d\n", (int)event.threadid, event.debugevent);
+        if (isdebugged)
+        {
+          printf("event.threadid=%d devent=%d\n", (int)event.threadid, event.debugevent);
+        }
         printf("lpAddress=%p\n", lpAddress);
         printf("size=%d\n", size);
 
@@ -2071,11 +2096,15 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
       {
         printf("ReadProcessMemoryDebug: Adding unexpected signal to eventqueue (event.debugevent=%d event.threadid=%d)\n", event.debugevent, event.threadid);
 
-
-
-        AddDebugEventToQueue(p, &event);
         if (td)
           td->isPaused=1;
+
+        AddDebugEventToQueue(p, &event);
+
+        printf("After add\n");
+
+        VerboseLevel=1000000000;
+
       }
     }
 
@@ -2119,15 +2148,10 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
       //printf("Waking debugger thread and waiting for result\n");
       WakeDebuggerThread();
 
-      clock_t t1=clock();
-
       recvall(p->debuggerClient, &bytesread, sizeof(bytesread), MSG_WAITALL);
 
-      clock_t t2=clock();
-
-      //printf("received result after %d\n", t2-t1);
-
-    //  printf("After waiting for debugger thread: bytesread=%d\n", bytesread);
+      if (VerboseLevel>10)
+        printf("After waiting for debugger thread: bytesread=%d\n", bytesread);
 
       if (bytesread>0)
         recvall(p->debuggerClient, buffer, bytesread, MSG_WAITALL);
@@ -2139,6 +2163,9 @@ int ReadProcessMemoryDebug(HANDLE hProcess, PProcessData p, void *lpAddress, voi
     //bytesread=read...
   }
 
+
+  if (VerboseLevel>10)
+    printf("ReadProcessMemoryDebug returns %d\n", bytesread);
 
   return bytesread;
 }

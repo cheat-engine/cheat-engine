@@ -202,7 +202,7 @@ int ext_free(HANDLE hProcess, uint64_t address, int size)
 uint64_t ext_alloc(HANDLE hProcess, uint64_t preferedBase, int size)
 {
   uint64_t result=0;
-  printf("ext_alloc(%d, %lx, %d\n", hProcess, preferedBase, size);
+  printf("ext_alloc(%d, %llx, %d)\n", hProcess, preferedBase, size);
 
   if (GetHandleType(hProcess) == htProcesHandle )
   {
@@ -227,8 +227,6 @@ uint64_t ext_alloc(HANDLE hProcess, uint64_t preferedBase, int size)
     }
 
 
-
-
     allocCommand.command=EXTCMD_ALLOC;
     allocCommand.preferedAddress=preferedBase;
     allocCommand.size=size;
@@ -239,6 +237,8 @@ uint64_t ext_alloc(HANDLE hProcess, uint64_t preferedBase, int size)
       recvall(p->extensionFD, &result, sizeof(result), 0);
 
     pthread_mutex_unlock(&p->extensionMutex);
+
+    printf("Returned from extension with result %llx\n", result);
 
   }
 

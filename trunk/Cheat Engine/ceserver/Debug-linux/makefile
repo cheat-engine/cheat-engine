@@ -31,13 +31,18 @@ ceserver: $(OBJS) $(USER_OBJS)
 	gcc  -o "ceserver" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
+	$(MAKE) --no-print-directory post-build
 
 # Other Targets
 clean:
 	-$(RM) $(OBJS)$(C_DEPS)$(EXECUTABLES) ceserver
 	-@echo ' '
 
+post-build:
+	-cp ceserver "/home/eric/workspace/ceserverbin"
+	-@echo ' '
+
 .PHONY: all clean dependents
-.SECONDARY:
+.SECONDARY: post-build
 
 -include ../makefile.targets

@@ -686,6 +686,18 @@ int DispatchCommand(int currentsocket, unsigned char command)
         RegionInfo rinfo;
         CeVirtualQueryExOutput o;
 
+        if (sizeof(uintptr_t)==4)
+        {
+          if (c.baseaddress>0xFFFFFFFF)
+          {
+            o.result=0;
+            sendall(currentsocket, &o, sizeof(o), 0);
+            break;
+          }
+        }
+
+
+
 
 
         o.result=VirtualQueryEx(c.handle, (void *)(uintptr_t)c.baseaddress, &rinfo);
@@ -807,6 +819,10 @@ int DispatchCommand(int currentsocket, unsigned char command)
       printf("CESERVER: CMD_ALLOC\n");
       if (recvall(currentsocket, &c, sizeof(c),0)>0)
       {
+        printf("c.hProcess=%d\n", c.hProcess);
+        printf("c.preferedBase=%llx\n", c.preferedBase);
+        printf("c.size=%d\n", c.size);
+
         uint64_t address=ext_alloc(c.hProcess, c.preferedBase, c.size);
 
         sendall(currentsocket, &address, sizeof(address),0);
