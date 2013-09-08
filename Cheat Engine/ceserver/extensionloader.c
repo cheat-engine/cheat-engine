@@ -579,6 +579,7 @@ int ptr;
     printf("r0=%lx\n", newregs.ARM_r0);
     printf("orig_r0=%lx\n", newregs.ARM_ORIG_r0);
     printf("pc=%lx\n", newregs.ARM_pc);
+    printf("sp=%lx\n", newregs.ARM_sp);
     printf("cpsr=%lx\n", newregs.ARM_cpsr);
 #else
 
@@ -616,17 +617,27 @@ int loadCEServerExtension(HANDLE hProcess)
     if (p->hasLoadedExtension==0)
     {
       char modulepath[256], modulepath2[256];
+      int l;
 
       memset(modulepath, 0, 256);
       memset(modulepath2, 0, 256);
 
-      if (readlink("/proc/self/exe", modulepath2, 256)!=-1)
-      {
-        printf("before dirname modulepath2 = %s\n", modulepath2);
-        dirname(modulepath2);
-        printf("after  dirname modulepath2 = %s\n", modulepath2);
+      char *mp;
 
-        strcpy(modulepath, modulepath2);
+
+      l=readlink("/proc/self/exe", modulepath2, 256);
+
+      if (l!=-1)
+      {
+        modulepath2[l]=0;
+        printf("modulepath2=%s\n", modulepath2);
+        sscanf(modulepath2,"%s", modulepath); //sometimes it has a (deleted) text after it
+
+        printf("modulepath=%s\n", modulepath);
+        mp=dirname(modulepath);
+
+        printf("after dirname: %s\n", mp);
+        strcpy(modulepath, mp);
         strcat(modulepath, "/libceserver-extension.so");
 
         printf("modulepath = %s\n", modulepath);
@@ -669,6 +680,8 @@ int loadCEServerExtension(HANDLE hProcess)
 
 
     }
+    else
+      printf("Already loaded\n");
 
     return p->hasLoadedExtension;
   }
