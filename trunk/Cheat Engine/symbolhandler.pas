@@ -1950,55 +1950,61 @@ begin
 
 
   //handle the mathstring
-  if hasmultiplication then
-  begin
-    //first do the multiplications
+  try
+    if hasmultiplication then
+    begin
+      //first do the multiplications
+      for i:=0 to length(tokens)-1 do
+      begin
+        if tokens[i]='*' then
+        begin
+          //multiply the left and right
+          tokens[i-1]:=inttohex(StrToQWordEx('$'+tokens[i-1])*strtoint64('$'+tokens[i+1]),8);
+          tokens[i]:='';
+          tokens[i+1]:='';
+        end;
+      end;
+
+    end;
+
+    result:=0;
+    //handle addition and subtraction
+    nextoperation:=calcAddition;
     for i:=0 to length(tokens)-1 do
     begin
-      if tokens[i]='*' then
+      if length(tokens[i])>0 then
       begin
-        //multiply the left and right
-        tokens[i-1]:=inttohex(StrToQWordEx('$'+tokens[i-1])*strtoint64('$'+tokens[i+1]),8);
-        tokens[i]:='';
-        tokens[i+1]:='';
-      end;
-    end;
-  end;
-
-  result:=0;
-  //handle addition and subtraction
-  nextoperation:=calcAddition;
-  for i:=0 to length(tokens)-1 do
-  begin
-    if length(tokens[i])>0 then
-    begin
-      case tokens[i][1] of
-        '+' : nextoperation:=calcAddition;
-        '-' :
-        begin
-          if nextoperation=calcSubstraction then
-            nextoperation:=calcAddition else //--=+
-            nextoperation:=calcSubstraction;
-        end;
-
-        else
-        begin
-          //do the calculation
-          case nextoperation of
-            calcAddition:
-              result:=result+StrToQWordEx('$'+tokens[i]);
-
-            calcSubstraction:
-              result:=result-StrToQWordEx('$'+tokens[i]);
-
+        case tokens[i][1] of
+          '+' : nextoperation:=calcAddition;
+          '-' :
+          begin
+            if nextoperation=calcSubstraction then
+              nextoperation:=calcAddition else //--=+
+              nextoperation:=calcSubstraction;
           end;
 
-          nextoperation:=calcAddition;
+          else
+          begin
+            //do the calculation
+            case nextoperation of
+              calcAddition:
+                result:=result+StrToQWordEx('$'+tokens[i]);
 
+              calcSubstraction:
+                result:=result-StrToQWordEx('$'+tokens[i]);
+
+            end;
+
+            nextoperation:=calcAddition;
+
+          end;
         end;
-      end;
 
+      end;
     end;
+
+  except
+    hasError:=true;
   end;
 
 end;
