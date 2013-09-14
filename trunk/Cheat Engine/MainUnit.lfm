@@ -1,9 +1,9 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 773
+  Left = 463
   Height = 570
   Hint = ' '
-  Top = 205
+  Top = 282
   Width = 600
   HelpContext = 3
   HorzScrollBar.Visible = False
@@ -1378,7 +1378,6 @@ object MainForm: TMainForm
       Width = 33
       Caption = 'Label3'
       ParentColor = False
-      Visible = False
       OnClick = Label3Click
     end
     object Foundlist3: TListView

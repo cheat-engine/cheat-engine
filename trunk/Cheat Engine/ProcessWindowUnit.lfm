@@ -1,7 +1,7 @@
 object ProcessWindow: TProcessWindow
-  Left = 988
+  Left = 370
   Height = 353
-  Top = 330
+  Top = 329
   Width = 245
   HelpContext = 4
   BorderIcons = [biSystemMenu]

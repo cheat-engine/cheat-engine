@@ -13,12 +13,12 @@ object formAddressChange: TformAddressChange
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poScreenCenter
-  LCLVersion = '1.1'
+  LCLVersion = '1.0.8.0'
   object Label1: TLabel
     Left = 8
-    Height = 13
+    Height = 14
     Top = 0
-    Width = 41
+    Width = 42
     Caption = 'Address:'
     ParentColor = False
   end
@@ -111,9 +111,9 @@ object formAddressChange: TformAddressChange
     end
     object lengthlabel: TLabel
       Left = 0
-      Height = 13
+      Height = 14
       Top = 0
-      Width = 33
+      Width = 34
       Caption = 'Length'
       ParentColor = False
     end
@@ -129,73 +129,73 @@ object formAddressChange: TformAddressChange
       Visible = False
       object Label4: TLabel
         Left = 6
-        Height = 13
+        Height = 14
         Top = 20
-        Width = 6
+        Width = 7
         Caption = '0'
         ParentColor = False
       end
       object Label5: TLabel
         Left = 22
-        Height = 13
+        Height = 14
         Top = 20
-        Width = 6
+        Width = 7
         Caption = '1'
         ParentColor = False
       end
       object Label6: TLabel
         Left = 45
-        Height = 13
+        Height = 14
         Top = 20
-        Width = 6
+        Width = 7
         Caption = '2'
         ParentColor = False
       end
       object Label7: TLabel
         Left = 66
-        Height = 13
+        Height = 14
         Top = 20
-        Width = 6
+        Width = 7
         Caption = '3'
         ParentColor = False
       end
       object Label8: TLabel
         Left = 86
-        Height = 13
+        Height = 14
         Top = 20
-        Width = 6
+        Width = 7
         Caption = '4'
         ParentColor = False
       end
       object Label9: TLabel
         Left = 105
-        Height = 13
+        Height = 14
         Top = 20
-        Width = 6
+        Width = 7
         Caption = '5'
         ParentColor = False
       end
       object Label10: TLabel
         Left = 124
-        Height = 13
+        Height = 14
         Top = 20
-        Width = 6
+        Width = 7
         Caption = '6'
         ParentColor = False
       end
       object Label11: TLabel
         Left = 145
-        Height = 13
+        Height = 14
         Top = 20
-        Width = 6
+        Width = 7
         Caption = '7'
         ParentColor = False
       end
       object Label2: TLabel
         Left = 0
-        Height = 13
+        Height = 14
         Top = 0
-        Width = 36
+        Width = 37
         Caption = 'Startbit:'
         ParentColor = False
       end
@@ -261,9 +261,9 @@ object formAddressChange: TformAddressChange
   end
   object lblValue: TLabel
     Left = 120
-    Height = 13
+    Height = 14
     Top = 19
-    Width = 33
+    Width = 34
     Caption = '=Value'
     ParentColor = False
   end
@@ -276,17 +276,17 @@ object formAddressChange: TformAddressChange
   end
   object Label3: TLabel
     Left = 8
-    Height = 13
+    Height = 14
     Top = 40
-    Width = 53
+    Width = 54
     Caption = 'Description'
     ParentColor = False
   end
   object Label12: TLabel
     Left = 9
-    Height = 13
+    Height = 14
     Top = 80
-    Width = 24
+    Width = 25
     Caption = 'Type'
     ParentColor = False
   end

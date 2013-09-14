@@ -10,7 +10,7 @@ uses
   NewKernelHandler, SynEdit, SynHighlighterCpp, SynHighlighterAA, LuaSyntax, disassembler,
   MainUnit2, Assemblerunit, autoassembler, symbolhandler, SynEditSearch,
   MemoryRecordUnit, tablist, customtypehandler, registry, SynGutterBase, SynEditMarks,
-  luahandler, memscan, foundlisthelper;
+  luahandler, memscan, foundlisthelper, ProcessHandlerUnit;
 
 
 type TCallbackRoutine=procedure(memrec: TMemoryRecord; script: string; changed: boolean) of object;
@@ -715,7 +715,7 @@ var originalcode: array of string;
     originaladdress: array of ptrUint;
     i,j: integer;
     codesize: integer;
-    a,b: ptrUint;
+    a,b,c: ptrUint;
     br: dword;
     x: string;
 
@@ -736,8 +736,10 @@ var originalcode: array of string;
     d: TDisassembler;
 
     originalcodestart: integer;
+
+    isThumbOrigin: boolean;
+    isThumbDestination: boolean;
 begin
-{$ifndef standalonetrainerwithassembler}
   //disassemble the old code
   d:=TDisassembler.Create;
   d.showmodules:=false;
@@ -763,19 +765,36 @@ begin
       raise exception.create(addresstogoto+':'+e.message);
   end;
 
-  if processhandler.is64bit then
+  if processhandler.SystemArchitecture=archarm then
   begin
-    //check if there is a region I can make use of for a jump trampoline
-    if FindFreeBlockForRegion(a,2048)=nil then
+    isThumbOrigin:=(a and 1)=1; //assuming that a name is used and not the real address it occurs on
+    isThumbDestination:=(b and 1)=1;
+
+    if isThumbOrigin or isThumbDestination then
+      raise exception.create('The thumb instruction set is not yet suppported');
+
+
+    jumpsize:=8;
+    c:=ptruint(FindFreeBlockForRegion(a,2048));
+    if (c>0) and (abs(integer(c-a))<31*1024*1024) then
+      jumpsize:=4; //can be done with one instruction B <a>
+  end
+  else
+  begin
+    if processhandler.is64bit then
     begin
-      Assemble('jmp '+inttohex(b,8),a,ab);
-      jumpsize:=length(ab);
+      //check if there is a region I can make use of for a jump trampoline
+      if FindFreeBlockForRegion(a,2048)=nil then
+      begin
+        Assemble('jmp '+inttohex(b,8),a,ab);
+        jumpsize:=length(ab);
+      end
+      else
+        jumpsize:=5;
     end
     else
       jumpsize:=5;
-  end
-  else
-    jumpsize:=5;
+  end;
 
 
 
@@ -816,13 +835,15 @@ begin
 
   with enablescript do
   begin
-    if not processhandler.is64bit then
+    if (processhandler.SystemArchitecture=archx86) and (not processhandler.is64bit) then
       add('alloc(originalcall'+nameextension+',2048)')
     else
     begin
       add('alloc(originalcall'+nameextension+',2048,'+address+')');
       add('alloc(jumptrampoline'+nameextension+',64,'+address+') //special jump trampoline in the current region (64-bit)');
-      add('label(jumptrampoline'+nameextension+'address)');
+
+      if processhandler.SystemArchitecture=archx86 then
+        add('label(jumptrampoline'+nameextension+'address)');
     end;
 
     add('label(returnhere'+nameextension+')');
@@ -896,11 +917,38 @@ begin
       inc(i);
     end;
 
-
-    add('jmp returnhere'+nameextension+'');
+    if processhandler.SystemArchitecture=archarm then
+      add('b returnhere'+nameextension)
+    else
+      add('jmp returnhere'+nameextension);
 
     add('');
 
+    if processhandler.systemarchitecture=archarm then
+    begin
+      add('jumptrampoline'+nameextension+':');
+      if isThumbDestination then
+      begin
+        raise exception.create('Thumb instructions are not yet implemented');
+        if isThumbOrigin then
+        begin
+          add('thumb:b '+addresstogoto);
+        end
+        else
+        begin
+          add('bx jumptrampoline_armtothumb+1');
+          add('jumptrampoline_armtothumb:');
+          add('thumb:bl '+addresstogoto);
+          add('thumb:bx jumptrampoline_thumbtoarm');
+          add('jumptrampoline_thumbtoarm');
+          add('bx lr');
+        end;
+      end
+      else
+        add('b '+addresstogoto);
+
+    end
+    else
     if processhandler.is64bit then
     begin
       add('jumptrampoline'+nameextension+':');
@@ -912,15 +960,23 @@ begin
 
 
     add(address+':');
-    if processhandler.is64bit then
-      add('jmp jumptrampoline'+nameextension)
-    else
-      add('jmp '+addresstogoto);
 
-    while codesize>jumpsize do
+    if processhandler.SystemArchitecture=archarm then
     begin
-      add('nop');
-      dec(codesize);
+      add('B jumptrampoline'+nameextension);
+    end
+    else
+    begin
+      if processhandler.is64bit then
+        add('jmp jumptrampoline'+nameextension)
+      else
+        add('jmp '+addresstogoto);
+
+      while codesize>jumpsize do
+      begin
+        add('nop');
+        dec(codesize);
+      end;
     end;
 
     add('returnhere'+nameextension+':');
@@ -951,7 +1007,6 @@ begin
   enablescript.free;
 
   d.free;
-{$endif}
 end;
 
 
@@ -971,8 +1026,6 @@ var address: string;
     injectnr: integer;
 
 begin
-{$ifndef standalonetrainerwithassembler}
-
   a:=memorybrowser.disassemblerview.SelectedAddress;
 
   address:=inttohex(a,8);
@@ -1011,7 +1064,6 @@ begin
     end;
   end;
 
-{$endif}
 end;
 
 procedure TfrmAutoInject.SaveAs1Click(Sender: TObject);
@@ -1022,13 +1074,10 @@ end;
 
 procedure TfrmAutoInject.FormShow(Sender: TObject);
 begin
-{$ifndef standalonetrainerwithassembler}
-
   if editscript then
     button1.Caption:=strOK;
 
   assemblescreen.SetFocus;
-{$endif}
 end;
 
 procedure TfrmAutoInject.assemblescreenKeyDown(Sender: TObject;

@@ -2097,6 +2097,8 @@ begin
                   currentline:=replacetoken(currentline,labels[j].labelname,IntToHex(currentaddress+$FFFFF,8));
               end;
 
+
+
               setlength(assembled,length(assembled)+1);
               assembled[length(assembled)-1].address:=currentaddress;
               assemble(currentline,currentaddress,assembled[length(assembled)-1].bytes, apnone, true);

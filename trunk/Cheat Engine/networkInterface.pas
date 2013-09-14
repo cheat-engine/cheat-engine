@@ -47,6 +47,8 @@ type
     function CReadProcessMemory(hProcess: THandle; lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL;
     function NReadProcessMemory(hProcess: THandle; lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL;
 
+
+
   public
     function isNetworkHandle(handle: THandle): boolean;
 
@@ -678,7 +680,6 @@ var
     baseaddress: qword;
     size: qword;
   end;
-
 begin
 
   if ((hProcess shr 24) and $ff)= $ce then

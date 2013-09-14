@@ -2831,21 +2831,7 @@ var x: TPortableNetworkGraphic;
 
 begin
 
-  frmSaveSnapshots:=tfrmSaveSnapshots.create(application);
-  frmSaveSnapshots.initialize('E:\snapshot\', 15);
-  frmSaveSnapshots.showmodal;
 
-  if frmSaveSnapshots.saved.Count>0 then
-  begin
-    if frmsnapshothandler=nil then
-      frmsnapshothandler:=TfrmSnapshotHandler.create(application);
-
-    frmsnapshothandler.show;
-    frmsnapshothandler.loadsnapshots(frmSaveSnapshots.saved);
-  end;
-
-
-  frmSaveSnapshots.free;
 
 
  {
@@ -7726,8 +7712,35 @@ var t: TD3DHook_Texture;
   max: integer;
 
   c: TCEConnection;
+
+  addr: pointer;
+  b: BOOL;
+  tid: dword;
+  h: thandle;
 begin
 
+  c:=getConnection;
+
+  if c.loadExtension(processhandle) then
+  begin
+    {
+    addr:=c.VirtualAllocEx(processhandle, pointer($0ce00000), 4096, 0, 0);
+    showmessage('allocated at '+inttohex(ptruint(addr),8));
+
+    b:=VirtualFreeEx(processhandle, addr, 0,0);
+
+    if b then
+      showmessage('freed')
+    else
+      showmessage('error');
+             }
+
+    //h:=createremotethread(processhandle, nil, 0, pointer($400801), 0 , 0, tid);
+    //showmessage('createremotethread returned '+inttohex(h,1));
+    //closehandle(h);
+  end
+  else
+    showmessage('not loaded');
 {  memorybrowser.hexview.address:=GetStackStart;
   memorybrowser.show;}
 

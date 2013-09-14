@@ -3566,7 +3566,7 @@ begin
   end
   else
   begin
-    minaddress:=0;
+    minaddress:=$10000;
     maxaddress:=$fffffffff;
   end;
 
