@@ -888,7 +888,7 @@ methods
   getChecked() : Returns true if the listitem is checked
   setChecked(boolean): Sets the checkbox of the listbox to the given state
   getSubItems(): Returns a Strings object
-  makeVisible(partial): Scrolls the listview so this item becomes visible
+  makeVisible(partial): Scrolls the listview so this item becomes visible (Cheat Engine 6.4 and later)
 
 
 ListItems class : (Inheritance: TObject)
