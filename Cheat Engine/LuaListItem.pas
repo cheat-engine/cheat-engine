@@ -120,6 +120,20 @@ begin
   result:=1;
 end;
 
+function listitem_makeVisible(L: PLua_State): integer; cdecl;
+var
+  listitem: Tlistitem;
+  partialok: boolean=false;
+begin
+  listitem:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    partialok:=lua_toboolean(L, 1);
+
+  listitem.MakeVisible(partialok);
+
+  result:=1;
+end;
+
 procedure listitem_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
   object_addMetaData(L, metatable, userdata);
@@ -129,6 +143,7 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setChecked', listitem_setChecked);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setSubItems', listitem_setSubItems);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getSubItems', listitem_getSubItems);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'makeVisible', listitem_makeVisible);
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'Caption', listitem_getCaption, listitem_setCaption);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Checked', listitem_getChecked, listitem_setChecked);

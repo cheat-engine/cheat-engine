@@ -3210,6 +3210,7 @@ var tokens: ttokens;
 
 
 begin
+  setlength(bytes,0);
   is64bit:=processhandler.is64Bit;
 
 

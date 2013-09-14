@@ -932,6 +932,7 @@ begin
     lblValue.caption:='=???';
 
 
+
 end;
 
 

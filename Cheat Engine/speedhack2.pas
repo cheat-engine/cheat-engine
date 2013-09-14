@@ -38,6 +38,7 @@ var i: integer;
     c: TCEConnection;
 
     fname: string;
+    err: boolean;
 begin
   initaddress:=0;
 
@@ -76,13 +77,13 @@ begin
 
       //gettimeofday
 
-      if symhandler.getAddressFromName('vdso.gettimeofday')>0 then //prefered
+      if symhandler.getAddressFromName('vdso.gettimeofday', true, err)>0 then //prefered
         fname:='vdso.gettimeofday'
       else
-      if symhandler.getAddressFromName('libc.gettimeofday')>0 then //secondary
+      if symhandler.getAddressFromName('libc.gettimeofday', true, err)>0 then //secondary
         fname:='libc.gettimeofday'
       else
-      if symhandler.getAddressFromName('gettimeofday')>0 then //really nothing else ?
+      if symhandler.getAddressFromName('gettimeofday', true, err)>0 then //really nothing else ?
         fname:='gettimeofday'
       else
         fname:=''; //give up
@@ -100,6 +101,7 @@ begin
           generateAPIHookScript(script, fname, 'new_gettimeofday', 'real_gettimeofday');
 
           try
+            //Clipboard.AsText:=script.text;
             autoassemble(script,false);
           except
           end;
@@ -108,16 +110,16 @@ begin
 
       script.clear;
       //clock_gettime
-      if symhandler.getAddressFromName('vdso.clock_gettime')>0 then //prefered
+      if symhandler.getAddressFromName('vdso.clock_gettime', true,err)>0 then //prefered
         fname:='vdso.clock_gettime'
       else
-      if symhandler.getAddressFromName('librt.clock_gettime')>0 then //secondary
+      if symhandler.getAddressFromName('librt.clock_gettime', true, err)>0 then //secondary
         fname:='librt.clock_gettime'
       else
-      if symhandler.getAddressFromName('libc.clock_gettime')>0 then //seen this on android
+      if symhandler.getAddressFromName('libc.clock_gettime', true, err)>0 then //seen this on android
         fname:='libc.clock_gettime'
       else
-      if symhandler.getAddressFromName('clock_gettime')>0 then //really nothing else ?
+      if symhandler.getAddressFromName('clock_gettime', true, err)>0 then //really nothing else ?
         fname:='clock_gettime'
       else
         fname:=''; //give up
@@ -135,7 +137,7 @@ begin
           generateAPIHookScript(script, fname, 'new_clock_gettime', 'real_clock_gettime');
 
           try
-            Clipboard.AsText:=script.text;
+            //Clipboard.AsText:=script.text;
             autoassemble(script,false);
           except
           end;
