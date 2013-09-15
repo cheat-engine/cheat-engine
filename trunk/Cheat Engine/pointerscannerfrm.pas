@@ -249,6 +249,16 @@ type
     hasError: boolean;
     errorString: string;
 
+    pathqueuelength: integer;
+    pathqueue: array [0..63] of record
+      tempresults: array of byte;
+      valuelist: array of ptruint;
+      startlevel: integer;
+
+    end;
+    pathqueueCS: TCriticalSection; //critical section used to add/remove entries
+    pathqueueUpdateEvent: TEvent; //Event to notify sleeping threads to wake up that there is a new path in the queue
+
     procedure execute; override;
     constructor create(suspended: boolean);
     destructor destroy; override;
@@ -621,12 +631,13 @@ begin
 
             if (level+1) < maxlevel then
             begin
+              //todo: Use queue.  If there is space in the queue add it, else do it myself
+
               //not at max level, so scan for it
               //scan for this address
-              //either spawn of a new thread that can do this, or do it myself
+              //either wake a sleeping thread that can do this, or do it myself
 
               createdworker:=false;
-
 
 
               //obtained the lock, check if the terminate command has been issued
@@ -1563,6 +1574,9 @@ begin
     evaluated:=0;
     currentEntry:=self.startentry;
 
+    if currentEntry>Pointerscanresults.count then exit;
+
+
     while evaluated < self.EntriesToCheck do
     begin
       p:=Pointerscanresults.getPointer(currentEntry);
@@ -1785,7 +1799,7 @@ begin
 //    rescanworkercount:=1;   //only one for now. Todo: Make this multithreaded
 
     blocksize:=TotalPointersToEvaluate div rescanworkercount;
-    if blocksize=0 then blocksize:=1;
+    if blocksize<8 then blocksize:=8;
 
     setlength(rescanworkers, rescanworkercount);
     setlength(threadhandles, rescanworkercount);
