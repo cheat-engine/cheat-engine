@@ -1774,8 +1774,6 @@ begin
 
   //fill the modulelist with baseaddresses
   try
-
-
     //the modulelist now holds the baseaddresses (0 if otherwhise)
     TotalPointersToEvaluate:=ownerform.pointerscanresults.count;
 
@@ -1784,10 +1782,10 @@ begin
     rescanworkercount:=GetCPUCount;
     if HasHyperthreading then rescanworkercount:=(rescanworkercount div 2)+1;
 
-    rescanworkercount:=1;   //only one for now. Todo: Make this multithreaded
+//    rescanworkercount:=1;   //only one for now. Todo: Make this multithreaded
 
     blocksize:=TotalPointersToEvaluate div rescanworkercount;
-
+    if blocksize=0 then blocksize:=1;
 
     setlength(rescanworkers, rescanworkercount);
     setlength(threadhandles, rescanworkercount);
