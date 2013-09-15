@@ -145,6 +145,7 @@ var
   cachepos: integer;
 begin
   result:=nil;
+  if i>=count then exit;
 
   //check if i is in the cache
   if not InRange(i, cachestart,cachestart+cachesize-1) then
