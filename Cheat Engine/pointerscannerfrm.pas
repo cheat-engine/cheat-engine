@@ -132,7 +132,6 @@ type
 
     isdone: boolean;
     hasTerminated: boolean;
-    startworking: tevent;
     stop: boolean;
 
     staticscanner: TStaticscanner;
@@ -251,13 +250,14 @@ type
 
     pathqueuelength: integer;
     pathqueue: array [0..63] of record
-      tempresults: array of byte;
+      tempresults: array of dword;
       valuelist: array of ptruint;
+      valuetofind: ptruint;
       startlevel: integer;
 
     end;
     pathqueueCS: TCriticalSection; //critical section used to add/remove entries
-    pathqueueUpdateEvent: TEvent; //Event to notify sleeping threads to wake up that there is a new path in the queue
+    pathqueueSemaphore: THandle; //Event to notify sleeping threads to wake up that there is a new path in the queue
 
     procedure execute; override;
     constructor create(suspended: boolean);
@@ -436,7 +436,6 @@ begin
   results:=tmemorystream.Create;
   results.SetSize(16*1024*1024);
 
-  startworking:=tevent.create(nil,false,false,'');
   isdone:=true;
 
   pointersize:=processhandler.pointersize;
@@ -449,12 +448,10 @@ begin
   results.free;
   if resultsfile<>nil then
     freeandnil(resultsfile);
-
-  startworking.free;
 end;
 
 procedure TReverseScanWorker.execute;
-var wr: twaitresult;
+var wr: dword;
 i: integer;
 begin
   try
@@ -465,11 +462,38 @@ begin
 
       while (not terminated) and (not self.staticscanner.Terminated) do
       begin
-        wr:=startworking.WaitFor(infinite);
+        wr:=WaitForSingleObject(self.staticscanner.pathqueueSemaphore, INFINITE);
         if stop then exit;
+        if terminated then exit;
+        if self.staticscanner.Terminated then exit;
 
-        if wr=wrSignaled then
+        if wr=WAIT_OBJECT_0 then
         begin
+          //fetch the data from the queue and staticscanner
+          self.staticscanner.pathqueueCS.Enter;
+          if self.staticscanner.pathqueuelength>0 then
+          begin
+            dec(staticscanner.pathqueuelength);
+            i:=staticscanner.pathqueuelength;
+            isdone:=false;
+            maxlevel:=staticscanner.maxlevel;
+            valuetofind:=staticscanner.pathqueue[i].valuetofind;
+            startlevel:=staticscanner.pathqueue[i].startlevel;
+            noLoop:=staticscanner.noLoop;
+            structsize:=staticscanner.sz;
+
+            CopyMemory(@tempresults[0], @staticscanner.pathqueue[i].tempresults[0], maxlevel*sizeof(dword));
+            if noLoop then
+              CopyMemory(@valuelist[0], @staticscanner.pathqueue[i].valuelist[0], maxlevel*sizeof(ptruint));
+          end
+          else
+          begin
+            //the semaphore is bugged
+            beep;
+          end;
+          self.staticscanner.pathqueueCS.Leave;
+
+
           try
             rscan(valuetofind,startlevel);
           finally
@@ -539,7 +563,7 @@ var p: ^byte;
 
 
     i,j: valSint;
-    createdworker: boolean;
+    addedToQueue: boolean;
 
 
     ExactOffset: boolean;
@@ -554,7 +578,7 @@ var p: ^byte;
   DifferentOffsetsInThisNode: integer;
 
 begin
-  if (level>=maxlevel) or self.staticscanner.Terminated then exit;
+  if (level>=maxlevel) or (self.staticscanner.Terminated) or (terminated) then exit;
 
   currentlevel:=level;
   DifferentOffsetsInThisNode:=0;
@@ -637,44 +661,35 @@ begin
               //scan for this address
               //either wake a sleeping thread that can do this, or do it myself
 
-              createdworker:=false;
+              addedToQueue:=false;
 
-
-              //obtained the lock, check if the terminate command has been issued
-              if (not Terminated) and (not self.staticscanner.Terminated) then
+              if staticscanner.pathqueuelength<63 then //there's room. Add it
               begin
-                staticscanner.reverseScanCS.Enter;
-
-                //Not terminated, so launch a new thread
-                for i:=0 to length(staticscanner.reversescanners)-1 do
+                if (not Terminated) and (not self.staticscanner.Terminated) then
                 begin
-                  if (staticscanner.reversescanners[i].isdone) and (not staticscanner.reversescanners[i].terminated) then
+                  staticscanner.pathqueueCS.Enter;
+                  if staticscanner.pathqueuelength<63 then
                   begin
-                    staticscanner.reversescanners[i].isdone:=false;
-                    staticscanner.reversescanners[i].maxlevel:=maxlevel;
-                    staticscanner.reversescanners[i].valuetofind:=plist.list[j].address;
-
-                    CopyMemory(@staticscanner.reversescanners[i].tempresults[0], @tempresults[0], maxlevel*sizeof(dword));
+                    //still room
+                    CopyMemory(@staticscanner.pathqueue[staticscanner.pathqueuelength].tempresults[0], @tempresults[0], maxlevel*sizeof(dword));
                     if noLoop then
-                      CopyMemory(@staticscanner.reversescanners[i].valuelist[0], @valuelist[0], maxlevel*sizeof(ptruint));
+                      CopyMemory(@staticscanner.pathqueue[staticscanner.pathqueuelength].valuelist[0], @valuelist[0], maxlevel*sizeof(ptruint));
 
+                    staticscanner.pathqueue[staticscanner.pathqueuelength].startlevel:=level+1;
+                    staticscanner.pathqueue[staticscanner.pathqueuelength].valuetofind:=plist.list[j].address;
 
-
-
-                    staticscanner.reversescanners[i].startlevel:=level+1;
-                    staticscanner.reversescanners[i].structsize:=structsize;
-                    staticscanner.reversescanners[i].startworking.SetEvent; //tell the thread there's new data waiting
-                    createdworker:=true;
-                    break;
+                    inc(staticscanner.pathqueuelength);
+                    ReleaseSemaphore(staticscanner.pathqueueSemaphore, 1, nil);
+                    addedToQueue:=true;
                   end;
-                end;
-                staticscanner.reverseScanCS.Leave;
-              end
-              else
-                exit;
+                  staticscanner.pathqueueCS.Leave;
+                end
+                else
+                  exit;
+              end;
 
 
-              if not createdworker then
+              if not addedToQueue then
               begin
                 //I'll have to do it myself
                 rscan(plist.list[j].address,level+1);
@@ -749,7 +764,7 @@ var
   alldone: boolean;
 
   currentaddress: ptrUint;
-  createdWorker: boolean;
+  addedToQueue: boolean;
 
   valuefinder: TValueFinder;
 begin
@@ -782,40 +797,34 @@ begin
         while (not terminated) and (currentaddress>0) do
         begin
           //if found, find a idle thread and tell it to look for this address starting from level 0 (like normal)
-          createdWorker:=false;
-          while (not terminated) and (not createdworker) do
+          addedToQueue:=false;
+          while (not terminated) and (not addedToQueue) do
           begin
-            reversescancs.Enter;
-
-            //finally obtained the lock, first check if it's still needed
-            if not terminated then
+            if pathqueuelength<63 then //no need to lock
             begin
-              for i:=0 to length(reversescanners)-1 do
-                if reversescanners[i].isdone then
-                begin
-                  reversescanners[i].isdone:=false;
-                  reversescanners[i].maxlevel:=maxlevel;
+              pathqueueCS.enter;
+              //setup the queueelement
+              if pathqueuelength<63 then
+              begin
+                pathqueue[pathqueuelength].startlevel:=0;
+                pathqueue[pathqueuelength].valuetofind:=currentaddress;
 
-                  reversescanners[i].valuetofind:=currentaddress;
-                  reversescanners[i].structsize:=sz;
-                  reversescanners[i].startlevel:=0;
-                  reversescanners[i].startworking.SetEvent;
-                  reversescancs.Leave;
-                  createdworker:=true;
-                  break;
-                end;
-            end;
-            reversescancs.Leave;
+                inc(pathqueuelength);
+                ReleaseSemaphore(pathqueueSemaphore, 1, nil);
 
-            if not createdworker then
-              sleep(500) //note: change this to an event based wait
-            else
-            begin //next
-              if unalligned then
-                currentaddress:=ValueFinder.FindValue(currentaddress+1)
-              else
-                currentaddress:=ValueFinder.FindValue(currentaddress+pointersize);
+                if unalligned then
+                  currentaddress:=ValueFinder.FindValue(currentaddress+1)
+                else
+                  currentaddress:=ValueFinder.FindValue(currentaddress+pointersize);
+
+                addedToQueue:=true;
+              end;
+
+              pathqueueCS.enter;
             end;
+
+            if (not addedToQueue) and (not terminated) then
+              sleep(500); //wait till there is space in the queue
           end;
 
         end;
@@ -826,13 +835,10 @@ begin
       else
       begin
         //initialize the first thread (it'll spawn all other threads)
-        reversescanners[0].isdone:=false;
-        reversescanners[0].maxlevel:=maxlevel;
-
-        reversescanners[0].valuetofind:=self.automaticaddress;
-        reversescanners[0].structsize:=sz;
-        reversescanners[0].startlevel:=0;
-        reversescanners[0].startworking.SetEvent;
+        pathqueue[pathqueuelength].startlevel:=0;
+        pathqueue[pathqueuelength].valuetofind:=self.automaticaddress;
+        inc(pathqueuelength);
+        ReleaseSemaphore(pathqueueSemaphore, 1, nil);
       end;
 
       //wait till all threads are in isdone state
@@ -846,43 +852,57 @@ begin
           for i:=0 to length(reversescanners)-1 do
           begin
             reversescanners[i].stop:=true;
-            reversescanners[i].startworking.setEvent;
             reversescanners[i].Terminate;
           end;
+
+          ReleaseSemaphore(pathqueueSemaphore, 64, nil);
 
         end;
 
         sleep(500);
         alldone:=true;
 
-
-
-        //no need for a CS here since it's only a read, and even when a new thread is being made, the creator also has the isdone boolean to false
-        for i:=0 to length(reversescanners)-1 do
+        if pathqueuelength=0 then //it's 0
         begin
-          if reversescanners[i].haserror then
-          begin
+          //aquire a lock to see if it's still 0
+          pathqueueCS.Enter;
+          if pathqueuelength=0 then
+          begin //still 0
+            for i:=0 to length(reversescanners)-1 do
+            begin
+              if reversescanners[i].haserror then
+              begin
 
-            OutputDebugString('A worker had an error: '+reversescanners[i].errorstring);
+                OutputDebugString('A worker had an error: '+reversescanners[i].errorstring);
 
-            haserror:=true;
-            errorstring:=reversescanners[i].errorstring;
+                haserror:=true;
+                errorstring:=reversescanners[i].errorstring;
 
-            for j:=0 to length(reversescanners)-1 do reversescanners[j].terminate; //even though the reversescanner already should have done this, let's do it myself as well
+                for j:=0 to length(reversescanners)-1 do reversescanners[j].terminate; //even though the reversescanner already should have done this, let's do it myself as well
 
-            alldone:=true;
-            break;
-          end;
+                alldone:=true;
+                break;
+              end;
 
-          if not (reversescanners[i].hasTerminated or reversescanners[i].isdone) then //isdone might be enabled
-          begin
-            if terminated then
-              OutputDebugString('Worker '+inttostr(i)+' is still active');
+              if not (reversescanners[i].hasTerminated or reversescanners[i].isdone) then //isdone might be enabled
+              begin
+                if terminated then
+                  OutputDebugString('Worker '+inttostr(i)+' is still active');
 
+                alldone:=false;
+                break;
+              end;
+            end;
+          end
+          else
             alldone:=false;
-            break;
-          end;
-        end;
+          pathqueueCS.Leave;
+        end
+        else
+          alldone:=false;
+
+
+
       end;
     end;
 
@@ -891,12 +911,17 @@ begin
 
     //all threads are done
     for i:=0 to length(reversescanners)-1 do
-    begin
       reversescanners[i].stop:=true;
-      reversescanners[i].startworking.SetEvent;  //run it in case it was waiting
+
+    ReleaseSemaphore(pathqueueSemaphore, 64, nil);
+
+
+    for i:=0 to length(reversescanners)-1 do
+    begin
       reversescanners[i].WaitFor; //wait till this thread has terminated because the main thread has terminated
       if not haserror then
         reversescanners[i].flushresults;  //write unsaved results to disk
+
       reversescanners[i].Free;
       reversescanners[i]:=nil;
     end;
@@ -951,68 +976,80 @@ begin
   
 
 
-
     i:=0;
 
-    if reverse then  //always true since 5.6
+    maxlevel:=maxlevel-1;
+
+    pathqueuelength:=0;
+    pathqueueCS:=TCriticalSection.create;
+    pathqueueSemaphore:=CreateSemaphore(nil, 0, 64, nil);
+
+    for i:=0 to 63 do
     begin
-      maxlevel:=maxlevel-1; //for reversescan
-      reverseScanCS:=tcriticalsection.Create;
-      try
-        setlength(reversescanners,threadcount);
-        for i:=0 to threadcount-1 do
-        begin
-          reversescanners[i]:=TReverseScanWorker.Create(true);
-          reversescanners[i].ownerform:=ownerform;
-          reversescanners[i].Priority:=scannerpriority;
-          reversescanners[i].staticscanner:=self;
-          setlength(reversescanners[i].tempresults,maxlevel);
-          setlength(reversescanners[i].offsetlist,maxlevel);
-
-          if noloop then
-            setlength(reversescanners[i].valuelist,maxlevel);
-
-          reversescanners[i].staticonly:=staticonly;
-          reversescanners[i].noLoop:=noLoop;
-
-          reversescanners[i].LimitToMaxOffsetsPerNode:=LimitToMaxOffsetsPerNode;
-          reversescanners[i].MaxOffsetsPerNode:=MaxOffsetsPerNode;
-
-          reversescanners[i].alligned:=not self.unalligned;
-          reversescanners[i].filename:=self.filename+'.'+inttostr(i);
-
-          reversescanners[i].start;
-        end;
-
-        //create the headerfile
-        result:=TfileStream.create(filename,fmcreate or fmShareDenyWrite);
-
-        //save header (modulelist, and levelsize)
-        ownerform.pointerlisthandler.saveModuleListToResults(result);
-
-        //levelsize
-        result.Write(maxlevel,sizeof(maxlevel)); //write max level (maxlevel is provided in the message (it could change depending on the settings)
-
-        //pointerstores
-        temp:=length(reversescanners);
-        result.Write(temp,sizeof(temp));
-        for i:=0 to length(reversescanners)-1 do
-        begin
-          tempstring:=ExtractFileName(reversescanners[i].filename);
-          temp:=length(tempstring);
-          result.Write(temp,sizeof(temp));
-          result.Write(tempstring[1],temp);
-        end;
-
-        result.Free;
+      setlength(pathqueue[i].tempresults, maxlevel+1);
+      if noLoop then
+        setlength(pathqueue[i].valuelist, maxlevel+1);
+    end;
 
 
-        reversescan;
-      finally
-        freeandnil(reverseScanCS);
+    reverseScanCS:=tcriticalsection.Create;
+    try
+      setlength(reversescanners,threadcount);
+      for i:=0 to threadcount-1 do
+      begin
+        reversescanners[i]:=TReverseScanWorker.Create(true);
+        reversescanners[i].ownerform:=ownerform;
+        reversescanners[i].Priority:=scannerpriority;
+        reversescanners[i].staticscanner:=self;
+        setlength(reversescanners[i].tempresults,maxlevel);
+        setlength(reversescanners[i].offsetlist,maxlevel);
+
+        if noloop then
+          setlength(reversescanners[i].valuelist,maxlevel);
+
+        reversescanners[i].staticonly:=staticonly;
+        reversescanners[i].noLoop:=noLoop;
+
+        reversescanners[i].LimitToMaxOffsetsPerNode:=LimitToMaxOffsetsPerNode;
+        reversescanners[i].MaxOffsetsPerNode:=MaxOffsetsPerNode;
+
+        reversescanners[i].alligned:=not self.unalligned;
+        reversescanners[i].filename:=self.filename+'.'+inttostr(i);
+
+        reversescanners[i].start;
       end;
 
+      //create the headerfile
+      result:=TfileStream.create(filename,fmcreate or fmShareDenyWrite);
+
+      //save header (modulelist, and levelsize)
+      ownerform.pointerlisthandler.saveModuleListToResults(result);
+
+      //levelsize
+      result.Write(maxlevel,sizeof(maxlevel)); //write max level (maxlevel is provided in the message (it could change depending on the settings)
+
+      //pointerstores
+      temp:=length(reversescanners);
+      result.Write(temp,sizeof(temp));
+      for i:=0 to length(reversescanners)-1 do
+      begin
+        tempstring:=ExtractFileName(reversescanners[i].filename);
+        temp:=length(tempstring);
+        result.Write(temp,sizeof(temp));
+        result.Write(tempstring[1],temp);
+      end;
+
+      result.Free;
+
+
+      reversescan;
+    finally
+      freeandnil(reverseScanCS);
+
+      freeandnil(pathqueueCS);
+      closehandle(pathqueueSemaphore);
     end;
+
 
 
   except
@@ -2175,6 +2212,7 @@ end;
 procedure Tfrmpointerscanner.New1Click(Sender: TObject);
 begin
   btnStopScan.click;
+
   if staticscanner<>nil then
     freeandnil(staticscanner);
 
