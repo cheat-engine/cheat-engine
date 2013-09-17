@@ -2,10 +2,10 @@ object frmPointerScanner: TfrmPointerScanner
   Left = 973
   Height = 517
   Top = 275
-  Width = 622
+  Width = 614
   Caption = 'Pointer scan'
   ClientHeight = 497
-  ClientWidth = 622
+  ClientWidth = 614
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Menu = MainMenu1
@@ -19,7 +19,7 @@ object frmPointerScanner: TfrmPointerScanner
     Left = 0
     Height = 21
     Top = 476
-    Width = 622
+    Width = 614
     Align = alBottom
     Step = 1
     TabOrder = 0
@@ -29,11 +29,11 @@ object frmPointerScanner: TfrmPointerScanner
     Left = 0
     Height = 24
     Top = 0
-    Width = 622
+    Width = 614
     Align = alTop
     BevelOuter = bvNone
     ClientHeight = 24
-    ClientWidth = 622
+    ClientWidth = 614
     TabOrder = 1
     object cbType: TComboBox
       Left = 0
@@ -56,7 +56,7 @@ object frmPointerScanner: TfrmPointerScanner
     Left = 0
     Height = 452
     Top = 24
-    Width = 622
+    Width = 614
     ActivePage = tsPSReverse
     Align = alClient
     TabIndex = 0
@@ -64,13 +64,13 @@ object frmPointerScanner: TfrmPointerScanner
     object tsPSReverse: TTabSheet
       Caption = 'tsPSReverse'
       ClientHeight = 423
-      ClientWidth = 614
+      ClientWidth = 606
       ImageIndex = 1
       object tvRSThreads: TTreeView
         Left = 0
         Height = 323
         Top = 65
-        Width = 614
+        Width = 606
         Align = alClient
         DefaultItemHeight = 18
         Indent = 19
@@ -80,11 +80,11 @@ object frmPointerScanner: TfrmPointerScanner
         Left = 0
         Height = 65
         Top = 0
-        Width = 614
+        Width = 606
         Align = alTop
         BevelOuter = bvNone
         ClientHeight = 65
-        ClientWidth = 614
+        ClientWidth = 606
         TabOrder = 1
         object Label5: TLabel
           Left = 0
@@ -117,11 +117,11 @@ object frmPointerScanner: TfrmPointerScanner
         Left = 0
         Height = 35
         Top = 388
-        Width = 614
+        Width = 606
         Align = alBottom
         BevelOuter = bvNone
         ClientHeight = 35
-        ClientWidth = 614
+        ClientWidth = 606
         TabOrder = 2
         object btnStopScan: TButton
           Left = 0
@@ -136,12 +136,22 @@ object frmPointerScanner: TfrmPointerScanner
           TabOrder = 0
         end
       end
+      object Button1: TButton
+        Left = 436
+        Height = 25
+        Top = 0
+        Width = 170
+        Anchors = [akTop, akRight]
+        Caption = 'Save current pointermap'
+        OnClick = Button1Click
+        TabOrder = 3
+      end
     end
   end
   object ListView1: TListView
-    Left = 384
+    Left = 200
     Height = 329
-    Top = -1
+    Top = 64
     Width = 225
     Columns = <>
     HideSelection = False

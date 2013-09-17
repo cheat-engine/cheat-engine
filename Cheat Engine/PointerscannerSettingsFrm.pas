@@ -41,6 +41,7 @@ type
     cbNoLoop: TCheckBox;
     cbMaxOffsetsPerNode: TCheckBox;
     cbStackOnly: TCheckBox;
+    cbUseLoadedPointermap: TCheckBox;
     edtThreadStacks: TEdit;
     edtStackSize: TEdit;
     lblNumberOfStackThreads: TLabel;
@@ -48,6 +49,7 @@ type
     cbStaticStacks: TCheckBox;
     edtMaxOffsetsPerNode: TEdit;
     edtAddress: TEdit;
+    odLoadPointermap: TOpenDialog;
     PSSettings: TPageControl;
     PSReverse: TTabSheet;
     CbAlligned: TCheckBox;
@@ -80,7 +82,9 @@ type
     procedure canNotReuse(Sender: TObject);
     procedure cbMaxOffsetsPerNodeChange(Sender: TObject);
     procedure cbMustEndWithSpecificOffsetChange(Sender: TObject);
+    procedure cbReusePointermapChange(Sender: TObject);
     procedure cbStaticStacksChange(Sender: TObject);
+    procedure cbUseLoadedPointermapChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure cbMustEndWithSpecificOffsetClick(Sender: TObject);
@@ -225,6 +229,41 @@ begin
 
 end;
 
+procedure TfrmPointerScannerSettings.cbReusePointermapChange(Sender: TObject);
+begin
+  if cbReusePointermap.checked then
+  begin
+    cbUseLoadedPointermap.OnChange:=nil;
+    cbUseLoadedPointermap.checked:=false;
+    cbUseLoadedPointermap.enabled:=false;
+    cbUseLoadedPointermap.OnChange:=cbUseLoadedPointermapChange;
+  end
+  else
+    cbUseLoadedPointermap.enabled:=true;
+
+end;
+
+procedure TfrmPointerScannerSettings.cbUseLoadedPointermapChange(Sender: TObject);
+begin
+  if cbUseLoadedPointermap.checked then
+  begin
+    cbUseLoadedPointermap.OnChange:=nil;
+    if odLoadPointermap.Execute then
+    begin
+      cbReusePointermap.OnChange:=nil;
+      cbReusePointermap.checked:=false;
+      cbReusePointermap.enabled:=false;
+      cbReusePointermap.OnChange:=cbReusePointermapChange;
+
+      cbUseLoadedPointermap.Caption:='Use loaded pointermap:'+ExtractFileName(odLoadPointermap.FileName);
+    end
+    else
+      cbUseLoadedPointermap.checked:=false;
+
+    cbUseLoadedPointermap.OnChange:=cbUseLoadedPointermapChange;
+  end;
+end;
+
 procedure TfrmPointerScannerSettings.cbStaticStacksChange(Sender: TObject);
 begin
   lblNumberOfStackThreads.enabled:=cbStaticStacks.checked;
@@ -235,6 +274,8 @@ begin
   cbStackOnly.enabled:=cbStaticStacks.checked;
 
 end;
+
+
 
 procedure TfrmPointerScannerSettings.FormShow(Sender: TObject);
 var
