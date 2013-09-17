@@ -9,7 +9,7 @@ uses
   Dialogs, StdCtrls, ExtCtrls, ComCtrls, syncobjs,syncobjs2, Menus, math,
   frmRescanPointerUnit, pointervaluelist, rescanhelper,
   virtualmemory, symbolhandler,MainUnit,disassembler,CEFuncProc,NewKernelHandler,
-  valuefinder, PointerscanresultReader, maps;
+  valuefinder, PointerscanresultReader, maps, zstream;
 
 
 const staticscanner_done=wm_user+1;
@@ -248,6 +248,9 @@ type
     hasError: boolean;
     errorString: string;
 
+    LoadedPointermapFilename: string;
+    UseLoadedPointermap: boolean;
+
     pathqueuelength: integer;
     pathqueue: array [0..63] of record
       tempresults: array of dword;
@@ -268,6 +271,7 @@ type
 
   Tfrmpointerscanner = class(TForm)
     btnStopRescanLoop: TButton;
+    Button1: TButton;
     ProgressBar1: TProgressBar;
     Panel1: TPanel;
     MainMenu1: TMainMenu;
@@ -296,6 +300,7 @@ type
     Resyncmodulelist1: TMenuItem;
     cbType: TComboBox;
     procedure btnStopRescanLoopClick(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure ListView1ColumnClick(Sender: TObject; Column: TListColumn);
@@ -896,6 +901,7 @@ begin
           end
           else
             alldone:=false;
+
           pathqueueCS.Leave;
         end
         else
@@ -946,6 +952,9 @@ var
     result: tfilestream;
     temp: dword;
     tempstring: string;
+
+    f: tfilestream;
+    ds: Tdecompressionstream;
 begin
   if terminated then exit;
   try
@@ -955,7 +964,22 @@ begin
       phase:=1;
       progressbar.Position:=0;
       try
-        ownerform.pointerlisthandler:=TReversePointerListHandler.Create(startaddress,stopaddress,not unalligned,progressbar, noreadonly, MustBeClassPointers, useStacks, stacksAsStaticOnly, threadstacks, stacksize);
+        if useLoadedPointermap then
+        begin
+          f:=tfilestream.create(LoadedPointermapFilename, fmOpenRead);
+          try
+            ds:=Tdecompressionstream.create(f);
+            try
+              ownerform.pointerlisthandler:=TReversePointerListHandler.createFromStream(ds, progressbar);
+            finally
+              ds.free;
+            end;
+          finally
+            f.free;
+          end;
+        end
+        else
+          ownerform.pointerlisthandler:=TReversePointerListHandler.Create(startaddress,stopaddress,not unalligned,progressbar, noreadonly, MustBeClassPointers, useStacks, stacksAsStaticOnly, threadstacks, stacksize);
 
         postmessage(ownerform.Handle, wm_starttimer, 0,0);
 
@@ -1156,7 +1180,8 @@ begin
       staticscanner.threadstacks:=frmPointerscannersettings.threadstacks;
       staticscanner.stacksize:=frmPointerscannersettings.stacksize;
 
-
+      staticscanner.UseLoadedPointermap:=frmpointerscannersettings.cbUseLoadedPointermap.Checked;
+      staticscanner.LoadedPointermapFilename:=frmpointerscannersettings.odLoadPointermap.FileName;
 
 
       staticscanner.startaddress:=frmpointerscannersettings.start;
@@ -1293,6 +1318,20 @@ procedure Tfrmpointerscanner.btnStopRescanLoopClick(Sender: TObject);
 begin
   btnStopRescanLoop.visible:=false;
   rescanpointerform.cbRepeat.checked:=false;
+end;
+
+procedure Tfrmpointerscanner.Button1Click(Sender: TObject);
+var f: tfilestream;
+
+  c: Tcompressionstream;
+begin
+  f:=tfilestream.create(Staticscanner.filename+'.scandata', fmCreate);
+
+  c:=Tcompressionstream.Create(clfastest, f);
+  pointerlisthandler.exportToStream(c);
+
+  c.free;
+  f.free;
 end;
 
 procedure Tfrmpointerscanner.FormResize(Sender: TObject);

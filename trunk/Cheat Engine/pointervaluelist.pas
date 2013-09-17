@@ -94,7 +94,8 @@ type
     function isStatic(address: ptruint; var mi: TModuleInfo; var moduleindex: integer): boolean;
     procedure quicksortmemoryregions(lo,hi: integer);
 
-    procedure addpointer(pointervalue: ptrUint; pointerwiththisvalue: ptrUint; add:boolean);
+    procedure addpointer(pointervalue: ptrUint; pointerwiththisvalue: ptrUint; add: boolean);
+    function findoraddpointervalue(pointervalue: ptrUint): PPointerList;
     procedure DeletePath(addresslist: PReversePointerListArray; level: integer);
 
     //--
@@ -107,12 +108,16 @@ type
   public
     count: qword;
 
+
     modulelist: tstringlist;
+
+    procedure exportToStream(s: TStream);
 
     procedure saveModuleListToResults(s: TStream);
 
     function findPointerValue(startvalue: ptrUint; var stopvalue: ptrUint): PPointerList;
     constructor create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar; noreadonly: boolean; mustbeclasspointers: boolean; useStacks: boolean; stacksAsStaticOnly: boolean; threadstacks: integer; stacksize: integer);
+    constructor createFromStream(s: TStream; progressbar: tprogressbar);
     destructor destroy; override;
   end;
 
@@ -239,7 +244,7 @@ begin
   end;
 end;
 
-procedure TReversePointerListHandler.addpointer(pointervalue: ptrUint; pointerwiththisvalue: ptrUint; add: boolean);
+function TReversePointerListHandler.findoraddpointervalue(pointervalue: ptrUint): PPointerList;
 var
   level: integer;
   entrynr: integer;
@@ -277,7 +282,7 @@ begin
 
   entrynr:=pointervalue shr ((maxlevel-level)*4) and $f;
   plist:=currentarray[entrynr].pointerlist;
-    
+
   if plist=nil then //allocate one
   begin
     currentarray[entrynr].pointerlist:=bigalloc.alloc(sizeof(TPointerlist));
@@ -287,29 +292,44 @@ begin
     plist.list:=nil;
     plist.pos:=0;
     plist.maxsize:=0;
-    if not add then
-      plist.expectedsize:=0
-    else
-    begin
-      //guess the number of pointers there will be with this exact value
-      plist.expectedsize:=2;
 
-      if pointervalue mod $10=0 then
+    //guess the number of pointers there will be with this exact value
+
+    plist.expectedsize:=1;
+
+    if pointervalue mod $10=0 then
+    begin
+      plist.expectedsize:=5;
+      if pointervalue mod $100=0 then
       begin
-        plist.expectedsize:=5;
-        if pointervalue mod $100=0 then
+        plist.expectedsize:=10;
+        if pointervalue mod $1000=0 then
         begin
-          plist.expectedsize:=10;
-          if pointervalue mod $1000=0 then
-          begin
-            plist.expectedsize:=20;
-            if pointervalue mod $10000=0 then
-              plist.expectedsize:=50;
-          end;
+          plist.expectedsize:=20;
+          if pointervalue mod $10000=0 then
+            plist.expectedsize:=50;
         end;
-      end
+      end;
+
     end;
+
   end;
+
+  result:=plist;
+end;
+
+
+procedure TReversePointerListHandler.addpointer(pointervalue: ptrUint; pointerwiththisvalue: ptrUint; add: boolean);
+var
+  mi: Tmoduleinfo;
+
+  plist: PPointerList;
+
+  size: integer;
+  moduleindex: integer;
+
+begin
+  plist:=findoraddpointervalue(pointervalue);
 
   if not add then
     inc(plist.expectedsize)
@@ -349,23 +369,21 @@ end;
 
 procedure TReversePointerListHandler.saveModuleListToResults(s: TStream);
 var i: integer;
-  x: dword;
 begin
   //save the number of modules
-  x:=modulelist.Count;
-  s.Write(x,sizeof(x));
+  s.WriteDWord(modulelist.Count);
 
   for i:=0 to modulelist.Count-1 do
   begin
     //for each module
     //save the length
-    x:=length(modulelist[i]);
-    s.Write(x,sizeof(x));
+    s.WriteDWord(length(modulelist[i]));
 
     //and the name
-    s.Write(modulelist[i][1],x);
+    s.Write(modulelist[i][1],length(modulelist[i]));
   end;
 end;
+
 
 
 
@@ -638,6 +656,134 @@ begin
 
   if lastPointerValue=nil then
     raise exception.create(rsPointerValueSetupError);
+end;
+
+procedure TReversePointerListHandler.exportToStream(s: TStream);
+var i: integer;
+
+  pv: PPointerList;
+begin
+
+  saveModuleListToResults(s); //save the module list (not important for worker threads/systems, but used for saving the main .ptr file)
+
+  s.WriteDWord(maxlevel);
+
+  s.WriteQWord(count);
+
+  pv:=firstPointerValue;
+  while (pv<>nil) do
+  begin
+    if (pv^.list<>nil) then
+    begin
+      s.writeQword(pv^.PointerValue);
+      s.WriteDWord(pv^.pos);
+
+      for i:=0 to pv^.pos-1 do
+      begin
+        s.writeQword(pv^.list[i].address);
+
+        if pv^.list[i].staticdata=nil then
+          s.WriteByte(0)
+        else
+        begin
+          s.WriteByte(1);
+          s.WriteDWord(pv^.list[i].staticdata.moduleindex);
+          s.WriteDWord(pv^.list[i].staticdata.offset);
+        end;
+
+      end;
+
+
+    end;
+
+    pv:=pv^.next;
+  end;
+end;
+
+constructor TReversePointerListHandler.createFromStream(s: Tstream; progressbar: tprogressbar);
+var
+  i: integer;
+  numberofpointers: integer;
+  plist: PPointerList;
+  address: ptruint;
+
+  mlistlength: integer;
+
+  x: integer;
+  mname: pchar;
+  totalcount: qword;
+
+  lastcountupdate: qword;
+begin
+  OutputDebugString('TReversePointerListHandler.createFromStream');
+
+  //first read the modulelist. Not used for the scan itself, but needed when saving as the base maintainer
+  bigalloc:=TBigMemoryAllocHandler.create;
+
+  progressbar.Min:=0;
+  progressbar.Position:=0;
+  progressbar.max:=100;
+
+
+  modulelist:=TStringList.create;
+  mlistlength:=s.ReadDWord;
+  for i:=0 to mlistlength-1 do
+  begin
+    x:=s.ReadDWord;
+    getmem(mname, x);
+    s.ReadBuffer(mname^, x);
+    mname[x]:=#0;
+
+    modulelist.add(mname);
+    freemem(mname);
+  end;
+
+  maxlevel:=s.ReadDWord;
+  totalcount:=s.ReadQWord;
+
+  getmem(level0list, sizeof(TReversePointerListArray));
+  ZeroMemory(level0list, sizeof(TReversePointerListArray));
+
+  count:=0;
+  lastcountupdate:=0;
+
+  while (count<totalcount) do
+  begin
+    plist:=findoraddpointervalue(ptruint(s.ReadQWord));
+
+    if plist<>nil then //should always be the case
+    begin
+      numberofpointers:=s.ReadDWord;
+
+      plist.pos:=numberofpointers;
+      getmem(plist.list, numberofpointers*sizeof(TPointerDataArray));
+
+      for i:=0 to numberofpointers-1 do
+      begin
+        plist.list[i].address:=s.ReadQWord;
+        if s.ReadByte=1 then //has staticdata
+        begin
+          getmem(plist.list[i].staticdata, sizeof(TStaticData));
+          plist.list[i].staticdata.moduleindex:=s.ReadDWord;
+          plist.list[i].staticdata.offset:=s.readDword;
+        end
+        else
+          plist.list[i].staticdata:=nil;
+      end;
+      inc(count, numberofpointers);
+
+      if (count-lastcountupdate)>1000 then
+      begin
+        progressbar.position:=trunc(totalcount/count*100);
+        lastcountupdate:=count;
+      end;
+    end;
+  end;
+
+
+  //finally when done, fill in the linked list
+  fillLinkedList;
+
 end;
 
 constructor TReversePointerListHandler.create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar; noreadonly: boolean; mustbeclasspointers: boolean; useStacks: boolean; stacksAsStaticOnly: boolean; threadstacks: integer; stacksize: integer);
