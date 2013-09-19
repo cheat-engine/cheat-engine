@@ -2,6 +2,8 @@ unit pointerscannerfrm;
 
 {$MODE Delphi}
 
+//todo: Make a command prompt version of the distributed scanning pointerscan client, and make it functional in linux as well (real servers)
+
 interface
 
 uses
@@ -9,7 +11,7 @@ uses
   Dialogs, StdCtrls, ExtCtrls, ComCtrls, syncobjs,syncobjs2, Menus, math,
   frmRescanPointerUnit, pointervaluelist, rescanhelper,
   virtualmemory, symbolhandler,MainUnit,disassembler,CEFuncProc,NewKernelHandler,
-  valuefinder, PointerscanresultReader, maps, zstream;
+  valuefinder, PointerscanresultReader, maps, zstream, WinSock2, Sockets;
 
 
 const staticscanner_done=wm_user+1;
@@ -100,6 +102,14 @@ type
 
   toffsetlist = array of dword;
 
+  TPathQueueElement=record
+    tempresults: array of dword;
+    valuelist: array of ptruint;
+    valuetofind: ptruint;
+    startlevel: integer;
+  end;
+  PPathQueueElement=^TPathQueueElement;
+
   TStaticscanner = class;
 
   TReverseScanWorker = class (tthread)
@@ -166,6 +176,21 @@ type
   private
     reversescanners: array of treversescanworker;
     pointersize: integer;
+
+    sockethandle: THandle;
+
+    workers: array of THandle; //if server, this will contain a list of connected workers
+
+    function send(socket: TSocket; buffer: pointer; size: integer): integer;
+    function receive(socket: TSocket; buffer: pointer; size: integer): integer;
+
+
+    procedure launchWorker; //connect to the server
+    procedure launchServer; //start listening on the specific port
+    procedure doDistributedScanningLoop;
+    procedure doDistributedScanningWorkerLoop;
+    procedure doDistributedScanningServerLoop;
+    procedure DispatchCommand(command: byte);
 
     function ismatchtovalue(p: pointer): boolean;  //checks if the pointer points to a value matching the user's input
     procedure reversescan;
@@ -252,15 +277,18 @@ type
     UseLoadedPointermap: boolean;
 
     pathqueuelength: integer;
-    pathqueue: array [0..63] of record
-      tempresults: array of dword;
-      valuelist: array of ptruint;
-      valuetofind: ptruint;
-      startlevel: integer;
+    pathqueue: array [0..63] of TPathQueueElement;
 
-    end;
     pathqueueCS: TCriticalSection; //critical section used to add/remove entries
     pathqueueSemaphore: THandle; //Event to notify sleeping threads to wake up that there is a new path in the queue
+
+    distributedScanning: boolean; //when set to true this will open listening port where other scanners can connect to
+    distributedport: word; //port used to listen on if distributed scanning is enabled
+
+
+    distributedWorker: boolean; //set if it's a worker connecting to a server
+    distributedServer: string;
+
 
     procedure execute; override;
     constructor create(suspended: boolean);
@@ -272,6 +300,7 @@ type
   Tfrmpointerscanner = class(TForm)
     btnStopRescanLoop: TButton;
     Button1: TButton;
+    MenuItem1: TMenuItem;
     ProgressBar1: TProgressBar;
     Panel1: TPanel;
     MainMenu1: TMainMenu;
@@ -305,6 +334,7 @@ type
     procedure FormResize(Sender: TObject);
     procedure ListView1ColumnClick(Sender: TObject; Column: TListColumn);
     procedure ListView1Resize(Sender: TObject);
+    procedure MenuItem1Click(Sender: TObject);
     procedure Method3Fastspeedandaveragememoryusage1Click(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
     procedure Open1Click(Sender: TObject);
@@ -751,6 +781,207 @@ end;
 
 
 //--------------------------STATICSCANNER------------------
+
+
+function TStaticScanner.send(socket: TSocket; buffer: pointer; size: integer): integer;
+var i: integer;
+begin
+  result:=0;
+  while (result<size) do
+  begin
+    i:=fpsend(socket, pointer(ptruint(buffer)+result), size, 0);
+    if i<=0 then
+    begin
+      result:=i; //error
+      exit;
+    end;
+
+    inc(result, i);
+  end;
+end;
+
+function TStaticScanner.receive(socket: TSocket; buffer: pointer; size: integer): integer;
+var
+  i: integer;
+begin
+  {$ifdef windows}
+    //xp doesn't support MSG_WAITALL
+
+    result:=0;
+    while (result<size) do
+    begin
+      i:=fprecv(socket, pointer(ptruint(buffer)+result), size-result, 0);
+      if i<=0 then
+      begin
+        result:=i; //error
+        exit;
+      end;
+
+      inc(result, i);
+
+    end;
+
+  {$else}
+    result:=fprecv(socket, buffer, size, MSG_WAITALL);
+  {$endif}
+end;
+
+procedure TStaticScanner.launchServer;
+var
+  B: BOOL;
+  i: integer;
+  sockaddr: TInetSockAddr;
+
+  s: Tfilestream;
+  cs: Tcompressionstream;
+begin
+  //start listening on the given port.  doDistributedScanningEvent will be responsible for accepting connections
+  sockethandle:=socket(AF_INET, SOCK_STREAM, 0);
+
+  if sockethandle=INVALID_SOCKET then
+    raise Exception.create('Failure creating socket');
+
+  B:=TRUE;
+  fpsetsockopt(sockethandle, SOL_SOCKET, SO_REUSEADDR, @B, sizeof(B));
+
+
+  sockaddr.sin_family:=AF_INET;
+  sockaddr.sin_port:=htons(distributedport);
+  sockaddr.sin_addr.s_addr:=INADDR_ANY;
+  i:=bind(sockethandle, @sockaddr, sizeof(sockaddr));
+
+  if i=SOCKET_ERROR then
+    raise exception.create('Failure to bind port '+inttostr(distributedport));
+
+  i:=listen(sockethandle, 32);
+  if i=SOCKET_ERROR then
+    raise exception.create('Failure to listen');
+
+
+  if useLoadedPointermap=false then
+  begin
+    LoadedPointermapFilename:=self.filename+'.distributedscandata';
+    s:=TFileStream.Create(LoadedPointermapFilename, fmCreate);
+    try
+      cs:=Tcompressionstream.Create(clfastest, s);
+      try
+        ownerform.pointerlisthandler.exportToStream(cs);
+      finally
+        cs.free;
+      end;
+    finally
+      s.free;
+    end;
+  end;
+
+
+end;
+
+procedure TStaticScanner.launchWorker;
+begin
+  //try to connect to the server until it works, or timeouit (60 seconds)
+
+
+end;
+
+procedure TStaticScanner.doDistributedScanningWorkerLoop;
+begin
+  //send state to the server and ask if it has or needs queuedpaths
+
+end;
+
+procedure TStaticScanner.DispatchCommand(command: byte);
+begin
+  //see pointerscancommands.txt
+end;
+
+procedure TStaticScanner.doDistributedScanningServerLoop;
+var
+  readfds: PFDSet;
+  i,r: integer;
+  timeout: TTimeVal;
+
+  client: TSockAddrIn;
+  clientsize: integer;
+  command: byte;
+begin
+  //wait for a status update from any worker, and then either request and send queued paths
+  getmem(readfds, sizeof(PtrUInt)+sizeof(TSocket)*(length(workers)+1));
+
+  readfds^.fd_count:=1;
+  readfds^.fd_array[0]:=sockethandle;
+
+  for i:=1 to readfds.fd_count-1 do
+  begin
+    if workers[i-1]<>-1 then //don't add scanners that got disconnected. (they can reconnect)
+    begin
+      readfds.fd_array[i]:=workers[i-1];
+      inc(readfds^.fd_count);
+    end;
+  end;
+
+  timeout.tv_sec:=1;
+  timeout.tv_usec:=0;
+  i:=select(-1, readfds, nil, nil, @timeout);
+  if i=-1 then
+    raise exception.create('Select failed');
+
+  if i>0 then
+  begin
+    //at least one is signaled
+    if FD_ISSET(sockethandle, readfds^) then
+    begin
+      clientsize:=sizeof(client);
+      i:=fpaccept(sockethandle, @client, @clientsize);
+      if i<>INVALID_SOCKET then
+      begin
+        setlength(workers, length(workers)+1);
+        workers[length(workers)-1]:=i;
+      end;
+    end;
+
+
+    for i:=0 to length(workers)-1 do //also read from newly created sockets. They always send a message anyhow (getScanParameters)
+    begin
+      if FD_ISSET(workers[i], readfds^) then
+      begin
+        //handle it
+        r:=receive(workers[i], @command, 1);
+        if r=SOCKET_ERROR then
+        begin
+          CloseSocket(workers[i]);
+          workers[i]:=-1; //mark as (temporary) disconnected (the worker can reconnect, it will reuse it's own worker[] spot and the newly created worker will become disconnected)
+          continue;
+        end;
+
+        r:=dispatchCommand(command);
+        if r=-1 then
+        begin
+          CloseSocket(workers[i]);
+          workers[i]:=-1;
+          continue;
+        end;
+
+      end;
+
+
+    end;
+
+  end;
+
+  Freemem(readfds);
+
+end;
+
+
+procedure TStaticScanner.doDistributedScanningLoop;
+begin
+  if distributedWorker then
+    doDistributedScanningWorkerLoop
+  else
+    doDistributedScanningServerLoop;
+end;
+
 function TStaticScanner.ismatchtovalue(p: pointer): boolean;
 begin
   case valuetype of
@@ -779,74 +1010,87 @@ begin
   alldone:=false;
 
   try
-
     if maxlevel>0 then
     begin
 
-      //initialize the first reverse scan worker
-      //that one will spawn of all his other siblings if needed
-
-      if Self.findValueInsteadOfAddress then
+      if (distributedScanning=false) or (distributedWorker=false) then //don't start the scan if it's a worker system
       begin
-        //scan the memory for the value
-        ValueFinder:=TValueFinder.create(startaddress,stopaddress);
-        ValueFinder.alligned:=not unalligned;
-        ValueFinder.valuetype:=valuetype;
-        ValueFinder.valuescandword:=valuescandword;
-        ValueFinder.valuescansingle:=valuescansingle;
-        ValueFinder.valuescandouble:=valuescandouble;
-        ValueFinder.valuescansinglemax:=valuescansinglemax;
-        ValueFinder.valuescandoublemax:=valuescandoublemax;
+        //initialize the first reverse scan worker
+        //that one will spawn of all his other siblings if needed
 
-        currentaddress:=ptrUint(ValueFinder.FindValue(startaddress));
-        while (not terminated) and (currentaddress>0) do
+        if Self.findValueInsteadOfAddress then
         begin
-          //if found, find a idle thread and tell it to look for this address starting from level 0 (like normal)
-          addedToQueue:=false;
-          while (not terminated) and (not addedToQueue) do
+          //scan the memory for the value
+          ValueFinder:=TValueFinder.create(startaddress,stopaddress);
+          ValueFinder.alligned:=not unalligned;
+          ValueFinder.valuetype:=valuetype;
+          ValueFinder.valuescandword:=valuescandword;
+          ValueFinder.valuescansingle:=valuescansingle;
+          ValueFinder.valuescandouble:=valuescandouble;
+          ValueFinder.valuescansinglemax:=valuescansinglemax;
+          ValueFinder.valuescandoublemax:=valuescandoublemax;
+
+          currentaddress:=ptrUint(ValueFinder.FindValue(startaddress));
+          while (not terminated) and (currentaddress>0) do
           begin
-            if pathqueuelength<63 then //no need to lock
+            //if found, find a idle thread and tell it to look for this address starting from level 0 (like normal)
+            addedToQueue:=false;
+            while (not terminated) and (not addedToQueue) do
             begin
-              pathqueueCS.enter;
-              //setup the queueelement
-              if pathqueuelength<63 then
+              if pathqueuelength<63 then //no need to lock
               begin
-                pathqueue[pathqueuelength].startlevel:=0;
-                pathqueue[pathqueuelength].valuetofind:=currentaddress;
+                pathqueueCS.enter;
+                //setup the queueelement
+                if pathqueuelength<63 then
+                begin
+                  pathqueue[pathqueuelength].startlevel:=0;
+                  pathqueue[pathqueuelength].valuetofind:=currentaddress;
 
-                inc(pathqueuelength);
-                ReleaseSemaphore(pathqueueSemaphore, 1, nil);
+                  inc(pathqueuelength);
+                  ReleaseSemaphore(pathqueueSemaphore, 1, nil);
 
-                if unalligned then
-                  currentaddress:=ValueFinder.FindValue(currentaddress+1)
-                else
-                  currentaddress:=ValueFinder.FindValue(currentaddress+pointersize);
+                  if unalligned then
+                    currentaddress:=ValueFinder.FindValue(currentaddress+1)
+                  else
+                    currentaddress:=ValueFinder.FindValue(currentaddress+pointersize);
 
-                addedToQueue:=true;
+                  addedToQueue:=true;
+                end;
+
+                pathqueueCS.enter;
               end;
 
-              pathqueueCS.enter;
+              if (not addedToQueue) and (not terminated) then
+                sleep(500); //wait till there is space in the queue
             end;
 
-            if (not addedToQueue) and (not terminated) then
-              sleep(500); //wait till there is space in the queue
           end;
 
+          //done with the value finder, wait till all threads are done
+          valuefinder.free;
+        end
+        else
+        begin
+          //initialize the first thread (it'll spawn new pathqueues)
+          pathqueue[pathqueuelength].startlevel:=0;
+          pathqueue[pathqueuelength].valuetofind:=self.automaticaddress;
+          inc(pathqueuelength);
+          ReleaseSemaphore(pathqueueSemaphore, 1, nil);
         end;
 
-        //done with the value finder, wait till all threads are done
-        valuefinder.free;
-      end
-      else
-      begin
-        //initialize the first thread (it'll spawn all other threads)
-        pathqueue[pathqueuelength].startlevel:=0;
-        pathqueue[pathqueuelength].valuetofind:=self.automaticaddress;
-        inc(pathqueuelength);
-        ReleaseSemaphore(pathqueueSemaphore, 1, nil);
       end;
 
-      //wait till all threads are in isdone state
+      //wait till all workers are in isdone state
+
+      if distributedScanning then
+      begin
+        if not distributedWorker then
+          launchServer; //everything is configured now and the scanners are active
+
+        doDistributedScanningLoop;
+      end;
+
+
 
       while (not alldone) do
       begin
@@ -865,7 +1109,9 @@ begin
         end;
 
         sleep(500);
-        alldone:=true;
+        if distributedScanning then
+           doDistributedScanningLoop;
+
 
         if pathqueuelength=0 then //it's 0
         begin
@@ -958,6 +1204,9 @@ var
 begin
   if terminated then exit;
   try
+    if distributedScanning and distributedWorker then
+      LaunchWorker;
+
 
     if ownerform.pointerlisthandler=nil then
     begin
@@ -1004,6 +1253,7 @@ begin
 
     maxlevel:=maxlevel-1;
 
+    //setup the pathqueue
     pathqueuelength:=0;
     pathqueueCS:=TCriticalSection.create;
     pathqueueSemaphore:=CreateSemaphore(nil, 0, 64, nil);
@@ -1211,6 +1461,10 @@ begin
       staticscanner.threadcount:=frmpointerscannersettings.threadcount;
       staticscanner.scannerpriority:=frmpointerscannersettings.scannerpriority;
 
+      staticscanner.distributedScanning:=frmpointerscannersettings.cbDistributedScanning.checked;
+      staticscanner.distributedport:=frmpointerscannersettings.distributedPort;
+
+
       staticscanner.mustEndWithSpecificOffset:=frmpointerscannersettings.cbMustEndWithSpecificOffset.checked;
       if staticscanner.mustEndWithSpecificOffset then
       begin
@@ -1306,6 +1560,11 @@ begin
   end;
 end;
 
+procedure Tfrmpointerscanner.MenuItem1Click(Sender: TObject);
+begin
+
+end;
+
 procedure Tfrmpointerscanner.FormDestroy(Sender: TObject);
 var x: array of integer;
 begin
@@ -1332,6 +1591,8 @@ begin
 
   c.free;
   f.free;
+
+  button1.visible:=false;
 end;
 
 procedure Tfrmpointerscanner.FormResize(Sender: TObject);
@@ -1408,7 +1669,15 @@ begin
     listview1.repaint;
 
   if pointerlisthandler<>nil then
-    label6.caption:=rsAddressSpecifiersFoundInTheWholeProcess+':'+inttostr(pointerlisthandler.count);
+  begin
+    if staticscanner<>nil then
+      i:=staticscanner.pathqueuelength
+    else
+      i:=0;
+
+    s:=rsAddressSpecifiersFoundInTheWholeProcess+':'+inttostr(pointerlisthandler.count)+'  (pathqueue: '+inttostr(i)+')';
+    label6.caption:=s;
+  end;
 
   if staticscanner<>nil then
   try
