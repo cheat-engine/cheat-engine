@@ -434,11 +434,44 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     OnChange = cbUseLoadedPointermapChange
     TabOrder = 7
   end
+  object cbDistributedScanning: TCheckBox
+    Left = 282
+    Height = 19
+    Top = 280
+    Width = 142
+    Caption = 'Allow distributed scanning'
+    TabOrder = 8
+  end
+  object edtDistributedPort: TEdit
+    AnchorSideLeft.Control = lblPort
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = lblPort
+    AnchorSideTop.Side = asrCenter
+    Left = 321
+    Height = 21
+    Top = 299
+    Width = 103
+    TabOrder = 9
+    Text = '52737'
+  end
+  object lblPort: TLabel
+    AnchorSideLeft.Control = cbDistributedScanning
+    AnchorSideTop.Control = cbDistributedScanning
+    AnchorSideTop.Side = asrBottom
+    Left = 298
+    Height = 14
+    Top = 302
+    Width = 23
+    BorderSpacing.Left = 16
+    BorderSpacing.Top = 3
+    Caption = 'Port:'
+    ParentColor = False
+  end
   object odLoadPointermap: TOpenDialog
     DefaultExt = '.scandata'
     Filter = 'All files (*.*)|*.*|scandata files|*.scandata'
     FilterIndex = 2
-    left = 304
-    top = 288
+    left = 56
+    top = 280
   end
 end

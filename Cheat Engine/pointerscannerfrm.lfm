@@ -149,9 +149,9 @@ object frmPointerScanner: TfrmPointerScanner
     end
   end
   object ListView1: TListView
-    Left = 200
+    Left = 384
     Height = 329
-    Top = 64
+    Top = 144
     Width = 225
     Columns = <>
     HideSelection = False
@@ -204,6 +204,11 @@ object frmPointerScanner: TfrmPointerScanner
         ShortCut = 16464
         OnClick = Method3Fastspeedandaveragememoryusage1Click
       end
+      object MenuItem1: TMenuItem
+        Caption = 'Join disctributed scan'
+        ShortCut = 16452
+        OnClick = MenuItem1Click
+      end
       object N1: TMenuItem
         Caption = '-'
       end
@@ -236,8 +241,8 @@ object frmPointerScanner: TfrmPointerScanner
     top = 312
   end
   object PopupMenu1: TPopupMenu
-    left = 464
-    top = 96
+    left = 520
+    top = 248
     object Resyncmodulelist1: TMenuItem
       Caption = 'Resync modulelist'
       OnClick = Resyncmodulelist1Click

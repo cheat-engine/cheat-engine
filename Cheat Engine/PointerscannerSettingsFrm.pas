@@ -42,8 +42,11 @@ type
     cbMaxOffsetsPerNode: TCheckBox;
     cbStackOnly: TCheckBox;
     cbUseLoadedPointermap: TCheckBox;
+    cbDistributedScanning: TCheckBox;
+    edtDistributedPort: TEdit;
     edtThreadStacks: TEdit;
     edtStackSize: TEdit;
+    lblPort: TLabel;
     lblNumberOfStackThreads: TLabel;
     lblStackSize: TLabel;
     cbStaticStacks: TCheckBox;
@@ -117,6 +120,7 @@ type
     threadstacks: integer;
     stacksize: integer;
     scannerpriority: TThreadPriority;
+    distributedport: word;
   end;
 
 var frmpointerscannersettings: tfrmpointerscannersettings;
@@ -209,6 +213,8 @@ begin
     threadstacks:=strtoint(edtThreadStacks.text);
     stacksize:=strtoint(edtStackSize.text);
   end;
+
+  distributedport:=strtoint(edtDistributedPort.text);
 
   modalresult:=mrok;
 end;

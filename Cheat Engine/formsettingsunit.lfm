@@ -14,7 +14,7 @@ object formSettings: TformSettings
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poMainFormCenter
-  LCLVersion = '1.1'
+  LCLVersion = '1.0.8.0'
   object pnlConfig: TPanel
     Left = 0
     Height = 470
@@ -71,65 +71,65 @@ object formSettings: TformSettings
         ClientWidth = 614
         object Label11: TLabel
           Left = 221
-          Height = 13
+          Height = 14
           Top = 373
-          Width = 13
+          Width = 14
           Caption = 'ms'
           ParentColor = False
         end
         object Label12: TLabel
           Left = 221
-          Height = 13
+          Height = 14
           Top = 397
-          Width = 13
+          Width = 14
           Caption = 'ms'
           ParentColor = False
         end
         object Label13: TLabel
           Left = 87
-          Height = 13
+          Height = 14
           Top = 376
-          Width = 72
+          Width = 73
           Caption = 'Update interval'
           ParentColor = False
         end
         object Label14: TLabel
           Left = 90
-          Height = 13
+          Height = 14
           Top = 401
-          Width = 69
+          Width = 70
           Caption = 'Freeze interval'
           ParentColor = False
         end
         object Label18: TLabel
           Left = 1
-          Height = 13
+          Height = 14
           Top = 424
-          Width = 158
+          Width = 159
           Caption = 'Found address list update interval'
           ParentColor = False
         end
         object Label19: TLabel
           Left = 221
-          Height = 13
+          Height = 14
           Top = 421
-          Width = 13
+          Width = 14
           Caption = 'ms'
           ParentColor = False
         end
         object Label23: TLabel
           Left = 10
-          Height = 13
+          Height = 14
           Top = 322
-          Width = 193
+          Width = 194
           Caption = 'Automatically attach to processes named'
           ParentColor = False
         end
         object Label24: TLabel
           Left = 359
-          Height = 13
+          Height = 14
           Top = 321
-          Width = 114
+          Width = 115
           Caption = '(Seperate entries with ; )'
           ParentColor = False
         end
@@ -666,6 +666,7 @@ object formSettings: TformSettings
             00C0C0C0000000C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0
             C0C0C0C0C0000000000000000000C0C0C0C0C0C0C0C0C0C0C0C0
           }
+          NumGlyphs = 0
           OnClick = LoadButtonClick
           ShowHint = True
           ParentShowHint = False
@@ -1196,6 +1197,7 @@ object formSettings: TformSettings
               00C0C0C0000000C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0
               C0C0C0C0C0000000000000000000C0C0C0C0C0C0C0C0C0C0C0C0
             }
+            NumGlyphs = 0
             OnClick = OpenButtonClick
             ShowHint = True
             ParentShowHint = False
@@ -1329,10 +1331,10 @@ object formSettings: TformSettings
     OnResize = Panel6Resize
     object AboutLabel: TLabel
       Cursor = crHandPoint
-      Left = 725
-      Height = 13
-      Top = 34
-      Width = 45
+      Left = 724
+      Height = 14
+      Top = 33
+      Width = 46
       Anchors = [akRight, akBottom]
       Caption = 'About CE'
       Font.Color = clBlue
