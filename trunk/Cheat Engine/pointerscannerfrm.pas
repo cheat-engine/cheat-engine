@@ -19,7 +19,19 @@ const rescan_done=wm_user+2;
 const open_scanner=wm_user+3;
 const wm_starttimer=wm_user+4;
 
+//--------Network commands--------
+const
+  CMD_GETSCANPARAMETERS=0;
+  CMD_UPDATEWORKERSTATUS=1;
+    CMDUPDATEREPLY_EVERYTHINGOK=0;
+    CMDUPDATEREPLY_HEREARESOMEPATHSTOEVALUATE=1;
+    CMDUPDATEREPLY_PLEASESENDMESOMEPATHS=2;
+
+
+
 type
+  TSocketException=class(Exception);
+
   TfrmPointerscanner = class;
   TRescanWorker=class(TThread)
   private
@@ -104,8 +116,8 @@ type
 
   TPathQueueElement=record
     tempresults: array of dword;
-    valuelist: array of ptruint;
-    valuetofind: ptruint;
+    valuelist: array of qword;
+    valuetofind: qword;
     startlevel: integer;
   end;
   PPathQueueElement=^TPathQueueElement;
@@ -179,18 +191,28 @@ type
 
     sockethandle: THandle;
 
-    workers: array of THandle; //if server, this will contain a list of connected workers
+
+    workers: array of record //if server, this will contain a list of connected workers
+      s: THandle;
+      id: integer;
+      threadcount: integer;
+      pathsPerSecond: qword;
+      alldone: boolean;
+    end;
+    myID: integer; //if worker, this will be the ID to identify the generated results, and to reconnect
+
 
     function send(socket: TSocket; buffer: pointer; size: integer): integer;
     function receive(socket: TSocket; buffer: pointer; size: integer): integer;
 
+    procedure EatFromOverflowQueueIfNeeded;
 
     procedure launchWorker; //connect to the server
     procedure launchServer; //start listening on the specific port
     procedure doDistributedScanningLoop;
     procedure doDistributedScanningWorkerLoop;
     procedure doDistributedScanningServerLoop;
-    procedure DispatchCommand(command: byte);
+    procedure DispatchCommand(s: Tsocket; command: byte);
 
     function ismatchtovalue(p: pointer): boolean;  //checks if the pointer points to a value matching the user's input
     procedure reversescan;
@@ -278,9 +300,11 @@ type
 
     pathqueuelength: integer;
     pathqueue: array [0..63] of TPathQueueElement;
-
     pathqueueCS: TCriticalSection; //critical section used to add/remove entries
     pathqueueSemaphore: THandle; //Event to notify sleeping threads to wake up that there is a new path in the queue
+
+    overflowqueue: array of TPathQueueElement; //this queue will hold a number of paths that the server/worker received too many. (e.g a request for paths was made, but by the time the paths are received, the pathqueue is full again)
+
 
     distributedScanning: boolean; //when set to true this will open listening port where other scanners can connect to
     distributedport: word; //port used to listen on if distributed scanning is enabled
@@ -781,7 +805,25 @@ end;
 
 
 //--------------------------STATICSCANNER------------------
+procedure TStaticScanner.EatFromOverflowQueueIfNeeded;
+var
+  i: integer;
+  pathsToCopy: integer;
+begin
+  if (length(overflowqueue)>0) and (pathqueuelength<63) then //I could use some paths
+  begin
+    //do I have an overflow I can use ?
+    pathqueueCS.enter;
+    pathsToCopy:=min(length(overflowqueue), (64-pathqueuelength)); //get the number of paths to transfer from the oveflow queue to the real queue
 
+    for i:=pathqueuelength to pathqueuelength+pathstocopy-1 do
+      pathqueue[i]:=overflowqueue[length(overflowqueue)-1-(i-pathqueuelength)];
+
+    pathqueueCS.leave;
+
+    setlength(overflowqueue, length(overflowqueue)-pathstocopy);
+  end;
+end;
 
 function TStaticScanner.send(socket: TSocket; buffer: pointer; size: integer): integer;
 var i: integer;
@@ -791,10 +833,7 @@ begin
   begin
     i:=fpsend(socket, pointer(ptruint(buffer)+result), size, 0);
     if i<=0 then
-    begin
-      result:=i; //error
-      exit;
-    end;
+      raise TSocketException.Create('Send Error');
 
     inc(result, i);
   end;
@@ -804,26 +843,15 @@ function TStaticScanner.receive(socket: TSocket; buffer: pointer; size: integer)
 var
   i: integer;
 begin
-  {$ifdef windows}
-    //xp doesn't support MSG_WAITALL
+  result:=0;
+  while (result<size) do
+  begin
+    i:=fprecv(socket, pointer(ptruint(buffer)+result), size-result, 0);
+    if i<=0 then
+      raise TSocketException.Create('Receive Error');
 
-    result:=0;
-    while (result<size) do
-    begin
-      i:=fprecv(socket, pointer(ptruint(buffer)+result), size-result, 0);
-      if i<=0 then
-      begin
-        result:=i; //error
-        exit;
-      end;
-
-      inc(result, i);
-
-    end;
-
-  {$else}
-    result:=fprecv(socket, buffer, size, MSG_WAITALL);
-  {$endif}
+    inc(result, i);
+  end;
 end;
 
 procedure TStaticScanner.launchServer;
@@ -890,9 +918,271 @@ begin
 
 end;
 
-procedure TStaticScanner.DispatchCommand(command: byte);
+procedure TStaticScanner.DispatchCommand(s: TSocket; command: byte);
+type
+  TGetScanParametersOut=packed record
+    yourID: Int32;
+    maxlevel: Uint32;
+    staticonly: Byte;
+    noLoop: Byte;
+    LimitToMaxOffsetsPerNode: Byte;
+    Alligned: Byte;
+    MaxOffsetsPerNode: UInt16;
+    FilenameSize: Uint16;
+    Filename: packed record end;
+  end;
+  PGetScanParametersOut=^TGetScanParametersOut;
+
+  TTransmittedQueueMessage=packed record
+    replymessage: byte; //(should be CMDUPDATEREPLY_HEREARESOMEPATHSTOEVALUATE)
+    elementcount: byte;
+    elements: array [0..99999] of TPathQueueElement;
+  end;
+  PTransmittedQueueMessage=^TTransmittedQueueMessage;
+
+var
+  getScanParametersIn: packed record
+    wantedID: Int32;
+    threadcount: UInt32;
+  end;
+
+  getScanParametersOut: PGetScanParametersOut;
+
+  UpdateWorkerStatus: packed record
+    pathqueuelength: int32;
+    pathsPerSecond: qword;
+    allthreadsdone: byte;
+  end;
+
+  i, j,index: integer;
+  found: boolean;
+
+
+  packetsize: integer;
+
+  TransmittedQueueMessage: PTransmittedQueueMessage;
+  RequestQueueMessage: packed record
+    replymessage: byte;
+    max: byte;
+  end;
+  elementcount: integer;
+
+  receivedQueueListCount: byte;
+  tempqueue: array of TPathQueueElement;
+
 begin
   //see pointerscancommands.txt
+  try
+
+    case command of
+      CMD_GETSCANPARAMETERS:
+      begin
+        //read out the client parameters (wanted ID, threadcount)
+        receive(s, @getScanParametersIn, sizeof(getScanParametersIn));
+
+
+        if getScanParametersIn.wantedID=-1 then
+        begin
+          //new connection
+          index:=length(workers);
+          setlength(workers, length(workers)+1);
+          workers[index].id:=length(workers)-1;
+          workers[index].s:=s;
+        end
+        else
+        begin
+          //reconnected
+          found:=false;
+          for i:=0 to length(workers)-1 do
+          begin
+            if workers[i].id=getScanParametersIn.wantedID then
+            begin
+              if workers[i].s<>-1 then //the client disconnected and reconnected before the server saw it
+                closehandle(workers[i].s);
+
+              index:=i;
+              workers[i].s:=s;
+              found:=true;
+              break;
+            end;
+          end;
+
+          if not found then //wtf?
+          begin
+            OutputDebugString(pchar('A client reconnected with an ID that isn''t in the list: ('+inttostr(getScanParametersIn.wantedID)+')'));
+            CloseSocket(s); //ditch it
+            exit;
+          end;
+        end;
+
+        //tell the caller the scanparameters and it's new ID
+
+        packetsize:=sizeof(TGetScanParametersOut)+length(filename);
+        getmem(getScanParametersOut, packetsize);
+
+        getScanParametersOut.yourID:=index;
+        getScanParametersOut.maxlevel:=maxlevel;
+        getScanParametersOut.staticonly:=ifthen(staticonly, 1, 0);
+        getScanParametersOut.noLoop:=ifthen(noLoop, 1, 0);
+        getScanParametersOut.LimitToMaxOffsetsPerNode:=ifthen(LimitToMaxOffsetsPerNode,1,0);
+        getScanParametersOut.Alligned:=ifthen(not self.unalligned,1,0);
+        getScanParametersOut.MaxOffsetsPerNode:=MaxOffsetsPerNode;
+        getScanParametersOut.FilenameSize:=length(filename);
+        CopyMemory(@getScanParametersOut.Filename, @filename[1], length(filename));
+
+        send(s, getScanParametersOut, packetsize);
+      end;
+
+      CMD_UPDATEWORKERSTATUS:
+      begin
+        receive(s, @UpdateWorkerStatus, sizeof(UpdateWorkerStatus));
+
+        for i:=0 to length(workers)-1 do
+          if workers[i].s=s then
+          begin
+            workers[i].pathsPerSecond:=UpdateWorkerStatus.pathsPerSecond;
+            workers[i].alldone:=UpdateWorkerStatus.alldone<>0;
+          end;
+
+        EatFromOverFlowQueueIfNeeded;
+
+        if ((pathqueuelength+length(overflowqueue)<32) and (UpdateWorkerStatus.pathqueuelength>32)) or //Normalize queue
+           ((pathqueuelength+length(overflowqueue)<4) and (UpdateWorkerStatus.pathqueuelength>1)) then //emergency
+        begin
+          //ask the client for his queue elements
+
+          RequestQueueMessage.replymessage:=CMDUPDATEREPLY_PLEASESENDMESOMEPATHS;
+          RequestQueueMessage.max:=64-pathqueuelength+length(overflowqueue);
+
+          if RequestQueueMessage.max>0 then
+          begin
+            send(s, @RequestQueueMessage, sizeof(RequestQueueMessage));
+
+            //wait for the result
+
+            receive(s, @receivedQueueListCount, sizeof(receivedQueueListCount));
+            setlength(tempqueue, receivedQueueListCount);
+            receive(s, @tempqueue[0], sizeof(TPathQueueElement)*receivedQueueListCount);
+
+            j:=length(overflowqueue);
+            setlength(overflowqueue, length(overflowqueue)+length(tempqueue));
+
+            for i:=j to j+length(tempqueue) do
+              overflowqueue[j+i]:=tempqueue[i];
+
+            EatFromOverflowQueueIfNeeded; //and use what can be used
+          end;
+
+
+        end
+        else
+        if ((UpdateWorkerStatus.pathqueuelength<32) and (pathqueuelength+length(overflowqueue)>32)) or
+           ((UpdateWorkerStatus.pathqueuelength<4) and (pathqueuelength+length(overflowqueue)>1)) then
+        begin
+          //send some (about 50%) que elements to the client
+
+          elementcount:=min(32, length(overflowqueue)+(pathqueuelength div 2));
+
+          getmem(TransmittedQueueMessage, 2+sizeof(TPathQueueElement)*elementcount);
+          TransmittedQueueMessage.replymessage:=CMDUPDATEREPLY_HEREARESOMEPATHSTOEVALUATE;
+          TransmittedQueueMessage.elementcount:=0;
+
+          try
+            //aquire a the pathqueue lock
+            //first copy the overflow queue
+
+            for i:=0 to length(overflowqueue)-1 do
+            begin
+              TransmittedQueueMessage.elements[TransmittedQueueMessage.elementcount]:=overflowqueue[length(overflowqueue)-1-i];
+
+              inc(TransmittedQueueMessage.elementcount);
+
+              if TransmittedQueueMessage.elementcount=elementcount then break;
+            end;
+
+            setlength(overflowqueue, length(overflowqueue)-TransmittedQueueMessage.elementcount);
+            dec(elementcount, TransmittedQueueMessage.elementcount);
+
+            if elementcount>0 then //probably yes
+            begin
+              pathqueueCS.enter;
+              //get the actual size (must be smaller or equal to the current elementcount)
+
+              elementcount:=min(elementcount, min(32, pathqueuelength div 2));
+
+              //lock the path for as many times as possible (in case the queue suddenly got eaten up completely)
+              j:=0;
+              for i:=0 to elementcount-1 do
+              begin
+                if WaitForSingleObject(pathqueueSemaphore, 0)=WAIT_OBJECT_0 then
+                  inc(j)
+                else
+                  break; //unable to lower the semaphore count
+              end;
+
+              elementcount:=j; //the actual number of queue elements that got obtained
+
+
+              //send from the first elements (tends to be a lower level resulting in more paths)
+              for i:=0 to elementcount-1 do
+              begin
+                TransmittedQueueMessage.elements[TransmittedQueueMessage.elementcount]:=pathqueue[i];
+                inc(TransmittedQueueMessage.elementcount);
+              end;
+
+              //move the other queue elements up by elementcount
+              for i:=elementcount to pathqueuelength-1 do
+                pathqueue[i-elementcount]:=pathqueue[i];
+
+              dec(pathqueuelength, elementcount); //adjust length
+
+              pathqueueCS.leave;
+
+            end;
+
+            //transfer the list to the client
+            if TransmittedQueueMessage.elementcount>0 then
+            begin
+              send(s, TransmittedQueueMessage, 2+sizeof(TransmittedQueueMessage.elementcount)*TransmittedQueueMessage.elementcount);
+            end
+            else
+            begin
+              //I have no que elements to send...
+              command:=CMDUPDATEREPLY_EVERYTHINGOK;
+              send(s, @command, sizeof(command));
+            end;
+
+          finally
+            freemem(TransmittedQueueMessage);
+          end;
+        end
+        else
+        begin
+          //tell the client to go on as usual
+          command:=CMDUPDATEREPLY_EVERYTHINGOK;
+          send(s, @command, sizeof(command));
+        end;
+
+
+
+      end;
+
+    end;
+
+
+  except
+    on e: TSocketException do
+    begin
+      //an socket error happened (read/write error. Disconnect)
+      for i:=0 to length(workers)-1 do
+        if workers[i].s=s then
+        begin
+          workers[i].s:=-1; //mark as disconnected
+          break;
+        end;
+      CloseSocket(s);
+    end;
+  end;
 end;
 
 procedure TStaticScanner.doDistributedScanningServerLoop;
@@ -904,6 +1194,8 @@ var
   client: TSockAddrIn;
   clientsize: integer;
   command: byte;
+
+  maxfd: integer;
 begin
   //wait for a status update from any worker, and then either request and send queued paths
   getmem(readfds, sizeof(PtrUInt)+sizeof(TSocket)*(length(workers)+1));
@@ -911,18 +1203,20 @@ begin
   readfds^.fd_count:=1;
   readfds^.fd_array[0]:=sockethandle;
 
+  maxfd:=0;
   for i:=1 to readfds.fd_count-1 do
   begin
-    if workers[i-1]<>-1 then //don't add scanners that got disconnected. (they can reconnect)
+    if workers[i-1].s<>-1 then //don't add scanners that got disconnected. (they can reconnect)
     begin
-      readfds.fd_array[i]:=workers[i-1];
+      readfds.fd_array[i]:=workers[i-1].s;
+      maxfd:=max(maxfd, workers[i-1].s);
       inc(readfds^.fd_count);
     end;
   end;
 
   timeout.tv_sec:=1;
   timeout.tv_usec:=0;
-  i:=select(-1, readfds, nil, nil, @timeout);
+  i:=select(maxfd, readfds, nil, nil, @timeout);
   if i=-1 then
     raise exception.create('Select failed');
 
@@ -931,36 +1225,48 @@ begin
     //at least one is signaled
     if FD_ISSET(sockethandle, readfds^) then
     begin
+      //read event on the listening socket (something tries to connect)
+      FD_CLR(sockethandle, readfds^);
+
       clientsize:=sizeof(client);
       i:=fpaccept(sockethandle, @client, @clientsize);
       if i<>INVALID_SOCKET then
       begin
-        setlength(workers, length(workers)+1);
-        workers[length(workers)-1]:=i;
+        //wait for the first command (MUST be a "GetScanParameters")
+        try
+          receive(i, @command, 1);
+          if (command=CMD_GETSCANPARAMETERS) then
+            DispatchCommand(i, command)
+          else
+            closehandle(i);
+        except
+          on e: TSocketException do
+          begin
+            closehandle(i); //bad connection
+          end;
+        end;
+
       end;
     end;
 
 
     for i:=0 to length(workers)-1 do //also read from newly created sockets. They always send a message anyhow (getScanParameters)
     begin
-      if FD_ISSET(workers[i], readfds^) then
+      if FD_ISSET(workers[i].s, readfds^) then
       begin
         //handle it
-        r:=receive(workers[i], @command, 1);
-        if r=SOCKET_ERROR then
-        begin
-          CloseSocket(workers[i]);
-          workers[i]:=-1; //mark as (temporary) disconnected (the worker can reconnect, it will reuse it's own worker[] spot and the newly created worker will become disconnected)
-          continue;
+        try
+          receive(workers[i].s, @command, 1);
+          dispatchCommand(workers[i].s, command);
+        except
+          on e: TSocketException do
+          begin
+            CloseSocket(workers[i].s);
+            workers[i].s:=-1;
+          end;
         end;
 
-        r:=dispatchCommand(command);
-        if r=-1 then
-        begin
-          CloseSocket(workers[i]);
-          workers[i]:=-1;
-          continue;
-        end;
+
 
       end;
 
@@ -1109,6 +1415,8 @@ begin
         end;
 
         sleep(500);
+        EatFromOverflowQueueIfNeeded;
+
         if distributedScanning then
            doDistributedScanningLoop;
 
@@ -1205,7 +1513,7 @@ begin
   if terminated then exit;
   try
     if distributedScanning and distributedWorker then
-      LaunchWorker;
+      LaunchWorker; //connects and sets up the parameters
 
 
     if ownerform.pointerlisthandler=nil then
