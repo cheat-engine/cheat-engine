@@ -11,7 +11,7 @@ uses
   Dialogs, StdCtrls, ExtCtrls, ComCtrls, syncobjs,syncobjs2, Menus, math,
   frmRescanPointerUnit, pointervaluelist, rescanhelper,
   virtualmemory, symbolhandler,MainUnit,disassembler,CEFuncProc,NewKernelHandler,
-  valuefinder, PointerscanresultReader, maps, zstream, WinSock2, Sockets;
+  valuefinder, PointerscanresultReader, maps, zstream, WinSock2, Sockets, resolve;
 
 
 const staticscanner_done=wm_user+1;
@@ -26,11 +26,29 @@ const
     CMDUPDATEREPLY_EVERYTHINGOK=0;
     CMDUPDATEREPLY_HEREARESOMEPATHSTOEVALUATE=1;
     CMDUPDATEREPLY_PLEASESENDMESOMEPATHS=2;
+    CMDUPDATEREPLY_GOKILLYOURSELF=3;
 
 
 
 type
   TSocketException=class(Exception);
+
+  TGetScanParametersOut=packed record
+    yourID: Int32;
+    maxlevel: Uint32;
+    staticonly: Byte;
+    noLoop: Byte;
+    LimitToMaxOffsetsPerNode: Byte;
+    Alligned: Byte;
+    DownloadPort: word;
+    MaxOffsetsPerNode: UInt16;
+    FilenameSize: Uint16;
+    Filename: packed record end;
+  end;
+  PGetScanParametersOut=^TGetScanParametersOut;
+
+
+
 
   TfrmPointerscanner = class;
   TRescanWorker=class(TThread)
@@ -122,6 +140,23 @@ type
   end;
   PPathQueueElement=^TPathQueueElement;
 
+  TPathQueueElementArray=array[0..0] of TPathQueueElement;
+  PPathQueueElementArray=^TPathQueueElementArray;
+
+  TTransmittedQueueMessage=packed record
+    replymessage: byte; //(should be CMDUPDATEREPLY_HEREARESOMEPATHSTOEVALUATE)
+    elementcount: byte;
+    elements: array [0..99999] of TPathQueueElement;
+  end;
+  PTransmittedQueueMessage=^TTransmittedQueueMessage;
+
+  TTransmittedQueueMessageClient=packed record
+    elementcount: byte;
+    elements: array [0..99999] of TPathQueueElement;
+  end;
+  PTransmittedQueueMessageClient=^TTransmittedQueueMessageClient;
+
+
   TStaticscanner = class;
 
   TReverseScanWorker = class (tthread)
@@ -209,9 +244,9 @@ type
 
     procedure launchWorker; //connect to the server
     procedure launchServer; //start listening on the specific port
-    procedure doDistributedScanningLoop;
-    procedure doDistributedScanningWorkerLoop;
-    procedure doDistributedScanningServerLoop;
+    function doDistributedScanningLoop: boolean;  //actually doDistributedScanningLoopIteration
+    function doDistributedScanningWorkerLoop: boolean;
+    function doDistributedScanningServerLoop: boolean;
     procedure DispatchCommand(s: Tsocket; command: byte);
 
     function ismatchtovalue(p: pointer): boolean;  //checks if the pointer points to a value matching the user's input
@@ -308,7 +343,7 @@ type
 
     distributedScanning: boolean; //when set to true this will open listening port where other scanners can connect to
     distributedport: word; //port used to listen on if distributed scanning is enabled
-
+    distributedScandataDownloadPort: word;
 
     distributedWorker: boolean; //set if it's a worker connecting to a server
     distributedServer: string;
@@ -324,7 +359,7 @@ type
   Tfrmpointerscanner = class(TForm)
     btnStopRescanLoop: TButton;
     Button1: TButton;
-    MenuItem1: TMenuItem;
+    miJoinDistributedScan: TMenuItem;
     ProgressBar1: TProgressBar;
     Panel1: TPanel;
     MainMenu1: TMainMenu;
@@ -338,6 +373,7 @@ type
     Rescanmemory1: TMenuItem;
     SaveDialog1: TSaveDialog;
     OpenDialog1: TOpenDialog;
+    SelectDirectoryDialog1: TSelectDirectoryDialog;
     Timer2: TTimer;
     pgcPScandata: TPageControl;
     tsPSReverse: TTabSheet;
@@ -358,7 +394,7 @@ type
     procedure FormResize(Sender: TObject);
     procedure ListView1ColumnClick(Sender: TObject; Column: TListColumn);
     procedure ListView1Resize(Sender: TObject);
-    procedure MenuItem1Click(Sender: TObject);
+    procedure miJoinDistributedScanClick(Sender: TObject);
     procedure Method3Fastspeedandaveragememoryusage1Click(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
     procedure Open1Click(Sender: TObject);
@@ -402,7 +438,7 @@ implementation
 
 
 uses PointerscannerSettingsFrm, frmMemoryAllocHandlerUnit, frmSortPointerlistUnit,
-  LuaHandler, lauxlib, lua;
+  LuaHandler, lauxlib, lua, frmPointerscanConnectDialogUnit;
 
 resourcestring
   rsErrorDuringScan = 'Error during scan';
@@ -888,7 +924,7 @@ begin
 
   if useLoadedPointermap=false then
   begin
-    LoadedPointermapFilename:=self.filename+'.distributedscandata';
+    LoadedPointermapFilename:=self.filename+'.scandata';
     s:=TFileStream.Create(LoadedPointermapFilename, fmCreate);
     try
       cs:=Tcompressionstream.Create(clfastest, s);
@@ -906,40 +942,247 @@ begin
 end;
 
 procedure TStaticScanner.launchWorker;
+var
+  sockaddr: TInetSockAddr;
+  connected: boolean;
+  getScanParameters: packed record
+    command: byte;
+    wantedID: Int32;
+    threadcount: UInt32;
+  end;
+
+  sp: TGetScanParametersOut;
+
+  fname: pchar;
+
+  hr: THostResolver;
+
 begin
   //try to connect to the server until it works, or timeouit (60 seconds)
+  sockethandle:=socket(AF_INET, SOCK_STREAM, 0);
+
+  if sockethandle=INVALID_SOCKET then
+    raise Exception.create('Failure creating socket');
+
+  sockaddr.sin_family:=AF_INET;
+  sockaddr.sin_port:=htons(distributedport);
+
+  hr:=THostResolver.Create(nil);
+  try
+
+    sockaddr.sin_addr:=StrToNetAddr(distributedServer);
+
+    if sockaddr.sin_addr.s_bytes[4]=0 then
+    begin
+      if hr.NameLookup(distributedServer) then
+        sockaddr.sin_addr:=hr.HostAddress
+      else
+        raise exception.create('host:'+distributedServer+' could not be resolved');
+    end;
 
 
+  finally
+    hr.free;
+  end;
+
+
+  starttime:=gettickcount;
+  connected:=false;
+  while (gettickcount<starttime+60000) do
+  begin
+    connected:=fpconnect(sockethandle, @SockAddr, sizeof(SockAddr))=0;
+    if not connected then sleep(500);
+  end;
+
+  if not connected then raise exception.create('Failure (re)connecting to server. No connection made within 60 seconds');
+
+  //still here, so ask for the scan config
+  getScanParameters.command:=CMD_GETSCANPARAMETERS;
+  getScanParameters.threadcount:=threadcount;
+  getScanParameters.wantedID:=myid;
+  send(sockethandle, @getScanParameters, sizeof(getScanParameters));
+
+  //receive the result
+  receive(sockethandle, @sp, sizeof(sp));
+
+  getmem(fname, sp.FilenameSize);
+  try
+    receive(sockethandle, fname, sp.FilenameSize);
+    filename:=ExtractFilePath(filename)+fname;
+  finally
+    freemem(fname);
+  end;
+
+  myID:=sp.yourID;
+  maxlevel:=sp.maxlevel;
+  staticonly:=sp.staticonly<>0;
+  noLoop:=sp.noLoop<>0;
+  LimitToMaxOffsetsPerNode:=sp.LimitToMaxOffsetsPerNode<>0;
+  unalligned:=not (sp.Alligned<>0);
+  MaxOffsetsPerNode:=sp.MaxOffsetsPerNode;
+
+  if UseLoadedPointermap=false then
+  begin
+    //download the pointermap from the server
+  end;
 end;
 
-procedure TStaticScanner.doDistributedScanningWorkerLoop;
+function TStaticScanner.doDistributedScanningWorkerLoop: boolean;
+var
+  updateworkerstatusmessage: packed record
+    command: byte;
+    pathqueuelength: int32;
+    pathsPerSecond: qword;
+    alldone: byte;
+  end;
+
+  answer: byte;
+  elementcount: byte;
+
+  TransmittedQueueMessage: PTransmittedQueueMessageClient;
+  i,j: integer;
 begin
+  result:=true; //or CMDUPDATEREPLY_GOKILLYOURSELF is received or it failed to reconnect
+
+
   //send state to the server and ask if it has or needs queuedpaths
+  sleep(1000+random(2000)); //wait between 1 and 3 seconds before doing something)
+  updateworkerstatusmessage.command:=CMD_UPDATEWORKERSTATUS;
+  updateworkerstatusmessage.pathqueuelength:=pathqueuelength;
+  updateworkerstatusmessage.pathsPerSecond:=trunc((totalpathsevaluated / (gettickcount-starttime))*1000);
+
+  updateworkerstatusmessage.alldone:=0;
+  if pathqueuelength=0 then //could be everything is done
+  begin
+    pathqueueCS.enter;
+
+    if pathqueuelength=0 then //still 0
+    begin
+      updateworkerstatusmessage.alldone:=1; //it's now more likely that it's done. But check anyhow
+      for i:=0 to length(reversescanners)-1 do
+      begin
+        if reversescanners[i].isdone=false then
+        begin
+          updateworkerstatusmessage.alldone:=0;
+          break;
+        end;
+      end;
+    end;
+    pathqueueCS.Leave;
+  end;
+
+  try
+    send(sockethandle, @updateworkerstatusmessage, sizeof(updateworkerstatusmessage));
+
+    receive(sockethandle, @answer, sizeof(answer));
+    case answer of
+      CMDUPDATEREPLY_EVERYTHINGOK: ;  //do nothing
+
+      CMDUPDATEREPLY_HEREARESOMEPATHSTOEVALUATE:
+      begin
+        //new paths, weeee!
+        receive(sockethandle, @elementcount, sizeof(elementcount));
+
+        //load them into the overflow queue
+        i:=length(overflowqueue);
+        setlength(overflowqueue, length(overflowqueue)+elementcount);
+        receive(sockethandle, @overflowqueue[i], elementcount*sizeof(TPathQueueElement));
+
+        //and from the overflow queue into the real queue
+        EatFromOverflowQueueIfNeeded;
+      end;
+
+      CMDUPDATEREPLY_PLEASESENDMESOMEPATHS:
+      begin
+        //note: This is basically a 1-on-1 copy of the server dispatcher with the exception of no command
+        //send about 50% of my queue elements to the server (or max)
+        receive(sockethandle, @elementcount, sizeof(elementcount));
+
+        elementcount:=min(elementcount, length(overflowqueue)+pathqueuelength div 2);
+
+        GetMem(TransmittedQueueMessage, 1+sizeof(TPathQueueElement)*elementcount);
+        TransmittedQueueMessage.elementcount:=0;
+
+        try
+          for i:=0 to length(overflowqueue)-1 do
+          begin
+            TransmittedQueueMessage.elements[TransmittedQueueMessage.elementcount]:=overflowqueue[length(overflowqueue)-1-i];
+
+            inc(TransmittedQueueMessage.elementcount);
+
+            if TransmittedQueueMessage.elementcount=elementcount then break;
+          end;
+
+          setlength(overflowqueue, length(overflowqueue)-TransmittedQueueMessage.elementcount);
+          dec(elementcount, TransmittedQueueMessage.elementcount);
+
+          if elementcount>0 then
+          begin
+            pathqueueCS.enter;
+            //get the actual size (must be smaller or equal to the current elementcount)
+
+            elementcount:=min(elementcount, min(32, pathqueuelength div 2));
+
+            //lock the path for as many times as possible (in case the queue suddenly got eaten up completely)
+            j:=0;
+            for i:=0 to elementcount-1 do
+            begin
+              if WaitForSingleObject(pathqueueSemaphore, 0)=WAIT_OBJECT_0 then
+                inc(j)
+              else
+                break; //unable to lower the semaphore count
+            end;
+
+            elementcount:=j; //the actual number of queue elements that got obtained
+
+
+            //send from the first elements (tends to be a lower level resulting in more paths)
+            for i:=0 to elementcount-1 do
+            begin
+              TransmittedQueueMessage.elements[TransmittedQueueMessage.elementcount]:=pathqueue[i];
+              inc(TransmittedQueueMessage.elementcount);
+            end;
+
+            //move the other queue elements up by elementcount
+            for i:=elementcount to pathqueuelength-1 do
+              pathqueue[i-elementcount]:=pathqueue[i];
+
+            dec(pathqueuelength, elementcount); //adjust length
+
+            pathqueueCS.leave;
+          end;
+
+          send(sockethandle, TransmittedQueueMessage, 1+sizeof(TPathQueueElement)*TransmittedQueueMessage.elementcount);
+
+        finally
+          freemem(TransmittedQueueMessage);
+        end;
+
+
+      end;
+
+      CMDUPDATEREPLY_GOKILLYOURSELF:
+      begin
+        result:=false;
+      end;
+    end;
+
+  except
+    on e: TSocketException do
+    begin
+      try
+        //try to reconnect
+        launchWorker;
+      except
+        sockethandle:=-1;
+        result:=false;
+      end;
+    end;
+  end;
 
 end;
 
 procedure TStaticScanner.DispatchCommand(s: TSocket; command: byte);
-type
-  TGetScanParametersOut=packed record
-    yourID: Int32;
-    maxlevel: Uint32;
-    staticonly: Byte;
-    noLoop: Byte;
-    LimitToMaxOffsetsPerNode: Byte;
-    Alligned: Byte;
-    MaxOffsetsPerNode: UInt16;
-    FilenameSize: Uint16;
-    Filename: packed record end;
-  end;
-  PGetScanParametersOut=^TGetScanParametersOut;
-
-  TTransmittedQueueMessage=packed record
-    replymessage: byte; //(should be CMDUPDATEREPLY_HEREARESOMEPATHSTOEVALUATE)
-    elementcount: byte;
-    elements: array [0..99999] of TPathQueueElement;
-  end;
-  PTransmittedQueueMessage=^TTransmittedQueueMessage;
-
 var
   getScanParametersIn: packed record
     wantedID: Int32;
@@ -951,7 +1194,7 @@ var
   UpdateWorkerStatus: packed record
     pathqueuelength: int32;
     pathsPerSecond: qword;
-    allthreadsdone: byte;
+    alldone: byte;
   end;
 
   i, j,index: integer;
@@ -969,6 +1212,10 @@ var
 
   receivedQueueListCount: byte;
   tempqueue: array of TPathQueueElement;
+
+  fname: string;
+
+  everyonedone: boolean;
 
 begin
   //see pointerscancommands.txt
@@ -1020,6 +1267,9 @@ begin
         packetsize:=sizeof(TGetScanParametersOut)+length(filename);
         getmem(getScanParametersOut, packetsize);
 
+
+        fname:=ExtractFileName(filename);
+
         getScanParametersOut.yourID:=index;
         getScanParametersOut.maxlevel:=maxlevel;
         getScanParametersOut.staticonly:=ifthen(staticonly, 1, 0);
@@ -1027,8 +1277,9 @@ begin
         getScanParametersOut.LimitToMaxOffsetsPerNode:=ifthen(LimitToMaxOffsetsPerNode,1,0);
         getScanParametersOut.Alligned:=ifthen(not self.unalligned,1,0);
         getScanParametersOut.MaxOffsetsPerNode:=MaxOffsetsPerNode;
-        getScanParametersOut.FilenameSize:=length(filename);
-        CopyMemory(@getScanParametersOut.Filename, @filename[1], length(filename));
+        getScanParametersOut.DownloadPort:=distributedScandataDownloadPort;
+        getScanParametersOut.FilenameSize:=length(fname);
+        CopyMemory(@getScanParametersOut.Filename, @fname[1], length(fname));
 
         send(s, getScanParametersOut, packetsize);
       end;
@@ -1052,7 +1303,7 @@ begin
           //ask the client for his queue elements
 
           RequestQueueMessage.replymessage:=CMDUPDATEREPLY_PLEASESENDMESOMEPATHS;
-          RequestQueueMessage.max:=64-pathqueuelength+length(overflowqueue);
+          RequestQueueMessage.max:=64-(pathqueuelength+length(overflowqueue));
 
           if RequestQueueMessage.max>0 then
           begin
@@ -1143,7 +1394,7 @@ begin
             //transfer the list to the client
             if TransmittedQueueMessage.elementcount>0 then
             begin
-              send(s, TransmittedQueueMessage, 2+sizeof(TransmittedQueueMessage.elementcount)*TransmittedQueueMessage.elementcount);
+              send(s, TransmittedQueueMessage, 2+sizeof(TPathQueueElement)*TransmittedQueueMessage.elementcount);
             end
             else
             begin
@@ -1158,6 +1409,49 @@ begin
         end
         else
         begin
+          //check if all threads are done
+          everyonedone:=true;
+          for i:=0 to length(workers)-1 do
+          begin
+            if (workers[i].s<>-1) and (workers[i].alldone=false) then
+            begin
+              everyonedone:=false;
+              break;
+            end;
+          end;
+
+          if everyonedone then
+          begin
+            //check if all my own scanners are done
+            if pathqueuelength=0 then //the queue seems to be empty
+            begin
+              pathqueueCS.Enter;
+              if pathqueuelength=0 then //it's still 0, so no thread added a new one
+              begin
+                for i:=0 to length(reversescanners)-1 do
+                begin
+                  if reversescanners[i].isdone=false then
+                  begin
+                    everyonedone:=false;  //this thread was not yet done, it may add a new queue element
+                    break;
+                  end;
+                end;
+              end;
+
+              pathqueueCS.Leave;
+
+              if everyonedone then
+              begin
+                command:=CMDUPDATEREPLY_GOKILLYOURSELF;
+                send(s, @command, sizeof(command));
+                raise TSocketException.Create('No more work for thread');
+              end;
+            end;
+
+
+
+          end;
+
           //tell the client to go on as usual
           command:=CMDUPDATEREPLY_EVERYTHINGOK;
           send(s, @command, sizeof(command));
@@ -1185,7 +1479,7 @@ begin
   end;
 end;
 
-procedure TStaticScanner.doDistributedScanningServerLoop;
+function TStaticScanner.doDistributedScanningServerLoop: boolean;
 var
   readfds: PFDSet;
   i,r: integer;
@@ -1198,6 +1492,9 @@ var
   maxfd: integer;
 begin
   //wait for a status update from any worker, and then either request and send queued paths
+  result:=true;
+
+
   getmem(readfds, sizeof(PtrUInt)+sizeof(TSocket)*(length(workers)+1));
 
   readfds^.fd_count:=1;
@@ -1280,12 +1577,12 @@ begin
 end;
 
 
-procedure TStaticScanner.doDistributedScanningLoop;
+function TStaticScanner.doDistributedScanningLoop: boolean;
 begin
   if distributedWorker then
-    doDistributedScanningWorkerLoop
+    result:=doDistributedScanningWorkerLoop
   else
-    doDistributedScanningServerLoop;
+    result:=doDistributedScanningServerLoop;
 end;
 
 function TStaticScanner.ismatchtovalue(p: pointer): boolean;
@@ -1414,11 +1711,13 @@ begin
 
         end;
 
-        sleep(500);
+
         EatFromOverflowQueueIfNeeded;
 
         if distributedScanning then
-           doDistributedScanningLoop;
+           doDistributedScanningLoop
+        else
+          sleep(500);
 
 
         if pathqueuelength=0 then //it's 0
@@ -1451,12 +1750,37 @@ begin
                 alldone:=false;
                 break;
               end;
+
+
+
             end;
           end
           else
             alldone:=false;
 
           pathqueueCS.Leave;
+
+          if alldone and distributedScanning then
+          begin
+            //if this is a distributed scan
+            if distributedWorker then
+            begin
+
+              if doDistributedScanningLoop then
+                alldone:=false; //the server didn't tell me to go kill myself
+            end
+            else
+            begin
+              //server scanners are done, check if all the workers are done (or disconnected)
+              for i:=0 to length(workers)-1 do
+                if workers[i].alldone=false then
+                begin
+                  alldone:=false;
+                  break; //still some workers active. do not terminate the scan
+                end;
+            end;
+          end;
+
         end
         else
           alldone:=false;
@@ -1464,6 +1788,8 @@ begin
 
 
       end;
+
+
     end;
 
     isdone:=true;
@@ -1515,6 +1841,8 @@ begin
     if distributedScanning and distributedWorker then
       LaunchWorker; //connects and sets up the parameters
 
+    if distributedScandataDownloadPort=0 then
+      distributedScandataDownloadPort:=distributedport+1;
 
     if ownerform.pointerlisthandler=nil then
     begin
@@ -1652,6 +1980,7 @@ end;
 constructor TStaticscanner.create(suspended: boolean);
 begin
   pointersize:=processhandler.pointersize;
+  myid:=-1;
 
   inherited create(suspended);
 end;
@@ -1666,6 +1995,62 @@ begin
 end;
 
 //---------------------------------main--------------------------
+procedure Tfrmpointerscanner.miJoinDistributedScanClick(Sender: TObject);
+var f: tfrmPointerscanConnectDialog;
+begin
+  f:=tfrmPointerscanConnectDialog.create(self);
+  if f.showmodal=mrok then
+  begin
+    if SelectDirectoryDialog1.Execute then
+    begin
+      new1.click; //setup the gui
+
+      totalpathsevaluated:=0;
+      startcount:=0;
+      starttime:=0;
+
+
+      btnStopScan.enabled:=true;
+      btnStopScan.Caption:=rsStop;
+
+      pgcPScandata.Visible:=false;
+      open1.Enabled:=false;
+      new1.enabled:=false;
+      rescanmemory1.Enabled:=false;
+
+      cbType.Visible:=false;
+      listview1.Visible:=false;
+
+
+
+      //launch the scanner
+      if pointerlisthandler<>nil then
+        freeandnil(pointerlisthandler);
+
+      staticscanner:=TStaticscanner.Create(true);
+
+      label5.caption:=rsGeneratingPointermap;
+      progressbar1.Visible:=true;
+
+      staticscanner:=TStaticscanner.Create(true);
+      staticscanner.distributedScanning:=true;
+      staticscanner.distributedWorker:=true;
+      staticscanner.distributedServer:=f.edtHost.text;
+      staticscanner.distributedport:=strtoint(f.edtPort.text);
+
+      staticscanner.threadcount:=f.threadcount;
+      staticscanner.scannerpriority:=f.scannerpriority;
+      staticscanner.UseLoadedPointermap:=f.cbUseLoadedPointermap.checked;
+      staticscanner.LoadedPointermapFilename:=f.odLoadPointermap.FileName;
+
+      open1.Enabled:=false;
+      staticscanner.starttime:=gettickcount;
+
+      staticscanner.start;
+    end;
+  end;
+
+end;
 
 procedure Tfrmpointerscanner.Method3Fastspeedandaveragememoryusage1Click(
   Sender: TObject);
@@ -1868,10 +2253,7 @@ begin
   end;
 end;
 
-procedure Tfrmpointerscanner.MenuItem1Click(Sender: TObject);
-begin
 
-end;
 
 procedure Tfrmpointerscanner.FormDestroy(Sender: TObject);
 var x: array of integer;

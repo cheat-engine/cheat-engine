@@ -72,7 +72,8 @@ uses
   frmD3DHookSnapshotConfigUnit, frmsnapshothandlerUnit, frmSaveSnapshotsUnit,
   frmD3DTrainerGeneratorOptionsUnit, lua_server, frmAssemblyScanUnit, 
 frmManualStacktraceConfigUnit, cvconst, NetworkDebuggerInterface, 
-DisassemblerArm, LastDisassembleData;
+DisassemblerArm, LastDisassembleData, elfsymbols, assemblerArm, 
+frmPointerscanConnectDialogUnit;
 
 {$R cheatengine.res}
 //{$R manifest.res}  //lazarus now has this build in
