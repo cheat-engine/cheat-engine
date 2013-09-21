@@ -204,10 +204,10 @@ object frmPointerScanner: TfrmPointerScanner
         ShortCut = 16464
         OnClick = Method3Fastspeedandaveragememoryusage1Click
       end
-      object MenuItem1: TMenuItem
-        Caption = 'Join disctributed scan'
+      object miJoinDistributedScan: TMenuItem
+        Caption = 'Join scan'
         ShortCut = 16452
-        OnClick = MenuItem1Click
+        OnClick = miJoinDistributedScanClick
       end
       object N1: TMenuItem
         Caption = '-'
@@ -247,5 +247,10 @@ object frmPointerScanner: TfrmPointerScanner
       Caption = 'Resync modulelist'
       OnClick = Resyncmodulelist1Click
     end
+  end
+  object SelectDirectoryDialog1: TSelectDirectoryDialog
+    Title = 'Select folder for pointerfiles'
+    left = 296
+    top = 32
   end
 end
