@@ -1163,7 +1163,7 @@ int main(int argc, char *argv[])
   addr.sin_addr.s_addr=INADDR_ANY;
 
   int optval = 1;
-  setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval);
+  setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof (optval));
 
 
   b=bind(s, (struct sockaddr *)&addr, sizeof(addr));
