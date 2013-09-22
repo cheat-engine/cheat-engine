@@ -122,6 +122,11 @@
 								</inputType>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.cross.c.linker.2046030030" name="Cross GCC Linker" superClass="cdt.managedbuild.tool.gnu.cross.c.linker">
+								<option id="gnu.c.link.option.libs.1687438319" superClass="gnu.c.link.option.libs" valueType="libs">
+									<listOptionValue builtIn="false" value="pthread"/>
+									<listOptionValue builtIn="false" value="z"/>
+									<listOptionValue builtIn="false" value="dl"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.linker.input.1065882883" superClass="cdt.managedbuild.tool.gnu.c.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
