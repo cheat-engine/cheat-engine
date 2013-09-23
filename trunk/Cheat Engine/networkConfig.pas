@@ -207,7 +207,7 @@ begin
     if host.s_bytes[4]=0 then
     begin
       if hr.NameLookup(hostname) then
-        host:=hr.HostAddress
+        host:=hr.NetHostAddress
       else
         raise exception.create('host:'+hostname+' could not be resolved');
 

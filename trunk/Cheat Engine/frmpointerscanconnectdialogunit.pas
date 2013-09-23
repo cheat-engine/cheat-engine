@@ -50,7 +50,7 @@ implementation
 procedure TfrmPointerscanConnectDialog.btnOkClick(Sender: TObject);
 var hr:THostResolver;
 begin
-  hr:=THostResolver.Create(self);
+  hr:=THostResolver.Create(nil);
   try
 
     host:=StrToNetAddr(edtHost.text);
@@ -58,7 +58,7 @@ begin
     if host.s_bytes[4]=0 then
     begin
       if hr.NameLookup(edtHost.text) then
-        host:=hr.HostAddress
+        host:=hr.NetHostAddress
       else
         raise exception.create('host:'+edtHost.text+' could not be resolved');
     end;
@@ -101,11 +101,11 @@ procedure TfrmPointerscanConnectDialog.FormCreate(Sender: TObject);
 var
   cpucount: integer;
 begin
-  cpucount:=GetCPUCount;
+  {cpucount:=GetCPUCount;
   if HasHyperthreading then
     cpucount:=1+(cpucount div 2);
 
-  edtThreadcount.text:=inttostr(cpucount);
+  edtThreadcount.text:=inttostr(cpucount); }
 end;
 
 end.

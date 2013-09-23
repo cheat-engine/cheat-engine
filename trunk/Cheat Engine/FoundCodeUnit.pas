@@ -7,7 +7,7 @@ interface
 uses
   windows, LCLIntf, LResources, Messages, SysUtils, Variants, Classes, Graphics,
   Controls, Forms, Dialogs, StdCtrls, disassembler, ExtCtrls, Menus,
-  NewKernelHandler, clipbrd, ComCtrls, fgl, formChangedAddresses;
+  NewKernelHandler, clipbrd, ComCtrls, fgl, formChangedAddresses, LastDisassembleData;
 
 type
   Tcoderecord = class
@@ -25,6 +25,7 @@ type
     end;
     hitcount: integer;
     diffcount: integer;
+    LastDisassembleData: TLastDisassembleData;
 
     formChangedAddresses: TfrmChangedAddresses;
     procedure savestack;
@@ -146,6 +147,7 @@ It takes the data from the current thread and stores it in the processlist
 }
 var currentthread: TDebugThreadHandler;
   opcode: string;
+  ldi: TLastDisassembleData;
   address,address2: ptrUint;
   desc: string;
 
@@ -154,6 +156,8 @@ var currentthread: TDebugThreadHandler;
 
   li: tlistitem;
   f: TfrmChangedAddresses;
+
+  d: TDisassembler;
 begin
   //the debuggerthread is idle at this point
   currentThread:=debuggerthread.CurrentThread;
@@ -174,7 +178,12 @@ begin
 
     //disassemble to get the opcode and size
     address2:=address;
-    opcode:=disassemble(address2,desc);
+    d:=TDisassembler.Create;
+    opcode:=d.disassemble(address2,desc);
+    ldi:=d.LastDisassembleData;
+
+
+    d.free;
 
     //check if address is inside the list
     for i:=0 to foundcodelist.Items.Count-1 do
@@ -199,8 +208,10 @@ begin
     coderecord.description:=desc;
     coderecord.context:=currentthread.context^;
     coderecord.armcontext:=currentthread.armcontext;
+    coderecord.LastDisassembleData:=ldi;
     coderecord.savestack;
     coderecord.hitcount:=1;
+
 
     li:=FoundCodeList.Items.Add;
     li.caption:='1';
@@ -350,6 +361,8 @@ var disassembled: array[1..5] of string;
 
     ew: trect; //extra window rect
     cw: trect; //changed address window rect
+
+    offset: integer;
 begin
   itemindex:=foundcodelist.ItemIndex;
   if itemindex<>-1 then
@@ -667,41 +680,81 @@ begin
       //parse
       //find the biggest value, registers or exact value
 
-
-      if pos(firstchar+'ax',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.{$ifdef cpu64}Rax{$else}Eax{$endif});
-      if pos(firstchar+'bx',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.{$ifdef cpu64}Rbx{$else}Ebx{$endif});
-      if pos(firstchar+'cx',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.{$ifdef cpu64}Rcx{$else}Ecx{$endif});
-      if pos(firstchar+'dx',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.{$ifdef cpu64}Rdx{$else}Edx{$endif});
-      if pos(firstchar+'di',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.{$ifdef cpu64}Rdi{$else}Edi{$endif});
-      if pos(firstchar+'si',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.{$ifdef cpu64}Rsi{$else}Esi{$endif});
-      if pos(firstchar+'bp',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.{$ifdef cpu64}Rbp{$else}Ebp{$endif});
-      if pos(firstchar+'sp',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.{$ifdef cpu64}Rsp{$else}Esp{$endif});
-      {$ifdef cpu64}
-      if processhandler.is64Bit then
+      if ((coderecord.LastDisassembleData.modrmValueType=dvtValue) and (coderecord.LastDisassembleData.hasSib=false)) then
       begin
-        if pos('r8',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.r8);
-        if pos('r9',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.r9);
-        if pos('r0',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.r10);
-        if pos('r1',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.r11);
-        if pos('r2',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.r12);
-        if pos('r3',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.r13);
-        if pos('r4',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.r14);
-        if pos('r5',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.r15);
-      end;
-      {$endif}
+        //only a value and no sib (the sib part can get messed up if it's a read)
 
-      //the offset is always at the end, so read from back to front
-      temp2:='';
-      for i:=length(temp) downto 1 do
-        if temp[i] in ['0'..'9','a'..'f'] then temp2:=temp[i]+temp2 else break;
+        offset:=integer(coderecord.LastDisassembleData.modrmValue);
 
-      if temp2<>'' then //I know this isn't completly correct e.g: [eax*4] but even then the 4 will NEVER be bigger than eax (unless it's to cause a crash)
+        (*
+        if coderecord.LastDisassembleData.hasSib then
+        begin
+          case coderecord.LastDisassembleData.sibIndex of
+            0: inc(offset, coderecord.context.{$ifdef cpu64}Rax{$else}Eax{$endif}*coderecord.LastDisassembleData.sibScaler);
+            1: inc(offset, coderecord.context.{$ifdef cpu64}Rcx{$else}Ecx{$endif}*coderecord.LastDisassembleData.sibScaler);
+            2: inc(offset, coderecord.context.{$ifdef cpu64}Rdx{$else}Edx{$endif}*coderecord.LastDisassembleData.sibScaler);
+            3: inc(offset, coderecord.context.{$ifdef cpu64}Rbx{$else}Ebx{$endif}*coderecord.LastDisassembleData.sibScaler);
+            5: inc(offset, coderecord.context.{$ifdef cpu64}Rbp{$else}Ebp{$endif}*coderecord.LastDisassembleData.sibScaler);
+            6: inc(offset, coderecord.context.{$ifdef cpu64}Rsi{$else}Esi{$endif}*coderecord.LastDisassembleData.sibScaler);
+            7: inc(offset, coderecord.context.{$ifdef cpu64}Rdi{$else}Edi{$endif}*coderecord.LastDisassembleData.sibScaler);
+            {$ifdef cpu64}
+            8: inc(offset, coderecord.context.R8*coderecord.LastDisassembleData.sibScaler);
+            9: inc(offset, coderecord.context.R9*coderecord.LastDisassembleData.sibScaler);
+            10: inc(offset, coderecord.context.R10*coderecord.LastDisassembleData.sibScaler);
+            11: inc(offset, coderecord.context.R11*coderecord.LastDisassembleData.sibScaler);
+            12: inc(offset, coderecord.context.R12*coderecord.LastDisassembleData.sibScaler);
+            13: inc(offset, coderecord.context.R13*coderecord.LastDisassembleData.sibScaler);
+            14: inc(offset, coderecord.context.R14*coderecord.LastDisassembleData.sibScaler);
+            15: inc(offset, coderecord.context.R15*coderecord.LastDisassembleData.sibScaler);
+            {$endif}
+          end;
+        end; *)
+
+        formfoundcodelistextra.probably:=addresswatched-offset;
+      end
+      else
       begin
-        p:=StrToQWordEx('$'+temp2);
-        if p>maxregistervalue then maxregistervalue:=p;
-      end;
+        //try the old code
+        if pos(firstchar+'ax',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.{$ifdef cpu64}Rax{$else}Eax{$endif});
+        if pos(firstchar+'bx',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.{$ifdef cpu64}Rbx{$else}Ebx{$endif});
+        if pos(firstchar+'cx',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.{$ifdef cpu64}Rcx{$else}Ecx{$endif});
+        if pos(firstchar+'dx',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.{$ifdef cpu64}Rdx{$else}Edx{$endif});
+        if pos(firstchar+'di',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.{$ifdef cpu64}Rdi{$else}Edi{$endif});
+        if pos(firstchar+'si',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.{$ifdef cpu64}Rsi{$else}Esi{$endif});
+        if pos(firstchar+'bp',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.{$ifdef cpu64}Rbp{$else}Ebp{$endif});
+        if pos(firstchar+'sp',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.{$ifdef cpu64}Rsp{$else}Esp{$endif});
+        {$ifdef cpu64}
+        if processhandler.is64Bit then
+        begin
+          if pos('r8',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.r8);
+          if pos('r9',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.r9);
+          if pos('r0',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.r10);
+          if pos('r1',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.r11);
+          if pos('r2',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.r12);
+          if pos('r3',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.r13);
+          if pos('r4',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.r14);
+          if pos('r5',temp)>0 then maxregistervalue:=MaxX(maxregistervalue, coderecord.context.r15);
+        end;
+        {$endif}
 
-      formfoundcodelistextra.probably:=maxregistervalue;
+        //the offset is always at the end, so read from back to front
+        //todo: use addresswatched
+
+
+
+        temp2:='';
+        for i:=length(temp) downto 1 do
+          if temp[i] in ['0'..'9','a'..'f'] then temp2:=temp[i]+temp2 else break;
+
+        if temp2<>'' then //I know this isn't completly correct e.g: [eax*4] but even then the 4 will NEVER be bigger than eax (unless it's to cause a crash)
+        begin
+          p:=StrToQWordEx('$'+temp2);
+          if p>maxregistervalue then maxregistervalue:=p;
+        end;
+
+        formfoundcodelistextra.probably:=maxregistervalue;
+
+      end;
     end else formfoundcodelistextra.label17.caption:='';
 
 

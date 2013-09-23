@@ -28,6 +28,10 @@ type
     parameterValue: ptrUint;
   //  ValueType: TValueType; //if it's not unknown the value type will say what type of value it is (e.g for the FP types)
 
+    hasSib: boolean;
+    sibIndex: integer;
+    sibScaler: integer;
+
     isjump: boolean; //set for anything that can change eip/rip
     iscall: boolean; //set if it's a call
     isret: boolean; //set if it's a ret

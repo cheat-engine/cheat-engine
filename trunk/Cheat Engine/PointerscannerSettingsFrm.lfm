@@ -179,7 +179,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       object edtMaxOffsetsPerNode: TEdit
         Left = 444
         Height = 21
-        Top = 40
+        Top = 38
         Width = 40
         Enabled = False
         TabOrder = 11
@@ -199,7 +199,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       object lblNumberOfStackThreads: TLabel
         Left = 292
         Height = 14
-        Top = 83
+        Top = 85
         Width = 194
         Caption = 'Number of threads from oldest to newest:'
         ParentColor = False
@@ -208,7 +208,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         Left = 509
         Height = 21
         Hint = 'Fill in the total number of threads that should be allowed to be used as a stack lookup.'#13#10'Thread 1 is usually the main thread of the game, but if that one spawns another thread for game related events, you might want to have that secondary thread as well.'#13#10'More threads is not recommend as they may get created and destroyed on the fly, and are therefore useless as a lookup base, but it depends on the game.'
-        Top = 81
+        Top = 83
         Width = 24
         ParentShowHint = False
         ShowHint = True
@@ -218,7 +218,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       object lblStackSize: TLabel
         Left = 291
         Height = 14
-        Top = 102
+        Top = 104
         Width = 214
         Caption = 'Max stackoffset to be deemed static enough:'
         ParentColor = False
@@ -226,7 +226,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       object edtStackSize: TEdit
         Left = 509
         Height = 21
-        Top = 102
+        Top = 104
         Width = 80
         TabOrder = 14
         Text = '4096'
@@ -235,7 +235,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         Left = 292
         Height = 19
         Hint = 'Enable this if you wish to only find pointer paths with a stack address.'#13#10'Combine this with "Only find paths with a static address" (default on) else this option will have no effect'
-        Top = 122
+        Top = 124
         Width = 213
         Caption = 'Stack addresses as ONLY static address'
         ParentShowHint = False

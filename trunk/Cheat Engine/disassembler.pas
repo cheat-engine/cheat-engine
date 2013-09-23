@@ -602,11 +602,19 @@ begin
 
       end;
       1:  begin
+            if getrm(memory[modrmbyte])<>4 then
+            begin
+              LastDisassembleData.modrmValueType:=dvtValue;
+              LastDisassembleData.modrmValue:=shortint(memory[modrmbyte+1]);
+            end;
+
             case getrm(memory[modrmbyte]) of
               0:
-              if shortint(memory[modrmbyte+1])>=0 then
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'ax'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
-                result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'ax'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2)+'],';
+              begin
+                if shortint(memory[modrmbyte+1])>=0 then
+                  result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'ax'+endcolor+'+'+inttohexs(memory[modrmbyte+1],2)+'],' else
+                  result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'ax'+endcolor+inttohexs(shortint(memory[modrmbyte+1]),2)+'],';
+              end;
 
               1:
               if shortint(memory[modrmbyte+1])>=0 then
@@ -706,6 +714,12 @@ begin
           end;
 
       2:  begin
+            if getrm(memory[modrmbyte])<>4 then
+            begin
+              LastDisassembleData.modrmValueType:=dvtValue;
+              LastDisassembleData.modrmValue:=pinteger(dwordptr)^;
+            end;
+
             case getrm(memory[modrmbyte]) of
               0:
               if integer(dwordptr^)>=0 then
@@ -735,38 +749,6 @@ begin
                 dec(last,4);
               end;
 
-             {
-              4:  begin
-                    result:=getsegmentoverride(prefix)+'['+sib(memory,modrmbyte+1,last);
-
-
-                    dwordptr:=@memory[last];
-
-                    if result='' then
-                    begin
-                      LastdisassembleData.modrmValueType:=dvtAddress;
-                      LastdisassembleData.modrmValue:=dwordptr^;
-                    end;
-
-                    if integer(dwordptr^)>=0 then
-                    begin
-                      if result<>'' then
-                        result:=result+'+'+inttohexs(dwordptr^,8)+'],'
-                      else
-                        result:=inttohexs(dwordptr^,8)+'],';
-                    end
-                    else
-                    begin
-                      if result<>'' then
-                        result:=result+'-'+inttohexs(-integer(dwordptr^),8)+'],'
-                      else
-                        result:=inttohexs(-integer(dwordptr^),8)+'],';
-                    end;
-
-                    //result:=getsegmentoverride(prefix)+'['+result+'],';
-
-                  end;
-                  }
               5:
               if integer(dwordptr^)>=0 then
                 result:=getsegmentoverride(prefix)+'['+colorreg+regprefix+'bp'+endcolor+'+'+inttohexs(dwordptr^,8)+'],' else
@@ -1084,6 +1066,8 @@ begin
    15: indexstring:='r15';
   end;
 
+
+
   if is64bit then
   begin
     if indexstring<>'' then indexstring[1]:='r'; //quick replace
@@ -1105,11 +1089,17 @@ begin
   end
   else
   begin
+
     case ss of
-      1: indexstring:=indexstring+'*'+colorhex+'2'+endcolor;
-      2: indexstring:=indexstring+'*'+colorhex+'4'+endcolor;
-      3: indexstring:=indexstring+'*'+colorhex+'8'+endcolor;
+      0: LastDisassembleData.sibScaler:=1;
+      1: LastDisassembleData.sibScaler:=2;
+      2: LastDisassembleData.sibScaler:=4;
+      3: LastDisassembleData.sibScaler:=8;
     end;
+
+    if ss>0 then
+      indexstring:=indexstring+'*'+colorhex+inttostr(LastDisassembleData.sibScaler)+endcolor;
+
     if indexstring<>'' then
     begin
       if result='' then
@@ -1132,6 +1122,9 @@ begin
         //
         if base=5 then
         begin
+          LastDisassembleData.modrmValueType:=dvtValue;
+          LastDisassembleData.modrmValue:=pinteger(dwordptr)^;
+
           if pinteger(dwordptr)^<0 then
             displacementstring:='-'+inttohexs(-pinteger(dwordptr)^,8)
           else
@@ -1144,6 +1137,11 @@ begin
       1: //scaled index + ebp+ disp 8
       begin
         //displacementstring:=colorreg+'EBP'+endcolor;
+
+        LastDisassembleData.modrmValueType:=dvtValue;
+        LastDisassembleData.modrmValue:=pshortint(dwordptr)^;
+
+
         if pshortint(dwordptr)^<0 then
           displacementstring:='-'+inttohexs(-pshortint(dwordptr)^,2)
         else
@@ -1155,6 +1153,9 @@ begin
       2: //scaled index + ebp+disp 32
       begin
         //displacementstring:=colorreg+'EBP'+endcolor;
+        LastDisassembleData.modrmValueType:=dvtValue;
+        LastDisassembleData.modrmValue:=pinteger(dwordptr)^;
+
         if pinteger(dwordptr)^<0 then
           displacementstring:='-'+inttohexs(-pinteger(dwordptr)^,8)
         else
@@ -1180,6 +1181,10 @@ begin
 
 
   end;
+
+  LastDisassembleData.hasSib:=true;
+  LastDisassembleData.sibIndex:=index;
+
 
 {$ifdef disassemblerdebug}
   result:=result+' ss='+inttostr(ss)+' index='+inttostr(index)+' base='+inttostr(base);
@@ -1275,6 +1280,7 @@ begin
   lastdisassembledata.isconditionaljump:=false;
   lastdisassembledata.modrmValueType:=dvtNone;
   lastdisassembledata.parameterValueType:=dvtNone;
+  LastDisassembleData.hasSib:=false;
 
 
   if assigned(OnDisassembleOverride) then //check if the user has defined it's own disassembler
