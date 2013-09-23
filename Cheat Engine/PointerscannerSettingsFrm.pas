@@ -108,7 +108,6 @@ type
     automaticaddress: ptrUint;
     structsize: integer;
     maxOffsetsPerNode: integer;
-    level0structsize: integer;
     maxlevel: integer;
     codescan: boolean;
     threadcount: integer;
@@ -192,7 +191,6 @@ begin
   unalligned:=not cballigned.checked;
 
   structsize:=strtoint(editstructsize.text);
-  level0structsize:=4;
   maxlevel:=strtoint(editMaxLevel.text)+1;
 
   codescan:=false;

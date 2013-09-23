@@ -40,6 +40,7 @@ type
   TGetScanParametersOut=packed record
     yourID: Int32;
     maxlevel: Uint32;
+    structsize: uint32;
     staticonly: Byte;
     noLoop: Byte;
     LimitToMaxOffsetsPerNode: Byte;
@@ -294,7 +295,7 @@ type
     startaddress: ptrUint;
     stopaddress: ptrUint;
     progressbar: TProgressbar;
-    sz,sz0: integer;
+    sz: integer;
     maxlevel: integer;
     unalligned: boolean;
     codescan: boolean;
@@ -1151,6 +1152,7 @@ begin
       pathqueue[i]:=overflowqueue[length(overflowqueue)-1-(i-pathqueuelength)];
 
     inc(pathqueuelength, pathsToCopy);
+    ReleaseSemaphore(pathqueueSemaphore, pathsToCopy, nil);
     pathqueueCS.leave;
 
     setlength(overflowqueue, length(overflowqueue)-pathstocopy);
@@ -1306,8 +1308,10 @@ begin
 
   myID:=sp.yourID;
   maxlevel:=sp.maxlevel;
+  sz:=sp.structsize;
   staticonly:=sp.staticonly<>0;
   noLoop:=sp.noLoop<>0;
+
   LimitToMaxOffsetsPerNode:=sp.LimitToMaxOffsetsPerNode<>0;
   unalligned:=not (sp.Alligned<>0);
   MaxOffsetsPerNode:=sp.MaxOffsetsPerNode;
@@ -1655,6 +1659,7 @@ begin
         getmem(getScanParametersOut, packetsize);
         getScanParametersOut.yourID:=index;
         getScanParametersOut.maxlevel:=maxlevel;
+        getScanParametersOut.structsize:=sz;
         getScanParametersOut.staticonly:=ifthen(staticonly, 1, 0);
         getScanParametersOut.noLoop:=ifthen(noLoop, 1, 0);
         getScanParametersOut.LimitToMaxOffsetsPerNode:=ifthen(LimitToMaxOffsetsPerNode,1,0);
@@ -2473,6 +2478,8 @@ begin
       open1.Enabled:=false;
 
       staticscanner.start;
+
+      pgcPScandata.Visible:=true;
     end;
 
     reg.free;
@@ -2575,7 +2582,6 @@ begin
 
       staticscanner.automaticaddress:=frmpointerscannersettings.automaticaddress;
       staticscanner.sz:=frmpointerscannersettings.structsize;
-      staticscanner.sz0:=frmpointerscannersettings.level0structsize;
       staticscanner.maxlevel:=frmpointerscannersettings.maxlevel;
 
 
@@ -2599,14 +2605,12 @@ begin
 
       staticscanner.onlyOneStaticInPath:=frmpointerscannersettings.cbOnlyOneStatic.checked;
 
-{$ifndef injectedpscan}
       staticscanner.useHeapData:=frmpointerscannersettings.cbUseHeapData.Checked;
       staticscanner.useOnlyHeapData:=frmpointerscannersettings.cbHeapOnly.checked;
 
 
       if staticscanner.useHeapData then
         frmMemoryAllocHandler.memrecCS.enter; //stop adding entries to the list
-{$endif}        
 
       //check if the user choose to scan for addresses or for values
       staticscanner.findValueInsteadOfAddress:=frmpointerscannersettings.rbFindValue.checked;
