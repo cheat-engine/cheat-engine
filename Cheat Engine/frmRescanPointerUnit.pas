@@ -23,6 +23,8 @@ type
     cbRepeat: TCheckBox;
     cbNoValueCheck: TCheckBox;
     cbLuaFilter: TCheckBox;
+    cbDistributedRescan: TCheckBox;
+    edtRescanPort: TEdit;
     Label2: TLabel;
     edtRescanFunction: TEdit;
     edtBaseStart: TEdit;
@@ -66,6 +68,7 @@ type
     procedure btnRemoveEndOffsetClick(sender: TObject);
   public
     { Public declarations }
+    distributedport: integer;
 
     startOffsetValues, endoffsetvalues: Array of dword;
     property Delay: integer read fdelay;
@@ -175,6 +178,9 @@ begin
 
 
   end;
+
+  if cbDistributedRescan.checked then
+    distributedport:=strtoint(edtRescanPort.text);
 
   modalresult:=mrok;
 end;

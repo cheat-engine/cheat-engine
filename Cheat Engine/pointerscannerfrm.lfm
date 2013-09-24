@@ -204,11 +204,6 @@ object frmPointerScanner: TfrmPointerScanner
         ShortCut = 16464
         OnClick = Method3Fastspeedandaveragememoryusage1Click
       end
-      object miJoinDistributedScan: TMenuItem
-        Caption = 'Join scan'
-        ShortCut = 16452
-        OnClick = miJoinDistributedScanClick
-      end
       object N1: TMenuItem
         Caption = '-'
       end
@@ -217,6 +212,18 @@ object frmPointerScanner: TfrmPointerScanner
         Enabled = False
         ShortCut = 16466
         OnClick = Rescanmemory1Click
+      end
+    end
+    object MenuItem2: TMenuItem
+      Caption = 'Distributed pointer scan'
+      object miJoinDistributedScan: TMenuItem
+        Caption = 'Join scan'
+        ShortCut = 16452
+        OnClick = miJoinDistributedScanClick
+      end
+      object miJoinDistributedRescan: TMenuItem
+        Caption = 'Join rescan'
+        OnClick = miJoinDistributedRescanClick
       end
     end
   end

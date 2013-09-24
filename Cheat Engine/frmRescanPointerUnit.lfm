@@ -1,11 +1,11 @@
 object frmRescanPointer: TfrmRescanPointer
   Left = 931
-  Height = 273
+  Height = 297
   Top = 112
   Width = 330
   BorderStyle = bsDialog
   Caption = 'Rescan pointerlist'
-  ClientHeight = 273
+  ClientHeight = 297
   ClientWidth = 330
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
@@ -121,7 +121,7 @@ object frmRescanPointer: TfrmRescanPointer
   object pnlButtons: TPanel
     Left = 88
     Height = 34
-    Top = 240
+    Top = 263
     Width = 170
     BevelOuter = bvNone
     ClientHeight = 34
@@ -221,5 +221,25 @@ object frmRescanPointer: TfrmRescanPointer
     Width = 123
     Caption = '(base, offsets, target):bool'
     ParentColor = False
+  end
+  object cbDistributedRescan: TCheckBox
+    Left = 8
+    Height = 19
+    Top = 240
+    Width = 172
+    Caption = 'Let other workers rescan as well'
+    Checked = True
+    State = cbChecked
+    TabOrder = 15
+    Visible = False
+  end
+  object edtRescanPort: TEdit
+    Left = 185
+    Height = 21
+    Top = 240
+    Width = 55
+    TabOrder = 16
+    Text = '52739'
+    Visible = False
   end
 end
