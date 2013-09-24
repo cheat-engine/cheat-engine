@@ -36,6 +36,7 @@ type TPointerscanresultReader=class
     cacheStart: integer;
     cacheSize: integer;
     cache: pointer;
+    fExternalScanners: integer;
     function InitializeCache(i: qword): boolean;
   public
     procedure resyncModulelist;
@@ -51,6 +52,7 @@ type TPointerscanresultReader=class
     property offsetCount: integer read maxlevel;
     property filename: string read FFilename;
     property entrySize: integer read sizeOfEntry;
+    property externalScanners: integer read fExternalScanners;
 end;
 
 implementation
@@ -299,6 +301,15 @@ begin
     inc(i);
   end;
   setlength(files,j);
+
+
+  fExternalScanners:=0;
+  try
+    if configfile.Position<configfile.Size then
+      fExternalScanners:=configfile.ReadDWord
+  except
+
+  end;
 
   getmem(cache, sizeofEntry*maxcachecount);
   InitializeCache(0);

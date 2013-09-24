@@ -130,6 +130,11 @@ type
     novaluecheck: boolean; //when set to true the value and final address are not compared, just check that he final address is in fact readable
     useluafilter: boolean; //when set to true each pointer will be passed on to the luafilter function
     luafilter: string; //function name of the luafilter
+
+    distributedport: integer;
+    distributedrescan: boolean;
+    distributedrescanWorker: boolean;
+
     procedure execute; override;
   end;
 
@@ -249,6 +254,7 @@ type
       id: integer;
       threadcount: integer;
       pathsPerSecond: qword;
+      pointersfound: qword;
       alldone: boolean;
     end;
     myID: integer; //if worker, this will be the ID to identify the generated results, and to reconnect
@@ -368,6 +374,9 @@ type
     distributedWorker: boolean; //set if it's a worker connecting to a server
     distributedServer: string;
 
+    workersPathPerSecondTotal: qword;
+    workersPointersfoundTotal: qword;
+
 
     procedure execute; override;
     constructor create(suspended: boolean);
@@ -379,7 +388,9 @@ type
   Tfrmpointerscanner = class(TForm)
     btnStopRescanLoop: TButton;
     Button1: TButton;
+    MenuItem2: TMenuItem;
     miJoinDistributedScan: TMenuItem;
+    miJoinDistributedRescan: TMenuItem;
     ProgressBar1: TProgressBar;
     Panel1: TPanel;
     MainMenu1: TMainMenu;
@@ -414,6 +425,7 @@ type
     procedure FormResize(Sender: TObject);
     procedure ListView1ColumnClick(Sender: TObject; Column: TListColumn);
     procedure ListView1Resize(Sender: TObject);
+    procedure miJoinDistributedRescanClick(Sender: TObject);
     procedure miJoinDistributedScanClick(Sender: TObject);
     procedure Method3Fastspeedandaveragememoryusage1Click(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
@@ -1398,6 +1410,7 @@ var
     command: byte;
     pathqueuelength: int32;
     pathsPerSecond: qword;
+    pointersfound: qword;
     alldone: byte;
   end;
 
@@ -1420,6 +1433,7 @@ begin
   firsttime:=false;
   updateworkerstatusmessage.command:=CMD_UPDATEWORKERSTATUS;
   updateworkerstatusmessage.pathqueuelength:=pathqueuelength;
+  updateworkerstatusmessage.pointersfound:=scount;
   updateworkerstatusmessage.pathsPerSecond:=trunc((totalpathsevaluated / (gettickcount-starttime))*1000);
 
   updateworkerstatusmessage.alldone:=0;
@@ -1465,7 +1479,7 @@ begin
           //load them into the overflow queue
           p:=buffer;
           for j:=i to length(overflowqueue)-1 do
-            LoadPathQueueElementFromMemory(@overflowqueue[i], p);
+            LoadPathQueueElementFromMemory(@overflowqueue[j], p);
 
         finally
           freemem(buffer);
@@ -1578,6 +1592,7 @@ var
   UpdateWorkerStatus: packed record
     pathqueuelength: int32;
     pathsPerSecond: qword;
+    pointersFound: qword;
     alldone: byte;
   end;
 
@@ -1604,6 +1619,9 @@ var
   p: PByteArray;
 
   buffer: pointer;
+
+  _workersPathPerSecondTotal: qword;
+  _workersPointersfoundTotal: qword;
 begin
 
 
@@ -1624,6 +1642,7 @@ begin
           setlength(workers, length(workers)+1);
           workers[index].id:=length(workers)-1;
           workers[index].s:=s;
+          workers[index].threadcount:=getScanParametersIn.threadcount;
         end
         else
         begin
@@ -1638,6 +1657,7 @@ begin
 
               index:=i;
               workers[i].s:=s;
+              workers[i].threadcount:=getScanParametersIn.threadcount;
               found:=true;
               break;
             end;
@@ -1676,17 +1696,31 @@ begin
       begin
         receive(s, @UpdateWorkerStatus, sizeof(UpdateWorkerStatus));
 
+        //update the stats
+        _workersPathPerSecondTotal:=0;
+        _workersPointersfoundTotal:=0;
+
         for i:=0 to length(workers)-1 do
+        begin
           if workers[i].s=s then
           begin
             workers[i].pathsPerSecond:=UpdateWorkerStatus.pathsPerSecond;
+            workers[i].pointersfound:=UpdateWorkerStatus.pointersfound;
             workers[i].alldone:=UpdateWorkerStatus.alldone<>0;
           end;
 
+          inc(_workersPathPerSecondTotal, workers[i].pathsPerSecond);
+          inc(_workersPointersfoundTotal, workers[i].pointersfound);
+        end;
+
+        workersPathPerSecondTotal:=_workersPathPerSecondTotal;
+        workersPointersfoundTotal:=_workersPointersfoundTotal;
+
         EatFromOverFlowQueueIfNeeded;
 
-        if ((pathqueuelength+length(overflowqueue)<32) and (UpdateWorkerStatus.pathqueuelength>32)) or //Normalize queue
-           ((pathqueuelength+length(overflowqueue)<4) and (UpdateWorkerStatus.pathqueuelength>1)) then //emergency
+        if (length(reversescanners)>0) and (
+           ((pathqueuelength+length(overflowqueue)<32) and (UpdateWorkerStatus.pathqueuelength>32)) or //Normalize queue
+           ((pathqueuelength+length(overflowqueue)<4) and (UpdateWorkerStatus.pathqueuelength>1))) then //emergency
         begin
           //ask the client for his queue elements
 
@@ -1799,6 +1833,11 @@ begin
             if TransmittedQueueMessage.elementcount>0 then
             begin
               send(s, TransmittedQueueMessage, 2+getPathQueueElementSize*TransmittedQueueMessage.elementcount);
+
+              //mark this worker as not done
+              for i:=0 to length(workers)-1 do
+                if workers[i].s=s then
+                  workers[i].alldone:=false;
             end
             else
             begin
@@ -1896,6 +1935,7 @@ var
   maxfd: integer;
 begin
   //wait for a status update from any worker, and then either request and send queued paths
+
   result:=true;
 
 
@@ -2013,6 +2053,8 @@ var
   addedToQueue: boolean;
 
   valuefinder: TValueFinder;
+
+
 begin
   //scan the buffer
   fcount:=0; //debug counter to 0
@@ -2099,7 +2141,7 @@ begin
         if not distributedWorker then
           launchServer; //everything is configured now and the scanners are active
 
-        doDistributedScanningLoop;
+        alldone:=not doDistributedScanningLoop;
       end;
 
 
@@ -2124,12 +2166,12 @@ begin
         EatFromOverflowQueueIfNeeded;
 
         if distributedScanning then
-           doDistributedScanningLoop
+          alldone:=not doDistributedScanningLoop
         else
           sleep(500);
 
 
-        if pathqueuelength=0 then //it's 0
+        if (not alldone) and (pathqueuelength=0) then //it's 0
         begin
           //aquire a lock to see if it's still 0
           pathqueueCS.Enter;
@@ -2137,32 +2179,36 @@ begin
           begin //still 0
             alldone:=true;
 
-            for i:=0 to length(reversescanners)-1 do
+            if not terminated then
             begin
-              if reversescanners[i].haserror then
+              for i:=0 to length(reversescanners)-1 do
               begin
+                if reversescanners[i].haserror then
+                begin
 
-                OutputDebugString('A worker had an error: '+reversescanners[i].errorstring);
+                  OutputDebugString('A worker had an error: '+reversescanners[i].errorstring);
 
-                haserror:=true;
-                errorstring:=reversescanners[i].errorstring;
+                  haserror:=true;
+                  errorstring:=reversescanners[i].errorstring;
 
-                for j:=0 to length(reversescanners)-1 do reversescanners[j].terminate; //even though the reversescanner already should have done this, let's do it myself as well
+                  for j:=0 to length(reversescanners)-1 do reversescanners[j].terminate; //even though the reversescanner already should have done this, let's do it myself as well
 
-                alldone:=true;
-                break;
+                  alldone:=true;
+                  break;
+                end;
+
+                if not (reversescanners[i].hasTerminated or reversescanners[i].isdone) then //isdone might be enabled
+                begin
+                  if terminated then
+                    OutputDebugString('Worker '+inttostr(i)+' is still active');
+
+                  alldone:=false;
+                  break;
+                end;
+
+
+
               end;
-
-              if not (reversescanners[i].hasTerminated or reversescanners[i].isdone) then //isdone might be enabled
-              begin
-                if terminated then
-                  OutputDebugString('Worker '+inttostr(i)+' is still active');
-
-                alldone:=false;
-                break;
-              end;
-
-
 
             end;
           end
@@ -2171,7 +2217,7 @@ begin
 
           pathqueueCS.Leave;
 
-          if alldone and distributedScanning then
+          if (not terminated) and alldone and distributedScanning then
           begin
             //if this is a distributed scan
             if distributedWorker then
@@ -2182,9 +2228,9 @@ begin
             end
             else
             begin
-              //server scanners are done, check if all the workers are done (or disconnected)
+              //server scanners are done, check if all the workers are done
               for i:=0 to length(workers)-1 do
-                if workers[i].alldone=false then
+                if (workers[i].alldone=false) then
                 begin
                   alldone:=false;
                   break; //still some workers active. do not terminate the scan
@@ -2192,11 +2238,7 @@ begin
             end;
           end;
 
-        end
-        else
-          alldone:=false;
-
-
+        end;
 
       end;
 
@@ -2248,7 +2290,10 @@ var
     ds: Tdecompressionstream;
 begin
   if terminated then exit;
+
   try
+    result:=nil;
+
     if distributedScanning and distributedWorker then
       LaunchWorker; //connects and sets up the parameters
 
@@ -2361,11 +2406,23 @@ begin
         result.Write(tempstring[1],temp);
       end;
 
-      result.Free;
-
-
+      freeandnil(result);
       reversescan;
+
+
+      if distributedScanning and (not distributedWorker) then
+      begin
+        //save the number of workers
+        result:=TfileStream.create(filename,fmOpenWrite);
+        result.writeDword(length(workers));
+        freeandnil(result);
+      end;
+
     finally
+
+      if result<>nil then
+        freeandnil(result);
+
       freeandnil(reverseScanCS);
 
       freeandnil(pathqueueCS);
@@ -2377,11 +2434,9 @@ begin
   except
     on e: exception do
     begin
-
-
       haserror:=true;
       errorstring:='StaticScanner:'+e.message;
-      postmessage(ownerform.Handle,staticscanner_done,1,ptrUint(pchar(errorstring)));
+      sendmessage(ownerform.Handle,staticscanner_done,1,ptrUint(pchar(errorstring)));
       terminate;
     end;
   end;
@@ -2393,6 +2448,8 @@ constructor TStaticscanner.create(suspended: boolean);
 begin
   pointersize:=processhandler.pointersize;
   myid:=-1;
+
+  reverse:=true;
 
   inherited create(suspended);
 end;
@@ -2454,6 +2511,7 @@ begin
         freeandnil(pointerlisthandler);
 
       staticscanner:=TStaticscanner.Create(true);
+      staticscanner.reverse:=true;
 
       label5.caption:=rsGeneratingPointermap;
       progressbar1.Visible:=true;
@@ -2685,6 +2743,11 @@ begin
   end;
 end;
 
+procedure Tfrmpointerscanner.miJoinDistributedRescanClick(Sender: TObject);
+begin
+
+end;
+
 
 
 procedure Tfrmpointerscanner.FormDestroy(Sender: TObject);
@@ -2786,6 +2849,8 @@ var i,j: integer;
     s: string;
 
     tn,tn2: TTreenode;
+
+    x: qword;
 begin
   if listview1.Visible then
     listview1.repaint;
@@ -2813,7 +2878,15 @@ begin
 
     if staticscanner.reverse then
     begin
-      lblRSTotalStaticPaths.caption:=format(rsPointerPathsFound+': %d', [scount]);
+      s:=format(rsPointerPathsFound+': %d', [scount]);
+
+      if staticscanner.distributedScanning and (staticscanner.distributedWorker=false) then
+      begin
+        x:=scount+ staticscanner.workersPointersfoundTotal;
+
+        s:=s+' ('+inttostr(x)+')';
+      end;
+      lblRSTotalStaticPaths.caption:=s;
 
 {$ifdef benchmarkps}
       if (starttime=0) and (totalpathsevaluated<>0) then
@@ -2822,8 +2895,14 @@ begin
         starttime:=gettickcount;
       end;
 
-      //label5.caption:=format('Threads: Evaluated: %d Time: %d  (%d / s)',[totalpathsevaluated-startcount, ((gettickcount-starttime) div 1000), trunc(((totalpathsevaluated-startcount)/((gettickcount-starttime) / 1000))) ]);
-      label5.caption:=format(rsThreads+': '+rsEvaluated+': %d '+rsTime+': %' +'d  (%d / ' +'s)', [totalpathsevaluated-startcount, ((gettickcount-starttime) div 1000), trunc(((totalpathsevaluated-startcount)/(gettickcount-starttime))*1000)]);
+      s:=format(rsThreads+': '+rsEvaluated+': %d '+rsTime+': %d  (%d / s)', [totalpathsevaluated-startcount, ((gettickcount-starttime) div 1000), trunc(((totalpathsevaluated-startcount)/(gettickcount-starttime))*1000)]);
+
+      if staticscanner.distributedScanning and (staticscanner.distributedWorker=false) then
+      begin
+        x:=trunc(((totalpathsevaluated-startcount)/(gettickcount-starttime))*1000)+staticscanner.workersPathPerSecondTotal;
+        s:=s+' (Total: '+inttostr(x)+' / s)';
+      end;
+      label5.caption:=s;
       label5.Width:=label5.Canvas.TextWidth(label5.caption);
 {$endif}
 
@@ -2844,6 +2923,8 @@ begin
       i:=0;
       while tn<>nil do
       begin
+        if tn.Data<>nil then break; //worker instead of thread
+
         if staticscanner.reversescanners[i].isdone then
         begin
           tn.Text:=rsThread+' '+inttostr(i+1)+' ('+rsSleeping+')';
@@ -2863,17 +2944,52 @@ begin
               s:=s+' '+inttohex(staticscanner.reversescanners[i].tempresults[j],8);
 
 
-            tn2.text:=rsCurrentLevel+':'+inttostr(staticscanner.reversescanners[
-              i].currentlevel)+' ('+s+')';
+            tn2.text:=rsCurrentLevel+':'+inttostr(staticscanner.reversescanners[i].currentlevel)+' ('+s+')';
             tn2:=tn2.getNextSibling;
-            tn2.text:=rsLookingFor+' :'+inttohex(staticscanner.reversescanners[i
-              ].lookingformin, 8)+'-'+inttohex(staticscanner.reversescanners[i
-              ].lookingformax, 8); ;
+            tn2.text:=rsLookingFor+' :'+inttohex(staticscanner.reversescanners[i].lookingformin, 8)+'-'+inttohex(staticscanner.reversescanners[i].lookingformax, 8);
           end;
         end;
 
         tn:=tn.getNextSibling;
         inc(i);
+      end;
+
+
+      if staticscanner.distributedScanning and (staticscanner.distributedWorker=false) then
+      begin
+
+        if length(Staticscanner.workers)>0 then
+        begin
+          //add/update workers
+          tn:=tvRSThreads.Items.GetFirstNode; //find first worker entry
+          while tn<>nil do
+          begin
+            if tn.Data<>nil then break;
+            tn:=tn.GetNextSibling;
+          end;
+
+
+          for i:=0 to length(Staticscanner.workers)-1 do
+          begin
+            if tn=nil then //create this one
+            begin
+              tn:=tvRSThreads.Items.AddChild(nil, 'Worker :'+inttostr(i));
+              tn.Data:=pointer(i+1);
+            end;
+
+            s:='';
+            if Staticscanner.workers[i].s=-1 then
+              s:=s+' (Disconnected)';
+
+            if Staticscanner.workers[i].alldone then
+              s:=s+' (Sleeping)';
+
+            tn.text:='Worker '+inttostr(i)+': Found='+inttostr(Staticscanner.workers[i].pointersfound)+' (Threads:'+inttostr(Staticscanner.workers[i].threadcount)+')'+s;
+            tn:=tn.GetNextSibling;
+          end;
+
+        end;
+
       end;
     end
     else
@@ -3353,6 +3469,12 @@ begin
     end;
 
     result.Free;
+        {
+        todo: design and implement this
+    if distributedrescan and (not distributedrescanWorker) then
+    begin
+      launchServer;
+    end;  }
 
     while WaitForMultipleObjects(rescanworkercount, @threadhandles[0], true, 1000) = WAIT_TIMEOUT do      //wait
     begin
@@ -3427,6 +3549,9 @@ begin
 
     with rescanpointerform do
     begin
+      cbDistributedRescan.visible:=Pointerscanresults.externalScanners>0;
+      edtRescanPort.Visible:=Pointerscanresults.externalScanners>0;
+
 
       if (rescanpointerform.cbRepeat.checked) or (showmodal=mrok) then
       begin
@@ -3544,6 +3669,13 @@ begin
 
           rescan.useLuaFilter:=cbLuaFilter.checked;
           rescan.LuaFilter:=edtRescanFunction.text;
+
+          if (Pointerscanresults.externalScanners>0) and (cbDistributedRescan.checked) then
+          begin
+            rescan.distributedport:=distributedport;
+            rescan.distributedrescan:=true;
+            rescan.distributedrescanWorker:=false;
+          end;
 
 
 
