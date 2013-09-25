@@ -1,11 +1,11 @@
 object frmPointerScannerSettings: TfrmPointerScannerSettings
   Left = 544
-  Height = 457
+  Height = 465
   Top = 226
   Width = 638
   BorderStyle = bsSingle
   Caption = 'Pointerscanner scanoptions'
-  ClientHeight = 457
+  ClientHeight = 465
   ClientWidth = 638
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
@@ -259,7 +259,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   object Panel1: TPanel
     Left = 0
     Height = 104
-    Top = 353
+    Top = 361
     Width = 638
     Align = alBottom
     BevelOuter = bvNone
@@ -466,6 +466,22 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     BorderSpacing.Top = 3
     Caption = 'Port:'
     ParentColor = False
+  end
+  object CheckBox1: TCheckBox
+    Left = 298
+    Height = 19
+    Top = 318
+    Width = 179
+    Caption = 'Broadcast that a scan has started'
+    TabOrder = 10
+  end
+  object Button2: TButton
+    Left = 298
+    Height = 25
+    Top = 336
+    Width = 139
+    Caption = 'Setup specific IP''s to tell'
+    TabOrder = 11
   end
   object odLoadPointermap: TOpenDialog
     DefaultExt = '.scandata'

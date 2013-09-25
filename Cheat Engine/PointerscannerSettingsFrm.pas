@@ -36,6 +36,7 @@ type
   { TfrmPointerScannerSettings }
 
   TfrmPointerScannerSettings = class(TForm)
+    Button2: TButton;
     cbNoReadOnly: TCheckBox;
     cbClassPointersOnly: TCheckBox;
     cbNoLoop: TCheckBox;
@@ -43,6 +44,7 @@ type
     cbStackOnly: TCheckBox;
     cbUseLoadedPointermap: TCheckBox;
     cbDistributedScanning: TCheckBox;
+    CheckBox1: TCheckBox;
     edtDistributedPort: TEdit;
     edtThreadStacks: TEdit;
     edtStackSize: TEdit;

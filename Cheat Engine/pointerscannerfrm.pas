@@ -22,17 +22,25 @@ const wm_starttimer=wm_user+4;
 
 //--------Network commands--------
 const
+  //pointerscan commands
+  //client->server commands
   CMD_GETSCANPARAMETERS=0;
   CMD_UPDATEWORKERSTATUS=1;
+  //server->client commands (in response to CMD_UPDATEWORKERSTATUS)
     CMDUPDATEREPLY_EVERYTHINGOK=0;
     CMDUPDATEREPLY_HEREARESOMEPATHSTOEVALUATE=1;
     CMDUPDATEREPLY_PLEASESENDMESOMEPATHS=2;
     CMDUPDATEREPLY_GOKILLYOURSELF=3;
 
 
+  //downloader commands
   DCMD_GETSCANDATASIZE=0; //(): integer;
   DCMD_GETSCANDATA=1; //(offset: qword; chunksize: dword)->stream
 
+  //rescan commands
+  RCMD_GETMEMORYREGIONS=0; //(): count*(baseaddress: qword; size: qword)
+  RCMD_GETPAGES=1; //(Base:QWORD, count: byte): count*(ispresent, sizeofstream, stream)  (in the order of base, base+4096, base+8192, ...)
+  RCMD_DONE=2; //
 
 type
   TSocketException=class(Exception);
@@ -69,6 +77,7 @@ type
     PointerAddressToFind: ptrUint;
     forvalue: boolean;
     valuetype: TVariableType;
+    valuesize: integer;
     valuescandword: dword;
     valuescansingle: single;
     valuescandouble: double;
@@ -100,11 +109,25 @@ type
     destructor destroy; override;
   end;
 
+  Trescanpointers=class;
+  TRescanserver=class(tthread)
+  private
+  public
+    workers: array of record
+      s: Tsocket;
+      done: boolean;
+    end;
+//    constructor create(suspended: boolean; owner: TRescanPointers);
+  end;
 
   Trescanpointers=class(tthread)
   private
 
+    RescanServer: TRescanServer;
+
     procedure closeOldFile;
+    //procedure LaunchServer;
+    //procedure LaunchWorker;
   public
     ownerform: TFrmPointerScanner;
     progressbar: tprogressbar;
@@ -388,7 +411,9 @@ type
   Tfrmpointerscanner = class(TForm)
     btnStopRescanLoop: TButton;
     Button1: TButton;
+    MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
+    MenuItem3: TMenuItem;
     miJoinDistributedScan: TMenuItem;
     miJoinDistributedRescan: TMenuItem;
     ProgressBar1: TProgressBar;
@@ -3097,16 +3122,15 @@ end;
 procedure TRescanWorker.execute;
 var
     currentEntry: qword;
-    i,j: integer;
+    i,j,k: integer;
 
-    baseaddress, address,address2: ptrUint;
-    pa: PPointerAddress;
+    baseaddress, address,address2, tempaddress: ptrUint;
+    pi: TPageInfo;
     x: dword;
     valid: boolean;
 
     tempvalue: pointer;
     value: pointer;
-    valuesize: integer;
 
     p: ppointerscanresult;
     pointersize: integer;
@@ -3116,8 +3140,16 @@ var
     lfun: integer;
     ltable: integer;
 
+    temppage: pointer;
+
+
+    mr: TMemoryRegion;
 begin
   l:=nil;
+
+  try
+
+  getmem(temppage, 4096);
   if useluafilter then
   begin
     //create a new lua thread
@@ -3145,7 +3177,7 @@ begin
   address2:=0;
   pointersize:=processhandler.pointersize;
 
-  if forvalue and (valuetype=vtDouble) then valuesize:=8 else valuesize:=4;
+
 
   getmem(tempvalue,valuesize);
 
@@ -3211,21 +3243,41 @@ begin
               //evaluate the pointer to address
               for i:=p.offsetcount-1 downto 0 do
               begin
-                pa:=rescanhelper.findPointer(address);
-                if pa=nil then
-                begin
-                  if readprocessmemory(processhandle, pointer(address), @address2, pointersize, x) then
-                    pa:=rescanhelper.AddPointer(address, address2)
-                  else
-                    pa:=rescanhelper.AddPointer(address, 0);
-                end;
 
-                if pa.value>0 then
-                  address:=pa.value+p.offsets[i]
+                pi:=rescanhelper.FindPage(address shr 12);
+                if (pi.data<>nil) then
+                begin
+                  tempaddress:=0;
+                  j:=address and $fff; //offset into the page
+                  k:=min(pointersize, 4096-j); //bytes to read from this page
+
+
+                  if (k<pointersize) then
+                  begin
+                    //more bytes are needed
+                    copymemory(@tempaddress, @pi.data[j], k);
+
+                    pi:=rescanhelper.FindPage((address shr 12)+1);
+                    if pi.data<>nil then
+                      copymemory(pointer(ptruint(@address)+k), @pi.data[0], pointersize-k)
+                    else
+                    begin
+                      valid:=false;
+                      break;
+                    end;
+                  end
+                  else
+                    tempaddress:=pptruint(@pi.data[j])^;
+
+                  if pointersize=4 then
+                    tempaddress:=tempaddress and $ffffffff;
+
+                  address:=tempaddress+p.offsets[i];
+                end
                 else
                 begin
                   valid:=false;
-                  break; //invalid pointer
+                  break;
                 end;
               end;
 
@@ -3238,20 +3290,34 @@ begin
                 //evaluate the address (address must be accessible)
                 if rescanhelper.ispointer(address) then
                 begin
+
                   if novaluecheck=false then //check if the value is correct
                   begin
-                    value:=rescanhelper.findAddress(address);
-                    if value=nil then
+
+                    value:=nil;
+                    pi:=rescanhelper.FindPage(address shr 12);
+                    if pi.data<>nil then
                     begin
-                      //value is not yet stored, fetch it and add it to the list
-                      if ReadProcessMemory(processhandle,pointer(address),tempvalue,valuesize,x) then
-                        value:=rescanhelper.AddAddress(address, tempvalue, valuesize)
-                      else
-                        valid:=false; //unreadable even though ispointer returned true....
-                    end;
+                      i:=address and $fff;
+                      j:=min(valuesize, 4096-i);
 
+                      copymemory(tempvalue, @pi.data[i], j);
 
-                    if (value=nil) or (not isMatchToValue(value)) then
+                      if j<valuesize then
+                      begin
+                        pi:=rescanhelper.FindPage((address shr 12)+1);
+                        if pi.data<>nil then
+                          copymemory(pointer(ptruint(tempvalue)+j), @pi.data[0], valuesize-j)
+                        else
+                          valid:=false;
+                      end;
+                    end
+                    else
+                      valid:=false;
+
+                    value:=tempvalue;
+
+                    if (not valid) or (value=nil) or (not isMatchToValue(value)) then
                       valid:=false; //invalid value
                   end;
                 end else valid:=false; //unreadable address
@@ -3329,6 +3395,14 @@ begin
     end;
 
   end;
+
+  except
+    on e: exception do
+    begin
+
+      MessageBox(0, 'FUU', pchar(e.message), 0);
+    end;
+  end;
 end;
 
 procedure TRescanpointers.closeOldFile;
@@ -3352,8 +3426,11 @@ var
   result: tfilestream;
 
   rescanhelper: TRescanHelper;
+  //rpmcontainer: TReadProcessMemoryContainer;
   temp: dword;
 
+
+  valuesize: integer;
 
 begin
 
@@ -3365,7 +3442,9 @@ begin
 
   sleep(delay*1000);
 
-  rescanhelper:=TRescanHelper.create;
+  if forvalue and (valuetype=vtDouble) then valuesize:=8 else valuesize:=4;
+
+  rescanhelper:=TRescanHelper.create(valuesize);
 
   ownerform.resyncloadedmodulelist;
 
@@ -3401,6 +3480,7 @@ begin
       rescanworkers[i].novaluecheck:=novaluecheck;
 
       rescanworkers[i].forvalue:=forvalue;
+      rescanworkers[i].valuesize:=valuesize;
       rescanworkers[i].valuetype:=valuetype;
       rescanworkers[i].valuescandword:=valuescandword;
       rescanworkers[i].valuescansingle:=valuescansingle;
@@ -3470,7 +3550,7 @@ begin
 
     result.Free;
         {
-        todo: design and implement this
+        todo: design and implement this (use maps)
     if distributedrescan and (not distributedrescanWorker) then
     begin
       launchServer;
@@ -3486,6 +3566,13 @@ begin
       progressbar.Position:=PointersEvaluated div (TotalPointersToEvaluate div 100);
     end;
     //no timeout, so finished or crashed
+
+    {
+    if distributedrescan and (not distributedrescanWorker) then
+    begin
+      //wait for all the workers to finish (the pointerscan file contains the number of workers that should finish)
+    end;
+    }
 
     if overwrite then //delete the old ptr file
     begin

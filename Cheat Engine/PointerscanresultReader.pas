@@ -9,7 +9,7 @@ interface
 
 uses LCLIntf, sysutils, classes, CEFuncProc, NewKernelHandler, symbolhandler, math;
 
-const maxcachecount=256;
+const maxcachecount=2560;
 
 type TPointerscanResult=record
   modulenr: integer;
