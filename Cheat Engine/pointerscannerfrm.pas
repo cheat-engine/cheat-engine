@@ -38,9 +38,11 @@ const
   DCMD_GETSCANDATA=1; //(offset: qword; chunksize: dword)->stream
 
   //rescan commands
-  RCMD_GETMEMORYREGIONS=0; //(): count*(baseaddress: qword; size: qword)
-  RCMD_GETPAGES=1; //(Base:QWORD, count: byte): count*(ispresent, sizeofstream, stream)  (in the order of base, base+4096, base+8192, ...)
-  RCMD_DONE=2; //
+  RCMD_INIT=0; //(WorkerID: dword) =>workerid
+  RCMD_GETMEMORYREGIONS=1; //() => count:dword, count*(baseaddress: qword; size: qword)
+  RCMD_GETPAGES=2; //(Base:QWORD, count: byte) => count*(sizeofstream:word, stream:bytearray)  (in the order of base, base+4096, base+8192, ...)
+  RCMD_STATUS=3; //(PointersEvaluated: qword; TotalPointersToEvaluate: qword)
+  RCMD_DONE=4; //() -> 0
 
 type
   TSocketException=class(Exception);
@@ -105,28 +107,33 @@ type
     useluafilter: boolean; //when set to true each pointer will be passed on to the luafilter function
     luafilter: string; //function name of the luafilter
 
+    done: boolean;
     procedure execute; override;
     destructor destroy; override;
   end;
 
-  Trescanpointers=class;
-  TRescanserver=class(tthread)
-  private
-  public
-    workers: array of record
-      s: Tsocket;
-      done: boolean;
-    end;
-//    constructor create(suspended: boolean; owner: TRescanPointers);
-  end;
 
   Trescanpointers=class(tthread)
   private
+    sockethandle: Tsocket;
 
-    RescanServer: TRescanServer;
+    workers: array of record
+      s: Tsocket;
+      TotalPointersToEvaluate: qword;
+      PointersEvaluated: qword;
+      done: boolean;
+    end;
+
+    rescanworkercount: integer;
+    rescanworkers: array of TRescanWorker;
+
+    rescanhelper: TRescanHelper;
+
+    procedure Server_HandleRead(s: Tsocket);
 
     procedure closeOldFile;
-    //procedure LaunchServer;
+    procedure LaunchServer;
+    procedure DoServerLoop;
     //procedure LaunchWorker;
   public
     ownerform: TFrmPointerScanner;
@@ -1353,6 +1360,8 @@ begin
   unalligned:=not (sp.Alligned<>0);
   MaxOffsetsPerNode:=sp.MaxOffsetsPerNode;
 
+  filename:=filename+'-Worker'+inttostr(myid);
+
   if UseLoadedPointermap=false then
   begin
     //download the pointermap from the server
@@ -1760,26 +1769,29 @@ begin
 
             receive(s, @receivedQueueListCount, sizeof(receivedQueueListCount));
 
-            getmem(buffer, receivedQueueListCount*getPathQueueElementSize);
-            try
-              receive(s, buffer, getPathQueueElementSize*receivedQueueListCount);
-              setlength(tempqueue, receivedQueueListCount);
+            if receivedQueueListCount>0 then
+            begin
+              getmem(buffer, receivedQueueListCount*getPathQueueElementSize);
+              try
+                receive(s, buffer, getPathQueueElementSize*receivedQueueListCount);
+                setlength(tempqueue, receivedQueueListCount);
 
-              p:=buffer;
-              for i:=0 to receivedQueueListCount-1 do
-                LoadPathQueueElementFromMemory(@tempqueue[i], p);
+                p:=buffer;
+                for i:=0 to receivedQueueListCount-1 do
+                  LoadPathQueueElementFromMemory(@tempqueue[i], p);
 
-            finally
-              freemem(buffer);
+              finally
+                freemem(buffer);
+              end;
+
+              j:=length(overflowqueue);
+              setlength(overflowqueue, length(overflowqueue)+length(tempqueue));
+
+              for i:=j to j+length(tempqueue)-1 do
+                overflowqueue[j+i]:=tempqueue[i];
+
+              EatFromOverflowQueueIfNeeded; //and use what can be used
             end;
-
-            j:=length(overflowqueue);
-            setlength(overflowqueue, length(overflowqueue)+length(tempqueue));
-
-            for i:=j to j+length(tempqueue) do
-              overflowqueue[j+i]:=tempqueue[i];
-
-            EatFromOverflowQueueIfNeeded; //and use what can be used
           end;
 
 
@@ -1970,7 +1982,7 @@ begin
     readfds^.fd_count:=1;
     readfds^.fd_array[0]:=sockethandle;
 
-    maxfd:=0;
+    maxfd:=sockethandle;
     for i:=1 to length(workers) do
     begin
       if workers[i-1].s<>-1 then //don't add scanners that got disconnected. (they can reconnect)
@@ -2032,14 +2044,8 @@ begin
               workers[i].s:=-1;
             end;
           end;
-
-
-
         end;
-
-
       end;
-
     end;
 
 
@@ -2439,6 +2445,7 @@ begin
       begin
         //save the number of workers
         result:=TfileStream.create(filename,fmOpenWrite);
+        result.seek(0, soEnd);
         result.writeDword(length(workers));
         freeandnil(result);
       end;
@@ -2461,7 +2468,7 @@ begin
     begin
       haserror:=true;
       errorstring:='StaticScanner:'+e.message;
-      sendmessage(ownerform.Handle,staticscanner_done,1,ptrUint(pchar(errorstring)));
+      postmessage(ownerform.Handle,staticscanner_done,1,ptrUint(pchar(errorstring)));
       terminate;
     end;
   end;
@@ -3394,6 +3401,8 @@ begin
 
     end;
 
+    done:=true;
+
   end;
 
   except
@@ -3403,6 +3412,273 @@ begin
       MessageBox(0, 'FUU', pchar(e.message), 0);
     end;
   end;
+
+
+end;
+
+//------RescanPointers-------
+procedure TRescanpointers.Server_HandleRead(s: Tsocket);
+type
+  TMemRegion=packed record
+    BaseAddress: qword;
+    MemorySize: qword;
+  end;
+  PMemRegion=^TMemRegion;
+var
+  command: byte;
+  r: Tmemorystream;
+
+  memoryregions: TMemoryRegions;
+
+  getPagesInput: packed record
+    base: qword;
+    count: byte;
+  end;
+
+  statusInput: packed record
+    pointersEvaluated: qword;
+    TotalPointersToEvaluate: qword;
+  end;
+
+  i: integer;
+
+  pages: array of TPageInfo;
+
+begin
+  r:=tmemorystream.create;
+  try
+    receive(s, @command, 1);
+
+    case command of
+      RCMD_GETMEMORYREGIONS:
+      begin
+        memoryregions:=rescanhelper.getMemoryRegions;
+
+        r.clear;
+        r.WriteDWord(length(memoryregions));
+
+        for i:=0 to length(memoryregions)-1 do
+        begin
+          r.WriteQword(memoryregions[i].BaseAddress);
+          r.WriteQword(memoryregions[i].MemorySize);
+        end;
+
+        send(s, r.Memory,  r.size);
+      end;
+
+      RCMD_GETPAGES:
+      begin
+        receive(s, @getPagesInput, sizeof(getPagesInput));
+
+        setlength(pages, getpagesinput.count);
+        for i:=0 to getPagesInput.count-1 do
+          pages[i]:=rescanhelper.FindPage((getPagesInput.base shr 12)+i);
+
+        r.Clear;
+        r.writedword(length(pages));
+        for i:=0 to length(pages)-1 do
+        begin
+          if pages[i].data<>nil then
+          begin
+            r.WriteWord(4096);
+            r.WriteBuffer(pages[i].data^, 4096);
+          end
+          else
+            r.writeWord(0);
+        end;
+
+        send(s, r.Memory, r.size);
+      end;
+
+      RCMD_STATUS:
+      begin
+        receive(s, @statusInput, sizeof(statusInput));
+
+        for i:=0 to length(workers)-1 do
+          if s=workers[i].s then
+          begin
+            workers[i].PointersEvaluated:=statusinput.pointersEvaluated;
+            workers[i].TotalPointersToEvaluate:=statusinput.TotalPointersToEvaluate;
+          end;
+
+        i:=0;
+        send(s, @i, 1);
+      end;
+
+      RCMD_DONE:
+      begin
+        i:=0;
+        send(s, @i, 1);
+
+      end;
+
+      else
+        Raise TSocketException.create('Invalid command');
+    end;
+  except
+    on e: TSocketException do
+    begin
+      for i:=0 to length(workers)-1 do
+        if s=workers[i].s then
+        begin
+          workers[i].s:=-1;
+          CloseSocket(s);
+        end;
+    end;
+  end;
+
+  r.free;
+end;
+
+procedure TRescanpointers.LaunchServer;
+var
+  b: bool;
+  i: integer;
+  sockaddr: TInetSockAddr;
+begin
+  //start listeneing on the "distributedport"
+  sockethandle:=socket(AF_INET, SOCK_STREAM, 0);
+
+  if sockethandle=INVALID_SOCKET then
+    raise Exception.create('Failure creating socket');
+
+  B:=TRUE;
+  fpsetsockopt(sockethandle, SOL_SOCKET, SO_REUSEADDR, @B, sizeof(B));
+
+
+  sockaddr.sin_family:=AF_INET;
+  sockaddr.sin_port:=htons(distributedport);
+  sockaddr.sin_addr.s_addr:=INADDR_ANY;
+  i:=bind(sockethandle, @sockaddr, sizeof(sockaddr));
+
+  if i=SOCKET_ERROR then
+    raise exception.create('Failure to bind port '+inttostr(distributedport));
+
+  i:=listen(sockethandle, 32);
+  if i=SOCKET_ERROR then
+    raise exception.create('Failure to listen');
+
+  //preallocate the workers
+  setlength(workers, ownerform.pointerscanresults.externalScanners);
+  for i:=0 to length(workers)-1 do
+    workers[i].s:=-1; //mark as disconnected
+end;
+
+procedure TRescanpointers.DoServerLoop;
+var
+  readfds: PFDSet;
+
+  TotalPointersToEvaluate: double;
+  PointersEvaluated: double;
+
+  maxfd: Integer;
+  alldone: boolean;
+
+  client: TSockAddrIn;
+  clientsize: integer;
+
+  command: byte;
+  workerid: dword;
+  i: integer;
+
+  timeout: TTimeVal;
+begin
+
+
+  getmem(readfds, sizeof(PtrUInt)+sizeof(TSocket)*(length(workers)+1));
+
+  alldone:=false;
+
+  while not alldone do
+  begin
+    readfds.fd_count:=1;
+    readfds.fd_array[0]:=sockethandle;
+
+    maxfd:=sockethandle;
+
+    for i:=0 to length(workers)-1 do
+      if workers[i].s<>-1 then
+      begin
+        readfds.fd_array[i+1]:=workers[i].s;
+        inc(readfds.fd_count);
+        maxfd:=max(maxfd, workers[i].s);
+      end;
+
+    timeout.tv_sec:=1;
+    timeout.tv_usec:=250000;
+    i:=select(maxfd, readfds, nil, nil, @timeout);
+    if i=-1 then
+      raise exception.create('Select failed');
+
+    if FD_ISSET(sockethandle, readfds^) then
+    begin
+      FD_CLR(sockethandle, readfds^);
+
+      clientsize:=sizeof(client);
+      i:=fpaccept(sockethandle, @client, @clientsize);
+      if i<>INVALID_SOCKET then
+      begin
+        try
+          receive(i, @command, sizeof(command));
+          if command=RCMD_INIT then
+          begin
+            receive(i, @workerid, sizeof(workerid));
+            if workerid<length(workers) then //valid id
+            begin
+              workers[workerid].s:=i;
+              send(i, @workerid, sizeof(workerid)); //on success, return the workerid that the client gave
+            end
+            else
+              closesocket(i); //go away please
+          end
+          else
+            CloseSocket(i); //why U no give proper command???
+        except
+          on E:TSocketException do
+          begin
+            closesocket(i); //get a better connection
+          end;
+        end;
+      end;
+    end;
+
+    for i:=0 to length(workers)-1 do
+    begin
+      if (workers[i].s<>-1) and (FD_ISSET(workers[i].s, readfds^)) then
+        Server_HandleRead(workers[i].s);
+    end;
+
+
+
+
+    alldone:=true;
+    TotalPointersToEvaluate:=ownerform.pointerscanresults.count;
+    PointersEvaluated:=0;
+
+    for i:=0 to length(workers)-1 do //check ALL workers, even those not connected yet
+    begin
+      if workers[i].done=false then
+        alldone:=false;
+
+      TotalPointersToEvaluate:=TotalPointersToEvaluate+workers[i].TotalPointersToEvaluate;
+      PointersEvaluated:=PointersEvaluated+workers[i].PointersEvaluated;
+    end;
+
+    //check my own threads
+    for i:=0 to rescanworkercount-1 do
+    begin
+      if rescanworkers[i].done=false then
+        alldone:=false;
+
+      PointersEvaluated:=PointersEvaluated+ rescanworkers[i].evaluated;
+    end;
+
+    //update the gui
+    progressbar.Position:=trunc(PointersEvaluated / (TotalPointersToEvaluate / 100));
+  end;
+
+
+
 end;
 
 procedure TRescanpointers.closeOldFile;
@@ -3418,14 +3694,13 @@ var
   TotalPointersToEvaluate: qword;
   PointersEvaluated: qword;
 
-  rescanworkercount: integer;
-  rescanworkers: array of TRescanWorker;
+
   blocksize: qword;
 
   threadhandles: array of Thandle;
   result: tfilestream;
 
-  rescanhelper: TRescanHelper;
+
   //rpmcontainer: TReadProcessMemoryContainer;
   temp: dword;
 
@@ -3549,30 +3824,26 @@ begin
     end;
 
     result.Free;
-        {
-        todo: design and implement this (use maps)
+
     if distributedrescan and (not distributedrescanWorker) then
     begin
       launchServer;
-    end;  }
-
-    while WaitForMultipleObjects(rescanworkercount, @threadhandles[0], true, 1000) = WAIT_TIMEOUT do      //wait
+      DoServerLoop;
+    end
+    else
     begin
-      //query all threads the number of pointers they have evaluated
-      PointersEvaluated:=0;
-      for i:=0 to rescanworkercount-1 do
-        inc(PointersEvaluated,rescanworkers[i].evaluated);
+      while WaitForMultipleObjects(rescanworkercount, @threadhandles[0], true, 250) = WAIT_TIMEOUT do      //wait
+      begin
+        //query all threads the number of pointers they have evaluated
+        PointersEvaluated:=0;
+        for i:=0 to rescanworkercount-1 do
+          inc(PointersEvaluated,rescanworkers[i].evaluated);
 
-      progressbar.Position:=PointersEvaluated div (TotalPointersToEvaluate div 100);
+        progressbar.Position:=PointersEvaluated div (TotalPointersToEvaluate div 100);
+      end;
     end;
     //no timeout, so finished or crashed
 
-    {
-    if distributedrescan and (not distributedrescanWorker) then
-    begin
-      //wait for all the workers to finish (the pointerscan file contains the number of workers that should finish)
-    end;
-    }
 
     if overwrite then //delete the old ptr file
     begin

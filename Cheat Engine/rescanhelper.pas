@@ -18,7 +18,7 @@ type
     pagemap: TMap;
     pagemapcs: TCriticalsection;
 
-    memoryregion: array of TMemoryRegion;
+    memoryregion: TMemoryRegions;
 
     function BinSearchMemRegions(address: ptrUint): integer;
     procedure quicksortmemoryregions(lo,hi: integer);
@@ -27,6 +27,8 @@ type
     function GetMemoryRegion(Address: ptruint): TMemoryRegion;
 
     function FindPage(index: ptruint): TPageInfo;
+
+    function getMemoryRegions: TMemoryRegions;
 
 
     constructor create(valuesize: integer; memoryregions: PMemoryRegions=nil);
@@ -140,6 +142,10 @@ begin
     result:=r^;
 end;
 
+function TRescanHelper.getMemoryRegions: TMemoryRegions;
+begin
+  result:=memoryregion;
+end;
 
 procedure TRescanHelper.quicksortmemoryregions(lo,hi: integer);
 var i,j: integer;

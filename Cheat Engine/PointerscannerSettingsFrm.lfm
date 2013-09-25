@@ -476,11 +476,12 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     TabOrder = 10
   end
   object Button2: TButton
-    Left = 298
+    Left = 488
     Height = 25
-    Top = 336
+    Top = 314
     Width = 139
     Caption = 'Setup specific IP''s to tell'
+    Enabled = False
     TabOrder = 11
   end
   object odLoadPointermap: TOpenDialog
