@@ -1,7 +1,7 @@
 object frmPointerScanner: TfrmPointerScanner
-  Left = 973
+  Left = 1052
   Height = 517
-  Top = 275
+  Top = 273
   Width = 614
   Caption = 'Pointer scan'
   ClientHeight = 497
@@ -197,6 +197,25 @@ object frmPointerScanner: TfrmPointerScanner
         OnClick = Open1Click
       end
     end
+    object MenuItem2: TMenuItem
+      Caption = 'Distributed pointer scan'
+      object miJoinDistributedScan: TMenuItem
+        Caption = 'Join scan'
+        ShortCut = 16452
+        OnClick = miJoinDistributedScanClick
+      end
+      object miJoinDistributedRescan: TMenuItem
+        Caption = 'Join rescan'
+        OnClick = miJoinDistributedRescanClick
+      end
+      object MenuItem1: TMenuItem
+        Caption = '-'
+      end
+      object MenuItem3: TMenuItem
+        AutoCheck = True
+        Caption = 'Autojoin scans and rescans'
+      end
+    end
     object Pointerscanner1: TMenuItem
       Caption = 'Pointer scanner'
       object Method3Fastspeedandaveragememoryusage1: TMenuItem
@@ -212,18 +231,6 @@ object frmPointerScanner: TfrmPointerScanner
         Enabled = False
         ShortCut = 16466
         OnClick = Rescanmemory1Click
-      end
-    end
-    object MenuItem2: TMenuItem
-      Caption = 'Distributed pointer scan'
-      object miJoinDistributedScan: TMenuItem
-        Caption = 'Join scan'
-        ShortCut = 16452
-        OnClick = miJoinDistributedScanClick
-      end
-      object miJoinDistributedRescan: TMenuItem
-        Caption = 'Join rescan'
-        OnClick = miJoinDistributedRescanClick
       end
     end
   end
