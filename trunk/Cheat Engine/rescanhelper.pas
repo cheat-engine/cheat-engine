@@ -4,14 +4,10 @@ unit rescanhelper;
 
 interface
 
-uses windows, LCLIntf, classes, symbolhandler, CEFuncProc,NewKernelHandler, maps, sysutils, syncobjs;
+uses windows, LCLIntf, classes, symbolhandler, CEFuncProc,NewKernelHandler, maps, sysutils, syncobjs, pagemap;
 
 type
-  TPageInfo=record
-    data: PByteArray;
-  end;
 
-  PPageInfo=^TPageInfo;
 
   TRescanHelper=class
   private
@@ -108,20 +104,25 @@ begin
   begin
     //not yet added, add it to the list
     pi.data:=nil;
+    if ispointer(index shl 12) then
+    begin
+      //save the data
+      getmem(pi.data, 4096);
+      if ReadProcessMemory(ProcessHandle, pointer(index shl 12), pi.data, 4096, x)=false then
+      begin
+        //unexpected failure reading the memory
+        freemem(pi.data);
+        pi.data:=nil;
+      end;
+    end;
+
     pagemapcs.enter; //adding on the other hand does require a lock, as it needs to fidn out where to add it, and what variables to initialize to what value (next/previous)
 
     r:=pagemap.GetDataPtr(index);
-
     if r=nil then
     begin
       //not yet added by another thread
-      if ispointer(index shl 12) then
-      begin
-        //save the data
-        getmem(pi.data, 4096);
-        if ReadProcessMemory(ProcessHandle, pointer(index shl 12), pi.data, 4096, x)=false then //unexpected failure reading the memory
-          freemem(pi.data);
-      end;
+
 
       //add it
       pagemap.Add(index, pi);
@@ -130,7 +131,10 @@ begin
     end
     else
     begin
-      //another thread added it
+      //another thread added it, abort
+      if pi.data<>nil then
+        freemem(pi.data);
+
       result:=r^;
     end;
 
