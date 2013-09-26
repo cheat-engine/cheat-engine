@@ -12,7 +12,7 @@ uses
   frmRescanPointerUnit, pointervaluelist, rescanhelper,
   virtualmemory, symbolhandler,MainUnit,disassembler,CEFuncProc,NewKernelHandler,
   valuefinder, PointerscanresultReader, maps, zstream, WinSock2, Sockets, resolve,
-  registry;
+  registry, PageMap;
 
 
 const staticscanner_done=wm_user+1;
