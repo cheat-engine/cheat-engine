@@ -30,10 +30,12 @@ type
   private
     level0list: TPageEntryArray;
     maxlevel: integer;
+    procedure DeletePath(list: PPageEntryArray; level: integer);
   public
     function Add(pageindex: integer; pagedata: pointer): PPageInfo;
     function GetPageInfo(pageindex: integer): PPageInfo;
     constructor create;
+    destructor destroy; override;
   end;
 
 implementation
@@ -117,6 +119,39 @@ end;
 constructor TPageMap.create;
 begin
   maxlevel:=15-3;
+end;
+
+procedure TPageMap.DeletePath(list: PPageEntryArray; level: integer);
+var i: integer;
+begin
+  if level=maxlevel then
+  begin
+    for i:=0 to $F do
+    begin
+      if list[i].pageinfo<>nil then
+        freemem(list[i].pageinfo);
+
+      list[i].pageinfo:=nil;
+    end;
+  end
+  else
+  begin
+    for i:=0 to $F do
+    begin
+      if list[i].PageEntryArray<>nil then
+      begin
+        deletepath(list[i].PageEntryArray,level+1);
+        freemem(list[i].PageEntryArray);
+        list[i].PageEntryArray:=nil;
+      end;
+    end;
+  end;
+end;
+
+destructor TPageMap.Destroy;
+begin
+  DeletePath(@level0list,0);
+  inherited destroy;
 end;
 
 end.

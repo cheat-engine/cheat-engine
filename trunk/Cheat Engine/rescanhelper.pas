@@ -11,7 +11,7 @@ type
 
   TRescanHelper=class
   private
-    pagemap: TMap;
+    pagemap: TPageMap;
     pagemapcs: TCriticalsection;
 
     memoryregion: TMemoryRegions;
@@ -97,7 +97,7 @@ begin
 
   //the old method is faster, but has a small threading issue where adding new entries would lead to a memory leak if multiple threads added the same thing
 
-  r:=pagemap.GetDataPtr(index);
+  r:=pagemap.GetPageInfo(index);
 
 
   if r=nil then
@@ -118,14 +118,13 @@ begin
 
     pagemapcs.enter; //adding on the other hand does require a lock, as it needs to fidn out where to add it, and what variables to initialize to what value (next/previous)
 
-    r:=pagemap.GetDataPtr(index);
+    r:=pagemap.GetPageInfo(index);
     if r=nil then
     begin
       //not yet added by another thread
 
-
       //add it
-      pagemap.Add(index, pi);
+      pagemap.Add(index, pi.data);
 
       result:=pi;
     end
@@ -186,7 +185,7 @@ var
   i: integer;
 begin
 
-  pagemap:=TMap.Create(ituPtrSize, sizeof(TPageInfo));
+  pagemap:=TPageMap.Create;
   pagemapcs:=TCriticalSection.create;
 
 
@@ -246,20 +245,6 @@ begin
   setlength(memoryregion,0);
 
   pagemapcs.free;
-
-  pmi:=TMapIterator.Create(pagemap);
-  pmi.First;
-  while not pmi.EOM do
-  begin
-    if pmi.DataPtr<>nil then
-    begin
-      if (PPageInfo(pmi.DataPtr).data<>nil) then
-        freemem(PPageInfo(pmi.DataPtr).data);
-    end;
-    pmi.Next;
-  end;
-
-  pagemap.Clear;
   pagemap.Free;
 
 
