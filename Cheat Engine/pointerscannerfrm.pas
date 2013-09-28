@@ -12,7 +12,7 @@ uses
   frmRescanPointerUnit, pointervaluelist, rescanhelper,
   virtualmemory, symbolhandler,MainUnit,disassembler,CEFuncProc,NewKernelHandler,
   valuefinder, PointerscanresultReader, maps, zstream, WinSock2, Sockets, resolve,
-  registry, PageMap;
+  registry, PageMap, CELazySocket, PointerscanNetworkCommands;
 
 
 const staticscanner_done=wm_user+1;
@@ -20,33 +20,8 @@ const rescan_done=wm_user+2;
 const open_scanner=wm_user+3;
 const wm_starttimer=wm_user+4;
 
-//--------Network commands--------
-const
-  //pointerscan commands
-  //client->server commands
-  CMD_GETSCANPARAMETERS=0;
-  CMD_UPDATEWORKERSTATUS=1;
-  //server->client commands (in response to CMD_UPDATEWORKERSTATUS)
-    CMDUPDATEREPLY_EVERYTHINGOK=0;
-    CMDUPDATEREPLY_HEREARESOMEPATHSTOEVALUATE=1;
-    CMDUPDATEREPLY_PLEASESENDMESOMEPATHS=2;
-    CMDUPDATEREPLY_GOKILLYOURSELF=3;
-
-
-  //downloader commands
-  DCMD_GETSCANDATASIZE=0; //(): integer;
-  DCMD_GETSCANDATA=1; //(offset: qword; chunksize: dword)->stream
-
-  //rescan commands
-  RCMD_INIT=0; //(WorkerID: dword) =>workerid
-  RCMD_GETMEMORYREGIONS=1; //() => count:dword, count*(baseaddress: qword; size: qword)
-  RCMD_GETPAGES=2; //(Base:QWORD, count: byte) => count*(sizeofstream:word, stream:bytearray)  (in the order of base, base+4096, base+8192, ...)
-  RCMD_STATUS=3; //(PointersEvaluated: qword; TotalPointersToEvaluate: qword)
-  RCMD_DONE=4; //() -> 0
 
 type
-  TSocketException=class(Exception);
-
   TGetScanParametersOut=packed record
     yourID: Int32;
     maxlevel: Uint32;
@@ -116,6 +91,7 @@ type
   Trescanpointers=class(tthread)
   private
     sockethandle: Tsocket;
+    sockethandlecs: TCriticalSection;
 
     workers: array of record
       s: Tsocket;
@@ -129,16 +105,18 @@ type
 
     rescanhelper: TRescanHelper;
 
-    procedure Server_HandleRead(s: Tsocket);
+    function Server_HandleRead(s: Tsocket): byte;
 
     procedure closeOldFile;
+    procedure LaunchWorker;
     procedure LaunchServer;
     procedure DoServerLoop;
-    //procedure LaunchWorker;
+
   public
     ownerform: TFrmPointerScanner;
     progressbar: tprogressbar;
     filename: string;
+    originalptrfile: string;
     overwrite: boolean;
     address: ptrUint;
     forvalue: boolean;
@@ -161,9 +139,13 @@ type
     useluafilter: boolean; //when set to true each pointer will be passed on to the luafilter function
     luafilter: string; //function name of the luafilter
 
+    distributedserver: string;
     distributedport: integer;
     distributedrescan: boolean;
     distributedrescanWorker: boolean;
+    distributedworkfolder: string;
+
+
 
     procedure execute; override;
   end;
@@ -421,6 +403,7 @@ type
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
+    miSetWorkFolder: TMenuItem;
     miJoinDistributedScan: TMenuItem;
     miJoinDistributedRescan: TMenuItem;
     ProgressBar1: TProgressBar;
@@ -457,6 +440,8 @@ type
     procedure FormResize(Sender: TObject);
     procedure ListView1ColumnClick(Sender: TObject; Column: TListColumn);
     procedure ListView1Resize(Sender: TObject);
+    procedure MenuItem3Click(Sender: TObject);
+    procedure miSetWorkFolderClick(Sender: TObject);
     procedure miJoinDistributedRescanClick(Sender: TObject);
     procedure miJoinDistributedScanClick(Sender: TObject);
     procedure Method3Fastspeedandaveragememoryusage1Click(Sender: TObject);
@@ -479,6 +464,7 @@ type
     rescanpointerform: TFrmRescanPointer;
     pointerlisthandler: TReversePointerListHandler;   //handled by the form for easy reuse
 
+    distributedworkfolder: string;
 
     procedure m_staticscanner_done(var message: tmessage); message staticscanner_done;
     procedure rescandone(var message: tmessage); message rescan_done;
@@ -502,7 +488,7 @@ implementation
 
 
 uses PointerscannerSettingsFrm, frmMemoryAllocHandlerUnit, frmSortPointerlistUnit,
-  LuaHandler, lauxlib, lua, frmPointerscanConnectDialogUnit;
+  LuaHandler, lauxlib, lua, frmPointerscanConnectDialogUnit, frmpointerrescanconnectdialogunit;
 
 resourcestring
   rsErrorDuringScan = 'Error during scan';
@@ -545,36 +531,6 @@ var
   starttime: dword;
   startcount: qword;
 {$endif}
-
-function send(socket: TSocket; buffer: pointer; size: integer): integer;
-var i: integer;
-begin
-  result:=0;
-  while (result<size) do
-  begin
-    i:=fpsend(socket, pointer(ptruint(buffer)+result), size, 0);
-    if i<=0 then
-      raise TSocketException.Create('Send Error');
-
-    inc(result, i);
-  end;
-end;
-
-function receive(socket: TSocket; buffer: pointer; size: integer): integer;
-var
-  i: integer;
-begin
-  result:=0;
-  while (result<size) do
-  begin
-    i:=fprecv(socket, pointer(ptruint(buffer)+result), size-result, 0);
-    if i<=0 then
-      raise TSocketException.Create('Receive Error');
-
-    inc(result, i);
-  end;
-end;
-
 
 
 procedure TFrmpointerscanner.doneui;
@@ -1360,7 +1316,6 @@ begin
   unalligned:=not (sp.Alligned<>0);
   MaxOffsetsPerNode:=sp.MaxOffsetsPerNode;
 
-  filename:=filename+'-Worker'+inttostr(myid);
 
   if UseLoadedPointermap=false then
   begin
@@ -2441,13 +2396,18 @@ begin
       reversescan;
 
 
-      if distributedScanning and (not distributedWorker) then
+      if distributedScanning then
       begin
-        //save the number of workers
+        //save the number of external workers
         result:=TfileStream.create(filename,fmOpenWrite);
         result.seek(0, soEnd);
-        result.writeDword(length(workers));
+        result.writeDword(length(workers)); //0 for a worker (unless I decide to make it a real chaotic mess)
+
+        //save the workerid that generated these results (server=-1)
+        result.writeDword(myid);
+
         freeandnil(result);
+
       end;
 
     finally
@@ -2499,80 +2459,72 @@ end;
 procedure Tfrmpointerscanner.miJoinDistributedScanClick(Sender: TObject);
 var
   f: tfrmPointerscanConnectDialog;
-  reg: Tregistry;
+
 begin
 
   f:=tfrmPointerscanConnectDialog.create(self);
   if f.showmodal=mrok then
   begin
-    reg:=tregistry.create;
-    Reg.RootKey := HKEY_CURRENT_USER;
-    if Reg.OpenKey('\Software\Cheat Engine',false) then
-    begin
-      if reg.ValueExists('Last Pointerscan Folder') then
-        SelectDirectoryDialog1.filename:=reg.ReadString('Last Pointerscan Folder');
-    end;
-
-    if SelectDirectoryDialog1.Execute then
-    begin
-      if Reg.OpenKey('\Software\Cheat Engine',true) then
-        reg.WriteString('Last Pointerscan Folder', SelectDirectoryDialog1.filename);
-
-      new1.click; //setup the gui
-
-      totalpathsevaluated:=0;
-      startcount:=0;
-      starttime:=0;
 
 
-      btnStopScan.enabled:=true;
-      btnStopScan.Caption:=rsStop;
+    if distributedworkfolder='' then
+      miSetWorkFolder.Click;
 
-      pgcPScandata.Visible:=false;
-      open1.Enabled:=false;
-      new1.enabled:=false;
-      rescanmemory1.Enabled:=false;
+    if distributedworkfolder='' then exit;
 
-      cbType.Visible:=false;
-      listview1.Visible:=false;
+
+    new1.click; //setup the gui
+
+    totalpathsevaluated:=0;
+    startcount:=0;
+    starttime:=0;
+
+
+    btnStopScan.enabled:=true;
+    btnStopScan.Caption:=rsStop;
+
+    pgcPScandata.Visible:=false;
+    open1.Enabled:=false;
+    new1.enabled:=false;
+    rescanmemory1.Enabled:=false;
+
+    cbType.Visible:=false;
+    listview1.Visible:=false;
 
 
 
-      //launch the scanner
-      if pointerlisthandler<>nil then
-        freeandnil(pointerlisthandler);
+    //launch the scanner
+    if pointerlisthandler<>nil then
+      freeandnil(pointerlisthandler);
 
-      staticscanner:=TStaticscanner.Create(true);
-      staticscanner.reverse:=true;
+    staticscanner:=TStaticscanner.Create(true);
+    staticscanner.reverse:=true;
 
-      label5.caption:=rsGeneratingPointermap;
-      progressbar1.Visible:=true;
+    label5.caption:=rsGeneratingPointermap;
+    progressbar1.Visible:=true;
 
-      staticscanner:=TStaticscanner.Create(true);
-      staticscanner.distributedScanning:=true;
-      staticscanner.distributedWorker:=true;
-      staticscanner.distributedServer:=f.edtHost.text;
-      staticscanner.distributedport:=strtoint(f.edtPort.text);
+    staticscanner:=TStaticscanner.Create(true);
+    staticscanner.distributedScanning:=true;
+    staticscanner.distributedWorker:=true;
+    staticscanner.distributedServer:=f.edtHost.text;
+    staticscanner.distributedport:=strtoint(f.edtPort.text);
 
-      staticscanner.progressbar:=progressbar1;
-      staticscanner.threadcount:=f.threadcount;
-      staticscanner.scannerpriority:=f.scannerpriority;
-      staticscanner.UseLoadedPointermap:=f.cbUseLoadedPointermap.checked;
-      staticscanner.LoadedPointermapFilename:=f.odLoadPointermap.FileName;
+    staticscanner.progressbar:=progressbar1;
+    staticscanner.threadcount:=f.threadcount;
+    staticscanner.scannerpriority:=f.scannerpriority;
+    staticscanner.UseLoadedPointermap:=f.cbUseLoadedPointermap.checked;
+    staticscanner.LoadedPointermapFilename:=f.odLoadPointermap.FileName;
 
-      staticscanner.filename:=IncludeTrailingPathDelimiter(SelectDirectoryDialog1.FileName);
+    staticscanner.filename:=IncludeTrailingPathDelimiter(SelectDirectoryDialog1.FileName);
 
 
-      staticscanner.ownerform:=self;
+    staticscanner.ownerform:=self;
 
-      open1.Enabled:=false;
+    open1.Enabled:=false;
 
-      staticscanner.start;
+    staticscanner.start;
 
-      pgcPScandata.Visible:=true;
-    end;
-
-    reg.free;
+    pgcPScandata.Visible:=true;
   end;
 
   f.free;
@@ -2775,10 +2727,32 @@ begin
   end;
 end;
 
-procedure Tfrmpointerscanner.miJoinDistributedRescanClick(Sender: TObject);
+procedure Tfrmpointerscanner.MenuItem3Click(Sender: TObject);
+begin
+  //start a listener for pointerscan related signals
+end;
+
+procedure Tfrmpointerscanner.miSetWorkFolderClick(Sender: TObject);
+var reg: Tregistry;
 begin
 
+  if SelectDirectoryDialog1.Execute then
+  begin
+    distributedworkfolder:=IncludeTrailingPathDelimiter(SelectDirectoryDialog1.filename);
+
+    reg:=tregistry.create;
+    Reg.RootKey := HKEY_CURRENT_USER;
+    if Reg.OpenKey('\Software\Cheat Engine',true) then
+    begin
+      distributedworkfolder:=IncludeTrailingPathDelimiter(SelectDirectoryDialog1.filename);
+      reg.WriteString('PointerScanWorkFolder', distributedworkfolder);
+    end;
+    reg.free;
+
+  end;
 end;
+
+
 
 
 
@@ -3417,7 +3391,150 @@ begin
 end;
 
 //------RescanPointers-------
-procedure TRescanpointers.Server_HandleRead(s: Tsocket);
+procedure Trescanpointers.LaunchWorker;
+var
+  sockaddr: TInetSockAddr;
+  connected: boolean;
+  starttime: dword;
+
+  command: byte;
+
+  x: dword;
+  hr: THostResolver;
+
+  setid: packed record
+    command: byte;
+    workerid: dword;
+  end;
+
+  workerid: dword;
+
+  genericQword: qword;
+  genericDword: dword;
+  genericByte: byte;
+
+  i: integer;
+
+  fname: pchar;
+
+  psr: TPointerscanresultReader;
+begin
+
+
+  sockethandle:=socket(AF_INET, SOCK_STREAM, 0);
+
+  if sockethandle=INVALID_SOCKET then
+    raise Exception.create('Failure creating socket');
+
+  sockaddr.sin_family:=AF_INET;
+  sockaddr.sin_port:=htons(distributedport);
+
+  hr:=THostResolver.Create(nil);
+  try
+
+    sockaddr.sin_addr:=StrToNetAddr(distributedServer);
+
+    if sockaddr.sin_addr.s_bytes[4]=0 then
+    begin
+      if hr.NameLookup(distributedServer) then
+        sockaddr.sin_addr:=hr.NetHostAddress
+      else
+        raise exception.create('host:'+distributedServer+' could not be resolved');
+    end;
+
+
+  finally
+    hr.free;
+  end;
+
+
+  starttime:=gettickcount;
+  connected:=false;
+  while (not connected) and (gettickcount<starttime+60000) do
+  begin
+    connected:=fpconnect(sockethandle, @SockAddr, sizeof(SockAddr))=0;
+    if not connected then sleep(500) else break;
+  end;
+
+  if not connected then raise exception.create('Failure (re)connecting to server. No connection made within 60 seconds');
+
+
+  command:=RCMD_GETPARAMS;
+  send(sockethandle, @command, sizeof(command));
+  //receive the scan parameters
+
+
+  receive(sockethandle, @genericqword, sizeof(genericqword));
+  basestart:=genericQword;
+
+  receive(sockethandle, @genericqword, sizeof(genericqword));
+  baseend:=genericQword;
+
+  receive(sockethandle, @genericdword, sizeof(genericdword));
+  setlength(startOffsetValues, genericdword);
+  if length(startOffsetValues)>0 then
+    receive(sockethandle, @startoffsetvalues[0], length(startOffsetValues)*sizeof(dword));
+
+  receive(sockethandle, @genericdword, sizeof(genericdword));
+  setlength(endoffsetvalues, genericdword);
+  if length(endoffsetvalues)>0 then
+    receive(sockethandle, @endoffsetvalues[0], length(endoffsetvalues)*sizeof(dword));
+
+  receive(sockethandle, @genericqword, sizeof(genericqword));
+  address:=genericqword;
+
+  receive(sockethandle, @genericbyte, sizeof(genericbyte));
+  forvalue:=genericbyte<>0;
+
+  receive(sockethandle, @valuescandword, sizeof(valuescandword));
+  receive(sockethandle, @valuescansingle, sizeof(valuescansingle));
+  receive(sockethandle, @valuescansingleMax, sizeof(valuescansingleMax));
+  receive(sockethandle, @valuescandouble, sizeof(valuescandouble));
+  receive(sockethandle, @valuescandoubleMax, sizeof(valuescandoubleMax));
+
+  receive(sockethandle, @genericdword, sizeof(genericdword));
+  getmem(fname, genericdword+1);
+  receive(sockethandle, fname, genericdword);
+  fname[genericdword]:=#0;
+
+  originalptrfile:=distributedworkfolder+extractfilename(fname);
+
+  receive(sockethandle, @genericdword, sizeof(genericdword));
+  getmem(fname, genericdword+1);
+  receive(sockethandle, fname, genericdword);
+  fname[genericdword]:=#0;
+  filename:=distributedworkfolder+extractfilename(fname);
+
+  //figure out the worker id from the filename and workpath
+  //check if the worker folder has a
+
+  //check if this file exists, and if so open it and fetch the worker id from that file
+
+  try
+    psr:=TPointerscanresultReader.create(originalptrfile);
+    workerid:=psr.GeneratedByWorkerID;
+    psr.free;
+  except
+    workerid:=-1;
+  end;
+
+
+
+  setid.command:=RCMD_SETID;
+  setid.workerid:=workerid;
+  send(sockethandle, @setid, sizeof(setid));
+
+
+  if workerid=-1 then
+  begin
+    closehandle(sockethandle);
+    terminate;
+  end;
+
+
+end;
+
+function TRescanpointers.Server_HandleRead(s: Tsocket): byte;
 type
   TMemRegion=packed record
     BaseAddress: qword;
@@ -3444,12 +3561,66 @@ var
 
   pages: array of TPageInfo;
 
+
+  newworkerid: dword;
+  n: TNetworkStream;
 begin
+  result:=-1;
   r:=tmemorystream.create;
   try
     receive(s, @command, 1);
+    result:=command;
 
     case command of
+      RCMD_GETPARAMS:
+      begin
+        n:=TNetworkStream.create;
+        try
+          //write the scan parameters to the client
+          n.WriteQWord(baseStart);
+          n.WriteQWord(baseEnd);
+          n.WriteDWord(length(startOffsetValues));
+          for i:=0 to length(startOffsetValues)-1 do
+            n.writeDword(startOffsetValues[i]);
+
+          n.writeDword(length(endoffsetvalues));
+          for i:=0 to length(endoffsetvalues)-1 do
+            n.writeDword(endoffsetvalues[i]);
+
+
+          n.writeqword(address);
+          if forvalue then
+            n.WriteByte(1)
+          else
+            n.WriteByte(0);
+
+          n.WriteDWord(valuescandword);
+          n.Writebuffer(valuescansingle, sizeof(valuescansingle));
+          n.Writebuffer(valuescansingleMax, sizeof(valuescansingleMax));
+          n.Writebuffer(valuescandouble, sizeof(valuescandouble));
+          n.Writebuffer(valuescandoubleMax, sizeof(valuescandoubleMax));
+
+          n.writedword(length(ownerform.Pointerscanresults.filename));
+          n.WriteBuffer(ownerform.Pointerscanresults.filename[1], length(ownerform.Pointerscanresults.filename));
+
+          n.writedword(length(filename));
+          n.WriteBuffer(filename[1], length(filename));
+
+          n.WriteToSocket(s);
+
+        finally
+          n.free;
+        end;
+
+      end;
+
+      RCMD_SETID:
+      begin
+        receive(s, @newworkerid, sizeof(newworkerid));
+        if length(workers)>=newworkerid then
+          raise TSocketException.create('Invalid worker id');
+      end;
+
       RCMD_GETMEMORYREGIONS:
       begin
         memoryregions:=rescanhelper.getMemoryRegions;
@@ -3579,9 +3750,11 @@ var
 
   command: byte;
   workerid: dword;
-  i: integer;
+  i,j: integer;
 
   timeout: TTimeVal;
+
+  n: TNetworkStream;
 begin
 
 
@@ -3618,27 +3791,13 @@ begin
       i:=fpaccept(sockethandle, @client, @clientsize);
       if i<>INVALID_SOCKET then
       begin
-        try
-          receive(i, @command, sizeof(command));
-          if command=RCMD_INIT then
-          begin
-            receive(i, @workerid, sizeof(workerid));
-            if workerid<length(workers) then //valid id
-            begin
-              workers[workerid].s:=i;
-              send(i, @workerid, sizeof(workerid)); //on success, return the workerid that the client gave
-            end
-            else
-              closesocket(i); //go away please
-          end
-          else
-            CloseSocket(i); //why U no give proper command???
-        except
-          on E:TSocketException do
-          begin
-            closesocket(i); //get a better connection
-          end;
-        end;
+        if Server_HandleRead(i)=RCMD_STATUS then
+        begin
+          if server_HandleRead(i)<>RCMD_SETID then
+            closesocket(i);
+        end
+        else
+          closesocket(i); //wrong first command
       end;
     end;
 
@@ -3708,18 +3867,23 @@ var
   valuesize: integer;
 
 begin
-
   progressbar.Min:=0;
   progressbar.Max:=100;
   progressbar.Position:=0;
   result:=nil;
 
+  sockethandle:=INVALID_SOCKET;
+  sockethandlecs:=nil;
 
-  sleep(delay*1000);
+  if distributedrescan and distributedrescanWorker then
+    launchworker
+  else
+    sleep(delay*1000);
+
 
   if forvalue and (valuetype=vtDouble) then valuesize:=8 else valuesize:=4;
 
-  rescanhelper:=TRescanHelper.create(valuesize);
+  rescanhelper:=TRescanHelper.create(sockethandle, sockethandlecs);
 
   ownerform.resyncloadedmodulelist;
 
@@ -3745,7 +3909,7 @@ begin
       rescanworkers[i]:=TRescanWorker.Create(true);
 
 
-      rescanworkers[i].Pointerscanresults:=TPointerscanresultReader.create(ownerform.Pointerscanresults.filename);
+      rescanworkers[i].Pointerscanresults:=TPointerscanresultReader.create(originalptrfile);
      { rescanworkers[i].OriginalFilename:=ownerform.pointerscanresults.filename;
       rescanworkers[i].OriginalFileEntrySize:=ownerform.pointerscanresults.sizeOfEntry;
       rescanworkers[i].OriginalFileStartPosition:=ownerform.pointerscanresults.StartPosition;
@@ -3871,6 +4035,12 @@ begin
 
 
   finally
+    if sockethandlecs<>nil then
+      freeandnil(sockethandlecs);
+
+    if sockethandle<>INVALID_SOCKET then
+      CloseSocket(sockethandle);
+
     if rescanhelper<>nil then
       freeandnil(rescanhelper);
 
@@ -3880,6 +4050,31 @@ begin
 
   end;
 
+end;
+
+procedure Tfrmpointerscanner.miJoinDistributedRescanClick(Sender: TObject);
+var f: tfrmPointerrescanConnectDialog;
+begin
+  f:=tfrmPointerrescanConnectDialog.create(self);
+  if f.showmodal=mrok then
+  begin
+    //create a rescanpointers object
+    if rescan<>nil then
+      freeandnil(rescan);
+
+    rescan:=trescanpointers.create(true);
+    rescan.ownerform:=self;
+    rescan.progressbar:=progressbar1;
+
+    rescan.distributedrescan:=true;
+    rescan.distributedrescanWorker:=true;
+    rescan.distributedport:=f.port;
+    rescan.distributedserver:=f.edtHost.text;
+    rescan.distributedworkfolder:=distributedworkfolder;
+    progressbar1.visible:=true;
+
+    rescan.start;
+  end;
 end;
 
 procedure Tfrmpointerscanner.Rescanmemory1Click(Sender: TObject);
@@ -3909,6 +4104,11 @@ begin
     begin
       cbDistributedRescan.visible:=Pointerscanresults.externalScanners>0;
       edtRescanPort.Visible:=Pointerscanresults.externalScanners>0;
+
+
+      if cbDistributedRescan.visible then
+        cbDistributedRescan.OnChange(cbDistributedRescan);
+
 
 
       if (rescanpointerform.cbRepeat.checked) or (showmodal=mrok) then
@@ -3996,16 +4196,14 @@ begin
                 begin
                   rescan.valuetype:=vtDword;
                   val(edtAddress.Text, rescan.valuescandword, i);
-                  if i>0 then raise exception.Create(Format(
-                    rsIsNotAValid4ByteValue, [edtAddress.Text]));
+                  if i>0 then raise exception.Create(Format(rsIsNotAValid4ByteValue, [edtAddress.Text]));
                 end;
 
                 1:
                 begin
                   rescan.valuetype:=vtSingle;
                   val(edtAddress.Text, rescan.valuescansingle, i);
-                  if i>0 then raise exception.Create(Format(
-                    rsIsNotAValidFloatingPointValue, [edtAddress.Text]));
+                  if i>0 then raise exception.Create(Format(rsIsNotAValidFloatingPointValue, [edtAddress.Text]));
                   rescan.valuescansingleMax:=rescan.valuescansingle+(1/(power(10,floataccuracy)));
                 end;
 
@@ -4035,6 +4233,8 @@ begin
             rescan.distributedrescanWorker:=false;
           end;
 
+
+          rescan.originalptrfile:=Pointerscanresults.filename;
 
 
           rescan.start;
@@ -4161,7 +4361,9 @@ end;
 
 
 procedure Tfrmpointerscanner.FormCreate(Sender: TObject);
-var x: array of integer;
+var
+  x: array of integer;
+  reg: tregistry;
 begin
   tsPSReverse.TabVisible:=false;
 
@@ -4177,6 +4379,18 @@ begin
   if loadformposition(self,x) then
     cbtype.itemindex:=x[0];
 
+  reg:=TRegistry.Create;
+
+  if Reg.OpenKey('\Software\Cheat Engine',false) then
+  begin
+    if reg.ValueExists('PointerScanWorkFolder') then
+    begin
+      distributedworkfolder:=IncludeTrailingPathDelimiter(reg.ReadString('PointerScanWorkFolder'));
+      SelectDirectoryDialog1.filename:=distributedworkfolder;
+    end;
+  end;
+
+  reg.free;
 end;
 
 procedure Tfrmpointerscanner.ListView1Data(Sender: TObject;

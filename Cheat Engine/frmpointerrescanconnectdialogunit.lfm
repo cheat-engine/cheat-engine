@@ -1,0 +1,73 @@
+object frmPointerrescanConnectDialog: TfrmPointerrescanConnectDialog
+  Left = 373
+  Height = 93
+  Top = 318
+  Width = 261
+  Caption = 'Join rescan'
+  ClientHeight = 93
+  ClientWidth = 261
+  Position = poScreenCenter
+  LCLVersion = '1.0.8.0'
+  object btnOK: TButton
+    Left = 56
+    Height = 25
+    Top = 56
+    Width = 75
+    Caption = 'Connect'
+    Default = True
+    OnClick = btnOKClick
+    TabOrder = 0
+  end
+  object btnCancel: TButton
+    Left = 145
+    Height = 25
+    Top = 56
+    Width = 75
+    Cancel = True
+    Caption = 'Cancel'
+    TabOrder = 1
+  end
+  object lblHost: TLabel
+    AnchorSideLeft.Control = edtHost
+    AnchorSideTop.Side = asrBottom
+    AnchorSideBottom.Control = edtHost
+    Left = 8
+    Height = 16
+    Top = 8
+    Width = 26
+    Anchors = [akLeft, akBottom]
+    Caption = 'Host'
+    ParentColor = False
+  end
+  object lblPort: TLabel
+    AnchorSideLeft.Control = edtPort
+    AnchorSideBottom.Control = edtPort
+    Left = 175
+    Height = 16
+    Top = 8
+    Width = 23
+    Anchors = [akLeft, akBottom]
+    Caption = 'Port'
+    ParentColor = False
+  end
+  object edtPort: TEdit
+    AnchorSideLeft.Control = edtHost
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = edtHost
+    Left = 175
+    Height = 23
+    Top = 24
+    Width = 80
+    BorderSpacing.Left = 15
+    TabOrder = 2
+    Text = '52739'
+  end
+  object edtHost: TEdit
+    Left = 8
+    Height = 23
+    Top = 24
+    Width = 152
+    TabOrder = 3
+    Text = 'localhost'
+  end
+end

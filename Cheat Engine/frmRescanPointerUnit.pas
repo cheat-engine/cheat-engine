@@ -25,7 +25,7 @@ type
     cbLuaFilter: TCheckBox;
     cbDistributedRescan: TCheckBox;
     edtRescanPort: TEdit;
-    Label2: TLabel;
+    lblLuaParams: TLabel;
     edtRescanFunction: TEdit;
     edtBaseStart: TEdit;
     edtBaseEnd: TEdit;
@@ -40,6 +40,7 @@ type
     rbFindValue: TRadioButton;
     procedure Button1Click(Sender: TObject);
     procedure cbBasePointerMustBeInRangeChange(Sender: TObject);
+    procedure cbDistributedRescanChange(Sender: TObject);
     procedure cbLuaFilterChange(Sender: TObject);
     procedure cbMustEndWithSpecificOffsetsChange(Sender: TObject);
     procedure cbMustStartWithSpecificOffsetsChange(Sender: TObject);
@@ -108,6 +109,22 @@ begin
   edtBaseStart.enabled:=cbBasePointerMustBeInRange.checked;
   lblAnd.enabled:=cbBasePointerMustBeInRange.checked;
   edtBaseEnd.enabled:=cbBasePointerMustBeInRange.checked;
+end;
+
+procedure TfrmRescanPointer.cbDistributedRescanChange(Sender: TObject);
+begin
+  cbRepeat.enabled:=cbDistributedRescan.checked;
+  cbLuaFilter.enabled:=cbDistributedRescan.checked;
+  edtRescanFunction.enabled:=cbDistributedRescan.checked;
+  lblLuaParams.enabled:=cbDistributedRescan.checked;
+
+  if cbDistributedRescan.checked then
+  begin
+    cbRepeat.checked:=false;
+    cbLuaFilter.checked:=false;
+
+  end;
+
 end;
 
 procedure TfrmRescanPointer.cbLuaFilterChange(Sender: TObject);

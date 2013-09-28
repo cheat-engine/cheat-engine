@@ -73,7 +73,8 @@ uses
   frmD3DTrainerGeneratorOptionsUnit, lua_server, frmAssemblyScanUnit, 
 frmManualStacktraceConfigUnit, cvconst, NetworkDebuggerInterface, 
 DisassemblerArm, LastDisassembleData, elfsymbols, assemblerArm, 
-frmPointerscanConnectDialogUnit, PageMap;
+frmPointerscanConnectDialogUnit, PageMap, CELazySocket,
+PointerscanNetworkCommands, frmpointerrescanconnectdialogunit;
 
 {$R cheatengine.res}
 //{$R manifest.res}  //lazarus now has this build in

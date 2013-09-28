@@ -1,7 +1,7 @@
 object frmRescanPointer: TfrmRescanPointer
-  Left = 931
+  Left = 939
   Height = 297
-  Top = 112
+  Top = 122
   Width = 330
   BorderStyle = bsDialog
   Caption = 'Rescan pointerlist'
@@ -214,7 +214,7 @@ object frmRescanPointer: TfrmRescanPointer
     TabOrder = 8
     Text = 'RescanFilter'
   end
-  object Label2: TLabel
+  object lblLuaParams: TLabel
     Left = 185
     Height = 14
     Top = 123
@@ -229,6 +229,7 @@ object frmRescanPointer: TfrmRescanPointer
     Width = 172
     Caption = 'Let other workers rescan as well'
     Checked = True
+    OnChange = cbDistributedRescanChange
     State = cbChecked
     TabOrder = 15
     Visible = False

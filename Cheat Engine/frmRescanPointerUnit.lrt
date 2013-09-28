@@ -21,6 +21,6 @@ offset is a table with offsets
 target is the address the pointer points to. Can be nil
 TFRMRESCANPOINTER.CBLUAFILTER.CAPTION=Lua filter. function
 TFRMRESCANPOINTER.EDTRESCANFUNCTION.TEXT=RescanFilter
-TFRMRESCANPOINTER.LABEL2.CAPTION=(base, offsets, target):bool
+TFRMRESCANPOINTER.LBLLUAPARAMS.CAPTION=(base, offsets, target):bool
 TFRMRESCANPOINTER.CBDISTRIBUTEDRESCAN.CAPTION=Let other workers rescan as well
 TFRMRESCANPOINTER.EDTRESCANPORT.TEXT=52739
