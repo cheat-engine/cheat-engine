@@ -105,7 +105,7 @@ object frmPointerscanConnectDialog: TfrmPointerscanConnectDialog
     Height = 25
     Top = 136
     Width = 75
-    Caption = 'OK'
+    Caption = 'Connect'
     Default = True
     OnClick = btnOkClick
     TabOrder = 4
@@ -136,7 +136,7 @@ object frmPointerscanConnectDialog: TfrmPointerscanConnectDialog
     DefaultExt = '.scandata'
     Filter = 'All files (*.*)|*.*|scandata files|*.scandata'
     FilterIndex = 2
-    left = 80
-    top = 80
+    left = 120
+    top = 64
   end
 end

@@ -4,7 +4,8 @@ unit rescanhelper;
 
 interface
 
-uses windows, LCLIntf, classes, symbolhandler, CEFuncProc,NewKernelHandler, maps, sysutils, syncobjs, pagemap;
+uses windows, LCLIntf, classes, symbolhandler, CEFuncProc,NewKernelHandler, maps,
+  sysutils, syncobjs, pagemap, Sockets, CELazySocket, PointerscanNetworkCommands;
 
 type
 
@@ -15,6 +16,11 @@ type
     pagemapcs: TCriticalsection;
 
     memoryregion: TMemoryRegions;
+
+    socket: TSocket;
+    socketcs: TCriticalSection;
+
+    procedure downloadMemoryRegions;
 
     function BinSearchMemRegions(address: ptrUint): integer;
     procedure quicksortmemoryregions(lo,hi: integer);
@@ -27,11 +33,41 @@ type
     function getMemoryRegions: TMemoryRegions;
 
 
-    constructor create(valuesize: integer; memoryregions: PMemoryRegions=nil);
+    constructor create(socket: Tsocket=INVALID_SOCKET; socketcs: TCriticalSection=nil );
     destructor destroy; override;
 end;
 
 implementation
+
+procedure TRescanHelper.downloadMemoryRegions;
+var
+  command: byte;
+  count: dword;
+  i: integer;
+
+  baseaddress, size: qword;
+begin
+  //download the memory regions from the socket
+  socketcs.enter;
+  try
+    command:=RCMD_GETMEMORYREGIONS;
+    send(socket, @command, sizeof(command));
+    receive(socket, @count, sizeof(count));
+
+    setlength(memoryregion, count);
+    for i:=0 to count-1 do
+    begin
+      receive(socket, @baseaddress, sizeof(baseaddress));
+      receive(socket, @size, sizeof(size));
+
+      memoryregion[i].baseaddress:=baseaddress;
+      memoryregion[i].MemorySize:=size;
+    end;
+
+  finally
+    socketcs.leave;
+  end;
+end;
 
 function TRescanHelper.BinSearchMemRegions(address: ptrUint): integer;
 var
@@ -178,7 +214,7 @@ begin
   if (i<hi) then quicksortmemoryregions(i,hi);
 end;
 
-constructor TRescanHelper.create(valuesize: integer; memoryregions: PMemoryRegions=nil);
+constructor TRescanHelper.create(socket: Tsocket=INVALID_SOCKET; socketcs: TCriticalSection=nil );
 var
   mbi : _MEMORY_BASIC_INFORMATION;
   address: ptrUint;
@@ -188,26 +224,17 @@ begin
   pagemap:=TPageMap.Create;
   pagemapcs:=TCriticalSection.create;
 
+  self.socket:=socket;
+  self.socketcs:=socketcs;
 
-
-
-          {
-  getmem(level0list, sizeof(TPointerListArray));
-  ZeroMemory(level0list, sizeof(TPointerListArray));
-
-  getmem(addresslist, sizeof(TAddressListArray));
-  ZeroMemory(addresslist, sizeof(TAddressListArray));
-
-  if processhandler.is64Bit then maxlevel:=15 else maxlevel:=7;
-                    }
 
   //enumerate all memory regions
   address:=0;
 
-
-  if memoryregions=nil then
+  if socket<>INVALID_SOCKET then
+    downloadMemoryRegions
+  else
   begin
-
     while (Virtualqueryex(processhandle,pointer(address),mbi,sizeof(mbi))<>0) and ((address+mbi.RegionSize)>address) do
     begin
       if (not symhandler.inSystemModule(ptrUint(mbi.baseAddress))) and (not (not scan_mem_private and (mbi._type=mem_private))) and (not (not scan_mem_image and (mbi._type=mem_image))) and (not (not scan_mem_mapped and ((mbi._type and mem_mapped)>0))) and (mbi.State=mem_commit) and ((mbi.Protect and page_guard)=0) and ((mbi.protect and page_noaccess)=0) then  //look if it is commited
@@ -228,9 +255,8 @@ begin
 
       address:=ptrUint(mbi.baseaddress)+mbi.RegionSize;
     end;
-  end
-  else
-    self.memoryregion:=memoryregions^;
+  end;
+
 
 
   //sort memoryregions from small to high

@@ -214,6 +214,11 @@ object frmPointerScanner: TfrmPointerScanner
       object MenuItem3: TMenuItem
         AutoCheck = True
         Caption = 'Autojoin scans and rescans'
+        OnClick = MenuItem3Click
+      end
+      object miSetWorkFolder: TMenuItem
+        Caption = 'Set work folder'
+        OnClick = miSetWorkFolderClick
       end
     end
     object Pointerscanner1: TMenuItem

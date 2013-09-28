@@ -37,6 +37,7 @@ type TPointerscanresultReader=class
     cacheSize: integer;
     cache: pointer;
     fExternalScanners: integer;
+    fGeneratedByWorkerID: integer;
     function InitializeCache(i: qword): boolean;
   public
     procedure resyncModulelist;
@@ -53,6 +54,7 @@ type TPointerscanresultReader=class
     property filename: string read FFilename;
     property entrySize: integer read sizeOfEntry;
     property externalScanners: integer read fExternalScanners;
+    property generatedByWorkerID: integer read fGeneratedByWorkerID;
 end;
 
 implementation
@@ -306,7 +308,13 @@ begin
   fExternalScanners:=0;
   try
     if configfile.Position<configfile.Size then
-      fExternalScanners:=configfile.ReadDWord
+      fExternalScanners:=configfile.ReadDWord;
+
+    if configfile.Position<configfile.Size then
+      fGeneratedByWorkerID:=configfile.ReadDWord;
+
+
+
   except
 
   end;
