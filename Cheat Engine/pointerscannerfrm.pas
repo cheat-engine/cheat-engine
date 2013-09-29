@@ -3486,6 +3486,9 @@ begin
   receive(sockethandle, @genericbyte, sizeof(genericbyte));
   forvalue:=genericbyte<>0;
 
+  receive(sockethandle, @genericbyte, sizeof(genericbyte));
+  overwrite:=genericbyte<>0;
+
   receive(sockethandle, @valuescandword, sizeof(valuescandword));
   receive(sockethandle, @valuescansingle, sizeof(valuescansingle));
   receive(sockethandle, @valuescansingleMax, sizeof(valuescansingleMax));
@@ -3564,6 +3567,9 @@ var
 
   newworkerid: dword;
   n: TNetworkStream;
+
+  cs: Tcompressionstream;
+  ms: TMemorystream;
 begin
   result:=-1;
   r:=tmemorystream.create;
@@ -3593,6 +3599,13 @@ begin
             n.WriteByte(1)
           else
             n.WriteByte(0);
+
+
+          if overwrite then
+            n.WriteByte(1)
+          else
+            n.WriteByte(0);
+
 
           n.WriteDWord(valuescandword);
           n.Writebuffer(valuescansingle, sizeof(valuescansingle));
@@ -3647,16 +3660,28 @@ begin
 
         r.Clear;
         r.writedword(length(pages));
+
+        ms:=TMemoryStream.create;
+
         for i:=0 to length(pages)-1 do
         begin
           if pages[i].data<>nil then
           begin
-            r.WriteWord(4096);
-            r.WriteBuffer(pages[i].data^, 4096);
+            r.WriteByte(1);
+
+            ms.Clear;
+            cs:=Tcompressionstream.create(clfastest, ms);
+            cs.WriteBuffer(pages[i].data^, 4096);
+            cs.destroy;
+
+            r.writedword(ms.Size);
+            r.WriteBuffer(ms.Memory^, ms.size);
           end
           else
-            r.writeWord(0);
+            r.writeByte(0);
         end;
+
+        ms.free;
 
         send(s, r.Memory, r.size);
       end;
@@ -3987,6 +4012,10 @@ begin
       result.Write(tempstring[1],temp);
     end;
 
+
+    result.writedword(ownerform.pointerscanresults.externalScanners);
+    result.writedword(ownerform.Pointerscanresults.generatedByWorkerID);
+
     result.Free;
 
     if distributedrescan and (not distributedrescanWorker) then
@@ -4032,6 +4061,9 @@ begin
 
     rescanworkercount:=0;
     setlength(rescanworkers,0);
+
+
+
 
 
   finally
