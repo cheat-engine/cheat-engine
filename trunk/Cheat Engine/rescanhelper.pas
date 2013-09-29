@@ -5,7 +5,8 @@ unit rescanhelper;
 interface
 
 uses windows, LCLIntf, classes, symbolhandler, CEFuncProc,NewKernelHandler, maps,
-  sysutils, syncobjs, pagemap, Sockets, CELazySocket, PointerscanNetworkCommands;
+  sysutils, syncobjs, pagemap, Sockets, CELazySocket, PointerscanNetworkCommands,
+  zstream;
 
 type
 
@@ -21,6 +22,7 @@ type
     socketcs: TCriticalSection;
 
     procedure downloadMemoryRegions;
+    function DownloadPages(page: PtrUInt): TPageInfo;
 
     function BinSearchMemRegions(address: ptrUint): integer;
     procedure quicksortmemoryregions(lo,hi: integer);
@@ -38,6 +40,125 @@ type
 end;
 
 implementation
+
+function TRescanHelper.DownloadPages(page: ptruint): TPageInfo;
+var
+  getPages: packed record
+    command: byte;
+    base: qword;
+    count: byte;
+  end;
+  base: ptruint;
+  r: PPageInfo;
+  i, pageindex, originalpageindex: integer;
+
+  pagecount: dword;
+  pages: array of TPageInfo;
+
+  readable: byte;
+  compressedSize: dword;
+
+  ns: TNetworkStream;
+  ds: TDecompressionStream;
+
+  buffer: pointer;
+
+begin
+  result.data:=nil;
+  socketcs.enter;
+  try
+    base:=page and qword($fffffffffffff000);
+
+    r:=pagemap.GetPageInfo(base shr 12);
+    if r=nil then
+    begin
+      //still needs to be added
+
+      getpages.command:=RCMD_GETPAGES;
+      getpages.base:=base;
+      getpages.count:=1;
+
+      //check if there are more pages to download
+      if pagemap.GetPageInfo((base shr 12)-1)=nil then
+      begin
+        dec(getpages.base, 4096);
+        inc(getpages.count);
+
+        if pagemap.GetPageInfo((base shr 12)-2)=nil then
+        begin
+          dec(getpages.base, 4096);
+          inc(getpages.count);
+        end;
+      end;
+
+      if pagemap.GetPageInfo((base shr 12)+1)=nil then
+      begin
+        inc(getpages.count);
+        if pagemap.GetPageInfo((base shr 12)+2)=nil then
+          inc(getpages.count);
+      end;
+
+
+      send(socket, @getpages, sizeof(getpages));
+      setlength(pages, getpages.count);
+
+      receive(socket, @pagecount, sizeof(pagecount));
+
+      ns:=tnetworkstream.create;
+      try
+
+        for i:=0 to pagecount-1 do
+        begin
+          receive(socket, @readable, sizeof(readable));
+          if readable=0 then
+            pages[i].data:=nil
+          else
+          begin
+            receive(socket, @compressedsize, sizeof(compressedsize));
+
+            ns.Clear;
+            ns.ReadFromSocket(socket, compressedsize);
+
+            ds:=Tdecompressionstream.create(ns);
+
+            getmem(pages[i].data, 4096);
+            ds.ReadBuffer(pages[i].data^, 4096);
+            ds.free;
+          end;
+        end;
+
+      finally
+        ns.free;
+      end;
+
+
+      originalpageindex:=page shr 12;
+      pagemapcs.enter;
+      for i:=0 to pagecount-1 do
+      begin
+        pageindex:=(base+i*4096) shr 12;
+        r:=pagemap.GetPageInfo(pageindex);
+        if r=nil then //add it
+          r:=pagemap.Add(pageindex, pages[i].data);
+
+        if pageindex=originalpageindex then
+          result:=r^;
+      end;
+      pagemapcs.leave;
+
+    end
+    else
+    begin
+      //already added
+      result:=r^;
+    end;
+
+
+  finally
+    socketcs.Leave;
+  end;
+
+end;
 
 procedure TRescanHelper.downloadMemoryRegions;
 var
@@ -143,12 +264,20 @@ begin
     if ispointer(index shl 12) then
     begin
       //save the data
-      getmem(pi.data, 4096);
-      if ReadProcessMemory(ProcessHandle, pointer(index shl 12), pi.data, 4096, x)=false then
+      if socket>=0 then
       begin
-        //unexpected failure reading the memory
-        freemem(pi.data);
-        pi.data:=nil;
+        pi:=DownloadPages(index shl 12);
+        exit;
+      end
+      else
+      begin
+        getmem(pi.data, 4096);
+        if ReadProcessMemory(ProcessHandle, pointer(index shl 12), pi.data, 4096, x)=false then
+        begin
+          //unexpected failure reading the memory
+          freemem(pi.data);
+          pi.data:=nil;
+        end;
       end;
     end;
 
@@ -231,7 +360,7 @@ begin
   //enumerate all memory regions
   address:=0;
 
-  if socket<>INVALID_SOCKET then
+  if socket>=0 then
     downloadMemoryRegions
   else
   begin
