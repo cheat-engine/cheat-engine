@@ -19,7 +19,9 @@ type TPointerscanResult=record
 end;
 type PPointerscanResult= ^TPointerscanResult;
 
-type TPointerscanresultReader=class
+type
+  TPointerscanresultReader=class;
+  TPointerscanresultReader=class
   private
     Fcount: qword;
     sizeOfEntry: integer;
@@ -49,7 +51,8 @@ type TPointerscanresultReader=class
     function getPointer(i: qword): PPointerscanResult; overload;
     function getPointer(i: qword; var pointsto: ptrUint): PPointerscanResult; overload;
     procedure getFileList(list: TStrings);
-    constructor create(filename: string);
+    constructor create(filename: string; original: TPointerscanresultReader=nil);
+
     destructor destroy; override;
     property count: qword read FCount;
     property offsetCount: integer read maxlevel;
@@ -230,7 +233,7 @@ begin
     list.add(files[i].f.FileName);
 end;
 
-constructor TPointerscanresultReader.create(filename: string);
+constructor TPointerscanresultReader.create(filename: string; original: TPointerscanresultReader=nil);
 var
   configfile: TFileStream;
   modulelistLength: integer;
@@ -252,8 +255,13 @@ begin
 
   temppcharmaxlength:=256;
   getmem(temppchar, temppcharmaxlength);
-    
-  symhandler.getModuleList(tempmodulelist);
+
+
+  //get the module list myself
+  if original=nil then
+    symhandler.getModuleList(tempmodulelist)
+  else
+    modulelist.Assign(original.modulelist);
 
   //sift through the list filling in the modulelist of the opened pointerfile
   for i:=0 to modulelistlength-1 do
@@ -268,19 +276,23 @@ begin
     configfile.Read(temppchar[0], x);
     temppchar[x]:=#0;
 
-    j:=tempmodulelist.IndexOf(temppchar);
-    if j<>-1 then
-      modulelist.Addobject(temppchar, tempmodulelist.Objects[j]) //add it and store the base address
-    else
+    if original=nil then
     begin
-      a:=symhandler.getAddressFromName(temppchar,false,error,nil);
-      if not error then
-        modulelist.Addobject(temppchar, pointer(a))
+      j:=tempmodulelist.IndexOf(temppchar);
+      if j<>-1 then
+        modulelist.Addobject(temppchar, tempmodulelist.Objects[j]) //add it and store the base address
       else
-        modulelist.Add(temppchar);
+      begin
+        a:=symhandler.getAddressFromName(temppchar,false,error,nil);
+        if not error then
+          modulelist.Addobject(temppchar, pointer(a))
+        else
+          modulelist.Add(temppchar);
 
+      end;
     end;
   end;
+
 
   configfile.Read(maxlevel,sizeof(maxlevel));
   sizeofentry:=12+(4*maxlevel);
