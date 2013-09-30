@@ -344,9 +344,7 @@ begin
 
 
   edtReverseStop.Width:=edtReverseStart.width;
-  edtReverseStop.Left:=edtReverseStart.Left+edtReverseStart.Width+8;
 
-  Label11.left:=edtReverseStop.left;
 end;
 
 procedure TfrmPointerScannerSettings.FormCreate(Sender: TObject);

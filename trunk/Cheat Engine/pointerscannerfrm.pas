@@ -104,10 +104,12 @@ type
     rescanworkers: array of TRescanWorker;
 
     rescanhelper: TRescanHelper;
+    Pointerscanresults: TPointerscanresultReader;
 
     function Server_HandleRead(s: Tsocket): byte;
 
     procedure closeOldFile;
+    procedure UpdateStatus(done: boolean; TotalPointersToEvaluate:qword; PointersEvaluated: qword);
     procedure LaunchWorker;
     procedure LaunchServer;
     procedure DoServerLoop;
@@ -148,6 +150,7 @@ type
 
 
     procedure execute; override;
+    destructor destroy; override;
   end;
 
 
@@ -3391,6 +3394,38 @@ begin
 end;
 
 //------RescanPointers-------
+procedure Trescanpointers.UpdateStatus(done: boolean; TotalPointersToEvaluate:qword; PointersEvaluated: qword);
+var
+  r: byte;
+  updatestatuscommand: packed record
+    command: byte;
+    done: byte;
+    pointersEvaluated: qword;
+    TotalPointersToEvaluate: qword;
+  end;
+
+begin
+  try
+    updatestatuscommand.command:=RCMD_STATUS;
+    if done then
+      updatestatuscommand.done:=1
+    else
+      updatestatuscommand.done:=0;
+
+    updatestatuscommand.TotalPointersToEvaluate:=TotalPointersToEvaluate;
+    updatestatuscommand.pointersEvaluated:=PointersEvaluated;
+
+    send(sockethandle, @updatestatuscommand, sizeof(updatestatuscommand));
+    receive(sockethandle, @r, 1);
+  except
+    on e: TSocketException do
+    begin
+      //socket error
+      LaunchWorker; //reconnects
+    end;
+  end;
+end;
+
 procedure Trescanpointers.LaunchWorker;
 var
   sockaddr: TInetSockAddr;
@@ -3416,12 +3451,14 @@ var
   i: integer;
 
   fname: pchar;
+  mlc: dword;
 
-  psr: TPointerscanresultReader;
+
 begin
 
 
   sockethandle:=socket(AF_INET, SOCK_STREAM, 0);
+  sockethandlecs:=TCriticalSection.Create;
 
   if sockethandle=INVALID_SOCKET then
     raise Exception.create('Failure creating socket');
@@ -3489,6 +3526,9 @@ begin
   receive(sockethandle, @genericbyte, sizeof(genericbyte));
   overwrite:=genericbyte<>0;
 
+  receive(sockethandle, @genericbyte, sizeof(genericbyte));
+  mustbeinrange:=genericbyte<>0;
+
   receive(sockethandle, @valuescandword, sizeof(valuescandword));
   receive(sockethandle, @valuescansingle, sizeof(valuescansingle));
   receive(sockethandle, @valuescansingleMax, sizeof(valuescansingleMax));
@@ -3514,12 +3554,23 @@ begin
   //check if this file exists, and if so open it and fetch the worker id from that file
 
   try
-    psr:=TPointerscanresultReader.create(originalptrfile);
-    workerid:=psr.GeneratedByWorkerID;
-    psr.free;
+    if pointerscanresults=nil then
+      pointerscanresults:=TPointerscanresultReader.create(originalptrfile);
+
+    workerid:=pointerscanresults.GeneratedByWorkerID;
   except
     workerid:=-1;
   end;
+
+  //read out the modulelist base addresses
+  receive(sockethandle, @mlc, sizeof(mlc));
+  for i:=0 to mlc-1 do
+  begin
+    receive(sockethandle, @genericqword, sizeof(genericqword));
+    pointerscanresults.modulebase[i]:=genericQword;
+  end;
+
+
 
 
 
@@ -3556,6 +3607,7 @@ var
   end;
 
   statusInput: packed record
+    done: byte;
     pointersEvaluated: qword;
     TotalPointersToEvaluate: qword;
   end;
@@ -3606,6 +3658,11 @@ begin
           else
             n.WriteByte(0);
 
+          if mustbeinrange then
+            n.writebyte(1)
+          else
+            n.writebyte(0);
+
 
           n.WriteDWord(valuescandword);
           n.Writebuffer(valuescansingle, sizeof(valuescansingle));
@@ -3613,11 +3670,16 @@ begin
           n.Writebuffer(valuescandouble, sizeof(valuescandouble));
           n.Writebuffer(valuescandoubleMax, sizeof(valuescandoubleMax));
 
-          n.writedword(length(ownerform.Pointerscanresults.filename));
-          n.WriteBuffer(ownerform.Pointerscanresults.filename[1], length(ownerform.Pointerscanresults.filename));
+          n.writedword(length(Pointerscanresults.filename));
+          n.WriteBuffer(Pointerscanresults.filename[1], length(Pointerscanresults.filename));
 
           n.writedword(length(filename));
           n.WriteBuffer(filename[1], length(filename));
+
+          //save the modulelist base addresses
+          n.WriteDWord(Pointerscanresults.modulelistCount);
+          for i:=0 to Pointerscanresults.modulelistCount-1 do
+            n.WriteQWord(pointerscanresults.modulebase[i]);
 
           n.WriteToSocket(s);
 
@@ -3630,7 +3692,9 @@ begin
       RCMD_SETID:
       begin
         receive(s, @newworkerid, sizeof(newworkerid));
-        if length(workers)>=newworkerid then
+        if newworkerid<length(workers) then
+          workers[newworkerid].s:=s
+        else
           raise TSocketException.create('Invalid worker id');
       end;
 
@@ -3695,18 +3759,13 @@ begin
           begin
             workers[i].PointersEvaluated:=statusinput.pointersEvaluated;
             workers[i].TotalPointersToEvaluate:=statusinput.TotalPointersToEvaluate;
+            workers[i].done:=statusinput.done<>0;
           end;
 
         i:=0;
         send(s, @i, 1);
       end;
 
-      RCMD_DONE:
-      begin
-        i:=0;
-        send(s, @i, 1);
-
-      end;
 
       else
         Raise TSocketException.create('Invalid command');
@@ -3802,7 +3861,7 @@ begin
         maxfd:=max(maxfd, workers[i].s);
       end;
 
-    timeout.tv_sec:=1;
+    timeout.tv_sec:=0;
     timeout.tv_usec:=250000;
     i:=select(maxfd, readfds, nil, nil, @timeout);
     if i=-1 then
@@ -3816,7 +3875,7 @@ begin
       i:=fpaccept(sockethandle, @client, @clientsize);
       if i<>INVALID_SOCKET then
       begin
-        if Server_HandleRead(i)=RCMD_STATUS then
+        if Server_HandleRead(i)=RCMD_GETPARAMS then
         begin
           if server_HandleRead(i)<>RCMD_SETID then
             closesocket(i);
@@ -3870,6 +3929,8 @@ begin
   ownerform.New1Click(ownerform.new1);
 end;
 
+
+
 procedure TRescanpointers.execute;
 var
   tempstring: string;
@@ -3898,24 +3959,28 @@ begin
   result:=nil;
 
   sockethandle:=INVALID_SOCKET;
-  sockethandlecs:=nil;
+
 
   if distributedrescan and distributedrescanWorker then
     launchworker
   else
+  begin
     sleep(delay*1000);
+    pointerscanresults:=ownerform.pointerscanresults;
+    pointerscanresults.resyncModulelist;
+  end;
 
 
   if forvalue and (valuetype=vtDouble) then valuesize:=8 else valuesize:=4;
 
   rescanhelper:=TRescanHelper.create(sockethandle, sockethandlecs);
 
-  ownerform.resyncloadedmodulelist;
+
 
   //fill the modulelist with baseaddresses
   try
     //the modulelist now holds the baseaddresses (0 if otherwhise)
-    TotalPointersToEvaluate:=ownerform.pointerscanresults.count;
+    TotalPointersToEvaluate:=pointerscanresults.count;
 
 
     //spawn all threads
@@ -3993,10 +4058,10 @@ begin
 
     //write header
     //modulelist
-    ownerform.pointerscanresults.saveModulelistToResults(result);
+    pointerscanresults.saveModulelistToResults(result);
 
     //offsetlength
-    result.Write(ownerform.pointerscanresults.offsetcount, sizeof(dword));
+    result.Write(pointerscanresults.offsetcount, sizeof(dword));
 
     //pointerstores
     temp:=length(rescanworkers);
@@ -4013,8 +4078,8 @@ begin
     end;
 
 
-    result.writedword(ownerform.pointerscanresults.externalScanners);
-    result.writedword(ownerform.Pointerscanresults.generatedByWorkerID);
+    result.writedword(pointerscanresults.externalScanners);
+    result.writedword(Pointerscanresults.generatedByWorkerID);
 
     result.Free;
 
@@ -4033,14 +4098,24 @@ begin
           inc(PointersEvaluated,rescanworkers[i].evaluated);
 
         progressbar.Position:=PointersEvaluated div (TotalPointersToEvaluate div 100);
+
+        if distributedrescan and distributedrescanWorker then
+          UpdateStatus(false, TotalPointersToEvaluate, PointersEvaluated);
       end;
     end;
     //no timeout, so finished or crashed
 
+    if distributedrescan and distributedrescanWorker then
+      UpdateStatus(true, TotalPointersToEvaluate, PointersEvaluated);
+
 
     if overwrite then //delete the old ptr file
     begin
+      if distributedrescan and distributedrescanWorker then
+        freeandnil(Pointerscanresults);
+
       synchronize(closeoldfile);
+
       DeleteFile(filename);
       RenameFile(filename+'.overwrite',filename);
     end;
@@ -4082,6 +4157,17 @@ begin
 
   end;
 
+end;
+
+destructor TRescanpointers.destroy;
+begin
+  if sockethandlecs<>nil then
+    freeandnil(sockethandlecs);
+
+  if distributedrescanWorker and (Pointerscanresults<>nil) then
+    freeandnil(Pointerscanresults);
+
+  inherited destroy;
 end;
 
 procedure Tfrmpointerscanner.miJoinDistributedRescanClick(Sender: TObject);
@@ -4492,7 +4578,8 @@ end;
 
 procedure Tfrmpointerscanner.resyncloadedmodulelist;
 begin
-  pointerscanresults.resyncModulelist;
+  if pointerscanresults<>nil then
+    pointerscanresults.resyncModulelist;
 end;
 
 procedure Tfrmpointerscanner.Resyncmodulelist1Click(Sender: TObject);
