@@ -50,7 +50,8 @@ var
   end;
   base: ptruint;
   r: PPageInfo;
-  i, pageindex, originalpageindex: integer;
+  i: integer;
+  pageindex, originalpageindex: ptruint;
 
   pagecount: dword;
   pages: array of TPageInfo;
@@ -119,6 +120,7 @@ begin
             ns.Clear;
             ns.ReadFromSocket(socket, compressedsize);
 
+            ns.position:=0;
             ds:=Tdecompressionstream.create(ns);
 
             getmem(pages[i].data, 4096);
@@ -136,7 +138,7 @@ begin
       pagemapcs.enter;
       for i:=0 to pagecount-1 do
       begin
-        pageindex:=(base+i*4096) shr 12;
+        pageindex:=(getpages.base+i*4096) shr 12;
         r:=pagemap.GetPageInfo(pageindex);
         if r=nil then //add it
           r:=pagemap.Add(pageindex, pages[i].data);

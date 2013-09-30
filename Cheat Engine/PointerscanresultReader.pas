@@ -39,11 +39,13 @@ type TPointerscanresultReader=class
     fExternalScanners: integer;
     fGeneratedByWorkerID: integer;
     function InitializeCache(i: qword): boolean;
+    function getModuleListCount: integer;
   public
     procedure resyncModulelist;
     procedure saveModulelistToResults(s: Tstream);
     function getModulename(modulenr: integer): string;
     function getModuleBase(modulenr: integer): ptrUint;
+    procedure setModuleBase(modulenr: integer; newModuleBase: ptruint);
     function getPointer(i: qword): PPointerscanResult; overload;
     function getPointer(i: qword; var pointsto: ptrUint): PPointerscanResult; overload;
     procedure getFileList(list: TStrings);
@@ -55,6 +57,8 @@ type TPointerscanresultReader=class
     property entrySize: integer read sizeOfEntry;
     property externalScanners: integer read fExternalScanners;
     property generatedByWorkerID: integer read fGeneratedByWorkerID;
+    property modulelistCount: integer read getModuleListcount;
+    property modulebase[index: integer]: ptruint read getModuleBase write setModuleBase;
 end;
 
 implementation
@@ -124,6 +128,11 @@ begin
   //nothing found...
 end;
 
+function TPointerscanresultReader.getModuleListCount: integer;
+begin
+  result:=modulelist.count;
+end;
+
 function TPointerscanresultReader.getModuleBase(modulenr: integer): ptrUint;
 {pre: modulenr must be valid, so not -1 }
 begin
@@ -131,6 +140,12 @@ begin
     result:=ptrUint(modulelist.Objects[modulenr])
   else
     result:=$12345678;
+end;
+
+procedure TPointerscanresultReader.setModuleBase(modulenr: integer; newModuleBase: ptruint);
+begin
+  if modulenr<modulelist.Count then
+    modulelist.objects[modulenr]:=pointer(newModulebase);
 end;
 
 function TPointerscanresultReader.getModulename(modulenr: integer): string;
