@@ -3253,8 +3253,10 @@ begin
                   else
                     tempaddress:=pptruint(@pi.data[j])^;
 
+                  {$ifdef cpu64}
                   if pointersize=4 then
                     tempaddress:=tempaddress and $ffffffff;
+                  {$endif}
 
                   address:=tempaddress+p.offsets[i];
                 end
@@ -3415,8 +3417,13 @@ begin
     updatestatuscommand.TotalPointersToEvaluate:=TotalPointersToEvaluate;
     updatestatuscommand.pointersEvaluated:=PointersEvaluated;
 
-    send(sockethandle, @updatestatuscommand, sizeof(updatestatuscommand));
-    receive(sockethandle, @r, 1);
+    sockethandlecs.enter;
+    try
+      send(sockethandle, @updatestatuscommand, sizeof(updatestatuscommand));
+      receive(sockethandle, @r, 1);
+    finally
+      sockethandlecs.Leave;
+    end;
   except
     on e: TSocketException do
     begin
@@ -3999,7 +4006,7 @@ begin
       rescanworkers[i]:=TRescanWorker.Create(true);
 
 
-      rescanworkers[i].Pointerscanresults:=TPointerscanresultReader.create(originalptrfile);
+      rescanworkers[i].Pointerscanresults:=TPointerscanresultReader.create(originalptrfile, pointerscanresults);
      { rescanworkers[i].OriginalFilename:=ownerform.pointerscanresults.filename;
       rescanworkers[i].OriginalFileEntrySize:=ownerform.pointerscanresults.sizeOfEntry;
       rescanworkers[i].OriginalFileStartPosition:=ownerform.pointerscanresults.StartPosition;

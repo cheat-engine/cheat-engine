@@ -268,7 +268,7 @@ begin
       //save the data
       if socket>=0 then
       begin
-        pi:=DownloadPages(index shl 12);
+        result:=DownloadPages(index shl 12);
         exit;
       end
       else
