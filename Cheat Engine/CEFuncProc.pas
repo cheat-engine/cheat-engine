@@ -219,6 +219,7 @@ procedure getDriverList(list: tstrings);
 function EscapeStringForRegEx(const S: string): string;
 
 function GetStackStart(threadnr: integer=0): ptruint;
+function getDiskFreeFromPath(path: string): int64;
 
 procedure errorbeep;
 
@@ -3884,6 +3885,23 @@ begin
     closehandle(ths);
   end;
 
+end;
+
+function getDiskFreeFromPath(path: string): int64;
+var
+  d: byte;
+  drive: string;
+begin
+  result:=-1;
+  drive:=uppercase(ExtractFileDrive(path));
+  if drive<>'' then
+  begin
+    if drive[1] in ['A'..'Z'] then
+    begin
+      d:=1+ord(drive[1])-ord('A');
+      result:=DiskFree(d);
+    end;
+  end;
 end;
 
 initialization

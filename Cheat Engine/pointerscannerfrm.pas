@@ -270,9 +270,11 @@ type
       threadcount: integer;
       pathsPerSecond: qword;
       pointersfound: qword;
+      outofdiskspace: boolean;
       alldone: boolean;
     end;
     myID: integer; //if worker, this will be the ID to identify the generated results, and to reconnect
+
 
     scandataUploader: TScandataUploader;
 
@@ -392,6 +394,7 @@ type
     workersPathPerSecondTotal: qword;
     workersPointersfoundTotal: qword;
 
+    outofdiskspace: boolean;
 
     procedure execute; override;
     constructor create(suspended: boolean);
@@ -609,7 +612,7 @@ begin
 
       while (not terminated) and (not self.staticscanner.Terminated) do
       begin
-        wr:=WaitForSingleObject(self.staticscanner.pathqueueSemaphore, INFINITE);
+        wr:=WaitForSingleObject(self.staticscanner.pathqueueSemaphore, INFINITE); //obtain semaphore
         if stop then exit;
         if terminated then exit;
         if self.staticscanner.Terminated then exit;
@@ -617,6 +620,13 @@ begin
         if wr=WAIT_OBJECT_0 then
         begin
           //fetch the data from the queue and staticscanner
+          if staticscanner.outofdiskspace then
+          begin
+            ReleaseSemaphore(staticscanner.pathqueueSemaphore, 1, nil); //don't use it. give the semaphore back
+            sleep(2000);
+            continue;
+          end;
+
           self.staticscanner.pathqueueCS.Enter;
           if self.staticscanner.pathqueuelength>0 then
           begin
@@ -632,12 +642,8 @@ begin
             CopyMemory(@tempresults[0], @staticscanner.pathqueue[i].tempresults[0], maxlevel*sizeof(dword));
             if noLoop then
               CopyMemory(@valuelist[0], @staticscanner.pathqueue[i].valuelist[0], maxlevel*sizeof(ptruint));
-          end
-          else
-          begin
-            //the semaphore is bugged
-            beep;
           end;
+
           self.staticscanner.pathqueueCS.Leave;
 
 
@@ -727,6 +733,8 @@ var p: ^byte;
 begin
   if (level>=maxlevel) or (self.staticscanner.Terminated) or (terminated) then exit;
 
+
+
   currentlevel:=level;
   DifferentOffsetsInThisNode:=0;
 
@@ -797,49 +805,82 @@ begin
         begin
           if (not dontGoDeeper) then
           begin
-            //check if whe should go deeper into these results (not if max level has been reached)
+            //check if we should go deeper into these results (not if max level has been reached)
 
 
             if (level+1) < maxlevel then
             begin
-              //todo: Use queue.  If there is space in the queue add it, else do it myself
-
-              //not at max level, so scan for it
-              //scan for this address
-              //either wake a sleeping thread that can do this, or do it myself
-
               addedToQueue:=false;
 
-              if staticscanner.pathqueuelength<63 then //there's room. Add it
+              if staticscanner.outofdiskspace then //if there is not enough diskspace left wait till it's terminated, or diskspace is freed
               begin
-                if (not Terminated) and (not self.staticscanner.Terminated) then
+                //!!Out of diskspace!!
+                //add to the queue and exit
+                while staticscanner.outofdiskspace and (not addedToQueue) do
                 begin
-                  staticscanner.pathqueueCS.Enter;
-                  if staticscanner.pathqueuelength<63 then
+                  //try to add it
+                  if (not Terminated) and (not self.staticscanner.Terminated) then
                   begin
-                    //still room
-                    CopyMemory(@staticscanner.pathqueue[staticscanner.pathqueuelength].tempresults[0], @tempresults[0], maxlevel*sizeof(dword));
-                    if noLoop then
-                      CopyMemory(@staticscanner.pathqueue[staticscanner.pathqueuelength].valuelist[0], @valuelist[0], maxlevel*sizeof(ptruint));
+                    staticscanner.pathqueueCS.Enter;
+                    if staticscanner.pathqueuelength<63 then
+                    begin
+                      //there's room in the queue. Add it
 
-                    staticscanner.pathqueue[staticscanner.pathqueuelength].startlevel:=level+1;
-                    staticscanner.pathqueue[staticscanner.pathqueuelength].valuetofind:=plist.list[j].address;
+                      CopyMemory(@staticscanner.pathqueue[staticscanner.pathqueuelength].tempresults[0], @tempresults[0], maxlevel*sizeof(dword));
+                      if noLoop then
+                        CopyMemory(@staticscanner.pathqueue[staticscanner.pathqueuelength].valuelist[0], @valuelist[0], maxlevel*sizeof(ptruint));
 
-                    inc(staticscanner.pathqueuelength);
-                    ReleaseSemaphore(staticscanner.pathqueueSemaphore, 1, nil);
-                    addedToQueue:=true;
-                  end;
-                  staticscanner.pathqueueCS.Leave;
-                end
-                else
-                  exit;
-              end;
+                      staticscanner.pathqueue[staticscanner.pathqueuelength].startlevel:=level+1;
+                      staticscanner.pathqueue[staticscanner.pathqueuelength].valuetofind:=plist.list[j].address;
 
+                      inc(staticscanner.pathqueuelength);
+                      ReleaseSemaphore(staticscanner.pathqueueSemaphore, 1, nil);
+                      addedToQueue:=true;
+                    end;
+                    staticscanner.pathqueueCS.Leave;
+                  end
+                  else exit; //terminated
+                  sleep(500);
+                end;
 
-              if not addedToQueue then
+                //^^^^out of diskspace!^^^^
+              end
+              else
               begin
-                //I'll have to do it myself
-                rscan(plist.list[j].address,level+1);
+                if staticscanner.pathqueuelength<63 then //there's room. Add it
+                begin
+                  if (not Terminated) and (not self.staticscanner.Terminated) then
+                  begin
+
+
+                    staticscanner.pathqueueCS.Enter;
+                    if staticscanner.pathqueuelength<63 then
+                    begin
+                      //still room
+
+                      CopyMemory(@staticscanner.pathqueue[staticscanner.pathqueuelength].tempresults[0], @tempresults[0], maxlevel*sizeof(dword));
+                      if noLoop then
+                        CopyMemory(@staticscanner.pathqueue[staticscanner.pathqueuelength].valuelist[0], @valuelist[0], maxlevel*sizeof(ptruint));
+
+                      staticscanner.pathqueue[staticscanner.pathqueuelength].startlevel:=level+1;
+                      staticscanner.pathqueue[staticscanner.pathqueuelength].valuetofind:=plist.list[j].address;
+
+                      inc(staticscanner.pathqueuelength);
+                      ReleaseSemaphore(staticscanner.pathqueueSemaphore, 1, nil);
+                      addedToQueue:=true;
+                    end;
+                    staticscanner.pathqueueCS.Leave;
+                  end
+                  else
+                    exit;
+                end;
+
+
+                if not addedToQueue then
+                begin
+                  //I'll have to do it myself
+                  rscan(plist.list[j].address,level+1);
+                end;
               end;
             end
             else
@@ -1403,6 +1444,7 @@ var
     pathqueuelength: int32;
     pathsPerSecond: qword;
     pointersfound: qword;
+    outofdiskspace: byte;
     alldone: byte;
   end;
 
@@ -1427,6 +1469,12 @@ begin
   updateworkerstatusmessage.pathqueuelength:=pathqueuelength;
   updateworkerstatusmessage.pointersfound:=scount;
   updateworkerstatusmessage.pathsPerSecond:=trunc((totalpathsevaluated / (gettickcount-starttime))*1000);
+  if outofdiskspace then
+    updateworkerstatusmessage.outofdiskspace:=1
+  else
+    updateworkerstatusmessage.outofdiskspace:=0;
+
+
 
   updateworkerstatusmessage.alldone:=0;
   if pathqueuelength=0 then //could be everything is done
@@ -1488,7 +1536,10 @@ begin
         //send about 50% of my queue elements to the server (or max)
         receive(sockethandle, @elementcount, sizeof(elementcount));
 
-        elementcount:=min(elementcount, length(overflowqueue)+pathqueuelength div 2);
+        if outofdiskspace then
+          elementcount:=length(overflowqueue)+pathqueuelength
+        else
+          elementcount:=min(elementcount, length(overflowqueue)+pathqueuelength div 2);
 
         GetMem(TransmittedQueueMessage, 1+getPathQueueElementSize*elementcount);
         TransmittedQueueMessage.elementcount:=0;
@@ -1585,6 +1636,7 @@ var
     pathqueuelength: int32;
     pathsPerSecond: qword;
     pointersFound: qword;
+    outofdiskspace: byte;
     alldone: byte;
   end;
 
@@ -1698,6 +1750,7 @@ begin
           begin
             workers[i].pathsPerSecond:=UpdateWorkerStatus.pathsPerSecond;
             workers[i].pointersfound:=UpdateWorkerStatus.pointersfound;
+            workers[i].outofdiskspace:=UpdateWorkerStatus.outofdiskspace<>0;
             workers[i].alldone:=UpdateWorkerStatus.alldone<>0;
           end;
 
@@ -1710,14 +1763,25 @@ begin
 
         EatFromOverFlowQueueIfNeeded;
 
-        if (length(reversescanners)>0) and (
+        if (UpdateWorkerStatus.outofdiskspace<>0) or //the worker is out of diskspace
+           (
+            (length(reversescanners)>0) and (
            ((pathqueuelength+length(overflowqueue)<32) and (UpdateWorkerStatus.pathqueuelength>32)) or //Normalize queue
-           ((pathqueuelength+length(overflowqueue)<4) and (UpdateWorkerStatus.pathqueuelength>1))) then //emergency
+           ((pathqueuelength+length(overflowqueue)<4) and (UpdateWorkerStatus.pathqueuelength>1)))
+           ) then
         begin
           //ask the client for his queue elements
 
           RequestQueueMessage.replymessage:=CMDUPDATEREPLY_PLEASESENDMESOMEPATHS;
-          RequestQueueMessage.max:=64-(pathqueuelength+length(overflowqueue));
+          RequestQueueMessage.max:=0;
+
+          if UpdateWorkerStatus.outofdiskspace>0 then
+            RequestQueueMessage.max:=UpdateWorkerStatus.pathqueuelength //get all of it (even if I'm out of space as well)
+          else
+          begin
+            if not outofdiskspace then
+              RequestQueueMessage.max:=64-(pathqueuelength+length(overflowqueue));
+          end;
 
           if RequestQueueMessage.max>0 then
           begin
@@ -1750,16 +1814,21 @@ begin
 
               EatFromOverflowQueueIfNeeded; //and use what can be used
             end;
+          end
+          else
+          begin
+            command:=CMDUPDATEREPLY_EVERYTHINGOK;
+            send(s, @command, sizeof(command));
           end;
 
 
         end
         else
-        if ((UpdateWorkerStatus.pathqueuelength<32) and (pathqueuelength+length(overflowqueue)>32)) or
+        if (outofdiskspace) or //i'm out of diskspace
+           ((UpdateWorkerStatus.pathqueuelength<32) and (pathqueuelength+length(overflowqueue)>32)) or
            ((UpdateWorkerStatus.pathqueuelength<4) and (pathqueuelength+length(overflowqueue)>=1)) then
         begin
           //send some (about 50%) que elements to the client
-
           elementcount:=min(32, length(overflowqueue)+(pathqueuelength div 2));
           if elementcount=0 then
             elementcount:=1;
@@ -2137,6 +2206,9 @@ begin
 
       while (not alldone) do
       begin
+        outofdiskspace:=getDiskFreeFromPath(filename)<128*1024*1024*length(reversescanners); //128MB for each thread
+
+
         if Terminated then
         begin
           OutputDebugString('Forced terminate. Telling the scanworkers to die as well');
