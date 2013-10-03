@@ -659,17 +659,20 @@ end;
 
 procedure TfrmTracer.MenuItem4Click(Sender: TObject);
 var
-i: integer;
-c: PContext;
-check: boolean;
+  i: integer;
+  c: PContext;
+  check: boolean;
+  searchstring: string;
 begin
   if (sender = miSearchNext) then
     check:=true
   else
   begin
     check:=InputQuery(rsSearch, rsTypeTheLUAConditionYouWantToSearchForExampleEAX0x1, lastsearchstring);
-    lastsearchstring:='return '+lastsearchstring;
+    lastsearchstring:=lastsearchstring;
   end;
+
+  searchstring:='return '+lastsearchstring;
 
   if check then
   begin
@@ -688,7 +691,7 @@ begin
       c:=@TTraceDebugInfo(lvTracer.Items[i].data).c;
       if c<>nil then
       begin
-        if CheckIfConditionIsMetContext(c, lastsearchstring) then
+        if CheckIfConditionIsMetContext(c, searchstring) then
         begin
           lvTracer.Items[i].Selected:=true;
           lvTracer.MakeSelectionVisible;
