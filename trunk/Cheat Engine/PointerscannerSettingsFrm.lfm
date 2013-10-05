@@ -10,6 +10,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '1.0.8.0'
@@ -467,21 +468,23 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Caption = 'Port:'
     ParentColor = False
   end
-  object CheckBox1: TCheckBox
+  object cbBroadcast: TCheckBox
     Left = 298
     Height = 19
     Top = 309
     Width = 179
     Caption = 'Broadcast that a scan has started'
+    OnChange = cbBroadcastChange
     TabOrder = 10
   end
-  object Button2: TButton
+  object btnNotifySpecificIPs: TButton
     Left = 480
     Height = 25
     Top = 306
     Width = 139
-    Caption = 'Setup specific IP''s to tell'
+    Caption = 'Setup specific IP''s to notify'
     Enabled = False
+    OnClick = btnNotifySpecificIPsClick
     TabOrder = 11
   end
   object odLoadPointermap: TOpenDialog
