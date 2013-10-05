@@ -502,6 +502,7 @@ Return Value:
 			}
 
 			vmx_init_dovmcall(1);
+			setup_APIC_BASE(); //for ultimap
 
 		}
 		else
@@ -602,6 +603,8 @@ void UnloadDriver(PDRIVER_OBJECT DriverObject)
 	}
 
 	ultimap_disable();
+
+	clean_APIC_BASE();
 	
 
 	if (KeServiceDescriptorTableShadow && registered) //I can't unload without a shadotw table (system service registered)

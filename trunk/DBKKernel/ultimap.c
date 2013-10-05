@@ -15,9 +15,9 @@ JUMPBACK perfmonJumpBackLocation;
 
 
 #ifdef AMD64
-volatile PAPIC APIC_BASE=(PAPIC)0xfffffffffffe0000;
+volatile PAPIC APIC_BASE=0; //(PAPIC)0xfffffffffffe0000;
 #else
-volatile PAPIC APIC_BASE=(PAPIC)0xfffe0000;
+volatile PAPIC APIC_BASE=0; //(PAPIC)0xfffe0000;
 #endif
 
 BOOL SaveToFile; //If set it will save the results to a file instead of sending a message to the usermode app that is watching the data
@@ -42,6 +42,31 @@ _DataBlock *DataBlock;
 PVOID *DataReadyPointerList;
 
 int perfmon_interrupt_centry(void);
+
+#define MSR_IA32_APICBASE               0x0000001b
+
+void setup_APIC_BASE(void)
+{
+	PHYSICAL_ADDRESS Physical_APIC_BASE;
+	DbgPrint("Fetching the APIC base\n");
+
+	Physical_APIC_BASE.QuadPart=readMSR(MSR_IA32_APICBASE) & 0xFFFFFFFFFFFFF000ULL;
+	
+
+	DbgPrint("Physical_APIC_BASE=%p\n", Physical_APIC_BASE.QuadPart);
+
+	APIC_BASE = (PAPIC)MmMapIoSpace(Physical_APIC_BASE, sizeof(APIC), MmNonCached);
+
+
+    DbgPrint("APIC_BASE at %p\n", APIC_BASE);
+
+}
+
+void clean_APIC_BASE(void)
+{
+	if (APIC_BASE)
+		MmUnmapIoSpace((PVOID)APIC_BASE, sizeof(APIC));
+}
 
 void ultimap_flushBuffers_all(UINT_PTR param)
 {
