@@ -37,10 +37,27 @@ type
   end;
   PGetScanParametersOut=^TGetScanParametersOut;
 
-
-
-
   TfrmPointerscanner = class;
+  TPointerscanListener=class(tthread)
+  private
+
+    serverip: string;
+    serverport:word;
+    pointerscannerform: Tfrmpointerscanner;
+
+    procedure DoPointerscan;
+    procedure DoRescan;
+    procedure DoSendResults;
+    procedure DoCommand(command: byte; srecv: sockaddr_in; recvsize: tsocklen; port:word);
+  public
+    executingCommand: boolean;
+    done: boolean;
+    procedure execute; override;
+    constructor create(owner: TfrmPointerscanner; suspended: boolean);
+  end;
+
+
+
   TRescanWorker=class(TThread)
   private
     procedure flushresults;
@@ -409,6 +426,7 @@ type
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
+    miMergePointerscanResults: TMenuItem;
     miSetWorkFolder: TMenuItem;
     miJoinDistributedScan: TMenuItem;
     miJoinDistributedRescan: TMenuItem;
@@ -447,6 +465,7 @@ type
     procedure ListView1ColumnClick(Sender: TObject; Column: TListColumn);
     procedure ListView1Resize(Sender: TObject);
     procedure MenuItem3Click(Sender: TObject);
+    procedure miMergePointerscanResultsClick(Sender: TObject);
     procedure miSetWorkFolderClick(Sender: TObject);
     procedure miJoinDistributedRescanClick(Sender: TObject);
     procedure miJoinDistributedScanClick(Sender: TObject);
@@ -472,6 +491,8 @@ type
 
     distributedworkfolder: string;
 
+    PointerscanListener: TPointerscanListener;
+
     procedure m_staticscanner_done(var message: tmessage); message staticscanner_done;
     procedure rescandone(var message: tmessage); message rescan_done;
     procedure openscanner(var message: tmessage); message open_scanner;
@@ -484,6 +505,9 @@ type
     Staticscanner:TStaticScanner;
 
     Pointerscanresults: TPointerscanresultReader;
+
+    procedure JoinPointerscan(host: string='127.0.0.1'; port: word=52737; threadcount: integer=1; scannerpriority:TThreadPriority=tpHigher; UseLoadedPointermap: boolean=false; LoadedPointermapFilename: string='');
+    procedure JoinRescan(server: string; port: dword);
   end;
 
 //var
@@ -557,6 +581,9 @@ begin
     OpenPointerfile(rescan.filename);
     freeandnil(rescan);
   end;
+
+  if (PointerscanListener<>nil) then
+    PointerscanListener.executingCommand:=false; //start listening for new commands
 end;
 
 procedure Tfrmpointerscanner.m_staticscanner_done(var message: tmessage);
@@ -573,7 +600,77 @@ begin
   doneui;
 end;
 
+procedure TPointerscanListener.DoPointerscan;
+var cpucount: integer;
+begin
+  //join a pointerscan
+  cpucount:=GetCPUCount;
+  if HasHyperthreading then
+    cpucount:=(cpucount div 2)+1;
 
+  pointerscannerform.JoinPointerscan(serverip, serverport, cpucount);
+
+end;
+
+procedure TPointerscanListener.DoRescan;
+begin
+  pointerscannerform.JoinRescan(serverip, serverport);
+end;
+
+procedure TPointerscanListener.DoSendResults;
+begin
+
+end;
+
+procedure TPointerscanListener.DoCommand(command: byte; srecv: sockaddr_in; recvsize: tsocklen; port:word);
+begin
+  if executingCommand then exit; //already doing something
+
+  executingCommand:=true;
+  serverip:=NetAddrToStr(srecv.sin_addr);
+  serverport:=port;
+
+  case command of
+    0: synchronize(DoPointerscan);
+    1: synchronize(DoRescan);
+    2: synchronize(DoSendResults);
+  end;
+
+end;
+
+procedure TPointerscanListener.execute;
+var
+  s: TSocket;
+  srecv: sockaddr_in;
+  recvsize: tsocklen;
+  cecommand: packed record
+    id: byte; //$ce
+    operation: byte;
+    port: word;
+    test: word;
+  end;
+  i: integer;
+begin
+  s:=fpsocket(PF_INET, SOCK_DGRAM, 0);
+  if s>=0 then
+  begin
+    repeat
+      i:=fprecvfrom(s, @cecommand, sizeof(cecommand), 0, @srecv, @recvsize);
+      if (i=sizeof(cecommand)) and (cecommand.id=$ce) and (cecommand.test=word((cecommand.id+cecommand.operation+cecommand.port)*599)) then
+        DoCommand(cecommand.operation, srecv, recvsize, cecommand.port);
+
+    until (i<=0) or terminated;
+  end;
+  done:=true; //todo: Perhaps relaunch ?
+end;
+
+constructor TPointerscanListener.create(owner: Tfrmpointerscanner; suspended: boolean);
+begin
+  self.pointerscannerform:=owner;
+  inherited create(suspended);
+end;
+
+//---------------Reversescanworker
 procedure TReverseScanWorker.flushresults;
 begin
   resultsfile.WriteBuffer(results.Memory^,results.Position);
@@ -2531,6 +2628,82 @@ begin
 end;
 
 //---------------------------------main--------------------------
+
+procedure Tfrmpointerscanner.JoinRescan(server: string; port: dword);
+begin
+  if rescan<>nil then
+    freeandnil(rescan);
+
+  rescan:=trescanpointers.create(true);
+  rescan.ownerform:=self;
+  rescan.progressbar:=progressbar1;
+
+  rescan.distributedrescan:=true;
+  rescan.distributedrescanWorker:=true;
+  rescan.distributedserver:=server;
+  rescan.distributedport:=port;
+  rescan.distributedworkfolder:=distributedworkfolder;
+  progressbar1.visible:=true;
+
+  rescan.start;
+end;
+
+procedure Tfrmpointerscanner.JoinPointerscan(host: string='127.0.0.1'; port: word=52737; threadcount: integer=1; scannerpriority:TThreadPriority=tpHigher; UseLoadedPointermap: boolean=false; LoadedPointermapFilename: string='');
+begin
+  new1.click; //setup the gui
+
+  totalpathsevaluated:=0;
+  startcount:=0;
+  starttime:=0;
+
+
+  btnStopScan.enabled:=true;
+  btnStopScan.Caption:=rsStop;
+
+  pgcPScandata.Visible:=false;
+  open1.Enabled:=false;
+  new1.enabled:=false;
+  rescanmemory1.Enabled:=false;
+
+  cbType.Visible:=false;
+  listview1.Visible:=false;
+
+
+
+  //launch the scanner
+  if pointerlisthandler<>nil then
+    freeandnil(pointerlisthandler);
+
+  staticscanner:=TStaticscanner.Create(true);
+  staticscanner.reverse:=true;
+
+  label5.caption:=rsGeneratingPointermap;
+  progressbar1.Visible:=true;
+
+  staticscanner:=TStaticscanner.Create(true);
+  staticscanner.distributedScanning:=true;
+  staticscanner.distributedWorker:=true;
+  staticscanner.distributedServer:=host;
+  staticscanner.distributedport:=port;
+
+  staticscanner.progressbar:=progressbar1;
+  staticscanner.threadcount:=threadcount;
+  staticscanner.scannerpriority:=scannerpriority;
+  staticscanner.UseLoadedPointermap:=UseLoadedPointermap;
+  staticscanner.LoadedPointermapFilename:=LoadedPointermapFilename;
+
+  staticscanner.filename:=IncludeTrailingPathDelimiter(distributedworkfolder);
+
+
+  staticscanner.ownerform:=self;
+
+  open1.Enabled:=false;
+
+  staticscanner.start;
+
+  pgcPScandata.Visible:=true;
+end;
+
 procedure Tfrmpointerscanner.miJoinDistributedScanClick(Sender: TObject);
 var
   f: tfrmPointerscanConnectDialog;
@@ -2540,66 +2713,12 @@ begin
   f:=tfrmPointerscanConnectDialog.create(self);
   if f.showmodal=mrok then
   begin
-
-
     if distributedworkfolder='' then
       miSetWorkFolder.Click;
 
     if distributedworkfolder='' then exit;
 
-
-    new1.click; //setup the gui
-
-    totalpathsevaluated:=0;
-    startcount:=0;
-    starttime:=0;
-
-
-    btnStopScan.enabled:=true;
-    btnStopScan.Caption:=rsStop;
-
-    pgcPScandata.Visible:=false;
-    open1.Enabled:=false;
-    new1.enabled:=false;
-    rescanmemory1.Enabled:=false;
-
-    cbType.Visible:=false;
-    listview1.Visible:=false;
-
-
-
-    //launch the scanner
-    if pointerlisthandler<>nil then
-      freeandnil(pointerlisthandler);
-
-    staticscanner:=TStaticscanner.Create(true);
-    staticscanner.reverse:=true;
-
-    label5.caption:=rsGeneratingPointermap;
-    progressbar1.Visible:=true;
-
-    staticscanner:=TStaticscanner.Create(true);
-    staticscanner.distributedScanning:=true;
-    staticscanner.distributedWorker:=true;
-    staticscanner.distributedServer:=f.edtHost.text;
-    staticscanner.distributedport:=strtoint(f.edtPort.text);
-
-    staticscanner.progressbar:=progressbar1;
-    staticscanner.threadcount:=f.threadcount;
-    staticscanner.scannerpriority:=f.scannerpriority;
-    staticscanner.UseLoadedPointermap:=f.cbUseLoadedPointermap.checked;
-    staticscanner.LoadedPointermapFilename:=f.odLoadPointermap.FileName;
-
-    staticscanner.filename:=IncludeTrailingPathDelimiter(SelectDirectoryDialog1.FileName);
-
-
-    staticscanner.ownerform:=self;
-
-    open1.Enabled:=false;
-
-    staticscanner.start;
-
-    pgcPScandata.Visible:=true;
+    JoinPointerscan(f.edthost.text, f.port, f.threadcount, f.scannerpriority, f.cbUseLoadedPointermap.checked, f.odLoadPointermap.FileName);
   end;
 
   f.free;
@@ -2805,6 +2924,30 @@ end;
 procedure Tfrmpointerscanner.MenuItem3Click(Sender: TObject);
 begin
   //start a listener for pointerscan related signals
+  if distributedworkfolder='' then
+    miSetWorkFolder.Click;
+
+  if distributedworkfolder='' then exit;
+
+  if PointerscanListener<>nil then
+  begin
+    if PointerscanListener.done then
+    begin
+      PointerscanListener.terminate;
+      freeandnil(pointerscanlistener);
+    end;
+  end;
+
+  if PointerscanListener=nil then
+    PointerscanListener:=TPointerscanListener.create(self, false);
+
+
+
+end;
+
+procedure Tfrmpointerscanner.miMergePointerscanResultsClick(Sender: TObject);
+begin
+
 end;
 
 procedure Tfrmpointerscanner.miSetWorkFolderClick(Sender: TObject);
@@ -3126,7 +3269,7 @@ begin
 
   panel1.Caption:=rsPointercount+':'+inttostr(Pointerscanresults.count);
 
-  if (Pointerscanresults.count>1000000) then
+  if ((Staticscanner=nil) or (staticscanner.distributedScanning=false)) and (Pointerscanresults.count>1000000) then
   begin
     listview1.Items.Count:=1000000;
     showmessage(rsOnlyTheFirst1000000EntriesWillBeDisplayed);
@@ -4249,6 +4392,8 @@ begin
   inherited destroy;
 end;
 
+
+
 procedure Tfrmpointerscanner.miJoinDistributedRescanClick(Sender: TObject);
 var f: tfrmPointerrescanConnectDialog;
 begin
@@ -4256,21 +4401,12 @@ begin
   if f.showmodal=mrok then
   begin
     //create a rescanpointers object
-    if rescan<>nil then
-      freeandnil(rescan);
+    if distributedworkfolder='' then
+      miSetWorkFolder.Click;
 
-    rescan:=trescanpointers.create(true);
-    rescan.ownerform:=self;
-    rescan.progressbar:=progressbar1;
+    if distributedworkfolder='' then exit;
 
-    rescan.distributedrescan:=true;
-    rescan.distributedrescanWorker:=true;
-    rescan.distributedport:=f.port;
-    rescan.distributedserver:=f.edtHost.text;
-    rescan.distributedworkfolder:=distributedworkfolder;
-    progressbar1.visible:=true;
-
-    rescan.start;
+    JoinRescan(f.edtHost.text, f.port);
   end;
 end;
 
@@ -4458,6 +4594,7 @@ begin
 end;
 
 procedure tfrmpointerscanner.rescandone(var message: tmessage);
+
 {
 The rescan is done. rescan.oldpointerlist (the current pointerlist) can be deleted
 and the new pointerlist becomes the current pointerlist

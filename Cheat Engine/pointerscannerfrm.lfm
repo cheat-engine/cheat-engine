@@ -196,6 +196,10 @@ object frmPointerScanner: TfrmPointerScanner
         ShortCut = 16463
         OnClick = Open1Click
       end
+      object miMergePointerscanResults: TMenuItem
+        Caption = 'Merge/Import pointerscan results'
+        OnClick = miMergePointerscanResultsClick
+      end
     end
     object MenuItem2: TMenuItem
       Caption = 'Distributed pointer scan'

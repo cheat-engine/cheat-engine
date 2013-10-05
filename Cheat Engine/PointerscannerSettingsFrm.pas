@@ -6,12 +6,9 @@ interface
 
 uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls,{tlhelp32,} ComCtrls,ExtCtrls, LResources, Contnrs
-  {$ifdef injectedpscan}
-  ,symbolhandlerlite;
-  {$else}
-  ,CEFuncProc,NewKernelHandler, symbolhandler;
-  {$endif}
+  Dialogs, StdCtrls,{tlhelp32,} ComCtrls,ExtCtrls, LResources, Contnrs,
+  CEFuncProc,NewKernelHandler, symbolhandler, multilineinputqueryunit, registry;
+
 
 type tmoduledata = class
   public
@@ -36,7 +33,7 @@ type
   { TfrmPointerScannerSettings }
 
   TfrmPointerScannerSettings = class(TForm)
-    Button2: TButton;
+    btnNotifySpecificIPs: TButton;
     cbNoReadOnly: TCheckBox;
     cbClassPointersOnly: TCheckBox;
     cbNoLoop: TCheckBox;
@@ -44,7 +41,7 @@ type
     cbStackOnly: TCheckBox;
     cbUseLoadedPointermap: TCheckBox;
     cbDistributedScanning: TCheckBox;
-    CheckBox1: TCheckBox;
+    cbBroadcast: TCheckBox;
     edtDistributedPort: TEdit;
     edtThreadStacks: TEdit;
     edtStackSize: TEdit;
@@ -84,12 +81,15 @@ type
     cbOnlyOneStatic: TCheckBox;
     cbReusePointermap: TCheckBox;
     procedure Button1Click(Sender: TObject);
+    procedure btnNotifySpecificIPsClick(Sender: TObject);
     procedure canNotReuse(Sender: TObject);
+    procedure cbBroadcastChange(Sender: TObject);
     procedure cbMaxOffsetsPerNodeChange(Sender: TObject);
     procedure cbMustEndWithSpecificOffsetChange(Sender: TObject);
     procedure cbReusePointermapChange(Sender: TObject);
     procedure cbStaticStacksChange(Sender: TObject);
     procedure cbUseLoadedPointermapChange(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure cbMustEndWithSpecificOffsetClick(Sender: TObject);
@@ -99,6 +99,7 @@ type
     procedure cbHeapOnlyClick(Sender: TObject);
   private
     { Private declarations }
+    iplist: tstringlist;
     procedure btnAddClick(sender: TObject);
     procedure btnRemoveClick(sender: TObject);
   public
@@ -219,10 +220,43 @@ begin
   modalresult:=mrok;
 end;
 
+procedure TfrmPointerScannerSettings.btnNotifySpecificIPsClick(Sender: TObject);
+var
+  reg: Tregistry;
+begin
+  if iplist=nil then
+    iplist:=tstringlist.Create;
+
+  //load the old ip list
+
+  reg:=TRegistry.create;
+  try
+    Reg.RootKey := HKEY_CURRENT_USER;
+    if Reg.OpenKey('\Software\Cheat Engine',true) then
+    begin
+      if reg.ValueExists('Worker IP List') then
+        iplist.Text:=reg.ReadString('Worker IP List');
+    end;
+
+    if MultilineInputQuery('IP List','Enter the IP addresses to notify explicitly', iplist) then  //save the new ip list
+      reg.WriteString('Worker IP List', iplist.text);
+
+  finally
+    reg.free;
+  end;
+
+end;
+
 procedure TfrmPointerScannerSettings.canNotReuse(Sender: TObject);
 begin
   cbReusePointermap.Enabled:=false;
   cbReusePointermap.Checked:=false;
+end;
+
+procedure TfrmPointerScannerSettings.cbBroadcastChange(Sender: TObject);
+begin
+  if cbBroadcast.checked then
+    btnNotifySpecificIPs.enabled:=true;
 end;
 
 procedure TfrmPointerScannerSettings.cbMaxOffsetsPerNodeChange(Sender: TObject);
@@ -268,6 +302,12 @@ begin
 
     cbUseLoadedPointermap.OnChange:=cbUseLoadedPointermapChange;
   end;
+end;
+
+procedure TfrmPointerScannerSettings.FormDestroy(Sender: TObject);
+begin
+  if iplist<>nil then
+    freeandnil(iplist);
 end;
 
 procedure TfrmPointerScannerSettings.cbStaticStacksChange(Sender: TObject);
