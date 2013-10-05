@@ -554,7 +554,7 @@ begin
   if key=#8 then
     filter:=copy(filter, 1, length(filter)-1)
   else
-  if key in [chr(20)..chr(128)] then
+  if key in [chr(32)..chr(128)] then
     filter:=filter+key;
 end;
 
