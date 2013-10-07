@@ -659,16 +659,22 @@ var
   end;
   i: integer;
 begin
+  i:=0;
+
   s:=fpsocket(PF_INET, SOCK_DGRAM, 0);
   if s>=0 then
   begin
     srecv.sin_family:=PF_INET;
-    srecv.sin_addr.s_addr:=INADDR_ANY;
+    srecv.sin_addr.s_addr:=htonl(INADDR_ANY);
     srecv.sin_port:=htons(3297);
-    i:=fpbind(s, @sin, sizeof(sin));
+    i:=fpbind(s, @srecv, sizeof(srecv));
 
     while (i>=0) and (not terminated) do
     begin
+      srecv.sin_family:=PF_INET;
+      srecv.sin_addr.s_addr:=INADDR_ANY;
+      srecv.sin_port:=htons(3297);
+
       i:=fprecvfrom(s, @cecommand, sizeof(cecommand), 0, @srecv, @recvsize);
       if (i=sizeof(cecommand)) and (cecommand.id=$ce) and (cecommand.test=word((cecommand.id+cecommand.operation+cecommand.port)*599)) then
         DoCommand(cecommand.operation, srecv, recvsize, cecommand.port);
