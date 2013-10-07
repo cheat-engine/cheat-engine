@@ -3359,10 +3359,14 @@ begin
 
   panel1.Caption:=rsPointercount+':'+inttostr(Pointerscanresults.count);
 
-  if ((Staticscanner=nil) or (staticscanner.distributedScanning=false)) and (Pointerscanresults.count>1000000) then
+
+  if (Pointerscanresults.count>1000000) then
   begin
     listview1.Items.Count:=1000000;
-    showmessage(rsOnlyTheFirst1000000EntriesWillBeDisplayed);
+
+    if ((Staticscanner=nil) or (staticscanner.distributedScanning=false)) and (pointerscanresults.generatedByWorkerID=-1) then //tell the user
+      showmessage(rsOnlyTheFirst1000000EntriesWillBeDisplayed);
+
   end else listview1.Items.Count:=Pointerscanresults.count;
 
   listview1.Align:=alClient;
