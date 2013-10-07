@@ -7,7 +7,8 @@ interface
 uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls,{tlhelp32,} ComCtrls,ExtCtrls, LResources, Contnrs,
-  CEFuncProc,NewKernelHandler, symbolhandler, multilineinputqueryunit, registry;
+  CEFuncProc,NewKernelHandler, symbolhandler, multilineinputqueryunit, registry,
+  resolve;
 
 
 type tmoduledata = class
@@ -123,6 +124,8 @@ type
     stacksize: integer;
     scannerpriority: TThreadPriority;
     distributedport: word;
+
+    resolvediplist: array of THostAddr;
   end;
 
 var frmpointerscannersettings: tfrmpointerscannersettings;
@@ -178,6 +181,9 @@ begin
 end;
 
 procedure TfrmPointerScannerSettings.Button1Click(Sender: TObject);
+var
+  i: integer;
+  r: THostResolver;
 begin
   if cbMaxOffsetsPerNode.checked then
   begin
@@ -217,6 +223,25 @@ begin
 
   distributedport:=strtoint(edtDistributedPort.text);
 
+
+  if cbBroadcast.checked then
+  begin
+    r:=THostResolver.create(nil);
+    r.RaiseOnError:=false;
+
+    for i:=0 to iplist.count-1 do
+    begin
+      r.NameLookup(iplist[i]);
+
+      if r.HostAddress.s_addr<>0 then
+      begin
+        setlength(resolvediplist, length(resolvediplist)+1);
+        resolvediplist[Length(resolvediplist)-1]:=r.HostAddress;
+      end;
+    end;
+
+    r.free;
+  end;
   modalresult:=mrok;
 end;
 
@@ -224,22 +249,14 @@ procedure TfrmPointerScannerSettings.btnNotifySpecificIPsClick(Sender: TObject);
 var
   reg: Tregistry;
 begin
-  if iplist=nil then
-    iplist:=tstringlist.Create;
-
-  //load the old ip list
-
   reg:=TRegistry.create;
   try
-    Reg.RootKey := HKEY_CURRENT_USER;
-    if Reg.OpenKey('\Software\Cheat Engine',true) then
-    begin
-      if reg.ValueExists('Worker IP List') then
-        iplist.Text:=reg.ReadString('Worker IP List');
-    end;
-
     if MultilineInputQuery('IP List','Enter the IP addresses to notify explicitly', iplist) then  //save the new ip list
-      reg.WriteString('Worker IP List', iplist.text);
+    begin
+      Reg.RootKey := HKEY_CURRENT_USER;
+      if Reg.OpenKey('\Software\Cheat Engine',true) then
+        reg.WriteString('Worker IP List', iplist.text);
+    end;
 
   finally
     reg.free;
@@ -388,6 +405,7 @@ begin
 end;
 
 procedure TfrmPointerScannerSettings.FormCreate(Sender: TObject);
+var reg: tregistry;
 begin
   ComboBox1.Items.Clear;
   with ComboBox1.items do
@@ -406,6 +424,23 @@ begin
 
   pssettings.ActivePage:=PSReverse;
   clientheight:=cbMustEndWithSpecificOffset.top+cbMustEndWithSpecificOffset.Height+2+panel1.height;
+
+  iplist:=TStringList.create;
+  //load the ip list (if there is one)
+
+  reg:=tregistry.create;
+  try
+    Reg.RootKey := HKEY_CURRENT_USER;
+    if Reg.OpenKey('\Software\Cheat Engine',false) then
+    begin
+      if reg.ValueExists('Worker IP List') then
+        iplist.Text:=reg.ReadString('Worker IP List');
+    end;
+
+  finally
+    reg.free;
+  end;
+
 end;
 
 procedure tfrmPointerScannerSettings.btnAddClick(sender: TObject);

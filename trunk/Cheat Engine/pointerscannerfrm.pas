@@ -297,10 +297,15 @@ type
 
     firsttime: boolean; //For workers. This causes the first update to go without a wait
 
+    broadcastcount: integer;
+    lastBroadcast: dword;
+
     procedure EatFromOverflowQueueIfNeeded;
 
     procedure launchWorker; //connect to the server
     procedure launchServer; //start listening on the specific port
+    procedure broadcastscan; //sends a broadcast to the local network and the potentialWorkerList
+
     function doDistributedScanningLoop: boolean;  //actually doDistributedScanningLoopIteration
     function doDistributedScanningWorkerLoop: boolean;
     function doDistributedScanningServerLoop: boolean;
@@ -407,6 +412,9 @@ type
 
     distributedWorker: boolean; //set if it's a worker connecting to a server
     distributedServer: string;
+
+    broadcastThisScanner: boolean;
+    potentialWorkerList: array of THostAddr;
 
     workersPathPerSecondTotal: qword;
     workersPointersfoundTotal: qword;
@@ -654,12 +662,17 @@ begin
   s:=fpsocket(PF_INET, SOCK_DGRAM, 0);
   if s>=0 then
   begin
-    repeat
+    srecv.sin_family:=PF_INET;
+    srecv.sin_addr.s_addr:=INADDR_ANY;
+    srecv.sin_port:=htons(3297);
+    i:=fpbind(s, @sin, sizeof(sin));
+
+    while (i>=0) and (not terminated) do
+    begin
       i:=fprecvfrom(s, @cecommand, sizeof(cecommand), 0, @srecv, @recvsize);
       if (i=sizeof(cecommand)) and (cecommand.id=$ce) and (cecommand.test=word((cecommand.id+cecommand.operation+cecommand.port)*599)) then
         DoCommand(cecommand.operation, srecv, recvsize, cecommand.port);
-
-    until (i<=0) or terminated;
+    end;
   end;
   done:=true; //todo: Perhaps relaunch ?
 end;
@@ -1298,6 +1311,46 @@ begin
 
     setlength(overflowqueue, length(overflowqueue)-pathstocopy);
   end;
+end;
+
+procedure TStaticScanner.broadcastscan;
+var
+  cecommand: packed record
+    id: byte; //$ce
+    operation: byte;
+    port: word;
+    test: word;
+  end;
+
+  RecvAddr: sockaddr_in;
+  i: integer;
+  s: Tsocket;
+  v: boolean;
+begin
+  //sends a broadcast to the local network and the potentialWorkerList
+  cecommand.id:=$ce;
+  cecommand.operation:=0;   //poinerscan
+  cecommand.port:=distributedport;
+  cecommand.test:=(cecommand.id+cecommand.operation+cecommand.port)*599;
+
+  s:=fpsocket(PF_INET, SOCK_DGRAM, 0);
+  v:=true;
+  if fpsetsockopt(s, SOL_SOCKET, SO_BROADCAST, @v, sizeof(v)) >=0 then
+  begin
+    RecvAddr.sin_family:=AF_INET;
+    RecvAddr.sin_addr.s_addr:=INADDR_ANY;
+    RecvAddr.sin_port:=htons(3296);
+
+    fpsendto(s,  @cecommand, sizeof(cecommand), 0, @RecvAddr, sizeof(sizeof(RecvAddr)));
+
+    for i:=0 to length(potentialWorkerList)-1 do
+    begin
+      RecvAddr.sin_addr:=potentialWorkerList[i];
+      fpsendto(s,  @cecommand, sizeof(cecommand), 0, @RecvAddr, sizeof(sizeof(RecvAddr)));
+    end;
+  end;
+
+  CloseSocket(s);
 end;
 
 procedure TStaticScanner.launchServer;
@@ -2099,6 +2152,13 @@ begin
 
   result:=true;
 
+  if broadcastThisScanner and (broadcastcount<10) and (gettickcount>lastBroadcast+1000) then
+  begin
+    inc(broadcastcount);
+    lastbroadcast:=gettickcount;
+    broadcastscan;
+  end;
+
 
   getmem(readfds, sizeof(PtrUInt)+sizeof(TSocket)*(length(workers)+1));
   try
@@ -2615,6 +2675,7 @@ begin
 
   reverse:=true;
 
+
   inherited create(suspended);
 end;
 
@@ -2827,6 +2888,9 @@ begin
 
       staticscanner.distributedScanning:=frmpointerscannersettings.cbDistributedScanning.checked;
       staticscanner.distributedport:=frmpointerscannersettings.distributedPort;
+
+      staticscanner.broadcastThisScanner:=frmpointerscannersettings.cbBroadcast.checked;
+      staticscanner.potentialWorkerList:=frmpointerscannersettings.resolvediplist;
 
 
       staticscanner.mustEndWithSpecificOffset:=frmpointerscannersettings.cbMustEndWithSpecificOffset.checked;
