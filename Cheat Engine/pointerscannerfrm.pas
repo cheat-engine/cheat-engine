@@ -1214,6 +1214,9 @@ begin
   if f<>nil then
     freeandnil(f);
 
+  if s<>INVALID_SOCKET then
+    CloseSocket(s);
+
   inherited destroy;
 end;
 
@@ -2671,6 +2674,10 @@ begin
 
       freeandnil(pathqueueCS);
       closehandle(pathqueueSemaphore);
+
+
+
+
     end;
 
 
@@ -2695,6 +2702,8 @@ begin
 
   reverse:=true;
 
+  sockethandle:=-1;
+
 
   inherited create(suspended);
 end;
@@ -2704,6 +2713,11 @@ begin
   terminate;
   waitfor;
 
+  if sockethandle<>-1 then
+  begin
+    CloseSocket(sockethandle);
+    sockethandle:=-1;
+  end;
 
 
   //clean up other stuff
