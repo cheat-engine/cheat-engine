@@ -671,9 +671,7 @@ begin
 
     while (i>=0) and (not terminated) do
     begin
-      srecv.sin_family:=PF_INET;
-      srecv.sin_addr.s_addr:=INADDR_ANY;
-      srecv.sin_port:=htons(3297);
+      ZeroMemory(@srecv, sizeof(srecv));
       recvsize:=sizeof(srecv);
 
       i:=fprecvfrom(s, @cecommand, sizeof(cecommand), 0, @srecv, @recvsize);
