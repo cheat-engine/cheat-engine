@@ -4762,6 +4762,9 @@ begin
 
   Method3Fastspeedandaveragememoryusage1.Enabled:=true;
 
+  tvRSThreads.Items.Clear;
+  timer2.Enabled:=false;
+
   if Pointerscanresults<>nil then
     freeandnil(Pointerscanresults);
 
