@@ -1336,6 +1336,8 @@ var
   i: integer;
   s: Tsocket;
   v: boolean;
+
+  r: integer;
 begin
   //sends a broadcast to the local network and the potentialWorkerList
   cecommand.id:=$ce;
@@ -1348,15 +1350,16 @@ begin
   if fpsetsockopt(s, SOL_SOCKET, SO_BROADCAST, @v, sizeof(v)) >=0 then
   begin
     RecvAddr.sin_family:=AF_INET;
-    RecvAddr.sin_addr.s_addr:=INADDR_ANY;
-    RecvAddr.sin_port:=htons(3296);
+    RecvAddr.sin_addr.s_addr:=htonl(INADDR_BROADCAST);
+    RecvAddr.sin_port:=htons(3297);
 
-    fpsendto(s,  @cecommand, sizeof(cecommand), 0, @RecvAddr, sizeof(sizeof(RecvAddr)));
+    fpsendto(s,  @cecommand, sizeof(cecommand), 0, @RecvAddr, sizeof(RecvAddr));
 
     for i:=0 to length(potentialWorkerList)-1 do
     begin
       RecvAddr.sin_addr:=potentialWorkerList[i];
-      fpsendto(s,  @cecommand, sizeof(cecommand), 0, @RecvAddr, sizeof(sizeof(RecvAddr)));
+      fpsendto(s,  @cecommand, sizeof(cecommand), 0, @RecvAddr, sizeof(RecvAddr));
+
     end;
   end;
 
@@ -2134,7 +2137,7 @@ begin
   except
     on e: TSocketException do
     begin
-      //an socket error happened (read/write error. Disconnect)
+      //an socket error happened (read/write error. Disconnect. Done)
       for i:=0 to length(workers)-1 do
         if workers[i].s=s then
         begin

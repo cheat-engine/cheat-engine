@@ -144,7 +144,7 @@ begin
       zeromemory(@sin, sizeof(sin));
 
       sin.sin_family:=PF_INET;
-      sin.sin_addr.s_addr:=INADDR_ANY;
+      sin.sin_addr.s_addr:=htonl(INADDR_ANY);
       sin.sin_port:=htons(3296);
       i:=fpbind(s, @sin, sizeof(sin));
 
@@ -152,7 +152,7 @@ begin
       begin
         zeromemory(@sout, sizeof(sout));
         sout.sin_family:=PF_INET;
-        sout.sin_addr.s_addr:=INADDR_BROADCAST;
+        sout.sin_addr.s_addr:=htonl(INADDR_BROADCAST);
         sout.sin_port:=htons(3296);
 
         packet.checksum:=random(100);
