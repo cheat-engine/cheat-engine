@@ -602,8 +602,8 @@ begin
     frmMemoryAllocHandler.memrecCS.leave;  //continue adding new entries
 
   //update the treeview
-  if message.WParam<>0 then
-    messagedlg(rsErrorDuringScan+': '+pchar(message.LParam), mtError, [mbok] , 0);
+  if staticscanner.haserror then
+    messagedlg(rsErrorDuringScan+': '+staticscanner.errorString, mtError, [mbok] , 0);
 
   doneui;
 end;
@@ -2557,7 +2557,9 @@ begin
       except
         on e: exception do
         begin
-          postmessage(ownerform.Handle,staticscanner_done,1,ptrUint(pchar('Failure copying target process memory'))); //I can just provide this string as it's static in the .code section
+          haserror:=true;
+          errorString:='Failure copying target process memory';
+          postmessage(ownerform.Handle,staticscanner_done,0,NULL);
           terminate;
           exit;
         end;
@@ -2651,6 +2653,13 @@ begin
 
         freeandnil(result);
 
+        if scandataUploader<>nil then
+        begin
+          scandataUploader.terminate;
+          scandataUploader.WaitFor;
+          freeandnil(scandataUploader);
+        end;
+
       end;
 
     finally
@@ -2694,6 +2703,8 @@ destructor TStaticscanner.destroy;
 begin
   terminate;
   waitfor;
+
+
 
   //clean up other stuff
   inherited destroy;
