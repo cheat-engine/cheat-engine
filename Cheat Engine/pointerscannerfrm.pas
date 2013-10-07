@@ -3224,31 +3224,35 @@ begin
       begin
         if tn.Data<>nil then break; //worker instead of thread
 
-        if staticscanner.reversescanners[i].isdone then
+        if i<length(staticscanner.reversescanners) then
         begin
-          tn.Text:=rsThread+' '+inttostr(i+1)+' ('+rsSleeping+')';
-          tn2:=tn.getFirstChild;
-          tn2.text:=rsSleeping;
-          tn2:=tn2.getNextSibling;
-          tn2.text:=rsSleeping;
-        end
-        else
-        begin
-          tn.text:=rsThread+' '+inttostr(i+1)+' ('+rsActive+')';
-          tn2:=tn.getFirstChild;
-
+          if staticscanner.reversescanners[i].isdone then
           begin
-            s:='';
-            for j:=0 to staticscanner.reversescanners[i].currentlevel-1 do
-              s:=s+' '+inttohex(staticscanner.reversescanners[i].tempresults[j],8);
-
-
-            tn2.text:=rsCurrentLevel+':'+inttostr(staticscanner.reversescanners[i].currentlevel)+' ('+s+')';
+            tn.Text:=rsThread+' '+inttostr(i+1)+' ('+rsSleeping+')';
+            tn2:=tn.getFirstChild;
+            tn2.text:=rsSleeping;
             tn2:=tn2.getNextSibling;
-            tn2.text:=rsLookingFor+' :'+inttohex(staticscanner.reversescanners[i].lookingformin, 8)+'-'+inttohex(staticscanner.reversescanners[i].lookingformax, 8);
-          end;
-        end;
+            tn2.text:=rsSleeping;
+          end
+          else
+          begin
+            tn.text:=rsThread+' '+inttostr(i+1)+' ('+rsActive+')';
+            tn2:=tn.getFirstChild;
 
+            begin
+              s:='';
+              for j:=0 to staticscanner.reversescanners[i].currentlevel-1 do
+                s:=s+' '+inttohex(staticscanner.reversescanners[i].tempresults[j],8);
+
+
+              tn2.text:=rsCurrentLevel+':'+inttostr(staticscanner.reversescanners[i].currentlevel)+' ('+s+')';
+              tn2:=tn2.getNextSibling;
+              tn2.text:=rsLookingFor+' :'+inttohex(staticscanner.reversescanners[i].lookingformin, 8)+'-'+inttohex(staticscanner.reversescanners[i].lookingformax, 8);
+            end;
+          end;
+
+
+        end;
         tn:=tn.getNextSibling;
         inc(i);
       end;
