@@ -682,6 +682,8 @@ begin
     end;
 
   end;
+
+  CloseSocket(s);
   done:=true; //todo: Perhaps relaunch ?
 end;
 
