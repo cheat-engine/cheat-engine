@@ -674,11 +674,13 @@ begin
       srecv.sin_family:=PF_INET;
       srecv.sin_addr.s_addr:=INADDR_ANY;
       srecv.sin_port:=htons(3297);
+      recvsize:=sizeof(srecv);
 
       i:=fprecvfrom(s, @cecommand, sizeof(cecommand), 0, @srecv, @recvsize);
       if (i=sizeof(cecommand)) and (cecommand.id=$ce) and (cecommand.test=word((cecommand.id+cecommand.operation+cecommand.port)*599)) then
         DoCommand(cecommand.operation, srecv, recvsize, cecommand.port);
     end;
+
   end;
   done:=true; //todo: Perhaps relaunch ?
 end;
