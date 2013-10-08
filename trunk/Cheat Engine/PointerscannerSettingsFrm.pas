@@ -85,6 +85,7 @@ type
     procedure btnNotifySpecificIPsClick(Sender: TObject);
     procedure canNotReuse(Sender: TObject);
     procedure cbBroadcastChange(Sender: TObject);
+    procedure cbDistributedScanningChange(Sender: TObject);
     procedure cbMaxOffsetsPerNodeChange(Sender: TObject);
     procedure cbMustEndWithSpecificOffsetChange(Sender: TObject);
     procedure cbReusePointermapChange(Sender: TObject);
@@ -274,6 +275,11 @@ procedure TfrmPointerScannerSettings.cbBroadcastChange(Sender: TObject);
 begin
   if cbBroadcast.checked then
     btnNotifySpecificIPs.enabled:=true;
+end;
+
+procedure TfrmPointerScannerSettings.cbDistributedScanningChange(Sender: TObject);
+begin
+  cbBroadcast.enabled:=cbDistributedScanning.checked;
 end;
 
 procedure TfrmPointerScannerSettings.cbMaxOffsetsPerNodeChange(Sender: TObject);

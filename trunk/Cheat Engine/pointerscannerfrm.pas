@@ -4726,6 +4726,9 @@ begin
             rescan.distributedport:=distributedport;
             rescan.distributedrescan:=true;
             rescan.distributedrescanWorker:=false;
+
+            rescan.broadcastThisScanner:=cbDistributedRescan.Checked;
+            rescan.potentialWorkerList:=resolvediplist;
           end;
 
 
