@@ -123,12 +123,17 @@ type
     rescanhelper: TRescanHelper;
     Pointerscanresults: TPointerscanresultReader;
 
+    broadcastcount: integer;
+    lastBroadcast: dword;
+
     function Server_HandleRead(s: Tsocket): byte;
 
     procedure closeOldFile;
     procedure UpdateStatus(done: boolean; TotalPointersToEvaluate:qword; PointersEvaluated: qword);
     procedure LaunchWorker;
     procedure LaunchServer;
+
+    procedure broadcastscan; //sends a broadcast to the local network and the potentialWorkerList
     procedure DoServerLoop;
 
   public
@@ -164,7 +169,8 @@ type
     distributedrescanWorker: boolean;
     distributedworkfolder: string;
 
-
+    broadcastThisScanner: boolean;
+    potentialWorkerList: array of THostAddr;
 
     procedure execute; override;
     destructor destroy; override;
@@ -4149,6 +4155,49 @@ begin
     workers[i].s:=-1; //mark as disconnected
 end;
 
+procedure TRescanpointers.broadcastscan;
+var
+  cecommand: packed record
+    id: byte; //$ce
+    operation: byte;
+    port: word;
+    test: word;
+  end;
+
+  RecvAddr: sockaddr_in;
+  i: integer;
+  s: Tsocket;
+  v: boolean;
+
+  r: integer;
+begin
+  //sends a broadcast to the local network and the potentialWorkerList
+  cecommand.id:=$ce;
+  cecommand.operation:=1;   //rescan
+  cecommand.port:=distributedport;
+  cecommand.test:=(cecommand.id+cecommand.operation+cecommand.port)*599;
+
+  s:=fpsocket(PF_INET, SOCK_DGRAM, 0);
+  v:=true;
+  if fpsetsockopt(s, SOL_SOCKET, SO_BROADCAST, @v, sizeof(v)) >=0 then
+  begin
+    RecvAddr.sin_family:=AF_INET;
+    RecvAddr.sin_addr.s_addr:=htonl(INADDR_BROADCAST);
+    RecvAddr.sin_port:=htons(3297);
+
+    fpsendto(s,  @cecommand, sizeof(cecommand), 0, @RecvAddr, sizeof(RecvAddr));
+
+    for i:=0 to length(potentialWorkerList)-1 do
+    begin
+      RecvAddr.sin_addr:=potentialWorkerList[i];
+      fpsendto(s,  @cecommand, sizeof(cecommand), 0, @RecvAddr, sizeof(RecvAddr));
+
+    end;
+  end;
+
+  CloseSocket(s);
+end;
+
 procedure TRescanpointers.DoServerLoop;
 var
   readfds: PFDSet;
@@ -4170,14 +4219,19 @@ var
 
   n: TNetworkStream;
 begin
-
-
   getmem(readfds, sizeof(PtrUInt)+sizeof(TSocket)*(length(workers)+1));
 
   alldone:=false;
 
   while not alldone do
   begin
+    if broadcastThisScanner and (broadcastcount<10) and (gettickcount>lastBroadcast+1000) then
+    begin
+      inc(broadcastcount);
+      lastbroadcast:=gettickcount;
+      broadcastscan;
+    end;
+
     readfds.fd_count:=1;
     readfds.fd_array[0]:=sockethandle;
 
