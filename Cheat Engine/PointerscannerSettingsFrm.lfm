@@ -1,7 +1,7 @@
 object frmPointerScannerSettings: TfrmPointerScannerSettings
-  Left = 544
+  Left = 1150
   Height = 447
-  Top = 226
+  Top = 152
   Width = 638
   BorderStyle = bsSingle
   Caption = 'Pointerscanner scanoptions'
@@ -441,6 +441,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Top = 272
     Width = 142
     Caption = 'Allow distributed scanning'
+    OnChange = cbDistributedScanningChange
     TabOrder = 8
   end
   object edtDistributedPort: TEdit
@@ -474,6 +475,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Top = 309
     Width = 179
     Caption = 'Broadcast that a scan has started'
+    Enabled = False
     OnChange = cbBroadcastChange
     TabOrder = 10
   end

@@ -7,15 +7,17 @@ interface
 uses
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, LResources, contnrs, cefuncproc, symbolhandler,
-  multilineinputqueryunit, lua, lualib, lauxlib;
+  multilineinputqueryunit, lua, lualib, lauxlib, registry, resolve;
 
 type
 
   { TfrmRescanPointer }
 
   TfrmRescanPointer = class(TForm)
+    btnNotifySpecificIPs: TButton;
     Button1: TButton;
     Button2: TButton;
+    cbBroadcast: TCheckBox;
     cbDelay: TCheckBox;
     cbBasePointerMustBeInRange: TCheckBox;
     cbMustStartWithSpecificOffsets: TCheckBox;
@@ -38,13 +40,16 @@ type
     Panel2: TPanel;
     rbFindAddress: TRadioButton;
     rbFindValue: TRadioButton;
+    procedure btnNotifySpecificIPsClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure cbBasePointerMustBeInRangeChange(Sender: TObject);
+    procedure cbBroadcastChange(Sender: TObject);
     procedure cbDistributedRescanChange(Sender: TObject);
     procedure cbLuaFilterChange(Sender: TObject);
     procedure cbMustEndWithSpecificOffsetsChange(Sender: TObject);
     procedure cbMustStartWithSpecificOffsetsChange(Sender: TObject);
     procedure cbNoValueCheckChange(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure rbFindAddressClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
   private
@@ -62,6 +67,8 @@ type
     fBaseStart: ptruint;
     fBaseEnd: ptruint;
 
+    iplist: TStringList;
+
     procedure updatepositions;
     procedure btnAddStartOffsetClick(sender: TObject);
     procedure btnRemoveStartOffsetClick(sender: TObject);
@@ -69,6 +76,7 @@ type
     procedure btnRemoveEndOffsetClick(sender: TObject);
   public
     { Public declarations }
+    resolvediplist: array of THostAddr;
     distributedport: integer;
 
     startOffsetValues, endoffsetvalues: Array of dword;
@@ -111,12 +119,20 @@ begin
   edtBaseEnd.enabled:=cbBasePointerMustBeInRange.checked;
 end;
 
+procedure TfrmRescanPointer.cbBroadcastChange(Sender: TObject);
+begin
+  btnNotifySpecificIPs.enabled:=cbBroadcast.checked;
+end;
+
 procedure TfrmRescanPointer.cbDistributedRescanChange(Sender: TObject);
 begin
-  cbRepeat.enabled:=cbDistributedRescan.checked;
-  cbLuaFilter.enabled:=cbDistributedRescan.checked;
-  edtRescanFunction.enabled:=cbDistributedRescan.checked;
-  lblLuaParams.enabled:=cbDistributedRescan.checked;
+  cbRepeat.enabled:=cbDistributedRescan.checked=false;
+  cbLuaFilter.enabled:=cbDistributedRescan.checked=false;
+  edtRescanFunction.enabled:=cbDistributedRescan.checked=false;
+  lblLuaParams.enabled:=cbDistributedRescan.checked=false;
+
+  cbBroadcast.enabled:= cbDistributedRescan.checked;
+  btnNotifySpecificIPs.enabled:=cbDistributedRescan.checked and cbBroadcast.checked;
 
   if cbDistributedRescan.checked then
   begin
@@ -133,8 +149,10 @@ begin
 end;
 
 procedure TfrmRescanPointer.Button1Click(Sender: TObject);
-var i: integer;
+var
+  i: integer;
   s: string;
+  r: THostResolver;
 begin
   //evaluate the given offsets and range
   fDelay:=strtoint(edtDelay.Text);
@@ -199,7 +217,44 @@ begin
   if cbDistributedRescan.checked then
     distributedport:=strtoint(edtRescanPort.text);
 
+  if cbBroadcast.checked then
+  begin
+    r:=THostResolver.create(nil);
+    r.RaiseOnError:=false;
+
+    for i:=0 to iplist.count-1 do
+    begin
+      r.NameLookup(iplist[i]);
+
+      if r.HostAddress.s_addr<>0 then
+      begin
+        setlength(resolvediplist, length(resolvediplist)+1);
+        resolvediplist[Length(resolvediplist)-1]:=r.HostAddress;
+      end;
+    end;
+
+    r.free;
+  end;
+
   modalresult:=mrok;
+end;
+
+procedure TfrmRescanPointer.btnNotifySpecificIPsClick(Sender: TObject);
+var
+  reg: Tregistry;
+begin
+  reg:=TRegistry.create;
+  try
+    if MultilineInputQuery('IP List','Enter the IP addresses to notify explicitly', iplist) then  //save the new ip list
+    begin
+      Reg.RootKey := HKEY_CURRENT_USER;
+      if Reg.OpenKey('\Software\Cheat Engine',true) then
+        reg.WriteString('Worker IP List', iplist.text);
+    end;
+
+  finally
+    reg.free;
+  end;
 end;
 
 procedure TfrmRescanPointer.cbMustEndWithSpecificOffsetsChange(Sender: TObject);
@@ -326,6 +381,12 @@ begin
   cbValueType.enabled:=newstate;
 end;
 
+procedure TfrmRescanPointer.FormDestroy(Sender: TObject);
+begin
+  if iplist<>nil then
+    freeandnil(iplist);
+end;
+
 procedure TfrmRescanPointer.updatePositions;
 {
 Updates the pnlButtons panel position and adjusts the form height
@@ -420,6 +481,7 @@ begin
 end;
 
 procedure TfrmRescanPointer.FormCreate(Sender: TObject);
+var reg: Tregistry;
 begin
   rbFindAddressClick(rbFindAddress);
 
@@ -430,6 +492,22 @@ begin
   edtBaseStart.text:='00000000';
   edtBaseEnd.text:='FFFFFFFF';
   {$endif}
+
+  iplist:=TStringList.create;
+  //load the ip list (if there is one)
+
+  reg:=tregistry.create;
+  try
+    Reg.RootKey := HKEY_CURRENT_USER;
+    if Reg.OpenKey('\Software\Cheat Engine',false) then
+    begin
+      if reg.ValueExists('Worker IP List') then
+        iplist.Text:=reg.ReadString('Worker IP List');
+    end;
+
+  finally
+    reg.free;
+  end;
 end;
 
 initialization
