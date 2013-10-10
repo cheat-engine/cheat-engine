@@ -1,15 +1,16 @@
 object frmRescanPointer: TfrmRescanPointer
-  Left = 939
-  Height = 297
-  Top = 122
+  Left = 725
+  Height = 320
+  Top = 156
   Width = 330
   BorderStyle = bsDialog
   Caption = 'Rescan pointerlist'
-  ClientHeight = 297
+  ClientHeight = 320
   ClientWidth = 330
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   Position = poScreenCenter
   LCLVersion = '1.0.8.0'
   object edtAddress: TEdit
@@ -121,7 +122,7 @@ object frmRescanPointer: TfrmRescanPointer
   object pnlButtons: TPanel
     Left = 88
     Height = 34
-    Top = 263
+    Top = 286
     Width = 170
     BevelOuter = bvNone
     ClientHeight = 34
@@ -242,5 +243,25 @@ object frmRescanPointer: TfrmRescanPointer
     TabOrder = 16
     Text = '52739'
     Visible = False
+  end
+  object cbBroadcast: TCheckBox
+    Left = 24
+    Height = 19
+    Top = 265
+    Width = 188
+    Caption = 'Broadcast that a rescan has started'
+    Enabled = False
+    OnChange = cbBroadcastChange
+    TabOrder = 17
+  end
+  object btnNotifySpecificIPs: TButton
+    Left = 216
+    Height = 25
+    Top = 262
+    Width = 86
+    Caption = 'Additional IP''s'
+    Enabled = False
+    OnClick = btnNotifySpecificIPsClick
+    TabOrder = 18
   end
 end

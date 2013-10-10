@@ -40,8 +40,13 @@ type
     cache: pointer;
     fExternalScanners: integer;
     fGeneratedByWorkerID: integer;
+
+    fmergedresults: array of integer;
     function InitializeCache(i: qword): boolean;
     function getModuleListCount: integer;
+
+    function getMergedResultCount: integer;
+    function getMergedResult(index: integer): integer;
   public
     procedure resyncModulelist;
     procedure saveModulelistToResults(s: Tstream);
@@ -62,9 +67,24 @@ type
     property generatedByWorkerID: integer read fGeneratedByWorkerID;
     property modulelistCount: integer read getModuleListcount;
     property modulebase[index: integer]: ptruint read getModuleBase write setModuleBase;
+    property mergedresultcount: integer read getMergedResultCount;
+    property mergedresults[index: integer]: integer read getMergedResult;
 end;
 
 implementation
+
+function TPointerscanresultreader.getMergedResultCount: integer;
+begin
+  length(fmergedresults);
+end;
+
+function TPointerscanresultreader.getMergedResult(index: integer): integer;
+begin
+  if index<mergedresultcount then
+    result:=fmergedresults[index]
+  else
+    result:=-1;
+end;
 
 procedure TPointerscanresultreader.resyncModulelist;
 var
@@ -340,11 +360,17 @@ begin
     if configfile.Position<configfile.Size then
       fGeneratedByWorkerID:=configfile.ReadDWord;
 
-
+    //all following entries are worker id's when merged (this info is used by rescans)
+    while configfile.Position<configfile.Size do
+    begin
+      setlength(fmergedresults, length(fmergedresults)+1);
+      fmergedresults[length(fmergedresults)-1]:=configfile.ReadDWord;
+    end;
 
   except
 
   end;
+
 
   getmem(cache, sizeofEntry*maxcachecount);
   InitializeCache(0);
