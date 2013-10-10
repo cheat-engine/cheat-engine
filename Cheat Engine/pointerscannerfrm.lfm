@@ -1,7 +1,7 @@
 object frmPointerScanner: TfrmPointerScanner
-  Left = 1052
+  Left = 1201
   Height = 517
-  Top = 273
+  Top = 141
   Width = 614
   Caption = 'Pointer scan'
   ClientHeight = 497
@@ -197,7 +197,7 @@ object frmPointerScanner: TfrmPointerScanner
         OnClick = Open1Click
       end
       object miMergePointerscanResults: TMenuItem
-        Caption = 'Merge/Import pointerscan results'
+        Caption = 'Merge pointerscan results'
         OnClick = miMergePointerscanResultsClick
       end
     end
@@ -275,5 +275,10 @@ object frmPointerScanner: TfrmPointerScanner
     Title = 'Select folder for pointerfiles'
     left = 296
     top = 32
+  end
+  object odMerge: TOpenDialog
+    Options = [ofAllowMultiSelect, ofFileMustExist, ofEnableSizing, ofViewDetail]
+    left = 111
+    top = 198
   end
 end

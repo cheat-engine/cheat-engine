@@ -11,8 +11,8 @@ uses
   Dialogs, StdCtrls, ExtCtrls, ComCtrls, syncobjs,syncobjs2, Menus, math,
   frmRescanPointerUnit, pointervaluelist, rescanhelper,
   virtualmemory, symbolhandler,MainUnit,disassembler,CEFuncProc,NewKernelHandler,
-  valuefinder, PointerscanresultReader, maps, zstream, WinSock2, Sockets, resolve,
-  registry, PageMap, CELazySocket, PointerscanNetworkCommands;
+  valuefinder, PointerscanresultReader, maps, zstream, WinSock2, Sockets,
+  registry, PageMap, CELazySocket, PointerscanNetworkCommands, resolve;
 
 
 const staticscanner_done=wm_user+1;
@@ -444,6 +444,7 @@ type
     miSetWorkFolder: TMenuItem;
     miJoinDistributedScan: TMenuItem;
     miJoinDistributedRescan: TMenuItem;
+    odMerge: TOpenDialog;
     ProgressBar1: TProgressBar;
     Panel1: TPanel;
     MainMenu1: TMainMenu;
@@ -3052,8 +3053,145 @@ begin
 end;
 
 procedure Tfrmpointerscanner.miMergePointerscanResultsClick(Sender: TObject);
+var
+  i,j: integer;
+  psr: TPointerscanresultReader;
+
+  pfiles: Tstringlist;
+  newfiles: Tstringlist;
+  destinationpath: string;
+  basename: string;
+
+  fname: string;
+  startid: integer;
+  id: integer;
+  s: string;
+
+  allworkerids: array of integer;
+
+  resultfile: TMemorystream;
 begin
 
+  setlength(allworkerids,0);
+
+  if Pointerscanresults<>nil then
+  begin
+    destinationpath:=extractfilepath(Pointerscanresults.filename);
+    basename:=ExtractFileName(Pointerscanresults.filename);
+
+    psr:=nil;
+    pfiles:=tstringlist.create;
+    newfiles:=tstringlist.create;
+
+    pfiles.clear;
+    Pointerscanresults.getFileList(pfiles);
+
+    startid:=1;
+    //get a basic start id. (Still first if the file exists)
+    for i:=0 to pfiles.count-1 do
+    begin
+      s:=ExtractFileExt(pfiles[i]);
+      s:=copy(s, 2, length(s)-1);
+
+      if TryStrToInt(s, id) then
+        startid:=max(id, startid);
+
+    end;
+
+    setlength(allworkerids, Pointerscanresults.mergedresultcount);
+    for i:=0 to Pointerscanresults.mergedresultcount-1 do
+      allworkerids[i]:=Pointerscanresults.mergedresults[i];
+
+
+    try
+      if odMerge.execute then
+      begin
+        //generate the new .ptr file
+        resultfile:=tmemorystream.create;
+        Pointerscanresults.saveModulelistToResults(resultfile);
+
+        resultfile.WriteDWord(Pointerscanresults.offsetCount);  //offsetcount
+
+
+
+        for i:=0 to odmerge.Files.count-1 do
+        begin
+          psr:=TPointerscanresultReader.create(utf8toansi(odmerge.files[i]), Pointerscanresults);
+
+          if psr.offsetCount<>pointerscanresults.offsetCount then
+            raise exception.create(odmerge.files[i] +' is incompatible with the base pointerscan result');
+
+          pfiles.clear;
+          psr.getfilelist(pfiles);
+
+          for j:=0 to psr.mergedresultcount-1 do
+          begin
+            setlength(allworkerids, length(allworkerids)+1);
+            allworkerids[length(allworkerids)-1]:=psr.mergedresults[j];
+          end;
+
+          freeandnil(psr);
+
+          //copy (/move?) the files in pfiles to the path of pointerscanresults and give them unique names
+          //find a filename not used yet
+          repeat
+            fname:=destinationpath+basename+'.'+inttostr(startid);
+            inc(startid);
+          until not FileExists(fname);
+
+
+          for j:=0 to pfiles.count-1 do
+            if CopyFile(pchar(pfiles[j]), pchar(fname), true )=false then //todo: use CopyFileEx and show a progressbar
+              raise exception.create('Failure copying '+pfiles[j]+' to '+fname);
+
+          newfiles.add(extractfilename(fname));
+        end;
+
+        resultfile.WriteDWord(pfiles.count+newfiles.Count); //number of ptr files
+
+        //add the files to resultfile
+        for i:=0 to pfiles.count-1 do
+        begin
+          resultfile.WriteDWord(length(pfiles[i]));
+          resultfile.WriteBuffer(pfiles[i][1], length(pfiles[i]));
+        end;
+
+        for i:=0 to newfiles.count-1 do
+        begin
+          resultfile.WriteDWord(length(newfiles[i]));
+          resultfile.WriteBuffer(newfiles[i][1], length(newfiles[i]));
+        end;
+
+        resultfile.WriteDWord(pointerscanresults.externalScanners);
+        resultfile.WriteDWord(pointerscanresults.generatedByWorkerID);
+
+        for i:=0 to length(allworkerids)-1 do
+          resultfile.WriteDWord(allworkerids[i]);
+
+
+        //all done, and no crashes
+        New1.Click; //close the current pointerfile and cleanup everything attached
+
+
+
+        resultfile.SaveToFile(destinationpath+basename);
+
+
+        //and reopen it
+        OpenPointerfile(destinationpath+basename);
+
+      end;
+    finally
+      if psr<>nil then
+        psr.free;
+
+      pfiles.free;
+      newfiles.free;
+
+      if resultfile<>nil then
+        freeandnil(resultfile);
+    end;
+  end;
 end;
 
 procedure Tfrmpointerscanner.miSetWorkFolderClick(Sender: TObject);
