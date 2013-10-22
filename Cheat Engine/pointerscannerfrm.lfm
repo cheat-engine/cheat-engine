@@ -145,6 +145,7 @@ object frmPointerScanner: TfrmPointerScanner
         Caption = 'Save current pointermap'
         OnClick = Button1Click
         TabOrder = 3
+        Visible = False
       end
     end
   end
@@ -198,6 +199,7 @@ object frmPointerScanner: TfrmPointerScanner
       end
       object miMergePointerscanResults: TMenuItem
         Caption = 'Merge pointerscan results'
+        Enabled = False
         OnClick = miMergePointerscanResultsClick
       end
     end
@@ -246,14 +248,14 @@ object frmPointerScanner: TfrmPointerScanner
   object SaveDialog1: TSaveDialog
     Title = 'Specify the filename you want to store the results'
     DefaultExt = '.PTR'
-    Filter = 'Cheat Engine Injected Pointerlist|*.PTR'
+    Filter = 'Cheat Engine Pointerlist|*.PTR'
     Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
-    left = 176
+    left = 208
     top = 288
   end
   object OpenDialog1: TOpenDialog
     DefaultExt = '.PTR'
-    Filter = 'Cheat Engine injected Pointerlist|*.PTR'
+    Filter = 'Cheat Engine Pointerlist|*.PTR'
     left = 144
     top = 288
   end
@@ -272,11 +274,13 @@ object frmPointerScanner: TfrmPointerScanner
     end
   end
   object SelectDirectoryDialog1: TSelectDirectoryDialog
-    Title = 'Select folder for pointerfiles'
+    Title = 'Select folder for pointerfiles (May not be used by other scanners)'
     left = 296
     top = 32
   end
   object odMerge: TOpenDialog
+    DefaultExt = '.ptr'
+    Filter = 'Cheat Engine Pointerlist|*.PTR'
     Options = [ofAllowMultiSelect, ofFileMustExist, ofEnableSizing, ofViewDetail]
     left = 111
     top = 198

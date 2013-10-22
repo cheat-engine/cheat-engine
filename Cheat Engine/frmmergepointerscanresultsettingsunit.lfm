@@ -3,9 +3,11 @@ object frmMergePointerscanResultSettings: TfrmMergePointerscanResultSettings
   Height = 155
   Top = 159
   Width = 320
+  BorderIcons = [biSystemMenu]
   Caption = 'Merge pointerscan results'
   ClientHeight = 155
   ClientWidth = 320
+  OnCreate = FormCreate
   Position = poScreenCenter
   LCLVersion = '1.0.8.0'
   object Panel2: TPanel
