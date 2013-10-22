@@ -99,7 +99,15 @@ begin
     begin
       j:=tempmodulelist.IndexOf(modulelist[i]);
       if j<>-1 then
-        modulelist.Objects[i]:=tempmodulelist.Objects[j];
+        modulelist.Objects[i]:=tempmodulelist.Objects[j]
+      else
+      begin
+        try
+          modulelist.Objects[i]:=pointer(symhandler.getAddressFromName(modulelist[i]));
+        except
+          modulelist.Objects[i]:=nil;
+        end;
+      end;
     end;
   finally
     tempmodulelist.free;
