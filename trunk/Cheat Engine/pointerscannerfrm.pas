@@ -3586,6 +3586,8 @@ begin
   Rescanmemory1.Enabled:=true;
   new1.Enabled:=true;
 
+  miMergePointerscanResults.enabled:=true;
+
   caption:=rsPointerScan+' : '+extractfilename(filename);
 end;
 
@@ -4213,7 +4215,12 @@ begin
       begin
         receive(s, @newworkerid, sizeof(newworkerid));
         if newworkerid<length(workers) then
-          workers[newworkerid].s:=s
+        begin
+          if workers[newworkerid].done then
+            raise TSocketException.create('This worker is already done');
+
+          workers[newworkerid].s:=s;
+        end
         else
           raise TSocketException.create('Invalid worker id');
       end;
@@ -5035,6 +5042,8 @@ begin
   open1.Enabled:=true;
   new1.enabled:=true;
   rescanmemory1.Enabled:=false;
+
+  miMergePointerscanResults.enabled:=false;
 
   listview1.Items.BeginUpdate;
   listview1.columns.BeginUpdate;
