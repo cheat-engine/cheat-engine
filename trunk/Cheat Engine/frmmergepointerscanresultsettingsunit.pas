@@ -20,6 +20,7 @@ type
     Panel1: TPanel;
     Panel2: TPanel;
     rgGroupMethod: TRadioGroup;
+    procedure FormCreate(Sender: TObject);
     procedure rgGroupMethodSelectionChanged(Sender: TObject);
   private
     { private declarations }
@@ -41,6 +42,11 @@ const GroupDescription: array [-1..2] of string=('WTF','Copies the source .ptr.#
 procedure TfrmMergePointerscanResultSettings.rgGroupMethodSelectionChanged(Sender: TObject);
 begin
   lbldescription.caption:=GroupDescription[rgGroupMethod.itemindex];
+end;
+
+procedure TfrmMergePointerscanResultSettings.FormCreate(Sender: TObject);
+begin
+  rgGroupMethodSelectionChanged(rgGroupMethod);
 end;
 
 end.

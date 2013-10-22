@@ -3058,10 +3058,10 @@ end;
 procedure Tfrmpointerscanner.miMergePointerscanResultsClick(Sender: TObject);
 var
   i,j: integer;
-  psr: TPointerscanresultReader;
+  psr: TPointerscanresultReader=nil;
 
-  pfiles: Tstringlist;
-  newfiles: Tstringlist;
+  pfiles: Tstringlist=nil;
+  newfiles: Tstringlist=nil;
   destinationpath: string;
   basename: string;
 
@@ -3072,7 +3072,7 @@ var
 
   allworkerids: array of integer;
 
-  resultfile: TMemorystream;
+  resultfile: TMemorystream=nil;
 begin
 
   setlength(allworkerids,0);
@@ -3085,13 +3085,20 @@ begin
     psr:=nil;
     pfiles:=tstringlist.create;
     newfiles:=tstringlist.create;
+    Pointerscanresults.getFileList(newfiles); //add the original files (note: These contain a full path)
 
-    pfiles.clear;
-    Pointerscanresults.getFileList(pfiles);
+    //strip the local path if it's possible (there can be results of a previous link merge)
+    for i:=0 to newfiles.count-1 do
+    begin
+      s:=StringReplace(newfiles[i], destinationpath, '', [rfIgnoreCase]);
+      if pos(PathDelim, s)=0 then
+        newfiles[i]:=s;
+    end;
+
 
     startid:=1;
     //get a basic start id. (Still first if the file exists)
-    for i:=0 to pfiles.count-1 do
+    for i:=0 to newfiles.count-1 do
     begin
       s:=ExtractFileExt(pfiles[i]);
       s:=copy(s, 2, length(s)-1);
@@ -3186,15 +3193,9 @@ begin
 
           end;
 
-          resultfile.WriteDWord(pfiles.count+newfiles.Count); //number of ptr files
+          resultfile.WriteDWord(newfiles.Count); //number of ptr files
 
           //add the files to resultfile
-          for i:=0 to pfiles.count-1 do
-          begin
-            resultfile.WriteDWord(length(pfiles[i]));
-            resultfile.WriteBuffer(pfiles[i][1], length(pfiles[i]));
-          end;
-
           for i:=0 to newfiles.count-1 do
           begin
             resultfile.WriteDWord(length(newfiles[i]));
@@ -3228,8 +3229,11 @@ begin
       if psr<>nil then
         psr.free;
 
-      pfiles.free;
-      newfiles.free;
+      if pfiles<>nil then
+        pfiles.free;
+
+      if newfiles<>nil then
+        newfiles.free;
 
       if resultfile<>nil then
         freeandnil(resultfile);
