@@ -172,6 +172,8 @@ type
     broadcastThisScanner: boolean;
     potentialWorkerList: array of THostAddr;
 
+    waitforall: boolean;
+
     procedure execute; override;
     destructor destroy; override;
   end;
@@ -533,7 +535,8 @@ implementation
 
 
 uses PointerscannerSettingsFrm, frmMemoryAllocHandlerUnit, frmSortPointerlistUnit,
-  LuaHandler, lauxlib, lua, frmPointerscanConnectDialogUnit, frmpointerrescanconnectdialogunit;
+  LuaHandler, lauxlib, lua, frmPointerscanConnectDialogUnit,
+  frmpointerrescanconnectdialogunit, frmMergePointerscanResultSettingsUnit;
 
 resourcestring
   rsErrorDuringScan = 'Error during scan';
@@ -3106,79 +3109,119 @@ begin
     try
       if odMerge.execute then
       begin
-        //generate the new .ptr file
-        resultfile:=tmemorystream.create;
-        Pointerscanresults.saveModulelistToResults(resultfile);
-
-        resultfile.WriteDWord(Pointerscanresults.offsetCount);  //offsetcount
-
-
-
-        for i:=0 to odmerge.Files.count-1 do
+        frmMergePointerscanResultSettings:=TfrmMergePointerscanResultSettings.create(self);
+        if frmMergePointerscanResultSettings.showmodal=mrok then
         begin
-          psr:=TPointerscanresultReader.create(utf8toansi(odmerge.files[i]), Pointerscanresults);
+          //generate the new .ptr file
+          resultfile:=tmemorystream.create;
+          Pointerscanresults.saveModulelistToResults(resultfile);
 
-          if psr.offsetCount<>pointerscanresults.offsetCount then
-            raise exception.create(odmerge.files[i] +' is incompatible with the base pointerscan result');
+          resultfile.WriteDWord(Pointerscanresults.offsetCount);  //offsetcount
 
-          pfiles.clear;
-          psr.getfilelist(pfiles);
 
-          for j:=0 to psr.mergedresultcount-1 do
+
+          for i:=0 to odmerge.Files.count-1 do
           begin
-            setlength(allworkerids, length(allworkerids)+1);
-            allworkerids[length(allworkerids)-1]:=psr.mergedresults[j];
+            psr:=TPointerscanresultReader.create(utf8toansi(odmerge.files[i]), Pointerscanresults);
+
+            if psr.offsetCount<>pointerscanresults.offsetCount then
+              raise exception.create(odmerge.files[i] +' is incompatible with the base pointerscan result');
+
+            pfiles.clear;
+            psr.getfilelist(pfiles);
+
+            for j:=0 to psr.mergedresultcount-1 do
+            begin
+              setlength(allworkerids, length(allworkerids)+1);
+              allworkerids[length(allworkerids)-1]:=psr.mergedresults[j];
+            end;
+
+            freeandnil(psr);
+
+            //copy (/move?) the files in pfiles to the path of pointerscanresults and give them unique names
+
+
+
+
+            for j:=0 to pfiles.count-1 do
+            begin
+              if frmMergePointerscanResultSettings.rgGroupMethod.ItemIndex in [0,1] then
+              begin
+                //copy/move
+
+                //find a filename not used yet
+                repeat
+                  fname:=destinationpath+basename+'.'+inttostr(startid);
+                  inc(startid);
+                until not FileExists(fname);
+
+                fname:=destinationpath+basename+'.'+inttostr(startid);
+
+                if frmMergePointerscanResultSettings.rgGroupMethod.ItemIndex=0 then //copy
+                begin
+                  if CopyFile(pchar(pfiles[j]), pchar(fname), true )=false then
+                    raise exception.create('Failure copying '+pfiles[j]+' to '+fname);
+                end
+                else
+                begin
+                  if MoveFile(pchar(pfiles[j]), pchar(fname) )=false then
+                    raise exception.create('Failure moving '+pfiles[j]+' to '+fname);
+                end;
+
+
+
+                fname:=extractfilename(fname);
+
+              end
+              else
+              begin
+                //link
+                fname:=pfiles[j];
+              end;
+              newfiles.add(fname);
+            end;
+
+
+
+
           end;
 
-          freeandnil(psr);
+          resultfile.WriteDWord(pfiles.count+newfiles.Count); //number of ptr files
 
-          //copy (/move?) the files in pfiles to the path of pointerscanresults and give them unique names
-          //find a filename not used yet
-          repeat
-            fname:=destinationpath+basename+'.'+inttostr(startid);
-            inc(startid);
-          until not FileExists(fname);
+          //add the files to resultfile
+          for i:=0 to pfiles.count-1 do
+          begin
+            resultfile.WriteDWord(length(pfiles[i]));
+            resultfile.WriteBuffer(pfiles[i][1], length(pfiles[i]));
+          end;
+
+          for i:=0 to newfiles.count-1 do
+          begin
+            resultfile.WriteDWord(length(newfiles[i]));
+            resultfile.WriteBuffer(newfiles[i][1], length(newfiles[i]));
+          end;
+
+          resultfile.WriteDWord(pointerscanresults.externalScanners);
+          resultfile.WriteDWord(pointerscanresults.generatedByWorkerID);
+
+          for i:=0 to length(allworkerids)-1 do
+            resultfile.WriteDWord(allworkerids[i]);
 
 
-          for j:=0 to pfiles.count-1 do
-            if CopyFile(pchar(pfiles[j]), pchar(fname), true )=false then //todo: use CopyFileEx and show a progressbar
-              raise exception.create('Failure copying '+pfiles[j]+' to '+fname);
+          //all done, and no crashes
+          New1.Click; //close the current pointerfile and cleanup everything attached
 
-          newfiles.add(extractfilename(fname));
+
+
+          resultfile.SaveToFile(destinationpath+basename);
+
+
+          //and reopen it
+          OpenPointerfile(destinationpath+basename);
+
         end;
 
-        resultfile.WriteDWord(pfiles.count+newfiles.Count); //number of ptr files
 
-        //add the files to resultfile
-        for i:=0 to pfiles.count-1 do
-        begin
-          resultfile.WriteDWord(length(pfiles[i]));
-          resultfile.WriteBuffer(pfiles[i][1], length(pfiles[i]));
-        end;
-
-        for i:=0 to newfiles.count-1 do
-        begin
-          resultfile.WriteDWord(length(newfiles[i]));
-          resultfile.WriteBuffer(newfiles[i][1], length(newfiles[i]));
-        end;
-
-        resultfile.WriteDWord(pointerscanresults.externalScanners);
-        resultfile.WriteDWord(pointerscanresults.generatedByWorkerID);
-
-        for i:=0 to length(allworkerids)-1 do
-          resultfile.WriteDWord(allworkerids[i]);
-
-
-        //all done, and no crashes
-        New1.Click; //close the current pointerfile and cleanup everything attached
-
-
-
-        resultfile.SaveToFile(destinationpath+basename);
-
-
-        //and reopen it
-        OpenPointerfile(destinationpath+basename);
 
       end;
     finally
@@ -3190,6 +3233,9 @@ begin
 
       if resultfile<>nil then
         freeandnil(resultfile);
+
+      if frmMergePointerscanResultSettings<>nil then
+        freeandnil(frmMergePointerscanResultSettings);
     end;
   end;
 end;
@@ -4262,7 +4308,7 @@ end;
 procedure TRescanpointers.LaunchServer;
 var
   b: bool;
-  i: integer;
+  i,j: integer;
   sockaddr: TInetSockAddr;
 begin
   //start listeneing on the "distributedport"
@@ -4290,7 +4336,14 @@ begin
   //preallocate the workers
   setlength(workers, ownerform.pointerscanresults.externalScanners);
   for i:=0 to length(workers)-1 do
+  begin
     workers[i].s:=-1; //mark as disconnected
+    workers[i].done:=false;
+
+    for j:=0 to ownerform.pointerscanresults.mergedresultcount-1 do
+      if ownerform.pointerscanresults.mergedresults[j]=i then
+        workers[i].done:=true; //mark it as done (it's the local scan) so don't wait for it
+  end;
 end;
 
 procedure TRescanpointers.broadcastscan;
@@ -4432,7 +4485,7 @@ begin
     //check my own threads
     for i:=0 to rescanworkercount-1 do
     begin
-      if rescanworkers[i].done=false then
+      if WaitForAll and (not rescanworkers[i].done) then
         alldone:=false;
 
       PointersEvaluated:=PointersEvaluated+ rescanworkers[i].evaluated;
@@ -4867,10 +4920,13 @@ begin
 
             rescan.broadcastThisScanner:=cbDistributedRescan.Checked;
             rescan.potentialWorkerList:=resolvediplist;
+
+            rescan.waitforall:=cbWaitForAll.checked;
           end;
 
 
           rescan.originalptrfile:=Pointerscanresults.filename;
+
 
 
           rescan.start;
