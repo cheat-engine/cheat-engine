@@ -339,7 +339,7 @@ begin
 
 
     try
-      if pos(PathDelim, filename)=0 then
+      if pos(PathDelim, temppchar)=0 then
         files[j].f:=TFileStream.Create(ExtractFilePath(filename)+temppchar, fmOpenRead or fmShareDenyWrite)
       else
         files[j].f:=TFileStream.Create(temppchar, fmOpenRead or fmShareDenyWrite);
