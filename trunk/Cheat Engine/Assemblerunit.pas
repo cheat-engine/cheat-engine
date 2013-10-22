@@ -2537,17 +2537,40 @@ begin
 end;
 
 procedure TSingleLineAssembler.createsibscaleindex(var sib:byte;reg:string);
-var i2,i4,i8: integer;
+var
+  i2,i4,i8: integer;
+  i: integer;
+  hasmultiply: boolean;
 begin
-  if pos('*2',reg)>0 then
-    setsibscale(sib,1)
-  else
-  if pos('*4',reg)>0 then
-    setsibscale(sib,2)
-  else
-  if pos('*8',reg)>0 then
-    setsibscale(sib,3)
-  else setsibscale(sib,0);
+  hasmultiply:=false;
+
+  for i:=1 to length(reg)-1 do
+  begin
+
+    if reg[i]='*' then
+    begin
+      hasmultiply:=true;
+      case reg[i+1] of
+        '1': setsibscale(sib, 0);
+        '2': setsibscale(sib, 1); //*2
+        '4': setsibscale(sib, 2); //*4
+        '8': setsibscale(sib, 3); //*8
+        else
+          raise exception.create('Invalid multiplier');
+
+      end;
+
+      if length(reg)>i+1 then
+        raise exception.create('Invalid multiplier');
+
+      break;
+    end;
+
+
+  end;
+
+  if not hasmultiply then
+    setsibscale(sib, 0);
 
   if not processhandler.is64Bit then
   begin
