@@ -339,7 +339,11 @@ begin
 
 
     try
-      files[j].f:=TFileStream.Create(ExtractFilePath(filename)+temppchar, fmOpenRead or fmShareDenyWrite);
+      if pos(PathDelim, filename)=0 then
+        files[j].f:=TFileStream.Create(ExtractFilePath(filename)+temppchar, fmOpenRead or fmShareDenyWrite)
+      else
+        files[j].f:=TFileStream.Create(temppchar, fmOpenRead or fmShareDenyWrite);
+
       files[j].startindex:=fcount;
       fcount:=fcount+uint64(files[j].f.Size div uint64(sizeofentry));
       files[j].lastindex:=fcount-1;

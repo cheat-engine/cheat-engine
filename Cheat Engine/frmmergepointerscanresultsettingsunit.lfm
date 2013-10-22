@@ -1,0 +1,103 @@
+object frmMergePointerscanResultSettings: TfrmMergePointerscanResultSettings
+  Left = 343
+  Height = 155
+  Top = 159
+  Width = 320
+  Caption = 'Merge pointerscan results'
+  ClientHeight = 155
+  ClientWidth = 320
+  Position = poScreenCenter
+  LCLVersion = '1.0.8.0'
+  object Panel2: TPanel
+    Left = 0
+    Height = 112
+    Top = 0
+    Width = 320
+    Align = alTop
+    ClientHeight = 112
+    ClientWidth = 320
+    TabOrder = 0
+    object rgGroupMethod: TRadioGroup
+      Left = 1
+      Height = 110
+      Top = 1
+      Width = 104
+      Align = alLeft
+      AutoFill = True
+      Caption = 'Group method'
+      ChildSizing.LeftRightSpacing = 6
+      ChildSizing.TopBottomSpacing = 6
+      ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+      ChildSizing.EnlargeVertical = crsHomogenousChildResize
+      ChildSizing.ShrinkHorizontal = crsScaleChilds
+      ChildSizing.ShrinkVertical = crsScaleChilds
+      ChildSizing.Layout = cclLeftToRightThenTopToBottom
+      ChildSizing.ControlsPerLine = 1
+      ClientHeight = 92
+      ClientWidth = 100
+      ItemIndex = 1
+      Items.Strings = (
+        'Copy'
+        'Move'
+        'Link'
+      )
+      OnSelectionChanged = rgGroupMethodSelectionChanged
+      TabOrder = 0
+    end
+    object GroupBox1: TGroupBox
+      Left = 105
+      Height = 110
+      Top = 1
+      Width = 214
+      Align = alClient
+      Caption = 'Description'
+      ClientHeight = 92
+      ClientWidth = 210
+      TabOrder = 1
+      object lblDescription: TLabel
+        Left = 0
+        Height = 92
+        Top = 0
+        Width = 210
+        Align = alClient
+        Caption = 'Label1'#13#10'aaa'
+        ParentColor = False
+        WordWrap = True
+      end
+    end
+  end
+  object Panel1: TPanel
+    AnchorSideLeft.Control = Panel2
+    AnchorSideLeft.Side = asrCenter
+    Left = 72
+    Height = 26
+    Top = 120
+    Width = 176
+    BevelOuter = bvNone
+    ClientHeight = 26
+    ClientWidth = 176
+    TabOrder = 1
+    object Button1: TButton
+      Left = 0
+      Height = 26
+      Top = 0
+      Width = 85
+      Align = alLeft
+      Caption = 'OK'
+      Default = True
+      ModalResult = 1
+      TabOrder = 0
+    end
+    object Button2: TButton
+      Left = 91
+      Height = 26
+      Top = 0
+      Width = 85
+      Align = alRight
+      Cancel = True
+      Caption = 'Cancel'
+      ModalResult = 2
+      TabOrder = 1
+    end
+  end
+end

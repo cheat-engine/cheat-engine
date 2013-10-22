@@ -26,6 +26,7 @@ type
     cbNoValueCheck: TCheckBox;
     cbLuaFilter: TCheckBox;
     cbDistributedRescan: TCheckBox;
+    cbWaitForAll: TCheckBox;
     edtRescanPort: TEdit;
     lblLuaParams: TLabel;
     edtRescanFunction: TEdit;
@@ -133,6 +134,8 @@ begin
 
   cbBroadcast.enabled:= cbDistributedRescan.checked;
   btnNotifySpecificIPs.enabled:=cbDistributedRescan.checked and cbBroadcast.checked;
+
+  cbWaitForAll.enabled:=cbDistributedRescan.checked;
 
   if cbDistributedRescan.checked then
   begin
