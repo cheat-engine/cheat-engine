@@ -93,7 +93,7 @@ type
 
     Hotkeylist: tlist;
     fisGroupHeader: Boolean; //set if it's a groupheader, only the description matters then
-
+    fIsReadableAddress: boolean;
 
     fonactivate, fondeactivate: TMemoryRecordActivateEvent;
     fOnDestroy: TNotifyEvent;
@@ -206,6 +206,7 @@ type
 
   published
     property IsGroupHeader: boolean read fisGroupHeader write fisGroupHeader;
+    property IsReadableAddress: boolean read fIsReadableAddress; //gets set by getValue, so at least read the value once
     property ID: integer read fID write setID;
     property Index: integer read getIndex;
     property Color: TColor read fColor write setColor;
@@ -954,7 +955,8 @@ end;
 
 procedure TMemoryRecord.endEdit;
 begin
-  dec(editcount);
+  if editcount>0 then
+    dec(editcount);
 end;
 
 function TMemoryRecord.isPointer: boolean;
@@ -1506,6 +1508,9 @@ var
 
   i: integer;
 begin
+
+
+
   result:='';
   if fisGroupHeader then exit;
 
@@ -1527,6 +1532,8 @@ begin
 
   if ReadProcessMemory(processhandle, pointer(realAddress), buf, bufsize,br) then
   begin
+    fIsReadableAddress:=true;
+
     case vartype of
       vtCustom:
       begin
@@ -1577,7 +1584,10 @@ begin
     end;
   end
   else
+  begin
     result:='??';
+    fIsReadableAddress:=false;
+  end;
 
   freemem(buf);
 end;

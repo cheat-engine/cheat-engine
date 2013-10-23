@@ -7,7 +7,7 @@ interface
 uses
   LCLIntf, LCLType, Classes, SysUtils, controls, stdctrls, comctrls, ExtCtrls, graphics,
   math, MemoryRecordUnit, FPCanvas, cefuncproc, newkernelhandler, menus,dom,
-  XMLRead,XMLWrite, symbolhandler;
+  XMLRead,XMLWrite, symbolhandler, AddresslistEditor;
 
 type
   TTreeviewWithScroll=class(TTreeview)
@@ -44,6 +44,8 @@ type
     valuetypesortdirection: boolean;
     valuesortdirection: boolean;
 
+    AddressListEditor: TAddressListEditor;
+
 
 
     function getTreeNodes: TTreenodes;
@@ -67,10 +69,14 @@ type
 
    // procedure TreeviewKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 
+    procedure EditorDoubleclick(sender: tobject); //callback
+    procedure MultiEdit(value: string);
+
     procedure descriptiondblclick(node: TTreenode);
     procedure addressdblclick(node: TTreenode);
     procedure typedblclick(node: TTreenode);
     procedure valuedblclick(node: TTreenode);
+    procedure valueclick(node: TTreenode);
     function GetCount: integer;
     function GetSelcount: integer;
     function GetMemRecItemByIndex(i: integer): TMemoryRecord;
@@ -808,7 +814,13 @@ end;
 
 procedure TAddresslist.doValueChange;
 begin
-  if treeview.selected<>nil then valuedblclick(treeview.selected);
+  if treeview.selected<>nil then
+  begin
+    if SelCount=1 then
+      valueclick(treeview.selected)
+    else
+      valuedblclick(treeview.selected);
+  end;
 end;
 
 
@@ -929,6 +941,41 @@ begin
 
 end;
 
+procedure Taddresslist.MultiEdit(value: string);
+var
+  someerror: boolean;
+  allError: boolean;
+  i: integer;
+begin
+  value:=AnsiToUtf8(value);
+  if InputQuery(rsChangeValue, rsWhatValueToChangeThisTo, value) then
+  begin
+    value:=Utf8ToAnsi(value);
+
+    allError:=true;
+    someError:=false;
+    for i:=0 to count-1 do
+      if memrecitems[i].isSelected then
+      begin
+        try
+          memrecitems[i].SetValue(value);
+          memrecitems[i].treenode.update;
+          allError:=false;
+        except
+          someError:=true;
+        end;
+      end;
+
+    if AllError then raise exception.create(Format(rsTheValueCouldNotBeParsed, [value]));
+    if SomeError then raise exception.create(Format(rsNotAllValueTypesCouldHandleTheValue, [value]));
+  end;
+end;
+
+procedure TAddresslist.EditorDoubleclick(sender: tobject);
+begin
+  multiedit(TAddressListEditor(sender).memrec.Value);
+end;
+
 procedure TAddresslist.valuedblclick(node: TTreenode);
 {
 Doubeclcik on the value
@@ -938,14 +985,13 @@ var
   value: string;
   memrec: TMemoryRecord;
   i: integer;
-  someerror: boolean;
-  allError: boolean;
+
 begin
   memrec:=TMemoryRecord(node.data);
   value:=memrec.GetValue;
 
 
-  if (not memrec.isGroupHeader) and (value = '??') then
+  if (not memrec.isGroupHeader) and (not memrec.IsReadableAddress) then
   begin
     beep; //my favourite sound
     exit;
@@ -962,43 +1008,26 @@ begin
   end;
 
 
- { //fuck this for now, perhaps for 6.2
-  if (selcount=1) then
-  begin
-    //only one selection, start the value editor
-    //create an editor at the location of the value field
-    //: when the enter key is pressed on that value call setValue with the new value
-    //: when the view is scrolled adjust the position
-    //: when the edit box loses focus apply the change
-
-
-  end
-  else }
-    //multiple selections, use an input box for this
-
-    value:=AnsiToUtf8(value);
-    if InputQuery(rsChangeValue, rsWhatValueToChangeThisTo, value) then
-    begin
-      value:=Utf8ToAnsi(value);
-
-      allError:=true;
-      someError:=false;
-      for i:=0 to count-1 do
-        if memrecitems[i].isSelected then
-        begin
-          try
-            memrecitems[i].SetValue(value);
-            memrecitems[i].treenode.update;
-            allError:=false;
-          except
-            someError:=true;
-          end;
-        end;
-
-      if AllError then raise exception.create(Format(rsTheValueCouldNotBeParsed, [value]));
-      if SomeError then raise exception.create(Format(rsNotAllValueTypesCouldHandleTheValue, [value]));
-    end;
+  //multiple selections, use an input box for this
+  multiedit(value);
  // end;
+end;
+
+procedure TAddresslist.ValueClick(node: TTreenode);
+var memrec: TMemoryrecord;
+begin
+  if selcount<=1 then
+  begin
+    memrec:=TMemoryRecord(node.data);
+
+    if AddressListEditor<>nil then
+      freeandnil(AddressListEditor);
+
+    AddressListEditor:=TAddresslisteditor.create(treeview, memrec, header.Sections[4].Left);
+    AddressListEditor.OnDblClick:=EditorDoubleclick;
+  end
+  else
+    valuedblclick(node);
 end;
 
 procedure TAddresslist.TreeviewOnExpand(Sender: TObject; Node: TTreeNode; var AllowExpansion: Boolean);
@@ -1073,6 +1102,8 @@ var
   checkboxstart, checkboxend: integer;
 
   oldstate: boolean;
+
+  mr: TMemoryRecord;
 begin
 //  self.Parent;
   node:=treeview.GetNodeAt(x,y);
@@ -1111,6 +1142,20 @@ begin
         if TMemoryRecord(node.data).allowDecrease then TMemoryRecord(node.data).allowDecrease:=false
         else
           TMemoryRecord(node.data).allowIncrease:=true
+
+      end;
+    end;
+
+
+    if inrange(x,header.Sections[4].Left,header.Sections[4].right) then
+    begin
+      //check if text of the value is clicked
+      mr:=TMemoryRecord(node.data);
+      if mr.IsReadableAddress then
+      begin
+        SelectionUpdate(Treeview);
+        if (x<header.Sections[4].Left+treeview.canvas.TextWidth(mr.value)) and (SelCount<=1) then
+          valueclick(node); //initiate the value change routine
 
       end;
     end;
