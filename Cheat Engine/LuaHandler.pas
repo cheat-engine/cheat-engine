@@ -946,6 +946,27 @@ begin
   result:=1;
 end;
 
+function inputQuery_lua(L: PLua_State): integer; cdecl;
+var
+  caption, prompt, value: string;
+  parameters: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(l);
+  if parameters=3 then
+  begin
+    caption:=Lua_ToString(L, 1);
+    prompt:=Lua_ToString(L, 2);
+    value:=Lua_ToString(L, 3);
+    if InputQuery(caption, prompt, value) then
+    begin
+      result:=1;
+      lua_pushstring(L, value);
+    end;
+  end;
+
+end;
+
 function showMessage_lua(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
@@ -4390,6 +4411,7 @@ begin
     lua_register(LuaVM, 'writeBytesLocal', writebyteslocal);
     lua_register(LuaVM, 'autoAssemble', autoAssemble_lua);
     lua_register(LuaVM, 'showMessage', showMessage_lua);
+    lua_register(LuaVM, 'inputQuery', inputQuery_lua);
     lua_register(LuaVM, 'getPixel', getPixel);
     lua_register(LuaVM, 'getMousePos', getMousePos);
     lua_register(LuaVM, 'setMousePos', setMousePos);
