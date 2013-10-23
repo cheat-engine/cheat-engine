@@ -126,6 +126,8 @@ begin
   self.top:=memrec.treenode.top; //dr.top;
 
 
+
+
   dr:=memrec.treenode.DisplayRect(false);
   self.width:=dr.Right-left;
 end;
@@ -157,6 +159,7 @@ begin
   self.Font.Color:=clred;
 
   updateposition(left);
+
 
 
 

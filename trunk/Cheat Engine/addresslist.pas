@@ -990,14 +990,6 @@ begin
   memrec:=TMemoryRecord(node.data);
   value:=memrec.GetValue;
 
-
-  if (not memrec.isGroupHeader) and (not memrec.IsReadableAddress) then
-  begin
-    beep; //my favourite sound
-    exit;
-  end;
-
-
   if (selcount=1) and (selectedRecord.VarType=vtAutoAssembler) then
   begin
     //if it's an autoassemblerscript then spawn the autoassembler script editor that the owner might want to use
@@ -1006,6 +998,15 @@ begin
 
     exit;
   end;
+
+
+  if (not memrec.isGroupHeader) and (not memrec.IsReadableAddress) then
+  begin
+    beep; //my favourite sound
+    exit;
+  end;
+
+
 
 
   //multiple selections, use an input box for this
@@ -1550,6 +1551,8 @@ var
   oldpencolor: tcolor;
 
   descriptionstart: integer;
+
+  linetop: integer;
 begin
   //multiselect implementation
   DefaultDraw:=true;
@@ -1652,36 +1655,38 @@ begin
 
     descriptionstart:=max(checkbox.right+10,header.Sections[1].Left);
 
+    linetop:=textrect.Top;//+((textrect.Bottom-textrect.Top) div 2)-(sender.canvas.TextHeight('DDDD') div 2);
+
 
     if (memrec.isGroupHeader=false) and (memrec.VarType<>vtAutoAssembler) then //if it's not a groupheader of auto assemble script then show the extra data
     begin
       //limit how far the texts go depending on the sections
-      sender.Canvas.TextRect(rect(descriptionstart, textrect.Top, header.Sections[1].right, textrect.bottom), descriptionstart, textrect.Top, memrec.description);
+      sender.Canvas.TextRect(rect(descriptionstart, textrect.Top, header.Sections[1].right, textrect.bottom), descriptionstart, linetop, memrec.description);
 
       //if this is not the currently dragged over node
       //or if it is and either CurrentlyDraggedOverBefore or CurrentlyDraggedOverAfter is set then draw the rest
       if not ((node=CurrentlyDraggedOverNode) and (not (CurrentlyDraggedOverBefore or CurrentlyDraggedOverAfter))) then //don't draw the rest on insert drag/drop
       begin
         //address
-        sender.Canvas.TextRect(rect(header.Sections[2].left, textrect.Top, header.Sections[2].right, textrect.bottom),header.Sections[2].Left, textrect.Top, ansitoutf8(memrec.addressString));
+        sender.Canvas.TextRect(rect(header.Sections[2].left, textrect.Top, header.Sections[2].right, textrect.bottom),header.Sections[2].Left, linetop, ansitoutf8(memrec.addressString));
 
         //type
         case memrec.vartype of
-          vtCustom: sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, textrect.top, memrec.CustomTypeName);
-          vtString: sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, textrect.top, VariableTypeToString(memrec.VarType)+'['+inttostr(memrec.Extra.stringData.length)+']');
+          vtCustom: sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, memrec.CustomTypeName);
+          vtString: sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, VariableTypeToString(memrec.VarType)+'['+inttostr(memrec.Extra.stringData.length)+']');
           vtBinary:
           begin
             if memrec.Extra.bitData.bitlength=0 then
-              sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, textrect.top, VariableTypeToString(memrec.VarType)+':'+inttostr(memrec.Extra.bitData.Bit)+'->idiot')
+              sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, VariableTypeToString(memrec.VarType)+':'+inttostr(memrec.Extra.bitData.Bit)+'->idiot')
             else
-              sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, textrect.top, VariableTypeToString(memrec.VarType)+':'+inttostr(memrec.Extra.bitData.Bit)+'->'+inttostr(memrec.Extra.bitData.Bit+memrec.Extra.bitData.bitlength-1));
+              sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, VariableTypeToString(memrec.VarType)+':'+inttostr(memrec.Extra.bitData.Bit)+'->'+inttostr(memrec.Extra.bitData.Bit+memrec.Extra.bitData.bitlength-1));
           end
-          else sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, textrect.top, VariableTypeToString(memrec.VarType));
+          else sender.Canvas.TextRect(rect(header.Sections[3].left, textrect.Top, header.Sections[3].right, textrect.bottom),header.sections[3].left, linetop, VariableTypeToString(memrec.VarType));
         end;
 
 
         //value
-        sender.Canvas.TextRect(rect(header.Sections[4].left, textrect.Top, header.Sections[4].right, textrect.bottom),header.sections[4].left, textrect.top, AnsiToUtf8(memrec.GetValue));
+        sender.Canvas.TextRect(rect(header.Sections[4].left, textrect.top, header.Sections[4].right, textrect.bottom),header.sections[4].left, linetop, AnsiToUtf8(memrec.GetValue));
       end;
     end
     else
@@ -1689,7 +1694,7 @@ begin
       sender.Canvas.TextOut(descriptionstart, textrect.Top, memrec.description); //no limit on how far
 
       if (memrec.VarType=vtAutoAssembler) then //give it the <script> text for value
-        sender.Canvas.TextRect(rect(header.Sections[4].left, textrect.Top, header.Sections[4].right, textrect.bottom), header.sections[4].left, textrect.top, rsScript);
+        sender.Canvas.TextRect(rect(header.Sections[4].left, textrect.Top, header.Sections[4].right, textrect.bottom), header.sections[4].left, linetop, rsScript);
 
     end;
 
@@ -1735,6 +1740,8 @@ begin
 
   treeview:=TTreeviewWithScroll.create(self); //TTreeview.create(self);
 
+  treeview.BorderStyle:=bsNone;
+  treeview.BorderWidth:=0;;
 
   treeview.RowSelect:=true;
   treeview.ReadOnly:=true;
