@@ -1288,8 +1288,9 @@ end;
 procedure TMemoryRecord.setShowAsHex(state:boolean);
 var x: QWord;
 begin
-  if Active then  //currently frozen
+  if Active and (fvartype in [vtbyte..vtDouble]) then  //currently frozen
   begin
+
     if state<>fShowAsHex then //change in state
     begin
       try
