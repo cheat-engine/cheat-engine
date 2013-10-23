@@ -1655,7 +1655,7 @@ begin
 
     descriptionstart:=max(checkbox.right+10,header.Sections[1].Left);
 
-    linetop:=textrect.Top;//+((textrect.Bottom-textrect.Top) div 2)-(sender.canvas.TextHeight('DDDD') div 2);
+    linetop:=textrect.Top+1; ;//+((textrect.Bottom-textrect.Top) div 2)-(sender.canvas.TextHeight('DDDD') div 2);
 
 
     if (memrec.isGroupHeader=false) and (memrec.VarType<>vtAutoAssembler) then //if it's not a groupheader of auto assemble script then show the extra data

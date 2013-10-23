@@ -55,6 +55,8 @@ type
 
 implementation
 
+uses addresslist;
+
 procedure TAddressListEditor.DblClick;
 begin
   edited:=false;
@@ -81,19 +83,44 @@ end;
 
 procedure TAddressListEditor.KeyDown(var Key: Word; Shift: TShiftState);
 begin
-  if key=VK_ESCAPE then
-  begin
-    edited:=false;
-    DoClose;
-  end
-  else
-  if key=VK_RETURN then
-  begin
-    edited:=true;
-    DoExit;
-  end
-  else
-    inherited KeyDown(Key, Shift);
+  case key of
+    VK_ESCAPE:
+    begin
+      edited:=false;
+      DoClose;
+    end;
+
+    VK_RETURN:
+    begin
+      edited:=true;
+      DoExit;
+    end;
+
+    VK_UP:
+    begin
+      DoExit;
+
+      //send an VK_UP to the owner
+      SendMessage(TTreeView(Owner).Handle, WM_KEYDOWN, VK_UP, 0);
+
+      TAddresslist(TTreeview(owner).Owner).doValueChange;
+    end;
+
+    VK_DOWN:
+    begin
+      DoExit;
+
+      //send an VK_UP to the owner
+      SendMessage(TTreeView(Owner).Handle, WM_KEYDOWN, VK_DOWN, 0);
+      TAddresslist(TTreeview(owner).Owner).doValueChange;
+    end;
+
+
+    else
+      inherited KeyDown(Key, Shift);
+  end;
+
+
 end;
 
 procedure TAddressListEditor.TextChanged;
@@ -164,7 +191,11 @@ begin
 
 
   self.parent:=owner;
+  SendMessage(Handle, EM_SETMARGINS, EC_LEFTMARGIN, 0);
+
   self.SetFocus;
+
+
 
 
   starttime:=GetTickCount;
