@@ -75,7 +75,7 @@ frmManualStacktraceConfigUnit, cvconst, NetworkDebuggerInterface,
 DisassemblerArm, LastDisassembleData, elfsymbols, assemblerArm, 
 frmPointerscanConnectDialogUnit, PageMap, CELazySocket,
 PointerscanNetworkCommands, frmpointerrescanconnectdialogunit,
-frmMergePointerscanResultSettingsUnit;
+frmMergePointerscanResultSettingsUnit, AddresslistEditor;
 
 {$R cheatengine.res}
 //{$R manifest.res}  //lazarus now has this build in
