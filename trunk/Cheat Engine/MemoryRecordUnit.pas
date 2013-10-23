@@ -1286,7 +1286,34 @@ begin
 end;
 
 procedure TMemoryRecord.setShowAsHex(state:boolean);
+var x: QWord;
 begin
+  if Active then  //currently frozen
+  begin
+    if state<>fShowAsHex then //change in state
+    begin
+      try
+        //convert from hex to dec or dec to hex
+        if fShowAsHex then
+        begin
+          //hex->dec
+          x:=StrToQWordEx('$'+FrozenValue);
+          FrozenValue:=IntToStr(x);
+        end
+        else
+        begin
+          //dec->hex
+          x:=StrToQWordEx(FrozenValue);
+          FrozenValue:=IntToHex(x,1);
+        end;
+
+      except
+        exit; //it's not possible to set the state
+      end;
+    end;
+
+  end;
+
   fShowAsHex:=state;
   if treenode<>nil then
     treenode.Update;
