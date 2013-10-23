@@ -97,6 +97,7 @@ errorOnLookupFailure(state): If set to true (default) address lookups in stringf
 generateAPIHookScript(address, addresstojumpto, addresstogetnewcalladdress OPT) : Generates an auto assembler script which will hook the given address when executed
 autoAssemble(text, targetself OPTIONAL) : runs the auto assembler with the given text. Returns true on success (if targetself is set it will assemble into Cheat Engine itself)
 showMessage(text) : shows a messagebox with the given text
+inputQuery(caption, prompt, initialstring): Shows a dialog where the user can input a string. This function returns the given string, or nil on cancel  CE6.4+
 messageDialog(text, type, buttons...) : pops up a messagebox with a specific icon/sound with the specified buttons (mbok, mbyes, ....)
 sleep(milliseconds): pauses for the number of specified milliseconds (1000= 1 sec...)
 
