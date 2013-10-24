@@ -14,7 +14,7 @@ uses windows, forms, LCLIntf,registry, SysUtils,AdvancedOptionsUnit,CommentsUnit
      comctrls,dom, xmlread,xmlwrite, FileUtil, ceguicomponents, zstream, luafile, disassemblerComments;
 
 
-var CurrentTableVersion: dword=16;
+var CurrentTableVersion: dword=17;
 procedure protecttrainer(filename: string);
 procedure unprotecttrainer(filename: string; stream: TStream);
 procedure SaveTable(Filename: string; protect: boolean=false);

@@ -7,7 +7,7 @@ interface
 uses
   LCLIntf, LCLType, Classes, SysUtils, controls, stdctrls, comctrls, ExtCtrls, graphics,
   math, MemoryRecordUnit, FPCanvas, cefuncproc, newkernelhandler, menus,dom,
-  XMLRead,XMLWrite, symbolhandler, AddresslistEditor;
+  XMLRead,XMLWrite, symbolhandler, AddresslistEditor, inputboxtopunit, frmMemrecComboboxUnit;
 
 type
   TTreeviewWithScroll=class(TTreeview)
@@ -70,7 +70,7 @@ type
    // procedure TreeviewKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 
     procedure EditorDoubleclick(sender: tobject); //callback
-    procedure MultiEdit(value: string);
+    procedure MultiEdit(memrec: Tmemoryrecord);
 
     procedure descriptiondblclick(node: TTreenode);
     procedure addressdblclick(node: TTreenode);
@@ -941,16 +941,41 @@ begin
 
 end;
 
-procedure Taddresslist.MultiEdit(value: string);
+procedure Taddresslist.MultiEdit(memrec: TMemoryrecord);
 var
   someerror: boolean;
   allError: boolean;
   i: integer;
+  value: string;
+
+  canceled: boolean;
+
+  list: TStringList;
+
+  frmMemrecCombobox: TfrmMemrecCombobox;
 begin
-  value:=AnsiToUtf8(value);
-  if InputQuery(rsChangeValue, rsWhatValueToChangeThisTo, value) then
+
+
+
+  if memrec.DropDownCount=0 then
   begin
+    value:=AnsiToUtf8(memrec.value);
+    canceled:=not InputQuery(rsChangeValue, rsWhatValueToChangeThisTo, value);
     value:=Utf8ToAnsi(value);
+  end
+  else
+  begin
+    frmMemrecCombobox:=TfrmMemrecCombobox.Create(memrec);
+    canceled:=frmMemrecCombobox.showmodal<>mrok;
+
+    value:=frmMemrecCombobox.value;
+
+    frmMemrecCombobox.free;
+  end;
+
+  if not canceled  then
+  begin
+
 
     allError:=true;
     someError:=false;
@@ -973,7 +998,7 @@ end;
 
 procedure TAddresslist.EditorDoubleclick(sender: tobject);
 begin
-  multiedit(TAddressListEditor(sender).memrec.Value);
+  multiedit(TAddressListEditor(sender).memrec);
 end;
 
 procedure TAddresslist.valuedblclick(node: TTreenode);
@@ -1007,19 +1032,20 @@ begin
   end;
 
 
-
-
   //multiple selections, use an input box for this
-  multiedit(value);
+
+
+  multiedit(memrec);
  // end;
 end;
 
 procedure TAddresslist.ValueClick(node: TTreenode);
 var memrec: TMemoryrecord;
 begin
-  if selcount<=1 then
+  memrec:=TMemoryRecord(node.data);
+  if (selcount<=1) and (memrec.DropDownList.count=0) then
   begin
-    memrec:=TMemoryRecord(node.data);
+
 
     if AddressListEditor<>nil then
       freeandnil(AddressListEditor);
