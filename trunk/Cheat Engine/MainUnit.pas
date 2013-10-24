@@ -22,7 +22,8 @@ uses
   vmxfunctions, FileUtil, networkInterfaceApi, networkconfig, d3dhookUnit, PNGcomn,
   FPimage, byteinterpreter, frmgroupscanalgoritmgeneratorunit, vartypestrings,
   groupscancommandparser, GraphType, IntfGraphics, RemoteMemoryManager,
-  DBK64SecondaryLoader, savedscanhandler, debuggertypedefinitions, networkInterface;
+  DBK64SecondaryLoader, savedscanhandler, debuggertypedefinitions, networkInterface,
+  FrmMemoryRecordDropdownSettingsUnit;
 
 //the following are just for compatibility
 
@@ -215,6 +216,7 @@ type
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
+    miSetDropdownOptions: TMenuItem;
     miSave: TMenuItem;
     miSnapshothandler: TMenuItem;
     miSetupSnapshotKeys: TMenuItem;
@@ -442,6 +444,7 @@ type
     procedure mi3dClick(Sender: TObject);
     procedure miChangeDisplayTypeClick(Sender: TObject);
     procedure miOpenFileClick(Sender: TObject);
+    procedure miSetDropdownOptionsClick(Sender: TObject);
     procedure miSetupSnapshotKeysClick(Sender: TObject);
     procedure miShowAsSignedClick(Sender: TObject);
     procedure miShowCustomTypeDebugClick(Sender: TObject);
@@ -2959,6 +2962,12 @@ begin
 
   if ProcessWindow.modalresult=mrOK then
     openProcessEpilogue(oldprocessname, oldprocess, oldprocesshandle);
+end;
+
+procedure TMainForm.miSetDropdownOptionsClick(Sender: TObject);
+begin
+  if addresslist.selectedrecord<>nil then
+    TFrmMemoryRecordDropdownSettings.create(addresslist.SelectedRecord).showmodal;
 end;
 
 
@@ -6030,6 +6039,8 @@ begin
 
   miUndoValue.Visible := (addresslist.selectedRecord <> nil) and
     (addresslist.selectedRecord.canUndo);
+
+  miSetDropdownOptions.visible:=addresslist.selcount > 0;
 end;
 
 procedure TMainForm.Unfreezealladdresses1Click(Sender: TObject);

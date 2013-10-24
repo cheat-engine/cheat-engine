@@ -95,6 +95,11 @@ type
     fisGroupHeader: Boolean; //set if it's a groupheader, only the description matters then
     fIsReadableAddress: boolean;
 
+    fDropDownList: Tstringlist;
+    fDropDownReadOnly: boolean;
+    fDropDownDescriptionOnly: boolean;
+
+
     fonactivate, fondeactivate: TMemoryRecordActivateEvent;
     fOnDestroy: TNotifyEvent;
     function getByteSize: integer;
@@ -124,6 +129,10 @@ type
     procedure setID(i: integer);
     function getIndex: integer;
     function getParent: TMemoryRecord;
+
+    function getDropDownCount: integer;
+    function getDropDownValue(index: integer): string;
+    function getDropDownDescription(index: integer): string;
   public
 
 
@@ -189,6 +198,8 @@ type
     procedure getXMLNode(node: TDOMNode; selectedOnly: boolean);
     procedure setXMLnode(CheatEntry: TDOMNode);
 
+    function getCurrentDropDownIndex: integer;
+
     procedure SetVisibleChildrenState;
 
     constructor Create(AOwner: TObject);
@@ -222,6 +233,12 @@ type
     property ShowAsSigned: boolean read getShowAsSigned write setShowAsSigned;
     property Options: TMemrecOptions read fOptions write setOptions;
     property CustomTypeName: string read fCustomTypeName write setCustomTypeName;
+    property DropDownList: TStringlist read fDropDownList;
+    property DropDownReadOnly: boolean read fDropDownReadOnly write fDropDownReadOnly;
+    property DropDownDescriptionOnly: boolean read fDropDownDescriptionOnly write fDropDownDescriptionOnly;
+    property DropDownCount: integer read getDropDownCount;
+    property DropDownValue[index:integer]: string read getDropDownValue;
+    property DropDownDescription[index:integer]: string read getDropDownDescription;
     property Parent: TMemoryRecord read getParent;
     property OnActivate: TMemoryRecordActivateEvent read fOnActivate write fOnActivate;
     property OnDeactivate: TMemoryRecordActivateEvent read fOnDeActivate write fOndeactivate;
@@ -296,6 +313,37 @@ end;
 
 {---------------------------------MemoryRecord---------------------------------}
 
+function TMemoryRecord.getDropDownCount: integer;
+begin
+  result:=fDropDownList.count;
+end;
+
+function TMemoryRecord.getDropDownValue(index: integer): string;
+begin
+  result:='';
+  if index<DropDownCount then
+    result:=copy(fDropDownList[index], 1, pos(':', fDropDownList[index])-1);
+end;
+
+function TMemoryRecord.getDropDownDescription(index: integer): string;
+begin
+  result:='';
+  if index<DropDownCount then
+    result:=copy(fDropDownList[index], pos(':', fDropDownList[index])+1, length(fDropDownList[index]));
+end;
+
+function TMemoryRecord.getCurrentDropDownIndex: integer;
+var i: integer;
+begin
+  result:=-1;
+  for i:=0 to DropDownCount-1 do
+  begin
+    if lowercase(Value)=lowercase(DropDownValue[i]) then
+      result:=i;
+  end;
+
+end;
+
 function TMemoryRecord.getChildCount: integer;
 begin
   result:=0;
@@ -332,6 +380,7 @@ begin
   fColor:=clWindowText;
 
   hotkeylist:=tlist.create;
+  fDropDownList:=tstringlist.create;
 
   foptions:=[];
 
@@ -368,6 +417,9 @@ begin
 
   if treenode<>nil then
     treenode.free;
+
+  if fDropDownList<>nil then
+    freeandnil(fDropDownList);
 
   inherited Destroy;
 
@@ -487,6 +539,24 @@ begin
     end;
   end;
 
+
+  tempnode:=CheatEntry.FindNode('DropDownList');
+  if tempnode<>nil then
+  begin
+    fDropDownList.Text:=tempnode.textcontent;
+
+    if tempnode.HasAttributes then
+    begin
+      a:=tempnode.Attributes.GetNamedItem('DescriptionOnly');
+      if (a<>nil) and (a.TextContent='1') then
+        DropDownDescriptionOnly:=true;
+
+      a:=tempnode.Attributes.GetNamedItem('ReadOnly');
+      if (a<>nil) and (a.TextContent='1') then
+        DropDownReadOnly:=true;
+    end;
+
+  end;
 
   tempnode:=CheatEntry.FindNode('ShowAsHex');
   if tempnode<>nil then
@@ -748,6 +818,8 @@ var
   a:TDOMAttr;
 
   s: ansistring;
+
+  ddl: TDOMNode;
 begin
   if selectedonly then
   begin
@@ -802,6 +874,26 @@ begin
     end;
 
 
+  end;
+
+  if DropDownList.Count>0 then
+  begin
+    ddl:=cheatEntry.AppendChild(doc.CreateElement('DropDownList'));
+    ddl.TextContent:=DropDownList.Text;
+
+    if DropDownDescriptionOnly then
+    begin
+      a:=doc.CreateAttribute('DescriptionOnly');
+      a.TextContent:='1';
+      ddl.Attributes.SetNamedItem(a);
+    end;
+
+    if DropDownReadOnly then
+    begin
+      a:=doc.CreateAttribute('ReadOnly');
+      a.TextContent:='1';
+      ddl.Attributes.SetNamedItem(a);
+    end;
   end;
 
   if showAsHex then

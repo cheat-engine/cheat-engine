@@ -968,7 +968,7 @@ object MainForm: TMainForm
       TabOrder = 20
       object Logo: TImage
         Cursor = crHandPoint
-        Left = 0
+        Left = 1
         Height = 66
         Top = 0
         Width = 50
@@ -1518,6 +1518,10 @@ object MainForm: TMainForm
       GroupIndex = 2
       ShortCut = 16456
       OnClick = SetHotkey1Click
+    end
+    object miSetDropdownOptions: TMenuItem
+      Caption = 'Set/Change dropdown selection options'
+      OnClick = miSetDropdownOptionsClick
     end
     object Freezealladdresses2: TMenuItem
       Caption = 'Toggle Selected Records'

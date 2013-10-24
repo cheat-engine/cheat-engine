@@ -1,0 +1,62 @@
+object frmMemrecCombobox: TfrmMemrecCombobox
+  Left = 449
+  Height = 81
+  Top = 268
+  Width = 243
+  BorderStyle = bsDialog
+  Caption = 'Change value'
+  ClientHeight = 81
+  ClientWidth = 243
+  OnDestroy = FormDestroy
+  Position = poScreenCenter
+  LCLVersion = '1.0.8.0'
+  object cbMemrecCombobox: TComboBox
+    Left = 0
+    Height = 23
+    Top = 16
+    Width = 243
+    Align = alTop
+    ItemHeight = 15
+    TabOrder = 0
+  end
+  object Label1: TLabel
+    Left = 0
+    Height = 16
+    Top = 0
+    Width = 243
+    Align = alTop
+    Caption = 'Change value to:'
+    ParentColor = False
+  end
+  object Panel1: TPanel
+    Left = 0
+    Height = 35
+    Top = 46
+    Width = 243
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 35
+    ClientWidth = 243
+    TabOrder = 1
+    object btnOk: TButton
+      Left = 40
+      Height = 29
+      Top = 2
+      Width = 75
+      Caption = 'OK'
+      Default = True
+      OnClick = btnOkClick
+      TabOrder = 0
+    end
+    object btnCancel: TButton
+      Left = 128
+      Height = 29
+      Top = 2
+      Width = 75
+      Cancel = True
+      Caption = 'Cancel'
+      ModalResult = 2
+      TabOrder = 1
+    end
+  end
+end
