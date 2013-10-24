@@ -320,12 +320,12 @@ type
     SpeedButton2: TSpeedButton;
     SpeedButton3: TSpeedButton;
     gbScanOptions: TGroupBox;
-    NewScan: TButton;
-    NextScanButton: TButton;
+    btnNewScan: TButton;
+    btnNextScan: TButton;
     ScanType: TComboBox;
     VarType: TComboBox;
     btnMemoryView: TButton;
-    Button1: TButton;
+    btnAddAddressManually: TButton;
     ProgressBar1: TProgressBar;
     cbHexadecimal: TCheckBox;
     UndoScan: TButton;
@@ -494,8 +494,8 @@ type
     procedure Save1Click(Sender: TObject);
     procedure ScanTypeSelect(Sender: TObject);
     procedure ShowProcessListButtonClick(Sender: TObject);
-    procedure NewScanClick(Sender: TObject);
-    procedure NextScanButtonClick(Sender: TObject);
+    procedure btnNewScanClick(Sender: TObject);
+    procedure btnNextScanClick(Sender: TObject);
     procedure btnMemoryViewClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure AddressKeyPress(Sender: TObject; var Key: char);
@@ -508,7 +508,7 @@ type
     procedure Deletethisrecord1Click(Sender: TObject);
     procedure ScanvalueoldKeyPress(Sender: TObject; var Key: char);
     procedure Calculatenewvaluepart21Click(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
+    procedure btnAddAddressManuallyClick(Sender: TObject);
     procedure ScanTypeChange(Sender: TObject);
     procedure Value1Click(Sender: TObject);
     procedure VarTypeChange(Sender: TObject);
@@ -1362,15 +1362,15 @@ begin
       19://new scan
       begin
 
-        if not newscan.Enabled then
+        if not btnNewScan.Enabled then
           exit; //only when no process is opened
         if (formscanning <> nil) and (formscanning.Visible) then
           exit; //it's scanning
 
         i := vartype.ItemIndex;
 
-        if newscan.Caption = strNewScan then
-          newscan.Click; //start new scan
+        if btnNewScan.Caption = strNewScan then
+          btnNewScan.Click; //start new scan
 
         vartype.ItemIndex := i;
         vartype.OnChange(vartype); //set previous type
@@ -1379,7 +1379,7 @@ begin
       20: //new scan Exact value
       begin
 
-        if not newscan.Enabled then
+        if not btnNewScan.Enabled then
           exit;
         if (formscanning <> nil) and (formscanning.Visible) then
           exit; //it's scanning
@@ -1388,28 +1388,28 @@ begin
         if s = '' then
           exit;
 
-        if newscan.Caption = strNewScan then
-          newscan.Click; //start new scan
+        if btnNewScan.Caption = strNewScan then
+          btnNewScan.Click; //start new scan
 
         vartype.ItemIndex := i;
         vartype.OnChange(vartype); //set previous type
 
         scanvalue.Text := s;
-        newscan.Click;
+        btnNewScan.Click;
       end;
 
       21: //new scan unknown initial value
       begin
 
-        if not newscan.Enabled then
+        if not btnNewScan.Enabled then
           exit;
         if (formscanning <> nil) and (formscanning.Visible) then
           exit; //it's scanning
 
         i := vartype.ItemIndex;
 
-        if newscan.Caption = strNewScan then
-          newscan.Click; //start new scan
+        if btnNewScan.Caption = strNewScan then
+          btnNewScan.Click; //start new scan
 
         vartype.ItemIndex := i;
         vartype.OnChange(vartype);
@@ -1417,23 +1417,23 @@ begin
         scantype.ItemIndex := scantype.Items.IndexOf(StrUnknownInitialValue);
         scantype.OnChange(scantype);
 
-        newscan.Click;
+        btnNewScan.Click;
       end;
 
       22: //next scan Exact value
       begin
 
-        if not newscan.Enabled then
+        if not btnNewScan.Enabled then
           exit;
         if (formscanning <> nil) and (formscanning.Visible) then
           exit; //it's scanning
 
-        if nextscanbutton.Enabled then
+        if btnNextScan.Enabled then
         begin
           scantype.ItemIndex := scantype.Items.IndexOf(StrExactValue);
           scantype.OnChange(scantype);
 
-          nextscanbutton.click;
+          btnNextScan.click;
         end
         else
           Errorbeep;
@@ -1442,17 +1442,17 @@ begin
       23: //next scan IncreasedValue
       begin
 
-        if not newscan.Enabled then
+        if not btnNewScan.Enabled then
           exit;
         if (formscanning <> nil) and (formscanning.Visible) then
           exit; //it's scanning
 
-        if nextscanbutton.Enabled then
+        if btnNextScan.Enabled then
         begin
           scantype.ItemIndex := scantype.Items.IndexOf(StrIncreasedValue);
           scantype.OnChange(scantype);
 
-          nextscanbutton.click;
+          btnNextScan.click;
         end
         else
           Errorbeep;
@@ -1461,17 +1461,17 @@ begin
       24: //next scan DecreasedValue
       begin
 
-        if not newscan.Enabled then
+        if not btnNewScan.Enabled then
           exit;
         if (formscanning <> nil) and (formscanning.Visible) then
           exit; //it's scanning
 
-        if nextscanbutton.Enabled then
+        if btnNextScan.Enabled then
         begin
           scantype.ItemIndex := scantype.Items.IndexOf(StrDecreasedValue);
           scantype.OnChange(scantype);
 
-          nextscanbutton.click;
+          btnNextScan.click;
         end
         else
           Errorbeep;
@@ -1480,17 +1480,17 @@ begin
       25: //next scan ChangedValue
       begin
 
-        if not newscan.Enabled then
+        if not btnNewScan.Enabled then
           exit;
         if (formscanning <> nil) and (formscanning.Visible) then
           exit; //it's scanning
 
-        if nextscanbutton.Enabled then
+        if btnNextScan.Enabled then
         begin
           scantype.ItemIndex := scantype.Items.IndexOf(StrChangedValue);
           scantype.OnChange(scantype);
 
-          nextscanbutton.click;
+          btnNextScan.click;
         end
         else
           Errorbeep;
@@ -1499,17 +1499,17 @@ begin
       26: //next scan unchangedValue
       begin
 
-        if not newscan.Enabled then
+        if not btnNewScan.Enabled then
           exit;
         if (formscanning <> nil) and (formscanning.Visible) then
           exit; //it's scanning
 
-        if nextscanbutton.Enabled then
+        if btnNextScan.Enabled then
         begin
           scantype.ItemIndex := scantype.Items.IndexOf(StrUnchangedValue);
           scantype.OnChange(scantype);
 
-          nextscanbutton.click;
+          btnNextScan.click;
         end
         else
           Errorbeep;
@@ -1517,12 +1517,12 @@ begin
 
       27: //next scan same as first
       begin
-        if not newscan.Enabled then
+        if not btnNewScan.Enabled then
           exit;
         if (formscanning <> nil) and (formscanning.Visible) then
           exit; //it's scanning
 
-        if nextscanbutton.Enabled then
+        if btnNextScan.Enabled then
         begin
           scantypechangedbyhotkey := True;
           scantype.ItemIndex := scantype.Items.Count - 1;
@@ -1536,7 +1536,7 @@ begin
       28: //undo lastscan
       begin
 
-        if not newscan.Enabled then
+        if not btnNewScan.Enabled then
           exit;
         if (formscanning <> nil) and (formscanning.Visible) then
           exit; //it's scanning
@@ -1760,11 +1760,11 @@ begin
   cancelbutton := TButton.Create(self);
   with cancelbutton do
   begin
-    Anchors := newscan.Anchors;
-    top := newscan.top;
-    left := newscan.left;
-    Width := (nextscanbutton.left + nextscanbutton.Width) - left;
-    Height := newscan.Height;
+    Anchors := btnNewScan.Anchors;
+    top := btnNewScan.top;
+    left := btnNewScan.left;
+    Width := (btnNextScan.left + btnNextScan.Width) - left;
+    Height := btnNewScan.Height;
     Caption := rsCancel;
     onclick := cancelbuttonclick;
     Enabled := False;
@@ -1812,8 +1812,8 @@ begin
   cbHexadecimal.Enabled := False;
   cbCaseSensitive.Enabled := False;
 
-  newscan.Enabled := False;
-  nextscanbutton.Enabled := False;
+  btnNewScan.Enabled := False;
+  btnNextScan.Enabled := False;
   undoscan.Enabled := False;
 end;
 
@@ -1827,7 +1827,7 @@ var
   scanstarted: boolean;
 begin
 
-  scanstarted := newscan.Caption = strnewscan;
+  scanstarted := btnNewScan.Caption = strnewscan;
 
   if not scanstarted then
   begin
@@ -1842,10 +1842,10 @@ begin
     andlabel.Enabled := True;
     scantext2.Enabled := True;
   end;
-  newscan.Enabled := True;
+  btnNewScan.Enabled := True;
 
   undoscan.Enabled := isnextscan and memscan.canUndo; //nextscan was already enabled
-  nextscanbutton.Enabled := scanstarted;
+  btnNextScan.Enabled := scanstarted;
   vartype.Enabled := not scanstarted;
   scantype.Enabled := True;
   scantext.Enabled := True;
@@ -2098,7 +2098,7 @@ begin
       ScanType.Items.Add(strsmallerThan);
       ScanType.Items.Add(strValueBetween);
 
-      if NextScanbutton.Enabled then
+      if btnNextScan.Enabled then
       begin
         scantype.Items.Add(strIncreasedValue);
         Scantype.Items.Add(strIncreasedValueBy);
@@ -2160,7 +2160,7 @@ begin
 
 
 
-    if (oldtext = strUnknownInitialValue) and (NextScanButton.Enabled) then
+    if (oldtext = strUnknownInitialValue) and (btnNextScan.Enabled) then
       scantype.ItemIndex := 0
     else
       scantype.ItemIndex := oldindex;
@@ -2168,7 +2168,7 @@ begin
     if (scantype.Text = strIncreasedValueBy) or (scantype.Text = strDecreasedValueBy) or
       (scantype.Text = strValueBetween) then
     begin
-      if NextScanButton.Enabled then
+      if btnNextScan.Enabled then
         createCbPercentage;
 
     end
@@ -2433,22 +2433,22 @@ begin
   begin
     outputdebugstring('processhandle is 0, so disabling gui');
 
-    if newscan.Caption = strNewScan then
-      newscan.click;
+    if btnNewScan.Caption = strNewScan then
+      btnNewScan.click;
 
     //disable everything
 
     foundcount := 0;
     foundlist.Clear;
 
-    newscan.Caption := strFirstScan;
+    btnNewScan.Caption := strFirstScan;
 
     setGbScanOptionsEnabled(False);
 
 
     scanvalue.Enabled := False;
-    newscan.Enabled := False;
-    nextscanbutton.Enabled := False;
+    btnNewScan.Enabled := False;
+    btnNextScan.Enabled := False;
     vartype.Enabled := False;
     scantype.Enabled := False;
     scantext.Enabled := False;
@@ -2552,7 +2552,7 @@ begin
 
   end;
 
-  enablegui(nextscanbutton.Enabled);
+  enablegui(btnNextScan.Enabled);
 
   Fname := copy(processlabel.Caption, pos('-', processlabel.Caption) +
     1, length(processLabel.Caption));
@@ -3907,9 +3907,9 @@ begin
   scanstate.vartype.ItemIndex := vartype.ItemIndex;
 
 
-  scanstate.firstscanstate.Caption := newscan.Caption;
-  scanstate.firstscanstate.Enabled := newscan.Enabled;
-  scanstate.nextscanstate.Enabled := nextscanbutton.Enabled;
+  scanstate.firstscanstate.Caption := btnNewScan.Caption;
+  scanstate.firstscanstate.Enabled := btnNewScan.Enabled;
+  scanstate.nextscanstate.Enabled := btnNextScan.Enabled;
 
 
   scanstate.gbScanOptionsEnabled := gbScanOptions.Enabled;
@@ -4046,10 +4046,10 @@ begin
     vartype.ItemIndex := newstate.vartype.ItemIndex;
 
 
-    newscan.Caption := newstate.firstscanstate.Caption;
-    newscan.Enabled := newstate.firstscanstate.Enabled;
+    btnNewScan.Caption := newstate.firstscanstate.Caption;
+    btnNewScan.Enabled := newstate.firstscanstate.Enabled;
 
-    nextscanbutton.Enabled := newstate.nextscanstate.Enabled;
+    btnNextScan.Enabled := newstate.nextscanstate.Enabled;
 
     cbFastScan.Checked := newstate.cbfastscan.Checked;
     edtAlignment.Text := newstate.edtAlignment.Text;
@@ -4208,7 +4208,7 @@ begin
         (c[i] <> SaveButton) and (c[i] <> ProcessLabel) and
         (c[i] <> Progressbar1) and (c[i] <> logopanel) and
         (c[i] <> btnMemoryView) and (c[i] <> speedbutton2) and
-        (c[i] <> button1) then
+        (c[i] <> btnAddAddressManually) then
       begin
         panel5.Controls[i].Top := panel5.Controls[i].Top + 20; //p.height;
         //c[i].Parent:=p;
@@ -4240,8 +4240,8 @@ begin
     Inc(tabcounter);
   end;
 
-  if NextScanButton.Enabled then
-    newScan.click;
+  if btnNextScan.Enabled then
+    btnNewScan.click;
 
 end;
 
@@ -4367,7 +4367,7 @@ begin
 
 
   lblcompareToSavedScan.left :=
-    newscan.left + ((((nextscanbutton.left + nextscanbutton.Width) - newscan.left) div 2) -
+    btnNewScan.left + ((((btnNextScan.left + btnNextScan.Width) - btnNewScan.left) div 2) -
     (lblcompareToSavedScan.Width div 2));
 
   if cbpercentage <> nil then
@@ -4488,9 +4488,9 @@ begin
   foundcount := 0;
   foundlist.Clear;
 
-  newscan.Caption := strFirstScan;
+  btnNewScan.Caption := strFirstScan;
 
-  nextscanbutton.Enabled := False;
+  btnNextScan.Enabled := False;
   vartype.Enabled := True;
 
   scanvalue.Visible := True;
@@ -4518,12 +4518,12 @@ begin
 
 end;
 
-procedure TMainForm.NewScanClick(Sender: TObject);
+procedure TMainForm.btnNewScanClick(Sender: TObject);
 begin
   button2.click; //now completly replaced
 end;
 
-procedure TMainForm.NextScanButtonClick(Sender: TObject);
+procedure TMainForm.btnNextScanClick(Sender: TObject);
 begin
   button4.click;
 end;
@@ -4841,12 +4841,12 @@ begin
   UpdateScantype;
   ScanType.ItemIndex := 0;
 
-  newscan.Caption := strFirstScan;
+  btnNewScan.Caption := strFirstScan;
   hookedin := False;
 
   //allignment fixes for some window style's that mess up with thick borders (like vista)
   differentWidth := logopanel.left - (clientwidth - logopanel.Width);
-  button1.Left := clientwidth - button1.Width;
+  btnAddAddressManually.Left := clientwidth - btnAddAddressManually.Width;
   commentbutton.left := clientwidth - commentbutton.Width;
   logopanel.left := clientwidth - logopanel.Width;
   progressbar1.Width := progressbar1.Width - differentwidth;
@@ -4915,8 +4915,6 @@ begin
 
   //custom types
   LoadCustomTypesFromRegistry;
-
-
 
 
 end;
@@ -5035,10 +5033,10 @@ begin
 
   if key = chr(13) then
   begin
-    if nextscanbutton.Enabled then
-      nextscanbutton.Click
+    if btnNextScan.Enabled then
+      btnNextScan.Click
     else
-      newscan.Click;
+      btnNewScan.Click;
 
     key := #0;
     exit;
@@ -5191,7 +5189,7 @@ begin
   addresslist.ReinterpretAddresses;
 end;
 
-procedure TMainForm.Button1Click(Sender: TObject);
+procedure TMainForm.btnAddAddressManuallyClick(Sender: TObject);
 var mr: Tmemoryrecord;
 begin
   mr:=addresslist.addAddressManually(lastAddedAddress);
@@ -5258,7 +5256,7 @@ begin
 
         lblcompareToSavedScan.Visible := True;
         lblcompareToSavedScan.left :=
-          newscan.left + ((((nextscanbutton.left + nextscanbutton.Width) - newscan.left) div 2) -
+          btnNewScan.left + ((((btnNextScan.left + btnNextScan.Width) - btnNewScan.left) div 2) -
           (lblcompareToSavedScan.Width div 2));
 
         try
@@ -5687,7 +5685,7 @@ begin
     casevis := False;
     hexvis := True;
     scanvalue.MaxLength := 0;
-    cbHexadecimal.Enabled := newscan.Enabled;
+    cbHexadecimal.Enabled := btnNewScan.Enabled;
     //cbHexadecimal.Checked:=hexstateForIntTypes;
   end
   else
@@ -5731,7 +5729,7 @@ begin
 
 
 
-        cbHexadecimal.Enabled := newscan.Enabled;
+        cbHexadecimal.Enabled := btnNewScan.Enabled;
         //cbHexadecimal.checked:=cbCaseSensitive.checked;
         hexvis := False;
         //hextext:='Unicode';
@@ -5742,7 +5740,7 @@ begin
       begin  //array of byte
         scantype.ItemIndex := 0;
         scanvalue.MaxLength := 0;
-        cbHexadecimal.Enabled := newscan.Enabled;
+        cbHexadecimal.Enabled := btnNewScan.Enabled;
         cbHexadecimal.Checked := True;
 
       end;
@@ -5784,8 +5782,8 @@ begin
 
   cbCaseSensitive.Visible := casevis;
 
-  cbfastscan.Enabled := NewScan.Enabled and (not nextscanbutton.Enabled);
-  //only enabled when newscan is enabled and nextscan not
+  cbfastscan.Enabled := btnNewScan.Enabled and (not btnNextScan.Enabled);
+  //only enabled when btnNewScan is enabled and nextscan not
 
 
 
@@ -6356,7 +6354,7 @@ begin
     begin
       with TformPointerOrPointee.Create(self) do
       begin
-        button1.Caption := rsFindOutWhatAccessesThisPointer;
+        btnAddAddressManually.Caption := rsFindOutWhatAccessesThisPointer;
         button2.Caption := rsFindWhatAccessesTheAddressPointedAtByThisPointer;
 
         res := showmodal;
@@ -6394,7 +6392,7 @@ begin
     begin
       with TformPointerOrPointee.Create(self) do
       begin
-        button1.Caption := rsFindOutWhatWritesThisPointer;
+        btnAddAddressManually.Caption := rsFindOutWhatWritesThisPointer;
         button2.Caption := rsFindWhatWritesTheAddressPointedAtByThisPointer;
 
         res := showmodal;
@@ -6712,6 +6710,11 @@ begin
 
 
   panel5resize(panel5);
+
+  btnmemoryview.ClientWidth:=max(btnmemoryview.ClientWidth, canvas.TextWidth(btnMemoryView.Caption)+16);
+  btnAddAddressManually.ClientWidth:=max(btnAddAddressManually.ClientWidth, canvas.textwidth(btnAddAddressManually.caption)+16);
+  btnNewScan.ClientWidth:=max(max(btnNewScan.ClientWidth, btnNextScan.ClientWidth), max(canvas.textwidth(btnNewScan.caption)+16, canvas.textwidth(btnNextScan.caption)+16 ));
+  btnNextScan.ClientWidth:=btnNewScan.clientwidth;
 end;
 
 
@@ -6846,7 +6849,7 @@ begin
 
   adjustbringtofronttext;
 
-  if not NextScanButton.Enabled then
+  if not btnNextScan.Enabled then
   begin
     //memscan can be reset
     if memscan <> nil then
@@ -8024,7 +8027,7 @@ begin
   end
   else if button2.tag = 2 then
   begin
-    //newscan
+    //btnNewScan
     button2.Tag := 0;
     donewscan;
 
@@ -8111,8 +8114,8 @@ begin
     setGbScanOptionsEnabled(False);
 
     vartype.Enabled := False;
-    nextscanbutton.Enabled := True;
-    newscan.Caption := strNewScan;
+    btnNextScan.Enabled := True;
+    btnNewScan.Caption := strNewScan;
   end;
 
   beep;
@@ -8131,7 +8134,7 @@ begin
   scanepilogue(canceled);
 
   if error and (memscan.lastscantype = stFirstScan) then //firstscan failed
-    NewScan.Click;
+    btnNewScan.Click;
 end;
 
 procedure TMainForm.CancelbuttonClick(Sender: TObject);
@@ -8267,7 +8270,7 @@ begin
     else
     if not canceled then
     begin
-      NextScanButton.SetFocus;
+      btnNextScan.SetFocus;
     end;
   except
 
@@ -8635,7 +8638,7 @@ begin
   begin
     if not (getvartype in [vtBinary,vtString,vtByteArray]) then //not binary, string or bytearray
     begin
-      if not nextscanbutton.enabled then
+      if not btnNextScan.enabled then
       begin
         //first scan
         case scantype.ItemIndex of
