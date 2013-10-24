@@ -901,8 +901,8 @@ begin
   {$endif net}
 
 
-  label1.Enabled:=not mainform.nextscanbutton.enabled;
-  editbufsize.enabled:=not mainform.nextscanbutton.enabled;
+  label1.Enabled:=not mainform.btnNextScan.enabled;
+  editbufsize.enabled:=not mainform.btnNextScan.enabled;
 
   //load the settings from the register and apply them to this window
 
