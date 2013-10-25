@@ -961,6 +961,13 @@ end;
 
 function tdisassembler.MODRM(memory:TMemory; prefix: TPrefix; modrmbyte: integer; inst: integer; out last: dword): string;
 begin
+  case inst of
+    0: LastDisassembleData.datasize:=processhandler.pointersize;
+    1: LastDisassembleData.datasize:=2;
+    2: LastDisassembleData.datasize:=1;
+    3: LastDisassembleData.datasize:=4;
+    4: LastDisassembleData.datasize:=8
+  end;
   result:=modrm2(memory,prefix,modrmbyte,inst,last);
 end;
 
@@ -969,13 +976,43 @@ begin
   result:=modrm2(memory,prefix,modrmbyte,inst,last, opperandsize);
   if (length(result)>0) and (result[1]='[') then
   begin
+    LastDisassembleData.datasize:=processhandler.pointersize;
     case opperandsize of
-     8 : result:='byte ptr '+result;
-     16: result:='word ptr '+result;
-     32: result:='dword ptr '+result;
-     64: result:='qword ptr '+result;
-     80: result:='tword ptr '+result;
-     128: result:='dqword ptr '+result;
+     8 :
+     begin
+       result:='byte ptr '+result;
+       LastDisassembleData.datasize:=1;
+     end;
+
+     16:
+     begin
+       result:='word ptr '+result;
+       LastDisassembleData.datasize:=2;
+     end;
+
+     32:
+     begin
+       result:='dword ptr '+result;
+       LastDisassembleData.datasize:=4;
+     end;
+
+     64:
+     begin
+       result:='qword ptr '+result;
+       LastDisassembleData.datasize:=8;
+     end;
+
+     80:
+     begin
+       result:='tword ptr '+result;
+       LastDisassembleData.datasize:=10;
+     end;
+
+     128:
+     begin
+       result:='dqword ptr '+result;
+       LastDisassembleData.datasize:=16;
+     end;
     end;
   end;
 end;
@@ -1281,6 +1318,7 @@ begin
   lastdisassembledata.modrmValueType:=dvtNone;
   lastdisassembledata.parameterValueType:=dvtNone;
   LastDisassembleData.hasSib:=false;
+  LastDisassembleData.datasize:=0;
 
 
   if assigned(OnDisassembleOverride) then //check if the user has defined it's own disassembler

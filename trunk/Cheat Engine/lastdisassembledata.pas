@@ -28,6 +28,8 @@ type
     parameterValue: ptrUint;
   //  ValueType: TValueType; //if it's not unknown the value type will say what type of value it is (e.g for the FP types)
 
+    datasize: integer;
+//    datatype:
     hasSib: boolean;
     sibIndex: integer;
     sibScaler: integer;

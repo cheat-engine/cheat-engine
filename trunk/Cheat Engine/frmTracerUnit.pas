@@ -26,7 +26,7 @@ type TTraceDebugInfo=class
     end;
 
     function datatype: TVariableType;
-    procedure fillbytes;
+    procedure fillbytes(datasize: integer);
     procedure savestack;
     procedure saveToStream(s: tstream);
     constructor createFromStream(s: tstream);
@@ -168,11 +168,11 @@ begin
   result:=FindTypeOfData(referencedAddress, bytes, bytesize);
 end;
 
-procedure TTraceDebugInfo.fillbytes;
+procedure TTraceDebugInfo.fillbytes(datasize: integer);
 begin
-  getmem(bytes, 64);
+  getmem(bytes, datasize);
   bytesize:=0;
-  ReadProcessMemory(processhandle, pointer(referencedaddress), bytes, 64, bytesize);
+  ReadProcessMemory(processhandle, pointer(referencedaddress), bytes, datasize, bytesize);
 end;
 
 procedure TTraceDebugInfo.SaveStack;
@@ -265,12 +265,26 @@ var s,s2: string;
     referencedAddress: ptrUint;
     haserror: boolean;
     thisnode, thatnode,x: TTreenode;
+
+    da: TDisassembler;
+
+    datasize: integer;
 begin
   //the debuggerthread is now paused so get the context and add it to the list
 
   address:=debuggerthread.CurrentThread.context.{$ifdef CPU64}rip{$else}eip{$endif};
   a:=address;
   s:=disassemble(a);
+
+  da:=tdisassembler.Create;
+  s:=da.disassemble(a, s2);
+
+  datasize:=da.LastDisassembleData.datasize;
+  if datasize=0 then
+    datasize:=4;
+
+  da.free;
+
 
 
   referencedAddress:=0;
@@ -295,7 +309,7 @@ begin
   d.c:=debuggerthread.CurrentThread.context^;
   d.instruction:=s;
   d.referencedAddress:=referencedAddress;
-  d.fillbytes;
+  d.fillbytes(datasize);
 
   if savestack then
     d.savestack;
