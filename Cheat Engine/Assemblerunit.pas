@@ -472,8 +472,8 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'FLDPI';bytes:2;bt1:$d9;bt2:$eb),
   (mnemonic:'FLDZ';bytes:2;bt1:$d9;bt2:$ee),
 
-  (mnemonic:'FMUL';opcode1:eo_reg1;paramtype1:par_m32;bytes:1;bt1:$d8),
-  (mnemonic:'FMUL';opcode1:eo_reg1;paramtype1:par_m64;bytes:1;bt1:$dc),
+  (mnemonic:'FMUL';opcode1:eo_reg1;paramtype1:par_m32;bytes:1;bt1:$d8; norexw: true),
+  (mnemonic:'FMUL';opcode1:eo_reg1;paramtype1:par_m64;bytes:1;bt1:$dc; norexw: true),
   (mnemonic:'FMUL';opcode1:eo_pi;paramtype1:par_st0;paramtype2:par_st;bytes:2;bt1:$d8;bt2:$C8),
   (mnemonic:'FMUL';opcode1:eo_pi;paramtype1:par_st;bytes:2;bt1:$d8;bt2:$C8),
   (mnemonic:'FMUL';opcode1:eo_pi;paramtype1:par_st;paramtype2:par_st0;bytes:2;bt1:$dc;bt2:$C8),
