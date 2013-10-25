@@ -2946,7 +2946,7 @@ begin
 
                           description:='scalar double-fp maximum';
                           lastdisassembledata.opcode:='maxsd';
-                          lastdisassembledata.parameters:=xmm(memory[1])+','+modrm(memory,prefix2,2,4,last);
+                          lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
 
                           inc(offset,last-1);
                         end else
@@ -2955,7 +2955,7 @@ begin
 
                           description:='scalar single-fp maximum';
                           lastdisassembledata.opcode:='maxss';
-                          lastdisassembledata.parameters:=xmm(memory[1])+','+modrm(memory,prefix2,2,4,last);
+                          lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
 
                           inc(offset,last-1);
                         end else
@@ -2964,7 +2964,7 @@ begin
                           begin
                             description:='packed double-fp maximum';
                             lastdisassembledata.opcode:='maxpd';
-                            lastdisassembledata.parameters:=xmm(memory[1])+','+modrm(memory,prefix2,2,4,last);
+                            lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
 
                             inc(offset,last-1);
                           end
@@ -2972,7 +2972,7 @@ begin
                           begin
                             description:='packed single-fp maximum';
                             lastdisassembledata.opcode:='maxps';
-                            lastdisassembledata.parameters:=xmm(memory[1])+','+modrm(memory,prefix2,2,4,last);
+                            lastdisassembledata.parameters:=xmm(memory[2])+','+modrm(memory,prefix2,2,4,last);
 
                             inc(offset,last-1);
                           end;
