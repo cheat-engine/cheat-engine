@@ -1,0 +1,2 @@
+#Enter modulenames you do not wish to trace
+#kernel32.dll  #example. comment out to ignore kernel32.dll

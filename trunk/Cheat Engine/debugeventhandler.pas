@@ -7,7 +7,7 @@ interface
 uses
   jwawindows, Windows, Classes, SysUtils, syncobjs, GuiSafeCriticalSection,
   disassembler, cefuncproc, newkernelhandler,debuggertypedefinitions, frmTracerUnit,
-  DebuggerInterfaceAPIWrapper, LuaHandler, lua, lauxlib, lualib, win32proc;
+  DebuggerInterfaceAPIWrapper, LuaHandler, lua, lauxlib, lualib, win32proc, tracerIgnore;
 
 type
   TDebugEventHandler = class;
@@ -53,6 +53,8 @@ type
 
     temporaryDisabledExceptionBreakpoints: Tlist;
     breakAddress: ptruint;
+
+
 
     function CheckIfConditionIsMet(bp: PBreakpoint; script: string=''): boolean;
 
@@ -490,6 +492,9 @@ begin
   end;
 end;
 
+
+
+
 procedure TDebugThreadHandler.TracerQuit;
 begin
   tracewindow:=nil;
@@ -497,6 +502,10 @@ end;
 
 
 procedure TDebugThreadHandler.handleTrace;
+var
+  b: PBreakpoint;
+  r: ptruint;
+  x: dword;
 begin
   if tracewindow<>nil then
     TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), tracewindow.AddRecord);
@@ -518,14 +527,26 @@ begin
       end;
     end;
 
-    if tracestepover then
-      ContinueFromBreakpoint(nil, co_stepover)
+
+
+    if IgnoredModuleListHandler.InIgnoredModuleRange(context.RIP) then
+    begin
+      ReadProcessMemory(processhandle, pointer(context.{$ifdef cpu64}rsp{$else}esp{$endif}), @r, sizeof(processhandler.pointersize), x);
+      b:=TDebuggerthread(debuggerthread).SetOnExecuteBreakpoint(r , false, ThreadId);
+      b.OneTimeOnly:=true;
+      ContinueFromBreakpoint(nil, co_run);
+    end
     else
-      ContinueFromBreakpoint(nil, co_stepinto);
+    begin
+      if tracestepover then
+        ContinueFromBreakpoint(nil, co_stepover)
+      else
+        ContinueFromBreakpoint(nil, co_stepinto);
+    end;
   end
   else
   begin
-    outputdebugstring('tracecount=0');
+    //outputdebugstring('tracecount=0');
 
     ContinueFromBreakpoint(nil, co_run);
     isTracing:=false;
