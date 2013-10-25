@@ -38,9 +38,14 @@ speedhack-x86_64.dll
 luaclient-i386.dll
 luaclient-x86_64.dll
 d3dhook.dll
+d3d9hook.dll
+d3d10hook.dll
+d3d11hook.dll
 ced3d9hook.dll
 ced3d10hook.dll
 ced3d11hook.dll
+luaclient-i386.dll
+luaclient-x86_64.dll
 
 
 #directx modules: (for games that load their directx file locally)
