@@ -216,6 +216,7 @@ type
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
+    miManualExpandCollapse: TMenuItem;
     miSetDropdownOptions: TMenuItem;
     miSave: TMenuItem;
     miSnapshothandler: TMenuItem;
@@ -440,6 +441,7 @@ type
     procedure Label3Click(Sender: TObject);
     procedure Label57Click(Sender: TObject);
     procedure lblcompareToSavedScanClick(Sender: TObject);
+    procedure miManualExpandCollapseClick(Sender: TObject);
     procedure miSaveClick(Sender: TObject);
     procedure mi3dClick(Sender: TObject);
     procedure miChangeDisplayTypeClick(Sender: TObject);
@@ -2910,6 +2912,21 @@ end;
 procedure TMainForm.lblcompareToSavedScanClick(Sender: TObject);
 begin
 
+end;
+
+procedure TMainForm.miManualExpandCollapseClick(Sender: TObject);
+begin
+  miManualExpandCollapse.Checked := not miManualExpandCollapse.Checked;
+
+  if addresslist.selectedRecord <> nil then
+  begin
+    if miManualExpandCollapse.Checked then
+      addresslist.selectedRecord.options :=
+        addresslist.selectedRecord.options + [moManualExpandCollapse]
+    else
+      addresslist.selectedRecord.options :=
+        addresslist.selectedRecord.options - [moManualExpandCollapse];
+  end;
 end;
 
 procedure TMainForm.miSaveClick(Sender: TObject);
