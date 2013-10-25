@@ -4449,6 +4449,7 @@ begin
 end;
 
 procedure TMainForm.miShowPreviousValueClick(Sender: TObject);
+var reg: Tregistry;
 begin
   //Show/Hide the previousValue column
   //
@@ -4466,6 +4467,14 @@ begin
   //foundlist3.AutoWidthLastColumn:=true;
 
   Foundlist3Resize(Foundlist3);
+
+  reg:=TRegistry.create;
+  try
+    if reg.OpenKey('\Software\Cheat Engine\', true) then
+      reg.WriteBool('Show previous value column', miShowPreviousValue.checked);
+  finally
+    reg.free;
+  end;
 end;
 
 
@@ -4933,6 +4942,7 @@ begin
     addresslist.headers.Sections[4].Width := x[4];
     panel5.Height := x[5];
     foundlist3.columns[0].Width := x[6];
+
   end;
 
 
@@ -6654,9 +6664,15 @@ begin
     if messagedlg('Do you want to try out the tutorial?', mtConfirmation,
       [mbYes, mbNo], 0) = mrYes then
         miTutorial.Click;
-
-
   end;
+
+  if reg.ValueExists('Show previous value column') then
+  begin
+    miShowPreviousValue.checked:=reg.ReadBool('Show previous value column');
+    miShowPreviousValueClick(miShowPreviousValue);
+  end;
+
+
 
 
   //  animatewindow(mainform.Handle,10000,AW_CENTER);
