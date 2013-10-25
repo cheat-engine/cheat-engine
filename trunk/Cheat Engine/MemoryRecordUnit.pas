@@ -812,6 +812,7 @@ var
   offsets: TDOMNode;
   hks, hk,hkkc: TDOMNode;
   opt: TDOMNode;
+  laststate: TDOMNode;
 
   tn: TTreenode;
   i,j: integer;
@@ -895,6 +896,27 @@ begin
       ddl.Attributes.SetNamedItem(a);
     end;
   end;
+
+  laststate:=cheatEntry.AppendChild(doc.CreateElement('LastState'));
+  if VarType<>vtAutoAssembler then
+  begin
+    a:=doc.CreateAttribute('RealAddress');
+    a.TextContent:=IntToHex(GetRealAddress,8);
+    laststate.Attributes.SetNamedItem(a);
+
+    a:=doc.CreateAttribute('Value');
+    a.TextContent:=value;
+    laststate.Attributes.SetNamedItem(a);
+  end;
+
+  a:=doc.CreateAttribute('Activated');
+  if Active then
+    a.TextContent:='1'
+  else
+    a.TextContent:='0';
+  laststate.Attributes.SetNamedItem(a);
+
+
 
   if showAsHex then
     cheatEntry.AppendChild(doc.CreateElement('ShowAsHex')).TextContent:='1';
