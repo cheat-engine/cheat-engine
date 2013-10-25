@@ -1131,17 +1131,48 @@ var
   oldstate: boolean;
 
   mr: TMemoryRecord;
+
+  n: ttreenode;
+
 begin
 //  self.Parent;
   node:=treeview.GetNodeAt(x,y);
   if node<>nil then
   begin
+    mr:=TMemoryRecord(node.data);
+
     textrect:=node.DisplayRect(true);
     linerect:=node.DisplayRect(false);
     //check if the checkbox is clicked
 
+    n:=node.parent;
+    while n<>nil do
+    begin
+      if moManualExpandCollapse in  TMemoryRecord(n.data).Options then
+        inc(textrect.left,9);
+
+      n:=n.parent;
+    end;
+
+    if moManualExpandCollapse in mr.options then
+    begin
+      //check for expand/collapse sign click
+      if inrange(x, textrect.left, textrect.left+9) then
+      begin
+        treeview.OnCollapsing:=nil;
+        if node.Expanded then
+          node.Collapse(false)
+        else
+          node.Expand(false);
+
+        treeview.OnCollapsing:=TreeviewOnCollapse;
+      end;
+      inc(textrect.left,9);
+    end;
+
     checkboxstart:=textrect.left+1;
-    checkboxend:=textrect.left+1+(linerect.bottom-linerect.top)-2;
+
+    checkboxend:=checkboxstart+(linerect.bottom-linerect.top)-2;
     if inrange(x, checkboxstart, checkboxend ) then
     begin
       //checkbox click
@@ -1174,10 +1205,12 @@ begin
     end;
 
 
+
+
     if inrange(x,header.Sections[4].Left,header.Sections[4].right) then
     begin
       //check if text of the value is clicked
-      mr:=TMemoryRecord(node.data);
+
       if mr.IsReadableAddress then
       begin
         SelectionUpdate(Treeview);
@@ -1579,6 +1612,10 @@ var
   descriptionstart: integer;
 
   linetop: integer;
+
+  expandsign: Trect;
+
+  n: Ttreenode;
 begin
   //multiselect implementation
   DefaultDraw:=true;
@@ -1632,7 +1669,32 @@ begin
       sender.Canvas.Font.Color:=memrec.Color;
     end;
 
+    n:=node.parent;
+    while n<>nil do
+    begin
+      if moManualExpandCollapse in TMemoryRecord(n.Data).Options then
+        inc(textrect.left,9);
 
+
+      n:=n.Parent;
+    end;
+
+    if moManualExpandCollapse in memrec.Options then
+    begin
+      //draw the expand sign (+/-)  (taken and modified from treeview.inc)
+
+      expandsign:=Rect(textrect.left, textrect.top+((textrect.bottom-textrect.top) div 2-4), textrect.left+9, textrect.top+((textrect.bottom-textrect.top) div 2+5));
+      sender.canvas.Rectangle(expandsign);
+      sender.canvas.MoveTo(expandsign.Left + 2, textrect.top+(textrect.bottom-textrect.top)  div 2);
+      sender.canvas.LineTo(expandsign.Right - 2, textrect.top+(textrect.bottom-textrect.top)  div 2);
+
+      if memrec.treenode.Expanded then
+      begin
+        sender.canvas.MoveTo(expandsign.left+4, expandsign.Top + 2);
+        sender.canvas.LineTo(expandsign.left+4, expandsign.Bottom - 2);
+      end;
+      inc(textrect.left,9);
+    end;
 
     //draw checkbox
     checkbox.Left:=textrect.left+1; //(header.Sections[0].Width div 2)-((linerect.bottom-linerect.top) div 2)+1;
@@ -1680,6 +1742,9 @@ begin
     end;
 
     descriptionstart:=max(checkbox.right+10,header.Sections[1].Left);
+
+
+
 
     linetop:=textrect.Top+1; ;//+((textrect.Bottom-textrect.Top) div 2)-(sender.canvas.TextHeight('DDDD') div 2);
 

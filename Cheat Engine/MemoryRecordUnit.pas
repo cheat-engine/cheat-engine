@@ -15,7 +15,7 @@ type TFreezeType=(ftFrozen, ftAllowIncrease, ftAllowDecrease);
 
 
 
-type TMemrecOption=(moHideChildren, moBindActivation, moRecursiveSetValue, moAllowManualCollapseAndExpand);
+type TMemrecOption=(moHideChildren, moBindActivation, moRecursiveSetValue, moAllowManualCollapseAndExpand, moManualExpandCollapse);
 type TMemrecOptions=set of TMemrecOption;
 
 type TMemrecStringData=record
@@ -441,6 +441,8 @@ begin
   foptions:=newOptions;
   //apply changes (moHideChildren, moBindActivation, moRecursiveSetValue)
   SetVisibleChildrenState;
+
+  refresh;
 end;
 
 procedure TMemoryRecord.setCustomTypeName(name: string);
@@ -535,6 +537,10 @@ begin
       a:=tempnode.Attributes.GetNamedItem('moAllowManualCollapseAndExpand');
       if (a<>nil) and (a.TextContent='1') then
         foptions:=foptions+[moAllowManualCollapseAndExpand];
+
+      a:=tempnode.Attributes.GetNamedItem('moManualExpandCollapse');
+      if (a<>nil) and (a.TextContent='1') then
+        foptions:=foptions+[moManualExpandCollapse];
 
     end;
   end;
@@ -873,6 +879,15 @@ begin
       a.TextContent:='1';
       opt.Attributes.SetNamedItem(a);
     end;
+
+    if moManualExpandCollapse in options then
+    begin
+      a:=doc.CreateAttribute('moManualExpandCollapse');
+      a.TextContent:='1';
+      opt.Attributes.SetNamedItem(a);
+    end;
+
+
 
 
   end;
