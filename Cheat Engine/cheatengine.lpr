@@ -76,7 +76,7 @@ DisassemblerArm, LastDisassembleData, elfsymbols, assemblerArm,
 frmPointerscanConnectDialogUnit, PageMap, CELazySocket,
 PointerscanNetworkCommands, frmpointerrescanconnectdialogunit,
 frmMergePointerscanResultSettingsUnit, AddresslistEditor,
-FrmMemoryRecordDropdownSettingsUnit, frmMemrecComboboxUnit;
+FrmMemoryRecordDropdownSettingsUnit, frmMemrecComboboxUnit, tracerIgnore;
 
 {$R cheatengine.res}
 //{$R manifest.res}  //lazarus now has this build in

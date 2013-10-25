@@ -8,7 +8,7 @@ uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, disassembler, NewKernelHandler, ExtCtrls, Buttons,
   LResources, frmFloatingPointPanelUnit, strutils, cefuncproc, clipbrd, Menus,
-  ComCtrls, luahandler, symbolhandler, byteinterpreter, frmStackviewunit;
+  ComCtrls, luahandler, symbolhandler, byteinterpreter, frmStackviewunit, tracerIgnore;
 
 type TTraceDebugInfo=class
   private
@@ -400,6 +400,8 @@ begin
       DataTrace:=fDataTrace;
       if showmodal=mrok then
       begin
+        ignoredModuleListHandler.LoadIgnoredModules;
+
         dereference:= cbDereferenceAddresses.checked;
         savestack:= cbSaveStack.checked;
 
