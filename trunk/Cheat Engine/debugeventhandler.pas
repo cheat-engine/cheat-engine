@@ -529,7 +529,7 @@ begin
 
 
 
-    if IgnoredModuleListHandler.InIgnoredModuleRange(context.RIP) then
+    if IgnoredModuleListHandler.InIgnoredModuleRange(context.{$ifdef cpu64}rip{$else}eip{$endif}) then
     begin
       ReadProcessMemory(processhandle, pointer(context.{$ifdef cpu64}rsp{$else}esp{$endif}), @r, sizeof(processhandler.pointersize), x);
       b:=TDebuggerthread(debuggerthread).SetOnExecuteBreakpoint(r , false, ThreadId);
