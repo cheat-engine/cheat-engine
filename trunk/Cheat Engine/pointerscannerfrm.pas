@@ -2309,6 +2309,8 @@ begin
         //initialize the first reverse scan worker
         //that one will spawn of all his other siblings if needed
 
+        starttime:=gettickcount;
+
         if Self.findValueInsteadOfAddress then
         begin
           //scan the memory for the value
@@ -2336,8 +2338,8 @@ begin
                 begin
                   pathqueue[pathqueuelength].startlevel:=0;
                   pathqueue[pathqueuelength].valuetofind:=currentaddress;
-
                   inc(pathqueuelength);
+
                   ReleaseSemaphore(pathqueueSemaphore, 1, nil);
 
                   if unalligned then
@@ -2348,7 +2350,7 @@ begin
                   addedToQueue:=true;
                 end;
 
-                pathqueueCS.enter;
+                pathqueueCS.leave;
               end;
 
               if (not addedToQueue) and (not terminated) then
@@ -2367,7 +2369,7 @@ begin
           pathqueue[pathqueuelength].valuetofind:=self.automaticaddress;
           inc(pathqueuelength);
 
-          starttime:=gettickcount;
+
           ReleaseSemaphore(pathqueueSemaphore, 1, nil);
         end;
 
