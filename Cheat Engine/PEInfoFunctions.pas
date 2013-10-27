@@ -229,6 +229,7 @@ IMAGE_DOS_HEADER = _IMAGE_DOS_HEADER;
 
 function peinfo_getImageNtHeaders(headerbase: pointer; maxsize: dword):PImageNtHeaders;
 function peinfo_getExportList(filename: string; dllList: Tstrings): boolean;
+function peinfo_is64bitfile(filename: string; var is64bit: boolean): boolean;
 
 implementation
 
@@ -388,10 +389,56 @@ begin
     end;
 
   end;
-
-
-
 end;
+
+function peinfo_is64bitfile(filename: string; var is64bit: boolean): boolean;
+var fmap: TFileMapping;
+    header: pointer;
+    ImageNtHeader: PImageNtHeaders;
+    OptionalHeader: PImageOptionalHeader;
+    OptionalHeader64: PImageOptionalHeader64 absolute OptionalHeader;
+    ImageExportDirectory: PImageExportDirectory;
+
+    addresslist: PDwordArray;
+    exportlist: PDwordArray;
+    functionname: pchar;
+    i: integer;
+
+   // a: dword;
+begin
+  //open the file
+  //parse the header
+  //fill in is64bit and return true.
+  //On exception, false
+
+  result:=false;
+
+  try
+
+    fmap:=TFileMapping.create(filename);
+    if fmap<>nil then
+    begin
+      try
+        header:=fmap.fileContent;
+        ImageNtHeader:=peinfo_getImageNtHeaders(header,fmap.filesize);
+        if ImageNTHeader=nil then raise exception.Create(strInvalidFile);
+        if ImageNTHeader^.FileHeader.Machine=$8664 then
+          is64bit:=true
+        else
+          is64bit:=false;
+
+        result:=true; //success
+
+      finally
+        fmap.free;
+      end;
+
+    end;
+  except
+
+  end;
+end;
+
 
 end.
 
