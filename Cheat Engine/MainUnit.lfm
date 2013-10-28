@@ -1636,6 +1636,10 @@ object MainForm: TMainForm
         Hint = 'Lets the user press the left and right buttons on the keyboard to expand the entry'
         OnClick = miAllowCollapseClick
       end
+      object miManualExpandCollapse: TMenuItem
+        Caption = 'Manual expand/collapse'
+        OnClick = miManualExpandCollapseClick
+      end
     end
     object Plugins1: TMenuItem
       Caption = 'Plugins'
