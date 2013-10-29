@@ -98,7 +98,7 @@ type
     fDropDownList: Tstringlist;
     fDropDownReadOnly: boolean;
     fDropDownDescriptionOnly: boolean;
-
+    fDisplayAsDropDownListItem: boolean;
 
     fonactivate, fondeactivate: TMemoryRecordActivateEvent;
     fOnDestroy: TNotifyEvent;
@@ -172,6 +172,7 @@ type
     function isOffset: boolean;
     procedure ApplyFreeze;
 
+    function GetDisplayValue: string;
     function GetValue: string;
     procedure SetValue(v: string); overload;
     procedure SetValue(v: string; isFreezer: boolean); overload;
@@ -227,6 +228,7 @@ type
     property VarType: TVariableType read fVarType write setVarType;
     property CustomTypeName: string read fCustomTypeName write setCustomTypeName;
     property Value: string read GetValue write SetValue;
+    property DisplayValue: string read GetDisplayValue;
     property AllowDecrease: boolean read fallowDecrease write setAllowDecrease;
     property AllowIncrease: boolean read fallowIncrease write setAllowIncrease;
     property ShowAsHex: boolean read fShowAsHex write setShowAsHex;
@@ -236,6 +238,7 @@ type
     property DropDownList: TStringlist read fDropDownList;
     property DropDownReadOnly: boolean read fDropDownReadOnly write fDropDownReadOnly;
     property DropDownDescriptionOnly: boolean read fDropDownDescriptionOnly write fDropDownDescriptionOnly;
+    property DisplayAsDropDownListItem: boolean read fDisplayAsDropDownListItem write fDisplayAsDropDownListItem;
     property DropDownCount: integer read getDropDownCount;
     property DropDownValue[index:integer]: string read getDropDownValue;
     property DropDownDescription[index:integer]: string read getDropDownDescription;
@@ -1617,6 +1620,35 @@ begin
     result:=inttostr(temp)
   else
     result:=IntToBin(temp);
+end;
+
+function TMemoryRecord.GetDisplayValue: string;
+var
+  i: integer;
+  c: integer;
+begin
+  result:=getValue;
+  c:=DropDowncount;
+
+  if fDisplayAsDropDownListItem and (c>0) then
+  begin
+    //convert the value to a dropdown list item value
+    for i:=0 to c-1 do
+    begin
+      if uppercase(DropDownValue[i])=uppercase(result) then
+      begin
+        if fDropDownDescriptionOnly then
+          result:=DropDownDescription[i]
+        else
+          result:=result+' : '+DropDownDescription[i];
+      end;
+
+      //still here. The value couldn't be found in the list , so just display the value
+    end;
+
+
+
+  end;
 end;
 
 function TMemoryRecord.GetValue: string;

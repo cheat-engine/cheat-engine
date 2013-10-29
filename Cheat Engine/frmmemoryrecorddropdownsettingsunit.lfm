@@ -1,18 +1,18 @@
 object FrmMemoryRecordDropdownSettings: TFrmMemoryRecordDropdownSettings
   Left = 830
-  Height = 240
+  Height = 245
   Top = 285
   Width = 320
   BorderStyle = bsDialog
   Caption = 'Dropdown options'
-  ClientHeight = 240
+  ClientHeight = 245
   ClientWidth = 320
   OnClose = FormClose
   Position = poScreenCenter
   LCLVersion = '1.0.8.0'
   object memoDropdownItems: TMemo
     Left = 0
-    Height = 135
+    Height = 121
     Top = 32
     Width = 320
     Align = alClient
@@ -32,7 +32,7 @@ object FrmMemoryRecordDropdownSettings: TFrmMemoryRecordDropdownSettings
   object Panel1: TPanel
     Left = 0
     Height = 35
-    Top = 205
+    Top = 210
     Width = 320
     Align = alBottom
     BevelOuter = bvNone
@@ -63,7 +63,7 @@ object FrmMemoryRecordDropdownSettings: TFrmMemoryRecordDropdownSettings
   object cbDisallowUserInput: TCheckBox
     Left = 0
     Height = 19
-    Top = 167
+    Top = 153
     Width = 320
     Align = alBottom
     Caption = 'Disallow manual user input'
@@ -81,10 +81,19 @@ object FrmMemoryRecordDropdownSettings: TFrmMemoryRecordDropdownSettings
   object cbOnlyShowDescription: TCheckBox
     Left = 0
     Height = 19
-    Top = 186
+    Top = 172
     Width = 320
     Align = alBottom
     Caption = 'Only show the description part'
     TabOrder = 2
+  end
+  object cbDisplayAsDropdownItem: TCheckBox
+    Left = 0
+    Height = 19
+    Top = 191
+    Width = 320
+    Align = alBottom
+    Caption = 'Make the record display values like the dropdown list'
+    TabOrder = 4
   end
 end

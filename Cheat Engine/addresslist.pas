@@ -1214,7 +1214,7 @@ begin
       if mr.IsReadableAddress then
       begin
         SelectionUpdate(Treeview);
-        if (x<header.Sections[4].Left+treeview.canvas.TextWidth(mr.value)) and (SelCount<=1) then
+        if (x<header.Sections[4].Left+treeview.canvas.TextWidth(mr.DisplayValue)) and (SelCount<=1) then
           valueclick(node); //initiate the value change routine
 
       end;
@@ -1777,7 +1777,7 @@ begin
 
 
         //value
-        sender.Canvas.TextRect(rect(header.Sections[4].left, textrect.top, header.Sections[4].right, textrect.bottom),header.sections[4].left, linetop, AnsiToUtf8(memrec.GetValue));
+        sender.Canvas.TextRect(rect(header.Sections[4].left, textrect.top, header.Sections[4].right, textrect.bottom),header.sections[4].left, linetop, AnsiToUtf8(memrec.DisplayValue));
       end;
     end
     else

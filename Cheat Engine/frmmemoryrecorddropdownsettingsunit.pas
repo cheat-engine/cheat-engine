@@ -17,6 +17,7 @@ type
     btnCancel: TButton;
     cbDisallowUserInput: TCheckBox;
     cbOnlyShowDescription: TCheckBox;
+    cbDisplayAsDropdownItem: TCheckBox;
     Label1: TLabel;
     Label2: TLabel;
     memoDropdownItems: TMemo;
@@ -48,6 +49,7 @@ begin
   memrec.DropDownList.Assign(memoDropdownItems.Lines);
   memrec.DropDownReadOnly:=cbDisallowUserInput.checked;
   memrec.DropDownDescriptionOnly:=cbOnlyShowDescription.checked;
+  memrec.DisplayAsDropDownListItem:=cbDisplayAsDropdownItem.checked;
 
   modalresult:=mrok;
 end;
@@ -62,6 +64,7 @@ begin
 
   cbDisallowUserInput.checked:=memrec.DropDownReadOnly;
   cbOnlyShowDescription.checked:=memrec.DropDownDescriptionOnly;
+  cbDisplayAsDropdownItem.checked:=memrec.DisplayAsDropDownListItem;
 
   caption:='Dropdown options for '+memrec.description;
 end;
