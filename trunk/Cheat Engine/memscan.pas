@@ -3085,29 +3085,31 @@ begin
   i:=0;
   phandle:=processhandle;
   so:=scanoption;
-  maxindex:=chunksize;
+  maxindex:=chunksize-1;
   vsize:=variablesize; //=8
   oldmem:=oldmemory;
   alist:=addresslist;
   valuetype:=vtall;
 
-  while i<maxindex do
+  while i<=maxindex do
   begin
-    j:=i+1;
     currentbase:=alist[i].address and qword($FFFFFFFFFFFFF000);
-    while j<=maxindex do
+    if (i<maxindex) then
     begin
-
-
-        
-      if currentbase=(qword(alist[j].address+vsize-1) and qword($fffffffffffff000)) then //same page
-        inc(j)
-      else
+      j:=i+1;
+      while j<=maxindex do
       begin
-        dec(j);  //now points to the last valid one, or the first one
-        break;
+        if currentbase=(qword(alist[j].address+vsize-1) and qword($fffffffffffff000)) then //same page
+          inc(j)
+        else
+        begin
+          dec(j);  //now points to the last valid one, or the first one
+          break;
+        end;
       end;
-    end;
+    end
+    else
+      j:=i;  //all alone
 
     currentbase:=alist[i].address;
     if readprocessmemory(phandle,pointer(currentbase),@newmemory[0],(alist[j].address-currentbase)+vsize,actualread) then
@@ -3233,28 +3235,32 @@ var
     phandle: thandle;
 begin
   i:=0;
-  maxindex:=chunksize;
+  maxindex:=chunksize-1;
   vsize:=variablesize;
   alist:=addresslist;
   currentbase:=0;
   phandle:=processhandle;
 
-  while i<maxindex do
+  while i<=maxindex do
   begin
-    j:=i+1;
-              
     currentbase:=alist[i].address and qword($FFFFFFFFFFFFF000);
-    while j<=maxindex do
-    begin
-      if (currentbase)=(qword(alist[j].address+vsize-1) and qword($fffffffffffff000)) then //same page
-        inc(j)
-      else
-      begin
-        dec(j);  //now points to the last valid one, or the first one
-        break;
-      end;
-    end;
 
+    if i<maxindex then
+    begin
+      j:=i+1;
+      while j<=maxindex do
+      begin
+        if (currentbase)=(qword(alist[j].address+vsize-1) and qword($fffffffffffff000)) then //same page
+          inc(j)
+        else
+        begin
+          dec(j);  //now points to the last valid one, or the first one
+          break;
+        end;
+      end;
+    end
+    else
+      j:=i; //all alone
 
 
     currentbase:=alist[i].address;
@@ -3319,7 +3325,7 @@ var
 begin
   i:=0;
   so:=scanoption;
-  maxindex:=chunksize;
+  maxindex:=chunksize-1;
   vsize:=variablesize;
   oldmem:=oldmemory;
   alist:=addresslist;
@@ -3347,20 +3353,26 @@ begin
   end;
 
 
-  while i<maxindex do
+  while i<=maxindex do
   begin
-    j:=i+1;
     currentbase:=alist[i] and qword($FFFFFFFFFFFFF000);
-    while j<=maxindex do
+
+    if i<maxindex then  //If this isn't the last item in the list.
     begin
-      if (currentbase)=(qword(alist[j]+vsize-1) and qword($fffffffffffff000)) then //same page
-        inc(j)
-      else
+      j:=i+1;
+      while j<=maxindex do  //first iteration is always true
       begin
-        dec(j);  //now points to the last valid one, or the first one
-        break;
+        if (currentbase)=(qword(alist[j]+vsize-1) and qword($fffffffffffff000)) then //same page
+          inc(j)
+        else
+        begin
+          dec(j);  //now points to the last valid one, or the first one
+          break;
+        end;
       end;
-    end;
+    end
+    else
+      j:=i; //all alone
 
 
     currentbase:=alist[i];
