@@ -644,7 +644,7 @@ end;
 function getBytecountBinaryString(st:string; scanvalueisdecimal: boolean): integer;
 var i: integer;
 begin
-  if scanvalueisdecimal then //first convert do binarystring
+  if scanvalueisdecimal then //first convert to binarystring
     st:=cefuncproc.inttobin(strtoint(st));
 
 
@@ -659,10 +659,13 @@ begin
   end;
 
   if result=0 then raise exception.Create(rsInvalidBinaryNotation);
-  if (result mod 8=0) then
-    result:=1+result div 8
-  else
-    result:=2+(result div 8);
+  if (result>1) then
+  begin
+    if (result mod 8=0) then
+      result:=1+result div 8
+    else
+      result:=2+(result div 8);
+  end;
 
 end;
 
@@ -3111,6 +3114,9 @@ begin
     else
       j:=i;  //all alone
 
+    if j>maxindex then
+      j:=maxindex;
+
     currentbase:=alist[i].address;
     if readprocessmemory(phandle,pointer(currentbase),@newmemory[0],(alist[j].address-currentbase)+vsize,actualread) then
     begin
@@ -3262,6 +3268,11 @@ begin
     else
       j:=i; //all alone
 
+    if j>maxindex then
+      j:=maxindex;
+
+
+
 
     currentbase:=alist[i].address;
     if readprocessmemory(phandle,pointer(currentbase),@newmemory[0],(alist[j].address-currentbase)+vsize,actualread) then
@@ -3373,6 +3384,9 @@ begin
     end
     else
       j:=i; //all alone
+
+    if j>maxindex then
+      j:=maxindex;
 
 
     currentbase:=alist[i];
