@@ -100,6 +100,12 @@ type
 
   PBoolean=^boolean;
 
+  TDotNetModuleSymbols=record
+    modulename: string; //for debugging
+    modulebase: qword;  //unique identifier
+    symbollist: TSymbolListHandler;
+  end;
+
   TSymHandler=class
   private
     symbolloaderthread: TSymbolloaderthread;
@@ -127,14 +133,19 @@ type
     commonModuleList: tstringlist;
     symbollist: TSymbolListHandler;
 
+
     SymbolsLoadedNotification: array of TNotifyEvent;
 
     dotNetDataCollector: TDotNetPipe;
+    dotnetModuleSymbolList: array of TDotNetModuleSymbols;
+    dotnetModuleSymbolListMREW: TMultiReadExclusiveWriteSynchronizer; //MREW for adding/removing modules to the list
+
 
     function getusedprocesshandle :thandle;
     function getusedprocessid:dword;
     function getisloaded:boolean;
     function geterror:boolean;
+    function getDotNetAccess: boolean;
     function GetUserdefinedSymbolByNameIndex(symbolname:string):integer;
     function GetUserdefinedSymbolByAddressIndex(address: ptruint):integer;
 
@@ -158,6 +169,8 @@ type
     property usedprocessid: dword read getusedprocessid;
     property isloaded: boolean read getisloaded;
     property hasError: boolean read geterror;
+    property hasDotNetAccess: boolean read getDotNetAccess;
+
     procedure waitforsymbolsloaded;
     procedure reinitialize(force: boolean=false);
     function loadmodulelist: boolean; //returns true if a change was detected from the previous list
@@ -206,6 +219,8 @@ type
     procedure NotifyFinishedLoadingSymbols; //go through the list of functions to call when the symbollist has finished loading
     constructor create;
     destructor destroy; override;
+
+
 end;
 
 var symhandler: TSymhandler=nil;
@@ -753,9 +768,18 @@ var sp: pchar;
     c: TCEConnection;
 
     mpl: Tstringlist;
-    i: integer;
+    i,j,k,l,m: integer;
 
     dotNetDataCollector: TDotNetPipe;
+
+    dotNetdomains: TDotNetDomainArray;
+    dotNetmodules: TDotNetModuleArray;
+    dotnettypedefs: TDotNetTypeDefArray;
+    dotnetmethods: TDotNetMethodArray;
+
+    address:qword;
+    size: integer;
+    name: string;
 begin
 
   try
@@ -764,6 +788,16 @@ begin
 
       SymbolsLoaded:=false;
       symbollist.clear;
+
+      owner.dotnetModuleSymbolListMREW.Beginwrite;   //lock the list
+      try
+        for i:=0 to length(owner.dotnetModuleSymbolList)-1 do
+          owner.dotnetModuleSymbolList[i].symbollist.Free;
+
+        setlength(owner.dotnetModuleSymbolList,0);
+      finally
+        owner.dotnetModuleSymbolListMREW.Endwrite;
+      end;
 
       if trim(searchpath)='' then
       begin
@@ -789,14 +823,102 @@ begin
 
       if c=nil then //local
       begin
-
+        dotNetDataCollector:=nil;
         if thisprocessid<>GetCurrentProcessId then //I'm quite sure ce isn't written in .net
         begin
           dotNetDataCollector:=TDotNetPipe.create(thisprocessid, Is64BitProcess(thisprocesshandle));
           if dotNetDataCollector.Attached then
-            owner.dotNetDataCollector:=dotNetDataCollector //mark it as valid
+          begin
+
+
+            //enum the first module right away
+
+            setlength(dotNetdomains,0);
+            try
+              dotNetDataCollector.EnumDomains(dotNetdomains);
+              for i:=0 to length(dotNetdomains)-1 do
+              begin
+                if i=0 then //get more info
+                begin
+                  setlength(dotNetmodules,0);
+                  dotNetDataCollector.EnumModuleList(dotNetdomains[i].hDomain, dotNetmodules);
+
+                  for j:=0 to length(dotNetmodules)-1 do
+                  begin
+                    if j=0 then
+                    begin
+                      setlength(dotNetTypedefs, length(dotnettypedefs));
+                      dotNetDataCollector.EnumTypeDefs(dotNetmodules[j].hModule, dotNetTypedefs );
+
+                      //still here, add the module
+                      owner.dotnetModuleSymbolListMREW.Beginwrite;
+                      try
+                        setlength(owner.dotnetModuleSymbolList,1); //it's the first one
+                        owner.dotnetModuleSymbolList[0].modulename:=dotNetmodules[i].name;
+                        owner.dotnetModuleSymbolList[0].modulebase:=dotNetmodules[i].baseaddress;
+                        owner.dotnetModuleSymbolList[0].symbollist:=TSymbolListHandler.create;
+                      finally
+                        owner.dotnetModuleSymbolListMREW.Endwrite;
+                      end;
+
+                      for k:=0 to length(dotnettypedefs)-1 do
+                      begin
+                        setlength(dotnetmethods,0);
+
+                        dotNetDataCollector.GetTypeDefMethods(dotnetmodules[j].hModule, dotnettypedefs[k].token, dotnetmethods);
+                        for l:=0 to length(dotnetmethods)-1 do
+                        begin
+                          if dotnetmethods[l].NativeCode<>0 then
+                          begin
+                            if length(dotnetmethods[l].SecondaryNativeCode)>0 then
+                            begin
+                              for m:=0 to length(dotnetmethods[l].SecondaryNativeCode)-1 do
+                              begin
+                                address:=dotnetmethods[l].SecondaryNativeCode[m].address;
+                                size:=dotnetmethods[l].SecondaryNativeCode[m].size;
+                                if m=0 then
+                                  name:=dotnettypedefs[k].name+'::'+dotnetmethods[l].name
+                                else
+                                  name:=dotnettypedefs[k].name+'::'+dotnetmethods[l].name+'_'+inttostr(m+1);
+
+                                owner.dotnetModuleSymbolList[0].symbollist.AddSymbol(dotNetmodules[j].name, name, address, size);
+
+
+                              end;
+
+                            end
+                            else
+                              owner.dotnetModuleSymbolList[0].symbollist.AddSymbol(dotNetmodules[j].name, dotnettypedefs[k].name+'::'+dotnetmethods[l].name, dotnetmethods[l].NativeCode, 1)
+
+                          end;
+
+                          if dotnetmethods[l].ILCODE<>0 then //this can happen for PINVOKE's methods
+                            owner.dotnetModuleSymbolList[0].symbollist.AddSymbol(dotNetmodules[j].name, dotnettypedefs[k].name+'::'+dotnetmethods[l].name+'_IL', dotnetmethods[l].ILCODE,1);
+
+
+
+
+                        end;
+                      end;
+                    end;
+
+                    dotNetDataCollector.ReleaseObject(dotNetmodules[j].hModule);
+                  end;
+                end;
+
+                //cleanup
+                dotNetDataCollector.ReleaseObject(dotNetdomains[i].hDomain);
+              end;
+
+              owner.dotNetDataCollector:=dotNetDataCollector; //mark it as valid and avauilable to users
+            except
+              //communication error
+              freeandnil(dotNetDataCollector);
+            end;
+
+          end
           else
-            dotNetDataCollector.free;
+            freeandnil(dotNetDataCollector);
         end;
 
         SymbolsLoaded:=SymInitialize(thisprocesshandle, sp, true);
@@ -962,6 +1084,10 @@ begin
   symbolloadervalid.endread;
 end;
 
+function TSymhandler.getDotNetAccess: boolean;
+begin
+  result:=dotNetDataCollector<>nil;
+end;
 
 function TSymhandler.getisloaded:boolean;
 begin
@@ -1503,6 +1629,7 @@ var //symbol :PSYMBOL_INFO;
     mi: tmoduleinfo;
     si: PCESymbolInfo;
     processhandle: thandle;
+    i: integer;
 begin
 {$ifdef autoassemblerdll}
   processhandle:=symbolhandler.processhandle;
@@ -1535,7 +1662,21 @@ begin
       begin
         //if isloaded then
         begin
-          si:=symbollist.FindAddress(address);
+          si:=nil;
+          if dotNetDataCollector<>nil then
+          begin
+            dotnetModuleSymbolListMREW.beginread;
+            for i:=0 to length(dotnetModuleSymbolList)-1 do
+            begin
+              si:=dotnetModuleSymbolList[i].symbollist.FindAddress(address);
+              if si<>nil then break;
+            end;
+
+            dotnetModuleSymbolListMREW.endread;
+          end;
+
+          if si=nil then
+            si:=symbollist.FindAddress(address);
 
 
           if si<>nil then
@@ -1873,7 +2014,22 @@ begin
                 //check if it's in
                 tokens[i]:=StringReplace(tokens[i],'!','.',[]);
 
-                si:=symbollist.FindSymbol(tokens[i]);
+                si:=nil;
+                if dotNetDataCollector<>nil then
+                begin
+                  //check the dotnet list first. (if it's a .net process it's more likely the user wants .net stuff)
+                  dotnetModuleSymbolListMREW.beginread;
+                  for j:=0 to length(dotnetModuleSymbolList)-1 do
+                  begin
+                    si:=dotnetModuleSymbolList[j].symbollist.FindSymbol(tokens[i]);
+                    if si<>nil then break;
+                  end;
+
+                  dotnetModuleSymbolListMREW.Endread;
+                end;
+
+                if si=nil then
+                  si:=symbollist.FindSymbol(tokens[i]);
 
                 if si=nil then //not found
                 begin
@@ -2460,6 +2616,8 @@ begin
   symbolloadervalid:=TMultiReadExclusiveWriteSynchronizer.create;
   modulelistMREW:=TMultiReadExclusiveWriteSynchronizer.create;
   userdefinedsymbolsCS:=TCriticalSection.create;
+
+  dotnetModuleSymbolListMREW:=TMultiReadExclusiveWriteSynchronizer.create;
 
   //setlength(internalsymbols,4);
   setlength(userdefinedsymbols,32);
