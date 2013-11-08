@@ -10826,7 +10826,7 @@ begin
   end
   else
   begin
-    if (LastDisassembleData.modrmValueType<>dvtNone) or (LastDisassembleData.parameterValueType<>dvtNone) then
+    if (LastDisassembleData.modrmValueType=dvtAddress) or (LastDisassembleData.parameterValueType<>dvtNone) then
     begin
       a:=false;
       if LastDisassembleData.modrmValueType=dvtAddress then

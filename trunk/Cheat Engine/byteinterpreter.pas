@@ -8,9 +8,13 @@ uses windows, LCLIntf, sysutils, symbolhandler, CEFuncProc, NewKernelHandler, ma
 
 type TAutoGuessEvent=function (address: ptruint; originalVariableType: TVariableType): TVariableType of object;
 
+type
+  TFindTypeOption=(biNoString, biNoDouble);
+  TFindTypeOptions=set of TFindTypeOption;
+
 function isHumanReadableInteger(v: integer): boolean; //returns false if it's not an easy readable integer
 
-function FindTypeOfData(address: ptrUint; buf: pbytearray; size: integer; CustomType: PCustomType=nil):TVariableType;
+function FindTypeOfData(address: ptrUint; buf: pbytearray; size: integer; CustomType: PCustomType=nil; FindOption: TFindTypeOptions=[]):TVariableType;
 function DataToString(buf: PByteArray; size: integer; vartype: TVariableType): string;
 function readAndParsePointer(buf: pbytearray; variableType: TVariableType; customtype: TCustomType=nil; showashexadecimal: Boolean=false; showAsSigned: boolean=false; bytesize:integer=1): string;
 function readAndParseAddress(address: ptrUint; variableType: TVariableType; customtype: TCustomType=nil; showashexadecimal: Boolean=false; showAsSigned: boolean=false; bytesize:integer=1): string;
@@ -435,7 +439,7 @@ begin
   result:=inrange(v, -10000, 10000) or ((v mod 100)=0);
 end;
 
-function FindTypeOfData(address: ptrUint; buf: pbytearray; size: integer; CustomType: PCustomType=nil):TVariableType;
+function FindTypeOfData(address: ptrUint; buf: pbytearray; size: integer; CustomType: PCustomType=nil; FindOption: TFindTypeOptions=[]):TVariableType;
 {
 takes the given address and memoryblock and converts it to a variable type based on some guesses
 
@@ -461,65 +465,79 @@ begin
 
     floathasseperator:=false;
 
-    isstring:=true;
-    couldbestringcounter:=true;
-    i:=0;
-    while i<4 do
+    if (biNoString in FindOption)=false then
     begin
-      //check if the first 4 characters match with a standard ascii values (32 to 127)
-      if (buf[i]<32) or (buf[i]>127) then
-      begin
-        isstring:=false;
-        if i>0 then
-          couldbestringcounter:=false;
-
-        if not couldbestringcounter then break;
-      end;
-      inc(i);
-    end;
-
-    if isstring then
-    begin
-      result:=vtString;
-      exit;
-    end;
-
-    if couldbestringcounter and ((buf[5]>=32) or (buf[5]<=127)) then //check if the 4th byte of the 'string' is a char or not
-    begin
-      //this is a string counter
-      result:=vtByte;
-      exit;
-    end;
-
-
-    //check if unicode
-    isstring:=true;
-    i:=0;
-    if size>=8 then
-    begin
-      while i<8 do
+      isstring:=true;
+      couldbestringcounter:=true;
+      i:=0;
+      while i<4 do
       begin
         //check if the first 4 characters match with a standard ascii values (32 to 127)
-        if (buf[i]<32) or (buf[i]>127) then
+        if i<size then
+        begin
+          if (buf[i]<32) or (buf[i]>127) then
+          begin
+            isstring:=false;
+            if i>0 then
+              couldbestringcounter:=false;
+
+            if not couldbestringcounter then break;
+          end;
+        end
+        else
         begin
           isstring:=false;
-          break;
+          couldbestringcounter:=false;
         end;
-        inc(i);
-        if buf[i]<>0 then
-        begin
-          isstring:=false;
-          break;
-        end;
+
         inc(i);
       end;
-    end else isstring:=false;
 
-    if isstring then
-    begin
-      result:=vtUnicodeString;
-      exit;
+      if isstring then
+      begin
+        result:=vtString;
+        exit;
+      end;
+
+      if couldbestringcounter and (size>4) and ((buf[4]>=32) or (buf[4]<=127)) then //check if the 4th byte of the 'string' is a char or not
+      begin
+        //this is a string counter
+        result:=vtByte;
+        exit;
+      end;
+
+
+      //check if unicode
+      isstring:=true;
+      i:=0;
+      if size>=8 then
+      begin
+        while i<8 do
+        begin
+          //check if the first 4 characters match with a standard ascii values (32 to 127)
+          if (buf[i]<32) or (buf[i]>127) then
+          begin
+            isstring:=false;
+            break;
+          end;
+          inc(i);
+          if buf[i]<>0 then
+          begin
+            isstring:=false;
+            break;
+          end;
+          inc(i);
+        end;
+      end else isstring:=false;
+
+      if isstring then
+      begin
+        result:=vtUnicodeString;
+        exit;
+      end;
+
     end;
+
 
 
     i:=address mod 4;
@@ -595,28 +613,31 @@ begin
       end;
     end;
 
-    if (size>=8) then  //check if a double can be used
+    if (biNoDouble in FindOption)=false then
     begin
-      if pdouble(@buf[0])^<>0 then
+      if (size>=8) then  //check if a double can be used
       begin
-        x:=floattostr(pdouble(@buf[0])^);
-        if (pos('E',x)=0) then  //no exponent
+        if pdouble(@buf[0])^<>0 then
         begin
-          //check if the value isn't bigger or smaller than 100000 or smaller than -100000
-          if (pdouble(@buf[0])^<100000) and (pdouble(@buf[0])^>-100000) then
+          x:=floattostr(pdouble(@buf[0])^);
+          if (pos('E',x)=0) then  //no exponent
           begin
-            if result=vtSingle then
+            //check if the value isn't bigger or smaller than 100000 or smaller than -100000
+            if (pdouble(@buf[0])^<100000) and (pdouble(@buf[0])^>-100000) then
             begin
-              if pdouble(@buf[0])^>psingle(@buf[0])^ then exit; //float has a smaller value
+              if result=vtSingle then
+              begin
+                if pdouble(@buf[0])^>psingle(@buf[0])^ then exit; //float has a smaller value
+              end;
+
+              //if 4 bytes after this address is a float then override thise double to a single type
+              if FindTypeOfData(address+4, @buf[4], size-4)=vtSingle then
+                result:=vtSingle
+              else
+                result:=vtDouble;
+
+              exit;
             end;
-
-            //if 4 bytes after this address is a float then override thise double to a single type
-            if FindTypeOfData(address+4, @buf[4], size-4)=vtSingle then
-              result:=vtSingle
-            else
-              result:=vtDouble;
-
-            exit;
           end;
         end;
       end;
