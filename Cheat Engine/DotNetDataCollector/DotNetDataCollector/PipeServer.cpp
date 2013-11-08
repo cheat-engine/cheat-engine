@@ -13,7 +13,7 @@ CPipeServer::CPipeServer(TCHAR *name)
 	StrCpy(pipename, L"\\\\.\\pipe\\");
 	StrCat(pipename, name);
 
-	pipe=CreateNamedPipeW(pipename, PIPE_ACCESS_DUPLEX, PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT, 255,256*1024, 8, INFINITE, NULL);
+	pipe=CreateNamedPipeW(pipename, PIPE_ACCESS_DUPLEX, PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT, 255,256*1024, 16, INFINITE, NULL);
 	ConnectNamedPipe(pipe, NULL);
 }
 
@@ -647,7 +647,13 @@ int CPipeServer::Start(void)
 						BOOL result;
 						result=OpenOrAttachToProcess();	
 
-						WriteFile(pipe, &result, sizeof(result), &byteswritten, NULL);					
+						WriteFile(pipe, &result, sizeof(result), &byteswritten, NULL);	
+						if (result)
+						{
+							result=(CorDebugProcess5!=NULL); //tell that it supports structure type lookups or not
+							WriteFile(pipe, &result, sizeof(result), &byteswritten, NULL);	
+						}
+
 					}
 					else
 						return 1;

@@ -69,8 +69,10 @@ int WINAPI wWinMain(
 	SetPrivilege( hToken, SE_DEBUG_NAME, TRUE );
 	CoInitialize(NULL);
 
+	MSG m;
+	PeekMessage(&m, (HWND)-1, 0,0,PM_REMOVE); //this will tell windows that the app hasn't crashed
 	
-	if (lpCmdLine)
+	if ((lpCmdLine) && (wcslen(lpCmdLine)))
 	{
 		int r;
 		pw=new CPipeServer(lpCmdLine);
@@ -80,8 +82,8 @@ int WINAPI wWinMain(
 		return r;
 	}
 	else
-	{
-		printf("Invalid parameter");
+	{	
+		MessageBoxA(0, "No pipename provided","dotNET Data Collector", MB_ICONERROR);
 		return 1;
 	}
 	return 0;
