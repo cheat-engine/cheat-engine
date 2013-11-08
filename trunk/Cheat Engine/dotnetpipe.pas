@@ -5,7 +5,7 @@ unit DotNetPipe;
 interface
 
 uses
-  windows, Classes, SysUtils;
+  windows, Classes, SysUtils, CEFuncProc, syncobjs;
 
 const
   CMD_TARGETPROCESS=0;
@@ -81,12 +81,14 @@ type
     pipe: THandle;
     fConnected: boolean;
     fAttached: boolean;
+    fSupportsDotNet4_5: boolean;
 
     pHandle: THandle;
+    pipecs: TCriticalsection;
     procedure Read(var o; size: integer);
     procedure Write(const o; size: integer);
   public
-    constructor create(pipename: string; pid: dword; timeout:dword=10000);
+    constructor create(processid: dword; is64bit: boolean; timeout:dword=10000);
     destructor destroy; override;
 
     procedure EnumDomains(var domains: TDotNetDomainArray);
@@ -97,6 +99,7 @@ type
 
     property Connected: boolean read fConnected;
     property Attached: boolean read fAttached;
+    property SupportsDotNet4_5: boolean read fSupportsDotNet4_5;
   end;
 
 implementation
@@ -125,62 +128,70 @@ var
 begin
   msg.command:=CMD_GETADDRESSDATA;
   msg.address:=address;
-  write(msg, sizeof(msg));
 
-  read(addressdata.startaddress, sizeof(addressdata.startaddress));
-  if addressdata.startaddress<>0 then
-  begin
-    read(addressdata.objecttype, sizeof(addressdata.objecttype));
+  pipecs.enter;
+  try
+    write(msg, sizeof(msg));
 
-    if true then //addressdata.objecttype=ELEMENT_TYPE_CLASS then
+    read(addressdata.startaddress, sizeof(addressdata.startaddress));
+    if addressdata.startaddress<>0 then
     begin
-      read(classnamesize, sizeof(classnamesize));
-      if classnamesize>0 then
+      read(addressdata.objecttype, sizeof(addressdata.objecttype));
+
+      if true then //addressdata.objecttype=ELEMENT_TYPE_CLASS then
       begin
-        getmem(cname, classnamesize+2);
-        read(cname[0], classnamesize);
-        cname[classnamesize div 2]:=#0;
-        addressdata.classname:=cname;
-
-        freemem(cname);
-      end;
-
-      read(fieldcount, sizeof(fieldcount));
-      setlength(addressdata.fields, fieldcount);
-
-      for i:=0 to fieldcount-1 do
-      begin
-        read(fi.offset, sizeof(dword));
-        read(fi.fieldtype, sizeof(dword));
-
-        read(fieldnamesize, sizeof(fieldnamesize));
-        getmem(fieldname, fieldnamesize+2);
-        read(fieldname[0], fieldnamesize);
-        fieldname[fieldnamesize div 2]:=#0;
-        fi.name:=fieldname;
-        freemem(fieldname);
-
-        //sort while adding
-        inserted:=false;
-        for j:=0 to i-1 do
+        read(classnamesize, sizeof(classnamesize));
+        if classnamesize>0 then
         begin
-          if fi.offset<addressdata.fields[j].offset then //insert it before this one
-          begin
-            //shift this one and all subsequent items
-            for k:=i-1 downto j do
-              addressdata.fields[k+1]:=addressdata.fields[k];
+          getmem(cname, classnamesize+2);
+          read(cname[0], classnamesize);
+          cname[classnamesize div 2]:=#0;
+          addressdata.classname:=cname;
 
-            addressdata.fields[j]:=fi;
-            inserted:=true;
-            break;
-          end;
+          freemem(cname);
         end;
-        if not inserted then
-          addressdata.fields[i]:=fi;
 
+        read(fieldcount, sizeof(fieldcount));
+        setlength(addressdata.fields, fieldcount);
+
+        for i:=0 to fieldcount-1 do
+        begin
+          read(fi.offset, sizeof(dword));
+          read(fi.fieldtype, sizeof(dword));
+
+          read(fieldnamesize, sizeof(fieldnamesize));
+          getmem(fieldname, fieldnamesize+2);
+          read(fieldname[0], fieldnamesize);
+          fieldname[fieldnamesize div 2]:=#0;
+          fi.name:=fieldname;
+          freemem(fieldname);
+
+          //sort while adding
+          inserted:=false;
+          for j:=0 to i-1 do
+          begin
+            if fi.offset<addressdata.fields[j].offset then //insert it before this one
+            begin
+              //shift this one and all subsequent items
+              for k:=i-1 downto j do
+                addressdata.fields[k+1]:=addressdata.fields[k];
+
+              addressdata.fields[j]:=fi;
+              inserted:=true;
+              break;
+            end;
+          end;
+          if not inserted then
+            addressdata.fields[i]:=fi;
+
+        end;
       end;
+
     end;
 
+
+  finally
+    pipecs.leave;
   end;
 end;
 
@@ -204,33 +215,41 @@ begin
   msg.command:=CMD_GETTYPEDEFMETHODS;
   msg.hModule:=hModule;
   msg.typedef:=typedef;
-  write(msg, sizeof(msg));
 
-  read(numberofmethods, sizeof(numberofmethods));
-  setlength(methods, numberofmethods);
-  for i:=0 to numberofmethods-1 do
-  begin
-    read(methods[i].token, sizeof(methods[i].token));
+  pipecs.enter;
+  try
+    write(msg, sizeof(msg));
 
-    read(methodnamesize, sizeof(methodnamesize));
-    getmem(mname, methodnamesize+2);
-    try
-      read(mname[0], methodnamesize);
-      mname[methodnamesize div 2]:=#0;
-      methods[i].name:=mname;
-    finally
-      freemem(mname);
+    read(numberofmethods, sizeof(numberofmethods));
+    setlength(methods, numberofmethods);
+    for i:=0 to numberofmethods-1 do
+    begin
+      read(methods[i].token, sizeof(methods[i].token));
+
+      read(methodnamesize, sizeof(methodnamesize));
+      getmem(mname, methodnamesize+2);
+      try
+        read(mname[0], methodnamesize);
+        mname[methodnamesize div 2]:=#0;
+        methods[i].name:=mname;
+      finally
+        freemem(mname);
+      end;
+
+      read(methods[i].attributes, sizeof(methods[i].attributes));
+      read(methods[i].implflags, sizeof(methods[i].implflags));
+
+      read(methods[i].ILCODE, sizeof(methods[i].ILCODE));
+      read(methods[i].NativeCode, sizeof(methods[i].NativeCode));
+      read(SecondaryCodeBlocks, sizeof(SecondaryCodeBlocks));
+      setlength(methods[i].SecondaryNativeCode, SecondaryCodeBlocks);
+      for j:=0 to SecondaryCodeBlocks-1 do
+        read(methods[i].SecondaryNativeCode[j], sizeof(TNativeCode));
     end;
 
-    read(methods[i].attributes, sizeof(methods[i].attributes));
-    read(methods[i].implflags, sizeof(methods[i].implflags));
 
-    read(methods[i].ILCODE, sizeof(methods[i].ILCODE));
-    read(methods[i].NativeCode, sizeof(methods[i].NativeCode));
-    read(SecondaryCodeBlocks, sizeof(SecondaryCodeBlocks));
-    setlength(methods[i].SecondaryNativeCode, SecondaryCodeBlocks);
-    for j:=0 to SecondaryCodeBlocks-1 do
-      read(methods[i].SecondaryNativeCode[j], sizeof(TNativeCode));
+  finally
+    pipecs.leave;
   end;
 end;
 
@@ -249,28 +268,35 @@ var
 begin
   msg.command:=CMD_ENUMTYPEDEFS;
   msg.hModule:=hModule;
-  write(msg, sizeof(msg));
 
-  read(NumberOfTypeDefs, sizeof(NumberOfTypeDefs));
+  pipecs.enter;
+  try
+    write(msg, sizeof(msg));
 
-  setlength(typedefs, NumberOfTypeDefs);
+    read(NumberOfTypeDefs, sizeof(NumberOfTypeDefs));
 
-  for i:=0 to NumberOfTypeDefs-1 do
-  begin
-    read(typedefs[i].token, sizeof(ULONG32));
-    read(typedefnamesize, sizeof(typedefnamesize));
-    getmem(typedefname, typedefnamesize+2);
+    setlength(typedefs, NumberOfTypeDefs);
 
-    try
-      read(typedefname[0], typedefnamesize);
-      typedefname[typedefnamesize div 2]:=#0;
+    for i:=0 to NumberOfTypeDefs-1 do
+    begin
+      read(typedefs[i].token, sizeof(ULONG32));
+      read(typedefnamesize, sizeof(typedefnamesize));
+      getmem(typedefname, typedefnamesize+2);
 
-      typedefs[i].name:=typedefname;
-      read(typedefs[i].flags, sizeof(typedefs[i].flags));
-      read(typedefs[i].extends, sizeof(typedefs[i].extends));
-    finally
-      freemem(typedefname);
+      try
+        read(typedefname[0], typedefnamesize);
+        typedefname[typedefnamesize div 2]:=#0;
+
+        typedefs[i].name:=typedefname;
+        read(typedefs[i].flags, sizeof(typedefs[i].flags));
+        read(typedefs[i].extends, sizeof(typedefs[i].extends));
+      finally
+        freemem(typedefname);
+      end;
     end;
+
+  finally
+    pipecs.leave;
   end;
 end;
 
@@ -294,30 +320,36 @@ var
 begin
   msg.command:=CMD_ENUMMODULELIST;
   msg.hDomain:=hDomain;
-  write(msg, sizeof(msg));
+  pipecs.enter;
+  try
+    write(msg, sizeof(msg));
 
-  read(NumberOfModules, sizeof(NumberOfModules));
-  setlength(modules, NumberOfModules);
-  for i:=0 to NumberOfModules-1 do
-  begin
-    read(Modules[i].hModule, sizeof(UINT64));
-    read(Modules[i].baseaddress, sizeof(UINT64));
-    read(namelength, sizeof(namelength));
-    getmem(name, namelength+2);
-    try
-      Read(name[0], namelength);
-      name[namelength div 2]:=#0;
-      Modules[i].name:=name;
-    finally
-      freemem(name);
+    read(NumberOfModules, sizeof(NumberOfModules));
+    setlength(modules, NumberOfModules);
+    for i:=0 to NumberOfModules-1 do
+    begin
+      read(Modules[i].hModule, sizeof(UINT64));
+      read(Modules[i].baseaddress, sizeof(UINT64));
+      read(namelength, sizeof(namelength));
+      getmem(name, namelength+2);
+      try
+        Read(name[0], namelength);
+        name[namelength div 2]:=#0;
+        Modules[i].name:=name;
+      finally
+        freemem(name);
+      end;
+
     end;
 
+  finally
+    pipecs.leave;
   end;
+
 
   //sort the list so the most interesting ones will be on top
 
   //find modules not in the windir path
-
 
   getmem(_windir,255);
   GetWindowsDirectory(_windir, 255);
@@ -368,26 +400,33 @@ var
   name: PWideChar;
 begin
   msg.command:=CMD_ENUMDOMAINS;
-  write(msg, sizeof(msg));
-  read(NumberOfDomains, sizeof(NumberOfDomains));
 
-  setlength(domains, NumberOfDomains);
+  pipecs.enter;
+  try
+    write(msg, sizeof(msg));
+    read(NumberOfDomains, sizeof(NumberOfDomains));
 
-  for i:=0 to NumberOfDomains-1 do
-  begin
-    read(domains[i].hDomain, sizeof(uint64));
-    read(namelength, sizeof(namelength));
+    setlength(domains, NumberOfDomains);
 
-    getmem(name, namelength+2);
-    try
-      Read(name[0], namelength);
-      name[namelength div 2]:=#0;
+    for i:=0 to NumberOfDomains-1 do
+    begin
+      read(domains[i].hDomain, sizeof(uint64));
+      read(namelength, sizeof(namelength));
 
-      domains[i].name:=name;
-    finally
-      freemem(name);
+      getmem(name, namelength+2);
+      try
+        Read(name[0], namelength);
+        name[namelength div 2]:=#0;
+
+        domains[i].name:=name;
+      finally
+        freemem(name);
+      end;
     end;
+  finally
+    pipecs.leave;
   end;
+
 
 end;
 
@@ -409,7 +448,7 @@ begin
     raise Exception.create('Not connected to pipe');
 end;
 
-constructor TDotNetPipe.create(pipename: string; pid: dword; timeout:dword=10000);
+constructor TDotNetPipe.create(processid: dword; is64bit: boolean; timeout:dword=10000);
 {
 Connects to a dotnet data collector and tells it to open a specific process
 }
@@ -423,12 +462,36 @@ var
   end;
   r: BOOL;
 
+  pipename: string;
+
+  si: TStartupInfo;
+  pi: TProcessInformation;
+  bitstring: string;
 begin
+{
+function CreateProcess(lpApplicationName: PChar; lpCommandLine: PChar; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: PChar;
+  const lpStartupInfo: TStartupInfo; var lpProcessInformation: TProcessInformation): BOOL;external 'kernel32' name 'CreateProcessA';
+}
+
+  pipecs:=TCriticalsection.create;
+
+  pipename:='cedotnetpipe'+inttostr(ProcessID)+'_'+inttostr(GetTickCount); //unique pipename
 
 
+  ZeroMemory(@si, sizeof(si));
+  ZeroMemory(@pi, sizeof(pi));
+  if is64bit then
+    bitstring:='64'
+  else
+    bitstring:='32';
 
-  //try sending the attach message till write succeeds or timeout (ConnectNamedPipe has no timeout)
+  if CreateProcess(nil, pchar('"'+CheatEngineDir+'DotNetDataCollector'+bitstring+'.exe" '+pipename), nil, nil, false, 0, nil, nil, si, pi)=false then exit;
 
+  closehandle(pi.hThread);
+  pHandle:=pi.hProcess;
+
+
+  //try sending the attach message till write succeeds or timeout
   starttime:=gettickcount;
   repeat
     pipe:=CreateFile(pchar('\\.\pipe\'+pipename), GENERIC_READ or GENERIC_WRITE, FILE_SHARE_READ or FILE_SHARE_WRITE, nil, OPEN_EXISTING, 0, 0);
@@ -445,11 +508,19 @@ begin
   if fConnected then
   begin
     msg.command:=CMD_TARGETPROCESS;
-    msg.pid:=pid;
+    msg.pid:=processid;
     write(msg, sizeof(msg));
     read(r, sizeof(r));
 
     fAttached:=r;
+
+    if fAttached then
+    begin
+      read(r, sizeof(r));
+      fSupportsDotNet4_5:=r;
+    end;
+
+
   end;
 end;
 
@@ -468,7 +539,8 @@ begin
   else
   begin
     //something bad happened
-    TerminateProcess(pHandle, -1);
+    if pHandle<>0 then
+      TerminateProcess(pHandle, -1);
   end;
 
   if (pipe<>INVALID_HANDLE_VALUE) then

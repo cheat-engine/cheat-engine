@@ -70,13 +70,14 @@ uses
   LuaMemoryRecordHotkey, LuaMemoryView, LuaD3DHook, CustomBase85,
   frmMemoryViewExUnit, LuaDisassembler, LuaDissectCode, LuaByteTable, LuaBinary,
   frmD3DHookSnapshotConfigUnit, frmsnapshothandlerUnit, frmSaveSnapshotsUnit,
-  frmD3DTrainerGeneratorOptionsUnit, lua_server, frmAssemblyScanUnit, 
-frmManualStacktraceConfigUnit, cvconst, NetworkDebuggerInterface, 
-DisassemblerArm, LastDisassembleData, elfsymbols, assemblerArm, 
-frmPointerscanConnectDialogUnit, PageMap, CELazySocket,
-PointerscanNetworkCommands, frmpointerrescanconnectdialogunit,
-frmMergePointerscanResultSettingsUnit, AddresslistEditor,
-FrmMemoryRecordDropdownSettingsUnit, frmMemrecComboboxUnit, tracerIgnore;
+  frmD3DTrainerGeneratorOptionsUnit, lua_server, frmAssemblyScanUnit,
+  frmManualStacktraceConfigUnit, cvconst, NetworkDebuggerInterface,
+  DisassemblerArm, LastDisassembleData, elfsymbols, assemblerArm,
+  frmPointerscanConnectDialogUnit, PageMap, CELazySocket,
+  PointerscanNetworkCommands, frmpointerrescanconnectdialogunit,
+  frmMergePointerscanResultSettingsUnit, AddresslistEditor,
+  FrmMemoryRecordDropdownSettingsUnit, frmMemrecComboboxUnit, tracerIgnore,
+  DotNetPipe, DotNetTypes;
 
 {$R cheatengine.res}
 //{$R manifest.res}  //lazarus now has this build in
