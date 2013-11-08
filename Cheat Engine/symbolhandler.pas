@@ -909,8 +909,8 @@ begin
                   setlength(owner.dotnetModuleSymbolList, length(dotNetmodules));
                   for j:=0 to length(dotNetmodules)-1 do
                   begin
-                    owner.dotnetModuleSymbolList[j].modulename:=dotNetmodules[i].name;
-                    owner.dotnetModuleSymbolList[j].modulebase:=dotNetmodules[i].baseaddress;
+                    owner.dotnetModuleSymbolList[j].modulename:=dotNetmodules[j].name;
+                    owner.dotnetModuleSymbolList[j].modulebase:=dotNetmodules[j].baseaddress;
                     owner.dotnetModuleSymbolList[j].symbollist:=TSymbolListHandler.create;
                   end;
 
@@ -1542,6 +1542,29 @@ begin
   list.clear;
   if getmodulebyaddress(address, mi) then
   begin
+    if dotNetDataCollector<>nil then
+    begin
+      //get the .net list if symbols for this module
+      dotnetModuleSymbolListMREW.beginread;
+      for i:=0 to length(dotnetModuleSymbolList)-1 do
+      begin
+        if dotnetModuleSymbolList[i].modulebase=mi.baseaddress then
+        begin
+          si:=dotnetModuleSymbolList[i].symbollist.FindFirstSymbolFromBase(0);
+          while si<>nil do
+          begin
+            symbolname:=si.originalstring;
+
+            list.AddObject(symbolname, pointer(si.address));
+            si:=si.next;
+          end;
+          break;
+        end;
+      end;
+
+      dotnetModuleSymbolListMREW.endread;
+    end;
+
     si:=symbollist.FindFirstSymbolFromBase(mi.baseaddress);
 
     while (si<>nil) and inrangeq(si.address, mi.baseaddress, mi.baseaddress+mi.basesize) do
