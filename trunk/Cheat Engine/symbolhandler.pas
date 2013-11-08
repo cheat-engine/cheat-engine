@@ -194,6 +194,8 @@ type
     function getAddressFromName(name: string; waitforsymbols: boolean; out haserror: boolean):ptrUint; overload;
     function getAddressFromName(name: string; waitforsymbols: boolean; out haserror: boolean; context: PContext):ptrUint; overload;
 
+
+    function GetLayoutFromAddress(address: ptruint; var addressdata: TAddressData): boolean;
     function getsearchpath:string;
     procedure setsearchpath(path:string);
 
@@ -2233,6 +2235,21 @@ begin
 
 end;
 
+function TSymhandler.GetLayoutFromAddress(address: ptruint; var addressdata: TAddressData): boolean;
+begin
+  result:=false;
+  if hasDotNetAccess then
+  begin
+    try
+      if dotNetDataCollector<>nil then
+        dotNetDataCollector.GetAddressData(address, addressdata);
+
+      result:=addressdata.startaddress<>0;
+    except
+      freeandnil(dotNetDataCollector);
+    end;
+  end;
+end;
 
 function TSymhandler.loadmodulelist: boolean;  //todo: change to a quicker lookup kind of storage (tree)
 var

@@ -9,7 +9,7 @@ uses
   windows, Classes, LCLProc, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls, math,
   StdCtrls, ComCtrls, Menus, lmessages, scrolltreeview, byteinterpreter, symbolhandler, cefuncproc,
   newkernelhandler, frmSelectionlistunit, frmStructuresConfigUnit, registry, Valuechange, DOM,
-  XMLRead, XMLWrite, Clipbrd, CustomTypeHandler, strutils, fgl;
+  XMLRead, XMLWrite, Clipbrd, CustomTypeHandler, strutils, fgl, dotnetpipe, DotNetTypes;
 
 
 
@@ -146,6 +146,7 @@ type
     function addElement(name: string=''; offset: integer=0; vartype: TVariableType=vtByte; customtype:TCustomtype=nil; bytesize: integer=0; childstruct: TDissectedStruct=nil): TStructelement;
     procedure removeElement(element: TStructelement);
     procedure delete(index: integer);
+    procedure fillFromDotNetAddressData(const data: TAddressData);
     procedure autoGuessStruct(baseaddress: ptruint; offset: integer; bytesize: integer);
     procedure fillGaps(structbase: ptruint; askiftoobig: boolean);
     procedure addToGlobalStructList;
@@ -537,6 +538,7 @@ resourcestring
    rsPointerTo = 'Pointer';
    rsUnnamedStructure = 'unnamed structure';
    rsStructureDefine = 'Structure define';
+   rsStructAlreadyExists = 'The structure named %s already exists. Are you sure you want to make another structure with this name ?';
    rsGiveTheNameForThisStructure = 'Give the name for this structure';
    rsDoYouWantCheatEngineToTryAndFillInTheMostBasicType = 'Do you want Cheat '
      +'Engine to try and fill in the most basic types of the struct using the '
@@ -1147,6 +1149,67 @@ begin
 
     inc(i);
   end;
+end;
+
+procedure TDissectedStruct.fillFromDotNetAddressData(const data: TAddressData);
+var
+  i: integer;
+  e: TStructelement;
+begin
+  e:=addElement('Vtable',0, vtPointer);
+
+  //todo: Query the pointer types and auto create the childclasses as well
+
+
+  beginupdate;
+  try
+    for i:=0 to length(data.fields)-1 do
+    begin
+      e:=addElement(data.fields[i].name, data.fields[i].offset);
+
+      e.DisplayMethod:=dtUnSignedInteger;
+
+
+      case data.fields[i].fieldtype of
+        ELEMENT_TYPE_END            : e.VarType:=vtDword;
+        ELEMENT_TYPE_VOID           : e.VarType:=vtDword;
+        ELEMENT_TYPE_BOOLEAN        : e.VarType:=vtByte;
+        ELEMENT_TYPE_CHAR           : e.VarType:=vtByte;
+        ELEMENT_TYPE_I1             : begin e.DisplayMethod:=dtSignedInteger; e.VarType:=vtByte; end;
+        ELEMENT_TYPE_U1             : e.VarType:=vtByte;
+        ELEMENT_TYPE_I2             : begin e.DisplayMethod:=dtSignedInteger; e.VarType:=vtWord; end;
+        ELEMENT_TYPE_U2             : e.VarType:=vtWord;
+        ELEMENT_TYPE_I4             : begin e.DisplayMethod:=dtSignedInteger; e.VarType:=vtDWord; end;
+        ELEMENT_TYPE_U4             : e.VarType:=vtDWord;
+        ELEMENT_TYPE_I8             : begin e.DisplayMethod:=dtSignedInteger; e.VarType:=vtQWord; end;
+        ELEMENT_TYPE_U8             : e.VarType:=vtQWord;
+        ELEMENT_TYPE_R4             : e.VarType:=vtSingle;
+        ELEMENT_TYPE_R8             : e.VarType:=vtDouble;
+        ELEMENT_TYPE_STRING         : e.VarType:=vtPointer;
+        ELEMENT_TYPE_PTR            : e.VarType:=vtPointer;
+        ELEMENT_TYPE_BYREF          : e.VarType:=vtPointer;
+        ELEMENT_TYPE_VALUETYPE      : e.VarType:=vtPointer;
+        ELEMENT_TYPE_CLASS          : e.VarType:=vtPointer;
+        ELEMENT_TYPE_VAR            : e.VarType:=vtPointer;
+        ELEMENT_TYPE_ARRAY          : e.VarType:=vtPointer;
+        ELEMENT_TYPE_GENERICINST    : e.VarType:=vtPointer;
+        ELEMENT_TYPE_TYPEDBYREF     : e.VarType:=vtPointer;
+        ELEMENT_TYPE_I              : e.Vartype:=vtByte;
+        ELEMENT_TYPE_U              : e.Vartype:=vtByte;
+        ELEMENT_TYPE_FNPTR          : e.VarType:=vtPointer;
+        ELEMENT_TYPE_OBJECT         : e.VarType:=vtPointer;
+        ELEMENT_TYPE_SZARRAY        : e.VarType:=vtPointer;
+        else
+          e.VarType:=vtPointer;
+
+      end;
+
+    end;
+
+  finally
+    endUpdate;
+  end;
+  DoFullStructChangeNotification;
 end;
 
 procedure TDissectedStruct.autoGuessStruct(baseaddress: ptruint; offset: integer; bytesize: integer);
@@ -3050,14 +3113,30 @@ var
   autoFillIn: integer;
   sstructsize: string;
   structsize: integer;
+
+  addressdata: TAddressData;
+  hasAddressData: boolean;
+  i: integer;
 begin
   result:=nil;
   if columnCount>0 then
   begin
-    structname:=rsUnnamedStructure;
+
+
+    hasAddressData:=symhandler.GetLayoutFromAddress(TStructColumn(columns[0]).getAddress, addressdata);
+
+    if hasAddressData then
+      structname:=addressdata.classname
+    else
+      structname:=rsUnnamedStructure;
 
     //get the name
     if not inputquery(rsStructureDefine, rsGiveTheNameForThisStructure, structName) then exit;
+
+    for i:=0 to DissectedStructs.Count-1 do
+      if dissectedstructs[i].name=structname then
+        if messagedlg(format(rsStructAlreadyExists,[structname]), mtWarning, [mbyes, mbno], 0)<>mryes then exit;
+
 
     //ask if it should be filled in automatically
     autoFillIn:=messagedlg(rsDoYouWantCheatEngineToTryAndFillInTheMostBasicType, mtconfirmation, [mbyes, mbno, mbcancel], 0);
@@ -3071,14 +3150,23 @@ begin
 
     if autofillin=mryes then
     begin
-      sstructsize:=inttostr(recommendedSize);
-      if not inputquery(rsStructureDefine, rsPleaseGiveAStartingSizeOfTheStructYouCanChangeThis, Sstructsize) then exit;
-      structsize:=strtoint(sstructsize);
-
-      if TStructColumn(columns[0]).getSavedState=nil then
-        mainStruct.autoGuessStruct(TStructColumn(columns[0]).getAddress, 0, structsize )
+      if symhandler.GetLayoutFromAddress(TStructColumn(columns[0]).getAddress, addressdata) then
+      begin
+        TStructColumn(columns[0]).setAddress(addressdata.startaddress);
+        mainStruct.FillFromDotNetAddressData(addressdata);
+      end
       else
-        mainStruct.autoGuessStruct(ptruint(TStructColumn(columns[0]).getSavedState), 0, min(structsize, TStructColumn(columns[0]).getSavedStateSize)); //fill base don the saved state
+      begin
+        sstructsize:=inttostr(recommendedSize);
+        if not inputquery(rsStructureDefine, rsPleaseGiveAStartingSizeOfTheStructYouCanChangeThis, Sstructsize) then exit;
+        structsize:=strtoint(sstructsize);
+
+        if TStructColumn(columns[0]).getSavedState=nil then
+          mainStruct.autoGuessStruct(TStructColumn(columns[0]).getAddress, 0, structsize )
+        else
+          mainStruct.autoGuessStruct(ptruint(TStructColumn(columns[0]).getSavedState), 0, min(structsize, TStructColumn(columns[0]).getSavedStateSize)); //fill base don the saved state
+
+      end;
     end;
 
     mainStruct.addToGlobalStructList;
