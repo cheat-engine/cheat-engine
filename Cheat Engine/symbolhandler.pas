@@ -6,7 +6,8 @@ interface
 
 
 uses jwawindows, windows, classes,LCLIntf,imagehlp,{psapi,}sysutils, cefuncproc,
-  newkernelhandler,syncobjs, SymbolListHandler, fgl, typinfo, cvconst, PEInfoFunctions;
+  newkernelhandler,syncobjs, SymbolListHandler, fgl, typinfo, cvconst, PEInfoFunctions,
+  DotNetPipe, DotNetTypes;
 
 
 Procedure Free (P : pointer); cdecl; external 'msvcrt' name 'free';
@@ -127,6 +128,8 @@ type
     symbollist: TSymbolListHandler;
 
     SymbolsLoadedNotification: array of TNotifyEvent;
+
+    dotNetDataCollector: TDotNetPipe;
 
     function getusedprocesshandle :thandle;
     function getusedprocessid:dword;
@@ -751,6 +754,8 @@ var sp: pchar;
 
     mpl: Tstringlist;
     i: integer;
+
+    dotNetDataCollector: TDotNetPipe;
 begin
 
   try
@@ -784,6 +789,16 @@ begin
 
       if c=nil then //local
       begin
+
+        if thisprocessid<>GetCurrentProcessId then //I'm quite sure ce isn't written in .net
+        begin
+          dotNetDataCollector:=TDotNetPipe.create(thisprocessid, Is64BitProcess(thisprocesshandle));
+          if dotNetDataCollector.Attached then
+            owner.dotNetDataCollector:=dotNetDataCollector //mark it as valid
+          else
+            dotNetDataCollector.free;
+        end;
+
         SymbolsLoaded:=SymInitialize(thisprocesshandle, sp, true);
 
         if symbolsloaded then
@@ -798,6 +813,8 @@ begin
           SymEnumerateModules64(thisprocesshandle, @EM, self );
 
           Symcleanup(thisprocesshandle);
+
+
         end else error:=true;
       end
       else
@@ -1008,6 +1025,9 @@ begin
       symbolloaderthread.WaitFor; //wait till it's done
       freeandnil(symbolloaderthread);
     end;
+
+    if dotNetDataCollector<>nil then
+      freeandnil(dotNetDataCollector);
 
     symbolloaderthread:=tsymbolloaderthread.Create(self, targetself,true);
     symbolloaderthread.kernelsymbols:=kernelsymbols;

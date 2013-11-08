@@ -25,7 +25,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
       <MinorVersionNr Value="3"/>
-      <BuildNr Value="3582"/>
+      <BuildNr Value="3588"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="6.3"/>
@@ -162,7 +162,7 @@
         <PackageName Value="LCL"/>
       </Item5>
     </RequiredPackages>
-    <Units Count="300">
+    <Units Count="304">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -194,8 +194,8 @@
         <UnitName Value="MainUnit"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="6763"/>
-        <CursorPos X="57" Y="6772"/>
+        <TopLine Value="1244"/>
+        <CursorPos X="23" Y="1258"/>
         <UsageCount Value="211"/>
         <Bookmarks Count="1">
           <Item0 X="1" Y="3539" ID="9"/>
@@ -208,20 +208,22 @@
         <Filename Value="NewKernelHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="NewKernelHandler"/>
+        <EditorIndex Value="9"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="574"/>
-        <CursorPos X="3" Y="589"/>
+        <TopLine Value="771"/>
+        <CursorPos X="1" Y="795"/>
         <UsageCount Value="211"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit3>
       <Unit4>
         <Filename Value="CEFuncProc.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="CEFuncProc"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="12"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="758"/>
-        <CursorPos X="1" Y="773"/>
+        <TopLine Value="538"/>
+        <CursorPos X="10" Y="552"/>
         <UsageCount Value="204"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -240,10 +242,13 @@
         <Filename Value="symbolhandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="symbolhandler"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="2048"/>
-        <CursorPos X="77" Y="2061"/>
+        <TopLine Value="1011"/>
+        <CursorPos X="1" Y="1029"/>
         <UsageCount Value="204"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit6>
       <Unit7>
@@ -625,7 +630,6 @@
         <Filename Value="memscan.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="memscan"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
         <TopLine Value="3097"/>
@@ -3223,14 +3227,14 @@
         <WindowIndex Value="0"/>
         <TopLine Value="5134"/>
         <CursorPos X="6" Y="5148"/>
-        <UsageCount Value="42"/>
+        <UsageCount Value="41"/>
       </Unit269>
       <Unit270>
         <Filename Value="C:\lazarus\fpc\2.6.2\source\rtl\objpas\classes\classesh.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="96"/>
         <CursorPos X="3" Y="110"/>
-        <UsageCount Value="12"/>
+        <UsageCount Value="11"/>
       </Unit270>
       <Unit271>
         <Filename Value="C:\lazarus\fpc\2.6.2\source\rtl\win\winsock2.pp"/>
@@ -3238,7 +3242,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="44"/>
         <CursorPos X="3" Y="60"/>
-        <UsageCount Value="7"/>
+        <UsageCount Value="6"/>
       </Unit271>
       <Unit272>
         <Filename Value="frmpointerscanconnectdialogunit.pas"/>
@@ -3259,7 +3263,7 @@
         <WindowIndex Value="1"/>
         <TopLine Value="183"/>
         <CursorPos X="5" Y="201"/>
-        <UsageCount Value="79"/>
+        <UsageCount Value="78"/>
       </Unit273>
       <Unit274>
         <Filename Value="pagemap.pas"/>
@@ -3310,14 +3314,14 @@
         <WindowIndex Value="1"/>
         <TopLine Value="523"/>
         <CursorPos X="3" Y="539"/>
-        <UsageCount Value="201"/>
+        <UsageCount Value="200"/>
       </Unit278>
       <Unit279>
         <Filename Value="C:\lazarus\lcl\include\winapih.inc"/>
         <WindowIndex Value="1"/>
         <TopLine Value="197"/>
         <CursorPos X="10" Y="213"/>
-        <UsageCount Value="200"/>
+        <UsageCount Value="199"/>
       </Unit279>
       <Unit280>
         <Filename Value="C:\lazarus\lcl\lclintf.pas"/>
@@ -3325,7 +3329,7 @@
         <WindowIndex Value="1"/>
         <TopLine Value="130"/>
         <CursorPos X="1" Y="147"/>
-        <UsageCount Value="175"/>
+        <UsageCount Value="174"/>
       </Unit280>
       <Unit281>
         <Filename Value="C:\lazarus\fpc\2.6.2\source\packages\winunits-jedi\src\jwawindows.pas"/>
@@ -3333,14 +3337,14 @@
         <WindowIndex Value="0"/>
         <TopLine Value="676"/>
         <CursorPos X="3" Y="692"/>
-        <UsageCount Value="154"/>
+        <UsageCount Value="153"/>
       </Unit281>
       <Unit282>
         <Filename Value="C:\lazarus\fpc\2.6.2\source\rtl\win\wininc\ascdef.inc"/>
         <WindowIndex Value="1"/>
         <TopLine Value="109"/>
         <CursorPos X="10" Y="125"/>
-        <UsageCount Value="151"/>
+        <UsageCount Value="150"/>
       </Unit282>
       <Unit283>
         <Filename Value="frmmergepointerscanresultsettingsunit.pas"/>
@@ -3371,7 +3375,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="320"/>
         <CursorPos X="14" Y="333"/>
-        <UsageCount Value="16"/>
+        <UsageCount Value="15"/>
       </Unit285>
       <Unit286>
         <Filename Value="C:\lazarus\lcl\graphics.pp"/>
@@ -3379,14 +3383,14 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1152"/>
         <CursorPos X="15" Y="1166"/>
-        <UsageCount Value="38"/>
+        <UsageCount Value="37"/>
       </Unit286>
       <Unit287>
         <Filename Value="C:\lazarus\lcl\include\control.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="4149"/>
         <CursorPos X="1" Y="4172"/>
-        <UsageCount Value="38"/>
+        <UsageCount Value="37"/>
       </Unit287>
       <Unit288>
         <Filename Value="C:\lazarus\lcl\comctrls.pp"/>
@@ -3394,21 +3398,21 @@
         <WindowIndex Value="0"/>
         <TopLine Value="2723"/>
         <CursorPos X="14" Y="2980"/>
-        <UsageCount Value="40"/>
+        <UsageCount Value="39"/>
       </Unit288>
       <Unit289>
         <Filename Value="C:\lazarus\lcl\include\canvas.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1178"/>
         <CursorPos X="1" Y="1187"/>
-        <UsageCount Value="40"/>
+        <UsageCount Value="39"/>
       </Unit289>
       <Unit290>
         <Filename Value="C:\lazarus\lcl\include\headercontrol.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="485"/>
         <CursorPos X="1" Y="502"/>
-        <UsageCount Value="40"/>
+        <UsageCount Value="39"/>
       </Unit290>
       <Unit291>
         <Filename Value="frmmemoryrecorddropdownsettingsunit.pas"/>
@@ -3429,7 +3433,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="507"/>
         <CursorPos X="10" Y="521"/>
-        <UsageCount Value="15"/>
+        <UsageCount Value="14"/>
       </Unit292>
       <Unit293>
         <Filename Value="frmmemreccomboboxunit.pas"/>
@@ -3449,14 +3453,14 @@
         <WindowIndex Value="0"/>
         <TopLine Value="762"/>
         <CursorPos X="13" Y="786"/>
-        <UsageCount Value="14"/>
+        <UsageCount Value="13"/>
       </Unit294>
       <Unit295>
         <Filename Value="C:\lazarus\lcl\include\treeview.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="522"/>
         <CursorPos X="8" Y="546"/>
-        <UsageCount Value="3"/>
+        <UsageCount Value="2"/>
       </Unit295>
       <Unit296>
         <Filename Value="tracerignore.pas"/>
@@ -3465,7 +3469,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="23"/>
         <CursorPos X="1" Y="34"/>
-        <UsageCount Value="195"/>
+        <UsageCount Value="201"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit296>
       <Unit297>
@@ -3474,14 +3478,14 @@
         <WindowIndex Value="0"/>
         <TopLine Value="3261"/>
         <CursorPos X="1" Y="3278"/>
-        <UsageCount Value="11"/>
+        <UsageCount Value="10"/>
       </Unit297>
       <Unit298>
         <Filename Value="C:\lazarus\fpc\2.6.2\source\rtl\objpas\sysutils\sysutilh.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="82"/>
         <CursorPos X="4" Y="95"/>
-        <UsageCount Value="8"/>
+        <UsageCount Value="7"/>
       </Unit298>
       <Unit299>
         <Filename Value="C:\lazarus\fpc\2.6.2\source\packages\winunits-jedi\src\jwanative.pas"/>
@@ -3490,130 +3494,171 @@
         <WindowIndex Value="0"/>
         <TopLine Value="8350"/>
         <CursorPos X="10" Y="8364"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="24"/>
         <Loaded Value="True"/>
       </Unit299>
+      <Unit300>
+        <Filename Value="dotnetpipe.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="DotNetPipe"/>
+        <EditorIndex Value="7"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="506"/>
+        <CursorPos X="1" Y="525"/>
+        <UsageCount Value="28"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit300>
+      <Unit301>
+        <Filename Value="dotnettypes.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="DotNetTypes"/>
+        <EditorIndex Value="11"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="64"/>
+        <CursorPos X="44" Y="80"/>
+        <UsageCount Value="28"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit301>
+      <Unit302>
+        <Filename Value="C:\lazarus\fpc\2.6.2\source\rtl\win\wininc\redef.inc"/>
+        <EditorIndex Value="10"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="328"/>
+        <CursorPos X="1" Y="344"/>
+        <UsageCount Value="14"/>
+        <Loaded Value="True"/>
+      </Unit302>
+      <Unit303>
+        <Filename Value="C:\lazarus\fpc\2.6.2\source\packages\fcl-base\src\syncobjs.pp"/>
+        <UnitName Value="syncobjs"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="24"/>
+        <CursorPos X="4" Y="38"/>
+        <UsageCount Value="10"/>
+      </Unit303>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="3253" Column="1" TopLine="3240"/>
+        <Filename Value="dotnetpipe.pas"/>
+        <Caret Line="481" Column="1" TopLine="467"/>
       </Position1>
       <Position2>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="3254" Column="1" TopLine="3240"/>
+        <Filename Value="dotnetpipe.pas"/>
+        <Caret Line="482" Column="1" TopLine="467"/>
       </Position2>
       <Position3>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="3256" Column="1" TopLine="3240"/>
+        <Filename Value="dotnetpipe.pas"/>
+        <Caret Line="483" Column="1" TopLine="467"/>
       </Position3>
       <Position4>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="3257" Column="1" TopLine="3240"/>
+        <Filename Value="dotnetpipe.pas"/>
+        <Caret Line="486" Column="1" TopLine="467"/>
       </Position4>
       <Position5>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="3256" Column="1" TopLine="3240"/>
+        <Filename Value="dotnetpipe.pas"/>
+        <Caret Line="488" Column="1" TopLine="467"/>
       </Position5>
       <Position6>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="3257" Column="1" TopLine="3240"/>
+        <Filename Value="dotnetpipe.pas"/>
+        <Caret Line="490" Column="1" TopLine="467"/>
       </Position6>
       <Position7>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="3256" Column="1" TopLine="3240"/>
+        <Filename Value="dotnetpipe.pas"/>
+        <Caret Line="491" Column="1" TopLine="468"/>
       </Position7>
       <Position8>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="3257" Column="1" TopLine="3240"/>
+        <Filename Value="dotnetpipe.pas"/>
+        <Caret Line="495" Column="1" TopLine="472"/>
       </Position8>
       <Position9>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="3256" Column="1" TopLine="3240"/>
+        <Filename Value="dotnetpipe.pas"/>
+        <Caret Line="497" Column="1" TopLine="474"/>
       </Position9>
       <Position10>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="3257" Column="1" TopLine="3240"/>
+        <Filename Value="dotnetpipe.pas"/>
+        <Caret Line="498" Column="1" TopLine="475"/>
       </Position10>
       <Position11>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="3256" Column="1" TopLine="3240"/>
+        <Filename Value="dotnetpipe.pas"/>
+        <Caret Line="500" Column="1" TopLine="477"/>
       </Position11>
       <Position12>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="3257" Column="1" TopLine="3240"/>
+        <Filename Value="dotnetpipe.pas"/>
+        <Caret Line="501" Column="1" TopLine="478"/>
       </Position12>
       <Position13>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="3256" Column="1" TopLine="3240"/>
+        <Filename Value="dotnetpipe.pas"/>
+        <Caret Line="508" Column="1" TopLine="494"/>
       </Position13>
       <Position14>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="3257" Column="1" TopLine="3240"/>
+        <Filename Value="dotnetpipe.pas"/>
+        <Caret Line="510" Column="1" TopLine="494"/>
       </Position14>
       <Position15>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="3256" Column="1" TopLine="3240"/>
+        <Filename Value="dotnetpipe.pas"/>
+        <Caret Line="511" Column="1" TopLine="494"/>
       </Position15>
       <Position16>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="3257" Column="1" TopLine="3240"/>
+        <Filename Value="dotnetpipe.pas"/>
+        <Caret Line="512" Column="1" TopLine="494"/>
       </Position16>
       <Position17>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="3256" Column="1" TopLine="3240"/>
+        <Filename Value="dotnetpipe.pas"/>
+        <Caret Line="513" Column="1" TopLine="494"/>
       </Position17>
       <Position18>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="3257" Column="1" TopLine="3240"/>
+        <Filename Value="dotnetpipe.pas"/>
+        <Caret Line="515" Column="1" TopLine="494"/>
       </Position18>
       <Position19>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="3256" Column="1" TopLine="3240"/>
+        <Filename Value="dotnetpipe.pas"/>
+        <Caret Line="517" Column="1" TopLine="494"/>
       </Position19>
       <Position20>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="3257" Column="1" TopLine="3240"/>
+        <Filename Value="dotnetpipe.pas"/>
+        <Caret Line="519" Column="20" TopLine="496"/>
       </Position20>
       <Position21>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="3256" Column="1" TopLine="3240"/>
+        <Filename Value="dotnetpipe.pas"/>
+        <Caret Line="481" Column="1" TopLine="467"/>
       </Position21>
       <Position22>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="3257" Column="1" TopLine="3240"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="794" Column="1" TopLine="782"/>
       </Position22>
       <Position23>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="3256" Column="1" TopLine="3240"/>
+        <Filename Value="dotnetpipe.pas"/>
+        <Caret Line="520" Column="1" TopLine="506"/>
       </Position23>
       <Position24>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="3257" Column="1" TopLine="3240"/>
+        <Filename Value="dotnetpipe.pas"/>
+        <Caret Line="525" Column="1" TopLine="506"/>
       </Position24>
       <Position25>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="3256" Column="1" TopLine="3240"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="794" Column="1" TopLine="782"/>
       </Position25>
       <Position26>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="3257" Column="1" TopLine="3240"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="795" Column="1" TopLine="782"/>
       </Position26>
       <Position27>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="3256" Column="1" TopLine="3240"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="793" Column="1" TopLine="782"/>
       </Position27>
       <Position28>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="3257" Column="1" TopLine="3240"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="747" Column="30" TopLine="742"/>
       </Position28>
       <Position29>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="3269" Column="6" TopLine="3249"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="864" Column="39" TopLine="840"/>
       </Position29>
       <Position30>
-        <Filename Value="memscan.pas"/>
-        <Caret Line="3257" Column="19" TopLine="3255"/>
+        <Filename Value="symbolhandler.pas"/>
+        <Caret Line="1031" Column="1" TopLine="1011"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>
@@ -3669,7 +3714,7 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <BreakPoints Count="3">
+    <BreakPoints Count="4">
       <Item1>
         <Kind Value="bpkSource"/>
         <WatchScope Value="wpsLocal"/>
@@ -3682,7 +3727,7 @@
         <WatchScope Value="wpsLocal"/>
         <WatchKind Value="wpkWrite"/>
         <Source Value="symbolhandler.pas"/>
-        <Line Value="2110"/>
+        <Line Value="2130"/>
       </Item2>
       <Item3>
         <Kind Value="bpkSource"/>
@@ -3691,6 +3736,13 @@
         <Source Value="pointerscannerfrm.pas"/>
         <Line Value="1014"/>
       </Item3>
+      <Item4>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="symbolhandler.pas"/>
+        <Line Value="1029"/>
+      </Item4>
     </BreakPoints>
     <Watches Count="4">
       <Item1>
