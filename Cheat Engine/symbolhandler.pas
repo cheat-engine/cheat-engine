@@ -73,6 +73,7 @@ type
 
     extraSymbolData: TExtraSymbolData;
 
+    procedure EnumDotNetModule(m: TdotNetmodule; symbolhandler: TSymbolListHandler);
     procedure LoadDriverSymbols;
     procedure LoadDLLSymbols;
     procedure finishedLoadingSymbols;
@@ -273,6 +274,66 @@ var EnumProcessModulesEx: TEnumProcessModulesEx;
 function EnumProcessModulesExNotImplemented(hProcess: HANDLE; lphModule: PHMODULE; cb: DWORD; var lpcbNeeded: DWORD; dwFilterFlag: DWORD): BOOL; stdcall;
 begin
   result:=EnumProcessModules(hProcess,lphModule,cb,lpcbNeeded);
+end;
+
+procedure TSymbolLoaderThread.EnumDotNetModule(m: TdotNetmodule; symbolhandler: TSymbolListHandler);
+{
+Enumerates the methods of the given module.
+pre: owner must have already set a valid dotNetDataCollector and not about to get destroyed
+}
+var
+  dotNetTypedefs: TDotNetTypeDefArray;
+  dotnetmethods: TDotNetMethodArray;
+  dotnettypedefsIterator: integer;
+  dotnetmethodsIterator: integer;
+  i: integer;
+  name: string;
+  address: qword;
+  size: dword;
+begin
+  if terminated then exit;
+
+  setlength(dotNetTypedefs, 0);
+  owner.dotNetDataCollector.EnumTypeDefs(m.hModule, dotNetTypedefs );
+
+  for dotnettypedefsIterator:=0 to length(dotnettypedefs)-1 do
+  begin
+    setlength(dotnetmethods,0);
+
+    owner.dotNetDataCollector.GetTypeDefMethods(m.hModule, dotnettypedefs[dotnettypedefsIterator].token, dotnetmethods);
+    for dotnetmethodsIterator:=0 to length(dotnetmethods)-1 do
+    begin
+      if dotnetmethods[dotnetmethodsIterator].NativeCode<>0 then
+      begin
+        if length(dotnetmethods[dotnetmethodsIterator].SecondaryNativeCode)>0 then
+        begin
+          for i:=0 to length(dotnetmethods[dotnetmethodsIterator].SecondaryNativeCode)-1 do
+          begin
+            address:=dotnetmethods[dotnetmethodsIterator].SecondaryNativeCode[i].address;
+            size:=dotnetmethods[dotnetmethodsIterator].SecondaryNativeCode[i].size;
+            if i=0 then //first one
+              name:=dotnettypedefs[dotnettypedefsIterator].name+'::'+dotnetmethods[dotnetmethodsIterator].name
+            else
+              name:=dotnettypedefs[dotnettypedefsIterator].name+'::'+dotnetmethods[dotnetmethodsIterator].name+'_'+inttostr(i+1);
+
+            symbolhandler.AddSymbol(m.name, name, address, size);
+
+          end;
+
+        end
+        else
+          symbolhandler.AddSymbol(m.name, dotnettypedefs[dotnettypedefsIterator].name+'::'+dotnetmethods[dotnetmethodsIterator].name, dotnetmethods[dotnetmethodsIterator].NativeCode, 1)
+
+      end;
+
+      if dotnetmethods[dotnetmethodsIterator].ILCODE<>0 then //this can happen for PINVOKE's methods
+        symbolhandler.AddSymbol(m.name, dotnettypedefs[dotnettypedefsIterator].name+'::'+dotnetmethods[dotnetmethodsIterator].name+'_IL', dotnetmethods[dotnetmethodsIterator].ILCODE,1);
+
+
+
+    end;
+  end;
+
 end;
 
 procedure TSymbolloaderthread.LoadDLLSymbols;
@@ -831,8 +892,7 @@ begin
           begin
 
 
-            //enum the first module right away
-
+            //enum the modulelist
             setlength(dotNetdomains,0);
             try
               dotNetDataCollector.EnumDomains(dotNetdomains);
@@ -843,79 +903,34 @@ begin
                   setlength(dotNetmodules,0);
                   dotNetDataCollector.EnumModuleList(dotNetdomains[i].hDomain, dotNetmodules);
 
+                  //still here, add the modules
+                  owner.dotnetModuleSymbolListMREW.Beginwrite;
+
+                  setlength(owner.dotnetModuleSymbolList, length(dotNetmodules));
                   for j:=0 to length(dotNetmodules)-1 do
                   begin
-                    if j=0 then
-                    begin
-                      setlength(dotNetTypedefs, length(dotnettypedefs));
-                      dotNetDataCollector.EnumTypeDefs(dotNetmodules[j].hModule, dotNetTypedefs );
-
-                      //still here, add the module
-                      owner.dotnetModuleSymbolListMREW.Beginwrite;
-                      try
-                        setlength(owner.dotnetModuleSymbolList,1); //it's the first one
-                        owner.dotnetModuleSymbolList[0].modulename:=dotNetmodules[i].name;
-                        owner.dotnetModuleSymbolList[0].modulebase:=dotNetmodules[i].baseaddress;
-                        owner.dotnetModuleSymbolList[0].symbollist:=TSymbolListHandler.create;
-                      finally
-                        owner.dotnetModuleSymbolListMREW.Endwrite;
-                      end;
-
-                      for k:=0 to length(dotnettypedefs)-1 do
-                      begin
-                        setlength(dotnetmethods,0);
-
-                        dotNetDataCollector.GetTypeDefMethods(dotnetmodules[j].hModule, dotnettypedefs[k].token, dotnetmethods);
-                        for l:=0 to length(dotnetmethods)-1 do
-                        begin
-                          if dotnetmethods[l].NativeCode<>0 then
-                          begin
-                            if length(dotnetmethods[l].SecondaryNativeCode)>0 then
-                            begin
-                              for m:=0 to length(dotnetmethods[l].SecondaryNativeCode)-1 do
-                              begin
-                                address:=dotnetmethods[l].SecondaryNativeCode[m].address;
-                                size:=dotnetmethods[l].SecondaryNativeCode[m].size;
-                                if m=0 then
-                                  name:=dotnettypedefs[k].name+'::'+dotnetmethods[l].name
-                                else
-                                  name:=dotnettypedefs[k].name+'::'+dotnetmethods[l].name+'_'+inttostr(m+1);
-
-                                owner.dotnetModuleSymbolList[0].symbollist.AddSymbol(dotNetmodules[j].name, name, address, size);
-
-
-                              end;
-
-                            end
-                            else
-                              owner.dotnetModuleSymbolList[0].symbollist.AddSymbol(dotNetmodules[j].name, dotnettypedefs[k].name+'::'+dotnetmethods[l].name, dotnetmethods[l].NativeCode, 1)
-
-                          end;
-
-                          if dotnetmethods[l].ILCODE<>0 then //this can happen for PINVOKE's methods
-                            owner.dotnetModuleSymbolList[0].symbollist.AddSymbol(dotNetmodules[j].name, dotnettypedefs[k].name+'::'+dotnetmethods[l].name+'_IL', dotnetmethods[l].ILCODE,1);
-
-
-
-
-                        end;
-                      end;
-                    end;
-
-                    dotNetDataCollector.ReleaseObject(dotNetmodules[j].hModule);
+                    owner.dotnetModuleSymbolList[j].modulename:=dotNetmodules[i].name;
+                    owner.dotnetModuleSymbolList[j].modulebase:=dotNetmodules[i].baseaddress;
+                    owner.dotnetModuleSymbolList[j].symbollist:=TSymbolListHandler.create;
                   end;
+
+                  owner.dotnetModuleSymbolListMREW.Endwrite;
                 end;
 
                 //cleanup
                 dotNetDataCollector.ReleaseObject(dotNetdomains[i].hDomain);
               end;
 
-              owner.dotNetDataCollector:=dotNetDataCollector; //mark it as valid and avauilable to users
+              owner.dotNetDataCollector:=dotNetDataCollector; //mark it as valid and available to users
+
             except
               //communication error
               freeandnil(dotNetDataCollector);
             end;
 
+            //enumerate the first module
+            EnumDotNetModule(dotNetmodules[0], owner.dotnetModuleSymbolList[0].symbollist);
+            dotNetDataCollector.ReleaseObject(dotNetmodules[0].hModule); //free this one already
           end
           else
             freeandnil(dotNetDataCollector);
@@ -937,6 +952,15 @@ begin
           Symcleanup(thisprocesshandle);
 
 
+          if dotNetDataCollector<>nil then
+          begin
+            //Enumerate the other .net module methods
+            for i:=1 to length(dotNetmodules)-1 do
+            begin
+              EnumDotNetModule(dotNetmodules[i], owner.dotnetModuleSymbolList[i].symbollist);
+              dotNetDataCollector.ReleaseObject(dotNetmodules[i].hModule);
+            end;
+          end;
         end else error:=true;
       end
       else
@@ -992,6 +1016,7 @@ begin
   self.targetself:=targetself;
   
 {$ifdef autoassemblerdll}
+        end;
   _processid:=symbolhandler.ProcessID;
   _processhandle:=symbolhandler.processhandle;
 {$else}

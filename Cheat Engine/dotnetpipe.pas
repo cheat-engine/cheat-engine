@@ -434,9 +434,11 @@ var
   x: dword;
   msg: packed record
     command: byte;
+    hobject: uint64;
   end;
 begin
   msg.command:=CMD_RELEASEOBJECTHANDLE;
+  msg.hobject:=hobject;
 
   pipecs.enter;
   try
