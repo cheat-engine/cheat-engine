@@ -864,16 +864,33 @@ end;
 
 procedure TStructelement.AutoCreateChildStruct(name: string; address: ptruint);
 var c: TDissectedStruct;
+  addressdata: TAddressData;
 begin
   if isPointer and (ChildStruct=nil) then
   begin
     c:=TDissectedStruct.create(name);
-    c.autoGuessStruct(address, 0, parent.autoCreateStructsize);
 
-    if c.count>0 then
-      ChildStruct:=c
+    if symhandler.GetLayoutFromAddress(address, addressdata) then
+    begin
+      c.fillFromDotNetAddressData(addressdata);
+      if c.count>0 then
+      begin
+        ChildStruct:=c;
+        ChildStructStart:=address-addressdata.startaddress;
+      end
+      else
+        c.free;
+    end
     else
-      c.free;
+    begin
+      c.autoGuessStruct(address, 0, parent.autoCreateStructsize);
+
+      if c.count>0 then
+        ChildStruct:=c
+      else
+        c.free;
+    end;
+
   end;
 end;
 
@@ -1153,61 +1170,119 @@ end;
 
 procedure TDissectedStruct.fillFromDotNetAddressData(const data: TAddressData);
 var
-  i: integer;
+  i,j: integer;
+  x: dword;
   e: TStructelement;
+  buf: pbytearray;
+  bufsize: integer;
+  ctp: PCustomType;
+  customtype: TCustomType;
+
+  vt: TVariableType;
+
+  offset: integer;
+  elemsize: integer;
 begin
+  if frmStructuresConfig.cbAutoGuessCustomTypes.checked then
+    ctp:=@customtype
+  else
+    ctp:=nil;
+
+
   e:=addElement('Vtable',0, vtPointer);
 
   //todo: Query the pointer types and auto create the childclasses as well
 
-
-  beginupdate;
-  try
-    for i:=0 to length(data.fields)-1 do
-    begin
-      e:=addElement(data.fields[i].name, data.fields[i].offset);
-
-      e.DisplayMethod:=dtUnSignedInteger;
+  if length(data.fields)>0 then
+  begin
+    bufsize:=data.fields[length(data.fields)-1].offset+16;
+    getmem(buf, bufsize);
+    readprocessmemory(processhandle,pointer(data.startaddress),@buf[0],bufsize,x);
 
 
-      case data.fields[i].fieldtype of
-        ELEMENT_TYPE_END            : e.VarType:=vtDword;
-        ELEMENT_TYPE_VOID           : e.VarType:=vtDword;
-        ELEMENT_TYPE_BOOLEAN        : e.VarType:=vtByte;
-        ELEMENT_TYPE_CHAR           : e.VarType:=vtByte;
-        ELEMENT_TYPE_I1             : begin e.DisplayMethod:=dtSignedInteger; e.VarType:=vtByte; end;
-        ELEMENT_TYPE_U1             : e.VarType:=vtByte;
-        ELEMENT_TYPE_I2             : begin e.DisplayMethod:=dtSignedInteger; e.VarType:=vtWord; end;
-        ELEMENT_TYPE_U2             : e.VarType:=vtWord;
-        ELEMENT_TYPE_I4             : begin e.DisplayMethod:=dtSignedInteger; e.VarType:=vtDWord; end;
-        ELEMENT_TYPE_U4             : e.VarType:=vtDWord;
-        ELEMENT_TYPE_I8             : begin e.DisplayMethod:=dtSignedInteger; e.VarType:=vtQWord; end;
-        ELEMENT_TYPE_U8             : e.VarType:=vtQWord;
-        ELEMENT_TYPE_R4             : e.VarType:=vtSingle;
-        ELEMENT_TYPE_R8             : e.VarType:=vtDouble;
-        ELEMENT_TYPE_STRING         : e.VarType:=vtPointer;
-        ELEMENT_TYPE_PTR            : e.VarType:=vtPointer;
-        ELEMENT_TYPE_BYREF          : e.VarType:=vtPointer;
-        ELEMENT_TYPE_VALUETYPE      : e.VarType:=vtPointer;
-        ELEMENT_TYPE_CLASS          : e.VarType:=vtPointer;
-        ELEMENT_TYPE_VAR            : e.VarType:=vtPointer;
-        ELEMENT_TYPE_ARRAY          : e.VarType:=vtPointer;
-        ELEMENT_TYPE_GENERICINST    : e.VarType:=vtPointer;
-        ELEMENT_TYPE_TYPEDBYREF     : e.VarType:=vtPointer;
-        ELEMENT_TYPE_I              : e.Vartype:=vtByte;
-        ELEMENT_TYPE_U              : e.Vartype:=vtByte;
-        ELEMENT_TYPE_FNPTR          : e.VarType:=vtPointer;
-        ELEMENT_TYPE_OBJECT         : e.VarType:=vtPointer;
-        ELEMENT_TYPE_SZARRAY        : e.VarType:=vtPointer;
-        else
-          e.VarType:=vtPointer;
+    beginupdate;
+    try
+      for i:=0 to length(data.fields)-1 do
+      begin
+        e:=addElement(data.fields[i].name, data.fields[i].offset);
+
+        e.DisplayMethod:=dtUnSignedInteger;
+
+        if data.fields[i].name='bodyVelocity' then
+        begin
+          beep;
+        end;
+
+
+        case data.fields[i].fieldtype of
+          ELEMENT_TYPE_END            : e.VarType:=vtDword;
+          ELEMENT_TYPE_VOID           : e.VarType:=vtDword;
+          ELEMENT_TYPE_BOOLEAN        : e.VarType:=vtByte;
+          ELEMENT_TYPE_CHAR           : begin e.VarType:=vtUnicodeString; e.setBytesize(256); end;
+          ELEMENT_TYPE_I1             : begin e.DisplayMethod:=dtSignedInteger; e.VarType:=vtByte; end;
+          ELEMENT_TYPE_U1             : e.VarType:=vtByte;
+          ELEMENT_TYPE_I2             : begin e.DisplayMethod:=dtSignedInteger; e.VarType:=vtWord; end;
+          ELEMENT_TYPE_U2             : e.VarType:=vtWord;
+          ELEMENT_TYPE_I4             : begin e.DisplayMethod:=dtSignedInteger; e.VarType:=vtDWord; end;
+          ELEMENT_TYPE_U4             : e.VarType:=vtDWord;
+          ELEMENT_TYPE_I8             : begin e.DisplayMethod:=dtSignedInteger; e.VarType:=vtQWord; end;
+          ELEMENT_TYPE_U8             : e.VarType:=vtQWord;
+          ELEMENT_TYPE_R4             : e.VarType:=vtSingle;
+          ELEMENT_TYPE_R8             : e.VarType:=vtDouble;
+          ELEMENT_TYPE_STRING         : e.VarType:=vtPointer;
+          ELEMENT_TYPE_PTR            : e.VarType:=vtPointer;
+          ELEMENT_TYPE_BYREF          : e.VarType:=vtPointer;
+         // ELEMENT_TYPE_VALUETYPE      : e.VarType:=vtPointer;
+          ELEMENT_TYPE_CLASS          : e.VarType:=vtPointer;
+          ELEMENT_TYPE_VAR            : e.VarType:=vtPointer;
+          ELEMENT_TYPE_ARRAY          : e.VarType:=vtPointer;
+          ELEMENT_TYPE_GENERICINST    : e.VarType:=vtPointer;
+          ELEMENT_TYPE_TYPEDBYREF     : e.VarType:=vtPointer;
+          ELEMENT_TYPE_FNPTR          : e.VarType:=vtPointer;
+          ELEMENT_TYPE_OBJECT         : e.VarType:=vtPointer;
+          ELEMENT_TYPE_SZARRAY        : e.VarType:=vtPointer;
+          else
+          begin
+            //unknown type. Guess
+
+            offset:=data.fields[i].offset;
+
+            if i<length(data.fields)-1 then
+              elemsize:=data.fields[i+1].offset-data.fields[i].offset
+            else
+              elemsize:=bufsize-offset;
+
+            j:=1;
+            while elemsize>0 do
+            begin
+
+              vt:=FindTypeOfData(data.startaddress+offset,@buf[data.fields[i].offset],elemsize, ctp, [biNoString]);
+              e.vartype:=vt;
+              if vt=vtCustom then
+                e.CustomType:=customtype;
+
+              inc(offset, e.Bytesize);
+              dec(elemsize, e.bytesize);
+              inc(j);
+
+              if elemsize>0 then
+                e:=addElement(data.fields[i].name+'_'+inttostr(j), offset);
+
+
+            end;
+
+
+
+          end;
+
+        end;
 
       end;
 
+    finally
+      endUpdate;
     end;
 
-  finally
-    endUpdate;
   end;
   DoFullStructChangeNotification;
 end;
@@ -3150,7 +3225,7 @@ begin
 
     if autofillin=mryes then
     begin
-      if symhandler.GetLayoutFromAddress(TStructColumn(columns[0]).getAddress, addressdata) then
+      if hasAddressData then
       begin
         TStructColumn(columns[0]).setAddress(addressdata.startaddress);
         mainStruct.FillFromDotNetAddressData(addressdata);
