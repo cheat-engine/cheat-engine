@@ -91,6 +91,7 @@ type
     constructor create(processid: dword; is64bit: boolean; timeout:dword=10000);
     destructor destroy; override;
 
+    procedure ReleaseObject(hObject: UINT64);
     procedure EnumDomains(var domains: TDotNetDomainArray);
     procedure EnumModuleList(hDomain: UINT64; var Modules: TDotNetModuleArray);
     procedure EnumTypeDefs(hModule: UINT64; var TypeDefs: TDotNetTypeDefArray);
@@ -426,8 +427,23 @@ begin
   finally
     pipecs.leave;
   end;
+end;
 
+procedure TDotNetPipe.ReleaseObject(hObject: uint64);
+var
+  x: dword;
+  msg: packed record
+    command: byte;
+  end;
+begin
+  msg.command:=CMD_RELEASEOBJECTHANDLE;
 
+  pipecs.enter;
+  try
+    write(msg, sizeof(msg));
+  finally
+    pipecs.leave;
+  end;
 end;
 
 procedure TDotNetPipe.Read(var o; size: integer);
