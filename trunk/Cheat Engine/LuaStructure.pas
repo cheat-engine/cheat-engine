@@ -15,7 +15,7 @@ procedure structureElement_addMetaData(L: PLua_state; metatable: integer; userda
 
 implementation
 
-uses StructuresFrm2, LuaObject;
+uses StructuresFrm2, LuaObject, DotNetPipe;
 
 
 
@@ -144,6 +144,41 @@ begin
   result:=1;
 end;
 
+function structure_fillFromDotNetAddress(L: PLua_State): integer; cdecl;
+var
+  parameters: integer;
+  struct: TDissectedStruct;
+  address: ptruint;
+  changename: boolean;
+
+  al: TAddressData;
+begin
+  struct:=luaclass_getClassObject(L);
+  result:=0;
+  parameters:=lua_gettop(L);
+
+  changename:=false;
+  if parameters>=1 then
+  begin
+    if lua_isstring(L, 1) then
+      address:=symhandler.getAddressFromNameL(lua_tostring(L,1))
+    else
+      address:=lua_tointeger(L,1);
+
+    if (parameters>=2) then
+      changename:=lua_toboolean(L, 2);
+
+    if symhandler.GetLayoutFromAddress(address, al) then
+    begin
+      struct.fillFromDotNetAddressData(al);
+
+      if changename then
+        struct.setName(al.classname);
+    end;
+
+  end;
+end;
+
 function structure_autoGuess(L: PLua_State): integer; cdecl;
 var
   parameters: integer;
@@ -240,6 +275,8 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getElementByOffset', structure_getElementByOffset);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'addElement', structure_addElement);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'autoGuess', structure_autoGuess);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'fillFromDotNetAddress', structure_fillFromDotNetAddress);
+
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'beginUpdate', structure_beginUpdate);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'endUpdate', structure_endUpdate);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'addToGlobalStructureList', structure_addToGlobalStructureList);
@@ -442,6 +479,9 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setChildStructStart', structureElement_setChildStructStart);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getBytesize', structureElement_getBytesize);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setBytesize', structureElement_setBytesize);
+
+
+
 
 end;
 
