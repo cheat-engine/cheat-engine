@@ -462,8 +462,10 @@ var address: string;
     mi: TModuleInfo;
 begin
 {$ifndef standalonetrainerwithassembler}
-
-  a:=memorybrowser.disassemblerview.SelectedAddress;
+  if parent is TMemoryBrowser then
+    a:=TMemoryBrowser(parent).disassemblerview.SelectedAddress
+  else
+    a:=memorybrowser.disassemblerview.SelectedAddress;
 
   if symhandler.getmodulebyaddress(a,mi) then
   begin
@@ -1026,7 +1028,10 @@ var address: string;
     injectnr: integer;
 
 begin
-  a:=memorybrowser.disassemblerview.SelectedAddress;
+  if parent is TMemoryBrowser then
+    a:=TMemoryBrowser(parent).disassemblerview.SelectedAddress
+  else
+    a:=memorybrowser.disassemblerview.SelectedAddress;
 
   address:=inttohex(a,8);
 
