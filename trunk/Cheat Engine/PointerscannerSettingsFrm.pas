@@ -43,6 +43,7 @@ type
     cbUseLoadedPointermap: TCheckBox;
     cbDistributedScanning: TCheckBox;
     cbBroadcast: TCheckBox;
+    cbMustStartWithBase: TCheckBox;
     edtDistributedPort: TEdit;
     edtThreadStacks: TEdit;
     edtStackSize: TEdit;
@@ -84,6 +85,7 @@ type
     procedure Button1Click(Sender: TObject);
     procedure btnNotifySpecificIPsClick(Sender: TObject);
     procedure canNotReuse(Sender: TObject);
+    procedure cbMustStartWithBaseChange(Sender: TObject);
     procedure cbBroadcastChange(Sender: TObject);
     procedure cbDistributedScanningChange(Sender: TObject);
     procedure cbMaxOffsetsPerNodeChange(Sender: TObject);
@@ -102,8 +104,15 @@ type
   private
     { Private declarations }
     iplist: tstringlist;
+    firstshow: boolean;
+
+    edtBaseFrom: TEdit;
+    edtBaseTo: TEdit;
+    lblBaseFrom: TLabel;
+    lblBaseTo: TLabel;
     procedure btnAddClick(sender: TObject);
     procedure btnRemoveClick(sender: TObject);
+    procedure updatepositions;
   public
     { Public declarations }
     reverse: boolean; //indicates to use the reverse method
@@ -117,6 +126,9 @@ type
     codescan: boolean;
     threadcount: integer;
 
+
+    baseAddressRange: TComponentList;
+
     offsetlist: TComponentList;
     btnAddOffset: TButton;
     btnRemoveOffset: TButton;
@@ -125,6 +137,9 @@ type
     stacksize: integer;
     scannerpriority: TThreadPriority;
     distributedport: word;
+
+    baseStart: ptruint;
+    baseStop: ptruint;
 
     resolvediplist: array of THostAddr;
   end;
@@ -195,6 +210,14 @@ begin
 
   start:=StrToQWordEx('$'+edtReverseStart.text);
   stop:=StrToQWordEx('$'+edtReverseStop.text);
+
+
+  if cbMustStartWithBase.checked then
+  begin
+    baseStart:=symhandler.getAddressFromName(edtBaseFrom.text);
+    baseStop:=symhandler.getAddressFromName(edtBaseTo.text);
+  end;
+
 
   automaticaddress:=symhandler.getAddressFromName(edtAddress.text);
 
@@ -271,6 +294,56 @@ begin
   cbReusePointermap.Checked:=false;
 end;
 
+procedure TfrmPointerScannerSettings.cbMustStartWithBaseChange(Sender: TObject);
+begin
+  if cbMustStartWithBase.checked then
+  begin
+    //create a 2 text boxes and 2 labels (from - to)
+    edtBaseFrom:=tedit.create(self);
+    edtBaseFrom.Top:=cbMustEndWithSpecificOffset.top;
+    edtBaseFrom.Left:=edtReverseStart.left;
+    edtBaseFrom.Width:=cbMustStartWithBase.width;
+    edtBaseFrom.parent:=self;
+
+
+    edtBaseTo:=tedit.create(self);
+    edtBaseTo.top:=edtBaseFrom.top+edtbasefrom.height+1;
+    edtbaseto.left:=edtReverseStop.left;
+    edtbaseto.width:=cbMustStartWithBase.width;
+    edtbaseto.parent:=self;
+
+    lblBaseFrom:=tlabel.create(self);
+    lblBaseFrom.Parent:=self;
+    lblbasefrom.Caption:='From';
+    lblbasefrom.left:=0;
+    lblbasefrom.top:=edtbasefrom.top+(edtbasefrom.height div 2) - (lblbasefrom.height div 2);
+
+    lblBaseTo:=tlabel.create(self);
+    lblBaseTo.Parent:=self;
+    lblBaseTo.Caption:='To';
+    lblBaseTo.left:=0;
+    lblBaseTo.top:=edtbaseto.top+(edtbaseto.height div 2) - (lblBaseTo.height div 2);
+
+
+    cbStaticOnly.checked:=true;
+    cbStaticOnly.enabled:=false;
+  end
+  else
+  begin
+    //destroy the edit boxes and labels
+
+    freeandnil(edtbasefrom);
+    freeandnil(edtbaseto);
+    freeandnil(lblbasefrom);
+    freeandnil(lblbaseto);
+
+
+    cbStaticOnly.enabled:=true;
+  end;
+
+  updatepositions;
+end;
+
 procedure TfrmPointerScannerSettings.cbBroadcastChange(Sender: TObject);
 begin
   if cbBroadcast.checked then
@@ -288,7 +361,72 @@ begin
 end;
 
 procedure TfrmPointerScannerSettings.cbMustEndWithSpecificOffsetChange(Sender: TObject);
+var offsetentry: TOffsetEntry;
 begin
+  //create an offset entry
+  if (sender as tcheckbox).Checked then //create the first one and the add button
+  begin
+    offsetentry:=TOffsetEntry.Create(self);
+
+    offsetlist:=TComponentList.create;
+    offsetlist.Add(offsetentry);
+
+
+    with offsetentry do
+    begin
+      offsetentry.Name:='edtOffset'+inttostr(offsetlist.Count);
+      top:=panel1.top;
+      left:=cbMustEndWithSpecificOffset.left+15;
+      self.Height:=self.Height+height+2;
+      parent:=self;
+    end;
+
+    if btnAddOffset=nil then
+      btnAddOffset:=TButton.Create(self);
+
+    with btnAddOffset do
+    begin
+      name:='btnAddOffset';
+      caption:=rsAdd;
+      left:=offsetentry.Left+offsetentry.Width+3;
+      width:=60;
+      height:=offsetentry.Height;
+      top:=offsetentry.top;
+      parent:=self;
+      onclick:=btnAddClick;
+      visible:=true;
+    end;
+
+    if btnRemoveOffset=nil then
+      btnRemoveOffset:=TButton.Create(self);
+
+    with btnRemoveOffset do
+    begin
+      name:='btnRemoveOffset';
+      caption:=rsRemove;
+      left:=btnAddOffset.Left+btnAddOffset.Width+3;
+      width:=60;
+      height:=offsetentry.Height;
+      top:=offsetentry.top;
+      parent:=self;
+      onclick:=btnRemoveClick;
+      visible:=true;
+    end;
+
+
+
+
+  end
+  else
+  begin
+    //delete all the objects in the list
+    clientheight:=cbMustEndWithSpecificOffset.top+cbMustEndWithSpecificOffset.Height+2+panel1.height;
+    freeandnil(offsetlist); //deletes all the assigned objects
+    btnAddOffset.Visible:=false;
+    btnRemoveOffset.Visible:=false;
+  end;
+
+  updatepositions;
 
 end;
 
@@ -408,6 +546,12 @@ begin
 
   edtReverseStop.Width:=edtReverseStart.width;
 
+
+  if firstshow then
+    updatepositions;
+
+  firstshow:=false;
+
 end;
 
 procedure TfrmPointerScannerSettings.FormCreate(Sender: TObject);
@@ -485,71 +629,7 @@ end;
 
 
 procedure TfrmPointerScannerSettings.cbMustEndWithSpecificOffsetClick(Sender: TObject);
-var offsetentry: TOffsetEntry;
 begin
-  //create an offset entry
-  if (sender as tcheckbox).Checked then //create the first one and the add button
-  begin
-    offsetentry:=TOffsetEntry.Create(self);
-
-    offsetlist:=TComponentList.create;
-    offsetlist.Add(offsetentry);
-
-
-    with offsetentry do
-    begin
-      offsetentry.Name:='edtOffset'+inttostr(offsetlist.Count);
-      top:=panel1.top;
-      left:=cbMustEndWithSpecificOffset.left+15;
-      self.Height:=self.Height+height+2;
-      parent:=self;
-    end;
-
-    if btnAddOffset=nil then
-      btnAddOffset:=TButton.Create(self);
-
-    with btnAddOffset do
-    begin
-      name:='btnAddOffset';
-      caption:=rsAdd;
-      left:=offsetentry.Left+offsetentry.Width+3;
-      width:=60;
-      height:=offsetentry.Height;
-      top:=offsetentry.top;
-      parent:=self;
-      onclick:=btnAddClick;
-      visible:=true;
-    end;
-
-    if btnRemoveOffset=nil then
-      btnRemoveOffset:=TButton.Create(self);
-    
-    with btnRemoveOffset do
-    begin
-      name:='btnRemoveOffset';
-      caption:=rsRemove;
-      left:=btnAddOffset.Left+btnAddOffset.Width+3;
-      width:=60;
-      height:=offsetentry.Height;
-      top:=offsetentry.top;
-      parent:=self;
-      onclick:=btnRemoveClick;
-      visible:=true;
-    end;
-
-  
-
-
-  end
-  else
-  begin
-    //delete all the objects in the list
-    clientheight:=cbMustEndWithSpecificOffset.top+cbMustEndWithSpecificOffset.Height+2+panel1.height;
-    freeandnil(offsetlist); //deletes all the assigned objects
-    btnAddOffset.Visible:=false;
-    btnRemoveOffset.Visible:=false;
-  end;
-
 
 end;
 
@@ -601,6 +681,44 @@ end;
 procedure TfrmPointerScannerSettings.cbHeapOnlyClick(Sender: TObject);
 begin
   edtAddressChange(edtAddress);
+end;
+
+procedure TfrmPointerScannerSettings.updatepositions;
+var
+  i: integer;
+  adjustment: integer;
+begin
+  adjustment:=cbMustEndWithSpecificOffset.Top;
+  if edtBaseFrom<>nil then
+    cbMustEndWithSpecificOffset.Top:=edtBaseTo.top+edtBaseTo.Height+2
+  else
+    cbMustEndWithSpecificOffset.Top:=cbMustStartWithBase.top+(cbMustStartWithBase.top-cbUseLoadedPointermap.top); //same difference
+
+  adjustment:=cbMustEndWithSpecificOffset.Top-adjustment;
+
+  if adjustment<>0 then
+  begin
+    if offsetlist<>nil then
+    begin
+      //update the TOffsetEntry's
+      if offsetlist.Count>0 then
+      begin
+        for i:=0 to offsetlist.Count-1 do
+        begin
+          if (offsetlist[i] is TOffsetEntry) then //should be true
+            TOffsetEntry(offsetlist[i]).Top:=TOffsetEntry(offsetlist[i]).Top+adjustment;
+        end;
+
+        btnAddOffset.top:=TOffsetEntry(offsetlist[offsetlist.Count-1]).Top;
+        btnRemoveOffset.top:=btnAddOffset.top;
+      end;
+
+      clientheight:=btnAddOffset.top+btnAddOffset.Height+2+panel1.height;
+    end
+    else
+      clientheight:=cbMustEndWithSpecificOffset.top+cbMustEndWithSpecificOffset.Height+2+panel1.height;
+
+  end;
 end;
 
 initialization
