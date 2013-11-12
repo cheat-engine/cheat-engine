@@ -7,19 +7,22 @@ interface
 uses
   windows, cefuncproc, newkernelhandler, Classes, SysUtils, FileUtil, LResources,
   Forms, Controls, Graphics, Dialogs, StdCtrls, Menus, stacktrace2, Clipbrd, ComCtrls,
-  strutils, frmSelectionlistunit;
+  strutils, frmSelectionlistunit, maps;
 
 type
 
   { TfrmStackView }
 
   TfrmStackView = class(TForm)
+    ColorDialog1: TColorDialog;
     FindDialog1: TFindDialog;
     lvStack: TListView;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
     MenuItem4: TMenuItem;
+    MenuItem5: TMenuItem;
+    miSetColor: TMenuItem;
     miFindNext: TMenuItem;
     miFind: TMenuItem;
     miLockAndTrace: TMenuItem;
@@ -35,8 +38,11 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure lvStackCustomDrawItem(Sender: TCustomListView; Item: TListItem;
+      State: TCustomDrawState; var DefaultDraw: Boolean);
     procedure lvStackDblClick(Sender: TObject);
     procedure MenuItem3Click(Sender: TObject);
+    procedure miSetColorClick(Sender: TObject);
     procedure miFindClick(Sender: TObject);
     procedure miLockAndTraceClick(Sender: TObject);
     procedure miAddESPClick(Sender: TObject);
@@ -48,6 +54,8 @@ type
     size: integer;
 
     allocs: tlist;
+
+    colors: TMap;
   public
     { public declarations }
     procedure SetContextPointer(c: PContext; stack: pbyte; size: integer);
@@ -165,6 +173,35 @@ begin
 
 end;
 
+procedure TfrmStackView.miSetColorClick(Sender: TObject);
+var i: integer;
+  a: ptruint;
+  c: tcolor;
+begin
+  if lvStack.selected<>nil then
+  begin
+    a:=ptruint(lvStack.Selected.Data);
+    if colors.GetData(a,c) then
+      colordialog1.Color:=c;
+
+    if ColorDialog1.execute then
+    begin
+      c:=colordialog1.Color;
+      for i:=0 to lvstack.items.count-1 do
+      begin
+        if lvstack.items[i].Selected then
+        begin
+          a:=ptruint(lvStack.items[i].Data);
+          colors.Add(a, c);
+        end;
+      end;
+    end;
+
+    lvStack.Repaint;
+
+  end;
+end;
+
 procedure TfrmStackView.miFindClick(Sender: TObject);
 begin
   finddialog1.execute;
@@ -198,7 +235,7 @@ end;
 
 procedure TfrmStackView.FormDestroy(Sender: TObject);
 begin
-
+  colors.Free;
 end;
 
 procedure TfrmStackView.FormShow(Sender: TObject);
@@ -216,9 +253,23 @@ begin
   end;
 end;
 
+
+procedure TfrmStackView.lvStackCustomDrawItem(Sender: TCustomListView;
+  Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
+var
+  address: ptruint;
+  c: tcolor;
+begin
+  address:=ptruint(item.data);
+  if colors.GetData(address, c) then
+    sender.canvas.brush.color:=c;
+
+  DefaultDraw:=true;
+end;
+
 procedure TfrmStackView.FormCreate(Sender: TObject);
 begin
-
+  colors:=TMap.create(ituPtrSize, sizeof(TColor));
 end;
 
 procedure TfrmStackView.FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -234,17 +285,33 @@ begin
   miFindNext.enabled:=true;
 
   s:=lowercase(finddialog1.FindText);
+
+  lvStack.MultiSelect:=false;
+
+
+
   for i:=lvStack.ItemIndex+1 to lvStack.Items.Count-1 do
   begin
     if (pos(s, lowercase(lvStack.Items[i].Caption))>0) or
        (pos(s, lowercase(lvStack.Items[i].SubItems[0]))>0) or
        (pos(s, lowercase(lvStack.Items[i].SubItems[1]))>0) then
     begin
+
       lvStack.ItemIndex:=i;
+      lvStack.Items[lvStack.ItemIndex].Selected:=true;
       lvStack.Items[lvStack.ItemIndex].MakeVisible(false);
-      exit;
+      lvStack.Selected:=lvStack.Items[lvStack.ItemIndex];
+
+      lvStack.MultiSelect:=true;
+     exit;
     end;
   end;
+
+  lvStack.MultiSelect:=true;
+
+
+
+  beep;
 end;
 
 procedure TfrmStackView.FormCloseQuery(Sender: TObject; var CanClose: boolean);
