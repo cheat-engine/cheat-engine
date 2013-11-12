@@ -35,9 +35,11 @@ type
     procedure Button1Click(Sender: TObject);
     procedure cbHexadecimalChange(Sender: TObject);
     procedure cbSignedChange(Sender: TObject);
+    procedure cbStructTypeChange(Sender: TObject);
     procedure cbTypeChange(Sender: TObject);
     procedure edtByteSizeChange(Sender: TObject);
     procedure edtChildstartChange(Sender: TObject);
+    procedure edtDescriptionChange(Sender: TObject);
     procedure edtOffsetChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure pnlBackgroundClick(Sender: TObject);
@@ -69,6 +71,18 @@ type
     function getChildStructStart: integer;
   public
     { public declarations }
+    ChangedDescription: boolean;
+    ChangedOffset: boolean;
+    ChangedHexadecimal: boolean;
+    ChangedSigned: boolean;
+    ChangedVartype: boolean;
+    ChangedCustomType: boolean;
+    ChangedByteSize: boolean;
+    ChangedBackgroundColor: boolean;
+    ChangedChildStruct: boolean;
+    ChangedchildStructStart: boolean;
+
+
     property description: string read getDescription write setDescription;
     property offset: integer read getOffset write setOffset;
     property hexadecimal: boolean read getHexadecimal write setHexadecimal;
@@ -311,7 +325,10 @@ end;
 procedure TfrmStructures2ElementInfo.pnlBackgroundClick(Sender: TObject);
 begin
   if colordialog1.execute then
+  begin
     pnlbackground.color:=colordialog1.color;
+    ChangedBackgroundColor:=true;
+  end;
 end;
 
 procedure TfrmStructures2ElementInfo.cbTypeChange(Sender: TObject);
@@ -336,6 +353,8 @@ begin
     cbHexadecimal.checked:=false;
     cbSigned.checked:=false;
   end;
+
+  ChangedVartype:=true;
 end;
 
 procedure TfrmStructures2ElementInfo.edtByteSizeChange(Sender: TObject);
@@ -346,6 +365,8 @@ begin
   except
     edtByteSize.Font.color:=clRed;
   end;
+
+  ChangedByteSize:=true;
 end;
 
 procedure TfrmStructures2ElementInfo.edtChildstartChange(Sender: TObject);
@@ -356,6 +377,13 @@ begin
   except
     edtChildstart.Font.color:=clRed;
   end;
+
+  ChangedchildStructStart:=true;
+end;
+
+procedure TfrmStructures2ElementInfo.edtDescriptionChange(Sender: TObject);
+begin
+  ChangedDescription:=true;
 end;
 
 procedure TfrmStructures2ElementInfo.cbHexadecimalChange(Sender: TObject);
@@ -363,6 +391,8 @@ begin
   cbHexadecimal.OnChange:=nil;
   hexadecimal:=cbHexadecimal.checked;
   cbHexadecimal.onchange:=cbHexadecimalChange;
+
+  ChangedHexadecimal:=true;;
 end;
 
 procedure TfrmStructures2ElementInfo.Button1Click(Sender: TObject);
@@ -378,6 +408,13 @@ begin
   cbSigned.onchange:=nil;
   signed:=cbSigned.checked;
   cbSigned.onchange:=cbSignedChange;
+
+  ChangedSigned:=true;
+end;
+
+procedure TfrmStructures2ElementInfo.cbStructTypeChange(Sender: TObject);
+begin
+  ChangedChildStruct:=true;
 end;
 
 procedure TfrmStructures2ElementInfo.edtOffsetChange(Sender: TObject);
@@ -388,6 +425,8 @@ begin
   except
     edtOffset.Font.color:=clRed;
   end;
+
+  ChangedOffset:=true;
 end;
 
 end.

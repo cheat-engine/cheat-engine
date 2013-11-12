@@ -3338,6 +3338,17 @@ begin
 
     //fill in basic info
 
+    ChangedDescription:=false;
+    ChangedOffset:=false;
+    ChangedHexadecimal:=false;
+    ChangedSigned:=false;
+    ChangedVartype:=false;
+    ChangedCustomType:=false;
+    ChangedByteSize:=false;
+    ChangedBackgroundColor:=false;
+    ChangedChildStruct:=false;
+    ChangedchildStructStart:=false;
+
 
 
     if showmodal=mrok then
@@ -3352,25 +3363,40 @@ begin
 
         structElement.parent.beginUpdate;
         try
-          structElement.name:=description;
+          if changedDescription then
+            structElement.name:=description;
 
           if tvStructureView.SelectionCount=1 then //only update the offset if only one entry is selected (e.g the user might be so stupid to select a level 1 and a level 3 of a completly different structure....)
             structElement.offset:=offset;
 
-          structElement.vartype:=vartype;
-          structElement.CustomType:=customtype;
-          structElement.bytesize:=bytesize;
-          structElement.BackgroundColor:=backgroundColor;
-          structElement.childstruct:=childstruct;
-          if hexadecimal then
-            structelement.displayMethod:=dtHexadecimal
-          else
-          if signed then
-            structelement.displayMethod:=dtSignedInteger
-          else
-            structelement.displayMethod:=dtUnsignedInteger;
+          if changedVartype then
+            structElement.vartype:=vartype;
 
-          structelement.ChildStructStart:=childstructstart;
+          if changedCustomType then
+            structElement.CustomType:=customtype;
+
+          if changedBytesize then
+            structElement.bytesize:=bytesize;
+
+          if changedBackgroundColor then
+            structElement.BackgroundColor:=backgroundColor;
+
+          if changedChildstruct then
+            structElement.childstruct:=childstruct;
+
+          if changedhexadecimal or changedsigned then
+          begin
+            if hexadecimal then
+              structelement.displayMethod:=dtHexadecimal
+            else
+            if signed then
+              structelement.displayMethod:=dtSignedInteger
+            else
+              structelement.displayMethod:=dtUnsignedInteger;
+          end;
+
+          if changedChildStructStart then
+            structelement.ChildStructStart:=childstructstart;
 
           if (structelement.VarType<>vtPointer) and (miAutoDestroyLocal.checked=false) then
           begin

@@ -1,11 +1,11 @@
 object frmStructures2ElementInfo: TfrmStructures2ElementInfo
   Left = 982
-  Height = 262
+  Height = 275
   Top = 96
   Width = 302
   BorderStyle = bsSingle
   Caption = 'Structure Info'
-  ClientHeight = 262
+  ClientHeight = 275
   ClientWidth = 302
   OnCreate = FormCreate
   Position = poScreenCenter
@@ -57,6 +57,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
     Items.Strings = (
       'Undefined'
     )
+    OnChange = cbStructTypeChange
     ParentFont = False
     Style = csDropDownList
     TabOrder = 5
@@ -95,6 +96,7 @@ object frmStructures2ElementInfo: TfrmStructures2ElementInfo
     Width = 274
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
+    OnChange = edtDescriptionChange
     ParentFont = False
     TabOrder = 0
   end
