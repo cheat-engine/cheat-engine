@@ -2601,6 +2601,18 @@ begin
   result:=1;
 end;
 
+function reinitializeDotNetSymbolhandler(L:PLua_state): integer; cdecl;
+var modulename: string;
+begin
+  result:=0;
+  if lua_gettop(L)>=1 then
+    modulename:=Lua_ToString(L, 1)
+  else
+    modulename:='';
+
+  symhandler.reinitializeDotNetSymbols(modulename);
+end;
+
 function reinitializeSymbolhandler(L: PLua_state): integer; cdecl;
 begin
   lua_pop(L, lua_gettop(L));
@@ -4459,6 +4471,7 @@ begin
     lua_register(LuaVM, 'getModuleSize', getModuleSize);
 
     lua_register(LuaVM, 'reinitializeSymbolhandler', reinitializeSymbolhandler);
+    lua_register(LuaVM, 'reinitializeDotNetSymbolhandler', reinitializeDotNetSymbolhandler);
 
     //ce6.1
     lua_register(LuaVM, 'getNameFromAddress', getNameFromAddress);

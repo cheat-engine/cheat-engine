@@ -1191,8 +1191,6 @@ begin
 
   e:=addElement('Vtable',0, vtPointer);
 
-  //todo: Query the pointer types and auto create the childclasses as well
-
   if length(data.fields)>0 then
   begin
     bufsize:=data.fields[length(data.fields)-1].offset+16;
@@ -1207,11 +1205,6 @@ begin
         e:=addElement(data.fields[i].name, data.fields[i].offset);
 
         e.DisplayMethod:=dtUnSignedInteger;
-
-        if data.fields[i].name='bodyVelocity' then
-        begin
-          beep;
-        end;
 
 
         case data.fields[i].fieldtype of

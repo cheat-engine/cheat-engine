@@ -90,6 +90,7 @@ Note: GUI components mainly show in UTF8, some other functions use Ansi, try to 
 getAddress(string, local OPTIONAL): returns the address of a symbol. Can be a modulename or an export. set Local to true if you wish to querry the symboltable of the ce process
 getModuleSize(modulename): Returns the size of a given module (Use getAddress to get the base address)
 reinitializeSymbolhandler(): reinitializes the symbolhandler. E.g when new modules have been loaded
+reinitializeDotNetSymbolhandler(modulename OPTIONAL): Reinitializes only the DotNet part of the symbol list. (E.g After an ILCode has been JITed) (6.4+)
 
 errorOnLookupFailure(state): If set to true (default) address lookups in stringform will raise an error if it can not be looked up. This includes symbolnames that are not defined and pointers that are bad. If set to false it will return 0 in those cases
   (Useful for pointers that don't work 100% of the time)
@@ -1247,8 +1248,8 @@ properties
   Index: Integer - The index ID for this record. 0 is top. (ReadOnly)
   Description: string- The description of the memory record
   Address: string - Get/set the interpretable address string. Usefull for simple address settings.
-  Offset[] : integer - Array to access each offset
   OffsetCount: integer - The number of offsets. Set to 0 for a normal address
+  Offset[] : integer - Array to access each offset
   CurrentAddress: integer - The address the memoryrecord points to
   Type: ValueType - The variable type of this record. See vtByte to vtCustom
     If the type is vtString then the following properties are available:
@@ -1537,9 +1538,10 @@ Methods:
   getElementByOffset(offset): Returns a structureElement object where the specified offset is at least the requested offset
   addElement(): Adds a new blank structureElement and returns it
   autoGuess(baseaddresstoguessfrom, offset, size)
+  fillFromDotNetAddress(address, changeName): Fills the structure with the layout gathered from querying .NET.  If changeName is true, the structure will take the name of the .NET class.  (6.4+)
 
   beginUpdate(): Call this when you want to make multiple updates to a structure. It will speed up the update process
-  endUpdate(): Call this when done
+  endUpdate(): Call this when done 
   addToGlobalStructureList(): Add this to the list of structures for the user to select from. (Global structures will get saved to the table)
   removeFromGlobalStructureList(): Remove from the list of structures. 
 
