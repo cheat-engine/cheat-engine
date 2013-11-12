@@ -60,6 +60,7 @@ type
   private
     FContainer: TWinControl;
     FOnDesignMessage: TJvDesignMessage;
+    FOnChange: TNotifyEvent;
   protected
     procedure SetContainer(AValue: TWinControl); virtual;
   public
@@ -71,6 +72,7 @@ type
     procedure DesignComponent(AComponent: TComponent; ADesigning: Boolean); virtual;
     property Container: TWinControl read FContainer write SetContainer;
     property OnDesignMessage: TJvDesignMessage read FOnDesignMessage write FOnDesignMessage;
+    property OnChange: TNotifyEvent read FOnChange write FOnChange;
   end;
 
   TJvDesignCustomMessengerClass = class of TJvDesignCustomMessenger;
@@ -159,6 +161,8 @@ type
     FSelector: TJvDesignCustomSelector;
     FSelectorClass: TJvDesignCustomSelectorClass;
     FUpdateOwner: TComponent;
+
+    procedure MessengerOnChange(sender: tobject);
   protected
     FOnChange: TNotifyEvent;
     FOnGetAddClass: TJvDesignGetAddClassEvent;
@@ -505,12 +509,18 @@ begin
     raise EJVCLException.CreateResFmt(@RsEDesignNilFmt, [ClassName, 'Controller']);
 end;
 
+procedure TJvDesignSurface.MessengerOnChange(sender: tobject);
+begin
+  change;
+end;
+
 procedure TJvDesignSurface.NeedMessenger;
 begin
   if (Messenger = nil) and (MessengerClass <> nil) then
   begin
     FMessenger := MessengerClass.Create;
     Messenger.OnDesignMessage := @IsDesignMessage;
+    Messenger.OnChange:=@MessengerOnChange;
   end;
   if Messenger = nil then
     raise EJVCLException.CreateResFmt(@RsEDesignNilFmt, [ClassName, 'Messenger']);
