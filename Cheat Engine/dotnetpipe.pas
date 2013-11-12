@@ -88,8 +88,11 @@ type
     procedure Read(var o; size: integer);
     procedure Write(const o; size: integer);
   public
-    constructor create(processid: dword; is64bit: boolean; timeout:dword=10000);
+    constructor create;
     destructor destroy; override;
+
+    function Connect(processid: dword; is64bit: boolean; timeout:dword=10000):boolean;
+    procedure disconnect;
 
     procedure ReleaseObject(hObject: UINT64);
     procedure EnumDomains(var domains: TDotNetDomainArray);
@@ -127,6 +130,15 @@ var
   fi: TFieldInfo;
   inserted: boolean;
 begin
+  if fConnected=false then
+  begin
+    addressdata.startaddress:=0;
+    setlength(addressdata.fields,0);
+    exit;
+  end;
+
+
+
   msg.command:=CMD_GETADDRESSDATA;
   msg.address:=address;
 
@@ -213,6 +225,12 @@ var
 
   SecondaryCodeBlocks: ULONG32;
 begin
+  if fConnected=false then
+  begin
+    setlength(Methods,0);
+    exit;
+  end;
+
   msg.command:=CMD_GETTYPEDEFMETHODS;
   msg.hModule:=hModule;
   msg.typedef:=typedef;
@@ -267,6 +285,12 @@ var
   typedefnamesize: dword;
   typedefname: pwidechar;
 begin
+  if fConnected=false then
+  begin
+    setlength(TypeDefs,0);
+    exit;
+  end;
+
   msg.command:=CMD_ENUMTYPEDEFS;
   msg.hModule:=hModule;
 
@@ -319,6 +343,12 @@ var
   _windir: pchar;
   windir: string;
 begin
+  if fconnected=false then
+  begin
+    setlength(modules,0);
+    exit;
+  end;
+
   msg.command:=CMD_ENUMMODULELIST;
   msg.hDomain:=hDomain;
   pipecs.enter;
@@ -400,6 +430,13 @@ var
   namelength: ULONG32;
   name: PWideChar;
 begin
+  if fConnected=false then
+  begin
+    setlength(domains,0);
+    exit;
+  end;
+
+
   msg.command:=CMD_ENUMDOMAINS;
 
   pipecs.enter;
@@ -452,21 +489,16 @@ procedure TDotNetPipe.Read(var o; size: integer);
 var br: dword;
 begin
   fconnected:=fconnected and readfile(pipe, o, size, br, nil);
-
-  if not fConnected then
-    raise Exception.create('Not connected to pipe');
 end;
 
 procedure TDotNetPipe.Write(const o; size: integer);
 var bw: dword;
 begin
   fconnected:=fconnected and writefile(pipe, o, size, bw, nil);
-
-  if not fConnected then
-    raise Exception.create('Not connected to pipe');
 end;
 
-constructor TDotNetPipe.create(processid: dword; is64bit: boolean; timeout:dword=10000);
+
+function TDotNetPipe.Connect(processid: dword; is64bit: boolean; timeout:dword=10000):boolean;
 {
 Connects to a dotnet data collector and tells it to open a specific process
 }
@@ -486,12 +518,11 @@ var
   pi: TProcessInformation;
   bitstring: string;
 begin
-{
-function CreateProcess(lpApplicationName: PChar; lpCommandLine: PChar; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: PChar;
-  const lpStartupInfo: TStartupInfo; var lpProcessInformation: TProcessInformation): BOOL;external 'kernel32' name 'CreateProcessA';
-}
+  if fConnected then
+    disconnect;
 
-  pipecs:=TCriticalsection.create;
+  result:=false;
+
 
   pipename:='cedotnetpipe'+inttostr(ProcessID)+'_'+inttostr(GetTickCount); //unique pipename
 
@@ -540,9 +571,11 @@ function CreateProcess(lpApplicationName: PChar; lpCommandLine: PChar; lpProcess
 
 
   end;
+
+  result:=fAttached;
 end;
 
-destructor TDotNetPipe.destroy;
+procedure TDotNetPipe.disconnect;
 var
   msg: packed record
     command: byte;
@@ -566,8 +599,27 @@ begin
     FlushFileBuffers(pipe);
     DisconnectNamedPipe(pipe);
     closehandle(pipe);
+    pipe:=0;
   end;
 
+  if pHandle<>0 then
+    pHandle:=0;
+
+  fConnected:=false;
+  fAttached:=false;
+end;
+
+constructor TDotNetPipe.create;
+begin
+  pipecs:=TCriticalsection.create;
+  inherited create;
+end;
+
+
+destructor TDotNetPipe.destroy;
+begin
+  disconnect;
+  pipecs.Free;
   inherited destroy;
 end;
 

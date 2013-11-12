@@ -563,6 +563,10 @@ begin
       a:=tempnode.Attributes.GetNamedItem('ReadOnly');
       if (a<>nil) and (a.TextContent='1') then
         DropDownReadOnly:=true;
+
+      a:=tempnode.Attributes.GetNamedItem('DisplayValueAsItem');
+      if (a<>nil) and (a.TextContent='1') then
+        DisplayAsDropDownListItem:=true;
     end;
 
   end;
@@ -910,6 +914,13 @@ begin
     if DropDownReadOnly then
     begin
       a:=doc.CreateAttribute('ReadOnly');
+      a.TextContent:='1';
+      ddl.Attributes.SetNamedItem(a);
+    end;
+
+    if DisplayAsDropDownListItem then
+    begin
+      a:=doc.CreateAttribute('DisplayValueAsItem');
       a.TextContent:='1';
       ddl.Attributes.SetNamedItem(a);
     end;
