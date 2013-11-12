@@ -1,7 +1,7 @@
 object frmStackView: TfrmStackView
-  Left = 887
+  Left = 976
   Height = 240
-  Top = 415
+  Top = 644
   Width = 320
   BorderStyle = bsSizeToolWin
   Caption = 'Stack View'
@@ -79,6 +79,21 @@ object frmStackView: TfrmStackView
       Caption = 'Copy Secondary'
       OnClick = miCopyAddressClick
     end
+    object MenuItem4: TMenuItem
+      Caption = '-'
+    end
+    object miFind: TMenuItem
+      Caption = 'Find'
+      ShortCut = 16454
+      OnClick = miFindClick
+    end
+    object miFindNext: TMenuItem
+      Caption = 'Find Next...'
+      Enabled = False
+      ShortCut = 114
+      Visible = False
+      OnClick = FindDialog1Find
+    end
     object MenuItem2: TMenuItem
       Caption = '-'
     end
@@ -90,5 +105,11 @@ object frmStackView: TfrmStackView
       Caption = 'Lock and do manual stacktrace'
       OnClick = miLockAndTraceClick
     end
+  end
+  object FindDialog1: TFindDialog
+    Options = [frDown, frHideMatchCase, frHideWholeWord, frHideUpDown, frHideEntireScope, frHidePromptOnReplace]
+    OnFind = FindDialog1Find
+    left = 208
+    top = 88
   end
 end
