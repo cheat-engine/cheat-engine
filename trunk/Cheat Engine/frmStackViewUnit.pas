@@ -14,10 +14,14 @@ type
   { TfrmStackView }
 
   TfrmStackView = class(TForm)
+    FindDialog1: TFindDialog;
     lvStack: TListView;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
+    MenuItem4: TMenuItem;
+    miFindNext: TMenuItem;
+    miFind: TMenuItem;
     miLockAndTrace: TMenuItem;
     miCopyValue: TMenuItem;
     miCopySecondary: TMenuItem;
@@ -25,6 +29,7 @@ type
     miAddESP: TMenuItem;
     miAddEBP: TMenuItem;
     PopupMenu1: TPopupMenu;
+    procedure FindDialog1Find(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
@@ -32,6 +37,7 @@ type
     procedure FormShow(Sender: TObject);
     procedure lvStackDblClick(Sender: TObject);
     procedure MenuItem3Click(Sender: TObject);
+    procedure miFindClick(Sender: TObject);
     procedure miLockAndTraceClick(Sender: TObject);
     procedure miAddESPClick(Sender: TObject);
     procedure miCopyAddressClick(Sender: TObject);
@@ -159,6 +165,11 @@ begin
 
 end;
 
+procedure TfrmStackView.miFindClick(Sender: TObject);
+begin
+  finddialog1.execute;
+end;
+
 procedure TfrmStackView.miLockAndTraceClick(Sender: TObject);
 var
   x: dword;
@@ -213,6 +224,27 @@ end;
 procedure TfrmStackView.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
   SaveFormPosition(self, [lvstack.Column[0].Width, lvstack.Column[1].Width, lvstack.Column[2].Width ]);
+end;
+
+procedure TfrmStackView.FindDialog1Find(Sender: TObject);
+var
+  i: integer;
+  s: string;
+begin
+  miFindNext.enabled:=true;
+
+  s:=lowercase(finddialog1.FindText);
+  for i:=lvStack.ItemIndex+1 to lvStack.Items.Count-1 do
+  begin
+    if (pos(s, lowercase(lvStack.Items[i].Caption))>0) or
+       (pos(s, lowercase(lvStack.Items[i].SubItems[0]))>0) or
+       (pos(s, lowercase(lvStack.Items[i].SubItems[1]))>0) then
+    begin
+      lvStack.ItemIndex:=i;
+      lvStack.Items[lvStack.ItemIndex].MakeVisible(false);
+      exit;
+    end;
+  end;
 end;
 
 procedure TfrmStackView.FormCloseQuery(Sender: TObject; var CanClose: boolean);
