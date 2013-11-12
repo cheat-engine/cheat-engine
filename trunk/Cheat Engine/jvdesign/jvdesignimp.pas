@@ -191,6 +191,7 @@ type
     procedure Modified;
     //
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    function GetPropertyEditorHook: TPropertyEditorHook; override;
 
     function DeleteSelection: boolean; override;
 
@@ -1312,6 +1313,11 @@ begin
   //
 end;
 
+function TJvDesignDesigner.GetPropertyEditorHook: TPropertyEditorHook;
+begin
+  result:=nil;
+end;
+
 procedure TJvDesignDesigner.Notification(AComponent: TComponent; Operation: TOperation);
 begin
   //messagebox(0,'a','a',0);
@@ -1326,15 +1332,19 @@ begin
   a:=TPersistentSelectionList.Create;
   GlobalDesignHook.GetSelection(a);
 
-
-
   for i:=0 to a.Count-1 do
-    TPersistent(a.items[i]).free;
+  begin
+    if (TPersistent(a.items[i]) is TCustomForm)=false then
+      TPersistent(a.items[i]).free;
+  end;
 
 
   a.free;
 
   FMessenger.Container.Update;
+
+  if assigned(FMessenger.OnChange) then
+    FMessenger.OnChange(self);
 
 end;
 

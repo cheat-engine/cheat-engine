@@ -1074,8 +1074,8 @@ begin
       designsurface.Container:=self;
       designsurface.ControllerClass:=TJvDesignController;;
 
-      designsurface.MessengerClass:= TJvDesignWinControlHookMessenger;
-      //Surface.MessengerClass:=TJvDesignDesignerMessenger;
+      //designsurface.MessengerClass:= TJvDesignWinControlHookMessenger;
+      designsurface.MessengerClass:=TJvDesignDesignerMessenger;
       designsurface.SelectorClass:=TJvDesignSelector;
 
       designsurface.OnGetAddClass:=formdesigner.DesignerGetAddClass;
