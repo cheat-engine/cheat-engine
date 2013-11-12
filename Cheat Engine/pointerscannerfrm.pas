@@ -373,6 +373,10 @@ type
     valuescansinglemax: single;
     valuescandoublemax: double;
 
+    mustStartWithBase: boolean;
+    BaseStart: ptruint;
+    BaseStop: ptruint;
+
 
     mustEndWithSpecificOffset: boolean;
     mustendwithoffsetlist: array of dword;
@@ -1010,6 +1014,14 @@ begin
                   rscan(plist.list[j].address,level+1);
                 end;
               end;
+
+              if (not staticonly) then //store this results entry
+              begin
+                nostatic.moduleindex:=$FFFFFFFF;
+                nostatic.offset:=plist.list[j].address;
+                StorePath(level,@nostatic);
+              end;
+
             end
             else
             begin
@@ -2564,7 +2576,7 @@ begin
           end;
         end
         else
-          ownerform.pointerlisthandler:=TReversePointerListHandler.Create(startaddress,stopaddress,not unalligned,progressbar, noreadonly, MustBeClassPointers, useStacks, stacksAsStaticOnly, threadstacks, stacksize);
+          ownerform.pointerlisthandler:=TReversePointerListHandler.Create(startaddress,stopaddress,not unalligned,progressbar, noreadonly, MustBeClassPointers, useStacks, stacksAsStaticOnly, threadstacks, stacksize, mustStartWithBase, BaseStart, BaseStop);
 
         postmessage(ownerform.Handle, wm_starttimer, 0,0);
 
@@ -2940,6 +2952,10 @@ begin
       staticscanner.broadcastThisScanner:=frmpointerscannersettings.cbBroadcast.checked;
       staticscanner.potentialWorkerList:=frmpointerscannersettings.resolvediplist;
 
+
+      staticscanner.mustStartWithBase:=frmpointerscannersettings.cbMustStartWithBase.checked;
+      staticscanner.BaseStart:=frmpointerscannersettings.baseStart;
+      staticscanner.BaseStop:=frmpointerscannersettings.baseStop;
 
       staticscanner.mustEndWithSpecificOffset:=frmpointerscannersettings.cbMustEndWithSpecificOffset.checked;
       if staticscanner.mustEndWithSpecificOffset then

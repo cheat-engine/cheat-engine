@@ -1,11 +1,11 @@
 object frmPointerScannerSettings: TfrmPointerScannerSettings
   Left = 1150
-  Height = 447
+  Height = 464
   Top = 152
   Width = 638
   BorderStyle = bsSingle
   Caption = 'Pointerscanner scanoptions'
-  ClientHeight = 447
+  ClientHeight = 464
   ClientWidth = 638
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
@@ -248,19 +248,19 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   object cbMustEndWithSpecificOffset: TCheckBox
     Left = 8
     Height = 19
-    Top = 312
+    Top = 336
     Width = 199
     Caption = 'Pointers must end with specific offsets'
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
-    OnClick = cbMustEndWithSpecificOffsetClick
+    OnChange = cbMustEndWithSpecificOffsetChange
     ParentFont = False
     TabOrder = 2
   end
   object Panel1: TPanel
     Left = 0
     Height = 104
-    Top = 343
+    Top = 360
     Width = 638
     Align = alBottom
     BevelOuter = bvNone
@@ -429,7 +429,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   object cbUseLoadedPointermap: TCheckBox
     Left = 8
     Height = 19
-    Top = 292
+    Top = 293
     Width = 126
     Caption = 'Use saved pointermap'
     OnChange = cbUseLoadedPointermapChange
@@ -470,7 +470,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     ParentColor = False
   end
   object cbBroadcast: TCheckBox
-    Left = 298
+    Left = 296
     Height = 19
     Top = 309
     Width = 179
@@ -489,11 +489,23 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     OnClick = btnNotifySpecificIPsClick
     TabOrder = 11
   end
+  object cbMustStartWithBase: TCheckBox
+    Left = 8
+    Height = 19
+    Hint = 'Will only mark the given range as valid base address (Will reduce the number of results)'#13#10'This internally makes use of the "Only find paths with a static address" feature by marking the provided range as static only, so it must be enabled.'
+    Top = 314
+    Width = 204
+    Caption = 'Base address must be in specific range'
+    OnChange = cbMustStartWithBaseChange
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 12
+  end
   object odLoadPointermap: TOpenDialog
     DefaultExt = '.scandata'
     Filter = 'All files (*.*)|*.*|scandata files|*.scandata'
     FilterIndex = 2
-    left = 56
-    top = 288
+    left = 232
+    top = 264
   end
 end

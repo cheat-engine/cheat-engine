@@ -82,6 +82,11 @@ type
 
     bigalloc: TBigMemoryAllocHandler;
 
+    specificBaseAsStaticOnly: boolean;
+    basestart: ptruint;
+    basestop: ptruint;
+
+
     useStacks: boolean;
     threadStacks: integer;
     stacksAsStaticOnly: boolean;
@@ -92,6 +97,7 @@ type
     function isModulePointer(address: ptrUint): boolean;
     function ispointer(address: ptrUint): boolean;
     function isStatic(address: ptruint; var mi: TModuleInfo; var moduleindex: integer): boolean;
+    function isStatic2(address: ptruint; var mi: TModuleInfo; var moduleindex: integer): boolean;
     procedure quicksortmemoryregions(lo,hi: integer);
 
     procedure addpointer(pointervalue: ptrUint; pointerwiththisvalue: ptrUint; add: boolean);
@@ -116,7 +122,7 @@ type
     procedure saveModuleListToResults(s: TStream);
 
     function findPointerValue(startvalue: ptrUint; var stopvalue: ptrUint): PPointerList;
-    constructor create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar; noreadonly: boolean; mustbeclasspointers: boolean; useStacks: boolean; stacksAsStaticOnly: boolean; threadstacks: integer; stacksize: integer);
+    constructor create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar; noreadonly: boolean; mustbeclasspointers: boolean; useStacks: boolean; stacksAsStaticOnly: boolean; threadstacks: integer; stacksize: integer; specificBaseAsStaticOnly: boolean; baseStart: ptruint; baseStop: ptruint);
     constructor createFromStream(s: TStream; progressbar: tprogressbar);
     destructor destroy; override;
   end;
@@ -212,7 +218,7 @@ begin
   if (i<hi) then quicksortmemoryregions(i,hi);
 end;
 
-function TReversePointerListHandler.isStatic(address: ptruint; var mi: TModuleInfo; var moduleindex: integer): boolean;
+function TReversePointerListHandler.isStatic2(address: ptruint; var mi: TModuleInfo; var moduleindex: integer): boolean;
 var i: integer;
 begin
   result:=false;
@@ -222,14 +228,14 @@ begin
     begin
       if InRangeQ(address, stacklist[i]-stacksize, stacklist[i]) then
       begin
-        mi.baseaddress:=stacklist[i];
+        mi.baseaddress:=stacklist[i];    //fills mi.baseaddress
         result:=true;
       end;
     end;
   end;
 
   if (result=false) and (stacksAsStaticOnly=false) then
-    result:=symhandler.getmodulebyaddress(address, mi);
+    result:=symhandler.getmodulebyaddress(address, mi);  //fills mi.baseaddress
 
   if result then
   begin
@@ -237,11 +243,30 @@ begin
     begin
       if ptruint(modulelist.Objects[i])=mi.baseaddress then
       begin
-        moduleindex:=i;
+        moduleindex:=i;    //fills moduleindex
         exit;
       end;
     end;
   end;
+end;
+
+function TReversePointerListHandler.isStatic(address: ptruint; var mi: TModuleInfo; var moduleindex: integer): boolean;
+begin
+  if specificBaseAsStaticOnly then
+  begin
+    result:=(address>=basestart) and (address<=basestop);
+    if result then
+    begin
+      //setup as a direct address
+      moduleindex:=$FFFFFFFF;
+      mi.baseaddress:=0;
+
+      //now lookup if it's actually a static
+      isStatic2(address, mi, moduleindex);
+    end;
+  end
+  else
+    result:=isStatic2(address, mi, moduleindex);
 end;
 
 function TReversePointerListHandler.findoraddpointervalue(pointervalue: ptrUint): PPointerList;
@@ -786,7 +811,7 @@ begin
 
 end;
 
-constructor TReversePointerListHandler.create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar; noreadonly: boolean; mustbeclasspointers: boolean; useStacks: boolean; stacksAsStaticOnly: boolean; threadstacks: integer; stacksize: integer);
+constructor TReversePointerListHandler.create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar; noreadonly: boolean; mustbeclasspointers: boolean; useStacks: boolean; stacksAsStaticOnly: boolean; threadstacks: integer; stacksize: integer; specificBaseAsStaticOnly: boolean; baseStart: ptruint; baseStop: ptruint);
 var bytepointer: PByte;
     dwordpointer: PDword absolute bytepointer;
     qwordpointer: PQword absolute bytepointer;
@@ -829,6 +854,10 @@ begin
     self.threadStacks:=threadStacks;
     self.stacksAsStaticOnly:=stacksAsStaticOnly;
     self.stacksize:=stacksize;
+
+    self.specificBaseAsStaticOnly:=specificBaseAsStaticOnly;
+    self.baseStart:=baseStart;
+    self.baseStop:=baseStop;
 
     //fill the stacklist
     if useStacks then
