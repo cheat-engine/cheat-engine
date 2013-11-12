@@ -142,6 +142,7 @@ begin
   begin
     //address
     memrec.interpretableaddress:=Lua_ToString(L, 1);
+    memrec.ReinterpretAddress(true);
     setlength(memrec.pointeroffsets, 0);
 
     if lua_gettop(L)>=2 then
