@@ -3691,10 +3691,19 @@ begin
     n:=tvStructureView.GetNodeAt(x,y);
     if n<>nil then
     begin
-      if not ((ssShift in Shift) or (ssCtrl in Shift)) then
-        tvStructureView.Items.SelectOnlyThis(n)
-      else
-        n.Selected:=true;
+
+
+
+      if (not n.Selected) and (not n.MultiSelected) then
+      begin
+        //not yet selected
+        if not ((ssShift in Shift) or (ssCtrl in Shift)) then
+          tvStructureView.Items.SelectOnlyThis(n)
+        else
+          n.Selected:=true;
+      end;
+
+
     end;
   end;
 end;
