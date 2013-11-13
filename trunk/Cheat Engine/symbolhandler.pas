@@ -648,22 +648,11 @@ begin
 
   s:=pchar(@pSymInfo.Name);
 
+
   self:=TSymbolloaderthread(UserContext);
 
   if self.currentModuleIsNotStandard then
     s:='_'+s;
-
-  {
-  s:=s+'('+inttohex(pSymInfo.Flags,1)+'-'+inttostr(pSymInfo.Tag)+':';
-
-
-
-
-
-
-  s:=s+' - '+GetEnumName(TypeInfo(TSymTagEnum), pSymInfo.Tag);
-     }
-
 
   if TSymTagEnum(pSymInfo.Tag)=SymTagFunction then
   begin
@@ -677,7 +666,9 @@ begin
 
     SymEnumSymbols(self.thisprocesshandle, 0, NULL, @ES2, self);
 
-  end;
+  end
+  else
+    self.extraSymbolData:=nil;
 
   //don't add if it's a forwarder, but register a userdefined symbol
 
