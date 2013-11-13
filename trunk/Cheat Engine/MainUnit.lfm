@@ -165,7 +165,7 @@ object MainForm: TMainForm
       Enabled = False
       ParentColor = False
     end
-    object Label8: TLabel
+    object lblValueType: TLabel
       Left = 260
       Height = 14
       Top = 148
@@ -325,16 +325,6 @@ object MainForm: TMainForm
       ParentColor = False
       Visible = False
     end
-    object Label53: TLabel
-      Left = 207
-      Height = 14
-      Top = 325
-      Width = 44
-      Caption = 'crash me'
-      ParentColor = False
-      Visible = False
-      OnClick = Label53Click
-    end
     object Label57: TLabel
       Left = 416
       Height = 14
@@ -382,7 +372,7 @@ object MainForm: TMainForm
     object btnNewScan: TButton
       AnchorSideLeft.Control = Foundlist3
       AnchorSideLeft.Side = asrBottom
-      Left = 284
+      Left = 279
       Height = 25
       Top = 48
       Width = 65
@@ -628,7 +618,7 @@ object MainForm: TMainForm
       AnchorSideLeft.Control = btnNewScan
       AnchorSideLeft.Side = asrBottom
       AnchorSideRight.Control = btnNewScan
-      Left = 359
+      Left = 354
       Height = 25
       Top = 48
       Width = 65
@@ -1389,7 +1379,7 @@ object MainForm: TMainForm
       Height = 268
       Hint = 'This list shows all the found addresses that matched your last scan'
       Top = 48
-      Width = 253
+      Width = 248
       Anchors = [akTop, akLeft, akRight, akBottom]
       Color = clBtnFace
       Columns = <      
