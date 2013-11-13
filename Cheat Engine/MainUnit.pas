@@ -39,6 +39,8 @@ const
   wm_scandone = WM_USER + 2;
   wm_pluginsync = WM_USER + 3;
 
+  wm_showerror = WM_USER + 4;
+
 //scantabs
 type
   TScanState = record
@@ -212,7 +214,6 @@ type
     Label2: TLabel;
     Label3: TLabel;
     lblcompareToSavedScan: TLabel;
-    Label53: TLabel;
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
@@ -316,7 +317,7 @@ type
     foundcountlabel: TLabel;
     ScanText: TLabel;
     lblScanType: TLabel;
-    Label8: TLabel;
+    lblValueType: TLabel;
     LoadButton: TSpeedButton;
     SaveButton: TSpeedButton;
     Label6: TLabel;
@@ -677,6 +678,7 @@ type
     procedure Hotkey2(var Message: TMessage); message wm_hotkey2;
     procedure ScanDone(var message: TMessage); message WM_SCANDONE;
     procedure PluginSync(var m: TMessage); message wm_pluginsync;
+    procedure ShowError(var message: TMessage); message wm_showerror;
     procedure Edit;
     procedure paste(simplecopypaste: boolean);
     procedure CopySelectedRecords;
@@ -1667,6 +1669,15 @@ begin
   m.Result := ptruint(func(params));
 end;
 
+procedure TMainForm.ShowError(var message: TMessage);
+var err: pchar;
+begin
+  err:=pchar(message.lParam);
+  MessageDlg(err, mtError, [mbOK], 0);
+
+  freemem(err);
+end;
+
 //----------------------------------
 
 function TMainForm.getSelectedVariableType: TVariableType;
@@ -1813,7 +1824,7 @@ begin
   scantype.Enabled := False;
   scantext.Enabled := False;
   lblScanType.Enabled := False;
-  label8.Enabled := False;
+  lblValueType.Enabled := False;
   cbHexadecimal.Enabled := False;
   cbCaseSensitive.Enabled := False;
 
@@ -1855,7 +1866,7 @@ begin
   scantype.Enabled := True;
   scantext.Enabled := True;
   lblScanType.Enabled := True;
-  label8.Enabled := True;
+  lblValueType.Enabled := True;
   cbHexadecimal.Enabled := True;
   cbCaseSensitive.Enabled := True;
 
@@ -1897,15 +1908,12 @@ end;
 
 
 procedure TMainForm.exceptionhandler(Sender: TObject; E: Exception);
+var err: pchar;
 begin
-  // screen.Cursor := crdefault;
-
   //unhandled exeption. Also clean lua stack
-
-
-  //  MessageBox(0,'bla','bla',0);
-  MessageDlg(E.message, mtError, [mbOK], 0);
-
+  getmem(err, length(e.Message)+1);
+  strcopy(err, pchar(e.message));
+  PostMessage(handle, wm_showerror, 0, ptruint(err));
 end;
 
 
@@ -2458,7 +2466,7 @@ begin
     scantype.Enabled := False;
     scantext.Enabled := False;
     lblScanType.Enabled := False;
-    label8.Enabled := False;
+    lblValueType.Enabled := False;
 
     scanvalue.Visible := False;
     scantext.Visible := False;
@@ -6619,6 +6627,11 @@ var
   x: array of integer;
 
   t: tcomponent;
+
+
+  ReferenceControl: TControl;
+  ReferenceSide : TAnchorSideReference;
+  Position: integer;
 begin
   if onetimeonly then
     exit;
@@ -6759,6 +6772,23 @@ begin
   btnAddAddressManually.ClientWidth:=max(btnAddAddressManually.ClientWidth, canvas.textwidth(btnAddAddressManually.caption)+16);
   btnNewScan.ClientWidth:=max(max(btnNewScan.ClientWidth, btnNextScan.ClientWidth), max(canvas.textwidth(btnNewScan.caption)+16, canvas.textwidth(btnNextScan.caption)+16 ));
   btnNextScan.ClientWidth:=btnNewScan.clientwidth;
+
+
+  if lblScanType.Left<foundlist3.Width then
+  begin
+    i:=foundlist3.Width-(lblscantype.left-10);
+    foundlist3.width:=lblscantype.left-10;
+
+    btnNewScan.BorderSpacing.Left:=btnNewScan.BorderSpacing.Left+i;
+  end;
+
+  if lblValueType.Left<foundlist3.Width then
+  begin
+    i:=foundlist3.Width-(lblValueType.left-10);
+    foundlist3.width:=lblValueType.left-10;
+
+    btnNewScan.BorderSpacing.Left:=btnNewScan.BorderSpacing.Left+i;
+  end;
 end;
 
 
