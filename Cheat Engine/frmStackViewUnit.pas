@@ -269,6 +269,7 @@ end;
 
 procedure TfrmStackView.FormCreate(Sender: TObject);
 begin
+  ColorDialog1.color:=clWhite;
   colors:=TMap.create(ituPtrSize, sizeof(TColor));
 end;
 

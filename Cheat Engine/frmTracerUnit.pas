@@ -788,7 +788,7 @@ begin
           parent:=p.parent;
           font:=p.font;
           left:=p.left;
-          top:=p.top+p.height;
+          top:=p.top+esplabel.height;
           cursor:=p.cursor;
 
 
@@ -800,7 +800,7 @@ begin
         p:=l;
       end;
 
-      eiplabel.top:=l.top+l.height;
+      eiplabel.top:=p.top+esplabel.height;
       cslabel.top:=eiplabel.top+eiplabel.height+20;
       sslabel.top:=cslabel.top+cslabel.height;
       dslabel.top:=sslabel.top+sslabel.height;
@@ -812,6 +812,8 @@ begin
         clientheight:=gslabel.top+gslabel.height+button1.height+4;
 
     end;
+
+    isConfigured:=true;
   end;
 end;
 
@@ -914,14 +916,14 @@ begin
       if length(rxlabels)>0 then
       begin
 
-        temp:='R8 '+IntToHex(context.r8,8);
+        temp:='R8  '+IntToHex(context.r8,8);
         if temp<>RXlabels[0].Caption then
         begin
           RXlabels[0].Font.Color:=clred;
           RXlabels[0].Caption:=temp;
         end else RXlabels[0].Font.Color:=clWindowText;
 
-        temp:='R9 '+IntToHex(context.r9,8);
+        temp:='R9  '+IntToHex(context.r9,8);
         if temp<>RXlabels[1].Caption then
         begin
           RXlabels[1].Font.Color:=clred;
