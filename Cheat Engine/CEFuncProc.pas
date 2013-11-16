@@ -2457,7 +2457,9 @@ begin
   te32.dwSize:=sizeof(te32);
   if Thread32First(ths,te32) then
   repeat
-    threadlist.Add(inttohex(te32.th32ThreadID,1));
+    if te32.th32OwnerProcessID=processid then
+      threadlist.Add(inttohex(te32.th32ThreadID,1));
+
   until Thread32next(ths,te32)=false;
 
   closehandle(ths);
