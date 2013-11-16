@@ -110,24 +110,24 @@ object frmUltimap: TfrmUltimap
       ClientHeight = 232
       ClientWidth = 747
       TabOrder = 1
-      object Button3: TButton
+      object btnExecuted: TButton
         Left = 344
         Height = 25
         Top = 48
         Width = 264
         Caption = 'Code has been executed'
-        OnClick = Button3Click
+        OnClick = btnExecutedClick
         PopupMenu = pmSetHotkey
         TabOrder = 0
       end
-      object Button4: TButton
+      object btnNotExecuted: TButton
         Tag = 1
         Left = 344
         Height = 25
         Top = 16
         Width = 264
         Caption = 'Code did not get executed'
-        OnClick = Button4Click
+        OnClick = btnNotExecutedClick
         PopupMenu = pmSetHotkey
         TabOrder = 1
       end
@@ -140,17 +140,17 @@ object frmUltimap: TfrmUltimap
         OnClick = Button6Click
         TabOrder = 2
       end
-      object Button7: TButton
+      object btnNotCalled: TButton
         Tag = 2
         Left = 344
         Height = 25
         Top = 80
         Width = 264
         Caption = 'Filter out routine(s) that where not CALL''ed'
-        OnClick = Button7Click
+        OnClick = btnNotCalledClick
         TabOrder = 3
       end
-      object Button8: TButton
+      object btnFilterCallCount: TButton
         Tag = 3
         Left = 344
         Height = 25
@@ -177,13 +177,13 @@ object frmUltimap: TfrmUltimap
         Caption = 'Last filter results:'
         ParentColor = False
       end
-      object Button1: TButton
+      object btnFilterModule: TButton
         Left = 344
         Height = 25
         Top = 176
         Width = 264
         Caption = 'Filter out routines not in a specific module'
-        OnClick = Button1Click
+        OnClick = btnFilterModuleClick
         TabOrder = 6
       end
       object btnStart: TButton
@@ -291,23 +291,23 @@ object frmUltimap: TfrmUltimap
         Caption = 'Banch targets:'
         ParentColor = False
       end
-      object Button2: TButton
+      object btnResetCount: TButton
         Left = 665
         Height = 25
         Top = 142
         Width = 73
         Caption = 'Reset Count'
-        OnClick = Button2Click
+        OnClick = btnResetCountClick
         TabOrder = 15
       end
-      object Button9: TButton
+      object btnRet: TButton
         Tag = 5
         Left = 344
         Height = 25
         Top = 112
         Width = 264
         Caption = 'Filter out return from RET''s'
-        OnClick = Button9Click
+        OnClick = btnRetClick
         TabOrder = 16
       end
       object cbPreemptiveFlush: TCheckBox
@@ -317,9 +317,11 @@ object frmUltimap: TfrmUltimap
         Top = 96
         Width = 126
         Caption = 'Preemptive flushing'
+        Checked = True
         OnChange = cbPreemptiveFlushChange
         ParentShowHint = False
         ShowHint = True
+        State = cbChecked
         TabOrder = 17
       end
       object cbfilterOutNewEntries: TCheckBox
