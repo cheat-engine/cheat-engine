@@ -4677,7 +4677,9 @@ begin
 
     lua_register(LuaVM, 'fullAccess', fullAccess);
     lua_register(LuaVM, 'getProcesslist', getProcessList_lua);
+    lua_register(LuaVM, 'getProcessList', getProcessList_lua);
     lua_register(LuaVM, 'getThreadlist', getThreadlist_lua);
+    lua_register(LuaVM, 'getThreadList', getThreadlist_lua);
 
     Lua_register(LuaVM, 'createTreeView', createTreeView);
     Lua_register(LuaVM, 'loadTable', lua_loadTable);
