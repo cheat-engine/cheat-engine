@@ -61,15 +61,15 @@ type
     btnPause: TButton;
     btnStart: TButton;
     btnStop: TButton;
-    Button1: TButton;
-    Button2: TButton;
-    Button3: TButton;
-    Button4: TButton;
+    btnFilterModule: TButton;
+    btnResetCount: TButton;
+    btnExecuted: TButton;
+    btnNotExecuted: TButton;
     Button5: TButton;
     Button6: TButton;
-    Button7: TButton;
-    Button8: TButton;
-    Button9: TButton;
+    btnNotCalled: TButton;
+    btnFilterCallCount: TButton;
+    btnRet: TButton;
     cbLogToFile: TRadioButton;
     cbParseData: TRadioButton;
     cbPreemptiveFlush: TCheckBox;
@@ -100,14 +100,14 @@ type
     procedure btnStartClick(Sender: TObject);
     procedure btnStopClick(Sender: TObject);
     procedure btnPauseClick(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
-    procedure Button3Click(Sender: TObject);
-    procedure Button4Click(Sender: TObject);
+    procedure btnFilterModuleClick(Sender: TObject);
+    procedure btnResetCountClick(Sender: TObject);
+    procedure btnExecutedClick(Sender: TObject);
+    procedure btnNotExecutedClick(Sender: TObject);
     procedure Button5Click(Sender: TObject);
     procedure Button6Click(Sender: TObject);
-    procedure Button7Click(Sender: TObject);
-    procedure Button9Click(Sender: TObject);
+    procedure btnNotCalledClick(Sender: TObject);
+    procedure btnRetClick(Sender: TObject);
     procedure cbPreemptiveFlushChange(Sender: TObject);
     procedure cbfilterOutNewEntriesChange(Sender: TObject);
     procedure Edit1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -446,7 +446,7 @@ begin
 
 
   paused:=false;
-  btnPause.tag:=1;
+//  btnPause.tag:=1;
   btnPause.caption:='Pause';
   btnPause.enabled:=true;
   btnStop.enabled:=true;
@@ -511,12 +511,12 @@ begin
   beep;
 end;
 
-procedure TfrmUltimap.Button1Click(Sender: TObject);
+procedure TfrmUltimap.btnFilterModuleClick(Sender: TObject);
 begin
   ApplyFilter(4);
 end;
 
-procedure TfrmUltimap.Button2Click(Sender: TObject);
+procedure TfrmUltimap.btnResetCountClick(Sender: TObject);
 var n: TAvgLvlTreeNode;
   d: PBranchdata;
   count: integer;
@@ -547,17 +547,17 @@ begin
   listview1.Refresh;
 end;
 
-procedure TfrmUltimap.Button3Click(Sender: TObject);
+procedure TfrmUltimap.btnExecutedClick(Sender: TObject);
 begin
   ApplyFilter(0);
 end;
 
-procedure TfrmUltimap.Button4Click(Sender: TObject);
+procedure TfrmUltimap.btnNotExecutedClick(Sender: TObject);
 begin
   ApplyFilter(1);
 end;
 
-procedure TfrmUltimap.Button7Click(Sender: TObject);
+procedure TfrmUltimap.btnNotCalledClick(Sender: TObject);
 begin
   ApplyFilter(2);
 end;
@@ -638,7 +638,7 @@ end;
 
 
 
-procedure TfrmUltimap.Button9Click(Sender: TObject);
+procedure TfrmUltimap.btnRetClick(Sender: TObject);
 begin
   applyfilter(5);
 end;
@@ -656,7 +656,7 @@ end;
 procedure TfrmUltimap.Edit1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
   if key=VK_RETURN then
-    button8.click;
+    btnFilterCallCount.click;
 end;
 
 function TfrmUltimap.iscall(address: ptruint): boolean;
@@ -861,8 +861,8 @@ begin
       if x[6*i+0]=1 then  //active hotkey
       begin
         case i of
-          0: ne:=Button3.onclick;
-          1: ne:=Button4.onclick;
+          0: ne:=btnExecuted.onclick;
+          1: ne:=btnNotExecuted.onclick;
           2: ne:=btnPause.onclick;
         end;
 
@@ -990,6 +990,8 @@ begin
   if pmSetHotkey.PopupComponent<>nil then
   begin
     i:=pmSetHotkey.PopupComponent.Tag;
+
+   // showmessage(pmSetHotkey.PopupComponent.Name);
 
     miSetHotkey.enabled:=FilterHotkey[i]=nil;
     miRemoveHotkey.enabled:=not miSetHotkey.enabled;
