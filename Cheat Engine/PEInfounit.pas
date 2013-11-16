@@ -544,15 +544,20 @@ begin
               while PUINT64(ptrUint(loadedmodule)+ImageImportDirectory.FirstThunk+8*k)^<>0 do
               begin
                 importaddress:=ptrUint(loadedmodule)+ImageImportDirectory.FirstThunk+8*k;
-                importfunctionname:=pchar(ptrUint(loadedmodule)+pdword(importaddress)^+2);
 
-                PEItv.Items.addchild(tempnode3, format('%x (%x) - %s',[PUINT64(ptrUint(loadedmodule)+ImageImportDirectory.FirstThunk+8*k)^, importaddress, importfunctionname]));
-                lbImports.Items.Add( format('%x (%x) - %s',[PUINT64(ptrUint(loadedmodule)+ImageImportDirectory.FirstThunk+8*k)^, importaddress, importfunctionname]));
-
-                if not loaded then
+                if InRangeX(importaddress, ptrUint(loadedmodule), ptrUint(loadedmodule)+memorycopysize) then
                 begin
-                  funcaddress:=ptrUint(getprocaddress(modhandle, pchar(importfunctionname)));
-                  PUINT64(importaddress)^:=funcaddress;
+                  importfunctionname:=pchar(ptrUint(loadedmodule)+pdword(importaddress)^+2);
+
+                  PEItv.Items.addchild(tempnode3, format('%x (%x) - %s',[PUINT64(ptrUint(loadedmodule)+ImageImportDirectory.FirstThunk+8*k)^, importaddress, importfunctionname]));
+                  lbImports.Items.Add( format('%x (%x) - %s',[PUINT64(ptrUint(loadedmodule)+ImageImportDirectory.FirstThunk+8*k)^, importaddress, importfunctionname]));
+
+                  if not loaded then
+                  begin
+                    funcaddress:=ptrUint(getprocaddress(modhandle, pchar(importfunctionname)));
+                    PUINT64(importaddress)^:=funcaddress;
+                  end;
+
                 end;
 
                 inc(k);
