@@ -19,7 +19,8 @@
 #include "vmxoffload.h"
 #include "ultimap.h"
 
-
+UINT64 PhysicalMemoryRanges=0; //initialized once, and used thereafter. If the user adds/removes ram at runtime, screw him and make him the reload the driver
+UINT64 PhysicalMemoryRangesListSize=0;
 
 PSERVICE_DESCRIPTOR_TABLE KeServiceDescriptorTableShadow=NULL;
 PSERVICE_DESCRIPTOR_TABLE KeServiceDescriptorTable=NULL;
@@ -605,6 +606,51 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				}
 				
 				
+				break;
+			}
+
+		case IOCTL_CE_GETMEMORYRANGES:
+			{
+				
+				struct output
+				{
+					UINT64 address;
+					UINT64 size;
+				} *poutp=Irp->AssociatedIrp.SystemBuffer;
+
+				DbgPrint("IOCTL_CE_GETMEMORYRANGES\n");
+
+
+				if (PhysicalMemoryRanges==0)
+				{
+					__try
+					{
+						PPHYSICAL_MEMORY_RANGE mr=MmGetPhysicalMemoryRanges();
+						
+						if (mr)
+						{
+							//find the end
+							int i;
+							PhysicalMemoryRanges=(UINT64)mr;
+							for (i=0; mr[i].NumberOfBytes.QuadPart || mr[i].BaseAddress.QuadPart; i++);
+
+							PhysicalMemoryRangesListSize=(UINT64)(&mr[i])-(UINT64)(&mr[0]);
+						}
+						
+
+
+					}
+					__except(1)
+					{
+						//just in case this function decides to bug out in the future
+					}
+				}
+				
+				poutp->address=PhysicalMemoryRanges;
+				poutp->size=PhysicalMemoryRangesListSize;
+
+				ntStatus=STATUS_SUCCESS;
+
 				break;
 			}
 			
@@ -1488,8 +1534,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 					UINT64 ThreadEvent;
   				} *pinp;
 
-		
-				int i;
+	
 				PSERVICE_DESCRIPTOR_TABLE PossibleKeServiceDescriptorTableShow; //long name's are FUN!!!!
 
 				DbgPrint("IOCTL_CE_INITIALIZE\n");

@@ -157,19 +157,39 @@ Called from usermode to wait for data
 
 		data->Block=r-STATUS_WAIT_0;
 
-		if ((data->Block <= MaxDataBlocks) && (DataBlock))
+		if (data->Block <= MaxDataBlocks)
 		{
 			//Map this block to usermode
-			data->KernelAddress=(UINT64)DataBlock[data->Block].Data;
-			(PMDL)data->Mdl=IoAllocateMdl(DataBlock[data->Block].Data, DataBlock[data->Block].DataSize, FALSE, FALSE, NULL);
+			
 
-			MmBuildMdlForNonPagedPool((PMDL)data->Mdl);
+			ExAcquireFastMutex(&DataBlockMutex);
+			if (DataBlock)
+			{
+				data->KernelAddress=(UINT64)DataBlock[data->Block].Data;
+				(PMDL)data->Mdl=IoAllocateMdl(DataBlock[data->Block].Data, DataBlock[data->Block].DataSize, FALSE, FALSE, NULL);
+				if (data->Mdl)
+				{
+					MmBuildMdlForNonPagedPool((PMDL)data->Mdl);
 
-			data->Address=(UINT_PTR)MmMapLockedPagesSpecifyCache((PMDL)data->Mdl, UserMode, MmCached, NULL, FALSE, NormalPagePriority);
-			data->Size=DataBlock[data->Block].DataSize;
-			data->CpuID=DataBlock[data->Block].CpuID;
+					data->Address=(UINT_PTR)MmMapLockedPagesSpecifyCache((PMDL)data->Mdl, UserMode, MmCached, NULL, FALSE, NormalPagePriority);
+					if (data->Address)
+					{
+						data->Size=DataBlock[data->Block].DataSize;
+						data->CpuID=DataBlock[data->Block].CpuID;
+						r=STATUS_SUCCESS;
+					}
+					else
+						r=STATUS_UNSUCCESSFUL;					
+				}
+				else
+					r=STATUS_UNSUCCESSFUL;
+			}
+			else
+				r=STATUS_UNSUCCESSFUL;
 
-			return STATUS_SUCCESS;	
+			ExReleaseFastMutex(&DataBlockMutex);
+
+			return r;	
 		}
 		else
 			return STATUS_UNSUCCESSFUL;
@@ -277,24 +297,21 @@ int perfmon_interrupt_centry(void)
 				}
 				else currentblock=-1;
 
-				ExReleaseFastMutex(&DataBlockMutex);
-				DbgPrint("Released mutex\n");
+
 
 				if (currentblock>=0) 
-				{				
-					
-						
-
+				{					
 					DbgPrint("Using datablock %d\n", currentblock);
 					DataBlock[currentblock].Data=temp;
 					DataBlock[currentblock].DataSize=(int)blocksize;
 					DataBlock[currentblock].CpuID=cpunr();
 					
 					DbgPrint("Calling KeSetEvent/KeWaitForSingleObject\n");
-					KeSetEvent(&DataBlock[currentblock].DataReady, 1, FALSE); //Trigger a worker thread to start working
-
-					
-				}				
+					KeSetEvent(&DataBlock[currentblock].DataReady, 1, FALSE); //Trigger a worker thread to start working					
+				}	
+				ExReleaseFastMutex(&DataBlockMutex);
+				//DbgPrint("Released mutex\n");
+				
 
 
 			}
@@ -405,7 +422,6 @@ void ultimap_disable(void)
 	if (DataBlock)
 	{
 		int i;
-		_DataBlock *tempDataBlock=DataBlock;
 
 		forEachCpu(ultimap_disable_dpc, NULL, NULL, NULL);
 
@@ -416,22 +432,23 @@ void ultimap_disable(void)
 		}
 
 		//all logging should have stopped now
-		DataBlock=NULL;
-
 		
 		//Trigger all events waking up each thread that was waiting for the events
+
+		ExAcquireFastMutex(&DataBlockMutex);
+
 		for (i=0; i<MaxDataBlocks; i++)
-			KeSetEvent(&tempDataBlock[i].DataReady,0, FALSE);
-		
-		ExFreePool(tempDataBlock);
-	
+			KeSetEvent(&DataBlock[i].DataReady,0, FALSE);
+
+		ExFreePool(DataBlock);
+		DataBlock=NULL;
+
 		if (DataReadyPointerList)
 		{
 			ExFreePool(DataReadyPointerList);
 			DataReadyPointerList=NULL;		
 		}
-
-		
+		ExReleaseFastMutex(&DataBlockMutex);
 
 	}
 }
