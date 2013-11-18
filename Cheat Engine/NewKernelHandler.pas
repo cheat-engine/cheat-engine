@@ -1090,26 +1090,35 @@ end;
 function VirtualQueryExPhysical(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; stdcall;
 var buf:_MEMORYSTATUS;
 begin
-  GlobalMemoryStatus(buf);
 
-  lpBuffer.BaseAddress:=pointer((ptrUint(lpAddress) div $1000)*$1000);
-  lpbuffer.AllocationBase:=lpbuffer.BaseAddress;
-  lpbuffer.AllocationProtect:=PAGE_EXECUTE_READWRITE;
-  lpbuffer.RegionSize:=buf.dwTotalPhys-ptrUint(lpBuffer.BaseAddress);
-  lpbuffer.RegionSize:=lpbuffer.RegionSize+($1000-lpbuffer.RegionSize mod $1000);
-
-  lpbuffer.State:=mem_commit;
-  lpbuffer.Protect:=PAGE_EXECUTE_READWRITE;
-  lpbuffer._Type:=MEM_PRIVATE;
-
-  if (ptrUint(lpAddress)>buf.dwTotalPhys) //bigger than the total ammount of memory
-  then
+  if dbk32functions.hdevice<>INVALID_HANDLE_VALUE then
   begin
-    zeromemory(@lpbuffer,dwlength);
-    result:=0
+    result:=dbk32functions.VirtualQueryExPhysical(hProcess, lpAddress, lpBuffer, dwLength);
   end
   else
-    result:=dwlength;
+  begin
+    GlobalMemoryStatus(buf);
+
+    lpBuffer.BaseAddress:=pointer((ptrUint(lpAddress) div $1000)*$1000);
+    lpbuffer.AllocationBase:=lpbuffer.BaseAddress;
+    lpbuffer.AllocationProtect:=PAGE_EXECUTE_READWRITE;
+    lpbuffer.RegionSize:=buf.dwTotalPhys-ptrUint(lpBuffer.BaseAddress);
+    lpbuffer.RegionSize:=lpbuffer.RegionSize+($1000-lpbuffer.RegionSize mod $1000);
+
+    lpbuffer.State:=mem_commit;
+    lpbuffer.Protect:=PAGE_EXECUTE_READWRITE;
+    lpbuffer._Type:=MEM_PRIVATE;
+
+    if (ptrUint(lpAddress)>buf.dwTotalPhys) //bigger than the total ammount of memory
+    then
+    begin
+      zeromemory(@lpbuffer,dwlength);
+      result:=0
+    end
+    else
+      result:=dwlength;
+
+  end;
 
 end;
 

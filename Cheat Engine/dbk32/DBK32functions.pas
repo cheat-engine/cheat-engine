@@ -13,7 +13,7 @@ uses jwawindows, windows, sysutils, classes, types, registry, multicpuexecution,
 
 
 
-const currentversion=2000014;
+const currentversion=2000015;
 
 const FILE_ANY_ACCESS=0;
 const FILE_SPECIAL_ACCESS=FILE_ANY_ACCESS;
@@ -107,12 +107,25 @@ const IOCTL_CE_ULTIMAP_WAITFORDATA    = (IOCTL_UNKNOWN_BASE shl 16) or ($0844 sh
 const IOCTL_CE_ULTIMAP_CONTINUE       = (IOCTL_UNKNOWN_BASE shl 16) or ($0845 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 const IOCTL_CE_ULTIMAP_FLUSH          = (IOCTL_UNKNOWN_BASE shl 16) or ($0846 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
+const IOCTL_CE_GETMEMORYRANGES        = (IOCTL_UNKNOWN_BASE shl 16) or ($0847 shl 2) or (METHOD_BUFFERED ) or (FILE_RW_ACCESS shl 14);
 
 
 type TDeviceIoControl=function(hDevice: THandle; dwIoControlCode: DWORD; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesReturned: DWORD; lpOverlapped: POverlapped): BOOL; stdcall;
 
 
 type TFNAPCProc = TFarProc;
+
+type
+  TPhysicalMemoryRange=packed record
+                         base: uint64;
+                         size: uint64;
+                       end;
+  TPhysicalMemoryRanges=array of TPhysicalMemoryRange;
+
+  TPhysicalMemoryRangesArray=array [0..10000] of TPhysicalMemoryRange;
+  PPhysicalMemoryRangesArray=^TPhysicalMemoryRangesArray;
+
+
 
 type thandlelist=record
   processhandle: thandle;
@@ -168,6 +181,7 @@ var hdevice: thandle=INVALID_HANDLE_VALUE; //handle to my the device driver
     //usealternatedebugmethod: boolean;
 
 
+    saferQueryPhysicalMemory: boolean=true;
 
 function CTL_CODE(DeviceType, Func, Method, Access : integer) : integer;
 function IsValidHandle(hProcess:THandle):BOOL; stdcall;
@@ -193,6 +207,8 @@ function GetThreadListEntryOffset: dword; stdcall;
 function ReadPhysicalMemory(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:DWORD):BOOL; stdcall;
 function WritePhysicalMemory(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:DWORD):BOOL; stdcall;
 function GetPhysicalAddress(hProcess:THandle;lpBaseAddress:pointer;var Address:int64): BOOL; stdcall;
+function GetMemoryRanges(var ranges: TPhysicalMemoryRanges): boolean;
+function VirtualQueryExPhysical(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; stdcall;
 
 function GetCR4:DWORD; stdcall;
 function GetCR3(hProcess:THANDLE;var CR3:system.QWORD):BOOL; stdcall;
@@ -269,7 +285,7 @@ var kernel32dll: thandle;
 
 implementation
 
-uses vmxfunctions, DBK64SecondaryLoader, NewKernelHandler, frmDriverLoadedUnit;
+uses vmxfunctions, DBK64SecondaryLoader, NewKernelHandler, frmDriverLoadedUnit, CEFuncProc;
 
 var dataloc: string;
     applicationPath: string;
@@ -705,6 +721,181 @@ begin
       end;
   end;
 end;
+
+
+function GetMemoryRanges(var ranges: TPhysicalMemoryRanges): boolean;
+
+var cc: dword;
+    br: dword;
+
+    r: packed record
+      address: uint64;
+      size: uint64;
+    end;
+
+    buf: PPhysicalMemoryRangesArray;
+    i,j,k: integer;
+    entrycount: integer;
+
+    inserted: boolean;
+begin
+  setlength(ranges, 0);
+  cc:=IOCTL_CE_GETMEMORYRANGES;
+  result:=false;
+  if hdevice<>INVALID_HANDLE_VALUE then
+  begin
+    result:=deviceiocontrol(hdevice,cc,nil,0,@r,sizeof(r),br,nil);
+    if result then
+    begin
+      getmem(buf, r.size);
+      if DBK32functions.ReadProcessMemory64(ownprocess, r.address, buf, r.size, br) then
+      begin
+        entrycount:=r.size div sizeof(TPhysicalMemoryRange);
+        for i:=0 to entrycount-1 do
+        begin
+          if buf[i].size<>0 then
+          begin
+            //add it.  I'm not 100% sure that this function returns the list sorted. So sort it to be sure
+            inserted:=false;
+
+            setlength(ranges, length(ranges)+1);
+
+            for j:=0 to length(ranges)-2 do
+            begin
+              if buf[i].base<ranges[j].base then //insert it before this
+              begin
+                for k:=length(ranges)-2 downto j do
+                  ranges[k+1]:=ranges[k];
+
+                ranges[j]:=buf[i];
+
+                inserted:=true;
+                break;
+              end;
+            end;
+
+            if not inserted then //add to the end
+              ranges[length(ranges)-1]:=buf[i];
+
+          end;
+
+        end;
+
+
+      end;
+
+      freemem(buf);
+    end;
+  end;
+end;
+
+function VirtualQueryExPhysical(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; stdcall;
+var
+  r: TPhysicalMemoryRanges;
+  i: integer;
+
+  maxaddress: uint64;
+  buf:_MEMORYSTATUS;
+  passed: boolean;
+begin
+  setlength(r,0);
+  result:=0;
+
+  if not saferQueryPhysicalMemory then
+  begin
+    maxaddress:=0;
+
+    //just go from 0 to the last one
+    if GetMemoryRanges(r) then
+    begin
+      if length(r)>0 then
+        maxaddress:=r[length(r)-1].base+r[length(r)-1].size;
+    end;
+
+    if maxaddress=0 then //fallback
+    begin
+      GlobalMemoryStatus(buf);
+      maxaddress:=buf.dwTotalPhys;
+    end;
+
+    if maxaddress>0 then
+    begin
+      lpBuffer.BaseAddress:=pointer((ptrUint(lpAddress) div $1000)*$1000);
+      lpbuffer.AllocationBase:=lpbuffer.BaseAddress;
+      lpbuffer.AllocationProtect:=PAGE_EXECUTE_READWRITE;
+      lpbuffer.RegionSize:=maxaddress-ptrUint(lpBuffer.BaseAddress);
+      lpbuffer.RegionSize:=lpbuffer.RegionSize+($1000-lpbuffer.RegionSize mod $1000);
+
+      lpbuffer.State:=mem_commit;
+      lpbuffer.Protect:=PAGE_EXECUTE_READWRITE;
+      lpbuffer._Type:=MEM_PRIVATE;
+
+      if (ptrUint(lpAddress)<buf.dwTotalPhys) then //smaller than the total amount of memory
+        result:=dwlength;
+    end
+    else
+      result:=0;
+  end
+  else
+  begin
+    //safer memory access
+    if GetMemoryRanges(r) then
+    begin
+      lpBuffer.BaseAddress:=pointer((ptrUint(lpAddress) div $1000)*$1000);
+
+      passed:=false;
+      for i:=0 to length(r)-1 do
+      begin
+        if (ptruint(lpAddress)>=r[i].base) then
+        begin
+          if InRangeX(ptruint(lpAddress), r[i].base, r[i].base+r[i].size-1) then
+          begin
+            //found the range
+            lpbuffer.AllocationBase:=pointer(r[i].base);
+            lpbuffer.AllocationProtect:=PAGE_EXECUTE_READWRITE;
+            lpbuffer.RegionSize:=r[i].base+r[i].size-ptrUint(lpBuffer.BaseAddress);
+
+
+            lpbuffer.State:=mem_commit;
+            lpbuffer.Protect:=PAGE_EXECUTE_READWRITE;
+            lpbuffer._Type:=MEM_PRIVATE;
+
+            result:=dwlength;
+            exit;
+          end;
+        end
+        else
+          passed:=true;
+
+        if passed then //the current address is smaller than r[i].base
+        begin
+          //not in the list (mark as not commited)
+
+
+          if i>0 then
+            lpbuffer.AllocationBase:=pointer(r[i-1].base+r[i-1].size)
+          else
+            lpbuffer.AllocationBase:=0;
+
+          lpbuffer.AllocationProtect:=PAGE_NOACCESS;
+
+          lpbuffer.RegionSize:=r[i].base-ptrUint(lpBuffer.BaseAddress);
+
+
+          lpbuffer.State:=MEM_FREE;
+          lpbuffer.Protect:=PAGE_NOACCESS;
+          lpbuffer._Type:=0;
+
+
+          result:=dwlength;
+          exit;
+        end;
+      end;
+    end;
+
+  end;
+end;
+
 
 function WritePhysicalMemory(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:DWORD):BOOL; stdcall;
 type TInputstruct=record
