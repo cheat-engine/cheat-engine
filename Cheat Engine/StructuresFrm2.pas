@@ -2881,10 +2881,13 @@ var
   startindex: integer;
 begin
   tvStructureView.OnExpanded:=nil;
+  tvStructureView.OnExpanding:=nil;
   tvStructureView.OnCollapsed:=nil;
+  tvStructureView.OnCollapsing:=nil;
 
   tvStructureView.BeginUpdate;
-  currentnode.DeleteChildren;
+  if currentnode.haschildren then
+    currentnode.DeleteChildren;
 
   struct:=TDissectedStruct(currentnode.data);
 
@@ -2904,14 +2907,16 @@ begin
       setupNodeWithElement(newnode, struct[i]);
     end;
 
-    currentnode.HasChildren:=true;
-    currentnode.Expand(false);
+    if currentnode.haschildren then
+      currentnode.Expand(false);
   end;
 
   tvStructureView.EndUpdate;
 
   tvStructureView.OnExpanded:=tvStructureViewExpanded;
+  tvStructureView.OnExpanding:=tvStructureViewExpanding;
   tvStructureView.OnCollapsed:=tvStructureViewCollapsed;
+  tvStructureView.OnCollapsing:=tvStructureViewCollapsing;
 end;
 
 
@@ -2919,49 +2924,50 @@ procedure TfrmStructures2.tvStructureViewCollapsed(Sender: TObject; Node: TTreeN
 var struct, childstruct: TDissectedStruct;
 begin
   tvStructureView.BeginUpdate;
-  node.DeleteChildren; //delete the children when collapsed
+  try
+    if node.HasChildren then
+      node.DeleteChildren; //delete the children when collapsed
 
-  if node.parent<>nil then //almost always, and then it IS a child
-  begin
-    //get the structure this node belongs to
-
-    struct:=getStructFromNode(node);
-
-    //now get the element this node represents and check if it is a pointer
-    node.HasChildren:=struct[node.Index].isPointer;
-
-    if miAutoDestroyLocal.checked then //delete autocreated local structs when closed
+    if node.parent<>nil then //almost always, and then it IS a child
     begin
-      childstruct:=TDissectedStruct(node.data);
-      if childstruct<>nil then
-      begin
-        if not childstruct.isInGlobalStructList then
-        begin
-          //delete this local struct
-          childstruct.free;
+      //get the structure this node belongs to
 
-          {$ifdef DEBUG}
-          assert(node.data=nil);
-          {$endif}
-          node.data:=nil;   //not necesary
+      struct:=getStructFromNode(node);
+
+      //now get the element this node represents and check if it is a pointer
+      node.HasChildren:=struct[node.Index].isPointer;
+
+      if miAutoDestroyLocal.checked then //delete autocreated local structs when closed
+      begin
+        childstruct:=TDissectedStruct(node.data);
+        if childstruct<>nil then
+        begin
+          if not childstruct.isInGlobalStructList then
+          begin
+            //delete this local struct
+            childstruct.free;
+
+            {$ifdef DEBUG}
+            assert(node.data=nil);
+            {$endif}
+            node.data:=nil;   //not necesary
+          end;
         end;
+
       end;
 
+    end
+    else //root node (mainstruct)
+    if node.data<>nil then //weird if not...
+    begin
+      node.HasChildren:=true;
+      node.Expand(false); //causes the expand the fill in the nodes
     end;
 
-  end
-  else //root node (mainstruct)
-  if node.data<>nil then //weird if not...
-  begin
-    node.HasChildren:=true;
-    node.Expand(false); //causes the expand the fill in the nodes
+
+  finally
+    tvStructureView.EndUpdate;
   end;
-
-  tvStructureView.EndUpdate;
-
-
-
-
 end;
 
 procedure TfrmStructures2.tvStructureViewCollapsing(Sender: TObject;
@@ -3414,8 +3420,10 @@ begin
       end;
     end;
 
-    free;
+
   end;
+
+  ei.free;
 
 end;
 

@@ -260,7 +260,6 @@ object frmStructuresConfig: TfrmStructuresConfig
       Width = 75
       Caption = 'OK'
       Default = True
-      ModalResult = 1
       OnClick = Button1Click
       TabOrder = 0
     end

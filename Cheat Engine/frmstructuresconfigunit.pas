@@ -308,6 +308,8 @@ begin
     reg.free;
   end;
 
+  modalresult:=mrok;
+
 
 end;
 
