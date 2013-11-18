@@ -727,6 +727,7 @@ type
     procedure LoadCustomTypesFromRegistry;
 
     procedure setGbScanOptionsEnabled(state: boolean);
+    procedure cbSaferPhysicalMemoryChange(sender: tobject);
 
 
     function onhelp(Command: word; Data: PtrInt; var CallHelp: boolean): boolean;
@@ -787,6 +788,8 @@ type
     LuaFiles: TLuaFileList;
     frmLuaTableScript: Tfrmautoinject;
 
+
+    cbsaferPhysicalMemory: TCheckbox;
     mustClose: boolean;
 
 
@@ -894,6 +897,7 @@ resourcestring
   strKeepList = 'Keep the current address list/code list?';
   strInfoAboutTable = 'Info about this table:';
   strPhysicalMemory = 'Physical Memory';
+  strSaferPhysicalMemory = 'Safer memory access';
   rsThereAreOneOrMoreAutoAssemblerEntriesOrCodeChanges =
     'There are one or more auto assembler entries or code changes enabled in this table. Do you want them disabled? (without '
     + 'executing the disable part)';
@@ -2441,6 +2445,33 @@ begin
 
   outputdebugstring('After setcodeanddatabase');
 
+  if processid = $FFFFFFFF then
+  begin
+    processlabel.Caption := strPhysicalMemory;
+    cbPauseWhileScanning.visible:=false;
+
+    if cbsaferPhysicalMemory=nil then
+    begin
+      cbsaferPhysicalMemory:=tcheckbox.create(self);
+      cbsaferPhysicalMemory.Caption:=strSaferPhysicalMemory;
+      cbsaferPhysicalMemory.Checked:=dbk32functions.saferQueryPhysicalMemory;
+      cbsaferPhysicalMemory.Parent:=cbPauseWhileScanning.Parent;
+      cbsaferPhysicalMemory.left:=cbPauseWhileScanning.left;
+      cbsaferPhysicalMemory.Top:=cbPauseWhileScanning.top;
+      cbsaferPhysicalMemory.OnChange:=cbSaferPhysicalMemoryChange;
+    end;
+  end
+  else
+  begin
+    //restore cbPauseWhileScanning if it was replaced
+    if cbSaferPhysicalMemory<>nil then
+    begin
+      freeandnil(cbsaferPhysicalMemory);
+      cbPauseWhileScanning.Visible:=true;
+    end;
+  end;
+
+
 
   if (processhandle = 0) then
   begin
@@ -2484,6 +2515,7 @@ begin
 
     if processid <> $FFFFFFFF then
     begin
+
       processlabel.Caption := strError;
       raise Exception.Create(strErrorWhileOpeningProcess);
     end
@@ -6989,7 +7021,10 @@ begin
 
 end;
 
-
+procedure TMainForm.cbSaferPhysicalMemoryChange(sender: tobject);
+begin
+  DBK32functions.saferQueryPhysicalMemory:=cbsaferPhysicalMemory.checked;
+end;
 
 procedure TMainForm.cbPauseWhileScanningClick(Sender: TObject);
 
@@ -7794,8 +7829,23 @@ var t: TD3DHook_Texture;
   b: BOOL;
   tid: dword;
   h: thandle;
-begin
 
+  mr: TPhysicalMemoryRanges;
+
+  sl: tstringlist;
+begin
+   if GetMemoryRanges(mr) then
+   begin
+     sl:=tstringlist.create;
+     for i:=0 to length(mr)-1 do
+       sl.add(inttohex(mr[i].base,16)+'-'+inttohex(mr[i].base+mr[i].size,16));
+
+     showmessage(sl.text);
+     sl.free;
+   end;
+
+
+  exit;
   c:=getConnection;
 
   if c.loadExtension(processhandle) then
@@ -7807,6 +7857,7 @@ begin
     b:=VirtualFreeEx(processhandle, addr, 0,0);
 
     if b then
+
       showmessage('freed')
     else
       showmessage('error');
