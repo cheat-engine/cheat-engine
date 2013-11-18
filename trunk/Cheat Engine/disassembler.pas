@@ -10875,6 +10875,15 @@ begin
 
           result:=pwidechar(@buffer[0]);
         end;
+
+        vtPointer:
+        begin
+          if processhandler.is64Bit then
+            result:=inttohex(PQWord(@buffer[0])^,8)
+          else
+            result:=inttohex(PDWord(@buffer[0])^,8);
+
+        end;
       end;
      // result:=VariableTypeToString(vtype);
       if a and (result<>'') then
