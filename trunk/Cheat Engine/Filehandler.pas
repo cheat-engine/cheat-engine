@@ -57,6 +57,8 @@ begin
       begin
         b:=@PByteArray(lpBuffer)[i];
         t:=b^;
+
+        {$ifdef cpu64}
         asm
           push rax
           xor rax,rax
@@ -65,6 +67,17 @@ begin
           mov t,eax
           pop rax
         end;
+        {$else}
+        asm
+          push eax
+          xor eax,eax
+          mov eax,t
+          bswap eax
+          mov t,eax
+          pop eax
+        end;
+
+        {$endif}
 
         b^:=t;
       end;
