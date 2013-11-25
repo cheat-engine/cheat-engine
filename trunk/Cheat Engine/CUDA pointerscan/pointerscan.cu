@@ -46,6 +46,8 @@ The pointerscanner loop
 {
   int index = blockIdx.x * blockDim.x + threadIdx.x;
   int level;
+  
+
 
   printf("pscan index=%d\n", index);
 
@@ -87,14 +89,32 @@ The pointerscanner loop
 	printf("%d: Processing\n", index);
 	printf("%d: StartValue:%x\n", index, (unsigned int)startvalue);
 	printf("%d: StopValue: %x\n", index, (unsigned int)cd[index].caller[level].stopvalue);
+
+	while (stopvalue>=startvalue) 
+	{	
+		plist=findPointerValue(startvalue, &stopvalue);
+		//printf("plist=%p\n", plist);	
+		//printf("stopvalue=%x\n", (unsigned int)stopvalue);
+		
+		if (plist)
+		{
+			int i;
+			for (i=0; i<plist->pos; i++)
+			{
+				printf("offset: %x\n", cd[index].caller[level].stopvalue-stopvalue);
+			}
+		    
+		
+			plist=plist->Previous;
+		    if (plist)
+				stopvalue=plist->PointerValue;
+		    else
+				break; //nothing else to be found    		
+		}
+		else
+		  break;
+	}
 	
-	plist=findPointerValue(startvalue, &stopvalue);
-	printf("plist=%p\n", plist);
-	
-	printf("stopvalue=%x\n", (unsigned int)stopvalue);
-	
-	
-	//.....
 	
 	level--;
 	if (level>=0)
