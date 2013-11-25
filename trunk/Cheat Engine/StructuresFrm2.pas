@@ -3209,7 +3209,9 @@ begin
 
     for i:=0 to DissectedStructs.Count-1 do
       if dissectedstructs[i].name=structname then
-        if messagedlg(format(rsStructAlreadyExists,[structname]), mtWarning, [mbyes, mbno], 0)<>mryes then exit;
+      begin
+        if messagedlg(format(rsStructAlreadyExists,[structname]), mtWarning, [mbyes, mbno], 0)<>mryes then exit else break;
+      end;
 
 
     //ask if it should be filled in automatically
