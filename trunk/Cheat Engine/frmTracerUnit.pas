@@ -276,6 +276,7 @@ begin
   a:=address;
   s:=disassemble(a);
 
+  a:=address;
   da:=tdisassembler.Create;
   s:=da.disassemble(a, s2);
 
