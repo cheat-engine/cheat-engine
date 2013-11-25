@@ -3207,11 +3207,14 @@ begin
     //get the name
     if not inputquery(rsStructureDefine, rsGiveTheNameForThisStructure, structName) then exit;
 
-    for i:=0 to DissectedStructs.Count-1 do
-      if dissectedstructs[i].name=structname then
-      begin
-        if messagedlg(format(rsStructAlreadyExists,[structname]), mtWarning, [mbyes, mbno], 0)<>mryes then exit else break;
-      end;
+    if structname<>rsUnnamedStructure then
+    begin
+      for i:=0 to DissectedStructs.Count-1 do
+        if dissectedstructs[i].name=structname then
+        begin
+          if messagedlg(format(rsStructAlreadyExists,[structname]), mtWarning, [mbyes, mbno], 0)<>mryes then exit else break;
+        end;
+    end;
 
 
     //ask if it should be filled in automatically
