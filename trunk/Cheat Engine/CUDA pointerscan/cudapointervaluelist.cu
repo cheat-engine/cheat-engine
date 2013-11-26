@@ -91,8 +91,8 @@ find a node that falls in the region of stopvalue and startvalue
   _stopvalue=*stopvalue;
   currentarray=Level0List;
 
-  printf("findPointerValue for %x\n", (unsigned int)startvalue);
-  printf("maxlevel is %d\n", (unsigned int)maxlevel);
+//  printf("findPointerValue for %x\n", (unsigned int)startvalue);
+//  printf("maxlevel is %d\n", (unsigned int)maxlevel);
 
   for (level=0; level<=maxlevel; level++)
   {
@@ -119,10 +119,10 @@ find a node that falls in the region of stopvalue and startvalue
 
   //clean up bad results
   
-  printf("result=%p\n", result);
-  printf("result->PointerValue=%x\n", (unsigned int)result->PointerValue);
+ // printf("result=%p\n", result);
+ // printf("result->PointerValue=%x\n", (unsigned int)result->PointerValue);
   
-  printf("result->Next->PointerValue=%x\n", (unsigned int)result->Next->PointerValue);
+ // printf("result->Next->PointerValue=%x\n", (unsigned int)result->Next->PointerValue);
   
   
   
