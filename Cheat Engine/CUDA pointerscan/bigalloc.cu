@@ -2,8 +2,8 @@
 
 //This file is used when a lot of memory needs to be allocated in small chunks
 //Note: this is NOT thread safe, only let 1 thread access this code
-
-typedef struct _BigAllocs
+#pragma pack 16
+typedef __declspec(align(16)) struct _BigAllocs
 {
 	int totalsize;
 	int pos;
