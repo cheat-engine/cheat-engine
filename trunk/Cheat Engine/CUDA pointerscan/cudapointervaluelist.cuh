@@ -2,21 +2,21 @@
 #define CUDAPOINTERVALUELIST_H
 
 #include <windows.h>
-#pragma pack(16)
+//#pragma pack(16)
 
-typedef __declspec(align(16)) struct
+typedef  struct
 {
   DWORD moduleindex;
   int offset;
 } TStaticData, *PStaticData;
 
-typedef __declspec(align(16)) struct
+typedef   struct
 {
   UINT_PTR address;
   PStaticData staticdata;
 } TPointerData, *PPointerData;
 
-typedef __declspec(align(16)) struct _PointerList
+typedef   struct _PointerList
 {
    // int maxsize;  //not needed for preloaded scandata (saves some space)
     //int expectedsize;
@@ -30,7 +30,7 @@ typedef __declspec(align(16)) struct _PointerList
     
 } TPointerList, *PPointerList;
  
-typedef __declspec(align(16)) struct _ReversePointerList
+typedef   struct _ReversePointerList
 {
 	union
 	{

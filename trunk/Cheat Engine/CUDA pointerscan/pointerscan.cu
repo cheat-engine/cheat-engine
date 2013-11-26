@@ -12,7 +12,7 @@ allows resume capability
 #include "pscanfileaccess.h"
 #include "cudapointervaluelist.cuh"
 
-#define MAXCOMMANDLISTSIZE	1024
+#define MAXCOMMANDLISTSIZE	512
 #pragma pack(16)
 
 typedef __declspec(align(16)) struct _rcaller //recursion replacement
@@ -50,7 +50,7 @@ __device__ WorkCommandList SavedWorkCommandList; //[blocks]
 __device__ int didWork;
 
 
-__device__ void pscan2(PContinueData cd, int structsize, int maxlevel)
+__device__ int pscan2(PContinueData cd, int structsize, int maxlevel)
 /*
 The pointerscanner loop
 
@@ -59,7 +59,7 @@ When loading take from PreviousSavedCommandList, or CurrentSavedCommandList
 Thing I learned after trying to debug from 10PM to 5:30AM:  atomic functions do not work in __global__ functions
 */
 {
-  int timeout=4096;
+  int timeout=8192;
   int index = blockIdx.x * blockDim.x + threadIdx.x;
   int level=-1;
  
@@ -139,6 +139,11 @@ Thing I learned after trying to debug from 10PM to 5:30AM:  atomic functions do 
       cd[index].caller[level].plistIndex=0;
       cd[index].caller[level].plist=NULL;
       
+      if (cd[index].caller[level].valueToFind==0)
+      {
+		printf("cd[index].caller[level].valueToFind set to 0 by SavedWorkCommandList\n");
+      }
+      
      // printf("%d, %d, %p  (%d)\n", index, level, &cd[index].caller[level].valueToFind, i); 
       
       if (level)
@@ -192,6 +197,13 @@ Thing I learned after trying to debug from 10PM to 5:30AM:  atomic functions do 
 	int plistIndex=cd[index].caller[level].plistIndex;  
 	BOOL levelChanged=FALSE;
 	
+	
+	/*if (valueToFind==0)
+	{
+		printf("valueTofind==0  (startvalue=%x stopvalue=%x)\n", (unsigned int)startvalue, (unsigned int)stopvalue);
+		break;
+	}*/
+	
 //	printf("level %d\n", level);
 	
 //	printf("%d: Processing\n", index);
@@ -200,7 +212,6 @@ Thing I learned after trying to debug from 10PM to 5:30AM:  atomic functions do 
 //	printf("%d: StopValue: %x\n", index, (unsigned int)stopvalue);
 //	printf("%d: plistIndex: %d\n", index,  plistIndex);
 
-	
 
 	
 	while (stopvalue>=startvalue) 
@@ -223,7 +234,7 @@ Thing I learned after trying to debug from 10PM to 5:30AM:  atomic functions do 
 				timeout--;
 				if (timeout<0)
 				{
-			//		printf("timeout. Saving state:\n");
+				//	printf("timeout. Saving state:\n");
 			/*
 					if (level>=maxlevel)
 					{
@@ -238,13 +249,16 @@ Thing I learned after trying to debug from 10PM to 5:30AM:  atomic functions do 
 					cd[index].caller[level].plist=plist;
 					cd[index].caller[level].plistIndex=i; //this one
 					
-//					printf("cd[%d].level=%d\n", index, cd[index].level);
-//					printf("cd[%d].caller[%d].valueToFind=%x\n", index, cd[index].level, (unsigned int)cd[index].caller[level].valueToFind);
-//					printf("cd[%d].caller[%d].startvalue=%x\n", index, cd[index].level, (unsigned int)cd[index].caller[level].startvalue);
-	//				printf("cd[%d].caller[%d].stopvalue=%x\n", index, cd[index].level, (unsigned int)cd[index].caller[level].stopvalue);
-	//				printf("cd[%d].caller[%d].plist=%x\n", index, cd[index].level, (unsigned int)cd[index].caller[level].plist);
-	//				printf("cd[%d].caller[%d].plistIndex=%x\n", index, cd[index].level, (unsigned int)cd[index].caller[level].plistIndex);
-					return;
+					if (cd[index].caller[level].valueToFind==0)
+					{
+						printf("cd[%d].level=%d\n", index, cd[index].level);
+						printf("cd[%d].caller[%d].valueToFind=%x\n", index, cd[index].level, (unsigned int)cd[index].caller[level].valueToFind);
+						printf("cd[%d].caller[%d].startvalue=%x\n", index, cd[index].level, (unsigned int)cd[index].caller[level].startvalue);
+						printf("cd[%d].caller[%d].stopvalue=%x\n", index, cd[index].level, (unsigned int)cd[index].caller[level].stopvalue);
+						printf("cd[%d].caller[%d].plist=%x\n", index, cd[index].level, (unsigned int)cd[index].caller[level].plist);
+						printf("cd[%d].caller[%d].plistIndex=%x\n", index, cd[index].level, (unsigned int)cd[index].caller[level].plistIndex);
+					}
+					return timeout;
 				}
 							
 				
@@ -254,6 +268,24 @@ Thing I learned after trying to debug from 10PM to 5:30AM:  atomic functions do 
 				if (plist->list[i].staticdata)
 				{
 			//	   printf("%d: FOUND A STATIC\n", index);
+				   int k;
+				   
+				 //  printf("plist->list[%d].address=%x\nsd=%p  offset=%x\n", i, (unsigned int)plist->list[i].address, plist->list[i].staticdata, plist->list[i].staticdata->offset);
+		 
+				 //  printf("%x - ... - %x  (%x)\n", plist->list[i].staticdata->offset, cd[index].offsets[level], currentOffset);
+				   
+				   if (currentOffset<0)
+				   {
+						printf("valueToFind=%x\n", (unsigned int)valueToFind);
+						printf("startvalue=%x\n", (unsigned int)startvalue);
+						printf("stopvalue=%x\n", (unsigned int)stopvalue);
+				   }
+				   /*
+				   for (k=level; k>=0; k--)
+				   {
+				     printf("%x - ", cd[index].offsets[k]); 
+				   }*/
+				   
 				}
 				else
 				{				
@@ -275,6 +307,11 @@ Thing I learned after trying to debug from 10PM to 5:30AM:  atomic functions do 
 							//add to the commandlist
 			//				printf("Filling in the commandlist entry\n");
 							SavedWorkCommandList.list[j].valueToFind=plist->list[i].address;
+							
+							if (SavedWorkCommandList.list[j].valueToFind==0)
+							{
+								printf("SavedWorkCommandList valueToFind was set to 0\n");								
+							}
 							SavedWorkCommandList.list[j].level=level+1;			
 							memcpy(SavedWorkCommandList.list[j].offsets, cd[index].offsets, sizeof(int)*(level+1)); 
 						
@@ -302,6 +339,12 @@ Thing I learned after trying to debug from 10PM to 5:30AM:  atomic functions do 
 							cd[index].caller[level].plist=NULL;
 							cd[index].caller[level].plistIndex=0;
 							
+							if (cd[index].caller[level].valueToFind==0)
+							{
+								printf("cd[index].caller[level].valueToFind was set to 0\n");								
+							}
+														
+							
 			//				printf("Changed the level\n");
 							levelChanged=true;
 							break;											
@@ -314,10 +357,11 @@ Thing I learned after trying to debug from 10PM to 5:30AM:  atomic functions do 
 				//TIMEOUT CHECK
 				
 				//check if this kernel has ran long enough
-				timeout--;
+				//timeout--;
+				
 				if (timeout<0)
 				{
-			//		printf("timeout. Saving state:\n");
+					//printf("timeout. Saving state:\n");
 			/*
 					if (level>=maxlevel)
 					{
@@ -332,13 +376,16 @@ Thing I learned after trying to debug from 10PM to 5:30AM:  atomic functions do 
 					cd[index].caller[level].plist=plist;
 					cd[index].caller[level].plistIndex=i+1; //next one
 					
-	//				printf("cd[%d].level=%d\n", index, cd[index].level);
-	//				printf("cd[%d].caller[%d].valueToFind=%x\n", index, cd[index].level, (unsigned int)cd[index].caller[level].valueToFind);
-	//				printf("cd[%d].caller[%d].startvalue=%x\n", index, cd[index].level, (unsigned int)cd[index].caller[level].startvalue);
-	//				printf("cd[%d].caller[%d].stopvalue=%x\n", index, cd[index].level, (unsigned int)cd[index].caller[level].stopvalue);
-	//				printf("cd[%d].caller[%d].plist=%x\n", index, cd[index].level, (unsigned int)cd[index].caller[level].plist);
-	//				printf("cd[%d].caller[%d].plistIndex=%x\n", index, cd[index].level, (unsigned int)cd[index].caller[level].plistIndex);
-					return;
+					if (cd[index].caller[level].valueToFind==0)
+					{					
+						printf("cd[%d].level=%d\n", index, cd[index].level);
+						printf("cd[%d].caller[%d].valueToFind=%x\n", index, cd[index].level, (unsigned int)cd[index].caller[level].valueToFind);
+						printf("cd[%d].caller[%d].startvalue=%x\n", index, cd[index].level, (unsigned int)cd[index].caller[level].startvalue);
+						printf("cd[%d].caller[%d].stopvalue=%x\n", index, cd[index].level, (unsigned int)cd[index].caller[level].stopvalue);
+						printf("cd[%d].caller[%d].plist=%x\n", index, cd[index].level, (unsigned int)cd[index].caller[level].plist);
+						printf("cd[%d].caller[%d].plistIndex=%x\n", index, cd[index].level, (unsigned int)cd[index].caller[level].plistIndex);
+					}
+					return timeout;
 				}
 				
 				
@@ -386,7 +433,7 @@ Thing I learned after trying to debug from 10PM to 5:30AM:  atomic functions do 
 			{
 	//		  printf("Not possible. Exiting...\n");
 			  cd[index].level=-1; //end of recursive call reached, mark this thread as inactive
-			  break;
+			  return timeout;
 			}		
 		}
 	}
@@ -396,13 +443,19 @@ Thing I learned after trying to debug from 10PM to 5:30AM:  atomic functions do 
   
  // printf("Exit. Level=%d\n", level);
   cd[index].level=level;
+  return timeout;
+  
+  
  
 
 }
 
 __global__ void pscan(PContinueData cd, int structsize, int maxlevel)
 {
-	pscan2(cd, structsize, maxlevel);
+	int t;
+	t=pscan2(cd, structsize, maxlevel);
+//	printf("t=%d\n", t);
+	
 }
 
 __global__ void initpscan(PContinueData cd, UINT_PTR address, int structsize, int maxlevel, UINT_PTR valuetofind)
@@ -516,7 +569,7 @@ int pointerscan(UINT_PTR address, int structsize, int maxlevel)
 	  }
 	  
 	//  printf("------------SCAN %d------------------\n", i);  
-	  pscan<<<1,1024>>>(cd, structsize, 2); 
+	  pscan<<<1,1024>>>(cd, structsize, 5); 
 	  cudaDeviceSynchronize(); 
 	  
 	  err=cudaGetLastError();

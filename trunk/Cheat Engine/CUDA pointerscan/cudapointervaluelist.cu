@@ -291,6 +291,8 @@ Go through the data and add the pointervalue. (port from ce's pascal source, wit
 		  plist->list[i].staticdata=(TStaticData *)balloc(sizeof(TStaticData));
 		  plist->list[i].staticdata->moduleindex=moduleindex;
 		  plist->list[i].staticdata->offset=offset;	  	  
+		  
+		  //printf("plist->list[i].staticdata=%p\n", plist->list[i].staticdata);
 		 
 		}
 		else
