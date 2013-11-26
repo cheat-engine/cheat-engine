@@ -1311,9 +1311,9 @@ properties
 methods
   getCount()
   getMemoryRecord(index)
-  getMemoryRecordByDescription(description): getTableEntry(descriptionname): returns a tableEntry pointer for use with memrec functions
+  getMemoryRecordByDescription(description): returns a MemoryRecord object
   getMemoryRecordByID(ID)
-  createMemoryRecord() : createTableEntry: creates an generic cheat table entry and add it to the list. Returns a tableentry pointer you can use with memrec routines
+  createMemoryRecord() : creates an generic cheat table entry and add it to the list
 
   getSelectedRecords():  Returns a table containing all the selected records
 
