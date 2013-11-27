@@ -12,7 +12,7 @@ allows resume capability
 #include "pscanfileaccess.h"
 #include "cudapointervaluelist.cuh"
 
-#define MAXCOMMANDLISTSIZE	512
+#define MAXCOMMANDLISTSIZE	2048
 #pragma pack(16)
 
 typedef __declspec(align(16)) struct _rcaller //recursion replacement
@@ -40,6 +40,7 @@ typedef __declspec(align(16)) struct _workcommand  //same as continuedata but no
 
 typedef __declspec(align(16)) struct _workCommandList
 {
+	unsigned int lock; //not 0 when locked
 	unsigned int count;
 	WorkCommand list[MAXCOMMANDLISTSIZE];
 } WorkCommandList, *PWorkCommandList;
@@ -59,7 +60,7 @@ When loading take from PreviousSavedCommandList, or CurrentSavedCommandList
 Thing I learned after trying to debug from 10PM to 5:30AM:  atomic functions do not work in __global__ functions
 */
 {
-  int timeout=8192;
+  int timeout=4096;
   int index = blockIdx.x * blockDim.x + threadIdx.x;
   int level=-1;
  
@@ -90,12 +91,14 @@ Thing I learned after trying to debug from 10PM to 5:30AM:  atomic functions do 
 	else
 		i=0;
       
-  //  printf("idle thread.  Fetched item %d from the SavedWorkCommandList\n", i);
+   
     
     if (i>0)  //count==1 means index 0
     {  
       //something was in it
       int level;
+      
+       //printf("idle thread.  Fetched item %d from the SavedWorkCommandList\n", i);
       
      // printf("i>0\n");
       
@@ -218,8 +221,11 @@ Thing I learned after trying to debug from 10PM to 5:30AM:  atomic functions do 
 	{	
 		int currentOffset=valueToFind-stopvalue;
 	
-		if (plist==NULL)		
+		if (plist==NULL)
+		{		
 			plist=findPointerValue(startvalue, &stopvalue);
+			plistIndex=0;
+		}
 			
 	//	printf("%d:plist=%p  (stopvalue=%x startvalue=%x\n", index, plist, (unsigned int)stopvalue, (unsigned int)startvalue);	
 		
@@ -272,19 +278,18 @@ Thing I learned after trying to debug from 10PM to 5:30AM:  atomic functions do 
 				   
 				 //  printf("plist->list[%d].address=%x\nsd=%p  offset=%x\n", i, (unsigned int)plist->list[i].address, plist->list[i].staticdata, plist->list[i].staticdata->offset);
 		 
-				 //  printf("%x - ... - %x  (%x)\n", plist->list[i].staticdata->offset, cd[index].offsets[level], currentOffset);
+		 /*
+				   printf("%x ", plist->list[i].staticdata->offset);
 				   
-				   if (currentOffset<0)
-				   {
-						printf("valueToFind=%x\n", (unsigned int)valueToFind);
-						printf("startvalue=%x\n", (unsigned int)startvalue);
-						printf("stopvalue=%x\n", (unsigned int)stopvalue);
-				   }
-				   /*
 				   for (k=level; k>=0; k--)
 				   {
-				     printf("%x - ", cd[index].offsets[k]); 
-				   }*/
+				     printf("- %x", cd[index].offsets[k]); 
+				   }
+				   
+				   printf("\n");
+				   */
+				   
+				  // timeout=timeout-1000;
 				   
 				}
 				else
@@ -292,12 +297,40 @@ Thing I learned after trying to debug from 10PM to 5:30AM:  atomic functions do 
 					if ((level+1)<maxlevel)
 					{
 						//add this path to the commandlist if possible
-						int j;
+						int j=MAXCOMMANDLISTSIZE-10;  //Here, J is used as a countdown
 						
-						if (SavedWorkCommandList.count<MAXCOMMANDLISTSIZE)
-							j=atomicAdd(&SavedWorkCommandList.count, 1);
+						if (SavedWorkCommandList.count<MAXCOMMANDLISTSIZE-128)
+						{
+							//I could add it. Let's see if I can acuire a lock
+							while (j<MAXCOMMANDLISTSIZE) //try to lock it multiple times
+							{
+								if (atomicExch(&SavedWorkCommandList.lock, 1)==0)
+								{							
+									//Acuired a lock
+									
+									//printf("Acquired lock after %d tries\n", MAXCOMMANDLISTSIZE-j);
+									j=SavedWorkCommandList.count;
+									
+									if (j<MAXCOMMANDLISTSIZE) //if it's valid (there's room)
+									  SavedWorkCommandList.count++;  //increase the counter
+									
+									atomicExch(&SavedWorkCommandList.lock, 0); //unlock		
+									break;						
+								}
+								else
+								{									
+									//printf("Writer: Failure to acquire lock (%d)\n", MAXCOMMANDLISTSIZE-j);									
+									j++;
+								}								
+							}
+						}
 						else
+						{
+							//printf("Didn't bother to add: %d\n", SavedWorkCommandList.count);
 							j=MAXCOMMANDLISTSIZE;
+						}
+						
+						//here J is used as an index into the list
 						
 						
 			//			printf("Entering this offset. Maxlevel not reached. Got commandlist slot %d\n", j);
@@ -319,9 +352,10 @@ Thing I learned after trying to debug from 10PM to 5:30AM:  atomic functions do 
 						
 						else
 						{
+						    //lock failed, or full
+						    
 							//do this myself
 							
-							atomicExch(&(SavedWorkCommandList.count), MAXCOMMANDLISTSIZE);
 							
 			//				printf("Entering this entry myself\n");		
 							//store the current state
@@ -376,6 +410,7 @@ Thing I learned after trying to debug from 10PM to 5:30AM:  atomic functions do 
 					cd[index].caller[level].plist=plist;
 					cd[index].caller[level].plistIndex=i+1; //next one
 					
+					/*
 					if (cd[index].caller[level].valueToFind==0)
 					{					
 						printf("cd[%d].level=%d\n", index, cd[index].level);
@@ -384,7 +419,7 @@ Thing I learned after trying to debug from 10PM to 5:30AM:  atomic functions do 
 						printf("cd[%d].caller[%d].stopvalue=%x\n", index, cd[index].level, (unsigned int)cd[index].caller[level].stopvalue);
 						printf("cd[%d].caller[%d].plist=%x\n", index, cd[index].level, (unsigned int)cd[index].caller[level].plist);
 						printf("cd[%d].caller[%d].plistIndex=%x\n", index, cd[index].level, (unsigned int)cd[index].caller[level].plistIndex);
-					}
+					}*/
 					return timeout;
 				}
 				
@@ -432,8 +467,73 @@ Thing I learned after trying to debug from 10PM to 5:30AM:  atomic functions do 
 			else
 			{
 	//		  printf("Not possible. Exiting...\n");
-			  cd[index].level=-1; //end of recursive call reached, mark this thread as inactive
-			  return timeout;
+	
+			  //try to get an entry from the worklist
+			  
+			  //experimental:
+			  {
+				int i=10;
+				BOOL canContinue=FALSE;
+				
+				if (SavedWorkCommandList.count>0) //there's something in the list
+				{
+					
+					while (i>0) //try to acquire a lock multiple times
+					{
+						if (atomicExch(&SavedWorkCommandList.lock, 1)==0)
+						{							
+							//Acuired a lock
+							
+							
+							
+							if (SavedWorkCommandList.count) //there's still something in the list
+							{			
+								//printf("Acquired lock after %d tries\n", 10-i);
+							
+								i=SavedWorkCommandList.count-1;
+								level=SavedWorkCommandList.list[i].level;			
+								cd[index].level=level;					
+								cd[index].caller[level].valueToFind=SavedWorkCommandList.list[i].valueToFind;								
+								cd[index].caller[level].startvalue=SavedWorkCommandList.list[i].valueToFind-structsize;
+								cd[index].caller[level].stopvalue=SavedWorkCommandList.list[i].valueToFind;      
+      								
+								cd[index].caller[level].plist=NULL;
+								cd[index].caller[level].plistIndex=0;
+								if (level)
+								{
+								    memcpy(cd[index].offsets, SavedWorkCommandList.list[i].offsets, sizeof(int)*level); 
+									cd[index].caller[level-1].valueToFind=0; //mark the previous level as invalid
+									cd[index].caller[level-1].startvalue=0;
+								}
+								
+								canContinue=TRUE;
+					
+								SavedWorkCommandList.count--; //take it from the list
+							}
+							
+							atomicExch(&SavedWorkCommandList.lock, 0); //unlock		
+							break;						
+						}
+						else
+						{									
+							//printf("Writer: Failure to acquire lock (%d)\n", MAXCOMMANDLISTSIZE-j);									
+							i--;
+						}								
+					}
+				}
+				
+			    if (canContinue==FALSE)
+			    {	
+			      cd[index].level=-1; //end of recursive call reached, mark this thread as inactive
+
+				  return timeout;
+			    }
+			  				
+			  }
+			  //Experimental
+						
+									  
+		
 			}		
 		}
 	}
@@ -441,6 +541,10 @@ Thing I learned after trying to debug from 10PM to 5:30AM:  atomic functions do 
 //	  printf("Level just changed. Not going up\n");
   }
   
+  
+  if (SavedWorkCommandList.count)
+	printf("waste %d\n", SavedWorkCommandList.count);
+	
  // printf("Exit. Level=%d\n", level);
   cd[index].level=level;
   return timeout;
