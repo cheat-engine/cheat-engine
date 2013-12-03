@@ -12,6 +12,8 @@ uses
   Classes, SysUtils, lua;
 
 procedure initializeLuaByteTable;
+procedure readBytesFromTable(L: PLua_State; tableindex: integer; p: PByteArray; maxsize: integer);
+procedure CreateByteTableFromPointer(L: PLua_state; p: pbytearray; size: integer );
 
 implementation
 
@@ -31,12 +33,13 @@ begin
 end;
 
 procedure readBytesFromTable(L: PLua_State; tableindex: integer; p: PByteArray; maxsize: integer);
-var i,j: integer;
+var i,j,x: integer;
 begin
   for i:=1 to maxsize do
   begin
     lua_pushinteger(L, i);
     lua_gettable(L, tableindex);
+
     if lua_isnil(L,-1) then
     begin
       lua_pop(L,1);
