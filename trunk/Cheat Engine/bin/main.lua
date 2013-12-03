@@ -1243,6 +1243,8 @@ methods
 
 
 MemoryRecord Class:
+The memoryrecord objects are the entries you see in the addresslist
+
 properties
   ID: Integer - Unique ID 
   Index: Integer - The index ID for this record. 0 is top. (ReadOnly)
@@ -1775,7 +1777,7 @@ methods
 
 
 
-Disassembler Class
+Disassembler Class (Inheritance: Object)
 createDisassembler() - Creates a disassembler object that can be used to disassemble an instruction and at the same time get more data
 getDefaultDisassembler() - Returns the default disassembler object used by a lot of ce's disassembler routines
 getVisibleDisassembler() - Returns the disassembler used by the disassemblerview. Special codes are: {H}=Hex value {R}=Register {S}=Symbol {N}=Nothing special
@@ -1807,7 +1809,7 @@ methods
   
 
 
-DissectCode class:
+DissectCode class: (Inheritance: Object)
 getDissectCode() : Created or returns the current code DissectCode object
 
 properties:
@@ -1826,6 +1828,58 @@ methods:
   getReferences(address) : Returns a table containing the addresses that reference this address and the type
   getReferencedStrings(): Returns a table of addresses and their strings that have been referenced. Use getReferences to find out which addresses that are
  
+  todo: Add saving/loading
+
+
+LuaPipe class: (Inheritance: Object)
+  Abstract class that LuaPipeServer and LuaPipeclient inherit from. It implements the data transmission methods
+
+properties
+  Connected: boolean: True if the pipe is connected
+
+methods
+  writeBytes(ByteTable, size OPTIONAL): Writes the provided byte table to the pipe. if size is not provided, the whole table is sent. Returns the number of bytes sent, or nil on failure
+  readBytes(size: integer): returns a byte table from the pipe, or nil on failure
+
+  readDouble(): Read a double from the pipe, nil on failure
+  readFloat(): Read a float from the pipe, nil on failure
+  readQword(): Read an 8 byte value from the pipe, nil on failure
+  readDword(): Read a 4 byte value from the pipe, nil on failure
+  readWord(): Read a 2 byte value from the pipe, nil on failure
+  readByte(): Read a byte from the pipe, nil on failure
+
+  readString(size: integer): Reads a string from the pipe, nil on failure
+  readWideString(size: integer): Reads a widestring from the pipe, nil on failure
+
+  writeDouble(v: double): Writes a double to the pipe. Returns the number of bytes sent, nil on failure
+  writeFloat(v: single): writes a float to the pipe. Returns the number of bytes sent, nil on failure
+  writeQword(v: qword): writes an 8 byte value to the pipe. Returns the number of bytes sent, nil on failure
+  writeDword(v: dword): writes a 4 byte value to the pipe. Returns the number of bytes sent, nil on failure
+  writeWord(v: word): writes a word to the pipe. Returns the number of bytes sent, nil on failure
+  writeByte(v: byte): writes a byte to the pipe. Returns the number of bytes sent, nil on failure
+
+  writeString(str: string; include0terminator: boolean OPTIONAL); Writes a string to the pipe. If include0terminator is false or not provided it will not write the 0 terminator byte.  Returns the number of bytes written, or nil on failure
+  writeWideString(str: widestring; include0terminator: boolean OPTIONAL); Writes a widestring to the pipe. If include0terminator is false or not provided it will not write the 0 terminator bytes. Returns the number of bytes written, or nil on failure
+
+LuaPipeClient class: (Inheritance: LuaPipe>Object)
+Class implementing a client that connects to a pipe
+
+connectToPipe(pipename): Returns a LuaPipeClient connected to the given pipename
+
+properties:
+methods:
+-
+
+LuaPipeServer Class: (Inheritance: LuaPipe>Object)
+  Class launching the server side of a pipe
+
+createPipe(pipename, inputsize OPTIONAL, outputsize OPTIONAL) : Creates a LuaPipeServer which can be connected to by a pipe client. InputSize and Outputsize define buffers how much data can be in the specific buffer before the writer halts.  Default input and output size is 4096 for both
+  
+properties
+  valid: boolean - Returns true if the pipe has been created properly. False on failure (e.g wrong pipename)
+
+methods
+  acceptConnection() - Waits for a client to connect to this pipe (Warning: Freezes the thread this is executed in)
 
 
 
@@ -1845,6 +1899,5 @@ openLuaServer(Name):
 
     the return value of this function is the return value of the lua function (integer)
   
-
 
 --]]
