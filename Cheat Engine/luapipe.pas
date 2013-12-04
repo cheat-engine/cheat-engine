@@ -40,9 +40,10 @@ type
 
     procedure writeString(str: string; include0terminator: boolean);
     procedure writeWideString(str: widestring; include0terminator: boolean);
-
+    destructor destroy; override;
   published
     property connected: boolean read fConnected;
+
   end;
 
 procedure pipecontrol_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
@@ -50,6 +51,14 @@ procedure pipecontrol_addMetaData(L: PLua_state; metatable: integer; userdata: i
 implementation
 
 uses LuaObject, LuaByteTable;
+
+destructor TPipeConnection.destroy;
+begin
+  if (pipe<>0) and (pipe<>INVALID_HANDLE_VALUE) then
+    closehandle(pipe);
+
+  inherited destroy;
+end;
 
 procedure TPipeConnection.writeDouble(v:double);
 begin

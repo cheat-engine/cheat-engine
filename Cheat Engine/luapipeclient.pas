@@ -32,13 +32,20 @@ end;
 
 function luapipeclient_connectToPipe(L: PLua_state): integer; cdecl;
 var pipename: string;
+
+  p: TLuaPipeClient;
 begin
   result:=0;
   if lua_gettop(L)=1 then
   begin
     pipename:=lua_tostring(L, 1);
-    luaclass_newClass(L, TLuaPipeClient.create(pipename));
-    result:=1;
+
+    p:=TLuaPipeClient.create(pipename);
+    if p.connected then
+    begin
+      luaclass_newClass(L, p);
+      result:=1;
+    end;
   end;
 end;
 
