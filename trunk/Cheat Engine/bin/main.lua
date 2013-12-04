@@ -1864,7 +1864,7 @@ methods
 LuaPipeClient class: (Inheritance: LuaPipe>Object)
 Class implementing a client that connects to a pipe
 
-connectToPipe(pipename): Returns a LuaPipeClient connected to the given pipename
+connectToPipe(pipename): Returns a LuaPipeClient connected to the given pipename. Nil if the connection fails
 
 properties:
 methods:
