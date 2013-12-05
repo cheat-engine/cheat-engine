@@ -1519,6 +1519,9 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 		case IOCTL_CE_INITIALIZE:
 			{
 				//find the KeServiceDescriptorTableShadow 
+#ifndef AMD64
+				int i;
+#endif
 				struct input
 				{
 					UINT64 AddressOfWin32K;
