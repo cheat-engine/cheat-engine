@@ -261,7 +261,7 @@ void CPipeServer::EnumMethodsInClass()
 
 	do
 	{
-		field=mono_class_get_methods(c, &iter);
+		method=mono_class_get_methods(c, &iter);
 		WriteQword((UINT_PTR)method);
 
 		if (method)
@@ -272,7 +272,7 @@ void CPipeServer::EnumMethodsInClass()
 			WriteWord(strlen(name));
 			Write(name, strlen(name));			
 		}
-	} while (field);
+	} while (method);
 
 }
 
