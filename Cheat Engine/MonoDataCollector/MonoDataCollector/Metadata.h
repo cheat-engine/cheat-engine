@@ -1,0 +1,148 @@
+//original source: blob.h in the mono sourcecode
+
+
+/*
+ * Encoding for type signatures used in the Metadata
+ */
+typedef enum {
+	MONO_TYPE_END        = 0x00,       /* End of List */
+	MONO_TYPE_VOID       = 0x01,
+	MONO_TYPE_BOOLEAN    = 0x02,
+	MONO_TYPE_CHAR       = 0x03,
+	MONO_TYPE_I1         = 0x04,
+	MONO_TYPE_U1         = 0x05,
+	MONO_TYPE_I2         = 0x06,
+	MONO_TYPE_U2         = 0x07,
+	MONO_TYPE_I4         = 0x08,
+	MONO_TYPE_U4         = 0x09,
+	MONO_TYPE_I8         = 0x0a,
+	MONO_TYPE_U8         = 0x0b,
+	MONO_TYPE_R4         = 0x0c,
+	MONO_TYPE_R8         = 0x0d,
+	MONO_TYPE_STRING     = 0x0e,
+	MONO_TYPE_PTR        = 0x0f,       /* arg: <type> token */
+	MONO_TYPE_BYREF      = 0x10,       /* arg: <type> token */
+	MONO_TYPE_VALUETYPE  = 0x11,       /* arg: <type> token */
+	MONO_TYPE_CLASS      = 0x12,       /* arg: <type> token */
+	MONO_TYPE_VAR	     = 0x13,	   /* number */
+	MONO_TYPE_ARRAY      = 0x14,       /* type, rank, boundsCount, bound1, loCount, lo1 */
+	MONO_TYPE_GENERICINST= 0x15,	   /* <type> <type-arg-count> <type-1> \x{2026} <type-n> */
+	MONO_TYPE_TYPEDBYREF = 0x16,
+	MONO_TYPE_I          = 0x18,
+	MONO_TYPE_U          = 0x19,
+	MONO_TYPE_FNPTR      = 0x1b,	      /* arg: full method signature */
+	MONO_TYPE_OBJECT     = 0x1c,
+	MONO_TYPE_SZARRAY    = 0x1d,       /* 0-based one-dim-array */
+	MONO_TYPE_MVAR	     = 0x1e,       /* number */
+	MONO_TYPE_CMOD_REQD  = 0x1f,       /* arg: typedef or typeref token */
+	MONO_TYPE_CMOD_OPT   = 0x20,       /* optional arg: typedef or typref token */
+	MONO_TYPE_INTERNAL   = 0x21,       /* CLR internal type */
+
+	MONO_TYPE_MODIFIER   = 0x40,       /* Or with the following types */
+	MONO_TYPE_SENTINEL   = 0x41,       /* Sentinel for varargs method signature */
+	MONO_TYPE_PINNED     = 0x45,       /* Local var that points to pinned object */
+
+	MONO_TYPE_ENUM       = 0x55        /* an enumeration */
+} MonoTypeEnum;
+
+typedef enum {
+	MONO_TABLE_MODULE,
+	MONO_TABLE_TYPEREF,
+	MONO_TABLE_TYPEDEF,
+	MONO_TABLE_FIELD_POINTER,
+	MONO_TABLE_FIELD,
+	MONO_TABLE_METHOD_POINTER,
+	MONO_TABLE_METHOD,
+	MONO_TABLE_PARAM_POINTER,
+	MONO_TABLE_PARAM,
+	MONO_TABLE_INTERFACEIMPL,
+	MONO_TABLE_MEMBERREF, /* 0xa */
+	MONO_TABLE_CONSTANT,
+	MONO_TABLE_CUSTOMATTRIBUTE,
+	MONO_TABLE_FIELDMARSHAL,
+	MONO_TABLE_DECLSECURITY,
+	MONO_TABLE_CLASSLAYOUT,
+	MONO_TABLE_FIELDLAYOUT, /* 0x10 */
+	MONO_TABLE_STANDALONESIG,
+	MONO_TABLE_EVENTMAP,
+	MONO_TABLE_EVENT_POINTER,
+	MONO_TABLE_EVENT,
+	MONO_TABLE_PROPERTYMAP,
+	MONO_TABLE_PROPERTY_POINTER,
+	MONO_TABLE_PROPERTY,
+	MONO_TABLE_METHODSEMANTICS,
+	MONO_TABLE_METHODIMPL,
+	MONO_TABLE_MODULEREF, /* 0x1a */
+	MONO_TABLE_TYPESPEC,
+	MONO_TABLE_IMPLMAP,
+	MONO_TABLE_FIELDRVA,
+	MONO_TABLE_UNUSED6,
+	MONO_TABLE_UNUSED7,
+	MONO_TABLE_ASSEMBLY, /* 0x20 */
+	MONO_TABLE_ASSEMBLYPROCESSOR,
+	MONO_TABLE_ASSEMBLYOS,
+	MONO_TABLE_ASSEMBLYREF,
+	MONO_TABLE_ASSEMBLYREFPROCESSOR,
+	MONO_TABLE_ASSEMBLYREFOS,
+	MONO_TABLE_FILE,
+	MONO_TABLE_EXPORTEDTYPE,
+	MONO_TABLE_MANIFESTRESOURCE,
+	MONO_TABLE_NESTEDCLASS,
+	MONO_TABLE_GENERICPARAM, /* 0x2a */
+	MONO_TABLE_METHODSPEC,
+	MONO_TABLE_GENERICPARAMCONSTRAINT
+} MonoMetaTableEnum;
+
+
+enum {
+	MONO_TYPEDEF_FLAGS,
+	MONO_TYPEDEF_NAME,
+	MONO_TYPEDEF_NAMESPACE,
+	MONO_TYPEDEF_EXTENDS,
+	MONO_TYPEDEF_FIELD_LIST,
+	MONO_TYPEDEF_METHOD_LIST,
+	MONO_TYPEDEF_SIZE
+};
+
+enum {
+	MONO_METHOD_RVA,
+	MONO_METHOD_IMPLFLAGS,
+	MONO_METHOD_FLAGS,
+	MONO_METHOD_NAME,
+	MONO_METHOD_SIGNATURE,
+	MONO_METHOD_PARAMLIST,
+	MONO_METHOD_SIZE
+};
+
+ 
+typedef enum {
+	MONO_TOKEN_MODULE            = 0x00000000,
+	MONO_TOKEN_TYPE_REF          = 0x01000000,
+	MONO_TOKEN_TYPE_DEF          = 0x02000000,
+	MONO_TOKEN_FIELD_DEF         = 0x04000000,
+	MONO_TOKEN_METHOD_DEF        = 0x06000000, 
+	MONO_TOKEN_PARAM_DEF         = 0x08000000,
+	MONO_TOKEN_INTERFACE_IMPL    = 0x09000000,
+	MONO_TOKEN_MEMBER_REF        = 0x0a000000,
+	MONO_TOKEN_CUSTOM_ATTRIBUTE  = 0x0c000000,
+	MONO_TOKEN_PERMISSION        = 0x0e000000,
+	MONO_TOKEN_SIGNATURE         = 0x11000000,
+	MONO_TOKEN_EVENT             = 0x14000000,
+	MONO_TOKEN_PROPERTY          = 0x17000000,
+	MONO_TOKEN_MODULE_REF        = 0x1a000000,
+	MONO_TOKEN_TYPE_SPEC         = 0x1b000000,
+	MONO_TOKEN_ASSEMBLY          = 0x20000000,
+	MONO_TOKEN_ASSEMBLY_REF      = 0x23000000,
+	MONO_TOKEN_FILE              = 0x26000000,
+	MONO_TOKEN_EXPORTED_TYPE     = 0x27000000,
+	MONO_TOKEN_MANIFEST_RESOURCE = 0x28000000,
+	MONO_TOKEN_GENERIC_PARAM     = 0x2a000000,
+	MONO_TOKEN_METHOD_SPEC       = 0x2b000000,
+
+	/*
+	 * These do not match metadata tables directly
+	 */
+	MONO_TOKEN_STRING            = 0x70000000,
+	MONO_TOKEN_NAME              = 0x71000000,
+	MONO_TOKEN_BASE_TYPE         = 0x72000000
+} MonoTokenType;
