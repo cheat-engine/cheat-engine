@@ -4078,13 +4078,24 @@ end;
 function errorOnLookupFailure(L: Plua_State): integer; cdecl;
 var
   parameters: integer;
+
+  oldvalue: boolean;
 begin
   result:=0;
   parameters:=lua_gettop(L);
-  if parameters=1 then
-    symhandler.ExceptionOnLuaLookup:=lua_toboolean(L, -1);
+  oldvalue:=symhandler.ExceptionOnLuaLookup;
 
-  lua_pop(L, parameters);
+  if parameters=1 then
+  begin
+    symhandler.ExceptionOnLuaLookup:=lua_toboolean(L, -1);
+    lua_pop(L, parameters);
+    lua_pushboolean(L, oldvalue);
+    result:=1;
+  end
+  else
+    lua_pop(L, parameters);
+
+
 end;
 
 function loadPlugin(L: PLua_State): integer; cdecl;
