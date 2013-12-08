@@ -10,7 +10,8 @@
 #define MONOCMD_GETIMAGEFROMASSEMBLY 5
 #define MONOCMD_GETIMAGENAME 6
 #define MONOCMD_ENUMCLASSESINIMAGE 7
-//#define MONOCMD_GETFIELDSFROMCLASS 7
+#define MONOCMD_ENUMFIELDSINCLASS 8
+
 
 
 typedef void (__cdecl *MonoDomainFunc) (void *domain, void *user_data);
@@ -32,8 +33,18 @@ typedef int (__cdecl *MONO_TABLE_INFO_GET_ROWS)(void *tableinfo);
 typedef int (__cdecl *MONO_METADATA_DECODE_ROW_COL)(void *tableinfo, int idx, unsigned int col);
 typedef char* (__cdecl *MONO_METADATA_STRING_HEAP)(void *image, UINT32 index);
 
-typedef char* (__cdecl *MONO_CLASS_GET)(void *image, UINT32 tokenindex);
-typedef char* (__cdecl *MONO_CLASS_GET_METHODS)(void *klass, void *iter);
+typedef void* (__cdecl *MONO_CLASS_GET)(void *image, UINT32 tokenindex);
+typedef void* (__cdecl *MONO_CLASS_GET_METHODS)(void *klass, void *iter);
+typedef void* (__cdecl *MONO_CLASS_GET_FIELDS)(void *klass, void *iter);
+typedef int (__cdecl *MONO_CLASS_NUM_FIELDS)(void *klass);
+typedef int (__cdecl *MONO_CLASS_NUM_METHODS)(void *klass);
+
+typedef char* (__cdecl *MONO_FIELD_GET_NAME)(void *field);
+typedef void* (__cdecl *MONO_FIELD_GET_TYPE)(void *field);
+typedef void* (__cdecl *MONO_FIELD_GET_PARENT)(void *field);
+typedef int (__cdecl *MONO_FIELD_GET_OFFSET)(void *field);
+
+typedef char* (__cdecl *MONO_METHOD_GET_NAME)(void *method);
 
 
 class CPipeServer : Pipe
@@ -57,8 +68,20 @@ private:
 	MONO_METADATA_DECODE_ROW_COL mono_metadata_decode_row_col;
 	MONO_METADATA_STRING_HEAP mono_metadata_string_heap;
 	MONO_CLASS_GET mono_class_get;
+
+	MONO_CLASS_NUM_FIELDS mono_class_num_fields;
+	MONO_CLASS_GET_FIELDS mono_class_get_fields;
+
+	MONO_CLASS_NUM_METHODS mono_class_num_methods;
 	MONO_CLASS_GET_METHODS mono_class_get_methods;
 
+
+	MONO_FIELD_GET_NAME mono_field_get_name;
+	MONO_FIELD_GET_TYPE mono_field_get_type;
+	MONO_FIELD_GET_PARENT mono_field_get_parent;
+	MONO_FIELD_GET_OFFSET mono_field_get_offset;
+
+	MONO_METHOD_GET_NAME mono_method_get_name;
 
 	BOOL attached;
 
@@ -72,6 +95,9 @@ private:
 	void GetImageFromAssembly();
 	void GetImageName();
 	void EnumClassesInImage();
+	void EnumFieldsInClass();
+	void EnumMethodsInClass();
+
 public:
 	CPipeServer(void);
 	~CPipeServer(void);
