@@ -81,8 +81,17 @@ void CPipeServer::InitMono()
 			mono_metadata_string_heap=(MONO_METADATA_STRING_HEAP)GetProcAddress(hMono, "mono_metadata_string_heap");
 			mono_class_get=(MONO_CLASS_GET)GetProcAddress(hMono, "mono_class_get");		
 			mono_class_get_methods=(MONO_CLASS_GET_METHODS)GetProcAddress(hMono, "mono_class_get_methods");		
+			mono_class_get_fields=(MONO_CLASS_GET_FIELDS)GetProcAddress(hMono, "mono_class_get_fields");		
 			
+			mono_class_num_fields=(MONO_CLASS_NUM_FIELDS)GetProcAddress(hMono, "mono_class_num_fields");	
+			mono_class_num_methods=(MONO_CLASS_NUM_METHODS)GetProcAddress(hMono, "mono_class_num_methods");		
 
+			mono_field_get_name=(MONO_FIELD_GET_NAME)GetProcAddress(hMono, "mono_field_get_name");	
+			mono_field_get_type=(MONO_FIELD_GET_TYPE)GetProcAddress(hMono, "mono_field_get_type");	
+			mono_field_get_parent=(MONO_FIELD_GET_PARENT)GetProcAddress(hMono, "mono_field_get_parent");	
+			mono_field_get_offset=(MONO_FIELD_GET_OFFSET)GetProcAddress(hMono, "mono_field_get_offset");				
+
+			mono_method_get_name=(MONO_METHOD_GET_NAME)GetProcAddress(hMono, "mono_method_get_name");	
 
 
 			if (mono_get_root_domain==NULL) OutputDebugStringA("mono_get_root_domain not assigned");
@@ -218,6 +227,55 @@ void CPipeServer::EnumClassesInImage()
 	}
 }
 
+void CPipeServer::EnumFieldsInClass()
+{
+	void *c=(void *)ReadQword();
+	void *iter=NULL;
+	void *field;
+
+	do
+	{
+		field=mono_class_get_fields(c, &iter);
+		WriteQword((UINT_PTR)field);
+
+		if (field)
+		{
+			char *name;
+			WriteQword((UINT_PTR)mono_field_get_type(field));
+			WriteQword((UINT_PTR)mono_field_get_parent(field));
+			WriteDword((UINT_PTR)mono_field_get_offset(field));
+
+			name=mono_field_get_name(field);
+			WriteWord(strlen(name));
+			Write(name, strlen(name));			
+		}
+	} while (field);	
+}
+
+
+void CPipeServer::EnumMethodsInClass()
+{
+	void *c=(void *)ReadQword();
+	void *iter=NULL;
+	void *method;
+
+	do
+	{
+		field=mono_class_get_methods(c, &iter);
+		WriteQword((UINT_PTR)method);
+
+		if (method)
+		{
+			char *name;
+
+			name=mono_method_get_name(method);
+			WriteWord(strlen(name));
+			Write(name, strlen(name));			
+		}
+	} while (field);
+
+}
+
 void CPipeServer::Start(void)
 {
 	BYTE command;
@@ -264,6 +322,15 @@ void CPipeServer::Start(void)
 					case MONOCMD_ENUMCLASSESINIMAGE:
 						EnumClassesInImage();
 						break;
+
+					case MONOCMD_ENUMFIELDSINCLASS:
+						EnumFieldsInClass();
+						break;
+
+					case MONOCMD_ENUMMETHODSINCLASS:
+						EnumMethodsInClass();
+						break;
+
 				}
 			}			
 		}
