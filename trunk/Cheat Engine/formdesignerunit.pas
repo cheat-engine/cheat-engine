@@ -24,6 +24,9 @@ type
     ImageList1: TImageList;
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;
+    miMenuSep: TMenuItem;
+    miMenuMoveUp: TMenuItem;
+    miMenuMoveDown: TMenuItem;
     miAddSubMenu: TMenuItem;
     miSetupMainMenu: TMenuItem;
     miAddTab: TMenuItem;
@@ -62,6 +65,7 @@ type
     CETreeview: TToolButton;
     CEPageControl: TToolButton;
     MainMenu: TToolButton;
+    PopupMenu: TToolButton;
     ToolButton6: TToolButton;
     CEImage: TToolButton;
     procedure controlPopupPopup(Sender: TObject);
@@ -75,6 +79,8 @@ type
     procedure miAddTabClick(Sender: TObject);
     procedure miDeleteClick(Sender: TObject);
     procedure miLoadClick(Sender: TObject);
+    procedure miMenuMoveDownClick(Sender: TObject);
+    procedure miMenuMoveUpClick(Sender: TObject);
     procedure miSaveClick(Sender: TObject);
     procedure miBringToFrontClick(Sender: TObject);
     procedure miSendToBackClick(Sender: TObject);
@@ -99,6 +105,8 @@ type
     methodlist: tstringlist;
     lastupdate: uint64;
 
+    ComponentTreeWindowProc: TWndMethod;
+
     procedure UpdateMethodListIfNeeded;
 
     procedure OIDDestroy(sender: Tobject);
@@ -107,6 +115,7 @@ type
 
     procedure OnComponentRenamed(AComponent: TComponent);
     procedure setFormName;
+    procedure mousedownhack(var TheMessage: TLMessage);
   public
     { public declarations }
     oid:TObjectInspectorDlg;
@@ -240,6 +249,59 @@ begin
   end;
 end;
 
+procedure TFormDesigner.miMenuMoveDownClick(Sender: TObject);
+var
+  mi: TMenuItem;
+  p: TMenuItem;
+  i: integer;
+begin
+  mi:=TMenuItem(oid.selection[0]);
+
+  p:=mi.parent;
+
+  if p<>nil then
+  begin
+    i:=p.IndexOf(mi);
+
+    if i+1<p.Count then
+    begin
+      //swap
+      p.Delete(i);
+      p.Insert(i+1, mi);
+
+      TCEForm(GlobalDesignHook.LookupRoot).designsurface.Change;
+      oid.ComponentTree.RebuildComponentNodes;
+    end;
+
+  end;
+end;
+
+procedure TFormDesigner.miMenuMoveUpClick(Sender: TObject);
+var
+  mi: TMenuItem;
+  p: TMenuItem;
+  i: integer;
+begin
+  mi:=TMenuItem(oid.selection[0]);
+
+  p:=mi.parent;
+
+  if p<>nil then
+  begin
+    i:=p.IndexOf(mi);
+    if i>0 then
+    begin
+      //swap
+      p.Delete(i);
+      p.Insert(i-1, mi);
+
+      TCEForm(GlobalDesignHook.LookupRoot).designsurface.Change;
+      oid.ComponentTree.RebuildComponentNodes;
+    end;
+
+  end;
+end;
+
 procedure TFormDesigner.miSaveClick(Sender: TObject);
 var f: TCeform;
 begin
@@ -288,9 +350,15 @@ end;
 
 procedure TFormDesigner.PopupMenu1Popup(Sender: TObject);
 begin
-  miSetupMainMenu.visible:=(oid.Selection.Count>0) and (oid.selection[0] is TMainMenu);
+  miSetupMainMenu.visible:=(oid.Selection.Count>0) and ((oid.selection[0] is TMainMenu) or (oid.selection[0] is TPopupMenu));
   miAddSubMenu.visible:=(oid.Selection.Count>0) and (oid.selection[0] is TMenuItem);
 
+  miBringToFront.visible:=(oid.Selection.Count>0) and (oid.selection[0] is TControl);
+  miSendToBack.visible:=miBringToFront.visible;
+
+  miMenuSep.visible:=miAddSubMenu.visible;
+  miMenuMoveUp.visible:=miMenuSep.visible;
+  miMenuMoveDown.visible:=miMenuSep.visible;
 end;
 
 
@@ -796,15 +864,33 @@ begin
 end;
 
 
+procedure TFormDesigner.mousedownhack(var TheMessage: TLMessage);
+var
+  bm: ^TLMRButtonDown;
+  n: ttreenode;
+begin
+  if TheMessage.msg=LM_RBUTTONDOWN then
+  begin
+    bm:=@TheMessage;
+
+    n:=oid.ComponentTree.GetNodeAt(bm.XPos, bm.YPos);
+    if n<>nil then
+      oid.ComponentTree.Items.SelectOnlyThis(n);
 
 
+  end;
 
+  if assigned(ComponentTreeWindowProc) then
+    ComponentTreeWindowProc(TheMessage);
+end;
 
 
 
 procedure TFormDesigner.designForm(f: tceform);
 var x: array of integer;
   r: trect;
+
+  m: tmethod;
 begin
   GlobalDesignHook.LookupRoot:=f;
 
@@ -817,7 +903,11 @@ begin
     oid.PropertyEditorHook:=GlobalDesignHook; //needs to be created
     oid.ShowFavorites:=false;
     oid.ComponentTree.PopupMenu:=popupmenu1; //nil;
-    oid.ComponentTree.Options:=oid.ComponentTree.Options+[tvoRightClickSelect];
+
+
+    ComponentTreeWindowProc:=oid.ComponentTree.WindowProc;
+    oid.ComponentTree.WindowProc:=mousedownhack;
+
     oid.OnSelectPersistentsInOI:=ObjectInspectorSelectionChange;
 
     oid.Selection.Add(f);
