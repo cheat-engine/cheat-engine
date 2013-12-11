@@ -6271,7 +6271,19 @@ var
 
   h: thandle;
 
+
 begin
+  i:=0;
+  while i<screen.CustomFormCount do
+  begin
+    if (screen.CustomForms[i] is TCEForm) then
+    begin
+      screen.CustomForms[i].Free;
+    end
+    else
+      inc(i);
+  end;
+
   if adwindow <> nil then
     FreeAndNil(adwindow);
 

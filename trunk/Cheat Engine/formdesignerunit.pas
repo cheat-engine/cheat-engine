@@ -817,6 +817,7 @@ begin
     oid.PropertyEditorHook:=GlobalDesignHook; //needs to be created
     oid.ShowFavorites:=false;
     oid.ComponentTree.PopupMenu:=popupmenu1; //nil;
+    oid.ComponentTree.Options:=oid.ComponentTree.Options+[tvoRightClickSelect];
     oid.OnSelectPersistentsInOI:=ObjectInspectorSelectionChange;
 
     oid.Selection.Add(f);

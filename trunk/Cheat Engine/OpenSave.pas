@@ -404,7 +404,7 @@ begin
         form:=forms.ChildNodes.Item[i];
 
         if (form.Attributes<>nil) and (form.Attributes.GetNamedItem('Class')<>nil) and (uppercase(form.Attributes.GetNamedItem('Class').TextContent)='TTRAINERFORM') then
-          f:=TTrainerForm.CreateNew(nil)
+          f:=TTrainerForm.CreateNew(application)
         else
           f:=TCEform.createnew(nil);
 

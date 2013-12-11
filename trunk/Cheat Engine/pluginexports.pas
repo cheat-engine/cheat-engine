@@ -1601,7 +1601,7 @@ var f: TCEForm;
 begin
   visible:=params;
 
-  f:=TCEForm.CreateNew(application);
+  f:=TCEForm.CreateNew(nil); //6.3: was (aplication)
   f.borderstyle:=bsSingle;
 
   if visible^ then f.show;
