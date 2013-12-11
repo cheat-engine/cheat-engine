@@ -11,10 +11,11 @@ uses
   zstream, Classes, SysUtils, Controls, forms,ComCtrls, StdCtrls, ExtCtrls, Buttons, lcltype,
   dialogs, JvDesignSurface, DOM, typinfo, LResources, JvDesignImp, JvDesignUtils,
   graphics, math, xmlread,xmlwrite, WSStdCtrls, custombase85, PropEdits,
-  ComponentEditors, CEListviewItemEditor;
+  ComponentEditors, CEListviewItemEditor, TreeViewPropEdit, menus, MenuIntf, LCLProc;
 
+type TCEPageControl=class(TPageControl);
 
-type TCETreeview=class(TCustomTreeview)
+type TCETreeview=class(TTreeview)
   property Align;
   property Anchors;
   property AutoExpand;
@@ -1053,6 +1054,19 @@ end;
 
 //ceform
 
+procedure ModifiedCheck(AComponent: TComponent);
+var f: TCEForm;
+begin
+  if AComponent is TControl then
+  begin
+    f:=TCEForm(GetParentForm(TControl(AComponent)));
+    if (f is TCEForm) and (f.active) then
+      f.designsurface.Change;
+
+  end;
+
+end;
+
 procedure TCEForm.setActive(state: boolean);
 var oldstate: boolean;
 begin
@@ -1063,6 +1077,9 @@ begin
 
     if active=false then
       RestoreToDesignState; //it was disabled so change it to the saved state if possible and edit from there
+
+
+    OwnerFormDesignerModifiedProc:=ModifiedCheck;
 
 
 
@@ -1471,14 +1488,18 @@ initialization
   RegisterClass(TCEListView);
   RegisterClass(TCESplitter);
   RegisterClass(TPaintBox);
+  RegisterClass(TCETreeview);
 
-  RegisterClass(TCETreeview); //todo: Make usable
+  RegisterClass(TCEPageControl);
+  RegisterClass(TTabSheet);
+  RegisterClass(TMainMenu);
 
 
   RegisterClass(tceform);
 
 
   RegisterPropertyEditor(ClassTypeInfo(TListItems), TCEListView, 'Items', TCEListViewItemsPropertyEditor);
+
   //RegisterComponentEditor(TCEListView, TListViewComponentEditor);
 
 end.

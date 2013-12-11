@@ -10,7 +10,7 @@ uses
   Dialogs, ComCtrls, StdCtrls, ExtCtrls, Buttons, Menus, JvDesignSurface,
   JvDesignImp, JvDesignUtils, typinfo, PropEdits, ObjectInspector, LResources,
   maps, ExtDlgs, PopupNotifier, IDEDialogs, ceguicomponents, LMessages, luacaller,
-  luahandler, cefuncproc, ListViewPropEdit;
+  luahandler, cefuncproc, ListViewPropEdit, TreeViewPropEdit;
 
 
 
@@ -24,6 +24,7 @@ type
     ImageList1: TImageList;
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;
+    miAddTab: TMenuItem;
     miAddItems: TMenuItem;
     miDelete: TMenuItem;
     miSave: TMenuItem;
@@ -57,6 +58,7 @@ type
     CESplitter: TToolButton;
     PaintBox: TToolButton;
     CETreeview: TToolButton;
+    CEPageControl: TToolButton;
     ToolButton6: TToolButton;
     CEImage: TToolButton;
     procedure controlPopupPopup(Sender: TObject);
@@ -65,6 +67,8 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure foundlist3Data(Sender: TObject; Item: TListItem);
+    procedure miAddItemsClick(Sender: TObject);
+    procedure miAddTabClick(Sender: TObject);
     procedure miDeleteClick(Sender: TObject);
     procedure miLoadClick(Sender: TObject);
     procedure miSaveClick(Sender: TObject);
@@ -162,6 +166,38 @@ procedure TFormDesigner.foundlist3Data(Sender: TObject; Item: TListItem);
 begin
   item.caption:=inttostr(item.index);
   item.SubItems.Add(inttostr(globalcounter*(1+item.index)));
+end;
+
+procedure TFormDesigner.miAddItemsClick(Sender: TObject);
+var i: integer;
+begin
+  for i:=0 to oid.PropertyGrid.RowCount-1 do
+    if oid.PropertyGrid.Rows[i].Name='Items' then
+    begin
+      oid.PropertyGrid.Rows[i].Editor.Edit;
+      exit;
+    end;
+
+end;
+
+procedure TFormDesigner.miAddTabClick(Sender: TObject);
+var ts: TTabSheet;
+  pc: TCEPageControl;
+
+var b: tbutton;
+begin
+  pc:=TCEPageControl(controlpopup.PopupComponent);
+
+
+  ts:=TTabSheet.Create(TCEForm(GlobalDesignHook.LookupRoot));
+  //ts:=TTabSheet.Create(pc);
+  ts.PageControl:=pc;
+  ts.name:=DesignUniqueName(pc, 'TTabSheet');
+
+
+
+  TCEForm(GlobalDesignHook.LookupRoot).designsurface.Messenger.DesignComponent(ts,true);
+  TCEForm(GlobalDesignHook.LookupRoot).designsurface.Change;
 end;
 
 procedure TFormDesigner.miDeleteClick(Sender: TObject);
@@ -679,6 +715,7 @@ begin
   miDelete.visible:=not (controlPopup.PopupComponent is TCustomForm);
 
   miAddItems.visible:=controlpopup.PopupComponent is TCETreeview;
+  miAddTab.visible:=controlpopup.PopupComponent is TCEPageControl;
 
 end;
 

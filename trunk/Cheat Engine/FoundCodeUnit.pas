@@ -219,7 +219,7 @@ begin
     li.data:=coderecord;
 
     if miFindWhatAccesses.Checked then //add it
-      coderecord.formChangedAddresses:=debuggerthread.FindWhatCodeAccesses(address, self);
+      coderecord.formChangedAddresses:=debuggerthread.FindWhatCodeAccesses(address, self);  //ffffffuuuuuuuuuu. Rebuild again
   end;
 end;
 

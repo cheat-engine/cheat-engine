@@ -47,6 +47,7 @@ uses
   //Windows,
   {$ifdef windows}
   win32proc,
+  messages,
   {$endif}
   ExtCtrls, Contnrs,LMessages, Menus;
 
@@ -323,8 +324,9 @@ procedure TJvDesignCustomMessenger.DesignChildren(AContainer: TWinControl; ADesi
 var
   I: Integer;
 begin
-  for I := 0 to AContainer.ControlCount - 1 do
-    DesignComponent(AContainer.Controls[I], ADesigning);
+//  for I := 0 to AContainer.ControlCount - 1 do
+  for I := 0 to AContainer.ComponentCount - 1 do
+    DesignComponent(AContainer.Components[I], ADesigning);
 end;
 
 procedure TJvDesignCustomMessenger.SetContainer(AValue: TWinControl);
@@ -351,22 +353,30 @@ begin
   if not Assigned(FOnDesignMessage) then
     Result := False
   else
+    if AMessage.Msg=CN_NOTIFY then
+      begin
+        result:=false;
+        exit;
+      end;
+
     case AMessage.Msg of
       LM_LCL..LM_INTERFACELAST : result:=true;
+
       CM_BASE..CM_APPSHOWMENUGLYPHCHANGED:
       begin
-        result:=true;
+       // result:=true;
         case AMessage.Msg of
           CM_SHOWINGCHANGED,CM_HITTEST: result:=false;
         end;
-//      45082: result:=true;
-//      $10407: result:=true;
+
       end;
 
       $bd11: result:=true;
 
+
+
       LM_MOVE: result:=false;
-      LM_NOTIFY: result:=true; //?
+     // LM_NOTIFY: result:=true; //?
       LM_DESTROY: result:=false;
 
       LM_CAPTURECHANGED,LM_SYSCOMMAND: result:=false;
