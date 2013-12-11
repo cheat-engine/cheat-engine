@@ -728,7 +728,7 @@ type TCEForm=class(TCustomForm)
    // property HelpFile;
     property Icon;
     property KeyPreview;
-    //property Menu;
+    property Menu;
     property OnActivate;
     property OnChangeBounds;
     property OnClick;
@@ -1493,6 +1493,7 @@ initialization
   RegisterClass(TCEPageControl);
   RegisterClass(TTabSheet);
   RegisterClass(TMainMenu);
+  RegisterClass(TMenuItem);
 
 
   RegisterClass(tceform);

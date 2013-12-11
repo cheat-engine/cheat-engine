@@ -926,14 +926,16 @@ begin
 
     if plist<>nil then
     begin
+      tempresults[level]:=valuetofind-stopvalue; //store the offset
+
       for j:=0 to plist.pos-1 do
       begin
         {$ifdef benchmarkps}
         inc(totalpathsevaluated);
         {$endif}
 
-        tempresults[level]:=valuetofind-stopvalue; //store the offset
-        if (plist.list[j].staticdata=nil) then
+
+        if (plist.list[j].staticdata=nil) then //this removes a lot of other possible paths. Perhaps a feature to remove this check ?
         begin
           if (not dontGoDeeper) then
           begin
@@ -1012,6 +1014,8 @@ begin
                 begin
                   //I'll have to do it myself
                   rscan(plist.list[j].address,level+1);
+
+                  ///done with this branch
                 end;
               end;
 
@@ -1048,7 +1052,8 @@ begin
 
       if LimitToMaxOffsetsPerNode then //check if the current itteration is less than maxOffsetsPerNode
       begin
-        inc(DifferentOffsetsInThisNode);
+        if level>0 then
+          inc(DifferentOffsetsInThisNode);
 
         if (DifferentOffsetsInThisNode>=maxOffsetsPerNode) then
           exit; //the max node has been reached

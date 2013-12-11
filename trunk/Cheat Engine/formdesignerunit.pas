@@ -24,6 +24,8 @@ type
     ImageList1: TImageList;
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;
+    miAddSubMenu: TMenuItem;
+    miSetupMainMenu: TMenuItem;
     miAddTab: TMenuItem;
     miAddItems: TMenuItem;
     miDelete: TMenuItem;
@@ -59,6 +61,7 @@ type
     PaintBox: TToolButton;
     CETreeview: TToolButton;
     CEPageControl: TToolButton;
+    MainMenu: TToolButton;
     ToolButton6: TToolButton;
     CEImage: TToolButton;
     procedure controlPopupPopup(Sender: TObject);
@@ -68,12 +71,15 @@ type
     procedure FormShow(Sender: TObject);
     procedure foundlist3Data(Sender: TObject; Item: TListItem);
     procedure miAddItemsClick(Sender: TObject);
+    procedure miAddSubMenuClick(Sender: TObject);
     procedure miAddTabClick(Sender: TObject);
     procedure miDeleteClick(Sender: TObject);
     procedure miLoadClick(Sender: TObject);
     procedure miSaveClick(Sender: TObject);
     procedure miBringToFrontClick(Sender: TObject);
     procedure miSendToBackClick(Sender: TObject);
+    procedure miSetupMainMenuClick(Sender: TObject);
+    procedure PopupMenu1Popup(Sender: TObject);
     procedure TBClick(Sender: TObject);
     procedure CELabelClick(Sender: TObject);
     procedure NoSelectionClick(Sender: TObject);
@@ -180,6 +186,21 @@ begin
 
 end;
 
+procedure TFormDesigner.miAddSubMenuClick(Sender: TObject);
+var m: TMenuItem;
+
+  mi: TMenuitem;
+begin
+  m:=TMenuItem(oid.selection[0]);
+
+  mi:=TMenuItem.Create(TCEForm(GlobalDesignHook.LookupRoot));
+  mi.name:=DesignUniqueName(m, 'TMenuItem');
+
+  m.Add(mi);
+
+  TCEForm(GlobalDesignHook.LookupRoot).designsurface.Change;
+end;
+
 procedure TFormDesigner.miAddTabClick(Sender: TObject);
 var ts: TTabSheet;
   pc: TCEPageControl;
@@ -248,6 +269,28 @@ begin
     if (oid.Selection.Items[i] is TControl) then
       tcontrol(oid.Selection.Items[i]).SendToBack;
   end;
+end;
+
+procedure TFormDesigner.miSetupMainMenuClick(Sender: TObject);
+var m: TMainMenu;
+
+  mi: TMenuitem;
+begin
+  m:=TMainMenu(oid.selection[0]);
+
+  mi:=TMenuItem.Create(TCEForm(GlobalDesignHook.LookupRoot));
+  mi.name:=DesignUniqueName(m, 'TMenuItem');
+
+  m.Items.Add(mi);
+
+  TCEForm(GlobalDesignHook.LookupRoot).designsurface.Change;
+end;
+
+procedure TFormDesigner.PopupMenu1Popup(Sender: TObject);
+begin
+  miSetupMainMenu.visible:=(oid.Selection.Count>0) and (oid.selection[0] is TMainMenu);
+  miAddSubMenu.visible:=(oid.Selection.Count>0) and (oid.selection[0] is TMenuItem);
+
 end;
 
 
@@ -801,10 +844,6 @@ begin
   f.active:=true;
 
   f.designsurface.PopupMenu:=controlPopup;
-
-
-
-
 
   f.show;
   f.BringToFront;
