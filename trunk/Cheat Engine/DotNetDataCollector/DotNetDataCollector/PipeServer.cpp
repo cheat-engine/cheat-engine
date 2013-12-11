@@ -10,11 +10,22 @@ const IID IID_ICorDebugCode2={0x5F696509,0x452F,0x4436,0xA3,0xFE,0x4D,0x11,0xFE,
 
 CPipeServer::CPipeServer(TCHAR *name)
 {
+	processhandle=0;	
+	CorDebugProcess5=NULL;
+	CorDebugProcess=NULL;
+	CLRDebugging=NULL;
+	libprovider=NULL;	
+	datacallback=NULL;
+	
+
 	StrCpy(pipename, L"\\\\.\\pipe\\");
 	StrCat(pipename, name);
 
 	pipe=CreateNamedPipeW(pipename, PIPE_ACCESS_DUPLEX, PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT, 255,256*1024, 16, INFINITE, NULL);
 	ConnectNamedPipe(pipe, NULL);
+
+
+
 }
 
 CPipeServer::~CPipeServer(void)

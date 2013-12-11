@@ -77,7 +77,8 @@ uses
   PointerscanNetworkCommands, frmpointerrescanconnectdialogunit,
   frmMergePointerscanResultSettingsUnit, AddresslistEditor,
   FrmMemoryRecordDropdownSettingsUnit, frmMemrecComboboxUnit, tracerIgnore,
-  DotNetPipe, DotNetTypes;
+  DotNetPipe, DotNetTypes, LuaPipeServer, LuaPipe, LuaPipeClient,
+CEListviewItemEditor;
 
 {$R cheatengine.res}
 //{$R manifest.res}  //lazarus now has this build in

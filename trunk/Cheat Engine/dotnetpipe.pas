@@ -573,6 +573,9 @@ begin
   end;
 
   result:=fAttached;
+
+  if not result then
+    disconnect;
 end;
 
 procedure TDotNetPipe.disconnect;

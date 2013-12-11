@@ -48,7 +48,7 @@ uses
   {$ifdef windows}
   win32proc,
   {$endif}
-  ExtCtrls, Contnrs,LMessages;
+  ExtCtrls, Contnrs,LMessages, Menus;
 
 type
   TJvDesignSurface = class;
@@ -162,6 +162,8 @@ type
     FSelectorClass: TJvDesignCustomSelectorClass;
     FUpdateOwner: TComponent;
 
+    FPopupMenu: TPopupMenu;
+
     procedure MessengerOnChange(sender: tobject);
   protected
     FOnChange: TNotifyEvent;
@@ -232,6 +234,7 @@ type
     property OnGetAddClass: TJvDesignGetAddClassEvent read FOnGetAddClass write FOnGetAddClass;
 //    property OnOwnerDrawGrid: TJvDesignOwnerDrawGridEvent read FOnOwnerDrawGrid write FOnOwnerDrawGrid;
     property OnSelectionChange: TNotifyEvent read FOnSelectionChange write FOnSelectionChange;
+    property PopupMenu: TPopupMenu read fPopupMenu write FPopupMenu;
   end;
 
   TJvDesignScrollBox = class(TScrollBox)
@@ -975,6 +978,11 @@ var
   PosChangedHandle: HWND;
   I: Integer;
   Control: TAccessWinControl;
+
+
+
+  p: tpoint;
+  c: tcontrol;
 begin
   if not Active then
     Result := False
@@ -992,6 +1000,27 @@ begin
 
       LM_MOUSEENTER: result:=true;
       LM_LBUTTONDBLCLK: result:=true;
+
+      LM_RBUTTONDOWN:
+      begin
+        Result := Controller.MouseDown(mbRight, APt.X, APt.Y, TLMMOUSE(AMsg));
+
+        if result and (FPopupMenu<>nil) then
+        begin
+          p:=container.ClientToScreen(APt);
+
+          FPopupMenu.PopupComponent:=TComponent(FindControl(Apt.x, apt.y));
+          FPopupMenu.PopUp(p.x,p.y);
+        end;
+
+      //  result:=true;
+      end;
+      LM_RBUTTONUP:
+      begin
+        Result := Controller.MouseUp(mbRight, APt.X, APt.Y, TLMMouse( aMsg));
+       // result:=true;
+      end;
+
 
       LM_LBUTTONDOWN:
       begin
@@ -1068,7 +1097,7 @@ begin
 
         LM_WINDOWPOSCHANGED,LM_ERASEBKGND: result:=false;
         LM_PAINT: result:=false;
-        LM_RBUTTONDOWN,LM_MBUTTONDOWN,LM_RBUTTONUP: result:=true;
+        {LM_RBUTTONDOWN,}LM_MBUTTONDOWN{,LM_RBUTTONUP}: result:=true;
 
         CN_KEYDOWN,CN_CHAR,CN_SYSKEYUP,CN_SYSKEYDOWN,CN_SYSCHAR : result:=true;
 

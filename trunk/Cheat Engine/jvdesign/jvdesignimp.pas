@@ -983,11 +983,29 @@ begin
   if (TheMessage.Keys and MK_Control) = MK_Control then
     Shift666 := Shift666 + [ssCtrl];   }
  // shift666:=GetKeyShiftState;
+  if (button=mbright) then
+  begin
+    Surface.ClearSelection;
+
+    FClicked := Surface.FindControl(X, Y);
+    if (FClicked = Surface.Container) or (FClicked is TJvDesignHandle) then
+      FClicked := nil;
+
+    Surface.Select(FClicked);
+
+    Surface.SelectionChange;
+
+    result:=true;
+    exit;
+  end;
+
 
   FocusSurface;
   CaptureMouse;
   SelectDragMode;
+
   CreateMouseTool;
+
   Result := True;
 end;
 
@@ -1034,6 +1052,12 @@ function TJvDesignController.MouseUp(Button: TMouseButton; X, Y: Integer; TheMes
       FMouseTool.MouseUp(Button, GetKeyShiftState, X, Y);
       FDragRect := DesignValidateRect(FMouseTool.DragRect);
       case FDragMode of
+       // dmSelect:
+       // begin
+       //   if FClicked <> nil then
+       //     Surface.Select(FClicked);
+       // end;
+
         dmCreate:
           begin
             if FClicked <> nil then
