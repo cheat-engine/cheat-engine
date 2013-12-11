@@ -10,7 +10,8 @@ interface
 uses
   zstream, Classes, SysUtils, Controls, forms,ComCtrls, StdCtrls, ExtCtrls, Buttons, lcltype,
   dialogs, JvDesignSurface, DOM, typinfo, LResources, JvDesignImp, JvDesignUtils,
-  graphics, math, xmlread,xmlwrite, WSStdCtrls, custombase85{, ascii85};
+  graphics, math, xmlread,xmlwrite, WSStdCtrls, custombase85, PropEdits,
+  ComponentEditors, CEListviewItemEditor;
 
 
 type TCETreeview=class(TCustomTreeview)
@@ -1473,8 +1474,12 @@ initialization
 
   RegisterClass(TCETreeview); //todo: Make usable
 
+
   RegisterClass(tceform);
 
+
+  RegisterPropertyEditor(ClassTypeInfo(TListItems), TCEListView, 'Items', TCEListViewItemsPropertyEditor);
+  //RegisterComponentEditor(TCEListView, TListViewComponentEditor);
 
 end.
 

@@ -10,7 +10,7 @@ uses
   Dialogs, ComCtrls, StdCtrls, ExtCtrls, Buttons, Menus, JvDesignSurface,
   JvDesignImp, JvDesignUtils, typinfo, PropEdits, ObjectInspector, LResources,
   maps, ExtDlgs, PopupNotifier, IDEDialogs, ceguicomponents, LMessages, luacaller,
-  luahandler, cefuncproc;
+  luahandler, cefuncproc, ListViewPropEdit;
 
 
 
@@ -24,12 +24,15 @@ type
     ImageList1: TImageList;
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;
+    miAddItems: TMenuItem;
+    miDelete: TMenuItem;
     miSave: TMenuItem;
     miLoad: TMenuItem;
     miBringToFront: TMenuItem;
     miSendToBack: TMenuItem;
     OpenDialog1: TOpenDialog;
     PopupMenu1: TPopupMenu;
+    controlPopup: TPopupMenu;
     SaveDialog1: TSaveDialog;
     ToolBar1: TToolBar;
     CEButton: TToolButton;
@@ -53,13 +56,16 @@ type
     CEListView: TToolButton;
     CESplitter: TToolButton;
     PaintBox: TToolButton;
+    CETreeview: TToolButton;
     ToolButton6: TToolButton;
     CEImage: TToolButton;
+    procedure controlPopupPopup(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure foundlist3Data(Sender: TObject; Item: TListItem);
+    procedure miDeleteClick(Sender: TObject);
     procedure miLoadClick(Sender: TObject);
     procedure miSaveClick(Sender: TObject);
     procedure miBringToFrontClick(Sender: TObject);
@@ -72,10 +78,6 @@ type
 
     componentToAdd: string;
 
-
-    ps:TPersistentSelectionList;
-
-    testf: tform;
      saved: tmemorystream;
 
 
@@ -86,6 +88,7 @@ type
 
     methodlist: tstringlist;
     lastupdate: uint64;
+
     procedure UpdateMethodListIfNeeded;
 
     procedure OIDDestroy(sender: Tobject);
@@ -159,6 +162,13 @@ procedure TFormDesigner.foundlist3Data(Sender: TObject; Item: TListItem);
 begin
   item.caption:=inttostr(item.index);
   item.SubItems.Add(inttostr(globalcounter*(1+item.index)));
+end;
+
+procedure TFormDesigner.miDeleteClick(Sender: TObject);
+begin
+  if GlobalDesignHook.LookupRoot is TCEForm then
+    TCEForm(GlobalDesignHook.LookupRoot).designsurface.DeleteComponents;
+
 end;
 
 procedure TFormDesigner.miLoadClick(Sender: TObject);
@@ -476,12 +486,9 @@ begin
   if (GlobalDesignHook.LookupRoot<>nil) and (GlobalDesignHook.LookupRoot is TCEForm) then
     TCEForm(GlobalDesignHook.LookupRoot).ResyncWithLua;
 
+
+
 end;
-
-
-
-
-
 
 function TFormDesigner.onCreateMethod(const Name: ShortString; ATypeInfo: PTypeInfo; APersistent: TPersistent; const APropertyPath: string): TMethod;
 var f: TLuaCaller;
@@ -667,6 +674,14 @@ begin
 
 end;
 
+procedure TFormDesigner.controlPopupPopup(Sender: TObject);
+begin
+  miDelete.visible:=not (controlPopup.PopupComponent is TCustomForm);
+
+  miAddItems.visible:=controlpopup.PopupComponent is TCETreeview;
+
+end;
+
 
 
 procedure TFormDesigner.OnWriteMethod(Writer: TWriter; Instance: TPersistent; PropInfo: PPropInfo; const MethodValue, DefMethodValue: TMethod; var Handled: boolean);
@@ -747,6 +762,10 @@ begin
 
 
   f.active:=true;
+
+  f.designsurface.PopupMenu:=controlPopup;
+
+
 
 
 
