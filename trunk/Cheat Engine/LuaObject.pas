@@ -145,6 +145,8 @@ var parameters: integer;
   p,v: string;
   pinfo: PPropInfo;
   f: integer;
+
+  metatable: integer;
 begin
   result:=0;
   parameters:=lua_gettop(L);
@@ -166,6 +168,7 @@ begin
     v:=Lua_ToString(L, 3);
 
     try
+
       pinfo:=GetPropInfo(c, p);
       if pinfo<>nil then
       begin
@@ -194,8 +197,19 @@ begin
 
           else SetPropValue(c, p, v)
         end;
-      end;
+      end
+      else
+      begin
+        //not a property
+        lua_getmetatable(L, 1);
+        metatable:=lua_gettop(L);
 
+        lua_pushvalue(L, 2);
+        lua_pushvalue(L, 3);
+        lua_settable(L, metatable);
+
+
+      end;
     except
     end;
   end;

@@ -398,16 +398,16 @@ begin
           lua_call(L, 2,0); //call __defaultintegersetindexhandler(key, value);
         end;
       end;
-
-
-      //this entry was not in the list
-      //Let's see if this is a published property
-      lua_pushcfunction(L, lua_setProperty);
-      lua_pushvalue(L, 1); //userdata
-      lua_pushvalue(L, 2); //keyname
-      lua_pushvalue(L, 3); //value
-      lua_call(L,3,0);
     end;
+
+    //this entry was not in the list
+    //Let's see if this is a published property or custom value
+    lua_pushcfunction(L, lua_setProperty);
+    lua_pushvalue(L, 1); //userdata
+    lua_pushvalue(L, 2); //keyname
+    lua_pushvalue(L, 3); //value
+    lua_call(L,3,0);
+
   end;
 end;
 
