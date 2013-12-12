@@ -52,7 +52,6 @@ var
   treenodes: Ttreenodes;
   paramcount: integer;
   s: string;
-  sibling: TTreenode;
 begin
   treenodes:=luaclass_getClassObject(L);
 
@@ -62,12 +61,8 @@ begin
   else
     s:='';
 
-  if paramcount>=2 then
-    sibling:=lua_ToCEUserData(L, 2)
-  else
-    sibling:=nil;
 
-  luaclass_newClass(L, treenodes.add(sibling, s));
+  luaclass_newClass(L, treenodes.add(nil, s));
   result:=1;
 end;
 
