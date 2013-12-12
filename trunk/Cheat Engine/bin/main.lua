@@ -918,11 +918,59 @@ properties
 
 methods
   clear()
-  getColumns() : Returns a ListColumns object
-  getItems(): Returns a ListItems object
-  getItemIndex()
-  setItemIndex(index)
-  getCanvas()
+  getColumns() : ListColumns - Returns a ListColumns object
+  getItems(): ListItems - Returns a ListItems object
+  getItemIndex(): integer -  Returns the currently selected index in the Items object
+  setItemIndex(index: integer)- Sets the current itemindex
+  getCanvas() : Canvas - Returns the canvas object used to render the listview
+
+
+TreeNode clasS : (Inheritance: TObject)
+properties
+  Parent: Treenode - The treenode this object is a child of. (can be nil) (ReadOnly)
+  HasChildren: boolean - Set to true if it has children, or you wish it to have an expand sign
+  Count : Integer - The number of children this node has
+  Items[]: Treenode - Array to access the child nodes of this node
+  Index: Integer - The index based on the parent
+  AbsoluteIndex: Integer - The index based on the TreeView's Treenodes object (Items)
+  Selected: Boolean - Set to true if currently selected
+  MultiSelected: Boolean - Set to true if selected as well, but not the main selected object
+methods
+  delete()
+  makeVisible()
+  expand()
+  collapse()
+  add(text:string): Returns a Treenode object that is a child of the treenode used to create it
+
+
+
+TreeNodes class : (Inheritance: TObject)
+properties
+  Count : Integer - The total number of Treenodes this object has
+  Item[]: TreeNode - Array to access each node
+  [] = Item[]
+methods
+  clear()
+  getCount()
+  getItem(integer) : Return the listitem object at the given index
+  add(text:string): Returns a new root Treenode object
+
+ 
+
+Treeview Class : (Inheritance: CustomControl->WinControl->Control->Component->Object)
+createTreeView(owner)
+
+properties
+  Items: TreeNodes - The Treenodes object of the treeview (ReadOnly)
+  Selected: TreeNode - The currently selected treenode
+
+methods
+  getItems()
+  getSelected()
+  setSelected()
+  fullCollapse()
+  fullExpand()
+
 
 
 Timer Class : (Inheritance: Component->object)

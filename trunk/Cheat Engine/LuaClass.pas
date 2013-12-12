@@ -330,6 +330,16 @@ begin
   lua_pushvalue(L, userdata);
   lua_pushcclosure(L, f, 1);
   lua_settable(L, metatable);
+
+  if functionname<>'' then
+  begin
+    //add a secondary method where the name starts with a capital
+    functionname[1]:=uppercase(functionname[1])[1];
+    lua_pushstring(L, functionname);
+    lua_pushvalue(L, userdata);
+    lua_pushcclosure(L, f, 1);
+    lua_settable(L, metatable);
+  end;
 end;
 
 function luaclass_compare(L: PLua_State): integer; cdecl; //__eq

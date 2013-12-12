@@ -160,9 +160,30 @@ begin
   result:=0;
 end;
 
+function treenode_add(L: PLua_State): integer; cdecl;
+var
+  treenode: Ttreenode;
+  treenodes: Ttreenodes;
+  paramcount: integer;
+  s: string;
+begin
+  treenode:=luaclass_getClassObject(L);
+  treenodes:=treenode.Owner;
+
+  paramcount:=lua_gettop(L);
+  if paramcount>=1 then
+    s:=Lua_ToString(L, 1)
+  else
+    s:='';
+
+  luaclass_newClass(L, treenodes.AddChild(treenode, s));
+  result:=1;
+end;
+
 procedure treenode_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
   object_addMetaData(L, metatable, userdata);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'add', treenode_add);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getText', treenode_getText);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setText', treenode_setText);
 
