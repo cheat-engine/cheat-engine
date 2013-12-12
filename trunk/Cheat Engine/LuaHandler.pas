@@ -2622,6 +2622,44 @@ begin
   symhandler.waitforsymbolsloaded;
 end;
 
+function enumModules(L:PLua_state): integer; cdecl;
+var
+  i: integer;
+  ml: tstringlist;
+  tableindex: integer;
+  entryindex: integer;
+begin
+  ml:=tstringlist.create;
+  symhandler.getModuleList(ml);
+
+  lua_newtable(L);
+  tableindex:=lua_gettop(L);
+
+  for i:=0 to ml.count-1 do
+  begin
+    lua_newtable(L);
+    entryindex:=lua_gettop(L);
+
+    lua_pushstring(L, 'Name');
+    lua_pushstring(L, ml[i]);
+    lua_settable(L, entryindex);
+
+    lua_pushstring(L, 'Address');
+    lua_pushinteger(L, ptruint(ml.Objects[i]));
+    lua_settable(L, entryindex);
+
+    lua_pushinteger(L, i+1);
+    lua_pushvalue(L, entryindex);
+    lua_settable(L, tableindex);
+
+    lua_pop(L, 1); //remove the current entry table
+  end;
+
+  lua_pushvalue(L, tableindex); //shouldn't be needed, but let's make sure
+  result:=1;
+
+  ml.free;
+end;
 
 
 
@@ -4484,6 +4522,7 @@ begin
 
     lua_register(LuaVM, 'reinitializeSymbolhandler', reinitializeSymbolhandler);
     lua_register(LuaVM, 'reinitializeDotNetSymbolhandler', reinitializeDotNetSymbolhandler);
+    lua_register(LuaVM, 'enumModules', enumModules);
 
     //ce6.1
     lua_register(LuaVM, 'getNameFromAddress', getNameFromAddress);

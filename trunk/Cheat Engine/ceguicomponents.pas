@@ -14,7 +14,13 @@ uses
   ComponentEditors, CEListviewItemEditor, TreeViewPropEdit, menus, MenuIntf, LCLProc;
 
 type TCEPageControl=class(TPageControl);
-type TCETreeview=class(TTreeview);
+type
+  TCETreeview=class(TTreeview)
+  public
+{$ifdef cpu32}
+    destructor destroy; override;
+{$endif}
+  end;
 
 type TCESplitter=class(TCustomSplitter)
   property Align;
@@ -950,6 +956,21 @@ end;
 implementation
 
 uses luahandler,luacaller, formdesignerunit;
+
+{$ifdef cpu32}
+//In this implementation the data field of treenodes contain a pointer to an 8 byte storage  (I don't think I could just change/add to the Data field of the TTreenode components)
+destructor TCETreeview.destroy;
+var i: integer;
+begin
+  for i:=0 to items.count-1 do
+  begin
+    if items[i].data<>nil then
+      freemem(items[i].data);
+  end;
+
+  inherited destroy;
+end;
+{$endif}
 
 constructor TCECheckBox.Create(TheOwner: TComponent);
 begin
