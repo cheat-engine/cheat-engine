@@ -15,9 +15,19 @@ uses luaclass, luahandler, LuaObject;
 function treenodes_clear(L: Plua_State): integer; cdecl;
 var
   treenodes: TTreeNodes;
+  i: integer;
 begin
   result:=0;
   treenodes:=luaclass_getClassObject(L);
+
+{$ifdef cpu32}
+  //free the allocated memory if there was any
+  for i:=0 to treenodes.count-1 do
+  begin
+    if treenodes[i].Data<>nil then
+      freemem(treenodes[i].data)
+  end;
+{$endif}
   treenodes.Clear;
 end;
 

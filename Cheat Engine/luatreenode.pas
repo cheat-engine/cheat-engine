@@ -17,6 +17,12 @@ var
 begin
   result:=0;
   treenode:=luaclass_getClassObject(L);
+
+{$ifdef cpu32}
+  if treenode.data<>nil then
+    freemem(treenode.data);
+{$endif}
+
   treenode.Delete;
 end;
 
@@ -160,6 +166,55 @@ begin
   result:=0;
 end;
 
+function treenode_getData(L: PLua_State): integer; cdecl;
+var
+  treenode: Ttreenode;
+begin
+  treenode:=luaclass_getClassObject(L);
+
+{$ifdef cpu32}
+  if treenode.data=nil then
+    lua_pushinteger(L, 0)
+  else
+  begin
+    lua_pushinteger(L, pqword(treenode.data)^);
+  end;
+{$else}
+  lua_pushinteger(L, UIntPtr(treenode.Data));
+{$endif}
+  result:=1;
+end;
+
+function treenode_setData(L: PLua_State): integer; cdecl;
+var
+  treenode: Ttreenode;
+begin
+  treenode:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+  begin
+
+{$ifdef cpu32}
+    if lua_isnil(L, 1) then
+    begin
+      //free the data
+      freemem(treenode.data);
+      treenode.data:=nil;
+    end
+    else
+    begin
+      if treenode.data=nil then
+        treenode.data:=getmem(8); //enough room for a 64-bit value
+
+      pqword(treenode.data)^:=lua_tointeger(L, 1);
+    end;
+{$else}
+    treenode.data:=pointer(lua_tointeger(L, 1));
+{$endif}
+  end;
+
+  result:=0;
+end;
+
 function treenode_add(L: PLua_State): integer; cdecl;
 var
   treenode: Ttreenode;
@@ -192,6 +247,7 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'expand', treenode_expand);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'collapse', treenode_collapse);
 
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Data', treenode_getData, treenode_setData);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Text', treenode_getText, treenode_setText);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Index', treenode_getIndex, nil);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'AbsoluteIndex', treenode_getIndex, nil);
