@@ -78,7 +78,7 @@ uses
   frmMergePointerscanResultSettingsUnit, AddresslistEditor,
   FrmMemoryRecordDropdownSettingsUnit, frmMemrecComboboxUnit, tracerIgnore,
   DotNetPipe, DotNetTypes, LuaPipeServer, LuaPipe, LuaPipeClient,
-CEListviewItemEditor;
+CEListviewItemEditor, LuaTreeview, LuaTreeNodes, LuaTreeNode;
 
 {$R cheatengine.res}
 //{$R manifest.res}  //lazarus now has this build in

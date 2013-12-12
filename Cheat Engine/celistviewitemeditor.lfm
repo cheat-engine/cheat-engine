@@ -1,0 +1,172 @@
+object frmCEListviewItemEditor: TfrmCEListviewItemEditor
+  Left = 805
+  Height = 240
+  Top = 359
+  Width = 349
+  Caption = 'Item editor'
+  ClientHeight = 240
+  ClientWidth = 349
+  Position = poScreenCenter
+  LCLVersion = '1.0.8.0'
+  object Panel1: TPanel
+    Left = 0
+    Height = 200
+    Top = 0
+    Width = 349
+    Align = alClient
+    BevelOuter = bvNone
+    ClientHeight = 200
+    ClientWidth = 349
+    TabOrder = 0
+    object TreeView1: TTreeView
+      Left = 0
+      Height = 200
+      Top = 0
+      Width = 207
+      Align = alClient
+      DefaultItemHeight = 18
+      HideSelection = False
+      TabOrder = 0
+      OnChange = TreeView1Change
+      OnSelectionChanged = TreeView1SelectionChanged
+      Options = [tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
+    end
+    object Panel2: TPanel
+      Left = 207
+      Height = 200
+      Top = 0
+      Width = 142
+      Align = alRight
+      BevelOuter = bvNone
+      ClientHeight = 200
+      ClientWidth = 142
+      TabOrder = 1
+      object edtText: TEdit
+        AnchorSideLeft.Control = Panel2
+        AnchorSideTop.Control = lblText
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = Panel2
+        AnchorSideRight.Side = asrBottom
+        Left = 6
+        Height = 23
+        Top = 28
+        Width = 130
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Around = 6
+        OnChange = edtTextChange
+        TabOrder = 0
+      end
+      object lblText: TLabel
+        Left = 6
+        Height = 16
+        Top = 6
+        Width = 130
+        Align = alTop
+        BorderSpacing.Around = 6
+        Caption = 'Text'
+        ParentColor = False
+      end
+      object btnAddItem: TButton
+        AnchorSideLeft.Control = Panel2
+        AnchorSideTop.Control = edtText
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = Panel2
+        AnchorSideRight.Side = asrBottom
+        Left = 6
+        Height = 25
+        Top = 57
+        Width = 130
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Around = 6
+        Caption = 'Add Item'
+        OnClick = btnAddItemClick
+        TabOrder = 1
+      end
+      object btnAddSubItem: TButton
+        AnchorSideLeft.Control = Panel2
+        AnchorSideTop.Control = btnAddItem
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = Panel2
+        AnchorSideRight.Side = asrBottom
+        Left = 6
+        Height = 25
+        Top = 88
+        Width = 130
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Around = 6
+        Caption = 'Add SubItem'
+        Enabled = False
+        OnClick = btnAddSubItemClick
+        TabOrder = 2
+      end
+      object btnDelete: TButton
+        AnchorSideLeft.Control = Panel2
+        AnchorSideTop.Control = btnAddSubItem
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = Panel2
+        AnchorSideRight.Side = asrBottom
+        Left = 6
+        Height = 25
+        Top = 119
+        Width = 130
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Around = 6
+        Caption = 'Delete'
+        Enabled = False
+        OnClick = btnDeleteClick
+        TabOrder = 3
+      end
+    end
+  end
+  object Panel3: TPanel
+    Left = 0
+    Height = 40
+    Top = 200
+    Width = 349
+    Align = alBottom
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    BevelOuter = bvNone
+    ClientHeight = 40
+    ClientWidth = 349
+    TabOrder = 1
+    object Panel4: TPanel
+      AnchorSideRight.Control = Panel3
+      AnchorSideRight.Side = asrCenter
+      Left = 94
+      Height = 26
+      Top = 8
+      Width = 159
+      Anchors = [akTop, akRight]
+      BevelOuter = bvNone
+      ClientHeight = 26
+      ClientWidth = 159
+      TabOrder = 0
+      object btnCancel: TButton
+        AnchorSideRight.Control = Panel4
+        AnchorSideRight.Side = asrBottom
+        Left = 84
+        Height = 25
+        Top = 0
+        Width = 75
+        Anchors = [akTop, akRight]
+        Cancel = True
+        Caption = 'Cancel'
+        ModalResult = 2
+        TabOrder = 0
+      end
+      object btnOk: TButton
+        AnchorSideLeft.Control = Panel4
+        AnchorSideRight.Control = btnCancel
+        Left = 0
+        Height = 25
+        Top = 0
+        Width = 75
+        BorderSpacing.Right = 10
+        Caption = 'OK'
+        Default = True
+        OnClick = btnOkClick
+        TabOrder = 1
+      end
+    end
+  end
+end

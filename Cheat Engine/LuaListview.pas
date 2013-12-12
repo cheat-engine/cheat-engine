@@ -130,6 +130,7 @@ end;
 procedure initializeLuaListview;
 begin
   lua_register(LuaVM, 'createListView', createListView);
+  lua_register(LuaVM, 'createListview', createListView);
   lua_register(LuaVM, 'listview_clear', listview_clear);
   lua_register(LuaVM, 'listview_getColumns', listview_getColumns);
   lua_register(LuaVM, 'listview_getItems', listview_getItems);

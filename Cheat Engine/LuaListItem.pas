@@ -131,7 +131,7 @@ begin
 
   listitem.MakeVisible(partialok);
 
-  result:=1;
+  result:=0;
 end;
 
 procedure listitem_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
