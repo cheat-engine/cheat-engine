@@ -86,6 +86,7 @@ ansiToUtf8(string): Converts a string in Ansi encoding to UTF8
 utf8ToAnsi(string): Converts a string in UTF8 encoding to Ansi
 Note: GUI components mainly show in UTF8, some other functions use Ansi, try to find out which ones...
 
+enumModules(): Returns a table containing information about each module. Each entry is a table with fields "Name" and "Address"
 
 getAddress(string, local OPTIONAL): returns the address of a symbol. Can be a modulename or an export. set Local to true if you wish to querry the symboltable of the ce process
 getModuleSize(modulename): Returns the size of a given module (Use getAddress to get the base address)
@@ -928,6 +929,7 @@ methods
 TreeNode clasS : (Inheritance: TObject)
 properties
   Parent: Treenode - The treenode this object is a child of. (can be nil) (ReadOnly)
+  Level: Integer - The level this node is at
   HasChildren: boolean - Set to true if it has children, or you wish it to have an expand sign
   Count : Integer - The number of children this node has
   Items[]: Treenode - Array to access the child nodes of this node
@@ -935,6 +937,7 @@ properties
   AbsoluteIndex: Integer - The index based on the TreeView's Treenodes object (Items)
   Selected: Boolean - Set to true if currently selected
   MultiSelected: Boolean - Set to true if selected as well, but not the main selected object
+  Data: Qword - Space to store 8 bytes of data
 methods
   delete()
   makeVisible()
