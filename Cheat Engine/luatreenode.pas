@@ -12,7 +12,7 @@ implementation
 uses luaclass, luahandler, LuaObject;
 
 {$ifdef cpu32}
-function treenode_clean(treenode: ttreenode);
+procedure treenode_clean(treenode: ttreenode);
 var i: integer;
 begin
   //clean the children
