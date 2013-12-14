@@ -2859,6 +2859,7 @@ var
 begin
   FloatSettings:=DefaultFormatSettings;
 
+
   start:=now;
   if frmpointerscannersettings=nil then
     frmpointerscannersettings:=tfrmpointerscannersettings.create(application);
@@ -2874,6 +2875,9 @@ begin
     new1.click;
 
     starttime:=0;
+    totalpathsevaluated:=0;
+    startcount:=0;
+
 
     if not savedialog1.Execute then exit;
 
