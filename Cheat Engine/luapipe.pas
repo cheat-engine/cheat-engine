@@ -7,7 +7,7 @@ unit LuaPipe;
 interface
 
 uses
-  windows, Classes, SysUtils, lua, LuaClass;
+  windows, Classes, SysUtils, lua, LuaClass, syncobjs;
 
 type
   TPipeConnection=class
@@ -16,7 +16,10 @@ type
   protected
     pipe: THandle;
     fconnected: boolean;
+    cs: TCriticalsection;
   public
+    procedure lock;
+    procedure unlock;
     function WriteBytes(bytes: pointer; size: integer): boolean;
     function ReadBytes(bytes: pointer; size: integer): boolean;
 
@@ -40,6 +43,7 @@ type
 
     procedure writeString(str: string; include0terminator: boolean);
     procedure writeWideString(str: widestring; include0terminator: boolean);
+    constructor create;
     destructor destroy; override;
   published
     property connected: boolean read fConnected;
@@ -57,7 +61,25 @@ begin
   if (pipe<>0) and (pipe<>INVALID_HANDLE_VALUE) then
     closehandle(pipe);
 
+  if cs<>nil then
+    freeandnil(cs);
+
   inherited destroy;
+end;
+
+constructor TPipeConnection.create;
+begin
+  cs:=TCriticalSection.Create;
+end;
+
+procedure TPipeConnection.lock;
+begin
+  cs.Enter;
+end;
+
+procedure TPipeconnection.unlock;
+begin
+  cs.leave;
 end;
 
 procedure TPipeConnection.writeDouble(v:double);
@@ -557,9 +579,31 @@ begin
   end;
 end;
 
+function pipecontrol_lock(L: PLua_State): integer; cdecl;
+var
+  p: TPipeconnection;
+begin
+  result:=0;
+  p:=luaclass_getClassObject(L);
+  p.lock;
+end;
+
+function pipecontrol_unlock(L: PLua_State): integer; cdecl;
+var
+  p: TPipeconnection;
+begin
+  result:=0;
+  p:=luaclass_getClassObject(L);
+  p.unlock;
+end;
+
 procedure pipecontrol_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
   object_addMetaData(L, metatable, userdata);
+
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'lock', pipecontrol_lock);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'unlock', pipecontrol_unlock);
+
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'writeBytes', pipecontrol_writeBytes);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'readBytes', pipecontrol_readBytes);
 

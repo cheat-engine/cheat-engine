@@ -43,6 +43,7 @@ end;
 
 constructor TLuaPipeServer.create(pipename: string; inputsize, outputsize: integer);
 begin
+  inherited create;
   pipe:=CreateNamedPipe(pchar('\\.\pipe\'+pipename), PIPE_ACCESS_DUPLEX, PIPE_TYPE_BYTE or PIPE_READMODE_BYTE or PIPE_WAIT, 1,inputsize, outputsize, INFINITE, nil);
 end;
 

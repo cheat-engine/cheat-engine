@@ -26,6 +26,8 @@ type
 
 constructor TLuaPipeClient.create(pipename: string);
 begin
+  inherited create;
+
   pipe:=CreateFile(pchar('\\.\pipe\'+pipename), GENERIC_READ or GENERIC_WRITE, FILE_SHARE_READ or FILE_SHARE_WRITE, nil, OPEN_EXISTING, 0, 0);
   fConnected:=pipe<>INVALID_HANDLE_VALUE;
 end;
