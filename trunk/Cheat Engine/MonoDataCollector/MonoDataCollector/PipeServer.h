@@ -18,12 +18,14 @@
 typedef void (__cdecl *MonoDomainFunc) (void *domain, void *user_data);
 typedef void (__cdecl *GFunc)          (void *data, void *user_data);
 
+typedef void (__cdecl *G_FREE)(void *ptr);
 
 typedef void* (__cdecl *MONO_GET_ROOT_DOMAIN)(void);
 typedef void* (__cdecl *MONO_THREAD_ATTACH)(void *domain);
 typedef void* (__cdecl *MONO_OBJECT_GET_CLASS)(void *object);
 typedef char* (__cdecl *MONO_CLASS_GET_NAME)(void *klass);
 typedef void (__cdecl *MONO_DOMAIN_FOREACH)(MonoDomainFunc func, void *user_data);
+
 typedef int (__cdecl *MONO_DOMAIN_SET)(void *domain, BOOL force);
 typedef int (__cdecl *MONO_ASSEMBLY_FOREACH)(GFunc func, void *user_data);
 typedef void* (__cdecl *MONO_ASSEMBLY_GET_IMAGE)(void *assembly);
@@ -45,6 +47,9 @@ typedef void* (__cdecl *MONO_FIELD_GET_TYPE)(void *field);
 typedef void* (__cdecl *MONO_FIELD_GET_PARENT)(void *field);
 typedef int (__cdecl *MONO_FIELD_GET_OFFSET)(void *field);
 
+typedef char* (__cdecl *MONO_TYPE_GET_NAME)(void *type);
+
+
 typedef char* (__cdecl *MONO_METHOD_GET_NAME)(void *method);
 
 
@@ -54,6 +59,7 @@ private:
 	wchar_t datapipename[256];
 	wchar_t eventpipename[256];
 
+	G_FREE g_free;
 	MONO_GET_ROOT_DOMAIN mono_get_root_domain;
 	MONO_THREAD_ATTACH mono_thread_attach;
 	MONO_OBJECT_GET_CLASS mono_object_get_class;
@@ -81,6 +87,8 @@ private:
 	MONO_FIELD_GET_TYPE mono_field_get_type;
 	MONO_FIELD_GET_PARENT mono_field_get_parent;
 	MONO_FIELD_GET_OFFSET mono_field_get_offset;
+
+	MONO_TYPE_GET_NAME mono_type_get_name;
 
 	MONO_METHOD_GET_NAME mono_method_get_name;
 

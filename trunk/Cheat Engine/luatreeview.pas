@@ -74,6 +74,31 @@ begin
   result:=0;
 end;
 
+function treeview_beginUpdate(L: PLua_State): integer; cdecl;
+begin
+  TCETreeview(luaclass_getClassObject(L)).BeginUpdate;
+  result:=0;
+end;
+
+function treeview_endUpdate(L: PLua_State): integer; cdecl;
+begin
+  TCETreeview(luaclass_getClassObject(L)).EndUpdate;
+  result:=0;
+end;
+
+
+function treeview_saveToFile(L: PLua_State): integer; cdecl;
+var
+  Treeview: TCETreeview;
+  fn: string;
+begin
+  Treeview:=luaclass_getClassObject(L);
+  if lua_gettop(L)=1 then
+    treeview.SaveToFile(Lua_ToString(L, 1));
+
+  result:=0;
+end;
+
 
 procedure treeview_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
@@ -84,6 +109,12 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setSelected', treeview_setSelected);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'fullCollapse', treeview_fullCollapse);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'fullExpand', treeview_fullExpand);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'beginUpdate', treeview_beginUpdate);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'endUpdate', treeview_endUpdate);
+
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'saveToFile', treeview_saveToFile);
+
+
 
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Selected', treeview_getSelected, treeview_setSelected);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Items', treeview_getItems, nil);

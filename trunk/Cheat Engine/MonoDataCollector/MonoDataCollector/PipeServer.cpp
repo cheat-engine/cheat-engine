@@ -65,6 +65,8 @@ void CPipeServer::InitMono()
 		if (attached==FALSE)
 		{
 			void *thread;
+
+			g_free=(G_FREE)GetProcAddress(hMono, "g_free");
 			mono_get_root_domain=(MONO_GET_ROOT_DOMAIN)GetProcAddress(hMono, "mono_get_root_domain");
 			mono_thread_attach=(MONO_THREAD_ATTACH)GetProcAddress(hMono, "mono_thread_attach");
 			mono_object_get_class=(MONO_OBJECT_GET_CLASS)GetProcAddress(hMono, "mono_object_get_class");
@@ -91,9 +93,12 @@ void CPipeServer::InitMono()
 			mono_field_get_parent=(MONO_FIELD_GET_PARENT)GetProcAddress(hMono, "mono_field_get_parent");	
 			mono_field_get_offset=(MONO_FIELD_GET_OFFSET)GetProcAddress(hMono, "mono_field_get_offset");				
 
+			mono_type_get_name=(MONO_TYPE_GET_NAME)GetProcAddress(hMono, "mono_type_get_name");	
+
 			mono_method_get_name=(MONO_METHOD_GET_NAME)GetProcAddress(hMono, "mono_method_get_name");	
 
 
+			
 			if (mono_get_root_domain==NULL) OutputDebugStringA("mono_get_root_domain not assigned");
 			if (mono_thread_attach==NULL) OutputDebugStringA("mono_thread_attach not assigned");
 			if (mono_object_get_class==NULL) OutputDebugStringA("mono_object_get_class not assigned");
@@ -241,13 +246,25 @@ void CPipeServer::EnumFieldsInClass()
 		if (field)
 		{
 			char *name;
-			WriteQword((UINT_PTR)mono_field_get_type(field));
+			void *fieldtype=mono_field_get_type(field);
+			WriteQword((UINT_PTR)fieldtype);
 			WriteQword((UINT_PTR)mono_field_get_parent(field));
 			WriteDword((UINT_PTR)mono_field_get_offset(field));
 
 			name=mono_field_get_name(field);
 			WriteWord(strlen(name));
-			Write(name, strlen(name));			
+			Write(name, strlen(name));		
+
+			name=mono_type_get_name(fieldtype);
+			if (name)
+			{
+				WriteWord(strlen(name));
+				Write(name, strlen(name));		
+				g_free(name);
+			}
+			else
+				WriteWord(0);
+			
 		}
 	} while (field);	
 }

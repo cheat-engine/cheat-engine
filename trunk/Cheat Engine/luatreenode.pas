@@ -11,6 +11,22 @@ implementation
 
 uses luaclass, luahandler, LuaObject;
 
+{$ifdef cpu32}
+function treenode_clean(treenode: ttreenode);
+var i: integer;
+begin
+  //clean the children
+  for i:=0 to treenode.Count-1 do
+    treenode_clean(treenode[i]);
+
+  if treenode.data<>nil then
+  begin
+    freemem(treenode.data);
+    treenode.data:=nil;
+  end;
+end;
+{$endif}
+
 function treenode_delete(L: Plua_State): integer; cdecl;
 var
   treenode: Ttreenode;
@@ -19,11 +35,29 @@ begin
   treenode:=luaclass_getClassObject(L);
 
 {$ifdef cpu32}
-  if treenode.data<>nil then
-    freemem(treenode.data);
+  treenode_clean(treenode);
 {$endif}
 
   treenode.Delete;
+end;
+
+
+
+function treenode_deleteChildren(L: Plua_State): integer; cdecl;
+var
+  treenode: Ttreenode;
+{$ifdef cpu32}
+  i: integer;
+{$endif}
+begin
+  result:=0;
+  treenode:=luaclass_getClassObject(L);
+{$ifdef cpu32}
+  //clean children
+  for i:=0 to treenode.count-1 do
+    treenode_clean(treenode[i]);
+{$endif}
+  treenode.DeleteChildren;
 end;
 
 function treenode_expand(L: Plua_State): integer; cdecl;
@@ -42,6 +76,15 @@ begin
   result:=0;
   treenode:=luaclass_getClassObject(L);
   treenode.Collapse(true);
+end;
+
+function treenode_getCount(L: PLua_State): integer; cdecl;
+var
+  treenode: Ttreenode;
+begin
+  treenode:=luaclass_getClassObject(L);
+  lua_pushvariant(L, treenode.Count);
+  result:=1;
 end;
 
 function treenode_getIndex(L: PLua_State): integer; cdecl;
@@ -255,11 +298,13 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'delete', treenode_delete);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'expand', treenode_expand);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'collapse', treenode_collapse);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'deleteChildren', treenode_deleteChildren);
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'Data', treenode_getData, treenode_setData);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Text', treenode_getText, treenode_setText);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Index', treenode_getIndex, nil);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Level', treenode_getLevel, nil);
+  Luaclass_addPropertyToTable(L, metatable, userdata, 'Count', treenode_getCount, nil);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'AbsoluteIndex', treenode_getIndex, nil);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Selected', treenode_getSelected, treenode_setSelected);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'MultiSelected', treenode_getMultiSelected, treenode_setMultiSelected);
