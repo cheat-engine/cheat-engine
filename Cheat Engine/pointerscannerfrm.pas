@@ -22,7 +22,7 @@ const wm_starttimer=wm_user+4;
 
 
 
-const MAXQUEUESIZE=32;
+const MAXQUEUESIZE=64;
 
 type
   TGetScanParametersOut=packed record
@@ -986,7 +986,8 @@ begin
               end
               else
               begin
-                if staticscanner.pathqueuelength<MAXQUEUESIZE-1 then //there's room. Add it
+
+                if staticscanner.pathqueuelength<MAXQUEUESIZE - (MAXQUEUESIZE div 3) then //there's room. Add it
                 begin
                   if (not Terminated) and (not self.staticscanner.Terminated) then
                   begin
