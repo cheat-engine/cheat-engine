@@ -21,6 +21,9 @@ const open_scanner=wm_user+3;
 const wm_starttimer=wm_user+4;
 
 
+
+const MAXQUEUESIZE=32;
+
 type
   TGetScanParametersOut=packed record
     yourID: Int32;
@@ -264,6 +267,8 @@ type
     haserror: boolean;
     errorstring: string;
 
+    pathsEvaluated: qword;
+
     procedure execute; override;
     constructor create(suspended: boolean);
     destructor destroy; override;
@@ -411,7 +416,7 @@ type
     UseLoadedPointermap: boolean;
 
     pathqueuelength: integer;
-    pathqueue: array [0..63] of TPathQueueElement;
+    pathqueue: array [0..MAXQUEUESIZE-1] of TPathQueueElement;
     pathqueueCS: TCriticalSection; //critical section used to add/remove entries
     pathqueueSemaphore: THandle; //Event to notify sleeping threads to wake up that there is a new path in the queue
 
@@ -931,7 +936,7 @@ begin
       for j:=0 to plist.pos-1 do
       begin
         {$ifdef benchmarkps}
-        inc(totalpathsevaluated);
+        inc(pathsevaluated);
         {$endif}
 
 
@@ -956,7 +961,7 @@ begin
                   if (not Terminated) and (not self.staticscanner.Terminated) then
                   begin
                     staticscanner.pathqueueCS.Enter;
-                    if staticscanner.pathqueuelength<63 then
+                    if staticscanner.pathqueuelength<MAXQUEUESIZE-1 then
                     begin
                       //there's room in the queue. Add it
 
@@ -981,14 +986,14 @@ begin
               end
               else
               begin
-                if staticscanner.pathqueuelength<63 then //there's room. Add it
+                if staticscanner.pathqueuelength<MAXQUEUESIZE-1 then //there's room. Add it
                 begin
                   if (not Terminated) and (not self.staticscanner.Terminated) then
                   begin
 
 
                     staticscanner.pathqueueCS.Enter;
-                    if staticscanner.pathqueuelength<63 then
+                    if staticscanner.pathqueuelength<MAXQUEUESIZE-1 then
                     begin
                       //still room
 
@@ -1069,7 +1074,7 @@ begin
     end else
     begin
       {$ifdef benchmarkps}
-      inc(totalpathsevaluated);
+      inc(pathsevaluated);
       {$endif}
       exit;
     end;
@@ -1334,11 +1339,11 @@ var
   i: integer;
   pathsToCopy: integer;
 begin
-  if (length(overflowqueue)>0) and (pathqueuelength<63) then //I could use some paths
+  if (length(overflowqueue)>0) and (pathqueuelength<MAXQUEUESIZE-1) then //I could use some paths
   begin
     //do I have an overflow I can use ?
     pathqueueCS.enter;
-    pathsToCopy:=min(length(overflowqueue), (64-pathqueuelength)); //get the number of paths to transfer from the oveflow queue to the real queue
+    pathsToCopy:=min(length(overflowqueue), (MAXQUEUESIZE-pathqueuelength)); //get the number of paths to transfer from the oveflow queue to the real queue
 
     for i:=pathqueuelength to pathqueuelength+pathstocopy-1 do
       pathqueue[i]:=overflowqueue[length(overflowqueue)-1-(i-pathqueuelength)];
@@ -1971,7 +1976,7 @@ begin
           else
           begin
             if not outofdiskspace then
-              RequestQueueMessage.max:=64-(pathqueuelength+length(overflowqueue));
+              RequestQueueMessage.max:=MAXQUEUESIZE-(pathqueuelength+length(overflowqueue));
           end;
 
           if RequestQueueMessage.max>0 then
@@ -2347,11 +2352,11 @@ begin
             addedToQueue:=false;
             while (not terminated) and (not addedToQueue) do
             begin
-              if pathqueuelength<63 then //no need to lock
+              if pathqueuelength<MAXQUEUESIZE-1 then //no need to lock
               begin
                 pathqueueCS.enter;
                 //setup the queueelement
-                if pathqueuelength<63 then
+                if pathqueuelength<MAXQUEUESIZE-1 then
                 begin
                   pathqueue[pathqueuelength].startlevel:=0;
                   pathqueue[pathqueuelength].valuetofind:=currentaddress;
@@ -2419,7 +2424,7 @@ begin
             reversescanners[i].Terminate;
           end;
 
-          ReleaseSemaphore(pathqueueSemaphore, 64, nil);
+          ReleaseSemaphore(pathqueueSemaphore, MAXQUEUESIZE, nil);
 
         end;
 
@@ -2513,7 +2518,7 @@ begin
     for i:=0 to length(reversescanners)-1 do
       reversescanners[i].stop:=true;
 
-    ReleaseSemaphore(pathqueueSemaphore, 64, nil);
+    ReleaseSemaphore(pathqueueSemaphore, MAXQUEUESIZE, nil);
 
 
     for i:=0 to length(reversescanners)-1 do
@@ -2549,7 +2554,15 @@ var
 
     f: tfilestream;
     ds: Tdecompressionstream;
+
+    pa,sa: DWORD_PTR;
+
+    newAffinity: DWORD_PTR;
+    PreferedProcessorList: array of integer; //a list of cpu numbers available to be used. If hyperthreading is on, this will not contain the uneven cpu numbers
+    currentcpu: integer;  //index into PreferedProcessorList. If it's bigger than the size, make the affinity equal to PA (do not care, let windows decide)
+
 begin
+
   if terminated then exit;
 
   try
@@ -2612,9 +2625,9 @@ begin
     //setup the pathqueue
     pathqueuelength:=0;
     pathqueueCS:=TCriticalSection.create;
-    pathqueueSemaphore:=CreateSemaphore(nil, 0, 64, nil);
+    pathqueueSemaphore:=CreateSemaphore(nil, 0, MAXQUEUESIZE, nil);
 
-    for i:=0 to 63 do
+    for i:=0 to MAXQUEUESIZE-1 do
     begin
       setlength(pathqueue[i].tempresults, maxlevel+1);
       if noLoop then
@@ -2624,6 +2637,25 @@ begin
 
     reverseScanCS:=tcriticalsection.Create;
     try
+
+      //build a list of cpu id's
+      PA:=0;
+      GetProcessAffinityMask(GetCurrentProcess, PA, SA);
+      for i:=0 to BitSizeOf(PA)-1 do
+      begin
+        if getbit(i, PA)=1 then
+        begin
+          if (i mod 2=0) or (hasHyperThreading=false) then
+          begin
+            setlength(PreferedProcessorList, length(PreferedProcessorList)+1);
+            PreferedProcessorList[length(PreferedProcessorList)-1]:=i;
+          end;
+        end;
+      end;
+
+      currentcpu:=0;
+
+
       setlength(reversescanners,threadcount);
       for i:=0 to threadcount-1 do
       begin
@@ -2645,6 +2677,16 @@ begin
 
         reversescanners[i].alligned:=not self.unalligned;
         reversescanners[i].filename:=self.filename+'.'+inttostr(i);
+
+        //pick a usable cpu. Use the process affinity mask to pick from
+        if i<length(PreferedProcessorList) then
+        begin
+          NewAffinity:=1 shl PreferedProcessorList[i];
+          NewAffinity:=SetThreadAffinityMask(reversescanners[i].Handle, NewAffinity);
+        end;
+
+
+
 
         reversescanners[i].start;
       end;
@@ -3396,6 +3438,7 @@ var i,j: integer;
     tn,tn2: TTreenode;
 
     x: qword;
+    tpe: qword;
 begin
   if listview1.Visible then
     listview1.repaint;
@@ -3434,6 +3477,14 @@ begin
       lblRSTotalStaticPaths.caption:=s;
 
 {$ifdef benchmarkps}
+      //count totalpathsevaluated
+//      totalpathsevaluated:=pathsEvaluated
+      tpe:=0;
+      for i:=0 to length(Staticscanner.reversescanners)-1 do
+        tpe:=tpe+Staticscanner.reversescanners[i].pathsEvaluated;
+
+      totalpathsevaluated:=tpe;
+
       if (starttime=0) and (totalpathsevaluated<>0) then
       begin
         startcount:=totalpathsevaluated;  //get the count from this point on
