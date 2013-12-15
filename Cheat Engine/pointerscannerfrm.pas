@@ -215,8 +215,6 @@ type
 
   TReverseScanWorker = class (tthread)
   private
-    offsetlist: array of dword;
-
     results: tmemorystream;
     resultsfile: tfilestream;
     pointersize: integer;
@@ -747,6 +745,10 @@ begin
       resultsfile.free;
       resultsfile:= tfilestream.Create(filename,fmOpenWrite or fmShareDenyNone);
 
+      maxlevel:=staticscanner.maxlevel;
+      noLoop:=staticscanner.noLoop;
+      structsize:=staticscanner.sz;
+
       while (not terminated) and (not self.staticscanner.Terminated) do
       begin
         wr:=WaitForSingleObject(self.staticscanner.pathqueueSemaphore, INFINITE); //obtain semaphore
@@ -764,17 +766,17 @@ begin
             continue;
           end;
 
+
+
           self.staticscanner.pathqueueCS.Enter;
-          if self.staticscanner.pathqueuelength>0 then
+          if self.staticscanner.pathqueuelength>0 then //should always be true due to the semaphore
           begin
             dec(staticscanner.pathqueuelength);
             i:=staticscanner.pathqueuelength;
-            isdone:=false;
-            maxlevel:=staticscanner.maxlevel;
+
+
             valuetofind:=staticscanner.pathqueue[i].valuetofind;
             startlevel:=staticscanner.pathqueue[i].startlevel;
-            noLoop:=staticscanner.noLoop;
-            structsize:=staticscanner.sz;
 
             CopyMemory(@tempresults[0], @staticscanner.pathqueue[i].tempresults[0], maxlevel*sizeof(dword));
             if noLoop then
@@ -782,7 +784,7 @@ begin
           end;
 
           self.staticscanner.pathqueueCS.Leave;
-
+          isdone:=false;
 
           try
             rscan(valuetofind,startlevel);
@@ -987,7 +989,7 @@ begin
               else
               begin
 
-                if staticscanner.pathqueuelength<MAXQUEUESIZE - (MAXQUEUESIZE div 3) then //there's room. Add it
+                if (level+2<maxlevel) and (staticscanner.pathqueuelength<MAXQUEUESIZE - (MAXQUEUESIZE div 3)) then //there's room and not a crappy work item. Add it
                 begin
                   if (not Terminated) and (not self.staticscanner.Terminated) then
                   begin
@@ -2667,7 +2669,6 @@ begin
         reversescanners[i].Priority:=scannerpriority;
         reversescanners[i].staticscanner:=self;
         setlength(reversescanners[i].tempresults,maxlevel);
-        setlength(reversescanners[i].offsetlist,maxlevel);
 
         if noloop then
           setlength(reversescanners[i].valuelist,maxlevel);
