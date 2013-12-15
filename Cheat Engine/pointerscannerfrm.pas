@@ -989,7 +989,7 @@ begin
               else
               begin
 
-                if (level+2<maxlevel) and (staticscanner.pathqueuelength<MAXQUEUESIZE - (MAXQUEUESIZE div 3)) then //there's room and not a crappy work item. Add it
+                if (level+3<maxlevel) and (staticscanner.pathqueuelength<MAXQUEUESIZE - (MAXQUEUESIZE div 3)) then //there's room and not a crappy work item. Add it
                 begin
                   if (not Terminated) and (not self.staticscanner.Terminated) then
                   begin
@@ -3502,8 +3502,20 @@ begin
         x:=trunc(((totalpathsevaluated-startcount)/(gettickcount-starttime))*1000)+staticscanner.workersPathPerSecondTotal;
         s:=s+' (Total: '+inttostr(x)+' / s)';
       end;
-      label5.caption:=s;
-      label5.Width:=label5.Canvas.TextWidth(label5.caption);
+
+
+      if staticscanner.outofdiskspace then
+      begin
+        label5.Font.Color:=clRed;
+        label5.caption:='OUT OF DISKSPACE! Clean up the disk or stop';
+      end
+      else
+      begin
+        label5.caption:=s;
+        label5.Width:=label5.Canvas.TextWidth(label5.caption);
+      end;
+
+
 {$endif}
 
 
