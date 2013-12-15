@@ -993,23 +993,25 @@ begin
                   begin
 
 
-                    staticscanner.pathqueueCS.Enter;
-                    if staticscanner.pathqueuelength<MAXQUEUESIZE-1 then
+                    if staticscanner.pathqueueCS.tryEnter then
                     begin
-                      //still room
+                      if staticscanner.pathqueuelength<MAXQUEUESIZE-1 then
+                      begin
+                        //still room
 
-                      CopyMemory(@staticscanner.pathqueue[staticscanner.pathqueuelength].tempresults[0], @tempresults[0], maxlevel*sizeof(dword));
-                      if noLoop then
-                        CopyMemory(@staticscanner.pathqueue[staticscanner.pathqueuelength].valuelist[0], @valuelist[0], maxlevel*sizeof(ptruint));
+                        CopyMemory(@staticscanner.pathqueue[staticscanner.pathqueuelength].tempresults[0], @tempresults[0], maxlevel*sizeof(dword));
+                        if noLoop then
+                          CopyMemory(@staticscanner.pathqueue[staticscanner.pathqueuelength].valuelist[0], @valuelist[0], maxlevel*sizeof(ptruint));
 
-                      staticscanner.pathqueue[staticscanner.pathqueuelength].startlevel:=level+1;
-                      staticscanner.pathqueue[staticscanner.pathqueuelength].valuetofind:=plist.list[j].address;
+                        staticscanner.pathqueue[staticscanner.pathqueuelength].startlevel:=level+1;
+                        staticscanner.pathqueue[staticscanner.pathqueuelength].valuetofind:=plist.list[j].address;
 
-                      inc(staticscanner.pathqueuelength);
-                      ReleaseSemaphore(staticscanner.pathqueueSemaphore, 1, nil);
-                      addedToQueue:=true;
+                        inc(staticscanner.pathqueuelength);
+                        ReleaseSemaphore(staticscanner.pathqueueSemaphore, 1, nil);
+                        addedToQueue:=true;
+                      end;
+                      staticscanner.pathqueueCS.Leave;
                     end;
-                    staticscanner.pathqueueCS.Leave;
                   end
                   else
                     exit;
