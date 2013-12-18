@@ -2630,6 +2630,8 @@ var
   entryindex: integer;
 begin
   ml:=tstringlist.create;
+
+  symhandler.loadmodulelist;
   symhandler.getModuleList(ml);
 
   lua_newtable(L);

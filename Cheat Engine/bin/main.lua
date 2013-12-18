@@ -109,7 +109,9 @@ getThreadlist(List): fills a List object with the threadlist of the currently op
 
 
 function onOpenProcess(processid):
-  If this function is defined it will be called whenever cheat engine opens a process. Note that the same process might be opened multiple times in a row
+  If this function is defined it will be called whenever cheat engine opens a process. 
+  Note: The the same process might be opened multiple times in a row internally
+  Note 2: This function is called before attachment is fully done. You can call reinitializeSymbolhandler() to force the open to complete, but it will slow down process opens. Alternatively, you could launch a timer which will run when the opening has finished
 
 
 getOpenedProcessID() : Returns the currently opened process. If none is open, returns 0
@@ -940,6 +942,7 @@ properties
   Data: Qword - Space to store 8 bytes of data
 methods
   delete()
+  deleteChildren()
   makeVisible()
   expand()
   collapse()
@@ -971,8 +974,9 @@ methods
   getItems()
   getSelected()
   setSelected()
-  fullCollapse()
-  fullExpand()
+  fullCollapse()  : Collapses all the nodes, including the children's nodes
+  fullExpand() : Expands all the nodes and all their children
+  saveToFile(filename): Saves the contents of the treeview to disk
 
 
 
@@ -1890,6 +1894,8 @@ properties
   Connected: boolean: True if the pipe is connected
 
 methods
+  lock() : Acquire a lick on this pipe till unlock is called. If lock can not be acquired, wait. Recursive calls are allowed
+  unlock()
   writeBytes(ByteTable, size OPTIONAL): Writes the provided byte table to the pipe. if size is not provided, the whole table is sent. Returns the number of bytes sent, or nil on failure
   readBytes(size: integer): returns a byte table from the pipe, or nil on failure
 
