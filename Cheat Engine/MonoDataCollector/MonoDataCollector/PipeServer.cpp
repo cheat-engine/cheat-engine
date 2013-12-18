@@ -75,9 +75,11 @@ void CPipeServer::InitMono()
 			mono_domain_set=(MONO_DOMAIN_SET)GetProcAddress(hMono, "mono_domain_set");
 			mono_assembly_foreach=(MONO_ASSEMBLY_FOREACH)GetProcAddress(hMono, "mono_assembly_foreach");
 			mono_assembly_get_image=(MONO_ASSEMBLY_GET_IMAGE)GetProcAddress(hMono, "mono_assembly_get_image");
+			
 			mono_image_get_name=(MONO_IMAGE_GET_NAME)GetProcAddress(hMono, "mono_image_get_name");
-
 			mono_image_get_table_info=(MONO_IMAGE_GET_TABLE_INFO)GetProcAddress(hMono, "mono_image_get_table_info");
+			mono_image_rva_map=(MONO_IMAGE_RVA_MAP)GetProcAddress(hMono, "mono_image_rva_map");
+
 			mono_table_info_get_rows=(MONO_TABLE_INFO_GET_ROWS)GetProcAddress(hMono, "mono_table_info_get_rows");
 			mono_metadata_decode_row_col=(MONO_METADATA_DECODE_ROW_COL)GetProcAddress(hMono, "mono_metadata_decode_row_col");
 			mono_metadata_string_heap=(MONO_METADATA_STRING_HEAP)GetProcAddress(hMono, "mono_metadata_string_heap");
@@ -96,6 +98,11 @@ void CPipeServer::InitMono()
 			mono_type_get_name=(MONO_TYPE_GET_NAME)GetProcAddress(hMono, "mono_type_get_name");	
 
 			mono_method_get_name=(MONO_METHOD_GET_NAME)GetProcAddress(hMono, "mono_method_get_name");	
+			mono_method_get_header=(MONO_METHOD_GET_HEADER)GetProcAddress(hMono, "mono_method_get_header");	
+
+			mono_compile_method=(MONO_COMPILE_METHOD)GetProcAddress(hMono, "mono_compile_method");	
+
+			mono_method_header_get_code=(MONO_METHOD_HEADER_GET_CODE)GetProcAddress(hMono, "mono_method_header_get_code");	
 
 
 			
@@ -293,6 +300,38 @@ void CPipeServer::EnumMethodsInClass()
 
 }
 
+void CPipeServer::CompileMethod()
+{
+	void *method=(void *)ReadQword();
+	void *result=mono_compile_method(method);
+	WriteQword((UINT_PTR)result);
+}
+
+void CPipeServer::GetMethodHeader()
+{
+	void *method=(void *)ReadQword();
+	void *result=mono_method_get_header(method);
+	WriteQword((UINT_PTR)result);
+}
+
+void CPipeServer::GetILCode()
+{
+	void *methodheader=(void *)ReadQword();
+	UINT32 code;
+	void *result=mono_method_header_get_code(methodheader, &code, NULL);
+	WriteQword((UINT_PTR)result);
+	WriteDword(code);
+}
+
+void CPipeServer::RvaMap()
+{
+	void *image=(void *)ReadQword();
+	UINT32 offset=ReadDword();
+	void *result=mono_image_rva_map(image, offset);
+
+	WriteQword((UINT_PTR)result);
+}
+
 void CPipeServer::Start(void)
 {
 	BYTE command;
@@ -346,6 +385,22 @@ void CPipeServer::Start(void)
 
 					case MONOCMD_ENUMMETHODSINCLASS:
 						EnumMethodsInClass();
+						break;
+
+					case MONOCMD_COMPILEMETHOD:
+						CompileMethod();
+						break;
+
+					case MONOCMD_GETMETHODHEADER:
+						GetMethodHeader();
+						break;
+
+					case MONOCMD_GETMETHODHEADER_CODE:
+						GetILCode();
+						break;
+
+					case MONOCMD_LOOKUPRVA:
+						RvaMap();
 						break;
 
 				}
