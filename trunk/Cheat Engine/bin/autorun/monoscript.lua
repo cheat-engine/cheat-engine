@@ -12,38 +12,48 @@ MONOCMD_COMPILEMETHOD=10
 MONOCMD_GETMETHODHEADER=11
 MONOCMD_GETMETHODHEADER_CODE=12
 MONOCMD_LOOKUPRVA=13
-
+MONOCMD_GETJITINFO=14
 
 
 function LaunchMonoDataCollector()
-  if injectDLL(getCheatEngineDir()..[[\autorun\dlls\MonoDataCollector.dll]])==false then
-    print("Failure injecting the MonoDatacollector dll")
-	return 0
-  end
-
-
-
-
   if (monopipe~=nil) then
+    if (mono_AttachedProcess==getOpenedProcessID()) then
+	  return monoBase --already attached to this process
+	end
     monopipe.destroy()
     monopipe=nil
   end
+
 
   if (monoeventpipe~=nil) then
     monoeventpipe.destroy()
     monoeventpipe=nil
   end
 
-  while (monopipe==nil) do
+  if injectDLL(getCheatEngineDir()..[[\autorun\dlls\MonoDataCollector.dll]])==false then
+    print("Failure injecting the MonoDatacollector dll")
+	return 0
+  end
+
+  --wait till attached
+  local timeout=getTickCount()+5000;
+  while (monopipe==nil) and (getTickCount()<timeout) do
     monopipe=connectToPipe('cemonodc_pid'..getOpenedProcessID())
+  end
+
+  if (monopipe==nil) then
+    return 0 --failure
   end
 
  -- while (monoeventpipe==nil) do
  --   monoeventpipe=connectToPipe('cemonodc_pid'..getOpenedProcessID()..'_events')
  -- end
 
+  mono_AttachedProcess=getOpenedProcessID()
+
   monopipe.writeByte(CMD_INITMONO)
-  return monopipe.readQword()
+  monoBase=monopipe.readQword()
+  return monoBase
 end
 
 function mono_object_getClass(address)
@@ -207,6 +217,35 @@ function mono_class_enumMethods(class)
   return methods
 end
 
+function mono_getJitInfo(address)
+  local d=mono_enumDomains()
+  if (d~=nil) then
+    monopipe.lock()
+
+	for i=1, #d do
+	  monopipe.writeByte(MONOCMD_GETJITINFO)
+	  monopipe.writeQword(d[i])
+      monopipe.writeQword(address)
+
+	  local jitinfo=monopipe.readQword()
+
+	  if (jitinfo~=nil) and (jitinfo~=0) then
+	    local result={}
+		result.jitinfo=jitinfo;
+		result.method=monopipe.readQword();
+		result.code_start=monopipe.readQword();
+		result.code_size=monopipe.readDword();
+
+	    monopipe.unlock() --found something
+	    return result
+	  end
+
+	end
+
+	monopipe.unlock()
+  end
+  return nil
+end
 
 
 
@@ -240,6 +279,7 @@ function mono_object_findRealStartOfObject(address, maxsize)
   return nil
 
 end
+
 
 
 function mono_findReferencesToObject() --scan the memory for objects with a vtable to a specific class
@@ -464,6 +504,81 @@ function mono_dissect()
 
 end
 
+function miMonoActivateClick(sender)
+  if LaunchMonoDataCollector()==0 then
+    showMessage("Failure to launch")
+  end
+end
 
---to launch execute:
---mono_dissect()
+function miMonoDissectClick(sender)
+  mono_dissect()
+end
+
+function mono_OpenProcess(processid)
+  --call the original onOpenProcess if there was one
+  if mono_oldOnOpenProcess~=nil then
+    mono_oldOnOpenProcess(processid)
+  end
+
+  --enumModules is faster than getAddress at OpenProcess time (No waiting for all symbols to be loaded first)
+
+  local usesmono=false
+  local m=enumModules()
+  local i
+  for i=1, #m do
+    if m[i].Name=='mono.dll' then
+	  usesmono=true
+	  break
+	end
+  end
+
+  if usesmono then
+    --create a menu item if needed
+	if (monoTopMenuItem==nil) then
+	  local mfm=getMainForm().Menu
+	  local mi
+	  miMonoTopMenuItem=createMenuItem(mfm)
+	  miMonoTopMenuItem.Caption="Mono"
+	  mfm.Items.insert(mfm.Items.Count-1, miMonoTopMenuItem) --add it before help
+
+	  mi=createMenuItem(miMonoTopMenuItem)
+	  mi.Caption="Activate mono features"
+	  mi.OnClick=miMonoActivateClick
+	  miMonoTopMenuItem.Add(mi)
+
+	  mi=createMenuItem(miMonoTopMenuItem)
+	  mi.Caption="Dissect mono"
+	  mi.Shortcut="Ctrl+Alt+M"
+	  mi.OnClick=miMonoDissectClick
+	  miMonoTopMenuItem.Add(mi)
+	end
+
+
+  else
+    --destroy the menu item if needed
+	if miMonoTopMenuItem~=nil then
+	  miMonoTopMenuItem.destroy() --also destroys the subitems as they are owned by this menuitem
+	  miMonoTopMenuItem=nil
+	end
+
+	if monopipe~=nil then
+	  monopipe.destroy()
+	  monopipe=nil
+	end
+  end
+
+
+
+end
+
+function mono_initialize()
+  --register a function to be called when a process is opened
+  if (mono_init1==nil) then
+    mono_init1=true
+    mono_oldOnOpenProcess=onOpenProcess
+	onOpenProcess=mono_OpenProcess
+  end
+end
+
+
+mono_initialize()

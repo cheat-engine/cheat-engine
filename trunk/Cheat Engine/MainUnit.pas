@@ -2435,7 +2435,7 @@ begin
 
   outputdebugstring('openProcessEpilogue called');
 
-  symhandler.reinitialize;
+  symhandler.reinitialize(true);
 //  symhandler.waitforsymbolsloaded;
 
   reinterpretaddresses;
