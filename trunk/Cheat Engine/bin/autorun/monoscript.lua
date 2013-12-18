@@ -8,6 +8,10 @@ MONOCMD_GETIMAGENAME=6
 MONOCMD_ENUMCLASSESINIMAGE=7
 MONOCMD_ENUMFIELDSINCLASS=8
 MONOCMD_ENUMMETHODSINCLASS=9
+MONOCMD_COMPILEMETHOD=10
+MONOCMD_GETMETHODHEADER=11
+MONOCMD_GETMETHODHEADER_CODE=12
+MONOCMD_LOOKUPRVA=13
 
 
 
@@ -237,6 +241,7 @@ function mono_object_findRealStartOfObject(address, maxsize)
 
 end
 
+
 function mono_findReferencesToObject() --scan the memory for objects with a vtable to a specific class
 end
 
@@ -249,19 +254,82 @@ end
 function mono_invokeMethod()
 end
 
+function mono_method_getHeader(method)
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_GETMETHODHEADER)
+  monopipe.writeQword(method)
+  local result=monopipe.readQword()
+
+  monopipe.unlock()
+
+  return result;
+end
+
+
+function mono_compile_method(method) --Jit a method if it wasn't jitted yet
+  monopipe.lock()
+
+  monopipe.writeByte(MONOCMD_COMPILEMETHOD)
+  monopipe.writeQword(method)
+  local result=monopipe.readQword()
+  monopipe.unlock()
+  return result
+end
+
 --only if the profiler is active:
-function mono_compile_method() --Jit a method if it wasn't jitted yet
-end
-
 function mono_free_method() --unjit the method ?
+  monopipe.lock()
+  --initialize the profiler if needed
+  monopipe.unlock()
 end
 
+function mono_methodheader_getILCode(methodheader)
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_GETMETHODHEADER_CODE)
+  monopipe.writeQword(methodheader)
+  local address=monopipe.readQword()
+  local size=monopipe.readDword()
+
+  monopipe.unlock()
+
+  return address, size;
+end
+
+function mono_getILCodeFromMethod(method)
+  local hdr=mono_method_getHeader(method)
+  return mono_methodheader_getILCode(hdr)
+end
+
+
+function mono_image_rva_map(image, offset)
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_LOOKUPRVA)
+  monopipe.writeQword(image)
+  monopipe.writeDword(offset)
+  local address=monopipe.readQword()
+  monopipe.unlock()
+  return address;
+end
 
 
 --code belonging to the mono dissector form--
 function monoform_miRejitClick(sender)
   if (monoForm.TV.Selected~=nil) then
-    print("going to jit... (Not yet implemented)")
+    local node=monoForm.TV.Selected
+	if (node~=nil) and (node.Level==4) and (node.Parent.Index==1) then
+	  local r=mono_compile_method(node.Data)
+	  print(string.format("Method at %x", r))
+	end
+  end
+end
+
+function monoform_miGetILCodeClick(sender)
+  if (monoForm.TV.Selected~=nil) then
+    local node=monoForm.TV.Selected
+	if (node~=nil) and (node.Level==4) and (node.Parent.Index==1) then
+	  local r,s=mono_getILCodeFromMethod(node.Data)
+	  print(string.format("ILCode from %x to %x", r,r+s))
+	end
   end
 end
 

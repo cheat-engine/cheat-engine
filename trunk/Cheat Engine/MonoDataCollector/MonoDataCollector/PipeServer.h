@@ -12,6 +12,12 @@
 #define MONOCMD_ENUMCLASSESINIMAGE 7
 #define MONOCMD_ENUMFIELDSINCLASS 8
 #define MONOCMD_ENUMMETHODSINCLASS 9
+#define MONOCMD_COMPILEMETHOD 10
+
+#define MONOCMD_GETMETHODHEADER 11
+#define MONOCMD_GETMETHODHEADER_CODE 12
+#define MONOCMD_LOOKUPRVA 13
+
 
 
 
@@ -51,7 +57,12 @@ typedef char* (__cdecl *MONO_TYPE_GET_NAME)(void *type);
 
 
 typedef char* (__cdecl *MONO_METHOD_GET_NAME)(void *method);
+typedef void* (__cdecl *MONO_COMPILE_METHOD)(void *method);
 
+typedef void* (__cdecl *MONO_METHOD_GET_HEADER)(void *method);
+typedef void* (__cdecl *MONO_METHOD_HEADER_GET_CODE)(void *methodheader, UINT32 *code_size, UINT32 *max_stack);
+
+typedef void* (__cdecl *MONO_IMAGE_RVA_MAP)(void *image, UINT32 addr);
 
 class CPipeServer : Pipe
 {
@@ -68,9 +79,11 @@ private:
 	MONO_DOMAIN_SET mono_domain_set;
 	MONO_ASSEMBLY_FOREACH mono_assembly_foreach;	
 	MONO_ASSEMBLY_GET_IMAGE mono_assembly_get_image;
+	
 	MONO_IMAGE_GET_NAME mono_image_get_name;
-
 	MONO_IMAGE_GET_TABLE_INFO mono_image_get_table_info;
+    MONO_IMAGE_RVA_MAP mono_image_rva_map;
+
 	MONO_TABLE_INFO_GET_ROWS mono_table_info_get_rows;
 	MONO_METADATA_DECODE_ROW_COL mono_metadata_decode_row_col;
 	MONO_METADATA_STRING_HEAP mono_metadata_string_heap;
@@ -91,6 +104,11 @@ private:
 	MONO_TYPE_GET_NAME mono_type_get_name;
 
 	MONO_METHOD_GET_NAME mono_method_get_name;
+	MONO_METHOD_GET_HEADER mono_method_get_header;
+
+	MONO_COMPILE_METHOD mono_compile_method;
+	
+	MONO_METHOD_HEADER_GET_CODE mono_method_header_get_code;
 
 	BOOL attached;
 
@@ -106,6 +124,10 @@ private:
 	void EnumClassesInImage();
 	void EnumFieldsInClass();
 	void EnumMethodsInClass();
+	void CompileMethod();
+	void GetMethodHeader();
+	void GetILCode();
+	void RvaMap();
 
 public:
 	CPipeServer(void);
