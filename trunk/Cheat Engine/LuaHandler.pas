@@ -4426,7 +4426,53 @@ begin
 
   if luaserverExists(name)=false then
     tluaserver.create(name);
+end;
 
+function lua_registerAutoAssemblerCommand(L: PLua_State): integer; cdecl;
+var command: string;
+  f: integer;
+  routine: string;
+  lc: tluacaller;
+begin
+  result:=0;
+
+  if lua_gettop(L)=2 then
+  begin
+    if lua_isstring(L, 1) then
+    begin
+      command:=Lua_ToString(L, 1);
+
+      if lua_isfunction(L,2) then
+      begin
+        f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+        lc:=TLuaCaller.create;
+        lc.luaroutineIndex:=f;
+      end
+      else
+      if lua_isstring(L,2) then
+      begin
+        routine:=lua_tostring(L,-1);
+        lc:=TLuaCaller.create;
+        lc.luaroutine:=routine;
+      end
+      else exit;
+
+      RegisterAutoAssemblerCommand(command, lc.AutoAssemblerCallback);
+    end;
+
+  end;
+
+end;
+
+function lua_unregisterAutoAssemblerCommand(L: PLua_State): integer; cdecl;
+var command: string;
+begin
+  if lua_gettop(L)=1 then
+  begin
+    command:=Lua_ToString(L, 1);
+    UnregisterAutoAssemblerCommand(command);
+  end;
 
 end;
 
@@ -4745,6 +4791,8 @@ begin
     lua_register(LuaVM, 'createClass', lua_createClass);
     lua_register(LuaVM, 'openLuaServer', openLuaServer);
 
+    lua_register(LuaVM, 'registerAutoAssemblerCommand', lua_registerAutoAssemblerCommand);
+    lua_register(LuaVM, 'unregisterAutoAssemblerCommand', lua_unregisterAutoAssemblerCommand);
 
 
 

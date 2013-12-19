@@ -14,9 +14,22 @@ function getenableanddisablepos(code:tstrings;var enablepos,disablepos: integer)
 function autoassemble(code: tstrings;popupmessages: boolean):boolean; overload;
 function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean;var CEAllocarray: TCEAllocArray; registeredsymbols: tstringlist=nil): boolean; overload;
 
+
+type TAutoAssemblerCallback=function(parameters: string; syntaxcheckonly: boolean): string of object;
+type TRegisteredAutoAssemblerCommand=class
+  command: string;
+  callback: TAutoAssemblerCallback;
+end;
+
+procedure RegisterAutoAssemblerCommand(command: string; callback: TAutoAssemblerCallback);
+procedure UnregisterAutoAssemblerCommand(command: string);
+
+
+
 implementation
 
-uses simpleaobscanner, StrUtils, LuaHandler, memscan, disassembler, networkInterface, networkInterfaceApi;
+uses simpleaobscanner, StrUtils, LuaHandler, memscan, disassembler, networkInterface,
+     networkInterfaceApi, fgl, LuaCaller, SynHighlighterAA;
 
 resourcestring
   rsForwardJumpWithNoLabelDefined = 'Forward jump with no label defined';
@@ -74,7 +87,59 @@ resourcestring
   rsYouHavnTSpecifiedADisableSection = 'You havn''t specified a disable section';
   rsWrongSyntaxSHAREDALLOCNameSize = 'Wrong syntax. SHAREDALLOC(name,size)';
 
+type
+  TregisteredAutoAssemblerCommands =  TFPGList<TRegisteredAutoAssemblerCommand>;
 
+var
+  registeredAutoAssemblerCommands: TregisteredAutoAssemblerCommands;
+
+procedure RegisterAutoAssemblerCommand(command: string; callback: TAutoAssemblerCallback);
+var i: integer;
+    c:TRegisteredAutoAssemblerCommand;
+begin
+  if registeredAutoAssemblerCommands=nil then
+    registeredAutoAssemblerCommands:=TregisteredAutoAssemblerCommands.Create;
+
+  command:=uppercase(command);
+  for i:=0 to registeredAutoAssemblerCommands.Count-1 do
+    if registeredAutoAssemblerCommands[i].command=command then
+    begin
+      //update
+      CleanupLuaCall(tmethod(registeredAutoAssemblerCommands[i].callback));
+      registeredAutoAssemblerCommands[i].callback:=nil;//TAutoAssemblerCallback(callback);
+      exit;
+    end;
+
+  c:=TRegisteredAutoAssemblerCommand.create;
+  c.command:=command;
+  c.callback:=callback;
+  registeredAutoAssemblerCommands.Add(c);
+
+  aa_AddExtraCommand(pchar(command));
+end;
+
+procedure UnregisterAutoAssemblerCommand(command: string);
+var i,j: integer;
+    c:TRegisteredAutoAssemblerCommand;
+begin
+  command:=uppercase(command);
+  i:=0;
+  while i<registeredAutoAssemblerCommands.count do
+  begin
+    if registeredAutoAssemblerCommands[i].command=command then
+    begin
+      c:=registeredAutoAssemblerCommands[i];
+      CleanupLuaCall(tmethod(c.callback));
+      registeredAutoAssemblerCommands.Delete(i);
+
+      c.free;
+    end
+    else
+      inc(i);
+  end;
+
+  aa_RemoveExtraCommand(pchar(command));
+end;
 
 procedure tokenize(input: string; tokens: tstringlist);
 var i: integer;
@@ -855,6 +920,7 @@ var i,j,k,l,e: integer;
     tokens: tstringlist;
     baseaddress: ptrUint;
 
+    multilineinjection: tstringlist;
     include: tstringlist;
     testdword,bw: dword;
     testPtr: ptrUint;
@@ -1048,11 +1114,46 @@ begin
           assemblerlines[length(assemblerlines)-1]:=currentline;
 
           //plugins
-          {$ifndef standalonetrainer}
           currentlinep:=@currentline[1];
           pluginhandler.handleAutoAssemblerPlugin(@currentlinep, 1);
           currentline:=currentlinep;
-          {$endif}
+
+          //lua extensions
+          if registeredAutoAssemblerCommands<>nil then
+          begin
+            j:=pos('(', currentline);
+            if j>0 then
+            begin
+              s1:=uppercase(copy(currentline, 1, j-1));
+              for j:=0 to registeredAutoAssemblerCommands.count-1 do
+              begin
+                if registeredAutoAssemblerCommands[j].command=s1 then
+                begin
+                  a:=pos('(',currentline);
+                  b:=RPos(')',currentline);
+                  s1:=copy(currentline, a+1, b-a-1);
+
+                  currentline:=registeredAutoAssemblerCommands[j].callback(s1, syntaxcheckonly);
+
+                  //insert the current text as lines into the codelist
+                  multilineinjection:=TStringList.create;
+                  try
+                    multilineinjection.Text:=currentline;
+
+                    for k:=0 to multilineinjection.Count-1 do
+                      code.InsertObject(i+1+k, multilineinjection[k], pointer(currentlinenr));
+                  finally
+                    multilineinjection.Free;
+                  end;
+
+                  showmessage(code.text);
+
+                  currentline:='';
+                  break;
+                end;
+              end;
+            end;
+          end;
 
           //if the newline is empty then it has been handled and the plugin doesn't want it to be added for phase2
           if length(currentline)=0 then
@@ -1061,6 +1162,7 @@ begin
             continue;
           end;
           //otherwhise it hasn't been handled, or it has been handled and the string is a compatible string that passes the phase1 tests (so variablenames converted to 00000000 and whatever else is needed)
+
           //plugins^^^
 
           if uppercase(copy(currentline,1,7))='ASSERT(' then //assert(address,aob)
@@ -2053,6 +2155,7 @@ begin
       //plugin
 
 
+
       tokenize(currentline,tokens);
       //if alloc then replace with the address
       for j:=0 to length(allocs)-1 do
@@ -2213,7 +2316,7 @@ begin
     begin
       virtualprotectex(processhandle,pointer(fullaccess[i].address),fullaccess[i].size,PAGE_EXECUTE_READWRITE,op);
 
-      if (fullaccess[i].address>80000000) and (DBKLoaded) then
+      if (fullaccess[i].address>$80000000) and (DBKLoaded) then
         MakeWritable(fullaccess[i].address,(fullaccess[i].size div 4096)*4096,false);
     end;
 

@@ -47,6 +47,7 @@ type
       function D3DKeyDownEvent(VirtualKey: dword; char: pchar): boolean;
       function DisassembleEvent(sender: TObject; address: ptruint; var ldd: TLastDisassembleData; var output: string; var description: string): boolean;
 
+      function AutoAssemblerCallback(parameters: string; syntaxcheckonly: boolean): string;
 
       procedure ScreenFormEvent(Sender: TObject; Form: TCustomForm);
       procedure pushFunction;
@@ -734,6 +735,34 @@ begin
     lua_settop(Luavm, oldstack);
     luacs.leave;
   end
+end;
+
+function TLuaCaller.AutoAssemblerCallback(parameters: string; syntaxcheckonly: boolean): string;
+var oldstack: integer;
+begin
+  Luacs.Enter;
+  try
+    oldstack:=lua_gettop(Luavm);
+
+    if canRun then
+    begin
+      PushFunction;
+      lua_pushstring(luavm, parameters);
+      lua_pushboolean(luavm, syntaxcheckonly);
+      if lua_pcall(Luavm, 2,2,0)=0 then
+      begin
+        if lua_isnil(luavm, -2) and lua_isstring(luavm, -1) then
+          raise exception.create(Lua_ToString(luavm, -1));
+
+        result:=Lua_ToString(luavm, -2);
+      end
+      else
+        raise exception.create('Lua Function error('+lua_tostring(luavm, -1)+')');
+    end;
+  finally
+    lua_settop(Luavm, oldstack);
+    luacs.leave;
+  end;
 end;
 
 procedure TLuaCaller.ScreenFormEvent(Sender: TObject; Form: TCustomForm);
