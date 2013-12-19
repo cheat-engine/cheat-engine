@@ -86,7 +86,7 @@ ansiToUtf8(string): Converts a string in Ansi encoding to UTF8
 utf8ToAnsi(string): Converts a string in UTF8 encoding to Ansi
 Note: GUI components mainly show in UTF8, some other functions use Ansi, try to find out which ones...
 
-enumModules(): Returns a table containing information about each module. Each entry is a table with fields "Name" and "Address"
+enumModules(): Returns a table containing information about each module. Each entry is a table with fields "Name" and "Address". This function also reloads the modulelist part of the symbol handler
 
 getAddress(string, local OPTIONAL): returns the address of a symbol. Can be a modulename or an export. set Local to true if you wish to querry the symboltable of the ce process
 getModuleSize(modulename): Returns the size of a given module (Use getAddress to get the base address)
@@ -99,6 +99,18 @@ errorOnLookupFailure(state): If set to true (default) address lookups in stringf
 
 generateAPIHookScript(address, addresstojumpto, addresstogetnewcalladdress OPT) : Generates an auto assembler script which will hook the given address when executed
 autoAssemble(text, targetself OPTIONAL) : runs the auto assembler with the given text. Returns true on success (if targetself is set it will assemble into Cheat Engine itself)
+
+registerAutoAssemblerCommand(command, function(parameters, syntaxcheckonly)): Registers an auto assembler command to call the specified function. The command will be replaced by the string this function returns when executed. The function can be called twice. Once for syntax check and symbol lookup(1), and the second time for actual execution by the assembler(2) if it has not been removed in phase1. 
+  Note: The callback function can return multiple values
+  Nil, <String>: Will raise an error with the given string
+  MultilineString: Replaces the line in the script with the given strings.
+
+
+ If the function returns nil, and as secondary parameter a string, this will make the auto assembler fail with that error
+
+unregisterAutoAssemblerCommand(command)
+
+
 showMessage(text) : shows a messagebox with the given text
 inputQuery(caption, prompt, initialstring): Shows a dialog where the user can input a string. This function returns the given string, or nil on cancel  CE6.4+
 messageDialog(text, type, buttons...) : pops up a messagebox with a specific icon/sound with the specified buttons (mbok, mbyes, ....)

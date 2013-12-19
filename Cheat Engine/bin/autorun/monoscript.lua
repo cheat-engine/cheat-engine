@@ -566,9 +566,23 @@ function mono_OpenProcess(processid)
 	  monopipe=nil
 	end
   end
+end
 
+function monoAA_USEMONO(parameters, syntaxcheckonly)
+  --called whenever an auto assembler script encounters the USEMONO() line
+  --the value you return will be placed instead of the given line
+  --In this case, returning a empty string is fine
+  --Special behaviour: Returning nil, with a secondary parameter being a string, will raise an exception on the auto assembler with that string
 
+  --another example:
+  --return parameters..":\nnop\nnop\nnop\n"
+  --you'd then call it using usemono(00400500) for example
 
+  if (syntaxcheckonly==false) and (LaunchMonoDataCollector()==0) then
+	return nil,"The mono handler failed to initialize"
+  end
+
+  return "" --return an empty string (removes it from the internal aa assemble list)
 end
 
 function mono_initialize()
@@ -577,6 +591,8 @@ function mono_initialize()
     mono_init1=true
     mono_oldOnOpenProcess=onOpenProcess
 	onOpenProcess=mono_OpenProcess
+
+	registerAutoAssemblerCommand("USEMONO", monoAA_USEMONO)
   end
 end
 
