@@ -711,7 +711,7 @@ end;
 //---------------Reversescanworker
 procedure TReverseScanWorker.flushresults;
 begin
-  resultsfile.WriteBuffer(results.Memory^,results.Position);
+  //resultsfile.WriteBuffer(results.Memory^,results.Position);
   results.Seek(0,sofrombeginning);
  // results.Clear;
 end;
@@ -993,10 +993,12 @@ begin
               begin
 
                 if (level+3<maxlevel) and
+                (
                    ((staticscanner.pathqueuelength<MAXQUEUESIZE - (MAXQUEUESIZE div 3))) or
                    ((level<=2) and (staticscanner.pathqueuelength<MAXQUEUESIZE - (MAXQUEUESIZE div 8))) or
                    ((level<=1) and (staticscanner.pathqueuelength<MAXQUEUESIZE - (MAXQUEUESIZE div 16))) or
                    ((level=0) and (staticscanner.pathqueuelength<MAXQUEUESIZE - 1)) then //there's room and not a crappy work item. Add it
+                )
                 begin
                   if (not Terminated) and (not self.staticscanner.Terminated) then
                   begin
