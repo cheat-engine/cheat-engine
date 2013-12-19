@@ -711,7 +711,7 @@ end;
 //---------------Reversescanworker
 procedure TReverseScanWorker.flushresults;
 begin
-  //resultsfile.WriteBuffer(results.Memory^,results.Position);
+  resultsfile.WriteBuffer(results.Memory^,results.Position);
   results.Seek(0,sofrombeginning);
  // results.Clear;
 end;
