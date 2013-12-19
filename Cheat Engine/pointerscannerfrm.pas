@@ -752,9 +752,11 @@ begin
       while (not terminated) and (not self.staticscanner.Terminated) do
       begin
         wr:=WaitForSingleObject(self.staticscanner.pathqueueSemaphore, INFINITE); //obtain semaphore
-        if stop then exit;
-        if terminated then exit;
-        if self.staticscanner.Terminated then exit;
+        if stop or terminated or self.staticscanner.Terminated then
+        begin
+          ReleaseSemaphore(staticscanner.pathqueueSemaphore, 1, nil);
+          exit;
+        end;
 
         if wr=WAIT_OBJECT_0 then
         begin
@@ -868,6 +870,7 @@ var p: ^byte;
   nostatic: TStaticData;
   DontGoDeeper: boolean;
   DifferentOffsetsInThisNode: integer;
+  locked: boolean;
 
 begin
   if (level>=maxlevel) or (self.staticscanner.Terminated) or (terminated) then exit;
@@ -993,9 +996,31 @@ begin
                 begin
                   if (not Terminated) and (not self.staticscanner.Terminated) then
                   begin
+                    //try to lock multiple times if high level pointers
+                    locked:=staticscanner.pathqueueCS.tryEnter;
+                    if not locked and (level<=2) then locked:=staticscanner.pathqueueCS.tryEnter;
+                    if not locked and (level<=1) then
+                    begin
+                      //Two previous locks failed. Yield and try a lock again
+                      sleep(0);
+                      locked:=staticscanner.pathqueueCS.tryEnter;
+                      if not locked then
+                      begin
+                        //one more time
+                        sleep(0);
+                        locked:=staticscanner.pathqueueCS.tryEnter;
+                      end;
+                    end;
+
+                    if not locked and (level=0) then
+                    begin
+                      //I must have this lock
+                      staticscanner.pathqueueCS.Enter;
+                      locked:=true;
+                    end;
 
 
-                    if staticscanner.pathqueueCS.tryEnter then
+                    if locked then
                     begin
                       if staticscanner.pathqueuelength<MAXQUEUESIZE-1 then
                       begin
@@ -2430,7 +2455,6 @@ begin
           end;
 
           ReleaseSemaphore(pathqueueSemaphore, MAXQUEUESIZE, nil);
-
         end;
 
 
@@ -2442,45 +2466,39 @@ begin
           sleep(500);
 
 
-        if (not alldone) and (pathqueuelength=0) then //it's 0
+        if (not alldone) and (pathqueuelength=0) or terminated then //it's 0 or terminated
         begin
           //aquire a lock to see if it's still 0
           pathqueueCS.Enter;
-          if pathqueuelength=0 then
+          if (pathqueuelength=0) or terminated then
           begin //still 0
             alldone:=true;
 
-            if not terminated then
+
+            for i:=0 to length(reversescanners)-1 do
             begin
-              for i:=0 to length(reversescanners)-1 do
+              if reversescanners[i].haserror then
               begin
-                if reversescanners[i].haserror then
-                begin
 
-                  OutputDebugString('A worker had an error: '+reversescanners[i].errorstring);
+                OutputDebugString('A worker had an error: '+reversescanners[i].errorstring);
 
-                  haserror:=true;
-                  errorstring:=reversescanners[i].errorstring;
+                haserror:=true;
+                errorstring:=reversescanners[i].errorstring;
 
-                  for j:=0 to length(reversescanners)-1 do reversescanners[j].terminate; //even though the reversescanner already should have done this, let's do it myself as well
+                for j:=0 to length(reversescanners)-1 do reversescanners[j].terminate; //even though the reversescanner already should have done this, let's do it myself as well
 
-                  alldone:=true;
-                  break;
-                end;
-
-                if not (reversescanners[i].hasTerminated or reversescanners[i].isdone) then //isdone might be enabled
-                begin
-                  if terminated then
-                    OutputDebugString('Worker '+inttostr(i)+' is still active');
-
-                  alldone:=false;
-                  break;
-                end;
-
-
-
+                alldone:=true;
+                break;
               end;
 
+              if not (reversescanners[i].hasTerminated or reversescanners[i].isdone) then //isdone might be enabled
+              begin
+                if terminated then
+                  OutputDebugString('Worker '+inttostr(i)+' is still active. Waiting till it dies...');
+
+                alldone:=false;
+                break;
+              end;
             end;
           end
           else
