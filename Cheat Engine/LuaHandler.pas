@@ -4826,6 +4826,12 @@ begin
     try
       //ce 6.0 compatibility. 6.0 has these methods in the stringlist instead of the strings class
       s.add('package.path = package.path .. ";?.lua";');
+
+{$ifdef cpu64}
+      s.add('package.cpath = package.cpath .. [[;.\clibs64\?.dll]]');
+{$else}
+      s.add('package.cpath = package.cpath .. [[;.\clibs32\?.dll]]');
+{$endif}
       s.add('stringlist_getCount=strings_getCount');
       s.add('stringlist_getString=strings_getString');
       s.add('stringlist_add=strings_add');
