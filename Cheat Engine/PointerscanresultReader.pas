@@ -7,9 +7,10 @@ The TPointerscanresultReader will read the results from the pointerfile and pres
 }
 interface
 
-uses LCLIntf, sysutils, classes, CEFuncProc, NewKernelHandler, symbolhandler, math;
+uses windows, LCLIntf, sysutils, classes, CEFuncProc, NewKernelHandler, symbolhandler, math;
 
-const maxcachecount=2560;
+function GetFileSizeEx(hFile:HANDLE; FileSize:PQWord):DWORD; external 'kernel32.dll' name 'GetFileSizeEx';
+
 
 type TPointerscanResult=record
   modulenr: integer;
@@ -32,12 +33,19 @@ type
     files: array of record
       startindex: qword;
       lastindex: qword;
-      f: TFileStream;
+      filename: string;
+      filesize: qword;
+      f,fm: Thandle;
     end;
 
     cacheStart: integer;
     cacheSize: integer;
     cache: pointer;
+
+    cacheStart2: integer;
+    cacheSize2: integer;
+    cache2: pointer;
+
     fExternalScanners: integer;
     fGeneratedByWorkerID: integer;
 
@@ -137,22 +145,58 @@ end;
 function TPointerscanresultReader.InitializeCache(i: qword): boolean;
 var j: integer;
     actualread: dword;
+
+    wantedoffset: qword;
+    offset: qword;
 begin
   result:=false;
   if i>=fcount then exit;
+
+
 
   //find which file to use
   for j:=0 to length(files)-1 do
   begin
     if InRangeQ(i, files[j].startindex, files[j].lastindex) then
     begin
-      files[j].f.Position:=sizeOfEntry*(i-files[j].startindex);
 
-      actualread:=files[j].f.Read(cache^, sizeofentry*maxcachecount);
+      {
+      FileSeek(files[j].f, int64(sizeOfEntry*(i-files[j].startindex)), fsFromBeginning);
+     // files[j].f.Position:=sizeOfEntry*(i-files[j].startindex);
+
+      actualread:=0;
+      ReadFile(files[j].f, cache^, sizeofentry*maxcachecount, actualread, nil);
+
+//      actualread:=files[j].f.Read(cache^, sizeofentry*maxcachecount);
       cachesize:=actualread div sizeofentry;
 
       if cachesize>0 then
-        result:=true;   
+        result:=true;  }
+      wantedoffset:=int64(sizeOfEntry*(i-files[j].startindex));
+
+
+      if (wantedoffset mod systeminfo.dwAllocationGranularity)<>0 then
+      begin
+        //bring offset down to a location matching systeminfo.dwAllocationGranularity
+        offset:=wantedoffset-(wantedoffset mod systeminfo.dwAllocationGranularity);
+      end
+      else
+        offset:=wantedoffset;
+
+
+      cachesize:=min(files[j].filesize-offset, systeminfo.dwAllocationGranularity*32);    //normally 2MB
+      if cache2<>nil then
+        unmapviewoffile(cache2);
+
+
+
+      cache2:=MapViewOfFile(files[j].fm, FILE_MAP_READ, offset shr 32, offset and $ffffffff, cachesize );
+
+      //point cache to the start of the wanted offset
+      cache:=pointer(ptruint(cache2)+(wantedoffset-offset));
+      cachesize:=(cachesize-(wantedoffset-offset)) div sizeofentry;
+
+      result:=cache2<>nil;
       exit;
     end;
   end;
@@ -258,7 +302,7 @@ procedure TPointerscanresultReader.getFileList(list: TStrings);
 var i: integer;
 begin
   for i:=0 to length(files)-1 do
-    list.add(files[i].f.FileName);
+    list.add(files[i].FileName);
 end;
 
 constructor TPointerscanresultReader.create(filename: string; original: TPointerscanresultReader=nil);
@@ -274,6 +318,8 @@ var
   filenamecount: integer;
   error: boolean;
   a: ptruint;
+
+  fn: string;
 begin
   FFilename:=filename;
   configfile:=TFileStream.Create(filename, fmOpenRead or fmShareDenyWrite);
@@ -348,14 +394,31 @@ begin
 
     try
       if pos(PathDelim, temppchar)=0 then
-        files[j].f:=TFileStream.Create(ExtractFilePath(filename)+temppchar, fmOpenRead or fmShareDenyWrite)
+        fn:=ExtractFilePath(filename)+temppchar
       else
-        files[j].f:=TFileStream.Create(temppchar, fmOpenRead or fmShareDenyWrite);
+        fn:=temppchar;
 
-      files[j].startindex:=fcount;
-      fcount:=fcount+uint64(files[j].f.Size div uint64(sizeofentry));
-      files[j].lastindex:=fcount-1;
-      inc(j);
+      files[j].filename:=fn;
+
+
+      files[j].f:=CreateFile(pchar(fn), GENERIC_READ, FILE_SHARE_READ, nil, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, 0);
+
+      if (files[j].f<>0) and (files[j].f<>INVALID_HANDLE_VALUE) then
+      begin
+        files[j].startindex:=fcount;
+
+        GetFileSizeEx(files[j].f, @files[j].filesize);
+
+        fcount:=fcount+uint64(files[j].filesize div uint64(sizeofentry));
+        files[j].lastindex:=fcount-1;
+
+        files[j].fm:=CreateFileMapping(files[j].f, nil,PAGE_READONLY, 0,0,nil);
+
+        if (files[j].fm=0) then
+          closehandle(files[j].f)
+        else
+          inc(j);
+      end;
     except
     end;
 
@@ -384,7 +447,8 @@ begin
   end;
 
 
-  getmem(cache, sizeofEntry*maxcachecount);
+ // getmem(cache, sizeofEntry*maxcachecount);
+ // getmem(cache2, sizeofEntry*maxcachecount);
   InitializeCache(0);
 
   freemem(temppchar);
@@ -397,12 +461,17 @@ begin
   if modulelist<>nil then
     modulelist.free;
 
-  if cache<>nil then
-    freemem(cache);
+  if cache2<>nil then
+    UnmapViewOfFile(cache2);
 
   for i:=0 to length(files)-1 do
-    if files[i].f<>nil then
-      files[i].f.Free;
+    if files[i].f<>0 then
+    begin
+      if files[i].fm<>0 then
+        closehandle(files[i].fm);
+
+      closehandle(files[i].f);
+    end;
 end;
 
 end.
