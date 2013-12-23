@@ -145,7 +145,18 @@ function mono_image_enumClasses(image)
     classes[i].class=monopipe.readQword()
 
     local classnamelength=monopipe.readWord()
-    classes[i].classname=monopipe.readString(classnamelength)
+	if classnamelength>0 then
+      classes[i].classname=monopipe.readString(classnamelength)
+	else
+	  classes[i].classname=''
+	end
+
+    local namespacelength=monopipe.readWord()
+	if namespacelength>0 then
+      classes[i].namespace=monopipe.readString(namespacelength)
+	else
+	  classes[i].namespace=''
+	end
   end
 
   monopipe.unlock()
@@ -282,13 +293,13 @@ end
 
 
 
-function mono_findReferencesToObject() --scan the memory for objects with a vtable to a specific class
+function mono_findReferencesToObject(class) --scan the memory for objects with a vtable to a specific class
 end
 
-function mono_findClass()
+function mono_findClass(classname)
 end
 
-function mono_findMethod()
+function mono_findMethod(imagename, classname, methodname)
 end
 
 function mono_invokeMethod()
@@ -397,7 +408,7 @@ function monoform_EnumClasses(node)
   local classes=mono_image_enumClasses(image)
   local i
   for i=1, #classes do
-    local n=node.add(string.format("%x : %s", classes[i].class, classes[i].classname))
+    local n=node.add(string.format("%x : %s:%s", classes[i].class, classes[i].namespace, classes[i].classname))
 
     local nf=n.add("fields");
     nf.Data=classes[i].class;
