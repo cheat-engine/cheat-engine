@@ -187,14 +187,18 @@ end;
 function TPipeConnection.WriteBytes(bytes: pointer; size: integer): boolean;
 var bw: dword;
 begin
-  fconnected:=fconnected and writefile(pipe, bytes^, size, bw, nil);
+  if size>0 then
+    fconnected:=fconnected and writefile(pipe, bytes^, size, bw, nil);
+
   result:=fconnected;
 end;
 
 function TPipeConnection.ReadBytes(bytes: pointer; size: integer): boolean;
 var br: dword;
 begin
-  fconnected:=fconnected and Readfile(pipe, bytes^, size, br, nil);
+  if size<0 then
+    fconnected:=fconnected and Readfile(pipe, bytes^, size, br, nil);
+
   result:=fconnected;
 end;
 
