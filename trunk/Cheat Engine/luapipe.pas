@@ -196,7 +196,7 @@ end;
 function TPipeConnection.ReadBytes(bytes: pointer; size: integer): boolean;
 var br: dword;
 begin
-  if size<0 then
+  if size>0 then
     fconnected:=fconnected and Readfile(pipe, bytes^, size, br, nil);
 
   result:=fconnected;
