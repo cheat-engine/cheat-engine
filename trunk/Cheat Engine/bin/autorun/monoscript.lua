@@ -14,6 +14,7 @@ MONOCMD_GETMETHODHEADER_CODE=12
 MONOCMD_LOOKUPRVA=13
 MONOCMD_GETJITINFO=14
 MONOCMD_FINDCLASS=15
+MONOCMD_FINDMETHOD=16
 
 
 function LaunchMonoDataCollector()
@@ -297,40 +298,76 @@ end
 function mono_findReferencesToObject(class) --scan the memory for objects with a vtable to a specific class
 end
 
-function mono_findClass(classname, namespace)
+function mono_image_findClass(image, namespace, classname)
+--find a class in a specific image
   monopipe.lock()
 
-  local ass=mono_enumAssemblies()
-  local result
-
-  for i=1, #ass do
-	  local img=mono_getImageFromAssembly(ass[i])
-
-	  monopipe.writeByte(MONOCMD_FINDCLASS)
-	  monopipe.writeQword(img)
-	  monopipe.writeWord(#classname)
-	  monopipe.writeString(classname)
-	  if (namespace~=nil) then
-		monopipe.writeWord(#namespace)
-		monopipe.writeString(namespace)
-	  else
-		monopipe.writeWord(0)
-	  end
-
-	  result=monopipe.readQword()
-	  if result~=0 then
-	    break
-	  end
+  monopipe.writeByte(MONOCMD_FINDCLASS)
+  monopipe.writeQword(image)
+  monopipe.writeWord(#classname)
+  monopipe.writeString(classname)
+  if (namespace~=nil) then
+	monopipe.writeWord(#namespace)
+	monopipe.writeString(namespace)
+  else
+	monopipe.writeWord(0)
   end
+
+  result=monopipe.readQword()
   monopipe.unlock()
 
   return result
 end
 
-function mono_findMethod(imagename, classname, methodname)
+function mono_findClass(namespace, classname)
+--searches all images for a specific class
+  local ass=mono_enumAssemblies()
+  local result=0
+
+  for i=1, #ass do
+
+    result=mono_image_findClass(mono_getImageFromAssembly(ass[i]), namespace, classname)
+	if (result~=0) then
+	  return result;
+	end
+
+
+  end
+
+  --still here:
+  return 0
+end
+
+function mono_class_findMethod(class, methodname)
+  if methodname==nil then return 0 end
+
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_FINDMETHOD)
+  monopipe.writeQword(class)
+
+  monopipe.writeWord(#methodname)
+  monopipe.writeString(methodname)
+
+  local result=monopipe.readQword()
+
+
+  monopipe.unlock()
+
+  return result
+end
+
+function mono_findMethod(namespace, classname, methodname)
+  local class=mono_findClass(namespace, classname)
+  local result=0
+  if class~=0 then
+    result=mono_class_findMethod(class, methodname)
+  end
+
+  return result
 end
 
 function mono_invokeMethod()
+  print("Not yet implemented")
 end
 
 function mono_method_getHeader(method)
