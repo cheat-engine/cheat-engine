@@ -13,6 +13,7 @@ MONOCMD_GETMETHODHEADER=11
 MONOCMD_GETMETHODHEADER_CODE=12
 MONOCMD_LOOKUPRVA=13
 MONOCMD_GETJITINFO=14
+MONOCMD_FINDCLASS=15
 
 
 function LaunchMonoDataCollector()
@@ -296,7 +297,34 @@ end
 function mono_findReferencesToObject(class) --scan the memory for objects with a vtable to a specific class
 end
 
-function mono_findClass(classname)
+function mono_findClass(classname, namespace)
+  monopipe.lock()
+
+  local ass=mono_enumAssemblies()
+  local result
+
+  for i=1, #ass do
+	  local img=mono_getImageFromAssembly(ass[i])
+
+	  monopipe.writeByte(MONOCMD_FINDCLASS)
+	  monopipe.writeQword(img)
+	  monopipe.writeWord(#classname)
+	  monopipe.writeString(classname)
+	  if (namespace~=nil) then
+		monopipe.writeWord(#namespace)
+		monopipe.writeString(namespace)
+	  else
+		monopipe.writeWord(0)
+	  end
+
+	  result=monopipe.readQword()
+	  if result~=0 then
+	    break
+	  end
+  end
+  monopipe.unlock()
+
+  return result
 end
 
 function mono_findMethod(imagename, classname, methodname)
@@ -363,7 +391,12 @@ function mono_image_rva_map(image, offset)
 end
 
 
---code belonging to the mono dissector form--
+
+--[[
+
+--------code belonging to the mono dissector form---------
+
+--]]
 function monoform_miRejitClick(sender)
   if (monoForm.TV.Selected~=nil) then
     local node=monoForm.TV.Selected
@@ -545,7 +578,7 @@ function mono_OpenProcess(processid)
 
   if usesmono then
     --create a menu item if needed
-	if (monoTopMenuItem==nil) then
+	if (miMonoTopMenuItem==nil) then
 	  local mfm=getMainForm().Menu
 	  local mi
 	  miMonoTopMenuItem=createMenuItem(mfm)
