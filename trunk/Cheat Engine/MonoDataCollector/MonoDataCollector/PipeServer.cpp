@@ -37,7 +37,7 @@ CPipeServer::~CPipeServer(void)
 
 void CPipeServer::CreatePipeandWaitForconnect(void)
 {
-	OutputDebugStringA("CreatePipeandWaitForconnect\n");
+	OutputDebugStringA("CreatePipeandWaitForconnect called\n");
 	if ((pipehandle) && (pipehandle!=INVALID_HANDLE_VALUE))
 	{
 		CloseHandle(pipehandle);
@@ -70,7 +70,7 @@ void CPipeServer::InitMono()
 			mono_get_root_domain=(MONO_GET_ROOT_DOMAIN)GetProcAddress(hMono, "mono_get_root_domain");
 			mono_thread_attach=(MONO_THREAD_ATTACH)GetProcAddress(hMono, "mono_thread_attach");
 			mono_object_get_class=(MONO_OBJECT_GET_CLASS)GetProcAddress(hMono, "mono_object_get_class");
-			mono_class_get_name=(MONO_CLASS_GET_NAME)GetProcAddress(hMono, "mono_class_get_name");
+			
 			mono_domain_foreach=(MONO_DOMAIN_FOREACH)GetProcAddress(hMono, "mono_domain_foreach");
 			mono_domain_set=(MONO_DOMAIN_SET)GetProcAddress(hMono, "mono_domain_set");
 			mono_assembly_foreach=(MONO_ASSEMBLY_FOREACH)GetProcAddress(hMono, "mono_assembly_foreach");
@@ -83,7 +83,12 @@ void CPipeServer::InitMono()
 			mono_table_info_get_rows=(MONO_TABLE_INFO_GET_ROWS)GetProcAddress(hMono, "mono_table_info_get_rows");
 			mono_metadata_decode_row_col=(MONO_METADATA_DECODE_ROW_COL)GetProcAddress(hMono, "mono_metadata_decode_row_col");
 			mono_metadata_string_heap=(MONO_METADATA_STRING_HEAP)GetProcAddress(hMono, "mono_metadata_string_heap");
+
+			
 			mono_class_get=(MONO_CLASS_GET)GetProcAddress(hMono, "mono_class_get");		
+			mono_class_from_name_case=(MONO_CLASS_FROM_NAME_CASE)GetProcAddress(hMono, "mono_class_from_name_case");	
+			mono_class_get_name=(MONO_CLASS_GET_NAME)GetProcAddress(hMono, "mono_class_get_name");
+			mono_class_get_namespace=(MONO_CLASS_GET_NAMESPACE)GetProcAddress(hMono, "mono_class_get_namespace");
 			mono_class_get_methods=(MONO_CLASS_GET_METHODS)GetProcAddress(hMono, "mono_class_get_methods");		
 			mono_class_get_fields=(MONO_CLASS_GET_FIELDS)GetProcAddress(hMono, "mono_class_get_fields");		
 			
@@ -101,6 +106,10 @@ void CPipeServer::InitMono()
 			mono_method_get_header=(MONO_METHOD_GET_HEADER)GetProcAddress(hMono, "mono_method_get_header");	
 
 			mono_compile_method=(MONO_COMPILE_METHOD)GetProcAddress(hMono, "mono_compile_method");	
+			mono_jit_info_table_find=(MONO_JIT_INFO_TABLE_FIND)GetProcAddress(hMono, "mono_jit_info_table_find");	
+			mono_jit_info_get_method=(MONO_JIT_INFO_GET_METHOD)GetProcAddress(hMono, "mono_jit_info_get_method");	
+			mono_jit_info_get_code_start=(MONO_JIT_INFO_GET_CODE_START)GetProcAddress(hMono, "mono_jit_info_get_code_start");	
+			mono_jit_info_get_code_size=(MONO_JIT_INFO_GET_CODE_SIZE)GetProcAddress(hMono, "mono_jit_info_get_code_size");	
 
 			mono_method_header_get_code=(MONO_METHOD_HEADER_GET_CODE)GetProcAddress(hMono, "mono_method_header_get_code");	
 
@@ -235,7 +244,14 @@ void CPipeServer::EnumClassesInImage()
 		WriteQword((UINT_PTR)c);
 
 		WriteWord(strlen(name));
-		Write(name, strlen(name));				
+		Write(name, strlen(name));	
+
+		name=mono_class_get_namespace(c);
+		WriteWord(strlen(name));
+		Write(name, strlen(name));	
+
+
+
 	}
 }
 
@@ -332,6 +348,54 @@ void CPipeServer::RvaMap()
 	WriteQword((UINT_PTR)result);
 }
 
+void CPipeServer::GetJitInfo()
+{
+	void *domain=(void *)ReadQword();
+	void *address=(void *)ReadQword();
+	void *jitinfo=mono_jit_info_table_find(domain, address);
+	WriteQword((UINT_PTR)jitinfo);
+	if (jitinfo)
+	{
+		WriteQword((UINT_PTR)mono_jit_info_get_method(jitinfo));
+		WriteQword((UINT_PTR)mono_jit_info_get_code_start(jitinfo));
+		WriteDword((UINT_PTR)mono_jit_info_get_code_size(jitinfo));
+	}
+}
+
+void CPipeServer::FindClass()
+{
+	void *image=(void *)ReadQword();
+	WORD length=ReadWord();
+	char *cn=NULL;
+	char *ns=NULL;
+	void *klass;
+
+	cn=(char *)malloc(length+1);
+	if (length)
+		Read(cn, length);
+
+	cn[length]=0;
+	
+	length=ReadWord();
+	
+	ns=(char *)malloc(length+1);
+	if (length)
+		Read(ns, length);
+
+	ns[length]=0;
+	
+	klass=mono_class_from_name_case(image, ns, cn);
+
+	if (cn)
+		free(cn);	
+
+	if (ns)
+		free(ns);
+
+	WriteQword((UINT_PTR)klass);
+
+}
+
 void CPipeServer::Start(void)
 {
 	BYTE command;
@@ -401,6 +465,14 @@ void CPipeServer::Start(void)
 
 					case MONOCMD_LOOKUPRVA:
 						RvaMap();
+						break;
+
+					case MONOCMD_GETJITINFO:
+						GetJitInfo();
+						break;
+
+					case MONOCMD_FINDCLASS:
+						FindClass();
 						break;
 
 				}
