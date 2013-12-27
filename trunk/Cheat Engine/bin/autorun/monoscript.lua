@@ -666,6 +666,70 @@ function monoAA_USEMONO(parameters, syntaxcheckonly)
   return "" --return an empty string (removes it from the internal aa assemble list)
 end
 
+function monoAA_FINDMONOMETHOD(parameters, syntaxcheckonly)
+  --called whenever an auto assembler script encounters the MONOMETHOD() line
+
+  --parameters: name, fullmethodnamestring
+  --turns into a define that sets up name as an address to this method
+
+  local name, fullmethodnamestring, namespace, classname, methodname, methodaddress
+  local c,d,e
+
+  --parse the parameters
+  c=string.find(parameters,",")
+  if c~=nil then
+    name=string.sub(parameters, 1,c-1)
+
+    fullmethodnamestring=string.sub(parameters, c+1, #parameters)
+    c=string.find(fullmethodnamestring,":")
+    if (c~=nil) then
+      namespace=string.sub(fullmethodnamestring, 1,c-1)
+    else
+      namespace='';
+    end
+
+    d=string.find(fullmethodnamestring,":",c)
+    if (d~=nil) then
+      e=string.find(fullmethodnamestring,":",d+1)
+      if e~=nil then
+        classname=string.sub(fullmethodnamestring, c+1, e-1)
+        methodname=string.sub(fullmethodnamestring, e+1, #fullmethodnamestring)
+      else
+        return nil,"Invalid parameters (Methodname could not be determined)"
+      end
+    else
+      return nil,"Invalid parameters (Classname could not be determined)"
+    end
+  else
+    return nil,"Invalid parameters (name could not be determined)"
+  end
+
+
+
+
+  if syntaxcheckonly then
+    return "define("..name..",00000000)"
+  end
+
+  if (monopipe==nil) or (monopipe.Connected==false) then
+    LaunchMonoDataCollector()
+  end
+
+  if (monopipe==nil) or (monopipe.Connected==false) then
+    return nil,"The mono handler failed to initialize"
+  end
+
+
+  methodaddress=mono_findMethod(namespace, classname, methodname)
+  if (methodaddress==0) then
+    return nil,fullmethodnamestring.." could not be found"
+  end
+
+
+
+  return "define("..name..","..string.format("%x", methodaddress)..")" --return an empty string (removes it from the internal aa assemble list)
+end
+
 function mono_initialize()
   --register a function to be called when a process is opened
   if (mono_init1==nil) then
@@ -674,8 +738,10 @@ function mono_initialize()
 	onOpenProcess=mono_OpenProcess
 
 	registerAutoAssemblerCommand("USEMONO", monoAA_USEMONO)
+	registerAutoAssemblerCommand("FINDMONOMETHOD", monoAA_FINDMONOMETHOD)
   end
 end
 
 
 mono_initialize()
+
