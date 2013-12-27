@@ -237,19 +237,26 @@ object frmRescanPointer: TfrmRescanPointer
     Visible = False
   end
   object edtRescanPort: TEdit
-    Left = 185
+    AnchorSideLeft.Control = cbDistributedRescan
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = cbDistributedRescan
+    AnchorSideTop.Side = asrCenter
+    Left = 180
     Height = 21
-    Top = 240
+    Top = 239
     Width = 55
     TabOrder = 16
     Text = '52739'
     Visible = False
   end
   object cbBroadcast: TCheckBox
+    AnchorSideTop.Control = btnNotifySpecificIPs
+    AnchorSideTop.Side = asrCenter
     Left = 24
     Height = 19
     Top = 265
     Width = 188
+    BorderSpacing.Top = 8
     Caption = 'Broadcast that a rescan has started'
     Enabled = False
     OnChange = cbBroadcastChange
@@ -257,10 +264,16 @@ object frmRescanPointer: TfrmRescanPointer
     Visible = False
   end
   object btnNotifySpecificIPs: TButton
-    Left = 216
+    AnchorSideLeft.Control = cbBroadcast
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = edtRescanPort
+    AnchorSideTop.Side = asrBottom
+    Left = 220
     Height = 25
     Top = 262
     Width = 86
+    BorderSpacing.Left = 8
+    BorderSpacing.Top = 2
     Caption = 'Additional IP''s'
     Enabled = False
     OnClick = btnNotifySpecificIPsClick
@@ -268,9 +281,11 @@ object frmRescanPointer: TfrmRescanPointer
     Visible = False
   end
   object cbWaitForAll: TCheckBox
+    AnchorSideTop.Control = btnNotifySpecificIPs
+    AnchorSideTop.Side = asrBottom
     Left = 24
     Height = 19
-    Top = 288
+    Top = 287
     Width = 253
     Caption = 'Wait for all known scanners to connect and finish'
     Checked = True
