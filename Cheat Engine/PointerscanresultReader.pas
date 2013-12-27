@@ -9,7 +9,7 @@ interface
 
 uses windows, LCLIntf, sysutils, classes, CEFuncProc, NewKernelHandler, symbolhandler, math;
 
-function GetFileSizeEx(hFile:HANDLE; FileSize:PQWord):DWORD; external 'kernel32.dll' name 'GetFileSizeEx';
+function GetFileSizeEx(hFile:HANDLE; FileSize:PQWord):BOOL; stdcall; external 'kernel32.dll' name 'GetFileSizeEx';
 
 
 type TPointerscanResult=record
@@ -150,7 +150,11 @@ var j: integer;
     offset: qword;
 begin
   result:=false;
+ // OutputDebugString('InitializeCache');
+
   if i>=fcount then exit;
+
+
 
 
 
@@ -159,19 +163,6 @@ begin
   begin
     if InRangeQ(i, files[j].startindex, files[j].lastindex) then
     begin
-
-      {
-      FileSeek(files[j].f, int64(sizeOfEntry*(i-files[j].startindex)), fsFromBeginning);
-     // files[j].f.Position:=sizeOfEntry*(i-files[j].startindex);
-
-      actualread:=0;
-      ReadFile(files[j].f, cache^, sizeofentry*maxcachecount, actualread, nil);
-
-//      actualread:=files[j].f.Read(cache^, sizeofentry*maxcachecount);
-      cachesize:=actualread div sizeofentry;
-
-      if cachesize>0 then
-        result:=true;  }
       wantedoffset:=int64(sizeOfEntry*(i-files[j].startindex));
 
 
@@ -192,15 +183,22 @@ begin
 
       cache2:=MapViewOfFile(files[j].fm, FILE_MAP_READ, offset shr 32, offset and $ffffffff, cachesize );
 
+     // if cache2=nil then
+     //   OutputDebugString('Failure to map view of file');
+
       //point cache to the start of the wanted offset
       cache:=pointer(ptruint(cache2)+(wantedoffset-offset));
       cachesize:=(cachesize-(wantedoffset-offset)) div sizeofentry;
 
       result:=cache2<>nil;
+
+     // OutputDebugString('InitializeCache success');
       exit;
     end;
   end;
   //nothing found...
+
+ // OutputDebugString('InitializeCache nothing found');
 end;
 
 function TPointerscanresultReader.getModuleListCount: integer;
@@ -401,18 +399,26 @@ begin
       files[j].filename:=fn;
 
 
-      files[j].f:=CreateFile(pchar(fn), GENERIC_READ, FILE_SHARE_READ, nil, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, 0);
+      files[j].f:=CreateFile(pchar(fn), GENERIC_READ, FILE_SHARE_READ or FILE_SHARE_DELETE, nil, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, 0);
 
       if (files[j].f<>0) and (files[j].f<>INVALID_HANDLE_VALUE) then
       begin
         files[j].startindex:=fcount;
 
-        GetFileSizeEx(files[j].f, @files[j].filesize);
+        if GetFileSizeEx(files[j].f, @files[j].filesize)=false then
+        begin
+          OutputDebugString('GetFileSizeEx failed with error: '+inttostr(GetLastError));
+        end;
 
-        fcount:=fcount+uint64(files[j].filesize div uint64(sizeofentry));
-        files[j].lastindex:=fcount-1;
+        if files[j].filesize>0 then
+        begin
+          fcount:=fcount+uint64(files[j].filesize div uint64(sizeofentry));
+          files[j].lastindex:=fcount-1;
 
-        files[j].fm:=CreateFileMapping(files[j].f, nil,PAGE_READONLY, 0,0,nil);
+          files[j].fm:=CreateFileMapping(files[j].f, nil,PAGE_READONLY, 0,0,nil);
+        end
+        else
+          files[j].fm:=0;
 
         if (files[j].fm=0) then
           closehandle(files[j].f)
