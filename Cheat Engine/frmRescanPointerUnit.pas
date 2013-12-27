@@ -51,6 +51,7 @@ type
     procedure cbMustStartWithSpecificOffsetsChange(Sender: TObject);
     procedure cbNoValueCheckChange(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure rbFindAddressClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
   private
@@ -145,6 +146,8 @@ begin
   end;
 
 end;
+
+
 
 procedure TfrmRescanPointer.cbLuaFilterChange(Sender: TObject);
 begin
@@ -390,6 +393,11 @@ begin
     freeandnil(iplist);
 end;
 
+procedure TfrmRescanPointer.FormShow(Sender: TObject);
+begin
+  updatePositions;
+end;
+
 procedure TfrmRescanPointer.updatePositions;
 {
 Updates the pnlButtons panel position and adjusts the form height
@@ -431,10 +439,23 @@ begin
 
     btnAddEndOffset.top:=e.top;
     btnRemoveEndOffset.top:=e.top;
-    pnlbuttons.top:=btnAddEndOffset.top+btnAddEndOffset.height+5;
+
+    cbDistributedRescan.top:=btnAddEndOffset.top+btnAddEndOffset.height+5;
+
+    if not cbDistributedRescan.visible then
+      pnlButtons.top:=cbDistributedRescan.top
+    else
+      pnlButtons.top:=cbWaitForAll.Top+cbWaitForAll.height+5;
   end
   else
-    pnlButtons.top:=cbMustEndWithSpecificOffsets.top+cbMustEndWithSpecificOffsets.Height+5;
+  begin
+    cbDistributedRescan.top:=cbMustEndWithSpecificOffsets.top+cbMustEndWithSpecificOffsets.height+5;
+
+    if not cbDistributedRescan.visible then
+      pnlButtons.top:=cbDistributedRescan.top
+    else
+      pnlButtons.top:=cbWaitForAll.Top+cbWaitForAll.height+5;
+  end;
 
   clientheight:=pnlbuttons.top+pnlButtons.height;
 end;
