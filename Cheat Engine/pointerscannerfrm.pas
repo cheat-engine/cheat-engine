@@ -4692,8 +4692,6 @@ begin
     rescanworkercount:=GetCPUCount;
     if HasHyperthreading then rescanworkercount:=(rescanworkercount div 2)+1;
 
-//    rescanworkercount:=1;   //only one for now. Todo: Make this multithreaded
-
     blocksize:=TotalPointersToEvaluate div rescanworkercount;
     if blocksize<8 then blocksize:=8;
 
@@ -4829,12 +4827,22 @@ begin
     for i:=0 to rescanworkercount-1 do
     begin
       rescanworkers[i].WaitFor; //just to be sure
-      rescanworkers[i].Free;
 
-      if overwrite then
+      if rescanworkers[i].Pointerscanresults<>nil then
+        freeandnil(rescanworkers[i].Pointerscanresults);
+
+      rescanworkers[i].Free;
+      rescanworkers[i]:=nil;
+    end;
+
+    if overwrite then
+    begin
+      for i:=0 to rescanworkercount-1 do
       begin
-        DeleteFile(filename+'.'+inttostr(i));
-        RenameFile(filename+'.'+inttostr(i)+'.overwrite', filename+'.'+inttostr(i));
+        begin
+          DeleteFile(filename+'.'+inttostr(i));
+          RenameFile(filename+'.'+inttostr(i)+'.overwrite', filename+'.'+inttostr(i));
+        end;
       end;
     end;
 
