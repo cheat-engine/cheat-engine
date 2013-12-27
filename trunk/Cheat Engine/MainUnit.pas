@@ -6097,7 +6097,8 @@ begin
     miHideChildren.Checked := moHideChildren in selectedrecord.options;
     miBindActivation.Checked := moBindActivation in selectedrecord.options;
     miRecursiveSetValue.Checked := moRecursiveSetValue in selectedrecord.options;
-    miAllowCollapse.checked:= moAllowManualCollapseAndExpand in selectedrecord.options;
+    miAllowCollapse.checked := moAllowManualCollapseAndExpand in selectedrecord.options;
+    miManualExpandCollapse.checked := moManualExpandCollapse in selectedrecord.options;
   end
   else
     miGroupconfig.Visible := False;
