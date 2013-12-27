@@ -4929,6 +4929,9 @@ begin
       cbDistributedRescan.visible:=Pointerscanresults.externalScanners>0;
       edtRescanPort.Visible:=Pointerscanresults.externalScanners>0;
 
+      cbBroadcast.visible:=Pointerscanresults.externalScanners>0;
+      cbWaitForAll.visible:=Pointerscanresults.externalScanners>0;
+
 
       if cbDistributedRescan.visible then
         cbDistributedRescan.OnChange(cbDistributedRescan);
