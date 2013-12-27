@@ -1,7 +1,7 @@
 object frmRescanPointer: TfrmRescanPointer
-  Left = 725
+  Left = 339
   Height = 348
-  Top = 156
+  Top = 159
   Width = 330
   BorderStyle = bsDialog
   Caption = 'Rescan pointerlist'
@@ -11,6 +11,7 @@ object frmRescanPointer: TfrmRescanPointer
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '1.0.8.0'
   object edtAddress: TEdit
@@ -253,6 +254,7 @@ object frmRescanPointer: TfrmRescanPointer
     Enabled = False
     OnChange = cbBroadcastChange
     TabOrder = 17
+    Visible = False
   end
   object btnNotifySpecificIPs: TButton
     Left = 216
@@ -263,6 +265,7 @@ object frmRescanPointer: TfrmRescanPointer
     Enabled = False
     OnClick = btnNotifySpecificIPsClick
     TabOrder = 18
+    Visible = False
   end
   object cbWaitForAll: TCheckBox
     Left = 24
@@ -274,5 +277,6 @@ object frmRescanPointer: TfrmRescanPointer
     Enabled = False
     State = cbChecked
     TabOrder = 19
+    Visible = False
   end
 end
