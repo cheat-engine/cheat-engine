@@ -19,6 +19,7 @@
 #define MONOCMD_LOOKUPRVA 13
 #define MONOCMD_GETJITINFO 14
 #define MONOCMD_FINDCLASS 15
+#define MONOCMD_FINDMETHOD 16
 
 
 
@@ -49,6 +50,7 @@ typedef char* (__cdecl *MONO_CLASS_GET_NAME)(void *klass);
 typedef char* (__cdecl *MONO_CLASS_GET_NAMESPACE)(void *klass);
 typedef void* (__cdecl *MONO_CLASS_GET)(void *image, UINT32 tokenindex);
 typedef void* (__cdecl *MONO_CLASS_GET_METHODS)(void *klass, void *iter);
+typedef void* (__cdecl *MONO_CLASS_GET_METHOD_FROM_NAME)(void *klass, char *methodname, int paramcount);
 typedef void* (__cdecl *MONO_CLASS_GET_FIELDS)(void *klass, void *iter);
 typedef int (__cdecl *MONO_CLASS_NUM_FIELDS)(void *klass);
 typedef int (__cdecl *MONO_CLASS_NUM_METHODS)(void *klass);
@@ -110,6 +112,8 @@ private:
 	MONO_CLASS_NUM_METHODS mono_class_num_methods;
 	MONO_CLASS_GET_METHODS mono_class_get_methods;
 
+	MONO_CLASS_GET_METHOD_FROM_NAME mono_class_get_method_from_name;
+
 
 	MONO_FIELD_GET_NAME mono_field_get_name;
 	MONO_FIELD_GET_TYPE mono_field_get_type;
@@ -150,6 +154,7 @@ private:
 	void RvaMap();
 	void GetJitInfo();
 	void FindClass();
+	void FindMethod();
 
 public:
 	CPipeServer(void);

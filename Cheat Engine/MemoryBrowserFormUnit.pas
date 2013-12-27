@@ -34,6 +34,7 @@ type
     MenuItem18: TMenuItem;
     MenuItem19: TMenuItem;
     MenuItem20: TMenuItem;
+    miUserDefinedHeader: TMenuItem;
     miShowIndisassembler: TMenuItem;
     miShowInHexview: TMenuItem;
     miCopyBytesOnly: TMenuItem;
@@ -257,6 +258,7 @@ type
     procedure miLuaEngineClick(Sender: TObject);
     procedure miPagingClick(Sender: TObject);
     procedure miUserdefinedCommentClick(Sender: TObject);
+    procedure miUserDefinedHeaderClick(Sender: TObject);
     procedure Panel5Click(Sender: TObject);
     procedure RegisterMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
@@ -810,13 +812,28 @@ end;
 procedure TMemoryBrowser.miUserdefinedCommentClick(Sender: TObject);
 var
   s: tstringlist;
-
 begin
   s:=tstringlist.create;
   try
-    s.text:=dassemblercomments.comments[disassemblerview.SelectedAddress];      ;
+    s.text:=dassemblercomments.comments[disassemblerview.SelectedAddress];
     if multilineinputquery(rsCommentFor, Format(rsCommentFor, [inttohex(disassemblerview.SelectedAddress, 8)])+' '+rsSShowsTheAutoguessValue, s) then
       dassemblercomments.comments[disassemblerview.SelectedAddress]:=s.text;
+  finally
+    s.free;
+  end;
+
+  disassemblerview.Refresh;
+end;
+
+procedure TMemoryBrowser.miUserDefinedHeaderClick(Sender: TObject);
+var
+  s: tstringlist;
+begin
+  s:=tstringlist.create;
+  try
+    s.text:=dassemblercomments.commentHeader[disassemblerview.SelectedAddress];
+    if multilineinputquery(rsCommentFor, Format(rsCommentFor, [inttohex(disassemblerview.SelectedAddress, 8)])+' '+rsSShowsTheAutoguessValue, s) then
+      dassemblercomments.commentHeader[disassemblerview.SelectedAddress]:=s.text;
   finally
     s.free;
   end;

@@ -15,8 +15,12 @@ type TDisassemblerComments=class
   private
     commentstree: TAvgLvlTree;
     function getCount: integer;
+
     procedure setComment(address: ptruint; comment: string);
     function getComment(address: ptruint): string;
+
+    procedure setHeader(address: ptruint; header: string);
+    function getHeader(address: ptruint): string;
     procedure setInterpretableAddress(address: ptruint; s: string);
     function getInterpretableAddress(address: ptruint): string;
   public
@@ -27,13 +31,14 @@ type TDisassemblerComments=class
     procedure loadFromXMLNode(node: TDOMNode);
 
     function getCommentInRegion(address: ptruint; size: integer; out actualaddress: ptruint): string;
-    procedure deleteComment(address: ptruint);
+    procedure deleteAddress(address: ptruint);
 
     constructor create;
     destructor destroy; override;
 
     property count: integer read getCount;
     property comments[address: ptruint]: string read getComment write setComment; default;
+    property commentHeader[address: ptruint]: string read getHeader write setHeader;
     property interpretableAddress[address: ptruint]: string read getInterpretableAddress write setInterpretableAddress; //for saving/loading
 end;
 
@@ -50,6 +55,7 @@ type
     address: ptruint;
     interpretableAddress: pchar;
     comment: pchar;
+    header: pchar;
     previous: PCommentData;
     next: PCommentData;
   end;
@@ -100,12 +106,6 @@ var search: TCommentData;
   prev,next: TAvgLvlTreeNode;
   mi: TModuleInfo;
 begin
-  if comment='' then
-  begin
-    //it's a clear instead
-    deleteComment(address);
-    exit;
-  end;
 
   //check if this comment exists, and if not, add it
   search.address:=address;
@@ -113,9 +113,12 @@ begin
 
   if n=nil then //create the node
   begin
+    if comment='' then exit; //don't add it
+
     c:=getmem(sizeof(TCommentData));
     c.address:=address;
     c.comment:=strnew(pchar(comment));
+    c.header:=nil;
 
     if symhandler.getmodulebyaddress(address, mi) then
       c.interpretableAddress:=strnew(pchar('"'+mi.modulename+'"+'+inttohex(address-mi.baseaddress,1) ))
@@ -147,11 +150,21 @@ begin
   else
   begin
     //update
+    if (c.header=nil) and (comment='') then
+    begin
+      deleteAddress(address);
+      exit;
+    end;
+
+
     c:=n.data;
     if c.comment<>nil then
       StrDispose(c.comment);
 
-    c.comment:=strnew(pchar(comment));
+    if comment<>'' then
+      c.comment:=strnew(pchar(comment))
+    else
+      c.comment:=nil;
   end;
 end;
 
@@ -162,8 +175,91 @@ var
 begin
   search.address:=address;
   n:=commentstree.Find(@search);
-  if n<>nil then
+  if (n<>nil) and (PCommentData(n.data).comment<>nil) then
     result:=PCommentData(n.data).comment
+  else
+    result:='';
+end;
+
+procedure TDisassemblerComments.setHeader(address: ptruint; header: string);
+var search: TCommentData;
+  c: PCommentData;
+  n: TAvgLvlTreeNode;
+  prev,next: TAvgLvlTreeNode;
+  mi: TModuleInfo;
+begin
+
+  //check if this comment exists, and if not, add it
+  search.address:=address;
+  n:=commentstree.Find(@search);
+
+  if n=nil then //create the node
+  begin
+    if header='' then exit;
+
+    c:=getmem(sizeof(TCommentData));
+    c.address:=address;
+
+    c.comment:=nil;
+    c.header:=strnew(pchar(header));
+
+    if symhandler.getmodulebyaddress(address, mi) then
+      c.interpretableAddress:=strnew(pchar('"'+mi.modulename+'"+'+inttohex(address-mi.baseaddress,1) ))
+    else
+      c.interpretableAddress:=strnew(pchar(inttohex(address,8) ));
+
+
+    n:=commentstree.Add(c);
+
+    prev:=commentstree.FindPrecessor(n);
+    next:=commentstree.FindSuccessor(n);
+
+    if prev=nil then
+      c.previous:=nil
+    else
+    begin
+      c.previous:=prev.Data;
+      PCommentData(prev.data).next:=c;
+    end;
+
+    if next=nil then
+      c.next:=nil
+    else
+    begin
+      c.next:=next.Data;
+      PCommentData(next.data).previous:=c;
+    end;
+  end
+  else
+  begin
+    //update
+    if (c.comment=nil) and (header='') then
+    begin
+      deleteAddress(address);
+      exit;
+    end;
+
+    c:=n.data;
+    if c.header<>nil then
+      StrDispose(c.header);
+
+    if header<>'' then
+      c.header:=strnew(pchar(header))
+    else
+      c.header:=nil;
+  end;
+end;
+
+
+function TDisassemblerComments.getHeader(address: ptruint): string;
+var
+  search: TCommentData;
+  n: TAvgLvlTreeNode;
+begin
+  search.address:=address;
+  n:=commentstree.Find(@search);
+  if (n<>nil) and (PCommentData(n.data).header<>nil) then
+    result:=PCommentData(n.data).header
   else
     result:='';
 end;
@@ -192,14 +288,17 @@ begin
     if InRangeX(c.address, address , address+size-1) then
     begin
       actualaddress:=c.address;
-      result:=c.comment;
+      if c.comment<>nil then
+        result:=c.comment
+      else
+        result:='';
     end;
   end;
 
 
 end;
 
-procedure TDisassemblerComments.deleteComment(address: ptruint);
+procedure TDisassemblerComments.deleteAddress(address: ptruint);
 var
   search: TCommentData;
   n: TAvgLvlTreeNode;
@@ -211,6 +310,10 @@ begin
     if PCommentData(n.data).comment<>nil then
       StrDispose(PCommentData(n.data).comment);
 
+    if PCommentData(n.data).header<>nil then
+      StrDispose(PCommentData(n.data).header);
+
+
     freemem(n.data);
     commentstree.Delete(n);
   end;
@@ -221,11 +324,14 @@ var i: integer;
   addressstring: string;
   address: ptruint;
   commentstring: string;
+  headerstring: string;
   n,n2: TDomnode;
   e: boolean;
 begin
   clear;
 
+  commentstring:='';
+  headerstring:='';
 
 
   for i:=0 to node.ChildNodes.Count-1 do
@@ -242,18 +348,24 @@ begin
 
         n2:=n.FindNode('Comment');
         if n2<>nil then
-        begin
           commentstring:=n2.TextContent;
 
-          address:=symhandler.getAddressFromName(addressstring, false, e);
-          if e then
-            address:=i+1; //as a temp holder
+        n2:=n.FindNode('Header');
+        if n2<>nil then
+          headerstring:=n2.TextContent;
 
 
+        address:=symhandler.getAddressFromName(addressstring, false, e);
+        if e then
+          address:=i+1; //as a temp holder
+
+        if commentstring<>'' then
           comments[address]:=commentstring;
-          interpretableAddress[address]:=addressstring;
-        end;
 
+        if headerstring<>'' then
+          commentHeader[address]:=headerstring;
+
+        interpretableAddress[address]:=addressstring;
       end;
     end;
   end;
@@ -276,7 +388,12 @@ begin
     begin
       commentnode:=node.AppendChild(doc.CreateElement('DisassemblerComment'));
       commentnode.AppendChild(doc.CreateElement('Address')).TextContent:=c.interpretableAddress;
-      commentnode.AppendChild(doc.CreateElement('Comment')).TextContent:=c.comment;
+      if c.comment<>nil then
+        commentnode.AppendChild(doc.CreateElement('Comment')).TextContent:=c.comment;
+
+      if c.header<>nil then
+        commentnode.AppendChild(doc.CreateElement('Header')).TextContent:=c.header;
+
       c:=c.next;
     end;
   end;
@@ -305,6 +422,12 @@ begin
         begin
           StrDispose(c.comment);
           c.comment:=nil;
+        end;
+
+        if c.header<>nil then
+        begin
+          StrDispose(c.header);
+          c.header:=nil;
         end;
 
         if c.interpretableAddress<>nil then
@@ -347,6 +470,7 @@ var newcomments, olddassemblercomments: TDisassemblerComments;
   e: boolean;
 
   address: ptruint;
+  comment, header: string;
 begin
   newcomments:=TDisassemblerComments.create;
   n:=dassemblercomments.commentstree.FindLowest;
@@ -360,7 +484,22 @@ begin
       if e then //couldn't get resolved
         address:=c.address;
 
-      newcomments.comments[address]:=c.comment;
+
+
+      if c.comment<>nil then
+        comment:=c.comment
+      else
+        comment:='';
+
+
+      if c.header<>nil then
+        header:=c.header
+      else
+        header:='';
+
+      newcomments.comments[address]:=comment;
+      newcomments.commentHeader[address]:=header;
+
       newcomments.interpretableAddress[address]:=c.interpretableAddress;  //force the interpretable address in case it failed setting
 
       c:=c.next;

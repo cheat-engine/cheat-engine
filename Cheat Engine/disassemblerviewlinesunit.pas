@@ -47,6 +47,7 @@ type
     opcodestring: string;
     specialstring: string;
     specialstrings: tstringlist;
+    customheaderstrings: tstringlist;
     parameterstring: string;
     referencedbylineheight: integer;
     boldheight: integer;
@@ -222,7 +223,7 @@ var
     baseofsymbol: qword;
     symbolname: string;
     parameters, locations: string;
-    comment: string;
+    comment, header: string;
     refferencedby: string;
     refferencedbylinecount: integer;
     refferencedbyheight: integer;
@@ -308,10 +309,7 @@ begin
 
   //split up into lines
   specialstrings.text:=specialstring;
-
-
-
-
+  customheaderstrings.text:=dassemblercomments.commentHeader[visibleDisassembler.LastDisassembleData.address];
 
 
   if symhandler.showmodules then
@@ -339,6 +337,10 @@ begin
   //calculate how big the comments are. (beyond the default height)
   for i:=1 to specialstrings.count-1 do
     inc(fHeight, fcanvas.textHeight(specialstrings[i]));
+
+  //calculae the custom headersize
+  for i:=0 to customheaderstrings.count-1 do
+    inc(fheight, fCanvas.TextHeight(customheaderstrings[i]));
 
   if ExtraLineRenderAbove<>nil then
   begin
@@ -559,6 +561,16 @@ begin
 
   end;
 
+  if customheaderstrings.count>0 then
+  begin
+    //render the custom header
+    for i:=0 to customheaderstrings.count-1 do
+    begin
+      fcanvas.TextOut(fHeaders.Items[0].Left,linestart,AnsiToUtf8(customheaderstrings[i]));
+      linestart:=linestart+fcanvas.TextHeight(customheaderstrings[i]);
+    end;
+  end;
+
 
 
   if MemoryBrowser.lastdebugcontext.{$ifdef cpu64}rip{$else}EIP{$endif}=faddress then
@@ -769,6 +781,7 @@ begin
   fDefaultHeight:=-1;
 
   specialstrings:=tstringlist.create;
+  customheaderstrings:=tstringlist.create;
 end;
 
 end.

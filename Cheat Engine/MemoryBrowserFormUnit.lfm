@@ -835,6 +835,10 @@ object MemoryBrowser: TMemoryBrowser
       ShortCut = 16397
       OnClick = miUserdefinedCommentClick
     end
+    object miUserDefinedHeader: TMenuItem
+      Caption = 'Set/Change header'
+      OnClick = miUserDefinedHeaderClick
+    end
   end
   object Timer2: TTimer
     Interval = 100

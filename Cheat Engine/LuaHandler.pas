@@ -4404,6 +4404,40 @@ begin
   end;
 end;
 
+function getHeader(L: PLua_state): integer; cdecl;
+var address: ptruint;
+begin
+  result:=0;
+  if lua_gettop(L)=1 then
+  begin
+    if lua_type(L,1)=LUA_TSTRING then
+      address:=symhandler.getAddressFromName(Lua_ToString(L,1))
+    else
+      address:=lua_tointeger(L,1);
+
+    lua_pushstring(L, dassemblercomments.commentHeader[address]);
+    result:=1;
+  end;
+end;
+
+function setHeader(L: PLua_state): integer; cdecl;
+var address: ptruint;
+  Header: string;
+begin
+  result:=0;
+  if lua_gettop(L)=2 then
+  begin
+    if lua_type(L,1)=LUA_TSTRING then
+      address:=symhandler.getAddressFromName(Lua_ToString(L,1))
+    else
+      address:=lua_tointeger(L,1);
+
+    Header:=Lua_ToString(L, 2);
+
+    dassemblercomments.commentHeader[address]:=Header;
+  end;
+end;
+
 function lua_createClass(L: PLua_State): integer; cdecl;
 var classname: string;
 begin
@@ -4787,6 +4821,8 @@ begin
     Lua_register(LuaVM, 'detachIfPossible', lua_DetachIfPossible);
     Lua_register(LuaVM, 'getComment', getComment);
     Lua_register(LuaVM, 'setComment', setComment);
+    Lua_register(LuaVM, 'getHeader', getHeader);
+    Lua_register(LuaVM, 'setHeader', setHeader);
 
     lua_register(LuaVM, 'createClass', lua_createClass);
     lua_register(LuaVM, 'openLuaServer', openLuaServer);

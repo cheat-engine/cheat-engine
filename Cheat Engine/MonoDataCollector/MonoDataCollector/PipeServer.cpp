@@ -90,10 +90,12 @@ void CPipeServer::InitMono()
 			mono_class_get_name=(MONO_CLASS_GET_NAME)GetProcAddress(hMono, "mono_class_get_name");
 			mono_class_get_namespace=(MONO_CLASS_GET_NAMESPACE)GetProcAddress(hMono, "mono_class_get_namespace");
 			mono_class_get_methods=(MONO_CLASS_GET_METHODS)GetProcAddress(hMono, "mono_class_get_methods");		
+			mono_class_get_method_from_name=(MONO_CLASS_GET_METHOD_FROM_NAME)GetProcAddress(hMono, "mono_class_get_method_from_name");		
 			mono_class_get_fields=(MONO_CLASS_GET_FIELDS)GetProcAddress(hMono, "mono_class_get_fields");		
 			
 			mono_class_num_fields=(MONO_CLASS_NUM_FIELDS)GetProcAddress(hMono, "mono_class_num_fields");	
 			mono_class_num_methods=(MONO_CLASS_NUM_METHODS)GetProcAddress(hMono, "mono_class_num_methods");		
+			
 
 			mono_field_get_name=(MONO_FIELD_GET_NAME)GetProcAddress(hMono, "mono_field_get_name");	
 			mono_field_get_type=(MONO_FIELD_GET_TYPE)GetProcAddress(hMono, "mono_field_get_type");	
@@ -396,6 +398,21 @@ void CPipeServer::FindClass()
 
 }
 
+void CPipeServer::FindMethod()
+{
+	void *klass=(void *)ReadQword();
+	WORD length=ReadWord();
+	char *methodname=(char *)malloc(length+1);
+	void *method=NULL;
+	if (length)
+		Read(methodname, length);
+	methodname[length]=0;
+
+	
+	method=mono_class_get_method_from_name(klass, methodname, -1);
+	WriteQword((UINT_PTR)method);
+}
+
 void CPipeServer::Start(void)
 {
 	BYTE command;
@@ -475,6 +492,9 @@ void CPipeServer::Start(void)
 						FindClass();
 						break;
 
+					case MONOCMD_FINDMETHOD:
+						FindMethod();
+						break;
 				}
 			}			
 		}
