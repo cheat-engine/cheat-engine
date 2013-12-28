@@ -705,6 +705,8 @@ function monoAA_FINDMONOMETHOD(parameters, syntaxcheckonly)
   end
 
 
+  classname=classname:match "^%s*(.-)%s*$" --trim
+  methodname=methodname:match "^%s*(.-)%s*$" --trim
 
 
   if syntaxcheckonly then
@@ -720,14 +722,105 @@ function monoAA_FINDMONOMETHOD(parameters, syntaxcheckonly)
   end
 
 
-  methodaddress=mono_findMethod(namespace, classname, methodname)
-  if (methodaddress==0) then
+  local method=mono_findMethod(namespace, classname, methodname)
+  if (method==0) then
     return nil,fullmethodnamestring.." could not be found"
+  end
+
+  methodaddress=mono_compile_method(method)
+  if (methodaddress==0) then
+    return nil,fullmethodnamestring.." could not be jitted"
   end
 
 
 
   return "define("..name..","..string.format("%x", methodaddress)..")" --return an empty string (removes it from the internal aa assemble list)
+end
+
+function monoAA_GETMONOSTRUCT(parameters, syntaxcheckonly)
+  --called whenever an auto assembler script encounters the GETMONOSTRUCT() line
+
+  --parameters: classname or classname,namespace:classname  (or classname,classname)
+
+  --turns into a struct define
+
+  local c,name,classname,namespace
+
+  c=string.find(parameters,",")
+  if c==nil then
+    --just find this class
+	name=parameters
+	classname=parameters
+	namespace=''
+  else
+    --there is a namespace:classname notation
+	c=string.find(parameters,":")
+    if (c~=nil) then
+      namespace=string.sub(parameters, 1,c-1)
+
+	  classname=string.sub(parameters, c+1, #parameters)
+    else
+      namespace='';
+	  classname=parameters
+    end
+  end
+
+  name=name:match "^%s*(.-)%s*$"
+  classname=classname:match "^%s*(.-)%s*$"
+  namespace=namespace:match "^%s*(.-)%s*$"
+
+  local class=mono_findClass(namespace, classname)
+  if (class==0) then
+    return nil,"The class "..namespace..":"..classname.." could not be found"
+  end
+
+  local fields=mono_class_enumFields(class)
+  if (fields==nil) or (#fields==0) then
+    return nil,namespace..":"..classname.." has no fields"
+  end
+
+
+  local offsets={}
+  local i
+  for i=1, #fields do
+    if fields[i].offset~=0 then
+      offsets[fields[i].offset]=fields[i].name
+    end
+  end
+
+  local sortedindex={}
+  for c in pairs(offsets) do
+    table.insert(sortedindex, c)
+  end
+  table.sort(sortedindex)
+
+  local result='struct '..name+"\n"
+
+  if #sortedindex>0 then
+    result=result.."vtable: resb "..sortedindex[1]
+  end
+
+
+  for i=2, #sortedindex do
+    local offset=sortedindex[i]
+
+	local name=offsets[offset]
+	result=result..name..": "
+	if offsets[v+1]~=nil then
+	  result=result.." resb "..sortedindex[i+1]-sortedindex[i]
+	else
+	  result=result.." resb 1"
+	end
+
+	result=result.."\n"
+
+
+  end
+
+
+  result=result.."ends\n"
+
+  return result
 end
 
 function mono_initialize()
@@ -739,6 +832,7 @@ function mono_initialize()
 
 	registerAutoAssemblerCommand("USEMONO", monoAA_USEMONO)
 	registerAutoAssemblerCommand("FINDMONOMETHOD", monoAA_FINDMONOMETHOD)
+	registerAutoAssemblerCommand("GETMONOSTRUCT", monoAA_GETMONOSTRUCT)
   end
 end
 
