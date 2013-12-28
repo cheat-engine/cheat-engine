@@ -733,8 +733,11 @@ function monoAA_FINDMONOMETHOD(parameters, syntaxcheckonly)
   end
 
 
+  local result="define("..name..","..string.format("%x", methodaddress)..")"
 
-  return "define("..name..","..string.format("%x", methodaddress)..")" --return an empty string (removes it from the internal aa assemble list)
+ -- showMessage(result)
+
+  return result
 end
 
 function monoAA_GETMONOSTRUCT(parameters, syntaxcheckonly)
@@ -752,8 +755,19 @@ function monoAA_GETMONOSTRUCT(parameters, syntaxcheckonly)
 	name=parameters
 	classname=parameters
 	namespace=''
+	--print("Format 1")
+	--print("name="..name)
+	--print("classname="..classname)
+	--print("namespace="..namespace)
+
   else
-    --there is a namespace:classname notation
+    --this is a name,namespace:classname notation
+	print("Format 2")
+
+	name=string.sub(parameters, 1, c-1)
+	parameters=string.sub(parameters, c+1, #parameters)
+
+
 	c=string.find(parameters,":")
     if (c~=nil) then
       namespace=string.sub(parameters, 1,c-1)
@@ -763,6 +777,11 @@ function monoAA_GETMONOSTRUCT(parameters, syntaxcheckonly)
       namespace='';
 	  classname=parameters
     end
+
+	--print("name="..name)
+	--print("classname="..classname)
+	--print("namespace="..namespace)
+
   end
 
   name=name:match "^%s*(.-)%s*$"
@@ -794,31 +813,42 @@ function monoAA_GETMONOSTRUCT(parameters, syntaxcheckonly)
   end
   table.sort(sortedindex)
 
-  local result='struct '..name+"\n"
+  local result="struct "..name.."\n"
+  local fieldsize
 
   if #sortedindex>0 then
-    result=result.."vtable: resb "..sortedindex[1]
+    fieldsize=sortedindex[1]-0;
+
+    result=result.."vtable: resb "..fieldsize
   end
+
+  result=result.."\n"
 
 
   for i=2, #sortedindex do
     local offset=sortedindex[i]
 
+
+
 	local name=offsets[offset]
 	result=result..name..": "
-	if offsets[v+1]~=nil then
-	  result=result.." resb "..sortedindex[i+1]-sortedindex[i]
+	if sortedindex[i+1]~=nil then
+	  fieldsize=sortedindex[i+1]-offset
 	else
-	  result=result.." resb 1"
+	  --print("last one")
+	  fieldsize=1 --last one
 	end
 
-	result=result.."\n"
+	result=result.." resb "..fieldsize.."\n"
+
 
 
   end
 
 
   result=result.."ends\n"
+
+  --showMessage(result)
 
   return result
 end
