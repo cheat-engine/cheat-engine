@@ -49,6 +49,9 @@ type
 
       function AutoAssemblerCallback(parameters: string; syntaxcheckonly: boolean): string;
 
+      function AddressLookupCallback(address: ptruint): string;
+      function SymbolLookupCallback(s: string): ptruint;
+
       procedure ScreenFormEvent(Sender: TObject; Form: TCustomForm);
       procedure pushFunction;
 
@@ -744,21 +747,20 @@ begin
   try
     oldstack:=lua_gettop(Luavm);
 
-    if canRun then
-    begin
-      PushFunction;
-      lua_pushstring(luavm, parameters);
-      lua_pushboolean(luavm, syntaxcheckonly);
-      if lua_pcall(Luavm, 2,2,0)=0 then
-      begin
-        if lua_isnil(luavm, -2) and lua_isstring(luavm, -1) then
-          raise exception.create(Lua_ToString(luavm, -1));
 
-        result:=Lua_ToString(luavm, -2);
-      end
-      else
-        raise exception.create('Lua Function error('+lua_tostring(luavm, -1)+')');
-    end;
+    PushFunction;
+    lua_pushstring(luavm, parameters);
+    lua_pushboolean(luavm, syntaxcheckonly);
+    if lua_pcall(Luavm, 2,2,0)=0 then
+    begin
+      if lua_isnil(luavm, -2) and lua_isstring(luavm, -1) then
+        raise exception.create(Lua_ToString(luavm, -1));
+
+      result:=Lua_ToString(luavm, -2);
+    end
+    else
+      raise exception.create('Lua Function error('+lua_tostring(luavm, -1)+')');
+
   finally
     lua_settop(Luavm, oldstack);
     luacs.leave;
@@ -784,6 +786,46 @@ begin
   end;
 end;
 
+function TLuaCaller.AddressLookupCallback(address: ptruint): string;
+var oldstack: integer;
+begin
+  result:='';
+  Luacs.Enter;
+  try
+    oldstack:=lua_gettop(Luavm);
+
+
+    PushFunction;
+    lua_pushinteger(luavm, address);
+    if lua_pcall(Luavm, 1,1,0)=0 then
+      if not lua_isnil(luavm, -1) then
+        result:=Lua_ToString(luavm,-1);
+
+
+  finally
+    lua_settop(Luavm, oldstack);
+    luacs.leave;
+  end;
+end;
+
+function TLuaCaller.SymbolLookupCallback(s: string): ptruint;
+var oldstack: integer;
+begin
+  result:=0;
+  Luacs.Enter;
+  try
+    oldstack:=lua_gettop(Luavm);
+
+    PushFunction;
+    lua_pushstring(luavm, s);
+    if lua_pcall(Luavm, 1,1,0)=0 then
+      if not lua_isnil(luavm, -1) then
+        result:=lua_tointeger(luavm,-1);
+  finally
+    lua_settop(Luavm, oldstack);
+    luacs.leave;
+  end;
+end;
 
 //----------------------------Lua implementation-----------------------------
 function LuaCaller_NotifyEvent(L: PLua_state): integer; cdecl;
