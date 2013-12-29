@@ -233,8 +233,25 @@ end;
 var symhandler: TSymhandler=nil;
     selfsymhandler: TSymhandler=nil;  //symhandler object for CE itself
 
+type TSymbolLookupCallbackPoint=(
+        slStart=0, //The very start of a symbol lookup. Before tokenization
+        slNotInt=1, //Called when it has been determined it's not a hexadecimal only string. Before tokenization
+        slNotModule=2, //Called when it has been determined the current token is not a modulename
+        slNotUserdefinedSymbol=3, //Called when it has been determined it's not a userdefined symbol
+        slNotSymbol=4, //: Called when it has been determined it's not a symbol in the symbollist
+        slFailure=5 //: Called when it has no clue what the given string is
+        );
+
+type TSymbolLookupCallback=function(s: string): PtrUInt of object;
+type TAddressLookupCallback=function(address: ptruint): string of object;
 
 
+
+function registerSymbolLookupCallback(callback: TSymbolLookupCallback;  cbp: TSymbolLookupCallbackPoint): integer;
+procedure unregisterSymbolLookupCallback(id: integer);
+
+function registerAddressLookupCallback(callback: TAddressLookupCallback): integer;
+procedure unregisterAddressLookupCallback(id: integer);
 
 
 type TSymFromName=function(hProcess: HANDLE; Name: LPSTR; Symbol: PSYMBOL_INFO): BOOL; stdcall;
@@ -276,6 +293,63 @@ type TGetModuleFileNameEx=function(hProcess: HANDLE; hModule: HMODULE; lpFilenam
 var EnumProcessModulesEx: TEnumProcessModulesEx;
     EnumProcessModules:   TEnumProcessModules;
     GetModuleFileNameEx:  TGetModuleFilenameEx;
+
+    SymbolLookupCallbacks: array [slStart..slFailure] of array of TSymbolLookupCallback;
+    AddressLookupCallbacks: array of TAddressLookupCallback;
+
+function registerSymbolLookupCallback(callback: TSymbolLookupCallback;  cbp: TSymbolLookupCallbackPoint): integer;
+var i: integer;
+begin
+  //first check if there is an unassigned entry to use
+  for i:=0 to length(SymbolLookupCallbacks[cbp])-1 do
+    if not assigned(SymbolLookupCallbacks[cbp][i]) then
+    begin
+      result:=i;
+      SymbolLookupCallbacks[cbp][i]:=callback;
+
+      result:=result or (integer(cbp) shl 29); //last 3 bits of the ID specify the callbackpoint. sure, it limits the number of callbacks per point to only 536870911 but I don't care
+      exit;
+    end;
+
+  result:=length(SymbolLookupCallbacks[cbp]);
+  setlength(SymbolLookupCallbacks[cbp], result+1);
+  SymbolLookupCallbacks[cbp][result]:=callback;
+  result:=result or (integer(cbp) shl 29);
+end;
+
+procedure unregisterSymbolLookupCallback(id: integer);
+var cbp: TSymbolLookupCallbackPoint;
+begin
+  cbp:=TSymbolLookupCallbackPoint(id shr 29);
+  id:=id and $1FFFFFFF;
+
+  if id<length(SymbolLookupCallbacks[cbp]) then
+    SymbolLookupCallbacks[cbp][id]:=nil;
+end;
+
+function registerAddressLookupCallback(callback: TAddressLookupCallback): integer;
+var i: integer;
+begin
+  //first check if there is an unassigned entry to use
+  for i:=0 to length(AddressLookupCallbacks)-1 do
+    if not assigned(AddressLookupCallbacks[i]) then
+    begin
+      result:=i;
+      AddressLookupCallbacks[i]:=callback;
+      exit;
+    end;
+
+  result:=length(AddressLookupCallbacks);
+  setlength(AddressLookupCallbacks, result+1);
+  AddressLookupCallbacks[result]:=callback;
+end;
+
+procedure unregisterAddressLookupCallback(id: integer);
+begin
+  if id<length(AddressLookupCallbacks) then
+    AddressLookupCallbacks[id]:=nil;
+end;
+
 
 function EnumProcessModulesExNotImplemented(hProcess: HANDLE; lphModule: PHMODULE; cb: DWORD; var lpcbNeeded: DWORD; dwFilterFlag: DWORD): BOOL; stdcall;
 begin
@@ -1762,10 +1836,21 @@ begin
   end;
 {$endif}
 
+  for i:=0 to length(AddressLookupCallbacks)-1 do
+  begin
+    if assigned(AddressLookupCallbacks[i]) then
+    begin
+      result:=AddressLookupCallbacks[i](address);
+      if result<>'' then
+        exit;
+    end;
+  end;
+
 
   //check the userdefined symbols
   if found<>nil then
     found^:=false;
+
 
   result:=self.GetUserdefinedSymbolByAddress(address);
   if result<>'' then exit;
@@ -1913,11 +1998,27 @@ begin
 end;
 
 function TSymhandler.getAddressFromName(name: string; waitforsymbols: boolean; out haserror: boolean; context: PContext):ptrUint;
+  function callbackCheck(s: string; cbType: TSymbolLookupCallbackPoint): ptruint;
+  var slcindex: integer;
+  begin
+    result:=0;
+    for slcindex:=0 to length(SymbolLookupCallbacks[cbType])-1 do
+    begin
+      if assigned(SymbolLookupCallbacks[cbType][slcindex]) then
+      begin
+        result:=SymbolLookupCallbacks[cbType][slcindex](name);
+        if result<>0 then exit;
+      end;
+    end;
+  end;
+
 type TCalculation=(calcAddition, calcSubstraction);
 var mi: tmoduleinfo;
     si: PCESymbolInfo;
     offset: integer;
     i,j: integer;
+
+    slcindex: integer;
 
     p: pchar;
     ws: widestring;
@@ -1941,6 +2042,9 @@ begin
   hasPointer:=false;
   haserror:=false;
   offset:=0;
+
+  result:=callbackCheck(name, slStart);
+  if result<>0 then exit;
 
 
   //check if it's a lua symbol notation ('$')
@@ -2021,6 +2125,10 @@ begin
 
 
   //not a hexadecimal string
+  result:=callbackCheck(name, slNotInt);
+  if result<>0 then exit;
+
+
   tokenize(name, tokens);
 
   //first check the most basic thing
@@ -2061,6 +2169,13 @@ begin
           else
           begin
             //not a modulename
+            result:=callbackCheck(name, slNotModule);
+            if result>0 then
+            begin
+              tokens[i]:=inttohex(result,8);
+              continue;
+            end;
+
             regnr:=getreg(uppercase(tokens[i]),false);
 
             if regnr<>-1 then
@@ -2106,6 +2221,13 @@ begin
               end;
 
               //not a userdefined symbol
+              result:=callbackCheck(name, slNotUserdefinedSymbol);
+              if result>0 then
+              begin
+                tokens[i]:=inttohex(result,8);
+                continue;
+              end;
+
               {$ifndef autoassemblerdll}
               if (DBKLoaded) and (length(tokens[i])>6) and (pos('KERNEL_',uppercase(tokens[i]))>0) then
               begin
@@ -2200,8 +2322,15 @@ begin
               end;
             end;
 
-
             //not a register or symbol
+            result:=callbackCheck(name, slNotSymbol);
+            if result>0 then
+            begin
+              tokens[i]:=inttohex(result,8);
+              continue;
+            end;
+
+
             //One last attempt to fix it, check if it is the last symbol, if not add it. (perhaps the symbol got split into tokens)
             if i<length(tokens)-1 then
             begin
@@ -2210,6 +2339,14 @@ begin
             end
             else
             begin
+              //failure
+              result:=callbackCheck(name, slFailure);
+              if result>0 then
+              begin
+                tokens[i]:=inttohex(result,8);
+                continue;
+              end;
+
               haserror:=true;
               exit;
             end;

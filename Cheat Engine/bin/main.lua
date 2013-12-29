@@ -3,6 +3,8 @@
 
 require("defines")
 
+
+
 --[[
 
 List of CE specific functions and variables:
@@ -109,6 +111,32 @@ registerAutoAssemblerCommand(command, function(parameters, syntaxcheckonly)): Re
  If the function returns nil, and as secondary parameter a string, this will make the auto assembler fail with that error
 
 unregisterAutoAssemblerCommand(command)
+
+
+registerSymbolLookupCallback(function(string):integer, location): ID  6.4+
+  Registers a function to be called when a a symbol is parsed
+  Location determines at what part of the symbol lookup the function is called
+    slStart: The very start of a symbol lookup. Before tokenization
+    slNotInt: Called when it has been determined it's not a hexadecimal only string. Before tokenization
+    --The following locations can be called multiple times for one string as they are called for each token and appended token
+    slNotModule: Called when it has been determined the current token is not a modulename
+    slNotUserdefinedSymbol: Called when it has been determined it's not a userdefined symbol
+    slNotSymbol: Called when it has been determined it's not a symbol in the symbollist
+    slFailure: Called when it has no clue what the given string is  
+
+    Note: slNotSymbol and slFailure are similar, but failure comes only if there's no token after the current token that can be concatenated. Else slNotSymbol will loop several times till all tokens make up the full string
+    
+    
+  Return an Integer with the corresponding address if you found it. Nil or 0 if you didn't.
+
+unregisterSymbolLookupCallback(ID): Removes the callback
+
+
+registerAddressLookupCallback(function(integer):string): ID 
+  Registers a function to be called when the name of an address is requested
+
+unregisterAddressLookupCallback(ID): Removes the callback
+
 
 
 showMessage(text) : shows a messagebox with the given text
@@ -321,7 +349,8 @@ detachIfPossible() : Detaches the debugger from the target process (if it was at
 
 getComment(address) : Gets the userdefined comment at the specified address
 setComment(address, text) : Sets a userdefined comment at the specifried address. %s is used to display the autoguess value if there is one
-
+getHeader(address) : Gets the userdefined header at the specified address
+setHeader(address) : Sets the userdefined header at the specified address
 
 
 
@@ -1846,6 +1875,9 @@ methods
 
 
 Disassembler Class (Inheritance: Object)
+
+
+
 createDisassembler() - Creates a disassembler object that can be used to disassemble an instruction and at the same time get more data
 getDefaultDisassembler() - Returns the default disassembler object used by a lot of ce's disassembler routines
 getVisibleDisassembler() - Returns the disassembler used by the disassemblerview. Special codes are: {H}=Hex value {R}=Register {S}=Symbol {N}=Nothing special

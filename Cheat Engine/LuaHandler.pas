@@ -4507,8 +4507,90 @@ begin
     command:=Lua_ToString(L, 1);
     UnregisterAutoAssemblerCommand(command);
   end;
+end;
+
+function lua_registerSymbolLookupCallback(L: PLua_State): integer; cdecl;
+var
+  f: integer;
+  sltype: TSymbolLookupCallbackPoint;
+  routine: string;
+  lc: tluacaller;
+begin
+  result:=0;
+
+  if lua_gettop(L)=2 then
+  begin
+    if lua_isnumber(L, 2) then sltype:=TSymbolLookupCallbackPoint(lua_tointeger(L, 2)) else exit;
+    if lua_isfunction(L, 1) then
+    begin
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+    end
+    else
+    if lua_isstring(L,1) then
+    begin
+      routine:=lua_tostring(L,-1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+    end
+    else exit;
+
+    lua_pushinteger(L, registerSymbolLookupCallback(lc.SymbolLookupCallback, sltype));
+    result:=1;
+  end;
 
 end;
+
+function lua_unregisterSymbolLookupCallback(L: PLua_State): integer; cdecl;
+var id: integer;
+begin
+  result:=0;
+  if lua_gettop(L)>0 then
+    unregisterSymbolLookupCallback(lua_tointeger(L, 1));
+end;
+
+function lua_registerAddressLookupCallback(L: PLua_State): integer; cdecl;
+var
+  f: integer;
+  routine: string;
+  lc: tluacaller;
+begin
+  result:=0;
+
+  if lua_gettop(L)=2 then
+  begin
+    if lua_isfunction(L, 1) then
+    begin
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+    end
+    else
+    if lua_isstring(L,1) then
+    begin
+      routine:=lua_tostring(L,-1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+    end
+    else exit;
+
+    lua_pushinteger(L, registerAddressLookupCallback(lc.AddressLookupCallback));
+    result:=1;
+  end;
+
+end;
+
+function lua_unregisterAddressLookupCallback(L: PLua_State): integer; cdecl;
+var id: integer;
+begin
+  result:=0;
+  if lua_gettop(L)>0 then
+    unregisterAddressLookupCallback(lua_tointeger(L, 1));
+end;
+
 
 procedure InitializeLua;
 var s: tstringlist;
@@ -4605,6 +4687,9 @@ begin
     lua_register(LuaVM, 'reinitializeSymbolhandler', reinitializeSymbolhandler);
     lua_register(LuaVM, 'reinitializeDotNetSymbolhandler', reinitializeDotNetSymbolhandler);
     lua_register(LuaVM, 'enumModules', enumModules);
+
+
+
 
     //ce6.1
     lua_register(LuaVM, 'getNameFromAddress', getNameFromAddress);
@@ -4830,7 +4915,10 @@ begin
     lua_register(LuaVM, 'registerAutoAssemblerCommand', lua_registerAutoAssemblerCommand);
     lua_register(LuaVM, 'unregisterAutoAssemblerCommand', lua_unregisterAutoAssemblerCommand);
 
-
+    lua_register(LuaVM, 'registerSymbolLookupCallback', lua_registerSymbolLookupCallback);
+    lua_register(LuaVM, 'unregisterSymbolLookupCallback', lua_unregisterSymbolLookupCallback);
+    lua_register(LuaVM, 'registerAddressLookupCallback', lua_registerAddressLookupCallback);
+    lua_register(LuaVM, 'unregisterAddressLookupCallback', lua_unregisterAddressLookupCallback);
 
     initializeLuaCustomControl;
 
