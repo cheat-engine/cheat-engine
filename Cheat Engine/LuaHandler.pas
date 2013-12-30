@@ -4564,6 +4564,7 @@ begin
   begin
     if lua_isfunction(L, 1) then
     begin
+      lua_pushvalue(L, 1);
       f:=luaL_ref(L,LUA_REGISTRYINDEX);
 
       lc:=TLuaCaller.create;
