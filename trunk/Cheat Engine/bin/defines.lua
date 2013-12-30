@@ -304,3 +304,11 @@ jtCall = 0
 jtUnconditional = 1
 jtConditional = 2
 jtMemory = 3
+
+--RegisterSymbolLookupCallback
+slStart = 0 --The very start of a symbol lookup. Before tokenization
+slNotInt = 1 --Called when it has been determined it's not a hexadecimal only string. Before tokenization
+slNotModule = 2 --Called when it has been determined the current token is not a modulename
+slNotUserdefinedSymbol = 3 --Called when it has been determined it's not a userdefined symbol
+slNotSymbol = 4 --Called when it has been determined it's not a symbol in the symbollist
+slFailure = 5 --Called when it has no clue what the given string is  

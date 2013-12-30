@@ -4523,6 +4523,7 @@ begin
     if lua_isnumber(L, 2) then sltype:=TSymbolLookupCallbackPoint(lua_tointeger(L, 2)) else exit;
     if lua_isfunction(L, 1) then
     begin
+      lua_pushvalue(L, 1);
       f:=luaL_ref(L,LUA_REGISTRYINDEX);
 
       lc:=TLuaCaller.create;
@@ -4531,7 +4532,7 @@ begin
     else
     if lua_isstring(L,1) then
     begin
-      routine:=lua_tostring(L,-1);
+      routine:=lua_tostring(L,1);
       lc:=TLuaCaller.create;
       lc.luaroutine:=routine;
     end
