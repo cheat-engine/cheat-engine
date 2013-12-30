@@ -61,7 +61,7 @@ function LaunchMonoDataCollector()
 
   if (monoBase~=0) then
     if mono_AddressLookupID==nil then
-     -- mono_AddressLookupID=registerAddressLookupCallback(mono_addressLookupCallback, slNotSymbol)
+      mono_AddressLookupID=registerAddressLookupCallback(mono_addressLookupCallback)
 	end
   end
 
