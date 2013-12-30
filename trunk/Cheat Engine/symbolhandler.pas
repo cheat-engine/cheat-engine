@@ -2169,7 +2169,7 @@ begin
           else
           begin
             //not a modulename
-            result:=callbackCheck(name, slNotModule);
+            result:=callbackCheck(tokens[i], slNotModule);
             if result>0 then
             begin
               tokens[i]:=inttohex(result,8);
@@ -2221,7 +2221,7 @@ begin
               end;
 
               //not a userdefined symbol
-              result:=callbackCheck(name, slNotUserdefinedSymbol);
+              result:=callbackCheck(tokens[i], slNotUserdefinedSymbol);
               if result>0 then
               begin
                 tokens[i]:=inttohex(result,8);
@@ -2323,7 +2323,7 @@ begin
             end;
 
             //not a register or symbol
-            result:=callbackCheck(name, slNotSymbol);
+            result:=callbackCheck(tokens[i], slNotSymbol);
             if result>0 then
             begin
               tokens[i]:=inttohex(result,8);
@@ -2340,7 +2340,7 @@ begin
             else
             begin
               //failure
-              result:=callbackCheck(name, slFailure);
+              result:=callbackCheck(tokens[i], slFailure);
               if result>0 then
               begin
                 tokens[i]:=inttohex(result,8);
