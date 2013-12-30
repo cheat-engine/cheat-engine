@@ -2006,7 +2006,7 @@ function TSymhandler.getAddressFromName(name: string; waitforsymbols: boolean; o
     begin
       if assigned(SymbolLookupCallbacks[cbType][slcindex]) then
       begin
-        result:=SymbolLookupCallbacks[cbType][slcindex](name);
+        result:=SymbolLookupCallbacks[cbType][slcindex](s);
         if result<>0 then exit;
       end;
     end;

@@ -20,9 +20,9 @@
 #define MONOCMD_GETJITINFO 14
 #define MONOCMD_FINDCLASS 15
 #define MONOCMD_FINDMETHOD 16
-
-
-
+#define MONOCMD_GETMETHODNAME 17
+#define MONOCMD_GETMETHODCLASS 18
+#define MONOCMD_GETCLASSNAME 19
 
 typedef void (__cdecl *MonoDomainFunc) (void *domain, void *user_data);
 typedef void (__cdecl *GFunc)          (void *data, void *user_data);
@@ -75,6 +75,7 @@ typedef int (__cdecl *MONO_JIT_INFO_GET_CODE_SIZE)(void *jitinfo);
 
 
 typedef void* (__cdecl *MONO_METHOD_GET_HEADER)(void *method);
+typedef void* (__cdecl *MONO_METHOD_GET_CLASS)(void *method);
 typedef void* (__cdecl *MONO_METHOD_HEADER_GET_CODE)(void *methodheader, UINT32 *code_size, UINT32 *max_stack);
 
 typedef void* (__cdecl *MONO_IMAGE_RVA_MAP)(void *image, UINT32 addr);
@@ -124,6 +125,7 @@ private:
 
 	MONO_METHOD_GET_NAME mono_method_get_name;
 	MONO_METHOD_GET_HEADER mono_method_get_header;
+	MONO_METHOD_GET_CLASS mono_method_get_class;
 
 	MONO_COMPILE_METHOD mono_compile_method;
 
@@ -155,6 +157,9 @@ private:
 	void GetJitInfo();
 	void FindClass();
 	void FindMethod();
+	void GetMethodName();
+	void GetMethodClass();
+	void GetClassName();
 
 public:
 	CPipeServer(void);

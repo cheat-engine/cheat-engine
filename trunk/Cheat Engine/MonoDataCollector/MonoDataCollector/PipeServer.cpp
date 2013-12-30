@@ -105,6 +105,7 @@ void CPipeServer::InitMono()
 			mono_type_get_name=(MONO_TYPE_GET_NAME)GetProcAddress(hMono, "mono_type_get_name");	
 
 			mono_method_get_name=(MONO_METHOD_GET_NAME)GetProcAddress(hMono, "mono_method_get_name");	
+			mono_method_get_class=(MONO_METHOD_GET_CLASS)GetProcAddress(hMono, "mono_method_get_class");	
 			mono_method_get_header=(MONO_METHOD_GET_HEADER)GetProcAddress(hMono, "mono_method_get_header");	
 
 			mono_compile_method=(MONO_COMPILE_METHOD)GetProcAddress(hMono, "mono_compile_method");	
@@ -144,7 +145,7 @@ void CPipeServer::Object_GetClass()
 	char *classname;
 	void *klass;
 
-	OutputDebugStringA("MONOCMD_OBJECT_GETCLASS");
+	//OutputDebugStringA("MONOCMD_OBJECT_GETCLASS");
 
 	
 	ExpectingAccessViolations=TRUE; //cause access violations to throw an exception
@@ -178,7 +179,7 @@ void CPipeServer::EnumDomains(void)
 {
 	unsigned int i;
 	std::vector<UINT64> v;
-	OutputDebugStringA("EnumDomains");
+	//OutputDebugStringA("EnumDomains");
 	mono_domain_foreach((MonoDomainFunc)DomainEnumerator, &v);
 
 	
@@ -204,7 +205,7 @@ void CPipeServer::EnumAssemblies()
 {
 	unsigned int i;
 	std::vector<UINT64> v;
-	OutputDebugStringA("EnumAssemblies");
+	//OutputDebugStringA("EnumAssemblies");
 	mono_assembly_foreach((GFunc)AssemblyEnumerator, &v);
 	
 	WriteDword(v.size());
@@ -413,6 +414,31 @@ void CPipeServer::FindMethod()
 	WriteQword((UINT_PTR)method);
 }
 
+void CPipeServer::GetMethodName()
+{
+	void *method=(void *)ReadQword();
+	char *methodname=mono_method_get_name(method);
+
+	WriteWord(strlen(methodname));
+	Write(methodname, strlen(methodname));	
+}
+
+void CPipeServer::GetMethodClass()
+{
+	void *method=(void *)ReadQword();
+	void *result=mono_method_get_class(method);
+	WriteQword((UINT_PTR)result);
+}
+
+void CPipeServer::GetClassName()
+{
+	void *klass=(void *)ReadQword();
+	char *methodname=mono_class_get_name(klass);
+
+	WriteWord(strlen(methodname));
+	Write(methodname, strlen(methodname));	
+}
+
 void CPipeServer::Start(void)
 {
 	BYTE command;
@@ -494,6 +520,18 @@ void CPipeServer::Start(void)
 
 					case MONOCMD_FINDMETHOD:
 						FindMethod();
+						break;
+
+					case MONOCMD_GETMETHODNAME:
+						GetMethodName();
+						break;		
+
+					case MONOCMD_GETMETHODCLASS:
+						GetMethodClass();
+						break;
+
+					case MONOCMD_GETCLASSNAME:
+						GetClassName();
 						break;
 				}
 			}			

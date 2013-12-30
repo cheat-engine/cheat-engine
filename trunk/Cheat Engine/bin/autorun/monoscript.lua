@@ -15,6 +15,9 @@ MONOCMD_LOOKUPRVA=13
 MONOCMD_GETJITINFO=14
 MONOCMD_FINDCLASS=15
 MONOCMD_FINDMETHOD=16
+MONOCMD_GETMETHODNAME=17
+MONOCMD_GETMETHODCLASS=18
+MONOCMD_GETCLASSNAME=19
 
 
 function LaunchMonoDataCollector()
@@ -55,7 +58,36 @@ function LaunchMonoDataCollector()
 
   monopipe.writeByte(CMD_INITMONO)
   monoBase=monopipe.readQword()
+
+  if (monoBase~=0) then
+    if mono_AddressLookupID==nil then
+     -- mono_AddressLookupID=registerAddressLookupCallback(mono_addressLookupCallback, slNotSymbol)
+	end
+  end
+
   return monoBase
+end
+
+function mono_addressLookupCallback(address)
+  local ji=mono_getJitInfo(address)
+  local result=''
+  if ji~=nil then
+--[[
+		ji.jitinfo;
+		ji.method
+		ji.code_start
+		ji.code_size
+--]]
+    if (ji.method~=0) then
+	  result=mono_class_getName(mono_method_getClass(ji.method))..":"..mono_method_getName(ji.method)
+	  if address~=ji.code_start then
+	    result=result..string.format("+%x",address-ji.code_start)
+	  end
+	end
+
+  end
+
+  return result
 end
 
 function mono_object_getClass(address)
@@ -164,6 +196,19 @@ function mono_image_enumClasses(image)
   monopipe.unlock()
 
   return classes;
+end
+
+function mono_class_getName(clasS)
+  local result=''
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_GETCLASSNAME)
+  monopipe.writeQword(clasS)
+
+  local namelength=monopipe.readWord();
+  result=monopipe.readString(namelength);
+
+  monopipe.unlock()
+  return result;
 end
 
 
@@ -370,9 +415,33 @@ function mono_invokeMethod()
   print("Not yet implemented")
 end
 
+function mono_method_getName(method)
+  local result=''
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_GETMETHODNAME)
+  monopipe.writeQword(method)
+
+  local namelength=monopipe.readWord();
+  result=monopipe.readString(namelength);
+
+  monopipe.unlock()
+  return result;
+end
+
 function mono_method_getHeader(method)
   monopipe.lock()
   monopipe.writeByte(MONOCMD_GETMETHODHEADER)
+  monopipe.writeQword(method)
+  local result=monopipe.readQword()
+
+  monopipe.unlock()
+
+  return result;
+end
+
+function mono_method_getClass(method)
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_GETMETHODCLASS)
   monopipe.writeQword(method)
   local result=monopipe.readQword()
 
