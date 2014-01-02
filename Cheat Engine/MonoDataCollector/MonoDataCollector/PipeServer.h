@@ -23,6 +23,9 @@
 #define MONOCMD_GETMETHODNAME 17
 #define MONOCMD_GETMETHODCLASS 18
 #define MONOCMD_GETCLASSNAME 19
+#define MONOCMD_GETCLASSNAMESPACE 20
+#define MONOCMD_FREEMETHOD 21
+#define MONOCMD_TERMINATE 22
 
 typedef void (__cdecl *MonoDomainFunc) (void *domain, void *user_data);
 typedef void (__cdecl *GFunc)          (void *data, void *user_data);
@@ -31,6 +34,7 @@ typedef void (__cdecl *G_FREE)(void *ptr);
 
 typedef void* (__cdecl *MONO_GET_ROOT_DOMAIN)(void);
 typedef void* (__cdecl *MONO_THREAD_ATTACH)(void *domain);
+typedef void (__cdecl *MONO_THREAD_DETACH)(void *monothread);
 typedef void* (__cdecl *MONO_OBJECT_GET_CLASS)(void *object);
 
 typedef void (__cdecl *MONO_DOMAIN_FOREACH)(MonoDomainFunc func, void *user_data);
@@ -65,6 +69,7 @@ typedef char* (__cdecl *MONO_TYPE_GET_NAME)(void *type);
 
 typedef char* (__cdecl *MONO_METHOD_GET_NAME)(void *method);
 typedef void* (__cdecl *MONO_COMPILE_METHOD)(void *method);
+typedef void (__cdecl *MONO_FREE_METHOD)(void *method);
 
 typedef void* (__cdecl *MONO_JIT_INFO_TABLE_FIND)(void *domain, void *addr);
 
@@ -76,6 +81,9 @@ typedef int (__cdecl *MONO_JIT_INFO_GET_CODE_SIZE)(void *jitinfo);
 
 typedef void* (__cdecl *MONO_METHOD_GET_HEADER)(void *method);
 typedef void* (__cdecl *MONO_METHOD_GET_CLASS)(void *method);
+
+
+
 typedef void* (__cdecl *MONO_METHOD_HEADER_GET_CODE)(void *methodheader, UINT32 *code_size, UINT32 *max_stack);
 
 typedef void* (__cdecl *MONO_IMAGE_RVA_MAP)(void *image, UINT32 addr);
@@ -86,9 +94,12 @@ private:
 	wchar_t datapipename[256];
 	wchar_t eventpipename[256];
 
+	void *mono_selfthread;
+
 	G_FREE g_free;
 	MONO_GET_ROOT_DOMAIN mono_get_root_domain;
 	MONO_THREAD_ATTACH mono_thread_attach;
+	MONO_THREAD_DETACH mono_thread_detach;
 	MONO_OBJECT_GET_CLASS mono_object_get_class;
 	MONO_CLASS_GET_NAME mono_class_get_name;
 	MONO_CLASS_GET_NAMESPACE mono_class_get_namespace;
@@ -127,7 +138,9 @@ private:
 	MONO_METHOD_GET_HEADER mono_method_get_header;
 	MONO_METHOD_GET_CLASS mono_method_get_class;
 
+
 	MONO_COMPILE_METHOD mono_compile_method;
+	MONO_FREE_METHOD mono_free_method;
 
 	MONO_JIT_INFO_TABLE_FIND mono_jit_info_table_find;
 	MONO_JIT_INFO_GET_METHOD mono_jit_info_get_method;
@@ -160,6 +173,8 @@ private:
 	void GetMethodName();
 	void GetMethodClass();
 	void GetClassName();
+	void GetClassNamespace();
+	void FreeMethod();
 
 public:
 	CPipeServer(void);

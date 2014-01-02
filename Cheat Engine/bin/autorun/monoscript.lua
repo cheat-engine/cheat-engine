@@ -20,6 +20,7 @@ MONOCMD_GETMETHODCLASS=18
 MONOCMD_GETCLASSNAME=19
 MONOCMD_GETCLASSNAMESPACE=20
 MONOCMD_FREEMETHOD=21
+MONOCMD_TERMINATE=22
 
 
 function LaunchMonoDataCollector()
@@ -587,7 +588,7 @@ function mono_compile_method(method) --Jit a method if it wasn't jitted yet
 end
 
 --note: does not work while the profiler is active (Current implementation doesn't use the profiler, so we're good to go)
-function mono_free_method(method) --unjit the method
+function mono_free_method(method) --unjit the method. Only works on dynamic methods. (most are not)
   if debug_canBreak() then return nil end
 
   monopipe.lock()
