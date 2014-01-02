@@ -163,7 +163,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       object cbNoLoop: TCheckBox
         Left = 276
         Height = 19
-        Top = 20
+        Top = 40
         Width = 111
         Caption = 'No looping pointers'
         TabOrder = 9
@@ -171,7 +171,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       object cbMaxOffsetsPerNode: TCheckBox
         Left = 276
         Height = 19
-        Top = 40
+        Top = 60
         Width = 163
         Caption = 'Max different offsets per node:'
         OnChange = cbMaxOffsetsPerNodeChange
@@ -180,7 +180,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       object edtMaxOffsetsPerNode: TEdit
         Left = 444
         Height = 21
-        Top = 38
+        Top = 58
         Width = 40
         Enabled = False
         TabOrder = 11
@@ -189,7 +189,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       object cbStaticStacks: TCheckBox
         Left = 276
         Height = 19
-        Top = 60
+        Top = 80
         Width = 328
         Caption = 'Allow stack addresses of the first thread(s) to be handled as static'
         Checked = True
@@ -200,7 +200,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       object lblNumberOfStackThreads: TLabel
         Left = 292
         Height = 14
-        Top = 85
+        Top = 105
         Width = 194
         Caption = 'Number of threads from oldest to newest:'
         ParentColor = False
@@ -209,7 +209,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         Left = 509
         Height = 21
         Hint = 'Fill in the total number of threads that should be allowed to be used as a stack lookup.'#13#10'Thread 1 is usually the main thread of the game, but if that one spawns another thread for game related events, you might want to have that secondary thread as well.'#13#10'More threads is not recommend as they may get created and destroyed on the fly, and are therefore useless as a lookup base, but it depends on the game.'
-        Top = 83
+        Top = 103
         Width = 24
         ParentShowHint = False
         ShowHint = True
@@ -219,7 +219,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       object lblStackSize: TLabel
         Left = 291
         Height = 14
-        Top = 104
+        Top = 124
         Width = 214
         Caption = 'Max stackoffset to be deemed static enough:'
         ParentColor = False
@@ -227,7 +227,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       object edtStackSize: TEdit
         Left = 509
         Height = 21
-        Top = 104
+        Top = 124
         Width = 80
         TabOrder = 14
         Text = '4096'
@@ -236,12 +236,21 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         Left = 292
         Height = 19
         Hint = 'Enable this if you wish to only find pointer paths with a stack address.'#13#10'Combine this with "Only find paths with a static address" (default on) else this option will have no effect'
-        Top = 124
+        Top = 144
         Width = 213
         Caption = 'Stack addresses as ONLY static address'
         ParentShowHint = False
         ShowHint = True
         TabOrder = 15
+      end
+      object cbAcceptNonModuleVtable: TCheckBox
+        Left = 291
+        Height = 19
+        Top = 20
+        Width = 185
+        Caption = 'Also accept non-module addresses'
+        Enabled = False
+        TabOrder = 16
       end
     end
   end

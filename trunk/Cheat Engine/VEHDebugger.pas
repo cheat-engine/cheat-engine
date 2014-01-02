@@ -315,11 +315,12 @@ function TVEHDebugInterface.DebugActiveProcess(dwProcessId: DWORD): WINBOOL;
 var s: tstringlist;
 e: integer;
 prefix: string;
+testptr: ptruint;
 begin
   try
     processhandler.processid:=dwProcessID;
     Open_Process;
-    symhandler.reinitialize;
+    symhandler.reinitialize(true);
 
 
 
@@ -381,8 +382,10 @@ begin
     symhandler.waitforsymbolsloaded;
 
     InjectDll(cheatenginedir+'vehdebug'+prefix+'.dll');
-    symhandler.reinitialize;
+    symhandler.reinitialize(true);
     symhandler.waitforsymbolsloaded;
+
+    testptr:=symhandler.getAddressFromName('vehdebug'+prefix+'.InitializeVEH');
 
     s:=tstringlist.Create;
     try

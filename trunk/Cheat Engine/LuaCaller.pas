@@ -23,6 +23,9 @@ type
       luaroutine: string;
       luaroutineindex: integer;
       owner: TPersistent;
+
+      synchronizeparam: TObject;
+      syncvm: Plua_State;
       procedure NotifyEvent(sender: TObject);
       procedure SelectionChangeEvent(Sender: TObject; User: boolean);
       procedure MouseEvent(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -53,6 +56,9 @@ type
       function SymbolLookupCallback(s: string): ptruint;
 
       procedure ScreenFormEvent(Sender: TObject; Form: TCustomForm);
+
+      procedure synchronize;
+
       procedure pushFunction;
 
 
@@ -268,6 +274,18 @@ begin
     lua_rawgeti(Luavm, LUA_REGISTRYINDEX, luaroutineindex)
 end;
 
+procedure TLuaCaller.synchronize;
+begin
+  //no locking here (should already be obtained by the caller)
+  PushFunction;
+  if synchronizeparam=nil then
+    lua_pushnil(syncvm)
+  else
+    luaclass_newClass(syncvm, synchronizeparam);
+
+  lua_pcall(syncvm, 1,0,0);
+end;
+
 procedure TLuaCaller.SelectionChangeEvent(Sender: TObject; User: boolean);
 var oldstack: integer;
 begin
@@ -278,6 +296,7 @@ begin
     if canRun then
     begin
       PushFunction;
+
       luaclass_newClass(Luavm, sender);
       lua_pushboolean(Luavm, User);
 

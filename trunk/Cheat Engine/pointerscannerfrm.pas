@@ -266,6 +266,7 @@ type
     errorstring: string;
 
     pathsEvaluated: qword;
+    pointersfound: qword;
 
     procedure execute; override;
     constructor create(suspended: boolean);
@@ -386,6 +387,7 @@ type
     onlyOneStaticInPath: boolean;
     noReadOnly: boolean;
     mustBeClassPointers: boolean; //when set the pointers must all point to a class object
+    acceptNonModuleClasses: boolean; //when set class objects may also be non module objects (jitted)
     noLoop: boolean; //when set a pointerpath may not have the same address multiple times
 
     useStacks: boolean; //when set the stack regions will be marked as static
@@ -404,8 +406,6 @@ type
     isdone: boolean;
 
     staticonly: boolean; //for reverse
-
-    pointersfound: qword;
 
     hasError: boolean;
     errorString: string;
@@ -820,22 +820,16 @@ begin
 
 end;
 
-
-var fcount:qword=0;
 var scount:qword=0;
 
 procedure TReverseScanWorker.StorePath(level: valSint; staticdata: PStaticData);
 {Store the current path to memory and flush if needed}
 var i: integer;
 begin
-  inc(fcount); //increme
   if (staticdata=nil) then exit; //don't store it
 
-  inc(scount);
-
-
   //fill in the offset list
-  inc(staticscanner.pointersfound);
+  inc(pointersfound);
 
   results.WriteBuffer(staticdata.moduleindex, sizeof(staticdata.moduleindex));
   results.WriteBuffer(staticdata.offset,sizeof(staticdata.offset));
@@ -2355,7 +2349,6 @@ var
 
 begin
   //scan the buffer
-  fcount:=0; //debug counter to 0
   scount:=0;
   alldone:=false;
 
@@ -2624,9 +2617,9 @@ begin
           end;
         end
         else
-          ownerform.pointerlisthandler:=TReversePointerListHandler.Create(startaddress,stopaddress,not unalligned,progressbar, noreadonly, MustBeClassPointers, useStacks, stacksAsStaticOnly, threadstacks, stacksize, mustStartWithBase, BaseStart, BaseStop);
+          ownerform.pointerlisthandler:=TReversePointerListHandler.Create(startaddress,stopaddress,not unalligned,progressbar, noreadonly, MustBeClassPointers, acceptNonModuleClasses, useStacks, stacksAsStaticOnly, threadstacks, stacksize, mustStartWithBase, BaseStart, BaseStop);
 
-        postmessage(ownerform.Handle, wm_starttimer, 0,0);
+
 
 
       except
@@ -2713,12 +2706,10 @@ begin
           NewAffinity:=1 shl PreferedProcessorList[i];
           NewAffinity:=SetThreadAffinityMask(reversescanners[i].Handle, NewAffinity);
         end;
-
-
-
-
         reversescanners[i].start;
       end;
+
+      postmessage(ownerform.Handle, wm_starttimer, 0,0);
 
       //create the headerfile
       result:=TfileStream.create(filename,fmcreate or fmShareDenyWrite);
@@ -2990,6 +2981,8 @@ begin
 
       staticscanner.noReadOnly:=frmpointerscannersettings.cbNoReadOnly.checked;
       staticscanner.mustBeClassPointers:=frmpointerscannersettings.cbClassPointersOnly.checked;
+      staticscanner.acceptNonModuleClasses:=frmpointerscannersettings.cbAcceptNonModuleVtable.checked;
+
 
       staticscanner.useStacks:=frmpointerscannersettings.cbStaticStacks.checked;
       staticscanner.stacksAsStaticOnly:=frmPointerscannersettings.cbStackOnly.checked;
@@ -3468,6 +3461,8 @@ var i,j: integer;
 
     x: qword;
     tpe: qword;
+
+    tpf: qword;
 begin
   if listview1.Visible then
     listview1.repaint;
@@ -3495,6 +3490,13 @@ begin
 
     if staticscanner.reverse then
     begin
+      tpf:=0;
+      for i:=0 to length(Staticscanner.reversescanners)-1 do
+        tpf:=tpf+Staticscanner.reversescanners[i].pointersfound;
+
+      scount:=tpf;
+
+
       s:=format(rsPointerPathsFound+': %d', [scount]);
 
       if staticscanner.distributedScanning and (staticscanner.distributedWorker=false) then

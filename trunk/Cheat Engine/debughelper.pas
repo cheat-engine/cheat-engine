@@ -85,7 +85,7 @@ type
     procedure setbreakpointcondition(bp: PBreakpoint; easymode: boolean; script: string);
     function getbreakpointcondition(bp: PBreakpoint; var easymode: boolean):pchar;
 
-    procedure getBreakpointAddresses(AddressList: TAddressArray);
+    procedure getBreakpointAddresses(var AddressList: TAddressArray);
     function  isBreakpoint(address: uint_ptr; address2: uint_ptr=0; includeinactive: boolean=false): PBreakpoint;
     function  CodeFinderStop(codefinder: TFoundCodeDialog): boolean;
     function  setChangeRegBreakpoint(regmod: PRegisterModificationBP): PBreakpoint;
@@ -237,7 +237,7 @@ begin
 
         processhandler.processid:=processinfo.dwProcessId;
         Open_Process;
-        symhandler.reinitialize;
+        symhandler.reinitialize(true);
 
         closehandle(processinfo.hProcess);
       end else
@@ -1624,7 +1624,7 @@ end;
 
 
 
-procedure TDebuggerThread.getBreakpointAddresses(AddressList: TAddressArray);
+procedure TDebuggerThread.getBreakpointAddresses(var AddressList: TAddressArray);
 var i: integer;
 begin
   setlength(AddressList,0);
@@ -1705,7 +1705,7 @@ begin
     fNeedsToSetEntryPointBreakpoint:=false;
 
     OutputDebugString('Initializing symbol handler');
-    symhandler.reinitialize;
+    symhandler.reinitialize(true);
 
     OutputDebugString('Waiting for symbols loaded');
     symhandler.waitforsymbolsloaded;

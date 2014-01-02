@@ -2627,7 +2627,7 @@ begin
     end;
 
     InjectDll(dll,functionname);
-    symhandler.reinitialize;
+    symhandler.reinitialize(true);
     showmessage(rsDLLInjected);
   end;
 end;
