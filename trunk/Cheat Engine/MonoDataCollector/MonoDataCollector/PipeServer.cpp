@@ -26,13 +26,18 @@ CPipeServer::CPipeServer(void)
 {
 	attached=FALSE;
 	swprintf(datapipename, 256,L"\\\\.\\pipe\\cemonodc_pid%d", GetCurrentProcessId());
-	swprintf(eventpipename, 256,L"\\\\.\\pipe\\cemonodc_pid%d_events", GetCurrentProcessId());
+	//swprintf(eventpipename, 256,L"\\\\.\\pipe\\cemonodc_pid%d_events", GetCurrentProcessId());
 
 	AddVectoredExceptionHandler(1, ErrorFilter);
 }
 
 CPipeServer::~CPipeServer(void)
 {
+	if (attached)
+	{
+		mono_thread_detach(mono_selfthread);
+		attached=FALSE;
+	}
 }
 
 void CPipeServer::CreatePipeandWaitForconnect(void)
@@ -64,11 +69,13 @@ void CPipeServer::InitMono()
 
 		if (attached==FALSE)
 		{
-			void *thread;
+			
 
 			g_free=(G_FREE)GetProcAddress(hMono, "g_free");
 			mono_get_root_domain=(MONO_GET_ROOT_DOMAIN)GetProcAddress(hMono, "mono_get_root_domain");
 			mono_thread_attach=(MONO_THREAD_ATTACH)GetProcAddress(hMono, "mono_thread_attach");
+			mono_thread_detach=(MONO_THREAD_DETACH)GetProcAddress(hMono, "mono_thread_detach");
+
 			mono_object_get_class=(MONO_OBJECT_GET_CLASS)GetProcAddress(hMono, "mono_object_get_class");
 			
 			mono_domain_foreach=(MONO_DOMAIN_FOREACH)GetProcAddress(hMono, "mono_domain_foreach");
@@ -109,6 +116,7 @@ void CPipeServer::InitMono()
 			mono_method_get_header=(MONO_METHOD_GET_HEADER)GetProcAddress(hMono, "mono_method_get_header");	
 
 			mono_compile_method=(MONO_COMPILE_METHOD)GetProcAddress(hMono, "mono_compile_method");	
+			mono_free_method=(MONO_FREE_METHOD)GetProcAddress(hMono, "mono_free_method");	
 			mono_jit_info_table_find=(MONO_JIT_INFO_TABLE_FIND)GetProcAddress(hMono, "mono_jit_info_table_find");	
 			mono_jit_info_get_method=(MONO_JIT_INFO_GET_METHOD)GetProcAddress(hMono, "mono_jit_info_get_method");	
 			mono_jit_info_get_code_start=(MONO_JIT_INFO_GET_CODE_START)GetProcAddress(hMono, "mono_jit_info_get_code_start");	
@@ -129,7 +137,7 @@ void CPipeServer::InitMono()
 			if (mono_image_get_name==NULL) OutputDebugStringA("mono_image_get_name not assigned");
 
 
-			thread=mono_thread_attach(mono_get_root_domain());
+			mono_selfthread=mono_thread_attach(mono_get_root_domain());
 			attached=TRUE;
 		}
 		else
@@ -439,6 +447,20 @@ void CPipeServer::GetClassName()
 	Write(methodname, strlen(methodname));	
 }
 
+void CPipeServer::GetClassNamespace()
+{
+	void *klass=(void *)ReadQword();
+	char *methodname=mono_class_get_namespace(klass);
+
+	WriteWord(strlen(methodname));
+	Write(methodname, strlen(methodname));	
+}
+
+void CPipeServer::FreeMethod()
+{
+	mono_free_method((void *)ReadQword());
+}
+
 void CPipeServer::Start(void)
 {
 	BYTE command;
@@ -533,6 +555,17 @@ void CPipeServer::Start(void)
 					case MONOCMD_GETCLASSNAME:
 						GetClassName();
 						break;
+
+					case MONOCMD_GETCLASSNAMESPACE:
+						GetClassNamespace();
+						break;
+
+					case MONOCMD_FREEMETHOD:
+						FreeMethod();
+						break;
+
+					case MONOCMD_TERMINATE:												
+						return;
 				}
 			}			
 		}
@@ -541,10 +574,23 @@ void CPipeServer::Start(void)
 			//Pipe error, or something else that wasn't caught. Exit the connection and start over	
 			OutputDebugStringA("Pipe error:\n");
 			OutputDebugStringA(e);
+
+			if (attached)
+			{
+				mono_thread_detach(mono_selfthread);
+				attached=FALSE;
+			}
+			
+
 		}
 		catch (...)
 		{
 			OutputDebugStringA("Unexcpected pipe error\n");
+			if (attached)
+			{
+				mono_thread_detach(mono_selfthread);
+				attached=FALSE;
+			}	
 		}
 
 	}

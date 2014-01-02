@@ -11,7 +11,9 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	{
 	case DLL_PROCESS_ATTACH:
 		OutputDebugStringA("DllMain entry");
-		CreateThread(NULL, 0, DataCollectorEntry, NULL, 0, NULL);
+		g_hInstance=hModule;
+		DataCollectorThread=CreateThread(NULL, 0, DataCollectorEntry, NULL, 0, NULL);
+		SuicideThread=0;//CreateThread(NULL, 0, SuicideCheck, NULL, 0, NULL);
 		break;
 
 	case DLL_THREAD_ATTACH:
