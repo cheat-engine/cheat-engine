@@ -55,7 +55,7 @@ begin
 
   while level<maxlevel do
   begin
-    //add the path if needed
+
     entrynr:=pageindex shr ((maxlevel-level)*4) and $f;
     if currentarray[entrynr].PageEntryArray=nil then exit; //not found
 

@@ -23,19 +23,22 @@ begin
   parameters:=lua_gettop(L);
 
 
+
+
   if parameters>=1 then
-  begin
-    f:=lua_toceuserdata(L, 1);
-    t:=ttimer.create(f);
+    f:=lua_toceuserdata(L, 1)
+  else
+    f:=nil;
 
-    if parameters>=2 then
-      t.Enabled:=lua_toboolean(L, 2)
-    else
-      t.enabled:=true;
+  t:=ttimer.create(f);
 
-    luaclass_newClass(L, t);
-    result:=1;
-  end;
+  if parameters>=2 then
+    t.Enabled:=lua_toboolean(L, 2)
+  else
+    t.enabled:=true;
+
+  luaclass_newClass(L, t);
+  result:=1;
 end;
 
 function timer_getInterval(L: Plua_State): integer; cdecl;

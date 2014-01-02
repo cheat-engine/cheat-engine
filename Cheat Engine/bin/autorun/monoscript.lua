@@ -18,9 +18,13 @@ MONOCMD_FINDMETHOD=16
 MONOCMD_GETMETHODNAME=17
 MONOCMD_GETMETHODCLASS=18
 MONOCMD_GETCLASSNAME=19
+MONOCMD_GETCLASSNAMESPACE=20
+MONOCMD_FREEMETHOD=21
 
 
 function LaunchMonoDataCollector()
+  if debug_canBreak() then return 0 end
+
   if (monopipe~=nil) then
     if (mono_AttachedProcess==getOpenedProcessID()) then
 	  return monoBase --already attached to this process
@@ -50,6 +54,7 @@ function LaunchMonoDataCollector()
     return 0 --failure
   end
 
+  --in case you implement the profiling tools use a secondary pipe to receive profiler events
  -- while (monoeventpipe==nil) do
  --   monoeventpipe=connectToPipe('cemonodc_pid'..getOpenedProcessID()..'_events')
  -- end
@@ -57,18 +62,72 @@ function LaunchMonoDataCollector()
   mono_AttachedProcess=getOpenedProcessID()
 
   monopipe.writeByte(CMD_INITMONO)
+  monopipe.ProcessID=getOpenedProcessID()
   monoBase=monopipe.readQword()
 
   if (monoBase~=0) then
     if mono_AddressLookupID==nil then
       mono_AddressLookupID=registerAddressLookupCallback(mono_addressLookupCallback)
 	end
+
+	if mono_SymbolLookupID==nil then
+	  mono_SymbolLookupID=registerSymbolLookupCallback(mono_symbolLookupCallback, slNotSymbol)
+	end
   end
 
   return monoBase
 end
 
+
+function mono_symbolLookupCallback(symbol)
+  if debug_canBreak() then return nil end
+
+  local parts={}
+  local x
+  for x in string.gmatch(symbol, "[^:]+") do
+    table.insert(parts, x)
+  end
+
+  local methodname=''
+  local classname=''
+  local namespace=''
+
+  if (#parts>0) then
+    methodname=parts[#parts]
+    if (#parts>1) then
+	  classname=parts[#parts-1]
+	  if (#parts>2) then
+	    namespace=parts[#parts-2]
+	  end
+	end
+  end
+
+  if (methodname~='') and (classname~='') then
+    local method=mono_findMethod(namespace, classname, methodname)
+    if (method==0) then
+      return nil
+    end
+
+    local methodaddress=mono_compile_method(method)
+    if (methodaddress~=0) then
+      return methodaddress
+    end
+
+  end
+
+  --still here,
+  return nil
+
+end
+
+
 function mono_addressLookupCallback(address)
+  if (inMainThread()==false) or (debug_canBreak()) then --the debugger thread might call this
+    return nil
+  end
+
+
+
   local ji=mono_getJitInfo(address)
   local result=''
   if ji~=nil then
@@ -79,7 +138,14 @@ function mono_addressLookupCallback(address)
 		ji.code_size
 --]]
     if (ji.method~=0) then
-	  result=mono_class_getName(mono_method_getClass(ji.method))..":"..mono_method_getName(ji.method)
+      local class=mono_method_getClass(ji.method)
+	  local classname=mono_class_getName(class)
+	  local namespace=mono_class_getNamespace(class)
+	  if namespace~='' then
+	    namespace=namespace..':'
+	  end
+
+	  result=namespace..classname..":"..mono_method_getName(ji.method)
 	  if address~=ji.code_start then
 	    result=result..string.format("+%x",address-ji.code_start)
 	  end
@@ -91,6 +157,8 @@ function mono_addressLookupCallback(address)
 end
 
 function mono_object_getClass(address)
+  if debug_canBreak() then return nil end
+
   monopipe.lock()
   monopipe.writeByte(MONOCMD_OBJECT_GETCLASS)
   monopipe.writeQword(address)
@@ -109,13 +177,17 @@ function mono_object_getClass(address)
 end
 
 function mono_enumDomains()
+  if debug_canBreak() then return nil end
+
   monopipe.lock()
   monopipe.writeByte(MONOCMD_ENUMDOMAINS)
   local count=monopipe.readDword()
   local result={}
   local i
-  for i=1, count do
-    result[i]=monopipe.readQword()
+  if (count~=nil) then
+    for i=1, count do
+      result[i]=monopipe.readQword()
+    end
   end
 
   monopipe.unlock()
@@ -124,6 +196,8 @@ function mono_enumDomains()
 end
 
 function mono_setCurrentDomain(domain)
+  if debug_canBreak() then return nil end
+
   monopipe.lock()
   monopipe.writeByte(MONOCMD_SETCURRENTDOMAIN)
   monopipe.writeQword(domain)
@@ -134,6 +208,8 @@ function mono_setCurrentDomain(domain)
 end
 
 function mono_enumAssemblies()
+  if debug_canBreak() then return nil end
+
   monopipe.lock()
   monopipe.writeByte(MONOCMD_ENUMASSEMBLIES)
   local count=monopipe.readDword()
@@ -148,6 +224,8 @@ function mono_enumAssemblies()
 end
 
 function mono_getImageFromAssembly(assembly)
+  if debug_canBreak() then return nil end
+
   monopipe.lock()
   monopipe.writeByte(MONOCMD_GETIMAGEFROMASSEMBLY)
   monopipe.writeQword(assembly)
@@ -156,6 +234,8 @@ function mono_getImageFromAssembly(assembly)
 end
 
 function mono_image_get_name(image)
+  if debug_canBreak() then return nil end
+
   monopipe.lock()
   monopipe.writeByte(MONOCMD_GETIMAGENAME)
   monopipe.writeQword(image)
@@ -167,6 +247,8 @@ function mono_image_get_name(image)
 end
 
 function mono_image_enumClasses(image)
+  if debug_canBreak() then return nil end
+
   monopipe.lock()
   monopipe.writeByte(MONOCMD_ENUMCLASSESINIMAGE)
   monopipe.writeQword(image)
@@ -199,6 +281,8 @@ function mono_image_enumClasses(image)
 end
 
 function mono_class_getName(clasS)
+  if debug_canBreak() then return nil end
+
   local result=''
   monopipe.lock()
   monopipe.writeByte(MONOCMD_GETCLASSNAME)
@@ -212,7 +296,25 @@ function mono_class_getName(clasS)
 end
 
 
+function mono_class_getNamespace(clasS)
+  if debug_canBreak() then return nil end
+
+  local result=''
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_GETCLASSNAMESPACE)
+  monopipe.writeQword(clasS)
+
+  local namelength=monopipe.readWord();
+  result=monopipe.readString(namelength);
+
+  monopipe.unlock()
+  return result;
+end
+
+
 function mono_class_enumFields(class)
+  if debug_canBreak() then return nil end
+
   local classfield;
   local index=1;
   local fields={}
@@ -248,6 +350,8 @@ function mono_class_enumFields(class)
 end
 
 function mono_class_enumMethods(class)
+  if debug_canBreak() then return nil end
+
   local method
   local index=1
   local methods={}
@@ -276,6 +380,8 @@ function mono_class_enumMethods(class)
 end
 
 function mono_getJitInfo(address)
+  if debug_canBreak() then return nil end
+
   local d=mono_enumDomains()
   if (d~=nil) then
     monopipe.lock()
@@ -308,6 +414,8 @@ end
 
 
 function mono_object_findRealStartOfObject(address, maxsize)
+  if debug_canBreak() then return nil end
+
   if maxsize==nil then
     maxsize=4096
   end
@@ -340,10 +448,12 @@ end
 
 
 
-function mono_findReferencesToObject(class) --scan the memory for objects with a vtable to a specific class
-end
+--function mono_findReferencesToObject(class) --scan the memory for objects with a vtable to a specific class
+--end
 
 function mono_image_findClass(image, namespace, classname)
+  if debug_canBreak() then return nil end
+
 --find a class in a specific image
   monopipe.lock()
 
@@ -365,6 +475,8 @@ function mono_image_findClass(image, namespace, classname)
 end
 
 function mono_findClass(namespace, classname)
+  if debug_canBreak() then return nil end
+
 --searches all images for a specific class
   local ass=mono_enumAssemblies()
   local result=0
@@ -384,6 +496,8 @@ function mono_findClass(namespace, classname)
 end
 
 function mono_class_findMethod(class, methodname)
+  if debug_canBreak() then return nil end
+
   if methodname==nil then return 0 end
 
   monopipe.lock()
@@ -402,6 +516,8 @@ function mono_class_findMethod(class, methodname)
 end
 
 function mono_findMethod(namespace, classname, methodname)
+  if debug_canBreak() then return nil end
+
   local class=mono_findClass(namespace, classname)
   local result=0
   if class~=0 then
@@ -411,11 +527,14 @@ function mono_findMethod(namespace, classname, methodname)
   return result
 end
 
-function mono_invokeMethod()
-  print("Not yet implemented")
-end
+--idea for the future:
+--function mono_invokeMethod()
+--  print("Not yet implemented")
+--end
 
 function mono_method_getName(method)
+  if debug_canBreak() then return nil end
+
   local result=''
   monopipe.lock()
   monopipe.writeByte(MONOCMD_GETMETHODNAME)
@@ -429,6 +548,8 @@ function mono_method_getName(method)
 end
 
 function mono_method_getHeader(method)
+  if debug_canBreak() then return nil end
+
   monopipe.lock()
   monopipe.writeByte(MONOCMD_GETMETHODHEADER)
   monopipe.writeQword(method)
@@ -440,6 +561,8 @@ function mono_method_getHeader(method)
 end
 
 function mono_method_getClass(method)
+  if debug_canBreak() then return nil end
+
   monopipe.lock()
   monopipe.writeByte(MONOCMD_GETMETHODCLASS)
   monopipe.writeQword(method)
@@ -452,6 +575,8 @@ end
 
 
 function mono_compile_method(method) --Jit a method if it wasn't jitted yet
+  if debug_canBreak() then return nil end
+
   monopipe.lock()
 
   monopipe.writeByte(MONOCMD_COMPILEMETHOD)
@@ -461,14 +586,20 @@ function mono_compile_method(method) --Jit a method if it wasn't jitted yet
   return result
 end
 
---only if the profiler is active:
-function mono_free_method() --unjit the method ?
+--note: does not work while the profiler is active (Current implementation doesn't use the profiler, so we're good to go)
+function mono_free_method(method) --unjit the method
+  if debug_canBreak() then return nil end
+
   monopipe.lock()
-  --initialize the profiler if needed
+
+  monopipe.writeByte(MONOCMD_FREEMETHOD)
+  monopipe.writeQword(method)
   monopipe.unlock()
 end
 
 function mono_methodheader_getILCode(methodheader)
+  if debug_canBreak() then return nil end
+
   monopipe.lock()
   monopipe.writeByte(MONOCMD_GETMETHODHEADER_CODE)
   monopipe.writeQword(methodheader)
@@ -487,6 +618,8 @@ end
 
 
 function mono_image_rva_map(image, offset)
+  if debug_canBreak() then return nil end
+
   monopipe.lock()
   monopipe.writeByte(MONOCMD_LOOKUPRVA)
   monopipe.writeQword(image)
@@ -546,16 +679,18 @@ function monoform_EnumClasses(node)
   local image=node.Data
   local classes=mono_image_enumClasses(image)
   local i
-  for i=1, #classes do
-    local n=node.add(string.format("%x : %s:%s", classes[i].class, classes[i].namespace, classes[i].classname))
+  if classes~=nil then
+    for i=1, #classes do
+      local n=node.add(string.format("%x : %s:%s", classes[i].class, classes[i].namespace, classes[i].classname))
 
-    local nf=n.add("fields");
-    nf.Data=classes[i].class;
-    nf.HasChildren=true
+  	  local nf=n.add("fields");
+  	  nf.Data=classes[i].class;
+  	  nf.HasChildren=true
 
-    local nm=n.add("methods");
-    nm.Data=classes[i].class;
-    nm.HasChildren=true
+  	  local nm=n.add("methods");
+  	  nm.Data=classes[i].class;
+  	  nm.HasChildren=true
+    end
   end
 
 end;
@@ -664,58 +799,104 @@ function miMonoDissectClick(sender)
   mono_dissect()
 end
 
+function mono_OpenProcessMT(t)
+  if t~=nil then
+    t.destroy()
+  end
+
+  --enumModules is faster than getAddress at OpenProcess time (No waiting for all symbols to be loaded first)
+  local usesmono=false
+  local m=enumModules()
+  local i
+  for i=1, #m do
+    if m[i].Name=='mono.dll' then
+      usesmono=true
+      break
+    end
+  end
+
+
+
+  if usesmono then
+    --create a menu item if needed
+    if (miMonoTopMenuItem==nil) then
+      local mfm=getMainForm().Menu
+      local mi
+      miMonoTopMenuItem=createMenuItem(mfm)
+      miMonoTopMenuItem.Caption="Mono"
+      mfm.Items.insert(mfm.Items.Count-1, miMonoTopMenuItem) --add it before help
+
+      mi=createMenuItem(miMonoTopMenuItem)
+      mi.Caption="Activate mono features"
+      mi.OnClick=miMonoActivateClick
+      miMonoTopMenuItem.Add(mi)
+
+      mi=createMenuItem(miMonoTopMenuItem)
+      mi.Caption="Dissect mono"
+      mi.Shortcut="Ctrl+Alt+M"
+      mi.OnClick=miMonoDissectClick
+      miMonoTopMenuItem.Add(mi)
+    end
+
+  else
+    --destroy the menu item if needed
+    if miMonoTopMenuItem~=nil then
+      miMonoTopMenuItem.destroy() --also destroys the subitems as they are owned by this menuitem
+      miMonoTopMenuItem=nil
+    end
+
+    if monopipe~=nil then
+      monopipe.destroy()
+      monopipe=nil
+
+      if mono_AddressLookupID~=nil then
+        unregisterAddressLookupCallback(mono_AddressLookupID)
+        mono_AddressLookupID=nil
+      end
+
+
+      if mono_SymbolLookupID~=nil then
+        unregisterSymbolLookupCallback(mono_SymbolLookupID)
+        mono_SymbolLookupID=nil
+      end
+
+    end
+  end
+
+  if (monopipe~=nil) and (monopipe.ProcessID~=getOpenedProcessID()) then
+    --different process
+    monopipe.destroy()
+    monopipe=nil
+
+    if mono_AddressLookupID~=nil then
+      unregisterAddressLookupCallback(mono_AddressLookupID)
+      mono_AddressLookupID=nil
+    end
+
+
+    if mono_SymbolLookupID~=nil then
+      unregisterSymbolLookupCallback(mono_SymbolLookupID)
+      mono_SymbolLookupID=nil
+    end
+  end
+
+end
+
 function mono_OpenProcess(processid)
   --call the original onOpenProcess if there was one
   if mono_oldOnOpenProcess~=nil then
     mono_oldOnOpenProcess(processid)
   end
 
-  --enumModules is faster than getAddress at OpenProcess time (No waiting for all symbols to be loaded first)
-
-  local usesmono=false
-  local m=enumModules()
-  local i
-  for i=1, #m do
-    if m[i].Name=='mono.dll' then
-	  usesmono=true
-	  break
-	end
-  end
-
-  if usesmono then
-    --create a menu item if needed
-	if (miMonoTopMenuItem==nil) then
-	  local mfm=getMainForm().Menu
-	  local mi
-	  miMonoTopMenuItem=createMenuItem(mfm)
-	  miMonoTopMenuItem.Caption="Mono"
-	  mfm.Items.insert(mfm.Items.Count-1, miMonoTopMenuItem) --add it before help
-
-	  mi=createMenuItem(miMonoTopMenuItem)
-	  mi.Caption="Activate mono features"
-	  mi.OnClick=miMonoActivateClick
-	  miMonoTopMenuItem.Add(mi)
-
-	  mi=createMenuItem(miMonoTopMenuItem)
-	  mi.Caption="Dissect mono"
-	  mi.Shortcut="Ctrl+Alt+M"
-	  mi.OnClick=miMonoDissectClick
-	  miMonoTopMenuItem.Add(mi)
-	end
+  synchronize("mono_OpenProcessMT")
 
 
-  else
-    --destroy the menu item if needed
-	if miMonoTopMenuItem~=nil then
-	  miMonoTopMenuItem.destroy() --also destroys the subitems as they are owned by this menuitem
-	  miMonoTopMenuItem=nil
-	end
 
-	if monopipe~=nil then
-	  monopipe.destroy()
-	  monopipe=nil
-	end
-  end
+
+  --t=createTimer()
+  --t.Interval=1000
+  --t.OnTimer="mono_OpenProcessEpilogue"
+  --t.Enabled=true
 end
 
 function monoAA_USEMONO(parameters, syntaxcheckonly)

@@ -179,7 +179,7 @@ begin
   begin
     processhandler.processid:=dwProcessID;
     Open_Process;
-    symhandler.reinitialize;
+    symhandler.reinitialize(true);
     symhandler.waitforsymbolsloaded;
 
     pid:=dwProcessID;

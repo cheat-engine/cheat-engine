@@ -27,6 +27,7 @@ TFRMPOINTERSCANNERSETTINGS.EDTSTACKSIZE.TEXT=4096
 TFRMPOINTERSCANNERSETTINGS.CBSTACKONLY.HINT=Enable this if you wish to only find pointer paths with a stack address.
 Combine this with "Only find paths with a static address" (default on) else this option will have no effect
 TFRMPOINTERSCANNERSETTINGS.CBSTACKONLY.CAPTION=Stack addresses as ONLY static address
+TFRMPOINTERSCANNERSETTINGS.CBACCEPTNONMODULEVTABLE.CAPTION=Also accept non-module addresses
 TFRMPOINTERSCANNERSETTINGS.CBMUSTENDWITHSPECIFICOFFSET.CAPTION=Pointers must end with specific offsets
 TFRMPOINTERSCANNERSETTINGS.LABEL3.CAPTION=Maximum offset value:
 TFRMPOINTERSCANNERSETTINGS.LABEL12.CAPTION=Max level

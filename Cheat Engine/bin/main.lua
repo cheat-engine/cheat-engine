@@ -175,9 +175,11 @@ shellExecute(command, parameters OPTIONAL, folder OPTIONAL, showcommand OPTIONAL
 
 getTickCount() :  Returns the current tickcount since windows was started. Each tick is one millisecond
 processMessages() :  Lets the main eventhandler process the new messages (allows for new button clicks)
+inMainThread(): Returns true if the current code is running inside the main thread (6.3+)
 integerToUserData(int):  Converts a given integer to a userdata variable
 userDataToInteger(UserDataVar):  Converts a given userdata variable to an integer
 
+synchronize(function): Calls the given function from the main thread
 
 writeToClipboard(text):  Writes the given text to the clipboard
 readFromClipboard():  Reads the text from the clipboard
@@ -319,6 +321,8 @@ createProcess(path, parameters OPTIONAL, debug OPTIONAL, breakonentrypoint OPTIO
 
 debugProcess(interface OPT): starts the debugger for the currently opened process (won't ask the user) Optional interface: 0=default, 1=windows debug, 2=VEHDebug, 3=Kerneldebug
 
+debug_isDebugging(): Returns true if the debugger has been started
+debug_canBreak(): Returns true if there is a possibility the target can stop in a breakpoint. 6.3+
 debug_getBreakpointList(): Returns a lua table containing all the breakpoint addresses
 
 debug_setBreakpoint(address, size OPTIONAL, trigger OPTIONAL) : sets a breakpoint of a specific size at the given address. if trigger is bptExecute then size is ignored. If trigger is ignored then it will be of type bptExecute, which obviously also ignores the size then as well
@@ -1022,7 +1026,7 @@ methods
 
 
 Timer Class : (Inheritance: Component->object)
-createTimer(owner, enabled OPT): 
+createTimer(owner OPT, enabled OPT): 
   Creates a timer object. If enabled is not given it will be enabled by default (will start as soon as an onTimer event has been assigned)
   Owner may be nil, but you will be responsible for destroying it instead of being the responsibility of the owner object)
 
@@ -1604,16 +1608,16 @@ createNativeThread(function(Thread)) :
 properties
 
 methods
-  freeOnTerminate(thread, state) : 
+  freeOnTerminate(state) : 
     When set to true the thread object will free itself when the function ends (default=true)
     Note: Use this only from inside the thread function as the thread might have already terminated and freed itself when called
 
-  thread_synchronize(thread, function(thread)) :
+  thread_synchronize(function(thread)) :
     Called from inside the thread. This wil cause the tread to get the main thread to execute the given function and wait for it to finish.
     Usually for gui access
     function (Thread)
 
-  thread_waitfor(thread) : 
+  thread_waitfor() : 
     Waits for the given thread to finish (Not recommended to call this from inside the thread itself)
 
 

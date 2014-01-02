@@ -44,6 +44,7 @@ type
     cbDistributedScanning: TCheckBox;
     cbBroadcast: TCheckBox;
     cbMustStartWithBase: TCheckBox;
+    cbAcceptNonModuleVtable: TCheckBox;
     edtDistributedPort: TEdit;
     edtThreadStacks: TEdit;
     edtStackSize: TEdit;
@@ -292,6 +293,10 @@ procedure TfrmPointerScannerSettings.canNotReuse(Sender: TObject);
 begin
   cbReusePointermap.Enabled:=false;
   cbReusePointermap.Checked:=false;
+
+
+  cbAcceptNonModuleVtable.enabled:=cbClassPointersOnly.checked;
+
 end;
 
 procedure TfrmPointerScannerSettings.cbMustStartWithBaseChange(Sender: TObject);

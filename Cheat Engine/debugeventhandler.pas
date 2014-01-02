@@ -1178,7 +1178,7 @@ begin
       ProcessHandler.processid     := debugEvent.dwProcessId;
 
       Open_Process;
-      symhandler.reinitialize;
+      symhandler.reinitialize(true);
     end;
 
 
@@ -1353,7 +1353,7 @@ var
   i: integer;
 
 begin
-  OutputDebugString('HandleDebugEvent:'+inttostr(debugEvent.dwDebugEventCode));
+  //OutputDebugString('HandleDebugEvent:'+inttostr(debugEvent.dwDebugEventCode));
   //find the TDebugThreadHandler class that belongs to this thread
 
   currentThread := nil;

@@ -2068,6 +2068,61 @@ begin
 
 end;
 
+function synchronize(L: Plua_State): integer; cdecl;
+var lc: TLuaCaller;
+  f: integer;
+  routine: string;
+begin
+  if lua_isfunction(L,1) then
+  begin
+    lua_pushvalue(L, 1);
+    f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+    lc:=TLuaCaller.create;
+    lc.luaroutineIndex:=f;
+  end
+  else
+  if lua_isstring(L,1) then
+  begin
+    routine:=lua_tostring(L,1);
+    lc:=TLuaCaller.create;
+    lc.luaroutine:=routine;
+  end;
+
+  lc.syncvm:=l;
+  lc.synchronizeparam:=lua_ToCEUserData(L, 2);
+  tthread.Synchronize(nil, lc.synchronize);
+
+  lc.free;
+end;
+
+function inMainThread(L: Plua_State): integer; cdecl;
+begin
+  lua_pushboolean(L, MainThreadID=GetCurrentThreadId);
+  result:=1;
+end;
+
+function debug_isDebugging(L: Plua_State): integer; cdecl;
+begin
+  lua_pushboolean(L, debuggerthread<>nil);
+  result:=1;
+end;
+
+function debug_canBreak(L: Plua_State): integer; cdecl;
+var list: TAddressArray;
+begin
+  if debuggerthread<>nil then
+  begin
+    debuggerthread.getBreakpointAddresses(list);
+
+    lua_pushboolean(L, (length(list)>0) or ((debuggerthread.CurrentThread<>nil) and (debuggerthread.CurrentThread.isHandled)) );
+  end
+  else
+    lua_pushboolean(L, false);
+
+  result:=1;
+end;
+
 function debug_setBreakpoint(L: Plua_State): integer; cdecl;
 var parameters: integer;
   address: ptruint;
@@ -2618,7 +2673,7 @@ function reinitializeSymbolhandler(L: PLua_state): integer; cdecl;
 begin
   lua_pop(L, lua_gettop(L));
   result:=0;
-  symhandler.reinitialize;
+  symhandler.reinitialize(true);
   symhandler.waitforsymbolsloaded;
 end;
 
@@ -2632,6 +2687,7 @@ begin
   ml:=tstringlist.create;
 
   symhandler.loadmodulelist;
+
   symhandler.getModuleList(ml);
 
   lua_newtable(L);
@@ -4560,7 +4616,7 @@ var
 begin
   result:=0;
 
-  if lua_gettop(L)=2 then
+  if lua_gettop(L)=1 then
   begin
     if lua_isfunction(L, 1) then
     begin
@@ -4658,6 +4714,9 @@ begin
     lua_register(LuaVM, 'getProcessIDFromProcessName', getProcessIDFromProcessName);
     lua_register(LuaVM, 'openProcess', openProcess);
     lua_register(LuaVM, 'debugProcess', debugProcess);
+
+    lua_register(LuaVM, 'debug_isDebugging', debug_isDebugging);
+    lua_register(LuaVM, 'debug_canBreak', debug_canBreak);
     lua_register(LuaVM, 'debug_setBreakpoint', debug_setBreakpoint);
     lua_register(LuaVM, 'debug_removeBreakpoint', debug_removeBreakpoint);
     lua_register(LuaVM, 'debug_continueFromBreakpoint', debug_continueFromBreakpoint);
@@ -4921,6 +4980,9 @@ begin
     lua_register(LuaVM, 'unregisterSymbolLookupCallback', lua_unregisterSymbolLookupCallback);
     lua_register(LuaVM, 'registerAddressLookupCallback', lua_registerAddressLookupCallback);
     lua_register(LuaVM, 'unregisterAddressLookupCallback', lua_unregisterAddressLookupCallback);
+
+    lua_register(LuaVM, 'inMainThread', inMainThread);
+    lua_register(LuaVM, 'synchronize', synchronize);
 
     initializeLuaCustomControl;
 

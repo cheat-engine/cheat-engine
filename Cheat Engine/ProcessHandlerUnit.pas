@@ -10,7 +10,7 @@ process will set it to the different tab's process
 
 interface
 
-uses LCLIntf, newkernelhandler;
+uses LCLIntf, newkernelhandler, classes;
 
 type
   TSystemArchitecture=(archX86=0, archArm=1);
@@ -105,16 +105,24 @@ begin
   setIs64Bit(false);
   {$endif}
 
-  if processhandle<>0 then
-    LUA_functioncall('onOpenProcess', [ptruint(processid)]);   //todo: Change to a callback array/list
+  {if processhandle<>0 then
+  begin
+    if GetCurrentThreadId<>MainThreadID then
+      TThread.Synchronize(nil, open)
+    else  }
+      open;
+  {end;  }
 
+
+
+    //(synchronize(open));
 //  if (mainform<>nil) and (mainform.addresslist<>nil) then
 //    mainform.addresslist.needsToReinterpret:=true;
 end;
 
 procedure TProcessHandler.Open;
 begin
-
+  LUA_functioncall('onOpenProcess', [ptruint(processid)]);   //todo: Change to a callback array/list
 end;
 
 end.

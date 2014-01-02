@@ -122,7 +122,7 @@ type
     procedure saveModuleListToResults(s: TStream);
 
     function findPointerValue(startvalue: ptrUint; var stopvalue: ptrUint): PPointerList;
-    constructor create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar; noreadonly: boolean; mustbeclasspointers: boolean; useStacks: boolean; stacksAsStaticOnly: boolean; threadstacks: integer; stacksize: integer; specificBaseAsStaticOnly: boolean; baseStart: ptruint; baseStop: ptruint);
+    constructor create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar; noreadonly: boolean; mustbeclasspointers, allowNonModulePointers: boolean; useStacks: boolean; stacksAsStaticOnly: boolean; threadstacks: integer; stacksize: integer; specificBaseAsStaticOnly: boolean; baseStart: ptruint; baseStop: ptruint);
     constructor createFromStream(s: TStream; progressbar: tprogressbar);
     destructor destroy; override;
   end;
@@ -811,7 +811,7 @@ begin
 
 end;
 
-constructor TReversePointerListHandler.create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar; noreadonly: boolean; mustbeclasspointers: boolean; useStacks: boolean; stacksAsStaticOnly: boolean; threadstacks: integer; stacksize: integer; specificBaseAsStaticOnly: boolean; baseStart: ptruint; baseStop: ptruint);
+constructor TReversePointerListHandler.create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar; noreadonly: boolean; mustbeclasspointers, allowNonModulePointers: boolean; useStacks: boolean; stacksAsStaticOnly: boolean; threadstacks: integer; stacksize: integer; specificBaseAsStaticOnly: boolean; baseStart: ptruint; baseStop: ptruint);
 var bytepointer: PByte;
     dwordpointer: PDword absolute bytepointer;
     qwordpointer: PQword absolute bytepointer;
@@ -1027,6 +1027,7 @@ begin
 
     if mustbeclasspointers then
     begin
+
       if processhandler.is64bit then
         InModulePointerMap:=TMap.Create(itu8,sizeof(valid))
       else
@@ -1070,7 +1071,7 @@ begin
                   begin
                     //check that the memory it points to contains a pointer to executable code
                     if ReadProcessMemory(processhandle, pointer(qwordpointer^), @tempqword, 8, actualread) then
-                      valid:=isModulePointer(tempqword)
+                      valid:=(allowNonModulePointers and (ReadProcessMemory(processhandle, pointer(tempqword), @tempqword, 8, actualread))) or isModulePointer(tempqword)
                     else
                       valid:=false;
 
@@ -1104,7 +1105,7 @@ begin
                   begin
                     //check that the memory it points to contains a pointer to executable code
                     if ReadProcessMemory(processhandle, pointer(dwordpointer^), @tempdword, 4, actualread) then
-                      valid:=isModulePointer(tempdword)
+                      valid:=(allowNonModulePointers and (ReadProcessMemory(processhandle, pointer(tempdword), @tempdword,4, actualread))) or isModulePointer(tempdword)
                     else
                       valid:=false;
 
@@ -1156,7 +1157,7 @@ begin
                   begin
                     //check that the memory it points to contains a pointer to executable code
                     if ReadProcessMemory(processhandle, pointer(qwordpointer^), @tempqword, 8, actualread) then
-                      valid:=isModulePointer(tempqword)
+                      valid:=(allowNonModulePointers and (ReadProcessMemory(processhandle, pointer(tempqword), @tempqword, 8, actualread))) or isModulePointer(tempqword)
                     else
                       valid:=false;
 
@@ -1192,7 +1193,7 @@ begin
                   begin
                     //check that the memory it points to contains a pointer to executable code
                     if ReadProcessMemory(processhandle, pointer(dwordpointer^), @tempdword, 4, actualread) then
-                      valid:=isModulePointer(tempdword)
+                      valid:=(allowNonModulePointers and (ReadProcessMemory(processhandle, pointer(tempdword), @tempdword, 4, actualread))) or isModulePointer(tempdword)
                     else
                       valid:=false;
 
