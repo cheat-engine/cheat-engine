@@ -4642,13 +4642,51 @@ begin
 end;
 
 function lua_unregisterAddressLookupCallback(L: PLua_State): integer; cdecl;
-var id: integer;
 begin
   result:=0;
   if lua_gettop(L)>0 then
     unregisterAddressLookupCallback(lua_tointeger(L, 1));
 end;
 
+function lua_registerGlobalDisassembleOverride(L: PLua_State): integer; cdecl;
+var
+  f: integer;
+  routine: string;
+  lc: tluacaller;
+begin
+  result:=0;
+
+  if lua_gettop(L)=1 then
+  begin
+    if lua_isfunction(L, 1) then
+    begin
+      lua_pushvalue(L, 1);
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+    end
+    else
+    if lua_isstring(L,1) then
+    begin
+      routine:=lua_tostring(L,-1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+    end
+    else exit;
+
+    lua_pushinteger(L, registerGlobalDisassembleOverride(lc.DisassembleEvent));
+    result:=1;
+  end;
+
+end;
+
+function lua_unregisterGlobalDisassembleOverride(L: PLua_State): integer; cdecl;
+begin
+  result:=0;
+  if lua_gettop(L)>0 then
+    unregisterGlobalDisassembleOverride(lua_tointeger(L, 1));
+end;
 
 procedure InitializeLua;
 var s: tstringlist;
@@ -4980,6 +5018,10 @@ begin
     lua_register(LuaVM, 'unregisterSymbolLookupCallback', lua_unregisterSymbolLookupCallback);
     lua_register(LuaVM, 'registerAddressLookupCallback', lua_registerAddressLookupCallback);
     lua_register(LuaVM, 'unregisterAddressLookupCallback', lua_unregisterAddressLookupCallback);
+
+    lua_register(LuaVM, 'registerGlobalDisassembleOverride', lua_registerGlobalDisassembleOverride);
+    lua_register(LuaVM, 'unregisterGlobalDisassembleOverride', lua_unregisterGlobalDisassembleOverride);
+
 
     lua_register(LuaVM, 'inMainThread', inMainThread);
     lua_register(LuaVM, 'synchronize', synchronize);

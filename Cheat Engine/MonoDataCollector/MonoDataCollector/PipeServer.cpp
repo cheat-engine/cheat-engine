@@ -123,6 +123,7 @@ void CPipeServer::InitMono()
 			mono_jit_info_get_code_size=(MONO_JIT_INFO_GET_CODE_SIZE)GetProcAddress(hMono, "mono_jit_info_get_code_size");	
 
 			mono_method_header_get_code=(MONO_METHOD_HEADER_GET_CODE)GetProcAddress(hMono, "mono_method_header_get_code");	
+			mono_disasm_code=(MONO_DISASM_CODE)GetProcAddress(hMono, "mono_disasm_code");	
 
 
 			
@@ -461,6 +462,19 @@ void CPipeServer::FreeMethod()
 	mono_free_method((void *)ReadQword());
 }
 
+void CPipeServer::DisassembleMethod()
+{
+	void *method=(void *)ReadQword();
+	void *methodheader=mono_method_get_header(method);
+	UINT32 codesize, maxstack;
+	void *ilcode=mono_method_header_get_code(methodheader, &codesize, &maxstack);
+	char *disassembly=mono_disasm_code(NULL, method, ilcode, (void *)((UINT_PTR)ilcode+codesize));
+
+	WriteWord(strlen(disassembly));
+	Write(disassembly, strlen(disassembly));
+	g_free(disassembly);
+}
+
 void CPipeServer::Start(void)
 {
 	BYTE command;
@@ -566,6 +580,10 @@ void CPipeServer::Start(void)
 
 					case MONOCMD_TERMINATE:												
 						return;
+
+					case MONOCMD_DISASSEMBLE:
+						DisassembleMethod();
+						break;
 				}
 			}			
 		}

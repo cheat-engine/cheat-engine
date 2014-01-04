@@ -148,16 +148,40 @@ function hasAddress(d: string; var address: ptrUint; context: PContext=nil):bool
 //function translatestring(disassembled: string; numberofbytes: integer; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string):string;
 procedure splitDisassembledString(disassembled: string; showvalues: boolean; var address: string; var bytes: string; var opcode: string; var special:string; context: PContext=nil);
 
+function registerGlobalDisassembleOverride(m: TDisassembleEvent): integer;
+procedure unregisterGlobalDisassembleOverride(id: integer);
 
 var visibleDisassembler: TDisassembler; //this disassembler is used to render the disassembly output. Each update it gets synced with the default
-
-
-var defaultDisassembler: TDisassembler;
+    defaultDisassembler: TDisassembler;
+    GlobalDisassembleOverrides: array of TDisassembleEvent;
 
 implementation
 
 uses Assemblerunit,CEDebugger, debughelper, StrUtils, debuggertypedefinitions;
 
+function registerGlobalDisassembleOverride(m: TDisassembleEvent): integer;
+var i: integer;
+begin
+  for i:=0 to length(GlobalDisassembleOverrides)-1 do
+  begin
+    if assigned(GlobalDisassembleOverrides[i])=false then
+    begin
+      GlobalDisassembleOverrides[i]:=m;
+      result:=i;
+      exit;
+    end
+  end;
+
+  result:=length(GlobalDisassembleOverrides);
+  setlength(GlobalDisassembleOverrides, result+1);
+  GlobalDisassembleOverrides[result]:=m;
+end;
+
+procedure unregisterGlobalDisassembleOverride(id: integer);
+begin
+  if id<length(GlobalDisassembleOverrides) then
+    GlobalDisassembleOverrides[id]:=nil;
+end;
 
 
 function TDisassembler.rd(bt:byte):string;
@@ -1320,7 +1344,6 @@ begin
   LastDisassembleData.hasSib:=false;
   LastDisassembleData.datasize:=0;
 
-
   if assigned(OnDisassembleOverride) then //check if the user has defined it's own disassembler
   begin
     //if so, call the OnDisassemble propery, and if it returns true don't handle the original
@@ -1332,8 +1355,24 @@ begin
       inc(offset, length(lastdisassembledata.Bytes));
       exit;
     end;
-
   end;
+
+  //also check global overrides
+  for i:=0 to length(GlobalDisassembleOverrides)-1 do
+  begin
+    if assigned(GlobalDisassembleOverrides[i]) then
+    begin
+      if GlobalDisassembleOverrides[i](self, offset, LastDisassembleData, result, description) then
+      begin
+        if length(lastdisassembledata.Bytes)=0 then //BAD!
+          setlength(lastdisassembledata.Bytes,1);
+
+        inc(offset, length(lastdisassembledata.Bytes));
+        exit;
+      end;
+    end;
+  end;
+
 
 
   if isdefault then
