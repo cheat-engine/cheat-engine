@@ -26,6 +26,7 @@
 #define MONOCMD_GETCLASSNAMESPACE 20
 #define MONOCMD_FREEMETHOD 21
 #define MONOCMD_TERMINATE 22
+#define MONOCMD_DISASSEMBLE 23
 
 typedef void (__cdecl *MonoDomainFunc) (void *domain, void *user_data);
 typedef void (__cdecl *GFunc)          (void *data, void *user_data);
@@ -82,9 +83,10 @@ typedef int (__cdecl *MONO_JIT_INFO_GET_CODE_SIZE)(void *jitinfo);
 typedef void* (__cdecl *MONO_METHOD_GET_HEADER)(void *method);
 typedef void* (__cdecl *MONO_METHOD_GET_CLASS)(void *method);
 
-
-
 typedef void* (__cdecl *MONO_METHOD_HEADER_GET_CODE)(void *methodheader, UINT32 *code_size, UINT32 *max_stack);
+typedef char* (__cdecl *MONO_DISASM_CODE)(void *dishelper, void *method, void *ip, void *end);
+
+
 
 typedef void* (__cdecl *MONO_IMAGE_RVA_MAP)(void *image, UINT32 addr);
 
@@ -148,6 +150,7 @@ private:
 	MONO_JIT_INFO_GET_CODE_SIZE mono_jit_info_get_code_size;
 	
 	MONO_METHOD_HEADER_GET_CODE mono_method_header_get_code;
+	MONO_DISASM_CODE mono_disasm_code;
 
 	BOOL attached;
 
@@ -175,6 +178,8 @@ private:
 	void GetClassName();
 	void GetClassNamespace();
 	void FreeMethod();
+
+	void DisassembleMethod();
 
 public:
 	CPipeServer(void);

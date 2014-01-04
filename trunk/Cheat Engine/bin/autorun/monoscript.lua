@@ -21,6 +21,7 @@ MONOCMD_GETCLASSNAME=19
 MONOCMD_GETCLASSNAMESPACE=20
 MONOCMD_FREEMETHOD=21
 MONOCMD_TERMINATE=22
+MONOCMD_DISASSEMBLE=23
 
 
 function LaunchMonoDataCollector()
@@ -561,6 +562,21 @@ function mono_method_getHeader(method)
   return result;
 end
 
+function mono_method_disassemble(method)
+  if debug_canBreak() then return nil end
+
+  local result=''
+  monopipe.lock()
+  monopipe.writeByte(MONOCMD_DISASSEMBLE)
+  monopipe.writeQword(method)
+
+  local resultlength=monopipe.readWord();
+  result=monopipe.readString(resultlength);
+
+  monopipe.unlock()
+  return result;
+end
+
 function mono_method_getClass(method)
   if debug_canBreak() then return nil end
 
@@ -637,6 +653,28 @@ end
 --------code belonging to the mono dissector form---------
 
 --]]
+
+function monoform_killform(sender)
+  return caFree
+end
+
+function monoform_miShowILDisassemblyClick(sender)
+  if (monoForm.TV.Selected~=nil) then
+    local node=monoForm.TV.Selected
+	if (node~=nil) and (node.Level==4) and (node.Parent.Index==1) then
+      local f=createForm()
+      f.centerScreen()
+      f.OnClose=function(sender) return caFree end
+      local m=createMemo(f)
+      m.Align=alClient
+
+      m.Lines.Text=mono_method_disassemble(node.Data)
+    end
+  end
+
+end
+
+
 function monoform_miRejitClick(sender)
   if (monoForm.TV.Selected~=nil) then
     local node=monoForm.TV.Selected
@@ -765,6 +803,7 @@ function monoform_miSaveClick(sender)
 end
 
 
+
 function mono_dissect()
   --shows a form with a treeview that holds all the data nicely formatted.
   --only fetches the data when requested
@@ -799,6 +838,9 @@ end
 function miMonoDissectClick(sender)
   mono_dissect()
 end
+
+
+
 
 function mono_OpenProcessMT(t)
   if t~=nil then

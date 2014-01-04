@@ -1886,10 +1886,14 @@ createDisassembler() - Creates a disassembler object that can be used to disasse
 getDefaultDisassembler() - Returns the default disassembler object used by a lot of ce's disassembler routines
 getVisibleDisassembler() - Returns the disassembler used by the disassemblerview. Special codes are: {H}=Hex value {R}=Register {S}=Symbol {N}=Nothing special
 
+registerGlobalDisassembleOverride(function(sender: Disassembler, address: integer, LastDisassembleData: Table): opcode, description): Same as Disassembler.OnDisassembleOverride, but does it for all disassemblers, including newly created ones.  Tip: Check the sender to see if you should use syntax highlighting codes or not
+
 properties
   LastDisassembleData : Table
   OnDisassembleOverride: function(sender: Disassembler, address: integer, LastDisassembleData: Table): opcode, description
-methods
+  syntaxhighlighting: boolean : This property is set if the syntax highlighting codes are accepted or not
+
+Methods
   disassemble(address): Disassembles the given instruction and returns the opcode. It also fills in a LastDisassembleData record
   decodeLastParametersToString() : Returns the unedited "Comments" information. Does not display userdefined comments
   getLastDisassembleData() : Returns the LastDisassembleData table. 
@@ -2007,3 +2011,4 @@ openLuaServer(Name):
   
 
 --]]
+
