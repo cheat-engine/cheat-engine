@@ -109,7 +109,8 @@ void CPipeServer::InitMono()
 			mono_field_get_parent=(MONO_FIELD_GET_PARENT)GetProcAddress(hMono, "mono_field_get_parent");	
 			mono_field_get_offset=(MONO_FIELD_GET_OFFSET)GetProcAddress(hMono, "mono_field_get_offset");				
 
-			mono_type_get_name=(MONO_TYPE_GET_NAME)GetProcAddress(hMono, "mono_type_get_name");	
+			mono_type_get_name=(MONO_TYPE_GET_NAME)GetProcAddress(hMono, "mono_type_get_name");
+			mono_type_get_type=(MONO_TYPE_GET_TYPE)GetProcAddress(hMono, "mono_type_get_type");
 
 			mono_method_get_name=(MONO_METHOD_GET_NAME)GetProcAddress(hMono, "mono_method_get_name");	
 			mono_method_get_class=(MONO_METHOD_GET_CLASS)GetProcAddress(hMono, "mono_method_get_class");	
@@ -298,10 +299,13 @@ void CPipeServer::EnumFieldsInClass()
 		if (field)
 		{
 			char *name;
-			void *fieldtype=mono_field_get_type(field);
+			void *fieldtype=mono_field_get_type(field);			
 			WriteQword((UINT_PTR)fieldtype);
+			WriteDword(mono_type_get_type(fieldtype));
 			WriteQword((UINT_PTR)mono_field_get_parent(field));
 			WriteDword((UINT_PTR)mono_field_get_offset(field));
+
+			
 
 			name=mono_field_get_name(field);
 			WriteWord(strlen(name));

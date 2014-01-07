@@ -66,6 +66,7 @@ typedef void* (__cdecl *MONO_FIELD_GET_PARENT)(void *field);
 typedef int (__cdecl *MONO_FIELD_GET_OFFSET)(void *field);
 
 typedef char* (__cdecl *MONO_TYPE_GET_NAME)(void *type);
+typedef int (__cdecl *MONO_TYPE_GET_TYPE)(void *type);
 
 
 typedef char* (__cdecl *MONO_METHOD_GET_NAME)(void *method);
@@ -135,6 +136,8 @@ private:
 	MONO_FIELD_GET_OFFSET mono_field_get_offset;
 
 	MONO_TYPE_GET_NAME mono_type_get_name;
+	MONO_TYPE_GET_TYPE mono_type_get_type;
+
 
 	MONO_METHOD_GET_NAME mono_method_get_name;
 	MONO_METHOD_GET_HEADER mono_method_get_header;
