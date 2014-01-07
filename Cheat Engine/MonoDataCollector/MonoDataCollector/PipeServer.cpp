@@ -160,13 +160,30 @@ void CPipeServer::Object_GetClass()
 	ExpectingAccessViolations=TRUE; //cause access violations to throw an exception
 	try
 	{
+		unsigned int i;
 		
 		klass=mono_object_get_class(object);
 		classname=mono_class_get_name(klass);
 
-		WriteQword((UINT64)klass);
-		WriteWord(strlen(classname));
-		Write(classname, strlen(classname));
+		//small test to see if the classname is readable
+		for (i=0; i<strlen(classname); i++)
+		{
+			char x=classname[i];
+			if (x=='\0')
+				break;			
+		}		
+
+		if (klass!=0)
+		{		
+			WriteQword((UINT64)klass);
+			WriteWord(strlen(classname));
+			Write(classname, strlen(classname));
+		}
+		else
+		{
+			WriteQword(0);
+		}
+
 
 	}
 	catch (char *e)	
