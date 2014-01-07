@@ -24,6 +24,79 @@ MONOCMD_TERMINATE=22
 MONOCMD_DISASSEMBLE=23
 
 
+MONO_TYPE_END        = 0x00       -- End of List
+MONO_TYPE_VOID       = 0x01
+MONO_TYPE_BOOLEAN    = 0x02
+MONO_TYPE_CHAR       = 0x03
+MONO_TYPE_I1         = 0x04
+MONO_TYPE_U1         = 0x05
+MONO_TYPE_I2         = 0x06
+MONO_TYPE_U2         = 0x07
+MONO_TYPE_I4         = 0x08
+MONO_TYPE_U4         = 0x09
+MONO_TYPE_I8         = 0x0a
+MONO_TYPE_U8         = 0x0b
+MONO_TYPE_R4         = 0x0c
+MONO_TYPE_R8         = 0x0d
+MONO_TYPE_STRING     = 0x0e
+MONO_TYPE_PTR        = 0x0f       -- arg: <type> token
+MONO_TYPE_BYREF      = 0x10       -- arg: <type> token
+MONO_TYPE_VALUETYPE  = 0x11       -- arg: <type> token
+MONO_TYPE_CLASS      = 0x12       -- arg: <type> token
+MONO_TYPE_VAR	     = 0x13	      -- number
+MONO_TYPE_ARRAY      = 0x14       -- type, rank, boundsCount, bound1, loCount, lo1
+MONO_TYPE_GENERICINST= 0x15	      -- <type> <type-arg-count> <type-1> \x{2026} <type-n> */
+MONO_TYPE_TYPEDBYREF = 0x16
+MONO_TYPE_I          = 0x18
+MONO_TYPE_U          = 0x19
+MONO_TYPE_FNPTR      = 0x1b	      -- arg: full method signature */
+MONO_TYPE_OBJECT     = 0x1c
+MONO_TYPE_SZARRAY    = 0x1d       -- 0-based one-dim-array */
+MONO_TYPE_MVAR	     = 0x1e       -- number */
+MONO_TYPE_CMOD_REQD  = 0x1f       -- arg: typedef or typeref token */
+MONO_TYPE_CMOD_OPT   = 0x20       -- optional arg: typedef or typref token */
+MONO_TYPE_INTERNAL   = 0x21       -- CLR internal type */
+
+MONO_TYPE_MODIFIER   = 0x40       -- Or with the following types */
+MONO_TYPE_SENTINEL   = 0x41       -- Sentinel for varargs method signature */
+MONO_TYPE_PINNED     = 0x45       -- Local var that points to pinned object */
+
+MONO_TYPE_ENUM       = 0x55        -- an enumeration */
+
+monoTypeToVartypeLookup={}
+monoTypeToVartypeLookup[MONO_TYPE_BOOLEAN]=vtByte
+monoTypeToVartypeLookup[MONO_TYPE_CHAR]=vtString
+monoTypeToVartypeLookup[MONO_TYPE_I1]=vtByte
+monoTypeToVartypeLookup[MONO_TYPE_U1]=vtByte
+monoTypeToVartypeLookup[MONO_TYPE_I2]=vtWord
+monoTypeToVartypeLookup[MONO_TYPE_U2]=vtWord
+monoTypeToVartypeLookup[MONO_TYPE_I4]=vtDword
+monoTypeToVartypeLookup[MONO_TYPE_U4]=vtDword
+monoTypeToVartypeLookup[MONO_TYPE_I8]=vtQword
+monoTypeToVartypeLookup[MONO_TYPE_U8]=vtQword
+monoTypeToVartypeLookup[MONO_TYPE_R4]=vtSingle
+monoTypeToVartypeLookup[MONO_TYPE_R8]=vtDouble
+monoTypeToVartypeLookup[MONO_TYPE_STRING]=vtPointer --pointer to a string object
+monoTypeToVartypeLookup[MONO_TYPE_PTR]=vtPointer
+monoTypeToVartypeLookup[MONO_TYPE_BYREF]=vtPointer
+monoTypeToVartypeLookup[MONO_TYPE_CLASS]=vtPointer
+monoTypeToVartypeLookup[MONO_TYPE_FNPTR]=vtPointer
+
+
+
+
+function monoTypeToVarType(monoType)
+--MonoTypeEnum
+  local result=monoTypeToVartypeLookup[monoType]
+
+  if result==nil then
+    result=vtDword --just give it something
+  end
+
+  return result
+end
+
+
 function LaunchMonoDataCollector()
   if debug_canBreak() then return 0 end
 
@@ -87,6 +160,39 @@ function LaunchMonoDataCollector()
   end
 
   return monoBase
+end
+
+function mono_structureDissectOverrideCallback(structure, baseaddress)
+  local realaddress, classaddress=mono_object_findRealStartOfObject(baseaddress)
+
+  if (realaddress==baseaddress) then
+    --use the fields of this class
+    local fields=mono_class_enumFields(classaddress)
+
+    local i
+    for i=1, #fields do
+      local e=structure.addElement()
+
+      print(fields[i].name.." - "..fields[i].monotype);
+
+      e.Name=fields[i].name
+      e.Offset=fields[i].offset
+      e.Vartype=monoTypeToVarType(fields[i].monotype)
+      if e.Vartype==vtString then
+        e.Bytesize=128
+      end
+
+
+
+      --todo if you feel like it: MONO_TYPE_VALUETYPE.  use mono_type_get_class on this type and then enum the fields of that to get more details
+
+
+    end
+
+    return true
+  else
+    return nil
+  end
 end
 
 
@@ -364,6 +470,8 @@ function mono_class_enumFields(class)
       fields[index]={}
       fields[index].field=classfield
       fields[index].type=monopipe.readQword()
+      fields[index].monotype=monopipe.readDword()
+
       fields[index].parent=monopipe.readQword()
       fields[index].offset=monopipe.readDword()
       namelength=monopipe.readWord();
