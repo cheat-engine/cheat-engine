@@ -75,9 +75,36 @@ function LaunchMonoDataCollector()
 	if mono_SymbolLookupID==nil then
 	  mono_SymbolLookupID=registerSymbolLookupCallback(mono_symbolLookupCallback, slNotSymbol)
 	end
+
+    if mono_StructureNameLookupID==nil then
+      mono_StructureNameLookupID=registerStructureNameLookup(mono_structureNameLookupCallback)
+    end
+
+    if mono_StructureDissectOverrideID==nil then
+      mono_StructureDissectOverrideID=registerStructureDissectOverride(mono_structureDissectOverrideCallback)
+    end
+
   end
 
   return monoBase
+end
+
+
+function mono_structureNameLookupCallback(address)
+  local currentaddress, classaddress, classname
+
+
+  --messageDialog("Do you wish to let the mono extention figure out the name and start address? If it's not a proper object this may crash the target.", mtConfirmation, mbYes, mbNo)==mrYes then
+      currentaddress, classaddress, classname=mono_object_findRealStartOfObject(address)
+
+      if (currentaddress~=nil) then
+       -- print("currentaddress~=nil : "..currentaddress)
+        return classname,currentaddress
+      else
+      --  print("currentaddress==nil")
+        return nil
+      end
+  --end
 end
 
 
@@ -166,9 +193,13 @@ function mono_object_getClass(address)
   monopipe.writeQword(address)
 
   local classaddress=monopipe.readQword()
-  if (classaddress~=0) then
+  if (classaddress~=nil) and (classaddress~=0) then
     local stringlength=monopipe.readWord()
-    local classname=monopipe.readString(stringlength)
+    local classname
+
+    if stringlength>0 then
+      classname=monopipe.readString(stringlength)
+    end
     monopipe.unlock()
 
     return classaddress, classname
@@ -433,10 +464,14 @@ function mono_object_findRealStartOfObject(address, maxsize)
     local classaddress,classname=mono_object_getClass(currentaddress)
 
     if (classaddress~=nil) and (classname~=nil) then
-      local r=string.find(classname, "[^%a%d_.]", 1)  --scan for characters that are not decimal or characters, or have a _ or . in the name
+      classname=classname:match "^%s*(.-)%s*$" --trim
+      if (classname~='') then
+          local r=string.find(classname, "[^%a%d_.]", 1)  --scan for characters that are not decimal or characters, or have a _ or . in the name
 
-      if (r==nil) or (r>=5) then
-        return currentaddress, classaddress, classname --good enough
+
+          if (r==nil) or (r>=5) then
+            return currentaddress, classaddress, classname --good enough
+          end
       end
     end
 
@@ -920,6 +955,16 @@ function mono_OpenProcessMT(t)
     if mono_SymbolLookupID~=nil then
       unregisterSymbolLookupCallback(mono_SymbolLookupID)
       mono_SymbolLookupID=nil
+    end
+
+    if mono_StructureNameLookupID~=nil then
+      unregisterStructureNameLookup(mono_StructureNameLookupID)
+      mono_StructureNameLookupID=nil
+    end
+
+    if mono_StructureDissectOverrideID~=nil then
+      unregisterStructureDissectOverride(mono_StructureDissectOverrideID)
+      mono_StructureDissectOverrideID=nil
     end
   end
 
