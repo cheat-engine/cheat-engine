@@ -2221,9 +2221,19 @@ begin
   lua_pop(L, lua_gettop(L)); //clear the stack
 end;
 
+var isclosing: boolean;
 function closeCE(L: Plua_state): integer; cdecl;
+var th: thandle;
+  b: boolean;
 begin
-  ce_closeCE;
+  if isclosing=false then
+  begin
+    isclosing:=true;
+
+    ce_closeCE; //cleanup
+
+    ExitProcess(0);
+  end;
   result:=0;
 end;
 
