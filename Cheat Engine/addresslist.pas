@@ -1206,7 +1206,8 @@ begin
 
 
 
-
+    //todo: Add setting to enable/disable this
+    {
     if (button=mbLeft) and (inrange(x,header.Sections[4].Left,header.Sections[4].right)) then
     begin
       //check if text of the value is clicked
@@ -1219,6 +1220,7 @@ begin
 
       end;
     end;
+    }
   end;
 end;
 

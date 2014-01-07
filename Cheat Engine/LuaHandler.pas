@@ -17,7 +17,7 @@ uses
   lauxlib, syncobjs, cefuncproc, newkernelhandler, autoassembler, Graphics,
   controls, LuaCaller, forms, ExtCtrls, StdCtrls, comctrls, ceguicomponents,
   generichotkey, luafile, xmplayer_server, ExtraTrainerComponents, customtimer,
-  menus, XMLRead, XMLWrite, DOM,ShellApi, Clipbrd, typinfo;
+  menus, XMLRead, XMLWrite, DOM,ShellApi, Clipbrd, typinfo, PEInfoFunctions;
 
 var
   LuaVM: Plua_State;
@@ -67,14 +67,14 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports, Mem
   LuaMemoryRecord, LuaForm, MemoryBrowserFormUnit, disassemblerviewunit, hexviewunit,
   CustomTypeHandler, LuaStructure, LuaRegion, LuaXMPlayer, LuaMemscan, LuaFoundlist,
   LuaRadioGroup, LuaRasterImage, LuaCheatComponent, LuaAddresslist, byteinterpreter,
-  OpenSave, cedebugger, DebugHelper, LuaObject, LuaComponent, LuaControl, LuaStrings,
-  LuaStringlist, LuaCustomControl, LuaGraphicControl, LuaPanel, LuaImage, LuaButton,
-  LuaCheckbox, LuaGroupbox, LuaListbox, LuaCombobox, LuaTrackbar, LuaListColumn,
-  LuaEdit, LuaMemo, LuaCollection, LuaListColumns, LuaListitem, LuaListItems,
-  LuaTimer, LuaListview, LuaGenericHotkey, LuaTableFile, LuaMemoryRecordHotkey,
-  LuaMemoryView, LuaD3DHook, LuaDisassembler, LuaDissectCode, LuaByteTable, LuaBinary,
-  lua_server, HotkeyHandler, LuaPipeClient, LuaPipeServer, LuaTreeview,
-  LuaTreeNodes, LuaTreeNode;
+  OpenSave, cedebugger, DebugHelper, StructuresFrm2, Assemblerunit, LuaObject,
+  LuaComponent, LuaControl, LuaStrings, LuaStringlist, LuaCustomControl,
+  LuaGraphicControl, LuaPanel, LuaImage, LuaButton, LuaCheckbox, LuaGroupbox,
+  LuaListbox, LuaCombobox, LuaTrackbar, LuaListColumn, LuaEdit, LuaMemo, LuaCollection,
+  LuaListColumns, LuaListitem, LuaListItems, LuaTimer, LuaListview, LuaGenericHotkey,
+  LuaTableFile, LuaMemoryRecordHotkey, LuaMemoryView, LuaD3DHook, LuaDisassembler,
+  LuaDissectCode, LuaByteTable, LuaBinary, lua_server, HotkeyHandler, LuaPipeClient,
+  LuaPipeServer, LuaTreeview, LuaTreeNodes, LuaTreeNode;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -2683,40 +2683,70 @@ var
   ml: tstringlist;
   tableindex: integer;
   entryindex: integer;
+
+  ths: THandle;
+  me32: TModuleEntry32;
+
+  is64bitmodule: boolean;
+
+  pid: integer;
 begin
-  ml:=tstringlist.create;
+  result:=0;
 
-  symhandler.loadmodulelist;
+  if lua_gettop(L)=1 then
+    pid:=lua_tointeger(L,1)
+  else
+    pid:=processid;
 
-  symhandler.getModuleList(ml);
-
-  lua_newtable(L);
-  tableindex:=lua_gettop(L);
-
-  for i:=0 to ml.count-1 do
+  ths:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE or TH32CS_SNAPMODULE32, pid);
+  if ths<>0 then
   begin
     lua_newtable(L);
-    entryindex:=lua_gettop(L);
+    tableindex:=lua_gettop(L);
 
-    lua_pushstring(L, 'Name');
-    lua_pushstring(L, ml[i]);
-    lua_settable(L, entryindex);
+    me32.dwSize:=sizeof(MODULEENTRY32);
 
-    lua_pushstring(L, 'Address');
-    lua_pushinteger(L, ptruint(ml.Objects[i]));
-    lua_settable(L, entryindex);
+    i:=1;
+    if module32first(ths,me32) then
+    repeat
+      lua_newtable(L);
+      entryindex:=lua_gettop(L);
 
-    lua_pushinteger(L, i+1);
-    lua_pushvalue(L, entryindex);
-    lua_settable(L, tableindex);
+      lua_pushstring(L, 'Name');
+      lua_pushstring(L, extractfilename(me32.szExePath));
+      lua_settable(L, entryindex);
 
-    lua_pop(L, 1); //remove the current entry table
+      lua_pushstring(L, 'Address');
+      lua_pushinteger(L, ptruint(me32.modBaseAddr));
+      lua_settable(L, entryindex);
+
+      if peinfo_is64bitfile(me32.szExePath, is64bitmodule)=false then
+        is64bitmodule:=processhandler.is64Bit; //fallback on an assumption
+
+      lua_pushstring(L, 'Is64Bit');
+      lua_pushboolean(L, is64bitmodule);
+      lua_settable(L, entryindex);
+
+      lua_pushstring(L, 'PathToFile');
+      lua_pushstring(L, me32.szExePath);
+      lua_settable(L, entryindex);
+
+
+      lua_pushinteger(L, i);
+      lua_pushvalue(L, entryindex);
+      lua_settable(L, tableindex);
+
+      lua_pop(L, 1); //remove the current entry table
+
+      inc(i);
+    until Module32Next(ths, me32)=false;
+
+    lua_pushvalue(L, tableindex); //shouldn't be needed, but let's make sure
+    result:=1;
+
+    closehandle(ths);
+
   end;
-
-  lua_pushvalue(L, tableindex); //shouldn't be needed, but let's make sure
-  result:=1;
-
-  ml.free;
 end;
 
 
@@ -4688,6 +4718,166 @@ begin
     unregisterGlobalDisassembleOverride(lua_tointeger(L, 1));
 end;
 
+function lua_registerStructureDissectOverride(L: PLua_State): integer; cdecl;
+var
+  f: integer;
+  routine: string;
+  lc: tluacaller;
+  m: Tmethod;
+begin
+  result:=0;
+
+  if lua_gettop(L)=1 then
+  begin
+    if lua_isfunction(L, 1) then
+    begin
+      lua_pushvalue(L, 1);
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+    end
+    else
+    if lua_isstring(L,1) then
+    begin
+      routine:=lua_tostring(L,-1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+    end
+    else exit;
+
+    lua_pushinteger(L, registerStructureDissectOverride(lc.StructureDissectEvent));
+    result:=1;
+  end;
+end;
+
+function lua_unregisterStructureDissectOverride(L: PLua_State): integer; cdecl;
+begin
+  result:=0;
+  if lua_gettop(L)>0 then
+    unregisterStructureDissectOverride(lua_tointeger(L, 1));
+end;
+
+
+function lua_registerStructureNameLookup(L: PLua_State): integer; cdecl;
+var
+  f: integer;
+  routine: string;
+  lc: tluacaller;
+begin
+  result:=0;
+
+  if lua_gettop(L)=1 then
+  begin
+    if lua_isfunction(L, 1) then
+    begin
+      lua_pushvalue(L, 1);
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+    end
+    else
+    if lua_isstring(L,1) then
+    begin
+      routine:=lua_tostring(L,-1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+    end
+    else exit;
+
+    lua_pushinteger(L, registerStructureNameLookup(lc.StructureNameLookup));
+    result:=1;
+  end;
+end;
+
+function lua_unregisterStructureNameLookup(L: PLua_State): integer; cdecl;
+begin
+  result:=0;
+  if lua_gettop(L)>0 then
+    unregisterStructureNameLookup(lua_tointeger(L, 1));
+end;
+
+function lua_registerAssembler(L: PLua_State): integer; cdecl;
+var
+  f: integer;
+  routine: string;
+  lc: tluacaller;
+begin
+  result:=0;
+
+  if lua_gettop(L)=1 then
+  begin
+    if lua_isfunction(L, 1) then
+    begin
+      lua_pushvalue(L, 1);
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+    end
+    else
+    if lua_isstring(L,1) then
+    begin
+      routine:=lua_tostring(L,-1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+    end
+    else exit;
+
+    lua_pushinteger(L, registerAssembler(lc.AssemblerEvent));
+    result:=1;
+  end;
+end;
+
+function lua_unregisterAssembler(L: PLua_State): integer; cdecl;
+begin
+  result:=0;
+  if lua_gettop(L)>0 then
+    unregisterAssembler(lua_tointeger(L, 1));
+end;
+
+
+function lua_registerAutoAssemblerPrologue(L: PLua_State): integer; cdecl;
+var
+  f: integer;
+  routine: string;
+  lc: tluacaller;
+begin
+  result:=0;
+
+  if lua_gettop(L)=1 then
+  begin
+    if lua_isfunction(L, 1) then
+    begin
+      lua_pushvalue(L, 1);
+      f:=luaL_ref(L,LUA_REGISTRYINDEX);
+
+      lc:=TLuaCaller.create;
+      lc.luaroutineIndex:=f;
+    end
+    else
+    if lua_isstring(L,1) then
+    begin
+      routine:=lua_tostring(L,-1);
+      lc:=TLuaCaller.create;
+      lc.luaroutine:=routine;
+    end
+    else exit;
+
+    lua_pushinteger(L, registerAutoAssemblerPrologue(lc.AutoAssemblerPrologueEvent));
+    result:=1;
+  end;
+end;
+
+function lua_unregisterAutoAssemblerPrologue(L: PLua_State): integer; cdecl;
+begin
+  result:=0;
+  if lua_gettop(L)>0 then
+    unregisterAutoAssemblerPrologue(lua_tointeger(L, 1));
+end;
+
+
 procedure InitializeLua;
 var s: tstringlist;
   k32: THandle;
@@ -5021,6 +5211,19 @@ begin
 
     lua_register(LuaVM, 'registerGlobalDisassembleOverride', lua_registerGlobalDisassembleOverride);
     lua_register(LuaVM, 'unregisterGlobalDisassembleOverride', lua_unregisterGlobalDisassembleOverride);
+
+    lua_register(LuaVM, 'registerStructureDissectOverride', lua_registerStructureDissectOverride);
+    lua_register(LuaVM, 'unregisterStructureDissectOverride', lua_unregisterStructureDissectOverride);
+
+    lua_register(LuaVM, 'registerStructureNameLookup', lua_registerStructureNameLookup);
+    lua_register(LuaVM, 'unregisterStructureNameLookup', lua_unregisterStructureNameLookup);
+
+    lua_register(LuaVM, 'registerAssembler', lua_registerAssembler);
+    lua_register(LuaVM, 'unregisterAssembler', lua_unregisterAssembler);
+
+    lua_register(LuaVM, 'registerAutoAssemblerPrologue', lua_registerAutoAssemblerPrologue);
+    lua_register(LuaVM, 'unregisterAutoAssemblerPrologue', lua_unregisterAutoAssemblerPrologue);
+
 
 
     lua_register(LuaVM, 'inMainThread', inMainThread);

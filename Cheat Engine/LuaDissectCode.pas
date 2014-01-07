@@ -208,6 +208,47 @@ begin
 end;
 
 
+function dissectcode_saveToFile(L: PLua_State): integer; cdecl;
+var dc: TDissectCodeThread;
+begin
+  result:=0;
+  dc:=luaclass_getClassObject(L);
+  try
+    if lua_gettop(L)=1 then
+      dc.saveToFile(Lua_ToString(L,1));
+
+    lua_pushboolean(L, true);
+    result:=1;
+  except
+    on e:exception do
+    begin
+      lua_pushboolean(L, false);
+      lua_pushstring(L, e.Message);
+      result:=2;
+    end;
+  end;
+end;
+
+function dissectcode_loadFromFile(L: PLua_State): integer; cdecl;
+var dc: TDissectCodeThread;
+begin
+  result:=0;
+  dc:=luaclass_getClassObject(L);
+  try
+    if lua_gettop(L)=1 then
+      dc.loadFromFile(Lua_ToString(L,1));
+
+    lua_pushboolean(L, true);
+    result:=1;
+  except
+    on e:exception do
+    begin
+      lua_pushboolean(L, false);
+      lua_pushstring(L, e.Message);
+      result:=2;
+    end;
+  end;
+end;
 
 procedure dissectcode_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
@@ -219,6 +260,9 @@ begin
 
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getReferences', dissectcode_getReferences);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getReferencedStrings', dissectcode_getReferencedStrings);
+
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'saveToFile', dissectcode_saveToFile);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'loadFromFile', dissectcode_loadFromFile);
 
 end;
 

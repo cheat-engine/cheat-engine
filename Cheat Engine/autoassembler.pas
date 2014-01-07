@@ -14,7 +14,7 @@ function getenableanddisablepos(code:tstrings;var enablepos,disablepos: integer)
 function autoassemble(code: tstrings;popupmessages: boolean):boolean; overload;
 function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean;var CEAllocarray: TCEAllocArray; registeredsymbols: tstringlist=nil): boolean; overload;
 
-
+type TAutoAssemblerPrologue=procedure(code: TStrings; syntaxcheckonly: boolean) of object;
 type TAutoAssemblerCallback=function(parameters: string; syntaxcheckonly: boolean): string of object;
 type TRegisteredAutoAssemblerCommand=class
   command: string;
@@ -23,7 +23,8 @@ end;
 
 procedure RegisterAutoAssemblerCommand(command: string; callback: TAutoAssemblerCallback);
 procedure UnregisterAutoAssemblerCommand(command: string);
-
+function registerAutoAssemblerPrologue(m: TAutoAssemblerPrologue): integer;
+procedure unregisterAutoAssemblerPrologue(id: integer);
 
 
 implementation
@@ -92,6 +93,32 @@ type
 
 var
   registeredAutoAssemblerCommands: TregisteredAutoAssemblerCommands;
+
+  AutoAssemblerPrologues: array of TAutoAssemblerPrologue;
+
+function registerAutoAssemblerPrologue(m: TAutoAssemblerPrologue): integer;
+var i: integer;
+begin
+  for i:=0 to length(AutoAssemblerPrologues)-1 do
+  begin
+    if assigned(AutoAssemblerPrologues[i])=false then
+    begin
+      AutoAssemblerPrologues[i]:=m;
+      result:=i;
+      exit;
+    end
+  end;
+
+  result:=length(AutoAssemblerPrologues);
+  setlength(AutoAssemblerPrologues, result+1);
+  AutoAssemblerPrologues[result]:=m;
+end;
+
+procedure unregisterAutoAssemblerPrologue(id: integer);
+begin
+  if id<length(AutoAssemblerPrologues) then
+    AutoAssemblerPrologues[id]:=nil;
+end;
 
 procedure RegisterAutoAssemblerCommand(command: string; callback: TAutoAssemblerCallback);
 var i: integer;
@@ -973,16 +1000,16 @@ begin
   begin
     //get this function to use the symbolhandler that's pointing to CE itself and the self processid/handle
     oldhandle:=cefuncproc.ProcessHandle;
-    processhandle:=getcurrentprocess;
     processid:=getcurrentprocessid;
+    processhandle:=getcurrentprocess;
     oldsymhandler:=symhandler;
     symhandler:=selfsymhandler;
     processhandler.processhandle:=processhandle;
   end
   else
   begin
-    processhandle:=cefuncproc.ProcessHandle;
     processid:=cefuncproc.ProcessID;
+    processhandle:=cefuncproc.ProcessHandle;
   end;
 
   symhandler.waitforsymbolsloaded;
@@ -1010,6 +1037,11 @@ begin
     tokens:=tstringlist.Create;
 
     incomment:=false;
+
+    if not targetself then
+      for i:=0 to length(AutoAssemblerPrologues)-1 do
+        if assigned(AutoAssemblerPrologues[i]) then
+          AutoAssemblerPrologues[i](code, syntaxcheckonly);
 
     removecomments(code);  //also trims each line
     unlabeledlabels(code);

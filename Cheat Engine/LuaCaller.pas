@@ -12,7 +12,7 @@ interface
 uses
   Classes, Controls, SysUtils, ceguicomponents, forms, lua, lualib, lauxlib,
   comctrls, StdCtrls, CEFuncProc, typinfo, Graphics, disassembler, LuaDisassembler,
-  LastDisassembleData;
+  LastDisassembleData, Assemblerunit;
 
 type
   TLuaCaller=class
@@ -51,9 +51,14 @@ type
       function DisassembleEvent(sender: TObject; address: ptruint; var ldd: TLastDisassembleData; var output: string; var description: string): boolean;
 
       function AutoAssemblerCallback(parameters: string; syntaxcheckonly: boolean): string;
+      function StructureDissectEvent(structure: TObject; address: ptruint): boolean;
 
       function AddressLookupCallback(address: ptruint): string;
       function SymbolLookupCallback(s: string): ptruint;
+      function StructureNameLookup(var address: ptruint; var name: string): boolean;
+      procedure AssemblerEvent(address:integer; instruction: string; var bytes: TAssemblerBytes);
+      procedure AutoAssemblerPrologueEvent(code: TStrings; syntaxcheckonly: boolean);
+
 
       procedure ScreenFormEvent(Sender: TObject; Form: TCustomForm);
 
@@ -103,7 +108,7 @@ function luacaller_getFunctionHeaderAndMethodForType(typeinfo: PTypeInfo; lc: po
 
 implementation
 
-uses luahandler, MainUnit, MemoryRecordUnit, disassemblerviewunit, hexviewunit, d3dhookUnit, luaclass;
+uses luahandler, LuaByteTable, MainUnit, MemoryRecordUnit, disassemblerviewunit, hexviewunit, d3dhookUnit, luaclass;
 
 type
   TLuaCallData=class(tobject)
@@ -778,8 +783,30 @@ begin
       result:=Lua_ToString(luavm, -2);
     end
     else
-      raise exception.create('Lua Function error('+lua_tostring(luavm, -1)+')');
+      raise exception.create('AutoAssemblerCallback: Lua Function error('+lua_tostring(luavm, -1)+')');
 
+  finally
+    lua_settop(Luavm, oldstack);
+    luacs.leave;
+  end;
+end;
+
+function TLuaCaller.StructureDissectEvent(structure: TObject; address: ptruint): boolean;
+var oldstack: integer;
+begin
+  result:=false;
+  Luacs.Enter;
+  try
+    oldstack:=lua_gettop(Luavm);
+
+
+    PushFunction;
+    luaclass_newClass(luavm, structure);
+    lua_pushinteger(luavm, address);
+    if lua_pcall(Luavm, 2,1,0)=0 then
+      result:=lua_toboolean(luavm, -1)
+    else
+      raise exception.create('StructureDissectEvent: Lua Function error('+lua_tostring(luavm, -1)+')');
   finally
     lua_settop(Luavm, oldstack);
     luacs.leave;
@@ -840,6 +867,84 @@ begin
     if lua_pcall(Luavm, 1,1,0)=0 then
       if not lua_isnil(luavm, -1) then
         result:=lua_tointeger(luavm,-1);
+  finally
+    lua_settop(Luavm, oldstack);
+    luacs.leave;
+  end;
+end;
+
+function TLuaCaller.StructureNameLookup(var address: ptruint; var name: string): boolean;
+var oldstack: integer;
+begin
+  result:=false;
+  Luacs.Enter;
+  try
+    oldstack:=lua_gettop(Luavm);
+
+    PushFunction;
+    lua_pushinteger(luavm, address);
+    if lua_pcall(Luavm, 1,2,0)=0 then
+    begin
+      result:=lua_isnil(luavm, -2)=false;
+
+      if result then
+        name:=Lua_ToString(luavm, -2);
+
+      if not lua_isnil(luavm, -1) then
+        address:=lua_tointeger(luavm, -1);
+    end;
+  finally
+    lua_settop(Luavm, oldstack);
+    luacs.leave;
+  end;
+end;
+
+procedure TLuaCaller.AssemblerEvent(address:integer; instruction: string; var bytes: TAssemblerBytes);
+var
+  oldstack: integer;
+  tableindex: integer;
+  maxsize: integer;
+begin
+  setlength(bytes,0);
+
+  Luacs.Enter;
+  try
+    oldstack:=lua_gettop(Luavm);
+
+    PushFunction;
+    lua_pushinteger(luavm, address);
+    lua_pushstring(luavm, instruction);
+
+    if lua_pcall(Luavm, 2,1,0)=0 then
+    begin
+      if lua_istable(luavm, -1) then
+      begin
+        lua_pushvalue(luavm, -1);
+        tableindex:=lua_gettop(luavm);
+
+        maxsize:=lua_objlen(luavm, tableindex);
+        setlength(bytes, maxsize);
+        readBytesFromTable(luavm, tableindex, @bytes[0], maxsize);
+      end;
+    end;
+  finally
+    lua_settop(Luavm, oldstack);
+    luacs.leave;
+  end;
+end;
+
+
+procedure TLuaCaller.AutoAssemblerPrologueEvent(code: TStrings; syntaxcheckonly: boolean);
+var oldstack: integer;
+begin
+  Luacs.Enter;
+  try
+    oldstack:=lua_gettop(Luavm);
+
+    PushFunction;
+    luaclass_newClass(luavm, code);
+    lua_pushboolean(luavm, syntaxcheckonly);
+    lua_pcall(Luavm, 2,0,0);
   finally
     lua_settop(Luavm, oldstack);
     luacs.leave;
