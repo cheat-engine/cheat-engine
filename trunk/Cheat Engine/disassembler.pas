@@ -1375,6 +1375,7 @@ begin
 
 
 
+
   if isdefault then
   begin
     showsymbols:=symhandler.showsymbols;

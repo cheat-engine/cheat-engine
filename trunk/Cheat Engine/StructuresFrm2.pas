@@ -20,6 +20,9 @@ type
   TStructOperation=(soAdd, soDelete, soSort);
 
   TDissectedStruct=class;
+  TStructureDissectOverride=function(structure: TObject; address: ptruint): boolean of object;
+  TStructureNameLookup=function(var address: ptruint; var name: string): boolean of object;
+
   TStructelement=class
   private
     fparent: TDissectedStruct;
@@ -519,7 +522,11 @@ var
   DissectedStructs: TDissectedStructs;
 
 
+function registerStructureDissectOverride(m: TStructureDissectOverride): integer;
+procedure unregisterStructureDissectOverride(id: integer);
 
+function registerStructureNameLookup(m: TStructureNameLookup): integer;
+procedure unregisterStructureNameLookup(id: integer);
 
 implementation
 
@@ -587,6 +594,58 @@ resourcestring
    rsCopy = 'Copy';
    rsPaste = 'Paste';
    rsSpider = 'Spider';
+
+var
+  StructureDissectOverrides: array of TStructureDissectOverride;
+  StructureNameLookups: array of TStructureNameLookup;
+
+function registerStructureNameLookup(m: TStructureNameLookup): integer;
+var i: integer;
+begin
+  for i:=0 to length(StructureNameLookups)-1 do
+  begin
+    if assigned(StructureNameLookups[i])=false then
+    begin
+      StructureNameLookups[i]:=m;
+      result:=i;
+      exit;
+    end
+  end;
+
+  result:=length(StructureNameLookups);
+  setlength(StructureNameLookups, result+1);
+  StructureNameLookups[result]:=m;
+end;
+
+procedure unregisterStructureNameLookup(id: integer);
+begin
+  if id<length(StructureNameLookups) then
+    StructureNameLookups[id]:=nil;
+end;
+
+function registerStructureDissectOverride(m: TStructureDissectOverride): integer;
+var i: integer;
+begin
+  for i:=0 to length(StructureDissectOverrides)-1 do
+  begin
+    if assigned(StructureDissectOverrides[i])=false then
+    begin
+      StructureDissectOverrides[i]:=m;
+      result:=i;
+      exit;
+    end
+  end;
+
+  result:=length(StructureDissectOverrides);
+  setlength(StructureDissectOverrides, result+1);
+  StructureDissectOverrides[result]:=m;
+end;
+
+procedure unregisterStructureDissectOverride(id: integer);
+begin
+  if id<length(StructureDissectOverrides) then
+    StructureDissectOverrides[id]:=nil;
+end;
 
 function DisplaymethodToString(d:TdisplayMethod): string;
 begin
@@ -3191,18 +3250,36 @@ var
   addressdata: TAddressData;
   hasAddressData: boolean;
   i: integer;
+
+  UsedOverride: boolean;
+  a: ptruint;
 begin
   result:=nil;
   if columnCount>0 then
   begin
-
-
     hasAddressData:=symhandler.GetLayoutFromAddress(TStructColumn(columns[0]).getAddress, addressdata);
 
     if hasAddressData then
       structname:=addressdata.classname
     else
+    begin
+
+
       structname:=rsUnnamedStructure;
+
+      for i:=0 to length(StructureNameLookups)-1 do
+      begin
+        if assigned(StructureNameLookups[i]) then
+        begin
+          a:=TStructColumn(columns[0]).getAddress;
+          if StructureNameLookups[i](a, structname) then
+          begin
+            TStructColumn(columns[0]).setAddress(a);
+            break;
+          end;
+        end;
+      end;
+    end;
 
     //get the name
     if not inputquery(rsStructureDefine, rsGiveTheNameForThisStructure, structName) then exit;
@@ -3236,15 +3313,28 @@ begin
       end
       else
       begin
-        sstructsize:=inttostr(recommendedSize);
-        if not inputquery(rsStructureDefine, rsPleaseGiveAStartingSizeOfTheStructYouCanChangeThis, Sstructsize) then exit;
-        structsize:=strtoint(sstructsize);
+        UsedOverride:=false;
+        for i:=0 to length(StructureDissectOverrides)-1 do
+        begin
+          if assigned(StructureDissectOverrides[i]) then
+          begin
+            a:=TStructColumn(columns[0]).getAddress;
+            UsedOverride:=StructureDissectOverrides[i](mainStruct, a);
+            if UsedOverride then break;
+          end;
+        end;
 
-        if TStructColumn(columns[0]).getSavedState=nil then
-          mainStruct.autoGuessStruct(TStructColumn(columns[0]).getAddress, 0, structsize )
-        else
-          mainStruct.autoGuessStruct(ptruint(TStructColumn(columns[0]).getSavedState), 0, min(structsize, TStructColumn(columns[0]).getSavedStateSize)); //fill base don the saved state
+        if not UsedOverride then
+        begin
+          sstructsize:=inttostr(recommendedSize);
+          if not inputquery(rsStructureDefine, rsPleaseGiveAStartingSizeOfTheStructYouCanChangeThis, Sstructsize) then exit;
+          structsize:=strtoint(sstructsize);
 
+          if TStructColumn(columns[0]).getSavedState=nil then
+            mainStruct.autoGuessStruct(TStructColumn(columns[0]).getAddress, 0, structsize )
+          else
+            mainStruct.autoGuessStruct(ptruint(TStructColumn(columns[0]).getSavedState), 0, min(structsize, TStructColumn(columns[0]).getSavedStateSize)); //fill base don the saved state
+        end;
       end;
     end;
 

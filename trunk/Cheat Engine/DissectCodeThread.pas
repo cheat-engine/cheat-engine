@@ -68,6 +68,8 @@ type
     function isstring(address: ptrUint): boolean;
     function findaddress(list: TMap; address: ptrUint):PAddresslist;
     procedure clearList(list: Tmap);
+    procedure saveListToStream(list: TMap; s: TStream);
+    procedure loadListFromStream(list: TMap; s: TStream);
   public
     percentagedone: dword;
     processid: dword;
@@ -100,6 +102,9 @@ type
     procedure waitTillDone;
     procedure cancelScan;
 
+    procedure saveTofile(filename: string);
+    procedure loadFromFile(filename: string);
+
 
     procedure getstringlist(s: tstrings);
     constructor create(suspended: boolean);
@@ -120,7 +125,119 @@ This thread will scan the memory for jumps and conditional jumps
 that data will be added to a list that the disassemblerview can read out for data
 
 }
+procedure TDissectCodeThread.saveListToStream(list: TMap; s: TStream);
+var mi: TMapIterator;
+  id: ptruint;
+  al: PAddresslist;
+  count: dword;
 
+  i: integer;
+begin
+  mi:=TMapIterator.Create(list);
+  try
+    count:=0; //first get the count
+    mi.First;
+    while not mi.EOM do
+    begin
+      inc(count);
+
+      mi.Next;
+    end;
+
+    s.WriteDWord(count);
+
+    mi.First;
+    while not mi.EOM do
+    begin
+      mi.GetID(id);
+      mi.GetData(al);
+
+      s.WriteQWord(id);
+      s.WriteDWord(ifthen(al.isstring, 1, 0));
+      s.WriteDWord(al.pos);
+
+
+      for i:=0 to al.pos-1 do
+        s.writeQword(al.a[i]);
+
+      mi.Next;
+    end;
+
+  finally
+    mi.free;
+  end;
+end;
+
+procedure TDissectCodeThread.saveTofile(filename: string);
+var fs: Tfilestream;
+begin
+  fs:=tfilestream.create(filename, fmCreate);
+
+  try
+    fs.WriteDWord($ce00dc01);  //cheat engine dissect code v1
+    saveListToStream(calllist, fs);
+    saveListToStream(unconditionaljumplist, fs);
+    saveListToStream(conditionaljumplist, fs);
+    saveListToStream(memorylist, fs);
+  finally
+    fs.free;
+  end;
+end;
+
+procedure TDissectCodeThread.loadListFromStream(list: TMap; s: TStream);
+var
+  count: dword;
+  i,j: integer;
+  id: ptruint;
+
+  pos: integer;
+
+  al: PAddresslist;
+begin
+  clearList(list);
+
+  count:=s.ReadDWord;
+  for i:=0 to count-1 do
+  begin
+    getmem(al, sizeof(TAddresslist));
+
+    id:=s.ReadQword;
+    al.isstring:=s.ReadDword=1;
+    al.maxsize:=s.ReadDWord;
+    al.pos:=al.maxsize;
+
+    if al.pos>0 then
+    begin
+      getmem(al.a, al.pos*sizeof(PtrUInt));
+      for j:=0 to al.pos-1 do
+        al.a[j]:=s.ReadQWord;
+
+      list.Add(id, al);
+    end;
+  end;
+end;
+
+procedure TDissectCodeThread.loadFromFile(filename: string);
+var fs: Tfilestream;
+begin
+  fs:=tfilestream.create(filename, fmOpenRead);
+
+  clear;
+  try
+    if fs.ReadDWord<>$ce00dc01 then
+      raise exception.create('Invalid dissect code file');
+
+
+    loadListFromStream(calllist, fs);
+    loadListFromStream(unconditionaljumplist, fs);
+    loadListFromStream(conditionaljumplist, fs);
+    loadListFromStream(memorylist, fs);
+  finally
+    fs.free;
+  end;
+
+
+end;
 
 procedure TDissectCodeThread.cancelScan;
 begin
@@ -651,6 +768,7 @@ begin
   haswork:=TEvent.Create(nil, false, false, '');
   ready:=TEvent.create(nil, false, true, '');
   inherited create(suspended);
+
 end;
 
 end.

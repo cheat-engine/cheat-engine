@@ -131,8 +131,9 @@ begin
 
 
   //scan the memory of the current process
-  processhandle:=cefuncproc.ProcessHandle;
   processid:=cefuncproc.ProcessID;
+  processhandle:=cefuncproc.ProcessHandle;
+
 
   totalmemory:=0;
   ar:=0;

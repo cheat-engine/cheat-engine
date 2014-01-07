@@ -88,7 +88,13 @@ ansiToUtf8(string): Converts a string in Ansi encoding to UTF8
 utf8ToAnsi(string): Converts a string in UTF8 encoding to Ansi
 Note: GUI components mainly show in UTF8, some other functions use Ansi, try to find out which ones...
 
-enumModules(): Returns a table containing information about each module. Each entry is a table with fields "Name" and "Address". This function also reloads the modulelist part of the symbol handler
+enumModules(processid OPTIONAL): 
+  Returns a table containing information about each module in the current process, or the specified processid
+  Each entry is a table with fields 
+    Name : String containing the modulename    Address: Integer representing the address the module is loaded    
+    Is64Bit: Boolean set to true if it's a 64-bit module    
+    PathToFile: String to the location this module is loaded
+ 
 
 getAddress(string, local OPTIONAL): returns the address of a symbol. Can be a modulename or an export. set Local to true if you wish to querry the symboltable of the ce process
 getModuleSize(modulename): Returns the size of a given module (Use getAddress to get the base address)
@@ -137,6 +143,34 @@ registerAddressLookupCallback(function(integer):string): ID
 
 unregisterAddressLookupCallback(ID): Removes the callback
 
+
+registerStructureDissectOverride(function(structure, baseaddress): table):
+  same as onAutoGuess, but is called by the structure dissect window when the user chooses to let cheat engine guess the structure for him.
+  Use the structure object to fill it in
+  Return true if you have filled it in, or false or nil if you did not
+
+  Tip: Use inputQuery to ask the user the size if your function doesn't do it automatically
+
+
+unregisterStructureDissectOverride(ID)
+
+registerStructureNameLookup(function(address): name, address OPTIONAL):
+  Registers a function to be called when dissect data asks the user for the name of a new structure define. If you have code that can look up the name of a structure, and perhaps also the real starting point, you can use this to improve the data dissection.
+
+unregisterStructureNameLookup(ID)
+    
+registerAssembler(function(address, instruction):bytetable)
+  Registers a function to be called when the single line assembler is invoked to convert an instruction to a list of bytes
+  Return a bytetable with the specific bytes, or nil if you wish to let another function, or the original x86 assembler to assemble it
+
+unregisterAssembler(ID): Unregisters the registered assembler
+
+registerAutoAssemblerPrologue(function(script, syntaxcheck))
+  Registers a function to be called when the auto assembler is about to parse an auto assembler script. The script you get is after the [ENABLE] and [DISABLE] tags have been used to strip the script to the according one, but before comment stripping and trimming has occured
+  
+  script is a Strings object which when changed has direct effect to the script
+
+unregisterAutoAssemblerPrologue(ID)
 
 
 showMessage(text) : shows a messagebox with the given text
@@ -203,6 +237,7 @@ registerCustomTypeAutoAssembler(script)
 onAutoGuess(function) : 
   Registers an function to be called whenever autoguess is used to predict a variable type
   function override (address, ceguess): Return the variable type you want it to be. If no change, just return ceguess
+
 
 
 
@@ -1628,6 +1663,7 @@ getStructure(index): Returns the Structure object at the given index
 createStructure(name): Returns an empty structure object (Not yet added to the Global list. Call structure_addToGlobalStructureList manually)
 
 
+
 structure class: (Inheritance: Object)
 Properties:
   Name: String - The name of the structure
@@ -1887,6 +1923,9 @@ getDefaultDisassembler() - Returns the default disassembler object used by a lot
 getVisibleDisassembler() - Returns the disassembler used by the disassemblerview. Special codes are: {H}=Hex value {R}=Register {S}=Symbol {N}=Nothing special
 
 registerGlobalDisassembleOverride(function(sender: Disassembler, address: integer, LastDisassembleData: Table): opcode, description): Same as Disassembler.OnDisassembleOverride, but does it for all disassemblers, including newly created ones.  Tip: Check the sender to see if you should use syntax highlighting codes or not
+  This function returns an ID you can pass on to unregisterGlobalDisassembleOverride()  6.3+
+
+unregisterGlobalDisassembleOverride(id)
 
 properties
   LastDisassembleData : Table
@@ -1935,8 +1974,11 @@ methods:
 
   getReferences(address) : Returns a table containing the addresses that reference this address and the type
   getReferencedStrings(): Returns a table of addresses and their strings that have been referenced. Use getReferences to find out which addresses that are
+
+  saveToFile(filename)
+  loadFromFile(filename)
  
-  todo: Add saving/loading
+
 
 
 LuaPipe class: (Inheritance: Object)

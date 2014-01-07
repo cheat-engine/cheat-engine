@@ -11,6 +11,7 @@ uses dialogs,LCLIntf,sysutils,imagehlp, ProcessHandlerUnit;
 const opcodecount=1093; //I wish there was a easier way than to handcount
 
 
+
 type TTokenType=(
   ttInvalidtoken, ttRegister8Bit, ttRegister16Bit, ttRegister32Bit, ttRegister64Bit, ttRegister8BitWithPrefix, //ttRegister64Bit and ttRegister8BitWithPrefix is just internal to set the rexflags
   ttRegisterMM, ttRegisterXMM, ttRegisterST, ttRegisterSreg,
@@ -1563,6 +1564,8 @@ type
 type ttokens=array of string;
 type TAssemblerBytes=array of byte;
 
+type TAssemblerEvent=procedure(address:integer; instruction: string; var bytes: TAssemblerBytes) of object;
+
 type TassemblerPreference=(apNone, apShort, apLong);
 
 function Assemble(opcode:string; address: ptrUint;var bytes: TAssemblerBytes; assemblerPreference: TassemblerPreference=apNone; skiprangecheck: boolean=false): boolean;
@@ -1621,11 +1624,42 @@ var parameter1,parameter2,parameter3: integer;
 
     assemblerindex: TIndexArray;
 
+function registerAssembler(m: TAssemblerEvent): integer;
+procedure unregisterAssembler(id: integer);
+
+
 implementation
 
 uses {$ifndef autoassemblerdll}CEFuncProc,{$endif}symbolhandler, lua, luahandler,
   lualib, assemblerArm;
 
+
+var ExtraAssemblers: array of TAssemblerEvent;
+
+
+function registerAssembler(m: TAssemblerEvent): integer;
+var i: integer;
+begin
+  for i:=0 to length(ExtraAssemblers)-1 do
+  begin
+    if assigned(ExtraAssemblers[i])=false then
+    begin
+      ExtraAssemblers[i]:=m;
+      result:=i;
+      exit;
+    end
+  end;
+
+  result:=length(ExtraAssemblers);
+  setlength(ExtraAssemblers, result+1);
+  ExtraAssemblers[result]:=m;
+end;
+
+procedure unregisterAssembler(id: integer);
+begin
+  if id<length(ExtraAssemblers) then
+    ExtraAssemblers[id]:=nil;
+end;
 
 
 function GetOpcodesIndex(opcode: string): integer;
@@ -3305,8 +3339,17 @@ begin
       result:=true;
       exit;
     end;
-
   end;
+
+  for i:=0 to length(ExtraAssemblers)-1 do
+  begin
+    if assigned(ExtraAssemblers[i]) then
+      ExtraAssemblers[i](address, opcode, bytes);
+
+    result:=length(bytes)>0;
+    if result then exit;
+  end;
+
 
   if processhandler.SystemArchitecture=archarm then
   begin
