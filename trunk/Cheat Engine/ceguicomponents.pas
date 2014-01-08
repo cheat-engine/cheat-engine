@@ -598,7 +598,6 @@ type TCEForm=class(TCustomForm)
     function getActive: boolean;
 
     procedure SetMethodProperty(Reader: TReader; Instance: TPersistent; PropInfo: PPropInfo; const TheMethodName: string; var Handled: boolean);
-
   public
     designsurface: TJvDesignSurface;
     procedure ResyncWithLua(Base: TComponent); overload;
@@ -957,6 +956,8 @@ implementation
 
 uses luahandler,luacaller, formdesignerunit;
 
+
+
 {$ifdef cpu32}
 //In this implementation the data field of treenodes contain a pointer to an 8 byte storage  (I don't think I could just change/add to the Data field of the TTreenode components)
 destructor TCETreeview.destroy;
@@ -1109,6 +1110,7 @@ begin
 end;
 
 
+
 procedure TCEForm.RestoreToDesignState;
 var wasactive: boolean;
   reader: TReader;
@@ -1132,6 +1134,7 @@ begin
       Controls[0].Free;
 
     savedDesign.position:=0;
+
     DestroyDriver:=false;
     reader:=CreateLRSReader(savedDesign,DestroyDriver);
 
@@ -1155,7 +1158,7 @@ begin
   if saveddesign=nil then
     savedDesign:=Tmemorystream.create;
 
-  savedDesign.position:=0;
+  savedDesign.size:=0;
   WriteComponentAsBinaryToStreamWithMethods(savedDesign);
 
   savedDesign.position:=0;
