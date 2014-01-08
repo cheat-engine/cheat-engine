@@ -984,23 +984,7 @@ begin
       result:=tkKey
     else
     if isExtraCommand(ft) then
-      result:=tkKey
-    else
-    if ft='{WTF}' then
-    begin
       result:=tkKey;
-     // result:=tkComment;
-
-      if fLuaSyntaxHighlighter=nil then
-        fLuaSyntaxHighlighter:=TSynLuaSyn.Create(self);
-
-      fLuaSyntaxHighlighter.AttachToLines(CurrentLines);
-      fLuaSyntaxHighlighter.CurrentLines:=CurrentLines;
-      fLuaSyntaxHighlighter.StartAtLineIndex(fLineNumber);
-
-
-      fRange := rsLua;
-    end;
   end;
 
 
