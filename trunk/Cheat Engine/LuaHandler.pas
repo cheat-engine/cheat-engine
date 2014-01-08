@@ -680,11 +680,14 @@ end;
 procedure LUA_DoScript(s: string);
 var i: integer;
   pc: pchar;
+
+  stack: integer;
 begin
   if GetCurrentThreadId<>MainThreadID then raise exception.create(rsLUA_DoScriptWasNotCalledRomTheMainThread);
 
   LUACS.Enter;
   try
+    stack:=lua_gettop(luavm);
     i:=lua_dostring(luavm, pchar(s));
     if i<>0 then
     begin
@@ -696,7 +699,7 @@ begin
 
     end;
   finally
-    lua_pop(luavm, lua_gettop(luavm)); //clear the stack
+    lua_settop(luavm, stack);
     LUACS.Leave;
   end;
 end;
