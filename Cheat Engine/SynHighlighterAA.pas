@@ -213,7 +213,8 @@ uses
 {$ENDIF}
   SysUtils,
   Classes,
-  assemblerunit;
+  assemblerunit,
+  LuaSyntax;
 
 type
   TtkTokenKind = (tkAsm, tkComment, tkIdentifier, tkKey, tkNull, tkNumber,
@@ -221,7 +222,7 @@ type
     tkRegister);
 
   TRangeState = (rsANil, rsAnsi, rsAnsiAsm, rsAsm, rsBor, rsBorAsm, rsProperty,
-    rsExports, rsDirective, rsDirectiveAsm, rsUnKnown);
+    rsExports, rsDirective, rsDirectiveAsm, rsLua, rsUnKnown);
 
   TProcTableProc = procedure of object;
 
@@ -237,6 +238,8 @@ const
 type
   TSynAASyn = class(TSynCustomHighlighter)
   private
+    fLuaSyntaxHighlighter: TSynLuaSyn;
+
     fLineRef: string;
     fAsmStart: Boolean;
     fRange: TRangeState;
@@ -325,6 +328,7 @@ type
     procedure AsciiCharProc;
     procedure AnsiProc;
     procedure BorProc;
+    procedure LuaProc;
     procedure BraceOpenProc;
     procedure ColonOrGreaterProc;
     procedure CRProc;
@@ -353,10 +357,8 @@ type
     class function GetLanguageName: string; override;
   public
     constructor Create(AOwner: TComponent); override;
-    function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
-      override;
+    function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes; override;
     function GetEol: Boolean; override;
-    function GetRange: Pointer; override;
     function GetToken: string; override;
     {$IFDEF SYN_LAZARUS}
     procedure GetTokenEx(out TokenStart: PChar; out TokenLength: integer); override;
@@ -366,9 +368,10 @@ type
     function GetTokenKind: integer; override;
     function GetTokenPos: Integer; override;
     procedure Next; override;
-    procedure ResetRange; override;
     procedure SetLine(const NewValue: String; LineNumber:Integer); override;
 
+    procedure ResetRange; override;
+    function GetRange: Pointer; override;
     procedure SetRange(Value: Pointer); override;
     property IdentChars;
   published
@@ -966,6 +969,7 @@ end;
 function TSynAASyn.IdentKind(MayBe: PChar): TtkTokenKind;
 var
   HashKey: Integer;
+  ft: string;
 begin
   fToIdent := MayBe;
   HashKey := KeyHash(MayBe);
@@ -975,11 +979,28 @@ begin
     
   if (result=tkIdentifier) then
   begin
-    if GetOpcodesIndex(getfirsttoken(maybe))<>-1 then
+    ft:=getfirsttoken(maybe);
+    if GetOpcodesIndex(ft)<>-1 then
       result:=tkKey
     else
-    if isExtraCommand(getfirsttoken(maybe)) then
+    if isExtraCommand(ft) then
+      result:=tkKey
+    else
+    if ft='{WTF}' then
+    begin
       result:=tkKey;
+     // result:=tkComment;
+
+      if fLuaSyntaxHighlighter=nil then
+        fLuaSyntaxHighlighter:=TSynLuaSyn.Create(self);
+
+      fLuaSyntaxHighlighter.AttachToLines(CurrentLines);
+      fLuaSyntaxHighlighter.CurrentLines:=CurrentLines;
+      fLuaSyntaxHighlighter.StartAtLineIndex(fLineNumber);
+
+
+      fRange := rsLua;
+    end;
   end;
 
 
@@ -1084,11 +1105,16 @@ end; { Create }
 
 procedure TSynAASyn.SetLine(const NewValue: string; LineNumber:Integer);
 begin
+  if fRange=rsLua then
+    fLuaSyntaxHighlighter.SetLine(NewValue, LineNumber);
+
   fLineRef := NewValue;
   fLine := PChar(fLineRef);
   Run := 0;
   fLineNumber := LineNumber;
-  Next;
+
+  if fRange<>rsLua then //prevent a double next
+    Next;
 end; { SetLine }
 
 procedure TSynAASyn.AddressOpProc;
@@ -1134,22 +1160,67 @@ begin
   end;
 end;
 
-procedure TSynAASyn.BraceOpenProc;
+procedure TSynAASyn.LuaProc;
 begin
- { if (fLine[Run + 1] = '$') then
+  fTokenID := tkComment;
+  if uppercase(fLine)='{$ASM}' then
   begin
-    if fRange = rsAsm then
-      fRange := rsDirectiveAsm
-    else
-      fRange := rsDirective;
+    inc(run,6);
+    fTokenID := tkDirec;
+    fRange:=rsUnKnown;
   end
   else
-  begin  }
+  begin
+
+    fLuaSyntaxHighlighter.Next;
+
+
+   { case fLine[Run] of
+       #0: NullProc;
+      #10: LFProc;
+      #13: CRProc;
+
+      else
+      repeat
+        Inc(Run);
+
+
+      until fLine[Run] in [#0, #10, #13];
+    end;  }
+
+
+  end;
+end;
+
+procedure TSynAASyn.BraceOpenProc;
+begin
+  if (Run=0) and (fLine[Run + 1] = '$') and   //{$LUA}
+     (uppercase(fLine[Run + 2]) = 'L') and
+     (uppercase(fLine[Run + 3]) = 'U') and
+     (uppercase(fLine[Run + 4]) = 'A') and
+     (fLine[Run + 5] = '}')
+  then
+  begin
+    inc(run,5);
+    FTokenID:=tkDirec;
+    if fLuaSyntaxHighlighter=nil then
+      fLuaSyntaxHighlighter:=TSynLuaSyn.Create(self);
+
+    fLuaSyntaxHighlighter.AttachToLines(CurrentLines);
+    fLuaSyntaxHighlighter.CurrentLines:=CurrentLines;
+    fLuaSyntaxHighlighter.StartAtLineIndex(fLineNumber);
+
+    fRange := rsLua;
+    exit;
+  end
+  else
+  begin
     if fRange = rsAsm then
       fRange := rsBorAsm
     else
       fRange := rsBor;
-  //end;
+
+  end;
   BorProc;
 end;
 
@@ -1429,6 +1500,8 @@ begin
       AnsiProc;
     rsBor, rsBorAsm, rsDirective, rsDirectiveAsm:
       BorProc;
+    rsLua:
+      LuaProc;
   else
     fProcTable[fLine[Run]];
   end;
@@ -1437,6 +1510,12 @@ end;
 function TSynAASyn.GetDefaultAttribute(Index: integer):
   TSynHighlighterAttributes;
 begin
+  if fRange=rsLua then
+  begin
+    result:=fLuaSyntaxHighlighter.GetDefaultAttribute(index);
+    exit;
+  end;
+
   case Index of
     SYN_ATTR_COMMENT: Result := fCommentAttri;
     SYN_ATTR_IDENTIFIER: Result := fIdentifierAttri;
@@ -1451,7 +1530,10 @@ end;
 
 function TSynAASyn.GetEol: Boolean;
 begin
-  Result := fTokenID = tkNull;
+  if fRange=rsLua then
+    result:=fLuaSyntaxHighlighter.GetEol
+  else
+    Result := fTokenID = tkNull;
 end;
     {
 function TSynAASyn.GetToken: string;
@@ -1466,6 +1548,12 @@ function TSynAASyn.GetToken: String;
 var
   Len: LongInt;
 begin
+  if frange=rsLua then
+  begin
+    result:=fLuaSyntaxHighlighter.GetToken;
+    exit;
+  end;
+
   Result := '';
   Len := Run - fTokenPos;
   SetString(Result, (FLine + fTokenPos), Len);
@@ -1475,6 +1563,17 @@ end;
 procedure TSynAASyn.GetTokenEx(out TokenStart: PChar;
   out TokenLength: integer);
 begin
+  if fRange=rsLua then
+  begin
+    fLuaSyntaxHighlighter.GetTokenEx(tokenstart, TokenLength);
+
+    if uppercase(tokenstart)='{$ASM}' then
+      tokenlength:=0;
+
+    exit;
+  end;
+
+
   TokenLength:=Run-fTokenPos;
   TokenStart:=FLine + fTokenPos;
 end;
@@ -1492,6 +1591,12 @@ end;
 
 function TSynAASyn.GetTokenAttribute: TSynHighlighterAttributes;
 begin
+  if fRange=rsLua then
+  begin
+    result:=fLuaSyntaxHighlighter.GetTokenAttribute;
+    exit;
+  end;
+
   case GetTokenID of
     tkAsm: Result := fAsmAttri;
     tkComment: Result := fCommentAttri;
@@ -1508,7 +1613,7 @@ begin
     tkSymbol: Result := fSymbolAttri;
     tkUnknown: Result := fSymbolAttri;
   else
-    Result := nil;
+    Result := fCommentAttri; //nil;
   end;
 end;
 
@@ -1519,7 +1624,10 @@ end;
 
 function TSynAASyn.GetTokenPos: Integer;
 begin
-  Result := fTokenPos;
+  if frange=rsLua then
+    result:=fLuaSyntaxHighlighter.GetTokenPos
+  else
+    Result := fTokenPos;
 end;
 
 function TSynAASyn.GetRange: Pointer;

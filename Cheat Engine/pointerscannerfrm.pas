@@ -4932,6 +4932,7 @@ begin
       edtRescanPort.Visible:=Pointerscanresults.externalScanners>0;
 
       cbBroadcast.visible:=Pointerscanresults.externalScanners>0;
+      btnNotifySpecificIPs.visible:=Pointerscanresults.externalScanners>0;
       cbWaitForAll.visible:=Pointerscanresults.externalScanners>0;
 
 

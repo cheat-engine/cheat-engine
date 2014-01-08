@@ -6,7 +6,7 @@ interface
 
 uses jwawindows, windows, Assemblerunit, classes, LCLIntf,symbolhandler,
      sysutils,dialogs,controls, CEFuncProc, NewKernelHandler ,plugin,
-     ProcessHandlerUnit;
+     ProcessHandlerUnit, lua, lualib, lauxlib;
 
 
 
@@ -878,6 +878,116 @@ begin
 
 end;
 
+procedure luacode(code: TStrings; syntaxcheckonly: boolean);
+{
+Find and execute the LUA parts:
+function (syntaxcheck)
+  <code>
+end
+
+If the functions return a string, subtitute the code with the given string
+}
+var
+  i,j,k: integer;
+  s: tstringlist;
+  stack: integer;
+  str: string;
+  error: boolean;
+begin
+  i:=0;
+  while i<code.Count do
+  begin
+    //search for {$LUA}
+
+    str:=uppercase(TrimRight(code[i]));
+    if str='{$LUA}' then
+    begin
+      //search for {$ASM} or the end
+      j:=i+1;
+      while j<=code.count do
+      begin
+
+        if (j=code.count) or (uppercase(TrimRight(code[j]))='{$ASM}') then
+        begin
+          s:=TStringList.create;
+          s.add('local syntaxcheck=...');
+
+          code[i]:='';
+          for k:=i+1 to j-1 do
+          begin
+            s.Add(code[k]);
+            code[k]:=''; //empty
+          end;
+
+          if j<>code.count then
+            code[j]:='';
+
+
+
+          LUACS.Enter;
+          try
+            stack:=lua_Gettop(luavm);
+
+            error:=false;
+
+            luaL_loadstring(luavm, pchar(s.text));
+            if lua_isfunction(luavm, -1) then
+            begin
+              lua_pushboolean(luavm, syntaxcheckonly);
+              if lua.lua_pcall(luavm, 1, 1, 0)=0 then
+              begin
+                if lua_isstring(luavm,-1) then
+                begin
+                  str:=Lua_ToString(luavm, -1);
+                  s:=tstringlist.create;
+                  s.text:=str;
+
+                  for k:=0 to s.count-1 do
+                    code.Insert(i+k, s[k]);
+
+                  s.free;
+
+                end;
+              end
+              else
+                error:=true;
+            end
+            else
+              error:=true;
+
+            if error then
+            begin
+              if lua_isstring(luavm, -1) then
+                raise exception.create('Lua error in the script at line '+inttostr(integer(code.Objects[i]))+':'+lua_tostring(luavm, -1))
+              else
+                raise exception.create('Lua error in the script at line '+inttostr(integer(code.Objects[i])));
+
+            end;
+
+          finally
+            lua_settop(Luavm, stack);
+            LUACS.Leave;
+          end;
+
+          break;
+
+        end;
+        inc(j);
+      end;
+
+
+    end
+    else
+      inc(i);
+  end;
+
+  //one more time getting rid of {$ASM} lines that have been added while they shouldn't be required
+  for i:=0 to code.count-1 do
+    if uppercase(TrimRight(code[i]))='{$ASM}' then
+      code[i]:='';
+
+end;
+
 function autoassemble2(code: tstrings;popupmessages: boolean;syntaxcheckonly:boolean; targetself: boolean ;var ceallocarray:TCEAllocArray; registeredsymbols: tstringlist=nil):boolean;
 {
 registeredsymbols is a stringlist that is initialized by the caller as case insensitive and no duplicates
@@ -1043,6 +1153,8 @@ begin
         if assigned(AutoAssemblerPrologues[i]) then
           AutoAssemblerPrologues[i](code, syntaxcheckonly);
 
+    luacode(code, syntaxcheckonly);
+
     removecomments(code);  //also trims each line
     unlabeledlabels(code);
 
@@ -1050,8 +1162,6 @@ begin
     //this will break scripts that use define(state,33) aobscan(name, 11 22 state 44 55), but really, live with it
 
     aobscans(code, syntaxcheckonly);
-
-
 
     //first pass
 
