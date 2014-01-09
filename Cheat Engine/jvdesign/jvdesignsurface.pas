@@ -881,7 +881,7 @@ var
 
   procedure PasteComponent;
   begin
-    C.Name := DesignUniqueName(Owner, C.ClassName);
+    C.Name := DesignUniqueName(Container, C.ClassName);
 
     p.InsertComponent(C);
     if C is TControl then
