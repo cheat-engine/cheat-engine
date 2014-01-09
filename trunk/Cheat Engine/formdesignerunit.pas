@@ -10,7 +10,7 @@ uses
   Dialogs, ComCtrls, StdCtrls, ExtCtrls, Buttons, Menus, JvDesignSurface,
   JvDesignImp, JvDesignUtils, typinfo, PropEdits, ObjectInspector, LResources,
   maps, ExtDlgs, PopupNotifier, IDEDialogs, ceguicomponents, LMessages, luacaller,
-  luahandler, cefuncproc, ListViewPropEdit, TreeViewPropEdit;
+  luahandler, cefuncproc, ListViewPropEdit, TreeViewPropEdit, AnchorEditor;
 
 
 
@@ -24,6 +24,7 @@ type
     ImageList1: TImageList;
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;
+    miAnchorEditor: TMenuItem;
     miMenuSep: TMenuItem;
     miMenuMoveUp: TMenuItem;
     miMenuMoveDown: TMenuItem;
@@ -77,6 +78,7 @@ type
     procedure miAddItemsClick(Sender: TObject);
     procedure miAddSubMenuClick(Sender: TObject);
     procedure miAddTabClick(Sender: TObject);
+    procedure miAnchorEditorClick(Sender: TObject);
     procedure miDeleteClick(Sender: TObject);
     procedure miLoadClick(Sender: TObject);
     procedure miMenuMoveDownClick(Sender: TObject);
@@ -106,6 +108,8 @@ type
     lastupdate: uint64;
 
     ComponentTreeWindowProc: TWndMethod;
+
+    anchorEditor: TAnchorDesigner;
 
     procedure UpdateMethodListIfNeeded;
 
@@ -228,6 +232,17 @@ begin
 
   TCEForm(GlobalDesignHook.LookupRoot).designsurface.Messenger.DesignComponent(ts,true);
   TCEForm(GlobalDesignHook.LookupRoot).designsurface.Change;
+end;
+
+procedure TFormDesigner.miAnchorEditorClick(Sender: TObject);
+begin
+  if anchorEditor=nil then
+  begin
+    anchorEditor:=TAnchorDesigner.Create(self);
+    anchorEditor.show;
+  end
+  else
+    anchorEditor.Show;
 end;
 
 procedure TFormDesigner.miDeleteClick(Sender: TObject);
@@ -570,6 +585,8 @@ var s: TJvDesignObjectArray;
   it: pinterfacetable;
 
   surface: TJvDesignSurface;
+
+  sl: TPersistentSelectionList;
 begin
   //oid.
   if GlobalDesignHook=nil then exit;
@@ -589,35 +606,39 @@ begin
 
   GlobalDesignHook.LookupRoot:=surface.Container;
 
-
   surface.OnSelectionChange:=nil;
 
+
+ // sl:=TPersistentSelectionList.Create;
   s:=Surface.Selected;
   if oid<>nil then
   begin
+
     oid.Selection.Clear;
     if length(s)>0 then
     begin
       for i:=0 to length(s)-1 do
+      begin
         oid.Selection.Add(TPersistent(s[i]));
+       // sl.Add(TPersistent(s[i]));
+      end;
     end
     else
       oid.selection.add(GlobalDesignHook.LookupRoot);
 
-
-
     oid.RefreshSelection;
-
   end;
-
-  surface.OnSelectionChange:=DesignerSelectionChange;
-
 
 
   oid.RefreshComponentTreeSelection;
-
-
   oid.RefreshPropertyValues;
+
+  if anchorEditor<>nil then
+    GlobalDesignHook.SetSelection(oid.Selection);
+
+  surface.OnSelectionChange:=DesignerSelectionChange;
+
+//  sl.free;
 
   setFormName;
 end;
@@ -805,16 +826,13 @@ end;
 procedure TFormDesigner.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
   if oid<>nil then
-  begin
-    oid.free;
-    oid:=nil;
-  end;
+    FreeAndNil(oid);
+
+  if anchorEditor<>nil then
+    FreeAndNil(anchorEditor);
 
   if GlobalDesignHook<>nil then
-  begin
-    GlobalDesignHook.Free;
-    GlobalDesignHook:=nil;
-  end;
+    FreeAndNil(GlobalDesignHook);
 
   if assigned(fOnClose2) then
     fOnClose2(sender,CloseAction);
@@ -824,6 +842,7 @@ end;
 procedure TFormDesigner.controlPopupPopup(Sender: TObject);
 begin
   miDelete.visible:=not (controlPopup.PopupComponent is TCustomForm);
+  miAnchorEditor.Visible:=miDelete.visible;
 
   miAddItems.visible:=controlpopup.PopupComponent is TCETreeview;
   miAddTab.visible:=controlpopup.PopupComponent is TCEPageControl;
@@ -945,19 +964,9 @@ end;
 initialization
 {$i formdesignerunit.lrs}
 
-LazarusResources.Add('laz_cut','','');
-LazarusResources.Add('laz_copy','','');
-LazarusResources.Add('laz_paste','','');
-LazarusResources.Add('laz_add','','');
-LazarusResources.Add('laz_delete','','');
-LazarusResources.Add('arrow_up','','');
-LazarusResources.Add('arrow_down','','');
-LazarusResources.Add('delete_selection','','');
-LazarusResources.Add('menu_environment_options','','');
-LazarusResources.Add('order_move_front','','');
-LazarusResources.Add('order_move_back','','');
-LazarusResources.Add('order_forward_one','','');
-LazarusResources.Add('order_back_one','','');
+{$i laz_images.lrs}
+{$i ideintf_images.lrs}
+
 
 end.
 

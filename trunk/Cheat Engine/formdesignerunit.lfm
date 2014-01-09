@@ -156,6 +156,7 @@ object FormDesigner: TFormDesigner
     end
     object CEComboBox: TToolButton
       Left = 366
+      Hint = 'ComboBox'
       Top = 2
       Caption = 'CEComboBox'
       Grouped = True
@@ -193,6 +194,7 @@ object FormDesigner: TFormDesigner
     end
     object CESavedialog: TToolButton
       Left = 671
+      Hint = 'Savedialog'
       Top = 2
       Caption = 'CESavedialog'
       Grouped = True
@@ -272,6 +274,7 @@ object FormDesigner: TFormDesigner
     end
     object MainMenu: TToolButton
       Left = 701
+      Hint = 'MainMenu'
       Top = 2
       Caption = 'MainMenu'
       Grouped = True
@@ -281,6 +284,7 @@ object FormDesigner: TFormDesigner
     end
     object PopupMenu: TToolButton
       Left = 731
+      Hint = 'PopupMenu'
       Top = 2
       Caption = 'PopupMenu'
       Grouped = True
@@ -2472,6 +2476,10 @@ object FormDesigner: TFormDesigner
     object miDelete: TMenuItem
       Caption = 'Delete'
       OnClick = miDeleteClick
+    end
+    object miAnchorEditor: TMenuItem
+      Caption = 'Anchor Editor'
+      OnClick = miAnchorEditorClick
     end
     object miAddItems: TMenuItem
       Caption = 'Add Items'
