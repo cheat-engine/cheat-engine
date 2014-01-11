@@ -54,13 +54,20 @@ HRESULT STDMETHODCALLTYPE CMyIcorDebugDataTarget::GetPlatform(/* [out] */ CorDeb
 		BOOL Wow64=TRUE;
 		
 
-		//pTargetPlatform
-		IsWow64Process(processHandle, &Wow64);
-
-		if (Wow64)			
-			*pTargetPlatform=CORDB_PLATFORM_WINDOWS_X86;
+		if (_IsWow64Process)		
+		{
+			_IsWow64Process(processHandle, &Wow64);
+			if (Wow64)			
+				*pTargetPlatform=CORDB_PLATFORM_WINDOWS_X86;
+			else
+				*pTargetPlatform=CORDB_PLATFORM_WINDOWS_AMD64;
+		}
 		else
-			*pTargetPlatform=CORDB_PLATFORM_WINDOWS_AMD64;
+			*pTargetPlatform=CORDB_PLATFORM_WINDOWS_X86;
+
+
+
+		
 
 		return S_OK;
 
