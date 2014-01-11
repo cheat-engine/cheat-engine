@@ -128,7 +128,7 @@ object frmRescanPointer: TfrmRescanPointer
     BevelOuter = bvNone
     ClientHeight = 34
     ClientWidth = 170
-    TabOrder = 14
+    TabOrder = 19
     object Button2: TButton
       Left = 96
       Height = 25
@@ -233,7 +233,7 @@ object frmRescanPointer: TfrmRescanPointer
     Checked = True
     OnChange = cbDistributedRescanChange
     State = cbChecked
-    TabOrder = 15
+    TabOrder = 14
     Visible = False
   end
   object edtRescanPort: TEdit
@@ -245,7 +245,7 @@ object frmRescanPointer: TfrmRescanPointer
     Height = 21
     Top = 239
     Width = 55
-    TabOrder = 16
+    TabOrder = 15
     Text = '52739'
     Visible = False
   end
@@ -260,7 +260,7 @@ object frmRescanPointer: TfrmRescanPointer
     Caption = 'Broadcast that a rescan has started'
     Enabled = False
     OnChange = cbBroadcastChange
-    TabOrder = 17
+    TabOrder = 16
     Visible = False
   end
   object btnNotifySpecificIPs: TButton
@@ -277,7 +277,7 @@ object frmRescanPointer: TfrmRescanPointer
     Caption = 'Additional IP''s'
     Enabled = False
     OnClick = btnNotifySpecificIPsClick
-    TabOrder = 18
+    TabOrder = 17
     Visible = False
   end
   object cbWaitForAll: TCheckBox
@@ -291,7 +291,7 @@ object frmRescanPointer: TfrmRescanPointer
     Checked = True
     Enabled = False
     State = cbChecked
-    TabOrder = 19
+    TabOrder = 18
     Visible = False
   end
 end

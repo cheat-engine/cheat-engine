@@ -133,6 +133,7 @@ type
     offsetlist: TComponentList;
     btnAddOffset: TButton;
     btnRemoveOffset: TButton;
+    lblInfoLastOffset: TLabel;
 
     threadstacks: integer;
     stacksize: integer;
@@ -386,6 +387,17 @@ begin
       parent:=self;
     end;
 
+    if lblInfoLastOffset=nil then
+      lblInfoLastOffset:=TLabel.Create(self);
+
+    with lblInfoLastOffset do
+    begin
+      caption:='Last offset';
+      left:=offsetentry.Left+offsetentry.Width+5;
+      parent:=self;
+      visible:=false;
+    end;
+
     if btnAddOffset=nil then
       btnAddOffset:=TButton.Create(self);
 
@@ -429,6 +441,7 @@ begin
     freeandnil(offsetlist); //deletes all the assigned objects
     btnAddOffset.Visible:=false;
     btnRemoveOffset.Visible:=false;
+    lblInfoLastOffset.Visible:=false;
   end;
 
   updatepositions;
@@ -613,6 +626,12 @@ begin
     parent:=self;
   end;
 
+  if offsetlist.count=2 then
+  begin
+    lblInfoLastOffset.visible:=true;
+    lblInfoLastOffset.top:=TOffsetEntry(offsetlist[0]).Top+4;
+  end;
+
   btnAddOffset.top:=offsetentry.top;
   btnRemoveOffset.top:=btnAddOffset.top;
 end;
@@ -625,6 +644,9 @@ begin
     btnAddOffset.top:=TOffsetEntry(offsetlist[offsetlist.count-1]).top;
     btnRemoveOffset.top:=btnAddOffset.top;
     self.Height:=btnAddOffset.top+btnAddOffset.Height+2+panel1.height;
+
+    if offsetlist.count=1 then lblInfoLastOffset.visible:=false;
+
   end
   else
   begin
@@ -713,6 +735,8 @@ begin
           if (offsetlist[i] is TOffsetEntry) then //should be true
             TOffsetEntry(offsetlist[i]).Top:=TOffsetEntry(offsetlist[i]).Top+adjustment;
         end;
+
+        if offsetlist.count>1 then lblInfoLastOffset.top:=TOffsetEntry(offsetlist[0]).Top+4;
 
         btnAddOffset.top:=TOffsetEntry(offsetlist[offsetlist.Count-1]).Top;
         btnRemoveOffset.top:=btnAddOffset.top;

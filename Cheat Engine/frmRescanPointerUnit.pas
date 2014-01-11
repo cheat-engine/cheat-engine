@@ -62,6 +62,7 @@ type
 
     btnAddEndOffset, btnRemoveEndOffset: TButton;
     btnAddStartOffset, btnRemoveStartOffset: Tbutton;
+    lblInfoFirstOffset, lblInfoLastOffset: TLabel;
 
 
 
@@ -278,6 +279,15 @@ begin
     e.Parent:=self;
     endoffsets.Add(e);
 
+    if lblInfoLastOffset=nil then
+    begin
+      lblInfoLastOffset:=TLabel.create(self);
+      lblInfoLastOffset.caption:='Last offset';
+      lblInfoLastOffset.left:=e.Left+e.Width+5;
+      lblInfoLastOffset.parent:=self;
+      lblInfoLastOffset.visible:=false;
+    end;
+
     if btnAddendOffset=nil then
     begin
       btnAddendOffset:=TButton.create(self);
@@ -315,6 +325,9 @@ begin
     if btnRemoveendOffset<>nil then
       btnRemoveendOffset.visible:=false;
 
+    if lblInfoLastOffset<>nil then
+      lblInfoLastOffset.visible:=false;
+
     if endoffsets<>nil then
       freeandnil(endoffsets);
   end;
@@ -335,6 +348,15 @@ begin
     e.left:=cbMustStartWithSpecificOffsets.left;
     e.Parent:=self;
     startoffsets.Add(e);
+
+    if lblInfoFirstOffset=nil then
+    begin
+      lblInfoFirstOffset:=TLabel.create(self);
+      lblInfoFirstOffset.caption:='First offset';
+      lblInfoFirstOffset.left:=e.Left+e.Width+5;
+      lblInfoFirstOffset.parent:=self;
+      lblInfoFirstOffset.visible:=false;
+    end;
 
     if btnAddStartOffset=nil then
     begin
@@ -369,6 +391,9 @@ begin
 
     if btnRemoveStartOffset<>nil then
       btnRemoveStartOffset.visible:=false;
+
+    if lblInfoFirstOffset<>nil then
+      lblInfoFirstOffset.visible:=false;
 
     if startoffsets<>nil then
       freeandnil(startoffsets);
@@ -417,6 +442,13 @@ begin
       nextstart:=nextstart+e.height+3;
     end;
 
+    if startoffsets.count=1 then lblInfoFirstOffset.visible:=false
+    else
+    begin
+      lblInfoFirstOffset.visible:=true;
+      lblInfoFirstOffset.top:=tedit(startoffsets[0]).top+4;
+    end;
+
     btnAddStartOffset.Top:=e.top;
     btnRemoveStartOffset.top:=e.Top;
 
@@ -429,6 +461,10 @@ begin
   if cbMustEndWithSpecificOffsets.checked then
   begin
     nextstart:=cbMustEndWithSpecificOffsets.top+cbMustEndWithSpecificOffsets.Height+3;
+
+    btnAddEndOffset.top:=nextstart;
+    btnRemoveEndOffset.top:=nextstart;
+
     for i:=0 to endoffsets.count-1 do
     begin
       e:=tedit(endoffsets[i]);
@@ -437,15 +473,21 @@ begin
       nextstart:=nextstart+e.height+3;
     end;
 
-    btnAddEndOffset.top:=e.top;
-    btnRemoveEndOffset.top:=e.top;
+    if endoffsets.count=1 then lblInfoLastOffset.visible:=false
+    else
+    begin
+      lblInfoLastOffset.visible:=true;
+      lblInfoLastOffset.top:=tedit(endoffsets[endoffsets.count-1]).top+4;
+    end;
 
-    cbDistributedRescan.top:=btnAddEndOffset.top+btnAddEndOffset.height+5;
+    cbDistributedRescan.top:=nextstart+4;
 
     if not cbDistributedRescan.visible then
       pnlButtons.top:=cbDistributedRescan.top
     else
       pnlButtons.top:=cbWaitForAll.Top+cbWaitForAll.height+5;
+
+
   end
   else
   begin
@@ -488,8 +530,7 @@ begin
   e:=Tedit.create(self);
   e.left:=cbMustStartWithSpecificOffsets.left;
   e.Parent:=self;
-  endoffsets.Add(e);
-
+  endoffsets.Insert(0,e);
   updatePositions;
 end;
 
@@ -499,7 +540,7 @@ begin
     cbMustEndWithSpecificOffsets.checked:=false
   else
   begin
-    endoffsets.Delete(endoffsets.count-1);
+    endoffsets.Delete(0);
     updatePositions;
   end;
 end;

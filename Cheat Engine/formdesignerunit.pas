@@ -67,6 +67,7 @@ type
     CEPageControl: TToolButton;
     MainMenu: TToolButton;
     PopupMenu: TToolButton;
+    Calendar: TToolButton;
     ToolButton6: TToolButton;
     CEImage: TToolButton;
     procedure controlPopupPopup(Sender: TObject);
