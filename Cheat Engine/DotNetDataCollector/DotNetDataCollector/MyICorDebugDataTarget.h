@@ -2,6 +2,7 @@
 #define __CMyIcorDebugDataTarget_H__
 
 
+typedef BOOL (WINAPI *ISWOW64PROCESS)(_In_ HANDLE hProcess, _Out_ PBOOL Wow64Process);
 
 
 class CMyIcorDebugDataTarget : 
@@ -12,11 +13,14 @@ private:
 	HANDLE processHandle;
 	long m_ref;
 
+	ISWOW64PROCESS _IsWow64Process;
+
 public:
 	CMyIcorDebugDataTarget(HANDLE p)
 	{
 		m_ref = 1;
-		processHandle=p;
+		processHandle=p;		
+		_IsWow64Process=(ISWOW64PROCESS)GetProcAddress(GetModuleHandleA("Kernel32.dll"), "IsWow64Process");		
 	}
 
 	~CMyIcorDebugDataTarget()
