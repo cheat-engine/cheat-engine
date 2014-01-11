@@ -74,7 +74,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports, Mem
   LuaListColumns, LuaListitem, LuaListItems, LuaTimer, LuaListview, LuaGenericHotkey,
   LuaTableFile, LuaMemoryRecordHotkey, LuaMemoryView, LuaD3DHook, LuaDisassembler,
   LuaDissectCode, LuaByteTable, LuaBinary, lua_server, HotkeyHandler, LuaPipeClient,
-  LuaPipeServer, LuaTreeview, LuaTreeNodes, LuaTreeNode;
+  LuaPipeServer, LuaTreeview, LuaTreeNodes, LuaTreeNode, LuaCalendar;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '

@@ -149,7 +149,7 @@ registerStructureDissectOverride(function(structure, baseaddress): table):
   Use the structure object to fill it in
   Return true if you have filled it in, or false or nil if you did not
 
-  Tip: Use inputQuery to ask the user the size if your function doesn't do it automatically
+  Tip: Use inputQuery to ask the user the size if your function doesn't do that automatically
 
 
 unregisterStructureDissectOverride(ID)
@@ -838,6 +838,17 @@ methods
   getCanvas()
 
 
+Calendar Class: (Inheritance: WinControl->Control->Component->Object)
+createCalendar(owner): Creates a Calendar class object which belongs to the given owner. Owner can be any object inherited from WinControl. Valid date is between "September 14, 1752" and "December 31, 9999"
+
+properties
+  Date: string - current date of the Calendar, format: yyyy-mm-dd
+  DateTime: number - days since December 30, 1899
+
+methods
+  getDateLocalFormat - returns current date of the Calendar, format: ShortDateFormat from OS local settings
+
+
 ComboBox Class: (Inheritance: WinControl->Control->Component->Object)
 createComboBox(owner): Creates a ComboBox class object which belongs to the given owner. Owner can be any object inherited from WinControl
 
@@ -853,6 +864,7 @@ methods
   getItemIndex()
   setItemIndex(integer)
   getCanvas()
+
 
 
 
@@ -1691,7 +1703,7 @@ Properties:
   Offset: integer - The offset of this element
   Name: string - The name of this element
   Vartype: integer - The variable type of this element
-  ChildStruct: structure - If not nil this element if a pointer to the structure defined here
+  ChildStruct: structure - If not nil this element is a pointer to the structure defined here
   ChildStructStart: integer - The number of bytes inside the provided childstruct. (E.g: It might point to offset 10 of a certain structure)
   Bytesize: integer - The number of bytes of this element. Readonly for basic types, writable for types that require a defined length like strings and array of bytes
 
@@ -2054,3 +2066,15 @@ openLuaServer(Name):
 
 --]]
 
+--[[
+todo:
+createTreeview
+createPageControl
+
+createRegistryObject
+
+getCheatEngineSettings
+
+createSettingsPage
+
+--]]

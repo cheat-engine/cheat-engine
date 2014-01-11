@@ -11,7 +11,8 @@ uses
   zstream, Classes, SysUtils, Controls, forms,ComCtrls, StdCtrls, ExtCtrls, Buttons, lcltype,
   dialogs, JvDesignSurface, DOM, typinfo, LResources, JvDesignImp, JvDesignUtils,
   graphics, math, xmlread,xmlwrite, WSStdCtrls, custombase85, PropEdits,
-  ComponentEditors, CEListviewItemEditor, TreeViewPropEdit, menus, MenuIntf, LCLProc;
+  ComponentEditors, CEListviewItemEditor, TreeViewPropEdit, menus, MenuIntf, LCLProc,
+  Calendar;
 
 type TCEPageControl=class(TPageControl);
 type
@@ -1444,6 +1445,8 @@ initialization
   RegisterClass(TMainMenu);
   RegisterClass(TPopupMenu);
   RegisterClass(TMenuItem);
+  RegisterClass(TCalendar);
+
 
 
 
