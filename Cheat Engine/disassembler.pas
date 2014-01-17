@@ -4335,6 +4335,7 @@ begin
                                 begin
                                   description:='Load Fence';
                                   lastdisassembledata.opcode:='lfence';
+                                  inc(offset,1);
                                 end
                                 else
                                 begin
@@ -4351,11 +4352,13 @@ begin
                           6:  begin
                                 description:='memory fence';
                                 lastdisassembledata.opcode:='mfence';
+                                inc(offset,1);
                               end;
 
                           7:  begin
                                 description:='store fence';
                                 lastdisassembledata.opcode:='sfence';
+                                inc(offset,1);
                               end;
 
                         end;
