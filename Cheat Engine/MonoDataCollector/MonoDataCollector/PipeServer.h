@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Pipe.h"
+#include <Pipe.h>
 
 #define MONOCMD_INITMONO 0
 #define MONOCMD_OBJECT_GETCLASS 1

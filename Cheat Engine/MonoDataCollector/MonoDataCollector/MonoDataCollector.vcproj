@@ -114,6 +114,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
+				AdditionalIncludeDirectories="..\..\Common"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;MONODATACOLLECTOR_EXPORTS"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -197,10 +198,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Pipe.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\PipeServer.cpp"
 				>
 			</File>
@@ -239,10 +236,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Pipe.h"
-				>
-			</File>
-			<File
 				RelativePath=".\PipeServer.h"
 				>
 			</File>
@@ -260,6 +253,18 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
+		</Filter>
+		<Filter
+			Name="Common"
+			>
+			<File
+				RelativePath="..\..\Common\Pipe.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Common\Pipe.h"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\ReadMe.txt"
