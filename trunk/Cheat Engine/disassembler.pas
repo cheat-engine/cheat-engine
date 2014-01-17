@@ -4331,20 +4331,31 @@ begin
                               end;
 
                           5:  begin
-                                description:='restore processor extended state';
-                                if Rex_W then
-                                  lastdisassembledata.opcode:='xrstor64'
+                                if getmod(memory[2])=3 then
+                                begin
+                                  description:='Load Fence';
+                                  lastdisassembledata.opcode:='lfence';
+                                end
                                 else
-                                  lastdisassembledata.opcode:='xrstor';
-                                lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last);
-                                inc(offset,last-1);
+                                begin
+                                  description:='restore processor extended state';
+                                  if Rex_W then
+                                    lastdisassembledata.opcode:='xrstor64'
+                                  else
+                                    lastdisassembledata.opcode:='xrstor';
+                                  lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last);
+                                  inc(offset,last-1);
+                                end;
+                              end;
+
+                          6:  begin
+                                description:='memory fence';
+                                lastdisassembledata.opcode:='mfence';
                               end;
 
                           7:  begin
                                 description:='store fence';
                                 lastdisassembledata.opcode:='sfence';
-                                lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last);
-                                inc(offset,last-1);
                               end;
 
                         end;
