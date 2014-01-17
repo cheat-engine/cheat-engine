@@ -8,7 +8,7 @@ interface
 
 uses dialogs,LCLIntf,sysutils,imagehlp, ProcessHandlerUnit;
 
-const opcodecount=1093; //I wish there was a easier way than to handcount
+const opcodecount=1097; //I wish there was a easier way than to handcount
 
 
 
@@ -1545,9 +1545,13 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'XOR';opcode1:eo_reg;paramtype1:par_r32;paramtype2:par_rm32;bytes:1;bt1:$33),
 
   (mnemonic:'XORPD';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:3;bt1:$66;bt2:$0f;bt3:$57),
-  (mnemonic:'XORPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:2;bt1:$0f;bt2:$57;)
+  (mnemonic:'XORPS';opcode1:eo_reg;paramtype1:par_xmm;paramtype2:par_xmm_m128;bytes:2;bt1:$0f;bt2:$57;),
 
+  (mnemonic:'XRSTOR';opcode1:eo_reg5;paramtype1:par_m32;bytes:2;bt1:$0f;bt2:$ae; norexw:true),
+  (mnemonic:'XRSTOR64';opcode1:eo_reg5;paramtype1:par_m64;bytes:3;bt1:$48;bt2:$0f;bt3:$ae; norexw:true),
 
+  (mnemonic:'XSAVE';opcode1:eo_reg4;paramtype1:par_m32;bytes:2;bt1:$0f;bt2:$ae; norexw:true),
+  (mnemonic:'XSAVE64';opcode1:eo_reg4;paramtype1:par_m64;bytes:3;bt1:$48;bt2:$0f;bt3:$ae; norexw:true)
 );
 
 
@@ -5451,7 +5455,8 @@ begin
         end;
       end;
 
-      par_m64: if (paramtype1=ttMemorylocation64) or (paramtype1=ttMemorylocation32)  then
+      par_m64:
+      if (paramtype1=ttMemorylocation64) or (paramtype1=ttMemorylocation32)  then
       begin
         //m64,
         if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
@@ -5459,7 +5464,7 @@ begin
           //m64
           //
 
-          if (gettokentype(parameter1,parameter2)=ttMemoryLocation64) then
+          if (gettokentype(parameter1,parameter2)=ttMemoryLocation64) or ismemorylocationdefault(parameter1) then
           begin
             //verified, it is a 64 bit location, and if it was detected as 32 it was due to defaulting to 32
             addopcode(bytes,j);

@@ -4320,6 +4320,26 @@ begin
                                 inc(offset,last-1);
                               end;
 
+                          4:  begin
+                                description:='save processor extended state';
+                                if Rex_W then
+                                  lastdisassembledata.opcode:='xsave64'
+                                else
+                                  lastdisassembledata.opcode:='xsave';
+                                lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last);
+                                inc(offset,last-1);
+                              end;
+
+                          5:  begin
+                                description:='restore processor extended state';
+                                if Rex_W then
+                                  lastdisassembledata.opcode:='xrstor64'
+                                else
+                                  lastdisassembledata.opcode:='xrstor';
+                                lastdisassembledata.parameters:=modrm(memory,prefix2,2,0,last);
+                                inc(offset,last-1);
+                              end;
+
                           7:  begin
                                 description:='store fence';
                                 lastdisassembledata.opcode:='sfence';
