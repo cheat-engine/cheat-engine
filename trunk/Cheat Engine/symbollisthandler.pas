@@ -87,13 +87,15 @@ type
     function FindAddress(address: qword): PCESymbolInfo;
     function FindSymbol(s: string): PCESymbolInfo;
     function FindFirstSymbolFromBase(baseaddress: qword): PCESymbolInfo;
+    procedure DeleteSymbol(searchkey: string); overload;
+    procedure DeleteSymbol(address: qword); overload;
     procedure clear;
   end;
 
 
 implementation
 
-uses CEFuncProc;
+uses CEFuncProc, symbolhandler;
 
 constructor TExtraSymbolData.create;
 begin
@@ -290,6 +292,123 @@ begin
   result:=CompareStr(PCESymbolInfo(data1).s,PCESymbolInfo(data2).s);
 end;
 
+procedure TSymbolListHandler.DeleteSymbol(address: qword);
+var
+  x: TCESymbolInfo;
+  z: TAvgLvlTreeNode;
+  d: PCESymbolInfo;
+begin
+  x.address:=address;
+
+  cs.Beginwrite;
+  try
+
+    z:=AddressToString.Find(@x);
+    if z<>nil then
+    begin
+      d:=PCESymbolInfo(z.data);
+
+      x.s:=d.s;
+
+      if d.originalstring<>nil then
+        StrDispose(d.originalstring);
+
+      if d.s<>nil then
+        StrDispose(d.s);
+
+      if d.module<>nil then
+        strDispose(d.module);
+
+      freeandnil(z.Data);
+
+      AddressToString.Delete(z);
+
+      //delete the addresstostring reference as well
+      z:=StringToAddress.Find(@x);
+      if z<>nil then
+      begin
+        d:=PCESymbolInfo(z.data);
+
+        if d.originalstring<>nil then
+          StrDispose(d.originalstring);
+
+        if d.s<>nil then
+          StrDispose(d.s);
+
+        if d.module<>nil then
+          strDispose(d.module);
+
+        freeandnil(z.Data);
+
+        StringToAddress.Delete(z);
+      end;
+    end;
+  finally
+    cs.Endwrite;
+  end;
+
+end;
+
+procedure TSymbolListHandler.DeleteSymbol(searchkey: string);
+var
+  x: TCESymbolInfo;
+  z: TAvgLvlTreeNode;
+  d: PCESymbolInfo;
+  s: string;
+begin
+  s:=lowercase(searchkey);
+  x.s:=pchar(s);
+
+  cs.Beginwrite;
+  try
+
+    z:=StringToAddress.Find(@x);
+    if z<>nil then
+    begin
+      d:=PCESymbolInfo(z.data);
+
+      x.address:=d.address;
+
+      if d.originalstring<>nil then
+        StrDispose(d.originalstring);
+
+      if d.s<>nil then
+        StrDispose(d.s);
+
+      if d.module<>nil then
+        strDispose(d.module);
+
+      freeandnil(z.Data);
+
+      StringToAddress.Delete(z);
+
+      //delete the addresstostring reference as well
+      z:=AddressToString.Find(@x);
+      if z<>nil then
+      begin
+        d:=PCESymbolInfo(z.data);
+
+        if d.originalstring<>nil then
+          StrDispose(d.originalstring);
+
+        if d.s<>nil then
+          StrDispose(d.s);
+
+        if d.module<>nil then
+          strDispose(d.module);
+
+        freeandnil(z.Data);
+        StringToAddress.Delete(z);
+      end;
+    end;
+
+
+  finally
+    cs.Endwrite;
+  end;
+
+end;
+
 procedure TSymbolListHandler.clear;
 var x: TAvgLvlTreeNode;
   d:PCESymbolInfo;
@@ -346,6 +465,8 @@ end;
 destructor TSymbolListHandler.destroy;
 var i: integer;
 begin
+  symhandler.RemoveSymbolList(self);
+
   clear;
   if AddressToString<>nil then
     freeandnil(AddressToString);

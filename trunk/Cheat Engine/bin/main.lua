@@ -2064,6 +2064,36 @@ openLuaServer(Name):
     the return value of this function is the return value of the lua function (integer)
   
 
+
+
+SymbolList class
+  This class can be used to look up an address to a symbolname, and a symbolname to an address
+  It can also be registered with the internal symbol handler of cheat engine
+
+  This class makes use of a special "Symbol" table construction that contains size and optionally other data
+    Symbol Table:
+      modulename: string
+      searchkey: string
+      address: integer
+      symbolsize: integer                                       
+
+Related functions
+  createSymbolList() : Creates an empty symbollist
+
+
+
+Properties
+Methods
+  clear()
+  getSymbolFromAddress(address) : Searches the list for the given address. The address does not have to match the exact address. As long as it falls withing the range
+  getSymbolFromString(searchkey)
+  addSymbol(modulename, searchkey, address, symbolsize)
+  deleteSymbol(searchkey)
+  deleteSymbol(address)
+  register() : Registers the current symbol list with the symbol handler
+  unregister(): Unregisters the current symbol list from the symbol handler
+  
+
 --]]
 
 --[[
@@ -2076,5 +2106,14 @@ createRegistryObject
 getCheatEngineSettings
 
 createSettingsPage
+
+registerHexviewHeaderOverride
+
+add ctrl+r in luaengine
+
+add RSP/EAX lookup in the hexview
+add a clear all in the userdefined symbol list
+make the pipe disconnect if timeout after 3 seconds
+
 
 --]]

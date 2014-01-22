@@ -133,6 +133,8 @@ type
 
     commonModuleList: tstringlist;
     symbollist: TSymbolListHandler;
+    symbollists: array of TSymbolListHandler;
+    symbollistsMREW: TMultiReadExclusiveWriteSynchronizer;
 
 
     SymbolsLoadedNotification: array of TNotifyEvent;
@@ -223,6 +225,10 @@ type
 
     procedure RemoveFinishedLoadingSymbolsNotification(n: TNotifyEvent);
     procedure AddFinishedLoadingSymbolsNotification(n: TNotifyEvent);
+
+    procedure AddSymbolList(sl: TSymbolListHandler);
+    procedure RemoveSymbolList(sl: TSymbolListHandler);
+
     procedure NotifyFinishedLoadingSymbols; //go through the list of functions to call when the symbollist has finished loading
     constructor create;
     destructor destroy; override;
@@ -252,6 +258,7 @@ procedure unregisterSymbolLookupCallback(id: integer);
 
 function registerAddressLookupCallback(callback: TAddressLookupCallback): integer;
 procedure unregisterAddressLookupCallback(id: integer);
+
 
 
 type TSymFromName=function(hProcess: HANDLE; Name: LPSTR; Symbol: PSYMBOL_INFO): BOOL; stdcall;
@@ -1686,6 +1693,7 @@ begin
   list.clear;
   if getmodulebyaddress(address, mi) then
   begin
+
     if dotNetDataCollector.Attached then
     begin
       //get the .net list if symbols for this module
@@ -1709,8 +1717,23 @@ begin
       dotnetModuleSymbolListMREW.endread;
     end;
 
-    si:=symbollist.FindFirstSymbolFromBase(mi.baseaddress);
 
+
+    symbollistsMREW.Beginread;
+    for i:=0 to length(symbollists)-1 do
+    begin
+      si:=symbollist.FindFirstSymbolFromBase(mi.baseaddress);
+      while (si<>nil) and inrangeq(si.address, mi.baseaddress, mi.baseaddress+mi.basesize) do
+      begin
+        symbolname:=si.originalstring;
+
+        list.AddObject(symbolname, pointer(si.address));
+        si:=si.next;
+      end;
+    end;
+    symbollistsMREW.Endread;
+
+    si:=symbollist.FindFirstSymbolFromBase(mi.baseaddress);
     while (si<>nil) and inrangeq(si.address, mi.baseaddress, mi.baseaddress+mi.basesize) do
     begin
       symbolname:=si.originalstring;
@@ -1879,7 +1902,20 @@ begin
           end;
 
           if si=nil then
-            si:=symbollist.FindAddress(address);
+          begin
+            //check the symbollists registered by the user
+            symbollistsMREW.Beginread;
+            for i:=0 to length(symbollists)-1 do
+            begin
+              si:=symbollists[i].FindAddress(address);
+              if si<>nil then break;
+            end;
+
+            symbollistsMREW.endread;
+
+            if si=nil then
+              si:=symbollist.FindAddress(address);
+          end;
 
 
           if si<>nil then
@@ -2269,7 +2305,18 @@ begin
                 end;
 
                 if si=nil then
-                  si:=symbollist.FindSymbol(tokens[i]);
+                begin
+                  symbollistsMREW.Beginread;
+                  for j:=0 to length(symbollists)-1 do
+                  begin
+                    si:=symbollists[j].FindSymbol(tokens[i]);
+                    if si<>nil then break;
+                  end;
+
+                  symbollistsMREW.EndRead;
+                  if si=nil then
+                    si:=symbollist.FindSymbol(tokens[i]);
+                end;
 
                 if si=nil then //not found
                 begin
@@ -2838,6 +2885,41 @@ begin
     end;
 end;
 
+procedure TSymhandler.AddSymbolList(sl: TSymbolListHandler);
+var i: integer;
+begin
+  symbollistsMREW.beginwrite;
+  try
+    for i:=0 to length(symbollists)-1 do
+      if symbollists[i]=sl then exit; //already in the list
+
+    setlength(symbollists, length(symbollists)+1);
+    symbollists[length(symbollists)-1]:=sl;
+  finally
+    symbollistsMREW.Endwrite;
+  end;
+end;
+
+procedure TSymhandler.RemoveSymbolList(sl: TSymbolListHandler);
+var i,j: integer;
+begin
+  symbollistsMREW.Beginwrite;
+  try
+    for i:=0 to length(symbollists)-1 do
+      if symbollists[i]=sl then
+      begin
+        for j:=i to length(symbollists)-2 do
+          symbollists[i]:=symbollists[i+1];
+
+        setlength(symbollists, length(symbollists)-1);
+      end;
+
+  finally
+    symbollistsMREW.Endwrite;
+  end;
+end;
+
+
 procedure TSymhandler.AddFinishedLoadingSymbolsNotification(n: TNotifyEvent); //there is no remove
 begin
   setlength(SymbolsLoadedNotification, length(SymbolsLoadedNotification)+1);
@@ -2875,9 +2957,12 @@ begin
   symbolloadervalid.Free;
   modulelistMREW.free;
   userdefinedsymbolsCS.free;
+  symbollistsMREW.free;
 
   setlength(userdefinedsymbols,0);
   setlength(modulelist,0);
+
+
 end;
 
 
@@ -2886,6 +2971,7 @@ begin
   symbolloadervalid:=TMultiReadExclusiveWriteSynchronizer.create;
   modulelistMREW:=TMultiReadExclusiveWriteSynchronizer.create;
   userdefinedsymbolsCS:=TCriticalSection.create;
+  symbollistsMREW:=TMultiReadExclusiveWriteSynchronizer.Create;
 
   dotnetModuleSymbolListMREW:=TMultiReadExclusiveWriteSynchronizer.create;
 
