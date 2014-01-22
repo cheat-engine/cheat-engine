@@ -11,7 +11,7 @@ object frmLuaEngine: TfrmLuaEngine
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poScreenCenter
-  LCLVersion = '1.1'
+  LCLVersion = '1.0.8.0'
   object GroupBox1: TGroupBox
     Left = 0
     Height = 156
@@ -635,6 +635,8 @@ object frmLuaEngine: TfrmLuaEngine
         object SynGutterSeparator1: TSynGutterSeparator
           Width = 2
           MouseActions = <>
+          MarkupInfo.Background = clWhite
+          MarkupInfo.Foreground = clGray
         end
         object SynGutterCodeFolding1: TSynGutterCodeFolding
           Visible = False
@@ -772,5 +774,17 @@ object frmLuaEngine: TfrmLuaEngine
       ShortCut = 16474
       OnClick = MenuItem10Click
     end
+    object MenuItem6: TMenuItem
+      Caption = 'Find/Replace'
+      ShortCut = 16466
+      OnClick = MenuItem6Click
+    end
+  end
+  object dlgReplace: TReplaceDialog
+    Options = [frDown, frHideUpDown, frReplaceAll, frHideEntireScope, frHidePromptOnReplace]
+    OnFind = dlgReplaceFind
+    OnReplace = dlgReplaceReplace
+    left = 215
+    top = 188
   end
 end

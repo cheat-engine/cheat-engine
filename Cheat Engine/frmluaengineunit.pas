@@ -7,7 +7,7 @@ interface
 uses
   windows, Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
   StdCtrls, Menus, ExtCtrls, SynMemo, SynCompletion, SynEdit, lua,
-  lauxlib, lualib, LuaSyntax, luahandler, cefuncproc;
+  lauxlib, lualib, LuaSyntax, luahandler, cefuncproc, strutils;
 
 type
 
@@ -21,6 +21,7 @@ type
     MenuItem11: TMenuItem;
     MenuItem4: TMenuItem;
     MenuItem5: TMenuItem;
+    MenuItem6: TMenuItem;
     miView: TMenuItem;
     cbShowOnPrint: TMenuItem;
     MenuItem7: TMenuItem;
@@ -34,10 +35,13 @@ type
     Panel1: TPanel;
     Panel2: TPanel;
     pmEditor: TPopupMenu;
+    dlgReplace: TReplaceDialog;
     SaveDialog1: TSaveDialog;
     Splitter1: TSplitter;
     mScript: TSynEdit;
     procedure btnExecuteClick(Sender: TObject);
+    procedure dlgReplaceFind(Sender: TObject);
+    procedure dlgReplaceReplace(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure MenuItem10Click(Sender: TObject);
@@ -45,6 +49,7 @@ type
     procedure MenuItem2Click(Sender: TObject);
     procedure MenuItem3Click(Sender: TObject);
     procedure MenuItem5Click(Sender: TObject);
+    procedure MenuItem6Click(Sender: TObject);
     procedure MenuItem7Click(Sender: TObject);
     procedure MenuItem8Click(Sender: TObject);
     procedure MenuItem9Click(Sender: TObject);
@@ -206,6 +211,48 @@ begin
   end;
 end;
 
+procedure TfrmLuaEngine.dlgReplaceFind(Sender: TObject);
+var
+  s: string;
+  i: integer;
+begin
+  //find
+  s:=dlgReplace.FindText;
+
+  i:=PosEx(s, mscript.Text, mscript.selstart+1);
+
+  if i>0 then
+  begin
+    mScript.SelStart:=i;
+    mscript.SelEnd:=i+length(s);
+  end
+  else
+    beep;//weeeeee
+end;
+
+procedure TfrmLuaEngine.dlgReplaceReplace(Sender: TObject);
+var oldselstart: integer;
+begin
+  //replace
+  repeat
+    oldselstart:=mScript.SelStart;
+    dlgReplaceFind(sender);
+    if oldselstart=mScript.SelStart then break;  //nothing found
+
+
+    if mscript.SelEnd>mscript.SelStart then
+    begin
+      oldselstart:=mScript.SelStart;
+      mScript.SelText:=dlgReplace.ReplaceText;
+      mscript.selstart:=oldselstart;
+      mscript.SelEnd:=oldselstart+length(dlgreplace.replacetext);
+    end
+    else
+      break;
+  until (frReplaceAll in dlgReplace.Options=false);
+
+end;
+
 procedure TfrmLuaEngine.FormCreate(Sender: TObject);
 var x: array of integer;
 begin
@@ -252,6 +299,11 @@ end;
 procedure TfrmLuaEngine.MenuItem5Click(Sender: TObject);
 begin
   moutput.Clear;
+end;
+
+procedure TfrmLuaEngine.MenuItem6Click(Sender: TObject);
+begin
+  dlgReplace.Execute;
 end;
 
 procedure TfrmLuaEngine.MenuItem7Click(Sender: TObject);
