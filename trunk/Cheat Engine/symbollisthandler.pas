@@ -465,7 +465,8 @@ end;
 destructor TSymbolListHandler.destroy;
 var i: integer;
 begin
-  symhandler.RemoveSymbolList(self);
+  if symhandler<>nil then
+    symhandler.RemoveSymbolList(self);
 
   clear;
   if AddressToString<>nil then
