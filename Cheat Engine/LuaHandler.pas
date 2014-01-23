@@ -17,7 +17,8 @@ uses
   lauxlib, syncobjs, cefuncproc, newkernelhandler, autoassembler, Graphics,
   controls, LuaCaller, forms, ExtCtrls, StdCtrls, comctrls, ceguicomponents,
   generichotkey, luafile, xmplayer_server, ExtraTrainerComponents, customtimer,
-  menus, XMLRead, XMLWrite, DOM,ShellApi, Clipbrd, typinfo, PEInfoFunctions;
+  menus, XMLRead, XMLWrite, DOM,ShellApi, Clipbrd, typinfo, PEInfoFunctions,
+  LCLProc;
 
 var
   LuaVM: Plua_State;
@@ -4890,6 +4891,27 @@ begin
     unregisterAutoAssemblerPrologue(lua_tointeger(L, 1));
 end;
 
+function lua_shortCutToText(L: PLua_State): integer; cdecl;
+begin
+  if lua_gettop(L)>0 then
+  begin
+    lua_pushstring(ShortCutToText(TShortCut(lua_tointeger(L, 1))));
+    result:=1;
+  end
+  else
+    result:=0;
+end;
+
+function lua_textToShortCut(L: PLua_State): integer; cdecl;
+begin
+  if lua_gettop(L)>0 then
+  begin
+    lua_pushinteger(TextToShortCut(Lua_ToString(L, 1)));
+    result:=1;
+  end
+  else
+    result:=0;
+end;
 
 procedure InitializeLua;
 var s: tstringlist;
@@ -5238,6 +5260,8 @@ begin
     lua_register(LuaVM, 'unregisterAutoAssemblerPrologue', lua_unregisterAutoAssemblerPrologue);
 
 
+    lua_register(LuaVM, 'shortCutToText', lua_shortCutToText);
+    lua_register(LuaVM, 'textToShortCut', lua_textToShortCut);
 
     lua_register(LuaVM, 'inMainThread', inMainThread);
     lua_register(LuaVM, 'synchronize', synchronize);

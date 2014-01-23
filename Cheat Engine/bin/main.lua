@@ -205,11 +205,14 @@ keyDown(key) : causes the key to go into down state
 keyUp(key) :causes the key to go up
 doKeyPress(key) : simmulates a key press
 
+shortCutToText(shortcut): Returns the textual representation of the given shortut value (integer) (6.4+)
+textToShortCut(shortcutstring): Returns an shortcut integer that the given string represents.  (6.4+)
+
 shellExecute(command, parameters OPTIONAL, folder OPTIONAL, showcommand OPTIONAL): Executes a given command
 
 getTickCount() :  Returns the current tickcount since windows was started. Each tick is one millisecond
 processMessages() :  Lets the main eventhandler process the new messages (allows for new button clicks)
-inMainThread(): Returns true if the current code is running inside the main thread (6.3+)
+inMainThread(): Returns true if the current code is running inside the main thread (6.4+)
 integerToUserData(int):  Converts a given integer to a userdata variable
 userDataToInteger(UserDataVar):  Converts a given userdata variable to an integer
 
@@ -357,7 +360,7 @@ createProcess(path, parameters OPTIONAL, debug OPTIONAL, breakonentrypoint OPTIO
 debugProcess(interface OPT): starts the debugger for the currently opened process (won't ask the user) Optional interface: 0=default, 1=windows debug, 2=VEHDebug, 3=Kerneldebug
 
 debug_isDebugging(): Returns true if the debugger has been started
-debug_canBreak(): Returns true if there is a possibility the target can stop in a breakpoint. 6.3+
+debug_canBreak(): Returns true if there is a possibility the target can stop in a breakpoint. 6.4+
 debug_getBreakpointList(): Returns a lua table containing all the breakpoint addresses
 
 debug_setBreakpoint(address, size OPTIONAL, trigger OPTIONAL) : sets a breakpoint of a specific size at the given address. if trigger is bptExecute then size is ignored. If trigger is ignored then it will be of type bptExecute, which obviously also ignores the size then as well
@@ -1935,7 +1938,7 @@ getDefaultDisassembler() - Returns the default disassembler object used by a lot
 getVisibleDisassembler() - Returns the disassembler used by the disassemblerview. Special codes are: {H}=Hex value {R}=Register {S}=Symbol {N}=Nothing special
 
 registerGlobalDisassembleOverride(function(sender: Disassembler, address: integer, LastDisassembleData: Table): opcode, description): Same as Disassembler.OnDisassembleOverride, but does it for all disassemblers, including newly created ones.  Tip: Check the sender to see if you should use syntax highlighting codes or not
-  This function returns an ID you can pass on to unregisterGlobalDisassembleOverride()  6.3+
+  This function returns an ID you can pass on to unregisterGlobalDisassembleOverride()  6.4+
 
 unregisterGlobalDisassembleOverride(id)
 
@@ -2109,7 +2112,6 @@ createSettingsPage
 
 registerHexviewHeaderOverride
 
-add ctrl+r in luaengine
 
 add RSP/EAX lookup in the hexview
 add a clear all in the userdefined symbol list
