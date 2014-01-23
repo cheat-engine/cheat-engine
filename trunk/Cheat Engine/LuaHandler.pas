@@ -4895,7 +4895,7 @@ function lua_shortCutToText(L: PLua_State): integer; cdecl;
 begin
   if lua_gettop(L)>0 then
   begin
-    lua_pushstring(ShortCutToText(TShortCut(lua_tointeger(L, 1))));
+    lua_pushstring(L, ShortCutToText(TShortCut(lua_tointeger(L, 1))));
     result:=1;
   end
   else
@@ -4906,7 +4906,7 @@ function lua_textToShortCut(L: PLua_State): integer; cdecl;
 begin
   if lua_gettop(L)>0 then
   begin
-    lua_pushinteger(TextToShortCut(Lua_ToString(L, 1)));
+    lua_pushinteger(L, TextToShortCut(Lua_ToString(L, 1)));
     result:=1;
   end
   else
