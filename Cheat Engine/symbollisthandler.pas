@@ -45,6 +45,8 @@ type
   TExtraSymbolData=class
   private
   public
+    return: string;
+    simpleparameters: string; //either simple or the parameters list
     parameters: TExtraSymbolDataEntryList;
     locals: TExtraSymbolDataEntryList;
     constructor create;
@@ -83,6 +85,7 @@ type
     constructor create;
     destructor destroy; override;
     procedure AddExtraSymbolData(d: TExtraSymbolData);
+    procedure RemoveExtraSymbolData(d: TExtraSymbolData);
     function AddSymbol(module: string; searchkey: string; address: qword; size: integer; skipaddresstostringlookup: boolean=false; extraData: TExtraSymbolData=nil): PCESymbolInfo;
     function FindAddress(address: qword): PCESymbolInfo;
     function FindSymbol(s: string): PCESymbolInfo;
@@ -449,6 +452,11 @@ end;
 procedure TSymbolListHandler.AddExtraSymbolData(d: TExtraSymbolData);
 begin //add here instead of AddSymbol, since AddSymbol can add the same object multiple times
   ExtraSymbolDataList.add(d);
+end;
+
+procedure TSymbolListHandler.RemoveExtraSymbolData(d: TExtraSymbolData);
+begin
+  ExtraSymbolDataList.Remove(d);
 end;
 
 constructor TSymbolListHandler.create;

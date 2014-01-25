@@ -117,5 +117,9 @@ object frmSymbolhandler: TfrmSymbolhandler
       Default = True
       OnClick = Delete1Click
     end
+    object MenuItem1: TMenuItem
+      Caption = 'Delete all'
+      OnClick = MenuItem1Click
+    end
   end
 end

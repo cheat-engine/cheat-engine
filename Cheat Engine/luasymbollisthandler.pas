@@ -15,7 +15,7 @@ uses LuaHandler, SymbolListHandler, LuaObject, symbolhandler;
 
 function createSymbolList(L: Plua_State): integer; cdecl;
 begin
-  result:=0;
+  result:=1;
   luaclass_newClass(L, TSymbolListHandler.create);
 end;
 
@@ -111,9 +111,14 @@ var
   address: qword;
   size: integer;
   skipAddressToSymbol: boolean;
+
+  esd: TExtraSymbolData;
+  returntype: string;
+  parameters: string;
 begin
   result:=0;
   sl:=luaclass_getClassObject(L);
+  esd:=nil;
 
   if lua_gettop(L)>=4 then //modulename, searchkey, address, symbolsize, skipAddressToSymbol
   begin
@@ -127,7 +132,42 @@ begin
     else
       skipAddressToSymbol:=false;
 
-    si:=sl.AddSymbol(modulename, searchkey, address, size, skipAddressToSymbol);
+    if lua_gettop(L)>=6 then
+    begin
+      if lua_istable(L, 6) then
+      begin
+        lua_pushstring(L, 'returntype');
+        lua_gettable(L, 6);
+
+        returntype:=Lua_ToString(L, -1);
+        lua_pop(L,1);
+
+        lua_pushstring(L, 'parameters');
+        lua_gettable(L, 6);
+
+        parameters:=Lua_ToString(L, -1);
+        lua_pop(L,1);
+
+        if (returntype<>'') or (parameters<>'') then
+        begin
+          esd:=TExtraSymbolData.create;
+          esd.return:=returntype;
+          esd.simpleparameters:=parameters;
+
+          sl.AddExtraSymbolData(esd);
+        end;
+
+      end;
+
+    end
+    else
+      parameters:='';
+
+
+    si:=sl.AddSymbol(modulename, searchkey, address, size, skipAddressToSymbol, esd);
+
+    if esd<>nil then
+      esd.free;
 
     pushSymbol(L, si);
     result:=1;
@@ -142,10 +182,36 @@ begin
   result:=0;
   sl:=luaclass_getClassObject(L);
 
+
   if lua_type(L,1)=LUA_TNUMBER then
-    sl.DeleteSymbol(lua_tointeger(L, 1))
+  begin
+    si:=sl.FindAddress(lua_tointeger(L, 1));
+    if si<>nil then
+    begin
+      if si.extra<>nil then
+      begin
+        sl.RemoveExtraSymbolData(si.extra);
+        si.extra.free;
+      end;
+
+      sl.DeleteSymbol(lua_tointeger(L, 1))
+    end;
+  end
   else
-    sl.DeleteSymbol(lua_tostring(L, 1));
+  begin
+    si:=sl.FindSymbol(lua_tostring(L, 1));
+    if si<>nil then
+    begin
+      if si.extra<>nil then
+      begin
+        sl.RemoveExtraSymbolData(si.extra);
+        si.extra.free;
+      end;
+
+      sl.DeleteSymbol(lua_tostring(L, 1))
+    end;
+
+  end;
 end;
 
 procedure SymbolList_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
@@ -164,6 +230,9 @@ procedure initializeLuaSymbolListHandler;
 begin
   lua_register(LuaVM, 'createSymbolList', createSymbolList);
 end;
+
+initialization
+  luaclass_register(TSymbolListHandler, SymbolList_addMetaData);
 
 end.
 

@@ -9,7 +9,11 @@ uses
   Dialogs, StdCtrls,symbolhandler, ComCtrls, ExtCtrls, Menus, LResources;
 
 type
+
+  { TfrmSymbolhandler }
+
   TfrmSymbolhandler = class(TForm)
+    MenuItem1: TMenuItem;
     Panel1: TPanel;
     Label3: TLabel;
     edtSymbolname: TEdit;
@@ -26,6 +30,7 @@ type
     procedure ListView1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Delete1Click(Sender: TObject);
+    procedure MenuItem1Click(Sender: TObject);
   private
     { Private declarations }
     procedure SymUpdate(var message:TMessage); message wm_user+1;
@@ -42,6 +47,7 @@ implementation
 
 resourcestring
   rsAreYouSureYouWantToRemoveThisSymbolFromTheList = 'Are you sure you want to remove this symbol from the list?';
+  rsAreYouSureYouWantToRemoveAllSymbolsFromTheList = 'Are you sure you want to remove all symbols from the list?';
 
 procedure SymbolUpdate;
 begin
@@ -134,6 +140,22 @@ begin
       symhandler.DeleteUserdefinedSymbol(listview1.Items[listview1.ItemIndex].Caption);
       listview1.Items[listview1.ItemIndex].Delete;
     end;
+  end;
+end;
+
+procedure TfrmSymbolhandler.MenuItem1Click(Sender: TObject);
+var i: integer;
+begin
+  if messagedlg(rsAreYouSureYouWantToRemoveAllSymbolsFromTheList, mtconfirmation, [mbyes, mbno], 0)=mryes then
+  begin
+    for i:=listview1.Items.Count-1 downto 0 do
+    begin
+      symhandler.DeleteUserdefinedSymbol(listview1.Items[i].Caption);
+      listview1.Items[i].Delete;
+    end;
+
+
+    refreshlist;
   end;
 end;
 
