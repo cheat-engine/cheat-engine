@@ -1662,12 +1662,12 @@ methods
     When set to true the thread object will free itself when the function ends (default=true)
     Note: Use this only from inside the thread function as the thread might have already terminated and freed itself when called
 
-  thread_synchronize(function(thread)) :
+  synchronize(function(thread)) :
     Called from inside the thread. This wil cause the tread to get the main thread to execute the given function and wait for it to finish.
     Usually for gui access
     function (Thread)
 
-  thread_waitfor() : 
+  waitfor() : 
     Waits for the given thread to finish (Not recommended to call this from inside the thread itself)
 
 
@@ -2090,7 +2090,14 @@ Methods
   clear()
   getSymbolFromAddress(address) : Searches the list for the given address. The address does not have to match the exact address. As long as it falls withing the range
   getSymbolFromString(searchkey)
-  addSymbol(modulename, searchkey, address, symbolsize)
+  addSymbol(modulename, searchkey, address, symbolsize, skipAddressToSymbolLookup OPTIONAL, extradata OPTIONAL)
+    Adds a symbol to the symbollist
+    extradata is a table which can be used to fill in a return type and parameters for function calls. It has the following fields:
+      returntype: string
+      parameters: string
+      
+ 
+     
   deleteSymbol(searchkey)
   deleteSymbol(address)
   register() : Registers the current symbol list with the symbol handler

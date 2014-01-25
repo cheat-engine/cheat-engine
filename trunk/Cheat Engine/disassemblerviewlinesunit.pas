@@ -222,7 +222,7 @@ procedure TDisassemblerLine.renderLine(var address: ptrUint; linestart: integer;
 var
     baseofsymbol: qword;
     symbolname: string;
-    parameters, locations: string;
+    parameters, locations,result: string;
     comment, header: string;
     refferencedby: string;
     refferencedbylinecount: integer;
@@ -502,30 +502,40 @@ begin
     fcanvas.Font.Style:=[fsbold];
 
     parameters:='';
+    result:='';
     if extrasymboldata<>nil then
     begin
+      result:=extrasymboldata.return;
+      if result<>'' then
+        result:=result+' ';
+
       locations:='';
       parameters:='(';
-      for i:=0 to extrasymboldata.parameters.count-1 do
+      if extrasymboldata.parameters.count>0 then
       begin
-        if i=0 then
-          parameters:=parameters+extrasymboldata.parameters[i].vtype+' '+extrasymboldata.parameters[i].name
-        else
-          parameters:=parameters+', '+extrasymboldata.parameters[i].vtype+' '+extrasymboldata.parameters[i].name;
+        for i:=0 to extrasymboldata.parameters.count-1 do
+        begin
+          if i=0 then
+            parameters:=parameters+extrasymboldata.parameters[i].vtype+' '+extrasymboldata.parameters[i].name
+          else
+            parameters:=parameters+', '+extrasymboldata.parameters[i].vtype+' '+extrasymboldata.parameters[i].name;
 
-        if i=0 then
-          locations:=' : '+extrasymboldata.parameters[i].name+'='+extrasymboldata.parameters[i].position
-        else
-          locations:=locations+' - '+extrasymboldata.parameters[i].name+'='+extrasymboldata.parameters[i].position;
+          if i=0 then
+            locations:=' : '+extrasymboldata.parameters[i].name+'='+extrasymboldata.parameters[i].position
+          else
+            locations:=locations+' - '+extrasymboldata.parameters[i].name+'='+extrasymboldata.parameters[i].position;
+        end;
+      end
+      else
+        parameters:=parameters+extrasymboldata.simpleparameters;
 
-      end;
 
       parameters:=parameters+')'+locations;
 
 
     end;
 
-    fcanvas.TextOut(fHeaders.Items[0].Left+5,linestart+5,AnsiToUtf8(symbolname+parameters));
+    fcanvas.TextOut(fHeaders.Items[0].Left+5,linestart+5,AnsiToUtf8(result+symbolname+parameters));
     linestart:=linestart+fcanvas.TextHeight(symbolname)+1+10;
 
     fcanvas.Font.Style:=[];
