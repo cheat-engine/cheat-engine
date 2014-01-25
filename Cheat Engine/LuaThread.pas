@@ -38,11 +38,32 @@ begin
 end;
 
 procedure TCEThread.execute;
+var errorstring: string;
 begin
   //call the lua function
-  lua_rawgeti(L, LUA_REGISTRYINDEX, functionid);
-  lua_pushlightuserdata(L, self);
-  lua_pcall(L, 1,0,0);
+  try
+    lua_rawgeti(L, LUA_REGISTRYINDEX, functionid);
+    lua_pushlightuserdata(L, self);
+    if lua_pcall(L, 1,0,0)<>0 then
+    begin
+      if lua_isstring(L, -1) then
+        errorstring:=':'+Lua_ToString(L,-1)
+      else
+        errorstring:='';
+
+      lua_getfield(L, LUA_GLOBALSINDEX, 'print');
+      lua_pushstring(L, 'Error in native thread'+errorstring);
+      lua_pcall(L, 1,0,0);
+
+    end;
+  except
+    on e:Exception do
+    begin
+      lua_getfield(L, LUA_GLOBALSINDEX, 'print');
+      lua_pushstring(L, 'Error in native thread in native code:'+e.Message);
+      lua_pcall(L, 1,0,0);
+    end;
+  end;
 end;
 
 destructor TCEThread.destroy;

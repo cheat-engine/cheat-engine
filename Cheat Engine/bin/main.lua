@@ -29,6 +29,7 @@ writeBytes(address, table) : Write the given bytes to the given address from a t
 
 readInteger(address) : Reads an integer from the specified address
 readQword(address): Reads a 64-bit integer from the specified address
+readPointer(address): In a 64-bit target this equals readQword, in a 32-bit target readInteger()
 readFloat(address) : Reads a single precision floating point value from the specified address
 readDouble(address) : Reads a double precision floating point value from the specified address
 readString(address, maxlength, widechar OPTIONAL) : Reads a string till it encounters a 0-terminator. Maxlength is just so you won't freeze for too long, set to 6000 if you don't care too much. Set WideChar to true if it is encoded using a widechar formatting
@@ -41,6 +42,7 @@ writeString(address,text, widechar OPTIONAL) : Write a string to the specified a
 readBytesLocal(address,bytecount, ReturnAsTable) : See readBytes but then it's for Cheat engine's memory
 readIntegerLocal(address) : Reads an integer from the specified address in CE's memory
 readQwordLocal(address) : Reads a 64-bit integer from the specified address in CE's memory
+readPointerLocal(address) : ReadQwordLocal/ReadIntegerLocal depending on the cheat engine build
 readFloatLocal(address) : Reads a single precision floating point value from the specified address in CE's memory
 readDoubleLocal(address) : Reads a double precision floating point value from the specified address in CE's memory
 readStringLocal(address, maxlength, widechar OPTIONAL)
