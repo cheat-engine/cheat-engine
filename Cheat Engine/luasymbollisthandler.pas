@@ -223,7 +223,7 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'addSymbol', SymbolList_addSymbol);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'deleteSymbol', SymbolList_deleteSymbol);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'register', SymbolList_register);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'unregister', SymbolList_register);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'unregister', SymbolList_unregister);
 end;
 
 procedure initializeLuaSymbolListHandler;

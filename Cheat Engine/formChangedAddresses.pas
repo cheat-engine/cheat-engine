@@ -7,7 +7,7 @@ interface
 uses
   windows, LCLIntf, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls,CEFuncProc, ExtCtrls, ComCtrls, Menus, NewKernelHandler, LResources,
-  disassembler, symbolhandler, byteinterpreter, CustomTypeHandler, maps, math, Clipbrd;
+  disassembler, symbolhandler, byteinterpreter, CustomTypeHandler, maps, math, Clipbrd, addressparser;
 
 type
   TAddressEntry=class
@@ -30,6 +30,7 @@ type
   TfrmChangedAddresses = class(TForm)
     lblInfo: TLabel;
     MenuItem1: TMenuItem;
+    miDissect: TMenuItem;
     micbShowAsHexadecimal: TMenuItem;
     Panel1: TPanel;
     OKButton: TButton;
@@ -44,6 +45,7 @@ type
       Data: Integer; var Compare: Integer);
     procedure MenuItem1Click(Sender: TObject);
     procedure micbShowAsHexadecimalClick(Sender: TObject);
+    procedure miDissectClick(Sender: TObject);
     procedure OKButtonClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormShow(Sender: TObject);
@@ -58,6 +60,7 @@ type
     { Private declarations }
     addresslist: TMap;
     procedure refetchValues(specificaddress: ptruint=0);
+    function getBase(entry: TAddressEntry): ptruint;
   public
     { Public declarations }
     equation: string;
@@ -70,7 +73,7 @@ implementation
 
 
 uses CEDebugger, MainUnit, frmRegistersunit, MemoryBrowserFormUnit, debughelper,
-  debugeventhandler, debuggertypedefinitions, FoundCodeUnit;
+  debugeventhandler, debuggertypedefinitions, FoundCodeUnit, StructuresFrm2;
 
 resourcestring
   rsStop='Stop';
@@ -96,6 +99,12 @@ begin
   end;
 end;
 
+
+function TfrmChangedAddresses.getBase(entry: TAddressEntry): ptruint;
+//parse the equation
+begin
+
+end;
 
 procedure TfrmChangedAddresses.AddRecord;
 var
@@ -180,6 +189,45 @@ end;
 procedure TfrmChangedAddresses.micbShowAsHexadecimalClick(Sender: TObject);
 begin
   refetchvalues;
+end;
+
+procedure TfrmChangedAddresses.miDissectClick(Sender: TObject);
+var
+  i: integer;
+  ae: TAddressEntry;
+  ap: TAddressParser;
+  address: ptruint;
+  sf: TfrmStructures2;
+begin
+
+
+  if changedlist.Items.Count>0 then
+  begin
+    ap:=TAddressParser.Create;
+
+    sf:=TfrmStructures2.Create(application);
+    sf.show;
+
+    for i:=0 to changedlist.Items.Count-1 do
+    begin
+      if changedlist.Items[i].Selected then
+      begin
+        ae:=changedlist.items[i].data;
+        ap.setSpecialContext(@ae.context);
+        address:=ap.getBaseAddress(equation);
+      end;
+
+      if address<>0 then
+        sf.addColumn.Address:=address;
+    end;
+
+
+
+
+
+    ap.free;
+
+  end;
 end;
 
 procedure TfrmChangedAddresses.ChangedlistColumnClick(Sender: TObject;
@@ -333,6 +381,8 @@ procedure TfrmChangedAddresses.PopupMenu1Popup(Sender: TObject);
 begin
   Showregisterstates1.enabled:=changedlist.selected<>nil;
   Browsethismemoryregion1.enabled:=changedlist.selected<>nil;
+
+  miDissect.enabled:=changedlist.SelCount>0;
 end;
 
 procedure TfrmChangedAddresses.refetchValues(specificaddress: ptruint=0);
