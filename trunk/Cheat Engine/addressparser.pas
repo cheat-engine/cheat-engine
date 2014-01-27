@@ -4,7 +4,7 @@ unit addressparser;
 
 interface
 
-uses LCLIntf,SysUtils,dialogs,symbolhandler;
+uses LCLIntf,SysUtils,dialogs,symbolhandler, NewKernelHandler;
 
 type
   TSeperator = (plus,minus,multiply); //the things the disassembler shows (NO DIVIDE)
@@ -14,11 +14,15 @@ type
     STR: string;
     blurb: string;
     ch: integer;
-    address: dword;
+    address: ptruint;
     increase: boolean;
     total: array of byte; //0=seperator 1=value
     values: array of int64;
     seperators: array of TSeperator;
+
+    SpecialContext: PContext;
+
+
 
     procedure seperator;
     procedure value;
@@ -30,7 +34,9 @@ type
     function simplify2: boolean;
     function simplify1: boolean;
   public
-    function getaddress(S: string):ptrUint;
+    procedure setSpecialContext(c: PContext);
+    function getaddress(S: string;skipsymhandler: boolean=false):ptrUint;
+    function getBaseAddress(s: string):ptruint;
   end;
 
 
@@ -82,30 +88,47 @@ end;
 procedure TAddressParser.aregister;
 var tmp: dword;
     tmps: string;
+    c: Pcontext;
 begin
 
   tmp:=0;
   tmps:=copy(str,ch,3);
+  if SpecialContext<>nil then
+    c:=SpecialContext
+  else
+    c:=@memorybrowser.lastdebugcontext;
 
-  if tmps='EAX' then tmp:=memorybrowser.lastdebugcontext.{$ifdef cpu64}rax{$else}eax{$endif} else
-  if tmps='EBX' then tmp:=memorybrowser.lastdebugcontext.{$ifdef cpu64}rbx{$else}ebx{$endif} else
-  if tmps='ECX' then tmp:=memorybrowser.lastdebugcontext.{$ifdef cpu64}rcx{$else}ecx{$endif} else
-  if tmps='EDX' then tmp:=memorybrowser.lastdebugcontext.{$ifdef cpu64}rdx{$else}edx{$endif} else
-  if tmps='ESI' then tmp:=memorybrowser.lastdebugcontext.{$ifdef cpu64}rsi{$else}esi{$endif} else
-  if tmps='EDI' then tmp:=memorybrowser.lastdebugcontext.{$ifdef cpu64}rdi{$else}edi{$endif} else
-  if tmps='EBP' then tmp:=memorybrowser.lastdebugcontext.{$ifdef cpu64}rbp{$else}ebp{$endif} else
-  if tmps='ESP' then tmp:=memorybrowser.lastdebugcontext.{$ifdef cpu64}rsp{$else}esp{$endif} else
-  if tmps='EIP' then tmp:=memorybrowser.lastdebugcontext.{$ifdef cpu64}rip{$else}eip{$endif}
+  if tmps='EAX' then tmp:=c.{$ifdef cpu64}rax{$else}eax{$endif} else
+  if tmps='EBX' then tmp:=c.{$ifdef cpu64}rbx{$else}ebx{$endif} else
+  if tmps='ECX' then tmp:=c.{$ifdef cpu64}rcx{$else}ecx{$endif} else
+  if tmps='EDX' then tmp:=c.{$ifdef cpu64}rdx{$else}edx{$endif} else
+  if tmps='ESI' then tmp:=c.{$ifdef cpu64}rsi{$else}esi{$endif} else
+  if tmps='EDI' then tmp:=c.{$ifdef cpu64}rdi{$else}edi{$endif} else
+  if tmps='EBP' then tmp:=c.{$ifdef cpu64}rbp{$else}ebp{$endif} else
+  if tmps='ESP' then tmp:=c.{$ifdef cpu64}rsp{$else}esp{$endif} else
+  if tmps='EIP' then tmp:=c.{$ifdef cpu64}rip{$else}eip{$endif}
   {$ifdef cpu64}
   else
-  if tmps='R8' then tmp:=memorybrowser.lastdebugcontext.r8 else
-  if tmps='R9' then tmp:=memorybrowser.lastdebugcontext.r9 else
-  if tmps='R10' then tmp:=memorybrowser.lastdebugcontext.r10 else
-  if tmps='R11' then tmp:=memorybrowser.lastdebugcontext.r11 else
-  if tmps='R12' then tmp:=memorybrowser.lastdebugcontext.r12 else
-  if tmps='R13' then tmp:=memorybrowser.lastdebugcontext.r13 else
-  if tmps='R14' then tmp:=memorybrowser.lastdebugcontext.r14 else
-  if tmps='R15' then tmp:=memorybrowser.lastdebugcontext.r15;
+  if tmps='RAX' then tmp:=c.rax else
+  if tmps='RBX' then tmp:=c.rbx else
+  if tmps='RCX' then tmp:=c.rcx else
+  if tmps='RDX' then tmp:=c.rdx else
+  if tmps='RSI' then tmp:=c.rsi else
+  if tmps='RDI' then tmp:=c.rdi else
+  if tmps='RBP' then tmp:=c.rbp else
+  if tmps='RSP' then tmp:=c.rsp else
+  if tmps='RIP' then tmp:=c.rip else
+  if tmps='R10' then tmp:=c.r10 else
+  if tmps='R11' then tmp:=c.r11 else
+  if tmps='R12' then tmp:=c.r12 else
+  if tmps='R13' then tmp:=c.r13 else
+  if tmps='R14' then tmp:=c.r14 else
+  if tmps='R15' then tmp:=c.r15 else
+  begin
+    tmps:=copy(str,ch,2);
+    if tmps='R8' then tmp:=c.r8 else
+    if tmps='R9' then tmp:=c.r9;
+  end
   {$endif}
   ;
 
@@ -115,7 +138,7 @@ begin
   setlength(values,length(values)+1);
   values[length(values)-1]:=tmp;
 
-  inc(ch,3);
+  inc(ch,length(tmps));
 end;
 
 
@@ -243,14 +266,17 @@ begin
 end;
 
 
-function TAddressParser.getaddress(s: string): ptrUint;
+function TAddressParser.getaddress(s: string;skipsymhandler: boolean=false): ptrUint;
 var i,j: integer;
     scount,vcount: integer;
     tempstr: string;
     haserror: boolean;
 begin
-  result:=symhandler.getaddressfromname(s,false,haserror);
-  if (result<>0) and (not haserror) then exit;
+  if skipsymhandler=false then
+  begin
+    result:=symhandler.getaddressfromname(s,false,haserror);
+    if (result<>0) and (not haserror) then exit;
+  end;
 
   if s='' then s:='0';
   setlength(total,2);
@@ -279,6 +305,7 @@ begin
     'A'..'D' :  value;
     'E'      :  E;
     'F'      :  value;
+    'R'      :  aregister;
     '+','-','*' :  seperator;
     else        raise exception.Create('This is not a valid address');
 
@@ -293,6 +320,26 @@ begin
   for i:=0 to length(values)-1 do inc(address,values[i]);
   result:=address;
 
+end;
+
+function TAddressParser.getBaseAddress(s: string):ptruint;
+var maxvalue: ptruint;
+    i: integer;
+begin
+  getaddress(s, true);
+  maxvalue:=0;
+  for i:=0 to length(values)-1 do
+  begin
+    if maxvalue<ptruint(values[i]) then
+      maxvalue:=ptruint(values[i]);
+  end;
+
+  result:=maxvalue;
+end;
+
+procedure TAddressParser.setSpecialContext(c: PContext);
+begin
+  SpecialContext:=c;
 end;
 
 function getaddress(S: string):ptrUint;

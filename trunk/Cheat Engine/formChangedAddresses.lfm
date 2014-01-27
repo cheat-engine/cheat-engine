@@ -2,10 +2,10 @@ object frmChangedAddresses: TfrmChangedAddresses
   Left = 607
   Height = 289
   Top = 128
-  Width = 381
+  Width = 385
   Caption = 'Changed Addresses'
   ClientHeight = 289
-  ClientWidth = 381
+  ClientWidth = 385
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
@@ -18,7 +18,7 @@ object frmChangedAddresses: TfrmChangedAddresses
     Left = 0
     Height = 33
     Top = 0
-    Width = 381
+    Width = 385
     Align = alTop
     Caption = 'The following addresses have been changed by the code you selected'
     ParentColor = False
@@ -28,11 +28,11 @@ object frmChangedAddresses: TfrmChangedAddresses
     Left = 0
     Height = 42
     Top = 247
-    Width = 381
+    Width = 385
     Align = alBottom
     Anchors = [akRight, akBottom]
     ClientHeight = 42
-    ClientWidth = 381
+    ClientWidth = 385
     TabOrder = 0
     object OKButton: TButton
       Left = 10
@@ -45,7 +45,7 @@ object frmChangedAddresses: TfrmChangedAddresses
       TabOrder = 0
     end
     object cbDisplayType: TComboBox
-      Left = 194
+      Left = 198
       Height = 24
       Top = 8
       Width = 179
@@ -68,7 +68,7 @@ object frmChangedAddresses: TfrmChangedAddresses
     Left = 0
     Height = 214
     Top = 33
-    Width = 381
+    Width = 385
     Align = alClient
     Columns = <    
       item
@@ -82,6 +82,8 @@ object frmChangedAddresses: TfrmChangedAddresses
       item
         Caption = 'Count'
       end>
+    HideSelection = False
+    MultiSelect = True
     PopupMenu = PopupMenu1
     ReadOnly = True
     RowSelect = True
@@ -110,6 +112,11 @@ object frmChangedAddresses: TfrmChangedAddresses
       Caption = 'Browse this memory region'
       ShortCut = 16450
       OnClick = Browsethismemoryregion1Click
+    end
+    object miDissect: TMenuItem
+      Caption = 'Open dissect data with selected addresses'
+      ShortCut = 16452
+      OnClick = miDissectClick
     end
     object micbShowAsHexadecimal: TMenuItem
       AutoCheck = True
