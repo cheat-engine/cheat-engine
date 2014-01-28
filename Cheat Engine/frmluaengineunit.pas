@@ -5,9 +5,10 @@ unit frmLuaEngineUnit;
 interface
 
 uses
-  windows, Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
-  StdCtrls, Menus, ExtCtrls, SynMemo, SynCompletion, SynEdit, lua,
-  lauxlib, lualib, LuaSyntax, luahandler, cefuncproc, strutils;
+  windows, Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics,
+  Dialogs, StdCtrls, Menus, ExtCtrls, SynMemo, SynCompletion, SynEdit, lua,
+  lauxlib, lualib, LuaSyntax, luahandler, cefuncproc, strutils, InterfaceBase,
+  ComCtrls, SynGutterBase, SynEditMarks;
 
 type
 
@@ -16,6 +17,8 @@ type
   TfrmLuaEngine = class(TForm)
     btnExecute: TButton;
     GroupBox1: TGroupBox;
+    ilLuaDebug: TImageList;
+    ilSyneditDebug: TImageList;
     MainMenu1: TMainMenu;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
@@ -31,14 +34,18 @@ type
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
+    mScript: TSynEdit;
     OpenDialog1: TOpenDialog;
     Panel1: TPanel;
     Panel2: TPanel;
+    Panel3: TPanel;
     pmEditor: TPopupMenu;
     dlgReplace: TReplaceDialog;
     SaveDialog1: TSaveDialog;
     Splitter1: TSplitter;
-    mScript: TSynEdit;
+    tbDebug: TToolBar;
+    tbRun: TToolButton;
+    tbSingleStep: TToolButton;
     procedure btnExecuteClick(Sender: TObject);
     procedure dlgReplaceFind(Sender: TObject);
     procedure dlgReplaceReplace(Sender: TObject);
@@ -53,11 +60,16 @@ type
     procedure MenuItem7Click(Sender: TObject);
     procedure MenuItem8Click(Sender: TObject);
     procedure MenuItem9Click(Sender: TObject);
+    procedure mScriptGutterClick(Sender: TObject; X, Y, Line: integer;
+      mark: TSynEditMark);
     procedure mScriptKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState
       );
     procedure Panel2Resize(Sender: TObject);
+    procedure tbRunClick(Sender: TObject);
+    procedure tbSingleStepClick(Sender: TObject);
   private
     { private declarations }
+    continue: integer;
   public
     { public declarations }
     synhighlighter: TSynLuaSyn;
@@ -72,13 +84,33 @@ implementation
 
 uses luaclass;
 
-
 resourcestring
   rsError = 'Script Error';
+
+var
+  LuaDebugForm: TfrmLuaEngine;
+  LuaDebugSingleStepping: boolean;
+
 
 procedure TfrmLuaEngine.Panel2Resize(Sender: TObject);
 begin
   btnexecute.Height:=panel2.clientheight-(2*btnexecute.top);
+end;
+
+procedure TfrmLuaEngine.tbRunClick(Sender: TObject);
+begin
+  continue:=1;
+  tbDebug.enabled:=false;
+  tbRun.enabled:=false;
+  tbSingleStep.enabled:=false;
+end;
+
+procedure TfrmLuaEngine.tbSingleStepClick(Sender: TObject);
+begin
+  continue:=2;
+  tbDebug.enabled:=false;
+  tbRun.enabled:=false;
+  tbSingleStep.enabled:=false;
 end;
 
 function onerror(L: PLua_State): integer; cdecl;
@@ -113,6 +145,121 @@ begin
 
 end;
 
+function hasLuaBreakpoint(linenumber: integer): boolean;
+begin
+
+  result:=LuaDebugSingleStepping or (LuaDebugForm.mScript.Marks.Line[linenumber]<>nil);
+end;
+
+procedure LineHook(L: Plua_State; ar: Plua_Debug); cdecl;
+var i: integer;
+  s,s2: integer;
+  disabled: tlist;
+  mark: TSynEditMark;
+begin
+
+
+  if lua_getinfo(L,'nSl', ar)<>0 then
+  begin
+    if (ar.what='main') and (hasLuaBreakpoint(ar.currentline)) then
+    begin
+      //break
+     // frmLuaEngine.visible:=false;
+     // frmLuaEngine.ShowModal;
+     // frmLuaEngine.show;
+
+      LuaDebugForm.show;
+      LuaDebugForm.SetFocus;
+
+      if LuaDebugForm.mScript.Marks.Line[ar.currentline]<>nil then
+      begin
+        //update the icon for the current line
+        if LuaDebugForm.mScript.Marks.Line[ar.currentline][0].ImageIndex = 0 then
+          LuaDebugForm.mScript.Marks.Line[ar.currentline][0].ImageIndex:=2;
+      end
+      else
+      begin
+        mark:=TSynEditMark.Create(LuaDebugForm.mscript);
+        mark.line:=ar.currentline;
+        mark.ImageList:=LuaDebugForm.ilSyneditDebug;
+        mark.ImageIndex:=1;
+        mark.Visible:=true;
+        LuaDebugForm.mscript.Marks.Add(mark);
+      end;
+
+      //This somehow doesn't work:
+      //disabled:=screen.DisableForms(LuaDebugForm);
+      //so do it manually:
+
+
+
+      disabled:=tlist.create;
+      for i:=0 to screen.CustomFormCount-1 do
+      begin
+        if (screen.CustomForms[i]<>LuaDebugForm) and screen.CustomForms[i].visible and screen.CustomForms[i].enabled then
+        begin
+          disabled.add(screen.CustomForms[i]);
+          EnableWindow(screen.CustomForms[i].handle,false);
+        end;
+
+      end;
+
+      LuaDebugForm.show;
+      //activate the debug gui
+      LuaDebugForm.tbDebug.Visible:=true;
+      LuaDebugForm.tbDebug.enabled:=true;
+      LuaDebugForm.tbRun.enabled:=true;
+      LuaDebugForm.tbSingleStep.enabled:=true;
+      LuaDebugForm.mScript.ReadOnly:=true;
+
+      LuaDebugForm.continue:=0;
+
+      while LuaDebugForm.continue=0 do
+      begin
+        application.ProcessMessages;
+
+        if application.Terminated or (LuaDebugForm.Visible=false) then break;
+        application.Idle(true);
+      end;
+
+      LuaDebugForm.mScript.ReadOnly:=false;
+
+      for i:=0 to disabled.Count-1 do
+      begin
+        EnableWindow(tcustomform(disabled[i]).handle,true);
+        //tcustomform(disabled[i]).Enabled:=true;
+      end;
+
+
+      //clear the current instruction pointer
+      if LuaDebugForm.mScript.Marks.Line[ar.currentline]<>nil then
+      begin
+        if LuaDebugForm.mScript.Marks.Line[ar.currentline][0].ImageIndex = 2 then  //bp with the current bp set
+          LuaDebugForm.mScript.Marks.Line[ar.currentline][0].ImageIndex:=0  //set back to normal bp
+        else
+          LuaDebugForm.mScript.Marks.Line[ar.currentline][0].Free; //clear bp
+
+
+      end;
+
+      disabled.free;
+
+      LuaDebugSingleStepping:=false;
+
+      case LuaDebugForm.continue of
+        1: ;//continue (normal bp's only)
+        2: LuaDebugSingleStepping:=true;  //single step next instruction
+      end;
+
+
+    end;
+    frmLuaEngine.moutput.lines.add('called:'+ar.what+' ('+inttostr(ar.currentline)+')');
+
+  end;
+
+
+end;
+
 procedure TfrmLuaEngine.btnExecuteClick(Sender: TObject);
 var pc: pchar;
   i,j: integer;
@@ -122,6 +269,8 @@ var pc: pchar;
 
   err: integer;
 begin
+  LuaDebugForm:=self;
+
   luacs.Enter;
   oldprintoutput:=lua_oldprintoutput;
   try
@@ -140,6 +289,7 @@ begin
 
      lua_remove(luavm, err); }
 
+    lua_sethook(luavm, linehook, LUA_MASKLINE, 0);
 
     if lua_dostring(Luavm, pchar(mScript.text))=0 then
     begin
@@ -206,6 +356,9 @@ begin
 
     end;
   finally
+
+    lua_sethook(luavm, linehook, 0, 0);
+
     lua_setPrintOutput(oldprintoutput);
     luacs.Leave;
   end;
@@ -319,6 +472,54 @@ end;
 procedure TfrmLuaEngine.MenuItem9Click(Sender: TObject);
 begin
   mscript.PasteFromClipboard;
+end;
+
+procedure TfrmLuaEngine.mScriptGutterClick(Sender: TObject; X, Y,
+  Line: integer; mark: TSynEditMark);
+var
+  ml: TSynEditMarkLine;
+  i: integer;
+  hasbp:boolean;
+begin
+  hasbp:=false;
+  ml:=mscript.Marks.Line[line];
+
+  if ml<>nil then
+  begin
+    for i:=0 to ml.Count-1 do
+    begin
+      if ml[i].ImageIndex=0 then
+        hasbp:=true;
+    end;
+
+    if hasbp then
+    begin
+      //clear it
+      i:=0;
+      while i<ml.count do
+      begin
+        if ml[i].imageindex=0 then
+        begin
+          ml[i].Free;
+          ml:=mscript.Marks.Line[line];
+          if ml=nil then exit;
+        end
+        else
+          inc(i);
+      end;
+    end;
+  end;
+
+  if not hasbp then
+  begin
+    //set it
+    mark:=TSynEditMark.Create(mscript);
+    mark.line:=line;
+    mark.ImageList:=ilSyneditDebug;
+    mark.ImageIndex:=0;
+    mark.Visible:=true;
+    mscript.Marks.Add(mark);
+  end;
 end;
 
 procedure TfrmLuaEngine.mScriptKeyDown(Sender: TObject; var Key: Word;
