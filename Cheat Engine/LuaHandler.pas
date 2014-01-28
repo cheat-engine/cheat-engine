@@ -1095,6 +1095,23 @@ begin
   result:=readQwordEx(L, ProcessHandle);
 end;
 
+function readPointerLocal(L: PLua_State): integer; cdecl;
+begin
+{$ifdef cpu64}
+  result:=readQwordLocal(L);
+{$else}
+  result:=readIntegerLocal(L);
+{$endif}
+end;
+
+function readPointer(L: PLua_State): integer; cdecl;
+begin
+  if processhandler.is64Bit then
+    result:=readQword(L)
+  else
+    result:=readInteger(L);
+end;
+
 function readFloatEx(L: PLua_State; ProcessHandle: THandle): integer; cdecl;
 var
   parameters: integer;
@@ -1361,6 +1378,23 @@ end;
 function writeQword(L: PLua_State): integer; cdecl;
 begin
   result:=writeQwordEx(L, processhandle);
+end;
+
+function writePointerLocal(L: PLua_State): integer; cdecl;
+begin
+{$ifdef cpu64}
+  result:=writeQwordLocal(L);
+{$else}
+  result:=writeIntegerLocal(L);
+{$endif}
+end;
+
+function writePointer(L: PLua_State): integer; cdecl;
+begin
+  if processhandler.is64bit then
+    result:=writeQword(L)
+  else
+    result:=writeInteger(L);
 end;
 
 function writeFloatEx(L: PLua_State; processhandle: THandle): integer; cdecl;
@@ -4933,22 +4967,26 @@ begin
     lua_register(LuaVM, 'writeBytes', writebytes);
     lua_register(LuaVM, 'readInteger', readInteger);
     lua_register(LuaVM, 'readQword', readQword);
+    lua_register(LuaVM, 'readPointer', readPointer);
     lua_register(LuaVM, 'readFloat', readFloat);
     lua_register(LuaVM, 'readDouble', readDouble);
     lua_register(LuaVM, 'readString', readString);
     lua_register(LuaVM, 'readIntegerLocal', readIntegerLocal);
     lua_register(LuaVM, 'readQwordLocal', readQwordLocal);
+    lua_register(LuaVM, 'readPointerLocal', readPointerLocal);
     lua_register(LuaVM, 'readFloatLocal', readFloatLocal);
     lua_register(LuaVM, 'readDoubleLocal', readDoubleLocal);
     lua_register(LuaVM, 'readStringLocal', readStringLocal);
 
     lua_register(LuaVM, 'writeInteger', writeInteger);
     lua_register(LuaVM, 'writeQword', writeQword);
+    lua_register(LuaVM, 'writePointer', writePointer);
     lua_register(LuaVM, 'writeFloat', writeFloat);
     lua_register(LuaVM, 'writeDouble', writeDouble);
     lua_register(LuaVM, 'writeString', writeString);
     lua_register(LuaVM, 'writeIntegerLocal', writeIntegerLocal);
     lua_register(LuaVM, 'writeQwordLocal', writeQwordLocal);
+    lua_register(LuaVM, 'writePointerLocal', writePointerLocal);
     lua_register(LuaVM, 'writeFloatLocal', writeFloatLocal);
     lua_register(LuaVM, 'writeDoubleLocal', writeDoubleLocal);
     lua_register(LuaVM, 'writeStringLocal', writeStringLocal);
