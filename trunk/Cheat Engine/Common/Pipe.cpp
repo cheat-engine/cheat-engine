@@ -6,6 +6,7 @@
 Pipe::Pipe(void)
 {
 	pipehandle=0;
+	InitializeCriticalSection(&cs);
 }
 
 Pipe::~Pipe(void)
@@ -16,11 +17,23 @@ Pipe::~Pipe(void)
 		CloseHandle(pipehandle);
 		pipehandle=0;
 	}
+	
+}
+
+void Pipe::Lock(void)
+{
+	EnterCriticalSection(&cs);
+}
+
+void Pipe::Unlock(void)
+{
+	LeaveCriticalSection(&cs);
 }
 
 void Pipe::Read(PVOID buf, int count)
 {
 	DWORD br;
+	if (count==0) return;
 	if (ReadFile(pipehandle, buf, count, &br, NULL)==FALSE)
 		throw("Read Error");
 }
@@ -28,6 +41,7 @@ void Pipe::Read(PVOID buf, int count)
 void Pipe::Write(PVOID buf, int count)
 {
 	DWORD bw;
+	if (count==0) return;
 	if (WriteFile(pipehandle, buf, count, &bw, NULL)==FALSE)
 		throw("Write Error");
 }
