@@ -46,6 +46,9 @@ procedure lua_pushrect(L: PLua_state; r: TRect);
 procedure InitializeLuaScripts;
 procedure InitializeLua;
 
+
+function LuaValueToDescription(L: PLua_state; i: integer; evaltables: boolean=true): string;
+
 function GetLuaState: PLUA_State; stdcall;
 
 
@@ -245,6 +248,79 @@ begin
 
   if (result<>nil) and (lua_isheavyuserdata(L, i)) then   //once the conversion is done this if check if it's userdata can go as it will always be userdata
     result:=ppointer(result)^;
+end;
+
+function LuaValueToDescription(L: PLua_state; i: integer; evaltables: boolean=true): string;
+var index, count: integer;
+  fieldname: string;
+  valuedesc: string;
+  o: tobject;
+begin
+  result:='';
+  if not lua_isnil(L, i) then
+  begin
+    if lua_isuserdata(L, i) then
+    begin
+      o:=lua_ToCEUserData(L, i);
+      try
+        if o is TObject then
+        begin
+          result:='Object of type '+o.ClassName;
+          if o is TControl then
+            result:=result+#13#10+tcontrol(o).Name;
+        end;
+      except
+      end;
+    end
+    else
+    if lua_iscfunction(L, i) then
+      result:='native function'
+    else
+    if lua_isfunction(L, i) then
+      result:='function'
+    else
+    if lua_istable(L, i) then
+    begin
+      result:='table';
+
+      if evaltables then
+      begin
+        result:=result+#13#10+'['+#13#10;;
+        count:=10;
+        lua_pushvalue(L, i);
+        index:=lua_gettop(L);
+        lua_pushnil(L);  //first key (nil)
+        while lua_next(L, index)<>0 do
+        begin
+          count:=count-1;
+          if count<0 then
+          begin
+            result:=result+'  ...'+#13#10;;
+            break;
+          end;
+
+          if lua_type(L,-2)=LUA_TSTRING then
+            fieldname:=Lua_ToString(L, -2)
+          else
+            fieldname:=inttostr(lua_tointeger(L, -2));
+
+
+          valuedesc:=LuaValueToDescription(L, -1);
+
+          result:=result+'  '+fieldname+' = '+valuedesc+#13#10;
+
+
+          lua_pop(L, 1); //pop the value, keep the key
+        end;
+
+        result:=result+']';
+      end;
+    end
+    else
+      result:=Lua_ToString(L, i);
+  end
+  else
+    result:='nil';
 end;
 
 procedure InitializeLuaScripts;

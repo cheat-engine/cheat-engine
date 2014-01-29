@@ -117,9 +117,13 @@ object frmLuaEngine: TfrmLuaEngine
         Font.Quality = fqNonAntialiased
         ParentColor = False
         ParentFont = False
+        ParentShowHint = False
         PopupMenu = pmEditor
+        ShowHint = True
         TabOrder = 0
         OnKeyDown = mScriptKeyDown
+        OnMouseMove = mScriptMouseMove
+        OnMouseLink = mScriptMouseLink
         BookMarkOptions.BookmarkImages = ilSyneditDebug
         Gutter.Width = 43
         Gutter.MouseActions = <        
@@ -652,6 +656,7 @@ object frmLuaEngine: TfrmLuaEngine
         LineHighlightColor.Background = clNone
         LineHighlightColor.Foreground = clNone
         OnGutterClick = mScriptGutterClick
+        OnShowHint = mScriptShowHint
         inline SynLeftGutterPartList1: TSynGutterPartList
           object SynGutterMarks1: TSynGutterMarks
             Width = 24
@@ -1070,5 +1075,11 @@ object frmLuaEngine: TfrmLuaEngine
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000
     }
+  end
+  object tShowHint: TIdleTimer
+    Enabled = False
+    OnTimer = tShowHintTimer
+    left = 128
+    top = 184
   end
 end

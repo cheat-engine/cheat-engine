@@ -8,7 +8,8 @@ uses
   windows, Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics,
   Dialogs, StdCtrls, Menus, ExtCtrls, SynMemo, SynCompletion, SynEdit, lua,
   lauxlib, lualib, LuaSyntax, luahandler, cefuncproc, strutils, InterfaceBase,
-  ComCtrls, SynGutterBase, SynEditMarks;
+  ComCtrls, SynGutterBase, SynEditMarks, PopupNotifier, SynEditHighlighter,
+  AvgLvlTree;
 
 type
 
@@ -17,6 +18,7 @@ type
   TfrmLuaEngine = class(TForm)
     btnExecute: TButton;
     GroupBox1: TGroupBox;
+    tShowHint: TIdleTimer;
     ilLuaDebug: TImageList;
     ilSyneditDebug: TImageList;
     MainMenu1: TMainMenu;
@@ -60,15 +62,25 @@ type
     procedure MenuItem7Click(Sender: TObject);
     procedure MenuItem8Click(Sender: TObject);
     procedure MenuItem9Click(Sender: TObject);
+    procedure mScriptChange(Sender: TObject);
     procedure mScriptGutterClick(Sender: TObject; X, Y, Line: integer;
       mark: TSynEditMark);
     procedure mScriptKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState
       );
+    procedure mScriptMouseEnter(Sender: TObject);
+    procedure mScriptMouseLeave(Sender: TObject);
+    procedure mScriptMouseLink(Sender: TObject; X, Y: Integer;
+      var AllowMouseLink: Boolean);
+    procedure mScriptMouseMove(Sender: TObject; Shift: TShiftState; X,
+      Y: Integer);
+    procedure mScriptShowHint(Sender: TObject; HintInfo: PHintInfo);
     procedure Panel2Resize(Sender: TObject);
     procedure tbRunClick(Sender: TObject);
     procedure tbSingleStepClick(Sender: TObject);
+    procedure tShowHintTimer(Sender: TObject);
   private
     { private declarations }
+    hintwindow:THintWindow;
     continue: integer;
   public
     { public declarations }
@@ -90,6 +102,8 @@ resourcestring
 var
   LuaDebugForm: TfrmLuaEngine;
   LuaDebugSingleStepping: boolean;
+  LuaDebugInfo: Plua_Debug;
+  LuaDebugVariables: TStringToStringTree;
 
 
 procedure TfrmLuaEngine.Panel2Resize(Sender: TObject);
@@ -111,6 +125,81 @@ begin
   tbDebug.enabled:=false;
   tbRun.enabled:=false;
   tbSingleStep.enabled:=false;
+end;
+
+procedure TfrmLuaEngine.tShowHintTimer(Sender: TObject);
+var r: trect;
+  description: string;
+  p,p2,p3: tpoint;
+  token: string;
+  attr: TSynHighlighterAttributes;
+  o: TObject;
+begin
+  if LuaDebugForm=self then
+  begin
+    //figure out what is currently focused by the mouse
+    p:=mouse.cursorpos;
+
+    p2:=mScript.ScreenToClient(p);
+    if p2.x<mscript.Gutter.Width then exit; //gutter stuff
+
+    p3:=mscript.PixelsToLogicalPos(p2);
+
+    mscript.GetHighlighterAttriAtRowCol(p3, token, attr);
+
+    if (attr=synhighlighter.IdentifierAttri) or (attr=synhighlighter.KeyAttri) then
+    begin
+
+      token:=mscript.GetWordAtRowCol(p3);
+      description:=LuaDebugVariables[token];
+
+
+      if description='' then //check if it's a global
+      begin
+        //look up
+        LuaCS.Enter;
+        try
+          lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(token));
+          description:=LuaValueToDescription(LuaVM, -1);
+
+          lua_pop(luavm, 1);
+        finally
+          luacs.Leave;
+        end;
+
+        if description='' then
+        begin
+          description:=' ';
+          LuaDebugVariables.Add(token, description); //could not be found
+        end;
+      end;
+
+
+
+      if description=' ' then
+      begin
+        //means nothing was found
+        exit;
+      end;
+
+
+
+      if hintwindow=nil then
+        hintwindow:=THintWindow.Create(self);
+
+      r:=hintwindow.CalcHintRect(mscript.width,description, nil);
+
+
+      r.Top:=r.top+p.y;
+      r.Left:=r.left+p.x;
+      r.Right:=r.right+p.x;
+      r.Bottom:=r.Bottom+p.y;
+
+      hintwindow.ActivateHint(r, description);
+    end;
+  end;
+
+//  mScript.ShowHint:=;
 end;
 
 function onerror(L: PLua_State): integer; cdecl;
@@ -152,12 +241,14 @@ begin
 end;
 
 procedure LineHook(L: Plua_State; ar: Plua_Debug); cdecl;
-var i: integer;
+var i,j: integer;
   s,s2: integer;
   disabled: tlist;
   mark: TSynEditMark;
-begin
 
+  name: pchar;
+  value: string;
+begin
 
   if lua_getinfo(L,'nSl', ar)<>0 then
   begin
@@ -170,6 +261,7 @@ begin
 
       LuaDebugForm.show;
       LuaDebugForm.SetFocus;
+
 
       if LuaDebugForm.mScript.Marks.Line[ar.currentline]<>nil then
       begin
@@ -214,6 +306,27 @@ begin
 
       LuaDebugForm.continue:=0;
 
+      LuaDebugInfo:=ar;
+      LuaDebugVariables:=TStringToStringTree.Create(true);
+
+      i:=1;
+
+      repeat
+        name:=lua_getlocal(L, ar, i);
+        if name<>nil then
+        begin
+          value:=Lua_ToString(L, -1);
+          lua_pop(L, 1);
+          LuaDebugVariables.Add(name, value);
+
+          inc(i);
+        end;
+
+      until name=nil;
+
+
+
+
       while LuaDebugForm.continue=0 do
       begin
         application.ProcessMessages;
@@ -223,6 +336,7 @@ begin
       end;
 
       LuaDebugForm.mScript.ReadOnly:=false;
+
 
     {  for i:=0 to disabled.Count-1 do
       begin
@@ -287,12 +401,23 @@ begin
 
     if LuaDebugForm=nil then
     begin
-      LuaDebugForm:=self;
-      LuaDebugSingleStepping:=false;
       for i:=0 to mScript.Marks.Count-1 do
         if mscript.Marks[i].ImageIndex=0 then
         begin
+          //this script wishes to get debugged
           dodebug:=true;
+
+          LuaDebugForm:=self;
+          LuaDebugSingleStepping:=false;
+
+          LuaDebugForm.btnExecute.enabled:=false;
+
+          mscript.OnMouseEnter:=mScriptMouseEnter;
+          mscript.OnMouseLeave:=mScriptMouseLeave;
+
+          if LuaDebugVariables<>nil then
+            LuaDebugVariables.Clear;
+
           break;
         end;
 
@@ -337,13 +462,16 @@ begin
       begin
         for i:=oldstack+1 to j do
         begin
+
+          mOutput.lines.add(':'+LuaValueToDescription(luavm, i));
+                           {
           pc:=lua_tolstring(luavm, i,nil);
           if pc<>nil then
             mOutput.lines.add(':'+pc)
           else
           begin
             if lua_islightuserdata(luavm,i) then //shouldn't occur anymore
-              moutput.lines.add(':p->'+inttohex(ptruint(lua_touserdata(luavm,i)),1))
+              moutput.lines.add(':'+p->'+inttohex(ptruint(lua_touserdata(luavm,i)),1))
             else
             if lua_isboolean(luavm,i) then
               moutput.lines.add(':(boolean)'+BoolToStr(lua_toboolean(Luavm, i),'true','false'))
@@ -369,7 +497,7 @@ begin
             else
               moutput.lines.add(':'+'unknown')
 
-          end;
+          end;}
         end;
 
 
@@ -394,8 +522,17 @@ begin
 
     if dodebug then
     begin
+      LuaDebugForm.btnExecute.enabled:=true;
       lua_sethook(luavm, linehook, 0, 0);
       LuaDebugForm:=nil;
+
+      mscript.OnMouseEnter:=nil;
+      mscript.OnMouseLeave:=nil;
+
+      if hintwindow<>nil then
+        hintwindow.hide;
+
+
     end;
 
     lua_settop(luavm, oldstack);
@@ -466,6 +603,7 @@ begin
   SaveFormPosition(self, [panel1.height]);
 end;
 
+
 procedure TfrmLuaEngine.MenuItem10Click(Sender: TObject);
 begin
   mscript.Undo;
@@ -516,6 +654,11 @@ end;
 procedure TfrmLuaEngine.MenuItem9Click(Sender: TObject);
 begin
   mscript.PasteFromClipboard;
+end;
+
+procedure TfrmLuaEngine.mScriptChange(Sender: TObject);
+begin
+
 end;
 
 procedure TfrmLuaEngine.mScriptGutterClick(Sender: TObject; X, Y,
@@ -575,6 +718,36 @@ begin
     btnExecute.click;
     mScript.ClearAll;
   end;
+end;
+
+procedure TfrmLuaEngine.mScriptMouseEnter(Sender: TObject);
+begin
+  tShowHint.enabled:=false;
+  tShowHint.AutoEnabled:=true;
+end;
+
+procedure TfrmLuaEngine.mScriptMouseLeave(Sender: TObject);
+begin
+  tShowHint.AutoEnabled:=false;
+  tShowHint.enabled:=false;
+end;
+
+procedure TfrmLuaEngine.mScriptMouseLink(Sender: TObject; X, Y: Integer;
+  var AllowMouseLink: Boolean);
+begin
+  AllowMouseLink:=false;
+end;
+
+procedure TfrmLuaEngine.mScriptMouseMove(Sender: TObject; Shift: TShiftState;
+  X, Y: Integer);
+begin
+  if hintwindow<>nil then
+    hintwindow.hide;
+end;
+
+procedure TfrmLuaEngine.mScriptShowHint(Sender: TObject; HintInfo: PHintInfo);
+begin
+
 end;
 
 
