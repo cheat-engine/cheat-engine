@@ -193,7 +193,7 @@ begin
 
 
 
-      disabled:=tlist.create;
+      {disabled:=tlist.create;
       for i:=0 to screen.CustomFormCount-1 do
       begin
         if (screen.CustomForms[i]<>LuaDebugForm) and screen.CustomForms[i].visible and screen.CustomForms[i].enabled then
@@ -202,7 +202,7 @@ begin
           EnableWindow(screen.CustomForms[i].handle,false);
         end;
 
-      end;
+      end;  }
 
       LuaDebugForm.show;
       //activate the debug gui
@@ -224,11 +224,11 @@ begin
 
       LuaDebugForm.mScript.ReadOnly:=false;
 
-      for i:=0 to disabled.Count-1 do
+    {  for i:=0 to disabled.Count-1 do
       begin
         EnableWindow(tcustomform(disabled[i]).handle,true);
         //tcustomform(disabled[i]).Enabled:=true;
-      end;
+      end;}
 
 
       //clear the current instruction pointer
@@ -242,7 +242,7 @@ begin
 
       end;
 
-      disabled.free;
+     { disabled.free;   }
 
       LuaDebugSingleStepping:=false;
 
@@ -253,7 +253,7 @@ begin
 
 
     end;
-    frmLuaEngine.moutput.lines.add('called:'+ar.what+' ('+inttostr(ar.currentline)+')');
+//    frmLuaEngine.moutput.lines.add('called:'+ar.what+' ('+inttostr(ar.currentline)+')');
 
   end;
 
@@ -268,10 +268,46 @@ var pc: pchar;
   c: tobject;
 
   err: integer;
+
+  oldstack: integer;
+  dodebug: boolean;
 begin
-  LuaDebugForm:=self;
+  dodebug:=false;
+
+  for i:=0 to mScript.Marks.Count-1 do
+    if mscript.Marks[i].ImageIndex=0 then
+    begin
+      dodebug:=true;
+      break;
+    end;
+
+
+  if dodebug then
+  begin
+
+    if LuaDebugForm=nil then
+    begin
+      LuaDebugForm:=self;
+      LuaDebugSingleStepping:=false;
+      for i:=0 to mScript.Marks.Count-1 do
+        if mscript.Marks[i].ImageIndex=0 then
+        begin
+          dodebug:=true;
+          break;
+        end;
+
+    end
+    else
+    begin
+      dodebug:=false;
+      if MessageDlg('Only one script can be debugged at a time. Continue executing this script without the debugger?', mtConfirmation, [mbyes, mbno], 0)<>mryes then exit;
+    end;
+  end;
 
   luacs.Enter;
+
+  oldstack:=lua_gettop(luavm);
+
   oldprintoutput:=lua_oldprintoutput;
   try
     mOutput.lines.add(mscript.text);
@@ -289,16 +325,17 @@ begin
 
      lua_remove(luavm, err); }
 
-    lua_sethook(luavm, linehook, LUA_MASKLINE, 0);
+    if dodebug then
+      lua_sethook(luavm, linehook, LUA_MASKLINE, 0);
 
     if lua_dostring(Luavm, pchar(mScript.text))=0 then
     begin
 
 
       j:=lua_gettop(luavm);
-      if j>0 then
+      if j>oldstack then
       begin
-        for i:=-j to -1 do
+        for i:=oldstack+1 to j do
         begin
           pc:=lua_tolstring(luavm, i,nil);
           if pc<>nil then
@@ -335,13 +372,13 @@ begin
           end;
         end;
 
-        lua_pop(luavm, lua_gettop(luavm)); //balance the stack
+
       end;
     end
     else
     begin
       i:=lua_gettop(luavm);
-      if i>0 then
+      if i>oldstack then
       begin
 
         //is currently shown inside the pcall function
@@ -350,17 +387,24 @@ begin
           mOutput.lines.add(rsError+':'+pc)
         else
           moutput.lines.add(rsError+':'+'nil');
-
-        lua_pop(luavm, i);
       end else moutput.lines.add(rsError);
 
     end;
   finally
 
-    lua_sethook(luavm, linehook, 0, 0);
+    if dodebug then
+    begin
+      lua_sethook(luavm, linehook, 0, 0);
+      LuaDebugForm:=nil;
+    end;
+
+    lua_settop(luavm, oldstack);
 
     lua_setPrintOutput(oldprintoutput);
     luacs.Leave;
+
+
+
   end;
 end;
 
