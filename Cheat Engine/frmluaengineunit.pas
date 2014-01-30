@@ -104,6 +104,7 @@ var
   LuaDebugSingleStepping: boolean;
   LuaDebugInfo: Plua_Debug;
   LuaDebugVariables: TStringToStringTree;
+  LuaDebugSource: pointer;
 
 
 procedure TfrmLuaEngine.Panel2Resize(Sender: TObject);
@@ -252,7 +253,10 @@ begin
 
   if lua_getinfo(L,'nSl', ar)<>0 then
   begin
-    if (ar.what='main') and (hasLuaBreakpoint(ar.currentline)) then
+    if LuaDebugSource=nil then
+      LuaDebugSource:=ar.source;
+
+    if (ar.source=LuaDebugSource) and (hasLuaBreakpoint(ar.currentline)) then
     begin
       //break
      // frmLuaEngine.visible:=false;
@@ -409,6 +413,8 @@ begin
 
           LuaDebugForm:=self;
           LuaDebugSingleStepping:=false;
+
+          LuaDebugSource:=nil;
 
           LuaDebugForm.btnExecute.enabled:=false;
 
