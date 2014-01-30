@@ -685,7 +685,7 @@ begin
       i:=0;
       while i<ml.count do
       begin
-        if ml[i].imageindex=0 then
+        if ml[i].imageindex in [0,2] then //bp set or bp set and current line
         begin
           ml[i].Free;
           ml:=mscript.Marks.Line[line];
