@@ -1488,6 +1488,7 @@ getCurrentMemscan() : Returns the current memory scan object. If tabs are used t
 createMemScan(progressbar OPTIONAL) : Returns a new MemScan class object
 
 properties
+  OnScanDone: function(memscan) - Set a function to be called when the scan has finished
   FoundList: FoundList - The foundlist currently attached to this memscan object
   OnlyOneResult: boolean - If this is set to true memscan will stop scanning after having found the first result, and written the address to "Result"
   Result: Integer - If OnlyOneResult is used this will contain the address after a scan has finished

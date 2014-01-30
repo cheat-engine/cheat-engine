@@ -5,7 +5,8 @@ unit LuaMemscan;
 interface
 
 uses
-  Classes, SysUtils, lua, lualib, lauxlib, symbolhandler, LuaHandler, cefuncproc, memscan, foundlisthelper;
+  Classes, SysUtils, lua, lualib, lauxlib, symbolhandler, LuaHandler, cefuncproc,
+  memscan, foundlisthelper, forms;
 
 procedure initializeMemscan;
 
@@ -119,7 +120,9 @@ var
 begin
   result:=0;
   memscan:=luaclass_getClassObject(L);
-  memscan.waittillreallydone;
+  while memscan.waittillreallydone(100)=false do
+    CheckSynchronize();
+
 end;
 
 function memscan_getAttachedFoundlist(L: Plua_State): integer; cdecl;
