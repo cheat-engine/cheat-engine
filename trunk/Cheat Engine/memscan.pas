@@ -553,6 +553,9 @@ type
     savedresults: tstringlist;
     fonlyOne: boolean;
 
+    fOnScanDone: TNotifyEvent;
+
+    procedure ScanDone; //called by the scancontroller
     procedure DeleteScanfolder;
     procedure createScanfolder;
     function DeleteFolder(dir: string) : boolean;
@@ -600,6 +603,7 @@ type
     property LastScanValue: string read fLastScanValue;
     property LastScanType: TScanType read FLastScanType;
     property ScanresultFolder: string read fScanResultFolder; //read only, it's configured during creation
+    property OnScanDone: TNotifyEvent read fOnScanDone write fOnScanDone;
   end;
 
 
@@ -5787,6 +5791,8 @@ begin
 
   outputdebugstring('end of scancontroller reached');
   isreallydoneevent.setEvent;   //just set it again if it wasn't set
+
+  Synchronize(OwningMemScan.ScanDone);
 end;
 
 constructor TScanController.create(suspended: boolean);
@@ -5974,6 +5980,13 @@ begin
   result:=true;
   if scancontroller<>nil then
     result:=scancontroller.isreallydoneEvent.WaitFor(timeout)<>wrTimeout;
+end;
+
+procedure TMemscan.ScanDone;
+//called by the scancontroller when the scan has finished
+begin
+  if assigned(fOnScanDone) then
+    fOnScanDone(self);
 end;
 
 function TMemscan.GetOnlyOneResults(var addresses: Taddresses):boolean;
