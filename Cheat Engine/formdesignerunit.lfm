@@ -301,6 +301,7 @@ object FormDesigner: TFormDesigner
       ImageIndex = 25
       OnClick = TBClick
       Style = tbsCheck
+      Visible = False
     end
   end
   object ImageList1: TImageList
