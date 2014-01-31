@@ -195,6 +195,17 @@ begin
           tkset: SetSetProp(c, pinfo, v);
           tkMethod: luacaller_setMethodProperty(L, c, p, pinfo.PropType.Name, 3);
 
+          tkEnumeration:
+          begin
+            if lua_isnumber(L,3) then
+            begin
+              v:=GetEnumName(pinfo.PropType, lua_tointeger(L, 3));
+              SetEnumProp(c,p, v);
+            end
+            else
+              SetPropValue(c, p, v)
+          end
+
           else SetPropValue(c, p, v)
         end;
       end
