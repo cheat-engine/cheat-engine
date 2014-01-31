@@ -27,6 +27,7 @@ var
 function lua_strtofloat(s: string): double;
 function lua_strtoint(s: string): integer;
 
+procedure lua_register(L: Plua_State; const n: PChar; f: lua_CFunction);
 function lua_pcall(L: Plua_State; nargs, nresults, errf: Integer): Integer; cdecl;
 function lua_dostring(L: Plua_State; const str: PChar): Integer;
 
@@ -106,6 +107,17 @@ end;
 function GetLuaState: PLUA_State; stdcall;
 begin
   result:=LuaVM;
+end;
+
+procedure lua_register(L: Plua_State; const n: PChar; f: lua_CFunction);
+//overriding the original lua_register to add both a lower and uppercase start
+var s: string;
+begin
+  lua.lua_register(L, n, f);
+  s:=n;
+  s[1]:=chr(ord(s[1]) xor $20); //switch from uppercase to lowercase and lowercase to uppercase
+
+  lua.lua_register(L, pchar(s), f);
 end;
 
 //todo: let the user define a default error function
