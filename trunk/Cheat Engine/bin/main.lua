@@ -219,6 +219,7 @@ integerToUserData(int):  Converts a given integer to a userdata variable
 userDataToInteger(UserDataVar):  Converts a given userdata variable to an integer
 
 synchronize(function): Calls the given function from the main thread
+checkSynchronize(): Calls this from an infinite loop in the main thread when using threading and synchronize calls. This will execute any queued synchronize calls
 
 writeToClipboard(text):  Writes the given text to the clipboard
 readFromClipboard():  Reads the text from the clipboard
@@ -2111,7 +2112,7 @@ Methods
 
 --[[
 todo:
-createTreeview
+
 createPageControl
 
 createRegistryObject
