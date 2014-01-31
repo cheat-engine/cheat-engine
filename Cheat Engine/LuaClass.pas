@@ -322,6 +322,13 @@ begin
   end;
 
   lua_settable(L, metatable);
+
+  //add a lowercase variant if needed
+  if propertyname[1] in ['A'..'Z'] then
+  begin
+    propertyname[1]:=lowercase(propertyname[1]);
+    luaclass_addPropertyToTable(L, metatable, userdata, propertyname, getfunction, setfunction);
+  end;
 end;
 
 procedure luaclass_addClassFunctionToTable(L: PLua_State; metatable: integer; userdata: integer; functionname: string; f: lua_CFunction);
