@@ -305,7 +305,7 @@ begin
             fieldname:=inttostr(lua_tointeger(L, -2));
 
 
-          valuedesc:=LuaValueToDescription(L, -1);
+          valuedesc:=LuaValueToDescription(L, -1, false);
 
           result:=result+'  '+fieldname+' = '+valuedesc+#13#10;
 
@@ -316,6 +316,9 @@ begin
         result:=result+']';
       end;
     end
+    else
+    if lua_isboolean(L, i) then
+      result:=BoolToStr(lua_toboolean(L,i),'true','false')
     else
       result:=Lua_ToString(L, i);
   end
@@ -3262,6 +3265,9 @@ begin
     progressbar:=nil;
 
   lua_pop(L, lua_gettop(L));
+
+  if progressbar is TCustomProgressBar=false then
+    raise exception.create('createMemScan needs a progressbar or nil. '+progressbar.ClassName+' is not a progressbar');
 
   memscan:=TMemscan.create(progressbar);
 
