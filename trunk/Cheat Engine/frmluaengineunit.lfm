@@ -1078,6 +1078,7 @@ object frmLuaEngine: TfrmLuaEngine
   end
   object tShowHint: TIdleTimer
     Enabled = False
+    Interval = 500
     OnTimer = tShowHintTimer
     left = 128
     top = 184

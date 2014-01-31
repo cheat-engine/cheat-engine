@@ -161,7 +161,10 @@ begin
         LuaCS.Enter;
         try
           lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(token));
-          description:=LuaValueToDescription(LuaVM, -1);
+          if lua_isnil(LuaVM,-1) then
+            description:='nil'
+          else
+            description:=LuaValueToDescription(LuaVM, -1)+' (global)';
 
           lua_pop(luavm, 1);
         finally
@@ -185,10 +188,14 @@ begin
 
 
 
+
+
       if hintwindow=nil then
         hintwindow:=THintWindow.Create(self);
 
-      r:=hintwindow.CalcHintRect(mscript.width,description, nil);
+      description:=token+' = '+description;
+
+      r:=hintwindow.CalcHintRect(mscript.width, description, nil);
 
 
       r.Top:=r.top+p.y;
@@ -319,7 +326,7 @@ begin
         name:=lua_getlocal(L, ar, i);
         if name<>nil then
         begin
-          value:=LuaValueToDescription(L, -1);
+          value:=LuaValueToDescription(L, -1)+' (local)';
           lua_pop(L, 1);
           LuaDebugVariables.Add(name, value);
 
@@ -681,7 +688,7 @@ begin
   begin
     for i:=0 to ml.Count-1 do
     begin
-      if ml[i].ImageIndex=0 then
+      if ml[i].ImageIndex in [0,2] then
         hasbp:=true;
     end;
 
