@@ -110,7 +110,7 @@ type
 
     ComponentTreeWindowProc: TWndMethod;
 
-    anchorEditor: TAnchorDesigner;
+    //anchorEditor: TAnchorDesigner;
 
     procedure UpdateMethodListIfNeeded;
 
@@ -155,6 +155,7 @@ type
     procedure occ(Reader: TReader; ComponentClass: TComponentClass; var Component: TComponent);
 
 
+    procedure SAD(sender: tobject);
     procedure designForm(f: tceform);
     property OnClose2: TCloseEvent read fOnClose2 write fOnClose2;
   end; 
@@ -237,13 +238,13 @@ end;
 
 procedure TFormDesigner.miAnchorEditorClick(Sender: TObject);
 begin
-  if anchorEditor=nil then
+  if AnchorDesigner=nil then
   begin
-    anchorEditor:=TAnchorDesigner.Create(self);
-    anchorEditor.show;
+    AnchorDesigner:=TAnchorDesigner.Create(self);
+    AnchorDesigner.show;
   end
   else
-    anchorEditor.Show;
+    AnchorDesigner.Show;
 end;
 
 procedure TFormDesigner.miDeleteClick(Sender: TObject);
@@ -634,7 +635,7 @@ begin
   oid.RefreshComponentTreeSelection;
   oid.RefreshPropertyValues;
 
-  if anchorEditor<>nil then
+  if AnchorDesigner<>nil then
     GlobalDesignHook.SetSelection(oid.Selection);
 
   surface.OnSelectionChange:=DesignerSelectionChange;
@@ -829,8 +830,8 @@ begin
   if oid<>nil then
     FreeAndNil(oid);
 
-  if anchorEditor<>nil then
-    FreeAndNil(anchorEditor);
+  if AnchorDesigner<>nil then
+    FreeAndNil(AnchorDesigner);
 
   if GlobalDesignHook<>nil then
     FreeAndNil(GlobalDesignHook);
@@ -905,6 +906,13 @@ begin
 end;
 
 
+procedure TFormDesigner.SAD(sender: tobject);
+begin
+  if AnchorDesigner=nil then
+    AnchorDesigner:=TAnchorDesigner.create(self);
+
+  AnchorDesigner.show;
+end;
 
 procedure TFormDesigner.designForm(f: tceform);
 var x: array of integer;
@@ -923,6 +931,12 @@ begin
     oid.PropertyEditorHook:=GlobalDesignHook; //needs to be created
     oid.ShowFavorites:=false;
     oid.ComponentTree.PopupMenu:=popupmenu1; //nil;
+
+
+//    AnchorDesigner:=TAnchorDesigner.Create(oid);
+
+    anchorEditor.ShowAnchorDesigner:=nil;
+    ShowAnchorDesigner:=SAD; //panda       (I wanted to call it ShowAnchorDesigner but that was causing 'issues')
 
 
     ComponentTreeWindowProc:=oid.ComponentTree.WindowProc;
