@@ -3284,7 +3284,7 @@ begin
 
   lua_pop(L, lua_gettop(L));
 
-  if progressbar is TCustomProgressBar=false then
+  if (progressbar<>nil) and (progressbar is TCustomProgressBar=false) then
     raise exception.create('createMemScan needs a progressbar or nil. '+progressbar.ClassName+' is not a progressbar');
 
   memscan:=TMemscan.create(progressbar);
