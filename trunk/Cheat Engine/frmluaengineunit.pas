@@ -136,7 +136,7 @@ var r: trect;
   attr: TSynHighlighterAttributes;
   o: TObject;
 begin
-  if LuaDebugForm=self then
+  if (LuaDebugForm=self) and (GetForegroundWindow=handle) then
   begin
     //figure out what is currently focused by the mouse
     p:=mouse.cursorpos;
@@ -319,7 +319,7 @@ begin
         name:=lua_getlocal(L, ar, i);
         if name<>nil then
         begin
-          value:=Lua_ToString(L, -1);
+          value:=LuaValueToDescription(L, -1);
           lua_pop(L, 1);
           LuaDebugVariables.Add(name, value);
 
