@@ -2185,7 +2185,13 @@ begin
 
 end;
 
-function synchronize(L: Plua_State): integer; cdecl;
+function lua_checkSynchronize(L: Plua_State): integer; cdecl;
+begin
+  result:=0;
+  CheckSynchronize;
+end;
+
+function lua_synchronize(L: Plua_State): integer; cdecl;
 var lc: TLuaCaller;
   f: integer;
   routine: string;
@@ -5384,7 +5390,9 @@ begin
     lua_register(LuaVM, 'textToShortCut', lua_textToShortCut);
 
     lua_register(LuaVM, 'inMainThread', inMainThread);
-    lua_register(LuaVM, 'synchronize', synchronize);
+    lua_register(LuaVM, 'synchronize', lua_synchronize);
+    lua_register(LuaVM, 'checkSynchronize', lua_checkSynchronize);
+
 
     initializeLuaCustomControl;
 

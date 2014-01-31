@@ -120,8 +120,13 @@ var
 begin
   result:=0;
   memscan:=luaclass_getClassObject(L);
-  while memscan.waittillreallydone(100)=false do
-    CheckSynchronize();
+  if GetCurrentThreadId=MainThreadID then
+  begin
+    while memscan.waittillreallydone(100)=false do
+      CheckSynchronize();
+  end
+  else
+    memscan.waittillreallydone();
 
 end;
 
