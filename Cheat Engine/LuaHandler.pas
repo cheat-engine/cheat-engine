@@ -18,7 +18,10 @@ uses
   controls, LuaCaller, forms, ExtCtrls, StdCtrls, comctrls, ceguicomponents,
   generichotkey, luafile, xmplayer_server, ExtraTrainerComponents, customtimer,
   menus, XMLRead, XMLWrite, DOM,ShellApi, Clipbrd, typinfo, PEInfoFunctions,
-  LCLProc;
+  LCLProc, strutils;
+
+
+const MAXTABLERECURSIONLOOKUP=2;
 
 var
   LuaVM: Plua_State;
@@ -48,7 +51,7 @@ procedure InitializeLuaScripts;
 procedure InitializeLua;
 
 
-function LuaValueToDescription(L: PLua_state; i: integer; evaltables: boolean=true): string;
+function LuaValueToDescription(L: PLua_state; i: integer; recursivetablecount: integer=0): string;
 
 function GetLuaState: PLUA_State; stdcall;
 
@@ -262,17 +265,21 @@ begin
     result:=ppointer(result)^;
 end;
 
-function LuaValueToDescription(L: PLua_state; i: integer; evaltables: boolean=true): string;
+function LuaValueToDescription(L: PLua_state; i: integer; recursivetablecount: integer=0): string;
 var index, count: integer;
   fieldname: string;
   valuedesc: string;
   o: tobject;
+
+  tablepad: string;
 begin
   result:='';
+
   if not lua_isnil(L, i) then
   begin
     if lua_isuserdata(L, i) then
     begin
+
       o:=lua_ToCEUserData(L, i);
       try
         if o is TObject then
@@ -295,9 +302,13 @@ begin
     begin
       result:='table';
 
-      if evaltables then
+      if recursivetablecount<MAXTABLERECURSIONLOOKUP then
       begin
-        result:=result+#13#10+'['+#13#10;;
+        tablepad:=DupeString('   ',recursivetablecount);
+
+
+
+        result:=result+#13#10+tablepad+'['+#13#10;;
         count:=10;
         lua_pushvalue(L, i);
         index:=lua_gettop(L);
@@ -307,7 +318,8 @@ begin
           count:=count-1;
           if count<0 then
           begin
-            result:=result+'  ...'+#13#10;;
+
+            result:=result+tablepad+'...'+#13#10;;
             break;
           end;
 
@@ -317,15 +329,17 @@ begin
             fieldname:=inttostr(lua_tointeger(L, -2));
 
 
-          valuedesc:=LuaValueToDescription(L, -1, false);
+          valuedesc:=LuaValueToDescription(L, -1, recursivetablecount+1);
 
-          result:=result+'  '+fieldname+' = '+valuedesc+#13#10;
+          result:=result+tablepad+'   '+fieldname+' = '+valuedesc+#13#10;
 
 
           lua_pop(L, 1); //pop the value, keep the key
         end;
 
-        result:=result+']';
+        lua_pop(L,1); //pop the pushvalue from before
+
+        result:=result+tablepad+']';
       end;
     end
     else
