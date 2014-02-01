@@ -275,7 +275,7 @@ begin
     begin
       o:=lua_ToCEUserData(L, i);
       try
-        if o is TControl then
+        if o is TObject then
         begin
           result:='Object of type '+o.ClassName;
           if o is TControl then
