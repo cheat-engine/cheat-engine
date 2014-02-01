@@ -251,12 +251,16 @@ end;
 procedure LineHook(L: Plua_State; ar: Plua_Debug); cdecl;
 var i,j: integer;
   s,s2: integer;
-  disabled: tlist;
   mark: TSynEditMark;
 
   name: pchar;
   value: string;
 begin
+  if MainThreadID<>GetCurrentThreadId then
+  begin
+    //Only the main thread can be debugged for now
+    exit;
+  end;
 
   if lua_getinfo(L,'nSl', ar)<>0 then
   begin
@@ -290,22 +294,7 @@ begin
         LuaDebugForm.mscript.Marks.Add(mark);
       end;
 
-      //This somehow doesn't work:
-      //disabled:=screen.DisableForms(LuaDebugForm);
-      //so do it manually:
 
-
-
-      {disabled:=tlist.create;
-      for i:=0 to screen.CustomFormCount-1 do
-      begin
-        if (screen.CustomForms[i]<>LuaDebugForm) and screen.CustomForms[i].visible and screen.CustomForms[i].enabled then
-        begin
-          disabled.add(screen.CustomForms[i]);
-          EnableWindow(screen.CustomForms[i].handle,false);
-        end;
-
-      end;  }
 
       LuaDebugForm.show;
       //activate the debug gui
@@ -314,6 +303,10 @@ begin
       LuaDebugForm.tbRun.enabled:=true;
       LuaDebugForm.tbSingleStep.enabled:=true;
       LuaDebugForm.mScript.ReadOnly:=true;
+
+
+      LuaDebugForm.mScript.CaretY:=ar.currentline;
+      LuaDebugForm.mScript.EnsureCursorPosVisible;
 
       LuaDebugForm.continue:=0;
 
@@ -349,13 +342,6 @@ begin
       LuaDebugForm.mScript.ReadOnly:=false;
 
 
-    {  for i:=0 to disabled.Count-1 do
-      begin
-        EnableWindow(tcustomform(disabled[i]).handle,true);
-        //tcustomform(disabled[i]).Enabled:=true;
-      end;}
-
-
       //clear the current instruction pointer
       if LuaDebugForm.mScript.Marks.Line[ar.currentline]<>nil then
       begin
@@ -366,8 +352,6 @@ begin
 
 
       end;
-
-     { disabled.free;   }
 
       LuaDebugSingleStepping:=false;
 
