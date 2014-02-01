@@ -255,12 +255,16 @@ var i,j: integer;
 
   name: pchar;
   value: string;
+
+  stack: integer;
 begin
   if MainThreadID<>GetCurrentThreadId then
   begin
     //Only the main thread can be debugged for now
     exit;
   end;
+
+
 
   if lua_getinfo(L,'nSl', ar)<>0 then
   begin
@@ -319,11 +323,15 @@ begin
         name:=lua_getlocal(L, ar, i);
         if name<>nil then
         begin
-          value:=LuaValueToDescription(L, -1)+' (local)';
-          lua_pop(L, 1);
-          LuaDebugVariables.Add(name, value);
+          if copy(name,1,1)<>'(' then
+          begin
+            value:=LuaValueToDescription(L, -1)+' (local)';
+            LuaDebugVariables.Add(name, value);
+          end;
 
+          lua_pop(L, 1);
           inc(i);
+
         end;
 
       until name=nil;
@@ -335,9 +343,13 @@ begin
       begin
         application.ProcessMessages;
 
+
         if application.Terminated or (LuaDebugForm.Visible=false) then break;
         application.Idle(true);
       end;
+
+      if application.Terminated then
+        ExitProcess(-1); //there's nothing to return to...
 
       LuaDebugForm.mScript.ReadOnly:=false;
 
