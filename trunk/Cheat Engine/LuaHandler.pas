@@ -5075,6 +5075,14 @@ begin
     result:=0;
 end;
 
+function lua_outputDebugString(L: PLua_State): integer; cdecl;
+begin
+  if lua_gettop(L)>0 then
+    OutputDebugString(pchar(Lua_ToString(L, 1)));
+
+  result:=0;
+end;
+
 procedure InitializeLua;
 var s: tstringlist;
   k32: THandle;
@@ -5432,6 +5440,8 @@ begin
     lua_register(LuaVM, 'inMainThread', inMainThread);
     lua_register(LuaVM, 'synchronize', lua_synchronize);
     lua_register(LuaVM, 'checkSynchronize', lua_checkSynchronize);
+
+    lua_register(LuaVM, 'outputDebugString', lua_outputDebugString);
 
 
     initializeLuaCustomControl;
