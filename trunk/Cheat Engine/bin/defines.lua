@@ -312,3 +312,12 @@ slNotModule = 2 --Called when it has been determined the current token is not a 
 slNotUserdefinedSymbol = 3 --Called when it has been determined it's not a userdefined symbol
 slNotSymbol = 4 --Called when it has been determined it's not a symbol in the symbollist
 slFailure = 5 --Called when it has no clue what the given string is  
+
+poDesigned = 0
+poDefault = 1
+poDefaultPosOnly = 2
+poDefaultSizeOnly = 3
+poScreenCenter = 4
+poDesktopCenter = 5
+poMainFormCenter = 6
+poOwnerFormCenter = 7
