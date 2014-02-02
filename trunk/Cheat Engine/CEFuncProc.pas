@@ -2505,12 +2505,13 @@ begin
           i:=getlasterror;
 
           //alternative method:
-          if processentry.th32ProcessID>0 then
+         { if processentry.th32ProcessID>0 then
           begin
             s:=GetFirstModuleName(processentry.th32ProcessID);
+            OutputDebugString(s);
             HI:=ExtractIcon(hinstance,pchar(s),0);
 
-          end;
+          end; }
         end;
 
       end;
@@ -2600,7 +2601,7 @@ begin
           getmem(ProcessListInfo,sizeof(TProcessListInfo));
           ProcessListInfo.processID:=winprocess;
           ProcessListInfo.processIcon:=0;
-  {$ifndef standalonetrainer}
+
           if formsettings.cbProcessIcons.checked then
           begin
             tempdword:=0;
@@ -2621,7 +2622,7 @@ begin
               inc(i,100); //at worst case scenario this causes the list to wait 10 seconds
             end;
           end;
-  {$endif}
+
 
           x.AddObject(IntTohex(winprocess,8)+'-'+AnsiToUtf8(wintitle),TObject(ProcessListInfo));
         end;

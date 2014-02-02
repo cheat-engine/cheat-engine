@@ -1028,6 +1028,7 @@ methods
 
 TreeNode clasS : (Inheritance: TObject)
 properties
+  Text: string - The text of the treenode
   Parent: Treenode - The treenode this object is a child of. (can be nil) (ReadOnly)
   Level: Integer - The level this node is at
   HasChildren: boolean - Set to true if it has children, or you wish it to have an expand sign
@@ -1044,7 +1045,9 @@ methods
   makeVisible()
   expand()
   collapse()
+  getNextSibling(): Returns the treenode object that's behind this treenode on the same level
   add(text:string): Returns a Treenode object that is a child of the treenode used to create it
+
 
 
 
