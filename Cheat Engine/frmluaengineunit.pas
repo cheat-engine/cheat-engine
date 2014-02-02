@@ -323,7 +323,7 @@ begin
         name:=lua_getlocal(L, ar, i);
         if name<>nil then
         begin
-          if copy(name,1,1)<>'(' then
+          if copy(name,1,1)<>'(' then  //(*temporary)
           begin
             value:=LuaValueToDescription(L, -1)+' (local)';
             LuaDebugVariables.Add(name, value);
@@ -341,7 +341,14 @@ begin
 
       while LuaDebugForm.continue=0 do
       begin
-        application.ProcessMessages;
+        try
+          application.ProcessMessages;
+        except
+          if Application.CaptureExceptions then
+            Application.HandleException(LuaDebugForm)
+          else
+            raise;
+        end;
 
 
         if application.Terminated or (LuaDebugForm.Visible=false) then break;
