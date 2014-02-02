@@ -231,7 +231,7 @@ loadPlugin(dllnameorpath): Loads the given plugin. Returns nil on failure. On su
 
 
 
-registerCustomTypeLua(typename, bytecount, bytestovaluefunction, valuetobytesfunction)
+registerCustomTypeLua(typename, bytecount, bytestovaluefunction, valuetobytesfunction, isFloat)
   Registers a Custom type based on lua functions
   The bytes to value function should be defined as "function bytestovalue (b1,b2,b3,b4)" and return an integer as result
   The value to bytes function should be defined as "function valuetobytes (integer)" and return the bytes it should write
