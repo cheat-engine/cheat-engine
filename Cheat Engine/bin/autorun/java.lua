@@ -600,10 +600,13 @@ function miJavaActivateClick(sender)
   javaInjectAgent()
 end
 
+
 function javaForm_treeviewExpanding(sender, node)
   local allow=true
 
-  print("javaForm_treeviewExpanding "..node.level)
+  outputDebugString("Expanding "..node.Text)
+
+  --print("javaForm_treeviewExpanding "..node.level)
   if node.Level==0 then
     if node.Count==0 then
 	  --expand the class this node describes
@@ -646,8 +649,51 @@ function javaForm_treeviewExpanding(sender, node)
   return allow
 end
 
+function javaForm_searchClass(sender)
+  javaForm.findAll=false --classes only
+  javaForm.findDialog.Title="Search for class..."
+  javaForm.findDialog.execute()
+end
+
+function javaForm_searchAll(sender)
+  javaForm.findAll=true --everything
+  javaForm.findDialog.Title="Search for..."
+  javaForm.findDialog.execute()
+end
+
+function javaForm_doSearch(sender)
+  --search for javaForm.findDialog.FindText
+  local currentindex=1
+  local findall=javaForm.findAll
+  local searchstring=javaForm.findDialog.FindText
+
+  if javaForm.treeview.Selected ~= nil then
+    currentindex=javaForm.treeview.Selected.AbsoluteIndex+1 --start at the next one
+  end
+
+  while currentindex<javaForm.treeview.Items.Count do
+    local node=javaForm.treeview.Items[currentindex]
+
+	if (node.level==0) or findall then
+	  --check if node.Text contains the searchstring
+	  if string.find(node.Text,searchstring) ~= nil then
+	    --found one
+		node.Selected=true
+		node.makeVisible()
+		return
+	  end
+	end
+
+	if findall and node.HasChildren then
+	  node.expand()
+	end
+	currentindex=currentindex+1
+  end
+
+end
+
 function miJavaDissectClick(sender)
-  --I coudl also implement the same method as mono, but as an example I'll be creating the form with code only
+  --I could also implement the same method as mono, but as an example I'll be creating the form with code only
   if (javaForm==nil) then
     javaForm={}
     javaForm.form=createForm()
@@ -655,6 +701,34 @@ function miJavaDissectClick(sender)
 	javaForm.treeview=createTreeview(javaForm.form)
 	javaForm.treeview.align=alClient
 	javaForm.treeview.OnExpanding=javaForm_treeviewExpanding
+
+	javaForm.menu=createMainMenu(javaForm.form)
+
+	local searchmenu=createMenuItem(javaForm.menu)
+	searchmenu.caption="Search"
+
+	javaForm.menu.items.add(searchmenu)
+
+
+	local searchClass=createMenuItem(javaForm.menu)
+	searchClass.caption="Find Class"
+	searchClass.Shortcut="Ctrl+F"
+	searchClass.OnClick=javaForm_searchClass
+	searchmenu.add(searchClass)
+
+
+    local searchAll=createMenuItem(javaForm.menu)
+	searchAll.caption="Find..."
+	searchAll.Shortcut="Ctrl+Alt+F"
+	searchAll.OnClick=javaForm_searchAll
+	searchmenu.add(searchAll)
+
+	javaForm.findDialog=createFindDialog(javaForm.form)
+	javaForm.findDialog.Options="[frHideEntireScope, frHideWholeWord, frDown, frDisableUpDown, frMatchCase, frDisableMatchCase]"
+	javaForm.findDialog.OnFind=javaForm_doSearch
+	javaForm.form.position=poScreenCenter
+
+
   end
 
   if (java_classlist~=nil) then

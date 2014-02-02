@@ -287,6 +287,15 @@ begin
   result:=1;
 end;
 
+function treenode_getNextSibling(L: PLua_State): integer; cdecl;
+var
+  treenode: Ttreenode;
+begin
+  treenode:=luaclass_getClassObject(L);
+  luaclass_newClass(L, treenode.GetNextSibling);
+  result:=1;
+end;
+
 procedure treenode_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
   object_addMetaData(L, metatable, userdata);
@@ -299,13 +308,14 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'expand', treenode_expand);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'collapse', treenode_collapse);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'deleteChildren', treenode_deleteChildren);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getNextSibling', treenode_getNextSibling);
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'Data', treenode_getData, treenode_setData);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Text', treenode_getText, treenode_setText);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Index', treenode_getIndex, nil);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Level', treenode_getLevel, nil);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Count', treenode_getCount, nil);
-  Luaclass_addPropertyToTable(L, metatable, userdata, 'AbsoluteIndex', treenode_getIndex, nil);
+  Luaclass_addPropertyToTable(L, metatable, userdata, 'AbsoluteIndex', treenode_getAbsoluteIndex, nil);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Selected', treenode_getSelected, treenode_setSelected);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'MultiSelected', treenode_getMultiSelected, treenode_setMultiSelected);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Parent', treenode_getParent, nil);

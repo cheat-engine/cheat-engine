@@ -152,6 +152,13 @@ begin
     begin
 
       token:=mscript.GetWordAtRowCol(p3);
+
+      if length(token)>1 then
+      begin
+        if token[length(token)] = '~' then //~ is not part of the token...
+          token:=copy(token, 1, length(token)+1);
+      end;
+
       description:=LuaDebugVariables[token];
 
 

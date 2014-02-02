@@ -241,6 +241,8 @@ void CJavaServer::GetClassFields(void)
 
 		}
 	}
+	else
+		WriteDword(0);
 
 }
 
