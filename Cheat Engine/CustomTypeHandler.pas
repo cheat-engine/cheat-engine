@@ -77,7 +77,7 @@ type
     property functiontypename: string read ffunctiontypename write setfunctiontypename; //lua
     property CustomTypeType: TCustomTypeType read fCustomTypeType;
     property script: string read getScript write setScript;
-    property scriptUsesFloat: boolean read fScriptUsesFloat;
+    property scriptUsesFloat: boolean read fScriptUsesFloat write fScriptUsesFloat;
   end;
   PCustomType=^TCustomType;
 
@@ -343,7 +343,7 @@ begin
   begin
     //possible lua
     if fCustomTypeType=cttLuaScript then
-      ConvertFloatToDataLua(i, output);
+      ConvertFloatToDataLua(f, output);
   end;
 end;
 
@@ -709,26 +709,26 @@ var
   f_valuetobytes: integer;
   valuetobytes: string;
 
+  isfloat: boolean;
+
   ct: TCustomType;
 begin
   result:=0;
   parameters:=lua_gettop(L);
-  if parameters=4 then
+  if parameters>=4 then
   begin
-    typename:=Lua_ToString(L, -4);
-    bytecount:=lua_tointeger(L, -3);
+    typename:=Lua_ToString(L, 1);
+    bytecount:=lua_tointeger(L, 2);
 
-    if lua_isfunction(L, -2) then
+    if lua_isfunction(L, 3) then
     begin
-      lua_pushvalue(L, -2);
+      lua_pushvalue(L, 3);
       f_bytestovalue:=luaL_ref(L,LUA_REGISTRYINDEX);
-
-      //f_bytestovalue:=luaL_ref(L,LUA_REGISTRYINDEX);
     end
     else
-    if lua_isstring(L,-2) then
+    if lua_isstring(L,3) then
     begin
-      bytestovalue:=Lua_ToString(L, -2);
+      bytestovalue:=Lua_ToString(L, 3);
       lua_getfield(L, LUA_GLOBALSINDEX, pchar(bytestovalue));
       f_valuetobytes:=luaL_ref(L,LUA_REGISTRYINDEX);
     end
@@ -740,17 +740,17 @@ begin
       exit;
     end;
 
-    if lua_isfunction(L, -1) then
+    if lua_isfunction(L, 4) then
     begin
-      lua_pushvalue(L, -1);
+      lua_pushvalue(L, 4);
       f_valuetobytes:=luaL_ref(L,LUA_REGISTRYINDEX);
 
       //f_bytestovalue:=luaL_ref(L,LUA_REGISTRYINDEX);
     end
     else
-    if lua_isstring(L,-1) then
+    if lua_isstring(L,4) then
     begin
-      valuetobytes:=Lua_ToString(L, -1);
+      valuetobytes:=Lua_ToString(L, 4);
       lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(valuetobytes));
       f_valuetobytes:=luaL_ref(L,LUA_REGISTRYINDEX);
     end
@@ -761,6 +761,11 @@ begin
       lua_error(L);
       exit;
     end;
+
+    if parameters>=5 then
+      isfloat:=lua_toboolean(L,5)
+    else
+      isFloat:=false;
 
     lua_pop(L, parameters);
 
@@ -773,6 +778,8 @@ begin
     ct.lua_valuetobytesfunctionid:=f_valuetobytes;
     ct.name:=typename;
     ct.bytesize:=bytecount;
+    ct.scriptUsesFloat:=isfloat;
+
 
     customtypes.Add(ct);
     mainform.RefreshCustomTypes;
