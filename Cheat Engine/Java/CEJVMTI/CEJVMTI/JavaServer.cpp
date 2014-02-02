@@ -244,6 +244,36 @@ void CJavaServer::GetClassFields(void)
 
 }
 
+void CJavaServer::GetImplementedInterfaces(void)
+{
+	//instead of returning a reference, return the tags of the classes
+	jint count;
+	jclass *interfaces;
+	jclass klass=(jclass)ReadQword();
+	if (jvmti->GetImplementedInterfaces(klass, &count, &interfaces)==JVMTI_ERROR_NONE)
+	{
+		int i;
+		WriteDword(count);
+		
+		for (i=0; i<count; i++)			
+		{
+			jlong tag=0;
+			jvmti->GetTag(interfaces[i], &tag);			
+			WriteDword(tag);
+
+			jni->DeleteLocalRef(interfaces[i]);
+		}
+
+
+		if (interfaces)
+			jvmti->Deallocate((unsigned char *)interfaces);
+		
+	}
+	else
+		WriteDword(0);
+
+}
+
 
 void CJavaServer::Start(void)
 {
@@ -283,6 +313,10 @@ void CJavaServer::Start(void)
 
 					case JAVACMD_GETCLASSFIELDS:
 						GetClassFields();
+						break;
+
+					case JAVACMD_GETIMPLEMENTEDINTERFACES:
+						GetImplementedInterfaces();
 						break;
 
 				}

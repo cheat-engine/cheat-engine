@@ -45,7 +45,7 @@ typedef __declspec(align(16)) struct _workCommandList
 	WorkCommand list[MAXCOMMANDLISTSIZE];
 } WorkCommandList, *PWorkCommandList;
 
-__device__ WorkCommandList SavedWorkCommandList; //[blocks]
+__device__ WorkCommandList SavedWorkCommandList;
 
 
 __device__ int didWork;
@@ -63,6 +63,10 @@ Thing I learned after trying to debug from 10PM to 5:30AM:  atomic functions do 
   int timeout=4096;
   int index = blockIdx.x * blockDim.x + threadIdx.x;
   int level=-1;
+ 
+ 
+ //printf("blockIdx.x=%d blockDim.x=%d threadIdx.x=%d\n", blockIdx.x, blockDim.x, threadIdx.x);
+//return;
  
   /*if (SavedWorkCommandList.count>MAXCOMMANDLISTSIZE)
   {
@@ -183,7 +187,7 @@ Thing I learned after trying to debug from 10PM to 5:30AM:  atomic functions do 
   
 
   
-  __syncthreads(); //note: If using multiple blocks, then SavedWorkCommandList must be split up into blocks as well
+  __syncthreads(); 
   
  // printf("after __syncthreads()\n");
  // printf("SavedWorkCommandList.count=%d\n", SavedWorkCommandList.count);

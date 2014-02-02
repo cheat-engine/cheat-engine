@@ -8,6 +8,7 @@
 #define JAVACMD_DEREFERENCELOCALOBJECT 3
 #define JAVACMD_GETCLASSMETHODS 4
 #define JAVACMD_GETCLASSFIELDS 5
+#define JAVACMD_GETIMPLEMENTEDINTERFACES 6
 
 class CJavaServer : Pipe
 {
@@ -33,4 +34,5 @@ public:
 	void DereferenceLocalObject(void);
 	void GetClassMethods(void);
 	void GetClassFields(void);
+	void GetImplementedInterfaces(void);
 };

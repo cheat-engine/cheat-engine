@@ -311,6 +311,8 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'isForegroundWindow', customform_isForegroundWindow);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getMenu', customform_getMenu);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setMenu', customform_setMenu);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getBorderStyle', customform_getBorderStyle);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setBorderStyle', customform_setBorderStyle);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'printToRasterImage', customform_printToRasterImage);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'dragNow', customform_dragNow);
 

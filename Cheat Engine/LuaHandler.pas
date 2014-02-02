@@ -82,7 +82,8 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports, Mem
   LuaListColumns, LuaListitem, LuaListItems, LuaTimer, LuaListview, LuaGenericHotkey,
   LuaTableFile, LuaMemoryRecordHotkey, LuaMemoryView, LuaD3DHook, LuaDisassembler,
   LuaDissectCode, LuaByteTable, LuaBinary, lua_server, HotkeyHandler, LuaPipeClient,
-  LuaPipeServer, LuaTreeview, LuaTreeNodes, LuaTreeNode, LuaCalendar, LuaSymbolListHandler;
+  LuaPipeServer, LuaTreeview, LuaTreeNodes, LuaTreeNode, LuaCalendar, LuaSymbolListHandler,
+  LuaCommonDialog, LuaFindDialog;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -272,15 +273,20 @@ var index, count: integer;
   o: tobject;
 
   tablepad: string;
+
+  stackstart: integer;
 begin
   result:='';
+
 
   if not lua_isnil(L, i) then
   begin
     if lua_isuserdata(L, i) then
     begin
+      stackstart:=lua_gettop(L);
 
       o:=lua_ToCEUserData(L, i);
+
       try
         if o is TObject then
         begin
@@ -290,6 +296,9 @@ begin
         end;
       except
       end;
+
+      index:=lua_gettop(l);
+      lua_settop(l, stackstart);
     end
     else
     if lua_iscfunction(L, i) then
@@ -306,6 +315,7 @@ begin
       begin
         tablepad:=DupeString('   ',recursivetablecount);
 
+        stackstart:=lua_gettop(l);
 
 
         result:=result+#13#10+tablepad+'['+#13#10;;
@@ -337,7 +347,11 @@ begin
           lua_pop(L, 1); //pop the value, keep the key
         end;
 
-        lua_pop(L,1); //pop the pushvalue from before
+//        lua_pop(L,1); //pop the pushvalue from before
+
+
+
+        lua_settop(l, stackstart);
 
         result:=result+tablepad+']';
       end;
@@ -5446,6 +5460,8 @@ begin
     initializeLuaPipeClient;
     initializeLuaPipeServer;
     initializeLuaSymbolListHandler;
+    initializeLuaFindDialog;
+
 
     s:=tstringlist.create;
     try

@@ -4,6 +4,7 @@ JAVACMD_GETLOADEDCLASSES=2
 JAVACMD_DEREFERENCELOCALOBJECT=3
 JAVACMD_GETCLASSMETHODS=4
 JAVACMD_GETCLASSFIELDS=5
+JAVACMD_GETIMPLEMENTEDINTERFACES=6
 
 
 JAVACODECMD_METHODLOAD=0
@@ -581,6 +582,20 @@ function java_getClassFields(class)
   return result
 end
 
+function java_getImplementedInterfaces(class)
+  result={}
+  javapipe.lock()
+  javapipe.writeByte(JAVACMD_GETIMPLEMENTEDINTERFACES)
+  javapipe.writeQword(class)
+  local count=javapipe.readDword()
+  for i=1,count do
+    result[i]=javapipe.readDword()
+  end
+
+  javapipe.unlock()
+  return result
+end
+
 function miJavaActivateClick(sender)
   javaInjectAgent()
 end
@@ -595,13 +610,28 @@ function javaForm_treeviewExpanding(sender, node)
 	  local jklass=node.Data
 	  local methods=java_getClassMethods(jklass);
 	  local fields=java_getClassFields(jklass);
+	  local interfaces=java_getImplementedInterfaces(jklass);
 
 	  local i
+
+	  node.add('---Implemented interfaces---');
+	  for i=1, #interfaces do
+	    local name
+		if interfaces[i]>0 then
+		  name=java_classlist[interfaces[i]].signature
+		else
+		  name='???'
+		end
+
+	    node.add(string.format("%d : %s", interfaces[i], name))
+	  end
+
+	  node.add('---Fields---');
 	  for i=1, #fields do
 	    node.add(string.format("%x: %s: %s (%s)", fields[i].jfieldid, fields[i].name, fields[i].signature,fields[i].generic))
 	  end
 
-	  node.add('---');
+	  node.add('---Methods---');
 
 
 	  for i=1, #methods do
@@ -635,7 +665,7 @@ function miJavaDissectClick(sender)
   if (java_classlist~=nil) then
 	local i
 	for i=1,#java_classlist do
-	  local node=javaForm.treeview.Items.Add(string.format("%x : %s (%s)", java_classlist[i].jclass, java_classlist[i].signature, java_classlist[i].generic	))
+	  local node=javaForm.treeview.Items.Add(string.format("%d(%x) : %s (%s)", i, java_classlist[i].jclass, java_classlist[i].signature, java_classlist[i].generic	))
 
 	  node.Data=java_classlist[i].jclass
 	  node.HasChildren=true

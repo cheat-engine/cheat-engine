@@ -139,7 +139,7 @@ function KeyToStr(key:word):string;
 
 procedure ConvertStringToBytes(scanvalue:string; hex:boolean;var bytes: TBytes);
 function GetBitCount(value: qword): integer;
-function getbit(bitnr: integer; bt: qword):integer;
+function getbit(bitnr: integer; bt: qword):integer; inline;
 procedure setbit(bitnr: integer; var bt: Byte;state:integer); overload;
 procedure setbit(bitnr: integer; var bt: dword;state:integer); overload;
 procedure setbit(bitnr: integer; var bt: qword;state:integer); overload;
@@ -1797,7 +1797,7 @@ end;
 
 
 
-function getbit(bitnr: integer; bt: qword):integer;
+function getbit(bitnr: integer; bt: qword):integer; inline;
 begin
   result:=(bt shr bitnr) and 1;
 end;

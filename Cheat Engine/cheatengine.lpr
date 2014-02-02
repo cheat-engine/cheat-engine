@@ -79,7 +79,7 @@ uses
   FrmMemoryRecordDropdownSettingsUnit, frmMemrecComboboxUnit, tracerIgnore,
   DotNetPipe, DotNetTypes, LuaPipeServer, LuaPipe, LuaPipeClient,
   CEListviewItemEditor, LuaTreeview, LuaTreeNodes, LuaTreeNode, LuaCalendar,
-  LuaSymbolListHandler;
+  LuaSymbolListHandler, LuaFindDialog, LuaCommonDialog;
 
 {$R cheatengine.res}
 //{$R manifest.res}  //lazarus now has this build in

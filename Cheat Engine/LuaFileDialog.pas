@@ -9,7 +9,7 @@ uses
 
 implementation
 
-uses LuaClass, LuaHandler, LuaComponent;
+uses LuaClass, LuaHandler, LuaCommonDialog;
 
 function filedialog_getFiles(L: Plua_State): integer; cdecl;
 var
@@ -20,20 +20,10 @@ begin
   result:=1;
 end;
 
-function filedialog_execute(L: Plua_State): integer; cdecl;
-var
-  t: TFileDialog;
-begin
-  t:=luaclass_getClassObject(L);
-  lua_pushboolean(L, t.Execute);
-  result:=1;
-end;
-
 procedure filedialog_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
-  //only export "execute" and "Files", the rest is already published
-  component_addMetaData(L, metatable, userdata);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'execute', filedialog_execute);
+  //only export "Files", the rest is already published (and Execute is part of commondialog)
+  commondialog_addMetaData(L, metatable, userdata);
   Luaclass_addPropertyToTable(L, metatable, userdata, 'Files', filedialog_getFiles, nil);
 end;
 
