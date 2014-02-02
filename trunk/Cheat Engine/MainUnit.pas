@@ -3214,7 +3214,7 @@ begin
   if formdesigner = nil then
     createFormdesigner;
 
-  formdesigner.designForm(f);
+  formdesigner.designForm(f);      //opendialog my .ss
 
   formdesigner.Show;
 
@@ -4038,7 +4038,7 @@ begin
   else
   begin
     scanstate.memscan := tmemscan.Create(progressbar1);
-    scanstate.foundlist := TFoundList.Create(foundlist3, scanstate.memscan);
+    scanstate.foundlist := TFoundList.Create(foundlist3, scanstate.memscan);    //build again
     scanstate.memscan.setScanDoneCallback(mainform.handle, wm_scandone);
   end;
 

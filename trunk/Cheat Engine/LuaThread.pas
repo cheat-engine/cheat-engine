@@ -9,7 +9,7 @@ This unit contains the class used to control the threads spawned by lua
 interface
 
 uses
-  Classes, SysUtils,lua, lualib, lauxlib, LuaHandler;
+  windows, Classes, SysUtils,lua, lualib, lauxlib, LuaHandler;
 
 procedure initializeLuaThread;
 
@@ -64,6 +64,8 @@ begin
       lua_pcall(L, 1,0,0);
     end;
   end;
+
+  OutputDebugString('Lua thread terminated');
 end;
 
 destructor TCEThread.destroy;
@@ -98,6 +100,8 @@ var
   s: string;
 begin
   result:=0;
+  f:=lua_gettop(L);
+
   if lua_gettop(L)=1 then
   begin
     if lua_isfunction(L,1) then
@@ -116,6 +120,9 @@ begin
     end;
 
     newL:=lua_newthread(L);
+    lua_sethook(newL, nil, 0, 0);   //no debugging on this thread for now
+
+
     s:='CELUATHREAD_'+IntToHex(ptruint(newL),8);
     lua_setglobal(L, pchar(s));
 

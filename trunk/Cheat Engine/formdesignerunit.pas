@@ -935,7 +935,6 @@ begin
 
 //    AnchorDesigner:=TAnchorDesigner.Create(oid);
 
-    anchorEditor.ShowAnchorDesigner:=nil;
     ShowAnchorDesigner:=SAD; //panda       (I wanted to call it ShowAnchorDesigner but that was causing 'issues')
 
 

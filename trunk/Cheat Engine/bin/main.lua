@@ -1247,9 +1247,30 @@ methods
   getOnHotkey
 
 
-FileDialog Class:
+CommonDialog class:
+  properties
+    OnShow: function(sender)
+    OnClose: function(sender)
+    Title: string - The caption at top of the dialog
+  methods
+    Execute() : Shows the dialog and return true/false depending on the dialog
+
+FindDialog Class: (Inheritance: CommonDialog->Component->Object)
 properties
-  Title: string - The caption at top of the dialog
+  FindText: String - The text the user wishes to find
+  Options: Enum - Find Options 
+                   { frDown, frFindNext, frHideMatchCase, frHideWholeWord,
+                     frHideUpDown, frMatchCase, frDisableMatchCase, frDisableUpDown,
+                     frDisableWholeWord, frReplace, frReplaceAll, frWholeWord, frShowHelp,
+                     frEntireScope, frHideEntireScope, frPromptOnReplace, frHidePromptOnReplace }
+  OnFind: function (sender) - Called when the find button has been clicked
+  OnHelp: function (sender) - Called when the help button is visible (see Options) and clicked
+methods
+
+
+FileDialog Class: (Inheritance: CommonDialog->Component->Object)
+properties
+
   DefaultExt: string - When not using filters this will be the default extention used if no extension is given
   Files: Strings - Stringlist containing all seleced files if multiple files are selected
   FileName: string - The filename that was selected
@@ -1258,7 +1279,7 @@ properties
 
   InitialDir: string - Sets the folder the filedialog will show first
 methods
-  Execute() : Shows the dialog and returns true if a file/multiple files got selected
+
 
 
 OpenDialog Class: (Inheritance: FileDialog->CommonDialog->Component->Object)
@@ -2123,10 +2144,9 @@ createSettingsPage
 
 registerHexviewHeaderOverride
 
+FindDialog
+SearchAndReplaceDialog
 
-add RSP/EAX lookup in the hexview
-add a clear all in the userdefined symbol list
-make the pipe disconnect if timeout after 3 seconds
 
 
 --]]

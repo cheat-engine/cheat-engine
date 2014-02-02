@@ -885,7 +885,7 @@ function (syntaxcheck)
   <code>
 end
 
-If the functions return a string, subtitute the code with the given string
+If the functions return a string, substitute the code with the given string
 }
 var
   i,j,k: integer;

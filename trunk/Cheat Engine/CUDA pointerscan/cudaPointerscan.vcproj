@@ -264,7 +264,7 @@
 			/>
 			<Tool
 				Name="Cudart Build Rule"
-				Include="$(CUDA_PATH)/include;./;../../common/inc"
+				Include="$(CUDA_PATH)/include;./;./zlib;F:\svn\Cheat Engine\CUDA pointerscan\Debug"
 				GenerateRelocatableDeviceCode="true"
 				Arch1="20"
 				Arch2="30"
@@ -312,8 +312,8 @@
 				AdditionalDependencies="cudart_static.lib zlibwapi.lib"
 				OutputFile="../bin/cudapointerscan-32.exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="$(CUDA_PATH)/lib/$(PlatformName);../../common/lib/$(PlatformName);../../common/lib;"
-				GenerateDebugInformation="true"
+				AdditionalLibraryDirectories="$(CUDA_PATH)/lib/$(PlatformName);./zlib;&quot;F:\svn\Cheat Engine\CUDA pointerscan\Debug&quot;"
+				GenerateDebugInformation="false"
 				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="1"
@@ -343,7 +343,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine=""
+				CommandLine="del &quot;$(InputDir)$(ConfigurationName)\$(TargetName).device-link.obj&quot;"
 				ExecutionBucket="17"
 			/>
 			<Tool
@@ -590,6 +590,14 @@
 						Name="VCCustomBuildTool"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\cudapointervaluelist.cuh"
@@ -602,12 +610,28 @@
 						Name="VCCustomBuildTool"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\pointerscan.cuh"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
 					ExcludedFromBuild="true"
 					>
 					<Tool
