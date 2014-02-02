@@ -1,10 +1,19 @@
 JAVACMD_STARTCODECALLBACKS=0
 JAVACMD_STOPCODECALLBACKS=1
+JAVACMD_GETLOADEDCLASSES=2
+JAVACMD_DEREFERENCELOCALOBJECT=3
+JAVACMD_GETCLASSMETHODS=4
+JAVACMD_GETCLASSFIELDS=5
 
 
 JAVACODECMD_METHODLOAD=0
 JAVACODECMD_METHODUNLOAD=1
 JAVACODECMD_DYNAMICCODEGENERATED=2
+JAVACODECMD_TERMINATED=255
+
+
+
+JAVA_TIMEOUT=500000 --500 seconds
 
 
 function getFieldFromType(type, field, infloopprotection)
@@ -42,6 +51,10 @@ function CollectJavaSymbolsNonInjected(thread)
 
 
   s=readPointer("jvm.gHotSpotVMStructs")
+  if (s==nil) or (s==0) then
+    return --invalid JVM
+  end
+
   VMStructEntryTypeNameOffset=readInteger("jvm.gHotSpotVMStructEntryTypeNameOffset")
   VMStructEntryFieldNameOffset=readInteger("jvm.gHotSpotVMStructEntryFieldNameOffset")
   VMStructEntryTypestringOffset=readInteger("jvm.gHotSpotVMStructEntryTypestringOffset")
@@ -49,6 +62,8 @@ function CollectJavaSymbolsNonInjected(thread)
   VMStructEntryOffsetOffset=readInteger("jvm.gHotSpotVMStructEntryOffsetOffset")
   VMStructEntryAddressOffset=readInteger("jvm.gHotSpotVMStructEntryAddressOffset")
   VMStructEntryArrayStride=readInteger("jvm.gHotSpotVMStructEntryArrayStride")
+
+
 
 
 
@@ -238,7 +253,7 @@ function CollectJavaSymbolsNonInjected(thread)
     CurrentPos=CurrentPos+CodeletSize
   end
 
-
+  JavaHotSpotFieldsLoaded=true
 end
 
 
@@ -252,74 +267,100 @@ function javaInjectAgent()
 
   createNativeThread(CollectJavaSymbolsNonInjected)
 
-
-  if (JavaEventThread~=nil) then
-    JavaEventListener_Terminated=true
-    JavaEventThread.waitfor()
-	JavaEventThread=nil
-  end
-
-  if (javapipe~=nil) then
-    javapipe.destroy()
+  if (javapipe ~= nil) then
+    javapipe.destroy()  --this will cause the pipe listener to destroy the java event server, which will stop the javaeventthread (so no need to wait for that)
 	javapipe=nil
   end
 
-  autoAssemble([[
-    globalalloc(bla,1024)
-
-	globalalloc(cmd,16)
-	globalalloc(arg0,256)
-	globalalloc(arg1,256)
-	globalalloc(arg2,256)
-	globalalloc(result,4)
-
-	globalalloc(pipename,256)
-
-	cmd:
-	db 'load',0
-
-	arg0:
-	db 'F:\svn\Cheat Engine\bin\autorun\dlls\CEJVMTI64',0
-
-	arg1:
-	db 0
-
-	arg2:
-	db 0
-
-	pipename:
-	db '\\.\pipe\cejavapipe',0
 
 
-	bla:
-	sub rsp,8
-	sub rsp,30
+  local alreadyinjected=false
 
-	mov rcx,cmd
-	mov rdx,arg0
-	mov r8,arg1
-	mov r9,arg2
+  if javaInjectedProcesses==nil then
+    javaInjectedProcesses={}
 
-	mov [rsp],cmd
-	mov [rsp+8],arg0
-	mov [rsp+10],arg1
-	mov [rsp+18],arg2
-	mov [rsp+20],pipename
+	local oldstate=errorOnLookupFailure(false)
+	local address=getAddress('CEJVMTI64.dll')
+	if (address~=nil) and (address~=0) then
+	  javaInjectedProcesses[getOpenedProcessID()]=true
+	  alreadyinjected=true
+	  print("opened a process with the JVMTI agent already running")
+	end
 
-	call jvm.JVM_EnqueueOperation
-	mov [result],eax
+	errorOnLookupFailure(oldstate)
 
-	add rsp,38
-	ret
+  else
+    --check if already injected
+	alreadyinjected=javaInjectedProcesses[getOpenedProcessID()]==true
+  end
 
-	createthread(bla)
-	]])
+
+
+
+
+  if (alreadyinjected==false) then
+	  autoAssemble([[
+		globalalloc(bla,1024)
+
+		globalalloc(cmd,16)
+		globalalloc(arg0,256)
+		globalalloc(arg1,256)
+		globalalloc(arg2,256)
+		globalalloc(result,4)
+
+		globalalloc(pipename,256)
+
+		cmd:
+		db 'load',0
+
+		arg0:
+		db 'F:\svn\Cheat Engine\bin\autorun\dlls\CEJVMTI64',0
+
+		arg1:
+		db 0
+
+		arg2:
+		db 0
+
+		pipename:
+		db '\\.\pipe\cejavapipe',0
+
+
+		bla:
+		sub rsp,8
+		sub rsp,30
+
+		mov rcx,cmd
+		mov rdx,arg0
+		mov r8,arg1
+		mov r9,arg2
+
+		mov [rsp],cmd
+		mov [rsp+8],arg0
+		mov [rsp+10],arg1
+		mov [rsp+18],arg2
+		mov [rsp+20],pipename
+
+		call jvm.JVM_EnqueueOperation
+		mov [result],eax
+
+		add rsp,38
+		ret
+
+		createthread(bla)
+		]])
+
+
+	javaInjectedProcesses[getOpenedProcessID()]=true
+
+  end
+
+
+
 
   --wait till attached
 
-
-
-  local timeout=getTickCount()+5000000; --5 seconds
+  local timeout=getTickCount()+JAVA_TIMEOUT
   while (javapipe==nil) and (getTickCount()<timeout) do
     javapipe=connectToPipe('cejavadc_pid'..getOpenedProcessID())
   end
@@ -330,7 +371,9 @@ function javaInjectAgent()
 
   java_StartListeneningForEvents()
 
-  JavaSymbols.register()
+  JavaSymbols.register() --make these symbols available to all of cheat engine
+
+  return 1;
 end
 
 function JavaEventListener(thread)
@@ -342,7 +385,7 @@ function JavaEventListener(thread)
   local JavaEventPipe
 
 
-  local timeout=getTickCount()+5000000; --5 seconds
+  local timeout=getTickCount()+JAVA_TIMEOUT --5 seconds
   while (JavaEventPipe==nil) and (getTickCount()<timeout) do
     JavaEventPipe=connectToPipe('cejavaevents_pid'..getOpenedProcessID())
   end
@@ -352,31 +395,57 @@ function JavaEventListener(thread)
   end
 
 
-  while JavaEventListener_Terminated==false do
+  while true do
     local command=JavaEventPipe.readByte()
 	if command==EVENTCMD_METHODLOAD then  --methodload
 
+	  local size1, size2, size3,ssize,classname, methodname, methodsig
 
 	  local method=JavaEventPipe.readQword()
 	  local code_size=JavaEventPipe.readDword()
 	  local code_addr=JavaEventPipe.readQword()
-	  local ssize=JavaEventPipe.readWord()
-	  local classname=JavaEventPipe.readString(ssize)
-	  ssize=JavaEventPipe.readWord()
-	  local methodname=JavaEventPipe.readString(ssize)
+	  size1=JavaEventPipe.readWord()
+	  if (size1>0) then
+	    classname=JavaEventPipe.readString(size1)
+	  else
+	    classname=''
+	  end
 
-	  ssize=JavaEventPipe.readWord()
-	  local methodsig=JavaEventPipe.readString(ssize)
+	  size2=JavaEventPipe.readWord()
+	  if (size2>0) then
+	    methodname=JavaEventPipe.readString(size2)
+	  else
+	    methodname=''
+	  end
 
-	  local name=classname.."."..methodname..methodsig
+	  size3=JavaEventPipe.readWord()
+	  if (size3>0) then
+        methodsig=JavaEventPipe.readString(size3)
+	  else
+	    methodsig=''
+	  end
+
+	  local endpos=classname:match'^.*();'
+	  if endpos~=nil then
+  	    classname=string.sub(classname,1,endpos-1)
+	  end
+	  local name=classname.."::"..methodname..methodsig
 
 
-	  print(string.format("Methodload: %s  -  (%x) %x-%x", name, method, code_addr, code_addr+code_size))
+	  JavaSymbols.addSymbol("",classname.."::"..methodname,code_addr,code_size)
+
+	  --print(string.format("s1=%d s2=%d s3=%d  (cn=%s  mn=%s  ms=%s)", size1,size2,size3, classname, methodname, methodsig))
+
+	  --print(string.format("Methodload: %s  -  (%x) %x-%x", name, method, code_addr, code_addr+code_size))
 
 
 	  --
 	elseif command==EVENTCMD_METHODUNLOAD then --methodunload
+	  local method=JavaEventPipe.readQword()
+	  local code_addr=JavaEventPipe.readQword()
+
 	  print("EVENTCMD_METHODUNLOAD")
+	  JavaSymbols.deleteSymbol(code_addr)
 	  --
 	elseif command==EVENTCMD_DYNAMICCODEGENERATED then --DynamicCodeGenerated
 	  local ssize
@@ -385,12 +454,16 @@ function JavaEventListener(thread)
 	  ssize=JavaEventPipe.readWord()
 	  local name=JavaEventPipe.readString(ssize)
 
-	  print(string.format("DynamicCode: %s  -  %x-%x", name, address, address+length))
+	  --print(string.format("DynamicCode: %s  -  %x-%x", name, address, address+length))
+	  JavaSymbols.addSymbol("",name,address,length)
 
 
 	  --
+	elseif command==JAVACODECMD_TERMINATED then
+	  --print("eventserver terminated")
+	  break
 	elseif command==nil then
-	  print("Disconnected")
+	  --print("Disconnected")
 	  break
     else
 	  print("Unexpected event received")  --synchronize isn't necesary for print as that function is designed to synchronize internally
@@ -406,12 +479,246 @@ function java_StartListeneningForEvents()
   javapipe.writeByte(JAVACMD_STARTCODECALLBACKS)
 
 
-  --the javapipe will now be frozen until a the javaeventpipe makes an connection
-  JavaEventListener_Terminated=false
-  JavaEventThread=createNativeThread(JavaEventListener);
+  --the javapipe will now be frozen until a javaeventpipe makes an connection
+  createNativeThread(JavaEventListener);
 
-  local result=javapipe.readByte()==1
   javapipe.unlock();
+end
 
+function java_getLoadedClasses()
+  javapipe.lock()
+  javapipe.writeByte(JAVACMD_GETLOADEDCLASSES)
+
+  local classcount=javapipe.readDword()
+  local classes={}
+
+  if (classcount==nil) then
+    return nil
+  end
+
+  if classcount>0 then
+    local i=0
+	local length
+	for i=1,classcount do
+	  classes[i]={}
+	  classes[i].jclass=javapipe.readQword()  --this is a pointer to a pointer to java.lang.class. To get the offset where klass is stored use getFieldFromType("java_lang_Class", "_klass_offset")  (The klass contains a _fields field which points to a array which contains the offset of the fields. Might be useful)
+	  length=javapipe.readWord()
+	  classes[i].signature=javapipe.readString(length);
+
+	  length=javapipe.readWord()
+	  classes[i].generic=javapipe.readString(length);
+	end
+
+  end
+
+
+  javapipe.unlock()
+
+  return classes
+end
+
+function java_dereferenceLocalObject(object)
+  javapipe.lock()
+  javapipe.writeByte(JAVACMD_DEREFERENCELOCALOBJECT)
+  javapipe.writeQword(object)
+  javapipe.unlock()
+end
+
+function java_cleanClasslist(classlist)
+  local i
+  for i=1, #classlist do
+    java_dereferenceLocalObject(classlist[i].jclass)
+  end
+end
+
+function java_getClassMethods(class)
+  javapipe.lock()
+  javapipe.writeByte(JAVACMD_GETCLASSMETHODS)
+  javapipe.writeQword(class)
+  local count=javapipe.readDword()
+  local i
+  local result={}
+  local length
+  for i=1,count do
+    result[i]={}
+    result[i].jmethodid=javapipe.readQword()
+
+	length=javapipe.readWord()
+	result[i].name=javapipe.readString(length)
+
+	length=javapipe.readWord()
+	result[i].signature=javapipe.readString(length)
+
+	length=javapipe.readWord()
+	result[i].generic=javapipe.readString(length)
+  end
+  javapipe.unlock()
   return result
 end
+
+function java_getClassFields(class)
+  javapipe.lock()
+  javapipe.writeByte(JAVACMD_GETCLASSFIELDS)
+  javapipe.writeQword(class)
+  local count=javapipe.readDword()
+  local i
+  local result={}
+  local length
+  for i=1,count do
+    result[i]={}
+    result[i].jfieldid=javapipe.readQword()
+
+	length=javapipe.readWord()
+	result[i].name=javapipe.readString(length)
+
+	length=javapipe.readWord()
+	result[i].signature=javapipe.readString(length)
+
+	length=javapipe.readWord()
+	result[i].generic=javapipe.readString(length)
+  end
+  javapipe.unlock()
+  return result
+end
+
+function miJavaActivateClick(sender)
+  javaInjectAgent()
+end
+
+function javaForm_treeviewExpanding(sender, node)
+  local allow=true
+
+  print("javaForm_treeviewExpanding "..node.level)
+  if node.Level==0 then
+    if node.Count==0 then
+	  --expand the class this node describes
+	  local jklass=node.Data
+	  local methods=java_getClassMethods(jklass);
+	  local fields=java_getClassFields(jklass);
+
+	  local i
+	  for i=1, #fields do
+	    node.add(string.format("%x: %s: %s (%s)", fields[i].jfieldid, fields[i].name, fields[i].signature,fields[i].generic))
+	  end
+
+	  node.add('---');
+
+
+	  for i=1, #methods do
+	    node.add(string.format("%x: %s(%s) %s", methods[i].jmethodid, methods[i].name, methods[i].signature, methods[i].generic))
+	  end
+
+
+	  --java_getClassFields(jklass);
+    end
+  end
+
+  return allow
+end
+
+function miJavaDissectClick(sender)
+  --I coudl also implement the same method as mono, but as an example I'll be creating the form with code only
+  if (javaForm==nil) then
+    javaForm={}
+    javaForm.form=createForm()
+	javaForm.form.Borderstyle=bsSizeable
+	javaForm.treeview=createTreeview(javaForm.form)
+	javaForm.treeview.align=alClient
+	javaForm.treeview.OnExpanding=javaForm_treeviewExpanding
+  end
+
+  if (java_classlist~=nil) then
+    java_cleanClasslist(java_classlist) --prevent a memory leak
+  end
+  java_classlist=java_getLoadedClasses()
+
+  if (java_classlist~=nil) then
+	local i
+	for i=1,#java_classlist do
+	  local node=javaForm.treeview.Items.Add(string.format("%x : %s (%s)", java_classlist[i].jclass, java_classlist[i].signature, java_classlist[i].generic	))
+
+	  node.Data=java_classlist[i].jclass
+	  node.HasChildren=true
+    end
+  end
+
+
+
+
+  javaForm.form.show()
+
+end
+
+function java_OpenProcessAfterwards()
+  local usesjava=false
+  local m=enumModules()
+  local i
+
+  java_classlist=nil
+
+  for i=1, #m do
+    if m[i].Name=='jvm.dll' then
+      usesjava=true
+      break
+    end
+  end
+
+  if usesjava then
+    if (miJavaTopMenuItem==nil) then
+      local mfm=getMainForm().Menu
+      local mi
+      miJavaTopMenuItem=createMenuItem(mfm)
+      miJavaTopMenuItem.Caption="Java"
+      mfm.Items.insert(mfm.Items.Count-1, miJavaTopMenuItem) --add it before help
+
+      mi=createMenuItem(miJavaTopMenuItem)
+      mi.Caption="Activate java features"
+      mi.OnClick=miJavaActivateClick
+      miJavaTopMenuItem.Add(mi)
+
+      mi=createMenuItem(miJavaTopMenuItem)
+      mi.Caption="Dissect java"
+      mi.Shortcut="Ctrl+Alt+J"
+      mi.OnClick=miJavaDissectClick
+      miJavaTopMenuItem.Add(mi)
+    end
+  end
+end
+
+function java_OpenProcess(processid)
+  if java_oldOnOpenProcess~=nil then
+    java_oldOnOpenProcess(processid)
+  end
+
+  synchronize(java_OpenProcessAfterwards) --call this function when the whole OpenProcess routine is done (next sync check)
+end
+
+function javaAA_USEJAVA(parameters, syntaxcheckonly)
+  --called whenever an auto assembler script encounters the USEMONO() line
+  --the value you return will be placed instead of the given line
+  --In this case, returning a empty string is fine
+  --Special behaviour: Returning nil, with a secondary parameter being a string, will raise an exception on the auto assembler with that string
+
+
+  if (syntaxcheckonly==false) and (javaInjectAgent()==0) then
+	return nil,"The java handler failed to initialize"
+  end
+
+  return "" --return an empty string (removes it from the internal aa assemble list)
+end
+
+
+
+function java_initialize()
+  --register a function to be called when a process is opened
+  if (java_init1==nil) then
+    java_init1=true
+    java_oldOnOpenProcess=onOpenProcess
+	onOpenProcess=java_OpenProcess
+
+	registerAutoAssemblerCommand("USEJAVA", javaAA_USEJAVA)
+  end
+end
+
+
+java_initialize()

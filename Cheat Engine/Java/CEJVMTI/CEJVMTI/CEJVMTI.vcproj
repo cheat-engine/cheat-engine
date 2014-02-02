@@ -373,6 +373,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\JavaEventServer.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\JavaServer.cpp"
 				>
 			</File>
@@ -420,6 +424,10 @@
 			>
 			<File
 				RelativePath=".\CEJVMTI.h"
+				>
+			</File>
+			<File
+				RelativePath=".\JavaEventServer.h"
 				>
 			</File>
 			<File
