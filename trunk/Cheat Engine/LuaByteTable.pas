@@ -103,7 +103,7 @@ begin
 end;
 
 function doubleToByteTable(L: PLua_state): integer; cdecl;
-var v: single;
+var v: double;
 begin
   result:=0;
   if lua_gettop(L)=1 then
