@@ -10,7 +10,8 @@ uses
   Dialogs, ComCtrls, StdCtrls, ExtCtrls, Buttons, Menus, JvDesignSurface,
   JvDesignImp, JvDesignUtils, typinfo, PropEdits, ObjectInspector, LResources,
   maps, ExtDlgs, PopupNotifier, IDEDialogs, ceguicomponents, LMessages, luacaller,
-  luahandler, cefuncproc, ListViewPropEdit, TreeViewPropEdit, AnchorEditor;
+  luahandler, cefuncproc, ListViewPropEdit, TreeViewPropEdit, AnchorEditor,
+  LCLType;
 
 
 
@@ -128,6 +129,7 @@ type
     procedure DesignerSelectionChange(sender: tobject);
     procedure DesignerChange(sender: TObject);
     procedure ObjectInspectorSelectionChange(sender: tobject);
+
     procedure surfaceOnChange(sender: tobject);
 
 
@@ -136,7 +138,13 @@ type
     function IDEMessageDialog(const aCaption, aMsg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons; const HelpKeyword: string = ''): Integer;
     function IDEQuestionDialog(const aCaption, aMsg: string; DlgType: TMsgDlgType; Buttons: array of const; const HelpKeyword: string = ''): Integer;
     procedure Modified(Sender: TObject);
+
+
+    procedure DeletePersistent(var APersistent: TPersistent);
+
     procedure oidOnDelete(sender: TObject);
+    procedure oidComponentTreeKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+
     function GetDesignerForm(APersistent: TPersistent): TCustomForm;
 
 
@@ -151,8 +159,6 @@ type
 
 
     procedure ofm(Reader: TReader; const MethodName: string; var Address: Pointer; var Error: Boolean);
-    procedure orsp(Sender:TObject; const Instance: TPersistent; PropInfo: PPropInfo; var Content:string);
-    procedure occ(Reader: TReader; ComponentClass: TComponentClass; var Component: TComponent);
 
 
     procedure SAD(sender: tobject);
@@ -425,12 +431,43 @@ begin
      TCEform(GlobalDesignHook.LookupRoot).designsurface.UpdateDesigner;
 end;
 
-procedure TFormDesigner.oidOnDelete(sender: TObject);
+procedure TFormDesigner.DeletePersistent(var APersistent: TPersistent);
 begin
-  if (GlobalDesignHook.LookupRoot<>nil) and
-     (TCEform(GlobalDesignHook.LookupRoot).designsurface<>nil) then
-     TCEform(GlobalDesignHook.LookupRoot).designsurface.DeleteComponents;
 
+end;
+
+procedure TFormDesigner.oidOnDelete(sender: TObject);
+var ol: array of tobject;
+  i: integer;
+begin
+ { if (GlobalDesignHook.LookupRoot<>nil) and
+     (TCEform(GlobalDesignHook.LookupRoot).designsurface<>nil) then
+     begin
+
+
+       TCEform(GlobalDesignHook.LookupRoot).designsurface.DeleteComponents;
+
+     end;   }
+
+  setlength(ol, oid.Selection.Count);
+  for i:=0 to length(ol)-1 do
+    ol[i]:=oid.selection[i];
+
+  for i:=0 to length(ol)-1 do
+    ol[i].free;
+
+  TCEform(GlobalDesignHook.LookupRoot).designsurface.ClearSelection;
+  TCEform(GlobalDesignHook.LookupRoot).designsurface.UpdateDesigner;
+
+
+  oid.ComponentTree.RebuildComponentNodes;
+
+end;
+
+procedure TFormDesigner.oidComponentTreeKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if key=vk_delete then
+    oidOnDelete(nil);
 end;
 
 function TFormDesigner.GetDesignerForm(APersistent: TPersistent): TCustomForm;
@@ -497,6 +534,7 @@ begin
 
 //  GlobalDesignHook.addhandler
   GlobalDesignHook.AddHandlerModified(Modified);
+ // GlobalDesignHook.AddHandlerDeletePersistent(DeletePersistent);
 
   GlobalDesignHook.AddHandlerShowMethod(onShowMethod);
   GlobalDesignHook.AddHandlerRenameMethod(onRenameMethod);
@@ -872,17 +910,6 @@ begin
   error:=false;
 end;
 
-procedure TFormDesigner.orsp(Sender: TObject; const Instance: TPersistent;
-  PropInfo: PPropInfo; var Content: string);
-begin
-
-end;
-
-procedure TFormDesigner.occ(Reader: TReader; ComponentClass: TComponentClass;
-  var Component: TComponent);
-begin
-
-end;
 
 
 procedure TFormDesigner.mousedownhack(var TheMessage: TLMessage);
@@ -942,6 +969,9 @@ begin
     oid.ComponentTree.WindowProc:=mousedownhack;
 
     oid.OnSelectPersistentsInOI:=ObjectInspectorSelectionChange;
+
+    oid.DeletePopupmenuItem.OnClick:=oidOnDelete;
+    oid.ComponentTree.OnKeyDown:=oidComponentTreeKeyDown;
 
     oid.Selection.Add(f);
 

@@ -1021,13 +1021,15 @@ begin
       designsurface.Container:=self;
       designsurface.ControllerClass:=TJvDesignController;;
 
-      //designsurface.MessengerClass:= TJvDesignWinControlHookMessenger;
-      designsurface.MessengerClass:=TJvDesignDesignerMessenger;
+      designsurface.MessengerClass:= TJvDesignWinControlHookMessenger;
+      //designsurface.MessengerClass:=TJvDesignDesignerMessenger;
       designsurface.SelectorClass:=TJvDesignSelector;
 
       designsurface.OnGetAddClass:=formdesigner.DesignerGetAddClass;
       designsurface.OnSelectionChange:=formdesigner.DesignerSelectionChange;
       designsurface.OnChange:=formdesigner.surfaceOnChange;
+
+
 
 
       designsurface.name:='Surface';
