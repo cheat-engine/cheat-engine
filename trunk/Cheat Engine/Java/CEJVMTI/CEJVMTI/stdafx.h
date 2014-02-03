@@ -12,6 +12,7 @@
 #include <windows.h>
 #include <jvmti.h>
 #include <pipe.h>
+#include <map>
 
 
 // TODO: reference additional headers your program requires here

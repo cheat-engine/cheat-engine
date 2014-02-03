@@ -5,6 +5,8 @@ JAVACMD_DEREFERENCELOCALOBJECT=3
 JAVACMD_GETCLASSMETHODS=4
 JAVACMD_GETCLASSFIELDS=5
 JAVACMD_GETIMPLEMENTEDINTERFACES=6
+JAVAVMD_FOLLOWREFERENCES=7
+JAVACMD_FINDJOBJECT=8
 
 
 JAVACODECMD_METHODLOAD=0
@@ -596,6 +598,75 @@ function java_getImplementedInterfaces(class)
   return result
 end
 
+function java_followReferences()
+  result={}
+  local class=tonumber(inputQuery('bla','bla',''))
+  local count=0
+  javapipe.lock()
+  javapipe.writeByte(JAVAVMD_FOLLOWREFERENCES)
+  javapipe.writeQword(class)
+
+
+  local r
+  repeat
+    r=javapipe.readByte()
+	if r==0 then
+	  local refkind=javapipe.readDword()
+	  local refererclass=javapipe.readDword()
+	  local class=javapipe.readDword()
+	  local referer=javapipe.readDword()
+	  local id=javapipe.readDword()
+
+	  print(string.format("heap_reference (%d->%d)  class:(%d->%d)  refkind:%d", referer, id, refererclass, class, refkind))
+	elseif r==1 then
+	  local class=javapipe.readDword()
+	  local id=javapipe.readDword()
+	  print(string.format("primitive_field (%d) class:%d", id, class))
+	elseif r==2 then
+	  local class=javapipe.readDword()
+	  local id=javapipe.readDword()
+	  print(string.format("array_primitive (%d) class:%d", id, class))
+	elseif r==3 then
+	  local class=javapipe.readDword()
+	  local id=javapipe.readDword()
+	  print(string.format("string_primitive (%d) class:%d", id, class))
+	elseif r==0xff then
+	  print("end of list")
+      break
+	end
+
+	count=count+10
+	if (count%25)==0 then
+	  processMessages()
+	end
+
+  until (r==nil) or (r==0xff)
+
+
+
+  javapipe.unlock()
+
+  return result
+end
+
+function java_findAllObjectsWithValue(value)
+end
+
+function java_getObjectHandleToAddress(address)
+  local result=0
+  javapipe.lock()
+  javapipe.writeByte(JAVACMD_FINDJOBJECT)
+  javapipe.writeQword(address)
+
+  result=javapipe.readQword()
+  javapipe.unlock()
+
+
+  return result
+end
+
+
+
 function miJavaActivateClick(sender)
   javaInjectAgent()
 end
@@ -604,7 +675,7 @@ end
 function javaForm_treeviewExpanding(sender, node)
   local allow=true
 
-  outputDebugString("Expanding "..node.Text)
+  --outputDebugString("Expanding "..node.Text)
 
   --print("javaForm_treeviewExpanding "..node.level)
   if node.Level==0 then
@@ -690,6 +761,10 @@ function javaForm_doSearch(sender)
 	currentindex=currentindex+1
   end
 
+end
+
+function miJavaReferencesClick(sender)
+  r=java_followReferences()
 end
 
 function miJavaDissectClick(sender)
@@ -784,6 +859,12 @@ function java_OpenProcessAfterwards()
       mi.Caption="Dissect java"
       mi.Shortcut="Ctrl+Alt+J"
       mi.OnClick=miJavaDissectClick
+      miJavaTopMenuItem.Add(mi)
+
+      mi=createMenuItem(miJavaTopMenuItem)
+      mi.Caption="Follow all java references"
+      mi.Shortcut="Ctrl+Alt+R"
+      mi.OnClick=miJavaReferencesClick
       miJavaTopMenuItem.Add(mi)
     end
   end

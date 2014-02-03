@@ -208,6 +208,11 @@ begin
   end;
 end;
 
+function wincontrol_update(L: PLua_State): integer; cdecl;
+begin
+  TWinControl(luaclass_getClassObject(L)).Update;
+end;
+
 procedure wincontrol_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
   control_addMetaData(L, metatable, userdata);
@@ -220,6 +225,7 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'focused', wincontrol_focused);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setFocus', wincontrol_setFocus);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setShape', wincontrol_setShape);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'update', wincontrol_update);
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'DoubleBuffered', wincontrol_getDoubleBuffered, wincontrol_setDoubleBuffered);
   luaclass_addPropertyToTable(L, metatable, userdata, 'ControlCount', wincontrol_getControlCount, nil);
