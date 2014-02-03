@@ -36,6 +36,7 @@ begin
   f:=ce_createForm(visible);  //not relly a customform, but it inherits from it, so good enough
   luaclass_newClass(L, f);
   result:=1;
+
 end;
 
 function customform_getOnClose(L: PLua_State): integer; cdecl;

@@ -276,6 +276,161 @@ void CJavaServer::GetImplementedInterfaces(void)
 
 }
 
+int tagcount=0;
+jint fr_heap_reference_callback(jvmtiHeapReferenceKind reference_kind, const jvmtiHeapReferenceInfo* reference_info, jlong class_tag, 
+								jlong referrer_class_tag, jlong size, jlong* tag_ptr, jlong* referrer_tag_ptr, jint length, void* user_data)
+{
+	CJavaServer *js=(CJavaServer *)user_data;
+
+	js->WriteByte(0); //fr_heap_reference_callback
+
+	js->WriteDword((DWORD)reference_kind);
+
+	
+	js->WriteDword(referrer_class_tag);
+	js->WriteDword(class_tag);
+	
+
+	if (*tag_ptr==0) //assign a new tag
+		*tag_ptr=0xce000000+tagcount++;
+
+    if (referrer_tag_ptr)
+	{
+		if (*referrer_tag_ptr==0) //assign a new tag
+			*referrer_tag_ptr=0xce000000+tagcount++;
+
+		js->WriteDword(*referrer_tag_ptr);	
+	}
+	else
+		js->WriteDword(0);
+
+	js->WriteDword(*tag_ptr);
+
+
+	
+
+	return JVMTI_VISIT_OBJECTS;
+}
+
+jint JNICALL fr_primitive_field_callback(jvmtiHeapReferenceKind kind, const jvmtiHeapReferenceInfo* info, jlong object_class_tag, jlong* object_tag_ptr, 
+								 jvalue value, jvmtiPrimitiveType value_type, void* user_data)
+{
+	CJavaServer *js=(CJavaServer *)user_data;
+
+	js->WriteByte(1); //fr_primitive_field_callback
+	js->WriteDword(object_class_tag);
+
+	if (*object_tag_ptr==0) //assign a new tag
+		*object_tag_ptr=0xce000000+tagcount++;
+
+	js->WriteDword(*object_tag_ptr);
+
+	return JVMTI_VISIT_OBJECTS;
+}
+
+jint JNICALL fr_array_primitive_value_callback(jlong class_tag, jlong size, jlong* tag_ptr, jint element_count, jvmtiPrimitiveType element_type, 
+									   const void* elements, void* user_data)
+{
+	CJavaServer *js=(CJavaServer *)user_data;
+
+	js->WriteByte(2); //fr_array_primitive_value_callback
+	js->WriteDword(class_tag);
+
+	if (*tag_ptr==0) //assign a new tag
+		*tag_ptr=0xce000000+tagcount++;
+
+	js->WriteDword(*tag_ptr);
+
+	return JVMTI_VISIT_OBJECTS;
+}
+
+jint JNICALL fr_string_primitive_value_callback(jlong class_tag, jlong size, jlong* tag_ptr, const jchar* value, jint value_length, void* user_data)
+{
+	CJavaServer *js=(CJavaServer *)user_data;
+
+	js->WriteByte(3); //fr_array_primitive_value_callback
+	js->WriteDword(class_tag);
+
+	if (*tag_ptr==0) //assign a new tag
+		*tag_ptr=0xce000000+tagcount++;
+
+	js->WriteDword(*tag_ptr);
+
+	return JVMTI_VISIT_OBJECTS;
+}
+
+
+void CJavaServer::FollowReferences(void)
+{
+	jvmtiHeapCallbacks callbacks;
+	jclass klass=(jclass)ReadQword();
+	ZeroMemory(&callbacks, sizeof(jvmtiHeapCallbacks));
+
+	callbacks.heap_reference_callback=fr_heap_reference_callback;
+	callbacks.primitive_field_callback=fr_primitive_field_callback;
+	callbacks.array_primitive_value_callback=fr_array_primitive_value_callback;
+	callbacks.string_primitive_value_callback=fr_string_primitive_value_callback;
+
+	jvmti->FollowReferences(0,klass,NULL, &callbacks, this);	
+
+	WriteByte(0xff);
+}
+
+
+jint JNICALL fjo_heap_iteration_callback1(jlong class_tag, jlong size, jlong* tag_ptr, jint length, void* user_data)
+{
+	*tag_ptr=0xce;	
+	return JVMTI_VISIT_OBJECTS;
+}
+
+
+void CJavaServer::FindjObject(void)
+{	
+	int i;
+	jint count;
+	jobject *objects;
+	jlong *objecttags;
+	jvmtiHeapCallbacks callbacks;
+	UINT64 result=0;	
+	UINT64 address=ReadQword();
+	jlong tags[1];
+	
+
+	ZeroMemory(&callbacks, sizeof(jvmtiHeapCallbacks));
+
+	
+
+	callbacks.heap_iteration_callback=fjo_heap_iteration_callback1;
+
+	jvmti->IterateThroughHeap(0, NULL, &callbacks, &tags);
+
+	tags[0]=0xce;
+	count=0;
+	if (jvmti->GetObjectsWithTags(1, tags, &count, &objects, &objecttags)==JVMTI_ERROR_NONE)
+	{
+		for (i=0; i<count; i++)
+		{
+			UINT_PTR objectaddress=*(UINT_PTR*)(objects[i]);
+			jlong size=0;
+			jvmti->GetObjectSize(objects[i], &size);
+
+			if ((address>=objectaddress) && (address<objectaddress+size))
+			{			
+				result=(UINT_PTR)objects[i];			
+			}
+			else
+				jni->DeleteLocalRef(objects[i]);
+		}
+
+		jvmti->Deallocate((unsigned char *)objects);
+		jvmti->Deallocate((unsigned char *)objecttags);
+	}
+
+
+	WriteQword(result);
+
+}
+
 
 void CJavaServer::Start(void)
 {
@@ -319,6 +474,14 @@ void CJavaServer::Start(void)
 
 					case JAVACMD_GETIMPLEMENTEDINTERFACES:
 						GetImplementedInterfaces();
+						break;
+
+					case JAVACMD_FOLLOWREFERENCES:
+						FollowReferences();
+						break;
+
+					case JAVACMD_FINDJOBJECT:
+						FindjObject();
 						break;
 
 				}

@@ -15,11 +15,14 @@ implementation
 uses luahandler, pluginexports, LuaCaller, LuaComponent, LuaClass;
 
 function control_repaint(L: PLua_State): integer; cdecl;
-var
-  c: TControl;
 begin
-  c:=luaclass_getClassObject(L);
-  c.Repaint;
+  TControl(luaclass_getClassObject(L)).Repaint;
+  result:=0;
+end;
+
+function control_update(L: PLua_State): integer; cdecl;
+begin
+  TControl(luaclass_getClassObject(L)).Update;
   result:=0;
 end;
 
@@ -381,6 +384,7 @@ begin
 end;
 
 
+
 procedure control_addMetaData(L: PLua_state; metatable: integer; userdata: integer);
 begin
   component_addMetaData(L, metatable, userdata);
@@ -415,6 +419,9 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getPopupMenu', control_getPopupMenu);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getFont', control_getFont);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'repaint', control_repaint);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'update', control_update);
+
+
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'Caption', control_getCaption, control_setCaption);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Top', control_getTop, control_setTop);

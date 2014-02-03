@@ -488,6 +488,7 @@ methods:
   getFont():  Returns the Font object of this object
   setFont():  Assigns a new font object. (Not recommended to use. Change the font object that's already there if you wish to change fonts)
   repaint(): Invalidates the graphical area of the control and forces and update
+  update() : Only updates the invalidated areas
   setOnClick(functionnameorstring) : Sets the onclick routine
   getOnClick(): Gets the onclick function
   doClick():  Executes the current function under onClick

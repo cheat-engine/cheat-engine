@@ -6,6 +6,8 @@ private:
     CRITICAL_SECTION cs;
 protected:
 	HANDLE pipehandle;
+
+public:
 	void Read(PVOID buf, int count);
 	void Write(PVOID buf, int count);
 	BYTE ReadByte();
@@ -19,7 +21,7 @@ protected:
 
 	void Lock();
 	void Unlock();
-public:
+
 	Pipe(void);
 	~Pipe(void);
 };

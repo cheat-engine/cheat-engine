@@ -9,8 +9,12 @@
 #define JAVACMD_GETCLASSMETHODS 4
 #define JAVACMD_GETCLASSFIELDS 5
 #define JAVACMD_GETIMPLEMENTEDINTERFACES 6
+#define JAVACMD_FOLLOWREFERENCES 7
+#define JAVACMD_FINDJOBJECT 8
 
-class CJavaServer : Pipe
+using namespace std;
+
+class CJavaServer : public Pipe
 {
 private:
 	wchar_t pipename[256];
@@ -35,4 +39,6 @@ public:
 	void GetClassMethods(void);
 	void GetClassFields(void);
 	void GetImplementedInterfaces(void);
+	void FollowReferences(void);
+	void FindjObject(void);
 };
