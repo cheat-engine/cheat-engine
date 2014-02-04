@@ -47,7 +47,9 @@ begin
     begin
       luaclass_newClass(L, p);
       result:=1;
-    end;
+    end
+    else
+      p.free;
   end;
 end;
 
