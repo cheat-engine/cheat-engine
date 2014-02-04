@@ -314,15 +314,22 @@ begin
       x.s:=d.s;
 
       if d.originalstring<>nil then
+      begin
         StrDispose(d.originalstring);
+        d.originalstring:=nil;
+      end;
 
       if d.s<>nil then
+      begin
         StrDispose(d.s);
+        d.s:=nil;
+      end;
 
       if d.module<>nil then
+      begin
         strDispose(d.module);
-
-      freeandnil(z.Data);
+        d.module:=nil;
+      end;
 
       AddressToString.Delete(z);
 
@@ -333,15 +340,22 @@ begin
         d:=PCESymbolInfo(z.data);
 
         if d.originalstring<>nil then
+        begin
           StrDispose(d.originalstring);
+          d.originalstring:=nil;
+        end;
 
         if d.s<>nil then
+        begin
           StrDispose(d.s);
+          d.s:=nil;
+        end;
 
         if d.module<>nil then
+        begin
           strDispose(d.module);
-
-        freeandnil(z.Data);
+          d.module:=nil;
+        end;
 
         StringToAddress.Delete(z);
       end;
@@ -373,15 +387,22 @@ begin
       x.address:=d.address;
 
       if d.originalstring<>nil then
+      begin
         StrDispose(d.originalstring);
+        d.originalstring:=nil;
+      end;
 
       if d.s<>nil then
+      begin
         StrDispose(d.s);
+        d.s:=nil;
+      end;
 
       if d.module<>nil then
+      begin
         strDispose(d.module);
-
-      freeandnil(z.Data);
+        d.module:=nil;
+      end;
 
       StringToAddress.Delete(z);
 
@@ -392,15 +413,23 @@ begin
         d:=PCESymbolInfo(z.data);
 
         if d.originalstring<>nil then
+        begin
           StrDispose(d.originalstring);
+          d.originalstring:=nil;
+        end;
 
         if d.s<>nil then
+        begin
           StrDispose(d.s);
+          d.s:=nil;
+        end;
 
         if d.module<>nil then
+        begin
           strDispose(d.module);
+          d.module:=nil;
+        end;
 
-        freeandnil(z.Data);
         StringToAddress.Delete(z);
       end;
     end;
