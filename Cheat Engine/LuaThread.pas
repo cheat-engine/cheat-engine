@@ -19,6 +19,7 @@ uses luaclass, LuaObject;
 
 type TCEThread=class (TThread)
   private
+    fname: string;
     functionid: integer;
     L: PLua_State;
   public
@@ -27,6 +28,8 @@ type TCEThread=class (TThread)
     procedure execute; override;
     destructor destroy; override;
     constructor create(L: Plua_State; functionid: integer; suspended: boolean);
+  published
+    property name: string read fname write fname;
 end;
 
 procedure TCEThread.sync;
@@ -43,7 +46,7 @@ begin
   //call the lua function
   try
     lua_rawgeti(L, LUA_REGISTRYINDEX, functionid);
-    lua_pushlightuserdata(L, self);
+    luaclass_newClass(L, self);
     if lua_pcall(L, 1,0,0)<>0 then
     begin
       if lua_isstring(L, -1) then
@@ -52,7 +55,7 @@ begin
         errorstring:='';
 
       lua_getfield(L, LUA_GLOBALSINDEX, 'print');
-      lua_pushstring(L, 'Error in native thread'+errorstring);
+      lua_pushstring(L, 'Error in native thread called '+name+':'+errorstring);
       lua_pcall(L, 1,0,0);
 
     end;
@@ -60,7 +63,7 @@ begin
     on e:Exception do
     begin
       lua_getfield(L, LUA_GLOBALSINDEX, 'print');
-      lua_pushstring(L, 'Error in native thread in native code:'+e.Message);
+      lua_pushstring(L, 'Error in native thread called '+name+' in native code:'+e.Message);
       lua_pcall(L, 1,0,0);
     end;
   end;
@@ -83,6 +86,7 @@ constructor TCEThread.create(L: PLua_state; functionid: integer; suspended: bool
 begin
   self.l:=l;
   self.functionid:=functionid;
+  name:='Unnamed';
 
   inherited create(suspended);
 end;
