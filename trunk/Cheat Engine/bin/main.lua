@@ -1687,6 +1687,7 @@ createNativeThread(function(Thread)) :
   function declaration: function (Thread)
 
 properties
+  name: string - This name will be shown when the thread terminated abnormally
 
 methods
   freeOnTerminate(state) : 
