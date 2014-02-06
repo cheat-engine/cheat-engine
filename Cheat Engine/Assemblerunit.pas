@@ -514,10 +514,10 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'FST';opcode1:eo_pi;paramtype1:par_st;bytes:2;bt1:$dd;bt2:$d0),
   (mnemonic:'FSTCW';opcode1:eo_reg7;paramtype1:par_m16;bytes:2;bt1:$9b;bt2:$d9),
   (mnemonic:'FSTENV';opcode1:eo_reg6;paramtype1:par_m32;bytes:2;bt1:$9b;bt2:$d9),
-  (mnemonic:'FSTP';opcode1:eo_reg3;paramtype1:par_m32;bytes:1;bt1:$d9),
-  (mnemonic:'FSTP';opcode1:eo_reg3;paramtype1:par_m64;bytes:1;bt1:$dd),
-  (mnemonic:'FSTP';opcode1:eo_reg7;paramtype1:par_m80;bytes:1;bt1:$db),
-  (mnemonic:'FSTP';opcode1:eo_pi;paramtype1:par_st;bytes:2;bt1:$dd;bt2:$d8),
+  (mnemonic:'FSTP';opcode1:eo_reg3;paramtype1:par_m32;bytes:1;bt1:$d9; norexw: true),
+  (mnemonic:'FSTP';opcode1:eo_reg3;paramtype1:par_m64;bytes:1;bt1:$dd; norexw: true),
+  (mnemonic:'FSTP';opcode1:eo_reg7;paramtype1:par_m80;bytes:1;bt1:$db; norexw: true),
+  (mnemonic:'FSTP';opcode1:eo_pi;paramtype1:par_st;bytes:2;bt1:$dd;bt2:$d8; norexw: true),
 
 
   (mnemonic:'FSTSW';opcode1:eo_reg7;paramtype1:par_m16;bytes:2;bt1:$9b;bt2:$dd),
@@ -3256,6 +3256,7 @@ var tokens: ttokens;
     i,j,k,l: integer;
     v,v2: qword;
     mnemonic,nroftokens: integer;
+    oldParamtype1, oldParamtype2: TTokenType;
     paramtype1,paramtype2,paramtype3: TTokenType;
     parameter1,parameter2,parameter3: string;
     vtype,v2type: integer;
@@ -3681,6 +3682,19 @@ begin
     begin
       inc(j);
       continue;
+    end;
+
+    oldParamtype1:=paramtype1;
+    oldParamtype2:=paramtype2;
+
+    if (opcodes[j].norexw) then
+    begin
+      //undo rex_w change
+      if paramtype1=ttMemoryLocation32 then
+        paramtype1:=gettokentype(parameter1,parameter2);
+
+      if paramtype2=ttMemoryLocation32 then
+        paramtype2:=gettokentype(parameter2,parameter3);
     end;
 
 
@@ -5685,11 +5699,8 @@ begin
     end;
 
 
-
-
-
-
-
+    paramtype1:=oldParamtype1;
+    paramtype2:=oldParamtype2;
 
     inc(j);
   end;
