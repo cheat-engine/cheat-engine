@@ -241,7 +241,7 @@ void CJavaServer::GetImplementedInterfaces(void)
 }
 
 int tagcount=0;
-jint fr_heap_reference_callback(jvmtiHeapReferenceKind reference_kind, const jvmtiHeapReferenceInfo* reference_info, jlong class_tag, 
+jint JNICALL fr_heap_reference_callback(jvmtiHeapReferenceKind reference_kind, const jvmtiHeapReferenceInfo* reference_info, jlong class_tag, 
 								jlong referrer_class_tag, jlong size, jlong* tag_ptr, jlong* referrer_tag_ptr, jint length, void* user_data)
 {
 	if ((*tag_ptr==0xce) && (referrer_tag_ptr) && (*referrer_tag_ptr!=0xce))		
