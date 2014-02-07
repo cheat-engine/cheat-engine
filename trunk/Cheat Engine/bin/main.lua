@@ -2047,7 +2047,7 @@ methods
   readWord(): Read a 2 byte value from the pipe, nil on failure
   readByte(): Read a byte from the pipe, nil on failure
 
-  readString(size: integer): Reads a string from the pipe, nil on failure
+  readString(size: integer): Reads a string from the pipe, nil on failure.  (Can support 0-byte chars)
   readWideString(size: integer): Reads a widestring from the pipe, nil on failure
 
   writeDouble(v: double): Writes a double to the pipe. Returns the number of bytes sent, nil on failure

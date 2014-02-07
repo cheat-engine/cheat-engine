@@ -52,6 +52,13 @@ JNIEXPORT jint JNICALL Agent_OnAttach(JavaVM* vm, char* options, void* reserved)
 	env->GetPotentialCapabilities(&cap);	
 	
 
+	if (cap.can_generate_all_class_hook_events)
+	{
+		env->GetCapabilities(&wantedcap);
+		wantedcap.can_generate_all_class_hook_events=1;
+		error=env->AddCapabilities(&wantedcap);
+	}
+
 
 	if (cap.can_tag_objects)
 	{
@@ -91,6 +98,7 @@ JNIEXPORT jint JNICALL Agent_OnAttach(JavaVM* vm, char* options, void* reserved)
 
 
 
+	
 
 
 	jclass threadclass=jni->FindClass("java/lang/Thread");
@@ -106,6 +114,36 @@ JNIEXPORT jint JNICALL Agent_OnAttach(JavaVM* vm, char* options, void* reserved)
 		OutputDebugStringA("jni->GetMethodID failure");
 		return 1;
 	}
+
+
+	
+	//example of calling a superclass method and calling it on a inherited object
+	/*
+	jclass classclass=jni->FindClass("java/lang/Class");
+	jmethodID getSuperclass=jni->GetMethodID(classclass, "getSuperclass","()Ljava/lang/Class;");
+	jobject sc=NULL, sc2=NULL;
+
+	if (getSuperclass)
+	{
+		sc=jni->CallObjectMethod(threadclass, getSuperclass);
+		sc2=jni->GetSuperclass(threadclass);
+
+		if (*(UINT_PTR*)sc==*(UINT_PTR*)sc2)
+			OutputDebugString('Success');
+
+		jni->DeleteLocalRef(sc);
+		jni->DeleteLocalRef(sc2);
+	}
+	*/
+
+
+
+
+	
+
+
+
+
 
 	jthread t=jni->NewObject(threadclass, threadinit);
 

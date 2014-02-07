@@ -5,8 +5,13 @@ JAVACMD_DEREFERENCELOCALOBJECT=3
 JAVACMD_GETCLASSMETHODS=4
 JAVACMD_GETCLASSFIELDS=5
 JAVACMD_GETIMPLEMENTEDINTERFACES=6
-JAVAVMD_FOLLOWREFERENCES=7
+JAVAVMD_FINDREFERENCESTOOBJECT=7
 JAVACMD_FINDJOBJECT=8
+JAVACMD_GETCLASSSIGNATURE=9
+JAVACMD_GETSUPERCLASS=10
+JAVACMD_GETOBJECTCLASS=11
+JAVACMD_GETCLASSDATA=12
+JAVACMD_REDEFINECLASS=13
 
 
 JAVACODECMD_METHODLOAD=0
@@ -47,6 +52,10 @@ function getKlassFromObject(object)
 end
 
 function CollectJavaSymbolsNonInjected(thread)
+  if thread~=nil then
+    thread.name="CollectJavaSymbolsNonInjected"
+  end
+
   JavaStructs={}
   JavaTypes={}
 
@@ -111,11 +120,11 @@ function CollectJavaSymbolsNonInjected(thread)
 
 
 
-      --if d~=0 then
-      --  print(a.."  -  "..b.."  -  "..c.."  :  "..string.format("%x  ( %x )",readPointer(s+VMStructEntryAddressOffset), readPointer(readPointer(s+VMStructEntryAddressOffset)) ))
-      --else
-      --  print(a.."  -  "..b.."  -  "..c.."  :  "..string.format("%x",readPointer(s+VMStructEntryOffsetOffset)))
-      --end
+      if d~=0 then
+        print(a.."  -  "..b.."  -  "..c.."  :  "..string.format("%x  ( %x )",readPointer(s+VMStructEntryAddressOffset), readPointer(readPointer(s+VMStructEntryAddressOffset)) ))
+      else
+        print(a.."  -  "..b.."  -  "..c.."  :  "..string.format("%x",readPointer(s+VMStructEntryOffsetOffset)))
+      end
     end
     s=s+VMStructEntryArrayStride
   end
@@ -380,6 +389,10 @@ function javaInjectAgent()
 end
 
 function JavaEventListener(thread)
+  if thread~=nil then
+    thread.name="JavaEventListener"
+  end
+
   --this code runs in another thread
   local EVENTCMD_METHODLOAD=0
   local EVENTCMD_METHODUNLOAD=1
@@ -439,7 +452,7 @@ function JavaEventListener(thread)
 
 	  --print(string.format("s1=%d s2=%d s3=%d  (cn=%s  mn=%s  ms=%s)", size1,size2,size3, classname, methodname, methodsig))
 
-	  --print(string.format("Methodload: %s  -  (%x) %x-%x", name, method, code_addr, code_addr+code_size))
+	  --print(string.format("Methodload: %s -  (%x) %x-%x", name, method, code_addr, code_addr+code_size))
 
 
 	  --
@@ -591,57 +604,27 @@ function java_getImplementedInterfaces(class)
   javapipe.writeQword(class)
   local count=javapipe.readDword()
   for i=1,count do
-    result[i]=javapipe.readDword()
+    result[i]=javapipe.readQword()
   end
 
   javapipe.unlock()
   return result
 end
 
-function java_followReferences()
+
+
+function java_findReferencesToObject(jObject)
   result={}
-  local class=tonumber(inputQuery('bla','bla',''))
   local count=0
   javapipe.lock()
-  javapipe.writeByte(JAVAVMD_FOLLOWREFERENCES)
-  javapipe.writeQword(class)
+  javapipe.writeByte(JAVAVMD_FINDREFERENCESTOOBJECT)
+  javapipe.writeQword(jObject)
 
-
-  local r
-  repeat
-    r=javapipe.readByte()
-	if r==0 then
-	  local refkind=javapipe.readDword()
-	  local refererclass=javapipe.readDword()
-	  local class=javapipe.readDword()
-	  local referer=javapipe.readDword()
-	  local id=javapipe.readDword()
-
-	  print(string.format("heap_reference (%d->%d)  class:(%d->%d)  refkind:%d", referer, id, refererclass, class, refkind))
-	elseif r==1 then
-	  local class=javapipe.readDword()
-	  local id=javapipe.readDword()
-	  print(string.format("primitive_field (%d) class:%d", id, class))
-	elseif r==2 then
-	  local class=javapipe.readDword()
-	  local id=javapipe.readDword()
-	  print(string.format("array_primitive (%d) class:%d", id, class))
-	elseif r==3 then
-	  local class=javapipe.readDword()
-	  local id=javapipe.readDword()
-	  print(string.format("string_primitive (%d) class:%d", id, class))
-	elseif r==0xff then
-	  print("end of list")
-      break
-	end
-
-	count=count+10
-	if (count%25)==0 then
-	  processMessages()
-	end
-
-  until (r==nil) or (r==0xff)
-
+  count=javapipe.readDword()
+  local i
+  for i=1, count do
+    result[i]=javapipe.readQword();
+  end
 
 
   javapipe.unlock()
@@ -649,7 +632,56 @@ function java_followReferences()
   return result
 end
 
+function java_redefineClassWithCustomClassFile(class, filename)
+end
+
+function java_redefineClassWithCustomData(class, memory)
+  javapipe.lock()
+  javapipe.writeByte(JAVACMD_REDEFINECLASS)
+  javapipe.writeQword(class)
+  javapipe.writeDword(#memory)
+  javapipe.writeString(memory)
+  javapipe.unlock()
+end
+
+function java_getClassData(class)
+  --gets the .class binary data (tip: Write a .class parser/editor so you can add new methods and fields)
+  result={}
+  javapipe.lock()
+  javapipe.writeByte(JAVACMD_GETCLASSDATA)
+  javapipe.writeQword(class)
+
+  result.size=javapipe.readDword()
+  if (result.size > 0) then
+    result.data=javapipe.readString(result.size)
+  end
+  javapipe.unlock()
+
+  return result.data
+end
+
+
+
+function java_invokeMethod()
+end
+
+function java_findClass()
+end
+
+function java_setClassSearchPath()
+end
+
+function java_findAllObjectsFromClass(jClass)
+
+end
+
 function java_findAllObjectsWithValue(value)
+end
+
+function java_GetField(jObject, fieldid)
+end
+
+function java_SetField(jObject, fieldid, value)
 end
 
 function java_getObjectHandleToAddress(address)
@@ -661,6 +693,52 @@ function java_getObjectHandleToAddress(address)
   result=javapipe.readQword()
   javapipe.unlock()
 
+
+  return result
+end
+
+
+function java_getObjectClass(jObject)
+  local result
+  javapipe.lock()
+
+  javapipe.writeByte(JAVACMD_GETOBJECTCLASS);
+  javapipe.writeQword(jObject)
+  result=javapipe.readQword()
+
+
+  javapipe.unlock()
+  return result
+end
+
+function java_getClassSignature(jClass)
+  local length
+  local result=''
+  javapipe.lock()
+  javapipe.writeByte(JAVACMD_GETCLASSSIGNATURE)
+  javapipe.writeQword(jClass)
+
+  length=javapipe.readWord()
+  result=javapipe.readString(length);
+
+  length=javapipe.readWord()
+  if (length>0) then
+    result=result..'  Generic='..javapipe.readString(length);
+  end
+
+  javapipe.unlock()
+
+  return result
+end
+
+function java_getSuperClass(jClass)
+  local result=nil
+  javapipe.lock()
+  javapipe.writeByte(JAVACMD_GETSUPERCLASS)
+  javapipe.writeQword(jClass)
+
+  result=javapipe.readQword()
+  javapipe.unlock()
 
   return result
 end
@@ -682,22 +760,30 @@ function javaForm_treeviewExpanding(sender, node)
     if node.Count==0 then
 	  --expand the class this node describes
 	  local jklass=node.Data
-	  local methods=java_getClassMethods(jklass);
-	  local fields=java_getClassFields(jklass);
-	  local interfaces=java_getImplementedInterfaces(jklass);
+	  local methods=java_getClassMethods(jklass)
+	  local fields=java_getClassFields(jklass)
+	  local interfaces=java_getImplementedInterfaces(jklass)
+	  local superclass=java_getSuperClass(jklass)
 
 	  local i
+
+	  if superclass~=0 then
+	    node.add('superclass='..java_getClassSignature(superclass))
+		java_dereferenceLocalObject(superclass)
+	  end
+
+
 
 	  node.add('---Implemented interfaces---');
 	  for i=1, #interfaces do
 	    local name
 		if interfaces[i]>0 then
-		  name=java_classlist[interfaces[i]].signature
+		  name=java_getClassSignature(interfaces[i])
 		else
 		  name='???'
 		end
 
-	    node.add(string.format("%d : %s", interfaces[i], name))
+	    node.add(string.format("%x : %s", interfaces[i], name))
 	  end
 
 	  node.add('---Fields---');
@@ -709,7 +795,7 @@ function javaForm_treeviewExpanding(sender, node)
 
 
 	  for i=1, #methods do
-	    node.add(string.format("%x: %s(%s) %s", methods[i].jmethodid, methods[i].name, methods[i].signature, methods[i].generic))
+	    node.add(string.format("%x: %s%s           %s", methods[i].jmethodid, methods[i].name, methods[i].signature, methods[i].generic))
 	  end
 
 
@@ -773,9 +859,12 @@ function miJavaDissectClick(sender)
     javaForm={}
     javaForm.form=createForm()
 	javaForm.form.Borderstyle=bsSizeable
+	javaForm.form.Width=640
+	javaForm.form.Height=480
 	javaForm.treeview=createTreeview(javaForm.form)
 	javaForm.treeview.align=alClient
 	javaForm.treeview.OnExpanding=javaForm_treeviewExpanding
+
 
 	javaForm.menu=createMainMenu(javaForm.form)
 

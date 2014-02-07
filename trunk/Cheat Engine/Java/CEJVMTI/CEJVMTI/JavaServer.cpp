@@ -6,7 +6,7 @@ CJavaServer::CJavaServer(jvmtiEnv* jvmti_env, JNIEnv* jni_env)
 {
 	//create a named pipe
 	jvmtiCapabilities cap;
-
+	memset(&callbacks, 0, sizeof(callbacks));
 
 	this->jni=jni_env;
 	this->jvmti=jvmti_env;
@@ -21,7 +21,7 @@ CJavaServer::CJavaServer(jvmtiEnv* jvmti_env, JNIEnv* jni_env)
 }
 
 void CJavaServer::CreatePipeandWaitForconnect(void)
-{
+{	
 	if ((pipehandle) && (pipehandle!=INVALID_HANDLE_VALUE))
 	{
 		CloseHandle(pipehandle);
@@ -67,39 +67,7 @@ void CJavaServer::GetLoadedClasses(void)
 			char *gen=NULL;
 
 			WriteQword((UINT_PTR)classes[i]);
-
-			jvmti->SetTag(classes[i], i+1); //let's tag this class while we're at it
-			
-			if (jvmti->GetClassSignature(classes[i], &sig, &gen)==JVMTI_ERROR_NONE)
-			{
-				int len;
-				if (sig)
-				{
-					len=(int)strlen(sig);
-					WriteWord(len);
-					Write(sig, len);
-					jvmti->Deallocate((unsigned char *)sig);
-				}
-				else
-					WriteWord(0);
-
-				if (gen)
-				{
-					len=(int)strlen(gen);
-					WriteWord(len);
-					Write(gen, len);
-					jvmti->Deallocate((unsigned char *)gen);
-				}
-				else
-					WriteWord(0);
-
-			}
-			else
-			{
-				WriteWord(0);
-				WriteWord(0);
-			}
-
+			SendClassSignature(classes[i]);
 		}
 
 		jvmti->Deallocate((unsigned char *)classes);
@@ -123,6 +91,8 @@ void CJavaServer::GetClassMethods(void)
 	jint count;
 	jmethodID *methods=NULL;
 
+
+
 	if (jvmti->GetClassMethods(klass, &count, &methods)==JVMTI_ERROR_NONE)
 	{
 		int i;
@@ -132,6 +102,7 @@ void CJavaServer::GetClassMethods(void)
 			int len;
 			char *name, *sig, *gen;
 			WriteQword(UINT64(methods[i]));
+
 			if (jvmti->GetMethodName(methods[i], &name, &sig, &gen)==JVMTI_ERROR_NONE)
 			{
 				if (name)
@@ -257,22 +228,15 @@ void CJavaServer::GetImplementedInterfaces(void)
 		int i;
 		WriteDword(count);
 		
-		for (i=0; i<count; i++)			
-		{
-			jlong tag=0;
-			jvmti->GetTag(interfaces[i], &tag);			
-			WriteDword(tag);
-
-			jni->DeleteLocalRef(interfaces[i]);
-		}
-
-
+		for (i=0; i<count; i++)						
+			WriteQword((UINT_PTR)interfaces[i]);
+		
 		if (interfaces)
 			jvmti->Deallocate((unsigned char *)interfaces);
 		
 	}
 	else
-		WriteDword(0);
+		WriteQword(0);
 
 }
 
@@ -280,38 +244,13 @@ int tagcount=0;
 jint fr_heap_reference_callback(jvmtiHeapReferenceKind reference_kind, const jvmtiHeapReferenceInfo* reference_info, jlong class_tag, 
 								jlong referrer_class_tag, jlong size, jlong* tag_ptr, jlong* referrer_tag_ptr, jint length, void* user_data)
 {
-	CJavaServer *js=(CJavaServer *)user_data;
-
-	js->WriteByte(0); //fr_heap_reference_callback
-
-	js->WriteDword((DWORD)reference_kind);
-
-	
-	js->WriteDword(referrer_class_tag);
-	js->WriteDword(class_tag);
-	
-
-	if (*tag_ptr==0) //assign a new tag
-		*tag_ptr=0xce000000+tagcount++;
-
-    if (referrer_tag_ptr)
-	{
-		if (*referrer_tag_ptr==0) //assign a new tag
-			*referrer_tag_ptr=0xce000000+tagcount++;
-
-		js->WriteDword(*referrer_tag_ptr);	
-	}
-	else
-		js->WriteDword(0);
-
-	js->WriteDword(*tag_ptr);
-
-
-	
+	if ((*tag_ptr==0xce) && (referrer_tag_ptr) && (*referrer_tag_ptr!=0xce))		
+		*referrer_tag_ptr=0xcd;
 
 	return JVMTI_VISIT_OBJECTS;
 }
 
+/*
 jint JNICALL fr_primitive_field_callback(jvmtiHeapReferenceKind kind, const jvmtiHeapReferenceInfo* info, jlong object_class_tag, jlong* object_tag_ptr, 
 								 jvalue value, jvmtiPrimitiveType value_type, void* user_data)
 {
@@ -357,29 +296,57 @@ jint JNICALL fr_string_primitive_value_callback(jlong class_tag, jlong size, jlo
 	js->WriteDword(*tag_ptr);
 
 	return JVMTI_VISIT_OBJECTS;
-}
+}*/
 
 
-void CJavaServer::FollowReferences(void)
+void CJavaServer::FindReferencesToObject(void)
 {
 	jvmtiHeapCallbacks callbacks;
-	jclass klass=(jclass)ReadQword();
+	jobject object=(jclass)ReadQword();
+	jlong tags[1];
+	jint count;
+	jobject *objects;
+	jlong *objecttags;
+	int i;
+	
+
 	ZeroMemory(&callbacks, sizeof(jvmtiHeapCallbacks));
 
+	jvmti->SetTag(object, 0xce);
+
+
 	callbacks.heap_reference_callback=fr_heap_reference_callback;
-	callbacks.primitive_field_callback=fr_primitive_field_callback;
-	callbacks.array_primitive_value_callback=fr_array_primitive_value_callback;
-	callbacks.string_primitive_value_callback=fr_string_primitive_value_callback;
+	//callbacks.primitive_field_callback=fr_primitive_field_callback;
+	//callbacks.array_primitive_value_callback=fr_array_primitive_value_callback;
+	//callbacks.string_primitive_value_callback=fr_string_primitive_value_callback;
 
-	jvmti->FollowReferences(0,klass,NULL, &callbacks, this);	
+	jvmti->FollowReferences(0,NULL,NULL, &callbacks, this);	
 
-	WriteByte(0xff);
+	tags[0]=0xcd;
+	if (jvmti->GetObjectsWithTags(1, tags, &count, &objects, &objecttags)==JVMTI_ERROR_NONE)
+	{
+		WriteDword(count);
+		for (i=0; i<count; i++)
+		{			
+			WriteQword((UINT_PTR)objects[i]);
+			jvmti->SetTag(objects[i],0); //untag
+		}
+
+		jvmti->Deallocate((unsigned char *)objects);
+		jvmti->Deallocate((unsigned char *)objecttags);
+	}
+	else
+	{
+		WriteDword(0);
+	}
+
+	jvmti->SetTag(object, 0); //untag this object
 }
 
 
 jint JNICALL fjo_heap_iteration_callback1(jlong class_tag, jlong size, jlong* tag_ptr, jint length, void* user_data)
 {
-	*tag_ptr=0xce;	
+	*tag_ptr=0xf0;	
 	return JVMTI_VISIT_OBJECTS;
 }
 
@@ -404,7 +371,7 @@ void CJavaServer::FindjObject(void)
 
 	jvmti->IterateThroughHeap(0, NULL, &callbacks, &tags);
 
-	tags[0]=0xce;
+	tags[0]=0xf0;
 	count=0;
 	if (jvmti->GetObjectsWithTags(1, tags, &count, &objects, &objecttags)==JVMTI_ERROR_NONE)
 	{
@@ -415,22 +382,172 @@ void CJavaServer::FindjObject(void)
 			jvmti->GetObjectSize(objects[i], &size);
 
 			if ((address>=objectaddress) && (address<objectaddress+size))
-			{			
-				result=(UINT_PTR)objects[i];			
-			}
+				result=(UINT_PTR)objects[i];		//keep the reference
 			else
 				jni->DeleteLocalRef(objects[i]);
+
+			jvmti->SetTag(objects[i],0); //untag
 		}
 
 		jvmti->Deallocate((unsigned char *)objects);
 		jvmti->Deallocate((unsigned char *)objecttags);
 	}
 
+	
+
 
 	WriteQword(result);
 
 }
 
+void CJavaServer::SendClassSignature(jclass klass)
+{
+	char *sig,*gen;
+
+	if (jvmti->GetClassSignature(klass, &sig, &gen)==JVMTI_ERROR_NONE)
+	{
+		int len;
+		if (sig)
+		{
+			len=(int)strlen(sig);
+			WriteWord(len);
+			Write(sig, len);
+			jvmti->Deallocate((unsigned char *)sig);
+		}
+		else
+			WriteWord(0);
+
+		if (gen)
+		{
+			len=(int)strlen(gen);
+			WriteWord(len);
+			Write(gen, len);
+			jvmti->Deallocate((unsigned char *)gen);
+		}
+		else
+			WriteWord(0);
+
+	}
+	else
+	{
+		WriteWord(0);
+		WriteWord(0);
+	}
+}
+
+void CJavaServer::GetClassSignature(void)
+{
+	jclass klass=(jclass)ReadQword();
+	SendClassSignature(klass);
+}
+
+void CJavaServer::GetSuperClass()
+{	
+	jclass klass=(jclass)ReadQword();
+	jclass sklass=jni->GetSuperclass(klass);
+	
+	
+	WriteQword((UINT_PTR)sklass);
+}
+
+void CJavaServer::GetObjectClass()
+{
+	jobject object=(jobject)ReadQword();
+	jclass klass=jni->GetObjectClass(object);
+	WriteQword((UINT_PTR)klass);
+}
+
+
+jclass GetClassDataTargetClass=NULL;
+CJavaServer *GetClassDataCaller=NULL;
+void JNICALL GetClassDataClassFileLoadHook(jvmtiEnv *jvmti_env,
+     JNIEnv* jni_env,
+     jclass class_being_redefined,
+     jobject loader,
+     const char* name,
+     jobject protection_domain,
+     jint class_data_len,
+     const unsigned char* class_data,
+     jint* new_class_data_len,
+     unsigned char** new_class_data)
+{
+	if ((GetClassDataTargetClass) && (class_being_redefined) && ((*(UINT_PTR*)class_being_redefined)==(*(UINT_PTR*)GetClassDataTargetClass)))
+	{
+		//this is the class...
+		GetClassDataCaller->WriteDword(class_data_len);
+		GetClassDataCaller->Write((PVOID)class_data, class_data_len);
+	}
+
+}
+
+void CJavaServer::GetClassData()
+{
+	jvmtiError error;
+	jvmtiCapabilities cap, potcap, newcap;
+	jclass klass=(jclass)ReadQword();
+
+
+	jvmti->GetCapabilities(&cap);
+	if (cap.can_retransform_classes==0)
+	{
+		memset(&newcap, 0, sizeof(newcap));
+		jvmti->GetPotentialCapabilities(&potcap);
+
+		if (potcap.can_retransform_classes)
+			newcap.can_retransform_classes=1;
+
+		if (potcap.can_retransform_any_class)
+			newcap.can_retransform_any_class=1;
+
+		jvmti->AddCapabilities(&newcap);
+	}
+
+	GetClassDataTargetClass=klass;
+	GetClassDataCaller=this;
+
+	callbacks.ClassFileLoadHook=GetClassDataClassFileLoadHook;
+	error=jvmti->SetEventCallbacks(&callbacks, sizeof(callbacks));	
+	error=jvmti->SetEventNotificationMode(JVMTI_ENABLE, JVMTI_EVENT_CLASS_FILE_LOAD_HOOK, NULL);
+
+
+
+	error=jvmti->RetransformClasses(1, &klass);
+
+	error=jvmti->SetEventNotificationMode(JVMTI_DISABLE, JVMTI_EVENT_CLASS_FILE_LOAD_HOOK, NULL);
+	callbacks.ClassFileLoadHook=NULL;
+	error=jvmti->SetEventCallbacks(&callbacks, sizeof(callbacks));	
+}
+
+void CJavaServer::RedefineClass(void)
+{
+	jvmtiError error;
+	jvmtiCapabilities cap, potcap, newcap;
+	jvmtiClassDefinition class_definition;
+	class_definition.klass=(jclass)ReadQword();
+	class_definition.class_byte_count=ReadDword();
+	class_definition.class_bytes=(unsigned char *)malloc(class_definition.class_byte_count);
+	Read((PVOID)class_definition.class_bytes, class_definition.class_byte_count); 
+
+
+	jvmti->GetCapabilities(&cap);
+	if (cap.can_redefine_classes==0)
+	{
+		memset(&newcap, 0, sizeof(newcap));
+		jvmti->GetPotentialCapabilities(&potcap);
+
+		if (potcap.can_redefine_classes)
+			newcap.can_redefine_classes=1;
+
+		if (potcap.can_redefine_any_class)
+			newcap.can_redefine_any_class=1;
+
+		jvmti->AddCapabilities(&newcap);
+	}
+	error=jvmti->RedefineClasses(1, &class_definition);
+
+    if (class_definition.class_bytes)
+		free((void *)class_definition.class_bytes);
+}
 
 void CJavaServer::Start(void)
 {
@@ -438,8 +555,6 @@ void CJavaServer::Start(void)
 	while (TRUE)
 	{
 		CreatePipeandWaitForconnect();
-
-	
 
 		try
 		{		
@@ -476,13 +591,38 @@ void CJavaServer::Start(void)
 						GetImplementedInterfaces();
 						break;
 
-					case JAVACMD_FOLLOWREFERENCES:
-						FollowReferences();
+					case JAVAVMD_FINDREFERENCESTOOBJECT:
+						FindReferencesToObject();
 						break;
 
 					case JAVACMD_FINDJOBJECT:
 						FindjObject();
 						break;
+
+					case JAVACMD_GETCLASSSIGNATURE:
+						GetClassSignature();
+						break;
+
+					case JAVACMD_GETSUPERCLASS:
+						GetSuperClass();
+						break;
+
+					case JAVACMD_GETOBJECTCLASS:
+						GetObjectClass();
+						break;
+
+					case JAVACMD_GETCLASSDATA:
+						GetClassData();
+						break;
+
+					case JAVACMD_REDEFINECLASS:
+						RedefineClass();
+						break;
+
+					default:						
+						throw("Unexpected command\n");
+						break;
+
 
 				}
 			}
@@ -507,4 +647,6 @@ void CJavaServer::Start(void)
 		}
 	}
 
+	
+	
 }

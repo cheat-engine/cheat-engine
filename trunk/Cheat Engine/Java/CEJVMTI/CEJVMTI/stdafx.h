@@ -11,6 +11,7 @@
 // Windows Header Files:
 #include <windows.h>
 #include <jvmti.h>
+#include <classfile_constants.h>
 #include <pipe.h>
 #include <map>
 

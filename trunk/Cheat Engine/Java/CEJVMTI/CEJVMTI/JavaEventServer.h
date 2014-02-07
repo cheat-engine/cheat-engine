@@ -29,3 +29,4 @@ public:
 
 extern CJavaEventServer *eventserver;
 extern CJavaEventServer *old_eventserver;
+extern jvmtiEventCallbacks callbacks;

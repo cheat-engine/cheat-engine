@@ -9,8 +9,13 @@
 #define JAVACMD_GETCLASSMETHODS 4
 #define JAVACMD_GETCLASSFIELDS 5
 #define JAVACMD_GETIMPLEMENTEDINTERFACES 6
-#define JAVACMD_FOLLOWREFERENCES 7
+#define JAVAVMD_FINDREFERENCESTOOBJECT 7
 #define JAVACMD_FINDJOBJECT 8
+#define JAVACMD_GETCLASSSIGNATURE 9
+#define JAVACMD_GETSUPERCLASS 10
+#define JAVACMD_GETOBJECTCLASS 11
+#define JAVACMD_GETCLASSDATA 12
+#define JAVACMD_REDEFINECLASS 13
 
 using namespace std;
 
@@ -21,7 +26,7 @@ private:
 	jvmtiEnv* jvmti;
 	JNIEnv* jni;
 
-
+	void SendClassSignature(jclass klass);
 	
 
 	void CreatePipeandWaitForconnect(void);
@@ -39,6 +44,11 @@ public:
 	void GetClassMethods(void);
 	void GetClassFields(void);
 	void GetImplementedInterfaces(void);
-	void FollowReferences(void);
+	void FindReferencesToObject(void);
 	void FindjObject(void);
+	void GetClassSignature(void);
+	void GetSuperClass(void);
+	void GetObjectClass(void);
+	void GetClassData(void);
+	void RedefineClass(void);
 };

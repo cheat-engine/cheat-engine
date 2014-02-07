@@ -5,6 +5,8 @@
 CJavaEventServer *old_eventserver=NULL;
 CJavaEventServer *eventserver=NULL;
 
+jvmtiEventCallbacks callbacks;
+
 
 void JNICALL MethodLoad(jvmtiEnv *jvmti_env, jmethodID method, jint code_size, const void* code_addr, jint map_length, 
 								const jvmtiAddrLocationMap* map, const void* compile_info)
@@ -29,7 +31,7 @@ void JNICALL DynamicCodeGenerated(jvmtiEnv *jvmti_env, const char* name, const v
 
 CJavaEventServer::CJavaEventServer(jvmtiEnv *jvmti_env)
 {
-	jvmtiEventCallbacks callbacks;
+
 	jvmtiError error;	
 	jvmtiCapabilities cap, wantedcap;
 
@@ -68,7 +70,7 @@ CJavaEventServer::CJavaEventServer(jvmtiEnv *jvmti_env)
 		}
 		else
 		{
-			memset(&callbacks, 0, sizeof(callbacks));
+
 
 
 			callbacks.CompiledMethodLoad=::MethodLoad;
@@ -76,8 +78,6 @@ CJavaEventServer::CJavaEventServer(jvmtiEnv *jvmti_env)
 			callbacks.DynamicCodeGenerated=::DynamicCodeGenerated;
 
 			error=jvmti_env->SetEventCallbacks(&callbacks, sizeof(callbacks));
-
-			jvmti_env->ForceGarbageCollection();
 
 			if (error==JVMTI_ERROR_NONE)
 			{			
