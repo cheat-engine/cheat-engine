@@ -549,6 +549,22 @@ void CJavaServer::RedefineClass(void)
 		free((void *)class_definition.class_bytes);
 }
 
+void CJavaServer::FindClass(void)
+{
+	jclass klass;
+	char *sig;
+	WORD siglen=ReadWord();
+	sig=(char *)malloc(siglen+1);
+	Read(sig, siglen);
+	sig[siglen]=0;
+
+	klass=jni->FindClass(sig);
+	WriteQword((UINT_PTR)klass);
+
+	if (sig)
+		free((void *)sig);
+}
+
 void CJavaServer::Start(void)
 {
 	BYTE command;
@@ -617,6 +633,10 @@ void CJavaServer::Start(void)
 
 					case JAVACMD_REDEFINECLASS:
 						RedefineClass();
+						break;
+
+					case JAVACMD_FINDCLASS:
+						FindClass();
 						break;
 
 					default:						
