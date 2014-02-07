@@ -18,7 +18,7 @@ uses
   controls, LuaCaller, forms, ExtCtrls, StdCtrls, comctrls, ceguicomponents,
   generichotkey, luafile, xmplayer_server, ExtraTrainerComponents, customtimer,
   menus, XMLRead, XMLWrite, DOM,ShellApi, Clipbrd, typinfo, PEInfoFunctions,
-  LCLProc, strutils;
+  LCLProc, strutils, registry;
 
 
 const MAXTABLERECURSIONLOOKUP=2;
@@ -5083,6 +5083,65 @@ begin
   result:=0;
 end;
 
+function getUserRegistryEnvironmentVariable(L: PLua_State): integer; cdecl;
+var
+  name: string;
+  r: Tregistry;
+begin
+  result:=0;
+  if lua_gettop(L)>0 then
+  begin
+    name:=Lua_ToString(L, 1);
+
+    r:=tregistry.Create;
+    try
+      r.RootKey:=HKEY_CURRENT_USER;
+      if r.OpenKey('\Environment',false) then
+      begin
+        if r.ValueExists(name) then
+        begin
+          lua_pushstring(L, r.ReadString(name));
+          result:=1;
+        end;
+      end;
+    finally
+      r.free;
+    end;
+
+  end;
+end;
+
+function setUserRegistryEnvironmentVariable(L: PLua_State): integer; cdecl;
+var
+  name, value: string;
+  r: tregistry;
+begin
+  result:=0;
+  if lua_gettop(L)>1 then
+  begin
+    name:=Lua_ToString(L, 1);
+    value:=Lua_ToString(L, 2);
+
+    r:=tregistry.Create;
+    try
+      r.RootKey:=HKEY_CURRENT_USER;
+      if r.OpenKey('\Environment',false) then
+        r.WriteString(name, value);
+    finally
+      r.free;
+    end;
+  end;
+end;
+
+function broadcastEnvironmentUpdate(L: PLua_State): integer; cdecl;
+var rv: dword;
+begin
+  result:=0;
+
+  SendMessageTimeout(HWND_BROADCAST, WM_SETTINGCHANGE, 0, LPARAM(pchar('Environment')), SMTO_ABORTIFHUNG, 5000, rv);
+end;
+
+
 procedure InitializeLua;
 var s: tstringlist;
   k32: THandle;
@@ -5442,6 +5501,11 @@ begin
     lua_register(LuaVM, 'checkSynchronize', lua_checkSynchronize);
 
     lua_register(LuaVM, 'outputDebugString', lua_outputDebugString);
+    lua_register(LuaVM, 'broadcastEnvironmentUpdate', broadcastEnvironmentUpdate);
+    lua_register(LuaVM, 'getUserRegistryEnvironmentVariable', getUserRegistryEnvironmentVariable);
+    lua_register(LuaVM, 'setUserRegistryEnvironmentVariable', setUserRegistryEnvironmentVariable);
+
+
 
 
     initializeLuaCustomControl;
