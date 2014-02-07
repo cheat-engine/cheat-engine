@@ -12,6 +12,7 @@ JAVACMD_GETSUPERCLASS=10
 JAVACMD_GETOBJECTCLASS=11
 JAVACMD_GETCLASSDATA=12
 JAVACMD_REDEFINECLASS=13
+JAVACMD_FINDCLASS=14
 
 
 JAVACODECMD_METHODLOAD=0
@@ -645,8 +646,8 @@ function java_redefineClassWithCustomData(class, memory)
 end
 
 function java_getClassData(class)
-  --gets the .class binary data (tip: Write a .class parser/editor so you can add new methods and fields)
-  result={}
+  --gets the .class binary data (tip: Write a .class parser/editor so you can modify attributes and method bodies)
+  local result={}
   javapipe.lock()
   javapipe.writeByte(JAVACMD_GETCLASSDATA)
   javapipe.writeQword(class)
@@ -665,7 +666,16 @@ end
 function java_invokeMethod()
 end
 
-function java_findClass()
+function java_findClass(signature)
+  local result=nil
+  javapipe.lock()
+  javapipe.writeByte(JAVACMD_FINDCLASS)
+  javapipe.writeWord(#signature)
+  javapipe.writeString(signature)
+  result=javapipe.readQword()
+
+  javapipe.unlock()
+  return result
 end
 
 function java_setClassSearchPath()
