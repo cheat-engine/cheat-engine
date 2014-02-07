@@ -22,13 +22,16 @@ uses luahandler;
 procedure CreateByteTableFromPointer(L: PLua_state; p: pbytearray; size: integer );
 var t,i: integer;
 begin
-  lua_newtable(L);
+  lua_createtable(L, size, 0);
+
+  //lua_newtable(L);
   t:=lua_gettop(L);
   for i:=1 to size do
   begin
-    lua_pushinteger(L, i);
+//    lua_pushinteger(L, i);
     lua_pushinteger(L, p[i-1]);
-    lua_settable(L, t);
+    //lua_settable(L, t);
+    lua_rawseti(L, t, i);
   end;
 end;
 

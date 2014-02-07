@@ -187,7 +187,8 @@ end;
 function TPipeConnection.WriteBytes(bytes: pointer; size: integer): boolean;
 var bw: dword;
 begin
-  if size>0 then
+
+  if (bytes<>nil) and (size>0) then
     fconnected:=fconnected and writefile(pipe, bytes^, size, bw, nil);
 
   result:=fconnected;
@@ -196,7 +197,7 @@ end;
 function TPipeConnection.ReadBytes(bytes: pointer; size: integer): boolean;
 var br: dword;
 begin
-  if size>0 then
+  if (bytes<>nil) and (size>0) then
     fconnected:=fconnected and Readfile(pipe, bytes^, size, br, nil);
 
   result:=fconnected;
@@ -369,7 +370,9 @@ var
 
   paramcount: integer;
   size: integer;
-  s: string;
+  s: pchar;
+
+
 begin
   result:=0;
   p:=luaclass_getClassObject(L);
@@ -378,12 +381,20 @@ begin
   begin
     size:=lua_tointeger(L, 1);
 
-    s:=p.readString(size);
-    if p.connected then
-    begin
-      lua_pushstring(L, pchar(s));
-      result:=1;
+    getmem(s, size);
+
+    try
+      p.ReadBytes(s, size);
+
+      if p.connected then
+      begin
+        lua_pushlstring(L, s, size);
+        result:=1;
+      end;
+    finally
+      freemem(s);
     end;
+
   end;
 end;
 
@@ -521,7 +532,8 @@ function pipecontrol_writeString(L: PLua_State): integer; cdecl;
 var
   p: TPipeconnection;
   paramcount: integer;
-  s: string;
+  s: pchar;
+  slength: integer;
   include0terminator: boolean;
 begin
   result:=0;
@@ -529,20 +541,25 @@ begin
   paramcount:=lua_gettop(L);
   if paramcount>=1 then
   begin
-    s:=lua_tostring(L, 1);
-
     if paramcount=2 then
       include0terminator:=lua_toboolean(L, 2)
     else
       include0terminator:=false;
 
-    p.writeString(s, include0terminator);
+    slength:=0;
+    s:=lua_tolstring(L, 1, @slength);
+
+    p.WriteBytes(s, slength);
+    if include0terminator then
+      p.writeByte(0);
+
     if p.connected then
     begin
+      //return the number of bytes written
       if include0terminator then
-        lua_pushinteger(L, length(s)+1)
+        lua_pushinteger(L, slength+1)
       else
-        lua_pushinteger(L, length(s));
+        lua_pushinteger(L, slength);
 
       result:=1;
     end;
