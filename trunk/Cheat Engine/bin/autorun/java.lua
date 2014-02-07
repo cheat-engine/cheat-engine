@@ -633,8 +633,6 @@ function java_findReferencesToObject(jObject)
   return result
 end
 
-function java_redefineClassWithCustomClassFile(class, filename)
-end
 
 function java_redefineClassWithCustomData(class, memory)
   javapipe.lock()
@@ -643,6 +641,13 @@ function java_redefineClassWithCustomData(class, memory)
   javapipe.writeDword(#memory)
   javapipe.writeString(memory)
   javapipe.unlock()
+end
+
+function java_redefineClassWithCustomClassFile(class, filename)
+  local f=assert(io.open(filename,"rb"))
+  local data = f:read("*all")
+  f:close()
+  java_redefineClassWithCustomData(class, data)
 end
 
 function java_getClassData(class)
@@ -659,6 +664,13 @@ function java_getClassData(class)
   javapipe.unlock()
 
   return result.data
+end
+
+function java_writeClassToDisk(class, filename)
+  local data=java_getClassData(class)
+  local f=assert(io.open(filename,"wb"))
+  f:write(data)
+  f:close()
 end
 
 
