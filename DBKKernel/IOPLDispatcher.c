@@ -167,9 +167,9 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 	NTSTATUS ntStatus=STATUS_UNSUCCESSFUL;
 
     PIO_STACK_LOCATION     irpStack=NULL;
-
+	LUID sedebugprivUID;
 	ULONG IoControlCode;
-	
+
 	if (!loadedbydbvm)
 	{
 		irpStack=IoGetCurrentIrpStackLocation(Irp);
@@ -180,6 +180,14 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 		
 	//DbgPrint("DispatchIoctl. IoControlCode=%x\n", IoControlCode);
 
+	sedebugprivUID.LowPart=SE_DEBUG_PRIVILEGE;
+	sedebugprivUID.HighPart=0;
+
+	if (SeSinglePrivilegeCheck(sedebugprivUID, UserMode)==FALSE)
+	{
+		DbgPrint("DispatchIoctl called by a process without SeDebugPrivilege");
+		return STATUS_UNSUCCESSFUL;
+	}
 	
 	
     switch(IoControlCode)
