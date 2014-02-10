@@ -83,7 +83,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports, Mem
   LuaTableFile, LuaMemoryRecordHotkey, LuaMemoryView, LuaD3DHook, LuaDisassembler,
   LuaDissectCode, LuaByteTable, LuaBinary, lua_server, HotkeyHandler, LuaPipeClient,
   LuaPipeServer, LuaTreeview, LuaTreeNodes, LuaTreeNode, LuaCalendar, LuaSymbolListHandler,
-  LuaCommonDialog, LuaFindDialog;
+  LuaCommonDialog, LuaFindDialog, LuaSettings;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -3291,11 +3291,13 @@ begin
   result:=0;
   lua_pop(L, lua_gettop(L));
   InitializeLua; //this creates a NEW lua state (cut doesn't destroy the current one)
-
 end;
 
-
-
+function reloadSettingsFromRegistry(L: Plua_State): integer; cdecl;
+begin
+  result:=0;
+  LoadSettingsFromRegistry;
+end;
 
 function createMemScan(L: Plua_State): integer; cdecl;
 var
@@ -5347,6 +5349,8 @@ begin
     Lua_register(LuaVM, 'unregisterSymbol', unregistersymbol);
 
     Lua_register(LuaVM, 'resetLuaState', resetLuaState);
+    Lua_register(LuaVM, 'reloadSettingsFromRegistry', reloadSettingsFromRegistry);
+
 
     InitializeLuaCheatComponent;
 
@@ -5535,6 +5539,7 @@ begin
     initializeLuaPipeServer;
     initializeLuaSymbolListHandler;
     initializeLuaFindDialog;
+    initializeLuaSettings;
 
 
     s:=tstringlist.create;

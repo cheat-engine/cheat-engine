@@ -1427,6 +1427,9 @@ end;
 
 function ce_pause2(params: pointer): pointer;
 begin
+  if AdvancedOptions=nil then
+    AdvancedOptions:=TAdvancedOptions.Create(application);
+
   AdvancedOptions.Pausebutton.Down:=true;
   AdvancedOptions.Pausebutton.Click;
   result:=nil;
