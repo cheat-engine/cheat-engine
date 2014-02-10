@@ -2475,9 +2475,12 @@ var SNAPHandle: THandle;
     i,j: integer;
     s: string;
 begin
+
   HI:=0;
 
   j:=0;
+
+
 
   cleanProcessList(ProcessList);
 
@@ -2505,13 +2508,12 @@ begin
           i:=getlasterror;
 
           //alternative method:
-         { if processentry.th32ProcessID>0 then
+          if (processentry.th32ProcessID>0) and (uppercase(copy(ExtractFileName(ProcessEntry.szExeFile), 1,3))<>'AVG') then //february 2014: AVG freezes processes that do createtoolhelp32snapshot on it's processes for several seconds. AVG has multiple processes...
           begin
             s:=GetFirstModuleName(processentry.th32ProcessID);
             OutputDebugString(s);
             HI:=ExtractIcon(hinstance,pchar(s),0);
-
-          end; }
+          end;
         end;
 
       end;
