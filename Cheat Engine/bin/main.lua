@@ -83,7 +83,7 @@ writeRegionToFile(filename, sourceaddress,size) : Writes the given region to a f
 readRegionFromFile(filename, destinationaddress)
 
 resetLuaState(): This will create a new lua state that will be used. (Does not destroy the old one, so memory leak)
-
+reloadSettingsFromRegistry(): This will cause cheat engine to reload the settings from the registry and apply them
 
 
 ansiToUtf8(string): Converts a string in Ansi encoding to UTF8
@@ -2031,7 +2031,6 @@ methods:
  
 
 
-
 LuaPipe class: (Inheritance: Object)
   Abstract class that LuaPipeServer and LuaPipeclient inherit from. It implements the data transmission methods
 
@@ -2103,6 +2102,25 @@ openLuaServer(Name):
     the return value of this function is the return value of the lua function (integer)
   
 
+Settings class
+  This class can be used to read out and set settings of cheat engine and of plugins, and store your own data
+
+global functions
+  getSettings(path Optional): Settings - Returns a settings object. If path is nil it will points to the Cheat Engine main settings (Registry) . If name is provides the settings currently accessed will be the one at the subkey provided
+  Note: Keep in mind that it returns a new object each call, even if he same name is used multiple times
+
+
+properties
+  Path: string - Gets/Sets the current subkey (nil if main)  
+  Value[]: A table access into the settings. e.g: Value["Count"]=12
+  [] = Value[]
+
+methods
+
+
+
+
+  
 
 
 SymbolList class
@@ -2155,7 +2173,6 @@ createSettingsPage
 
 registerHexviewHeaderOverride
 
-FindDialog
 SearchAndReplaceDialog
 
 
