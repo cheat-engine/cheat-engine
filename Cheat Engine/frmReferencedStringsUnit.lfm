@@ -12,7 +12,7 @@ object frmReferencedStrings: TfrmReferencedStrings
   OnClose = FormClose
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.0.8.0'
   object Splitter1: TSplitter
     Left = 490
     Height = 288
@@ -47,6 +47,7 @@ object frmReferencedStrings: TfrmReferencedStrings
     RowSelect = True
     TabOrder = 0
     ViewStyle = vsReport
+    OnColumnClick = lvStringlistColumnClick
     OnData = lvStringlistData
     OnDblClick = lvStringlistDblClick
     OnSelectItem = lvStringlistSelectItem

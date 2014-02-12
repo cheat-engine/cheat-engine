@@ -939,6 +939,11 @@ object MemoryBrowser: TMemoryBrowser
       object N5: TMenuItem
         Caption = '-'
       end
+      object miReferencedFunctions: TMenuItem
+        Caption = 'Referenced functions'
+        ShortCut = 49222
+        OnClick = miReferencedFunctionsClick
+      end
       object Referencedstrings1: TMenuItem
         Caption = 'Referenced strings'
         ShortCut = 49234
@@ -1112,7 +1117,7 @@ object MemoryBrowser: TMemoryBrowser
       end
       object FillMemory1: TMenuItem
         Caption = 'Fill Memory'
-        ShortCut = 49222
+        ShortCut = 57414
         OnClick = FillMemory1Click
       end
       object CreateThread1: TMenuItem

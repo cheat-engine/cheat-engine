@@ -34,6 +34,7 @@ type
     MenuItem18: TMenuItem;
     MenuItem19: TMenuItem;
     MenuItem20: TMenuItem;
+    miReferencedFunctions: TMenuItem;
     miUserDefinedHeader: TMenuItem;
     miShowIndisassembler: TMenuItem;
     miShowInHexview: TMenuItem;
@@ -235,6 +236,7 @@ type
     procedure MenuItem17Click(Sender: TObject);
     procedure MenuItem18Click(Sender: TObject);
     procedure MenuItem20Click(Sender: TObject);
+    procedure miReferencedFunctionsClick(Sender: TObject);
     procedure miShowIndisassemblerClick(Sender: TObject);
     procedure miCopyBytesOnlyClick(Sender: TObject);
     procedure miDissectData2Click(Sender: TObject);
@@ -548,6 +550,7 @@ uses Valuechange,
   frmDisassemblyscanunit,
   ServiceDescriptorTables,
   frmReferencedStringsUnit,
+  frmReferencedFunctionsUnit,
   Structuresfrm,
   Structuresfrm2,
   pointerscannerfrm,
@@ -1019,6 +1022,8 @@ begin
   t.show;
 
 end;
+
+
 
 
 procedure TMemoryBrowser.miCopyBytesOnlyClick(Sender: TObject);
@@ -3460,6 +3465,25 @@ begin
   Nonsystemmodulesonly1.Checked:=false;
   stacktrace2.Checked:=true;
   reloadstacktrace;
+end;
+
+procedure TMemoryBrowser.miReferencedFunctionsClick(Sender: TObject);
+begin
+  if (dissectcode=nil) then
+  begin
+    if MessageDlg(rsNeedToRunDissectCode, mtConfirmation, [mbyes, mbno], 0)=mryes then
+    begin
+      Dissectcode1Click(sender);
+      frmDissectCode.ondone:=odOpenReferedFunctionsList;
+      frmDissectCode.btnStart.click;
+    end;
+  end else
+  begin
+    if frmReferencedFunctions=nil then
+      frmReferencedFunctions:=tfrmReferencedFunctions.Create(self);
+
+    frmReferencedFunctions.Show;
+  end;
 end;
 
 procedure TMemoryBrowser.Referencedstrings1Click(Sender: TObject);

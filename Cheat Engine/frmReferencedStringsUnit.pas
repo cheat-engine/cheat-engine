@@ -21,6 +21,8 @@ type
     destructor destroy; override;
   end;
 
+  { TfrmReferencedStrings }
+
   TfrmReferencedStrings = class(TForm)
 
     lvStringlist: TListView;
@@ -32,6 +34,7 @@ type
     FindNext1: TMenuItem;
     FindDialog1: TFindDialog;
     procedure FormShow(Sender: TObject);
+    procedure lvStringlistColumnClick(Sender: TObject; Column: TListColumn);
     procedure lvStringlistData(Sender: TObject; Item: TListItem);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure lvStringlistDblClick(Sender: TObject);
@@ -171,6 +174,14 @@ var
   i: integer;
   x: TStringReference;
 begin
+  if stringfiller<>nil then
+  begin
+    stringfiller.Terminate;
+    stringfiller.WaitFor;
+    stringfiller.Free;
+    stringfiller:=nil;
+  end;
+
   if stringlist<>nil then
   begin
     for i:=0 to stringlist.Count-1 do
@@ -183,14 +194,10 @@ begin
   end;
 
   stringlist:=tstringlist.Create;
+
   dissectcode.getstringlist(stringlist);
 
-  if stringfiller<>nil then
-  begin
-    stringfiller.Terminate;
-    stringfiller.WaitFor;
-    stringfiller.Free;
-  end;
+
 
   stringfiller:=tdelayedstringfiller.create(true);
   stringfiller.s:=stringlist;
@@ -206,7 +213,35 @@ begin
   lvStringlist.Items.Clear;
   lvStringlist.Items.Count:=0;
 
-  LoadStringlist;
+  if dissectcode<>nil then
+    LoadStringlist;
+end;
+
+function AddressSort(List: TStringList; Index1, Index2: Integer): Integer;
+begin
+  result:=TStringReference(list.Objects[index1]).address-TStringReference(list.Objects[index2]).address;
+end;
+
+function StringSort(List: TStringList; Index1, Index2: Integer): Integer;
+begin
+  result:=CompareStr(getstringfromaddress(TStringReference(list.Objects[index1]).address) , getstringfromaddress(TStringReference(list.Objects[index2]).address));
+end;
+
+function RefSort(List: TStringList; Index1, Index2: Integer): Integer;
+begin
+  result:=length(TStringReference(list.Objects[index1]).references)-length(TStringReference(list.Objects[index2]).references);
+end;
+
+procedure TfrmReferencedStrings.lvStringlistColumnClick(Sender: TObject;
+  Column: TListColumn);
+begin
+  case column.index of
+    0: stringlist.CustomSort(AddressSort);
+    1: stringlist.CustomSort(RefSort);
+    2: stringlist.CustomSort(StringSort);
+  end;
+
+  lvStringlist.Refresh;
 end;
 
 procedure TfrmReferencedStrings.lvStringlistData(Sender: TObject;
