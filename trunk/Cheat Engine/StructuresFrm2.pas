@@ -4289,6 +4289,7 @@ begin
               end;
               struct.sortElements;
               struct.endUpdate;
+              struct.fillDelayLoadedChildstructs;
             end;
 
             doc.free;
