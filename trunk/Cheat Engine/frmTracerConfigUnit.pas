@@ -24,7 +24,6 @@ type
     Label2: TLabel;
     rbBreakOnAccess: TRadioButton;
     rbBreakOnWrite: TRadioButton;
-    procedure FormShow(Sender: TObject);
   private
     { private declarations }
     fDataTrace: boolean;
@@ -34,10 +33,12 @@ type
     property DataTrace: boolean read fDataTrace write setDataTrace;
   end; 
 
+var frmTracerConfig:TfrmTracerConfig;
 
 implementation
 
 { TfrmTracerConfig }
+
 
 procedure TfrmTracerConfig.setDataTrace(state: boolean);
 begin
@@ -53,10 +54,7 @@ begin
   ClientHeight:=btnOK.top+btnOK.Height+3;
 end;
 
-procedure TfrmTracerConfig.FormShow(Sender: TObject);
-begin
 
-end;
 
 initialization
   {$I frmTracerConfigUnit.lrs}

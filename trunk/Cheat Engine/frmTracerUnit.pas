@@ -396,7 +396,10 @@ begin
   //set a breakpoint and when that breakpoint gets hit trace a number of instructions
   if fskipconfig=false then
   begin
-    with TfrmTracerConfig.create(self) do
+    if frmTracerConfig=nil then
+      frmTracerConfig:=TfrmTracerConfig.create(application);
+
+    with frmTracerConfig do
     begin
       DataTrace:=fDataTrace;
       if showmodal=mrok then
@@ -440,7 +443,6 @@ begin
 
 
       end;
-      free;
     end;
 
   end;
