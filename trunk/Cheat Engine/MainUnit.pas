@@ -5799,7 +5799,9 @@ begin
       begin //text
         scantype.ItemIndex := 0;
         casevis := True;
-        cbCasesensitive.Checked := True;
+        if oldvartype<>7 then
+          cbCasesensitive.Checked := True;
+
         cbCasesensitive.ShowHint := False;
         unicodevis := True;
 
