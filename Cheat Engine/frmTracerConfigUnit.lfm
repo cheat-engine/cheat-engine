@@ -7,9 +7,8 @@ object frmTracerConfig: TfrmTracerConfig
   Caption = 'Break and Trace config'
   ClientHeight = 220
   ClientWidth = 231
-  OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.1'
+  LCLVersion = '1.0.8.0'
   object edtMaxTrace: TEdit
     Left = 16
     Height = 23
@@ -20,17 +19,17 @@ object frmTracerConfig: TfrmTracerConfig
   end
   object Label1: TLabel
     Left = 16
-    Height = 15
+    Height = 16
     Top = 8
-    Width = 111
+    Width = 112
     Caption = 'Maximal trace count:'
     ParentColor = False
   end
   object Label2: TLabel
     Left = 16
-    Height = 15
+    Height = 16
     Top = 56
-    Width = 202
+    Width = 203
     Caption = 'Stop condition (Optional, LUA format)'
     ParentColor = False
   end
