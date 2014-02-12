@@ -1,0 +1,53 @@
+object frmReferencedFunctions: TfrmReferencedFunctions
+  Left = 402
+  Height = 353
+  Top = 204
+  Width = 677
+  Caption = 'Referenced functions'
+  ClientHeight = 353
+  ClientWidth = 677
+  OnShow = FormShow
+  LCLVersion = '1.0.8.0'
+  object lvCallList: TListView
+    Left = 0
+    Height = 353
+    Top = 0
+    Width = 490
+    Align = alLeft
+    Columns = <    
+      item
+        Caption = 'Address'
+        Width = 150
+      end    
+      item
+        Caption = 'Refcount'
+        Width = 75
+      end>
+    HideSelection = False
+    OwnerData = True
+    ReadOnly = True
+    RowSelect = True
+    TabOrder = 0
+    ViewStyle = vsReport
+    OnColumnClick = lvCallListColumnClick
+    OnData = lvCallListData
+    OnDblClick = lvCallListDblClick
+    OnSelectItem = lvCallListSelectItem
+  end
+  object lbReflist: TListBox
+    Left = 495
+    Height = 353
+    Top = 0
+    Width = 182
+    Align = alClient
+    ItemHeight = 0
+    OnDblClick = lbReflistDblClick
+    TabOrder = 1
+  end
+  object Splitter1: TSplitter
+    Left = 490
+    Height = 353
+    Top = 0
+    Width = 5
+  end
+end

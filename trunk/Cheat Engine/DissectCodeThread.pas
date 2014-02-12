@@ -46,6 +46,15 @@ type TStringReference=class(tobject)
   references: array of ptrUint;
 end;
 
+type TDissectReference=class(tobject)
+  address: ptruint;
+  addressname: string;   //fill these in later
+  references: array of record
+      address: ptruint;
+      addressname: string;
+    end;
+end;
+
 
 
 type
@@ -107,6 +116,7 @@ type
 
 
     procedure getstringlist(s: tstrings);
+    procedure getCallList(s: TList);
     constructor create(suspended: boolean);
   protected
     procedure Execute; override;
@@ -405,11 +415,53 @@ begin
   o:=TStringReference.create;
   o.address:=address;
   setlength(o.references, al.pos);
-  CopyMemory(@o.references[0], al.a, al.pos*sizeof(pointer));
+  CopyMemory(@o.references[0], al.a, al.pos*sizeof(ptrUint));
 
   s.AddObject(IntToHex(address,8), o);
 end;
 
+
+procedure TDissectCodeThread.getCallList(s: TList);
+var
+  mi: TMapIterator;
+  al: PAddresslist;
+  address: ptruint;
+
+
+  t: TDissectReference;
+  i: integer;
+begin
+  if s.Count>0 then
+    raise exception.create('TDissectCodeThread.getCallList called with a non empty list');
+
+  cs.enter;
+  mi:=TMapIterator.Create(calllist);
+  try
+    while not mi.EOM do
+    begin
+      mi.GetData(al);
+      mi.GetID(address);
+
+      t:=TDissectReference.Create;
+      t.address:=address;
+      t.addressname:='';
+      setlength(t.references, al.pos);
+      for i:=0 to al.pos-1 do
+      begin
+        t.references[i].address:=al.a[i];
+        t.references[i].addressname:='';
+      end;
+
+      s.Add(t);
+      mi.next;
+    end;
+  finally
+    cs.leave;
+  end;
+
+  mi.free;
+
+end;
 
 procedure TDissectCodeThread.getstringlist(s: tstrings);
 var mi: TMapIterator;
@@ -437,6 +489,8 @@ begin
   finally
     cs.leave;
   end;
+
+  mi.free;
 end;
 
 procedure TDissectCodeThread.addReference(FromAddress, ToAddress: ptruint; reftype: tjumptype; isstring: boolean=false);
@@ -666,12 +720,15 @@ begin
               //check if it's an indirect jump
 
               tempaddress2:=0;
+
+
+
               if readprocessmemory(processhandle, pointer(tempaddress), @tempaddress2, processhandler.pointersize, br) then
               begin
                 if ((tempaddress2 and $ffff)=$25ff) then //it's pointing to a jmp [xxxxxxxx] evaluate that as well
                 begin
                   value:=0;
-                  if readprocessmemory(processhandle,pointer(tempaddress2+2),@value,4,br) then
+                  if readprocessmemory(processhandle,pointer(tempaddress+2),@value,4,br) then
                   begin
                     if processhandler.is64bit then
                       value:=tempaddress2+6+value; //in 64-bit ff 25 is relative encoded

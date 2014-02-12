@@ -11,7 +11,7 @@ uses
 
 
 
-type TOnDoneDissect=(odDoNothing, odOpenReferedStringList);
+type TOnDoneDissect=(odDoNothing, odOpenReferedStringList, odOpenReferedFunctionsList);
 
 type
 
@@ -61,6 +61,8 @@ var
   frmDissectCode: TfrmDissectCode;
 
 implementation
+
+uses frmReferencedFunctionsUnit;
 
 resourcestring
   rsStop = 'Stop';
@@ -207,6 +209,15 @@ begin
         frmReferencedStrings:=tfrmReferencedStrings.Create(self);
 
       frmReferencedStrings.Show;
+    end;
+
+    if ondone=odOpenReferedFunctionsList then
+    begin
+      close;
+      if frmReferencedFunctions=nil then
+        frmReferencedFunctions:=tfrmReferencedFunctions.create(self);
+
+      frmReferencedFunctions.show;
     end;
 
     ondone:=odDoNothing;
