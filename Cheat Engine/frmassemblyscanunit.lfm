@@ -49,10 +49,15 @@ object frmAssemblyScan: TfrmAssemblyScan
     Constraints.MinHeight = 9
     TabOrder = 1
     object btnOk: TButton
-      Left = 20
+      AnchorSideLeft.Control = Panel2
+      AnchorSideLeft.Side = asrCenter
+      AnchorSideTop.Control = edtTo
+      AnchorSideTop.Side = asrBottom
+      Left = 22
       Height = 25
-      Top = 88
+      Top = 84
       Width = 75
+      BorderSpacing.Top = 5
       Caption = 'Scan'
       OnClick = btnOkClick
       TabOrder = 0
