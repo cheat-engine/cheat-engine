@@ -1,10 +1,10 @@
 object frmTrainerGenerator: TfrmTrainerGenerator
-  Left = 495
-  Height = 359
-  Top = 217
+  Left = 390
+  Height = 416
+  Top = 179
   Width = 703
   Caption = 'Trainer generator'
-  ClientHeight = 359
+  ClientHeight = 416
   ClientWidth = 703
   Constraints.MinHeight = 310
   Constraints.MinWidth = 690
@@ -15,12 +15,12 @@ object frmTrainerGenerator: TfrmTrainerGenerator
   LCLVersion = '1.0.8.0'
   object Panel1: TPanel
     Left = 201
-    Height = 359
+    Height = 416
     Top = 0
     Width = 502
     Align = alRight
     BevelOuter = bvNone
-    ClientHeight = 359
+    ClientHeight = 416
     ClientWidth = 502
     TabOrder = 0
     object comboProcesslist: TComboBox
@@ -68,7 +68,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
     object Label1: TLabel
       Left = 271
       Height = 16
-      Top = 176
+      Top = 192
       Width = 166
       Caption = 'Freeze interval (in milliseconds)'
       ParentColor = False
@@ -76,24 +76,25 @@ object frmTrainerGenerator: TfrmTrainerGenerator
     object edtFreezeInterval: TEdit
       Left = 271
       Height = 23
-      Top = 192
+      Top = 208
       Width = 220
       TabOrder = 4
       Text = '250'
     end
-    object cbBeepOnAction: TCheckBox
+    object cbPlaySoundOnAction: TCheckBox
       Left = 271
       Height = 19
-      Top = 128
-      Width = 99
-      Caption = 'Beep on action'
+      Top = 64
+      Width = 198
+      Caption = 'Play sound on activate/deactivate'
+      OnChange = cbPlaySoundOnActionChange
       TabOrder = 5
     end
     object Button5: TButton
       Left = 151
       Height = 23
       Hint = 'Generates the trainer script and saves the current table as a .CETRAINER'
-      Top = 304
+      Top = 344
       Width = 109
       Caption = 'Generate trainer'
       Default = True
@@ -193,7 +194,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
     object btnDesignForm: TButton
       Left = 287
       Height = 25
-      Top = 264
+      Top = 288
       Width = 179
       Caption = 'Design userinterface manually'
       OnClick = btnDesignFormClick
@@ -203,7 +204,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
       Left = 271
       Height = 19
       Hint = 'Will encrypt the generated cetrainer file and when Cheat Engine loads this file back it will destroy the main form preventing the user from doing anything with it.'#13#10'Does not affect the standalone trainer because that one is protected by default'
-      Top = 152
+      Top = 168
       Width = 209
       Caption = 'Protect trainer from editing/reading'
       Checked = True
@@ -214,18 +215,18 @@ object frmTrainerGenerator: TfrmTrainerGenerator
       TabOrder = 10
     end
     object cbPlayXM: TCheckBox
-      Left = 271
+      Left = 8
       Height = 19
-      Top = 21
+      Top = 288
       Width = 117
       Caption = 'Play XM music file'
       OnChange = cbPlayXMChange
       TabOrder = 11
     end
     object fnXM: TFileNameEdit
-      Left = 271
+      Left = 8
       Height = 23
-      Top = 40
+      Top = 307
       Width = 200
       DialogOptions = []
       Filter = 'XM files|*.XM'
@@ -240,7 +241,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
     object cbStopPlaying: TCheckBox
       Left = 271
       Height = 19
-      Top = 64
+      Top = 8
       Width = 118
       Caption = 'Stop playing when'
       Checked = True
@@ -252,7 +253,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
     object rbStopWhenAttached: TRadioButton
       Left = 287
       Height = 19
-      Top = 82
+      Top = 26
       Width = 150
       Caption = 'Game has been attached'
       Checked = True
@@ -263,7 +264,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
     object rbStopWhenFocusLost: TRadioButton
       Left = 287
       Height = 19
-      Top = 100
+      Top = 44
       Width = 118
       Caption = 'Trainer loses focus'
       Enabled = False
@@ -272,7 +273,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
     object Label5: TLabel
       Left = 276
       Height = 16
-      Top = 288
+      Top = 328
       Width = 39
       Caption = 'Output'
       ParentColor = False
@@ -280,7 +281,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
     object cbOutput: TComboBox
       Left = 276
       Height = 23
-      Top = 304
+      Top = 344
       Width = 86
       ItemHeight = 15
       ItemIndex = 1
@@ -298,7 +299,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
     object Label6: TLabel
       Left = 0
       Height = 31
-      Top = 328
+      Top = 385
       Width = 502
       Align = alBottom
       Caption = 'Tip: The trainer generator is a tool for beginners. It is recommended to learn lua and the formdesigner and save as .exe manually to experience the full power of a Cheat Engine trainer'
@@ -308,7 +309,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
     object cbUseD3DHook: TCheckBox
       Left = 271
       Height = 19
-      Top = 216
+      Top = 240
       Width = 119
       Caption = 'Use Direct3D Hook'
       OnChange = cbUseD3DHookChange
@@ -317,27 +318,165 @@ object frmTrainerGenerator: TfrmTrainerGenerator
     object cbConfigD3DHook: TButton
       Left = 271
       Height = 25
-      Top = 235
+      Top = 259
       Width = 75
       Caption = 'Configure'
       Enabled = False
       OnClick = cbConfigD3DHookClick
       TabOrder = 18
     end
+    object cbActivateSound: TComboBox
+      Left = 335
+      Height = 23
+      Top = 88
+      Width = 100
+      Enabled = False
+      ItemHeight = 15
+      Style = csDropDownList
+      TabOrder = 19
+    end
+    object cbDeactivateSound: TComboBox
+      Left = 335
+      Height = 23
+      Top = 112
+      Width = 100
+      Enabled = False
+      ItemHeight = 15
+      Style = csDropDownList
+      TabOrder = 20
+    end
+    object btnAddSounds: TButton
+      Left = 335
+      Height = 25
+      Top = 140
+      Width = 88
+      Caption = 'Add sound(s)'
+      Enabled = False
+      OnClick = btnAddSoundsClick
+      TabOrder = 21
+    end
+    object lblActivateSound: TLabel
+      Left = 287
+      Height = 16
+      Top = 93
+      Width = 44
+      Caption = 'Activate'
+      Enabled = False
+      ParentColor = False
+    end
+    object lblDeactivateSound: TLabel
+      Left = 276
+      Height = 16
+      Top = 113
+      Width = 56
+      Caption = 'Deactivate'
+      Enabled = False
+      ParentColor = False
+    end
+    object sbPlayActivate: TSpeedButton
+      Left = 439
+      Height = 22
+      Top = 88
+      Width = 23
+      Enabled = False
+      Glyph.Data = {
+        36040000424D3604000000000000360000002800000010000000100000000100
+        2000000000000004000064000000640000000000000000000000000000000000
+        000004733AFF21824FFF638272FF000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000004733AFF7ACFA4FF2C8C5AFF3D7659FFAEAEAEFF00000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000004733AFF82D8ACFF76D6A6FF3C9D6AFF27744CFFACAEADFF000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000009773FFF83DBAEFF1FC671FF72DEA7FF4BB27FFF177445FFA8ADAAFF0000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000004733AFF83DCAFFF11C369FF1ACC73FF69DFA3FF5AC28DFF137643FF9EA7
+        A3FF000000000000000000000000000000000000000000000000000000000000
+        000004733AFFA9DCC1FF10BD65FF11C167FF13C269FF59D395FF67C998FF167C
+        47FF889C92FF0000000000000000000000000000000000000000000000000000
+        000004733AFFA9DCC1FF0DB35EFF0EB660FF0EB660FF0DB45FFF47C484FF70CA
+        9CFF1D824DFF678C79FF00000000000000000000000000000000000000000000
+        000004733AFFA9DCC1FF0CAA58FF12AE5EFF15AF60FF16AD61FF13AA5DFF3AB6
+        77FF75C79DFF288957FF4E8367FF000000000000000000000000000000000000
+        000004733AFFA9DCC1FF2EAD6BFF2BAD6AFF27AB68FF22A964FF1CA55FFF41B2
+        78FF78C69FFF298858FF678C79FF000000000000000000000000000000000000
+        000004733AFFA9DCC1FF36AD70FF32AC6DFF2DAA6AFF28A866FF58BC89FF78C5
+        9DFF1F804EFF839A8EFF00000000000000000000000000000000000000000000
+        000004733AFFA9DCC1FF3EB176FF3AAF73FF36AE70FF6FC598FF71BF97FF187B
+        49FFA6B0ABFF0000000000000000000000000000000000000000000000000000
+        000004733AFFA9DCC1FF45B47BFF47B47CFF82CCA6FF67B68CFF177745FFC1C5
+        C3FF000000000000000000000000000000000000000000000000000000000000
+        000004733AFFA5DABFFF57BB87FF90D2B0FF5BAB82FF23774CFFD4D5D4FF0000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000004733AFFA9DCC1FF9BD5B7FF4C9F73FF3D7D5CFF00000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000004733AFFA4D9BEFF3D9366FF5F8873FF0000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000004733AFF2D8859FF859C90FF000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000
+      }
+      NumGlyphs = 0
+      OnClick = sbPlayActivateClick
+    end
+    object sbPlayDeactivate: TSpeedButton
+      Left = 439
+      Height = 22
+      Top = 113
+      Width = 23
+      Enabled = False
+      Glyph.Data = {
+        36040000424D3604000000000000360000002800000010000000100000000100
+        2000000000000004000064000000640000000000000000000000000000000000
+        000004733AFF21824FFF638272FF000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000004733AFF7ACFA4FF2C8C5AFF3D7659FFAEAEAEFF00000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000004733AFF82D8ACFF76D6A6FF3C9D6AFF27744CFFACAEADFF000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000009773FFF83DBAEFF1FC671FF72DEA7FF4BB27FFF177445FFA8ADAAFF0000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000004733AFF83DCAFFF11C369FF1ACC73FF69DFA3FF5AC28DFF137643FF9EA7
+        A3FF000000000000000000000000000000000000000000000000000000000000
+        000004733AFFA9DCC1FF10BD65FF11C167FF13C269FF59D395FF67C998FF167C
+        47FF889C92FF0000000000000000000000000000000000000000000000000000
+        000004733AFFA9DCC1FF0DB35EFF0EB660FF0EB660FF0DB45FFF47C484FF70CA
+        9CFF1D824DFF678C79FF00000000000000000000000000000000000000000000
+        000004733AFFA9DCC1FF0CAA58FF12AE5EFF15AF60FF16AD61FF13AA5DFF3AB6
+        77FF75C79DFF288957FF4E8367FF000000000000000000000000000000000000
+        000004733AFFA9DCC1FF2EAD6BFF2BAD6AFF27AB68FF22A964FF1CA55FFF41B2
+        78FF78C69FFF298858FF678C79FF000000000000000000000000000000000000
+        000004733AFFA9DCC1FF36AD70FF32AC6DFF2DAA6AFF28A866FF58BC89FF78C5
+        9DFF1F804EFF839A8EFF00000000000000000000000000000000000000000000
+        000004733AFFA9DCC1FF3EB176FF3AAF73FF36AE70FF6FC598FF71BF97FF187B
+        49FFA6B0ABFF0000000000000000000000000000000000000000000000000000
+        000004733AFFA9DCC1FF45B47BFF47B47CFF82CCA6FF67B68CFF177745FFC1C5
+        C3FF000000000000000000000000000000000000000000000000000000000000
+        000004733AFFA5DABFFF57BB87FF90D2B0FF5BAB82FF23774CFFD4D5D4FF0000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000004733AFFA9DCC1FF9BD5B7FF4C9F73FF3D7D5CFF00000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000004733AFFA4D9BEFF3D9366FF5F8873FF0000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000004733AFF2D8859FF859C90FF000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000
+      }
+      NumGlyphs = 0
+      OnClick = sbPlayDeactivateClick
+    end
   end
   object Panel2: TPanel
     Left = 0
-    Height = 359
+    Height = 416
     Top = 0
     Width = 201
     Align = alClient
-    ClientHeight = 359
+    ClientHeight = 416
     ClientWidth = 201
     TabOrder = 1
     OnResize = Panel2Resize
     object lvCheats: TListView
       Left = 1
-      Height = 324
+      Height = 381
       Top = 1
       Width = 173
       Align = alClient
@@ -360,7 +499,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
     object Panel3: TPanel
       Left = 1
       Height = 33
-      Top = 325
+      Top = 382
       Width = 199
       Align = alBottom
       ClientHeight = 33
@@ -390,18 +529,18 @@ object frmTrainerGenerator: TfrmTrainerGenerator
     end
     object Panel4: TPanel
       Left = 174
-      Height = 324
+      Height = 381
       Top = 1
       Width = 26
       Align = alRight
       BevelOuter = bvNone
-      ClientHeight = 324
+      ClientHeight = 381
       ClientWidth = 26
       TabOrder = 2
       object spbDown: TSpeedButton
         Left = 0
         Height = 27
-        Top = 298
+        Top = 355
         Width = 21
         Anchors = [akLeft, akBottom]
         Enabled = False
@@ -425,7 +564,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
       object spbUp: TSpeedButton
         Left = 0
         Height = 28
-        Top = 269
+        Top = 326
         Width = 21
         Anchors = [akLeft, akBottom]
         Enabled = False
@@ -506,5 +645,13 @@ object frmTrainerGenerator: TfrmTrainerGenerator
       Caption = 'Only generate the script'
       OnClick = MenuItem2Click
     end
+  end
+  object odWave: TOpenDialog
+    DefaultExt = '.WAV'
+    Filter = 'All files (*.*)|*.*|Wave files|*.WAV'
+    FilterIndex = 2
+    Options = [ofAllowMultiSelect, ofPathMustExist, ofEnableSizing, ofViewDetail]
+    left = 488
+    top = 128
   end
 end
