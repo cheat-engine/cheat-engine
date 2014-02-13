@@ -12,19 +12,19 @@ uses
 type
   { TfrmGroupScanAlgoritmGenerator }
   TfrmGroupScanAlgoritmGenerator = class(TForm)
-    Button1: TButton;
-    Button2: TButton;
+    btnOK: TButton;
+    btnCancel: TButton;
     cbTypeAligned: TCheckBox;
     cbOutOfOrder: TCheckBox;
     edtBlockalignment: TEdit;
     edtBlocksize: TEdit;
-    Label1: TLabel;
-    Label2: TLabel;
-    Label3: TLabel;
+    lblBlocksize: TLabel;
+    lblBlockAlignment: TLabel;
+    lblWildcardExplanation: TLabel;
     lblMustBeDividable: TLabel;
     lblMin: TLabel;
     ScrollBox1: TScrollBox;
-    procedure Button1Click(Sender: TObject);
+    procedure btnOKClick(Sender: TObject);
     procedure cbOutOfOrderChange(Sender: TObject);
     procedure cbTypeAlignedChange(Sender: TObject);
     procedure edtBlockalignmentChange(Sender: TObject);
@@ -71,6 +71,8 @@ implementation
 
 resourcestring
   rsWildcard='Skip nr of bytes:';
+  rsAdd='Add';
+  rsPickedHint='When checked this element will get added to the addresslist. Note: If all checkboxes are disabled, ALL elements will be added';
 
 {$R *.lfm}
 
@@ -176,8 +178,8 @@ begin
   if p=0 then
   begin
     //place at top
-    top:=0;
-    left:=0;
+    AnchorSideTop.Control:=parent;
+    AnchorSideTop.Side:=asrTop;
   end
   else
   begin
@@ -185,8 +187,8 @@ begin
     previous:=frm.Varinfolist[p-1];
     if previous<>nil then
     begin
-      top:=previous.Top+previous.Height;
-      left:=0;
+      AnchorSideTop.Control:=previous;
+      AnchorSideTop.Side:=asrBottom;
     end;
   end;
 end;
@@ -202,17 +204,28 @@ begin
 
   parent:=frm.ScrollBox1;
 
-
-  //lazarus bug, once scrolled down the clientsizewithbar will be different
-  if i=0 then
-    width:=frm.ScrollBox1.ClientWidth-frm.scrollbox1.VertScrollBar.Size-6
-  else
-    width:=TVariableInfo(frm.Varinfolist[0]).width;
-
-
   bevelouter:=bvNone;
   BorderStyle:=bsNone;
   left:=0;
+
+  width:=10;
+
+  autosize:=true;
+
+  //Color:=clRed;
+
+
+
+
+  AnchorSideRight.Control := frm.ScrollBox1;
+  AnchorSideRight.Side := asrRight;
+
+  AnchorSideLeft.Control:=parent;
+  AnchorSideLeft.side:=asrLeft;
+
+
+  Anchors := [akTop, akLeft, akRight];
+
 
 
 
@@ -240,31 +253,38 @@ begin
   cbVartype.DropDownCount:=min(16,cbVartype.items.count);
 
   cbPicked:=TCheckBox.create(self);
-  cbPicked.Caption:='Add';
+  cbPicked.Caption:=rsAdd;
   cbPicked.checked:=true; //default action is yes
   cbPicked.visible:=false;
   cbPicked.parent:=self;
-  cbPicked.hint:='When checked this element will get added to the addresslist. Note: If all checkboxes are disabled, ALL elements will be added';
+  cbPicked.hint:=rsPickedHint;
   cbPicked.ParentShowHint:=false;
   cbPicked.ShowHint:=true;
 
 
+  cbVartype.AnchorSideLeft.Control:=self;
+  cbVartype.AnchorSideLeft.Side:=asrLeft;
+  cbVartype.BorderSpacing.left:=2;
+
+  cbpicked.AnchorSideRight.Control:=self;
+  cbpicked.AnchorSideRight.Side:=asrRight;
+  cbpicked.AnchorSideTop.Control:=edtValue;
+  cbPicked.AnchorSideTop.side:=asrCenter;
+  cbpicked.BorderSpacing.Right:=2;
 
 
-  cbVartype.width:=((clientwidth) div 2)-3-(cbPicked.width div 3);    //...
-  edtValue.width:=(clientwidth- cbVartype.width)-(cbPicked.width div 2);
+  edtValue.AnchorSideLeft.control:=cbVartype;
+  edtValue.AnchorSideLeft.side:=asrRight;
 
-  cbVartype.left:=0;
-  edtValue.Left:=cbVartype.width+3;
+  edtValue.AnchorSideRight.control:=cbPicked;
+  edtValue.AnchorSideRight.side:=asrLeft;
+  edtValue.BorderSpacing.Left:=6;
+  edtValue.BorderSpacing.Right:=6;
+  edtValue.BorderSpacing.Top:=1;
 
-  cbpicked.top:=edtValue.top+(edtValue.height div 2)-(edtValue.Height div 2);
-  cbPicked.left:=edtValue.left+edtValue.Width+3;
-
-
-  clientheight:=max(cbVartype.height, edtValue.height)+2;
-
-
-
+  cbVartype.anchors:=[akTop, akLeft];
+  cbPicked.anchors:=[akTop, akRight];
+  edtValue.anchors:=[akTop, akLeft, akRight];
 
   cbvartype.parent:=self;
   edtValue.parent:=self;
@@ -343,7 +363,7 @@ begin
     lblMustBeDividable.font.color:=clRed; //error
 end;
 
-procedure TfrmGroupScanAlgoritmGenerator.Button1Click(Sender: TObject);
+procedure TfrmGroupScanAlgoritmGenerator.btnOKClick(Sender: TObject);
 begin
   getparameters; //test for validity
 
@@ -364,7 +384,7 @@ end;
 
 procedure TfrmGroupScanAlgoritmGenerator.FormShow(Sender: TObject);
 begin
-
+  clientheight:=btnOK.top+btnOK.height+10;
 end;
 
 procedure TfrmGroupScanAlgoritmGenerator.sizechange;
