@@ -1,4 +1,4 @@
-BUILDIN_ACTIVATE         RCDATA ".\sounds\tick1.wav"
-BUILDIN_DEACTIVATE       RCDATA ".\sounds\tick2.wav"
+BUILDIN_ACTIVATE         RCDATA ".\\sounds\\tick1.wav"
+BUILDIN_DEACTIVATE       RCDATA ".\\sounds\\tick2.wav"
 
 
