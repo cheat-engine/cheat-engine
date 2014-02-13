@@ -326,24 +326,34 @@ object frmTrainerGenerator: TfrmTrainerGenerator
       TabOrder = 18
     end
     object cbActivateSound: TComboBox
-      Left = 335
+      Left = 327
       Height = 23
-      Top = 88
-      Width = 100
+      Top = 89
+      Width = 142
       Enabled = False
       ItemHeight = 15
+      ItemIndex = 0
+      Items.Strings = (
+        'Activate'
+      )
       Style = csDropDownList
       TabOrder = 19
+      Text = 'Activate'
     end
     object cbDeactivateSound: TComboBox
-      Left = 335
+      Left = 327
       Height = 23
       Top = 112
-      Width = 100
+      Width = 142
       Enabled = False
       ItemHeight = 15
+      ItemIndex = 0
+      Items.Strings = (
+        'Deactivate'
+      )
       Style = csDropDownList
       TabOrder = 20
+      Text = 'Deactivate'
     end
     object btnAddSounds: TButton
       Left = 335
@@ -356,7 +366,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
       TabOrder = 21
     end
     object lblActivateSound: TLabel
-      Left = 287
+      Left = 281
       Height = 16
       Top = 93
       Width = 44
@@ -365,7 +375,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
       ParentColor = False
     end
     object lblDeactivateSound: TLabel
-      Left = 276
+      Left = 269
       Height = 16
       Top = 113
       Width = 56
@@ -374,9 +384,9 @@ object frmTrainerGenerator: TfrmTrainerGenerator
       ParentColor = False
     end
     object sbPlayActivate: TSpeedButton
-      Left = 439
+      Left = 471
       Height = 22
-      Top = 88
+      Top = 89
       Width = 23
       Enabled = False
       Glyph.Data = {
@@ -419,7 +429,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
       OnClick = sbPlayActivateClick
     end
     object sbPlayDeactivate: TSpeedButton
-      Left = 439
+      Left = 471
       Height = 22
       Top = 113
       Width = 23
