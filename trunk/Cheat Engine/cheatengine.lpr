@@ -79,10 +79,12 @@ uses
   FrmMemoryRecordDropdownSettingsUnit, frmMemrecComboboxUnit, tracerIgnore,
   DotNetPipe, DotNetTypes, LuaPipeServer, LuaPipe, LuaPipeClient,
   CEListviewItemEditor, LuaTreeview, LuaTreeNodes, LuaTreeNode, LuaCalendar,
-  LuaSymbolListHandler, LuaFindDialog, LuaCommonDialog, LuaSettings;
+  LuaSymbolListHandler, LuaFindDialog, LuaCommonDialog, LuaSettings,
+frmReferencedFunctionsUnit;
 
 {$R cheatengine.res}
 //{$R manifest.res}  //lazarus now has this build in
+{$R Sounds.rc}
 
 {$ifdef cpu32}
 {$SetPEFlags $20}

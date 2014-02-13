@@ -675,7 +675,11 @@ var i: integer;
   oldcbActivateSound: string;
   oldcbDeactivateSound:string;
 begin
+
+
   s:=tstringlist.create;
+
+
   getmem(riff,5);
   for i:=0 to mainform.LuaFiles.Count-1 do
   begin
@@ -686,9 +690,20 @@ begin
       if riff='RIFF' then //good enough (could still be wrong, but better than random)
         s.add(mainform.LuaFiles[i].name);
     end;
-
-
   end;
+
+  freemem(riff);
+
+  for i:=0 to mainform.InternalLuaFiles.Count-1 do
+  begin
+    if s.IndexOf(mainform.InternalLuaFiles[i].name)=-1 then //not overriden
+      s.add(mainform.InternalLuaFiles[i].name);
+  end;
+
+
+  oldcbActivateSound:=cbActivateSound.text;
+  oldcbDeactivateSound:=cbDeactivateSound.text;
+
 
   cbActivateSound.Items.Assign(s);
   cbActivateSound.DropDownCount:=max(16, s.count);
@@ -699,6 +714,7 @@ begin
 
   cbActivateSound.itemindex:=cbActivateSound.Items.IndexOf(oldcbActivateSound);
   cbDeactivateSound.itemindex:=cbDeactivateSound.Items.IndexOf(oldcbDeactivateSound);
+
   s.free;
 end;
 

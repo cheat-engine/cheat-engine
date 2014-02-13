@@ -37,6 +37,20 @@ begin
         result:=1;
       end;
 
+    if result=0 then //not overriden
+    begin
+      for i:=0 to mainform.InternalLuaFiles.count-1 do
+      begin
+        if mainform.InternalLuaFiles[i].name=f then
+        begin
+          s:=mainform.InternalLuaFiles[i].stream;
+          s.position:=0;
+          luaclass_newClass(L, mainform.InternalLuaFiles[i]);
+          result:=1;
+        end;
+      end;
+    end;
+
   end
   else
     lua_pop(L, lua_gettop(L));

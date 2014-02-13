@@ -786,6 +786,7 @@ type
     memscan: tmemscan;
     LuaForms: TList;
     LuaFiles: TLuaFileList;
+    InternalLuaFiles: TLuaFileList;
     frmLuaTableScript: Tfrmautoinject;
 
 
@@ -4641,6 +4642,9 @@ var
   reg: tregistry;
 
   PODirectory, Lang, FallbackLang: string;
+
+  rs: TResourceStream;
+
 begin
   vartype.Items.Clear;
   vartype.items.add(rs_vtBinary);
@@ -4674,6 +4678,19 @@ begin
     LUA_DoScript('package.path = package.path .. [[;' + tablesdir + '\?.lua]]');
   except
   end;
+
+  InternalLuaFiles := TLuaFileList.Create;
+
+  rs := TResourceStream.Create(HInstance, 'BUILDIN_ACTIVATE', RT_RCDATA);
+  InternalLuaFiles.Add(TLuaFile.Create('Activate', rs));
+  rs.free;
+
+
+  rs := TResourceStream.Create(HInstance, 'BUILDIN_DEACTIVATE', RT_RCDATA);
+  InternalLuaFiles.Add(TLuaFile.Create('Deactivate', rs));
+  rs.free;
+
+
 
 
   reg := Tregistry.Create;
@@ -4987,6 +5004,9 @@ begin
 
 
   mainform:=self;
+
+
+
   pluginhandler := TPluginhandler.Create;
 
   //custom types
@@ -7848,117 +7868,11 @@ var t: TD3DHook_Texture;
   mr: TPhysicalMemoryRanges;
 
   sl: tstringlist;
+  rs: TResourceStream;
 begin
-   if GetMemoryRanges(mr) then
-   begin
-     sl:=tstringlist.create;
-     for i:=0 to length(mr)-1 do
-       sl.add(inttohex(mr[i].base,16)+'-'+inttohex(mr[i].base+mr[i].size,16));
-
-     showmessage(sl.text);
-     sl.free;
-   end;
 
 
-  exit;
-  c:=getConnection;
 
-  if c.loadExtension(processhandle) then
-  begin
-    {
-    addr:=c.VirtualAllocEx(processhandle, pointer($0ce00000), 4096, 0, 0);
-    showmessage('allocated at '+inttohex(ptruint(addr),8));
-
-    b:=VirtualFreeEx(processhandle, addr, 0,0);
-
-    if b then
-
-      showmessage('freed')
-    else
-      showmessage('error');
-             }
-
-    //h:=createremotethread(processhandle, nil, 0, pointer($400801), 0 , 0, tid);
-    //showmessage('createremotethread returned '+inttohex(h,1));
-    //closehandle(h);
-  end
-  else
-    showmessage('not loaded');
-{  memorybrowser.hexview.address:=GetStackStart;
-  memorybrowser.show;}
-
-
-  {
-  OpenProcessToken(ownprocesshandle, TOKEN_ALL_ACCESS, tokenhandle2);
-  GetTokenInformation(tokenhandle2, TOKEN_INFORMATION_CLASS(TokenIntegrityLevel), NIL, 0, LengthNeeded2);
-  getmem(buffer2, LengthNeeded2);
-  GetTokenInformation(tokenhandle2, TOKEN_INFORMATION_CLASS(TokenIntegrityLevel), buffer2, LengthNeeded2, LengthNeeded2);
-
-
-  if OpenProcessToken(ProcessHandle, TOKEN_ALL_ACCESS, tokenhandle) then
-  begin
-    LengthNeeded:=0;
-    GetTokenInformation(tokenhandle, TOKEN_INFORMATION_CLASS(TokenIntegrityLevel), NIL, 0, LengthNeeded);
-
-    If LengthNeeded>0 then
-    begin
-      getmem(buffer, LengthNeeded);
-      if GetTokenInformation(tokenhandle, TOKEN_INFORMATION_CLASS(TokenIntegrityLevel), buffer, LengthNeeded, LengthNeeded) then
-      begin
-        if SetTokenInformation(tokenhandle, TOKEN_INFORMATION_CLASS(TokenIntegrityLevel), buffer2, lengthneeded2) then
-          showmessage('succeed')
-        else
-          showmessage('fuck');
-
-      end
-      else
-        ShowMessage('fail 2');
-    end
-    else showmessage('fail1');
-
-  end
-  else showmessage('fail');       }
-
-  {
-  ShowMessage('going to call dbvm_testSwitchToKernelmode');
-  i:=dbvm_testSwitchToKernelmode;
-  ShowMessage('Still alive. I='+inttostr(i));
-
-  if i=123 then
-    SecondaryDriverLoad;    }
-
-
-  {
-  safed3dhook;
-  if d3dhook=nil then raise exception.create('d3dhook failed');
-  while d3dhook.getWidth=0 do CheckSynchronize;
-
-  p2:=tpicture.create;
-  p2.PNG.PixelFormat:=pf32bit;
-  p2.png.Transparent:=true;
-  p2.png.TransparentColor:=clWhite;
-
-  p2.png.width:=logo.picture.width;
-  p2.png.height:=logo.picture.height;
-  p2.png.canvas.CopyRect(rect(0,0,p2.png.width,p2.png.height), logo.picture.Bitmap.canvas, rect(0,0,p2.png.width,p2.png.height));
-
-
-  t:=d3dhook.createTexture(p2);
-  s:=d3dhook.createSprite(t);
-  s.x:=-1;
-  s.y:=-1;
-
-  f:=tfont.Create;
-  f.Assign(mainform.font);
-  f.Color:=clblue;
-  f.Size:=f.size*2;
-  fm:=d3dhook.createFontMap(f);
-
-  tc:=d3dhook.createTextContainer(fm,100,100,'This is a test');
-
-           }
-
-//  d3dhook.createConsole(0);
 end;
 
 procedure ChangeIcon(hModule: HModule; restype: PChar; resname: PChar;
