@@ -60,9 +60,9 @@ object formSettings: TformSettings
       Height = 468
       Top = 1
       Width = 622
-      ActivePage = GeneralSettings
+      ActivePage = Extra
       Align = alClient
-      TabIndex = 0
+      TabIndex = 6
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -808,9 +808,9 @@ object formSettings: TformSettings
               end
               object Label25: TLabel
                 Left = 2
-                Height = 13
+                Height = 14
                 Top = 3
-                Width = 81
+                Width = 82
                 Caption = 'Thread following:'
                 ParentColor = False
               end
@@ -927,17 +927,17 @@ object formSettings: TformSettings
         end
         object Label4: TLabel
           Left = 15
-          Height = 13
+          Height = 14
           Top = 74
-          Width = 101
+          Width = 102
           Caption = 'Single line assembler:'
           ParentColor = False
         end
         object Label6: TLabel
           Left = 15
-          Height = 13
+          Height = 14
           Top = 162
-          Width = 229
+          Width = 230
           Caption = 'Size of stack to record on "Find what... routines"'
           ParentColor = False
         end
@@ -951,9 +951,9 @@ object formSettings: TformSettings
         end
         object Label7: TLabel
           Left = 63
-          Height = 13
+          Height = 14
           Top = 180
-          Width = 26
+          Width = 27
           Caption = 'Bytes'
           ParentColor = False
         end
