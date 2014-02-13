@@ -170,9 +170,31 @@ begin
   result:=1;
 end;
 
+function memorystream_loadFromFile(L: PLua_State): integer; cdecl;
+var ms: Tmemorystream;
+begin
+  ms:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    ms.LoadFromFile(Lua_ToString(L,1));
+
+  result:=0;
+end;
+
+function memorystream_saveToFile(L: PLua_State): integer; cdecl;
+var ms: Tmemorystream;
+begin
+  ms:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    ms.SaveToFile(Lua_ToString(L,1));
+
+  result:=0;
+end;
+
 procedure memorystream_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
   stream_addMetaData(L, metatable, userdata);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'loadFromFile', memorystream_loadFromFile);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'saveToFile', memorystream_saveToFile);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Memory', memorystream_getMemory, nil);
 end;
 

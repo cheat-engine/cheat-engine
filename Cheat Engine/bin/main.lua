@@ -288,6 +288,8 @@ getPreviousOpcode(address): Returns the address of the previous opcode (this is 
 
 
 beep() : Plays the fabulous beep/ping sound!
+playSound(stream, waittilldone OPTIONAL): Plays the given memorystream containing a .WAV formatted memory object. If waittilldone is true the script will stop executing till the sound has stopped
+playSound(tablefile, waittilldone OPTIONAL) : Takes the memorystream from the tablefile and plays it.
 
 getUserRegistryEnvironmentVariable(name): string - Returns the environment variable stored in the user registry environment
 setUserRegistryEnvironmentVariable(name, string) - Sets the environment variable stored in the user registry environment
@@ -1349,6 +1351,10 @@ createMemoryStream()
 
 properties
   Memory: Integer - The address in Cheat Engine's memory this stream is loaded (READONLY, tends to change)
+
+methods
+  loadFromFile(filename) : Replaces the contents in the memory stream with the contents of a file on disk
+  saveToFile(filename) : Writes the contents of the memory stream to the specified file
 
 
 FileStream Class (Inheritance: HandleStream->Stream->Object)
