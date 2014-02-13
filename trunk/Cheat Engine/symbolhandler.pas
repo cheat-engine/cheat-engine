@@ -437,6 +437,7 @@ procedure TSymbolloaderthread.finishedLoadingSymbols;
 begin
   OutputDebugString('finishedLoadingSymbols called');
   if (not targetself) and (symhandler<>nil) then symhandler.NotifyFinishedLoadingSymbols;
+  OutputDebugString('exit finishedLoadingSymbols()');
 end;
 
 type
@@ -1019,6 +1020,8 @@ begin
         synchronize(finishedloadingsymbols);
 
     end;
+
+    OutputDebugString('Symbol loader thread has finished without errors');
   except
     outputdebugstring(rsSymbolloaderthreadHasCrashed);
   end;
@@ -1318,12 +1321,16 @@ procedure TSymhandler.reinitialize(force: boolean=false);
 begin
   if loadmodulelist or force then //if loadmodulelist returns true it has detected a change in the previous modulelist (baseaddresschange or new/deleted module)
   begin
-    symbolloadervalid.BeginWrite;
-    if symbolloaderthread<>nil then
-    begin
-      symbolloaderthread.Terminate;
-      symbolloaderthread.WaitFor; //wait till it's done
-      freeandnil(symbolloaderthread);
+
+    symbolloadervalid.Beginread;
+    try
+      if symbolloaderthread<>nil then
+      begin
+        symbolloaderthread.Terminate;
+        symbolloaderthread.WaitFor; //wait till it's done
+      end;
+    finally
+      symbolloadervalid.Endread;
     end;
 
     dotNetDataCollector.disconnect;
@@ -1331,11 +1338,20 @@ begin
     if not targetself then
       dotNetDataCollector.connect(processid, processhandler.is64Bit);
 
-    symbolloaderthread:=tsymbolloaderthread.Create(self, targetself,true);
-    symbolloaderthread.kernelsymbols:=kernelsymbols;
-    symbolloaderthread.searchpath:=searchpath;
-    symbolloaderthread.symbollist:=symbollist;
-    symbolloadervalid.EndWrite;
+    symbolloadervalid.BeginWrite;
+    try
+      if symbolloaderthread<>nil then
+        freeandnil(symbolloaderthread);
+
+      symbolloaderthread:=tsymbolloaderthread.Create(self, targetself,true);
+      symbolloaderthread.kernelsymbols:=kernelsymbols;
+      symbolloaderthread.searchpath:=searchpath;
+      symbolloaderthread.symbollist:=symbollist;
+
+    finally
+      symbolloadervalid.EndWrite;
+    end;
+
 
     symbolloaderthread.start;
   end;
@@ -2931,7 +2947,8 @@ var i: integer;
 begin
   //tell all notification routines that the symbollist has been updated and is ready for use
   for i:=0 to length(SymbolsLoadedNotification)-1 do
-    SymbolsLoadedNotification[i](self);
+    if assigned(SymbolsLoadedNotification[i]) then
+      SymbolsLoadedNotification[i](self);
 end;
 
 
