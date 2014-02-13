@@ -10,7 +10,7 @@ uses
   ComCtrls, Buttons, Menus, ExtraTrainerComponents, cefuncproc, HotkeyHandler,
   HotKeys, symbolhandler, luacaller, formdesignerunit, opensave, luafile,
   frmAdConfigUnit, cesupport, IconStuff, memoryrecordunit, frmSelectionlistunit,
-  mainunit2;
+  mainunit2, lua, luahandler;
 
 type
   TTrainerForm=class(TCEForm)
@@ -24,11 +24,12 @@ type
     Button1: TButton;
     Button2: TButton;
     Button3: TButton;
+    btnAddSounds: TButton;
     cbConfigD3DHook: TButton;
     Button5: TButton;
     btnDelete: TButton;
     btnAddHotkey: TButton;
-    cbBeepOnAction: TCheckBox;
+    cbPlaySoundOnAction: TCheckBox;
     cbCanResize: TCheckBox;
     cbPlayXM: TCheckBox;
     cbPopupOnKeypress: TCheckBox;
@@ -36,6 +37,8 @@ type
     cbStopPlaying: TCheckBox;
     cbSupportCheatEngine: TCheckBox;
     cbUseD3DHook: TCheckBox;
+    cbActivateSound: TComboBox;
+    cbDeactivateSound: TComboBox;
     CTSaveDialog: TSaveDialog;
     cbOutput: TComboBox;
     comboProcesslist: TComboBox;
@@ -50,6 +53,8 @@ type
     Label4: TLabel;
     Label5: TLabel;
     Label6: TLabel;
+    lblActivateSound: TLabel;
+    lblDeactivateSound: TLabel;
     lvCheats: TListView;
     mAbout: TMemo;
     MenuItem1: TMenuItem;
@@ -57,6 +62,7 @@ type
     miEditHotkey: TMenuItem;
     OpenDialog1: TOpenDialog;
     OpenDialog2: TOpenDialog;
+    odWave: TOpenDialog;
     OpenPictureDialog1: TOpenPictureDialog;
     Panel1: TPanel;
     Panel2: TPanel;
@@ -70,10 +76,14 @@ type
     EXESaveDialog: TSaveDialog;
     spbDown: TSpeedButton;
     spbUp: TSpeedButton;
+    sbPlayActivate: TSpeedButton;
+    sbPlayDeactivate: TSpeedButton;
     procedure btnDeleteClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
+    procedure btnAddSoundsClick(Sender: TObject);
+    procedure cbPlaySoundOnActionChange(Sender: TObject);
     procedure cbConfigD3DHookClick(Sender: TObject);
     procedure Button5Click(Sender: TObject);
     procedure btnDesignFormClick(Sender: TObject);
@@ -101,6 +111,8 @@ type
     procedure miEditHotkeyClick(Sender: TObject);
     procedure Panel2Resize(Sender: TObject);
     procedure RadioButton2Change(Sender: TObject);
+    procedure sbPlayActivateClick(Sender: TObject);
+    procedure sbPlayDeactivateClick(Sender: TObject);
     procedure spbDownClick(Sender: TObject);
     procedure spbUpClick(Sender: TObject);
   private
@@ -113,6 +125,7 @@ type
     procedure AddHotkey(hk: TMemoryrecordHotkey);
     procedure buildcheatlist;
     procedure fillHotkeyList;
+    procedure FillSound;
     procedure generateScript;
     procedure RestoreSupportCE(sender: tobject);
 
@@ -475,6 +488,7 @@ begin
 
   fillHotkeyList;
   buildcheatlist;
+  FillSound;
 end;
 
 procedure TfrmTrainerGenerator.FormShow(Sender: TObject);
@@ -551,6 +565,16 @@ end;
 procedure TfrmTrainerGenerator.RadioButton2Change(Sender: TObject);
 begin
 
+end;
+
+procedure TfrmTrainerGenerator.sbPlayActivateClick(Sender: TObject);
+begin
+  LUA_DoScript('playSound(findTableFile([['+cbActivateSound.Text+']]))');
+end;
+
+procedure TfrmTrainerGenerator.sbPlayDeactivateClick(Sender: TObject);
+begin
+  LUA_DoScript('playSound(findTableFile([['+cbDeactivateSound.Text+']]))');
 end;
 
 procedure TfrmTrainerGenerator.spbDownClick(Sender: TObject);
@@ -640,6 +664,81 @@ begin
   zeromemory(@popupkeys,sizeof(TKeyCombo));
   edtPopupHotkey.Text:=ConvertKeyComboToString(popupkeys);
   edtPopupHotkey.SetFocus;
+end;
+
+procedure TfrmTrainerGenerator.FillSound;
+var i: integer;
+  s: tstringlist;
+
+  riff: pchar;
+
+  oldcbActivateSound: string;
+  oldcbDeactivateSound:string;
+begin
+  s:=tstringlist.create;
+  getmem(riff,5);
+  for i:=0 to mainform.LuaFiles.Count-1 do
+  begin
+    if mainform.LuaFiles[i].stream.size>4 then
+    begin
+      CopyMemory(riff, mainform.LuaFiles[i].stream.Memory,4);
+      riff[4]:=#0;
+      if riff='RIFF' then //good enough (could still be wrong, but better than random)
+        s.add(mainform.LuaFiles[i].name);
+    end;
+
+
+  end;
+
+  cbActivateSound.Items.Assign(s);
+  cbActivateSound.DropDownCount:=max(16, s.count);
+
+  cbDeactivateSound.Items.Assign(s);
+  cbDeactivateSound.DropDownCount:=max(16, s.count);
+
+
+  cbActivateSound.itemindex:=cbActivateSound.Items.IndexOf(oldcbActivateSound);
+  cbDeactivateSound.itemindex:=cbDeactivateSound.Items.IndexOf(oldcbDeactivateSound);
+  s.free;
+end;
+
+procedure TfrmTrainerGenerator.btnAddSoundsClick(Sender: TObject);
+var
+  i: integer;
+  s: tmemorystream;
+  lf: TLuafile;
+begin
+  odwave.InitialDir:=GetCEdir;
+  if odwave.execute then
+  begin
+    for i:=0 to odwave.Files.Count-1 do
+    begin
+      s := TMemorystream.Create;
+      try
+        s.LoadFromFile(odwave.files[i]);
+        lf := TLuaFile.Create(extractfilename(odwave.files[i]), s);
+
+        MainForm.LuaFiles.Add(lf);
+      finally
+        s.free;
+      end;
+    end;
+
+
+    FillSound;
+  end;
+end;
+
+procedure TfrmTrainerGenerator.cbPlaySoundOnActionChange(Sender: TObject);
+begin
+  lblActivateSound.enabled:=cbPlaySoundOnAction.checked;
+  lblDeactivateSound.enabled:=cbPlaySoundOnAction.checked;
+  cbActivateSound.enabled:=cbPlaySoundOnAction.checked;
+  cbDeactivateSound.enabled:=cbPlaySoundOnAction.checked;
+  sbPlayActivate.enabled:=cbPlaySoundOnAction.checked;
+  sbPlayDeactivate.enabled:=cbPlaySoundOnAction.checked;
+
+  btnAddSounds.enabled:=cbPlaySoundOnAction.checked;
 end;
 
 
@@ -784,7 +883,7 @@ begin
       //fill the memrec list
       for i:=0 to mainform.addresslist.count-1 do
         if mainform.addresslist.MemRecItems[i].hasHotkeys then
-          l.add('memrec'+inttostr( mainform.addresslist.MemRecItems[i].id)+'=addresslist_getMemoryRecordByID(addresslist,'+inttostr(mainform.addresslist.MemRecItems[i].id)+')');
+          l.add('memrec'+inttostr( mainform.addresslist.MemRecItems[i].id)+'=addresslist.getMemoryRecordByID('+inttostr(mainform.addresslist.MemRecItems[i].id)+')');
 
       l.add('');
 
@@ -796,7 +895,7 @@ begin
 
         memrecname:='memrec'+inttostr(currentmr.id);
         hotkeyname:=memrecname+'_hotkey'+inttostr(currenthk.id);
-        l.add(hotkeyname+'=memoryrecord_getHotkeyByID('+memrecname+','+inttostr(currenthk.id)+')');
+        l.add(hotkeyname+memrecname+'.getHotkeyByID('+inttostr(currenthk.id)+')');
       end;
       l.add('');
 
@@ -844,11 +943,15 @@ begin
               fname:='onPostHotkey'+inttostr(currentcheat.cheatnr);
               l.Add('function '+fname+'(Hotkey)');
               l.add('  --Executed after the "toggle*" cheat got executed');
-              l.add('  local memrec=memoryrecordhotkey_getOwner(Hotkey)');
-              l.add('  local isActive=memoryrecord_isActive(memrec) --get the state after the hotkey got triggered');
-              l.add('  cheatcomponent_setActive('+trainerform.name+'_'+currentcheat.name+', isActive)');
-              l.add('  if gBeepOnAction then');
-              l.add('    beep()');
+              l.add('  local memrec=Hotkey.Owner');
+              l.add('  local isActive=memrec.Active --get the state after the hotkey got triggered');
+              l.add('  '+trainerform.name+'.'+currentcheat.name+'.setActive(isActive) --gui update, nothing else');
+              l.add('  if gPlaySoundOnAction then');
+              l.add('    if isActive then');
+              l.add('      playSound(gActivateSound)');
+              l.add('    else');
+              l.add('      playSound(gDeactivateSound)');
+              l.add('    end');
               l.add('  end');
               if cbUseD3DHook.checked and (frmD3DTrainerGeneratorOptions<>nil) and (frmD3DTrainerGeneratorOptions.cbHasCheckbox.checked) then
               begin
@@ -865,7 +968,7 @@ begin
               l.add('');
 
 
-              l.add('memoryrecordhotkey_onPostHotkey('+hotkeyname+','+fname+')');
+              l.add(hotkeyname+'.onPostHotkey='+fname);
               l.add('');
             end;
 
@@ -878,17 +981,17 @@ begin
               l.add('  --Executed before the hotkey is handled');
               if currentcheat.HasEditBox then
               begin
-                l.add('  local memrec=memoryrecordhotkey_getOwner(Hotkey)');
-                l.add('  memoryrecord_setValue(memrec, cheatcomponent_getEditValue('+trainerform.name+'_'+currentcheat.name+')) --this will also update the ''frozen'' value');
+                l.add('  local memrec=Hotkey.Owner');
+                l.add('  memrec.Value='+trainerform.name+'.'+currentcheat.name+'.Editvalue --this will also update the ''frozen'' value');
               end;
-              l.add('  cheatcomponent_setActive('+trainerform.name+'_'+currentcheat.name+', true, 1500)');
-              l.add('  if gBeepOnAction then');
-              l.add('    beep()');
+              l.add('  '+trainerform.name+'.'+currentcheat.name+'setActive(true, 1500)');
+              l.add('  if gPlaySoundOnAction then');
+              l.add('    playSound(gActivateSound)');
               l.add('  end');
               l.add('end');
               l.add('');
+              l.add(hotkeyname+'.onHotkey='+fname);
 
-              l.add('memoryrecordhotkey_onHotkey('+hotkeyname+','+fname+')');
             end;
 
 
@@ -901,17 +1004,17 @@ begin
 
     seperator:=TCESplitter(trainerform.FindComponent('SEPERATOR'));
     if seperator<>nil then
-      l.Add('control_setVisible('+trainerform.name+'_SEPERATOR, false)');
+      l.Add(trainerform.name+'.SEPERATOR.Visible=false');
 
 
     l.add('');
-    l.add('strings_add(getAutoAttachList(), "'+comboProcesslist.text+'")');
+    l.add('getAutoAttachList().add("'+comboProcesslist.text+'")');
 
 
     if (cbPopupOnKeypress.checked) and (edtPopupHotkey.text<>'') then
     begin
       l.add('function popupTrainerHotkeyFunction()');
-      l.add('  form_show('+trainerform.Name+')');
+      l.add('  '+trainerform.Name+'.show()');
       l.add('end');
 
 
@@ -926,15 +1029,19 @@ begin
         keyparams:=copy(keyparams, 1,length(keyparams)-1);
 
       l.add('registerHotkey(popupTrainerHotkeyFunction, '+keyparams+')');
-      l.add('timer_setInterval(getFreezeTimer(),'+edtFreezeInterval.text+')');
+      l.add('getFreezeTimer().Interval='+edtFreezeInterval.text);
     end;
 
-    if cbBeepOnAction.checked then
-      l.add('gBeepOnAction=true')
+    if cbPlaySoundOnAction.checked then
+    begin
+      l.add('gPlaySoundOnAction=true');
+      l.add('gActivateSound=findTableFile([['+cbActivateSound.text+']])');
+      l.add('gDeactivateSound=findTableFile([['+cbDeactivateSound.text+']])');
+    end
     else
-      l.add('gBeepOnAction=false');
+      l.add('gPlaySoundOnAction=false');
 
-    l.add('form_show('+trainerform.Name+')');
+    l.add(trainerform.Name+'.show()');
 
     if mAbout.lines.count>0 then
     begin
@@ -964,6 +1071,7 @@ begin
 
 
     l.add('function CloseClick()');
+    l.add('  --called by the close button onClick event, and when closing the form');
     l.add('  closeCE()');
     l.add('  return caFree --onClick doesn''t care, but onClose would like a result');
     l.add('end');
@@ -993,34 +1101,34 @@ begin
 
       l.add('');
       l.add('XMFILE=findTableFile(''TRAINERXM'')');
-      l.add('xmplayer_playXM(XMFILE)');
+      l.add('xmplayer.playXM(XMFILE)');
       l.add('');
 
       if rbStopWhenAttached.checked then
       begin
         l.add('function onOpenProcess(processid)');
-        l.add('  xmplayer_stop()');
+        l.add('  xmplayer.stop()');
         l.add('end');
       end
       else
       begin
         l.add('function focusCheck(sender)');
-        l.add('  if (form_isForegroundWindow('+trainerform.Name+')) then');
-        l.add('    if (xmplayer_isPlaying()==false) then');
-        l.add('      xmplayer_resume()');
+        l.add('  if (form.isForegroundWindow('+trainerform.Name+')) then');
+        l.add('    if (xmplayer.isPlaying()==false) then');
+        l.add('      xmplayer.resume()');
         l.add('    end');
         l.add('  else');
-        l.add('    if (xmplayer_isPlaying()) then');
-        l.add('      xmplayer_pause()');
+        l.add('    if (xmplayer.isPlaying()) then');
+        l.add('      xmplayer.pause()');
         l.add('    end');
         l.add('  end');
         l.add('end');
 
         l.add('');
         l.add('focusTimer=createTimer(nil)');
-        l.add('timer_onTimer(focusTimer, focusCheck)');
-        l.add('timer_setInterval(focusTimer, 250)');
-        l.add('timer_setEnabled(focusTimer, true)');
+        l.add('focusTimer.onTimer=focusCheck');
+        l.add('focusTimer.Interval=250');
+        l.add('focusTimer.Enabled=true');
         l.add('');
       end;
 

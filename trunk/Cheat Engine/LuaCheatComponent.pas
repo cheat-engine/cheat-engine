@@ -12,7 +12,7 @@ procedure initializeLuaCheatComponent;
 
 implementation
 
-uses LuaClass;
+uses LuaClass, LuaWinControl;
 
 function cheatcomponent_getActive(L: PLua_State): integer; cdecl;
 var
@@ -175,6 +175,13 @@ begin
     cheatcomponent.EditValue:=Lua_ToString(L,-1);
 end;
 
+procedure cheatcomponent_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
+begin
+  wincontrol_addMetaData(L, metatable, userdata);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'setActive', cheatcomponent_setActive);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'getActive', cheatcomponent_getActive);
+end;
+
 procedure initializeLuaCheatComponent;
 begin
   Lua_register(LuaVM, 'cheatcomponent_setActive', cheatcomponent_setActive);
@@ -190,6 +197,10 @@ begin
   Lua_register(LuaVM, 'cheatcomponent_setEditValue', cheatcomponent_setEditValue);
   Lua_register(LuaVM, 'cheatcomponent_getEditValue', cheatcomponent_getEditValue);
 end;
+
+initialization
+  luaclass_register(TCheat, cheatcomponent_addMetaData);
+
 
 end.
 
