@@ -390,8 +390,8 @@ type
     editSH2: TEdit;
     Label54: TLabel;
     tbSpeed: TTrackBar;
-    Label56: TLabel;
-    Label60: TLabel;
+    lblSH0: TLabel;
+    lblSH20: TLabel;
     cbSpeedhack: TCheckBox;
     MainMenu1: TMainMenu;
     File1: TMenuItem;
