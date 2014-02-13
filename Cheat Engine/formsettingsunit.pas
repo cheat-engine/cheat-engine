@@ -1012,6 +1012,20 @@ end;
 procedure TformSettings.FormCreate(Sender: TObject);
 var i: integer;
 begin
+  tvMenuSelection.Items[0].Data:=GeneralSettings;
+  tvMenuSelection.Items[1].Data:=tsTools;
+  tvMenuSelection.Items[2].Data:=tsHotkeys;
+  tvMenuSelection.Items[3].Data:=Unrandomizer;
+  tvMenuSelection.Items[4].Data:=ScanSettings;
+  tvMenuSelection.Items[5].Data:=Plugins;
+  tvMenuSelection.Items[6].Data:=self.Assembler;
+  tvMenuSelection.Items[7].Data:=Extra;
+
+
+
+
+
+
   combothreadpriority.Items.Clear;
   with combothreadpriority.items do
   begin
@@ -1197,22 +1211,8 @@ end;
 procedure TformSettings.tvMenuSelectionChange(Sender: TObject;
   Node: TTreeNode);
 begin
-  if node.Level=0 then //main settings
-  begin
-    pcSetting.ActivePageIndex:=node.Index;
-  end;
-
-  if node.level=1 then
-  begin
-    if node.Parent.Index=0 then
-    begin
-      if node.Index=0 then //tools menu
-      begin
-        pcSetting.ActivePage:=tsTools;
-      end;
-    end;
-
-  end;
+  if node.Data<>nil then
+    pcSetting.ActivePage:=TTabSheet(node.data);
 end;
 
 procedure TformSettings.Panel6Resize(Sender: TObject);
