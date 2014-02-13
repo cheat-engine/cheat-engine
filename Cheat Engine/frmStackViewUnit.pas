@@ -68,6 +68,13 @@ implementation
 
 uses MemoryBrowserFormUnit, StructuresFrm2, frmstacktraceunit;
 
+resourcestring
+  rsTheStructuresListIsBroken = 'The structures list is broken';
+  rsNewWindow = '<New window>';
+  rsLockAndAddToStructureDissect = 'Lock and add to structure dissect';
+  rsSelectTheStructureDissectWindowYouWishToAddThisReg = 'Select the structure'
+    +' dissect window you wish to add this region to';
+
 procedure TfrmStackView.miAddESPClick(Sender: TObject);
 begin
   SetContextPointer(c, stack, size);
@@ -136,17 +143,17 @@ begin
   s:=tstringlist.create;
 
   if frmStructures2=nil then
-    raise exception.create('The structures list is broken');
+    raise exception.create(rsTheStructuresListIsBroken);
 
   for i:=0 to frmStructures2.Count-1 do
     s.add(TfrmStructures2(frmStructures2[i]).Caption);
 
-  s.add('<New window>');
+  s.add(rsNewWindow);
 
   f:=TfrmSelectionList.Create(self, s);
 
-  f.caption:='Lock and add to structure dissect';
-  f.label1.Caption:='Select the structure dissect window you wish to add this region to';
+  f.caption:=rsLockAndAddToStructureDissect;
+  f.label1.Caption:=rsSelectTheStructureDissectWindowYouWishToAddThisReg;
 
   if f.showmodal=mrok then
   begin

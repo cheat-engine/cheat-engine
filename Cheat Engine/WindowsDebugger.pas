@@ -29,6 +29,10 @@ implementation
 
 uses autoassembler, pluginexports, CEDebugger, DebugHelper;
 
+resourcestring
+  rsErrorAttachingTheWindowsDebugger = 'Error attaching the windows debugger: '
+    +'%s';
+
 constructor TWindowsDebuggerInterface.create;
 begin
   inherited create;
@@ -92,7 +96,8 @@ begin
   result:=newkernelhandler.DebugActiveProcess(dwProcessId);
 
   if result=false then
-    ferrorstring:='Error attaching the windows debugger: '+inttostr(getlasterror)
+    ferrorstring:=Format(rsErrorAttachingTheWindowsDebugger, [inttostr(
+      getlasterror)])
   else
     symhandler.reinitialize;
   //processhandler.processid:=dwProcessID;

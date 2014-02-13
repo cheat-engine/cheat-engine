@@ -574,6 +574,9 @@ resourcestring
 
   rsTerminating = 'Terminating';
   rsStop = 'Stop';
+  rsFailureCopyingTargetProcessMemory = 'Failure copying target process memory';
+  rsOUTOFDISKSPACECleanUpTheDiskOrStop = 'OUT OF DISKSPACE! Clean up the disk '
+    +'or stop';
 
 //----------------------- scanner info --------------------------
 //----------------------- staticscanner -------------------------
@@ -2626,7 +2629,7 @@ begin
         on e: exception do
         begin
           haserror:=true;
-          errorString:='Failure copying target process memory';
+          errorString:=rsFailureCopyingTargetProcessMemory;
           postmessage(ownerform.Handle,staticscanner_done,0,NULL);
           terminate;
           exit;
@@ -3534,7 +3537,7 @@ begin
       if staticscanner.outofdiskspace then
       begin
         label5.Font.Color:=clRed;
-        label5.caption:='OUT OF DISKSPACE! Clean up the disk or stop';
+        label5.caption:=rsOUTOFDISKSPACECleanUpTheDiskOrStop;
       end
       else
       begin

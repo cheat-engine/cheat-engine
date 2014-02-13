@@ -341,6 +341,11 @@ resourcestring
   rsGeneratingStringmap = 'Generating stringmap';
   rsGeneratedScanning = 'Generated. Scanning...';
   rsThisAddressIsNotAccessible = 'This address is not accessible';
+  rsStop = 'Stop';
+  rsTerminating = 'Terminating...';
+  rsAreYouSureYo = 'Are you sure you wish to start a new scan?';
+  rsScan = 'Scan';
+  rsScanningFoun = 'Scanning... Found %s';
 
 //----------TPointerfileReader---------
 
@@ -2090,7 +2095,7 @@ begin
         rescanner:=trescan.create(false, address, address2, cbpointerinrange.checked, pointerstart, pointerstop, rbStringscan.checked, cbCaseSensitive.checked, cbMustBeStart.checked, edtRegExp.text, diffkind, vartype, oldpointerfile, savedialog1.filename , self);
 
       end;
-      btnScan.caption:='Stop';
+      btnScan.caption:=rsStop;
       progressbar1.visible:=true;
       statusupdater.enabled:=true;
     end;
@@ -2099,7 +2104,7 @@ begin
   else
   begin
     btnScan.enabled:=false;
-    btnScan.caption:='Terminating...';
+    btnScan.caption:=rsTerminating;
 
     if scanner<>nil then
       scanner.terminate;
@@ -2238,11 +2243,11 @@ end;
 
 procedure TfrmStringPointerScan.miNewScanClick(Sender: TObject);
 begin
-  if MessageDlg('Are you sure you wish to start a new scan?', mtConfirmation, mbYesNo, 0)=mryes then
+  if MessageDlg(rsAreYouSureYo, mtConfirmation, mbYesNo, 0)=mryes then
   begin
     cleanup;
     btnScan.tag:=0;
-    btnScan.caption:='Scan';
+    btnScan.caption:=rsScan;
 
     btnScan.Left:=(panel1.ClientWidth div 2)-(btnscan.Width div 2);
 
@@ -2345,7 +2350,7 @@ begin
 
   if scanner<>nil then
   begin
-    lblInfo.caption:='Scanning... Found '+inttostr(scanner.count);
+    lblInfo.caption:=Format(rsScanningFoun, [inttostr(scanner.count)]);
 
     scannerTotal:=power(scanner.structsize, scanner.maxlevel+1);
 
@@ -2362,7 +2367,7 @@ begin
   end
   else
   if rescanner<>nil then
-    lblinfo.caption:='Scanning... Found '+inttostr(rescanner.count)
+    lblinfo.caption:=Format(rsScanningFoun, [inttostr(rescanner.count)])
 
 
 end;
