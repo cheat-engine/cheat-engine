@@ -169,6 +169,7 @@ resourcestring
   rsTimeCritical = 'TimeCritical';
 
   strMaxOffsetsIsStupid = 'Sorry, but the max offsets should be 1 or higher, or else disable the checkbox'; //'Are you a fucking retard?';
+  rsUseLoadedPointermap = 'Use loaded pointermap:';
 
 
 constructor TOffsetEntry.create(AOwner: TComponent);
@@ -474,7 +475,7 @@ begin
       cbReusePointermap.enabled:=false;
       cbReusePointermap.OnChange:=cbReusePointermapChange;
 
-      cbUseLoadedPointermap.Caption:='Use loaded pointermap:'+ExtractFileName(odLoadPointermap.FileName);
+      cbUseLoadedPointermap.Caption:=rsUseLoadedPointermap+ExtractFileName(odLoadPointermap.FileName);
     end
     else
       cbUseLoadedPointermap.checked:=false;
