@@ -780,6 +780,8 @@ begin
       c:=PosEx(',',currentline,b+1);
       d:=pos(')',currentline);
 
+      if d=0 then raise exception.create(rsWrongSyntaxAOBSCANMODULEName11223355);
+
 
 
       if (a>0) and (b>0) and (c>0) then
