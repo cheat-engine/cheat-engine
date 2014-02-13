@@ -895,7 +895,7 @@ begin
 
         memrecname:='memrec'+inttostr(currentmr.id);
         hotkeyname:=memrecname+'_hotkey'+inttostr(currenthk.id);
-        l.add(hotkeyname+memrecname+'.getHotkeyByID('+inttostr(currenthk.id)+')');
+        l.add(hotkeyname+'='+memrecname+'.getHotkeyByID('+inttostr(currenthk.id)+')');
       end;
       l.add('');
 
