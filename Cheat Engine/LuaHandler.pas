@@ -5143,6 +5143,63 @@ begin
   SendMessageTimeout(HWND_BROADCAST, WM_SETTINGCHANGE, 0, LPARAM(pchar('Environment')), SMTO_ABORTIFHUNG, 5000, rv);
 end;
 
+var winmm: THandle=0;
+var PlaySoundA: function (pszSound: LPCSTR; hmod: HModule; fdwSound: DWORD): BOOL; stdcall;
+
+function lua_playSound(L: PLua_State): integer; cdecl;
+const
+    SND_NODEFAULT = 2;
+    SND_MEMORY = 4;
+    SND_LOOP = 8;
+    SND_NOSTOP = 16;
+    SND_SYNC = 0;
+    SND_ASYNC = 1;
+    SND_PURGE = 64;
+    SND_APPLICATION = 128;
+var
+  o: tobject;
+  ms: TMemorystream;
+  playparam: dword;
+begin
+  if lua_gettop(L)>=1 then
+  begin
+    if winmm=0 then
+      winmm:=LoadLibrary('winmm.dll');
+
+    if (winmm<>0) then
+    begin
+      if not assigned(PlaySoundA) then
+        PlaySoundA:=GetProcAddress(winmm,'PlaySoundA');
+
+      if assigned(PlaySoundA) then
+      begin
+        if lua_isuserdata(L,1) then
+        begin
+          o:=lua_ToCEUserData(L, 1);
+
+          if o is TLuafile then
+            ms:=TLuaFile(o).stream
+          else
+          if o is TMemoryStream then
+            ms:=TMemoryStream(o)
+          else
+            raise exception.create('playSound: The parameter must be a table file or a memory stream. Nothing else');
+
+          playparam:=SND_MEMORY;
+          if (lua_gettop(L)>=2) and lua_toboolean(L,2) then
+            playparam:=playparam or SND_SYNC
+          else
+            playparam:=playparam or SND_ASYNC;
+
+          PlaySoundA(ms.Memory, NULL, playparam);
+        end;
+
+
+      end;
+    end;
+  end;
+
+end;
 
 procedure InitializeLua;
 var s: tstringlist;
@@ -5504,6 +5561,8 @@ begin
     lua_register(LuaVM, 'synchronize', lua_synchronize);
     lua_register(LuaVM, 'checkSynchronize', lua_checkSynchronize);
 
+    lua_register(LuaVM, 'playSound', lua_playSound);
+
     lua_register(LuaVM, 'outputDebugString', lua_outputDebugString);
     lua_register(LuaVM, 'broadcastEnvironmentUpdate', broadcastEnvironmentUpdate);
     lua_register(LuaVM, 'getUserRegistryEnvironmentVariable', getUserRegistryEnvironmentVariable);
@@ -5540,6 +5599,7 @@ begin
     initializeLuaSymbolListHandler;
     initializeLuaFindDialog;
     initializeLuaSettings;
+
 
 
     s:=tstringlist.create;
