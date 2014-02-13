@@ -2,78 +2,113 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
   Left = 995
   Height = 306
   Top = 176
-  Width = 305
+  Width = 306
   BorderStyle = bsSingle
   Caption = 'Generate groupscan command'
   ClientHeight = 306
-  ClientWidth = 305
+  ClientWidth = 306
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '1.0.8.0'
   object edtBlocksize: TEdit
+    AnchorSideLeft.Control = ScrollBox1
+    AnchorSideTop.Control = lblBlocksize
+    AnchorSideTop.Side = asrBottom
     Left = 14
     Height = 23
-    Top = 160
+    Top = 158
     Width = 80
     Enabled = False
     TabOrder = 0
   end
-  object Label1: TLabel
+  object lblBlocksize: TLabel
+    AnchorSideLeft.Control = ScrollBox1
+    AnchorSideTop.Control = ScrollBox1
+    AnchorSideTop.Side = asrBottom
     Left = 14
     Height = 16
-    Top = 144
+    Top = 142
     Width = 49
+    BorderSpacing.Top = 6
     Caption = 'Blocksize'
     ParentColor = False
   end
   object ScrollBox1: TScrollBox
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = lblWildcardExplanation
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
     Left = 14
     Height = 120
     Top = 16
-    Width = 282
-    HorzScrollBar.Page = 278
+    Width = 278
+    HorzScrollBar.Page = 274
     VertScrollBar.Increment = 11
     VertScrollBar.Page = 116
     VertScrollBar.Smooth = True
     VertScrollBar.Tracking = True
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Left = 14
+    BorderSpacing.Right = 14
     TabOrder = 1
   end
-  object Button1: TButton
-    Left = 69
+  object btnOK: TButton
+    AnchorSideLeft.Control = Owner
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = cbTypeAligned
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = btnCancel
+    Left = 72
     Height = 25
-    Top = 272
+    Top = 268
     Width = 75
+    Anchors = [akTop]
+    BorderSpacing.Top = 10
+    BorderSpacing.Right = 8
     Caption = 'OK'
     Default = True
-    OnClick = Button1Click
+    OnClick = btnOKClick
     TabOrder = 2
   end
-  object Button2: TButton
-    Left = 165
+  object btnCancel: TButton
+    AnchorSideLeft.Control = btnOK
+    AnchorSideTop.Control = cbTypeAligned
+    AnchorSideTop.Side = asrBottom
+    Left = 160
     Height = 25
-    Top = 272
+    Top = 268
     Width = 75
+    Anchors = [akTop]
+    BorderSpacing.Top = 10
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 3
   end
   object cbOutOfOrder: TCheckBox
+    AnchorSideLeft.Control = ScrollBox1
+    AnchorSideTop.Control = edtBlockalignment
+    AnchorSideTop.Side = asrBottom
     Left = 14
     Height = 19
-    Top = 224
+    Top = 220
     Width = 85
     Caption = 'Out of order'
     OnChange = cbOutOfOrderChange
     TabOrder = 4
   end
   object cbTypeAligned: TCheckBox
-    Left = 32
+    AnchorSideLeft.Control = cbOutOfOrder
+    AnchorSideTop.Control = cbOutOfOrder
+    AnchorSideTop.Side = asrBottom
+    Left = 28
     Height = 19
-    Top = 240
+    Top = 239
     Width = 133
+    BorderSpacing.Left = 14
     Caption = 'Must be type-aligned'
     Checked = True
     Enabled = False
@@ -82,33 +117,47 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
     TabOrder = 5
   end
   object lblMin: TLabel
-    Left = 96
+    AnchorSideLeft.Control = edtBlocksize
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = edtBlocksize
+    AnchorSideTop.Side = asrCenter
+    Left = 98
     Height = 16
-    Top = 163
+    Top = 161
     Width = 35
+    BorderSpacing.Left = 4
     Caption = 'lblMin'
     ParentColor = False
     Visible = False
   end
   object edtBlockalignment: TEdit
+    AnchorSideLeft.Control = ScrollBox1
+    AnchorSideTop.Control = lblBlockAlignment
+    AnchorSideTop.Side = asrBottom
     Left = 14
     Height = 23
-    Top = 200
+    Top = 197
     Width = 80
     OnChange = edtBlockalignmentChange
     TabOrder = 6
     Text = '4'
   end
-  object Label2: TLabel
+  object lblBlockAlignment: TLabel
+    AnchorSideLeft.Control = ScrollBox1
+    AnchorSideTop.Control = edtBlocksize
+    AnchorSideTop.Side = asrBottom
     Left = 14
     Height = 16
-    Top = 184
+    Top = 181
     Width = 87
     Caption = 'Block alignment'
     ParentColor = False
   end
-  object Label3: TLabel
-    Left = 14
+  object lblWildcardExplanation: TLabel
+    AnchorSideLeft.Control = Owner
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = Owner
+    Left = 45
     Height = 16
     Top = 0
     Width = 217
@@ -116,10 +165,15 @@ object frmGroupScanAlgoritmGenerator: TfrmGroupScanAlgoritmGenerator
     ParentColor = False
   end
   object lblMustBeDividable: TLabel
-    Left = 96
+    AnchorSideLeft.Control = edtBlockalignment
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = edtBlockalignment
+    AnchorSideTop.Side = asrCenter
+    Left = 98
     Height = 16
-    Top = 202
+    Top = 200
     Width = 120
+    BorderSpacing.Left = 4
     Caption = 'Must be dividable by 4'
     ParentColor = False
     Visible = False
