@@ -2127,9 +2127,6 @@ methods
 
 
 
-  
-
-
 SymbolList class
   This class can be used to look up an address to a symbolname, and a symbolname to an address
   It can also be registered with the internal symbol handler of cheat engine
@@ -2141,7 +2138,7 @@ SymbolList class
       address: integer
       symbolsize: integer                                       
 
-Related functions
+Global functions
   createSymbolList() : Creates an empty symbollist
 
 
@@ -2164,6 +2161,27 @@ Methods
   register() : Registers the current symbol list with the symbol handler
   unregister(): Unregisters the current symbol list from the symbol handler
   
+
+Pagecontrol Class (WinControl->Control->Component->Object)
+  This is an object that can hold multiple pages
+
+global functions
+  createPageControl(owner)
+properties
+  ShowTabs: boolean - Shows the tabs
+  TabIndex: integer - Gets and sets the current tab
+  ActivePage: TabSheet - Returns the current tabsheet. 
+  PageCount: integer - Gets the number of pages
+  Page[]: TabSheet - Get a specific page (TabSheet)
+methods
+  addTab() : TabSheet - Creates a new TabSheet
+
+TabSheet class (WinControl->Control->Component->Object)
+  Part of a page control. This object can contain other objects
+properties
+  TabIndex: integer - the current index in the pagelist of the owning pagecontrol
+methods
+
 
 --]]
 

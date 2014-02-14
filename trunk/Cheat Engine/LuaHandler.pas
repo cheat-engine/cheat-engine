@@ -83,7 +83,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports, Mem
   LuaTableFile, LuaMemoryRecordHotkey, LuaMemoryView, LuaD3DHook, LuaDisassembler,
   LuaDissectCode, LuaByteTable, LuaBinary, lua_server, HotkeyHandler, LuaPipeClient,
   LuaPipeServer, LuaTreeview, LuaTreeNodes, LuaTreeNode, LuaCalendar, LuaSymbolListHandler,
-  LuaCommonDialog, LuaFindDialog, LuaSettings;
+  LuaCommonDialog, LuaFindDialog, LuaSettings, LuaPageControl;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -5599,6 +5599,7 @@ begin
     initializeLuaSymbolListHandler;
     initializeLuaFindDialog;
     initializeLuaSettings;
+    initializeLuaPageControl;
 
 
 
