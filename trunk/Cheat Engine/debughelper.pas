@@ -229,8 +229,8 @@ begin
         ) =false then
         begin
           error:=getlasterror;
-          MessageBox(0, pchar(Format(rsCreateProcessFailed, [inttostr(error)])
-            ), pchar(rsDebuggerCrash), MB_ICONERROR or mb_ok);
+          MessageBox(0, pchar(Format(utf8toansi(rsCreateProcessFailed), [inttostr(error)])
+            ), pchar(utf8toansi(rsDebuggerCrash)), MB_ICONERROR or mb_ok);
           exit;
         end;
 
@@ -284,7 +284,7 @@ begin
 
     except
       on e: exception do
-        messagebox(0, pchar(rsDebuggerCrash+':'+e.message), '', 0);
+        messagebox(0, pchar(utf8toansi(rsDebuggerCrash)+':'+e.message), '', 0);
     end;
 
   finally
