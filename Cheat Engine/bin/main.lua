@@ -304,7 +304,7 @@ registerFormAddNotification(function(form)): Registers a function to be called w
 unregisterFormAddNotification(Object)
 
 
-
+getSettingsForm(): Returns the main settings form
 getMemoryViewForm() : Returns the main memoryview form class object which can be accessed using the Form_ class methods and the methods of the classes it inherits from. There can be multiple memory views, but this will only find the original/base
 getMainForm() : Returns the main form class object which can be accessed using the Form_ class methods and the methods of the classes it inherits from
 getAddressList() : Returns the cheat table addresslist object
@@ -420,7 +420,7 @@ createClass(classname): Creates an object of the specified class (Assuming it's 
 Class definitions
 Object class: (Inheritance: )
 Properties:
-  ClassName: String - The name of the structure (Read only)
+  ClassName: String - The name of class (Read only)
 Methods:
   getClassName(): Returns the classname
   destroy(): Destroys the object
@@ -625,6 +625,7 @@ methods
 
 Form Class: (Inheritance: ScrollingWinControl->CustomControl->WinControl->Control->Component->Object)
 properties
+  ModalResult: integer - The current ModalResult value of the form. Note: When this value gets set the modal form will close
   OnClose: function - The function to call when the form gets closed
   Menu: MainMenu - The main menu of the form
 
@@ -1718,7 +1719,7 @@ methods
 Structure class related functions:
 getStructureCount(): Returns the number of Global structures. (Global structures are the visible structures)
 getStructure(index): Returns the Structure object at the given index
-createStructure(name): Returns an empty structure object (Not yet added to the Global list. Call structure_addToGlobalStructureList manually)
+createStructure(name): Returns an empty structure object (Not yet added to the Global list. Call structure.addToGlobalStructureList manually)
 
 
 
@@ -2187,12 +2188,6 @@ methods
 
 --[[
 todo:
-
-createPageControl
-
-createRegistryObject
-
-getCheatEngineSettings
 
 createSettingsPage
 

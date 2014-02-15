@@ -44,7 +44,7 @@ var
   c: TCustomForm;
 begin
   c:=luaclass_getClassObject(L);
-  LuaCaller_pushMethodProperty(L, TMethod(c.OnClose), 'TNotifyEvent');
+  LuaCaller_pushMethodProperty(L, TMethod(c.OnClose), 'TCloseEvent');
   result:=1;
 end;
 
@@ -298,6 +298,29 @@ begin
     form.DoNotSaveInTable:=lua_toboolean(L,-1);
 end;
 
+function customform_getModalResult(L: PLua_State): integer; cdecl;
+var
+  form: TCustomForm;
+begin
+  form:=luaclass_getClassObject(L);
+  lua_pushinteger(L, integer(form.ModalResult));
+  result:=1;
+end;
+
+function customform_setModalResult(L: PLua_State): integer; cdecl;
+var
+  form: TCustomForm;
+  ModalResult: TModalResult;
+begin
+  result:=0;
+  form:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+  begin
+    ModalResult:=TModalResult(lua_tointeger(L,1));
+    form.ModalResult:=ModalResult;
+  end;
+end;
+
 procedure customform_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
   customcontrol_addMetaData(L, metatable, userdata);
@@ -319,6 +342,7 @@ begin
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'OnClose', customform_getOnClose, customform_setOnClose);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Menu', customform_getMenu, customform_setMenu);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'ModalResult', customform_getModalResult, customform_setModalResult);
 end;
 
 procedure ceform_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
