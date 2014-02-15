@@ -202,16 +202,16 @@ begin
       begin
         case addresses[i].jumptype of
           jtUnconditional:
-            sl.Add(inttohex(addresses[i].address, 8)+rsUn);
+            sl.Add(inttohex(addresses[i].address, 8)+utf8toansi(rsUn));
 
           jtConditional:
-            sl.Add(inttohex(addresses[i].address, 8)+rsCon);
+            sl.Add(inttohex(addresses[i].address, 8)+utf8toansi(rsCon));
 
           jtCall:
-            sl.Add(inttohex(addresses[i].address, 8)+rsCall);
+            sl.Add(inttohex(addresses[i].address, 8)+utf8toansi(rsCall));
 
           jtMemory:
-            sl.Add(inttohex(addresses[i].address, 8)+rsMemory);
+            sl.Add(inttohex(addresses[i].address, 8)+utf8toansi(rsMemory));
         end;
       end;
     end;
