@@ -122,8 +122,8 @@ type
     cbIncremental: TCheckBox;
     Panel6: TPanel;
     AboutLabel: TLabel;
-    Button2: TButton;
-    Button1: TButton;
+    btnCancel: TButton;
+    btnOK: TButton;
     frameHotkeyConfig: TframeHotkeyConfig;
     cbProcessIcons: TCheckBox;
     cbProcessIconsOnly: TCheckBox;
@@ -153,8 +153,8 @@ type
     Panel8: TPanel;
     Label22: TLabel;
     clbPlugins: TCheckListBox;
-    procedure Button1Click(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
+    procedure btnOKClick(Sender: TObject);
+    procedure btnCancelClick(Sender: TObject);
     procedure cbAskIfTableHasLuascriptChange(Sender: TObject);
     procedure cbDontusetempdirChange(Sender: TObject);
     procedure cbDebuggerInterfaceChange(Sender: TObject);
@@ -229,6 +229,11 @@ type
                             defaultreturn: integer;
                             incremental: boolean;
                           end;
+
+  published
+    property SettingsTreeView: TTreeView read tvMenuSelection;   //just some stuff to make things look nicer. You're not required to use them
+    property SettingsPageControl: TPageControl read pcSetting;
+
   end;
 
 var
@@ -327,7 +332,7 @@ resourcestring
   rsDecreasedValue = 'Decreased Value';
   rsChangedValue = 'Changed Value';
   rsUnchangedValue = 'Unchanged Value';
-procedure TformSettings.Button1Click(Sender: TObject);
+procedure TformSettings.btnOKClick(Sender: TObject);
 var processhandle2: Thandle;
     reg: TRegistry;
     bufsize: integer;
@@ -788,7 +793,7 @@ begin
 
 end;
 
-procedure TformSettings.Button2Click(Sender: TObject);
+procedure TformSettings.btnCancelClick(Sender: TObject);
 begin
 
 end;
@@ -1022,6 +1027,8 @@ begin
   tvMenuSelection.Items[7].Data:=Extra;
 
 
+  pcSetting.ShowTabs:=false;
+
 
 
 
@@ -1149,12 +1156,9 @@ begin
 
 end;
 
-procedure TformSettings.FormClose(Sender: TObject;
-  var Action: TCloseAction);
+procedure TformSettings.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-{$ifndef net}
   deletedmodules.Clear;
-{$endif}
 end;
 
 
@@ -1217,8 +1221,8 @@ end;
 
 procedure TformSettings.Panel6Resize(Sender: TObject);
 begin
-  button1.Left:=button1.parent.ClientWidth div 2 - button1.Width - 10;
-  button2.Left:=button2.parent.ClientWidth div 2 + 10;  
+  btnOK.Left:=btnOK.parent.ClientWidth div 2 - btnOK.Width - 10;
+  btnCancel.Left:=btnCancel.parent.ClientWidth div 2 + 10;
 end;
 
 procedure TformSettings.cbProcessIconsClick(Sender: TObject);

@@ -67,12 +67,13 @@ resourcestring
 
 implementation
 
-uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports, MemoryRecordUnit,
-  debuggertypedefinitions, symbolhandler, frmautoinjectunit, simpleaobscanner,
-  addresslist, memscan, foundlisthelper, cesupport, DBK32functions, sharedMemory,
-  disassemblerComments, disassembler, LuaCanvas, LuaPen, LuaFont, LuaBrush, LuaPicture, LuaMenu,
-  LuaDebug, LuaThread, LuaGraphic, LuaProgressBar, LuaOldD3DHook, LuaWinControl,
-  LuaMemoryRecord, LuaForm, MemoryBrowserFormUnit, disassemblerviewunit, hexviewunit,
+uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
+  formsettingsunit, MemoryRecordUnit, debuggertypedefinitions, symbolhandler,
+  frmautoinjectunit, simpleaobscanner, addresslist, memscan, foundlisthelper,
+  cesupport, DBK32functions, sharedMemory, disassemblerComments, disassembler,
+  LuaCanvas, LuaPen, LuaFont, LuaBrush, LuaPicture, LuaMenu, LuaDebug, LuaThread,
+  LuaGraphic, LuaProgressBar, LuaOldD3DHook, LuaWinControl, LuaMemoryRecord,
+  LuaForm, MemoryBrowserFormUnit, disassemblerviewunit, hexviewunit,
   CustomTypeHandler, LuaStructure, LuaRegion, LuaXMPlayer, LuaMemscan, LuaFoundlist,
   LuaRadioGroup, LuaRasterImage, LuaCheatComponent, LuaAddresslist, byteinterpreter,
   OpenSave, cedebugger, DebugHelper, StructuresFrm2, Assemblerunit, LuaObject,
@@ -2925,6 +2926,13 @@ end;
 
 
 
+function getSettingsForm(L: PLua_state): integer; cdecl;
+begin
+  result:=1;
+  lua_pop(L, lua_gettop(l));
+  luaclass_newClass(l, formSettings);
+end;
+
 function getMemoryViewForm(L: PLua_state): integer; cdecl;
 begin
   result:=1;
@@ -5384,6 +5392,8 @@ begin
     lua_register(LuaVM, 'createMemoryStream', createMemoryStream);
     lua_register(LuaVM, 'createFileStream', createFileStream);
 
+
+    Lua_register(LuaVM, 'getSettingsForm', getSettingsForm);
     Lua_register(LuaVM, 'getMemoryViewForm', getMemoryViewForm);
     Lua_register(LuaVM, 'getMainForm', getMainForm);
     Lua_register(LuaVM, 'getAddressList', getAddressList);

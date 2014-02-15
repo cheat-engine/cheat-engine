@@ -1345,7 +1345,7 @@ object formSettings: TformSettings
       ParentFont = False
       OnClick = AboutLabelClick
     end
-    object Button2: TButton
+    object btnCancel: TButton
       Left = 343
       Height = 22
       Top = 9
@@ -1354,10 +1354,10 @@ object formSettings: TformSettings
       Cancel = True
       Caption = 'Cancel'
       ModalResult = 2
-      OnClick = Button2Click
+      OnClick = btnCancelClick
       TabOrder = 0
     end
-    object Button1: TButton
+    object btnOK: TButton
       Left = 239
       Height = 22
       Top = 9
@@ -1365,7 +1365,7 @@ object formSettings: TformSettings
       Anchors = [akTop, akRight]
       Caption = 'OK'
       Default = True
-      OnClick = Button1Click
+      OnClick = btnOKClick
       TabOrder = 1
     end
   end

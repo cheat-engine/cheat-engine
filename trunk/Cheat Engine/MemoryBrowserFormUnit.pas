@@ -818,9 +818,9 @@ var
 begin
   s:=tstringlist.create;
   try
-    s.text:=dassemblercomments.comments[disassemblerview.SelectedAddress];
+    s.text:=ansitoutf8(dassemblercomments.comments[disassemblerview.SelectedAddress]);
     if multilineinputquery(rsCommentFor, Format(rsCommentFor, [inttohex(disassemblerview.SelectedAddress, 8)])+' '+rsSShowsTheAutoguessValue, s) then
-      dassemblercomments.comments[disassemblerview.SelectedAddress]:=s.text;
+      dassemblercomments.comments[disassemblerview.SelectedAddress]:=utf8toansi(s.text);
   finally
     s.free;
   end;
@@ -834,9 +834,9 @@ var
 begin
   s:=tstringlist.create;
   try
-    s.text:=dassemblercomments.commentHeader[disassemblerview.SelectedAddress];
+    s.text:=ansitoutf8(dassemblercomments.commentHeader[disassemblerview.SelectedAddress]);
     if multilineinputquery(rsCommentFor, Format(rsCommentFor, [inttohex(disassemblerview.SelectedAddress, 8)])+' '+rsSShowsTheAutoguessValue, s) then
-      dassemblercomments.commentHeader[disassemblerview.SelectedAddress]:=s.text;
+      dassemblercomments.commentHeader[disassemblerview.SelectedAddress]:=utf8toansi(s.text);
   finally
     s.free;
   end;

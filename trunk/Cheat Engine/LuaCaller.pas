@@ -335,6 +335,7 @@ end;
 
 procedure TLuaCaller.CloseEvent(Sender: TObject; var CloseAction: TCloseAction);
 var oldstack: integer;
+  ca: integer;
 begin
   Luacs.Enter;
   try
@@ -349,7 +350,10 @@ begin
       if lua_pcall(Luavm, 1,1,0)=0 then //procedure(sender)  lua_pcall returns 0 if success
       begin
         if lua_gettop(Luavm)>0 then
-          CloseAction:=TCloseAction(lua_tointeger(LuaVM,-1));
+        begin
+          ca:=lua_tointeger(LuaVM,-1);
+          CloseAction:=TCloseAction(ca);
+        end;
       end
       else
         closeAction:=caHide; //not implemented by the user
@@ -1018,6 +1022,7 @@ begin
     sender:=lua_toceuserdata(L, 1);
     lua_pop(L, lua_gettop(L));
 
+    closeaction:=caHide;
     TCloseEvent(m)(sender, closeaction);
 
     lua_pushinteger(L, integer(closeaction));
