@@ -9,7 +9,7 @@ this unit will contain the interface for the disassembler comments
 interface
 
 uses
-  Classes, SysUtils, AvgLvlTree, math, cefuncproc, symbolhandler, dom;
+  windows, Classes, SysUtils, AvgLvlTree, math, cefuncproc, symbolhandler, dom;
 
 type TDisassemblerComments=class
   private
@@ -108,6 +108,8 @@ var search: TCommentData;
 begin
 
   //check if this comment exists, and if not, add it
+
+  ZeroMemory(@search, sizeof(search));
   search.address:=address;
   n:=commentstree.Find(@search);
 
@@ -116,6 +118,8 @@ begin
     if comment='' then exit; //don't add it
 
     c:=getmem(sizeof(TCommentData));
+    ZeroMemory(c, sizeof(TCommentData));
+
     c.address:=address;
     c.comment:=strnew(pchar(comment));
     c.header:=nil;
@@ -150,14 +154,14 @@ begin
   else
   begin
     //update
+    c:=n.data;
+
     if (c.header=nil) and (comment='') then
     begin
       deleteAddress(address);
       exit;
     end;
 
-
-    c:=n.data;
     if c.comment<>nil then
       StrDispose(c.comment);
 
@@ -190,6 +194,7 @@ var search: TCommentData;
 begin
 
   //check if this comment exists, and if not, add it
+  ZeroMemory(@search, sizeof(search));
   search.address:=address;
   n:=commentstree.Find(@search);
 
@@ -198,6 +203,8 @@ begin
     if header='' then exit;
 
     c:=getmem(sizeof(TCommentData));
+    ZeroMemory(c, sizeof(TCommentData));
+
     c.address:=address;
 
     c.comment:=nil;
@@ -233,13 +240,15 @@ begin
   else
   begin
     //update
+    c:=n.data;
+
     if (c.comment=nil) and (header='') then
     begin
       deleteAddress(address);
       exit;
     end;
 
-    c:=n.data;
+
     if c.header<>nil then
       StrDispose(c.header);
 
