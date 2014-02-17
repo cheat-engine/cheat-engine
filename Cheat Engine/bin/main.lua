@@ -2121,7 +2121,6 @@ global functions
 properties
   Path: string - Gets/Sets the current subkey (nil if main)  
   Value[]: A table access into the settings. e.g: Value["Count"]=12
-  [] = Value[]
 
 methods
 
@@ -2195,6 +2194,6 @@ registerHexviewHeaderOverride
 
 SearchAndReplaceDialog
 
-
+access violation when trying to change an 8 byte hex value in memoryview editor
 
 --]]

@@ -1,23 +1,27 @@
 #include "StdAfx.h"
 #include "JavaServer.h"
 
+int serverid=0;
 
 CJavaServer::CJavaServer(jvmtiEnv* jvmti_env, JNIEnv* jni_env)
 {
 	//create a named pipe
 	jvmtiCapabilities cap;
-	memset(&callbacks, 0, sizeof(callbacks));
+
 
 	this->jni=jni_env;
 	this->jvmti=jvmti_env;
 
 
 	jvmti->GetCapabilities(&cap);
-	swprintf(pipename, 256,L"\\\\.\\pipe\\cejavadc_pid%d", GetCurrentProcessId());
 
-	
+	if (serverid==0)
+		swprintf(pipename, 256,L"\\\\.\\pipe\\cejavadc_pid%d", GetCurrentProcessId());
+	else
+		swprintf(pipename, 256,L"\\\\.\\pipe\\cejavadc_pid%d_%d", GetCurrentProcessId(),serverid);
 
 
+	serverid++;
 }
 
 void CJavaServer::CreatePipeandWaitForconnect(void)
@@ -375,6 +379,8 @@ void CJavaServer::FindjObject(void)
 	count=0;
 	if (jvmti->GetObjectsWithTags(1, tags, &count, &objects, &objecttags)==JVMTI_ERROR_NONE)
 	{
+		jobject possible=NULL;
+			 
 		for (i=0; i<count; i++)
 		{
 			UINT_PTR objectaddress=*(UINT_PTR*)(objects[i]);
@@ -382,7 +388,28 @@ void CJavaServer::FindjObject(void)
 			jvmti->GetObjectSize(objects[i], &size);
 
 			if ((address>=objectaddress) && (address<objectaddress+size))
-				result=(UINT_PTR)objects[i];		//keep the reference
+			{
+				//this can be called multiple times.
+				//pick the one with the closest addresses
+				if (possible)
+				{					
+					UINT_PTR previousObjectAddress=*(UINT_PTR*)possible;
+
+					if (objectaddress>previousObjectAddress)
+					{	
+						//this one is closer
+						jni->DeleteLocalRef(possible);
+						possible=objects[i];
+					}
+					else
+						jni->DeleteLocalRef(objects[i]); //not closer
+				}
+				else
+					possible=objects[i];
+				
+				result=(UINT_PTR)possible;		//keep the reference
+
+			}
 			else
 				jni->DeleteLocalRef(objects[i]);
 
@@ -565,6 +592,28 @@ void CJavaServer::FindClass(void)
 		free((void *)sig);
 }
 
+void CJavaServer::GetCapabilities(void)
+{
+	jvmtiCapabilities cap;
+	jvmti->GetCapabilities(&cap);
+
+	WriteByte(cap.can_access_local_variables);
+	WriteByte(cap.can_generate_all_class_hook_events);
+	WriteByte(cap.can_generate_breakpoint_events);
+	WriteByte(cap.can_generate_compiled_method_load_events);
+	WriteByte(cap.can_generate_field_access_events);
+	WriteByte(cap.can_generate_field_modification_events);
+	WriteByte(cap.can_generate_single_step_events);
+	WriteByte(cap.can_get_bytecodes);
+	WriteByte(cap.can_get_constant_pool);
+	WriteByte(cap.can_maintain_original_method_order);
+	WriteByte(cap.can_redefine_any_class);
+	WriteByte(cap.can_redefine_classes);
+	WriteByte(cap.can_retransform_any_class);
+	WriteByte(cap.can_retransform_classes);
+	WriteByte(cap.can_tag_objects);	
+}
+
 void CJavaServer::Start(void)
 {
 	BYTE command;
@@ -637,6 +686,10 @@ void CJavaServer::Start(void)
 
 					case JAVACMD_FINDCLASS:
 						FindClass();
+						break;
+
+					case JAVACMD_GETCAPABILITIES:
+						GetCapabilities();
 						break;
 
 					default:						
