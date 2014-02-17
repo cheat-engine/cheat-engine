@@ -119,15 +119,14 @@ end;
 
 function stringToByteTable(L: PLua_state): integer; cdecl;
 var s: pchar;
-  len: integer;
+  len: size_t;
 begin
   result:=0;
   if lua_gettop(L)=1 then
   begin
-    len:=lua_objlen(L, 1);
-    s:=lua_tolstring(L, 1, len);
+    s:=lua_tolstring(L, 1, @len);
 
-    CreateByteTableFromPointer(L, s, len);
+    CreateByteTableFromPointer(L, pbytearray(s), len);
     result:=1;
   end;
 end;
