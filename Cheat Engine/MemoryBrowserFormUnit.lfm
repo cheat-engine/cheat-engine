@@ -586,58 +586,82 @@ object MemoryBrowser: TMemoryBrowser
         ShortCut = 16433
         OnClick = DisplayTypeClick
       end
-      object dispWords: TMenuItem
+      object dispChar: TMenuItem
         Tag = 1
         AutoCheck = True
-        Caption = '2 Byte hex'
-        GroupIndex = 3
+        Caption = 'Byte decimal'
         RadioItem = True
         ShortCut = 16434
         OnClick = DisplayTypeClick
       end
-      object dispDwords: TMenuItem
+      object dispWords: TMenuItem
         Tag = 2
         AutoCheck = True
-        Caption = '4 Byte hex'
+        Caption = '2 Byte hex'
         GroupIndex = 3
         RadioItem = True
         ShortCut = 16435
         OnClick = DisplayTypeClick
       end
-      object dispInts: TMenuItem
+      object dispShorts: TMenuItem
         Tag = 3
         AutoCheck = True
-        Caption = '4 Byte decimal'
-        GroupIndex = 3
+        Caption = '2 Byte decimal'
         RadioItem = True
         ShortCut = 16436
         OnClick = DisplayTypeClick
       end
-      object dispQwords: TMenuItem
+      object dispDwords: TMenuItem
         Tag = 4
         AutoCheck = True
-        Caption = '8 Byte hex'
+        Caption = '4 Byte hex'
         GroupIndex = 3
         RadioItem = True
         ShortCut = 16437
         OnClick = DisplayTypeClick
       end
-      object dispFloat: TMenuItem
+      object dispInts: TMenuItem
         Tag = 5
         AutoCheck = True
-        Caption = 'Float'
+        Caption = '4 Byte decimal'
         GroupIndex = 3
         RadioItem = True
         ShortCut = 16438
         OnClick = DisplayTypeClick
       end
-      object dispDouble: TMenuItem
+      object dispQwords: TMenuItem
         Tag = 6
+        AutoCheck = True
+        Caption = '8 Byte hex'
+        GroupIndex = 3
+        RadioItem = True
+        ShortCut = 16439
+        OnClick = DisplayTypeClick
+      end
+      object DispLongs: TMenuItem
+        Tag = 7
+        AutoCheck = True
+        Caption = '8 Byte decimal'
+        RadioItem = True
+        ShortCut = 16440
+        OnClick = DisplayTypeClick
+      end
+      object dispFloat: TMenuItem
+        Tag = 8
+        AutoCheck = True
+        Caption = 'Float'
+        GroupIndex = 3
+        RadioItem = True
+        ShortCut = 16441
+        OnClick = DisplayTypeClick
+      end
+      object dispDouble: TMenuItem
+        Tag = 9
         AutoCheck = True
         Caption = 'Double'
         GroupIndex = 3
         RadioItem = True
-        ShortCut = 16439
+        ShortCut = 16432
         OnClick = DisplayTypeClick
       end
     end

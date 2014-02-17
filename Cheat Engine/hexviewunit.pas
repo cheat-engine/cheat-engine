@@ -11,9 +11,9 @@ uses
   strutils, byteinterpreter;
 
 type
-  TDisplayType = (dtByte, dtWord, dtDword, dtDwordDec, dtQword, dtSingle, dtDouble);
+  TDisplayType = (dtByte, dtByteDec, dtWord, dtWordDec, dtDword, dtDwordDec, dtQword, dtQwordDec, dtSingle, dtDouble);
 const
-  DisplayTypeByteSize: array [dtByte..dtDouble] of integer =(1, 2, 4, 4, 8, 4, 8); //update both if adding something new
+  DisplayTypeByteSize: array [dtByte..dtDouble] of integer =(1,1, 2,2, 4, 4, 8,8, 4, 8); //update both if adding something new
 
 
 type
@@ -104,7 +104,10 @@ type
     function getWord(a: ptrUint): string;
     function getDWord(a: ptrUint): string;
     function getQWord(a: ptrUint): string;
+    function getByteDec(a: ptrUint; full: boolean=false): string;
+    function getWordDec(a: ptrUint; full: boolean=false): string;
     function getDWordDec(a: ptrUint; full: boolean=false): string;
+    function getQWordDec(a: ptrUint; full: boolean=false): string;
     function getSingle(a: ptrUint; full: boolean=false): string;
     function getDouble(a: ptrUint; full: boolean=false): string;
     function getChar(a: ptrUint): char;
@@ -312,6 +315,18 @@ procedure THexView.setDisplayType(newdt: TDisplaytype);
 begin
   fDisplayType:=newdt;
 
+  if newdt=dtByteDec then
+  begin
+    byteSize:=offscreenbitmap.Canvas.TextWidth('XXX X'); //byte space and the character it represents
+    byteSizeWithoutChar:=offscreenbitmap.Canvas.TextWidth('XXX ');
+  end
+  else
+  begin
+    byteSize:=offscreenbitmap.Canvas.TextWidth('XX X'); //byte space and the character it represents
+    byteSizeWithoutChar:=offscreenbitmap.Canvas.TextWidth('XX ');
+  end;
+
+
   if fDisplayType<>dtByte then
   begin
     isSelecting:=false;
@@ -337,6 +352,7 @@ begin
   end;
 
   update;
+  hexviewResize(self);
 end;
 
 procedure THexView.HandleEditKeyPress(key: char);
@@ -363,16 +379,20 @@ begin
 
     case fDisplayType of
       dtByte: s:=getByte(selected);
+      dtByteDec: s:=getByteDec(selected, true);
       dtWord: s:=getWord(selected);
+      dtWordDec: s:=getWordDec(selected, true);
       dtDword: s:=getDWord(selected);
       dtDwordDec: s:=getDWordDec(selected, true);
+      dtQword: s:=getQWord(selected);
+      dtQwordDec: s:=getQWordDec(selected, true);
       dtSingle: s:=getSingle(selected, true);
       dtDouble: s:=getDouble(selected, true);
     end;
 
     if (key in [#7, #8]) then
     begin
-      if (fDisplayType in [dtDwordDec, dtSingle, dtDouble])  then
+      if (fDisplayType in [dtByteDec, dtWordDec, dtDwordDec, dtQwordDec, dtSingle, dtDouble])  then
       begin
         if key=#7 then //delete
         begin
@@ -417,7 +437,19 @@ begin
 
     case fDisplayType of
       dtByte: vtype:=vtByte;
+      dtByteDec:
+      begin
+        vtype:=vtByte;
+        hex:=false;
+      end;
+
       dtWord: vtype:=vtWord;
+      dtWordDec:
+      begin
+        vtype:=vtWord;
+        hex:=false;
+      end;
+
       dtDWord: vtype:=vtDword;
       dtDWordDec:
       begin
@@ -426,6 +458,12 @@ begin
       end;
 
       dtQword: vtype:=vtQword;
+      dtQWordDec:
+      begin
+        vtype:=vtQword;
+        hex:=false;
+      end;
+
       dtSingle:
       begin
         vtype:=vtSingle;
@@ -454,7 +492,7 @@ begin
     if editingCursorPos>=length(s) then
     begin
       //at the end of the line
-      if not (fDisplayType in [dtDwordDec, dtSingle, dtDouble]) then //if not a decimal type then go to the next address
+      if not (fDisplayType in [dtByteDec, dtWordDec, dtDwordDec, dtQwordDec, dtSingle, dtDouble]) then //if not a decimal type then go to the next address
       begin
         selected:=selected+DisplayTypeByteSize[fDisplayType];
         editingCursorPos:=0;
@@ -573,7 +611,7 @@ begin
     case key of
       VK_DELETE:
       begin
-        if isediting and (fDisplayType in [dtDwordDec, dtSingle, dtDouble]) then
+        if isediting and (fDisplayType in [dtByteDec, dtWordDec, dtDwordDec, dtQwordDec, dtSingle, dtDouble]) then
           HandleEditKeyPress(chr(7)); //there's no delete char and I can't be assed to change the whole function to tak a virtual key
 
         key:=0;
@@ -584,7 +622,7 @@ begin
       begin
         if isediting then
         begin
-          if fDisplayType in [dtDwordDec, dtSingle, dtDouble] then
+          if fDisplayType in [dtByteDec, dtWordDec, dtDwordDec, dtQwordDec, dtSingle, dtDouble] then
           begin
             //try to delete the selected character (note that single and double do not always co-operate)
             HandleEditKeyPress(chr(8));
@@ -668,7 +706,10 @@ begin
             begin
               selected:=selected-DisplayTypeByteSize[fDisplayType];
               case fDisplayType of
+                dtByteDec: editingCursorPos:=length(getByteDec(selected));
+                dtWordDec: editingCursorPos:=length(getWordDec(selected));
                 dtDwordDec: editingCursorPos:=length(getDWordDec(selected));
+                dtQwordDec: editingCursorPos:=length(getQWordDec(selected));
                 dtSingle: editingCursorPos:=length(getSingle(selected));
                 dtDouble: editingCursorPos:=length(getDouble(selected));
                 else
@@ -696,7 +737,10 @@ begin
 
             //get the length
             case fDisplayType of
+              dtByteDec: x:=length(getByteDec(selected))+1;
+              dtWordDec: x:=length(getWordDec(selected))+1;
               dtDwordDec: x:=length(getDWordDec(selected))+1; //+1 because we might allow backspace/adding
+              dtQwordDec: x:=length(getQWordDec(selected))+1;
               dtSingle: x:=length(getSingle(selected))+1;
               dtDouble: x:=length(getDouble(selected))+1;
               else
@@ -763,11 +807,15 @@ begin
     begin
       case key of
         VK_1: DisplayType:=dtByte;
-        VK_2: DisplayType:=dtWord;
-        VK_3: DisplayType:=dtDword;
-        VK_4: DisplayType:=dtDwordDec;
-        VK_5: DisplayType:=dtSingle;
-        VK_6: DisplayType:=dtDouble;
+        VK_2: DisplayType:=dtByteDec;
+        VK_3: DisplayType:=dtWord;
+        VK_4: DisplayType:=dtWordDec;
+        VK_5: DisplayType:=dtDword;
+        VK_6: DisplayType:=dtDwordDec;
+        VK_7: DisplayType:=dtQword;
+        VK_8: DisplayType:=dtQwordDec;
+        VK_9: DisplayType:=dtSingle;
+        VK_0: DisplayType:=dtDouble;
       end;
     end;
 
@@ -784,10 +832,10 @@ begin
   if fhasSelection or isediting then //selected
   begin
     case fdisplaytype of
-      dtByte: VarType:=vtByte;
-      dtWord: Vartype:=vtWord;
+      dtByte, dtByteDec: VarType:=vtByte;
+      dtWord, dtWordDec: Vartype:=vtWord;
       dtDword, dtDwordDec: Vartype:=vtDword;
-      dtQword: vartype:=vtQword;
+      dtQword, dtQwordDec: vartype:=vtQword;
       dtSingle: vartype:=vtSingle;
       dtDouble: vartype:=vtDouble;
     end;
@@ -968,10 +1016,10 @@ begin
       address:=selected;
 
       case fDisplayType of
-        dtByte: VarType:=vtByte;
-        dtWord: Vartype:=vtWord;
+        dtByte, dtByteDec: VarType:=vtByte;
+        dtWord, dtWordDec: Vartype:=vtWord;
         dtDword, dtDwordDec: Vartype:=vtDword;
-        dtQword: vartype:=vtQword;
+        dtQword, dtQwordDec: vartype:=vtQword;
         dtSingle: vartype:=vtSingle;
         dtDouble: vartype:=vtDouble;
       end;
@@ -1361,6 +1409,42 @@ begin
     result:=inttohex(dw,8);
 end;
 
+function THexView.getByteDec(a: ptrUint; full: boolean=false): string;
+var
+  b: byte;
+  pb: pbytearray;
+  err: boolean;
+begin
+  b:=getbyte(a,err);
+
+  if err then
+    result:='???'
+  else
+    result:=inttostr(b);
+
+  if (not full) and (length(result)>5) then
+    result:=copy(result,1,2)+'...';
+end;
+
+function THexView.getWordDec(a: ptrUint; full: boolean=false): string;
+var
+  w: word;
+  pw: pbytearray;
+  err,err2: boolean;
+begin
+  pw:=@w;
+  pw[0]:=getbyte(a,err);
+  pw[1]:=getbyte(a+1,err2);
+
+  if err or err2 then
+    result:='???'
+  else
+    result:=inttostr(w);
+
+  if (not full) and (length(result)>7) then
+    result:=copy(result,1,4)+'...';
+end;
+
 function THexView.getDWordDec(a: ptrUint; full: boolean=false): string;
 var
   dw: dword;
@@ -1380,6 +1464,31 @@ begin
 
   if (not full) and (length(result)>11) then
     result:=copy(result,1,8)+'...';
+end;
+
+function THexView.getQWordDec(a: ptrUint; full: boolean=false): string;
+var
+  qw: qword;
+  pqw: pbytearray;
+  err,err2,err3,err4,err5,err6,err7,err8: boolean;
+begin
+  pqw:=@qw;
+  pqw[0]:=getbyte(a,err);
+  pqw[1]:=getbyte(a+1,err2);
+  pqw[2]:=getbyte(a+2,err3);
+  pqw[3]:=getbyte(a+3,err4);
+  pqw[4]:=getbyte(a+4,err5);
+  pqw[5]:=getbyte(a+5,err6);
+  pqw[6]:=getbyte(a+6,err7);
+  pqw[7]:=getbyte(a+7,err8);
+
+  if err or err2 or err3 or err4 or err5 or err6 or err7 or err8 then
+    result:='???'
+  else
+    result:=inttostr(qw);
+
+  if (not full) and (length(result)>20) then
+    result:=copy(result,1,18)+'...';
 end;
 
 function THexView.getSingle(a: ptrUint; full: boolean=false): string;
@@ -1511,9 +1620,10 @@ begin
   begin
     case displayType of
       dtByte: bheader:=bHeader+inttohex(((currentaddress+i) and $ff),2)+' ';
-      dtWord: if (i mod 2)=0 then bheader:=bHeader+inttohex(((currentaddress+i) and $ff),2)+' ' else bheader:=bHeader+'   ';
+      dtByteDec: bheader:=bHeader+inttohex(((currentaddress+i) and $ff),2)+'  ';
+      dtWord, dtWordDec: if (i mod 2)=0 then bheader:=bHeader+inttohex(((currentaddress+i) and $ff),2)+' ' else bheader:=bHeader+'   ';
       dtDWord, dtDwordDec, dtSingle: if (i mod 4)=0 then bheader:=bHeader+inttohex(((currentaddress+i) and $ff),2)+' ' else bheader:=bHeader+'   ';
-      dtQword, dtDouble: if (i mod 8)=0 then bheader:=bHeader+inttohex(((currentaddress+i) and $ff),2)+' ' else bheader:=bHeader+'   ';
+      dtQword, dtQwordDec, dtDouble: if (i mod 8)=0 then bheader:=bHeader+inttohex(((currentaddress+i) and $ff),2)+' ' else bheader:=bHeader+'   ';
     end;
 
     cheader:=cheader+inttohex((initialoffset+i) and $f,1);
@@ -1580,12 +1690,15 @@ begin
       displaythis:=false;
       case displayType of
         dtByte: begin changelist.values[itemnr]:=getByte(currentAddress); displaythis:=true; end;
+        dtByteDec: begin changelist.values[itemnr]:=getByteDec(currentAddress); displaythis:=true; end;
         dtWord: if (j mod 2)=0 then begin changelist.values[itemnr]:=getWord(currentAddress); displaythis:=true; end;
+        dtWordDec: if (j mod 2)=0 then begin changelist.values[itemnr]:=getWordDec(currentAddress); displaythis:=true; end;
         dtDWord: if (j mod 4)=0 then begin changelist.values[itemnr]:=getDWord(currentAddress); displaythis:=true; end;
         dtDWordDec: if (j mod 4)=0 then begin changelist.values[itemnr]:=getDWordDec(currentAddress); displaythis:=true; end;
+        dtQWord: if (j mod 8)=0 then begin changelist.values[itemnr]:=getQWord(currentAddress); displaythis:=true; end;
+        dtQWordDec: if (j mod 8)=0 then begin changelist.values[itemnr]:=getQWordDec(currentAddress); displaythis:=true; end;
         dtSingle: if (j mod 4)=0 then begin changelist.values[itemnr]:=getsingle(currentAddress); displaythis:=true; end;
         dtDouble: if (j mod 8)=0 then begin changelist.values[itemnr]:=getDouble(currentAddress); displaythis:=true; end;
-        dtQWord: if (j mod 8)=0 then begin changelist.values[itemnr]:=getQWord(currentAddress); displaythis:=true; end;
       end;
 
       if fShowDiffHV<>nil then
@@ -1595,12 +1708,15 @@ begin
 
         case displayType of
           dtByte: different:=changelist.values[itemnr]<>fShowDiffHV.getByte(compareToAddress);
+          dtByteDec: different:=changelist.values[itemnr]<>fShowDiffHV.getByteDec(compareToAddress);
           dtWord: if (j mod 2)=0 then different:=changelist.values[itemnr]<>fShowDiffHV.getWord(compareToAddress);
+          dtWordDec: if (j mod 2)=0 then different:=changelist.values[itemnr]<>fShowDiffHV.getWordDec(compareToAddress);
           dtDWord: if (j mod 4)=0 then different:=changelist.values[itemnr]<>fShowDiffHV.getDWord(compareToAddress);
           dtDWordDec: if (j mod 4)=0 then different:=changelist.values[itemnr]<>fShowDiffHV.getDWordDec(compareToAddress);
+          dtQWord: if (j mod 4)=0 then different:=changelist.values[itemnr]<>fShowDiffHV.getQWord(compareToAddress);
+          dtQWordDec: if (j mod 4)=0 then different:=changelist.values[itemnr]<>fShowDiffHV.getQWordDec(compareToAddress);
           dtSingle: if (j mod 4)=0 then different:=changelist.values[itemnr]<>fShowDiffHV.getsingle(compareToAddress);
           dtDouble: if (j mod 8)=0 then different:=changelist.values[itemnr]<>fShowDiffHV.getDouble(compareToAddress);
-          dtQWord: if (j mod 8)=0 then different:=changelist.values[itemnr]<>fShowDiffHV.getQWord(compareToAddress);
         end;
 
         if different then
@@ -1657,6 +1773,9 @@ begin
       end;
 
       bytepos:=bytepos+3;
+      if DisplayType=dtByteDec then   //bute decimal is special as it has a big chance it's going to be bigegr than 99
+        inc(bytepos);
+
       inc(currentaddress);
       inc(itemnr);
     end;
