@@ -34,6 +34,9 @@ type
     MenuItem18: TMenuItem;
     MenuItem19: TMenuItem;
     MenuItem20: TMenuItem;
+    dispChar: TMenuItem;
+    dispShorts: TMenuItem;
+    DispLongs: TMenuItem;
     miReferencedFunctions: TMenuItem;
     miUserDefinedHeader: TMenuItem;
     miShowIndisassembler: TMenuItem;
@@ -3259,12 +3262,15 @@ begin
     x:=TMenuItem(sender);
     case x.tag of
       0: hexview.DisplayType:=dtByte;
-      1: hexview.DisplayType:=dtWord;
-      2: hexview.DisplayType:=dtDword;
-      3: hexview.DisplayType:=dtDwordDec;
-      4: hexview.DisplayType:=dtQword;
-      5: hexview.DisplayType:=dtsingle;
-      6: hexview.DisplayType:=dtDouble;
+      1: hexview.DisplayType:=dtByteDec;
+      2: hexview.DisplayType:=dtWord;
+      3: hexview.DisplayType:=dtWordDec;
+      4: hexview.DisplayType:=dtDword;
+      5: hexview.DisplayType:=dtDwordDec;
+      6: hexview.DisplayType:=dtQword;
+      7: hexview.DisplayType:=dtQwordDec;
+      8: hexview.DisplayType:=dtsingle;
+      9: hexview.DisplayType:=dtDouble;
     end;
   end;
 end;
