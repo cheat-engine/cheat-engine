@@ -17,6 +17,7 @@
 #define JAVACMD_GETCLASSDATA 12
 #define JAVACMD_REDEFINECLASS 13
 #define JAVACMD_FINDCLASS 14
+#define JAVACMD_GETCAPABILITIES 15
 
 using namespace std;
 
@@ -53,4 +54,5 @@ public:
 	void GetClassData(void);
 	void RedefineClass(void);
 	void FindClass(void);
+	void GetCapabilities(void);
 };

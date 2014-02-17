@@ -114,8 +114,12 @@ begin
   s:=luaclass_getClassObject(L);
   if lua_gettop(L)>=2 then
   begin
-    index:=lua_tostring(L,-2);
-    newvalue:=lua_tostring(l,-1);
+    index:=lua_tostring(L,1);
+    if lua_isboolean(L, 2) then
+      newvalue:=BoolToStr(lua_toboolean(L,2), '1','0')
+    else
+      newvalue:=lua_tostring(l,2);
+
     s.value[index]:=newvalue;
   end;
 end;
@@ -124,7 +128,6 @@ procedure luasettings_addMetaData(L: PLua_state; metatable: integer; userdata: i
 begin
   object_addMetaData(L, metatable, userdata);
   luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Value', luasettings_getValue, luasettings_setValue);
-  luaclass_setDefaultArrayProperty(L, metatable, userdata, luasettings_getValue, luasettings_setValue);
 end;
 
 procedure initializeLuaSettings;

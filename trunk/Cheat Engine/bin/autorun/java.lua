@@ -13,6 +13,7 @@ JAVACMD_GETOBJECTCLASS=11
 JAVACMD_GETCLASSDATA=12
 JAVACMD_REDEFINECLASS=13
 JAVACMD_FINDCLASS=14
+JAVACMD_GETCAPABILITIES=15
 
 
 JAVACODECMD_METHODLOAD=0
@@ -23,6 +24,7 @@ JAVACODECMD_TERMINATED=255
 
 
 JAVA_TIMEOUT=500000 --500 seconds
+
 
 
 function getFieldFromType(type, field, infloopprotection)
@@ -297,7 +299,8 @@ function javaInjectAgent()
 	if (address~=nil) and (address~=0) then
 	  javaInjectedProcesses[getOpenedProcessID()]=true
 	  alreadyinjected=true
-	  print("opened a process with the JVMTI agent already running")
+	  --opened a process with the JVMTI agent already running
+
 	end
 
 	errorOnLookupFailure(oldstate)
@@ -385,6 +388,9 @@ function javaInjectAgent()
   java_StartListeneningForEvents()
 
   JavaSymbols.register() --make these symbols available to all of cheat engine
+
+
+  java.capabilities=java_getCapabilities()
 
   return 1;
 end
@@ -490,6 +496,33 @@ function JavaEventListener(thread)
 
   JavaEventPipe.destroy();
 end
+
+function java_getCapabilities()
+  result={}
+  javapipe.lock()
+  javapipe.writeByte(JAVACMD_GETCAPABILITIES)
+
+  result.can_access_local_variables=javapipe.readByte()
+  result.can_generate_all_class_hook_events=javapipe.readByte()
+  result.can_generate_breakpoint_events=javapipe.readByte()
+  result.can_generate_compiled_method_load_events=javapipe.readByte()
+  result.can_generate_field_access_events=javapipe.readByte()
+  result.can_generate_field_modification_events=javapipe.readByte()
+  result.can_generate_single_step_events=javapipe.readByte()
+  result.can_get_bytecodes=javapipe.readByte()
+  result.can_get_constant_pool=javapipe.readByte()
+  result.can_maintain_original_method_order=javapipe.readByte()
+  result.can_redefine_any_class=javapipe.readByte()
+  result.can_redefine_classes=javapipe.readByte()
+  result.can_retransform_any_class=javapipe.readByte()
+  result.can_retransform_classes=javapipe.readByte()
+  result.can_tag_objects=javapipe.readByte()
+
+  javapipe.unlock()
+
+  return result;
+end
+
 
 function java_StartListeneningForEvents()
   javapipe.lock();
@@ -697,14 +730,28 @@ function java_findAllObjectsFromClass(jClass)
 
 end
 
-function java_findAllObjectsWithValue(value)
-end
 
 function java_GetField(jObject, fieldid)
 end
 
 function java_SetField(jObject, fieldid, value)
 end
+
+function java_search_start()
+  --tag all known objects and set a variable to let some functions know they can not function until the scan has finished (they can't set tags)
+
+end
+
+function java_search_getResults()
+end
+
+function java_search_findObjectsWithValue(value)
+end
+
+function java_search_stop()
+end
+
+
 
 function java_getObjectHandleToAddress(address)
   local result=0
@@ -939,6 +986,202 @@ function miJavaDissectClick(sender)
 
 end
 
+
+function miJavaSetEnvironmentClick(sender)
+  if targetIs64Bit() then
+  autoAssemble([[
+alloc(newenv, 32768)
+
+alloc(sev, 2048)
+alloc(path, 512)
+
+alloc(pathstr,5)
+alloc(JTOstr, 18)
+alloc(JTO, 19)
+label(end)
+label(hasnosemicolon)
+label(copyoption)
+
+
+path:
+{$lua}
+return "db ';"..getCheatEngineDir().."autorun\\dlls\\32;"..getCheatEngineDir().."autorun\\dlls\\64',0"
+{$asm}
+
+pathstr:
+db 'PATH',0
+
+JTOstr:
+db 'JAVA_TOOL_OPTIONS',0
+
+JTO:
+db ' -agentlib:cejvmti',0
+
+sev:
+
+//sub rsp,8 //align the stack
+//sub rsp,20 //allocate scratchspace for function calls
+sub rsp,28 //using magic to compine those two
+
+//set the path
+mov rcx,pathstr
+mov rdx,newenv
+mov r8,8000
+
+call GetEnvironmentVariableA
+
+
+mov rdx,path
+
+cmp byte [newenv+rax],';'
+jne hasnosemicolon
+
+add rdx,1 //it already has a semicolon so skip it
+
+hasnosemicolon:
+
+mov rcx,newenv
+//rdx=path(+1)
+call ntdll.strcat
+
+mov rcx,pathstr
+mov rdx,newenv
+call SetEnvironmentVariableA
+
+
+//set the java tool options
+mov byte [newenv],0
+
+
+mov rcx,JTOstr
+mov rdx,newenv
+mov r8,8000
+call GetEnvironmentVariableA
+
+mov rdx, JTO
+
+cmp rax,0 //not yet defined
+jne copyoption
+
+//it hasn't been defined yet
+add rdx,1 //no space
+
+copyoption:
+
+mov rcx,newenv
+//rdx=rdx
+call ntdll.strcat
+
+mov rcx,JTOstr
+mov rdx,newenv
+call SetEnvironmentVariableA
+
+
+end:
+
+add rsp,28
+ret
+
+createthread(sev)
+]])
+
+  else
+  autoAssemble([[
+alloc(newenv, 32768)
+
+alloc(sev, 2048)
+alloc(path, 512)
+
+alloc(pathstr,5)
+alloc(JTOstr, 18)
+alloc(JTO, 19)
+label(end)
+label(hasnosemicolon)
+label(copyoption)
+
+
+path:
+{$lua}
+return "db ';"..getCheatEngineDir().."autorun\\dlls\\32;"..getCheatEngineDir().."autorun\\dlls\\64',0"
+{$asm}
+
+pathstr:
+db 'PATH',0
+
+JTOstr:
+db 'JAVA_TOOL_OPTIONS',0
+
+JTO:
+db ' -agentlib:cejvmti',0
+
+sev:
+
+//set the path
+push 8000
+push newenv
+push pathstr
+call GetEnvironmentVariableA
+
+
+mov esi,path
+
+
+cmp byte [newenv+eax],';'
+jne hasnosemicolon
+
+add esi,1 //it already has a semicolon so skip it
+
+hasnosemicolon:
+
+push esi
+push newenv
+call ntdll.strcat
+add esp,8
+
+
+push newenv
+push pathstr
+call SetEnvironmentVariableA
+
+
+//set the java tool options
+mov byte [newenv],0
+
+push 8000
+push newenv
+push JTOstr
+call GetEnvironmentVariableA
+
+mov esi, JTO
+
+cmp eax,0 //not yet defined
+jne copyoption
+
+//it hasn't been defined yet
+add esi,1 //no space
+
+copyoption:
+
+push esi
+push newenv
+call ntdll.strcat
+add esp,8
+
+push newenv
+push JTOstr
+call SetEnvironmentVariableA
+
+
+end:
+ret
+
+createthread(sev)
+
+  ]]
+  )
+  end
+end
+
 function java_OpenProcessAfterwards()
   local usesjava=false
   local m=enumModules()
@@ -953,37 +1196,47 @@ function java_OpenProcessAfterwards()
     end
   end
 
-  if usesjava then
+  if usesjava or java.settings.cbAlwaysShowMenu.Checked then
     if (miJavaTopMenuItem==nil) then
       local mfm=getMainForm().Menu
       local mi
+
       miJavaTopMenuItem=createMenuItem(mfm)
       miJavaTopMenuItem.Caption="Java"
       mfm.Items.insert(mfm.Items.Count-1, miJavaTopMenuItem) --add it before help
 
+
+      mi=createMenuItem(miJavaTopMenuItem)
+      mi.Caption="Configure process environment to launch the ce java agent in spawned processes"
+      mi.OnClick=miJavaSetEnvironmentClick
+      miJavaTopMenuItem.Add(mi)
+
       mi=createMenuItem(miJavaTopMenuItem)
       mi.Caption="Activate java features"
       mi.OnClick=miJavaActivateClick
+	  mi.Enabled=usesjava
       miJavaTopMenuItem.Add(mi)
 
       mi=createMenuItem(miJavaTopMenuItem)
       mi.Caption="Dissect java"
       mi.Shortcut="Ctrl+Alt+J"
       mi.OnClick=miJavaDissectClick
+	  mi.Enabled=usesjava
       miJavaTopMenuItem.Add(mi)
 
       mi=createMenuItem(miJavaTopMenuItem)
       mi.Caption="Follow all java references"
       mi.Shortcut="Ctrl+Alt+R"
       mi.OnClick=miJavaReferencesClick
+	  mi.Enabled=usesjava
       miJavaTopMenuItem.Add(mi)
     end
   end
 end
 
 function java_OpenProcess(processid)
-  if java_oldOnOpenProcess~=nil then
-    java_oldOnOpenProcess(processid)
+  if java.oldOnOpenProcess~=nil then
+    java.oldOnOpenProcess(processid)
   end
 
   synchronize(java_OpenProcessAfterwards) --call this function when the whole OpenProcess routine is done (next sync check)
@@ -1004,15 +1257,105 @@ function javaAA_USEJAVA(parameters, syntaxcheckonly)
 end
 
 
+function java_settingsClose(sender)
+  local result=caHide
+  if java.settingsOnClose~=nil then
+    result=java.settingsOnClose(sender)
+  end
+
+  if (result==caHide) and (sender.ModalResult==mrOK) then
+    --Apply changes
+
+	--if there is an error return caNone (and show a message preferably)
+	if java.settings.cbAlwaysShowMenu.Checked then
+	  java.settings.registry.Value["Always Show Menu"]=1
+	else
+	  java.settings.registry.Value["Always Show Menu"]=0
+	end
+
+	if java.settings.cbGlobalHook.Checked then
+      if (java.settings.registry.Value["Global Hook"]=='') or (java.settings.registry.Value["Global Hook"]==0) then
+	    --it got selected
+	  end
+
+	  java.settings.registry.Value["Global Hook"]=1
+	else
+      if java.settings.registry.Value["Global Hook"]==1 then
+	    --it got deselected
+	  end
+      java.settings.registry.Value["Global Hook"]=0
+	end
+
+  end
+  return result
+end
+
+function java_settingsShow(sender)
+  if java.settingsOnShow~=nil then
+    result=java.settingsOnShow(sender)
+  end
+
+  --update the controls based on the registry
+  java.settings.cbAlwaysShowMenu.Checked=java.settings.registry.Value["Always Show Menu"]=='1'
+  java.settings.cbGlobalHook.Checked=java.settings.registry.Value["Global Hook"]=='1'
+
+end
 
 function java_initialize()
   --register a function to be called when a process is opened
-  if (java_init1==nil) then
-    java_init1=true
-    java_oldOnOpenProcess=onOpenProcess
+  if (java==nil) then
+    java={}
+    java.oldOnOpenProcess=onOpenProcess
 	onOpenProcess=java_OpenProcess
 
 	registerAutoAssemblerCommand("USEJAVA", javaAA_USEJAVA)
+
+
+	local sf=getSettingsForm()
+	java.settingsTab=sf.SettingsPageControl.addTab()
+
+	local node=sf.SettingsTreeView.Items.add("Java")
+	node.data=userDataToInteger(java.settingsTab)
+
+	java.settingsOnClose=sf.onClose
+	sf.onClose=java_settingsClose
+
+	java.settingsOnShow=sf.onShow
+	sf.onShow=java_settingsShow
+
+
+	java.settings={}
+
+	local cbAlwaysShowMenu=createCheckBox(java.settingsTab)
+	cbAlwaysShowMenu.Caption="Show java menu item even if the target process hasn't loaded jvm.dll (Used for the local setEnvironment option)"
+	cbAlwaysShowMenu.AnchorSideLeft.Control=java.settingsTab
+	cbAlwaysShowMenu.AnchorSideLeft.Side="asrLeft"
+
+	cbAlwaysShowMenu.AnchorSideTop.Control=java.settingsTab
+	cbAlwaysShowMenu.AnchorSideTop.Side="asrTop"
+
+	cbAlwaysShowMenu.Anchors="[akTop, akLeft]"
+
+	java.settings.cbAlwaysShowMenu=cbAlwaysShowMenu
+
+	local cbGlobalHook=createCheckBox(java.settingsTab)
+	cbGlobalHook.Caption="Systemwide java agent injection. (Loads the java agent even when CE isn't running. Reboot recommended)"
+	cbGlobalHook.AnchorSideLeft.Control=java.settingsTab
+	cbGlobalHook.AnchorSideLeft.Side="asrLeft"
+
+	cbGlobalHook.AnchorSideTop.Control=cbAlwaysShowMenu
+	cbGlobalHook.AnchorSideTop.Side="asrBottom"
+	cbGlobalHook.Anchors="[akTop, akLeft]"
+
+	java.settings.cbGlobalHook=cbGlobalHook
+	java.settings.registry=getSettings("Java")
+
+    --initialize the settings based on the registry
+    java.settings.cbAlwaysShowMenu.Checked=java.settings.registry.Value["Always Show Menu"]=='1'
+    java.settings.cbGlobalHook.Checked=java.settings.registry.Value["Global Hook"]=='1'
+
+
+
   end
 end
 
