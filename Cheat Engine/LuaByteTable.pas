@@ -118,13 +118,16 @@ begin
 end;
 
 function stringToByteTable(L: PLua_state): integer; cdecl;
-var s: string;
+var s: pchar;
+  len: integer;
 begin
   result:=0;
   if lua_gettop(L)=1 then
   begin
-    s:=Lua_ToString(L, 1);
-    CreateByteTableFromPointer(L, @s[1], length(s));
+    len:=lua_objlen(L, 1);
+    s:=lua_tolstring(L, 1, len);
+
+    CreateByteTableFromPointer(L, s, len);
     result:=1;
   end;
 end;
@@ -211,11 +214,10 @@ begin
   if lua_gettop(L)=1 then
   begin
     len:=lua_objlen(L, 1);
-    getmem(s, len+1);
+    getmem(s, len);
 
     readBytesFromTable(L, 1, @s[0], len);
-    s[len]:=#0;
-    lua_pushstring(L,s);
+    lua_pushlstring(L, s,len);
     result:=1;
   end;
 end;
