@@ -413,8 +413,8 @@ begin
   canvas:=luaclass_getClassObject(L);
   if lua_gettop(L)>=2 then
   begin
-    Pos.x:=lua_toInteger(L,-1);
-    Pos.y:=lua_toInteger(L,-2);
+    Pos.x:=lua_toInteger(L,-2);
+    Pos.y:=lua_toInteger(L,-1);
     canvas.PenPos:=pos;
   end;
 end;
