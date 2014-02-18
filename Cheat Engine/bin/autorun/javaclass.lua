@@ -1,3 +1,5 @@
+require([[autorun\javaClassEditor]])
+
 --parser for .class files and java bytecode
 --http://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html
 
@@ -231,7 +233,7 @@ function java_parseAttribute_ConstantValue(cp, a)
 
   a.constantvalue_index=java_read_u2(s);
   if cp[a.constantvalue_index].tag==java_CONSTANT_String then
-    a.value=cp[cp[a.constantvalue_index].string_index].Utf8
+    a.value=cp[cp[a.constantvalue_index].string_index].utf8
   else
     a.value=cp[a.constantvalue_index].value
   end
@@ -239,13 +241,13 @@ end
 
 function java_parseBytecode(cp, s, code_length)
   local result={}
-  result.bytes={string.byte(s.data, s.index, stream.index+result.length-1)}
+  result.bytes={string.byte(s.data, s.index, s.index+code_length-1)}
 
   --parse the bytes into an array of programcounter and interpreted bytecode command
-  result.interpreted={}
+  result.interpreted=bytecodeDisassembler(result.bytes)
 
 
-  s.index=s.index+result.length
+  s.index=s.index+code_length
   return result
 end
 
@@ -264,10 +266,10 @@ function java_parseAttribute_Code(cp, a)
   a.exception_table={}
   for i=1, a.exception_table_length do
     a.exception_table[i]={}
-	a.exception_table[i].start_pc=java_read_u2()
-    a.exception_table[i].end_pc=java_read_u2()
-	a.exception_table[i].handler_pc=java_read_u2()
-	a.exception_table[i].catch_type=java_read_u2()
+	a.exception_table[i].start_pc=java_read_u2(s)
+    a.exception_table[i].end_pc=java_read_u2(s)
+	a.exception_table[i].handler_pc=java_read_u2(s)
+	a.exception_table[i].catch_type=java_read_u2(s)
   end
 
   a.attributes_count=java_read_u2(s)
@@ -294,7 +296,7 @@ function java_parseAttributes(cp, s, count)
 	s.index=s.index+result[i].attribute_length
 
 	--fill in some extra data (not required for rebuilding)
-	result[i].attribute_name=cp[result[i].attribute_name_index].Utf8
+	result[i].attribute_name=cp[result[i].attribute_name_index].utf8
 
 
 
@@ -393,10 +395,10 @@ end
 
 
 --teststuff
---f=io.open([[c:\Users\DB\workspace\guitest\bin\Test.class]],"rb")
---data=f:read("*all")
+f=io.open([[c:\Users\DB\workspace\guitest\bin\Test.class]],"rb")
+data=f:read("*all")
 
---x=java_parseClass(data)
+x=java_parseClass(data)
 
 
 
