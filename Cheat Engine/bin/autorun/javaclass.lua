@@ -395,10 +395,10 @@ end
 
 
 --teststuff
-f=io.open([[c:\Users\DB\workspace\guitest\bin\Test.class]],"rb")
-data=f:read("*all")
+--f=io.open([[c:\Users\DB\workspace\guitest\bin\Test.class]],"rb")
+--data=f:read("*all")
 
-x=java_parseClass(data)
+--x=java_parseClass(data)
 
 
 
