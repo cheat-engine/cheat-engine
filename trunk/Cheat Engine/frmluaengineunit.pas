@@ -49,6 +49,7 @@ type
     tbRun: TToolButton;
     tbSingleStep: TToolButton;
     procedure btnExecuteClick(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
     procedure dlgReplaceFind(Sender: TObject);
     procedure dlgReplaceReplace(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -81,7 +82,7 @@ type
   private
     { private declarations }
     hintwindow:THintWindow;
-    continue: integer;
+    continuemethod: integer;
   public
     { public declarations }
     synhighlighter: TSynLuaSyn;
@@ -114,7 +115,7 @@ end;
 
 procedure TfrmLuaEngine.tbRunClick(Sender: TObject);
 begin
-  continue:=1;
+  continuemethod:=1;
   tbDebug.enabled:=false;
   tbRun.enabled:=false;
   tbSingleStep.enabled:=false;
@@ -122,10 +123,119 @@ end;
 
 procedure TfrmLuaEngine.tbSingleStepClick(Sender: TObject);
 begin
-  continue:=2;
+  continuemethod:=2;
   tbDebug.enabled:=false;
   tbRun.enabled:=false;
   tbSingleStep.enabled:=false;
+end;
+
+
+
+function findToken(s: string; var start: integer):string;
+var i: integer;
+begin
+  for i:=start to length(s) do
+  begin
+
+    if (i<length(s)) and (s[i] in ['a'..'z','A'..'Z','0'..'9','_']) then
+      continue
+    else
+    begin
+      if i=length(s) then
+        result:=copy(s, start, i-start+1)
+      else
+        result:=copy(s, start, i-start);
+
+      start:=i;
+      break;
+    end;
+  end;
+end;
+
+function getObject(s: string): boolean;
+var
+  index: integer;
+  token: string;
+  nextArray: boolean;
+
+  name: pchar;
+
+  i: integer;
+begin
+  result:=false;
+  //parse through the string's tokens.
+
+  //first find the first token and look it up in the local and global tables
+  index:=1;
+  nextArray:=false;
+  token:=findToken(s, index);
+
+  i:=1;
+  repeat     //lookup in the local's
+    name:=lua_getlocal(Luavm, LuaDebugInfo, i);
+    if name<>nil then
+    begin
+      if (name=token) then
+      begin
+        result:=true;
+        break;   //leave the value on the stack
+      end
+      else
+      begin
+        lua_pop(LuaVM, 1);
+        inc(i);
+      end;
+    end;
+  until name=nil;
+
+
+
+  if result=false then
+  begin
+    //try global
+    lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(token));
+    if lua_isnil(LuaVM,-1) then
+      lua_pop(luavm, 1)
+    else
+      result:=true; //keep this object in the stack
+  end;
+
+  if not result then exit; //nothing found
+
+
+  while index<length(s) do
+  begin
+    if s[index]='[' then
+    begin
+      //handle an array element access. Not implemented right now.  Stuff that should work if implemented: x.y[123+bla[12+x[67]].xxx
+      lua_pop(luavm,1); //remove the last object
+      result:=false;
+      exit; //fail
+    end;
+
+    if s[index]='.' then
+      inc(index);
+
+    token:=findToken(s,index);
+    //query the current object at the top of the stack for this field
+
+    i:=lua_gettop(Luavm);
+    lua_pushstring(luavm, token);
+    lua_gettable(luavm, i);
+
+    if lua_isnil(Luavm,-1) then
+    begin
+      result:=false; //nil
+      lua_pop(luavm,2); //pop of this nil value, and the previous object
+      exit;
+    end;
+
+    //still here so an object has been pushed on the stack
+    lua_remove(luavm, i); //not needed anymore
+
+
+
+  end;
 end;
 
 procedure TfrmLuaEngine.tShowHintTimer(Sender: TObject);
@@ -135,6 +245,15 @@ var r: trect;
   token: string;
   attr: TSynHighlighterAttributes;
   o: TObject;
+
+  stop, start: integer;
+  i: integer;
+  line: string;
+  s: string;
+  found: boolean;
+  foundcount: integer; //the number of pops needed to balance the stack
+
+
 begin
   if (LuaDebugForm=self) and (GetForegroundWindow=handle) then
   begin
@@ -151,41 +270,191 @@ begin
     if (attr=synhighlighter.IdentifierAttri) or (attr=synhighlighter.KeyAttri) then
     begin
 
-      token:=mscript.GetWordAtRowCol(p3);
+      line:=mscript.lines[p3.y-1];
+      mscript.GetWordBoundsAtRowCol(p3, start, stop);
 
+     // token:=mscript.GetWordAtRowCol(p3);
+
+      //find the actual start
+      for i:=p3.x downto 1 do
+      begin
+        if i=1 then
+        begin
+          if line[1] in ['a'..'z','A'..'Z','0'..'9','_','[',']','''','"','.'] then
+            start:=1
+          else
+            start:=2;
+
+          break;
+        end;
+
+        if line[i] in ['a'..'z','A'..'Z','0'..'9','_','[',']','''','"','.'] then
+          continue
+        else
+        begin
+          start:=i+1;
+          break;
+        end;
+      end;
+
+      token:=copy(line,start, stop-start);
+      if getObject(token) then
+      begin
+        description:=LuaValueToDescription(LuaVM, -1);
+        lua_pop(Luavm,1);
+      end
+      else
+        description:='nil';
+
+
+      //parse the first word and find out if it's a global or local start
+      //token:=findToken(line, start);
+
+     {
       if length(token)>1 then
       begin
         if token[length(token)] = '~' then //~ is not part of the token...
           token:=copy(token, 1, length(token)+1);
       end;
 
-      description:=LuaDebugVariables[token];
 
-
-      if description='' then //check if it's a global
+      mscript.GetWordBoundsAtRowCol(p3, start, stop);
+      if (start>1) and (line[start-1]='.') then //check if it starts with a . and if so, do table lookups using the parent(s)
       begin
-        //look up
-        LuaCS.Enter;
-        try
-          lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(token));
-          if lua_isnil(LuaVM,-1) then
-            description:='nil'
-          else
-            description:=LuaValueToDescription(LuaVM, -1)+' (global)';
 
-          lua_pop(luavm, 1);
-        finally
-          luacs.Leave;
-        end;
+        last:=start-2;
 
-        if description='' then
+        for i:=start-2 downto 1 do       //trace back till you find the start of the line or a seperator
         begin
-          description:=' ';
-          LuaDebugVariables.Add(token, description); //could not be found
+          if i=1 then
+          begin
+            s:=copy(line, 1, last);
+            path.Insert(0, s);
+          end;
+
+          if line[i] in ['a'..'z','A'..'Z','0'..'9','_'] then
+            continue;
+
+          if line[i]='.' then
+          begin
+            s:=copy(line, i+1, last-i);
+            path.Insert(0, s);
+            last:=i-1;
+          end
+          else
+          if line[i]=']' then
+          begin
+            //array element encounterd
+          end
+          else
+            break; //seperator encountered
         end;
       end;
 
 
+
+
+
+      token:='';
+      description:='nil';
+      foundcount:=0;
+
+      for i:=0 to path.Count-1 do
+      begin
+        if token='' then
+          token:=path[i]
+        else
+          token:=token+'.'+path[i];
+
+        found:=false;
+
+        if i=0 then //get it from global or local
+        begin
+          repeat
+            name:=lua_getlocal(L, ar, i);
+            if name<>nil then
+            begin
+              if (name=path[0]) then
+              begin
+                found:=true;
+                break;
+              end
+              else
+              begin
+                lua_pop(L, 1);
+                inc(i);
+              end;
+            end;
+          until name=nil;
+
+          if not found then
+          begin
+            //try global
+            lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(path[0]));
+            if lua_isnil(LuaVM,-1) then
+              lua_pop(luavm, 1)
+            else
+              found:=true; //keep this object in the stack
+
+            if not found then
+              break;
+          end;
+
+          if found then
+            inc(foundcount);
+
+        end;
+
+        if foundcount>0 then
+        begin
+          if i=path.count-1 then
+          begin
+            //last one
+            description:=LuaValueToDescription(LuaVM, -1);
+          end
+          else
+          begin
+            //get more paths
+            lua_getfield();
+
+          end;
+        end;
+
+
+
+
+
+        //description:=LuaDebugVariables[token];
+
+        if description='' then //check if it's a global
+        begin
+          //look up
+          LuaCS.Enter;
+          try
+            lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(token));
+            if lua_isnil(LuaVM,-1) then
+              description:='nil'
+            else
+              description:=LuaValueToDescription(LuaVM, -1)+' (global)';
+
+            lua_pop(luavm, 1);
+          finally
+            luacs.Leave;
+          end;
+
+          if description='' then
+          begin
+            description:=' ';
+            LuaDebugVariables.Add(token, description); //could not be found
+          end;
+        end;
+
+
+      end;
+
+
+
+      path.free;  }
 
       if description=' ' then
       begin
@@ -319,7 +588,7 @@ begin
       LuaDebugForm.mScript.CaretY:=ar.currentline;
       LuaDebugForm.mScript.EnsureCursorPosVisible;
 
-      LuaDebugForm.continue:=0;
+      LuaDebugForm.continuemethod:=0;
 
       LuaDebugInfo:=ar;
       LuaDebugVariables:=TStringToStringTree.Create(true);
@@ -346,7 +615,7 @@ begin
 
 
 
-      while LuaDebugForm.continue=0 do
+      while LuaDebugForm.continuemethod=0 do
       begin
         try
           application.ProcessMessages;
@@ -381,7 +650,7 @@ begin
 
       LuaDebugSingleStepping:=false;
 
-      case LuaDebugForm.continue of
+      case LuaDebugForm.continuemethod of
         1: ;//continue (normal bp's only)
         2: LuaDebugSingleStepping:=true;  //single step next instruction
       end;
@@ -407,6 +676,8 @@ var pc: pchar;
   oldstack: integer;
   dodebug: boolean;
 begin
+
+
   dodebug:=false;
 
   for i:=0 to mScript.Marks.Count-1 do
@@ -566,6 +837,12 @@ begin
 
 
   end;
+end;
+
+procedure TfrmLuaEngine.Button1Click(Sender: TObject);
+begin
+
+
 end;
 
 procedure TfrmLuaEngine.dlgReplaceFind(Sender: TObject);
