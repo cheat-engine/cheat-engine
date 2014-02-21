@@ -76,7 +76,7 @@ published
 
  // property LargeImages;
   property MultiSelect;
-//  property OwnerData;
+  property OwnerData;
   property ParentColor default False;
   property ParentFont;
   property ParentShowHint;
@@ -106,7 +106,7 @@ published
 //  property OnCustomDraw;
 //  property OnCustomDrawItem;
 //  property OnCustomDrawSubItem;
-//  property OnData;
+  property OnData;
   property OnDblClick;
  // property OnDeletion;
  // property OnDragDrop;

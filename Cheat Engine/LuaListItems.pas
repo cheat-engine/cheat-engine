@@ -56,6 +56,15 @@ begin
   end;
 end;
 
+function listitems_setCount(L: PLua_State): integer; cdecl;
+var
+  listitems: Tlistitems;
+begin
+  result:=0;
+  listitems:=luaclass_getClassObject(L);
+  listitems.Count:=lua_tovariant(L, 1);
+end;
+
 function listitems_getCount(L: PLua_State): integer; cdecl;
 var
   listitems: Tlistitems;
@@ -83,7 +92,7 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'setItem', listitems_setItem);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'add', listitems_add);
 
-  luaclass_addPropertyToTable(L, metatable, userdata, 'Count', listitems_getCount, nil);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Count', listitems_getCount, listitems_setCount);
   luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Item', listitems_getItem);
   luaclass_setDefaultArrayProperty(L, metatable, userdata, listitems_getItem, listitems_setItem);
 

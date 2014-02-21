@@ -1008,7 +1008,7 @@ methods
 
 ListItems class : (Inheritance: TObject)
 properties
-  Count : Integer - The number of ListItems this object holds
+  Count : Integer - The number of ListItems this object holds (Normally read only, but writable if OwnerData is true in the listview)
   Item[]: ListItem[] - Array to access each ListItem object
   [] = Item[]
 methods
@@ -1027,6 +1027,12 @@ properties
   Items: ListItems - The ListItems objects of the listview
   ItemIndex: integer - The currently selected index in the Items object 
   Canvas: Canvas - The canvas object used to render the listview  (Readonly)
+  AutoWidthLastColumns: Boolean - When set to true the last column will resize when the control resizes
+  HideSelection: Boolean - When set to true the selection will not hide when the focus leaves the control
+  RowSelect: Boolean - When set to true the whole row will be selected instead of just the first column
+  OwnerData: Boolean - When set to true the listview will call the onData function for every line being displayed. Use Items.Count to set the number of virtual lines
+
+  OnData: function(sender, ListItem) - Called when a listview with OwnerData true renders a line
 
 methods
   clear()
