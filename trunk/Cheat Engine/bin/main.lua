@@ -83,6 +83,11 @@ writeRegionToFile(filename, sourceaddress,size) : Writes the given region to a f
 readRegionFromFile(filename, destinationaddress)
 
 resetLuaState(): This will create a new lua state that will be used. (Does not destroy the old one, so memory leak)
+
+createRef(...): integer - Returns an integer reference that you can use with getRef. Useful for objects that can only store integers and need to reference lua objects.  (Component.Tag...) 
+getRef(integer): ... - Returns whatever the reference points out
+destroyRef(integer) - Removes the reference
+
 reloadSettingsFromRegistry(): This will cause cheat engine to reload the settings from the registry and apply them
 
 
