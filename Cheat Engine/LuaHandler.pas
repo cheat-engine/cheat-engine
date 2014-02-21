@@ -5209,6 +5209,24 @@ begin
 
 end;
 
+function createRef(L: PLua_State): integer; cdecl;
+begin
+  lua_pushinteger(L, luaL_ref(L, LUA_REGISTRYINDEX));
+  result:=1;
+end;
+
+function getRef(L: PLua_State): integer; cdecl;
+begin
+  lua_rawgeti(Luavm, LUA_REGISTRYINDEX, lua_tointeger(L,1));
+  result:=1;
+end;
+
+function destroyRef(L: PLua_State): integer; cdecl;
+begin
+  luaL_unref(L, LUA_REGISTRYINDEX, lua_tointeger(L,1));
+  result:=0;
+end;
+
 procedure InitializeLua;
 var s: tstringlist;
   k32: THandle;
@@ -5578,8 +5596,9 @@ begin
     lua_register(LuaVM, 'getUserRegistryEnvironmentVariable', getUserRegistryEnvironmentVariable);
     lua_register(LuaVM, 'setUserRegistryEnvironmentVariable', setUserRegistryEnvironmentVariable);
 
-
-
+    lua_register(LuaVM, 'createRef', createRef);
+    lua_register(LuaVM, 'getRef', getRef);
+    lua_register(LuaVM, 'destroyRef', destroyRef);
 
     initializeLuaCustomControl;
 
