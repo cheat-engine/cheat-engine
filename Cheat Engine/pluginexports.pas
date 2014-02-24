@@ -2206,6 +2206,7 @@ end;
 
 function ce_speedhack2_setSpeed(params: pointer): pointer;
 var speed: psingle;
+  s: string;
 begin
   result:=nil;
   try
@@ -2215,7 +2216,8 @@ begin
 
     if mainform.cbspeedhack.checked then
     begin
-      mainform.editsh2.Text:=format('%f', [speed^]);
+      s:=floattostr(speed^);
+      mainform.editsh2.Text:=s;
       mainform.btnSetSpeedhack2.Click;
     end;
     result:=pointer(1);
