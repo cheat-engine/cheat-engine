@@ -2094,6 +2094,8 @@ var
   starttime: dword;
   currentloopstarttime: dword;
   timeout: dword;
+
+  userWantsToAttach: boolean;
 begin
   starttime:=GetTickCount;
 
@@ -2103,21 +2105,30 @@ begin
     timeout:=10000;
 
   OutputDebugString('WaitTillAttachedOrError');
-  while (gettickcount-starttime)<timeout do
+
+  userWantsToAttach:=true;
+  while userWantsToAttach do
   begin
-    OutputDebugString('loop WaitTillAttachedOrError');
-    currentloopstarttime:=GetTickCount;
-    while CheckSynchronize and ((GetTickCount-currentloopstarttime)<50) do
+    while (gettickcount-starttime)<timeout do
     begin
-      OutputDebugString('After CheckSynchronize');
-      //synchronize for 50 milliseconds long
+      OutputDebugString('loop WaitTillAttachedOrError');
+      currentloopstarttime:=GetTickCount;
+      while CheckSynchronize and ((GetTickCount-currentloopstarttime)<50) do
+      begin
+        OutputDebugString('After CheckSynchronize');
+        //synchronize for 50 milliseconds long
+      end;
+
+      Result := OnAttachEvent.WaitFor(50); //wait for 50 milliseconds for the OnAttachEvent
+
+
+      if result=wrSignaled then break;
     end;
 
-    Result := OnAttachEvent.WaitFor(50); //wait for 50 milliseconds for the OnAttachEvent
-
-
-    if result=wrSignaled then break;
+    userWantsToAttach:=MessageDlg('Debugger attach timeout', 'The debugger attach has timed out. This could indicate that the target has crashed, or that your system is just slow. Do you wish to wait another '+inttostr(timeout div 1000)+' seconds', mtConfirmation, [mbyes,mbno],0 )=mryes;
   end;
+
+
 
   OutputDebugString('WaitTillAttachedOrError exit');
 
