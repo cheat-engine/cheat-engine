@@ -136,6 +136,24 @@ begin
   result:=1;
 end;
 
+function menuItem_getParent(L: PLua_State): integer; cdecl;
+var
+  menuItem: TmenuItem;
+begin
+  menuitem:=luaclass_getClassObject(L);
+  luaclass_newClass(L, menuItem.Parent);
+  result:=1;
+end;
+
+function menuItem_getMenu(L: PLua_State): integer; cdecl;
+var
+  menuItem: TmenuItem;
+begin
+  menuitem:=luaclass_getClassObject(L);
+  luaclass_newClass(L, menuItem.Menu);
+  result:=1;
+end;
+
 function menuItem_getItem(L: PLua_State): integer; cdecl;
 var
   menuitem: TMenuItem;
@@ -276,6 +294,8 @@ begin
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'Caption', menuItem_getCaption, menuItem_setCaption);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Shortcut', menuItem_getShortcut, menuItem_setShortcut);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Parent', menuItem_getParent, nil);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Menu', menuItem_getMenu, nil);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Count', menuItem_getCount, nil);
   luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Item', menuItem_getItem);
   luaclass_setDefaultArrayProperty(L, metatable, userdata, menuItem_getItem, nil);

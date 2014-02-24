@@ -550,6 +550,8 @@ properties
   Caption : String - Text of the menu item
   Shortcut : string - Shortcut in textform to trigger the menuitem
   Count : integer - Number of children attached to this menuitem
+  Menu: Menu - The menu this item resides in
+  Parent: MenuItem - The menuitem this item hangs under
   Item[] : Array to access each child menuitem
   [] : Item[]
   OnClick: Function to call when the menu item is activated
@@ -958,6 +960,7 @@ properties
   MaxWidth: integer
   MinWidth: integer
   Width: integer
+  Visible: boolean 
 methods
   getAutosize()
   setAutosize(boolean)
@@ -1032,7 +1035,7 @@ properties
   Items: ListItems - The ListItems objects of the listview
   ItemIndex: integer - The currently selected index in the Items object 
   Canvas: Canvas - The canvas object used to render the listview  (Readonly)
-  AutoWidthLastColumns: Boolean - When set to true the last column will resize when the control resizes
+  AutoWidthLastColumn: Boolean - When set to true the last column will resize when the control resizes
   HideSelection: Boolean - When set to true the selection will not hide when the focus leaves the control
   RowSelect: Boolean - When set to true the whole row will be selected instead of just the first column
   OwnerData: Boolean - When set to true the listview will call the onData function for every line being displayed. Use Items.Count to set the number of virtual lines
