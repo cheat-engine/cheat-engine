@@ -241,10 +241,10 @@ end
 
 function java_parseBytecode(cp, s, code_length)
   local result={}
-  result.bytes={string.byte(s.data, s.index, s.index+code_length-1)}
+  local bytes={string.byte(s.data, s.index, s.index+code_length-1)}
 
   --parse the bytes into an array of programcounter and interpreted bytecode command
-  result.interpreted=bytecodeDisassembler(result.bytes)
+  result=bytecodeDisassembler(bytes)
 
 
   s.index=s.index+code_length
@@ -274,7 +274,22 @@ function java_parseAttribute_Code(cp, a)
 
   a.attributes_count=java_read_u2(s)
   a.attributes=java_parseAttributes(cp, s, a.attributes_count)
+end
 
+function java_parseAttribute_Exceptions(cp, a)
+  local i;
+  local s={}
+  s.data=a.info
+  s.index=1
+
+  a.attribute_name_index=java_read_u2(s)
+  a.attribute_length=java_read_u4(s)
+  a.number_of_exceptions=java_read_u2(s)
+
+  a.exception_index_table={}
+  for i=1, a.number_of_exceptions do
+    a.exception_index_table[i]=java_read_u2(s)
+  end
 end
 
 
@@ -282,6 +297,9 @@ end
 java_parseAttribute={}
 java_parseAttribute["ConstantValue"]=java_parseAttribute_ConstantValue
 java_parseAttribute["Code"]=java_parseAttribute_Code
+java_parseAttribute["Exceptions"]=java_parseAttribute_Exceptions
+
+
 
 --add more yourself...
 
@@ -391,6 +409,42 @@ function java_parseClass(data)
 
 
   return result
+end
+
+function javaclass_getMethodName(class, method)
+  return class.constant_pool[method.name_index].utf8
+end
+
+function javaclass_getExceptionTable(class, method)
+end
+
+function javaclass_findMethod(class, methodname)
+  --returns the method table for the requested method
+  local i
+
+  for i=1, class.methods_count do
+    if javaclass_getMethodName(class, class.methods[i])==methodname then
+	  return class.methods[i]
+	end
+  end
+
+  return nil
+end
+
+function javaclass_method_findCodeAttribute(method)
+  local i
+  if method.CodeAttribute==nil then
+    for i=1, #method.attributes do
+      if method.attributes[i].attribute_name=="Code" then
+	    method.CodeAttribute=method.attributes[i]
+	    return method.attributes[i]
+	  end
+    end
+  else
+    return method.CodeAttribute
+  end
+
+  return nil
 end
 
 

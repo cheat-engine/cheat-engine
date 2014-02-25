@@ -321,3 +321,9 @@ poScreenCenter = 4
 poDesktopCenter = 5
 poMainFormCenter = 6
 poOwnerFormCenter = 7
+
+asrTop = 0
+asrBottom = 1
+asrCenter = 2
+asrLeft = asrTop
+asrRight = asrBottom
