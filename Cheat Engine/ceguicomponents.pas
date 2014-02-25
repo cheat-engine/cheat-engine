@@ -100,7 +100,7 @@ published
  // property OnAdvancedCustomDrawSubItem;
 //  property OnChange;
   property OnClick;
-//  property OnColumnClick;
+  property OnColumnClick;
 //  property OnCompare;
 //  property OnContextPopup;
 //  property OnCustomDraw;

@@ -1033,7 +1033,8 @@ createListView(owner): Creates a ListView class object which belongs to the give
 properties
   Columns: ListColumns - The Listcolumns object of the listview (Readonly)
   Items: ListItems - The ListItems objects of the listview
-  ItemIndex: integer - The currently selected index in the Items object 
+  ItemIndex: integer - The currently selected index in the Items object  (-1 if nothing is selected)
+  Selected: ListItem - The currently selected listitem (nil if nothing is selected)
   Canvas: Canvas - The canvas object used to render the listview  (Readonly)
   AutoWidthLastColumn: Boolean - When set to true the last column will resize when the control resizes
   HideSelection: Boolean - When set to true the selection will not hide when the focus leaves the control

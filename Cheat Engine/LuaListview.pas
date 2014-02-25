@@ -99,6 +99,26 @@ begin
   result:=0;
 end;
 
+function listview_getSelected(L: PLua_State): integer; cdecl;
+var
+  listview: TCustomListView;
+begin
+  listview:=luaclass_getClassObject(L);
+  luaclass_newClass(L, listview.Selected);
+  result:=1;
+end;
+
+function listview_setSelected(L: PLua_State): integer; cdecl;
+var
+  listview: TCustomListView;
+begin
+  listview:=luaclass_getClassObject(L);
+  if lua_gettop(L)>=1 then
+    listview.Selected:=lua_ToCEUserData(L, 1);
+
+  result:=0;
+end;
+
 function listView_getCanvas(L: PLua_State): integer; cdecl;
 var
   listview: TCustomListView;
@@ -123,6 +143,7 @@ begin
   luaclass_addPropertyToTable(L, metatable, userdata, 'Columns', listview_getColumns, nil);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Items', listview_getItems, listview_setItems);
   luaclass_addPropertyToTable(L, metatable, userdata, 'ItemIndex', listview_getItemIndex, listview_setItemIndex);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'Selected', listview_getSelected, listview_setSelected);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Canvas', listview_getCanvas, nil);
 
 end;
