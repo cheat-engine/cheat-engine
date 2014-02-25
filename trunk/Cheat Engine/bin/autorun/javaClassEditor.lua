@@ -1,15 +1,26 @@
 --Java class editor
+
+
 --[[
 This will show an userinterface for editing java classes and will return a list of "patch" commands
 that can be used with the runtime java class edit commands
 
 e.g:
+DefineLabel(spot)
 InsertBytecode(spot, command)
 ModifyBytecode(spot, command)
 DeleteBytecode(spot)  (could be ModifyBytecode(spot,"nop") )
 
 
 The user should not have to know about exceptions and how their positions change with each insert/delete
+
+gui:
+listview:
+index|byteindex|label |exception|instruction|
+-----|---------|------|---------|-----------|
+0    |0        |      |         |nop        |   Insert
+0    |1        |l1:   |ex1:     |branch l1  |   Delete
+                                                Modify
 
 --]]
 
@@ -22,27 +33,63 @@ java_bytecodes={}
 paramtypes:
   s1=signed 1 byte
   s2=signed 2 byte
+  s4=signed 4 byte
   u1=unsigned 1 byte
   u2=unsigned 2 byte
+  u4=unsigned 4 byte
+
 
   02=null 2 bytes
+  wide=special wide operand
 
+  pad4=pad till 4 byte alignment
+
+  [s4]=array of 4 byte signed values
+  [s4s4]=array of 2 4 byte signed values
 --]]
+
+function signExtendByte(byte)
+  --byte is a value between 0 and 255
+  --if bit 7 is 1, it's a negative
+  if bAnd(byte,0x80)~=0 then
+    return byte-0x100
+  else
+    return byte
+  end
+end
+
+function signExtendWord(word)
+  if bAnd(word,0x8000)~=0 then
+    return word-0x10000
+  else
+    return word
+  end
+end
+
+function signExtendDword(dword)
+  --assuming dword is in the range of 0 to 0xffffffff
+  if bAnd(dword,0x80000000)~=0 then
+    return dword-0x100000000
+  else
+    return dword
+  end
+end
+
 
 function calculateTableSwitch(address, bytes)
   local result=nil
 
-  if bytes[1]==0xaa then
+  if bytes[address]==0xaa then
     local padding=0
 
-	if (address-1) % 4>0 then
-	  padding=4-(address-1) % 4
-	end
+  if (address-1) % 4>0 then
+    padding=4-(address-1) % 4
+  end
 
     --local defaultbyte=byteTableToDword({bytes[8],bytes[7],bytes[6],bytes[5]})
-	local low=byteTableToDword({bytes[1+padding+7],bytes[1+padding+6],bytes[1+padding+5],bytes[1+padding+4]})
-	local high=byteTableToDword({bytes[1+padding+11],bytes[1+padding+10],bytes[1+padding+9],bytes[1+padding+8]})
-	result=padding+4+4+4+((high-low)+1)*4 --paramsize
+  local low=byteTableToDword({bytes[address+1+padding+7],bytes[address+1+padding+6],bytes[address+1+padding+5],bytes[address+1+padding+4]})
+  local high=byteTableToDword({bytes[address+1+padding+11],bytes[address+1+padding+10],bytes[address+1+padding+9],bytes[address+1+padding+8]})
+  result=padding+4+4+4+((high-low)+1)*4 --paramsize
   end
 
   return result;
@@ -51,16 +98,16 @@ end
 function calculateLookupSwitch(address, bytes)
   local result=nil
 
-  if bytes[1]==0xab then
+  if bytes[address]==0xab then
     local padding=0
 
-	if (address-1) % 4>0 then
-	  padding=4-(address-1) % 4
-	end
+  if (address-1) % 4>0 then
+    padding=4-(address-1) % 4
+  end
 
     --local defaultbyte=byteTableToDword({bytes[8],bytes[7],bytes[6],bytes[5]})
-	local npairs=byteTableToDword({bytes[1+padding+7],bytes[1+padding+6],bytes[1+padding+5],bytes[1+padding+4]})
-	result=padding+4+4+npairs*8 --paramsize
+  local npairs=byteTableToDword({bytes[address+1+padding+7],bytes[address+1+padding+6],bytes[address+1+padding+5],bytes[address+1+padding+4]})
+  result=padding+4+4+npairs*8 --paramsize
   end
 
   return result;
@@ -237,7 +284,7 @@ java_bytecodes[0xa6]={operation="if_acmpne", parameters={bytecount=2, {paramname
 java_bytecodes[0xa7]={operation="goto", parameters={bytecount=2, {paramname="branchoffset", paramtype="s2"}}, description="Branch always"}
 java_bytecodes[0xa8]={operation="jsr", parameters={bytecount=2, {paramname="branchoffset", paramtype="s2"}}, description="Jump subroutine"}
 java_bytecodes[0xa9]={operation="ret", parameters={bytecount=1, {paramname="index", paramtype="u1"}}, description="Return from subroutine"}
-java_bytecodes[0xaa]={operation="tableswitch", parameters={bytecount=calculateTableSwitch, {paramname="padding", paramtype="pad4"}, {paramname="default", paramtype="s4"},{paramname="low", paramtype="s4"},{paramname="high", paramtype="s4"},{paramname="array",paramtype="[s4s4]"}}, description="Access jump table by key match and jump"}
+java_bytecodes[0xaa]={operation="tableswitch", parameters={bytecount=calculateTableSwitch, {paramname="padding", paramtype="pad4"}, {paramname="default", paramtype="s4"},{paramname="low", paramtype="s4"},{paramname="high", paramtype="s4"},{paramname="array",paramtype="[s4]"}}, description="Access jump table by key match and jump"}
 java_bytecodes[0xab]={operation="lookupswitch", parameters={bytecount=calculateLookupSwitch, {paramname="padding", paramtype="pad4"}, {paramname="default", paramtype="s4"},{paramname="npairs", paramtype="s4"},{paramname="array",paramtype="[s4s4]"}}, description="Access jump table by key match and jump"}
 java_bytecodes[0xac]={operation="ireturn", description="Return int from method"}
 java_bytecodes[0xad]={operation="lreturn", description="Return long from method"}
@@ -282,8 +329,788 @@ function java_buildoptobytecodetable()
 end
 
 function bytecodeDisassembler(bytes)
+  --note: Bytes start at index 1.  Some instructions like values on an alignment of 4 byte, so keep in mind that that is (address-1) % 4
+  local i,j
+
   result={}
+  result.labels={}
+  local byteindex=1
+  local index=1
+  while byteindex<#bytes do
+    local startindex=byteindex
+    local wide=false
+
+    if bytes[byteindex]==0xc4 then --wide
+      wide=true
+      byteindex=byteindex+1
+    end
+
+    local data=java_bytecodes[bytes[byteindex]]
+
+    result[index]={}
+    result[index].data=data
+    result[index].operation=data.operation
+    result[index].parameter=''
+    result[index].byteindex=startindex-1
+
+    local parameters=data.parameters
+    if wide then
+      parameters=data.wideparameters
+    end
+
+    if parameters~=nil then
+      for i=1,#parameters do
+        if parameters[i].paramtype=='s1' then
+          result[index].parameter=result[index].parameter..signExtendByte(bytes[byteindex+1])..' '
+        elseif parameters[i].paramtype=='s2' then
+          result[index].parameter=result[index].parameter..signExtendWord(byteTableToWord({bytes[byteindex+2], bytes[byteindex+1]}))..' '
+        elseif parameters[i].paramtype=='s4' then
+            result[index].parameter=result[index].parameter..signExtendWord(byteTableToDword({bytes[byteindex+4], bytes[byteindex+3], bytes[byteindex+2], bytes[byteindex+1]}))..' '
+          elseif parameters[i].paramtype=='u1' then
+          result[index].parameter=result[index].parameter..bytes[byteindex+1]..' '
+        elseif parameters[i].paramtype=='u2' then
+          result[index].parameter=result[index].parameter..byteTableToWord({bytes[byteindex+2], bytes[byteindex+1]})..' '
+        elseif parameters[i].paramtype=='u4' then
+          result[index].parameter=result[index].parameter..byteTableToDword({bytes[byteindex+4], bytes[byteindex+3], bytes[byteindex+2], bytes[byteindex+1]})..' '
+        end
+
+        if (i==1) and (parameters[i].paramname=="branchoffset") then
+          local destination=tonumber(result[index].byteindex+result[index].parameter)
+          local label=nil
+
+          for j=1, #result.labels do
+            --check if it's already defined
+            if result.labels[j].destination==destination then
+              label=result.labels[j]
+              break
+            end
+
+          end
+
+          if label==nil then
+            --new label, define it
+            label={}
+            label.destination=destination
+            label.labelname='lbl'..(#result.labels+1)
+            label.origins={}
+            table.insert(result.labels, label)
+          end
+
+
+          result[index].parameter='lbl'..#result.labels
+
+
+          table.insert(label.origins, startindex)
+
+
+
+
+        end
+
+      end
+    end
+
+    if parameters==nil then
+      result[index].bytesize=1
+    else
+      if type(parameters.bytecount)=='function' then
+        result[index].bytesize=1+parameters.bytecount(byteindex, bytes)
+      else
+        result[index].bytesize=1+parameters.bytecount
+      end
+    end
+
+    --copy the bytes
+    result[index].bytes={}
+    for j=startindex, startindex+result[index].bytesize do
+      result[index].bytes[1+(j-startindex)]=bytes[j]
+    end
+
+    byteindex=byteindex+result[index].bytesize
+
+    index=index+1
+  end
+
+  return result
 end
+
+function singleLineBytecodeAssembler(address, instruction, labels, updatelabels)
+  local result=nil
+  local operation
+  local parameterstring
+  local userparameters={}
+  local wide=false
+  local i,j,s
+  s=0
+  i=0
+
+  for s in string.gmatch(instruction, "%S+") do
+    if i==0 then
+      if s~='wide' then
+        operation=s
+        i=i+1
+      else
+        wide=true
+      end
+    else
+      userparameters[i]=s
+      i=i+1
+    end
+  end
+
+  parameterstring=''
+  for i=1, #userparameters do
+    parameterstring=parameterstring..userparameters[i]..' '
+  end
+
+
+  local data=java_operations[operation]
+
+  if data~=nil then
+    if type(data.bytecount)=='function' then
+      error(data.operation..' is currently not implemented')
+    end
+
+    result={}
+    result.bytes={}
+    result.data=data
+    result.operation=data.operation
+    result.byteindex=address
+    result.parameters=userparams
+    result.parameter=parameterstring
+
+
+
+    local parameters
+    if wide then
+      parameters=data.wideparameters
+      if parameters==nil then
+        error('wide can not be used with '..data.operation)
+      end
+      table.insert(result, 0xc4)
+    else
+      parameters=data.parameters
+    end
+
+    table.insert(result.bytes, data.byte)
+
+    if parameters~=nil then
+      if #userparameters~=#parameters then
+        error('Invalid amount of parameters provided for '..data.operation)
+      end
+
+
+      for i=1, #parameters do
+        local bytes={}
+
+        if (i==1) and (parameters[i].paramname=="branchoffset") then --this instruction has a label reference
+          --convert the parameter to the current label
+          local label=nil
+
+          if labels~=nil then
+            for j=1, #labels do
+              if labels[j].labelname==result.parameters[i] then
+                label=labels[j]
+
+                result.parameters[i]=labels[j].destination-address
+              end
+            end
+          end
+
+          if tonumber(result.parameters[i])==nil then
+            error("The label "..userparameters[i].."is not yet defined")
+          end
+
+          if (updatelabels~=nil) and (updatelabels==true) then
+            if label==nil then --add it
+              label={}
+              label.destination=result.parameters[i]
+              label.labelname='lbl'..(#labels+1)
+              label.origins={}
+              table.insert(labels, label)
+            end
+
+            table.insert(label.origins, address)
+          end
+
+
+
+
+        end
+
+
+
+        if parameters[i].paramtype=='s1' then
+          bytes={tonumber(userparameters[i]) % 256}
+
+        elseif parameters[i].paramtype=='s2' then
+          bytes=wordToByteTable(tonumber(userparameters[i]) % 65536)
+        elseif parameters[i].paramtype=='s4' then
+          bytes=dwordToByteTable(tonumber(userparameters[i]) % 65536)
+        elseif parameters[i].paramtype=='u1' then
+          bytes={tonumber(userparameters[i]) % 256}
+        elseif parameters[i].paramtype=='u2' then
+          bytes=wordToByteTable(tonumber(userparameters[i]) % 65536)
+        elseif parameters[i].paramtype=='u4' then
+          bytes=dwordToByteTable(tonumber(userparameters[i]) % 65536)
+        else
+          error('This instruction is currently not implemented')
+        end
+
+        for j=1, #bytes do
+          table.insert(result.bytes, bytes[j])
+        end
+      end
+
+    end
+
+    result.bytesize=#result.bytes
+  else
+    error('unknown instruction:'..operation);
+  end
+
+  return result
+end
+
+
+
+function javaclass_applyAssembleCommand(class, method, byteindex, instruction, insert)
+  local codeattribute=javaclass_method_findCodeAttribute(method)
+
+  local labels=codeattribute.code.labels
+  local exceptions=codeattribute.exception_table
+
+
+  --get the size of the instruction to be assembled (plus side: unlike intel with it's horrible and easily reachable 128 byte limit for small branches, java gives 32768 bytes, so less chance of an insertion causing problems)
+  local newcode
+  local codeattribute_codeIndex=nil
+
+
+  newcode=singleLineBytecodeAssembler(byteindex, instruction, labels,false) --get the size, but don't mess with the labels
+
+  local i,j
+
+  local startindex=byteindex
+  local offset=0
+
+  --update the labels and exception table based on the size
+
+  startindex=byteindex
+
+  if insert then
+    offset=newcode.bytesize
+  else
+    local oldcode=nil
+
+    for i=1, #codeattribute.code do
+      if codeattribute.code[i].byteindex==byteindex then
+        oldcode=codeattribute.code[i]
+        break
+      end
+    end
+
+    if oldcode==nil then
+      error('You can only replace instructions on an instruction boundary')
+    end
+
+    offset=newcode.bytesize-oldcode.bytesize
+  end
+
+
+  javaclass_updateOffsets(class, method, startindex, offset)
+
+  --labels and other byteindex are updated. Now you can insert/modify the instruction
+
+  newcode=singleLineBytecodeAssembler(byteindex, instruction, labels,true)
+
+  local currentbyteindex=0
+  for i=1, #codeattribute.code do
+    if insert then
+      --the byteindex has already been updated
+
+      if currentbyteindex==byteindex then
+        table.insert(codeattribute.code, i, newcode)
+        break
+      end
+    else
+      if currentbyteindex==byteindex then
+        codeattribute.code[i]=newcode
+        break
+      end
+    end
+
+    currentbyteindex=currentbyteindex+codeattribute.code[i].bytesize
+  end
+
+
+
+end
+
+function javaclass_updateOffsets(class, method, startindex, offset)
+
+  print("si="..startindex.." offset="..offset)
+  local i,j
+
+  local codeattribute=javaclass_method_findCodeAttribute(method)
+  local code=codeattribute.code
+
+
+  local labels=codeattribute.code.labels
+  local exceptions=codeattribute.exception_table
+
+  for i=1, #labels do
+    if labels[i].destination>=startindex then --the destination has been updated
+      labels[i].destination=labels[i].destination+offset
+    end
+
+    for j=1, #labels[i].origins do
+      local originaladdress=labels[i].origins[j]
+
+      if originaladdress>=startindex then --this got shifted as well
+        labels[i].origins[j]=originaladdress+offset
+      end
+
+
+      --adjust this branch instruction (note though, if originaddress was bigger than destination address, there should be no branchoffset change)
+      --find the instruction in the code
+      local k
+
+      for k=1, #codeattribute.code do
+        if codeattribute.code[k].byteindex==originaladdress then --check the original address (the byteindex hasn't been updated)
+          local size=codeattribute.code[k].dataparameters[1].paramtype:sub(2,2) --branches only have type s2 or s4
+          local newbranchoffset=labels[i].destination-labels[i].origins[j]
+          local newbytes
+
+
+          if size=='2' then --remember, it's big endian
+            newbytes=wordToByteTable(newbranchoffset)
+            codeattribute.code[k].bytes[2]=newbytes[2]
+            codeattribute.code[k].bytes[3]=newbytes[1]
+          elseif size=='4' then
+            newbytes=dwordToByteTable(newbranchoffset)
+            codeattribute.code[k].bytes[2]=newbytes[4]
+            codeattribute.code[k].bytes[3]=newbytes[3]
+            codeattribute.code[k].bytes[4]=newbytes[2]
+            codeattribute.code[k].bytes[5]=newbytes[1]
+          end
+        end
+
+
+
+      end
+    end
+  end
+
+  --update tableswitch and lookupswitch commands
+  for i=1,#code do
+    if code[i].data.byte==0xaa then
+      --tableswitch
+      local defaultbyteindex=code[i].byteindex+1
+      local defaultindex=2
+
+      --find alignment padding
+      local rest=defaultbyteindex%4
+      if rest>0 then
+        defaultindex=defaultindex+(4-rest)
+        defaultbyteindex=defaultbyteindex+(4-rest)
+      end
+
+      local lowindex=defaultindex+4
+      local highindex=lowindex+4
+      local offsetindex=highindex+4
+
+      local low=byteTableToDword({code[i].bytes[lowindex+3], code[i].bytes[lowindex+2], code[i].bytes[lowindex+1], code[i].bytes[lowindex]}) --big endian
+      local high=byteTableToDword({code[i].bytes[highindex+3], code[i].bytes[highindex+2], code[i].bytes[highindex+1], code[i].bytes[highindex]})
+
+      local count=high-low+1
+
+      for j=1,count do
+        local currentoffsetindex=offsetindex+(i-1)*4
+        local currentoffset=byteTableToDword({code[i].bytes[currentoffsetindex+3], code[i].bytes[currentoffsetindex+2], code[i].bytes[currentoffsetindex+1], code[i].bytes[currentoffsetindex]})
+
+        if currentoffset>=startindex then
+          --update the address it points to
+          currentoffset=currentoffset+offset
+
+          local newbytes=dwordToByteTable(currentoffset)
+
+          code.bytes[currentoffsetindex]=newbytes[4]
+          code.bytes[currentoffsetindex+1]=newbytes[3]
+          code.bytes[currentoffsetindex+2]=newbytes[2]
+          code.bytes[currentoffsetindex+3]=newbytes[1]
+        end
+      end
+
+
+
+    elseif code[i].data.byte==0xab then
+      --lookupswitch
+      local defaultbyteindex=code[i].byteindex+1
+      local defaultindex=2
+
+      --find alignment padding
+      local rest=defaultbyteindex%4
+      if rest>0 then
+        defaultindex=defaultindex+(4-rest)
+        defaultbyteindex=defaultbyteindex+(4-rest)
+      end
+
+      local countindex=defaultindex+4
+      local count=byteTableToDword({code[i].bytes[countindex+3], code[i].bytes[countindex+2], code[i].bytes[countindex+1], code[i].bytes[countindex]})
+
+
+      for j=1,count do
+        local currentoffsetindex=countindex+(j-1)*8+4
+        local currentoffset=byteTableToDword({code[i].bytes[currentoffsetindex+3], code[i].bytes[currentoffsetindex+2], code[i].bytes[currentoffsetindex+1], code[i].bytes[currentoffsetindex]})
+
+        if currentoffset>=startindex then
+          --update the address it points to
+          currentoffset=currentoffset+offset
+
+          local newbytes=dwordToByteTable(currentoffset)
+
+          code.bytes[currentoffsetindex]=newbytes[4]
+          code.bytes[currentoffsetindex+1]=newbytes[3]
+          code.bytes[currentoffsetindex+2]=newbytes[2]
+          code.bytes[currentoffsetindex+3]=newbytes[1]
+        end
+
+      end
+
+
+    end
+  end
+
+
+  --update the exception table
+
+  for i=1, #exceptions do
+    if exceptions[i].start_pc>=startindex then
+      exceptions[i].start_pc=exceptions[i].start_pc+offset
+    end
+
+    if exceptions[i].start_pc>=startindex then
+      exceptions[i].end_pc=exceptions[i].end_pc+offset
+    end
+
+    if exceptions[i].start_pc>=startindex then
+      exceptions[i].handler_pc=exceptions[i].handler_pc+offset
+    end
+  end
+
+
+
+  --finally update the byteindexes
+  for i=1, #codeattribute.code do
+    if codeattribute.code[i].byteindex>=startindex then
+      codeattribute.code[i].byteindex=codeattribute.code[i].byteindex+offset
+    end
+  end
+end
+
+
+
+
+function javaclasseditor_editMethod_fillInstructionsListview(lv, method)
+  local i
+  local codeattribute=javaclass_method_findCodeAttribute(method)
+  local code=codeattribute.code
+  local labels=code.labels
+  local exceptions=codeattribute.exception_table
+  local haslabels=false
+  local hasexceptions=false
+
+  lv.Items.clear()
+
+  for i=1, #code do
+    local j
+    local item=lv.Items.add()
+    local bytestring=''
+
+    item.Caption=i-1
+
+
+    for j=1, code[i].bytesize do
+      bytestring=bytestring..string.format("%.2x ", code[i].bytes[j])
+    end
+
+    item.SubItems.Add(code[i].byteindex .. ':'..bytestring) --display as 0 start
+
+
+    local labelname=''
+    if #labels>0 then
+      haslabels=true
+      for j=1, #labels do
+        if code[i].byteindex==labels[j].destination then
+          labelname='lbl'..j
+          break
+        end
+      end
+
+    end
+
+
+    local exceptionstr=''
+    if #exceptions>0 then
+      hasexceptions=true
+      for j=1, #exceptions do
+        if code[i].byteindex==exceptions[j].start_pc then
+          exceptionstr=exceptionstr..'start'..j..' '
+        end
+
+        if code[i].byteindex==exceptions[j].end_pc then
+          exceptionstr=exceptionstr..'end'..j..' '
+        end
+
+        if code[i].byteindex==exceptions[j].handler_pc then
+          exceptionstr=exceptionstr..'handler'..j..' '
+        end
+      end
+    end
+    item.SubItems.Add(labelname)
+    item.SubItems.Add(exceptionstr)
+    item.SubItems.Add(code[i].operation..' '..code[i].parameter)
+  end
+end
+
+function javaclasseditor_editMethod_insertLine(sender)
+  local classMethod=getRef(sender.Tag)
+  local codeattribute=javaclass_method_findCodeAttribute(classMethod.method)
+  local code=codeattribute.code
+
+
+
+  local lv=classMethod.method.editor.lvInstructions
+  local linenr
+  if lv.Selected==nil then
+    linenr=0
+  else
+    linenr=lv.Selected.Index
+  end
+
+  local byteindex=code[linenr+1].byteindex
+
+
+  local line=inputQuery('Insert line', 'Input the java assembly code you wish to insert at line '..linenr..'(byteindex '..byteindex..')','')
+  if line~=nil then
+    --showMessage('Assembling '..line)
+    --assemble
+    javaclass_applyAssembleCommand(classMethod.class, classMethod.method, byteindex, line, true)
+
+    --show update
+    javaclasseditor_editMethod_fillInstructionsListview(classMethod.method.editor.lvInstructions, classMethod.method)
+  end
+end
+
+function javaclasseditor_editMethod_editLine(sender)
+  local classMethod=getRef(sender.Tag)
+  local codeattribute=javaclass_method_findCodeAttribute(classMethod.method)
+  local code=codeattribute.code
+
+
+
+  local lv=classMethod.method.editor.lvInstructions
+  local linenr
+  if lv.Selected==nil then
+    return
+  else
+    linenr=lv.Selected.Index
+  end
+
+  local byteindex=code[linenr+1].byteindex
+  local originalcode=code[linenr+1].operation..' '..code[linenr+1].parameter
+
+
+  local line=inputQuery('Edit line', 'Input the java assembly code you wish to insert at line '..linenr..'(byteindex '..byteindex..')',originalcode)
+  if line~=nil then
+    javaclass_applyAssembleCommand(classMethod.class, classMethod.method, byteindex, line, false)
+
+    --show update
+    javaclasseditor_editMethod_fillInstructionsListview(classMethod.method.editor.lvInstructions, classMethod.method)
+  end
+end
+
+function javaclasseditor_editMethod_defineLabel(sender)
+  local classMethod=getRef(sender.Tag)
+  local codeattribute=javaclass_method_findCodeAttribute(classMethod.method)
+  local code=codeattribute.code
+  local labels=code.labels
+
+  local lv=classMethod.method.editor.lvInstructions
+  local linenr
+  if lv.Selected==nil then
+    return
+  else
+    linenr=lv.Selected.Index
+  end
+
+  local byteindex=code[linenr+1].byteindex
+  local labelname=inputQuery('Define new label', 'Give a labelname for line '..linenr..'(byteindex '..byteindex..')','')
+
+  if (labelname~=nil) and (labelname~='') then
+    local i
+    --check if it already exists
+    for i=1,#labels do
+      if labels[i].labelname==labelname then
+        error('There is already a label with this name')
+      end
+    end
+
+    --still here, so the it wasn't in the list
+    local newlabel={}
+    newlabel.labelname=labelname
+    newlabel.destination=byteindex
+    newlabel.origins={}
+    table.insert(labels, newlabel)
+  end
+end
+
+
+
+function javaclasseditor_editMethod(class, method)
+  --create a gui for this method
+
+  if method.editor~=nil then
+    method.editor.form.show() --already created
+  else
+    local ca=javaclass_method_findCodeAttribute(method)
+    local classMethodRef=createRef({class=class, method=method})
+
+    --build a gui
+    method.editor={}
+    method.editor.form=createForm()
+    method.editor.form.onClose=nil --do not destroy on close
+    method.editor.form.tag=classMethodRef --this way gui launched functions can find the base form and fetch this data if it needs it
+    method.editor.form.borderstyle=bsSizeable
+
+    method.editor.form.width=640
+    method.editor.form.height=480
+
+    method.editor.form.caption="Method: "..x.constant_pool[x.constant_pool[x.this_class].name_index].utf8.."."..class.constant_pool[method.name_index].utf8
+    method.editor.form.Position=poScreenCenter
+
+
+    method.editor.lblMaxStack=createLabel(method.editor.form)
+    method.editor.lblMaxLocals=createLabel(method.editor.form)
+
+    method.editor.lblMaxStack.caption="Max Stack"
+    method.editor.lblMaxLocals.caption="Max Locals"
+
+    method.editor.edtMaxStack=createEdit(method.editor.form)
+    method.editor.edtMaxLocals=createEdit(method.editor.form)
+
+    method.editor.edtMaxStack.Text=ca.max_stack
+    method.editor.edtMaxLocals.Text=ca.max_locals
+
+
+    method.editor.lblMaxStack.AnchorSideLeft.Control=method.editor.form
+    method.editor.lblMaxStack.AnchorSideLeft.Side=asrLeft
+    method.editor.lblMaxStack.AnchorSideTop.Control=method.editor.form
+    method.editor.lblMaxStack.AnchorSideTop.Side=asrTop
+    method.editor.lblMaxStack.Anchors="[akTop, akLeft]"
+
+    method.editor.edtMaxStack.AnchorSideLeft.Control=method.editor.form
+    method.editor.edtMaxStack.AnchorSideLeft.Side=asrLeft
+    method.editor.edtMaxStack.AnchorSideTop.Control=method.editor.lblMaxStack
+    method.editor.edtMaxStack.AnchorSideTop.Side=asrBottom
+    method.editor.edtMaxStack.Anchors="[akTop, akLeft]"
+
+    method.editor.lblMaxLocals.AnchorSideLeft.Control=method.editor.edtMaxStack
+    method.editor.lblMaxLocals.AnchorSideLeft.Side=asrRight
+    method.editor.lblMaxLocals.AnchorSideTop.Control=method.editor.form
+    method.editor.lblMaxLocals.AnchorSideTop.Side=asrTop
+    method.editor.lblMaxLocals.BorderSpacing.Left=6
+
+    method.editor.lblMaxLocals.Anchors="[akTop, akLeft]"
+
+    method.editor.edtMaxLocals.AnchorSideLeft.Control=method.editor.lblMaxLocals
+    method.editor.edtMaxLocals.AnchorSideLeft.Side=asrLeft
+    method.editor.edtMaxLocals.AnchorSideTop.Control=method.editor.edtMaxStack
+    method.editor.edtMaxLocals.AnchorSideTop.Side=asrTop
+    method.editor.edtMaxLocals.Anchors="[akTop, akLeft]"
+
+
+    method.editor.lvInstructions=createListView(method.editor.form)
+    method.editor.lvInstructions.Name="lvInstructions"
+
+    local columns=method.editor.lvInstructions.Columns
+    local lcIndex=columns.add()
+    local lcByteIndex=columns.add()
+    local lcLabel=columns.add()
+    local lcException=columns.add()
+    local lcInstruction=columns.add()
+
+
+    lcIndex.Caption="Index"
+    lcByteIndex.Caption="ByteIndex"
+    lcLabel.Caption="Label"
+    lcException.Caption="Exception"
+    lcInstruction.Caption="Instruction"
+
+    lcByteIndex.width=100
+
+    lcInstruction.AutoSize=true
+
+
+    method.editor.lvInstructions.AutoWidthLastColumn=true
+    method.editor.lvInstructions.RowSelect=true
+    method.editor.lvInstructions.HideSelection=false
+    method.editor.lvInstructions.ReadOnly=true
+
+    method.editor.lvInstructions.AnchorSideLeft.Control=method.editor.form
+    method.editor.lvInstructions.AnchorSideLeft.Side=asrLeft
+    method.editor.lvInstructions.AnchorSideTop.Control=method.editor.edtMaxStack
+    method.editor.lvInstructions.AnchorSideTop.Side=asrBottom
+    method.editor.lvInstructions.BorderSpacing.Top=6
+
+    method.editor.lvInstructions.AnchorSideRight.Control=method.editor.form
+    method.editor.lvInstructions.AnchorSideRight.Side=asrRight
+    method.editor.lvInstructions.AnchorSideBottom.Control=method.editor.form
+    method.editor.lvInstructions.AnchorSideBottom.Side=asrBottom
+
+    method.editor.lvInstructions.Anchors="[akTop, akLeft, akRight, akBottom]"
+
+    --create a popupmenu for adding/editing lines, and adding new labels
+    method.editor.pmEdit=createPopupMenu(method.editor.form)
+    method.editor.pmEdit.Tag=classMethodRef
+
+    local miInsertLine=createMenuItem(method.editor.pmEdit)
+    miInsertLine.caption="Insert line"
+    miInsertLine.onClick=javaclasseditor_editMethod_insertLine
+    miInsertLine.Shortcut="Ctrl+I"
+    miInsertLine.Tag=classMethodRef
+
+    local miEditLine=createMenuItem(method.editor.pmEdit)
+    miEditLine.caption="Edit line"
+    miEditLine.onClick=javaclasseditor_editMethod_editLine
+    miEditLine.Shortcut="Ctrl+E"
+    miEditLine.Tag=classMethodRef
+
+    local miDefineLine=createMenuItem(method.editor.pmEdit)
+    miDefineLine.caption="Define label"
+    miDefineLine.onClick=javaclasseditor_editMethod_defineLabel
+    miDefineLine.Shortcut="Ctrl+L"
+    miDefineLine.Tag=classMethodRef
+
+
+    method.editor.lvInstructions.OnDblClick=javaclasseditor_editMethod_editLine
+    method.editor.lvInstructions.Tag=classMethodRef
+
+
+    method.editor.pmEdit.Items.add(miInsertLine)
+    method.editor.pmEdit.Items.add(miEditLine)
+    method.editor.pmEdit.Items.add(miDefineLine)
+
+    method.editor.lvInstructions.PopupMenu=method.editor.pmEdit
+
+    javaclasseditor_editMethod_fillInstructionsListview(method.editor.lvInstructions, method)
+
+
+  end
+
+
+end
+
 
 
 java_buildoptobytecodetable()
