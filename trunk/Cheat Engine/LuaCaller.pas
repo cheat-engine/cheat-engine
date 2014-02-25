@@ -36,6 +36,7 @@ type
       procedure TreeViewExpandOrCloseEvent(Sender: TObject; Node: TTreeNode; var Allow: Boolean);
 
       procedure LVCheckedItemEvent(Sender: TObject; Item: TListItem); //personal request to have this one added
+      procedure LVColumnClickEvent(Sender: TObject; c: TListColumn);
       procedure LVSelectItemEvent(Sender: TObject; Item: TListItem; Selected: Boolean);
 
       procedure CloseEvent(Sender: TObject; var CloseAction: TCloseAction);
@@ -710,6 +711,23 @@ begin
   end
 end;
 
+
+procedure TLuaCaller.LVColumnClickEvent(Sender: TObject; c: TListColumn);
+var oldstack: integer;
+begin
+  Luacs.enter;
+  try
+    oldstack:=lua_gettop(Luavm);
+    pushFunction;
+    luaclass_newClass(luavm, sender);
+    luaclass_newClass(luavm, c);
+    lua_pcall(LuaVM, 2, 0, 0);
+  finally
+    lua_settop(Luavm, oldstack);
+    luacs.leave;
+  end
+end;
+
 procedure TLuaCaller.LVSelectItemEvent(Sender: TObject; Item: TListItem; selected: boolean);
 var oldstack: integer;
 begin
@@ -1196,6 +1214,8 @@ begin
     lua_pop(L, lua_gettop(L));
 end;
 
+
+
 function LuaCaller_LVCheckedItemEvent(L: PLua_state): integer; cdecl;
 var
   parameters: integer;
@@ -1214,6 +1234,29 @@ begin
     lua_pop(L, lua_gettop(L));
 
     TLVCheckedItemEvent(m)(sender,item);
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
+
+function LuaCaller_LVColumnClickEvent(L: PLua_state): integer; cdecl;
+var
+  parameters: integer;
+  m: TMethod;
+  sender: TObject;
+  c: TListColumn;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=2 then
+  begin
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    sender:=lua_toceuserdata(L, 1);
+    c:=lua_ToCEUserData(L, 2);
+    lua_pop(L, lua_gettop(L));
+
+    TLVColumnClickEvent(m)(sender,c);
   end
   else
     lua_pop(L, lua_gettop(L));
@@ -1521,6 +1564,7 @@ initialization
   registerLuaCall('TTVCollapsingEvent', LuaCaller_TreeViewExpandOrCloseEvent, pointer(TLuaCaller.TreeViewExpandOrCloseEvent),'function %s(sender, node)'#13#10'  local allow=true'#13#10#13#10'  return allow'#13#10'end'#13#10);
   registerLuaCall('TLVCheckedItemEvent', LuaCaller_LVCheckedItemEvent, pointer(TLuaCaller.LVCheckedItemEvent),'function %s(sender, listitem)'#13#10#13#10'end'#13#10);
   registerLuaCall('TLVDeletedEvent', LuaCaller_LVCheckedItemEvent, pointer(TLuaCaller.LVCheckedItemEvent),'function %s(sender, listitem)'#13#10#13#10'end'#13#10);
+  registerLuaCall('TLVColumnClickEvent', LuaCaller_LVColumnClickEvent, pointer(TLuaCaller.LVColumnClickEvent),'function %s(sender, listcolumn)'#13#10#13#10'end'#13#10);
 
   registerLuaCall('TLVSelectItemEvent', LuaCaller_LVSelectItemEvent, pointer(TLuaCaller.LVSelectItemEvent),'function %s(sender, listitem, selected)'#13#10#13#10'end'#13#10);
   registerLuaCall('TMemoryRecordActivateEvent', LuaCaller_MemoryRecordActivateEvent, pointer(TLuaCaller.MemoryRecordActivateEvent),'function %s(sender, before, current)'#13#10#13#10'end'#13#10);
