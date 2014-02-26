@@ -423,30 +423,19 @@ begin
 
 
 
-  luaclass_addPropertyToTable(L, metatable, userdata, 'Caption', control_getCaption, control_setCaption);
-  luaclass_addPropertyToTable(L, metatable, userdata, 'Top', control_getTop, control_setTop);
-  luaclass_addPropertyToTable(L, metatable, userdata, 'Left', control_getLeft, control_setLeft);
-  luaclass_addPropertyToTable(L, metatable, userdata, 'Width', control_getWidth, control_setWidth);
-  luaclass_addPropertyToTable(L, metatable, userdata, 'Height', control_getHeight, control_setHeight);
-  luaclass_addPropertyToTable(L, metatable, userdata, 'Align', control_getAlign, control_setAlign);
-  luaclass_addPropertyToTable(L, metatable, userdata, 'Enabled', control_getEnabled, control_setEnabled);
-  luaclass_addPropertyToTable(L, metatable, userdata, 'Visible', control_getVisible, control_setVisible);
-  luaclass_addPropertyToTable(L, metatable, userdata, 'Color', control_getColor, control_setColor);
+  //luaclass_addPropertyToTable(L, metatable, userdata, 'Caption', control_getCaption, control_setCaption);
+  //luaclass_addPropertyToTable(L, metatable, userdata, 'Top', control_getTop, control_setTop);
+  //luaclass_addPropertyToTable(L, metatable, userdata, 'Left', control_getLeft, control_setLeft);
+  //luaclass_addPropertyToTable(L, metatable, userdata, 'Width', control_getWidth, control_setWidth);
+  //luaclass_addPropertyToTable(L, metatable, userdata, 'Height', control_getHeight, control_setHeight);
+  //luaclass_addPropertyToTable(L, metatable, userdata, 'Align', control_getAlign, control_setAlign);
+  //luaclass_addPropertyToTable(L, metatable, userdata, 'Enabled', control_getEnabled, control_setEnabled);
+  //luaclass_addPropertyToTable(L, metatable, userdata, 'Visible', control_getVisible, control_setVisible);
+  //luaclass_addPropertyToTable(L, metatable, userdata, 'Color', control_getColor, control_setColor);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Parent', control_getParent, control_setParent);
   luaclass_addPropertyToTable(L, metatable, userdata, 'PopupMenu', control_getPopupMenu, control_setPopupMenu);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Font', control_getFont, control_setFont);
   luaclass_addPropertyToTable(L, metatable, userdata, 'OnClick', control_getOnClick, control_setOnClick);
-
-  {
-
-  luaclass_addPropertyToTable(L, metatable, userdata, 'ComponentCount', component_getComponentCount, nil);
-  luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Component', component_getComponentCount);
-  luaclass_addArrayPropertyToTable(L, metatable, userdata, 'ComponentByName', component_findComponentByName);
-  luaclass_addPropertyToTable(L, metatable, userdata, 'Name', component_getName, component_setName);
-  luaclass_addPropertyToTable(L, metatable, userdata, 'Tag', component_getTag, component_setTag);
-  luaclass_addPropertyToTable(L, metatable, userdata, 'Owner', component_getOwner, nil);
-    }
-
 end;
 
 
