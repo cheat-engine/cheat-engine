@@ -2125,8 +2125,7 @@ begin
       if result=wrSignaled then break;
     end;
 
-    if result<>wrSignaled then
-      userWantsToAttach:=MessageDlg('Debugger attach timeout', 'The debugger attach has timed out. This could indicate that the target has crashed, or that your system is just slow. Do you wish to wait another '+inttostr(timeout div 1000)+' seconds', mtConfirmation, [mbyes,mbno],0 )=mryes;
+    userWantsToAttach:=(result<>wrSignaled) and (MessageDlg('Debugger attach timeout', 'The debugger attach has timed out. This could indicate that the target has crashed, or that your system is just slow. Do you wish to wait another '+inttostr(timeout div 1000)+' seconds', mtConfirmation, [mbyes,mbno],0 )=mryes);
   end;
 
 
