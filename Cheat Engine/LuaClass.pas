@@ -227,10 +227,12 @@ begin
   end;
 
   if result=nil then
-  begin
+    raise exception.create(rsInvalidClassObject);
+{  begin
     lua_pushstring(L, rsInvalidClassObject);
     lua_error(L);
   end;
+  }
 end;
 
 procedure luaclass_setDefaultArrayProperty(L: PLua_State; metatable: integer; userdata: integer; getf, setf: lua_CFunction);
