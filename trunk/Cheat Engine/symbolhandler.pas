@@ -54,6 +54,7 @@ type TModuleInfo=record
   baseaddress: ptrUint;
   basesize: dword;
   is64bitmodule: boolean;
+  symbolsLoaded: boolean; //true if the api symbols have been handled
 end;
 
 type TUserdefinedSymbolCallback=procedure;
@@ -80,6 +81,7 @@ type
     function NetworkES(modulename: string; symbolname: string; address: ptruint; size: integer; secondary: boolean): boolean;
   public
     isloading: boolean;
+    apisymbolsloaded: boolean;
     error: boolean;
     symbolsloaded: boolean;
 
@@ -153,6 +155,9 @@ type
     function GetUserdefinedSymbolByNameIndex(symbolname:string):integer;
     function GetUserdefinedSymbolByAddressIndex(address: ptruint):integer;
 
+    function areSymbolsLoadedForModule(symbolname: string): boolean;
+    procedure markModuleAsLoaded(address: ptruint); //called by the symbolhandlerthread
+
     procedure setshowmodules(x: boolean); //todo: Move this to the disassembler and let that decide
     procedure setshowsymbols(x: boolean);
     procedure tokenize(s: string; var tokens: TTokens);
@@ -175,7 +180,7 @@ type
     property hasError: boolean read geterror;
     property hasDotNetAccess: boolean read getDotNetAccess;
 
-    procedure waitforsymbolsloaded;
+    procedure waitforsymbolsloaded(apisymbolsonly: boolean=false; specificmodule: string='');
 
     procedure EnumDotNetModule(m: TdotNetmodule; symbolhandler: TSymbolListHandler);
     procedure reinitializeDotNetSymbols(modulename: string='');
@@ -185,6 +190,7 @@ type
     procedure fillMemoryRegionsWithModuleData(var mr: TMemoryregions; startaddress: ptruint; size: dword);
     procedure getModuleList(list: tstrings);
     procedure GetSymbolList(address: ptruint; list: tstrings);
+
     function getmodulebyaddress(address: ptrUint; var mi: TModuleInfo):BOOLEAN;
     function getmodulebyname(modulename: string; var mi: TModuleInfo):BOOLEAN;
     function inModule(address: ptrUint): BOOLEAN; //returns true if the given address is part of a module
@@ -830,6 +836,10 @@ begin
  // result:=SymEnumTypes(self.thisprocesshandle, baseofdll, @ET, self);
 
   result:=(self.terminated=false) and (SymEnumSymbols(self.thisprocesshandle, baseofdll, NULL, @ES, self));
+
+  //mark this module as loaded
+
+  symhandler.markModuleAsLoaded(baseofdll)
 end;
 
 
@@ -972,6 +982,8 @@ begin
           SymEnumerateModules64(thisprocesshandle, @EM, self );
 
           Symcleanup(thisprocesshandle);
+
+          apisymbolsloaded:=true;
 
 
           if owner.dotNetDataCollector.Attached then
@@ -1360,18 +1372,25 @@ begin
   ReinitializeUserdefinedSymbolList;
 end;
 
-procedure TSymhandler.Waitforsymbolsloaded;
+procedure TSymhandler.Waitforsymbolsloaded(apisymbolsonly: boolean=false; specificmodule: string='');
+var checkcondition: pboolean;
 begin
   symbolloadervalid.beginread;
+
   if symbolloaderthread<>nil then
   begin
-    while symbolloaderthread.isloading do  //waitfor does not work if called from a second layer syncronize (fpc bug ?)
+    while (symbolloaderthread.isloading) and
+          not
+          (
+            (apisymbolsonly and symbolloaderthread.apisymbolsloaded) or  //true if all the symbols are loaded
+            ((specificmodule<>'') and areSymbolsLoadedForModule(specificModule)) //true if the module's symbols are loaded
+          )
+    do
     begin
-      sleep(10);
+      sleep(25);
       if GetCurrentThreadID = MainThreadID then
-        CheckSynchronize(0);
+        CheckSynchronize;
     end;
-
   end;
 
   symbolloadervalid.endread;
@@ -1797,6 +1816,30 @@ function TSymhandler.inModule(address: ptrUint): BOOLEAN; //returns true if the 
 var mi: TModuleInfo;
 begin
   result:=getmodulebyaddress(address,mi);
+end;
+
+function TSymhandler.areSymbolsLoadedForModule(symbolname: string): boolean;
+var mi: TModuleInfo;
+begin
+  if getmodulebyname(symbolname,mi) then
+    result:=mi.symbolsLoaded
+  else
+    result:=false;
+end;
+
+procedure TSymhandler.markModuleAsLoaded(address: ptruint);
+var i: integer;
+begin
+  modulelistMREW.beginread;
+  for i:=0 to modulelistpos-1 do
+  begin
+    if (address>=modulelist[i].baseaddress) and (address<modulelist[i].baseaddress+modulelist[i].basesize) then
+    begin
+      modulelist[i].symbolsLoaded:=true;
+      break;
+    end;
+  end;
+  modulelistMREW.endread;
 end;
 
 function TSymhandler.getmodulebyaddress(address: ptrUint; var mi: TModuleInfo):BOOLEAN;

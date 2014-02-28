@@ -5,7 +5,7 @@ unit DotNetPipe;
 interface
 
 uses
-  windows, Classes, SysUtils, CEFuncProc, syncobjs;
+  jwawindows, windows, Classes, SysUtils, CEFuncProc, syncobjs, NewKernelHandler;
 
 const
   CMD_TARGETPROCESS=0;
@@ -517,12 +517,40 @@ var
   si: TStartupInfo;
   pi: TProcessInformation;
   bitstring: string;
+
+  ths: THandle;
+  me32: TModuleEntry32;
 begin
   if fConnected then
     disconnect;
 
+
   result:=false;
 
+  //first check if this process uses .net
+  ths:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE or TH32CS_SNAPMODULE32, processid);
+  if ths<>INVALID_HANDLE_VALUE then
+  begin
+    me32.dwSize:=sizeof(MODULEENTRY32);
+    if Module32First(ths, me32) then
+    repeat
+      if (uppercase(copy(extractfilename(me32.szExePath),1,5))='MSCOR') or
+         (uppercase(copy(extractfilename(me32.szExePath),1,4))='CLR.') or
+         (uppercase(copy(extractfilename(me32.szExePath),1,7))='CLRJIT.') or
+         (uppercase(copy(extractfilename(me32.szExePath),1,10))='SYSTEM.NI.')
+      then
+      begin
+        result:=true;
+        break;
+      end;
+    until Module32Next(ths,me32)=false;
+
+    closehandle(ths);
+  end;
+
+  if result=false then exit;
+
+  result:=false;
 
   pipename:='cedotnetpipe'+inttostr(ProcessID)+'_'+inttostr(GetTickCount); //unique pipename
 

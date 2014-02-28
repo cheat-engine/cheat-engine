@@ -2939,7 +2939,7 @@ begin
 
   symhandler.kernelsymbols:=Kernelmodesymbols1.Checked;
   symhandler.reinitialize;
-  symhandler.waitforsymbolsloaded;
+  symhandler.waitforsymbolsloaded(true);
 {$endif}
 end;
 

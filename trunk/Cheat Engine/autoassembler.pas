@@ -1124,7 +1124,7 @@ begin
     processhandle:=cefuncproc.ProcessHandle;
   end;
 
-  symhandler.waitforsymbolsloaded;
+  symhandler.waitforsymbolsloaded(true);
 
 {$ifndef standalonetrainer}
   if pluginhandler=nil then exit; //Error. Cheat Engine is not properly configured
@@ -1521,7 +1521,7 @@ begin
               try
                 InjectDll(s1,'');
                 symhandler.reinitialize;
-                symhandler.waitforsymbolsloaded;
+                symhandler.waitforsymbolsloaded
               except
                 raise exception.create(Format(rsCouldNotBeInjected, [s1]));
               end;
