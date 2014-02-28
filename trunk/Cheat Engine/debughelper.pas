@@ -2097,10 +2097,10 @@ var
 
   userWantsToAttach: boolean;
 begin
-  starttime:=GetTickCount;
+
 
   if IsDebuggerPresent then //when debugging the debugger 10 seconds is too short
-    timeout:=5000000
+    timeout:=10000 //5000000
   else
     timeout:=10000;
 
@@ -2109,6 +2109,8 @@ begin
   userWantsToAttach:=true;
   while userWantsToAttach do
   begin
+    starttime:=GetTickCount;
+
     while (gettickcount-starttime)<timeout do
     begin
       OutputDebugString('loop WaitTillAttachedOrError');
