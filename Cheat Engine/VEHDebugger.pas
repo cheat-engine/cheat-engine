@@ -320,7 +320,7 @@ begin
   try
     processhandler.processid:=dwProcessID;
     Open_Process;
-    symhandler.reinitialize(true);
+    symhandler.reinitialize;
 
 
 
@@ -379,13 +379,13 @@ begin
     else
       prefix:='-i386';
 
-    symhandler.waitforsymbolsloaded;
+    symhandler.waitforsymbolsloaded(true,'kernel32.dll');
 
     InjectDll(cheatenginedir+'vehdebug'+prefix+'.dll');
-    symhandler.reinitialize(true);
-    symhandler.waitforsymbolsloaded;
+    symhandler.reinitialize;
+    symhandler.waitforsymbolsloaded(true,'vehdebug'+prefix+'.dll');
 
-    testptr:=symhandler.getAddressFromName('vehdebug'+prefix+'.InitializeVEH');
+    testptr:=symhandler.getAddressFromName('"vehdebug'+prefix+'.InitializeVEH"');
 
     s:=tstringlist.Create;
     try

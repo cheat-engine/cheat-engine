@@ -73,8 +73,8 @@ var d: tstringlist;
 begin
   processhandler.processid:=dwProcessID;
   Open_Process;
-  symhandler.reinitialize(true);
-  symhandler.waitforsymbolsloaded;
+  symhandler.reinitialize;
+  symhandler.waitforsymbolsloaded(true);
 
   if PreventDebuggerDetection then
   begin

@@ -39,6 +39,8 @@ var i: integer;
 
     fname: string;
     err: boolean;
+
+    path: string;
 begin
   initaddress:=0;
 
@@ -48,17 +50,20 @@ begin
     c.loadExtension(processhandle); //just to be sure
 
     symhandler.reinitialize;
-    symhandler.waitforsymbolsloaded;
+    symhandler.waitforsymbolsloaded(true);
   end
   else
   begin
     try
       if processhandler.is64bit then
-        injectdll(CheatEngineDir+'speedhack-x86_64.dll','')
+        fname:='speedhack-x86_64.dll'
       else
-        injectdll(CheatEngineDir+'speedhack-i386.dll','');
+        fname:='speedhack-i386.dll';
+
+      symhandler.waitforsymbolsloaded(true, 'kernel32.dll'); //speed it up (else it'll wait inside the symbol lookup of injectdll)
+      injectdll(CheatEngineDir+fname);
       symhandler.reinitialize;
-      symhandler.waitforsymbolsloaded;
+      symhandler.waitforsymbolsloaded(true)
     except
       on e: exception do
       begin
@@ -188,12 +193,15 @@ begin
 
 
       //timegettime
-      script.Clear;
-      script.Add('timeGetTime:');
-      script.Add('jmp speedhackversion_GetTickCount');
-      try
-        autoassemble(script,false);
-      except //don't mind
+      if symhandler.getAddressFromName('timeGetTime',false,err)>0 then //might not be loaded
+      begin
+        script.Clear;
+        script.Add('timeGetTime:');
+        script.Add('jmp speedhackversion_GetTickCount');
+        try
+          autoassemble(script,false);
+        except //don't mind
+        end;
       end;
 
 

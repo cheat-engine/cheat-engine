@@ -1708,7 +1708,7 @@ begin
     symhandler.reinitialize(true);
 
     OutputDebugString('Waiting for symbols loaded');
-    symhandler.waitforsymbolsloaded;
+    symhandler.waitforsymbolsloaded(true);
 
     OutputDebugString('Fetching entrypoint');
     memorybrowser.GetEntryPointAndDataBase(code,data);
@@ -2100,7 +2100,7 @@ begin
 
 
   if IsDebuggerPresent then //when debugging the debugger 10 seconds is too short
-    timeout:=10000 //5000000
+    timeout:=5000000
   else
     timeout:=10000;
 
