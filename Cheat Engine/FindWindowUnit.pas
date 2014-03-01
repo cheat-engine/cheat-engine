@@ -56,7 +56,7 @@ resourcestring
 
 
 procedure TFindWindow.btnOKClick(Sender: TObject);
-var start,stop,temp: dword;
+var start,stop,temp: ptruint;
     //cb: TCheckbox;
     valtype: TVariableType;
     i: integer;
