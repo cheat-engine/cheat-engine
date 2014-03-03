@@ -23,8 +23,11 @@ type
     ThreadList: TList; //only the debugger thread can add or remove from this list
     BreakpointList: TBreakpointList;  //only the main thread can add or remove from this list
 
-    breakpointCS: TGuiSafeCriticalSection;
-    ThreadListCS: TGuiSafeCriticalSection; //must never be locked before breakpointCS
+    debuggerCS: TGuiSafeCriticalSection;
+    //breakpointCS: TGuiSafeCriticalSection;
+    //ThreadListCS: TGuiSafeCriticalSection; //must never be locked before breakpointCS
+
+
     OnAttachEvent: Tevent; //event that gets set when a process has been created
     OnContinueEvent: TEvent; //event that gets set by the user when he/she wants to continue from a break
 
@@ -69,11 +72,14 @@ type
     InitialBreakpointTriggered: boolean; //set by a debugthread when the first unknown exception is dealth with causing all subsequent unexpected breakpoitns to become unhandled
     temporaryDisabledExceptionBreakpoints: Tlist;
 
-    procedure cleanupDeletedBreakpoints(Idle: boolean=true);
+
+    procedure cleanupDeletedBreakpoints(Idle: boolean=true; timeoutonly: boolean=true);
 
     function SetBreakpoint(breakpoint: PBreakpoint; UpdateForOneThread: TDebugThreadHandler=nil): boolean;
     procedure UnsetBreakpoint(breakpoint: PBreakpoint; specificContext: PContext=nil; threadid:integer=-1);
 
+    procedure LockDebugger;
+    procedure UnlockDebugger;
 
     function lockThreadlist: TList;
     procedure unlockThreadlist;
@@ -255,31 +261,39 @@ begin
 
       while (not terminated) and debugging do
       begin
-        if WaitForDebugEvent(debugEvent, 100) then
-        begin
-          ContinueStatus:=DBG_CONTINUE;
-          debugging := eventhandler.HandleDebugEvent(debugEvent, ContinueStatus);
 
-          if debugging then
+
+          if WaitForDebugEvent(debugEvent, 100) then
           begin
-            //check if something else has to happen (e.g: wait for user input)
+            ContinueStatus:=DBG_CONTINUE;
+            debuggerCS.enter;
+            try
+              debugging := eventhandler.HandleDebugEvent(debugEvent, ContinueStatus);
 
-            ContinueDebugEvent(debugEvent.dwProcessId, debugevent.dwThreadId, ContinueStatus);
+              if debugging then
+              begin
+                if ContinueStatus=DBG_EXCEPTION_NOT_HANDLED then //this can happen when the game itself is constantly raising exceptions
+                  cleanupDeletedBreakpoints(true, true); //only decrease the delete count if it's timed out (4 seconds in total)
+
+
+                ContinueDebugEvent(debugEvent.dwProcessId, debugevent.dwThreadId, ContinueStatus);
+              end;
+
+            finally
+              debuggercs.leave;
+            end;
+          end
+          else
+          begin
+            {
+            no event has happened, for 100 miliseconds
+            Do some maintenance in here
+            }
+            //remove the breakpoints that have been unset and are marked for deletion
+            cleanupDeletedBreakpoints;
           end;
 
 
-
-        end
-        else
-        begin
-          {
-          no event has happened, for 100 miliseconds
-          Do some maintenance in here
-          }
-          //remove the breakpoints that have been unset and are marked for deletion
-          cleanupDeletedBreakpoints;
-
-        end;
       end;
 
     except
@@ -306,14 +320,9 @@ procedure TDebuggerThread.terminate;
 var i: integer;
 begin
   //remove all breakpoints
-  breakpointcs.enter;
-  try
-    for i:=0 to BreakpointList.Count-1 do
-      RemoveBreakpoint(PBreakpoint(BreakpointList[i]));
+  for i:=0 to BreakpointList.Count-1 do
+    RemoveBreakpoint(PBreakpoint(BreakpointList[i]));
 
-  finally
-    breakpointcs.leave;
-  end;
 
   //tell all events to stop waiting and continue the debug loop. (that now has no breakpoints set)
   ContinueDebugging(co_run);
@@ -324,7 +333,7 @@ begin
 
 end;
 
-procedure TDebuggerThread.cleanupDeletedBreakpoints(Idle: boolean=true);
+procedure TDebuggerThread.cleanupDeletedBreakpoints(Idle: boolean=true; timeoutonly: boolean=true);
 {
 remove the breakpoints that have been unset and are marked for deletion
 that can be done safely since this routine is only called when no debug event has
@@ -341,7 +350,7 @@ begin
 
   i:=0;
   updated:=false;
-  breakpointCS.enter;
+  debuggercs.enter;
   try
     while i<Breakpointlist.Count do
     begin
@@ -369,7 +378,15 @@ begin
 
               deleted:=true;
               updated:=true;
-            end else if idle then dec(bp.deletecountdown);
+            end
+            else
+            begin
+              if idle then
+              begin
+                if (not timeoutonly) or (gettickcount>(bp.deletetickcount+3000)) then
+                  dec(bp.deletecountdown);
+              end;
+            end;
           end
           else
           begin
@@ -387,7 +404,7 @@ begin
 
     end;
   finally
-    breakpointCS.leave;
+    debuggercs.leave;
   end;
 
   if idle and updated and (frmBreakpointlist<>nil) then
@@ -420,34 +437,42 @@ end;
 
 procedure TDebuggerThread.lockBPList;
 begin
-  breakpointCS.enter;
+  LockDebugger
 end;
 
 procedure TDebuggerThread.unlockBPList;
 begin
-  breakpointCS.leave;
+  UnlockDebugger
 end;
 
 
 function TDebuggerThread.lockThreadlist: TList;
 //called from main thread
 begin
-  BreakpointCS.enter;
-  ThreadListCS.enter;
+  LockDebugger;
   result:=threadlist;
 end;
 
 procedure TDebuggerThread.unlockThreadlist;
 begin
-  ThreadListCS.leave;
-  BreakpointCS.leave;
+  UnlockDebugger
+end;
+
+procedure TDebuggerThread.LockDebugger;
+begin
+  debuggercs.enter;
+end;
+
+procedure TDebuggerThread.UnlockDebugger;
+begin
+  debuggercs.leave;
 end;
 
 function TDebuggerThread.getDebugThreadHanderFromThreadID(tid: dword): TDebugThreadHandler;
 var
   i: integer;
 begin
-  breakpointCS.Enter;
+  debuggercs.Enter;
   try
     for i := 0 to threadlist.Count - 1 do
       if TDebugThreadHandler(threadlist.items[i]).ThreadId = tid then
@@ -457,20 +482,20 @@ begin
       end;
 
   finally
-    breakpointCS.Leave;
+    debuggercs.Leave;
   end;
 end;
 
 procedure TDebuggerThread.UpdateDebugRegisterBreakpointsForThread(thread: TDebugThreadHandler);
 var i: integer;
 begin
-  breakpointCS.enter;
+  debuggercs.enter;
   try
     for i:=0 to BreakpointList.count-1 do
       if (PBreakpoint(breakpointlist[i])^.active) and (PBreakpoint(breakpointlist[i])^.breakpointMethod=bpmDebugRegister) then
         SetBreakpoint(PBreakpoint(breakpointlist[i]), thread);
   finally
-    breakpointCS.Leave;
+    debuggercs.Leave;
   end;
 end;
 
@@ -501,7 +526,7 @@ begin
   end;
 
   //now check the breakpointlist
-  breakpointCS.enter;
+  debuggercs.enter;
   try
     for i:=0 to BreakpointList.Count-1 do
     begin
@@ -518,7 +543,7 @@ begin
 
     end;
   finally
-    breakpointCS.leave;
+    debuggercs.leave;
   end;
 end;
 
@@ -536,7 +561,7 @@ begin
   totalsize:=(GetPageBase(base+size)-pbase)+$fff;
   result:=ar;
 
-  breakpointCS.enter;
+  debuggercs.enter;
   try
     for i:=0 to BreakpointList.Count-1 do
     begin
@@ -565,7 +590,7 @@ begin
 
 
   finally
-    breakpointCS.leave;
+    debuggercs.leave;
   end;
 end;
 
@@ -606,6 +631,8 @@ var
 
   tid, bptype: integer;
 begin
+  //issue: If a breakpoint is being handled and this is called, dr6 gets reset to 0 in windows 7, making it impossible to figure out what caused the breakpoint
+
   AllThreadsAreSet:=true;
 
   if breakpoint^.breakpointMethod = bpmDebugRegister then
@@ -683,8 +710,23 @@ begin
         if currentthread = nil then //thread has been destroyed
           exit;
 
+
+
         currentthread.suspend;
         currentthread.fillContext;
+
+        if CurrentDebuggerInterface is TWindowsDebuggerInterface then
+        begin
+          if (currentthread.context.Dr6<>0) and (currentthread.context.dr6<>$ffff0ff0) then
+          begin
+            //the breakpoint in this thread can not be touched yet. Leave it activated
+            //(touching the DR registers with setthreadcontext clears DR6 in win7 )
+            currentthread.resume;
+            //currentthread.needstosetbp:=true;
+            exit;
+          end;
+        end;
+
         if BPOverride or ((byte(currentthread.context.Dr7) and byte(Debugregistermask))=0) then
         begin
           case breakpoint.debugregister of
@@ -707,13 +749,26 @@ begin
       begin
         //update all threads with the new debug register data
 
-        ThreadListCS.enter;
+        debuggercs.enter;
         try
           for i := 0 to ThreadList.Count - 1 do
           begin
             currentthread := threadlist.items[i];
             currentthread.suspend;
             currentthread.fillContext;
+
+            if CurrentDebuggerInterface is TWindowsDebuggerInterface then
+            begin
+              if (currentthread.context.Dr6<>0) and (currentthread.context.dr6<>$ffff0ff0) then
+              begin
+                //the breakpoint in this thread can not be touched yet. Leave it activated
+                currentthread.resume;
+//                currentthread.needstosetbp:=true;
+                continue;
+
+              end;
+            end;
+
 
             if BPOverride or ((byte(currentthread.context.Dr7) and byte(Debugregistermask))=0) then
             begin
@@ -736,7 +791,7 @@ begin
           end;
 
         finally
-          ThreadListCS.leave;
+          debuggercs.leave;
         end;
 
       end;
@@ -778,6 +833,7 @@ begin
   end;
 
 
+
   result:=AllThreadsAreSet;
 
 end;
@@ -793,11 +849,9 @@ var
   hasoldbp: boolean;
 
   ar: TAccessRights;
-  activestatewhendone: boolean;
 
   tid: integer;
 begin
-  activestatewhendone:=false; //by default the active state will be false
 
   if breakpoint^.breakpointMethod = bpmDebugRegister then
   begin
@@ -892,7 +946,6 @@ begin
               begin
                 //the breakpoint in this thread can not be deactivated yet. Leave it activated
                 //(touching the DR registers with setthreadcontext clears DR6 in win7 )
-                activestatewhendone:=true;
                 currentthread.resume;
                 currentthread.needstocleanup:=true;
                 continue;
@@ -984,7 +1037,7 @@ begin
 
   end;
 
-  breakpoint^.active := activestatewhendone;
+  breakpoint^.active := false;
 end;
 
 procedure TDebuggerThread.RemoveBreakpoint(breakpoint: PBreakpoint);
@@ -992,7 +1045,7 @@ var
   i,j: integer;
   bp: PBreakpoint;
 begin
-  breakpointCS.enter;
+  debuggercs.enter;
   try
     outputdebugstring('RemoveBreakpoint');
     outputdebugstring(PChar('breakpointlist.Count=' + IntToStr(breakpointlist.Count)));
@@ -1011,6 +1064,7 @@ begin
         UnsetBreakpoint(bp);
         bp.deletecountdown:=10; //10*100=1000=1 second
         bp.markedfordeletion := True; //set this flag so it gets deleted on next no-event
+        bp.deletetickcount:=GetTickCount;
 
       end
     end;
@@ -1022,13 +1076,14 @@ begin
 
     breakpoint.deletecountdown:=10;
     breakpoint.markedfordeletion := True;
+    breakpoint.deletetickcount:=GetTickCount;
 
 
 
 
     OutputDebugString('Disabled the breakpoint');
   finally
-    breakpointCS.leave;
+    debuggercs.leave;
   end;
 
   if frmBreakpointlist<>nil then
@@ -1086,8 +1141,7 @@ begin
     newbp^.changereg:=changereg^;
 
 
-
-  breakpointcs.enter;
+  debuggercs.enter;
   try
     //add to the bp list
     BreakpointList.Add(newbp);
@@ -1095,7 +1149,7 @@ begin
 
     SetBreakpoint(newbp);
   finally
-    breakpointcs.leave;
+    debuggercs.leave;
   end;
 
 
@@ -1265,7 +1319,7 @@ begin
     available[i] := True;
 
 
-  breakpointcs.enter;
+  debuggercs.enter;
   try
     for i := 0 to breakpointlist.Count - 1 do
     begin
@@ -1286,7 +1340,7 @@ begin
       end;
 
   finally
-    breakpointcs.leave;
+    debuggercs.leave;
   end;
 
 end;
@@ -1370,7 +1424,7 @@ var
   bp: PBreakpoint;
 begin
   Result := False;
-  breakpointCS.enter;
+  debuggercs.enter;
   try
     for i := 0 to BreakpointList.Count - 1 do
       if PBreakpoint(breakpointlist[i]).frmTracer = frmTracer then
@@ -1385,7 +1439,7 @@ begin
 
 
   finally
-    breakpointCS.leave;
+    debuggercs.leave;
   end;
 
   //it doesn't really matter if it returns false, that would just mean the breakpoint got and it's tracing or has finished tracing
@@ -1398,7 +1452,9 @@ var
   bp: PBreakpoint;
 begin
   Result := False;
-  breakpointCS.enter;
+
+
+  debuggercs.enter;
   try
     for i := 0 to BreakpointList.Count - 1 do
       if PBreakpoint(breakpointlist[i]).FoundcodeDialog = codefinder then
@@ -1411,8 +1467,9 @@ begin
     if Result then
       RemoveBreakpoint(bp); //unsets and removes all breakpoints that belong to this
   finally
-    breakpointCS.leave;
+    debuggercs.leave;
   end;
+
 
 
 end;
@@ -1424,7 +1481,7 @@ var
   bp: PBreakpoint;
 begin
   Result := False;
-  breakpointCS.enter;
+  debuggercs.enter;
   try
     for i := 0 to BreakpointList.Count - 1 do
       if PBreakpoint(breakpointlist[i]).frmchangedaddresses = frmchangedaddresses then
@@ -1437,7 +1494,7 @@ begin
     if Result then
       RemoveBreakpoint(bp); //unsets and removes all breakpoints that belong to this
   finally
-    breakpointCS.leave;
+    debuggercs.leave;
   end;
 end;
 
@@ -1487,7 +1544,7 @@ var
   bplist: TBreakpointSplitArray;
   i: integer;
 begin
-  breakpointCS.enter;
+  debuggercs.enter;
   try
     setlength(bplist,0);
 
@@ -1541,7 +1598,7 @@ begin
 
 
   finally
-    breakpointCS.leave;
+    debuggercs.leave;
   end;
 end;
 
@@ -1604,22 +1661,26 @@ end;
 
 procedure TDebuggerthread.setbreakpointcondition(bp: PBreakpoint; easymode: boolean; script: string);
 begin
-  breakpointCS.enter;
+  debuggercs.enter;
 
-  if bp.conditonalbreakpoint.script<>nil then
-    StrDispose(bp.conditonalbreakpoint.script);
+  try
+    if bp.conditonalbreakpoint.script<>nil then
+      StrDispose(bp.conditonalbreakpoint.script);
 
-  bp.conditonalbreakpoint.script:=strnew(pchar(script));
-  bp.conditonalbreakpoint.easymode:=easymode;
-  breakpointCS.leave;
+    bp.conditonalbreakpoint.script:=strnew(pchar(script));
+    bp.conditonalbreakpoint.easymode:=easymode;
+  finally
+    debuggercs.leave;
+  end;
+
 end;
 
 function TDebuggerthread.getbreakpointcondition(bp: PBreakpoint; var easymode: boolean):pchar;
 begin
-  breakpointCS.enter;
+  debuggercs.enter;
   result:=bp.conditonalbreakpoint.script;
   easymode:=bp.conditonalbreakpoint.easymode;
-  breakpointCS.leave;
+  debuggercs.leave;
 end;
 
 
@@ -1628,12 +1689,12 @@ procedure TDebuggerThread.getBreakpointAddresses(var AddressList: TAddressArray)
 var i: integer;
 begin
   setlength(AddressList,0);
-  breakpointCS.enter;
+  debuggercs.enter;
   setlength(addresslist, BreakpointList.count);
   for i:=0 to BreakpointList.count-1 do
     addresslist[i]:=BreakpointList[i].address;
 
-  breakpointCS.leave;
+  debuggercs.leave;
 end;
 
 procedure TDebuggerthread.updatebplist(lv: TListview; showshadow: boolean);
@@ -1650,7 +1711,7 @@ var
 begin
 
 
-  breakpointCS.enter;
+  debuggercs.enter;
 
 
   showcount:=0;
@@ -1690,7 +1751,7 @@ begin
   for i:=lv.items.count-1 downto showcount do
     lv.items[i].Delete;
 
-  breakpointCS.leave;
+  debuggercs.leave;
 end;
 
 procedure TDebuggerthread.SetEntryPointBreakpoint;
@@ -1749,7 +1810,7 @@ begin
   found := False;
 
   result:=nil;
-  breakpointCS.enter;
+  debuggercs.enter;
   try
     //set the breakpoint
 
@@ -1794,7 +1855,7 @@ begin
 
     result:=AddBreakpoint(nil, address, 1, bptExecute, bpm, bo_Break, usableDebugreg, nil, tid);
   finally
-    breakpointCS.leave;
+    debuggercs.leave;
   end;
 end;
 
@@ -1816,7 +1877,8 @@ begin
   found := False;
 
   result:=nil;
-  breakpointCS.enter;
+
+  debuggercs.enter;
   try
     //set the breakpoint
     if bpm=bpmInt3 then
@@ -1847,7 +1909,7 @@ begin
 
 
   finally
-    breakpointCS.leave;
+    debuggercs.leave;
   end;
 
 end;
@@ -1870,7 +1932,8 @@ begin
   found := False;
 
   result:=nil;
-  breakpointCS.enter;
+
+  debuggercs.enter;
   try
     //set the breakpoint
     setlength(bplist,0);
@@ -1899,7 +1962,7 @@ begin
       result:=AddBreakpoint(nil, address, size, bptAccess, bpm, bo_Break);
 
   finally
-    breakpointCS.leave;
+    debuggercs.leave;
   end;
 
 end;
@@ -1922,7 +1985,8 @@ begin
   found := False;
 
   result:=nil;
-  breakpointCS.enter;
+
+  debuggercs.enter;
   try
     for i := 0 to BreakpointList.Count - 1 do
       if (PBreakpoint(BreakpointList[i])^.address = address) and
@@ -1971,7 +2035,7 @@ begin
     end;
 
   finally
-    breakpointCS.leave;
+    debuggercs.leave;
   end;
 end;
 
@@ -2003,7 +2067,7 @@ begin
   else
     j:=address2-address;
 
-  breakpointCS.enter;
+  debuggercs.enter;
   try
     for i := 0 to BreakpointList.Count - 1 do
     begin
@@ -2019,7 +2083,7 @@ begin
       end;
     end;
   finally
-    breakpointCS.leave;
+    debuggercs.leave;
   end;
 end;
 
@@ -2045,7 +2109,7 @@ begin
         co_runtill:
         begin
           //set a 1 time breakpoint for this thread at the runtilladdress
-          breakpointcs.enter;
+          debuggercs.enter;
           try
             bp:=isBreakpoint(runtilladdress);
             if bp<>nil then
@@ -2071,7 +2135,7 @@ begin
             end;
 
           finally
-            breakpointcs.leave;
+            debuggercs.leave;
 
           end;
           ct.continueDebugging(co_run);
@@ -2168,13 +2232,13 @@ end;
 
 procedure TDebuggerthread.defaultConstructorcode;
 begin
-  breakpointCS := TGuiSafeCriticalSection.Create;
-  threadlistCS := TGuiSafeCriticalSection.Create;
+  debuggerCS := TGuiSafeCriticalSection.Create;
+
   OnAttachEvent := TEvent.Create(nil, True, False, '');
   OnContinueEvent := Tevent.Create(nil, true, False, '');
   threadlist := TList.Create;
   BreakpointList := TBreakpointList.Create;
-  eventhandler := TDebugEventHandler.Create(self, OnAttachEvent, OnContinueEvent, breakpointlist, threadlist, breakpointCS, threadlistCS);
+  eventhandler := TDebugEventHandler.Create(self, OnAttachEvent, OnContinueEvent, breakpointlist, threadlist, debuggerCS);
 
 
   //get config parameters
@@ -2279,11 +2343,8 @@ begin
     FreeAndNil(breakpointlist);
   end;
 
-  if breakpointCS <> nil then
-    FreeAndNil(breakpointCS);
-
-  if threadlistCS<>nil then
-    freeAndNil(threadlistCS);
+  if debuggerCS <> nil then
+    FreeAndNil(debuggerCS);
 
   if eventhandler <> nil then
     FreeAndNil(eventhandler);
