@@ -1,7 +1,7 @@
 object Form1: TForm1
   Left = 372
   Height = 287
-  Top = 367
+  Top = 368
   Width = 851
   BorderStyle = bsSingle
   Caption = 'Form1'
@@ -12,76 +12,76 @@ object Form1: TForm1
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '1.1'
+  LCLVersion = '1.0.8.0'
   object Label1: TLabel
     Left = 120
-    Height = 16
+    Height = 17
     Top = 59
-    Width = 41
+    Width = 42
     Caption = 'Label1'
     ParentColor = False
   end
   object Label2: TLabel
     Left = 119
-    Height = 16
+    Height = 17
     Top = 144
-    Width = 41
+    Width = 42
     Caption = 'Label2'
     ParentColor = False
   end
   object Label3: TLabel
     Left = 246
-    Height = 16
+    Height = 17
     Top = 49
-    Width = 41
+    Width = 42
     Caption = 'Label3'
     ParentColor = False
   end
   object Label4: TLabel
     Left = 246
-    Height = 16
+    Height = 17
     Top = 69
-    Width = 41
+    Width = 42
     Caption = 'Label4'
     ParentColor = False
   end
   object Label5: TLabel
     Left = 246
-    Height = 16
+    Height = 17
     Top = 89
-    Width = 41
+    Width = 42
     Caption = 'Label5'
     ParentColor = False
   end
   object Label6: TLabel
     Left = 246
-    Height = 16
+    Height = 17
     Top = 108
-    Width = 41
+    Width = 42
     Caption = 'Label6'
     ParentColor = False
   end
   object Label7: TLabel
     Left = 246
-    Height = 16
+    Height = 17
     Top = 128
-    Width = 41
+    Width = 42
     Caption = 'Label7'
     ParentColor = False
   end
   object Label8: TLabel
     Left = 246
-    Height = 16
+    Height = 17
     Top = 148
-    Width = 41
+    Width = 42
     Caption = 'Label8'
     ParentColor = False
   end
   object Label9: TLabel
     Left = 10
-    Height = 16
+    Height = 17
     Top = 187
-    Width = 41
+    Width = 42
     Caption = 'Label9'
     ParentColor = False
   end
@@ -188,5 +188,11 @@ object Form1: TForm1
     OnTimer = Timer1Timer
     left = 184
     top = 128
+  end
+  object Timer2: TTimer
+    Interval = 30
+    OnTimer = Timer2Timer
+    left = 616
+    top = 136
   end
 end

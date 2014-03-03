@@ -50,6 +50,7 @@ type
     Button8: TButton;
     Button9: TButton;
     Timer1: TTimer;
+    Timer2: TTimer;
     procedure Button10Click(Sender: TObject);
     procedure Button11Click(Sender: TObject);
     procedure Button1Click(Sender: TObject);
@@ -64,6 +65,7 @@ type
     procedure Button8Click(Sender: TObject);
     procedure Button9Click(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
+    procedure Timer2Timer(Sender: TObject);
   private
     { Private declarations }
     originalIntegrityValue: dword;
@@ -348,24 +350,18 @@ end;
 
 procedure TForm1.Button10Click(Sender: TObject);
 begin
-try
-  asm
-    nop
-    nop
-    nop
-    db $cc
-    nop
-    nop
-    nop
-
+  try
+    asm
+      nop
+      nop
+      nop
+      mov [0],eax
+      nop
+      nop
+      nop
+    end;
+  except
   end;
-
-  showmessage('fuck');
-except
-  on e:exception do
-    exc(e);
-  //showmessage('correct');
-end;
 end;
 
 procedure TForm1.Button11Click(Sender: TObject);
@@ -489,7 +485,12 @@ end;
 
 procedure TForm1.Timer1Timer(Sender: TObject);
 begin
-  label1.caption:=inttostr(health);
+  label1.caption:=format('%p : %d',[@health, health]);
+end;
+
+procedure TForm1.Timer2Timer(Sender: TObject);
+begin
+  button10.click;
 end;
 
 end.
