@@ -156,9 +156,10 @@ type
     breakpoint has been removed right at the same moment it has fired and the user
     thread managed to get to the critical section first
     }
-    active: boolean;
+    active: boolean;  //todo: Perhaps a per/threadid activate field
     //set if the debugger should handle it fully, or just skip it (but no dbg_nothandled)
     markedfordeletion: boolean;
+    deletetickcount: dword;
     deletecountdown: integer; //when markedfordeletion is set and deletecountdown hits 0, it'll get deleted
     referencecount: integer; //the number of windows this bp is currently being edited in (mainly used in 'set/change condition')
 
