@@ -225,7 +225,7 @@ inMainThread(): Returns true if the current code is running inside the main thre
 integerToUserData(int):  Converts a given integer to a userdata variable
 userDataToInteger(UserDataVar):  Converts a given userdata variable to an integer
 
-synchronize(function, parameter): Calls the given function from the main thread
+synchronize(function, parameter OPTIONAL): Calls the given function from the main thread
 checkSynchronize(): Calls this from an infinite loop in the main thread when using threading and synchronize calls. This will execute any queued synchronize calls
 
 writeToClipboard(text):  Writes the given text to the clipboard
