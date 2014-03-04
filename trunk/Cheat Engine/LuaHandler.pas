@@ -2237,6 +2237,7 @@ var lc: TLuaCaller;
   f: integer;
   routine: string;
 begin
+  lc:=nil;
   if lua_isfunction(L,1) then
   begin
     lua_pushvalue(L, 1);
@@ -2253,11 +2254,20 @@ begin
     lc.luaroutine:=routine;
   end;
 
-  lc.syncvm:=l;
-  lc.synchronizeparam:=lua_ToCEUserData(L, 2);
-  tthread.Synchronize(nil, lc.synchronize);
+  if lc<>nil then
+  begin
+    lc.syncvm:=l;
+    if lua_gettop(L)>=2 then
+      lc.synchronizeparam:=lua_ToCEUserData(L, 2)
+    else
+      lc.synchronizeparam:=nil;
 
-  lc.free;
+    tthread.Synchronize(nil, lc.synchronize);
+
+    lc.free;
+  end;
+
+  result:=0;
 end;
 
 function inMainThread(L: Plua_State): integer; cdecl;
