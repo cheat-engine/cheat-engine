@@ -65,7 +65,7 @@ type
 
       procedure synchronize;
 
-      procedure pushFunction;
+      procedure pushFunction(L: PLua_state=nil);
 
 
       constructor create;
@@ -272,24 +272,35 @@ begin
   result:=(baseowner=nil) or (not ((baseOwner is TCEform) and (TCEForm(baseowner).designsurface<>nil) and (TCEForm(baseowner).designsurface.active)));
 end;
 
-procedure TLuaCaller.pushFunction;
+procedure TLuaCaller.pushFunction(L: PLua_state=nil);
 begin
+  if L=nil then
+    L:=LuaVM;
+
   if luaroutineindex=-1 then //get the index of the given routine
-    lua_getfield(LuaVM, LUA_GLOBALSINDEX, pchar(luaroutine))
+    lua_getfield(L, LUA_GLOBALSINDEX, pchar(luaroutine))
   else
-    lua_rawgeti(Luavm, LUA_REGISTRYINDEX, luaroutineindex)
+    lua_rawgeti(L, LUA_REGISTRYINDEX, luaroutineindex)
 end;
 
 procedure TLuaCaller.synchronize;
+var oldstack: integer;
 begin
   //no locking here (should already be obtained by the caller)
-  PushFunction;
-  if synchronizeparam=nil then
-    lua_pushnil(syncvm)
-  else
-    luaclass_newClass(syncvm, synchronizeparam);
+  oldstack:=lua_gettop(syncvm);
+  try
 
-  lua_pcall(syncvm, 1,0,0);
+    PushFunction(syncvm);
+    if synchronizeparam=nil then
+      lua_pushnil(syncvm)
+    else
+      luaclass_newClass(syncvm, synchronizeparam);
+
+    lua_pcall(syncvm, 1,0,0);
+
+  finally
+    lua_settop(syncvm, oldstack);
+  end;
 end;
 
 procedure TLuaCaller.SelectionChangeEvent(Sender: TObject; User: boolean);
