@@ -24,7 +24,7 @@ type
       luaroutineindex: integer;
       owner: TPersistent;
 
-      synchronizeparam: TObject;
+      synchronizeparam: integer;
       syncvm: Plua_State;
       procedure NotifyEvent(sender: TObject);
       procedure SelectionChangeEvent(Sender: TObject; User: boolean);
@@ -284,23 +284,15 @@ begin
 end;
 
 procedure TLuaCaller.synchronize;
-var oldstack: integer;
 begin
   //no locking here (should already be obtained by the caller)
-  oldstack:=lua_gettop(syncvm);
-  try
+  PushFunction(syncvm);
+  if synchronizeparam>0 then
+    lua_pushvalue(syncvm, synchronizeparam)
+  else
+    lua_pushnil(syncvm);
 
-    PushFunction(syncvm);
-    if synchronizeparam=nil then
-      lua_pushnil(syncvm)
-    else
-      luaclass_newClass(syncvm, synchronizeparam);
-
-    lua_pcall(syncvm, 1,0,0);
-
-  finally
-    lua_settop(syncvm, oldstack);
-  end;
+  lua_pcall(syncvm, 1,1,0);
 end;
 
 procedure TLuaCaller.SelectionChangeEvent(Sender: TObject; User: boolean);
