@@ -686,6 +686,10 @@ begin
 
     if InRangeX(address, bpp.address, bpp.address+bpp.size-1) then
     begin
+      if (debugreg in [0..4]) and (bpp.breakpointMethod=bpmDebugRegister) and (bpp.debugRegister<>debugreg) then
+        continue; //this is not the correct breakpoint. Skip it
+
+
       found:=true;
       bpp2:=bpp;
       active:=bpp^.active;
@@ -695,9 +699,6 @@ begin
 
       if ((bpp.breakpointMethod=bpmException) and (not bpp.markedfordeletion)) or active then
         break;
-
-      if (debugreg in [0..4]) and (bpp.breakpointMethod=bpmDebugRegister) and (bpp.debugRegister=debugreg) then
-        break; //this is the one
 
       //else continue looking for one that IS active and not deleted
     end;
