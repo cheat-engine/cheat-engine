@@ -24,6 +24,7 @@ type TCEThread=class (TThread)
     L: PLua_State;
   public
     syncfunction: integer;
+    syncparam: integer;
     procedure sync; //called by lua_synchronize from inside the thread
     procedure execute; override;
     destructor destroy; override;
@@ -37,7 +38,13 @@ begin
   //call the lua function
   lua_rawgeti(L, LUA_REGISTRYINDEX, syncfunction);
   luaclass_newclass(L, self);
-  lua_pcall(L, 1,0,0);
+
+  if syncparam>0 then
+    lua_pushvalue(L, syncparam)
+  else
+    lua_pushnil(L);
+
+  lua_pcall(L, 2,1,0);
 end;
 
 procedure TCEThread.execute;
@@ -188,11 +195,16 @@ begin
 
 
     c.syncfunction:=f;
-    lua_pop(L, lua_gettop(L));
+    if lua_gettop(L)>=2 then
+      c.syncparam:=2
+    else
+      c.syncparam:=0;
 
     c.Synchronize(c, c.sync);
 
     luaL_unref(L, LUA_REGISTRYINDEX, f);
+
+    result:=1;
   end;
 end;
 
