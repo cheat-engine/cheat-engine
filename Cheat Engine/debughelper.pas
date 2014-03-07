@@ -266,21 +266,16 @@ begin
           if WaitForDebugEvent(debugEvent, 100) then
           begin
             ContinueStatus:=DBG_CONTINUE;
-            debuggerCS.enter;
-            try
-              debugging := eventhandler.HandleDebugEvent(debugEvent, ContinueStatus);
 
-              if debugging then
-              begin
-                if ContinueStatus=DBG_EXCEPTION_NOT_HANDLED then //this can happen when the game itself is constantly raising exceptions
-                  cleanupDeletedBreakpoints(true, true); //only decrease the delete count if it's timed out (4 seconds in total)
+            debugging := eventhandler.HandleDebugEvent(debugEvent, ContinueStatus);
+
+            if debugging then
+            begin
+              if ContinueStatus=DBG_EXCEPTION_NOT_HANDLED then //this can happen when the game itself is constantly raising exceptions
+                cleanupDeletedBreakpoints(true, true); //only decrease the delete count if it's timed out (4 seconds in total)
 
 
-                ContinueDebugEvent(debugEvent.dwProcessId, debugevent.dwThreadId, ContinueStatus);
-              end;
-
-            finally
-              debuggercs.leave;
+              ContinueDebugEvent(debugEvent.dwProcessId, debugevent.dwThreadId, ContinueStatus);
             end;
           end
           else
