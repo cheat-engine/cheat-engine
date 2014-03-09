@@ -716,6 +716,7 @@ begin
           begin
             //the breakpoint in this thread can not be touched yet. Leave it activated
             //(touching the DR registers with setthreadcontext clears DR6 in win7 )
+            currentthread.needstocleanup:=true;
             currentthread.resume;
             //currentthread.needstosetbp:=true;
             exit;
@@ -757,6 +758,7 @@ begin
               if (currentthread.context.Dr6<>0) and (currentthread.context.dr6<>$ffff0ff0) then
               begin
                 //the breakpoint in this thread can not be touched yet. Leave it activated
+                currentthread.needstocleanup:=true;
                 currentthread.resume;
 //                currentthread.needstosetbp:=true;
                 continue;
@@ -902,8 +904,8 @@ begin
           begin
             //the breakpoint in this thread can not be deactivated yet. Leave it activated
             //(touching the DR registers with setthreadcontext clears DR6 in win7 )
-            currentthread.resume;
             currentthread.needstocleanup:=true;
+            currentthread.resume;
             exit;
           end;
         end;
@@ -941,8 +943,8 @@ begin
               begin
                 //the breakpoint in this thread can not be deactivated yet. Leave it activated
                 //(touching the DR registers with setthreadcontext clears DR6 in win7 )
-                currentthread.resume;
                 currentthread.needstocleanup:=true;
+                currentthread.resume;
                 continue;
 
               end;
