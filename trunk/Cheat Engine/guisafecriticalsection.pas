@@ -23,8 +23,8 @@ type
     lockedthreadid: dword;
     lockcount: integer;
   public
-    procedure enter(maxtimeout: DWORD=INFINITE);
-    procedure leave;
+    procedure enter(maxtimeout: DWORD=INFINITE; currentThreadId: dword=0);
+    procedure leave(currentThreadId: dword=0);
     constructor Create;
     destructor Destroy; override;
   end;
@@ -34,10 +34,13 @@ implementation
 resourcestring
   rsCriticalsectionLeaveWithoutEnter = 'Criticalsection leave without enter';
 
-procedure TGuiSafeCriticalSection.enter(maxtimeout: DWORD=INFINITE);
+procedure TGuiSafeCriticalSection.enter(maxtimeout: DWORD=INFINITE; currentThreadID: dword=0);
 var deadlockprevention: integer;
 begin
-  if haslock and (getcurrentthreadid = lockedthreadid) then
+  if currentThreadID=0 then
+    currentThreadID:=GetCurrentThreadId;
+
+  if haslock and (currentThreadID = lockedthreadid) then
   begin
     Inc(lockcount);
     exit; //same thread called it
@@ -66,9 +69,12 @@ begin
   lockcount := 1;
 end;
 
-procedure TGuiSafeCriticalSection.leave;
+procedure TGuiSafeCriticalSection.leave(currentthreadid: dword=0);
 begin
-  if haslock and (getcurrentthreadid <> lockedthreadid) then
+  if currentThreadID=0 then
+    currentThreadID:=GetCurrentThreadId;
+
+  if haslock and (currentThreadID <> lockedthreadid) then
     raise Exception.Create(rsCriticalsectionLeaveWithoutEnter);
 
   Dec(lockcount);

@@ -725,186 +725,179 @@ begin
 
   debuggercs.leave;
 
+  if found then
+  begin
+    bpp:=bpp2;
+    outputdebugstring('Handling breakpoint');
 
-
-  try
-    if found then
+    //to handle a debug register being handled before the single step (since xp sucks and doesn't do rf)
+    if setInt3Back then //on a failt this will set the state to as it was expected, on a trap this will set the breakpoint back. Both valid
     begin
-      bpp:=bpp2;
-      outputdebugstring('Handling breakpoint');
+      VirtualProtectEx(Processhandle, pointer(Int3setbackAddress), 1, PAGE_EXECUTE_READWRITE, oldprotect);
+      WriteProcessMemory(processhandle, pointer(Int3setbackAddress), @int3byte, 1, bw);
+      VirtualProtectEx(Processhandle, pointer(Int3setbackAddress), 1, oldprotect, oldprotect);
 
-      //to handle a debug register being handled before the single step (since xp sucks and doesn't do rf)
-      if setInt3Back then //on a failt this will set the state to as it was expected, on a trap this will set the breakpoint back. Both valid
-      begin
-        VirtualProtectEx(Processhandle, pointer(Int3setbackAddress), 1, PAGE_EXECUTE_READWRITE, oldprotect);
-        WriteProcessMemory(processhandle, pointer(Int3setbackAddress), @int3byte, 1, bw);
-        VirtualProtectEx(Processhandle, pointer(Int3setbackAddress), 1, oldprotect, oldprotect);
-
-        setInt3Back:=false;
-      end;
+      setInt3Back:=false;
+    end;
 
 
-      if isTracing then
-      begin
-        handleTrace;
-        dwContinueStatus:=DBG_CONTINUE;
-        Result:=true;
-        exit;
-      end;
-
-
-
-
-      if (bpp.OneTimeOnly=false) and (((bpp.breakpointMethod<>bpmException) and (not active)) or (not CheckIfConditionIsMet(bpp) or (bpp.markedfordeletion) )) then
-      begin
-        OutputDebugString('bp was disabled or Condition was not met');
-
-        if bpp.markedfordeletion then
-        begin
-          bpp.deletecountdown:=10; //reset
-          bpp.active:=false; //this should NEVER be needed, but just to be sure...
-        end;
-
-        if bpp.active=false then
-          TdebuggerThread(debuggerthread).UnsetBreakpoint(bpp, context);  //make sure it's disabled
-
-        needstocleanup:=true;
-
-        continueFromBreakpoint(bpp, co_run);
-        dwContinueStatus:=DBG_CONTINUE;
-        Result:=true;
-        exit;
-      end;
-
-
-      case bpp.breakpointAction of
-        bo_Break:
-        begin
-          //check if there is a step over breakpoint and remove it
-          debuggercs.enter;
-          for i:=0 to breakpointlist.count-1 do
-          begin
-            bpp2:=PBreakpoint(breakpointlist.Items[i]);
-            if (((bpp2.breakpointMethod=bpmException) and not bpp2.markedfordeletion) or bpp2.active) and (bpp2.StepOverBp) and (bpp2.markedfordeletion=false) then
-              TdebuggerThread(debuggerthread).RemoveBreakpoint(bpp2);
-          end;
-
-          debuggercs.leave;
-
-          HandleBreak(bpp); //cause break in memory browser at address
-        end;
-
-        bo_BreakAndTrace:
-        begin
-          //remove the breakpoint and start tracing this thread X times
-          if not isTracing then //don't handle it if already tracing
-          begin
-            isTracing:=true;
-            tracecount:=bpp.TraceCount;
-            traceWindow:=bpp.frmTracer;
-            traceStepOver:=bpp.tracestepOver;
-            if bpp.traceendcondition<>nil then
-              traceQuitCondition:=bpp.traceendcondition
-            else
-              traceQuitCondition:='';
-          end;
-
-          TdebuggerThread(debuggerthread).RemoveBreakpoint(bpp); //there can be only one
-
-          handleTrace;
-        end;
-
-
-        bo_ChangeRegister:
-        begin
-          //modify accordingly
-          outputdebugstring('Handling bo_ChangeRegister breakpoint');
-
-          ModifyRegisters(bpp);
-
-          //and
-          continueFromBreakpoint(bpp, co_run); //just continue running
-        end;
-
-        bo_FindCode:
-        begin
-          //outputdebugstring('Save registers and continue');
-          if ((bpp.breakpointMethod=bpmException) and (not bpp.markedfordeletion)) or bpp.active then
-          begin
-            fcd:=bpp.FoundcodeDialog;
-            fcd.usesdebugregs:=bpp.breakpointMethod=bpmDebugRegister;
-            fcd.useexceptions:=bpp.breakpointMethod=bpmException;
-
-            TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), fcd.AddRecord);
-
-
-            if CurrentDebuggerInterface is TNetworkDebuggerInterface then
-              continueFromBreakpoint(bpp, co_run);  //explicitly continue from this breakpoint
-          end;
-
-          //nothing special is needed to continue
-        end;
-
-        bo_FindWhatCodeAccesses:
-        begin
-          TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), bpp.frmchangedaddresses.AddRecord);
-          continueFromBreakpoint(bpp, co_run); //just continue running
-        end;
-
-
-      end;
-
+    if isTracing then
+    begin
+      handleTrace;
       dwContinueStatus:=DBG_CONTINUE;
-    end else
+      Result:=true;
+      exit;
+    end;
+
+
+
+
+    if (bpp.OneTimeOnly=false) and (((bpp.breakpointMethod<>bpmException) and (not active)) or (not CheckIfConditionIsMet(bpp) or (bpp.markedfordeletion) )) then
     begin
-      if (expectedUndefinedBreakpoint<>0) and (address=expectedUndefinedBreakpoint) then
+      OutputDebugString('bp was disabled or Condition was not met');
+
+      if bpp.markedfordeletion then
       begin
-        connection:=getConnection;
-        if connection<>nil then
+        bpp.deletecountdown:=10; //reset
+        bpp.active:=false; //this should NEVER be needed, but just to be sure...
+      end;
+
+      if bpp.active=false then
+        TdebuggerThread(debuggerthread).UnsetBreakpoint(bpp, context);  //make sure it's disabled
+
+      needstocleanup:=true;
+
+      continueFromBreakpoint(bpp, co_run);
+      dwContinueStatus:=DBG_CONTINUE;
+      Result:=true;
+      exit;
+    end;
+
+
+    case bpp.breakpointAction of
+      bo_Break:
+      begin
+        //check if there is a step over breakpoint and remove it
+        debuggercs.enter;
+        for i:=0 to breakpointlist.count-1 do
         begin
-          expectedUndefinedBreakpoint:=0;
-          connection.RemoveBreakpoint(processhandle, threadid, CurrentDebuggerInterface.maxInstructionBreakpointCount-1, false);
-
-          if setInt1Back then
-            TdebuggerThread(debuggerthread).setBreakpoint(Int1SetBackBP, self);
-
-
-          dwContinueStatus:=DBG_CONTINUE;
-          result:=true;
-          exit;
+          bpp2:=PBreakpoint(breakpointlist.Items[i]);
+          if (((bpp2.breakpointMethod=bpmException) and not bpp2.markedfordeletion) or bpp2.active) and (bpp2.StepOverBp) and (bpp2.markedfordeletion=false) then
+            TdebuggerThread(debuggerthread).RemoveBreakpoint(bpp2);
         end;
+
+        debuggercs.leave;
+
+        HandleBreak(bpp); //cause break in memory browser at address
+      end;
+
+      bo_BreakAndTrace:
+      begin
+        //remove the breakpoint and start tracing this thread X times
+        if not isTracing then //don't handle it if already tracing
+        begin
+          isTracing:=true;
+          tracecount:=bpp.TraceCount;
+          traceWindow:=bpp.frmTracer;
+          traceStepOver:=bpp.tracestepOver;
+          if bpp.traceendcondition<>nil then
+            traceQuitCondition:=bpp.traceendcondition
+          else
+            traceQuitCondition:='';
+        end;
+
+        TdebuggerThread(debuggerthread).RemoveBreakpoint(bpp); //there can be only one
+
+        handleTrace;
       end;
 
 
-      OutputDebugString('Unexpected breakpoint');
-      if not (CurrentDebuggerInterface is TKernelDebugInterface) then
+      bo_ChangeRegister:
       begin
-        onAttachEvent.SetEvent;
+        //modify accordingly
+        outputdebugstring('Handling bo_ChangeRegister breakpoint');
 
-        if TDebuggerthread(debuggerthread).InitialBreakpointTriggered then
-          dwContinueStatus:=DBG_EXCEPTION_NOT_HANDLED
-        else
+        ModifyRegisters(bpp);
+
+        //and
+        continueFromBreakpoint(bpp, co_run); //just continue running
+      end;
+
+      bo_FindCode:
+      begin
+        //outputdebugstring('Save registers and continue');
+        if ((bpp.breakpointMethod=bpmException) and (not bpp.markedfordeletion)) or bpp.active then
         begin
-          dwContinueStatus:=DBG_CONTINUE;
-          TDebuggerthread(debuggerthread).InitialBreakpointTriggered:=true;
+          fcd:=bpp.FoundcodeDialog;
+          fcd.usesdebugregs:=bpp.breakpointMethod=bpmDebugRegister;
+          fcd.useexceptions:=bpp.breakpointMethod=bpmException;
 
-          result:=false;
-          exit;
+          TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), fcd.AddRecord);
+
+
+          if CurrentDebuggerInterface is TNetworkDebuggerInterface then
+            continueFromBreakpoint(bpp, co_run);  //explicitly continue from this breakpoint
         end;
 
+        //nothing special is needed to continue
+      end;
 
-      end
-      else dwContinueStatus:=DBG_EXCEPTION_NOT_HANDLED; //not an expected breakpoint
+      bo_FindWhatCodeAccesses:
+      begin
+        TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), bpp.frmchangedaddresses.AddRecord);
+        continueFromBreakpoint(bpp, co_run); //just continue running
+      end;
+
+
+    end;
+
+    dwContinueStatus:=DBG_CONTINUE;
+  end else
+  begin
+    if (expectedUndefinedBreakpoint<>0) and (address=expectedUndefinedBreakpoint) then
+    begin
+      connection:=getConnection;
+      if connection<>nil then
+      begin
+        expectedUndefinedBreakpoint:=0;
+        connection.RemoveBreakpoint(processhandle, threadid, CurrentDebuggerInterface.maxInstructionBreakpointCount-1, false);
+
+        if setInt1Back then
+          TdebuggerThread(debuggerthread).setBreakpoint(Int1SetBackBP, self);
+
+
+        dwContinueStatus:=DBG_CONTINUE;
+        result:=true;
+        exit;
+      end;
     end;
 
 
-    if dwContinueStatus=DBG_EXCEPTION_NOT_HANDLED then
-    asm
-      nop
-    end;
+    OutputDebugString('Unexpected breakpoint');
+    if not (CurrentDebuggerInterface is TKernelDebugInterface) then
+    begin
+      onAttachEvent.SetEvent;
 
-  finally
-    debuggercs.enter; //to continue I do need the lock (don't touch the context while i'm using it)
+      if TDebuggerthread(debuggerthread).InitialBreakpointTriggered then
+        dwContinueStatus:=DBG_EXCEPTION_NOT_HANDLED
+      else
+      begin
+        dwContinueStatus:=DBG_CONTINUE;
+        TDebuggerthread(debuggerthread).InitialBreakpointTriggered:=true;
+
+        result:=false;
+        exit;
+      end;
+
+
+    end
+    else dwContinueStatus:=DBG_EXCEPTION_NOT_HANDLED; //not an expected breakpoint
+  end;
+
+
+  if dwContinueStatus=DBG_EXCEPTION_NOT_HANDLED then
+  asm
+    nop
   end;
 
   Result := True;
@@ -1495,14 +1488,49 @@ begin
   begin
     debuggercs.enter; //wait till other threads are done with this
 
-    currentthread.isHandled:=false;
     //if this was a thread that caused a breakpoint unset problem last time call the breakpoint cleanup routine now
     if currentthread.needstocleanup then
     begin
+      currentthread.context.dr6:=0;
+
+      //remove all current breakpoints
+      if BPOverride then
+      begin
+        //override, the debugregs are mine
+        currentthread.context.dr0:=0;
+        currentthread.context.dr1:=0;
+        currentthread.context.dr2:=0;
+        currentthread.context.dr3:=0;
+        currentthread.context.dr7:=$400;
+
+        currentThread.setContext;
+      end
+      else
+      begin
+        //no override, let's be kind and only unset those that are actually used
+        for i:=0 to breakpointlist.count-1 do
+        begin
+          if (breakpointlist[i].breakpointMethod=bpmDebugRegister) then //only unset debug registers that got used
+            TDebuggerthread(debuggerthread).UnsetBreakpoint(breakpointlist[i], currentthread.context);
+        end;
+
+        currentthread.setContext;
+      end;
+
+      for i:=0 to breakpointlist.count-1 do
+      begin
+        if (breakpointlist[i].breakpointMethod=bpmDebugRegister) and (breakpointlist[i].active) then
+          TDebuggerthread(debuggerthread).SetBreakpoint(breakpointlist[i], currentthread);
+      end;
+
+
+
+
       currentthread.needstocleanup:=false;
       TDebuggerthread(debuggerthread).cleanupDeletedBreakpoints(false);
     end;
 
+    currentthread.isHandled:=false;
     debuggercs.leave;
   end;
 
