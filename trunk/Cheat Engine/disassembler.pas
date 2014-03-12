@@ -9640,7 +9640,7 @@ begin
               $e8..$ef : begin
                            description:='unordered compare real';
                            lastdisassembledata.opcode:='fucomp';
-                           lastdisassembledata.parameters:='st('+inttostr(memory[1]-$e0)+')';
+                           lastdisassembledata.parameters:='st('+inttostr(memory[1]-$e8)+')';
                            inc(offset);
                          end;
                 else
