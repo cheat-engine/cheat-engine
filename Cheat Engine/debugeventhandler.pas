@@ -1489,7 +1489,7 @@ begin
     debuggercs.enter; //wait till other threads are done with this
 
     //if this was a thread that caused a breakpoint unset problem last time call the breakpoint cleanup routine now
-    if currentthread.needstocleanup then
+    //if currentthread.needstocleanup then
     begin
       currentthread.context.dr6:=0;
 
