@@ -10,6 +10,10 @@ interface
 uses
   windows, Classes, SysUtils;
 
+
+const
+  TPOLL_TCREATEREALCONTEXT=$00000001;
+
 type TVEHDebugSharedMem=packed record
   CurrentContext: array [0..8191] of byte; //should be enough for a context...
 
@@ -21,6 +25,7 @@ type TVEHDebugSharedMem=packed record
   ProcessID: DWORD;
   ThreadID: DWORD;
   ThreadWatchMethod: QWORD;
+  ThreadWatchMethodConfig: QWORD; //each bit contains an boolean option (for threadpoll, the only one implemented, bit 0 means simulate thread create contexts)
 
 
   case integer of

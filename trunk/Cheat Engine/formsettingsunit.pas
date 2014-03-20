@@ -36,6 +36,7 @@ type
     cbAllIncludesCustomType: TCheckBox;
     cbShowProcesslist: TCheckBox;
     cbOverrideExistingBPs: TCheckBox;
+    cbVEHRealContextOnThreadCreation: TCheckBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
     edtStacksize: TEdit;
@@ -43,7 +44,7 @@ type
     GroupBox2: TGroupBox;
     GroupBox4: TGroupBox;
     Label2: TLabel;
-    Label25: TLabel;
+    lblThreadFollowing: TLabel;
     Label4: TLabel;
     Label6: TLabel;
     Label7: TLabel;
@@ -51,9 +52,9 @@ type
     Panel1: TPanel;
     pcDebugConfig: TPageControl;
     pnlConfig: TPanel;
-    RadioButton1: TRadioButton;
-    RadioButton2: TRadioButton;
-    RadioButton3: TRadioButton;
+    rbVEHHookThreadCreation: TRadioButton;
+    rbVEHUseProcessWatcher: TRadioButton;
+    rbVEHPollThread: TRadioButton;
     rbPageExceptions: TRadioButton;
     rbDebugAsBreakpoint: TRadioButton;
     rbgDebuggerInterface: TRadioGroup;
@@ -658,9 +659,16 @@ begin
 
       reg.WriteBool('Use Processwatcher',cbProcessWatcher.checked);
       reg.WriteBool('Use VEH Debugger',cbUseVEHDebugger.checked);
+      reg.WriteBool('VEH Real context on thread creation event', cbVEHRealContextOnThreadCreation.checked);
+      VEHRealContextOnThreadCreation:=cbVEHRealContextOnThreadCreation.checked;
+
+
       reg.WriteBool('Use Windows Debugger',cbUseWindowsDebugger.checked);
       reg.WriteBool('Use Kernel Debugger',cbKdebug.checked);
       reg.WriteBool('Use Global Debug Routines',cbGlobalDebug.checked);
+
+
+
 
 
       unrandomizersettings.defaultreturn:=strtoint(edtdefault.Text);

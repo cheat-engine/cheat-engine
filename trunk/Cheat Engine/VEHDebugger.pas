@@ -359,6 +359,11 @@ begin
     ZeroMemory(VEHDebugView,sizeof(TVEHDebugSharedMem));
 
     VEHDebugView.ThreadWatchMethod:=0; //vehthreadwatchmethod;
+    if VEHRealContextOnThreadCreation then
+      VEHDebugView.ThreadWatchMethodConfig:=TPOLL_TCREATEREALCONTEXT
+    else
+      VEHDebugView.ThreadWatchMethodConfig:=0;;
+
 
 
     HasDebugEvent:=CreateEvent(nil, false, false, nil);

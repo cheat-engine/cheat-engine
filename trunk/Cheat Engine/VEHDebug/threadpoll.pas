@@ -8,7 +8,8 @@ Keeps a list of all the threads and notifies the debugger when a change has happ
 interface
 
 uses
-  jwawindows,windows,Classes, SysUtils,init, extcont, simpleThread;
+  jwawindows,windows,Classes, SysUtils,init, extcont, simpleThread, VEHDebugSharedMem;
+
 
 type TThreadPoller=class(TSimpleThread)
   private
@@ -27,12 +28,62 @@ implementation
 
 uses DebugHandler;
 
+
+var debug_oldcontext, debug_newcontext: TContext;
+
 procedure TThreadPoller.CreateThreadEvent(threadid: dword);
 var
+{$ifdef cpu32}
+  c: TEContext;
+{$else}
+  c: TContext;
+{$endif}
+
+  cp: PContext;
   ep: TEXCEPTIONPOINTERS;
   er: TEXCEPTIONRECORD;
+
+  th: thandle;
+  useValidContext: boolean;
+  hasValidContext: boolean;
 begin
-  ep.ContextRecord:=nil;
+  OutputDebugString('CreateThreadEvent');
+
+  useValidContext:=((VEHSharedMem.ThreadWatchMethodConfig and TPOLL_TCREATEREALCONTEXT)>0) and (GetCurrentThreadId<>threadid);
+
+  if usevalidcontext then
+  begin
+    cp:=@c;
+    ep.ContextRecord:=cp;
+
+    OutputDebugString('usevalidcontext=true');
+
+    th:=OpenThread(THREAD_GET_CONTEXT or THREAD_SET_CONTEXT or THREAD_SUSPEND_RESUME, false, threadid);
+    if th<>0 then
+    begin
+      SuspendThread(th);
+      zeromemory(@c, sizeof(c));
+      c.ContextFlags:=CONTEXT_ALL {$ifdef cpu32} or CONTEXT_EXTENDED{$endif};
+
+      hasValidContext:=GetThreadContext(th, cp^);
+      if not hasValidContext then
+      begin
+        ep.ContextRecord:=nil;
+        OutputDebugString(pchar(Format('Failure getting context th=%d @c=%p', [th, @c])));
+      end;
+
+      debug_oldcontext:=c;
+
+    end;
+
+
+  end
+  else
+  begin
+    ep.ContextRecord:=nil;
+    OutputDebugString('usevalidcontext=false');
+  end;
+
   ep.ExceptionRecord:=@er;
   er.NumberParameters:=0;
 
@@ -40,11 +91,27 @@ begin
   er.ExceptionRecord:=nil;
   OutputDebugString('Emulating CreateThreadEvent');
 
-
-
   InternalHandler(@ep,threadid);
 
   OutputDebugString('After Emulating CreateThreadEvent');
+
+  if usevalidcontext then
+  begin
+    if (th<>0) and (hasValidContext) then
+    begin
+
+      OutputDebugString(pchar(Format('old context=%p new context=%p', [@debug_oldcontext, @debug_newcontext])));
+
+      debug_newcontext:=c;
+
+      c.ContextFlags:=CONTEXT_ALL {$ifdef cpu32} or CONTEXT_EXTENDED{$endif};
+      SetThreadContext(th, cp^);
+      ResumeThread(th);
+    end;
+
+    closehandle(th);
+  end;
+
 end;
 
 procedure TThreadPoller.DestroyThreadEvent(threadid: dword);
