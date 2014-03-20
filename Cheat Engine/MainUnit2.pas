@@ -595,6 +595,12 @@ begin
           if reg.ValueExists('Use VEH Debugger') then
             cbUseVEHDebugger.Checked:=reg.ReadBool('Use VEH Debugger');
 
+          if reg.ValueExists('VEH Real context on thread creation event') then
+            cbVEHRealContextOnThreadCreation.checked:=reg.ReadBool('VEH Real context on thread creation event');
+
+          VEHRealContextOnThreadCreation:=cbVEHRealContextOnThreadCreation.checked;
+
+
           if reg.ValueExists('Use Windows Debugger') then
             cbUseWindowsDebugger.checked:=reg.ReadBool('Use Windows Debugger');
 

@@ -60,9 +60,9 @@ object formSettings: TformSettings
       Height = 468
       Top = 1
       Width = 622
-      ActivePage = Extra
+      ActivePage = Assembler
       Align = alClient
-      TabIndex = 6
+      TabIndex = 5
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -797,16 +797,19 @@ object formSettings: TformSettings
               Caption = 'VEH Debugger'
               ClientHeight = 93
               ClientWidth = 404
-              object RadioButton1: TRadioButton
+              object rbVEHHookThreadCreation: TRadioButton
+                AnchorSideTop.Control = rbVEHPollThread
+                AnchorSideTop.Side = asrBottom
                 Left = 2
                 Height = 19
-                Top = 43
+                Top = 42
                 Width = 194
+                BorderSpacing.Top = 3
                 Caption = 'Hook thread-create and destroy api''s'
                 Enabled = False
                 TabOrder = 2
               end
-              object Label25: TLabel
+              object lblThreadFollowing: TLabel
                 Left = 2
                 Height = 14
                 Top = 3
@@ -814,24 +817,45 @@ object formSettings: TformSettings
                 Caption = 'Thread following:'
                 ParentColor = False
               end
-              object RadioButton2: TRadioButton
+              object rbVEHUseProcessWatcher: TRadioButton
+                AnchorSideTop.Control = rbVEHHookThreadCreation
+                AnchorSideTop.Side = asrBottom
                 Left = 2
                 Height = 19
-                Top = 67
+                Top = 64
                 Width = 117
+                BorderSpacing.Top = 3
                 Caption = 'Use processwatcher'
                 Enabled = False
                 TabOrder = 1
               end
-              object RadioButton3: TRadioButton
+              object rbVEHPollThread: TRadioButton
+                AnchorSideTop.Control = lblThreadFollowing
+                AnchorSideTop.Side = asrBottom
                 Left = 2
                 Height = 19
-                Top = 19
+                Top = 20
                 Width = 90
+                BorderSpacing.Top = 3
                 Caption = 'Poll for threads'
                 Checked = True
                 TabOrder = 0
                 TabStop = True
+              end
+              object cbVEHRealContextOnThreadCreation: TCheckBox
+                AnchorSideLeft.Control = rbVEHPollThread
+                AnchorSideLeft.Side = asrBottom
+                AnchorSideTop.Control = rbVEHPollThread
+                AnchorSideRight.Control = rbVEHPollThread
+                Left = 102
+                Height = 19
+                Top = 20
+                Width = 185
+                BorderSpacing.Left = 10
+                Caption = 'Get/Set thread context on creation'
+                Checked = True
+                State = cbChecked
+                TabOrder = 3
               end
             end
             object tsWindowsDebuggerConfig: TTabSheet

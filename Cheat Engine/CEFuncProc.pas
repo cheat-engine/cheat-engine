@@ -670,6 +670,8 @@ var
   dontusetempdir: boolean;
   tempdiralternative: string;
 
+  VEHRealContextOnThreadCreation: boolean;
+
 
 
   processhandler: TProcessHandler;

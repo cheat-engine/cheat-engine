@@ -1484,13 +1484,17 @@ begin
                                 Result := currentThread.HandleUnknownEvent(debugEvent, dwContinueStatus);
   end;
 
-  if currentthread<>nil then //if it wasn't a thread destruction tell this thread it isn't being handled anymore
+
+  //cleanup time for this thread
+  if (currentthread<>nil) then //if it wasn't a thread destruction tell this thread it isn't being handled anymore
   begin
     debuggercs.enter; //wait till other threads are done with this
 
     //if this was a thread that caused a breakpoint unset problem last time call the breakpoint cleanup routine now
     //if currentthread.needstocleanup then
+    if dwContinueStatus=DBG_CONTINUE then //continued so not an unhandled breakpoint exception
     begin
+      currentthread.fillContext;
       currentthread.context.dr6:=0;
 
       //remove all current breakpoints
