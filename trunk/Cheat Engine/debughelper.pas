@@ -891,6 +891,8 @@ begin
       if breakpoint.ThreadID <> 0 then
       begin
         //only one thread
+        breakpoint.active:=false;
+
         currentthread := getDebugThreadHanderFromThreadID(breakpoint.ThreadID);
         if currentthread = nil then //it's gone
           exit;
@@ -906,6 +908,8 @@ begin
             //(touching the DR registers with setthreadcontext clears DR6 in win7 )
             currentthread.needstocleanup:=true;
             currentthread.resume;
+
+
             exit;
           end;
         end;
