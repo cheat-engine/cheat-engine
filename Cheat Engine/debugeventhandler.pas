@@ -1402,7 +1402,7 @@ var
 
   newthread: boolean;
   i: integer;
-
+  ActiveBPList: TBreakpointList;
 begin
   //OutputDebugString('HandleDebugEvent:'+inttostr(debugEvent.dwDebugEventCode));
   //find the TDebugThreadHandler class that belongs to this thread
@@ -1499,6 +1499,13 @@ begin
       //continued or not an unhandled debug register exception
       currentthread.context.dr6:=0;
 
+      //get the active bp list for this thread  (unsetting the breakpoint in safe mode sets active to false, which would break setting them again otherwise)
+      ActiveBPList:=TBreakpointList.create;
+      for i:=0 to breakpointlist.count-1 do
+        if breakpointlist[i].active and (breakpointlist[i].breakpointMethod=bpmDebugRegister) and ((breakpointlist[i].ThreadID=0) or (breakpointlist[i].ThreadID=currentthread.ThreadId)) then
+          ActiveBPList.add(breakpointlist[i]);
+
+
       //remove all current breakpoints
       if BPOverride then
       begin
@@ -1514,21 +1521,16 @@ begin
       else
       begin
         //no override, let's be kind and only unset those that are actually used
-        for i:=0 to breakpointlist.count-1 do
-        begin
-          if (breakpointlist[i].breakpointMethod=bpmDebugRegister) then //only unset debug registers that got used
-            TDebuggerthread(debuggerthread).UnsetBreakpoint(breakpointlist[i], currentthread.context);
-        end;
+        for i:=0 to ActiveBPList.count-1 do
+          TDebuggerthread(debuggerthread).UnsetBreakpoint(breakpointlist[i], currentthread.context);
 
         currentthread.setContext;
       end;
 
-      for i:=0 to breakpointlist.count-1 do
-      begin
-        if (breakpointlist[i].breakpointMethod=bpmDebugRegister) and (breakpointlist[i].active) then
-          TDebuggerthread(debuggerthread).SetBreakpoint(breakpointlist[i], currentthread);
-      end;
+      for i:=0 to ActiveBPList.count-1 do
+        TDebuggerthread(debuggerthread).SetBreakpoint(ActiveBPList[i], currentthread);
 
+      ActiveBPList.free;
 
 
 
