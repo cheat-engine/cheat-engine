@@ -49,12 +49,19 @@ end;
 
 procedure TCEThread.execute;
 var errorstring: string;
+  extraparamcount: integer;
 begin
   //call the lua function
   try
+    extraparamcount:=lua_gettop(L);
+
     lua_rawgeti(L, LUA_REGISTRYINDEX, functionid);
+    lua_insert(L, 1);
+
     luaclass_newClass(L, self);
-    if lua_pcall(L, 1,0,0)<>0 then
+    lua_insert(L, 2);
+
+    if lua_pcall(L, 1+extraparamcount,0,0)<>0 then
     begin
       if lua_isstring(L, -1) then
         errorstring:=':'+Lua_ToString(L,-1)
@@ -109,14 +116,19 @@ var
 
   newL: Plua_State;
   s: string;
+
+  paramcount: integer;
+  i,v: integer;
 begin
   result:=0;
-  f:=lua_gettop(L);
 
-  if lua_gettop(L)=1 then
+  paramcount:=lua_gettop(L);
+
+  if paramcount>=1 then
   begin
     if lua_isfunction(L,1) then
     begin
+      lua_pushvalue(L, 1);
       f:=luaL_ref(L,LUA_REGISTRYINDEX);
 
     end
@@ -128,15 +140,27 @@ begin
 
       lua_getfield(L, LUA_GLOBALSINDEX, pchar(routine));
       f:=luaL_ref(L,LUA_REGISTRYINDEX);
-    end;
+    end
+    else
+      raise exception.create('Invalid first parameter for createNativeThread');
 
     newL:=lua_newthread(L);
-    lua_sethook(newL, nil, 0, 0);   //no debugging on this thread for now
-
 
     s:='CELUATHREAD_'+IntToHex(ptruint(newL),8);
     lua_setglobal(L, pchar(s));
 
+    lua_sethook(newL, nil, 0, 0);   //no debugging on this thread for now
+
+    //copy the extra parameters from the original call to the new one
+    for i:=2 to paramcount do
+    begin
+      //get a ref to this parameter
+      lua_pushvalue(L, i);
+      v:=luaL_ref(L,  LUA_REGISTRYINDEX);
+      lua_rawgeti(newL,LUA_REGISTRYINDEX,  v);
+
+      lua_unref(L, v);
+    end;
 
     //clear the stack  (just in case)
     lua_pop(L, lua_gettop(L));
