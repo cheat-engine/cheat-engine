@@ -1502,8 +1502,15 @@ begin
       //get the active bp list for this thread  (unsetting the breakpoint in safe mode sets active to false, which would break setting them again otherwise)
       ActiveBPList:=TBreakpointList.create;
       for i:=0 to breakpointlist.count-1 do
-        if breakpointlist[i].active and (breakpointlist[i].breakpointMethod=bpmDebugRegister) and ((breakpointlist[i].ThreadID=0) or (breakpointlist[i].ThreadID=currentthread.ThreadId)) then
+      begin
+        if breakpointlist[i].active and          //active
+           (breakpointlist[i].breakpointMethod=bpmDebugRegister) and //it's a debug register bp
+           ((breakpointlist[i].ThreadID=0) or (breakpointlist[i].ThreadID=currentthread.ThreadId)) and //this isn't a thread specific breakpoint, or this breakpoint affects this thread
+           (not currentthread.setInt1Back and (currentthread.Int1SetBackBP=breakpointlist[i])) //this isn't an XP/Network hack that just disabled the bp for this thread so it can do a single step and re-enable next step
+        then
           ActiveBPList.add(breakpointlist[i]);
+
+      end;
 
 
       //remove all current breakpoints
