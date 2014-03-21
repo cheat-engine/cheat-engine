@@ -238,6 +238,11 @@ type
     MaxOffsetsPerNode: integer;
 
 
+    isWritingToDisk: boolean;
+    timespentwriting: qword;
+    currentwritestart: dword;
+
+
 
     isdone: boolean;
     hasTerminated: boolean;
@@ -267,6 +272,8 @@ type
 
     pathsEvaluated: qword;
     pointersfound: qword;
+
+
 
     procedure execute; override;
     constructor create(suspended: boolean);
@@ -562,6 +569,7 @@ resourcestring
   rsLookingFor = 'Looking for';
   rsSleeping = 'Sleeping';
   rsActive = 'Active';
+  rsWritingToDisk = 'Writing to disk';
   rsBaseAddress = 'Base Address';
   rsOffset = 'Offset';
   rsPointsTo = 'Points to';
@@ -714,9 +722,14 @@ end;
 //---------------Reversescanworker
 procedure TReverseScanWorker.flushresults;
 begin
+  currentwritestart:=gettickcount;
+  isWritingToDisk:=true;
   resultsfile.WriteBuffer(results.Memory^,results.Position);
   results.Seek(0,sofrombeginning);
- // results.Clear;
+  isWritingToDisk:=false;
+
+
+  inc(timespentwriting, gettickcount-currentwritestart);
 end;
 
 constructor TReverseScanWorker.create(suspended:boolean);
@@ -3466,6 +3479,11 @@ var i,j: integer;
     tpe: qword;
 
     tpf: qword;
+
+    totalTimeWriting: qword;
+    totalTime: qword;
+
+    percentageSpentWriting: single;
 begin
   if listview1.Visible then
     listview1.repaint;
@@ -3494,8 +3512,20 @@ begin
     if staticscanner.reverse then
     begin
       tpf:=0;
+      tpe:=0;
+      totalTimeWriting:=0;
       for i:=0 to length(Staticscanner.reversescanners)-1 do
+      begin
         tpf:=tpf+Staticscanner.reversescanners[i].pointersfound;
+        tpe:=tpe+Staticscanner.reversescanners[i].pathsEvaluated;
+        totalTimeWriting:=totalTimeWriting+Staticscanner.reversescanners[i].timespentwriting;
+
+        if staticscanner.reversescanners[i].isWritingToDisk then
+          inc(totalTimeWriting, GetTickCount-staticscanner.reversescanners[i].currentwritestart);
+      end;
+
+      totalTime:=gettickcount-starttime*length(Staticscanner.reversescanners);
+      percentageSpentWriting:=totalTimeWriting/totalTime*100;
 
       scount:=tpf;
 
@@ -3513,9 +3543,6 @@ begin
 {$ifdef benchmarkps}
       //count totalpathsevaluated
 //      totalpathsevaluated:=pathsEvaluated
-      tpe:=0;
-      for i:=0 to length(Staticscanner.reversescanners)-1 do
-        tpe:=tpe+Staticscanner.reversescanners[i].pathsEvaluated;
 
       totalpathsevaluated:=tpe;
 
@@ -3525,13 +3552,16 @@ begin
         starttime:=gettickcount;
       end;
 
-      s:=format(rsThreads+': '+rsEvaluated+': %d '+rsTime+': %d  (%d / s)', [totalpathsevaluated-startcount, ((gettickcount-starttime) div 1000), trunc(((totalpathsevaluated-startcount)/(gettickcount-starttime))*1000)]);
+      s:=format(rsThreads+': '+rsEvaluated+': %d '+rsTime+': %d  (%.0n / s)', [totalpathsevaluated-startcount, ((gettickcount-starttime) div 1000), ((totalpathsevaluated-startcount)/(gettickcount-starttime))*1000]);
 
       if staticscanner.distributedScanning and (staticscanner.distributedWorker=false) then
       begin
         x:=trunc(((totalpathsevaluated-startcount)/(gettickcount-starttime))*1000)+staticscanner.workersPathPerSecondTotal;
         s:=s+' (Total: '+inttostr(x)+' / s)';
       end;
+
+      s:=s+format(' Writing: %.2f %%',[percentageSpentWriting]);
+
 
 
       if staticscanner.outofdiskspace then
@@ -3541,6 +3571,7 @@ begin
       end
       else
       begin
+        label5.Font.Color:=graphics.clDefault;
         label5.caption:=s;
         label5.Width:=label5.Canvas.TextWidth(label5.caption);
       end;
@@ -3579,7 +3610,10 @@ begin
           end
           else
           begin
-            tn.text:=rsThread+' '+inttostr(i+1)+' ('+rsActive+')';
+            if staticscanner.reversescanners[i].isWritingToDisk then
+              tn.text:=rsThread+' '+inttostr(i+1)+' ('+rsWritingToDisk+')'
+            else
+              tn.text:=rsThread+' '+inttostr(i+1)+' ('+rsActive+')';
             tn2:=tn.getFirstChild;
 
             begin
