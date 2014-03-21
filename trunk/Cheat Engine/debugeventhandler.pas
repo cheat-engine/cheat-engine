@@ -763,7 +763,10 @@ begin
       end;
 
       if bpp.active=false then
+      begin
         TdebuggerThread(debuggerthread).UnsetBreakpoint(bpp, context);  //make sure it's disabled
+        setcontext;
+      end;
 
       needstocleanup:=true;
 
@@ -1506,7 +1509,7 @@ begin
         if breakpointlist[i].active and          //active
            (breakpointlist[i].breakpointMethod=bpmDebugRegister) and //it's a debug register bp
            ((breakpointlist[i].ThreadID=0) or (breakpointlist[i].ThreadID=currentthread.ThreadId)) and //this isn't a thread specific breakpoint, or this breakpoint affects this thread
-           (not currentthread.setInt1Back and (currentthread.Int1SetBackBP=breakpointlist[i])) //this isn't an XP/Network hack that just disabled the bp for this thread so it can do a single step and re-enable next step
+           (not (currentthread.setInt1Back and (currentthread.Int1SetBackBP=breakpointlist[i]))) //this isn't an XP/Network hack that just disabled the bp for this thread so it can do a single step and re-enable next step
         then
           ActiveBPList.add(breakpointlist[i]);
 
