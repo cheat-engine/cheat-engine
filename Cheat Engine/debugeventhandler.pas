@@ -1492,9 +1492,11 @@ begin
 
     //if this was a thread that caused a breakpoint unset problem last time call the breakpoint cleanup routine now
     //if currentthread.needstocleanup then
-    if dwContinueStatus=DBG_CONTINUE then //continued so not an unhandled breakpoint exception
+    currentthread.fillContext;
+
+    if (dwContinueStatus=DBG_CONTINUE) or (currentThread.context.Dr6=0) or (currentThread.context.dr6=$ffff0ff0) then
     begin
-      currentthread.fillContext;
+      //continued or not an unhandled debug register exception
       currentthread.context.dr6:=0;
 
       //remove all current breakpoints
