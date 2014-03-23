@@ -238,6 +238,7 @@ resourcestring
   rsOnReadWrite = 'On Read/Write';
   rsSoftwareBreakpoint = 'Software Breakpoint';
   rsHardwareBreakpoint = 'Hardware Breakpoint';
+  rsExceptionBreakpoint = 'Exception Breakpoint';
   rsBreak = 'Break';
   rsChangeReg = 'Change reg';
   rsFindCode = 'Find code';
@@ -286,7 +287,8 @@ function BreakpointMethodToString(bpm: TBreakpointMethod): string;
 begin
   case bpm of
     bpmInt3:           result:=rsSoftwareBreakpoint;
-    bpmDebugRegister: result:=rsHardwareBreakpoint;
+    bpmDebugRegister:  result:=rsHardwareBreakpoint;
+    bpmException:      result:=rsExceptionBreakpoint;
   end;
 end;
 
