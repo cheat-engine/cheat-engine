@@ -12,7 +12,7 @@ interface
 uses
   windows, Classes, SysUtils, sharedMemory, forms, graphics, cefuncproc,
   newkernelhandler, controls, Clipbrd, strutils, LuaHandler, RemoteMemoryManager,
-  math;
+  math, syncobjs;
 
 type
   TCEMessage=packed record
@@ -400,6 +400,8 @@ type
 
 
     memman: TRemoteMemoryManager;
+
+    commandlistCS: TCriticalSection;
 
     procedure setOnKeyDown(s: TD3DKeyDownEvent);
   public
@@ -1377,6 +1379,8 @@ begin
   if self=nil then
     raise exception.create('The d3dhook object has not been created yet');
 
+  commandlistCS.enter;
+
   if isupdatingCL=0 then //start of an edit
     WaitForSingleObject(CommandListLock, INFINITE);  //obtain lock
 
@@ -1393,6 +1397,9 @@ begin
     if isupdatingCL=0 then
       SetEvent(CommandListLock); //release the lock
   end;
+
+
+  commandlistCS.leave;
 
 
 end;
@@ -1500,6 +1507,8 @@ begin
   memman:=TRemoteMemoryManager.create;
   textures:=TList.create;
   commandlist:=TList.create;
+
+  commandlistCS:=TCriticalSection.create;
 
 
   sharename:='CED3D_'+inttostr(processhandler.ProcessID);
