@@ -212,7 +212,7 @@ void DXMessD3D9Handler::TakeSnapshot(char *functionname)
 
 
 
-void DXMessD3D9Handler::DrawString(D3DXVECTOR3 position, PTextureData9 pFontTexture, char *s, int strlen)
+void DXMessD3D9Handler::DrawString(D3DXVECTOR3 position, PTextureData9 pFontTexture, char *s, int strlen, float alphablend)
 /*
 Render the text using the sprite object (select a texture region and draw that specific character) .Coordinates are in normal x,y coordinates
 Pre: Sprite must be active
@@ -258,8 +258,10 @@ Pre: Sprite must be active
 
 		D3DXMatrixTransformation(&m, NULL, NULL, &scale, NULL, NULL, &currentpos);						
 		sprite->SetTransform(&m);					
+		
 
-		sprite->Draw(pFontTexture->pTexture, &charactertexture, NULL, NULL, D3DCOLOR_ARGB(255,255,255,255));		
+		
+		sprite->Draw(pFontTexture->pTexture, &charactertexture, NULL, NULL, D3DCOLOR_ARGB((int)floor(alphablend*255),255,255,255));		
 
 		currentpos.x+=width;
 
@@ -685,7 +687,10 @@ void DXMessD3D9Handler::RenderOverlay()
 								//now draw the string
 								//truncate to a pixel exact position
 
-								DrawString(position, &textures[shared->RenderCommands[i].font.fontid], s,strlen(s));
+								
+								
+
+								DrawString(position, &textures[shared->RenderCommands[i].font.fontid], s,strlen(s), shared->RenderCommands[i].alphablend);
 
 							}
 

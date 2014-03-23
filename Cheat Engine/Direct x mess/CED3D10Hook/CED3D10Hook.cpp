@@ -1298,8 +1298,10 @@ void DXMessD3D10Handler::RenderOverlay()
 						cb.scaling.x=1.0f;
 						cb.scaling.y=1.0f;//if you wish a bigger font, use a bigger font, don't scale (ugly)
 						
-						cb.translation.x=-1.0f;
-						cb.translation.y=-1.0f;
+						cb.originpoint.x=-1.0f;
+						cb.originpoint.y=-1.0f;
+
+						D3DXMatrixRotationZ(&cb.rotation, shared->RenderCommands[i].rotation);
 
 						cb.translation.x=-1.0f+((float)((float)position.x * 2)/(float)vp.Width);
 						cb.translation.y=-1.0f+((float)((float)position.y * 2)/(float)vp.Height);

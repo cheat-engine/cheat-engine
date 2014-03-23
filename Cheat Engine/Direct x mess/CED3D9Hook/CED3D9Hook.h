@@ -32,7 +32,7 @@ private:
 
 	BOOL Valid;
 	BOOL UpdateTextures();
-	void DrawString(D3DXVECTOR3 position, PTextureData9 pFontTexture, char *s, int strlen);
+	void DrawString(D3DXVECTOR3 position, PTextureData9 pFontTexture, char *s, int strlen, float alphablend);
 public:
 	
 	int snapshotCounter;
