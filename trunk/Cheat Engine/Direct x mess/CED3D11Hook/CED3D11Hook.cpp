@@ -1899,7 +1899,7 @@ void DXMessD3D11Handler::RenderOverlay()
 
 				case rcDrawFont:
 				{
-					int tid=shared->RenderCommands[i].font.fontid;							
+					int tid=shared->RenderCommands[i].font.fontid;						
 
 					if ((tid<TextureCount) && (textures[tid].pTexture))
 					{
@@ -1958,8 +1958,10 @@ void DXMessD3D11Handler::RenderOverlay()
 						cb.scaling.x=1.0f;
 						cb.scaling.y=1.0f;//if you wish a bigger font, use a bigger font, don't scale (ugly)
 						
-						cb.translation.x=-1.0f;
-						cb.translation.y=-1.0f;
+						cb.originpoint.x=-1.0f;
+						cb.originpoint.y=-1.0f;						
+
+						cb.rotation=XMMatrixRotationZ(shared->RenderCommands[i].rotation);
 
 						cb.translation.x=-1.0f+((float)((float)position.x * 2)/(float)vp.Width);
 						cb.translation.y=-1.0f+((float)((float)position.y * 2)/(float)vp.Height);
@@ -1970,7 +1972,7 @@ void DXMessD3D11Handler::RenderOverlay()
 						dc->VSSetConstantBuffers(0,1, &pConstantBuffer);
 						dc->PSSetConstantBuffers(0,1, &pConstantBuffer);
 
-						DrawString(vp, &textures[shared->RenderCommands[i].font.fontid], s,strlen(s));
+						DrawString(vp, &textures[tid], s,strlen(s));
 					}
 					
 					break;
