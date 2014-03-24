@@ -311,6 +311,12 @@ BOOL DXMessD3D9Handler::UpdateTextures()
 			else //realloc
 				textures=(TextureData9 *)realloc(textures, sizeof(TextureData9)* shared->textureCount);			
 
+			if (textures==NULL)
+			{
+				OutputDebugStringA("Failure allocating memory for texturedata");
+				SetEvent((HANDLE)(shared->TextureLock)); //unlock
+				return FALSE;
+			}
 
 			//initialize the new entries to NULL
 			for (i=TextureCount; i<shared->textureCount; i++)
@@ -356,14 +362,14 @@ BOOL DXMessD3D9Handler::UpdateTextures()
 						char s[255];
 
 						//OutputDebugStringA("Fail 1");
-						hr=D3DXCreateTextureFromFileInMemoryEx(dev, (void *)(tea[i].AddressOfTexture), tea[i].size, D3DX_DEFAULT, D3DX_DEFAULT, 1, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_FILTER_NONE, D3DX_DEFAULT, 0, NULL, NULL, &textures[i].pTexture);
+						hr=D3DXCreateTextureFromFileInMemoryEx(dev, (void *)(tea[i].AddressOfTexture), tea[i].size, D3DX_DEFAULT, D3DX_DEFAULT, 1, 0, D3DFMT_UNKNOWN, D3DPOOL_MANAGED, D3DX_FILTER_NONE, D3DX_DEFAULT, 0,  &imageinfo, NULL, &textures[i].pTexture);
 
 						if (FAILED(hr))
 						{
 							//OutputDebugStringA("Fail 2");
 
 
-							hr=D3DXCreateTextureFromFileInMemoryEx(dev, (void *)(tea[i].AddressOfTexture), tea[i].size, D3DX_DEFAULT, D3DX_DEFAULT, 1, 0, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_FILTER_NONE, D3DX_DEFAULT, 0, NULL, NULL, &textures[i].pTexture);
+							hr=D3DXCreateTextureFromFileInMemoryEx(dev, (void *)(tea[i].AddressOfTexture), tea[i].size, D3DX_DEFAULT, D3DX_DEFAULT, 1, 0, D3DFMT_UNKNOWN, D3DPOOL_DEFAULT, D3DX_FILTER_NONE, D3DX_DEFAULT, 0, &imageinfo, NULL, &textures[i].pTexture);
 							if (FAILED(hr))
 							{
 								//OutputDebugStringA("Fail 3");
@@ -392,45 +398,69 @@ BOOL DXMessD3D9Handler::UpdateTextures()
 										sprintf_s(s,254,"%s - D3DERR_NOTAVAILABLE",s);
 
 									OutputDebugStringA(s);
-									
-									
-									if (shared->texturelistHasUpdate)
-										InterlockedExchange((volatile LONG *)&shared->texturelistHasUpdate,0);	
+								
+	
+									SetEvent((HANDLE)(shared->TextureLock));
 
 									return hr;
+								}
+								else
+								{
+									//just get the width and height from the texture
+									if (textures[i].pTexture)
+									{
+										D3DSURFACE_DESC d;
+										textures[i].pTexture->GetLevelDesc(0, &d);
+
+										imageinfo.Width=d.Width;
+										imageinfo.Height=d.Height;
+										
+									}
+
 								}
 							}
 						}
 					}
 
-					D3DSURFACE_DESC d;
-					textures[i].pTexture->GetLevelDesc(0, &d);
-
-					textures[i].width=(float)imageinfo.Width;
-					textures[i].height=(float)imageinfo.Height;				
-					
-
-					if (tea[i].AddressOfFontmap)
+					if (textures[i].pTexture) //should be 100% true here
 					{
-						int j;
-						float currentOffset=0;
+						D3DSURFACE_DESC d;
+						textures[i].pTexture->GetLevelDesc(0, &d);
 
-						textures[i].DefinedFontMap=(PFONTMAP)malloc(sizeof(FONTMAP));
-						//now parse the fontmap provided by ce and fill in the gaps						
+						textures[i].width=(float)imageinfo.Width;
+						textures[i].height=(float)imageinfo.Height;				
 						
-						
-						WORD *cefontmap=(WORD *)(tea[i].AddressOfFontmap);											
-						textures[i].DefinedFontMap->charheight=(float)cefontmap[0];
 
-						for (j=0; j<96; j++)
+						if (tea[i].AddressOfFontmap)
 						{
-							textures[i].DefinedFontMap->charinfo[j].offset=currentOffset;
-							textures[i].DefinedFontMap->charinfo[j].charwidth=(float)cefontmap[j+1];
+							int j;
+							float currentOffset=0;
 
-							currentOffset+=cefontmap[j+1];
-						}						
+							textures[i].DefinedFontMap=(PFONTMAP)malloc(sizeof(FONTMAP));
 
-						textures[i].DefinedFontMap->fullwidth=currentOffset;
+							if (textures[i].DefinedFontMap==NULL)
+							{
+								OutputDebugStringA("Failure allocating memory for fontmap");
+								SetEvent((HANDLE)(shared->TextureLock)); //unlock
+								return FALSE;
+							}
+
+							//now parse the fontmap provided by ce and fill in the gaps						
+							
+							
+							WORD *cefontmap=(WORD *)(tea[i].AddressOfFontmap);											
+							textures[i].DefinedFontMap->charheight=(float)cefontmap[0];
+
+							for (j=0; j<96; j++)
+							{
+								textures[i].DefinedFontMap->charinfo[j].offset=currentOffset;
+								textures[i].DefinedFontMap->charinfo[j].charwidth=(float)cefontmap[j+1];
+
+								currentOffset+=cefontmap[j+1];
+							}						
+
+							textures[i].DefinedFontMap->fullwidth=currentOffset;
+						}
 					}
 
 					tea[i].hasBeenUpdated=0;
@@ -622,8 +652,8 @@ void DXMessD3D9Handler::RenderOverlay()
 			
 								D3DXMatrixTransformation2D(&m, NULL, NULL, &scale, &rotation, shared->RenderCommands[i].rotation, &position);						
 								sprite->SetTransform(&m);	
-						
-								hr=sprite->Draw(textures[tid].pTexture, &texturepos, NULL, NULL, D3DCOLOR_ARGB((int)(shared->RenderCommands[i].alphablend*255),255,255,255));						
+
+								hr=sprite->Draw(textures[tid].pTexture, &texturepos, NULL, NULL, D3DCOLOR_ARGB((int)(shared->RenderCommands[i].alphablend*255),255,255,255));
 							}
 							break;
 						}
@@ -687,10 +717,7 @@ void DXMessD3D9Handler::RenderOverlay()
 								//now draw the string
 								//truncate to a pixel exact position
 
-								
-								
-
-								DrawString(position, &textures[shared->RenderCommands[i].font.fontid], s,strlen(s), shared->RenderCommands[i].alphablend);
+								DrawString(position, &textures[tid], s,strlen(s), shared->RenderCommands[i].alphablend);
 
 							}
 
@@ -803,13 +830,13 @@ DXMessD3D9Handler::DXMessD3D9Handler(IDirect3DDevice9 *dev, PD3DHookShared share
 	textures=NULL;
 	TextureCount=0;
 
+	tea=(PTextureEntry)((uintptr_t)shared+shared->texturelist);
+	UpdateTextures();
+
 	hr=D3DXCreateSprite(dev, &sprite); //
 	if( FAILED( hr ) )
-		return;
+		OutputDebugStringA("D3DXCreateSprite FAILED");		
 
-	tea=(PTextureEntry)((uintptr_t)shared+shared->texturelist);
-
-	UpdateTextures();
 }
 
 DXMessD3D9Handler::~DXMessD3D9Handler()
