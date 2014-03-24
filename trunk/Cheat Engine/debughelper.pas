@@ -9,7 +9,7 @@ uses
   foundcodeunit, debugeventhandler, cefuncproc, newkernelhandler, comctrls,
   debuggertypedefinitions, formChangedAddresses, frmTracerUnit, KernelDebuggerInterface, VEHDebugger,
   WindowsDebugger, debuggerinterfaceAPIWrapper, debuggerinterface,symbolhandler,
-  fgl, disassembler, NetworkDebuggerInterface;
+  fgl, disassembler, NetworkDebuggerInterface, Clipbrd;
 
 
 
@@ -71,6 +71,8 @@ type
   public
     InitialBreakpointTriggered: boolean; //set by a debugthread when the first unknown exception is dealth with causing all subsequent unexpected breakpoitns to become unhandled
     temporaryDisabledExceptionBreakpoints: Tlist;
+
+    execlocation: integer; //debugging related to pinpoint problems
 
 
     procedure cleanupDeletedBreakpoints(Idle: boolean=true; timeoutonly: boolean=true);
@@ -202,6 +204,8 @@ var
 begin
   if terminated then exit;
 
+  execlocation:=0;
+
   try
     try
       currentprocesid := 0;
@@ -258,42 +262,46 @@ begin
       debugging := True;
 
 
-
       while (not terminated) and debugging do
       begin
 
+        execlocation:=1;
 
-          if WaitForDebugEvent(debugEvent, 100) then
+
+        if WaitForDebugEvent(debugEvent, 100) then
+        begin
+          ContinueStatus:=DBG_CONTINUE;
+          execlocation:=2;
+
+          debugging := eventhandler.HandleDebugEvent(debugEvent, ContinueStatus);
+
+          if debugging then
           begin
-            ContinueStatus:=DBG_CONTINUE;
-
-            debugging := eventhandler.HandleDebugEvent(debugEvent, ContinueStatus);
-
-            if debugging then
-            begin
-              if ContinueStatus=DBG_EXCEPTION_NOT_HANDLED then //this can happen when the game itself is constantly raising exceptions
-                cleanupDeletedBreakpoints(true, true); //only decrease the delete count if it's timed out (4 seconds in total)
+            execlocation:=4;
+            if ContinueStatus=DBG_EXCEPTION_NOT_HANDLED then //this can happen when the game itself is constantly raising exceptions
+              cleanupDeletedBreakpoints(true, true); //only decrease the delete count if it's timed out (4 seconds in total)
 
 
-              ContinueDebugEvent(debugEvent.dwProcessId, debugevent.dwThreadId, ContinueStatus);
-            end;
-          end
-          else
-          begin
-            {
-            no event has happened, for 100 miliseconds
-            Do some maintenance in here
-            }
-            //remove the breakpoints that have been unset and are marked for deletion
-            cleanupDeletedBreakpoints;
+            ContinueDebugEvent(debugEvent.dwProcessId, debugevent.dwThreadId, ContinueStatus);
           end;
+        end
+        else
+        begin
+          {
+          no event has happened, for 100 miliseconds
+          Do some maintenance in here
+          }
+          //remove the breakpoints that have been unset and are marked for deletion
+          execlocation:=5;
+          cleanupDeletedBreakpoints;
+        end;
 
 
       end;
 
     except
       on e: exception do
-        messagebox(0, pchar(utf8toansi(rsDebuggerCrash)+':'+e.message), '', 0);
+        messagebox(0, pchar(utf8toansi(rsDebuggerCrash)+':'+e.message+' (Last location:'+inttostr(execlocation)+')'), '', 0);
     end;
 
   finally
@@ -627,6 +635,36 @@ var
   AllThreadsAreSet: boolean;
 
   tid, bptype: integer;
+
+procedure displayDebugInfo(reason: string);
+var debuginfo:tstringlist;
+begin
+  beep;
+  debuginfo:=tstringlist.create;
+
+  if GetCurrentThreadId=MainThreadID then
+    debuginfo.Add('Called from main thread');
+
+  if getCurrentThreadId=debuggerthread.ThreadID then
+    debuginfo.Add('Called from debugger thread');
+
+  if getCurrentThreadId=debuggerthread.ThreadID then
+    debuginfo.Add('Called from an unexpected thread');
+
+  debuginfo.add('action='+breakpointActionToString(breakpoint.breakpointAction));
+  debuginfo.add('method='+breakpointMethodToString(breakpoint.breakpointMethod));
+  debuginfo.add('trigger='+breakpointTriggerToString(breakpoint.breakpointTrigger));
+  debuginfo.add('debugreg='+inttostr(breakpoint.debugRegister));
+
+  debuginfo.add('debuggerthread is at point '+inttostr(debuggerthread.execlocation));
+
+  Clipboard.AsText:=debuginfo.text;
+
+  MessageBox(0,pchar('Breakpoint error:'+reason), pchar(debuginfo.text), MB_OK);
+
+  debuginfo.free;
+end;
+
 begin
   //issue: If a breakpoint is being handled and this is called, dr6 gets reset to 0 in windows 7, making it impossible to figure out what caused the breakpoint
 
@@ -635,9 +673,18 @@ begin
   //debug code to find out why this one gets reactivated
   if (breakpoint^.breakpointAction=bo_FindCode) and (breakpoint^.FoundcodeDialog=nil) then
   begin
-    beep;
-    MessageBox(0,'Error Debug Me', 'Error', MB_OK);
+    DisplayDebugInfo('No form');
+    result:=false;
+    exit;
   end;
+
+  if (breakpoint^.breakpointAction=bo_FindWhatCodeAccesses) and (breakpoint^.frmchangedaddresses=nil) then
+  begin
+    DisplayDebugInfo('No form');
+    result:=false;
+    exit;
+  end;
+
 
   if breakpoint^.breakpointMethod = bpmDebugRegister then
   begin
@@ -1517,7 +1564,10 @@ begin
       end;
 
     if Result then
+    begin
       RemoveBreakpoint(bp); //unsets and removes all breakpoints that belong to this
+      bp.frmchangedaddresses:=nil;
+    end;
   finally
     debuggercs.leave;
   end;
