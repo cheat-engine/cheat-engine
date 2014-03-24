@@ -33,9 +33,10 @@ type
   PTextureEntryArray=^TTextureEntryArray;
 
   type TRenderCommandEnum=(rcEndOfCommandlist=0, //Stop going through the list
-  			   rcIgnored=1,  //Ignore (Being updated)
-  			   rcDrawSprite=2,		//Render the sprite at the given position
-  			   rcDrawFont=3	);		//Render some text at the given coordinates. The string is located at  "addressoftext"
+  			   rcIgnored=1,          //Ignore (Being updated)
+  			   rcDrawSprite=2,	 //Render the sprite at the given position
+  			   rcDrawFont=3);	 //Render some text at the given coordinates. The string is located at  "addressoftext"
+
 
   TSpriteCommand=packed record
     width: integer;
@@ -185,7 +186,7 @@ type
     alsoClearDepthBuffer: integer; //set to 1 if you also want the depth buffer to be cleared before each draw
     savePNGSeperateAsWell: integer;
     canDoSnapshot: integer;
-
+    initialized: DWORD;
 
 
 
@@ -1481,6 +1482,7 @@ end;
 
 
 destructor TD3DHook.Destroy;
+var i: integer;
 begin
   if messagehandler<>nil then
   begin
@@ -1489,20 +1491,45 @@ begin
   end;
 
 
+  beginCommandListUpdate;
+
+  for i:=0 to commandlist.Count-1 do
+    if commandlist[i]<>nil then
+      TD3DHook_RenderObject(commandlist[i]).free;
+
+  //make sure all commands are gone:
+  if commandlist.count>0 then
+    renderCommandList^[0].command:=integer(rcIgnored);
+
+  endCommandListUpdate;
+
+
+  beginTextureUpdate;
+
+  for i:=0 to textures.Count-1 do
+    if textures[i]<>nil then
+      TD3DHook_Texture(textures[i]).Free;
+
+  endTextureUpdate;
+
   UnmapViewOfFile(shared);
   closehandle(fmhandle);
-
 
   commandlist.free;
   textures.free;
 
   memman.free;
+
+  d3dhook:=nil;
+
   inherited destroy;
 end;
 
 constructor TD3DHook.create(size: integer; hookhwnd: boolean=true);
 var h: thandle;
     s: TStringList;
+
+    alreadyhooked: boolean;
 begin
   memman:=TRemoteMemoryManager.create;
   textures:=TList.create;
@@ -1527,145 +1554,162 @@ begin
   if shared=nil then
     raise exception.create('D3DHook: Failure to map the shared memory object');
 
-  ZeroMemory(shared, sizeof(TD3DHookShared));
+  alreadyhooked:=shared.initialized=$dbcedbce;
 
-  shared.texturelist:=sizeof(TD3DHookShared)+(maxsize div 2);
-  shared.cheatenginedir:=CheatEngineDir;
-  shared.useCommandListLock:=1;
-
+  if not alreadyhooked then
+  begin
+    ZeroMemory(shared, sizeof(TD3DHookShared));
+    shared.texturelist:=sizeof(TD3DHookShared)+(maxsize div 2);
+    shared.cheatenginedir:=CheatEngineDir;
+    shared.useCommandListLock:=1;
+  end;
 
 
   tea:=PTextureEntryArray(ptruint(shared)+shared.texturelist);
-  renderCommandList:=PRenderCommandArray(ptruint(shared)+sizeof(TD3dHookShared));;
+  renderCommandList:=PRenderCommandArray(ptruint(shared)+sizeof(TD3dHookShared));
 
-  if hookhwnd then
-    shared.hookwnd:=1;
-
-  h:=CreateEventA(nil, true, false, pchar(sharename+'_READY') );
-
-  if (h<>0) then
+  if alreadyhooked then
   begin
+    DuplicateHandle(processhandle, shared.TextureLock, GetCurrentProcess, @TextureLock, 0, false,DUPLICATE_SAME_ACCESS);
+    DuplicateHandle(processhandle, shared.CommandListLock, GetCurrentProcess, @CommandListLock, 0, false,DUPLICATE_SAME_ACCESS);
+    DuplicateHandle(processhandle, shared.SnapshotDone, GetCurrentProcess, @SnapshotDone, 0, false,DUPLICATE_SAME_ACCESS);
 
+    beginTextureUpdate;
+    renderCommandList^[0].command:=integer(rcEndOfCommandlist); //clear the command list
+    shared.textureCount:=0;
+    endTextureUpdate;
+  end
+  else
+  begin
     if hookhwnd then
+      shared.hookwnd:=1;
+
+    h:=CreateEventA(nil, true, false, pchar(sharename+'_READY') );
+
+    if (h<>0) then
     begin
-      hasclickevent:=CreateEventA(nil, false, false, pchar(sharename+'_HASCLICK') );
-      hashandledclickevent:=CreateEventA(nil, false, true, pchar(sharename+'_HANDLEDCLICK') );
 
-      haskeyboardevent:=CreateEventA(nil, false, false, pchar(sharename+'_HASKEYBOARD') );
-      hashandledkeyboardevent:=CreateEventA(nil, false, true, pchar(sharename+'_HANDLEDKEYBOARD') );
-
-
-      messagehandler:=TD3DMessageHandler.Create(true);
-      messagehandler.owner:=self;
-      messagehandler.start;
-    end;
-
-
-    TextureLock:=CreateEventA(nil, false, true, nil);
-
-
-    DuplicateHandle(GetCurrentProcess, TextureLock, processhandle, @shared.TextureLock,0, false,DUPLICATE_SAME_ACCESS);
-
-    CommandListLock:=CreateEventA(nil, false, true, nil);
-    DuplicateHandle(GetCurrentProcess, CommandListLock, processhandle, @shared.CommandListLock,0, false,DUPLICATE_SAME_ACCESS);
-
-    SnapshotDone:=CreateEventA(nil, false, false, nil);
-    DuplicateHandle(GetCurrentProcess, SnapshotDone, processhandle, @shared.SnapshotDone,0, false,DUPLICATE_SAME_ACCESS);
-
-    shared.canDoSnapshot:=1;
-
-
-
-    //now inject the dll
-    if processhandler.is64Bit then
-      injectdll(cheatenginedir+'d3dhook64.dll')
-    else
-      injectdll(cheatenginedir+'d3dhook.dll');
-
-    //wait till the injection is done
-    WaitForSingleObject(h, INFINITE);
-    closehandle(h);
-
-    //and hook the functions
-    //(script: tstrings; address: string; addresstogoto: string; addresstostoreneworiginalfunction: string=''; nameextension:string='0');
-    s:=tstringlist.create;
-    try
-      if shared.d3d9_present<>0 then
-        generateAPIHookScript(s, inttohex(shared.d3d9_present,8), inttohex(shared.d3d9_newpresent,8),  inttohex(shared.d3d9_originalpresent,8), '0');
-
-      if shared.d3d9_reset<>0 then
-        generateAPIHookScript(s, inttohex(shared.d3d9_reset,8), inttohex(shared.d3d9_newreset,8),  inttohex(shared.d3d9_originalreset,8), '1');
-
-      if shared.dxgi_present<>0 then
-        generateAPIHookScript(s, inttohex(shared.dxgi_present,8), inttohex(shared.dxgi_newpresent,8),  inttohex(shared.dxgi_originalpresent,8), '2');
-
-      if shared.d3d9_drawprimitive<>0 then
-        generateAPIHookScript(s, inttohex(shared.d3d9_drawprimitive,8), inttohex(shared.d3d9_newdrawprimitive,8),  inttohex(shared.d3d9_originaldrawprimitive,8), '3');
-
-      if shared.d3d9_drawindexedprimitive<>0 then
-        generateAPIHookScript(s, inttohex(shared.d3d9_drawindexedprimitive,8), inttohex(shared.d3d9_newdrawindexedprimitive,8),  inttohex(shared.d3d9_originaldrawindexedprimitive,8), '4');
-
-      if shared.d3d9_drawprimitiveup<>0 then
-        generateAPIHookScript(s, inttohex(shared.d3d9_drawprimitiveup,8), inttohex(shared.d3d9_newdrawprimitiveup,8),  inttohex(shared.d3d9_originaldrawprimitiveup,8), '5');
-
-      if shared.d3d9_drawindexedprimitiveup<>0 then
-        generateAPIHookScript(s, inttohex(shared.d3d9_drawindexedprimitiveup,8), inttohex(shared.d3d9_newdrawindexedprimitiveup,8),  inttohex(shared.d3d9_originaldrawindexedprimitiveup,8), '6');
-
-      if shared.d3d9_drawrectpatch<>0 then
-        generateAPIHookScript(s, inttohex(shared.d3d9_drawrectpatch,8), inttohex(shared.d3d9_newdrawrectpatch,8),  inttohex(shared.d3d9_originaldrawrectpatch,8), '7');
-
-      if shared.d3d9_drawtripatch<>0 then
-        generateAPIHookScript(s, inttohex(shared.d3d9_drawtripatch,8), inttohex(shared.d3d9_newdrawtripatch,8),  inttohex(shared.d3d9_originaldrawtripatch,8), '8');
-
-
-      if shared.d3d10_drawindexed<>0 then
-        generateAPIHookScript(s, inttohex(shared.d3d10_drawindexed,8), inttohex(shared.d3d10_newdrawindexed,8),  inttohex(shared.d3d10_originaldrawindexed,8), '9');
-
-      if shared.d3d10_draw<>0 then
-        generateAPIHookScript(s, inttohex(shared.d3d10_draw,8), inttohex(shared.d3d10_newdraw,8),  inttohex(shared.d3d10_originaldraw,8), '10');
-
-      if shared.d3d10_drawindexedinstanced<>0 then
-        generateAPIHookScript(s, inttohex(shared.d3d10_drawindexedinstanced,8), inttohex(shared.d3d10_newdrawindexedinstanced,8),  inttohex(shared.d3d10_originaldrawindexedinstanced,8), '11');
-
-      if shared.d3d10_drawinstanced<>0 then
-        generateAPIHookScript(s, inttohex(shared.d3d10_drawinstanced,8), inttohex(shared.d3d10_newdrawinstanced,8),  inttohex(shared.d3d10_originaldrawinstanced,8), '12');
-
-      if shared.d3d10_drawauto<>0 then
-        generateAPIHookScript(s, inttohex(shared.d3d10_drawauto,8), inttohex(shared.d3d10_newdrawauto,8),  inttohex(shared.d3d10_originaldrawauto,8), '13');
-
-
-      if shared.d3d11_drawindexed<>0 then
-        generateAPIHookScript(s, inttohex(shared.d3d11_drawindexed,8), inttohex(shared.d3d11_newdrawindexed,8),  inttohex(shared.d3d11_originaldrawindexed,8), '14');
-
-      if shared.d3d11_draw<>0 then
-        generateAPIHookScript(s, inttohex(shared.d3d11_draw,8), inttohex(shared.d3d11_newdraw,8),  inttohex(shared.d3d11_originaldraw,8), '15');
-
-      if shared.d3d11_drawindexedinstanced<>0 then
-        generateAPIHookScript(s, inttohex(shared.d3d11_drawindexedinstanced,8), inttohex(shared.d3d11_newdrawindexedinstanced,8),  inttohex(shared.d3d11_originaldrawindexedinstanced,8), '16');
-
-      if shared.d3d11_drawinstanced<>0 then
-        generateAPIHookScript(s, inttohex(shared.d3d11_drawinstanced,8), inttohex(shared.d3d11_newdrawinstanced,8),  inttohex(shared.d3d11_originaldrawinstanced,8), '17');
-
-      if shared.d3d11_drawauto<>0 then
-        generateAPIHookScript(s, inttohex(shared.d3d11_drawauto,8), inttohex(shared.d3d11_newdrawauto,8),  inttohex(shared.d3d11_originaldrawauto,8), '18');
-
-      if shared.dxgi_resizebuffers<>0 then
-        generateAPIHookScript(s, inttohex(shared.dxgi_resizebuffers,8), inttohex(shared.dxgi_newresizebuffers,8),  inttohex(shared.dxgi_originalresizebuffers,8), '19');
-
-
-     // clipboard.AsText:=s.text;
-
-      //if there is a script execute it.
-      if (s.count>0) and (autoassemble(s,false)=false) then
+      if hookhwnd then
       begin
-        //on error write the script to the clipboard
-        clipboard.AsText:=s.text; //debug
+        hasclickevent:=CreateEventA(nil, false, false, pchar(sharename+'_HASCLICK') );
+        hashandledclickevent:=CreateEventA(nil, false, true, pchar(sharename+'_HANDLEDCLICK') );
+
+        haskeyboardevent:=CreateEventA(nil, false, false, pchar(sharename+'_HASKEYBOARD') );
+        hashandledkeyboardevent:=CreateEventA(nil, false, true, pchar(sharename+'_HANDLEDKEYBOARD') );
+
+
+        messagehandler:=TD3DMessageHandler.Create(true);
+        messagehandler.owner:=self;
+        messagehandler.start;
       end;
-    finally
-      s.free;
+
+
+      TextureLock:=CreateEventA(nil, false, true, nil);
+      DuplicateHandle(GetCurrentProcess, TextureLock, processhandle, @shared.TextureLock,0, false,DUPLICATE_SAME_ACCESS);
+
+      CommandListLock:=CreateEventA(nil, false, true, nil);
+      DuplicateHandle(GetCurrentProcess, CommandListLock, processhandle, @shared.CommandListLock,0, false,DUPLICATE_SAME_ACCESS);
+
+      SnapshotDone:=CreateEventA(nil, false, false, nil);
+      DuplicateHandle(GetCurrentProcess, SnapshotDone, processhandle, @shared.SnapshotDone,0, false,DUPLICATE_SAME_ACCESS);
+
+      shared.canDoSnapshot:=1;
+
+
+
+      //now inject the dll
+      if processhandler.is64Bit then
+        injectdll(cheatenginedir+'d3dhook64.dll')
+      else
+        injectdll(cheatenginedir+'d3dhook.dll');
+
+      //wait till the injection is done
+      WaitForSingleObject(h, INFINITE);
+      closehandle(h);
+
+      //and hook the functions
+      //(script: tstrings; address: string; addresstogoto: string; addresstostoreneworiginalfunction: string=''; nameextension:string='0');
+      s:=tstringlist.create;
+      try
+        if shared.d3d9_present<>0 then
+          generateAPIHookScript(s, inttohex(shared.d3d9_present,8), inttohex(shared.d3d9_newpresent,8),  inttohex(shared.d3d9_originalpresent,8), '0');
+
+        if shared.d3d9_reset<>0 then
+          generateAPIHookScript(s, inttohex(shared.d3d9_reset,8), inttohex(shared.d3d9_newreset,8),  inttohex(shared.d3d9_originalreset,8), '1');
+
+        if shared.dxgi_present<>0 then
+          generateAPIHookScript(s, inttohex(shared.dxgi_present,8), inttohex(shared.dxgi_newpresent,8),  inttohex(shared.dxgi_originalpresent,8), '2');
+
+        if shared.d3d9_drawprimitive<>0 then
+          generateAPIHookScript(s, inttohex(shared.d3d9_drawprimitive,8), inttohex(shared.d3d9_newdrawprimitive,8),  inttohex(shared.d3d9_originaldrawprimitive,8), '3');
+
+        if shared.d3d9_drawindexedprimitive<>0 then
+          generateAPIHookScript(s, inttohex(shared.d3d9_drawindexedprimitive,8), inttohex(shared.d3d9_newdrawindexedprimitive,8),  inttohex(shared.d3d9_originaldrawindexedprimitive,8), '4');
+
+        if shared.d3d9_drawprimitiveup<>0 then
+          generateAPIHookScript(s, inttohex(shared.d3d9_drawprimitiveup,8), inttohex(shared.d3d9_newdrawprimitiveup,8),  inttohex(shared.d3d9_originaldrawprimitiveup,8), '5');
+
+        if shared.d3d9_drawindexedprimitiveup<>0 then
+          generateAPIHookScript(s, inttohex(shared.d3d9_drawindexedprimitiveup,8), inttohex(shared.d3d9_newdrawindexedprimitiveup,8),  inttohex(shared.d3d9_originaldrawindexedprimitiveup,8), '6');
+
+        if shared.d3d9_drawrectpatch<>0 then
+          generateAPIHookScript(s, inttohex(shared.d3d9_drawrectpatch,8), inttohex(shared.d3d9_newdrawrectpatch,8),  inttohex(shared.d3d9_originaldrawrectpatch,8), '7');
+
+        if shared.d3d9_drawtripatch<>0 then
+          generateAPIHookScript(s, inttohex(shared.d3d9_drawtripatch,8), inttohex(shared.d3d9_newdrawtripatch,8),  inttohex(shared.d3d9_originaldrawtripatch,8), '8');
+
+
+        if shared.d3d10_drawindexed<>0 then
+          generateAPIHookScript(s, inttohex(shared.d3d10_drawindexed,8), inttohex(shared.d3d10_newdrawindexed,8),  inttohex(shared.d3d10_originaldrawindexed,8), '9');
+
+        if shared.d3d10_draw<>0 then
+          generateAPIHookScript(s, inttohex(shared.d3d10_draw,8), inttohex(shared.d3d10_newdraw,8),  inttohex(shared.d3d10_originaldraw,8), '10');
+
+        if shared.d3d10_drawindexedinstanced<>0 then
+          generateAPIHookScript(s, inttohex(shared.d3d10_drawindexedinstanced,8), inttohex(shared.d3d10_newdrawindexedinstanced,8),  inttohex(shared.d3d10_originaldrawindexedinstanced,8), '11');
+
+        if shared.d3d10_drawinstanced<>0 then
+          generateAPIHookScript(s, inttohex(shared.d3d10_drawinstanced,8), inttohex(shared.d3d10_newdrawinstanced,8),  inttohex(shared.d3d10_originaldrawinstanced,8), '12');
+
+        if shared.d3d10_drawauto<>0 then
+          generateAPIHookScript(s, inttohex(shared.d3d10_drawauto,8), inttohex(shared.d3d10_newdrawauto,8),  inttohex(shared.d3d10_originaldrawauto,8), '13');
+
+
+        if shared.d3d11_drawindexed<>0 then
+          generateAPIHookScript(s, inttohex(shared.d3d11_drawindexed,8), inttohex(shared.d3d11_newdrawindexed,8),  inttohex(shared.d3d11_originaldrawindexed,8), '14');
+
+        if shared.d3d11_draw<>0 then
+          generateAPIHookScript(s, inttohex(shared.d3d11_draw,8), inttohex(shared.d3d11_newdraw,8),  inttohex(shared.d3d11_originaldraw,8), '15');
+
+        if shared.d3d11_drawindexedinstanced<>0 then
+          generateAPIHookScript(s, inttohex(shared.d3d11_drawindexedinstanced,8), inttohex(shared.d3d11_newdrawindexedinstanced,8),  inttohex(shared.d3d11_originaldrawindexedinstanced,8), '16');
+
+        if shared.d3d11_drawinstanced<>0 then
+          generateAPIHookScript(s, inttohex(shared.d3d11_drawinstanced,8), inttohex(shared.d3d11_newdrawinstanced,8),  inttohex(shared.d3d11_originaldrawinstanced,8), '17');
+
+        if shared.d3d11_drawauto<>0 then
+          generateAPIHookScript(s, inttohex(shared.d3d11_drawauto,8), inttohex(shared.d3d11_newdrawauto,8),  inttohex(shared.d3d11_originaldrawauto,8), '18');
+
+        if shared.dxgi_resizebuffers<>0 then
+          generateAPIHookScript(s, inttohex(shared.dxgi_resizebuffers,8), inttohex(shared.dxgi_newresizebuffers,8),  inttohex(shared.dxgi_originalresizebuffers,8), '19');
+
+
+       // clipboard.AsText:=s.text;
+
+        //if there is a script execute it.
+        if (s.count>0) and (autoassemble(s,false)=false) then
+        begin
+          //on error write the script to the clipboard
+          clipboard.AsText:=s.text; //debug
+        end;
+
+        shared.initialized:=$dbcedbce;
+      finally
+        s.free;
+      end;
+
+
     end;
-
-
   end;
 
 

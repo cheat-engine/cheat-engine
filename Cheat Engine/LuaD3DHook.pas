@@ -14,11 +14,11 @@ implementation
 uses luaclass, luahandler, d3dhookUnit, LuaObject;
 
 function createD3DHook(L: PLua_State): integer; cdecl;
-var x: TD3DHook;
+var
   size: integer;
   hookwindow: boolean;
 begin
-  x:=safed3dhook();
+
   size:=16*1024*1024;
   hookwindow:=true;
 
