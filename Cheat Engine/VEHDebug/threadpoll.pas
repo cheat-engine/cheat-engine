@@ -29,7 +29,7 @@ implementation
 uses DebugHandler;
 
 
-var debug_oldcontext, debug_newcontext: TContext;
+//var debug_oldcontext, debug_newcontext: TContext;
 
 procedure TThreadPoller.CreateThreadEvent(threadid: dword);
 var
@@ -72,7 +72,7 @@ begin
         OutputDebugString(pchar(Format('Failure getting context th=%d @c=%p', [th, @c])));
       end;
 
-      debug_oldcontext:=c;
+     // debug_oldcontext:=c;
 
     end;
 
@@ -100,9 +100,9 @@ begin
     if (th<>0) and (hasValidContext) then
     begin
 
-      OutputDebugString(pchar(Format('old context=%p new context=%p', [@debug_oldcontext, @debug_newcontext])));
+      //OutputDebugString(pchar(Format('old context=%p new context=%p', [@debug_oldcontext, @debug_newcontext])));
 
-      debug_newcontext:=c;
+      //debug_newcontext:=c;
 
       c.ContextFlags:=CONTEXT_ALL {$ifdef cpu32} or CONTEXT_EXTENDED{$endif};
       SetThreadContext(th, cp^);
