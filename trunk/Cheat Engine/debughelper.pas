@@ -109,7 +109,7 @@ type
     function  SetOnExecuteBreakpoint(address: ptrUint; askforsoftwarebp: boolean = false; tid: dword=0): PBreakpoint; overload;
     function  ToggleOnExecuteBreakpoint(address: ptrUint; tid: dword=0): PBreakpoint;
 
-    procedure UpdateDebugRegisterBreakpointsForThread(thread: TDebugThreadHandler);
+    procedure UpdateDebugRegisterBreakpointsForThread(t: TDebugThreadHandler);
     procedure RemoveBreakpoint(breakpoint: PBreakpoint);
     function GetUsableDebugRegister(breakpointTrigger: TBreakpointTrigger): integer;
     function GetMaxBreakpointCountForThisType(breakpointTrigger: TBreakpointTrigger): integer;
@@ -481,14 +481,16 @@ begin
   end;
 end;
 
-procedure TDebuggerThread.UpdateDebugRegisterBreakpointsForThread(thread: TDebugThreadHandler);
+procedure TDebuggerThread.UpdateDebugRegisterBreakpointsForThread(t: TDebugThreadHandler);
 var i: integer;
 begin
   debuggercs.enter;
   try
+    t.fillcontext;
+
     for i:=0 to BreakpointList.count-1 do
       if (PBreakpoint(breakpointlist[i])^.active) and (PBreakpoint(breakpointlist[i])^.breakpointMethod=bpmDebugRegister) then
-        SetBreakpoint(PBreakpoint(breakpointlist[i]), thread);
+        SetBreakpoint(PBreakpoint(breakpointlist[i]), t);
   finally
     debuggercs.Leave;
   end;
@@ -629,6 +631,13 @@ begin
   //issue: If a breakpoint is being handled and this is called, dr6 gets reset to 0 in windows 7, making it impossible to figure out what caused the breakpoint
 
   AllThreadsAreSet:=true;
+
+  //debug code to find out why this one gets reactivated
+  if (breakpoint^.breakpointAction=bo_FindCode) and (breakpoint^.FoundcodeDialog=nil) then
+  begin
+    beep;
+    MessageBox(0,'Error Debug Me', 'Error', MB_OK);
+  end;
 
   if breakpoint^.breakpointMethod = bpmDebugRegister then
   begin
@@ -1461,12 +1470,27 @@ begin
       if PBreakpoint(breakpointlist[i]).FoundcodeDialog = codefinder then
       begin
         bp := PBreakpoint(breakpointlist[i]);
+
         Result := True;
         break;
       end;
 
+  {  if bp.active=false then
+    asm
+      nop
+    end;   }
+
     if Result then
+    begin
       RemoveBreakpoint(bp); //unsets and removes all breakpoints that belong to this
+      bp.FoundcodeDialog:=nil;
+    end;
+
+  {  if bp.active=true then
+    asm
+      nop
+    end;   }
+
   finally
     debuggercs.leave;
   end;
@@ -1745,7 +1769,7 @@ begin
       li.SubItems.Add(breakpointActionToString(bp.breakpointAction));
       li.SubItems.Add(BoolToStr(bp.active, rsYes, rsNo));
       if bp.markedfordeletion then
-        li.SubItems.Add(rsYes);
+        li.SubItems.Add(rsYes+' ('+inttostr(bp.deletecountdown)+')');
     end;
   end;
 

@@ -52,6 +52,7 @@ type
     breakAddress: ptruint;
 
 
+    currentBP: PBreakpoint;
 
     function CheckIfConditionIsMet(bp: PBreakpoint; script: string=''): boolean;
 
@@ -81,6 +82,8 @@ type
     //sync functions
     procedure visualizeBreak;
     procedure AddDebugEventString;
+    procedure foundCodeDialog_AddRecord;
+    procedure frmchangedaddresses_AddRecord;
   public
     isHandled: boolean; //set to true if this thread is the current debug target
     needstocleanup: boolean;
@@ -131,14 +134,39 @@ uses foundcodeunit, DebugHelper, MemoryBrowserFormUnit, frmThreadlistunit,
      frmDebugEventsUnit, formdebugstringsunit, symbolhandler,
      networkInterface, networkInterfaceApi, ProcessHandlerUnit;
 
+procedure TDebugThreadHandler.frmchangedaddresses_AddRecord;
+begin
+  if currentBP.active then
+    currentbp.frmchangedaddresses.AddRecord;
+end;
+
+procedure TDebugThreadHandler.foundCodeDialog_AddRecord;
+begin
+  if currentBP.active and (currentbp.FoundcodeDialog<>nil) then  //it could have been deactivated
+  begin
+    currentBP.FoundcodeDialog.usesdebugregs:=currentBP.breakpointMethod=bpmDebugRegister;
+    currentBP.FoundcodeDialog.useexceptions:=currentBP.breakpointMethod=bpmException;
+    currentBP.FoundcodeDialog.AddRecord;
+  end
+  else
+  begin
+   // beep;
+  end;
+end;
+
 procedure TDebugThreadHandler.AddDebugEventString;
 begin
   if formdebugstrings<>nil then
+  begin
     formdebugstrings.ListBox1.Items.add(DebugEventString);
+    if formdebugstrings.ListBox1.count>10000 then
+      formdebugstrings.ListBox1.Items.Delete(0);
+  end;
 end;
 
 procedure TDebugThreadHandler.VisualizeBreak;
 begin
+
   if processhandler.SystemArchitecture=archx86 then
     MemoryBrowser.lastdebugcontext:=context^
   else
@@ -148,6 +176,7 @@ begin
 
   if WaitingToContinue then //no lua script or it returned 0
     MemoryBrowser.UpdateDebugContext(self.Handle, self.ThreadId);
+
 end;
 
 procedure TDebugThreadHandler.fillContext;
@@ -294,8 +323,13 @@ end;
 
 function TDebugThreadHandler.EnableOriginalBreakpointAfterThisBreakpointForThisThread(bp: Pbreakpoint; OriginalBreakpoint: PBreakpoint): boolean;
 begin
-  dec(OriginalBreakpoint.referencecount);
-  TdebuggerThread(debuggerthread).SetBreakpoint(Originalbreakpoint, self);
+  debuggercs.enter;
+  if bp.active then
+  begin
+    dec(OriginalBreakpoint.referencecount);
+    TdebuggerThread(debuggerthread).SetBreakpoint(Originalbreakpoint, self);
+  end;
+  debuggercs.leave;
 end;
 
 procedure TDebugThreadHandler.ContinueFromBreakpoint(bp: PBreakpoint; continueoption: TContinueOption);
@@ -599,6 +633,7 @@ begin
   OutputDebugString('Handling as a single step event');
   result:=true;
 
+
   {$ifdef cpu32}
   if not (CurrentDebuggerInterface is TKernelDebugInterface) then
   begin
@@ -675,7 +710,7 @@ function TDebugThreadHandler.DispatchBreakpoint(address: uint_ptr; debugreg: int
 var
   found:  boolean;
   i:      integer;
-  fcd: TFoundCodeDialog;
+
   c: PContext;
 
   bpp,bpp2: PBreakpoint;
@@ -725,8 +760,13 @@ begin
 
   debuggercs.leave;
 
+
+
   if found then
   begin
+    currentBP:=bpp;
+
+
     bpp:=bpp2;
     outputdebugstring('Handling breakpoint');
 
@@ -755,6 +795,7 @@ begin
     if (bpp.OneTimeOnly=false) and (((bpp.breakpointMethod<>bpmException) and (not active)) or (not CheckIfConditionIsMet(bpp) or (bpp.markedfordeletion) )) then
     begin
       OutputDebugString('bp was disabled or Condition was not met');
+      debuggercs.enter;
 
       if bpp.markedfordeletion then
       begin
@@ -773,6 +814,8 @@ begin
       continueFromBreakpoint(bpp, co_run);
       dwContinueStatus:=DBG_CONTINUE;
       Result:=true;
+
+      debuggercs.leave;
       exit;
     end;
 
@@ -799,26 +842,34 @@ begin
         //remove the breakpoint and start tracing this thread X times
         if not isTracing then //don't handle it if already tracing
         begin
-          isTracing:=true;
-          tracecount:=bpp.TraceCount;
-          traceWindow:=bpp.frmTracer;
-          traceStepOver:=bpp.tracestepOver;
-          if bpp.traceendcondition<>nil then
-            traceQuitCondition:=bpp.traceendcondition
-          else
-            traceQuitCondition:='';
+          debuggercs.enter;
+
+          if bpp.active then
+          begin
+            isTracing:=true;
+            tracecount:=bpp.TraceCount;
+            traceWindow:=bpp.frmTracer;
+            traceStepOver:=bpp.tracestepOver;
+            if bpp.traceendcondition<>nil then
+              traceQuitCondition:=bpp.traceendcondition
+            else
+              traceQuitCondition:='';
+          end;
+
+          debuggercs.leave;
         end;
 
         TdebuggerThread(debuggerthread).RemoveBreakpoint(bpp); //there can be only one
 
-        handleTrace;
+        if istracing then
+          handleTrace;
       end;
 
 
       bo_ChangeRegister:
       begin
         //modify accordingly
-        outputdebugstring('Handling bo_ChangeRegister breakpoint');
+        //outputdebugstring('Handling bo_ChangeRegister breakpoint');
 
         ModifyRegisters(bpp);
 
@@ -831,12 +882,7 @@ begin
         //outputdebugstring('Save registers and continue');
         if ((bpp.breakpointMethod=bpmException) and (not bpp.markedfordeletion)) or bpp.active then
         begin
-          fcd:=bpp.FoundcodeDialog;
-          fcd.usesdebugregs:=bpp.breakpointMethod=bpmDebugRegister;
-          fcd.useexceptions:=bpp.breakpointMethod=bpmException;
-
-          TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), fcd.AddRecord);
-
+          TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), foundCodeDialog_AddRecord);
 
           if CurrentDebuggerInterface is TNetworkDebuggerInterface then
             continueFromBreakpoint(bpp, co_run);  //explicitly continue from this breakpoint
@@ -847,7 +893,7 @@ begin
 
       bo_FindWhatCodeAccesses:
       begin
-        TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), bpp.frmchangedaddresses.AddRecord);
+        TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), frmchangedaddresses_AddRecord);
         continueFromBreakpoint(bpp, co_run); //just continue running
       end;
 
@@ -1032,6 +1078,7 @@ var
   bp: PBreakpoint;
 begin
 
+  bp:=nil;
 
   OutputDebugString('HandleExceptionDebugEvent:'+inttohex(debugEvent.Exception.ExceptionRecord.ExceptionCode,8));
   exceptionAddress := ptrUint(debugEvent.Exception.ExceptionRecord.ExceptionAddress);
@@ -1202,8 +1249,7 @@ begin
   Result    := true;
 
   //set all the debugregister breakpoints for this thread
-
-  TDebuggerThread(debuggerthread).UpdateDebugRegisterBreakpointsForThread(self);
+  //TDebuggerThread(debuggerthread).UpdateDebugRegisterBreakpointsForThread(self);   (now done on cleanup)
 
   dwContinueStatus:=DBG_CONTINUE;
 end;
