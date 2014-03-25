@@ -87,6 +87,10 @@ TFORMSETTINGS.GROUPBOX4.CAPTION=Prefered breakpoint method
 TFORMSETTINGS.RBDEBUGASBREAKPOINT.CAPTION=Hardware Breakpoints (Max 4)
 TFORMSETTINGS.RBINT3ASBREAKPOINT.CAPTION=Int3 instructions (Execute BP only, falls back to hardware bp) (Unlimited)
 TFORMSETTINGS.RBPAGEEXCEPTIONS.CAPTION=Page exceptions (Extremely slow to unplayable, buggy, best used if nothing else works. Does not use debug registers)
+TFORMSETTINGS.CBWAITAFTERGUIUPDATE.HINT=Sometimes when using one of the "find out what..." functions they get hit so often that the gui has no time to update, resulting in anoying behaviour like certain windows not closing or unresponsive buttons.
+With this option enabled the debugger will give the gui some time to handle the messages before it sends it a new update.
+Downside: The game may become slightly slower when using these functions. (Of course, if it has been hammering the gui, it would already have been frozen)
+TFORMSETTINGS.CBWAITAFTERGUIUPDATE.CAPTION=Wait after gui updates
 TFORMSETTINGS.EXTRA.CAPTION=Extra
 TFORMSETTINGS.TAUNTOLDOSUSER.CAPTION=I really recommend upgrading to Windows 2000 or later mister Flintstone
 TFORMSETTINGS.GROUPBOX3.CAPTION=Use the following CE Kernel routines instead of the original windows version

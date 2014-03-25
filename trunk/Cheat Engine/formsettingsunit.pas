@@ -37,6 +37,7 @@ type
     cbShowProcesslist: TCheckBox;
     cbOverrideExistingBPs: TCheckBox;
     cbVEHRealContextOnThreadCreation: TCheckBox;
+    cbWaitAfterGuiUpdate: TCheckBox;
     defaultbuffer: TPopupMenu;
     Default1: TMenuItem;
     edtStacksize: TEdit;
@@ -667,7 +668,8 @@ begin
       reg.WriteBool('Use Kernel Debugger',cbKdebug.checked);
       reg.WriteBool('Use Global Debug Routines',cbGlobalDebug.checked);
 
-
+      waitafterguiupdate:=cbWaitAfterGuiUpdate.checked;
+      reg.WriteBool('Wait After Gui Update', waitafterguiupdate);
 
 
 
