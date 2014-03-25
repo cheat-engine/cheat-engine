@@ -778,7 +778,7 @@ object formSettings: TformSettings
         object GroupBox2: TGroupBox
           Left = 7
           Height = 137
-          Top = 289
+          Top = 305
           Width = 416
           Caption = 'Debugger interface config'
           ClientHeight = 119
@@ -898,7 +898,7 @@ object formSettings: TformSettings
         object rbgDebuggerInterface: TRadioGroup
           Left = 7
           Height = 87
-          Top = 201
+          Top = 217
           Width = 161
           AutoFill = True
           AutoSize = True
@@ -960,7 +960,7 @@ object formSettings: TformSettings
         object Label6: TLabel
           Left = 15
           Height = 14
-          Top = 162
+          Top = 177
           Width = 230
           Caption = 'Size of stack to record on "Find what... routines"'
           ParentColor = False
@@ -968,7 +968,7 @@ object formSettings: TformSettings
         object edtStacksize: TEdit
           Left = 15
           Height = 21
-          Top = 178
+          Top = 193
           Width = 45
           TabOrder = 4
           Text = '4096'
@@ -976,7 +976,7 @@ object formSettings: TformSettings
         object Label7: TLabel
           Left = 63
           Height = 14
-          Top = 180
+          Top = 195
           Width = 27
           Caption = 'Bytes'
           ParentColor = False
@@ -984,7 +984,7 @@ object formSettings: TformSettings
         object cbOverrideExistingBPs: TCheckBox
           Left = 15
           Height = 19
-          Top = 138
+          Top = 153
           Width = 277
           Caption = 'Override existing breakpoints when setting breakpoints'
           Checked = True
@@ -1027,6 +1027,17 @@ object formSettings: TformSettings
             Caption = 'Page exceptions (Extremely slow to unplayable, buggy, best used if nothing else works. Does not use debug registers)'
             TabOrder = 2
           end
+        end
+        object cbWaitAfterGuiUpdate: TCheckBox
+          Left = 15
+          Height = 19
+          Hint = 'Sometimes when using one of the "find out what..." functions they get hit so often that the gui has no time to update, resulting in anoying behaviour like certain windows not closing or unresponsive buttons.'#13#10'With this option enabled the debugger will give the gui some time to handle the messages before it sends it a new update.'#13#10'Downside: The game may become slightly slower when using these functions. (Of course, if it has been hammering the gui, it would already have been frozen)'
+          Top = 130
+          Width = 124
+          Caption = 'Wait after gui updates'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 7
         end
       end
       object Extra: TTabSheet

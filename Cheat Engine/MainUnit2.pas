@@ -607,6 +607,9 @@ begin
           if reg.ValueExists('Use Kernel Debugger') then
             cbKdebug.checked:=reg.ReadBool('Use Kernel Debugger');
 
+          if reg.ValueExists('Wait After Gui Update') then
+            waitafterguiupdate:=reg.ReadBool('Wait After Gui Update');
+          cbWaitAfterGuiUpdate.checked:=waitafterguiupdate;
 
 
           try cbGlobalDebug.checked:=reg.ReadBool('Use Global Debug Routines'); except end;

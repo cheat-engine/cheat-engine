@@ -671,6 +671,7 @@ var
   tempdiralternative: string;
 
   VEHRealContextOnThreadCreation: boolean;
+  waitafterguiupdate: boolean;
 
 
 

@@ -563,7 +563,10 @@ var
 begin
   TDebuggerthread(debuggerthread).execlocation:=37;
   if tracewindow<>nil then
+  begin
     TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), tracewindow.AddRecord);
+    TDebuggerthread(debuggerthread).guiupdate:=true;
+  end;
 
   dec(tracecount);
   if tracecount>0 then
@@ -625,9 +628,9 @@ begin
 
   if WaitingToContinue then
   begin
-    Outputdebugstring('updated gui');
+    //Outputdebugstring('updated gui');
     onContinueEvent.WaitFor(infinite);
-    Outputdebugstring('returned from gui');
+    //Outputdebugstring('returned from gui');
   end;
 
   WaitingToContinue:=false;
@@ -906,6 +909,7 @@ begin
         if ((bpp.breakpointMethod=bpmException) and (not bpp.markedfordeletion)) or bpp.active then
         begin
           TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), foundCodeDialog_AddRecord);
+          TDebuggerthread(debuggerthread).guiupdate:=true;
 
           if CurrentDebuggerInterface is TNetworkDebuggerInterface then
             continueFromBreakpoint(bpp, co_run);  //explicitly continue from this breakpoint
@@ -917,8 +921,9 @@ begin
       bo_FindWhatCodeAccesses:
       begin
         TDebuggerthread(debuggerthread).execlocation:=33;
-
         TDebuggerthread(debuggerthread).Synchronize(TDebuggerthread(debuggerthread), frmchangedaddresses_AddRecord);
+        TDebuggerthread(debuggerthread).guiupdate:=true;
+
         continueFromBreakpoint(bpp, co_run); //just continue running
       end;
 

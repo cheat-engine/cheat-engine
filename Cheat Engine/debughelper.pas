@@ -73,6 +73,7 @@ type
     temporaryDisabledExceptionBreakpoints: Tlist;
 
     execlocation: integer; //debugging related to pinpoint problems
+    guiupdate: boolean; //set by a thread handler when it has updated the gui. (waitafterguiupdate uses this)
 
 
     procedure cleanupDeletedBreakpoints(Idle: boolean=true; timeoutonly: boolean=true);
@@ -283,6 +284,12 @@ begin
 
 
             ContinueDebugEvent(debugEvent.dwProcessId, debugevent.dwThreadId, ContinueStatus);
+          end;
+
+          if waitafterguiupdate and guiupdate then
+          begin
+            guiupdate:=false;
+            sleep(1);
           end;
         end
         else
