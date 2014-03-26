@@ -27,7 +27,6 @@ type
     function getValue: string;
   public
     { public declarations }
-    value: string;
     constructor create(memrec: TMemoryrecord);
     property value: string read getValue;
   end;

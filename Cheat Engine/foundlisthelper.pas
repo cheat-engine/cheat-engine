@@ -71,8 +71,8 @@ type
     procedure clear;
     procedure RefetchValueList;
     function Initialize: int64; overload;
-    function Initialize(vartype: TVariableType; customtype: TCustomType):int64; overload;
-    function Initialize(vartype: TVariableType; varlength: integer; hexadecimal,signed,binaryasdecimal,unicode: boolean; customtype: TCustomType):int64; overload;  //initialize after a scan
+    function Initialize(vartype: TVariableType; customtype: TCustomType=nil):int64; overload;
+    function Initialize(vartype: TVariableType; varlength: integer; hexadecimal,signed,binaryasdecimal,unicode: boolean; customtype: TCustomType=nil):int64; overload;  //initialize after a scan
     function Reinitialize: int64; //initializes it with the previous parameter
     procedure Deinitialize; //free filehandles before the scan
     function GetStartBit(i: integer):dword;
