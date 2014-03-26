@@ -411,6 +411,227 @@ function java_parseClass(data)
   return result
 end
 
+----------------------------------------Write class---------------------------------------
+
+
+function java_write_u4(stream, value)
+  local b=dwordToByteTable(value)
+
+  stream.data=stream.data..string.char(b[4], b[3], b[2],b[1])
+  stream.index=stream.index+4
+end
+
+function java_write_u2(stream, value)
+  local b=wordToByteTable(value)
+
+  stream.data=stream.data..string.char(b[2],b[1])
+  stream.index=stream.index+2
+end
+
+function java_write_u1(stream, value)
+  stream.data=stream.data..string.char(value)
+  stream.index=stream.index+1
+end
+
+
+
+function java_writeConstantPool_Class(s, cpitem)
+  java_write_u2(s, cpitem.name_index)
+  return result
+end
+
+function java_writeConstantPool_Fieldref(s, cpitem)
+  java_write_u2(s, cpitem.class_index)
+  java_write_u2(s, cpitem.name_and_type_index)
+end
+
+function java_writeConstantPool_Methodref(s, cpitem)
+  java_write_u2(s, cpitem.class_index)
+  java_write_u2(s, cpitem.name_and_type_index)
+end
+
+function java_writeConstantPool_InterfaceMethodref(s, cpitem)
+  java_write_u2(s, cpitem.class_index)
+  java_write_u2(s, cpitem.name_and_type_index)
+end
+
+function java_writeConstantPool_String(s, cpitem)
+  java_write_u2(s, cpitem.string_index)
+end
+
+function java_writeConstantPool_Integer(s, cpitem)
+  java_write_u4(s, cpitem.bytes)
+end
+
+function java_writeConstantPool_Float(s, cpitem)
+  java_write_u4(s, cpitem.bytes)
+end
+
+function java_writeConstantPool_Long(s, cpitem)
+  java_write_u4(s, cpitem.high_bytes)
+  java_write_u4(s, cpitem.low_bytes)
+end
+
+function java_writeConstantPool_Double(s, cpitem)
+  java_write_u4(s, cpitem.high_bytes)
+  java_write_u4(s, cpitem.low_bytes)
+end
+
+function java_writeConstantPool_NameAndType(s, cpitem)
+  java_write_u2(s, cpitem.name_index)
+  java_write_u2(s, cpitem.descriptor_index)
+end
+
+function java_writeConstantPool_Utf8(s, cpitem)
+  java_write_u2(s, cpitem.length)
+  local i
+  for i=1, cpitem.length do
+    s.data=s.data..string.char(cpitem.bytes[i])
+  end
+
+  s.index=s.index+cpitem.length
+end
+
+function java_writeConstantPool_MethodHandle(s, cpitem)
+  java_write_u1(s, cpitem.reference_kind)
+  java_write_u2(s, cpitem.reference_index)
+end
+
+function java_writeConstantPool_MethodType(s, cpitem)
+  java_write_u2(s, cpitem.descriptor_index)
+end
+
+function java_writeConstantPool_InvokeDynamic(s, cpitem)
+  java_write_u2(s, cpitem.bootstrap_method_attr_index)
+  java_write_u2(s, cpitem.name_and_type_index)
+end
+
+
+java_writeConstantPoolTag={}
+java_writeConstantPoolTag[java_CONSTANT_Class]=java_writeConstantPool_Class
+java_writeConstantPoolTag[java_CONSTANT_Fieldref]=java_writeConstantPool_Fieldref
+java_writeConstantPoolTag[java_CONSTANT_Methodref]=java_writeConstantPool_Methodref
+java_writeConstantPoolTag[java_CONSTANT_InterfaceMethodref]=java_writeConstantPool_InterfaceMethodref
+java_writeConstantPoolTag[java_CONSTANT_String]=java_writeConstantPool_String
+java_writeConstantPoolTag[java_CONSTANT_Integer]=java_writeConstantPool_Integer
+java_writeConstantPoolTag[java_CONSTANT_Float]=java_writeConstantPool_Float
+java_writeConstantPoolTag[java_CONSTANT_Long]=java_writeConstantPool_Long
+java_writeConstantPoolTag[java_CONSTANT_Double]=java_writeConstantPool_Double
+java_writeConstantPoolTag[java_CONSTANT_NameAndType]=java_writeConstantPool_NameAndType
+java_writeConstantPoolTag[java_CONSTANT_Utf8]=java_writeConstantPool_Utf8
+java_writeConstantPoolTag[java_CONSTANT_MethodHandle]=java_writeConstantPool_MethodHandle
+java_writeConstantPoolTag[java_CONSTANT_MethodType]=java_writeConstantPool_MethodType
+java_writeConstantPoolTag[java_CONSTANT_InvokeDynamic]=java_writeConstantPool_InvokeDynamic
+
+
+function java_writeConstantPool(s, constant_pool, constant_pool_count)
+  local i
+
+  for i=1,constant_pool_count-1 do
+    java_write_u1(s, constant_pool[i].tag)
+    java_writeConstantPoolTag[constant_pool[i].tag](s, constant_pool[i])
+  end
+end
+
+function java_writeAttributes(s, attributes, attributes_count)
+  local i
+  for i=1, attributes_count do
+    java_write_u2(s, attributes[i].attribute_name_index)
+	java_write_u2(s, attributes[i].attribute_length)
+	s.data=s.data..attributes[i].info
+	s.index=s.index+attributes[i].attribute_length
+  end
+--[[
+  local i
+  local result={}
+  for i=1,count do
+    result[i]={}
+    result[i].attribute_name_index=java_read_u2(s)
+	result[i].attribute_length=java_read_u4(s)
+	result[i].info=string.sub(s.data, s.index, s.index+result[i].attribute_length-1)
+	s.index=s.index+result[i].attribute_length
+
+	--fill in some extra data (not required for rebuilding)
+	result[i].attribute_name=cp[result[i].attribute_name_index].utf8
+
+
+
+	if java_parseAttribute[result[i].attribute_name]~=nil then --extra data for this attribute is available
+	  java_parseAttribute[result[i].attribute_name](cp, result[i])
+	end
+
+
+  end
+  return result
+--]]
+end
+
+
+function java_writeFields(s, fields, field_count)
+  local i
+  for i=1, field_count do
+    java_write_u2(s, fields[i].access_fields)
+	java_write_u2(s, fields[i].name_index)
+	java_write_u2(s, fields[i].descriptor_index)
+	java_write_u2(s, fields[i].attributes_count)
+
+	java_writeAttributes(s, fields[i].attributes, fields[i].attributes_count)
+  end
+
+end
+
+function java_writeMethods(s, methods, method_count)
+  local i
+  for i=1, method_count do
+    java_write_u2(s, methods[i].access_fields)
+	java_write_u2(s, methods[i].name_index)
+	java_write_u2(s, methods[i].descriptor_index)
+	java_write_u2(s, methods[i].attributes_count)
+
+	java_writeAttributes(s, methods[i].attributes, methods[i].attributes_count)
+  end
+end
+
+
+
+
+
+function java_writeClass(class)
+  local result=''
+  local s={}
+  local i
+  s.data=result
+  s.index=1
+
+  java_write_u2(s, class.minor_version)
+  java_write_u2(s, class.major_version)
+  java_write_u2(s, class.constant_pool_count)
+  java_writeConstantPool(s, class.constant_pool, class.constant_pool_count)
+
+  java_write_u2(s, class.access_flags)
+  java_write_u2(s, class.this_class)
+  java_write_u2(s, class.super_class)
+
+  java_write_u2(s, class.interfaces_count)
+  for i=1, class.interfaces_count do
+    java_write_u2(s, class..interfaces[i])
+  end
+
+  java_write_u2(s, class.fields_count)
+  java_writeFields(s, class.fields, class.fields_count)
+
+  java_write_u2(s, class.methods_count)
+  java_writeMethods(s, class.methods, class.methods_count)
+
+  java_write_u2(s, class.attributes_count)
+  java_writeAttributes(s, class.attributes, class.attributes_count)
+
+  return result
+end
+
+
+----------------------------------------runtime helpers----------------------------------------
+
 function javaclass_getMethodName(class, method)
   return class.constant_pool[method.name_index].utf8
 end
@@ -448,11 +669,16 @@ function javaclass_method_findCodeAttribute(method)
 end
 
 
---teststuff
---f=io.open([[c:\Users\DB\workspace\guitest\bin\Test.class]],"rb")
---data=f:read("*all")
 
---x=java_parseClass(data)
+
+--teststuff
+f=io.open([[c:\Users\DB\workspace\guitest\bin\Test.class]],"rb")
+data=f:read("*all")
+
+x=java_parseClass(data)
+
+newdata=java_writeClass(x)
+
 
 
 

@@ -18,6 +18,8 @@
 #define JAVACMD_REDEFINECLASS 13
 #define JAVACMD_FINDCLASS 14
 #define JAVACMD_GETCAPABILITIES 15
+#define JAVACMD_GETMETHODNAME 16
+#define JAVACMD_INVOKEMETHOD 17
 
 using namespace std;
 
@@ -29,6 +31,7 @@ private:
 	JNIEnv* jni;
 
 	void SendClassSignature(jclass klass);
+	void SendMethodName(jmethodID methodid);
 	
 
 	void CreatePipeandWaitForconnect(void);
@@ -55,4 +58,6 @@ public:
 	void RedefineClass(void);
 	void FindClass(void);
 	void GetCapabilities(void);
+	void GetMethodName();
+	void InvokeMethod(void);
 };
