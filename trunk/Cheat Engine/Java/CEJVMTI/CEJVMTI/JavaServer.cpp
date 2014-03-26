@@ -841,38 +841,45 @@ void CJavaServer::InvokeMethod(void)
 
 	switch (returnType)
 	{
+		case 0:
+		{
+			jni->CallVoidMethodA(obj, methodid, args);
+			WriteQword(0); //tell it it's done
+			break;
+		}
+
 		case 1:
 		{
 			jboolean r=jni->CallBooleanMethodA(obj, methodid, args);
-			WriteByte(r);
+			WriteQword(r);
 			break;
 		}
 
 		case 2:
 		{
 			jbyte r=jni->CallByteMethodA(obj, methodid, args);
-			WriteByte(r);
+			WriteQword(r);
 			break;
 		}
 
 		case 3:
 		{
 			jchar r=jni->CallCharMethodA(obj, methodid, args);
-			WriteWord(r);
+			WriteQword(r);
 			break;
 		}
 
 		case 4:
 		{
 			jshort r=jni->CallShortMethodA(obj, methodid, args);
-			WriteWord(r);
+			WriteQword(r);
 			break;
 		}
 
 		case 5:
 		{
 			jint r=jni->CallIntMethodA(obj, methodid, args);
-			WriteDword(r);
+			WriteQword(r);
 			break;
 		}
 
@@ -886,14 +893,14 @@ void CJavaServer::InvokeMethod(void)
 		case 7:
 		{
 			jfloat r=jni->CallFloatMethodA(obj, methodid, args);
-			Write(&r, sizeof(r));
+			WriteQword(*(DWORD *)&r);
 			break;
 		}
 
 		case 8:
 		{
 			jdouble r=jni->CallDoubleMethodA(obj, methodid, args);
-			Write(&r, sizeof(r));
+			WriteQword(*(UINT64 *)&r);
 			break;
 		}
 
@@ -928,7 +935,8 @@ jint JNICALL FindClassObjects_heap_reference_callback(jlong class_tag, jlong siz
 	if (class_tag==tagtofind)
 		*tag_ptr=tagtofind+1;
 
-	return JVMTI_VISIT_OBJECTS;;
+	
+	return JVMTI_VISIT_OBJECTS;
 }
 
 void CJavaServer::FindClassObjects(void)

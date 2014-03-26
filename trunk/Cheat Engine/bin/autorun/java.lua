@@ -747,8 +747,9 @@ end
 
 function java_parseSignature_type(sig, i)
   local result=''
+  local char=string.sub(sig,i,i)
 
-  if (char=='Z') or (char=='B') or (char=='C') or (char=='S') or (char=='I') or (char=='J') or (char=='F') or (char=='D') then
+  if (char=='V') or (char=='Z') or (char=='B') or (char=='C') or (char=='S') or (char=='I') or (char=='J') or (char=='F') or (char=='D') then
 	result=char
   elseif char=='L' then
 	local classtype
@@ -767,7 +768,7 @@ function java_parseSignature_type(sig, i)
 	result='['..result
   end
 
-  return result
+  return result,i
 
 end
 
@@ -775,7 +776,7 @@ end
 function java_parseSignature_method(sig, i, result)
   result.parameters={}
 
-  while i<#sig do
+  while i<=#sig do
     local parem
     local char=string.sub(sig,i,i)
 
@@ -799,7 +800,7 @@ function java_parseSignature(sig)
   --parse the given signature
   local result={}
   local i=1
-  while i<#sig do
+  while i<=#sig do
     local char=string.sub(sig,i,i)
 
 	if char=='(' then
@@ -818,6 +819,7 @@ end
 
 
 Java_TypeSigToIDConversion={}
+Java_TypeSigToIDConversion['V']=0 --void
 Java_TypeSigToIDConversion['Z']=1 --boolean
 Java_TypeSigToIDConversion['B']=2 --byte
 Java_TypeSigToIDConversion['C']=3 --char
@@ -890,7 +892,7 @@ function java_invokeMethod_sendParameter(typeid, a, skiptypeid)
 
 end
 
-function java_invokeMethod(returntype, object, methodid, ...)
+function java_invokeMethod(object, methodid, ...)
   local argumentcount=#arg
   local name, sig, gen=java_getMethodName(methodid)
 
@@ -923,7 +925,7 @@ function java_invokeMethod(returntype, object, methodid, ...)
   javapipe.writeByte(argumentcount)
 
   local i
-  for i=1, #argumentcount do
+  for i=1, argumentcount do
     local typeid
     typeid=Java_TypeSigToIDConversion[string.sub(parsedsignature.parameters[i],1,1)]
 	if typeid==10 then
@@ -947,6 +949,21 @@ function java_invokeMethod(returntype, object, methodid, ...)
   end
 
   return result
+end
+
+function java_findMethod(class, name, sig)
+  local cm=java_getClassMethods(class)
+  local i
+  for i=1,#cm do
+    if cm[i].name==name then
+	  if (sig==nil) or (sig==cm[i].signature) then
+	    return cm[i].jmethodid
+	  end
+
+	end
+  end
+
+  return nil --still here
 end
 
 function java_findClass(signature)
