@@ -643,7 +643,6 @@ function javaclass_applyAssembleCommand(class, method, byteindex, instruction, i
   end
 
 
-
 end
 
 function javaclass_updateOffsets(class, method, startindex, offset)
@@ -965,6 +964,32 @@ function javaclasseditor_editMethod_defineLabel(sender)
   end
 end
 
+function javaclasseditor_editMethod_applyUpdates(method)
+  --converts the bytes of the interpreted code into the .info field of the code attribute (used by the writer)
+  local codeattribute=javaclass_method_findCodeAttribute(classMethod.method)
+  local code=codeattribute.code
+
+  codeattribute.info=''
+  for i=1,#code do
+    local j
+    for j=1,#code[i].bytes do
+      codeattribute.info=codeattribute.info..string.char(code[i].bytes[j])
+    end
+  end
+end
+
+
+function btnApplyChangesClick(sender)
+  --apply the changes
+  local classMethod=getRef(sender.Tag)
+  local method=classMethod.method
+  local ca=javaclass_method_findCodeAttribute(method)
+
+  ca.max_stack=method.editor.edtMaxStack.Text
+  ca.max_locals=method.editor.edtMaxLocals.Text
+
+  javaclasseditor_editMethod_applyUpdates(method)
+end
 
 
 function javaclasseditor_editMethod(class, method)
@@ -1028,6 +1053,19 @@ function javaclasseditor_editMethod(class, method)
     method.editor.edtMaxLocals.AnchorSideTop.Control=method.editor.edtMaxStack
     method.editor.edtMaxLocals.AnchorSideTop.Side=asrTop
     method.editor.edtMaxLocals.Anchors="[akTop, akLeft]"
+
+
+    method.editor.btnApplyChanges=createButton(method.editor.form)
+    method.editor.btnApplyChanges.OnClick=btnApplyChangesClick
+    method.editor.btnApplyChanges.Tag=classMethodRef
+
+    method.editor.btnApplyChanges.AnchorSideLeft.Control=method.editor.edtMaxLocals
+    method.editor.btnApplyChanges.AnchorSideLeft.Side=asrRight
+    method.editor.btnApplyChanges.AnchorSideTop.Control=method.editor.edtMaxLocals
+    method.editor.btnApplyChanges.AnchorSideTop.Side=asrTop
+    method.editor.lblMaxLocals.BorderSpacing.Left=12
+    method.editor.btnApplyChanges.Anchors="[akTop, akLeft]"
+
 
 
     method.editor.lvInstructions=createListView(method.editor.form)
@@ -1102,14 +1140,11 @@ function javaclasseditor_editMethod(class, method)
     method.editor.pmEdit.Items.add(miDefineLine)
 
     method.editor.lvInstructions.PopupMenu=method.editor.pmEdit
-
-    javaclasseditor_editMethod_fillInstructionsListview(method.editor.lvInstructions, method)
-
-
   end
 
-
+  javaclasseditor_editMethod_fillInstructionsListview(method.editor.lvInstructions, method)
 end
+
 
 
 

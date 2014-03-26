@@ -89,6 +89,52 @@ void CJavaServer::DereferenceLocalObject(void)
 
 }
 
+
+void CJavaServer::SendMethodName(jmethodID methodid)
+{
+	char *name, *sig, *gen;
+	int len;
+
+	if (jvmti->GetMethodName(methodid, &name, &sig, &gen)==JVMTI_ERROR_NONE)
+	{
+		if (name)
+		{
+			len=(int)strlen(name);
+			WriteWord(len);
+			Write(name, len);					
+			jvmti->Deallocate((unsigned char *)name);
+		}
+		else
+			WriteWord(0);
+
+		if (sig)
+		{
+			len=(int)strlen(sig);
+			WriteWord(len);
+			Write(sig, len);					
+			jvmti->Deallocate((unsigned char *)sig);
+		}
+		else
+			WriteWord(0);
+
+		if (gen)
+		{
+			len=(int)strlen(gen);
+			WriteWord(len);
+			Write(gen, len);					
+			jvmti->Deallocate((unsigned char *)gen);
+		}
+		else
+			WriteWord(0);
+	}
+	else
+	{
+		WriteWord(0);
+		WriteWord(0);
+		WriteWord(0);
+	}
+}
+
 void CJavaServer::GetClassMethods(void)
 {
 	jclass klass=(jclass)ReadQword();
@@ -107,44 +153,7 @@ void CJavaServer::GetClassMethods(void)
 			char *name, *sig, *gen;
 			WriteQword(UINT64(methods[i]));
 
-			if (jvmti->GetMethodName(methods[i], &name, &sig, &gen)==JVMTI_ERROR_NONE)
-			{
-				if (name)
-				{
-					len=(int)strlen(name);
-					WriteWord(len);
-					Write(name, len);					
-					jvmti->Deallocate((unsigned char *)name);
-				}
-				else
-					WriteWord(0);
-
-				if (sig)
-				{
-					len=(int)strlen(sig);
-					WriteWord(len);
-					Write(sig, len);					
-					jvmti->Deallocate((unsigned char *)sig);
-				}
-				else
-					WriteWord(0);
-
-				if (gen)
-				{
-					len=(int)strlen(gen);
-					WriteWord(len);
-					Write(gen, len);					
-					jvmti->Deallocate((unsigned char *)gen);
-				}
-				else
-					WriteWord(0);
-			}
-			else
-			{
-				WriteWord(0);
-				WriteWord(0);
-				WriteWord(0);
-			}
+			SendMethodName(methods[i]);
 				
 		}
 		jvmti->Deallocate((unsigned char *)methods);
@@ -427,6 +436,7 @@ void CJavaServer::FindjObject(void)
 
 }
 
+
 void CJavaServer::SendClassSignature(jclass klass)
 {
 	char *sig,*gen;
@@ -614,6 +624,18 @@ void CJavaServer::GetCapabilities(void)
 	WriteByte(cap.can_tag_objects);	
 }
 
+void CJavaServer::GetMethodName(void)
+{
+	jmethodID methodid=(jmethodID)ReadQword();
+	SendMethodName(methodid);
+}
+
+void CJavaServer::InvokeMethod(void)
+{
+  
+
+}
+
 void CJavaServer::Start(void)
 {
 	BYTE command;
@@ -690,6 +712,14 @@ void CJavaServer::Start(void)
 
 					case JAVACMD_GETCAPABILITIES:
 						GetCapabilities();
+						break;
+
+					case JAVACMD_GETMETHODNAME:
+						GetMethodName();
+						break;
+
+					case JAVACMD_INVOKEMETHOD:
+						InvokeMethod();
 						break;
 
 					default:						

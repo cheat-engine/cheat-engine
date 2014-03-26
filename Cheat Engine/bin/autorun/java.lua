@@ -14,6 +14,9 @@ JAVACMD_GETCLASSDATA=12
 JAVACMD_REDEFINECLASS=13
 JAVACMD_FINDCLASS=14
 JAVACMD_GETCAPABILITIES=15
+JAVACMD_GETMETHODNAME=16 --gets the methodname and the signature
+JAVACMD_INVOKEMETHOD=17
+
 
 
 JAVACODECMD_METHODLOAD=0
@@ -23,7 +26,7 @@ JAVACODECMD_TERMINATED=255
 
 
 
-JAVA_TIMEOUT=500000 --500 seconds
+JAVA_TIMEOUT=5000 --5 seconds
 
 
 
@@ -295,7 +298,7 @@ function javaInjectAgent()
     javaInjectedProcesses={}
 
 	local oldstate=errorOnLookupFailure(false)
-	local address=getAddress('CEJVMTI64.dll')
+	local address=getAddress('CEJVMTI.dll')
 	if (address~=nil) and (address~=0) then
 	  javaInjectedProcesses[getOpenedProcessID()]=true
 	  alreadyinjected=true
@@ -311,11 +314,18 @@ function javaInjectAgent()
   end
 
 
+  local dllpath
+
+  if targetIs64Bit() then
+    dllpath=getCheatEngineDir()..[[autorun\dlls\64\CEJVMTI]]
+  else
+    dllpath=getCheatEngineDir()..[[autorun\dlls\32\CEJVMTI]]
+  end
 
 
 
   if (alreadyinjected==false) then
-	  autoAssemble([[
+    local script=[[
 		globalalloc(bla,1024)
 
 		globalalloc(cmd,16)
@@ -330,7 +340,8 @@ function javaInjectAgent()
 		db 'load',0
 
 		arg0:
-		db 'F:\svn\Cheat Engine\bin\autorun\dlls\CEJVMTI64',0
+
+		db ']]..dllpath..[[',0
 
 		arg1:
 		db 0
@@ -364,7 +375,10 @@ function javaInjectAgent()
 		ret
 
 		createthread(bla)
-		]])
+		]]
+	if autoAssemble(script)==false then
+	  error('Auto assembler failed:'..script)
+	end
 
 
 	javaInjectedProcesses[getOpenedProcessID()]=true
@@ -706,9 +720,210 @@ function java_writeClassToDisk(class, filename)
   f:close()
 end
 
+function java_getMethodName(methodid)
+  local name=nil
+  local sig=nil
+  local gen=nil
+
+  javapipe.lock()
+  javapipe.writeByte(JAVACMD_GETMETHODNAME)
+  javapipe.writeQword(methodid)
+
+  local length
+  length=javapipe.readWord()
+  name=javapipe.readString(length)
+
+  length=javapipe.readWord()
+  sig=javapipe.readString(length)
+
+  length=javapipe.readWord()
+  gen=javapipe.readString(length)
+
+  javapipe.unlock()
+
+  return name, sig, gen
+end
+
+function java_parseSignature_type(sig, i)
+  local result=''
+
+  if (char=='Z') or (char=='B') or (char=='C') or (char=='S') or (char=='I') or (char=='J') or (char=='F') or (char=='D') then
+	result=char
+  elseif char=='L' then
+	local classtype
+	local newi
+
+	newi=string.find(sig,';', i+1)
+	if newi==nil then
+	  return #sig --error
+	end
+
+	result=string.sub(sig, i, newi)
+
+	i=newi
+  elseif char=='[' then
+	result,i=java_parseSignature_type(sig,i+1)
+	result='['..result
+  end
+
+  return result
+
+end
 
 
-function java_invokeMethod()
+function java_parseSignature_method(sig, i, result)
+  result.parameters={}
+
+  while i<#sig do
+    local parem
+    local char=string.sub(sig,i,i)
+
+	--parse every type
+
+	if char==')' then
+	  return i+1
+	end
+
+	param,i=java_parseSignature_type(sig, i)
+	result.parameters[#result.parameters+1]=param
+	i=i+1
+  end
+end
+
+function java_parseSignature(sig)
+  if sig==nil then
+    error('Invalid java signature')
+  end
+
+  --parse the given signature
+  local result={}
+  local i=1
+  while i<#sig do
+    local char=string.sub(sig,i,i)
+
+	if char=='(' then
+	  i=java_parseSignature_method(sig, i+1, result)
+	else
+	  if char~=' ' then
+  	    result.returntype, i=java_parseSignature_type(sig, i)
+	  end
+
+	  i=i+1
+	end
+  end
+
+  return result
+end
+
+
+Java_TypeSigToIDConversion={}
+Java_TypeSigToIDConversion['Z']=1 --boolean
+Java_TypeSigToIDConversion['B']=2 --byte
+Java_TypeSigToIDConversion['C']=3 --char
+Java_TypeSigToIDConversion['S']=4 --short
+Java_TypeSigToIDConversion['I']=5 --int
+Java_TypeSigToIDConversion['J']=6 --long
+Java_TypeSigToIDConversion['F']=7 --float
+Java_TypeSigToIDConversion['D']=8 --double
+Java_TypeSigToIDConversion['L']=9 --object
+Java_TypeSigToIDConversion['[']=10 --array
+--boolean array =11
+--byte array =12
+--...
+
+function java_invokeMethod_sendParameter(typeid, a, skiptypeid)
+  if (skiptype==nil) or (skiptype==true) then
+    javapipe.writeByte(typeid)
+  end
+
+  if typeid==1 then --boolean
+    if a==true then
+      javapipe.writeByte(1)
+	else
+	  javapipe.writeByte(0)
+	end
+  elseif typeid==2 then
+    javapipe.writeByte(a)
+  elseif typeid==3 then --char
+    if tonumber(a)==nil then
+	  javapipe.writeByte(string.byte(a,1))
+	else
+      javapipe.writeByte(a)
+	end
+
+  elseif typeid==4 then --short
+    javapipe.writeWord(a)
+  elseif typeid==5 then --int
+    javapipe.writeDword(a)
+  elseif typeid==6 then --long
+    javapipe.writeQword(a)
+  elseif typeid==7 then --float
+    javapipe.writeFloat(a)
+  elseif typeid==8 then --double
+    javapipe.writeDouble(a)
+  elseif typeid==9 then --object
+    javapipe.writeQword(a)
+  elseif typeid>10 then --array
+    javapipe.writeDword(#a) --length of the array
+
+	--send the fields as the given type
+	local i
+	for i=1, #a do
+	  java_invokeMethod_sendParameter(typeid-10, a[i], true)
+	end
+
+  end
+
+end
+
+function java_invokeMethod(returntype, object, methodid, ...)
+  local argumentcount=#arg
+  local name, sig, gen=java_getMethodName(methodid)
+
+  --parse sig to find out what to give as parameters and what to expect as result
+
+  --format of sig: (ABC)D  () part are the parameters, D is the return type
+  local result=nil
+
+  parsedsignature=java_parseSignature(sig)
+
+  --convert returntype to the id used by JAVACMD_INVOKEMETHOD
+
+  local returntype=Java_TypeSigToIDConversion[string.sub(parsedsignature.returntype,1,1)]
+  if returntype>=10 then
+    error('Array return types are not supported');
+  end
+
+  if argumentcount~=#parsedsignature.parameters then
+    error('Parameter count does not match')
+  end
+
+
+
+  javapipe.lock()
+  javapipe.writeByte(JAVACMD_INVOKEMETHOD)
+  javapipe.writeByte(returntype)
+  javapipe.writeByte(argumentcount)
+
+  local i
+  for i=1, #argumentcount do
+    local typeid
+    typeid=Java_TypeSigToIDConversion[string.sub(parsedsignature.parameters[i],1,1)]
+	if typeid==10 then
+	  typeid=10+Java_TypeSigToIDConversion[string.sub(parsedsignature.parameters[i],2,2)]
+	end
+
+    java_invokeMethod_sendParameter(typeid, arg[i])
+
+
+  end
+
+
+
+  javapipe.unlock()
+
+  return returntype, parameters
+
 end
 
 function java_findClass(signature)
@@ -961,6 +1176,13 @@ function miJavaDissectClick(sender)
 	javaForm.findDialog.OnFind=javaForm_doSearch
 	javaForm.form.position=poScreenCenter
 
+
+	javaForm.popupMenu=createPopupMenu(javaForm.form)
+	local miEditMethod=createMenuItem(javaForm.popupMenu)
+	miEditMethod.Caption="Edit method"
+
+	javaForm.popupMenu.Items.Add(miEditMethod)
+	javaForm.treeview.PopupMenu=javaForm.popupMenu
 
   end
 
@@ -1243,7 +1465,7 @@ function java_OpenProcess(processid)
 end
 
 function javaAA_USEJAVA(parameters, syntaxcheckonly)
-  --called whenever an auto assembler script encounters the USEMONO() line
+  --called whenever an auto assembler script encounters the USEJAVA() line
   --the value you return will be placed instead of the given line
   --In this case, returning a empty string is fine
   --Special behaviour: Returning nil, with a secondary parameter being a string, will raise an exception on the auto assembler with that string
