@@ -3524,7 +3524,7 @@ begin
           inc(totalTimeWriting, GetTickCount-staticscanner.reversescanners[i].currentwritestart);
       end;
 
-      totalTime:=gettickcount-starttime*length(Staticscanner.reversescanners);
+      totalTime:=(gettickcount-starttime)*length(Staticscanner.reversescanners);
       percentageSpentWriting:=totalTimeWriting/totalTime*100;
 
       scount:=tpf;
