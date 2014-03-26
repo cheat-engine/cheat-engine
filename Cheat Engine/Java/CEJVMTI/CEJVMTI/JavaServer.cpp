@@ -2,6 +2,7 @@
 #include "JavaServer.h"
 
 int serverid=0;
+int tagcount=0;
 
 CJavaServer::CJavaServer(jvmtiEnv* jvmti_env, JNIEnv* jni_env)
 {
@@ -149,12 +150,8 @@ void CJavaServer::GetClassMethods(void)
 		WriteDword(count);
 		for (i=0; i<count; i++)
 		{
-			int len;
-			char *name, *sig, *gen;
 			WriteQword(UINT64(methods[i]));
-
-			SendMethodName(methods[i]);
-				
+			SendMethodName(methods[i]);				
 		}
 		jvmti->Deallocate((unsigned char *)methods);
 
@@ -253,7 +250,7 @@ void CJavaServer::GetImplementedInterfaces(void)
 
 }
 
-int tagcount=0;
+
 jint JNICALL fr_heap_reference_callback(jvmtiHeapReferenceKind reference_kind, const jvmtiHeapReferenceInfo* reference_info, jlong class_tag, 
 								jlong referrer_class_tag, jlong size, jlong* tag_ptr, jlong* referrer_tag_ptr, jint length, void* user_data)
 {
@@ -632,7 +629,364 @@ void CJavaServer::GetMethodName(void)
 
 void CJavaServer::InvokeMethod(void)
 {
-  
+	jobject obj=(jobject)ReadQword();
+	jmethodID methodid=(jmethodID)ReadQword();
+
+
+	int returnType=ReadByte();
+	int argcount=ReadByte();
+
+    jvalue *args=(jvalue *)malloc(sizeof(jvalue)*argcount);
+	jobjectArray *arrays=(jobjectArray *)calloc(argcount, sizeof(jobjectArray));
+
+	int i;		
+	
+	for (i=0; i<argcount; i++)
+	{
+		int typeID=ReadByte();
+		args[i].j=0; //clean it
+
+		switch (typeID)
+		{
+			case 1:  //boolean
+				args[i].z=ReadByte()!=0;
+				break;
+
+			case 2:  //byte
+				args[i].b=ReadByte();
+				break;
+
+			case 3:  //char
+			case 4:  //short
+				args[i].c=ReadWord();
+				break;
+
+			case 5:  //int
+			case 7:  //float
+				args[i].i=ReadDword();					
+				break;
+
+			case 6:  //long
+			case 8:  //double
+			case 9:  //object
+				args[i].j=ReadQword();					
+				break;
+
+			case 11: //boolean array
+			{
+				int len=ReadDword();
+				jboolean *b=(jboolean *)malloc(sizeof(jboolean)*len);
+
+				Read(b, len*sizeof(jboolean));
+
+				//create an array
+				arrays[i]=(jobjectArray)jni->NewBooleanArray(len);
+				jni->SetBooleanArrayRegion((jbooleanArray)arrays[i], 0, len, b); //fill it
+				args[i].l=arrays[i];
+
+				free(b);
+
+				break;
+			}
+
+			case 12: //byte array
+			{
+				int len=ReadDword();
+				jbyte *b=(jbyte *)malloc(sizeof(jbyte)*len);
+
+				Read(b, len*sizeof(jbyte));
+
+				//create an array
+				arrays[i]=(jobjectArray)jni->NewByteArray(len);
+				jni->SetByteArrayRegion((jbyteArray)arrays[i], 0, len, b); //fill it
+				args[i].l=arrays[i];
+
+				free(b);
+
+				break;
+			}
+
+			case 13: //char array
+			{
+				int len=ReadDword();
+				jchar *b=(jchar *)malloc(sizeof(jchar)*len);
+
+				Read(b, len*sizeof(jchar));
+
+				//create an array
+				arrays[i]=(jobjectArray)jni->NewCharArray(len);
+				jni->SetCharArrayRegion((jcharArray)arrays[i], 0, len, b); //fill it
+				args[i].l=arrays[i];
+
+				free(b);
+
+				break;
+			}
+
+			case 14: //short array
+			{
+				int len=ReadDword();
+				jshort *b=(jshort *)malloc(sizeof(jshort)*len);
+
+				Read(b, len*sizeof(jshort));
+
+				//create an array
+				arrays[i]=(jobjectArray)jni->NewShortArray(len);
+				jni->SetShortArrayRegion((jshortArray)arrays[i], 0, len, b); //fill it
+				args[i].l=arrays[i];
+
+				free(b);
+
+				break;
+			}
+
+			case 15: //int array
+			{
+				int len=ReadDword();
+				jint *b=(jint *)malloc(sizeof(jint)*len);
+
+				Read(b, len*sizeof(jint));			
+
+				//create an array
+				arrays[i]=(jobjectArray)jni->NewIntArray(len);
+				jni->SetIntArrayRegion((jintArray)arrays[i], 0, len, b); //fill it
+				args[i].l=arrays[i];
+
+				free(b);
+
+				break;
+			}
+
+			case 16: //long array
+			{
+				int len=ReadDword();
+				jlong *b=(jlong *)malloc(sizeof(jlong)*len);
+
+				Read(b, len*sizeof(jlong));			
+
+				//create an array
+				arrays[i]=(jobjectArray)jni->NewLongArray(len);
+				jni->SetLongArrayRegion((jlongArray)arrays[i], 0, len, b); //fill it
+				args[i].l=arrays[i];
+
+				free(b);
+
+				break;
+			}
+
+			case 17: //float array
+			{
+				int len=ReadDword();
+				jfloat *b=(jfloat *)malloc(sizeof(jfloat)*len);
+
+				Read(b, len*sizeof(jfloat));			
+
+				//create an array
+				arrays[i]=(jobjectArray)jni->NewFloatArray(len);
+				jni->SetFloatArrayRegion((jfloatArray)arrays[i], 0, len, b); //fill it
+				args[i].l=arrays[i];
+
+				free(b);
+
+				break;
+			}
+
+			case 18: //double array
+			{
+				int len=ReadDword();
+				jdouble *b=(jdouble *)malloc(sizeof(jdouble)*len);
+
+				Read(b, len*sizeof(jdouble));			
+
+				//create an array
+				arrays[i]=(jobjectArray)jni->NewDoubleArray(len);
+				jni->SetDoubleArrayRegion((jdoubleArray)arrays[i], 0, len, b); //fill it
+				args[i].l=arrays[i];
+
+				free(b);
+
+				break;
+			}
+
+			case 19: //object array
+			{
+				int len=ReadDword();
+				jobject *b=(jobject *)malloc(sizeof(jobject)*len);
+
+				int j;
+				for (j=0; j<len; j++) //loop because the array sent is using 64-bit at all time, even in 32-bit
+					b[j]=(jobject)ReadQword();			
+
+				//create an array
+				if (len)
+				{
+					jclass clazz=jni->GetObjectClass(b[0]);					
+					arrays[i]=(jobjectArray)jni->NewObjectArray(len,clazz, NULL);
+					jni->DeleteLocalRef(clazz);
+
+					for (j=0; j<len; j++)
+						jni->SetObjectArrayElement((jobjectArray)arrays[i], j, b[j]);					
+				}
+				args[i].l=arrays[i];
+				
+
+				free(b);
+
+				break;
+			}
+		}
+	} 
+
+	//parameters are setup, do the call
+
+	switch (returnType)
+	{
+		case 1:
+		{
+			jboolean r=jni->CallBooleanMethodA(obj, methodid, args);
+			WriteByte(r);
+			break;
+		}
+
+		case 2:
+		{
+			jbyte r=jni->CallByteMethodA(obj, methodid, args);
+			WriteByte(r);
+			break;
+		}
+
+		case 3:
+		{
+			jchar r=jni->CallCharMethodA(obj, methodid, args);
+			WriteWord(r);
+			break;
+		}
+
+		case 4:
+		{
+			jshort r=jni->CallShortMethodA(obj, methodid, args);
+			WriteWord(r);
+			break;
+		}
+
+		case 5:
+		{
+			jint r=jni->CallIntMethodA(obj, methodid, args);
+			WriteDword(r);
+			break;
+		}
+
+		case 6:
+		{
+			jlong r=jni->CallLongMethodA(obj, methodid, args);
+			WriteQword(r);
+			break;
+		}
+
+		case 7:
+		{
+			jfloat r=jni->CallFloatMethodA(obj, methodid, args);
+			Write(&r, sizeof(r));
+			break;
+		}
+
+		case 8:
+		{
+			jdouble r=jni->CallDoubleMethodA(obj, methodid, args);
+			Write(&r, sizeof(r));
+			break;
+		}
+
+		case 9:
+		{
+			jobject r=jni->CallObjectMethodA(obj, methodid, args);
+			WriteQword((UINT_PTR)r);
+			break;
+		}
+	}
+
+
+
+
+	//cleanup
+	free(args);
+	for (i=0; i<argcount; i++)
+	{
+		if (arrays[i])
+		{
+			//free this array
+			jni->DeleteLocalRef(arrays[i]);
+		}
+	}
+	free(arrays);
+}
+
+//void 
+jint JNICALL FindClassObjects_heap_reference_callback(jlong class_tag, jlong size, jlong* tag_ptr, jint length, void* user_data)
+{
+	jlong tagtofind=*(jlong *)user_data;
+	if (class_tag==tagtofind)
+		*tag_ptr=tagtofind+1;
+
+	return JVMTI_VISIT_OBJECTS;;
+}
+
+void CJavaServer::FindClassObjects(void)
+{
+	jvmtiHeapCallbacks callbacks;
+	jint objects_found=0;
+	jobject *results=NULL;
+	jlong *tags;
+
+
+	jclass clazz=(jclass)ReadQword(); 
+
+	//tag the class
+	jlong tagtofind=0xce000000+tagcount++;
+	jvmti->SetTag(clazz, tagtofind);
+
+	
+
+	
+
+	//now find objects that have a class with this tag
+	
+	ZeroMemory(&callbacks, sizeof(jvmtiHeapCallbacks));
+	callbacks.heap_iteration_callback=FindClassObjects_heap_reference_callback;
+	jvmti->IterateThroughHeap(JVMTI_HEAP_FILTER_CLASS_UNTAGGED,clazz, &callbacks, &tagtofind);	
+
+	jvmti->SetTag(clazz, 0);
+
+	tagtofind=0xce000000+tagcount++;
+	if (jvmti->GetObjectsWithTags(1, &tagtofind, &objects_found, &results, &tags)==JVMTI_ERROR_NONE)
+	{
+		int i;
+		int count=0;
+
+		for (i=0; i<objects_found; i++)
+		{
+			jvmti->SetTag(results[i],0);
+			
+			if (jni->IsInstanceOf(results[i], clazz))
+				count++;
+			else
+			{
+				jni->DeleteLocalRef(results[i]);
+				results[i]=NULL;
+			}
+		}
+
+
+		WriteDword(count);
+		for (i=0; i<objects_found; i++)
+		{
+			if (results[i])
+				WriteQword((UINT_PTR)results[i]);			
+		}
+	}
+	else
+		WriteDword(0);
+
 
 }
 
@@ -720,6 +1074,10 @@ void CJavaServer::Start(void)
 
 					case JAVACMD_INVOKEMETHOD:
 						InvokeMethod();
+						break;
+
+					case JAVACMD_FINDCLASSOBJECTS:
+						FindClassObjects();
 						break;
 
 					default:						

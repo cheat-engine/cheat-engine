@@ -20,6 +20,7 @@
 #define JAVACMD_GETCAPABILITIES 15
 #define JAVACMD_GETMETHODNAME 16
 #define JAVACMD_INVOKEMETHOD 17
+#define JAVACMD_FINDCLASSOBJECTS 18
 
 using namespace std;
 
@@ -58,6 +59,7 @@ public:
 	void RedefineClass(void);
 	void FindClass(void);
 	void GetCapabilities(void);
-	void GetMethodName();
+	void GetMethodName(void);
 	void InvokeMethod(void);
+	void FindClassObjects(void);
 };
