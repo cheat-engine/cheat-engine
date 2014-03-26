@@ -16,6 +16,7 @@ JAVACMD_FINDCLASS=14
 JAVACMD_GETCAPABILITIES=15
 JAVACMD_GETMETHODNAME=16 --gets the methodname and the signature
 JAVACMD_INVOKEMETHOD=17
+JAVACMD_FINDCLASSOBJECTS=18 --find objects that belong to the given class
 
 
 
@@ -832,7 +833,7 @@ Java_TypeSigToIDConversion['[']=10 --array
 --...
 
 function java_invokeMethod_sendParameter(typeid, a, skiptypeid)
-  if (skiptype==nil) or (skiptype==true) then
+  if (skiptypeid==nil) or (skiptypeid==true) then
     javapipe.writeByte(typeid)
   end
 
@@ -846,9 +847,9 @@ function java_invokeMethod_sendParameter(typeid, a, skiptypeid)
     javapipe.writeByte(a)
   elseif typeid==3 then --char
     if tonumber(a)==nil then
-	  javapipe.writeByte(string.byte(a,1))
+	  javapipe.writeWord(string.byte(a,1))
 	else
-      javapipe.writeByte(a)
+      javapipe.writeWord(a)
 	end
 
   elseif typeid==4 then --short
@@ -864,9 +865,22 @@ function java_invokeMethod_sendParameter(typeid, a, skiptypeid)
   elseif typeid==9 then --object
     javapipe.writeQword(a)
   elseif typeid>10 then --array
+
+    if typeid==13 then
+	  --check if a is a string
+	  if type(a)=='string' then
+	    javapipe.writeDword(#a)
+		javapipe.writeString(a)
+		return
+	  end
+	  --else send it char by char
+	end
+
     javapipe.writeDword(#a) --length of the array
 
 	--send the fields as the given type
+
+
 	local i
 	for i=1, #a do
 	  java_invokeMethod_sendParameter(typeid-10, a[i], true)
@@ -880,7 +894,7 @@ function java_invokeMethod(returntype, object, methodid, ...)
   local argumentcount=#arg
   local name, sig, gen=java_getMethodName(methodid)
 
-  --parse sig to find out what to give as parameters and what to expect as result
+  --parse sig to find out what to give as parameters and what to expect as result (I am assuming the caller KNOWS what he's doing...)
 
   --format of sig: (ABC)D  () part are the parameters, D is the return type
   local result=nil
@@ -902,6 +916,9 @@ function java_invokeMethod(returntype, object, methodid, ...)
 
   javapipe.lock()
   javapipe.writeByte(JAVACMD_INVOKEMETHOD)
+  javapipe.writeQword(object)
+  javapipe.writeQword(methodid)
+
   javapipe.writeByte(returntype)
   javapipe.writeByte(argumentcount)
 
@@ -918,12 +935,18 @@ function java_invokeMethod(returntype, object, methodid, ...)
 
   end
 
-
-
+  result=javapipe.readQword()
   javapipe.unlock()
 
-  return returntype, parameters
+  if returntype==1 then
+    result=result~=0
+  elseif returntype==7 then --float
+    result=byteTableToFloat(dwordToByteTable(result))
+  elseif returntype==8 then --double
+    result=byteTableToDouble(qwordToByteTable(result))
+  end
 
+  return result
 end
 
 function java_findClass(signature)
@@ -938,11 +961,23 @@ function java_findClass(signature)
   return result
 end
 
-function java_setClassSearchPath()
+function java_findAllObjectsFromClass(jClass)
+  local result={}
+  javapipe.lock()
+  javapipe.writeByte(JAVACMD_FINDCLASSOBJECTS)
+  javapipe.writeQword(jClass)
+
+  local count=javapipe.readDword()
+  for i=1,count do
+    result[i]=javapipe.readQword()
+  end
+
+  javapipe.unlock()
+  return result
 end
 
-function java_findAllObjectsFromClass(jClass)
 
+function java_setClassSearchPath()
 end
 
 
