@@ -83,7 +83,7 @@ implementation
 
 function TPointerscanresultreader.getMergedResultCount: integer;
 begin
-  length(fmergedresults);
+  result:=length(fmergedresults);
 end;
 
 function TPointerscanresultreader.getMergedResult(index: integer): integer;
