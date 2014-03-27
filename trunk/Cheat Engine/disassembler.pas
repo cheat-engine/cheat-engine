@@ -9351,7 +9351,7 @@ begin
                               5:  begin
                                     description:='load floating point value';
                                     lastdisassembledata.opcode:='fld';
-                                    lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,64);
+                                    lastdisassembledata.parameters:=modrm(memory,prefix2,1,0,last,80);
 
                                     inc(offset,last-1);
                                   end;
