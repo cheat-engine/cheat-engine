@@ -21,6 +21,9 @@
 #define JAVACMD_GETMETHODNAME 16
 #define JAVACMD_INVOKEMETHOD 17
 #define JAVACMD_FINDCLASSOBJECTS 18
+#define JAVACMD_ADDTOBOOTSTRAPCLASSLOADERPATH 19
+#define JAVACMD_ADDTOSYSTEMCLASSLOADERPATH 20
+
 
 using namespace std;
 
@@ -62,4 +65,7 @@ public:
 	void GetMethodName(void);
 	void InvokeMethod(void);
 	void FindClassObjects(void);
+	void AddToBootstrapClassLoaderPath(void);
+	void AddToSystemClassLoaderPath(void);
+
 };
