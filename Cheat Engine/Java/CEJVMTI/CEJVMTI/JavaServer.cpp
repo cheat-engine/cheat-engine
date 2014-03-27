@@ -998,6 +998,29 @@ void CJavaServer::FindClassObjects(void)
 
 }
 
+void CJavaServer::AddToBootstrapClassLoaderPath(void)
+{
+	WORD len=ReadWord();
+	char *path=(char *)malloc(len+1);
+	Read(path, len);
+	path[len]=0;
+
+	jvmti->AddToBootstrapClassLoaderSearch(path);
+	free(path);
+}
+
+void CJavaServer::AddToSystemClassLoaderPath(void)
+{
+	WORD len=ReadWord();
+	char *path=(char *)malloc(len+1);
+	Read(path, len);
+	path[len]=0;
+
+	jvmti->AddToSystemClassLoaderSearch(path);
+	free(path);
+}
+
+
 void CJavaServer::Start(void)
 {
 	BYTE command;
@@ -1087,6 +1110,15 @@ void CJavaServer::Start(void)
 					case JAVACMD_FINDCLASSOBJECTS:
 						FindClassObjects();
 						break;
+
+					case JAVACMD_ADDTOBOOTSTRAPCLASSLOADERPATH:
+						AddToBootstrapClassLoaderPath();
+						break;
+
+					case JAVACMD_ADDTOSYSTEMCLASSLOADERPATH:
+						AddToSystemClassLoaderPath();
+						break;
+
 
 					default:						
 						throw("Unexpected command\n");

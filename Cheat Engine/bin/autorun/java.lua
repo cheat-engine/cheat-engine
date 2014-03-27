@@ -17,7 +17,8 @@ JAVACMD_GETCAPABILITIES=15
 JAVACMD_GETMETHODNAME=16 --gets the methodname and the signature
 JAVACMD_INVOKEMETHOD=17
 JAVACMD_FINDCLASSOBJECTS=18 --find objects that belong to the given class
-
+JAVACMD_ADDTOBOOTSTRAPCLASSLOADERPATH=19
+JAVACMD_ADDTOSYSTEMCLASSLOADERPATH=20
 
 
 JAVACODECMD_METHODLOAD=0
@@ -993,8 +994,22 @@ function java_findAllObjectsFromClass(jClass)
   return result
 end
 
+function java_AddToBootstrapClassLoaderPath(segment)
+  javapipe.lock()
+  javapipe.writeByte(JAVACMD_ADDTOBOOTSTRAPCLASSLOADERPATH)
+  javapipe.writeWord(#segment)
+  javapipe.writeString(segment)
+  javapipe.unlock()
+end
 
-function java_setClassSearchPath()
+
+function java_AddToSystemClassLoaderPath()
+  javapipe.lock()
+  javapipe.writeByte(JAVACMD_ADDTOSYSTEMCLASSLOADERPATH)
+  javapipe.writeWord(#segment)
+  javapipe.writeString(segment)
+  javapipe.unlock()
+
 end
 
 
