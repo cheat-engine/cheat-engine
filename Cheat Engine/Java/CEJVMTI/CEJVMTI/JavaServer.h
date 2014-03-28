@@ -23,6 +23,8 @@
 #define JAVACMD_FINDCLASSOBJECTS 18
 #define JAVACMD_ADDTOBOOTSTRAPCLASSLOADERPATH 19
 #define JAVACMD_ADDTOSYSTEMCLASSLOADERPATH 20
+#define JAVACMD_PUSHLOCALFRAME 21
+#define JAVACMD_POPLOCALFRAME 22
 
 
 using namespace std;
@@ -50,6 +52,8 @@ public:
 	void StopCodeCallbacks(void);
 	void GetLoadedClasses(void);
 	void DereferenceLocalObject(void);
+	void PushLocalFrame(void);
+	void PopLocalFrame(void);
 	void GetClassMethods(void);
 	void GetClassFields(void);
 	void GetImplementedInterfaces(void);

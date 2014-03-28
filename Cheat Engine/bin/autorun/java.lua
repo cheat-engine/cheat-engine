@@ -7,7 +7,7 @@ JAVACMD_GETCLASSFIELDS=5
 JAVACMD_GETIMPLEMENTEDINTERFACES=6
 JAVAVMD_FINDREFERENCESTOOBJECT=7
 JAVACMD_FINDJOBJECT=8
-JAVACMD_GETCLASSSIGNATURE=9
+JAVACMD_GETCLASSSIGNATURE=9  --=getClassName
 JAVACMD_GETSUPERCLASS=10
 JAVACMD_GETOBJECTCLASS=11
 JAVACMD_GETCLASSDATA=12
@@ -19,6 +19,10 @@ JAVACMD_INVOKEMETHOD=17
 JAVACMD_FINDCLASSOBJECTS=18 --find objects that belong to the given class
 JAVACMD_ADDTOBOOTSTRAPCLASSLOADERPATH=19
 JAVACMD_ADDTOSYSTEMCLASSLOADERPATH=20
+
+JAVACMD_PUSHLOCALFRAME=21
+JAVACMD_POPLOCALFRAME=22
+
 
 
 JAVACODECMD_METHODLOAD=0
@@ -128,11 +132,11 @@ function CollectJavaSymbolsNonInjected(thread)
 
 
 
-      if d~=0 then
-        print(a.."  -  "..b.."  -  "..c.."  :  "..string.format("%x  ( %x )",readPointer(s+VMStructEntryAddressOffset), readPointer(readPointer(s+VMStructEntryAddressOffset)) ))
-      else
-        print(a.."  -  "..b.."  -  "..c.."  :  "..string.format("%x",readPointer(s+VMStructEntryOffsetOffset)))
-      end
+      --if d~=0 then
+      --  print(a.."  -  "..b.."  -  "..c.."  :  "..string.format("%x  ( %x )",readPointer(s+VMStructEntryAddressOffset), readPointer(readPointer(s+VMStructEntryAddressOffset)) ))
+      --else
+      --  print(a.."  -  "..b.."  -  "..c.."  :  "..string.format("%x",readPointer(s+VMStructEntryOffsetOffset)))
+      --end
     end
     s=s+VMStructEntryArrayStride
   end
@@ -583,6 +587,24 @@ function java_getLoadedClasses()
   return classes
 end
 
+function java_pushLocalFrame(count)
+  javapipe.lock()
+  javapipe.writeByte(JAVACMD_PUSHLOCALFRAME)
+  javapipe.writeWord(count)
+  javapipe.unlock()
+end
+
+function java_popLocalFrame(result) --result can be nil
+  local result=nil
+  javapipe.lock()
+  javapipe.writeByte(JAVACMD_POPLOCALFRAME)
+  javapipe.writeQword(result)
+  result=javapipe.readQword()
+  javapipe.unlock()
+
+  return result
+end
+
 function java_dereferenceLocalObject(object)
   javapipe.lock()
   javapipe.writeByte(JAVACMD_DEREFERENCELOCALOBJECT)
@@ -645,6 +667,28 @@ function java_getClassFields(class)
   end
   javapipe.unlock()
   return result
+end
+
+function java_getAllClassFields(class)
+  --get all the fields of the given class, including inherited ones
+
+  java_pushLocalFrame(16)
+
+  local result={}
+  while (class~=nil) and (class~=0) do
+    local r=java_getClassFields(class)
+	local i
+	for i=1,#r do
+	  result[#result+1]=r[i]
+	end
+
+    class=java_getSuperClass(class) --this pushes an object on the local frame
+  end
+
+  java_popLocalFrame(nil)
+
+  return result
+
 end
 
 function java_getImplementedInterfaces(class)

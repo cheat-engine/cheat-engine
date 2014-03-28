@@ -90,6 +90,20 @@ void CJavaServer::DereferenceLocalObject(void)
 
 }
 
+void CJavaServer::PushLocalFrame(void)
+{
+	jint count=ReadWord();	
+	jni->PushLocalFrame(count);	
+}
+
+void CJavaServer::PopLocalFrame(void)
+{
+	jobject result=(jobject)ReadQword();
+	result=jni->PopLocalFrame(result);
+
+	WriteQword((UINT_PTR)result);
+}
+
 
 void CJavaServer::SendMethodName(jmethodID methodid)
 {
@@ -489,6 +503,9 @@ void CJavaServer::GetObjectClass()
 	jobject object=(jobject)ReadQword();
 	jclass klass=jni->GetObjectClass(object);
 	WriteQword((UINT_PTR)klass);
+
+	
+	
 }
 
 
@@ -1119,6 +1136,13 @@ void CJavaServer::Start(void)
 						AddToSystemClassLoaderPath();
 						break;
 
+					case JAVACMD_PUSHLOCALFRAME:
+						PushLocalFrame();
+						break;
+
+					case JAVACMD_POPLOCALFRAME:
+						PopLocalFrame();
+						break;
 
 					default:						
 						throw("Unexpected command\n");
