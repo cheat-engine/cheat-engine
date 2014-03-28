@@ -847,12 +847,55 @@ begin
   //fill in the offset list
   inc(pointersfound);
 
-  results.WriteBuffer(staticdata.moduleindex, sizeof(staticdata.moduleindex));
-  results.WriteBuffer(staticdata.offset,sizeof(staticdata.offset));
-  i:=level+1; //store how many offsets are actually used (since all are saved)
-  results.WriteBuffer(i,sizeof(i));
-  results.WriteBuffer(tempresults[0], maxlevel*sizeof(tempresults[0]) ); //todo for 6.3+: Change sizeof(tempresult[0]) with the max size the structsize can generate./ (e.g 4096 is  only 2 bytes, 65536 =3)
+  {
+  if databaseptr? then
+  begin
+    //table with last offsets
+    //table with secondary offsets
+    //...
+    //table with first offsets
 
+    //table with results, containing columns for every offset and the base
+    //moduleindex base offset1  offset2  offset3  offset4
+    //------------------------------------------------------
+    //0           1    reftooff1 reftooff2       3        4        5
+  end
+  else
+  }
+  if compressedptr then
+  begin
+    //leave the offset alone
+    //compress the module index
+    //compress the level
+    //compress the tempresults (additionally, if alligned, shift by 2)
+
+
+    //e.g: structsize 2048, maxlevel 5 , alligned, 100 modules in target
+    //offset: 32 bits
+    //module index(100) : 7 bits
+    //level(5): 3 bits
+    //tempresults(2048 alligned=512 , 9 bits/offset): 5*9=45
+    // total/entry: 32+7+3+45=87 bits.  Align it to a byte boundary(88 bits)=11 bytes
+
+
+    //as opposed to:
+    //offset: 32 bits:
+    //module index: 32 bits
+    //level(5): 32
+    //tempresults: 5*32=160
+    //total/entry: 32+32+32+160=256 bits = 32 bytes
+
+    //so, the compressed version should be almost 3 times as small on a default scan (the shifting and alignment might cause a slightly slower scan)
+
+  end
+  else
+  begin
+    results.WriteBuffer(staticdata.moduleindex, sizeof(staticdata.moduleindex));
+    results.WriteBuffer(staticdata.offset,sizeof(staticdata.offset));
+    i:=level+1; //store how many offsets are actually used (since all are saved)
+    results.WriteBuffer(i,sizeof(i));
+    results.WriteBuffer(tempresults[0], maxlevel*sizeof(tempresults[0]) ); //todo for 6.3+: Change sizeof(tempresult[0]) with the max size the structsize can generate./ (e.g 4096 is  only 2 bytes, 65536 =3)
+  end;
   if results.position>15*1024*1024 then //bigger than 15mb
     flushresults;
 end;
