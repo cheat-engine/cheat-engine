@@ -862,7 +862,7 @@ begin
   end
   else
   }
-  if compressedptr then
+  {if compressedptr then
   begin
     //leave the offset alone
     //compress the module index
@@ -888,7 +888,7 @@ begin
     //so, the compressed version should be almost 3 times as small on a default scan (the shifting and alignment might cause a slightly slower scan)
 
   end
-  else
+  else  }
   begin
     results.WriteBuffer(staticdata.moduleindex, sizeof(staticdata.moduleindex));
     results.WriteBuffer(staticdata.offset,sizeof(staticdata.offset));
