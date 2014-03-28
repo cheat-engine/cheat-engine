@@ -176,6 +176,52 @@ void CJavaServer::GetClassMethods(void)
 	
 }
 
+void CJavaServer::SendFieldName(jclass klass, jfieldID field)
+{
+	int len;
+	char *name=NULL;
+	char *sig=NULL;
+	char *gen=NULL;
+	if (jvmti->GetFieldName(klass, field, &name, &sig, &gen)==JVMTI_ERROR_NONE)
+	{
+		if (name)
+		{
+			len=(int)strlen(name);
+			WriteWord(len);
+			Write(name, len);					
+			jvmti->Deallocate((unsigned char *)name);
+		}
+		else
+			WriteWord(0);
+
+		if (sig)
+		{
+			len=(int)strlen(sig);
+			WriteWord(len);
+			Write(sig, len);					
+			jvmti->Deallocate((unsigned char *)sig);
+		}
+		else
+			WriteWord(0);
+
+		if (gen)
+		{
+			len=(int)strlen(gen);
+			WriteWord(len);
+			Write(gen, len);					
+			jvmti->Deallocate((unsigned char *)gen);
+		}
+		else
+			WriteWord(0);
+	}
+	else
+	{
+		WriteWord(0);
+		WriteWord(0);
+		WriteWord(0);
+	}
+}
+
 void CJavaServer::GetClassFields(void)
 {
 	jint count;
@@ -187,53 +233,8 @@ void CJavaServer::GetClassFields(void)
 		WriteDword(count);
 		for (i=0; i<count; i++)
 		{		
-			int len;
-			char *name=NULL;
-			char *sig=NULL;
-			char *gen=NULL;
-
 			WriteQword((UINT_PTR)fields[i]);
-
-			if (jvmti->GetFieldName(klass, fields[i], &name, &sig, &gen)==JVMTI_ERROR_NONE)
-			{
-				if (name)
-				{
-					len=(int)strlen(name);
-					WriteWord(len);
-					Write(name, len);					
-					jvmti->Deallocate((unsigned char *)name);
-				}
-				else
-					WriteWord(0);
-
-				if (sig)
-				{
-					len=(int)strlen(sig);
-					WriteWord(len);
-					Write(sig, len);					
-					jvmti->Deallocate((unsigned char *)sig);
-				}
-				else
-					WriteWord(0);
-
-				if (gen)
-				{
-					len=(int)strlen(gen);
-					WriteWord(len);
-					Write(gen, len);					
-					jvmti->Deallocate((unsigned char *)gen);
-				}
-				else
-					WriteWord(0);
-			}
-			else
-			{
-				WriteWord(0);
-				WriteWord(0);
-				WriteWord(0);
-			}
-				
-
+			SendFieldName(klass, fields[i]);
 		}
 	}
 	else
@@ -1037,6 +1038,100 @@ void CJavaServer::AddToSystemClassLoaderPath(void)
 	free(path);
 }
 
+void CJavaServer::GetFieldDeclaringClass(void)
+{
+	jclass klass=(jclass)ReadQword();
+	jfieldID field=(jfieldID)ReadQword();
+	jclass declaring_class=NULL;
+	jvmti->GetFieldDeclaringClass(klass, field, &declaring_class);
+
+	WriteQword((UINT_PTR)declaring_class);
+}
+
+void CJavaServer::GetFieldSignature(void)
+{
+	jclass klass=(jclass)ReadQword();
+	jfieldID field=(jfieldID)ReadQword();
+
+	SendFieldName(klass, field);
+}
+
+void CJavaServer::GetField(void)
+{
+	jobject object=(jobject)ReadQword();
+	jfieldID fieldid=(jfieldID)ReadQword();
+
+	int type=ReadByte();
+
+	switch (type)
+	{
+		case 1:
+		{
+			jboolean r=jni->GetBooleanField(object, fieldid);
+			WriteQword(r);
+			break;
+		}
+
+		case 2:
+		{
+			jbyte r=jni->GetByteField(object, fieldid);
+			WriteQword(r);
+			break;
+		}
+
+		case 3:
+		{
+			jchar r=jni->GetCharField(object, fieldid);
+			WriteQword(r);
+			break;
+		}
+
+		case 4:
+		{
+			jshort r=jni->GetShortField(object, fieldid);
+			WriteQword(r);
+			break;
+		}
+
+		case 5:
+		{
+			jint r=jni->GetIntField(object, fieldid);
+			WriteQword(r);
+			break;
+		}
+
+		case 6:
+		{
+			jlong r=jni->GetLongField(object, fieldid);
+			WriteQword(r);
+			break;
+		}
+
+		case 7:
+		{
+			jfloat r=jni->GetFloatField(object, fieldid);
+			WriteQword(*(DWORD *)&r);
+			break;
+		}
+
+		case 8:
+		{
+			jdouble r=jni->GetDoubleField(object, fieldid);
+			WriteQword(*(UINT64 *)&r);
+			break;
+		}
+
+		case 9:
+		{
+			jobject r=jni->GetObjectField(object, fieldid);
+			WriteQword((UINT_PTR)r);
+			break;
+		}
+	}
+
+	
+}
+
 
 void CJavaServer::Start(void)
 {
@@ -1144,6 +1239,18 @@ void CJavaServer::Start(void)
 						PopLocalFrame();
 						break;
 
+					case JAVACMD_GETFIELDDECLARINGCLASS:
+						GetFieldDeclaringClass();
+						break;
+
+					case JAVACMD_GETFIELDSIGNATURE:
+						GetFieldSignature();
+						break;
+
+					case JAVACMD_GETFIELD:
+						GetField();
+						break;
+
 					default:						
 						throw("Unexpected command\n");
 						break;
@@ -1170,8 +1277,7 @@ void CJavaServer::Start(void)
 			old_eventserver=eventserver;
 			eventserver=NULL;
 		}
-	}
-
+	}	
 	
 	
 }

@@ -25,6 +25,10 @@
 #define JAVACMD_ADDTOSYSTEMCLASSLOADERPATH 20
 #define JAVACMD_PUSHLOCALFRAME 21
 #define JAVACMD_POPLOCALFRAME 22
+#define JAVACMD_GETFIELDDECLARINGCLASS 23
+#define JAVACMD_GETFIELDSIGNATURE 24
+#define JAVACMD_GETFIELD 25
+
 
 
 using namespace std;
@@ -38,6 +42,7 @@ private:
 
 	void SendClassSignature(jclass klass);
 	void SendMethodName(jmethodID methodid);
+	void SendFieldName(jclass klass, jfieldID field);
 	
 
 	void CreatePipeandWaitForconnect(void);
@@ -71,5 +76,9 @@ public:
 	void FindClassObjects(void);
 	void AddToBootstrapClassLoaderPath(void);
 	void AddToSystemClassLoaderPath(void);
+
+	void GetFieldDeclaringClass(void);
+	void GetFieldSignature(void);
+	void GetField(void);
 
 };
