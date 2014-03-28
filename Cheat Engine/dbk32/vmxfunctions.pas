@@ -140,17 +140,21 @@ begin
   if ExceptionInfo.ExceptionRecord.ExceptionCode=EXCEPTION_ILLEGAL_INSTRUCTION then
   begin
     ExceptionInfo.ContextRecord.{$ifdef cpu64}rip{$else}eip{$endif}:=ptruint(@invalidinstruction);
+
+    {$ifdef cpu64}
+    ExceptionInfo.ContextRecord.rsp:=(ExceptionInfo.ContextRecord.rsp-$20) and qword($fffffffffffffff0)-8;
+    {$endif}
     result:=EXCEPTION_CONTINUE_EXECUTION;
   end;
 
 end;
 
-procedure vmcallinstruction_amd; nostackframe;
+procedure vmcallinstruction_amd; assembler;
 asm
   vmmcall
 end;
 
-procedure vmcallinstruction_intel; nostackframe;
+procedure vmcallinstruction_intel; assembler;
 asm
   vmcall
 end;
@@ -161,14 +165,14 @@ function vmcallSupported(vmcallinfo:pointer; level1pass: dword): PtrUInt; stdcal
 var r: ptruint;
   h: thandle;
 begin
-  if not assigned(AddVectoredExceptionHandler) then
+  {if not assigned(AddVectoredExceptionHandler) then
   begin
     //first time setup
     h:=GetModuleHandle('kernel32.dll');
     AddVectoredExceptionHandler:=GetProcAddress(h, 'AddVectoredExceptionHandler');
 
     AddVectoredExceptionHandler(1, @vmcallexceptiontest);
-  end;
+  end; }
 
 
   asm
