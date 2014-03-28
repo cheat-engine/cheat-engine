@@ -19,9 +19,12 @@ JAVACMD_INVOKEMETHOD=17
 JAVACMD_FINDCLASSOBJECTS=18 --find objects that belong to the given class
 JAVACMD_ADDTOBOOTSTRAPCLASSLOADERPATH=19
 JAVACMD_ADDTOSYSTEMCLASSLOADERPATH=20
-
 JAVACMD_PUSHLOCALFRAME=21
 JAVACMD_POPLOCALFRAME=22
+JAVACMD_GETFIELDDECLARINGCLASS=23
+JAVACMD_GETFIELDSIGNATURE=24
+JAVACMD_GETFIELD=25
+
 
 
 
@@ -1038,7 +1041,7 @@ function java_findAllObjectsFromClass(jClass)
   return result
 end
 
-function java_AddToBootstrapClassLoaderPath(segment)
+function java_addToBootstrapClassLoaderPath(segment)
   javapipe.lock()
   javapipe.writeByte(JAVACMD_ADDTOBOOTSTRAPCLASSLOADERPATH)
   javapipe.writeWord(#segment)
@@ -1047,7 +1050,7 @@ function java_AddToBootstrapClassLoaderPath(segment)
 end
 
 
-function java_AddToSystemClassLoaderPath()
+function java_addToSystemClassLoaderPath()
   javapipe.lock()
   javapipe.writeByte(JAVACMD_ADDTOSYSTEMCLASSLOADERPATH)
   javapipe.writeWord(#segment)
@@ -1056,11 +1059,83 @@ function java_AddToSystemClassLoaderPath()
 
 end
 
+function java_getFieldDeclaringClass(klass, fieldid)
+  local result=nil
+  javapipe.lock()
+  javapipe.writeByte(JAVACMD_GETFIELDDECLARINGCLASS)
+  javapipe.writeQword(klass)
+  javapipe.writeQword(fieldid)
 
-function java_GetField(jObject, fieldid)
+  result=javapipe.readQword()
+
+  javapipe.unlock()
+  return result
 end
 
-function java_SetField(jObject, fieldid, value)
+function java_getFieldSignature(klass, fieldid)
+  local result={}
+  javapipe.lock()
+  javapipe.writeByte(JAVACMD_GETFIELDSIGNATURE)
+  javapipe.writeQword(klass)
+  javapipe.writeQword(fieldid)
+
+  local length
+  length=javapipe.readWord()
+  result.name=javapipe.readString(length)
+
+  length=javapipe.readWord()
+  result.signature=javapipe.readString(length)
+
+  length=javapipe.readWord()
+  result.generic=javapipe.readString(length)
+
+
+  javapipe.unlock()
+  return result
+end
+
+
+function java_getField(jObject, fieldid, signature)
+
+  if signature==nil then
+    --I need to figure it out myself I guess...
+	local klass=java_getObjectClass(jObject)
+	signature=java_getFieldSignature(klass, fieldid).signature
+
+	java_dereferenceLocalObject(klass)
+  end
+
+  --parse the signature
+  local vartype=Java_TypeSigToIDConversion[string.sub(signature,1,1)]
+  if vartype>9 then  --not sure what to do about arrays. For now, force them to 'objects'
+    vartype=9
+  end
+
+  local result=nil
+
+  javapipe.lock()
+  javapipe.writeByte(JAVACMD_GETFIELD)
+  javapipe.writeQword(jObject)
+  javapipe.writeQword(fieldid)
+  javapipe.writeByte(vartype)
+
+  result=javapipe.readQword()
+
+  javapipe.unlock()
+
+  if vartype==1 then
+    result=result~=0
+  elseif vartype==7 then --float
+    result=byteTableToFloat(dwordToByteTable(result))
+  elseif vartype==8 then --double
+    result=byteTableToDouble(qwordToByteTable(result))
+  end
+
+  return result
+
+end
+
+function java_setField(jObject, fieldid, value)
 end
 
 function java_search_start()
