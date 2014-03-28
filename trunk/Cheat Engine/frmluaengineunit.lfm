@@ -11,7 +11,7 @@ object frmLuaEngine: TfrmLuaEngine
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   Position = poScreenCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.2.0.3'
   object GroupBox1: TGroupBox
     Left = 0
     Height = 149
@@ -638,23 +638,31 @@ object frmLuaEngine: TfrmLuaEngine
           end>
         Options = [eoAutoIndent, eoBracketHighlight, eoGroupUndo, eoSmartTabs, eoTabsToSpaces, eoTrimTrailingSpaces]
         VisibleSpecialChars = [vscSpace, vscTabAtLast]
+        SelectedColor.FrameEdges = sfeAround
         SelectedColor.BackPriority = 50
         SelectedColor.ForePriority = 50
         SelectedColor.FramePriority = 50
         SelectedColor.BoldPriority = 50
         SelectedColor.ItalicPriority = 50
         SelectedColor.UnderlinePriority = 50
+        SelectedColor.StrikeOutPriority = 50
+        IncrementColor.FrameEdges = sfeAround
+        HighlightAllColor.FrameEdges = sfeAround
         BracketHighlightStyle = sbhsBoth
         BracketMatchColor.Background = clNone
         BracketMatchColor.Foreground = clNone
+        BracketMatchColor.FrameEdges = sfeAround
         BracketMatchColor.Style = [fsBold]
         FoldedCodeColor.Background = clNone
         FoldedCodeColor.Foreground = clGray
         FoldedCodeColor.FrameColor = clGray
+        FoldedCodeColor.FrameEdges = sfeAround
         MouseLinkColor.Background = clNone
         MouseLinkColor.Foreground = clBlue
+        MouseLinkColor.FrameEdges = sfeAround
         LineHighlightColor.Background = clNone
         LineHighlightColor.Foreground = clNone
+        LineHighlightColor.FrameEdges = sfeAround
         OnGutterClick = mScriptGutterClick
         OnShowHint = mScriptShowHint
         inline SynLeftGutterPartList1: TSynGutterPartList
@@ -670,6 +678,7 @@ object frmLuaEngine: TfrmLuaEngine
             MouseActions = <>
             MarkupInfo.Background = clBtnFace
             MarkupInfo.Foreground = clNone
+            MarkupInfo.FrameEdges = sfeAround
             DigitCount = 2
             ShowOnlyLineNumbersMultiplesOf = 1
             ZeroStart = False
@@ -687,6 +696,7 @@ object frmLuaEngine: TfrmLuaEngine
             MouseActions = <>
             MarkupInfo.Background = clWhite
             MarkupInfo.Foreground = clGray
+            MarkupInfo.FrameEdges = sfeAround
           end
           object SynGutterCodeFolding1: TSynGutterCodeFolding
             Visible = False
@@ -718,6 +728,7 @@ object frmLuaEngine: TfrmLuaEngine
               end>
             MarkupInfo.Background = clNone
             MarkupInfo.Foreground = clGray
+            MarkupInfo.FrameEdges = sfeAround
             MouseActionsExpanded = <            
               item
                 ClickCount = ccAny
@@ -829,6 +840,27 @@ object frmLuaEngine: TfrmLuaEngine
       Caption = 'Find/Replace'
       ShortCut = 16466
       OnClick = MenuItem6Click
+    end
+    object MenuItem12: TMenuItem
+      Caption = 'Debug'
+      Visible = False
+      object miRun: TMenuItem
+        Caption = 'Run'
+        ShortCut = 120
+        Visible = False
+        OnClick = tbRunClick
+      end
+      object miSingleStep: TMenuItem
+        Caption = 'Single step'
+        ShortCut = 118
+        Visible = False
+        OnClick = tbSingleStepClick
+      end
+      object miSetBreakpoint: TMenuItem
+        Caption = 'Set breakpoint'
+        ShortCut = 116
+        OnClick = miSetBreakpointClick
+      end
     end
   end
   object dlgReplace: TReplaceDialog

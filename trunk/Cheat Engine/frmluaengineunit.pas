@@ -8,8 +8,8 @@ uses
   windows, Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics,
   Dialogs, StdCtrls, Menus, ExtCtrls, SynMemo, SynCompletion, SynEdit, lua,
   lauxlib, lualib, LuaSyntax, luahandler, cefuncproc, strutils, InterfaceBase,
-  ComCtrls, SynGutterBase, SynEditMarks, PopupNotifier, SynEditHighlighter,
-  AvgLvlTree;
+  ComCtrls, SynGutterBase, SynEditMarks, PopupNotifier, ActnList,
+  SynEditHighlighter, AvgLvlTree;
 
 type
 
@@ -18,6 +18,10 @@ type
   TfrmLuaEngine = class(TForm)
     btnExecute: TButton;
     GroupBox1: TGroupBox;
+    MenuItem12: TMenuItem;
+    miSetBreakpoint: TMenuItem;
+    miRun: TMenuItem;
+    miSingleStep: TMenuItem;
     tShowHint: TIdleTimer;
     ilLuaDebug: TImageList;
     ilSyneditDebug: TImageList;
@@ -63,6 +67,7 @@ type
     procedure MenuItem7Click(Sender: TObject);
     procedure MenuItem8Click(Sender: TObject);
     procedure MenuItem9Click(Sender: TObject);
+    procedure miSetBreakpointClick(Sender: TObject);
     procedure mScriptChange(Sender: TObject);
     procedure mScriptGutterClick(Sender: TObject; X, Y, Line: integer;
       mark: TSynEditMark);
@@ -115,18 +120,29 @@ end;
 
 procedure TfrmLuaEngine.tbRunClick(Sender: TObject);
 begin
-  continuemethod:=1;
-  tbDebug.enabled:=false;
-  tbRun.enabled:=false;
-  tbSingleStep.enabled:=false;
+  if tbdebug.visible and tbrun.enabled and tbrun.visible then
+  begin
+    continuemethod:=1;
+    tbDebug.enabled:=false;
+    tbRun.enabled:=false;
+    tbSingleStep.enabled:=false;
+  end
+  else
+  begin
+    if btnExecute.enabled then
+      btnExecute.click;
+  end;
 end;
 
 procedure TfrmLuaEngine.tbSingleStepClick(Sender: TObject);
 begin
-  continuemethod:=2;
-  tbDebug.enabled:=false;
-  tbRun.enabled:=false;
-  tbSingleStep.enabled:=false;
+  if tbdebug.visible and tbSingleStep.Enabled and tbSingleStep.Visible then
+  begin
+    continuemethod:=2;
+    tbDebug.enabled:=false;
+    tbRun.enabled:=false;
+    tbSingleStep.enabled:=false;
+  end;
 end;
 
 
@@ -207,7 +223,7 @@ begin
   begin
     if s[index]='[' then
     begin
-      //handle an array element access. Not implemented right now.  Stuff that should work if implemented: x.y[123+bla[12+x[67]].xxx
+      //handle an array element access. Not implemented right now.  Stuff that should work if implemented: x.y[123+bla[12+x[67]]].xxx
       lua_pop(luavm,1); //remove the last object
       result:=false;
       exit; //fail
@@ -296,6 +312,13 @@ begin
           break;
         end;
       end;
+
+      //and stop           (else bla~= will be seen as bla~)
+      while (stop>start) do
+        if line[stop-1] in ['a'..'z','A'..'Z','0'..'9','_','[',']','''','"','.'] then
+          break
+        else
+          dec(stop);
 
       token:=copy(line,start, stop-start);
       if getObject(token) then
@@ -954,6 +977,11 @@ end;
 procedure TfrmLuaEngine.MenuItem9Click(Sender: TObject);
 begin
   mscript.PasteFromClipboard;
+end;
+
+procedure TfrmLuaEngine.miSetBreakpointClick(Sender: TObject);
+begin
+  mScriptGutterClick(mScript, 0,0, mscript.CaretY, nil);
 end;
 
 procedure TfrmLuaEngine.mScriptChange(Sender: TObject);
