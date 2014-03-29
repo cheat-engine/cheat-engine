@@ -885,17 +885,16 @@ procedure TReverseScanWorker.StorePath(level: valSint; staticdata: PStaticData);
 var
   i: integer;
 
-  bd8: word;
-  bm8: word;
+  bd8, bm8: dword;
 
   e: PByteArray;
 
   bit: integer;
 
-  m: dword;
+  {m: dword;
   v: dword;
 
-  v2: dword;
+  v2: dword; }
 
 begin
   if (staticdata=nil) then exit; //don't store it
@@ -956,13 +955,18 @@ begin
 
     bd8:=bit shr 3; //bit div 8;
     bm8:=bit and $7; //bit mod 8;
-
+        {
     v:=pdword(@compressedEntry[bd8])^; //get the current value at the specific byte the current bit points at
     m:=MaskLevel shl (bm8);
     m:=not m; //invert the mask
     v:=v and m; //keep all the bits, except those of masklevel
     v:=v or (level shl (bm8)); //set the bits of masklevel
     pdword(@compressedEntry[bd8])^:=v; //set the value back
+    bit:=bit+MaxBitCountLevel;    //next section
+    }
+
+
+    pdword(@compressedEntry[bd8])^:=pdword(@compressedEntry[bd8])^ and (not (MaskLevel shl bm8)) or (level shl bm8);
     bit:=bit+MaxBitCountLevel;    //next section
 
 
@@ -971,7 +975,7 @@ begin
     begin
       bd8:=bit shr 3; //bit div 8;
       bm8:=bit and $7; //bit mod 8;
-
+        {
       v:=pdword(@compressedEntry[bd8])^;
       m:=MaskOffset shl (bm8);
       m:=not m;
@@ -982,7 +986,16 @@ begin
       else
         v:=v or (tempresults[i] shl (bm8));
 
-      pdword(@compressedEntry[bd8])^:=v; //set the value back
+
+      pdword(@compressedEntry[bd8])^:=v;
+        }
+
+
+      if alligned then
+        pdword(@compressedEntry[bd8])^:=pdword(@compressedEntry[bd8])^ and (not (MaskOffset shl bm8)) or ((tempresults[i] shr 2) shl bm8)
+      else
+        pdword(@compressedEntry[bd8])^:=pdword(@compressedEntry[bd8])^ and (not (MaskOffset shl bm8)) or ((tempresults[i]) shl bm8);
+
       bit:=bit+MaxBitCountOffset;
     end;
 

@@ -286,7 +286,7 @@ begin
     compressedPointerScanResult.moduleoffset:=PDword(compressedTempBuffer)^;
     bit:=32;
 
-    compressedPointerScanResult.modulenr:=pdword(@compressedTempBuffer[bit div 8])^;
+    compressedPointerScanResult.modulenr:=pdword(@compressedTempBuffer[bit shr 3])^;
     compressedPointerScanResult.modulenr:=compressedPointerScanResult.modulenr and MaskModuleIndex;
 
     if compressedPointerScanResult.modulenr shr (fMaxBitCountModuleIndex-1) = 1 then //most significant bit is set, sign extent this value
@@ -303,21 +303,33 @@ begin
 
     inc(bit, fMaxBitCountModuleIndex);
 
+    {
     compressedPointerScanResult.offsetcount:=pdword(@compressedTempBuffer[bit div 8])^;
     compressedPointerScanResult.offsetcount:=compressedPointerScanResult.offsetcount shr (bit mod 8);
     compressedPointerScanResult.offsetcount:=compressedPointerScanResult.offsetcount and MaskLevel;
+    }
+    compressedPointerScanResult.offsetcount:=(pdword(@compressedTempBuffer[bit shr 3])^ shr (bit and $7)) and MaskLevel;
+
+
     inc(compressedPointerScanResult.offsetcount);
 
     inc(bit, fMaxBitCountLevel);
 
     for j:=0 to compressedPointerScanResult.offsetcount-1 do
     begin
+      {
       compressedPointerScanResult.offsets[j]:=pdword(@compressedTempBuffer[bit div 8])^;
       compressedPointerScanResult.offsets[j]:=compressedPointerScanResult.offsets[j] shr (bit mod 8);
       compressedPointerScanResult.offsets[j]:=compressedPointerScanResult.offsets[j] and MaskOffset;
 
       if aligned then
         compressedPointerScanResult.offsets[j]:=compressedPointerScanResult.offsets[j] shl 2;
+      }
+
+      if aligned then
+        compressedPointerScanResult.offsets[j]:=((pdword(@compressedTempBuffer[bit shr 3])^ shr (bit and $7) ) and MaskOffset) shl 2
+      else
+        compressedPointerScanResult.offsets[j]:=(pdword(@compressedTempBuffer[bit shr 3])^ shr (bit and $7) ) and MaskOffset;
 
       inc(bit, fMaxBitCountOffset);
     end;
