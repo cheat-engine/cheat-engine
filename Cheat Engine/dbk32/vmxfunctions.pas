@@ -149,58 +149,58 @@ begin
 
 end;
 
-procedure vmcallinstruction_amd; assembler;
-asm
-  vmmcall
-end;
-
-procedure vmcallinstruction_intel; assembler;
-asm
-  vmcall
-end;
-
-var vmcallinstruction: pointer;
-
-function vmcallSupported(vmcallinfo:pointer; level1pass: dword): PtrUInt; stdcall;
-var r: ptruint;
-  h: thandle;
-begin
-  {if not assigned(AddVectoredExceptionHandler) then
-  begin
-    //first time setup
-    h:=GetModuleHandle('kernel32.dll');
-    AddVectoredExceptionHandler:=GetProcAddress(h, 'AddVectoredExceptionHandler');
-
-    AddVectoredExceptionHandler(1, @vmcallexceptiontest);
-  end; }
-
-
-  asm
-
-
+function vmcallSupported_amd(vmcallinfo:pointer; level1pass: dword): PtrUInt; stdcall;
+var
 {$ifdef cpu64}
-    sub rsp,32
-    mov [rsp+8],rdx
+  originalrdx: ptruint;
+{$endif}
+  r: ptruint;
+begin
+  asm
+{$ifdef cpu64}
+    mov originalrdx,rdx
     mov rax,vmcallinfo
     mov edx,level1pass
+    vmmcall
 
-    call [vmcallinstruction]
-
-    mov rdx,[rsp+8]
-    add rsp,32
-
+    mov rdx,originalrdx
     mov r,rax
 {$else}
     mov eax,vmcallinfo
     mov edx,level1pass
-    call [vmcallinstruction]     //should raise an UD if the cpu does not support it  (or the password is wrong)
+    vmmcall     //should raise an UD if the cpu does not support it  (or the password is wrong)
     mov r,eax
 {$endif}
   end;
 
+  result:=r;
+end;
+
+function vmcallSupported_intel(vmcallinfo:pointer; level1pass: dword): PtrUInt; stdcall;
+var
+{$ifdef cpu64}
+  originalrdx: ptruint;
+{$endif}
+  r: ptruint;
+begin
+  asm
+{$ifdef cpu64}
+    mov originalrdx,rdx
+    mov rax,vmcallinfo
+    mov edx,level1pass
+    vmcall
+
+    mov rdx,originalrdx
+    mov r,rax
+{$else}
+    mov eax,vmcallinfo
+    mov edx,level1pass
+    vmcall     //should raise an UD if the cpu does not support it  (or the password is wrong)
+    mov r,eax
+{$endif}
+  end;
 
   result:=r;
-
 end;
 
 
@@ -1061,12 +1061,11 @@ initialization
   {$ifndef NOVMX}
   if isDBVMCapable then
   begin
-    vmcall:=vmcallSupported; //intel instruction set and the VT flag in cpuid (dbvm sets the control feature msr so it's disabled in the bios)
-
     if isamd then
-      vmcallinstruction:=@vmcallinstruction_amd
+      vmcall:=vmcallSupported_amd
     else
-      vmcallinstruction:=@vmcallinstruction_intel;
+      vmcall:=vmcallSupported_intel;
+
   end;
   {$endif}
 end.
