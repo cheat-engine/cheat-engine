@@ -1000,7 +1000,7 @@ begin
                 l.add('  local memrec=Hotkey.Owner');
                 l.add('  memrec.Value='+trainerform.name+'.'+currentcheat.name+'.Editvalue --this will also update the ''frozen'' value');
               end;
-              l.add('  '+trainerform.name+'.'+currentcheat.name+'setActive(true, 1500)');
+              l.add('  '+trainerform.name+'.'+currentcheat.name+'.setActive(true, 1500)');
               l.add('  if gPlaySoundOnAction then');
               l.add('    playSound(gActivateSound)');
               l.add('  end');

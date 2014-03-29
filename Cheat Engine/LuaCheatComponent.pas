@@ -36,7 +36,7 @@ begin
   cheatcomponent:=luaclass_getClassObject(L, @paramstart, @paramcount);
 
 
-  if paramcount=1 then
+  if paramcount>=1 then
   begin
     cheatcomponent.activated:=lua_toboolean(L,paramstart);
 
