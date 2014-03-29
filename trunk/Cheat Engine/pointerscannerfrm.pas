@@ -29,6 +29,7 @@ type
     yourID: Int32;
     maxlevel: Uint32;
     structsize: uint32;
+    compressedptr: Byte;
     staticonly: Byte;
     noLoop: Byte;
     LimitToMaxOffsetsPerNode: Byte;
@@ -273,6 +274,17 @@ type
     pathsEvaluated: qword;
     pointersfound: qword;
 
+    compressedptr: boolean;
+    MaxBitCountModuleIndex: dword;
+    MaxBitCountLevel: dword;
+    MaxBitCountOffset: dword;
+
+    MaskModuleIndex: dword;
+    MaskLevel: dword;
+    MaskOffset: dword;
+
+    compressedEntry: pbytearray;
+    compressedEntrySize: integer;
 
 
     procedure execute; override;
@@ -318,6 +330,8 @@ type
 
     broadcastcount: integer;
     lastBroadcast: dword;
+
+    function getMaxBitCount(absolutemaxvalue: dword; Signed: boolean): dword;
 
     procedure EatFromOverflowQueueIfNeeded;
 
@@ -410,8 +424,13 @@ type
     phase: integer;
 
 
-    isdone: boolean;
 
+    compressedptr: boolean;
+    MaxBitCountModuleIndex: dword;
+    MaxBitCountLevel: dword;
+    MaxBitCountOffset: dword;
+
+    isdone: boolean;
     staticonly: boolean; //for reverse
 
     hasError: boolean;
@@ -749,11 +768,17 @@ begin
   results.free;
   if resultsfile<>nil then
     freeandnil(resultsfile);
+
+  if compressedEntry<>nil then
+    FreeMem(compressedEntry);
 end;
 
+
+
 procedure TReverseScanWorker.execute;
-var wr: dword;
-i: integer;
+var
+  wr: dword;
+  i: integer;
 begin
   try
     try
@@ -764,6 +789,23 @@ begin
       maxlevel:=staticscanner.maxlevel;
       noLoop:=staticscanner.noLoop;
       structsize:=staticscanner.sz;
+
+      compressedEntrySize:=32+MaxBitCountModuleIndex+MaxBitCountLevel+MaxBitCountOffset*maxlevel;
+      compressedEntrySize:=(compressedEntrySize+7) div 8;
+
+      getmem(compressedEntry, compressedEntrySize+4); //+4 so there's some space for overhead (writing using a dword pointer to the last byte)
+
+      MaskModuleIndex:=0;
+      for i:=1 to MaxBitCountModuleIndex do
+        MaskModuleIndex:=(MaskModuleIndex shl 1) or 1;
+
+      for i:=1 to MaxBitCountLevel do
+        MaskLevel:=(MaskLevel shl 1) or 1;
+
+      for i:=1 to MaxBitCountOffset do
+        MaskOffset:=(MaskOffset shl 1) or 1;
+
+
 
       while (not terminated) and (not self.staticscanner.Terminated) do
       begin
@@ -840,12 +882,27 @@ var scount:qword=0;
 
 procedure TReverseScanWorker.StorePath(level: valSint; staticdata: PStaticData);
 {Store the current path to memory and flush if needed}
-var i: integer;
+var
+  i: integer;
+
+  bd8: word;
+  bm8: word;
+
+  e: PByteArray;
+
+  bit: integer;
+
+  m: dword;
+  v: dword;
+
+  v2: dword;
+
 begin
   if (staticdata=nil) then exit; //don't store it
 
   //fill in the offset list
   inc(pointersfound);
+
 
   {
   if databaseptr? then
@@ -862,7 +919,7 @@ begin
   end
   else
   }
-  {if compressedptr then
+  if compressedptr then
   begin
     //leave the offset alone
     //compress the module index
@@ -887,8 +944,52 @@ begin
 
     //so, the compressed version should be almost 3 times as small on a default scan (the shifting and alignment might cause a slightly slower scan)
 
+    bit:=0;
+    pdword(compressedEntry)^:=staticdata.offset;
+    bit:=bit+32;
+
+
+    bd8:=bit shr 3; //bit div 8;
+    pdword(@compressedEntry[bd8])^:=staticdata.moduleindex;
+    bit:=bit+MaxBitCountModuleIndex;
+
+
+    bd8:=bit shr 3; //bit div 8;
+    bm8:=bit and $7; //bit mod 8;
+
+    v:=pdword(@compressedEntry[bd8])^; //get the current value at the specific byte the current bit points at
+    m:=MaskLevel shl (bm8);
+    m:=not m; //invert the mask
+    v:=v and m; //keep all the bits, except those of masklevel
+    v:=v or (level shl (bm8)); //set the bits of masklevel
+    pdword(@compressedEntry[bd8])^:=v; //set the value back
+    bit:=bit+MaxBitCountLevel;    //next section
+
+
+    //compress the offsets
+    for i:=0 to level do
+    begin
+      bd8:=bit shr 3; //bit div 8;
+      bm8:=bit and $7; //bit mod 8;
+
+      v:=pdword(@compressedEntry[bd8])^;
+      m:=MaskOffset shl (bm8);
+      m:=not m;
+      v:=v and m;
+
+      if alligned then
+        v:=v or ((tempresults[i] shr 2) shl (bm8))
+      else
+        v:=v or (tempresults[i] shl (bm8));
+
+      pdword(@compressedEntry[bd8])^:=v; //set the value back
+      bit:=bit+MaxBitCountOffset;
+    end;
+
+    results.WriteBuffer(compressedEntry^, compressedEntrySize);
+
   end
-  else  }
+  else
   begin
     results.WriteBuffer(staticdata.moduleindex, sizeof(staticdata.moduleindex));
     results.WriteBuffer(staticdata.offset,sizeof(staticdata.offset));
@@ -1639,6 +1740,7 @@ begin
   myID:=sp.yourID;
   maxlevel:=sp.maxlevel;
   sz:=sp.structsize;
+  compressedptr:=sp.compressedptr<>0;
   staticonly:=sp.staticonly<>0;
   noLoop:=sp.noLoop<>0;
 
@@ -2010,6 +2112,7 @@ begin
         getScanParametersOut.yourID:=index;
         getScanParametersOut.maxlevel:=maxlevel;
         getScanParametersOut.structsize:=sz;
+        getScanParametersOut.compressedptr:=ifthen(compressedptr, 1, 0);
         getScanParametersOut.staticonly:=ifthen(staticonly, 1, 0);
         getScanParametersOut.noLoop:=ifthen(noLoop, 1, 0);
         getScanParametersOut.LimitToMaxOffsetsPerNode:=ifthen(LimitToMaxOffsetsPerNode,1,0);
@@ -2626,6 +2729,31 @@ begin
   terminate;
 end;
 
+function TStaticScanner.getMaxBitCount(absolutemaxvalue: dword; Signed: boolean): dword;
+//converts the given absolutemaxvalue to a mask to be used
+//if signed, the mostSignificantbit will get the bit which will mark if it's negative
+var
+  bitcount: integer;
+  mask: dword;
+begin
+  mask:=0;
+  bitcount:=0;
+  while absolutemaxvalue>0 do
+  begin
+    inc(bitcount);
+    mask:=(mask shl 1) or 1;
+    absolutemaxvalue:=absolutemaxvalue shr 1;
+  end;
+
+  if Signed then
+  begin
+    inc(bitcount);
+    mask:=(mask shl 1) or 1;
+  end;
+
+  result:=bitcount;
+end;
+
 procedure TStaticScanner.execute;
 var
     i: integer;
@@ -2691,8 +2819,7 @@ begin
           exit;
         end;
       end;
-    end; 
-
+    end;
 
     phase:=2;
     progressbar.Position:=0;
@@ -2703,6 +2830,20 @@ begin
 
     if not (distributedScanning and distributedWorker) then  //not needed anymore if it is a worker (it gets the level from the server, which already execute this)
       maxlevel:=maxlevel-1; //adjust the maxlevel to fix the user input
+
+
+    if compressedptr then
+    begin
+      //calculate the masks for compression
+      //moduleid can be negative, so keep that in mind
+      MaxBitCountModuleIndex:=getMaxBitCount(ownerform.pointerlisthandler.modulelist.Count-1, true);
+      MaxBitCountLevel:=getMaxBitCount(maxlevel-1, false); //counted from 0.  (if level=4 then value goes from 0,1,2 3
+      MaxBitCountOffset:=getMaxBitCount(sz-1, false);
+
+      if unalligned=false then MaxBitCountOffset:=MaxBitCountOffset - 2;
+    end;
+
+
 
     //setup the pathqueue
     pathqueuelength:=0;
@@ -2765,6 +2906,13 @@ begin
           NewAffinity:=1 shl PreferedProcessorList[i];
           NewAffinity:=SetThreadAffinityMask(reversescanners[i].Handle, NewAffinity);
         end;
+
+        reversescanners[i].compressedptr:=compressedptr;
+        reversescanners[i].MaxBitCountModuleIndex:=MaxBitCountModuleIndex;
+        reversescanners[i].MaxBitCountLevel:=MaxBitCountLevel;
+        reversescanners[i].MaxBitCountOffset:=MaxBitCountOffset;
+
+
         reversescanners[i].start;
       end;
 
@@ -2793,12 +2941,14 @@ begin
       freeandnil(result);
       reversescan;
 
+      result:=TfileStream.create(filename,fmOpenWrite);
+      result.seek(0, soEnd);
 
       if distributedScanning then
       begin
         //save the number of external workers
-        result:=TfileStream.create(filename,fmOpenWrite);
-        result.seek(0, soEnd);
+
+
         result.writeDword(length(workers)); //0 for a worker (unless I decide to make it a real chaotic mess)
 
         //save the workerid that generated these results (server=-1)
@@ -2813,7 +2963,24 @@ begin
           freeandnil(scandataUploader);
         end;
 
+      end
+      else
+      begin
+        result.writeDword(0);    //number of workers
+        result.writeDword(0);    //my id (ignored)
+
       end;
+
+      result.writeDword(0); //merged worker count
+
+      result.writeDword(ifthen(compressedptr, 1, 0));
+      result.writeDword(ifthen(unalligned, 0, 1)); //1 if alligned (I should really rename this one)
+      result.writeDword(MaxBitCountModuleIndex);
+      result.writeDword(MaxBitCountLevel);
+      result.writeDword(MaxBitCountOffset);
+
+
+
 
     finally
 
@@ -3037,6 +3204,8 @@ begin
       staticscanner.ownerform:=self;
       staticscanner.filename:=utf8toansi(savedialog1.FileName);
       staticscanner.reverse:=true; //since 5.6 this is always true
+
+      staticscanner.compressedptr:=frmpointerscannersettings.cbCompressedPointerscanFile.checked;
 
       staticscanner.noReadOnly:=frmpointerscannersettings.cbNoReadOnly.checked;
       staticscanner.mustBeClassPointers:=frmpointerscannersettings.cbClassPointersOnly.checked;
@@ -3355,8 +3524,15 @@ begin
           resultfile.WriteDWord(pointerscanresults.externalScanners);
           resultfile.WriteDWord(pointerscanresults.generatedByWorkerID);
 
+          resultfile.WriteDWord(length(allworkerids));
           for i:=0 to length(allworkerids)-1 do
             resultfile.WriteDWord(allworkerids[i]);
+
+          resultfile.WriteDWord(ifthen(pointerscanresults.compressedptr,1,0));
+          resultfile.WriteDWord(ifthen(pointerscanresults.aligned,1,0));
+          resultfile.WriteDWord(pointerscanresults.MaxBitCountModuleIndex);
+          resultfile.WriteDWord(pointerscanresults.MaxBitCountLevel);
+          resultfile.WriteDWord(pointerscanresults.MaxBitCountOffset);
 
 
           //all done, and no crashes
@@ -4063,7 +4239,11 @@ begin
             if valid then
             begin
               //checks passed, it's valid
+              if pointerscanresults.compressedptr then
+                p:=pointerscanresults.LastRawPointer;
+
               tempbuffer.Write(p^,Pointerscanresults.entrySize);
+
               if tempbuffer.Position>16*1024*1024 then flushresults;
             end;
 
@@ -4863,8 +5043,20 @@ begin
     end;
 
 
+    //extra data
     result.writedword(pointerscanresults.externalScanners);
     result.writedword(Pointerscanresults.generatedByWorkerID);
+    result.writedword(Pointerscanresults.mergedresultcount);
+    for i:=0 to Pointerscanresults.mergedresultcount-1 do
+      result.writedword(Pointerscanresults.mergedresults[i]);
+
+    result.writedword(ifthen(pointerscanresults.compressedptr,1,0));
+    result.writedword(ifthen(pointerscanresults.aligned,1,0));
+
+    result.writedword(pointerscanresults.MaxBitCountModuleIndex);
+    result.writedword(pointerscanresults.MaxBitCountLevel);
+    result.writedword(pointerscanresults.MaxBitCountOffset);
+
 
     result.Free;
 

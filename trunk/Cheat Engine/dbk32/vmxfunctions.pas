@@ -791,7 +791,7 @@ begin
   end;
 end;
 
-procedure dbvm_localIntHandler_entry; nostackframe; //usually 64-bit only
+procedure dbvm_localIntHandler_entry; nostackframe; assembler; //usually 64-bit only
 {$ifdef cpu32}
 //not implemented for 32-bit
 asm

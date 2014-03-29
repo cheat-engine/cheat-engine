@@ -14,7 +14,7 @@ object frmPointerScanner: TfrmPointerScanner
   OnDestroy = FormDestroy
   OnResize = FormResize
   Position = poScreenCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.2.0.3'
   object ProgressBar1: TProgressBar
     Left = 0
     Height = 21
@@ -88,9 +88,9 @@ object frmPointerScanner: TfrmPointerScanner
         TabOrder = 1
         object Label5: TLabel
           Left = 0
-          Height = 17
+          Height = 16
           Top = 47
-          Width = 52
+          Width = 51
           Caption = 'Threads'
           ParentColor = False
         end
