@@ -28,6 +28,7 @@
 #define JAVACMD_GETFIELDDECLARINGCLASS 23
 #define JAVACMD_GETFIELDSIGNATURE 24
 #define JAVACMD_GETFIELD 25
+#define JAVACMD_SETFIELD 26
 
 
 
@@ -80,5 +81,6 @@ public:
 	void GetFieldDeclaringClass(void);
 	void GetFieldSignature(void);
 	void GetField(void);
+	void SetField(void);
 
 };

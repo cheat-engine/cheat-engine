@@ -1128,10 +1128,87 @@ void CJavaServer::GetField(void)
 			break;
 		}
 	}
+	
 
 	
 }
 
+void CJavaServer::SetField(void)
+{
+	jobject object=(jobject)ReadQword();
+	jfieldID fieldid=(jfieldID)ReadQword();
+
+	int type=ReadByte();
+	UINT64 newvalue=ReadQword();
+
+	switch (type)
+	{
+		case 1:
+		{			
+			jboolean v=(jboolean)newvalue;
+			jni->SetBooleanField(object, fieldid, v);			
+			break;
+		}
+
+		case 2:
+		{
+			jbyte v=(jbyte)newvalue;
+			jni->SetByteField(object, fieldid, v);	
+			break;
+		}
+
+		case 3:
+		{
+			jchar v=(jchar)newvalue;
+			jni->SetCharField(object, fieldid, v);	
+			break;
+		}
+
+		case 4:
+		{
+			jshort v=(jshort)newvalue;
+			jni->SetShortField(object, fieldid, v);	
+			break;
+		}
+
+		case 5:
+		{
+			jint v=(jint)newvalue;
+			jni->SetIntField(object, fieldid, v);	
+			break;
+		}
+
+		case 6:
+		{
+			jlong v=(jlong)newvalue;
+			jni->SetLongField(object, fieldid, v);	
+			break;
+		}
+
+		case 7:
+		{
+			jfloat v=*(jfloat *)&newvalue;
+			jni->SetFloatField(object, fieldid, v);
+			break;
+		}
+
+		case 8:
+		{
+			jdouble v=*(jdouble *)&newvalue;
+			jni->SetDoubleField(object, fieldid, v);
+			break;
+		}
+
+		case 9:
+		{
+			jobject v=(jobject)newvalue;
+			jni->SetObjectField(object, fieldid, v);
+			break;
+		}
+	}
+
+	
+}
 
 void CJavaServer::Start(void)
 {
@@ -1249,6 +1326,10 @@ void CJavaServer::Start(void)
 
 					case JAVACMD_GETFIELD:
 						GetField();
+						break;
+
+					case JAVACMD_SETFIELD:
+						SetField();
 						break;
 
 					default:						
