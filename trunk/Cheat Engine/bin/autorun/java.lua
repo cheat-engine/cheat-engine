@@ -24,6 +24,7 @@ JAVACMD_POPLOCALFRAME=22
 JAVACMD_GETFIELDDECLARINGCLASS=23
 JAVACMD_GETFIELDSIGNATURE=24
 JAVACMD_GETFIELD=25
+JAVACMD_SETFIELD=26
 
 
 
@@ -1135,7 +1136,36 @@ function java_getField(jObject, fieldid, signature)
 
 end
 
-function java_setField(jObject, fieldid, value)
+function java_setField(jObject, fieldid, signature, value)
+  if signature==nil then
+    --I need to figure it out myself I guess...
+	local klass=java_getObjectClass(jObject)
+	signature=java_getFieldSignature(klass, fieldid).signature
+
+	java_dereferenceLocalObject(klass)
+  end
+
+  local vartype=Java_TypeSigToIDConversion[string.sub(signature,1,1)]
+  if vartype>9 then  --not sure what to do about arrays. For now, force them to 'objects'
+    vartype=9
+  end
+
+  if vartype==1 then --boolean
+    if value then value=1 else value=0 end
+  elseif vartype==7 then
+    value=byteTableToDword(floatToByteTable(value))
+  elseif vartype==8 then
+    value=byteTableToQword(doubleToByteTable(value))
+  end
+
+  javapipe.lock()
+  javapipe.writeByte(JAVACMD_SETFIELD)
+  javapipe.writeQword(jObject)
+  javapipe.writeQword(fieldid)
+  javapipe.writeByte(vartype)
+  javapipe.writeQword(value)
+  javapipe.unlock()
+
 end
 
 function java_search_start()
