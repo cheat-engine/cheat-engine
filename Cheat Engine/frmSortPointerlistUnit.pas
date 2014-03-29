@@ -140,6 +140,7 @@ begin
           files.Add(v, f);
         end;
 
+        p:=pointerscanresults.LastRawPointer;
         f.Write(p^, entrysize);
         inc(i);
       end;
@@ -197,6 +198,22 @@ begin
       f.Write(temp,sizeof(temp));
       f.Write(tempstring[1],temp);
     end;
+
+    f.WriteDWord(pointerscanresults.externalScanners);
+    f.WriteDWord(pointerscanresults.generatedByWorkerID);
+
+
+    f.WriteDWord(pointerscanresults.mergedresultcount);
+    for j:=0 to pointerscanresults.mergedresultcount-1 do
+      f.WriteDWord(pointerscanresults.mergedresults[j]);
+
+    f.WriteDWord(ifthen(pointerscanresults.compressedptr,1,0));
+    f.WriteDWord(ifthen(pointerscanresults.aligned,1,0));
+    f.WriteDWord(pointerscanresults.MaxBitCountModuleIndex);
+    f.WriteDWord(pointerscanresults.MaxBitCountLevel);
+    f.WriteDWord(pointerscanresults.MaxBitCountOffset);
+
+
 
     f.free;
 
