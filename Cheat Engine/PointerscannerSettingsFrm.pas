@@ -45,6 +45,7 @@ type
     cbBroadcast: TCheckBox;
     cbMustStartWithBase: TCheckBox;
     cbAcceptNonModuleVtable: TCheckBox;
+    cbCompressedPointerscanFile: TCheckBox;
     edtDistributedPort: TEdit;
     edtThreadStacks: TEdit;
     edtStackSize: TEdit;

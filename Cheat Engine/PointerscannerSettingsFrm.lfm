@@ -13,7 +13,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.2.0.3'
   object edtAddress: TEdit
     Left = 8
     Height = 21
@@ -45,25 +45,25 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       TabVisible = False
       object Label10: TLabel
         Left = 4
-        Height = 14
+        Height = 13
         Top = 105
-        Width = 24
+        Width = 23
         Caption = 'From'
         ParentColor = False
       end
       object Label11: TLabel
         Left = 4
-        Height = 14
+        Height = 13
         Top = 127
-        Width = 17
+        Width = 16
         Caption = 'To:'
         ParentColor = False
       end
       object Label13: TLabel
         Left = 4
-        Height = 14
+        Height = 13
         Top = 83
-        Width = 201
+        Width = 200
         Caption = 'Pointer path may only be inside this region:'
         ParentColor = False
       end
@@ -199,9 +199,9 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       end
       object lblNumberOfStackThreads: TLabel
         Left = 292
-        Height = 14
+        Height = 13
         Top = 105
-        Width = 194
+        Width = 193
         Caption = 'Number of threads from oldest to newest:'
         ParentColor = False
       end
@@ -218,9 +218,9 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       end
       object lblStackSize: TLabel
         Left = 291
-        Height = 14
+        Height = 13
         Top = 124
-        Width = 214
+        Width = 213
         Caption = 'Max stackoffset to be deemed static enough:'
         ParentColor = False
       end
@@ -281,9 +281,9 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     TabOrder = 3
     object Label3: TLabel
       Left = 24
-      Height = 14
+      Height = 13
       Top = 42
-      Width = 106
+      Width = 105
       Caption = 'Maximum offset value:'
       ParentColor = False
     end
@@ -291,17 +291,17 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       AnchorSideRight.Control = editMaxLevel
       AnchorSideRight.Side = asrCenter
       Left = 231
-      Height = 14
+      Height = 13
       Top = 42
-      Width = 46
+      Width = 45
       Caption = 'Max level'
       ParentColor = False
     end
     object Label9: TLabel
       Left = 16
-      Height = 14
+      Height = 13
       Top = 10
-      Width = 114
+      Width = 113
       Caption = 'Nr of threads scanning: '
       ParentColor = False
     end
@@ -445,9 +445,9 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     TabOrder = 7
   end
   object cbDistributedScanning: TCheckBox
-    Left = 282
+    Left = 288
     Height = 19
-    Top = 272
+    Top = 293
     Width = 142
     Caption = 'Allow distributed scanning'
     OnChange = cbDistributedScanningChange
@@ -458,9 +458,9 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = lblPort
     AnchorSideTop.Side = asrCenter
-    Left = 321
+    Left = 326
     Height = 21
-    Top = 291
+    Top = 311
     Width = 103
     TabOrder = 9
     Text = '52737'
@@ -469,19 +469,22 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     AnchorSideLeft.Control = cbDistributedScanning
     AnchorSideTop.Control = cbDistributedScanning
     AnchorSideTop.Side = asrBottom
-    Left = 298
-    Height = 14
-    Top = 294
-    Width = 23
+    Left = 304
+    Height = 13
+    Top = 315
+    Width = 22
     BorderSpacing.Left = 16
     BorderSpacing.Top = 3
     Caption = 'Port:'
     ParentColor = False
   end
   object cbBroadcast: TCheckBox
-    Left = 296
+    AnchorSideLeft.Control = lblPort
+    AnchorSideTop.Control = edtDistributedPort
+    AnchorSideTop.Side = asrBottom
+    Left = 304
     Height = 19
-    Top = 309
+    Top = 332
     Width = 179
     Caption = 'Broadcast that a scan has started'
     Enabled = False
@@ -489,10 +492,15 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     TabOrder = 10
   end
   object btnNotifySpecificIPs: TButton
-    Left = 480
+    AnchorSideLeft.Control = cbBroadcast
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = cbBroadcast
+    AnchorSideTop.Side = asrCenter
+    Left = 487
     Height = 25
-    Top = 306
+    Top = 329
     Width = 139
+    BorderSpacing.Left = 4
     Caption = 'Setup specific IP''s to notify'
     Enabled = False
     OnClick = btnNotifySpecificIPsClick
@@ -510,11 +518,21 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     ShowHint = True
     TabOrder = 12
   end
+  object cbCompressedPointerscanFile: TCheckBox
+    Left = 288
+    Height = 19
+    Top = 272
+    Width = 152
+    Caption = 'Compressed pointerscan file'
+    Checked = True
+    State = cbChecked
+    TabOrder = 13
+  end
   object odLoadPointermap: TOpenDialog
     DefaultExt = '.scandata'
     Filter = 'All files (*.*)|*.*|scandata files|*.scandata'
     FilterIndex = 2
-    left = 232
-    top = 264
+    left = 184
+    top = 296
   end
 end

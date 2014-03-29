@@ -48,6 +48,22 @@ type
 
     fExternalScanners: integer;
     fGeneratedByWorkerID: integer;
+    fCompressedPtr: boolean;
+    fAligned: boolean;
+
+    MaskModuleIndex: dword;
+    MaskLevel: dword;
+    MaskOffset: dword;
+
+    fMaxBitCountModuleIndex: dword;
+    fMaxBitCountLevel: dword;
+    fMaxBitCountOffset: dword;
+
+    compressedPointerScanResult: PPointerscanResult;
+    compressedTempBuffer: PByteArray;
+
+    fLastRawPointer: pointer;
+
 
     fmergedresults: array of integer;
     function InitializeCache(i: qword): boolean;
@@ -77,6 +93,12 @@ type
     property modulebase[index: integer]: ptruint read getModuleBase write setModuleBase;
     property mergedresultcount: integer read getMergedResultCount;
     property mergedresults[index: integer]: integer read getMergedResult;
+    property compressedptr: boolean read fCompressedPtr;
+    property aligned: boolean read fAligned;
+    property MaxBitCountModuleIndex: dword read fMaxBitCountModuleIndex;
+    property MaxBitCountLevel: dword read fMaxBitCountLevel;
+    property MaxBitCountOffset: dword read fMaxBitCountOffset;
+    property LastRawPointer: pointer read fLastRawPointer;
 end;
 
 implementation
@@ -235,6 +257,10 @@ for those that know what they want
 }
 var
   cachepos: integer;
+
+  p: PByteArray;
+  bit: integer;
+  j: integer;
 begin
   result:=nil;
   if i>=count then exit;
@@ -250,7 +276,63 @@ begin
 
   //find out at which position in the cache this index is
   cachepos:=i-cachestart;
-  result:=PPointerscanResult(ptrUint(cache)+(cachepos*sizeofentry));
+
+  if fCompressedPtr then
+  begin
+    p:=PByteArray(ptrUint(cache)+(cachepos*sizeofentry));
+
+    CopyMemory(compressedTempBuffer, p, sizeofentry);
+
+    compressedPointerScanResult.moduleoffset:=PDword(compressedTempBuffer)^;
+    bit:=32;
+
+    compressedPointerScanResult.modulenr:=pdword(@compressedTempBuffer[bit div 8])^;
+    compressedPointerScanResult.modulenr:=compressedPointerScanResult.modulenr and MaskModuleIndex;
+
+    if compressedPointerScanResult.modulenr shr (fMaxBitCountModuleIndex-1) = 1 then //most significant bit is set, sign extent this value
+    begin
+      //should be -1 as that is the only one possible
+      dword(compressedPointerScanResult.modulenr):=dword(compressedPointerScanResult.modulenr) or (not MaskModuleIndex);
+
+      if compressedPointerScanResult.modulenr<>-1 then
+      begin
+        //my assumption was wrong
+        compressedPointerScanResult.modulenr:=-1;
+      end;
+    end;
+
+    inc(bit, fMaxBitCountModuleIndex);
+
+    compressedPointerScanResult.offsetcount:=pdword(@compressedTempBuffer[bit div 8])^;
+    compressedPointerScanResult.offsetcount:=compressedPointerScanResult.offsetcount shr (bit mod 8);
+    compressedPointerScanResult.offsetcount:=compressedPointerScanResult.offsetcount and MaskLevel;
+    inc(compressedPointerScanResult.offsetcount);
+
+    inc(bit, fMaxBitCountLevel);
+
+    for j:=0 to compressedPointerScanResult.offsetcount-1 do
+    begin
+      compressedPointerScanResult.offsets[j]:=pdword(@compressedTempBuffer[bit div 8])^;
+      compressedPointerScanResult.offsets[j]:=compressedPointerScanResult.offsets[j] shr (bit mod 8);
+      compressedPointerScanResult.offsets[j]:=compressedPointerScanResult.offsets[j] and MaskOffset;
+
+      if aligned then
+        compressedPointerScanResult.offsets[j]:=compressedPointerScanResult.offsets[j] shl 2;
+
+      inc(bit, fMaxBitCountOffset);
+    end;
+
+
+    result:=compressedPointerScanResult;
+    fLastRawPointer:=compressedTempBuffer;
+  end
+  else
+  begin
+    result:=PPointerscanResult(ptrUint(cache)+(cachepos*sizeofentry));
+    fLastRawPointer:=result;
+  end;
+
+
 end;
 
 function TPointerscanresultReader.getPointer(i: qword; var pointsto: ptrUint): PPointerscanResult;
@@ -318,6 +400,8 @@ var
   a: ptruint;
 
   fn: string;
+  filenames: array of string;
+
 begin
   FFilename:=filename;
   configfile:=TFileStream.Create(filename, fmOpenRead or fmShareDenyWrite);
@@ -367,17 +451,18 @@ begin
 
 
   configfile.Read(maxlevel,sizeof(maxlevel));
-  sizeofentry:=12+(4*maxlevel);
+
 
   //get filename count
   configfile.Read(filenamecount,sizeof(filenamecount));
-  setlength(files,filenamecount);
+  setlength(filenames,filenamecount);
 
   fcount:=0;
   //open the files
   i:=0;
   j:=0;
-  while i<filenamecount do
+
+  for i:=0 to filenamecount-1 do
   begin
     configfile.Read(x,sizeof(x));
     while x>=temppcharmaxlength do
@@ -389,12 +474,73 @@ begin
     configfile.Read(temppchar[0],x);
     temppchar[x]:=#0;
 
+    filenames[i]:=temppchar;
+  end;
 
+
+  fExternalScanners:=0;
+  fCompressedPtr:=false;
+  try
+    if configfile.Position<configfile.Size then
+      fExternalScanners:=configfile.ReadDWord;
+
+    if configfile.Position<configfile.Size then
+      fGeneratedByWorkerID:=configfile.ReadDWord;
+
+    if configfile.Position<configfile.Size then
+      setlength(fmergedresults, configfile.ReadDWord);
+
+    //all following entries are worker id's when merged (this info is used by rescans)
+    for i:=0 to length(fmergedresults)-1 do
+      fmergedresults[i]:=configfile.ReadDWord;
+
+    if configfile.Position<configfile.Size then
+    begin
+      fCompressedPtr:=configfile.ReadDWord=1;
+      fAligned:=configfile.ReadDWord=1;
+
+      fMaxBitCountModuleIndex:=configfile.ReadDword;
+      fMaxBitCountLevel:=configfile.ReadDword;
+      fMaxBitCountOffset:=configfile.ReadDword;
+    end;
+
+
+  except
+
+  end;
+
+  if fCompressedPtr then
+  begin
+    sizeofentry:=32+MaxBitCountModuleIndex+MaxBitCountLevel+MaxBitCountOffset*maxlevel;
+    sizeofentry:=(sizeofentry+7) div 8;
+
+    getmem(compressedPointerScanResult, 12+4*maxlevel);
+    getmem(compressedTempBuffer, sizeofentry+4);
+
+    MaskModuleIndex:=0;
+    for i:=1 to MaxBitCountModuleIndex do
+      MaskModuleIndex:=(MaskModuleIndex shl 1) or 1;
+
+    for i:=1 to MaxBitCountLevel do
+      MaskLevel:=(MaskLevel shl 1) or 1;
+
+    for i:=1 to MaxBitCountOffset do
+      MaskOffset:=(MaskOffset shl 1) or 1;
+
+  end
+  else
+    sizeofentry:=12+(4*maxlevel);
+
+  setlength(files, length(filenames));
+  j:=0;
+
+  for i:=0 to length(filenames)-1 do
+  begin
     try
-      if pos(PathDelim, temppchar)=0 then
-        fn:=ExtractFilePath(filename)+temppchar
+      if pos(PathDelim, filenames[i])=0 then
+        fn:=ExtractFilePath(filename)+filenames[i]
       else
-        fn:=temppchar;
+        fn:=filenames[i];
 
       files[j].filename:=fn;
 
@@ -425,32 +571,17 @@ begin
         else
           inc(j);
       end;
+
     except
     end;
-
-    inc(i);
   end;
   setlength(files,j);
 
 
-  fExternalScanners:=0;
-  try
-    if configfile.Position<configfile.Size then
-      fExternalScanners:=configfile.ReadDWord;
 
-    if configfile.Position<configfile.Size then
-      fGeneratedByWorkerID:=configfile.ReadDWord;
 
-    //all following entries are worker id's when merged (this info is used by rescans)
-    while configfile.Position<configfile.Size do
-    begin
-      setlength(fmergedresults, length(fmergedresults)+1);
-      fmergedresults[length(fmergedresults)-1]:=configfile.ReadDWord;
-    end;
 
-  except
 
-  end;
 
 
  // getmem(cache, sizeofEntry*maxcachecount);
@@ -478,6 +609,13 @@ begin
 
       closehandle(files[i].f);
     end;
+
+  if compressedTempBuffer<>nil then
+    freemem(compressedTempBuffer);
+
+  if compressedPointerScanResult<>nil then
+    freemem(compressedPointerScanResult);
+
 end;
 
 end.

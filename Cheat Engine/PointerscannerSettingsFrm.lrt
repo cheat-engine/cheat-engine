@@ -51,3 +51,4 @@ TFRMPOINTERSCANNERSETTINGS.BTNNOTIFYSPECIFICIPS.CAPTION=Setup specific IP's to n
 TFRMPOINTERSCANNERSETTINGS.CBMUSTSTARTWITHBASE.HINT=Will only mark the given range as valid base address (Will reduce the number of results)
 This internally makes use of the "Only find paths with a static address" feature by marking the provided range as static only, so it must be enabled.
 TFRMPOINTERSCANNERSETTINGS.CBMUSTSTARTWITHBASE.CAPTION=Base address must be in specific range
+TFRMPOINTERSCANNERSETTINGS.CBCOMPRESSEDPOINTERSCANFILE.CAPTION=Compressed pointerscan file
