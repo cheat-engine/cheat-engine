@@ -1082,6 +1082,8 @@ var i,j,k,l,e: integer;
     disassembler: TDisassembler;
 
     threadhandle: THandle;
+
+    connection: TCEConnection;
 begin
   setlength(readmems,0);
   setlength(allocs,0);
@@ -2528,6 +2530,12 @@ begin
       end;
 
     //we're still here so, inject it
+
+
+    connection:=getconnection;
+    if connection<>nil then
+      connection.beginWriteProcessMemory; //group all writes
+
     for i:=0 to length(assembled)-1 do
     begin
       testptr:=assembled[i].address;
@@ -2537,6 +2545,15 @@ begin
 
       if not ok1 then ok2:=false;
     end;
+
+    if connection<>nil then  //group all writes
+    begin
+      if connection.endWriteProcessMemory=false then
+        ok2:=false;
+    end;
+
+
+
 
     if not ok2 then
     begin

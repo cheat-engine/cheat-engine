@@ -8,7 +8,7 @@ interface
 
 uses
   jwawindows, windows, Classes, SysUtils, Sockets, resolve, ctypes, networkconfig,
-  cefuncproc, newkernelhandler, math, zstream;
+  cefuncproc, newkernelhandler, math, zstream, syncobjs;
 
 
 
@@ -39,6 +39,14 @@ type
         memory: array [0..4095] of byte;
       end;
 
+    WriteProcessMemoryBufferCount: integer; //to deal with recursive calls
+    WriteProcessMemoryBuffer: array of record
+        processhandle: thandle;
+        baseaddress: PtrUInt;
+        memory: array of byte;
+    end;
+    WriteProcessMemoryBufferCS: TCriticalSection;
+
 
 
     function receive(buffer: pointer; size: integer): integer;
@@ -66,6 +74,9 @@ type
     function VirtualQueryEx(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD;
     function ReadProcessMemory(hProcess: THandle; lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL;
     function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: DWORD): BOOL;
+    procedure beginWriteProcessMemory;
+    function endWriteProcessMemory: boolean;
+
     function StartDebug(hProcess: THandle): BOOL;
     function WaitForDebugEvent(hProcess: THandle; timeout: integer; var devent: TNetworkDebugEvent):BOOL;
     function ContinueDebugEvent(hProcess: THandle; threadid: dword; continuemethod: integer): BOOL;
@@ -519,52 +530,160 @@ var
     //followed by the bytes
   end;
 
-  j: integer;
+  j,k: integer;
 
   b: ptruint;
 
 begin
-  if ((hProcess shr 24) and $ff)= $ce then
-  begin
-    result:=false;
-    lpNumberOfBytesWritten:=0;
+  WriteProcessMemoryBufferCS.enter;
+  try
 
-    input:=getmem(sizeof(TWPMRecord)+nSize);
-
-    input^.command:=CMD_WRITEPROCESSMEMORY;
-    input^.handle:=hProcess and $ffffff;
-    input^.baseaddress:=ptruint(lpBaseAddress);
-    input^.size:=nSize;
-
-    CopyMemory(@input[1], lpBuffer, nSize);
-
-
-    if send(input, sizeof(TWPMRecord)+nSize)>0 then
+    if WriteProcessMemoryBufferCount=0 then
     begin
-      if receive(@output, sizeof(output))>0 then
+      if ((hProcess shr 24) and $ff)= $ce then
       begin
-        if output.byteswritten>0 then
+        result:=false;
+        lpNumberOfBytesWritten:=0;
+
+        input:=getmem(sizeof(TWPMRecord)+nSize);
+
+        input^.command:=CMD_WRITEPROCESSMEMORY;
+        input^.handle:=hProcess and $ffffff;
+        input^.baseaddress:=ptruint(lpBaseAddress);
+        input^.size:=nSize;
+
+        CopyMemory(@input[1], lpBuffer, nSize);
+
+
+        if send(input, sizeof(TWPMRecord)+nSize)>0 then
         begin
-          result:=true;
-          lpNumberOfBytesWritten:=output.byteswritten;
-
-          if (lpNumberOfBytesWritten>0) then //for 1 byte changes
+          if receive(@output, sizeof(output))>0 then
           begin
-            //clear rpm cache for this entry if there is one
+            if output.byteswritten>0 then
+            begin
+              result:=true;
+              lpNumberOfBytesWritten:=output.byteswritten;
 
-            b:=ptruint(lpBaseAddress) and (not $fff);
-            for j:=0 to 15 do
-              if rpmcache[j].baseaddress=b then
-                rpmcache[j].lastupdate:=0; //set to outdated
+              if (lpNumberOfBytesWritten>0) then //for 1 byte changes
+              begin
+                //clear rpm cache for this entry if there is one
+
+                b:=ptruint(lpBaseAddress) and (not $fff);
+                for j:=0 to 15 do
+                  if rpmcache[j].baseaddress=b then
+                    rpmcache[j].lastupdate:=0; //set to outdated
+              end;
+            end;
           end;
         end;
-      end;
+
+        freemem(input);
+      end
+      else
+        result:=windows.WriteProcessMemory(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesWritten);
+
+    end
+    else
+    begin
+      //add it to the buffer
+      result:=true;
+      lpNumberOfBytesWritten:=nsize;
+
+      k:=length(WriteProcessMemoryBuffer);
+      setlength(WriteProcessMemoryBuffer, k+1);
+
+      WriteProcessMemoryBuffer[k].processhandle:=ProcessHandle;
+      WriteProcessMemoryBuffer[k].baseaddress:=ptruint(lpBaseAddress);
+      setlength(WriteProcessMemoryBuffer[k].memory, nsize);
+      CopyMemory(@WriteProcessMemoryBuffer[k].memory[0], lpBuffer, nsize);
     end;
 
-    freemem(input);
-  end
-  else
-    result:=windows.WriteProcessMemory(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesWritten);
+  finally
+    WriteProcessMemoryBufferCS.leave;
+  end;
+end;
+
+procedure TCEConnection.beginWriteProcessMemory;
+begin
+  WriteProcessMemoryBufferCS.Enter;
+  inc(WriteProcessMemoryBufferCount);
+
+  //todo: Change the network interface to actually send ALL writes in one command
+end;
+
+function TCEConnection.endWriteProcessMemory: boolean;
+var
+  i,j,k: integer;
+  x: dword;
+
+  grouped: boolean;
+begin
+  result:=true;
+  dec(WriteProcessMemoryBufferCount);
+
+  if WriteProcessMemoryBufferCount=0 then
+  begin
+    //group the blocks
+    i:=0;
+
+    while i<length(WriteProcessMemoryBuffer)-1 do
+    begin
+      grouped:=false;
+      //find a block that overlaps
+
+      j:=i+1;
+
+      while j<=length(WriteProcessMemoryBuffer)-1 do
+      begin
+        if InRangeX(WriteProcessMemoryBuffer[i].baseaddress, WriteProcessMemoryBuffer[j].baseaddress, WriteProcessMemoryBuffer[j].baseaddress+length(WriteProcessMemoryBuffer[j].memory)) or
+           InRangeX(WriteProcessMemoryBuffer[j].baseaddress, WriteProcessMemoryBuffer[i].baseaddress, WriteProcessMemoryBuffer[i].baseaddress+length(WriteProcessMemoryBuffer[i].memory)) then
+        begin
+          k:=WriteProcessMemoryBuffer[i].baseaddress-WriteProcessMemoryBuffer[j].baseaddress;
+          if k>0 then
+          begin
+            setlength(WriteProcessMemoryBuffer[i].memory, length(WriteProcessMemoryBuffer[i].memory)+k);
+            MoveMemory(@WriteProcessMemoryBuffer[i].memory[k], @WriteProcessMemoryBuffer[i].memory[0], k );
+
+            WriteProcessMemoryBuffer[i].baseaddress:=WriteProcessMemoryBuffer[j].baseaddress;
+          end;
+
+          //set the end
+          k:=(WriteProcessMemoryBuffer[j].baseaddress+length(WriteProcessMemoryBuffer[j].memory))-(WriteProcessMemoryBuffer[i].baseaddress+length(WriteProcessMemoryBuffer[i].memory));  //get rhe bytes that need to be added
+          if k>0 then //increase the size
+            setlength(WriteProcessMemoryBuffer[i].memory, length(WriteProcessMemoryBuffer[i].memory)+k);
+
+          //copy the bytes
+          k:=WriteProcessMemoryBuffer[j].baseaddress-WriteProcessMemoryBuffer[i].baseaddress;
+          copymemory(@WriteProcessMemoryBuffer[i].memory[k], @WriteProcessMemoryBuffer[j].memory[0], length(WriteProcessMemoryBuffer[j].memory));
+
+
+          grouped:=true;
+
+          //delete this from the list
+          for k:=j to length(WriteProcessMemoryBuffer)-2 do
+            WriteProcessMemoryBuffer[k]:=WriteProcessMemoryBuffer[k+1];
+
+          setlength(WriteProcessMemoryBuffer, length(WriteProcessMemoryBuffer)-1);
+        end
+        else
+          inc(j);
+      end;
+
+      if not grouped then //next one
+        inc(i);
+    end;
+
+    //write
+    for i:=0 to length(WriteProcessMemoryBuffer)-1 do
+    begin
+      if not WriteProcessMemory(WriteProcessMemoryBuffer[i].processhandle, pointer(WriteProcessMemoryBuffer[i].baseaddress), @WriteProcessMemoryBuffer[i].memory[0], length(WriteProcessMemoryBuffer[i].memory), x) then
+        result:=false;
+    end;
+
+
+  end;
+
+  WriteProcessMemoryBufferCS.Leave;
 end;
 
 function TCEConnection.CreateRemoteThread(hProcess: THandle; lpThreadAttributes: Pointer; dwStackSize: DWORD; lpStartAddress: TFNThreadStartRoutine; lpParameter: Pointer;  dwCreationFlags: DWORD; var lpThreadId: DWORD): THandle;
@@ -1339,6 +1458,7 @@ var SockAddr: TInetSockAddr;
   retry: integer;
   B: BOOL;
 begin
+  WriteProcessMemoryBufferCS:=TCriticalSection.create;
 
   socket:=cint(INVALID_SOCKET);
 
