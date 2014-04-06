@@ -26,6 +26,9 @@ JAVACMD_GETFIELDSIGNATURE=24
 JAVACMD_GETFIELD=25
 JAVACMD_SETFIELD=26
 
+JAVACMD_STARTSCAN=27
+JAVACMD_REFINESCANRESULTS=28
+
 
 
 
@@ -1168,8 +1171,63 @@ function java_setField(jObject, fieldid, signature, value)
 
 end
 
-function java_search_start()
+function java_search_start(value, boolean)
   --tag all known objects and set a variable to let some functions know they can not function until the scan has finished (they can't set tags)
+  local result=nil
+  javapipe.lock()
+  javapipe.writeByte(JAVACMD_STARTSCAN)
+
+  if value==nil then
+    javapipe.writeByte(1) --unknown initial value scan
+  else
+    javapipe.writeByte(0) --value scan
+	javapipe.writeDouble(value)
+	if (boolean~=nil) and (boolean==true) then
+	  javapipe.writeByte(1)
+	else
+	  javapipe.writeByte(0)
+	end
+  end
+
+
+  result=javapipe.readQword() --Wait till done, get nr of results)
+
+  java_scanning=true
+
+
+  javapipe.unlock()
+
+  return result
+end
+
+function java_search_refine(scantype, scanvalue)
+  --refines the result of the current scan
+  --scantype:
+  --0 = exact value
+  --1 = increased value
+  --2 = decreased value
+  --3 = changed value
+  --4 = unchanged value
+
+  local result=nil
+
+  if scantype==nil then
+    error("Scantype was not set")
+  end
+
+  javapipe.lock()
+  javapipe.writeByte(JAVACMD_REFINESCANRESULTS)
+  javapipe.writeByte(scantype)
+  if scantype==0 then
+    javapipe.writeDouble(scanvalue)
+  end
+
+
+  result=javapipe.readQword()
+
+  javapipe.unlock()
+
+  return result
 
 end
 
@@ -1179,7 +1237,8 @@ end
 function java_search_findObjectsWithValue(value)
 end
 
-function java_search_stop()
+function java_search_finish()
+  java_scanning=false
 end
 
 
