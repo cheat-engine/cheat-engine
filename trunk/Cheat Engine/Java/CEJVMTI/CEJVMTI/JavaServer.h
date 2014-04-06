@@ -29,6 +29,8 @@
 #define JAVACMD_GETFIELDSIGNATURE 24
 #define JAVACMD_GETFIELD 25
 #define JAVACMD_SETFIELD 26
+#define JAVACMD_STARTSCAN 27
+#define JAVACMD_REFINESCANRESULTS 28
 
 
 
@@ -44,8 +46,8 @@ private:
 	void SendClassSignature(jclass klass);
 	void SendMethodName(jmethodID methodid);
 	void SendFieldName(jclass klass, jfieldID field);
+	void GetAllFieldsFromClass(jclass c, vector<jfieldID> *allfields);
 	
-
 	void CreatePipeandWaitForconnect(void);
 public:
 	CJavaServer(jvmtiEnv* jvmti_env, JNIEnv* jni_env);
@@ -82,5 +84,9 @@ public:
 	void GetFieldSignature(void);
 	void GetField(void);
 	void SetField(void);
+
+	
+	void StartScan(void);
+	void RefineScanResults(void);
 
 };

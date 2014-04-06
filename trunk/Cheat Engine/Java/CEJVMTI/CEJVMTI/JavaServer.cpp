@@ -1,6 +1,8 @@
 #include "StdAfx.h"
 #include "JavaServer.h"
 
+using namespace std;
+
 int serverid=0;
 int tagcount=0;
 
@@ -60,7 +62,7 @@ void CJavaServer::GetLoadedClasses(void)
 {
 	int i;
 	jint classcount;
-	jclass *classes;
+	jclass *classes=NULL;
 	if (jvmti->GetLoadedClasses(&classcount, &classes)==JVMTI_ERROR_NONE) //note: this creates to the returned classes. Should be managed
 	{
 		
@@ -75,7 +77,8 @@ void CJavaServer::GetLoadedClasses(void)
 			SendClassSignature(classes[i]);
 		}
 
-		jvmti->Deallocate((unsigned char *)classes);
+		if (classes)
+			jvmti->Deallocate((unsigned char *)classes);
 	}
 	else
 		WriteDword(0); //0 classes
@@ -107,7 +110,7 @@ void CJavaServer::PopLocalFrame(void)
 
 void CJavaServer::SendMethodName(jmethodID methodid)
 {
-	char *name, *sig, *gen;
+	char *name=NULL, *sig=NULL, *gen=NULL;
 	int len;
 
 	if (jvmti->GetMethodName(methodid, &name, &sig, &gen)==JVMTI_ERROR_NONE)
@@ -246,7 +249,7 @@ void CJavaServer::GetImplementedInterfaces(void)
 {
 	//instead of returning a reference, return the tags of the classes
 	jint count;
-	jclass *interfaces;
+	jclass *interfaces=NULL;
 	jclass klass=(jclass)ReadQword();
 	if (jvmti->GetImplementedInterfaces(klass, &count, &interfaces)==JVMTI_ERROR_NONE)
 	{
@@ -330,8 +333,8 @@ void CJavaServer::FindReferencesToObject(void)
 	jobject object=(jclass)ReadQword();
 	jlong tags[1];
 	jint count;
-	jobject *objects;
-	jlong *objecttags;
+	jobject *objects=NULL;
+	jlong *objecttags=NULL;
 	int i;
 	
 
@@ -380,8 +383,8 @@ void CJavaServer::FindjObject(void)
 {	
 	int i;
 	jint count;
-	jobject *objects;
-	jlong *objecttags;
+	jobject *objects=NULL;
+	jlong *objecttags=NULL;
 	jvmtiHeapCallbacks callbacks;
 	UINT64 result=0;	
 	UINT64 address=ReadQword();
@@ -437,8 +440,11 @@ void CJavaServer::FindjObject(void)
 			jvmti->SetTag(objects[i],0); //untag
 		}
 
-		jvmti->Deallocate((unsigned char *)objects);
-		jvmti->Deallocate((unsigned char *)objecttags);
+		if (objects)
+			jvmti->Deallocate((unsigned char *)objects);
+
+		if (objecttags)
+			jvmti->Deallocate((unsigned char *)objecttags);
 	}
 
 	
@@ -451,7 +457,7 @@ void CJavaServer::FindjObject(void)
 
 void CJavaServer::SendClassSignature(jclass klass)
 {
-	char *sig,*gen;
+	char *sig=NULL,*gen=NULL;
 
 	if (jvmti->GetClassSignature(klass, &sig, &gen)==JVMTI_ERROR_NONE)
 	{
@@ -947,43 +953,28 @@ void CJavaServer::InvokeMethod(void)
 }
 
 //void 
-jint JNICALL FindClassObjects_heap_reference_callback(jlong class_tag, jlong size, jlong* tag_ptr, jint length, void* user_data)
+jvmtiIterationControl JNICALL FindClassObjects_callback(jlong class_tag, jlong size, jlong* tag_ptr, void* user_data)
 {
-	jlong tagtofind=*(jlong *)user_data;
-	if (class_tag==tagtofind)
-		*tag_ptr=tagtofind+1;
+	*tag_ptr=*(jlong *)user_data;
 
 	
-	return JVMTI_VISIT_OBJECTS;
+	return JVMTI_ITERATION_CONTINUE;
 }
 
 void CJavaServer::FindClassObjects(void)
-{
-	jvmtiHeapCallbacks callbacks;
+{	
 	jint objects_found=0;
 	jobject *results=NULL;
 	jlong *tags;
-
+	jlong tagtofind;
 
 	jclass clazz=(jclass)ReadQword(); 
 
-	//tag the class
-	jlong tagtofind=0xce000000+tagcount++;
-	jvmti->SetTag(clazz, tagtofind);
-
-	
-
-	
-
 	//now find objects that have a class with this tag
-	
-	ZeroMemory(&callbacks, sizeof(jvmtiHeapCallbacks));
-	callbacks.heap_iteration_callback=FindClassObjects_heap_reference_callback;
-	jvmti->IterateThroughHeap(JVMTI_HEAP_FILTER_CLASS_UNTAGGED,clazz, &callbacks, &tagtofind);	
-
-	jvmti->SetTag(clazz, 0);
-
 	tagtofind=0xce000000+tagcount++;
+
+	jvmti->IterateOverInstancesOfClass(clazz, JVMTI_HEAP_OBJECT_EITHER, FindClassObjects_callback, &tagtofind);
+	
 	if (jvmti->GetObjectsWithTags(1, &tagtofind, &objects_found, &results, &tags)==JVMTI_ERROR_NONE)
 	{
 		int i;
@@ -1210,6 +1201,536 @@ void CJavaServer::SetField(void)
 	
 }
 
+//start
+typedef struct
+{
+	//split seperately so it's faster (no double to int convertions during the scan)
+	BOOL unknownInitialValue;
+	BOOL booleanScan;
+	jboolean zValue;
+	jbyte bValue;
+	jchar cValue;
+	jshort sValue;
+	jint iValue;
+	jlong jValue;
+	jfloat fValue;
+	jdouble dValue;
+} ScanData, *PScanData;
+
+typedef struct
+{	
+	jlong objectTag;
+	jint fieldindex;
+	jfieldID fieldID;
+	jvmtiPrimitiveType type;
+	jvalue lastvalue;
+} ScanResult;
+
+list<ScanResult> ScanResults;
+
+
+jint JNICALL StartScan_FieldIteration(jvmtiHeapReferenceKind kind, const jvmtiHeapReferenceInfo* info, jlong object_class_tag, jlong* object_tag_ptr, jvalue value, jvmtiPrimitiveType value_type, void *user_data)
+{
+	
+	BOOL add=TRUE;
+	PScanData sd=(PScanData)user_data;
+
+	if (!sd->unknownInitialValue)
+	{
+		add=FALSE;
+		switch (value_type)
+		{
+			
+			case JVMTI_PRIMITIVE_TYPE_BOOLEAN:
+				add=(sd->booleanScan) && (value.z==sd->zValue);
+				break;
+
+			case JVMTI_PRIMITIVE_TYPE_BYTE:
+				add=value.b==sd->bValue;
+				break;
+
+			case JVMTI_PRIMITIVE_TYPE_CHAR:
+				add=value.c==sd->cValue;
+				break;
+
+			case JVMTI_PRIMITIVE_TYPE_SHORT:
+				add=value.s==sd->sValue;
+				break;
+
+			case JVMTI_PRIMITIVE_TYPE_INT:
+				add=value.i==sd->iValue;
+				break;
+
+			case JVMTI_PRIMITIVE_TYPE_LONG:
+				add=value.j==sd->jValue;
+				break;
+
+			case JVMTI_PRIMITIVE_TYPE_FLOAT:
+				add=value.f==sd->fValue;
+				break;
+
+			case JVMTI_PRIMITIVE_TYPE_DOUBLE:
+				add=value.d==sd->dValue;
+				break;
+		}
+
+
+
+
+	}
+
+	if (add)
+	{
+		ScanResult sr;
+		if (*object_tag_ptr==0)
+			*object_tag_ptr=0xce000000+tagcount++;
+
+		sr.objectTag=*object_tag_ptr;
+		sr.fieldindex=info->field.index;
+		sr.type=value_type;
+		sr.lastvalue=value;
+		sr.fieldID=0;
+
+		ScanResults.push_back(sr);
+	}
+
+	return JVMTI_VISIT_OBJECTS;
+}
+
+
+void CJavaServer::StartScan(void)
+{
+	//iterate over all objects and fields, and for each primitive field create a record with objectid (tagged object), fieldid and original value
+
+	jvmtiHeapCallbacks callbacks;
+	ScanData sd;
+
+	//ScanData
+	ScanResults.clear();
+	
+
+	ZeroMemory(&callbacks, sizeof(callbacks));
+
+
+	sd.unknownInitialValue=ReadByte();
+	if (sd.unknownInitialValue==FALSE)
+	{
+		jdouble value;
+		Read(&value, sizeof(jdouble));
+				
+		sd.zValue=value!=0;
+		sd.bValue=(jbyte)value;
+		sd.cValue=(jchar)value;
+		sd.sValue=(jshort)value;
+		sd.iValue=(jint)value;	
+		sd.jValue=(jlong)value;
+		sd.fValue=(jfloat)value;
+		sd.dValue=value;	
+
+
+		sd.booleanScan=ReadByte() && ((value==1.0f) || (value==0.0f));
+	}
+
+	callbacks.primitive_field_callback=StartScan_FieldIteration;
+	
+	jvmti->IterateThroughHeap(0, NULL, &callbacks, &sd);
+
+	WriteQword(ScanResults.size());
+
+}
+
+void CJavaServer::GetAllFieldsFromClass(jclass c, vector<jfieldID> *allfields)
+{
+	vector<jclass> classes;
+	vector<jclass> interfaces;
+
+	jclass currentclass=c;
+	while (currentclass)
+	{	
+		classes.push_back(currentclass);
+		currentclass=jni->GetSuperclass(currentclass);
+	}
+
+	//walk through the class list starting from the base to find the interfaces
+	for (int i=(int)classes.size()-1; i>=0; i--)
+	{
+		jint icount;
+		jclass *implementedinterfaces=NULL;
+
+		//get the interfaces
+
+		if (jvmti->GetImplementedInterfaces(classes[i], &icount, &implementedinterfaces)==JVMTI_ERROR_NONE)
+		{		
+			for (int j=0; j<icount; j++)
+			{
+				vector<jclass> extendedinterfaces;
+
+				jclass currentinterface=implementedinterfaces[j];
+				while (currentinterface)
+				{
+					extendedinterfaces.push_back(currentinterface);
+					currentinterface=jni->GetSuperclass(currentinterface);
+				}
+
+				for (int k=(int)extendedinterfaces.size()-1; k>=0; k--)
+				{
+					//add this interface to the interfaces list if it isn't already in the list
+					BOOL duplicate=FALSE;
+					for (int l=0; l<interfaces.size(); l++)
+					{
+						if (jni->IsSameObject(interfaces[l], extendedinterfaces[k]))
+						{
+							duplicate=TRUE;
+							break;
+						}
+					}					
+
+					if (!duplicate)
+						interfaces.push_back(extendedinterfaces[k]);					
+				}
+				
+			}
+
+			if (implementedinterfaces)
+				jvmti->Deallocate((unsigned char*)implementedinterfaces);
+		}
+	}
+
+	//now that we have a list of all the interfaces and classes, get their fields
+	
+	//first the interfaces (ordered from 0 to end)
+	for (int i=0; i<interfaces.size(); i++)
+	{
+		jint fcount;
+		jfieldID *fields=NULL;
+		if (jvmti->GetClassFields(interfaces[i], &fcount, &fields)==JVMTI_ERROR_NONE)
+		{
+			for (int j=0; j<fcount; j++)
+				allfields->push_back(fields[j]);				
+			
+			if (fields)
+				jvmti->Deallocate((unsigned char*)fields);
+		}
+	}
+
+	//and then the classes (reversed)
+	for (int i=(int)classes.size()-1; i>=0; i--)
+	{
+		jint fcount;
+		jfieldID *fields=NULL;
+		if (jvmti->GetClassFields(classes[i], &fcount, &fields)==JVMTI_ERROR_NONE)
+		{
+			for (int j=0; j<fcount; j++)
+				allfields->push_back(fields[j]);				
+			
+			if (fields)
+				jvmti->Deallocate((unsigned char*)fields);
+		}
+	}
+
+}
+
+void CJavaServer::RefineScanResults(void)
+{
+	int scantype=ReadByte();
+	jdouble value;
+	if (scantype==0)
+		Read(&value, sizeof(jdouble));
+
+	
+	
+
+	//go through the results and check if they are usable or invalid now
+	//(this is why I find c++ to ugly)
+	list<ScanResult>::iterator sr=ScanResults.begin();
+
+	while (sr!=ScanResults.end())
+	{
+		BOOL valid=FALSE;
+		jint count=0;
+		jobject *objects;
+		
+		//for unknown initial value, it might be more efficient to just start with getting all the objects and enumerating the fields and then get the value instead of this
+		jvmti->GetObjectsWithTags(1, &sr->objectTag, &count, &objects, NULL); 
+		if (count)
+		{
+			jobject o=objects[0];
+
+			if (sr->fieldID==0)
+			{
+				//enumerate all the classes/superclasses
+				vector<jfieldID> fields;
+				jclass currentclass=jni->GetObjectClass(o);
+
+				char *sig=NULL, *gen=NULL;
+
+				jvmti->GetClassSignature(currentclass, &sig, &gen);
+
+				if (strcmp(sig,"LTest;")==0)
+				{
+					OutputDebugStringA("Test encountered");
+				}
+
+				if (sig)
+					jvmti->Deallocate((unsigned char *)sig);
+
+				if (gen)
+					jvmti->Deallocate((unsigned char *)gen);
+
+
+				GetAllFieldsFromClass(currentclass, &fields);
+
+				if (fields.size()>sr->fieldindex)
+					sr->fieldID=fields[sr->fieldindex];
+
+			
+			}
+
+			if (sr->fieldID)
+			{
+				//check the current value
+
+				
+
+				switch (sr->type)
+				{					
+					case JVMTI_PRIMITIVE_TYPE_BOOLEAN:
+					{
+						jboolean newvalue=jni->GetBooleanField(o, sr->fieldID);
+						switch(scantype)
+						{
+							case 0:
+								valid=newvalue==(value==1.0f); //exact value
+								break;
+
+							case 3:
+								valid=newvalue!=sr->lastvalue.z; //changed
+								break;
+
+							case 4:
+								valid=newvalue==sr->lastvalue.z; //unchanged
+						}
+
+						break;
+					}
+
+					case JVMTI_PRIMITIVE_TYPE_BYTE:
+					{
+						jbyte newvalue=jni->GetByteField(o, sr->fieldID);
+						switch(scantype)
+						{
+							case 0:
+								valid=newvalue==(jbyte)value; //exact value
+								break;
+
+							case 1:
+								valid=newvalue>sr->lastvalue.b; //increased value
+								break;
+
+							case 2:
+								valid=newvalue<sr->lastvalue.b; //decreased value
+								break;
+
+							case 3:
+								valid=newvalue!=sr->lastvalue.b; //changed
+								break;
+
+							case 4:
+								valid=newvalue==sr->lastvalue.b; //unchanged
+						}
+
+						break;
+					}
+
+					case JVMTI_PRIMITIVE_TYPE_CHAR:
+					{
+						jchar newvalue=jni->GetShortField(o, sr->fieldID);
+						switch(scantype)
+						{
+							case 0:
+								valid=newvalue==(jchar)value; //exact value
+								break;
+
+							case 1:
+								valid=newvalue>sr->lastvalue.c; //increased value
+								break;
+
+							case 2:
+								valid=newvalue<sr->lastvalue.c; //decreased value
+								break;
+
+							case 3:
+								valid=newvalue!=sr->lastvalue.c; //changed
+								break;
+
+							case 4:
+								valid=newvalue==sr->lastvalue.c; //unchanged
+						}
+
+						break;
+					}
+
+					case JVMTI_PRIMITIVE_TYPE_SHORT:
+					{
+						jshort newvalue=jni->GetShortField(o, sr->fieldID);
+						switch(scantype)
+						{
+							case 0:
+								valid=newvalue==(jshort)value; //exact value
+								break;
+
+							case 1:
+								valid=newvalue>sr->lastvalue.s; //increased value
+								break;
+
+							case 2:
+								valid=newvalue<sr->lastvalue.s; //decreased value
+								break;
+
+							case 3:
+								valid=newvalue!=sr->lastvalue.s; //changed
+								break;
+
+							case 4:
+								valid=newvalue==sr->lastvalue.s; //unchanged
+						}
+
+						break;
+					}
+
+					case JVMTI_PRIMITIVE_TYPE_INT:
+					{
+						jint newvalue=jni->GetIntField(o, sr->fieldID);
+						switch(scantype)
+						{
+							case 0:
+								valid=newvalue==(jint)value; //exact value
+								break;
+
+							case 1:
+								valid=newvalue>sr->lastvalue.i; //increased value
+								break;
+
+							case 2:
+								valid=newvalue<sr->lastvalue.i; //decreased value
+								break;
+
+							case 3:
+								valid=newvalue!=sr->lastvalue.i; //changed
+								break;
+
+							case 4:
+								valid=newvalue==sr->lastvalue.i; //unchanged
+						}
+
+						break;
+					}
+
+					case JVMTI_PRIMITIVE_TYPE_LONG:
+					{
+						jlong newvalue=jni->GetLongField(o, sr->fieldID);
+						switch(scantype)
+						{
+							case 0:
+								valid=newvalue==(jlong)value; //exact value
+								break;
+
+							case 1:
+								valid=newvalue>sr->lastvalue.j; //increased value
+								break;
+
+							case 2:
+								valid=newvalue<sr->lastvalue.j; //decreased value
+								break;
+
+							case 3:
+								valid=newvalue!=sr->lastvalue.j; //changed
+								break;
+
+							case 4:
+								valid=newvalue==sr->lastvalue.j; //unchanged
+						}
+
+						break;
+					}
+
+					case JVMTI_PRIMITIVE_TYPE_FLOAT:
+					{
+						jfloat newvalue=jni->GetFloatField(o, sr->fieldID);
+						switch(scantype)
+						{
+							case 0:
+								valid=newvalue==(jfloat)value; //exact value
+								break;
+
+							case 1:
+								valid=newvalue>sr->lastvalue.f; //increased value
+								break;
+
+							case 2:
+								valid=newvalue<sr->lastvalue.f; //decreased value
+								break;
+
+							case 3:
+								valid=newvalue!=sr->lastvalue.f; //changed
+								break;
+
+							case 4:
+								valid=newvalue==sr->lastvalue.f; //unchanged
+						}
+
+						break;
+					}
+
+					case JVMTI_PRIMITIVE_TYPE_DOUBLE:
+					{
+						jdouble newvalue=jni->GetDoubleField(o, sr->fieldID);
+						switch(scantype)
+						{
+							case 0:
+								valid=newvalue==(jdouble)value; //exact value
+								break;
+
+							case 1:
+								valid=newvalue>sr->lastvalue.d; //increased value
+								break;
+
+							case 2:
+								valid=newvalue<sr->lastvalue.d; //decreased value
+								break;
+
+							case 3:
+								valid=newvalue!=sr->lastvalue.d; //changed
+								break;
+
+							case 4:
+								valid=newvalue==sr->lastvalue.d; //unchanged
+						}
+
+						break;
+					}
+
+				}
+				
+			}
+
+		}
+
+		if (!valid)
+		{
+			list<ScanResult>::iterator oldsr=sr;
+			sr++;
+			ScanResults.erase(oldsr);
+		}
+		else sr++;
+
+	}
+
+	WriteQword(ScanResults.size());
+	
+}
+
+
 void CJavaServer::Start(void)
 {
 	BYTE command;
@@ -1330,6 +1851,14 @@ void CJavaServer::Start(void)
 
 					case JAVACMD_SETFIELD:
 						SetField();
+						break;
+
+					case JAVACMD_STARTSCAN:
+						StartScan();
+						break;
+
+					case JAVACMD_REFINESCANRESULTS:
+						RefineScanResults();
 						break;
 
 					default:						

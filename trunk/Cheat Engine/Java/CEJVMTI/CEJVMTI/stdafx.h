@@ -14,6 +14,8 @@
 #include <classfile_constants.h>
 #include <pipe.h>
 #include <map>
+#include <list>
+#include <vector>
 
 
 // TODO: reference additional headers your program requires here
