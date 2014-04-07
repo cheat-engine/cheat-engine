@@ -106,7 +106,7 @@ implementation
 uses luaclass;
 
 resourcestring
-  rsError = 'Script Error';
+  rsError = 'Script Terminated';
 
 var
   LuaDebugForm: TfrmLuaEngine;
@@ -564,7 +564,7 @@ begin
   result:=LuaDebugSingleStepping or (LuaDebugForm.mScript.Marks.Line[linenumber]<>nil);
 end;
 
-procedure LineHook(L: Plua_State; ar: Plua_Debug); cdecl;
+procedure LineHook_Handler(L: Plua_State; ar: Plua_Debug);
 var i,j: integer;
   s,s2: integer;
   mark: TSynEditMark;
@@ -574,6 +574,8 @@ var i,j: integer;
 
   stack: integer;
 begin
+  LuaDebugForm.continuemethod:=0;
+
   if MainThreadID<>GetCurrentThreadId then
   begin
     //Only the main thread can be debugged for now
@@ -691,11 +693,7 @@ begin
 
       LuaDebugSingleStepping:=false;
 
-      case LuaDebugForm.continuemethod of
-        1: ;//continue (normal bp's only)
-        2: LuaDebugSingleStepping:=true;  //single step next instruction
-        3: Raise exception.create('The user stopped this debug session');
-      end;
+
 
 
     end;
@@ -704,6 +702,22 @@ begin
   end;
 
 
+end;
+
+procedure LineHook(L: Plua_State; ar: Plua_Debug); cdecl;
+begin
+  LineHook_Handler(L, ar);
+
+  case LuaDebugForm.continuemethod of
+    1: ;//continue (normal bp's only)
+    2: LuaDebugSingleStepping:=true;  //single step next instruction
+    3:
+    begin
+      //lua_sethook(L, linehook, 0, 0);
+      lua_pushstring(L, 'User clicked stop');
+      lua_error(L);
+    end;
+  end;
 end;
 
 procedure TfrmLuaEngine.btnExecuteClick(Sender: TObject);
