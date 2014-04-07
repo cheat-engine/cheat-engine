@@ -135,7 +135,7 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getOnChange', checkbox_getonChange);
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'AllowGrayed', checkbox_getAllowGrayed, checkbox_getAllowGrayed);
-  luaclass_addPropertyToTable(L, metatable, userdata, 'State', checkbox_getState, checkbox_getState);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'State', checkbox_getState, checkbox_setState);
   luaclass_addPropertyToTable(L, metatable, userdata, 'OnChange', checkbox_getOnChange, checkbox_getOnChange);
 
 end;
