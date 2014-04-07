@@ -5238,6 +5238,12 @@ begin
   result:=0;
 end;
 
+function activateProtection(L: PLua_State): integer; cdecl;
+begin
+  protectme;
+end;
+
+
 procedure InitializeLua;
 var s: tstringlist;
   k32: THandle;
@@ -5610,6 +5616,8 @@ begin
     lua_register(LuaVM, 'createRef', createRef);
     lua_register(LuaVM, 'getRef', getRef);
     lua_register(LuaVM, 'destroyRef', destroyRef);
+
+    lua_register(LuaVM, 'activateProtection', activateProtection);
 
     initializeLuaCustomControl;
 

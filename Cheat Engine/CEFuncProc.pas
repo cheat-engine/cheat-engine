@@ -220,6 +220,7 @@ function EscapeStringForRegEx(const S: string): string;
 
 function GetStackStart(threadnr: integer=0): ptruint;
 function getDiskFreeFromPath(path: string): int64;
+procedure protectme;
 
 procedure errorbeep;
 
@@ -3912,7 +3913,24 @@ begin
   end;
 end;
 
+procedure protectme;
+var
+  h: thandle;
+  sa: SECURITY_ATTRIBUTES;
+begin
+  h:=OpenProcess(PROCESS_ALL_ACCESS, false, GetCurrentProcessId);
+
+  sa.nLength:=sizeof(sa);
+  sa.bInheritHandle:=false;
+  if ConvertStringSecurityDescriptorToSecurityDescriptorA('D:P(D;;;;;BG)', SDDL_REVISION_1, sa.lpSecurityDescriptor, nil) then
+    SetKernelObjectSecurity(h, DACL_SECURITY_INFORMATION, sa.lpSecurityDescriptor);
+end;
+
+
 initialization
+  ownprocesshandle := OpenProcess(PROCESS_ALL_ACCESS, True, GetCurrentProcessId);
+
+
   getmem(tempdir,256);
   GetTempPath(256,tempdir);
   GetWindir;

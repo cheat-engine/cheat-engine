@@ -12,6 +12,7 @@ uses jwawindows, windows, Assemblerunit, classes, LCLIntf,symbolhandler,
 
 function getenableanddisablepos(code:tstrings;var enablepos,disablepos: integer): boolean;
 function autoassemble(code: tstrings;popupmessages: boolean):boolean; overload;
+function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean):boolean; overload;
 function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean;var CEAllocarray: TCEAllocArray; registeredsymbols: tstringlist=nil): boolean; overload;
 
 type TAutoAssemblerPrologue=procedure(code: TStrings; syntaxcheckonly: boolean) of object;
@@ -2964,6 +2965,12 @@ begin
   end;
 end;
 
+function autoassemble(code: Tstrings; popupmessages,enable,syntaxcheckonly, targetself: boolean):boolean; overload;
+var aa: TCEAllocArray;
+begin
+  setlength(aa,0);
+  result:=autoassemble(code,popupmessages,enable,syntaxcheckonly,targetself,aa,nil);
+end;
 
 function autoassemble(code: tstrings;popupmessages: boolean):boolean; overload;
 var aa: TCEAllocArray;
