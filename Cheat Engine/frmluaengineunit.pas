@@ -22,6 +22,8 @@ type
     miSetBreakpoint: TMenuItem;
     miRun: TMenuItem;
     miSingleStep: TMenuItem;
+    ToolButton1: TToolButton;
+    tbStopDebug: TToolButton;
     tShowHint: TIdleTimer;
     ilLuaDebug: TImageList;
     ilSyneditDebug: TImageList;
@@ -83,6 +85,7 @@ type
     procedure Panel2Resize(Sender: TObject);
     procedure tbRunClick(Sender: TObject);
     procedure tbSingleStepClick(Sender: TObject);
+    procedure tbStopDebugClick(Sender: TObject);
     procedure tShowHintTimer(Sender: TObject);
   private
     { private declarations }
@@ -126,6 +129,7 @@ begin
     tbDebug.enabled:=false;
     tbRun.enabled:=false;
     tbSingleStep.enabled:=false;
+    tbStopDebug.enabled:=false;
   end
   else
   begin
@@ -142,6 +146,19 @@ begin
     tbDebug.enabled:=false;
     tbRun.enabled:=false;
     tbSingleStep.enabled:=false;
+    tbStopDebug.enabled:=false;
+  end;
+end;
+
+procedure TfrmLuaEngine.tbStopDebugClick(Sender: TObject);
+begin
+  if tbdebug.visible and tbStopDebug.Enabled and tbStopDebug.Visible then
+  begin
+    continuemethod:=3;
+    tbDebug.enabled:=false;
+    tbRun.enabled:=false;
+    tbSingleStep.enabled:=false;
+    tbStopDebug.enabled:=false;
   end;
 end;
 
@@ -605,6 +622,7 @@ begin
       LuaDebugForm.tbDebug.enabled:=true;
       LuaDebugForm.tbRun.enabled:=true;
       LuaDebugForm.tbSingleStep.enabled:=true;
+      LuaDebugForm.tbStopDebug.enabled:=true;
       LuaDebugForm.mScript.ReadOnly:=true;
 
 
@@ -676,6 +694,7 @@ begin
       case LuaDebugForm.continuemethod of
         1: ;//continue (normal bp's only)
         2: LuaDebugSingleStepping:=true;  //single step next instruction
+        3: Raise exception.create('The user stopped this debug session');
       end;
 
 
