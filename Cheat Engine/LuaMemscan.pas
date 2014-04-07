@@ -17,6 +17,16 @@ uses luaclass, LuaObject;
 //memscan_firstScan(memscan, scanOption, vartype, roundingtype, input1, input2, startAddress,
 //                  stopAddress, protectionflags, alignmenttype, "alignmentparam", isHexadecimalInput,
 //                  isNotABinaryString, isunicodescan, iscasesensitive, ispercentagescan);
+
+function memscan_newScan(L: Plua_State): integer; cdecl;
+var memscan: TMemscan;
+begin
+  memscan:=luaclass_getClassObject(L);
+  memscan.newscan;
+  result:=0;
+
+end;
+
 function memscan_firstScan(L: Plua_State): integer; cdecl;
 var
   paramstart, paramcount: integer;
@@ -197,6 +207,7 @@ begin
   object_addMetaData(L, metatable, userdata);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'firstScan', memscan_firstScan);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'nextScan', memscan_nextScan);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'newScan', memscan_newScan);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'waitTillDone', memscan_waitTillDone);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'saveCurrentResults', memscan_saveCurrentResults);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getAttachedFoundlist', memscan_getAttachedFoundlist);

@@ -1632,7 +1632,7 @@ methods
     ispercentage: When true and the scanoption is of type soValueBetween, soIncreasedValueBy or soDecreasedValueBy will cause CE to do a precentage scan instead of a normal value scan
     savedResultName: String that holds the name of a saved result list that should be compared against. First scan is called "FIRST"
 
-  newscan() : Clears the current results
+  newScan() : Clears the current results
   waitTillDone() : Waits for the memscan thread(s) to finish scanning. Always use this
   saveCurrentResults(name) : Save the current scanresults to a unique name for this memscan. This save can be used to compare against in a subsequent next scan
   getAttachedFoundlist() : Returns a FoundList object if one is attached to this scanresults. Returns nil otherwise
