@@ -10,9 +10,10 @@ require("defines")
 List of CE specific functions and variables:
 
 TrainerOrigin : A variable that contains the path of the trainer that launched cheat engine (Only set when launched as a trainer)
-
 getCEVersion(): Returns a floating point value specifying the version of cheat engine
 
+
+activateProtection(): Prevents basic memory scanners from opening the cheat engine process
 fullAccess(address,size): Changes the protection of a block of memory to writable and executable
 
 loadTable(filename, merge OPTIONAL): Loads a .ct or .cetrainer. If merge is provided and set to true it will not clear the old table
@@ -225,7 +226,7 @@ inMainThread(): Returns true if the current code is running inside the main thre
 integerToUserData(int):  Converts a given integer to a userdata variable
 userDataToInteger(UserDataVar):  Converts a given userdata variable to an integer
 
-synchronize(function, object OPTIONAL): Calls the given function from the main thread
+synchronize(function(param), parameter OPTIONAL): Calls the given function from the main thread. Returns the return value of the given function
 checkSynchronize(): Calls this from an infinite loop in the main thread when using threading and synchronize calls. This will execute any queued synchronize calls
 
 writeToClipboard(text):  Writes the given text to the clipboard
@@ -1708,10 +1709,10 @@ methods
 
 
 Thread Class: (Inheritance: Object)
-createNativeThread(function(Thread)) : 
+createNativeThread(function(Thread,...), ...) : 
   Executes the given function in another thread using the systems thread mechanism
   The function returns the Thread class object
-  function declaration: function (Thread)
+  function declaration: function (Thread, ...)
 
 properties
   name: string - This name will be shown when the thread terminated abnormally
@@ -1721,10 +1722,10 @@ methods
     When set to true the thread object will free itself when the function ends (default=true)
     Note: Use this only from inside the thread function as the thread might have already terminated and freed itself when called
 
-  synchronize(function(thread)) :
+  synchronize(function(thread, parameter), parameter OPTIONAL) :
     Called from inside the thread. This wil cause the tread to get the main thread to execute the given function and wait for it to finish.
     Usually for gui access
-    function (Thread)
+    Returns the return value of the given function
 
   waitfor() : 
     Waits for the given thread to finish (Not recommended to call this from inside the thread itself)
