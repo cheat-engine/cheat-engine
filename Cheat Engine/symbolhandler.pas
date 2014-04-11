@@ -729,6 +729,8 @@ var
 
   pSymInfo2:PSYMBOL_INFO;
 begin
+
+
   result:=true;
   if pSymInfo.NameLen=0 then
     exit;
@@ -820,6 +822,8 @@ begin
   //todo: Add to structure dissect
   result:=true;
 end;
+
+var test: boolean;
 
 function EM(ModuleName:PSTR; BaseOfDll:dword64; UserContext:pointer):bool;stdcall;
 var self: TSymbolloaderthread;
@@ -1022,14 +1026,19 @@ begin
     finally
       isloading:=false;
 
-      OutputDebugString('Symbolhandler: sync: Calling finishedloadingsymbols');
+      OutputDebugString('symbolloader thread finished');
 
       owner.ReinitializeUserdefinedSymbolList;
 
 
-
       if not terminated then
+      begin
+        OutputDebugString('Symbolhandler: sync: Calling finishedloadingsymbols');
         synchronize(finishedloadingsymbols);
+        OutputDebugString('after finishedloadingsymbols');
+      end
+      else
+        OutputDebugString('Symbolhandler was terminated. Not going to sync');
 
     end;
 
