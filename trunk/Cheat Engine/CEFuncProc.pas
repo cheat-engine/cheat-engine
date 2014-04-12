@@ -220,7 +220,7 @@ function EscapeStringForRegEx(const S: string): string;
 
 function GetStackStart(threadnr: integer=0): ptruint;
 function getDiskFreeFromPath(path: string): int64;
-procedure protectme;
+procedure protectme(pid: dword=0);
 
 procedure errorbeep;
 
@@ -3913,12 +3913,14 @@ begin
   end;
 end;
 
-procedure protectme;
+procedure protectme(pid: dword=0);
 var
   h: thandle;
   sa: SECURITY_ATTRIBUTES;
 begin
-  h:=OpenProcess(PROCESS_ALL_ACCESS, false, GetCurrentProcessId);
+  if pid=0 then
+    pid:=GetCurrentProcessId;
+  h:=OpenProcess(PROCESS_ALL_ACCESS, false, pid);
 
   sa.nLength:=sizeof(sa);
   sa.bInheritHandle:=false;
