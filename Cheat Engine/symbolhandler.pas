@@ -74,6 +74,7 @@ type
 
     extraSymbolData: TExtraSymbolData;
 
+    procedure EnumerateExtendedDebugSymbols;
 
     procedure LoadDriverSymbols;
     procedure LoadDLLSymbols;
@@ -716,18 +717,43 @@ begin
   result:=(self.terminated=false);
 end;
 
+procedure TSymbolloaderthread.EnumerateExtendedDebugSymbols;
+var
+  i: integer;
+  c: IMAGEHLP_STACK_FRAME;
+begin
+  for i:=0 to self.symbollist.ExtraSymbolDataList.Count-1 do
+  begin
+    if (not self.symbollist.ExtraSymbolDataList[i].filledin) and (self.symbollist.ExtraSymbolDataList[i].symboladdress<>0) then
+    begin
+      //get the data
+
+      self.extraSymbolData:=self.symbollist.ExtraSymbolDataList[i];
+
+      ZeroMemory(@c, sizeof(c));
+      c.InstructionOffset:=self.extraSymbolData.symboladdress;
+      SymSetContext(self.thisprocesshandle, @c, NULL);
+
+      SymEnumSymbols(self.thisprocesshandle, 0, NULL, @ES2, self);
+
+      self.extraSymbolData.filledin:=true;
+    end;
+  end;
+end;
 
 function ES(pSymInfo:PSYMBOL_INFO; SymbolSize:ULONG; UserContext:pointer):BOOL;stdcall;
 var
   self: TSymbolloaderthread;
   s: string;
   sym: PCESymbolInfo;
-  c: IMAGEHLP_STACK_FRAME;
+
   tempstring: pchar;
   x: dword;
   i: integer;
 
   pSymInfo2:PSYMBOL_INFO;
+
+  ExtraSymbolData: TExtraSymbolData;
 begin
 
 
@@ -746,70 +772,23 @@ begin
 
   if TSymTagEnum(pSymInfo.Tag)=SymTagFunction then
   begin
-    self.extraSymbolData:=TExtraSymbolData.create;
-    self.symbollist.AddExtraSymbolData(self.extraSymbolData);
+    extraSymbolData:=TExtraSymbolData.create;
+    self.symbollist.AddExtraSymbolData(extraSymbolData);
 
-
-    ZeroMemory(@c, sizeof(c));
-    c.InstructionOffset:=pSymInfo.Address;
-    SymSetContext(self.thisprocesshandle, @c, NULL);
-
-    SymEnumSymbols(self.thisprocesshandle, 0, NULL, @ES2, self);
-
+    extraSymbolData.symboladdress:=pSymInfo.Address;
+    //fill the rest in later
   end
   else
-    self.extraSymbolData:=nil;
+    extraSymbolData:=nil;
 
   //don't add if it's a forwarder, but register a userdefined symbol
 
   //if (pSymInfo.Flags and SYMFLAG_FORWARDER=0) then     //Problem: getJIT is marked as Forwarder, but it's not
   begin
-    sym:=self.symbollist.AddSymbol(self.currentModuleName, self.currentModuleName+'.'+s, pSymInfo.Address, symbolsize,false, self.extraSymbolData);
-    sym:=self.symbollist.AddSymbol(self.currentModuleName, s, pSymInfo.Address, symbolsize,true, self.extraSymbolData); //don't add it as a address->string lookup  , (this way it always shows modulename+symbol)
-  end
- { else
-  begin
-    //forwarded
-    getmem(tempstring, 128);
-    if ReadProcessMemory(self.thisprocesshandle, pointer(pSymInfo.Address), tempstring, 128, x) then
-    begin
-      tempstring[x-1]:=#0;
-      //add a registered symbol for this (raw add)
+    sym:=self.symbollist.AddSymbol(self.currentModuleName, self.currentModuleName+'.'+s, pSymInfo.Address, symbolsize,false, extraSymbolData);
+    sym:=self.symbollist.AddSymbol(self.currentModuleName, s, pSymInfo.Address, symbolsize,true, extraSymbolData); //don't add it as a address->string lookup  , (this way it always shows modulename+symbol)
+  end;
 
-      with self.owner do
-      begin
-        userdefinedsymbolsCS.enter;
-        try
-          if userdefinedsymbolspos+1>=length(userdefinedsymbols) then
-            setlength(userdefinedsymbols,length(userdefinedsymbols)*2);
-
-          userdefinedsymbols[userdefinedsymbolspos].address:=0;
-          userdefinedsymbols[userdefinedsymbolspos].addressstring:=tempstring;
-          userdefinedsymbols[userdefinedsymbolspos].symbolname:=s;
-          userdefinedsymbols[userdefinedsymbolspos].allocsize:=0;
-          userdefinedsymbols[userdefinedsymbolspos].processid:=0;
-          userdefinedsymbols[userdefinedsymbolspos].doNotSave:=true;
-          inc(userdefinedsymbolspos);
-
-          if userdefinedsymbolspos+1>=length(userdefinedsymbols) then
-            setlength(userdefinedsymbols,length(userdefinedsymbols)*2);
-
-          userdefinedsymbols[userdefinedsymbolspos].address:=0;
-          userdefinedsymbols[userdefinedsymbolspos].addressstring:=tempstring;
-          userdefinedsymbols[userdefinedsymbolspos].symbolname:=self.currentModuleName+'.'+s;
-          userdefinedsymbols[userdefinedsymbolspos].allocsize:=0;
-          userdefinedsymbols[userdefinedsymbolspos].processid:=0;
-          userdefinedsymbols[userdefinedsymbolspos].doNotSave:=true;
-          inc(userdefinedsymbolspos);
-        finally
-          userdefinedsymbolsCS.leave;
-        end;
-
-      end;
-    end;
-
-    freemem(tempstring);
-  end};
 
 
   result:=not self.terminated;
@@ -982,12 +961,10 @@ begin
           if kernelsymbols then LoadDriverSymbols;
           LoadDLLSymbols;
 
-          //enumerate all the data from the symbols , store it, and then uninitialize it freeing the files
+          //enumerate the basic data from the symbols
           SymEnumerateModules64(thisprocesshandle, @EM, self );
-
-          Symcleanup(thisprocesshandle);
-
           apisymbolsloaded:=true;
+
 
 
           if owner.dotNetDataCollector.Attached then
@@ -1002,6 +979,13 @@ begin
               end;
             end;
           end;
+
+          //enumerate the extended debug symbols
+
+          EnumerateExtendedDebugSymbols;
+
+          Symcleanup(thisprocesshandle);
+
         end else error:=true;
       end
       else
@@ -1903,6 +1887,9 @@ begin
   if si<>nil then
     result:=si.extra;
   symbolloadervalid.Endread;
+
+  if not result.filledin then //Not yet loaded
+    result:=nil;
 end;
 
 function TSymhandler.getNameFromAddress(address:ptrUint;symbols:boolean; modules: boolean; baseaddress: PUINT64=nil; found: PBoolean=nil; hexcharsize: integer=8):string;

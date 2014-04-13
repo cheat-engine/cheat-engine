@@ -8,7 +8,7 @@ This unit will keep two trees that link to a list of string to address informati
 interface
 
 uses
-  windows, Classes, SysUtils, AvgLvlTree, math, fgl, cvconst;
+  windows, Classes, SysUtils, AvgLvlTree, math, fgl, cvconst, syncobjs;
 
 type
   PSYMBOL_INFO = ^TSYMBOL_INFO;
@@ -45,10 +45,14 @@ type
   TExtraSymbolData=class
   private
   public
+    symboladdress: ptruint; //used to fill in the rest
+    filledin: boolean;
+
     return: string;
     simpleparameters: string; //either simple or the parameters list
     parameters: TExtraSymbolDataEntryList;
     locals: TExtraSymbolDataEntryList;
+
     constructor create;
     destructor destroy; override;
   end;
@@ -78,7 +82,7 @@ type
     AddressToString: TAvgLvlTree;
     StringToAddress: TAvgLvlTree;
 
-    ExtraSymbolDataList: TExtraSymbolDataList;
+    fExtraSymbolDataList: TExtraSymbolDataList;
     function A2SCheck(Tree: TAvgLvlTree; Data1, Data2: pointer): integer;
     function S2ACheck(Tree: TAvgLvlTree; Data1, Data2: pointer): integer;
   public
@@ -93,12 +97,17 @@ type
     procedure DeleteSymbol(searchkey: string); overload;
     procedure DeleteSymbol(address: qword); overload;
     procedure clear;
+  published
+    property ExtraSymbolDataList: TExtraSymbolDataList read fExtraSymbolDataList;
+
   end;
 
 
 implementation
 
 uses CEFuncProc, symbolhandler;
+
+
 
 constructor TExtraSymbolData.create;
 begin
@@ -480,12 +489,12 @@ end;
 
 procedure TSymbolListHandler.AddExtraSymbolData(d: TExtraSymbolData);
 begin //add here instead of AddSymbol, since AddSymbol can add the same object multiple times
-  ExtraSymbolDataList.add(d);
+  fExtraSymbolDataList.add(d);
 end;
 
 procedure TSymbolListHandler.RemoveExtraSymbolData(d: TExtraSymbolData);
 begin
-  ExtraSymbolDataList.Remove(d);
+  fExtraSymbolDataList.Remove(d);
 end;
 
 constructor TSymbolListHandler.create;
@@ -493,7 +502,7 @@ begin
   inherited create;
   AddressToString:=TAvgLvlTree.CreateObjectCompare(A2SCheck);
   StringToAddress:=TAvgLvlTree.CreateObjectCompare(S2ACheck);
-  ExtraSymbolDataList:=TExtraSymbolDataList.create;
+  fExtraSymbolDataList:=TExtraSymbolDataList.create;
   cs:=TMultiReadExclusiveWriteSynchronizer.create;
 
 
