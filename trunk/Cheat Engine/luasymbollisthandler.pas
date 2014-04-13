@@ -154,6 +154,8 @@ begin
           esd.return:=returntype;
           esd.simpleparameters:=parameters;
 
+          esd.filledin:=true;
+
           sl.AddExtraSymbolData(esd);
         end;
 

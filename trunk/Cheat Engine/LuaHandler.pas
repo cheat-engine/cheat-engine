@@ -5240,7 +5240,10 @@ end;
 
 function activateProtection(L: PLua_State): integer; cdecl;
 begin
-  protectme;
+  if lua_gettop(L)=0 then
+    protectme
+  else
+    protectme(lua_tointeger(L,1));
 end;
 
 

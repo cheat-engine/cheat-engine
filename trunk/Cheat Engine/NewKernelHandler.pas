@@ -3,8 +3,8 @@ unit NewKernelHandler;
 {$MODE Delphi}
 
 interface
-uses jwawindows, windows,LCLIntf,sysutils, dialogs, controls, dbk32functions,
-     vmxfunctions,debug, multicpuexecution;
+uses jwawindows, windows,LCLIntf,sysutils, dialogs, classes, controls,
+     dbk32functions, vmxfunctions,debug, multicpuexecution;
 
 const dbkdll='DBK32.dll';
 
@@ -743,7 +743,8 @@ uses
      plugin,
      dbvmPhysicalMemoryHandler, //'' for physical mem
      {$endif}
-     filehandler; //so I can let readprocessmemory point to ReadProcessMemoryFile in filehandler
+     filehandler,  //so I can let readprocessmemory point to ReadProcessMemoryFile in filehandler
+     autoassembler;
 
 
 
@@ -1273,11 +1274,21 @@ begin
 end;
 
 procedure UseDBKOpenProcess;
+var
+  nthookscript: Tstringlist;
 begin
   LoadDBK32;
   If DBKLoaded=false then exit;
   OpenProcess:=@OP; //gives back the real handle, or if it fails it gives back a value only valid for the dll
   OpenThread:=@OT;
+
+  nthookscript:=tstringlist.create;
+  nthookscript.add('NtOpenProcess:');
+  nthookscript.add('jmp '+IntToHex(ptruint(@NOP),8));
+
+  autoassemble(nthookscript, false, true, false, true);
+
+  nthookscript.free;
 
   {$ifdef cemain}
   pluginhandler.handlechangedpointers(10);
