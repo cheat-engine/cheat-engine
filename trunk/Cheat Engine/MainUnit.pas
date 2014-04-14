@@ -1678,9 +1678,13 @@ procedure TMainForm.ShowError(var message: TMessage);
 var err: pchar;
 begin
   err:=pchar(message.lParam);
-  MessageDlg(err, mtError, [mbOK], 0);
-
-  freemem(err);
+  if err<>nil then
+  begin
+    MessageDlg(err, mtError, [mbOK], 0);
+    freemem(err);
+  end
+  else
+    MessageDlg('Unspecified error', mtError, [mbOK], 0);
 end;
 
 //----------------------------------
@@ -1918,6 +1922,8 @@ begin
   //unhandled exeption. Also clean lua stack
   getmem(err, length(e.Message)+1);
   strcopy(err, pchar(e.message));
+  err[length(e.message)]:=#0;
+
   PostMessage(handle, wm_showerror, 0, ptruint(err));
 end;
 
@@ -4627,7 +4633,6 @@ end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
 var
-  pid: dword;
   tokenhandle: thandle;
   tp: TTokenPrivileges;
   prev: TTokenPrivileges;
@@ -4734,11 +4739,6 @@ begin
 
 
   hotkeypressed := -1;
-
-  pid := GetCurrentProcessID;
-
-  ownprocesshandle := OpenProcess(PROCESS_ALL_ACCESS, True, pid);
-
 
 
 
@@ -7840,6 +7840,25 @@ begin
     IntToStr(x) + ',' + IntToStr(y) + '   -   width=' + IntToStr(w) + ' , height=' + IntToStr(h));
 end;
 
+function extendedtodouble(float80 : pointer):double; assembler;
+var
+   oldcw,newcw: word;
+   res: double;
+asm
+  fnstcw oldcw
+  fwait
+  mov cx,oldcw
+  or  cx,$0c3f
+  mov newcw,cx
+  fldcw newcw
+  mov rax,float80
+  fld tbyte [rax]
+  fstp qword res
+  fwait
+  mov rax,res
+  fldcw oldcw
+end;
+
 procedure TMainForm.Label59Click(Sender: TObject);
 const TokenIntegrityLevel=25;
 var t: TD3DHook_Texture;
@@ -7862,15 +7881,40 @@ var t: TD3DHook_Texture;
 
   addr: pointer;
   b: BOOL;
-  tid: dword;
+  tid,x: dword;
   h: thandle;
 
   mr: TPhysicalMemoryRanges;
 
   sl: tstringlist;
   rs: TResourceStream;
-begin
 
+  test: string;
+
+begin
+  c:=TCEConnection.create;
+
+  test:='1234567890abcdefghijklmnop123456789a';
+  c.beginWriteProcessMemory;
+
+  c.WriteProcessMemory(processhandle, pointer($00400600), @test[1], length(test), x);
+
+
+  c.WriteProcessMemory(processhandle, pointer($00400502), @test[3], 3, x);
+  c.WriteProcessMemory(processhandle, pointer($00400500), @test[1], 2, x);
+  c.WriteProcessMemory(processhandle, pointer($00400505), @test[6], 8, x);
+  c.WriteProcessMemory(processhandle, pointer($00400503), @test[4], 14, x);
+
+  c.WriteProcessMemory(processhandle, pointer($00400600+length(test)), @test[1], length(test), x);
+
+  c.WriteProcessMemory(processhandle, pointer($00400604), @test[5],3,x);
+
+  c.WriteProcessMemory(processhandle, pointer($004005ff), @test[26],3,x);
+
+
+
+
+  c.endWriteProcessMemory;
 
 
 end;
