@@ -732,10 +732,14 @@ begin
       //update the TOffsetEntry's
       if offsetlist.Count>0 then
       begin
+        taborder:=cbMustEndWithSpecificOffset.TabOrder;
         for i:=0 to offsetlist.Count-1 do
         begin
           if (offsetlist[i] is TOffsetEntry) then //should be true
+          begin
             TOffsetEntry(offsetlist[i]).Top:=TOffsetEntry(offsetlist[i]).Top+adjustment;
+            TOffsetEntry(offsetlist[i]).TabOrder:=taborder;
+          end;
         end;
 
         if offsetlist.count>1 then lblInfoLastOffset.top:=TOffsetEntry(offsetlist[0]).Top+4;

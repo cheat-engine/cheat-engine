@@ -59,6 +59,8 @@ type
     fMaxBitCountLevel: dword;
     fMaxBitCountOffset: dword;
 
+    fEndsWithOffsetList: array of dword;
+
     compressedPointerScanResult: PPointerscanResult;
     compressedTempBuffer: PByteArray;
 
@@ -71,6 +73,9 @@ type
 
     function getMergedResultCount: integer;
     function getMergedResult(index: integer): integer;
+
+    function getEndsWithOffsetListCount: integer;
+    function getEndsWithOffsetListEntry(index: integer): dword;
   public
     procedure resyncModulelist;
     procedure saveModulelistToResults(s: Tstream);
@@ -93,6 +98,9 @@ type
     property modulebase[index: integer]: ptruint read getModuleBase write setModuleBase;
     property mergedresultcount: integer read getMergedResultCount;
     property mergedresults[index: integer]: integer read getMergedResult;
+    property EndsWithOffsetListCount: integer read getEndsWithOffsetListCount;
+    property EndsWithOffsetList[index: integer]: dword read getEndsWithOffsetListEntry;
+
     property compressedptr: boolean read fCompressedPtr;
     property aligned: boolean read fAligned;
     property MaxBitCountModuleIndex: dword read fMaxBitCountModuleIndex;
@@ -114,6 +122,16 @@ begin
     result:=fmergedresults[index]
   else
     result:=-1;
+end;
+
+function TPointerscanresultreader.getEndsWithOffsetListCount: integer;
+begin
+  result:=length(fEndsWithOffsetList);
+end;
+
+function TPointerscanresultreader.getEndsWithOffsetListEntry(index: integer): dword;
+begin
+  result:=fEndsWithOffsetList[index]
 end;
 
 procedure TPointerscanresultreader.resyncModulelist;
@@ -309,13 +327,16 @@ begin
     compressedPointerScanResult.offsetcount:=compressedPointerScanResult.offsetcount and MaskLevel;
     }
     compressedPointerScanResult.offsetcount:=(pdword(@compressedTempBuffer[bit shr 3])^ shr (bit and $7)) and MaskLevel;
-
-
-    inc(compressedPointerScanResult.offsetcount);
+    inc(compressedPointerScanResult.offsetcount, length(fEndsWithOffsetList));
 
     inc(bit, fMaxBitCountLevel);
 
-    for j:=0 to compressedPointerScanResult.offsetcount-1 do
+    for j:=0 to length(fEndsWithOffsetList)-1 do
+      compressedPointerScanResult.offsets[j]:=fEndsWithOffsetList[j];
+
+
+
+    for j:=length(fEndsWithOffsetList) to compressedPointerScanResult.offsetcount-1 do
     begin
       {
       compressedPointerScanResult.offsets[j]:=pdword(@compressedTempBuffer[bit div 8])^;
@@ -333,6 +354,7 @@ begin
 
       inc(bit, fMaxBitCountOffset);
     end;
+
 
 
     result:=compressedPointerScanResult;
@@ -514,6 +536,11 @@ begin
       fMaxBitCountModuleIndex:=configfile.ReadDword;
       fMaxBitCountLevel:=configfile.ReadDword;
       fMaxBitCountOffset:=configfile.ReadDword;
+
+      setlength(fEndsWithOffsetList, configfile.ReadDword);
+
+      for i:=0 to length(fEndsWithOffsetList)-1 do
+        fEndsWithOffsetList[i]:=configfile.ReadDWord;
     end;
 
 
@@ -523,7 +550,7 @@ begin
 
   if fCompressedPtr then
   begin
-    sizeofentry:=32+MaxBitCountModuleIndex+MaxBitCountLevel+MaxBitCountOffset*maxlevel;
+    sizeofentry:=32+MaxBitCountModuleIndex+MaxBitCountLevel+MaxBitCountOffset*(maxlevel-length(fEndsWithOffsetList));
     sizeofentry:=(sizeofentry+7) div 8;
 
     getmem(compressedPointerScanResult, 12+4*maxlevel);
