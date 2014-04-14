@@ -213,6 +213,10 @@ begin
     f.WriteDWord(pointerscanresults.MaxBitCountLevel);
     f.WriteDWord(pointerscanresults.MaxBitCountOffset);
 
+    f.writedword(pointerscanresults.EndsWithOffsetListCount);
+    for i:=0 to pointerscanresults.EndsWithOffsetListCount-1 do
+      f.writedword(Pointerscanresults.EndsWithOffsetList[i]);
+
 
 
     f.free;

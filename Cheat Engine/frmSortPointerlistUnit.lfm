@@ -10,7 +10,7 @@ object frmSortPointerlist: TfrmSortPointerlist
   OnClose = FormClose
   OnDestroy = FormDestroy
   Position = poScreenCenter
-  LCLVersion = '1.1'
+  LCLVersion = '1.2.0.3'
   object Label1: TLabel
     Left = 0
     Height = 15

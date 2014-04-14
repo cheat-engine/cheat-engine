@@ -286,6 +286,8 @@ type
     compressedEntry: pbytearray;
     compressedEntrySize: integer;
 
+    mustendwithoffsetlistlength: integer;
+
 
     procedure execute; override;
     constructor create(suspended: boolean);
@@ -790,7 +792,7 @@ begin
       noLoop:=staticscanner.noLoop;
       structsize:=staticscanner.sz;
 
-      compressedEntrySize:=32+MaxBitCountModuleIndex+MaxBitCountLevel+MaxBitCountOffset*maxlevel;
+      compressedEntrySize:=32+MaxBitCountModuleIndex+MaxBitCountLevel+MaxBitCountOffset*(maxlevel-mustendwithoffsetlistlength);
       compressedEntrySize:=(compressedEntrySize+7) div 8;
 
       getmem(compressedEntry, compressedEntrySize+4); //+4 so there's some space for overhead (writing using a dword pointer to the last byte)
@@ -896,11 +898,15 @@ var
 
   v2: dword; }
 
+ // _level: integer;
+  startindex: integer;
+
 begin
   if (staticdata=nil) then exit; //don't store it
 
   //fill in the offset list
   inc(pointersfound);
+
 
 
   {
@@ -943,6 +949,9 @@ begin
 
     //so, the compressed version should be almost 3 times as small on a default scan (the shifting and alignment might cause a slightly slower scan)
 
+    if level<(mustendwithoffsetlistlength-1) then exit; //on a multi offset end scan, entries with a partial match resulting in a static are saved as well. Don't as they are not what the user wished, and would cause problems
+
+
     bit:=0;
     pdword(compressedEntry)^:=staticdata.offset;
     bit:=bit+32;
@@ -965,13 +974,19 @@ begin
     bit:=bit+MaxBitCountLevel;    //next section
     }
 
+    //do not save the "must end with specific offset" offsets. They are known
 
-    pdword(@compressedEntry[bd8])^:=pdword(@compressedEntry[bd8])^ and (not (MaskLevel shl bm8)) or (level shl bm8);
+    //startindex:=mustendwithoffsetlistlength;
+   // _level:=1+(level-mustendwithoffsetlistlength);
+
+//    pdword(@compressedEntry[bd8])^:=pdword(@compressedEntry[bd8])^ and (not (MaskLevel shl bm8)) or (_level shl bm8);
+    pdword(@compressedEntry[bd8])^:=pdword(@compressedEntry[bd8])^ and (not (MaskLevel shl bm8)) or ((1+(level-mustendwithoffsetlistlength)) shl bm8);
     bit:=bit+MaxBitCountLevel;    //next section
 
 
+
     //compress the offsets
-    for i:=0 to level do
+    for i:=mustendwithoffsetlistlength to level do
     begin
       bd8:=bit shr 3; //bit div 8;
       bm8:=bit and $7; //bit mod 8;
@@ -2850,7 +2865,7 @@ begin
       //calculate the masks for compression
       //moduleid can be negative, so keep that in mind
       MaxBitCountModuleIndex:=getMaxBitCount(ownerform.pointerlisthandler.modulelist.Count-1, true);
-      MaxBitCountLevel:=getMaxBitCount(maxlevel-1, false); //counted from 0.  (if level=4 then value goes from 0,1,2 3
+      MaxBitCountLevel:=getMaxBitCount(maxlevel-length(mustendwithoffsetlist) , false); //counted from 1.  (if level=4 then value goes from 1,2,3,4) 0 means no offsets. This can happen in case of a pointerscan with specific end offsets, which do not get saved.
       MaxBitCountOffset:=getMaxBitCount(sz-1, false);
 
       if unalligned=false then MaxBitCountOffset:=MaxBitCountOffset - 2;
@@ -2925,6 +2940,8 @@ begin
         reversescanners[i].MaxBitCountLevel:=MaxBitCountLevel;
         reversescanners[i].MaxBitCountOffset:=MaxBitCountOffset;
 
+        reversescanners[i].mustendwithoffsetlistlength:=length(mustendwithoffsetlist);
+
 
         reversescanners[i].start;
       end;
@@ -2992,8 +3009,9 @@ begin
       result.writeDword(MaxBitCountLevel);
       result.writeDword(MaxBitCountOffset);
 
-
-
+      result.writeDword(length(mustendwithoffsetlist));
+      for i:=0 to length(mustendwithoffsetlist) do
+        result.writeDword(mustendwithoffsetlist[i]);
 
     finally
 
@@ -3546,6 +3564,10 @@ begin
           resultfile.WriteDWord(pointerscanresults.MaxBitCountModuleIndex);
           resultfile.WriteDWord(pointerscanresults.MaxBitCountLevel);
           resultfile.WriteDWord(pointerscanresults.MaxBitCountOffset);
+
+          resultfile.WriteDWord(pointerscanresults.EndsWithOffsetListCount);
+          for i:=0 to pointerscanresults.EndsWithOffsetListCount-1 do
+            resultfile.WriteDword(pointerscanresults.EndsWithOffsetList[i]);
 
 
           //all done, and no crashes
@@ -5069,6 +5091,10 @@ begin
     result.writedword(pointerscanresults.MaxBitCountModuleIndex);
     result.writedword(pointerscanresults.MaxBitCountLevel);
     result.writedword(pointerscanresults.MaxBitCountOffset);
+
+    result.writedword(pointerscanresults.EndsWithOffsetListCount);
+    for i:=0 to pointerscanresults.EndsWithOffsetListCount-1 do
+      result.writedword(Pointerscanresults.EndsWithOffsetList[i]);
 
 
     result.Free;
