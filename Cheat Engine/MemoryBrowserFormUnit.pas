@@ -2573,11 +2573,14 @@ end;
 
 procedure TMemoryBrowser.Heaps1Click(Sender: TObject);
 begin
-  if processid=0 then raise exception.Create(rsPleaseTargetAProcessFirst);
+  if processid=0 then
+  begin
+    messagedlg(rsPleaseTargetAProcessFirst, mterror, [mbOK], 0);
+    exit;
+  end;
+
   if (frmMemoryAllocHandler<>nil) and (frmMemoryAllocHandler.hookedprocessid<>processid) then
     freeandnil(frmMemoryAllocHandler);
-
-
 
   if frmheaps=nil then
     frmheaps:=tfrmheaps.create(self);
@@ -3296,7 +3299,11 @@ end;
 
 procedure TMemoryBrowser.Watchmemoryallocations1Click(Sender: TObject);
 begin
-  if processid=0 then raise exception.Create(rsPleaseTargetAProcessFirst);
+  if processid=0 then
+  begin
+    MessageDlg(rsPleaseTargetAProcessFirst, mtError,[mbok], 0);
+    exit;
+  end;
 
 
   if (frmMemoryAllocHandler<>nil) and (frmMemoryAllocHandler.hookedprocessid<>processid) then
