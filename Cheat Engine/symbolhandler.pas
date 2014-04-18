@@ -1888,7 +1888,7 @@ begin
     result:=si.extra;
   symbolloadervalid.Endread;
 
-  if not result.filledin then //Not yet loaded
+  if (result<>nil) and (not result.filledin) then //Not yet loaded
     result:=nil;
 end;
 
