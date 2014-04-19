@@ -7840,82 +7840,8 @@ begin
     IntToStr(x) + ',' + IntToStr(y) + '   -   width=' + IntToStr(w) + ' , height=' + IntToStr(h));
 end;
 
-function extendedtodouble(float80 : pointer):double; assembler;
-var
-   oldcw,newcw: word;
-   res: double;
-asm
-  fnstcw oldcw
-  fwait
-  mov cx,oldcw
-  or  cx,$0c3f
-  mov newcw,cx
-  fldcw newcw
-  mov rax,float80
-  fld tbyte [rax]
-  fstp qword res
-  fwait
-  mov rax,res
-  fldcw oldcw
-end;
-
 procedure TMainForm.Label59Click(Sender: TObject);
-const TokenIntegrityLevel=25;
-var t: TD3DHook_Texture;
-  s: TD3DHook_Sprite;
-
-  f: tfont;
-
-  fm: TD3DHook_FontMap;
-  tc: TD3Dhook_TextContainer;
-
-  p2: TPicture;
-  i: integer;
-  tokenhandle, tokenhandle2: thandle;
-  LengthNeeded, LengthNeeded2: dword;
-  buffer,buffer2: pointer;
-  exportlist: pchar;
-  max: integer;
-
-  c: TCEConnection;
-
-  addr: pointer;
-  b: BOOL;
-  tid,x: dword;
-  h: thandle;
-
-  mr: TPhysicalMemoryRanges;
-
-  sl: tstringlist;
-  rs: TResourceStream;
-
-  test: string;
-
 begin
-  c:=TCEConnection.create;
-
-  test:='1234567890abcdefghijklmnop123456789a';
-  c.beginWriteProcessMemory;
-
-  c.WriteProcessMemory(processhandle, pointer($00400600), @test[1], length(test), x);
-
-
-  c.WriteProcessMemory(processhandle, pointer($00400502), @test[3], 3, x);
-  c.WriteProcessMemory(processhandle, pointer($00400500), @test[1], 2, x);
-  c.WriteProcessMemory(processhandle, pointer($00400505), @test[6], 8, x);
-  c.WriteProcessMemory(processhandle, pointer($00400503), @test[4], 14, x);
-
-  c.WriteProcessMemory(processhandle, pointer($00400600+length(test)), @test[1], length(test), x);
-
-  c.WriteProcessMemory(processhandle, pointer($00400604), @test[5],3,x);
-
-  c.WriteProcessMemory(processhandle, pointer($004005ff), @test[26],3,x);
-
-
-
-
-  c.endWriteProcessMemory;
-
 
 end;
 
