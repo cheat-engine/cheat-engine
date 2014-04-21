@@ -165,7 +165,13 @@ end;
 
 function TTraceDebugInfo.datatype: TVariableType;
 begin
-  result:=FindTypeOfData(referencedAddress, bytes, bytesize);
+  case bytesize of
+    1: result:=vtByte;
+    2: result:=vtWord;
+    else
+      result:=FindTypeOfData(referencedAddress, bytes, bytesize);
+
+  end;
 end;
 
 procedure TTraceDebugInfo.fillbytes(datasize: integer);
@@ -1157,6 +1163,7 @@ begin
 end;
 
 initialization
+  registerclass(TfrmTracer);
   {$i frmTracerUnit.lrs}
 
 end.
