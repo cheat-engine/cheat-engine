@@ -1250,7 +1250,11 @@ function java_search_getResults(maxresults)
     local object=javapipe.readQword()
     if (object==0) or (object==nil) then break end --end of the list
 
-	table.insert(result, object)
+	local r={}
+	r.object=object
+	r.fieldid=readQword()
+
+	table.insert(result, r)
   end
   javapipe.unlock()
 

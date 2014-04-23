@@ -1755,6 +1755,7 @@ void CJavaServer::GetScanResults(void)
 		if (count)
 		{
 			WriteQword((UINT_PTR)objects[0]);
+			WriteQword((UINT_PTR)sr->fieldID);					
 		}
 		else
 		{
