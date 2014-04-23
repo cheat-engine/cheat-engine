@@ -411,7 +411,7 @@ void CJavaServer::FindjObject(void)
 			jlong size=0;
 			jvmti->GetObjectSize(objects[i], &size);
 
-			if ((address>=objectaddress) && (address<objectaddress+size))
+			if ((address>=(UINT64)objectaddress) && (address<(UINT64)objectaddress+size))
 			{
 				//this can be called multiple times.
 				//pick the one with the closest addresses
@@ -1228,6 +1228,7 @@ typedef struct
 
 list<ScanResult> ScanResults;
 
+jlong initialtag;
 
 jint JNICALL StartScan_FieldIteration(jvmtiHeapReferenceKind kind, const jvmtiHeapReferenceInfo* info, jlong object_class_tag, jlong* object_tag_ptr, jvalue value, jvmtiPrimitiveType value_type, void *user_data)
 {
@@ -1282,7 +1283,7 @@ jint JNICALL StartScan_FieldIteration(jvmtiHeapReferenceKind kind, const jvmtiHe
 	if (add)
 	{
 		ScanResult sr;
-		if (*object_tag_ptr==0)
+		if (*object_tag_ptr<=initialtag) //check if it's 0 or part of a previous tagging operation
 			*object_tag_ptr=0xce000000+tagcount++;
 
 		sr.objectTag=*object_tag_ptr;
@@ -1296,6 +1297,8 @@ jint JNICALL StartScan_FieldIteration(jvmtiHeapReferenceKind kind, const jvmtiHe
 
 	return JVMTI_VISIT_OBJECTS;
 }
+
+
 
 
 void CJavaServer::StartScan(void)
@@ -1332,6 +1335,9 @@ void CJavaServer::StartScan(void)
 	}
 
 	callbacks.primitive_field_callback=StartScan_FieldIteration;
+
+
+	initialtag=0xce000000+tagcount;
 	
 	jvmti->IterateThroughHeap(0, NULL, &callbacks, &sd);
 
@@ -1376,7 +1382,7 @@ void CJavaServer::GetAllFieldsFromClass(jclass c, vector<jfieldID> *allfields)
 				{
 					//add this interface to the interfaces list if it isn't already in the list
 					BOOL duplicate=FALSE;
-					for (int l=0; l<interfaces.size(); l++)
+					for (unsigned int l=0; l<interfaces.size(); l++)
 					{
 						if (jni->IsSameObject(interfaces[l], extendedinterfaces[k]))
 						{
@@ -1399,7 +1405,7 @@ void CJavaServer::GetAllFieldsFromClass(jclass c, vector<jfieldID> *allfields)
 	//now that we have a list of all the interfaces and classes, get their fields
 	
 	//first the interfaces (ordered from 0 to end)
-	for (int i=0; i<interfaces.size(); i++)
+	for (unsigned int i=0; i<interfaces.size(); i++)
 	{
 		jint fcount;
 		jfieldID *fields=NULL;
@@ -1462,6 +1468,7 @@ void CJavaServer::RefineScanResults(void)
 				vector<jfieldID> fields;
 				jclass currentclass=jni->GetObjectClass(o);
 
+/*
 				char *sig=NULL, *gen=NULL;
 
 				jvmti->GetClassSignature(currentclass, &sig, &gen);
@@ -1475,12 +1482,12 @@ void CJavaServer::RefineScanResults(void)
 					jvmti->Deallocate((unsigned char *)sig);
 
 				if (gen)
-					jvmti->Deallocate((unsigned char *)gen);
+					jvmti->Deallocate((unsigned char *)gen);*/
 
 
 				GetAllFieldsFromClass(currentclass, &fields);
 
-				if (fields.size()>sr->fieldindex)
+				if (fields.size()>(unsigned int)sr->fieldindex)
 					sr->fieldID=fields[sr->fieldindex];
 
 			
@@ -1714,6 +1721,8 @@ void CJavaServer::RefineScanResults(void)
 				
 			}
 
+			jni->DeleteLocalRef(o);
+
 		}
 
 		if (!valid)
@@ -1728,6 +1737,37 @@ void CJavaServer::RefineScanResults(void)
 
 	WriteQword(ScanResults.size());
 	
+}
+
+void CJavaServer::GetScanResults(void)
+{
+	int totalcount=0;
+	int max=ReadDword();
+	list<ScanResult>::iterator sr=ScanResults.begin();
+
+	while ((sr!=ScanResults.end()) && (totalcount<max))
+	{
+		jint count=0;
+		jobject *objects;
+		
+		//for unknown initial value, it might be more efficient to just start with getting all the objects and enumerating the fields and then get the value instead of this
+		jvmti->GetObjectsWithTags(1, &sr->objectTag, &count, &objects, NULL); 
+		if (count)
+		{
+			WriteQword((UINT_PTR)objects[0]);
+		}
+		else
+		{
+			//the object is gone, refine the search while we'r at it
+			list<ScanResult>::iterator oldsr=sr;
+			sr++;
+			ScanResults.erase(oldsr);
+		}
+		
+		sr++;
+	}
+
+	WriteQword(0); //end of the list
 }
 
 
@@ -1859,6 +1899,10 @@ void CJavaServer::Start(void)
 
 					case JAVACMD_REFINESCANRESULTS:
 						RefineScanResults();
+						break;
+
+					case JAVACMD_GETSCANRESULTS:
+						GetScanResults();
 						break;
 
 					default:						

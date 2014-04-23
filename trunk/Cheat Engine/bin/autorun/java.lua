@@ -28,6 +28,7 @@ JAVACMD_SETFIELD=26
 
 JAVACMD_STARTSCAN=27
 JAVACMD_REFINESCANRESULTS=28
+JAVACMD_GETSCANRESULTS=29
 
 
 
@@ -1231,11 +1232,31 @@ function java_search_refine(scantype, scanvalue)
 
 end
 
-function java_search_getResults()
+function java_search_getResults(maxresults)
+  --get the results
+  --note, the results are referencec to the object, so CLEAN UP when done with it (and don't get too many)
+  local result={}
+
+  javapipe.lock()
+  javapipe.writeByte(JAVACMD_GETSCANRESULTS)
+  if maxresults==0 then
+    maxresults=10
+  end
+
+  javapipe.writeDword(maxresults)
+
+
+  while true do
+    local object=javapipe.readQword()
+    if (object==0) or (object==nil) then break end --end of the list
+
+	table.insert(result, object)
+  end
+  javapipe.unlock()
+
+  return result
 end
 
-function java_search_findObjectsWithValue(value)
-end
 
 function java_search_finish()
   java_scanning=false
@@ -1408,8 +1429,8 @@ function javaForm_doSearch(sender)
 
 end
 
-function miJavaReferencesClick(sender)
-  r=java_followReferences()
+function miJavaVariableScanClick(sender)
+  --todo: Make a gui
 end
 
 function miJavaDissectClick(sender)
@@ -1704,29 +1725,30 @@ function java_OpenProcessAfterwards()
 
 
       mi=createMenuItem(miJavaTopMenuItem)
-      mi.Caption="Configure process environment to launch the ce java agent in spawned processes"
-      mi.OnClick=miJavaSetEnvironmentClick
-      miJavaTopMenuItem.Add(mi)
-
-      mi=createMenuItem(miJavaTopMenuItem)
       mi.Caption="Activate java features"
       mi.OnClick=miJavaActivateClick
 	  mi.Enabled=usesjava
       miJavaTopMenuItem.Add(mi)
 
       mi=createMenuItem(miJavaTopMenuItem)
-      mi.Caption="Dissect java"
+      mi.Caption="Dissect java classes"
       mi.Shortcut="Ctrl+Alt+J"
       mi.OnClick=miJavaDissectClick
 	  mi.Enabled=usesjava
       miJavaTopMenuItem.Add(mi)
 
       mi=createMenuItem(miJavaTopMenuItem)
-      mi.Caption="Follow all java references"
-      mi.Shortcut="Ctrl+Alt+R"
-      mi.OnClick=miJavaReferencesClick
+      mi.Caption="Java variable scan"
+      mi.Shortcut="Ctrl+Alt+S"
+      mi.OnClick=miJavaVariableScanClick
 	  mi.Enabled=usesjava
       miJavaTopMenuItem.Add(mi)
+
+	  mi=createMenuItem(miJavaTopMenuItem)
+      mi.Caption="Hook new child processes"
+      mi.OnClick=miJavaSetEnvironmentClick
+      miJavaTopMenuItem.Add(mi)
+
     end
   end
 end

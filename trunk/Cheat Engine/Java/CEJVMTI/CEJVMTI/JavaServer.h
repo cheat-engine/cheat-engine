@@ -31,6 +31,7 @@
 #define JAVACMD_SETFIELD 26
 #define JAVACMD_STARTSCAN 27
 #define JAVACMD_REFINESCANRESULTS 28
+#define JAVACMD_GETSCANRESULTS 29
 
 
 
@@ -88,5 +89,6 @@ public:
 	
 	void StartScan(void);
 	void RefineScanResults(void);
+	void GetScanResults(void);
 
 };
