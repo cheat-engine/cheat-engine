@@ -282,7 +282,6 @@ begin
             if ContinueStatus=DBG_EXCEPTION_NOT_HANDLED then //this can happen when the game itself is constantly raising exceptions
               cleanupDeletedBreakpoints(true, true); //only decrease the delete count if it's timed out (4 seconds in total)
 
-
             ContinueDebugEvent(debugEvent.dwProcessId, debugevent.dwThreadId, ContinueStatus);
           end;
 
@@ -1114,7 +1113,7 @@ begin
     outputdebugstring('RemoveBreakpoint');
     outputdebugstring(PChar('breakpointlist.Count=' + IntToStr(breakpointlist.Count)));
 
-    if breakpoint.owner <> nil then //it's a child, but we need the owner
+    while breakpoint.owner <> nil do //it's a child, but we need the owner
       breakpoint := breakpoint.owner;
 
 
@@ -1129,6 +1128,7 @@ begin
         bp.deletecountdown:=10; //10*100=1000=1 second
         bp.markedfordeletion := True; //set this flag so it gets deleted on next no-event
         bp.deletetickcount:=GetTickCount;
+
 
       end
     end;
@@ -1491,7 +1491,7 @@ begin
   debuggercs.enter;
   try
     for i := 0 to BreakpointList.Count - 1 do
-      if PBreakpoint(breakpointlist[i]).frmTracer = frmTracer then
+      if (PBreakpoint(breakpointlist[i]).active) and (PBreakpoint(breakpointlist[i]).frmTracer = frmTracer) then
       begin
         bp := PBreakpoint(breakpointlist[i]);
         Result := True;
@@ -1521,7 +1521,7 @@ begin
   debuggercs.enter;
   try
     for i := 0 to BreakpointList.Count - 1 do
-      if PBreakpoint(breakpointlist[i]).FoundcodeDialog = codefinder then
+      if (PBreakpoint(breakpointlist[i]).active) and (PBreakpoint(breakpointlist[i]).FoundcodeDialog = codefinder) then
       begin
         bp := PBreakpoint(breakpointlist[i]);
 
@@ -1529,21 +1529,11 @@ begin
         break;
       end;
 
-  {  if bp.active=false then
-    asm
-      nop
-    end;   }
-
     if Result then
     begin
       RemoveBreakpoint(bp); //unsets and removes all breakpoints that belong to this
-      bp.FoundcodeDialog:=nil;
+      //bp.FoundcodeDialog:=nil;
     end;
-
-  {  if bp.active=true then
-    asm
-      nop
-    end;   }
 
   finally
     debuggercs.leave;
@@ -1563,7 +1553,7 @@ begin
   debuggercs.enter;
   try
     for i := 0 to BreakpointList.Count - 1 do
-      if PBreakpoint(breakpointlist[i]).frmchangedaddresses = frmchangedaddresses then
+      if (PBreakpoint(breakpointlist[i]).active) and (PBreakpoint(breakpointlist[i]).frmchangedaddresses = frmchangedaddresses) then
       begin
         bp := PBreakpoint(breakpointlist[i]);
         Result := True;
@@ -2245,9 +2235,9 @@ var
 begin
 
 
-  if IsDebuggerPresent then //when debugging the debugger 10 seconds is too short
-    timeout:=5000000
-  else
+  //if IsDebuggerPresent then //when debugging the debugger 10 seconds is too short
+  //  timeout:=5000000
+  //else
     timeout:=10000;
 
   OutputDebugString('WaitTillAttachedOrError');
