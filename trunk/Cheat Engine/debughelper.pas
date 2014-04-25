@@ -1491,7 +1491,7 @@ begin
   debuggercs.enter;
   try
     for i := 0 to BreakpointList.Count - 1 do
-      if (PBreakpoint(breakpointlist[i]).active) and (PBreakpoint(breakpointlist[i]).frmTracer = frmTracer) then
+      if (not PBreakpoint(breakpointlist[i]).markedfordeletion) and (PBreakpoint(breakpointlist[i]).frmTracer = frmTracer) then
       begin
         bp := PBreakpoint(breakpointlist[i]);
         Result := True;
@@ -1521,7 +1521,7 @@ begin
   debuggercs.enter;
   try
     for i := 0 to BreakpointList.Count - 1 do
-      if (PBreakpoint(breakpointlist[i]).active) and (PBreakpoint(breakpointlist[i]).FoundcodeDialog = codefinder) then
+      if (not PBreakpoint(breakpointlist[i]).markedfordeletion) and (PBreakpoint(breakpointlist[i]).FoundcodeDialog = codefinder) then
       begin
         bp := PBreakpoint(breakpointlist[i]);
 
@@ -1553,7 +1553,7 @@ begin
   debuggercs.enter;
   try
     for i := 0 to BreakpointList.Count - 1 do
-      if (PBreakpoint(breakpointlist[i]).active) and (PBreakpoint(breakpointlist[i]).frmchangedaddresses = frmchangedaddresses) then
+      if (not PBreakpoint(breakpointlist[i]).markedfordeletion) and (PBreakpoint(breakpointlist[i]).frmchangedaddresses = frmchangedaddresses) then
       begin
         bp := PBreakpoint(breakpointlist[i]);
         Result := True;
