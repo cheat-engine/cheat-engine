@@ -148,14 +148,21 @@ begin
 
   if currentBP.active and (currentbp.FoundcodeDialog<>nil) then  //it could have been deactivated
   begin
+    TDebuggerthread(debuggerthread).execlocation:=431;
     currentBP.FoundcodeDialog.usesdebugregs:=currentBP.breakpointMethod=bpmDebugRegister;
     currentBP.FoundcodeDialog.useexceptions:=currentBP.breakpointMethod=bpmException;
+
+    TDebuggerthread(debuggerthread).execlocation:=432;
     currentBP.FoundcodeDialog.AddRecord;
+
+    TDebuggerthread(debuggerthread).execlocation:=433;
   end
   else
   begin
    // beep;
   end;
+
+  TDebuggerthread(debuggerthread).execlocation:=439;
 end;
 
 procedure TDebugThreadHandler.AddDebugEventString;
