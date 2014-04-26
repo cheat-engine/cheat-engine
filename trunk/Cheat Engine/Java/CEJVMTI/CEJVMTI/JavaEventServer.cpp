@@ -26,6 +26,12 @@ void JNICALL DynamicCodeGenerated(jvmtiEnv *jvmti_env, const char* name, const v
 {
 	if (eventserver)
 		eventserver->DynamicCodeGenerated(jvmti_env, name, address,length);
+}
+
+void JNICALL FieldModification(jvmtiEnv *jvmti_env, JNIEnv* jni_env, jthread thread, jmethodID method, jlocation location, jclass field_klass, jobject object, jfieldID field, char signature_type, jvalue new_value)
+{
+	if (eventserver)
+		eventserver->FieldModification(jvmti_env, jni_env, thread, method, location, field_klass, object, field, signature_type, new_value);
 
 }
 
@@ -76,6 +82,7 @@ CJavaEventServer::CJavaEventServer(jvmtiEnv *jvmti_env)
 			callbacks.CompiledMethodLoad=::MethodLoad;
 			callbacks.CompiledMethodUnload=::MethodUnload;
 			callbacks.DynamicCodeGenerated=::DynamicCodeGenerated;
+			callbacks.FieldModification=::FieldModification;
 
 			error=jvmti_env->SetEventCallbacks(&callbacks, sizeof(callbacks));
 
@@ -83,7 +90,7 @@ CJavaEventServer::CJavaEventServer(jvmtiEnv *jvmti_env)
 			{			
 				jvmti_env->SetEventNotificationMode(JVMTI_ENABLE, JVMTI_EVENT_COMPILED_METHOD_LOAD, NULL);
 				jvmti_env->SetEventNotificationMode(JVMTI_ENABLE, JVMTI_EVENT_COMPILED_METHOD_UNLOAD, NULL);
-				jvmti_env->SetEventNotificationMode(JVMTI_ENABLE, JVMTI_EVENT_DYNAMIC_CODE_GENERATED, NULL);
+				jvmti_env->SetEventNotificationMode(JVMTI_ENABLE, JVMTI_EVENT_DYNAMIC_CODE_GENERATED, NULL);				
 				error=jvmti_env->GenerateEvents(JVMTI_EVENT_COMPILED_METHOD_LOAD);
 				error=jvmti_env->GenerateEvents(JVMTI_EVENT_DYNAMIC_CODE_GENERATED);		
 			}
@@ -151,7 +158,7 @@ OutputDebugStringA("MethodLoad");
 
 		if (classsig)
 		{
-			len=strlen(classsig);
+			len=(WORD)strlen(classsig);
 			WriteWord(len);
 			if (len)
 				Write(classsig, len);
@@ -168,7 +175,7 @@ OutputDebugStringA("MethodLoad");
 
 		if (name)
 		{
-			len=strlen(name);
+			len=(WORD)strlen(name);
 			WriteWord(len);
 			if (len)
 				Write(name, len);
@@ -180,7 +187,7 @@ OutputDebugStringA("MethodLoad");
 
 		if (sig)
 		{
-			len=strlen(sig);
+			len=(WORD)strlen(sig);
 			WriteWord(len);
 			if (len)
 			  Write(sig, len);
@@ -231,8 +238,8 @@ void CJavaEventServer::DynamicCodeGenerated(jvmtiEnv *jvmti_env, const char* nam
 		WriteByte(EVENTCMD_DYNAMICCODEGENERATED);
 		WriteQword((UINT_PTR)address);
 		WriteDword(length);
-		WriteWord(strlen(name));
-		Write((void *)name, strlen(name));
+		WriteWord((WORD)strlen(name));
+		Write((void *)name, (int)strlen(name));
 		
 	}
 	catch (char *e)
@@ -274,3 +281,103 @@ void CJavaEventServer::Terminate(void)
 	Sleep(500);
 }
 
+void CJavaEventServer::FieldModification(jvmtiEnv *jvmti_env, JNIEnv* jni_env, jthread thread, jmethodID method, jlocation location, jclass field_klass, jobject object, jfieldID field, char signature_type, jvalue new_value)
+{
+	unsigned int i;
+	//go through the list and check which one caused this
+
+	
+	for (i=0; i<FindWhatWritesList.size(); i++)
+	{
+		PFindWhatWritesEntry e=FindWhatWritesList[i];
+		if (e)
+		{			
+			if ((e->fieldid==field) && ((object==NULL) || (jni_env->IsSameObject(e->object, object))))
+			{
+				//signal ce
+				Lock();
+				try
+				{
+					jvmtiFrameInfo frames[10];
+					jint count;
+
+					WriteByte(EVENTCMD_FIELDMODIFICATION);
+					WriteDword(i); //id
+					WriteQword((UINT_PTR)method);
+					WriteQword((UINT_PTR)location);
+
+					//and a stack snapshot as well
+					
+					if (jvmti_env->GetStackTrace(thread, 0, 10, frames, &count)==JVMTI_ERROR_NONE)
+					{						
+						int i;
+						WriteByte((BYTE)count);
+
+						for (i=0; i<count; i++)
+						{
+							WriteQword((UINT_PTR)frames[i].method);
+							WriteQword((UINT_PTR)frames[i].location);													
+						}
+					}
+					else
+						WriteByte(0);
+				}
+				catch (char *e)
+				{
+					OutputDebugStringA(e);
+					//no connection yet
+				}
+				Unlock();
+
+			}			
+		}
+
+	}
+}
+
+int CJavaEventServer::RegisterFindWhatWrites(jobject object, jclass klass, jfieldID fieldid)
+{
+	int id=-1;
+
+	//find an usable entry in the FindWhatWritesList
+	unsigned int i;
+		
+	for (i=0; i<FindWhatWritesList.size(); i++)
+	{
+		if (FindWhatWritesList[i]==NULL)
+		{
+			id=i;
+			break;
+		}
+	}
+
+	if (id==-1) 
+	{
+		PFindWhatWritesEntry newentry=(PFindWhatWritesEntry)malloc(sizeof(FindWhatWritesEntry));
+		newentry->klass=klass;
+		newentry->fieldid=fieldid;
+		newentry->object=object;		
+
+		FindWhatWritesList.push_back(newentry);
+
+		id=FindWhatWritesList.size()-1;
+	}
+
+	
+
+	jvmti_env->SetEventNotificationMode(JVMTI_ENABLE, JVMTI_EVENT_FIELD_MODIFICATION, NULL);
+
+	if (jvmti_env->SetFieldModificationWatch(klass, fieldid)!=JVMTI_ERROR_NONE)	
+		UnregisterFindWhatWrites(id);		
+		
+	return id;
+}
+
+void CJavaEventServer::UnregisterFindWhatWrites(int id)
+{
+	if (FindWhatWritesList[id])
+	{
+		free(FindWhatWritesList[id]);
+		FindWhatWritesList[id]=NULL;
+	}
+}

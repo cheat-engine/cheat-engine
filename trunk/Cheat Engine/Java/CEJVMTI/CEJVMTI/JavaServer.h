@@ -32,6 +32,8 @@
 #define JAVACMD_STARTSCAN 27
 #define JAVACMD_REFINESCANRESULTS 28
 #define JAVACMD_GETSCANRESULTS 29
+#define JAVACMD_FINDWHATWRITES 30
+#define JAVACMD_STOPFINDWHATWRITES 31
 
 
 
@@ -90,5 +92,8 @@ public:
 	void StartScan(void);
 	void RefineScanResults(void);
 	void GetScanResults(void);
+
+	void FindWhatWrites(void);
+	void StopFindWhatWrites(void);
 
 };

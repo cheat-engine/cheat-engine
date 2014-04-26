@@ -29,7 +29,8 @@ JAVACMD_SETFIELD=26
 JAVACMD_STARTSCAN=27
 JAVACMD_REFINESCANRESULTS=28
 JAVACMD_GETSCANRESULTS=29
-
+JAVACMD_FINDWHATWRITES=30
+JAVACMD_STOPFINDWHATWRITES=31
 
 
 
@@ -432,6 +433,7 @@ function JavaEventListener(thread)
   local EVENTCMD_METHODLOAD=0
   local EVENTCMD_METHODUNLOAD=1
   local EVENTCMD_DYNAMICCODEGENERATED=2
+  local EVENTCMD_FIELDMODIFICATION=3
 
   local JavaEventPipe
 
@@ -510,11 +512,78 @@ function JavaEventListener(thread)
 
 
 	  --
+	elseif command==EVENTCMD_FIELDMODIFICATION then
+
+	  print("EVENTCMD_FIELDMODIFICATION")
+	  local id=JavaEventPipe.readDword()
+	  local entry={}
+
+	  print("id=="..id)
+
+	  entry.methodid=JavaEventPipe.readQword()
+	  entry.location=JavaEventPipe.readQword()
+
+	  local stackcount=JavaEventPipe.readByte()
+	  local i
+	  local stack={}
+
+	  print("stackcount=="..stackcount)
+
+	  for i=1, stackcount do
+	    stack[i]={}
+		stack[i].methodid=JavaEventPipe.readQword()
+		stack[i].location=JavaEventPipe.readQword()
+	  end
+
+	  entry.stack=stack
+
+
+
+	  if java.findwhatwriteslist~=nil then
+		local fcd=java.findwhatwriteslist[id]
+
+		if fcd~=nil then
+		  --check if this entry is already in the list
+		  local found=false
+
+		  for i=1, #fcd.entries  do
+		    if (fcd.entries[i].methodid==entry.methodid) and (fcd.entries[i].location==entry.location) then
+			  found=true
+			  break
+			end
+		  end
+
+		  if not found then
+		    --if not, add it
+			print("adding to the list")
+
+		    tventry=fcd.lv.items.add()
+		    local mname=java_getMethodName(entry.methodid)
+		    tventry.Caption='...'
+
+		    tventry.SubItems.add(string.format('%x: %s', entry.methodid, mname))
+		    tventry.SubItems.add(entry.position)
+
+		    table.insert(fcd.entries, entry)
+
+
+		  else
+		    print("Already in the list")
+		  end
+		else
+		  print("fcd==nil")
+
+		end
+	  else
+	    print("java.findwhatwriteslist==nil")
+	  end
+
+	  print("done")
 	elseif command==JAVACODECMD_TERMINATED then
-	  --print("eventserver terminated")
+	  print("eventserver terminated")
 	  break
 	elseif command==nil then
-	  --print("Disconnected")
+	  print("Disconnected")
 	  break
     else
 	  print("Unexpected event received")  --synchronize isn't necesary for print as that function is designed to synchronize internally
@@ -522,6 +591,7 @@ function JavaEventListener(thread)
 	end
   end
 
+  print("Event handler terminating")
   JavaEventPipe.destroy();
 end
 
@@ -530,21 +600,21 @@ function java_getCapabilities()
   javapipe.lock()
   javapipe.writeByte(JAVACMD_GETCAPABILITIES)
 
-  result.can_access_local_variables=javapipe.readByte()
-  result.can_generate_all_class_hook_events=javapipe.readByte()
-  result.can_generate_breakpoint_events=javapipe.readByte()
-  result.can_generate_compiled_method_load_events=javapipe.readByte()
-  result.can_generate_field_access_events=javapipe.readByte()
-  result.can_generate_field_modification_events=javapipe.readByte()
-  result.can_generate_single_step_events=javapipe.readByte()
-  result.can_get_bytecodes=javapipe.readByte()
-  result.can_get_constant_pool=javapipe.readByte()
-  result.can_maintain_original_method_order=javapipe.readByte()
-  result.can_redefine_any_class=javapipe.readByte()
-  result.can_redefine_classes=javapipe.readByte()
-  result.can_retransform_any_class=javapipe.readByte()
-  result.can_retransform_classes=javapipe.readByte()
-  result.can_tag_objects=javapipe.readByte()
+  result.can_access_local_variables=javapipe.readByte()==1
+  result.can_generate_all_class_hook_events=javapipe.readByte()==1
+  result.can_generate_breakpoint_events=javapipe.readByte()==1
+  result.can_generate_compiled_method_load_events=javapipe.readByte()==1
+  result.can_generate_field_access_events=javapipe.readByte()==1
+  result.can_generate_field_modification_events=javapipe.readByte()==1
+  result.can_generate_single_step_events=javapipe.readByte()==1
+  result.can_get_bytecodes=javapipe.readByte()==1
+  result.can_get_constant_pool=javapipe.readByte()==1
+  result.can_maintain_original_method_order=javapipe.readByte()==1
+  result.can_redefine_any_class=javapipe.readByte()==1
+  result.can_redefine_classes=javapipe.readByte()==1
+  result.can_retransform_any_class=javapipe.readByte()==1
+  result.can_retransform_classes=javapipe.readByte()==1
+  result.can_tag_objects=javapipe.readByte()==1
 
   javapipe.unlock()
 
@@ -1266,6 +1336,73 @@ function java_search_finish()
   java_scanning=false
 end
 
+
+function java_find_what_writes(object, fieldid)
+  local id=nil
+  if java.capabilities.can_generate_field_modification_events then
+    --spawn a window to receive the data
+
+	javapipe.lock()
+	javapipe.writeByte(JAVACMD_FINDWHATWRITES)
+	javapipe.writeQword(object)
+	javapipe.writeQword(fieldid)
+
+	id=javapipe.readDword()
+
+	print("id="..id)
+
+	javapipe.unlock()
+
+
+	local fcd={} --found code dialog
+	fcd.form=createForm()
+	fcd.form.width=400
+	fcd.form.height=300
+
+
+	fcd.form.Position=poScreenCenter
+	fcd.form.BorderStyle=bsSizeable
+	fcd.form.caption='The following methods accessed the given variable'
+	fcd.lv=createListView(fcd.form)
+	fcd.lv.Name='results';
+	fcd.lv.Align=alClient
+	fcd.lv.ViewStyle=vsReport
+	fcd.lv.ReadOnly=true
+	fcd.lv.RowSelect=true
+
+	local c=fcd.lv.Columns.add()
+	c.caption='Class'
+	c.width=100
+
+	c=fcd.lv.Columns.add()
+	c.caption='Method'
+	c.width=100
+
+	c=fcd.lv.Columns.add()
+	c.caption='Position'
+	c.autosize=true
+
+	fcd.entries={}
+
+
+	if java.findwhatwriteslist==nil then
+	  java.findwhatwriteslist={}
+	end
+
+	java.findwhatwriteslist[id]=fcd
+  else
+    error('java_find_what_writes only works when the jvmti agent is launched at start')
+  end
+
+  return id
+end
+
+function java_stop_find_what_writes(id)
+	javapipe.lock()
+	javapipe.writeByte(JAVACMD_STOPFINDWHATWRITES)
+	javapipe.writeDword(id)
+	javapipe.unlock()
+end
 
 
 function java_getObjectHandleToAddress(address)
