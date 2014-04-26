@@ -1771,6 +1771,36 @@ void CJavaServer::GetScanResults(void)
 	WriteQword(0); //end of the list
 }
 
+void CJavaServer::FindWhatWrites(void)
+{
+	int id=-1;
+	jobject object=(jobject)ReadQword();
+	jfieldID fieldid=(jfieldID)ReadQword();
+	
+
+	//register a watch on the given field id
+	if (eventserver)
+	{
+		jclass _klass=jni->GetObjectClass(object);
+		jclass klass=(jclass)jni->NewGlobalRef(_klass);//don't forget to destroy this once unregistered
+
+		jni->DeleteLocalRef(_klass);
+
+		if (klass)
+			id=eventserver->RegisterFindWhatWrites(object, klass, fieldid);
+		
+	}
+
+	WriteDword(id);
+
+}
+
+void CJavaServer::StopFindWhatWrites(void)
+{
+	if (eventserver)
+		eventserver->UnregisterFindWhatWrites(ReadDword());	
+}
+
 
 void CJavaServer::Start(void)
 {
@@ -1904,6 +1934,14 @@ void CJavaServer::Start(void)
 
 					case JAVACMD_GETSCANRESULTS:
 						GetScanResults();
+						break;
+
+					case JAVACMD_FINDWHATWRITES:
+						FindWhatWrites();
+						break;
+
+					case JAVACMD_STOPFINDWHATWRITES:
+						StopFindWhatWrites();
 						break;
 
 					default:						
