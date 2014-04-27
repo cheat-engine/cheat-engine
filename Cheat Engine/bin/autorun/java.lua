@@ -1351,6 +1351,7 @@ function java_search_finish()
 end
 
 function java_foundCodeDialogClose(sender)
+  print("closing")
   local id=sender.Tag
   local fcd=java.findwhatwriteslist[id]
   java.findwhatwriteslist[id]=nil

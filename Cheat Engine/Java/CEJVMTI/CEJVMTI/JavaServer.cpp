@@ -1781,13 +1781,13 @@ void CJavaServer::FindWhatWrites(void)
 	//register a watch on the given field id
 	if (eventserver)
 	{
-		jclass _klass=jni->GetObjectClass(object);
-		jclass klass=(jclass)jni->NewGlobalRef(_klass);//don't forget to destroy this once unregistered
-
-		jni->DeleteLocalRef(_klass);
-
+		jclass klass=jni->GetObjectClass(object);
+		
 		if (klass)
-			id=eventserver->RegisterFindWhatWrites(object, klass, fieldid);
+		{
+			id=eventserver->RegisterFindWhatWrites(jni, object, klass, fieldid);
+			jni->DeleteLocalRef(klass);
+		}
 		
 	}
 
@@ -1798,7 +1798,15 @@ void CJavaServer::FindWhatWrites(void)
 void CJavaServer::StopFindWhatWrites(void)
 {
 	if (eventserver)
-		eventserver->UnregisterFindWhatWrites(ReadDword());	
+		eventserver->UnregisterFindWhatWrites(jni, ReadDword());		
+}
+
+void CJavaServer::GetMethodDeclaringClass(void)
+{
+	jmethodID m=(jmethodID)ReadQword();
+	jclass klass;
+	jvmti->GetMethodDeclaringClass(m, &klass);
+	WriteQword((UINT_PTR)klass);
 }
 
 
@@ -1942,6 +1950,10 @@ void CJavaServer::Start(void)
 
 					case JAVACMD_STOPFINDWHATWRITES:
 						StopFindWhatWrites();
+						break;
+
+					case JAVACMD_GETMETHODDECLARINGCLASS:
+						GetMethodDeclaringClass();
 						break;
 
 					default:						

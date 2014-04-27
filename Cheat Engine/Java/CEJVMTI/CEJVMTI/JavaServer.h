@@ -34,6 +34,7 @@
 #define JAVACMD_GETSCANRESULTS 29
 #define JAVACMD_FINDWHATWRITES 30
 #define JAVACMD_STOPFINDWHATWRITES 31
+#define JAVACMD_GETMETHODDECLARINGCLASS 32
 
 
 
@@ -95,5 +96,7 @@ public:
 
 	void FindWhatWrites(void);
 	void StopFindWhatWrites(void);
+
+	void GetMethodDeclaringClass(void);
 
 };
