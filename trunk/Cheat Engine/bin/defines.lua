@@ -327,3 +327,8 @@ asrBottom = 1
 asrCenter = 2
 asrLeft = asrTop
 asrRight = asrBottom
+
+vsIcon = 0
+vsSmallIcon = 1
+vsList = 2
+vsReport = 3
