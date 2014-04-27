@@ -335,7 +335,7 @@ void CJavaEventServer::FieldModification(jvmtiEnv *jvmti_env, JNIEnv* jni_env, j
 	}
 }
 
-int CJavaEventServer::RegisterFindWhatWrites(jobject object, jclass klass, jfieldID fieldid)
+int CJavaEventServer::RegisterFindWhatWrites(JNIEnv* jni, jobject object, jclass klass, jfieldID fieldid)
 {
 	int id=-1;
 
@@ -351,33 +351,44 @@ int CJavaEventServer::RegisterFindWhatWrites(jobject object, jclass klass, jfiel
 		}
 	}
 
+	
+
+
 	if (id==-1) 
 	{
 		PFindWhatWritesEntry newentry=(PFindWhatWritesEntry)malloc(sizeof(FindWhatWritesEntry));
-		newentry->klass=klass;
-		newentry->fieldid=fieldid;
-		newentry->object=object;		
-
 		FindWhatWritesList.push_back(newentry);
 
-		id=FindWhatWritesList.size()-1;
+		id=(int)FindWhatWritesList.size()-1;
 	}
 
+	klass=(jclass)jni->NewGlobalRef(klass); //upgrade to a global
+
+	FindWhatWritesList[id]->klass=klass;
+	FindWhatWritesList[id]->fieldid=fieldid;
+	FindWhatWritesList[id]->object=object;
 	
 
 	jvmti_env->SetEventNotificationMode(JVMTI_ENABLE, JVMTI_EVENT_FIELD_MODIFICATION, NULL);
 
 	if (jvmti_env->SetFieldModificationWatch(klass, fieldid)!=JVMTI_ERROR_NONE)	
-		UnregisterFindWhatWrites(id);		
+		UnregisterFindWhatWrites(jni, id);		
 		
 	return id;
 }
 
-void CJavaEventServer::UnregisterFindWhatWrites(int id)
+void CJavaEventServer::UnregisterFindWhatWrites(JNIEnv* jni, int id)
 {
+	
 	if (FindWhatWritesList[id])
 	{
+		jvmti_env->ClearFieldModificationWatch(FindWhatWritesList[id]->klass, FindWhatWritesList[id]->fieldid);
+
+		jni->DeleteGlobalRef(FindWhatWritesList[id]->klass);
+
 		free(FindWhatWritesList[id]);
 		FindWhatWritesList[id]=NULL;
 	}
+
+	
 }

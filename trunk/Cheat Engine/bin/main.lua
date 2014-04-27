@@ -226,7 +226,7 @@ inMainThread(): Returns true if the current code is running inside the main thre
 integerToUserData(int):  Converts a given integer to a userdata variable
 userDataToInteger(UserDataVar):  Converts a given userdata variable to an integer
 
-synchronize(function(param), parameter OPTIONAL): Calls the given function from the main thread. Returns the return value of the given function
+synchronize(function(...), ...): Calls the given function from the main thread. Returns the return value of the given function
 checkSynchronize(): Calls this from an infinite loop in the main thread when using threading and synchronize calls. This will execute any queued synchronize calls
 
 writeToClipboard(text):  Writes the given text to the clipboard
@@ -805,7 +805,7 @@ createCheckBox(owner): Creates a CheckBox class object which belongs to the give
 properties
   Checked: boolean - True if checked
   AllowGrayed: boolean - True if it can have 3 states. True/False/None
-  State: boolean - The state. (cbUnchecked=0, cbChecked=1, cbGrayed=2)
+  State: checkboxstate - The state. (cbUnchecked=0, cbChecked=1, cbGrayed=2)
   OnChange: function - Function to call when the state it changed
 
 methods  
@@ -1722,7 +1722,7 @@ methods
     When set to true the thread object will free itself when the function ends (default=true)
     Note: Use this only from inside the thread function as the thread might have already terminated and freed itself when called
 
-  synchronize(function(thread, parameter), parameter OPTIONAL) :
+  synchronize(function(thread, ...), ...) :
     Called from inside the thread. This wil cause the tread to get the main thread to execute the given function and wait for it to finish.
     Usually for gui access
     Returns the return value of the given function

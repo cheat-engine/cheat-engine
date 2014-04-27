@@ -34,8 +34,8 @@ public:
 	void MethodUnload(jvmtiEnv *jvmti_env, jmethodID method, const void* code_addr);
 	void DynamicCodeGenerated(jvmtiEnv *jvmti_env, const char* name, const void* address, jint length);
 	void FieldModification(jvmtiEnv *jvmti_env, JNIEnv* jni_env, jthread thread, jmethodID method, jlocation location, jclass field_klass, jobject object, jfieldID field, char signature_type, jvalue new_value);
-	int RegisterFindWhatWrites(jobject object, jclass klass, jfieldID fieldid);
-	void UnregisterFindWhatWrites(int id);
+	int RegisterFindWhatWrites(JNIEnv* jni, jobject object, jclass klass, jfieldID fieldid);
+	void UnregisterFindWhatWrites(JNIEnv* jni, int id);
 	void Terminate(void);
 };
 
