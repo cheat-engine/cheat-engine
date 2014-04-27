@@ -25,6 +25,7 @@ type TCEThread=class (TThread)
   public
     syncfunction: integer;
     syncparam: integer;
+    syncparamcount: integer;
     procedure sync; //called by lua_synchronize from inside the thread
     procedure execute; override;
     destructor destroy; override;
@@ -34,17 +35,31 @@ type TCEThread=class (TThread)
 end;
 
 procedure TCEThread.sync;
+var
+  paramcount: integer;
+  i: integer;
 begin
   //call the lua function
   lua_rawgeti(L, LUA_REGISTRYINDEX, syncfunction);
   luaclass_newclass(L, self);
 
   if syncparam>0 then
-    lua_pushvalue(L, syncparam)
-  else
-    lua_pushnil(L);
+  begin
+    if syncparamcount=0 then
+      syncparamcount:=1;
 
-  lua_pcall(L, 2,1,0);
+    for i:=0 to syncparamcount-1 do
+      lua_pushvalue(L, syncparam+i);
+
+    paramcount:=1+syncparamcount;
+  end
+  else
+  begin
+    lua_pushnil(L);
+    paramcount:=2;
+  end;
+
+  lua_pcall(L, paramcount,1,0);
 end;
 
 procedure TCEThread.execute;
@@ -202,15 +217,16 @@ begin
 
   if lua_gettop(L)>=1 then
   begin
-    if lua_isfunction(L,-1) then
+    if lua_isfunction(L,1) then
     begin
+      lua_pushvalue(L, 1);
       f:=luaL_ref(L,LUA_REGISTRYINDEX);
 
     end
     else
-    if lua_isstring(L,-1) then
+    if lua_isstring(L,1) then
     begin
-      routine:=lua_tostring(L,-1);
+      routine:=lua_tostring(L,1);
       //get a reference to this function
 
       lua_getfield(L, LUA_GLOBALSINDEX, pchar(routine));
@@ -220,7 +236,10 @@ begin
 
     c.syncfunction:=f;
     if lua_gettop(L)>=2 then
-      c.syncparam:=2
+    begin
+      c.syncparam:=2;
+      c.syncparamcount:=lua_gettop(L)-1;
+    end
     else
       c.syncparam:=0;
 

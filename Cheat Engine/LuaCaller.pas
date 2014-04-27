@@ -25,6 +25,7 @@ type
       owner: TPersistent;
 
       synchronizeparam: integer;
+      synchronizeparamcount: integer;
       syncvm: Plua_State;
       procedure NotifyEvent(sender: TObject);
       procedure SelectionChangeEvent(Sender: TObject; User: boolean);
@@ -284,15 +285,29 @@ begin
 end;
 
 procedure TLuaCaller.synchronize;
+var
+  paramcount: integer;
+  i: integer;
 begin
   //no locking here (should already be obtained by the caller)
   PushFunction(syncvm);
   if synchronizeparam>0 then
-    lua_pushvalue(syncvm, synchronizeparam)
-  else
-    lua_pushnil(syncvm);
+  begin
+    if synchronizeparamcount=0 then
+      synchronizeparamcount:=1;
 
-  lua_pcall(syncvm, 1,1,0);
+    for i:=0 to synchronizeparamcount-1 do
+      lua_pushvalue(syncvm, synchronizeparam+i);
+
+    paramcount:=synchronizeparamcount;
+  end
+  else
+  begin
+    lua_pushnil(syncvm);
+    paramcount:=1;
+  end;
+
+  lua_pcall(syncvm, paramcount,1,0);
 end;
 
 procedure TLuaCaller.SelectionChangeEvent(Sender: TObject; User: boolean);

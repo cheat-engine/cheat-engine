@@ -2259,7 +2259,10 @@ begin
   begin
     lc.syncvm:=l;
     if lua_gettop(L)>=2 then
-      lc.synchronizeparam:=2
+    begin
+      lc.synchronizeparam:=2;
+      lc.synchronizeparamcount:=lua_gettop(l)-1;
+    end
     else
       lc.synchronizeparam:=0;
 
