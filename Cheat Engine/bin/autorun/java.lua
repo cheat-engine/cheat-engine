@@ -31,6 +31,7 @@ JAVACMD_REFINESCANRESULTS=28
 JAVACMD_GETSCANRESULTS=29
 JAVACMD_FINDWHATWRITES=30
 JAVACMD_STOPFINDWHATWRITES=31
+JAVACMD_GETMETHODDECLARINGCLASS=32
 
 
 
@@ -555,30 +556,43 @@ function JavaEventListener(thread)
 
 		  if not found then
 		    --if not, add it
-			print("adding to the list")
+			--print("adding to the list")
 
-		    tventry=fcd.lv.items.add()
+
+
+
+
 		    local mname=java_getMethodName(entry.methodid)
-		    tventry.Caption='...'
 
-		    tventry.SubItems.add(string.format('%x: %s', entry.methodid, mname))
-		    tventry.SubItems.add(entry.position)
+			local class=java_getMethodDeclaringClass(entry.methodid)
+			local classname=java_getClassSignature(class)
 
-		    table.insert(fcd.entries, entry)
+			java_dereferenceLocalObject(class)
+
+			--execute this in the main thread (gui access)
+			synchronize(function(classname, entry, mname)
+			  tventry=fcd.lv.items.add()
+  		      tventry.Caption=classname
+
+		      tventry.SubItems.add(string.format('%x: %s', entry.methodid, mname))
+		      tventry.SubItems.add(entry.position)
+
+		      table.insert(fcd.entries, entry)
+			end, classname, entry, mname)
 
 
 		  else
-		    print("Already in the list")
+		   -- print("Already in the list")
 		  end
 		else
-		  print("fcd==nil")
+		 -- print("fcd==nil")
 
 		end
 	  else
-	    print("java.findwhatwriteslist==nil")
+	   -- print("java.findwhatwriteslist==nil")
 	  end
 
-	  print("done")
+	  --print("done")
 	elseif command==JAVACODECMD_TERMINATED then
 	  print("eventserver terminated")
 	  break
@@ -1336,8 +1350,17 @@ function java_search_finish()
   java_scanning=false
 end
 
+function java_foundCodeDialogClose(sender)
+  local id=sender.Tag
+  local fcd=java.findwhatwriteslist[id]
+  java.findwhatwriteslist[id]=nil
 
-function java_find_what_writes(object, fieldid)
+
+  java_stopFindWhatWrites(id)
+  return caFree
+end
+
+function java_findWhatWrites(object, fieldid)
   local id=nil
   if java.capabilities.can_generate_field_modification_events then
     --spawn a window to receive the data
@@ -1349,7 +1372,7 @@ function java_find_what_writes(object, fieldid)
 
 	id=javapipe.readDword()
 
-	print("id="..id)
+	--print("id="..id)
 
 	javapipe.unlock()
 
@@ -1358,11 +1381,12 @@ function java_find_what_writes(object, fieldid)
 	fcd.form=createForm()
 	fcd.form.width=400
 	fcd.form.height=300
-
-
 	fcd.form.Position=poScreenCenter
 	fcd.form.BorderStyle=bsSizeable
 	fcd.form.caption='The following methods accessed the given variable'
+	fcd.form.OnClose=java_foundCodeDialogClose
+	fcd.form.Tag=id
+
 	fcd.lv=createListView(fcd.form)
 	fcd.lv.Name='results';
 	fcd.lv.Align=alClient
@@ -1397,12 +1421,24 @@ function java_find_what_writes(object, fieldid)
   return id
 end
 
-function java_stop_find_what_writes(id)
+function java_stopFindWhatWrites(id)
 	javapipe.lock()
 	javapipe.writeByte(JAVACMD_STOPFINDWHATWRITES)
 	javapipe.writeDword(id)
 	javapipe.unlock()
 end
+
+function java_getMethodDeclaringClass(methodid)
+	javapipe.lock()
+	javapipe.writeByte(JAVACMD_GETMETHODDECLARINGCLASS)
+	javapipe.writeQword(methodid)
+	local result=javapipe.readQword()
+	javapipe.unlock()
+
+	return result
+end
+
+
 
 
 function java_getObjectHandleToAddress(address)
