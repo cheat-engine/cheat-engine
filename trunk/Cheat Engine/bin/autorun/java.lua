@@ -570,15 +570,20 @@ function JavaEventListener(thread)
 			java_dereferenceLocalObject(class)
 
 			--execute this in the main thread (gui access)
-			synchronize(function(classname, entry, mname)
-			  tventry=fcd.lv.items.add()
-  		      tventry.Caption=classname
+			synchronize(function(classname, id, mname)
+			  local fcd=java.findwhatwriteslist[id]
 
-		      tventry.SubItems.add(string.format('%x: %s', entry.methodid, mname))
-		      tventry.SubItems.add(entry.position)
 
-		      table.insert(fcd.entries, entry)
-			end, classname, entry, mname)
+			  if fcd~=nil then --check that the found code dialog hasn't been freed while waiting for sync
+			    tventry=fcd.lv.items.add()
+  		        tventry.Caption=classname
+
+		        tventry.SubItems.add(string.format('%x: %s', entry.methodid, mname))
+		        tventry.SubItems.add(entry.location)
+
+  		        table.insert(fcd.entries, entry)
+			  end
+			end, classname, id, mname)
 
 
 		  else
