@@ -47,6 +47,7 @@ type
     edtPopupHotkey: TEdit;
     fnXM: TFileNameEdit;
     GroupBox2: TGroupBox;
+    ImageList1: TImageList;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
@@ -78,6 +79,7 @@ type
     spbUp: TSpeedButton;
     sbPlayActivate: TSpeedButton;
     sbPlayDeactivate: TSpeedButton;
+    sbPlayStopXM: TSpeedButton;
     procedure btnDeleteClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
@@ -113,6 +115,7 @@ type
     procedure RadioButton2Change(Sender: TObject);
     procedure sbPlayActivateClick(Sender: TObject);
     procedure sbPlayDeactivateClick(Sender: TObject);
+    procedure sbPlayStopXMClick(Sender: TObject);
     procedure spbDownClick(Sender: TObject);
     procedure spbUpClick(Sender: TObject);
   private
@@ -120,6 +123,9 @@ type
     popupkeys: TKeycombo;
     restoretimer: ttimer;
     adconfig: TfrmAdConfig;
+
+    playbitmap: TBitmap;
+    stopbitmap: TBitmap;
 
     procedure editHotkey(m: Tmemoryrecord; hotkey: TMemoryrecordhotkey);
     procedure AddHotkey(hk: TMemoryrecordHotkey);
@@ -150,7 +156,7 @@ var
 
 implementation
 
-uses mainunit, frmD3DTrainerGeneratorOptionsunit;
+uses mainunit, frmD3DTrainerGeneratorOptionsunit, xmplayer_server;
 
 { TfrmTrainerGenerator }
 resourcestring
@@ -489,6 +495,13 @@ begin
   fillHotkeyList;
   buildcheatlist;
   FillSound;
+
+  playbitmap:=TBitmap.Create;
+  stopbitmap:=TBitmap.Create;
+  ImageList1.GetBitmap(0, playbitmap);
+  ImageList1.GetBitmap(1, stopbitmap);
+
+  sbPlayStopXM.Glyph:=playbitmap;
 end;
 
 procedure TfrmTrainerGenerator.FormShow(Sender: TObject);
@@ -575,6 +588,22 @@ end;
 procedure TfrmTrainerGenerator.sbPlayDeactivateClick(Sender: TObject);
 begin
   LUA_DoScript('playSound(findTableFile([['+cbDeactivateSound.Text+']]))');
+end;
+
+procedure TfrmTrainerGenerator.sbPlayStopXMClick(Sender: TObject);
+begin
+  if sbPlayStopXM.tag=0 then //not yet playing
+  begin
+    xmplayer.playXM(fnXM.FileName);
+    sbPlayStopXM.glyph:=stopbitmap;
+    sbPlayStopXM.tag:=1;
+  end
+  else
+  begin
+    xmplayer.stop;
+    sbPlayStopXM.glyph:=playbitmap;
+    sbPlayStopXM.tag:=0;
+  end;
 end;
 
 procedure TfrmTrainerGenerator.spbDownClick(Sender: TObject);
@@ -1683,6 +1712,7 @@ begin
   rbStopWhenAttached.enabled:=cbPlayXM.checked and cbStopPlaying.checked;
   rbStopWhenFocusLost.enabled:=cbPlayXM.checked and cbStopPlaying.checked;
 
+  sbPlayStopXM.enabled:=cbPlayXM.checked;
 end;
 
 procedure TfrmTrainerGenerator.cbStopPlayingChange(Sender: TObject);

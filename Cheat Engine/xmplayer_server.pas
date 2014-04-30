@@ -74,9 +74,12 @@ begin
   if not initialized then
     initialize;
 
-  f:=TFilestream.create(filename, fmOpenRead or fmShareDenyNone);
-  playXM(f, noloop);
-  f.free;
+  if FileExists(filename) then
+  begin
+    f:=TFilestream.create(filename, fmOpenRead or fmShareDenyNone);
+    playXM(f, noloop);
+    f.free;
+  end;
 end;
 
 procedure TXMPlayer.playXM(stream: TStream; noloop: boolean=false);
