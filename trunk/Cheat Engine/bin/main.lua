@@ -461,6 +461,8 @@ properties:
   Left : integer - The y position
   Width : integer - The width of the control
   Height : integer - The height of the control
+  ClientWidth: integer - The usable width inside the control (minus the borders)
+  ClientHeight: integer - The usable height the control (minus the borders)
   Align: AlignmentOption - Alignment of the control
   Enabled: boolean - Determines if the object is usable or greyed out
   Visible: boolean - Determines if the object is visible or not
