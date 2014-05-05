@@ -176,6 +176,48 @@ begin
   result:=1;
 end;
 
+
+function control_setClientWidth(L: Plua_State): integer; cdecl;
+var
+  c: tcontrol;
+begin
+  c:=luaclass_getClassObject(L);
+  if lua_gettop(L)=1 then
+    c.ClientWidth:=lua_tointeger(L, 1);
+
+  result:=0;
+end;
+
+function control_getClientWidth(L: Plua_State): integer; cdecl;
+var
+  c: tcontrol;
+begin
+  c:=luaclass_getClassObject(L);
+  lua_pushinteger(L, c.ClientWidth);
+  result:=1;
+end;
+
+
+function control_setClientHeight(L: Plua_State): integer; cdecl;
+var
+  c: tcontrol;
+begin
+  c:=luaclass_getClassObject(L);
+  if lua_gettop(L)=1 then
+    c.ClientHeight:=lua_tointeger(L, 1);
+
+  result:=0;
+end;
+
+function control_getClientHeight(L: Plua_State): integer; cdecl;
+var
+  c: tcontrol;
+begin
+  c:=luaclass_getClassObject(L);
+  lua_pushinteger(L, c.ClientHeight);
+  result:=1;
+end;
+
 function control_setSize(L: Plua_State): integer; cdecl;
 var
   c: TControl;
@@ -432,6 +474,10 @@ begin
   //luaclass_addPropertyToTable(L, metatable, userdata, 'Enabled', control_getEnabled, control_setEnabled);
   //luaclass_addPropertyToTable(L, metatable, userdata, 'Visible', control_getVisible, control_setVisible);
   //luaclass_addPropertyToTable(L, metatable, userdata, 'Color', control_getColor, control_setColor);
+
+  luaclass_addPropertyToTable(L, metatable, userdata, 'ClientWidth', control_getClientWidth, control_setClientWidth);
+  luaclass_addPropertyToTable(L, metatable, userdata, 'ClientHeight', control_getClientHeight, control_setClientHeight);
+
   luaclass_addPropertyToTable(L, metatable, userdata, 'Parent', control_getParent, control_setParent);
   luaclass_addPropertyToTable(L, metatable, userdata, 'PopupMenu', control_getPopupMenu, control_setPopupMenu);
   luaclass_addPropertyToTable(L, metatable, userdata, 'Font', control_getFont, control_setFont);
