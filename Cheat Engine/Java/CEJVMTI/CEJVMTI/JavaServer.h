@@ -51,6 +51,8 @@ private:
 	void SendMethodName(jmethodID methodid);
 	void SendFieldName(jclass klass, jfieldID field);
 	void GetAllFieldsFromClass(jclass c, vector<jfieldID> *allfields);
+	void GetAllClassesAndInterfacesFromClass(jclass c, vector<jclass> *classes, vector<jclass> *interfaces);
+	jfieldID getFieldIDFromFieldIndex(jobject o, jint index);
 	
 	void CreatePipeandWaitForconnect(void);
 public:

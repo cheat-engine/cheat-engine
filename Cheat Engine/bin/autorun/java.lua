@@ -298,12 +298,16 @@ function javaInjectAgent()
     JavaSymbols.clear()
   end
 
+  if (java~=nil) and (java.attachedProcess==getOpenedProcessID()) then
+    return 1
+  end
+
 
   createNativeThread(CollectJavaSymbolsNonInjected)
 
   if (javapipe ~= nil) then
     javapipe.destroy()  --this will cause the pipe listener to destroy the java event server, which will stop the javaeventthread (so no need to wait for that)
-	javapipe=nil
+  javapipe=nil
   end
 
 
@@ -313,20 +317,20 @@ function javaInjectAgent()
   if javaInjectedProcesses==nil then
     javaInjectedProcesses={}
 
-	local oldstate=errorOnLookupFailure(false)
-	local address=getAddress('CEJVMTI.dll')
-	if (address~=nil) and (address~=0) then
-	  javaInjectedProcesses[getOpenedProcessID()]=true
-	  alreadyinjected=true
-	  --opened a process with the JVMTI agent already running
+  local oldstate=errorOnLookupFailure(false)
+  local address=getAddress('CEJVMTI.dll')
+  if (address~=nil) and (address~=0) then
+    javaInjectedProcesses[getOpenedProcessID()]=true
+    alreadyinjected=true
+    --opened a process with the JVMTI agent already running
 
-	end
+  end
 
-	errorOnLookupFailure(oldstate)
+  errorOnLookupFailure(oldstate)
 
   else
     --check if already injected
-	alreadyinjected=javaInjectedProcesses[getOpenedProcessID()]==true
+  alreadyinjected=javaInjectedProcesses[getOpenedProcessID()]==true
   end
 
 
@@ -342,63 +346,62 @@ function javaInjectAgent()
 
   if (alreadyinjected==false) then
     local script=[[
-		globalalloc(bla,1024)
+    globalalloc(bla,1024)
 
-		globalalloc(cmd,16)
-		globalalloc(arg0,256)
-		globalalloc(arg1,256)
-		globalalloc(arg2,256)
-		globalalloc(result,4)
+    globalalloc(cmd,16)
+    globalalloc(arg0,256)
+    globalalloc(arg1,256)
+    globalalloc(arg2,256)
+    globalalloc(result,4)
 
-		globalalloc(pipename,256)
+    globalalloc(pipename,256)
 
-		cmd:
-		db 'load',0
+    cmd:
+    db 'load',0
 
-		arg0:
+    arg0:
 
-		db ']]..dllpath..[[',0
+    db ']]..dllpath..[[',0
 
-		arg1:
-		db 0
+    arg1:
+    db 0
 
-		arg2:
-		db 0
+    arg2:
+    db 0
 
-		pipename:
-		db '\\.\pipe\cejavapipe',0
-
-
-		bla:
-		sub rsp,8
-		sub rsp,30
-
-		mov rcx,cmd
-		mov rdx,arg0
-		mov r8,arg1
-		mov r9,arg2
-
-		mov [rsp],cmd
-		mov [rsp+8],arg0
-		mov [rsp+10],arg1
-		mov [rsp+18],arg2
-		mov [rsp+20],pipename
-
-		call jvm.JVM_EnqueueOperation
-		mov [result],eax
-
-		add rsp,38
-		ret
-
-		createthread(bla)
-		]]
-	if autoAssemble(script)==false then
-	  error('Auto assembler failed:'..script)
-	end
+    pipename:
+    db '\\.\pipe\cejavapipe',0
 
 
-	javaInjectedProcesses[getOpenedProcessID()]=true
+    bla:
+    sub rsp,8
+    sub rsp,30
 
+    mov rcx,cmd
+    mov rdx,arg0
+    mov r8,arg1
+    mov r9,arg2
+
+    mov [rsp],cmd
+    mov [rsp+8],arg0
+    mov [rsp+10],arg1
+    mov [rsp+18],arg2
+    mov [rsp+20],pipename
+
+    call jvm.JVM_EnqueueOperation
+    mov [result],eax
+
+    add rsp,38
+    ret
+
+    createthread(bla)
+    ]]
+  if autoAssemble(script)==false then
+    error('Auto assembler failed:'..script)
+  end
+
+
+  javaInjectedProcesses[getOpenedProcessID()]=true
   end
 
 
@@ -421,6 +424,7 @@ function javaInjectAgent()
 
 
   java.capabilities=java_getCapabilities()
+  java.attachedProcess=getOpenedProcessID();
 
   return 1;
 end
@@ -451,166 +455,166 @@ function JavaEventListener(thread)
 
   while true do
     local command=JavaEventPipe.readByte()
-	if command==EVENTCMD_METHODLOAD then  --methodload
+  if command==EVENTCMD_METHODLOAD then  --methodload
 
-	  local size1, size2, size3,ssize,classname, methodname, methodsig
+    local size1, size2, size3,ssize,classname, methodname, methodsig
 
-	  local method=JavaEventPipe.readQword()
-	  local code_size=JavaEventPipe.readDword()
-	  local code_addr=JavaEventPipe.readQword()
-	  size1=JavaEventPipe.readWord()
-	  if (size1>0) then
-	    classname=JavaEventPipe.readString(size1)
-	  else
-	    classname=''
-	  end
-
-	  size2=JavaEventPipe.readWord()
-	  if (size2>0) then
-	    methodname=JavaEventPipe.readString(size2)
-	  else
-	    methodname=''
-	  end
-
-	  size3=JavaEventPipe.readWord()
-	  if (size3>0) then
-        methodsig=JavaEventPipe.readString(size3)
-	  else
-	    methodsig=''
-	  end
-
-	  local endpos=classname:match'^.*();'
-	  if endpos~=nil then
-  	    classname=string.sub(classname,1,endpos-1)
-	  end
-	  local name=classname.."::"..methodname..methodsig
-
-
-	  JavaSymbols.addSymbol("",classname.."::"..methodname,code_addr,code_size)
-
-	  --print(string.format("s1=%d s2=%d s3=%d  (cn=%s  mn=%s  ms=%s)", size1,size2,size3, classname, methodname, methodsig))
-
-	  --print(string.format("Methodload: %s -  (%x) %x-%x", name, method, code_addr, code_addr+code_size))
-
-
-	  --
-	elseif command==EVENTCMD_METHODUNLOAD then --methodunload
-	  local method=JavaEventPipe.readQword()
-	  local code_addr=JavaEventPipe.readQword()
-
-	  print("EVENTCMD_METHODUNLOAD")
-	  JavaSymbols.deleteSymbol(code_addr)
-	  --
-	elseif command==EVENTCMD_DYNAMICCODEGENERATED then --DynamicCodeGenerated
-	  local ssize
-	  local address=JavaEventPipe.readQword()
-	  local length=JavaEventPipe.readDword()
-	  ssize=JavaEventPipe.readWord()
-	  local name=JavaEventPipe.readString(ssize)
-
-	  --print(string.format("DynamicCode: %s  -  %x-%x", name, address, address+length))
-	  JavaSymbols.addSymbol("",name,address,length)
-
-
-	  --
-	elseif command==EVENTCMD_FIELDMODIFICATION then
-
-	  print("EVENTCMD_FIELDMODIFICATION")
-	  local id=JavaEventPipe.readDword()
-	  local entry={}
-
-	  print("id=="..id)
-
-	  entry.methodid=JavaEventPipe.readQword()
-	  entry.location=JavaEventPipe.readQword()
-
-	  local stackcount=JavaEventPipe.readByte()
-	  local i
-	  local stack={}
-
-	  print("stackcount=="..stackcount)
-
-	  for i=1, stackcount do
-	    stack[i]={}
-		stack[i].methodid=JavaEventPipe.readQword()
-		stack[i].location=JavaEventPipe.readQword()
-	  end
-
-	  entry.stack=stack
-
-
-
-	  if java.findwhatwriteslist~=nil then
-		local fcd=java.findwhatwriteslist[id]
-
-		if fcd~=nil then
-		  --check if this entry is already in the list
-		  local found=false
-
-		  for i=1, #fcd.entries  do
-		    if (fcd.entries[i].methodid==entry.methodid) and (fcd.entries[i].location==entry.location) then
-			  found=true
-			  break
-			end
-		  end
-
-		  if not found then
-		    --if not, add it
-			--print("adding to the list")
-
-
-
-
-
-		    local mname=java_getMethodName(entry.methodid)
-
-			local class=java_getMethodDeclaringClass(entry.methodid)
-			local classname=java_getClassSignature(class)
-
-			java_dereferenceLocalObject(class)
-
-			--execute this in the main thread (gui access)
-			synchronize(function(classname, id, mname)
-			  local fcd=java.findwhatwriteslist[id]
-
-
-			  if fcd~=nil then --check that the found code dialog hasn't been freed while waiting for sync
-			    tventry=fcd.lv.items.add()
-  		        tventry.Caption=classname
-
-		        tventry.SubItems.add(string.format('%x: %s', entry.methodid, mname))
-		        tventry.SubItems.add(entry.location)
-
-  		        table.insert(fcd.entries, entry)
-			  end
-			end, classname, id, mname)
-
-
-		  else
-		   -- print("Already in the list")
-		  end
-		else
-		 -- print("fcd==nil")
-
-		end
-	  else
-	   -- print("java.findwhatwriteslist==nil")
-	  end
-
-	  --print("done")
-	elseif command==JAVACODECMD_TERMINATED then
-	  print("eventserver terminated")
-	  break
-	elseif command==nil then
-	  print("Disconnected")
-	  break
+    local method=JavaEventPipe.readQword()
+    local code_size=JavaEventPipe.readDword()
+    local code_addr=JavaEventPipe.readQword()
+    size1=JavaEventPipe.readWord()
+    if (size1>0) then
+      classname=JavaEventPipe.readString(size1)
     else
-	  print("Unexpected event received")  --synchronize isn't necesary for print as that function is designed to synchronize internally
+      classname=''
+    end
+
+    size2=JavaEventPipe.readWord()
+    if (size2>0) then
+      methodname=JavaEventPipe.readString(size2)
+    else
+      methodname=''
+    end
+
+    size3=JavaEventPipe.readWord()
+    if (size3>0) then
+        methodsig=JavaEventPipe.readString(size3)
+    else
+      methodsig=''
+    end
+
+    local endpos=classname:match'^.*();'
+    if endpos~=nil then
+        classname=string.sub(classname,1,endpos-1)
+    end
+    local name=classname.."::"..methodname..methodsig
+
+
+    JavaSymbols.addSymbol("",classname.."::"..methodname,code_addr,code_size)
+
+    --print(string.format("s1=%d s2=%d s3=%d  (cn=%s  mn=%s  ms=%s)", size1,size2,size3, classname, methodname, methodsig))
+
+    --print(string.format("Methodload: %s -  (%x) %x-%x", name, method, code_addr, code_addr+code_size))
+
+
+    --
+  elseif command==EVENTCMD_METHODUNLOAD then --methodunload
+    local method=JavaEventPipe.readQword()
+    local code_addr=JavaEventPipe.readQword()
+
+    print("EVENTCMD_METHODUNLOAD")
+    JavaSymbols.deleteSymbol(code_addr)
+    --
+  elseif command==EVENTCMD_DYNAMICCODEGENERATED then --DynamicCodeGenerated
+    local ssize
+    local address=JavaEventPipe.readQword()
+    local length=JavaEventPipe.readDword()
+    ssize=JavaEventPipe.readWord()
+    local name=JavaEventPipe.readString(ssize)
+
+    --print(string.format("DynamicCode: %s  -  %x-%x", name, address, address+length))
+    JavaSymbols.addSymbol("",name,address,length)
+
+
+    --
+  elseif command==EVENTCMD_FIELDMODIFICATION then
+
+    --print("EVENTCMD_FIELDMODIFICATION")
+    local id=JavaEventPipe.readDword()
+    local entry={}
+
+    --print("id=="..id)
+
+    entry.methodid=JavaEventPipe.readQword()
+    entry.location=JavaEventPipe.readQword()
+
+    local stackcount=JavaEventPipe.readByte()
+    local i
+    local stack={}
+
+    --print("stackcount=="..stackcount)
+
+    for i=1, stackcount do
+      stack[i]={}
+    stack[i].methodid=JavaEventPipe.readQword()
+    stack[i].location=JavaEventPipe.readQword()
+    end
+
+    entry.stack=stack
+
+
+
+    if java.findwhatwriteslist~=nil then
+    local fcd=java.findwhatwriteslist[id]
+
+    if fcd~=nil then
+      --check if this entry is already in the list
+      local found=false
+
+      for i=1, #fcd.entries  do
+        if (fcd.entries[i].methodid==entry.methodid) and (fcd.entries[i].location==entry.location) then
+        found=true
+        break
+      end
+      end
+
+      if not found then
+        --if not, add it
+      --print("adding to the list")
+
+
+
+
+
+        local mname=java_getMethodName(entry.methodid)
+
+      local class=java_getMethodDeclaringClass(entry.methodid)
+      local classname=java_getClassSignature(class)
+
+      java_dereferenceLocalObject(class)
+
+      --execute this in the main thread (gui access)
+      synchronize(function(classname, id, mname)
+        local fcd=java.findwhatwriteslist[id]
+
+
+        if fcd~=nil then --check that the found code dialog hasn't been freed while waiting for sync
+          tventry=fcd.lv.items.add()
+              tventry.Caption=classname
+
+            tventry.SubItems.add(string.format('%x: %s', entry.methodid, mname))
+            tventry.SubItems.add(entry.location)
+
+              table.insert(fcd.entries, entry)
+        end
+      end, classname, id, mname)
+
+
+      else
+       -- print("Already in the list")
+      end
+    else
+     -- print("fcd==nil")
+
+    end
+    else
+     -- print("java.findwhatwriteslist==nil")
+    end
+
+    --print("done")
+  elseif command==JAVACODECMD_TERMINATED then
+    print("Java:eventserver terminated")
+    break
+  elseif command==nil then
+    print("Java:Disconnected")
+    break
+    else
+    print("Java:Unexpected event received")  --synchronize isn't necesary for print as that function is designed to synchronize internally
       break --unknown command
-	end
+  end
   end
 
-  print("Event handler terminating")
+  print("Java:Event handler terminating")
   JavaEventPipe.destroy();
 end
 
@@ -665,16 +669,16 @@ function java_getLoadedClasses()
 
   if classcount>0 then
     local i=0
-	local length
-	for i=1,classcount do
-	  classes[i]={}
-	  classes[i].jclass=javapipe.readQword()  --this is a pointer to a pointer to java.lang.class. To get the offset where klass is stored use getFieldFromType("java_lang_Class", "_klass_offset")  (The klass contains a _fields field which points to a array which contains the offset of the fields. Might be useful)
-	  length=javapipe.readWord()
-	  classes[i].signature=javapipe.readString(length);
+  local length
+  for i=1,classcount do
+    classes[i]={}
+    classes[i].jclass=javapipe.readQword()  --this is a pointer to a pointer to java.lang.class. To get the offset where klass is stored use getFieldFromType("java_lang_Class", "_klass_offset")  (The klass contains a _fields field which points to a array which contains the offset of the fields. Might be useful)
+    length=javapipe.readWord()
+    classes[i].signature=javapipe.readString(length);
 
-	  length=javapipe.readWord()
-	  classes[i].generic=javapipe.readString(length);
-	end
+    length=javapipe.readWord()
+    classes[i].generic=javapipe.readString(length);
+  end
 
   end
 
@@ -728,14 +732,14 @@ function java_getClassMethods(class)
     result[i]={}
     result[i].jmethodid=javapipe.readQword()
 
-	length=javapipe.readWord()
-	result[i].name=javapipe.readString(length)
+  length=javapipe.readWord()
+  result[i].name=javapipe.readString(length)
 
-	length=javapipe.readWord()
-	result[i].signature=javapipe.readString(length)
+  length=javapipe.readWord()
+  result[i].signature=javapipe.readString(length)
 
-	length=javapipe.readWord()
-	result[i].generic=javapipe.readString(length)
+  length=javapipe.readWord()
+  result[i].generic=javapipe.readString(length)
   end
   javapipe.unlock()
   return result
@@ -753,14 +757,14 @@ function java_getClassFields(class)
     result[i]={}
     result[i].jfieldid=javapipe.readQword()
 
-	length=javapipe.readWord()
-	result[i].name=javapipe.readString(length)
+  length=javapipe.readWord()
+  result[i].name=javapipe.readString(length)
 
-	length=javapipe.readWord()
-	result[i].signature=javapipe.readString(length)
+  length=javapipe.readWord()
+  result[i].signature=javapipe.readString(length)
 
-	length=javapipe.readWord()
-	result[i].generic=javapipe.readString(length)
+  length=javapipe.readWord()
+  result[i].generic=javapipe.readString(length)
   end
   javapipe.unlock()
   return result
@@ -774,10 +778,10 @@ function java_getAllClassFields(class)
   local result={}
   while (class~=nil) and (class~=0) do
     local r=java_getClassFields(class)
-	local i
-	for i=1,#r do
-	  result[#result+1]=r[i]
-	end
+  local i
+  for i=1,#r do
+    result[#result+1]=r[i]
+  end
 
     class=java_getSuperClass(class) --this pushes an object on the local frame
   end
@@ -892,22 +896,22 @@ function java_parseSignature_type(sig, i)
   local char=string.sub(sig,i,i)
 
   if (char=='V') or (char=='Z') or (char=='B') or (char=='C') or (char=='S') or (char=='I') or (char=='J') or (char=='F') or (char=='D') then
-	result=char
+  result=char
   elseif char=='L' then
-	local classtype
-	local newi
+  local classtype
+  local newi
 
-	newi=string.find(sig,';', i+1)
-	if newi==nil then
-	  return #sig --error
-	end
+  newi=string.find(sig,';', i+1)
+  if newi==nil then
+    return #sig --error
+  end
 
-	result=string.sub(sig, i, newi)
+  result=string.sub(sig, i, newi)
 
-	i=newi
+  i=newi
   elseif char=='[' then
-	result,i=java_parseSignature_type(sig,i+1)
-	result='['..result
+  result,i=java_parseSignature_type(sig,i+1)
+  result='['..result
   end
 
   return result,i
@@ -922,15 +926,15 @@ function java_parseSignature_method(sig, i, result)
     local parem
     local char=string.sub(sig,i,i)
 
-	--parse every type
+  --parse every type
 
-	if char==')' then
-	  return i+1
-	end
+  if char==')' then
+    return i+1
+  end
 
-	param,i=java_parseSignature_type(sig, i)
-	result.parameters[#result.parameters+1]=param
-	i=i+1
+  param,i=java_parseSignature_type(sig, i)
+  result.parameters[#result.parameters+1]=param
+  i=i+1
   end
 end
 
@@ -945,15 +949,15 @@ function java_parseSignature(sig)
   while i<=#sig do
     local char=string.sub(sig,i,i)
 
-	if char=='(' then
-	  i=java_parseSignature_method(sig, i+1, result)
-	else
-	  if char~=' ' then
-  	    result.returntype, i=java_parseSignature_type(sig, i)
-	  end
+  if char=='(' then
+    i=java_parseSignature_method(sig, i+1, result)
+  else
+    if char~=' ' then
+        result.returntype, i=java_parseSignature_type(sig, i)
+    end
 
-	  i=i+1
-	end
+    i=i+1
+  end
   end
 
   return result
@@ -984,17 +988,17 @@ function java_invokeMethod_sendParameter(typeid, a, skiptypeid)
   if typeid==1 then --boolean
     if a==true then
       javapipe.writeByte(1)
-	else
-	  javapipe.writeByte(0)
-	end
+  else
+    javapipe.writeByte(0)
+  end
   elseif typeid==2 then
     javapipe.writeByte(a)
   elseif typeid==3 then --char
     if tonumber(a)==nil then
-	  javapipe.writeWord(string.byte(a,1))
-	else
+    javapipe.writeWord(string.byte(a,1))
+  else
       javapipe.writeWord(a)
-	end
+  end
 
   elseif typeid==4 then --short
     javapipe.writeWord(a)
@@ -1011,24 +1015,24 @@ function java_invokeMethod_sendParameter(typeid, a, skiptypeid)
   elseif typeid>10 then --array
 
     if typeid==13 then
-	  --check if a is a string
-	  if type(a)=='string' then
-	    javapipe.writeDword(#a)
-		javapipe.writeString(a)
-		return
-	  end
-	  --else send it char by char
-	end
+    --check if a is a string
+    if type(a)=='string' then
+      javapipe.writeDword(#a)
+    javapipe.writeString(a)
+    return
+    end
+    --else send it char by char
+  end
 
     javapipe.writeDword(#a) --length of the array
 
-	--send the fields as the given type
+  --send the fields as the given type
 
 
-	local i
-	for i=1, #a do
-	  java_invokeMethod_sendParameter(typeid-10, a[i], true)
-	end
+  local i
+  for i=1, #a do
+    java_invokeMethod_sendParameter(typeid-10, a[i], true)
+  end
 
   end
 
@@ -1070,9 +1074,9 @@ function java_invokeMethod(object, methodid, ...)
   for i=1, argumentcount do
     local typeid
     typeid=Java_TypeSigToIDConversion[string.sub(parsedsignature.parameters[i],1,1)]
-	if typeid==10 then
-	  typeid=10+Java_TypeSigToIDConversion[string.sub(parsedsignature.parameters[i],2,2)]
-	end
+  if typeid==10 then
+    typeid=10+Java_TypeSigToIDConversion[string.sub(parsedsignature.parameters[i],2,2)]
+  end
 
     java_invokeMethod_sendParameter(typeid, arg[i])
 
@@ -1098,11 +1102,11 @@ function java_findMethod(class, name, sig)
   local i
   for i=1,#cm do
     if cm[i].name==name then
-	  if (sig==nil) or (sig==cm[i].signature) then
-	    return cm[i].jmethodid
-	  end
+    if (sig==nil) or (sig==cm[i].signature) then
+      return cm[i].jmethodid
+    end
 
-	end
+  end
   end
 
   return nil --still here
@@ -1193,10 +1197,10 @@ function java_getField(jObject, fieldid, signature)
 
   if signature==nil then
     --I need to figure it out myself I guess...
-	local klass=java_getObjectClass(jObject)
-	signature=java_getFieldSignature(klass, fieldid).signature
+  local klass=java_getObjectClass(jObject)
+  signature=java_getFieldSignature(klass, fieldid).signature
 
-	java_dereferenceLocalObject(klass)
+  java_dereferenceLocalObject(klass)
   end
 
   --parse the signature
@@ -1232,10 +1236,10 @@ end
 function java_setField(jObject, fieldid, signature, value)
   if signature==nil then
     --I need to figure it out myself I guess...
-	local klass=java_getObjectClass(jObject)
-	signature=java_getFieldSignature(klass, fieldid).signature
+  local klass=java_getObjectClass(jObject)
+  signature=java_getFieldSignature(klass, fieldid).signature
 
-	java_dereferenceLocalObject(klass)
+  java_dereferenceLocalObject(klass)
   end
 
   local vartype=Java_TypeSigToIDConversion[string.sub(signature,1,1)]
@@ -1271,12 +1275,12 @@ function java_search_start(value, boolean)
     javapipe.writeByte(1) --unknown initial value scan
   else
     javapipe.writeByte(0) --value scan
-	javapipe.writeDouble(value)
-	if (boolean~=nil) and (boolean==true) then
-	  javapipe.writeByte(1)
-	else
-	  javapipe.writeByte(0)
-	end
+  javapipe.writeDouble(value)
+  if (boolean~=nil) and (boolean==true) then
+    javapipe.writeByte(1)
+  else
+    javapipe.writeByte(0)
+  end
   end
 
 
@@ -1335,15 +1339,23 @@ function java_search_getResults(maxresults)
   javapipe.writeDword(maxresults)
 
 
+  --local i=1
+
   while true do
+    --print(i)
+   -- i=i+1
+
     local object=javapipe.readQword()
-    if (object==0) or (object==nil) then break end --end of the list
+    if (object==0) or (object==nil) then
+      --print("End of the list")
+      break
+    end --end of the list
 
-	local r={}
-	r.object=object
-	r.fieldid=readQword()
+    local r={}
+    r.object=object
+    r.fieldid=javapipe.readQword()
 
-	table.insert(result, r)
+    table.insert(result, r)
   end
   javapipe.unlock()
 
@@ -1371,55 +1383,55 @@ function java_findWhatWrites(object, fieldid)
   if java.capabilities.can_generate_field_modification_events then
     --spawn a window to receive the data
 
-	javapipe.lock()
-	javapipe.writeByte(JAVACMD_FINDWHATWRITES)
-	javapipe.writeQword(object)
-	javapipe.writeQword(fieldid)
+  javapipe.lock()
+  javapipe.writeByte(JAVACMD_FINDWHATWRITES)
+  javapipe.writeQword(object)
+  javapipe.writeQword(fieldid)
 
-	id=javapipe.readDword()
+  id=javapipe.readDword()
 
-	--print("id="..id)
+  --print("id="..id)
 
-	javapipe.unlock()
-
-
-	local fcd={} --found code dialog
-	fcd.form=createForm()
-	fcd.form.width=400
-	fcd.form.height=300
-	fcd.form.Position=poScreenCenter
-	fcd.form.BorderStyle=bsSizeable
-	fcd.form.caption='The following methods accessed the given variable'
-	fcd.form.OnClose=java_foundCodeDialogClose
-	fcd.form.Tag=id
-
-	fcd.lv=createListView(fcd.form)
-	fcd.lv.Name='results';
-	fcd.lv.Align=alClient
-	fcd.lv.ViewStyle=vsReport
-	fcd.lv.ReadOnly=true
-	fcd.lv.RowSelect=true
-
-	local c=fcd.lv.Columns.add()
-	c.caption='Class'
-	c.width=100
-
-	c=fcd.lv.Columns.add()
-	c.caption='Method'
-	c.width=100
-
-	c=fcd.lv.Columns.add()
-	c.caption='Position'
-	c.autosize=true
-
-	fcd.entries={}
+  javapipe.unlock()
 
 
-	if java.findwhatwriteslist==nil then
-	  java.findwhatwriteslist={}
-	end
+  local fcd={} --found code dialog
+  fcd.form=createForm()
+  fcd.form.width=400
+  fcd.form.height=300
+  fcd.form.Position=poScreenCenter
+  fcd.form.BorderStyle=bsSizeable
+  fcd.form.caption='The following methods accessed the given variable'
+  fcd.form.OnClose=java_foundCodeDialogClose
+  fcd.form.Tag=id
 
-	java.findwhatwriteslist[id]=fcd
+  fcd.lv=createListView(fcd.form)
+  fcd.lv.Name='results';
+  fcd.lv.Align=alClient
+  fcd.lv.ViewStyle=vsReport
+  fcd.lv.ReadOnly=true
+  fcd.lv.RowSelect=true
+
+  local c=fcd.lv.Columns.add()
+  c.caption='Class'
+  c.width=100
+
+  c=fcd.lv.Columns.add()
+  c.caption='Method'
+  c.width=100
+
+  c=fcd.lv.Columns.add()
+  c.caption='Position'
+  c.autosize=true
+
+  fcd.entries={}
+
+
+  if java.findwhatwriteslist==nil then
+    java.findwhatwriteslist={}
+  end
+
+  java.findwhatwriteslist[id]=fcd
   else
     error('java_find_what_writes only works when the jvmti agent is launched at start')
   end
@@ -1428,20 +1440,20 @@ function java_findWhatWrites(object, fieldid)
 end
 
 function java_stopFindWhatWrites(id)
-	javapipe.lock()
-	javapipe.writeByte(JAVACMD_STOPFINDWHATWRITES)
-	javapipe.writeDword(id)
-	javapipe.unlock()
+  javapipe.lock()
+  javapipe.writeByte(JAVACMD_STOPFINDWHATWRITES)
+  javapipe.writeDword(id)
+  javapipe.unlock()
 end
 
 function java_getMethodDeclaringClass(methodid)
-	javapipe.lock()
-	javapipe.writeByte(JAVACMD_GETMETHODDECLARINGCLASS)
-	javapipe.writeQword(methodid)
-	local result=javapipe.readQword()
-	javapipe.unlock()
+  javapipe.lock()
+  javapipe.writeByte(JAVACMD_GETMETHODDECLARINGCLASS)
+  javapipe.writeQword(methodid)
+  local result=javapipe.readQword()
+  javapipe.unlock()
 
-	return result
+  return result
 end
 
 
@@ -1521,48 +1533,48 @@ function javaForm_treeviewExpanding(sender, node)
   --print("javaForm_treeviewExpanding "..node.level)
   if node.Level==0 then
     if node.Count==0 then
-	  --expand the class this node describes
-	  local jklass=node.Data
-	  local methods=java_getClassMethods(jklass)
-	  local fields=java_getClassFields(jklass)
-	  local interfaces=java_getImplementedInterfaces(jklass)
-	  local superclass=java_getSuperClass(jklass)
+    --expand the class this node describes
+    local jklass=node.Data
+    local methods=java_getClassMethods(jklass)
+    local fields=java_getClassFields(jklass)
+    local interfaces=java_getImplementedInterfaces(jklass)
+    local superclass=java_getSuperClass(jklass)
 
-	  local i
+    local i
 
-	  if superclass~=0 then
-	    node.add('superclass='..java_getClassSignature(superclass))
-		java_dereferenceLocalObject(superclass)
-	  end
-
-
-
-	  node.add('---Implemented interfaces---');
-	  for i=1, #interfaces do
-	    local name
-		if interfaces[i]>0 then
-		  name=java_getClassSignature(interfaces[i])
-		else
-		  name='???'
-		end
-
-	    node.add(string.format("%x : %s", interfaces[i], name))
-	  end
-
-	  node.add('---Fields---');
-	  for i=1, #fields do
-	    node.add(string.format("%x: %s: %s (%s)", fields[i].jfieldid, fields[i].name, fields[i].signature,fields[i].generic))
-	  end
-
-	  node.add('---Methods---');
+    if superclass~=0 then
+      node.add('superclass='..java_getClassSignature(superclass))
+    java_dereferenceLocalObject(superclass)
+    end
 
 
-	  for i=1, #methods do
-	    node.add(string.format("%x: %s%s           %s", methods[i].jmethodid, methods[i].name, methods[i].signature, methods[i].generic))
-	  end
+
+    node.add('---Implemented interfaces---');
+    for i=1, #interfaces do
+      local name
+    if interfaces[i]>0 then
+      name=java_getClassSignature(interfaces[i])
+    else
+      name='???'
+    end
+
+      node.add(string.format("%x : %s", interfaces[i], name))
+    end
+
+    node.add('---Fields---');
+    for i=1, #fields do
+      node.add(string.format("%x: %s: %s (%s)", fields[i].jfieldid, fields[i].name, fields[i].signature,fields[i].generic))
+    end
+
+    node.add('---Methods---');
 
 
-	  --java_getClassFields(jklass);
+    for i=1, #methods do
+      node.add(string.format("%x: %s%s           %s", methods[i].jmethodid, methods[i].name, methods[i].signature, methods[i].generic))
+    end
+
+
+    --java_getClassFields(jklass);
     end
   end
 
@@ -1594,74 +1606,247 @@ function javaForm_doSearch(sender)
   while currentindex<javaForm.treeview.Items.Count do
     local node=javaForm.treeview.Items[currentindex]
 
-	if (node.level==0) or findall then
-	  --check if node.Text contains the searchstring
-	  if string.find(node.Text,searchstring) ~= nil then
-	    --found one
-		node.Selected=true
-		node.makeVisible()
-		return
-	  end
-	end
+    if (node.level==0) or findall then
+      --check if node.Text contains the searchstring
+     if string.find(node.Text,searchstring) ~= nil then
+        --found one
+        node.Selected=true
+        node.makeVisible()
+        return
+      end
+    end
 
-	if findall and node.HasChildren then
-	  node.expand()
-	end
-	currentindex=currentindex+1
+    if findall and node.HasChildren then
+      node.expand()
+    end
+    currentindex=currentindex+1
   end
+end
+
+function varscan_showResults(count)
+  print("showing results for "..count.." results");
+  java.varscan.currentresults=java_search_getResults(math.min(count, 100))
+
+
+
+  if count>100 then
+    java.varscan.Count.Caption=string.format('%d of %d', #java.varscan.currentresults, count)
+  else
+    java.varscan.Count.Caption=count
+  end
+
+  count=#java.varscan.currentresults
+
+
+  local i
+  for i=1,count do
+    local object=java.varscan.currentresults[i].object
+    local fieldid=java.varscan.currentresults[i].fieldid
+
+
+
+    local class=java_getObjectClass(object)
+    local classname=java_getClassSignature(class)
+
+    --local class2=java_getFieldDeclaringClass(class, fieldid)
+    local fieldname=java_getFieldSignature(class, fieldid)
+    java_dereferenceLocalObject(class)
+    --java_dereferenceLocalObject(class2)
+
+    java.varscan.Results.Items.Add('Obj('..classname..'.'..fieldname.name..')')
+  end
+end
+
+function varscan_cleanupResults()
+  local i
+
+  java.varscan.Results.clear()
+
+  for i=1,#java.varscan.currentresults do
+    java_dereferenceLocalObject(java.varscan.currentresults[i].object)
+  end
+
+  java.varscan.currentresults=nil
+end
+
+function varscan_firstScan(sender)
+  --print("first scan")
+  if (sender.Tag==0) then
+    --first scan
+
+    local count=java_search_start(java.varscan.ValueBox.Text)
+    varscan_showResults(count)
+
+
+    sender.Caption="New Scan"
+    sender.Tag=1
+
+    java.varscan.NextScan.Enabled=#java.varscan.currentresults>0
+  else
+    --new scan
+    varscan_cleanupResults()
+    java_search_finish()
+    java.varscan.NextScan.Enabled=false
+
+    sender.Caption="First Scan"
+    sender.Tag=0
+  end
+end
+
+function varscan_nextScan(sender)
+  print("next scan")
+  varscan_cleanupResults()
+
+  local count=java_search_refine(0, java.varscan.ValueBox.Text)
+  varscan_showResults(count)
+
+  java.varscan.NextScan.Enabled=#java.varscan.currentresults>0
 
 end
 
 function miJavaVariableScanClick(sender)
   --todo: Make a gui
+
+  javaInjectAgent()
+
+  local varscan=java.varscan
+
+  if varscan==nil then
+    --build a gui
+    varscan={}
+    varscan.form=createForm()
+    varscan.form.Width=400
+    varscan.form.Height=400
+    varscan.form.Position=poScreenCenter
+    varscan.form.Caption="Java Variable Scanner"
+    varscan.form.BorderStyle=bsSizeable
+
+
+    varscan.controls=createPanel(varscan.form)
+    varscan.controls.Align=alRight
+    varscan.controls.Caption=''
+    varscan.controls.BevelOuter="bvNone"
+
+
+    varscan.ValueText=createLabel(varscan.controls)
+    varscan.ValueText.Caption="Value"
+
+    varscan.FirstScan=createButton(varscan.controls)
+    varscan.FirstScan.Caption="First Scan"
+
+    varscan.NextScan=createButton(varscan.controls)
+    varscan.NextScan.Caption="Next Scan"
+
+    local width=6+math.max(varscan.form.Canvas.getTextWidth(varscan.FirstScan.Caption), varscan.form.Canvas.getTextWidth(varscan.NextScan.Caption)) --guess which one will be bigger... (just in case someone translates this)
+
+    varscan.FirstScan.ClientWidth=width
+    varscan.NextScan.ClientWidth=width
+
+    varscan.ValueBox=createEdit(varscan.controls)
+
+    varscan.ValueBox.Top=20
+    varscan.ValueBox.Left=20;
+
+    varscan.ValueText.AnchorSideLeft.Control=varscan.ValueBox
+    varscan.ValueText.AnchorSideLeft.Side=asrLeft
+    varscan.ValueText.AnchorSideBottom.Control=varscan.ValueBox
+    varscan.ValueText.AnchorSideBottom.Side=asrTop
+    varscan.ValueText.Anchors="[akLeft, akBottom]"
+
+
+    varscan.FirstScan.AnchorSideLeft.Control=varscan.ValueBox
+    varscan.FirstScan.AnchorSideLeft.Side=asrLeft
+
+    varscan.FirstScan.AnchorSideTop.Control=varscan.ValueBox
+    varscan.FirstScan.AnchorSideTop.Side=asrBottom
+    varscan.FirstScan.BorderSpacing.Top=5
+    varscan.FirstScan.Anchors="[akTop, akLeft]"
+    varscan.FirstScan.OnClick=varscan_firstScan
+
+    varscan.NextScan.AnchorSideLeft.Control=varscan.FirstScan
+    varscan.NextScan.AnchorSideLeft.Side=asrRight
+    varscan.NextScan.BorderSpacing.Left=5
+    varscan.NextScan.OnClick=varscan_nextScan
+
+    varscan.NextScan.AnchorSideTop.Control=varscan.ValueBox
+    varscan.NextScan.AnchorSideTop.Side=asrBottom
+    varscan.NextScan.BorderSpacing.Top=5
+    varscan.NextScan.Anchors="[akTop, akLeft]"
+    varscan.NextScan.Enabled=false
+
+    varscan.ValueBox.Width=varscan.NextScan.Left+varscan.NextScan.Width-varscan.ValueBox.Left
+    varscan.controls.Width=varscan.ValueBox.Width+40
+
+    varscan.ResultPanel=createPanel(varscan.form)
+    varscan.ResultPanel.Align=alClient
+    varscan.ResultPanel.Caption=""
+    varscan.ResultPanel.BevelOuter="bvNone"
+
+
+    varscan.Count=createLabel(varscan.ResultPanel)
+    varscan.Count.Caption="Found:"
+    varscan.Count.Align=alTop
+
+    varscan.Results=createListBox(varscan.ResultPanel)
+    varscan.Results.Align=alClient
+    varscan.Results.Width=200
+
+
+  end
+
+  varscan.form.show()
+
+  java.varscan=varscan
 end
 
 function miJavaDissectClick(sender)
+  javaInjectAgent()
+
   --I could also implement the same method as mono, but as an example I'll be creating the form with code only
   if (javaForm==nil) then
     javaForm={}
     javaForm.form=createForm()
-	javaForm.form.Borderstyle=bsSizeable
-	javaForm.form.Width=640
-	javaForm.form.Height=480
-	javaForm.treeview=createTreeview(javaForm.form)
-	javaForm.treeview.align=alClient
-	javaForm.treeview.OnExpanding=javaForm_treeviewExpanding
+  javaForm.form.Borderstyle=bsSizeable
+  javaForm.form.Width=640
+  javaForm.form.Height=480
+  javaForm.treeview=createTreeview(javaForm.form)
+  javaForm.treeview.align=alClient
+  javaForm.treeview.OnExpanding=javaForm_treeviewExpanding
 
 
-	javaForm.menu=createMainMenu(javaForm.form)
+  javaForm.menu=createMainMenu(javaForm.form)
 
-	local searchmenu=createMenuItem(javaForm.menu)
-	searchmenu.caption="Search"
+  local searchmenu=createMenuItem(javaForm.menu)
+  searchmenu.caption="Search"
 
-	javaForm.menu.items.add(searchmenu)
+  javaForm.menu.items.add(searchmenu)
 
 
-	local searchClass=createMenuItem(javaForm.menu)
-	searchClass.caption="Find Class"
-	searchClass.Shortcut="Ctrl+F"
-	searchClass.OnClick=javaForm_searchClass
-	searchmenu.add(searchClass)
+  local searchClass=createMenuItem(javaForm.menu)
+  searchClass.caption="Find Class"
+  searchClass.Shortcut="Ctrl+F"
+  searchClass.OnClick=javaForm_searchClass
+  searchmenu.add(searchClass)
 
 
     local searchAll=createMenuItem(javaForm.menu)
-	searchAll.caption="Find..."
-	searchAll.Shortcut="Ctrl+Alt+F"
-	searchAll.OnClick=javaForm_searchAll
-	searchmenu.add(searchAll)
+  searchAll.caption="Find..."
+  searchAll.Shortcut="Ctrl+Alt+F"
+  searchAll.OnClick=javaForm_searchAll
+  searchmenu.add(searchAll)
 
-	javaForm.findDialog=createFindDialog(javaForm.form)
-	javaForm.findDialog.Options="[frHideEntireScope, frHideWholeWord, frDown, frDisableUpDown, frMatchCase, frDisableMatchCase]"
-	javaForm.findDialog.OnFind=javaForm_doSearch
-	javaForm.form.position=poScreenCenter
+  javaForm.findDialog=createFindDialog(javaForm.form)
+  javaForm.findDialog.Options="[frHideEntireScope, frHideWholeWord, frDown, frDisableUpDown, frMatchCase, frDisableMatchCase]"
+  javaForm.findDialog.OnFind=javaForm_doSearch
+  javaForm.form.position=poScreenCenter
 
 
-	javaForm.popupMenu=createPopupMenu(javaForm.form)
-	local miEditMethod=createMenuItem(javaForm.popupMenu)
-	miEditMethod.Caption="Edit method"
+  javaForm.popupMenu=createPopupMenu(javaForm.form)
+  local miEditMethod=createMenuItem(javaForm.popupMenu)
+  miEditMethod.Caption="Edit method"
 
-	javaForm.popupMenu.Items.Add(miEditMethod)
-	javaForm.treeview.PopupMenu=javaForm.popupMenu
+  javaForm.popupMenu.Items.Add(miEditMethod)
+  javaForm.treeview.PopupMenu=javaForm.popupMenu
 
   end
 
@@ -1671,12 +1856,12 @@ function miJavaDissectClick(sender)
   java_classlist=java_getLoadedClasses()
 
   if (java_classlist~=nil) then
-	local i
-	for i=1,#java_classlist do
-	  local node=javaForm.treeview.Items.Add(string.format("%d(%x) : %s (%s)", i, java_classlist[i].jclass, java_classlist[i].signature, java_classlist[i].generic	))
+  local i
+  for i=1,#java_classlist do
+    local node=javaForm.treeview.Items.Add(string.format("%d(%x) : %s (%s)", i, java_classlist[i].jclass, java_classlist[i].signature, java_classlist[i].generic	))
 
-	  node.Data=java_classlist[i].jclass
-	  node.HasChildren=true
+    node.Data=java_classlist[i].jclass
+    node.HasChildren=true
     end
   end
 
@@ -1910,29 +2095,43 @@ function java_OpenProcessAfterwards()
       mi=createMenuItem(miJavaTopMenuItem)
       mi.Caption="Activate java features"
       mi.OnClick=miJavaActivateClick
-	  mi.Enabled=usesjava
+    mi.Enabled=usesjava
+    mi.Name="miActivate"
+    mi.Visible=false
       miJavaTopMenuItem.Add(mi)
 
       mi=createMenuItem(miJavaTopMenuItem)
       mi.Caption="Dissect java classes"
       mi.Shortcut="Ctrl+Alt+J"
       mi.OnClick=miJavaDissectClick
-	  mi.Enabled=usesjava
+    mi.Enabled=usesjava
+    mi.Name="miDissectJavaClasses"
       miJavaTopMenuItem.Add(mi)
 
       mi=createMenuItem(miJavaTopMenuItem)
       mi.Caption="Java variable scan"
       mi.Shortcut="Ctrl+Alt+S"
       mi.OnClick=miJavaVariableScanClick
-	  mi.Enabled=usesjava
+    mi.Enabled=usesjava
+    mi.Name="miJavaVariableScan"
       miJavaTopMenuItem.Add(mi)
 
-	  mi=createMenuItem(miJavaTopMenuItem)
-      mi.Caption="Hook new child processes"
+    mi=createMenuItem(miJavaTopMenuItem)
+      mi.Caption="-"
+    miJavaTopMenuItem.Add(mi)
+
+    mi=createMenuItem(miJavaTopMenuItem)
+      mi.Caption="Debug child processes"
       mi.OnClick=miJavaSetEnvironmentClick
+    mi.Enabled=getOpenedProcessID()~=0
+    mi.Name="miDebugChildren"
       miJavaTopMenuItem.Add(mi)
-
-    end
+  else
+    miJavaTopMenuItem.miActivate.enabled=usesjava
+    miJavaTopMenuItem.miDissectJavaClasses.enabled=usesjava
+    miJavaTopMenuItem.miJavaVariableScan.enabled=usesjava
+    miJavaTopMenuItem.miDebugChildren=getOpenedProcessID()~=0
+  end
   end
 end
 
@@ -1952,7 +2151,7 @@ function javaAA_USEJAVA(parameters, syntaxcheckonly)
 
 
   if (syntaxcheckonly==false) and (javaInjectAgent()==0) then
-	return nil,"The java handler failed to initialize"
+  return nil,"The java handler failed to initialize"
   end
 
   return "" --return an empty string (removes it from the internal aa assemble list)
@@ -1968,25 +2167,25 @@ function java_settingsClose(sender)
   if (result==caHide) and (sender.ModalResult==mrOK) then
     --Apply changes
 
-	--if there is an error return caNone (and show a message preferably)
-	if java.settings.cbAlwaysShowMenu.Checked then
-	  java.settings.registry.Value["Always Show Menu"]=1
-	else
-	  java.settings.registry.Value["Always Show Menu"]=0
-	end
+  --if there is an error return caNone (and show a message preferably)
+  if java.settings.cbAlwaysShowMenu.Checked then
+    java.settings.registry.Value["Always Show Menu"]=1
+  else
+    java.settings.registry.Value["Always Show Menu"]=0
+  end
 
-	if java.settings.cbGlobalHook.Checked then
+  if java.settings.cbGlobalHook.Checked then
       if (java.settings.registry.Value["Global Hook"]=='') or (java.settings.registry.Value["Global Hook"]==0) then
-	    --it got selected
-	  end
+      --it got selected
+    end
 
-	  java.settings.registry.Value["Global Hook"]=1
-	else
+    java.settings.registry.Value["Global Hook"]=1
+  else
       if java.settings.registry.Value["Global Hook"]==1 then
-	    --it got deselected
-	  end
+      --it got deselected
+    end
       java.settings.registry.Value["Global Hook"]=0
-	end
+  end
 
   end
   return result
@@ -1999,7 +2198,7 @@ function java_settingsShow(sender)
 
   --update the controls based on the registry
   java.settings.cbAlwaysShowMenu.Checked=java.settings.registry.Value["Always Show Menu"]=='1'
-  java.settings.cbGlobalHook.Checked=java.settings.registry.Value["Global Hook"]=='1'
+  --java.settings.cbGlobalHook.Checked=java.settings.registry.Value["Global Hook"]=='1'
 
 end
 
@@ -2008,53 +2207,59 @@ function java_initialize()
   if (java==nil) then
     java={}
     java.oldOnOpenProcess=onOpenProcess
-	onOpenProcess=java_OpenProcess
+  onOpenProcess=java_OpenProcess
 
-	registerAutoAssemblerCommand("USEJAVA", javaAA_USEJAVA)
-
-
-	local sf=getSettingsForm()
-	java.settingsTab=sf.SettingsPageControl.addTab()
-
-	local node=sf.SettingsTreeView.Items.add("Java")
-	node.data=userDataToInteger(java.settingsTab)
-
-	java.settingsOnClose=sf.onClose
-	sf.onClose=java_settingsClose
-
-	java.settingsOnShow=sf.onShow
-	sf.onShow=java_settingsShow
+  registerAutoAssemblerCommand("USEJAVA", javaAA_USEJAVA)
 
 
-	java.settings={}
+  local sf=getSettingsForm()
+  java.settingsTab=sf.SettingsPageControl.addTab()
 
-	local cbAlwaysShowMenu=createCheckBox(java.settingsTab)
-	cbAlwaysShowMenu.Caption="Show java menu item even if the target process hasn't loaded jvm.dll (Used for the local setEnvironment option)"
-	cbAlwaysShowMenu.AnchorSideLeft.Control=java.settingsTab
-	cbAlwaysShowMenu.AnchorSideLeft.Side="asrLeft"
+  local node=sf.SettingsTreeView.Items.add("Java")
+  node.data=userDataToInteger(java.settingsTab)
 
-	cbAlwaysShowMenu.AnchorSideTop.Control=java.settingsTab
-	cbAlwaysShowMenu.AnchorSideTop.Side="asrTop"
+  java.settingsOnClose=sf.onClose
+  sf.onClose=java_settingsClose
 
-	cbAlwaysShowMenu.Anchors="[akTop, akLeft]"
+  java.settingsOnShow=sf.onShow
+  sf.onShow=java_settingsShow
 
-	java.settings.cbAlwaysShowMenu=cbAlwaysShowMenu
 
-	local cbGlobalHook=createCheckBox(java.settingsTab)
-	cbGlobalHook.Caption="Systemwide java agent injection. (Loads the java agent even when CE isn't running. Reboot recommended)"
-	cbGlobalHook.AnchorSideLeft.Control=java.settingsTab
-	cbGlobalHook.AnchorSideLeft.Side="asrLeft"
+  java.settings={}
 
-	cbGlobalHook.AnchorSideTop.Control=cbAlwaysShowMenu
-	cbGlobalHook.AnchorSideTop.Side="asrBottom"
-	cbGlobalHook.Anchors="[akTop, akLeft]"
+  local cbAlwaysShowMenu=createCheckBox(java.settingsTab)
+  cbAlwaysShowMenu.Caption="Show java menu item even if the target process hasn't loaded jvm.dll (Used for the local setEnvironment option)"
+  cbAlwaysShowMenu.AnchorSideLeft.Control=java.settingsTab
+  cbAlwaysShowMenu.AnchorSideLeft.Side="asrLeft"
 
-	java.settings.cbGlobalHook=cbGlobalHook
-	java.settings.registry=getSettings("Java")
+  cbAlwaysShowMenu.AnchorSideTop.Control=java.settingsTab
+  cbAlwaysShowMenu.AnchorSideTop.Side="asrTop"
+
+  cbAlwaysShowMenu.Anchors="[akTop, akLeft]"
+
+  java.settings.cbAlwaysShowMenu=cbAlwaysShowMenu
+
+  --[[
+  --warning: If you uninstall CE while this is checked you won't be able to load any java programs
+
+  local cbGlobalHook=createCheckBox(java.settingsTab)
+  cbGlobalHook.Caption="Systemwide java agent injection. (Loads the java agent even when CE isn't running. Reboot recommended)"
+  cbGlobalHook.AnchorSideLeft.Control=java.settingsTab
+  cbGlobalHook.AnchorSideLeft.Side="asrLeft"
+
+  cbGlobalHook.AnchorSideTop.Control=cbAlwaysShowMenu
+  cbGlobalHook.AnchorSideTop.Side="asrBottom"
+  cbGlobalHook.Anchors="[akTop, akLeft]"
+
+  java.settings.cbGlobalHook=cbGlobalHook
+  --]]
+
+  java.settings.registry=getSettings("Java")
+
 
     --initialize the settings based on the registry
     java.settings.cbAlwaysShowMenu.Checked=java.settings.registry.Value["Always Show Menu"]=='1'
-    java.settings.cbGlobalHook.Checked=java.settings.registry.Value["Global Hook"]=='1'
+    --java.settings.cbGlobalHook.Checked=java.settings.registry.Value["Global Hook"]=='1'
 
 
 
