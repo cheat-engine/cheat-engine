@@ -1624,7 +1624,7 @@ function javaForm_doSearch(sender)
 end
 
 function varscan_showResults(count)
-  print("showing results for "..count.." results");
+  --print("showing results for "..count.." results");
   java.varscan.currentresults=java_search_getResults(math.min(count, 100))
 
 
@@ -1694,7 +1694,7 @@ function varscan_firstScan(sender)
 end
 
 function varscan_nextScan(sender)
-  print("next scan")
+  --print("next scan")
   varscan_cleanupResults()
 
   local count=java_search_refine(0, java.varscan.ValueBox.Text)
@@ -1704,9 +1704,18 @@ function varscan_nextScan(sender)
 
 end
 
-function miJavaVariableScanClick(sender)
-  --todo: Make a gui
+function miFindWhatAccessClick(sender)
+  local i=java.varscan.Results.ItemIndex
+  if i~=-1 then
+    i=i+1
+    local object=java.varscan.currentresults[i].object
+    local fieldid=java.varscan.currentresults[i].fieldid
 
+    java_findWhatWrites(object, fieldid)
+  end
+end
+
+function miJavaVariableScanClick(sender)
   javaInjectAgent()
 
   local varscan=java.varscan
@@ -1791,6 +1800,13 @@ function miJavaVariableScanClick(sender)
     varscan.Results.Align=alClient
     varscan.Results.Width=200
 
+    varscan.Results.PopupMenu=createPopupMenu(varscan.form)
+
+    local mi
+    mi=createMenuItem(varscan.Results.PopupMenu)
+    mi.Caption="Find what accesses this value"
+    mi.OnClick=miFindWhatAccessClick;
+    varscan.Results.PopupMenu.Items.add(mi)
 
   end
 
@@ -1806,47 +1822,48 @@ function miJavaDissectClick(sender)
   if (javaForm==nil) then
     javaForm={}
     javaForm.form=createForm()
-  javaForm.form.Borderstyle=bsSizeable
-  javaForm.form.Width=640
-  javaForm.form.Height=480
-  javaForm.treeview=createTreeview(javaForm.form)
-  javaForm.treeview.align=alClient
-  javaForm.treeview.OnExpanding=javaForm_treeviewExpanding
+    javaForm.form.Borderstyle=bsSizeable
+    javaForm.form.Width=640
+    javaForm.form.Height=480
+    javaForm.treeview=createTreeview(javaForm.form)
+    javaForm.treeview.align=alClient
+    javaForm.treeview.OnExpanding=javaForm_treeviewExpanding
 
 
-  javaForm.menu=createMainMenu(javaForm.form)
+    javaForm.menu=createMainMenu(javaForm.form)
 
-  local searchmenu=createMenuItem(javaForm.menu)
-  searchmenu.caption="Search"
+    local searchmenu=createMenuItem(javaForm.menu)
+    searchmenu.caption="Search"
 
-  javaForm.menu.items.add(searchmenu)
+    javaForm.menu.items.add(searchmenu)
 
 
-  local searchClass=createMenuItem(javaForm.menu)
-  searchClass.caption="Find Class"
-  searchClass.Shortcut="Ctrl+F"
-  searchClass.OnClick=javaForm_searchClass
-  searchmenu.add(searchClass)
+    local searchClass=createMenuItem(javaForm.menu)
+    searchClass.caption="Find Class"
+    searchClass.Shortcut="Ctrl+F"
+    searchClass.OnClick=javaForm_searchClass
+    searchmenu.add(searchClass)
 
 
     local searchAll=createMenuItem(javaForm.menu)
-  searchAll.caption="Find..."
-  searchAll.Shortcut="Ctrl+Alt+F"
-  searchAll.OnClick=javaForm_searchAll
-  searchmenu.add(searchAll)
+    searchAll.caption="Find..."
+    searchAll.Shortcut="Ctrl+Alt+F"
+    searchAll.OnClick=javaForm_searchAll
+    searchmenu.add(searchAll)
 
-  javaForm.findDialog=createFindDialog(javaForm.form)
-  javaForm.findDialog.Options="[frHideEntireScope, frHideWholeWord, frDown, frDisableUpDown, frMatchCase, frDisableMatchCase]"
-  javaForm.findDialog.OnFind=javaForm_doSearch
-  javaForm.form.position=poScreenCenter
+    javaForm.findDialog=createFindDialog(javaForm.form)
+    javaForm.findDialog.Options="[frHideEntireScope, frHideWholeWord, frDown, frDisableUpDown, frMatchCase, frDisableMatchCase]"
+    javaForm.findDialog.OnFind=javaForm_doSearch
+    javaForm.form.position=poScreenCenter
 
 
-  javaForm.popupMenu=createPopupMenu(javaForm.form)
-  local miEditMethod=createMenuItem(javaForm.popupMenu)
-  miEditMethod.Caption="Edit method"
+    javaForm.popupMenu=createPopupMenu(javaForm.form)
+    local miEditMethod=createMenuItem(javaForm.popupMenu)
+    miEditMethod.Caption="Edit method"
 
-  javaForm.popupMenu.Items.Add(miEditMethod)
-  javaForm.treeview.PopupMenu=javaForm.popupMenu
+    javaForm.popupMenu.Items.Add(miEditMethod)
+    javaForm.treeview.PopupMenu=javaForm.popupMenu
+    javaForm.form.OnClose=nil --get rid of autodestruct
 
   end
 
@@ -1856,12 +1873,12 @@ function miJavaDissectClick(sender)
   java_classlist=java_getLoadedClasses()
 
   if (java_classlist~=nil) then
-  local i
-  for i=1,#java_classlist do
-    local node=javaForm.treeview.Items.Add(string.format("%d(%x) : %s (%s)", i, java_classlist[i].jclass, java_classlist[i].signature, java_classlist[i].generic	))
+    local i
+    for i=1,#java_classlist do
+      local node=javaForm.treeview.Items.Add(string.format("%d(%x) : %s (%s)", i, java_classlist[i].jclass, java_classlist[i].signature, java_classlist[i].generic	))
 
-    node.Data=java_classlist[i].jclass
-    node.HasChildren=true
+      node.Data=java_classlist[i].jclass
+      node.HasChildren=true
     end
   end
 
@@ -2167,25 +2184,27 @@ function java_settingsClose(sender)
   if (result==caHide) and (sender.ModalResult==mrOK) then
     --Apply changes
 
-  --if there is an error return caNone (and show a message preferably)
-  if java.settings.cbAlwaysShowMenu.Checked then
-    java.settings.registry.Value["Always Show Menu"]=1
-  else
-    java.settings.registry.Value["Always Show Menu"]=0
-  end
+    --if there is an error return caNone (and show a message preferably)
+    if java.settings.cbAlwaysShowMenu.Checked then
+      java.settings.registry.Value["Always Show Menu"]=1
+    else
+      java.settings.registry.Value["Always Show Menu"]=0
+    end
 
-  if java.settings.cbGlobalHook.Checked then
+    --[[
+    if java.settings.cbGlobalHook.Checked then
       if (java.settings.registry.Value["Global Hook"]=='') or (java.settings.registry.Value["Global Hook"]==0) then
-      --it got selected
-    end
+        --it got selected
+      end
 
-    java.settings.registry.Value["Global Hook"]=1
-  else
+      java.settings.registry.Value["Global Hook"]=1
+    else
       if java.settings.registry.Value["Global Hook"]==1 then
-      --it got deselected
+        --it got deselected
+      end
+        java.settings.registry.Value["Global Hook"]=0
     end
-      java.settings.registry.Value["Global Hook"]=0
-  end
+    --]]
 
   end
   return result
