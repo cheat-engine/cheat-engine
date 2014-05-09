@@ -438,8 +438,8 @@ object About: TAbout
       Left = 10
       Height = 13
       Top = 104
-      Width = 144
-      Caption = 'Script engine powered by LUA'
+      Width = 141
+      Caption = 'Script engine powered by Lua'
       ParentColor = False
     end
     object lblDBVM: TLabel
