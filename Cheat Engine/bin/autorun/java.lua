@@ -1,3 +1,6 @@
+--todo: split up into multiple units and use the java table for the methods as well
+
+
 JAVACMD_STARTCODECALLBACKS=0
 JAVACMD_STOPCODECALLBACKS=1
 JAVACMD_GETLOADEDCLASSES=2
@@ -536,8 +539,8 @@ function JavaEventListener(thread)
 
     for i=1, stackcount do
       stack[i]={}
-    stack[i].methodid=JavaEventPipe.readQword()
-    stack[i].location=JavaEventPipe.readQword()
+      stack[i].methodid=JavaEventPipe.readQword()
+      stack[i].location=JavaEventPipe.readQword()
     end
 
     entry.stack=stack
@@ -553,39 +556,35 @@ function JavaEventListener(thread)
 
       for i=1, #fcd.entries  do
         if (fcd.entries[i].methodid==entry.methodid) and (fcd.entries[i].location==entry.location) then
-        found=true
-        break
-      end
+          found=true
+          break
+        end
       end
 
       if not found then
-        --if not, add it
-      --print("adding to the list")
-
-
-
-
-
         local mname=java_getMethodName(entry.methodid)
 
-      local class=java_getMethodDeclaringClass(entry.methodid)
-      local classname=java_getClassSignature(class)
+        local class=java_getMethodDeclaringClass(entry.methodid)
+        local classname=java_getClassSignature(class)
 
-      java_dereferenceLocalObject(class)
+        java_dereferenceLocalObject(class)
 
-      --execute this in the main thread (gui access)
-      synchronize(function(classname, id, mname)
+        entry.classname=classname
+        entry.methodname=mname
+
+        --execute this in the main thread (gui access)
+        synchronize(function(classname, id, mname)
         local fcd=java.findwhatwriteslist[id]
 
 
         if fcd~=nil then --check that the found code dialog hasn't been freed while waiting for sync
           tventry=fcd.lv.items.add()
-              tventry.Caption=classname
+          tventry.Caption=classname
 
-            tventry.SubItems.add(string.format('%x: %s', entry.methodid, mname))
-            tventry.SubItems.add(entry.location)
+          tventry.SubItems.add(string.format('%x: %s', entry.methodid, mname))
+          tventry.SubItems.add(entry.location)
 
-              table.insert(fcd.entries, entry)
+          table.insert(fcd.entries, entry)
         end
       end, classname, id, mname)
 
@@ -1368,7 +1367,7 @@ function java_search_finish()
 end
 
 function java_foundCodeDialogClose(sender)
-  print("closing")
+  --print("closing")
   local id=sender.Tag
   local fcd=java.findwhatwriteslist[id]
   java.findwhatwriteslist[id]=nil
@@ -1376,6 +1375,115 @@ function java_foundCodeDialogClose(sender)
 
   java_stopFindWhatWrites(id)
   return caFree
+end
+
+function java_MoreInfoDblClick(sender)
+  --get the class and method and start the editor
+  local index=sender.ItemIndex+1
+  if index>0 then
+    local methodid=getRef(sender.Tag).stack[index].methodid --the listview also has this tag (tag to entry)
+    local class=java_getMethodDeclaringClass(methodid)
+
+    --get the class that defines this method
+
+    local classdata=java_getClassData(class)
+    local parsedclass=java_parseClass(classdata)
+
+    local mname=java_getMethodName(methodid)
+    local parsedmethod=javaclass_findMethod(parsedclass, mname)
+
+    javaclasseditor_editMethod(parsedclass, parsedmethod, editMethod_applyClick, class)
+
+  end
+end
+
+
+function java_foundCodeDialog_MoreInfo_OnDestroy(sender)
+  --cleanup the reference to this entry
+  local entry=getRef(sender.Tag)
+  if entry~=nil then
+    entry.form=nil
+    destroyRef(sender.Tag)
+  end
+
+end
+
+
+function java_createEntryListView(owner)
+  local lv=createListView(owner)
+  lv.ViewStyle=vsReport
+  lv.ReadOnly=true
+  lv.RowSelect=true
+
+  local c=lv.Columns.add()
+  c.caption='Class'
+  c.width=150
+
+  c=lv.Columns.add()
+  c.caption='Method'
+  c.width=150
+
+  c=lv.Columns.add()
+  c.caption='Position'
+  c.autosize=true
+
+  return lv
+end
+
+function java_foundCodeDialogLVDblClick(sender)
+  local id=sender.tag
+  local fcd=java.findwhatwriteslist[id]
+
+  local index=sender.ItemIndex+1
+  if index>0 then
+    local entry=fcd.entries[index]
+
+    if (entry.stack~=nil) and (entry.form==nil) then
+      --show a form with the stack info
+      local ref=createRef(entry)
+      entry.form=createForm()
+      entry.form.Caption=string.format("More info %s.%s(%d)", entry.classname, entry.methodname, entry.location)
+      entry.form.Tag=ref
+      entry.form.Width=400
+      entry.form.Height=150
+      entry.form.Position=poScreenCenter
+      entry.form.BorderStyle=bsSizeable
+
+
+      local lv=java_createEntryListView(entry.form)
+      lv.Tag=ref
+      lv.Align=alClient
+      entry.form.OnDestroy=java_foundCodeDialog_MoreInfo_OnDestroy
+
+      --fill the listview with the data
+      local i
+      for i=1, #entry.stack do
+        local se=entry.stack[i]
+        local mname=java_getMethodName(se.methodid)
+        local class=java_getMethodDeclaringClass(se.methodid)
+        local classname=java_getClassSignature(class)
+
+        java_dereferenceLocalObject(class)
+        class=nil
+
+        local tventry=lv.items.add()
+        tventry.Caption=classname
+
+        tventry.SubItems.add(string.format('%x: %s', se.methodid, mname))
+        tventry.SubItems.add(se.location)
+      end
+
+      lv.OnDblClick=java_MoreInfoDblClick
+
+    end
+
+    if (entry.form~=nil) then
+      entry.form.show() --bring to front
+    end
+
+
+  end
+
 end
 
 function java_findWhatWrites(object, fieldid)
@@ -1405,24 +1513,12 @@ function java_findWhatWrites(object, fieldid)
   fcd.form.OnClose=java_foundCodeDialogClose
   fcd.form.Tag=id
 
-  fcd.lv=createListView(fcd.form)
-  fcd.lv.Name='results';
+  fcd.lv=java_createEntryListView(fcd.form)
   fcd.lv.Align=alClient
-  fcd.lv.ViewStyle=vsReport
-  fcd.lv.ReadOnly=true
-  fcd.lv.RowSelect=true
+  fcd.lv.OnDblClick=java_foundCodeDialogLVDblClick
+  fcd.lv.Tag=id
+  fcd.lv.Name='results';
 
-  local c=fcd.lv.Columns.add()
-  c.caption='Class'
-  c.width=100
-
-  c=fcd.lv.Columns.add()
-  c.caption='Method'
-  c.width=100
-
-  c=fcd.lv.Columns.add()
-  c.caption='Position'
-  c.autosize=true
 
   fcd.entries={}
 
@@ -1531,47 +1627,47 @@ function javaForm_treeviewExpanding(sender, node)
   --outputDebugString("Expanding "..node.Text)
 
   --print("javaForm_treeviewExpanding "..node.level)
-  if node.Level==0 then
-    if node.Count==0 then
-    --expand the class this node describes
-    local jklass=node.Data
-    local methods=java_getClassMethods(jklass)
-    local fields=java_getClassFields(jklass)
-    local interfaces=java_getImplementedInterfaces(jklass)
-    local superclass=java_getSuperClass(jklass)
+  if node.Level==0 then --root level (class expasion)
+    if node.Count==0 then  --not yet filled in
+      --expand the class this node describes
+      local jklass=node.Data
+      local methods=java_getClassMethods(jklass)
+      local fields=java_getClassFields(jklass)
+      local interfaces=java_getImplementedInterfaces(jklass)
+      local superclass=java_getSuperClass(jklass)
 
-    local i
+      local i
 
-    if superclass~=0 then
-      node.add('superclass='..java_getClassSignature(superclass))
-    java_dereferenceLocalObject(superclass)
-    end
-
-
-
-    node.add('---Implemented interfaces---');
-    for i=1, #interfaces do
-      local name
-    if interfaces[i]>0 then
-      name=java_getClassSignature(interfaces[i])
-    else
-      name='???'
-    end
-
-      node.add(string.format("%x : %s", interfaces[i], name))
-    end
-
-    node.add('---Fields---');
-    for i=1, #fields do
-      node.add(string.format("%x: %s: %s (%s)", fields[i].jfieldid, fields[i].name, fields[i].signature,fields[i].generic))
-    end
-
-    node.add('---Methods---');
+      if superclass~=0 then
+        node.add('superclass='..java_getClassSignature(superclass))
+        java_dereferenceLocalObject(superclass)
+      end
 
 
-    for i=1, #methods do
-      node.add(string.format("%x: %s%s           %s", methods[i].jmethodid, methods[i].name, methods[i].signature, methods[i].generic))
-    end
+
+      node.add('---Implemented interfaces---');
+      for i=1, #interfaces do
+        local name
+        if interfaces[i]>0 then
+          name=java_getClassSignature(interfaces[i])
+        else
+          name='???'
+        end
+
+        node.add(string.format("%x : %s", interfaces[i], name))
+      end
+
+      node.add('---Fields---');
+      for i=1, #fields do
+        node.add(string.format("%x: %s: %s (%s)", fields[i].jfieldid, fields[i].name, fields[i].signature,fields[i].generic))
+      end
+
+      node.add('---Methods---');
+
+      for i=1, #methods do
+        local n=node.add(string.format("%x: %s%s           %s", methods[i].jmethodid, methods[i].name, methods[i].signature, methods[i].generic))
+        n.data=methods[i].jmethodid  --ONLY methods have this field set at level 1. (!ONLY METHODS!)
+      end
 
 
     --java_getClassFields(jklass);
@@ -1815,6 +1911,43 @@ function miJavaVariableScanClick(sender)
   java.varscan=varscan
 end
 
+function editMethod_applyClick(parsedclass, class)
+  local newdata=java_writeClass(parsedclass)
+  java_redefineClassWithCustomData(class, newdata)
+
+
+end
+
+function miEditMethodClick(sender)
+  --javaclasseditor_editMethod(class, methodid)
+  local sel=javaForm.treeview.Selected
+  if (sel~=nil) and (sel.Level==1) and (sel.Data~=0) then
+    --find the class and the methodid
+    --class can be found in the parent
+    --methodid is in the data
+
+    local class=sel.Parent.Data
+    local methodid=sel.data
+
+    --javaclasseditor_editMethod(class, methodid)
+
+    local classdata=java_getClassData(class)
+    local parsedclass=java_parseClass(classdata)
+
+    local mname=java_getMethodName(methodid)
+    local parsedmethod=javaclass_findMethod(parsedclass, mname)
+
+    javaclasseditor_editMethod(parsedclass, parsedmethod, editMethod_applyClick, class)
+  end
+end
+
+function javaDissectPopupOnPopup(sender)
+  --check if the current line contains a method, and if so, show miEditMethod else hide it
+
+  local sel=javaForm.treeview.Selected
+  javaForm.miEditMethod.Visible=(sel~=nil) and (sel.Level==1) and (sel.Data~=0)
+end
+
 function miJavaDissectClick(sender)
   javaInjectAgent()
 
@@ -1828,7 +1961,7 @@ function miJavaDissectClick(sender)
     javaForm.treeview=createTreeview(javaForm.form)
     javaForm.treeview.align=alClient
     javaForm.treeview.OnExpanding=javaForm_treeviewExpanding
-
+    javaForm.treeview.RightClickSelect=true
 
     javaForm.menu=createMainMenu(javaForm.form)
 
@@ -1857,12 +1990,16 @@ function miJavaDissectClick(sender)
     javaForm.form.position=poScreenCenter
 
 
-    javaForm.popupMenu=createPopupMenu(javaForm.form)
-    local miEditMethod=createMenuItem(javaForm.popupMenu)
-    miEditMethod.Caption="Edit method"
+    javaForm.popupMenu=createPopupMenu(javaForm.treeview)
+    javaForm.miEditMethod=createMenuItem(javaForm.popupMenu)
+    javaForm.miEditMethod.Caption="Edit method"
+    javaForm.miEditMethod.OnClick=miEditMethodClick
 
-    javaForm.popupMenu.Items.Add(miEditMethod)
+    javaForm.popupMenu.Items.Add(javaForm.miEditMethod)
+    javaForm.popupMenu.OnPopup=javaDissectPopupOnPopup
     javaForm.treeview.PopupMenu=javaForm.popupMenu
+
+
     javaForm.form.OnClose=nil --get rid of autodestruct
 
   end
