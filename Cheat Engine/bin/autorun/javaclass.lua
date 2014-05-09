@@ -653,30 +653,26 @@ function javaclass_method_findCodeAttribute(method)
   return nil
 end
 
---[[
+
 --teststuff
 
-function trace(event, line)
-  print(line)
-end
+--function trace(event, line)
+--  print(line)
+--end
 
 
-f=io.open([[c:\Users\DB\workspace\guitest\bin\Test.class]],"rb")
-data=f:read("*all")
-f:close()
+--f=io.open([[c:\Users\DB\workspace\guitest\bin\Test.class]],"rb")
+--data=f:read("*all")
+--f:close()
 
-x=java_parseClass(data)
+--x=java_parseClass(data)
 
 --debug.sethook(trace, "l")
 
-newdata=java_writeClass(x)
+--newdata=java_writeClass(x)
 
-f2=io.open([[c:\Users\DB\workspace\guitest\bin\bla\Test.class]],"wb")
-f2:write(newdata)
-f2:close()
+--f2=io.open([[c:\Users\DB\workspace\guitest\bin\bla\Test.class]],"wb")
+--f2:write(newdata)
+--f2:close()
 
 --x2=java_parseClass(newdata)
-
-
-
---]]
