@@ -212,13 +212,13 @@ function java_parseConstantPool(s, count)
   for i=1,count-1 do
     local tag=java_read_u1(s)
 
-	--print(tag.." "..string.format("%x",s.index))
+  --print(tag.." "..string.format("%x",s.index))
 
-	if java_parseConstantPoolTag[tag]~=nil then
-	  result[i]=java_parseConstantPoolTag[tag](s)
-	else
-	  error("Invalid constant pool tag encountered: "..s.index.." (tag="..tag..") (i="..i..")")
-	end
+  if java_parseConstantPoolTag[tag]~=nil then
+    result[i]=java_parseConstantPoolTag[tag](s)
+  else
+    error("Invalid constant pool tag encountered: "..s.index.." (tag="..tag..") (i="..i..")")
+  end
 
   end
 
@@ -266,10 +266,10 @@ function java_parseAttribute_Code(cp, a)
   a.exception_table={}
   for i=1, a.exception_table_length do
     a.exception_table[i]={}
-	a.exception_table[i].start_pc=java_read_u2(s)
+  a.exception_table[i].start_pc=java_read_u2(s)
     a.exception_table[i].end_pc=java_read_u2(s)
-	a.exception_table[i].handler_pc=java_read_u2(s)
-	a.exception_table[i].catch_type=java_read_u2(s)
+  a.exception_table[i].handler_pc=java_read_u2(s)
+  a.exception_table[i].catch_type=java_read_u2(s)
   end
 
   a.attributes_count=java_read_u2(s)
@@ -309,18 +309,18 @@ function java_parseAttributes(cp, s, count)
   for i=1,count do
     result[i]={}
     result[i].attribute_name_index=java_read_u2(s)
-	result[i].attribute_length=java_read_u4(s)
-	result[i].info=string.sub(s.data, s.index, s.index+result[i].attribute_length-1)
-	s.index=s.index+result[i].attribute_length
+  result[i].attribute_length=java_read_u4(s)
+  result[i].info=string.sub(s.data, s.index, s.index+result[i].attribute_length-1)
+  s.index=s.index+result[i].attribute_length
 
-	--fill in some extra data (not required for rebuilding)
-	result[i].attribute_name=cp[result[i].attribute_name_index].utf8
+  --fill in some extra data (not required for rebuilding)
+  result[i].attribute_name=cp[result[i].attribute_name_index].utf8
 
 
 
-	if java_parseAttribute[result[i].attribute_name]~=nil then --extra data for this attribute is available
-	  java_parseAttribute[result[i].attribute_name](cp, result[i])
-	end
+  if java_parseAttribute[result[i].attribute_name]~=nil then --extra data for this attribute is available
+    java_parseAttribute[result[i].attribute_name](cp, result[i])
+  end
 
 
   end
@@ -335,10 +335,10 @@ function java_parseFields(cp, s, count)
   for i=1,count do
     result[i]={}
     result[i].access_flags=java_read_u2(s)
-	result[i].name_index=java_read_u2(s)
-	result[i].descriptor_index=java_read_u2(s)
-	result[i].attributes_count=java_read_u2(s)
-	result[i].attributes=java_parseAttributes(cp, s, result[i].attributes_count)
+  result[i].name_index=java_read_u2(s)
+  result[i].descriptor_index=java_read_u2(s)
+  result[i].attributes_count=java_read_u2(s)
+  result[i].attributes=java_parseAttributes(cp, s, result[i].attributes_count)
   end
 
   return result
@@ -354,10 +354,10 @@ function java_parseMethods(cp, s, count)
   for i=1,count do
     result[i]={}
     result[i].access_flags=java_read_u2(s)
-	result[i].name_index=java_read_u2(s)
-	result[i].descriptor_index=java_read_u2(s)
-	result[i].attributes_count=java_read_u2(s)
-	result[i].attributes=java_parseAttributes(cp, s, result[i].attributes_count)
+  result[i].name_index=java_read_u2(s)
+  result[i].descriptor_index=java_read_u2(s)
+  result[i].attributes_count=java_read_u2(s)
+  result[i].attributes=java_parseAttributes(cp, s, result[i].attributes_count)
   end
 
 
@@ -415,13 +415,17 @@ end
 
 
 function java_write_u4(stream, value)
+  assert(value)
   local b=dwordToByteTable(value)
+
 
   stream.data=stream.data..string.char(b[4], b[3], b[2],b[1])
   stream.index=stream.index+4
 end
 
 function java_write_u2(stream, value)
+  assert(value)
+
   local b=wordToByteTable(value)
 
   stream.data=stream.data..string.char(b[2],b[1])
@@ -429,6 +433,7 @@ function java_write_u2(stream, value)
 end
 
 function java_write_u1(stream, value)
+  assert(value)
   stream.data=stream.data..string.char(value)
   stream.index=stream.index+1
 end
@@ -437,7 +442,6 @@ end
 
 function java_writeConstantPool_Class(s, cpitem)
   java_write_u2(s, cpitem.name_index)
-  return result
 end
 
 function java_writeConstantPool_Fieldref(s, cpitem)
@@ -535,47 +539,27 @@ end
 
 function java_writeAttributes(s, attributes, attributes_count)
   local i
+  assert(#attributes==attributes_count)
+
   for i=1, attributes_count do
     java_write_u2(s, attributes[i].attribute_name_index)
-	java_write_u2(s, attributes[i].attribute_length)
-	s.data=s.data..attributes[i].info
-	s.index=s.index+attributes[i].attribute_length
+    java_write_u4(s, attributes[i].attribute_length)
+    s.data=s.data..attributes[i].info
+    s.index=s.index+attributes[i].attribute_length
   end
---[[
-  local i
-  local result={}
-  for i=1,count do
-    result[i]={}
-    result[i].attribute_name_index=java_read_u2(s)
-	result[i].attribute_length=java_read_u4(s)
-	result[i].info=string.sub(s.data, s.index, s.index+result[i].attribute_length-1)
-	s.index=s.index+result[i].attribute_length
 
-	--fill in some extra data (not required for rebuilding)
-	result[i].attribute_name=cp[result[i].attribute_name_index].utf8
-
-
-
-	if java_parseAttribute[result[i].attribute_name]~=nil then --extra data for this attribute is available
-	  java_parseAttribute[result[i].attribute_name](cp, result[i])
-	end
-
-
-  end
-  return result
---]]
 end
 
 
 function java_writeFields(s, fields, field_count)
   local i
   for i=1, field_count do
-    java_write_u2(s, fields[i].access_fields)
-	java_write_u2(s, fields[i].name_index)
-	java_write_u2(s, fields[i].descriptor_index)
-	java_write_u2(s, fields[i].attributes_count)
+    java_write_u2(s, fields[i].access_flags)
+    java_write_u2(s, fields[i].name_index)
+    java_write_u2(s, fields[i].descriptor_index)
+    java_write_u2(s, fields[i].attributes_count)
 
-	java_writeAttributes(s, fields[i].attributes, fields[i].attributes_count)
+    java_writeAttributes(s, fields[i].attributes, fields[i].attributes_count)
   end
 
 end
@@ -583,12 +567,12 @@ end
 function java_writeMethods(s, methods, method_count)
   local i
   for i=1, method_count do
-    java_write_u2(s, methods[i].access_fields)
-	java_write_u2(s, methods[i].name_index)
-	java_write_u2(s, methods[i].descriptor_index)
-	java_write_u2(s, methods[i].attributes_count)
+    java_write_u2(s, methods[i].access_flags)
+  java_write_u2(s, methods[i].name_index)
+  java_write_u2(s, methods[i].descriptor_index)
+  java_write_u2(s, methods[i].attributes_count)
 
-	java_writeAttributes(s, methods[i].attributes, methods[i].attributes_count)
+  java_writeAttributes(s, methods[i].attributes, methods[i].attributes_count)
   end
 end
 
@@ -597,11 +581,12 @@ end
 
 
 function java_writeClass(class)
-  local result=''
   local s={}
   local i
-  s.data=result
+  s.data=''
   s.index=1
+
+  java_write_u4(s, 0xcafebabe)
 
   java_write_u2(s, class.minor_version)
   java_write_u2(s, class.major_version)
@@ -626,7 +611,7 @@ function java_writeClass(class)
   java_write_u2(s, class.attributes_count)
   java_writeAttributes(s, class.attributes, class.attributes_count)
 
-  return result
+  return s.data
 end
 
 
@@ -645,8 +630,8 @@ function javaclass_findMethod(class, methodname)
 
   for i=1, class.methods_count do
     if javaclass_getMethodName(class, class.methods[i])==methodname then
-	  return class.methods[i]
-	end
+      return class.methods[i]
+    end
   end
 
   return nil
@@ -657,9 +642,9 @@ function javaclass_method_findCodeAttribute(method)
   if method.CodeAttribute==nil then
     for i=1, #method.attributes do
       if method.attributes[i].attribute_name=="Code" then
-	    method.CodeAttribute=method.attributes[i]
-	    return method.attributes[i]
-	  end
+        method.CodeAttribute=method.attributes[i]
+        return method.attributes[i]
+      end
     end
   else
     return method.CodeAttribute
@@ -668,19 +653,30 @@ function javaclass_method_findCodeAttribute(method)
   return nil
 end
 
-
-
-
+--[[
 --teststuff
---f=io.open([[c:\Users\DB\workspace\guitest\bin\Test.class]],"rb")
---data=f:read("*all")
 
---x=java_parseClass(data)
-
---newdata=java_writeClass(x)
+function trace(event, line)
+  print(line)
+end
 
 
+f=io.open([[c:\Users\DB\workspace\guitest\bin\Test.class]],"rb")
+data=f:read("*all")
+f:close()
+
+x=java_parseClass(data)
+
+--debug.sethook(trace, "l")
+
+newdata=java_writeClass(x)
+
+f2=io.open([[c:\Users\DB\workspace\guitest\bin\bla\Test.class]],"wb")
+f2:write(newdata)
+f2:close()
+
+--x2=java_parseClass(newdata)
 
 
 
-
+--]]

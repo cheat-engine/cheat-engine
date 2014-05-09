@@ -336,7 +336,7 @@ function bytecodeDisassembler(bytes)
   result.labels={}
   local byteindex=1
   local index=1
-  while byteindex<#bytes do
+  while byteindex<=#bytes do
     local startindex=byteindex
     local wide=false
 
@@ -422,7 +422,7 @@ function bytecodeDisassembler(bytes)
 
     --copy the bytes
     result[index].bytes={}
-    for j=startindex, startindex+result[index].bytesize do
+    for j=startindex, startindex+result[index].bytesize-1 do
       result[index].bytes[1+(j-startindex)]=bytes[j]
     end
 
@@ -966,16 +966,60 @@ end
 
 function javaclasseditor_editMethod_applyUpdates(method)
   --converts the bytes of the interpreted code into the .info field of the code attribute (used by the writer)
-  local codeattribute=javaclass_method_findCodeAttribute(classMethod.method)
+  local i
+  local codeattribute=javaclass_method_findCodeAttribute(method)
   local code=codeattribute.code
 
-  codeattribute.info=''
+  codeattribute.max_stack=tonumber(method.editor.edtMaxStack.Text)
+  codeattribute.max_locals=tonumber(method.editor.edtMaxLocals.Text)
+
+ca=codeattribute
+
+
+
+  local s={}  --write stream
+  s.data=''
+  s.index=0 --not really needed by writes but helps with debugging
+
+  java_write_u2(s, codeattribute.max_stack)
+  java_write_u2(s, codeattribute.max_locals)
+
+
+  local bytesize=0
+  for i=1,#code do
+    bytesize=bytesize+#code[i].bytes
+  end
+
+  java_write_u4(s, bytesize) --code_length
+
   for i=1,#code do
     local j
     for j=1,#code[i].bytes do
-      codeattribute.info=codeattribute.info..string.char(code[i].bytes[j])
+      s.data=s.data..string.char(code[i].bytes[j])
     end
   end
+
+  s.index=s.index+#code
+
+  --exception table  (genius to allow code size to be specified by 4 bytes but not exception addresses)
+  java_write_u2(s, codeattribute.exception_table_length);
+  for i=1, codeattribute.exception_table_length do
+    java_write_u2(s, codeattribute.exception_table[i].start_pc)
+  java_write_u2(s, codeattribute.exception_table[i].end_pc)
+  java_write_u2(s, codeattribute.exception_table[i].handler_pc)
+  java_write_u2(s, codeattribute.exception_table[i].catch_type)
+  end
+
+  java_write_u2(s, codeattribute.attributes_count)
+  java_writeAttributes(s, codeattribute.attributes, codeattribute.attributes_count)
+
+  print(string.format("old bsize=%d new bsize=%d", codeattribute.code_length, bytesize))
+
+  print(string.format("old size=%d new size=%d", #codeattribute.info, #s.data))
+
+
+  codeattribute.info=s.data
+  codeattribute.attribute_length=#codeattribute.info
 end
 
 
@@ -983,21 +1027,21 @@ function btnApplyChangesClick(sender)
   --apply the changes
   local classMethod=getRef(sender.Tag)
   local method=classMethod.method
-  local ca=javaclass_method_findCodeAttribute(method)
-
-  ca.max_stack=method.editor.edtMaxStack.Text
-  ca.max_locals=method.editor.edtMaxLocals.Text
 
   javaclasseditor_editMethod_applyUpdates(method)
+
+
+  if method.editor.callbackfunction~=nil then
+    method.editor.callbackfunction(classMethod.class, method.editor.callbackparam)
+  end
 end
 
 
-function javaclasseditor_editMethod(class, method)
+function javaclasseditor_editMethod(class, method, callbackfunction, callbackparam)
   --create a gui for this method
+  --note that throughout this file we call the parsed class "class".  It's not the jclass object
 
-  if method.editor~=nil then
-    method.editor.form.show() --already created
-  else
+  if method.editor==nil then
     local ca=javaclass_method_findCodeAttribute(method)
     local classMethodRef=createRef({class=class, method=method})
 
@@ -1011,7 +1055,7 @@ function javaclasseditor_editMethod(class, method)
     method.editor.form.width=640
     method.editor.form.height=480
 
-    method.editor.form.caption="Method: "..x.constant_pool[x.constant_pool[x.this_class].name_index].utf8.."."..class.constant_pool[method.name_index].utf8
+    method.editor.form.caption="Method: "..class.constant_pool[class.constant_pool[class.this_class].name_index].utf8.."."..class.constant_pool[method.name_index].utf8
     method.editor.form.Position=poScreenCenter
 
 
@@ -1056,6 +1100,8 @@ function javaclasseditor_editMethod(class, method)
 
 
     method.editor.btnApplyChanges=createButton(method.editor.form)
+    method.editor.btnApplyChanges.AutoSize=true
+    method.editor.btnApplyChanges.Caption="Save changes"
     method.editor.btnApplyChanges.OnClick=btnApplyChangesClick
     method.editor.btnApplyChanges.Tag=classMethodRef
 
@@ -1140,9 +1186,15 @@ function javaclasseditor_editMethod(class, method)
     method.editor.pmEdit.Items.add(miDefineLine)
 
     method.editor.lvInstructions.PopupMenu=method.editor.pmEdit
+
+    method.editor.callbackfunction=callbackfunction
+    method.editor.callbackparam=callbackparam
   end
 
   javaclasseditor_editMethod_fillInstructionsListview(method.editor.lvInstructions, method)
+
+  method.editor.form.show()
+
 end
 
 

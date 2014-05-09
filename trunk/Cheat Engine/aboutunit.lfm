@@ -14,7 +14,7 @@ object About: TAbout
   OnClose = FormClose
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.2.0.3'
   object GroupBox1: TGroupBox
     Left = 0
     Height = 259
@@ -30,41 +30,41 @@ object About: TAbout
     TabOrder = 0
     object Label1: TLabel
       Left = 118
-      Height = 14
+      Height = 13
       Top = 0
-      Width = 95
+      Width = 94
       Caption = 'Made by: Dark Byte'
       ParentColor = False
     end
     object Label2: TLabel
       Left = 10
-      Height = 14
+      Height = 13
       Top = 128
-      Width = 52
+      Width = 51
       Caption = 'Thanks to:'
       ParentColor = False
     end
     object Label3: TLabel
       Left = 10
-      Height = 14
+      Height = 13
       Top = 152
-      Width = 33
+      Width = 32
       Caption = 'Metael'
       ParentColor = False
     end
     object Label4: TLabel
       Left = 110
-      Height = 14
+      Height = 13
       Top = 152
-      Width = 58
+      Width = 57
       Caption = 'A. Wiseman'
       ParentColor = False
     end
     object Label5: TLabel
       Left = 10
-      Height = 14
+      Height = 13
       Top = 207
-      Width = 204
+      Width = 203
       Caption = 'And all the other people that helped me out'
       ParentColor = False
     end
@@ -390,26 +390,26 @@ object About: TAbout
     end
     object Label6: TLabel
       Left = 61
-      Height = 14
+      Height = 13
       Top = 152
-      Width = 35
+      Width = 34
       Caption = 'wh1t3y'
       ParentColor = False
     end
     object Label7: TLabel
       Left = 193
-      Height = 14
+      Height = 13
       Top = 152
-      Width = 67
+      Width = 66
       Caption = 'SWAT-Squad'
       ParentColor = False
     end
     object Label8: TLabel
       Cursor = crHandPoint
       Left = 102
-      Height = 17
+      Height = 16
       Top = 24
-      Width = 51
+      Width = 50
       Caption = 'Website'
       Font.Color = clBlue
       Font.Height = -15
@@ -422,9 +422,9 @@ object About: TAbout
     object Label9: TLabel
       Cursor = crHandPoint
       Left = 102
-      Height = 17
+      Height = 16
       Top = 48
-      Width = 98
+      Width = 97
       Caption = 'Message Board'
       Font.Color = clBlue
       Font.Height = -15
@@ -436,9 +436,9 @@ object About: TAbout
     end
     object Label10: TLabel
       Left = 10
-      Height = 14
+      Height = 13
       Top = 104
-      Width = 145
+      Width = 144
       Caption = 'Script engine powered by LUA'
       ParentColor = False
     end
@@ -452,9 +452,9 @@ object About: TAbout
     end
     object Label11: TLabel
       Left = 294
-      Height = 14
+      Height = 13
       Top = 152
-      Width = 18
+      Width = 17
       Caption = 'Psy'
       ParentColor = False
     end
@@ -499,57 +499,57 @@ object About: TAbout
     end
     object Label12: TLabel
       Left = 62
-      Height = 14
+      Height = 13
       Top = 168
-      Width = 20
+      Width = 19
       Caption = 'Geri'
       ParentColor = False
     end
     object Label13: TLabel
       Left = 193
-      Height = 14
+      Height = 13
       Top = 168
-      Width = 48
+      Width = 47
       Caption = 'Kickclock'
       ParentColor = False
     end
     object Label14: TLabel
-      Left = 268
-      Height = 14
+      Left = 276
+      Height = 13
       Top = 168
-      Width = 44
-      Caption = 'Wiccaan'
+      Width = 35
+      Caption = 'Atom0s'
       ParentColor = False
     end
     object Label15: TLabel
       Left = 10
-      Height = 14
+      Height = 13
       Top = 168
-      Width = 40
+      Width = 39
       Caption = 'Emperor'
       ParentColor = False
     end
     object Label16: TLabel
       Left = 110
-      Height = 14
+      Height = 13
       Top = 168
-      Width = 49
+      Width = 48
       Caption = 'Recifense'
       ParentColor = False
     end
     object Label17: TLabel
       Left = 11
-      Height = 14
+      Height = 13
       Top = 183
-      Width = 41
+      Width = 40
       Caption = 'Jgoemat'
       ParentColor = False
     end
     object Label18: TLabel
       Left = 61
-      Height = 14
+      Height = 13
       Top = 184
-      Width = 66
+      Width = 65
       Caption = 'mgr.inz.Player'
       ParentColor = False
     end
