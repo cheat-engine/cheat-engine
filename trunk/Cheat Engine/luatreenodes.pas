@@ -76,6 +76,56 @@ begin
   result:=1;
 end;
 
+function treenodes_insertBehind(L: PLua_State): integer; cdecl;
+var
+  treenodes: Ttreenodes;
+  treenode: ttreenode;
+  paramcount: integer;
+  s: string;
+begin
+  treenodes:=luaclass_getClassObject(L);
+
+  paramcount:=lua_gettop(L);
+  if paramcount>=1 then
+    treenode:=lua_ToCEUserData(L, 1)
+  else
+    treenode:=nil;
+
+  if paramcount>=2 then
+    s:=Lua_ToString(L, 2)
+  else
+    s:='';
+
+
+  luaclass_newClass(L, treenodes.InsertBehind(treenode, s));
+  result:=1;
+end;
+
+function treenodes_insert(L: PLua_State): integer; cdecl;
+var
+  treenodes: Ttreenodes;
+  treenode: ttreenode;
+  paramcount: integer;
+  s: string;
+begin
+  treenodes:=luaclass_getClassObject(L);
+
+  paramcount:=lua_gettop(L);
+  if paramcount>=1 then
+    treenode:=lua_ToCEUserData(L, 1)
+  else
+    treenode:=nil;
+
+  if paramcount>=2 then
+    s:=Lua_ToString(L, 2)
+  else
+    s:='';
+
+
+  luaclass_newClass(L, treenodes.insert(treenode, s));
+  result:=1;
+end;
+
 procedure treenodes_addMetaData(L: PLua_state; metatable: integer; userdata: integer );
 begin
   object_addMetaData(L, metatable, userdata);
@@ -84,6 +134,8 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getItem', treenodes_getItem);
 
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'add', treenodes_add);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'insert', treenodes_insert);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'insertBehind', treenodes_insertBehind);
 
   luaclass_addPropertyToTable(L, metatable, userdata, 'Count', treenodes_getCount, nil);
   luaclass_addArrayPropertyToTable(L, metatable, userdata, 'Item', treenodes_getItem);
