@@ -2363,37 +2363,39 @@ function java_initialize()
   if (java==nil) then
     java={}
     java.oldOnOpenProcess=onOpenProcess
-  onOpenProcess=java_OpenProcess
+    onOpenProcess=java_OpenProcess
 
-  registerAutoAssemblerCommand("USEJAVA", javaAA_USEJAVA)
-
-
-  local sf=getSettingsForm()
-  java.settingsTab=sf.SettingsPageControl.addTab()
-
-  local node=sf.SettingsTreeView.Items.add("Java")
-  node.data=userDataToInteger(java.settingsTab)
-
-  java.settingsOnClose=sf.onClose
-  sf.onClose=java_settingsClose
-
-  java.settingsOnShow=sf.onShow
-  sf.onShow=java_settingsShow
+    registerAutoAssemblerCommand("USEJAVA", javaAA_USEJAVA)
 
 
-  java.settings={}
+    local sf=getSettingsForm()
+    java.settingsTab=sf.SettingsPageControl.addTab()
 
-  local cbAlwaysShowMenu=createCheckBox(java.settingsTab)
-  cbAlwaysShowMenu.Caption="Show java menu item even if the target process hasn't loaded jvm.dll (Used for the local setEnvironment option)"
-  cbAlwaysShowMenu.AnchorSideLeft.Control=java.settingsTab
-  cbAlwaysShowMenu.AnchorSideLeft.Side="asrLeft"
 
-  cbAlwaysShowMenu.AnchorSideTop.Control=java.settingsTab
-  cbAlwaysShowMenu.AnchorSideTop.Side="asrTop"
+    local insertNode=sf.SettingsTreeView.Items[3]  --insert it near the unrandomizer since it'd be used as often as that setting
+    local node=sf.SettingsTreeView.Items.insert(insertNode, "Java")
+    node.data=userDataToInteger(java.settingsTab)
 
-  cbAlwaysShowMenu.Anchors="[akTop, akLeft]"
+    java.settingsOnClose=sf.onClose
+    sf.onClose=java_settingsClose
 
-  java.settings.cbAlwaysShowMenu=cbAlwaysShowMenu
+    java.settingsOnShow=sf.onShow
+    sf.onShow=java_settingsShow
+
+
+    java.settings={}
+
+    local cbAlwaysShowMenu=createCheckBox(java.settingsTab)
+    cbAlwaysShowMenu.Caption="Show java menu item even if the target process hasn't loaded jvm.dll (Used for the local setEnvironment option)"
+    cbAlwaysShowMenu.AnchorSideLeft.Control=java.settingsTab
+    cbAlwaysShowMenu.AnchorSideLeft.Side="asrLeft"
+
+    cbAlwaysShowMenu.AnchorSideTop.Control=java.settingsTab
+    cbAlwaysShowMenu.AnchorSideTop.Side="asrTop"
+
+    cbAlwaysShowMenu.Anchors="[akTop, akLeft]"
+
+    java.settings.cbAlwaysShowMenu=cbAlwaysShowMenu
 
   --[[
   --warning: If you uninstall CE while this is checked you won't be able to load any java programs
@@ -2410,7 +2412,7 @@ function java_initialize()
   java.settings.cbGlobalHook=cbGlobalHook
   --]]
 
-  java.settings.registry=getSettings("Java")
+    java.settings.registry=getSettings("Java")
 
 
     --initialize the settings based on the registry
