@@ -2199,7 +2199,7 @@ begin
           reg.WriteString('C','\BaseNamedObjects\'+processeventname);
           reg.WriteString('D','\BaseNamedObjects\'+threadeventname);
 
-          if not startservice(hservice,0,lppcstr(sav)) then
+          if not startservice(hservice,0,pointer(sav)) then
           begin
             if getlasterror=577 then
             begin

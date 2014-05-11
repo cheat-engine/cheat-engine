@@ -25,14 +25,122 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
       <MinorVersionNr Value="3"/>
-      <BuildNr Value="3942"/>
+      <BuildNr Value="3948"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="6.3"/>
     </VersionInfo>
-    <BuildModes Count="3" Active="debug-nomt">
-      <Item1 Name="release" Default="True"/>
-      <Item2 Name="debug">
+    <BuildModes Count="5" Active="Release 32-Bit">
+      <Item1 Name="Release 32-Bit" Default="True"/>
+      <Item2 Name="Release 64-Bit">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <PathDelim Value="\"/>
+          <Target>
+            <Filename Value="bin\cheatengine-$(TargetCPU)"/>
+          </Target>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir);$(LazarusDir)\ide\include\$(TargetOS);$(LazarusDir)\images;$(LazarusDir)\ideintf\images"/>
+            <OtherUnitFiles Value="VEHDebug;dbk32;lua;jvdesign;$(LazarusDir)\designer;$(LazarusDir)\ide"/>
+            <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+          </SearchPaths>
+          <Parsing>
+            <Style Value="1"/>
+            <SyntaxOptions>
+              <SyntaxMode Value="Delphi"/>
+            </SyntaxOptions>
+          </Parsing>
+          <CodeGeneration>
+            <SmartLinkUnit Value="True"/>
+            <TargetCPU Value="x86_64"/>
+            <TargetOS Value="win64"/>
+            <Optimizations>
+              <OptimizationLevel Value="3"/>
+              <VariablesInRegisters Value="True"/>
+            </Optimizations>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <GenerateDebugInfo Value="False"/>
+              <UseLineInfoUnit Value="False"/>
+              <StripSymbols Value="True"/>
+            </Debugging>
+            <LinkSmart Value="True"/>
+            <Options>
+              <Win32>
+                <GraphicApplication Value="True"/>
+              </Win32>
+            </Options>
+          </Linking>
+          <Other>
+            <Verbosity>
+              <ShowHints Value="False"/>
+              <ShowGenInfo Value="False"/>
+              <ShowNothing Value="True"/>
+            </Verbosity>
+            <WriteFPCLogo Value="False"/>
+            <CompilerMessages>
+              <UseMsgFile Value="True"/>
+            </CompilerMessages>
+            <CustomOptions Value="-dbenchmarkps -dcemain -WB00400000 -dNDEBUG"/>
+            <CompilerPath Value="$(CompPath)"/>
+          </Other>
+        </CompilerOptions>
+      </Item2>
+      <Item3 Name="release">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <PathDelim Value="\"/>
+          <Target>
+            <Filename Value="bin\cheatengine-$(TargetCPU)"/>
+          </Target>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir);$(LazarusDir)\ide\include\$(TargetOS);$(LazarusDir)\images;$(LazarusDir)\ideintf\images"/>
+            <OtherUnitFiles Value="VEHDebug;dbk32;lua;jvdesign;$(LazarusDir)\designer;$(LazarusDir)\ide"/>
+            <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+          </SearchPaths>
+          <Parsing>
+            <Style Value="1"/>
+            <SyntaxOptions>
+              <SyntaxMode Value="Delphi"/>
+            </SyntaxOptions>
+          </Parsing>
+          <CodeGeneration>
+            <SmartLinkUnit Value="True"/>
+            <Optimizations>
+              <OptimizationLevel Value="3"/>
+              <VariablesInRegisters Value="True"/>
+            </Optimizations>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <GenerateDebugInfo Value="False"/>
+              <UseLineInfoUnit Value="False"/>
+              <StripSymbols Value="True"/>
+            </Debugging>
+            <LinkSmart Value="True"/>
+            <Options>
+              <Win32>
+                <GraphicApplication Value="True"/>
+              </Win32>
+            </Options>
+          </Linking>
+          <Other>
+            <Verbosity>
+              <ShowHints Value="False"/>
+              <ShowGenInfo Value="False"/>
+              <ShowNothing Value="True"/>
+            </Verbosity>
+            <WriteFPCLogo Value="False"/>
+            <CompilerMessages>
+              <UseMsgFile Value="True"/>
+            </CompilerMessages>
+            <CustomOptions Value="-dbenchmarkps -dcemain -WB00400000 -dNDEBUG"/>
+            <CompilerPath Value="$(CompPath)"/>
+          </Other>
+        </CompilerOptions>
+      </Item3>
+      <Item4 Name="debug">
         <CompilerOptions>
           <Version Value="11"/>
           <PathDelim Value="\"/>
@@ -80,8 +188,8 @@
             <CompilerPath Value="$(CompPath)"/>
           </Other>
         </CompilerOptions>
-      </Item2>
-      <Item3 Name="debug-nomt">
+      </Item4>
+      <Item5 Name="debug-nomt">
         <CompilerOptions>
           <Version Value="11"/>
           <PathDelim Value="\"/>
@@ -100,8 +208,6 @@
             </SyntaxOptions>
           </Parsing>
           <CodeGeneration>
-            <TargetCPU Value="x86_64"/>
-            <TargetOS Value="win64"/>
             <Optimizations>
               <OptimizationLevel Value="0"/>
             </Optimizations>
@@ -131,7 +237,7 @@
             <CompilerPath Value="$(CompPath)"/>
           </Other>
         </CompilerOptions>
-      </Item3>
+      </Item5>
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
@@ -164,7 +270,7 @@
         <PackageName Value="LCL"/>
       </Item5>
     </RequiredPackages>
-    <Units Count="322">
+    <Units Count="323">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -1196,11 +1302,10 @@
         <ComponentName Value="frmFloatingPointPanel"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmFloatingPointPanelUnit"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="132"/>
-        <CursorPos X="61" Y="147"/>
+        <TopLine Value="380"/>
+        <CursorPos X="1" Y="405"/>
         <UsageCount Value="205"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -1748,10 +1853,13 @@
         <Filename Value="dbk32\DBK32functions.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DBK32functions"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="2190"/>
-        <CursorPos X="20" Y="2203"/>
+        <TopLine Value="2189"/>
+        <CursorPos X="32" Y="2198"/>
         <UsageCount Value="204"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit134>
       <Unit135>
@@ -3699,12 +3807,54 @@
         <CursorPos X="6" Y="170"/>
         <UsageCount Value="11"/>
       </Unit321>
+      <Unit322>
+        <Filename Value="C:\development\fpc\packages\winunits-jedi\src\jwawinsvc.pas"/>
+        <UnitName Value="jwawinsvc"/>
+        <EditorIndex Value="2"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="962"/>
+        <CursorPos X="31" Y="976"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit322>
     </Units>
-    <JumpHistory Count="1" HistoryIndex="0">
+    <JumpHistory Count="9" HistoryIndex="8">
       <Position1>
         <Filename Value="frmFloatingPointPanelUnit.pas"/>
         <Caret Line="392" Column="48" TopLine="366"/>
       </Position1>
+      <Position2>
+        <Filename Value="frmFloatingPointPanelUnit.pas"/>
+        <Caret Line="53" Column="18" TopLine="41"/>
+      </Position2>
+      <Position3>
+        <Filename Value="frmFloatingPointPanelUnit.pas"/>
+        <Caret Line="99" Column="23" TopLine="94"/>
+      </Position3>
+      <Position4>
+        <Filename Value="frmFloatingPointPanelUnit.pas"/>
+        <Caret Line="100" Column="8" TopLine="94"/>
+      </Position4>
+      <Position5>
+        <Filename Value="frmFloatingPointPanelUnit.pas"/>
+        <Caret Line="99" Column="1" TopLine="94"/>
+      </Position5>
+      <Position6>
+        <Filename Value="frmFloatingPointPanelUnit.pas"/>
+        <Caret Line="13" Column="82" TopLine="1"/>
+      </Position6>
+      <Position7>
+        <Filename Value="frmFloatingPointPanelUnit.pas"/>
+        <Caret Line="101" Column="1" TopLine="89"/>
+      </Position7>
+      <Position8>
+        <Filename Value="dbk32\DBK32functions.pas"/>
+        <Caret Line="2203" Column="20" TopLine="2190"/>
+      </Position8>
+      <Position9>
+        <Filename Value="dbk32\DBK32functions.pas"/>
+        <Caret Line="2202" Column="54" TopLine="2189"/>
+      </Position9>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
@@ -3726,6 +3876,8 @@
     </Parsing>
     <CodeGeneration>
       <SmartLinkUnit Value="True"/>
+      <TargetCPU Value="i386"/>
+      <TargetOS Value="win32"/>
       <Optimizations>
         <OptimizationLevel Value="3"/>
         <VariablesInRegisters Value="True"/>
