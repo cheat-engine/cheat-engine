@@ -10,7 +10,7 @@ interface
 
 uses
   {jwawindows,} windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, cefuncproc, ComCtrls, LResources, NewKernelHandler, sfloat;
+  Dialogs, StdCtrls, ExtCtrls, cefuncproc, ComCtrls, LResources, NewKernelHandler;
 
 type
   TfrmFloatingPointPanel = class(TForm)
@@ -97,11 +97,7 @@ var i,j: integer;
     pssa: PdoubleArray absolute p;
     pea: PextendedArray absolute p;
 
-    f32: float32 absolute s;
-
     lw: longword;
-    z: floatx80;
-
     max: integer;
 
 begin
@@ -406,6 +402,5 @@ end;
 
 initialization
   {$i frmFloatingPointPanelUnit.lrs}
-  softfloat_exception_mask:=[TFPUException($ff)];
 
 end.

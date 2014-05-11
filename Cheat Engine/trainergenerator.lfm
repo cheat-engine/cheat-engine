@@ -12,7 +12,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.0.3'
+  LCLVersion = '1.3'
   object Panel1: TPanel
     Left = 201
     Height = 416
@@ -224,16 +224,19 @@ object frmTrainerGenerator: TfrmTrainerGenerator
       TabOrder = 11
     end
     object fnXM: TFileNameEdit
+      AnchorSideRight.Control = sbPlayStopXM
       Left = 8
       Height = 23
       Top = 307
-      Width = 200
+      Width = 224
       DialogOptions = []
       Filter = 'XM files|*.XM'
       FilterIndex = 0
       HideDirectories = False
       ButtonWidth = 23
       NumGlyphs = 1
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Right = 4
       Enabled = False
       MaxLength = 0
       TabOrder = 12
@@ -472,10 +475,13 @@ object frmTrainerGenerator: TfrmTrainerGenerator
       OnClick = sbPlayDeactivateClick
     end
     object sbPlayStopXM: TSpeedButton
-      Left = 231
+      AnchorSideRight.Control = GroupBox2
+      AnchorSideRight.Side = asrBottom
+      Left = 236
       Height = 22
       Top = 307
       Width = 23
+      Anchors = [akTop, akRight]
       Enabled = False
       OnClick = sbPlayStopXMClick
     end
