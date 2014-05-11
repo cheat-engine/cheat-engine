@@ -41,6 +41,29 @@ implementation
 
 uses MemoryBrowserFormUnit;
 
+{$ifdef cpu64}
+//coded by mgr.inz.player
+procedure extendedtodouble(float80:pointer;var outdouble:double); assembler;
+  var
+    oldcw,newcw: word;
+    _rcx: PtrUInt;
+  asm
+    mov _rcx,rcx
+    fnstcw oldcw
+    fwait
+    mov cx,oldcw
+    or  cx,$0c3f
+    mov newcw,cx
+    mov rcx,_rcx
+    fldcw newcw
+    fld tbyte [float80]
+    fstp qword [outdouble]
+    fwait
+    fldcw oldcw
+  end;
+{$endif}
+
+
 
 procedure TfrmFloatingPointPanel.SetContextPointer(context: PContext);
 begin
@@ -73,8 +96,6 @@ var i,j: integer;
     psa: PSingleArray absolute p;
     pssa: PdoubleArray absolute p;
     pea: PextendedArray absolute p;
-
-    f80: ^floatx80 absolute p;
 
     f32: float32 absolute s;
 
@@ -122,12 +143,8 @@ begin
             5:  memo1.Lines.Add(format('%f - %f', [pssa[0], pssa[1]]));  //double
             6:
             begin
-              z:=f80^;
-              lw:=floatx80_to_float32(z);
-              s:=psingle(@lw)^;
-
-              memo1.Lines.Add(format('%f', [s])); //extended
-
+              extendedtodouble(p, d);
+              memo1.Lines.Add(format('%f', [d])); //extended
             end;
           end;
           {$else}
