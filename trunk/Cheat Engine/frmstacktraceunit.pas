@@ -46,8 +46,11 @@ var
   shadowSize: integer;
 
 
-function rpm64(hProcess:THANDLE; qwBaseAddress:dword64; lpBuffer:pointer; nSize:dword; lpNumberOfBytesRead:lpdword):bool;stdcall;
+
+function rpm64(hProcess:THANDLE; qwBaseAddress:dword64; lpBuffer:pointer; nSize:dword; lpNumberOfBytesRead:lpdword):bool;stdcall; //should be lpptruint but the header file isn't correct
+var pbr: PPtrUInt;
 begin
+  pbr:=pptruint(lpNumberOfBytesRead);
   result:=false;
   {$ifndef cpu64}
   if qwBaseAddress>$FFFFFFFF then exit;
@@ -56,7 +59,7 @@ begin
   if useShadow and InRangeQ(qwBaseAddress, shadowOrig, shadoworig+shadowSize) then
     qwBaseAddress:=shadowNew+(qwBaseAddress-shadowOrig); //adjust the base address to the copy location
 
-  result:=newkernelhandler.readprocessmemory(hProcess, pointer(ptrUint(qwBaseAddress)), lpBuffer, nSize, lpNumberOfBytesRead^);
+  result:=newkernelhandler.readprocessmemory(hProcess, pointer(ptrUint(qwBaseAddress)), lpBuffer, nSize, pbr^);
 end;
 
 

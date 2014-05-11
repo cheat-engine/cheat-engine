@@ -635,7 +635,8 @@ either by setting the appropriate byte in the code to $cc, or setting the approp
 var
   Debugregistermask: dword;
   ClearMask: dword; //mask used to whipe the original bits from DR7
-  newprotect, oldprotect, bw: dword;
+  newprotect, oldprotect: dword;
+  bw: ptruint;
   currentthread: TDebugThreadHandler;
   i: integer;
   AllThreadsAreSet: boolean;
@@ -900,7 +901,8 @@ end;
 procedure TDebuggerThread.UnsetBreakpoint(breakpoint: PBreakpoint; specificContext: PContext=nil; threadid: integer=-1);
 var
   Debugregistermask: dword;
-  oldprotect, bw: dword;
+  oldprotect: dword;
+  bw: PtrUInt;
   ClearMask: dword; //mask used to whipe the original bits from DR7
   currentthread: TDebugThreadHandler;
   i: integer;
@@ -1158,7 +1160,7 @@ function TDebuggerThread.AddBreakpoint(owner: PBreakpoint; address: uint_ptr; si
 var
   newbp: PBreakpoint;
   originalbyte: byte;
-  x: dword;
+  x: PtrUInt;
   i: integer;
   count: integer;
 begin
@@ -1874,7 +1876,8 @@ var
   i: integer;
   found: boolean;
   originalbyte: byte;
-  oldprotect, bw, br: dword;
+  oldprotect: dword;
+  bw, br: PtrUInt;
 
   usableDebugReg: integer;
 
@@ -2048,7 +2051,8 @@ var
   i: integer;
   found: boolean;
   originalbyte: byte;
-  oldprotect, bw, br: dword;
+  oldprotect: dword;
+  bw, br: PtrUInt;
 
   usableDebugReg: integer;
   method: TBreakpointMethod;

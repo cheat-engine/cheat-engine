@@ -141,7 +141,7 @@ var value1: Byte;
     value5: double;
     value6: Int64;
 
-    read: dword;
+    read: ptruint;
 
     s: pchar;
     ws: pwchar;
@@ -279,7 +279,7 @@ begin
 end;
 
 procedure TValueChangeForm.Button1Click(Sender: TObject);
-var write: dword;
+var write: ptruint;
     newvalue1: byte;
     newvalue2: word;
     newvalue3: dword;

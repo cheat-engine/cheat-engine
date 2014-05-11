@@ -28,7 +28,7 @@ var s: tstringlist;
   CEAllocArray: TCEAllocArray;
   i: integer;
   starttime: dword;
-  x: dword;
+  x: ptruint;
   address: ptruint;
 
   access: dword;

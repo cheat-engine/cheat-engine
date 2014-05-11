@@ -448,7 +448,7 @@ var address: string;
     originalbytes: array of byte;
     codesize: integer;
     a: ptrUint;
-    br: dword;
+    br: ptruint;
     c: ptrUint;
     x: string;
     i,j,k: integer;
@@ -718,7 +718,7 @@ var originalcode: array of string;
     i,j: integer;
     codesize: integer;
     a,b,c: ptrUint;
-    br: dword;
+    br: ptruint;
     x: string;
 
     enablepos,disablepos: integer;
@@ -1815,7 +1815,7 @@ var
   originalbytes: array of byte;
   codesize: integer;
   a: ptrUint;
-  br: dword;
+  br: ptruint;
   c: ptrUint;
   x: string;
   i,j,k: integer;
@@ -2084,7 +2084,7 @@ var
   disablepos: integer;
 
   // temp variables
-  br: dword;
+  br: ptruint;
   c: ptrUint;
   x: string;
   i,j,k: integer;
@@ -2342,7 +2342,7 @@ var
   maskFlags : Array of Boolean; // true if we need to use **
   maskBytes : Array of Byte;    // bytes around code we're replacing
   flags : Array of Boolean;     // temp for single instruction
-  br : dword;
+  br : ptruint;
   aob : string;
   i, j, k : Integer;
 
@@ -2658,7 +2658,7 @@ end;
 procedure TAOBFind.Init(_address: ptrUint; _codesize: Integer);
 var
   i: integer;
-  br: dword; // bytes actually read
+  br: ptruint; // bytes actually read
 begin
   Address := _address;
   Size := _codeSize + 40;

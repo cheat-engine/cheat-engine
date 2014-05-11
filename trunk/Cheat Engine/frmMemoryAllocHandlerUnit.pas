@@ -545,7 +545,7 @@ begin
 end;
 
 procedure TAllocWatcher.execute;
-var x: dword;
+var x: PtrUInt;
 begin
   while not terminated do
   begin

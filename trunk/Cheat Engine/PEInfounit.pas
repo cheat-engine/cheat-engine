@@ -803,7 +803,7 @@ end;
 
 procedure TfrmPEInfo.Button1Click(Sender: TObject);
 var address: ptrUint;
-    actualread: dword;
+    actualread: ptruint;
     headersize: dword;
     imagesize: dword;
     imagesizes: string;

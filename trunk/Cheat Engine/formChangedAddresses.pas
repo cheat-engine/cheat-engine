@@ -16,7 +16,7 @@ type
     context: TContext;
     stack: record
       stack: pbyte;
-      savedsize: dword;
+      savedsize: PtrUInt;
     end;
     count: integer;
 
@@ -241,7 +241,7 @@ procedure TfrmChangedAddresses.ChangedlistCompare(Sender: TObject; Item1,
   Item2: TListItem; Data: Integer; var Compare: Integer);
 var i1, i2: TAddressEntry;
     hex, hex2: qword;
-    x: dword;
+    x: PtrUInt;
     varsize: integer;
 begin
   compare:=0;

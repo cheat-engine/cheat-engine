@@ -33,7 +33,8 @@ constructor TSpeedhack.create;
 var i: integer;
     script: tstringlist;
     AllocArray: TCEAllocArray;
-    x,y: dword;
+    x: ptrUint;
+//      y: dword;
     a,b: ptrUint;
     c: TCEConnection;
 

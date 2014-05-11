@@ -32,7 +32,7 @@ Function to wrap all the occasional writing in
 var v: qword;
     s: single;
     d: double;
-    x: dword;
+    x: PTRUINT;
 
     i: integer;
     ba: PByteArray;
@@ -264,7 +264,7 @@ end;
 function readAndParseAddress(address: ptrUint; variableType: TVariableType; customtype: TCustomType=nil; showashexadecimal: Boolean=false; showAsSigned: boolean=false; bytesize:integer=1): string;
 var buf: array [0..7] of byte;
     buf2: pbytearray;
-    x: dword;
+    x: ptruint;
     i: integer;
 begin
   result:='???';

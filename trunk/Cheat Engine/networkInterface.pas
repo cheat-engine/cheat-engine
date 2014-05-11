@@ -52,8 +52,8 @@ type
     function receive(buffer: pointer; size: integer): integer;
     function send(buffer: pointer; size: integer): integer;
 
-    function CReadProcessMemory(hProcess: THandle; lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL;
-    function NReadProcessMemory(hProcess: THandle; lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL;
+    function CReadProcessMemory(hProcess: THandle; lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: PTRUINT): BOOL;
+    function NReadProcessMemory(hProcess: THandle; lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: PTRUINT): BOOL;
 
 
 
@@ -72,8 +72,8 @@ type
     function VirtualAllocEx(hProcess: THandle; lpAddress: Pointer; dwSize, flAllocationType: DWORD; flProtect: DWORD): Pointer;
     function VirtualFreeEx(hProcess: HANDLE; lpAddress: LPVOID; dwSize: SIZE_T; dwFreeType: DWORD): BOOL;
     function VirtualQueryEx(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD;
-    function ReadProcessMemory(hProcess: THandle; lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL;
-    function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: DWORD): BOOL;
+    function ReadProcessMemory(hProcess: THandle; lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: PTRUINT): BOOL;
+    function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL;
     procedure beginWriteProcessMemory;
     function endWriteProcessMemory: boolean;
 
@@ -296,7 +296,7 @@ begin
     end;
 end;
 
-function TCEConnection.CReadProcessMemory(hProcess: THandle; lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL;
+function TCEConnection.CReadProcessMemory(hProcess: THandle; lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: PTRUINT): BOOL;
 //cached read process memory. Split up into pagechunks and check which pages need to be cached, and then read from the caches
 type TPageInfo=record
     startaddress: ptruint;
@@ -312,7 +312,7 @@ var pages: array of TPageInfo;
   freq: tlargeinteger;
   currenttime: tlargeinteger;
 
-  x: dword;
+  x: ptruint;
   blockoffset, blocksize: dword;
   currentbase: ptruint;
   currenttarget: ptruint;
@@ -402,7 +402,7 @@ begin
   result:=true; //everything got copied
 end;
 
-function TCEConnection.NReadProcessMemory(hProcess: THandle; lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL;
+function TCEConnection.NReadProcessMemory(hProcess: THandle; lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: PTRUINT): BOOL;
 //Network read process memory
 var
   input: packed record
@@ -487,7 +487,7 @@ begin
   end;
 end;
 
-function TCEConnection.ReadProcessMemory(hProcess: THandle; lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL;
+function TCEConnection.ReadProcessMemory(hProcess: THandle; lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: PTRUINT): BOOL;
 begin
   if ((hProcess shr 24) and $ff)= $ce then
   begin
@@ -512,7 +512,7 @@ begin
     result:=windows.ReadProcessMemory(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesRead);
 end;
 
-function TCEConnection.WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: DWORD): BOOL;
+function TCEConnection.WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL;
 type TWPMrecord=packed record
       command: byte;
       handle: integer;
@@ -614,7 +614,7 @@ end;
 function TCEConnection.endWriteProcessMemory: boolean;
 var
   i,j,k: integer;
-  x: dword;
+  x: ptruint;
 
   grouped: boolean;
 begin

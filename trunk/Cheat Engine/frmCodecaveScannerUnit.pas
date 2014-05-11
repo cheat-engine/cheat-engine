@@ -97,7 +97,7 @@ var mbi: _MEMORY_BASIC_INFORMATION;
     currentpos: ptrUint;
     a: boolean;
     i,j: integer;
-    x:dword;
+    x:ptrUint;
     memoryregion:array of tmemoryregion;
     currentbyte: byte;
     bytecount:dword;

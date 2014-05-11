@@ -1,16 +1,16 @@
 object MainForm: TMainForm
   Tag = 2
-  Left = 283
-  Height = 570
+  Left = 464
+  Height = 554
   Hint = ' '
-  Top = 203
+  Top = 229
   Width = 597
   HelpContext = 3
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
   AllowDropFiles = True
   Caption = 'Cheat Engine 6.3'
-  ClientHeight = 550
+  ClientHeight = 534
   ClientWidth = 597
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
@@ -22,7 +22,7 @@ object MainForm: TMainForm
   OnDropFiles = FormDropFiles
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.3'
   object Splitter1: TSplitter
     Cursor = crVSplit
     Left = 0
@@ -40,7 +40,7 @@ object MainForm: TMainForm
   object Panel1: TPanel
     Tag = 777
     Left = 0
-    Height = 181
+    Height = 165
     Top = 352
     Width = 597
     Align = alClient
@@ -54,18 +54,18 @@ object MainForm: TMainForm
   object Panel4: TPanel
     Left = 0
     Height = 17
-    Top = 533
+    Top = 517
     Width = 597
     Align = alBottom
     ClientHeight = 17
     ClientWidth = 597
     TabOrder = 1
     object Label7: TLabel
-      Left = 191
-      Height = 14
+      Left = 192
+      Height = 13
       Hint = 'Click here to change the hotkey'
-      Top = 2
-      Width = 230
+      Top = 3
+      Width = 229
       Alignment = taCenter
       Anchors = [akBottom]
       Caption = 'Ctrl+Alt+Page Down brings Cheat Engine to front'
@@ -83,7 +83,6 @@ object MainForm: TMainForm
       Width = 96
       Caption = 'Advanced Options'
       Flat = True
-      NumGlyphs = 0
       OnClick = advancedbuttonClick
       ShowHint = True
       ParentShowHint = False
@@ -98,7 +97,6 @@ object MainForm: TMainForm
       Flat = True
       Font.Height = -12
       Font.Name = 'MS Sans Serif'
-      NumGlyphs = 0
       OnClick = CommentButtonClick
       ParentFont = False
       ParentShowHint = False
@@ -135,10 +133,10 @@ object MainForm: TMainForm
     end
     object foundcountlabel: TLabel
       Left = 35
-      Height = 14
+      Height = 13
       Hint = 'This shows the ammount of addresses found'
       Top = 32
-      Width = 7
+      Width = 6
       Caption = '0'
       ParentColor = False
       ParentShowHint = False
@@ -147,29 +145,29 @@ object MainForm: TMainForm
     object ScanText: TLabel
       AnchorSideLeft.Control = scanvalue
       Left = 314
-      Height = 14
+      Height = 13
       Top = 80
-      Width = 56
+      Width = 55
       Caption = 'Scan Value'
       Enabled = False
       ParentBidiMode = False
       ParentColor = False
     end
     object lblScanType: TLabel
-      Left = 258
-      Height = 14
+      Left = 259
+      Height = 13
       Top = 124
-      Width = 53
+      Width = 52
       Anchors = [akTop, akRight]
       Caption = 'Scan Type'
       Enabled = False
       ParentColor = False
     end
     object lblValueType: TLabel
-      Left = 256
-      Height = 14
+      Left = 257
+      Height = 13
       Top = 148
-      Width = 55
+      Width = 54
       Anchors = [akTop, akRight]
       Caption = 'Value Type'
       Enabled = False
@@ -206,7 +204,6 @@ object MainForm: TMainForm
         00C0C0C0000000C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0
         C0C0C0C0C0000000000000000000C0C0C0C0C0C0C0C0C0C0C0C0
       }
-      NumGlyphs = 0
       ShowHint = True
       ParentShowHint = False
     end
@@ -241,15 +238,14 @@ object MainForm: TMainForm
         0000000000000000000000000000000000000000000000000000000000000000
         0000000000000000000000000000
       }
-      NumGlyphs = 0
       ShowHint = True
       ParentShowHint = False
     end
     object Label6: TLabel
       Left = 0
-      Height = 14
+      Height = 13
       Top = 32
-      Width = 34
+      Width = 33
       Caption = 'Found:'
       ParentColor = False
     end
@@ -307,9 +303,9 @@ object MainForm: TMainForm
     end
     object Label5: TLabel
       Left = 296
-      Height = 14
+      Height = 13
       Top = 320
-      Width = 33
+      Width = 32
       Caption = 'Label5'
       ParentColor = False
       Visible = False
@@ -318,18 +314,18 @@ object MainForm: TMainForm
     object Label38: TLabel
       Tag = 1
       Left = 328
-      Height = 14
+      Height = 13
       Top = 304
-      Width = 69
+      Width = 68
       Caption = 'stealthedit test'
       ParentColor = False
       Visible = False
     end
     object Label57: TLabel
       Left = 416
-      Height = 14
+      Height = 13
       Top = 320
-      Width = 82
+      Width = 81
       Caption = 'get dbvm version'
       ParentColor = False
       Visible = False
@@ -337,18 +333,18 @@ object MainForm: TMainForm
     end
     object Label59: TLabel
       Left = 424
-      Height = 14
+      Height = 13
       Top = 56
-      Width = 43
+      Width = 42
       Caption = 'Test cap'
       ParentColor = False
       OnClick = Label59Click
     end
     object Label61: TLabel
       Left = 368
-      Height = 14
+      Height = 13
       Top = 320
-      Width = 39
+      Width = 38
       Caption = 'Label61'
       ParentColor = False
       Visible = False
@@ -520,9 +516,9 @@ object MainForm: TMainForm
         end
         object Label2: TLabel
           Left = 6
-          Height = 14
+          Height = 13
           Top = 27
-          Width = 23
+          Width = 22
           Caption = 'Stop'
           Enabled = False
           ParentColor = False
@@ -530,9 +526,9 @@ object MainForm: TMainForm
         end
         object Label1: TLabel
           Left = 6
-          Height = 14
+          Height = 13
           Top = 3
-          Width = 23
+          Width = 22
           Caption = 'Start'
           Enabled = False
           ParentColor = False
@@ -865,7 +861,6 @@ object MainForm: TMainForm
           585858585858EA081C0707070807070707070707070707081C07070707080808
           08080808080808080707
         }
-        NumGlyphs = 0
         OnClick = ShowProcessListButtonClick
         ShowHint = True
         ParentShowHint = False
@@ -1287,7 +1282,6 @@ object MainForm: TMainForm
         Anchors = [akTop, akRight]
         Caption = 'Settings'
         Flat = True
-        NumGlyphs = 0
         OnClick = SettingsClick
       end
     end
@@ -1310,9 +1304,9 @@ object MainForm: TMainForm
       Visible = False
       object Label54: TLabel
         Left = 13
-        Height = 14
+        Height = 13
         Top = 4
-        Width = 32
+        Width = 31
         Caption = 'Speed'
         ParentColor = False
       end
@@ -1320,9 +1314,9 @@ object MainForm: TMainForm
         AnchorSideTop.Control = tbSpeed
         AnchorSideTop.Side = asrBottom
         Left = 8
-        Height = 14
+        Height = 13
         Top = 56
-        Width = 7
+        Width = 6
         Caption = '0'
         ParentColor = False
       end
@@ -1331,10 +1325,10 @@ object MainForm: TMainForm
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tbSpeed
         AnchorSideRight.Side = asrBottom
-        Left = 93
-        Height = 14
+        Left = 94
+        Height = 13
         Top = 56
-        Width = 13
+        Width = 12
         Anchors = [akTop, akRight]
         BorderSpacing.Right = 7
         Caption = '20'
@@ -1381,9 +1375,9 @@ object MainForm: TMainForm
     end
     object lblcompareToSavedScan: TLabel
       Left = 210
-      Height = 14
+      Height = 13
       Top = 32
-      Width = 201
+      Width = 200
       Caption = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
       ParentColor = False
       Visible = False
@@ -1391,9 +1385,9 @@ object MainForm: TMainForm
     end
     object Label3: TLabel
       Left = 424
-      Height = 14
+      Height = 13
       Top = 70
-      Width = 33
+      Width = 32
       Caption = 'Label3'
       ParentColor = False
       OnClick = Label3Click
@@ -1574,11 +1568,13 @@ object MainForm: TMainForm
     object Findoutwhataccessesthisaddress1: TMenuItem
       Caption = 'Find out what accesses this address'
       GroupIndex = 2
+      ShortCut = 116
       OnClick = Findoutwhataccessesthisaddress1Click
     end
     object Setbreakpoint1: TMenuItem
       Caption = 'Find out what writes to this address'
       GroupIndex = 2
+      ShortCut = 117
       OnClick = Setbreakpoint1Click
     end
     object sep1: TMenuItem

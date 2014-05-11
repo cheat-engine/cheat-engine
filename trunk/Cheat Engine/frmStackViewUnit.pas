@@ -216,7 +216,7 @@ end;
 
 procedure TfrmStackView.miLockAndTraceClick(Sender: TObject);
 var
-  x: dword;
+  x: PtrUInt;
   alloc: pointer;
 
   f: TfrmStacktrace;

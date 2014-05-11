@@ -75,7 +75,7 @@ end;
 procedure TfrmSaveMemoryRegion.Button1Click(Sender: TObject);
 var f: TFilestream;
     fromaddress,toaddress: qword;
-    temp: dword;
+    temp: ptrUint;
     size: dword;
     buf: array of pointer;
 

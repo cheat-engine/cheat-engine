@@ -853,6 +853,11 @@ object frmLuaEngine: TfrmLuaEngine
       ShortCut = 16474
       OnClick = MenuItem10Click
     end
+    object MenuItem13: TMenuItem
+      Caption = 'Find'
+      ShortCut = 16454
+      ShortCutKey2 = 114
+    end
     object MenuItem6: TMenuItem
       Caption = 'Find/Replace'
       ShortCut = 16466
@@ -884,8 +889,8 @@ object frmLuaEngine: TfrmLuaEngine
     Options = [frDown, frHideUpDown, frReplaceAll, frHideEntireScope, frHidePromptOnReplace]
     OnFind = dlgReplaceFind
     OnReplace = dlgReplaceReplace
-    left = 215
-    top = 188
+    left = 304
+    top = 184
   end
   object ilLuaDebug: TImageList
     left = 352
@@ -1162,6 +1167,11 @@ object frmLuaEngine: TfrmLuaEngine
     Interval = 500
     OnTimer = tShowHintTimer
     left = 128
+    top = 184
+  end
+  object FindDialog1: TFindDialog
+    OnFind = dlgReplaceFind
+    left = 215
     top = 184
   end
 end

@@ -510,12 +510,12 @@ var
     roundIncrement, roundBits: int8;
     z: int32;
 begin
-    roundingMode := softfloat_rounding_mode;
-    roundNearestEven := ord( roundingMode = float_round_nearest_even );
+    roundingMode := integer(softfloat_rounding_mode);
+    roundNearestEven := ord( roundingMode = integer(float_round_nearest_even) );
     roundIncrement := $40;
     if ( roundNearestEven=0 ) then
     begin
-        if ( roundingMode = float_round_to_zero ) then
+        if ( roundingMode = integer(float_round_to_zero) ) then
         begin
             roundIncrement := 0;
         end
@@ -523,11 +523,11 @@ begin
             roundIncrement := $7F;
             if ( zSign<>0 ) then
             begin
-                if ( roundingMode = float_round_up ) then
+                if ( roundingMode = integer(float_round_up) ) then
                   roundIncrement := 0;
             end
             else begin
-                if ( roundingMode = float_round_down ) then
+                if ( roundingMode = integer(float_round_down) ) then
                   roundIncrement := 0;
             end;
         end;
@@ -548,7 +548,7 @@ begin
         exit;
     end;
     if ( roundBits<>0 ) then
-      softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+      softfloat_exception_flags := [TFPUException(softfloat_exception_flags), TFPUException(float_flag_inexact)];
     result:=z;
 end;
 
@@ -572,22 +572,22 @@ var
 label
     overflow;
 begin
-    roundingMode := softfloat_rounding_mode;
-    roundNearestEven := ord( roundingMode = float_round_nearest_even );
+    roundingMode := integer(softfloat_rounding_mode);
+    roundNearestEven := ord( roundingMode = integer(float_round_nearest_even) );
     increment := ord( sbits64(absZ1) < 0 );
     if ( roundNearestEven=0 ) then
     begin
-        if ( roundingMode = float_round_to_zero ) then
+        if ( roundingMode = integer(float_round_to_zero) ) then
         begin
             increment := 0;
         end
         else begin
             if ( zSign<>0 ) then
             begin
-                increment := ord(( roundingMode = float_round_down ) and (absZ1<>0));
+                increment := ord(( roundingMode = integer(float_round_down) ) and (absZ1<>0));
             end
             else begin
-                increment := ord(( roundingMode = float_round_up ) and (absZ1<>0));
+                increment := ord(( roundingMode = integer(float_round_up) ) and (absZ1<>0));
             end;
         end;
     end;
@@ -611,7 +611,8 @@ begin
           result:=int64($7FFFFFFFFFFFFFFF);
     end;
     if ( absZ1<>0 ) then
-      softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+
+      softfloat_exception_flags := [TFPUException(softfloat_exception_flags), TFPUException(float_flag_inexact)];
     result:=z;
 end;
 
@@ -2357,8 +2358,8 @@ Function roundAndPackFloat32( zSign : Flag; zExp : Int16; zSig : Bits32 ) : floa
    roundIncrement, roundBits : BYTE;
    IsTiny : Flag;
  Begin
-    roundingMode := softfloat_rounding_mode;
-    if (roundingMode = float_round_nearest_even) then
+    roundingMode := integer(softfloat_rounding_mode);
+    if (roundingMode = integer(float_round_nearest_even)) then
       Begin
         roundNearestEven := Flag(TRUE);
       end
@@ -2367,7 +2368,7 @@ Function roundAndPackFloat32( zSign : Flag; zExp : Int16; zSig : Bits32 ) : floa
     roundIncrement := $40;
     if ( Boolean(roundNearestEven)  = FALSE)  then
       Begin
-        if ( roundingMode = float_round_to_zero ) Then
+        if ( roundingmode = integer(float_round_to_zero) ) Then
           Begin
             roundIncrement := 0;
           End
@@ -2376,11 +2377,11 @@ Function roundAndPackFloat32( zSign : Flag; zExp : Int16; zSig : Bits32 ) : floa
             roundIncrement := $7F;
             if ( zSign <> 0 ) then
               Begin
-                if roundingMode = float_round_up then roundIncrement := 0;
+                if roundingMode = integer(float_round_up) then roundIncrement := 0;
               End
             else
               Begin
-                if roundingMode = float_round_down then roundIncrement := 0;
+                if roundingMode = integer(float_round_down) then roundIncrement := 0;
               End;
          End
       End;
@@ -2389,7 +2390,7 @@ Function roundAndPackFloat32( zSign : Flag; zExp : Int16; zSig : Bits32 ) : floa
      Begin
         if (( $FD < zExp ) OR  ( zExp = $FD ) AND ( sbits32 ( zSig + roundIncrement ) < 0 ) ) then
           Begin
-             float_raise( float_flag_overflow OR float_flag_inexact );
+             float_raise( [TFPUException(float_flag_overflow) , TFPUException(float_flag_inexact)] );
              roundAndPackFloat32:=packFloat32( zSign, $FF, 0 ) - Flag( roundIncrement = 0 );
              exit;
           End;
@@ -2407,7 +2408,7 @@ Function roundAndPackFloat32( zSign : Flag; zExp : Int16; zSig : Bits32 ) : floa
           End;
     End;
     if ( roundBits )<> 0 then
-       softfloat_exception_flags := float_flag_inexact OR softfloat_exception_flags;
+       softfloat_exception_flags := [TFPUException(softfloat_exception_flags), TFPUException(float_flag_inexact)];
     zSig := ( zSig + roundIncrement ) shr 7;
     zSig := zSig AND not bits32( bits32( ( roundBits XOR $40 ) = 0 ) and roundNearestEven );
     if ( zSig = 0 ) then zExp := 0;
@@ -2607,22 +2608,22 @@ Procedure
    roundNearestEven, increment, isTiny : Flag;
  Begin
 
-    roundingMode := softfloat_rounding_mode;
-    roundNearestEven := flag( roundingMode = float_round_nearest_even );
+    roundingMode := integer(softfloat_rounding_mode);
+    roundNearestEven := flag( roundingMode = integer(float_round_nearest_even) );
     increment := flag( sbits32 (zSig2) < 0 );
     if ( roundNearestEven  = flag(FALSE) ) then
       Begin
-        if ( roundingMode = float_round_to_zero ) then
+        if ( roundingmode = integer(float_round_to_zero) ) then
             increment := 0
         else
           Begin
             if ( zSign )<> 0 then
               Begin
-                increment := flag( roundingMode = float_round_down ) and zSig2;
+                increment := flag( roundingMode = integer(float_round_down) ) and zSig2;
               End
             else
               Begin
-                increment := flag( roundingMode = float_round_up ) and zSig2;
+                increment := flag( roundingMode = integer(float_round_up) ) and zSig2;
               End
           End
       End;
@@ -2635,10 +2636,10 @@ Procedure
                 )
            ) then
            Begin
-            float_raise( float_flag_overflow OR  float_flag_inexact );
-            if (( roundingMode = float_round_to_zero )
-                 or ( (zSign<>0) and ( roundingMode = float_round_up ) )
-                 or ( (zSign = 0) and ( roundingMode = float_round_down ) )
+            float_raise( [TFPUException(float_flag_overflow) , TFPUException(float_flag_inexact)] );
+            if (( roundingmode = integer(float_round_to_zero) )
+                 or ( (zSign<>0) and ( roundingMode = integer(float_round_up) ) )
+                 or ( (zSign = 0) and ( roundingMode = integer(float_round_down) ) )
                ) then
               Begin
                 packFloat64( zSign, $7FE, $000FFFFF, $FFFFFFFF, c );
@@ -2666,17 +2667,17 @@ Procedure
               Begin
                 if ( zSign )<>0 then
                   Begin
-                    increment := flag( roundingMode = float_round_down ) and zSig2;
+                    increment := flag( roundingMode = integer(float_round_down) ) and zSig2;
                   End
                 else
                   Begin
-                    increment := flag( roundingMode = float_round_up ) and zSig2;
+                    increment := flag( roundingMode = integer(float_round_up) ) and zSig2;
                   End
               End;
         End;
     End;
     if ( zSig2 )<>0 then
-       softfloat_exception_flags := softfloat_exception_flags OR  float_flag_inexact;
+       softfloat_exception_flags := [TFPUException(softfloat_exception_flags) , TFPUException(float_flag_inexact)];
     if ( increment )<>0 then
       Begin
         add64( zSig0, zSig1, 0, 1, zSig0, zSig1 );
@@ -2718,12 +2719,12 @@ var
     roundIncrement, roundBits: int16;
     isTiny: flag;
 begin
-    roundingMode := softfloat_rounding_mode;
-    roundNearestEven := ord( roundingMode = float_round_nearest_even );
+    roundingMode := integer(softfloat_rounding_mode);
+    roundNearestEven := ord( roundingMode = integer(float_round_nearest_even) );
     roundIncrement := $200;
     if ( roundNearestEven=0 ) then
     begin
-        if ( roundingMode = float_round_to_zero ) then
+        if ( roundingmode = integer(float_round_to_zero) ) then
         begin
             roundIncrement := 0;
         end
@@ -2731,11 +2732,11 @@ begin
             roundIncrement := $3FF;
             if ( zSign<>0 ) then
             begin
-                if ( roundingMode = float_round_up ) then
+                if ( roundingMode = integer(float_round_up) ) then
                   roundIncrement := 0;
             end
             else begin
-                if ( roundingMode = float_round_down ) then
+                if ( roundingMode = integer(float_round_down) ) then
                   roundIncrement := 0;
             end
         end
@@ -2748,7 +2749,7 @@ begin
                   and ( sbits64( zSig + roundIncrement ) < 0 ) )
            ) then
            begin
-            float_raise( float_flag_overflow or float_flag_inexact );
+            float_raise( [TFPUException(float_flag_overflow), TFPUException(float_flag_inexact)] );
             result := float64(qword(packFloat64( zSign, $7FF, 0 )) - ord( roundIncrement = 0 ));
             exit;
         end;
@@ -2766,7 +2767,7 @@ begin
         end
     end;
     if ( roundBits<>0 ) then
-      softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+      softfloat_exception_flags := [TFPUException(softfloat_exception_flags), TFPUException(float_flag_inexact)];
     zSig := ( zSig + roundIncrement ) shr 10;
     zSig := zSig and not( ord( ( roundBits xor $200 ) = 0 ) and roundNearestEven );
     if ( zSig = 0 ) then
@@ -2939,10 +2940,9 @@ Function float32_to_int32( a : float32rec) : int32;compilerproc;
             z := aSig shr ( - shiftCount );
          End;
         if ( aSigExtra<>0 ) then
-          softfloat_exception_flags := softfloat_exception_flags
-             or float_flag_inexact;
-        roundingMode := softfloat_rounding_mode;
-        if ( roundingMode = float_round_nearest_even ) then
+          softfloat_exception_flags := [TFPUException(softfloat_exception_flags), TFPUException(float_flag_inexact)] ;
+        roundingMode := integer(softfloat_rounding_mode);
+        if ( roundingMode = integer(float_round_nearest_even) ) then
           Begin
             if ( sbits32 (aSigExtra) < 0 ) then
               Begin
@@ -2958,12 +2958,12 @@ Function float32_to_int32( a : float32rec) : int32;compilerproc;
             aSigExtra := flag( aSigExtra <> 0 );
             if ( aSign<>0 ) then
              Begin
-                z := z + (flag( roundingMode = float_round_down ) and aSigExtra);
+                z := z + (flag( roundingMode = integer(float_round_down) ) and aSigExtra);
                 z := - z;
              End
             else
              Begin
-                z := z + (flag( roundingMode = float_round_up ) and aSigExtra);
+                z := z + (flag( roundingMode = integer(float_round_up) ) and aSigExtra);
              End
           End;
       End;
@@ -3010,8 +3010,8 @@ Function float32_to_int32_round_to_zero( a: Float32rec ): int32;compilerproc;
       if ( aExp <= $7E ) then
       Begin
         if ( aExp or aSig )<>0 then
-           softfloat_exception_flags :=
-             softfloat_exception_flags or float_flag_inexact;
+           softfloat_exception_flags := [TFPUException(softfloat_exception_flags), TFPUException(float_flag_inexact)];
+
         float32_to_int32_round_to_zero := 0;
         exit;
       End;
@@ -3019,8 +3019,8 @@ Function float32_to_int32_round_to_zero( a: Float32rec ): int32;compilerproc;
     z := aSig shr ( - shiftCount );
     if ( bits32 ( aSig shl ( shiftCount and 31 ) )<> 0 ) then
       Begin
-           softfloat_exception_flags :=
-             softfloat_exception_flags or float_flag_inexact;
+           softfloat_exception_flags := [TFPUException(softfloat_exception_flags), TFPUException(float_flag_inexact)] ;
+
       End;
     if ( aSign<>0 ) then z := - z;
     float32_to_int32_round_to_zero := z;
@@ -3103,8 +3103,7 @@ Function float32_round_to_int( a: float32rec): float32rec;compilerproc;
              float32_round_to_int:=a;
              exit;
           end;
-        softfloat_exception_flags
-          := softfloat_exception_flags OR  float_flag_inexact;
+        softfloat_exception_flags:= [TFPUException(softfloat_exception_flags), TFPUException(float_flag_inexact)];
         aSign := extractFloat32Sign( a.float32 );
 
         case ( softfloat_rounding_mode ) of
@@ -3140,23 +3139,23 @@ Function float32_round_to_int( a: float32rec): float32rec;compilerproc;
     lastBitMask := lastBitMask shl ($96 - aExp);
     roundBitsMask := lastBitMask - 1;
     z := a.float32;
-    roundingMode := softfloat_rounding_mode;
-    if ( roundingMode = float_round_nearest_even ) then
+    roundingMode := integer(softfloat_rounding_mode);
+    if ( roundingMode = integer(float_round_nearest_even) ) then
       Begin
         z := z + (lastBitMask shr 1);
         if ( ( z and roundBitsMask ) = 0 ) then
            z := z and not lastBitMask;
       End
-    else if ( roundingMode <> float_round_to_zero ) then
+    else if ( roundingMode <> integer(float_round_to_zero) ) then
       Begin
-        if ( (extractFloat32Sign( z ) xor flag(roundingMode = float_round_up ))<>0 ) then
+        if ( (extractFloat32Sign( z ) xor flag(roundingMode = integer(float_round_up) ))<>0 ) then
           Begin
             z := z + roundBitsMask;
           End;
       End;
     z := z and not roundBitsMask;
     if ( z <> a.float32 ) then
-      softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+      softfloat_exception_flags := [TFPUException(softfloat_exception_flags), TFPUException(float_flag_inexact)];
     float32_round_to_int.float32 := z;
   End;
 
@@ -4026,8 +4025,8 @@ Begin
             absZ := aSig0 shr ( - shiftCount );
         End;
     End;
-    roundingMode := softfloat_rounding_mode;
-    if ( roundingMode = float_round_nearest_even ) then
+    roundingMode := integer(softfloat_rounding_mode);
+    if ( roundingMode = integer(float_round_nearest_even) ) then
     Begin
         if ( sbits32(aSigExtra) < 0 ) then
         Begin
@@ -4046,11 +4045,11 @@ Begin
         if ( aSign <> 0) then
         Begin
             z := - (   absZ
-                    + ( int32( roundingMode = float_round_down ) and aSigExtra ) );
+                    + ( int32( roundingMode = integer(float_round_down) ) and aSigExtra ) );
         End
         else
         Begin
-            z := absZ + ( int32( roundingMode = float_round_up ) and aSigExtra );
+            z := absZ + ( int32( roundingMode = integer(float_round_up) ) and aSigExtra );
         End
     End;
     if ( (( aSign xor flag( z < 0 ) )<>0) AND  (z<>0) ) then
@@ -4064,7 +4063,8 @@ Begin
         exit;
     End;
     if ( aSigExtra <> 0) then
-       softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+       softfloat_exception_flags := [TFPUException(softfloat_exception_flags), TFPUException(float_flag_inexact)];
+
     float64_to_int32 := z;
 End;
 
@@ -4111,8 +4111,7 @@ Var
         Begin
             if ( aExp OR  aSig0 OR  aSig1 )<>0 then
             Begin
-                softfloat_exception_flags :=
-                  softfloat_exception_flags or float_flag_inexact;
+                softfloat_exception_flags := [TFPUException(softfloat_exception_flags), TFPUException(float_flag_inexact)];
             End;
             float64_to_int32_round_to_zero := 0;
             exit;
@@ -4136,7 +4135,7 @@ Var
         exit;
     End;
     if ( aSigExtra <> 0) then
-       softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+       softfloat_exception_flags := [TFPUException(softfloat_exception_flags), TFPUException(float_flag_inexact)];
     float64_to_int32_round_to_zero := z;
  End;
 
@@ -4216,8 +4215,8 @@ Begin
         lastBitMask := ( lastBitMask shl ( $432 - aExp ) ) shl 1;
         roundBitsMask := lastBitMask - 1;
         z := a;
-        roundingMode := softfloat_rounding_mode;
-        if ( roundingMode = float_round_nearest_even ) then
+        roundingMode := integer(softfloat_rounding_mode);
+        if ( roundingMode = integer(float_round_nearest_even) ) then
         Begin
             if ( lastBitMask <> 0) then
             Begin
@@ -4235,10 +4234,10 @@ Begin
                 End;
             End;
         End
-        else if ( roundingMode <> float_round_to_zero ) then
+        else if ( roundingMode <> integer(float_round_to_zero) ) then
         Begin
             if (   extractFloat64Sign( z )
-                 xor flag( roundingMode = float_round_up ) )<> 0 then
+                 xor flag( roundingMode = integer(float_round_up) ) )<> 0 then
             Begin
                 add64( z.high, z.low, 0, roundBitsMask, z.high, z.low );
             End;
@@ -4254,8 +4253,7 @@ Begin
                 result := a;
                 exit;
             End;
-            softfloat_exception_flags := softfloat_exception_flags or
-               float_flag_inexact;
+            softfloat_exception_flags := [TFPUException(softfloat_exception_flags), TFPUException(float_flag_inexact)];
             aSign := extractFloat64Sign( a );
             case ( softfloat_rounding_mode ) of
              float_round_nearest_even:
@@ -4294,8 +4292,8 @@ Begin
         roundBitsMask := lastBitMask - 1;
         z.low := 0;
         z.high := a.high;
-        roundingMode := softfloat_rounding_mode;
-        if ( roundingMode = float_round_nearest_even ) then
+        roundingMode := integer(softfloat_rounding_mode);
+        if ( roundingMode = integer(float_round_nearest_even) ) then
         Begin
             z.high := z.high + lastBitMask shr 1;
             if ( ( ( z.high and roundBitsMask ) OR  a.low ) = 0 ) then
@@ -4303,10 +4301,10 @@ Begin
                 z.high := z.high and not lastBitMask;
             End;
         End
-        else if ( roundingMode <> float_round_to_zero ) then
+        else if ( roundingMode <> integer(float_round_to_zero) ) then
         Begin
             if (   extractFloat64Sign( z )
-                 xor flag( roundingMode = float_round_up ) )<> 0 then
+                 xor flag( roundingMode = integer(float_round_up) ) )<> 0 then
             Begin
                 z.high := z.high or bits32( a.low <> 0 );
                 z.high := z.high + roundBitsMask;
@@ -4316,8 +4314,7 @@ Begin
     End;
     if ( ( z.low <> a.low ) OR ( z.high <> a.high ) ) then
     Begin
-        softfloat_exception_flags :=
-          softfloat_exception_flags or float_flag_inexact;
+        softfloat_exception_flags :=  [TFPUException(softfloat_exception_flags), TFPUException(float_flag_inexact)];
     End;
     result := z;
 End;
@@ -5639,8 +5636,8 @@ var
 label
     precision80;
 begin
-    roundingMode := softfloat_rounding_mode;
-    roundNearestEven := flag( roundingMode = float_round_nearest_even );
+    roundingMode := integer(softfloat_rounding_mode);
+    roundNearestEven := flag( roundingMode = integer(float_round_nearest_even) );
     if ( roundingPrecision = 80 ) then
       goto precision80;
     if ( roundingPrecision = 64 ) then
@@ -5659,7 +5656,7 @@ begin
     zSig0 := zSig0 or ord( zSig1 <> 0 );
     if ( not (roundNearestEven<>0) ) then
     begin
-        if ( roundingMode = float_round_to_zero ) then
+        if ( roundingmode = integer(float_round_to_zero) ) then
         begin
             roundIncrement := 0;
         end
@@ -5667,11 +5664,11 @@ begin
             roundIncrement := roundMask;
             if ( zSign<>0 ) then
             begin
-                if ( roundingMode = float_round_up ) then
+                if ( roundingMode = integer(float_round_up) ) then
                   roundIncrement := 0;
             end
             else begin
-                if ( roundingMode = float_round_down ) then
+                if ( roundingMode = integer(float_round_down) ) then
                   roundIncrement := 0;
             end;
         end;
@@ -5719,15 +5716,15 @@ begin
  precision80:
     increment := ( (sbits64) zSig1 < 0 );
     if ( ! roundNearestEven ) begin
-        if ( roundingMode = float_round_to_zero ) begin
+        if ( roundingmode = integer(float_round_to_zero) ) begin
             increment := 0;
         end;
         else begin
             if ( zSign ) begin
-                increment := ( roundingMode = float_round_down ) and zSig1;
+                increment := ( roundingMode = integer(float_round_down) ) and zSig1;
             end;
             else begin
-                increment := ( roundingMode = float_round_up ) and zSig1;
+                increment := ( roundingMode = integer(float_round_up) ) and zSig1;
             end;
         end;
     end;
@@ -5741,9 +5738,9 @@ begin
             roundMask := 0;
  overflow:
             float_raise( float_flag_overflow or float_flag_inexact );
-            if (    ( roundingMode = float_round_to_zero )
-                 or ( zSign and ( roundingMode = float_round_up ) )
-                 or ( ! zSign and ( roundingMode = float_round_down ) )
+            if (    ( roundingmode = integer(float_round_to_zero) )
+                 or ( zSign and ( roundingMode = integer(float_round_up) ) )
+                 or ( ! zSign and ( roundingMode = integer(float_round_down) ) )
                ) begin
                 result:=packFloatx80( zSign, $7FFE, ~ roundMask );
             end;
@@ -5764,10 +5761,10 @@ begin
             end;
             else begin
                 if ( zSign ) begin
-                    increment := ( roundingMode = float_round_down ) and zSig1;
+                    increment := ( roundingMode = integer(float_round_down) ) and zSig1;
                 end;
                 else begin
-                    increment := ( roundingMode = float_round_up ) and zSig1;
+                    increment := ( roundingMode = integer(float_round_up) ) and zSig1;
                 end;
             end;
             if ( increment ) begin
@@ -6138,13 +6135,13 @@ begin
     lastBitMask  shl = $403E - aExp;
     roundBitsMask := lastBitMask - 1;
     z := a;
-    roundingMode := softfloat_rounding_mode;
-    if ( roundingMode = float_round_nearest_even ) begin
+    roundingMode := integer(softfloat_rounding_mode);
+    if ( roundingMode = integer(float_round_nearest_even) ) begin
         z.low += lastBitMask>>1;
         if ( ( z.low and roundBitsMask ) = 0 ) z.low = ~ lastBitMask;
     end;
     else if ( roundingMode <> float_round_to_zero ) begin
-        if ( extractFloatx80Sign( z ) xor ( roundingMode = float_round_up ) ) begin
+        if ( extractFloatx80Sign( z ) xor ( roundingMode = integer(float_round_up) ) ) begin
             z.low += roundBitsMask;
         end;
     end;
@@ -6976,22 +6973,22 @@ var
     roundingMode: int8;
     roundNearestEven, increment, isTiny: flag;
 begin
-    roundingMode := softfloat_rounding_mode;
-    roundNearestEven := ord( roundingMode = float_round_nearest_even );
+    roundingMode := integer(softfloat_rounding_mode);
+    roundNearestEven := ord( roundingMode = integer(float_round_nearest_even) );
     increment := ord( sbits64(zSig2) < 0 );
     if ( roundNearestEven=0 ) then
     begin
-        if ( roundingMode = float_round_to_zero ) then
+        if ( roundingmode = integer(float_round_to_zero) ) then
         begin
             increment := 0;
         end
         else begin
             if ( zSign<>0 ) then
             begin
-                increment := ord( roundingMode = float_round_down ) and zSig2;
+                increment := ord( roundingMode = integer(float_round_down) ) and zSig2;
             end
             else begin
-                increment := ord( roundingMode = float_round_up ) and zSig2;
+                increment := ord( roundingMode = integer(float_round_up) ) and zSig2;
             end;
         end;
     end;
@@ -7009,10 +7006,10 @@ begin
                 )
            )<>0 then
            begin
-            float_raise( float_flag_overflow or float_flag_inexact );
-            if (    ord( roundingMode = float_round_to_zero )
-                 or ( zSign and ord( roundingMode = float_round_up ) )
-                 or ( not(zSign) and ord( roundingMode = float_round_down ) )
+            float_raise( [TFPUException(float_flag_overflow), TFPUException(float_flag_inexact)] );
+            if (    ord( roundingmode = integer(float_round_to_zero) )
+                 or ( zSign and ord( roundingMode = integer(float_round_up) ) )
+                 or ( not(zSign) and ord( roundingMode = integer(float_round_down) ) )
                )<>0 then
                begin
                 result :=
@@ -7049,16 +7046,16 @@ begin
             else begin
                 if ( zSign<>0 ) then
                 begin
-                    increment := ord( roundingMode = float_round_down ) and zSig2;
+                    increment := ord( roundingMode = integer(float_round_down) ) and zSig2;
                 end
                 else begin
-                    increment := ord( roundingMode = float_round_up ) and zSig2;
+                    increment := ord( roundingMode = integer(float_round_up) ) and zSig2;
                 end;
             end;
         end;
     end;
     if ( zSig2<>0 ) then
-      softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+      softfloat_exception_flags := [TFPUException(softfloat_exception_flags), TFPUException(float_flag_inexact)];
     if ( increment<>0 ) then
     begin
         add128( zSig0, zSig1, 0, 1, zSig0, zSig1 );
@@ -7172,7 +7169,7 @@ begin
     else if ( aExp < $3FFF ) then
     begin
         if ( aExp or aSig0 )<>0 then
-          softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+          softfloat_exception_flags := [TFPUException(softfloat_exception_flags), TFPUException(float_flag_inexact)];
         result := 0;
         exit;
     end;
@@ -7195,7 +7192,7 @@ begin
     end;
     if ( ( aSig0 shl shiftCount ) <> savedASig ) then
     begin
-        softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+        softfloat_exception_flags := [TFPUException(softfloat_exception_flags), TFPUException(float_flag_inexact)];
     end;
     result := z;
 end;
@@ -7280,7 +7277,7 @@ begin
                  and ( aSig1 < uint64( $0002000000000000 ) ) ) then
             begin
                 if ( aSig1<>0 ) then
-                  softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+                  softfloat_exception_flags := [TFPUException(softfloat_exception_flags), TFPUException(float_flag_inexact)];
             end
             else begin
                 float_raise( float_flag_invalid );
@@ -7296,7 +7293,7 @@ begin
         z := ( aSig0 shl shiftCount ) or ( aSig1>>( ( - shiftCount ) and 63 ) );
         if ( int64( aSig1 shl shiftCount )<>0 ) then
         begin
-            softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+            softfloat_exception_flags := [TFPUException(softfloat_exception_flags), TFPUException(float_flag_inexact)];
         end;
     end
     else begin
@@ -7304,7 +7301,7 @@ begin
         begin
             if ( aExp or aSig0 or aSig1 )<>0 then
             begin
-                softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+                softfloat_exception_flags := [TFPUException(softfloat_exception_flags), TFPUException(float_flag_inexact)];
             end;
             result := 0;
             exit;
@@ -7313,7 +7310,7 @@ begin
         if (    (aSig1<>0)
              or ( (shiftCount<>0) and (uint64( aSig0 shl ( shiftCount and 63 ) )<>0) ) ) then
         begin
-            softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+            softfloat_exception_flags := [TFPUException(softfloat_exception_flags), TFPUException(float_flag_inexact)];
         end;
     end;
     if ( aSign<>0 ) then
@@ -7479,8 +7476,8 @@ begin
         lastBitMask := ( lastBitMask shl ( $406E - aExp ) ) shl 1;
         roundBitsMask := lastBitMask - 1;
         z := a;
-        roundingMode := softfloat_rounding_mode;
-        if ( roundingMode = float_round_nearest_even ) then
+        roundingMode := integer(softfloat_rounding_mode);
+        if ( roundingMode = integer(float_round_nearest_even) ) then
         begin
             if ( lastBitMask )<>0 then
             begin
@@ -7497,10 +7494,10 @@ begin
                 end;
             end;
         end
-        else if ( roundingMode <> float_round_to_zero ) then
+        else if ( roundingMode <> integer(float_round_to_zero) ) then
         begin
             if (   extractFloat128Sign( z )
-                 xor ord( roundingMode = float_round_up ) )<>0 then
+                 xor ord( roundingMode = integer(float_round_up) ) )<>0 then
             begin
                 add128( z.high, z.low, 0, roundBitsMask, z.high, z.low );
             end;
@@ -7515,7 +7512,7 @@ begin
                 result := a;
                 exit;
               end;
-            softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+            softfloat_exception_flags := [TFPUException(softfloat_exception_flags), TFPUException(float_flag_inexact)];
             aSign := extractFloat128Sign( a );
             case softfloat_rounding_mode of
             float_round_nearest_even:
@@ -7553,16 +7550,16 @@ begin
         roundBitsMask := lastBitMask - 1;
         z.low := 0;
         z.high := a.high;
-        roundingMode := softfloat_rounding_mode;
-        if ( roundingMode = float_round_nearest_even ) then begin
+        roundingMode := integer(softfloat_rounding_mode);
+        if ( roundingMode = integer(float_round_nearest_even) ) then begin
             inc(z.high,lastBitMask shr 1);
             if ( ( ( z.high and roundBitsMask ) or a.low ) = 0 ) then begin
                 z.high := z.high and not(lastBitMask);
             end;
         end
-        else if ( roundingMode <> float_round_to_zero ) then begin
+        else if ( roundingMode <> integer(float_round_to_zero) ) then begin
             if (   (extractFloat128Sign( z )<>0)
-                 xor ( roundingMode = float_round_up ) ) then begin
+                 xor ( roundingMode = integer(float_round_up) ) ) then begin
                 z.high := z.high or ord( a.low <> 0 );
                 z.high := z.high+roundBitsMask;
             end;
@@ -7570,7 +7567,7 @@ begin
         z.high := z.high and not(roundBitsMask);
     end;
     if ( ( z.low <> a.low ) or ( z.high <> a.high ) ) then begin
-        softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
+        softfloat_exception_flags := [TFPUException(softfloat_exception_flags), TFPUException(float_flag_inexact)];
     end;
     result := z;
 

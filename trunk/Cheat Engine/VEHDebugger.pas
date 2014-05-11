@@ -316,15 +316,27 @@ var s: tstringlist;
 e: integer;
 prefix: string;
 testptr: ptruint;
+mi: tmoduleinfo;
 begin
   try
     processhandler.processid:=dwProcessID;
     Open_Process;
     symhandler.reinitialize;
 
+    is64bit:=processhandler.is64Bit;
+    if is64bit then
+      prefix:='-x86_64'
+    else
+      prefix:='-i386';
 
 
     result:=false;
+
+    if symhandler.getmodulebyname('vehdebug'+prefix+'.dll',mi) then
+      exit; //no reattach supported right now
+
+
+
 
     CreateGUID(guid);
     guidstring:='"'+GUIDToString(guid)+'"';
@@ -378,11 +390,7 @@ begin
       raise exception.Create(
         rsFailureDuplicatingTheEventHandlesToTheOtherProcess);
 
-    is64bit:=processhandler.is64Bit;
-    if is64bit then
-      prefix:='-x86_64'
-    else
-      prefix:='-i386';
+
 
     symhandler.waitforsymbolsloaded(true,'kernel32.dll');
 

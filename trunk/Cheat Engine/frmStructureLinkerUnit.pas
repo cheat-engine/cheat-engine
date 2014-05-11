@@ -138,7 +138,7 @@ var i: integer;
 
   temps: Tstructinfo;
   pvalue: ptruint;
-  x: dword;
+  x: ptruint;
 begin
   s.s.beginUpdate;
   try

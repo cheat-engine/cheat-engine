@@ -14,8 +14,8 @@ procedure disconnect;
 
 function NetworkVersion(var name: string): integer;
 
-function NetworkReadProcessMemory(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL; stdcall;
-function NetworkWriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: DWORD): BOOL; stdcall;
+function NetworkReadProcessMemory(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: ptruint): BOOL; stdcall;
+function NetworkWriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: ptruint): BOOL; stdcall;
 
 function NetworkVirtualQueryEx(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; stdcall;
 function NetworkOpenProcess(dwDesiredAccess:DWORD; bInheritHandle:WINBOOL; dwProcessId:DWORD):HANDLE; stdcall;
@@ -133,8 +133,9 @@ begin
     result:=FALSE;
 end;
 
-function NetworkReadProcessMemory(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL; stdcall;
-var a,b,c,d: dword;
+function NetworkReadProcessMemory(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: ptruint): BOOL; stdcall;
+var a,b: dword;
+    c,d: ptruint;
 begin
   if getConnection<>nil then
   begin
@@ -159,7 +160,7 @@ begin
     result:=false;
 end;
 
-function NetworkWriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: DWORD): BOOL; stdcall;
+function NetworkWriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: ptruint): BOOL; stdcall;
 begin
   if getConnection<>nil then
     result:=connection.writeProcessMemory(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesWritten)

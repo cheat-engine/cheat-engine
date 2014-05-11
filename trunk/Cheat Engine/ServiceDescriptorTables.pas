@@ -93,7 +93,7 @@ var sdtstruct: tsdtstruct;
     x: ttreenode;
     second: boolean;
     p: thandle;
-    nrofbytes: dword;
+    nrofbytes: PtrUInt;
 
     functionpointers:PDwordArray;
     parametercounts: PByteArray;
@@ -155,7 +155,7 @@ end;
 
 function ES(SymName: LPSTR; SymbolAddress, SymbolSize: ULONG; UserContext: Pointer): Bool; stdcall;
 var buf: array[0..14] of byte;
-    ar: dword;
+    ar: ptrUint;
 begin
   if readprocessmemory(processhandle,pointer(ptrUint(SymbolAddress)),@buf[0],15,ar) then
   begin
@@ -373,7 +373,7 @@ procedure TfrmServiceDescriptorTables.GotoSTDaddress1Click(
   Sender: TObject);
 var table: integer;
     a: ptrUint;
-    x,y: dword;
+    x,y: ptrUint;
 
 begin
   if (treeview1.Selected=nil) or (treeview1.Selected.Level<>1) then exit;
@@ -383,6 +383,8 @@ begin
     a:=GetSDT
   else
     a:=GetSDTShadow;
+
+  y:=0;
 
   readprocessmemory(processhandle,pointer(a),@y,4,x);
   inc(y,treeview1.Selected.Index*4);

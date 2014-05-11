@@ -1230,7 +1230,7 @@ end;
 procedure TDissectedStruct.fillFromDotNetAddressData(const data: TAddressData);
 var
   i,j: integer;
-  x: dword;
+  x: ptruint;
   e: TStructelement;
   buf: pbytearray;
   bufsize: integer;
@@ -1344,7 +1344,7 @@ var
   buf: pbytearray;
 
   currentOffset: integer;
-  x: dword;
+  x: ptruint;
   i,j: integer;
   bs: integer;
   vt: TVariableType;
@@ -2060,7 +2060,7 @@ end;
 
 function TStructColumn.LockAddress(shownaddress: ptruint; memoryblock: pointer; size: integer): boolean;
 var
-  x: dword;
+  x: ptruint;
 begin
   result:=false;
 
@@ -2095,7 +2095,7 @@ end;
 function TStructColumn.saveState: boolean;
 var buf: pointer;
   size: integer;
-  x: dword;
+  x: ptruint;
 begin
   clearSavedState;
   result:=false;
@@ -2734,7 +2734,7 @@ end;
 function getPointerAddressOverride(c: TStructColumn; address: ptruint; const offsets: array of integer; var hasError: boolean): ptruint;
 //special version of the normal getPointerAddress with support for locked addresses
 var realaddress, realaddress2: PtrUInt;
-    count: dword;
+    count: ptruint;
     check: boolean;
     i: integer;
 
@@ -3050,7 +3050,7 @@ var n: TStructelement;
   error: boolean;
   address: ptruint;
   c: TStructColumn;
-  x: dword;
+  x: ptruint;
   savedstate: PtrUInt;
 begin
   AllowExpansion:=true;
@@ -4510,7 +4510,7 @@ var
   n: ttreenode;
   a: ptruint;
   error: boolean;
-  x: dword;
+  x: ptruint;
 begin
   n:=tvStructureView.Selected;
   if n<>nil then

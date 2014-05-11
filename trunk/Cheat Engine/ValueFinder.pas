@@ -81,7 +81,7 @@ Pre: Called from lowest to highest value. NO RANDOM
 var currentaddress: ptrUint;
     i: integer;
     valuesize: integer;
-    x: dword;
+    x: ptruint;
     offset: dword;
 begin
   if valuetype=vtdouble then valuesize:=8 else valuesize:=4;
@@ -141,7 +141,7 @@ var address: ptrUint;
     i: integer;
     maxsize: dword;
     mbi: MEMORY_BASIC_INFORMATION;
-    x: dword;
+    x: ptruint;
 begin
   memregionofbuffer:=-1;
   self.stopaddress:=stopaddress;

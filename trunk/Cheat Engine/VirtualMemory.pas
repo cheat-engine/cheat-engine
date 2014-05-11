@@ -172,7 +172,7 @@ var RMPointer: ^Byte;
     i: Integer;
     j: Integer;
 
-    actualread: dword;
+    actualread: ptruint;
     TotalToRead: ptrUint;
 begin
   address:=start;

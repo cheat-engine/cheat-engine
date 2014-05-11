@@ -174,7 +174,7 @@ begin
 end;
 
 procedure TMemoryDataSource.fetchmem;
-var x: dword;
+var x: ptrUint;
   a,a2: ptruint;
   s: integer;
 

@@ -157,7 +157,7 @@ resourcestring
 function TAdvancedOptions.AddToCodeList(address: ptrUint; sizeofopcode: integer;changed: boolean; multiadd: boolean=false):boolean;
 
 var i: integer;
-    bread: dword;
+    bread: PtrUInt;
     toread,toread2: dword;
     backupbytes: array[0..4] of byte;
     ignore: string;
@@ -406,7 +406,10 @@ procedure TAdvancedOptions.miRestoreWithOriginalClick(Sender: TObject);
 var i,j: integer;
     a: ptrUint;
     lengthactualopcode: dword;
-    written,original, br: dword;
+    written: PtrUInt;
+    original: dword;
+    x: dword;
+    br: PtrUInt;
     temp: array of byte;
     temp2: array of byte;
 
@@ -456,12 +459,12 @@ begin
     if written<>lengthactualopcode then
     begin
       messagedlg(strCouldntrestorecode,mtWarning,[MBok],0);
-      VirtualProtectEx(processhandle,pointer(code[i].Address),lengthactualopcode,original,br);
+      VirtualProtectEx(processhandle,pointer(code[i].Address),lengthactualopcode,original,x);
       exit;
     end;
 
     //set back
-    VirtualProtectEx(processhandle,pointer(code[i].Address),lengthactualopcode,original,br);
+    VirtualProtectEx(processhandle,pointer(code[i].Address),lengthactualopcode,original,x);
     FlushInstructionCache(processhandle,pointer(code[i].Address),lengthactualopcode);
 
     code[i].changed:=false;
@@ -485,11 +488,11 @@ rsAreYouSureYouWishToDeleteTheseEntries = 'Are you sure you wish to delete these
 
 procedure TAdvancedOptions.miReplaceWithNopsClick(Sender: TObject);
 var codelength: integer;
-    written: dword;
+    written: PtrUInt;
     i,index: integer;
     nops: array of byte;
     a: ptrUint;
-    b: dword;
+    b: ptruint;
     original: dword;
 
 begin
@@ -687,11 +690,11 @@ end;
 
 procedure TAdvancedOptions.Replaceall1Click(Sender: TObject);
 var codelength: integer;
-    written: dword;
+    written: PtrUInt;
     j,i,index: integer;
     nops: array of byte;
     a: ptrUint;
-    b: dword;
+    b: PtrUInt;
     original: dword;
     mi: TModuleInfo;
 begin

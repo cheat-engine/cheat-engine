@@ -17,8 +17,10 @@ type
 
   TfrmLuaEngine = class(TForm)
     btnExecute: TButton;
+    FindDialog1: TFindDialog;
     GroupBox1: TGroupBox;
     MenuItem12: TMenuItem;
+    MenuItem13: TMenuItem;
     miSetBreakpoint: TMenuItem;
     miRun: TMenuItem;
     miSingleStep: TMenuItem;
@@ -106,7 +108,7 @@ implementation
 uses luaclass;
 
 resourcestring
-  rsError = 'Script Terminated';
+  rsError = 'Script Error';
 
 var
   LuaDebugForm: TfrmLuaEngine;

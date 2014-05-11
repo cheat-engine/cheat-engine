@@ -2772,7 +2772,7 @@ var i: integer;
     off: string;
     realaddress, realaddress2: ptrUint;
     check: boolean;
-    count: dword;
+    count: PtrUInt;
 begin
   result:=0;
   error:=true;

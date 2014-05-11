@@ -827,7 +827,7 @@ var bytepointer: PByte;
     i: Integer;
     j: Integer;
 
-    actualread: dword;
+    actualread: ptruint;
     TotalToRead: qword;
 
     maxsize: dword;

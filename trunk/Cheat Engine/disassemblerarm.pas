@@ -717,7 +717,7 @@ end;
 
 function TArmDisassembler.Disassemble(var address: ptrUint): string;
 var
-  x: dword;
+  x: ptruint;
 begin
   result:='';
   setlength(LastDisassembleData.bytes,0);

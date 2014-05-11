@@ -20,7 +20,7 @@ type
     context: TContext;
     armcontext: TARMCONTEXT;
     stack: record
-      savedsize: dword;
+      savedsize: ptruint;
       stack: pbyte;
     end;
     hitcount: integer;

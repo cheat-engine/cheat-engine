@@ -1090,6 +1090,8 @@ methods
   getCount()
   getItem(integer) : Return the listitem object at the given index
   add(text:string): Returns a new root Treenode object
+  insert(treenode, string): Returns a new treenode object that has been inserted before the given treenode
+  insertBehind(treenode, string): Returns a new treenode object that has been inserted after the given treenode
 
  
 

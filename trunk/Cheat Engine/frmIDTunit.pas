@@ -45,7 +45,7 @@ var limit: word;
     address: qword;
     x: Puint64Array;
     i: integer;
-    br: dword;
+    br: PtrUInt;
 
     offset_0_15: word;
     segmentselector: word;

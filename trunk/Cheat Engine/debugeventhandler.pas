@@ -353,7 +353,8 @@ Continues the current thread from a debug event. Handles int3 breakpoints as wel
 BP can be nil if it's a single step breakpoint
 
 }
-var oldprotect,bw: dword;
+var oldprotect: dword;
+  bw: PtrUInt;
   d: TDisassembler=nil;
   nexteip: ptruint;
   t: string;
@@ -566,7 +567,7 @@ procedure TDebugThreadHandler.handleTrace;
 var
   b: PBreakpoint;
   r: ptruint;
-  x: dword;
+  x: PtrUInt;
 begin
   TDebuggerthread(debuggerthread).execlocation:=37;
   if tracewindow<>nil then
@@ -650,7 +651,8 @@ var
   hasSetInt1Back: boolean;
   {$endif}
   hasSetInt3Back: boolean;
-  oldprotect, bw: dword;
+  oldprotect: dword;
+  bw: PtrUInt;
 begin
   TDebuggerthread(debuggerthread).execlocation:=35;
   OutputDebugString('Handling as a single step event');
@@ -742,7 +744,7 @@ var
 
   active: boolean;
   oldprotect: dword;
-  bw: dword;
+  bw: PtrUInt;
 
   connection: TCEConnection;
 begin
@@ -1355,7 +1357,7 @@ var m: string;
     mw: widestring;
     x: pchar;
     xw: pwidechar absolute x;
-    br: dword;
+    br: PtrUInt;
 
     p: pointer;
 begin
@@ -1410,7 +1412,7 @@ end;
 function TDebugThreadHandler.OutputDebugStringEvent(debugEvent: TDEBUGEVENT; var dwContinueStatus: dword): boolean;
 var s: pchar;
     ws: pwidechar;
-    x: dword;
+    x: PtrUInt;
 begin
   TDebuggerthread(debuggerthread).execlocation:=23;
   outputdebugstring('OutputDebugStringEvent');

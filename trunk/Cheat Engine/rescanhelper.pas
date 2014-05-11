@@ -249,7 +249,7 @@ will find the pageinfo. If not found, it will add it
 }
 var
   pi: TPageInfo;
-  x: dword;
+  x: ptruint;
 
   r: PPageInfo;
 begin

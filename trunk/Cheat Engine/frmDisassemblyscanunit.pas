@@ -137,7 +137,7 @@ end;
 procedure TDisassemblerthread.execute;
 var x: ptrUint;
     i,j: ptrUint;
-    br: dword;
+    br: ptrUint;
     d,y: string;
     found: boolean;
 

@@ -94,7 +94,7 @@ procedure TStaticScanner.UpdateList;
 var x: tlistitem;
     i:integer;
     point: ptrUint;
-    ar: dword;
+    ar: ptrUint;
 begin
   if updatetype=Addentry then
   begin

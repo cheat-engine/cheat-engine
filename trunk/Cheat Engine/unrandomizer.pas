@@ -108,7 +108,7 @@ type tcodereplace=array of byte;
 var memoryregion: tmemoryregions;
     i,j: integer;
     totalmemory: dword;
-    ar,aw: dword;
+    ar,aw: ptrUint;
     buffer: array of byte;
     totalread: dword;
 

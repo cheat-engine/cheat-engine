@@ -4643,7 +4643,7 @@ var
   x: array of integer;
 
   errormode: dword;
-  minworkingsize, maxworkingsize: size_t;
+  minworkingsize, maxworkingsize: ptruint;
   reg: tregistry;
 
   PODirectory, Lang, FallbackLang: string;
@@ -7100,9 +7100,9 @@ end;
 procedure TMainForm.ProcessLabelMouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: integer);
 begin
-  if assigned(IsValidHandle) then
+  if assigned(newkernelhandler.IsValidHandle) then
   begin
-    if (button = mbright) and (DBKLoaded) and IsValidHandle(processhandle) then
+    if (button = mbright) and (DBKLoaded) and newkernelhandler.IsValidHandle(processhandle) then
     begin
       outputdebugstring('(button = mbright) and (DBKLoaded) and IsValidHandle(processhandle)');
       tfrmProcessInfo.Create(self).Show;

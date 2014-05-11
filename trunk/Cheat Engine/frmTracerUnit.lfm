@@ -15,7 +15,7 @@ object frmTracer: TfrmTracer
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.3'
   object Splitter1: TSplitter
     Left = 198
     Height = 387
@@ -38,9 +38,9 @@ object frmTracer: TfrmTracer
     object EAXLabel: TLabel
       Cursor = crHandPoint
       Left = 5
-      Height = 14
+      Height = 13
       Top = 40
-      Width = 97
+      Width = 96
       Caption = 'EAX 00000000'
       Font.Height = -15
       Font.Name = 'Courier'
@@ -53,9 +53,9 @@ object frmTracer: TfrmTracer
       Tag = 1
       Cursor = crHandPoint
       Left = 5
-      Height = 14
+      Height = 13
       Top = 60
-      Width = 97
+      Width = 96
       Caption = 'EBX 00000000'
       Font.Height = -15
       Font.Name = 'Courier'
@@ -68,9 +68,9 @@ object frmTracer: TfrmTracer
       Tag = 2
       Cursor = crHandPoint
       Left = 5
-      Height = 14
+      Height = 13
       Top = 79
-      Width = 97
+      Width = 96
       Caption = 'ECX 00000000'
       Font.Height = -15
       Font.Name = 'Courier'
@@ -83,9 +83,9 @@ object frmTracer: TfrmTracer
       Tag = 3
       Cursor = crHandPoint
       Left = 5
-      Height = 14
+      Height = 13
       Top = 99
-      Width = 97
+      Width = 96
       Caption = 'EDX 00000000'
       Font.Height = -15
       Font.Name = 'Courier'
@@ -98,9 +98,9 @@ object frmTracer: TfrmTracer
       Tag = 4
       Cursor = crHandPoint
       Left = 5
-      Height = 14
+      Height = 13
       Top = 119
-      Width = 97
+      Width = 96
       Caption = 'ESI 00000000'
       Font.Height = -15
       Font.Name = 'Courier'
@@ -113,9 +113,9 @@ object frmTracer: TfrmTracer
       Tag = 5
       Cursor = crHandPoint
       Left = 5
-      Height = 14
+      Height = 13
       Top = 138
-      Width = 97
+      Width = 96
       Caption = 'EDI 00000000'
       Font.Height = -15
       Font.Name = 'Courier'
@@ -128,9 +128,9 @@ object frmTracer: TfrmTracer
       Tag = 6
       Cursor = crHandPoint
       Left = 5
-      Height = 14
+      Height = 13
       Top = 158
-      Width = 97
+      Width = 96
       Caption = 'EBP 00000000'
       Font.Height = -15
       Font.Name = 'Courier'
@@ -143,9 +143,9 @@ object frmTracer: TfrmTracer
       Tag = 7
       Cursor = crHandPoint
       Left = 5
-      Height = 14
+      Height = 13
       Top = 178
-      Width = 97
+      Width = 96
       Caption = 'ESP 00000000'
       Font.Height = -15
       Font.Name = 'Courier'
@@ -158,9 +158,9 @@ object frmTracer: TfrmTracer
       Tag = 8
       Cursor = crHandPoint
       Left = 5
-      Height = 14
+      Height = 13
       Top = 198
-      Width = 97
+      Width = 96
       Caption = 'EIP 00000000'
       Font.Height = -15
       Font.Name = 'Courier'
@@ -171,9 +171,9 @@ object frmTracer: TfrmTracer
     end
     object cflabel: TLabel
       Left = 162
-      Height = 14
+      Height = 13
       Top = 40
-      Width = 33
+      Width = 32
       Caption = 'CF 0'
       Font.Height = -15
       Font.Name = 'Courier'
@@ -182,9 +182,9 @@ object frmTracer: TfrmTracer
     end
     object pflabel: TLabel
       Left = 162
-      Height = 14
+      Height = 13
       Top = 60
-      Width = 33
+      Width = 32
       Caption = 'PF 0'
       Font.Height = -15
       Font.Name = 'Courier'
@@ -193,9 +193,9 @@ object frmTracer: TfrmTracer
     end
     object aflabel: TLabel
       Left = 162
-      Height = 14
+      Height = 13
       Top = 79
-      Width = 33
+      Width = 32
       Caption = 'AF 0'
       Font.Height = -15
       Font.Name = 'Courier'
@@ -204,9 +204,9 @@ object frmTracer: TfrmTracer
     end
     object zflabel: TLabel
       Left = 162
-      Height = 14
+      Height = 13
       Top = 99
-      Width = 33
+      Width = 32
       Caption = 'ZF 0'
       Font.Height = -15
       Font.Name = 'Courier'
@@ -215,9 +215,9 @@ object frmTracer: TfrmTracer
     end
     object sflabel: TLabel
       Left = 162
-      Height = 14
+      Height = 13
       Top = 119
-      Width = 33
+      Width = 32
       Caption = 'SF 0'
       Font.Height = -15
       Font.Name = 'Courier'
@@ -226,9 +226,9 @@ object frmTracer: TfrmTracer
     end
     object oflabel: TLabel
       Left = 162
-      Height = 14
+      Height = 13
       Top = 158
-      Width = 33
+      Width = 32
       Caption = 'OF 0'
       Font.Height = -15
       Font.Name = 'Courier'
@@ -239,9 +239,9 @@ object frmTracer: TfrmTracer
       Tag = 9
       Cursor = crHandPoint
       Left = 5
-      Height = 14
+      Height = 13
       Top = 237
-      Width = 57
+      Width = 56
       Caption = 'CS 0000'
       Font.Height = -15
       Font.Name = 'Courier'
@@ -252,9 +252,9 @@ object frmTracer: TfrmTracer
       Tag = 10
       Cursor = crHandPoint
       Left = 5
-      Height = 14
+      Height = 13
       Top = 257
-      Width = 57
+      Width = 56
       Caption = 'SS 0000'
       Font.Height = -15
       Font.Name = 'Courier'
@@ -265,9 +265,9 @@ object frmTracer: TfrmTracer
       Tag = 11
       Cursor = crHandPoint
       Left = 5
-      Height = 14
+      Height = 13
       Top = 276
-      Width = 57
+      Width = 56
       Caption = 'DS 0000'
       Font.Height = -15
       Font.Name = 'Courier'
@@ -278,9 +278,9 @@ object frmTracer: TfrmTracer
       Tag = 12
       Cursor = crHandPoint
       Left = 5
-      Height = 14
+      Height = 13
       Top = 296
-      Width = 57
+      Width = 56
       Caption = 'ES 0000'
       Font.Height = -15
       Font.Name = 'Courier'
@@ -291,9 +291,9 @@ object frmTracer: TfrmTracer
       Tag = 13
       Cursor = crHandPoint
       Left = 5
-      Height = 14
+      Height = 13
       Top = 316
-      Width = 57
+      Width = 56
       Caption = 'FS 0000'
       Font.Height = -15
       Font.Name = 'Courier'
@@ -304,9 +304,9 @@ object frmTracer: TfrmTracer
       Tag = 14
       Cursor = crHandPoint
       Left = 5
-      Height = 14
+      Height = 13
       Top = 335
-      Width = 57
+      Width = 56
       Caption = 'GS 0000'
       Font.Height = -15
       Font.Name = 'Courier'
@@ -315,9 +315,9 @@ object frmTracer: TfrmTracer
     end
     object dflabel: TLabel
       Left = 162
-      Height = 14
+      Height = 13
       Top = 138
-      Width = 33
+      Width = 32
       Caption = 'DF 0'
       Font.Height = -15
       Font.Name = 'Courier'
@@ -331,7 +331,6 @@ object frmTracer: TfrmTracer
       Top = 158
       Width = 21
       Caption = 'F'
-      NumGlyphs = 0
       OnClick = sbShowFloatsClick
       ShowHint = True
       ParentShowHint = False
@@ -347,17 +346,17 @@ object frmTracer: TfrmTracer
     end
     object lblInstruction: TLabel
       Left = 5
-      Height = 14
+      Height = 13
       Top = 0
-      Width = 50
+      Width = 49
       Caption = 'Instruction'
       ParentColor = False
     end
     object lblAddressed: TLabel
       Left = 5
-      Height = 14
+      Height = 13
       Top = 16
-      Width = 91
+      Width = 90
       Caption = 'Accesses Address:'
       ParentColor = False
     end
@@ -368,7 +367,6 @@ object frmTracer: TfrmTracer
       Top = 186
       Width = 21
       Caption = 'S'
-      NumGlyphs = 0
       Visible = False
       OnClick = sbShowstackClick
       ShowHint = True

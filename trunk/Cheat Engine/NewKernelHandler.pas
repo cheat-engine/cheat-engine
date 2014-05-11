@@ -423,10 +423,10 @@ type TGetDeviceDriverFileName=function(ImageBase: LPVOID; lpFilename: LPTSTR; nS
 type TGetLargePageMinimum=function: SIZE_T; stdcall;
 
 
-type TReadProcessMemory=function(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL; stdcall;
-type TReadProcessMemory64=function(hProcess: THandle; lpBaseAddress: UINT64; lpBuffer: pointer; nSize: DWORD; var lpNumberOfBytesRead: DWORD): BOOL; stdcall;
-type TWriteProcessMemory=function(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: DWORD): BOOL; stdcall;
-type TWriteProcessMemory64=function(hProcess: THandle; BaseAddress: UINT64; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: DWORD): BOOL; stdcall;
+type TReadProcessMemory=function(hProcess: THandle; lpBaseAddress, lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesRead: PTRUINT): BOOL; stdcall;
+type TReadProcessMemory64=function(hProcess: THandle; lpBaseAddress: UINT64; lpBuffer: pointer; nSize: DWORD; var lpNumberOfBytesRead: PTRUINT): BOOL; stdcall;
+type TWriteProcessMemory=function(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL; stdcall;
+type TWriteProcessMemory64=function(hProcess: THandle; BaseAddress: UINT64; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: ptruint): BOOL; stdcall;
 
 
 type TGetThreadContext=function(hThread: THandle; var lpContext: TContext): BOOL; stdcall;

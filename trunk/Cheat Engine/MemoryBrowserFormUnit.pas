@@ -671,7 +671,7 @@ begin
 end;
 
 procedure TMemoryBrowser.SetStacktraceSize(size: integer);
-var x: dword;
+var x: ptrUint;
 begin
   FStacktraceSize:=size;
 
@@ -1033,7 +1033,7 @@ procedure TMemoryBrowser.miCopyBytesOnlyClick(Sender: TObject);
 var start, stop: ptruint;
    l,i: integer;
    x: string;
-   x2: dword;
+   x2: ptrUint;
    buf: pbytearray;
 
    result: string;
@@ -3140,7 +3140,7 @@ var modulelist: tstringlist;
     base: ptrUint;
     header: pointer;
     headersize: dword;
-    br: dword;
+    br: ptrUint;
 begin
   code:=$00400000;
   data:=$00400000; //on failure
@@ -3332,7 +3332,7 @@ end;
 
 procedure TMemoryBrowser.reloadStacktrace;
 var s: pptrUintarray;
-    x: dword;
+    x: ptrUint;
     
     i: integer;
     address, bytes, details: string;
@@ -3524,7 +3524,7 @@ function TMemoryBrowser.GetReturnaddress: ptrUint;
 var
   haserror: boolean;
   stack: array [0..1023] of ptrUint;
-  x: dword;
+  x: ptrUint;
   i: integer;
 begin
 
@@ -3756,7 +3756,8 @@ procedure TMemoryBrowser.UpdateDebugContext(threadhandle: THandle; threadid: dwo
 var temp: string='';
     Regstart: string='';
     charcount: integer=8;
-    x,bs: dword;
+    bs: dword;
+    x: ptrUint;
     stackaddress: PtrUInt;
     i: integer=0;
 

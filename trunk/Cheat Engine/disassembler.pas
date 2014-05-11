@@ -1277,7 +1277,7 @@ end;
 
 function TDisassembler.disassemble(var offset: ptrUint; var description: string): string;
 var memory: TMemory;
-    actualread: dword;
+    actualread: PtrUInt;
     startoffset: ptrUint;
     tempresult: string;
     tempst: string;
@@ -10846,7 +10846,7 @@ use the last disassembled data to show some detailed data
 var
   jumpAddress: ptrUint;
   buffer: array [0..63] of byte;
-  x: dword;
+  x: PtrUInt;
 
   value: ptrUint;
   vtype: TVariableType;
@@ -10976,7 +10976,7 @@ var offset,value:ptrUint;
     e: integer;
     i,j,j2,k,l: integer;
     ts,ts2,ts3: string;
-    actualread: dword;
+    actualread: PtrUInt;
     valuetype: integer;
 
 //    tokens: ttokens;

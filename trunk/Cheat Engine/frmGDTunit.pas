@@ -52,7 +52,7 @@ var limit: word;
     x: puint64array;
 
     i: integer;
-    br:dword;
+    br:PtrUInt;
     t: ttreenode;
 
 
