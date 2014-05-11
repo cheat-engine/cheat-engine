@@ -37,7 +37,7 @@ uses
   VirtualMemory, ValueFinder, frmRescanPointerUnit, SyncObjs2,
   ManualModuleLoader, SynHighlighterAA, APIhooktemplatesettingsfrm,
   frmAAEditPrefsUnit, disassembler, hexviewunit, guisafecriticalsection, debugeventhandler, formFoundcodeListExtraUnit,
-  debuggertypedefinitions, sfloat, addresslist, MemoryRecordUnit,
+  debuggertypedefinitions, addresslist, MemoryRecordUnit,
   ThreadlistExFRM, windows7taskbar, tablist, frmStructuresConfigUnit,
   VEHDebugger, VEHDebugSharedMem, DebuggerInterface, WindowsDebugger,
   DebuggerInterfaceAPIWrapper, frmDebugEventsUnit, changelist, tableconverter,
