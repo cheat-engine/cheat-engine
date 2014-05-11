@@ -186,7 +186,7 @@ var
   a,b: qword;
 
   tn: ttreenode;
-  x: dword;
+  x: ptrUint;
   virtualbase: qword;
   physicalbase: qword;
 
@@ -277,7 +277,7 @@ var
   a,b: qword;
 
   tn: ttreenode;
-  x: dword;
+  x: ptrUint;
   bigpage: boolean;
 
   virtualbase: qword;
@@ -392,7 +392,7 @@ var pd: PPageData;
   a,b: qword;
 
   tn: ttreenode;
-  x: dword;
+  x: ptrUint;
 
   virtualbase: qword;
   physicalbase: qword;
@@ -484,7 +484,7 @@ begin
 end;
 
 procedure TfrmPaging.Button1Click(Sender: TObject);
-var x: dword;
+var x: ptrUint;
 
   buf: pointer;
 

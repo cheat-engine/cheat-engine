@@ -5556,7 +5556,7 @@ var
   doublevalue: double;
   dwordvalue: dword absolute doublevalue; //make sure of the same memory
   floatvalue: single absolute doublevalue;
-  x: dword;
+  x: ptruint;
 
   address: ptrUint;
 

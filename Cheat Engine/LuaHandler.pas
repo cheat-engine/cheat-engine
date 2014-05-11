@@ -1119,7 +1119,7 @@ var
   address: ptruint;
 
   v: integer;
-  r: dword;
+  r: PtrUInt;
 begin
   result:=0;
   try
@@ -1170,7 +1170,7 @@ var
   address: ptruint;
 
   v: Qword;
-  r: dword;
+  r: PtrUInt;
 begin
   result:=0;
   try
@@ -1238,7 +1238,7 @@ var
   address: ptruint;
 
   v: single;
-  r: dword;
+  r: PtrUInt;
 begin
   result:=0;
   try
@@ -1287,7 +1287,7 @@ var
   address: ptruint;
 
   v: double;
-  r: dword;
+  r: PtrUInt;
 begin
   result:=0;
   try
@@ -1338,7 +1338,7 @@ var
   v: pchar;
   w: pwidechar absolute v;
   s: string;
-  r: dword;
+  r: PtrUInt;
   maxsize: integer;
 
   usewidechar: boolean;
@@ -1416,7 +1416,7 @@ var
   address: ptruint;
 
   v: integer;
-  r: dword;
+  r: PtrUInt;
 begin
   result:=0;
   try
@@ -1461,7 +1461,7 @@ var
   address: ptruint;
 
   v: Qword;
-  r: dword;
+  r: PtrUInt;
 begin
   result:=0;
   try
@@ -1523,7 +1523,7 @@ var
   address: ptruint;
 
   v: single;
-  r: dword;
+  r: PtrUInt;
 begin
   result:=0;
   try
@@ -1571,7 +1571,7 @@ var
   address: ptruint;
 
   v: double;
-  r: dword;
+  r: PtrUInt;
 begin
   result:=0;
   try
@@ -1620,7 +1620,7 @@ var
   usewidechar: boolean;
 
   w: widestring;
-  r: dword;
+  r: PtrUInt;
 begin
   result:=0;
   try
@@ -1679,7 +1679,7 @@ var parameters: integer;
   bytestoread: integer;
   i: integer;
   bytes: array of byte;
-  x: dword;
+  x: PtrUInt;
   tableversion: boolean;
 begin
   tableversion:=false;
@@ -1743,7 +1743,7 @@ var
   i,j: integer;
   bytecount: integer;
   address: ptruint;
-  x: dword;
+  x: PtrUInt;
   oldprotect: dword;
   b: byte;
 begin
@@ -3183,7 +3183,7 @@ var parameters: integer;
   filename: string;
   address: ptruint;
   size: integer;
-  x: dword;
+  x: PtrUInt;
   buf: pointer;
   f: tmemorystream;
 begin
@@ -3223,7 +3223,7 @@ var parameters: integer;
   filename: string;
   address: ptruint;
   size: integer;
-  x: dword;
+  x: PtrUInt;
   buf: pointer;
   f: tfilestream;
 begin

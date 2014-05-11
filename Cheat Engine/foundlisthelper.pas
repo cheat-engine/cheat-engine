@@ -551,7 +551,7 @@ var j,k,l: integer;
     read72: pwidechar;
     read8: array of byte;
     read9: pbyte;
-    count: dword;
+    count: ptrUint;
     nrofbytes: integer;
     temp,temp2: string;
     tempbuf: pointer;

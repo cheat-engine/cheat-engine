@@ -588,7 +588,7 @@ end;
 function TDissectCodeThread.isstring(address: ptrUint): boolean;
 var
   tempbuf: array [0..7] of byte;
-  x: dword;
+  x: ptruint;
   i: integer;
 begin
   result:=false;
@@ -676,7 +676,7 @@ var
 
   a, b, o,special: string;
 
-  br: dword;
+  br: ptruint;
 
 
 begin

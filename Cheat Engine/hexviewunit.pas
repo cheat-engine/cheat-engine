@@ -358,7 +358,7 @@ end;
 procedure THexView.HandleEditKeyPress(key: char);
 var b: byte;
     unreadable: boolean;
-    bw: dword;
+    bw: ptrUint;
     x: byte;
 
     s1,s2,s: string;
@@ -599,7 +599,7 @@ end;
 
 procedure THexView.KeyDown(var Key: Word; Shift: TShiftState);
 var b: byte;
-x: dword;
+x: ptrUint;
 
 start, stop: ptruint;
 
@@ -1291,7 +1291,7 @@ end;
 function THexView.GetPageInfo(a: ptruint): PPageInfo;
 var
     p: TPageInfo;
-    x: dword;
+    x: ptrUint;
 begin
   a:=a and (not $fff);
   if MemoryMapItterator.Locate(a) then
@@ -1321,7 +1321,7 @@ begin
 end;
 
 procedure THexView.setByte(a: ptrUint;value: byte);
-var br: dword;
+var br: ptrUint;
 begin
   WriteProcessMemory(processhandle, pointer(a),@value,1,br);
 end;

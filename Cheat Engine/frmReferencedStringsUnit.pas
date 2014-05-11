@@ -69,7 +69,7 @@ var
 
   s: string;
   ws: widestring;
-  x: dword;
+  x: ptrUint;
   i: integer;
 
   notascii: boolean;

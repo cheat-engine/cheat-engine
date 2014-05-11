@@ -14,7 +14,7 @@ object formSettings: TformSettings
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poMainFormCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.2.0.3'
   object pnlConfig: TPanel
     Left = 0
     Height = 470
@@ -60,9 +60,9 @@ object formSettings: TformSettings
       Height = 468
       Top = 1
       Width = 622
-      ActivePage = Assembler
+      ActivePage = Unrandomizer
       Align = alClient
-      TabIndex = 5
+      TabIndex = 2
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -472,9 +472,9 @@ object formSettings: TformSettings
         ImageIndex = 8
         object Label5: TLabel
           Left = 10
-          Height = 14
+          Height = 13
           Top = 10
-          Width = 94
+          Width = 93
           Caption = 'Default return value'
           ParentColor = False
         end
@@ -666,7 +666,6 @@ object formSettings: TformSettings
             00C0C0C0000000C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0
             C0C0C0C0C0000000000000000000C0C0C0C0C0C0C0C0C0C0C0C0
           }
-          NumGlyphs = 0
           OnClick = LoadButtonClick
           ShowHint = True
           ParentShowHint = False
@@ -802,7 +801,7 @@ object formSettings: TformSettings
                 AnchorSideTop.Side = asrBottom
                 Left = 2
                 Height = 19
-                Top = 42
+                Top = 41
                 Width = 194
                 BorderSpacing.Top = 3
                 Caption = 'Hook thread-create and destroy api''s'
@@ -811,9 +810,9 @@ object formSettings: TformSettings
               end
               object lblThreadFollowing: TLabel
                 Left = 2
-                Height = 14
+                Height = 13
                 Top = 3
-                Width = 82
+                Width = 81
                 Caption = 'Thread following:'
                 ParentColor = False
               end
@@ -822,7 +821,7 @@ object formSettings: TformSettings
                 AnchorSideTop.Side = asrBottom
                 Left = 2
                 Height = 19
-                Top = 64
+                Top = 63
                 Width = 117
                 BorderSpacing.Top = 3
                 Caption = 'Use processwatcher'
@@ -834,7 +833,7 @@ object formSettings: TformSettings
                 AnchorSideTop.Side = asrBottom
                 Left = 2
                 Height = 19
-                Top = 20
+                Top = 19
                 Width = 90
                 BorderSpacing.Top = 3
                 Caption = 'Poll for threads'
@@ -849,7 +848,7 @@ object formSettings: TformSettings
                 AnchorSideRight.Control = rbVEHPollThread
                 Left = 102
                 Height = 19
-                Top = 20
+                Top = 19
                 Width = 185
                 BorderSpacing.Left = 10
                 Caption = 'Get/Set thread context on creation'
@@ -951,17 +950,17 @@ object formSettings: TformSettings
         end
         object Label4: TLabel
           Left = 15
-          Height = 14
+          Height = 13
           Top = 74
-          Width = 102
+          Width = 101
           Caption = 'Single line assembler:'
           ParentColor = False
         end
         object Label6: TLabel
           Left = 15
-          Height = 14
+          Height = 13
           Top = 177
-          Width = 230
+          Width = 229
           Caption = 'Size of stack to record on "Find what... routines"'
           ParentColor = False
         end
@@ -975,9 +974,9 @@ object formSettings: TformSettings
         end
         object Label7: TLabel
           Left = 63
-          Height = 14
+          Height = 13
           Top = 195
-          Width = 27
+          Width = 26
           Caption = 'Bytes'
           ParentColor = False
         end
@@ -1232,7 +1231,6 @@ object formSettings: TformSettings
               00C0C0C0000000C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0C0
               C0C0C0C0C0000000000000000000C0C0C0C0C0C0C0C0C0C0C0C0
             }
-            NumGlyphs = 0
             OnClick = OpenButtonClick
             ShowHint = True
             ParentShowHint = False
@@ -1366,10 +1364,10 @@ object formSettings: TformSettings
     OnResize = Panel6Resize
     object AboutLabel: TLabel
       Cursor = crHandPoint
-      Left = 724
-      Height = 14
-      Top = 33
-      Width = 46
+      Left = 725
+      Height = 13
+      Top = 34
+      Width = 45
       Anchors = [akRight, akBottom]
       Caption = 'About CE'
       Font.Color = clBlue

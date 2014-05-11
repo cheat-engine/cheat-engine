@@ -36,8 +36,7 @@ uses
   PointerscanresultReader, pointervaluelist, rescanhelper, pointerscannerfrm,
   VirtualMemory, ValueFinder, frmRescanPointerUnit, SyncObjs2,
   ManualModuleLoader, SynHighlighterAA, APIhooktemplatesettingsfrm,
-  frmAAEditPrefsUnit, disassembler, hexviewunit, guisafecriticalsection,
-  DebugHelper, debugeventhandler, formFoundcodeListExtraUnit,
+  frmAAEditPrefsUnit, disassembler, hexviewunit, guisafecriticalsection, debugeventhandler, formFoundcodeListExtraUnit,
   debuggertypedefinitions, sfloat, addresslist, MemoryRecordUnit,
   ThreadlistExFRM, windows7taskbar, tablist, frmStructuresConfigUnit,
   VEHDebugger, VEHDebugSharedMem, DebuggerInterface, WindowsDebugger,
@@ -80,11 +79,12 @@ uses
   DotNetPipe, DotNetTypes, LuaPipeServer, LuaPipe, LuaPipeClient,
   CEListviewItemEditor, LuaTreeview, LuaTreeNodes, LuaTreeNode, LuaCalendar,
   LuaSymbolListHandler, LuaFindDialog, LuaCommonDialog, LuaSettings,
-frmReferencedFunctionsUnit, LuaPageControl;
+frmReferencedFunctionsUnit, LuaPageControl, DebugHelper;
 
 {$R cheatengine.res}
 //{$R manifest.res}  //lazarus now has this build in
-{$R Sounds.rc}
+//{$R Sounds.rc}
+{$R Sounds.res}
 
 {$ifdef cpu32}
 {$SetPEFlags $20}

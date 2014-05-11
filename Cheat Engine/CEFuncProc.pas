@@ -1066,7 +1066,10 @@ var LoadLibraryPtr: pointer;
     h: Thandle;
 
     inject: array [0..4095] of byte;
-    x:dword;
+    x:PtrUInt;
+
+    tid: dword;
+    res: dword;
 
     outp:TAssemblerBytes;
     counter: integer;
@@ -1333,7 +1336,7 @@ begin
 
 
       begin
-        threadhandle:=createremotethread(processhandle,nil,0,pointer(startaddress),nil,0,x);
+        threadhandle:=createremotethread(processhandle,nil,0,pointer(startaddress),nil,0,tid);
         if threadhandle=0 then raise exception.Create(rsFailedToExecuteTheDllLoader);
 
         counter:=10000 div 10;
@@ -1350,9 +1353,9 @@ begin
         if (counter=0) then
           raise exception.Create(rsTheInjectionThreadTookLongerThan10SecondsToExecute);
 
-        if getexitcodethread(threadhandle,x) then
+        if getexitcodethread(threadhandle,res) then
         begin
-          case x of
+          case res of
             1: ;//success
             2: raise exception.Create(rsFailedInjectingTheDLL);
             3: raise exception.Create(rsFailedExecutingTheFunctionOfTheDll);
@@ -2767,10 +2770,12 @@ end;
 
 function rewritedata(processhandle: thandle; address:ptrUint; buffer: pointer; var size:dword): boolean;
 var original,a: dword;
+    s: PtrUInt;
 begin
   //make writable, write, restore, flush
   VirtualProtectEx(processhandle,  pointer(address),size,PAGE_EXECUTE_READWRITE,original);
-  result:=writeprocessmemory(processhandle,pointer(address),buffer,size,size);
+  result:=writeprocessmemory(processhandle,pointer(address),buffer,size,s);
+  size:=s;
   VirtualProtectEx(processhandle,pointer(address),size,original,a);
 end;
 
@@ -3271,7 +3276,7 @@ Gets the address jumped to if it is a jump or call.
 Currently only called by the memory browser on a low frequency, so speed is of secondary concern
 }
 var buf: array [0..31] of byte;
-    actualread: dword;
+    actualread: PtrUInt;
     i,j: integer;
     st: string;
     offset: dword;
@@ -3734,7 +3739,7 @@ end;
 
 function getPointerAddress(address: ptruint; const offsets: array of integer; var hasError: boolean): ptruint;
 var realaddress, realaddress2: PtrUInt;
-    count: dword;
+    count: PtrUInt;
     check: boolean;
     i: integer;
 begin
@@ -3787,7 +3792,7 @@ var
   c: tcontext;    //do not move, or be sure it's on a proper alignment
   tbi: THREAD_BASIC_INFORMATION;
   stacktop: ptruint;
-  x: dword;
+  x: PtrUInt;
 
   h: thandle;
 

@@ -899,7 +899,7 @@ end;
 //----------------------------D3DHook_TextContainer-----------------------------
 procedure TD3Dhook_TextContainer.setText(s: string);
 var
-  x: dword;
+  x: ptruint;
   nul: byte;
 begin
   BeginUpdate;
@@ -1081,7 +1081,7 @@ var s: string;
     charwidth: word; //65535 if the max size of one character
 
     newblock: pointer;
-    x: dword;
+    x: ptruint;
 begin
   p:=TPicture.Create;
   p.PNG.PixelFormat:=pf32bit;
@@ -1179,7 +1179,7 @@ end;
 procedure TD3DHook_Texture.LoadTextureByPicture(picture: TPicture);
 var m: tmemorystream;
     newblock: pointer;
-    x: dword;
+    x: ptruint;
     msp: pointer;
     s: integer;
 begin

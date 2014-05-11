@@ -18,10 +18,10 @@ type TTraceDebugInfo=class
     referencedAddress: ptrUint;
     c: _CONTEXT;
     bytes: pbytearray;
-    bytesize: dword;
+    bytesize: PtrUInt;
 
     stack: record
-      savedsize: dword;
+      savedsize: PtrUInt;
       stack: pbyte;
     end;
 

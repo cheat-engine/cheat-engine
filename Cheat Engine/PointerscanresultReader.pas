@@ -374,7 +374,7 @@ function TPointerscanresultReader.getPointer(i: qword; var pointsto: ptrUint): P
 For use for simple display
 }
 var
-  x: dword;
+  x: ptruint;
   address,address2: ptrUint;
   j: integer;
 begin

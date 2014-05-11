@@ -169,7 +169,7 @@ var buf: PByteArray;
   s: integer;
   currentbufsize: ptruint;
   currentpos: ptruint; //position in the current memory region
-  x: dword;
+  x: ptruint;
 
   unicode: boolean;
   start: integer; //index where the first valid character is
@@ -425,7 +425,7 @@ var n: TAvgLvlTreeNode;
 
   buf: pansichar;
   wbuf: pwidechar absolute buf;
-  x: dword;
+  x: ptruint;
   li: tlistitem;
 
   i: integer;

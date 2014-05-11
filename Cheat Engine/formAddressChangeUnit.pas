@@ -275,7 +275,7 @@ end;
 
 
 function TOffsetInfo.getAddressThisPointsTo(var address: ptruint): boolean;
-var x: dword;
+var x: ptruint;
 begin
   //use the baseaddress and offset to get to the address
 
@@ -559,7 +559,7 @@ begin
 end;
 
 function TPointerInfo.getAddressThisPointsTo(var address: ptruint): boolean;
-var x: dword;
+var x: ptruint;
 begin
   result:=false;
   if not InvalidBaseAddress then

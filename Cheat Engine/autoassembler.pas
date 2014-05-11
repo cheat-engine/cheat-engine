@@ -1027,7 +1027,8 @@ var i,j,k,l,e: integer;
 
     currentaddress: ptrUint;
     assembled: array of tassembled;
-    x,y,op,op2:dword;
+    x: ptruint;
+    y,op,op2:dword;
     ok1,ok2:boolean;
     loadbinary: array of record
       address: string; //string since it might be a label/alloc/define
@@ -2523,7 +2524,7 @@ begin
           binaryfile:=tmemorystream.Create;
           try
             binaryfile.LoadFromFile(loadbinary[i].filename);
-            ok2:=writeprocessmemory(processhandle,pointer(testptr),binaryfile.Memory,binaryfile.Size,bw);
+            ok2:=writeprocessmemory(processhandle,pointer(testptr),binaryfile.Memory,binaryfile.Size,x);
           finally
             binaryfile.free;
           end;
@@ -2541,7 +2542,7 @@ begin
     begin
       testptr:=assembled[i].address;
       ok1:=virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),PAGE_EXECUTE_READWRITE,op);
-      ok1:=WriteProcessMemory(processhandle,pointeR(testptr),@assembled[i].bytes[0],length(assembled[i].bytes),op2);
+      ok1:=WriteProcessMemory(processhandle,pointeR(testptr),@assembled[i].bytes[0],length(assembled[i].bytes),x);
       virtualprotectex(processhandle,pointer(testptr),length(assembled[i].bytes),op,op2);
 
       if not ok1 then ok2:=false;

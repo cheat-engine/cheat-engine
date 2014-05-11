@@ -51,7 +51,7 @@ var
 
   basedifference: dword;
   basedifference64: uint64;
-  x: dword;
+  x: PtrUInt;
   funcaddress: uint64;
   haserror: boolean;
 

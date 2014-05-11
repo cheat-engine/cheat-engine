@@ -389,6 +389,6 @@ end;
 
 initialization
   {$i frmFloatingPointPanelUnit.lrs}
-  softfloat_exception_mask:=$ff;
+  softfloat_exception_mask:=[TFPUException($ff)];
 
 end.

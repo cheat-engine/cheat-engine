@@ -350,49 +350,49 @@ resourcestring
 //----------TPointerfileReader---------
 
 function TPointerfilereader.getByteFromAddress(address: ptruint; var error: boolean): byte;
-var x: dword;
+var x: ptruint;
 begin
   error:=not readprocessmemory(processhandle, pointer(address), @result, 1, x);
   error:=error or (x<>1);
 end;
 
 function TPointerfilereader.getWordFromAddress(address: ptruint; var error: boolean): word;
-var x: dword;
+var x: ptruint;
 begin
   error:=not readprocessmemory(processhandle, pointer(address), @result, 2, x);
   error:=error or (x<>2);
 end;
 
 function TPointerfilereader.getDWordFromAddress(address: ptruint; var error: boolean): dword;
-var x: dword;
+var x: ptruint;
 begin
   error:=not readprocessmemory(processhandle, pointer(address), @result, 4, x);
   error:=error or (x<>4);
 end;
 
 function TPointerfilereader.getQWordFromAddress(address: ptruint; var error: boolean): qword;
-var x: dword;
+var x: ptruint;
 begin
   error:=not readprocessmemory(processhandle, pointer(address), @result, 8, x);
   error:=error or (x<>8);
 end;
 
 function TPointerfilereader.getSingleFromAddress(address: ptruint; var error: boolean): single;
-var x: dword;
+var x: ptruint;
 begin
   error:=not readprocessmemory(processhandle, pointer(address), @result, 4, x);
   error:=error or (x<>4);
 end;
 
 function TPointerfilereader.getDoubleFromAddress(address: ptruint; var error: boolean): double;
-var x: dword;
+var x: ptruint;
 begin
   error:=not readprocessmemory(processhandle, pointer(address), @result, 8, x);
   error:=error or (x<>8);
 end;
 
 function TPointerfilereader.getPointerFromAddress(address: ptruint; var error: boolean): ptruint;
-var x: dword;
+var x: ptruint;
 begin
   result:=0;
   error:=not readprocessmemory(processhandle, pointer(address), @result, processhandler.pointersize, x);
@@ -431,7 +431,7 @@ function TPointerfilereader.getAddressFromPointerRecord(p: ppointerrecord; basea
 var address: ptruint;
   a: ptruint;
   i: integer;
-  x: dword;
+  x: ptruint;
   dp: pptruint;
 begin
   result:=0;
@@ -481,7 +481,7 @@ end;
 
 function TPointerfileReader.getStringFromPointerRecord(p: ppointerrecord; address: ptruint; shadow: ptruint; shadowsize: integer): string;
 var i,j: integer;
-  x: dword;
+  x: ptruint;
   e: boolean;
 begin
   result:='';
@@ -1108,7 +1108,7 @@ begin
 end;
 
 procedure TScanner.fillPointers(base: ptruint; size: integer);
-var x: dword;
+var x: ptruint;
   i: integer;
   p: PPointerListEntry;
   pe, prev, next: TAvgLvlTreeNode;
@@ -1364,7 +1364,7 @@ var i: integer;
   e: boolean;
 
   value,value2: pbytearray;
-  br: dword;
+  br: ptruint;
 begin
   result:=false;
 
@@ -1689,7 +1689,7 @@ end;
 
 function TfrmStringPointerScan.getStringFromPointer(address: ptruint; offsets: TDwordArray; level, bytesize: integer; unicode: boolean; var a: ptruint): string;
 var i: integer;
-  x: dword;
+  x: ptruint;
 
   b: pchar;
   wb: pwidechar absolute b;

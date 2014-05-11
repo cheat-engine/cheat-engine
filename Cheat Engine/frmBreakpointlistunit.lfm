@@ -58,7 +58,7 @@ object frmBreakpointlist: TfrmBreakpointlist
     OnDblClick = ListView1DblClick
   end
   object Timer1: TTimer
-    Interval = 5000
+    Interval = 500
     OnTimer = Timer1Timer
     left = 45
     top = 108

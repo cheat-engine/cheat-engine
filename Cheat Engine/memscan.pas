@@ -3082,7 +3082,7 @@ var i,j,k: dword;
     newmemory: array [0..4095] of byte;
     oldmem: pbytearray;
     alist: pbitaddressarray;
-    actualread: dword;
+    actualread: ptrUint;
 
     so: Tscanoption;
     valuetype: TVariableType;
@@ -3239,7 +3239,7 @@ var
     newmemory: array [0..4095] of byte;
 
     alist: PBitAddressArray;
-    actualread: dword;
+    actualread: ptrUint;
     lastaddress: ptruint;
     scannedbitlist: array [0..7] of boolean;
     phandle: thandle;
@@ -3332,7 +3332,7 @@ var
     newmemory: array [0..4095] of byte;
     oldmem: pbytearray;
     alist: PPtrUintArray;
-    actualread: dword;
+    actualread: ptrUint;
 
     so: Tscanoption;
     valuetype: TVariableType;
@@ -4260,7 +4260,7 @@ var
   memorybuffer: ^byte;
   oldbuffer: ^byte;
   toread: integer;
-  actualread: dword;
+  actualread: ptrUint;
   phandle: thandle;
 begin
   phandle:=processhandle;
@@ -4337,7 +4337,7 @@ var i: integer;
 
     currentbase: ptruint;
     size: dword;
-    actualread: dword;
+    actualread: ptrUint;
     memorybuffer: ^byte;
     toread: dword;
     startregion: integer;

@@ -76,7 +76,7 @@ function EnumElfSymbols(modulename: string; modulebase: ptruint; callback: TNetw
 type
   PElfIdent=^TElfIdent;
 var
-  br: dword;
+  br: ptruint;
   mem: pbyte;
 begin
   mem:=getmem(4096);

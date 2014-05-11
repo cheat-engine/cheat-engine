@@ -308,7 +308,7 @@ end;
 
 procedure TFreezeMem.execute;
 var i: integer;
-    x: dword;
+    x: ptruint;
 begin
   while not terminated do
   begin
@@ -464,7 +464,7 @@ end;
 
 function ce_getaddressfrompointer(baseaddress: ptrUint; offsetcount: integer; offsets: PDwordArray):dword; stdcall;
 var a,b: ptrUint;
-    x: dword;
+    x: ptruint;
     i: integer;
 begin
   result:=0;
@@ -486,7 +486,7 @@ end;
 
 function ce_freezemem(address: ptrUint; size: integer):integer; stdcall; //should be obsolete as it has no interpretable address support
 var b: array of byte;
-    x: dword;
+    x: ptruint;
     i,j: integer;
     maxid: integer;
 begin

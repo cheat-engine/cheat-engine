@@ -727,7 +727,7 @@ end;
 procedure SaveCEM(Filename:string;address:ptrUint; size:dword);
 var memfile: TFilestream;
     buf: pointer;
-    temp:dword;
+    temp:ptruint;
     a: qword;
 begin
   memfile:=Tfilestream.Create(filename,fmCreate);

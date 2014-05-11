@@ -1008,7 +1008,7 @@ end;
 initialization
 {$i formdesignerunit.lrs}
 
-{$i laz_images.lrs}
+//{$i laz_images.lrs}
 //{$i ideintf_images.lrs}
 
 

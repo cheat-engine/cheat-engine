@@ -187,10 +187,12 @@ function CTL_CODE(DeviceType, Func, Method, Access : integer) : integer;
 function IsValidHandle(hProcess:THandle):BOOL; stdcall;
 Function {OpenProcess}OP(dwDesiredAccess:DWORD;bInheritHandle:BOOL;dwProcessId:DWORD):THANDLE; stdcall;
 Function {OpenThread}OT(dwDesiredAccess:DWORD;bInheritHandle:BOOL;dwThreadId:DWORD):THANDLE; stdcall;
-function {ReadProcessMemory}RPM(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:DWORD):BOOL; stdcall;
-function {ReadProcessMemory64}ReadProcessMemory64(hProcess:THANDLE;lpBaseAddress:UINT64;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:DWORD):BOOL; stdcall;
-function {WriteProcessMemory}WPM(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:DWORD):BOOL; stdcall;
-function {WriteProcessMemory}WriteProcessMemory64(hProcess:THANDLE;BaseAddress:uint64;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:DWORD):BOOL; stdcall;
+function {ReadProcessMemory}RPM(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:PtrUInt):BOOL; stdcall;
+function {ReadProcessMemory64}ReadProcessMemory64(hProcess:THANDLE;lpBaseAddress:UINT64;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:PtrUInt):BOOL; stdcall;
+function {WriteProcessMemory}WPM(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:PtrUInt):BOOL; stdcall;
+
+function {WriteProcessMemory}WriteProcessMemory64(hProcess:THANDLE;BaseAddress:qword;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:PtrUInt):BOOL; stdcall;
+
 function {VirtualQueryEx}VQE(hProcess: THandle; address: pointer; var mbi: _MEMORY_BASIC_INFORMATION; bufsize: DWORD):dword; stdcall;
 Function {NtOpenProcess}NOP(var Handle: THandle; AccessMask: dword; objectattributes: pointer; clientid: PClient_ID):DWORD; stdcall;
 Function {NtOpenThread}NtOT(var Handle: THandle; AccessMask: dword; objectattributes: pointer; clientid: PClient_ID):DWORD; stdcall;
@@ -418,7 +420,7 @@ end;
 
 function GetProcessNameFromPEProcess(peprocess:uint64; buffer:pchar;buffersize:dword):integer; stdcall;
 var x,cc: dword;
-    ar:dword;
+    ar:PtrUInt;
     i:integer;
     address: uint64;
 begin
@@ -726,6 +728,7 @@ end;
 function GetMemoryRanges(var ranges: TPhysicalMemoryRanges): boolean;
 
 var cc: dword;
+    x: ptruint;
     br: dword;
 
     r: packed record
@@ -748,7 +751,7 @@ begin
     if result then
     begin
       getmem(buf, r.size);
-      if DBK32functions.ReadProcessMemory64(ownprocess, r.address, buf, r.size, br) then
+      if DBK32functions.ReadProcessMemory64(ownprocess, r.address, buf, r.size, x) then
       begin
         entrycount:=r.size div sizeof(TPhysicalMemoryRange);
         for i:=0 to entrycount-1 do
@@ -1054,12 +1057,12 @@ begin
     end;
 end;
 
-function RPM(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:DWORD):BOOL; stdcall;
+function RPM(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:PtrUInt):BOOL; stdcall;
 begin
   result:=ReadProcessMemory64(hProcess, uint64(ptrUint(lpBaseAddress)), lpBuffer, nSize, NumberOfBytesRead);
 end;
 
-function ReadProcessMemory64(hProcess:THANDLE;lpBaseAddress:UINT64;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:DWORD):BOOL; stdcall;
+function ReadProcessMemory64(hProcess:THANDLE;lpBaseAddress:UINT64;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesRead:PtrUInt):BOOL; stdcall;
 type TInputstruct=packed record
   processid: uint64;
   startaddress: uint64;
@@ -1132,12 +1135,12 @@ begin
   result:=windows.ReadProcessMemory(hProcess,pointer(ptrUint(lpBaseAddress)),lpBuffer,nSize,NumberOfBytesRead);
 end;
 
-function WPM(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:DWORD):BOOL; stdcall;
+function WPM(hProcess:THANDLE;lpBaseAddress:pointer;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:PtrUInt):BOOL; stdcall;
 begin
   result:=WriteProcessMemory64(hprocess, uint64(ptrUint(lpBaseAddress)), lpbuffer, nsize, NumberofbytesWritten);
 end;
 
-function WriteProcessMemory64(hProcess:THANDLE;BaseAddress:qword;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:DWORD):BOOL; stdcall;
+function WriteProcessMemory64(hProcess:THANDLE;BaseAddress:qword;lpBuffer:pointer;nSize:DWORD;var NumberOfBytesWritten:PtrUInt):BOOL; stdcall;
 type TInputstruct=packed record
   processid: uint64;
   startaddress: uint64;
@@ -2196,7 +2199,7 @@ begin
           reg.WriteString('C','\BaseNamedObjects\'+processeventname);
           reg.WriteString('D','\BaseNamedObjects\'+threadeventname);
 
-          if not startservice(hservice,0,sav) then
+          if not startservice(hservice,0,lppcstr(sav)) then
           begin
             if getlasterror=577 then
             begin
