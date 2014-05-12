@@ -671,6 +671,12 @@ end;
 procedure TfrmTrainerGenerator.FormClose(Sender: TObject;
   var CloseAction: TCloseAction);
 begin
+  try
+    xmplayer.stop; //can raise an not initialized exception
+  except
+    //deal with it by ignoring it
+  end;
+
   if not cbSupportCheatEngine.checked then
     cbSupportCheatEngine.checked:=true;
 
