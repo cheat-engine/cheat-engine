@@ -48,6 +48,8 @@ var
   host: THostAddr;
   port: integer;
 
+  networkcompression: integer;
+
 procedure CEConnect(hostname: string; p: integer);
 
 implementation

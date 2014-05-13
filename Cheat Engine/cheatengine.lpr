@@ -79,7 +79,8 @@ uses
   DotNetPipe, DotNetTypes, LuaPipeServer, LuaPipe, LuaPipeClient,
   CEListviewItemEditor, LuaTreeview, LuaTreeNodes, LuaTreeNode, LuaCalendar,
   LuaSymbolListHandler, LuaFindDialog, LuaCommonDialog, LuaSettings,
-frmReferencedFunctionsUnit, LuaPageControl, DebugHelper;
+frmReferencedFunctionsUnit, LuaPageControl, DebugHelper, 
+frmNetworkDataCompressionUnit, lazcontrols;
 
 {$R cheatengine.res}
 //{$R manifest.res}  //lazarus now has this build in

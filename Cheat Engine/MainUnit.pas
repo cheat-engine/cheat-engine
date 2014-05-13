@@ -217,6 +217,8 @@ type
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
+    miNetwork: TMenuItem;
+    miCompression: TMenuItem;
     miManualExpandCollapse: TMenuItem;
     miSetDropdownOptions: TMenuItem;
     miSave: TMenuItem;
@@ -442,6 +444,7 @@ type
     procedure Label3Click(Sender: TObject);
     procedure Label57Click(Sender: TObject);
     procedure lblcompareToSavedScanClick(Sender: TObject);
+    procedure miCompressionClick(Sender: TObject);
     procedure miManualExpandCollapseClick(Sender: TObject);
     procedure miSaveClick(Sender: TObject);
     procedure mi3dClick(Sender: TObject);
@@ -860,17 +863,16 @@ var
 implementation
 
 
-uses mainunit2, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup
-  , HotKeys{, standaloneunit}, aboutunit, formScanningUnit, formhotkeyunit,
-  formDifferentBitSizeUnit,
+uses mainunit2, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup, HotKeys,
+  aboutunit, formScanningUnit, formhotkeyunit, formDifferentBitSizeUnit,
   CommentsUnit, formsettingsunit, formAddressChangeUnit, Changeoffsetunit,
-  FoundCodeUnit, advancedoptionsunit,
-  frmProcessWatcherUnit, formPointerOrPointeeUnit, OpenSave, formmemoryregionsunit,
-  formProcessInfo
-  , PasteTableentryFRM, pointerscannerfrm, PointerscannerSettingsFrm,
-  frmFloatingPointPanelUnit,
-  pluginexports, DBK32functions, frmUltimapUnit, frmSetCrosshairUnit, StructuresFrm2,
-  frmMemoryViewExUnit, frmD3DHookSnapshotConfigUnit, frmSaveSnapshotsUnit, frmsnapshothandlerUnit;
+  FoundCodeUnit, advancedoptionsunit, frmProcessWatcherUnit,
+  formPointerOrPointeeUnit, OpenSave, formmemoryregionsunit, formProcessInfo,
+  PasteTableentryFRM, pointerscannerfrm, PointerscannerSettingsFrm,
+  frmFloatingPointPanelUnit, pluginexports, DBK32functions, frmUltimapUnit,
+  frmSetCrosshairUnit, StructuresFrm2, frmMemoryViewExUnit,
+  frmD3DHookSnapshotConfigUnit, frmSaveSnapshotsUnit, frmsnapshothandlerUnit,
+  frmNetworkDataCompressionUnit;
 
 resourcestring
   rsInvalidStartAddress = 'Invalid start address: %s';
@@ -2447,6 +2449,8 @@ begin
 
   reinterpretaddresses;
 
+  miNetwork.visible:=processhandler.isNetwork;
+
   if oldprocess = 0 then //set disassembler and hexview of membrowser to what the main header says
     memorybrowser.setcodeanddatabase;
 
@@ -2959,6 +2963,14 @@ end;
 procedure TMainForm.lblcompareToSavedScanClick(Sender: TObject);
 begin
 
+end;
+
+procedure TMainForm.miCompressionClick(Sender: TObject);
+begin
+  if frmNetworkDataCompression=nil then
+    frmNetworkDataCompression:=tfrmNetworkDataCompression.create(self);
+
+  frmNetworkDataCompression.show;
 end;
 
 procedure TMainForm.miManualExpandCollapseClick(Sender: TObject);

@@ -2147,6 +2147,14 @@ object MainForm: TMainForm
     object ools1: TMenuItem
       Caption = '&Tools'
     end
+    object miNetwork: TMenuItem
+      Caption = 'Network'
+      Visible = False
+      object miCompression: TMenuItem
+        Caption = 'Compression'
+        OnClick = miCompressionClick
+      end
+    end
     object Plugins2: TMenuItem
       Caption = 'P&lugins'
       Visible = False
