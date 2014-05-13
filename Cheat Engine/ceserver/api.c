@@ -1127,7 +1127,7 @@ int ResumeThread(HANDLE hProcess, int tid)
 
     if (p->debuggerThreadID==pthread_self())
     {
-      //inside the debuggerthrad
+      //inside the debuggerthread
       printf("Inside the debugger thread.\n");
 
       if ((t->isPaused) && (t->suspendCount>0))
@@ -2639,7 +2639,7 @@ HANDLE CreateToolhelp32Snapshot(DWORD dwFlags, DWORD th32ProcessID)
 
     PModuleList ml=(PModuleList)malloc(sizeof(ModuleList));
 
-    printf("Creating module list for process %d\n", th32ProcessID);
+    //printf("Creating module list for process %d\n", th32ProcessID);
 
     ml->ReferenceCount=1;
     ml->moduleCount=0;

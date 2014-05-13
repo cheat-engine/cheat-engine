@@ -185,4 +185,6 @@ int RemoveThreadDebugEventFromQueue(PProcessData p, int tid);
 
 void initAPI();
 
+extern pthread_mutex_t debugsocketmutex;
+
 #endif /* API_H_ */
