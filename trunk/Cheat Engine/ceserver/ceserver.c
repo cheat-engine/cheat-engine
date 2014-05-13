@@ -378,7 +378,9 @@ int DispatchCommand(int currentsocket, unsigned char command)
       {
         result=CreateToolhelp32Snapshot(params.dwFlags, params.th32ProcessID);
         //printf("result of CreateToolhelp32Snapshot=%d\n", result);
+
         sendall(currentsocket, &result, sizeof(HANDLE), 0);
+
       }
       else
       {
@@ -391,7 +393,7 @@ int DispatchCommand(int currentsocket, unsigned char command)
       break;
     }
 
-    case CMD_MODULE32FIRST:
+    case CMD_MODULE32FIRST: //slightly obsolete now
     case CMD_MODULE32NEXT:
     {
       HANDLE toolhelpsnapshot;
@@ -438,7 +440,7 @@ int DispatchCommand(int currentsocket, unsigned char command)
       break;
     }
 
-    case CMD_PROCESS32FIRST:
+    case CMD_PROCESS32FIRST: //obsolete
     case CMD_PROCESS32NEXT:
     {
       HANDLE toolhelpsnapshot;

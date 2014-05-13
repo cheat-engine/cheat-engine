@@ -68,6 +68,7 @@
 
 #include "porthelp.h"
 #include "api.h"
+#include "ceserver.h"
 
 #ifndef SUN_LEN //missing in android (copy from linux sys/un.h)
 
@@ -101,10 +102,13 @@ int showRegisters(int pid)
 #else
   struct user_regs_struct r;
 #endif
+  int result=ptrace(PTRACE_GETREGS, pid, 0, &r);
 
-  if (ptrace(PTRACE_GETREGS, pid, 0, &r)!=0)
+
+
+  if (result!=0)
   {
-    printf("PTRACE_GETREGS FAILED\n");
+    printf("PTRACE_GETREGS FAILED (%d)\n", result);
     return;
   }
 
@@ -286,13 +290,14 @@ int isExtensionLoaded(int pid)
   return result;
 }
 
-int loadExtension(int pid, char *path)
+int loadExtension(int pid, char *path, int isBeingDebugged)
 {
     uintptr_t dlopen;
     uintptr_t str;
+    int status;
     int pathlen=strlen(path)+1; //0-terminater
 
-    printf("loadExtension(%d, %s)\n", pid, path);
+    printf("loadExtension(%d, %s, %d)\n", pid, path, isBeingDebugged);
 
     printf("Phase 0: Check if it's already open\n");
     if (isExtensionLoaded(pid))
@@ -310,18 +315,20 @@ int loadExtension(int pid, char *path)
     dlopen=finddlopen(pid);
     printf("dlopen=%p\n", (void *)dlopen);
 
-    ptrace(PTRACE_ATTACH, pid, 0,0);
+    if (!isBeingDebugged)
+    {
+      ptrace(PTRACE_ATTACH, pid, 0,0);
 
-    int status;
+      pid=WaitForPid();
+      printf("After wait. PID=%d\n", pid);
+      ptrace(PTRACE_CONT,pid,0,0);
+    }
 
-    pid=WaitForPid();
+    printf("Killing pid %d\n", pid);
+    int e=kill(pid, SIGSTOP);
 
-    printf("After wait. PID=%d\n", pid);
-
-    ptrace(PTRACE_CONT,pid,0,0);
-
-    kill(pid, SIGSTOP);
-
+    printf("kill returned %d\n", e);
+    printf("Waiting...\n");
     pid=WaitForPid();
 
 
@@ -523,7 +530,7 @@ printf("After wait 2. PID=%d\n", pid);
     printf("\n\nContinuing thread\n");
 
 
-int ptr;
+    int ptr;
     ptr=ptrace(PTRACE_CONT,pid,(void *)0,(void *)SIGCONT);
 
     printf("PRACE_CONT=%d\n", ptr);
@@ -598,9 +605,18 @@ int ptr;
        printf("PTRACE_SETREGS FAILED (20\n");
      }
 
-     printf("Detaching\n");
-     if (ptrace(PTRACE_DETACH, pid,0,0)!=0)
-       printf("PTRACE_DETACH FAILED\n");
+     if (!isBeingDebugged)
+     {
+       printf("Detaching\n");
+       if (ptrace(PTRACE_DETACH, pid,0,0)!=0)
+         printf("PTRACE_DETACH FAILED\n");
+     }
+     else
+     {
+       if (ptrace(PTRACE_CONT,pid,(void *)0,(void *)SIGCONT)!=0)
+         printf("PTRACE_CONT failed\n");
+     }
+
 
      printf("End...\n");
 }
@@ -611,6 +627,43 @@ int loadCEServerExtension(HANDLE hProcess)
   if (GetHandleType(hProcess) == htProcesHandle )
   {
     PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
+
+
+    if (p->isDebugged)
+    {
+      printf("this process id being debugged\n");
+      //make sure this is executed by the debugger thread
+      if (p->debuggerThreadID!=pthread_self())
+      {
+        printf("Not the debugger thread. Switching...\n");
+        //tell the debugger thread to do this
+        int result=0;
+#pragma pack(1)
+        struct
+        {
+          uint8_t command;
+          uint32_t pHandle;
+        } lx;
+#pragma pack()
+
+        lx.command=CMD_LOADEXTENSION;
+        lx.pHandle=hProcess;
+        if (pthread_mutex_lock(&debugsocketmutex) == 0)
+        {
+          sendall(p->debuggerClient, &lx, sizeof(lx), 0);
+          WakeDebuggerThread();
+
+          recvall(p->debuggerClient, &result, sizeof(result), MSG_WAITALL);
+          printf("Returned from debugger thread. Result:%d\n", result);
+
+          pthread_mutex_unlock(&debugsocketmutex);
+        }
+
+        return result;
+      }
+      else
+        printf("This is the debugger thread\n");
+    }
 
 
 
@@ -659,7 +712,12 @@ int loadCEServerExtension(HANDLE hProcess)
         p->hasLoadedExtension=openExtension(p->pid, &p->extensionFD);
         pthread_mutex_unlock(&p->extensionMutex);
       }
-      else
+     // else
+
+      if (p->hasLoadedExtension)
+        printf("The extension is already loaded\n");
+
+
       {
         pthread_mutex_lock(&p->extensionMutex);
         if (p->hasLoadedExtension==0) //still 0
@@ -668,7 +726,7 @@ int loadCEServerExtension(HANDLE hProcess)
           if (p->neverForceLoadExtension==0)
           {
             printf("Calling loadExtension\n");
-            p->hasLoadedExtension=loadExtension(p->pid, modulepath);
+            p->hasLoadedExtension=loadExtension(p->pid, modulepath, p->isDebugged);
           }
 
           if (p->hasLoadedExtension)
