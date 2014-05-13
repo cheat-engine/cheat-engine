@@ -435,7 +435,7 @@ begin
   input.baseaddress:=ptruint(lpBaseAddress);
   input.size:=nSize;
   if nsize>128 then
-    input.compressed:=2
+    input.compressed:=networkcompression
   else
     input.compressed:=0;
 

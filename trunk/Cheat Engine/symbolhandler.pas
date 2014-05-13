@@ -2651,24 +2651,29 @@ begin
                 modulelist[modulelistpos].baseaddress:=ptrUint(me32.modBaseAddr);
                 modulelist[modulelistpos].basesize:=me32.modBaseSize;
 
-                if peinfo_is64bitfile(x, modulelist[modulelistpos].is64bitmodule)=false then
+                if not processhandler.isNetwork then
                 begin
-                  //fallback
-                  {$ifdef cpu64}
-                  if is64bitprocess then
-                    modulelist[modulelistpos].is64bitmodule:=true
-                  else
+                  if peinfo_is64bitfile(x, modulelist[modulelistpos].is64bitmodule)=false then
                   begin
-                    if modulelist[modulelistpos].isSystemModule then
+                    //fallback
+                    {$ifdef cpu64}
+                    if is64bitprocess then
+                      modulelist[modulelistpos].is64bitmodule:=true
+                    else
                     begin
-                      if pos('wow64', lowercase(ExtractFilePath(x)))>0 then  //todo: Open the file and check if it's 64-bit or not
-                        modulelist[modulelistpos].is64bitmodule:=false
-                      else
-                        modulelist[modulelistpos].is64bitmodule:=true;
+                      if modulelist[modulelistpos].isSystemModule then
+                      begin
+                        if pos('wow64', lowercase(ExtractFilePath(x)))>0 then  //todo: Open the file and check if it's 64-bit or not
+                          modulelist[modulelistpos].is64bitmodule:=false
+                        else
+                          modulelist[modulelistpos].is64bitmodule:=true;
+                      end;
                     end;
+                    {$endif}
                   end;
-                  {$endif}
-                end;
+                end
+                else
+                  modulelist[modulelistpos].is64bitmodule:=processhandler.is64Bit;
 
                 if (not modulelist[modulelistpos].isSystemModule) and (commonModuleList<>nil) then //check if it's a common module (e.g nvidia physx dll's)
                   modulelist[modulelistpos].isSystemModule:=commonModuleList.IndexOf(lowercase(modulelist[modulelistpos].modulename))<>-1;
