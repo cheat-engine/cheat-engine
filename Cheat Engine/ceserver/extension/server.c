@@ -17,6 +17,9 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <dlfcn.h>
+#ifdef ANDROID
+#include <android/log.h>
+#endif
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -37,6 +40,8 @@ int done=0;
 # define SUN_LEN(ptr) ((size_t) (((struct sockaddr_un *) 0)->sun_path)        \
           + strlen ((ptr)->sun_path))
 #endif
+
+void dvmJitStats();
 
 
 typedef struct
@@ -185,7 +190,7 @@ ssize_t sendall (int s, void *buf, size_t size, int flags)
 
 int DispatchCommand(int currentsocket, unsigned char command)
 {
-  printf("Handling command %d\n", command);
+  //printf("Handling command %d\n", command);
 
   switch (command)
   {
@@ -197,16 +202,17 @@ int DispatchCommand(int currentsocket, unsigned char command)
         uint32_t size;
       } params;
 #pragma pack()
+      //printf("EXTCMD_ALLOC. Receiving params:\n");
 
       if (recvall(currentsocket, &params, sizeof(params), 0)>0)
       {
-        printf("EXTCMD_ALLOC\n");
-        printf("params.preferedAddress=%lx\n", params.preferedAddress);
-        printf("params.size=%d\n", params.size);
+
+       // printf("params.preferedAddress=%lx\n", params.preferedAddress);
+        //printf("params.size=%d\n", params.size);
 
         uint64_t address=(uint64_t)mmap((void *)params.preferedAddress, params.size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
-        printf("Actually allocated at %lx\n", address);
+        //printf("Actually allocated at %lx\n", address);
         if (address)
           allocListAdd(address, params.size);
 
@@ -232,20 +238,20 @@ int DispatchCommand(int currentsocket, unsigned char command)
 
       if (recvall(currentsocket, &params, sizeof(params), 0)>0)
       {
-        printf("EXTCMD_FREE\n");
-        printf("params.address=%lx\n", params.address);
-        printf("1: params.size=%d\n", params.size);
+        //printf("EXTCMD_FREE\n");
+        //printf("params.address=%lx\n", params.address);
+        //printf("1: params.size=%d\n", params.size);
 
         if (params.size==0)
           params.size=allocListFind(params.address);
 
 
 
-        printf("2: params.size=%d\n", params.size);
+        //printf("2: params.size=%d\n", params.size);
 
         if (params.size)
         {
-          printf("Calling munmap\n");
+          //printf("Calling munmap\n");
           result=munmap((void *)params.address, params.size);
           if (result==-1)
             result=0;
@@ -255,10 +261,10 @@ int DispatchCommand(int currentsocket, unsigned char command)
         else
           result=0;
 
-        printf("Removing alloc from list\n");
+        //printf("Removing alloc from list\n");
         allocListRemove(params.address);
 
-        printf("Returning result\n");
+        //printf("Returning result\n");
         sendall(currentsocket, &result, sizeof(result), 0);
 
 
@@ -277,9 +283,9 @@ int DispatchCommand(int currentsocket, unsigned char command)
 
       if (recvall(currentsocket, &params, sizeof(params), 0)>0)
       {
-        printf("EXTCMD_CREATETHREAD\n");
-        printf("params.startaddress=%lx\n", params.startaddress);
-        printf("params.parameter=%ld\n", params.parameter);
+        //printf("EXTCMD_CREATETHREAD\n");
+        //printf("params.startaddress=%lx\n", params.startaddress);
+        //printf("params.parameter=%ld\n", params.parameter);
 
         uint64_t threadhandle=0;
 
@@ -326,7 +332,7 @@ int DispatchCommand(int currentsocket, unsigned char command)
 
       if (recvall(currentsocket, &params, sizeof(params), 0)>0)
       {
-        printf("EXTCMD_SPEEDHACK_SETSPEED(%d)\n", params.speed);
+        //printf("EXTCMD_SPEEDHACK_SETSPEED(%d)\n", params.speed);
 
         result=speedhack_initializeSpeed(params.speed);
         sendall(currentsocket, &result, sizeof(result), 0);
@@ -344,7 +350,7 @@ void *newconnection(void *arg)
   int sockethandle=(uintptr_t)arg;
   unsigned char command;
   int r;
-  printf("Hello!\n");
+  //printf("Hello!\n");
 
   //wait for a command and dispatch it
 
@@ -356,13 +362,13 @@ void *newconnection(void *arg)
       DispatchCommand(sockethandle, command);
     else
     {
-      printf("Peer has disconnected");
-      if (r==-1)
-        printf(" due to an error");
+      //printf("Peer has disconnected");
+      //if (r==-1)
+      //  printf(" due to an error");
 
-      printf("\n");
+      //printf("\n");
 
-      fflush(stdout);
+      //fflush(stdout);
       close(sockethandle);
     }
   }
@@ -382,7 +388,7 @@ void *ServerThread(void *arg)
     int a;
     a=accept(s, (struct sockaddr *)&addr_client, &clisize);
 
-    printf("accept returned %d\n", a);
+    //printf("accept returned %d\n", a);
     if (a==-1)
     {
       printf("accept failed: %d\n", a);
@@ -402,7 +408,7 @@ void *ServerThread(void *arg)
 
 __attribute__((destructor)) void term(void)
 {
-  printf("X_X\n");
+  //printf("X_X\n");
   done=1;
 
 }
@@ -413,15 +419,40 @@ __attribute__((constructor)) void moduleinit(void)
   int s;
 
   int i;
-  printf("\nServerthread active\n");
+  //printf("\nServerthread active\n");
 
   speedhack_initializeSpeed(1.0f);
 
+  void *X;
+  void *module=NULL;
+
+/*
+  __android_log_print(ANDROID_LOG_DEBUG, "CHEATENGING", "Hello \n");
+
+  __android_log_print(ANDROID_LOG_DEBUG, "CHEATENGING", "module1=%p\n", module);
+
+  module=dlopen("libdvm.so", module);
+  __android_log_print(ANDROID_LOG_DEBUG, "CHEATENGING", "module=%p\n", module);
+
+
+  X=dlsym(module, "dvmJitStats");
+  __android_log_print(ANDROID_LOG_DEBUG, "CHEATENGING", "After dlsym\n");
+
+  __android_log_print(ANDROID_LOG_DEBUG, "CHEATENGING", "X=%p\n", X);
+
+ // dvmJitStats();
+
+  //if (dvmJitStats)
+ // {
+ //   printf("Calling dvmJitStats\n");
+    //dvmJitStats();
+ // }
+*/
   s=socket(AF_UNIX, SOCK_STREAM, 0);
 
   sprintf(name, " ceserver_extension%d", getpid());
 
-  printf("s=%d\n", s);
+  //printf("s=%d\n", s);
 
 
   struct sockaddr_un address;
@@ -437,7 +468,7 @@ __attribute__((constructor)) void moduleinit(void)
   setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &optval, optval);
 
   i=bind(s, (struct sockaddr *)&address, al);
-  printf("bind returned %d\n", i);
+  //printf("bind returned %d\n", i);
   if (i==0)
   {
 
