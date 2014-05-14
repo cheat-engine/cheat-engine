@@ -22,6 +22,7 @@ type
   { TFormDesigner }
 
   TFormDesigner = Class(TForm)
+    FindDialog: TToolButton;
     ImageList1: TImageList;
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;
@@ -69,6 +70,7 @@ type
     MainMenu: TToolButton;
     PopupMenu: TToolButton;
     Calendar: TToolButton;
+    SelectDirectoryDialog: TToolButton;
     ToolButton6: TToolButton;
     CEImage: TToolButton;
     procedure controlPopupPopup(Sender: TObject);

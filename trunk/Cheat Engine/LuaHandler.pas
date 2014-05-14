@@ -3155,6 +3155,21 @@ begin
   result:=1;
 end;
 
+function CreateSelectDirectoryDialog(L: Plua_State): integer; cdecl;
+var
+  o: TSaveDialog;
+begin
+  result:=0;
+
+  if lua_gettop(L)>=1 then
+    luaclass_newClass(L, TSelectDirectoryDialog.create(lua_toceuserdata(L, 1)))
+  else
+    luaclass_newClass(L, TSelectDirectoryDialog.create(nil));
+
+  result:=1;
+end;
+
+
 function createMemoryStream(L: Plua_State): integer; cdecl;
 begin
   luaclass_newClass(L, TMemoryStream.create);
@@ -5430,6 +5445,8 @@ begin
     lua_register(LuaVM, 'openDialog_execute', openDialog_execute);
     lua_register(LuaVM, 'createOpenDialog', createOpenDialog);
     lua_register(LuaVM, 'createSaveDialog', createSaveDialog);
+    lua_register(LuaVM, 'createSelectDirectoryDialog', createSelectDirectoryDialog);
+
 
     lua_register(LuaVM, 'createMemoryStream', createMemoryStream);
     lua_register(LuaVM, 'createFileStream', createFileStream);

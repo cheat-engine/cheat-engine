@@ -1450,6 +1450,7 @@ initialization
   RegisterClass(TMenuItem);
   RegisterClass(TCalendar);
   RegisterClass(TFindDialog);
+  RegisterClass(TSelectDirectoryDialog);
 
 
 
