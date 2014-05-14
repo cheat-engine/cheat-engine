@@ -58,7 +58,7 @@ int new_clock_gettime(clockid_t clk_id, struct timespec *tp)
       temptp.tv_sec--;
     }
 
-    printf("delta : sec=%ld  nsec=%ld\n", temptp.tv_sec, temptp.tv_nsec);
+    //printf("delta : sec=%ld  nsec=%ld\n", temptp.tv_sec, temptp.tv_nsec);
 
     double newsec_double = (double)temptp.tv_sec*speedmultiplier;
 
@@ -67,7 +67,7 @@ int new_clock_gettime(clockid_t clk_id, struct timespec *tp)
 
     newnsec+=floor((newsec_double - floor(newsec_double)) * 1000000000.0f);
 
-    printf("newsec=%ld  newnsec=%ld\n", newsec, newnsec);
+    //printf("newsec=%ld  newnsec=%ld\n", newsec, newnsec);
 
     //add the initial offset
     newsec+=initialclock[clk_id].initialoffset.tv_sec;
@@ -128,7 +128,7 @@ int new_gettimeofday(struct timeval *tv, struct timezone *tz)
   }
 
 
-  printf("delta : sec=%ld  usec=%ld\n", temptv.tv_sec, temptv.tv_usec);
+  //printf("delta : sec=%ld  usec=%ld\n", temptv.tv_sec, temptv.tv_usec);
 
   //temptv now contains the relative time passed since the speedhack got enabled/set a new speed
 
@@ -146,7 +146,7 @@ int new_gettimeofday(struct timeval *tv, struct timezone *tz)
 
 
 
-  printf("newsec=%ld  newusec=%ld\n", newsec, newusec);
+  //printf("newsec=%ld  newusec=%ld\n", newsec, newusec);
 
   //add the initial offset
   newsec+=initial_offset_tod_tv.tv_sec;
@@ -180,7 +180,7 @@ int new_gettimeofday(struct timeval *tv, struct timezone *tz)
 int speedhack_initializeSpeed(float speed)
 {
 
-  printf("speedhack_initializeSpeed(%f)\n", speed);
+ // printf("speedhack_initializeSpeed(%f)\n", speed);
   gettimeofday(&initial_offset_tod_tv, NULL);
 
   if (real_gettimeofday)
