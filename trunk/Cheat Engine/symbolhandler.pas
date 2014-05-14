@@ -2590,23 +2590,27 @@ begin
     else
       processid:=cefuncproc.ProcessID;
 
+    if processid=0 then exit;
+
+    modulelistMREW.beginread;
+
+    //make a copy of the old list addresses to compare against
+    setlength(oldmodulelist, modulelistpos);
+    for i:=0 to modulelistpos-1 do
+      oldmodulelist[i]:=modulelist[i].baseaddress;
+
+    modulelistMREW.Endread;
+
+
+    //Note: Just TH32CS_SNAPMODULE32 will result in an empty list
+    //Just TH32CS_SNAPMODULE only returns the 64-bit modules
+    //There doesn't seem to be a way to make two lists, 32-bit, then 64-bit, and combine them afterwards
+    //So for now I just check if it's a system dll, and if so, if it's in the wow64 folder or not
+    ths:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE or TH32CS_SNAPMODULE32,processid);
+
     modulelistMREW.BeginWrite;
     try
-      if processid=0 then exit;
-
-
-      //make a copy of the old list addresses to compare against
-      setlength(oldmodulelist, modulelistpos);
-      for i:=0 to modulelistpos-1 do
-        oldmodulelist[i]:=modulelist[i].baseaddress;
-
       modulelistpos:=0;
-
-      //Note: Just TH32CS_SNAPMODULE32 will result in an empty list
-      //Just TH32CS_SNAPMODULE only returns the 64-bit modules
-      //There doesn't seem to be a way to make two lists, 32-bit, then 64-bit, and combine them afterwards
-      //So for now I just check if it's a system dll, and if so, if it's in the wow64 folder or not
-      ths:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE or TH32CS_SNAPMODULE32,processid);
 
       if ths<>0 then
       begin

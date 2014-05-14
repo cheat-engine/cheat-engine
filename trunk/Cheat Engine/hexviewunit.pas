@@ -721,7 +721,8 @@ begin
           end;
         end
         else
-          address:=address-DisplayTypeByteSize[fDisplayType];
+          address:=address-1;
+
         update;
       end;
 

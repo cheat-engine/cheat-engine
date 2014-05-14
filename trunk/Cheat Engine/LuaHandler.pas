@@ -2908,7 +2908,8 @@ begin
       lua_pushinteger(L, ptruint(me32.modBaseAddr));
       lua_settable(L, entryindex);
 
-      if peinfo_is64bitfile(me32.szExePath, is64bitmodule)=false then
+
+      if (processhandler.isNetwork) or (peinfo_is64bitfile(me32.szExePath, is64bitmodule)=false) then
         is64bitmodule:=processhandler.is64Bit; //fallback on an assumption
 
       lua_pushstring(L, 'Is64Bit');
