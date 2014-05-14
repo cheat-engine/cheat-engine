@@ -3068,8 +3068,11 @@ begin
 {$ifdef cpu32}
   dbghlp:=LoadLibrary(pchar(CheatEngineDir+'\win32\dbghelp.dll'));
 {$else}
-  dbghlp:=loadlibrary('Dbghelp.dll');
+  dbghlp:=LoadLibrary(pchar(CheatEngineDir+'\win64\dbghelp.dll'));
 {$endif}
+  if dbghlp=0 then //fallback to the search path
+    dbghlp:=loadlibrary('Dbghelp.dll');
+
   SymFromName:=GetProcAddress(dbghlp,'SymFromName');
   SymFromAddr:=GetProcAddress(dbghlp,'SymFromAddr');
 
