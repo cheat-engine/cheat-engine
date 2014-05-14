@@ -1,71 +1,61 @@
-Cheat Engine 6.3
+Cheat Engine 6.4
 
 Fixes:
-Fixed dll injection for 64-bit targets (also fixes speedhack for 64-bit)
-Fixed speedhack thread safety so changing speed in a program that constantly checks speed won't cause a crash/weird behaviour
-Fixed Lua speedhack_setSpeed being limited to 2 digit accuracy
-Customtypes can now deal with huge size types (4096 bytes and bigger)
-Some table merging bugs
-Fixed negative values in groupscans
-Fixed a lot of assembler and disassembler instructions
-Fixed GenericHotkey in lua
-Fixed the table version of writeBytes in lua
-Fixed the bug where if you opened the settings window and click ok you wouldn't be able to debug anymore
-Fixed unlabed labels
-Fixed crash when clicking stop when using the debugger to find something
-Fixed where CE would select invisible entries when multiselecting and press space
-Loading a table now deletes tables you might have previously defined
-The autoassembler can now handle $luavar when it's an integer instead of string
-Fixed break on entry when creating a process
-Fixed the stackview in 64-bit ce when targeting a 32-bit program
-Fixed unloading the driver when global debug was used before
-Fixed the symbolpath not changing to what you wish, and add the game's exe to the symbol path search by default
-Fixed dbvm stability
-Fixed global debug not handling 64-bit mov dr* instructions properly
+Network: Network server can now handle multiple incomming connections at the same time
+Gui: Fixed a crash when using multiple scan tabs
+Assembler/Disassembler: Fixed several assembler/disassembler bugs
+Debug: Fixed issues where deleting a breakpoint wouldn't actually remove it, causing a crash
+Debug: Fixed a problem where deleting a breakpoint that was marked for deletion would never happen if the game was constantly triggering the debugger
+Lua: Fixed the 6.2 and earlier version of opendialog_execute
+Lua: Fixed memscan.waitTillDone() when using it on the gui memscan
+Lua: Fixed speedhack_setSpeed() not taking more than 3 digits
+D3D Hook: Direct3D9 objects now support transparency
+D3D Hook: Fix detection of which directx version is actually used for rendering
+Auto Assembler: Fixed some commands not highlighting properly
+Ultimap: Fixed ultimap so it now works in windows 8
+Ultimap: Fixed the hotkeys
+Ultimap: Fixed the hint popup for pre-emptive flushing
+Symbols: Fixed a problem where 32-bit modules where detected as 64-bit
+Memory Scan: Fixed next scan causing a buffer overflow in some rare situations
+Form Designer: Fixed a problem where deleting a non visible object failed
+PE-Info: Fixed a possibility where a bad PE header could cause an read error
+Memory view: Hexview: Fix 8-byte value editing
+
+
 
 Additions and changes:
-Redesigned the lua class system
-Added mouse4 and mouse5 to the lua defines
-Added the THREADSTACK# symbol which points to the stack start of the specific thread number (pointerscan can use it)
-The pointerscan has several new features to decrease time and increase useful results
-Added sorting the pointerscan by column (Tip: After a sort close the pointerscan and delete .ptr files you do not wish)
-Changed hotkey handling internally
-The different display types in the hexadecimal view of memoryview now support direct editing as well
-The foundlist can now display using a different display type, on the condition that the type has a compatibly bytesize
-The foundlist now shows a "previous value" column and marks differences red
-The symbolhandler now has a better distinction between 32 and 64-bit modules. Non-compatible modules (64-bit in 32-bit programs) will get an underscore in front of their symbolnames
-Groupscans can now let you choose which elements to add to the addresslist when doubleclicked
-Added a graphical memory view
-Added a new breakpoint type :Exceptions (not dependant on size and no debug registers, but extremely slow to unplayable)
-The "Find out what *** this address" function now has the ability to show if the given opcode is used for other data as well
-Added a luaserver to ce that you can use to let a different/target process execute lua commands and pass data
-The userdefined comments can now show handle multiple lines
-Dissect code now lets you jump to a referal if you click the line
-Added a few new lua methods to the disassembler so you can render your own data in front and after a disassembler line
-Assembler: Added override support to relative jumps
-Auto Assembler: AA command ReadMem can now work on large sets of data without being too slow
-Auto Assembler: Scripts with multiple AOBScan commands will go faster now (grouped into one)
-Auto Assembler: Added a new "AOBSCANMODULE" auto assemble command . Usage: AOBSCANMODULE(modulename, aob)
-Auto Assembler: GlobalAlloc now doesn't allocate 4KB (64KB in reality) for each symbol but now groups them
-Auto Assembler: Registersymbol now works with aobscan results
-Auto Assembler: Add support for inscript structure definitions
-Tracer: You can now save and load a trace
-Addresslist: Changing a records' value (lua setValue) now supports lua statements if the new value is enclosed by brackets [  ]  (Example: [12-2] becomes 10, and [readInteger(0x00400500)+10] returns the value at 00400500 with 10 added to it)
-D3D: Added the ability to dissect a whole d3d scene and get the stack at the moment a specific object is being rendered
-D3D: Also works on 64-bit targets now
-Symbolhandler: It now interprets "structurename.variablename" and returns the offset of variablename in the structure. This includes auto assembler
-Binary files inside cheat tables are now stored using ascii85 instead of hexadecimal
-Added a more complex disassembler class that gives more information about what it disassembled
-Dissect data now also shows the effect of a locked column on childnodes
-Dissect data can now have custom name under each address besides a groupname
-Dissect data elements can now have a custom background color
-The structure spider can now also work with locked memory (shadow memory)
-Changed the way the vertical scrollbars of the disassembler and hexview panels work
-The "find what acceses this address" window no longr prints out ALL results in the info box when multiselecting.
-Changed the stackview panel so when it's visible and you resize the window it's on, it resizes instead of the hexview
-The assembly scan can now have a custom range
-Added an option to the trainerscript generator to generate a D3DTrainer (if the game supports it)
-DBVM now works on AMD systems. Some features like Ultimap are still Intel only, but int hooks work
+Address List: Added a group option that shows a +/- sign in front of group entries
+Address List: Pressing enter on a single entry now goes into value edit mode
+Address List: Added an option so entries in the address list show a groupbox the user can pick from
+Auto Assembler: New auto assembler templates that focus on Array of Byte scans(thanks to jgoemat)
+Auto Assembler: The auto assembler can now handle {$LUA} and {$ASM} preprocessors for multiline lua scripts
+Break And Trace: Added a donottrace.txt file in the base directory which holds a list of modules that should not be traced but stepped over instead
+Pointerscan: Improved performance of the pointer scanner
+Pointerscan: The pointerscan now has the option to generate a lot smaller .PTR files
+Pointerscan: Added the ability to do a distributed pointerscan and pointer rescan
+ProcessList: You can now type in the processlist to filter for the specific process
+Network: Added a basic ARM assembler/disasembler
+Network: The linux/android network version can now use basic debugging (find what access/writes)
+Network: Added speedhack to the network version
+Network: The network version now compresses read/write process memory before sending to the client. The compression level can be changed at runtime
+Network: Added module injection for linux/android
+Symbols: Added better support for .PDB debug files so parameters and local variable references show when that data is available
+Symbols: Added support for .Net
+Symbols: Added support for Java (proof-of-concept showing off the extendabilty of CE)
+Symbols: Added support for Mono (^)
+Memory view: Hexview: Added decimal display modes for the other types
+Stack View: Added a search option
+D3D Hook: you can now reattach the D3D hook to a process that previously had been hooked
+Lua engine window: Added a search and replace option to the editor
+Lua engine window: Added the ability to set breakpoints, inspect variables and step over lines
+Trainer Generator: Replaced the beepOnAction with playSoundOnAction and added 2 build in activate/deativate sounds. (You can override them)
+Trainer Generator: The XM file field now has a play button
+Lua/Trainer Generator/Designer: Added several new components and methods.
+Lua: Added a dll search path to cedir\clibs32 or cedir\clibs64 depending on which cheat engine version is used. Use it for lua extentions
+Lua: Made it more forgivable about method and property names
+Lua: Added some threading helper functions
+Lua: You can now override the disassembler/assembler
+Lua: Lots of other new features. Check out main.lua
 
 
 
@@ -82,5 +72,3 @@ e-mail(msn) = dark_byte@hotmail.com
 For more information about Cheat Engine or tables for it 
 and other things, goto this url:
 http://www.cheatengine.org/
-or
-http://members.upc.nl/cheatengine/
