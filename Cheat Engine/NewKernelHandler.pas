@@ -966,9 +966,10 @@ begin
   begin
     outputdebugstring('LoadDBK32');
 
-    DBKLoaded:=true;
+
 
     DBK32Initialize;
+    DBKLoaded:=(dbk32functions.hdevice<>0) and (dbk32functions.hdevice<>INVALID_HANDLE_VALUE);
 
     //DarkByteKernel:= LoadLibrary(dbkdll);
 //    if DarkByteKernel=0 then exit; //raise exception.Create('Failed to open DBK32.dll');

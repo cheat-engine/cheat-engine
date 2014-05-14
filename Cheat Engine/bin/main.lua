@@ -1356,6 +1356,10 @@ methods
 SaveDialog Class: (Inheritance: OpenDialog->FileDialog->CommonDialog->Component->Object)
 createSaveDialog(owner)
 
+SelectDirectoryDialog Class: (Inheritance: OpenDialog->FileDialog->CommonDialog->Component->Object)
+createSelectDirectoryDialog(owner)
+
+
 Stream Class
 
 properties
