@@ -603,45 +603,48 @@ end;
 function RegToString(reg: integer): string;
 begin
   result:='';
-  if processhandler.is64bit then
-  begin
-    case reg of
-      CV_REG_NONE: result:='';
-      CV_AMD64_RAX : result:='RAX';
-      CV_AMD64_RCX : result:='RCX';
-      CV_AMD64_RDX : result:='RDX';
-      CV_AMD64_RBX : result:='RBX';
-      CV_AMD64_RSP : result:='RSP';
-      CV_AMD64_RBP : result:='RBP';
-      CV_AMD64_RSI : result:='RSI';
-      CV_AMD64_RDI : result:='RDI';
-      CV_AMD64_R8 : result:='R8';
-      CV_AMD64_R9 : result:='R9';
-      CV_AMD64_R10: result:='R10';
-      CV_AMD64_R11: result:='R11';
-      CV_AMD64_R12: result:='R12';
-      CV_AMD64_R13: result:='R13';
-      CV_AMD64_R14: result:='R14';
-      CV_AMD64_R15: result:='R15';
-      else
-        result:='?';
-    end;
-  end
-  else
-  begin
-    case reg of
-      CV_REG_NONE: result:='';
-      CV_REG_EAX : result:='EAX';
-      CV_REG_ECX : result:='ECX';
-      CV_REG_EDX : result:='EDX';
-      CV_REG_EBX : result:='EBX';
-      CV_REG_ESP : result:='ESP';
-      CV_REG_EBP : result:='EBP';
-      CV_REG_ESI : result:='ESI';
-      CV_REG_EDI : result:='EDI';
-      else
-        result:='?';
-    end;
+
+  case reg of
+    CV_REG_NONE: result:='';
+    CV_ALLREG_ERR   : result:='ERR';
+    CV_ALLREG_TEB   : result:='TEB';
+    CV_ALLREG_TIMER : result:='TIMER';
+    CV_ALLREG_EFAD1 : result:='EFAD1';
+    CV_ALLREG_EFAD2 : result:='EFAD2';
+    CV_ALLREG_EFAD3 : result:='EFAD3';
+    CV_ALLREG_VFRAME: result:='VFRAME';
+    CV_ALLREG_HANDLE: result:='HANDLE';
+    CV_ALLREG_PARAMS: result:='PARAMS';
+    CV_ALLREG_LOCALS: result:='LOCALS';
+    CV_ALLREG_TID   : result:='TID';
+    CV_ALLREG_ENV   : result:='ENV';
+    CV_ALLREG_CMDLN : result:='CMDLN';
+    CV_AMD64_RAX    : result:='RAX';
+    CV_AMD64_RCX    : result:='RCX';
+    CV_AMD64_RDX    : result:='RDX';
+    CV_AMD64_RBX    : result:='RBX';
+    CV_AMD64_RSP    : result:='RSP';
+    CV_AMD64_RBP    : result:='RBP';
+    CV_AMD64_RSI    : result:='RSI';
+    CV_AMD64_RDI    : result:='RDI';
+    CV_AMD64_R8     : result:='R8';
+    CV_AMD64_R9     : result:='R9';
+    CV_AMD64_R10    : result:='R10';
+    CV_AMD64_R11    : result:='R11';
+    CV_AMD64_R12    : result:='R12';
+    CV_AMD64_R13    : result:='R13';
+    CV_AMD64_R14    : result:='R14';
+    CV_AMD64_R15    : result:='R15';
+    CV_REG_EAX      : result:='EAX';
+    CV_REG_ECX      : result:='ECX';
+    CV_REG_EDX      : result:='EDX';
+    CV_REG_EBX      : result:='EBX';
+    CV_REG_ESP      : result:='ESP';
+    CV_REG_EBP      : result:='EBP';
+    CV_REG_ESI      : result:='ESI';
+    CV_REG_EDI      : result:='EDI';
+    else
+      result:='?';
   end;
 
 
