@@ -13,10 +13,10 @@ object frmThreadlist: TfrmThreadlist
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poOwnerFormCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.3'
   object threadTreeview: TTreeView
     Left = 0
-    Height = 173
+    Height = 174
     Top = 0
     Width = 313
     Align = alClient
@@ -33,8 +33,8 @@ object frmThreadlist: TfrmThreadlist
   end
   object lblIsWOW64: TLabel
     Left = 0
-    Height = 14
-    Top = 173
+    Height = 13
+    Top = 174
     Width = 313
     Align = alBottom
     Caption = 'Hold ctrl when expanding to see the 32-bit context of a thread'
