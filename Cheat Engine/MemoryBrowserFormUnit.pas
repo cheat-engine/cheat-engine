@@ -1643,6 +1643,8 @@ begin
 end;
 
 procedure TMemoryBrowser.Timer2Timer(Sender: TObject);
+var
+  rollover: integer;
 begin
   if Visible then
   begin
@@ -1650,7 +1652,12 @@ begin
     if disassemblerview<>nil then disassemblerview.Update;
 
     //refresh the modulelist
-    lastmodulelistupdate:=(lastmodulelistupdate+1) mod 50;
+    if processhandler.isNetwork then
+      rollover:=250
+    else
+      rollover:=50;
+
+    lastmodulelistupdate:=(lastmodulelistupdate+1) mod rollover;
     if lastmodulelistupdate=0 then
       if symhandler<>nil then symhandler.loadmodulelist;
   end;

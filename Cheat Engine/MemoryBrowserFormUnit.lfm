@@ -16,7 +16,7 @@ object MemoryBrowser: TMemoryBrowser
   OnResize = FormResize
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.0.3'
+  LCLVersion = '1.3'
   object Splitter1: TSplitter
     Cursor = crVSplit
     Left = 0
@@ -642,6 +642,7 @@ object MemoryBrowser: TMemoryBrowser
         Tag = 7
         AutoCheck = True
         Caption = '8 Byte decimal'
+        GroupIndex = 3
         RadioItem = True
         ShortCut = 16440
         OnClick = DisplayTypeClick
