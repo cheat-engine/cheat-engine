@@ -1157,9 +1157,17 @@ begin
 
       if rbStopWhenAttached.checked then
       begin
-        l.add('function onOpenProcess(processid)');
+
+
+        l.add('function onOpenProcess_xmplayer(processid)');
         l.add('  xmplayer.stop()');
+        l.add('  if xmplayer_originalOnOpenProcess~=nil then');
+        l.add('    xmplayer_originalOnOpenProcess(processid)');
+        l.add('  end');
         l.add('end');
+
+        l.add('xmplayer_originalOnOpenProcess=onOpenProcess');
+        l.add('onOpenProcess=onOpenProcess_xmplayer');
       end
       else
       begin
@@ -1251,6 +1259,18 @@ begin
           l.add('D3DHook.position=5');
 
 
+        l.add('');
+        l.add('function D3DHook.UpdatePosition()');
+        l.add('  if D3DHook.position==2 then --Top Right');
+        l.add('    SetD3DMenuPosition(h.Width-BackgroundSprite.Width, 0)');
+        l.add('  elseif D3DHook.position==3 then --Bottom Left');
+        l.add('    SetD3DMenuPosition(0, h.Height-BackgroundSprite.Height)');
+        l.add('  elseif D3DHook.position==4 then --Bottom Right');
+        l.add('    SetD3DMenuPosition(h.Width-BackgroundSprite.Width, h.Height-BackgroundSprite.Height)');
+        l.add('  elseif D3DHook.position==5 then --Center');
+        l.add('    SetD3DMenuPosition((h.Width / 2)-(BackgroundSprite.Width / 2), (h.Height / 2)-(BackgroundSprite.Height/2))');
+        l.add('  end');
+        l.add('end');
         l.add('');
         l.add('function onOpenProcess()');
         l.add('  if (D3DHook.oldOnOpenProcess~=nil) then');
@@ -1381,19 +1401,13 @@ begin
         l.add('');
 
         l.add('    end');  //end of for loop
-        l.add('    SetD3DMenuPosition(0,0) --initialize the background sprite (Top Right)');
-
-        l.add('    if D3DHook.position==2 then --Top Right');
-        l.add('      SetD3DMenuPosition(h.Width-BackgroundSprite.Width, 0)');
-        l.add('    elseif D3DHook.position==3 then --Bottom Left');
-        l.add('      SetD3DMenuPosition(0, h.Height-BackgroundSprite.Height)');
-        l.add('    elseif D3DHook.position==4 then --Bottom Right');
-        l.add('      SetD3DMenuPosition(h.Width-BackgroundSprite.Width, h.Height-BackgroundSprite.Height)');
-        l.add('    elseif D3DHook.position==5 then --Center');
-        l.add('      SetD3DMenuPosition((h.Width / 2)-(BackgroundSprite.Width / 2), (h.Height / 2)-(BackgroundSprite.Height/2))');
-        l.add('    end');
-
-
+        l.add('');
+        l.add('    D3DHook.UpdatePosition()');
+        l.add('    --create a timer to update the position');
+        l.add('    local t=createTimer()');
+        l.add('    t.OnTimer=D3DHook.UpdatePosition');
+        l.add('    t.Interval=2000 --every 2 seconds');
+        l.add('    t.Enabled=true');
         l.add('');
         l.add('    if D3DHook.hasCheckbox then');
         l.add('      h.OnClick=D3DHookSpriteClick');

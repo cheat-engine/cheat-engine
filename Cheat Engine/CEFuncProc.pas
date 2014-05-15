@@ -1101,6 +1101,10 @@ begin
       try
         getprocaddressptr:=pointer(symhandler.getAddressFromName('Kernel32!GetProcAddress',true));
       except
+{$ifdef cpu64}
+        if not processhandler.is64Bit then
+          raise exception.create('Dll injection failed: symbol lookup error');
+{$endif}
         GetProcAddressPtr:=GetProcAddress(h,'GetProcAddress');
       end;
 
@@ -1110,6 +1114,10 @@ begin
         LoadLibraryPtr:=pointer(symhandler.getAddressFromName('Kernel32!LoadLibraryA',true));
       except
         //failed getting the address of LoadLibraryA, use old method
+        {$ifdef cpu64}
+          if not processhandler.is64Bit then
+            raise exception.create('Dll injection failed: symbol lookup error');
+        {$endif}
         LoadLibraryPtr:=GetProcAddress(h,'LoadLibraryA');
       end;
 

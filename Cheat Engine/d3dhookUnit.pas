@@ -366,6 +366,7 @@ type
 
   TD3DHook=class(TObject)
   private
+    hooked: boolean;
     fonKeyDown: TD3DKeyDownEvent;
     fonclick: TD3DClickEvent;
     sharename: string;
@@ -459,7 +460,8 @@ function safed3dhook(size: integer=16*1024*1024; hookwindow: boolean=true): TD3D
 
 implementation
 
-uses frmautoinjectunit, autoassembler, MainUnit, frmSaveSnapshotsUnit, frmsnapshothandlerUnit;
+uses frmautoinjectunit, autoassembler, MainUnit, frmSaveSnapshotsUnit,
+  frmsnapshothandlerUnit, symbolhandler;
 
 procedure TD3DMessageHandler.handleSnapshot;
 begin
@@ -1490,27 +1492,31 @@ begin
     messagehandler.Free;
   end;
 
+  if hooked then
+  begin
 
-  beginCommandListUpdate;
+    beginCommandListUpdate;
 
-  for i:=0 to commandlist.Count-1 do
-    if commandlist[i]<>nil then
-      TD3DHook_RenderObject(commandlist[i]).free;
+    for i:=0 to commandlist.Count-1 do
+      if commandlist[i]<>nil then
+        TD3DHook_RenderObject(commandlist[i]).free;
 
-  //make sure all commands are gone:
-  if commandlist.count>0 then
-    renderCommandList^[0].command:=integer(rcIgnored);
+    //make sure all commands are gone:
+    if commandlist.count>0 then
+      renderCommandList^[0].command:=integer(rcIgnored);
 
-  endCommandListUpdate;
+    endCommandListUpdate;
 
 
-  beginTextureUpdate;
+    beginTextureUpdate;
 
-  for i:=0 to textures.Count-1 do
-    if textures[i]<>nil then
-      TD3DHook_Texture(textures[i]).Free;
+    for i:=0 to textures.Count-1 do
+      if textures[i]<>nil then
+        TD3DHook_Texture(textures[i]).Free;
 
-  endTextureUpdate;
+    endTextureUpdate;
+
+  end;
 
   UnmapViewOfFile(shared);
   closehandle(fmhandle);
@@ -1618,6 +1624,8 @@ begin
 
 
       //now inject the dll
+      symhandler.reinitialize;
+      symhandler.waitforsymbolsloaded(true, 'kernel32.dll');
       if processhandler.is64Bit then
         injectdll(cheatenginedir+'d3dhook64.dll')
       else
@@ -1712,6 +1720,8 @@ begin
     end;
   end;
 
+
+  hooked:=true;
 
 end;
 

@@ -2339,6 +2339,8 @@ begin
               {$endif}
 
               //check the symbols
+//              if (symbolloaderthread<>nil) then
+
               if (symbolloaderthread<>nil) then
               begin
 

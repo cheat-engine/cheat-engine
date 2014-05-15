@@ -2858,11 +2858,22 @@ begin
 end;
 
 function reinitializeSymbolhandler(L: PLua_state): integer; cdecl;
+var waittilldone: boolean;
 begin
+  if lua_gettop(L)>=1 then
+    waittilldone:=lua_toboolean(L,1)
+  else
+    waittilldone:=true;
+
   lua_pop(L, lua_gettop(L));
   result:=0;
+
+
   symhandler.reinitialize(true);
-  symhandler.waitforsymbolsloaded;
+
+  if waitTillDone then
+    symhandler.waitforsymbolsloaded;
+
 end;
 
 function enumModules(L:PLua_state): integer; cdecl;

@@ -540,7 +540,7 @@ begin
   s:=lowercase(mainform.frmLuaTableScript.assemblescreen.Text);
 
   cbSpeedhack.checked:=pos('speedhack_',s)>0;
-  cbXMPlayer.checked:=pos('xmplayer_',s)>0;
+  cbXMPlayer.checked:=(pos('xmplayer_',s)>0) or (pos('xmplayer.',s)>0);
   cbKernelDebug.checked:=pos('dbk_',s)>0;
   cbD3DHook.checked:=pos('created3dhook',s)>0;
 
