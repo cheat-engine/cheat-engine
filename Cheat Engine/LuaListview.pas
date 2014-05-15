@@ -116,6 +116,7 @@ begin
   if lua_gettop(L)>=1 then
     listview.Selected:=lua_ToCEUserData(L, 1);
 
+
   result:=0;
 end;
 
