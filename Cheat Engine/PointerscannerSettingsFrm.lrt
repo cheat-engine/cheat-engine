@@ -81,8 +81,8 @@ TFRMPOINTERSCANNERSETTINGS.EDTSTACKSIZE.TEXT=4096
 TFRMPOINTERSCANNERSETTINGS.CBSTACKONLY.HINT=Enable this if you wish to only find pointer paths with a stack address.
 Combine this with "Only find paths with a static address" (default on) else this option will have no effect
 
-pro: You'll only get paths to the stack and no random dll's or the .exe
-con: You'll only get paths to the stack and no random dll's or the .exe 
+pro: You'll only get paths from the stack
+con: You don't get get paths from random dll's or the .exe 
 TFRMPOINTERSCANNERSETTINGS.CBSTACKONLY.CAPTION=Stack addresses as ONLY static address
 TFRMPOINTERSCANNERSETTINGS.CBACCEPTNONMODULEVTABLE.CAPTION=Also accept non-module addresses
 TFRMPOINTERSCANNERSETTINGS.CBMUSTENDWITHSPECIFICOFFSET.CAPTION=Pointers must end with specific offsets

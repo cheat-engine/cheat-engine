@@ -262,7 +262,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       object cbStackOnly: TCheckBox
         Left = 292
         Height = 19
-        Hint = 'Enable this if you wish to only find pointer paths with a stack address.'#13#10'Combine this with "Only find paths with a static address" (default on) else this option will have no effect'#13#10#13#10'pro: You''ll only get paths to the stack and no random dll''s or the .exe'#13#10'con: You''ll only get paths to the stack and no random dll''s or the .exe '
+        Hint = 'Enable this if you wish to only find pointer paths with a stack address.'#13#10'Combine this with "Only find paths with a static address" (default on) else this option will have no effect'#13#10#13#10'pro: You''ll only get paths from the stack'#13#10'con: You don''t get get paths from random dll''s or the .exe '
         Top = 144
         Width = 213
         Caption = 'Stack addresses as ONLY static address'
