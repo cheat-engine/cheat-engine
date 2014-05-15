@@ -135,6 +135,8 @@ type
     property NeedsToSetEntryPointBreakpoint: boolean read fNeedsToSetEntryPointBreakpoint;
     property running: boolean read fRunning;
 
+    property usesGlobalDebug: boolean read globalDebug;
+
     procedure Terminate;
     procedure Execute; override;
   end;
