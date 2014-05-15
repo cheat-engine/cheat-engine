@@ -5684,6 +5684,8 @@ begin
     initializeLuaSettings;
     initializeLuaPageControl;
 
+    initializeLuaCalendar;
+
 
 
     s:=tstringlist.create;

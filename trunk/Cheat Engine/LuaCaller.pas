@@ -39,6 +39,8 @@ type
       procedure LVCheckedItemEvent(Sender: TObject; Item: TListItem); //personal request to have this one added
       procedure LVColumnClickEvent(Sender: TObject; c: TListColumn);
       procedure LVSelectItemEvent(Sender: TObject; Item: TListItem; Selected: Boolean);
+      procedure LVCompareEvent(Sender: TObject; Item1, Item2: TListItem; Data: Integer; var Compare: Integer);
+
 
       procedure CloseEvent(Sender: TObject; var CloseAction: TCloseAction);
       function MemoryRecordActivateEvent(sender: TObject; before, currentstate: boolean): boolean;
@@ -760,7 +762,26 @@ begin
   finally
     lua_settop(Luavm, oldstack);
     luacs.leave;
-  end
+  end;
+end;
+
+procedure TLuaCaller.LVCompareEvent(Sender: TObject; Item1, Item2: TListItem; Data: Integer; var Compare: Integer);
+var oldstack: integer;
+begin
+  Luacs.enter;
+  try
+    oldstack:=lua_gettop(Luavm);
+    pushFunction;
+    luaclass_newClass(luavm, sender);
+    luaclass_newClass(luavm, item1);
+    luaclass_newClass(luavm, item2);
+    lua_pushinteger(luavm, data);
+    if lua_pcall(LuaVM, 4, 1, 0)=0 then
+      compare:=lua_tointeger(luavm,-1);
+  finally
+    lua_settop(Luavm, oldstack);
+    luacs.leave;
+  end;
 end;
 
 function TLuaCaller.DisassembleEvent(sender: TObject; address: ptruint; var ldd: TLastDisassembleData; var output: string; var description: string): boolean;
@@ -1305,6 +1326,38 @@ begin
     lua_pop(L, lua_gettop(L));
 end;
 
+
+function LuaCaller_LVCompareEvent(L: PLua_state): integer; cdecl;
+var
+  parameters: integer;
+  m: TMethod;
+  sender: TObject;
+  item1, item2: TListItem;
+  data: integer;
+  compare: integer;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=4 then
+  begin
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    sender:=lua_toceuserdata(L, 1);
+    item1:=lua_ToCEUserData(L, 2);
+    item2:=lua_ToCEUserData(L, 3);
+    data:=lua_tointeger(L, 4);
+    lua_pop(L, lua_gettop(L));
+
+    compare:=0;
+    TLVCompareEvent(m)(sender,item1, item2, data, compare);
+
+    lua_pushinteger(L,compare);
+    result:=1;
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
+
 function LuaCaller_MemoryRecordActivateEvent(L: PLua_state): integer; cdecl;
 var
   m: TMethod;
@@ -1583,8 +1636,9 @@ initialization
   registerLuaCall('TLVCheckedItemEvent', LuaCaller_LVCheckedItemEvent, pointer(TLuaCaller.LVCheckedItemEvent),'function %s(sender, listitem)'#13#10#13#10'end'#13#10);
   registerLuaCall('TLVDeletedEvent', LuaCaller_LVCheckedItemEvent, pointer(TLuaCaller.LVCheckedItemEvent),'function %s(sender, listitem)'#13#10#13#10'end'#13#10);
   registerLuaCall('TLVColumnClickEvent', LuaCaller_LVColumnClickEvent, pointer(TLuaCaller.LVColumnClickEvent),'function %s(sender, listcolumn)'#13#10#13#10'end'#13#10);
-
+  registerLuaCall('TLVCompareEvent', LuaCaller_LVCompareEvent, pointer(TLuaCaller.LVCompareEvent),'function %s(sender, listitem1, listitem2, data)'#13#10#13#10' return 0 --0=equal -1=smaller 1=bigger'#13#10'end'#13#10);
   registerLuaCall('TLVSelectItemEvent', LuaCaller_LVSelectItemEvent, pointer(TLuaCaller.LVSelectItemEvent),'function %s(sender, listitem, selected)'#13#10#13#10'end'#13#10);
+
   registerLuaCall('TMemoryRecordActivateEvent', LuaCaller_MemoryRecordActivateEvent, pointer(TLuaCaller.MemoryRecordActivateEvent),'function %s(sender, before, current)'#13#10#13#10'end'#13#10);
 
   registerLuaCall('TDisassemblerSelectionChangeEvent', LuaCaller_DisassemblerSelectionChangeEvent, pointer(TLuaCaller.DisassemblerSelectionChangeEvent),'function %s(sender, address, address2)'#13#10#13#10'end'#13#10);

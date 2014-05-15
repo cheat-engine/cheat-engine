@@ -56,6 +56,7 @@ published
   property Align;
   property AllocBy;
   property Anchors;
+  property AutoSort;
   property BorderSpacing;
   property BorderStyle;
   property BorderWidth;
@@ -89,6 +90,7 @@ published
 //  property SmallImages;
   property SortColumn;
   property SortType;
+  property SortDirection;
 //  property StateImages;
   property TabStop;
   property TabOrder;
@@ -101,7 +103,7 @@ published
 //  property OnChange;
   property OnClick;
   property OnColumnClick;
-//  property OnCompare;
+  property OnCompare;
 //  property OnContextPopup;
 //  property OnCustomDraw;
 //  property OnCustomDrawItem;
