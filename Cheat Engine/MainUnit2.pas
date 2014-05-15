@@ -612,7 +612,8 @@ begin
           cbWaitAfterGuiUpdate.checked:=waitafterguiupdate;
 
 
-          try cbGlobalDebug.checked:=reg.ReadBool('Use Global Debug Routines'); except end;
+          if reg.ValueExists('Use Global Debug Routines') then
+            cbGlobalDebug.checked:=reg.ReadBool('Use Global Debug Routines');
 
           if reg.ValueExists('Show tools menu') then
             cbShowTools.Checked:=reg.ReadBool('Show tools menu');

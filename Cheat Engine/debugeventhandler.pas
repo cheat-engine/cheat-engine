@@ -1592,7 +1592,9 @@ begin
 
 
   //cleanup time for this thread
-  if currentthread<>nil then //if it wasn't a thread destruction tell this thread it isn't being handled anymore
+
+
+  if (currentthread<>nil) then //if it wasn't a thread destruction tell this thread it isn't being handled anymore
   begin
     debuggercs.enter; //wait till other threads are done with this
 
@@ -1600,7 +1602,7 @@ begin
     //if currentthread.needstocleanup then
     currentthread.fillContext;
 
-    if (processhandler.SystemArchitecture=archX86) and ((dwContinueStatus=DBG_CONTINUE) or (currentThread.context.Dr6=0) or (currentThread.context.dr6=$ffff0ff0)) then
+    if (not TDebuggerthread(debuggerthread).usesGlobalDebug) and (processhandler.SystemArchitecture=archX86) and ((dwContinueStatus=DBG_CONTINUE) or (currentThread.context.Dr6=0) or (currentThread.context.dr6=$ffff0ff0)) then
     begin
       //continued or not an unhandled debug register exception
       currentthread.context.dr6:=0;
@@ -1654,7 +1656,6 @@ begin
     currentthread.isHandled:=false;
     debuggercs.leave;
   end;
-
 
   TDebuggerthread(debuggerthread).execlocation:=13;
 
