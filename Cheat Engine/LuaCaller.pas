@@ -43,6 +43,7 @@ type
 
 
       procedure CloseEvent(Sender: TObject; var CloseAction: TCloseAction);
+      procedure CloseQueryEvent(Sender: TObject; var CanClose: boolean);
       function MemoryRecordActivateEvent(sender: TObject; before, currentstate: boolean): boolean;
       procedure DisassemblerSelectionChangeEvent(sender: TObject; address, address2: ptruint);
       function DisassemblerExtraLineRender(sender: TObject; Address: ptruint; AboveInstruction: boolean; selected: boolean; var x: integer; var y: integer): TRasterImage;
@@ -355,7 +356,8 @@ begin
 end;
 
 procedure TLuaCaller.CloseEvent(Sender: TObject; var CloseAction: TCloseAction);
-var oldstack: integer;
+var
+  oldstack: integer;
   ca: integer;
 begin
   Luacs.Enter;
@@ -384,6 +386,32 @@ begin
 
     end
     else closeaction:=caHide;
+  finally
+    lua_settop(Luavm, oldstack);
+    luacs.leave;
+  end;
+end;
+
+procedure TLuaCaller.CloseQueryEvent(Sender: TObject; var CanClose: boolean);
+var
+  oldstack: integer;
+begin
+  Luacs.Enter;
+  try
+    oldstack:=lua_gettop(Luavm);
+
+    if canRun then
+    begin
+      PushFunction;
+      luaclass_newClass(Luavm, sender);
+
+
+      if lua_pcall(Luavm, 1,1,0)=0 then
+      begin
+        if lua_gettop(Luavm)>0 then
+          canclose:=lua_toboolean(LuaVM,-1);
+      end;
+    end;
   finally
     lua_settop(Luavm, oldstack);
     luacs.leave;
@@ -1089,6 +1117,32 @@ begin
     lua_pop(L, lua_gettop(L));
 end;
 
+function LuaCaller_CloseQueryEvent(L: PLua_state): integer; cdecl;
+var
+  parameters: integer;
+  m: TMethod;
+  sender: TObject;
+  canClose: Boolean;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    sender:=lua_toceuserdata(L, 1);
+    lua_pop(L, lua_gettop(L));
+
+    canClose:=true;
+    TCloseQueryEvent(m)(sender, canClose);
+
+    lua_pushboolean(L, canClose);
+    result:=1;
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+end;
+
 function LuaCaller_MouseEvent(L: PLua_state): integer; cdecl;
 var
   parameters: integer;
@@ -1626,6 +1680,7 @@ initialization
   registerLuaCall('TNotifyEvent',  LuaCaller_NotifyEvent, pointer(TLuaCaller.NotifyEvent),'function %s(sender)'#13#10#13#10'end'#13#10);
   registerLuaCall('TSelectionChangeEvent', LuaCaller_SelectionChangeEvent, pointer(TLuaCaller.SelectionChangeEvent),'function %s(sender, user)'#13#10#13#10'end'#13#10);
   registerLuaCall('TCloseEvent', LuaCaller_CloseEvent, pointer(TLuaCaller.CloseEvent),'function %s(sender)'#13#10#13#10'return caHide --Possible options: caHide, caFree, caMinimize, caNone'#13#10'end'#13#10);
+  registerLuaCall('TCloseQueryEvent', LuaCaller_CloseQueryEvent, pointer(TLuaCaller.CloseQueryEvent),'function %s(sender)'#13#10#13#10'return true --return false if you wish to block closing this form'#13#10'end'#13#10);
   registerLuaCall('TMouseEvent', LuaCaller_MouseEvent, pointer(TLuaCaller.MouseEvent),'function %s(sender, button, x, y)'#13#10#13#10'end'#13#10);
   registerLuaCall('TMouseMoveEvent', LuaCaller_MouseMoveEvent, pointer(TLuaCaller.MouseMoveEvent),'function %s(sender, x, y)'#13#10#13#10'end'#13#10);
   registerLuaCall('TMouseWheelUpDownEvent', LuaCaller_MouseWheelUpDownEvent, pointer(TLuaCaller.MouseWheelUpDownEvent),'function %s(sender, x, y)'#13#10#13#10'end'#13#10);
