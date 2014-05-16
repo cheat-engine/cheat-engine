@@ -50,7 +50,7 @@ Lua engine window: Added a search and replace option to the editor
 Lua engine window: Added the ability to set breakpoints, inspect variables and step over lines
 Trainer Generator: Replaced the beepOnAction with playSoundOnAction and added 2 build in activate/deativate sounds. (You can override them)
 Trainer Generator: The XM file field now has a play button
-Lua/Trainer Generator/Designer: Added several new components and methods.
+Lua/Trainer Generator/Designer: Added several new components , propertes and methods.
 Lua: Added a dll search path to cedir\clibs32 or cedir\clibs64 depending on which cheat engine version is used. Use it for lua extentions
 Lua: Made it more forgivable about method and property names
 Lua: Added some threading helper functions

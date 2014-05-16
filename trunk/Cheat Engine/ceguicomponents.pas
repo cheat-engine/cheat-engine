@@ -648,7 +648,7 @@ type TCEForm=class(TCustomForm)
     property OnChangeBounds;
     property OnClick;
     property OnClose;
-  //  property OnCloseQuery;
+    property OnCloseQuery;
     property OnContextPopup;
     property OnCreate;
     property OnDblClick;
@@ -1463,5 +1463,36 @@ initialization
 
   //Hide some properties (mainly for the newer objects that have been introduced since 6.4+)
   //example:   RegisterPropertyEditor(TypeInfo(TNotifyEvent), TCEButton, 'OnClick', THiddenPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TStartDragEvent), nil, '', THiddenPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TStartDockEvent), nil, '', THiddenPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TUnDockEvent), nil, '', THiddenPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TDockDropEvent), nil, '', THiddenPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TDockOverEvent), nil, '', THiddenPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TDragDropEvent), nil, '', THiddenPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TDragOverEvent), nil, '', THiddenPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TEndDragEvent), nil, '', THiddenPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TTVExpandedEvent), nil, '', THiddenPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TTVAdvancedCustomDrawEvent), nil, '', THiddenPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TTVAdvancedCustomDrawItemEvent), nil, '', THiddenPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TTVChangedEvent), nil, '', THiddenPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TTVChangingEvent), nil, '', THiddenPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TTVExpandedEvent), nil, '', THiddenPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TTVCompareEvent), nil, '', THiddenPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TContextPopupEvent), nil, '', THiddenPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TTVCreateNodeClassEvent), nil, '', THiddenPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TTVCustomCreateNodeEvent), nil, '', THiddenPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TTVCustomDrawEvent), nil, '', THiddenPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TTVCustomDrawItemEvent), nil, '', THiddenPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TTVExpandedEvent), nil, '', THiddenPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TTVEditedEvent), nil, '', THiddenPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TTVEditingEvent), nil, '', THiddenPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TTVEditingEndEvent), nil, '', THiddenPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TControlShowHintEvent), nil, '', THiddenPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TUTF8KeyPressEvent), nil, '', THiddenPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TMouseWheelEvent), nil, '', THiddenPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TTabChangingEvent), nil, '', THiddenPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TTabGetImageEvent), nil, '', THiddenPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TGetSiteInfoEvent), nil, '', THiddenPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TGetDockCaptionEvent), nil, '', THiddenPropertyEditor);
 end.
 
