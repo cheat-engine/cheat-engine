@@ -1247,11 +1247,16 @@ procedure TMemoryBrowser.MenuItem5Click(Sender: TObject);
 var
   a,a2: ptruint;
 begin
-  if (startdebuggerifneeded(true)) and (hexview.hasSelection) then
-  begin
-    hexview.GetSelectionRange(a,a2);
-    DebuggerThread.SetOnAccessBreakpoint(a, 1+(a2-a));
-    hexview.Update;
+  try
+    if (startdebuggerifneeded(true)) and (hexview.hasSelection) then
+    begin
+      hexview.GetSelectionRange(a,a2);
+      DebuggerThread.SetOnAccessBreakpoint(a, 1+(a2-a));
+      hexview.Update;
+    end;
+  except
+    on e: exception do
+      messagedlg(e.message, mtError, [mbOK], 0);
   end;
 
 end;
@@ -1260,11 +1265,16 @@ procedure TMemoryBrowser.MenuItem6Click(Sender: TObject);
 var
   a,a2: ptruint;
 begin
-  if (startdebuggerifneeded(true)) and (hexview.hasSelection) then
-  begin
-    hexview.GetSelectionRange(a,a2);
-    DebuggerThread.SetOnWriteBreakpoint(a, 1+(a2-a));
-    hexview.Update;
+  try
+    if (startdebuggerifneeded(true)) and (hexview.hasSelection) then
+    begin
+      hexview.GetSelectionRange(a,a2);
+      DebuggerThread.SetOnWriteBreakpoint(a, 1+(a2-a));
+      hexview.Update;
+    end;
+  except
+    on e: exception do
+      messagedlg(e.message, mtError, [mbOK], 0);
   end;
 
 
@@ -3239,7 +3249,15 @@ end;
 procedure TMemoryBrowser.Findoutwhataddressesthisinstructionaccesses1Click(
   Sender: TObject);
 begin
-  findWhatthisCodeAccesses(disassemblerview.SelectedAddress);
+  try
+    findWhatthisCodeAccesses(disassemblerview.SelectedAddress);
+
+  except
+    on e: Exception do
+    begin
+      MessageDlg(e.message, mtError, [mbOK], 0);
+    end;
+  end;
 end;
 
 procedure TMemoryBrowser.sbShowFloatsClick(Sender: TObject);
