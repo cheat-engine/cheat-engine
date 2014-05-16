@@ -318,7 +318,7 @@ begin
   getprocesslist(processlist);
 
 
-  if formsettings.cbKernelReadWriteProcessMemory.checked or (dbvm_version>=$ce000004) then //driver is active
+  if formsettings.cbKernelReadWriteProcessMemory.checked or (vmx_enabled and (dbvm_version>=$ce000004)) then //driver is active
     processlist.Items.Insert(0, '00000000-['+rsPhysicalMemory+']');
 
   Filterlist;

@@ -182,9 +182,10 @@ var mes: string;
     reS:boolean;
     i: integer;
 begin
+  result:=false;
   if processid=GetCurrentProcessId then raise exception.create(rsPleaseTargetAnotherProcess);
 
-  result:=false;
+
   if processhandle=0 then raise exception.create(rsYouMustFirstOpenAProcess);
 
   if (debuggerthread=nil) then
