@@ -1172,7 +1172,7 @@ begin
       else
       begin
         l.add('function focusCheck(sender)');
-        l.add('  if (form.isForegroundWindow('+trainerform.Name+')) then');
+        l.add('  if ('+trainerform.Name+'.isForegroundWindow('+trainerform.Name+')) then');
         l.add('    if (xmplayer.isPlaying()==false) then');
         l.add('      xmplayer.resume()');
         l.add('    end');
