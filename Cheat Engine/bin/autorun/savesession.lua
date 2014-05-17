@@ -159,6 +159,8 @@ function loadMemoryScan_thread(t)
 
 	  mf.foundcountlabel.Caption=fl.Count
 
+	  mf.miResetRange.doClick()
+
   end)
 end
 
