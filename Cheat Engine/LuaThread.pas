@@ -211,22 +211,24 @@ var
   c: TCEThread;
 
   newL: Plua_State;
+  paramstart, paramcount: integer;
 begin
   result:=0;
-  c:=luaclass_getClassObject(L);
+  c:=luaclass_getClassObject(L, @paramstart, @paramcount);
 
-  if lua_gettop(L)>=1 then
+
+  if paramcount>=1 then
   begin
-    if lua_isfunction(L,1) then
+    if lua_isfunction(L,paramstart) then
     begin
-      lua_pushvalue(L, 1);
+      lua_pushvalue(L, paramstart);
       f:=luaL_ref(L,LUA_REGISTRYINDEX);
 
     end
     else
-    if lua_isstring(L,1) then
+    if lua_isstring(L,paramstart) then
     begin
-      routine:=lua_tostring(L,1);
+      routine:=lua_tostring(L,paramstart);
       //get a reference to this function
 
       lua_getfield(L, LUA_GLOBALSINDEX, pchar(routine));
@@ -235,10 +237,10 @@ begin
 
 
     c.syncfunction:=f;
-    if lua_gettop(L)>=2 then
+    if paramcount>=2 then
     begin
-      c.syncparam:=2;
-      c.syncparamcount:=lua_gettop(L)-1;
+      c.syncparam:=paramstart+1;
+      c.syncparamcount:=paramcount-1;
     end
     else
       c.syncparam:=0;

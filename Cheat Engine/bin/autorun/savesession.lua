@@ -12,7 +12,7 @@ require("lfs")
 
 function loadMemoryScan_thread(t)
   --the thread is used to bypasses a bug in 6.3
-  thread_synchronize(t, function(t)
+  t.synchronize(function(t)
 	  ms=getCurrentMemscan()
 	  mf=getMainForm()
 
@@ -91,7 +91,7 @@ function loadMemoryScan_thread(t)
   ms.waitTillDone() --this would freeze in the main thread in 6.3
 
 
-  thread_synchronize(t, function(t)
+  t.synchronize(function(t)
 
 	  --tell the memscan that there are saved scans
 	  for i=1, savedscancount do
