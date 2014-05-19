@@ -137,7 +137,7 @@ type TArrMemoryRegion= array [0..0] of TMemoryRegion;
 function TSavedScanHandler.loadIfNotLoadedRegion(p: pointer): pointer;
 {
 Will load in a section from the memory file
-p is a pointer in the memory buffer as if it was completly loaded
+p is a pointer in the memory buffer as if it was completely loaded
 This will effectivly decrease reads to the file. Of course, there is still
 unused memory which is kinda a waste, but it's the most efficient way
 }
@@ -151,7 +151,7 @@ begin
   might result in memory being written multiple times to exactly the same value
   but besides that no real problem.
   decision: no need to block other threads. Besides, the way threadjobs are made
-  all have a seperate region to scan, so usually shouldn't have much overlap
+  all have a separate region to scan, so usually shouldn't have much overlap
   }
   (*
   if not LoadedFromList[(ptrUint(p)-ptrUint(SavedScanmemory)) shr 12] then

@@ -332,7 +332,7 @@ object MainForm: TMainForm
       OnClick = Label57Click
     end
     object Label59: TLabel
-      Left = 424
+      Left = 432
       Height = 13
       Top = 56
       Width = 42
@@ -549,7 +549,7 @@ object MainForm: TMainForm
         object cbFastScan: TCheckBox
           Left = 4
           Height = 19
-          Hint = 'Speeds up the scan and decreases useless reults by skipping unaligned memory, or only scans addresses ending with specific digits'
+          Hint = 'Speeds up the scan and decreases useless results by skipping unaligned memory, or only scans addresses ending with specific digits'
           Top = 7
           Width = 68
           Caption = 'Fast Scan'
@@ -1385,7 +1385,7 @@ object MainForm: TMainForm
       OnClick = lblcompareToSavedScanClick
     end
     object Label3: TLabel
-      Left = 424
+      Left = 432
       Height = 13
       Top = 70
       Width = 32

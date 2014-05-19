@@ -217,7 +217,7 @@ resourcestring
   rsFailedToAddToTableNotAllCodeIsInjectable = 'Failed to add to table. Not all code is injectable';
   rsStartAddress = 'Start address';
   rsCodeRelocationTemplate = 'Code relocation template';
-  rsEndAddressLastBytesAreIncludedIfNecesary = 'End address (last bytes are included if necesary)';
+  rsEndAddressLastBytesAreIncludedIfNecesary = 'End address (last bytes are included if necessary)';
   rsAreYouSureYouWantToClose = 'Are you sure you want to close %s ?';
   rsWhatIdentifierDoYouWantToUse = 'What do you want to name the symbol for the injection point?';
 

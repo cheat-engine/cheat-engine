@@ -187,7 +187,7 @@ begin
             freemem(b);
             ar.allocs.Delete(j);
 
-            if ar.allocs.Count=0 then //completly freed this region
+            if ar.allocs.Count=0 then //completely freed this region
             begin
               virtualfreeex(processhandle,pointer(ar.remotebase),0,MEM_RELEASE);
               ar.allocs.Free;

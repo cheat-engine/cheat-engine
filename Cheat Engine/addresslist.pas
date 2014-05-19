@@ -604,7 +604,7 @@ begin
     //don't complain
   end;
 
-  //update id's if necesary
+  //update id's if necessary
   for i:=0 to count-1 do
     if MemRecItems[i].ID=-1 then
       MemRecItems[i].ID:=GetUniqueMemrecId;

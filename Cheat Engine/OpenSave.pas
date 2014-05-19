@@ -193,7 +193,7 @@ resourcestring
   strCantLoadProtectedfile='This trainer is protected from being opened by CE. Now go away!!!';
   rsThisTableContainsALuaScriptDoYouWantToRunIt = 'This table contains a lua script. Do you want to run it?';
   rsErrorExecutingThisTableSLuaScript = 'Error executing this table''s lua script: %s';
-  rsTheRegionAtWasPartiallyOrCompletlyUnreadable = 'The region at %s was partially or completly unreadable';
+  rsTheRegionAtWasPartiallyOrCompletlyUnreadable = 'The region at %s was partially or completely unreadable';
   rsTheVersionOfIsIncompatibleWithThisCEVersion = 'The version of %s is incompatible with this CE version';
   rsDoesnTContainNeededInformationWhereToPlaceTheMemor = '%s doesn''t contain needed information where to place the memory';
   rsThisIsNotAValidCheatTable = 'This is not a valid cheat table';
@@ -202,7 +202,7 @@ resourcestring
   rsYouCanOnlyProtectAFileIfItHasAnCETRAINERExtension = 'You can only protect a file if it has an .CETRAINER extension';
   rsErrorSaving = 'Error saving...';
   rsAskIfStupid = 'Generating a trainer with the current state of the cheat '
-    +'table will likely result in a completly useless trainer that does '
+    +'table will likely result in a completely useless trainer that does '
     +'nothing. Are you sure?';
  {
 procedure LoadStructFromXMLNode(var struct: TbaseStructure; Structure: TDOMNode);

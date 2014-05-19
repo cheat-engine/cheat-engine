@@ -1309,7 +1309,7 @@ begin
             setlength(assemblerlines,length(assemblerlines)-1);
             continue;
           end;
-          //otherwhise it hasn't been handled, or it has been handled and the string is a compatible string that passes the phase1 tests (so variablenames converted to 00000000 and whatever else is needed)
+          //otherwise it hasn't been handled, or it has been handled and the string is a compatible string that passes the phase1 tests (so variablenames converted to 00000000 and whatever else is needed)
 
           //plugins^^^
 

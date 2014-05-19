@@ -13,12 +13,12 @@ object formDifferentBitSize: TformDifferentBitSize
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.3'
   object Labelold: TLabel
     Left = 120
-    Height = 17
+    Height = 16
     Top = 56
-    Width = 73
+    Width = 72
     Caption = 'LabelOld'
     Font.Height = -16
     Font.Name = 'Courier'
@@ -27,9 +27,9 @@ object formDifferentBitSize: TformDifferentBitSize
   end
   object LabelNew: TLabel
     Left = 120
-    Height = 17
+    Height = 16
     Top = 72
-    Width = 73
+    Width = 72
     Caption = 'LabelNew'
     Font.Height = -16
     Font.Name = 'Courier'
@@ -42,7 +42,7 @@ object formDifferentBitSize: TformDifferentBitSize
     Top = 0
     Width = 321
     AutoSize = False
-    Caption = 'The last time you scanned the number of bits was 90 and now it is 12. Please tell me how and how much i must change the bit offset to succesfully scan. (Left arrow+right arrow move the bits)'
+    Caption = 'The last time you scanned the number of bits was 90 and now it is 12. Please tell me how and how much i must change the bit offset to successfully scan. (Left arrow+right arrow move the bits)'
     ParentColor = False
     WordWrap = True
   end

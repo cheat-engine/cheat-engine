@@ -753,7 +753,7 @@ resourcestring
     +'you lose your data(So don''t forget to save first). Do you want to run DBVM?';
   rsDidNotLoadDBVM = 'I don''t know what you did, you didn''t crash, but you also didn''t load DBVM';
   rsPleaseRebootAndPressF8BeforeWindowsBoots = 'Please reboot and press f8 before windows boots. Then enable unsigned drivers. Alternatively, you could buy yourself a business '
-    +'class certificicate and sign the driver yourself (or try debug signing)';
+    +'class certificate and sign the driver yourself (or try debug signing)';
   rsTheDriverNeedsToBeLoadedToBeAbleToUseThisFunction = 'The driver needs to be loaded to be able to use this function.';
   rsYourCpuMustBeAbleToRunDbvmToUseThisFunction = 'Your cpu must be able to run dbvm to use this function';
   rsCouldnTBeOpened = '%s couldn''t be opened';

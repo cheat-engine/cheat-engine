@@ -611,7 +611,7 @@ resourcestring
   rsAssemblyScan = 'Assembly scan';
   rsInputTheAssemblyCodeToFindWilcardsSupported = 'Input the assembly code to find. Wildcards( * ) supported.';
   rsSymbolHandler = 'Symbol handler';
-  rsPleaseSpecifyTheNewSymbolSearchpathSeperatesPaths = 'Please specify the new symbol searchpath (; seperates paths)';
+  rsPleaseSpecifyTheNewSymbolSearchpathSeperatesPaths = 'Please specify the new symbol searchpath (; separates paths)';
   rsMemoryBrowser = 'MemoryBrowser';
   rsReturnAddress = 'Return Address';
   rsParameters = 'Parameters';
@@ -622,7 +622,7 @@ resourcestring
   rsMaxStacktraceSize = 'Max stacktrace size';
   rsNeedToRunDissectCode = 'You will need to run the dissect code routine first before this window is usable. Run it now?';
   rsMemoryViewerCurrentlyDebuggingThread = 'Memory Viewer - Currently debugging thread %s';
-  rsRestoreWithOrginalCode = 'Restore with orginal code';
+  rsRestoreWithOrginalCode = 'Restore with original code';
   rsReplaceWithCodeThatDoesNothing = 'Replace with code that does nothing';
   rsComment = 'Comment';
   rsCommentFor = 'Comment for %s';
@@ -1187,7 +1187,7 @@ begin
       pa:=a;
       d.disassemble(a,s);
 
-      //look for 00 , 00  (add [eax],al is an 100% completly useless instruction)
+      //look for 00 , 00  (add [eax],al is an 100% completely useless instruction)
       if (length(d.LastDisassembleData.Bytes)>=2) and (d.LastDisassembleData.Bytes[0]=0) and (d.LastDisassembleData.Bytes[1]=0) then
       begin
         start:=a;

@@ -746,7 +746,7 @@ begin
         for i:=length(temp) downto 1 do
           if temp[i] in ['0'..'9','a'..'f'] then temp2:=temp[i]+temp2 else break;
 
-        if temp2<>'' then //I know this isn't completly correct e.g: [eax*4] but even then the 4 will NEVER be bigger than eax (unless it's to cause a crash)
+        if temp2<>'' then //I know this isn't completely correct e.g: [eax*4] but even then the 4 will NEVER be bigger than eax (unless it's to cause a crash)
         begin
           p:=StrToQWordEx('$'+temp2);
           if p>maxregistervalue then maxregistervalue:=p;

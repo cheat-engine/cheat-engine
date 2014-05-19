@@ -208,7 +208,7 @@ begin
   begin
     if total[i]=0 then
     begin
-      if total[i+1]=0 then //2 seperaters next to eachother
+      if total[i+1]=0 then //2 separators next to eachother
       begin
         if seperators[scount]=plus then
         begin

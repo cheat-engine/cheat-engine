@@ -15,7 +15,7 @@ object frmNetworkDataCompression: TfrmNetworkDataCompression
     Width = 326
     Align = alTop
     Alignment = taCenter
-    Caption = 'Change the compression level you wish to use when transfering/receiving memory.'#13#10'Pick a good balance between cpu power of the device and network bandwidth'
+    Caption = 'Change the compression level you wish to use when transferring/receiving memory.'#13#10'Pick a good balance between cpu power of the device and network bandwidth'
     ParentColor = False
     WordWrap = True
   end

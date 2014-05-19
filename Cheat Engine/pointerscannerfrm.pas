@@ -597,7 +597,7 @@ resourcestring
   rsPointercount = 'pointercount';
   rsOnlyTheFirst1000000EntriesWillBeDisplayed = 'Only the first 1000000 '
     +'entries will be displayed. Rescan will still work with all results.  ('
-    +'This is completly normal for a pointerscan, you MUST do a few rescans)';
+    +'This is normal for a pointerscan, you MUST do a few rescans)';
   rsPointerScan = 'Pointer scan';
   rsPointerscanResult = 'pointerscan result';
 
@@ -1666,7 +1666,7 @@ begin
     end;
   end;
 
-  //do this in a seperate thread as to not cause a bottleneck for actual scanners waiting for paths, and slow downloaders
+  //do this in a separate thread as to not cause a bottleneck for actual scanners waiting for paths, and slow downloaders
   scandatauploader:=TScanDataUploader.create(loadedPointermapFilename, distributedScandataDownloadPort);
 
 
@@ -4981,7 +4981,7 @@ begin
 
   //fill the modulelist with baseaddresses
   try
-    //the modulelist now holds the baseaddresses (0 if otherwhise)
+    //the modulelist now holds the baseaddresses (0 if otherwise)
     TotalPointersToEvaluate:=pointerscanresults.count;
 
 
@@ -5287,7 +5287,7 @@ begin
               rescan.startOffsetValues[i]:=startOffsetValues[i];
           end
           else
-            setlength(rescan.startOffsetValues,0); //shouldn't be necesary, but just in case
+            setlength(rescan.startOffsetValues,0); //shouldn't be necessary, but just in case
 
 
           if cbMustEndWithSpecificOffsets.checked then

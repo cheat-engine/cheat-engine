@@ -266,10 +266,10 @@ resourcestring
     +'you want to shift this and following offsets?';
   rsAreYouSureYouWantToDelete = 'Are you sure you want to delete %s?';
   rsThisIsNotAValidStructureFile = 'This is not a valid structure file';
-  rsWrongVersion = 'This structure fils was generated with a newer version of '
+  rsWrongVersion = 'This structure file was generated with a newer version of '
     +'Cheat Engine. (That means there''s more than likely a new version so '
     +'please update....)';
-  rsUnkownFileExtension = 'Unkown file extension';
+  rsUnkownFileExtension = 'Unknown file extension';
   rsAreYouSureYouWantToRemoveAllStructures = 'Are you sure you want to remove '
     +'all structures?';
   rsRecalculateBaseOfStructure = 'Recalculate base of structure';
@@ -842,7 +842,7 @@ procedure TfrmStructures.tvStructureViewAdvancedCustomDrawItem(
   Stage: TCustomDrawStage; var PaintImages, DefaultDraw: Boolean);
 {
 multigroup usage:
-If all entries of the same group are the same, mark them green, otherwhise red
+If all entries of the same group are the same, mark them green, otherwise red
 If the value of another group does not match the value of the first group, mark it red
 }
 
