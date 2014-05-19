@@ -1192,7 +1192,7 @@ begin
   if VarType in [vtByte, vtWord, vtDword, vtQword, vtSingle, vtDouble, vtCustom] then
   begin
     try
-      if showAsHex then //seperate handler for hexadecimal. (handle as int, even for the float types)
+      if showAsHex then //separate handler for hexadecimal. (handle as int, even for the float types)
       begin
         oldvalue:=StrToQWordEx('$'+getvalue);
         increasevalue:=StrToQwordEx('$'+value);
@@ -1610,7 +1610,7 @@ begin
 end;
 
 function TMemoryRecord.BinaryToString(b: pbytearray; bufsize: integer): string;
-{Seperate function for the binary value since it's a bit more complex}
+{separate function for the binary value since it's a bit more complex}
 var
   temp,mask: qword;
 begin

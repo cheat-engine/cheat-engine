@@ -2271,7 +2271,7 @@ begin
             InitializeDriver(0,0);
             {
             if not InitializeDriver(0,0) then
-              messagebox(0,'The driver failed to successfully initialize. Some functions may not completly work','DBK32.dll',MB_ICONERROR or MB_OK);
+              messagebox(0,'The driver failed to successfully initialize. Some functions may not completely work','DBK32.dll',MB_ICONERROR or MB_OK);
               }
 
           end;

@@ -973,7 +973,7 @@ begin
 
   end;
 
-  if last<>(modrmbyte+1) then //add an extra seperator since some bytes have been added, usually the last one, except when the opcode has a immeadiate value followed, which this seperator will then seperate
+  if last<>(modrmbyte+1) then //add an extra seperator since some bytes have been added, usually the last one, except when the opcode has a immeadiate value followed, which this seperator will then separate
   begin
     LastDisassembleData.Seperators[LastDisassembleData.SeperatorCount]:=last;
     inc(LastDisassembleData.SeperatorCount);
@@ -10549,7 +10549,7 @@ begin
       for i:=0 to LastDisassembleData.SeperatorCount-1 do
         inc(LastDisassembleData.Seperators[i],prefixsize);
 
-    //todo: Next time the disassembler is getting an averhaul, do something about the prefix counting and the unnecesary readprocessmemorys associated with it
+    //todo: Next time the disassembler is getting an averhaul, do something about the prefix counting and the unnecessary readprocessmemorys associated with it
 
 
   //  result:=result+'- '+tempresult;

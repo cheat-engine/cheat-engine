@@ -14,7 +14,7 @@ object formSettings: TformSettings
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poMainFormCenter
-  LCLVersion = '1.2.0.3'
+  LCLVersion = '1.3'
   object pnlConfig: TPanel
     Left = 0
     Height = 470
@@ -60,9 +60,9 @@ object formSettings: TformSettings
       Height = 468
       Top = 1
       Width = 622
-      ActivePage = Unrandomizer
+      ActivePage = Assembler
       Align = alClient
-      TabIndex = 2
+      TabIndex = 5
       TabOrder = 1
       OnChange = pcSettingChange
       object GeneralSettings: TTabSheet
@@ -788,9 +788,9 @@ object formSettings: TformSettings
             Height = 119
             Top = 0
             Width = 412
-            ActivePage = tsVEHDebugConfig
+            ActivePage = tsWindowsDebuggerConfig
             Align = alClient
-            TabIndex = 0
+            TabIndex = 1
             TabOrder = 0
             object tsVEHDebugConfig: TTabSheet
               Caption = 'VEH Debugger'
@@ -859,7 +859,7 @@ object formSettings: TformSettings
             end
             object tsWindowsDebuggerConfig: TTabSheet
               Caption = 'Windows Debugger'
-              ClientHeight = 109
+              ClientHeight = 93
               ClientWidth = 404
               object CheckBox1: TCheckBox
                 Left = 2
@@ -873,7 +873,7 @@ object formSettings: TformSettings
             end
             object tsKernelDebugConfig: TTabSheet
               Caption = 'Kernel Debug'
-              ClientHeight = 109
+              ClientHeight = 93
               ClientWidth = 404
               object cbGlobalDebug: TCheckBox
                 Left = 4

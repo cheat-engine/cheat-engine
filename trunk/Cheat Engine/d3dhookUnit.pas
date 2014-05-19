@@ -942,7 +942,7 @@ begin
 
   if (index<>-1) and (fFontmap<>nil) and (fVisible) then
   begin
-    if owner.renderCommandList^[index].command<>integer(rcDrawFont) then //something completly new
+    if owner.renderCommandList^[index].command<>integer(rcDrawFont) then //something completely new
       owner.renderCommandList^[index].command:=integer(rcIgnored);
 
     owner.renderCommandList^[index].x:=x;
@@ -1022,7 +1022,7 @@ begin
 
   if (index<>-1) and (texture<>nil) and (fVisible) then
   begin
-    if owner.renderCommandList^[index].command<>integer(rcDrawSprite) then //something completly new
+    if owner.renderCommandList^[index].command<>integer(rcDrawSprite) then //something completely new
       owner.renderCommandList^[index].command:=integer(rcIgnored);
 
     owner.renderCommandList^[index].x:=x;

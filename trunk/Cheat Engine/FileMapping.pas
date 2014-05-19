@@ -67,7 +67,7 @@ begin
     FileMapping := CreateFileMapping(FileHandle, nil, PAGE_WRITECOPY	, 0, 0, nil);
     if FileMapping = 0 then raise exception.create(rsMappingFailed);
 
-    //map it completly
+    //map it completely
     FFileContent:= MapViewOfFile(FileMapping, FILE_MAP_COPY , 0, 0, 0);
     if FFileContent=nil then raise exception.Create(rsFailedCreatingAProperView);
 

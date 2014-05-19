@@ -13,7 +13,7 @@ object frmRescanPointer: TfrmRescanPointer
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.3'
   object edtAddress: TEdit
     Left = 8
     Height = 21
@@ -86,9 +86,9 @@ object frmRescanPointer: TfrmRescanPointer
   end
   object Label1: TLabel
     Left = 146
-    Height = 14
+    Height = 13
     Top = 74
-    Width = 41
+    Width = 40
     Caption = 'seconds'
     ParentColor = False
   end
@@ -162,9 +162,9 @@ object frmRescanPointer: TfrmRescanPointer
   end
   object lblAnd: TLabel
     Left = 123
-    Height = 14
+    Height = 13
     Top = 170
-    Width = 19
+    Width = 18
     Caption = 'and'
     Enabled = False
     ParentColor = False
@@ -198,7 +198,7 @@ object frmRescanPointer: TfrmRescanPointer
   object cbLuaFilter: TCheckBox
     Left = 8
     Height = 19
-    Hint = 'When checked this will call the given function for every pointer being evaluated. Return true if it''svalid, false if not'#13#10'base is the base address (integer)'#13#10'offset is a table with offsets'#13#10'target is the address the pointer points to. Can be nil'
+    Hint = 'When checked this will call the given function for every pointer being evaluated. Return true if it''s valid, false if not'#13#10'base is the base address (integer)'#13#10'offset is a table with offsets'#13#10'target is the address the pointer points to. Can be nil'
     Top = 120
     Width = 104
     Caption = 'Lua filter. function'
@@ -218,9 +218,9 @@ object frmRescanPointer: TfrmRescanPointer
   end
   object lblLuaParams: TLabel
     Left = 185
-    Height = 14
+    Height = 13
     Top = 123
-    Width = 123
+    Width = 122
     Caption = '(base, offsets, target):bool'
     ParentColor = False
   end

@@ -25,12 +25,12 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="6"/>
       <MinorVersionNr Value="3"/>
-      <BuildNr Value="3954"/>
+      <BuildNr Value="4008"/>
       <Language Value=""/>
       <CharSet Value=""/>
       <StringTable CompanyName="Cheat Engine" FileDescription="Cheat Engine" ProductVersion="6.3"/>
     </VersionInfo>
-    <BuildModes Count="5" Active="Release 32-Bit">
+    <BuildModes Count="5" Active="debug-nomt">
       <Item1 Name="Release 32-Bit" Default="True"/>
       <Item2 Name="Release 64-Bit">
         <CompilerOptions>
@@ -273,14 +273,14 @@
         <PackageName Value="LCL"/>
       </Item6>
     </RequiredPackages>
-    <Units Count="317">
+    <Units Count="326">
       <Unit0>
         <Filename Value="cheatengine.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="cheatengine"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="180"/>
-        <CursorPos X="13" Y="193"/>
+        <TopLine Value="181"/>
+        <CursorPos X="1" Y="206"/>
         <UsageCount Value="211"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit0>
@@ -293,7 +293,7 @@
         <UnitName Value="bogus"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
-        <CursorPos X="50" Y="10"/>
+        <CursorPos X="57" Y="13"/>
         <UsageCount Value="211"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit1>
@@ -304,14 +304,12 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="MainUnit"/>
-        <EditorIndex Value="12"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="2958"/>
-        <CursorPos X="98" Y="2967"/>
+        <TopLine Value="4604"/>
+        <CursorPos X="34" Y="4617"/>
         <UsageCount Value="211"/>
-        <Bookmarks Count="1">
-          <Item0 X="3" Y="7115" ID="8"/>
-        </Bookmarks>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -320,56 +318,54 @@
         <Filename Value="NewKernelHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="NewKernelHandler"/>
+        <EditorIndex Value="37"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="454"/>
-        <CursorPos X="6" Y="467"/>
+        <TopLine Value="743"/>
+        <CursorPos X="20" Y="756"/>
         <UsageCount Value="211"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit3>
       <Unit4>
         <Filename Value="CEFuncProc.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="CEFuncProc"/>
-        <EditorIndex Value="19"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="2641"/>
-        <CursorPos X="29" Y="2662"/>
+        <TopLine Value="1371"/>
+        <CursorPos X="1" Y="1384"/>
         <UsageCount Value="204"/>
-        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit4>
       <Unit5>
         <Filename Value="ProcessHandlerUnit.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="ProcessHandlerUnit"/>
-        <EditorIndex Value="22"/>
         <WindowIndex Value="0"/>
         <TopLine Value="103"/>
-        <CursorPos X="8" Y="125"/>
+        <CursorPos X="1" Y="125"/>
         <UsageCount Value="204"/>
-        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit5>
       <Unit6>
         <Filename Value="symbolhandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="symbolhandler"/>
-        <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="2599"/>
-        <CursorPos X="31" Y="2607"/>
+        <TopLine Value="2407"/>
+        <CursorPos X="1" Y="2423"/>
         <UsageCount Value="204"/>
-        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit6>
       <Unit7>
         <Filename Value="Assemblerunit.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="Assemblerunit"/>
+        <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="886"/>
-        <CursorPos X="128" Y="899"/>
+        <TopLine Value="5533"/>
+        <CursorPos X="111" Y="5545"/>
         <UsageCount Value="203"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit7>
       <Unit8>
@@ -385,10 +381,15 @@
         <Filename Value="disassembler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="disassembler"/>
+        <EditorIndex Value="15"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="10965"/>
-        <CursorPos X="24" Y="10979"/>
+        <TopLine Value="963"/>
+        <CursorPos X="207" Y="976"/>
         <UsageCount Value="202"/>
+        <Bookmarks Count="1">
+          <Item0 X="13" Y="10538" ID="8"/>
+        </Bookmarks>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit9>
       <Unit10>
@@ -406,8 +407,8 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="CEDebugger"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="16" Y="163"/>
+        <TopLine Value="226"/>
+        <CursorPos X="3" Y="228"/>
         <UsageCount Value="202"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit11>
@@ -415,20 +416,24 @@
         <Filename Value="addressparser.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="addressparser"/>
+        <EditorIndex Value="16"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="131"/>
-        <CursorPos X="32" Y="139"/>
+        <TopLine Value="197"/>
+        <CursorPos X="40" Y="211"/>
         <UsageCount Value="200"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit12>
       <Unit13>
         <Filename Value="autoassembler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="autoassembler"/>
+        <EditorIndex Value="21"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="2532"/>
-        <CursorPos X="115" Y="2545"/>
+        <TopLine Value="1299"/>
+        <CursorPos X="28" Y="1314"/>
         <UsageCount Value="200"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit13>
       <Unit14>
@@ -448,25 +453,20 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="ProcessWindowUnit"/>
-        <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="204"/>
-        <CursorPos X="52" Y="220"/>
+        <TopLine Value="311"/>
+        <CursorPos X="103" Y="321"/>
         <UsageCount Value="203"/>
-        <Loaded Value="True"/>
-        <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit15>
       <Unit16>
         <Filename Value="MainUnit2.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="MainUnit2"/>
-        <EditorIndex Value="13"/>
         <WindowIndex Value="0"/>
         <TopLine Value="10"/>
         <CursorPos X="14" Y="26"/>
         <UsageCount Value="203"/>
-        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit16>
       <Unit17>
@@ -497,8 +497,8 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="formsettingsunit"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="109"/>
-        <CursorPos X="34" Y="118"/>
+        <TopLine Value="110"/>
+        <CursorPos X="30" Y="128"/>
         <UsageCount Value="203"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit19>
@@ -567,12 +567,10 @@
         <Filename Value="pluginexports.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="pluginexports"/>
-        <EditorIndex Value="18"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1562"/>
         <CursorPos X="3" Y="1564"/>
         <UsageCount Value="201"/>
-        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit25>
       <Unit26>
@@ -594,10 +592,12 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="aboutunit"/>
+        <EditorIndex Value="22"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="50"/>
-        <CursorPos X="23" Y="54"/>
+        <TopLine Value="58"/>
+        <CursorPos X="156" Y="72"/>
         <UsageCount Value="201"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit27>
       <Unit28>
@@ -704,10 +704,12 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="FoundCodeUnit"/>
+        <EditorIndex Value="12"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="126"/>
-        <CursorPos X="98" Y="139"/>
+        <TopLine Value="737"/>
+        <CursorPos X="57" Y="749"/>
         <UsageCount Value="210"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit36>
       <Unit37>
@@ -744,20 +746,24 @@
         <Filename Value="memscan.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="memscan"/>
+        <EditorIndex Value="17"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="4326"/>
-        <CursorPos X="5" Y="4340"/>
+        <TopLine Value="417"/>
+        <CursorPos X="80" Y="431"/>
         <UsageCount Value="209"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit40>
       <Unit41>
         <Filename Value="savedscanhandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="savedscanhandler"/>
+        <EditorIndex Value="18"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="550"/>
-        <CursorPos X="27" Y="576"/>
+        <TopLine Value="126"/>
+        <CursorPos X="60" Y="140"/>
         <UsageCount Value="209"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit41>
       <Unit42>
@@ -786,12 +792,16 @@
         <Filename Value="formDifferentBitSizeUnit.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="formDifferentBitSize"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="formDifferentBitSizeUnit"/>
+        <EditorIndex Value="31"/>
         <WindowIndex Value="0"/>
         <TopLine Value="35"/>
-        <CursorPos X="11" Y="48"/>
+        <CursorPos X="39" Y="49"/>
         <UsageCount Value="203"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit44>
       <Unit45>
@@ -824,8 +834,8 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="speedhack2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="224"/>
-        <CursorPos X="56" Y="244"/>
+        <TopLine Value="16"/>
+        <CursorPos X="56" Y="28"/>
         <UsageCount Value="202"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit47>
@@ -869,9 +879,10 @@
         <Filename Value="OpenSave.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="OpenSave"/>
+        <EditorIndex Value="19"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="983"/>
-        <CursorPos X="17" Y="729"/>
+        <TopLine Value="183"/>
+        <CursorPos X="47" Y="205"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
           <WindowIndex Value="0"/>
@@ -882,6 +893,7 @@
         <Bookmarks Count="1">
           <Item0 X="3" Y="946" ID="0"/>
         </Bookmarks>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit51>
       <Unit52>
@@ -903,10 +915,12 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmautoinjectunit"/>
+        <EditorIndex Value="20"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="707"/>
-        <CursorPos X="16" Y="721"/>
+        <TopLine Value="1248"/>
+        <CursorPos X="53" Y="1260"/>
         <UsageCount Value="221"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit53>
       <Unit54>
@@ -926,10 +940,10 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="MemoryBrowserFormUnit"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="35"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="1" Y="1"/>
+        <TopLine Value="1177"/>
+        <CursorPos X="62" Y="1190"/>
         <UsageCount Value="220"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -1033,10 +1047,12 @@
         <Filename Value="stacktrace2.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="stacktrace2"/>
+        <EditorIndex Value="38"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="39"/>
-        <CursorPos X="45" Y="60"/>
+        <TopLine Value="1"/>
+        <CursorPos X="11" Y="16"/>
         <UsageCount Value="203"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit64>
       <Unit65>
@@ -1122,13 +1138,10 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmThreadlistunit"/>
-        <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
         <TopLine Value="772"/>
         <CursorPos X="70" Y="875"/>
         <UsageCount Value="206"/>
-        <Loaded Value="True"/>
-        <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit71>
       <Unit72>
@@ -1157,12 +1170,10 @@
         <Filename Value="PEInfoFunctions.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="PEInfoFunctions"/>
-        <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
         <TopLine Value="412"/>
         <CursorPos X="3" Y="409"/>
         <UsageCount Value="206"/>
-        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit74>
       <Unit75>
@@ -1182,10 +1193,10 @@
         <Filename Value="FileMapping.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="FileMapping"/>
-        <EditorIndex Value="23"/>
+        <EditorIndex Value="36"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="46"/>
-        <CursorPos X="13" Y="51"/>
+        <TopLine Value="48"/>
+        <CursorPos X="24" Y="70"/>
         <UsageCount Value="206"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -1230,12 +1241,16 @@
         <Filename Value="savedisassemblyfrm.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="frmSavedisassembly"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="savedisassemblyfrm"/>
+        <EditorIndex Value="39"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="124"/>
-        <CursorPos X="41" Y="141"/>
+        <TopLine Value="95"/>
+        <CursorPos X="106" Y="112"/>
         <UsageCount Value="205"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit80>
       <Unit81>
@@ -1331,12 +1346,10 @@
         <ComponentName Value="frmFloatingPointPanel"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmFloatingPointPanelUnit"/>
-        <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
         <TopLine Value="380"/>
         <CursorPos X="1" Y="405"/>
         <UsageCount Value="205"/>
-        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit88>
       <Unit89>
@@ -1446,10 +1459,12 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Structuresfrm"/>
+        <EditorIndex Value="23"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="464"/>
-        <CursorPos X="1" Y="476"/>
+        <TopLine Value="259"/>
+        <CursorPos X="40" Y="269"/>
         <UsageCount Value="204"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit97>
       <Unit98>
@@ -1472,10 +1487,10 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="PointerscannerSettingsFrm"/>
-        <EditorIndex Value="15"/>
+        <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
         <TopLine Value="722"/>
-        <CursorPos X="1" Y="749"/>
+        <CursorPos X="28" Y="730"/>
         <UsageCount Value="204"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -1524,9 +1539,10 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="pointerscannerfrm"/>
+        <EditorIndex Value="24"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="5085"/>
-        <CursorPos X="1" Y="5095"/>
+        <TopLine Value="586"/>
+        <CursorPos X="15" Y="600"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
           <WindowIndex Value="0"/>
@@ -1538,6 +1554,7 @@
           <Item0 X="31" Y="795" ID="6"/>
           <Item1 X="7" Y="5098" ID="9"/>
         </Bookmarks>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit103>
       <Unit104>
@@ -1577,10 +1594,13 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmRescanPointerUnit"/>
+        <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
         <TopLine Value="129"/>
         <CursorPos X="42" Y="141"/>
         <UsageCount Value="204"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit107>
       <Unit108>
@@ -1645,25 +1665,25 @@
         <Filename Value="hexviewunit.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="hexviewunit"/>
-        <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
         <TopLine Value="740"/>
         <CursorPos X="9" Y="725"/>
         <UsageCount Value="208"/>
-        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit113>
       <Unit114>
         <Filename Value="debugeventhandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="debugeventhandler"/>
+        <EditorIndex Value="13"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1401"/>
-        <CursorPos X="5" Y="1415"/>
+        <TopLine Value="1518"/>
+        <CursorPos X="1" Y="1539"/>
         <UsageCount Value="209"/>
         <Bookmarks Count="1">
-          <Item0 X="1" Y="1617" ID="1"/>
+          <Item0 X="1" Y="1619" ID="1"/>
         </Bookmarks>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit114>
       <Unit115>
@@ -1671,8 +1691,8 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="guisafecriticalsection"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="34"/>
-        <CursorPos X="1" Y="43"/>
+        <TopLine Value="58"/>
+        <CursorPos X="1" Y="70"/>
         <UsageCount Value="209"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit115>
@@ -1680,14 +1700,16 @@
         <Filename Value="debughelper.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DebugHelper"/>
+        <EditorIndex Value="14"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="2041"/>
-        <CursorPos X="18" Y="2055"/>
+        <TopLine Value="2117"/>
+        <CursorPos X="3" Y="2126"/>
         <UsageCount Value="209"/>
         <Bookmarks Count="2">
-          <Item0 X="11" Y="1497" ID="2"/>
-          <Item1 X="40" Y="1531" ID="7"/>
+          <Item0 X="11" Y="1499" ID="2"/>
+          <Item1 X="40" Y="1533" ID="7"/>
         </Bookmarks>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit116>
       <Unit117>
@@ -1719,17 +1741,17 @@
         <WindowIndex Value="0"/>
         <TopLine Value="6278"/>
         <CursorPos X="15" Y="6282"/>
-        <UsageCount Value="183"/>
+        <UsageCount Value="164"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit119>
       <Unit120>
         <Filename Value="addresslist.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="addresslist"/>
-        <EditorIndex Value="9"/>
+        <EditorIndex Value="28"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="160"/>
-        <CursorPos X="76" Y="125"/>
+        <TopLine Value="595"/>
+        <CursorPos X="29" Y="607"/>
         <UsageCount Value="203"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -1738,9 +1760,10 @@
         <Filename Value="MemoryRecordUnit.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="MemoryRecordUnit"/>
+        <EditorIndex Value="25"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="258"/>
-        <CursorPos X="3" Y="275"/>
+        <TopLine Value="1600"/>
+        <CursorPos X="10" Y="1613"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
           <WindowIndex Value="0"/>
@@ -1748,6 +1771,7 @@
           <CursorPos X="36" Y="2124"/>
         </ExtraEditor1>
         <UsageCount Value="215"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit121>
       <Unit122>
@@ -1847,8 +1871,8 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="DebuggerInterfaceAPIWrapper"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="14"/>
-        <CursorPos X="1" Y="34"/>
+        <TopLine Value="2"/>
+        <CursorPos X="10" Y="15"/>
         <UsageCount Value="265"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit130>
@@ -1879,20 +1903,22 @@
         <Filename Value="tableconverter.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="tableconverter"/>
+        <EditorIndex Value="26"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="88"/>
-        <CursorPos X="75" Y="104"/>
+        <TopLine Value="146"/>
+        <CursorPos X="112" Y="159"/>
         <UsageCount Value="251"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit133>
       <Unit134>
         <Filename Value="dbk32\DBK32functions.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="DBK32functions"/>
-        <EditorIndex Value="1"/>
+        <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="2047"/>
-        <CursorPos X="14" Y="2061"/>
+        <TopLine Value="2261"/>
+        <CursorPos X="108" Y="2274"/>
         <UsageCount Value="204"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -1921,10 +1947,12 @@
         <Filename Value="dbk32\vmxfunctions.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="vmxfunctions"/>
+        <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="794"/>
-        <CursorPos X="63" Y="794"/>
+        <TopLine Value="177"/>
+        <CursorPos X="78" Y="193"/>
         <UsageCount Value="204"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit137>
       <Unit138>
@@ -1954,8 +1982,8 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="KernelDebuggerInterface"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="164"/>
-        <CursorPos X="28" Y="182"/>
+        <TopLine Value="24"/>
+        <CursorPos X="3" Y="37"/>
         <UsageCount Value="204"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit140>
@@ -1973,16 +2001,15 @@
         <Filename Value="LuaHandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaHandler"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="17"/>
+        <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="2399"/>
-        <CursorPos X="12" Y="2411"/>
+        <TopLine Value="1"/>
+        <CursorPos X="1" Y="1"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
           <WindowIndex Value="0"/>
-          <TopLine Value="3212"/>
-          <CursorPos X="38" Y="3228"/>
+          <TopLine Value="5674"/>
+          <CursorPos X="27" Y="5687"/>
         </ExtraEditor1>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
@@ -2089,8 +2116,8 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="formdesignerunit"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="990"/>
-        <CursorPos X="19" Y="1000"/>
+        <TopLine Value="992"/>
+        <CursorPos X="19" Y="1002"/>
         <UsageCount Value="236"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit151>
@@ -2098,20 +2125,24 @@
         <Filename Value="ceguicomponents.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="ceguicomponents"/>
+        <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="84"/>
-        <CursorPos X="12" Y="102"/>
+        <TopLine Value="590"/>
+        <CursorPos X="26" Y="651"/>
         <UsageCount Value="236"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit152>
       <Unit153>
         <Filename Value="LuaCaller.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaCaller"/>
+        <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="279"/>
-        <CursorPos X="3" Y="292"/>
+        <TopLine Value="393"/>
+        <CursorPos X="5" Y="419"/>
         <UsageCount Value="234"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit153>
       <Unit154>
@@ -2141,19 +2172,18 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="trainergenerator"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="688"/>
-        <CursorPos X="76" Y="686"/>
+        <TopLine Value="1552"/>
+        <CursorPos X="40" Y="1571"/>
         <ExtraEditorCount Value="1"/>
         <ExtraEditor1>
           <WindowIndex Value="0"/>
-          <TopLine Value="581"/>
-          <CursorPos X="25" Y="599"/>
+          <TopLine Value="1388"/>
+          <CursorPos X="23" Y="1408"/>
         </ExtraEditor1>
         <UsageCount Value="209"/>
         <Loaded Value="True"/>
-        <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit156>
       <Unit157>
@@ -2184,8 +2214,8 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmExeTrainerGeneratorUnit"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="297"/>
-        <CursorPos X="3" Y="197"/>
+        <TopLine Value="531"/>
+        <CursorPos X="72" Y="543"/>
         <UsageCount Value="212"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit159>
@@ -2203,12 +2233,10 @@
         <Filename Value="xmplayer_server.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="xmplayer_server"/>
-        <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
         <TopLine Value="39"/>
         <CursorPos X="3" Y="45"/>
         <UsageCount Value="200"/>
-        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit161>
       <Unit162>
@@ -2398,13 +2426,10 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmUltimapUnit"/>
-        <EditorIndex Value="14"/>
         <WindowIndex Value="0"/>
         <TopLine Value="866"/>
         <CursorPos X="3" Y="849"/>
         <UsageCount Value="201"/>
-        <Loaded Value="True"/>
-        <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit179>
       <Unit180>
@@ -2444,34 +2469,32 @@
         <Filename Value="networkInterface.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="networkInterface"/>
-        <EditorIndex Value="24"/>
         <WindowIndex Value="0"/>
         <TopLine Value="279"/>
         <CursorPos X="1" Y="297"/>
         <UsageCount Value="222"/>
-        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit183>
       <Unit184>
         <Filename Value="networkInterfaceApi.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="networkInterfaceApi"/>
-        <EditorIndex Value="20"/>
         <WindowIndex Value="0"/>
         <TopLine Value="101"/>
         <CursorPos X="1" Y="118"/>
         <UsageCount Value="428"/>
-        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit184>
       <Unit185>
         <Filename Value="LuaThread.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaThread"/>
+        <EditorIndex Value="9"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="215"/>
-        <CursorPos X="41" Y="223"/>
+        <TopLine Value="229"/>
+        <CursorPos X="103" Y="245"/>
         <UsageCount Value="201"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit185>
       <Unit186>
@@ -2498,10 +2521,12 @@
         <Filename Value="d3dhookUnit.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="d3dhookUnit"/>
+        <EditorIndex Value="27"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1174"/>
-        <CursorPos X="15" Y="1182"/>
+        <TopLine Value="1012"/>
+        <CursorPos X="98" Y="1025"/>
         <UsageCount Value="249"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit188>
       <Unit189>
@@ -2543,10 +2568,12 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="StructuresFrm2"/>
+        <EditorIndex Value="29"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="4501"/>
-        <CursorPos X="13" Y="4513"/>
+        <TopLine Value="555"/>
+        <CursorPos X="42" Y="566"/>
         <UsageCount Value="201"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit192>
       <Unit193>
@@ -2662,12 +2689,10 @@
         <Filename Value="LuaXMPlayer.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaXMPlayer"/>
-        <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="1" Y="1"/>
         <UsageCount Value="314"/>
-        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit203>
       <Unit204>
@@ -2717,10 +2742,12 @@
         <Filename Value="RemoteMemoryManager.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="RemoteMemoryManager"/>
+        <EditorIndex Value="30"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="114"/>
-        <CursorPos X="18" Y="132"/>
+        <TopLine Value="178"/>
+        <CursorPos X="18" Y="189"/>
         <UsageCount Value="256"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit208>
       <Unit209>
@@ -2809,10 +2836,12 @@
         <Filename Value="LuaClass.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaClass"/>
+        <EditorIndex Value="33"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="193"/>
-        <CursorPos X="2" Y="199"/>
+        <TopLine Value="34"/>
+        <CursorPos X="10" Y="47"/>
         <UsageCount Value="204"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit216>
       <Unit217>
@@ -2970,7 +2999,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaCollectionItem"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
+        <TopLine Value="55"/>
         <CursorPos X="1" Y="1"/>
         <UsageCount Value="205"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -2980,7 +3009,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaListcolumn"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="36"/>
+        <TopLine Value="84"/>
         <CursorPos X="33" Y="10"/>
         <UsageCount Value="200"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -3051,7 +3080,7 @@
         <UnitName Value="LuaListview"/>
         <WindowIndex Value="0"/>
         <TopLine Value="103"/>
-        <CursorPos X="3" Y="118"/>
+        <CursorPos X="1" Y="119"/>
         <UsageCount Value="215"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit240>
@@ -3130,8 +3159,8 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaD3DHook"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="84" Y="15"/>
+        <TopLine Value="10"/>
+        <CursorPos X="1" Y="31"/>
         <UsageCount Value="201"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit248>
@@ -3291,8 +3320,8 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="cvconst"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="17" Y="314"/>
+        <TopLine Value="109"/>
+        <CursorPos X="1" Y="75"/>
         <UsageCount Value="213"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit262>
@@ -3303,12 +3332,10 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="networkConfig"/>
-        <EditorIndex Value="21"/>
         <WindowIndex Value="0"/>
         <TopLine Value="34"/>
         <CursorPos X="21" Y="51"/>
         <UsageCount Value="204"/>
-        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit263>
       <Unit264>
@@ -3481,12 +3508,9 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="DotNetPipe"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="535"/>
-        <CursorPos X="1" Y="543"/>
+        <TopLine Value="620"/>
+        <CursorPos X="1" Y="641"/>
         <UsageCount Value="242"/>
-        <Bookmarks Count="1">
-          <Item0 X="8" Y="535" ID="8"/>
-        </Bookmarks>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit279>
       <Unit280>
@@ -3530,15 +3554,6 @@
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit283>
       <Unit284>
-        <Filename Value="lua\lua.pas"/>
-        <UnitName Value="lua"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="47"/>
-        <CursorPos X="3" Y="60"/>
-        <UsageCount Value="8"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit284>
-      <Unit285>
         <Filename Value="celistviewitemeditor.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="frmCEListviewItemEditor"/>
@@ -3550,8 +3565,8 @@
         <CursorPos X="10" Y="168"/>
         <UsageCount Value="201"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit285>
-      <Unit286>
+      </Unit284>
+      <Unit285>
         <Filename Value="luatreeview.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaTreeview"/>
@@ -3560,8 +3575,8 @@
         <CursorPos X="14" Y="105"/>
         <UsageCount Value="268"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit286>
-      <Unit287>
+      </Unit285>
+      <Unit286>
         <Filename Value="luatreenodes.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaTreeNodes"/>
@@ -3570,8 +3585,8 @@
         <CursorPos X="37" Y="111"/>
         <UsageCount Value="263"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit287>
-      <Unit288>
+      </Unit286>
+      <Unit287>
         <Filename Value="luatreenode.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaTreeNode"/>
@@ -3580,27 +3595,27 @@
         <CursorPos X="1" Y="303"/>
         <UsageCount Value="262"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit288>
-      <Unit289>
+      </Unit287>
+      <Unit288>
         <Filename Value="C:\lazarus\lcl\controls.pp"/>
         <UnitName Value="Controls"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1004"/>
         <CursorPos X="14" Y="1587"/>
-        <UsageCount Value="98"/>
+        <UsageCount Value="79"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit289>
-      <Unit290>
+      </Unit288>
+      <Unit289>
         <Filename Value="luacalendar.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaCalendar"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="152"/>
-        <CursorPos X="1" Y="177"/>
+        <TopLine Value="154"/>
+        <CursorPos X="32" Y="169"/>
         <UsageCount Value="320"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit290>
-      <Unit291>
+      </Unit289>
+      <Unit290>
         <Filename Value="luasymbollisthandler.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaSymbolListHandler"/>
@@ -3609,16 +3624,16 @@
         <CursorPos X="8" Y="115"/>
         <UsageCount Value="203"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit291>
-      <Unit292>
+      </Unit290>
+      <Unit291>
         <Filename Value="C:\lazarus\components\synedit\synedit.pp"/>
         <UnitName Value="SynEdit"/>
         <WindowIndex Value="0"/>
         <TopLine Value="4008"/>
         <CursorPos X="27" Y="4016"/>
-        <UsageCount Value="77"/>
-      </Unit292>
-      <Unit293>
+        <UsageCount Value="58"/>
+      </Unit291>
+      <Unit292>
         <Filename Value="LuaFindDialog.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaFindDialog"/>
@@ -3627,8 +3642,8 @@
         <CursorPos X="1" Y="1"/>
         <UsageCount Value="201"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit293>
-      <Unit294>
+      </Unit292>
+      <Unit293>
         <Filename Value="LuaCommonDialog.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaCommonDialog"/>
@@ -3637,8 +3652,8 @@
         <CursorPos X="12" Y="18"/>
         <UsageCount Value="201"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit294>
-      <Unit295>
+      </Unit293>
+      <Unit294>
         <Filename Value="LuaSettings.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaSettings"/>
@@ -3647,8 +3662,8 @@
         <CursorPos X="3" Y="42"/>
         <UsageCount Value="228"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit295>
-      <Unit296>
+      </Unit294>
+      <Unit295>
         <Filename Value="frmreferencedfunctionsunit.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="frmReferencedFunctions"/>
@@ -3662,8 +3677,8 @@
           <Item0 X="22" Y="103" ID="7"/>
         </Bookmarks>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit296>
-      <Unit297>
+      </Unit295>
+      <Unit296>
         <Filename Value="Sounds.RC"/>
         <IsPartOfProject Value="True"/>
         <WindowIndex Value="0"/>
@@ -3671,8 +3686,8 @@
         <CursorPos X="35" Y="2"/>
         <UsageCount Value="201"/>
         <DefaultSyntaxHighlighter Value="None"/>
-      </Unit297>
-      <Unit298>
+      </Unit296>
+      <Unit297>
         <Filename Value="luapagecontrol.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="LuaPageControl"/>
@@ -3681,281 +3696,371 @@
         <CursorPos X="68" Y="77"/>
         <UsageCount Value="207"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit298>
-      <Unit299>
-        <Filename Value="C:\lazarus\lcl\lclintf.pas"/>
-        <UnitName Value="LCLIntf"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="171"/>
-        <CursorPos X="1" Y="189"/>
-        <UsageCount Value="6"/>
-      </Unit299>
-      <Unit300>
+      </Unit297>
+      <Unit298>
         <Filename Value="C:\lazarus\fpc\2.6.2\source\packages\winunits-jedi\src\jwawindows.pas"/>
         <UnitName Value="JwaWindows"/>
         <WindowIndex Value="0"/>
         <TopLine Value="351"/>
         <CursorPos X="3" Y="368"/>
-        <UsageCount Value="69"/>
-      </Unit300>
-      <Unit301>
+        <UsageCount Value="50"/>
+      </Unit298>
+      <Unit299>
         <Filename Value="C:\lazarus\lcl\interfaces\win32\win32winapi.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="433"/>
         <CursorPos X="16" Y="446"/>
-        <UsageCount Value="82"/>
-      </Unit301>
-      <Unit302>
+        <UsageCount Value="63"/>
+      </Unit299>
+      <Unit300>
         <Filename Value="C:\lazarus\fpc\2.6.2\source\rtl\win\wininc\ascdef.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="406"/>
         <CursorPos X="10" Y="463"/>
-        <UsageCount Value="64"/>
-      </Unit302>
-      <Unit303>
+        <UsageCount Value="45"/>
+      </Unit300>
+      <Unit301>
         <Filename Value="C:\lazarus\fpc\2.6.2\source\rtl\inc\objpash.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="186"/>
         <CursorPos X="21" Y="201"/>
-        <UsageCount Value="44"/>
-      </Unit303>
-      <Unit304>
+        <UsageCount Value="25"/>
+      </Unit301>
+      <Unit302>
         <Filename Value="C:\lazarus\fpc\2.6.2\source\rtl\objpas\math.pp"/>
         <UnitName Value="math"/>
         <WindowIndex Value="0"/>
         <TopLine Value="176"/>
         <CursorPos X="10" Y="191"/>
-        <UsageCount Value="38"/>
-      </Unit304>
-      <Unit305>
+        <UsageCount Value="19"/>
+      </Unit302>
+      <Unit303>
         <Filename Value="C:\lazarus\lcl\stdctrls.pp"/>
         <UnitName Value="StdCtrls"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1269"/>
         <CursorPos X="14" Y="1282"/>
-        <UsageCount Value="49"/>
-      </Unit305>
-      <Unit306>
+        <UsageCount Value="30"/>
+      </Unit303>
+      <Unit304>
         <Filename Value="C:\lazarus\fpc\2.6.2\source\packages\fcl-base\src\contnrs.pp"/>
         <UnitName Value="contnrs"/>
         <WindowIndex Value="0"/>
         <TopLine Value="78"/>
         <CursorPos X="3" Y="94"/>
-        <UsageCount Value="112"/>
-      </Unit306>
-      <Unit307>
+        <UsageCount Value="93"/>
+      </Unit304>
+      <Unit305>
         <Filename Value="C:\lazarus\fpc\2.6.2\source\rtl\win\wininc\defines.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="4864"/>
         <CursorPos X="6" Y="4879"/>
-        <UsageCount Value="70"/>
-      </Unit307>
-      <Unit308>
+        <UsageCount Value="51"/>
+      </Unit305>
+      <Unit306>
         <Filename Value="C:\lazarus\lcl\comctrls.pp"/>
         <UnitName Value="ComCtrls"/>
         <WindowIndex Value="0"/>
         <TopLine Value="2838"/>
         <CursorPos X="3" Y="2854"/>
-        <UsageCount Value="183"/>
+        <UsageCount Value="164"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit308>
-      <Unit309>
+      </Unit306>
+      <Unit307>
         <Filename Value="C:\lazarus\lcl\imglist.pp"/>
         <UnitName Value="ImgList"/>
         <WindowIndex Value="0"/>
         <TopLine Value="168"/>
         <CursorPos X="15" Y="184"/>
-        <UsageCount Value="138"/>
+        <UsageCount Value="119"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit309>
-      <Unit310>
+      </Unit307>
+      <Unit308>
         <Filename Value="C:\lazarus\lcl\include\imglist.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="596"/>
         <CursorPos X="3" Y="606"/>
-        <UsageCount Value="138"/>
+        <UsageCount Value="119"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit310>
-      <Unit311>
+      </Unit308>
+      <Unit309>
         <Filename Value="C:\lazarus\lcl\buttons.pp"/>
         <UnitName Value="Buttons"/>
         <WindowIndex Value="0"/>
         <TopLine Value="358"/>
         <CursorPos X="14" Y="370"/>
-        <UsageCount Value="138"/>
+        <UsageCount Value="119"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit311>
-      <Unit312>
+      </Unit309>
+      <Unit310>
         <Filename Value="C:\lazarus\lcl\include\speedbutton.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="184"/>
         <CursorPos X="3" Y="192"/>
-        <UsageCount Value="138"/>
+        <UsageCount Value="119"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit312>
-      <Unit313>
+      </Unit310>
+      <Unit311>
         <Filename Value="C:\lazarus\lcl\include\buttonglyph.inc"/>
         <WindowIndex Value="0"/>
         <TopLine Value="123"/>
         <CursorPos X="3" Y="130"/>
-        <UsageCount Value="138"/>
+        <UsageCount Value="119"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit313>
-      <Unit314>
+      </Unit311>
+      <Unit312>
         <Filename Value="C:\development\fpc\rtl\win\wininc\redef.inc"/>
-        <EditorIndex Value="25"/>
         <WindowIndex Value="0"/>
         <TopLine Value="606"/>
         <CursorPos X="10" Y="619"/>
-        <UsageCount Value="44"/>
-        <Loaded Value="True"/>
-      </Unit314>
-      <Unit315>
+        <UsageCount Value="45"/>
+      </Unit312>
+      <Unit313>
         <Filename Value="C:\development\fpc\packages\winunits-jedi\src\jwawinsvc.pas"/>
         <UnitName Value="jwawinsvc"/>
-        <EditorIndex Value="26"/>
         <WindowIndex Value="0"/>
         <TopLine Value="962"/>
         <CursorPos X="31" Y="976"/>
-        <UsageCount Value="97"/>
-        <Loaded Value="True"/>
-      </Unit315>
-      <Unit316>
+        <UsageCount Value="86"/>
+      </Unit313>
+      <Unit314>
         <Filename Value="frmnetworkdatacompressionunit.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="frmNetworkDataCompression"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmNetworkDataCompressionUnit"/>
-        <EditorIndex Value="16"/>
+        <EditorIndex Value="32"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="3" Y="9"/>
-        <UsageCount Value="87"/>
+        <UsageCount Value="273"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit314>
+      <Unit315>
+        <Filename Value="C:\development\lazarus\lcl\dialogs.pp"/>
+        <UnitName Value="Dialogs"/>
+        <EditorIndex Value="34"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="78"/>
+        <CursorPos X="42" Y="90"/>
+        <UsageCount Value="83"/>
+        <Loaded Value="True"/>
+      </Unit315>
+      <Unit316>
+        <Filename Value="C:\development\lazarus\components\ideintf\objectinspector.pp"/>
+        <ComponentName Value="ObjectInspectorDlg"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="ObjectInspector"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="4540"/>
+        <CursorPos X="53" Y="4549"/>
+        <UsageCount Value="21"/>
       </Unit316>
+      <Unit317>
+        <Filename Value="C:\development\fpc\packages\fcl-base\src\custapp.pp"/>
+        <UnitName Value="CustApp"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="71"/>
+        <CursorPos X="14" Y="78"/>
+        <UsageCount Value="4"/>
+      </Unit317>
+      <Unit318>
+        <Filename Value="C:\development\lazarus\lcl\include\application.inc"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1172"/>
+        <CursorPos X="75" Y="1189"/>
+        <UsageCount Value="2"/>
+      </Unit318>
+      <Unit319>
+        <Filename Value="C:\development\lazarus\lcl\forms.pp"/>
+        <UnitName Value="Forms"/>
+        <EditorIndex Value="3"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="383"/>
+        <CursorPos X="3" Y="396"/>
+        <UsageCount Value="78"/>
+        <Loaded Value="True"/>
+      </Unit319>
+      <Unit320>
+        <Filename Value="C:\development\lazarus\components\lazutils\lazmethodlist.pas"/>
+        <UnitName Value="LazMethodList"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="106"/>
+        <CursorPos X="1" Y="125"/>
+        <UsageCount Value="2"/>
+      </Unit320>
+      <Unit321>
+        <Filename Value="C:\development\lazarus\lcl\comctrls.pp"/>
+        <UnitName Value="ComCtrls"/>
+        <EditorIndex Value="41"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="543"/>
+        <CursorPos X="14" Y="573"/>
+        <UsageCount Value="76"/>
+        <Loaded Value="True"/>
+      </Unit321>
+      <Unit322>
+        <Filename Value="C:\development\fpc\rtl\objpas\classes\classesh.inc"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="477"/>
+        <CursorPos X="3" Y="481"/>
+        <UsageCount Value="0"/>
+      </Unit322>
+      <Unit323>
+        <Filename Value="C:\development\lazarus\lcl\controls.pp"/>
+        <UnitName Value="Controls"/>
+        <EditorIndex Value="43"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="2074"/>
+        <CursorPos X="52" Y="2088"/>
+        <UsageCount Value="74"/>
+        <Loaded Value="True"/>
+      </Unit323>
+      <Unit324>
+        <Filename Value="C:\development\lazarus\components\ideintf\propedits.pp"/>
+        <UnitName Value="PropEdits"/>
+        <EditorIndex Value="42"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1086"/>
+        <CursorPos X="11" Y="1099"/>
+        <UsageCount Value="73"/>
+        <Loaded Value="True"/>
+      </Unit324>
+      <Unit325>
+        <Filename Value="C:\development\lazarus\lcl\extctrls.pp"/>
+        <UnitName Value="ExtCtrls"/>
+        <EditorIndex Value="40"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="426"/>
+        <CursorPos X="14" Y="446"/>
+        <UsageCount Value="73"/>
+        <Loaded Value="True"/>
+      </Unit325>
     </Units>
-    <JumpHistory Count="30" HistoryIndex="27">
+    <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="networkInterface.pas"/>
-        <Caret Line="1433" Column="1" TopLine="1418"/>
+        <Filename Value="stacktrace2.pas"/>
+        <Caret Line="9" Column="11" TopLine="1"/>
       </Position1>
       <Position2>
-        <Filename Value="networkInterface.pas"/>
-        <Caret Line="1435" Column="1" TopLine="1418"/>
+        <Filename Value="pointerscannerfrm.pas"/>
+        <Caret Line="5290" Column="76" TopLine="5277"/>
       </Position2>
       <Position3>
-        <Filename Value="networkInterface.pas"/>
-        <Caret Line="1436" Column="1" TopLine="1418"/>
+        <Filename Value="MemoryRecordUnit.pas"/>
+        <Caret Line="275" Column="3" TopLine="258"/>
       </Position3>
       <Position4>
-        <Filename Value="networkInterface.pas"/>
-        <Caret Line="1447" Column="1" TopLine="1435"/>
+        <Filename Value="MemoryRecordUnit.pas"/>
+        <Caret Line="1195" Column="35" TopLine="1182"/>
       </Position4>
       <Position5>
-        <Filename Value="networkInterface.pas"/>
-        <Caret Line="1433" Column="1" TopLine="1419"/>
+        <Filename Value="tableconverter.pas"/>
+        <Caret Line="104" Column="75" TopLine="88"/>
       </Position5>
       <Position6>
-        <Filename Value="networkInterface.pas"/>
-        <Caret Line="1454" Column="1" TopLine="1442"/>
+        <Filename Value="d3dhookUnit.pas"/>
+        <Caret Line="1645" Column="1" TopLine="1566"/>
       </Position6>
       <Position7>
-        <Filename Value="networkInterface.pas"/>
-        <Caret Line="292" Column="1" TopLine="279"/>
+        <Filename Value="d3dhookUnit.pas"/>
+        <Caret Line="187" Column="12" TopLine="173"/>
       </Position7>
       <Position8>
-        <Filename Value="networkInterface.pas"/>
-        <Caret Line="293" Column="1" TopLine="279"/>
+        <Filename Value="d3dhookUnit.pas"/>
+        <Caret Line="1295" Column="27" TopLine="1283"/>
       </Position8>
       <Position9>
-        <Filename Value="networkInterface.pas"/>
-        <Caret Line="295" Column="1" TopLine="279"/>
+        <Filename Value="MemoryBrowserFormUnit.pas"/>
+        <Caret Line="3688" Column="9" TopLine="3676"/>
       </Position9>
       <Position10>
-        <Filename Value="networkInterface.pas"/>
-        <Caret Line="297" Column="1" TopLine="279"/>
+        <Filename Value="MemoryBrowserFormUnit.pas"/>
+        <Caret Line="625" Column="47" TopLine="611"/>
       </Position10>
       <Position11>
-        <Filename Value="networkInterfaceApi.pas"/>
-        <Caret Line="118" Column="1" TopLine="101"/>
+        <Filename Value="NewKernelHandler.pas"/>
+        <Caret Line="974" Column="12" TopLine="953"/>
       </Position11>
       <Position12>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2616" Column="10" TopLine="2599"/>
+        <Filename Value="MainUnit.pas"/>
+        <Caret Line="1925" Column="1" TopLine="1919"/>
       </Position12>
       <Position13>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2612" Column="1" TopLine="2599"/>
+        <Filename Value="Assemblerunit.pas"/>
+        <Caret Line="899" Column="128" TopLine="886"/>
       </Position13>
       <Position14>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2613" Column="1" TopLine="2599"/>
+        <Filename Value="FoundCodeUnit.pas"/>
+        <Caret Line="139" Column="98" TopLine="126"/>
       </Position14>
       <Position15>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2615" Column="1" TopLine="2599"/>
+        <Filename Value="memscan.pas"/>
+        <Caret Line="5321" Column="27" TopLine="5309"/>
       </Position15>
       <Position16>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2617" Column="1" TopLine="2599"/>
+        <Filename Value="savedscanhandler.pas"/>
+        <Caret Line="154" Column="22" TopLine="141"/>
       </Position16>
       <Position17>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2618" Column="1" TopLine="2599"/>
+        <Filename Value="OpenSave.pas"/>
+        <Caret Line="729" Column="17" TopLine="982"/>
       </Position17>
       <Position18>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2620" Column="1" TopLine="2599"/>
+        <Filename Value="OpenSave.pas"/>
+        <Caret Line="196" Column="97" TopLine="183"/>
       </Position18>
       <Position19>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2609" Column="1" TopLine="2599"/>
+        <Filename Value="MemoryBrowserFormUnit.pas"/>
+        <Caret Line="3001" Column="49" TopLine="2989"/>
       </Position19>
       <Position20>
-        <Filename Value="symbolhandler.pas"/>
-        <Caret Line="2611" Column="1" TopLine="2599"/>
+        <Filename Value="FileMapping.pas"/>
+        <Caret Line="51" Column="13" TopLine="46"/>
       </Position20>
       <Position21>
-        <Filename Value="addresslist.pas"/>
-        <Caret Line="54" Column="61" TopLine="51"/>
+        <Filename Value="pointerscannerfrm.pas"/>
+        <Caret Line="1669" Column="26" TopLine="1656"/>
       </Position21>
       <Position22>
-        <Filename Value="MemoryBrowserFormUnit.pas"/>
-        <Caret Line="1654" Column="20" TopLine="1642"/>
+        <Filename Value="dbk32\DBK32functions.pas"/>
+        <Caret Line="2292" Column="18" TopLine="2280"/>
       </Position22>
       <Position23>
-        <Filename Value="MemoryBrowserFormUnit.pas"/>
-        <Caret Line="1655" Column="26" TopLine="1641"/>
+        <Filename Value="d3dhookUnit.pas"/>
+        <Caret Line="187" Column="5" TopLine="176"/>
       </Position23>
       <Position24>
-        <Filename Value="hexviewunit.pas"/>
-        <Caret Line="1330" Column="39" TopLine="1311"/>
+        <Filename Value="d3dhookUnit.pas"/>
+        <Caret Line="945" Column="96" TopLine="932"/>
       </Position24>
       <Position25>
-        <Filename Value="hexviewunit.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="StructuresFrm2.pas"/>
+        <Caret Line="3012" Column="46" TopLine="3000"/>
       </Position25>
       <Position26>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="2910" Column="13" TopLine="2906"/>
+        <Filename Value="RemoteMemoryManager.pas"/>
+        <Caret Line="132" Column="18" TopLine="114"/>
       </Position26>
       <Position27>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="Structuresfrm.pas"/>
+        <Caret Line="845" Column="71" TopLine="832"/>
       </Position27>
       <Position28>
-        <Filename Value="LuaHandler.pas"/>
-        <Caret Line="2411" Column="12" TopLine="2399"/>
+        <Filename Value="StructuresFrm2.pas"/>
+        <Caret Line="3470" Column="189" TopLine="3457"/>
       </Position28>
       <Position29>
-        <Filename Value="pluginexports.pas"/>
-        <Caret Line="1564" Column="3" TopLine="1562"/>
+        <Filename Value="Structuresfrm.pas"/>
+        <Caret Line="272" Column="32" TopLine="259"/>
       </Position29>
       <Position30>
-        <Filename Value="pluginexports.pas"/>
-        <Caret Line="1555" Column="10" TopLine="1542"/>
+        <Filename Value="StructuresFrm2.pas"/>
+        <Caret Line="569" Column="33" TopLine="555"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>
@@ -4013,191 +4118,37 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <BreakPoints Count="22">
+    <BreakPoints Count="2">
       <Item1>
         <Kind Value="bpkSource"/>
         <WatchScope Value="wpsLocal"/>
         <WatchKind Value="wpkWrite"/>
-        <Source Value="autoassembler.pas"/>
-        <Line Value="940"/>
+        <Source Value="LuaThread.pas"/>
+        <Line Value="220"/>
       </Item1>
       <Item2>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="CustomTypeHandler.pas"/>
-        <Line Value="182"/>
-      </Item2>
-      <Item3>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="C:\lazarus\ideintf\propedits.pp"/>
-        <Line Value="5358"/>
-      </Item3>
-      <Item4>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="C:\lazarus\ideintf\propedits.pp"/>
-        <Line Value="5347"/>
-      </Item4>
-      <Item5>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="C:\lazarus\ideintf\objectinspector.pp"/>
-        <Line Value="4558"/>
-      </Item5>
-      <Item6>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="luasymbollisthandler.pas"/>
-        <Line Value="209"/>
-      </Item6>
-      <Item7>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="symbollisthandler.pas"/>
-        <Line Value="313"/>
-      </Item7>
-      <Item8>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="symbollisthandler.pas"/>
-        <Line Value="385"/>
-      </Item8>
-      <Item9>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="frmStackViewUnit.pas"/>
-        <Line Value="126"/>
-      </Item9>
-      <Item10>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="LuaMenu.pas"/>
-        <Line Value="152"/>
-      </Item10>
-      <Item11>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="debugeventhandler.pas"/>
-        <Line Value="948"/>
-      </Item11>
-      <Item12>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="debugeventhandler.pas"/>
-        <Line Value="989"/>
-      </Item12>
-      <Item13>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="d3dhookUnit.pas"/>
-        <Line Value="1494"/>
-      </Item13>
-      <Item14>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="d3dhookUnit.pas"/>
-        <Line Value="1632"/>
-      </Item14>
-      <Item15>
         <Kind Value="bpkSource"/>
         <WatchScope Value="wpsLocal"/>
         <WatchKind Value="wpkWrite"/>
         <Source Value="debughelper.pas"/>
-        <Line Value="649"/>
-      </Item15>
-      <Item16>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="C:\FPC\2.6.2-32\fpcsrc\rtl\objpas\classes\classes.inc"/>
-        <Line Value="197"/>
-      </Item16>
-      <Item17>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="C:\FPC\2.6.2-32\fpcsrc\rtl\objpas\classes\classes.inc"/>
-        <Line Value="181"/>
-      </Item17>
-      <Item18>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="frmSortPointerlistUnit.pas"/>
-        <Line Value="233"/>
-      </Item18>
-      <Item19>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="networkInterface.pas"/>
-        <Line Value="624"/>
-      </Item19>
-      <Item20>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="LuaThread.pas"/>
-        <Line Value="62"/>
-      </Item20>
-      <Item21>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="LuaThread.pas"/>
-        <Line Value="43"/>
-      </Item21>
-      <Item22>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="LuaThread.pas"/>
-        <Line Value="218"/>
-      </Item22>
+        <Line Value="433"/>
+      </Item2>
     </BreakPoints>
-    <Watches Count="8">
+    <Watches Count="4">
       <Item1>
-        <Expression Value="v"/>
+        <Expression Value="FApplicationHandlers[0]"/>
         <DisplayStyle Value="wdfHex"/>
       </Item1>
       <Item2>
-        <Expression Value="MAskLevel"/>
+        <Expression Value="FApplicationHandlers[1]"/>
         <DisplayStyle Value="wdfHex"/>
       </Item2>
       <Item3>
-        <Expression Value="m"/>
-        <DisplayStyle Value="wdfHex"/>
+        <Expression Value="FApplicationHandlers[2]"/>
       </Item3>
       <Item4>
-        <Expression Value="compressedEntry"/>
-        <DisplayStyle Value="wdfMemDump"/>
+        <Expression Value="FApplicationHandlers[3]"/>
       </Item4>
-      <Item5>
-        <Expression Value="bit"/>
-      </Item5>
-      <Item6>
-        <Expression Value="bit div 8"/>
-      </Item6>
-      <Item7>
-        <Expression Value="bit mod 8"/>
-      </Item7>
-      <Item8>
-        <Expression Value="WriteProcessMemoryBuffer[0].baseaddress"/>
-      </Item8>
     </Watches>
     <Exceptions Count="8" IgnoreAll="True">
       <Item1>

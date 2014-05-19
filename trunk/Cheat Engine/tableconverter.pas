@@ -156,7 +156,7 @@ begin
         else
           cheatEntry.AppendChild(doc.CreateElement('Unicode')).TextContent:='1';
 
-        ctfile.ReadBuffer(tempbyte,1); //bit, could be used for bitstart or stringlength, glad that is seperated now
+        ctfile.ReadBuffer(tempbyte,1); //bit, could be used for bitstart or stringlength, glad that is separate now
         cheatEntry.AppendChild(doc.CreateElement('Length')).TextContent:=inttostr(tempbyte);
         cheatEntry.AppendChild(doc.CreateElement('ByteLength')).TextContent:=inttostr(tempbyte);
 

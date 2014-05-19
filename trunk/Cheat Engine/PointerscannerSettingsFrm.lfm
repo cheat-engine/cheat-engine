@@ -451,7 +451,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   object cbReusePointermap: TCheckBox
     Left = 8
     Height = 19
-    Hint = 'I you did a previous pointerscan and it completed very qickly, you can scan again and skip the initial setup'
+    Hint = 'I you did a previous pointerscan and it completed very quickly, you can scan again and skip the initial setup'
     Top = 272
     Width = 218
     Caption = 'Use pointermap from previous pointerscan'

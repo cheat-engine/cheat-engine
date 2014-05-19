@@ -5542,7 +5542,7 @@ begin
           begin
             if ((not overrideShort) and (vtype>8)) or (overrideLong) then
             begin
-              //see if there is a 32 bit equivalent opcode (notice I dont do rel 16 because that'll completly screw up eip)
+              //see if there is a 32 bit equivalent opcode (notice I dont do rel 16 because that'll completely screw up eip)
               k:=startoflist;
               while (k<=opcodecount) and (opcodes[k].mnemonic=tokens[mnemonic]) do
               begin

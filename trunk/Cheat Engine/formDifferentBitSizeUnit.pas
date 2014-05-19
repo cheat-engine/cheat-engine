@@ -42,7 +42,7 @@ implementation
 
 resourcestring
   rsTheLastTimeYouScannedTheNumberOfBitsWasAndNowItIsP = 'The last time you scanned the number of bits was %s and now it is %s. Please tell me how and how much i must change the '
-    +'bit offset to scan succesfully. (Left+right arrow keys move the bits)';
+    +'bit offset to scan successfully. (Left+right arrow keys move the bits)';
   rsWellDoneYouFoundAEasterEgg = 'Well done, you found a easter egg!';
 
 procedure TformDifferentBitSize.FormShow(Sender: TObject);

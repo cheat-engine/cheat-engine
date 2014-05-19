@@ -53,7 +53,7 @@ Don't care if it's executable or not
 TMAINFORM.CBEXECUTABLE.CAPTION=Executable
 TMAINFORM.LABEL2.CAPTION=Stop
 TMAINFORM.LABEL1.CAPTION=Start
-TMAINFORM.CBFASTSCAN.HINT=Speeds up the scan and decreases useless reults by skipping unaligned memory, or only scans addresses ending with specific digits
+TMAINFORM.CBFASTSCAN.HINT=Speeds up the scan and decreases useless results by skipping unaligned memory, or only scans addresses ending with specific digits
 TMAINFORM.CBFASTSCAN.CAPTION=Fast Scan
 TMAINFORM.EDTALIGNMENT.TEXT=4
 TMAINFORM.CBPAUSEWHILESCANNING.CAPTION=Pause the game while scanning

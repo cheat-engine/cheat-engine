@@ -563,10 +563,10 @@ resourcestring
      +'you want to shift this and following offsets? (Decimal)';
    rsAreYouSureYouWantToDelete = 'Are you sure you want to delete %s?';
    rsThisIsNotAValidStructureFile = 'This is not a valid structure file';
-   rsWrongVersion = 'This structure fils was generated with a newer version of '
+   rsWrongVersion = 'This structure file was generated with a newer version of '
      +'Cheat Engine. (That means there''s more than likely a new version so '
      +'please update....)';
-   rsUnkownFileExtension = 'Unkown file extension';
+   rsUnkownFileExtension = 'Unknown file extension';
    rsAreYouSureYouWantToRemoveAllStructures = 'Are you sure you want to remove '
      +'all structures?';
    rsRecalculateBaseOfStructure = 'Recalculate base of structure';
@@ -3009,7 +3009,7 @@ begin
             {$ifdef DEBUG}
             assert(node.data=nil);
             {$endif}
-            node.data:=nil;   //not necesary
+            node.data:=nil;   //not necessary
           end;
         end;
 
@@ -3467,7 +3467,7 @@ begin
           if changedDescription then
             structElement.name:=description;
 
-          if tvStructureView.SelectionCount=1 then //only update the offset if only one entry is selected (e.g the user might be so stupid to select a level 1 and a level 3 of a completly different structure....)
+          if tvStructureView.SelectionCount=1 then //only update the offset if only one entry is selected (e.g the user might be so stupid to select a level 1 and a level 3 of a completely different structure....)
             structElement.offset:=offset;
 
           if changedVartype then

@@ -30,7 +30,7 @@ type
   TScanController=class;
   TScanner=class;
 
-  TGroupData=class  //seperate for each scanner object
+  TGroupData=class  //separate for each scanner object
   private
     fblocksize: integer;
     fAlignsize: integer;
@@ -428,7 +428,7 @@ type
     memoryFile: TFileStream;
     savescannerresults: boolean; //tells the epilogue to save the results to addressfile and memoryfile
     isdoneEvent: TEvent; //gets set when the scan has finished
-    isReallyDoneEvent: TEvent; //gets set when the results have been completly written
+    isReallyDoneEvent: TEvent; //gets set when the results have been completely written
 
     procedure updategui;
     procedure errorpopup;
@@ -5318,7 +5318,7 @@ begin
     OutputDebugString(format('Allocated at %p',[OwningMemScan.previousMemoryBuffer]));
   end;
 
-  //split up into seperate workloads
+  //split up into separate workloads
   OutputDebugString(format('Splitting up the workload between %d threads',[threadcount]));
   Blocksize:=totalProcessMemorySize div threadcount;
   if (Blocksize mod 4096) > 0 then

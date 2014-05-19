@@ -11,20 +11,20 @@ object frmSavedisassembly: TfrmSavedisassembly
   Font.Name = 'MS Sans Serif'
   OnDestroy = FormDestroy
   Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.3'
   object Label1: TLabel
     Left = 24
-    Height = 14
+    Height = 13
     Top = 38
-    Width = 24
+    Width = 23
     Caption = 'From'
     ParentColor = False
   end
   object Label2: TLabel
     Left = 34
-    Height = 14
+    Height = 13
     Top = 63
-    Width = 14
+    Width = 13
     Caption = 'To'
     ParentColor = False
   end

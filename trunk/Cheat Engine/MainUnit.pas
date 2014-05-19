@@ -4614,7 +4614,7 @@ end;
 
 procedure TMainForm.btnNewScanClick(Sender: TObject);
 begin
-  button2.click; //now completly replaced
+  button2.click; //now completely replaced
 end;
 
 procedure TMainForm.btnNextScanClick(Sender: TObject);

@@ -119,10 +119,10 @@ object frmTrainerGenerator: TfrmTrainerGenerator
       Left = 7
       Height = 172
       Top = 112
-      Width = 252
+      Width = 253
       Caption = 'Automated gui config options'
       ClientHeight = 154
-      ClientWidth = 248
+      ClientWidth = 249
       TabOrder = 8
       object cbCanResize: TCheckBox
         Left = 2
@@ -228,7 +228,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
       Left = 8
       Height = 23
       Top = 307
-      Width = 224
+      Width = 225
       DialogOptions = []
       Filter = 'XM files|*.XM'
       FilterIndex = 0
@@ -477,7 +477,7 @@ object frmTrainerGenerator: TfrmTrainerGenerator
     object sbPlayStopXM: TSpeedButton
       AnchorSideRight.Control = GroupBox2
       AnchorSideRight.Side = asrBottom
-      Left = 236
+      Left = 237
       Height = 22
       Top = 307
       Width = 23
