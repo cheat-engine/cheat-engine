@@ -73,6 +73,7 @@ var oldaddress, currentaddress: ptrUint;
     mi: TModuleInfo;
 
     disassembler: TDisassembler;
+    desc: string;
 
     addresslength: integer;
 begin
@@ -102,7 +103,7 @@ begin
   while (not terminated) and (currentaddress<=stopaddress) do
   begin
     oldaddress:=currentaddress;
-    temps2:=disassemble(currentaddress); //contains the addresspart, bytepart and opcode part
+    temps2:=disassembler.disassemble(currentaddress, desc); //contains the addresspart, bytepart and opcode part
     splitDisassembledString(temps2,true,addresspart,bytepart,opcodepart,specialpart);
 
     if disassembler.showsymbols then
