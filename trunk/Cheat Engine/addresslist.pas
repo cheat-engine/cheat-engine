@@ -1134,6 +1134,7 @@ var
 
   n: ttreenode;
 
+  i: integer;
 begin
 //  self.Parent;
   node:=treeview.GetNodeAt(x,y);
@@ -1221,6 +1222,17 @@ begin
       end;
     end;
     }
+  end
+  else
+  begin
+
+    if not ((ssShift in shift) or (ssctrl in shift)) then
+    begin
+      treeview.Selected:=nil;
+      for i:=0 to Count-1 do
+        MemRecItems[i].isSelected:=false;
+    end;
+
   end;
 end;
 
