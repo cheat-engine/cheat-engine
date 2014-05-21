@@ -150,7 +150,7 @@ var dr: Trect;
 begin
   dr:=memrec.treenode.DisplayRect(true);
   self.height:=dr.Bottom-dr.top;
-  self.top:=memrec.treenode.top; //dr.top;
+  self.top:=dr.top;
 
 
 
