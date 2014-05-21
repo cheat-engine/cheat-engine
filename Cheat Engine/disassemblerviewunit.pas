@@ -866,6 +866,7 @@ var x: integer;
     i: integer;
 
     dl: TDisassemblerLine;
+    shiftispressed: boolean;
 begin
   if sender<>nil then
     beginupdate;
@@ -890,21 +891,27 @@ begin
     exit;
   end;
 
+  shiftispressed:=GetBit(15, GetKeyState(VK_SHIFT))=1;
 
   case scrollcode of
     scLineUp:
     begin
-      dl:=TDisassemblerLine(disassemblerlines[0]);
-
-      dec(fTopSubline, dl.defaultHeight);
-      if fTopSubline<0 then
+      if shiftispressed then
+        fTopAddress:=fTopAddress-1
+      else
       begin
-        fTopAddress:=previousopcode(fTopAddress);
-
-        update; //this will generate the proper disassemblerline data but won't render as beginupdate was called (if called from the scroll updater beginupdate was called there)
-
         dl:=TDisassemblerLine(disassemblerlines[0]);
-        inc(fTopSubline, dl.height);
+
+        dec(fTopSubline, dl.defaultHeight);
+        if fTopSubline<0 then
+        begin
+          fTopAddress:=previousopcode(fTopAddress);
+
+          update; //this will generate the proper disassemblerline data but won't render as beginupdate was called (if called from the scroll updater beginupdate was called there)
+
+          dl:=TDisassemblerLine(disassemblerlines[0]);
+          inc(fTopSubline, dl.height);
+        end;
       end;
     end;
 
@@ -912,6 +919,9 @@ begin
     begin
       found:=false;
 
+      if shiftispressed then
+        fTopAddress:=fTopAddress+1
+      else
       if fTotalvisibledisassemblerlines>0 then
       begin
         dl:=TDisassemblerLine(disassemblerlines[0]);

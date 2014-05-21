@@ -1203,12 +1203,32 @@ begin
 end;
 
 procedure THexView.ScrollBarScroll(Sender: TObject; ScrollCode: TScrollCode; var ScrollPos: Integer);
-var delta: integer;
+var
+  delta: integer;
+  shiftispressed: boolean;
 begin
+
+  shiftispressed:=GetBit(15, GetKeyState(VK_SHIFT))=1;
+
   SetFocus; //get the focus back
+
   case scrollcode of
-    scLineUp:   address:=address-bytesPerLine;
-    scLineDown: address:=address+bytesPerLine;
+    scLineUp:
+    begin
+      if shiftispressed then
+        address:=address-1
+      else
+        address:=address-bytesPerLine;
+    end;
+
+    scLineDown:
+    begin
+      if shiftispressed then
+        address:=address+1
+      else
+        address:=address+bytesPerLine;
+    end;
+
     scPageDown: address:=address+bytesPerLine*(totallines-1);
     scPageUp:   address:=address-bytesPerLine*(totallines-1);
     sctrack:
@@ -1234,13 +1254,28 @@ begin
 end;
 
 procedure THexView.MouseScroll(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
-var i: integer;
+var
+  i: integer;
+  shiftispressed: boolean;
 begin
-  if Focused then i:=2 else i:=4;
-  if WheelDelta>0 then
-    address:=address-(bytesPerLine*i)
+  shiftispressed:=GetBit(15, GetKeyState(VK_SHIFT))=1;
+  if shiftispressed then
+  begin
+    if WheelDelta>0 then
+      address:=address-1
+    else
+      address:=address+1;
+
+    handled:=true;
+  end
   else
-    address:=address+(bytesPerLine*i);
+  begin
+    if Focused then i:=2 else i:=4;
+    if WheelDelta>0 then
+      address:=address-(bytesPerLine*i)
+    else
+      address:=address+(bytesPerLine*i);
+  end;
 
   update;
 end;
@@ -1801,7 +1836,6 @@ end;
 
 procedure THexView.setAddress(a: ptrUint);
 begin
-
   fAddress:=a;
   if changelist<>nil then
     changelist.Clear;
