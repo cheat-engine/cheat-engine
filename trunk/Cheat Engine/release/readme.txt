@@ -44,6 +44,7 @@ Symbols: Added support for .Net
 Symbols: Added support for Java (proof-of-concept showing off the extendabilty of CE)
 Symbols: Added support for Mono (^)
 Memory view: Hexview: Added decimal display modes for the other types
+Memory View: Added shift-scrollng to the hexview and disassembler so you can scroll by 1 byte changes instead of the default calculated sizes
 Stack View: Added a search option
 D3D Hook: you can now reattach the D3D hook to a process that previously had been hooked
 Lua engine window: Added a search and replace option to the editor
