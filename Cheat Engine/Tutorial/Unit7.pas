@@ -74,7 +74,7 @@ resourcestring
     'example of a more complicated instruction:'+#13#10+
     '[EAX*2+EDX+00000310] eax=4C and edx=00801234.'+#13#10+
     'In this case EDX would be the value the pointer has, and EAX*2+00000310 the offset, so the offset you''d fill in '+#13#10+
-    'would be 2*4C+00000310=3A8.  (this is all in hex, use cal.exe from windows in scientific mode to calculate)'+#13#10+
+    'would be 2*4C+00000310=3A8.  (this is all in hex, use calc.exe from windows in scientific mode to calculate)'+#13#10+
     ''+#13#10+
     'Back to the tutorial, click OK and the address will be added, If all went right the address will show P->xxxxxxx, with '+#13#10+
     'xxxxxxx being the address of the value you found. If thats not right, you''ve done something wrong.'+#13#10+
