@@ -99,7 +99,7 @@ end;
 procedure TForm6.FormCreate(Sender: TObject);
 var k: integer;
 begin
-  k:=random(10);
+  k:=1+random(10);
   while k>0 do
   begin
     getmem(i,4);
