@@ -2208,17 +2208,3 @@ methods
 
 
 --]]
-
---[[
-todo:
-
-criticalSection
-createSettingsPage
-
-registerHexviewHeaderOverride
-
-SearchAndReplaceDialog
-
-access violation when trying to change an 8 byte hex value in memoryview editor
-
---]]
