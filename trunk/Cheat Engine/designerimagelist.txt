@@ -1,0 +1,8 @@
+images/anchor_bottom.png
+images/anchor_center_horizontal.png
+images/anchor_center_vertical.png
+images/anchor_left.png
+images/anchor_left_right.png
+images/anchor_right.png
+images/anchor_top.png
+images/anchor_top_bottom.png
