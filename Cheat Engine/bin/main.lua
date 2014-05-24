@@ -1067,7 +1067,7 @@ properties
   AbsoluteIndex: Integer - The index based on the TreeView's Treenodes object (Items)
   Selected: Boolean - Set to true if currently selected
   MultiSelected: Boolean - Set to true if selected as well, but not the main selected object
-  Data: Qword - Space to store 8 bytes of data
+  Data: Pointer - Space to store 4 or 8 bytes depending on which version of CE is used
 methods
   delete()
   deleteChildren()
