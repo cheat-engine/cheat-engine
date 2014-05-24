@@ -223,17 +223,7 @@ var
   treenode: Ttreenode;
 begin
   treenode:=luaclass_getClassObject(L);
-
-{$ifdef cpu32}
-  if treenode.data=nil then
-    lua_pushinteger(L, 0)
-  else
-  begin
-    lua_pushinteger(L, pqword(treenode.data)^);
-  end;
-{$else}
   lua_pushinteger(L, UIntPtr(treenode.Data));
-{$endif}
   result:=1;
 end;
 
@@ -243,26 +233,7 @@ var
 begin
   treenode:=luaclass_getClassObject(L);
   if lua_gettop(L)>=1 then
-  begin
-
-{$ifdef cpu32}
-    if lua_isnil(L, 1) then
-    begin
-      //free the data
-      freemem(treenode.data);
-      treenode.data:=nil;
-    end
-    else
-    begin
-      if treenode.data=nil then
-        treenode.data:=getmem(8); //enough room for a 64-bit value
-
-      pqword(treenode.data)^:=lua_tointeger(L, 1);
-    end;
-{$else}
     treenode.data:=pointer(lua_tointeger(L, 1));
-{$endif}
-  end;
 
   result:=0;
 end;
