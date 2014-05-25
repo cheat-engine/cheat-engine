@@ -207,6 +207,7 @@ type
     function getAddressFromName(name: string; waitforsymbols: boolean; out haserror: boolean):ptrUint; overload;
     function getAddressFromName(name: string; waitforsymbols: boolean; out haserror: boolean; context: PContext):ptrUint; overload;
 
+    function getSymbolInfo(name: string; var syminfo: TCESymbolInfo): boolean;
 
     function GetLayoutFromAddress(address: ptruint; var addressdata: TAddressData): boolean;
     function getsearchpath:string;
@@ -1714,6 +1715,63 @@ begin
   end;
 end;
 
+function TSymhandler.getSymbolInfo(name: string; var syminfo: TCESymbolInfo): boolean;
+var s: PCESymbolInfo;
+    i: integer;
+begin
+  //find the symbol
+  result:=false;
+
+  //first check .net
+  if dotNetDataCollector.Attached then
+  begin
+    dotnetModuleSymbolListMREW.beginread;
+    try
+      for i:=0 to length(dotnetModuleSymbolList)-1 do
+      begin
+        s:=dotnetModuleSymbolList[i].symbollist.FindSymbol(name);
+
+        if s<>nil then
+        begin
+          syminfo:=s^;
+          result:=true;
+          exit;
+        end;
+      end;
+
+    finally
+      dotnetModuleSymbolListMREW.endread;
+    end;
+  end;
+
+  //then check secondary symbollists
+  symbollistsMREW.Beginread;
+  try
+    for i:=0 to length(symbollists)-1 do
+    begin
+      s:=symbollists[i].FindSymbol(name);
+
+      if s<>nil then
+      begin
+        syminfo:=s^;
+        result:=true;
+        exit;
+      end;
+    end;
+  finally
+    symbollistsMREW.Endread;
+  end;
+
+  //and finally check the default symbol list
+  s:=symbollist.FindSymbol(name);
+  if s<>nil then
+  begin
+    syminfo:=s^;
+    result:=true;
+  end;
+end;
+
+
 procedure TSymhandler.GetSymbolList(address: ptruint; list: tstrings);
 var si: PCESymbolInfo;
     mi: TModuleInfo;
@@ -2047,6 +2105,7 @@ function TSymhandler.getNameFromAddress(address:ptrUint):string;
 begin
   result:=getNameFromAddress(address,self.showsymbols,self.showmodules);
 end;
+
 
 
 

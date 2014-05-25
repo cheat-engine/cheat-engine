@@ -5,13 +5,15 @@ unit LuaSymbolListHandler;
 interface
 
 uses
-  Classes, SysUtils, lua, lualib, LuaClass;
+  Classes, SysUtils, lua, lualib, LuaClass, SymbolListHandler;
 
 procedure initializeLuaSymbolListHandler;
 
+procedure pushSymbol(L: PLua_state; si: PCESymbolInfo);
+
 implementation
 
-uses LuaHandler, SymbolListHandler, LuaObject, symbolhandler;
+uses LuaHandler, LuaObject, symbolhandler;
 
 function createSymbolList(L: Plua_State): integer; cdecl;
 begin

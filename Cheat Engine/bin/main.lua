@@ -105,6 +105,7 @@ enumModules(processid OPTIONAL):
  
 
 getAddress(string, local OPTIONAL): returns the address of a symbol. Can be a modulename or an export. set Local to true if you wish to querry the symboltable of the ce process
+getSymbolInfo(symbolname): Returns a table as defined by the SymbolList class object (modulename, searchkey, address, size)
 getModuleSize(modulename): Returns the size of a given module (Use getAddress to get the base address)
 reinitializeSymbolhandler(waittilldone: BOOLEAN OPTIONAL, default=TRUE): reinitializes the symbolhandler. E.g when new modules have been loaded
 reinitializeDotNetSymbolhandler(modulename OPTIONAL): Reinitializes only the DotNet part of the symbol list. (E.g After an ILCode has been JITed) (6.4+)
@@ -2164,6 +2165,7 @@ SymbolList class
 
 Global functions
   createSymbolList() : Creates an empty symbollist
+
 
 
 
