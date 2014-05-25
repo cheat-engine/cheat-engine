@@ -926,15 +926,18 @@ begin
   end;
 
   laststate:=cheatEntry.AppendChild(doc.CreateElement('LastState'));
-  if not (VarType in [vtAutoAssembler, vtString]) then
+  if VarType<>vtAutoAssembler then
   begin
     a:=doc.CreateAttribute('RealAddress');
     a.TextContent:=IntToHex(GetRealAddress,8);
     laststate.Attributes.SetNamedItem(a);
 
-    a:=doc.CreateAttribute('Value');
-    a.TextContent:=value;
-    laststate.Attributes.SetNamedItem(a);
+    if VarType<>vtString then
+    begin
+      a:=doc.CreateAttribute('Value');
+      a.TextContent:=value;
+      laststate.Attributes.SetNamedItem(a);
+    end;
   end;
 
   a:=doc.CreateAttribute('Activated');
