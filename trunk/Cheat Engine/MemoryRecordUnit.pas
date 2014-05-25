@@ -926,7 +926,7 @@ begin
   end;
 
   laststate:=cheatEntry.AppendChild(doc.CreateElement('LastState'));
-  if VarType<>vtAutoAssembler then
+  if not (VarType in [vtAutoAssembler, vtString]) then
   begin
     a:=doc.CreateAttribute('RealAddress');
     a.TextContent:=IntToHex(GetRealAddress,8);
