@@ -84,7 +84,7 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
   LuaTableFile, LuaMemoryRecordHotkey, LuaMemoryView, LuaD3DHook, LuaDisassembler,
   LuaDissectCode, LuaByteTable, LuaBinary, lua_server, HotkeyHandler, LuaPipeClient,
   LuaPipeServer, LuaTreeview, LuaTreeNodes, LuaTreeNode, LuaCalendar, LuaSymbolListHandler,
-  LuaCommonDialog, LuaFindDialog, LuaSettings, LuaPageControl;
+  LuaCommonDialog, LuaFindDialog, LuaSettings, LuaPageControl, SymbolListHandler;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '
@@ -2714,6 +2714,29 @@ begin
   lua_pop(L, lua_gettop(L));
   result:=1;
   lua_pushinteger(L, processid);
+end;
+
+function getSymbolInfo(L: PLua_state): integer; cdecl;
+var
+  parameters: integer;
+  symbolname: string;
+  mi: TModuleInfo;
+
+  si: TCESymbolInfo;
+begin
+  result:=0;
+  parameters:=lua_gettop(L);
+  if parameters=1 then
+  begin
+    symbolname:=Lua_ToString(L, 1);
+    lua_pop(L, lua_gettop(l));
+
+    if symhandler.GetSymbolInfo(symbolname, si) then
+    begin
+      pushSymbol(L, @si);
+      result:=1;
+    end;
+  end;
 end;
 
 function getModuleSize(L: PLua_state): integer; cdecl;
@@ -5484,6 +5507,7 @@ begin
 
     Lua_register(LuaVM, 'registerSymbol', registersymbol);
     Lua_register(LuaVM, 'unregisterSymbol', unregistersymbol);
+    Lua_register(LuaVM, 'getSymbolInfo', getSymbolInfo);
 
     Lua_register(LuaVM, 'resetLuaState', resetLuaState);
     Lua_register(LuaVM, 'reloadSettingsFromRegistry', reloadSettingsFromRegistry);
