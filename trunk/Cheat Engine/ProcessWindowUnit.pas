@@ -106,6 +106,7 @@ resourcestring
   rsWhatAreYouLookingFor = 'What are you looking for?';
   rsScanningClickToStop = 'Scanning (Click to stop)';
   rsProcessListLong = 'Process List(long)';
+  rsProcessList = 'Process List';
 
 procedure TProcessListLong.drawprocesses;
 var i: integer;
@@ -556,6 +557,11 @@ begin
   else
   if key in [chr(32)..chr(128)] then
     filter:=filter+key;
+
+  if filter<>'' then
+    caption:=rsProcessList+' : *'+filter+'*'
+  else
+    caption:=rsProcessList;
 end;
 
 procedure TProcessWindow.Showinvisiblewindows1Click(Sender: TObject);
