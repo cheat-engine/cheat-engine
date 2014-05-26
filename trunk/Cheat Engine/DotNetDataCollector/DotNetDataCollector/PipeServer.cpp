@@ -525,7 +525,27 @@ void CPipeServer::getAddressData(UINT64 Address)
 						type=(DWORD)layout.type;	
 						WriteFile(pipe, &type, sizeof(type), &bw, NULL);  //objecttype		
 
-						if (1) //if (layout.type==ELEMENT_TYPE_CLASS) //there is more data besides just address and type
+						if(layout.type == ELEMENT_TYPE_ARRAY || layout.type == ELEMENT_TYPE_SZARRAY)
+						{
+							//get the array shape
+							COR_ARRAY_LAYOUT array_layout;
+							if(S_OK == CorDebugProcess5->GetArrayLayout(objects[i].type, &array_layout))
+							{
+								WriteFile(pipe, &array_layout.componentType, sizeof(array_layout.componentType), &bw, NULL);  //layout.type of elements within
+								WriteFile(pipe, &array_layout.countOffset, sizeof(array_layout.countOffset), &bw, NULL);  //offset of "num_elements"
+								WriteFile(pipe, &array_layout.elementSize, sizeof(array_layout.elementSize), &bw, NULL);  //size of each element
+								WriteFile(pipe, &array_layout.firstElementOffset, sizeof(array_layout.firstElementOffset), &bw, NULL);  //offset of first element
+							}
+							else //error getting array layout
+							{						
+								DWORD sigil_size = sizeof(array_layout.componentType) + sizeof(array_layout.countOffset) + sizeof(array_layout.elementSize) + sizeof(array_layout.firstElementOffset);
+								void * error_sigil = malloc(sigil_size);
+								memset(error_sigil, 0xff, sigil_size);
+								WriteFile(pipe, error_sigil, sigil_size, &bw, NULL); //write error codes in place of the array layout we failed to read
+								free(error_sigil);
+							}
+						}
+						else // this is something other than an array //(1) //if (layout.type==ELEMENT_TYPE_CLASS) //there is more data besides just address and type
 						{
 							//get the field data
 							ICorDebugType *type;

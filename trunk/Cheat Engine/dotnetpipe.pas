@@ -71,6 +71,8 @@ type
   TAddressData=record
     startaddress: ptruint;
     objecttype: dword;
+    elementtype: dword; //the data type of elements if this is an array
+    countoffset, elementsize, firstelementoffset: ulong32; //misc data for objecttype = array or szarray
 
     classname: widestring;
     fields: array of TFieldInfo;
@@ -151,7 +153,21 @@ begin
     begin
       read(addressdata.objecttype, sizeof(addressdata.objecttype));
 
-      if true then //addressdata.objecttype=ELEMENT_TYPE_CLASS then
+      //array support patch by justa_dude
+      if (addressdata.objecttype=ELEMENT_TYPE_ARRAY) or (addressdata.objecttype=ELEMENT_TYPE_SZARRAY) then
+      begin
+        addressdata.classname := 'Array';
+        read(addressdata.elementtype, sizeof(addressdata.elementtype));
+        read(addressdata.countoffset, sizeof(addressdata.countoffset));
+        read(addressdata.elementsize, sizeof(addressdata.elementsize));
+        read(addressdata.firstelementoffset, sizeof(addressdata.firstelementoffset));
+        if addressdata.elementtype=$FFFFFFFF then //we couldn't determine the array shape
+        begin
+          addressdata.elementtype := ELEMENT_TYPE_VOID;
+          addressdata.elementsize := 0;
+        end
+      end
+      else //then //if true then //addressdata.objecttype=ELEMENT_TYPE_CLASS then
       begin
         read(classnamesize, sizeof(classnamesize));
         if classnamesize>0 then
