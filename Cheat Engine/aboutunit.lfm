@@ -1,7 +1,7 @@
 object About: TAbout
-  Left = 1152
+  Left = 1183
   Height = 259
-  Top = 436
+  Top = 277
   Width = 320
   HelpContext = 2
   BorderIcons = [biSystemMenu]
@@ -14,14 +14,14 @@ object About: TAbout
   OnClose = FormClose
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.0.3'
+  LCLVersion = '1.3'
   object GroupBox1: TGroupBox
     Left = 0
     Height = 259
     Top = 0
     Width = 320
     Align = alClient
-    Caption = 'Cheat Engine 6.3'
+    Caption = 'Cheat Engine 6.4'
     ClientHeight = 241
     ClientWidth = 316
     Font.Height = -11
@@ -551,6 +551,14 @@ object About: TAbout
       Top = 184
       Width = 65
       Caption = 'mgr.inz.Player'
+      ParentColor = False
+    end
+    object Label19: TLabel
+      Left = 195
+      Height = 13
+      Top = 184
+      Width = 52
+      Caption = 'justa_dude'
       ParentColor = False
     end
   end

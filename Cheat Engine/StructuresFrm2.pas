@@ -1250,6 +1250,35 @@ begin
 
   e:=addElement('Vtable',0, vtPointer);
 
+  if (data.objecttype = ELEMENT_TYPE_ARRAY) or  (data.objecttype = ELEMENT_TYPE_SZARRAY) then //elements are integral, rather than named fields
+  begin
+    readprocessmemory(processhandle,pointer(data.startaddress+data.countoffset),@j,sizeof(j),x); //read array length (always flat addressing, regardless of rank)
+    addElement('Number of Elements', data.countoffset, vtDword);
+    //arbitrarily decide that we only want to see the first 100 elements...
+    if j > 100 then //maybe prompt instead, but it's easy enough to add elements later and some
+      j := 100; //structures (Terraria's tiles, eg, are 2*10^9 elements) and it's either too slow or not possible to diagram
+    for i:=0 to j-1 do
+    begin
+      e:=addElement(data.classname + '['+inttostr(i)+']', data.firstelementoffset+i*data.elementsize, vtPointer);
+      case data.elementtype of
+        ELEMENT_TYPE_END            : e.VarType:=vtDword;
+        ELEMENT_TYPE_VOID           : e.VarType:=vtDword;
+        ELEMENT_TYPE_BOOLEAN        : e.VarType:=vtByte;
+        ELEMENT_TYPE_CHAR           : begin e.VarType:=vtUnicodeString; e.setBytesize(256); end;
+        ELEMENT_TYPE_I1             : begin e.DisplayMethod:=dtSignedInteger; e.VarType:=vtByte; end;
+        ELEMENT_TYPE_U1             : e.VarType:=vtByte;
+        ELEMENT_TYPE_I2             : begin e.DisplayMethod:=dtSignedInteger; e.VarType:=vtWord; end;
+        ELEMENT_TYPE_U2             : e.VarType:=vtWord;
+        ELEMENT_TYPE_I4             : begin e.DisplayMethod:=dtSignedInteger; e.VarType:=vtDWord; end;
+        ELEMENT_TYPE_U4             : e.VarType:=vtDWord;
+        ELEMENT_TYPE_I8             : begin e.DisplayMethod:=dtSignedInteger; e.VarType:=vtQWord; end;
+        ELEMENT_TYPE_U8             : e.VarType:=vtQWord;
+        ELEMENT_TYPE_R4             : e.VarType:=vtSingle;
+        ELEMENT_TYPE_R8             : e.VarType:=vtDouble;
+      end
+    end;
+  end;
+
   if length(data.fields)>0 then
   begin
     bufsize:=data.fields[length(data.fields)-1].offset+16;
