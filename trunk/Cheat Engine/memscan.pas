@@ -5584,6 +5584,7 @@ begin
     end;
     
   finally
+    OutputDebugString('Scan ended');
   end;
 
 
@@ -5834,6 +5835,7 @@ end;
 //----------------memscan--------------//
 procedure TMemscan.TerminateScan(forceTermination: boolean);
 var i: integer;
+    lastwait: TWaitResult;
 begin
   if scancontroller<>nil then
   begin
@@ -5845,29 +5847,39 @@ begin
     begin
       //scancontroller.forceTerminate:=true;
 
-
-      for i:=0 to length(scanController.scanners)-1 do
+      for i:=0 to length(scancontroller.scanners)-1 do
       begin
-        try
-          TerminateThread(scanController.scanners[i].Handle,$dead);
-          scanController.scanners[i].Free;
-        except
+        scanController.scanners[i].Terminate;
+        scanController.scanners[i].isdone:=true;
+      end;
 
+
+      scancontroller.Terminate;
+
+      for i:=0 to 100 do
+      begin
+        lastwait:=scancontroller.isdoneEvent.WaitFor(50);
+
+        if lastwait<>wrTimeout then
+          break
+        else
+        begin
+          if GetCurrentThreadID=MainThreadID then
+            CheckSynchronize;
         end;
       end;
 
-      setlength(scanController.scanners,0);
-      try
-        TerminateThread(scancontroller.Handle,$dead);
+      if lastwait=wrTimeout then
+      begin
+        TerminateThread(scancontroller.Handle, $dead);
+        messagedlg('The scan was forced to terminate. Subsequent scans may not function properly. It''s recommended to restart Cheat Engine', mtWarning, [mbok], 0);
+
         scanController.isDoneEvent.SetEvent;
-
-        freeandnil(scancontroller);
-      except
-
+        if notifywindow<>0 then
+          PostMessage(notifywindow, notifymessage,0,0);
       end;
 
-      if notifywindow<>0 then
-        PostMessage(notifywindow, notifymessage,0,0);
+
 
 
     end;

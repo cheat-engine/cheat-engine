@@ -305,7 +305,13 @@ begin
   //userdefined comments
   comment:=dassemblercomments.comments[visibleDisassembler.LastDisassembleData.address];
   if comment<>'' then
-    specialstring:=format(comment,[specialstring]);
+  begin
+    try
+      specialstring:=format(comment,[specialstring]);
+    except
+      specialstring:=comment;
+    end;
+  end;
 
   //split up into lines
   specialstrings.text:=specialstring;

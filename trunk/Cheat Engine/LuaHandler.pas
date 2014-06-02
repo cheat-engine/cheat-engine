@@ -4586,8 +4586,11 @@ end;
 
 
 function getProcesslist_lua(L: PLua_state): integer; cdecl;
-var parameters: integer;
+var
+  parameters: integer;
   s: tstrings;
+  i: integer;
+  pid: integer;
 begin
   result:=0;
   parameters:=lua_gettop(L);
@@ -4604,7 +4607,26 @@ begin
     end;
   end
   else
-    lua_pop(L, lua_gettop(l));
+  begin
+    //table version
+    s:=tstringlist.create;
+    GetProcessList(s, false, true);
+
+    lua_newtable(L);
+
+    for i:=0 to s.Count-1 do
+    begin
+      if TryStrToInt(copy(s[i],1,8), pid) then
+      begin
+        lua_pushinteger(L, pid);
+        lua_pushstring(L, copy(s[i], 10, length(s[i])));
+        lua_settable(L, 1);
+      end;
+    end;
+    s.free;
+
+    result:=1; //table
+  end;
 end;
 
 function getThreadlist_lua(L: PLua_state): integer; cdecl;
