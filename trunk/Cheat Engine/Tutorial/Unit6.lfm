@@ -1,70 +1,130 @@
 object Form6: TForm6
   Left = 621
-  Height = 249
+  Height = 280
   Top = 340
-  Width = 571
-  BorderStyle = bsDialog
+  Width = 600
   Caption = 'Step 5'
-  ClientHeight = 249
-  ClientWidth = 571
+  ClientHeight = 280
+  ClientWidth = 600
   Color = clBtnFace
+  Font.CharSet = ANSI_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
+  Font.Pitch = fpVariable
+  Font.Quality = fqDraft
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
-  Position = poOwnerFormCenter
   LCLVersion = '1.3'
   Visible = True
   object Label1: TLabel
-    Left = 8
-    Height = 13
-    Top = 216
-    Width = 18
+    AnchorSideLeft.Control = Memo1
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = Memo1
+    AnchorSideTop.Side = asrBottom
+    AnchorSideBottom.Control = Button1
+    Left = 290
+    Height = 16
+    Top = 203
+    Width = 21
+    Anchors = [akLeft, akBottom]
+    BorderSpacing.Top = 2
     Caption = '100'
+    Font.CharSet = ANSI_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'MS Sans Serif'
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
     ParentColor = False
+    ParentFont = False
   end
   object SpeedButton1: TSpeedButton
-    Left = 544
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 575
     Height = 17
-    Top = 231
+    Top = 263
     Width = 25
+    Anchors = [akRight, akBottom]
     Caption = 'Skip'
     Flat = True
     OnClick = SpeedButton1Click
   end
   object Memo1: TMemo
+    AnchorSideBottom.Control = Label1
     Left = 0
-    Height = 185
+    Height = 201
     Top = 0
-    Width = 571
+    Width = 600
     Align = alTop
+    Anchors = [akTop, akLeft, akRight, akBottom]
     Color = clBtnFace
+    Font.CharSet = ANSI_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'MS Sans Serif'
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
     Lines.Strings = (
       ''
     )
+    ParentFont = False
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 0
   end
   object Button2: TButton
-    Left = 248
+    AnchorSideLeft.Control = Memo1
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = Button1
+    AnchorSideTop.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 263
     Height = 25
-    Top = 192
+    Top = 252
     Width = 75
+    Anchors = [akLeft, akBottom]
+    BorderSpacing.Top = 5
+    BorderSpacing.Bottom = 3
     Caption = 'Next'
     Enabled = False
+    Font.CharSet = ANSI_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'MS Sans Serif'
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
     OnClick = Button2Click
+    ParentFont = False
     TabOrder = 1
   end
   object Button1: TButton
-    Left = 8
-    Height = 19
-    Top = 228
-    Width = 81
+    AnchorSideLeft.Control = Memo1
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = Label1
+    AnchorSideTop.Side = asrBottom
+    AnchorSideBottom.Control = Button2
+    Left = 246
+    Height = 26
+    Top = 221
+    Width = 109
+    Anchors = [akLeft, akBottom]
+    AutoSize = True
+    BorderSpacing.Top = 2
     Caption = 'Change value'
+    Font.CharSet = ANSI_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'MS Sans Serif'
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
     OnClick = Button1Click
+    ParentFont = False
     TabOrder = 2
   end
 end

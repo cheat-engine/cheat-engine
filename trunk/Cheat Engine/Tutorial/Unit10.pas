@@ -84,20 +84,20 @@ resourcestring
   rsTutorialStep9=
     'This step will explain how to deal with code that is used for other object of the same type'+#13#10+
     ''+#13#10+
-    'Often when you''ve found health of a unit or your own player, you will find that if you remove the code, it affects '+#13#10+
+    'Often when you''ve found health of a unit or your own player, you will find that if you remove the code, it affects '+
     'enemies as well.'+#13#10+
     'In these cases you must find out how to distinguish between your and the enemies objects.'+#13#10+
-    'Sometimes this is as easy as checking the first 4 bytes (Function pointer table) which often point to a unique location '+#13#10+
-    'for the player, and sometimes it''s a team number, or a pointer to a pointer to a pointer to a pointer to a pointer to a '+#13#10+
+    'Sometimes this is as easy as checking the first 4 bytes (Function pointer table) which often point to a unique location '+
+    'for the player, and sometimes it''s a team number, or a pointer to a pointer to a pointer to a pointer to a pointer to a '+
     'playername. It all depends on the complexity of the game, and your luck'+#13#10+
     ''+#13#10+
-    'The easiest method is finding what addresses the code you found writes to and then use the dissect data feature to '+#13#10+
-    'compare against two structures. (Your unit(s)/player and the enemies) And then see if you can find out a way to '+#13#10+
+    'The easiest method is finding what addresses the code you found writes to and then use the dissect data feature to '+
+    'compare against two structures. (Your unit(s)/player and the enemies) And then see if you can find out a way to '+
     'distinguish between them.'+#13#10+
-    'When you have found out how to distinguish between you and the computer you can inject an assembler script that '+#13#10+
+    'When you have found out how to distinguish between you and the computer you can inject an assembler script that '+
     'checks for the condition and then either do not execute the code or do something else. (One hit kills for example)'+#13#10+
-    'Alternatively, you can also use this to build a so called "Array of byte" string which you can use to search which will '+#13#10+
-    'result in a list of all your or the enemies players'+#13#10+
+    'Alternatively, you can also use this to build a so called "Array of byte" string which you can use to search which will '+
+    'result in a list of all your or the enemies players'+
     ''+#13#10+
     'In this tutorial I have implemented the most amazing game you will ever play.'+#13#10+
     'It has 4 players. 2 Players belong to your team, and 2 Players belong to the computer. '+#13#10+

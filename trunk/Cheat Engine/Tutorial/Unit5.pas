@@ -58,7 +58,7 @@ resourcestring
     '(probably to prevent simple memory scanners from finding it the easy way)'+#13#10+
     'a floating point is a value with some digits behind the point. (like 5.12 or 11321.1)'+#13#10+
     ''+#13#10+
-    'Below you see your health and ammo. Both are stored as Floating point notations, but health is stored as a float and '+#13#10+
+    'Below you see your health and ammo. Both are stored as Floating point notations, but health is stored as a float and '+
     'ammo is stored as a double.'+#13#10+
     'Click on hit me to lose some health, and on shoot to decrease your ammo with 0.5'+#13#10+
     ' '+#13#10+
@@ -86,6 +86,10 @@ procedure TForm5.Button2Click(Sender: TObject);
 begin
   hide;
   form6:=tform6.create(self);
+  form6.width:=width;
+  form6.height:=height;
+  form6.left:=left;
+  form6.top:=top;
   form6.show;
 end;
 

@@ -1,13 +1,12 @@
 object Form1: TForm1
-  Left = 342
-  Height = 226
-  Top = 416
-  Width = 571
+  Left = 459
+  Height = 280
+  Top = 311
+  Width = 600
   BorderIcons = [biSystemMenu]
-  BorderStyle = bsDialog
   Caption = 'Cheat Engine Tutorial v3'
-  ClientHeight = 226
-  ClientWidth = 571
+  ClientHeight = 280
+  ClientWidth = 600
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnCloseQuery = FormCloseQuery
@@ -15,55 +14,111 @@ object Form1: TForm1
   Position = poScreenCenter
   LCLVersion = '1.3'
   object Label1: TLabel
-    Left = 444
-    Height = 13
-    Top = 184
-    Width = 46
+    AnchorSideLeft.Control = edtPassword
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideBottom.Control = edtPassword
+    Left = 461
+    Height = 16
+    Top = 235
+    Width = 60
+    Anchors = [akLeft, akBottom]
+    BorderSpacing.Bottom = 3
     Caption = 'Password'
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -13
+    Font.Name = 'MS Sans Serif'
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
     ParentColor = False
+    ParentFont = False
   end
   object Memo1: TMemo
+    AnchorSideBottom.Control = Label1
     Left = 0
-    Height = 185
+    Height = 231
     Top = 0
-    Width = 571
+    Width = 600
     Align = alTop
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderSpacing.Bottom = 4
     Color = clBtnFace
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -13
+    Font.Name = 'MS Sans Serif'
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
     Lines.Strings = (
       'See resource strings'
     )
+    ParentFont = False
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 0
   end
   object Button1: TButton
-    Left = 248
+    AnchorSideLeft.Control = Memo1
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = Label1
+    AnchorSideBottom.Control = Label1
+    AnchorSideBottom.Side = asrBottom
+    Left = 263
     Height = 25
-    Top = 192
+    Top = 241
     Width = 75
+    BorderSpacing.Top = 6
     Caption = 'Next'
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -13
+    Font.Name = 'MS Sans Serif'
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
     OnClick = Button1Click
+    ParentFont = False
     TabOrder = 1
   end
-  object Edit1: TEdit
-    Left = 392
-    Height = 21
+  object edtPassword: TEdit
+    AnchorSideTop.Control = btnOK
+    AnchorSideTop.Side = asrCenter
+    AnchorSideRight.Control = btnOK
+    Left = 417
+    Height = 24
     Hint = 'Use this to go imeadiatly to the step you want to try'
-    Top = 200
+    Top = 254
     Width = 149
-    OnKeyPress = Edit1KeyPress
+    Anchors = [akTop, akRight]
+    BorderSpacing.Right = 2
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -13
+    Font.Name = 'MS Sans Serif'
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
+    OnKeyPress = edtPasswordKeyPress
+    ParentFont = False
     ParentShowHint = False
     ShowHint = True
     TabOrder = 2
     Text = '090453'
   end
-  object Button2: TButton
-    Left = 541
-    Height = 21
-    Top = 200
+  object btnOK: TButton
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 568
+    Height = 24
+    Top = 254
     Width = 30
+    Anchors = [akRight, akBottom]
+    BorderSpacing.Right = 2
+    BorderSpacing.Bottom = 2
     Caption = 'OK'
-    OnClick = Button2Click
+    Font.CharSet = ANSI_CHARSET
+    Font.Height = -13
+    Font.Name = 'MS Sans Serif'
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
+    OnClick = btnOKClick
+    ParentFont = False
     TabOrder = 3
   end
   object Timer1: TTimer

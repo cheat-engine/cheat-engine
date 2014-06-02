@@ -1,23 +1,36 @@
 { This is an automatically generated lazarus resource file }
 
 LazarusResources.Add('TForm8','FORMDATA',[
-  'TPF0'#6'TForm8'#5'Form8'#4'Left'#3#6#2#6'Height'#3#250#0#3'Top'#3#245#1#5'Wi'
-  +'dth'#3';'#2#11'BorderStyle'#7#8'bsDialog'#7'Caption'#6#6'Step 7'#12'ClientH'
-  +'eight'#3#250#0#11'ClientWidth'#3';'#2#5'Color'#7#9'clBtnFace'#10'Font.Color'
-  +#7#12'clWindowText'#11'Font.Height'#2#245#9'Font.Name'#6#13'MS Sans Serif'#7
-  +'OnClose'#7#9'FormClose'#12'OnCloseQuery'#7#14'FormCloseQuery'#8'OnCreate'#7
-  +#10'FormCreate'#8'Position'#7#14'poScreenCenter'#10'LCLVersion'#6#6'0.9.31'#0
-  +#6'TLabel'#6'Label1'#4'Left'#2'('#6'Height'#2#14#3'Top'#3#232#0#5'Width'#2#19
-  +#7'Caption'#6#3'100'#11'ParentColor'#8#0#0#6'TLabel'#6'Label2'#4'Left'#2#0#6
-  +'Height'#2#14#3'Top'#3#232#0#5'Width'#2'#'#7'Caption'#6#7'Health:'#11'Parent'
-  +'Color'#8#0#0#12'TSpeedButton'#12'SpeedButton1'#4'Left'#3' '#2#6'Height'#2#17
-  +#3'Top'#3#232#0#5'Width'#2#25#7'Caption'#6#4'Skip'#4'Flat'#9#9'NumGlyphs'#2#0
-  +#7'OnClick'#7#17'SpeedButton1Click'#0#0#5'TMemo'#5'Memo1'#4'Left'#2#0#6'Heig'
-  +'ht'#3#185#0#3'Top'#2#0#5'Width'#3';'#2#5'Align'#7#5'alTop'#5'Color'#7#9'clB'
-  +'tnFace'#8'ReadOnly'#9#10'ScrollBars'#7#10'ssVertical'#8'TabOrder'#2#0#0#0#7
-  +'TButton'#7'Button2'#4'Left'#3#248#0#6'Height'#2#25#3'Top'#3#192#0#5'Width'#2
-  +'K'#7'Caption'#6#4'Next'#7'Enabled'#8#7'OnClick'#7#12'Button2Click'#8'TabOrd'
-  +'er'#2#1#0#0#7'TButton'#7'Button1'#4'Left'#2'@'#6'Height'#2#17#3'Top'#3#230#0
-  +#5'Width'#2')'#7'Caption'#6#6'Hit me'#7'OnClick'#7#12'Button1Click'#8'TabOrd'
-  +'er'#2#2#0#0#0
+  'TPF0'#6'TForm8'#5'Form8'#4'Left'#3#6#2#6'Height'#3#24#1#3'Top'#3#245#1#5'Wid'
+  +'th'#3'X'#2#7'Caption'#6#6'Step 7'#12'ClientHeight'#3#24#1#11'ClientWidth'#3
+  +'X'#2#5'Color'#7#9'clBtnFace'#12'Font.CharSet'#7#12'ANSI_CHARSET'#10'Font.Co'
+  +'lor'#7#12'clWindowText'#11'Font.Height'#2#243#9'Font.Name'#6#13'MS Sans Ser'
+  +'if'#10'Font.Pitch'#7#10'fpVariable'#12'Font.Quality'#7#7'fqDraft'#7'OnClose'
+  +#7#9'FormClose'#12'OnCloseQuery'#7#14'FormCloseQuery'#8'OnCreate'#7#10'FormC'
+  +'reate'#10'LCLVersion'#6#3'1.3'#0#6'TLabel'#6'Label1'#22'AnchorSideLeft.Cont'
+  +'rol'#7#5'Memo1'#19'AnchorSideLeft.Side'#7#9'asrCenter'#24'AnchorSideBottom.'
+  +'Control'#7#7'Button1'#4'Left'#3#11#1#6'Height'#2#16#3'Top'#3#204#0#5'Width'
+  +#2'B'#7'Anchors'#11#6'akLeft'#8'akBottom'#0#20'BorderSpacing.Bottom'#2#3#7'C'
+  +'aption'#6#11'Health: 100'#11'ParentColor'#8#0#0#12'TSpeedButton'#12'SpeedBu'
+  +'tton1'#23'AnchorSideRight.Control'#7#5'Owner'#20'AnchorSideRight.Side'#7#9
+  +'asrBottom'#24'AnchorSideBottom.Control'#7#5'Owner'#21'AnchorSideBottom.Side'
+  +#7#9'asrBottom'#4'Left'#3'?'#2#6'Height'#2#17#3'Top'#3#7#1#5'Width'#2#25#7'A'
+  +'nchors'#11#7'akRight'#8'akBottom'#0#7'Caption'#6#4'Skip'#4'Flat'#9#12'Font.'
+  +'CharSet'#7#12'ANSI_CHARSET'#10'Font.Color'#7#12'clWindowText'#11'Font.Heigh'
+  +'t'#2#245#9'Font.Name'#6#13'MS Sans Serif'#10'Font.Pitch'#7#10'fpVariable'#12
+  +'Font.Quality'#7#7'fqDraft'#7'OnClick'#7#17'SpeedButton1Click'#10'ParentFont'
+  +#8#0#0#5'TMemo'#5'Memo1'#24'AnchorSideBottom.Control'#7#6'Label1'#4'Left'#2#0
+  +#6'Height'#3#204#0#3'Top'#2#0#5'Width'#3'X'#2#5'Align'#7#5'alTop'#7'Anchors'
+  +#11#5'akTop'#6'akLeft'#7'akRight'#8'akBottom'#0#5'Color'#7#9'clBtnFace'#8'Re'
+  +'adOnly'#9#10'ScrollBars'#7#10'ssVertical'#8'TabOrder'#2#0#0#0#7'TButton'#7
+  +'Button2'#22'AnchorSideLeft.Control'#7#5'Memo1'#19'AnchorSideLeft.Side'#7#9
+  +'asrCenter'#24'AnchorSideBottom.Control'#7#5'Owner'#21'AnchorSideBottom.Side'
+  +#7#9'asrBottom'#4'Left'#3#7#1#6'Height'#2#25#3'Top'#3#255#0#5'Width'#2'K'#7
+  +'Anchors'#11#6'akLeft'#8'akBottom'#0#7'Caption'#6#4'Next'#7'Enabled'#8#7'OnC'
+  +'lick'#7#12'Button2Click'#8'TabOrder'#2#1#0#0#7'TButton'#7'Button1'#22'Ancho'
+  +'rSideLeft.Control'#7#5'Memo1'#19'AnchorSideLeft.Side'#7#9'asrCenter'#24'Anc'
+  +'horSideBottom.Control'#7#7'Button2'#4'Left'#3#12#1#6'Height'#2#26#3'Top'#3
+  +#223#0#5'Width'#2'@'#7'Anchors'#11#6'akLeft'#8'akBottom'#0#8'AutoSize'#9#20
+  +'BorderSpacing.Bottom'#2#6#7'Caption'#6#6'Hit me'#7'OnClick'#7#12'Button1Cli'
+  +'ck'#8'TabOrder'#2#2#0#0#0
 ]);
