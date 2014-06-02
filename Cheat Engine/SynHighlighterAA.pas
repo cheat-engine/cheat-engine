@@ -1497,8 +1497,12 @@ begin
     Inc(Run, 2)
   else
 {$ENDIF}
-  inc(Run);
+
   fTokenID := tkUnknown;
+  if ord(fline[run])>$80 then  //utf8
+    inc(Run,2)
+  else
+    inc(run);
 end;
 
 procedure TSynAASyn.Next;
