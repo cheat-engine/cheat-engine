@@ -1591,7 +1591,7 @@ begin
 
     btnDesignForm.tag:=0;
 
-    btnDesignForm.caption:=
+    btnDesignForm.caption:=rsDesignUserinterfaceManually;
   end;
 
 
