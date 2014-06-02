@@ -103,6 +103,14 @@ object frmExeTrainerGenerator: TfrmExeTrainerGenerator
         Caption = 'D3DHook'
         TabOrder = 4
       end
+      object cbDotNet: TCheckBox
+        Left = 254
+        Height = 19
+        Top = 26
+        Width = 45
+        Caption = '.NET'
+        TabOrder = 5
+      end
     end
     object Button1: TButton
       Left = 56
