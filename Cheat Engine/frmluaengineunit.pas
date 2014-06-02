@@ -9,7 +9,7 @@ uses
   Dialogs, StdCtrls, Menus, ExtCtrls, SynMemo, SynCompletion, SynEdit, lua,
   lauxlib, lualib, LuaSyntax, luahandler, cefuncproc, strutils, InterfaceBase,
   ComCtrls, SynGutterBase, SynEditMarks, PopupNotifier, ActnList,
-  SynEditHighlighter, AvgLvlTree;
+  SynEditHighlighter, AvgLvlTree, math;
 
 type
 
@@ -21,6 +21,7 @@ type
     GroupBox1: TGroupBox;
     MenuItem12: TMenuItem;
     MenuItem13: TMenuItem;
+    miResizeOutput: TMenuItem;
     miSetBreakpoint: TMenuItem;
     miRun: TMenuItem;
     miSingleStep: TMenuItem;
@@ -71,6 +72,7 @@ type
     procedure MenuItem7Click(Sender: TObject);
     procedure MenuItem8Click(Sender: TObject);
     procedure MenuItem9Click(Sender: TObject);
+    procedure miResizeOutputClick(Sender: TObject);
     procedure miSetBreakpointClick(Sender: TObject);
     procedure mScriptChange(Sender: TObject);
     procedure mScriptGutterClick(Sender: TObject; X, Y, Line: integer;
@@ -953,12 +955,20 @@ begin
 
   setlength(x,1);
   if LoadFormPosition(self, x) then
+  begin
     panel1.height:=x[0];
+    if length(x)>1 then
+    begin
+      miResizeOutput.checked:=x[1]=1;
+      miResizeOutput.OnClick(miResizeOutput);
+    end;
+  end;
 end;
 
 procedure TfrmLuaEngine.FormDestroy(Sender: TObject);
 begin
-  SaveFormPosition(self, [panel1.height]);
+
+  SaveFormPosition(self, [panel1.height, integer(ifthen(miResizeOutput.checked, 1,0))]);
 end;
 
 
@@ -1012,6 +1022,31 @@ end;
 procedure TfrmLuaEngine.MenuItem9Click(Sender: TObject);
 begin
   mscript.PasteFromClipboard;
+end;
+
+procedure TfrmLuaEngine.miResizeOutputClick(Sender: TObject);
+begin
+  if groupbox1.align=alClient then
+    groupbox1.align:=alNone;
+
+  if panel1.align=alClient then
+    panel1.align:=alNone;
+
+
+  if not miResizeOutput.checked then
+  begin
+    groupbox1.align:=alTop;
+    panel1.align:=alClient;
+    splitter1.Align:=alTop;
+//    splitter1.ResizeControl:=groupbox1;
+  end
+  else
+  begin
+    panel1.align:=alBottom;
+    groupbox1.align:=alClient;
+    //splitter1.ResizeControl:=panel1;
+    splitter1.Align:=alBottom;
+  end;
 end;
 
 procedure TfrmLuaEngine.miSetBreakpointClick(Sender: TObject);
@@ -1081,6 +1116,25 @@ begin
     btnExecute.click;
     mScript.ClearAll;
   end;
+    {
+  if (key=VK_TAB) and (not mscript.ReadOnly) then
+  begin
+    if shift=[] then
+    begin
+      //right
+      mscript.BlockTabIndent:=;
+      mscript.SelStart
+
+
+
+    end
+    else
+    if Shift=[ssShift] then
+    begin
+      //left
+
+    end;
+  end; }
 end;
 
 procedure TfrmLuaEngine.mScriptMouseEnter(Sender: TObject);
