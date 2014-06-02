@@ -467,21 +467,18 @@ begin
   else
     a:=memorybrowser.disassemblerview.SelectedAddress;
 
+
   if symhandler.getmodulebyaddress(a,mi) then
-  begin
-    address:='"'+mi.modulename+'"+'+inttohex(a-mi.baseaddress,1);
-  end
+    address:='"'+mi.modulename+'"+'+inttohex(a-mi.baseaddress,1)
   else
-    address:=inttohex(a,8);
+    address:=symhandler.getNameFromAddress(a);
 
   if inputquery(rsCodeInjectTemplate, rsOnWhatAddressDoYouWantTheJump, address) then
   begin
     try
       a:=StrToQWordEx('$'+address);
     except
-
       a:=symhandler.getaddressfromname(address);
-
     end;
 
     c:=a;

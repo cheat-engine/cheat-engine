@@ -7854,7 +7854,7 @@ end;
 
 procedure TMainForm.Label59Click(Sender: TObject);
 begin
-
+  memscan.TerminateScan(true);
 end;
 
 procedure ChangeIcon(hModule: HModule; restype: PChar; resname: PChar;
