@@ -13,21 +13,21 @@ object Form4: TForm4
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnClose = FormClose
-  Position = poOwnerFormCenter
-  LCLVersion = '0.9.31'
+  Position = poScreenCenter
+  LCLVersion = '1.3'
   object Label1: TLabel
     Left = 8
-    Height = 14
+    Height = 13
     Top = 8
-    Width = 272
+    Width = 271
     Caption = 'Well done, you''ve completed the tutorial of Cheat Engine.'
     ParentColor = False
   end
   object Label2: TLabel
     Left = 8
-    Height = 14
+    Height = 13
     Top = 24
-    Width = 362
+    Width = 361
     Caption = 'Just play around with the tutorial and learn how the other scanmethods work.'
     ParentColor = False
   end

@@ -1,53 +1,70 @@
 object Form9: TForm9
-  Left = 232
-  Height = 250
-  Top = 550
-  Width = 571
-  BorderStyle = bsDialog
+  Left = 582
+  Height = 280
+  Top = 331
+  Width = 600
   Caption = 'Step 8'
-  ClientHeight = 250
-  ClientWidth = 571
-  Font.Height = -11
+  ClientHeight = 280
+  ClientWidth = 600
+  Font.CharSet = ANSI_CHARSET
+  Font.Height = -13
   Font.Name = 'MS Sans Serif'
+  Font.Pitch = fpVariable
+  Font.Quality = fqDraft
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
-  Position = poOwnerFormCenter
-  LCLVersion = '0.9.31'
+  Position = poScreenCenter
+  LCLVersion = '1.3'
   Visible = True
   object Label1: TLabel
-    Left = 8
-    Height = 14
-    Top = 209
-    Width = 19
+    AnchorSideLeft.Control = Button1
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = Button1
+    AnchorSideTop.Side = asrCenter
+    Left = 358
+    Height = 16
+    Top = 196
+    Width = 21
+    BorderSpacing.Left = 3
     Caption = '100'
     ParentColor = False
   end
   object Label2: TLabel
-    Left = 116
-    Height = 14
-    Top = 208
+    AnchorSideLeft.Control = Button3
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = Button3
+    AnchorSideTop.Side = asrCenter
+    Left = 297
+    Height = 16
+    Top = 225
     Width = 7
     Caption = '3'
     ParentColor = False
     Visible = False
   end
   object SpeedButton1: TSpeedButton
-    Left = 541
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 570
     Height = 20
-    Top = 230
+    Top = 260
     Width = 30
+    Anchors = [akRight, akBottom]
     Caption = 'Skip'
     Flat = True
-    NumGlyphs = 0
     OnClick = SpeedButton1Click
   end
   object Memo1: TMemo
+    AnchorSideBottom.Control = Button1
     Left = 0
-    Height = 185
+    Height = 191
     Top = 0
-    Width = 571
+    Width = 600
     Align = alTop
+    Anchors = [akTop, akLeft, akRight, akBottom]
     Color = clBtnFace
     Lines.Strings = (
       ''
@@ -57,29 +74,47 @@ object Form9: TForm9
     TabOrder = 0
   end
   object Button2: TButton
-    Left = 248
+    AnchorSideLeft.Control = Memo1
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 263
     Height = 25
-    Top = 192
+    Top = 252
     Width = 75
+    Anchors = [akLeft, akBottom]
+    BorderSpacing.Bottom = 3
     Caption = 'Next'
     Enabled = False
     OnClick = Button2Click
     TabOrder = 1
   end
   object Button1: TButton
-    Left = 8
-    Height = 23
-    Top = 224
-    Width = 100
+    AnchorSideLeft.Control = Owner
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideBottom.Control = Button3
+    Left = 246
+    Height = 26
+    Top = 191
+    Width = 109
+    Anchors = [akLeft, akBottom]
+    AutoSize = True
+    BorderSpacing.Bottom = 3
     Caption = 'Change value'
     OnClick = Button1Click
     TabOrder = 2
   end
   object Button3: TButton
-    Left = 112
-    Height = 23
-    Top = 224
-    Width = 100
+    AnchorSideLeft.Control = Memo1
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideBottom.Control = Button2
+    Left = 242
+    Height = 26
+    Top = 220
+    Width = 117
+    Anchors = [akLeft, akBottom]
+    AutoSize = True
+    BorderSpacing.Bottom = 6
     Caption = 'Change pointer'
     OnClick = Button3Click
     TabOrder = 3

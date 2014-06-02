@@ -43,18 +43,18 @@ resourcestring
   rsLOSER = 'LOSER';
 
   rsTutorialStep5=
-      'Sometimes the location something is stored at changes when you restart the game, or even while you''re playing.. In '+#13#10+
+      'Sometimes the location something is stored at changes when you restart the game, or even while you''re playing.. In '+
       'that case you can use 2 things to still make a table that works.'+#13#10+
       'In this step I''ll try to describe how to use the Code Finder function.'+#13#10+
       ''+#13#10+
-      'The value down here will be at a different location each time you start the tutorial, so a normal entry in the address '+#13#10+
+      'The value down here will be at a different location each time you start the tutorial, so a normal entry in the address '+
       'list wouldn''t work.'+#13#10+
       'First try to find the address. (you''ve got to this point so I assume you know how to)'+#13#10+
-      'When you''ve found the address, right-click the address in Cheat Engine and choose "Find out what writes to this '+#13#10+
+      'When you''ve found the address, right-click the address in Cheat Engine and choose "Find out what writes to this '+
       'address". A window will pop up with an empty list.'+#13#10+
-      'Then click on the Change value button in this tutorial, and go back to Cheat Engine. If everything went right there '+#13#10+
+      'Then click on the Change value button in this tutorial, and go back to Cheat Engine. If everything went right there '+
       'should be an address with assembler code there now.'+#13#10+
-      'Click it and choose the replace option to replace it with code that does nothing. That will also add the code address '+#13#10+
+      'Click it and choose the replace option to replace it with code that does nothing. That will also add the code address '+
       'to the code list in the advanced options window. (Which gets saved if you save your table)'+#13#10+
       ''+#13#10+
       'Click on stop, so the game will start running normal again, and close to close the window.'+#13#10+
@@ -67,6 +67,10 @@ procedure TForm6.Button2Click(Sender: TObject);
 begin
   hide;
   form7:=tform7.create(self);
+  form7.left:=left;
+  form7.top:=top;
+  form7.width:=width;
+  form7.height:=height;
   form7.show;
 end;
 

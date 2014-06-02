@@ -1,13 +1,12 @@
 object Form3: TForm3
-  Left = 741
-  Height = 250
-  Top = 176
-  Width = 571
+  Left = 946
+  Height = 280
+  Top = 256
+  Width = 600
   BorderIcons = [biSystemMenu]
-  BorderStyle = bsDialog
   Caption = 'Step 3'
-  ClientHeight = 250
-  ClientWidth = 571
+  ClientHeight = 280
+  ClientWidth = 600
   Color = clBtnFace
   Font.Color = clWindowText
   Font.Height = -11
@@ -15,68 +14,112 @@ object Form3: TForm3
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
-  Position = poOwnerFormCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.3'
   Visible = True
   object Label1: TLabel
-    Left = 274
-    Height = 13
-    Top = 216
-    Width = 22
+    AnchorSideLeft.Control = Memo1
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideBottom.Control = ProgressBar1
+    Left = 299
+    Height = 16
+    Top = 248
+    Width = 3
     Alignment = taCenter
-    AutoSize = False
-    Caption = 'Loss'
+    Anchors = [akLeft, akBottom]
+    Caption = ' '
+    Font.CharSet = ANSI_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'MS Sans Serif'
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
     ParentColor = False
-    Visible = False
+    ParentFont = False
   end
   object SpeedButton1: TSpeedButton
-    Left = 544
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = ProgressBar1
+    Left = 575
     Height = 17
-    Top = 216
+    Top = 247
     Width = 25
+    Anchors = [akRight, akBottom]
     Caption = 'Skip'
     Flat = True
-    NumGlyphs = 0
     OnClick = SpeedButton1Click
   end
   object Memo1: TMemo
+    AnchorSideBottom.Control = Button2
     Left = 0
-    Height = 185
+    Height = 187
     Top = 0
-    Width = 571
+    Width = 600
     Align = alTop
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderSpacing.Bottom = 2
     Color = clBtnFace
+    Font.CharSet = ANSI_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'MS Sans Serif'
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
     Lines.Strings = (
       'See resourcestrings'
     )
+    ParentFont = False
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 0
   end
   object Button1: TButton
-    Left = 248
+    AnchorSideLeft.Control = Memo1
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideBottom.Control = Label1
+    Left = 263
     Height = 25
-    Top = 192
+    Top = 223
     Width = 75
+    Anchors = [akLeft, akBottom]
     Caption = 'Next'
     Enabled = False
+    Font.CharSet = ANSI_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'MS Sans Serif'
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
     OnClick = Button1Click
+    ParentFont = False
     TabOrder = 1
   end
   object Button2: TButton
-    Left = 0
-    Height = 17
-    Top = 208
-    Width = 41
+    AnchorSideLeft.Control = Memo1
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideBottom.Control = Button1
+    Left = 276
+    Height = 26
+    Top = 189
+    Width = 49
+    Anchors = [akLeft, akBottom]
+    BorderSpacing.Bottom = 8
     Caption = 'Hit me'
+    Font.CharSet = ANSI_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'MS Sans Serif'
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
     OnClick = Button2Click
+    ParentFont = False
     TabOrder = 2
   end
   object ProgressBar1: TProgressBar
     Left = 0
     Height = 16
-    Top = 234
-    Width = 571
+    Top = 264
+    Width = 600
     Align = alBottom
     TabOrder = 3
   end
@@ -88,7 +131,7 @@ object Form3: TForm3
   end
   object Timer2: TTimer
     OnTimer = Timer2Timer
-    left = 328
-    top = 216
+    left = 408
+    top = 224
   end
 end

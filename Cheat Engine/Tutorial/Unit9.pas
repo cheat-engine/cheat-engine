@@ -101,29 +101,29 @@ resourcestring
           'In step 6 you had a simple level-1 pointer, with the first address found already being the real base address.'+#13#10+
           'This step however is a level-4 pointer. It has a pointer to a pointer to a pointer to a pointer to a pointer to the health.'+#13#10+
           ''+#13#10+
-          'You basicly do the same as in step 6. Find out what accesses the value, look at the instruction and what probably is '+#13#10+
-          'the base pointer value, and what is the offset, and already fill that in or write it down. But in this case the address '+#13#10+
-          'you''ll find will also be a pointer. You just have to find out the pointer to that pointer exactly the same way as you did '+#13#10+
-          'with the value. Find out what accesses that address you found, look at the assembler instruction, note the probable '+#13#10+
+          'You basicly do the same as in step 6. Find out what accesses the value, look at the instruction and what probably is '+
+          'the base pointer value, and what is the offset, and already fill that in or write it down. But in this case the address '+
+          'you''ll find will also be a pointer. You just have to find out the pointer to that pointer exactly the same way as you did '+
+          'with the value. Find out what accesses that address you found, look at the assembler instruction, note the probable '+
           'instruction and offset, and use that.'+#13#10+
           'and continue till you can''t get any further (usually when the base address is a static address, shown up as green)'+#13#10+
           ''+#13#10+
           'Click Change Value to let the tutorial access the health.'+#13#10+
-          'If you think you''ve found the pointer path click Change Register. The pointers and value will then change and you''ll '+#13#10+
+          'If you think you''ve found the pointer path click Change Register. The pointers and value will then change and you''ll '+
           'have 3 seconds to freeze the address to 5000'+#13#10+
           ''+#13#10+
           'Extra: This problem can also be solved using a auto assembler script, or using the pointer scanner'+#13#10+
           'Extra2: In some situations it is recommended to change ce''s codefinder settings to Access violations when '+#13#10+
-          'encountering instructions like mov eax,[eax] since debugregisters show it AFTER it was changed, making it hard to '+#13#10+
+          'Encountering instructions like mov eax,[eax] since debugregisters show it AFTER it was changed, making it hard to '+
           'find out the the value of the pointer'+#13#10+
           ''+#13#10+
           ''+#13#10+
           ''+#13#10+
           ''+#13#10+
           ''+#13#10+
-          'Extra3: If you''re still reading. You might notice that when looking at the assembler instructions that the pointer is '+#13#10+
-          'being read and filled out in the same codeblock (same routine, if you know assembler, look up till the start of the '+#13#10+
-          'routine). This doesn''t always happen, but can be really useful in finding a '+#13#10+
+          'Extra3: If you''re still reading. You might notice that when looking at the assembler instructions that the pointer is '+
+          'being read and filled out in the same codeblock (same routine, if you know assembler, look up till the start of the '+
+          'routine). This doesn''t always happen, but can be really useful in finding a '+
           'pointer when debugging is troublesome';
 
 
@@ -285,6 +285,11 @@ begin
   label2.Caption:=IntToStR(k);
   label2.Visible:=true;
 
+  button1.Anchors:=[akLeft];
+  label2.anchors:=[akLeft];
+
+  button3.visible:=false;
+
   while k>0 do
   begin
     label2.Caption:=Format(rsYouVeGotSecondsLeftToChangeTheValueTo5000, [IntToStR(k)]);
@@ -294,6 +299,11 @@ begin
   end;
 
   label2.visible:=false;
+
+  button3.visible:=true;
+  button1.Anchors:=[akLeft, akBottom];
+  label2.anchors:=[akLeft, akBottom];
+
 
   //check if it is 5000
   if d.health=5000 then button2.Enabled:=true;
@@ -319,6 +329,10 @@ begin
 
   hide;
   form10:=tform10.create(self);
+  form10.left:=left;
+  form10.top:=top;
+  form10.width:=width;
+  form10.height:=height;
   form10.show;
 
  { hide;

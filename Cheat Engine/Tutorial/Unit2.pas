@@ -58,21 +58,21 @@ resourcestring
     'To get to the next step you have to find this value and change it to 1000'+#13#10+
     ''+#13#10+
     'To find the value there are different ways, but I''ll tell you about the easiest, ''Exact Value'':'+#13#10+
-    'First make sure value type is set to at least 2 bytes or 4 bytes, 1 byte will also work, but you''ll run into an easy to fix'+#13#10+
+    'First make sure value type is set to at least 2 bytes or 4 bytes, 1 byte will also work, but you''ll run into an easy to fix'+
     'problem when you''ve found the address and want to change it. The 8-byte may perhaps works if the'+#13#10+
     'bytes after the address are 0, but I wouldn''t take the bet.'+#13#10+
     'Single, double, and the other scans just don''t work, because they store the value in a different way.'+#13#10+
     ''+#13#10+
     'When the value type is set correctly, make sure the scantype is set to ''Exact Value'''+#13#10+
     'Then fill in the number your health is in the value box. And click ''First Scan'''+#13#10+
-    'After a while (if you have a extremely slow pc) the scan is done and the results are shown in the list on the'+#13#10+
+    'After a while (if you have a extremely slow pc) the scan is done and the results are shown in the list on the'+
     'left'+#13#10+
     ''+#13#10+
-    'If you find more than 1 address and you don''t know for sure which address it is, click ''Hit me'', fill in the new'+#13#10+
+    'If you find more than 1 address and you don''t know for sure which address it is, click ''Hit me'', fill in the new'+
     'health value into the value box, and click ''Next Scan'''+#13#10+
     'repeat this until you''re sure you''ve found it. (that includes that there''s only 1 address in the list.....)'+#13#10+
     ''+#13#10+
-    'Now double click the address in the list on the left. This makes the address pop-up in the list at the bottom,'+#13#10+
+    'Now double click the address in the list on the left. This makes the address pop-up in the list at the bottom,'+
     'showing you the current value.'+#13#10+
     'Double click the value, (or select it and press enter), and change the value to 1000.'+#13#10+
     ''+#13#10+
@@ -150,6 +150,10 @@ procedure TForm2.Button1Click(Sender: TObject);
 begin
   hide;
   form3:=TForm3.create(self);
+  form3.width:=width;
+  form3.height:=height;
+  form3.left:=left;
+  form3.top:=top;
   form3.show;
 end;
 

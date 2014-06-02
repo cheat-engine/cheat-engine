@@ -1,73 +1,95 @@
 object Form8: TForm8
   Left = 518
-  Height = 250
+  Height = 280
   Top = 501
-  Width = 571
-  BorderStyle = bsDialog
+  Width = 600
   Caption = 'Step 7'
-  ClientHeight = 250
-  ClientWidth = 571
+  ClientHeight = 280
+  ClientWidth = 600
   Color = clBtnFace
+  Font.CharSet = ANSI_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -13
   Font.Name = 'MS Sans Serif'
+  Font.Pitch = fpVariable
+  Font.Quality = fqDraft
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
-  Position = poScreenCenter
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.3'
   object Label1: TLabel
-    Left = 40
-    Height = 14
-    Top = 232
-    Width = 19
-    Caption = '100'
-    ParentColor = False
-  end
-  object Label2: TLabel
-    Left = 0
-    Height = 14
-    Top = 232
-    Width = 35
-    Caption = 'Health:'
+    AnchorSideLeft.Control = Memo1
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideBottom.Control = Button1
+    Left = 267
+    Height = 16
+    Top = 204
+    Width = 66
+    Anchors = [akLeft, akBottom]
+    BorderSpacing.Bottom = 3
+    Caption = 'Health: 100'
     ParentColor = False
   end
   object SpeedButton1: TSpeedButton
-    Left = 544
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 575
     Height = 17
-    Top = 232
+    Top = 263
     Width = 25
+    Anchors = [akRight, akBottom]
     Caption = 'Skip'
     Flat = True
-    NumGlyphs = 0
+    Font.CharSet = ANSI_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'MS Sans Serif'
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
     OnClick = SpeedButton1Click
+    ParentFont = False
   end
   object Memo1: TMemo
+    AnchorSideBottom.Control = Label1
     Left = 0
-    Height = 185
+    Height = 204
     Top = 0
-    Width = 571
+    Width = 600
     Align = alTop
+    Anchors = [akTop, akLeft, akRight, akBottom]
     Color = clBtnFace
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 0
   end
   object Button2: TButton
-    Left = 248
+    AnchorSideLeft.Control = Memo1
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 263
     Height = 25
-    Top = 192
+    Top = 255
     Width = 75
+    Anchors = [akLeft, akBottom]
     Caption = 'Next'
     Enabled = False
     OnClick = Button2Click
     TabOrder = 1
   end
   object Button1: TButton
-    Left = 64
-    Height = 17
-    Top = 230
-    Width = 41
+    AnchorSideLeft.Control = Memo1
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideBottom.Control = Button2
+    Left = 268
+    Height = 26
+    Top = 223
+    Width = 64
+    Anchors = [akLeft, akBottom]
+    AutoSize = True
+    BorderSpacing.Bottom = 6
     Caption = 'Hit me'
     OnClick = Button1Click
     TabOrder = 2
