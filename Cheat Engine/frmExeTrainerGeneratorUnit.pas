@@ -5,8 +5,9 @@ unit frmExeTrainerGeneratorUnit;
 interface
 
 uses
-  windows, Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, ExtCtrls,
-  dialogs, StdCtrls, ComCtrls, Menus, cefuncproc, IconStuff, zstream, registry, MainUnit2;
+  windows, Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics,
+  ExtCtrls, dialogs, StdCtrls, ComCtrls, Menus, cefuncproc, IconStuff, zstream,
+  registry, MainUnit2, symbolhandler;
 
 
 type
@@ -31,6 +32,7 @@ type
     cbVEHDebug: TCheckBox;
     cbXMPlayer: TCheckBox;
     cbD3DHook: TCheckBox;
+    cbDotNet: TCheckBox;
     comboCompression: TComboBox;
     GroupBox1: TGroupBox;
     GroupBox2: TGroupBox;
@@ -284,6 +286,11 @@ begin
             if cbKernelDebug.checked then
               addfile(cheatenginedir+'dbk32.sys');
 
+            if cbDotNet.checked then
+            begin
+              addfile(cheatenginedir+'DotNetDataCollector32.exe');
+              addfile(cheatenginedir+'DotNetDataCollector64.exe');
+            end;
 
           end
           else
@@ -543,6 +550,7 @@ begin
   cbXMPlayer.checked:=(pos('xmplayer_',s)>0) or (pos('xmplayer.',s)>0);
   cbKernelDebug.checked:=pos('dbk_',s)>0;
   cbD3DHook.checked:=pos('created3dhook',s)>0;
+  cbDotNet.checked:=symhandler.hasDotNetAccess or (pos('dotnet',s)>0);
 
 
   if mainform.LuaForms.count=1 then  //if there is only one form use that icon as default

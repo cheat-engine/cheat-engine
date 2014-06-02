@@ -1043,7 +1043,7 @@ procedure TAddresslist.ValueClick(node: TTreenode);
 var memrec: TMemoryrecord;
 begin
   memrec:=TMemoryRecord(node.data);
-  if (selcount<=1) and (memrec.DropDownList.count=0) then
+  if (memrec.VarType<>vtAutoAssembler) and (selcount<=1) and (memrec.DropDownList.count=0) then
   begin
 
 
