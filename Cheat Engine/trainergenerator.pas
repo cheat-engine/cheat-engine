@@ -139,7 +139,7 @@ type
   public
     trainerform: TTrainerForm;
     extrapanel: TCEPanel;
-    cheatpanel: TCEPanel;
+    //cheatpanel: TCEPanel;
     aboutbutton: TCEButton;
     image: TCEImage;
     closebutton: TCEButton;
@@ -170,6 +170,7 @@ resourcestring
   rsButAllowDecrease = 'but allow decrease';
   rsTo = 'to';
   rsBy = 'by';
+  rsOnCloseWarning = 'This form had an onClose event. Good thing this was only a stub, else Cheat Engine would have terminated';
   rsAlreadyATrainerFormDefined =
       'There is already a trainer form defined. '
     +'Continuing will erase the current trainerscript and cheats in the '
@@ -188,6 +189,7 @@ resourcestring
     +'have to use the trainer generator if you don''t want to. You can just '
     +'save your table as .EXE or CETRAINER';
   rsGoBackToGeneratedDesigner = 'Go back to generated designer';
+  rsDesignUserinterfaceManually = 'Design userinterface manually';
   rsCheatEntries = 'Cheat Entries';
   rsSelectTheCheatEntryYouWantToSetTheHotkeyFor = 'Select the cheat entry you '
     +'want to set the hotkey for';
@@ -335,6 +337,8 @@ var i,j: integer;
   fname: string;
 
   hotkeynamename, memrecname: string;
+
+  cheatpanel: TCEpanel;
 begin
 
   //get the processlist
@@ -485,6 +489,9 @@ begin
       closebutton.onclick:=NotifyEvent;
       trainerform.OnClose:=CloseEvent; //same routine
     end;
+
+//    LUA_DoScript('function CloseClick(s) showMessage('''+rsOnCloseWarning+''') return caHide end');
+    LUA_DoScript('function CloseClick(s) showMessage('''+rsOnCloseWarning+''') return caHide end');
   end;
 
 
@@ -686,7 +693,12 @@ begin
   frmTrainerGenerator:=nil;
 
   if trainerform<>nil then
+  begin
+    if (btnDesignForm.Tag=1) and (formdesigner<>nil) then
+      formdesigner.Close;
+
     trainerform.hide;
+  end;
 end;
 
 procedure TfrmTrainerGenerator.cbConfigD3DHookClick(Sender: TObject);
@@ -877,6 +889,8 @@ var generated: tstringlist;
   CHECKBOXIMAGE_UNCHECKED: integer;
   CHECKBOXIMAGE_CHECKED: integer;
   d3dfontlabel: tcelabel;
+
+  cheatpanel: TCEPanel;
 begin
 
   trainerform.active:=false;
@@ -1568,10 +1582,16 @@ begin
     edtCaption.enabled:=false;
 
     btnDesignForm.caption:=rsGoBackToGeneratedDesigner;
+    btnDesignForm.tag:=1;
   end
   else
   begin
+    if formdesigner<>nil then
+      formdesigner.Close;
+
     btnDesignForm.tag:=0;
+
+    btnDesignForm.caption:=
   end;
 
 
