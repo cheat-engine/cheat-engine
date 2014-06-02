@@ -978,7 +978,11 @@ begin
     Inc(Run,2)
   else
 {$ENDIF}
-  inc(Run);
+  if ord(fline[run])>$80 then
+    inc(Run,2)
+  else
+    inc(run);
+
   fTokenID := tkUnknown;
 end;
 
