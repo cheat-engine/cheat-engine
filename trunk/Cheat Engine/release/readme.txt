@@ -17,16 +17,22 @@ Ultimap: Fixed the hotkeys
 Ultimap: Fixed the hint popup for pre-emptive flushing
 Symbols: Fixed a problem where 32-bit modules where detected as 64-bit
 Memory Scan: Fixed next scan causing a buffer overflow in some rare situations
-Form Designer: Fixed a problem where deleting a non visible object failed
+Form Designer: Fixed a problem where deleting a non visible object failed (press the delete key in the object inspector tree)
+Trainer Designer: Fixed the go back to generated form from functioning and related issues
 PE-Info: Fixed a possibility where a bad PE header could cause an read error
 Memory view: Hexview: Fix 8-byte value editing
+Syntax Highlighters LUA/AA: Fixed UTF8 encoded text
+Syntax Highlighters AA: Added xmm registers
+
+
+
 
 
 
 Additions and changes:
 Address List: Added a group option that shows a +/- sign in front of group entries
 Address List: Pressing enter on a single entry now goes into value edit mode
-Address List: Added an option so entries in the address list show a groupbox the user can pick from
+Address List: Added an option so certain entries in the address list show a groupbox the user can pick from
 Auto Assembler: New auto assembler templates that focus on Array of Byte scans(thanks to jgoemat)
 Auto Assembler: The auto assembler can now handle {$LUA} and {$ASM} preprocessors for multiline lua scripts
 Break And Trace: Added a donottrace.txt file in the base directory which holds a list of modules that should not be traced but stepped over instead
@@ -49,11 +55,13 @@ Stack View: Added a search option
 D3D Hook: you can now reattach the D3D hook to a process that previously had been hooked
 Lua engine window: Added a search and replace option to the editor
 Lua engine window: Added the ability to set breakpoints, inspect variables and step over lines
+Lua engine window: Enabled tab indentation of blocks
+Lua engine window: Some extra customization options
 Trainer Generator: Replaced the beepOnAction with playSoundOnAction and added 2 build in activate/deativate sounds. (You can override them)
 Trainer Generator: The XM file field now has a play button
 Lua/Trainer Generator/Designer: Added several new components , propertes and methods.
 Lua: Added a dll search path to cedir\clibs32 or cedir\clibs64 depending on which cheat engine version is used. Use it for lua extentions
-Lua: Made it more forgivable about method and property names
+Lua: Made it more forgiving about method and property names
 Lua: Added some threading helper functions
 Lua: You can now override the disassembler/assembler
 Lua: Lots of other new features. Check out main.lua

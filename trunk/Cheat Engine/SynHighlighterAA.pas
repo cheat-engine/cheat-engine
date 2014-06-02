@@ -283,7 +283,7 @@ type
     function Func21: TtkTokenKind; //dq
     function Func23: TtkTokenKind; //ebp
     function Func25: TtkTokenKind; //ax / 25  / dil
-    function Func26: TtkTokenKind; //bx
+    function Func26: TtkTokenKind; //bx //mm#
     function Func27: TtkTokenKind; //cx  / dw
     function Func28: TtkTokenKind; //dx / si
     function Func30: TtkTokenKind; //eax / eip
@@ -703,6 +703,25 @@ end;
 function TSynAASyn.Func26: TtkTokenKind;
 begin
   if KeyComp('bx') then Result := tkRegister else
+  if KeyComp('mm0') then Result := tkRegister else
+  if KeyComp('mm1') then Result := tkRegister else
+  if KeyComp('mm2') then Result := tkRegister else
+  if KeyComp('mm3') then Result := tkRegister else
+  if KeyComp('mm4') then Result := tkRegister else
+  if KeyComp('mm5') then Result := tkRegister else
+  if KeyComp('mm6') then Result := tkRegister else
+  if KeyComp('mm7') then Result := tkRegister else
+{$ifdef cpu64}
+  if KeyComp('mm8') then Result := tkRegister else
+  if KeyComp('mm9') then Result := tkRegister else
+  if KeyComp('mm10') then Result := tkRegister else
+  if KeyComp('mm11') then Result := tkRegister else
+  if KeyComp('mm12') then Result := tkRegister else
+  if KeyComp('mm13') then Result := tkRegister else
+  if KeyComp('mm14') then Result := tkRegister else
+  if KeyComp('mm15') then Result := tkRegister else
+{$endif}
+
     Result := tkIdentifier;
 end;
 
