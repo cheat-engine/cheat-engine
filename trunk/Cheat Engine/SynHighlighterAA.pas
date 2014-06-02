@@ -300,6 +300,7 @@ type
     function Func45: TtkTokenKind;
     function Func46: TtkTokenKind; //resd
     function Func47: TtkTokenKind; //spl
+    function Func50: TtkTokenKind; //xmm0-15
     function Func52: TtkTokenKind; //dealloc / disable
     function Func53: TtkTokenKind; //rsp
     function Func54: TtkTokenKind; //kalloc
@@ -512,6 +513,7 @@ begin
   fIdentFuncTable[45] := {$IFDEF FPC}@{$ENDIF}Func45;
   fIdentFuncTable[46] := {$IFDEF FPC}@{$ENDIF}Func46;
   fIdentFuncTable[47] := {$IFDEF FPC}@{$ENDIF}Func47;
+  fIdentFuncTable[50] := {$IFDEF FPC}@{$ENDIF}Func50;
   fIdentFuncTable[52] := {$IFDEF FPC}@{$ENDIF}Func52;
   fIdentFuncTable[53] := {$IFDEF FPC}@{$ENDIF}Func53;
   fIdentFuncTable[54] := {$IFDEF FPC}@{$ENDIF}Func54;
@@ -831,6 +833,30 @@ begin
   {$endif}
     Result := tkIdentifier;
 end;
+
+function TSynAASyn.Func50: TtkTokenKind; //xmm0
+begin
+  if KeyComp('xmm0') then Result := tkRegister else
+  if KeyComp('xmm1') then Result := tkRegister else
+  if KeyComp('xmm2') then Result := tkRegister else
+  if KeyComp('xmm3') then Result := tkRegister else
+  if KeyComp('xmm4') then Result := tkRegister else
+  if KeyComp('xmm5') then Result := tkRegister else
+  if KeyComp('xmm6') then Result := tkRegister else
+  if KeyComp('xmm7') then Result := tkRegister else
+{$ifdef cpu64}
+  if KeyComp('xmm8') then Result := tkRegister else
+  if KeyComp('xmm9') then Result := tkRegister else
+  if KeyComp('xmm10') then Result := tkRegister else
+  if KeyComp('xmm11') then Result := tkRegister else
+  if KeyComp('xmm12') then Result := tkRegister else
+  if KeyComp('xmm13') then Result := tkRegister else
+  if KeyComp('xmm14') then Result := tkRegister else
+  if KeyComp('xmm15') then Result := tkRegister else
+{$endif}
+    Result := tkIdentifier;
+end;
+
 
 function TSynAASyn.Func52: TtkTokenKind; //dealloc
 begin
