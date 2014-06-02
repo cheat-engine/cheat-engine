@@ -3840,7 +3840,8 @@ var i: integer;
   c: TStructColumn;
   n: TTreenode;
 begin
-  c:=getColumnAtXPos(x);
+
+  c:=getColumnAtXPos(x+tvStructureView.ScrolledLeft);
   if c<>nil then
     c.focus;
 
