@@ -7622,10 +7622,15 @@ var
   p: pointer;
   invalid: boolean;
   ct: TCustomType;
+
+  part: integer;
+  error: string;
 begin
 
   //put in data
   ct:=foundlist.CustomType;
+
+  part:=0;
 
 
 
@@ -7633,7 +7638,9 @@ begin
     valuetype:=foundlist.vartype;
     address := foundlist.GetAddress(item.Index, extra, Value);
     AddressString:=IntToHex(address,8);
+    part:=1;
     Value := AnsiToUtf8(Value);
+    part:=2;
 
     if foundlistDisplayOverride<>0 then
     begin
@@ -7724,6 +7731,8 @@ begin
     end;
 
 
+    part:=3; //meh
+
 
     item.Caption := AddressString;
     item.subitems.add(Value);
@@ -7734,9 +7743,29 @@ begin
     on e: exception do
     begin
     //ShowMessage(IntToStr(item.index));
-      item.Caption := 'CE Error:'+inttostr(item.index);
-      item.subitems.add(e.Message);
-      item.subitems.add('');
+
+      error:='CE Error:'+inttostr(item.index)+' part '+inttostr(part)+':'+e.message;
+
+      if part in [0,3] then
+      begin
+        item.Caption:=error;
+        item.subitems.add(e.Message);
+        item.subitems.add('');
+      end;
+
+      if part=1 then
+      begin
+        item.Caption := AddressString;
+        item.subitems.add(error);
+        item.subitems.add(e.Message);
+      end;
+
+      if part=2 then
+      begin
+        item.Caption := AddressString;
+        item.subitems.add(Value);
+        item.subitems.add(error);
+      end;
     end;
   end;
 end;
