@@ -79,6 +79,7 @@ type TSavedScanHandler = class
     SavedScantype: tSavedScantype;
 
     maxaddresslistcount: integer;
+    currentaddresslistcount: integer; //the current amount of items in the list
     addresslistmemory: pointer;  //can be an array of regions, an array of pointers or an array of tbitaddress definitions
     addresslistoffset: qword; //offset into the savedscanaddressFS file
     SavedScanmemory: pointer;
@@ -236,27 +237,33 @@ begin
   if valuetype<>vtall then
   begin
 
-    maxaddresslistcount:=min(maxaddresslistcount, (savedscanaddressfs.size-savedscanaddressfs.Position) div sizeof(ptruint)); //limit to the addresslist file size
+    currentaddresslistcount:=min(maxaddresslistcount, (savedscanaddressfs.size-savedscanaddressfs.Position) div sizeof(ptruint)); //limit to the addresslist file size
+         {
+         //for some reason setting a breakpoint on the above line will break gdb...
+    if currentaddresslistcount=0 then
+    begin
+      beep;
+    end;   }
 
     if addresslistmemory=nil then
       getmem(addresslistmemory, maxaddresslistcount*sizeof(ptruint));
 
     //load the results
-    savedscanaddressfs.ReadBuffer(addresslistmemory^, maxaddresslistcount*sizeof(ptruint));
+    savedscanaddressfs.ReadBuffer(addresslistmemory^, currentaddresslistcount*sizeof(ptruint));
   end
   else
   begin
-    maxaddresslistcount:=min(maxaddresslistcount, (savedscanaddressfs.size-savedscanaddressfs.Position) div sizeof(TBitAddress)); //limit to the addresslist file size
+    currentaddresslistcount:=min(maxaddresslistcount, (savedscanaddressfs.size-savedscanaddressfs.Position) div sizeof(TBitAddress)); //limit to the addresslist file size
 
     if addresslistmemory=nil then
       getmem(addresslistmemory, maxaddresslistcount*sizeof(TBitAddress));
 
-    savedscanaddressfs.ReadBuffer(addresslistmemory^, maxaddresslistcount*sizeof(TBitAddress));
+    savedscanaddressfs.ReadBuffer(addresslistmemory^, currentaddresslistcount*sizeof(TBitAddress));
   end;
 
-  if maxaddresslistcount=0 then
+  if currentaddresslistcount=0 then
   begin
-    raise exception.create(rsMaxaddresslistcountIs0MeansTheAddresslistIsBad);
+    raise exception.create(rsMaxaddresslistcountIs0MeansTheAddresslistIsBad+' (savedscanaddressfs.size='+inttostr(savedscanaddressfs.size)+')');
   end;
 
   LastAddressAccessed.index:=0; //reset the index
@@ -409,16 +416,31 @@ begin
           raise exception.create(rsInvalidOrderOfCallingGetpointertoaddress);
       end;
 
-      if pa[maxaddresslistcount-1]<address then
+      if pa[currentaddresslistcount-1]<address then
       begin
-        while pa[maxaddresslistcount-1]<address do //load in the next chunk
+        while pa[currentaddresslistcount-1]<address do //load in the next chunk
+        try
           LoadNextChunk(valuetype);
+        except
+          on e: exception do
+          begin
+            if AllowRandomAccess then
+            begin
+              if recallifneeded=false then exit; //already recalled once and it seems to have failed
+
+              InitializeScanHandler;
+              result:=getpointertoaddress(address, valuetype, ct, false);
+            end
+            else
+              raise exception.create(e.message);
+          end;
+        end;
 
         LoadMemoryForCurrentChunk(valuetype, ct);
       end;
 
       //we now have an addresslist and memory region and we know that the address we need is in here
-      j:=maxaddresslistcount;
+      j:=currentaddresslistcount;
 
       //the list is sorted so do a quickscan
 
@@ -483,16 +505,31 @@ begin
           raise exception.create(rsInvalidOrderOfCallingGetpointertoaddress);
       end;
 
-      if pab[maxaddresslistcount-1].address<address then
+      if pab[currentaddresslistcount-1].address<address then
       begin
-        while pab[maxaddresslistcount-1].address<address do //load in the next chunk
+        while pab[currentaddresslistcount-1].address<address do //load in the next chunk
+        try
           LoadNextChunk(valuetype);
+        except
+          on e: exception do
+          begin
+            if AllowRandomAccess then
+            begin
+              if recallifneeded=false then exit; //already recalled once and it seems to have failed
+
+              InitializeScanHandler;
+              result:=getpointertoaddress(address, valuetype, ct, false);
+            end
+            else
+              raise exception.create(e.message);
+          end;
+        end;
 
         LoadMemoryForCurrentChunk(valuetype, ct);
       end;
 
       //we now have an addresslist and memory region and we know that the address we need is in here
-      j:=maxaddresslistcount;
+      j:=currentaddresslistcount;
 
 
       //the list is sorted so do a quickscan
