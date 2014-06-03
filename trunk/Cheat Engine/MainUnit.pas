@@ -6852,7 +6852,6 @@ begin
   btnNewScan.ClientWidth:=max(max(btnNewScan.ClientWidth, btnNextScan.ClientWidth), max(canvas.textwidth(btnNewScan.caption)+16, canvas.textwidth(btnNextScan.caption)+16 ));
   btnNextScan.ClientWidth:=btnNewScan.clientwidth;
 
-
   if lblScanType.Left<foundlist3.Width then
   begin
     i:=foundlist3.Width-(lblscantype.left-10);
@@ -6868,6 +6867,9 @@ begin
 
     btnNewScan.BorderSpacing.Left:=btnNewScan.BorderSpacing.Left+i;
   end;
+
+  panel6.clientheight:=cbPauseWhileScanning.top+cbPauseWhileScanning.height+2;
+  gbScanOptions.ClientHeight:=panel6.top+panel6.height+2;
 end;
 
 

@@ -600,6 +600,7 @@ resourcestring
   rsYouWantToGiveAnAdditional32BitParameterWillShowUpI = 'You want to give an additional 32-bit parameter? (Will show up in (R)/(E)BX)';
   rsPleaseEnterAValidHexadecimalValue = 'Please enter a valid hexadecimal value';
   rsPleaseTargetAProcessFirst = 'Please target a process first';
+  rsPleaseTargetAnotherProcess = 'Start another version of Cheat Engine and attach to that instead';
   rsDoYouWantToExecuteAFunctionOfTheDll = 'Do you want to execute a function of the dll?';
   rsInjectDll = 'Inject dll';
   rsSelectTheFunctionYouWantToExecute = 'Select the function you want to execute';
@@ -3327,6 +3328,12 @@ begin
   if processid=0 then
   begin
     MessageDlg(rsPleaseTargetAProcessFirst, mtError,[mbok], 0);
+    exit;
+  end;
+
+  if processid=GetCurrentProcessId then
+  begin
+    MessageDlg(rsPleaseTargetAnotherProcess, mtError,[mbok], 0);
     exit;
   end;
 
