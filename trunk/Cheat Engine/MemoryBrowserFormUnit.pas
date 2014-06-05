@@ -443,6 +443,11 @@ type
 
     strace: Tstringlist;
 
+    lastBreakpointCondition: record
+      script: string;
+      easy: boolean;
+    end;
+
     procedure SetStacktraceSize(size: integer);
     procedure setShowDebugPanels(state: boolean);
     procedure UpdateRWAddress(disasm: string);
@@ -1315,10 +1320,22 @@ begin
       with TfrmBreakpointCondition.create(self) do
       begin
         script:=debuggerthread.getbreakpointcondition(bp, easy);
+
+        if script='' then
+        begin
+          script:=lastBreakpointCondition.script;
+          easy:=lastBreakpointCondition.easy;
+
+          if script='' then
+            easy:=true;
+        end;
+
         if easy then
           edtEasy.text:=script
         else
           mComplex.text:=script;
+
+
 
         rbEasy.Checked:=easy;
         rbComplex.checked:=not easy;
@@ -1330,6 +1347,9 @@ begin
             script:=edtEasy.text
           else
             script:=mComplex.text;
+
+          lastBreakpointCondition.script:=script;
+          lastBreakpointCondition.easy:=easy;
 
           debuggerthread.setbreakpointcondition(bp, easy, script);
         end;
