@@ -196,12 +196,12 @@ begin
   if valuetype<>vtall then
   begin
     //find the start of this region
-    addressliststart:=(savedscanaddressfs.Position)-maxaddresslistcount*sizeof(ptruint);
+    addressliststart:=(savedscanaddressfs.Position)-currentaddresslistcount*sizeof(ptruint);
     index:=(addressliststart-7) div sizeof(ptruint);
   end
   else
   begin
-    addressliststart:=(savedscanaddressfs.Position)-maxaddresslistcount*sizeof(TBitAddress);
+    addressliststart:=(savedscanaddressfs.Position)-currentaddresslistcount*sizeof(TBitAddress);
     index:=(addressliststart-7) div sizeof(TBitAddress);
   end;
 
@@ -224,7 +224,7 @@ begin
 
 
   SavedScanmemoryFS.Position:=index * varsize;
-  SavedScanmemoryFS.ReadBuffer(SavedScanmemory^, maxaddresslistcount*varsize);
+  SavedScanmemoryFS.ReadBuffer(SavedScanmemory^, currentaddresslistcount*varsize);
 end;
 
 procedure TSavedScanHandler.LoadNextChunk(valuetype: TVariableType);
@@ -419,22 +419,25 @@ begin
       if pa[currentaddresslistcount-1]<address then
       begin
         while pa[currentaddresslistcount-1]<address do //load in the next chunk
-        try
-          LoadNextChunk(valuetype);
-        except
-          on e: exception do
-          begin
-            if AllowRandomAccess then
+        begin
+          try
+            LoadNextChunk(valuetype);
+          except
+            on e: exception do
             begin
-              if recallifneeded=false then exit; //already recalled once and it seems to have failed
+              if AllowRandomAccess then
+              begin
+                if recallifneeded=false then exit; //already recalled once and it seems to have failed
 
-              InitializeScanHandler;
-              result:=getpointertoaddress(address, valuetype, ct, false);
-            end
-            else
-              raise exception.create(e.message);
+                InitializeScanHandler;
+                result:=getpointertoaddress(address, valuetype, ct, false);
+              end
+              else
+                raise exception.create(e.message);
+            end;
           end;
         end;
+
 
         LoadMemoryForCurrentChunk(valuetype, ct);
       end;
