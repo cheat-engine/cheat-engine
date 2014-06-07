@@ -23,9 +23,9 @@ note: addresses can be strings, they will get interpreted by ce's symbolhandler
 
 readBytes(address,bytecount, ReturnAsTable ) : returns the bytes at the given address. If ReturnAsTable is true it will return a table instead of multiple bytes
   Reads the bytes at the given address and returns a table containing the read out bytes
- 
+
 writeBytes(address, x,x,x,x,...) : Write the given bytes to the given address from a table
-writeBytes(address, table) : Write the given bytes to the given address from a table 
+writeBytes(address, table) : Write the given bytes to the given address from a table
 
 
 readInteger(address) : Reads an integer from the specified address
@@ -85,7 +85,7 @@ readRegionFromFile(filename, destinationaddress)
 
 resetLuaState(): This will create a new lua state that will be used. (Does not destroy the old one, so memory leak)
 
-createRef(...): integer - Returns an integer reference that you can use with getRef. Useful for objects that can only store integers and need to reference lua objects.  (Component.Tag...) 
+createRef(...): integer - Returns an integer reference that you can use with getRef. Useful for objects that can only store integers and need to reference lua objects.  (Component.Tag...)
 getRef(integer): ... - Returns whatever the reference points out
 destroyRef(integer) - Removes the reference
 
@@ -96,13 +96,13 @@ ansiToUtf8(string): Converts a string in Ansi encoding to UTF8
 utf8ToAnsi(string): Converts a string in UTF8 encoding to Ansi
 Note: GUI components mainly show in UTF8, some other functions use Ansi, try to find out which ones...
 
-enumModules(processid OPTIONAL): 
+enumModules(processid OPTIONAL):
   Returns a table containing information about each module in the current process, or the specified processid
-  Each entry is a table with fields 
-    Name : String containing the modulename    Address: Integer representing the address the module is loaded    
-    Is64Bit: Boolean set to true if it's a 64-bit module    
+  Each entry is a table with fields
+    Name : String containing the modulename    Address: Integer representing the address the module is loaded
+    Is64Bit: Boolean set to true if it's a 64-bit module
     PathToFile: String to the location this module is loaded
- 
+
 
 getAddress(string, local OPTIONAL): returns the address of a symbol. Can be a modulename or an export. set Local to true if you wish to querry the symboltable of the ce process
 getSymbolInfo(symbolname): Returns a table as defined by the SymbolList class object (modulename, searchkey, address, size)
@@ -117,7 +117,7 @@ errorOnLookupFailure(state): If set to true (default) address lookups in stringf
 generateAPIHookScript(address, addresstojumpto, addresstogetnewcalladdress OPT) : Generates an auto assembler script which will hook the given address when executed
 autoAssemble(text, targetself OPTIONAL) : runs the auto assembler with the given text. Returns true on success (if targetself is set it will assemble into Cheat Engine itself)
 
-registerAutoAssemblerCommand(command, function(parameters, syntaxcheckonly)): Registers an auto assembler command to call the specified function. The command will be replaced by the string this function returns when executed. The function can be called twice. Once for syntax check and symbol lookup(1), and the second time for actual execution by the assembler(2) if it has not been removed in phase1. 
+registerAutoAssemblerCommand(command, function(parameters, syntaxcheckonly)): Registers an auto assembler command to call the specified function. The command will be replaced by the string this function returns when executed. The function can be called twice. Once for syntax check and symbol lookup(1), and the second time for actual execution by the assembler(2) if it has not been removed in phase1.
   Note: The callback function can return multiple values
   Nil, <String>: Will raise an error with the given string
   MultilineString: Replaces the line in the script with the given strings.
@@ -137,17 +137,17 @@ registerSymbolLookupCallback(function(string):integer, location): ID  6.4+
     slNotModule: Called when it has been determined the current token is not a modulename
     slNotUserdefinedSymbol: Called when it has been determined it's not a userdefined symbol
     slNotSymbol: Called when it has been determined it's not a symbol in the symbollist
-    slFailure: Called when it has no clue what the given string is  
+    slFailure: Called when it has no clue what the given string is
 
     Note: slNotSymbol and slFailure are similar, but failure comes only if there's no token after the current token that can be concatenated. Else slNotSymbol will loop several times till all tokens make up the full string
-    
-    
+
+
   Return an Integer with the corresponding address if you found it. Nil or 0 if you didn't.
 
 unregisterSymbolLookupCallback(ID): Removes the callback
 
 
-registerAddressLookupCallback(function(integer):string): ID 
+registerAddressLookupCallback(function(integer):string): ID
   Registers a function to be called when the name of an address is requested
 
 unregisterAddressLookupCallback(ID): Removes the callback
@@ -167,7 +167,7 @@ registerStructureNameLookup(function(address): name, address OPTIONAL):
   Registers a function to be called when dissect data asks the user for the name of a new structure define. If you have code that can look up the name of a structure, and perhaps also the real starting point, you can use this to improve the data dissection.
 
 unregisterStructureNameLookup(ID)
-    
+
 registerAssembler(function(address, instruction):bytetable)
   Registers a function to be called when the single line assembler is invoked to convert an instruction to a list of bytes
   Return a bytetable with the specific bytes, or nil if you wish to let another function, or the original x86 assembler to assemble it
@@ -176,7 +176,7 @@ unregisterAssembler(ID): Unregisters the registered assembler
 
 registerAutoAssemblerPrologue(function(script, syntaxcheck))
   Registers a function to be called when the auto assembler is about to parse an auto assembler script. The script you get is after the [ENABLE] and [DISABLE] tags have been used to strip the script to the according one, but before comment stripping and trimming has occured
-  
+
   script is a Strings object which when changed has direct effect to the script
 
 unregisterAutoAssemblerPrologue(ID)
@@ -192,7 +192,7 @@ getThreadlist(List): fills a List object with the threadlist of the currently op
 
 
 function onOpenProcess(processid):
-  If this function is defined it will be called whenever cheat engine opens a process. 
+  If this function is defined it will be called whenever cheat engine opens a process.
   Note: The the same process might be opened multiple times in a row internally
   Note 2: This function is called before attachment is fully done. You can call reinitializeSymbolhandler() to force the open to complete, but it will slow down process opens. Alternatively, you could launch a timer which will run when the opening has finished
 
@@ -249,7 +249,7 @@ registerCustomTypeLua(typename, bytecount, bytestovaluefunction, valuetobytesfun
 registerCustomTypeAutoAssembler(script)
   Registers a custom type based on an auto assembler script. The script must allocate an "ConvertRoutine" and "ConvertBackRoutine"
 
-onAutoGuess(function) : 
+onAutoGuess(function) :
   Registers an function to be called whenever autoguess is used to predict a variable type
   function override (address, ceguess): Return the variable type you want it to be. If no change, just return ceguess
 
@@ -279,8 +279,8 @@ allocateSharedMemory(name, size):
   It then maps this shared memory block into the currently targeted process. It returns the address of mapped region in the target process
 
 
-getForegroundProcess() : Returns the processID of the process that is currently on top 
- 
+getForegroundProcess() : Returns the processID of the process that is currently on top
+
 cheatEngineIs64Bit(): Returns true if CE is 64-bit, false if 32-bit
 targetIs64Bit(): Returns true if the target process is 64-bit, false if 32-bit
 
@@ -342,18 +342,18 @@ getCommonModuleList: Returns the commonModuleList stringlist. (Do not free this 
 
 
 AOBScan("aobstring", protectionflags OPTIONAL, alignmenttype OPTIONAL, alignmentparam HALFOPTIONAL):
-protectionflags is a string. 
+protectionflags is a string.
   X=Executable W=Writable memory C=Copy On Write. Add a + to indicate that flag MUST be set and a - to indicate that that flag MUST NOT be set. (* sets it to don't care)
-  Examples: 
+  Examples:
     +W-C = Writable memory exluding copy on write and doesn't care about the Executable flag
     +X-C-W = Find readonly executable memory
     +W = Finds all writable memory and don't care about copy on write or execute
     "" = Find everything (is the same as "*X*C*W" )
 
 
-alignmenttype is an integer: 
+alignmenttype is an integer:
   0=No alignment check
-  1=Address must be dividable by alignmentparam 
+  1=Address must be dividable by alignmentparam
   2=Address must end with alignmentparam
 alignmentparam is a string which either holds the value the addresses must be dividable by or what the last digits of the address must be
 
@@ -364,7 +364,7 @@ alignmentparam is a string which either holds the value the addresses must be di
 
 debug variables
 EFLAGS
-32-bit: EAX, EBX, ECX, EDX, EDI, ESP, EBP, ESP, EIP 
+32-bit: EAX, EBX, ECX, EDX, EDI, ESP, EBP, ESP, EIP
 64-bit: RAX, EBX, RBX, RDX, RDI, RSP, RBP, RSP, RIP, R8, R9, R10, R11, R12, R13, R14, R15 : The value of the register
 
 Debug related routines:
@@ -385,7 +385,7 @@ debug_getBreakpointList(): Returns a lua table containing all the breakpoint add
 debug_setBreakpoint(address, size OPTIONAL, trigger OPTIONAL) : sets a breakpoint of a specific size at the given address. if trigger is bptExecute then size is ignored. If trigger is ignored then it will be of type bptExecute, which obviously also ignores the size then as well
 debug_removeBreakpoint(address) : if the given address is a part of a breakpoint it will be removed
 debug_continueFromBreakpoint(continueMethod) : if the debugger is currently waiting to continue you can continue with this. Valid parameters are :co_run (just continue), co_stepinto(when on top of a call, follow it), co_stepover (when on top of a call run till after the call)
-debug_getXMMPointer(xmmregnr) : 
+debug_getXMMPointer(xmmregnr) :
   Returns the address of the specified xmm register of the thread that is currently broken
   This is a LOCAL Cheat Engine address. Use Local memory access functions to read and modify
   xmmregnr can be 0 to 15 (0 to 7 on 32-bit)
@@ -397,7 +397,7 @@ debug_getMaxLastBranchRecord() : Returns the maximum branch record your cpu can 
 debug_getLastBranchRecord(index): Returns the value of the Last Branch Record at the given index (when handling a breakpoint)
 
 
-function debugger_onModuleLoad(modulename, baseaddress) : 
+function debugger_onModuleLoad(modulename, baseaddress) :
 this routine is called when a module is loaded. Only works for the windows debugger
 return 1 if you want to cause the debugger to break
 
@@ -472,7 +472,7 @@ properties:
   PopupMenu: PopupMenu - The popup menu that shows when rightclicking the control
   Font: Font - The font class associated with the control
   OnClick: function - The function to call when a button is pressed
-  
+
 
 methods:
   getLeft()
@@ -535,12 +535,12 @@ properties
 methods
   getControlCount()  Returns the number of Controls attached to this class
   getControl(index) : Returns a WinControl class object
-  getControlAtPos(x,y):  Gets the control at the given x,y position relative to the wincontrol's position 
+  getControlAtPos(x,y):  Gets the control at the given x,y position relative to the wincontrol's position
   canFocus(): returns true if the object can be focused
   focused(): returns boolean true when focused
   setFocus(): tries to set keyboard focus the object
   setShape(Region): Sets the region object as the new shape for this wincontrol
-  setShape(Bitmap): 
+  setShape(Bitmap):
   setOnEnter(function) : Sets an onEnter event. (Triggered on focus enter)
   getOnEnter()
   setOnExit(function) : Sets an onExit event. (Triggered on lost focus)
@@ -633,6 +633,13 @@ methods
   getCaseSensitive() : Returns true if the case sensitive property is set
   setCaseSensitive(boolean): Sets the case sensitive property
 
+Application Class: (Inheritance: CustomApplication->Component->Object)
+properties
+  Title: The title of cheat engine in the bar
+
+methods
+  bringToFront(): Shows the cheat engine app
+
 
 Form Class: (Inheritance: ScrollingWinControl->CustomControl->WinControl->Control->Component->Object)
 properties
@@ -644,7 +651,8 @@ methods
   centerScreen(); : Places the form at the center of the screen
   hide() : Hide the form
   show() : show the form
-  close():  Closes the form. Without an onClose this will be the same as hide 
+  close():  Closes the form. Without an onClose this will be the same as hide
+  bringToFront(): Brings the form to the foreground
   showModal() : show the form and wait for it to close and get the close result
   isForegroundWindow(): returns true if the specified form has focus
   setOnClose(function)  : function (sender) : Return a CloseAction to determine how to close the window
@@ -657,7 +665,6 @@ methods
 
   printToRasterImage(rasterimage): Draws the contents of the form to a rasterimage class object
   dragNow():  Call this on mousedown on any object if you wish that the mousemove will drag the whole form arround. Useful for borderless windows (Dragging will stop when the mouse button is released)
-
 
 
 CEForm Class: (Inheritance: Form->ScrollingWinControl->CustomControl->WinControl->Control->Component->Object)
@@ -704,10 +711,10 @@ properties
 methods
   getAlignment() : gets the alignment property
   setAlignment(alignment) : sets the alignment property
-  getBevelInner() 
+  getBevelInner()
   setBevelInner(PanelBevel)
   getBevelOuter()
-  setBevelOuter(PanelBevel) 
+  setBevelOuter(PanelBevel)
   getBevelWidth()
   setBevelWidth(BevelWidth)
   getFullRepaint()
@@ -774,9 +781,9 @@ methods
   getWantReturns()
   setWantReturns(boolean)
   getScrollbars()
-  setScrollbars(scrollbarenumtype) : 
+  setScrollbars(scrollbarenumtype) :
   Sets the scrollbars. Horizontal only takes affect when wordwrap is disabled
-  valid enum types: 
+  valid enum types:
     ssNone : No scrollbars
     ssHorizontal: Has a horizontal scrollbar
     ssVertical: Has a vertical scrollbar
@@ -811,7 +818,7 @@ properties
   State: checkboxstate - The state. (cbUnchecked=0, cbChecked=1, cbGrayed=2)
   OnChange: function - Function to call when the state it changed
 
-methods  
+methods
   getAllowGrayed()
   setAllowGrayed(boolean)
   getState(): Returns a state for the checkbox. (cbUnchecked, cbChecked, cbGrayed)
@@ -845,14 +852,14 @@ methods
   getOnClick()
 
 
-ListBox Class: (Inheritance: WinControl->Control->Component->Object) 
+ListBox Class: (Inheritance: WinControl->Control->Component->Object)
 createListBox(owner): Creates a ListBox class object which belongs to the given owner. Owner can be any object inherited from WinControl
 
 properties
   MultiSelect: boolean - When set to true you can select multiple items
   Items: Strings - Strings derived object containings all the items in the list
   Selected[] - Returns true if the given line is selected. Use Items.Count-1 to find out the max index
-  ItemIndex: integer - Get selected index. -1 is nothing selected  
+  ItemIndex: integer - Get selected index. -1 is nothing selected
   Canvas: Canvas - The canvas object used to render on the object
 
 methods
@@ -884,7 +891,7 @@ properties
   Items: Strings - Strings derived object containings all the items in the list
   ItemIndex: integer - Get selected index. -1 is nothing selected
   Canvas: Canvas - The canvas object used to render on the object
-  
+
 methods
   clear()
   getItems()
@@ -925,7 +932,7 @@ properties
   Min: integer - Minimal value for the trackbar
   Max: integer - Maximum value for the trackbar
   Position: integer - The current position
-  OnChange: function - Function to call when 
+  OnChange: function - Function to call when
 
 methods
   getMax()
@@ -964,7 +971,7 @@ properties
   MaxWidth: integer
   MinWidth: integer
   Width: integer
-  Visible: boolean 
+  Visible: boolean
 methods
   getAutosize()
   setAutosize(boolean)
@@ -1094,7 +1101,7 @@ methods
   insert(treenode, string): Returns a new treenode object that has been inserted before the given treenode
   insertBehind(treenode, string): Returns a new treenode object that has been inserted after the given treenode
 
- 
+
 
 Treeview Class : (Inheritance: CustomControl->WinControl->Control->Component->Object)
 createTreeView(owner)
@@ -1114,7 +1121,7 @@ methods
 
 
 Timer Class : (Inheritance: Component->object)
-createTimer(owner OPT, enabled OPT): 
+createTimer(owner OPT, enabled OPT):
   Creates a timer object. If enabled is not given it will be enabled by default (will start as soon as an onTimer event has been assigned)
   Owner may be nil, but you will be responsible for destroying it instead of being the responsibility of the owner object)
 
@@ -1144,8 +1151,8 @@ properties
   Pen: Pen - The pen object
   Font: Font - The font object
   Width: integer - Width of the canvas
-  Height: integer - Height of the canvas 
-  
+  Height: integer - Height of the canvas
+
 
 
 methods
@@ -1187,7 +1194,7 @@ methods
 Brush Class : (Inheritance: CustomBrush->CanvasHelper->Object)
 properties
   Color : Integer
-methods  
+methods
   getColor()
   setColor()
 
@@ -1214,7 +1221,7 @@ properties
   Width: integer
   Height: integer
   Transparent: boolean
-  
+
 methods
   getWidth(graphic): Gets the current width in pixels of this graphics object
   setWidth(graphic, width): Sets thw width in pixels
@@ -1242,7 +1249,7 @@ PortableNetworkGraphic Class: (Inheritence: CustomBitmap->RasterImage->Graphic->
 createPNG(width, height) - Returns a PortableNetworkGraphic object
 
 JpegImage Class: (Inheritence: CustomBitmap->RasterImage->Graphic->Object)
-createJpeg(width, height) - Returns a Jpeg object 
+createJpeg(width, height) - Returns a Jpeg object
 
 
 
@@ -1293,7 +1300,7 @@ CommonDialog class:
 FindDialog Class: (Inheritance: CommonDialog->Component->Object)
 properties
   FindText: String - The text the user wishes to find
-  Options: Enum - Find Options 
+  Options: Enum - Find Options
                    { frDown, frFindNext, frHideMatchCase, frHideWholeWord,
                      frHideUpDown, frMatchCase, frDisableMatchCase, frDisableUpDown,
                      frDisableWholeWord, frReplace, frReplaceAll, frWholeWord, frShowHelp,
@@ -1321,7 +1328,7 @@ OpenDialog Class: (Inheritance: FileDialog->CommonDialog->Component->Object)
 createOpenDialog(owner) : Creates an opendialog object
 
 properties
-  Options: String 
+  Options: String
     A string formatted as "[param1, param2, param3]" to set OpenDialogs options
     Valid parameters are:
       ofReadOnly,
@@ -1347,9 +1354,9 @@ properties
       ofDontAddToRecent  : do not add the path to the history list
       ofForceShowHidden  : show hidden files
       ofViewDetail       : details are OS and interface dependent
-      ofAutoPreview      : details are OS and interface dependent     
- 
-  
+      ofAutoPreview      : details are OS and interface dependent
+
+
 methods
 -
 
@@ -1397,14 +1404,14 @@ properties
 
 methods
   saveToFile(filename)
-  getData() : Gets a MemoryStream object 
+  getData() : Gets a MemoryStream object
 
 
 xmplayer class.
 The xmplayer class has already been defined as xmplayer, no need to create it manually
 
 properties
-  IsPlaying : boolean - Indicator that the xmplayer is currently playing a xm file 
+  IsPlaying : boolean - Indicator that the xmplayer is currently playing a xm file
   Initialized: boolean - Indicator that the xmplayer is actually actively loaded in memory
 
 methods
@@ -1432,7 +1439,7 @@ properties
   Description:string - Description part of the cheat line
   Hotkeyleft: integer - The x position of the hotkey line
   Descriptionleft:integer - The x position of the Description line
-  
+
 
   ShowHotkey: boolean - Decides if the hotkey label should be shown
   HasEditBox: boolean - Decides if the editbox should be shown
@@ -1455,7 +1462,7 @@ properties
   HotkeyString: string - The hotkey formatted as a string (ReadOnly)
   OnHotkey: function(sender) - Function to be called when a hotkey has just been pressed
   OnPostHotkey: function(sender) - Function to be called when a hotkey has been pressed and the action has been performed
-  
+
 methods
   doHotkey: Executes the hotkey as if it got triggered by the keyboard
 
@@ -1464,7 +1471,7 @@ MemoryRecord Class:
 The memoryrecord objects are the entries you see in the addresslist
 
 properties
-  ID: Integer - Unique ID 
+  ID: Integer - Unique ID
   Index: Integer - The index ID for this record. 0 is top. (ReadOnly)
   Description: string- The description of the memory record
   Address: string - Get/set the interpretable address string. Usefull for simple address settings.
@@ -1475,7 +1482,7 @@ properties
     If the type is vtString then the following properties are available:
      String.Size: Number of characters in the string
      String.Unicode: boolean
-    
+
     If the type is vtBinary then the following properties are available
       Binary.Startbit: First bit to start reading from
       Binary.Size : Number of bits
@@ -1485,14 +1492,14 @@ properties
 
   CustomTypeName: String - If the type is vtCustomType this will contain the name of the CustomType
   Script: String - If the type is vtAutoAssembler this will contain the auto assembler script
-  Value: string - The value in stringform. 
+  Value: string - The value in stringform.
   Selected: boolean - Set to true if selected (ReadOnly)
   Active: boolean - Set to true to activate/freeze, false to deactivate/unfreeze
   Color: integer
 
   Count: Number of children
   Child[index] : Array to access the child records
-  [index] = Child[index]  
+  [index] = Child[index]
 
   HotkeyCount: integer - Number of hotkeys attached to this memory record
   Hotkey[] : Array to index the hotkeys
@@ -1508,10 +1515,10 @@ methods
 
   getOffsetCount(): Returns the number of offsets for this memoryrecord
   setOffsetCount(integer): Lets you set the number of offsets
-  
+
   getOffset(index) : Gets the offset at the given index
   setOffset(index, value) : Sets the offset at the given index
-  
+
   getCurrentAddress(): Returns the current address as an integer (the final result of the interpretable address and pointer offsets)
 
   appendToEntry(memrec): Appends the current memory record to the given memory record
@@ -1527,7 +1534,7 @@ properties
   SelectedRecord: MemoryRecord - The main selected record
   MemoryRecord[]: MemoryRecord - Array to access the individial memory records
   [] = MemoryRecord - Default accessor
-  
+
 methods
   getCount()
   getMemoryRecord(index)
@@ -1541,7 +1548,7 @@ methods
   doAddressChange() : Will show the gui window to change the address of the selected entry
   doTypeChange() : Will show the gui window to change the type of the selected entries
   doValueChange() : Will show the gui window to change the value of the selected entries
-  
+
   getSelectedRecord() : Gets the main selected memoryrecord
   setSelectedRecord(memrec) : Sets the currently selected memoryrecord. This will unselect all other entries
 
@@ -1557,7 +1564,7 @@ properties
   FoundList: FoundList - The foundlist currently attached to this memscan object
   OnlyOneResult: boolean - If this is set to true memscan will stop scanning after having found the first result, and written the address to "Result"
   Result: Integer - If OnlyOneResult is used this will contain the address after a scan has finished
-  
+
 
 methods
 
@@ -1600,15 +1607,15 @@ methods
       fsmNotAligned : No alignment check
       fsmAligned    : The address must be dividable by the value in alignmentparam
       fsmLastDigits : The last digits of the address must end with the digits provided by alignmentparam
-  
+
     alignmentparam : String that holds the alignment parameter.
- 
+
     isHexadecimalInput: When true this will handle the input field as a hexadecimal string else decimal
     isNotABinaryString: When true and the varType is vtBinary this will handle the input field as a decimal instead of a binary string
     isunicodescan: When true and the vartype is vtString this will do a unicode (utf16) string scan else normal utf8 string
     iscasesensitive : When true and the vartype is vtString this check if the case matches
 
-    
+
 
 
   nextScan(scanoption, roundingtype, input1,input2, isHexadecimalInput, isNotABinaryString, isunicodescan, iscasesensitive, ispercentagescan, savedresultname OPTIONAL);
@@ -1625,12 +1632,12 @@ methods
       soDecreasedValueBy: Decreased value by scan
       soChanged: Changed value scan
       soUnchanged: Unchanged value scan
-    
+
     roundingtype: Defined the way scans for exact value floating points are handled
       rtRounded : Normal rounded scans. If exact value = "3" then it includes 3.0 to 3.49999999. If exact value is "3.0" it includes 3.00 to 3.0499999999
       rtTruncated: Truncated algoritm. If exact value = "3" then it includes 3.0 to 3.99999999. If exact value is "3.0" it includes 3.00 to 3.099999999
       rtExtremerounded: Rounded Extreme. If exact value = "3" then it includes 2.0000001 to 3.99999999. If exact value is "3.0" it includes 2.900000001 to 3.099999999
-  
+
     input1: If required by the scanoption this is a string of the given variable type
     input2: If requires by the scanoption this is the secondary input
 
@@ -1682,11 +1689,11 @@ DisassemblerviewLine class: (Inheritance: Object)
 properties
   Address: The current address of this line
   Owner: The Disassemblerview that owns this line
-    
+
 methods
   -
 
-Disassemblerview class: (Inheritance: Panel->CustomControl->WinControl->Control->Component->Object) 
+Disassemblerview class: (Inheritance: Panel->CustomControl->WinControl->Control->Component->Object)
   The visual disassembler used on the memory view window
 properties
   SelectedAddress: integer - The currently selected address in the disassemblerview
@@ -1702,23 +1709,23 @@ properties
     Sender is a DisassemblerviewLine object
     If no coordinates are given the image will be centered above/below the instruction
 
- 
+
 methods
   -
 
 
-Hexadecimal class: (Inheritance: Panel->CustomControl->WinControl->Control->Component->Object) 
+Hexadecimal class: (Inheritance: Panel->CustomControl->WinControl->Control->Component->Object)
   The visual hexadecimal object used on the memory view window
 properties
   OnAddressChange(hexadecimalview, function): function(hexadecimalview, address)
   OnByteSelect(hexadecimalview, function): function(hexadecimalview, address, address2)
-  
+
 methods
   -
 
 
 Thread Class: (Inheritance: Object)
-createNativeThread(function(Thread,...), ...) : 
+createNativeThread(function(Thread,...), ...) :
   Executes the given function in another thread using the systems thread mechanism
   The function returns the Thread class object
   function declaration: function (Thread, ...)
@@ -1727,7 +1734,7 @@ properties
   name: string - This name will be shown when the thread terminated abnormally
 
 methods
-  freeOnTerminate(state) : 
+  freeOnTerminate(state) :
     When set to true the thread object will free itself when the function ends (default=true)
     Note: Use this only from inside the thread function as the thread might have already terminated and freed itself when called
 
@@ -1736,7 +1743,7 @@ methods
     Usually for gui access
     Returns the return value of the given function
 
-  waitfor() : 
+  waitfor() :
     Waits for the given thread to finish (Not recommended to call this from inside the thread itself)
 
 
@@ -1764,9 +1771,9 @@ Methods:
   fillFromDotNetAddress(address, changeName): Fills the structure with the layout gathered from querying .NET.  If changeName is true, the structure will take the name of the .NET class.  (6.4+)
 
   beginUpdate(): Call this when you want to make multiple updates to a structure. It will speed up the update process
-  endUpdate(): Call this when done 
+  endUpdate(): Call this when done
   addToGlobalStructureList(): Add this to the list of structures for the user to select from. (Global structures will get saved to the table)
-  removeFromGlobalStructureList(): Remove from the list of structures. 
+  removeFromGlobalStructureList(): Remove from the list of structures.
 
 
 StructureElement class: (Inheritance: Object)
@@ -1798,13 +1805,13 @@ Methods:
 
 
 
-supportCheatEngine(attachwindow, hasclosebutton, width, height, position ,yoururl OPTIONAL, extraparameters OPTIONAL, percentageshown OPTIONAL): 
+supportCheatEngine(attachwindow, hasclosebutton, width, height, position ,yoururl OPTIONAL, extraparameters OPTIONAL, percentageshown OPTIONAL):
   Will show an advertising window which will help keep the development of Cheat Engine going.
-  If you provide your own url it will be shown Up to 75% of the time. 
+  If you provide your own url it will be shown Up to 75% of the time.
 
   attachwindow: Type=Form : The form that the ad is attached to
   hasclosebutton: Type=boolean : If true the window will have a border an a close button at top
-  width, height: Type=integer : 
+  width, height: Type=integer :
     The client width and height of the window.
     Prefered formats are : 120x600 , 160x600, 300x250, 468x60, 728x90  ,But you are free to use different formats
 
@@ -1814,7 +1821,7 @@ supportCheatEngine(attachwindow, hasclosebutton, width, height, position ,yourur
   Yoururl: Type=string: The url you want to show. When given instead of showing CE's ads 100% it will show your url up to 75%.
     You can use it for your own income, or for updating users about new versions of your trainer or whatever you feel like
 
-  Extraparameters: Type=String :  are url request parameters you can add to the default parameters (e.g trainername=mytrainer for tracking purposes)  
+  Extraparameters: Type=String :  are url request parameters you can add to the default parameters (e.g trainername=mytrainer for tracking purposes)
 
   PercentageShown: You can change the default of 75% to a smaller value like 50%
 
@@ -1832,7 +1839,7 @@ dbk_getPEProcess(processid) : Returns the pointer of the EProcess structure of t
 dbk_getPEThread(threadid) : Gets the pointer to the EThread  structure
 dbk_readMSR(msr): Reads the msr
 dbk_writeMSR(msr, msrvalue): Writes the msr
-dbk_executeKernelMemory(address, parameter) : 
+dbk_executeKernelMemory(address, parameter) :
   Executes a routine from kernelmode (e.g a routine written there with auto assembler)
   parameter can be a value or an address. It's up to your code how it's handled
 
@@ -1853,7 +1860,7 @@ functionid:
     Known compatible address defines:
       windows_OpenProcess
       dbk_OpenProcess
-      
+
   1: ReadProcessMemory
     Known compatible address defines:
       windows_ReadProcessMemory
@@ -1880,10 +1887,10 @@ dbk_NtOpenProcess : Address of the NtOpenProcess implementation in DBK32
 
 
 The dbvm_ addresses should only be used with auto assembler scripts injected into Cheat Engine
-dbvm_block_interrupts  : Address of function dbvm_block_interrupts : DWORD; stdcall;  
-dbvm_raise_privilege   : Address of function dbvm_raise_privilege : DWORD; stdcall;  
+dbvm_block_interrupts  : Address of function dbvm_block_interrupts : DWORD; stdcall;
+dbvm_raise_privilege   : Address of function dbvm_raise_privilege : DWORD; stdcall;
 dbvm_restore_interrupts: Address of function dbvm_restore_interrupts : DWORD; stdcall;
-dbvm_changeselectors   : Address of function dbvm_changeselectors(cs,ss,ds,es,fs,gs: dword): DWORD; stdcall; 
+dbvm_changeselectors   : Address of function dbvm_changeselectors(cs,ss,ds,es,fs,gs: dword): DWORD; stdcall;
 
 
 D3DHOOK class:
@@ -1893,7 +1900,7 @@ createD3DHook(textureandcommandlistsize OPTIONAL, hookmessages OPTIONAL)
   Hooks direct3d and allocates a buffer with given size for storage of for the rendercommand list
 
   hookmessages defines if you want to hook the windows message handler for the direct3d window. The d3dhook_onClick function makes use of that
-  
+
 
   If no size is provided 16MB is used and hookmessages is true
 
@@ -1910,11 +1917,11 @@ properties
   OnClick: function(d3dhook_sprite, x, y)
     A function to be called when clicked on an sprite (excluding the mouse)
     x and y are coordinates in the sprite object. If sprites overlap the highest zorder sprite will be given. It does NOT care if a transparent part is clicked or not
-  
+
     Note: If you set this it can cause a slowdown in the game if there are a lot of sprites and you press the left button a lot
 
   OnKeyDown: function(virtualkey, char)
-    function(vkey, char) : boolean 
+    function(vkey, char) : boolean
       A function to be called when a key is pressed in the game window (Not compatible with DirectInput8)
       Return false if you do not wish this key event to pass down to the game
 
@@ -2019,7 +2026,7 @@ properties
 Methods
   disassemble(address): Disassembles the given instruction and returns the opcode. It also fills in a LastDisassembleData record
   decodeLastParametersToString() : Returns the unedited "Comments" information. Does not display userdefined comments
-  getLastDisassembleData() : Returns the LastDisassembleData table. 
+  getLastDisassembleData() : Returns the LastDisassembleData table.
     The table is build-up as follow:
       address: integer - The address that was disassembled
       opcode: string - The opcode without parameters
@@ -2032,12 +2039,12 @@ Methods
 
       parameterValueType: DisAssemblerValueType
       parameterValue: Integer - The value that the parameter part specified
-      
+
       isJump: boolean - Set to true if the disassembled instruction can change the EIP/RIP (not ret)
       isCall: boolean - Set to true if it's a Call
       isRet: boolean - Set to true if it's a Ret
       isConditionalJump: boolean - Set to true if it's a conditional jump
-  
+
 
 
 DissectCode class: (Inheritance: Object)
@@ -2061,7 +2068,7 @@ methods:
 
   saveToFile(filename)
   loadFromFile(filename)
- 
+
 
 
 LuaPipe class: (Inheritance: Object)
@@ -2109,7 +2116,7 @@ LuaPipeServer Class: (Inheritance: LuaPipe>Object)
   Class launching the server side of a pipe
 
 createPipe(pipename, inputsize OPTIONAL, outputsize OPTIONAL) : Creates a LuaPipeServer which can be connected to by a pipe client. InputSize and Outputsize define buffers how much data can be in the specific buffer before the writer halts.  Default input and output size is 4096 for both
-  
+
 properties
   valid: boolean - Returns true if the pipe has been created properly. False on failure (e.g wrong pipename)
 
@@ -2118,22 +2125,22 @@ methods
 
 
 
-openLuaServer(Name): 
+openLuaServer(Name):
   Opens a pipe with the given name. The LuaClient dll needs this name to connect to ce
 
 
   LuaClient.dll functions:
-    BOOL CELUA_Initialize(char *name) : Initializes 
+    BOOL CELUA_Initialize(char *name) : Initializes
     UINT_PTR CELUA_ExecuteFunction(char *luacode, UINT_PTR parameter)
       This function executes a lua function with parameters (parameter) and with the luacode as body Parameter will be treated as an integer
       In short:
         function(parameter)
           <luacode>
-        end 
+        end
 
 
     the return value of this function is the return value of the lua function (integer)
-  
+
 
 Settings class
   This class can be used to read out and set settings of cheat engine and of plugins, and store your own data
@@ -2144,7 +2151,7 @@ global functions
 
 
 properties
-  Path: string - Gets/Sets the current subkey (nil if main)  
+  Path: string - Gets/Sets the current subkey (nil if main)
   Value[]: A table access into the settings. e.g: Value["Count"]=12
 
 methods
@@ -2161,7 +2168,7 @@ SymbolList class
       modulename: string
       searchkey: string
       address: integer
-      symbolsize: integer                                       
+      symbolsize: integer
 
 Global functions
   createSymbolList() : Creates an empty symbollist
@@ -2179,14 +2186,14 @@ Methods
     extradata is a table which can be used to fill in a return type and parameters for function calls. It has the following fields:
       returntype: string
       parameters: string
-      
- 
-     
+
+
+
   deleteSymbol(searchkey)
   deleteSymbol(address)
   register() : Registers the current symbol list with the symbol handler
   unregister(): Unregisters the current symbol list from the symbol handler
-  
+
 
 Pagecontrol Class (WinControl->Control->Component->Object)
   This is an object that can hold multiple pages
@@ -2196,7 +2203,7 @@ global functions
 properties
   ShowTabs: boolean - Shows the tabs
   TabIndex: integer - Gets and sets the current tab
-  ActivePage: TabSheet - Returns the current tabsheet. 
+  ActivePage: TabSheet - Returns the current tabsheet.
   PageCount: integer - Gets the number of pages
   Page[]: TabSheet - Get a specific page (TabSheet)
 methods
