@@ -1215,9 +1215,12 @@ begin
           begin
             //syntax: alloc(x,size)    x=variable name size=bytes
             //allocate memory
+
+
+
             a:=pos('(',currentline);
             b:=pos(',',currentline);
-            c:=pos(')',currentline);
+            c:=rpos(')',currentline);
             if (a>0) and (b>0) and (c>0) then
             begin
               s1:=trim(copy(currentline,a+1,b-a-1));
