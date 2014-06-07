@@ -105,13 +105,12 @@ begin
   setIs64Bit(false);
   {$endif}
 
-  {if processhandle<>0 then
-  begin
-    if GetCurrentThreadId<>MainThreadID then
-      TThread.Synchronize(nil, open)
-    else  }
-      open;
-  {end;  }
+  if processhandle<>0 then
+    open;
+
+    {if GetCurrentThreadId<>MainThreadID then
+        TThread.Synchronize(nil, open) }
+
 
 
 
