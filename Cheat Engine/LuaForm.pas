@@ -114,6 +114,15 @@ begin
   f.close;
 end;
 
+function customform_bringToFront(L: Plua_State): integer; cdecl;
+var
+  f: Tcustomform;
+begin
+  result:=0;
+  f:=luaclass_getClassObject(L);
+  f.BringToFront;
+end;
+
 function customform_showModal(L: Plua_State): integer; cdecl;
 var
   f: tcustomform;
@@ -331,6 +340,7 @@ begin
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'show', customform_show);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'hide', customform_hide);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'close', customform_close);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'bringToFront', customform_bringToFront);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'showModal', customform_showModal);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'isForegroundWindow', customform_isForegroundWindow);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'getMenu', customform_getMenu);
