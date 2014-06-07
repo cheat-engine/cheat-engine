@@ -313,10 +313,21 @@ begin
 
           if cbD3DHook.checked then
           begin
-            addfile(cheatenginedir+'d3dhook.dll');
-            addfile(cheatenginedir+'ced3d9hook.dll');
-            addfile(cheatenginedir+'ced3d10hook.dll');
-            addfile(cheatenginedir+'ced3d11hook.dll');
+            addfile(cheatenginedir+'overlay.fx');
+            if rb32.checked then
+            begin
+              addfile(cheatenginedir+'d3dhook.dll');
+              addfile(cheatenginedir+'ced3d9hook.dll');
+              addfile(cheatenginedir+'ced3d10hook.dll');
+              addfile(cheatenginedir+'ced3d11hook.dll');
+            end
+            else
+            begin
+              addfile(cheatenginedir+'d3dhook64.dll');
+              addfile(cheatenginedir+'ced3d9hook64.dll');
+              addfile(cheatenginedir+'ced3d10hook64.dll');
+              addfile(cheatenginedir+'ced3d11hook64.dll');
+            end;
           end;
 
           archive.free;
