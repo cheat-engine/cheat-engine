@@ -318,7 +318,7 @@ begin
   customheaderstrings.text:=dassemblercomments.commentHeader[visibleDisassembler.LastDisassembleData.address];
 
 
-  if symhandler.showmodules then
+  if symhandler.showsymbols or symhandler.showmodules then
     addressString:=symbolname
   else
     addressString:=truncatestring(addressString, fHeaders.Items[0].Width-2);
