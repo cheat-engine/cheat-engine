@@ -2715,6 +2715,8 @@ begin
 
     if j>0 then //a register or a stupid user
     begin
+      if increase=false then
+        raise exception.create('Negative registers can not be encoded');
       regs:=regs+temp+'+';
     end
     else
