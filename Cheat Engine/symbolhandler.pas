@@ -2201,7 +2201,7 @@ begin
 
 
   //check if it's a lua symbol notation ('$')
-  if length(name)>2 then
+  if length(name)>=2 then
   begin
     if name[1]='$' then
     begin
@@ -2220,6 +2220,8 @@ begin
         if j=0 then beep;
 
 
+
+
         if lua_isuserdata(LuaVM, -1) then
         begin
           result:=ptruint(lua_toceuserdata(Luavm, -1));
@@ -2227,7 +2229,7 @@ begin
           exit;
         end
         else
-        if lua_isnumber(LuaVM, -1) then
+        if (j<>LUA_TSTRING) and (lua_isnumber(LuaVM, -1)) then
         begin
           result:=lua_tointeger(LuaVM, -1);
           lua_settop(luavm, i);
