@@ -258,9 +258,14 @@ begin
 end;
 
 destructor TLuaCaller.destroy;
+var vmused: Plua_State;
 begin
+  vmused:=syncvm;
+  if vmused=nil then
+    vmused:=luavm;
+
   if luaroutineindex<>-1 then //deref
-    luaL_unref(luavm, LUA_REGISTRYINDEX, luaroutineindex);
+    luaL_unref(vmused, LUA_REGISTRYINDEX, luaroutineindex);
 end;
 
 function TLuaCaller.canRun: boolean;

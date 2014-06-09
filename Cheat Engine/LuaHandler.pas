@@ -34,6 +34,10 @@ procedure lua_register(L: Plua_State; const n: PChar; f: lua_CFunction);
 function lua_pcall(L: Plua_State; nargs, nresults, errf: Integer): Integer; cdecl;
 function lua_dostring(L: Plua_State; const str: PChar): Integer;
 
+function luaL_ref(L: Plua_State; t: Integer): Integer; cdecl;
+procedure luaL_unref(L: Plua_State; t, ref: Integer); cdecl;
+
+
 procedure Lua_RegisterObject(name: string; o: TObject);
 function CheckIfConditionIsMetContext(context: PContext; script: string): boolean;
 procedure LUA_DoScript(s: string);
@@ -123,6 +127,20 @@ begin
   s[1]:=chr(ord(s[1]) xor $20); //switch from uppercase to lowercase and lowercase to uppercase
 
   lua.lua_register(L, pchar(s), f);
+end;
+
+function luaL_ref(L: Plua_State; t: Integer): Integer; cdecl;
+begin
+  luacs.Enter;
+  result:=lauxlib.luaL_ref(l, t);
+  luacs.leave;
+end;
+
+procedure luaL_unref(L: Plua_State; t, ref: Integer); cdecl;
+begin
+  luacs.enter;
+  lauxlib.luaL_unref(l, t, ref);
+  luacs.leave;
 end;
 
 //todo: let the user define a default error function
