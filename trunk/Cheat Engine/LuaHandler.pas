@@ -129,18 +129,19 @@ begin
   lua.lua_register(L, pchar(s), f);
 end;
 
+var luarefcs: TCriticalSection;
 function luaL_ref(L: Plua_State; t: Integer): Integer; cdecl;
 begin
-  luacs.Enter;
+  luarefcs.Enter;
   result:=lauxlib.luaL_ref(l, t);
-  luacs.leave;
+  luarefcs.leave;
 end;
 
 procedure luaL_unref(L: Plua_State; t, ref: Integer); cdecl;
 begin
-  luacs.enter;
+  luarefcs.enter;
   lauxlib.luaL_unref(l, t, ref);
-  luacs.leave;
+  luarefcs.leave;
 end;
 
 //todo: let the user define a default error function
@@ -5829,7 +5830,7 @@ end;
 
 initialization
   LuaCS:=TCriticalSection.create;
-
+  luarefcs:=TCriticalSection.create;
 
   InitializeLua;
 
