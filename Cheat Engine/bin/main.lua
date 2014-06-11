@@ -317,6 +317,7 @@ getMainForm() : Returns the main form class object which can be accessed using t
 getAddressList() : Returns the cheat table addresslist object
 getFreezeTimer() : Returns the freeze timer object
 getUpdateTimer() : Returns the update timer object
+getLuaEngine() : Returns the lua engine form object (Creates it if needed)
 setGlobalKeyPollInterval(integer): Sets the global keypoll interval. The interval determines the speed of how often CE checks if a key has been pressed or not. Lower is more accurate, but eats more cpu power
 setGlobalDelayBetweenHotkeyActivation(integer): Sets the minimum delay between the activation of the same hotey in milliseconds. Affects all hotkeys that do not set their own minimum delay
 

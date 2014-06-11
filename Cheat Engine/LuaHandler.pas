@@ -5340,6 +5340,14 @@ begin
     protectme(lua_tointeger(L,1));
 end;
 
+function getLuaEngine(L:PLua_State): integer; cdecl;
+begin
+  if frmLuaEngine=nil then
+    frmLuaEngine:=TfrmLuaEngine.Create(application);
+
+  luaclass_newClass(L, frmLuaEngine);
+  result:=1;
+end;
 
 procedure InitializeLua;
 var s: tstringlist;
@@ -5718,6 +5726,7 @@ begin
     lua_register(LuaVM, 'destroyRef', destroyRef);
 
     lua_register(LuaVM, 'activateProtection', activateProtection);
+    lua_register(LuaVM, 'getLuaEngine', getLuaEngine);
 
     initializeLuaCustomControl;
 
