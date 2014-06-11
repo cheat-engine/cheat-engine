@@ -3010,7 +3010,7 @@ begin
       result.writeDword(MaxBitCountOffset);
 
       result.writeDword(length(mustendwithoffsetlist));
-      for i:=0 to length(mustendwithoffsetlist) do
+      for i:=0 to length(mustendwithoffsetlist)-1 do
         result.writeDword(mustendwithoffsetlist[i]);
 
     finally
