@@ -1027,7 +1027,8 @@ end;
 
 function TDissectedStruct.getElement(index: integer): TStructelement;
 begin
-  if (index>=0) and (index<structelementlist.Count) then
+
+  if (structelementlist<>nil) and ((index>=0) and (index<structelementlist.Count)) then
     result:=TStructelement(structelementlist.Items[index])
   else
     result:=nil;
@@ -3021,6 +3022,8 @@ begin
       //get the structure this node belongs to
 
       struct:=getStructFromNode(node);
+
+      if struct.structelementlist=nil then exit; //this whole structure is destroyed
 
       //now get the element this node represents and check if it is a pointer
       node.HasChildren:=struct[node.Index].isPointer;
