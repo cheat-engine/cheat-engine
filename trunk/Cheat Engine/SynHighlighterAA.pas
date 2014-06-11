@@ -1137,6 +1137,7 @@ begin
   if fRange=rsLua then
     fLuaSyntaxHighlighter.SetLine(NewValue, LineNumber);
 
+
   fLineRef := NewValue;
   fLine := PChar(fLineRef);
   Run := 0;
@@ -1195,7 +1196,7 @@ begin
   if uppercase(fLine)='{$ASM}' then
   begin
     inc(run,6);
-    fTokenID := tkDirec;
+    fTokenID := tkIdentifier;
     fRange:=rsUnKnown;
   end
   else
@@ -1231,7 +1232,7 @@ begin
   then
   begin
     inc(run,5);
-    FTokenID:=tkDirec;
+    FTokenID:=tkIdentifier;
     if fLuaSyntaxHighlighter=nil then
       fLuaSyntaxHighlighter:=TSynLuaSyn.Create(self);
 
@@ -1240,6 +1241,18 @@ begin
     fLuaSyntaxHighlighter.StartAtLineIndex(fLineNumber);
 
     fRange := rsLua;
+    exit;
+  end
+  else
+  if (Run=0) and (fLine[Run + 1] = '$') and   //{$ASM}
+     (uppercase(fLine[Run + 2]) = 'A') and
+     (uppercase(fLine[Run + 3]) = 'S') and
+     (uppercase(fLine[Run + 4]) = 'M') and
+     (fLine[Run + 5] = '}')
+  then
+  begin
+    FTokenID:=tkIdentifier;
+    inc(run,5);
     exit;
   end
   else
@@ -1652,7 +1665,10 @@ end;
 
 function TSynAASyn.GetTokenKind: integer;
 begin
-  Result := Ord(GetTokenID);
+  if frange=rsLua then
+    result:=fLuaSyntaxHighlighter.GetTokenKind
+  else
+    Result := Ord(GetTokenID);
 end;
 
 function TSynAASyn.GetTokenPos: Integer;
