@@ -864,6 +864,7 @@ object frmLuaEngine: TfrmLuaEngine
       Caption = 'Find'
       ShortCut = 16454
       ShortCutKey2 = 114
+      OnClick = MenuItem13Click
     end
     object MenuItem6: TMenuItem
       Caption = 'Find/Replace'

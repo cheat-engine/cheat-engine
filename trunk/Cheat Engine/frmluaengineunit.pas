@@ -65,6 +65,7 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure MenuItem10Click(Sender: TObject);
     procedure MenuItem11Click(Sender: TObject);
+    procedure MenuItem13Click(Sender: TObject);
     procedure MenuItem2Click(Sender: TObject);
     procedure MenuItem3Click(Sender: TObject);
     procedure MenuItem5Click(Sender: TObject);
@@ -911,7 +912,10 @@ var
   i: integer;
 begin
   //find
-  s:=dlgReplace.FindText;
+  if sender=FindDialog1 then
+    s:=finddialog1.FindText
+  else
+    s:=dlgReplace.FindText;
 
   i:=PosEx(s, mscript.Text, mscript.selstart+1);
 
@@ -984,6 +988,11 @@ begin
   f.miView.visible:=false;
 
   f.show;
+end;
+
+procedure TfrmLuaEngine.MenuItem13Click(Sender: TObject);
+begin
+  finddialog1.Execute;
 end;
 
 procedure TfrmLuaEngine.MenuItem2Click(Sender: TObject);
