@@ -11,7 +11,7 @@ object frmBreakpointlist: TfrmBreakpointlist
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.3'
   object ListView1: TListView
     Left = 0
     Height = 292
@@ -74,10 +74,12 @@ object frmBreakpointlist: TfrmBreakpointlist
     end
     object miDelBreakpoint: TMenuItem
       Caption = 'Delete breakpoint'
+      ShortCut = 46
       OnClick = miDelBreakpointClick
     end
     object miSetCondition: TMenuItem
       Caption = 'Set/change condition'
+      ShortCut = 16451
       OnClick = miSetConditionClick
     end
     object miPageWide: TMenuItem
@@ -91,6 +93,7 @@ object frmBreakpointlist: TfrmBreakpointlist
     object miShowShadow: TMenuItem
       AutoCheck = True
       Caption = 'Show shadow breakpoints'
+      ShortCut = 16467
       OnClick = miShowShadowClick
     end
   end

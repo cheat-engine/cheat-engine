@@ -208,7 +208,6 @@ begin
     finally
       debuggerthread.unlockbplist;
     end;
-
   end;
 end;
 
