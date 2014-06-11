@@ -2617,6 +2617,13 @@ begin
     exit;
   end;
 
+  if processid=GetCurrentProcessId then
+  begin
+    messagedlg(rsPleaseTargetAnotherProcess, mterror, [mbOK], 0);
+    exit;
+  end;
+
+
   if (frmMemoryAllocHandler<>nil) and (frmMemoryAllocHandler.hookedprocessid<>processid) then
     freeandnil(frmMemoryAllocHandler);
 

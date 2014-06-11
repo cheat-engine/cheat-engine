@@ -2,11 +2,11 @@ object frmTracer: TfrmTracer
   Left = 924
   Height = 407
   Top = 182
-  Width = 420
+  Width = 429
   BorderIcons = [biSystemMenu]
   Caption = 'Tracer'
   ClientHeight = 387
-  ClientWidth = 420
+  ClientWidth = 429
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Menu = MainMenu1
@@ -17,7 +17,7 @@ object frmTracer: TfrmTracer
   Position = poScreenCenter
   LCLVersion = '1.3'
   object Splitter1: TSplitter
-    Left = 198
+    Left = 192
     Height = 387
     Top = 0
     Width = 4
@@ -25,15 +25,16 @@ object frmTracer: TfrmTracer
     ResizeAnchor = akRight
   end
   object Panel1: TPanel
-    Left = 202
+    Left = 196
     Height = 387
     Top = 0
-    Width = 218
+    Width = 233
     Align = alRight
     BevelOuter = bvNone
     ClientHeight = 387
-    ClientWidth = 218
+    ClientWidth = 233
     TabOrder = 0
+    OnClick = Panel1Click
     OnResize = Panel1Resize
     object EAXLabel: TLabel
       Cursor = crHandPoint
@@ -170,7 +171,7 @@ object frmTracer: TfrmTracer
       OnMouseDown = RegisterMouseDown
     end
     object cflabel: TLabel
-      Left = 162
+      Left = 174
       Height = 13
       Top = 40
       Width = 32
@@ -181,7 +182,7 @@ object frmTracer: TfrmTracer
       ParentFont = False
     end
     object pflabel: TLabel
-      Left = 162
+      Left = 174
       Height = 13
       Top = 60
       Width = 32
@@ -192,7 +193,7 @@ object frmTracer: TfrmTracer
       ParentFont = False
     end
     object aflabel: TLabel
-      Left = 162
+      Left = 174
       Height = 13
       Top = 79
       Width = 32
@@ -203,7 +204,7 @@ object frmTracer: TfrmTracer
       ParentFont = False
     end
     object zflabel: TLabel
-      Left = 162
+      Left = 174
       Height = 13
       Top = 99
       Width = 32
@@ -214,7 +215,7 @@ object frmTracer: TfrmTracer
       ParentFont = False
     end
     object sflabel: TLabel
-      Left = 162
+      Left = 174
       Height = 13
       Top = 119
       Width = 32
@@ -225,7 +226,7 @@ object frmTracer: TfrmTracer
       ParentFont = False
     end
     object oflabel: TLabel
-      Left = 162
+      Left = 174
       Height = 13
       Top = 158
       Width = 32
@@ -314,7 +315,7 @@ object frmTracer: TfrmTracer
       ParentFont = False
     end
     object dflabel: TLabel
-      Left = 162
+      Left = 174
       Height = 13
       Top = 138
       Width = 32
@@ -325,10 +326,10 @@ object frmTracer: TfrmTracer
       ParentFont = False
     end
     object sbShowFloats: TSpeedButton
-      Left = 197
+      Left = 212
       Height = 30
       Hint = 'Floating point registers'
-      Top = 158
+      Top = 163
       Width = 21
       Caption = 'F'
       OnClick = sbShowFloatsClick
@@ -361,10 +362,10 @@ object frmTracer: TfrmTracer
       ParentColor = False
     end
     object sbShowstack: TSpeedButton
-      Left = 197
+      Left = 212
       Height = 30
       Hint = 'Floating point registers'
-      Top = 186
+      Top = 192
       Width = 21
       Caption = 'S'
       Visible = False
@@ -377,28 +378,28 @@ object frmTracer: TfrmTracer
     Left = 0
     Height = 387
     Top = 0
-    Width = 198
+    Width = 192
     Align = alClient
     BevelOuter = bvNone
     ClientHeight = 387
-    ClientWidth = 198
+    ClientWidth = 192
     TabOrder = 2
     object pnlSearch: TPanel
       Left = 0
       Height = 50
       Top = 337
-      Width = 198
+      Width = 192
       Align = alBottom
       BevelOuter = bvNone
       ClientHeight = 50
-      ClientWidth = 198
+      ClientWidth = 192
       TabOrder = 0
       Visible = False
       object ProgressBar1: TProgressBar
         Left = 0
         Height = 19
         Top = 31
-        Width = 198
+        Width = 192
         Align = alBottom
         TabOrder = 0
       end
@@ -416,7 +417,7 @@ object frmTracer: TfrmTracer
       Left = 0
       Height = 337
       Top = 0
-      Width = 198
+      Width = 192
       Align = alClient
       DefaultItemHeight = 16
       ExpandSignType = tvestPlusMinus

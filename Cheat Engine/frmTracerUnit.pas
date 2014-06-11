@@ -95,6 +95,7 @@ type
     procedure miSaveClick(Sender: TObject);
     procedure miSaveToDiskClick(Sender: TObject);
     procedure MenuItem4Click(Sender: TObject);
+    procedure Panel1Click(Sender: TObject);
     procedure RegisterMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure FormCreate(Sender: TObject);
@@ -733,6 +734,11 @@ begin
 
     pnlSearch.visible:=false;
   end;
+end;
+
+procedure TfrmTracer.Panel1Click(Sender: TObject);
+begin
+
 end;
 
 
