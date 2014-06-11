@@ -80,7 +80,7 @@ uses
   CEListviewItemEditor, LuaTreeview, LuaTreeNodes, LuaTreeNode, LuaCalendar,
   LuaSymbolListHandler, LuaFindDialog, LuaCommonDialog, LuaSettings,
 frmReferencedFunctionsUnit, LuaPageControl, DebugHelper, 
-frmNetworkDataCompressionUnit, lazcontrols;
+frmNetworkDataCompressionUnit, lazcontrols, LuaApplication;
 
 {$R cheatengine.res}
 //{$R manifest.res}  //lazarus now has this build in

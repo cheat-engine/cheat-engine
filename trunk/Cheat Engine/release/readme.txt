@@ -1,7 +1,7 @@
 Cheat Engine 6.4
 
 Fixes:
-Network: Network server can now handle multiple incomming connections at the same time
+Network: Network server can now handle multiple incoming connections at the same time
 Gui: Fixed a crash when using multiple scan tabs
 Assembler/Disassembler: Fixed several assembler/disassembler bugs
 Debug: Fixed issues where deleting a breakpoint wouldn't actually remove it, causing a crash
@@ -11,6 +11,7 @@ Lua: Fixed memscan.waitTillDone() when using it on the gui memscan
 Lua: Fixed speedhack_setSpeed() not taking more than 3 digits
 D3D Hook: Direct3D9 objects now support transparency
 D3D Hook: Fix detection of which directx version is actually used for rendering
+Dissect Data: Fixed the column click detection when scrolled
 Auto Assembler: Fixed some commands not highlighting properly
 Ultimap: Fixed ultimap so it now works in windows 8
 Ultimap: Fixed the hotkeys
@@ -69,7 +70,7 @@ Lua: Lots of other new features. Check out main.lua
 
 
 How to use:
-Theres a tutorial program included with Cheat Engine,
+There's a tutorial program included with Cheat Engine,
 it teaches how to use the basics of Cheat Engine, also the helpfile may be of use.
 
 

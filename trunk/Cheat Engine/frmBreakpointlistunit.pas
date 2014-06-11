@@ -192,6 +192,7 @@ end;
 procedure TfrmBreakpointlist.miDelBreakpointClick(Sender: TObject);
 var bp: Pbreakpoint;
 begin
+
   if listview1.Selected<>nil then
   begin
     debuggerthread.lockbplist; //prevent the list from updating/deleting bp's
