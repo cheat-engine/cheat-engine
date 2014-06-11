@@ -1784,8 +1784,14 @@ var
   s: string;
 
   showcount: integer;
+  selindex: integer;
 begin
+  if lv.Selected<>nil then
+    selindex:=lv.selected.index
+  else
+    selindex:=-1;
 
+  lv.items.Clear;
 
   debuggercs.enter;
 
@@ -1823,9 +1829,21 @@ begin
         li.SubItems.Add(rsYes+' ('+inttostr(bp.deletecountdown)+')');
     end;
   end;
-
+            {
   for i:=lv.items.count-1 downto showcount do
-    lv.items[i].Delete;
+    lv.items[i].Delete;    }
+
+  if selindex>=lv.items.count then
+    selindex:=lv.items.count-1;
+
+  if (selindex<>-1) then
+    lv.Selected:=lv.Items[selindex]
+  else
+    lv.selected:=nil;
+
+  if lv.selected<>nil then
+    lv.Selected.MakeVisible(false);
+
 
   debuggercs.leave;
 end;
