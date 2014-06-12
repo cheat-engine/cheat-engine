@@ -8,7 +8,8 @@ object frmManualStacktraceConfig: TfrmManualStacktraceConfig
   Caption = 'Manual stacktrace config'
   ClientHeight = 236
   ClientWidth = 354
-  LCLVersion = '1.0.8.0'
+  Position = poScreenCenter
+  LCLVersion = '1.3'
   object edtEIP: TEdit
     Left = 8
     Height = 23
@@ -32,25 +33,25 @@ object frmManualStacktraceConfig: TfrmManualStacktraceConfig
   end
   object lblEIP: TLabel
     Left = 8
-    Height = 16
+    Height = 15
     Top = 0
-    Width = 17
+    Width = 16
     Caption = 'EIP'
     ParentColor = False
   end
   object lblESP: TLabel
     Left = 8
-    Height = 16
+    Height = 15
     Top = 40
-    Width = 20
+    Width = 19
     Caption = 'ESP'
     ParentColor = False
   end
   object lblEBP: TLabel
     Left = 8
-    Height = 16
+    Height = 15
     Top = 80
-    Width = 21
+    Width = 20
     Caption = 'EBP'
     ParentColor = False
   end
@@ -91,9 +92,9 @@ object frmManualStacktraceConfig: TfrmManualStacktraceConfig
   end
   object Label1: TLabel
     Left = 8
-    Height = 16
+    Height = 15
     Top = 152
-    Width = 70
+    Width = 69
     Caption = 'Original base'
     ParentColor = False
   end
@@ -106,9 +107,9 @@ object frmManualStacktraceConfig: TfrmManualStacktraceConfig
   end
   object Label2: TLabel
     Left = 128
-    Height = 16
+    Height = 15
     Top = 168
-    Width = 14
+    Width = 13
     Caption = '->'
     ParentColor = False
   end
@@ -122,17 +123,17 @@ object frmManualStacktraceConfig: TfrmManualStacktraceConfig
   end
   object Label3: TLabel
     Left = 256
-    Height = 16
+    Height = 15
     Top = 152
-    Width = 21
+    Width = 20
     Caption = 'Size'
     ParentColor = False
   end
   object Label4: TLabel
     Left = 152
-    Height = 16
+    Height = 15
     Top = 152
-    Width = 54
+    Width = 53
     Caption = 'New copy'
     ParentColor = False
   end

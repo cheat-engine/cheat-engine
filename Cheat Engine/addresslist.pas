@@ -836,10 +836,18 @@ begin
     if tmemoryrecord(node.data).description<>description then
       MainForm.editedsincelastsave:=true;
 
-    tmemoryrecord(node.data).description:=description;
+    for i:=0 to items.count-1 do
+      if (MemRecItems[i].isSelected) then
+        MemRecItems[i].description:=description;
+
+
+
+//    tmemoryrecord(node.data).description:=description;
   end;
 
-  node.update;
+
+  treeview.Update;
+//  node.update;
 end;
 
 procedure TAddresslist.addressdblclick(node: TTreenode);
