@@ -11,21 +11,6 @@ implementation
 
 uses luaclass, luahandler, LuaObject;
 
-{$ifdef cpu32}
-procedure treenode_clean(treenode: ttreenode);
-var i: integer;
-begin
-  //clean the children
-  for i:=0 to treenode.Count-1 do
-    treenode_clean(treenode[i]);
-
-  if treenode.data<>nil then
-  begin
-    freemem(treenode.data);
-    treenode.data:=nil;
-  end;
-end;
-{$endif}
 
 function treenode_delete(L: Plua_State): integer; cdecl;
 var
@@ -33,10 +18,6 @@ var
 begin
   result:=0;
   treenode:=luaclass_getClassObject(L);
-
-{$ifdef cpu32}
-  treenode_clean(treenode);
-{$endif}
 
   treenode.Delete;
 end;
@@ -46,36 +27,42 @@ end;
 function treenode_deleteChildren(L: Plua_State): integer; cdecl;
 var
   treenode: Ttreenode;
-{$ifdef cpu32}
-  i: integer;
-{$endif}
 begin
   result:=0;
   treenode:=luaclass_getClassObject(L);
-{$ifdef cpu32}
-  //clean children
-  for i:=0 to treenode.count-1 do
-    treenode_clean(treenode[i]);
-{$endif}
   treenode.DeleteChildren;
 end;
 
 function treenode_expand(L: Plua_State): integer; cdecl;
 var
   treenode: Ttreenode;
+  recursive: boolean;
 begin
   result:=0;
   treenode:=luaclass_getClassObject(L);
-  treenode.Expand(true);
+
+  if lua_gettop(L)>0 then
+    recursive:=lua_toboolean(L,1)
+  else
+    recursive:=true;
+
+  treenode.Expand(recursive);
 end;
 
 function treenode_collapse(L: Plua_State): integer; cdecl;
 var
   treenode: Ttreenode;
+  recursive: boolean;
 begin
   result:=0;
   treenode:=luaclass_getClassObject(L);
-  treenode.Collapse(true);
+
+  if lua_gettop(L)>0 then
+    recursive:=lua_toboolean(L,1)
+  else
+    recursive:=true;
+
+  treenode.Collapse(recursive);
 end;
 
 function treenode_getCount(L: PLua_State): integer; cdecl;

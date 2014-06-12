@@ -931,6 +931,66 @@ function mono_TVCollapsing(sender, node)
   return allow
 end
 
+function monoform_FindDialogFind(sender)
+  local texttofind=string.lower(monoForm.FindDialog.FindText)
+  local tv=monoForm.TV
+  local startindex=0
+
+  if tv.Selected~=nil then
+    startindex=tv.Selected.AbsoluteIndex+1
+  end
+
+
+  local i
+
+
+  if string.find(monoForm.FindDialog.Options, 'frEntireScope') then
+    --deep scan
+    tv.beginUpdate()
+    i=startindex
+    while i<tv.Items.Count do
+      local node=monoForm.TV.items[i]
+      local text=string.lower(node.Text)
+
+	  if string.find(text, texttofind)~=nil then
+  	    --found it
+	    tv.Selected=node
+	    break
+	  end
+
+
+
+	  if node.HasChildren then
+  	    node.Expand(false)
+  	  end
+
+	  i=i+1
+    end
+
+	tv.endUpdate()
+  else
+    --just the already scanned stuff
+    for i=startindex, tv.Items.Count-1 do
+      local node=monoForm.TV.items[i]
+      local text=string.lower(node.Text)
+
+	  if string.find(text, texttofind)~=nil then
+  	    --found it
+	    tv.Selected=node
+	    return
+	  end
+    end
+  end
+
+
+
+end
+
+function monoform_miFindClick(sender)
+  monoForm.FindDialog.execute()
+end
+
+
 function monoform_miExpandAllClick(sender)
   if messageDialog("Are you sure you wish to expand the whole tree? This can take a while and Cheat Engine may look like it has crashed (It has not)", mtConfirmation, mbYes, mbNo)==mrYes then
     monoForm.TV.beginUpdate()
