@@ -10929,7 +10929,7 @@ begin
 
       case vtype of
         vtByte: result:=inttostr(buffer[0]);
-        vtWord: result:=inttostr(pshortint(@buffer[0])^);
+        vtWord: result:=inttostr(PSmallInt(@buffer[0])^);
         vtDword: if a then result:=inttohex(pdword(@buffer[0])^,8) else result:=inttostr(pinteger(@buffer[0])^);
         vtQword: result:=inttostr(pInt64(@buffer[0])^);
         vtSingle: result:=format('%.2f',[psingle(@buffer[0])^]);
