@@ -1081,8 +1081,8 @@ methods
   delete()
   deleteChildren()
   makeVisible()
-  expand()
-  collapse()
+  expand(recursive:boolean=TRUE OPTIONAL) : Expands the given node
+  collapse(recursive:boolean=TRUE OPTIONAL)  : collapses the given node
   getNextSibling(): Returns the treenode object that's behind this treenode on the same level
   add(text:string): Returns a Treenode object that is a child of the treenode used to create it
 
