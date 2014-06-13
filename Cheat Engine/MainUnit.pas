@@ -6289,10 +6289,12 @@ begin
     end;
   end;
 
-  foundlist.Reinitialize;
+  foundcount:=foundlist.Reinitialize;
 
   if PreviousResults<>nil then
     PreviousResults.reinitialize;
+
+
 
 end;
 
