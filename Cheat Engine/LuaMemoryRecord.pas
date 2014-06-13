@@ -456,6 +456,7 @@ begin
   begin
     index:=lua_tointeger(L,-1);
     luaclass_newClass(L, memoryrecord.Hotkey[index]);
+    result:=1;
   end;
 end;
 
