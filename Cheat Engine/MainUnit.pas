@@ -217,6 +217,7 @@ type
     MenuItem1: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
+    miDisplayHex: TMenuItem;
     miNetwork: TMenuItem;
     miCompression: TMenuItem;
     miManualExpandCollapse: TMenuItem;
@@ -1051,6 +1052,9 @@ resourcestring
 
   rsSaved = 'Saved';
   rsPrevious = 'Previous';
+
+  rsDecimal = 'Decimal';
+  rsHexadecimal = 'Hexadecimal';
 
 var
   ncol: TColor;
@@ -4610,6 +4614,7 @@ begin
   compareToSavedScan := False;
   lblcompareToSavedScan.Visible := False;
 
+  miDisplayDefault.checked:=true;
 end;
 
 procedure TMainForm.btnNewScanClick(Sender: TObject);
@@ -6207,6 +6212,16 @@ begin
   miDisplay8Byte.visible:=(foundlist3.Items.Count>0) and (memscan<>nil) and (bytesize>=8);
   miDisplayFloat.visible:=(foundlist3.Items.Count>0) and (memscan<>nil) and (bytesize>=4);
   miDisplayDouble.visible:=(foundlist3.Items.Count>0) and (memscan<>nil) and (bytesize>=8);
+  miDisplayHex.visible:=(foundlist3.Items.Count>0) and (memscan<>nil) and (bytesize>=1);
+
+//  miDisplayHex.caption:
+  if foundlist<>nil then
+  begin
+    if foundlist.isHexadecimal then
+      miDisplayHex.caption:=rsDecimal
+    else
+      miDisplayHex.caption:=rsHexadecimal
+  end;
 
 
 
@@ -7629,6 +7644,8 @@ var
 
   part: integer;
   error: string;
+
+  hexadecimal: boolean;
 begin
 
   //put in data
@@ -7646,6 +7663,8 @@ begin
     Value := AnsiToUtf8(Value);
     part:=2;
 
+    hexadecimal:=foundlist.isHexadecimal;
+
     if foundlistDisplayOverride<>0 then
     begin
       case foundlistDisplayOverride of
@@ -7655,6 +7674,10 @@ begin
         4: valuetype:=vtQword;
         5: valuetype:=vtSingle;
         6: valuetype:=vtDouble;
+        7:
+        begin
+          hexadecimal:=not hexadecimal;
+        end;
       end;
 
       if foundlistDisplayOverride>=1000 then
@@ -7670,7 +7693,7 @@ begin
         end;
       end;
 
-      value:=readAndParseAddress(address, valuetype, ct);
+      value:=readAndParseAddress(address, valuetype, ct, hexadecimal);
     end;
 
 
@@ -7730,7 +7753,7 @@ begin
         if p=nil then
           previousvalue:='<none>'
         else
-          previousvalue:=readAndParsePointer(p, valuetype, ct, foundlist.isHexadecimal, foundlist.isSigned);
+          previousvalue:=readAndParsePointer(p, valuetype, ct, hexadecimal, foundlist.isSigned);
       end;
     end;
 
@@ -8099,7 +8122,6 @@ begin
     //btnNewScan
     button2.Tag := 0;
     donewscan;
-
     memscan.newscan; //cleanup memory and terminate all background threads
   end;
 end;
