@@ -1707,6 +1707,14 @@ object MainForm: TMainForm
     object MenuItem19: TMenuItem
       Caption = '-'
     end
+    object miDisplayHex: TMenuItem
+      Tag = 7
+      AutoCheck = True
+      Caption = 'Hexadecimal'
+      GroupIndex = 1
+      RadioItem = True
+      OnClick = miChangeDisplayTypeClick
+    end
     object miDisplayDefault: TMenuItem
       AutoCheck = True
       Caption = 'Default'
