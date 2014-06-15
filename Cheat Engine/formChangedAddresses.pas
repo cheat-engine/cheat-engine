@@ -215,10 +215,10 @@ begin
         ae:=changedlist.items[i].data;
         ap.setSpecialContext(@ae.context);
         address:=ap.getBaseAddress(equation);
-      end;
 
-      if address<>0 then
-        sf.addColumn.Address:=address;
+        if address<>0 then
+          sf.addColumn.Address:=address;
+      end;
     end;
 
 
