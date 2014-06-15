@@ -303,6 +303,8 @@ getUserRegistryEnvironmentVariable(name): string - Returns the environment varia
 setUserRegistryEnvironmentVariable(name, string) - Sets the environment variable stored in the user registry environment
 broadcastEnvironmentUpdate() : Call this when you've changed the environment variables in the registry. This will cause at least the shell to update so you don't have to reboot. (It's always recommended to reboot though)
 
+stringToMD5String(string): Returns an md5 hash string from the provided string
+
 
 getFormCount() : Returns the total number of forms assigned to the main CE application
 getForm(index): Returns the form at the specific index

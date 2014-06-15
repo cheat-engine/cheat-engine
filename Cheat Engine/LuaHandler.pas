@@ -18,7 +18,7 @@ uses
   controls, LuaCaller, forms, ExtCtrls, StdCtrls, comctrls, ceguicomponents,
   generichotkey, luafile, xmplayer_server, ExtraTrainerComponents, customtimer,
   menus, XMLRead, XMLWrite, DOM,ShellApi, Clipbrd, typinfo, PEInfoFunctions,
-  LCLProc, strutils, registry;
+  LCLProc, strutils, registry, md5;
 
 
 const MAXTABLERECURSIONLOOKUP=2;
@@ -5349,6 +5349,19 @@ begin
   result:=1;
 end;
 
+function lua_stringToMD5String(L:PLua_State): integer; cdecl;
+var s: string;
+begin
+  if lua_gettop(L)=1 then
+  begin
+    s:=Lua_ToString(L,1);
+    lua_pushstring(L, MD5Print(MD5String(s)));
+    result:=1;
+  end
+  else
+    result:=0;
+end;
+
 procedure InitializeLua;
 var s: tstringlist;
   k32: THandle;
@@ -5727,6 +5740,8 @@ begin
 
     lua_register(LuaVM, 'activateProtection', activateProtection);
     lua_register(LuaVM, 'getLuaEngine', getLuaEngine);
+
+    lua_Register(LuaVM, 'stringToMD5String', lua_stringToMD5String);
 
     initializeLuaCustomControl;
 
