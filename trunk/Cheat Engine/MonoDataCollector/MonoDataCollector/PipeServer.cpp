@@ -624,7 +624,7 @@ void CPipeServer::Start(void)
 		}
 		catch (...)
 		{
-			OutputDebugStringA("Unexcpected pipe error\n");
+			OutputDebugStringA("Unexpected pipe error\n");
 			if (attached)
 			{
 				mono_thread_detach(mono_selfthread);

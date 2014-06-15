@@ -5,7 +5,7 @@ unit FrmMemoryRecordDropdownSettingsUnit;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
+  LCLType, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   ExtCtrls, MemoryRecordUnit;
 
 type
@@ -24,6 +24,8 @@ type
     Panel1: TPanel;
     procedure btnOkClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
+    procedure memoDropdownItemsKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
   private
     { private declarations }
     memrec: TMemoryrecord;
@@ -42,6 +44,13 @@ procedure TFrmMemoryRecordDropdownSettings.FormClose(Sender: TObject;
   var CloseAction: TCloseAction);
 begin
   CloseAction:=cafree;
+end;
+
+procedure TFrmMemoryRecordDropdownSettings.memoDropdownItemsKeyDown(
+  Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if key=vk_escape then
+    modalresult:=mrCancel;
 end;
 
 procedure TFrmMemoryRecordDropdownSettings.btnOkClick(Sender: TObject);

@@ -9,20 +9,21 @@ object FrmMemoryRecordDropdownSettings: TFrmMemoryRecordDropdownSettings
   ClientWidth = 320
   OnClose = FormClose
   Position = poScreenCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.3'
   object memoDropdownItems: TMemo
     Left = 0
-    Height = 121
-    Top = 32
+    Height = 123
+    Top = 30
     Width = 320
     Align = alClient
+    OnKeyDown = memoDropdownItemsKeyDown
     ScrollBars = ssBoth
     TabOrder = 0
     WordWrap = False
   end
   object Label1: TLabel
     Left = 0
-    Height = 16
+    Height = 15
     Top = 0
     Width = 320
     Align = alTop
@@ -71,8 +72,8 @@ object FrmMemoryRecordDropdownSettings: TFrmMemoryRecordDropdownSettings
   end
   object Label2: TLabel
     Left = 0
-    Height = 16
-    Top = 16
+    Height = 15
+    Top = 15
     Width = 320
     Align = alTop
     Caption = 'Format:  Value:Description'
