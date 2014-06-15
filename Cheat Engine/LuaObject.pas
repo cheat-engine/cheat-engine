@@ -182,7 +182,11 @@ begin
               //SetPropValue(c, p, symhandler.getAddressFromName(Lua_ToString(L, 3)));
            // end
             //else
-              SetPropValue(c, p, v);
+              try
+                SetPropValue(c, p, v);
+              except
+                SetPropValue(c,p, lua_toInteger(L, 3));
+              end;
           end;
 
           tkBool: SetPropValue(c, p, lua_toboolean(L, 3));
