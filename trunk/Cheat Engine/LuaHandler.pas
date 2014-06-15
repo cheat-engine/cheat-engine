@@ -5349,6 +5349,12 @@ begin
   result:=1;
 end;
 
+function getApplication(L:PLua_State): integer; cdecl;
+begin
+  luaclass_newClass(L, application);
+  result:=1;
+end;
+
 function lua_stringToMD5String(L:PLua_State): integer; cdecl;
 var s: string;
 begin
@@ -5778,6 +5784,7 @@ begin
 
     lua_register(LuaVM, 'activateProtection', activateProtection);
     lua_register(LuaVM, 'getLuaEngine', getLuaEngine);
+    lua_register(LuaVM, 'getApplication', getApplication);
 
     lua_Register(LuaVM, 'stringToMD5String', lua_stringToMD5String);
     lua_register(LuaVM, 'convertKeyComboToString', lua_ConvertKeyComboToString);
