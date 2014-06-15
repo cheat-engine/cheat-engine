@@ -5005,7 +5005,7 @@ begin
 
       end;
 
-      par_rm32: if (isrm32(paramtype1)) then
+      par_rm32: if (isrm32(paramtype1) or isrm32(oldParamtype1)) then
       begin
         //r/m32,
         if (opcodes[j].paramtype2=par_noparam) and (parameter2='') then
