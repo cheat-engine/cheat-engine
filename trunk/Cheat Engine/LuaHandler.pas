@@ -5362,6 +5362,44 @@ begin
     result:=0;
 end;
 
+function lua_ConvertKeyComboToString(L:PLua_State): integer; cdecl;
+var
+  keycombo: TKeyCombo;
+  keycount: integer;
+  i: integer;
+begin
+  zeromemory(@keycombo, sizeof(keycombo));
+  keycount:=min(lua_gettop(L), 5);
+
+  if (keycount=1) and lua_istable(L,1) then
+  begin
+    for i:=0 to 4 do
+    begin
+      lua_pushinteger(L, i+1);
+      lua_gettable(L, 1);
+      if lua_isnil(L, -1) then  //end of the list
+      begin
+        lua_pop(L,1);
+        break;
+      end
+      else
+      begin
+        keycombo[i]:=lua_tointeger(L,-1);
+        lua_pop(L,1);
+      end;
+    end;
+
+  end
+  else
+  begin
+    for i:=0 to keycount-1 do
+      keycombo[i]:=lua_tointeger(L, i+1);
+  end;
+
+  lua_pushstring(L, ConvertKeyComboToString(keycombo));
+  result:=1;
+end;
+
 procedure InitializeLua;
 var s: tstringlist;
   k32: THandle;
@@ -5742,6 +5780,7 @@ begin
     lua_register(LuaVM, 'getLuaEngine', getLuaEngine);
 
     lua_Register(LuaVM, 'stringToMD5String', lua_stringToMD5String);
+    lua_register(LuaVM, 'convertKeyComboToString', lua_ConvertKeyComboToString);
 
     initializeLuaCustomControl;
 
