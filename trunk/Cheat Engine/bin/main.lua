@@ -217,6 +217,10 @@ doKeyPress(key) : simmulates a key press
 shortCutToText(shortcut): Returns the textual representation of the given shortut value (integer) (6.4+)
 textToShortCut(shortcutstring): Returns an shortcut integer that the given string represents.  (6.4+)
 
+convertKeyComboToString(key1,...): Returns a string representation of the given keys like the hotkey handler does
+convertKeyComboToString({key1,...}): ^
+
+
 outputDebugString(text): Outputs a message using the windows OutputDebugString message. You can use tools like dbgview to read this. Useful for testing situations where the gui freezes
 
 shellExecute(command, parameters OPTIONAL, folder OPTIONAL, showcommand OPTIONAL): Executes a given command
@@ -1280,6 +1284,7 @@ methods
 
 GenericHotkey Class : (Inheritance:  Object)
 createHotkey(function, keys, ...) : returns an initialized GenericHotkey class object. Maximum of 5 keys
+createHotkey(function, {keys, ...}) : ^
 
 properties
   DelayBetweenActivate: integer - Interval in milliseconds that determines the minimum time between hotkey activations. If 0, the global delay is used
