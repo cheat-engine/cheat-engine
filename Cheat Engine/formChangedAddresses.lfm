@@ -13,10 +13,10 @@ object frmChangedAddresses: TfrmChangedAddresses
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.3'
   object lblInfo: TLabel
     Left = 0
-    Height = 33
+    Height = 32
     Top = 0
     Width = 385
     Align = alTop
@@ -66,8 +66,8 @@ object frmChangedAddresses: TfrmChangedAddresses
   end
   object Changedlist: TListView
     Left = 0
-    Height = 214
-    Top = 33
+    Height = 215
+    Top = 32
     Width = 385
     Align = alClient
     Columns = <    

@@ -107,8 +107,7 @@ begin
       //wtf...
       freeandnil(memscan);
 
-      raise exception.Create(rsNothingFound); //this causes a crash
-      //raise exception.Create('Nothing found'); //this does not
+      MessageDlg(rsNothingFound, mtError, [mbok], 0);
     end;
   finally
     if memscan<>nil then

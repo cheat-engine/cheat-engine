@@ -1024,7 +1024,8 @@ begin
     on e: exception do
     begin
       t.free; //not needed anymore
-      raise exception.create(e.Message);
+      messagedlg(e.Message, mterror, [mbok],0);
+      exit;
     end;
   end;
 

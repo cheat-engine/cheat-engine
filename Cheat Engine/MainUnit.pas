@@ -992,6 +992,7 @@ resourcestring
 
   strForceRecheck = 'Force recheck symbols';
   rsSetChangeHotkeys = 'Set/Change hotkeys';
+  rsSetHotkeys = 'Set hotkeys';
   rsShowAsDecimal = 'Show as decimal';
   rsShowAsBinary = 'Show as binary';
   rsShowAsHexadecimal = 'Show as hexadecimal';
@@ -6095,6 +6096,12 @@ begin
 
 
   SetHotkey1.Visible := (addresslist.selectedRecord <> nil);
+  if SetHotkey1.visible and addresslist.selectedRecord.hasHotkeys then
+    SetHotkey1.caption:=rsSetChangeHotkeys
+  else
+    SetHotkey1.caption:=rsSetHotkeys;
+
+
   //6.1: Groupheaders can also have hotkeys (for toggle hotkeys)
 
   Freezealladdresses2.Visible := (addresslist.selectedRecord <> nil);
@@ -6148,6 +6155,8 @@ begin
     (addresslist.selectedRecord.canUndo);
 
   miSetDropdownOptions.visible:=addresslist.selcount > 0;
+
+
 end;
 
 procedure TMainForm.Unfreezealladdresses1Click(Sender: TObject);
