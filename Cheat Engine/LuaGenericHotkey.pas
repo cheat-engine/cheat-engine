@@ -41,11 +41,34 @@ begin
     else
       lc.luaroutine:=lua_tostring(L,1);
 
-    parameters:=min(parameters,5);
+    parameters:=min(parameters,6); //6 because this includes the function
 
     zeromemory(@keys,sizeof(keys));
-    for i:=2 to parameters do
-      keys[i-2]:=lua_tointeger(L, i);
+
+    if (parameters=2) and lua_istable(L, 2) then
+    begin
+      for i:=0 to 4 do
+      begin
+        lua_pushinteger(L, i+1);
+        lua_gettable(L, 2);
+        if lua_isnil(L, -1) then  //end of the list
+        begin
+          lua_pop(L,1);
+          break;
+        end
+        else
+        begin
+          keys[i]:=lua_tointeger(L,-1);
+          lua_pop(L,1);
+        end;
+      end;
+
+    end
+    else
+    begin
+      for i:=2 to parameters do
+        keys[i-2]:=lua_tointeger(L, i);
+    end;
 
 
     h:=TGenericHotkey.create(lc.NotifyEvent, keys);
