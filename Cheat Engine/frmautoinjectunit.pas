@@ -2558,8 +2558,11 @@ var i: Integer;
 begin
   result:='';
 
-  for i:=0 to size-1 do
-    result:=result+inttohex(Disassembler.LastDisassembleData.Bytes[i],2)+' ';
+  if length(Disassembler.LastDisassembleData.Bytes)>=size then
+  begin
+    for i:=0 to size-1 do
+      result:=result+inttohex(Disassembler.LastDisassembleData.Bytes[i],2)+' ';
+  end;
 end;
 
 // true if it is an instruction that probably starts a procedure so we can
