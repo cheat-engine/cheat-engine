@@ -6,14 +6,19 @@ interface
 
 uses
   LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, NewKernelHandler, CEFuncProc, ExtCtrls, LResources;
+  Dialogs, StdCtrls, NewKernelHandler, CEFuncProc, ExtCtrls, LResources, Menus;
 
 type
+
+  { TfrmSaveMemoryRegion }
+
   TfrmSaveMemoryRegion = class(TForm)
+    miClearList: TMenuItem;
     Panel1: TPanel;
     Panel2: TPanel;
     Label1: TLabel;
     lbRegions: TListBox;
+    PopupMenu1: TPopupMenu;
     SaveDialog1: TSaveDialog;
     DontInclude: TCheckBox;
     Panel3: TPanel;
@@ -30,6 +35,7 @@ type
     procedure DontIncludeClick(Sender: TObject);
     procedure Button3Click(Sender: TObject);
     procedure lbRegionsDblClick(Sender: TObject);
+    procedure miClearListClick(Sender: TObject);
   private
     { Private declarations }
     alreadywarned: boolean;
@@ -64,12 +70,8 @@ end;
 
 procedure TfrmSaveMemoryRegion.FormClose(Sender: TObject;
   var Action: TCloseAction);
-var i: integer;
 begin
-  for i:=0 to lbregions.items.count-1 do
-    tregion(lbregions.Items.Objects[i]).Free;
 
-  action:=cafree;
 end;
 
 procedure TfrmSaveMemoryRegion.Button1Click(Sender: TObject);
@@ -215,6 +217,16 @@ begin
   end;
 
   dontinclude.Enabled:=lbregions.Items.Count<=1;
+end;
+
+procedure TfrmSaveMemoryRegion.miClearListClick(Sender: TObject);
+begin
+  while lbRegions.Count>0 do
+  begin
+    tregion(lbregions.Items.Objects[0]).Free;
+    lbregions.Items.Delete(0);
+  end;
+
 end;
 
 initialization

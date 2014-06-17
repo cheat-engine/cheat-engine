@@ -2495,7 +2495,10 @@ end;
 procedure TMemoryBrowser.Savememoryregion1Click(Sender: TObject);
 {will save a cheat engine memory region file .CEM}
 begin
-  TFrmSaveMemoryRegion.create(self).showmodal;
+  if frmSaveMemoryRegion=nil then
+    frmSaveMemoryRegion:=TFrmSaveMemoryRegion.create(self);
+
+  frmSaveMemoryRegion.showmodal;
 end;
 
 procedure TMemoryBrowser.Loadmemolryregion1Click(Sender: TObject);
