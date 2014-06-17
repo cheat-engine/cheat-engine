@@ -1,32 +1,31 @@
 object frmSaveMemoryRegion: TfrmSaveMemoryRegion
   Left = 846
-  Height = 278
+  Height = 280
   Top = 349
-  Width = 270
+  Width = 274
   BorderIcons = [biSystemMenu]
   Caption = 'Save memoryregion'
-  ClientHeight = 278
-  ClientWidth = 270
+  ClientHeight = 280
+  ClientWidth = 274
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
-  OnClose = FormClose
   Position = poScreenCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.3'
   object Panel1: TPanel
     Left = 0
-    Height = 230
+    Height = 232
     Top = 0
-    Width = 270
+    Width = 274
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 230
-    ClientWidth = 270
+    ClientHeight = 232
+    ClientWidth = 274
     TabOrder = 0
     object Label1: TLabel
       Left = 0
-      Height = 14
+      Height = 13
       Top = 0
-      Width = 270
+      Width = 274
       Align = alTop
       Caption = 'Add the region(s) of memory you want to save'
       ParentColor = False
@@ -34,37 +33,38 @@ object frmSaveMemoryRegion: TfrmSaveMemoryRegion
     end
     object lbRegions: TListBox
       Left = 0
-      Height = 216
-      Top = 14
-      Width = 163
+      Height = 219
+      Top = 13
+      Width = 167
       Align = alClient
       ItemHeight = 0
       OnDblClick = lbRegionsDblClick
+      PopupMenu = PopupMenu1
       TabOrder = 0
     end
     object Panel4: TPanel
-      Left = 163
-      Height = 216
-      Top = 14
+      Left = 167
+      Height = 219
+      Top = 13
       Width = 107
       Align = alRight
       BevelOuter = bvNone
-      ClientHeight = 216
+      ClientHeight = 219
       ClientWidth = 107
       TabOrder = 1
       object Label2: TLabel
         Left = 8
-        Height = 14
+        Height = 13
         Top = 2
-        Width = 24
+        Width = 23
         Caption = 'From'
         ParentColor = False
       end
       object Label3: TLabel
         Left = 8
-        Height = 14
+        Height = 13
         Top = 43
-        Width = 14
+        Width = 13
         Caption = 'To'
         ParentColor = False
       end
@@ -96,12 +96,12 @@ object frmSaveMemoryRegion: TfrmSaveMemoryRegion
   object Panel2: TPanel
     Left = 0
     Height = 48
-    Top = 230
-    Width = 270
+    Top = 232
+    Width = 274
     Align = alBottom
     BevelOuter = bvNone
     ClientHeight = 48
-    ClientWidth = 270
+    ClientWidth = 274
     TabOrder = 1
     object DontInclude: TCheckBox
       Left = 3
@@ -113,7 +113,7 @@ object frmSaveMemoryRegion: TfrmSaveMemoryRegion
       TabOrder = 0
     end
     object Panel3: TPanel
-      Left = 56
+      Left = 58
       Height = 33
       Top = 0
       Width = 169
@@ -149,7 +149,15 @@ object frmSaveMemoryRegion: TfrmSaveMemoryRegion
     Filter = 'Cheat Engine Memory file(*.CEM)|*.CEM|All files(*.*)|*.*'
     FilterIndex = 0
     Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
-    left = 8
-    top = 16
+    left = 72
+    top = 32
+  end
+  object PopupMenu1: TPopupMenu
+    left = 33
+    top = 127
+    object miClearList: TMenuItem
+      Caption = 'Clear list'
+      OnClick = miClearListClick
+    end
   end
 end

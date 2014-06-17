@@ -4616,6 +4616,7 @@ begin
   lblcompareToSavedScan.Visible := False;
 
   miDisplayDefault.checked:=true;
+  foundlistDisplayOverride:=0;
 end;
 
 procedure TMainForm.btnNewScanClick(Sender: TObject);
@@ -7676,17 +7677,19 @@ begin
 
     if foundlistDisplayOverride<>0 then
     begin
-      case foundlistDisplayOverride of
-        1: valuetype:=vtByte;
-        2: valuetype:=vtWord;
-        3: valuetype:=vtDword;
-        4: valuetype:=vtQword;
-        5: valuetype:=vtSingle;
-        6: valuetype:=vtDouble;
-        7:
-        begin
-          hexadecimal:=not hexadecimal;
+      if foundlistDisplayOverride=7 then
+        hexadecimal:=not hexadecimal
+      else
+      begin
+        case foundlistDisplayOverride of
+          1: valuetype:=vtByte;
+          2: valuetype:=vtWord;
+          3: valuetype:=vtDword;
+          4: valuetype:=vtQword;
+          5: valuetype:=vtSingle;
+          6: valuetype:=vtDouble;
         end;
+        hexadecimal:=false;
       end;
 
       if foundlistDisplayOverride>=1000 then
