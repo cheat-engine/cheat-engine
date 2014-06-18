@@ -102,6 +102,7 @@ begin
   tabletoload:='';
   origin:='';
   mainformvisible:=true;
+
   try
 
     for i:=1 to Paramcount do
@@ -136,6 +137,15 @@ begin
     if tabletoload<>'' then
     begin
       //it needs to load a table
+      if fileexists(tabletoload)=false then //try to fix this
+      begin
+        if fileexists(ansitoutf8(tabletoload)) then
+          tabletoload:=ansitoutf8(tabletoload)
+        else
+        if fileexists(utf8toansi(tabletoload)) then
+          tabletoload:=utf8toansi(tabletoload);
+      end;
+
       if origin='' then
         origin:=ExtractFilePath(tabletoload);
 
