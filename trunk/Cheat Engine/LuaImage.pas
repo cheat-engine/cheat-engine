@@ -41,7 +41,13 @@ begin
   if lua_gettop(L)>=1 then
   begin
     filename:=lua.lua_tostring(L, -1);
-    i.Picture.LoadFromFile(filename);
+    try
+      i.Picture.LoadFromFile(filename);
+      lua_pushboolean(L, true);
+    except
+      lua_pushboolean(L, false);
+    end;
+    result:=1;
   end;
 end;
 
