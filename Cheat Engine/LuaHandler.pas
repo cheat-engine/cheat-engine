@@ -5829,8 +5829,10 @@ begin
       s.add('package.path = package.path .. ";?.lua";');
 
 {$ifdef cpu64}
+      s.add('package.cpath = package.cpath .. [[;'+getcedir+'\clibs64\?.dll]]');
       s.add('package.cpath = package.cpath .. [[;.\clibs64\?.dll]]');
 {$else}
+      s.add('package.cpath = package.cpath .. [[;'+getcedir+'\clibs32\?.dll]]');
       s.add('package.cpath = package.cpath .. [[;.\clibs32\?.dll]]');
 {$endif}
       s.add('stringlist_getCount=strings_getCount');

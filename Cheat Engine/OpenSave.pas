@@ -874,7 +874,9 @@ var
     doc: TXMLDocument;
     workdir: string;
 begin
-  filename:=UTF8ToSys(filename); //fix chinese problems I hope
+  if fileexists(filename)=false then
+    filename:=UTF8ToSys(filename); //fix chinese problems I hope
+
 
   SetCurrentDir(ExtractFilePath(filename)); //in case it's a table with 'external' files
   Extension:=uppercase(extractfileext(filename));
