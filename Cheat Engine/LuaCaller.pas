@@ -50,6 +50,8 @@ type
 
       procedure ByteSelectEvent(sender: TObject; address: ptruint; address2: ptruint);
       procedure AddressChangeEvent(sender: TObject; address: ptruint);
+      procedure DropFilesEvent(sender: TObject; filenames: array of string);
+
       function AutoGuessEvent(address: ptruint; originalVariableType: TVariableType): TVariableType;
       procedure D3DClickEvent(renderobject: TObject; x,y: integer);
       function D3DKeyDownEvent(VirtualKey: dword; char: pchar): boolean;
@@ -592,6 +594,38 @@ begin
   end;
 end;
 
+procedure TLuaCaller.DropFilesEvent(sender: TObject; filenames: array of string);
+var
+  oldstack: integer;
+  i: integer;
+  t: integer;
+begin
+  Luacs.Enter;
+  try
+    oldstack:=lua_gettop(Luavm);
+
+    if canRun then
+    begin
+      PushFunction;
+      luaclass_newClass(Luavm, sender);
+      lua_newtable(Luavm);
+
+      t:=lua_gettop(Luavm);
+
+      for i:=0 to length(filenames)-1 do
+      begin
+        lua_pushinteger(LuaVM, i+1);
+        lua_pushstring(LuaVM, filenames[i]);
+        lua_settable(LuaVM, t);
+      end;
+
+      lua_pcall(Luavm, 2,0,0); //procedure(sender, {filenames})
+    end;
+  finally
+    lua_settop(Luavm, oldstack);
+    luacs.leave;
+  end;
+end;
 
 
 function TLuaCaller.AutoGuessEvent(address: ptruint; originalVariableType: TVariableType): TVariableType;
@@ -1539,7 +1573,7 @@ var
   a: ptruint;
 begin
   result:=0;
-  if lua_gettop(L)=3 then
+  if lua_gettop(L)=2 then
   begin
     //(sender: TObject; before, currentstate: boolean):
     m.code:=lua_touserdata(L, lua_upvalueindex(1));
@@ -1549,6 +1583,52 @@ begin
     lua_pop(L, lua_gettop(L));
 
     TAddressChangeEvent(m)(sender,a);
+  end
+  else
+    lua_pop(L, lua_gettop(L));
+
+end;
+
+function LuaCaller_DropFilesEvent(L: PLua_state): integer; cdecl;  //(sender: TObject; filenames: array of string);
+var
+  m: TMethod;
+  sender: TObject;
+  filenames: array of string;
+  i: integer;
+  f: string;
+
+begin
+  result:=0;
+  if lua_gettop(L)=2 then
+  begin
+    //(sender: TObject; before, currentstate: boolean):
+    m.code:=lua_touserdata(L, lua_upvalueindex(1));
+    m.data:=lua_touserdata(L, lua_upvalueindex(2));
+    sender:=lua_toceuserdata(L, 1);
+
+    setlength(filenames,0);
+    if lua_istable(L,2) then
+    begin
+      i:=1;
+      while true do
+      begin
+        lua_pushinteger(L, i);
+        lua_gettable(L, 2);
+        if lua_isnil(L,-1) then
+          break;
+
+        f:=Lua_ToString(L,-1);
+        lua_pop(L,1);
+
+        setlength(filenames, length(filenames)+1);
+        filenames[length(filenames)-1]:=f;
+
+        inc(i);
+      end;
+    end;
+    lua_pop(L, lua_gettop(L));
+
+    TDropFilesEvent(m)(sender,filenames);
   end
   else
     lua_pop(L, lua_gettop(L));
@@ -1710,6 +1790,9 @@ initialization
   registerLuaCall('TD3DKeyDownEvent', LuaCaller_D3DKeyDownEvent, pointer(TLuaCaller.D3DKeyDownEvent),'function %s(virtualkeycode, char)'#13#10#13#10'  return false'#13#10'end'#13#10);
 
   registerLuaCall('TDisassembleEvent', LuaCaller_DisassembleEvent, pointer(TLuaCaller.DisassembleEvent),'function %s(sender, address, ldd)'#13#10#13#10'  return disassembledstring, description'#13#10'end'#13#10);
+  registerLuaCall('TDropFilesEvent', LuaCaller_DropFilesEvent, pointer(TLuaCaller.DropFilesEvent),'function %s(sender, filename)'#13#10#13#10'end'#13#10);
+
+
 
 end.
 

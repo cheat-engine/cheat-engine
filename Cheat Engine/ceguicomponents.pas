@@ -617,7 +617,7 @@ type TCEForm=class(TCustomForm)
 
   published
     property Align;
-   // property AllowDropFiles;
+    property AllowDropFiles;
     property AlphaBlend default False;
     property AlphaBlendValue default 255;
     property Anchors;
@@ -658,7 +658,7 @@ type TCEForm=class(TCustomForm)
   //  property OnDockOver;
    // property OnDragDrop;
   //  property OnDragOver;
-  //  property OnDropFiles;
+    property OnDropFiles;
   //  property OnEndDock;
   //  property OnGetSiteInfo;
  //   property OnHelp;
