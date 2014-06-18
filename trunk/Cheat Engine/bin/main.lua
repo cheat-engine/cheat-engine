@@ -652,9 +652,13 @@ methods
 
 Form Class: (Inheritance: ScrollingWinControl->CustomControl->WinControl->Control->Component->Object)
 properties
+  AllowDropFiles: boolean - Allows files to be dragged into the form
   ModalResult: integer - The current ModalResult value of the form. Note: When this value gets set the modal form will close
-  OnClose: function - The function to call when the form gets closed
   Menu: MainMenu - The main menu of the form
+
+  OnClose: function(sender) - The function to call when the form gets closed
+  OnDropFiles: function(sender, {filenames}) - Called when files are dragged on top of the form. Filenames is an arraytable with the files
+
 
 methods
   centerScreen(); : Places the form at the center of the screen
