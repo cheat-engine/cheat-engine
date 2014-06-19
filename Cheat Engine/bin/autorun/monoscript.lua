@@ -806,10 +806,13 @@ function monoform_miShowILDisassemblyClick(sender)
     local node=monoForm.TV.Selected
 	if (node~=nil) and (node.Level==4) and (node.Parent.Index==1) then
       local f=createForm()
+	  f.BorderStyle=bsSizeable
       f.centerScreen()
+	  f.Caption=node.Text
       f.OnClose=function(sender) return caFree end
       local m=createMemo(f)
       m.Align=alClient
+	  m.ScrollBars=ssBoth
 
       m.Lines.Text=mono_method_disassemble(node.Data)
     end
@@ -833,7 +836,9 @@ function monoform_miGetILCodeClick(sender)
     local node=monoForm.TV.Selected
 	if (node~=nil) and (node.Level==4) and (node.Parent.Index==1) then
 	  local r,s=mono_getILCodeFromMethod(node.Data)
-	  print(string.format("ILCode from %x to %x", r,r+s))
+	  if r~=nil then
+	    print(string.format("ILCode from %x to %x", r,r+s))
+	  end
 	end
   end
 end

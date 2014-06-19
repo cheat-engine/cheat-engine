@@ -41,6 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
+				AdditionalIncludeDirectories="..\..\Common"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;MONODATACOLLECTOR_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"

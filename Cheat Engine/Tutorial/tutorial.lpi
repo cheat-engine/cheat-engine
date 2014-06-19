@@ -18,7 +18,7 @@
       <CharSet Value=""/>
       <StringTable ProductVersion=""/>
     </VersionInfo>
-    <BuildModes Count="2" Active="release">
+    <BuildModes Count="4" Active="release 64-Bit">
       <Item1 Name="debug" Default="True"/>
       <Item2 Name="release">
         <CompilerOptions>
@@ -68,6 +68,106 @@
           </Other>
         </CompilerOptions>
       </Item2>
+      <Item3 Name="release 32-Bit">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <PathDelim Value="\"/>
+          <Target>
+            <Filename Value="..\bin\tutorial-$(TargetCPU)"/>
+          </Target>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir)"/>
+            <UnitOutputDirectory Value="unitbin"/>
+          </SearchPaths>
+          <Parsing>
+            <Style Value="1"/>
+          </Parsing>
+          <CodeGeneration>
+            <SmartLinkUnit Value="True"/>
+            <TargetCPU Value="i386"/>
+            <TargetOS Value="win32"/>
+            <Optimizations>
+              <OptimizationLevel Value="3"/>
+              <VariablesInRegisters Value="True"/>
+            </Optimizations>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <GenerateDebugInfo Value="False"/>
+              <UseLineInfoUnit Value="False"/>
+              <StripSymbols Value="True"/>
+            </Debugging>
+            <LinkSmart Value="True"/>
+            <Options>
+              <Win32>
+                <GraphicApplication Value="True"/>
+              </Win32>
+            </Options>
+          </Linking>
+          <Other>
+            <Verbosity>
+              <ShowWarn Value="False"/>
+              <ShowNotes Value="False"/>
+              <ShowHints Value="False"/>
+              <ShowGenInfo Value="False"/>
+            </Verbosity>
+            <CompilerMessages>
+              <UseMsgFile Value="True"/>
+            </CompilerMessages>
+            <CompilerPath Value="$(CompPath)"/>
+          </Other>
+        </CompilerOptions>
+      </Item3>
+      <Item4 Name="release 64-Bit">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <PathDelim Value="\"/>
+          <Target>
+            <Filename Value="..\bin\tutorial-$(TargetCPU)"/>
+          </Target>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir)"/>
+            <UnitOutputDirectory Value="unitbin"/>
+          </SearchPaths>
+          <Parsing>
+            <Style Value="1"/>
+          </Parsing>
+          <CodeGeneration>
+            <SmartLinkUnit Value="True"/>
+            <TargetCPU Value="x86_64"/>
+            <TargetOS Value="win64"/>
+            <Optimizations>
+              <OptimizationLevel Value="3"/>
+              <VariablesInRegisters Value="True"/>
+            </Optimizations>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <GenerateDebugInfo Value="False"/>
+              <UseLineInfoUnit Value="False"/>
+              <StripSymbols Value="True"/>
+            </Debugging>
+            <LinkSmart Value="True"/>
+            <Options>
+              <Win32>
+                <GraphicApplication Value="True"/>
+              </Win32>
+            </Options>
+          </Linking>
+          <Other>
+            <Verbosity>
+              <ShowWarn Value="False"/>
+              <ShowNotes Value="False"/>
+              <ShowHints Value="False"/>
+              <ShowGenInfo Value="False"/>
+            </Verbosity>
+            <CompilerMessages>
+              <UseMsgFile Value="True"/>
+            </CompilerMessages>
+            <CompilerPath Value="$(CompPath)"/>
+          </Other>
+        </CompilerOptions>
+      </Item4>
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
@@ -374,7 +474,7 @@
         <Loaded Value="True"/>
       </Unit25>
     </Units>
-    <JumpHistory Count="30" HistoryIndex="29">
+    <JumpHistory Count="27" HistoryIndex="26">
       <Position1>
         <Filename Value="Unit3.pas"/>
         <Caret Line="48" Column="1" TopLine="33"/>
@@ -413,88 +513,76 @@
       </Position9>
       <Position10>
         <Filename Value="Unit8.pas"/>
-        <Caret Line="40" Column="7" TopLine="116"/>
+        <Caret Line="101" Column="34" TopLine="88"/>
       </Position10>
       <Position11>
         <Filename Value="Unit8.pas"/>
-        <Caret Line="101" Column="34" TopLine="88"/>
+        <Caret Line="100" Column="34" TopLine="87"/>
       </Position11>
       <Position12>
         <Filename Value="Unit8.pas"/>
-        <Caret Line="100" Column="34" TopLine="87"/>
+        <Caret Line="97" Column="32" TopLine="87"/>
       </Position12>
       <Position13>
         <Filename Value="Unit8.pas"/>
-        <Caret Line="97" Column="32" TopLine="87"/>
+        <Caret Line="119" Column="9" TopLine="114"/>
       </Position13>
       <Position14>
-        <Filename Value="Unit8.pas"/>
-        <Caret Line="119" Column="9" TopLine="114"/>
-      </Position14>
-      <Position15>
         <Filename Value="Unit9.pas"/>
         <Caret Line="12" Column="3" TopLine="1"/>
-      </Position15>
-      <Position16>
+      </Position14>
+      <Position15>
         <Filename Value="Unit8.pas"/>
         <Caret Line="119" Column="9" TopLine="114"/>
-      </Position16>
-      <Position17>
-        <Filename Value="Unit9.pas"/>
-        <Caret Line="247" Column="3" TopLine="253"/>
-      </Position17>
-      <Position18>
+      </Position15>
+      <Position16>
         <Filename Value="Unit9.pas"/>
         <Caret Line="326" Column="8" TopLine="313"/>
-      </Position18>
-      <Position19>
+      </Position16>
+      <Position17>
         <Filename Value="Unit10.pas"/>
         <Caret Line="31" Column="3" TopLine="18"/>
+      </Position17>
+      <Position18>
+        <Filename Value="Unit3.pas"/>
+        <Caret Line="134" Column="3" TopLine="132"/>
+      </Position18>
+      <Position19>
+        <Filename Value="Unit3.pas"/>
+        <Caret Line="111" Column="6" TopLine="92"/>
       </Position19>
       <Position20>
         <Filename Value="Unit3.pas"/>
-        <Caret Line="134" Column="3" TopLine="132"/>
+        <Caret Line="140" Column="18" TopLine="114"/>
       </Position20>
       <Position21>
-        <Filename Value="Unit3.pas"/>
-        <Caret Line="111" Column="6" TopLine="92"/>
-      </Position21>
-      <Position22>
-        <Filename Value="Unit3.pas"/>
-        <Caret Line="140" Column="18" TopLine="114"/>
-      </Position22>
-      <Position23>
         <Filename Value="Unit7.pas"/>
         <Caret Line="99" Column="46" TopLine="88"/>
-      </Position23>
-      <Position24>
+      </Position21>
+      <Position22>
         <Filename Value="Unit7.pas"/>
         <Caret Line="132" Column="25" TopLine="126"/>
-      </Position24>
-      <Position25>
-        <Filename Value="Unit7.pas"/>
-        <Caret Line="170" Column="90" TopLine="172"/>
-      </Position25>
-      <Position26>
+      </Position22>
+      <Position23>
         <Filename Value="Unit9.pas"/>
         <Caret Line="326" Column="8" TopLine="313"/>
-      </Position26>
-      <Position27>
+      </Position23>
+      <Position24>
         <Filename Value="Unit9.pas"/>
         <Caret Line="306" Column="3" TopLine="289"/>
-      </Position27>
-      <Position28>
+      </Position24>
+      <Position25>
         <Filename Value="Unit9.pas"/>
         <Caret Line="342" Column="53" TopLine="326"/>
-      </Position28>
-      <Position29>
+      </Position25>
+      <Position26>
         <Filename Value="Unit10.pas"/>
         <Caret Line="133" Column="3" TopLine="131"/>
-      </Position29>
-      <Position30>
+      </Position26>
+      <Position27>
         <Filename Value="Unit1.pas"/>
         <Caret Line="69" Column="22" TopLine="62"/>
-      </Position30>
+      </Position27>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
