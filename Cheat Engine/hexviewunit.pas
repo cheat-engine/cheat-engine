@@ -177,6 +177,8 @@ type
     property OnByteSelect: TByteSelectEvent read fOnByteSelect write fOnByteSelect;
     property OnAddressChange: TAddressChangeEvent read fonAddressChange write fonAddressChange;
 
+    property PaintBox: TPaintbox read mbCanvas;
+    property OSBitmap: TBitmap read offsetscreenBitmap;
   end;
 
 implementation
