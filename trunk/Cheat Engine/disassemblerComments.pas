@@ -91,6 +91,7 @@ var
   search: TCommentData;
   n: TAvgLvlTreeNode;
 begin
+  zeromemory(@search, sizeof(search));
   search.address:=address;
   n:=commentstree.Find(@search);
   if n<>nil then
@@ -177,9 +178,10 @@ var
   search: TCommentData;
   n: TAvgLvlTreeNode;
 begin
+  zeromemory(@search, sizeof(search));
   search.address:=address;
   n:=commentstree.Find(@search);
-  if (n<>nil) and (PCommentData(n.data).comment<>nil) then
+  if (n<>nil) and (n.Data<>nil) and (PCommentData(n.data).comment<>nil) then
     result:=PCommentData(n.data).comment
   else
     result:='';
@@ -265,9 +267,10 @@ var
   search: TCommentData;
   n: TAvgLvlTreeNode;
 begin
+  zeromemory(@search, sizeof(search));
   search.address:=address;
   n:=commentstree.Find(@search);
-  if (n<>nil) and (PCommentData(n.data).header<>nil) then
+  if (n<>nil) and (n.data<>nil) and (PCommentData(n.data).header<>nil) then
     result:=PCommentData(n.data).header
   else
     result:='';
