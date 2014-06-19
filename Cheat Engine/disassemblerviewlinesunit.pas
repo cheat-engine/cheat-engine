@@ -303,7 +303,11 @@ begin
 
 
   //userdefined comments
-  comment:=dassemblercomments.comments[visibleDisassembler.LastDisassembleData.address];
+  if dassemblercomments<>nil then
+    comment:=dassemblercomments.comments[visibleDisassembler.LastDisassembleData.address]
+  else
+    comment:='';
+
   if comment<>'' then
   begin
     try
