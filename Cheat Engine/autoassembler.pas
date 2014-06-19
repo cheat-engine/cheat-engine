@@ -1486,7 +1486,7 @@ begin
 
           if uppercase(copy(currentline,1,13))='CREATETHREAD(' then
           begin
-            //load a binary file into memory , this one already executes BEFORE the 2nd pass to get addressnames correct
+            //create a thread
             a:=pos('(',currentline);
             b:=pos(')',currentline);
             if (a>0) and (b>0) then
