@@ -2203,22 +2203,24 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
   //todo: Try process_vm_readv
 
+  printf("ReadProcessMemory called\n");
+
   //printf("ReadProcessMemory\n");
   int bread=0;
   if (GetHandleType(hProcess) == htProcesHandle )
   { //valid handle
     PProcessData p=(PProcessData)GetPointerFromHandle(hProcess);
 
-    //printf("hProcess=%d, lpAddress=%p, buffer=%p, size=%d\n", hProcess, lpAddress, buffer, size);
+    printf("hProcess=%d, lpAddress=%p, buffer=%p, size=%d\n", hProcess, lpAddress, buffer, size);
 
     if (p->isDebugged) //&& cannotdealwithotherthreads
     {
-      //printf("This process is being debugged\n");
+      printf("This process is being debugged\n");
       //use the debugger specific readProcessMemory implementation
       return ReadProcessMemoryDebug(hProcess, p, lpAddress, buffer, size);
     }
 
-    //printf("Read without debug\n");
+    printf("Read without debug\n");
 
     if (pthread_mutex_lock(&memorymutex) == 0)
     {
@@ -2251,10 +2253,13 @@ int ReadProcessMemory(HANDLE hProcess, void *lpAddress, void *buffer, int size)
 
           }
 
+          printf("bread=%d size=%d\n", bread, size);
+
+
           ptrace(PTRACE_DETACH, pid,0,0);
         }
-        //else
-        //  printf("ptrace attach failed (pid=%d)\n", p->pid);
+        else
+          printf("ptrace attach failed (pid=%d). This system might not be properly rooted\n", p->pid);
 
 
       pthread_mutex_unlock(&memorymutex);
