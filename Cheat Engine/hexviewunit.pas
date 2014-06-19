@@ -178,7 +178,7 @@ type
     property OnAddressChange: TAddressChangeEvent read fonAddressChange write fonAddressChange;
 
     property PaintBox: TPaintbox read mbCanvas;
-    property OSBitmap: TBitmap read offsetscreenBitmap;
+    property OSBitmap: TBitmap read offscreenBitmap;
   end;
 
 implementation
