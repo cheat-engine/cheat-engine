@@ -5406,6 +5406,39 @@ begin
   result:=1;
 end;
 
+function restoreSeDebugPrivilege(L:PLua_State): integer; cdecl;
+var
+  tp: TTokenPrivileges;
+  prev: TTokenPrivileges;
+  returnlength: dword;
+  tokenhandle: thandle;
+begin
+  result:=0;
+  if ownprocesshandle <> 0 then
+  begin
+    if OpenProcessToken(ownprocesshandle, TOKEN_QUERY or TOKEN_ADJUST_PRIVILEGES, tokenhandle) then
+    begin
+      ZeroMemory(@tp, sizeof(tp));
+
+      if lookupPrivilegeValue(nil, 'SeDebugPrivilege', tp.Privileges[0].Luid) then
+      begin
+        tp.Privileges[0].Attributes := SE_PRIVILEGE_ENABLED;
+        tp.PrivilegeCount := 1; // One privilege to set
+        if AdjustTokenPrivileges(tokenhandle, False, tp, sizeof(tp),  prev, returnlength) then
+        begin
+          lua_pushboolean(L, true);
+          result:=1;
+        end
+
+
+      end;
+
+      closehandle(tokenhandle);
+    end;
+
+  end;
+end;
+
 procedure InitializeLua;
 var s: tstringlist;
   k32: THandle;
@@ -5788,6 +5821,7 @@ begin
 
     lua_Register(LuaVM, 'stringToMD5String', lua_stringToMD5String);
     lua_register(LuaVM, 'convertKeyComboToString', lua_ConvertKeyComboToString);
+    lua_register(LuaVM, 'restoreSeDebugPrivilege', restoreSeDebugPrivilege);
 
     initializeLuaCustomControl;
 
