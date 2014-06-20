@@ -179,15 +179,17 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 		IoControlCode=Irp->Flags;
 		
 	//DbgPrint("DispatchIoctl. IoControlCode=%x\n", IoControlCode);
-
+/*
 	sedebugprivUID.LowPart=SE_DEBUG_PRIVILEGE;
 	sedebugprivUID.HighPart=0;
 
+	
 	if (SeSinglePrivilegeCheck(sedebugprivUID, UserMode)==FALSE)
 	{
 		DbgPrint("DispatchIoctl called by a process without SeDebugPrivilege");
 		return STATUS_UNSUCCESSFUL;
 	}
+	*/
 	
 	
     switch(IoControlCode)

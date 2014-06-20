@@ -171,13 +171,7 @@ Return Value:
 	
 	
 	criticalSection csTest;
-	
-	DbgPrint("sizeof(DS_AREA_MANAGEMENT)=%d\n", sizeof(DS_AREA_MANAGEMENT));
-	DbgPrint("sizeof(BTS)=%d\n", sizeof(BTS));
 
-
-
-	//DbgPrint("%S",oa.ObjectName.Buffer); 
 	
 	KernelCodeStepping=0;
 	
@@ -191,33 +185,10 @@ Return Value:
 	this_fs=getFS();
 	this_gs=getGS();	
 
-#ifdef AMD64
-	DbgPrint("cs=%x ss=%x ds=%x es=%x fs=%x gs=%x\n",getCS(), getSS(), getDS(), getES(), getFS(), getGS());
-
-	DbgPrint("fsbase=%llx gsbase=%llx gskernel=%llx\n", readMSR(0xc0000100), readMSR(0xc0000101), readMSR(0xc0000102));
-
-	DbgPrint("rbp=%llx\n", getRBP());
-
-	DbgPrint("gs:188=%llx\n", __readgsqword(0x188));
-	DbgPrint("current csr=%x\n", _mm_getcsr());
+	DbgPrint("DBK loading...");
+#ifdef TOBESIGNED
+	DbgPrint("Signed version");
 #endif
-	
-	
-
-	DbgPrint("Test critical section routines\n");
-	RtlZeroMemory(&csTest,sizeof(criticalSection));
-	DbgPrint("csTest.locked=%d\n",csTest.locked);
-	csEnter(&csTest);
-	DbgPrint("After enter\n");
-	DbgPrint("csTest.locked=%d\n",csTest.locked);
-	csLeave(&csTest);
-	
-	DbgPrint("After leave\n");
-	DbgPrint("csTest.locked=%d\n",csTest.locked);
-	
-	
-
-	
 
 	
 	//lame antiviruses and more lamer users that keep crying rootkit virus....
