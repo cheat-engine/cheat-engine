@@ -76,7 +76,6 @@ type
     ChangedHexadecimal: boolean;
     ChangedSigned: boolean;
     ChangedVartype: boolean;
-    ChangedCustomType: boolean;
     ChangedByteSize: boolean;
     ChangedBackgroundColor: boolean;
     ChangedChildStruct: boolean;
