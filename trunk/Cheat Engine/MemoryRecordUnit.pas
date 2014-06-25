@@ -1681,6 +1681,7 @@ var
   c: PChar absolute buf;
 
   i: integer;
+  e: boolean;
 begin
 
 
@@ -1761,6 +1762,13 @@ begin
   begin
     result:='??';
     fIsReadableAddress:=false;
+
+    if (baseaddress<>0) then
+    begin
+      baseaddress:=symhandler.getAddressFromName(interpretableaddress,false, e);
+      if e then  //symbol is gone
+        BaseAddress:=0;
+    end;
   end;
 
   freemem(buf);
