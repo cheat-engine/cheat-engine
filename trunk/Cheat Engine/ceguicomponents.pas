@@ -675,7 +675,7 @@ type TCEForm=class(TCustomForm)
     property OnMouseWheelDown;
     property OnMouseWheelUp;
     property OnPaint;
-   // property OnResize;
+    property OnResize;
    // property OnShortCut;
     property OnShow;
    // property OnShowHint;
@@ -695,7 +695,7 @@ type TCEForm=class(TCustomForm)
     property ShowInTaskBar;
   //  property UseDockManager;
  //   property LCLVersion: string read FLCLVersion write FLCLVersion stored LCLVersionIsStored;
-    //property Visible;
+    property Visible;
     property WindowState;
 
     property DoNotSaveInTable: boolean read fDoNotSaveInTable write fDoNotSaveInTable default False;
@@ -1494,5 +1494,8 @@ initialization
   RegisterPropertyEditor(TypeInfo(TTabGetImageEvent), nil, '', THiddenPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TGetSiteInfoEvent), nil, '', THiddenPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TGetDockCaptionEvent), nil, '', THiddenPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(Boolean), TCEForm, 'Visible', THiddenPropertyEditor);
+
+
 end.
 
