@@ -3476,7 +3476,6 @@ begin
     ChangedHexadecimal:=false;
     ChangedSigned:=false;
     ChangedVartype:=false;
-    ChangedCustomType:=false;
     ChangedByteSize:=false;
     ChangedBackgroundColor:=false;
     ChangedChildStruct:=false;
@@ -3503,10 +3502,10 @@ begin
             structElement.offset:=offset;
 
           if changedVartype then
+          begin
             structElement.vartype:=vartype;
-
-          if changedCustomType then
             structElement.CustomType:=customtype;
+          end;
 
           if changedBytesize then
             structElement.bytesize:=bytesize;
@@ -4828,7 +4827,12 @@ begin
   if (se.name='') and (miShowTypeForEntriesWithNoDescription.checked) then
   begin
     if se.vartype=vtCustom then
-      varname:=se.CustomType.name
+    begin
+      if se.CustomType<>nil then
+        varname:=se.CustomType.name
+      else
+        varname:='Unknown custom type';
+    end
     else
       varname:=VariableTypeToString(se.VarType);
 
