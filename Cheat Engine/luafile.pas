@@ -5,7 +5,7 @@ unit luafile;
 interface
 
 uses
-  Classes, SysUtils, DOM, zstream, math, custombase85, fgl;
+  Classes, SysUtils, DOM, zstream, math, custombase85, fgl, xmlutils;
 
 type TLuafile=class
   private
@@ -141,6 +141,10 @@ end;
 
 constructor TLuafile.create(name: string; stream: tstream);
 begin
+  if not IsXmlName(name, true) then
+    name:='_'+name;
+
+
   self.name:=name;
 
   filedata:=tmemorystream.create;

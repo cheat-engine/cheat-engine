@@ -568,7 +568,7 @@ begin
   inc(LastDisassembleData.SeperatorCount);
 
 
-  if $67 in prefix then
+  if (not processhandler.is64Bit) and ($67 in prefix) then
   begin
     // put some 16-bit stuff in here
     // but since this is a 32-bit debugger only ,forget it...

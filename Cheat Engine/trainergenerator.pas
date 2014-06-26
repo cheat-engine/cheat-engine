@@ -1051,7 +1051,12 @@ begin
               end;
               l.add('  '+trainerform.name+'.'+currentcheat.name+'.setActive(true, 1500)');
               l.add('  if gPlaySoundOnAction then');
-              l.add('    playSound(gActivateSound)');
+
+              if currenthk.action=mrhDeactivate then
+                l.add('    playSound(gDeactivateSound)')
+              else
+                l.add('    playSound(gActivateSound)');
+
               l.add('  end');
               l.add('end');
               l.add('');
