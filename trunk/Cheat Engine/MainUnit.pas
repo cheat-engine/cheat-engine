@@ -23,7 +23,7 @@ uses
   FPimage, byteinterpreter, frmgroupscanalgoritmgeneratorunit, vartypestrings,
   groupscancommandparser, GraphType, IntfGraphics, RemoteMemoryManager,
   DBK64SecondaryLoader, savedscanhandler, debuggertypedefinitions, networkInterface,
-  FrmMemoryRecordDropdownSettingsUnit;
+  FrmMemoryRecordDropdownSettingsUnit, xmlutils;
 
 //the following are just for compatibility
 
@@ -1056,6 +1056,7 @@ resourcestring
 
   rsDecimal = 'Decimal';
   rsHexadecimal = 'Hexadecimal';
+  rsIsNotAValidX = '%s is not a valid xml name';
 
 var
   ncol: TColor;
@@ -3283,7 +3284,11 @@ begin
   lf := LuaFiles[TMenuItem(Sender).Tag];
   newname:=lf.Name;
   InputQuery(rsRenameFile, rsGiveTheNewFilename, newname);
-  lf.name:=newname;
+
+  if IsXmlName(newname, true) then
+    lf.name:=newname
+  else
+    MessageDlg(Format(rsIsNotAValidX, [newname]), mtError, [mbok], 0);
 end;
 
 procedure TMainForm.SaveFileClick(Sender: TObject);
