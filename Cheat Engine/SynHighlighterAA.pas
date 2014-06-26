@@ -1614,7 +1614,10 @@ begin
     fLuaSyntaxHighlighter.GetTokenEx(tokenstart, TokenLength);
 
     if uppercase(tokenstart)='{$ASM}' then
+    begin
       tokenlength:=0;
+      fRange:=rsANil;
+    end;
 
     exit;
   end;
@@ -1627,6 +1630,12 @@ end;
 
 function TSynAASyn.GetTokenID: TtkTokenKind;
 begin
+  if frange=rsLua then
+  begin
+    result:=TtkTokenKind(fLuaSyntaxHighlighter.GetTokenID);
+    exit;
+  end;
+
   if not fAsmStart and (fRange = rsAsm)
     and not (fTokenId in [tkNull, tkComment, tkDirec, tkSpace])
   then
@@ -1681,17 +1690,30 @@ end;
 
 function TSynAASyn.GetRange: Pointer;
 begin
-  Result := Pointer(PtrInt(fRange));
+  if frange=rsLua then
+    result := pointer(PtrInt(fLuaSyntaxHighlighter.GetRange)+$1000)
+  else
+    Result := Pointer(PtrInt(fRange));
 end;
 
 procedure TSynAASyn.SetRange(Value: Pointer);
 begin
-  fRange := TRangeState(PtrUInt(Value));
+  if ptrint(value) >= $1000 then //lua
+  begin
+    fLuaSyntaxHighlighter.SetRange(pointer(ptrint(value)-$1000));
+    frange:=rsLua;
+  end
+  else
+    fRange := TRangeState(PtrUInt(Value));
 end;
 
 procedure TSynAASyn.ResetRange;
 begin
-  fRange:= rsUnknown;
+  //if frange=rsLua then
+  //  fLuaSyntaxHighlighter.ResetRange
+ // else
+    fRange:= rsUnknown;
+
 end;
 
 function TSynAASyn.GetIdentChars: TSynIdentChars;
