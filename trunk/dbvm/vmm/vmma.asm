@@ -406,6 +406,9 @@ mov r15,rax
 aftersetup:
 vmlaunch
 ;just continued through, restore state
+nop
+nop ;just making sure as for some reason kvm's gdb continues here, instead of the previous instruction
+nop
 
 pop r15 ;128
 pop r14
@@ -423,25 +426,25 @@ pop rcx
 pop rbx
 pop rax ;8
 
-
 jc vmxloop_fullerr
 jz vmxloop_halferr
 jmp vmxloop_weirderr
 
+
 vmxloop_fullerr:
 mov eax,1
 popfq ;(esp-0)
-jmp vmxloop_exit
+ret
 
 vmxloop_halferr:
 mov eax,2
 popfq ;(esp-0)
-jmp vmxloop_exit
+ret
 
 vmxloop_weirderr:
 mov eax,3
 popfq ;(esp-0)
-jmp vmxloop_exit
+ret
 
 vmxloop_vmexit:
 cli
