@@ -42,6 +42,8 @@ GLOBAL setIDT
 
 ;everything here is in virtual memory, paging has already been setup properly
 
+GLOBAL _start
+_start:
 amain:
 
 jmp short afterinitvariables
@@ -420,7 +422,7 @@ pop rdx
 pop rcx
 pop rbx
 pop rax ;8
-popfq ;0
+
 
 jc vmxloop_fullerr
 jz vmxloop_halferr
