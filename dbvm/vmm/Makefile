@@ -2,8 +2,9 @@ ASM = yasm
 LD = ld
 CC = gcc
 AFLAGS = -f elf64 -DSERIALPORT=${SERIALPORT}
-CFLAGS = -O3 -W -Wall -DSERIALPORT=${SERIALPORT} -DSUPPORT_64BIT_OFFSET -DDARKBYTESFUCKEDUPCROSSCOMPILER -fno-builtin-strlen -fno-builtin-strcat -fno-builtin-strcpy -fno-builtin-malloc -fno-builtin-memcpy -fno-builtin-snprintf -fno-builtin-memset -fno-stack-protector -g
+CFLAGS = -O0 -W -Wall -DSERIALPORT=${SERIALPORT} -DSUPPORT_64BIT_OFFSET -DDARKBYTESFUCKEDUPCROSSCOMPILER -fno-builtin-strlen -fno-builtin-strcat -fno-builtin-strcpy -fno-builtin-malloc -fno-builtin-memcpy -fno-builtin-snprintf -fno-builtin-memset -fno-stack-protector -g
 LDFLAGS = -T vmm.lnk -Map vmm.map
+LDFLAGS2 = -Map vmm.map
 C2FLAGS = -Wconversion
 
 all:
@@ -35,7 +36,9 @@ all:
 
 	@make -C distorm64 all
 	
-	@${LD} ${LDFLAGS} vmma.o main.o neward.o common.o commona.o apica.o vmmhelper.o multicore.o mm.o vmpaging.o vmevent_invalidstate.o vmeventhandler.o realmodeemu.o pmodeemu.o vmcall.o keyboard.o osspecific.o offloados.o ultimap.o pci.o apic.o test.o testa.o vmeventhandler_amd.o ./distorm64/wstring.o ./distorm64/x86defs.o ./distorm64/textdefs.o ./distorm64/insts.o ./distorm64/prefix.o ./distorm64/instructions.o ./distorm64/decoder.o ./distorm64/operands.o ./distorm64/distorm.o -o ../vmm.bin -Map ../vmm.map 
+	@${LD} ${LDFLAGS} vmma.o main.o neward.o common.o commona.o apica.o vmmhelper.o multicore.o mm.o vmpaging.o vmevent_invalidstate.o vmeventhandler.o realmodeemu.o pmodeemu.o vmcall.o keyboard.o osspecific.o offloados.o ultimap.o pci.o apic.o test.o testa.o vmeventhandler_amd.o ./distorm64/wstring.o ./distorm64/x86defs.o ./distorm64/textdefs.o ./distorm64/insts.o ./distorm64/prefix.o ./distorm64/instructions.o ./distorm64/decoder.o ./distorm64/operands.o ./distorm64/distorm.o -o ../vmm.elf -Map ../vmm.map
+#	@${LD} ${LDFLAGS2} vmma.o main.o neward.o common.o commona.o apica.o vmmhelper.o multicore.o mm.o vmpaging.o vmevent_invalidstate.o vmeventhandler.o realmodeemu.o pmodeemu.o vmcall.o keyboard.o osspecific.o offloados.o ultimap.o pci.o apic.o test.o testa.o vmeventhandler_amd.o ./distorm64/wstring.o ./distorm64/x86defs.o ./distorm64/textdefs.o ./distorm64/insts.o ./distorm64/prefix.o ./distorm64/instructions.o ./distorm64/decoder.o ./distorm64/operands.o ./distorm64/distorm.o -o ../vmm.elf -Map ../vmm.map
+	@objcopy -O binary ../vmm.elf ../vmm.bin
 	@echo "vmm done"
 	
 clean:
