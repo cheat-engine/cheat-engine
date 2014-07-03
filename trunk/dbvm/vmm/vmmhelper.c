@@ -630,7 +630,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
   {
 	  nosendchar[getAPICID()]=0;
 	  enableserial();
-	  sendstringf("*Alive*\n");
+	  //sendstringf("*Alive*\n");
 	  lastbeat=_rdtsc();
   }
 
@@ -870,7 +870,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
     {
 
       case vm_exit_vmcall:
-    	skip=0;
+    	skip=1;
     	break;
 
 
@@ -2212,6 +2212,7 @@ void setupVMX(pcpuinfo currentcpuinfo)
     //IOBitmap[0x7f]=0xff;
     //IOBitmap[22]=0xff;
     //IOBitmap[29]=0xff;
+    /*
     IOBitmap[SERIALPORT / 8]|= 1 << (SERIALPORT % 8);
     IOBitmap[(SERIALPORT+1) / 8]|= 1 << ((SERIALPORT+1) % 8);
     IOBitmap[(SERIALPORT+2) / 8]|= 1 << ((SERIALPORT+2) % 8);
@@ -2220,6 +2221,7 @@ void setupVMX(pcpuinfo currentcpuinfo)
     IOBitmap[(SERIALPORT+5) / 8]|= 1 << ((SERIALPORT+5) % 8);
     IOBitmap[(SERIALPORT+6) / 8]|= 1 << ((SERIALPORT+6) % 8);
     IOBitmap[(SERIALPORT+7) / 8]|= 1 << ((SERIALPORT+7) % 8);
+    */
       #endif
     #endif
   }
@@ -2392,8 +2394,52 @@ void setupVMX(pcpuinfo currentcpuinfo)
   //
 
   //compatibility mode with newer cpus that have 0 settings for features that I expect are 1
-  IA32_VMX_PINBASED_CTLS=IA32_VMX_PINBASED_CTLS | (1<<1) | (1<<2) | (1<<4);
-  IA32_VMX_PROCBASED_CTLS=IA32_VMX_PROCBASED_CTLS | (1<<1) | (7<<4) | (1<<8) | (15<<13) | (1<<26);
+  if ((IA32_VMX_PINBASED_CTLS >> 32) & (1<<1))
+    IA32_VMX_PINBASED_CTLS|=(1<<1);
+
+  if ((IA32_VMX_PINBASED_CTLS >> 32) & (1<<2))
+    IA32_VMX_PINBASED_CTLS|=(1<<2);
+
+  if ((IA32_VMX_PINBASED_CTLS >> 32) & (1<<4))
+    IA32_VMX_PINBASED_CTLS|=(1<<4);
+
+  if ((IA32_VMX_PROCBASED_CTLS >> 32) & (1<<1))
+    IA32_VMX_PROCBASED_CTLS|=(1<<1);
+  else
+    sendstring("Fail1\n");
+
+  if (((IA32_VMX_PROCBASED_CTLS >> 32) & (7<<4)) ==(7<<4))
+      IA32_VMX_PROCBASED_CTLS|=(7<<4);
+    else
+      sendstring("Fail2\n");
+
+  if ((IA32_VMX_PROCBASED_CTLS >> 32) & (1<<8))
+    IA32_VMX_PROCBASED_CTLS|=(1<<8);
+  else
+    sendstring("Fail3\n");
+
+  if (((IA32_VMX_PROCBASED_CTLS >> 32) & (15<<13)) ==(15<<13))
+      IA32_VMX_PROCBASED_CTLS|=(15<<13);
+  else
+    sendstring("Fail4\n");
+
+  if ((IA32_VMX_PROCBASED_CTLS >> 32) & (1<<26))
+    IA32_VMX_PROCBASED_CTLS|=(1<<26);
+  else
+    sendstring("Fail5\n");
+
+  if ((IA32_VMX_PROCBASED_CTLS >> 32) & (1<<15))
+      IA32_VMX_PROCBASED_CTLS|=(1<<15);
+  else
+    sendstring("CR3 load exiting fail\n");
+
+  if ((IA32_VMX_PROCBASED_CTLS >> 32) & (1<<16))
+    IA32_VMX_PROCBASED_CTLS|=(1<<16);
+  else
+    sendstring("CR3 store exiting fail\n");
+
+
+ // IA32_VMX_PROCBASED_CTLS=IA32_VMX_PROCBASED_CTLS | (1<<1) | (7<<4) | (1<<8) | (15<<13) | (1<<26);
 
   //do a check for a secondary entry
 
@@ -2414,6 +2460,8 @@ void setupVMX(pcpuinfo currentcpuinfo)
 
   //32-bit control fields
   vmwrite(vm_execution_controls_pin,(ULONG)IA32_VMX_PINBASED_CTLS); //pin-based VM-execution controls
+
+  sendstringf("Set vm_execution_controls_pin to %8 (became %8)\n", (ULONG)IA32_VMX_PINBASED_CTLS, (DWORD)vmread(vm_execution_controls_pin));
 
 
 #ifdef DEBUG
@@ -2442,8 +2490,33 @@ void setupVMX(pcpuinfo currentcpuinfo)
   vmwrite(0x4008,(UINT64)0); //page fault error-code match
   vmwrite(0x400a,(UINT64)1); //cr3-target count
 
+  DWORD new_vm_exit_controls=(DWORD)IA32_VMX_EXIT_CTLS;
 
-  vmwrite(vm_exit_controls,(UINT64)(IA32_VMX_EXIT_CTLS & 0xffffffff) | HOST_ADDRESS_SPACE_SIZE | ACKNOWLEDGE_INTERRUPT_ON_EXIT | SAVE_DEBUG_CONTROLS); //vm-exit controls , Host address-space size = 1
+  sendstringf("IA32_VMX_EXIT_CTLS=%6\n", IA32_VMX_EXIT_CTLS);
+
+
+  if ((IA32_VMX_EXIT_CTLS >> 32) & HOST_ADDRESS_SPACE_SIZE)
+    new_vm_exit_controls|=HOST_ADDRESS_SPACE_SIZE;
+  else
+    sendstring("<<<<<<WARNING: This system does not support HOST_ADDRESS_SPACE_SIZE>>>>>>\n");
+
+
+
+  if ((IA32_VMX_EXIT_CTLS >> 32) & ACKNOWLEDGE_INTERRUPT_ON_EXIT)
+    new_vm_exit_controls|=ACKNOWLEDGE_INTERRUPT_ON_EXIT;
+  else
+    sendstring("<<<<<<WARNING: This system does not support acknowledge interrupt on exit>>>>>>\n");
+
+  if ((IA32_VMX_EXIT_CTLS >> 32) & SAVE_DEBUG_CONTROLS)
+    new_vm_exit_controls|=SAVE_DEBUG_CONTROLS;
+  else
+    sendstring("<<<<<<WARNING: This system does not support saving debug controls>>>>>>\n");
+
+  vmwrite(vm_exit_controls, new_vm_exit_controls); //vm-exit controls , Host address-space size = 1
+
+  sendstringf("Set vm_exit_controls to %8 (became %8)\n", new_vm_exit_controls, (DWORD)vmread(vm_exit_controls));
+
+
   vmwrite(0x400e,(UINT64)0); //vm-exit msr-store count
   vmwrite(0x4010,(UINT64)0); //vm-exit msr-load count
 
@@ -2541,17 +2614,33 @@ void setupVMX(pcpuinfo currentcpuinfo)
 
 
 
-    vmwrite(vm_execution_controls_cpu,(DWORD)IA32_VMX_PROCBASED_CTLS | INVLPG_EXITING | USE_IO_BITMAPS | USE_MSR_BITMAPS ); //processor-based vm-execution controls
 
+    DWORD new_vm_execution_controls_cpu=(DWORD)IA32_VMX_PROCBASED_CTLS | INVLPG_EXITING | USE_IO_BITMAPS | USE_MSR_BITMAPS;
+
+    vmwrite(vm_execution_controls_cpu, new_vm_execution_controls_cpu); //processor-based vm-execution controls
+    sendstringf("Set vm_execution_controls_cpu to %8 (became %8)\n", new_vm_execution_controls_cpu, (DWORD)vmread(vm_execution_controls_cpu));
+
+
+    currentcpuinfo->efer=originalstate->originalEFER;
+
+    DWORD new_vm_entry_controls;
 
     if (originalstate->originalLME)
     {
       sendstringf("guest is 64bit\n");
-      currentcpuinfo->efer=(1<<8) | (1<<10);
-      vmwrite(vm_entry_controls,(UINT64)IA32_VMX_ENTRY_CTLS | RESTORE_DEBUG_CONTROLS | IA32E_MODE_GUEST); //64-bit mode
+      currentcpuinfo->efer|=(1<<8) | (1<<10);
+      new_vm_entry_controls=(DWORD)IA32_VMX_ENTRY_CTLS | RESTORE_DEBUG_CONTROLS | IA32E_MODE_GUEST; //64-bit mode
     }
     else
-      vmwrite(vm_entry_controls,(UINT64)IA32_VMX_ENTRY_CTLS | RESTORE_DEBUG_CONTROLS);
+      new_vm_entry_controls=(DWORD)IA32_VMX_ENTRY_CTLS | RESTORE_DEBUG_CONTROLS;
+
+
+    vmwrite(vm_entry_controls, new_vm_entry_controls);
+    sendstringf("Set vm_entry_controls to %8 (became %8)\n", new_vm_entry_controls, (DWORD)vmread(vm_entry_controls));
+
+
+
+
 
     vmwrite(vm_cr0_fakeread,originalstate->cr0); //cr0 read shadow
     vmwrite(vm_cr4_fakeread,originalstate->cr4); //cr4 read shadow
@@ -2701,10 +2790,52 @@ void setupVMX(pcpuinfo currentcpuinfo)
       currentcpuinfo->guestCR0=getCR0();
       currentcpuinfo->hasIF=0;
 
+      DWORD new_vm_execution_controls_cpu=(DWORD)IA32_VMX_PROCBASED_CTLS;
+
+      if ((IA32_VMX_PROCBASED_CTLS >> 32) & HLT_EXITING)
+        new_vm_execution_controls_cpu|=HLT_EXITING;
+      else
+        sendstring("<<<<<<WARNING: This system does not support HLT_EXITING>>>>>>\n");
+
+      if ((IA32_VMX_PROCBASED_CTLS >> 32) & INVLPG_EXITING)
+        new_vm_execution_controls_cpu|=INVLPG_EXITING;
+      else
+        sendstring("<<<<<<WARNING: This system does not support INVLPG_EXITING>>>>>>\n");
+
+      /*
+      if ((IA32_VMX_PROCBASED_CTLS >> 32) & USE_IO_BITMAPS)
+        new_vm_execution_controls_cpu|=USE_IO_BITMAPS;
+      else
+        sendstring("<<<<<<WARNING: This system does not support USE_IO_BITMAPS>>>>>>\n");*/
+
+      if ((IA32_VMX_PROCBASED_CTLS >> 32) & USE_MSR_BITMAPS)
+        new_vm_execution_controls_cpu|=USE_MSR_BITMAPS;
+      else
+        sendstring("<<<<<<WARNING: This system does not support USE_MSR_BITMAPS>>>>>>\n");
 
 
-      vmwrite(vm_execution_controls_cpu,(DWORD)IA32_VMX_PROCBASED_CTLS | HLT_EXITING | INVLPG_EXITING | USE_IO_BITMAPS | USE_MSR_BITMAPS ); //processor-based vm-execution controls
-      vmwrite(vm_entry_controls,(DWORD)IA32_VMX_ENTRY_CTLS | IA32E_MODE_GUEST | RESTORE_DEBUG_CONTROLS); //vm-entry controls   bit9: ia-32e mode guest is guest controlled
+      vmwrite(vm_execution_controls_cpu, new_vm_execution_controls_cpu); //processor-based vm-execution controls
+      sendstringf("Set vm_execution_controls_cpu to %8 (became %8)\n", new_vm_execution_controls_cpu, (DWORD)vmread(vm_execution_controls_cpu));
+
+
+      DWORD new_vm_entry_controls=(DWORD)IA32_VMX_ENTRY_CTLS;
+
+      if ((IA32_VMX_ENTRY_CTLS >> 32) & IA32E_MODE_GUEST)
+        new_vm_entry_controls|=IA32E_MODE_GUEST;
+      else
+        sendstring("<<<<<<WARNING: This system does not support IA32E_MODE_GUEST>>>>>>\n");
+
+      if ((IA32_VMX_ENTRY_CTLS >> 32) & RESTORE_DEBUG_CONTROLS)
+        new_vm_entry_controls|=RESTORE_DEBUG_CONTROLS;
+      else
+        sendstring("<<<<<<WARNING: This system does not support the RESTORE_DEBUG_CONTROLS vm_entry control option>>>>>>\n");
+
+
+      vmwrite(vm_entry_controls,new_vm_entry_controls); //vm-entry controls   bit9: ia-32e mode guest is guest controlled
+      sendstringf("Set vm_entry_controls to %8 (became %8)\n", new_vm_entry_controls, (DWORD)vmread(vm_entry_controls));
+
+
+
 
       vmwrite(vm_cr0_fakeread,(UINT64)getCR0()); //cr0 read shadow
       vmwrite(vm_cr4_fakeread,(UINT64)getCR4()); //cr4 read shadow
@@ -2983,9 +3114,38 @@ void launchVMX(pcpuinfo currentcpuinfo)
   else
     displayline("%d: vmxloop returned %d. WEIRD ERROR!\n\r", currentcpuinfo->cpunr,result);
 
-  displayline("%d: VM error code=%8\n\r", currentcpuinfo->cpunr, vmread(0x4400));
-  displayline("%d: Exit reason=%8\n\r", currentcpuinfo->cpunr, vmread(0x4402));
+  displayline("%d: VM error code=%8\n\r", currentcpuinfo->cpunr, vmread(vm_errorcode));
+  displayline("%d: Exit reason=%8\n\r", currentcpuinfo->cpunr, vmread(vm_exit_reason));
   displayline("%d: currentcpuinfo=%6\n\r", currentcpuinfo->cpunr, (UINT64)currentcpuinfo);
+
+  if (vmread(vm_errorcode)==7)
+  {
+    sendstringf("Invalid control fields\n");
+    QWORD VMX_BASIC=readMSR(IA32_VMX_BASIC_MSR);
+    QWORD VMX_PINBASED_CTLS=readMSR(IA32_VMX_PINBASED_CTLS_MSR);
+    QWORD VMX_PROCBASED_CTLS=readMSR(IA32_VMX_PROCBASED_CTLS_MSR);
+
+    QWORD VMX_EXIT_CTLS=readMSR(IA32_VMX_EXIT_CTLS_MSR);
+    QWORD VMX_ENTRY_CTLS=readMSR(IA32_VMX_ENTRY_CTLS_MSR);
+    QWORD VMX_MISC=readMSR(IA32_VMX_MISC_CTLS_MSR);
+
+    DWORD ctrl_pin=vmread(vm_execution_controls_pin);
+    sendstringf("VMX_PINBASED_CTLS=%6 ctrl_pin=%8\n", VMX_PINBASED_CTLS, ctrl_pin);
+
+    DWORD ctrl_cpu=vmread(vm_execution_controls_cpu);
+    sendstringf("VMX_PROCBASED_CTLS=%6 ctrl_cpu=%8\n", VMX_PROCBASED_CTLS, ctrl_cpu);
+
+    DWORD ctrl_entry=vmread(vm_entry_controls);
+    sendstringf("VMX_ENTRY_CTLS=%6 ctrl_entry=%8\n", VMX_ENTRY_CTLS, ctrl_entry);
+
+    DWORD ctrl_exit=vmread(vm_exit_controls);
+    sendstringf("VMX_EXIT_CTLS=%6 ctrl_exit=%8\n", VMX_EXIT_CTLS, ctrl_exit);
+
+
+
+
+
+  }
 
 }
 /*

@@ -1594,6 +1594,7 @@ void menu2(void)
     displayline("9: test input\n");
     displayline("a: test branch profiling\n");
     displayline("b: boot without vm (test state vm would set)\n");
+    displayline("c: boot without vm and lock FEATURE CONTROL\n");
     displayline("v: vm(m)call test (test state vm would set)\n");
 
 
@@ -1807,6 +1808,47 @@ void menu2(void)
             displayline("WTF?\n");
             break;
           }
+
+          case 'c':
+          {
+            QWORD IA32_FEATURE_CONTROL;
+            IA32_FEATURE_CONTROL=readMSR(IA32_FEATURE_CONTROL_MSR);
+            displayline("IA32_FEATURE_CONTROL was %6\n\r",IA32_FEATURE_CONTROL);
+
+            if (IA32_FEATURE_CONTROL & FEATURE_CONTROL_LOCK)
+            {
+              displayline("IA32_FEATURE_CONTROL is locked (value=%6). (Disabled in bios?)\n\r",IA32_FEATURE_CONTROL);
+              if (!(IA32_FEATURE_CONTROL & FEATURE_CONTROL_VMXON ))
+              {
+                displayline("Bit 2 (VMX) is also disabled. VMX is not possible\n");
+                return;
+              }
+              else
+                displayline("VMXON was already enabled in the feature control MSR\n");
+            }
+            else
+            {
+              displayline("Not locked yet\n");
+
+              IA32_FEATURE_CONTROL=IA32_FEATURE_CONTROL | FEATURE_CONTROL_VMXON | FEATURE_CONTROL_LOCK;
+
+              displayline("setting IA32_FEATURE_CONTROL to %6\n\r",IA32_FEATURE_CONTROL);
+
+              writeMSR(IA32_FEATURE_CONTROL_MSR,IA32_FEATURE_CONTROL);
+              IA32_FEATURE_CONTROL=readMSR(IA32_FEATURE_CONTROL_MSR);
+              displayline("IA32_FEATURE_CONTROL is now %6\n\r",IA32_FEATURE_CONTROL);
+            }
+
+
+
+
+            displayline("Press a key to boot");
+            key=kbd_getchar();
+            reboot();
+            displayline("WTF?\n");
+            break;
+          }
+
 
           case 'v':
           {
@@ -2667,6 +2709,12 @@ void startvmx(pcpuinfo currentcpuinfo)
         displayline("Fatal error: Your system does not support intel-VT!!!!\n");
         displayline("Remove the disk, reboot, and go look for a better cpu\n");
         sendstring("!!!!!!!!!!!!!!Your system is crap, it does NOT support VMX!!!!!!!!!!!!!!\n\r");
+        sendstringf("cpuid(1):\n");
+        sendstringf("EAX=%8\n", a);
+        sendstringf("EBX=%8\n", b);
+        sendstringf("ECX=%8\n", c);
+        sendstringf("EDX=%8\n", d);
+
       }
     }
 
