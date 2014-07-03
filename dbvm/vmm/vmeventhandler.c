@@ -3475,7 +3475,8 @@ int handleVMEvent(pcpuinfo currentcpuinfo, VMRegisters *vmregisters)
 
 		case 7: //interrupt window
 		{
-			sendstring("Interrupt window event\n\r");
+			sendstring("Interrupt window event... I did NOT ask for this\n\r");
+			sendstringf("vm_execution_controls_cpu=%6\n", vmread(vm_execution_controls_cpu));
 			return 1;
 		}
 

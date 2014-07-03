@@ -2058,6 +2058,9 @@ rdmsr
 and eax,0xFFFFFEFF
 wrmsr
 nop
+
+
+
 ;mov byte [0x1dead],2
 nop
 nop
