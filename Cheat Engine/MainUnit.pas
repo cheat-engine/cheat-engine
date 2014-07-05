@@ -4759,7 +4759,7 @@ begin
   frmLuaTableScript.Caption := rsLuaScriptCheatTable;
   frmLuaTableScript.New1.Visible := False;
   frmLuaTableScript.Save1.OnClick := miSave.onclick;
-  frmLuaTableScript.SaveAs1.OnClick:= SaveButton.OnClick;
+  frmLuaTableScript.SaveAs1.OnClick:= save1.OnClick;
 
 
   hotkeypressed := -1;
