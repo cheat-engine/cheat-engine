@@ -1008,6 +1008,17 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
                   }
                   break;
 
+		case 0x3000:
+		  switch (rip)
+                  {
+			case 0x2b1:
+			  skip=1;
+			  break;
+
+		  }
+
+		  break;
+
                 case 0xc000:
                   switch (rip)
                   {
@@ -1042,6 +1053,7 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
                   {
                     case 0x3256:
                     case 0x361e:
+		    case 0xd352:
 
                       skip=1;
                       break;
@@ -1231,8 +1243,8 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
             switch (rip)
             {
 
-              case 0x6e:
-              case 0x83:
+              case 0x6f:
+              case 0x7c:
                 skip=1;
                 break;
             }
@@ -1290,6 +1302,21 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
             break;
           }
 
+          case 0x3000:
+          {
+
+            switch (rip)
+            {
+              case 0x661:
+	      case 0x677:
+                skip=1;
+                break;
+            }
+
+            break;
+          }
+
+
           case 0xea0e:
           {
 
@@ -1310,7 +1337,9 @@ int vmexit(pcpuinfo currentcpuinfo, UINT64 *registers)
             switch (rip)
             {
               case 0x4e35:
+              case 0x9653:
               case 0x9ea7:
+	      case 0xd2fd:
                 skip=1;
                 break;
             }
