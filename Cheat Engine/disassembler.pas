@@ -9896,19 +9896,16 @@ begin
               lastdisassembledata.isjump:=true;
               lastdisassembledata.isconditionaljump:=true;
 
+              lastdisassembledata.opcode:='loopne';
+
+              inc(offset);
+
               lastdisassembledata.parametervaluetype:=dvtaddress;
               if is64bit then
                 lastdisassembledata.parametervalue:=qword(offset+pshortint(@memory[1])^)
               else
                 lastdisassembledata.parametervalue:=dword(offset+pshortint(@memory[1])^);
 
-
-              if $66 in prefix2 then
-                lastdisassembledata.opcode:='loopne'
-              else
-                lastdisassembledata.opcode:='loopnz';
-
-              inc(offset);
               lastdisassembledata.parameters:=inttohexs(lastdisassembledata.parametervalue,8);
 
               lastdisassembledata.seperators[lastdisassembledata.seperatorcount]:=1;
@@ -9920,14 +9917,7 @@ begin
               lastdisassembledata.isjump:=true;
               lastdisassembledata.isconditionaljump:=true;
 
-              if $66 in prefix2 then
-              begin
-                lastdisassembledata.opcode:='loope';
-              end
-              else
-              begin
-                lastdisassembledata.opcode:='loopz';
-              end;
+              lastdisassembledata.opcode:='loope';
               inc(offset);
 
               lastdisassembledata.parametervaluetype:=dvtaddress;
