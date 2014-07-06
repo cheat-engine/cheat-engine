@@ -729,8 +729,8 @@ const opcodes: array [1..opcodecount] of topcode =(
   (mnemonic:'LODSW';bytes:2;bt1:$66;bt2:$ad),
 
   (mnemonic:'LOOP';opcode1:eo_cb;paramtype1:par_rel8;bytes:1;bt1:$e2),
-  (mnemonic:'LOOPE';opcode1:eo_cb;paramtype1:par_rel8;bytes:2;bt1:$66;bt2:$e1),
-  (mnemonic:'LOOPNE';opcode1:eo_cb;paramtype1:par_rel8;bytes:2;bt1:$66;bt2:$e0),
+  (mnemonic:'LOOPE';opcode1:eo_cb;paramtype1:par_rel8;bytes:1;bt1:$e1),
+  (mnemonic:'LOOPNE';opcode1:eo_cb;paramtype1:par_rel8;bytes:1;bt1:$e0),
   (mnemonic:'LOOPNZ';opcode1:eo_cb;paramtype1:par_rel8;bytes:1;bt1:$e0),
   (mnemonic:'LOOPZ';opcode1:eo_cb;paramtype1:par_rel8;bytes:1;bt1:$e1),
 
