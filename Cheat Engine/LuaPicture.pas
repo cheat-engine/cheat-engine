@@ -124,7 +124,7 @@ procedure picture_addMetaData(L: PLua_state; metatable: integer; userdata: integ
 begin
   object_addMetaData(L, metatable, userdata);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'loadFromFile',picture_loadFromFile);
-  luaclass_addClassFunctionToTable(L, metatable, userdata, 'saveToFile',picture_loadFromFile);
+  luaclass_addClassFunctionToTable(L, metatable, userdata, 'saveToFile',picture_saveToFile);
 
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'loadFromStream',picture_loadFromStream);
   luaclass_addClassFunctionToTable(L, metatable, userdata, 'assign',picture_assign);

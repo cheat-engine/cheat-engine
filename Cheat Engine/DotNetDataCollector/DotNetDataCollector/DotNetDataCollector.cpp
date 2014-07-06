@@ -72,8 +72,10 @@ int WINAPI wWinMain(
 	MSG m;
 	PeekMessage(&m, (HWND)-1, 0,0,PM_REMOVE); //this will tell windows that the app hasn't crashed
 	
+
+
 	if ((lpCmdLine) && (wcslen(lpCmdLine)))
-	{
+	{		
 		int r;
 		pw=new CPipeServer(lpCmdLine);
 		r=pw->Start();
