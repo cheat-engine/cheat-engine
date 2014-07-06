@@ -7,6 +7,10 @@ const IID IID_ICorDebugProcess5={0x21e9d9c0, 0xfcb8, 0x11df, 0x8c, 0xff, 0x08, 0
 const IID IID_ICorDebugCode2={0x5F696509,0x452F,0x4436,0xA3,0xFE,0x4D,0x11,0xFE,0x7E,0x23,0x47}; //5F696509-452F-4436-A3FE-4D11FE7E2347
 
 
+//const IID IID_ICorDebug={0x3d6f5f61, 0x7538, 0x11d3, 0x8d, 0x5b, 0x00, 0x10, 0x4b, 0x35 ,0xe7, 0xef}; //3d6f5f61-7538-11d3-8d5b-00104b35e7ef
+//const IID CLSID_CorDebug={0x6fef44d0,0x39e7,0x4c77,0xbe,0x8e,0xc9,0xf8,0xcf,0x98,0x86,0x30}; //6fef44d0-39e7-4c77-be8e-c9f8cf988630
+
+using namespace std;
 
 CPipeServer::CPipeServer(TCHAR *name)
 {
@@ -22,7 +26,17 @@ CPipeServer::CPipeServer(TCHAR *name)
 	StrCat(pipename, name);
 
 	pipe=CreateNamedPipeW(pipename, PIPE_ACCESS_DUPLEX, PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT, 255,256*1024, 16, INFINITE, NULL);
-	ConnectNamedPipe(pipe, NULL);
+
+	if (StrCmp(name,L"BLA")==0)
+	{
+		//do some debug stuff
+		processid=0x1814;
+		OpenOrAttachToProcess();
+
+		getAddressData(0x021ABF0C);
+	}
+	else
+		ConnectNamedPipe(pipe, NULL);
 
 
 
@@ -141,22 +155,71 @@ BOOL CPipeServer::OpenOrAttachToProcess(void)
 		do
 		{
 			CLR_DEBUGGING_PROCESS_FLAGS flags;
+
 			r=CLRDebugging->OpenVirtualProcess((ULONG64)m.hModule, datacallback,  libprovider, &v, IID_ICorDebugProcess, (IUnknown **)&CorDebugProcess, &v, &flags);
-				
+			
 			if (r==S_OK)
 			{					
 				CorDebugProcess->QueryInterface(IID_ICorDebugProcess5, (void **)&CorDebugProcess5);
 				break;
 			}
+
 		}
+		
+
 		while (Module32Next(ths, &m));
 	}
 
 
 	CloseHandle(ths);
 
+
 	if (r!=S_OK)
-		return FALSE;
+	{
+#ifdef _DEBUG
+		/*
+		//todo for older (<4.0) c# versions:
+		WCHAR Version[255];
+		DWORD vlength;
+
+		ICorDebug *CorDebug;
+		processhandle=OpenProcess(PROCESS_ALL_ACCESS, FALSE, processid);
+
+		r=GetVersionFromProcess(processhandle, Version, 255, &vlength);	
+
+		r=CreateDebuggingInterfaceFromVersion(CorDebugVersion_2_0,  Version, (IUnknown **)&CorDebug);
+
+		CorDebug->Initialize();
+		//Cor
+
+		CMyICorDebugManagedCallback *MyICorDebugManagedCallback;
+
+		MyICorDebugManagedCallback=new CMyICorDebugManagedCallback();
+		
+		r=CorDebug->SetManagedHandler((ICorDebugManagedCallback *)MyICorDebugManagedCallback);
+
+		
+		r=CorDebug->DebugActiveProcess(processid, false, &CorDebugProcess);
+
+		CorDebugProcess->QueryInterface(IID_ICorDebugProcess5, (void **)&CorDebugProcess5);
+
+		CorDebug->Initialize();
+
+		while (MyICorDebugManagedCallback->attached==FALSE) Sleep(100);
+
+		//r=CorDebug->GetProcess(processid, &CorDebugProcess);
+
+	
+		CorDebugProcess->Stop(FALSE);
+		CorDebugProcess->Detach();
+		CorDebug->Release();
+		*/
+
+#endif
+		if (r!=S_OK)
+			return FALSE;
+	}
+
 
 	
 
@@ -488,6 +551,40 @@ void CPipeServer::enumTypeDefMethods(UINT64 hModule, mdTypeDef TypeDef)
 	}
 }
 
+int CPipeServer::getAllFields(COR_TYPEID cortypeid, COR_TYPE_LAYOUT layout, std::vector<COR_FIELD> *fieldlist)
+{
+	COR_FIELD *fields = NULL;
+	ULONG32 fieldcount;
+
+	if ((layout.parentID.token1) || (layout.parentID.token2))
+	{
+		//it has a parent
+		COR_TYPE_LAYOUT layoutparent;
+		if (CorDebugProcess5->GetTypeLayout(layout.parentID, &layoutparent) == S_OK)
+			getAllFields(layout.parentID, layoutparent, fieldlist);
+
+	}
+
+	if (layout.numFields)
+	{
+
+		fields = (COR_FIELD *)malloc(sizeof(COR_FIELD)*layout.numFields);
+
+		if (CorDebugProcess5->GetTypeFields(cortypeid, layout.numFields, fields, &fieldcount) == S_OK)
+		{
+			unsigned int i;
+			for (i = 0; i < fieldcount; i++)
+				fieldlist->push_back(fields[i]);
+		}
+
+		if (fields)
+			free(fields);
+	}
+
+	return (int)fieldlist->size();
+}
+
+
 void CPipeServer::getAddressData(UINT64 Address)
 {
 	//Enumerate the heap, check if the address is in the heap
@@ -519,11 +616,13 @@ void CPipeServer::getAddressData(UINT64 Address)
 					found=TRUE;
 					StartAddress=objects[i].address;
 					WriteFile(pipe, &StartAddress, sizeof(StartAddress), &bw, NULL);  //real start
-
+				
 					if (CorDebugProcess5->GetTypeLayout(objects[i].type, &layout)==S_OK)
 					{
 						type=(DWORD)layout.type;	
-						WriteFile(pipe, &type, sizeof(type), &bw, NULL);  //objecttype		
+						WriteFile(pipe, &type, sizeof(type), &bw, NULL);  //objecttype							
+						
+						
 
 						if(layout.type == ELEMENT_TYPE_ARRAY || layout.type == ELEMENT_TYPE_SZARRAY)
 						{
@@ -559,8 +658,10 @@ void CPipeServer::getAddressData(UINT64 Address)
 							mdToken extends;
 							DWORD flags;
 
-							COR_FIELD *fields=(COR_FIELD *)malloc(sizeof(COR_FIELD)*layout.numFields);
+							vector<COR_FIELD> fields;
+							
 
+							
 
 
 							//get the metadata for the module that owns this class
@@ -591,8 +692,11 @@ void CPipeServer::getAddressData(UINT64 Address)
 							if (classnamelength)
 								WriteFile(pipe, classname, classnamelength, &bw, NULL);
 							
+							fields.clear();
+							fieldcount = getAllFields(objects[i].type, layout, &fields);
+
 							//send the fields
-							if (CorDebugProcess5->GetTypeFields(objects[i].type, layout.numFields, fields, &fieldcount)==S_OK)
+							//if (CorDebugProcess5->GetTypeFields(objects[i].type, layout.numFields, fields, &fieldcount)==S_OK)
 							{
 								unsigned int j;
 								mdTypeDef classtype;
@@ -629,13 +733,7 @@ void CPipeServer::getAddressData(UINT64 Address)
 								}
 
 							}
-							else
-							{
-								fieldcount=0; //no fields
-								WriteFile(pipe, &fieldcount, sizeof(fieldcount), &bw, NULL); //error, 0 fields to returns
-							}
-
-							free(fields);
+							
 						}
 						
 					}

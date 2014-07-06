@@ -3,6 +3,7 @@
 //#include "CorDebugManagedCallback2.h"
 #include "MyIcorDebugDataTarget.h"
 #include "MyICLRDebuggingLibraryProvider.h"
+#include "MyIcorDebugManagedCallback.h"
 
 #define CMD_TARGETPROCESS 0
 #define CMD_CLOSEPROCESSANDQUIT 1
@@ -41,7 +42,7 @@ private:
 	void enumTypeDefs(UINT64 hModule);
 	void enumTypeDefMethods(UINT64 hModule, mdTypeDef TypeDef);
 	void getAddressData(UINT64 Address);
-
+	int getAllFields(COR_TYPEID cortypeid, COR_TYPE_LAYOUT layout, std::vector<COR_FIELD> *fieldlist);
 	void releaseObjectHandle(UINT64 hObject);
 public:
 	CPipeServer(TCHAR *name);
