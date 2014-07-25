@@ -596,6 +596,7 @@ type TCEEdit=class(TCustomEdit)
 
 type TCEForm=class(TCustomForm)
   private
+    saving: boolean;
     fVisible: boolean;
     saveddesign: TMemorystream;
     fDoNotSaveInTable: boolean;
@@ -616,6 +617,7 @@ type TCEForm=class(TCustomForm)
     procedure LoadFromXML(Node: TDOMNode);
     procedure RestoreToDesignState;
     procedure SaveCurrentStateasDesign;
+    function getVisible:boolean;
     procedure setVisible(state: boolean);
     destructor destroy; override;
 
@@ -700,7 +702,7 @@ type TCEForm=class(TCustomForm)
     property ShowInTaskBar;
   //  property UseDockManager;
  //   property LCLVersion: string read FLCLVersion write FLCLVersion stored LCLVersionIsStored;
-    property Visible read fVisible write setVisible;
+    property Visible read getVisible write setVisible;
     property WindowState;
 
     property DoNotSaveInTable: boolean read fDoNotSaveInTable write fDoNotSaveInTable default False;
@@ -1171,7 +1173,13 @@ begin
     savedDesign:=Tmemorystream.create;
 
   savedDesign.size:=0;
-  WriteComponentAsBinaryToStreamWithMethods(savedDesign);
+  saving:=true;
+  try
+    WriteComponentAsBinaryToStreamWithMethods(savedDesign);
+  finally
+    saving:=false;
+  end;
+
 
   savedDesign.position:=0;
 
@@ -1195,6 +1203,7 @@ var doc: TXMLDocument;
   a: TDOMAttr;
   formnode: TDOMNode;
 begin
+
   wasactive:=active;
   if active then active:=false;
 
@@ -1204,6 +1213,7 @@ begin
   //create a stream for storage
   outputastext:=nil;
   try
+
 {
     WriteComponentAsBinaryToStreamWithMethods(m);}
 
@@ -1393,6 +1403,15 @@ procedure TCEForm.ResyncWithLua;
 begin
   ResyncWithLua(self); //still needed for backwards compatibility
  // Lua_RegisterObject(self.name, self)
+end;
+
+function TCEForm.getVisible:boolean;
+begin
+  if active or saving then
+    result:=fVisible
+  else
+    result:=Inherited visible;
+
 end;
 
 procedure TCEForm.setVisible(state: boolean);
