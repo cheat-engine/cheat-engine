@@ -227,7 +227,14 @@ begin
   try
     result:=vmcall(@vmcallinfo,vmx_password1);
 
-    dbvmversion:=result and $00ffffff;
+    if (result shr 24)=$ce then
+      dbvmversion:=result and $00ffffff
+    else
+    begin
+      OutputDebugString('Invalid vmx');
+      result:=0;
+    end;
+
   except
     result:=0;
   end;

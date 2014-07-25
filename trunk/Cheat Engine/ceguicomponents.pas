@@ -588,10 +588,15 @@ type TCEEdit=class(TCustomEdit)
     property TabOrder;
     property Text;
     property Visible;
+
+    property SelStart;
+    property SelLength;
+    property SelText;
   end;
 
 type TCEForm=class(TCustomForm)
   private
+    fVisible: boolean;
     saveddesign: TMemorystream;
     fDoNotSaveInTable: boolean;
     procedure paint; override;
@@ -611,10 +616,10 @@ type TCEForm=class(TCustomForm)
     procedure LoadFromXML(Node: TDOMNode);
     procedure RestoreToDesignState;
     procedure SaveCurrentStateasDesign;
+    procedure setVisible(state: boolean);
     destructor destroy; override;
 
     property  active: boolean read getActive write setActive;
-
   published
     property Align;
     property AllowDropFiles;
@@ -695,7 +700,7 @@ type TCEForm=class(TCustomForm)
     property ShowInTaskBar;
   //  property UseDockManager;
  //   property LCLVersion: string read FLCLVersion write FLCLVersion stored LCLVersionIsStored;
-    property Visible;
+    property Visible read fVisible write setVisible;
     property WindowState;
 
     property DoNotSaveInTable: boolean read fDoNotSaveInTable write fDoNotSaveInTable default False;
@@ -758,6 +763,9 @@ type TCEMemo=class(TCustomMemo)
     property WantReturns;
     property WantTabs;
     property WordWrap;
+    property SelStart;
+    property SelLength;
+    property SelText;
   end;
 
 
@@ -1387,6 +1395,15 @@ begin
  // Lua_RegisterObject(self.name, self)
 end;
 
+procedure TCEForm.setVisible(state: boolean);
+begin
+  fVisible:=state;
+  if active=false then
+  begin
+    Inherited visible:=state;
+  end;
+end;
+
 destructor TCEForm.destroy;
 var i: integer;
 begin
@@ -1494,8 +1511,6 @@ initialization
   RegisterPropertyEditor(TypeInfo(TTabGetImageEvent), nil, '', THiddenPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TGetSiteInfoEvent), nil, '', THiddenPropertyEditor);
   RegisterPropertyEditor(TypeInfo(TGetDockCaptionEvent), nil, '', THiddenPropertyEditor);
-  RegisterPropertyEditor(TypeInfo(Boolean), TCEForm, 'Visible', THiddenPropertyEditor);
-
 
 end.
 
