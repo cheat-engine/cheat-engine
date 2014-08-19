@@ -114,7 +114,14 @@ function LaunchMonoDataCollector()
     monoeventpipe=nil
   end
 
-  if injectDLL(getCheatEngineDir()..[[\autorun\dlls\MonoDataCollector.dll]])==false then
+  local dllname="MonoDataCollector"
+  if targetIs64Bit() then
+    dllname=dllname.."64.dll"    
+  else
+    dllname=dllname.."32.dll"
+  end
+
+  if injectDLL(getCheatEngineDir()..[[\autorun\dlls\]]..dllname)==false then
     print("Failure injecting the MonoDatacollector dll")
 	return 0
   end
@@ -347,15 +354,18 @@ function mono_setCurrentDomain(domain)
 end
 
 function mono_enumAssemblies()
+  local result=nil
   if debug_canBreak() then return nil end
 
   monopipe.lock()
   monopipe.writeByte(MONOCMD_ENUMASSEMBLIES)
   local count=monopipe.readDword()
-  local result={}
-  local i
-  for i=1, count do
-    result[i]=monopipe.readQword()
+  if count~=nil then
+    result={}
+    local i
+    for i=1, count do
+      result[i]=monopipe.readQword()
+    end
   end
 
   monopipe.unlock()

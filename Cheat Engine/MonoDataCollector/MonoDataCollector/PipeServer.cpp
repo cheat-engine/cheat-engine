@@ -12,7 +12,11 @@ LONG NTAPI ErrorFilter(struct _EXCEPTION_POINTERS *ExceptionInfo)
 {
 	if ((ExpectingAccessViolations) && (ExceptionInfo->ExceptionRecord->ExceptionCode==0xc0000005))
 	{
-		ExceptionInfo->ContextRecord->Eip=(DWORD)ErrorThrow;		
+#ifdef _AMD64_
+		ExceptionInfo->ContextRecord->Rip=(DWORD)ErrorThrow;		
+#else
+		ExceptionInfo->ContextRecord->Eip = (DWORD)ErrorThrow;
+#endif
 		return EXCEPTION_CONTINUE_EXECUTION;
 	}
 
@@ -58,6 +62,37 @@ void CPipeServer::CreatePipeandWaitForconnect(void)
 void CPipeServer::InitMono()
 {
 	HMODULE hMono=GetModuleHandle(L"mono.dll");
+
+	if (!hMono)
+	{
+		//this process doesn't use mono.dll  Perhaps it's renamed.  Find a module that exports mono_thread_attach
+		HANDLE ths=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, GetCurrentProcessId());
+		if (ths != INVALID_HANDLE_VALUE)
+		{
+			MODULEENTRY32 me;
+			me.dwSize = sizeof(me);
+			
+			if (Module32First(ths, &me))
+			{
+				do
+				{
+					if (GetProcAddress(me.hModule, "mono_thread_attach"))
+					{
+						hMono = me.hModule;
+						break;
+					}
+
+				} while (Module32Next(ths, &me));
+
+			}
+
+
+
+			CloseHandle(ths);
+		}
+
+
+	}
 
 	WriteQword((UINT64)hMono);
 	if (hMono)
