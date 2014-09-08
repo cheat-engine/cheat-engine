@@ -129,6 +129,8 @@ type
 
 implementation
 
+uses ProcessHandlerUnit;
+
 resourcestring
   rsPointerValueSetupError = 'Pointer value setup error';
   rsNoMemoryFoundInTheSpecifiedRegion = 'No memory found in the specified '

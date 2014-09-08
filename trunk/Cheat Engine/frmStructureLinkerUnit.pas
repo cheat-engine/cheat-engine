@@ -48,6 +48,8 @@ implementation
 
 { TfrmStructureLinker }
 
+uses ProcessHandlerUnit;
+
 
 
 procedure TfrmStructureLinker.Panel1Resize(Sender: TObject);

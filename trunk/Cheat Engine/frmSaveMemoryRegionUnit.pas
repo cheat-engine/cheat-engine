@@ -48,6 +48,8 @@ var
 
 implementation
 
+uses ProcessHandlerUnit;
+
 resourcestring
   rsPleaseAddAtLeastOneAddressRegionToTheList = 'Please add at least one address region to the list';
   rsNotAllTheMemoryWasReadableIn = 'Not all the memory was readable in';

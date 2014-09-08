@@ -31,6 +31,8 @@ var
 
 implementation
 
+uses ProcessHandlerUnit;
+
 resourcestring
   rsPleaseFillInAValidFromAddress = 'Please fill in a valid ''From'' address';
   rsPleaseFillInAValidToAddress = 'Please fill in a valid ''To'' address';

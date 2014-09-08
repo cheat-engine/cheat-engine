@@ -17,7 +17,7 @@ function getaoblist(aobstring: string; list: tstrings; protectionflags: string='
 
 implementation
 
-uses NewKernelHandler, symbolhandler;
+uses NewKernelHandler, symbolhandler, ProcessHandlerUnit;
 
 
 function getaoblist(aobstring: string; list: tstrings; protectionflags: string=''; alignmenttype: TFastScanMethod=fsmNotAligned; alignmentparam: string=''):boolean;

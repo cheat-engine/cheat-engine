@@ -39,7 +39,7 @@ var frmFloatingPointPanel:TfrmFloatingPointPanel;
 
 implementation
 
-uses MemoryBrowserFormUnit;
+uses MemoryBrowserFormUnit, processhandlerunit;
 
 {$ifdef cpu64}
 //coded by mgr.inz.player

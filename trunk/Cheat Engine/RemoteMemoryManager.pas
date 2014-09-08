@@ -47,6 +47,8 @@ type
 
 implementation
 
+uses ProcessHandlerUnit;
+
 procedure TRemoteMemoryManager.addNewAlloc(address: ptruint; size: integer);
 var i,j: integer;
   a,b: PAllocs;

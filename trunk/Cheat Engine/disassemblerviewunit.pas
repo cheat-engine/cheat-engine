@@ -153,6 +153,8 @@ end;
 
 implementation
 
+uses processhandlerunit;
+
 resourcestring
   rsSymbolsAreBeingLoaded = 'Symbols are being loaded';
   rsPleaseOpenAProcessFirst = 'Please open a process first';

@@ -35,6 +35,8 @@ end;
 
 implementation
 
+uses ProcessHandlerUnit;
+
 procedure TValueFinder.quicksortmemoryregions(lo,hi: integer);
 var i,j: integer;
     x,h: TMemoryRegion;

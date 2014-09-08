@@ -11,7 +11,7 @@ procedure ce_stacktrace(esp: ptrUint; ebp: ptrUint; eip: ptrUint; stack: Pbytear
 
 implementation
 
-uses StrUtils;
+uses StrUtils, ProcessHandlerUnit;
 
 procedure seperatestacktraceline(s: string; var address: string; var bytes: string; var details: string);
 var i,j: integer;

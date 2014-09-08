@@ -73,7 +73,8 @@ implementation
 
 
 uses CEDebugger, MainUnit, frmRegistersunit, MemoryBrowserFormUnit, debughelper,
-  debugeventhandler, debuggertypedefinitions, FoundCodeUnit, StructuresFrm2;
+  debugeventhandler, debuggertypedefinitions, FoundCodeUnit, StructuresFrm2,
+  processhandlerunit;
 
 resourcestring
   rsStop='Stop';

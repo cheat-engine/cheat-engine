@@ -873,7 +873,7 @@ uses mainunit2, ProcessWindowUnit, MemoryBrowserFormUnit, TypePopup, HotKeys,
   frmFloatingPointPanelUnit, pluginexports, DBK32functions, frmUltimapUnit,
   frmSetCrosshairUnit, StructuresFrm2, frmMemoryViewExUnit,
   frmD3DHookSnapshotConfigUnit, frmSaveSnapshotsUnit, frmsnapshothandlerUnit,
-  frmNetworkDataCompressionUnit;
+  frmNetworkDataCompressionUnit, ProcessHandlerUnit, ProcessList;
 
 resourcestring
   rsInvalidStartAddress = 'Invalid start address: %s';

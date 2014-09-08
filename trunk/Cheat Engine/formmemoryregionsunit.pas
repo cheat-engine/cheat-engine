@@ -53,7 +53,7 @@ var GetMappedFileName: TGetMappedFileName;
 
 implementation
 
-uses formsettingsunit, MemoryBrowserFormUnit;
+uses formsettingsunit, MemoryBrowserFormUnit, processhandlerunit;
 
 
 resourcestring

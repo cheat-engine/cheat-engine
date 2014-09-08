@@ -74,7 +74,7 @@ var
 
 implementation
 
-uses formsettingsunit, MemoryBrowserFormUnit, debuggertypedefinitions;
+uses formsettingsunit, MemoryBrowserFormUnit, debuggertypedefinitions, ProcessHandlerUnit;
 
 resourcestring
   rsModifyRegistersSAt = 'Modify registers(s) at %s';

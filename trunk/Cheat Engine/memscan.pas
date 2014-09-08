@@ -610,7 +610,7 @@ type
 
 implementation
 
-uses formsettingsunit, StrUtils, foundlisthelper;
+uses formsettingsunit, StrUtils, foundlisthelper, processhandlerunit;
 
 resourcestring
   rsIsNotAValidCharacterInsideABinaryString = '%s is not a valid character inside a binary string';

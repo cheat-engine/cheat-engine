@@ -873,7 +873,8 @@ var pluginhandler: TPluginhandler;
 
 implementation
 
-uses MainUnit,memorybrowserformunit,formsettingsunit, pluginexports, SynHighlighterAA, DBK32functions, luahandler;
+uses MainUnit,memorybrowserformunit,formsettingsunit, pluginexports, SynHighlighterAA,
+     DBK32functions, luahandler, processhandlerunit;
 
 resourcestring
   rsErrorEnabling = 'Error enabling %s';

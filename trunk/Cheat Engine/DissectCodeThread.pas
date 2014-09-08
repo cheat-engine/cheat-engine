@@ -127,6 +127,8 @@ var dissectcode: tdissectcodethread;
 
 implementation
 
+uses ProcessHandlerUnit;
+
 
 { TDissectCodeThread }
 

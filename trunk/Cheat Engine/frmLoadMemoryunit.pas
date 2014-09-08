@@ -37,6 +37,8 @@ var
 
 implementation
 
+uses ProcessHandlerUnit;
+
 resourcestring
   strinvalidfile='This is a invalid memory region file. I''ll assume this file has no header data';
   rsLoadIntoMemory = 'Load %s into memory';

@@ -38,6 +38,8 @@ type
 
 implementation
 
+uses ProcessHandlerUnit;
+
 resourcestring
   rsErrorWhileTryingToCreateTheConfigurationStructure = 'Error while trying '
     +'to create the configuration structure! (Which effectively renders this '

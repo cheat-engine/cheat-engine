@@ -61,7 +61,7 @@ type
 implementation
 
 
-uses symbolhandler;
+uses symbolhandler, ProcessHandlerUnit;
 
 procedure TThreadPoller.CreateThreadEvent(threadid: dword);
 var ie: PInjectedEvent;

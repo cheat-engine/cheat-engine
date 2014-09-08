@@ -150,7 +150,10 @@ var //DebuggerThread: TDebugger;
 
 implementation
 
-uses debuggertypedefinitions, debugeventhandler, MainUnit,frmFloatingPointPanelUnit,Memorybrowserformunit,disassembler,frmTracerUnit,foundcodeunit,kerneldebugger,advancedoptionsunit,formChangedAddresses,frmstacktraceunit,frmThreadlistunit,formdebugstringsunit,formsettingsunit,processwindowunit,plugin(*,frmCreatedProcessListUnit*);
+uses debuggertypedefinitions, debugeventhandler, MainUnit,frmFloatingPointPanelUnit,
+     Memorybrowserformunit,disassembler,frmTracerUnit,foundcodeunit,kerneldebugger,
+     advancedoptionsunit,formChangedAddresses,frmstacktraceunit,frmThreadlistunit,
+     formdebugstringsunit,formsettingsunit,processwindowunit,plugin,processhandlerunit(*,frmCreatedProcessListUnit*);
 
 
 resourcestring

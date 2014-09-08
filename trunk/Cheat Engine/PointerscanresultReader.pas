@@ -111,6 +111,8 @@ end;
 
 implementation
 
+uses ProcessHandlerUnit;
+
 function TPointerscanresultreader.getMergedResultCount: integer;
 begin
   result:=length(fmergedresults);

@@ -151,10 +151,7 @@ var frmpointerscannersettings: tfrmpointerscannersettings;
 
 implementation
 
-
-{$ifndef injectedpscan}
-uses frmMemoryAllocHandlerUnit, MemoryBrowserFormUnit;
-{$endif}
+uses frmMemoryAllocHandlerUnit, MemoryBrowserFormUnit, ProcessHandlerUnit;
 
 
 

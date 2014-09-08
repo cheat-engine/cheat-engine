@@ -57,7 +57,7 @@ var
 implementation
 
 
-uses MemoryBrowserFormUnit, dbk32functions;
+uses MemoryBrowserFormUnit, dbk32functions, ProcessHandlerUnit;
 
 resourcestring
   rsServiceDescriptorTable = 'Service Descriptor Table';

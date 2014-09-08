@@ -63,7 +63,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="shlwapi.lib"
+				AdditionalDependencies="shlwapi.lib MSCorEE.lib"
 				OutputFile="$(OutDir)\$(ProjectName)32.exe"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
@@ -357,6 +357,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\MyICorDebugManagedCallback.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\PipeServer.cpp"
 				>
 			</File>
@@ -408,6 +412,10 @@
 			</File>
 			<File
 				RelativePath=".\MyICorDebugDataTarget.h"
+				>
+			</File>
+			<File
+				RelativePath=".\MyICorDebugManagedCallback.h"
 				>
 			</File>
 			<File

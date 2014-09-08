@@ -30,7 +30,7 @@ end;
 
 implementation
 
-uses MainUnit;
+uses MainUnit, ProcessHandlerUnit;
 
 resourcestring
   rsTheFollowingAddressesGotChanged = 'The following addresses got changed';
@@ -38,7 +38,7 @@ resourcestring
 
 destructor TUnrandomize.destroy;
 begin
-  if (processid=cefuncproc.ProcessID) and (processhandle=cefuncproc.ProcessHandle) then restore;
+  if (processid=processhandlerunit.ProcessID) and (processhandle=processhandlerunit.ProcessHandle) then restore;
   inherited destroy;
 end;
 
@@ -76,8 +76,8 @@ procedure TUnrandomize.restore;
 var i: integer;
     l: dword;
 begin
-  if (processhandle<>cefuncproc.ProcessHandle) and (processid=cefuncproc.ProcessID) then
-    processhandle:=cefuncproc.ProcessHandle; //e.g debugger
+  if (processhandle<>processhandlerunit.ProcessHandle) and (processid=processhandlerunit.ProcessID) then
+    processhandle:=processhandlerunit.ProcessHandle; //e.g debugger
 
   //restore the replaced code with the original
   for i:=0 to length(originalcode)-1 do
@@ -131,8 +131,8 @@ begin
 
 
   //scan the memory of the current process
-  processid:=cefuncproc.ProcessID;
-  processhandle:=cefuncproc.ProcessHandle;
+  processid:=processhandlerunit.ProcessID;
+  processhandle:=processhandlerunit.ProcessHandle;
 
 
   totalmemory:=0;

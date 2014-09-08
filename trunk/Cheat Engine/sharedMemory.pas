@@ -16,6 +16,8 @@ procedure createSharedMemory(name: string; size: integer);
 
 implementation
 
+uses ProcessHandlerUnit;
+
 
 procedure createSharedMemory(name: string; size: integer);
 begin

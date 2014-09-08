@@ -5,7 +5,11 @@ unit elfsymbols;
 interface
 
 uses
-  Classes, SysUtils, elftypes, elfconsts, networkInterface, cefuncproc, newkernelhandler;
+{$ifdef JNI}
+  Classes, SysUtils, elftypes, elfconsts, networkInterface, unixporthelper, newkernelhandler, processhandlerunit;
+{$else}
+  Classes, SysUtils, elftypes, elfconsts, networkInterface, cefuncproc, newkernelhandler, processhandlerunit;
+{$endif}
 
 function EnumElfSymbols(modulename: string; modulebase: ptruint; callback: TNetworkEnumSymCallback): boolean;
 

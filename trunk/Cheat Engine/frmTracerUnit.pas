@@ -147,7 +147,8 @@ type
 implementation
 
 
-uses cedebugger, debughelper, MemoryBrowserFormUnit, frmTracerConfigUnit, debuggertypedefinitions;
+uses cedebugger, debughelper, MemoryBrowserFormUnit, frmTracerConfigUnit,
+  debuggertypedefinitions, processhandlerunit;
 
 resourcestring
   rsSearch = 'Search';

@@ -65,7 +65,7 @@ type
 implementation
 
 
-uses MemoryBrowserFormUnit;
+uses MemoryBrowserFormUnit, ProcessHandlerUnit;
 
 
 procedure TRegisters.SetContextPointer(context: PContext; _stack: PByte; stacksize: integer);

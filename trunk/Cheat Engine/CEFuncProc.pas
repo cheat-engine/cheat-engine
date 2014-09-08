@@ -117,10 +117,10 @@ function rewritecode(processhandle: thandle; address:ptrUint; buffer: pointer; v
 function rewritedata(processhandle: thandle; address:ptrUint; buffer: pointer; var size:dword): boolean;
 
 function GetUserNameFromPID(ProcessId: DWORD): string;
-procedure GetProcessList(ProcessList: TListBox; NoPID: boolean=false); overload;
-procedure GetProcessList(ProcessList: TStrings; NoPID: boolean=false; noProcessInfo: boolean=false);  overload;
+//procedure GetProcessList(ProcessList: TListBox; NoPID: boolean=false); overload;
+//procedure GetProcessList(ProcessList: TStrings; NoPID: boolean=false; noProcessInfo: boolean=false);  overload;
 procedure GetThreadList(threadlist: TStrings);
-procedure cleanProcessList(processlist: TStrings);
+//procedure cleanProcessList(processlist: TStrings);
 procedure GetWindowList(ProcessList: TListBox; showInvisible: boolean=true);
 procedure GetModuleList(ModuleList: TStrings; withSystemModules: boolean);
 procedure cleanModuleList(ModuleList: TStrings);
@@ -550,8 +550,8 @@ function ConvertKeyComboToString(x: tkeycombo):string;
 ProcessID and ProcessHandle as functions untill all code has been converted to
 make use of ProcessHandlerUnit
 }
-function ProcessID: dword;
-function ProcessHandle: THandle;
+//function ProcessID: dword;
+//function ProcessHandle: THandle;
 
 //Global vars:
 var
@@ -571,9 +571,7 @@ var
   TablesDir: string;
   CheatEngineDir: String;
   WindowsDir: string;
-  GetProcessIcons: Boolean;
-  ProcessesWithIconsOnly: boolean;
-  ProcessesCurrentUserOnly: boolean;
+
   username: string;
 
 //scanhelpers
@@ -674,13 +672,6 @@ var
   VEHRealContextOnThreadCreation: boolean;
   waitafterguiupdate: boolean;
 
-
-
-  processhandler: TProcessHandler;
-
-
-
-
 type
   SYSTEM_INFO = record
                 case longint of
@@ -710,7 +701,7 @@ implementation
 
 uses disassembler,CEDebugger,debughelper, symbolhandler,frmProcessWatcherUnit,
      kerneldebugger, formsettingsunit, MemoryBrowserFormUnit, savedscanhandler,
-     networkInterface, networkInterfaceApi;
+     networkInterface, networkInterfaceApi, processlist;
 
 
 resourcestring
@@ -2348,6 +2339,7 @@ begin
   end;
 end;
 
+{
 procedure GetProcessList(ProcessList: TListBox; NoPID: boolean=false);
 var sl: tstringlist;
     i: integer;
@@ -2374,26 +2366,9 @@ begin
     sl.free;
   end;
 end;
+   }
 
 
-function GetFirstModuleName(processid: dword): string;
-var
-  SNAPHandle: THandle;
-  check: boolean;
-  ModuleEntry: MODULEENTRY32;
-begin
-  SNAPHandle:=CreateToolhelp32Snapshot(TH32CS_SNAPMODULE,processid);
-  if SNAPHandle<>0 then
-  begin
-    ModuleEntry.dwSize:=sizeof(moduleentry);
-    if Module32First(snaphandle,ModuleEntry) then
-      result:=moduleentry.szExePath
-    else
-      result:='';
-
-    closehandle(SNAPHandle);
-  end;
-end;
 
 procedure GetModuleList(ModuleList: TStrings; withSystemModules: boolean);
 var ths: thandle;
@@ -2458,6 +2433,8 @@ begin
   ModuleList.Clear;
 end;
 
+{
+
 procedure cleanProcessList(processlist: TStrings);
 var
   i: integer;
@@ -2473,7 +2450,7 @@ begin
     end;
 
   processlist.clear;
-end;
+end;     }
 
 procedure GetThreadList(threadlist: TStrings);
 var
@@ -2493,6 +2470,7 @@ begin
   closehandle(ths);
 end;
 
+{
 procedure GetProcessList(ProcessList: TStrings; NoPID: boolean=false; noProcessInfo: boolean=false);
 var SNAPHandle: THandle;
     ProcessEntry: PROCESSENTRY32;
@@ -2581,7 +2559,7 @@ begin
 
     closehandle(snaphandle);
   end else raise exception.Create(rsICanTGetTheProcessListYouArePropablyUsingWindowsNT);
-end;
+end;    }
 
 procedure GetWindowList(ProcessList: TListBox; showInvisible: boolean=true);
 var previouswinhandle, winhandle: Hwnd;
@@ -3971,7 +3949,7 @@ initialization
   stealthhook:=0;
   iswin2kplus:=GetSystemType>=5;
 
-  processhandler:=TProcessHandler.create;
+
   GetSystemInfo(@systeminfo);
 
   username:=GetUserNameFromPID(GetCurrentProcessId);

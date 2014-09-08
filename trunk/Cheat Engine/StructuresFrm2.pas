@@ -533,7 +533,8 @@ implementation
 {$R *.lfm}
 
 uses MainUnit, mainunit2, frmStructures2ElementInfoUnit, MemoryBrowserFormUnit,
-  frmStructureLinkerUnit, frmgroupscanalgoritmgeneratorunit, frmStringPointerScanUnit;
+  frmStructureLinkerUnit, frmgroupscanalgoritmgeneratorunit, frmStringPointerScanUnit,
+  ProcessHandlerUnit;
 
 resourcestring
   rsAddressValue = 'Address: Value';

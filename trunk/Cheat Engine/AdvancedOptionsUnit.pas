@@ -117,7 +117,8 @@ uses MainUnit, MemoryBrowserFormUnit,
   frmFindCodeInFileUnit,
   standaloneunit,}
   formsettingsunit,
-  MainUnit2;
+  MainUnit2,
+  processhandlerunit;
 
 
 

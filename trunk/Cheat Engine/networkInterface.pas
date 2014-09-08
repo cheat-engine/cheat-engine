@@ -7,9 +7,18 @@ unit networkInterface;
 interface
 
 uses
+  {$ifdef JNI}
+  Classes, SysUtils, Sockets, resolve, ctypes,syncobjs, math, zstream, newkernelhandler, unixporthelper, processhandlerunit;
+  {$else}
   jwawindows, windows, Classes, SysUtils, Sockets, resolve, ctypes, networkconfig,
-  cefuncproc, newkernelhandler, math, zstream, syncobjs;
+  cefuncproc, newkernelhandler, math, zstream, syncobjs, processhandlerunit;
+  {$endif}
 
+
+
+{$ifdef jni}
+const networkcompression=0;
+{$endif}
 
 
 type
@@ -96,6 +105,13 @@ type
   end;
 
 
+{$ifdef jni}
+var
+  host: THostAddr;
+  port: integer;
+
+{$endif}
+
 implementation
 
 uses elfsymbols;
@@ -155,8 +171,10 @@ begin
     receive(@r,sizeof(r));
     result:=true;
   end
+  {$ifdef windows}
   else //not a network handle
-    result:=windows.CloseHandle(handle);
+    result:=windows.CloseHandle(handle)
+  {$endif};
 end;
 
 function TCEConnection.Module32Next(hSnapshot: HANDLE; var lpme: MODULEENTRY32; isfirst: boolean=false): BOOL;
@@ -233,8 +251,11 @@ var ProcesslistCommand: packed record
   pname: pchar;
 
 begin
+  OutputDebugString('TCEConnection.Process32Next');
   if ((hSnapshot shr 24) and $ff)= $ce then
   begin
+    OutputDebugString('Valid network handle');
+
     if isfirst then
       ProcesslistCommand.command:=CMD_PROCESS32FIRST
     else
@@ -269,6 +290,7 @@ end;
 
 function TCEConnection.Process32First(hSnapshot: HANDLE; var lppe: PROCESSENTRY32): BOOL;
 begin
+  OutputDebugString('TCEConnection.Process32First');
   result:=process32next(hSnapshot, lppe, true);
 end;
 
@@ -281,6 +303,8 @@ var CTSCommand: packed record
 
 var r: integer;
 begin
+
+  OutputDebugString('TCEConnection.CreateToolhelp32Snapshot()');
   CTSCommand.command:=CMD_CREATETOOLHELP32SNAPSHOT;
   CTSCommand.dwFlags:=dwFlags;
   CTSCommand.th32ProcessID:=th32ProcessID;
@@ -508,8 +532,10 @@ begin
 
 
   end
+  {$ifdef windows}
   else
-    result:=windows.ReadProcessMemory(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesRead);
+    result:=windows.ReadProcessMemory(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesRead)
+  {$endif};
 end;
 
 function TCEConnection.WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: PTRUINT): BOOL;
@@ -579,8 +605,10 @@ begin
 
         freemem(input);
       end
+      {$ifdef windows}
       else
-        result:=windows.WriteProcessMemory(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesWritten);
+        result:=windows.WriteProcessMemory(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesWritten)
+      {$endif};
 
     end
     else
@@ -716,9 +744,10 @@ begin
     end;
 
   end
+  {$ifdef windows}
   else
     result:=windows.CreateRemoteThread(hProcess, lpThreadAttributes, dwStackSize, lpStartAddress, lpParameter, dwCreationFlags, lpThreadId);
-
+  {$endif}
 end;
 
 function TCEConnection.VirtualAllocEx(hProcess: THandle; lpAddress: Pointer; dwSize, flAllocationType: DWORD; flProtect: DWORD): pointer;
@@ -749,8 +778,10 @@ begin
     end;
 
   end
+  {$ifdef windows}
   else
     result:=windows.VirtualAllocEx(hProcess, lpAddress, dwSize, flAllocationType, flProtect);
+  {$endif}
 end;
 
 function TCEConnection.VirtualFreeEx(hProcess: HANDLE; lpAddress: LPVOID; dwSize: SIZE_T; dwFreeType: DWORD): BOOL;
@@ -781,8 +812,10 @@ begin
     end;
 
   end
+  {$ifdef windows}
   else
     result:=windows.VirtualFreeEx(hProcess, lpAddress, dwSize, dwFreeType);
+  {$endif}
 end;
 
 function TCEConnection.VirtualQueryEx(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD;
@@ -840,8 +873,10 @@ begin
       end;
     end;
   end
+  {$ifdef windows}
   else
-    result:=windows.VirtualQueryEx(hProcess, lpAddress, lpBuffer, dwLength);
+    result:=windows.VirtualQueryEx(hProcess, lpAddress, lpBuffer, dwLength)
+  {$endif};
 end;
 
 function TCEConnection.OpenProcess(dwDesiredAccess:DWORD; bInheritHandle:WINBOOL; dwProcessId:DWORD):HANDLE;
@@ -1409,6 +1444,7 @@ begin
     i:=fpsend(socket, pointer(ptruint(buffer)+result), size, 0);
     if i<=0 then
     begin
+      OutputDebugString('Error during send');
       fConnected:=false;
       if socket<>0 then
         CloseSocket(socket);
@@ -1426,7 +1462,7 @@ function TCEConnection.receive(buffer: pointer; size: integer): integer;
 var
   i: integer;
 begin
-  {$ifdef windows}
+  //{$ifdef windows}
     //xp doesn't support MSG_WAITALL
 
     result:=0;
@@ -1441,6 +1477,8 @@ begin
 
         socket:=0;
         result:=i; //error
+
+        OutputDebugString('Error during receive');
         exit;
       end;
 
@@ -1448,9 +1486,9 @@ begin
 
     end;
 
-  {$else}
-    result:=fprecv(socket, buffer, size, MSG_WAITALL);
-  {$endif}
+ // {$else}
+  //  result:=fprecv(socket, buffer, size, MSG_WAITALL);
+  //{$endif}
 end;
 
 constructor TCEConnection.create;
@@ -1458,6 +1496,7 @@ var SockAddr: TInetSockAddr;
   retry: integer;
   B: BOOL;
 begin
+  OutputDebugString('Inside TCEConnection.create');
   WriteProcessMemoryBufferCS:=TCriticalSection.create;
 
   socket:=cint(INVALID_SOCKET);
@@ -1466,6 +1505,15 @@ begin
 
   //connect
   socket:=FPSocket(AF_INET, SOCK_STREAM, 0);
+  if (socket=INVALID_SOCKET) then
+  begin
+    OutputDebugString('Socket creation failed. Check permissions');
+    exit;
+  end;
+
+
+
+  OutputDebugString('socket='+inttostr(socket));
 
   SockAddr.Family := AF_INET;
   SockAddr.Port := port;
@@ -1481,7 +1529,10 @@ begin
     if fpconnect(socket, @SockAddr, sizeof(SockAddr)) >=0 then
       fConnected:=true
     else
+    begin
       inc(retry);
+      OutputDebugString('fail '+inttostr(retry));
+    end;
   end;
 end;
 

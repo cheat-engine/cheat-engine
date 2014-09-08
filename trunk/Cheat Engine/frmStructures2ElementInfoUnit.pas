@@ -101,6 +101,8 @@ implementation
 
 {$R *.lfm}
 
+uses ProcessHandlerUnit;
+
 
 
 { TfrmStructures2ElementInfo }
