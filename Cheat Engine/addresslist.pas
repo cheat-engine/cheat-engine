@@ -156,7 +156,7 @@ type
 
 implementation
 
-uses dialogs, formAddressChangeUnit, TypePopup, PasteTableentryFRM, mainunit;
+uses dialogs, formAddressChangeUnit, TypePopup, PasteTableentryFRM, mainunit, ProcessHandlerUnit;
 
 resourcestring
   rsDoYouWantToDeleteTheSelectedAddress = 'Do you want to delete the selected '

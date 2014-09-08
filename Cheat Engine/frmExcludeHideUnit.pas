@@ -41,7 +41,7 @@ var
 
 implementation
 
-uses formsettingsunit;
+uses formsettingsunit, processlist;
 
 procedure TfrmExcludeHide.FormCreate(Sender: TObject);
 var i:integer;

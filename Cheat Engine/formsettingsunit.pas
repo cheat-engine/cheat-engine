@@ -260,7 +260,8 @@ MemoryBrowserFormUnit,}
 ModuleSafetyUnit,
 frmProcessWatcherUnit,
 ConfigUnrandomizerFrm,
-CustomTypeHandler;
+CustomTypeHandler,
+processlist;
 
 
 

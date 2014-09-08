@@ -5,7 +5,11 @@ unit networkInterfaceApi;
 interface
 
 uses
+  {$ifdef JNI}
+    Classes, SysUtils, networkinterface, unixporthelper, newkernelhandler;
+  {$else}
   {jwawindows,} windows, Classes, SysUtils, networkinterface, newkernelhandler;
+  {$endif}
 
 
 procedure InitializeNetworkInterface;
@@ -33,7 +37,9 @@ function NetworkRemoveBreakpoint(handle: THandle; threadid: integer; debugregist
 
 implementation
 
+{$ifndef jni}
 uses networkConfig;
+{$endif}
 
 
 threadvar connection: TCEConnection;
@@ -44,21 +50,29 @@ var threadManagerIsHooked: boolean=false;
 
 function getConnection: TCEConnection;
 begin
+  OutputDebugString('getConnection');
   result:=nil;
-  if networkconfig.host.s_addr<>0 then
-  begin
 
+  if {$ifndef jni}networkconfig.{$endif}host.s_addr<>0 then
+  begin
+    OutputDebugString('Valid host');
     if (connection=nil) or (not connection.connected) then
     begin
+      OutputDebugString('connection=nil. creating');
       disconnect;
 
       connection:=TCEConnection.create;
       if connection.connected then
-        result:=connection;
+        result:=connection
+      else
+        OutputDebugString('connection.connected=false');
 
     end
     else
+    begin
+      OutputDebugString('Already connected');
       result:=connection;
+    end;
 
   end;
 end;
@@ -87,6 +101,7 @@ end;
 
 function NetworkProcess32First(hSnapshot: HANDLE; var lppe: PROCESSENTRY32): BOOL; stdcall;
 begin
+  OutputDebugString('NetworkProcess32First');
   if getConnection<>nil then
     result:=connection.Process32First(hSnapshot, lppe)
   else
@@ -232,6 +247,8 @@ procedure InitializeNetworkInterface;
 var tm: TThreadManager;
 begin
   //hook the threadmanager if it hasn't been hooked yet
+  OutputDebugString('InitializeNetworkInterface');
+
   if not threadManagerIsHooked then
   begin
     GetThreadManager(tm);

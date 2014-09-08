@@ -87,7 +87,7 @@ resourcestring
 implementation
 
 
-uses KernelDebugger,mainunit, DebugHelper, CustomTypeHandler;
+uses KernelDebugger,mainunit, DebugHelper, CustomTypeHandler, ProcessList;
 
 procedure UpdateToolsMenu;
 var i: integer;

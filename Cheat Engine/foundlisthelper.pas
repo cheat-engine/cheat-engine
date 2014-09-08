@@ -105,7 +105,7 @@ type Tscandisplayroutine=procedure(value: pointer; output: pchar);
 
 implementation
 
-uses mainunit;
+uses mainunit, processhandlerunit;
 
 resourcestring
   rsUndefinedError = 'Undefined error';

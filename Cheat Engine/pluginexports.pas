@@ -126,7 +126,7 @@ implementation
 
 uses MainUnit,MainUnit2, AdvancedOptionsUnit, Assemblerunit,disassembler,frmModifyRegistersUnit,
      formsettingsunit, symbolhandler,frmautoinjectunit, manualModuleLoader,
-     MemoryRecordUnit, MemoryBrowserFormUnit, LuaHandler;
+     MemoryRecordUnit, MemoryBrowserFormUnit, LuaHandler, ProcessHandlerUnit, ProcessList;
 
 var
   plugindisassembler: TDisassembler;

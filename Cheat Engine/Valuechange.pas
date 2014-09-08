@@ -54,6 +54,8 @@ var
 
 implementation
 
+uses ProcessHandlerUnit;
+
 resourcestring
   rsChangeOffset = 'Change offset %s';
   rsPartOfTheStringIsUnreadable = 'Part of the string is unreadable!';

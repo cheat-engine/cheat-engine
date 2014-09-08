@@ -66,6 +66,8 @@ function peinfo_getheadersize(header: pointer): dword;
 
 implementation
 
+uses processhandlerunit;
+
 resourcestring
   rsThisIsNotAValidImage = 'This is not a valid image';
 

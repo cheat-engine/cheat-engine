@@ -87,7 +87,7 @@ implementation
 
 { TfrmStringMap }
 
-uses MemoryBrowserFormUnit;
+uses MemoryBrowserFormUnit, ProcessHandlerUnit;
 
 resourcestring
   rsStop = 'Stop';

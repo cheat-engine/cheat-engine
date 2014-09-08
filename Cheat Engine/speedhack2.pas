@@ -22,7 +22,7 @@ var speedhack: TSpeedhack;
 
 implementation
 
-uses frmAutoInjectUnit, networkInterface, networkInterfaceApi;
+uses frmAutoInjectUnit, networkInterface, networkInterfaceApi, ProcessHandlerUnit;
 
 resourcestring
   rsFailureEnablingSpeedhackDLLInjectionFailed = 'Failure enabling speedhack. (DLL injection failed)';
@@ -228,7 +228,7 @@ begin
   end;
 
   setspeed(1);
-  fprocessid:=cefuncproc.processid;
+  fprocessid:=processhandlerunit.processid;
 end;
 
 destructor TSpeedhack.destroy;
@@ -236,7 +236,7 @@ var script: tstringlist;
     i: integer;
     x: dword;
 begin
-  if fprocessid=cefuncproc.ProcessID then
+  if fprocessid=processhandlerunit.ProcessID then
   begin
 
     try

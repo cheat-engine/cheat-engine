@@ -66,7 +66,7 @@ var
 
 implementation
 
-uses MemoryBrowserFormUnit, StructuresFrm2, frmstacktraceunit;
+uses MemoryBrowserFormUnit, StructuresFrm2, frmstacktraceunit, processhandlerunit;
 
 resourcestring
   rsTheStructuresListIsBroken = 'The structures list is broken';

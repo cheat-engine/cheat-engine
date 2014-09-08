@@ -156,7 +156,7 @@ var
 
 implementation
 
-uses mainunit, frmD3DTrainerGeneratorOptionsunit, xmplayer_server;
+uses mainunit, frmD3DTrainerGeneratorOptionsunit, xmplayer_server, ProcessHandlerUnit, ProcessList;
 
 { TfrmTrainerGenerator }
 resourcestring

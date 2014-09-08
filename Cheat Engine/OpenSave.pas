@@ -181,7 +181,7 @@ resourcestring
 implementation
 
 uses MainUnit, mainunit2, symbolhandler, LuaHandler, formsettingsunit,
-     frmExeTrainerGeneratorUnit, trainergenerator;
+     frmExeTrainerGeneratorUnit, trainergenerator, ProcessHandlerUnit;
 
 
 

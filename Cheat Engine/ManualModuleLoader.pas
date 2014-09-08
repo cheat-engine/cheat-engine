@@ -27,6 +27,7 @@ end;
 
 implementation
 
+uses ProcessHandlerUnit;
 
 constructor TModuleLoader.create(filename: string);
 var

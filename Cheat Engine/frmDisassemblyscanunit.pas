@@ -67,7 +67,7 @@ type
 implementation
 
 
-uses MemoryBrowserFormUnit;
+uses MemoryBrowserFormUnit, ProcessHandlerUnit;
 
 procedure TDisassemblerthread.foundone;
 begin

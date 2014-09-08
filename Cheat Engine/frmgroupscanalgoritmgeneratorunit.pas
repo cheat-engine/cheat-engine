@@ -69,6 +69,8 @@ var
 
 implementation
 
+uses ProcessHandlerUnit;
+
 resourcestring
   rsWildcard='Skip nr of bytes:';
   rsAdd='Add';

@@ -42,10 +42,7 @@ type
 
 implementation
 
-
-
-
-
+uses processhandlerunit;
 
 
 function SignExtend(value: int32; mostSignificantBit: integer): int32;

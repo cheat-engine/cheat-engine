@@ -37,7 +37,7 @@ var
 
 implementation
 
-uses MemoryBrowserFormUnit, frmManualStacktraceConfigUnit;
+uses MemoryBrowserFormUnit, frmManualStacktraceConfigUnit, ProcessHandlerUnit;
 
 var
   useShadow: boolean;

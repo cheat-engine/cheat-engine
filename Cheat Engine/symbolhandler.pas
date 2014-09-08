@@ -280,7 +280,8 @@ procedure symhandlerInitialize;
 implementation
 
 uses assemblerunit, driverlist, LuaHandler, lualib, lua, lauxlib,
-  disassemblerComments, StructuresFrm2, networkInterface, networkInterfaceApi;
+  disassemblerComments, StructuresFrm2, networkInterface, networkInterfaceApi,
+  processhandlerunit;
 
 resourcestring
   rsSymbolloaderthreadHasCrashed = 'Symbolloaderthread has crashed';
@@ -1062,8 +1063,8 @@ begin
   end
   else
   begin
-    _processid:=cefuncproc.ProcessID;
-    _processhandle:=cefuncproc.ProcessHandle;
+    _processid:=processhandlerunit.ProcessID;
+    _processhandle:=processhandlerunit.ProcessHandle;
   end;
 {$endif}
 
@@ -1971,7 +1972,7 @@ begin
   end
   else
   begin
-    processhandle:=cefuncproc.ProcessHandle;
+    processhandle:=processhandlerunit.ProcessHandle;
   end;
 {$endif}
 
@@ -2263,7 +2264,7 @@ begin
   end
   else
   begin
-    processhandle:=cefuncproc.ProcessHandle;
+    processhandle:=processhandlerunit.ProcessHandle;
   end;
 {$endif}
 
@@ -2654,7 +2655,7 @@ begin
     if targetself then
       processid:=getcurrentprocessid
     else
-      processid:=cefuncproc.ProcessID;
+      processid:=processhandlerunit.ProcessID;
 
     if processid=0 then exit;
 

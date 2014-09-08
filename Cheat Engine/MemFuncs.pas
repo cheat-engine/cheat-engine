@@ -12,6 +12,8 @@ function getallmemoryregions(var memoryregions: tmemoryregions): qword;
 
 implementation
 
+uses ProcessHandlerUnit;
+
 
 function getallmemoryregions(var memoryregions: tmemoryregions): qword;
 var address: ptrUint;

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectOptions>
+    <Version Value="9"/>
+    <PathDelim Value="\"/>
+    <General>
+      <Flags>
+        <MainUnitHasCreateFormStatements Value="False"/>
+        <MainUnitHasTitleStatement Value="False"/>
+      </Flags>
+      <SessionStorage Value="InProjectDir"/>
+      <MainUnit Value="0"/>
+      <Title Value="cecore"/>
+      <UseAppBundle Value="False"/>
+      <ResourceType Value="res"/>
+    </General>
+    <i18n>
+      <EnableI18N LFM="False"/>
+    </i18n>
+    <VersionInfo>
+      <StringTable ProductVersion=""/>
+    </VersionInfo>
+    <BuildModes Count="1">
+      <Item1 Name="Default" Default="True"/>
+    </BuildModes>
+    <PublishOptions>
+      <Version Value="2"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+      </local>
+    </RunParams>
+    <Units Count="8">
+      <Unit0>
+        <Filename Value="cecore.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="cecore"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="networkInterfaceApi.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="networkInterfaceApi"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="networkInterface.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="networkInterface"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="NewKernelHandler.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="NewKernelHandler"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="unixporthelper.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="unixporthelper"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="ProcessHandlerUnit.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="ProcessHandlerUnit"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="elfsymbols.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="elfsymbols"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="processlist.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="ProcessList"/>
+      </Unit7>
+    </Units>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="11"/>
+    <PathDelim Value="\"/>
+    <Target>
+      <Filename Value="..\ceandroid\workspace\jnitest\libs\armeabi\cecore.so"/>
+    </Target>
+    <SearchPaths>
+      <IncludeFiles Value="$(ProjOutDir)"/>
+      <OtherUnitFiles Value="..\android-ndk"/>
+      <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+    </SearchPaths>
+    <Parsing>
+      <SyntaxOptions>
+        <SyntaxMode Value="Delphi"/>
+      </SyntaxOptions>
+    </Parsing>
+    <CodeGeneration>
+      <RelocatableUnit Value="True"/>
+      <TargetOS Value="android"/>
+    </CodeGeneration>
+    <Linking>
+      <Options>
+        <ExecutableType Value="Library"/>
+      </Options>
+    </Linking>
+    <Other>
+      <CompilerMessages>
+        <MsgFileName Value=""/>
+      </CompilerMessages>
+      <CustomOptions Value="-dJNI"/>
+      <CompilerPath Value="$(CompPath)"/>
+    </Other>
+  </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="3">
+      <Item1>
+        <Name Value="EAbort"/>
+      </Item1>
+      <Item2>
+        <Name Value="ECodetoolError"/>
+      </Item2>
+      <Item3>
+        <Name Value="EFOpenError"/>
+      </Item3>
+    </Exceptions>
+  </Debugging>
+</CONFIG>

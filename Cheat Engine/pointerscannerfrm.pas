@@ -571,7 +571,7 @@ implementation
 
 uses PointerscannerSettingsFrm, frmMemoryAllocHandlerUnit, frmSortPointerlistUnit,
   LuaHandler, lauxlib, lua, frmPointerscanConnectDialogUnit,
-  frmpointerrescanconnectdialogunit, frmMergePointerscanResultSettingsUnit;
+  frmpointerrescanconnectdialogunit, frmMergePointerscanResultSettingsUnit, ProcessHandlerUnit;
 
 resourcestring
   rsErrorDuringScan = 'Error during scan';

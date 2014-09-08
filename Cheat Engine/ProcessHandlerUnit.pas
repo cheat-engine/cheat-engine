@@ -10,7 +10,7 @@ process will set it to the different tab's process
 
 interface
 
-uses LCLIntf, newkernelhandler, classes;
+uses {$ifndef jni}LCLIntf, {$endif}newkernelhandler, classes;
 
 type
   TSystemArchitecture=(archX86=0, archArm=1);
@@ -35,9 +35,20 @@ type TProcessHandler=class
     property SystemArchitecture: TSystemArchitecture read fSystemArchitecture;
 end;
 
+
+var processhandler: TProcessHandler;
+
+function processhandle: THandle; inline;
+function processid: dword; inline;
+
+
 implementation
 
+{$ifdef jni}
+uses networkinterface, networkInterfaceApi;
+{$else}
 uses LuaHandler, mainunit, networkinterface, networkInterfaceApi;
+{$endif}
 
 function TProcessHandler.isNetwork: boolean;
 begin
@@ -121,8 +132,23 @@ end;
 
 procedure TProcessHandler.Open;
 begin
+  {$ifndef jni}
   LUA_functioncall('onOpenProcess', [ptruint(processid)]);   //todo: Change to a callback array/list
+  {$endif}
 end;
+
+function processhandle: THandle; inline;
+begin
+  result:=processhandler.processhandle;
+end;
+
+function processid: dword; inline;
+begin
+  result:=processhandler.processid;
+end;
+
+initialization
+  processhandler:=TProcessHandler.create;
 
 end.
 

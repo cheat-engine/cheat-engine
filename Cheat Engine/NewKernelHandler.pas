@@ -3,8 +3,13 @@ unit NewKernelHandler;
 {$MODE Delphi}
 
 interface
+
+{$ifdef JNI}
+uses classes, sysutils, unixporthelper;
+{$else}
 uses jwawindows, windows,LCLIntf,sysutils, dialogs, classes, controls,
      dbk32functions, vmxfunctions,debug, multicpuexecution;
+{$endif}
 
 const dbkdll='DBK32.dll';
 
@@ -738,6 +743,7 @@ var WindowsKernel: Thandle;
 
 implementation
 
+{$ifndef JNI}
 uses
      {$ifdef cemain}
      plugin,
@@ -745,6 +751,7 @@ uses
      {$endif}
      filehandler,  //so I can let readprocessmemory point to ReadProcessMemoryFile in filehandler
      autoassembler;
+{$endif}
 
 
 
@@ -762,15 +769,17 @@ resourcestring
 function Is64bitOS: boolean;
 var iswow64: BOOL;
 begin
-  {$ifndef CPU64}
+  {$ifndef CPU64 }
+
   result:=false;
+  {$ifdef windows}
   if assigned(IsWow64Process) then
   begin
-
     iswow64:=false;
     if IsWow64Process(GetCurrentProcess,iswow64) and iswow64 then
       result:=true;
   end;
+  {$endif}
   {$else}
   result:=true; //only a 64-bit os can run 64-bit apps
   {$endif}
@@ -779,6 +788,7 @@ end;
 function Is64BitProcess(processhandle: THandle): boolean;
 var iswow64: BOOL;
 begin
+{$ifdef windows}
   result:=true;
   if Is64bitOS then
   begin
@@ -793,10 +803,18 @@ begin
       result:=false; //IsWo64Process failed, happens on OS'es that don't have this api implemented
 
   end else result:=false; //32-bit can't run 64
+{$else}
+  {$ifdef cpu64}
+    result:=true;
+  {$else}
+    result:=false;
+  {$endif}
+{$endif}
 end;
 
 procedure NeedsDBVM;
 begin
+{$ifndef JNI}
   if (not isRunningDBVM) then
   begin
     if isDBVMCapable and (MessageDlg(rsToUseThisFunctionYouWillNeedToRunDBVM, mtWarning, [mbyes, mbno], 0)=mryes) then
@@ -808,11 +826,14 @@ begin
     if not isRunningDBVM then
       raise exception.create('DBVM is not loaded. This feature is not usable');
   end;
+{$endif}
+
 end;
 
 function loaddbvmifneeded: BOOL;  stdcall;
 var signed: BOOL;
 begin
+{$ifndef JNI}
   loaddbk32;
   if assigned(isDriverLoaded) then
   begin
@@ -847,13 +868,35 @@ begin
     else result:=true;
 
   end;
+{$endif}
 end;
 
 function isRunningDBVM: boolean;
 begin
+{$ifdef windows}
   result:=dbvm_version>0;
+{$else}
+  result:=false;
+{$endif}
 end;
 
+{$ifndef CPU386}
+function isIntel: boolean;
+begin
+  result:=false;
+end;
+
+function isAMD: boolean;
+begin
+  result:=false;
+end;
+
+function isDBVMCapable: boolean;
+begin
+  result:=false;
+end;
+
+{$else}
 function isIntel: boolean;
 var a,b,c,d: dword;
 begin
@@ -960,8 +1003,12 @@ begin
 
 end;
 
+{$endif}
+
+
 procedure LoadDBK32; stdcall;
 begin
+{$ifdef windows}
   if not DBKLoaded then
   begin
     outputdebugstring('LoadDBK32');
@@ -1062,12 +1109,14 @@ begin
     {$endif}
 
   end;
+{$endif}
 end;
 
 
 procedure DBKFileAsMemory; overload;
 {Changes the redirection of ReadProcessMemory, WriteProcessMemory and VirtualQueryEx to FileHandler.pas's ReadProcessMemoryFile, WriteProcessMemoryFile and VirtualQueryExFile }
 begin
+{$ifdef windows}
   UseFileAsMemory:=true;
   usephysical:=false;
   Usephysicaldbvm:=false;
@@ -1080,18 +1129,22 @@ begin
   if pluginhandler<>nil then
     pluginhandler.handlechangedpointers(3);
   {$endif}
+{$endif}
 end;
 
 procedure DBKFileAsMemory(filename:string); overload;
 begin
+{$ifdef windows}
   filehandle:=CreateFile(pchar(filename),GENERIC_READ	or GENERIC_WRITE,FILE_SHARE_READ or FILE_SHARE_WRITE,nil,OPEN_EXISTING,FILE_FLAG_RANDOM_ACCESS,0);
   if filehandle=0 then raise exception.create(Format(rsCouldnTBeOpened, [filename]));
   DBKFileAsMemory;
+{$endif}
 end;
 
 function VirtualQueryExPhysical(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; stdcall;
 var buf:_MEMORYSTATUS;
 begin
+{$ifdef windows}
 
   if dbk32functions.hdevice<>INVALID_HANDLE_VALUE then
   begin
@@ -1121,7 +1174,7 @@ begin
       result:=dwlength;
 
   end;
-
+{$endif}
 end;
 
 procedure DBKPhysicalMemoryDBVM;
@@ -1144,6 +1197,7 @@ end;
 
 procedure DBKPhysicalMemory;
 begin
+{$ifdef windows}
   LoadDBK32;
   If DBKLoaded=false then exit;
 
@@ -1160,11 +1214,12 @@ begin
   if pluginhandler<>nil then
     pluginhandler.handlechangedpointers(4);
   {$endif}
-
+{$endif}
 end;
 
 procedure DBKProcessMemory;
 begin
+{$ifdef windows}
   if dbkreadwrite then
     UseDBKReadWriteMemory
   else
@@ -1180,7 +1235,7 @@ begin
 
   if usefileasmemory then closehandle(filehandle);
   usefileasmemory:=false;
-
+{$endif}
 end;
 
 
@@ -1188,6 +1243,7 @@ end;
 procedure DontUseDBKQueryMemoryRegion;
 {Changes the redirection of VirtualQueryEx back to the windows API virtualQueryEx}
 begin
+{$ifdef windows}
   VirtualQueryEx:=GetProcAddress(WindowsKernel,'VirtualQueryEx');
   usedbkquery:=false;
   if usephysicaldbvm then DbkPhysicalMemoryDBVM;
@@ -1198,12 +1254,13 @@ begin
   if pluginhandler<>nil then
     pluginhandler.handlechangedpointers(5);
   {$endif}
-
+{$endif}
 end;
 
 procedure UseDBKQueryMemoryRegion;
 {Changes the redirection of VirtualQueryEx to the DBK32 equivalent}
 begin
+{$ifdef windows}
   LoadDBK32;
   If DBKLoaded=false then exit;
   UseDBKOpenProcess;
@@ -1219,12 +1276,13 @@ begin
   if pluginhandler<>nil then
     pluginhandler.handlechangedpointers(6);
   {$endif}
-
+{$endif}
 end;
 
 procedure DontUseDBKReadWriteMemory;
 {Changes the redirection of ReadProcessMemory and WriteProcessMemory back to the windows API ReadProcessMemory and WriteProcessMemory }
 begin
+{$ifdef windows}
   DBKReadWrite:=false;
   ReadProcessMemory:=GetProcAddress(WindowsKernel,'ReadProcessMemory');
   WriteProcessMemory:=GetProcAddress(WindowsKernel,'WriteProcessMemory');
@@ -1237,12 +1295,13 @@ begin
   if pluginhandler<>nil then
     pluginhandler.handlechangedpointers(7);
   {$endif}
-
+{$endif}
 end;
 
 procedure UseDBKReadWriteMemory;
 {Changes the redirection of ReadProcessMemory, WriteProcessMemory and VirtualQueryEx to the DBK32 equiv: RPM, WPM and VAE }
 begin
+{$ifdef windows}
   LoadDBK32;
   If DBKLoaded=false then exit;
   UseDBKOpenProcess;
@@ -1258,26 +1317,28 @@ begin
   if pluginhandler<>nil then
     pluginhandler.handlechangedpointers(8);
   {$endif}
-
+{$endif}
 
 end;
 
 procedure DontUseDBKOpenProcess;
 {Changes the redirection of OpenProcess and VirtualAllocEx  back to the windows API OpenProcess and VirtualAllocEx }
 begin
+{$ifdef windows}
   OpenProcess:=GetProcAddress(WindowsKernel,'OpenProcess');
   OpenThread:=GetProcAddress(WindowsKernel,'OpenThread');
 
   {$ifdef cemain}
   pluginhandler.handlechangedpointers(9);
   {$endif}
-
+{$endif}
 end;
 
 procedure UseDBKOpenProcess;
 var
   nthookscript: Tstringlist;
 begin
+{$ifdef windows}
   LoadDBK32;
   If DBKLoaded=false then exit;
   OpenProcess:=@OP; //gives back the real handle, or if it fails it gives back a value only valid for the dll
@@ -1294,7 +1355,7 @@ begin
   {$ifdef cemain}
   pluginhandler.handlechangedpointers(10);
   {$endif}
-
+{$endif}
 end;
 
 function GetLargePageMinimumStub: SIZE_T; stdcall;
@@ -1304,9 +1365,13 @@ end;
 
 procedure OutputDebugString(msg: string);
 begin
-//{$ifdef DEBUG}
+{$ifdef windows}
   windows.outputdebugstring(pchar(msg));
-//{$endif}
+{$endif}
+
+{$ifdef android}
+  log(msg);
+{$endif}
 end;
 
 procedure getLBROffset;
@@ -1330,7 +1395,7 @@ var x: string;
 
 
 resourcestring
-  rsfucked='Something is really messed up on your computer! You don''t seems to have a kernel!!!!';
+  rsfucked='Something is really messed up on your computer! You don''t seem to have a kernel!!!!';
 
 initialization
   DBKLoaded:=false;
@@ -1347,6 +1412,7 @@ initialization
   Denylist:= false;
   //globaldenylist:= false;
 
+{$ifndef jni}
   WindowsKernel:=LoadLibrary('Kernel32.dll'); //there is no kernel33.dll
   if WindowsKernel=0 then Raise Exception.create(rsFucked);
 
@@ -1417,6 +1483,10 @@ initialization
 
 
   getLBROffset;
+{$else}
+
+
+{$endif}
 
 
 finalization

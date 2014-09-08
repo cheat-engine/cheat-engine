@@ -154,7 +154,7 @@ implementation
 
 uses cedebugger, kerneldebugger, formsettingsunit, FormDebugStringsUnit,
      frmBreakpointlistunit, plugin, memorybrowserformunit, autoassembler,
-     pluginexports, networkInterfaceApi;
+     pluginexports, networkInterfaceApi, processhandlerunit;
 
 //-----------Inside thread code---------
 

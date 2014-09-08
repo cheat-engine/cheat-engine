@@ -27,7 +27,7 @@ end;
 
 implementation
 
-uses autoassembler, pluginexports, CEDebugger, DebugHelper;
+uses autoassembler, pluginexports, CEDebugger, DebugHelper, processhandlerunit;
 
 resourcestring
   rsErrorAttachingTheWindowsDebugger = 'Error attaching the windows debugger: '

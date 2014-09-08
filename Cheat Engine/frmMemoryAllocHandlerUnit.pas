@@ -204,7 +204,7 @@ var
 implementation
 
 
-uses frmautoinjectunit, MemoryBrowserFormUnit;
+uses frmautoinjectunit, MemoryBrowserFormUnit, processhandlerunit;
 
 resourcestring
   rsQueuedMemoryEventsWaiting = 'Queued memory events waiting: %s';

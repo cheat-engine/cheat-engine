@@ -23,7 +23,7 @@ type
 
 implementation
 
-uses DBK32functions;
+uses DBK32functions, ProcessHandlerUnit;
 
 procedure TfrmIDT.FormClose(Sender: TObject; var Action: TCloseAction);
 begin

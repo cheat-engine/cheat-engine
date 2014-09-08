@@ -172,7 +172,7 @@ implementation
 
 {$R *.lfm}
 
-uses MemoryBrowserFormUnit, vmxfunctions;
+uses MemoryBrowserFormUnit, vmxfunctions, ProcessHandlerUnit;
 
 resourcestring
   rsRemoveHotkey = 'Remove hotkey (%s)';

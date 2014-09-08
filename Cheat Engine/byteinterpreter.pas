@@ -4,7 +4,7 @@ unit byteinterpreter;
 
 interface
 
-uses windows, LCLIntf, sysutils, symbolhandler, CEFuncProc, NewKernelHandler, math, CustomTypeHandler;
+uses windows, LCLIntf, sysutils, symbolhandler, CEFuncProc, NewKernelHandler, math, CustomTypeHandler, ProcessHandlerUnit;
 
 type TAutoGuessEvent=function (address: ptruint; originalVariableType: TVariableType): TVariableType of object;
 

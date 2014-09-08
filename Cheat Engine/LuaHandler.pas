@@ -88,7 +88,8 @@ uses mainunit, mainunit2, luaclass, frmluaengineunit, plugin, pluginexports,
   LuaTableFile, LuaMemoryRecordHotkey, LuaMemoryView, LuaD3DHook, LuaDisassembler,
   LuaDissectCode, LuaByteTable, LuaBinary, lua_server, HotkeyHandler, LuaPipeClient,
   LuaPipeServer, LuaTreeview, LuaTreeNodes, LuaTreeNode, LuaCalendar, LuaSymbolListHandler,
-  LuaCommonDialog, LuaFindDialog, LuaSettings, LuaPageControl, SymbolListHandler;
+  LuaCommonDialog, LuaFindDialog, LuaSettings, LuaPageControl, SymbolListHandler,
+  processhandlerunit, processlist;
 
 resourcestring
   rsLUA_DoScriptWasNotCalledRomTheMainThread = 'LUA_DoScript was not called '

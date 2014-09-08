@@ -1115,7 +1115,7 @@ begin
   if targetself then
   begin
     //get this function to use the symbolhandler that's pointing to CE itself and the self processid/handle
-    oldhandle:=cefuncproc.ProcessHandle;
+    oldhandle:=processhandlerunit.ProcessHandle;
     processid:=getcurrentprocessid;
     processhandle:=getcurrentprocess;
     oldsymhandler:=symhandler;
@@ -1124,8 +1124,8 @@ begin
   end
   else
   begin
-    processid:=cefuncproc.ProcessID;
-    processhandle:=cefuncproc.ProcessHandle;
+    processid:=processhandlerunit.ProcessID;
+    processhandle:=processhandlerunit.ProcessHandle;
   end;
 
   symhandler.waitforsymbolsloaded(true);
@@ -1297,7 +1297,7 @@ begin
                     multilineinjection.Free;
                   end;
 
-                  showmessage(code.text);
+                  //showmessage(code.text);
 
                   currentline:='';
                   break;

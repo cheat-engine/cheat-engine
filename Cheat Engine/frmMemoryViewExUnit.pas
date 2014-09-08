@@ -99,7 +99,7 @@ var
 
 implementation
 
-uses MemoryBrowserFormUnit, MainUnit;
+uses MemoryBrowserFormUnit, MainUnit, ProcessHandlerUnit;
 
 {$R *.lfm}
 

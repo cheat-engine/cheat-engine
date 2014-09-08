@@ -48,7 +48,7 @@ var
 implementation
 
 
-uses threadlistexfrm,dbk32functions;
+uses threadlistexfrm, dbk32functions, ProcessHandlerUnit;
 
 procedure TfrmProcessInfo.FormCreate(Sender: TObject);
 var cr3: QWORD;
