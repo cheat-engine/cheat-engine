@@ -46,6 +46,7 @@ type
     cbMustStartWithBase: TCheckBox;
     cbAcceptNonModuleVtable: TCheckBox;
     cbCompressedPointerscanFile: TCheckBox;
+    CheckBox1: TCheckBox;
     edtDistributedPort: TEdit;
     edtThreadStacks: TEdit;
     edtStackSize: TEdit;
