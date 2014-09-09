@@ -1120,6 +1120,17 @@ begin
     begin
       tempresults[level]:=valuetofind-stopvalue; //store the offset
 
+      //todo:
+      {
+      if multiple pointerlisthandlers check if the current path can be reached from each handler
+      For every pointerlisthandler each scanner thread will have it's own valuetofind except that it's startvalue:=valuetofindsecondary[#]-tempresults[level] and stopvalue:=startvalue;
+
+      if not found then the path is invalid. In that case "continue;"
+
+      }
+
+
+      //go through the list of addresses that have this address(stopvalue) as their value
       for j:=0 to plist.pos-1 do
       begin
         {$ifdef benchmarkps}
