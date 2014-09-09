@@ -771,7 +771,7 @@ begin
 
 
 
-      if (not CurrentDebuggerInterface is TNetworkDebuggerInterface) and (debugreg in [0..4]) and (bpp.breakpointMethod=bpmDebugRegister) and (bpp.debugRegister<>debugreg) then
+      if (not (CurrentDebuggerInterface is TNetworkDebuggerInterface)) and (debugreg in [0..4]) and (bpp.breakpointMethod=bpmDebugRegister) and (bpp.debugRegister<>debugreg) then
         continue; //this is not the correct breakpoint. Skip it
 
 
