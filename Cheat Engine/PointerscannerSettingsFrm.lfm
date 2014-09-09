@@ -481,7 +481,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Left = 288
     Height = 19
     Hint = 'Opens a port that other systems running the pointerscanner can connect to and help out with the scan'
-    Top = 293
+    Top = 316
     Width = 142
     Caption = 'Allow distributed scanning'
     OnChange = cbDistributedScanningChange
@@ -496,7 +496,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     AnchorSideTop.Side = asrCenter
     Left = 326
     Height = 21
-    Top = 311
+    Top = 334
     Width = 103
     TabOrder = 9
     Text = '52737'
@@ -507,7 +507,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     AnchorSideTop.Side = asrBottom
     Left = 304
     Height = 13
-    Top = 315
+    Top = 338
     Width = 22
     BorderSpacing.Left = 16
     BorderSpacing.Top = 3
@@ -521,7 +521,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Left = 304
     Height = 19
     Hint = 'When checked will send a broadcast message on the local network which will tell pointer scanner systems to join this scan if they are set to auto join'#13#10#13#10'You can use "Setup specific IP''s to notify" to notify systems of this scan that are outside of the local network'
-    Top = 332
+    Top = 355
     Width = 179
     Caption = 'Broadcast that a scan has started'
     Enabled = False
@@ -537,7 +537,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     AnchorSideTop.Side = asrCenter
     Left = 487
     Height = 25
-    Top = 329
+    Top = 352
     Width = 139
     BorderSpacing.Left = 4
     Caption = 'Setup specific IP''s to notify'
@@ -574,12 +574,20 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Left = 8
     Height = 19
     Hint = 'When ticked you can add other pointermaps which will be used to verify that the pointers it finds are correct. You will have to fill in the correct address for each pointermap you provide.'#13#10'Note: expect 8GB of ram usage for every pointermap used'#13#10#13#10'Currently not implemented'
-    Top = 315
+    Top = 312
     Width = 269
     Caption = 'Compare results with other saved pointermap(s) (NYI)'
     ParentShowHint = False
     ShowHint = True
     TabOrder = 14
+  end
+  object cbGeneratePointermapOnly: TCheckBox
+    Left = 288
+    Height = 19
+    Top = 293
+    Width = 141
+    Caption = 'Generate pointermap only'
+    TabOrder = 15
   end
   object odLoadPointermap: TOpenDialog
     DefaultExt = '.scandata'

@@ -285,4 +285,13 @@ object frmPointerScanner: TfrmPointerScanner
     left = 111
     top = 198
   end
+  object SaveDialog2: TSaveDialog
+    Title = 'Specify the filename for the pointermap you''re about to generate'
+    DefaultExt = '.PTM'
+    Filter = 'All files (*.*)|*.*|scandata files|*.scandata'
+    FilterIndex = 2
+    Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
+    left = 304
+    top = 288
+  end
 end
