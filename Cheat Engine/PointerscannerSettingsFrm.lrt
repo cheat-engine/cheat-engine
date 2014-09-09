@@ -120,3 +120,8 @@ Most of the time the bottleneck of a pointerscan is disk writing, so it is recom
 
 Compressed .PTR files can not be read out by older Cheat Engine versions
 TFRMPOINTERSCANNERSETTINGS.CBCOMPRESSEDPOINTERSCANFILE.CAPTION=Compressed pointerscan file
+TFRMPOINTERSCANNERSETTINGS.CHECKBOX1.HINT=When ticked you can add other pointermaps which will be used to verify that the pointers it finds are correct. You will have to fill in the correct address for each pointermap you provide.
+Note: expect 8GB of ram usage for every pointermap used
+
+Currently not implemented
+TFRMPOINTERSCANNERSETTINGS.CHECKBOX1.CAPTION=Compare results with other saved pointermap(s) (NYI)

@@ -1,11 +1,11 @@
 object frmPointerScannerSettings: TfrmPointerScannerSettings
   Left = 1150
-  Height = 464
+  Height = 489
   Top = 152
   Width = 638
   BorderStyle = bsSingle
   Caption = 'Pointerscanner scanoptions'
-  ClientHeight = 464
+  ClientHeight = 489
   ClientWidth = 638
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
@@ -284,7 +284,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   object cbMustEndWithSpecificOffset: TCheckBox
     Left = 8
     Height = 19
-    Top = 336
+    Top = 358
     Width = 199
     Caption = 'Pointers must end with specific offsets'
     Font.Height = -11
@@ -296,7 +296,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   object Panel1: TPanel
     Left = 0
     Height = 104
-    Top = 360
+    Top = 385
     Width = 638
     Align = alBottom
     BevelOuter = bvNone
@@ -549,7 +549,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Left = 8
     Height = 19
     Hint = 'Will only mark the given range as valid base address (Will reduce the number of results)'#13#10'This internally makes use of the "Only find paths with a static address" feature by marking the provided range as static only, so it must be enabled.'
-    Top = 314
+    Top = 336
     Width = 204
     Caption = 'Base address must be in specific range'
     OnChange = cbMustStartWithBaseChange
@@ -570,11 +570,22 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     State = cbChecked
     TabOrder = 13
   end
+  object CheckBox1: TCheckBox
+    Left = 8
+    Height = 19
+    Hint = 'When ticked you can add other pointermaps which will be used to verify that the pointers it finds are correct. You will have to fill in the correct address for each pointermap you provide.'#13#10'Note: expect 8GB of ram usage for every pointermap used'#13#10#13#10'Currently not implemented'
+    Top = 315
+    Width = 269
+    Caption = 'Compare results with other saved pointermap(s) (NYI)'
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 14
+  end
   object odLoadPointermap: TOpenDialog
     DefaultExt = '.scandata'
     Filter = 'All files (*.*)|*.*|scandata files|*.scandata'
     FilterIndex = 2
-    left = 184
-    top = 296
+    left = 544
+    top = 264
   end
 end

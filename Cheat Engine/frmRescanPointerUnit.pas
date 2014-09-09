@@ -27,6 +27,7 @@ type
     cbLuaFilter: TCheckBox;
     cbDistributedRescan: TCheckBox;
     cbWaitForAll: TCheckBox;
+    CheckBox1: TCheckBox;
     edtRescanPort: TEdit;
     lblLuaParams: TLabel;
     edtRescanFunction: TEdit;
