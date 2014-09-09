@@ -768,7 +768,10 @@ begin
 
     if InRangeX(address, bpp.address, bpp.address+bpp.size-1) then
     begin
-      if (debugreg in [0..4]) and (bpp.breakpointMethod=bpmDebugRegister) and (bpp.debugRegister<>debugreg) then
+
+
+
+      if (not CurrentDebuggerInterface is TNetworkDebuggerInterface) and (debugreg in [0..4]) and (bpp.breakpointMethod=bpmDebugRegister) and (bpp.debugRegister<>debugreg) then
         continue; //this is not the correct breakpoint. Skip it
 
 
