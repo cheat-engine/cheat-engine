@@ -426,6 +426,7 @@ type
     phase: integer;
 
 
+    generatePointermapOnly: boolean;
 
     compressedptr: boolean;
     MaxBitCountModuleIndex: dword;
@@ -495,6 +496,7 @@ type
     Rescanmemory1: TMenuItem;
     SaveDialog1: TSaveDialog;
     OpenDialog1: TOpenDialog;
+    SaveDialog2: TSaveDialog;
     SelectDirectoryDialog1: TSelectDirectoryDialog;
     Timer2: TTimer;
     pgcPScandata: TPageControl;
@@ -630,7 +632,7 @@ begin
   new1.enabled:=true;
   rescanmemory1.Enabled:=true;
 
-  if staticscanner<>nil then
+  if (staticscanner<>nil) and (staticscanner.filename<>'') then
     OpenPointerfile(staticscanner.filename);
 
   if rescan<>nil then
@@ -2798,10 +2800,12 @@ var
     i: integer;
 
     result: tfilestream;
+
     temp: dword;
     tempstring: string;
 
     f: tfilestream;
+    cs: Tcompressionstream;
     ds: Tdecompressionstream;
 
     pa,sa: DWORD_PTR;
@@ -2858,6 +2862,22 @@ begin
           exit;
         end;
       end;
+    end;
+
+    if generatePointermapOnly then
+    begin
+
+      f:=tfilestream.create(filename, fmCreate);
+      cs:=Tcompressionstream.create(clfastest, f);
+      ownerform.pointerlisthandler.exportToStream(cs);
+      cs.free;
+      f.free;
+
+      filename:='';
+      progressbar.Position:=0;
+      postmessage(ownerform.Handle,staticscanner_done,0,NULL);
+      terminate;
+      exit;
     end;
 
     phase:=2;
@@ -3186,6 +3206,7 @@ var
   i: integer;
   floataccuracy: integer;
   floatsettings: TFormatSettings;
+  filename: string;
 begin
   FloatSettings:=DefaultFormatSettings;
 
@@ -3208,8 +3229,16 @@ begin
     totalpathsevaluated:=0;
     startcount:=0;
 
-
-    if not savedialog1.Execute then exit;
+    if frmpointerscannersettings.cbGeneratePointermapOnly.checked then //show a .scandata dialog instad of a .ptr
+    begin
+      if not savedialog2.execute then exit;
+      filename:=savedialog2.filename;
+    end
+    else
+    begin
+      if not savedialog1.Execute then exit;
+      filename:=savedialog1.filename;
+    end;
 
     if (frmpointerscannersettings.cbReusePointermap.checked=false) and (pointerlisthandler<>nil) then
       freeandnil(pointerlisthandler);
@@ -3244,7 +3273,9 @@ begin
 
     try
       staticscanner.ownerform:=self;
-      staticscanner.filename:=utf8toansi(savedialog1.FileName);
+      staticscanner.filename:=utf8toansi(fileName);
+      staticscanner.generatePointermapOnly:=frmpointerscannersettings.cbGeneratePointermapOnly.checked;
+
       staticscanner.reverse:=true; //since 5.6 this is always true
 
       staticscanner.compressedptr:=frmpointerscannersettings.cbCompressedPointerscanFile.checked;

@@ -25,3 +25,4 @@ TFRMPOINTERSCANNER.RESCANMEMORY1.CAPTION=Rescan memory - Removes pointers not po
 TFRMPOINTERSCANNER.SAVEDIALOG1.TITLE=Specify the filename you want to store the results
 TFRMPOINTERSCANNER.RESYNCMODULELIST1.CAPTION=Resync modulelist
 TFRMPOINTERSCANNER.SELECTDIRECTORYDIALOG1.TITLE=Select folder for pointerfiles (May not be used by other scanners)
+TFRMPOINTERSCANNER.SAVEDIALOG2.TITLE=Specify the filename for the pointermap you're about to generate

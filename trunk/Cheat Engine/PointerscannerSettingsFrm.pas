@@ -47,6 +47,7 @@ type
     cbAcceptNonModuleVtable: TCheckBox;
     cbCompressedPointerscanFile: TCheckBox;
     CheckBox1: TCheckBox;
+    cbGeneratePointermapOnly: TCheckBox;
     edtDistributedPort: TEdit;
     edtThreadStacks: TEdit;
     edtStackSize: TEdit;

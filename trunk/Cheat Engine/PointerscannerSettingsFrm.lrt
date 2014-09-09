@@ -125,3 +125,4 @@ Note: expect 8GB of ram usage for every pointermap used
 
 Currently not implemented
 TFRMPOINTERSCANNERSETTINGS.CHECKBOX1.CAPTION=Compare results with other saved pointermap(s) (NYI)
+TFRMPOINTERSCANNERSETTINGS.CBGENERATEPOINTERMAPONLY.CAPTION=Generate pointermap only
