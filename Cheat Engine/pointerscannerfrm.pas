@@ -906,6 +906,14 @@ var
 begin
   if (staticdata=nil) then exit; //don't store it
 
+  //todo:
+  {
+    if multiple pointermaps check their reverse lookup object if the found pointer can be found there as well
+
+  }
+
+
+
   //fill in the offset list
   inc(pointersfound);
 
@@ -1122,14 +1130,7 @@ begin
     begin
       tempresults[level]:=valuetofind-stopvalue; //store the offset
 
-      //todo:
-      {
-      if multiple pointerlisthandlers check if the current path can be reached from each handler
-      For every pointerlisthandler each scanner thread will have it's own valuetofind except that it's startvalue:=valuetofindsecondary[#]-tempresults[level] and stopvalue:=startvalue;
 
-      if not found then the path is invalid. In that case "continue;"
-
-      }
 
 
       //go through the list of addresses that have this address(stopvalue) as their value
