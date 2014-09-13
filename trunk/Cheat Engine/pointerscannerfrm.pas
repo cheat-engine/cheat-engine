@@ -632,8 +632,13 @@ begin
   new1.enabled:=true;
   rescanmemory1.Enabled:=true;
 
+  if (staticscanner<>nil) and (staticscanner.generatePointermapOnly) then
+    new1.Click;
+
+
   if (staticscanner<>nil) and (staticscanner.filename<>'') then
     OpenPointerfile(staticscanner.filename);
+
 
   if rescan<>nil then
   begin
@@ -703,7 +708,7 @@ var
   srecv: sockaddr_in;
   recvsize: tsocklen;
   cecommand: packed record
-    id: byte; //$ce
+    id: byte; // 0xce
     operation: byte;
     port: word;
     test: word;
@@ -891,18 +896,7 @@ var
 
   bd8, bm8: dword;
 
-  e: PByteArray;
-
   bit: integer;
-
-  {m: dword;
-  v: dword;
-
-  v2: dword; }
-
- // _level: integer;
-  startindex: integer;
-
 begin
   if (staticdata=nil) then exit; //don't store it
 
@@ -2858,7 +2852,7 @@ begin
         begin
           haserror:=true;
           errorString:=rsFailureCopyingTargetProcessMemory;
-          postmessage(ownerform.Handle,staticscanner_done,0,NULL);
+          postmessage(ownerform.Handle,staticscanner_done,0,0);
           terminate;
           exit;
         end;
@@ -2876,7 +2870,7 @@ begin
 
       filename:='';
       progressbar.Position:=0;
-      postmessage(ownerform.Handle,staticscanner_done,0,NULL);
+      postmessage(ownerform.Handle,staticscanner_done,0,0);
       terminate;
       exit;
     end;

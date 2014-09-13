@@ -7,7 +7,6 @@
       <MainUnit Value="0"/>
       <UseXPManifest Value="True"/>
       <Icon Value="0"/>
-      <ActiveWindowIndexAtStart Value="0"/>
     </General>
     <i18n>
       <EnableI18N Value="True"/>
@@ -61,10 +60,6 @@
               <ShowHints Value="False"/>
               <ShowGenInfo Value="False"/>
             </Verbosity>
-            <CompilerMessages>
-              <UseMsgFile Value="True"/>
-            </CompilerMessages>
-            <CompilerPath Value="$(CompPath)"/>
           </Other>
         </CompilerOptions>
       </Item2>
@@ -111,10 +106,6 @@
               <ShowHints Value="False"/>
               <ShowGenInfo Value="False"/>
             </Verbosity>
-            <CompilerMessages>
-              <UseMsgFile Value="True"/>
-            </CompilerMessages>
-            <CompilerPath Value="$(CompPath)"/>
           </Other>
         </CompilerOptions>
       </Item3>
@@ -161,10 +152,6 @@
               <ShowHints Value="False"/>
               <ShowGenInfo Value="False"/>
             </Verbosity>
-            <CompilerMessages>
-              <UseMsgFile Value="True"/>
-            </CompilerMessages>
-            <CompilerPath Value="$(CompPath)"/>
           </Other>
         </CompilerOptions>
       </Item4>
@@ -191,8 +178,6 @@
         <Filename Value="tutorial.lpr"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="10"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
         <CursorPos X="3" Y="22"/>
         <UsageCount Value="60"/>
         <Loaded Value="True"/>
@@ -205,8 +190,6 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit1"/>
         <IsVisibleTab Value="True"/>
-        <EditorIndex Value="0"/>
-        <WindowIndex Value="0"/>
         <TopLine Value="39"/>
         <CursorPos X="123" Y="56"/>
         <UsageCount Value="60"/>
@@ -221,7 +204,6 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit2"/>
         <EditorIndex Value="1"/>
-        <WindowIndex Value="0"/>
         <TopLine Value="83"/>
         <CursorPos X="118" Y="75"/>
         <UsageCount Value="60"/>
@@ -236,7 +218,6 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit3"/>
         <EditorIndex Value="2"/>
-        <WindowIndex Value="0"/>
         <TopLine Value="57"/>
         <CursorPos X="125" Y="69"/>
         <UsageCount Value="60"/>
@@ -251,8 +232,6 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit4"/>
         <EditorIndex Value="3"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
         <CursorPos X="26" Y="16"/>
         <UsageCount Value="60"/>
         <Loaded Value="True"/>
@@ -266,7 +245,6 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit5"/>
         <EditorIndex Value="4"/>
-        <WindowIndex Value="0"/>
         <TopLine Value="76"/>
         <CursorPos X="125" Y="61"/>
         <UsageCount Value="60"/>
@@ -281,7 +259,6 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit6"/>
         <EditorIndex Value="5"/>
-        <WindowIndex Value="0"/>
         <TopLine Value="39"/>
         <CursorPos X="128" Y="57"/>
         <UsageCount Value="60"/>
@@ -296,7 +273,6 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit7"/>
         <EditorIndex Value="6"/>
-        <WindowIndex Value="0"/>
         <TopLine Value="70"/>
         <CursorPos X="127" Y="79"/>
         <UsageCount Value="60"/>
@@ -311,7 +287,6 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit8"/>
         <EditorIndex Value="9"/>
-        <WindowIndex Value="0"/>
         <TopLine Value="66"/>
         <CursorPos X="29" Y="85"/>
         <UsageCount Value="60"/>
@@ -326,7 +301,6 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit9"/>
         <EditorIndex Value="12"/>
-        <WindowIndex Value="0"/>
         <TopLine Value="119"/>
         <CursorPos X="91" Y="126"/>
         <UsageCount Value="60"/>
@@ -341,7 +315,6 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit10"/>
         <EditorIndex Value="11"/>
-        <WindowIndex Value="0"/>
         <TopLine Value="95"/>
         <CursorPos X="85" Y="102"/>
         <UsageCount Value="60"/>
@@ -350,7 +323,6 @@
       </Unit10>
       <Unit11>
         <Filename Value="C:\lazarus\fpc\2.4.3\source\rtl\inc\systemh.inc"/>
-        <WindowIndex Value="0"/>
         <TopLine Value="170"/>
         <CursorPos X="3" Y="105"/>
         <UsageCount Value="8"/>
@@ -360,7 +332,6 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="cetranslator"/>
         <EditorIndex Value="13"/>
-        <WindowIndex Value="0"/>
         <TopLine Value="96"/>
         <CursorPos X="54" Y="108"/>
         <UsageCount Value="55"/>
@@ -368,15 +339,12 @@
       </Unit12>
       <Unit13>
         <Filename Value="C:\lazarus\fpc\2.5.1\source\packages\fcl-base\src\custapp.pp"/>
-        <UnitName Value="CustApp"/>
-        <WindowIndex Value="0"/>
         <TopLine Value="241"/>
         <CursorPos X="22" Y="269"/>
         <UsageCount Value="8"/>
       </Unit13>
       <Unit14>
         <Filename Value="Unit3.lfm"/>
-        <WindowIndex Value="0"/>
         <TopLine Value="43"/>
         <CursorPos X="27" Y="50"/>
         <UsageCount Value="25"/>
@@ -384,15 +352,13 @@
       </Unit14>
       <Unit15>
         <Filename Value="Unit5.lfm"/>
-        <WindowIndex Value="0"/>
         <TopLine Value="86"/>
-        <CursorPos X="1" Y="86"/>
+        <CursorPos Y="86"/>
         <UsageCount Value="25"/>
         <DefaultSyntaxHighlighter Value="LFM"/>
       </Unit15>
       <Unit16>
         <Filename Value="Unit6.lfm"/>
-        <WindowIndex Value="0"/>
         <TopLine Value="37"/>
         <CursorPos X="9" Y="46"/>
         <UsageCount Value="25"/>
@@ -400,7 +366,6 @@
       </Unit16>
       <Unit17>
         <Filename Value="Unit7.lfm"/>
-        <WindowIndex Value="0"/>
         <TopLine Value="54"/>
         <CursorPos X="5" Y="54"/>
         <UsageCount Value="7"/>
@@ -408,15 +373,12 @@
       </Unit17>
       <Unit18>
         <Filename Value="Unit8.lfm"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
         <CursorPos X="9" Y="53"/>
         <UsageCount Value="7"/>
         <DefaultSyntaxHighlighter Value="LFM"/>
       </Unit18>
       <Unit19>
         <Filename Value="Unit10.lfm"/>
-        <WindowIndex Value="0"/>
         <TopLine Value="26"/>
         <CursorPos X="7" Y="26"/>
         <UsageCount Value="25"/>
@@ -424,7 +386,6 @@
       </Unit19>
       <Unit20>
         <Filename Value="Unit9.lfm"/>
-        <WindowIndex Value="0"/>
         <TopLine Value="46"/>
         <CursorPos X="9" Y="53"/>
         <UsageCount Value="25"/>
@@ -432,15 +393,12 @@
       </Unit20>
       <Unit21>
         <Filename Value="C:\lazarus\lcl\controls.pp"/>
-        <UnitName Value="Controls"/>
-        <WindowIndex Value="0"/>
         <TopLine Value="2429"/>
         <CursorPos X="14" Y="2446"/>
         <UsageCount Value="7"/>
       </Unit21>
       <Unit22>
         <Filename Value="Unit1.lfm"/>
-        <WindowIndex Value="0"/>
         <TopLine Value="50"/>
         <CursorPos X="15" Y="54"/>
         <UsageCount Value="7"/>
@@ -448,8 +406,6 @@
       </Unit22>
       <Unit23>
         <Filename Value="C:\lazarus\fpc\2.5.1\source\rtl\objpas\objpas.pp"/>
-        <UnitName Value="objpas"/>
-        <WindowIndex Value="0"/>
         <TopLine Value="372"/>
         <CursorPos X="3" Y="377"/>
         <UsageCount Value="7"/>
@@ -458,7 +414,6 @@
         <Filename Value="C:\development\lazarus\lcl\controls.pp"/>
         <UnitName Value="Controls"/>
         <EditorIndex Value="7"/>
-        <WindowIndex Value="0"/>
         <TopLine Value="2113"/>
         <CursorPos X="14" Y="2127"/>
         <UsageCount Value="10"/>
@@ -467,7 +422,6 @@
       <Unit25>
         <Filename Value="C:\development\lazarus\lcl\include\wincontrol.inc"/>
         <EditorIndex Value="8"/>
-        <WindowIndex Value="0"/>
         <TopLine Value="3635"/>
         <CursorPos X="3" Y="3640"/>
         <UsageCount Value="10"/>
@@ -477,7 +431,7 @@
     <JumpHistory Count="27" HistoryIndex="26">
       <Position1>
         <Filename Value="Unit3.pas"/>
-        <Caret Line="48" Column="1" TopLine="33"/>
+        <Caret Line="48" TopLine="33"/>
       </Position1>
       <Position2>
         <Filename Value="Unit3.pas"/>
@@ -489,7 +443,7 @@
       </Position3>
       <Position4>
         <Filename Value="Unit5.pas"/>
-        <Caret Line="12" Column="3" TopLine="1"/>
+        <Caret Line="12" Column="3"/>
       </Position4>
       <Position5>
         <Filename Value="Unit2.pas"/>
@@ -497,7 +451,7 @@
       </Position5>
       <Position6>
         <Filename Value="Unit6.pas"/>
-        <Caret Line="43" Column="1" TopLine="30"/>
+        <Caret Line="43" TopLine="30"/>
       </Position6>
       <Position7>
         <Filename Value="Unit5.pas"/>
@@ -529,7 +483,7 @@
       </Position13>
       <Position14>
         <Filename Value="Unit9.pas"/>
-        <Caret Line="12" Column="3" TopLine="1"/>
+        <Caret Line="12" Column="3"/>
       </Position14>
       <Position15>
         <Filename Value="Unit8.pas"/>
@@ -620,10 +574,6 @@
         <ShowHints Value="False"/>
         <ShowGenInfo Value="False"/>
       </Verbosity>
-      <CompilerMessages>
-        <UseMsgFile Value="True"/>
-      </CompilerMessages>
-      <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
   <Debugging>
@@ -639,5 +589,4 @@
       </Item3>
     </Exceptions>
   </Debugging>
-  <EditorMacros Count="0"/>
 </CONFIG>
