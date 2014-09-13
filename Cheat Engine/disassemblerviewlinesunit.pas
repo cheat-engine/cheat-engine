@@ -83,7 +83,7 @@ type
     property top: integer read fTop;
     property defaultHeight: integer read fDefaultHeight;
     property Address: ptrUint read faddress;
-    property Owner: TObject;
+    property Owner: TObject read fowner;
 
 end;
 

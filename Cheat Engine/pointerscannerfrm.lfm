@@ -1,7 +1,7 @@
 object frmPointerScanner: TfrmPointerScanner
-  Left = 1201
+  Left = 1268
   Height = 517
-  Top = 141
+  Top = 253
   Width = 614
   Caption = 'Pointer scan'
   ClientHeight = 497
@@ -288,7 +288,7 @@ object frmPointerScanner: TfrmPointerScanner
   object SaveDialog2: TSaveDialog
     Title = 'Specify the filename for the pointermap you''re about to generate'
     DefaultExt = '.PTM'
-    Filter = 'All files (*.*)|*.*|scandata files|*.scandata'
+    Filter = 'All files (*.*)|*.*|scandata files (*.scandata)|*.scandata'
     FilterIndex = 2
     Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
     left = 304

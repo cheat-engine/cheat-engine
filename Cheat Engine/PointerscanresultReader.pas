@@ -181,6 +181,9 @@ begin
 
     //and the name
     s.Write(modulelist[i][1],x);
+
+    //and the base (for debugging info)
+    s.WriteQWord(qword(modulelist.Objects[i]));
   end;
 end;
 
@@ -467,6 +470,8 @@ begin
 
     configfile.Read(temppchar[0], x);
     temppchar[x]:=#0;
+
+    a:=configfile.ReadQWord;  //discard this info (only used for scandata)
 
     if original=nil then
     begin

@@ -7,6 +7,7 @@ The pointerlist will hold a map of all possible pointer values, and the addresse
 it also contains some extra information like if it's static just so the pointerscan can save some calls doing it itself eachtime
 
 todo: Try a tree/map thing.
+result: tree/map was slower than my own non threadsafe implementation. After initialization reads don't need to be safe since nothing adds to it, so a default implementation with locks is a slowdown
 }
 
 interface
@@ -116,6 +117,7 @@ type
 
 
     modulelist: tstringlist;
+
 
     procedure exportToStream(s: TStream);
 
@@ -260,7 +262,7 @@ begin
     if result then
     begin
       //setup as a direct address
-      moduleindex:=$FFFFFFFF;
+      moduleindex:=-1;
       mi.baseaddress:=0;
 
       //now lookup if it's actually a static
@@ -276,13 +278,9 @@ var
   level: integer;
   entrynr: integer;
   temp, currentarray: PReversePointerListArray;
-  mi: Tmoduleinfo;
-
   plist: PPointerList;
 
   size: integer;
-  moduleindex: integer;
-
 begin
   currentarray:=level0list;
 
@@ -408,6 +406,9 @@ begin
 
     //and the name
     s.Write(modulelist[i][1],length(modulelist[i]));
+
+    //and the module base (in case of rescans that only use this info)
+    s.WriteQWord(qword(modulelist.Objects[i]));
   end;
 end;
 
@@ -422,6 +423,7 @@ begin
   result:=nil;
   if level<maxlevel then
   begin
+
     for i:=$F downto 0 do
     begin
       if a[i].ReversePointerlistArray<>nil then
@@ -741,6 +743,8 @@ var
   totalcount: qword;
 
   lastcountupdate: qword;
+
+  mbase: qword;
 begin
   OutputDebugString('TReversePointerListHandler.createFromStream');
 
@@ -760,8 +764,9 @@ begin
     getmem(mname, x);
     s.ReadBuffer(mname^, x);
     mname[x]:=#0;
+    mbase:=s.ReadQWord;
 
-    modulelist.add(mname);
+    modulelist.AddObject(mname, tobject(mbase));
     freemem(mname);
   end;
 
@@ -801,7 +806,7 @@ begin
 
       if (count-lastcountupdate)>1000 then
       begin
-        progressbar.position:=trunc(totalcount/count*100);
+        progressbar.position:=trunc(count/totalcount*100);
         lastcountupdate:=count;
       end;
     end;

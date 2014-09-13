@@ -880,7 +880,7 @@ begin
 {$endif}
 end;
 
-{$ifndef CPU386}
+{$ifndef CPUX86_64 and ifndef CPUi386}
 function isIntel: boolean;
 begin
   result:=false;

@@ -6,9 +6,9 @@ interface
 
 uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls,{tlhelp32,} ComCtrls,ExtCtrls, LResources, Contnrs,
-  CEFuncProc,NewKernelHandler, symbolhandler, multilineinputqueryunit, registry,
-  resolve;
+  Dialogs, StdCtrls, ComCtrls, ExtCtrls, LResources, EditBtn, Buttons, Contnrs,
+  CEFuncProc, NewKernelHandler, symbolhandler, multilineinputqueryunit,
+  registry, resolve;
 
 
 type tmoduledata = class
@@ -16,6 +16,29 @@ type tmoduledata = class
     moduleaddress: dword;
     modulesize: dword;
   end;
+
+type
+  TPointerFileEntry=class(TCustomPanel)
+  private
+    ffilename: string;
+    fOnDelete: TNotifyEvent;
+    lblFilename: TLabel;
+    btnSetFile: TSpeedButton;
+    btnDelete: TSpeedButton;
+    edtAddress: TEdit;
+    procedure btnSetFileClick(Sender: TObject);
+    procedure btnDeleteClick(Sender: TObject);
+    procedure setFileName(filename: string);
+  public
+    property filename: string read ffilename write setFileName;
+    property OnDelete: TNotifyEvent read fOnDelete write fOnDelete;
+    constructor create(AOwner: TComponent); override;
+    destructor destroy; override;
+  end;
+
+{  TPointerFileList=class(TCustomPanel)
+
+  end;   }
 
 type TOffsetEntry=class(Tedit)
   private
@@ -46,7 +69,7 @@ type
     cbMustStartWithBase: TCheckBox;
     cbAcceptNonModuleVtable: TCheckBox;
     cbCompressedPointerscanFile: TCheckBox;
-    CheckBox1: TCheckBox;
+    cbCompareToOtherPointermaps: TCheckBox;
     cbGeneratePointermapOnly: TCheckBox;
     edtDistributedPort: TEdit;
     edtThreadStacks: TEdit;
@@ -97,6 +120,7 @@ type
     procedure cbReusePointermapChange(Sender: TObject);
     procedure cbStaticStacksChange(Sender: TObject);
     procedure cbUseLoadedPointermapChange(Sender: TObject);
+    procedure cbCompareToOtherPointermapsChange(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -169,8 +193,62 @@ resourcestring
   rsTimeCritical = 'TimeCritical';
 
   strMaxOffsetsIsStupid = 'Sorry, but the max offsets should be 1 or higher, or else disable the checkbox'; //'Are you a fucking retard?';
-  rsUseLoadedPointermap = 'Use loaded pointermap:';
+  rsUseLoadedPointermap = 'Use saved pointermap';
 
+
+
+//-----------TPointerFileEntry--------------
+{
+TPointerFileEntry=class(TCustomPanel)
+private
+  ffilename: string;
+  fOnDelete: TNotifyEvent;
+  lblFilename: TLabel;
+  btnSetFile: TSpeedButton;
+  btnDelete: TSpeedButton;
+  edtAddress: TEdit;
+  procedure btnSetFileClick(Sender: TObject);
+  procedure btnDeleteClick(Sender: TObject);
+  procedure setFileName(filename: string);
+public
+  property filename: string read ffilename write setFileName;
+  property OnDelete: TNotifyEvent read fOnDelete write fOnDelete;
+  constructor create(AOwner: TComponent); override;
+  destructor destroy; override;
+end;
+}
+
+constructor TPointerFileEntry.create(AOwner: TComponent);
+begin
+  inherited create(Aowner);
+  AutoSize:=true;
+  lblFileName:=TLabel.create(self);
+  btnSetFile:=TSpeedButton.Create(self);
+  btnDelete:=TSpeedButton.Create(self);
+  edtAddress:=TEdit.Create(self);
+end;
+
+destructor TPointerFileEntry.destroy;
+begin
+  inherited destroy;
+end;
+
+procedure TPointerFileEntry.btnSetFileClick(Sender: TObject);
+begin
+
+end;
+
+procedure TPointerFileEntry.btnDeleteClick(Sender: TObject);
+begin
+
+end;
+
+procedure TPointerFileEntry.setFileName(filename: string);
+begin
+
+end;
+
+//------------TOffsetEntry-------------------
 
 constructor TOffsetEntry.create(AOwner: TComponent);
 begin
@@ -475,12 +553,26 @@ begin
       cbReusePointermap.enabled:=false;
       cbReusePointermap.OnChange:=cbReusePointermapChange;
 
-      cbUseLoadedPointermap.Caption:=rsUseLoadedPointermap+ExtractFileName(odLoadPointermap.FileName);
+      cbUseLoadedPointermap.Caption:=rsUseLoadedPointermap+':'+ExtractFileName(odLoadPointermap.FileName);
     end
     else
       cbUseLoadedPointermap.checked:=false;
 
     cbUseLoadedPointermap.OnChange:=cbUseLoadedPointermapChange;
+  end
+  else
+    cbUseLoadedPointermap.Caption:=rsUseLoadedPointermap;
+end;
+
+procedure TfrmPointerScannerSettings.cbCompareToOtherPointermapsChange(Sender: TObject);
+begin
+  if cbCompareToOtherPointermaps.checked then
+  begin
+
+  end
+  else
+  begin
+
   end;
 end;
 
