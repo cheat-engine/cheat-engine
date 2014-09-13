@@ -465,6 +465,12 @@ type
 
     outofdiskspace: boolean;
 
+    instantrescan: boolean;
+    instantrescanfiles:array of record
+      filename: string;
+      address: ptruint;
+    end;
+
     procedure execute; override;
     constructor create(suspended: boolean);
     destructor destroy; override;
@@ -3334,6 +3340,18 @@ begin
           staticscanner.mustendwithoffsetlist[i]:=TOffsetEntry(frmpointerscannersettings.offsetlist[i]).offset;
       end;
 
+      staticscanner.instantrescan:=frmpointerscannersettings.cbCompareToOtherPointermaps.checked;
+      setlength(staticscanner.instantrescanfiles,0);
+      for i:=0 to frmpointerscannersettings.pdatafilelist.count-1 do
+      begin
+        if frmpointerscannersettings.pdatafilelist.filenames[i]<>'' then
+        begin
+          setlength(staticscanner.instantrescanfiles,length(staticscanner.instantrescanfiles)+1);
+          staticscanner.instantrescanfiles[length(staticscanner.instantrescanfiles)-1].filename:=frmpointerscannersettings.pdatafilelist.filenames[i];
+          staticscanner.instantrescanfiles[length(staticscanner.instantrescanfiles)-1].address:=frmpointerscannersettings.pdatafilelist.addresses[i];
+
+        end;
+      end;
 
 
       staticscanner.onlyOneStaticInPath:=frmpointerscannersettings.cbOnlyOneStatic.checked;
