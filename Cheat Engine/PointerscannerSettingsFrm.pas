@@ -246,6 +246,8 @@ begin
   bevelouter:=bvNone;
 
   lblFileName:=TLabel.create(self);
+  lblFileName.OnClick:=btnSetFileClick;
+  lblFilename.Cursor:=crHandPoint;
 
   btnSetFile:=TSpeedButton.Create(self);
   btnSetFile.OnClick:=btnSetFileClick;

@@ -41,8 +41,14 @@ begin
 end;
 
 function TPointerListHandler.getPointer(address: ptruint): ptruint;
+var
+  base: ptruint;
+  pbase: PByteArray;
 begin
-  if not pmap.GetData(address, result) then
+  base:=address and qword(not qword($ffff));
+  if pmap.GetData(base, pbase) then
+    result:=pptruint(@pbase[address-base])^
+  else
     result:=0;
 end;
 
@@ -97,6 +103,8 @@ begin
   while count<totalcount do
   begin
     value:=ptruint(s.ReadQWord);
+
+
     nrofpointers:=s.ReadDWord;
     for i:=0 to nrofpointers-1 do
     begin
@@ -110,7 +118,7 @@ begin
       end;
 
       if (address-base)<65536-sizeof(ptruint) then
-        pbase[address-base]:=value;
+        pptruint(@pbase[address-base])^:=value;
       //todo: else add some overlap support. But for now, only allow alligned pointers
 
 

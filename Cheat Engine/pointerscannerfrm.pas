@@ -12,7 +12,7 @@ uses
   frmRescanPointerUnit, pointervaluelist, rescanhelper,
   virtualmemory, symbolhandler,MainUnit,disassembler,CEFuncProc,NewKernelHandler,
   valuefinder, PointerscanresultReader, maps, zstream, WinSock2, Sockets,
-  registry, PageMap, CELazySocket, PointerscanNetworkCommands, resolve;
+  registry, PageMap, CELazySocket, PointerscanNetworkCommands, resolve, pointeraddresslist;
 
 
 const staticscanner_done=wm_user+1;
@@ -223,6 +223,7 @@ type
     procedure flushresults;
     procedure rscan(valuetofind:ptrUint; level: valSint);
     procedure StorePath(level: valSint; staticdata: PStaticData);
+    function DoRescan(level: valSint; staticdata: PStaticData): boolean;
 
   public
     ownerform: TFrmPointerscanner;
@@ -287,6 +288,12 @@ type
     compressedEntrySize: integer;
 
     mustendwithoffsetlistlength: integer;
+
+
+    instantrescan: boolean;
+    instantrescanlistcount: integer;
+    instantrescanlist: array of TPointerListHandler;
+    instantrescanaddress: array of ptruint;
 
 
     procedure execute; override;
@@ -469,6 +476,9 @@ type
     instantrescanfiles:array of record
       filename: string;
       address: ptruint;
+      plist: TPointerListHandler;
+      progressbar: TProgressBar;
+      progresslabel: TLabel;
     end;
 
     procedure execute; override;
@@ -481,6 +491,7 @@ type
   Tfrmpointerscanner = class(TForm)
     btnStopRescanLoop: TButton;
     Button1: TButton;
+    Label1: TLabel;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
@@ -489,7 +500,9 @@ type
     miJoinDistributedScan: TMenuItem;
     miJoinDistributedRescan: TMenuItem;
     odMerge: TOpenDialog;
-    ProgressBar1: TProgressBar;
+    pnlProgressName: TPanel;
+    pnlProgressBar: TPanel;
+    pnlProgress: TPanel;
     Panel1: TPanel;
     MainMenu1: TMainMenu;
     File1: TMenuItem;
@@ -499,6 +512,7 @@ type
     Pointerscanner1: TMenuItem;
     Method3Fastspeedandaveragememoryusage1: TMenuItem;   //I should probably rename this, it's not really, 'average memory usage' anymore...
     N1: TMenuItem;
+    ProgressBar1: TProgressBar;
     Rescanmemory1: TMenuItem;
     SaveDialog1: TSaveDialog;
     OpenDialog1: TOpenDialog;
@@ -631,7 +645,7 @@ var
 procedure TFrmpointerscanner.doneui;
 begin
   progressbar1.position:=0;
-  progressbar1.visible:=false;
+  pnlprogress.visible:=false;
 
   pgcPScandata.Visible:=false;
   open1.Enabled:=true;
@@ -895,6 +909,31 @@ end;
 
 var scount:qword=0;
 
+function TReverseScanWorker.DoRescan(level: valSint; staticdata: PStaticData): boolean;
+var
+  i,j: integer;
+  a: ptruint;
+
+begin
+  result:=false;
+  for i:=0 to instantrescanlistcount-1 do
+  begin
+    a:=instantrescanlist[i].getAddressFromModuleIndexPlusOffset(staticdata.moduleindex, staticdata.offset);
+
+    for j:=level downto 0 do
+    begin
+      a:=instantrescanlist[i].getPointer(a);
+      if a=0 then exit;
+
+      a:=a+tempresults[j];
+    end;
+
+    if a<>instantrescanaddress[i] then exit;
+  end;
+
+  result:=true;
+end;
+
 procedure TReverseScanWorker.StorePath(level: valSint; staticdata: PStaticData);
 {Store the current path to memory and flush if needed}
 var
@@ -906,13 +945,7 @@ var
 begin
   if (staticdata=nil) then exit; //don't store it
 
-  //todo:
-  {
-    if multiple pointermaps check their reverse lookup object if the found pointer can be found there as well
-
-  }
-
-
+  if instantrescan and (not DoRescan(level, staticdata)) then exit;
 
   //fill in the offset list
   inc(pointersfound);
@@ -1188,13 +1221,17 @@ begin
               else
               begin
 
-                if (level+3<maxlevel) and
-                (
-                   ((staticscanner.pathqueuelength<MAXQUEUESIZE - (MAXQUEUESIZE div 3))) or
-                   ((level<=2) and (staticscanner.pathqueuelength<MAXQUEUESIZE - (MAXQUEUESIZE div 8))) or
-                   ((level<=1) and (staticscanner.pathqueuelength<MAXQUEUESIZE - (MAXQUEUESIZE div 16))) or
-                   ((level=0) and (staticscanner.pathqueuelength<MAXQUEUESIZE - 1))
-                )
+                if (
+                    (level+3<maxlevel) and
+                    (
+                       ((staticscanner.pathqueuelength<MAXQUEUESIZE - (MAXQUEUESIZE div 3))) or
+                       ((level<=2) and (staticscanner.pathqueuelength<MAXQUEUESIZE - (MAXQUEUESIZE div 8))) or
+                       ((level<=1) and (staticscanner.pathqueuelength<MAXQUEUESIZE - (MAXQUEUESIZE div 16))) or
+                       ((level=0) and (staticscanner.pathqueuelength<MAXQUEUESIZE - 1))
+                    )
+                   )
+                or
+                   (staticscanner.pathqueuelength=0) //completely empty
                 then //there's room and not a crappy work item. Add it
                 begin
                   if (not Terminated) and (not self.staticscanner.Terminated) then
@@ -2796,9 +2833,34 @@ begin
   result:=bitcount;
 end;
 
+type
+  TPointerlistloader=class(tthread)
+  private
+  public
+    filename: string;
+    progressbar: TProgressbar;
+    pointerlisthandler: TPointerListHandler;
+    procedure execute; override;
+  end;
+
+procedure TPointerlistloader.execute;
+var
+  fs: TFileStream;
+  cs: Tdecompressionstream;
+begin
+  fs:=tfilestream.Create(filename, fmOpenRead or fmShareDenyNone);
+  cs:=Tdecompressionstream.create(fs);
+
+  pointerlisthandler:=TPointerListHandler.createFromStream(cs, progressbar);
+
+  cs.free;
+  fs.free;
+
+end;
+
 procedure TStaticScanner.execute;
 var
-    i: integer;
+    i,j: integer;
 
     result: tfilestream;
 
@@ -2815,6 +2877,8 @@ var
     PreferedProcessorList: array of integer; //a list of cpu numbers available to be used. If hyperthreading is on, this will not contain the uneven cpu numbers
     currentcpu: integer;  //index into PreferedProcessorList. If it's bigger than the size, make the affinity equal to PA (do not care, let windows decide)
 
+
+    pointerlistloaders: array of TPointerlistloader;
 begin
 
   if terminated then exit;
@@ -2828,14 +2892,28 @@ begin
     if distributedScandataDownloadPort=0 then
       distributedScandataDownloadPort:=distributedport+1;
 
+    phase:=1;
+    if instantrescan then
+    begin
+      //launch threads to load these data files
+      setlength(pointerlistloaders, length(instantrescanfiles));
+      for i:=0 to length(pointerlistloaders)-1 do
+      begin
+        pointerlistloaders[i]:=TPointerlistloader.Create(true);
+        pointerlistloaders[i].progressbar:=instantrescanfiles[i].progressbar;
+        pointerlistloaders[i].filename:=instantrescanfiles[i].filename;
+        pointerlistloaders[i].Start;
+      end;
+    end;
+
     if ownerform.pointerlisthandler=nil then
     begin
-      phase:=1;
+
       progressbar.Position:=0;
       try
         if useLoadedPointermap then
         begin
-          f:=tfilestream.create(LoadedPointermapFilename, fmOpenRead);
+          f:=tfilestream.create(LoadedPointermapFilename, fmOpenRead or fmShareDenyNone);
           try
             ds:=Tdecompressionstream.create(f);
             try
@@ -2862,6 +2940,16 @@ begin
           terminate;
           exit;
         end;
+      end;
+    end;
+
+    if instantrescan then
+    begin
+      for i:=0 to length(pointerlistloaders)-1 do
+      begin
+        pointerlistloaders[i].WaitFor;
+        instantrescanfiles[i].plist:=pointerlistloaders[i].pointerlisthandler;
+        pointerlistloaders[i].Free;
       end;
     end;
 
@@ -2973,6 +3061,21 @@ begin
         reversescanners[i].MaxBitCountOffset:=MaxBitCountOffset;
 
         reversescanners[i].mustendwithoffsetlistlength:=length(mustendwithoffsetlist);
+
+
+        //rescan data if applicable
+        reversescanners[i].instantrescan:=instantrescan;
+        if instantrescan then
+        begin
+          reversescanners[i].instantrescanlistcount:=length(instantrescanfiles);
+          setlength(reversescanners[i].instantrescanlist, length(instantrescanfiles));
+          setlength(reversescanners[i].instantrescanaddress, length(instantrescanfiles));
+          for j:=0 to length(instantrescanfiles)-1 do
+          begin
+            reversescanners[i].instantrescanlist[j]:=instantrescanfiles[j].plist;
+            reversescanners[i].instantrescanaddress[j]:=instantrescanfiles[j].address;
+          end;
+        end;
 
 
         reversescanners[i].start;
@@ -3089,6 +3192,7 @@ begin
 end;
 
 destructor TStaticscanner.destroy;
+var i: integer;
 begin
   terminate;
   waitfor;
@@ -3099,6 +3203,22 @@ begin
     sockethandle:=-1;
   end;
 
+
+  if instantrescan then
+  begin
+    for i:=0 to length(instantrescanfiles)-1 do
+    begin
+      if instantrescanfiles[i].plist<>nil then
+        freeandnil(instantrescanfiles[i].plist);
+
+      if instantrescanfiles[i].progresslabel<>nil then
+        freeandnil(instantrescanfiles[i].progresslabel);
+
+      if instantrescanfiles[i].progressbar<>nil then
+        freeandnil(instantrescanfiles[i].progressbar);
+    end;
+
+  end;
 
   //clean up other stuff
   inherited destroy;
@@ -3120,7 +3240,7 @@ begin
   rescan.distributedserver:=server;
   rescan.distributedport:=port;
   rescan.distributedworkfolder:=distributedworkfolder;
-  progressbar1.visible:=true;
+  pnlprogress.visible:=true;
 
   rescan.start;
 end;
@@ -3155,7 +3275,7 @@ begin
   staticscanner.reverse:=true;
 
   label5.caption:=rsGeneratingPointermap;
-  progressbar1.Visible:=true;
+  pnlProgress.Visible:=true;
 
   staticscanner:=TStaticscanner.Create(true);
   staticscanner.distributedScanning:=true;
@@ -3208,6 +3328,10 @@ var
   floataccuracy: integer;
   floatsettings: TFormatSettings;
   filename: string;
+  pb: TProgressBar;
+  lb: TLabel;
+
+  pfn: string;
 begin
   FloatSettings:=DefaultFormatSettings;
 
@@ -3221,6 +3345,7 @@ begin
   {
   if vm<>nil then
     frmpointerscannersettings.cbreuse.Caption:='Reuse memory copy from previous scan';}
+
 
   if frmpointerscannersettings.Showmodal=mrok then
   begin
@@ -3270,7 +3395,7 @@ begin
     staticscanner:=TStaticscanner.Create(true);
 
     label5.caption:=rsGeneratingPointermap;
-    progressbar1.Visible:=true;
+    pnlProgress.Visible:=true;
 
     try
       staticscanner.ownerform:=self;
@@ -3342,17 +3467,52 @@ begin
 
       staticscanner.instantrescan:=frmpointerscannersettings.cbCompareToOtherPointermaps.checked;
       setlength(staticscanner.instantrescanfiles,0);
-      for i:=0 to frmpointerscannersettings.pdatafilelist.count-1 do
+
+      if staticscanner.instantrescan then
       begin
-        if frmpointerscannersettings.pdatafilelist.filenames[i]<>'' then
+        for i:=0 to frmpointerscannersettings.pdatafilelist.count-1 do
         begin
-          setlength(staticscanner.instantrescanfiles,length(staticscanner.instantrescanfiles)+1);
-          staticscanner.instantrescanfiles[length(staticscanner.instantrescanfiles)-1].filename:=frmpointerscannersettings.pdatafilelist.filenames[i];
-          staticscanner.instantrescanfiles[length(staticscanner.instantrescanfiles)-1].address:=frmpointerscannersettings.pdatafilelist.addresses[i];
+          pfn:=frmpointerscannersettings.pdatafilelist.filenames[i];
+          if pfn<>'' then
+          begin
+            setlength(staticscanner.instantrescanfiles,length(staticscanner.instantrescanfiles)+1);
+            staticscanner.instantrescanfiles[length(staticscanner.instantrescanfiles)-1].filename:=pfn;
+            staticscanner.instantrescanfiles[length(staticscanner.instantrescanfiles)-1].address:=frmpointerscannersettings.pdatafilelist.addresses[i];
+            staticscanner.instantrescanfiles[length(staticscanner.instantrescanfiles)-1].plist:=nil;
 
+
+            //create a new progressbar to show how long it'll take
+            pb:=TProgressBar.Create(self);
+            pb.parent:=pnlProgressBar;
+            pb.position:=0;
+            pb.Max:=100;
+
+            if i=0 then
+              pb.top:=ProgressBar1.Top+progressbar1.height
+            else
+              pb.Top:=staticscanner.instantrescanfiles[length(staticscanner.instantrescanfiles)-2].progressbar.Top+staticscanner.instantrescanfiles[length(staticscanner.instantrescanfiles)-2].progressbar.Height;
+
+            pb.left:=ProgressBar1.left;
+            pb.width:=ProgressBar1.width;
+
+            lb:=TLabel.create(self);
+            lb.caption:=extractfilename(pfn);
+            lb.Parent:=pnlProgressName;
+            lb.top:=pb.Top+(pb.Height div 2)-(lb.height div 2);
+            lb.hint:=pfn;
+            lb.showhint:=true;
+
+            staticscanner.instantrescanfiles[length(staticscanner.instantrescanfiles)-1].progressbar:=pb;
+            staticscanner.instantrescanfiles[length(staticscanner.instantrescanfiles)-1].progresslabel:=lb;
+
+
+            pnlProgress.ClientHeight:=pb.Top+pb.height+1;
+          end;
         end;
-      end;
 
+        if length(staticscanner.instantrescanfiles)=0 then
+          staticscanner.instantrescan:=false; //no rescan at all
+      end;
 
       staticscanner.onlyOneStaticInPath:=frmpointerscannersettings.cbOnlyOneStatic.checked;
 
@@ -5284,7 +5444,7 @@ begin
   rescan:=trescanpointers.create(true);
   rescan.ownerform:=self;
   rescan.progressbar:=progressbar1;
-  progressbar1.visible:=true;
+  pnlProgress.visible:=true;
 
 
 
@@ -5527,7 +5687,7 @@ end;
 
 procedure Tfrmpointerscanner._starttimer(var message: TMessage);
 begin
-  ProgressBar1.Visible:=false;
+  pnlProgress.Visible:=false;
   timer2.enabled:=true;
 end;
 
