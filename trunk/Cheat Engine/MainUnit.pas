@@ -7930,17 +7930,20 @@ var
   l: TPointerListHandler;
   fs: TFileStream;
   cs: Tdecompressionstream;
+  p: ptruint;
 begin
-  fs:=tfilestream.Create('e:\ptr\tutorial.scandata', fmOpenRead);
+  fs:=tfilestream.Create('e:\ptr\tut-018281F8.scandata', fmOpenRead);
   cs:=Tdecompressionstream.create(fs);
 
   l:=TPointerListHandler.createFromStream(cs, progressbar1);
+
+  p:=l.getPointer($6355d0);
 
   cs.free;
   fs.free;
 
 
-  showmessage(inttohex(l.getAddressFromModuleIndexPlusOffset(0,0),8));
+  showmessage(inttohex(p, 8)); //should be 01827d78
 end;
 
 procedure ChangeIcon(hModule: HModule; restype: PChar; resname: PChar;

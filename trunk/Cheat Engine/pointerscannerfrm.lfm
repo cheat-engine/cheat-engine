@@ -1,11 +1,11 @@
 object frmPointerScanner: TfrmPointerScanner
-  Left = 1050
+  Left = 872
   Height = 517
-  Top = 247
-  Width = 614
+  Top = 180
+  Width = 733
   Caption = 'Pointer scan'
   ClientHeight = 497
-  ClientWidth = 614
+  ClientWidth = 733
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Menu = MainMenu1
@@ -15,26 +15,16 @@ object frmPointerScanner: TfrmPointerScanner
   OnResize = FormResize
   Position = poScreenCenter
   LCLVersion = '1.3'
-  object ProgressBar1: TProgressBar
-    Left = 0
-    Height = 21
-    Top = 476
-    Width = 614
-    Align = alBottom
-    Step = 1
-    TabOrder = 0
-    Visible = False
-  end
   object Panel1: TPanel
     Left = 0
     Height = 24
     Top = 0
-    Width = 614
+    Width = 733
     Align = alTop
     BevelOuter = bvNone
     ClientHeight = 24
-    ClientWidth = 614
-    TabOrder = 1
+    ClientWidth = 733
+    TabOrder = 0
     object cbType: TComboBox
       Left = 0
       Height = 24
@@ -54,23 +44,23 @@ object frmPointerScanner: TfrmPointerScanner
   end
   object pgcPScandata: TPageControl
     Left = 0
-    Height = 452
+    Height = 446
     Top = 24
-    Width = 614
+    Width = 733
     ActivePage = tsPSReverse
     Align = alClient
     TabIndex = 0
-    TabOrder = 2
+    TabOrder = 1
     object tsPSReverse: TTabSheet
       Caption = 'tsPSReverse'
-      ClientHeight = 423
-      ClientWidth = 606
+      ClientHeight = 417
+      ClientWidth = 725
       ImageIndex = 1
       object tvRSThreads: TTreeView
         Left = 0
-        Height = 323
+        Height = 317
         Top = 65
-        Width = 606
+        Width = 725
         Align = alClient
         DefaultItemHeight = 18
         Indent = 19
@@ -80,11 +70,11 @@ object frmPointerScanner: TfrmPointerScanner
         Left = 0
         Height = 65
         Top = 0
-        Width = 606
+        Width = 725
         Align = alTop
         BevelOuter = bvNone
         ClientHeight = 65
-        ClientWidth = 606
+        ClientWidth = 725
         TabOrder = 1
         object Label5: TLabel
           Left = 0
@@ -116,12 +106,12 @@ object frmPointerScanner: TfrmPointerScanner
       object Panel3: TPanel
         Left = 0
         Height = 35
-        Top = 388
-        Width = 606
+        Top = 382
+        Width = 725
         Align = alBottom
         BevelOuter = bvNone
         ClientHeight = 35
-        ClientWidth = 606
+        ClientWidth = 725
         TabOrder = 2
         object btnStopScan: TButton
           Left = 0
@@ -137,7 +127,7 @@ object frmPointerScanner: TfrmPointerScanner
         end
       end
       object Button1: TButton
-        Left = 436
+        Left = 555
         Height = 25
         Top = 0
         Width = 170
@@ -160,7 +150,7 @@ object frmPointerScanner: TfrmPointerScanner
     PopupMenu = PopupMenu1
     ReadOnly = True
     RowSelect = True
-    TabOrder = 3
+    TabOrder = 2
     Visible = False
     ViewStyle = vsReport
     OnColumnClick = ListView1ColumnClick
@@ -175,8 +165,62 @@ object frmPointerScanner: TfrmPointerScanner
     Width = 144
     Caption = 'Stop rescan loop'
     OnClick = btnStopRescanLoopClick
+    TabOrder = 3
+    Visible = False
+  end
+  object pnlProgress: TPanel
+    Left = 0
+    Height = 27
+    Top = 470
+    Width = 733
+    Align = alBottom
+    ClientHeight = 27
+    ClientWidth = 733
     TabOrder = 4
     Visible = False
+    object pnlProgressName: TPanel
+      Left = 1
+      Height = 25
+      Top = 1
+      Width = 143
+      Align = alLeft
+      BevelOuter = bvNone
+      ClientHeight = 25
+      ClientWidth = 143
+      TabOrder = 0
+      object Label1: TLabel
+        AnchorSideTop.Side = asrCenter
+        Left = 0
+        Height = 16
+        Top = 2
+        Width = 100
+        Caption = 'Main pointerdata'
+        ParentColor = False
+      end
+    end
+    object pnlProgressBar: TPanel
+      Left = 144
+      Height = 25
+      Top = 1
+      Width = 588
+      Align = alClient
+      ClientHeight = 25
+      ClientWidth = 588
+      TabOrder = 1
+      object ProgressBar1: TProgressBar
+        AnchorSideLeft.Control = pnlProgressBar
+        AnchorSideTop.Control = pnlProgressBar
+        AnchorSideRight.Control = pnlProgressBar
+        AnchorSideRight.Side = asrBottom
+        Left = 1
+        Height = 21
+        Top = 1
+        Width = 586
+        Anchors = [akTop, akLeft, akRight]
+        Step = 1
+        TabOrder = 0
+      end
+    end
   end
   object MainMenu1: TMainMenu
     left = 464
