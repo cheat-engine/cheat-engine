@@ -24,6 +24,7 @@ type
     pmap: TMap;
     modulelist: tstringlist;
     modulebases: array of ptruint;
+    is32bit: boolean;
   public
     function getAddressFromModuleIndexPlusOffset(moduleindex: integer; offset: integer): ptruint;
     function getPointer(address: ptruint): ptruint; //return 0 if not found
@@ -47,7 +48,12 @@ var
 begin
   base:=address and qword(not qword($ffff));
   if pmap.GetData(base, pbase) then
-    result:=pptruint(@pbase[address-base])^
+  begin
+    if is32bit then
+      result:=pdword(@pbase[address-base])^
+    else
+      result:=pqword(@pbase[address-base])^
+  end
   else
     result:=0;
 end;
@@ -69,6 +75,7 @@ var
   base: qword;
   offset: dword;
   pbase: pbytearray;
+  limit: integer;
 begin
   //create and fill in the pointerlist based on a reversepointerlist
   bma:=TBigMemoryAllocHandler.create;
@@ -91,7 +98,19 @@ begin
     freemem(mname);
   end;
 
-  ml:=s.ReadDWord; //maxlevel (for determining if 32 or 64-bit
+  ml:=s.ReadDWord; //maxlevel (for determining if 32 or 64-bit)
+
+  if ml=7 then
+  begin
+    is32bit:=true;
+    limit:=65536-sizeof(dword);
+  end
+  else
+  begin
+    is32bit:=false;
+    limit:=65536-sizeof(qword);
+  end;
+
   totalcount:=s.ReadQWord;
   count:=0;
 
@@ -117,8 +136,13 @@ begin
         pmap.Add(base, pbase);
       end;
 
-      if (address-base)<65536-sizeof(ptruint) then
-        pptruint(@pbase[address-base])^:=value;
+      if (address-base)<limit then
+      begin
+        if is32bit then
+          PDWord(@pbase[address-base])^:=value
+        else
+          PQWord(@pbase[address-base])^:=value
+      end;
       //todo: else add some overlap support. But for now, only allow alligned pointers
 
 
