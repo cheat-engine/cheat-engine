@@ -92,6 +92,7 @@ type
 
     //---
     Pointerscanresults: TPointerscanresultReader;
+    pointermap: TPointerListHandler;
 
     startentry: qword;
     EntriesToCheck: qword;
@@ -145,6 +146,13 @@ type
     progressbar: tprogressbar;
     filename: string;
     originalptrfile: string;
+
+    pointermapfilename: string;
+    pointermapprogressbar: tprogressbar;
+    pointermapprogressbarlabel: tlabel;
+    pointermap: TPointerListHandler;
+
+
     overwrite: boolean;
     address: ptrUint;
     forvalue: boolean;
@@ -491,7 +499,7 @@ type
   Tfrmpointerscanner = class(TForm)
     btnStopRescanLoop: TButton;
     Button1: TButton;
-    Label1: TLabel;
+    lblProgressbar1: TLabel;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
@@ -924,7 +932,6 @@ begin
     begin
       a:=instantrescanlist[i].getPointer(a);
       if a=0 then exit;
-
       a:=a+tempresults[j];
     end;
 
@@ -2986,7 +2993,7 @@ begin
       //moduleid can be negative, so keep that in mind
       MaxBitCountModuleIndex:=getMaxBitCount(ownerform.pointerlisthandler.modulelist.Count-1, true);
       MaxBitCountLevel:=getMaxBitCount(maxlevel-length(mustendwithoffsetlist) , false); //counted from 1.  (if level=4 then value goes from 1,2,3,4) 0 means no offsets. This can happen in case of a pointerscan with specific end offsets, which do not get saved.
-      MaxBitCountOffset:=getMaxBitCount(sz-1, false);
+      MaxBitCountOffset:=getMaxBitCount(sz, false);
 
       if unalligned=false then MaxBitCountOffset:=MaxBitCountOffset - 2;
     end;
@@ -3395,6 +3402,8 @@ begin
     staticscanner:=TStaticscanner.Create(true);
 
     label5.caption:=rsGeneratingPointermap;
+
+
     pnlProgress.Visible:=true;
 
     try
@@ -3419,6 +3428,11 @@ begin
       staticscanner.UseLoadedPointermap:=frmpointerscannersettings.cbUseLoadedPointermap.Checked;
       staticscanner.LoadedPointermapFilename:=frmpointerscannersettings.odLoadPointermap.FileName;
 
+
+      if staticscanner.UseLoadedPointermap then
+        lblProgressbar1.caption:=extractfilename(staticscanner.LoadedPointermapFilename)
+      else
+        lblProgressbar1.caption:='Generating pointermap';
 
       staticscanner.startaddress:=frmpointerscannersettings.start;
       staticscanner.stopaddress:=frmpointerscannersettings.Stop;
@@ -3494,6 +3508,7 @@ begin
 
             pb.left:=ProgressBar1.left;
             pb.width:=ProgressBar1.width;
+            pb.Anchors:=ProgressBar1.Anchors;
 
             lb:=TLabel.create(self);
             lb.caption:=extractfilename(pfn);
@@ -3512,7 +3527,9 @@ begin
 
         if length(staticscanner.instantrescanfiles)=0 then
           staticscanner.instantrescan:=false; //no rescan at all
-      end;
+      end
+      else
+        pnlProgress.ClientHeight:=ProgressBar1.Top+progressbar1.height+1;
 
       staticscanner.onlyOneStaticInPath:=frmpointerscannersettings.cbOnlyOneStatic.checked;
 
@@ -4270,8 +4287,6 @@ var
     lfun: integer;
     ltable: integer;
 
-    temppage: pointer;
-
 
     mr: TMemoryRegion;
 begin
@@ -4279,7 +4294,6 @@ begin
 
   try
 
-  getmem(temppage, 4096);
   if useluafilter then
   begin
     //create a new lua thread
@@ -4324,14 +4338,27 @@ begin
 
     while evaluated < self.EntriesToCheck do
     begin
+
+      if evaluated=901 then
+      begin
+        asm
+          nop
+        end
+      end;
+
       p:=Pointerscanresults.getPointer(currentEntry);
       if p<>nil then
       begin
         valid:=true;
-        if p.modulenr=-1 then
-          address:=p.moduleoffset
+        if pointermap=nil then
+        begin
+          if p.modulenr=-1 then
+            address:=p.moduleoffset
+          else
+            address:=Pointerscanresults.getModuleBase(p.modulenr)+p.moduleoffset
+        end
         else
-          address:=Pointerscanresults.getModuleBase(p.modulenr)+p.moduleoffset;
+          address:=pointermap.getAddressFromModuleIndexPlusOffset(p.modulenr,p.moduleoffset);
 
         baseaddress:=address;
 
@@ -4371,48 +4398,66 @@ begin
             if valid then
             begin
               //evaluate the pointer to address
-              for i:=p.offsetcount-1 downto 0 do
+              if pointermap=nil then
               begin
-
-                pi:=rescanhelper.FindPage(address shr 12);
-                if (pi.data<>nil) then
+                for i:=p.offsetcount-1 downto 0 do
                 begin
-                  tempaddress:=0;
-                  j:=address and $fff; //offset into the page
-                  k:=min(pointersize, 4096-j); //bytes to read from this page
 
-
-                  if (k<pointersize) then
+                  pi:=rescanhelper.FindPage(address shr 12);
+                  if (pi.data<>nil) then
                   begin
-                    //more bytes are needed
-                    copymemory(@tempaddress, @pi.data[j], k);
+                    tempaddress:=0;
+                    j:=address and $fff; //offset into the page
+                    k:=min(pointersize, 4096-j); //bytes to read from this page
 
-                    pi:=rescanhelper.FindPage((address shr 12)+1);
-                    if pi.data<>nil then
-                      copymemory(pointer(ptruint(@address)+k), @pi.data[0], pointersize-k)
-                    else
+
+                    if (k<pointersize) then
                     begin
-                      valid:=false;
-                      break;
-                    end;
+                      //more bytes are needed
+                      copymemory(@tempaddress, @pi.data[j], k);
+
+                      pi:=rescanhelper.FindPage((address shr 12)+1);
+                      if pi.data<>nil then
+                        copymemory(pointer(ptruint(@address)+k), @pi.data[0], pointersize-k)
+                      else
+                      begin
+                        valid:=false;
+                        break;
+                      end;
+                    end
+                    else
+                      tempaddress:=pptruint(@pi.data[j])^;
+
+                    {$ifdef cpu64}
+                    if pointersize=4 then
+                      tempaddress:=tempaddress and $ffffffff;
+                    {$endif}
+
+                    address:=tempaddress+p.offsets[i];
                   end
                   else
-                    tempaddress:=pptruint(@pi.data[j])^;
+                  begin
+                    valid:=false;
+                    break;
+                  end;
+                end;
+              end
+              else
+              begin
+                //use pointermap
 
-                  {$ifdef cpu64}
-                  if pointersize=4 then
-                    tempaddress:=tempaddress and $ffffffff;
-                  {$endif}
 
-                  address:=tempaddress+p.offsets[i];
-                end
-                else
+                for i:=p.offsetcount-1 downto 0 do
                 begin
-                  valid:=false;
-                  break;
+                  address:=pointermap.getPointer(address);
+                  if address=0 then
+                  begin
+                    valid:=false;
+                    break;
+                  end;
+                  address:=address+p.offsets[i];
                 end;
               end;
-
             end;
 
             if valid then
@@ -4499,7 +4544,15 @@ begin
 
 
           end; //must be in range and it wasn't in the range
-        end; //else not a valid module
+        end;
+      end;
+
+      if valid = false then
+      begin
+        asm
+        nop
+        end;
+
       end;
 
       inc(evaluated);
@@ -5169,6 +5222,9 @@ var
 
   valuesize: integer;
 
+  f: tfilestream;
+  ds: Tdecompressionstream;
+
 begin
   progressbar.Min:=0;
   progressbar.Max:=100;
@@ -5192,6 +5248,22 @@ begin
 
   rescanhelper:=TRescanHelper.create(sockethandle, sockethandlecs);
 
+  if pointermapfilename<>'' then
+  begin
+    ds:=nil;
+    f:=tfilestream.Create(pointermapfilename, fmOpenRead or fmShareDenyNone);
+    try
+      ds:=Tdecompressionstream.create(f);
+      pointermap:=TPointerListHandler.createFromStream(ds, pointermapprogressbar);
+    finally
+      if ds<>nil then
+        freeandnil(ds);
+
+      f.free;
+    end;
+  end;
+
+  pointermapprogressbar.position:=100;
 
 
   //fill the modulelist with baseaddresses
@@ -5202,7 +5274,7 @@ begin
 
     //spawn all threads
     rescanworkercount:=GetCPUCount;
-    if HasHyperthreading then rescanworkercount:=(rescanworkercount div 2)+1;
+    if HasHyperthreading then rescanworkercount:=ceil((rescanworkercount / 2)+(rescanworkercount / 4));
 
     blocksize:=TotalPointersToEvaluate div rescanworkercount;
     if blocksize<8 then blocksize:=8;
@@ -5215,6 +5287,7 @@ begin
 
 
       rescanworkers[i].Pointerscanresults:=TPointerscanresultReader.create(originalptrfile, pointerscanresults);
+      rescanworkers[i].pointermap:=pointermap;
      { rescanworkers[i].OriginalFilename:=ownerform.pointerscanresults.filename;
       rescanworkers[i].OriginalFileEntrySize:=ownerform.pointerscanresults.sizeOfEntry;
       rescanworkers[i].OriginalFileStartPosition:=ownerform.pointerscanresults.StartPosition;
@@ -5408,6 +5481,15 @@ begin
   if distributedrescanWorker and (Pointerscanresults<>nil) then
     freeandnil(Pointerscanresults);
 
+  if pointermapprogressbar<>nil then
+    freeandnil(pointermapprogressbar);
+
+  if pointermapprogressbarlabel<>nil then
+    freeandnil(pointermapprogressbarlabel);
+
+  if pointermap<>nil then
+    freeandnil(pointermap);
+
   inherited destroy;
 end;
 
@@ -5444,7 +5526,10 @@ begin
   rescan:=trescanpointers.create(true);
   rescan.ownerform:=self;
   rescan.progressbar:=progressbar1;
+
+  lblProgressbar1.caption:='Rescanning';
   pnlProgress.visible:=true;
+
 
 
 
@@ -5466,12 +5551,35 @@ begin
         cbDistributedRescan.OnChange(cbDistributedRescan);
 
 
-
       if (rescanpointerform.cbRepeat.checked) or (showmodal=mrok) then
       begin
         if (rescanpointerform.cbRepeat.checked) or savedialog1.Execute then
         begin
           rescan.novaluecheck:=cbNoValueCheck.checked;
+
+
+          if cbUseSavedPointermap.checked then
+          begin
+            rescan.pointermapfilename:=odLoadPointermap.filename;
+            rescan.pointermapprogressbar:=TProgressBar.Create(self);
+            rescan.pointermapprogressbar.parent:=pnlProgressBar;
+            rescan.pointermapprogressbar.position:=0;
+            rescan.pointermapprogressbar.max:=100;
+            rescan.pointermapprogressbar.top:=progressbar1.top+progressbar1.height;
+            rescan.pointermapprogressbar.left:=ProgressBar1.Left;
+            rescan.pointermapprogressbar.width:=Progressbar1.width;
+            rescan.pointermapprogressbar.anchors:=ProgressBar1.anchors;
+
+            rescan.pointermapprogressbarlabel:=TLabel.create(self);
+            rescan.pointermapprogressbarlabel.caption:=extractfilename(rescan.pointermapfilename);
+            rescan.pointermapprogressbarlabel.parent:=pnlProgressName;
+            rescan.pointermapprogressbarlabel.top:=rescan.pointermapprogressbar.top+(rescan.pointermapprogressbar.height div 2)-(rescan.pointermapprogressbarlabel.height div 2);
+            rescan.pointermapprogressbarlabel.hint:=rescan.pointermapfilename;
+            rescan.pointermapprogressbarlabel.showhint:=true;
+
+            pnlProgress.ClientHeight:=rescan.pointermapprogressbar.Top+rescan.pointermapprogressbar.height+1;
+
+          end;
 
           if cbRepeat.Checked then
           begin
@@ -5599,6 +5707,8 @@ begin
 
 
 
+
+
           rescan.start;
         end;
       end;
@@ -5623,6 +5733,7 @@ begin
 end;
 
 procedure tfrmpointerscanner.rescandone(var message: tmessage);
+
 
 {
 The rescan is done. rescan.oldpointerlist (the current pointerlist) can be deleted

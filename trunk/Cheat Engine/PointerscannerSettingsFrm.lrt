@@ -90,7 +90,7 @@ TFRMPOINTERSCANNERSETTINGS.LABEL3.CAPTION=Maximum offset value:
 TFRMPOINTERSCANNERSETTINGS.LABEL12.CAPTION=Max level
 TFRMPOINTERSCANNERSETTINGS.LABEL9.CAPTION=Nr of threads scanning: 
 TFRMPOINTERSCANNERSETTINGS.BUTTON1.CAPTION=OK
-TFRMPOINTERSCANNERSETTINGS.EDITSTRUCTSIZE.TEXT=2048
+TFRMPOINTERSCANNERSETTINGS.EDITSTRUCTSIZE.TEXT=2047
 TFRMPOINTERSCANNERSETTINGS.EDITMAXLEVEL.TEXT=5
 TFRMPOINTERSCANNERSETTINGS.BTNCANCEL.CAPTION=Cancel
 TFRMPOINTERSCANNERSETTINGS.EDTTHREADCOUNT.TEXT=2
@@ -121,8 +121,7 @@ Most of the time the bottleneck of a pointerscan is disk writing, so it is recom
 Compressed .PTR files can not be read out by older Cheat Engine versions
 TFRMPOINTERSCANNERSETTINGS.CBCOMPRESSEDPOINTERSCANFILE.CAPTION=Compressed pointerscan file
 TFRMPOINTERSCANNERSETTINGS.CBCOMPARETOOTHERPOINTERMAPS.HINT=When ticked you can add other pointermaps which will be used to verify that the pointers it finds are correct. You will have to fill in the correct address for each pointermap you provide.
-Note: expect at least 16GB of ram usage for every pointermap used
+Note: expect at least the size of the game itself in memory for every pointermap used
 
-Currently not implemented
 TFRMPOINTERSCANNERSETTINGS.CBCOMPARETOOTHERPOINTERMAPS.CAPTION=Compare results with other saved pointermap(s)
 TFRMPOINTERSCANNERSETTINGS.CBGENERATEPOINTERMAPONLY.CAPTION=Generate pointermap only

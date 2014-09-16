@@ -27,4 +27,6 @@ TFRMRESCANPOINTER.EDTRESCANPORT.TEXT=52739
 TFRMRESCANPOINTER.CBBROADCAST.CAPTION=Broadcast that a rescan has started
 TFRMRESCANPOINTER.BTNNOTIFYSPECIFICIPS.CAPTION=Additional IP's
 TFRMRESCANPOINTER.CBWAITFORALL.CAPTION=Wait for all known scanners to connect and finish
-TFRMRESCANPOINTER.CHECKBOX1.CAPTION=Use saved pointermap (NYI)
+TFRMRESCANPOINTER.CBUSESAVEDPOINTERMAP.HINT=Normally this should not be used. Saved pointermaps are best suited for the initial scan.
+One case where it could be useful is where you have a pointerfile that is too big to send to someone else, but the scandata file is not. In that case, ask the other person for the scandata and do the scan on your system against the current pointerfile
+TFRMRESCANPOINTER.CBUSESAVEDPOINTERMAP.CAPTION=Use saved pointermap

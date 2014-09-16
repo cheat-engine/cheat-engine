@@ -27,7 +27,7 @@ type
     cbLuaFilter: TCheckBox;
     cbDistributedRescan: TCheckBox;
     cbWaitForAll: TCheckBox;
-    CheckBox1: TCheckBox;
+    cbUseSavedPointermap: TCheckBox;
     edtRescanPort: TEdit;
     lblLuaParams: TLabel;
     edtRescanFunction: TEdit;
@@ -38,6 +38,7 @@ type
     cbValueType: TComboBox;
     Label1: TLabel;
     lblAnd: TLabel;
+    odLoadPointermap: TOpenDialog;
     pnlButtons: TPanel;
     Panel2: TPanel;
     rbFindAddress: TRadioButton;
@@ -51,6 +52,7 @@ type
     procedure cbMustEndWithSpecificOffsetsChange(Sender: TObject);
     procedure cbMustStartWithSpecificOffsetsChange(Sender: TObject);
     procedure cbNoValueCheckChange(Sender: TObject);
+    procedure cbUseSavedPointermapChange(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure rbFindAddressClick(Sender: TObject);
@@ -411,6 +413,36 @@ begin
   rbFindValue.enabled:=newstate;
   edtAddress.enabled:=newstate;
   cbValueType.enabled:=newstate;
+end;
+
+procedure TfrmRescanPointer.cbUseSavedPointermapChange(Sender: TObject);
+begin
+  if cbUseSavedPointermap.checked then
+  begin
+    if odLoadPointermap.execute then
+      cbUseSavedPointermap.caption:='Use saved pointermap: '+ExtractFileName(odLoadPointermap.FileName)
+    else
+      cbUseSavedPointermap.checked:=false;
+  end
+  else
+    cbUseSavedPointermap.Caption:='Use saved pointermap';
+
+  if cbUseSavedPointermap.checked then
+  begin
+    rbFindValue.checked:=false;
+    rbFindValue.enabled:=false;
+    rbFindAddress.Checked:=true;
+    cbRepeat.Checked:=false;
+    cbRepeat.Enabled:=false; //really no use rescanning an never changing static pointermap
+    cbNoValueCheck.Checked:=false;
+    cbNoValueCheck.Enabled:=false;
+  end
+  else
+  begin
+    rbFindValue.enabled:=true;
+    cbRepeat.Enabled:=true;
+    cbNoValueCheck.Enabled:=true;
+  end;
 end;
 
 procedure TfrmRescanPointer.FormDestroy(Sender: TObject);

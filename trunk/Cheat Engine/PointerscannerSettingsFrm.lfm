@@ -306,18 +306,22 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Font.Name = 'MS Sans Serif'
     ParentFont = False
     TabOrder = 3
+    OnClick = Panel1Click
     object Label3: TLabel
-      Left = 24
+      AnchorSideRight.Control = editStructsize
+      Left = 115
       Height = 13
       Top = 42
       Width = 105
+      Anchors = [akTop, akRight]
       Caption = 'Maximum offset value:'
       ParentColor = False
     end
     object Label12: TLabel
+      AnchorSideLeft.Control = btnCancel
       AnchorSideRight.Control = editMaxLevel
       AnchorSideRight.Side = asrCenter
-      Left = 231
+      Left = 288
       Height = 13
       Top = 42
       Width = 45
@@ -325,15 +329,17 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       ParentColor = False
     end
     object Label9: TLabel
-      Left = 16
+      AnchorSideRight.Control = edtThreadcount
+      Left = 107
       Height = 13
       Top = 10
       Width = 113
+      Anchors = [akTop, akRight]
       Caption = 'Nr of threads scanning: '
       ParentColor = False
     end
     object Button1: TButton
-      Left = 138
+      Left = 200
       Height = 25
       Top = 68
       Width = 80
@@ -343,25 +349,34 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       TabOrder = 0
     end
     object editStructsize: TEdit
-      Left = 158
+      AnchorSideRight.Control = Button1
+      AnchorSideRight.Side = asrBottom
+      Left = 220
       Height = 21
       Top = 38
       Width = 60
+      Anchors = [akTop, akRight]
       TabOrder = 1
-      Text = '2048'
+      Text = '2047'
     end
     object editMaxLevel: TEdit
-      Left = 286
+      AnchorSideLeft.Control = Label12
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideRight.Control = ComboBox1
+      AnchorSideRight.Side = asrBottom
+      Left = 341
       Height = 21
       Top = 38
-      Width = 80
+      Width = 87
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Left = 8
       TabOrder = 2
       Text = '5'
     end
     object btnCancel: TButton
-      Left = 226
+      Left = 288
       Height = 25
-      Top = 68
+      Top = 64
       Width = 93
       Cancel = True
       Caption = 'Cancel'
@@ -369,15 +384,20 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       TabOrder = 3
     end
     object edtThreadcount: TEdit
-      Left = 158
+      AnchorSideLeft.Control = editStructsize
+      AnchorSideRight.Control = Button1
+      AnchorSideRight.Side = asrBottom
+      Left = 220
       Height = 21
       Top = 6
       Width = 60
+      Anchors = [akTop, akLeft, akRight]
       TabOrder = 4
       Text = '2'
     end
     object ComboBox1: TComboBox
-      Left = 226
+      AnchorSideLeft.Control = btnCancel
+      Left = 288
       Height = 21
       Top = 5
       Width = 140
@@ -573,7 +593,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   object cbCompareToOtherPointermaps: TCheckBox
     Left = 8
     Height = 19
-    Hint = 'When ticked you can add other pointermaps which will be used to verify that the pointers it finds are correct. You will have to fill in the correct address for each pointermap you provide.'#13#10'Note: expect at least 16GB of ram usage for every pointermap used'#13#10#13#10'Currently not implemented'
+    Hint = 'When ticked you can add other pointermaps which will be used to verify that the pointers it finds are correct. You will have to fill in the correct address for each pointermap you provide.'#13#10'Note: expect at least the size of the game itself in memory for every pointermap used'#13#10
     Top = 312
     Width = 242
     Caption = 'Compare results with other saved pointermap(s)'
@@ -592,14 +612,14 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   end
   object odLoadPointermap: TOpenDialog
     DefaultExt = '.scandata'
-    Filter = 'All files (*.*)|*.*|scandata files|*.scandata'
+    Filter = 'All files (*.*)|*.*|scandata files (*.scandata)|*.scandata'
     FilterIndex = 2
     left = 544
     top = 264
   end
   object il: TImageList
-    left = 456
-    top = 304
+    left = 464
+    top = 272
     Bitmap = {
       4C69020000001000000010000000FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF006360

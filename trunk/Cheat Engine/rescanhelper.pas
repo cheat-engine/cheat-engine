@@ -326,6 +326,8 @@ begin
   i:=lo;
   j:=hi;
 
+  if hi<0 then exit;
+
   x:=memoryregion[(lo+hi) div 2];
 
   repeat

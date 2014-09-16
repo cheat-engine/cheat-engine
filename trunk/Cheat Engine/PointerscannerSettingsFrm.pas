@@ -8,7 +8,7 @@ uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ComCtrls, ExtCtrls, LResources, EditBtn, Buttons, Contnrs,
   CEFuncProc, NewKernelHandler, symbolhandler, multilineinputqueryunit,
-  registry, resolve, fgl;
+  registry, resolve, fgl, math;
 
 
 type
@@ -153,6 +153,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure cbMustEndWithSpecificOffsetClick(Sender: TObject);
     procedure cbUseHeapDataClick(Sender: TObject);
+    procedure Panel1Click(Sender: TObject);
     procedure rbFindValueClick(Sender: TObject);
     procedure edtAddressChange(Sender: TObject);
     procedure cbHeapOnlyClick(Sender: TObject);
@@ -172,6 +173,7 @@ type
     procedure updatepositions;
     procedure PointerFileListEmpty(sender: TObject);
     procedure PointerFileListResize(sender: TObject);
+    procedure UpdateFindValueState;
   public
     { Public declarations }
     reverse: boolean; //indicates to use the reverse method
@@ -796,6 +798,7 @@ begin
   else
     cbUseLoadedPointermap.enabled:=true;
 
+  UpdateFindValueState;
 end;
 
 procedure TfrmPointerScannerSettings.cbUseLoadedPointermapChange(Sender: TObject);
@@ -811,6 +814,9 @@ begin
       cbReusePointermap.OnChange:=cbReusePointermapChange;
 
       cbUseLoadedPointermap.Caption:=rsUseLoadedPointermap+':'+ExtractFileName(odLoadPointermap.FileName);
+
+
+
     end
     else
       cbUseLoadedPointermap.checked:=false;
@@ -819,6 +825,8 @@ begin
   end
   else
     cbUseLoadedPointermap.Caption:=rsUseLoadedPointermap;
+
+  UpdateFindValueState;
 end;
 
 procedure TfrmPointerScannerSettings.PointerFileListEmpty(sender: TObject);
@@ -852,6 +860,7 @@ begin
     pdatafilelist:=nil;
   end;
 
+  UpdateFindValueState;
   updatepositions;
 end;
 
@@ -886,7 +895,7 @@ begin
   //In short, leave the hyperhtreaded processors alone so the user can use that hardly useful processing power to surf the web or move the mouse...
   //(at most use one)
   if HasHyperthreading then
-    cpucount:=1+(cpucount div 2);
+    cpucount:=ceil((cpucount / 2)+(cpucount / 4));
 
 
   rbFindValueClick(rbFindAddress);
@@ -1044,6 +1053,11 @@ begin
   edtAddressChange(edtAddress);
 end;
 
+procedure TfrmPointerScannerSettings.Panel1Click(Sender: TObject);
+begin
+
+end;
+
 procedure TfrmPointerScannerSettings.rbFindValueClick(Sender: TObject);
 begin
   if rbFindAddress.Checked then
@@ -1080,6 +1094,17 @@ end;
 procedure TfrmPointerScannerSettings.cbHeapOnlyClick(Sender: TObject);
 begin
   edtAddressChange(edtAddress);
+end;
+
+procedure TfrmPointerScannerSettings.UpdateFindValueState;
+begin
+  //make rbFindValue enabled or disabled based on the current settings
+
+  rbFindValue.enabled:=not (cbReusePointermap.checked or cbUseLoadedPointermap.checked or cbCompareToOtherPointermaps.checked);
+
+  if rbFindValue.enabled=false then
+    rbFindAddress.Checked:=true;
+
 end;
 
 procedure TfrmPointerScannerSettings.updatepositions;
