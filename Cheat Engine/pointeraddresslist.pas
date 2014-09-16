@@ -36,9 +36,10 @@ implementation
 
 function TPointerListHandler.getAddressFromModuleIndexPlusOffset(moduleindex: integer; offset: integer): ptruint;
 begin
-  result:=offset; //if moduleindex=-1 it's an non module base
   if moduleindex>=0 then
-    inc(result, modulebases[moduleindex]);
+    result:=modulebases[moduleindex]+offset
+  else
+    result:=offset; //if moduleindex=-1 it's an non module base
 end;
 
 function TPointerListHandler.getPointer(address: ptruint): ptruint;
@@ -122,6 +123,7 @@ begin
   while count<totalcount do
   begin
     value:=ptruint(s.ReadQWord);
+
 
 
     nrofpointers:=s.ReadDWord;

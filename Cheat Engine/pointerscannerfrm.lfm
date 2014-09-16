@@ -2,10 +2,10 @@ object frmPointerScanner: TfrmPointerScanner
   Left = 872
   Height = 517
   Top = 180
-  Width = 733
+  Width = 741
   Caption = 'Pointer scan'
   ClientHeight = 497
-  ClientWidth = 733
+  ClientWidth = 741
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Menu = MainMenu1
@@ -19,11 +19,11 @@ object frmPointerScanner: TfrmPointerScanner
     Left = 0
     Height = 24
     Top = 0
-    Width = 733
+    Width = 741
     Align = alTop
     BevelOuter = bvNone
     ClientHeight = 24
-    ClientWidth = 733
+    ClientWidth = 741
     TabOrder = 0
     object cbType: TComboBox
       Left = 0
@@ -46,7 +46,7 @@ object frmPointerScanner: TfrmPointerScanner
     Left = 0
     Height = 446
     Top = 24
-    Width = 733
+    Width = 741
     ActivePage = tsPSReverse
     Align = alClient
     TabIndex = 0
@@ -54,13 +54,13 @@ object frmPointerScanner: TfrmPointerScanner
     object tsPSReverse: TTabSheet
       Caption = 'tsPSReverse'
       ClientHeight = 417
-      ClientWidth = 725
+      ClientWidth = 733
       ImageIndex = 1
       object tvRSThreads: TTreeView
         Left = 0
         Height = 317
         Top = 65
-        Width = 725
+        Width = 733
         Align = alClient
         DefaultItemHeight = 18
         Indent = 19
@@ -70,11 +70,11 @@ object frmPointerScanner: TfrmPointerScanner
         Left = 0
         Height = 65
         Top = 0
-        Width = 725
+        Width = 733
         Align = alTop
         BevelOuter = bvNone
         ClientHeight = 65
-        ClientWidth = 725
+        ClientWidth = 733
         TabOrder = 1
         object Label5: TLabel
           Left = 0
@@ -107,11 +107,11 @@ object frmPointerScanner: TfrmPointerScanner
         Left = 0
         Height = 35
         Top = 382
-        Width = 725
+        Width = 733
         Align = alBottom
         BevelOuter = bvNone
         ClientHeight = 35
-        ClientWidth = 725
+        ClientWidth = 733
         TabOrder = 2
         object btnStopScan: TButton
           Left = 0
@@ -127,7 +127,7 @@ object frmPointerScanner: TfrmPointerScanner
         end
       end
       object Button1: TButton
-        Left = 555
+        Left = 563
         Height = 25
         Top = 0
         Width = 170
@@ -172,10 +172,10 @@ object frmPointerScanner: TfrmPointerScanner
     Left = 0
     Height = 27
     Top = 470
-    Width = 733
+    Width = 741
     Align = alBottom
     ClientHeight = 27
-    ClientWidth = 733
+    ClientWidth = 741
     TabOrder = 4
     Visible = False
     object pnlProgressName: TPanel
@@ -188,13 +188,13 @@ object frmPointerScanner: TfrmPointerScanner
       ClientHeight = 25
       ClientWidth = 143
       TabOrder = 0
-      object Label1: TLabel
+      object lblProgressbar1: TLabel
         AnchorSideTop.Side = asrCenter
         Left = 0
         Height = 16
         Top = 2
-        Width = 100
-        Caption = 'Main pointerdata'
+        Width = 137
+        Caption = 'Generating pointermap'
         ParentColor = False
       end
     end
@@ -202,10 +202,10 @@ object frmPointerScanner: TfrmPointerScanner
       Left = 144
       Height = 25
       Top = 1
-      Width = 588
+      Width = 596
       Align = alClient
       ClientHeight = 25
-      ClientWidth = 588
+      ClientWidth = 596
       TabOrder = 1
       object ProgressBar1: TProgressBar
         AnchorSideLeft.Control = pnlProgressBar
@@ -215,7 +215,7 @@ object frmPointerScanner: TfrmPointerScanner
         Left = 1
         Height = 21
         Top = 1
-        Width = 586
+        Width = 594
         Anchors = [akTop, akLeft, akRight]
         Step = 1
         TabOrder = 0
