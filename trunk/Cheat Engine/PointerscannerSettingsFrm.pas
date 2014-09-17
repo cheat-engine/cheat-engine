@@ -39,6 +39,8 @@ type
 
   TPointerFileList=class(TPanel)
   private
+    lblFilenames: TLabel;
+    lblAddress: TLabel;
     fimagelist: TImageList;
     fOnEmptyList: TNotifyEvent;
     Entries: TPointerFileEntries;
@@ -48,7 +50,7 @@ type
     function getAddress(index: integer): ptruint;
     procedure DeleteEntry(sender: TObject);
     procedure FilenameUpdate(sender: TObject);
-    procedure AddEntry;
+    function AddEntry: TPointerFileEntry;
     procedure Organize;
   public
     constructor create(imagelist: TImageList; AOwner: TComponent; w: integer);
@@ -326,6 +328,7 @@ begin
   od.DefaultExt:='.scandata';
   od.Filter:='All files (*.*)|*.*|Scandata (*.scandata)|*.scandata';
   od.FilterIndex:=2;
+  od.filename:=filename;
   if od.execute then
   begin
     filename:=od.filename;
@@ -362,7 +365,7 @@ var
 
 begin
   //sort based on the order of the list
-  t:=0;
+  t:=lblFilenames.top+lblFilenames.height;
   for i:=0 to entries.count-1 do
   begin
     entries[i].top:=t;
@@ -413,13 +416,13 @@ begin
   AddEntry;
 end;
 
-procedure TPointerFileList.addentry;
+function TPointerFileList.addentry:TPointerFileEntry;
 var e: TPointerFileEntry;
 begin
   e:=TPointerFileEntry.create(fimagelist, self);
   e.parent:=self;
   if entries.Count=0 then
-    e.top:=0
+    e.top:=lblFilenames.Top+lblFilenames.height+2
   else
     e.top:=entries[entries.count-1].Top+entries[entries.count-1].Height;
 
@@ -428,6 +431,7 @@ begin
   e.OnSetFileName:=FilenameUpdate;
 
   entries.Add(e);
+  result:=e;
 
   Organize;
 end;
@@ -458,6 +462,7 @@ begin
 end;
 
 constructor TPointerFileList.create(imagelist: TImageList; AOwner: TComponent; w: integer);
+var e: TPointerFileEntry;
 begin
   fimagelist:=imagelist;
   inherited create(AOwner);
@@ -468,10 +473,25 @@ begin
     parent:=twincontrol(aowner);
   end;
 
+  bevelouter:=bvNone;
+
+
   entries:=TPointerFileEntries.create;
-  AddEntry;
+  lblFilenames:=TLabel.create(self);
+  lblFilenames.caption:='Filename';
+  lblFilenames.parent:=self;
 
+  lblAddress:=TLabel.create(self);
+  lblAddress.caption:='Address';
+  lblAddress.parent:=self;
 
+  lblAddress.top:=0;
+  lblFilenames.top:=0;
+
+  e:=AddEntry;
+
+  lblFilenames.Left:=e.lblFilename.Left;
+  lblAddress.left:=e.edtAddress.Left+(e.edtAddress.width div 2)-(lblAddress.width div 2);
 end;
 
 destructor TPointerFileList.destroy;
