@@ -256,6 +256,7 @@ type
 
     isdone: boolean;
     hasTerminated: boolean;
+    savestate: boolean;
     stop: boolean;
 
     staticscanner: TStaticscanner;
@@ -367,7 +368,7 @@ type
 
     function ismatchtovalue(p: pointer): boolean;  //checks if the pointer points to a value matching the user's input
     procedure reversescan;
-
+    procedure SaveAndClearQueue(s: TStream);
   public
     //reverse
     firstaddress: pointer;
@@ -489,6 +490,8 @@ type
       progresslabel: TLabel;
     end;
 
+    savestate: boolean; //if true and terminated is true then save the current state
+
     procedure execute; override;
     constructor create(suspended: boolean);
     destructor destroy; override;
@@ -582,6 +585,7 @@ type
     procedure doneui;
     procedure resyncloadedmodulelist;
     procedure OpenPointerfile(filename: string);
+    procedure stopscan(savestate: boolean);
   public
     { Public declarations }
     Staticscanner:TStaticScanner;
@@ -632,6 +636,7 @@ resourcestring
   rsPointerscanResult = 'pointerscan result';
 
   rsTerminating = 'Terminating';
+  rsSavingAndTerminating = 'Saving...';
   rsStop = 'Stop';
   rsFailureCopyingTargetProcessMemory = 'Failure copying target process memory';
   rsOUTOFDISKSPACECleanUpTheDiskOrStop = 'OUT OF DISKSPACE! Clean up the disk '
@@ -847,7 +852,7 @@ begin
       while (not terminated) and (not self.staticscanner.Terminated) do
       begin
         wr:=WaitForSingleObject(self.staticscanner.pathqueueSemaphore, INFINITE); //obtain semaphore
-        if stop or terminated or self.staticscanner.Terminated then
+        if stop or terminated then
         begin
           ReleaseSemaphore(staticscanner.pathqueueSemaphore, 1, nil);
           exit;
@@ -1105,8 +1110,8 @@ var p: ^byte;
   locked: boolean;
 
 begin
-  if (level>=maxlevel) or (self.staticscanner.Terminated) or (terminated) then exit;
-
+  if (level>=maxlevel) or (terminated and (savestate=false)) then
+    exit;
 
 
   currentlevel:=level;
@@ -1192,14 +1197,14 @@ begin
             begin
               addedToQueue:=false;
 
-              if staticscanner.outofdiskspace then //if there is not enough diskspace left wait till it's terminated, or diskspace is freed
+              if savestate or staticscanner.outofdiskspace then //if there is not enough diskspace left wait till it's terminated, or diskspace is freed
               begin
                 //!!Out of diskspace!!
                 //add to the queue and exit
-                while staticscanner.outofdiskspace and (not addedToQueue) do
+                while (savestate or staticscanner.outofdiskspace) and (not addedToQueue) do
                 begin
-                  //try to add it
-                  if (not Terminated) and (not self.staticscanner.Terminated) then
+                  //try to add it to the queue
+                  if (not Terminated) or savestate then
                   begin
                     staticscanner.pathqueueCS.Enter;
                     if staticscanner.pathqueuelength<MAXQUEUESIZE-1 then
@@ -1219,11 +1224,16 @@ begin
                     end;
                     staticscanner.pathqueueCS.Leave;
                   end
-                  else exit; //terminated
-                  sleep(500);
+                  else
+                    exit; //terminated
+
+                  if savestate then
+                    sleep(10)
+                  else
+                    sleep(500);
                 end;
 
-                //^^^^out of diskspace!^^^^
+                //^^^^out of diskspace or save state!^^^^
               end
               else
               begin
@@ -1241,7 +1251,7 @@ begin
                    (staticscanner.pathqueuelength=0) //completely empty
                 then //there's room and not a crappy work item. Add it
                 begin
-                  if (not Terminated) and (not self.staticscanner.Terminated) then
+                  if (not Terminated) or savestate then
                   begin
                     //try to lock multiple times if high level pointers
                     locked:=staticscanner.pathqueueCS.tryEnter;
@@ -2581,6 +2591,63 @@ begin
   end;
 end;
 
+procedure TStaticScanner.SaveAndClearQueue(s: TStream);
+var i: integer;
+begin
+  if s=nil then exit; //can happen if stop is pressed right after the scan is done but before the gui is updated
+
+  if pathqueuelength>0 then
+  begin
+    pathqueueCS.enter;
+    try
+      //save the current queue and clear it (repeat till all scanners are done)
+
+
+
+      for i:=0 to pathqueuelength-1 do
+      begin
+        s.Write(pathqueue[i].valuetofind, sizeof(pathqueue[i].valuetofind));
+        s.Write(pathqueue[i].startlevel, sizeof(pathqueue[i].startlevel));
+        s.Write(pathqueue[i].tempresults[0], length(pathqueue[i].tempresults)*sizeof(pathqueue[i].tempresults[0]));
+
+        if noloop then
+          s.Write(pathqueue[i].valuelist[0], length(pathqueue[i].valuelist)*sizeof(pathqueue[i].valuelist[0]));
+      end;
+
+      i:=pathqueuelength;
+      pathqueuelength:=0;
+      ReleaseSemaphore(pathqueueSemaphore, i, nil);
+
+    finally
+      pathqueueCS.Leave;
+    end;
+
+  end;
+
+end;
+
+type
+  TScanDataWriter=class(tthread)
+  private
+  public
+    progressbar: TProgressbar;
+    filename: string;
+    pointerlisthandler: TReversePointerListHandler;
+    procedure execute; override;
+  end;
+
+procedure TScanDataWriter.execute;
+var
+  f: TFileStream;
+  cs: Tcompressionstream;
+begin
+  f:=tfilestream.create(filename, fmCreate);
+  cs:=Tcompressionstream.create(clfastest, f);
+  pointerlisthandler.exportToStream(cs, progressbar);
+  cs.free;
+  f.free;
+end;
+
 procedure TStaticScanner.reversescan;
 {
 Do a reverse pointer scan
@@ -2594,9 +2661,15 @@ var
 
   valuefinder: TValueFinder;
 
+  savedqueue: TFilestream;
+  scandatawriter: TScanDataWriter;
 
 begin
+
   //scan the buffer
+  savedqueue:=nil;
+  scandatawriter:=nil;
+
   scount:=0;
   alldone:=false;
 
@@ -2689,20 +2762,51 @@ begin
 
       while (not alldone) do
       begin
-        outofdiskspace:=getDiskFreeFromPath(filename)<128*1024*1024*length(reversescanners); //128MB for each thread
+        outofdiskspace:=getDiskFreeFromPath(filename)<64*1024*1024*length(reversescanners); //64MB for each thread
 
 
         if Terminated then
         begin
-          OutputDebugString('Forced terminate. Telling the scanworkers to die as well');
+       {   OutputDebugString('Forced terminate. Telling the scanworkers to die as well');
+
+          if savestate then
+            OutputDebugString('Saving state');        }
+
           //force the workers to die if they are sleeping
           for i:=0 to length(reversescanners)-1 do
           begin
+            reversescanners[i].savestate:=savestate;
             reversescanners[i].stop:=true;
             reversescanners[i].Terminate;
           end;
 
-          ReleaseSemaphore(pathqueueSemaphore, MAXQUEUESIZE, nil);
+          if terminated and savestate then
+          begin
+            if scandatawriter=nil then
+            begin
+              scandatawriter:=TScanDataWriter.Create(true);
+              scandatawriter.progressbar:=progressbar;
+              scandatawriter.filename:=filename+'.resume.scandata';
+              scandatawriter.pointerlisthandler:=ownerform.pointerlisthandler;
+              scandatawriter.Start;
+            end;
+
+            if savedqueue=nil then
+            begin
+              savedqueue:=TFileStream.Create(filename+'.resume.queue', fmCreate);
+              savedqueue.WriteDWord(length(pathqueue[0].tempresults)); //number of entries in the tempresult array
+
+              if noloop then
+                savedqueue.WriteDWord(length(pathqueue[0].valuelist))
+              else
+                savedqueue.WriteDWord(0);
+
+            end;
+          end;
+
+
+          if not savestate then
+            ReleaseSemaphore(pathqueueSemaphore, MAXQUEUESIZE, nil); //release all queues
         end;
 
 
@@ -2711,7 +2815,15 @@ begin
         if distributedScanning then
           alldone:=not doDistributedScanningLoop
         else
-          sleep(500);
+        begin
+          if terminated and savestate then
+            sleep(10)
+          else
+            sleep(500);
+        end;
+
+
+
 
 
         if (not alldone) and (pathqueuelength=0) or terminated then //it's 0 or terminated
@@ -2721,7 +2833,6 @@ begin
           if (pathqueuelength=0) or terminated then
           begin //still 0
             alldone:=true;
-
 
             for i:=0 to length(reversescanners)-1 do
             begin
@@ -2751,6 +2862,9 @@ begin
           end
           else
             alldone:=false;
+
+          if terminated and savestate then
+            saveAndClearQueue(savedqueue);
 
           pathqueueCS.Leave;
 
@@ -2804,8 +2918,20 @@ begin
 
     setlength(reversescanners,0);
 
+    if terminated and savestate then
+      saveAndClearQueue(savedqueue);
+
 
   finally
+    if savedqueue<>nil then
+      freeandnil(savedqueue);
+
+    if scandatawriter<>nil then
+    begin
+      scandatawriter.WaitFor;
+      freeandnil(scandatawriter);
+    end;
+
     if haserror then
       postmessage(ownerform.Handle,staticscanner_done,1,ptrUint(pchar(errorstring)))
     else
@@ -5759,13 +5885,56 @@ begin
   end;
 end;
 
-procedure Tfrmpointerscanner.btnStopScanClick(Sender: TObject);
+procedure Tfrmpointerscanner.stopscan(savestate: boolean);
+var i: integer;
 begin
   if staticscanner<>nil then
   begin
-    btnStopScan.Caption:=rsTerminating;
+    if savestate then
+    begin
+      Staticscanner.savestate:=true;
+      btnStopScan.Caption:=rsSavingAndTerminating;
+
+      for i:=0 to pnlProgress.ControlCount-1 do
+      begin
+        if pnlProgress.Controls[i]<>lblProgressbar1 then
+          pnlProgress.Controls[i].Visible:=false;
+      end;
+
+      for i:=0 to pnlProgressBar.ControlCount-1 do
+      begin
+        if pnlProgressBar.Controls[i]<>Progressbar1 then
+          pnlProgressBar.Controls[i].Visible:=false;
+      end;
+
+      pnlProgress.height:=ProgressBar1.height+1;
+
+      ProgressBar1.visible:=true;
+      Progressbar1.Position:=0;
+      progressbar1.Max:=100;
+
+      progressbar1.top:=0;
+      pnlProgressName.visible:=true;
+      pnlProgressBar.visible:=true;
+      lblProgressbar1.Visible:=true;
+      pnlProgress.Visible:=true;
+    end
+    else
+      btnStopScan.Caption:=rsTerminating;
+
     btnStopScan.enabled:=false;
     staticscanner.Terminate;
+  end;
+end;
+
+procedure Tfrmpointerscanner.btnStopScanClick(Sender: TObject);
+var c: TModalResult;
+begin
+  c:=MessageDlg('Do you wish to resume the current pointerscan at a later time?', mtInformation,[mbyes, mbno, mbCancel], 0);
+  case c of
+    mryes: stopscan(true);
+    mrno: stopscan(false);
+    else exit;
   end;
 end;
 
@@ -5805,8 +5974,6 @@ end;
 
 procedure Tfrmpointerscanner.New1Click(Sender: TObject);
 begin
-  btnStopScan.click;
-
   if staticscanner<>nil then
     freeandnil(staticscanner);
 
