@@ -119,7 +119,7 @@ type
     modulelist: tstringlist;
 
 
-    procedure exportToStream(s: TStream);
+    procedure exportToStream(s: TStream; pb: TProgressbar=nil);
 
     procedure saveModuleListToResults(s: TStream);
 
@@ -687,10 +687,11 @@ begin
     raise exception.create(rsPointerValueSetupError);
 end;
 
-procedure TReversePointerListHandler.exportToStream(s: TStream);
-var i: integer;
+procedure TReversePointerListHandler.exportToStream(s: TStream; pb: TProgressbar=nil);
+var i,c: integer;
 
   pv: PPointerList;
+  lastupdate: qword;
 begin
 
   saveModuleListToResults(s); //save the module list (not important for worker threads/systems, but used for saving the main .ptr file)
@@ -698,6 +699,12 @@ begin
   s.WriteDWord(maxlevel);
 
   s.WriteQWord(count);
+
+  lastupdate:=GetTickCount64;
+  if pb<>nil then
+    pb.position:=0;
+
+  c:=0;
 
   pv:=firstPointerValue;
   while (pv<>nil) do
@@ -720,13 +727,26 @@ begin
           s.WriteDWord(pv^.list[i].staticdata.offset);
         end;
 
+        c:=c+1;
       end;
 
 
     end;
 
     pv:=pv^.next;
+
+    if (pb<>nil) and (gettickcount64>lastupdate+1000) then
+    begin
+      pb.position:=ceil((c/count)*100);
+      lastupdate:=GetTickCount64;
+    end;
+
   end;
+
+  if pb<>nil then
+    pb.position:=100;
+
+
 end;
 
 constructor TReversePointerListHandler.createFromStream(s: Tstream; progressbar: tprogressbar);
