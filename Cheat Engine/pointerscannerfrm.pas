@@ -394,7 +394,6 @@ type
     sz: integer;
     maxlevel: integer;
     unalligned: boolean;
-    codescan: boolean;
 
     LimitToMaxOffsetsPerNode: boolean;
     MaxOffsetsPerNode: integer; //Sets how many different offsets per node should be handled at most (specifically mentioning different offsets since a pointervalue can have multiple addresses, meaning the same offset, different paths)
@@ -492,6 +491,7 @@ type
 
     savestate: boolean; //if true and terminated is true then save the current state
 
+    procedure saveconfig(s: tstream);
     procedure execute; override;
     constructor create(suspended: boolean);
     destructor destroy; override;
@@ -506,6 +506,7 @@ type
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
+    miResume: TMenuItem;
     miMergePointerscanResults: TMenuItem;
     miSetWorkFolder: TMenuItem;
     miJoinDistributedScan: TMenuItem;
@@ -551,6 +552,7 @@ type
     procedure ListView1Resize(Sender: TObject);
     procedure MenuItem3Click(Sender: TObject);
     procedure miMergePointerscanResultsClick(Sender: TObject);
+    procedure miResumeClick(Sender: TObject);
     procedure miSetWorkFolderClick(Sender: TObject);
     procedure miJoinDistributedRescanClick(Sender: TObject);
     procedure miJoinDistributedScanClick(Sender: TObject);
@@ -605,7 +607,8 @@ implementation
 
 uses PointerscannerSettingsFrm, frmMemoryAllocHandlerUnit, frmSortPointerlistUnit,
   LuaHandler, lauxlib, lua, frmPointerscanConnectDialogUnit,
-  frmpointerrescanconnectdialogunit, frmMergePointerscanResultSettingsUnit, ProcessHandlerUnit;
+  frmpointerrescanconnectdialogunit, frmMergePointerscanResultSettingsUnit,
+  ProcessHandlerUnit, frmResumePointerscanUnit;
 
 resourcestring
   rsErrorDuringScan = 'Error during scan';
@@ -3311,6 +3314,70 @@ begin
     
 end;
 
+procedure TStaticscanner.saveconfig(s: TStream);
+{
+Save config data that isn't saved with the scandata file:
+
+maxlevel: dword
+structsize: dword; //sz
+totalpathsevaluated: qword
+compressedptr: byte;  //boolean
+unalligned: byte; //boolen
+noloop: byte; //boolean
+muststartwithbase; byte //boolean
+LimitToMaxOffsetsPerNode: byte //boolean
+onlyOneStaticInPath: byte; //boolean
+instantrescan: byte //boolean (not really needed, but it's a nice padding)
+mustEndWithSpecificOffset: byte; //boolean ( ^ ^ )
+maxoffsetspernode: integer;
+basestart: qword;
+basestop: qword;
+
+
+mustendwithoffsetlistlength: integer
+mustendwithoffsetlist[]: dword*mustendwithoffsetlistlength
+
+
+
+instantrescancount: integer;
+instantrescanentry []: record[] [
+  filenamelength: integer
+  filename: char[filenamelength] //full path
+  address: qword
+]
+}
+var i: integer;
+begin
+  s.WriteDWord(maxlevel);
+  s.WriteDWord(sz);
+  s.WriteQWord(totalpathsevaluated);
+  s.writebyte(ifthen(compressedptr,1,0));
+  s.writebyte(ifthen(unalligned,1,0));
+  s.writebyte(ifthen(noLoop,1,0));
+  s.writebyte(ifthen(muststartwithbase,1,0));
+  s.writebyte(ifthen(LimitToMaxOffsetsPerNode,1,0));
+  s.writebyte(ifthen(onlyOneStaticInPath,1,0));
+  s.writebyte(ifthen(instantrescan,1,0));
+  s.writebyte(ifthen(mustEndWithSpecificOffset,1,0));
+  s.WriteDWord(maxoffsetspernode);
+  s.WriteQWord(basestart);
+  s.WriteQWord(basestop);
+
+  s.WriteDWord(length(mustendwithoffsetlist));
+  for i:=0 to length(mustendwithoffsetlist)-1 do
+     s.WriteDword(mustendwithoffsetlist[i]);
+
+  s.WriteDword(length(instantrescanfiles));
+  for i:=0 to length(instantrescanfiles)-1 do
+  begin
+    s.WriteAnsiString(instantrescanfiles[i].filename);
+    s.WriteQWord(instantrescanfiles[i].address);
+  end;
+
+
+
+end;
+
 constructor TStaticscanner.create(suspended: boolean);
 begin
   pointersize:=processhandler.pointersize;
@@ -3454,6 +3521,150 @@ begin
   f.free;
 end;
 
+procedure Tfrmpointerscanner.miResumeClick(Sender: TObject);
+var
+  f: tfrmresumePointerScan;
+  filename: string;
+
+{
+maxlevel: dword
+structsize: dword; //sz
+totalpathsevaluated: dword
+compressedptr: byte;  //boolean
+unalligned: byte; //boolen
+noloop: byte; //boolean
+muststartwithbase; byte //boolean
+LimitToMaxOffsetsPerNode: byte //boolean
+onlyOneStaticInPath: byte; //boolean
+instantrescan: byte //boolean (not really needed, but it's a nice padding)
+mustEndWithSpecificOffset: byte; //boolean ( ^ ^ )
+maxoffsetspernode: integer;
+basestart: qword;
+basestop: qword;
+
+
+mustendwithoffsetlistlength: integer
+mustendwithoffsetlist[]: dword*mustendwithoffsetlistlength
+
+
+
+instantrescancount: integer;
+instantrescanentry []: record[] [
+  filenamelength: integer
+  filename: char[filenamelength] //full path
+  address: qword
+]
+}
+var
+  config: Tfilestream;
+  maxlevel: integer;
+  structsize: integer;
+  compressedptr: boolean;
+  unalligned: boolean;
+  noloop: boolean;
+  muststartwithbase: boolean;
+  LimitToMaxOffsetsPerNode:boolean;
+  onlyOneStaticInPath:boolean;
+  instantrescan:boolean; //(not really needed, but it's a nice padding)
+  mustEndWithSpecificOffset:boolean;// ( ^ ^ )
+  maxoffsetspernode: integer;
+  basestart: qword;
+  basestop: qword;
+
+  mustendwithoffsetlist: array of dword;
+  instantrescanentries: array of record
+    filename: string;
+    address: qword;
+  end;
+
+  i: integer;
+begin
+  //show a dialog where the user can pick the number of threads to scan
+
+  if (pointerscanresults<>nil) and Pointerscanresults.CanResume then
+  begin
+    filename:=Pointerscanresults.filename;
+
+    try
+      config:=TFileStream.Create(filename+'.resume.config', fmOpenRead or fmShareDenyNone);
+    except
+      exit;
+    end;
+
+
+
+    maxlevel:=config.ReadDWord;
+    structsize:=config.ReadDWord;
+    totalpathsevaluated:=config.ReadQWord;
+    compressedptr:=config.ReadByte=1;
+    unalligned:=config.ReadByte=1;
+    noloop:=config.ReadByte=1;
+    muststartwithbase:=config.ReadByte=1;
+    LimitToMaxOffsetsPerNode:=config.ReadByte=1;
+    onlyOneStaticInPath:=config.ReadByte=1;
+    instantrescan:=config.ReadByte=1;
+    mustEndWithSpecificOffset:=config.ReadByte=1;
+
+    maxoffsetspernode:=config.ReadDWord;
+    basestart:=config.ReadQWord;
+    basestop:=config.ReadQWord;
+
+    setlength(mustendwithoffsetlist, config.ReadDWord);
+    config.ReadBuffer(mustendwithoffsetlist[0], sizeof(dword)*length(mustendwithoffsetlist));
+
+
+    setlength(instantrescanentries, config.readdword);
+    for i:=0 to length(instantrescanentries)-1 do
+    begin
+      instantrescanentries[i].filename:=config.ReadAnsiString;
+      instantrescanentries[i].address:=config.ReadQWord;
+    end;
+
+
+    config.free;
+
+
+    f:=tfrmresumePointerScan.create(self);
+
+    if f.instantrescanfiles<>nil then
+      for i:=0 to length(instantrescanentries)-1 do
+        f.instantrescanfiles.AddObject(instantrescanentries[i].filename, tobject(instantrescanentries[i].address));
+
+    if f.showmodal=mrOK then
+    begin
+
+
+
+      new1.click;
+      startcount:=totalpathsevaluated;
+
+      //default scan
+      staticscanner:=TStaticscanner.Create(true);
+
+      label5.caption:=rsGeneratingPointermap;
+
+
+      pnlProgress.Visible:=true;
+
+      try
+        staticscanner.ownerform:=self;
+
+      except
+        on e: exception do
+        begin
+          staticscanner.Free;
+          staticscanner:=nil;
+          MessageDlg(e.message, mtError, [mbok], 0);
+        end;
+      end;
+
+
+    end;
+  end
+  else
+    miResume.Visible:=false;
+end;
+
 procedure Tfrmpointerscanner.Method3Fastspeedandaveragememoryusage1Click(
   Sender: TObject);
 var
@@ -3478,6 +3689,7 @@ begin
   {
   if vm<>nil then
     frmpointerscannersettings.cbreuse.Caption:='Reuse memory copy from previous scan';}
+
 
 
   if frmpointerscannersettings.Showmodal=mrok then
@@ -3568,7 +3780,6 @@ begin
       tvRSThreads.Items.Clear;
 
 
-      staticscanner.codescan:=frmpointerscannersettings.codescan;
       staticscanner.staticonly:=frmpointerscannersettings.cbStaticOnly.checked;
       staticscanner.noLoop:=frmpointerscannersettings.cbNoLoop.checked;
       staticscanner.LimitToMaxOffsetsPerNode:=frmpointerscannersettings.cbMaxOffsetsPerNode.Checked;
@@ -3612,7 +3823,7 @@ begin
       begin
         for i:=0 to frmpointerscannersettings.pdatafilelist.count-1 do
         begin
-          pfn:=frmpointerscannersettings.pdatafilelist.filenames[i];
+          pfn:=Utf8ToAnsi(frmpointerscannersettings.pdatafilelist.filenames[i]);
           if pfn<>'' then
           begin
             setlength(staticscanner.instantrescanfiles,length(staticscanner.instantrescanfiles)+1);
@@ -3717,7 +3928,7 @@ begin
       begin
         staticscanner.Free;
         staticscanner:=nil;
-        raise exception.create(e.message);
+        MessageDlg(e.message, mtError, [mbok], 0);
       end;
     end;
 
@@ -3962,6 +4173,8 @@ begin
     end;
   end;
 end;
+
+
 
 procedure Tfrmpointerscanner.miSetWorkFolderClick(Sender: TObject);
 var reg: Tregistry;
@@ -4363,6 +4576,9 @@ begin
   miMergePointerscanResults.enabled:=true;
 
   caption:=rsPointerScan+' : '+extractfilename(filename);
+
+  miResume.visible:=Pointerscanresults.CanResume;
+  miResume.Enabled:=Pointerscanresults.CanResume;
 end;
 
 procedure Tfrmpointerscanner.Open1Click(Sender: TObject);
@@ -5886,12 +6102,18 @@ begin
 end;
 
 procedure Tfrmpointerscanner.stopscan(savestate: boolean);
-var i: integer;
+var
+  i: integer;
+  f: tfilestream;
 begin
   if staticscanner<>nil then
   begin
     if savestate then
     begin
+      f:=tfilestream.create(Staticscanner.filename+'.resume.config', fmcreate);
+      staticscanner.saveconfig(f);
+      f.free;
+
       Staticscanner.savestate:=true;
       btnStopScan.Caption:=rsSavingAndTerminating;
 
