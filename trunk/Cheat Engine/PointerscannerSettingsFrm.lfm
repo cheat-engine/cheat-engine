@@ -1,7 +1,7 @@
 object frmPointerScannerSettings: TfrmPointerScannerSettings
-  Left = 1193
+  Left = 444
   Height = 489
-  Top = 331
+  Top = 346
   Width = 638
   BorderStyle = bsSingle
   Caption = 'Pointerscanner scanoptions'
@@ -376,7 +376,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     object btnCancel: TButton
       Left = 288
       Height = 25
-      Top = 64
+      Top = 68
       Width = 93
       Cancel = True
       Caption = 'Cancel'
@@ -518,6 +518,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Height = 21
     Top = 331
     Width = 103
+    Enabled = False
     TabOrder = 9
     Text = '52737'
   end

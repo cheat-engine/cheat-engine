@@ -1,7 +1,7 @@
 object frmPointerScanner: TfrmPointerScanner
-  Left = 872
+  Left = 1002
   Height = 517
-  Top = 180
+  Top = 328
   Width = 741
   Caption = 'Pointer scan'
   ClientHeight = 497
@@ -286,6 +286,13 @@ object frmPointerScanner: TfrmPointerScanner
         Enabled = False
         ShortCut = 16466
         OnClick = Rescanmemory1Click
+      end
+      object miResume: TMenuItem
+        Caption = 'Resume scan'
+        Enabled = False
+        ShortCut = 49234
+        Visible = False
+        OnClick = miResumeClick
       end
     end
   end

@@ -61,6 +61,8 @@ type
 
     fEndsWithOffsetList: array of dword;
 
+    fCanResume: boolean;
+
     compressedPointerScanResult: PPointerscanResult;
     compressedTempBuffer: PByteArray;
 
@@ -107,6 +109,7 @@ type
     property MaxBitCountLevel: dword read fMaxBitCountLevel;
     property MaxBitCountOffset: dword read fMaxBitCountOffset;
     property LastRawPointer: pointer read fLastRawPointer;
+    property CanResume: boolean read fCanResume;
 end;
 
 implementation
@@ -636,6 +639,9 @@ begin
 
   freemem(temppchar);
   configfile.Free;
+
+
+  fCanResume:=fileexists(filename+'.resume.config') and fileexists(filename+'.resume.scandata') and fileexists(filename+'.resume.queue');
 end;
 
 destructor TPointerscanresultReader.destroy;

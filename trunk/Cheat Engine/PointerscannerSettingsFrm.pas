@@ -175,7 +175,7 @@ type
     procedure updatepositions;
     procedure PointerFileListEmpty(sender: TObject);
     procedure PointerFileListResize(sender: TObject);
-    procedure UpdateFindValueState;
+    procedure UpdateGuiBasedOnSavedPointerScanUsage;
   public
     { Public declarations }
     reverse: boolean; //indicates to use the reverse method
@@ -717,6 +717,7 @@ end;
 procedure TfrmPointerScannerSettings.cbDistributedScanningChange(Sender: TObject);
 begin
   cbBroadcast.enabled:=cbDistributedScanning.checked;
+  edtDistributedPort.enabled:=cbDistributedScanning.checked;
 end;
 
 procedure TfrmPointerScannerSettings.cbMaxOffsetsPerNodeChange(Sender: TObject);
@@ -818,7 +819,7 @@ begin
   else
     cbUseLoadedPointermap.enabled:=true;
 
-  UpdateFindValueState;
+  UpdateGuiBasedOnSavedPointerScanUsage;
 end;
 
 procedure TfrmPointerScannerSettings.cbUseLoadedPointermapChange(Sender: TObject);
@@ -835,8 +836,6 @@ begin
 
       cbUseLoadedPointermap.Caption:=rsUseLoadedPointermap+':'+ExtractFileName(odLoadPointermap.FileName);
 
-
-
     end
     else
       cbUseLoadedPointermap.checked:=false;
@@ -846,7 +845,7 @@ begin
   else
     cbUseLoadedPointermap.Caption:=rsUseLoadedPointermap;
 
-  UpdateFindValueState;
+  UpdateGuiBasedOnSavedPointerScanUsage;
 end;
 
 procedure TfrmPointerScannerSettings.PointerFileListEmpty(sender: TObject);
@@ -880,7 +879,7 @@ begin
     pdatafilelist:=nil;
   end;
 
-  UpdateFindValueState;
+  UpdateGuiBasedOnSavedPointerScanUsage;
   updatepositions;
 end;
 
@@ -1116,7 +1115,7 @@ begin
   edtAddressChange(edtAddress);
 end;
 
-procedure TfrmPointerScannerSettings.UpdateFindValueState;
+procedure TfrmPointerScannerSettings.UpdateGuiBasedOnSavedPointerScanUsage;
 begin
   //make rbFindValue enabled or disabled based on the current settings
 
@@ -1124,6 +1123,51 @@ begin
 
   if rbFindValue.enabled=false then
     rbFindAddress.Checked:=true;
+
+  if cbUseLoadedPointermap.checked then
+  begin
+    CbAlligned.enabled:=false;
+    cbReusePointermap.checked:=false;
+    cbReusePointermap.enabled:=false;
+
+    cbHeapOnly.checked:=false;
+    cbHeapOnly.enabled:=false;
+
+    cbUseHeapData.checked:=false;
+    cbUseHeapData.enabled:=false;
+
+
+    edtReverseStart.Enabled:=false;
+    edtReverseStop.enabled:=false;
+
+    cbMustStartWithBase.checked:=false;
+    cbMustStartWithBase.enabled:=false;
+
+    cbClassPointersOnly.checked:=false;
+    cbClassPointersOnly.enabled:=false;
+
+
+    cbAcceptNonModuleVtable.checked:=false;
+    cbAcceptNonModuleVtable.enabled:=false;
+
+    cbStaticStacks.enabled:=false;
+  end
+  else
+  begin
+    CbAlligned.enabled:=true;
+    cbUseHeapData.enabled:=true;
+    cbHeapOnly.enabled:=cbUseHeapData.checked;
+
+    edtReverseStart.Enabled:=true;
+    edtReverseStop.enabled:=true;
+    cbReusePointermap.enabled:=true;
+    cbMustStartWithBase.enabled:=true;
+    cbClassPointersOnly.enabled:=true;
+    cbAcceptNonModuleVtable.enabled:=cbClassPointersOnly.checked;
+    cbStaticStacks.enabled:=true;;
+  end;
+
+  cbStaticStacksChange(cbStaticStacks);
 
 end;
 
