@@ -2,10 +2,10 @@ object frmResumePointerscan: TfrmResumePointerscan
   Left = 353
   Height = 153
   Top = 153
-  Width = 761
+  Width = 653
   Caption = 'Resume pointerscan'
   ClientHeight = 153
-  ClientWidth = 761
+  ClientWidth = 653
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
@@ -124,7 +124,7 @@ object frmResumePointerscan: TfrmResumePointerscan
     Width = 75
     Caption = 'Resume'
     Default = True
-    ModalResult = 1
+    OnClick = Button1Click
     TabOrder = 6
   end
   object Button2: TButton
@@ -141,19 +141,19 @@ object frmResumePointerscan: TfrmResumePointerscan
     Left = 386
     Height = 153
     Top = 0
-    Width = 375
+    Width = 267
     Align = alRight
     Anchors = [akTop, akLeft, akRight, akBottom]
     BevelOuter = bvNone
     ClientHeight = 153
-    ClientWidth = 375
+    ClientWidth = 267
     TabOrder = 8
     OnResize = Panel1Resize
     object Label1: TLabel
       Left = 0
       Height = 15
       Top = 0
-      Width = 375
+      Width = 267
       Align = alTop
       Caption = 'Rescan pointermaps'
       ParentColor = False
@@ -162,7 +162,7 @@ object frmResumePointerscan: TfrmResumePointerscan
       Left = 0
       Height = 138
       Top = 15
-      Width = 375
+      Width = 267
       Align = alClient
       Columns = <      
         item

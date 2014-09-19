@@ -79,8 +79,6 @@ var
   lini: TIniFile;
 
   function GetLocaleFileName(const LangID, LCExt: string): string;
-  var
-    LangShortID: string;
   begin
     if LangID <> '' then
     begin

@@ -29,6 +29,7 @@ type
     odLoadPointermap: TOpenDialog;
     Panel1: TPanel;
     procedure btnNotifySpecificIPsClick(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
     procedure cbDistributedScanningChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -42,6 +43,7 @@ type
     { public declarations }
     iplist: TStringlist;
     instantrescanfiles: tstringlist;
+    threadcount: integer;
   end;
 
 implementation
@@ -164,6 +166,21 @@ begin
   finally
     reg.free;
   end;
+end;
+
+procedure TfrmResumePointerscan.Button1Click(Sender: TObject);
+var i: integer;
+begin
+  threadcount:=strtoint(edtThreadcount.text);
+
+  for i:=0 to instantrescanfiles.Count-1 do
+    if fileexists(instantrescanfiles[i])=false then
+    begin
+      MessageDlg(instantrescanfiles[i]+' was not found', mtError, [mbok],0);
+      exit;
+    end;
+
+  modalresult:=mrOK;
 end;
 
 end.

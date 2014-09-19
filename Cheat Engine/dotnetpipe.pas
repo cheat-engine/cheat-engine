@@ -114,7 +114,6 @@ uses DotNetTypes;
 
 procedure TDotNetPipe.GetAddressData(address: UINT64; var addressdata: TAddressData);
 var
-  x: dword;
   msg: packed record
     command: byte;
     address: UINT64;
@@ -226,7 +225,6 @@ end;
 
 procedure TDotNetPipe.GetTypeDefMethods(hModule: UINT64; typedef: DWORD; var Methods: TDotNetMethodArray);
 var
-  x: dword;
   msg: packed record
     command: byte;
     hModule: UINT64;
@@ -290,7 +288,6 @@ end;
 
 procedure TDotNetPipe.EnumTypeDefs(hModule: UINT64; var TypeDefs: TDotNetTypeDefArray);
 var
-  x: dword;
   msg: packed record
     command: byte;
     hModule: UINT64;
@@ -343,7 +340,6 @@ end;
 
 procedure TDotNetPipe.EnumModuleList(hDomain: UINT64; var Modules: TDotNetModuleArray);
 var
-  x: dword;
   msg: packed record
     command: byte;
     hDomain: UINT64;
@@ -435,7 +431,6 @@ end;
 
 procedure TDotNetPipe.EnumDomains(var domains: TDotNetDomainArray);
 var
-  x: dword;
   msg: packed record
     command: byte;
   end;
@@ -484,7 +479,6 @@ end;
 
 procedure TDotNetPipe.ReleaseObject(hObject: uint64);
 var
-  x: dword;
   msg: packed record
     command: byte;
     hobject: uint64;
@@ -520,7 +514,6 @@ Connects to a dotnet data collector and tells it to open a specific process
 }
 var
   starttime: dword;
-  x: dword;
 
   msg: packed record
     command: byte;
@@ -568,7 +561,7 @@ begin
 
   result:=false;
 
-  pipename:='cedotnetpipe'+inttostr(ProcessID)+'_'+inttostr(GetTickCount); //unique pipename
+  pipename:='cedotnetpipe'+inttostr(ProcessID)+'_'+inttostr(GetTickCount64); //unique pipename
 
 
   ZeroMemory(@si, sizeof(si));

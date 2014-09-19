@@ -397,12 +397,6 @@ var fmap: TFileMapping;
     ImageNtHeader: PImageNtHeaders;
     OptionalHeader: PImageOptionalHeader;
     OptionalHeader64: PImageOptionalHeader64 absolute OptionalHeader;
-    ImageExportDirectory: PImageExportDirectory;
-
-    addresslist: PDwordArray;
-    exportlist: PDwordArray;
-    functionname: pchar;
-    i: integer;
 
    // a: dword;
 begin
