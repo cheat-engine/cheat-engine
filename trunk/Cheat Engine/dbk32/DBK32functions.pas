@@ -1729,7 +1729,7 @@ var
   cc: dword;
   msrvalue: qword;
 begin
-  result:=-1;
+  result:=QWORD($ffffffffffffffff);
 
   if dbvmversion>=6 then
     result:=dbvm_readMSR(msr) //will raise a GPF if it doesn't exist
