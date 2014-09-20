@@ -2947,9 +2947,11 @@ begin
 
 
 
-        if (not alldone) and (pathqueuelength=0) or terminated then //it's 0 or terminated
+        if ((not alldone) and (pathqueuelength=0)) or terminated then //it's 0 or terminated
         begin
           //aquire a lock to see if it's still 0
+          EatFromOverflowQueueIfNeeded;
+
           pathqueueCS.Enter;
           if (pathqueuelength=0) or terminated then
           begin //still 0
@@ -3041,6 +3043,15 @@ begin
 
     if terminated and savestate then
       saveAndClearQueue(savedqueue);
+
+
+    if not savestate then
+    begin
+      //make sure these files are gone
+      DeleteFile(filename+'.resume.queue');
+      DeleteFile(filename+'.resume.config');
+      DeleteFile(filename+'.resume.scandata');
+    end;
 
 
   finally
@@ -3800,7 +3811,7 @@ begin
 
     maxlevel:=config.ReadDWord;
     structsize:=config.ReadDWord;
-    totalpathsevaluated:=config.ReadQWord;
+    totalpathsevaluated:=config.ReadQWord; //IGNORED
     compressedptr:=config.ReadByte=1;
     unalligned:=config.ReadByte=1;
     noloop:=config.ReadByte=1;
@@ -3844,7 +3855,11 @@ begin
 
 
       new1.click;
-      startcount:=totalpathsevaluated;
+
+      starttime:=0;
+      totalpathsevaluated:=0;
+      startcount:=0;
+
 
       //default scan
       staticscanner:=TStaticscanner.Create(true);
@@ -4603,11 +4618,18 @@ begin
   if pointerlisthandler<>nil then
   begin
     if staticscanner<>nil then
-      i:=staticscanner.pathqueuelength
+    begin
+      i:=staticscanner.pathqueuelength;
+      j:=length(staticscanner.overflowqueue);
+    end
     else
       i:=0;
 
     s:=rsAddressSpecifiersFoundInTheWholeProcess+':'+inttostr(pointerlisthandler.count)+'  (pathqueue: '+inttostr(i)+')';
+
+    if j>0 then
+      s:=s+'  (overflow pathqueue: '+inttostr(j)+')';
+
     label6.caption:=s;
   end;
 
@@ -4653,9 +4675,6 @@ begin
       lblRSTotalStaticPaths.caption:=s;
 
 {$ifdef benchmarkps}
-      //count totalpathsevaluated
-//      totalpathsevaluated:=pathsEvaluated
-
       totalpathsevaluated:=tpe;
 
       if (starttime=0) and (totalpathsevaluated<>0) then
