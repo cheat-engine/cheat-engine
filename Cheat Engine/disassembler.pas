@@ -7353,14 +7353,14 @@ begin
             end;
 
       $86 : begin
-              description:='exchage memory with register';
+              description:='exchange memory with register';
               lastdisassembledata.opcode:='xchg';
               lastdisassembledata.parameters:=modrm(memory,prefix2,1,2,last)+r8(memory[1]);
               inc(offset,last-1);
             end;
 
       $87 : begin
-              description:='exchage memory with register';
+              description:='exchange memory with register';
               lastdisassembledata.opcode:='xchg';
               if $66 in prefix2 then
                 lastdisassembledata.parameters:=modrm(memory,prefix2,1,1,last)+r16(memory[1]) else
