@@ -514,6 +514,8 @@ type
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
+    MenuItem5: TMenuItem;
+    miCreatePSNnode: TMenuItem;
     miResume: TMenuItem;
     miMergePointerscanResults: TMenuItem;
     miSetWorkFolder: TMenuItem;
@@ -559,6 +561,7 @@ type
     procedure ListView1ColumnClick(Sender: TObject; Column: TListColumn);
     procedure ListView1Resize(Sender: TObject);
     procedure MenuItem3Click(Sender: TObject);
+    procedure miCreatePSNnodeClick(Sender: TObject);
     procedure miMergePointerscanResultsClick(Sender: TObject);
     procedure miResumeClick(Sender: TObject);
     procedure miSetWorkFolderClick(Sender: TObject);
@@ -4273,6 +4276,11 @@ begin
     PointerscanListener:=TPointerscanListener.create(self, false);
 
 
+
+end;
+
+procedure Tfrmpointerscanner.miCreatePSNnodeClick(Sender: TObject);
+begin
 
 end;
 

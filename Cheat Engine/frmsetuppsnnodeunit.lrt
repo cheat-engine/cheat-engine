@@ -1,0 +1,42 @@
+TFRMSETUPPSNNODE.CAPTION=Setup pointerscan network node
+TFRMSETUPPSNNODE.EDTTHREADCOUNT.HINT=The number of threads to scan.
+Hint: Can be 0
+TFRMSETUPPSNNODE.EDTTHREADCOUNT.TEXT=0
+TFRMSETUPPSNNODE.LBLTHREADCOUNT.CAPTION=Threadcount
+TFRMSETUPPSNNODE.CHECKBOX3.CAPTION=Stop scans after finding max amount of results
+TFRMSETUPPSNNODE.CHECKBOX4.CAPTION=Stop scans after specific time
+TFRMSETUPPSNNODE.LABEL4.CAPTION=Seconds
+TFRMSETUPPSNNODE.LABEL3.CAPTION=Found pointer paths
+TFRMSETUPPSNNODE.BUTTON1.CAPTION=Launch
+TFRMSETUPPSNNODE.BUTTON2.CAPTION=Cancel
+TFRMSETUPPSNNODE.CHECKBOX5.HINT=When this is checked that means that other systems can connect to your system and become a worker.
+
+A node can be a worker as well for another node. 
+
+Warning: Watch out for circular connections
+TFRMSETUPPSNNODE.CHECKBOX5.CAPTION=Become a pointerscan node
+TFRMSETUPPSNNODE.CHECKBOX1.HINT=Join another node so your threads, and potentially other workers/nodes attached to you become available to this new node
+TFRMSETUPPSNNODE.CHECKBOX1.CAPTION=Become a worker of another node
+TFRMSETUPPSNNODE.CBPRIORITY.TEXT=Normal
+TFRMSETUPPSNNODE.LBLPRIORITY.CAPTION=Priority
+TFRMSETUPPSNNODE.GROUPBOX1.CAPTION=Node config
+TFRMSETUPPSNNODE.CHECKBOX7.CAPTION=Require password for scanner
+TFRMSETUPPSNNODE.CHECKBOX8.HINT=When checked pointerscans can be initated from this node
+TFRMSETUPPSNNODE.CHECKBOX8.CAPTION=Allow pointer scanners to connect and initate scans
+TFRMSETUPPSNNODE.LABEL9.CAPTION=Max 30 characters
+TFRMSETUPPSNNODE.CHECKBOX9.HINT=Normally when a worker terminates before the scan is done it will send all it's paths to it's connected node and then close, but if the system would crash it wouldn't be able to send it's queues to the node, causing in a loss of possible paths to examine
+
+When unchecked the owning controller/scanner will only send it one pointerpath queue element at a time and remembers that queue element until the worker reports that it has 0 queue elements, meaning it successfully completed the work item.
+Also note that under normal circumstaces the node will accept new paths from the worker, but in the case of non stable workers this is not done and the worker has to do all the sub paths it generated itself
+
+In the node screen you will be able to change the state of a worker
+TFRMSETUPPSNNODE.CHECKBOX9.CAPTION=Trust stability of all new workers
+TFRMSETUPPSNNODE.LABEL1.CAPTION=Listen Port
+TFRMSETUPPSNNODE.CHECKBOX2.HINT=Set a password if you don't want any random system to become a worker for your system and you don't want to setup a firewall
+TFRMSETUPPSNNODE.CHECKBOX2.CAPTION=Require password for worker
+TFRMSETUPPSNNODE.LABEL8.CAPTION=Max 30 characters
+TFRMSETUPPSNNODE.GROUPBOX2.CAPTION=Worker config
+TFRMSETUPPSNNODE.LABEL5.CAPTION=IP
+TFRMSETUPPSNNODE.LABEL6.CAPTION=Port
+TFRMSETUPPSNNODE.CHECKBOX6.CAPTION=Password
+TFRMSETUPPSNNODE.LBLPUBLICNAME.CAPTION=Public name

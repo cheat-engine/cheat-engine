@@ -1,7 +1,7 @@
 object frmPointerScanner: TfrmPointerScanner
-  Left = 1002
+  Left = 549
   Height = 517
-  Top = 328
+  Top = 331
   Width = 741
   Caption = 'Pointer scan'
   ClientHeight = 497
@@ -267,8 +267,15 @@ object frmPointerScanner: TfrmPointerScanner
         OnClick = MenuItem3Click
       end
       object miSetWorkFolder: TMenuItem
-        Caption = 'Set work folder'
+        Caption = 'Set work folder (obsolete)'
         OnClick = miSetWorkFolderClick
+      end
+      object MenuItem5: TMenuItem
+        Caption = '-'
+      end
+      object miCreatePSNnode: TMenuItem
+        Caption = 'Setup as PSN worker and/or node'
+        OnClick = miCreatePSNnodeClick
       end
     end
     object Pointerscanner1: TMenuItem

@@ -1,7 +1,7 @@
 object frmResumePointerscan: TfrmResumePointerscan
-  Left = 353
+  Left = 891
   Height = 153
-  Top = 153
+  Top = 145
   Width = 653
   Caption = 'Resume pointerscan'
   ClientHeight = 153

@@ -1,0 +1,335 @@
+object frmSetupPSNNode: TfrmSetupPSNNode
+  Left = 628
+  Height = 502
+  Top = 201
+  Width = 373
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsSingle
+  Caption = 'Setup pointerscan network node'
+  ClientHeight = 502
+  ClientWidth = 373
+  OnCreate = FormCreate
+  LCLVersion = '1.3'
+  object edtThreadCount: TEdit
+    AnchorSideTop.Control = lblThreadCount
+    AnchorSideTop.Side = asrBottom
+    Left = 14
+    Height = 23
+    Hint = 'The number of threads to scan.'#13#10'Hint: Can be 0'
+    Top = 15
+    Width = 80
+    TabOrder = 0
+    Text = '0'
+  end
+  object lblThreadCount: TLabel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    Left = 14
+    Height = 15
+    Top = 0
+    Width = 68
+    BorderSpacing.Left = 14
+    Caption = 'Threadcount'
+    ParentColor = False
+  end
+  object CheckBox3: TCheckBox
+    Left = 16
+    Height = 19
+    Top = 368
+    Width = 265
+    Caption = 'Stop scans after finding max amount of results'
+    TabOrder = 1
+  end
+  object Edit4: TEdit
+    Left = 16
+    Height = 23
+    Top = 392
+    Width = 80
+    TabOrder = 2
+  end
+  object CheckBox4: TCheckBox
+    Left = 16
+    Height = 19
+    Top = 416
+    Width = 173
+    Caption = 'Stop scans after specific time'
+    TabOrder = 3
+  end
+  object Edit5: TEdit
+    Left = 16
+    Height = 23
+    Top = 440
+    Width = 80
+    TabOrder = 4
+  end
+  object Label4: TLabel
+    Left = 98
+    Height = 15
+    Top = 440
+    Width = 44
+    Caption = 'Seconds'
+    ParentColor = False
+  end
+  object Label3: TLabel
+    Left = 98
+    Height = 15
+    Top = 392
+    Width = 107
+    Caption = 'Found pointer paths'
+    ParentColor = False
+  end
+  object Button1: TButton
+    Left = 80
+    Height = 25
+    Top = 472
+    Width = 90
+    Caption = 'Launch'
+    Default = True
+    TabOrder = 5
+  end
+  object Button2: TButton
+    Left = 178
+    Height = 25
+    Top = 472
+    Width = 90
+    Cancel = True
+    Caption = 'Cancel'
+    TabOrder = 6
+  end
+  object CheckBox5: TCheckBox
+    Left = 14
+    Height = 19
+    Hint = 'When this is checked that means that other systems can connect to your system and become a worker.'#13#10#13#10'A node can be a worker as well for another node. '#13#10#13#10'Warning: Watch out for circular connections'
+    Top = 88
+    Width = 167
+    Caption = 'Become a pointerscan node'
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 7
+  end
+  object CheckBox1: TCheckBox
+    Left = 14
+    Height = 19
+    Hint = 'Join another node so your threads, and potentially other workers/nodes attached to you become available to this new node'
+    Top = 272
+    Width = 199
+    Caption = 'Become a worker of another node'
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 8
+  end
+  object cbPriority: TComboBox
+    AnchorSideLeft.Control = lblPriority
+    AnchorSideTop.Control = edtThreadCount
+    Left = 104
+    Height = 23
+    Top = 15
+    Width = 140
+    ItemHeight = 15
+    ItemIndex = 3
+    Items.Strings = (
+      'Idle'
+      'Lowest'
+      'Lower'
+      'Normal'
+      'Higher'
+      'Highest'
+      'TimeCritical'
+    )
+    TabOrder = 9
+    Text = 'Normal'
+  end
+  object lblPriority: TLabel
+    AnchorSideLeft.Control = edtThreadCount
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = lblThreadCount
+    Left = 104
+    Height = 15
+    Top = 0
+    Width = 38
+    BorderSpacing.Left = 10
+    Caption = 'Priority'
+    ParentColor = False
+  end
+  object GroupBox1: TGroupBox
+    Left = 16
+    Height = 152
+    Top = 112
+    Width = 337
+    Caption = 'Node config'
+    ClientHeight = 134
+    ClientWidth = 333
+    TabOrder = 10
+    object Edit9: TEdit
+      Left = 24
+      Height = 23
+      Top = 88
+      Width = 145
+      EchoMode = emPassword
+      MaxLength = 32
+      PasswordChar = '*'
+      TabOrder = 0
+    end
+    object CheckBox7: TCheckBox
+      Left = 8
+      Height = 19
+      Top = 64
+      Width = 175
+      Caption = 'Require password for scanner'
+      TabOrder = 1
+    end
+    object CheckBox8: TCheckBox
+      Left = 8
+      Height = 19
+      Hint = 'When checked pointerscans can be initated from this node'
+      Top = 48
+      Width = 291
+      Caption = 'Allow pointer scanners to connect and initate scans'
+      Checked = True
+      ParentShowHint = False
+      ShowHint = True
+      State = cbChecked
+      TabOrder = 2
+    end
+    object Label9: TLabel
+      Left = 168
+      Height = 15
+      Top = 88
+      Width = 94
+      Caption = 'Max 30 characters'
+      ParentColor = False
+    end
+    object CheckBox9: TCheckBox
+      Left = 8
+      Height = 19
+      Hint = 'Normally when a worker terminates before the scan is done it will send all it''s paths to it''s connected node and then close, but if the system would crash it wouldn''t be able to send it''s queues to the node, causing in a loss of possible paths to examine'#13#10#13#10'When unchecked the owning controller/scanner will only send it one pointerpath queue element at a time and remembers that queue element until the worker reports that it has 0 queue elements, meaning it successfully completed the work item.'#13#10'Also note that under normal circumstaces the node will accept new paths from the worker, but in the case of non stable workers this is not done and the worker has to do all the sub paths it generated itself'#13#10#13#10'In the node screen you will be able to change the state of a worker'
+      Top = 112
+      Width = 189
+      Caption = 'Trust stability of all new workers'
+      Checked = True
+      ParentShowHint = False
+      ShowHint = True
+      State = cbChecked
+      TabOrder = 3
+    end
+    object Edit2: TEdit
+      Left = 8
+      Height = 23
+      Top = 23
+      Width = 74
+      TabOrder = 4
+    end
+    object Label1: TLabel
+      Left = 8
+      Height = 15
+      Top = 7
+      Width = 56
+      Caption = 'Listen Port'
+      ParentColor = False
+    end
+    object CheckBox2: TCheckBox
+      Left = 90
+      Height = 19
+      Hint = 'Set a password if you don''t want any random system to become a worker for your system and you don''t want to setup a firewall'
+      Top = 0
+      Width = 170
+      Caption = 'Require password for worker'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 5
+    end
+    object Edit3: TEdit
+      Left = 90
+      Height = 23
+      Top = 23
+      Width = 145
+      EchoMode = emPassword
+      MaxLength = 16
+      PasswordChar = '*'
+      TabOrder = 6
+    end
+    object Label8: TLabel
+      Left = 240
+      Height = 15
+      Top = 24
+      Width = 94
+      Caption = 'Max 30 characters'
+      ParentColor = False
+    end
+  end
+  object GroupBox2: TGroupBox
+    Left = 14
+    Height = 64
+    Top = 296
+    Width = 354
+    Caption = 'Worker config'
+    ClientHeight = 46
+    ClientWidth = 350
+    TabOrder = 11
+    object Label5: TLabel
+      Left = 8
+      Height = 15
+      Top = -4
+      Width = 10
+      Caption = 'IP'
+      ParentColor = False
+    end
+    object Label6: TLabel
+      Left = 165
+      Height = 15
+      Top = -4
+      Width = 22
+      Caption = 'Port'
+      ParentColor = False
+    end
+    object CheckBox6: TCheckBox
+      Left = 242
+      Height = 19
+      Top = -8
+      Width = 70
+      Caption = 'Password'
+      TabOrder = 0
+    end
+    object Edit6: TEdit
+      Left = 8
+      Height = 23
+      Top = 16
+      Width = 145
+      TabOrder = 1
+    end
+    object Edit7: TEdit
+      Left = 165
+      Height = 23
+      Top = 16
+      Width = 69
+      TabOrder = 2
+    end
+    object Edit8: TEdit
+      Left = 242
+      Height = 23
+      Top = 16
+      Width = 109
+      EchoMode = emPassword
+      OnChange = Edit8Change
+      PasswordChar = '*'
+      TabOrder = 3
+    end
+  end
+  object lblPublicName: TLabel
+    AnchorSideTop.Control = edtThreadCount
+    AnchorSideTop.Side = asrBottom
+    Left = 14
+    Height = 15
+    Top = 38
+    Width = 66
+    Caption = 'Public name'
+    ParentColor = False
+  end
+  object Edit10: TEdit
+    Left = 14
+    Height = 23
+    Top = 64
+    Width = 230
+    TabOrder = 12
+  end
+end
