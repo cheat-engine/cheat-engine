@@ -12,36 +12,18 @@ uses
   frmRescanPointerUnit, pointervaluelist, rescanhelper,
   virtualmemory, symbolhandler,MainUnit,disassembler,CEFuncProc,NewKernelHandler,
   valuefinder, PointerscanresultReader, maps, zstream, WinSock2, Sockets,
-  registry, PageMap, CELazySocket, PointerscanNetworkCommands, resolve, pointeraddresslist;
+  registry, PageMap, CELazySocket, PointerscanNetworkCommands, resolve, pointeraddresslist,
+  pointerscanworker, PointerscanStructures, PointerscanController;
+
 
 
 const staticscanner_done=wm_user+1;
 const rescan_done=wm_user+2;
 const open_scanner=wm_user+3;
-const wm_starttimer=wm_user+4;
-
-
-
-const MAXQUEUESIZE=64;
 
 type
-  TGetScanParametersOut=packed record
-    yourID: Int32;
-    maxlevel: Uint32;
-    structsize: uint32;
-    compressedptr: Byte;
-    staticonly: Byte;
-    noLoop: Byte;
-    LimitToMaxOffsetsPerNode: Byte;
-    Alligned: Byte;
-    DownloadPort: word;
-    MaxOffsetsPerNode: UInt16;
-    FilenameSize: Uint16;
-    Filename: packed record end;
-  end;
-  PGetScanParametersOut=^TGetScanParametersOut;
-
-  TfrmPointerscanner = class;
+  Tfrmpointerscanner=class;
+  {
   TPointerscanListener=class(tthread)
   private
 
@@ -58,7 +40,7 @@ type
     done: boolean;
     procedure execute; override;
     constructor create(owner: TfrmPointerscanner; suspended: boolean);
-  end;
+  end;      }
 
 
 
@@ -130,16 +112,17 @@ type
 
     broadcastcount: integer;
     lastBroadcast: dword;
-
+   {
     function Server_HandleRead(s: Tsocket): byte;
-
+        }
     procedure closeOldFile;
+    {
     procedure UpdateStatus(done: boolean; TotalPointersToEvaluate:qword; PointersEvaluated: qword);
     procedure LaunchWorker;
     procedure LaunchServer;
 
     procedure broadcastscan; //sends a broadcast to the local network and the potentialWorkerList
-    procedure DoServerLoop;
+    procedure DoServerLoop;}
 
   public
     ownerform: TFrmPointerScanner;
@@ -175,6 +158,7 @@ type
     useluafilter: boolean; //when set to true each pointer will be passed on to the luafilter function
     luafilter: string; //function name of the luafilter
 
+    {
     distributedserver: string;
     distributedport: integer;
     distributedrescan: boolean;
@@ -182,7 +166,7 @@ type
     distributedworkfolder: string;
 
     broadcastThisScanner: boolean;
-    potentialWorkerList: array of THostAddr;
+    potentialWorkerList: array of THostAddr;      }
 
     waitforall: boolean;
 
@@ -191,337 +175,33 @@ type
   end;
 
 
-
-  toffsetlist = array of dword;
-
-  TPathQueueElement=record
-    tempresults: array of dword;
-    valuelist: array of qword;
-    valuetofind: qword;
-    startlevel: integer;
-  end;
-  PPathQueueElement=^TPathQueueElement;
-
-
-  TPathQueueElementArray=array[0..0] of TPathQueueElement;
-  PPathQueueElementArray=^TPathQueueElementArray;
-
-  TTransmittedQueueMessage=packed record
-    replymessage: byte; //(should be CMDUPDATEREPLY_HEREARESOMEPATHSTOEVALUATE)
-    elementcount: byte;
-    elements: packed record end;
-  end;
-  PTransmittedQueueMessage=^TTransmittedQueueMessage;
-
-  TTransmittedQueueMessageClient=packed record
-    elementcount: byte;
-    elements: packed record end;
-  end;
-  PTransmittedQueueMessageClient=^TTransmittedQueueMessageClient;
-
-
-  TStaticscanner = class;
-
-  TReverseScanWorker = class (tthread)
-  private
-    results: tmemorystream;
-    resultsfile: tfilestream;
-    pointersize: integer;
-
-    procedure flushresults;
-    procedure rscan(valuetofind:ptrUint; level: valSint);
-    procedure StorePath(level: valSint; staticdata: PStaticData);
-    function DoRescan(level: valSint; staticdata: PStaticData): boolean;
-
-  public
-    ownerform: TFrmPointerscanner;
-    valuetofind: ptrUint;
-    maxlevel: integer;
-    structsize: integer;
-//    startaddress: dword;
-    startlevel: integer;
-    alligned: boolean;
-    staticonly: boolean;
-    noLoop: boolean;
-
-    LimitToMaxOffsetsPerNode: boolean;
-    MaxOffsetsPerNode: integer;
-
-
-    isWritingToDisk: boolean;
-    timespentwriting: qword;
-    currentwritestart: dword;
-
-
-
-    isdone: boolean;
-    hasTerminated: boolean;
-    savestate: boolean;
-    stop: boolean;
-
-    staticscanner: TStaticscanner;
-    tempresults: array of dword; //offsetlist
-    valuelist: array of ptruint; //used by noLoop  .
-    {
-    I could have used a map, but inserting in a map takes longer than a array append
-    Also, the array is maxlevel big, and usually not that long
-    Really not sure what's the best solution in this case though
-    }
-
-
-    //info:
-    currentaddress: pointer;
-    currentlevel: integer;
-    LookingForMin: ptrUint;
-    LookingForMax: ptrUint;
-    //lastaddress: ptrUint;
-    
-    filename: string;
-
-    haserror: boolean;
-    errorstring: string;
-
-    pathsEvaluated: qword;
-    pointersfound: qword;
-
-    compressedptr: boolean;
-    MaxBitCountModuleIndex: dword;
-    MaxBitCountLevel: dword;
-    MaxBitCountOffset: dword;
-
-    MaskModuleIndex: dword;
-    MaskLevel: dword;
-    MaskOffset: dword;
-
-    compressedEntry: pbytearray;
-    compressedEntrySize: integer;
-
-    mustendwithoffsetlistlength: integer;
-
-
-    instantrescan: boolean;
-    instantrescanlistcount: integer;
-    instantrescanlist: array of TPointerListHandler;
-    instantrescanaddress: array of ptruint;
-
-    resumescan: boolean;
-
-
-    procedure execute; override;
-    constructor create(suspended: boolean);
-    destructor destroy; override;
-  end;
-
-  TScanDataUploader = class(TThread)
-  private
-    s: Tsocket;
-    f: tfilestream;
-    downloaders: array of TSocket;
-  public
-    procedure execute; override;
-    constructor create(filepath: string; port: word);
-    destructor destroy; override;
-  end;
-
-
-  TStaticscanner = class(TThread)
-  private
-    reversescanners: array of treversescanworker;
-    pointersize: integer;
-
-    sockethandle: THandle;
-
-
-    workers: array of record //if server, this will contain a list of connected workers
-      s: THandle;
-      id: integer;
-      threadcount: integer;
-      pathsPerSecond: qword;
-      pointersfound: qword;
-      outofdiskspace: boolean;
-      alldone: boolean;
-    end;
-    myID: integer; //if worker, this will be the ID to identify the generated results, and to reconnect
-
-
-    scandataUploader: TScandataUploader;
-
-    firsttime: boolean; //For workers. This causes the first update to go without a wait
-
-    broadcastcount: integer;
-    lastBroadcast: dword;
-
-    resumePtrFileReader: TPointerscanresultReader;
-
-    function getMaxBitCount(absolutemaxvalue: dword; Signed: boolean): dword;
-
-    procedure EatFromOverflowQueueIfNeeded;
-
-    procedure launchWorker; //connect to the server
-    procedure launchServer; //start listening on the specific port
-    procedure broadcastscan; //sends a broadcast to the local network and the potentialWorkerList
-
-    function doDistributedScanningLoop: boolean;  //actually doDistributedScanningLoopIteration
-    function doDistributedScanningWorkerLoop: boolean;
-    function doDistributedScanningServerLoop: boolean;
-    procedure DispatchCommand(s: Tsocket; command: byte);
-
-    function getPathQueueElementSize: integer;
-    procedure WritePathQueueElementToMemory(element: PPathQueueElement; var p: pbytearray);
-    procedure LoadPathQueueElementFromMemory(element: PPathQueueElement; var p: pbytearray); //returns the next position
-
-    function ismatchtovalue(p: pointer): boolean;  //checks if the pointer points to a value matching the user's input
-    procedure SaveAndClearQueue(s: TStream);
-    procedure SetupQueueForResume;
-    procedure reversescan;
-  public
-    //reverse
-    firstaddress: pointer;
-    currentaddress: pointer;
-    //lastaddress: pointer;
-
-    lookingformin: ptrUint;
-    lookingformax: ptrUint;
-
-    reverseScanCS: TCriticalSection;
-        
-    //reverse^
-
-    ownerform: TfrmPointerscanner;
-    
-    reverse: boolean;
-    automatic: boolean;
-    automaticaddress: ptrUint;
-
-    startaddress: ptrUint;
-    stopaddress: ptrUint;
-    progressbar: TProgressbar;
-    sz: integer;
-    maxlevel: integer;
-    unalligned: boolean;
-
-    LimitToMaxOffsetsPerNode: boolean;
-    MaxOffsetsPerNode: integer; //Sets how many different offsets per node should be handled at most (specifically mentioning different offsets since a pointervalue can have multiple addresses, meaning the same offset, different paths)
-
-
-    fast: boolean;
-    psychotic: boolean;
-    writableonly: boolean;
-    unallignedbase: boolean;
-
-    useheapdata: boolean;
-    useOnlyHeapData: boolean;
-
-    findValueInsteadOfAddress: boolean;
-    valuetype: TVariableType;
-    valuescandword: dword;
-    valuescansingle: single;
-    valuescandouble: double;
-    valuescansinglemax: single;
-    valuescandoublemax: double;
-
-    mustStartWithBase: boolean;
-    BaseStart: ptruint;
-    BaseStop: ptruint;
-
-
-    mustEndWithSpecificOffset: boolean;
-    mustendwithoffsetlist: array of dword;
-    onlyOneStaticInPath: boolean;
-    noReadOnly: boolean;
-    mustBeClassPointers: boolean; //when set the pointers must all point to a class object
-    acceptNonModuleClasses: boolean; //when set class objects may also be non module objects (jitted)
-    noLoop: boolean; //when set a pointerpath may not have the same address multiple times
-
-    useStacks: boolean; //when set the stack regions will be marked as static
-    stacksAsStaticOnly: boolean; //when set the only static addresses are stack addresses
-    threadstacks: integer; //the number of stacks used as a lookup. (counted from first stack to newer ones)
-    stacksize: integer; //Number of bytes in a stack
-
-
-    threadcount: integer;
-    scannerpriority: TThreadPriority;
-
-    filename: string; //the final filename
-    phase: integer;
-
-
-    generatePointermapOnly: boolean;
-
-    compressedptr: boolean;
-    MaxBitCountModuleIndex: dword;
-    MaxBitCountLevel: dword;
-    MaxBitCountOffset: dword;
-
-    isdone: boolean;
-    staticonly: boolean; //for reverse
-
-    hasError: boolean;
-    errorString: string;
-
-    LoadedPointermapFilename: string;
-    UseLoadedPointermap: boolean;
-
-    pathqueuelength: integer;
-    pathqueue: array [0..MAXQUEUESIZE-1] of TPathQueueElement;
-    pathqueueCS: TCriticalSection; //critical section used to add/remove entries
-    pathqueueSemaphore: THandle; //Event to notify sleeping threads to wake up that there is a new path in the queue
-
-    overflowqueue: array of TPathQueueElement; //this queue will hold a number of paths that the server/worker received too many. (e.g a request for paths was made, but by the time the paths are received, the pathqueue is full again) It's accessed by the controller thread only
-
-
-    distributedScanning: boolean; //when set to true this will open listening port where other scanners can connect to
-    distributedport: word; //port used to listen on if distributed scanning is enabled
-    distributedScandataDownloadPort: word;
-
-    distributedWorker: boolean; //set if it's a worker connecting to a server
-    distributedServer: string;
-
-    broadcastThisScanner: boolean;
-    potentialWorkerList: array of THostAddr;
-
-    workersPathPerSecondTotal: qword;
-    workersPointersfoundTotal: qword;
-
-    outofdiskspace: boolean;
-
-    instantrescan: boolean;
-    instantrescanfiles:array of record
-      filename: string;
-      address: ptruint;
-      plist: TPointerListHandler;
-      progressbar: TProgressBar;
-      progresslabel: TLabel;
-    end;
-
-    savestate: boolean; //if true and terminated is true then save the current state
-    resumescan: boolean; //if true load the pointermap from filename.resume.scandata and the queue from filename.resume.queue
-    resumefilelist: tstringlist; //list containing the files of the previous scan. If less threads are created make sure at least all these files stay part of the .ptr file
-    resumePtrFilename: string;
-
-    procedure saveconfig(s: tstream);
-    procedure execute; override;
-    constructor create(suspended: boolean);
-    destructor destroy; override;
-  end;
-
   { Tfrmpointerscanner }
 
   Tfrmpointerscanner = class(TForm)
+    btnConnect: TButton;
     btnStopRescanLoop: TButton;
-    Button1: TButton;
+    btnStopScan: TButton;
+    btnIncreaseThreadCount: TButton;
+    btnDecreaseThreadCount: TButton;
+    cbTrusted: TCheckBox;
+    cbPriority: TComboBox;
+    edtIP: TEdit;
+    edtPassword: TEdit;
+    edtPort: TEdit;
+    gbNetwork: TGroupBox;
+    lblIP: TLabel;
+    lblPort: TLabel;
+    lblPassword: TLabel;
+    lblThreadPriority: TLabel;
     lblProgressbar1: TLabel;
-    MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
-    MenuItem3: TMenuItem;
-    MenuItem5: TMenuItem;
     miCreatePSNnode: TMenuItem;
     miResume: TMenuItem;
     miMergePointerscanResults: TMenuItem;
-    miSetWorkFolder: TMenuItem;
-    miJoinDistributedScan: TMenuItem;
-    miJoinDistributedRescan: TMenuItem;
     odMerge: TOpenDialog;
+    pnlData: TPanel;
+    pnlStop: TPanel;
+    pnlControl: TPanel;
     pnlProgressName: TPanel;
     pnlProgressBar: TPanel;
     pnlProgress: TPanel;
@@ -541,25 +221,21 @@ type
     SaveDialog2: TSaveDialog;
     SelectDirectoryDialog1: TSelectDirectoryDialog;
     Timer2: TTimer;
-    pgcPScandata: TPageControl;
-    tsPSReverse: TTabSheet;
-    tvRSThreads: TTreeView;
-    Panel2: TPanel;
-    Label5: TLabel;
-    lblRSTotalStaticPaths: TLabel;
-    Panel3: TPanel;
-    btnStopScan: TButton;
-    Label6: TLabel;
-    ListView1: TListView;
+    lvResults: TListView;
     PopupMenu1: TPopupMenu;
     Resyncmodulelist1: TMenuItem;
     cbType: TComboBox;
+    tvInfo: TTreeView;
     procedure btnStopRescanLoopClick(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
+    procedure btnConnectClick(Sender: TObject);
+    procedure btnIncreaseThreadCountClick(Sender: TObject);
+    procedure btnDecreaseThreadCountClick(Sender: TObject);
+    procedure cbPriorityChange(Sender: TObject);
+
     procedure FormDestroy(Sender: TObject);
     procedure FormResize(Sender: TObject);
-    procedure ListView1ColumnClick(Sender: TObject; Column: TListColumn);
-    procedure ListView1Resize(Sender: TObject);
+    procedure lvResultsColumnClick(Sender: TObject; Column: TListColumn);
+    procedure lvResultsResize(Sender: TObject);
     procedure MenuItem3Click(Sender: TObject);
     procedure miCreatePSNnodeClick(Sender: TObject);
     procedure miMergePointerscanResultsClick(Sender: TObject);
@@ -575,9 +251,9 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure New1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure ListView1Data(Sender: TObject; Item: TListItem);
+    procedure lvResultsData(Sender: TObject; Item: TListItem);
     procedure Resyncmodulelist1Click(Sender: TObject);
-    procedure ListView1DblClick(Sender: TObject);
+    procedure lvResultsDblClick(Sender: TObject);
     procedure cbTypeChange(Sender: TObject);
   private
     { Private declarations }
@@ -585,28 +261,79 @@ type
 
     rescan: trescanpointers;
     rescanpointerform: TFrmRescanPointer;
-    pointerlisthandler: TReversePointerListHandler;   //handled by the form for easy reuse
 
+      {
     distributedworkfolder: string;
 
-    PointerscanListener: TPointerscanListener;
+    PointerscanListener: TPointerscanListener;    }
+
+    infonodes: record
+      statistics: record
+        node: TTreenode; //+ statistics
+        stats: record
+          totalTimeScanning: TTreenode;
+          totalPathsEvaluated: TTreenode;
+          calculatedPathsPerSecond: TTreenode;
+
+          pointersInMap: TTreenode;
+          pathQueue: TTreenode;
+          resultsFound: TTreenode;
+          timeSpentWriting: TTreenode;
+          minpath: TTreenode;
+          maxpath: TTreenode;
+        end;
+
+      end;
+
+
+      localworkers: record
+        node: TTreenode;  // + localworkers
+        workernodes: array of record
+          node: TTreenode; //threadnr (status)
+        end;
+      end;
+
+      network: record
+        node: TTreenode; // + network
+        connectingto: TTreenode;
+        connectingToNodes: array of record
+          data: TTreenode; //ip, port, trusted
+        end;
+        connectedTo: TTreenode;
+        connectedToNodes: array of record
+          node: TTreenode; //ip:port (status)
+          data: record
+            trusted: TTreenode; //trusted: true/false
+            totalthreadcount: TTreenode; //Total threadcount: %d
+            resultsfound: TTreenode; //Total results found: %d
+            pathqueuesize: TTreenode; //Queuesize: %d
+            totalpathquesize: TTreenode; //Total queuesize: %d
+            totalpathsEvaluated: TTreenode; //Total paths evaluated: %d
+            pathspersecond: TTreenode; //Paths per second: %d
+          end;
+
+
+        end;
+      end;
+    end;
 
     procedure m_staticscanner_done(var message: tmessage); message staticscanner_done;
     procedure rescandone(var message: tmessage); message rescan_done;
     procedure openscanner(var message: tmessage); message open_scanner;
-    procedure _starttimer(var message: TMessage); message wm_starttimer;
+    procedure PointerscanStart(sender: TObject);
     procedure doneui;
     procedure resyncloadedmodulelist;
     procedure OpenPointerfile(filename: string);
     procedure stopscan(savestate: boolean);
+    procedure PointerscanDone(sender: TObject; hasError: boolean; errorstring: string); //called by the pointerscan controller thread when done
   public
     { Public declarations }
-    Staticscanner:TStaticScanner;
+    Staticscanner: TPointerscanController;
 
     Pointerscanresults: TPointerscanresultReader;
-
+    {
     procedure JoinPointerscan(host: string='127.0.0.1'; port: word=52737; threadcount: integer=1; scannerpriority:TThreadPriority=tpHigher; UseLoadedPointermap: boolean=false; LoadedPointermapFilename: string='');
-    procedure JoinRescan(server: string; port: dword);
+    procedure JoinRescan(server: string; port: dword);  }
   end;
 
 //var
@@ -619,7 +346,8 @@ implementation
 uses PointerscannerSettingsFrm, frmMemoryAllocHandlerUnit, frmSortPointerlistUnit,
   LuaHandler, lauxlib, lua, frmPointerscanConnectDialogUnit,
   frmpointerrescanconnectdialogunit, frmMergePointerscanResultSettingsUnit,
-  ProcessHandlerUnit, frmResumePointerscanUnit;
+  ProcessHandlerUnit, frmResumePointerscanUnit, PointerscanConnector,
+  frmSetupPSNNodeUnit, PointerscanNetworkStructures;
 
 resourcestring
   rsErrorDuringScan = 'Error during scan';
@@ -652,17 +380,18 @@ resourcestring
   rsTerminating = 'Terminating';
   rsSavingAndTerminating = 'Saving...';
   rsStop = 'Stop';
-  rsFailureCopyingTargetProcessMemory = 'Failure copying target process memory';
+
   rsOUTOFDISKSPACECleanUpTheDiskOrStop = 'OUT OF DISKSPACE! Clean up the disk '
     +'or stop';
 
 //----------------------- scanner info --------------------------
 //----------------------- staticscanner -------------------------
 
+var
 
 {$ifdef benchmarkps}
-var
-  totalpathsevaluated: qword;
+
+  //totalpathsevaluated: qword;
 
   starttime: dword;
   startcount: qword;
@@ -674,7 +403,7 @@ begin
   progressbar1.position:=0;
   pnlprogress.visible:=false;
 
-  pgcPScandata.Visible:=false;
+  pnlData.Visible:=false;
   open1.Enabled:=true;
   new1.enabled:=true;
   rescanmemory1.Enabled:=true;
@@ -693,8 +422,14 @@ begin
     freeandnil(rescan);
   end;
 
+  {
   if (PointerscanListener<>nil) then
-    PointerscanListener.executingCommand:=false; //start listening for new commands
+    PointerscanListener.executingCommand:=false; //start listening for new commands   }
+end;
+
+procedure Tfrmpointerscanner.PointerscanDone(sender: TObject; hasError: boolean; errorstring: string);
+begin
+  postmessage(Handle,staticscanner_done,0,0);
 end;
 
 procedure Tfrmpointerscanner.m_staticscanner_done(var message: tmessage);
@@ -711,6 +446,7 @@ begin
   doneui;
 end;
 
+{
 procedure TPointerscanListener.DoPointerscan;
 var cpucount: integer;
 begin
@@ -793,2842 +529,11 @@ begin
   self.pointerscannerform:=owner;
   inherited create(suspended);
 end;
+          }
 
-//---------------Reversescanworker
-procedure TReverseScanWorker.flushresults;
-begin
-  currentwritestart:=gettickcount;
-  isWritingToDisk:=true;
-  resultsfile.WriteBuffer(results.Memory^,results.Position);
-  results.Seek(0,sofrombeginning);
-  isWritingToDisk:=false;
-
-
-  inc(timespentwriting, gettickcount-currentwritestart);
-end;
-
-constructor TReverseScanWorker.create(suspended:boolean);
-begin
-  results:=tmemorystream.Create;
-  results.SetSize(16*1024*1024);
-
-  isdone:=true;
-
-  pointersize:=processhandler.pointersize;
-
-  inherited create(suspended);
-end;
-
-destructor TReverseScanWorker.destroy;
-begin
-  results.free;
-  if resultsfile<>nil then
-    freeandnil(resultsfile);
-
-  if compressedEntry<>nil then
-    FreeMem(compressedEntry);
-end;
-
-
-
-procedure TReverseScanWorker.execute;
-var
-  wr: dword;
-  i: integer;
-begin
-  try
-    try
-      if resumescan and fileexists(filename) then
-      begin
-        resultsfile:= tfilestream.Create(filename,fmOpenWrite or fmShareDenyNone);
-        resultsfile.Seek(0, soEnd);
-      end
-      else
-      begin
-        resultsfile:= tfilestream.Create(filename,fmcreate);
-        resultsfile.free;
-        resultsfile:= tfilestream.Create(filename,fmOpenWrite or fmShareDenyNone);
-      end;
-
-
-
-      maxlevel:=staticscanner.maxlevel;
-      noLoop:=staticscanner.noLoop;
-      structsize:=staticscanner.sz;
-
-      compressedEntrySize:=32+MaxBitCountModuleIndex+MaxBitCountLevel+MaxBitCountOffset*(maxlevel-mustendwithoffsetlistlength);
-      compressedEntrySize:=(compressedEntrySize+7) div 8;
-
-      getmem(compressedEntry, compressedEntrySize+4); //+4 so there's some space for overhead (writing using a dword pointer to the last byte)
-
-      MaskModuleIndex:=0;
-      for i:=1 to MaxBitCountModuleIndex do
-        MaskModuleIndex:=(MaskModuleIndex shl 1) or 1;
-
-      for i:=1 to MaxBitCountLevel do
-        MaskLevel:=(MaskLevel shl 1) or 1;
-
-      for i:=1 to MaxBitCountOffset do
-        MaskOffset:=(MaskOffset shl 1) or 1;
-
-
-
-      while (not terminated) do
-      begin
-        wr:=WaitForSingleObject(self.staticscanner.pathqueueSemaphore, INFINITE); //obtain semaphore
-        if stop or terminated then
-        begin
-          ReleaseSemaphore(staticscanner.pathqueueSemaphore, 1, nil);
-          exit;
-        end;
-
-        if wr=WAIT_OBJECT_0 then
-        begin
-          //fetch the data from the queue and staticscanner
-          if staticscanner.outofdiskspace then
-          begin
-            ReleaseSemaphore(staticscanner.pathqueueSemaphore, 1, nil); //don't use it. give the semaphore back
-            sleep(2000);
-            continue;
-          end;
-
-
-
-          self.staticscanner.pathqueueCS.Enter;
-          if self.staticscanner.pathqueuelength>0 then //should always be true due to the semaphore
-          begin
-            dec(staticscanner.pathqueuelength);
-            i:=staticscanner.pathqueuelength;
-
-
-            valuetofind:=staticscanner.pathqueue[i].valuetofind;
-            startlevel:=staticscanner.pathqueue[i].startlevel;
-
-            CopyMemory(@tempresults[0], @staticscanner.pathqueue[i].tempresults[0], maxlevel*sizeof(dword));
-            if noLoop then
-              CopyMemory(@valuelist[0], @staticscanner.pathqueue[i].valuelist[0], maxlevel*sizeof(ptruint));
-          end;
-
-          self.staticscanner.pathqueueCS.Leave;
-          isdone:=false;
-
-          try
-            rscan(valuetofind,startlevel);
-          finally
-            isdone:=true;  //set isdone to true
-          end;
-        end;
-      end;
-
-    except
-      on e: exception do
-      begin
-        OutputDebugString('ScanWorker has error');
-        haserror:=true;
-        errorstring:='ReverseScanWorker:'+e.message;
-
-        //tell all siblings they should kill themself. There is no reason to live for them...
-        staticscanner.reverseScanCS.Enter;
-        for i:=0 to length(staticscanner.reversescanners)-1 do
-          staticscanner.reversescanners[i].Terminate;
-
-        staticscanner.reverseScanCS.leave;
-        terminate;
-      end;
-    end;
-  finally
-    isdone:=true;
-    hasTerminated:=true;
-    OutputDebugString('Scanworker is done');
-  end;
-
-end;
-
-var scount:qword=0;
-
-function TReverseScanWorker.DoRescan(level: valSint; staticdata: PStaticData): boolean;
-var
-  i,j: integer;
-  a: ptruint;
-
-begin
-  result:=false;
-  for i:=0 to instantrescanlistcount-1 do
-  begin
-    a:=instantrescanlist[i].getAddressFromModuleIndexPlusOffset(staticdata.moduleindex, staticdata.offset);
-
-    for j:=level downto 0 do
-    begin
-      a:=instantrescanlist[i].getPointer(a);
-      if a=0 then exit;
-      a:=a+tempresults[j];
-    end;
-
-    if a<>instantrescanaddress[i] then exit;
-  end;
-
-  result:=true;
-end;
-
-procedure TReverseScanWorker.StorePath(level: valSint; staticdata: PStaticData);
-{Store the current path to memory and flush if needed}
-var
-  i: integer;
-
-  bd8, bm8: dword;
-
-  bit: integer;
-begin
-  if (staticdata=nil) then exit; //don't store it
-
-  if instantrescan and (not DoRescan(level, staticdata)) then exit;
-
-  //fill in the offset list
-  inc(pointersfound);
-
-
-
-  {
-  if databaseptr? then
-  begin
-    //table with last offsets
-    //table with secondary offsets
-    //...
-    //table with first offsets
-
-    //table with results, containing columns for every offset and the base
-    //moduleindex base offset1  offset2  offset3  offset4
-    //------------------------------------------------------
-    //0           1    reftooff1 reftooff2       3        4        5
-  end
-  else
-  }
-  if compressedptr then
-  begin
-    //leave the offset alone
-    //compress the module index
-    //compress the level
-    //compress the tempresults (additionally, if alligned, shift by 2)
-
-
-    //e.g: structsize 2048, maxlevel 5 , alligned, 100 modules in target
-    //offset: 32 bits
-    //module index(100) : 7 bits
-    //level(5): 3 bits
-    //tempresults(2048 alligned=512 , 9 bits/offset): 5*9=45
-    // total/entry: 32+7+3+45=87 bits.  Align it to a byte boundary(88 bits)=11 bytes
-
-
-    //as opposed to:
-    //offset: 32 bits:
-    //module index: 32 bits
-    //level(5): 32
-    //tempresults: 5*32=160
-    //total/entry: 32+32+32+160=256 bits = 32 bytes
-
-    //so, the compressed version should be almost 3 times as small on a default scan (the shifting and alignment might cause a slightly slower scan)
-
-    if level<(mustendwithoffsetlistlength-1) then exit; //on a multi offset end scan, entries with a partial match resulting in a static are saved as well. Don't as they are not what the user wished, and would cause problems
-
-
-    bit:=0;
-    pdword(compressedEntry)^:=staticdata.offset;
-    bit:=bit+32;
-
-
-    bd8:=bit shr 3; //bit div 8;
-    pdword(@compressedEntry[bd8])^:=staticdata.moduleindex;
-    bit:=bit+MaxBitCountModuleIndex;
-
-
-    bd8:=bit shr 3; //bit div 8;
-    bm8:=bit and $7; //bit mod 8;
-        {
-    v:=pdword(@compressedEntry[bd8])^; //get the current value at the specific byte the current bit points at
-    m:=MaskLevel shl (bm8);
-    m:=not m; //invert the mask
-    v:=v and m; //keep all the bits, except those of masklevel
-    v:=v or (level shl (bm8)); //set the bits of masklevel
-    pdword(@compressedEntry[bd8])^:=v; //set the value back
-    bit:=bit+MaxBitCountLevel;    //next section
-    }
-
-    //do not save the "must end with specific offset" offsets. They are known
-
-    //startindex:=mustendwithoffsetlistlength;
-   // _level:=1+(level-mustendwithoffsetlistlength);
-
-//    pdword(@compressedEntry[bd8])^:=pdword(@compressedEntry[bd8])^ and (not (MaskLevel shl bm8)) or (_level shl bm8);
-    pdword(@compressedEntry[bd8])^:=pdword(@compressedEntry[bd8])^ and (not (MaskLevel shl bm8)) or ((1+(level-mustendwithoffsetlistlength)) shl bm8);
-    bit:=bit+MaxBitCountLevel;    //next section
-
-
-
-    //compress the offsets
-    for i:=mustendwithoffsetlistlength to level do
-    begin
-      bd8:=bit shr 3; //bit div 8;
-      bm8:=bit and $7; //bit mod 8;
-        {
-      v:=pdword(@compressedEntry[bd8])^;
-      m:=MaskOffset shl (bm8);
-      m:=not m;
-      v:=v and m;
-
-      if alligned then
-        v:=v or ((tempresults[i] shr 2) shl (bm8))
-      else
-        v:=v or (tempresults[i] shl (bm8));
-
-
-      pdword(@compressedEntry[bd8])^:=v;
-        }
-
-
-      if alligned then
-        pdword(@compressedEntry[bd8])^:=pdword(@compressedEntry[bd8])^ and (not (MaskOffset shl bm8)) or ((tempresults[i] shr 2) shl bm8)
-      else
-        pdword(@compressedEntry[bd8])^:=pdword(@compressedEntry[bd8])^ and (not (MaskOffset shl bm8)) or ((tempresults[i]) shl bm8);
-
-      bit:=bit+MaxBitCountOffset;
-    end;
-
-    results.WriteBuffer(compressedEntry^, compressedEntrySize);
-
-  end
-  else
-  begin
-    results.WriteBuffer(staticdata.moduleindex, sizeof(staticdata.moduleindex));
-    results.WriteBuffer(staticdata.offset,sizeof(staticdata.offset));
-    i:=level+1; //store how many offsets are actually used (since all are saved)
-    results.WriteBuffer(i,sizeof(i));
-    results.WriteBuffer(tempresults[0], maxlevel*sizeof(tempresults[0]) ); //todo for 6.3+: Change sizeof(tempresult[0]) with the max size the structsize can generate./ (e.g 4096 is  only 2 bytes, 65536 =3)
-  end;
-  if results.position>15*1024*1024 then //bigger than 15mb
-    flushresults;
-end;
-
-procedure TReverseScanWorker.rscan(valuetofind:ptrUint; level: valSint);
-{
-scan through the memory for a address that points in the region of address, if found, recursive call till level maxlevel
-}
-var p: ^byte;
-    pd: ^dword absolute p;
-    pq: ^qword absolute p;
-
-
-    i,j: valSint;
-    addedToQueue: boolean;
-
-
-    ExactOffset: boolean;
-    mae: TMemoryAllocEvent;
-
-  startvalue: ptrUint;
-  stopvalue: ptrUint;
-  plist: PPointerlist;
-
-  nostatic: TStaticData;
-  DontGoDeeper: boolean;
-  DifferentOffsetsInThisNode: integer;
-  locked: boolean;
-
-begin
-  if (level>=maxlevel) or (terminated and (savestate=false)) then
-    exit;
-
-
-  currentlevel:=level;
-  DifferentOffsetsInThisNode:=0;
-
-
-  exactOffset:=staticscanner.mustEndWithSpecificOffset and (length(staticscanner.mustendwithoffsetlist)-1>=level);
-
-  if exactOffset then
-  begin
-    startvalue:=valuetofind-staticscanner.mustendwithoffsetlist[level];
-    stopvalue:=startvalue;
-  end
-  else
-  begin
-    startvalue:=valuetofind-structsize;
-    stopvalue:=valuetofind;
-
-    if staticscanner.useheapdata then
-    begin
-      mae:=frmMemoryAllocHandler.FindAddress(@frmMemoryAllocHandler.HeapBaselevel, valuetofind);
-      if mae<>nil then
-      begin
-        exactoffset:=true;
-        startvalue:=mae.BaseAddress;
-        stopvalue:=startvalue;
-      end
-      else //not static and not in heap
-       if staticscanner.useOnlyHeapData then
-         exit;
-    end;
-  end;
-
-
-  if noLoop then
-  begin
-    //check if this valuetofind is already in the list
-    for i:=0 to level-1 do
-      if valuelist[i]=valuetofind then
-      begin
-        exit;
-      end;
-
-    //add this valuetofind to the list
-    valuelist[level]:=valuetofind;
-  end;
-
-  //lastaddress:=maxaddress;
-
-  LookingForMin:=startvalue;
-  LookingForMax:=stopvalue;
-
-  dontGoDeeper:=false;
-  plist:=nil;
-  while stopvalue>=startvalue do
-  begin
-    if plist=nil then
-      plist:=ownerform.pointerlisthandler.findPointerValue(startvalue, stopvalue);
-
-    if plist<>nil then
-    begin
-      tempresults[level]:=valuetofind-stopvalue; //store the offset
-
-
-
-
-      //go through the list of addresses that have this address(stopvalue) as their value
-      for j:=0 to plist.pos-1 do
-      begin
-        {$ifdef benchmarkps}
-        inc(pathsevaluated);
-        {$endif}
-
-
-        if (plist.list[j].staticdata=nil) then //this removes a lot of other possible paths. Perhaps a feature to remove this check ?
-        begin
-          if (not dontGoDeeper) then
-          begin
-            //check if we should go deeper into these results (not if max level has been reached)
-
-
-            if (level+1) < maxlevel then
-            begin
-              addedToQueue:=false;
-
-              if savestate or staticscanner.outofdiskspace then //if there is not enough diskspace left wait till it's terminated, or diskspace is freed
-              begin
-                //!!Out of diskspace!!
-                //add to the queue and exit
-                while (savestate or staticscanner.outofdiskspace) and (not addedToQueue) do
-                begin
-                  //try to add it to the queue
-                  if (not Terminated) or savestate then
-                  begin
-                    staticscanner.pathqueueCS.Enter;
-                    if staticscanner.pathqueuelength<MAXQUEUESIZE-1 then
-                    begin
-                      //there's room in the queue. Add it
-
-                      CopyMemory(@staticscanner.pathqueue[staticscanner.pathqueuelength].tempresults[0], @tempresults[0], maxlevel*sizeof(dword));
-                      if noLoop then
-                        CopyMemory(@staticscanner.pathqueue[staticscanner.pathqueuelength].valuelist[0], @valuelist[0], maxlevel*sizeof(ptruint));
-
-                      staticscanner.pathqueue[staticscanner.pathqueuelength].startlevel:=level+1;
-                      staticscanner.pathqueue[staticscanner.pathqueuelength].valuetofind:=plist.list[j].address;
-
-                      inc(staticscanner.pathqueuelength);
-                      ReleaseSemaphore(staticscanner.pathqueueSemaphore, 1, nil);
-                      addedToQueue:=true;
-                    end;
-                    staticscanner.pathqueueCS.Leave;
-                  end
-                  else
-                    exit; //terminated
-
-                  if savestate then
-                    sleep(10)
-                  else
-                    sleep(500);
-                end;
-
-                //^^^^out of diskspace or save state!^^^^
-              end
-              else
-              begin
-
-                if (
-                    (level+3<maxlevel) and
-                    (
-                       ((staticscanner.pathqueuelength<MAXQUEUESIZE - (MAXQUEUESIZE div 3))) or
-                       ((level<=2) and (staticscanner.pathqueuelength<MAXQUEUESIZE - (MAXQUEUESIZE div 8))) or
-                       ((level<=1) and (staticscanner.pathqueuelength<MAXQUEUESIZE - (MAXQUEUESIZE div 16))) or
-                       ((level=0) and (staticscanner.pathqueuelength<MAXQUEUESIZE - 1))
-                    )
-                   )
-                or
-                   (staticscanner.pathqueuelength=0) //completely empty
-                then //there's room and not a crappy work item. Add it
-                begin
-                  if (not Terminated) or savestate then
-                  begin
-                    //try to lock multiple times if high level pointers
-                    locked:=staticscanner.pathqueueCS.tryEnter;
-                    if not locked and (level<=2) then locked:=staticscanner.pathqueueCS.tryEnter;
-                    if not locked and (level<=1) then
-                    begin
-                      //Two previous locks failed. Yield and try a lock again
-                      sleep(0);
-                      locked:=staticscanner.pathqueueCS.tryEnter;
-                      if not locked then
-                      begin
-                        //one more time
-                        sleep(0);
-                        locked:=staticscanner.pathqueueCS.tryEnter;
-                      end;
-                    end;
-
-                    if not locked and (level=0) then
-                    begin
-                      //I must have this lock
-                      staticscanner.pathqueueCS.Enter;
-                      locked:=true;
-                    end;
-
-
-                    if locked then
-                    begin
-                      if staticscanner.pathqueuelength<MAXQUEUESIZE-1 then
-                      begin
-                        //still room
-
-                        CopyMemory(@staticscanner.pathqueue[staticscanner.pathqueuelength].tempresults[0], @tempresults[0], maxlevel*sizeof(dword));
-                        if noLoop then
-                          CopyMemory(@staticscanner.pathqueue[staticscanner.pathqueuelength].valuelist[0], @valuelist[0], maxlevel*sizeof(ptruint));
-
-                        staticscanner.pathqueue[staticscanner.pathqueuelength].startlevel:=level+1;
-                        staticscanner.pathqueue[staticscanner.pathqueuelength].valuetofind:=plist.list[j].address;
-
-                        inc(staticscanner.pathqueuelength);
-                        ReleaseSemaphore(staticscanner.pathqueueSemaphore, 1, nil);
-                        addedToQueue:=true;
-                      end;
-                      staticscanner.pathqueueCS.Leave;
-                    end;
-                  end
-                  else
-                    exit;
-                end;
-
-
-                if not addedToQueue then
-                begin
-                  //I'll have to do it myself
-                  rscan(plist.list[j].address,level+1);
-
-                  ///done with this branch
-                end;
-              end;
-
-              if (not staticonly) then //store this results entry
-              begin
-                nostatic.moduleindex:=$FFFFFFFF;
-                nostatic.offset:=plist.list[j].address;
-                StorePath(level,@nostatic);
-              end;
-
-            end
-            else
-            begin
-              //end of the line
-              if (not staticonly) then //store this results entry
-              begin
-                nostatic.moduleindex:=$FFFFFFFF;
-                nostatic.offset:=plist.list[j].address;
-                StorePath(level,@nostatic);
-              end;
-            end
-
-          end; //else don't go deeper
-        end
-        else
-        begin
-          //found a static one
-          StorePath(level, plist.list[j].staticdata);
-
-          if staticscanner.onlyOneStaticInPath then DontGoDeeper:=true;
-        end;
-      end;
-
-
-      if LimitToMaxOffsetsPerNode then //check if the current itteration is less than maxOffsetsPerNode
-      begin
-        if level>0 then
-          inc(DifferentOffsetsInThisNode);
-
-        if (DifferentOffsetsInThisNode>=maxOffsetsPerNode) then
-          exit; //the max node has been reached
-      end;
-
-
-      plist:=plist.previous;
-      if plist<>nil then
-        stopvalue:=plist.pointervalue
-      else
-        exit; //nothing else to be found
-
-    end else
-    begin
-      {$ifdef benchmarkps}
-      inc(pathsevaluated);
-      {$endif}
-      exit;
-    end;
-
-  end;
-end;
-
-//--------------------------SCANDATAUPLOADER--------------
-procedure TScanDataUploader.execute;
-var
-  readfds: PFDSet;
-  maxfd: integer;
-  i,j: integer;
-  timeout: TTimeVal;
-
-  client: TSockAddrIn;
-  size: integer;
-
-  command: byte;
-  datasize: qword;
-
-  gsd: packed record
-    offset: qword;
-    chunksize: dword;
-  end;
-
-  buffer: pointer;
-begin
-  try
-    datasize:=f.Size;
-
-    while not terminated do
-    begin
-      //wait for the workers
-
-      getmem(readfds, sizeof(PtrUInt)+sizeof(TSocket)*(length(downloaders)+1));
-      try
-        readfds^.fd_count:=1;
-        readfds^.fd_array[0]:=s; //listening socket
-
-        maxfd:=s;
-        for i:=0 to length(downloaders)-1 do
-        begin
-          readfds.fd_array[i+1]:=downloaders[i];
-          maxfd:=max(maxfd, downloaders[i]);
-          inc(readfds^.fd_count);
-        end;
-
-        timeout.tv_sec:=1;
-        timeout.tv_usec:=0;
-        i:=select(maxfd, readfds, nil, nil, @timeout);
-        if i=-1 then
-          raise exception.create('Select failed');
-
-        if FD_ISSET(s, readfds^) then
-        begin
-          FD_CLR(s, readfds^);
-          size:=sizeof(client);
-          i:=fpaccept(s, @client, @size);
-          if i<>INVALID_SOCKET then
-          begin
-            setlength(downloaders, length(downloaders)+1);
-            downloaders[length(downloaders)-1]:=i;
-          end;
-        end;
-
-        i:=0;
-        while i<length(downloaders) do
-        begin
-          if FD_ISSET(downloaders[i], readfds^) then
-          begin
-            try
-              receive(downloaders[i], @command, sizeof(command));
-
-              case command of
-                DCMD_GETSCANDATASIZE: send(downloaders[i], @datasize, sizeof(datasize));
-                DCMD_GETSCANDATA:
-                begin
-                  //this can be done better
-                  receive(downloaders[i], @gsd, sizeof(gsd));
-
-                  f.Position:=gsd.offset;
-
-                  if gsd.chunksize=0 then
-                    raise TSocketException.create('Assertion failed in DCMD_GETSCANDATA');
-
-                  size:=min(gsd.chunksize, datasize-gsd.offset);
-                  getmem(buffer, gsd.chunksize);
-                  try
-                    f.ReadBuffer(buffer^, size);
-                    send(downloaders[i], @size, sizeof(size));
-                    send(downloaders[i], buffer, size);
-                  finally
-                    freemem(buffer);
-                  end;
-                end
-                else
-                  raise TSocketException.create('Unknown command');
-
-              end;
-            except
-              //error/disconnected
-              on e: TSocketException do
-              begin
-                //remove this connection from the list
-                CloseSocket(downloaders[i]);
-
-                for j:=i to length(downloaders)-2 do
-                  downloaders[i]:=downloaders[i+1];
-
-                setlength(downloaders, length(downloaders)-1);
-                continue; //again
-              end;
-            end;
-          end;
-          inc(i);
-        end;
-
-
-      finally
-        freemem(readfds);
-      end;
-
-    end;
-
-  except
-    on e: exception do
-    begin
-      outputdebugstring(pchar('TScanDataUploader error:'+e.message));
-    end;
-  end;
-
-end;
-
-constructor TScanDataUploader.create(filepath: string; port: word);
-var
-  B: BOOL;
-  i: integer;
-  sockaddr: TInetSockAddr;
-begin
-  f:=Tfilestream.create(filepath, fmopenread);
-
-  s:=socket(AF_INET, SOCK_STREAM, 0);
-
-  if s=INVALID_SOCKET then
-    raise Exception.create('Failure creating download socket');
-
-  B:=TRUE;
-  fpsetsockopt(s, SOL_SOCKET, SO_REUSEADDR, @B, sizeof(B));
-
-
-  sockaddr.sin_family:=AF_INET;
-  sockaddr.sin_port:=htons(port);
-  sockaddr.sin_addr.s_addr:=INADDR_ANY;
-  i:=bind(s, @sockaddr, sizeof(sockaddr));
-
-  if i=SOCKET_ERROR then
-    raise exception.create('Failure to bind download port '+inttostr(port));
-
-  i:=listen(s, 32);
-  if i=SOCKET_ERROR then
-    raise exception.create('Failure to listen on download port');
-
-  inherited create(false);
-end;
-
-destructor TScanDataUploader.destroy;
-begin
-  if f<>nil then
-    freeandnil(f);
-
-  if s<>INVALID_SOCKET then
-    CloseSocket(s);
-
-  inherited destroy;
-end;
-
-//--------------------------STATICSCANNER------------------
-
-procedure TStaticScanner.LoadPathQueueElementFromMemory(element: PPathQueueElement; var p: pbytearray); //returns the next position
-var pos: integer;
-begin
-  pos:=0;
-
-  if length(element.tempresults)<>maxlevel+1 then
-    setlength(element.tempresults, maxlevel+1);
-
-
-  copymemory(@element.tempresults[0], @p[0], sizeof(dword)*(maxlevel+1));
-  inc(pos, sizeof(dword)*(maxlevel+1));
-  if noloop then
-  begin
-    if length(element.valuelist)<>maxlevel+1 then
-      setlength(element.valuelist, maxlevel+1);
-
-
-    copymemory(@element.valuelist[0], @p[pos], sizeof(qword)*(maxlevel+1));
-    inc(pos, sizeof(qword)*(maxlevel+1));
-  end;
-
-  element.valuetofind:=pqword(@p[pos])^;
-  inc(pos, sizeof(qword));
-  element.startlevel:=PInteger(@p[pos])^;
-  inc(pos, sizeof(integer));
-
-  p:=@p[pos];
-
-{$ifdef XDEBUG}
-  assert(pos=getPathQueueElementSize);
-{$endif}
-
-end;
-
-procedure TStaticScanner.WritePathQueueElementToMemory(element: PPathQueueElement; var p: pbytearray);
-var pos: integer;
-begin
-{$ifdef XDEBUG}
-  assert(element<>nil);
-  assert(length(element.tempresults)=maxlevel+1);
-
-  assert((not noloop) or (length(element.tempresults)=maxlevel+1));
-{$endif}
-
-  pos:=0;
-  copymemory(@p[0], @element.tempresults[0], sizeof(dword)*(maxlevel+1));
-  inc(pos, sizeof(dword)*(maxlevel+1));
-
-  if noloop then
-  begin
-    copymemory(@p[pos], @element.valuelist[0], sizeof(qword)*(maxlevel+1));
-    inc(pos, sizeof(qword)*(maxlevel+1));
-  end;
-
-  pqword(@p[pos])^:=element.valuetofind;
-  inc(pos, sizeof(qword));
-  PInteger(@p[pos])^:=element.startlevel;
-  inc(pos, sizeof(dword));
-  p:=@p[pos];
-end;
-
-function TStaticScanner.getPathQueueElementSize: integer;
-{
-Calculates the size of a single path element when transfered over a stream
-
-definition:
-TPathQueueElement=record
-  tempresults: array of dword; //will be maxlevel+1 long
-  valuelist: array of qword; //will be 0 length if noloop is off, else maxlevel+1. (both server and worker know this)
-  valuetofind: qword;
-  startlevel: integer;
-end;
-}
-begin
-  if noloop then
-    result:=sizeof(dword)*(maxlevel+1)+sizeof(qword)*(maxlevel+1)+sizeof(qword)+sizeof(integer)
-  else
-    result:=sizeof(dword)*(maxlevel+1)+sizeof(qword)+sizeof(integer);
-end;
-
-procedure TStaticScanner.EatFromOverflowQueueIfNeeded;
-var
-  i: integer;
-  pathsToCopy: integer;
-  listsize: integer;
-begin
-  if (length(overflowqueue)>0) and (pathqueuelength<MAXQUEUESIZE-1) then //I could use some paths
-  begin
-    listsize:=sizeof(pathqueue[0].tempresults[0])*length(pathqueue[0].tempresults);
-
-    //do I have an overflow I can use ?
-    pathqueueCS.enter;
-    pathsToCopy:=min(length(overflowqueue), (MAXQUEUESIZE-pathqueuelength)); //get the number of paths to transfer from the oveflow queue to the real queue
-
-    for i:=pathqueuelength to pathqueuelength+pathstocopy-1 do
-    begin
-      //don't use this as the arrays get a pointer instead of copy on write: pathqueue[i]:=overflowqueue[length(overflowqueue)-1-(i-pathqueuelength)];
-      pathqueue[i].startlevel:=overflowqueue[i].startlevel;
-      pathqueue[i].valuetofind:=overflowqueue[i].valuetofind;
-      copymemory(@pathqueue[i].tempresults[0], @overflowqueue[i].tempresults[0], listsize);
-      if noLoop then
-        copymemory(@pathqueue[i].valuelist[0], @overflowqueue[i].valuelist[0], listsize);
-    end;
-
-    inc(pathqueuelength, pathsToCopy);
-    ReleaseSemaphore(pathqueueSemaphore, pathsToCopy, nil);
-    pathqueueCS.leave;
-
-    setlength(overflowqueue, length(overflowqueue)-pathstocopy);
-  end;
-end;
-
-procedure TStaticScanner.broadcastscan;
-var
-  cecommand: packed record
-    id: byte; //$ce
-    operation: byte;
-    port: word;
-    test: word;
-  end;
-
-  RecvAddr: sockaddr_in;
-  i: integer;
-  s: Tsocket;
-  v: boolean;
-
-  r: integer;
-begin
-  //sends a broadcast to the local network and the potentialWorkerList
-  cecommand.id:=$ce;
-  cecommand.operation:=0;   //poinerscan
-  cecommand.port:=distributedport;
-  cecommand.test:=(cecommand.id+cecommand.operation+cecommand.port)*599;
-
-  s:=fpsocket(PF_INET, SOCK_DGRAM, 0);
-  v:=true;
-  if fpsetsockopt(s, SOL_SOCKET, SO_BROADCAST, @v, sizeof(v)) >=0 then
-  begin
-    RecvAddr.sin_family:=AF_INET;
-    RecvAddr.sin_addr.s_addr:=htonl(INADDR_BROADCAST);
-    RecvAddr.sin_port:=htons(3297);
-
-    fpsendto(s,  @cecommand, sizeof(cecommand), 0, @RecvAddr, sizeof(RecvAddr));
-
-    for i:=0 to length(potentialWorkerList)-1 do
-    begin
-      RecvAddr.sin_addr:=potentialWorkerList[i];
-      fpsendto(s,  @cecommand, sizeof(cecommand), 0, @RecvAddr, sizeof(RecvAddr));
-
-    end;
-  end;
-
-  CloseSocket(s);
-end;
-
-procedure TStaticScanner.launchServer;
-var
-  B: BOOL;
-  i: integer;
-  sockaddr: TInetSockAddr;
-
-  s: Tfilestream;
-  cs: Tcompressionstream;
-begin
-  //start listening on the given port.  doDistributedScanningEvent will be responsible for accepting connections
-  sockethandle:=socket(AF_INET, SOCK_STREAM, 0);
-
-  if sockethandle=INVALID_SOCKET then
-    raise Exception.create('Failure creating socket');
-
-  B:=TRUE;
-  fpsetsockopt(sockethandle, SOL_SOCKET, SO_REUSEADDR, @B, sizeof(B));
-
-
-  sockaddr.sin_family:=AF_INET;
-  sockaddr.sin_port:=htons(distributedport);
-  sockaddr.sin_addr.s_addr:=INADDR_ANY;
-  i:=bind(sockethandle, @sockaddr, sizeof(sockaddr));
-
-  if i=SOCKET_ERROR then
-    raise exception.create('Failure to bind port '+inttostr(distributedport));
-
-  i:=listen(sockethandle, 32);
-  if i=SOCKET_ERROR then
-    raise exception.create('Failure to listen');
-
-
-  if useLoadedPointermap=false then
-  begin
-    LoadedPointermapFilename:=self.filename+'.scandata';
-    s:=TFileStream.Create(LoadedPointermapFilename, fmCreate);
-    try
-      cs:=Tcompressionstream.Create(clfastest, s);
-      try
-        ownerform.pointerlisthandler.exportToStream(cs);
-      finally
-        cs.free;
-      end;
-    finally
-      s.free;
-    end;
-  end;
-
-  //do this in a separate thread as to not cause a bottleneck for actual scanners waiting for paths, and slow downloaders
-  scandatauploader:=TScanDataUploader.create(loadedPointermapFilename, distributedScandataDownloadPort);
-
-
-
-end;
-
-procedure TStaticScanner.launchWorker;
-var
-  sockaddr: TInetSockAddr;
-  connected: boolean;
-  getScanParameters: packed record
-    command: byte;
-    wantedID: Int32;
-    threadcount: UInt32;
-  end;
-
-  sp: TGetScanParametersOut;
-
-  fname: pchar;
-
-  hr: THostResolver;
-
-  starttime: dword;
-
-  f: TFileStream;
-
-  buffer: pointer;
-  totalsize: qword;
-  totaldownloaded: qword;
-  chunksize: integer;
-
-  downloadsocket: TSocket;
-  command: byte;
-  gsd: packed record
-    command: byte;
-    offset: qword;
-    chunksize: dword;
-  end;
-
-begin
-  //try to connect to the server until it works, or timeouit (60 seconds)
-  firsttime:=true;
-  sockethandle:=socket(AF_INET, SOCK_STREAM, 0);
-
-  if sockethandle=INVALID_SOCKET then
-    raise Exception.create('Failure creating socket');
-
-  sockaddr.sin_family:=AF_INET;
-  sockaddr.sin_port:=htons(distributedport);
-
-  hr:=THostResolver.Create(nil);
-  try
-
-    sockaddr.sin_addr:=StrToNetAddr(distributedServer);
-
-    if sockaddr.sin_addr.s_bytes[4]=0 then
-    begin
-      if hr.NameLookup(distributedServer) then
-        sockaddr.sin_addr:=hr.NetHostAddress
-      else
-        raise exception.create('host:'+distributedServer+' could not be resolved');
-    end;
-
-
-  finally
-    hr.free;
-  end;
-
-
-  starttime:=gettickcount;
-  connected:=false;
-  while (not connected) and (gettickcount<starttime+60000) do
-  begin
-    connected:=fpconnect(sockethandle, @SockAddr, sizeof(SockAddr))=0;
-    if not connected then sleep(500) else break;
-  end;
-
-  if not connected then raise exception.create('Failure (re)connecting to server. No connection made within 60 seconds');
-
-  //still here, so ask for the scan config
-  getScanParameters.command:=CMD_GETSCANPARAMETERS;
-  getScanParameters.threadcount:=threadcount;
-  getScanParameters.wantedID:=myid;
-  send(sockethandle, @getScanParameters, sizeof(getScanParameters));
-
-  //receive the result
-  receive(sockethandle, @sp, sizeof(sp));
-
-  getmem(fname, sp.FilenameSize+1);
-  try
-    receive(sockethandle, fname, sp.FilenameSize);
-    fname[sp.FilenameSize]:=#0;
-
-    filename:=ExtractFilePath(filename)+fname;
-  finally
-    freemem(fname);
-  end;
-
-  myID:=sp.yourID;
-  maxlevel:=sp.maxlevel;
-  sz:=sp.structsize;
-  compressedptr:=sp.compressedptr<>0;
-  staticonly:=sp.staticonly<>0;
-  noLoop:=sp.noLoop<>0;
-
-  LimitToMaxOffsetsPerNode:=sp.LimitToMaxOffsetsPerNode<>0;
-  unalligned:=not (sp.Alligned<>0);
-  MaxOffsetsPerNode:=sp.MaxOffsetsPerNode;
-
-
-  if UseLoadedPointermap=false then
-  begin
-    //download the pointermap from the server
-    //connect to sp.DownloadPort and fetch the file
-    LoadedPointermapFilename:=filename+'.scandata';
-
-    downloadsocket:=socket(AF_INET, SOCK_STREAM, 0);
-
-    if downloadsocket=INVALID_SOCKET then
-      raise Exception.create('Failure creating download socket');
-
-    sockaddr.sin_port:=htons(sp.DownloadPort); //update the port
-    //let's assume the host didn't get a different ip address since last connect...
-
-
-    starttime:=gettickcount;
-    connected:=false;
-    while (not connected) and (gettickcount<starttime+60000) do
-    begin
-      connected:=fpconnect(downloadsocket, @SockAddr, sizeof(SockAddr))=0;
-      if not connected then sleep(500) else break;
-    end;
-
-    if not connected then raise exception.create('Failure connecting to downloadserver. No connection made within 60 seconds');
-
-
-    f:=TFileStream.Create(LoadedPointermapFilename, fmCreate);
-
-    command:=DCMD_GETSCANDATASIZE;
-    send(downloadsocket, @command, sizeof(command));
-    receive(downloadsocket, @totalsize, sizeof(totalsize));
-
-    totaldownloaded:=0;
-    getmem(buffer, 64*1024);
-
-    while totaldownloaded<totalsize do
-    begin
-      gsd.command:=DCMD_GETSCANDATA;
-      gsd.offset:=totaldownloaded;
-      gsd.chunksize:=64*1024;
-
-      try
-        send(downloadsocket, @gsd, sizeof(gsd));
-        receive(downloadsocket, @chunksize, sizeof(chunksize));
-        receive(downloadsocket, buffer, chunksize);
-
-        f.WriteBuffer(buffer^, chunksize);
-      except
-        on e: TSocketException do
-        begin
-          CloseSocket(downloadsocket);
-          OutputDebugString('Disconnected while downloading. Trying to reconnect');
-
-          //try to reconnect
-          connected:=false;
-          while (not connected) and (gettickcount<starttime+60000) do
-          begin
-            connected:=fpconnect(downloadsocket, @SockAddr, sizeof(SockAddr))=0;
-            if not connected then sleep(500) else break;
-          end;
-
-          if not connected then raise exception.create('Failure reconnecting to downloadserver. No connection made within 60 seconds');
-        end;
-      end;
-
-      inc(totaldownloaded, chunksize);
-    end;
-
-    freemem(buffer);
-
-    f.free;
-
-    UseLoadedPointermap:=true; //in case a reconnect is needed
-  end;
-end;
-
-function TStaticScanner.doDistributedScanningWorkerLoop: boolean;
-var
-  updateworkerstatusmessage: packed record
-    command: byte;
-    pathqueuelength: int32;
-    pathsPerSecond: qword;
-    pointersfound: qword;
-    outofdiskspace: byte;
-    alldone: byte;
-  end;
-
-  answer: byte;
-  elementcount: byte;
-
-  TransmittedQueueMessage: PTransmittedQueueMessageClient;
-  i,j: integer;
-
-  buffer: pointer;
-  p: PByteArray;
-begin
-  result:=true; //or CMDUPDATEREPLY_GOKILLYOURSELF is received or it failed to reconnect
-
-
-  //send state to the server and ask if it has or needs queuedpaths
-  if not firsttime then
-    sleep(1000+random(2000)); //wait between 1 and 3 seconds before doing something)
-
-  firsttime:=false;
-  updateworkerstatusmessage.command:=CMD_UPDATEWORKERSTATUS;
-  updateworkerstatusmessage.pathqueuelength:=pathqueuelength;
-  updateworkerstatusmessage.pointersfound:=scount;
-  updateworkerstatusmessage.pathsPerSecond:=trunc((totalpathsevaluated / (gettickcount-starttime))*1000);
-  if outofdiskspace then
-    updateworkerstatusmessage.outofdiskspace:=1
-  else
-    updateworkerstatusmessage.outofdiskspace:=0;
-
-
-
-  updateworkerstatusmessage.alldone:=0;
-  if pathqueuelength=0 then //could be everything is done
-  begin
-    pathqueueCS.enter;
-
-    if pathqueuelength=0 then //still 0
-    begin
-      updateworkerstatusmessage.alldone:=1; //it's now more likely that it's done. But check anyhow
-      for i:=0 to length(reversescanners)-1 do
-      begin
-        if reversescanners[i].isdone=false then
-        begin
-          updateworkerstatusmessage.alldone:=0;
-          break;
-        end;
-      end;
-    end;
-    pathqueueCS.Leave;
-  end;
-
-  try
-    send(sockethandle, @updateworkerstatusmessage, sizeof(updateworkerstatusmessage));
-
-    receive(sockethandle, @answer, sizeof(answer));
-    case answer of
-      CMDUPDATEREPLY_EVERYTHINGOK: ;  //do nothing
-
-      CMDUPDATEREPLY_HEREARESOMEPATHSTOEVALUATE:
-      begin
-        //new paths, weeee!
-        receive(sockethandle, @elementcount, sizeof(elementcount));
-
-        getmem(buffer, getPathQueueElementSize*elementcount);
-        try
-          receive(sockethandle, buffer, elementcount*getPathQueueElementSize);
-
-          i:=length(overflowqueue);
-          setlength(overflowqueue, length(overflowqueue)+elementcount);
-
-
-          //load them into the overflow queue
-          p:=buffer;
-          for j:=i to length(overflowqueue)-1 do
-            LoadPathQueueElementFromMemory(@overflowqueue[j], p);
-
-        finally
-          freemem(buffer);
-        end;
-
-
-        //and from the overflow queue into the real queue
-        EatFromOverflowQueueIfNeeded;
-      end;
-
-      CMDUPDATEREPLY_PLEASESENDMESOMEPATHS:
-      begin
-        //note: This is basically a 1-on-1 copy of the server dispatcher with the exception of no command
-        //send about 50% of my queue elements to the server (or max)
-        receive(sockethandle, @elementcount, sizeof(elementcount));
-
-        if outofdiskspace then
-          elementcount:=length(overflowqueue)+pathqueuelength
-        else
-          elementcount:=min(elementcount, length(overflowqueue)+pathqueuelength div 2);
-
-        GetMem(TransmittedQueueMessage, 1+getPathQueueElementSize*elementcount);
-        TransmittedQueueMessage.elementcount:=0;
-
-        try
-          p:=@TransmittedQueueMessage.elements;
-          for i:=0 to length(overflowqueue)-1 do
-          begin
-            WritePathQueueElementToMemory(@overflowqueue[length(overflowqueue)-1-i], p);
-            inc(TransmittedQueueMessage.elementcount);
-
-            if TransmittedQueueMessage.elementcount=elementcount then break;
-          end;
-
-          setlength(overflowqueue, length(overflowqueue)-TransmittedQueueMessage.elementcount);
-          dec(elementcount, TransmittedQueueMessage.elementcount);
-
-          if elementcount>0 then
-          begin
-            pathqueueCS.enter;
-            //get the actual size (must be smaller or equal to the current elementcount)
-
-            elementcount:=min(elementcount, min(32, pathqueuelength div 2));
-
-            //lock the path for as many times as possible (in case the queue suddenly got eaten up completely)
-            j:=0;
-            for i:=0 to elementcount-1 do
-            begin
-              if WaitForSingleObject(pathqueueSemaphore, 0)=WAIT_OBJECT_0 then
-                inc(j)
-              else
-                break; //unable to lower the semaphore count
-            end;
-
-            elementcount:=j; //the actual number of queue elements that got obtained
-
-
-            //send from the first elements (tends to be a lower level resulting in more paths)
-            for i:=0 to elementcount-1 do
-            begin
-              WritePathQueueElementToMemory(@pathqueue[i], p);
-              inc(TransmittedQueueMessage.elementcount);
-            end;
-
-            //move the other queue elements up by elementcount
-            for i:=elementcount to pathqueuelength-1 do
-              pathqueue[i-elementcount]:=pathqueue[i];
-
-            dec(pathqueuelength, elementcount); //adjust length
-
-            pathqueueCS.leave;
-          end;
-
-          send(sockethandle, TransmittedQueueMessage, 1+getPathQueueElementSize*TransmittedQueueMessage.elementcount);
-
-        finally
-          freemem(TransmittedQueueMessage);
-        end;
-
-
-      end;
-
-      CMDUPDATEREPLY_GOKILLYOURSELF:
-      begin
-        result:=false;
-      end;
-    end;
-
-  except
-    on e: TSocketException do
-    begin
-      try
-        //try to reconnect
-        launchWorker;
-      except
-        sockethandle:=-1;
-        result:=false;
-      end;
-    end;
-  end;
-
-end;
-
-procedure TStaticScanner.DispatchCommand(s: TSocket; command: byte);
-var
-  getScanParametersIn: packed record
-    wantedID: Int32;
-    threadcount: UInt32;
-  end;
-
-  getScanParametersOut: PGetScanParametersOut;
-
-  UpdateWorkerStatus: packed record
-    pathqueuelength: int32;
-    pathsPerSecond: qword;
-    pointersFound: qword;
-    outofdiskspace: byte;
-    alldone: byte;
-  end;
-
-  i, j,index: integer;
-  found: boolean;
-
-
-  packetsize: integer;
-
-  TransmittedQueueMessage: PTransmittedQueueMessage;
-  RequestQueueMessage: packed record
-    replymessage: byte;
-    max: byte;
-  end;
-  elementcount: integer;
-
-  receivedQueueListCount: byte;
-  tempqueue: array of TPathQueueElement;
-
-  fname: string;
-
-  everyonedone: boolean;
-
-  p: PByteArray;
-
-  buffer: pointer;
-
-  _workersPathPerSecondTotal: qword;
-  _workersPointersfoundTotal: qword;
-begin
-
-
-  //see pointerscancommands.txt
-  try
-
-    case command of
-      CMD_GETSCANPARAMETERS:
-      begin
-        //read out the client parameters (wanted ID, threadcount)
-        receive(s, @getScanParametersIn, sizeof(getScanParametersIn));
-
-
-        if getScanParametersIn.wantedID=-1 then
-        begin
-          //new connection
-          index:=length(workers);
-          setlength(workers, length(workers)+1);
-          workers[index].id:=length(workers)-1;
-          workers[index].s:=s;
-          workers[index].threadcount:=getScanParametersIn.threadcount;
-        end
-        else
-        begin
-          //reconnected
-          found:=false;
-          for i:=0 to length(workers)-1 do
-          begin
-            if workers[i].id=getScanParametersIn.wantedID then
-            begin
-              if workers[i].s<>-1 then //the client disconnected and reconnected before the server saw it
-                closehandle(workers[i].s);
-
-              index:=i;
-              workers[i].s:=s;
-              workers[i].threadcount:=getScanParametersIn.threadcount;
-              found:=true;
-              break;
-            end;
-          end;
-
-          if not found then //wtf?
-          begin
-            OutputDebugString(pchar('A client reconnected with an ID that isn''t in the list: ('+inttostr(getScanParametersIn.wantedID)+')'));
-            CloseSocket(s); //ditch it
-            exit;
-          end;
-        end;
-
-        //tell the caller the scanparameters and it's new ID
-
-        fname:=ExtractFileName(filename);
-
-        packetsize:=sizeof(TGetScanParametersOut)+length(fname);
-        getmem(getScanParametersOut, packetsize);
-        getScanParametersOut.yourID:=index;
-        getScanParametersOut.maxlevel:=maxlevel;
-        getScanParametersOut.structsize:=sz;
-        getScanParametersOut.compressedptr:=ifthen(compressedptr, 1, 0);
-        getScanParametersOut.staticonly:=ifthen(staticonly, 1, 0);
-        getScanParametersOut.noLoop:=ifthen(noLoop, 1, 0);
-        getScanParametersOut.LimitToMaxOffsetsPerNode:=ifthen(LimitToMaxOffsetsPerNode,1,0);
-        getScanParametersOut.Alligned:=ifthen(not self.unalligned,1,0);
-        getScanParametersOut.MaxOffsetsPerNode:=MaxOffsetsPerNode;
-        getScanParametersOut.DownloadPort:=distributedScandataDownloadPort;
-        getScanParametersOut.FilenameSize:=length(fname);
-        CopyMemory(@getScanParametersOut.Filename, @fname[1], length(fname));
-
-        send(s, getScanParametersOut, packetsize);
-      end;
-
-      CMD_UPDATEWORKERSTATUS:
-      begin
-        receive(s, @UpdateWorkerStatus, sizeof(UpdateWorkerStatus));
-
-        //update the stats
-        _workersPathPerSecondTotal:=0;
-        _workersPointersfoundTotal:=0;
-
-        for i:=0 to length(workers)-1 do
-        begin
-          if workers[i].s=s then
-          begin
-            workers[i].pathsPerSecond:=UpdateWorkerStatus.pathsPerSecond;
-            workers[i].pointersfound:=UpdateWorkerStatus.pointersfound;
-            workers[i].outofdiskspace:=UpdateWorkerStatus.outofdiskspace<>0;
-            workers[i].alldone:=UpdateWorkerStatus.alldone<>0;
-          end;
-
-          inc(_workersPathPerSecondTotal, workers[i].pathsPerSecond);
-          inc(_workersPointersfoundTotal, workers[i].pointersfound);
-        end;
-
-        workersPathPerSecondTotal:=_workersPathPerSecondTotal;
-        workersPointersfoundTotal:=_workersPointersfoundTotal;
-
-        EatFromOverFlowQueueIfNeeded;
-
-        if (UpdateWorkerStatus.outofdiskspace<>0) or //the worker is out of diskspace
-           (
-            (length(reversescanners)>0) and (
-           ((pathqueuelength+length(overflowqueue)<32) and (UpdateWorkerStatus.pathqueuelength>32)) or //Normalize queue
-           ((pathqueuelength+length(overflowqueue)<4) and (UpdateWorkerStatus.pathqueuelength>1)))
-           ) then
-        begin
-          //ask the client for his queue elements
-
-          RequestQueueMessage.replymessage:=CMDUPDATEREPLY_PLEASESENDMESOMEPATHS;
-          RequestQueueMessage.max:=0;
-
-          if UpdateWorkerStatus.outofdiskspace>0 then
-            RequestQueueMessage.max:=UpdateWorkerStatus.pathqueuelength //get all of it (even if I'm out of space as well)
-          else
-          begin
-            if not outofdiskspace then
-              RequestQueueMessage.max:=MAXQUEUESIZE-(pathqueuelength+length(overflowqueue));
-          end;
-
-          if RequestQueueMessage.max>0 then
-          begin
-            send(s, @RequestQueueMessage, sizeof(RequestQueueMessage));
-
-            //wait for the result
-
-            receive(s, @receivedQueueListCount, sizeof(receivedQueueListCount));
-
-            if receivedQueueListCount>0 then
-            begin
-              getmem(buffer, receivedQueueListCount*getPathQueueElementSize);
-              try
-                receive(s, buffer, getPathQueueElementSize*receivedQueueListCount);
-                setlength(tempqueue, receivedQueueListCount);
-
-                p:=buffer;
-                for i:=0 to receivedQueueListCount-1 do
-                  LoadPathQueueElementFromMemory(@tempqueue[i], p);
-
-              finally
-                freemem(buffer);
-              end;
-
-              j:=length(overflowqueue);
-              setlength(overflowqueue, length(overflowqueue)+length(tempqueue));
-
-              for i:=j to j+length(tempqueue)-1 do
-                overflowqueue[j+i]:=tempqueue[i];
-
-              EatFromOverflowQueueIfNeeded; //and use what can be used
-            end;
-          end
-          else
-          begin
-            command:=CMDUPDATEREPLY_EVERYTHINGOK;
-            send(s, @command, sizeof(command));
-          end;
-
-
-        end
-        else
-        if (outofdiskspace) or //i'm out of diskspace
-           ((UpdateWorkerStatus.pathqueuelength<32) and (pathqueuelength+length(overflowqueue)>32)) or
-           ((UpdateWorkerStatus.pathqueuelength<4) and (pathqueuelength+length(overflowqueue)>=1)) then
-        begin
-          //send some (about 50%) que elements to the client
-          elementcount:=min(32, length(overflowqueue)+(pathqueuelength div 2));
-          if elementcount=0 then
-            elementcount:=1;
-
-          getmem(TransmittedQueueMessage, 2+getPathQueueElementSize*elementcount);
-          TransmittedQueueMessage.replymessage:=CMDUPDATEREPLY_HEREARESOMEPATHSTOEVALUATE;
-          TransmittedQueueMessage.elementcount:=0;
-
-          try
-            //aquire a the pathqueue lock
-            //first copy the overflow queue
-
-            p:=@TransmittedQueueMessage.elements;
-
-            for i:=0 to length(overflowqueue)-1 do
-            begin
-              WritePathQueueElementToMemory(@overflowqueue[length(overflowqueue)-1-i], p);
-
-              inc(TransmittedQueueMessage.elementcount);
-              if TransmittedQueueMessage.elementcount=elementcount then break;
-            end;
-
-            setlength(overflowqueue, length(overflowqueue)-TransmittedQueueMessage.elementcount);
-            dec(elementcount, TransmittedQueueMessage.elementcount);
-
-            if elementcount>0 then //probably yes
-            begin
-              pathqueueCS.enter;
-              //get the actual size (must be smaller or equal to the current elementcount)
-
-              elementcount:=min(elementcount, min(32, pathqueuelength div 2));
-              if elementcount=0 then
-                elementcount:=max(pathqueuelength,1);
-
-              //lock the path for as many times as possible (in case the queue suddenly got eaten up completely)
-              j:=0;
-              for i:=0 to elementcount-1 do
-              begin
-                if WaitForSingleObject(pathqueueSemaphore, 0)=WAIT_OBJECT_0 then
-                  inc(j)
-                else
-                  break; //unable to lower the semaphore count
-              end;
-
-              elementcount:=j; //the actual number of queue elements that got obtained
-
-
-              //send from the first elements (tends to be a lower level resulting in more paths)
-              for i:=0 to elementcount-1 do
-              begin
-                WritePathQueueElementToMemory(@pathqueue[i], p);
-                inc(TransmittedQueueMessage.elementcount);
-              end;
-
-              //move the other queue elements up by elementcount
-              for i:=elementcount to pathqueuelength-1 do
-                pathqueue[i-elementcount]:=pathqueue[i];
-
-              dec(pathqueuelength, elementcount); //adjust length
-
-              pathqueueCS.leave;
-
-            end;
-
-            //transfer the list to the client
-            if TransmittedQueueMessage.elementcount>0 then
-            begin
-              send(s, TransmittedQueueMessage, 2+getPathQueueElementSize*TransmittedQueueMessage.elementcount);
-
-              //mark this worker as not done
-              for i:=0 to length(workers)-1 do
-                if workers[i].s=s then
-                  workers[i].alldone:=false;
-            end
-            else
-            begin
-              //I have no que elements to send...
-              command:=CMDUPDATEREPLY_EVERYTHINGOK;
-              send(s, @command, sizeof(command));
-            end;
-
-          finally
-            freemem(TransmittedQueueMessage);
-          end;
-        end
-        else
-        begin
-          //check if all threads are done
-          everyonedone:=true;
-          for i:=0 to length(workers)-1 do
-          begin
-            if (workers[i].s<>-1) and (workers[i].alldone=false) then
-            begin
-              everyonedone:=false;
-              break;
-            end;
-          end;
-
-          if everyonedone then
-          begin
-            //check if all my own scanners are done
-            if pathqueuelength=0 then //the queue seems to be empty
-            begin
-              pathqueueCS.Enter;
-              if pathqueuelength=0 then //it's still 0, so no thread added a new one
-              begin
-                for i:=0 to length(reversescanners)-1 do
-                begin
-                  if reversescanners[i].isdone=false then
-                  begin
-                    everyonedone:=false;  //this thread was not yet done, it may add a new queue element
-                    break;
-                  end;
-                end;
-              end;
-
-              pathqueueCS.Leave;
-
-              if everyonedone then
-              begin
-                command:=CMDUPDATEREPLY_GOKILLYOURSELF;
-                send(s, @command, sizeof(command));
-                raise TSocketException.Create('No more work for thread');
-              end;
-            end;
-
-
-
-          end;
-
-          //tell the client to go on as usual
-          command:=CMDUPDATEREPLY_EVERYTHINGOK;
-          send(s, @command, sizeof(command));
-        end;
-
-
-
-      end;
-
-    end;
-
-
-  except
-    on e: TSocketException do
-    begin
-      //an socket error happened (read/write error. Disconnect. Done)
-      for i:=0 to length(workers)-1 do
-        if workers[i].s=s then
-        begin
-          workers[i].s:=-1; //mark as disconnected
-          break;
-        end;
-      CloseSocket(s);
-    end;
-  end;
-end;
-
-function TStaticScanner.doDistributedScanningServerLoop: boolean;
-var
-  readfds: PFDSet;
-  i,r: integer;
-  timeout: TTimeVal;
-
-  client: TSockAddrIn;
-  clientsize: integer;
-  command: byte;
-
-  maxfd: integer;
-begin
-  //wait for a status update from any worker, and then either request and send queued paths
-
-  result:=true;
-
-  if broadcastThisScanner and (broadcastcount<10) and (gettickcount>lastBroadcast+1000) then
-  begin
-    inc(broadcastcount);
-    lastbroadcast:=gettickcount;
-    broadcastscan;
-  end;
-
-
-  getmem(readfds, sizeof(PtrUInt)+sizeof(TSocket)*(length(workers)+1));
-  try
-
-    readfds^.fd_count:=1;
-    readfds^.fd_array[0]:=sockethandle;
-
-    maxfd:=sockethandle;
-    for i:=1 to length(workers) do
-    begin
-      if workers[i-1].s<>-1 then //don't add scanners that got disconnected. (they can reconnect)
-      begin
-        readfds.fd_array[i]:=workers[i-1].s;
-        maxfd:=max(maxfd, workers[i-1].s);
-        inc(readfds^.fd_count);
-      end;
-    end;
-
-    timeout.tv_sec:=1;
-    timeout.tv_usec:=0;
-    i:=select(maxfd, readfds, nil, nil, @timeout);
-    if i=-1 then
-      raise exception.create('Select failed');
-
-    if i>0 then
-    begin
-      //at least one is signaled
-      if FD_ISSET(sockethandle, readfds^) then
-      begin
-        //read event on the listening socket (something tries to connect)
-        FD_CLR(sockethandle, readfds^);
-
-        clientsize:=sizeof(client);
-        i:=fpaccept(sockethandle, @client, @clientsize);
-        if i<>INVALID_SOCKET then
-        begin
-          //wait for the first command (MUST be a "GetScanParameters")
-          try
-            receive(i, @command, 1);
-            if (command=CMD_GETSCANPARAMETERS) then
-              DispatchCommand(i, command)
-            else
-              closehandle(i);
-          except
-            on e: TSocketException do
-            begin
-              closehandle(i); //bad connection
-            end;
-          end;
-
-        end;
-      end;
-
-
-      for i:=0 to length(workers)-1 do //also read from newly created sockets. They always send a message anyhow (getScanParameters)
-      begin
-        if FD_ISSET(workers[i].s, readfds^) then
-        begin
-          //handle it
-          try
-            receive(workers[i].s, @command, 1);
-            dispatchCommand(workers[i].s, command);
-          except
-            on e: TSocketException do
-            begin
-              CloseSocket(workers[i].s);
-              workers[i].s:=-1;
-            end;
-          end;
-        end;
-      end;
-    end;
-
-
-  finally
-    Freemem(readfds);
-  end;
-end;
-
-
-function TStaticScanner.doDistributedScanningLoop: boolean;
-begin
-  if distributedWorker then
-    result:=doDistributedScanningWorkerLoop
-  else
-    result:=doDistributedScanningServerLoop;
-end;
-
-function TStaticScanner.ismatchtovalue(p: pointer): boolean;
-begin
-  case valuetype of
-    vtDword: result:=pdword(p)^=valuescandword;
-    vtSingle: result:=(psingle(p)^>=valuescansingle) and (psingle(p)^<valuescansinglemax);
-    vtDouble: result:=(pdouble(p)^>=valuescandouble) and (pdouble(p)^<valuescandoublemax);
-  end;
-end;
-
-
-
-type
-  TScanDataWriter=class(tthread)
-  private
-  public
-    progressbar: TProgressbar;
-    filename: string;
-    pointerlisthandler: TReversePointerListHandler;
-    procedure execute; override;
-  end;
-
-procedure TScanDataWriter.execute;
-var
-  f: TFileStream;
-  cs: Tcompressionstream;
-begin
-  f:=tfilestream.create(filename, fmCreate);
-  cs:=Tcompressionstream.create(clfastest, f);
-  pointerlisthandler.exportToStream(cs, progressbar);
-  cs.free;
-  f.free;
-end;
-
-procedure TStaticscanner.SetupQueueForResume;
-var f: TFileStream;
-    offsetcountperlist: integer;
-
-    i, j: integer;
-
-    addedToQueue: integer;
-
-    tempentry: TPathQueueElement;
-begin
-  //setup the queue
-  //load the overflow from the overflow queue
-
-  f:=tfilestream.Create(filename+'.resume.queue', fmOpenRead or fmShareDenyNone);
-  offsetcountperlist:=f.readDWord;
-
-  if offsetcountperlist<>length(pathqueue[0].tempresults) then raise exception.create('Invalid queue file');
-
-  pathqueueCS.enter;
-
-  while f.Position<f.Size do
-  begin
-    i:=length(overflowqueue);
-    setlength(overflowqueue, length(overflowqueue)+1);
-    f.Read(overflowqueue[i].valuetofind, sizeof(pathqueue[i].valuetofind));
-    f.read(overflowqueue[i].startlevel, sizeof(overflowqueue[i].startlevel));
-
-    setlength(overflowqueue[i].tempresults, offsetcountperlist);
-    f.read(overflowqueue[i].tempresults[0], length(overflowqueue[i].tempresults)*sizeof(overflowqueue[i].tempresults[0]));
-
-    if noloop then
-    begin
-      setlength(overflowqueue[i].valuelist, offsetcountperlist);
-      f.read(overflowqueue[i].valuelist[0], length(overflowqueue[i].valuelist)*sizeof(overflowqueue[i].valuelist[0]));
-    end;
-
-  end;
-
-  //sort based on level
-  for i:=0 to length(overflowqueue)-2 do
-  begin
-    for j:=i to length(overflowqueue)-1 do
-    begin
-      if overflowqueue[i].startlevel>overflowqueue[j].startlevel then //swap
-      begin
-        tempentry:=overflowqueue[j];
-        overflowqueue[j]:=overflowqueue[i];
-        overflowqueue[i]:=tempentry;
-      end;
-    end;
-  end;
-
-  addedToQueue:=0;
-
-  for i:=length(overflowqueue)-1 downto 0 do
-  begin
-    if pathqueuelength<MAXQUEUESIZE then
-    begin
-      pathqueue[(length(overflowqueue)-1)-i]:=overflowqueue[i];
-
-
-      overflowqueue[i].tempresults[0]:=$cece;
-      inc(addedToQueue);
-      inc(pathqueuelength);
-    end else break;
-  end;
-
-  setlength(overflowqueue, length(overflowqueue)-addedToQueue);
-
-  ReleaseSemaphore(pathqueueSemaphore, addedToQueue, nil);
-  pathqueueCS.leave;
-
-  f.free;
-end;
-
-procedure TStaticScanner.SaveAndClearQueue(s: TStream);
-var i: integer;
-begin
-  if s=nil then exit; //can happen if stop is pressed right after the scan is done but before the gui is updated
-
-  if pathqueuelength>0 then
-  begin
-    pathqueueCS.enter;
-    try
-      //save the current queue and clear it (repeat till all scanners are done)
-      for i:=0 to pathqueuelength-1 do
-      begin
-        s.Write(pathqueue[i].valuetofind, sizeof(pathqueue[i].valuetofind));
-        s.Write(pathqueue[i].startlevel, sizeof(pathqueue[i].startlevel));
-        s.Write(pathqueue[i].tempresults[0], length(pathqueue[i].tempresults)*sizeof(pathqueue[i].tempresults[0]));
-
-        if noloop then
-          s.Write(pathqueue[i].valuelist[0], length(pathqueue[i].valuelist)*sizeof(pathqueue[i].valuelist[0]));
-      end;
-
-      //also save the overflow queue
-      for i:=0 to length(overflowqueue)-1 do
-      begin
-        s.Write(overflowqueue[i].valuetofind, sizeof(overflowqueue[i].valuetofind));
-        s.Write(overflowqueue[i].startlevel, sizeof(overflowqueue[i].startlevel));
-        s.Write(overflowqueue[i].tempresults[0], length(overflowqueue[i].tempresults)*sizeof(overflowqueue[i].tempresults[0]));
-
-        if noloop then
-          s.Write(overflowqueue[i].valuelist[0], length(overflowqueue[i].valuelist)*sizeof(overflowqueue[i].valuelist[0]));
-      end;
-
-      setlength(overflowqueue,0);
-
-      i:=pathqueuelength;
-      pathqueuelength:=0;
-      ReleaseSemaphore(pathqueueSemaphore, i, nil);
-
-    finally
-      pathqueueCS.Leave;
-    end;
-
-  end;
-
-end;
-
-procedure TStaticScanner.reversescan;
-{
-Do a reverse pointer scan
-}
-var
-  i,j: integer;
-  alldone: boolean;
-
-  currentaddress: ptrUint;
-  addedToQueue: boolean;
-
-  valuefinder: TValueFinder;
-
-  savedqueue: TFilestream;
-  scandatawriter: TScanDataWriter;
-
-begin
-
-  //scan the buffer
-  savedqueue:=nil;
-  scandatawriter:=nil;
-
-  scount:=0;
-  alldone:=false;
-
-  try
-    if maxlevel>0 then
-    begin
-
-      if (distributedScanning=false) or (distributedWorker=false) then //don't start the scan if it's a worker system
-      begin
-        //initialize the first reverse scan worker
-        //that one will spawn of all his other siblings if needed
-
-        starttime:=gettickcount;
-
-        if Self.findValueInsteadOfAddress then
-        begin
-          //scan the memory for the value
-          ValueFinder:=TValueFinder.create(startaddress,stopaddress);
-          ValueFinder.alligned:=not unalligned;
-          ValueFinder.valuetype:=valuetype;
-          ValueFinder.valuescandword:=valuescandword;
-          ValueFinder.valuescansingle:=valuescansingle;
-          ValueFinder.valuescandouble:=valuescandouble;
-          ValueFinder.valuescansinglemax:=valuescansinglemax;
-          ValueFinder.valuescandoublemax:=valuescandoublemax;
-
-          currentaddress:=ptrUint(ValueFinder.FindValue(startaddress));
-          while (not terminated) and (currentaddress>0) do
-          begin
-            //if found, find a idle thread and tell it to look for this address starting from level 0 (like normal)
-            addedToQueue:=false;
-            while (not terminated) and (not addedToQueue) do
-            begin
-              if pathqueuelength<MAXQUEUESIZE-1 then //no need to lock
-              begin
-                pathqueueCS.enter;
-                //setup the queueelement
-                if pathqueuelength<MAXQUEUESIZE-1 then
-                begin
-                  pathqueue[pathqueuelength].startlevel:=0;
-                  pathqueue[pathqueuelength].valuetofind:=currentaddress;
-                  inc(pathqueuelength);
-
-                  ReleaseSemaphore(pathqueueSemaphore, 1, nil);
-
-                  if unalligned then
-                    currentaddress:=ValueFinder.FindValue(currentaddress+1)
-                  else
-                    currentaddress:=ValueFinder.FindValue(currentaddress+pointersize);
-
-                  addedToQueue:=true;
-                end;
-
-                pathqueueCS.leave;
-              end;
-
-              if (not addedToQueue) and (not terminated) then
-                sleep(500); //wait till there is space in the queue
-            end;
-
-          end;
-
-          //done with the value finder, wait till all threads are done
-          valuefinder.free;
-        end
-        else
-        begin
-
-          if resumescan then
-          begin
-            SetupQueueForResume;
-          end
-          else
-          begin
-            //initialize the first thread (it'll spawn new pathqueues)
-            pathqueue[pathqueuelength].startlevel:=0;
-            pathqueue[pathqueuelength].valuetofind:=self.automaticaddress;
-            inc(pathqueuelength);
-            ReleaseSemaphore(pathqueueSemaphore, 1, nil);
-          end;
-
-
-
-        end;
-
-      end;
-
-      //wait till all workers are in isdone state
-
-      if distributedScanning then
-      begin
-        if not distributedWorker then
-          launchServer; //everything is configured now and the scanners are active
-
-        alldone:=not doDistributedScanningLoop;
-      end;
-
-
-
-      while (not alldone) do
-      begin
-        outofdiskspace:=getDiskFreeFromPath(filename)<64*1024*1024*length(reversescanners); //64MB for each thread
-
-
-        if Terminated then
-        begin
-       {   OutputDebugString('Forced terminate. Telling the scanworkers to die as well');
-
-          if savestate then
-            OutputDebugString('Saving state');        }
-
-          //force the workers to die if they are sleeping
-          for i:=0 to length(reversescanners)-1 do
-          begin
-            reversescanners[i].savestate:=savestate;
-            reversescanners[i].stop:=true;
-            reversescanners[i].Terminate;
-          end;
-
-          if terminated and savestate then
-          begin
-            if scandatawriter=nil then
-            begin
-              scandatawriter:=TScanDataWriter.Create(true);
-              scandatawriter.progressbar:=progressbar;
-              scandatawriter.filename:=filename+'.resume.scandata';
-              scandatawriter.pointerlisthandler:=ownerform.pointerlisthandler;
-              scandatawriter.Start;
-            end;
-
-            if savedqueue=nil then
-            begin
-              savedqueue:=TFileStream.Create(filename+'.resume.queue', fmCreate);
-              savedqueue.WriteDWord(length(pathqueue[0].tempresults)); //number of entries in the tempresult array
-            end;
-          end;
-
-
-          if not savestate then
-            ReleaseSemaphore(pathqueueSemaphore, MAXQUEUESIZE, nil); //release all queues
-        end;
-
-
-        EatFromOverflowQueueIfNeeded;
-
-        if distributedScanning then
-          alldone:=not doDistributedScanningLoop
-        else
-        begin
-          if terminated and savestate then
-            sleep(10)
-          else
-            sleep(500);
-        end;
-
-
-
-
-
-        if ((not alldone) and (pathqueuelength=0)) or terminated then //it's 0 or terminated
-        begin
-          //aquire a lock to see if it's still 0
-          EatFromOverflowQueueIfNeeded;
-
-          pathqueueCS.Enter;
-          if (pathqueuelength=0) or terminated then
-          begin //still 0
-            alldone:=true;
-
-            for i:=0 to length(reversescanners)-1 do
-            begin
-              if reversescanners[i].haserror then
-              begin
-
-                OutputDebugString('A worker had an error: '+reversescanners[i].errorstring);
-
-                haserror:=true;
-                errorstring:=reversescanners[i].errorstring;
-
-                for j:=0 to length(reversescanners)-1 do reversescanners[j].terminate; //even though the reversescanner already should have done this, let's do it myself as well
-
-                alldone:=true;
-                break;
-              end;
-
-              if not (reversescanners[i].hasTerminated or reversescanners[i].isdone) then //isdone might be enabled
-              begin
-                if terminated then
-                  OutputDebugString('Worker '+inttostr(i)+' is still active. Waiting till it dies...');
-
-                alldone:=false;
-                break;
-              end;
-            end;
-          end
-          else
-            alldone:=false;
-
-          if terminated and savestate then
-            saveAndClearQueue(savedqueue);
-
-          pathqueueCS.Leave;
-
-          if (not terminated) and alldone and distributedScanning then
-          begin
-            //if this is a distributed scan
-            if distributedWorker then
-            begin
-
-              if doDistributedScanningLoop then
-                alldone:=false; //the server didn't tell me to go kill myself
-            end
-            else
-            begin
-              //server scanners are done, check if all the workers are done
-              for i:=0 to length(workers)-1 do
-                if (workers[i].alldone=false) then
-                begin
-                  alldone:=false;
-                  break; //still some workers active. do not terminate the scan
-                end;
-            end;
-          end;
-
-        end;
-
-      end;
-
-
-    end;
-
-    isdone:=true;
-
-
-    //all threads are done
-    for i:=0 to length(reversescanners)-1 do
-      reversescanners[i].stop:=true;
-
-    ReleaseSemaphore(pathqueueSemaphore, MAXQUEUESIZE, nil);
-
-
-    for i:=0 to length(reversescanners)-1 do
-    begin
-      reversescanners[i].WaitFor; //wait till this thread has terminated because the main thread has terminated
-      if not haserror then
-        reversescanners[i].flushresults;  //write unsaved results to disk
-
-      reversescanners[i].Free;
-      reversescanners[i]:=nil;
-    end;
-
-    setlength(reversescanners,0);
-
-    if terminated and savestate then
-      saveAndClearQueue(savedqueue);
-
-
-    if not savestate then
-    begin
-      //make sure these files are gone
-      DeleteFile(filename+'.resume.queue');
-      DeleteFile(filename+'.resume.config');
-      DeleteFile(filename+'.resume.scandata');
-    end;
-
-
-  finally
-    if savedqueue<>nil then
-      freeandnil(savedqueue);
-
-    if scandatawriter<>nil then
-    begin
-      scandatawriter.WaitFor;
-      freeandnil(scandatawriter);
-    end;
-
-    if haserror then
-      postmessage(ownerform.Handle,staticscanner_done,1,ptrUint(pchar(errorstring)))
-    else
-      postmessage(ownerform.Handle,staticscanner_done,0,maxlevel);
-  end;
-
-  terminate;
-end;
-
-function TStaticScanner.getMaxBitCount(absolutemaxvalue: dword; Signed: boolean): dword;
-//converts the given absolutemaxvalue to a mask to be used
-//if signed, the mostSignificantbit will get the bit which will mark if it's negative
-var
-  bitcount: integer;
-  mask: dword;
-begin
-  mask:=0;
-  bitcount:=0;
-  while absolutemaxvalue>0 do
-  begin
-    inc(bitcount);
-    mask:=(mask shl 1) or 1;
-    absolutemaxvalue:=absolutemaxvalue shr 1;
-  end;
-
-  if Signed then
-  begin
-    inc(bitcount);
-    mask:=(mask shl 1) or 1;
-  end;
-
-  result:=bitcount;
-end;
-
-type
-  TPointerlistloader=class(tthread)
-  private
-  public
-    filename: string;
-    progressbar: TProgressbar;
-    pointerlisthandler: TPointerListHandler;
-    procedure execute; override;
-  end;
-
-procedure TPointerlistloader.execute;
-var
-  fs: TFileStream;
-  cs: Tdecompressionstream;
-begin
-  fs:=tfilestream.Create(filename, fmOpenRead or fmShareDenyNone);
-  cs:=Tdecompressionstream.create(fs);
-
-  pointerlisthandler:=TPointerListHandler.createFromStream(cs, progressbar);
-
-  cs.free;
-  fs.free;
-
-end;
-
-procedure TStaticScanner.execute;
-var
-    i,j: integer;
-
-    result: tfilestream;
-
-    temp: dword;
-    tempstring: string;
-
-    f: tfilestream;
-    cs: Tcompressionstream;
-    ds: Tdecompressionstream;
-
-    pa,sa: DWORD_PTR;
-
-    newAffinity: DWORD_PTR;
-    PreferedProcessorList: array of integer; //a list of cpu numbers available to be used. If hyperthreading is on, this will not contain the uneven cpu numbers
-    currentcpu: integer;  //index into PreferedProcessorList. If it's bigger than the size, make the affinity equal to PA (do not care, let windows decide)
-
-
-    pointerlistloaders: array of TPointerlistloader;
-begin
-
-  if terminated then exit;
-
-  try
-    result:=nil;
-
-    if resumescan then
-      resumeptrfilereader:=TPointerscanresultReader.create(resumeptrfilename);
-
-
-    if distributedScanning and distributedWorker then
-      LaunchWorker; //connects and sets up the parameters
-
-    if distributedScandataDownloadPort=0 then
-      distributedScandataDownloadPort:=distributedport+1;
-
-    phase:=1;
-    if instantrescan then
-    begin
-      //launch threads to load these data files
-      setlength(pointerlistloaders, length(instantrescanfiles));
-      for i:=0 to length(pointerlistloaders)-1 do
-      begin
-        pointerlistloaders[i]:=TPointerlistloader.Create(true);
-        pointerlistloaders[i].progressbar:=instantrescanfiles[i].progressbar;
-        pointerlistloaders[i].filename:=instantrescanfiles[i].filename;
-        pointerlistloaders[i].Start;
-      end;
-    end;
-
-    if ownerform.pointerlisthandler=nil then
-    begin
-
-      progressbar.Position:=0;
-      try
-        if useLoadedPointermap then
-        begin
-          f:=tfilestream.create(LoadedPointermapFilename, fmOpenRead or fmShareDenyNone);
-          try
-            ds:=Tdecompressionstream.create(f);
-            try
-              ownerform.pointerlisthandler:=TReversePointerListHandler.createFromStream(ds, progressbar);
-            finally
-              ds.free;
-            end;
-          finally
-            f.free;
-          end;
-        end
-        else
-          ownerform.pointerlisthandler:=TReversePointerListHandler.Create(startaddress,stopaddress,not unalligned,progressbar, noreadonly, MustBeClassPointers, acceptNonModuleClasses, useStacks, stacksAsStaticOnly, threadstacks, stacksize, mustStartWithBase, BaseStart, BaseStop);
-
-
-
-
-      except
-        on e: exception do
-        begin
-          haserror:=true;
-          errorString:=rsFailureCopyingTargetProcessMemory;
-          postmessage(ownerform.Handle,staticscanner_done,0,0);
-          terminate;
-          exit;
-        end;
-      end;
-    end;
-
-    if instantrescan then
-    begin
-      for i:=0 to length(pointerlistloaders)-1 do
-      begin
-        pointerlistloaders[i].WaitFor;
-        instantrescanfiles[i].plist:=pointerlistloaders[i].pointerlisthandler;
-        pointerlistloaders[i].Free;
-      end;
-    end;
-
-    if generatePointermapOnly then
-    begin
-
-      f:=tfilestream.create(filename, fmCreate);
-      cs:=Tcompressionstream.create(clfastest, f);
-      ownerform.pointerlisthandler.exportToStream(cs);
-      cs.free;
-      f.free;
-
-      filename:='';
-      progressbar.Position:=0;
-      postmessage(ownerform.Handle,staticscanner_done,0,0);
-      terminate;
-      exit;
-    end;
-
-    phase:=2;
-    progressbar.Position:=0;
-  
-
-
-    i:=0;
-
-
-    if not (distributedScanning and distributedWorker) and (not resumescan) then  //not needed anymore if it is a worker (it gets the level from the server, which already execute this)
-      maxlevel:=maxlevel-1; //adjust the maxlevel to fix the user input
-
-
-    if compressedptr then
-    begin
-      //calculate the masks for compression
-      //moduleid can be negative, so keep that in mind
-      if resumescan then
-        MaxBitCountModuleIndex:=getMaxBitCount(resumeptrfilereader.modulelistCount-1, true)
-      else
-        MaxBitCountModuleIndex:=getMaxBitCount(ownerform.pointerlisthandler.modulelist.Count-1, true);
-
-      MaxBitCountLevel:=getMaxBitCount(maxlevel-length(mustendwithoffsetlist) , false); //counted from 1.  (if level=4 then value goes from 1,2,3,4) 0 means no offsets. This can happen in case of a pointerscan with specific end offsets, which do not get saved.
-      MaxBitCountOffset:=getMaxBitCount(sz, false);
-
-      if unalligned=false then MaxBitCountOffset:=MaxBitCountOffset - 2;
-    end;
-
-
-
-    //setup the pathqueue
-    pathqueuelength:=0;
-    pathqueueCS:=TCriticalSection.create;
-    pathqueueSemaphore:=CreateSemaphore(nil, 0, MAXQUEUESIZE, nil);
-
-    for i:=0 to MAXQUEUESIZE-1 do
-    begin
-      setlength(pathqueue[i].tempresults, maxlevel+1);
-      if noLoop then
-        setlength(pathqueue[i].valuelist, maxlevel+1);
-    end;
-
-    reverseScanCS:=tcriticalsection.Create;
-    try
-
-      //build a list of cpu id's
-      PA:=0;
-      GetProcessAffinityMask(GetCurrentProcess, PA, SA);
-      for i:=0 to BitSizeOf(PA)-1 do
-      begin
-        if getbit(i, PA)=1 then
-        begin
-          if (i mod 2=0) or (hasHyperThreading=false) then
-          begin
-            setlength(PreferedProcessorList, length(PreferedProcessorList)+1);
-            PreferedProcessorList[length(PreferedProcessorList)-1]:=i;
-          end;
-        end;
-      end;
-
-      currentcpu:=0;
-
-      //create the headerfile and save header (modulelist, and levelsize)
-      if resumescan then
-      begin
-        result:=TfileStream.create(filename+'.tmp',fmcreate or fmShareDenyWrite);
-        resumePtrFileReader.saveModulelistToResults(result);
-      end
-      else
-      begin
-        result:=TfileStream.create(filename,fmcreate or fmShareDenyWrite);
-        ownerform.pointerlisthandler.saveModuleListToResults(result);
-      end;
-
-
-      if resumePtrFileReader<>nil then
-        FreeAndNil(resumePtrFileReader); //free the ptr files
-
-
-
-      setlength(reversescanners,threadcount);
-      for i:=0 to threadcount-1 do
-      begin
-        reversescanners[i]:=TReverseScanWorker.Create(true);
-        reversescanners[i].ownerform:=ownerform;
-        reversescanners[i].Priority:=scannerpriority;
-        reversescanners[i].staticscanner:=self;
-        setlength(reversescanners[i].tempresults,maxlevel);
-
-        if noloop then
-          setlength(reversescanners[i].valuelist,maxlevel);
-
-        reversescanners[i].staticonly:=staticonly;
-        reversescanners[i].noLoop:=noLoop;
-
-        reversescanners[i].LimitToMaxOffsetsPerNode:=LimitToMaxOffsetsPerNode;
-        reversescanners[i].MaxOffsetsPerNode:=MaxOffsetsPerNode;
-
-        reversescanners[i].alligned:=not self.unalligned;
-        reversescanners[i].filename:=self.filename+'.'+inttostr(i);
-        reversescanners[i].resumescan:=resumescan;
-
-        //pick a usable cpu. Use the process affinity mask to pick from
-        if i<length(PreferedProcessorList) then
-        begin
-          NewAffinity:=1 shl PreferedProcessorList[i];
-          NewAffinity:=SetThreadAffinityMask(reversescanners[i].Handle, NewAffinity);
-        end;
-
-        reversescanners[i].compressedptr:=compressedptr;
-        reversescanners[i].MaxBitCountModuleIndex:=MaxBitCountModuleIndex;
-        reversescanners[i].MaxBitCountLevel:=MaxBitCountLevel;
-        reversescanners[i].MaxBitCountOffset:=MaxBitCountOffset;
-
-        reversescanners[i].mustendwithoffsetlistlength:=length(mustendwithoffsetlist);
-
-
-        //rescan data if applicable
-        reversescanners[i].instantrescan:=instantrescan;
-        if instantrescan then
-        begin
-          reversescanners[i].instantrescanlistcount:=length(instantrescanfiles);
-          setlength(reversescanners[i].instantrescanlist, length(instantrescanfiles));
-          setlength(reversescanners[i].instantrescanaddress, length(instantrescanfiles));
-          for j:=0 to length(instantrescanfiles)-1 do
-          begin
-            reversescanners[i].instantrescanlist[j]:=instantrescanfiles[j].plist;
-            reversescanners[i].instantrescanaddress[j]:=instantrescanfiles[j].address;
-          end;
-        end;
-
-
-        reversescanners[i].start;
-      end;
-
-      postmessage(ownerform.Handle, wm_starttimer, 0,0);
-
-
-
-
-      //levelsize
-      result.Write(maxlevel,sizeof(maxlevel)); //write max level (maxlevel is provided in the message (it could change depending on the settings)
-
-      //pointerstores
-      if resumescan then
-      begin
-        for i:=0 to length(reversescanners)-1 do
-        begin
-          j:=resumefilelist.IndexOf(reversescanners[i].filename);
-          if j<>-1 then
-            resumefilelist.Delete(j);
-        end;
-      end;
-
-      temp:=length(reversescanners);
-      if resumefilelist<>nil then
-        inc(temp, resumefilelist.count);
-
-      result.Write(temp,sizeof(temp));
-      for i:=0 to length(reversescanners)-1 do
-      begin
-        tempstring:=ExtractFileName(reversescanners[i].filename);
-        temp:=length(tempstring);
-        result.Write(temp,sizeof(temp));
-        result.Write(tempstring[1],temp);
-      end;
-
-      if resumefilelist<>nil then
-      begin
-        for i:=0 to resumefilelist.count-1 do
-        begin
-          tempstring:=resumefilelist[i];
-          temp:=length(tempstring);
-          result.Write(temp,sizeof(temp));
-          result.Write(tempstring[1],temp);
-        end;
-      end;
-
-
-      freeandnil(result);
-
-
-
-      //now do the actual scan
-      reversescan;
-
-      //returned from the scan, save the rest
-
-      if resumescan then
-        result:=TfileStream.create(filename+'.tmp',fmOpenWrite)
-      else
-        result:=TfileStream.create(filename,fmOpenWrite);
-
-      result.seek(0, soEnd); //append from the end
-
-      if distributedScanning then
-      begin
-        //save the number of external workers
-
-
-        result.writeDword(length(workers)); //0 for a worker (unless I decide to make it a real chaotic mess)
-
-        //save the workerid that generated these results (server=-1)
-        result.writeDword(myid);
-
-        freeandnil(result);
-
-        if scandataUploader<>nil then
-        begin
-          scandataUploader.terminate;
-          scandataUploader.WaitFor;
-          freeandnil(scandataUploader);
-        end;
-
-      end
-      else
-      begin
-        result.writeDword(0);    //number of workers
-        result.writeDword(0);    //my id (ignored)
-
-      end;
-
-      result.writeDword(0); //merged worker count
-
-      result.writeDword(ifthen(compressedptr, 1, 0));
-      result.writeDword(ifthen(unalligned, 0, 1)); //1 if alligned (I should really rename this one)
-      result.writeDword(MaxBitCountModuleIndex);
-      result.writeDword(MaxBitCountLevel);
-      result.writeDword(MaxBitCountOffset);
-
-      result.writeDword(length(mustendwithoffsetlist));
-      for i:=0 to length(mustendwithoffsetlist)-1 do
-        result.writeDword(mustendwithoffsetlist[i]);
-
-    finally
-
-      if result<>nil then
-        freeandnil(result);
-
-      freeandnil(reverseScanCS);
-
-      freeandnil(pathqueueCS);
-      closehandle(pathqueueSemaphore);
-
-
-      if resumescan then
-      begin
-        //delete the old ptr file, it's not needed anymore
-        if resumePtrFileReader<>nil then
-          FreeAndNil(resumePtrFileReader);
-
-        deletefile(filename);
-        RenameFile(filename+'.tmp', filename);
-      end;
-    end;
-
-
-
-  except
-    on e: exception do
-    begin
-      haserror:=true;
-      errorstring:='StaticScanner:'+e.message;
-      postmessage(ownerform.Handle,staticscanner_done,1,ptrUint(pchar(errorstring)));
-      terminate;
-    end;
-  end;
-
-    
-end;
-
-procedure TStaticscanner.saveconfig(s: TStream);
-{
-Save config data that isn't saved with the scandata file:
-
-maxlevel: dword
-structsize: dword; //sz
-totalpathsevaluated: qword
-compressedptr: byte;  //boolean
-unalligned: byte; //boolen
-noloop: byte; //boolean
-muststartwithbase; byte //boolean
-LimitToMaxOffsetsPerNode: byte //boolean
-onlyOneStaticInPath: byte; //boolean
-instantrescan: byte //boolean (not really needed, but it's a nice padding)
-mustEndWithSpecificOffset: byte; //boolean ( ^ ^ )
-maxoffsetspernode: integer;
-basestart: qword;
-basestop: qword;
-
-
-mustendwithoffsetlistlength: integer
-mustendwithoffsetlist[]: dword*mustendwithoffsetlistlength
-
-
-
-instantrescancount: integer;
-instantrescanentry []: record[] [
-  filenamelength: integer
-  filename: char[filenamelength] //full path
-  address: qword
-]
-}
-var i: integer;
-begin
-  s.WriteDWord(maxlevel);
-  s.WriteDWord(sz);
-  s.WriteQWord(totalpathsevaluated);
-  s.writebyte(ifthen(compressedptr,1,0));
-  s.writebyte(ifthen(unalligned,1,0));
-  s.writebyte(ifthen(noLoop,1,0));
-  s.writebyte(ifthen(muststartwithbase,1,0));
-  s.writebyte(ifthen(LimitToMaxOffsetsPerNode,1,0));
-  s.writebyte(ifthen(onlyOneStaticInPath,1,0));
-  s.writebyte(ifthen(instantrescan,1,0));
-  s.writebyte(ifthen(mustEndWithSpecificOffset,1,0));
-  s.WriteDWord(maxoffsetspernode);
-  s.WriteQWord(basestart);
-  s.WriteQWord(basestop);
-
-  s.WriteDWord(length(mustendwithoffsetlist));
-  for i:=0 to length(mustendwithoffsetlist)-1 do
-     s.WriteDword(mustendwithoffsetlist[i]);
-
-  s.WriteDword(length(instantrescanfiles));
-  for i:=0 to length(instantrescanfiles)-1 do
-  begin
-    s.WriteAnsiString(instantrescanfiles[i].filename);
-    s.WriteQWord(instantrescanfiles[i].address);
-  end;
-
-
-
-end;
-
-constructor TStaticscanner.create(suspended: boolean);
-begin
-  pointersize:=processhandler.pointersize;
-  myid:=-1;
-
-  reverse:=true;
-
-  sockethandle:=-1;
-
-
-  inherited create(suspended);
-end;
-
-destructor TStaticscanner.destroy;
-var i: integer;
-begin
-  terminate;
-  waitfor;
-
-  if sockethandle<>-1 then
-  begin
-    CloseSocket(sockethandle);
-    sockethandle:=-1;
-  end;
-
-
-  if instantrescan then
-  begin
-    for i:=0 to length(instantrescanfiles)-1 do
-    begin
-      if instantrescanfiles[i].plist<>nil then
-        freeandnil(instantrescanfiles[i].plist);
-
-      if instantrescanfiles[i].progresslabel<>nil then
-        freeandnil(instantrescanfiles[i].progresslabel);
-
-      if instantrescanfiles[i].progressbar<>nil then
-        freeandnil(instantrescanfiles[i].progressbar);
-    end;
-
-  end;
-
-  if resumeptrfilereader<>nil then
-    freeandnil(resumeptrfilereader);
-
-  if resumefilelist<>nil then
-    freeandnil(resumefilelist);
-
-  //clean up other stuff
-  inherited destroy;
-end;
 
 //---------------------------------main--------------------------
-
+               {
 procedure Tfrmpointerscanner.JoinRescan(server: string; port: dword);
 begin
   if rescan<>nil then
@@ -3637,6 +542,7 @@ begin
   rescan:=trescanpointers.create(true);
   rescan.ownerform:=self;
   rescan.progressbar:=progressbar1;
+
 
   rescan.distributedrescan:=true;
   rescan.distributedrescanWorker:=true;
@@ -3647,9 +553,11 @@ begin
 
   rescan.start;
 end;
-
+       }
+       {
 procedure Tfrmpointerscanner.JoinPointerscan(host: string='127.0.0.1'; port: word=52737; threadcount: integer=1; scannerpriority:TThreadPriority=tpHigher; UseLoadedPointermap: boolean=false; LoadedPointermapFilename: string='');
 begin
+
   new1.click; //setup the gui
 
   totalpathsevaluated:=0;
@@ -3666,26 +574,22 @@ begin
   rescanmemory1.Enabled:=false;
 
   cbType.Visible:=false;
-  listview1.Visible:=false;
+  lvResults.Visible:=false;
 
 
 
   //launch the scanner
-  if pointerlisthandler<>nil then
-    freeandnil(pointerlisthandler);
+  staticscanner:=TPointerscanController.Create(true);
 
-  staticscanner:=TStaticscanner.Create(true);
-  staticscanner.reverse:=true;
 
   label5.caption:=rsGeneratingPointermap;
   pnlProgress.Visible:=true;
 
-  staticscanner:=TStaticscanner.Create(true);
+
   staticscanner.distributedScanning:=true;
   staticscanner.distributedWorker:=true;
   staticscanner.distributedServer:=host;
   staticscanner.distributedport:=port;
-
   staticscanner.progressbar:=progressbar1;
   staticscanner.threadcount:=threadcount;
   staticscanner.scannerpriority:=scannerpriority;
@@ -3693,23 +597,21 @@ begin
   staticscanner.LoadedPointermapFilename:=LoadedPointermapFilename;
 
   staticscanner.filename:=IncludeTrailingPathDelimiter(distributedworkfolder);
-
-
-  staticscanner.ownerform:=self;
+  staticscanner.pointerlisthandler:=pointerlisthandler;
 
   open1.Enabled:=false;
 
   staticscanner.start;
 
   pgcPScandata.Visible:=true;
-end;
+end;     }
 
 procedure Tfrmpointerscanner.miJoinDistributedScanClick(Sender: TObject);
-var
-  f: tfrmPointerscanConnectDialog;
+{var
+  f: tfrmPointerscanConnectDialog;}
 
 begin
-
+{
   f:=tfrmPointerscanConnectDialog.create(self);
   if f.showmodal=mrok then
   begin
@@ -3721,7 +623,7 @@ begin
     JoinPointerscan(f.edthost.text, f.port, f.threadcount, f.scannerpriority, f.cbUseLoadedPointermap.checked, f.odLoadPointermap.FileName);
   end;
 
-  f.free;
+  f.free;   }
 end;
 
 procedure Tfrmpointerscanner.miResumeClick(Sender: TObject);
@@ -3814,7 +716,7 @@ begin
 
     maxlevel:=config.ReadDWord;
     structsize:=config.ReadDWord;
-    totalpathsevaluated:=config.ReadQWord; //IGNORED
+   // totalpathsevaluated:=config.ReadQWord; //IGNORED
     compressedptr:=config.ReadByte=1;
     unalligned:=config.ReadByte=1;
     noloop:=config.ReadByte=1;
@@ -3860,25 +762,23 @@ begin
       new1.click;
 
       starttime:=0;
-      totalpathsevaluated:=0;
+     // totalpathsevaluated:=0;
       startcount:=0;
 
 
       //default scan
-      staticscanner:=TStaticscanner.Create(true);
-
-      label5.caption:=rsGeneratingPointermap;
+      staticscanner:=TPointerscanController.Create(true);
 
       btnStopScan.enabled:=true;
       btnStopScan.Caption:=rsStop;
 
-      pgcPScandata.Visible:=false;
+      pnlData.Visible:=false;
       open1.Enabled:=false;
       new1.enabled:=false;
       rescanmemory1.Enabled:=false;
 
       cbType.Visible:=false;
-      listview1.Visible:=false;
+      lvResults.Visible:=false;
 
 
 
@@ -3886,7 +786,8 @@ begin
       pnlProgress.Visible:=true;
 
       try
-        staticscanner.ownerform:=self;
+        staticscanner.OnStartScan:=PointerscanStart;
+        staticscanner.OnScanDone:=PointerscanDone;
         staticscanner.threadcount:=threadcount;
         staticscanner.resumescan:=true;
         staticscanner.resumefilelist:=resumefilelist;
@@ -3955,7 +856,7 @@ begin
 
         staticscanner.Start;
 
-        pgcPScandata.Visible:=true;
+        pnlData.Visible:=true;
 
         Method3Fastspeedandaveragememoryusage1.Enabled:=false;
 
@@ -4002,7 +903,7 @@ begin
     new1.click;
 
     starttime:=0;
-    totalpathsevaluated:=0;
+    //totalpathsevaluated:=0;
     startcount:=0;
 
     if frmpointerscannersettings.cbGeneratePointermapOnly.checked then //show a .scandata dialog instad of a .ptr
@@ -4016,22 +917,19 @@ begin
       filename:=savedialog1.filename;
     end;
 
-    if (frmpointerscannersettings.cbReusePointermap.checked=false) and (pointerlisthandler<>nil) then
-      freeandnil(pointerlisthandler);
 
-    frmpointerscannersettings.cbReusePointermap.enabled:=true; //if it was disabled it's safe to re-enable it now
 
         
     btnStopScan.enabled:=true;
     btnStopScan.Caption:=rsStop;
 
-    pgcPScandata.Visible:=false;
+    pnlData.Visible:=false;
     open1.Enabled:=false;
     new1.enabled:=false;
     rescanmemory1.Enabled:=false;
 
     cbType.Visible:=false;
-    listview1.Visible:=false;
+    lvResults.Visible:=false;
 
 
 
@@ -4042,19 +940,25 @@ begin
 
 
     //default scan
-    staticscanner:=TStaticscanner.Create(true);
-
-    label5.caption:=rsGeneratingPointermap;
+    staticscanner:=TPointerscanController.Create(true);
 
 
     pnlProgress.Visible:=true;
 
     try
-      staticscanner.ownerform:=self;
+      staticscanner.OnStartScan:=PointerscanStart;
+      staticscanner.OnScanDone:=PointerscanDone;
+
+      staticscanner.allowIncomingChildren:=frmpointerscannersettings.cbAllowRuntimeWorkers.Checked;
+      staticscanner.listenport:=frmpointerscannersettings.distributedport;
+      staticscanner.childpassword:=frmpointerscannersettings.edtDistributedPassword.text;
+
+
+
+
+      staticscanner.initializer:=true;
       staticscanner.filename:=utf8toansi(fileName);
       staticscanner.generatePointermapOnly:=frmpointerscannersettings.cbGeneratePointermapOnly.checked;
-
-      staticscanner.reverse:=true; //since 5.6 this is always true
 
       staticscanner.compressedptr:=frmpointerscannersettings.cbCompressedPointerscanFile.checked;
 
@@ -4081,10 +985,6 @@ begin
       staticscanner.stopaddress:=frmpointerscannersettings.Stop;
 
       staticscanner.unalligned:=not frmpointerscannersettings.CbAlligned.checked;
-      pgcPScandata.ActivePage:=tsPSReverse;
-      tvRSThreads.Items.Clear;
-
-
       staticscanner.staticonly:=frmpointerscannersettings.cbStaticOnly.checked;
       staticscanner.noLoop:=frmpointerscannersettings.cbNoLoop.checked;
       staticscanner.LimitToMaxOffsetsPerNode:=frmpointerscannersettings.cbMaxOffsetsPerNode.Checked;
@@ -4095,18 +995,18 @@ begin
 
       staticscanner.automaticaddress:=frmpointerscannersettings.automaticaddress;
       staticscanner.sz:=frmpointerscannersettings.structsize;
-      staticscanner.maxlevel:=frmpointerscannersettings.maxlevel;
+      staticscanner.maxlevel:=frmpointerscannersettings.maxlevel-1;
 
 
       staticscanner.progressbar:=progressbar1;
       staticscanner.threadcount:=frmpointerscannersettings.threadcount;
       staticscanner.scannerpriority:=frmpointerscannersettings.scannerpriority;
-
+       {
       staticscanner.distributedScanning:=frmpointerscannersettings.cbDistributedScanning.checked;
       staticscanner.distributedport:=frmpointerscannersettings.distributedPort;
 
       staticscanner.broadcastThisScanner:=frmpointerscannersettings.cbBroadcast.checked;
-      staticscanner.potentialWorkerList:=frmpointerscannersettings.resolvediplist;
+      staticscanner.potentialWorkerList:=frmpointerscannersettings.resolvediplist;    }
 
 
       staticscanner.mustStartWithBase:=frmpointerscannersettings.cbMustStartWithBase.checked;
@@ -4225,9 +1125,18 @@ begin
       staticscanner.start;
 
 
-      pgcPScandata.Visible:=true;
+      pnlData.Visible:=true;
 
       Method3Fastspeedandaveragememoryusage1.Enabled:=false;
+
+      if frmpointerscannersettings.cbConnectToNode.checked then
+      begin
+        for i:=0 to frmpointerscannersettings.iplist.count-1 do
+        begin
+          if frmpointerscannersettings.iplist[i].host<>'' then
+            staticscanner.BecomeParentOfNode(frmpointerscannersettings.iplist[i].host, strtoint(frmpointerscannersettings.iplist[i].port), frmpointerscannersettings.iplist[i].password, frmpointerscannersettings.iplist[i].stable);
+        end;
+      end;
     except
       on e: exception do
       begin
@@ -4240,25 +1149,25 @@ begin
   end;
 end;
 
-procedure Tfrmpointerscanner.ListView1Resize(Sender: TObject);
+procedure Tfrmpointerscanner.lvResultsResize(Sender: TObject);
 var i,l: integer;
 begin
-  if listview1.Columns.Count>0 then
+  if lvResults.Columns.Count>0 then
   begin
     l:=0;
-    for i:=0 to listview1.columns.count-2 do
-      inc(l,listview1.Columns[i].Width);
+    for i:=0 to lvResults.columns.count-2 do
+      inc(l,lvResults.Columns[i].Width);
 
-    l:=listview1.ClientWidth-l;
+    l:=lvResults.ClientWidth-l;
     l:=max(120,l);
-    listview1.Columns[listview1.columns.count-1].Width:=l;
+    lvResults.Columns[lvResults.columns.count-1].Width:=l;
   end;
 end;
 
 procedure Tfrmpointerscanner.MenuItem3Click(Sender: TObject);
 begin
   //start a listener for pointerscan related signals
-  if distributedworkfolder='' then
+{  if distributedworkfolder='' then
     miSetWorkFolder.Click;
 
   if distributedworkfolder='' then exit;
@@ -4274,14 +1183,55 @@ begin
 
   if PointerscanListener=nil then
     PointerscanListener:=TPointerscanListener.create(self, false);
-
+                                                    }
 
 
 end;
 
 procedure Tfrmpointerscanner.miCreatePSNnodeClick(Sender: TObject);
+var f: TfrmSetupPSNNode;
 begin
+  f:=TfrmSetupPSNNode.Create(self);
+  if f.showmodal=mrok then
+  begin
+    if staticscanner<>nil then
+      freeandnil(staticscanner);
 
+    //create a new pointerscanner that acts as a node
+    staticscanner:=TPointerscanController.create(true);
+    staticscanner.initializer:=false;
+    staticscanner.threadcount:=f.threadcount;
+    staticscanner.priority:=f.priority;
+    staticscanner.publicname:=f.edtPublicname.text;
+    staticscanner.listenport:=f.listenport;
+
+    staticscanner.allowIncomingParent:=f.cbAllowParents.checked;
+    staticscanner.allowIncomingChildren:=f.cbAllowChildren.checked;
+    staticscanner.parentpassword:=f.edtParentPassword.text;
+    staticscanner.childpassword:=f.edtChildPassword.text;
+    staticscanner.autoTrustIncomingChildren:=f.cbAutoTrustChildren.checked;
+
+    staticscanner.maxResultsToFind:=f.maxresultstofind;
+    staticscanner.maxTimeToScan:=f.maxtimetoscan;
+
+    if f.cbConnectToOtherNode.checked then
+    begin
+      if f.rbConnectAsParent.checked then
+        staticscanner.BecomeParentOfNode(f.edtConnectIP.text, f.connectport, f.edtConnectPassword.text)
+      else
+        staticscanner.BecomeChildOfNode(f.edtConnectIP.text, f.connectport, f.edtConnectPassword.text);
+    end;
+
+    staticscanner.allowTempFiles:=f.cbAllowTempFiles.checked;
+
+
+    staticscanner.Start;
+
+
+    timer2.enabled:=true;
+  end;
+
+  f.free;
 end;
 
 procedure Tfrmpointerscanner.miMergePointerscanResultsClick(Sender: TObject);
@@ -4489,7 +1439,7 @@ end;
 procedure Tfrmpointerscanner.miSetWorkFolderClick(Sender: TObject);
 var reg: Tregistry;
 begin
-
+  {
   if SelectDirectoryDialog1.Execute then
   begin
     distributedworkfolder:=IncludeTrailingPathDelimiter(SelectDirectoryDialog1.filename);
@@ -4503,7 +1453,7 @@ begin
     end;
     reg.free;
 
-  end;
+  end; }
 end;
 
 
@@ -4524,28 +1474,50 @@ begin
   rescanpointerform.cbRepeat.checked:=false;
 end;
 
-procedure Tfrmpointerscanner.Button1Click(Sender: TObject);
-var f: tfilestream;
-
-  c: Tcompressionstream;
+procedure Tfrmpointerscanner.btnConnectClick(Sender: TObject);
 begin
-  f:=tfilestream.create(Staticscanner.filename+'.scandata', fmCreate);
-
-  c:=Tcompressionstream.Create(clfastest, f);
-  pointerlisthandler.exportToStream(c);
-
-  c.free;
-  f.free;
-
-  button1.visible:=false;
+  if staticscanner<>nil then
+    staticscanner.BecomeParentOfNode(edtIP.text, strtoint(edtPort.text), edtPassword.text, cbTrusted.checked);
 end;
+
+procedure Tfrmpointerscanner.btnIncreaseThreadCountClick(Sender: TObject);
+begin
+    if staticscanner<>nil then
+      staticscanner.addWorkerThread;
+end;
+
+procedure Tfrmpointerscanner.btnDecreaseThreadCountClick(Sender: TObject);
+begin
+  if staticscanner<>nil then
+    staticscanner.RemoveWorkerThread;
+end;
+
+procedure Tfrmpointerscanner.cbPriorityChange(Sender: TObject);
+var scannerpriority: TThreadPriority;
+begin
+  if staticscanner<>nil then
+  begin
+    case cbPriority.itemindex of
+      0: scannerpriority:=tpIdle;
+      1: scannerpriority:=tpLowest;
+      2: scannerpriority:=tpLower;
+      3: scannerpriority:=tpNormal;
+      4: scannerpriority:=tpHigher;
+      5: scannerpriority:=tpHighest;
+      6: scannerpriority:=tpTimeCritical;
+    end;
+
+    staticscanner.changeWorkerPriority(scannerpriority);
+  end;
+end;
+
 
 procedure Tfrmpointerscanner.FormResize(Sender: TObject);
 begin
   btnStopRescanLoop.Left:=(clientwidth div 2) - (btnStopRescanLoop.Width div 2);
 end;
 
-procedure Tfrmpointerscanner.ListView1ColumnClick(Sender: TObject; Column: TListColumn);
+procedure Tfrmpointerscanner.lvResultsColumnClick(Sender: TObject; Column: TListColumn);
 //Using dark byte's super secret "Screw this, I'll just split it into chunks" algorithm
 var
   c: integer;
@@ -4561,7 +1533,7 @@ var
   s: string;
 begin
   c:=column.index;
-  if c=listview1.ColumnCount-1 then exit; //raise exception.create('The result/value list is unsortable');
+  if c=lvResults.ColumnCount-1 then exit; //raise exception.create('The result/value list is unsortable');
   if Pointerscanresults.count<=1 then exit; //don't even bother
 
 
@@ -4619,212 +1591,489 @@ var i,j: integer;
     totalTime: qword;
 
     percentageSpentWriting: single;
-begin
-  if listview1.Visible then
-    listview1.repaint;
 
-  if pointerlisthandler<>nil then
-  begin
+    connectinglist: TConnectEntryArray;
+    connectionlist: TConnectionEntryArray;
+
+    info: tstringlist;
+
+    statistics: record
+      totalTimeScanning: qword;
+      totalPathsEvaluated: QWord;
+      pathspersecond: double;
+      pointersinmap: qword;
+      pathqueuesize: integer;
+      pathqueueoverflow: dword;
+      resultsfound: qword;
+      timeSpentWriting: qword;
+      percentageTimeSpentWriting: single;
+      minpath, maxpath: TDynDwordArray;
+      minpaths, maxpaths: string;
+    end;
+
+    scanners: array of record
+      status: string;
+    end;
+
+    sl: TStringList;
+begin
+  if lvResults.Visible then
+    lvResults.repaint;
+
+  try
+    //collect data and then update the treeview
+
+    statistics.totalTimeScanning:=0;
+    statistics.totalPathsEvaluated:=0;
+    statistics.pathspersecond:=0;
+
     if staticscanner<>nil then
     begin
-      i:=staticscanner.pathqueuelength;
-      j:=length(staticscanner.overflowqueue);
-    end
-    else
-      i:=0;
+      if staticscanner.starttime>0 then
+        statistics.totalTimeScanning:=GetTickCount64-staticscanner.starttime;
 
-    s:=rsAddressSpecifiersFoundInTheWholeProcess+':'+inttostr(pointerlisthandler.count)+'  (pathqueue: '+inttostr(i)+')';
+      statistics.totalPathsEvaluated:=staticscanner.totalpathsevaluated;
+      if statistics.totalTimeScanning>0 then
+        statistics.pathspersecond:=(statistics.totalPathsEvaluated / statistics.totalTimeScanning)*1000; //paths / second
 
-    if j>0 then
-      s:=s+'  (overflow pathqueue: '+inttostr(j)+')';
+      statistics.pointersinmap:=staticscanner.getPointerlistHandlerCount;
+      statistics.pathqueuesize:=staticscanner.pathqueuelength;
+      statistics.pathqueueoverflow:=length(staticscanner.overflowqueue);
+      statistics.resultsfound:=staticscanner.getTotalResultsFound;
+      statistics.timeSpentWriting:=ceil((staticscanner.getTotalTimeWriting / 1000) / staticscanner.getActualThreadCount); //time spend writing in seconds
+      statistics.percentageTimeSpentWriting:=(statistics.timeSpentWriting / (statistics.totalTimeScanning / 1000)) * 100; //time spend writing in seconds / total time div
 
-    label6.caption:=s;
-  end;
+      staticscanner.getMinAndMaxPath(statistics.minpath, statistics.maxpath);
+      statistics.minpaths:='';
+      for i:=0 to length(statistics.minpath)-1 do
+      begin
+        statistics.minpaths:=statistics.minpaths+inttohex(statistics.minpath[i],1);
+        if i<length(statistics.minpath)-1 then
+          statistics.minpaths:=statistics.minpaths+' - ';
+      end;
 
-  if staticscanner<>nil then
-  try
-    if staticscanner.isdone then
-    begin
-      if tvRSThreads.Items.Count>0 then
-        tvRSThreads.Items.Clear;
+      statistics.maxpaths:='';
+      for i:=0 to length(statistics.maxpath)-1 do
+      begin
+        statistics.maxpaths:=statistics.maxpaths+inttohex(statistics.maxpath[i],1);
+        if i<length(statistics.maxpath)-1 then
+          statistics.maxpaths:=statistics.maxpaths+' - ';
+      end;
 
-      exit;
+
+      sl:=TStringList.create;
+      staticscanner.getThreadStatuses(sl);
+      setlength(scanners, sl.Count);
+      for i:=0 to sl.count-1 do
+        scanners[i].status:=sl[i];
+
+      sl.free;
     end;
 
-    if staticscanner.reverse then
+    //setup the basics if it hasn't been setup yet
+    with infonodes.statistics.stats do
     begin
-      tpf:=0;
-      tpe:=0;
-      totalTimeWriting:=0;
-      for i:=0 to length(Staticscanner.reversescanners)-1 do
-      begin
-        tpf:=tpf+Staticscanner.reversescanners[i].pointersfound;
-        tpe:=tpe+Staticscanner.reversescanners[i].pathsEvaluated;
-        totalTimeWriting:=totalTimeWriting+Staticscanner.reversescanners[i].timespentwriting;
 
-        if staticscanner.reversescanners[i].isWritingToDisk then
-          inc(totalTimeWriting, GetTickCount-staticscanner.reversescanners[i].currentwritestart);
+      if infonodes.statistics.node=nil then
+      begin
+        //create the statistics node and the childnodes
+        infonodes.statistics.node:=tvInfo.Items.Add(nil, 'Statistics');
+
+        pointersInMap:=tvInfo.Items.AddChild(infonodes.statistics.node,'');
+        totalTimeScanning:=tvInfo.Items.AddChild(infonodes.statistics.node,'');
+        totalPathsEvaluated:=tvInfo.Items.AddChild(infonodes.statistics.node,'');
+        calculatedPathsPerSecond:=tvInfo.Items.AddChild(infonodes.statistics.node,'');
+
+        pathQueue:=tvInfo.Items.AddChild(infonodes.statistics.node,'');
+        resultsFound:=tvInfo.Items.AddChild(infonodes.statistics.node,'');
+        timeSpentWriting:=tvInfo.Items.AddChild(infonodes.statistics.node,'');
+
+        minpath:=tvInfo.Items.AddChild(infonodes.statistics.node,'');
+
+
+        //maxpath:=tvInfo.Items.AddChild(infonodes.statistics.node,'');
+
+        infonodes.statistics.node.Expand(true);
       end;
 
-      totalTime:=(gettickcount-starttime)*length(Staticscanner.reversescanners);
-      percentageSpentWriting:=totalTimeWriting/totalTime*100;
+      pointersInMap.Text:='Unique pointervalues in target:'+IntToStr(statistics.pointersinmap);
+      totalTimeScanning.Text:='Scan duration: '+TimeToStr(TimeStampToDateTime(MSecsToTimeStamp(statistics.totalTimeScanning)));
+      totalPathsEvaluated.Text:='Paths evaluated: '+IntToStr(statistics.totalPathsEvaluated);
+      calculatedPathsPerSecond.Text:=format('Paths / seconds: (%.0n / s)', [statistics.pathspersecond]);
+      pathQueue.Text:='Static queue size: '+inttostr(statistics.pathqueuesize)+' Dynamic queue size:'+inttostr(statistics.pathqueueoverflow);
+      resultsFound.Text:='Results found: '+inttostr(statistics.resultsfound);
+      timeSpentWriting.Text:='Time spent writing: '+inttostr(statistics.timeSpentWriting)+format(' (%.2f %%)', [statistics.percentageTimeSpentWriting]) ;
 
-      scount:=tpf;
+      minpath.text:='Lowest known path:'+statistics.minpaths;
+     // maxpath.text:='Highest known path:'+statistics.maxpaths;
 
 
-      s:=format(rsPointerPathsFound+': %d', [scount]);
 
-      if staticscanner.distributedScanning and (staticscanner.distributedWorker=false) then
+    end;
+
+
+    if infonodes.localworkers.node=nil then
+      infonodes.localworkers.node:=tvInfo.Items.Add(nil, 'Threads');
+
+    for i:=length(infonodes.localworkers.workernodes)-1 downto length(scanners) do //delete the nodes that are too many
+      if infonodes.localworkers.workernodes[i].node<>nil then
+        infonodes.localworkers.workernodes[i].node.free;
+
+    setlength(infonodes.localworkers.workernodes, length(scanners));
+
+    for i:=0 to length(infonodes.localworkers.workernodes)-1 do
+    begin
+      if infonodes.localworkers.workernodes[i].node=nil then
+        infonodes.localworkers.workernodes[i].node:=tvInfo.Items.AddChild(infonodes.localworkers.node, '');
+
+      infonodes.localworkers.workernodes[i].node.Text:=scanners[i].status;
+    end;
+
+    if staticscanner<>nil then
+    begin
+
+      if staticscanner.hasNetworkResponsibility then
       begin
-        x:=scount+ staticscanner.workersPointersfoundTotal;
+        //display network info
+        if infonodes.network.node=nil then
+          infonodes.network.node:=tvInfo.Items.Add(nil,'Network');
 
-        s:=s+' ('+inttostr(x)+')';
-      end;
-      lblRSTotalStaticPaths.caption:=s;
+        staticscanner.getConnectingList(connectinglist);
 
-{$ifdef benchmarkps}
-      totalpathsevaluated:=tpe;
+        for i:=length(infonodes.network.connectingToNodes)-1 downto length(connectinglist) do
+            infonodes.network.connectingToNodes[i].data.Free;
 
-      if (starttime=0) and (totalpathsevaluated<>0) then
-      begin
-        startcount:=totalpathsevaluated;  //get the count from this point on
-        starttime:=gettickcount;
-      end;
+        setlength(infonodes.network.connectingToNodes, length(connectinglist));
 
-      s:=format(rsThreads+': '+rsEvaluated+': %d '+rsTime+': %d  (%.0n / s)', [totalpathsevaluated-startcount, ((gettickcount-starttime) div 1000), ((totalpathsevaluated-startcount)/(gettickcount-starttime))*1000]);
-
-      if staticscanner.distributedScanning and (staticscanner.distributedWorker=false) then
-      begin
-        x:=trunc(((totalpathsevaluated-startcount)/(gettickcount-starttime))*1000)+staticscanner.workersPathPerSecondTotal;
-        s:=s+' (Total: '+inttostr(x)+' / s)';
-      end;
-
-      s:=s+format(' Writing: %.2f %%',[percentageSpentWriting]);
-
-
-
-      if staticscanner.outofdiskspace then
-      begin
-        label5.Font.Color:=clRed;
-        label5.caption:=rsOUTOFDISKSPACECleanUpTheDiskOrStop;
-      end
-      else
-      begin
-        label5.Font.Color:=graphics.clDefault;
-        label5.caption:=s;
-        label5.Width:=label5.Canvas.TextWidth(label5.caption);
-      end;
-
-
-{$endif}
-
-
-      if tvRSThreads.Items.Count<length(staticscanner.reversescanners) then
-      begin
-        //add them
-
-        for i:=0 to length(staticscanner.reversescanners)-1 do
+        if length(connectinglist)>0 then
         begin
-          tn:=tvRSThreads.Items.Add(nil, rsThread+' '+inttostr(i+1));
-          tvRSThreads.Items.AddChild(tn, rsCurrentLevel+':0');
-          tvRSThreads.Items.AddChild(tn, rsLookingFor+' :0-0');
+          if infonodes.network.connectingto=nil then
+            infonodes.network.connectingto:=tvInfo.Items.AddChild(infonodes.network.node,'Connecting to:');
+
+
+
+
+          for i:=0 to length(connectinglist)-1 do
+          begin
+            if infonodes.network.connectingToNodes[i].data=nil then //create a new one
+              infonodes.network.connectingToNodes[i].data:=tvinfo.Items.add(infonodes.network.connectingto,'');
+
+            s:=connectinglist[i].ip+':'+inttostr(connectinglist[i].port);
+            if connectinglist[i].becomeparent=false then
+              s:=s+BoolToStr(connectinglist[i].trusted, ' (Trusted)','');
+
+            infonodes.network.connectingToNodes[i].data.Text:=s;
+          end;
         end;
-      end;
 
-      tn:=tvRSThreads.Items.GetFirstNode;
-      i:=0;
-      while tn<>nil do
-      begin
-        if tn.Data<>nil then break; //worker instead of thread
+        staticscanner.getConnectionList(connectionlist);
 
-        if i<length(staticscanner.reversescanners) then
+        for i:=length(infonodes.network.connectedToNodes)-1 downto length(connectionlist) do
+          infonodes.network.connectedToNodes[i].node.free;
+
+        setlength(infonodes.network.connectedToNodes, length(connectionlist));
+
+
+        if length(connectionlist)>0 then
         begin
-          if staticscanner.reversescanners[i].isdone then
+          if infonodes.network.connectedTo=nil then
+            infonodes.network.connectedTo:=tvInfo.Items.AddChild(infonodes.network.node,'Connected to:');
+
+          for i:=0 to length(connectionlist)-1 do
           begin
-            tn.Text:=rsThread+' '+inttostr(i+1)+' ('+rsSleeping+')';
-            tn2:=tn.getFirstChild;
-            tn2.text:=rsSleeping;
-            tn2:=tn2.getNextSibling;
-            tn2.text:=rsSleeping;
-          end
-          else
-          begin
-            if staticscanner.reversescanners[i].isWritingToDisk then
-              tn.text:=rsThread+' '+inttostr(i+1)+' ('+rsWritingToDisk+')'
+            if infonodes.network.connectedToNodes[i].node=nil then //create it
+            begin
+              infonodes.network.connectedToNodes[i].node:=tvInfo.Items.AddChild(infonodes.network.connectedTo, s);
+              tn:=infonodes.network.connectedToNodes[i].node;
+
+              with infonodes.network.connectedToNodes[i].data do
+              begin
+                trusted:=tvInfo.Items.AddChild(tn, '');
+                totalthreadcount:=tvInfo.Items.AddChild(tn, '');
+                resultsfound:=tvInfo.Items.AddChild(tn, '');
+                pathqueuesize:=tvInfo.Items.AddChild(tn, '');
+                totalpathquesize:=tvInfo.Items.AddChild(tn, '');
+                totalpathsEvaluated:=tvInfo.Items.AddChild(tn, '');
+               // pathspersecond:=tvInfo.Items.AddChild(tn, '');
+              end;
+            end;
+
+            s:=connectionlist[i].ip+':'+inttostr(connectionlist[i].port);
+            if connectionlist[i].disconnected then
+              s:=s+' (Disconnected)'
             else
-              tn.text:=rsThread+' '+inttostr(i+1)+' ('+rsActive+')';
-
-
-            if staticscanner.reversescanners[i].hasTerminated then
-              tn.text:=tn.text+' (TERMINATED)';
-
-            tn2:=tn.getFirstChild;
-
             begin
-              s:='';
-              for j:=0 to staticscanner.reversescanners[i].currentlevel-1 do
-                s:=s+' '+inttohex(staticscanner.reversescanners[i].tempresults[j],8);
-
-
-              tn2.text:=rsCurrentLevel+':'+inttostr(staticscanner.reversescanners[i].currentlevel)+' ('+s+')';
-              tn2:=tn2.getNextSibling;
-              tn2.text:=rsLookingFor+' :'+inttohex(staticscanner.reversescanners[i].lookingformin, 8)+'-'+inttohex(staticscanner.reversescanners[i].lookingformax, 8);
-            end;
-          end;
-
-
-        end;
-        tn:=tn.getNextSibling;
-        inc(i);
-      end;
-
-
-      if staticscanner.distributedScanning and (staticscanner.distributedWorker=false) then
-      begin
-
-        if length(Staticscanner.workers)>0 then
-        begin
-          //add/update workers
-          tn:=tvRSThreads.Items.GetFirstNode; //find first worker entry
-          while tn<>nil do
-          begin
-            if tn.Data<>nil then break;
-            tn:=tn.GetNextSibling;
-          end;
-
-
-          for i:=0 to length(Staticscanner.workers)-1 do
-          begin
-            if tn=nil then //create this one
-            begin
-              tn:=tvRSThreads.Items.AddChild(nil, 'Worker :'+inttostr(i));
-              tn.Data:=pointer(i+1);
+              if connectionlist[i].isidle=false then
+                s:=s+' (Active)'
+              else
+                s:=s+' (Idle)';
             end;
 
-            s:='';
-            if Staticscanner.workers[i].s=-1 then
-              s:=s+' (Disconnected)';
 
-            if Staticscanner.workers[i].alldone then
-              s:=s+' (Sleeping)';
 
-            tn.text:='Worker '+inttostr(i)+': Found='+inttostr(Staticscanner.workers[i].pointersfound)+' (Threads:'+inttostr(Staticscanner.workers[i].threadcount)+')'+s;
-            tn:=tn.GetNextSibling;
+            infonodes.network.connectedToNodes[i].node.Text:=s;
+
+            with infonodes.network.connectedToNodes[i].data do
+            begin
+              trusted.text:='Trusted: '+BoolToStr(connectionlist[i].trustedconnection, 'True', 'False');
+              totalthreadcount.text:='Total threadcount: '+IntToStr(connectionlist[i].threadcount);
+              resultsfound.text:='Results found: '+IntToStr(connectionlist[i].resultsfound);
+              pathqueuesize.text:='Queuesize: '+inttostr(connectionlist[i].pathquesize);
+              totalpathquesize.text:='Total Queuesize: '+inttostr(connectionlist[i].totalpathqueuesize);
+              totalpathsEvaluated.text:='Paths evaluated: '+inttostr(connectionlist[i].pathsevaluated);
+              //pathspersecond.text:='Paths/second: '+inttostr(connectionlist[i].pathspersecond);
+            end;
           end;
-
         end;
-
       end;
-    end
-    else
-    begin
 
     end;
-
 
   except
-
+   // showmessage('exception happened');
   end;
+
+
+      (*
+
+  info:=tstringlist.create;
+  try
+
+    if staticscanner<>nil then
+    begin
+      if staticscanner<>nil then
+      begin
+        i:=staticscanner.pathqueuelength;
+        j:=length(staticscanner.overflowqueue);
+      end
+      else
+        i:=0;
+
+      s:=rsAddressSpecifiersFoundInTheWholeProcess+':'+inttostr(staticscanner.getPointerlistHandlerCount)+'  (pathqueue: '+inttostr(i)+')';
+
+      if j>0 then
+        s:=s+'  (overflow pathqueue: '+inttostr(j)+')';
+
+
+
+      info.Add(s);
+
+    end;
+
+    if staticscanner<>nil then
+    try
+      if staticscanner.isdone then
+      begin
+        if tvInfo.Items.Count>0 then
+          tvInfo.Items.Clear;
+
+        exit;
+      end;
+
+
+      begin
+        tpf:=0;
+        tpe:=0;
+        totalTimeWriting:=0;
+        for i:=0 to length(Staticscanner.localscanners)-1 do
+        begin
+          tpf:=tpf+Staticscanner.localscanners[i].pointersfound;
+          tpe:=tpe+Staticscanner.localscanners[i].pathsEvaluated;
+          totalTimeWriting:=totalTimeWriting+Staticscanner.localscanners[i].timespentwriting;
+
+          if staticscanner.localscanners[i].isFlushing then
+            inc(totalTimeWriting, GetTickCount-staticscanner.localscanners[i].currentwritestart);
+        end;
+
+        totalTime:=(gettickcount-starttime)*length(Staticscanner.localscanners);
+        percentageSpentWriting:=totalTimeWriting/totalTime*100;
+
+        s:=format(rsPointerPathsFound+': %d', [tpf]);
+          {
+        if staticscanner.distributedScanning and (staticscanner.distributedWorker=false) then
+        begin
+          x:=scount+ staticscanner.workersPointersfoundTotal;
+
+          s:=s+' ('+inttostr(x)+')';
+        end;   }
+        info.add(s);
+
+
+  {$ifdef benchmarkps}
+        //totalpathsevaluated:=tpe;
+
+        if (starttime=0) and (tpe<>0) then
+        begin
+          startcount:=tpe;  //get the count from this point on
+          starttime:=gettickcount;
+        end;
+
+        s:=format(rsEvaluated+': %d '+rsTime+': %d  (%.0n / s)', [tpe-startcount, ((gettickcount-starttime) div 1000), ((tpe-startcount)/(gettickcount-starttime))*1000]);
+
+        {
+        if staticscanner.distributedScanning and (staticscanner.distributedWorker=false) then
+        begin
+          x:=trunc(((totalpathsevaluated-startcount)/(gettickcount-starttime))*1000)+staticscanner.workersPathPerSecondTotal;
+          s:=s+' (Total: '+inttostr(x)+' / s)';
+        end;    }
+
+        s:=s+format(' Writing: %.2f %%',[percentageSpentWriting]);
+
+
+
+        if staticscanner.outofdiskspace then
+        begin
+          {
+          label5.Font.Color:=clRed;
+          label5.caption:=rsOUTOFDISKSPACECleanUpTheDiskOrStop;}
+          info.add(rsOUTOFDISKSPACECleanUpTheDiskOrStop);
+          //lblPscanInfo.font.color:=clRed;
+        end
+        else
+        begin
+{          label5.Font.Color:=graphics.clDefault;
+          label5.caption:=s;
+          label5.Width:=label5.Canvas.TextWidth(label5.caption);}
+          info.add(s);
+          //lblPscanInfo.Font.Color:=graphics.clDefault;
+        end;
+
+
+  {$endif}
+
+
+        if tvInfo.Items.Count<length(staticscanner.localscanners) then
+        begin
+          //add them
+
+          for i:=0 to length(staticscanner.localscanners)-1 do
+          begin
+            tn:=tvInfo.Items.Add(nil, rsThread+' '+inttostr(i+1));
+            tvInfo.Items.AddChild(tn, rsCurrentLevel+':0');
+            tvInfo.Items.AddChild(tn, rsLookingFor+' :0-0');
+          end;
+        end;
+
+        tn:=tvInfo.Items.GetFirstNode;
+        i:=0;
+        while tn<>nil do
+        begin
+          if tn.Data<>nil then break; //worker instead of thread
+
+          if i<length(staticscanner.localscanners) then
+          begin
+            if staticscanner.localscanners[i].isdone then
+            begin
+              tn.Text:=rsThread+' '+inttostr(i+1)+' ('+rsSleeping+')';
+              tn2:=tn.getFirstChild;
+              tn2.text:=rsSleeping;
+              tn2:=tn2.getNextSibling;
+              tn2.text:=rsSleeping;
+            end
+            else
+            begin
+              if staticscanner.localscanners[i].isFlushing then
+                tn.text:=rsThread+' '+inttostr(i+1)+' ('+rsWritingToDisk+')'
+              else
+                tn.text:=rsThread+' '+inttostr(i+1)+' ('+rsActive+')';
+
+
+              if staticscanner.localscanners[i].hasTerminated then
+                tn.text:=tn.text+' (TERMINATED)';
+
+              tn2:=tn.getFirstChild;
+
+              begin
+                s:='';
+                for j:=0 to staticscanner.localscanners[i].currentlevel-1 do
+                  s:=s+' '+inttohex(staticscanner.localscanners[i].tempresults[j],8);
+
+
+                tn2.text:=rsCurrentLevel+':'+inttostr(staticscanner.localscanners[i].currentlevel)+' ('+s+')';
+                tn2:=tn2.getNextSibling;
+                tn2.text:=rsLookingFor+' :'+inttohex(staticscanner.localscanners[i].lookingformin, 8)+'-'+inttohex(staticscanner.localscanners[i].lookingformax, 8);
+              end;
+            end;
+
+
+          end;
+          tn:=tn.getNextSibling;
+          inc(i);
+        end;
+
+        staticscanner.getConnectingList(connectionlist);
+        if length(connectionlist)>0 then
+        begin
+          if infonodes.network.connectingto=nil then
+            infonodes.network.connectingto:=tvinfo.Items.add(nil,'Connecting to');
+
+          for i:=length(infonodes.network.connectedToNodes)-1 downto length(connectionlist) do
+              infonodes.network.connectedToNodes[i].node.Free; //also frees the data under it
+
+          setlength(infonodes.network.connectedToNodes, length(connectionlist));
+
+          for i:=0 to length(connectionlist)-1 do
+          begin
+            if infonodes.network.connectedToNodes[i].node=nil then //create a new one
+              infonodes.network.connectedToNodes[i].node:=tvinfo.Items.add(infonodes.network.connectingto,'');
+
+            s:=connectionlist[i].ip+':'+inttostr(connectionlist[i].port);
+            if connectionlist[i].becomeparent=false then
+              s:=s+BoolToStr(connectionlist[i].trusted, ' (Trusted)','');
+
+            infonodes.network.connectedToNodes[i].node.Text:=s;
+
+          end;
+
+        end;
+         {
+        if staticscanner.distributedScanning and (staticscanner.distributedWorker=false) then
+        begin
+
+          if length(Staticscanner.workers)>0 then
+          begin
+            //add/update workers
+            tn:=tvInfo.Items.GetFirstNode; //find first worker entry
+            while tn<>nil do
+            begin
+              if tn.Data<>nil then break;
+              tn:=tn.GetNextSibling;
+            end;
+
+
+            for i:=0 to length(Staticscanner.workers)-1 do
+            begin
+              if tn=nil then //create this one
+              begin
+                tn:=tvInfo.Items.AddChild(nil, 'Worker :'+inttostr(i));
+                tn.Data:=pointer(i+1);
+              end;
+
+              s:='';
+              if Staticscanner.workers[i].s=-1 then
+                s:=s+' (Disconnected)';
+
+              if Staticscanner.workers[i].alldone then
+                s:=s+' (Sleeping)';
+
+              tn.text:='Worker '+inttostr(i)+': Found='+inttostr(Staticscanner.workers[i].pointersfound)+' (Threads:'+inttostr(Staticscanner.workers[i].threadcount)+')'+s;
+              tn:=tn.GetNextSibling;
+            end;
+
+          end;
+
+        end;
+        }
+      end;
+    except
+
+    end;
+
+  finally
+    //lblPscanInfo.Caption:=info.Text;
+
+    info.free;
+  end;   *)
 end;
 
 procedure Tfrmpointerscanner.OpenPointerfile(filename: string);
@@ -4839,12 +2088,12 @@ begin
 
   Pointerscanresults:=TPointerscanresultReader.create(filename);
 
-  listview1.Items.BeginUpdate;
-  listview1.Columns.BeginUpdate;  
-  listview1.Items.Count:=0;
-  listview1.Columns.Clear;
+  lvResults.Items.BeginUpdate;
+  lvResults.Columns.BeginUpdate;
+  lvResults.Items.Count:=0;
+  lvResults.Columns.Clear;
 
-  col_baseaddress:=listview1.Columns.Add;
+  col_baseaddress:=lvResults.Columns.Add;
   col_baseaddress.Caption:=rsBaseAddress;
   col_baseaddress.Width:=150;
   col_baseaddress.MinWidth:=20;
@@ -4852,13 +2101,13 @@ begin
   setlength(col_offsets, Pointerscanresults.offsetCount);
   for i:=0 to Pointerscanresults.offsetCount-1 do
   begin
-    col_offsets[i]:=listview1.Columns.Add;
+    col_offsets[i]:=lvResults.Columns.Add;
     col_offsets[i].Caption:=rsOffset+' '+inttostr(i);
     col_offsets[i].Width:=80;
     col_offsets[i].MinWidth:=10;
   end;
 
-  col_pointsto:=listview1.Columns.Add;
+  col_pointsto:=lvResults.Columns.Add;
   col_pointsto.Caption:=rsPointsTo+':';
   col_pointsto.Width:=120;
   col_pointsto.MinWidth:=10;
@@ -4872,18 +2121,18 @@ begin
 
   if (Pointerscanresults.count>1000000) then
   begin
-    listview1.Items.Count:=1000000;
+    lvResults.Items.Count:=1000000;
 
-    if ((Staticscanner=nil) or (staticscanner.distributedScanning=false)) and (pointerscanresults.generatedByWorkerID=-1) then //tell the user
+    if ((Staticscanner=nil){ or (staticscanner.distributedScanning=false)}) and (pointerscanresults.generatedByWorkerID=-1) then //tell the user
       showmessage(rsOnlyTheFirst1000000EntriesWillBeDisplayed);
 
-  end else listview1.Items.Count:=Pointerscanresults.count;
+  end else lvResults.Items.Count:=Pointerscanresults.count;
 
-  listview1.Align:=alClient;
-  listview1.Visible:=true;
+  lvResults.Align:=alClient;
+  lvResults.Visible:=true;
 
-  listview1.Columns.EndUpdate;
-  listview1.Items.EndUpdate;
+  lvResults.Columns.EndUpdate;
+  lvResults.Items.EndUpdate;
 
   cbtype.top:=0;
   cbtype.height:=panel1.ClientHeight;
@@ -5260,6 +2509,7 @@ begin
 end;
 
 //------RescanPointers-------
+{
 procedure Trescanpointers.UpdateStatus(done: boolean; TotalPointersToEvaluate:qword; PointersEvaluated: qword);
 var
   r: byte;
@@ -5271,6 +2521,7 @@ var
   end;
 
 begin
+
   try
     updatestatuscommand.command:=RCMD_STATUS;
     if done then
@@ -5295,6 +2546,7 @@ begin
       LaunchWorker; //reconnects
     end;
   end;
+
 end;
 
 procedure Trescanpointers.LaunchWorker;
@@ -5457,6 +2709,8 @@ begin
   end;
 
 
+
+
 end;
 
 function TRescanpointers.Server_HandleRead(s: Tsocket): byte;
@@ -5494,6 +2748,7 @@ var
   cs: Tcompressionstream;
   ms: TMemorystream;
 begin
+
   result:=-1;
   r:=tmemorystream.create;
   try
@@ -5853,7 +3108,7 @@ begin
 
 
 
-end;
+end;        }
 
 procedure TRescanpointers.closeOldFile;
 begin
@@ -5895,9 +3150,9 @@ begin
   sockethandle:=INVALID_SOCKET;
 
 
-  if distributedrescan and distributedrescanWorker then
+  {if distributedrescan and distributedrescanWorker then
     launchworker
-  else
+  else  }
   begin
     sleep(delay*1000);
     pointerscanresults:=ownerform.pointerscanresults;
@@ -6048,12 +3303,12 @@ begin
 
     result.Free;
 
-    if distributedrescan and (not distributedrescanWorker) then
+    {if distributedrescan and (not distributedrescanWorker) then
     begin
       launchServer;
       DoServerLoop;
     end
-    else
+    else}
     begin
       while WaitForMultipleObjects(rescanworkercount, @threadhandles[0], true, 250) = WAIT_TIMEOUT do      //wait
       begin
@@ -6063,21 +3318,21 @@ begin
           inc(PointersEvaluated,rescanworkers[i].evaluated);
 
         progressbar.Position:=PointersEvaluated div (TotalPointersToEvaluate div 100);
-
+        {
         if distributedrescan and distributedrescanWorker then
-          UpdateStatus(false, TotalPointersToEvaluate, PointersEvaluated);
+          UpdateStatus(false, TotalPointersToEvaluate, PointersEvaluated);}
       end;
     end;
     //no timeout, so finished or crashed
 
-    if distributedrescan and distributedrescanWorker then
-      UpdateStatus(true, TotalPointersToEvaluate, PointersEvaluated);
+   { if distributedrescan and distributedrescanWorker then
+      UpdateStatus(true, TotalPointersToEvaluate, PointersEvaluated); }
 
 
     if overwrite then //delete the old ptr file
     begin
-      if distributedrescan and distributedrescanWorker then
-        freeandnil(Pointerscanresults);
+      {if distributedrescan and distributedrescanWorker then
+        freeandnil(Pointerscanresults);  }
 
       synchronize(closeoldfile);
 
@@ -6139,8 +3394,8 @@ begin
   if sockethandlecs<>nil then
     freeandnil(sockethandlecs);
 
-  if distributedrescanWorker and (Pointerscanresults<>nil) then
-    freeandnil(Pointerscanresults);
+ { if distributedrescanWorker and (Pointerscanresults<>nil) then
+    freeandnil(Pointerscanresults);    }
 
   if pointermapprogressbar<>nil then
     freeandnil(pointermapprogressbar);
@@ -6157,9 +3412,9 @@ end;
 
 
 procedure Tfrmpointerscanner.miJoinDistributedRescanClick(Sender: TObject);
-var f: tfrmPointerrescanConnectDialog;
+//var f: tfrmPointerrescanConnectDialog;
 begin
-  f:=tfrmPointerrescanConnectDialog.create(self);
+ { f:=tfrmPointerrescanConnectDialog.create(self);
   if f.showmodal=mrok then
   begin
     //create a rescanpointers object
@@ -6169,7 +3424,7 @@ begin
     if distributedworkfolder='' then exit;
 
     JoinRescan(f.edtHost.text, f.port);
-  end;
+  end;    }
 end;
 
 procedure Tfrmpointerscanner.Rescanmemory1Click(Sender: TObject);
@@ -6351,6 +3606,7 @@ begin
           rescan.useLuaFilter:=cbLuaFilter.checked;
           rescan.LuaFilter:=edtRescanFunction.text;
 
+          {
           if (Pointerscanresults.externalScanners>0) and (cbDistributedRescan.checked) then
           begin
             rescan.distributedport:=distributedport;
@@ -6361,7 +3617,7 @@ begin
             rescan.potentialWorkerList:=resolvediplist;
 
             rescan.waitforall:=cbWaitForAll.checked;
-          end;
+          end;        }
 
 
           rescan.originalptrfile:=Pointerscanresults.filename;
@@ -6429,11 +3685,6 @@ begin
   begin
     if savestate then
     begin
-      f:=tfilestream.create(Staticscanner.filename+'.resume.config', fmcreate);
-      staticscanner.saveconfig(f);
-      f.free;
-
-      Staticscanner.savestate:=true;
       btnStopScan.Caption:=rsSavingAndTerminating;
 
       for i:=0 to pnlProgress.ControlCount-1 do
@@ -6459,12 +3710,17 @@ begin
       pnlProgressBar.visible:=true;
       lblProgressbar1.Visible:=true;
       pnlProgress.Visible:=true;
+
+      staticscanner.TerminateAndSaveState;
     end
     else
+    begin
       btnStopScan.Caption:=rsTerminating;
+      staticscanner.Terminate;
+    end;
 
     btnStopScan.enabled:=false;
-    staticscanner.Terminate;
+
   end;
 end;
 
@@ -6497,10 +3753,6 @@ begin
 
   new1.Click;
 
-  if pointerlisthandler<>nil then
-    freeandnil(pointerlisthandler);
-
-
   action:=cafree; //on close free itself
 end;
 
@@ -6513,7 +3765,7 @@ begin
   Method3Fastspeedandaveragememoryusage1.Click;
 end;
 
-procedure Tfrmpointerscanner._starttimer(var message: TMessage);
+procedure Tfrmpointerscanner.PointerscanStart(sender: TObject);
 begin
   pnlProgress.Visible:=false;
   timer2.enabled:=true;
@@ -6526,7 +3778,7 @@ begin
     freeandnil(staticscanner);
 
  
-  pgcPScandata.Visible:=false;
+  pnlData.Visible:=false;
   panel1.Caption:='';
   open1.Enabled:=true;
   new1.enabled:=true;
@@ -6534,17 +3786,16 @@ begin
 
   miMergePointerscanResults.enabled:=false;
 
-  listview1.Items.BeginUpdate;
-  listview1.columns.BeginUpdate;
-  listview1.Columns.Clear;
-  listview1.Items.Count:=0;
+  lvResults.Items.BeginUpdate;
+  lvResults.columns.BeginUpdate;
+  lvResults.Columns.Clear;
+  lvResults.Items.Count:=0;
 
-  listview1.Items.EndUpdate;
-  listview1.Columns.EndUpdate;
+  lvResults.Items.EndUpdate;
+  lvResults.Columns.EndUpdate;
 
   Method3Fastspeedandaveragememoryusage1.Enabled:=true;
 
-  tvRSThreads.Items.Clear;
   timer2.Enabled:=false;
 
   if Pointerscanresults<>nil then
@@ -6559,22 +3810,20 @@ var
   x: array of integer;
   reg: tregistry;
 begin
-  tsPSReverse.TabVisible:=false;
-
   {$ifdef injectedpscan}
   caption:='CE Injected Pointerscan';
   {$endif}
-  listview1.DoubleBuffered:=true;
+  lvResults.DoubleBuffered:=true;
 
-  listview1.Align:=alClient;
-  listview1.Visible:=true;
+  lvResults.Align:=alClient;
+  lvResults.Visible:=true;
 
   setlength(x,1);
   if loadformposition(self,x) then
     cbtype.itemindex:=x[0];
 
   reg:=TRegistry.Create;
-
+  {
   if Reg.OpenKey('\Software\Cheat Engine',false) then
   begin
     if reg.ValueExists('PointerScanWorkFolder') then
@@ -6582,12 +3831,12 @@ begin
       distributedworkfolder:=IncludeTrailingPathDelimiter(reg.ReadString('PointerScanWorkFolder'));
       SelectDirectoryDialog1.filename:=distributedworkfolder;
     end;
-  end;
+  end; }
 
   reg.free;
 end;
 
-procedure Tfrmpointerscanner.ListView1Data(Sender: TObject;
+procedure Tfrmpointerscanner.lvResultsData(Sender: TObject;
   Item: TListItem);
 var
   p: PPointerscanResult;
@@ -6661,10 +3910,10 @@ end;
 procedure Tfrmpointerscanner.Resyncmodulelist1Click(Sender: TObject);
 begin
   resyncloadedmodulelist;
-  listview1.Refresh;
+  lvResults.Refresh;
 end;
 
-procedure Tfrmpointerscanner.ListView1DblClick(Sender: TObject);
+procedure Tfrmpointerscanner.lvResultsDblClick(Sender: TObject);
 var
   li: tlistitem;
   i: integer;
@@ -6674,9 +3923,9 @@ var
 
   vtype: TVariableType;
 begin
-  if listview1.ItemIndex<>-1 then
+  if lvResults.ItemIndex<>-1 then
   begin
-    li:=listview1.Items.Item[listview1.ItemIndex];
+    li:=lvResults.Items.Item[lvResults.ItemIndex];
     t:=utf8toansi(li.caption);
 
     try
@@ -6706,7 +3955,7 @@ end;
 
 procedure Tfrmpointerscanner.cbTypeChange(Sender: TObject);
 begin
-  listview1.Refresh;
+  lvResults.Refresh;
 
 end;
 

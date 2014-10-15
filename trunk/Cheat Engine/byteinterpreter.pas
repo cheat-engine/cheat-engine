@@ -125,11 +125,9 @@ end;
 
 function readAndParsePointer(buf: pbytearray; variableType: TVariableType; customtype: TCustomType=nil; showashexadecimal: Boolean=false; showAsSigned: boolean=false; bytesize:integer=1): string;
 var
-    x: dword;
-    i: integer;
-
     s: pchar;
     ws: PWideChar;
+    i: integer;
 begin
   result:='???';
   case variableType of
@@ -265,7 +263,6 @@ function readAndParseAddress(address: ptrUint; variableType: TVariableType; cust
 var buf: array [0..7] of byte;
     buf2: pbytearray;
     x: ptruint;
-    i: integer;
 begin
   result:='???';
   case variableType of
@@ -456,7 +453,7 @@ var x: string;
     couldbestringcounter: boolean;
 begin
   Set8087CW($133f); //disable floating point exceptions (multithreaded)
-  SetSSECSR($1f80);
+  SetMXCSR($1f80);
 
   //check if it matches a string
   result:=vtDword;

@@ -1,4 +1,5 @@
 unit frmPointerscanConnectDialogUnit;
+{OBSOLETE}
 
 {$mode delphi}
 

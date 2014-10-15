@@ -5,53 +5,60 @@ unit frmSetupPSNNodeUnit;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls;
+  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls, math;
 
 type
 
   { TfrmSetupPSNNode }
 
   TfrmSetupPSNNode = class(TForm)
+    btnOK: TButton;
+    btnCancel: TButton;
     Button1: TButton;
-    Button2: TButton;
-    CheckBox1: TCheckBox;
-    CheckBox2: TCheckBox;
-    CheckBox3: TCheckBox;
-    CheckBox4: TCheckBox;
-    CheckBox5: TCheckBox;
-    CheckBox6: TCheckBox;
-    CheckBox7: TCheckBox;
-    CheckBox8: TCheckBox;
-    CheckBox9: TCheckBox;
+    cbAllowParents: TCheckBox;
+    cbMaxFoundResults: TCheckBox;
+    cbMaxTimeToScan: TCheckBox;
+    cbAllowChildren: TCheckBox;
+    cbConnectToOtherNode: TCheckBox;
     cbPriority: TComboBox;
+    cbAutoTrustChildren: TCheckBox;
+    cbAllowTempFiles: TCheckBox;
+    edtPort: TEdit;
+    edtChildPassword: TEdit;
+    edtConnectIP: TEdit;
+    edtConnectPort: TEdit;
+    edtConnectPassword: TEdit;
+    edtParentPassword: TEdit;
     edtThreadCount: TEdit;
-    Edit10: TEdit;
-    Edit2: TEdit;
-    Edit3: TEdit;
-    Edit4: TEdit;
-    Edit5: TEdit;
-    Edit6: TEdit;
-    Edit7: TEdit;
-    Edit8: TEdit;
-    Edit9: TEdit;
-    GroupBox1: TGroupBox;
-    GroupBox2: TGroupBox;
-    Label1: TLabel;
+    edtPublicname: TEdit;
+    edtMaxResultsToFind: TEdit;
+    edtMaxTimeToScan: TEdit;
+    lblPasswordParent: TLabel;
+    lblListenPort: TLabel;
+    lblIP: TLabel;
+    lblPort: TLabel;
+    lblPasswordChild: TLabel;
+    lblPassword: TLabel;
     lblPublicName: TLabel;
     lblThreadCount: TLabel;
     Label3: TLabel;
     Label4: TLabel;
-    Label5: TLabel;
-    Label6: TLabel;
     lblPriority: TLabel;
-    Label8: TLabel;
-    Label9: TLabel;
-    procedure Edit8Change(Sender: TObject);
+    rbConnectAsParent: TRadioButton;
+    rbConnectAsChild: TRadioButton;
+    procedure btnOKClick(Sender: TObject);
+    procedure edtConnectPasswordChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
   private
     { private declarations }
   public
     { public declarations }
+    threadcount: integer;
+    listenport: integer;
+    connectport: integer;
+    maxresultstofind: integer;
+    maxtimetoscan: integer;
+    priority: TThreadPriority;
   end;
 
 var
@@ -59,18 +66,62 @@ var
 
 implementation
 
+uses CEFuncProc;
+
 {$R *.lfm}
 
 { TfrmSetupPSNNode }
 
 procedure TfrmSetupPSNNode.FormCreate(Sender: TObject);
+var cpucount: integer;
+begin
+  cpucount:=GetCPUCount;
+
+  //assumption: when a core with hyperthreading core is running at 100% it's hyperthreaded processor will be running at 90%
+  //This means that 10 cores are needed to provide an equivalent for one extra core when hyperthreading is used
+  //In short, leave the hyperhtreaded processors alone so the user can use that hardly useful processing power to surf the web or move the mouse...
+  //(at most use one)
+  if HasHyperthreading then
+    cpucount:=ceil((cpucount / 2)+(cpucount / 4));
+
+  edtThreadCount.text:=inttostr(cpucount);
+  edtPublicname.text:=GetUserNameFromPID(GetProcessID)+'-'+inttohex(random(65536),1);
+end;
+
+procedure TfrmSetupPSNNode.edtConnectPasswordChange(Sender: TObject);
 begin
 
 end;
 
-procedure TfrmSetupPSNNode.Edit8Change(Sender: TObject);
+procedure TfrmSetupPSNNode.btnOKClick(Sender: TObject);
 begin
+  threadcount:=strtoint(edtThreadcount.text);
+  listenport:=strtoint(edtPort.text);
+  if cbConnectToOtherNode.checked then
+    connectport:=strtoint(edtConnectPort.text);
 
+  if cbMaxFoundResults.checked then
+    maxresultstofind:=strtoint(edtMaxResultsToFind.text)
+  else
+    maxresultstofind:=0;
+
+  if cbMaxTimeToScan.checked then
+    maxtimetoscan:=strtoint(edtMaxTimeToScan.text)*1000
+  else
+    maxtimetoscan:=0;
+
+  case cbPriority.itemindex of
+    0: priority:=tpIdle;
+    1: priority:=tpLowest;
+    2: priority:=tpLower;
+    3: priority:=tpNormal;
+    4: priority:=tpHigher;
+    5: priority:=tpHighest;
+    6: priority:=tpTimeCritical;
+  end;
+
+
+  modalresult:=mrok;
 end;
 
 end.

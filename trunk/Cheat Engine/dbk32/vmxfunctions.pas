@@ -124,9 +124,6 @@ begin
 end;
 
 
-var AddVectoredExceptionHandler: function (FirstHandler: Cardinal; VectoredHandler: PVECTORED_EXCEPTION_HANDLER): pointer; stdcall;
-
-
 procedure invalidinstruction;
 begin
  // ShowMessage('Invalid instruction');
@@ -681,7 +678,6 @@ begin
   dbvm_restore_interrupts;
 end;
 
-var newstack: qword;
 procedure dbvm_returntousermode(originalstate: POriginalState);
 begin
 
@@ -773,7 +769,6 @@ end;
 
 function dbvm_localIntHandler(x: pointer): integer;
 var c: PCommand;
-    i,j,k: integer;
 begin
   result:=0;
   //kernelmode. IRQL=passive
@@ -1061,7 +1056,6 @@ begin
   end else OutputDebugString('vmx_enabled=FALSE');
 end;
 
-var a,b,c,d: dword;
 initialization
   vmcall:=vmcallUnSupported;
 

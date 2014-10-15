@@ -9,7 +9,7 @@ object frmPointerscanConnectDialog: TfrmPointerscanConnectDialog
   ClientWidth = 264
   OnCreate = FormCreate
   Position = poScreenCenter
-  LCLVersion = '1.0.8.0'
+  LCLVersion = '1.3'
   object edtHost: TEdit
     Left = 8
     Height = 23
@@ -35,9 +35,9 @@ object frmPointerscanConnectDialog: TfrmPointerscanConnectDialog
     AnchorSideTop.Side = asrBottom
     AnchorSideBottom.Control = edtHost
     Left = 8
-    Height = 16
-    Top = 8
-    Width = 26
+    Height = 15
+    Top = 9
+    Width = 25
     Anchors = [akLeft, akBottom]
     Caption = 'Host'
     ParentColor = False
@@ -46,9 +46,9 @@ object frmPointerscanConnectDialog: TfrmPointerscanConnectDialog
     AnchorSideLeft.Control = edtPort
     AnchorSideBottom.Control = edtPort
     Left = 175
-    Height = 16
-    Top = 8
-    Width = 23
+    Height = 15
+    Top = 9
+    Width = 22
     Anchors = [akLeft, akBottom]
     Caption = 'Port'
     ParentColor = False
@@ -57,9 +57,9 @@ object frmPointerscanConnectDialog: TfrmPointerscanConnectDialog
     AnchorSideTop.Control = edtThreadcount
     AnchorSideTop.Side = asrCenter
     Left = 8
-    Height = 16
-    Top = 53
-    Width = 127
+    Height = 15
+    Top = 54
+    Width = 126
     Caption = 'Nr of threads scanning: '
     ParentColor = False
   end
@@ -94,9 +94,9 @@ object frmPointerscanConnectDialog: TfrmPointerscanConnectDialog
     AnchorSideTop.Control = cbPriority
     AnchorSideTop.Side = asrCenter
     Left = 8
-    Height = 16
-    Top = 81
-    Width = 39
+    Height = 15
+    Top = 82
+    Width = 38
     Caption = 'Priority'
     ParentColor = False
   end

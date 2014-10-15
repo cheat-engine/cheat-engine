@@ -351,11 +351,12 @@ object MainForm: TMainForm
       OnClick = Label61Click
     end
     object cbSpeedhack: TCheckBox
+      AnchorSideTop.Control = cbUnrandomizer
       AnchorSideTop.Side = asrBottom
       Left = 489
       Height = 19
       Hint = 'Enable speedhack'
-      Top = 194
+      Top = 193
       Width = 111
       Anchors = [akTop, akRight]
       Caption = 'Enable Speedhack'
@@ -418,6 +419,8 @@ object MainForm: TMainForm
         PopupMenu = pmScanRegion
         TabOrder = 0
         object cbCopyOnWrite: TCheckBox
+          AnchorSideTop.Control = cbWritable
+          AnchorSideTop.Side = asrBottom
           Left = 4
           Height = 19
           Hint = 'Unchecked:'#13#10'Do not scan copy-on-write memory'#13#10#13#10'Checked:'#13#10'Only scan copy-on-write memory'#13#10#13#10'Gray:'#13#10'Don''t care if it''s copy-on-write or not'
@@ -536,6 +539,8 @@ object MainForm: TMainForm
         end
       end
       object Panel6: TPanel
+        AnchorSideTop.Control = Panel2
+        AnchorSideTop.Side = asrBottom
         Left = 0
         Height = 51
         Top = 79
@@ -546,10 +551,12 @@ object MainForm: TMainForm
         ClientWidth = 198
         TabOrder = 2
         object cbFastScan: TCheckBox
+          AnchorSideTop.Control = edtAlignment
+          AnchorSideTop.Side = asrCenter
           Left = 4
           Height = 19
           Hint = 'Speeds up the scan and decreases useless results by skipping unaligned memory, or only scans addresses ending with specific digits'
-          Top = 7
+          Top = 9
           Width = 68
           Caption = 'Fast Scan'
           Checked = True
@@ -564,10 +571,12 @@ object MainForm: TMainForm
           TabOrder = 0
         end
         object edtAlignment: TEdit
+          AnchorSideTop.Control = Panel6
           Left = 72
           Height = 21
-          Top = 7
+          Top = 8
           Width = 48
+          BorderSpacing.Top = 8
           Enabled = False
           OnKeyPress = edtAlignmentKeyPress
           TabOrder = 1
@@ -584,10 +593,12 @@ object MainForm: TMainForm
           TabOrder = 2
         end
         object rbfsmLastDigts: TRadioButton
+          AnchorSideTop.Control = rbFsmAligned
+          AnchorSideTop.Side = asrBottom
           Left = 123
           Height = 19
           Hint = 'When set and fastscan is enabled will only scan and return addresses that end with the given digits'
-          Top = 17
+          Top = 19
           Width = 69
           Caption = 'Last Digits'
           OnChange = rbFsmAlignedChange
@@ -596,6 +607,7 @@ object MainForm: TMainForm
           TabOrder = 3
         end
         object rbFsmAligned: TRadioButton
+          AnchorSideTop.Control = Panel6
           Left = 123
           Height = 19
           Hint = 'When set and fastscan is enabled will scan the memory address if it is dividable by the given value'
@@ -1294,7 +1306,7 @@ object MainForm: TMainForm
       AnchorSideRight.Side = asrBottom
       Left = 484
       Height = 94
-      Top = 213
+      Top = 212
       Width = 113
       Anchors = [akTop, akLeft, akRight]
       BevelOuter = bvNone

@@ -1,14 +1,848 @@
 unit PointerscanWorker;
-//todo: try splitting up the pointerscanner into smaller unit files
+
+//class responsible for receiving paths and working them out
 
 {$mode delphi}
 
 interface
 
 uses
-  Classes, SysUtils;
+  windows, Classes, SysUtils, syncobjs, PointerscanStructures, ProcessHandlerUnit, pointervaluelist,
+  pointeraddresslist, NewKernelHandler, zstream, zstreamext;
+
+type
+  TPointerscanWorker = class (tthread)
+  private
+
+
+    pointersize: integer;
+    fOnException: TNotifyEvent;
+
+    temppathqueue: TPathQueueElement;
+
+
+    procedure rscan(valuetofind:ptrUint; level: valSint);
+    procedure StorePath(level: valSint; staticdata: PStaticData);
+    function DoRescan(level: valSint; staticdata: PStaticData): boolean;
+  protected
+    results: tstream;
+    procedure initialize; virtual; abstract;
+    procedure flushresults; virtual; abstract;
+  public
+    pointerlisthandler: TReversePointerListHandler;
+    pathqueuesemaphore: THandle;
+    pathqueuelength: ^integer;
+    pathqueueCS: TCriticalSection;
+    pathqueue: PMainPathQueue;
+
+    OutOfDiskSpace: ^boolean;
+    mustEndWithSpecificOffset: boolean;
+    mustendwithoffsetlist: array of dword;
+
+    useHeapData: boolean;
+    useOnlyHeapData: boolean;
+
+    onlyOneStaticInPath: boolean;
+
+
+
+    valuetofind: ptrUint;
+    maxlevel: integer;
+    structsize: integer;
+//    startaddress: dword;
+    startlevel: integer;
+    alligned: boolean;
+    staticonly: boolean;
+    noLoop: boolean;
+
+    LimitToMaxOffsetsPerNode: boolean;
+    MaxOffsetsPerNode: integer;
+
+
+    isFlushing: boolean;
+    timespentwriting: qword;
+    currentwritestart: qword;
+
+
+
+    isdone: boolean;
+    hasTerminated: boolean;
+//    savestate: boolean;
+    stop: boolean;
+
+    //staticscanner: TStaticscanner;
+    tempresults: array of dword; //offsetlist
+    valuelist: array of ptruint; //used by noLoop  .
+    {
+    I could have used a map, but inserting in a map takes longer than a array append
+    Also, the array is maxlevel big, and usually not that long
+    Really not sure what's the best solution in this case though
+    }
+
+
+    //info:
+    currentaddress: pointer;
+    currentlevel: integer;
+    LookingForMin: ptrUint;
+    LookingForMax: ptrUint;
+    //lastaddress: ptrUint;
+
+
+
+    haserror: boolean;
+    errorstring: string;
+
+    pathsEvaluated: qword;
+    pointersfound: qword;
+
+    compressedptr: boolean;
+    MaxBitCountModuleIndex: dword;
+    MaxBitCountLevel: dword;
+    MaxBitCountOffset: dword;
+
+    MaskModuleIndex: dword;
+    MaskLevel: dword;
+    MaskOffset: dword;
+
+    compressedEntry: pbytearray;
+    compressedEntrySize: integer;
+
+    mustendwithoffsetlistlength: integer;
+
+
+    instantrescan: boolean;
+    instantrescanlistcount: integer;
+    instantrescanlist: array of TPointerListHandler;
+    instantrescanaddress: array of ptruint;
+
+    savestate: boolean;
+    overflowqueuewriter:TQueueWriterMethod;
+    procedure SaveStateAndTerminate;
+
+
+
+    procedure execute; override;
+    constructor create(suspended: boolean);
+    destructor destroy; override;
+
+    property OnException: TNotifyEvent read fOnException write fOnException;
+  end;
+
+  TFlushResultsEvent=function(size: integer; m: TStream): boolean of object;
+  TPointerscanWorkerNetwork=class(TPointerscanWorker)
+  private
+    fOnFlushResults: TFlushResultsEvent;
+    resultscs: TCompressionstreamWithPositionSupport;
+    resultsms: TMemorystream;
+  protected
+    procedure initialize; override;
+    procedure flushresults; override;
+  public
+    destructor destroy; override;
+
+    property OnFlushResults: TFlushResultsEvent read fOnFlushResults write fOnFlushResults;
+  end;
+
+  TPointerscanWorkerLocal=class(TPointerscanWorker)
+  private
+    ffilename: string;
+    resumescan: boolean;
+    resultsfile: tfilestream;
+    resultsms: TMemorystream;
+  protected
+    procedure initialize; override;
+    procedure flushresults; override;
+  public
+    constructor create(suspended: boolean; filename: string; resumescan: boolean);
+    destructor destroy; override;
+
+    property filename: string read ffilename;
+  end;
 
 implementation
+
+uses frmMemoryAllocHandlerUnit, pointerscancontroller;
+
+//---------------Reversescanworker
+
+procedure TPointerscanWorkerNetwork.initialize;
+begin
+  // nothing for now
+
+  resultsms:=tmemorystream.create;
+  resultscs:=TCompressionstreamWithPositionSupport.create(cldefault, resultsms);
+
+  results:=resultscs;
+end;
+
+procedure TPointerscanWorkerNetwork.flushresults;
+var size: integer;
+begin
+  if not haserror then
+  begin
+    currentwritestart:=gettickcount64;
+    isFlushing:=true;
+
+
+    size:=resultscs.Position;
+
+    resultscs.free;
+    resultsms.position:=0;
+
+    if assigned(fOnFlushResults) then
+    begin
+      while fOnFlushResults(size, resultsms)=false do
+      begin
+        if terminated then break;
+        sleep(1000);
+      end;
+    end;
+
+    resultsms.position:=0;
+    resultscs:=TCompressionstreamWithPositionSupport.create(cldefault, resultsms);
+
+    isFlushing:=false;
+    inc(timespentwriting, gettickcount64-currentwritestart);
+  end;
+end;
+
+destructor TPointerscanWorkerNetwork.destroy;
+begin
+  if resultscs<>nil then
+    resultscs.free;
+
+  if resultsms<>nil then
+    resultsms.free;
+
+  inherited destroy;
+end;
+
+//------------
+
+procedure TPointerscanWorkerLocal.initialize;
+begin
+  resultsms:=tmemorystream.Create;
+  resultsms.SetSize(16*1024*1024);
+
+  results:=resultsms;
+
+
+
+  if resumescan and fileexists(filename) then
+  begin
+    //append to the end
+    resultsfile:= tfilestream.Create(filename,fmOpenWrite or fmShareDenyNone);
+    resultsfile.Seek(0, soEnd);
+  end
+  else
+  begin
+    //new file
+    resultsfile:= tfilestream.Create(filename,fmcreate);
+    resultsfile.free;
+    resultsfile:= tfilestream.Create(filename,fmOpenWrite or fmShareDenyNone);
+  end;
+end;
+
+procedure TPointerscanWorkerLocal.flushresults;
+begin
+  if not haserror then
+  begin
+    currentwritestart:=gettickcount64;
+    isFlushing:=true;
+
+    resultsfile.WriteBuffer(resultsms.Memory^,resultsms.Position);
+    results.Seek(0,sofrombeginning);
+
+    isFlushing:=false;
+    inc(timespentwriting, gettickcount64-currentwritestart);
+  end;
+end;
+
+constructor TPointerscanWorkerLocal.create(suspended: boolean; filename: string; resumescan: boolean);
+begin
+  self.ffilename:=filename;
+  self.resumescan:=resumescan;
+
+  inherited create(suspended);
+end;
+
+destructor TPointerscanWorkerLocal.destroy;
+begin
+  if resultsfile<>nil then
+    freeandnil(resultsfile);
+
+  if resultsms<>nil then
+    resultsms.free;
+
+  inherited destroy;
+end;
+
+procedure TPointerscanWorker.SaveStateAndTerminate;
+begin
+  savestate:=true;
+  Terminate;
+end;
+
+constructor TPointerscanWorker.create(suspended:boolean);
+begin
+  isdone:=true;
+
+  pointersize:=processhandler.pointersize;
+
+  inherited create(suspended);
+end;
+
+destructor TPointerscanWorker.destroy;
+begin
+  if compressedEntry<>nil then
+    FreeMem(compressedEntry);
+
+  inherited destroy;
+end;
+
+
+
+procedure TPointerscanWorker.execute;
+var
+  wr: dword;
+  i: integer;
+begin
+  try
+    try
+      Initialize;
+
+
+
+      compressedEntrySize:=32+MaxBitCountModuleIndex+MaxBitCountLevel+MaxBitCountOffset*(maxlevel-mustendwithoffsetlistlength);
+      compressedEntrySize:=(compressedEntrySize+7) div 8;
+
+      getmem(compressedEntry, compressedEntrySize+4); //+4 so there's some space for overhead (writing using a dword pointer to the last byte)
+
+      MaskModuleIndex:=0;
+      for i:=1 to MaxBitCountModuleIndex do
+        MaskModuleIndex:=(MaskModuleIndex shl 1) or 1;
+
+      for i:=1 to MaxBitCountLevel do
+        MaskLevel:=(MaskLevel shl 1) or 1;
+
+      for i:=1 to MaxBitCountOffset do
+        MaskOffset:=(MaskOffset shl 1) or 1;
+
+
+
+      while (not terminated) do
+      begin
+        wr:=WaitForSingleObject(pathqueueSemaphore, INFINITE); //obtain semaphore
+        if stop or terminated then
+        begin
+          ReleaseSemaphore(pathqueueSemaphore, 1, nil);
+          exit;
+        end;
+
+        if wr=WAIT_OBJECT_0 then
+        begin
+          //fetch the data from the queue and staticscanner
+          if outofdiskspace^ then
+          begin
+            ReleaseSemaphore(pathqueueSemaphore, 1, nil); //don't use it. give the semaphore back
+            sleep(2000);
+            continue;
+          end;
+
+
+
+          pathqueueCS.Enter;
+          if pathqueuelength^>0 then //should always be true due to the semaphore
+          begin
+            dec(pathqueuelength^);
+            i:=pathqueuelength^;
+
+
+            valuetofind:=pathqueue[i].valuetofind;
+            startlevel:=pathqueue[i].startlevel;
+
+            CopyMemory(@tempresults[0], @pathqueue[i].tempresults[0], maxlevel*sizeof(dword));
+            if noLoop then
+              CopyMemory(@valuelist[0], @pathqueue[i].valuelist[0], maxlevel*sizeof(ptruint));
+          end;
+
+          isdone:=false;
+          pathqueueCS.Leave;
+
+
+          try
+            rscan(valuetofind,startlevel);
+          finally
+            isdone:=true;  //set isdone to true
+          end;
+        end;
+      end;
+
+    except
+      on e: exception do
+      begin
+        OutputDebugString('ScanWorker has error');
+        haserror:=true;
+        errorstring:='ReverseScanWorker:'+e.message;
+
+        //tell all siblings they should kill themself. There is no reason to live for them...
+        if assigned(fOnException) then
+          fOnException(self);
+
+        terminate;
+      end;
+    end;
+  finally
+    isdone:=true;
+    hasTerminated:=true;
+
+    flushresults;
+
+    OutputDebugString('Scanworker is done');
+  end;
+
+end;
+
+
+
+function TPointerscanWorker.DoRescan(level: valSint; staticdata: PStaticData): boolean;
+var
+  i,j: integer;
+  a: ptruint;
+
+begin
+  result:=false;
+  for i:=0 to instantrescanlistcount-1 do
+  begin
+    a:=instantrescanlist[i].getAddressFromModuleIndexPlusOffset(staticdata.moduleindex, staticdata.offset);
+
+    for j:=level downto 0 do
+    begin
+      a:=instantrescanlist[i].getPointer(a);
+      if a=0 then exit;
+      a:=a+tempresults[j];
+    end;
+
+    if a<>instantrescanaddress[i] then exit;
+  end;
+
+  result:=true;
+end;
+
+procedure TPointerscanWorker.StorePath(level: valSint; staticdata: PStaticData);
+{Store the current path to memory and flush if needed}
+var
+  i: integer;
+
+  bd8, bm8: dword;
+
+  bit: integer;
+begin
+  if (staticdata=nil) then exit; //don't store it
+
+  if instantrescan and (not DoRescan(level, staticdata)) then exit;
+
+  //fill in the offset list
+  inc(pointersfound);
+
+
+
+  {
+  if databaseptr? then
+  begin
+    //table with last offsets
+    //table with secondary offsets
+    //...
+    //table with first offsets
+
+    //table with results, containing columns for every offset and the base
+    //moduleindex base offset1  offset2  offset3  offset4
+    //------------------------------------------------------
+    //0           1    reftooff1 reftooff2       3        4        5
+  end
+  else
+  }
+  if compressedptr then
+  begin
+    //leave the offset alone
+    //compress the module index
+    //compress the level
+    //compress the tempresults (additionally, if alligned, shift by 2)
+
+
+    //e.g: structsize 2048, maxlevel 5 , alligned, 100 modules in target
+    //offset: 32 bits
+    //module index(100) : 7 bits
+    //level(5): 3 bits
+    //tempresults(2048 alligned=512 , 9 bits/offset): 5*9=45
+    // total/entry: 32+7+3+45=87 bits.  Align it to a byte boundary(88 bits)=11 bytes
+
+
+    //as opposed to:
+    //offset: 32 bits:
+    //module index: 32 bits
+    //level(5): 32
+    //tempresults: 5*32=160
+    //total/entry: 32+32+32+160=256 bits = 32 bytes
+
+    //so, the compressed version should be almost 3 times as small on a default scan (the shifting and alignment might cause a slightly slower scan)
+
+    if level<(mustendwithoffsetlistlength-1) then exit; //on a multi offset end scan, entries with a partial match resulting in a static are saved as well. Don't as they are not what the user wished, and would cause problems
+
+
+    bit:=0;
+    pdword(compressedEntry)^:=staticdata.offset;
+    bit:=bit+32;
+
+
+    bd8:=bit shr 3; //bit div 8;
+    pdword(@compressedEntry[bd8])^:=staticdata.moduleindex;
+    bit:=bit+MaxBitCountModuleIndex;
+
+
+    bd8:=bit shr 3; //bit div 8;
+    bm8:=bit and $7; //bit mod 8;
+        {
+    v:=pdword(@compressedEntry[bd8])^; //get the current value at the specific byte the current bit points at
+    m:=MaskLevel shl (bm8);
+    m:=not m; //invert the mask
+    v:=v and m; //keep all the bits, except those of masklevel
+    v:=v or (level shl (bm8)); //set the bits of masklevel
+    pdword(@compressedEntry[bd8])^:=v; //set the value back
+    bit:=bit+MaxBitCountLevel;    //next section
+    }
+
+    //do not save the "must end with specific offset" offsets. They are known
+
+    //startindex:=mustendwithoffsetlistlength;
+   // _level:=1+(level-mustendwithoffsetlistlength);
+
+//    pdword(@compressedEntry[bd8])^:=pdword(@compressedEntry[bd8])^ and (not (MaskLevel shl bm8)) or (_level shl bm8);
+    pdword(@compressedEntry[bd8])^:=pdword(@compressedEntry[bd8])^ and (not (MaskLevel shl bm8)) or ((1+(level-mustendwithoffsetlistlength)) shl bm8);
+    bit:=bit+MaxBitCountLevel;    //next section
+
+
+
+    //compress the offsets
+    for i:=mustendwithoffsetlistlength to level do
+    begin
+      bd8:=bit shr 3; //bit div 8;
+      bm8:=bit and $7; //bit mod 8;
+        {
+      v:=pdword(@compressedEntry[bd8])^;
+      m:=MaskOffset shl (bm8);
+      m:=not m;
+      v:=v and m;
+
+      if alligned then
+        v:=v or ((tempresults[i] shr 2) shl (bm8))
+      else
+        v:=v or (tempresults[i] shl (bm8));
+
+
+      pdword(@compressedEntry[bd8])^:=v;
+        }
+
+
+      if alligned then
+        pdword(@compressedEntry[bd8])^:=pdword(@compressedEntry[bd8])^ and (not (MaskOffset shl bm8)) or ((tempresults[i] shr 2) shl bm8)
+      else
+        pdword(@compressedEntry[bd8])^:=pdword(@compressedEntry[bd8])^ and (not (MaskOffset shl bm8)) or ((tempresults[i]) shl bm8);
+
+      bit:=bit+MaxBitCountOffset;
+    end;
+
+    results.WriteBuffer(compressedEntry^, compressedEntrySize);
+
+  end
+  else
+  begin
+    results.WriteBuffer(staticdata.moduleindex, sizeof(staticdata.moduleindex));
+    results.WriteBuffer(staticdata.offset,sizeof(staticdata.offset));
+    i:=level+1; //store how many offsets are actually used (since all are saved)
+    results.WriteBuffer(i,sizeof(i));
+    results.WriteBuffer(tempresults[0], maxlevel*sizeof(tempresults[0]) ); //todo for 6.3+: Change sizeof(tempresult[0]) with the max size the structsize can generate./ (e.g 4096 is  only 2 bytes, 65536 =3)
+  end;
+  if results.position>15*1024*1024 then //bigger than 15mb
+    flushresults;
+end;
+
+procedure TPointerscanWorker.rscan(valuetofind:ptrUint; level: valSint);
+{
+scan through the memory for a address that points in the region of address, if found, recursive call till level maxlevel
+}
+var p: ^byte;
+    pd: ^dword absolute p;
+    pq: ^qword absolute p;
+
+
+    i,j: valSint;
+    addedToQueue: boolean;
+
+
+    ExactOffset: boolean;
+    mae: TMemoryAllocEvent;
+
+  startvalue: ptrUint;
+  stopvalue: ptrUint;
+  plist: PPointerlist;
+
+  nostatic: TStaticData;
+  DontGoDeeper: boolean;
+  DifferentOffsetsInThisNode: integer;
+  locked: boolean;
+
+begin
+  if (level>=maxlevel) or (terminated and (savestate=false)) then
+    exit;
+
+
+  currentlevel:=level;
+  DifferentOffsetsInThisNode:=0;
+
+
+  exactOffset:=mustEndWithSpecificOffset and (length(mustendwithoffsetlist)-1>=level);
+
+  if exactOffset then
+  begin
+    startvalue:=valuetofind-mustendwithoffsetlist[level];
+    stopvalue:=startvalue;
+  end
+  else
+  begin
+    startvalue:=valuetofind-structsize;
+    stopvalue:=valuetofind;
+
+    if useheapdata then
+    begin
+      mae:=frmMemoryAllocHandler.FindAddress(@frmMemoryAllocHandler.HeapBaselevel, valuetofind);
+      if mae<>nil then
+      begin
+        exactoffset:=true;
+        startvalue:=mae.BaseAddress;
+        stopvalue:=startvalue;
+      end
+      else //not static and not in heap
+       if useOnlyHeapData then
+         exit;
+    end;
+  end;
+
+
+  if noLoop then
+  begin
+    //check if this valuetofind is already in the list
+    for i:=0 to level-1 do
+      if valuelist[i]=valuetofind then
+      begin
+        exit;
+      end;
+
+    //add this valuetofind to the list
+    valuelist[level]:=valuetofind;
+  end;
+
+  //lastaddress:=maxaddress;
+
+  LookingForMin:=startvalue;
+  LookingForMax:=stopvalue;
+
+  dontGoDeeper:=false;
+  plist:=nil;
+  while stopvalue>=startvalue do
+  begin
+    if plist=nil then
+      plist:=pointerlisthandler.findPointerValue(startvalue, stopvalue);
+
+    if plist<>nil then
+    begin
+      tempresults[level]:=valuetofind-stopvalue; //store the offset
+
+
+
+
+      //go through the list of addresses that have this address(stopvalue) as their value
+      for j:=0 to plist.pos-1 do
+      begin
+        {$ifdef benchmarkps}
+        inc(pathsevaluated);
+        {$endif}
+
+
+        if (plist.list[j].staticdata=nil) then //this removes a lot of other possible paths. Perhaps a feature to remove this check ?
+        begin
+          if (not dontGoDeeper) then
+          begin
+            //check if we should go deeper into these results (not if max level has been reached)
+
+
+            if (level+1) < maxlevel then
+            begin
+              addedToQueue:=false;
+
+              if (not terminated) and (not outofdiskspace^) then //if there is not enough diskspace left wait till it's terminated, or diskspace is freed
+              begin
+
+                if (
+                    (level+3<maxlevel) and
+                    (
+                       ((pathqueuelength^<MAXQUEUESIZE - (MAXQUEUESIZE div 3))) or
+                       ((level<=2) and (pathqueuelength^<MAXQUEUESIZE - (MAXQUEUESIZE div 8))) or
+                       ((level<=1) and (pathqueuelength^<MAXQUEUESIZE - (MAXQUEUESIZE div 16))) or
+                       ((level=0) and (pathqueuelength^<MAXQUEUESIZE - 1))
+                    )
+                   )
+                or
+                   (pathqueuelength^=0) //completely empty
+                then //there's room and not a crappy work item. Add it
+                begin
+                  if (not Terminated) or savestate then
+                  begin
+                    //try to lock multiple times if high level pointers
+                    locked:=pathqueueCS.tryEnter;
+                    if not locked and (level<=2) then locked:=pathqueueCS.tryEnter;
+                    if not locked and (level<=1) then
+                    begin
+                      //Two previous locks failed. Yield and try a lock again
+                      sleep(0);
+                      locked:=pathqueueCS.tryEnter;
+                      if not locked then
+                      begin
+                        //one more time
+                        sleep(0);
+                        locked:=pathqueueCS.tryEnter;
+                      end;
+                    end;
+
+                    if not locked and (level=0) then
+                    begin
+                      //I must have this lock
+                      pathqueueCS.Enter;
+                      locked:=true;
+                    end;
+
+
+                    if locked then
+                    begin
+                      if pathqueuelength^<MAXQUEUESIZE-1 then
+                      begin
+                        //still room
+
+                        CopyMemory(@pathqueue[pathqueuelength^].tempresults[0], @tempresults[0], maxlevel*sizeof(dword));
+                        if noLoop then
+                          CopyMemory(@pathqueue[pathqueuelength^].valuelist[0], @valuelist[0], maxlevel*sizeof(ptruint));
+
+                        pathqueue[pathqueuelength^].startlevel:=level+1;
+                        pathqueue[pathqueuelength^].valuetofind:=plist.list[j].address;
+
+                        inc(pathqueuelength^);
+                        ReleaseSemaphore(pathqueueSemaphore, 1, nil);
+                        addedToQueue:=true;
+                      end;
+                      pathqueueCS.Leave;
+                    end;
+                  end
+                  else
+                    exit;
+                end;
+
+
+                if not addedToQueue then
+                begin
+                  //I'll have to do it myself
+                  rscan(plist.list[j].address,level+1);
+
+                  ///done with this branch
+                end;
+
+              end
+              else
+              begin
+
+                //!!Out of diskspace or terminated!!
+
+                if outofdiskspace^ or savestate then //save to the overflowqueueu and return
+                begin
+                  //fill in the temppathqueue and send it to the overflowqueuewriter
+                  temppathqueue.startlevel:=level+1;
+                  temppathqueue.valuetofind:=plist.list[j].address;
+
+                  if length(temppathqueue.tempresults)<length(tempresults) then
+                    setlength(temppathqueue.tempresults, length(tempresults));
+
+                  CopyMemory(@temppathqueue.tempresults[0], @tempresults[0], maxlevel*sizeof(dword));
+
+                  if length(temppathqueue.valuelist)<length(valuelist) then
+                     setlength(temppathqueue.valuelist, length(valuelist));
+
+                  CopyMemory(@temppathqueue.valuelist[0], @valuelist[0], maxlevel*sizeof(PtrUInt));
+
+                  overflowqueuewriter(self, temppathqueue);
+                end
+                else
+                  exit;//it was a terminate
+
+                //^^^^out of diskspace or save state!^^^^
+
+              end;
+
+              if (not staticonly) then //store this results entry
+              begin
+                nostatic.moduleindex:=$FFFFFFFF;
+                nostatic.offset:=plist.list[j].address;
+                StorePath(level,@nostatic);
+              end;
+
+            end
+            else
+            begin
+              //end of the line
+              if (not staticonly) then //store this results entry
+              begin
+                nostatic.moduleindex:=$FFFFFFFF;
+                nostatic.offset:=plist.list[j].address;
+                StorePath(level,@nostatic);
+              end;
+            end
+
+          end; //else don't go deeper
+        end
+        else
+        begin
+          //found a static one
+          StorePath(level, plist.list[j].staticdata);
+
+          if onlyOneStaticInPath then DontGoDeeper:=true;
+        end;
+      end;
+
+
+      if LimitToMaxOffsetsPerNode then //check if the current itteration is less than maxOffsetsPerNode
+      begin
+        if level>0 then
+          inc(DifferentOffsetsInThisNode);
+
+        if (DifferentOffsetsInThisNode>=maxOffsetsPerNode) then
+          exit; //the max node has been reached
+      end;
+
+
+      plist:=plist.previous;
+      if plist<>nil then
+        stopvalue:=plist.pointervalue
+      else
+        exit; //nothing else to be found
+
+    end else
+    begin
+      {$ifdef benchmarkps}
+      inc(pathsevaluated);
+      {$endif}
+      exit;
+    end;
+
+  end;
+end;
 
 end.
 

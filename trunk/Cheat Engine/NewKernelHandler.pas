@@ -767,7 +767,9 @@ resourcestring
 
 
 function Is64bitOS: boolean;
+{$ifndef CPU64 }
 var iswow64: BOOL;
+{$endif}
 begin
   {$ifndef CPU64 }
 
