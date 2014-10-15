@@ -23,7 +23,7 @@ uses
   FPimage, byteinterpreter, frmgroupscanalgoritmgeneratorunit, vartypestrings,
   groupscancommandparser, GraphType, IntfGraphics, RemoteMemoryManager,
   DBK64SecondaryLoader, savedscanhandler, debuggertypedefinitions, networkInterface,
-  FrmMemoryRecordDropdownSettingsUnit, xmlutils, zstream;
+  FrmMemoryRecordDropdownSettingsUnit, xmlutils, zstream, zstreamext;
 
 //the following are just for compatibility
 
@@ -7925,19 +7925,35 @@ begin
     IntToStr(x) + ',' + IntToStr(y) + '   -   width=' + IntToStr(w) + ' , height=' + IntToStr(h));
 end;
 
+
+
 procedure TMainForm.Label59Click(Sender: TObject);
 var
-  l: TPointerListHandler;
+  l: TReversePointerListHandler;
   fs: TFileStream;
   cs: Tdecompressionstream;
   p: ptruint;
+
+
+  x: TcompressionstreamWithPositionSupport;
+  y: tmemorystream;
+
+  a: ptruint;
+  plist: PPointerList;
 begin
-  fs:=tfilestream.Create('e:\ptr\tut-018281F8.scandata', fmOpenRead);
+  fs:=tfilestream.Create('e:\ptr\SHOM-health08EAE5F4.scandata', fmOpenRead);
   cs:=Tdecompressionstream.create(fs);
 
-  l:=TPointerListHandler.createFromStream(cs, progressbar1);
 
-  p:=l.getPointer($6355d0);
+  l:=TReversePointerListHandler.createFromStream(cs, progressbar1);
+
+  a:=$08EAE5F4-$34;
+  plist:=l.findPointerValue(a,a);
+
+  if plist=nil then
+    showmessage('fuck');
+
+
 
   cs.free;
   fs.free;

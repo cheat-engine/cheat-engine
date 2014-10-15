@@ -1,11 +1,11 @@
 object frmPointerScannerSettings: TfrmPointerScannerSettings
-  Left = 331
-  Height = 489
-  Top = 292
+  Left = 898
+  Height = 497
+  Top = 387
   Width = 638
   BorderStyle = bsSingle
   Caption = 'Pointerscanner scanoptions'
-  ClientHeight = 489
+  ClientHeight = 497
   ClientWidth = 638
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
@@ -185,8 +185,10 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         Top = 40
         Width = 111
         Caption = 'No looping pointers'
+        Checked = True
         ParentShowHint = False
         ShowHint = True
+        State = cbChecked
         TabOrder = 9
       end
       object cbMaxOffsetsPerNode: TCheckBox
@@ -284,7 +286,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   object cbMustEndWithSpecificOffset: TCheckBox
     Left = 8
     Height = 19
-    Top = 354
+    Top = 356
     Width = 199
     Caption = 'Pointers must end with specific offsets'
     Font.Height = -11
@@ -296,7 +298,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   object Panel1: TPanel
     Left = 0
     Height = 104
-    Top = 385
+    Top = 393
     Width = 638
     Align = alBottom
     BevelOuter = bvNone
@@ -468,23 +470,6 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
       TabOrder = 1
     end
   end
-  object cbReusePointermap: TCheckBox
-    Left = 8
-    Height = 19
-    Hint = 'I you did a previous pointerscan and it completed very quickly, you can scan again and skip the initial setup'
-    Top = 273
-    Width = 218
-    Caption = 'Use pointermap from previous pointerscan'
-    Checked = True
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
-    OnChange = cbReusePointermapChange
-    ParentFont = False
-    ParentShowHint = False
-    ShowHint = True
-    State = cbChecked
-    TabOrder = 6
-  end
   object cbUseLoadedPointermap: TCheckBox
     Left = 8
     Height = 19
@@ -495,19 +480,19 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     OnChange = cbUseLoadedPointermapChange
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 7
+    TabOrder = 6
   end
-  object cbDistributedScanning: TCheckBox
+  object cbAllowRuntimeWorkers: TCheckBox
     Left = 288
     Height = 19
     Hint = 'Opens a port that other systems running the pointerscanner can connect to and help out with the scan'
-    Top = 313
-    Width = 142
-    Caption = 'Allow distributed scanning'
-    OnChange = cbDistributedScanningChange
+    Top = 288
+    Width = 194
+    Caption = 'Allow scanners to connect at runtime'
+    OnChange = cbAllowRuntimeWorkersChange
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 8
+    TabOrder = 7
   end
   object edtDistributedPort: TEdit
     AnchorSideLeft.Control = lblPort
@@ -516,107 +501,119 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     AnchorSideTop.Side = asrCenter
     Left = 326
     Height = 21
-    Top = 331
+    Top = 308
     Width = 103
     Enabled = False
-    TabOrder = 9
+    TabOrder = 8
     Text = '52737'
   end
   object lblPort: TLabel
-    AnchorSideLeft.Control = cbDistributedScanning
-    AnchorSideTop.Control = cbDistributedScanning
+    AnchorSideLeft.Control = cbAllowRuntimeWorkers
+    AnchorSideTop.Control = cbAllowRuntimeWorkers
     AnchorSideTop.Side = asrBottom
     Left = 304
     Height = 13
-    Top = 335
+    Top = 312
     Width = 22
     BorderSpacing.Left = 16
-    BorderSpacing.Top = 3
+    BorderSpacing.Top = 5
     Caption = 'Port:'
     ParentColor = False
   end
-  object cbBroadcast: TCheckBox
-    AnchorSideLeft.Control = lblPort
-    AnchorSideTop.Control = edtDistributedPort
-    AnchorSideTop.Side = asrBottom
-    Left = 304
+  object cbConnectToNode: TCheckBox
+    AnchorSideLeft.Control = cbAllowRuntimeWorkers
+    AnchorSideTop.Side = asrCenter
+    Left = 288
     Height = 19
     Hint = 'When checked will send a broadcast message on the local network which will tell pointer scanner systems to join this scan if they are set to auto join'#13#10#13#10'You can use "Setup specific IP''s to notify" to notify systems of this scan that are outside of the local network'
-    Top = 352
-    Width = 179
-    Caption = 'Broadcast that a scan has started'
-    Enabled = False
-    OnChange = cbBroadcastChange
+    Top = 335
+    Width = 157
+    BorderSpacing.Top = 9
+    Caption = 'Connect to pointerscan node'
+    OnChange = cbConnectToNodeChange
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 10
-  end
-  object btnNotifySpecificIPs: TButton
-    AnchorSideLeft.Control = cbBroadcast
-    AnchorSideLeft.Side = asrBottom
-    AnchorSideTop.Control = cbBroadcast
-    AnchorSideTop.Side = asrCenter
-    Left = 487
-    Height = 25
-    Top = 349
-    Width = 139
-    BorderSpacing.Left = 4
-    Caption = 'Setup specific IP''s to notify'
-    Enabled = False
-    OnClick = btnNotifySpecificIPsClick
-    TabOrder = 11
+    TabOrder = 9
   end
   object cbMustStartWithBase: TCheckBox
     Left = 8
     Height = 19
     Hint = 'Will only mark the given range as valid base address (Will reduce the number of results)'#13#10'This internally makes use of the "Only find paths with a static address" feature by marking the provided range as static only, so it must be enabled.'
-    Top = 333
+    Top = 335
     Width = 204
     Caption = 'Base address must be in specific range'
     OnChange = cbMustStartWithBaseChange
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 12
+    TabOrder = 10
   end
   object cbCompressedPointerscanFile: TCheckBox
     Left = 288
     Height = 19
     Hint = 'Compresses the generated .PTR files slightly so they take less space on the disk and less time writing to disk.'#13#10'Most of the time the bottleneck of a pointerscan is disk writing, so it is recommended to use this option.'#13#10#13#10'Compressed .PTR files can not be read out by older Cheat Engine versions'
-    Top = 273
+    Top = 270
     Width = 152
     Caption = 'Compressed pointerscan file'
     Checked = True
     ParentShowHint = False
     ShowHint = True
     State = cbChecked
-    TabOrder = 13
+    TabOrder = 11
   end
   object cbCompareToOtherPointermaps: TCheckBox
     Left = 8
     Height = 19
     Hint = 'When ticked you can add other pointermaps which will be used to verify that the pointers it finds are correct. You will have to fill in the correct address for each pointermap you provide.'#13#10'Note: expect at least the size of the game itself in memory for every pointermap used'#13#10
-    Top = 312
+    Top = 314
     Width = 242
     Caption = 'Compare results with other saved pointermap(s)'
     OnChange = cbCompareToOtherPointermapsChange
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 14
+    TabOrder = 12
   end
   object cbGeneratePointermapOnly: TCheckBox
-    Left = 288
+    Left = 8
     Height = 19
-    Top = 293
+    Top = 270
     Width = 141
     Caption = 'Generate pointermap only'
-    TabOrder = 15
+    TabOrder = 13
+  end
+  object edtDistributedPassword: TEdit
+    AnchorSideLeft.Control = Label1
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 485
+    Height = 21
+    Top = 308
+    Width = 148
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Left = 5
+    BorderSpacing.Right = 5
+    Enabled = False
+    MaxLength = 255
+    TabOrder = 14
+  end
+  object Label1: TLabel
+    AnchorSideLeft.Control = edtDistributedPort
+    AnchorSideLeft.Side = asrBottom
+    Left = 434
+    Height = 13
+    Top = 312
+    Width = 46
+    BorderSpacing.Left = 5
+    Caption = 'Password'
+    ParentColor = False
   end
   object odLoadPointermap: TOpenDialog
     DefaultExt = '.scandata'
     Filter = 'All files (*.*)|*.*|scandata files (*.scandata)|*.scandata'
     FilterIndex = 2
     left = 544
-    top = 264
+    top = 328
   end
   object il: TImageList
     left = 464

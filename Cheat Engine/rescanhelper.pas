@@ -21,8 +21,8 @@ type
     socket: TSocket;
     socketcs: TCriticalSection;
 
-    procedure downloadMemoryRegions;
-    function DownloadPages(page: PtrUInt): TPageInfo;
+   { procedure downloadMemoryRegions;
+    function DownloadPages(page: PtrUInt): TPageInfo;      }
 
     function BinSearchMemRegions(address: ptrUint): integer;
     procedure quicksortmemoryregions(lo,hi: integer);
@@ -43,6 +43,7 @@ implementation
 
 uses ProcessHandlerUnit;
 
+{
 function TRescanHelper.DownloadPages(page: ptruint): TPageInfo;
 var
   getPages: packed record
@@ -193,7 +194,7 @@ begin
     socketcs.leave;
   end;
 end;
-
+            }
 function TRescanHelper.BinSearchMemRegions(address: ptrUint): integer;
 var
   First: Integer;
@@ -268,12 +269,12 @@ begin
     if ispointer(index shl 12) then
     begin
       //save the data
-      if socket>=0 then
+      {if socket>=0 then
       begin
         result:=DownloadPages(index shl 12);
         exit;
       end
-      else
+      else  }
       begin
         getmem(pi.data, 4096);
         if ReadProcessMemory(ProcessHandle, pointer(index shl 12), pi.data, 4096, x)=false then
@@ -366,9 +367,9 @@ begin
   //enumerate all memory regions
   address:=0;
 
-  if socket>=0 then
+ { if socket>=0 then
     downloadMemoryRegions
-  else
+  else}
   begin
     while (Virtualqueryex(processhandle,pointer(address),mbi,sizeof(mbi))<>0) and ((address+mbi.RegionSize)>address) do
     begin

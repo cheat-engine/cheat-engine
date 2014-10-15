@@ -6652,7 +6652,7 @@ begin
 
       $7c : begin
               description:='jump short if not greater or equal';
-              lastdisassembledata.opcode:='jnge';
+              lastdisassembledata.opcode:='jl'; //jnge
               lastdisassembledata.isjump:=true;
               lastdisassembledata.isconditionaljump:=true;
               inc(offset);

@@ -1,16 +1,18 @@
 object frmSetupPSNNode: TfrmSetupPSNNode
-  Left = 628
-  Height = 502
-  Top = 201
-  Width = 373
+  Left = 1391
+  Height = 425
+  Top = 118
+  Width = 370
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSingle
   Caption = 'Setup pointerscan network node'
-  ClientHeight = 502
-  ClientWidth = 373
+  ClientHeight = 425
+  ClientWidth = 370
   OnCreate = FormCreate
+  Position = poScreenCenter
   LCLVersion = '1.3'
   object edtThreadCount: TEdit
+    AnchorSideLeft.Control = lblThreadCount
     AnchorSideTop.Control = lblThreadCount
     AnchorSideTop.Side = asrBottom
     Left = 14
@@ -32,91 +34,108 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     Caption = 'Threadcount'
     ParentColor = False
   end
-  object CheckBox3: TCheckBox
-    Left = 16
+  object cbMaxFoundResults: TCheckBox
+    AnchorSideLeft.Control = cbConnectToOtherNode
+    AnchorSideTop.Control = edtConnectIP
+    AnchorSideTop.Side = asrBottom
+    Left = 14
     Height = 19
-    Top = 368
+    Top = 285
     Width = 265
+    BorderSpacing.Top = 3
     Caption = 'Stop scans after finding max amount of results'
     TabOrder = 1
   end
-  object Edit4: TEdit
-    Left = 16
+  object edtMaxResultsToFind: TEdit
+    AnchorSideLeft.Control = cbMaxFoundResults
+    AnchorSideTop.Control = cbMaxFoundResults
+    AnchorSideTop.Side = asrBottom
+    Left = 14
     Height = 23
-    Top = 392
+    Top = 304
     Width = 80
     TabOrder = 2
   end
-  object CheckBox4: TCheckBox
-    Left = 16
+  object cbMaxTimeToScan: TCheckBox
+    AnchorSideLeft.Control = edtMaxResultsToFind
+    AnchorSideTop.Control = edtMaxResultsToFind
+    AnchorSideTop.Side = asrBottom
+    Left = 14
     Height = 19
-    Top = 416
+    Top = 327
     Width = 173
     Caption = 'Stop scans after specific time'
     TabOrder = 3
   end
-  object Edit5: TEdit
-    Left = 16
+  object edtMaxTimeToScan: TEdit
+    AnchorSideLeft.Control = cbMaxTimeToScan
+    AnchorSideTop.Control = cbMaxTimeToScan
+    AnchorSideTop.Side = asrBottom
+    Left = 14
     Height = 23
-    Top = 440
+    Top = 346
     Width = 80
     TabOrder = 4
   end
   object Label4: TLabel
-    Left = 98
+    AnchorSideLeft.Control = edtMaxTimeToScan
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = edtMaxTimeToScan
+    AnchorSideTop.Side = asrCenter
+    Left = 97
     Height = 15
-    Top = 440
+    Top = 350
     Width = 44
+    BorderSpacing.Left = 3
     Caption = 'Seconds'
     ParentColor = False
   end
   object Label3: TLabel
-    Left = 98
+    AnchorSideLeft.Control = edtMaxResultsToFind
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = edtMaxResultsToFind
+    AnchorSideTop.Side = asrCenter
+    Left = 97
     Height = 15
-    Top = 392
+    Top = 308
     Width = 107
+    BorderSpacing.Left = 3
     Caption = 'Found pointer paths'
     ParentColor = False
   end
-  object Button1: TButton
-    Left = 80
+  object btnOK: TButton
+    AnchorSideTop.Control = edtMaxTimeToScan
+    AnchorSideTop.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 97
     Height = 25
-    Top = 472
+    Top = 394
     Width = 90
+    Anchors = [akLeft, akBottom]
+    BorderSpacing.Top = 8
+    BorderSpacing.Bottom = 6
     Caption = 'Launch'
     Default = True
+    OnClick = btnOKClick
     TabOrder = 5
   end
-  object Button2: TButton
-    Left = 178
+  object btnCancel: TButton
+    AnchorSideTop.Control = edtMaxTimeToScan
+    AnchorSideTop.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 192
     Height = 25
-    Top = 472
+    Top = 394
     Width = 90
+    Anchors = [akLeft, akBottom]
+    BorderSpacing.Top = 8
+    BorderSpacing.Bottom = 6
     Cancel = True
     Caption = 'Cancel'
+    ModalResult = 2
     TabOrder = 6
-  end
-  object CheckBox5: TCheckBox
-    Left = 14
-    Height = 19
-    Hint = 'When this is checked that means that other systems can connect to your system and become a worker.'#13#10#13#10'A node can be a worker as well for another node. '#13#10#13#10'Warning: Watch out for circular connections'
-    Top = 88
-    Width = 167
-    Caption = 'Become a pointerscan node'
-    ParentShowHint = False
-    ShowHint = True
-    TabOrder = 7
-  end
-  object CheckBox1: TCheckBox
-    Left = 14
-    Height = 19
-    Hint = 'Join another node so your threads, and potentially other workers/nodes attached to you become available to this new node'
-    Top = 272
-    Width = 199
-    Caption = 'Become a worker of another node'
-    ParentShowHint = False
-    ShowHint = True
-    TabOrder = 8
   end
   object cbPriority: TComboBox
     AnchorSideLeft.Control = lblPriority
@@ -136,7 +155,7 @@ object frmSetupPSNNode: TfrmSetupPSNNode
       'Highest'
       'TimeCritical'
     )
-    TabOrder = 9
+    TabOrder = 7
     Text = 'Normal'
   end
   object lblPriority: TLabel
@@ -151,171 +170,8 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     Caption = 'Priority'
     ParentColor = False
   end
-  object GroupBox1: TGroupBox
-    Left = 16
-    Height = 152
-    Top = 112
-    Width = 337
-    Caption = 'Node config'
-    ClientHeight = 134
-    ClientWidth = 333
-    TabOrder = 10
-    object Edit9: TEdit
-      Left = 24
-      Height = 23
-      Top = 88
-      Width = 145
-      EchoMode = emPassword
-      MaxLength = 32
-      PasswordChar = '*'
-      TabOrder = 0
-    end
-    object CheckBox7: TCheckBox
-      Left = 8
-      Height = 19
-      Top = 64
-      Width = 175
-      Caption = 'Require password for scanner'
-      TabOrder = 1
-    end
-    object CheckBox8: TCheckBox
-      Left = 8
-      Height = 19
-      Hint = 'When checked pointerscans can be initated from this node'
-      Top = 48
-      Width = 291
-      Caption = 'Allow pointer scanners to connect and initate scans'
-      Checked = True
-      ParentShowHint = False
-      ShowHint = True
-      State = cbChecked
-      TabOrder = 2
-    end
-    object Label9: TLabel
-      Left = 168
-      Height = 15
-      Top = 88
-      Width = 94
-      Caption = 'Max 30 characters'
-      ParentColor = False
-    end
-    object CheckBox9: TCheckBox
-      Left = 8
-      Height = 19
-      Hint = 'Normally when a worker terminates before the scan is done it will send all it''s paths to it''s connected node and then close, but if the system would crash it wouldn''t be able to send it''s queues to the node, causing in a loss of possible paths to examine'#13#10#13#10'When unchecked the owning controller/scanner will only send it one pointerpath queue element at a time and remembers that queue element until the worker reports that it has 0 queue elements, meaning it successfully completed the work item.'#13#10'Also note that under normal circumstaces the node will accept new paths from the worker, but in the case of non stable workers this is not done and the worker has to do all the sub paths it generated itself'#13#10#13#10'In the node screen you will be able to change the state of a worker'
-      Top = 112
-      Width = 189
-      Caption = 'Trust stability of all new workers'
-      Checked = True
-      ParentShowHint = False
-      ShowHint = True
-      State = cbChecked
-      TabOrder = 3
-    end
-    object Edit2: TEdit
-      Left = 8
-      Height = 23
-      Top = 23
-      Width = 74
-      TabOrder = 4
-    end
-    object Label1: TLabel
-      Left = 8
-      Height = 15
-      Top = 7
-      Width = 56
-      Caption = 'Listen Port'
-      ParentColor = False
-    end
-    object CheckBox2: TCheckBox
-      Left = 90
-      Height = 19
-      Hint = 'Set a password if you don''t want any random system to become a worker for your system and you don''t want to setup a firewall'
-      Top = 0
-      Width = 170
-      Caption = 'Require password for worker'
-      ParentShowHint = False
-      ShowHint = True
-      TabOrder = 5
-    end
-    object Edit3: TEdit
-      Left = 90
-      Height = 23
-      Top = 23
-      Width = 145
-      EchoMode = emPassword
-      MaxLength = 16
-      PasswordChar = '*'
-      TabOrder = 6
-    end
-    object Label8: TLabel
-      Left = 240
-      Height = 15
-      Top = 24
-      Width = 94
-      Caption = 'Max 30 characters'
-      ParentColor = False
-    end
-  end
-  object GroupBox2: TGroupBox
-    Left = 14
-    Height = 64
-    Top = 296
-    Width = 354
-    Caption = 'Worker config'
-    ClientHeight = 46
-    ClientWidth = 350
-    TabOrder = 11
-    object Label5: TLabel
-      Left = 8
-      Height = 15
-      Top = -4
-      Width = 10
-      Caption = 'IP'
-      ParentColor = False
-    end
-    object Label6: TLabel
-      Left = 165
-      Height = 15
-      Top = -4
-      Width = 22
-      Caption = 'Port'
-      ParentColor = False
-    end
-    object CheckBox6: TCheckBox
-      Left = 242
-      Height = 19
-      Top = -8
-      Width = 70
-      Caption = 'Password'
-      TabOrder = 0
-    end
-    object Edit6: TEdit
-      Left = 8
-      Height = 23
-      Top = 16
-      Width = 145
-      TabOrder = 1
-    end
-    object Edit7: TEdit
-      Left = 165
-      Height = 23
-      Top = 16
-      Width = 69
-      TabOrder = 2
-    end
-    object Edit8: TEdit
-      Left = 242
-      Height = 23
-      Top = 16
-      Width = 109
-      EchoMode = emPassword
-      OnChange = Edit8Change
-      PasswordChar = '*'
-      TabOrder = 3
-    end
-  end
   object lblPublicName: TLabel
+    AnchorSideLeft.Control = lblThreadCount
     AnchorSideTop.Control = edtThreadCount
     AnchorSideTop.Side = asrBottom
     Left = 14
@@ -325,11 +181,261 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     Caption = 'Public name'
     ParentColor = False
   end
-  object Edit10: TEdit
+  object edtPublicname: TEdit
+    AnchorSideLeft.Control = lblPublicName
+    AnchorSideTop.Control = lblPublicName
+    AnchorSideTop.Side = asrBottom
     Left = 14
     Height = 23
-    Top = 64
+    Top = 53
     Width = 230
+    TabOrder = 8
+  end
+  object lblListenPort: TLabel
+    AnchorSideLeft.Control = edtPublicname
+    AnchorSideTop.Control = edtPublicname
+    AnchorSideTop.Side = asrBottom
+    Left = 14
+    Height = 15
+    Top = 76
+    Width = 56
+    Caption = 'Listen port'
+    ParentColor = False
+  end
+  object edtPort: TEdit
+    AnchorSideLeft.Control = lblListenPort
+    AnchorSideTop.Control = lblListenPort
+    AnchorSideTop.Side = asrBottom
+    Left = 14
+    Height = 23
+    Top = 91
+    Width = 144
+    TabOrder = 9
+    Text = '52737'
+  end
+  object edtParentPassword: TEdit
+    AnchorSideLeft.Control = lblPasswordParent
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = cbAllowParents
+    AnchorSideTop.Side = asrBottom
+    Left = 82
+    Height = 23
+    Top = 133
+    Width = 143
+    BorderSpacing.Left = 8
+    EchoMode = emPassword
+    OnChange = edtConnectPasswordChange
+    PasswordChar = '*'
+    TabOrder = 10
+  end
+  object cbConnectToOtherNode: TCheckBox
+    AnchorSideLeft.Control = cbAllowChildren
+    AnchorSideTop.Control = cbAutoTrustChildren
+    AnchorSideTop.Side = asrBottom
+    Left = 14
+    Height = 19
+    Hint = 'If this is checked this system will become a slave of the provided node'
+    Top = 225
+    Width = 154
+    BorderSpacing.Top = 8
+    Caption = 'Connect to other node as'
+    TabOrder = 11
+  end
+  object cbAutoTrustChildren: TCheckBox
+    AnchorSideLeft.Control = lblPasswordChild
+    AnchorSideTop.Control = edtChildPassword
+    AnchorSideTop.Side = asrBottom
+    Left = 24
+    Height = 19
+    Hint = 'Normally when a worker terminates before the scan is done it will send all it''s paths to it''s connected node and then close, but if the system would crash it wouldn''t be able to send it''s queues to the node, causing in a loss of possible paths to examine'#13#10#13#10'When unchecked the owning controller/scanner will only send it one pointerpath queue element at a time and remembers that queue element until the worker reports that it has 0 queue elements, meaning it successfully completed the work item.'#13#10'Also note that under normal circumstaces the node will accept new paths from the worker, but in the case of non stable workers this is not done and the worker has to do all the sub paths it generated itself'#13#10#13#10'In the node screen you will be able to change the state of a worker'
+    Top = 198
+    Width = 280
+    Caption = 'Automatically trust stability of all new childnodes'
+    Checked = True
+    ParentShowHint = False
+    ShowHint = True
+    State = cbChecked
     TabOrder = 12
+  end
+  object edtChildPassword: TEdit
+    AnchorSideLeft.Control = lblPasswordParent
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = cbAllowChildren
+    AnchorSideTop.Side = asrBottom
+    Left = 82
+    Height = 23
+    Top = 175
+    Width = 143
+    BorderSpacing.Left = 8
+    EchoMode = emPassword
+    MaxLength = 16
+    PasswordChar = '*'
+    TabOrder = 13
+  end
+  object cbAllowChildren: TCheckBox
+    AnchorSideLeft.Control = cbAllowParents
+    AnchorSideTop.Control = edtParentPassword
+    AnchorSideTop.Side = asrBottom
+    Left = 14
+    Height = 19
+    Top = 156
+    Width = 190
+    Caption = 'Allow children to connect to me'
+    Checked = True
+    State = cbChecked
+    TabOrder = 14
+  end
+  object edtConnectPort: TEdit
+    AnchorSideLeft.Control = edtConnectIP
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = edtConnectIP
+    Left = 174
+    Height = 23
+    Top = 259
+    Width = 69
+    BorderSpacing.Left = 5
+    TabOrder = 15
+    Text = '52737'
+  end
+  object lblPort: TLabel
+    AnchorSideLeft.Control = edtConnectPort
+    AnchorSideTop.Control = cbConnectToOtherNode
+    AnchorSideTop.Side = asrBottom
+    Left = 174
+    Height = 15
+    Top = 244
+    Width = 22
+    Caption = 'Port'
+    ParentColor = False
+  end
+  object edtConnectPassword: TEdit
+    AnchorSideLeft.Control = edtConnectPort
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = edtConnectIP
+    Left = 248
+    Height = 23
+    Top = 259
+    Width = 109
+    BorderSpacing.Left = 5
+    EchoMode = emPassword
+    OnChange = edtConnectPasswordChange
+    PasswordChar = '*'
+    TabOrder = 16
+  end
+  object edtConnectIP: TEdit
+    AnchorSideLeft.Control = lblIP
+    AnchorSideTop.Control = lblIP
+    AnchorSideTop.Side = asrBottom
+    Left = 24
+    Height = 23
+    Top = 259
+    Width = 145
+    TabOrder = 17
+    Text = '127.0.0.1'
+  end
+  object lblIP: TLabel
+    AnchorSideLeft.Control = lblPasswordChild
+    AnchorSideTop.Control = cbConnectToOtherNode
+    AnchorSideTop.Side = asrBottom
+    Left = 24
+    Height = 15
+    Top = 244
+    Width = 10
+    Caption = 'IP'
+    ParentColor = False
+  end
+  object cbAllowParents: TCheckBox
+    AnchorSideLeft.Control = edtPort
+    AnchorSideTop.Control = edtPort
+    AnchorSideTop.Side = asrBottom
+    Left = 14
+    Height = 19
+    Top = 114
+    Width = 186
+    Caption = 'Allow parents to connect to me'
+    Checked = True
+    State = cbChecked
+    TabOrder = 18
+  end
+  object lblPasswordParent: TLabel
+    AnchorSideLeft.Control = cbAllowParents
+    AnchorSideTop.Control = edtParentPassword
+    AnchorSideTop.Side = asrCenter
+    Left = 24
+    Height = 15
+    Top = 137
+    Width = 50
+    BorderSpacing.Left = 10
+    Caption = 'Password'
+    ParentColor = False
+  end
+  object lblPasswordChild: TLabel
+    AnchorSideLeft.Control = lblPasswordParent
+    AnchorSideTop.Control = edtChildPassword
+    AnchorSideTop.Side = asrCenter
+    Left = 24
+    Height = 15
+    Top = 179
+    Width = 50
+    Caption = 'Password'
+    ParentColor = False
+  end
+  object lblPassword: TLabel
+    AnchorSideLeft.Control = edtConnectPassword
+    AnchorSideTop.Control = cbConnectToOtherNode
+    AnchorSideTop.Side = asrBottom
+    Left = 248
+    Height = 15
+    Top = 244
+    Width = 50
+    Caption = 'Password'
+    ParentColor = False
+  end
+  object rbConnectAsParent: TRadioButton
+    AnchorSideLeft.Control = cbConnectToOtherNode
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = cbConnectToOtherNode
+    Left = 173
+    Height = 19
+    Top = 225
+    Width = 54
+    BorderSpacing.Left = 5
+    Caption = 'parent'
+    TabOrder = 19
+  end
+  object rbConnectAsChild: TRadioButton
+    AnchorSideLeft.Control = rbConnectAsParent
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = cbConnectToOtherNode
+    Left = 230
+    Height = 19
+    Top = 225
+    Width = 46
+    BorderSpacing.Left = 3
+    Caption = 'child'
+    Checked = True
+    TabOrder = 20
+    TabStop = True
+  end
+  object Button1: TButton
+    Left = 230
+    Height = 25
+    Top = 156
+    Width = 128
+    Caption = 'Setup trusted IP list'
+    TabOrder = 21
+  end
+  object cbAllowTempFiles: TCheckBox
+    Left = 16
+    Height = 19
+    Hint = 'When checked it will save the scandata files it receives into temporary files on the harddisk'#13#10'If it''s unchecked these files will stay in memory in their original file format as well as their extracted format'#13#10#13#10'This can be useful when on a system with no disk access but lots of RAM'
+    Top = 372
+    Width = 134
+    Caption = 'Allow temp file usage'
+    Checked = True
+    ParentShowHint = False
+    ShowHint = True
+    State = cbChecked
+    TabOrder = 22
   end
 end

@@ -554,7 +554,6 @@ end;
 function GetCR3FromPID(pid: system.QWORD;var CR3:system.QWORD):BOOL; stdcall;
 var cc:dword;
     x,y:dword;
-    i: integer;
     _cr3: uint64;
 begin
   cr3:=0;

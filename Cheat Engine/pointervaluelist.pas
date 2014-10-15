@@ -125,7 +125,7 @@ type
 
     function findPointerValue(startvalue: ptrUint; var stopvalue: ptrUint): PPointerList;
     constructor create(start, stop: ptrUint; alligned: boolean; progressbar: tprogressbar; noreadonly: boolean; mustbeclasspointers, allowNonModulePointers: boolean; useStacks: boolean; stacksAsStaticOnly: boolean; threadstacks: integer; stacksize: integer; specificBaseAsStaticOnly: boolean; baseStart: ptruint; baseStop: ptruint);
-    constructor createFromStream(s: TStream; progressbar: tprogressbar);
+    constructor createFromStream(s: TStream; progressbar: tprogressbar=nil);
     destructor destroy; override;
   end;
 
@@ -749,7 +749,7 @@ begin
 
 end;
 
-constructor TReversePointerListHandler.createFromStream(s: Tstream; progressbar: tprogressbar);
+constructor TReversePointerListHandler.createFromStream(s: Tstream; progressbar: tprogressbar=nil);
 var
   i: integer;
   numberofpointers: integer;
@@ -765,15 +765,19 @@ var
   lastcountupdate: qword;
 
   mbase: qword;
+  pvalue: qword;
 begin
   OutputDebugString('TReversePointerListHandler.createFromStream');
 
   //first read the modulelist. Not used for the scan itself, but needed when saving as the base maintainer
   bigalloc:=TBigMemoryAllocHandler.create;
 
-  progressbar.Min:=0;
-  progressbar.Position:=0;
-  progressbar.max:=100;
+  if progressbar<>nil then
+  begin
+    progressbar.Min:=0;
+    progressbar.Position:=0;
+    progressbar.max:=100;
+  end;
 
 
   modulelist:=TStringList.create;
@@ -801,7 +805,14 @@ begin
 
   while (count<totalcount) do
   begin
-    plist:=findoraddpointervalue(ptruint(s.ReadQWord));
+    pvalue:=s.ReadQWord;
+    if pvalue=$08EAE5F4-$34 then
+    begin
+      beep;
+    end;
+    plist:=findoraddpointervalue(pvalue);
+
+
 
     if plist<>nil then //should always be the case
     begin
@@ -824,7 +835,7 @@ begin
       end;
       inc(count, numberofpointers);
 
-      if (count-lastcountupdate)>1000 then
+      if (progressbar<>nil) and ((count-lastcountupdate)>1000) then
       begin
         progressbar.position:=trunc(count/totalcount*100);
         lastcountupdate:=count;

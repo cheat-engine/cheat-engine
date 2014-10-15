@@ -8,7 +8,7 @@ uses
   windows, LCLIntf, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ComCtrls, ExtCtrls, LResources, EditBtn, Buttons, Contnrs,
   CEFuncProc, NewKernelHandler, symbolhandler, multilineinputqueryunit,
-  registry, resolve, fgl, math;
+  registry, resolve, fgl, math, PointerscanSettingsIPConnectionList;
 
 
 type
@@ -85,24 +85,25 @@ type
   { TfrmPointerScannerSettings }
 
   TfrmPointerScannerSettings = class(TForm)
-    btnNotifySpecificIPs: TButton;
     cbNoReadOnly: TCheckBox;
     cbClassPointersOnly: TCheckBox;
     cbNoLoop: TCheckBox;
     cbMaxOffsetsPerNode: TCheckBox;
     cbStackOnly: TCheckBox;
     cbUseLoadedPointermap: TCheckBox;
-    cbDistributedScanning: TCheckBox;
-    cbBroadcast: TCheckBox;
+    cbAllowRuntimeWorkers: TCheckBox;
+    cbConnectToNode: TCheckBox;
     cbMustStartWithBase: TCheckBox;
     cbAcceptNonModuleVtable: TCheckBox;
     cbCompressedPointerscanFile: TCheckBox;
     cbCompareToOtherPointermaps: TCheckBox;
     cbGeneratePointermapOnly: TCheckBox;
+    edtDistributedPassword: TEdit;
     edtDistributedPort: TEdit;
     edtThreadStacks: TEdit;
     edtStackSize: TEdit;
     il: TImageList;
+    Label1: TLabel;
     lblPort: TLabel;
     lblNumberOfStackThreads: TLabel;
     lblStackSize: TLabel;
@@ -137,16 +138,14 @@ type
     rbFindAddress: TRadioButton;
     rbFindValue: TRadioButton;
     cbOnlyOneStatic: TCheckBox;
-    cbReusePointermap: TCheckBox;
     procedure Button1Click(Sender: TObject);
-    procedure btnNotifySpecificIPsClick(Sender: TObject);
+
     procedure canNotReuse(Sender: TObject);
     procedure cbMustStartWithBaseChange(Sender: TObject);
-    procedure cbBroadcastChange(Sender: TObject);
-    procedure cbDistributedScanningChange(Sender: TObject);
+    procedure cbConnectToNodeChange(Sender: TObject);
+    procedure cbAllowRuntimeWorkersChange(Sender: TObject);
     procedure cbMaxOffsetsPerNodeChange(Sender: TObject);
     procedure cbMustEndWithSpecificOffsetChange(Sender: TObject);
-    procedure cbReusePointermapChange(Sender: TObject);
     procedure cbStaticStacksChange(Sender: TObject);
     procedure cbUseLoadedPointermapChange(Sender: TObject);
     procedure cbCompareToOtherPointermapsChange(Sender: TObject);
@@ -161,7 +160,7 @@ type
     procedure cbHeapOnlyClick(Sender: TObject);
   private
     { Private declarations }
-    iplist: tstringlist;
+    //iplist: tstringlist;
     firstshow: boolean;
 
     edtBaseFrom: TEdit;
@@ -170,6 +169,8 @@ type
     lblBaseTo: TLabel;
 
 
+    procedure iplistResize(Sender: TObject);
+    procedure iplistWantedToDeleteLastItem(Sender: TObject);
     procedure btnAddClick(sender: TObject);
     procedure btnRemoveClick(sender: TObject);
     procedure updatepositions;
@@ -205,8 +206,9 @@ type
     baseStart: ptruint;
     baseStop: ptruint;
 
-    resolvediplist: array of THostAddr;
-
+    iplist: TIpList;
+{    resolvediplist: array of THostAddr;
+    }
     pdatafilelist: TPointerFileList;
   end;
 
@@ -536,7 +538,7 @@ end;
 
 procedure TfrmPointerScannerSettings.Button1Click(Sender: TObject);
 var
-  i: integer;
+  i,j: integer;
   r: THostResolver;
   p: ptruint;
 begin
@@ -579,7 +581,15 @@ begin
   end;
 
 
-  automaticaddress:=symhandler.getAddressFromName(edtAddress.text);
+  try
+    automaticaddress:=symhandler.getAddressFromName(edtAddress.text);
+  except
+    on e:exception do
+    begin
+      MessageDlg('Invalid address ('+edtAddress.text+')', mtError, [mbok], 0);
+      exit;
+    end;
+  end;
 
   unalligned:=not cballigned.checked;
 
@@ -607,8 +617,8 @@ begin
 
   distributedport:=strtoint(edtDistributedPort.text);
 
-
-  if cbBroadcast.checked then
+  {
+  if cbConnectToNode.checked then
   begin
     r:=THostResolver.create(nil);
     r.RaiseOnError:=false;
@@ -625,37 +635,38 @@ begin
     end;
 
     r.free;
+  end;  }
+  if cbConnectToNode.checked then
+  begin
+    r:=THostResolver.create(nil);
+    r.RaiseOnError:=false;
+
+    for i:=0 to iplist.count-1 do
+      if (iplist[i].host<>'') then
+      begin
+        r.NameLookup(iplist[i].host);
+        if r.HostAddress.s_addr=0 then
+        begin
+          MessageDlg(iplist[i].host+' could not be resolved to an IP address', mtError, [mbok], 0);
+          exit;
+        end;
+
+        if TryStrToInt(iplist[i].port, j)=false then
+        begin
+          MessageDlg(iplist[i].host+' has an invalid port ('+iplist[i].port+')', mtError, [mbok], 0);
+          exit;
+        end;
+      end;
+
+    r.free;
   end;
+
   modalresult:=mrok;
-end;
-
-procedure TfrmPointerScannerSettings.btnNotifySpecificIPsClick(Sender: TObject);
-var
-  reg: Tregistry;
-begin
-  reg:=TRegistry.create;
-  try
-    if MultilineInputQuery('IP List','Enter the IP addresses to notify explicitly', iplist) then  //save the new ip list
-    begin
-      Reg.RootKey := HKEY_CURRENT_USER;
-      if Reg.OpenKey('\Software\Cheat Engine',true) then
-        reg.WriteString('Worker IP List', iplist.text);
-    end;
-
-  finally
-    reg.free;
-  end;
-
 end;
 
 procedure TfrmPointerScannerSettings.canNotReuse(Sender: TObject);
 begin
-  cbReusePointermap.Enabled:=false;
-  cbReusePointermap.Checked:=false;
-
-
   cbAcceptNonModuleVtable.enabled:=cbClassPointersOnly.checked;
-
 end;
 
 procedure TfrmPointerScannerSettings.cbMustStartWithBaseChange(Sender: TObject);
@@ -708,16 +719,29 @@ begin
   updatepositions;
 end;
 
-procedure TfrmPointerScannerSettings.cbBroadcastChange(Sender: TObject);
+procedure TfrmPointerScannerSettings.iplistResize(Sender: TObject);
 begin
-  if cbBroadcast.checked then
-    btnNotifySpecificIPs.enabled:=true;
+  updatepositions;
 end;
 
-procedure TfrmPointerScannerSettings.cbDistributedScanningChange(Sender: TObject);
+procedure TfrmPointerScannerSettings.iplistWantedToDeleteLastItem(Sender: TObject);
 begin
-  cbBroadcast.enabled:=cbDistributedScanning.checked;
-  edtDistributedPort.enabled:=cbDistributedScanning.checked;
+  cbConnectToNode.checked:=false;
+end;
+
+procedure TfrmPointerScannerSettings.cbConnectToNodeChange(Sender: TObject);
+begin
+  if cbConnectToNode.checked then
+    iplist.visible:=true
+  else
+    iplist.visible:=false;
+
+  updatepositions;
+end;
+
+procedure TfrmPointerScannerSettings.cbAllowRuntimeWorkersChange(Sender: TObject);
+begin
+  edtDistributedPort.enabled:=cbAllowRuntimeWorkers.checked;
 end;
 
 procedure TfrmPointerScannerSettings.cbMaxOffsetsPerNodeChange(Sender: TObject);
@@ -796,7 +820,7 @@ begin
   else
   begin
     //delete all the objects in the list
-    clientheight:=cbMustEndWithSpecificOffset.top+cbMustEndWithSpecificOffset.Height+2+panel1.height;
+    //clientheight:=cbMustEndWithSpecificOffset.top+cbMustEndWithSpecificOffset.Height+2+panel1.height;
     freeandnil(offsetlist); //deletes all the assigned objects
     btnAddOffset.Visible:=false;
     btnRemoveOffset.Visible:=false;
@@ -807,21 +831,6 @@ begin
 
 end;
 
-procedure TfrmPointerScannerSettings.cbReusePointermapChange(Sender: TObject);
-begin
-  if cbReusePointermap.checked then
-  begin
-    cbUseLoadedPointermap.OnChange:=nil;
-    cbUseLoadedPointermap.checked:=false;
-    cbUseLoadedPointermap.enabled:=false;
-    cbUseLoadedPointermap.OnChange:=cbUseLoadedPointermapChange;
-  end
-  else
-    cbUseLoadedPointermap.enabled:=true;
-
-  UpdateGuiBasedOnSavedPointerScanUsage;
-end;
-
 procedure TfrmPointerScannerSettings.cbUseLoadedPointermapChange(Sender: TObject);
 begin
   if cbUseLoadedPointermap.checked then
@@ -829,13 +838,7 @@ begin
     cbUseLoadedPointermap.OnChange:=nil;
     if odLoadPointermap.Execute then
     begin
-      cbReusePointermap.OnChange:=nil;
-      cbReusePointermap.checked:=false;
-      cbReusePointermap.enabled:=false;
-      cbReusePointermap.OnChange:=cbReusePointermapChange;
-
       cbUseLoadedPointermap.Caption:=rsUseLoadedPointermap+':'+ExtractFileName(odLoadPointermap.FileName);
-
     end
     else
       cbUseLoadedPointermap.checked:=false;
@@ -863,7 +866,7 @@ procedure TfrmPointerScannerSettings.cbCompareToOtherPointermapsChange(Sender: T
 begin
   if cbCompareToOtherPointermaps.checked then
   begin
-    pdatafilelist:=TPointerFileList.create(il, self, cbDistributedScanning.left-cbCompareToOtherPointermaps.left-8);
+    pdatafilelist:=TPointerFileList.create(il, self, cbAllowRuntimeWorkers.left-cbCompareToOtherPointermaps.left-8);
     pdatafilelist.top:=cbCompareToOtherPointermaps.top+cbCompareToOtherPointermaps.height;
     pdatafilelist.left:=cbCompareToOtherPointermaps.left;
 
@@ -884,9 +887,43 @@ begin
 end;
 
 procedure TfrmPointerScannerSettings.FormDestroy(Sender: TObject);
+var
+  reg: TRegistry;
+  i: integer;
+  oldlist: tstringlist;
 begin
   if iplist<>nil then
+  begin
+    reg:=TRegistry.Create;
+    reg.RootKey := HKEY_CURRENT_USER;
+
+    if Reg.OpenKey('\Software\Cheat Engine\PSNNodeList', false) then
+    begin
+      oldlist:=tstringlist.create;
+      reg.GetKeyNames(oldlist);
+
+      for i:=0 to oldlist.count-1 do
+        reg.DeleteKey(oldlist[i]);
+
+      oldlist.free;
+    end;
+
+
+    for i:=0 to iplist.count-1 do
+    begin
+      if iplist[i].host<>'' then
+      begin
+        if Reg.OpenKey('\Software\Cheat Engine\PSNNodeList\'+iplist[i].host+':'+iplist[i].port,true) then
+        begin
+          reg.WriteString('Password', iplist[i].password);
+          reg.WriteBool('StableConnection', iplist[i].stable);
+        end;
+      end;
+    end;
+
+    reg.free;
     freeandnil(iplist);
+  end;
 end;
 
 procedure TfrmPointerScannerSettings.cbStaticStacksChange(Sender: TObject);
@@ -973,7 +1010,11 @@ begin
 end;
 
 procedure TfrmPointerScannerSettings.FormCreate(Sender: TObject);
-var reg: tregistry;
+var
+  reg: tregistry;
+  list: Tstringlist;
+  i: integer;
+  host, port: string;
 begin
   ComboBox1.Items.Clear;
   with ComboBox1.items do
@@ -993,21 +1034,51 @@ begin
   pssettings.ActivePage:=PSReverse;
   clientheight:=cbMustEndWithSpecificOffset.top+cbMustEndWithSpecificOffset.Height+2+panel1.height;
 
-  iplist:=TStringList.create;
-  //load the ip list (if there is one)
+  iplist:=TIpList.create(self);
 
-  reg:=tregistry.create;
-  try
-    Reg.RootKey := HKEY_CURRENT_USER;
-    if Reg.OpenKey('\Software\Cheat Engine',false) then
+  iplist.AnchorSideLeft.Control:=cbConnectToNode;
+  iplist.AnchorSideLeft.side:=asrLeft;
+  iplist.AnchorSideTop.Control:=cbConnectToNode;
+  iplist.AnchorSideTop.Side:=asrBottom;
+  iplist.AnchorSideRight.Control:=self;
+  iplist.AnchorSideRight.Side:=asrRight;
+  iplist.Anchors:=[akTop, akLeft, akRight];
+
+  iplist.OnResize:=iplistResize;
+  iplist.OnWantedToDeleteLastItem:=iplistWantedToDeleteLastItem;
+
+  reg:=tregistry.Create;
+  Reg.RootKey := HKEY_CURRENT_USER;
+
+  if Reg.OpenKey('\Software\Cheat Engine\PSNNodeList', false) then
+  begin
+    list:=tstringlist.create;
+    Reg.GetKeyNames(list);
+
+
+    for i:=0 to list.count-1 do
     begin
-      if reg.ValueExists('Worker IP List') then
-        iplist.Text:=reg.ReadString('Worker IP List');
+      if reg.OpenKey('\Software\Cheat Engine\PSNNodeList\'+list[i], false) then
+      begin
+        while iplist.count<=i do
+          iplist.add;
+
+        iplist[i].host:=copy(list[i], 1, pos(':', list[i])-1);
+        iplist[i].port:=copy(list[i], pos(':', list[i])+1, length(list[i]));
+
+        if reg.ValueExists('Password') then
+          iplist[i].password:=reg.ReadString('Password');
+
+        if reg.ValueExists('StableConnection') then
+          iplist[i].stable:=reg.ReadBool('StableConnection');
+      end;
     end;
 
-  finally
-    reg.free;
+    list.free;
+
   end;
+
+  reg.free;
 
 end;
 
@@ -1020,11 +1091,11 @@ begin
   with offsetentry do
   begin
     offsetentry.Name:='edtOffset'+inttostr(offsetlist.Count);
-    top:=panel1.top;
     left:=cbMustEndWithSpecificOffset.left+15;
-    self.Height:=self.Height+height+2;
     parent:=self;
   end;
+
+  updatepositions;
 
   if offsetlist.count=2 then
   begin
@@ -1043,15 +1114,14 @@ begin
   begin
     btnAddOffset.top:=TOffsetEntry(offsetlist[offsetlist.count-1]).top;
     btnRemoveOffset.top:=btnAddOffset.top;
-    self.Height:=btnAddOffset.top+btnAddOffset.Height+2+panel1.height;
 
     if offsetlist.count=1 then lblInfoLastOffset.visible:=false;
-
   end
   else
-  begin
     cbMustEndWithSpecificOffset.checked:=false;
-  end;
+
+  updatepositions;
+
 end;
 
 
@@ -1119,7 +1189,7 @@ procedure TfrmPointerScannerSettings.UpdateGuiBasedOnSavedPointerScanUsage;
 begin
   //make rbFindValue enabled or disabled based on the current settings
 
-  rbFindValue.enabled:=not (cbReusePointermap.checked or cbUseLoadedPointermap.checked or cbCompareToOtherPointermaps.checked);
+  rbFindValue.enabled:=not (cbUseLoadedPointermap.checked or cbCompareToOtherPointermaps.checked);
 
   if rbFindValue.enabled=false then
     rbFindAddress.Checked:=true;
@@ -1127,8 +1197,6 @@ begin
   if cbUseLoadedPointermap.checked then
   begin
     CbAlligned.enabled:=false;
-    cbReusePointermap.checked:=false;
-    cbReusePointermap.enabled:=false;
 
     cbHeapOnly.checked:=false;
     cbHeapOnly.enabled:=false;
@@ -1160,7 +1228,6 @@ begin
 
     edtReverseStart.Enabled:=true;
     edtReverseStop.enabled:=true;
-    cbReusePointermap.enabled:=true;
     cbMustStartWithBase.enabled:=true;
     cbClassPointersOnly.enabled:=true;
     cbAcceptNonModuleVtable.enabled:=cbClassPointersOnly.checked;
@@ -1174,7 +1241,9 @@ end;
 procedure TfrmPointerScannerSettings.updatepositions;
 var
   i: integer;
-  adjustment: integer;
+  nexttop: integer;
+ // adjustment: integer;
+  newheight: integer;
 begin
   if pdatafilelist<>nil then
     cbMustStartWithBase.top:=pdatafilelist.top+pdatafilelist.Height+2
@@ -1189,43 +1258,56 @@ begin
     lblBaseTo.top:=edtbaseto.top+(edtbaseto.height div 2) - (lblBaseTo.height div 2);
   end;
 
-  adjustment:=cbMustEndWithSpecificOffset.Top;
+  //adjustment:=cbMustEndWithSpecificOffset.Top;
   if edtBaseFrom<>nil then
     cbMustEndWithSpecificOffset.Top:=edtBaseTo.top+edtBaseTo.Height+2
   else
     cbMustEndWithSpecificOffset.Top:=cbMustStartWithBase.top+cbMustStartWithBase.height+2; //(cbMustStartWithBase.top-cbCompareToOtherPointermaps.top); //same difference
 
-  adjustment:=cbMustEndWithSpecificOffset.Top-adjustment;
+  //adjustment:=cbMustEndWithSpecificOffset.Top-adjustment;
 
-  if adjustment<>0 then
+  nexttop:=cbMustEndWithSpecificOffset.top+cbMustEndWithSpecificOffset.height;
+
+
+  if offsetlist<>nil then
   begin
-    if offsetlist<>nil then
+    //update the TOffsetEntry's
+    if offsetlist.Count>0 then
     begin
-      //update the TOffsetEntry's
-      if offsetlist.Count>0 then
+      taborder:=cbMustEndWithSpecificOffset.TabOrder;
+      for i:=0 to offsetlist.Count-1 do
       begin
-        taborder:=cbMustEndWithSpecificOffset.TabOrder;
-        for i:=0 to offsetlist.Count-1 do
+        if (offsetlist[i] is TOffsetEntry) then //should be true
         begin
-          if (offsetlist[i] is TOffsetEntry) then //should be true
-          begin
-            TOffsetEntry(offsetlist[i]).Top:=TOffsetEntry(offsetlist[i]).Top+adjustment;
-            TOffsetEntry(offsetlist[i]).TabOrder:=taborder;
-          end;
+          TOffsetEntry(offsetlist[i]).Top:=nexttop;
+          TOffsetEntry(offsetlist[i]).TabOrder:=taborder;
+
+          inc(nexttop, TOffsetEntry(offsetlist[i]).height);
         end;
-
-        if offsetlist.count>1 then lblInfoLastOffset.top:=TOffsetEntry(offsetlist[0]).Top+4;
-
-        btnAddOffset.top:=TOffsetEntry(offsetlist[offsetlist.Count-1]).Top;
-        btnRemoveOffset.top:=btnAddOffset.top;
       end;
 
-      clientheight:=btnAddOffset.top+btnAddOffset.Height+2+panel1.height;
-    end
-    else
-      clientheight:=cbMustEndWithSpecificOffset.top+cbMustEndWithSpecificOffset.Height+2+panel1.height;
+      if offsetlist.count>1 then lblInfoLastOffset.top:=TOffsetEntry(offsetlist[0]).Top+4;
 
+      btnAddOffset.top:=TOffsetEntry(offsetlist[offsetlist.Count-1]).Top;
+      btnRemoveOffset.top:=btnAddOffset.top;
+    end;
+
+    newheight:=btnAddOffset.top+btnAddOffset.Height+2+panel1.height;
+  end
+  else
+    newheight:=cbMustEndWithSpecificOffset.top+cbMustEndWithSpecificOffset.Height+2+panel1.height;
+
+
+
+
+  if (cbConnectToNode.checked) then
+  begin
+    i:=(iplist.top+iplist.height)+panel1.height;
+    if i>newheight then //more room needed
+      newheight:=i;
   end;
+
+  clientheight:=newheight;
 end;
 
 initialization

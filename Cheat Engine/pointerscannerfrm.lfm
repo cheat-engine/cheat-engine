@@ -1,11 +1,11 @@
 object frmPointerScanner: TfrmPointerScanner
-  Left = 549
-  Height = 517
-  Top = 331
-  Width = 741
+  Left = 677
+  Height = 460
+  Top = 222
+  Width = 737
   Caption = 'Pointer scan'
-  ClientHeight = 497
-  ClientWidth = 741
+  ClientHeight = 440
+  ClientWidth = 737
   Font.Height = -14
   Font.Name = 'MS Sans Serif'
   Menu = MainMenu1
@@ -19,11 +19,11 @@ object frmPointerScanner: TfrmPointerScanner
     Left = 0
     Height = 24
     Top = 0
-    Width = 741
+    Width = 737
     Align = alTop
     BevelOuter = bvNone
     ClientHeight = 24
-    ClientWidth = 741
+    ClientWidth = 737
     TabOrder = 0
     object cbType: TComboBox
       Left = 0
@@ -42,122 +42,6 @@ object frmPointerScanner: TfrmPointerScanner
       Visible = False
     end
   end
-  object pgcPScandata: TPageControl
-    Left = 0
-    Height = 446
-    Top = 24
-    Width = 741
-    ActivePage = tsPSReverse
-    Align = alClient
-    TabIndex = 0
-    TabOrder = 1
-    object tsPSReverse: TTabSheet
-      Caption = 'tsPSReverse'
-      ClientHeight = 417
-      ClientWidth = 733
-      ImageIndex = 1
-      object tvRSThreads: TTreeView
-        Left = 0
-        Height = 317
-        Top = 65
-        Width = 733
-        Align = alClient
-        DefaultItemHeight = 18
-        Indent = 19
-        TabOrder = 0
-      end
-      object Panel2: TPanel
-        Left = 0
-        Height = 65
-        Top = 0
-        Width = 733
-        Align = alTop
-        BevelOuter = bvNone
-        ClientHeight = 65
-        ClientWidth = 733
-        TabOrder = 1
-        object Label5: TLabel
-          Left = 0
-          Height = 16
-          Top = 47
-          Width = 51
-          Caption = 'Threads'
-          ParentColor = False
-        end
-        object lblRSTotalStaticPaths: TLabel
-          Left = 0
-          Height = 17
-          Top = 6
-          Width = 612
-          AutoSize = False
-          Caption = 'Of those # have a static base'
-          ParentColor = False
-        end
-        object Label6: TLabel
-          Left = 0
-          Height = 17
-          Top = 23
-          Width = 606
-          AutoSize = False
-          Caption = 'Pointer addresses found:'
-          ParentColor = False
-        end
-      end
-      object Panel3: TPanel
-        Left = 0
-        Height = 35
-        Top = 382
-        Width = 733
-        Align = alBottom
-        BevelOuter = bvNone
-        ClientHeight = 35
-        ClientWidth = 733
-        TabOrder = 2
-        object btnStopScan: TButton
-          Left = 0
-          Height = 31
-          Hint = 'This will stop the current scan and show you the results it has found'
-          Top = 0
-          Width = 92
-          Caption = 'Stop'
-          OnClick = btnStopScanClick
-          ParentShowHint = False
-          ShowHint = True
-          TabOrder = 0
-        end
-      end
-      object Button1: TButton
-        Left = 563
-        Height = 25
-        Top = 0
-        Width = 170
-        Anchors = [akTop, akRight]
-        Caption = 'Save current pointermap'
-        OnClick = Button1Click
-        TabOrder = 3
-        Visible = False
-      end
-    end
-  end
-  object ListView1: TListView
-    Left = 384
-    Height = 329
-    Top = 144
-    Width = 225
-    Columns = <>
-    HideSelection = False
-    OwnerData = True
-    PopupMenu = PopupMenu1
-    ReadOnly = True
-    RowSelect = True
-    TabOrder = 2
-    Visible = False
-    ViewStyle = vsReport
-    OnColumnClick = ListView1ColumnClick
-    OnData = ListView1Data
-    OnDblClick = ListView1DblClick
-    OnResize = ListView1Resize
-  end
   object btnStopRescanLoop: TButton
     Left = 248
     Height = 25
@@ -165,18 +49,18 @@ object frmPointerScanner: TfrmPointerScanner
     Width = 144
     Caption = 'Stop rescan loop'
     OnClick = btnStopRescanLoopClick
-    TabOrder = 3
+    TabOrder = 2
     Visible = False
   end
   object pnlProgress: TPanel
     Left = 0
     Height = 27
-    Top = 470
-    Width = 741
+    Top = 413
+    Width = 737
     Align = alBottom
     ClientHeight = 27
-    ClientWidth = 741
-    TabOrder = 4
+    ClientWidth = 737
+    TabOrder = 3
     Visible = False
     object pnlProgressName: TPanel
       Left = 1
@@ -202,10 +86,10 @@ object frmPointerScanner: TfrmPointerScanner
       Left = 144
       Height = 25
       Top = 1
-      Width = 596
+      Width = 592
       Align = alClient
       ClientHeight = 25
-      ClientWidth = 596
+      ClientWidth = 592
       TabOrder = 1
       object ProgressBar1: TProgressBar
         AnchorSideLeft.Control = pnlProgressBar
@@ -215,12 +99,275 @@ object frmPointerScanner: TfrmPointerScanner
         Left = 1
         Height = 21
         Top = 1
-        Width = 594
+        Width = 590
         Anchors = [akTop, akLeft, akRight]
         Step = 1
         TabOrder = 0
       end
     end
+  end
+  object pnlData: TPanel
+    Left = 0
+    Height = 389
+    Top = 24
+    Width = 737
+    Align = alClient
+    BevelOuter = bvNone
+    Caption = 'pnlData'
+    ClientHeight = 389
+    ClientWidth = 737
+    TabOrder = 4
+    object tvInfo: TTreeView
+      Left = 0
+      Height = 354
+      Top = 0
+      Width = 567
+      Align = alClient
+      DefaultItemHeight = 18
+      Indent = 19
+      ReadOnly = True
+      RightClickSelect = True
+      RowSelect = True
+      TabOrder = 0
+      Options = [tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoRightClickSelect, tvoRowSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
+    end
+    object pnlStop: TPanel
+      Left = 0
+      Height = 35
+      Top = 354
+      Width = 737
+      Align = alBottom
+      BevelOuter = bvNone
+      ClientHeight = 35
+      ClientWidth = 737
+      TabOrder = 1
+      object btnStopScan: TButton
+        Left = 0
+        Height = 31
+        Hint = 'This will stop the current scan and show you the results it has found'
+        Top = 0
+        Width = 92
+        Caption = 'Stop'
+        OnClick = btnStopScanClick
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 0
+      end
+    end
+    object pnlControl: TPanel
+      Left = 567
+      Height = 354
+      Top = 0
+      Width = 170
+      Align = alRight
+      BevelOuter = bvNone
+      ClientHeight = 354
+      ClientWidth = 170
+      TabOrder = 2
+      object cbPriority: TComboBox
+        AnchorSideLeft.Control = lblThreadPriority
+        AnchorSideTop.Control = lblThreadPriority
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = pnlControl
+        AnchorSideRight.Side = asrBottom
+        Left = 0
+        Height = 24
+        Top = 216
+        Width = 168
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Right = 2
+        ItemHeight = 16
+        ItemIndex = 3
+        Items.Strings = (
+          'Idle'
+          'Lowest'
+          'Lower'
+          'Normal'
+          'Higher'
+          'Highest'
+          'TimeCritical'
+        )
+        OnChange = cbPriorityChange
+        Style = csDropDownList
+        TabOrder = 0
+        Text = 'Normal'
+      end
+      object gbNetwork: TGroupBox
+        AnchorSideLeft.Control = pnlControl
+        AnchorSideTop.Control = pnlControl
+        AnchorSideRight.Control = pnlControl
+        AnchorSideRight.Side = asrBottom
+        Left = 0
+        Height = 200
+        Top = 0
+        Width = 170
+        Align = alTop
+        Caption = 'Network'
+        ClientHeight = 179
+        ClientWidth = 166
+        TabOrder = 1
+        object edtIP: TEdit
+          AnchorSideLeft.Control = lblIP
+          AnchorSideTop.Control = lblIP
+          AnchorSideTop.Side = asrBottom
+          AnchorSideRight.Control = gbNetwork
+          AnchorSideRight.Side = asrBottom
+          Left = 2
+          Height = 24
+          Top = 18
+          Width = 164
+          Anchors = [akTop, akLeft, akRight]
+          TabOrder = 0
+          Text = '127.0.0.1'
+        end
+        object lblIP: TLabel
+          AnchorSideLeft.Control = gbNetwork
+          AnchorSideTop.Control = gbNetwork
+          Left = 2
+          Height = 16
+          Top = 2
+          Width = 12
+          BorderSpacing.Left = 2
+          BorderSpacing.Top = 2
+          Caption = 'IP'
+          ParentColor = False
+        end
+        object lblPort: TLabel
+          AnchorSideLeft.Control = lblIP
+          AnchorSideTop.Control = edtIP
+          AnchorSideTop.Side = asrBottom
+          Left = 2
+          Height = 16
+          Top = 42
+          Width = 24
+          Caption = 'Port'
+          ParentColor = False
+        end
+        object edtPort: TEdit
+          AnchorSideLeft.Control = lblPort
+          AnchorSideTop.Control = lblPort
+          AnchorSideTop.Side = asrBottom
+          Left = 2
+          Height = 24
+          Top = 58
+          Width = 80
+          NumbersOnly = True
+          TabOrder = 1
+          Text = '52737'
+        end
+        object edtPassword: TEdit
+          AnchorSideLeft.Control = lblPassword
+          AnchorSideRight.Control = gbNetwork
+          AnchorSideRight.Side = asrBottom
+          Left = 2
+          Height = 24
+          Top = 100
+          Width = 164
+          Anchors = [akTop, akLeft, akRight]
+          TabOrder = 2
+        end
+        object lblPassword: TLabel
+          AnchorSideTop.Control = edtPort
+          AnchorSideTop.Side = asrBottom
+          Left = 2
+          Height = 16
+          Top = 82
+          Width = 60
+          Caption = 'Password'
+          ParentColor = False
+        end
+        object cbTrusted: TCheckBox
+          AnchorSideLeft.Control = edtPassword
+          AnchorSideTop.Control = edtPassword
+          AnchorSideTop.Side = asrBottom
+          Left = 2
+          Height = 20
+          Hint = 'Trust that this server will not disappear during the scan and that the children it trusts itself won''t do so either'
+          Top = 124
+          Width = 98
+          Caption = 'Trust stability'
+          ParentShowHint = False
+          ShowHint = True
+          TabOrder = 3
+        end
+        object btnConnect: TButton
+          AnchorSideLeft.Control = gbNetwork
+          AnchorSideLeft.Side = asrCenter
+          AnchorSideTop.Control = cbTrusted
+          AnchorSideTop.Side = asrBottom
+          Left = 10
+          Height = 25
+          Top = 146
+          Width = 147
+          BorderSpacing.Top = 2
+          Caption = 'Add to connection list'
+          OnClick = btnConnectClick
+          TabOrder = 4
+        end
+      end
+      object lblThreadPriority: TLabel
+        AnchorSideLeft.Control = gbNetwork
+        AnchorSideTop.Control = gbNetwork
+        AnchorSideTop.Side = asrBottom
+        Left = 0
+        Height = 16
+        Top = 200
+        Width = 137
+        Caption = 'Scanner thread priority:'
+        ParentColor = False
+      end
+      object btnIncreaseThreadCount: TButton
+        AnchorSideLeft.Control = btnDecreaseThreadCount
+        AnchorSideTop.Control = btnDecreaseThreadCount
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = btnDecreaseThreadCount
+        AnchorSideRight.Side = asrBottom
+        Left = 0
+        Height = 27
+        Top = 283
+        Width = 168
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Top = 2
+        Caption = 'Increase worker count'
+        OnClick = btnIncreaseThreadCountClick
+        TabOrder = 2
+      end
+      object btnDecreaseThreadCount: TButton
+        AnchorSideLeft.Control = cbPriority
+        AnchorSideTop.Control = cbPriority
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = cbPriority
+        AnchorSideRight.Side = asrBottom
+        Left = 0
+        Height = 25
+        Top = 256
+        Width = 168
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Top = 16
+        Caption = 'Decrease worker count'
+        OnClick = btnDecreaseThreadCountClick
+        TabOrder = 3
+      end
+    end
+  end
+  object lvResults: TListView
+    Left = 416
+    Height = 65
+    Top = -1
+    Width = 121
+    Columns = <>
+    HideSelection = False
+    OwnerData = True
+    PopupMenu = PopupMenu1
+    ReadOnly = True
+    RowSelect = True
+    TabOrder = 1
+    Visible = False
+    ViewStyle = vsReport
+    OnColumnClick = lvResultsColumnClick
+    OnData = lvResultsData
+    OnDblClick = lvResultsDblClick
+    OnResize = lvResultsResize
   end
   object MainMenu1: TMainMenu
     left = 464
@@ -249,32 +396,9 @@ object frmPointerScanner: TfrmPointerScanner
     end
     object MenuItem2: TMenuItem
       Caption = 'Distributed pointer scan'
-      object miJoinDistributedScan: TMenuItem
-        Caption = 'Join scan'
-        ShortCut = 16452
-        OnClick = miJoinDistributedScanClick
-      end
-      object miJoinDistributedRescan: TMenuItem
-        Caption = 'Join rescan'
-        OnClick = miJoinDistributedRescanClick
-      end
-      object MenuItem1: TMenuItem
-        Caption = '-'
-      end
-      object MenuItem3: TMenuItem
-        AutoCheck = True
-        Caption = 'Autojoin scans and rescans'
-        OnClick = MenuItem3Click
-      end
-      object miSetWorkFolder: TMenuItem
-        Caption = 'Set work folder (obsolete)'
-        OnClick = miSetWorkFolderClick
-      end
-      object MenuItem5: TMenuItem
-        Caption = '-'
-      end
       object miCreatePSNnode: TMenuItem
         Caption = 'Setup as PSN worker and/or node'
+        ShortCut = 16452
         OnClick = miCreatePSNnodeClick
       end
     end
@@ -320,12 +444,12 @@ object frmPointerScanner: TfrmPointerScanner
   object Timer2: TTimer
     Interval = 500
     OnTimer = Timer2Timer
-    left = 104
-    top = 312
+    left = 72
+    top = 288
   end
   object PopupMenu1: TPopupMenu
-    left = 520
-    top = 248
+    left = 472
+    top = 272
     object Resyncmodulelist1: TMenuItem
       Caption = 'Resync modulelist'
       OnClick = Resyncmodulelist1Click

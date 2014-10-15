@@ -28,7 +28,7 @@ type
   public
     function getAddressFromModuleIndexPlusOffset(moduleindex: integer; offset: integer): ptruint;
     function getPointer(address: ptruint): ptruint; //return 0 if not found
-    constructor createFromStream(s: TStream; progressbar: tprogressbar);
+    constructor createFromStream(s: TStream; progressbar: tprogressbar=nil);
     destructor destroy; override;
   end;
 
@@ -59,7 +59,7 @@ begin
     result:=0;
 end;
 
-constructor TPointerListHandler.createFromStream(s: TStream; progressbar: tprogressbar);
+constructor TPointerListHandler.createFromStream(s: TStream; progressbar: tprogressbar=nil);
 var
   i,x: integer;
   mlistlength: integer;
@@ -116,8 +116,12 @@ begin
   count:=0;
 
 
-  progressbar.position:=0;
-  progressbar.Max:=100;
+  if progressbar<>nil then
+  begin
+    progressbar.position:=0;
+    progressbar.Max:=100;
+  end;
+
   lastupdate:=GetTickCount64;
 
   while count<totalcount do
@@ -153,8 +157,12 @@ begin
     end;
 
     inc(count, nrofpointers);
-    if gettickcount64>lastupdate+1000 then
+
+    if (progressbar<>nil) and (gettickcount64>lastupdate+1000) then
+    begin
       progressbar.position:=trunc(count/totalcount*100);
+      lastupdate:=GetTickCount64;
+    end;
   end;
 
 end;

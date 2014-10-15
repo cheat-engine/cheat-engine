@@ -36,19 +36,20 @@ uses
   PointerscanresultReader, pointervaluelist, rescanhelper, pointerscannerfrm,
   VirtualMemory, ValueFinder, frmRescanPointerUnit, SyncObjs2,
   ManualModuleLoader, SynHighlighterAA, APIhooktemplatesettingsfrm,
-  frmAAEditPrefsUnit, disassembler, hexviewunit, guisafecriticalsection, debugeventhandler, formFoundcodeListExtraUnit,
-  debuggertypedefinitions, addresslist, MemoryRecordUnit,
-  ThreadlistExFRM, windows7taskbar, tablist, frmStructuresConfigUnit,
-  VEHDebugger, VEHDebugSharedMem, DebuggerInterface, WindowsDebugger,
-  DebuggerInterfaceAPIWrapper, frmDebugEventsUnit, changelist, tableconverter,
-  DBK32functions, debug, multicpuexecution, vmxfunctions, frmPagingUnit,
-  bigmemallochandler, KernelDebuggerInterface, CustomTypeHandler, LuaHandler,
-  frmLuaEngineUnit, frmMemviewPreferencesUnit, frmBreakpointConditionUnit,
-  frmTracerConfigUnit, frmStackViewUnit, luaJit, ScrollBoxEx, fileaccess,
-  ceguicomponents, formdesignerunit, LuaCaller, LuaSyntax, cesupport,
-  trainergenerator, genericHotkey, frmExeTrainerGeneratorUnit, luafile,
-  xmplayer_server, xmplayer_defines, ExtraTrainerComponents, frmAdConfigUnit,
-  IconStuff, cetranslator, frmStringMapUnit, MemFuncs, frmStringPointerScanUnit,
+  frmAAEditPrefsUnit, disassembler, hexviewunit, guisafecriticalsection,
+  debugeventhandler, formFoundcodeListExtraUnit, debuggertypedefinitions,
+  addresslist, MemoryRecordUnit, ThreadlistExFRM, windows7taskbar, tablist,
+  frmStructuresConfigUnit, VEHDebugger, VEHDebugSharedMem, DebuggerInterface,
+  WindowsDebugger, DebuggerInterfaceAPIWrapper, frmDebugEventsUnit, changelist,
+  tableconverter, DBK32functions, debug, multicpuexecution, vmxfunctions,
+  frmPagingUnit, bigmemallochandler, KernelDebuggerInterface, CustomTypeHandler,
+  LuaHandler, frmLuaEngineUnit, frmMemviewPreferencesUnit,
+  frmBreakpointConditionUnit, frmTracerConfigUnit, frmStackViewUnit, luaJit,
+  ScrollBoxEx, fileaccess, ceguicomponents, formdesignerunit, LuaCaller,
+  LuaSyntax, cesupport, trainergenerator, genericHotkey,
+  frmExeTrainerGeneratorUnit, luafile, xmplayer_server, xmplayer_defines,
+  ExtraTrainerComponents, frmAdConfigUnit, IconStuff, cetranslator,
+  frmStringMapUnit, MemFuncs, frmStringPointerScanUnit,
   frmStructPointerRescanUnit, sharedMemory, disassemblerComments,
   frmFilePatcherUnit, LuaCanvas, LuaPen, LuaFont, LuaBrush, LuaPicture, LuaMenu,
   LuaDebug, frmUltimapUnit, DBK64SecondaryLoader, frmHotkeyExUnit,
@@ -79,9 +80,12 @@ uses
   DotNetPipe, DotNetTypes, LuaPipeServer, LuaPipe, LuaPipeClient,
   CEListviewItemEditor, LuaTreeview, LuaTreeNodes, LuaTreeNode, LuaCalendar,
   LuaSymbolListHandler, LuaFindDialog, LuaCommonDialog, LuaSettings,
-frmReferencedFunctionsUnit, LuaPageControl, DebugHelper, 
-frmNetworkDataCompressionUnit, lazcontrols, LuaApplication, ProcessList, 
-pointeraddresslist, frmResumePointerscanUnit, frmSetupPSNNodeUnit;
+  frmReferencedFunctionsUnit, LuaPageControl, DebugHelper,
+  frmNetworkDataCompressionUnit, lazcontrols, LuaApplication, ProcessList,
+  pointeraddresslist, frmResumePointerscanUnit, frmSetupPSNNodeUnit,
+  PointerscanWorker, PointerscanStructures, PointerscanController, zstreamext,
+  PointerscanConnector, PointerscanNetworkStructures, AsyncTimer, 
+PointerscanSettingsIPConnectionList, MemoryStreamReader;
 
 {$R cheatengine.res}
 //{$R manifest.res}  //lazarus now has this build in
@@ -209,6 +213,7 @@ begin
   Application.CreateForm(TAdvancedOptions, AdvancedOptions);
   Application.CreateForm(TComments, Comments);
   Application.CreateForm(TTypeForm, TypeForm);
+
   initcetitle;
   InitializeLuaScripts;
 

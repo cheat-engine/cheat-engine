@@ -513,7 +513,7 @@ function TDotNetPipe.Connect(processid: dword; is64bit: boolean; timeout:dword=1
 Connects to a dotnet data collector and tells it to open a specific process
 }
 var
-  starttime: dword;
+  starttime: qword;
 
   msg: packed record
     command: byte;
@@ -578,7 +578,7 @@ begin
 
 
   //try sending the attach message till write succeeds or timeout
-  starttime:=gettickcount;
+  starttime:=gettickcount64;
   repeat
     pipe:=CreateFile(pchar('\\.\pipe\'+pipename), GENERIC_READ or GENERIC_WRITE, FILE_SHARE_READ or FILE_SHARE_WRITE, nil, OPEN_EXISTING, 0, 0);
     if (pipe<>INVALID_HANDLE_VALUE) then
@@ -589,7 +589,7 @@ begin
 
 
     sleep(10);
-  until gettickcount>starttime+timeout;
+  until gettickcount64>starttime+timeout;
 
   if fConnected then
   begin
@@ -631,7 +631,7 @@ begin
   begin
     //something bad happened
     if pHandle<>0 then
-      TerminateProcess(pHandle, -1);
+      TerminateProcess(pHandle, UINT(-1));
   end;
 
   if (pipe<>INVALID_HANDLE_VALUE) then

@@ -5862,7 +5862,6 @@ end;
 
 var i,j,k,l,m: integer;
     lastentry: integer=1;
-    lastentry2: integer=1;
     lastindex: PIndexArray=nil;
 
 initialization
