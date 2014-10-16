@@ -1361,6 +1361,7 @@ var i: integer;
     end;
     r: uint64;
 begin
+  OutputDebugString('Kernelmode VirtualAllocEx: lpAddress='+inttohex(ptruint(lpAddress),1));
   result:=nil;
   for i:=0 to length(handlelist)-1 do
     if handlelist[i].processhandle=hProcess then

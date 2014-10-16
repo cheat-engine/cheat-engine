@@ -14,6 +14,7 @@ uses
 type
   TPublicParentData=record
     connected: boolean;
+    name: string;
     ip: string;
     port: word;
     lastupdatesent: qword;

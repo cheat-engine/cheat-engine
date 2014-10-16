@@ -155,6 +155,7 @@ object frmSetupPSNNode: TfrmSetupPSNNode
       'Highest'
       'TimeCritical'
     )
+    Style = csDropDownList
     TabOrder = 7
     Text = 'Normal'
   end
@@ -239,6 +240,7 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     Width = 154
     BorderSpacing.Top = 8
     Caption = 'Connect to other node as'
+    OnChange = cbConnectToOtherNodeChange
     TabOrder = 11
   end
   object cbAutoTrustChildren: TCheckBox
@@ -294,6 +296,7 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     Top = 259
     Width = 69
     BorderSpacing.Left = 5
+    Enabled = False
     TabOrder = 15
     Text = '52737'
   end
@@ -306,6 +309,7 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     Top = 244
     Width = 22
     Caption = 'Port'
+    Enabled = False
     ParentColor = False
   end
   object edtConnectPassword: TEdit
@@ -318,6 +322,7 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     Width = 109
     BorderSpacing.Left = 5
     EchoMode = emPassword
+    Enabled = False
     OnChange = edtConnectPasswordChange
     PasswordChar = '*'
     TabOrder = 16
@@ -330,6 +335,7 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     Height = 23
     Top = 259
     Width = 145
+    Enabled = False
     TabOrder = 17
     Text = '127.0.0.1'
   end
@@ -342,6 +348,7 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     Top = 244
     Width = 10
     Caption = 'IP'
+    Enabled = False
     ParentColor = False
   end
   object cbAllowParents: TCheckBox
@@ -389,6 +396,7 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     Top = 244
     Width = 50
     Caption = 'Password'
+    Enabled = False
     ParentColor = False
   end
   object rbConnectAsParent: TRadioButton
@@ -401,6 +409,7 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     Width = 54
     BorderSpacing.Left = 5
     Caption = 'parent'
+    Enabled = False
     TabOrder = 19
   end
   object rbConnectAsChild: TRadioButton
@@ -414,13 +423,14 @@ object frmSetupPSNNode: TfrmSetupPSNNode
     BorderSpacing.Left = 3
     Caption = 'child'
     Checked = True
+    Enabled = False
     TabOrder = 20
     TabStop = True
   end
   object Button1: TButton
     Left = 230
     Height = 25
-    Top = 156
+    Top = 173
     Width = 128
     Caption = 'Setup trusted IP list'
     TabOrder = 21
