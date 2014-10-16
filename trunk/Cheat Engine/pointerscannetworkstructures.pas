@@ -24,6 +24,11 @@ type
     pathquesize: integer;
     totalpathqueuesize: integer;
     resultsfound: qword;
+
+    uploadingscandata:boolean;
+    uploadscandataprogress: integer;
+    uploadscandataspeed: integer;
+    downloadingResuls: boolean;
   end;
 
   TConnectionEntryArray=array of TPublicConnectionEntry;

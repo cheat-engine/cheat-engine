@@ -1807,9 +1807,13 @@ begin
                 s:=s+' (Active)'
               else
                 s:=s+' (Idle)';
+
+              if connectionlist[i].uploadingscandata then
+                s:=s+format(' (Uploading scandata: %d (%dK/sec)', [connectionlist[i].uploadscandataprogress, connectionlist[i].uploadscandataspeed]);
+
+              if connectionlist[i].downloadingResuls then
+                s:=s+' (Downloading and handling results)';
             end;
-
-
 
             infonodes.network.connectedToNodes[i].node.Text:=s;
 
@@ -1889,6 +1893,7 @@ begin
         percentageSpentWriting:=totalTimeWriting/totalTime*100;
 
         s:=format(rsPointerPathsFound+': %d', [tpf]);
+          end;
           {
         if staticscanner.distributedScanning and (staticscanner.distributedWorker=false) then
         begin

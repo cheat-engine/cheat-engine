@@ -1160,6 +1160,10 @@ begin
       l[i].pathsevaluated:=childnodes[i].totalPathsEvaluated;
       l[i].resultsfound:=childnodes[i].resultsfound;
       l[i].disconnected:=childnodes[i].socket=nil;
+      l[i].uploadingscandata:=childnodes[i].scandatauploader<>nil;
+      l[i].uploadscandataprogress:=childnodes[i].receivingScanDataProgress;
+      l[i].uploadscandataspeed:=childnodes[i].receivingScanDataSpeed;
+      l[i].downloadingResuls:=childnodes[i].scanresultDownloader<>nil;
     end;
   finally
     childnodescs.leave;
