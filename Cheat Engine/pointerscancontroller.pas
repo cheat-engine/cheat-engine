@@ -2995,6 +2995,7 @@ begin
 
 
       ss.WriteByte(0); //still here, so a valid password
+      ss.flushWrites;
     finally
       ss.free;
     end;
@@ -3257,6 +3258,8 @@ var
   port: word;
   trusted: boolean;
 begin
+  shouldreconnect:=false;
+
   childnodescs.Enter; //shouldn't be needed as things that raise child exceptions SHOULD already have a lock on it
   try
     if childnodes[index].socket<>nil then
@@ -4567,7 +4570,7 @@ begin
   name:=nil;
 
   receive(sockethandle, @command, 1);
-  if command<>0 then
+  if command<>PSCMD_HELLO then
     raise TSocketException.Create('Invalid command while waiting for hello'); //invalid command
 
   receive(sockethandle, @namelength, 1);
