@@ -155,7 +155,6 @@ begin
       else
       if pictureformat=3 then
       begin
-
         fpi:=TFPMemoryImage.Create(0,0);
         fpr:=TFPReaderPNG.create;
         fpi.LoadFromStream(f, fpr);

@@ -87,6 +87,7 @@ type
     childnodes: array of TPointerscanControllerChild;
 
     parentUpdater: TAsyncTimer;
+    lastUpdateSent: integer;
 
 
     lastPathCheck: qword; //last time the path check checked the queues
@@ -380,6 +381,7 @@ type
     function getTotalThreadCount: integer;
     procedure getConnectingList(var l: TConnectEntryArray);
     procedure getConnectionList(var l: TConnectionEntryArray);
+    procedure getParentData(var d: TPublicParentData);
 
     procedure TerminateAndSaveState;
     procedure execute; override;
@@ -1177,6 +1179,16 @@ begin
   else
     setlength(l,0);
 end;
+
+procedure TPointerscanController.getParentData(var d: TPublicParentData);
+begin
+  d.connected:=parent.socket<>nil;
+  d.ip:=parent.ip;
+  d.port:=parent.port;
+  d.lastupdatesent:=lastUpdateSent;
+  d.waitingforreconnect:=orphanedSince<>0;
+end;
+
 
 procedure TPointerscanController.appendDynamicPathQueueToOverflowQueue(paths: TDynPathQueue);
 var oldstart: integer;
@@ -2962,12 +2974,18 @@ begin
 
       if connectiontype=0 then //parent
       begin
+        if not allowIncomingParent then
+          raise exception.create('A parent tried to connect');
+
         if parentpassword<>password then
           raise TSocketException.create('Invalid parent password');
       end
       else
       if connectiontype=1 then //child
       begin
+        if not allowIncomingChildren then
+          raise exception.create('A child tried to connect');
+
         if childpassword<>password then
           raise TSocketException.create('Invalid child password');
       end
@@ -4022,6 +4040,8 @@ begin
         parent.socket.WriteBuffer(updatemsg, sizeof(updatemsg));
         parent.socket.flushWrites;
 
+        lastUpdateSent:=GetTickCount64;
+
         HandleUpdateStatusReply;
       end
       else
@@ -4692,6 +4712,7 @@ begin
   else
   begin
     //this wants to be a parent
+
     parentcs.Enter;
     try
       //add it to the queue
@@ -4714,6 +4735,16 @@ begin
         end
         else
           parentqueue[length(parentqueue)-1].iConnectedTo:=false;
+
+        len:=sizeof(ipname);
+        if getpeername(sockethandle, ipname, len)<>SOCKET_ERROR then
+        begin
+          parentqueue[length(parentqueue)-1].ip:=inttostr(byte(ipname.sin_addr.S_un_b.s_b1))+'.'+inttostr(byte(ipname.sin_addr.S_un_b.s_b2))+
+                    inttostr(byte(ipname.sin_addr.S_un_b.s_b3))+'.'+inttostr(byte(ipname.sin_addr.S_un_b.s_b4));
+
+          parentqueue[length(parentqueue)-1].port:=ipname.sin_port;
+        end;
+
 
 
 

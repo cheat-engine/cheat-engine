@@ -12,6 +12,14 @@ uses
   Classes, SysUtils;
 
 type
+  TPublicParentData=record
+    connected: boolean;
+    ip: string;
+    port: word;
+    lastupdatesent: qword;
+    waitingforreconnect: boolean;
+  end;
+
   TPublicConnectionEntry=record //information publicly available about children
     parentconnectedto: boolean; //true if the parent connected to the child
     ip: string;
