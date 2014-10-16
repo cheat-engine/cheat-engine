@@ -1089,6 +1089,8 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 				BaseAddress=(PVOID)(UINT_PTR)inp->BaseAddress;
 				RegionSize=(SIZE_T)(inp->Size);
 
+				
+
 
 
 
@@ -1104,6 +1106,9 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 						__try
 						{
 							DbgPrint("Calling ZwAllocateVirtualMemory\n");
+							DbgPrint("Before call: BaseAddress=%p\n", BaseAddress);		
+							DbgPrint("Before call: RegionSize=%x\n", RegionSize);
+
 							ntStatus=ZwAllocateVirtualMemory((HANDLE)-1, &BaseAddress, 0, &RegionSize, (ULONG)inp->AllocationType, (ULONG)inp->Protect);
 
 							if ((ntStatus==STATUS_SUCCESS) && (HiddenDriver))
