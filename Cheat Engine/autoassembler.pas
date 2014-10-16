@@ -2254,7 +2254,11 @@ begin
 
 
           allocs[j].address:=ptrUint(virtualallocex(processhandle,pointer(prefered),x, MEM_RESERVE or MEM_COMMIT,page_execute_readwrite));
-          if allocs[j].address=0 then OutputDebugString(rsFailureToAllocateMemory+' 3');
+          if allocs[j].address=0 then
+          begin
+            OutputDebugString(rsFailureToAllocateMemory+' 3');
+            inc(prefered, 65536);
+          end;
           dec(k);
         end;
 

@@ -1329,7 +1329,11 @@ begin
           mbi.AllocationBase:=mbi.BaseAddress;
           mbi.AllocationProtect:=output.protection;
           mbi.RegionSize:=output.length;
-          mbi.State:=MEM_COMMIT;
+          if output.protection=PAGE_NOACCESS then
+            mbi.state:=MEM_FREE
+          else
+            mbi.State:=MEM_COMMIT;
+
           mbi.Protect:=output.protection;
           mbi._Type:=MEM_PRIVATE;
 
@@ -1370,13 +1374,13 @@ begin
         x.Protect:=flProtect;
 
         cc:=IOCTL_CE_ALLOCATEMEM;
-        deviceiocontrol(hdevice,cc,@x,sizeof(x),@r,sizeof(r),br,nil);
-
-        if (r<$100000000) then
+        if deviceiocontrol(hdevice,cc,@x,sizeof(x),@r,sizeof(r),br,nil) then
         begin
-          result:=pointer(ptrUint(r));
-          exit; //we're done here
+          result:=pointer(r);
+          exit;
         end;
+
+
       end;
     end;
 
