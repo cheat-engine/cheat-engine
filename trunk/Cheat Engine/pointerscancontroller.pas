@@ -2938,7 +2938,7 @@ begin
   s:=fpaccept(listensocket, @client, @size);
 
 
-  OutputDebugString('Incomming connection from '+inttostr(byte(client.sin_addr.S_un_b.s_b1))
+  OutputDebugString('Incoming connection from '+inttostr(byte(client.sin_addr.S_un_b.s_b1))
                                                 +'.'+inttostr(byte(client.sin_addr.S_un_b.s_b2))
                                                 +'.'+inttostr(byte(client.sin_addr.S_un_b.s_b3))
                                                 +'.'+inttostr(byte(client.sin_addr.S_un_b.s_b4))
@@ -2993,12 +2993,14 @@ begin
       else
         raise exception.create('Invalid message');
 
+
+      ss.WriteByte(0); //still here, so a valid password
     finally
       ss.free;
     end;
 
     //still here
-    ConnectorConnect(self, s, connectiontype=0, nil);
+    ConnectorConnect(self, s, connectiontype=1, nil);
 
   except
     on e: exception do
