@@ -1765,7 +1765,7 @@ begin
         for i:=0 to length(connectinglist)-1 do
         begin
           if infonodes.network.connectingToNodes[i].data=nil then //create a new one
-            infonodes.network.connectingToNodes[i].data:=tvinfo.Items.add(infonodes.network.connectingto,'');
+            infonodes.network.connectingToNodes[i].data:=tvinfo.Items.AddChild(infonodes.network.connectingto,'');
 
           s:=connectinglist[i].ip+':'+inttostr(connectinglist[i].port);
           if connectinglist[i].becomeparent=false then

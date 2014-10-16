@@ -144,6 +144,15 @@ begin
 
       rbConnectAsParent.checked:=not rbConnectAsChild.checked;
 
+      if reg.ValueExists('DefaultConnectIP') then
+        edtConnectIP.text:=reg.ReadString('DefaultConnectIP');
+
+      if reg.ValueExists('DefaultConnectPort') then
+        edtConnectPort.text:=inttostr(reg.ReadInteger('DefaultConnectPort'));
+
+      if reg.ValueExists('DefaultConnectPort') then
+        edtConnectPassword.text:=reg.ReadString('DefaultConnectPort');
+
       if reg.ValueExists('StopScansAfterResultsFound') then
         cbMaxFoundResults.Checked:=reg.ReadBool('StopScansAfterResultsFound');
 
@@ -215,6 +224,9 @@ begin
       reg.WriteBool('AutoTrustChildren', cbAutoTrustChildren.checked);
       reg.WriteBool('DefaultConnect', cbConnectToOtherNode.checked);
       reg.WriteBool('DefaultConnectAsChild', rbConnectAsChild.checked);
+      reg.WriteString('DefaultConnectIP', edtConnectIP.text);
+      reg.WriteInteger('DefaultConnectPort', connectport);
+      reg.WriteString('DefaultConnectPort', edtConnectPassword.text);
       reg.WriteBool('StopScansAfterResultsFound', cbMaxFoundResults.Checked);
       reg.WriteInteger('StopResultCount', maxtimetoscan);
       reg.WriteBool('StopScansAfterTime', cbMaxTimeToScan.Checked);
