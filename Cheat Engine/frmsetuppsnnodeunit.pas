@@ -226,7 +226,7 @@ begin
       reg.WriteBool('DefaultConnectAsChild', rbConnectAsChild.checked);
       reg.WriteString('DefaultConnectIP', edtConnectIP.text);
       reg.WriteInteger('DefaultConnectPort', connectport);
-      reg.WriteString('DefaultConnectPort', edtConnectPassword.text);
+      reg.WriteString('DefaultConnectPassword', edtConnectPassword.text);
       reg.WriteBool('StopScansAfterResultsFound', cbMaxFoundResults.Checked);
       reg.WriteInteger('StopResultCount', maxtimetoscan);
       reg.WriteBool('StopScansAfterTime', cbMaxTimeToScan.Checked);

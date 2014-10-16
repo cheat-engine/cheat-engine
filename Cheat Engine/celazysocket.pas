@@ -106,12 +106,20 @@ begin
 end;
 
 constructor TSocketStream.create(s: tsocket; becomeownerofsocket: boolean=true);
+var bm: u_long;
 begin
   inherited create;
   writer:=TMemoryStream.create;
   self.s:=s;
   fTimeout:=10; //default timeout
   fbecomeownerofsocket:=becomeownerofsocket;
+
+  {$ifdef windows}
+    bm:=0;
+    ioctlsocket(sockethandle, FIONBIO, bm);
+  {$else}
+    fcntl(fSocket, F_SETFL, fcntl(socketfd, F_GETFL, 0) | O_NONBLOCK);
+  {$endif}
 
 end;
 
