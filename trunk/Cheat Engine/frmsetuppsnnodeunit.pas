@@ -150,8 +150,8 @@ begin
       if reg.ValueExists('DefaultConnectPort') then
         edtConnectPort.text:=inttostr(reg.ReadInteger('DefaultConnectPort'));
 
-      if reg.ValueExists('DefaultConnectPort') then
-        edtConnectPassword.text:=reg.ReadString('DefaultConnectPort');
+      if reg.ValueExists('DefaultConnectPassword') then
+        edtConnectPassword.text:=reg.ReadString('DefaultConnectPassword');
 
       if reg.ValueExists('StopScansAfterResultsFound') then
         cbMaxFoundResults.Checked:=reg.ReadBool('StopScansAfterResultsFound');
