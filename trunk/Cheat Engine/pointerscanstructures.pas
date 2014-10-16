@@ -30,6 +30,7 @@ type
   TPointerscanControllerParent=record
     socket: TSocketstream;
     scanid: dword;
+    name: string;
 
     iConnectedTo: boolean;
     connectdata: record

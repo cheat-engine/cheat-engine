@@ -1794,7 +1794,7 @@ begin
 
           if parentdata.connected then
           begin
-            infonodes.network.parent.Text:='Parent: '+parentdata.ip+':'+inttostr(parentdata.port);
+            infonodes.network.parent.Text:='Parent: '+parentdata.name+'('+parentdata.ip+':'+inttostr(parentdata.port)+')';
 
             if infonodes.network.parentnodes.lastUpdateSent=nil then
               infonodes.network.parentnodes.lastUpdateSent:=tvInfo.Items.AddChild(infonodes.network.parent,'');

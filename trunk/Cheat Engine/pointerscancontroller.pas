@@ -1183,6 +1183,7 @@ end;
 procedure TPointerscanController.getParentData(var d: TPublicParentData);
 begin
   d.connected:=parent.socket<>nil;
+  d.name:=parent.name;
   d.ip:=parent.ip;
   d.port:=parent.port;
   d.lastupdatesent:=lastUpdateSent;
@@ -4598,8 +4599,11 @@ begin
     childnodescs.Leave;
   end;
 
-
   send(sockethandle, @result, sizeof(result)); //got till here so seems to be ok
+
+  namelength:=length(publicname);
+  send(sockethandle, @namelength, sizeof(namelength));
+  send(sockethandle, @publicname[1], namelength);
 end;
 
 procedure TPointerscanController.SayHello(potentialparent: PPointerscanControllerParent);
@@ -4610,15 +4614,15 @@ Raises TSocketException
 var
   result: byte;
 begin
-  with parent.socket do
+  with potentialparent.socket do
   begin
     WriteByte(PSCMD_HELLO);
-    writeByte(length(publicname));
-    writeBuffer(publicname[1], length(publicname));
+    WriteAnsiString8(publicname);
     WriteDword(scannerid);
     flushWrites;
 
     potentialparent.scanid:=ReadDWord;
+    potentialparent.name:=ReadAnsiString8;
   end;
 end;
 
