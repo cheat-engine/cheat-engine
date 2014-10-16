@@ -1121,7 +1121,7 @@ NTSTATUS DispatchIoctl(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 									x[i]=(unsigned char)i;
 							}
 							
-							DbgPrint("ntStatus=%x\n");
+							DbgPrint("ntStatus=%x\n", ntStatus);
 							DbgPrint("BaseAddress=%p\n",BaseAddress);
 							DbgPrint("RegionSize=%x\n",RegionSize);
 							*(PUINT64)Irp->AssociatedIrp.SystemBuffer=0;
