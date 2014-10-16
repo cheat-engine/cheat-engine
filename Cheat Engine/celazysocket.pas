@@ -183,10 +183,10 @@ begin
 
         end
         else
-          TSocketException.Create('Error while sending data: '+inttostr(i));
+          raise TSocketException.Create('Error while sending data: '+inttostr(i));
       end
       else
-        TSocketException.Create('Disconnected while sending data');
+        raise TSocketException.Create('Disconnected while sending data');
     end;
 
     inc(result, i);
@@ -234,10 +234,10 @@ begin
 
         end
         else
-          TSocketException.Create('Error while receiving data: '+inttostr(i));
+          raise TSocketException.Create('Error while receiving data: '+inttostr(i));
       end
       else
-        TSocketException.Create('Disconnected while receiving data');
+        raise TSocketException.Create('Disconnected while receiving data');
     end;
 
     inc(result, i);
