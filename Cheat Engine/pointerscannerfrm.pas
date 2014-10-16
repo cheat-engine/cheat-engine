@@ -1203,6 +1203,10 @@ begin
     if staticscanner<>nil then
       freeandnil(staticscanner);
 
+    cbType.Visible:=false;
+    lvResults.Visible:=false;
+
+
     //create a new pointerscanner that acts as a node
     staticscanner:=TPointerscanController.create(true);
     staticscanner.initializer:=false;
