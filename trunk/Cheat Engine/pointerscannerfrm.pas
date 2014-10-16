@@ -295,6 +295,12 @@ type
 
       network: record
         node: TTreenode; // + network
+
+        parent: TTreenode;   //ip+port or disconnected
+        parentnodes: record
+          lastUpdateSent: TTreenode;
+        end;
+
         connectingto: TTreenode;
         connectingToNodes: array of record
           data: TTreenode; //ip, port, trusted
@@ -1227,7 +1233,7 @@ begin
 
     staticscanner.Start;
 
-
+    pnlData.Visible:=true;
     timer2.enabled:=true;
   end;
 
@@ -1594,6 +1600,7 @@ var i,j: integer;
 
     connectinglist: TConnectEntryArray;
     connectionlist: TConnectionEntryArray;
+    parentdata: TPublicParentData;
 
     info: tstringlist;
 
@@ -1744,27 +1751,25 @@ begin
             infonodes.network.connectingToNodes[i].data.Free;
 
         setlength(infonodes.network.connectingToNodes, length(connectinglist));
+        //connecting to:
+        if infonodes.network.connectingto=nil then
+          infonodes.network.connectingto:=tvInfo.Items.AddChild(infonodes.network.node,'Connecting to:');
 
-        if length(connectinglist)>0 then
+
+
+
+        for i:=0 to length(connectinglist)-1 do
         begin
-          if infonodes.network.connectingto=nil then
-            infonodes.network.connectingto:=tvInfo.Items.AddChild(infonodes.network.node,'Connecting to:');
+          if infonodes.network.connectingToNodes[i].data=nil then //create a new one
+            infonodes.network.connectingToNodes[i].data:=tvinfo.Items.add(infonodes.network.connectingto,'');
 
+          s:=connectinglist[i].ip+':'+inttostr(connectinglist[i].port);
+          if connectinglist[i].becomeparent=false then
+            s:=s+BoolToStr(connectinglist[i].trusted, ' (Trusted)','');
 
-
-
-          for i:=0 to length(connectinglist)-1 do
-          begin
-            if infonodes.network.connectingToNodes[i].data=nil then //create a new one
-              infonodes.network.connectingToNodes[i].data:=tvinfo.Items.add(infonodes.network.connectingto,'');
-
-            s:=connectinglist[i].ip+':'+inttostr(connectinglist[i].port);
-            if connectinglist[i].becomeparent=false then
-              s:=s+BoolToStr(connectinglist[i].trusted, ' (Trusted)','');
-
-            infonodes.network.connectingToNodes[i].data.Text:=s;
-          end;
+          infonodes.network.connectingToNodes[i].data.Text:=s;
         end;
+
 
         staticscanner.getConnectionList(connectionlist);
 
@@ -1774,62 +1779,95 @@ begin
         setlength(infonodes.network.connectedToNodes, length(connectionlist));
 
 
-        if length(connectionlist)>0 then
+        //connected to:
+
+        if Staticscanner.initializer=false then
         begin
-          if infonodes.network.connectedTo=nil then
-            infonodes.network.connectedTo:=tvInfo.Items.AddChild(infonodes.network.node,'Connected to:');
+          staticscanner.getParentData(parentdata);
 
-          for i:=0 to length(connectionlist)-1 do
+          if infonodes.network.parent=nil then
+            infonodes.network.parent:=tvInfo.Items.AddChild(infonodes.network.node,'Parent: ');
+
+          if parentdata.connected then
           begin
-            if infonodes.network.connectedToNodes[i].node=nil then //create it
-            begin
-              infonodes.network.connectedToNodes[i].node:=tvInfo.Items.AddChild(infonodes.network.connectedTo, s);
-              tn:=infonodes.network.connectedToNodes[i].node;
+            infonodes.network.parent.Text:='Parent: '+parentdata.ip+':'+inttostr(parentdata.port);
 
-              with infonodes.network.connectedToNodes[i].data do
-              begin
-                trusted:=tvInfo.Items.AddChild(tn, '');
-                totalthreadcount:=tvInfo.Items.AddChild(tn, '');
-                resultsfound:=tvInfo.Items.AddChild(tn, '');
-                pathqueuesize:=tvInfo.Items.AddChild(tn, '');
-                totalpathquesize:=tvInfo.Items.AddChild(tn, '');
-                totalpathsEvaluated:=tvInfo.Items.AddChild(tn, '');
-               // pathspersecond:=tvInfo.Items.AddChild(tn, '');
-              end;
-            end;
+            if infonodes.network.parentnodes.lastUpdateSent=nil then
+              infonodes.network.parentnodes.lastUpdateSent:=tvInfo.Items.AddChild(infonodes.network.parent,'');
 
-            s:=connectionlist[i].ip+':'+inttostr(connectionlist[i].port);
-            if connectionlist[i].disconnected then
-              s:=s+' (Disconnected)'
+            infonodes.network.parentnodes.lastUpdateSent.Text:=inttostr(GetTickCount64-parentdata.lastupdatesent div 1000)+' seconds ago';
+
+          end
+          else
+          begin
+            //mark that it has no parent (yet/anymore)
+            if parentdata.waitingforreconnect then
+              infonodes.network.parent.Text:='Parent: <disconnected> (Waiting for reconnect)'
             else
-            begin
-              if connectionlist[i].isidle=false then
-                s:=s+' (Active)'
-              else
-                s:=s+' (Idle)';
+              infonodes.network.parent.Text:='Parent: <none>';
 
-              if connectionlist[i].uploadingscandata then
-                s:=s+format(' (Uploading scandata: %d (%dK/sec)', [connectionlist[i].uploadscandataprogress, connectionlist[i].uploadscandataspeed]);
+            //if there are nodes, delete them
+            if infonodes.network.parentnodes.lastUpdateSent<>nil then
+              freeandnil(infonodes.network.parentnodes.lastUpdateSent);
+          end;
+        end;
 
-              if connectionlist[i].downloadingResuls then
-                s:=s+' (Downloading and handling results)';
-            end;
+        if infonodes.network.connectedTo=nil then
+          infonodes.network.connectedTo:=tvInfo.Items.AddChild(infonodes.network.node,'Children:');
 
-            infonodes.network.connectedToNodes[i].node.Text:=s;
+        for i:=0 to length(connectionlist)-1 do
+        begin
+          if infonodes.network.connectedToNodes[i].node=nil then //create it
+          begin
+            infonodes.network.connectedToNodes[i].node:=tvInfo.Items.AddChild(infonodes.network.connectedTo, s);
+            tn:=infonodes.network.connectedToNodes[i].node;
 
             with infonodes.network.connectedToNodes[i].data do
             begin
-              trusted.text:='Trusted: '+BoolToStr(connectionlist[i].trustedconnection, 'True', 'False');
-              totalthreadcount.text:='Total threadcount: '+IntToStr(connectionlist[i].threadcount);
-              resultsfound.text:='Results found: '+IntToStr(connectionlist[i].resultsfound);
-              pathqueuesize.text:='Queuesize: '+inttostr(connectionlist[i].pathquesize);
-              totalpathquesize.text:='Total Queuesize: '+inttostr(connectionlist[i].totalpathqueuesize);
-              totalpathsEvaluated.text:='Paths evaluated: '+inttostr(connectionlist[i].pathsevaluated);
-              //pathspersecond.text:='Paths/second: '+inttostr(connectionlist[i].pathspersecond);
+              trusted:=tvInfo.Items.AddChild(tn, '');
+              totalthreadcount:=tvInfo.Items.AddChild(tn, '');
+              resultsfound:=tvInfo.Items.AddChild(tn, '');
+              pathqueuesize:=tvInfo.Items.AddChild(tn, '');
+              totalpathquesize:=tvInfo.Items.AddChild(tn, '');
+              totalpathsEvaluated:=tvInfo.Items.AddChild(tn, '');
+             // pathspersecond:=tvInfo.Items.AddChild(tn, '');
             end;
           end;
+
+          s:=connectionlist[i].ip+':'+inttostr(connectionlist[i].port);
+          if connectionlist[i].disconnected then
+            s:=s+' (Disconnected)'
+          else
+          begin
+            if connectionlist[i].isidle=false then
+              s:=s+' (Active)'
+            else
+              s:=s+' (Idle)';
+
+            if connectionlist[i].uploadingscandata then
+              s:=s+format(' (Uploading scandata: %d (%dK/sec)', [connectionlist[i].uploadscandataprogress, connectionlist[i].uploadscandataspeed]);
+
+            if connectionlist[i].downloadingResuls then
+              s:=s+' (Downloading and handling results)';
+          end;
+
+          infonodes.network.connectedToNodes[i].node.Text:=s;
+
+          with infonodes.network.connectedToNodes[i].data do
+          begin
+            trusted.text:='Trusted: '+BoolToStr(connectionlist[i].trustedconnection, 'True', 'False');
+            totalthreadcount.text:='Total threadcount: '+IntToStr(connectionlist[i].threadcount);
+            resultsfound.text:='Results found: '+IntToStr(connectionlist[i].resultsfound);
+            pathqueuesize.text:='Queuesize: '+inttostr(connectionlist[i].pathquesize);
+            totalpathquesize.text:='Total Queuesize: '+inttostr(connectionlist[i].totalpathqueuesize);
+            totalpathsEvaluated.text:='Paths evaluated: '+inttostr(connectionlist[i].pathsevaluated);
+            //pathspersecond.text:='Paths/second: '+inttostr(connectionlist[i].pathspersecond);
+          end;
         end;
+
+
       end;
+
 
     end;
 

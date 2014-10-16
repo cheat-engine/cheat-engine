@@ -37,6 +37,8 @@ type
       port: word;
       password: string;
     end;
+    ip: string;
+    port: word;
 
     trustsme: boolean;
   end;
