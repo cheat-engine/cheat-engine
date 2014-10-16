@@ -241,10 +241,9 @@ begin
               ss.free;
             end;
 
-            if result=1 then
-              raise exception.create('Invalid password for '+entry.ip)
+            if result<>0 then
+              raise exception.create('invalid response from '+entry.ip)
             else
-            if result=0 then
             begin
               if Assigned(fOnConnected) then
               begin
@@ -256,9 +255,7 @@ begin
               end
               else
                 raise exception.create('Someone forgot to give this connector an OnConnected event...');
-            end
-            else
-              raise exception.create('Nope...');
+            end;
           end
           else
           begin
