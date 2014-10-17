@@ -1799,7 +1799,7 @@ begin
             if infonodes.network.parentnodes.lastUpdateSent=nil then
               infonodes.network.parentnodes.lastUpdateSent:=tvInfo.Items.AddChild(infonodes.network.parent,'');
 
-            infonodes.network.parentnodes.lastUpdateSent.Text:=inttostr(GetTickCount64-parentdata.lastupdatesent div 1000)+' seconds ago';
+            infonodes.network.parentnodes.lastUpdateSent.Text:='Last update: '+inttostr((GetTickCount64-parentdata.lastupdatesent) div 1000)+' seconds ago';
 
           end
           else
