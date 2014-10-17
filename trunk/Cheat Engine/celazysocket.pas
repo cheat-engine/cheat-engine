@@ -33,7 +33,7 @@ type
     function ReadAnsiString8 : String;
     procedure WriteAnsiString8(const S: String);
 
-    procedure flushWrites;
+    function flushWrites: integer;
     constructor create(s : tsocket; becomeownerofsocket: boolean=true);
     destructor destroy; override;
     property timeout: integer read ftimeout write ftimeout;
@@ -88,9 +88,9 @@ begin
   end;
 end;
 
-procedure TSocketStream.flushWrites;
+function TSocketStream.flushWrites: integer;
 begin
-  send(s, writer.memory, writer.size, ftimeout);
+  result:=send(s, writer.memory, writer.position, ftimeout);
   writer.position:=0;
 end;
 

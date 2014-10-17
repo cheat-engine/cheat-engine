@@ -3971,7 +3971,6 @@ procedure TPointerscanController.HandleUpdateStatusReply_CurrentScanHasEnded;
 {
 The scan has finished (or terminated)
 }
-var i: integer;
 begin
   //todo: test me
 
