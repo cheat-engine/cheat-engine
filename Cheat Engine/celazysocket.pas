@@ -151,6 +151,10 @@ var
   t: TTimeVal;
   fdset: TFDSet;
 begin
+  {$ifdef DEBUGPROTOCOL}
+  timeout:=0; //just let me test in peace
+  {$endif}
+
   result:=0;
   while (result<size) do
   begin
@@ -202,6 +206,10 @@ var
   t: TTimeVal;
   fdset: TFDSet;
 begin
+  {$ifdef DEBUGPROTOCOL}
+  timeout:=0;
+  {$endif}
+
   result:=0;
   while (result<size) do
   begin
