@@ -92,16 +92,16 @@ begin
   listcs.enter;
   try
     i:=0;
-    while i<list.count-1 do
+    while i<list.count do
     begin
       entry:=list[i];
       if entry.deleted then
       begin
         freeEntry(entry);
         list.Delete(i);
-      end;
-
-      inc(i);
+      end
+      else
+        inc(i);
     end;
   finally
     listcs.leave;

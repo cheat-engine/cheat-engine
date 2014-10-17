@@ -90,8 +90,11 @@ end;
 
 function TSocketStream.flushWrites: integer;
 begin
-  result:=send(s, writer.memory, writer.position, ftimeout);
-  writer.position:=0;
+  if writer.position>0 then
+  begin
+    result:=send(s, writer.memory, writer.position, ftimeout);
+    writer.position:=0;
+  end;
 end;
 
 destructor TSocketStream.destroy;
