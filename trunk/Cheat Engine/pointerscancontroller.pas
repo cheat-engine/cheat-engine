@@ -4045,7 +4045,7 @@ begin
 
         if (parent.socket=nil) then //still no parent
         begin
-          if (orphanedSince=0) then
+          if (currentscanid=0) or (orphanedSince=0) then
           begin
             //not an orphan, check the queue and make the first one in the list my new parent
             if length(parentqueue) > 0 then
@@ -4084,6 +4084,8 @@ begin
         //handle accordingly
 
         OutputDebugString('Updating status');
+
+
         updatemsg.currentscanid:=currentscanid;
         updatemsg.isidle:=ifthen(isIdle,1,0);
         updatemsg.totalthreadcount:=getTotalThreadCount;
@@ -4095,7 +4097,7 @@ begin
         updatemsg.totalpathQueueCount:=getTotalPathQueueSize;
         updatemsg.queuesize:=length(parentqueue);
 
-
+        parent.socket.WriteByte(PSCMD_UPDATESTATUS);
         parent.socket.WriteBuffer(updatemsg, sizeof(updatemsg));
         parent.socket.flushWrites;
 
