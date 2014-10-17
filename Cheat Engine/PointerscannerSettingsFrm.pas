@@ -85,41 +85,43 @@ type
   { TfrmPointerScannerSettings }
 
   TfrmPointerScannerSettings = class(TForm)
-    cbNoReadOnly: TCheckBox;
+    cbAcceptNonModuleVtable: TCheckBox;
+    CbAlligned: TCheckBox;
     cbClassPointersOnly: TCheckBox;
-    cbNoLoop: TCheckBox;
+    cbCompressedPointerscanFile: TCheckBox;
+    cbHeapOnly: TCheckBox;
     cbMaxOffsetsPerNode: TCheckBox;
+    cbNoLoop: TCheckBox;
+    cbNoReadOnly: TCheckBox;
+    cbOnlyOneStatic: TCheckBox;
     cbStackOnly: TCheckBox;
+    cbStaticOnly: TCheckBox;
+    cbStaticStacks: TCheckBox;
+    cbUseHeapData: TCheckBox;
     cbUseLoadedPointermap: TCheckBox;
     cbAllowRuntimeWorkers: TCheckBox;
     cbConnectToNode: TCheckBox;
     cbMustStartWithBase: TCheckBox;
-    cbAcceptNonModuleVtable: TCheckBox;
-    cbCompressedPointerscanFile: TCheckBox;
     cbCompareToOtherPointermaps: TCheckBox;
-    cbGeneratePointermapOnly: TCheckBox;
+    cbShowAdvancedOptions: TCheckBox;
     edtDistributedPassword: TEdit;
     edtDistributedPort: TEdit;
-    edtThreadStacks: TEdit;
+    edtMaxOffsetsPerNode: TEdit;
+    edtReverseStart: TEdit;
+    edtReverseStop: TEdit;
     edtStackSize: TEdit;
+    edtThreadStacks: TEdit;
     il: TImageList;
     Label1: TLabel;
-    lblPort: TLabel;
-    lblNumberOfStackThreads: TLabel;
-    lblStackSize: TLabel;
-    cbStaticStacks: TCheckBox;
-    edtMaxOffsetsPerNode: TEdit;
-    edtAddress: TEdit;
-    odLoadPointermap: TOpenDialog;
-    PSSettings: TPageControl;
-    PSReverse: TTabSheet;
-    CbAlligned: TCheckBox;
-    edtReverseStop: TEdit;
-    edtReverseStart: TEdit;
     Label10: TLabel;
     Label11: TLabel;
     Label13: TLabel;
-    cbStaticOnly: TCheckBox;
+    lblNumberOfStackThreads: TLabel;
+    lblPort: TLabel;
+    edtAddress: TEdit;
+    lblStackSize: TLabel;
+    odLoadPointermap: TOpenDialog;
+    Panel3: TPanel;
     cbMustEndWithSpecificOffset: TCheckBox;
     Panel1: TPanel;
     Label3: TLabel;
@@ -131,13 +133,11 @@ type
     btnCancel: TButton;
     edtThreadcount: TEdit;
     ComboBox1: TComboBox;
-    cbUseHeapData: TCheckBox;
-    cbHeapOnly: TCheckBox;
     cbValueType: TComboBox;
     Panel2: TPanel;
+    rbGeneratePointermap: TRadioButton;
     rbFindAddress: TRadioButton;
     rbFindValue: TRadioButton;
-    cbOnlyOneStatic: TCheckBox;
     procedure Button1Click(Sender: TObject);
 
     procedure canNotReuse(Sender: TObject);
@@ -146,6 +146,7 @@ type
     procedure cbAllowRuntimeWorkersChange(Sender: TObject);
     procedure cbMaxOffsetsPerNodeChange(Sender: TObject);
     procedure cbMustEndWithSpecificOffsetChange(Sender: TObject);
+    procedure cbShowAdvancedOptionsChange(Sender: TObject);
     procedure cbStaticStacksChange(Sender: TObject);
     procedure cbUseLoadedPointermapChange(Sender: TObject);
     procedure cbCompareToOtherPointermapsChange(Sender: TObject);
@@ -742,6 +743,7 @@ end;
 procedure TfrmPointerScannerSettings.cbAllowRuntimeWorkersChange(Sender: TObject);
 begin
   edtDistributedPort.enabled:=cbAllowRuntimeWorkers.checked;
+  edtDistributedPassword.enabled:=cbAllowRuntimeWorkers.checked;
 end;
 
 procedure TfrmPointerScannerSettings.cbMaxOffsetsPerNodeChange(Sender: TObject);
@@ -831,6 +833,13 @@ begin
 
 end;
 
+procedure TfrmPointerScannerSettings.cbShowAdvancedOptionsChange(Sender: TObject
+  );
+begin
+  panel3.visible:=cbShowAdvancedOptions.checked;
+  updatepositions;
+end;
+
 procedure TfrmPointerScannerSettings.cbUseLoadedPointermapChange(Sender: TObject);
 begin
   if cbUseLoadedPointermap.checked then
@@ -896,6 +905,10 @@ begin
   begin
     reg:=TRegistry.Create;
     reg.RootKey := HKEY_CURRENT_USER;
+
+
+    if Reg.OpenKey('\Software\Cheat Engine\'+ClassName, true) then
+      reg.WriteBool('Advanced', cbShowAdvancedOptions.checked);
 
     if Reg.OpenKey('\Software\Cheat Engine\PSNNodeList', false) then
     begin
@@ -1003,7 +1016,10 @@ begin
 
 
   if firstshow then
-    updatepositions;
+  begin
+    cbCompareToOtherPointermaps.checked:=true;
+//    updatepositions;
+  end;
 
   firstshow:=false;
 
@@ -1030,8 +1046,6 @@ begin
 
   ComboBox1.itemindex:=3;
 
-
-  pssettings.ActivePage:=PSReverse;
   clientheight:=cbMustEndWithSpecificOffset.top+cbMustEndWithSpecificOffset.Height+2+panel1.height;
 
   iplist:=TIpList.create(self);
@@ -1049,6 +1063,12 @@ begin
 
   reg:=tregistry.Create;
   Reg.RootKey := HKEY_CURRENT_USER;
+
+  if Reg.OpenKey('\Software\Cheat Engine\'+ClassName, false) then
+  begin
+    if reg.ValueExists('Advanced') then
+      cbShowAdvancedOptions.checked:=reg.ReadBool('Advanced');
+  end;
 
   if Reg.OpenKey('\Software\Cheat Engine\PSNNodeList', false) then
   begin
@@ -1080,7 +1100,9 @@ begin
 
   reg.free;
 
+  firstshow:=true;
 end;
+
 
 procedure tfrmPointerScannerSettings.btnAddClick(sender: TObject);
 var offsetentry: TOffsetEntry;
@@ -1148,20 +1170,66 @@ begin
 end;
 
 procedure TfrmPointerScannerSettings.rbFindValueClick(Sender: TObject);
+var gpm: boolean;
 begin
+  gpm:=rbGeneratePointermap.checked;
+
+  cbCompareToOtherPointermaps.enabled:=not gpm;
+  edtAddress.enabled:=not gpm;
+  cbValueType.enabled:=not gpm;
+  cbStaticOnly.enabled:=not gpm;
+  cbOnlyOneStatic.enabled:=not gpm;
+  cbUseHeapData.enabled:=not gpm;
+  cbHeapOnly.enabled:=not gpm;
+  cbNoLoop.enabled:=not gpm;
+  cbMaxOffsetsPerNode.enabled:=not gpm;
+  cbUseLoadedPointermap.enabled:=not gpm;
+  cbMustStartWithBase.enabled:=not gpm;
+  cbMustEndWithSpecificOffset.enabled:=not gpm;
+
+  cbAllowRuntimeWorkers.enabled:=not gpm;
+  cbConnectToNode.enabled:=not gpm;
+  edtThreadcount.enabled:=not gpm;
+  editStructsize.enabled:=not gpm;
+  combobox1.enabled:=not gpm;
+  editMaxLevel.enabled:=not gpm;
+
+  cbCompressedPointerscanFile.enabled:=not gpm;
+
+  label9.enabled:=not gpm;
+  label3.enabled:=not gpm;
+  label12.enabled:=not gpm;
+
+
+  if gpm then
+  begin
+    cbCompareToOtherPointermaps.checked:=false;
+    cbCompressedPointerscanFile.checked:=false;
+    cbAllowRuntimeWorkers.checked:=false;
+    cbUseLoadedPointermap.checked:=false;
+    cbMustStartWithBase.checked:=false;
+    cbMustEndWithSpecificOffset.checked:=false;
+
+    cbAllowRuntimeWorkers.checked:=false;
+    cbConnectToNode.checked:=false;
+  end;
+
   if rbFindAddress.Checked then
   begin
+    edtAddress.visible:=true;
     edtAddress.Width:=cbValueType.Left+cbValueType.Width-edtAddress.Left;
     cbValueType.Visible:=false;
-
   end
   else
+  if rbFindValue.checked then
   begin
+    edtAddress.visible:=true;
     edtAddress.Width:=cbValueType.left-edtAddress.Left-3;
     cbValueType.Visible:=true;
-
   end;
-  edtAddress.SetFocus;
+
+  if not gpm then
+    edtAddress.SetFocus;
 end;
 
 procedure TfrmPointerScannerSettings.edtAddressChange(Sender: TObject);
@@ -1189,7 +1257,7 @@ procedure TfrmPointerScannerSettings.UpdateGuiBasedOnSavedPointerScanUsage;
 begin
   //make rbFindValue enabled or disabled based on the current settings
 
-  rbFindValue.enabled:=not (cbUseLoadedPointermap.checked or cbCompareToOtherPointermaps.checked);
+  rbFindValue.enabled:=not (cbUseLoadedPointermap.checked);
 
   if rbFindValue.enabled=false then
     rbFindAddress.Checked:=true;
@@ -1245,10 +1313,32 @@ var
  // adjustment: integer;
   newheight: integer;
 begin
-  if pdatafilelist<>nil then
-    cbMustStartWithBase.top:=pdatafilelist.top+pdatafilelist.Height+2
+  cbShowAdvancedOptions.top:=cbCompareToOtherPointermaps.top;
+
+  if cbCompareToOtherPointermaps.checked then
+    panel3.top:=pdatafilelist.Top+pdatafilelist.height
   else
-    cbMustStartWithBase.top:=cbCompareToOtherPointermaps.top+cbCompareToOtherPointermaps.height+3;
+    panel3.top:=cbCompareToOtherPointermaps.top+cbCompareToOtherPointermaps.height+2;
+
+
+  if cbShowAdvancedOptions.checked then
+  begin
+    cbUseLoadedPointermap.top:=panel3.Top+panel3.height+2;
+    cbAllowRuntimeWorkers.top:=cbUseLoadedPointermap.top;
+  end
+  else
+  begin
+    if cbCompareToOtherPointermaps.checked then
+      cbUseLoadedPointermap.top:=pdatafilelist.top+pdatafilelist.height+2
+    else
+      cbUseLoadedPointermap.top:=cbShowAdvancedOptions.top+cbShowAdvancedOptions.height+2;
+
+    cbAllowRuntimeWorkers.top:=cbShowAdvancedOptions.top+cbShowAdvancedOptions.height+2;
+
+  end;
+
+
+  cbMustStartWithBase.top:=cbUseLoadedPointermap.Top+cbUseLoadedPointermap.height+2;
 
   if edtBaseFrom<>nil then
   begin
