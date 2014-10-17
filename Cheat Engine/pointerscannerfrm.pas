@@ -1126,7 +1126,6 @@ begin
 
       progressbar1.Max:=staticscanner.stopaddress-staticscanner.startaddress;
 
-
       open1.Enabled:=false;
       staticscanner.start;
 
