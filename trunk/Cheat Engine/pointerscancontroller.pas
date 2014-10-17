@@ -78,7 +78,7 @@ type
 
     parentcs: TCriticalSection;
     parent: TPointerscanControllerParent; //the currently selected host
-    parentqueue: array of TPointerscanControllerParent;
+    parentqueue: array of TPointerscanControllerParent; //queue that holds other parents. Access controlled by parentcs
 
     orphanedSince: qword; //time since the last parent disconnected.  Use this to decide when to give up on it and continue from the queue
 
@@ -4024,6 +4024,56 @@ begin
   try
     try
       parentcs.enter;
+
+      if parent.socket=nil then
+      begin
+        OutputDebugString('Accessing queue');
+        for i:=0 to length(parentqueue)-1 do
+        begin
+          if parentqueue[i].scanid=currentscanid then
+          begin
+            //parent came back
+            OutputDebugString('Parent returned');
+            parent:=parentqueue[i];
+            for j:=i+1 to length(parentqueue)-2 do
+              parentqueue[j]:=parentqueue[j+1];
+
+            orphanedSince:=0;
+            break;
+          end;
+        end;
+
+        if (parent.socket=nil) and (orphanedSince=0) then
+        begin
+          //not an orphan, check the queue and make the first one in the list my new parent
+          if length(parentqueue)-1 > 0 then
+          begin
+            parent:=parentqueue[0];
+            for i:=1 to length(parentqueue)-2 do
+              parentqueue[i]:=parentqueue[i+1];
+
+            setlength(parentqueue, length(parentqueue)-1);
+          end;
+        end
+        else
+        begin
+          //check if we should give up on our original parent...
+          if parent.trustsme=false then
+          begin
+            //the parent didn't trust me anyhow
+            if GetTickCount64>orphanedSince+30*60*1000 then //30 minutes
+              orphanedSince:=0; //give up and find a new parent
+          end
+          else
+          begin
+            if GetTickCount64>orphanedSince+60*60*1000 then //1 hour
+              orphanedSince:=0; //... fuck
+          end;
+        end;
+
+      end;
+
+
       if parent.socket<>nil then
       begin
         //send the update command
@@ -4049,61 +4099,8 @@ begin
         lastUpdateSent:=GetTickCount64;
 
         HandleUpdateStatusReply;
-      end
-      else
-      begin
-        //check if the queue should be accessed
-        //first check if there is a parent with my currentscanid
-        OutputDebugString('Accessing queue');
-        for i:=0 to length(parentqueue)-1 do
-        begin
-          if parentqueue[i].scanid=currentscanid then
-          begin
-            //parent came back
-            OutputDebugString('Parent returned');
-            parent:=parentqueue[i];
-            for j:=i+1 to length(parentqueue)-2 do
-              parentqueue[j]:=parentqueue[j+1];
-
-            orphanedSince:=0;
-            break;
-          end;
-        end;
-
-        if parent.socket=nil then
-        begin
-          //still no parent
-          if orphanedSince=0 then
-          begin
-            //not an orphan, check the queue and make the first one in the list my new parent
-            if length(parentqueue)-1 > 0 then
-            begin
-              parent:=parentqueue[0];
-              for i:=1 to length(parentqueue)-2 do
-                parentqueue[i]:=parentqueue[i+1];
-
-              setlength(parentqueue, length(parentqueue)-1);
-            end;
-          end
-          else
-          begin
-            //check if we should give up on our original parent...
-            if parent.trustsme=false then
-            begin
-              //the parent didn't trust me anyhow
-              if GetTickCount64>orphanedSince+30*60*1000 then //30 minutes
-                orphanedSince:=0; //give up and find a new parent
-            end
-            else
-            begin
-              if GetTickCount64>orphanedSince+60*60*1000 then //1 hour
-                orphanedSince:=0; //... fuck
-            end;
-          end;
-
-        end;
-
       end;
+
     except
       on e: exception do
         handleParentException(e.message);
@@ -4711,7 +4708,7 @@ begin
       child.ip:=inttostr(byte(ipname.sin_addr.S_un_b.s_b1))+'.'+inttostr(byte(ipname.sin_addr.S_un_b.s_b2))+
                 inttostr(byte(ipname.sin_addr.S_un_b.s_b3))+'.'+inttostr(byte(ipname.sin_addr.S_un_b.s_b4));
 
-      child.port:=ipname.sin_port;
+      child.port:=ntohs(ipname.sin_port);
     end;
 
 
@@ -4751,7 +4748,7 @@ begin
           parentqueue[length(parentqueue)-1].ip:=inttostr(byte(ipname.sin_addr.S_un_b.s_b1))+'.'+inttostr(byte(ipname.sin_addr.S_un_b.s_b2))+
                     inttostr(byte(ipname.sin_addr.S_un_b.s_b3))+'.'+inttostr(byte(ipname.sin_addr.S_un_b.s_b4));
 
-          parentqueue[length(parentqueue)-1].port:=ipname.sin_port;
+          parentqueue[length(parentqueue)-1].port:=ntohs(ipname.sin_port);
         end;
 
 
@@ -4772,8 +4769,8 @@ begin
     end;
 
 
-
-
+    if parent.socket=nil then //make a new parent if possible
+      UpdateStatus(self);
   end;
 
 end;
