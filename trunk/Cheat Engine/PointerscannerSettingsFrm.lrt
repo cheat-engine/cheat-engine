@@ -1,5 +1,38 @@
 TFRMPOINTERSCANNERSETTINGS.CAPTION=Pointerscanner scanoptions
-TFRMPOINTERSCANNERSETTINGS.PSREVERSE.CAPTION=Reverse
+TFRMPOINTERSCANNERSETTINGS.CBMUSTENDWITHSPECIFICOFFSET.CAPTION=Pointers must end with specific offsets
+TFRMPOINTERSCANNERSETTINGS.LABEL3.CAPTION=Maximum offset value:
+TFRMPOINTERSCANNERSETTINGS.LABEL12.CAPTION=Max level
+TFRMPOINTERSCANNERSETTINGS.LABEL9.CAPTION=Nr of threads scanning: 
+TFRMPOINTERSCANNERSETTINGS.BUTTON1.CAPTION=OK
+TFRMPOINTERSCANNERSETTINGS.EDITSTRUCTSIZE.TEXT=2047
+TFRMPOINTERSCANNERSETTINGS.EDITMAXLEVEL.TEXT=5
+TFRMPOINTERSCANNERSETTINGS.BTNCANCEL.CAPTION=Cancel
+TFRMPOINTERSCANNERSETTINGS.EDTTHREADCOUNT.TEXT=2
+TFRMPOINTERSCANNERSETTINGS.COMBOBOX1.TEXT=Normal
+TFRMPOINTERSCANNERSETTINGS.CBVALUETYPE.TEXT=4 Byte
+TFRMPOINTERSCANNERSETTINGS.RBFINDADDRESS.CAPTION=Scan for address
+TFRMPOINTERSCANNERSETTINGS.RBFINDVALUE.CAPTION=Scan for addresses with value
+TFRMPOINTERSCANNERSETTINGS.RBGENERATEPOINTERMAP.CAPTION=Generate pointermap
+TFRMPOINTERSCANNERSETTINGS.CBUSELOADEDPOINTERMAP.HINT=Use this if you have created a pointermap on a system that runs the game, but you wish to do the scan on another system (or multiple systems).
+Checking this option will open a dialog where you can select the pointermap
+TFRMPOINTERSCANNERSETTINGS.CBUSELOADEDPOINTERMAP.CAPTION=Use saved pointermap
+TFRMPOINTERSCANNERSETTINGS.CBALLOWRUNTIMEWORKERS.HINT=Opens a port that other systems running the pointerscanner can connect to and help out with the scan
+TFRMPOINTERSCANNERSETTINGS.CBALLOWRUNTIMEWORKERS.CAPTION=Allow scanners to connect at runtime
+TFRMPOINTERSCANNERSETTINGS.EDTDISTRIBUTEDPORT.TEXT=52737
+TFRMPOINTERSCANNERSETTINGS.LBLPORT.CAPTION=Port:
+TFRMPOINTERSCANNERSETTINGS.CBCONNECTTONODE.HINT=When checked will send a broadcast message on the local network which will tell pointer scanner systems to join this scan if they are set to auto join
+
+You can use "Setup specific IP's to notify" to notify systems of this scan that are outside of the local network
+TFRMPOINTERSCANNERSETTINGS.CBCONNECTTONODE.CAPTION=Connect to pointerscan node
+TFRMPOINTERSCANNERSETTINGS.CBMUSTSTARTWITHBASE.HINT=Will only mark the given range as valid base address (Will reduce the number of results)
+This internally makes use of the "Only find paths with a static address" feature by marking the provided range as static only, so it must be enabled.
+TFRMPOINTERSCANNERSETTINGS.CBMUSTSTARTWITHBASE.CAPTION=Base address must be in specific range
+TFRMPOINTERSCANNERSETTINGS.CBCOMPARETOOTHERPOINTERMAPS.HINT=When ticked you can add other pointermaps which will be used to verify that the pointers it finds are correct. You will have to fill in the correct address for each pointermap you provide.
+Note: expect at least the size of the game itself in memory for every pointermap used
+
+TFRMPOINTERSCANNERSETTINGS.CBCOMPARETOOTHERPOINTERMAPS.CAPTION=Compare results with other saved pointermap(s)
+TFRMPOINTERSCANNERSETTINGS.LABEL1.CAPTION=Password
+TFRMPOINTERSCANNERSETTINGS.CBSHOWADVANCEDOPTIONS.CAPTION=Show advanced options
 TFRMPOINTERSCANNERSETTINGS.LABEL10.CAPTION=From
 TFRMPOINTERSCANNERSETTINGS.LABEL11.CAPTION=To:
 TFRMPOINTERSCANNERSETTINGS.LABEL13.CAPTION=Pointer path may only be inside this region:
@@ -85,41 +118,8 @@ pro: You'll only get paths from the stack
 con: You don't get get paths from random dll's or the .exe 
 TFRMPOINTERSCANNERSETTINGS.CBSTACKONLY.CAPTION=Stack addresses as ONLY static address
 TFRMPOINTERSCANNERSETTINGS.CBACCEPTNONMODULEVTABLE.CAPTION=Also accept non-module addresses
-TFRMPOINTERSCANNERSETTINGS.CBMUSTENDWITHSPECIFICOFFSET.CAPTION=Pointers must end with specific offsets
-TFRMPOINTERSCANNERSETTINGS.LABEL3.CAPTION=Maximum offset value:
-TFRMPOINTERSCANNERSETTINGS.LABEL12.CAPTION=Max level
-TFRMPOINTERSCANNERSETTINGS.LABEL9.CAPTION=Nr of threads scanning: 
-TFRMPOINTERSCANNERSETTINGS.BUTTON1.CAPTION=OK
-TFRMPOINTERSCANNERSETTINGS.EDITSTRUCTSIZE.TEXT=2047
-TFRMPOINTERSCANNERSETTINGS.EDITMAXLEVEL.TEXT=5
-TFRMPOINTERSCANNERSETTINGS.BTNCANCEL.CAPTION=Cancel
-TFRMPOINTERSCANNERSETTINGS.EDTTHREADCOUNT.TEXT=2
-TFRMPOINTERSCANNERSETTINGS.COMBOBOX1.TEXT=Normal
-TFRMPOINTERSCANNERSETTINGS.CBVALUETYPE.TEXT=4 Byte
-TFRMPOINTERSCANNERSETTINGS.RBFINDADDRESS.CAPTION=Address to find:
-TFRMPOINTERSCANNERSETTINGS.RBFINDVALUE.CAPTION=Value to find:
-TFRMPOINTERSCANNERSETTINGS.CBUSELOADEDPOINTERMAP.HINT=Use this if you have created a pointermap on a system that runs the game, but you wish to do the scan on another system (or multiple systems).
-Checking this option will open a dialog where you can select the pointermap
-TFRMPOINTERSCANNERSETTINGS.CBUSELOADEDPOINTERMAP.CAPTION=Use saved pointermap
-TFRMPOINTERSCANNERSETTINGS.CBALLOWRUNTIMEWORKERS.HINT=Opens a port that other systems running the pointerscanner can connect to and help out with the scan
-TFRMPOINTERSCANNERSETTINGS.CBALLOWRUNTIMEWORKERS.CAPTION=Allow scanners to connect at runtime
-TFRMPOINTERSCANNERSETTINGS.EDTDISTRIBUTEDPORT.TEXT=52737
-TFRMPOINTERSCANNERSETTINGS.LBLPORT.CAPTION=Port:
-TFRMPOINTERSCANNERSETTINGS.CBCONNECTTONODE.HINT=When checked will send a broadcast message on the local network which will tell pointer scanner systems to join this scan if they are set to auto join
-
-You can use "Setup specific IP's to notify" to notify systems of this scan that are outside of the local network
-TFRMPOINTERSCANNERSETTINGS.CBCONNECTTONODE.CAPTION=Connect to pointerscan node
-TFRMPOINTERSCANNERSETTINGS.CBMUSTSTARTWITHBASE.HINT=Will only mark the given range as valid base address (Will reduce the number of results)
-This internally makes use of the "Only find paths with a static address" feature by marking the provided range as static only, so it must be enabled.
-TFRMPOINTERSCANNERSETTINGS.CBMUSTSTARTWITHBASE.CAPTION=Base address must be in specific range
 TFRMPOINTERSCANNERSETTINGS.CBCOMPRESSEDPOINTERSCANFILE.HINT=Compresses the generated .PTR files slightly so they take less space on the disk and less time writing to disk.
 Most of the time the bottleneck of a pointerscan is disk writing, so it is recommended to use this option.
 
 Compressed .PTR files can not be read out by older Cheat Engine versions
 TFRMPOINTERSCANNERSETTINGS.CBCOMPRESSEDPOINTERSCANFILE.CAPTION=Compressed pointerscan file
-TFRMPOINTERSCANNERSETTINGS.CBCOMPARETOOTHERPOINTERMAPS.HINT=When ticked you can add other pointermaps which will be used to verify that the pointers it finds are correct. You will have to fill in the correct address for each pointermap you provide.
-Note: expect at least the size of the game itself in memory for every pointermap used
-
-TFRMPOINTERSCANNERSETTINGS.CBCOMPARETOOTHERPOINTERMAPS.CAPTION=Compare results with other saved pointermap(s)
-TFRMPOINTERSCANNERSETTINGS.CBGENERATEPOINTERMAPONLY.CAPTION=Generate pointermap only
-TFRMPOINTERSCANNERSETTINGS.LABEL1.CAPTION=Password

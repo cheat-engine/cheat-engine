@@ -912,7 +912,7 @@ begin
     //totalpathsevaluated:=0;
     startcount:=0;
 
-    if frmpointerscannersettings.cbGeneratePointermapOnly.checked then //show a .scandata dialog instad of a .ptr
+    if frmpointerscannersettings.rbGeneratePointermap.checked then //show a .scandata dialog instad of a .ptr
     begin
       if not savedialog2.execute then exit;
       filename:=savedialog2.filename;
@@ -964,7 +964,7 @@ begin
 
       staticscanner.initializer:=true;
       staticscanner.filename:=utf8toansi(fileName);
-      staticscanner.generatePointermapOnly:=frmpointerscannersettings.cbGeneratePointermapOnly.checked;
+      staticscanner.generatePointermapOnly:=frmpointerscannersettings.rbGeneratePointermap.checked;
 
       staticscanner.compressedptr:=frmpointerscannersettings.cbCompressedPointerscanFile.checked;
 

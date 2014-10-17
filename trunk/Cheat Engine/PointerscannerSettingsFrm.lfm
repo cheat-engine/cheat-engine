@@ -1,12 +1,12 @@
 object frmPointerScannerSettings: TfrmPointerScannerSettings
-  Left = 898
-  Height = 497
-  Top = 387
-  Width = 638
+  Left = 876
+  Height = 445
+  Top = 248
+  Width = 630
   BorderStyle = bsSingle
   Caption = 'Pointerscanner scanoptions'
-  ClientHeight = 497
-  ClientWidth = 638
+  ClientHeight = 445
+  ClientWidth = 630
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
@@ -26,288 +26,31 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     ParentFont = False
     TabOrder = 0
   end
-  object PSSettings: TPageControl
-    Left = 8
-    Height = 210
-    Top = 55
-    Width = 624
-    ActivePage = PSReverse
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
-    ParentFont = False
-    TabIndex = 0
-    TabOrder = 1
-    object PSReverse: TTabSheet
-      Caption = 'Reverse'
-      ClientHeight = 184
-      ClientWidth = 616
-      ImageIndex = 1
-      TabVisible = False
-      object Label10: TLabel
-        Left = 4
-        Height = 13
-        Top = 105
-        Width = 23
-        Caption = 'From'
-        ParentColor = False
-      end
-      object Label11: TLabel
-        Left = 4
-        Height = 13
-        Top = 127
-        Width = 16
-        Caption = 'To:'
-        ParentColor = False
-      end
-      object Label13: TLabel
-        Left = 4
-        Height = 13
-        Top = 83
-        Width = 200
-        Caption = 'Pointer path may only be inside this region:'
-        ParentColor = False
-      end
-      object CbAlligned: TCheckBox
-        Left = 0
-        Height = 19
-        Hint = 'When enabled, only pointers that are stored in an address dividable by 4 are looked at'#13#10'When disabled, it won''t bother.'#13#10#13#10'pro: Fast scans'#13#10'Con: On some horrible designed games that you shouldn''t even play it won''t find the paths'
-        Top = 0
-        Width = 177
-        Caption = 'Addresses must be 32-bit alligned'
-        Checked = True
-        OnChange = canNotReuse
-        ParentShowHint = False
-        ShowHint = True
-        State = cbChecked
-        TabOrder = 0
-      end
-      object edtReverseStop: TEdit
-        Left = 28
-        Height = 21
-        Top = 124
-        Width = 80
-        CharCase = ecUppercase
-        MaxLength = 8
-        OnChange = canNotReuse
-        TabOrder = 1
-        Text = '7FFFFFFF'
-      end
-      object edtReverseStart: TEdit
-        Left = 28
-        Height = 21
-        Top = 102
-        Width = 80
-        CharCase = ecUppercase
-        MaxLength = 8
-        OnChange = canNotReuse
-        TabOrder = 2
-        Text = '00000000'
-      end
-      object cbStaticOnly: TCheckBox
-        Left = 0
-        Height = 19
-        Hint = 'When checked the pointerscan will only store a path when it starts with a static address. (or easily looked up address)'#13#10'When it''s disabled, it finds every single pointer path'#13#10#13#10'pro: Fast'#13#10'con: It may miss pointers that are accessed by special paths like thread local storage. (but even then they''d be useless for ce as they will change)'
-        Top = 20
-        Width = 189
-        Caption = 'Only find paths with a static address'
-        Checked = True
-        ParentShowHint = False
-        ShowHint = True
-        State = cbChecked
-        TabOrder = 3
-      end
-      object cbUseHeapData: TCheckBox
-        Left = 0
-        Height = 19
-        Hint = 'When this is checked the heap is used to figure out the offset sizes, instead of blindly guessing them.'#13#10'pro: Greatly improve speed and a lot less useless results'#13#10'con: if the game allocates gigantic chunks of heap memory, and then divides it up itself, this will give wrong results.'#13#10#13#10'In other cases this will give perfect pointers '
-        Top = 146
-        Width = 234
-        Caption = 'Improve pointerscan with gathered heap data'
-        OnClick = cbUseHeapDataClick
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 4
-      end
-      object cbHeapOnly: TCheckBox
-        Left = 16
-        Height = 19
-        Hint = 'If the address you search for isn''t a heap address, the scan will return 0 results'
-        Top = 162
-        Width = 248
-        Caption = 'Only allow static and heap addresses in the path'
-        Enabled = False
-        OnClick = cbHeapOnlyClick
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 5
-      end
-      object cbOnlyOneStatic: TCheckBox
-        Left = 0
-        Height = 19
-        Hint = 'When the pointerscanner goes through the list of pointervalues with a specific value, this will stop exploring other paths as soon as it encounters a static pointer to that value'#13#10#13#10'pro: Fast'#13#10'con: You may miss some valid results '
-        Top = 60
-        Width = 267
-        Caption = 'Stop traversing a path when a static has been found'
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 6
-      end
-      object cbNoReadOnly: TCheckBox
-        Left = 0
-        Height = 19
-        Hint = 'When checked the pointerscan will throw away memory that is readonly. So when it looks for paths, it won''t encounter paths that pass through read only memory blocks.'#13#10#13#10'When it''s unchecked, it does include readonly memory'#13#10#13#10#13#10'pro: faster, less useless results'#13#10'con: If the game decides to mark a pointer as readonly ce won''t find it '
-        Top = 40
-        Width = 222
-        Caption = 'Don''t include pointers with read-only nodes'
-        Checked = True
-        OnChange = canNotReuse
-        ParentShowHint = False
-        ShowHint = True
-        State = cbChecked
-        TabOrder = 7
-      end
-      object cbClassPointersOnly: TCheckBox
-        Left = 276
-        Height = 19
-        Hint = 'Object oriented programming languages tend to implement classobjects by having a pointer in the first element to something that describes the class'#13#10'With this option enabled, ce will check if it''s a classobject by checking that rule. If not, it won''t see it as a pointer.'#13#10'pro:Tremendous speed increase and almost perfect pointers'#13#10'con:Doesn''t work with runtime generated classes (java, .net) '
-        Top = 0
-        Width = 308
-        Caption = 'First element of pointerstruct must point to module (e.g vtable)'
-        OnChange = canNotReuse
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 8
-      end
-      object cbNoLoop: TCheckBox
-        Left = 276
-        Height = 19
-        Hint = 'This will filter out pointerpaths that ended up in a loop'#13#10'e.g:'#13#10'base->p1->p2->p3->p1->p4'#13#10#13#10'you could just as well do base->p1->p4 then, so throw this one away (base->p1->p4 will be found another way)'#13#10#13#10'pro: Less results so less diskspace used'#13#10'con: slightly slows down the scan as it needs to check for loops every single iteration '
-        Top = 40
-        Width = 111
-        Caption = 'No looping pointers'
-        Checked = True
-        ParentShowHint = False
-        ShowHint = True
-        State = cbChecked
-        TabOrder = 9
-      end
-      object cbMaxOffsetsPerNode: TCheckBox
-        Left = 276
-        Height = 19
-        Hint = 'When the pointerscan looks through the list of pointers with a specific value, it goes through every single pointer that has that value. Every time increasing the offset slightly.'#13#10'With this feature enabled the pointerscan will only check the first few pointers with that value.'#13#10#13#10'pro: Extremely fast, and the results have the lowest pointer paths possible.'#13#10'con: You''ll miss a lot of pointers that might be valid too '
-        Top = 60
-        Width = 163
-        Caption = 'Max different offsets per node:'
-        OnChange = cbMaxOffsetsPerNodeChange
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 10
-      end
-      object edtMaxOffsetsPerNode: TEdit
-        Left = 444
-        Height = 21
-        Top = 58
-        Width = 40
-        Enabled = False
-        TabOrder = 11
-        Text = '2'
-      end
-      object cbStaticStacks: TCheckBox
-        Left = 276
-        Height = 19
-        Hint = 'This allows the stack of threads to be seen as static addresses by the pointerscan.'#13#10'The main thread is always a sure bet that it''s the first one in the list. And often the second thread created is pretty stable as well.'#13#10'With more there''s a bigger change they get created and destroyed randomly'#13#10#13#10'When a program enters a function and exits it, the stack pointer decreases and increases, and the data there gets written to.'#13#10'The farther the game is inside function calls, the more static the older data will be.'#13#10#13#10'With max stack offset: you can set the max size that can be deemed as static enough.'#13#10#13#10'pro: It finds paths otherwise never found'#13#10'con: More results, more diskspace '
-        Top = 80
-        Width = 328
-        Caption = 'Allow stack addresses of the first thread(s) to be handled as static'
-        Checked = True
-        OnChange = cbStaticStacksChange
-        ParentShowHint = False
-        ShowHint = True
-        State = cbChecked
-        TabOrder = 12
-      end
-      object lblNumberOfStackThreads: TLabel
-        Left = 292
-        Height = 13
-        Top = 105
-        Width = 193
-        Caption = 'Number of threads from oldest to newest:'
-        ParentColor = False
-      end
-      object edtThreadStacks: TEdit
-        Left = 509
-        Height = 21
-        Hint = 'Fill in the total number of threads that should be allowed to be used as a stack lookup.'#13#10'Thread 1 is usually the main thread of the game, but if that one spawns another thread for game related events, you might want to have that secondary thread as well.'#13#10'More threads is not recommend as they may get created and destroyed on the fly, and are therefore useless as a lookup base, but it depends on the game.'
-        Top = 103
-        Width = 24
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 13
-        Text = '2'
-      end
-      object lblStackSize: TLabel
-        Left = 291
-        Height = 13
-        Top = 124
-        Width = 213
-        Caption = 'Max stackoffset to be deemed static enough:'
-        ParentColor = False
-      end
-      object edtStackSize: TEdit
-        Left = 509
-        Height = 21
-        Top = 124
-        Width = 80
-        TabOrder = 14
-        Text = '4096'
-      end
-      object cbStackOnly: TCheckBox
-        Left = 292
-        Height = 19
-        Hint = 'Enable this if you wish to only find pointer paths with a stack address.'#13#10'Combine this with "Only find paths with a static address" (default on) else this option will have no effect'#13#10#13#10'pro: You''ll only get paths from the stack'#13#10'con: You don''t get get paths from random dll''s or the .exe '
-        Top = 144
-        Width = 213
-        Caption = 'Stack addresses as ONLY static address'
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 15
-      end
-      object cbAcceptNonModuleVtable: TCheckBox
-        Left = 291
-        Height = 19
-        Top = 20
-        Width = 185
-        Caption = 'Also accept non-module addresses'
-        Enabled = False
-        TabOrder = 16
-      end
-    end
-  end
   object cbMustEndWithSpecificOffset: TCheckBox
     Left = 8
     Height = 19
-    Top = 356
+    Top = 312
     Width = 199
     Caption = 'Pointers must end with specific offsets'
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
     OnChange = cbMustEndWithSpecificOffsetChange
     ParentFont = False
-    TabOrder = 2
+    TabOrder = 1
   end
   object Panel1: TPanel
     Left = 0
     Height = 104
-    Top = 393
-    Width = 638
+    Top = 341
+    Width = 630
     Align = alBottom
     BevelOuter = bvNone
     ClientHeight = 104
-    ClientWidth = 638
+    ClientWidth = 630
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
     ParentFont = False
-    TabOrder = 3
+    TabOrder = 2
     OnClick = Panel1Click
     object Label3: TLabel
       AnchorSideRight.Control = editStructsize
@@ -414,6 +157,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
         'Highest'
         'TimeCritical'
       )
+      Style = csDropDownList
       TabOrder = 5
       Text = 'Normal'
     end
@@ -434,7 +178,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     )
     ParentFont = False
     Style = csDropDownList
-    TabOrder = 4
+    TabOrder = 3
     Text = '4 Byte'
   end
   object Panel2: TPanel
@@ -448,72 +192,83 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
     ParentFont = False
-    TabOrder = 5
+    TabOrder = 4
     object rbFindAddress: TRadioButton
       Left = 0
       Height = 19
       Top = 4
-      Width = 93
-      Caption = 'Address to find:'
+      Width = 100
+      Caption = 'Scan for address'
       Checked = True
       OnChange = rbFindValueClick
       TabOrder = 0
       TabStop = True
     end
     object rbFindValue: TRadioButton
-      Left = 96
+      Left = 104
       Height = 19
       Top = 4
-      Width = 82
-      Caption = 'Value to find:'
+      Width = 162
+      Caption = 'Scan for addresses with value'
       OnChange = rbFindValueClick
       TabOrder = 1
+    end
+    object rbGeneratePointermap: TRadioButton
+      Left = 275
+      Height = 19
+      Top = 4
+      Width = 119
+      Caption = 'Generate pointermap'
+      OnChange = rbFindValueClick
+      TabOrder = 2
     end
   end
   object cbUseLoadedPointermap: TCheckBox
     Left = 8
     Height = 19
     Hint = 'Use this if you have created a pointermap on a system that runs the game, but you wish to do the scan on another system (or multiple systems).'#13#10'Checking this option will open a dialog where you can select the pointermap'
-    Top = 293
+    Top = 272
     Width = 126
+    BorderSpacing.Top = 1
     Caption = 'Use saved pointermap'
     OnChange = cbUseLoadedPointermapChange
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 6
+    TabOrder = 5
   end
   object cbAllowRuntimeWorkers: TCheckBox
-    Left = 288
+    AnchorSideLeft.Control = cbShowAdvancedOptions
+    Left = 291
     Height = 19
     Hint = 'Opens a port that other systems running the pointerscanner can connect to and help out with the scan'
-    Top = 288
+    Top = 272
     Width = 194
     Caption = 'Allow scanners to connect at runtime'
     OnChange = cbAllowRuntimeWorkersChange
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 7
+    TabOrder = 6
   end
   object edtDistributedPort: TEdit
     AnchorSideLeft.Control = lblPort
     AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = lblPort
     AnchorSideTop.Side = asrCenter
-    Left = 326
+    Left = 329
     Height = 21
-    Top = 308
+    Top = 292
     Width = 103
     Enabled = False
-    TabOrder = 8
+    TabOrder = 7
     Text = '52737'
   end
   object lblPort: TLabel
     AnchorSideLeft.Control = cbAllowRuntimeWorkers
     AnchorSideTop.Control = cbAllowRuntimeWorkers
     AnchorSideTop.Side = asrBottom
-    Left = 304
+    Left = 307
     Height = 13
-    Top = 312
+    Top = 296
     Width = 22
     BorderSpacing.Left = 16
     BorderSpacing.Top = 5
@@ -522,91 +277,351 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   end
   object cbConnectToNode: TCheckBox
     AnchorSideLeft.Control = cbAllowRuntimeWorkers
-    AnchorSideTop.Side = asrCenter
-    Left = 288
+    AnchorSideTop.Control = edtDistributedPort
+    AnchorSideTop.Side = asrBottom
+    Left = 291
     Height = 19
     Hint = 'When checked will send a broadcast message on the local network which will tell pointer scanner systems to join this scan if they are set to auto join'#13#10#13#10'You can use "Setup specific IP''s to notify" to notify systems of this scan that are outside of the local network'
-    Top = 335
+    Top = 313
     Width = 157
-    BorderSpacing.Top = 9
     Caption = 'Connect to pointerscan node'
     OnChange = cbConnectToNodeChange
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 9
+    TabOrder = 8
   end
   object cbMustStartWithBase: TCheckBox
+    AnchorSideTop.Side = asrBottom
     Left = 8
     Height = 19
     Hint = 'Will only mark the given range as valid base address (Will reduce the number of results)'#13#10'This internally makes use of the "Only find paths with a static address" feature by marking the provided range as static only, so it must be enabled.'
-    Top = 335
+    Top = 292
     Width = 204
     Caption = 'Base address must be in specific range'
     OnChange = cbMustStartWithBaseChange
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 10
-  end
-  object cbCompressedPointerscanFile: TCheckBox
-    Left = 288
-    Height = 19
-    Hint = 'Compresses the generated .PTR files slightly so they take less space on the disk and less time writing to disk.'#13#10'Most of the time the bottleneck of a pointerscan is disk writing, so it is recommended to use this option.'#13#10#13#10'Compressed .PTR files can not be read out by older Cheat Engine versions'
-    Top = 270
-    Width = 152
-    Caption = 'Compressed pointerscan file'
-    Checked = True
-    ParentShowHint = False
-    ShowHint = True
-    State = cbChecked
-    TabOrder = 11
+    TabOrder = 9
   end
   object cbCompareToOtherPointermaps: TCheckBox
+    AnchorSideTop.Side = asrBottom
     Left = 8
     Height = 19
     Hint = 'When ticked you can add other pointermaps which will be used to verify that the pointers it finds are correct. You will have to fill in the correct address for each pointermap you provide.'#13#10'Note: expect at least the size of the game itself in memory for every pointermap used'#13#10
-    Top = 314
+    Top = 56
     Width = 242
+    BorderSpacing.Top = 1
     Caption = 'Compare results with other saved pointermap(s)'
     OnChange = cbCompareToOtherPointermapsChange
     ParentShowHint = False
     ShowHint = True
-    TabOrder = 12
-  end
-  object cbGeneratePointermapOnly: TCheckBox
-    Left = 8
-    Height = 19
-    Top = 270
-    Width = 141
-    Caption = 'Generate pointermap only'
-    TabOrder = 13
+    TabOrder = 10
   end
   object edtDistributedPassword: TEdit
     AnchorSideLeft.Control = Label1
     AnchorSideLeft.Side = asrBottom
-    AnchorSideTop.Side = asrBottom
+    AnchorSideTop.Control = edtDistributedPort
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 485
+    Left = 488
     Height = 21
-    Top = 308
-    Width = 148
+    Top = 292
+    Width = 137
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Left = 5
     BorderSpacing.Right = 5
     Enabled = False
     MaxLength = 255
-    TabOrder = 14
+    TabOrder = 11
   end
   object Label1: TLabel
     AnchorSideLeft.Control = edtDistributedPort
     AnchorSideLeft.Side = asrBottom
-    Left = 434
+    AnchorSideTop.Control = edtDistributedPort
+    AnchorSideTop.Side = asrCenter
+    Left = 437
     Height = 13
-    Top = 312
+    Top = 296
     Width = 46
     BorderSpacing.Left = 5
     Caption = 'Password'
     ParentColor = False
+  end
+  object cbShowAdvancedOptions: TCheckBox
+    AnchorSideTop.Side = asrBottom
+    Left = 291
+    Height = 19
+    Top = 56
+    Width = 135
+    Caption = 'Show advanced options'
+    OnChange = cbShowAdvancedOptionsChange
+    TabOrder = 12
+  end
+  object Panel3: TPanel
+    AnchorSideTop.Side = asrBottom
+    Left = 8
+    Height = 194
+    Top = 72
+    Width = 616
+    BevelInner = bvLowered
+    BorderStyle = bsSingle
+    ClientHeight = 190
+    ClientWidth = 612
+    Color = clWindow
+    ParentColor = False
+    TabOrder = 13
+    Visible = False
+    object Label10: TLabel
+      Left = 4
+      Height = 13
+      Top = 105
+      Width = 23
+      Caption = 'From'
+      ParentColor = False
+    end
+    object Label11: TLabel
+      Left = 4
+      Height = 13
+      Top = 127
+      Width = 16
+      Caption = 'To:'
+      ParentColor = False
+    end
+    object Label13: TLabel
+      Left = 4
+      Height = 13
+      Top = 83
+      Width = 200
+      Caption = 'Pointer path may only be inside this region:'
+      ParentColor = False
+    end
+    object CbAlligned: TCheckBox
+      Left = 8
+      Height = 19
+      Hint = 'When enabled, only pointers that are stored in an address dividable by 4 are looked at'#13#10'When disabled, it won''t bother.'#13#10#13#10'pro: Fast scans'#13#10'Con: On some horrible designed games that you shouldn''t even play it won''t find the paths'
+      Top = 0
+      Width = 177
+      Caption = 'Addresses must be 32-bit alligned'
+      Checked = True
+      OnChange = canNotReuse
+      ParentShowHint = False
+      ShowHint = True
+      State = cbChecked
+      TabOrder = 0
+    end
+    object edtReverseStop: TEdit
+      Left = 28
+      Height = 21
+      Top = 124
+      Width = 80
+      CharCase = ecUppercase
+      MaxLength = 8
+      OnChange = canNotReuse
+      TabOrder = 1
+      Text = '7FFFFFFF'
+    end
+    object edtReverseStart: TEdit
+      Left = 28
+      Height = 21
+      Top = 102
+      Width = 80
+      CharCase = ecUppercase
+      MaxLength = 8
+      OnChange = canNotReuse
+      TabOrder = 2
+      Text = '00000000'
+    end
+    object cbStaticOnly: TCheckBox
+      Left = 8
+      Height = 19
+      Hint = 'When checked the pointerscan will only store a path when it starts with a static address. (or easily looked up address)'#13#10'When it''s disabled, it finds every single pointer path'#13#10#13#10'pro: Fast'#13#10'con: It may miss pointers that are accessed by special paths like thread local storage. (but even then they''d be useless for ce as they will change)'
+      Top = 20
+      Width = 189
+      Caption = 'Only find paths with a static address'
+      Checked = True
+      ParentShowHint = False
+      ShowHint = True
+      State = cbChecked
+      TabOrder = 3
+    end
+    object cbUseHeapData: TCheckBox
+      Left = 8
+      Height = 19
+      Hint = 'When this is checked the heap is used to figure out the offset sizes, instead of blindly guessing them.'#13#10'pro: Greatly improve speed and a lot less useless results'#13#10'con: if the game allocates gigantic chunks of heap memory, and then divides it up itself, this will give wrong results.'#13#10#13#10'In other cases this will give perfect pointers '
+      Top = 146
+      Width = 234
+      Caption = 'Improve pointerscan with gathered heap data'
+      OnClick = cbUseHeapDataClick
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 4
+    end
+    object cbHeapOnly: TCheckBox
+      Left = 24
+      Height = 19
+      Hint = 'If the address you search for isn''t a heap address, the scan will return 0 results'
+      Top = 165
+      Width = 248
+      Caption = 'Only allow static and heap addresses in the path'
+      Enabled = False
+      OnClick = cbHeapOnlyClick
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 5
+    end
+    object cbOnlyOneStatic: TCheckBox
+      Left = 8
+      Height = 19
+      Hint = 'When the pointerscanner goes through the list of pointervalues with a specific value, this will stop exploring other paths as soon as it encounters a static pointer to that value'#13#10#13#10'pro: Fast'#13#10'con: You may miss some valid results '
+      Top = 60
+      Width = 267
+      Caption = 'Stop traversing a path when a static has been found'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 6
+    end
+    object cbNoReadOnly: TCheckBox
+      Left = 8
+      Height = 19
+      Hint = 'When checked the pointerscan will throw away memory that is readonly. So when it looks for paths, it won''t encounter paths that pass through read only memory blocks.'#13#10#13#10'When it''s unchecked, it does include readonly memory'#13#10#13#10#13#10'pro: faster, less useless results'#13#10'con: If the game decides to mark a pointer as readonly ce won''t find it '
+      Top = 40
+      Width = 222
+      Caption = 'Don''t include pointers with read-only nodes'
+      Checked = True
+      OnChange = canNotReuse
+      ParentShowHint = False
+      ShowHint = True
+      State = cbChecked
+      TabOrder = 7
+    end
+    object cbClassPointersOnly: TCheckBox
+      Left = 281
+      Height = 19
+      Hint = 'Object oriented programming languages tend to implement classobjects by having a pointer in the first element to something that describes the class'#13#10'With this option enabled, ce will check if it''s a classobject by checking that rule. If not, it won''t see it as a pointer.'#13#10'pro:Tremendous speed increase and almost perfect pointers'#13#10'con:Doesn''t work with runtime generated classes (java, .net) '
+      Top = 0
+      Width = 308
+      Caption = 'First element of pointerstruct must point to module (e.g vtable)'
+      OnChange = canNotReuse
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 8
+    end
+    object cbNoLoop: TCheckBox
+      Left = 281
+      Height = 19
+      Hint = 'This will filter out pointerpaths that ended up in a loop'#13#10'e.g:'#13#10'base->p1->p2->p3->p1->p4'#13#10#13#10'you could just as well do base->p1->p4 then, so throw this one away (base->p1->p4 will be found another way)'#13#10#13#10'pro: Less results so less diskspace used'#13#10'con: slightly slows down the scan as it needs to check for loops every single iteration '
+      Top = 40
+      Width = 111
+      Caption = 'No looping pointers'
+      Checked = True
+      ParentShowHint = False
+      ShowHint = True
+      State = cbChecked
+      TabOrder = 9
+    end
+    object cbMaxOffsetsPerNode: TCheckBox
+      Left = 281
+      Height = 19
+      Hint = 'When the pointerscan looks through the list of pointers with a specific value, it goes through every single pointer that has that value. Every time increasing the offset slightly.'#13#10'With this feature enabled the pointerscan will only check the first few pointers with that value.'#13#10#13#10'pro: Extremely fast, and the results have the lowest pointer paths possible.'#13#10'con: You''ll miss a lot of pointers that might be valid too '
+      Top = 60
+      Width = 163
+      Caption = 'Max different offsets per node:'
+      OnChange = cbMaxOffsetsPerNodeChange
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 10
+    end
+    object edtMaxOffsetsPerNode: TEdit
+      Left = 444
+      Height = 21
+      Top = 58
+      Width = 40
+      Enabled = False
+      TabOrder = 11
+      Text = '2'
+    end
+    object cbStaticStacks: TCheckBox
+      Left = 281
+      Height = 19
+      Hint = 'This allows the stack of threads to be seen as static addresses by the pointerscan.'#13#10'The main thread is always a sure bet that it''s the first one in the list. And often the second thread created is pretty stable as well.'#13#10'With more there''s a bigger change they get created and destroyed randomly'#13#10#13#10'When a program enters a function and exits it, the stack pointer decreases and increases, and the data there gets written to.'#13#10'The farther the game is inside function calls, the more static the older data will be.'#13#10#13#10'With max stack offset: you can set the max size that can be deemed as static enough.'#13#10#13#10'pro: It finds paths otherwise never found'#13#10'con: More results, more diskspace '
+      Top = 80
+      Width = 328
+      Caption = 'Allow stack addresses of the first thread(s) to be handled as static'
+      Checked = True
+      OnChange = cbStaticStacksChange
+      ParentShowHint = False
+      ShowHint = True
+      State = cbChecked
+      TabOrder = 12
+    end
+    object lblNumberOfStackThreads: TLabel
+      Left = 296
+      Height = 13
+      Top = 105
+      Width = 193
+      Caption = 'Number of threads from oldest to newest:'
+      ParentColor = False
+    end
+    object edtThreadStacks: TEdit
+      Left = 509
+      Height = 21
+      Hint = 'Fill in the total number of threads that should be allowed to be used as a stack lookup.'#13#10'Thread 1 is usually the main thread of the game, but if that one spawns another thread for game related events, you might want to have that secondary thread as well.'#13#10'More threads is not recommend as they may get created and destroyed on the fly, and are therefore useless as a lookup base, but it depends on the game.'
+      Top = 103
+      Width = 24
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 13
+      Text = '2'
+    end
+    object lblStackSize: TLabel
+      Left = 296
+      Height = 13
+      Top = 124
+      Width = 213
+      Caption = 'Max stackoffset to be deemed static enough:'
+      ParentColor = False
+    end
+    object edtStackSize: TEdit
+      Left = 509
+      Height = 21
+      Top = 124
+      Width = 80
+      TabOrder = 14
+      Text = '4096'
+    end
+    object cbStackOnly: TCheckBox
+      Left = 296
+      Height = 19
+      Hint = 'Enable this if you wish to only find pointer paths with a stack address.'#13#10'Combine this with "Only find paths with a static address" (default on) else this option will have no effect'#13#10#13#10'pro: You''ll only get paths from the stack'#13#10'con: You don''t get get paths from random dll''s or the .exe '
+      Top = 144
+      Width = 213
+      Caption = 'Stack addresses as ONLY static address'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 15
+    end
+    object cbAcceptNonModuleVtable: TCheckBox
+      Left = 296
+      Height = 19
+      Top = 20
+      Width = 185
+      Caption = 'Also accept non-module addresses'
+      Enabled = False
+      TabOrder = 16
+    end
+    object cbCompressedPointerscanFile: TCheckBox
+      Left = 281
+      Height = 19
+      Hint = 'Compresses the generated .PTR files slightly so they take less space on the disk and less time writing to disk.'#13#10'Most of the time the bottleneck of a pointerscan is disk writing, so it is recommended to use this option.'#13#10#13#10'Compressed .PTR files can not be read out by older Cheat Engine versions'
+      Top = 165
+      Width = 152
+      Caption = 'Compressed pointerscan file'
+      Checked = True
+      ParentShowHint = False
+      ShowHint = True
+      State = cbChecked
+      TabOrder = 17
+    end
   end
   object odLoadPointermap: TOpenDialog
     DefaultExt = '.scandata'
@@ -617,7 +632,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
   end
   object il: TImageList
     left = 464
-    top = 272
+    top = 328
     Bitmap = {
       4C69020000001000000010000000FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
       FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF006360
