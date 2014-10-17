@@ -4048,7 +4048,7 @@ begin
           if (orphanedSince=0) then
           begin
             //not an orphan, check the queue and make the first one in the list my new parent
-            if length(parentqueue)-1 > 0 then
+            if length(parentqueue) > 0 then
             begin
               parent:=parentqueue[0];
               for i:=1 to length(parentqueue)-2 do
