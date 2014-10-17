@@ -3270,6 +3270,7 @@ begin
       freeandnil(childnodes[index].socket);
 
     childnodes[index].MissingSince:=GetTickCount64;
+    //else I won't really miss it...
 
     if childnodes[index].iConnectedTo then
     begin
@@ -3505,7 +3506,7 @@ var
   i: integer;
 begin
   //todo: test me
-  with child.socket do
+  with child^.socket do
   begin
     WriteByte(PSUPDATEREPLYCMD_GIVEMEYOURPATHS);
     WriteDword(count); //maxcount
@@ -3516,7 +3517,7 @@ begin
 
     buf:=TMemoryStream.Create;
     try
-      buf.CopyFrom(child.socket, getPathQueueElementSize*count);
+      buf.CopyFrom(child^.socket, getPathQueueElementSize*count);
 
       buf.position:=0;
       for i:=0 to count-1 do
@@ -3546,16 +3547,16 @@ var
   c: integer;
 begin
   //todo: test me
-  buildPathListForTransmission(paths, count, child.trusted and (child.totalpathqueuesize=0));
+  buildPathListForTransmission(paths, count, child^.trusted and (child^.totalpathqueuesize=0));
 
   try
 
-    with child.socket do
+    with child^.socket do
     begin
       WriteByte(PSUPDATEREPLYCMD_HEREARESOMEPATHS);
       WriteDWord(length(paths)); //number of paths
       for i:=0 to length(paths)-1 do
-        WritePathQueueElementToStream(child.socket, @paths[i]);
+        WritePathQueueElementToStream(child^.socket, @paths[i]);
 
       flushWrites;
 
@@ -3564,8 +3565,8 @@ begin
 
 
 
-    if not child.trusted then //save the paths being sent
-      child.nontrustedlastpaths:=paths;
+    if not child^.trusted then //save the paths being sent
+      child^.nontrustedlastpaths:=paths;
   except
     //add these paths to the overflow queue
     appendDynamicPathQueueToOverflowQueue(paths);
@@ -3602,29 +3603,29 @@ begin
   s.ReadBuffer(updatemsg, sizeof(updatemsg));
 
 //  update the childstatus and issue it a command
-  child.idle:=updatemsg.isidle=1;
-  child.totalthreadcount:=updatemsg.totalthreadcount;
-  child.totalPathsEvaluated:=updatemsg.pathsevaluated;
-  child.pathqueuesize:=updatemsg.localpathqueuecount;
-  child.totalpathqueuesize:=updatemsg.totalpathQueueCount;
-  child.queuesize:=updatemsg.queuesize;
+  child^.idle:=updatemsg.isidle=1;
+  child^.totalthreadcount:=updatemsg.totalthreadcount;
+  child^.totalPathsEvaluated:=updatemsg.pathsevaluated;
+  child^.pathqueuesize:=updatemsg.localpathqueuecount;
+  child^.totalpathqueuesize:=updatemsg.totalpathQueueCount;
+  child^.queuesize:=updatemsg.queuesize;
 
   //now reply
-  if currentscanhasended or ((not child.idle) and (updatemsg.currentscanid<>currentscanid)) then //scan terminated , or
+  if currentscanhasended or ((not child^.idle) and (updatemsg.currentscanid<>currentscanid)) then //scan terminated , or
   begin
-    child.socket.WriteByte(PSUPDATEREPLYCMD_CURRENTSCANHASENDED);
+    child^.socket.WriteByte(PSUPDATEREPLYCMD_CURRENTSCANHASENDED);
 
     if currentscanhasended then
-      child.socket.WriteByte(ifthen(savestate,1,0))
+      child^.socket.WriteByte(ifthen(savestate,1,0))
     else
     begin
       //special case that under normal situations shouldn't occur (could happen if a scan was stopped and a new one was started before the children where idle, or a long lost child joins)
-      child.socket.WriteByte(0); //wrong scan id. I'm waiting for him to kill his children. Don't let him send me paths...
+      child^.socket.WriteByte(0); //wrong scan id. I'm waiting for him to kill his children. Don't let him send me paths...
     end;
 
 
-    child.socket.flushWrites;
-    if child.socket.ReadByte<>0 then
+    child^.socket.flushWrites;
+    if child^.socket.ReadByte<>0 then
       raise exception.create('Invalid reply for PSUPDATEREPLYCMD_CURRENTSCANHASENDED');
     exit;
   end;
@@ -3662,7 +3663,7 @@ begin
     childcount:=length(childnodes);
     childnodescs.leave;
 
-    if child.trusted then
+    if child^.trusted then
     begin
       //equalize the paths
       if (localscannercount=0) and (localpathcount>0) then
@@ -3696,7 +3697,7 @@ begin
     end
     else
     begin
-      if child.idle then //only send paths to the non-trusted child if it's completely idle
+      if child^.idle then //only send paths to the non-trusted child if it's completely idle
       begin
         HandleUpdateStatusMessage_SendPathsToChild(child, child.trustlevel+1); //the trustlevel goes up if it goes idle within 5 minutes
         exit;
@@ -3705,9 +3706,9 @@ begin
   end;
 
   //still here, so everything is ok
-  child.socket.WriteByte(PSUPDATEREPLYCMD_EVERYTHINGOK);
-  child.socket.flushWrites;
-  if child.socket.ReadByte<>0 then
+  child^.socket.WriteByte(PSUPDATEREPLYCMD_EVERYTHINGOK);
+  child^.socket.flushWrites;
+  if child^.socket.ReadByte<>0 then
     raise exception.create('The child didn''t respond to PSUPDATEREPLYCMD_EVERYTHINGOK as expected');
 end;
 
@@ -3777,6 +3778,8 @@ var
   tempfilename: string;
   currentstream: TStream;
 
+  files: integer;
+
 begin
   //todo: test me
   if not isIdle then
@@ -3785,13 +3788,12 @@ begin
   cleanupscan;
 
 
-
-
   with parent.socket do
   begin
     scannerid:=ReadDWord;
     currentscanid:=ReadDWord;
     maxlevel:=ReadDWord;
+    sz:=ReadDWord;
     compressedptr:=readbyte=1;
     staticonly:=readbyte=1;
     noloop:=readByte=1;
@@ -3807,7 +3809,9 @@ begin
     for i:=0 to length(mustendwithoffsetlist)-1 do
       mustendwithoffsetlist[i]:=ReadDWord;
 
-    setlength(instantrescanfiles, ReadDWord-1);
+    files:=readDword;
+
+    setlength(instantrescanfiles, files-1); //-1 because the first one is the main file
 
 
     downloadingscandata_received:=0;
@@ -4626,7 +4630,7 @@ Raises TSocketException
 var
   result: byte;
 begin
-  with potentialparent.socket do
+  with potentialparent^.socket do
   begin
     WriteByte(PSCMD_HELLO);
     WriteAnsiString8(publicname);
@@ -4765,7 +4769,9 @@ begin
 
 
           //you have a new daddy! Say hello to him
+          OutputDebugString('Going to say hello');
         sayHello(@parentqueue[length(parentqueue)-1]); //'Hello daddy'...creepy voice
+        OutputDebugString('said hello');
 
       except
         if parentqueue[length(parentqueue)-1].socket<>nil then
