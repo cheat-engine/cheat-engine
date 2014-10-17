@@ -4219,7 +4219,7 @@ var
 begin
   if terminated then exit;
 
-  currentscanhasended:=not initializer;
+
 
   try
     if allowIncomingParent or allowIncomingChildren then
@@ -4228,6 +4228,8 @@ begin
     if not initializer then
     begin
       //this is a childnode
+      currentscanhasended:=true;
+
       //enter the networking loop and wait for the parent(if there is one) to provide messages, or handle incomming connections
 
       //setup a parent update timer
@@ -4246,6 +4248,8 @@ begin
     end;
 
     //this is an initiator
+
+    allowTempFiles:=true;
 
     currentscanid:=1+random(MaxInt-2); //random value, not 0
 
@@ -5086,8 +5090,6 @@ begin
   overflowqueuecs:=TCriticalSection.create;
 
   nextchildid:=random(MaxInt); //just a random start
-
-  currentscanhasended:=true;
 
   inherited create(suspended);
 end;
