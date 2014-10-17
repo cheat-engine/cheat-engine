@@ -702,7 +702,7 @@ begin
           //get the .scandata files from memory
           f[0]:=TMemoryStreamReader.create(pointerlisthandlerfile);
           for i:=0 to length(instantrescanfiles)-1 do
-            f[i]:=TMemoryStreamReader(instantrescanfiles[i].memoryfilestream);
+            f[i]:=TMemoryStreamReader.create(instantrescanfiles[i].memoryfilestream);
         end;
 
 
@@ -3094,33 +3094,37 @@ begin
     timeout.tv_usec:=500000 div (1+(length(childnodes) div FD_SETSIZE));
     j:=select(maxfd, @readfds, nil, nil, @timeout);
 
-    if j=-1 then
-      raise exception.create('Select failed');
+    if j<>-1 then
+    begin
+      if (listensocket<>INVALID_SOCKET) and FD_ISSET(listensocket, readfds) then //accept connection
+        acceptConnection;
 
-    if (listensocket<>INVALID_SOCKET) and FD_ISSET(listensocket, readfds) then //accept connection
-      acceptConnection;
-
-    childnodescs.Enter;
-    try
-      i:=0;
-      while i<length(childnodes) do
-      begin
-        if (childnodes[i].socket<>nil) and FD_ISSET(childnodes[i].socket.sockethandle, readfds) then //handle it
+      childnodescs.Enter;
+      try
+        i:=0;
+        while i<length(childnodes) do
         begin
-          try
-            HandleChildMessage(i);
-          except
-            on e:exception do //exception happened
-              handleChildException(i, e.message); //marks the child as disconnected
+          if (childnodes[i].socket<>nil) and FD_ISSET(childnodes[i].socket.sockethandle, readfds) then //handle it
+          begin
+            try
+              HandleChildMessage(i);
+            except
+              on e:exception do //exception happened
+                handleChildException(i, e.message); //marks the child as disconnected
+            end;
           end;
+
+          inc(i);
         end;
 
-        inc(i);
+      finally
+        childnodescs.leave;
       end;
 
-    finally
-      childnodescs.leave;
-    end;
+    end
+    else
+      OutputDebugString('Select failed');
+
 
 
     FD_ZERO(readfds);
@@ -3630,11 +3634,11 @@ begin
     //spawn a new thread and tell him about the scan (as soon as I quit and release the critical section)
     //use child.childid to identify the child object to update when done
 
-    assert(child.idle, 'child isn''t idle while previously it was...');
-    if child.idle then
+    assert(child^.idle, 'child isn''t idle while previously it was...');
+    if child^.idle then
     begin
-      child.receivingScanDataProgress:=0;
-      child.scanDataUploader:=TScandataUploader.create(self, child.childid);
+      child^.receivingScanDataProgress:=0;
+      child^.scanDataUploader:=TScandataUploader.create(self, child.childid);
     end;
 
     exit;
@@ -4210,6 +4214,8 @@ var
     pointerlistloaders: array of TPointerlistloader;
 begin
   if terminated then exit;
+
+  currentscanhasended:=not initializer;
 
   try
     if allowIncomingParent or allowIncomingChildren then
