@@ -1273,11 +1273,11 @@ var
 begin
   s.WriteDWord(element.startlevel);
   s.WriteQWord(element.valuetofind);
-  for i:=0 to maxlevel+1 do
+  for i:=0 to maxlevel do
     s.writedword(element.tempresults[i]);
 
   if noloop then
-    for i:=0 to maxlevel+1 do
+    for i:=0 to maxlevel do
       s.writedword(element.valuelist[i]);
 end;
 
@@ -1294,7 +1294,7 @@ begin
   if length(element.tempresults)<maxlevel+1 then
     setlength(element.tempresults, maxlevel+1);
 
-  for i:=0 to maxlevel+1 do
+  for i:=0 to maxlevel do
     element.tempresults[i]:=s.ReadDWord;
 
   if noloop then
@@ -1302,7 +1302,7 @@ begin
     if length(element.valuelist)<maxlevel+1 then
       setlength(element.valuelist, maxlevel+1);
 
-    for i:=0 to maxlevel+1 do
+    for i:=0 to maxlevel do
       element.valuelist[i]:=s.ReadQWord;
   end;
 end;
