@@ -356,6 +356,7 @@ type
     downloadingscandata: boolean; //true while scandata is being downloaded
     downloadingscandata_received: qword;
     downloadingscandata_total: qword;
+    downloadingscandata_starttime: qword;
 
     function UploadResults(decompressedsize: integer; s: tmemorystream): boolean; //sends the given results (compressed) to the parent.
 
@@ -3840,6 +3841,7 @@ begin
 
     downloadingscandata_received:=0;
     downloadingscandata_total:=ReadQWord;
+    downloadingscandata_starttime:=GetTickCount64;
     downloadingscandata:=true;
 
     for i:=0 to files-1 do
