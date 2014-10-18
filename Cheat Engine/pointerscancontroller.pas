@@ -1209,6 +1209,8 @@ begin
   finally
     overflowqueuecs.Leave;
   end;
+
+  EatFromOverflowQueueIfNeeded;
 end;
 
 
@@ -3034,6 +3036,8 @@ var
   checkedallsockets: boolean;
 begin
   //listen to the listensocket if available and for the children
+  EatFromOverflowQueueIfNeeded;
+
   if (listensocket=INVALID_SOCKET) and (length(childnodes)=0) then
   begin
     {
