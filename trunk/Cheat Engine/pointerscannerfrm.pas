@@ -1848,7 +1848,7 @@ begin
               s:=s+' (Idle)';
 
             if connectionlist[i].uploadingscandata then
-              s:=s+format(' (Uploading scandata: %d%% (%dKB/sec)', [connectionlist[i].uploadscandataprogress, connectionlist[i].uploadscandataspeed/1024]); //KB/sec
+              s:=s+format(' (Uploading scandata: %d %% (%d KB/sec)', [connectionlist[i].uploadscandataprogress, connectionlist[i].uploadscandataspeed/1024]); //KB/sec
 
             if connectionlist[i].downloadingResuls then
               s:=s+' (Downloading and handling results)';
@@ -1876,6 +1876,10 @@ begin
 
   except
    // showmessage('exception happened');
+    on e:exception do
+    begin
+      OutputDebugString('pscangui update timer error: '+e.message);
+    end;
   end;
 
 
