@@ -3802,8 +3802,10 @@ var
 
   tempfilename: string;
   currentstream: TStream;
+  ds: Tdecompressionstream;
 
   files: integer;
+
 
 begin
   //todo: test me
@@ -3895,13 +3897,19 @@ begin
       currentstream:=TFileStream.create(LoadedPointermapFilename, fmOpenRead or fmShareDenyNone)
     else
       currentstream:=pointerlisthandlerfile;
-
     //...
-    pointerlisthandler:=TReversePointerListHandler.createFromStream(currentstream);
+
+    ds:=Tdecompressionstream.create(currentstream);
+    try
+      pointerlisthandler:=TReversePointerListHandler.createFromStream(ds);
+    finally
+      ds.free;
+      if allowtempfiles then
+        currentstream.free;
+    end;
 
 
-    if allowtempfiles then
-      currentstream.free;
+
 
 
     //and now the rescan streams
@@ -3913,10 +3921,17 @@ begin
         else
           currentstream:=pointerlisthandlerfile;
 
-        instantrescanfiles[i].plist:=TPointerListHandler.createFromStream(currentstream);
+        try
+          ds:=Tdecompressionstream.create(currentstream);
+          instantrescanfiles[i].plist:=TPointerListHandler.createFromStream(ds);
+        finally
+          ds.free;
 
-        if allowtempfiles then
-          currentstream.free;
+          if allowtempfiles then
+            currentstream.free;
+        end;
+
+
       end;
     end;
 
