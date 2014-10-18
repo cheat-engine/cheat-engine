@@ -3594,6 +3594,8 @@ begin
 
     if not child^.trusted then //save the paths being sent
       child^.nontrustedlastpaths:=paths;
+
+    child^.idle:=false; //not idle anymore
   except
     //add these paths to the overflow queue
     appendDynamicPathQueueToOverflowQueue(paths);
