@@ -591,20 +591,16 @@ end;
 //--------------------------SCANDATAUPLOADER--------------
 procedure TScanDataUploader.UpdateChildProgress(sent: qword; total: qword);
 var
-  percentage: integer;
   i: integer;
 begin
-  percentage:=ceil(sent/total*100);
-
   fcontroller.childnodescs.Enter;
   try
     for i:=0 to length(fcontroller.childnodes)-1 do
     begin
       if fcontroller.childnodes[i].childid=fchildid then
       begin
-
-        fcontroller.childnodes[i].receivingScanDataProgress:=percentage;
-        fcontroller.childnodes[i].receivingScanDataSpeed:=ceil((sent/(GetTickCount64-starttime))*1000); //bytes/s
+        fcontroller.childnodes[i].ScanDataSent:=sent;
+        fcontroller.childnodes[i].ScanDataTotalSize:=total;
         break;
       end;
     end;
@@ -640,6 +636,7 @@ begin
         if fcontroller.childnodes[i].childid=fchildid then
         begin
           s:=fcontroller.childnodes[i].socket;
+          fcontroller.childnodes[i].ScanDataStartTime:=GetTickCount64;
           break;
         end;
       end;
@@ -752,7 +749,13 @@ begin
 
 
       if s.ReadByte<>0 then
+      begin
         raise TSocketException.create('Invalid result received after uploading the scanresults');
+      end
+      else
+      begin
+        OutputDebugString('Succesfully sent scandata to child');
+      end;
 
     end;
 
@@ -1163,8 +1166,9 @@ begin
       l[i].resultsfound:=childnodes[i].resultsfound;
       l[i].disconnected:=childnodes[i].socket=nil;
       l[i].uploadingscandata:=childnodes[i].scandatauploader<>nil;
-      l[i].uploadscandataprogress:=childnodes[i].receivingScanDataProgress;
-      l[i].uploadscandataspeed:=childnodes[i].receivingScanDataSpeed;
+      l[i].ScanDataSent:=childnodes[i].ScanDataSent;
+      l[i].ScanDataTotalSize:=childnodes[i].ScanDataTotalSize;
+      l[i].ScanDataStartTime:=childnodes[i].ScanDataStartTime;
       l[i].downloadingResuls:=childnodes[i].scanresultDownloader<>nil;
     end;
   finally
@@ -3656,7 +3660,9 @@ begin
     assert(child^.idle, 'child isn''t idle while previously it was...');
     if child^.idle then
     begin
-      child^.receivingScanDataProgress:=0;
+      child^.ScanDataTotalSize:=0;
+      child^.ScanDataSent:=0;
+      child^.ScanDataStartTime:=0;
       child^.scanDataUploader:=TScandataUploader.create(self, child.childid);
     end;
 

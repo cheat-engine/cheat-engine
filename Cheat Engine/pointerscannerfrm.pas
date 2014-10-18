@@ -393,14 +393,16 @@ resourcestring
 //----------------------- scanner info --------------------------
 //----------------------- staticscanner -------------------------
 
-var
+
 
 {$ifdef benchmarkps}
 
   //totalpathsevaluated: qword;
 
-  starttime: dword;
-  startcount: qword;
+ {
+var
+ starttime: dword;
+  startcount: qword;  }
 {$endif}
 
 
@@ -767,11 +769,6 @@ begin
 
       new1.click;
 
-      starttime:=0;
-     // totalpathsevaluated:=0;
-      startcount:=0;
-
-
       //default scan
       staticscanner:=TPointerscanController.Create(true);
 
@@ -907,10 +904,6 @@ begin
   if frmpointerscannersettings.Showmodal=mrok then
   begin
     new1.click;
-
-    starttime:=0;
-    //totalpathsevaluated:=0;
-    startcount:=0;
 
     if frmpointerscannersettings.rbGeneratePointermap.checked then //show a .scandata dialog instad of a .ptr
     begin
@@ -1855,7 +1848,7 @@ begin
               s:=s+' (Idle)';
 
             if connectionlist[i].uploadingscandata then
-              s:=s+format(' (Uploading scandata: %d %% (%d KB/sec)', [connectionlist[i].uploadscandataprogress, connectionlist[i].uploadscandataspeed/1024]); //KB/sec
+              s:=s+format(' (Uploading scandata: %.1f%% (%dKB/%dKB : %d KB/sec)', [connectionlist[i].ScanDataSent/connectionlist[i].ScanDataTotalSize*100, connectionlist[i].ScanDataSent div 1024, connectionlist[i].ScanDataTotalSize div 1024, ceil(((connectionlist[i].ScanDataSent / 1024)/((GetTickCount64-connectionlist[i].ScanDataStartTime)/1000)) )]);
 
             if connectionlist[i].downloadingResuls then
               s:=s+' (Downloading and handling results)';

@@ -35,8 +35,9 @@ type
     resultsfound: qword;
 
     uploadingscandata:boolean;
-    uploadscandataprogress: integer;
-    uploadscandataspeed: integer;
+    ScanDataSent: qword;
+    ScanDataTotalSize: qword;
+    ScanDataStartTime: qword;
     downloadingResuls: boolean;
   end;
 
