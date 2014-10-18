@@ -1798,7 +1798,17 @@ begin
             if infonodes.network.parentnodes.lastUpdateSent=nil then
               infonodes.network.parentnodes.lastUpdateSent:=tvInfo.Items.AddChild(infonodes.network.parent,'');
 
-            infonodes.network.parentnodes.lastUpdateSent.Text:='Last update: '+inttostr((GetTickCount64-parentdata.lastupdatesent) div 1000)+' seconds ago';
+            if staticscanner.downloadingscandata then
+            begin
+              infonodes.network.parentnodes.lastUpdateSent.Text:=format('Downloading scandata: %.1f%% (%dKB/%dKB : %d KB/sec)', [staticscanner.downloadingscandata_received/staticscanner.downloadingscandata_total*100, staticscanner.downloadingscandata_received div 1024, staticscanner.downloadingscandata_total div 1024, ceil(((staticscanner.downloadingscandata_received / 1024)/((GetTickCount64-staticscanner.downloadingscandata_starttime)/1000)) )]);
+            end
+            else
+            begin
+              infonodes.network.parentnodes.lastUpdateSent.Text:='Last update: '+inttostr((GetTickCount64-parentdata.lastupdatesent) div 1000)+' seconds ago';
+            end;
+
+
+
 
           end
           else
