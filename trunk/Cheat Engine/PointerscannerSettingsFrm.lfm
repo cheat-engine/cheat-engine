@@ -363,7 +363,7 @@ object frmPointerScannerSettings: TfrmPointerScannerSettings
     Height = 194
     Top = 72
     Width = 616
-    BevelInner = bvLowered
+    BevelOuter = bvNone
     BorderStyle = bsSingle
     ClientHeight = 190
     ClientWidth = 612
