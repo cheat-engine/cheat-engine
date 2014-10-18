@@ -3829,7 +3829,7 @@ begin
     downloadingscandata_total:=ReadQWord;
     downloadingscandata:=true;
 
-    for i:=0 to length(instantrescanfiles) do //not -1
+    for i:=0 to files-1 do
     begin
       if i=0 then
         ReadDword
@@ -3847,7 +3847,7 @@ begin
         if i=0 then
           LoadedPointermapFilename:=tempfilename
         else
-          instantrescanfiles[i].filename:=tempfilename;
+          instantrescanfiles[i-1].filename:=tempfilename;
       end
       else //create a TMemorystream
       begin
