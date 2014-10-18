@@ -3870,6 +3870,7 @@ begin
     end;
 
     WriteByte(0); //tell the parent I received everything
+    flushWrites;
 
     //process the streams
     //first the main stream
