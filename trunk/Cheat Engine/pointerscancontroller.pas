@@ -3887,9 +3887,10 @@ begin
         currentstream.free; //close the filestream. Reopen when needed (After the download is done)
     end;
 
-
     WriteByte(0); //tell the parent I received everything
     flushWrites;
+
+    downloadingscandata:=false;
 
     //process the streams
     //first the main stream
