@@ -80,8 +80,9 @@ type
     nontrustedlastpaths: TDynPathQueue;
 
     scandatauploader: TThread;
-    receivingScanDataProgress: integer;
-    receivingScanDataSpeed: integer; //bytes/sec
+    ScanDataSent: qword;
+    ScanDataTotalSize: qword;
+    ScanDataStartTime: qword;
 
     scanresultDownloader: TThread; //not nil if the results it has sent me are still being processed
     resultstream: TFilestream; //if initializer this holds an open filestream to the .ptr associated with this child
