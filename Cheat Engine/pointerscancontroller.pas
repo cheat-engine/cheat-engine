@@ -1278,7 +1278,7 @@ begin
 
   if noloop then
     for i:=0 to maxlevel do
-      s.writedword(element.valuelist[i]);
+      s.writeqword(element.valuelist[i]);
 end;
 
 procedure TPointerscanController.LoadPathQueueElementFromStream(s: Tstream; element: PPathQueueElement);
