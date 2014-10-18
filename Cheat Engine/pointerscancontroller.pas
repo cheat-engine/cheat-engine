@@ -702,7 +702,7 @@ begin
           //get the .scandata files from memory
           f[0]:=TMemoryStreamReader.create(pointerlisthandlerfile);
           for i:=0 to length(instantrescanfiles)-1 do
-            f[i]:=TMemoryStreamReader.create(instantrescanfiles[i].memoryfilestream);
+            f[i+1]:=TMemoryStreamReader.create(instantrescanfiles[i].memoryfilestream);
         end;
 
 
@@ -3132,9 +3132,8 @@ begin
         childnodescs.leave;
       end;
 
-    end
-    else
-      OutputDebugString('Select failed');
+    end;
+
 
 
 
