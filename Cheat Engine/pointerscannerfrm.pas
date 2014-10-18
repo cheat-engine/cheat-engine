@@ -1848,7 +1848,7 @@ begin
               s:=s+' (Idle)';
 
             if connectionlist[i].uploadingscandata then
-              s:=s+format(' (Uploading scandata: %d (%dK/sec)', [connectionlist[i].uploadscandataprogress, connectionlist[i].uploadscandataspeed]);
+              s:=s+format(' (Uploading scandata: %d%% (%dKB/sec)', [connectionlist[i].uploadscandataprogress, connectionlist[i].uploadscandataspeed/1024]); //KB/sec
 
             if connectionlist[i].downloadingResuls then
               s:=s+' (Downloading and handling results)';

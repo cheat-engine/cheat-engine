@@ -722,7 +722,7 @@ begin
 
         sent:=0;
 
-        for i:=0 to length(instantrescanfiles)-1 do
+        for i:=0 to length(f)-1 do
         begin
           //send a header
           s.WriteDWord(ifthen(i=0,0,instantrescanfiles[i-1].address));  //not important for the main  (automaticaddress)
@@ -3049,7 +3049,10 @@ begin
   begin
     FD_SET(listensocket, readfds);
     maxfd:=listensocket;
-  end;
+  end
+  else
+    maxfd:=0;
+
 
 
 
@@ -3090,9 +3093,17 @@ begin
     //listen for this set
     count:=readfds.fd_count;
 
-    timeout.tv_sec:=0;
-    timeout.tv_usec:=500000 div (1+(length(childnodes) div FD_SETSIZE));
-    j:=select(maxfd, @readfds, nil, nil, @timeout);
+    if count>0 then
+    begin
+      timeout.tv_sec:=0;
+      timeout.tv_usec:=500000 div (1+(length(childnodes) div FD_SETSIZE));
+      j:=select(maxfd, @readfds, nil, nil, @timeout);
+    end
+    else
+    begin
+      sleep(500);
+      j:=-1;
+    end;
 
     if j<>-1 then
     begin
