@@ -3222,7 +3222,15 @@ begin
     BecomeChildOfNode(host, port, password);
 
 
-  orphanedSince:=GetTickCount64;
+  if currentscanhasended then
+  begin
+    cleanupScan;
+    orphanedSince:=0;
+  end
+  else
+    orphanedSince:=GetTickCount64;
+
+
 
 end;
 
@@ -3869,6 +3877,7 @@ begin
         currentstream.free; //close the filestream. Reopen when needed (After the download is done)
     end;
 
+
     WriteByte(0); //tell the parent I received everything
     flushWrites;
 
@@ -3912,8 +3921,13 @@ begin
   currentscanhasended:=false;
 
   //spawn the threads:
-  for i:=0 to threadcount-1 do
-    addworkerThread;
+  localscannersCS.enter;
+  try
+    while length(localscanners)<threadcount do
+      addworkerThread;
+  finally
+    localscannersCS.leave;
+  end;
 end;
 
 procedure TPointerscanController.HandleUpdateStatusReply_GiveMeYourPaths;
@@ -4981,7 +4995,6 @@ begin
       localscanners[length(localscanners)-1].free;
       setlength(localscanners, length(localscanners)-1);
     end;
-    dec(threadcount);
   finally
     localscannersCS.leave;
   end;

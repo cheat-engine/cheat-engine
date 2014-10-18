@@ -1492,13 +1492,20 @@ end;
 procedure Tfrmpointerscanner.btnIncreaseThreadCountClick(Sender: TObject);
 begin
     if staticscanner<>nil then
+    begin
       staticscanner.addWorkerThread;
+      inc(staticscanner.threadcount);
+    end;
 end;
 
 procedure Tfrmpointerscanner.btnDecreaseThreadCountClick(Sender: TObject);
 begin
   if staticscanner<>nil then
+  begin
     staticscanner.RemoveWorkerThread;
+    if staticscanner.threadcount>0 then
+      dec(staticscanner.threadcount);
+  end;
 end;
 
 procedure Tfrmpointerscanner.cbPriorityChange(Sender: TObject);
