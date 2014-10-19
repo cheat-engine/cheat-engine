@@ -27,6 +27,7 @@ type
     procedure btnSetFileClick(Sender: TObject);
     procedure btnDeleteClick(Sender: TObject);
     procedure setFileName(filename: string);
+    procedure cbAddressDrawItem(Control: TWinControl; Index: Integer; ARect: TRect; State: TOwnerDrawState);
   public
     property filename: string read ffilename write setFileName;
     property OnDelete: TNotifyEvent read fOnDelete write fOnDelete;
@@ -269,6 +270,19 @@ end;
 
 //-----------TPointerFileEntry--------------
 
+procedure TPointerFileEntry.cbAddressDrawItem(Control: TWinControl; Index: Integer; ARect: TRect; State: TOwnerDrawState);
+var
+  s: string;
+  c: TCombobox;
+  l: TStrings;
+begin
+  c:=tcombobox(control);
+  l:=tstrings(c.tag);
+
+  c.Canvas.FillRect(ARect);
+  s:=l.Strings[Index];
+  c.Canvas.TextOut(ARect.Left, ARect.Top, s);
+end;
 
 constructor TPointerFileEntry.create(imagelist: TImageList; AOwner: TComponent);
 var bm: tbitmap;
@@ -309,6 +323,7 @@ begin
   cbAddress.anchors:=[aktop, akright];
   cbAddress.BorderSpacing.Right:=8;
   cbAddress.style:=csOwnerDrawFixed;
+  cbAddress.OnDrawItem:=cbAddressDrawItem;
 
   Addresslist:=tstringlist.create;
   Addresslist.NameValueSeparator:='=';
